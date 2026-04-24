@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 01-03-PLAN.md
-last_updated: "2026-04-24T17:20:54Z"
-last_activity: 2026-04-24 -- Completed plan 01-03 (Phase 1 profile DSL + digest primitives)
+stopped_at: Completed 01-04-PLAN.md
+last_updated: "2026-04-24T17:29:22Z"
+last_activity: 2026-04-24 -- Completed plan 01-04 (Phase 1 lifecycle FSM + stale policy foundations)
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 6
-  completed_plans: 4
-  percent: 67
+  completed_plans: 5
+  percent: 83
 ---
 
 # Project State
@@ -26,29 +26,29 @@ See: .planning/PROJECT.md (updated 2026-04-24)
 ## Current Position
 
 Phase: 01 (foundation) — EXECUTING
-Plan: 4 of 6
+Plan: 5 of 6
 Status: Executing Phase 01
-Last activity: 2026-04-24 -- Completed plan 01-03 (Phase 1 profile DSL + digest primitives)
+Last activity: 2026-04-24 -- Completed plan 01-04 (Phase 1 lifecycle FSM + stale policy foundations)
 
-Progress: [███████░░░] 67%
+Progress: [████████░░] 83%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 4
+- Total plans completed: 5
 - Average duration: 3 min
-- Total execution time: 0.2 hours
+- Total execution time: 0.3 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 01-foundation | 4 | 12 min | 3 min |
+| 01-foundation | 5 | 16 min | 3 min |
 
 **Recent Trend:**
 
-- Last 5 plans: 2 min, 2 min, 5 min, 3 min
+- Last 5 plans: 2 min, 2 min, 5 min, 3 min, 4 min
 - Trend: Stable to improving
 
 *Updated after each plan completion*
@@ -76,6 +76,9 @@ Recent decisions affecting current work:
 - [01-02]: Storage capability branching is standardized via `capabilities/0`; mocks must validate callback semantics before adapter implementation.
 - [01-03]: Profile DSL macro expands option literals before validation so module aliases and variant specs fail fast at compile time when invalid.
 - [01-03]: Recipe digest generation canonicalizes variant option key ordering before hashing, making stale detection deterministic.
+- [01-04]: Lifecycle state enforcement uses explicit allowlist FSM modules that reject invalid jumps with tagged tuple errors.
+- [01-04]: Transition failure, quarantine, and upload-session expiry flows emit structured warning/info logs with contextual metadata keys.
+- [01-04]: Stale serving behavior and stale-only query scope are established as foundational policy primitives for Phase 3/4 consumers.
 
 ### Pending Todos
 
@@ -92,7 +95,7 @@ None yet.
 ## Session Continuity
 
 Last session: --stopped-at
-Stopped at: Completed 01-03-PLAN.md
+Stopped at: Completed 01-04-PLAN.md
 Resume file: --resume-file
 
 ### Decision-Making Preference

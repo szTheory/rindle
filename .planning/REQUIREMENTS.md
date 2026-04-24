@@ -18,39 +18,39 @@
 
 ### Asset State Machine
 
-- [ ] **ASM-01**: Asset transitions `staged → validating` when upload is received and verification begins
-- [ ] **ASM-02**: Asset transitions `validating → analyzing` after MIME and size validation passes
-- [ ] **ASM-03**: Asset transitions `analyzing → promoting` after metadata extraction completes
-- [ ] **ASM-04**: Asset transitions `promoting → available` after attachment is written atomically
-- [ ] **ASM-05**: Asset transitions `available → processing` when variant generation begins
-- [ ] **ASM-06**: Asset transitions `processing → ready` when all required variants are generated successfully
-- [ ] **ASM-07**: Asset transitions to `degraded` when some but not all variants fail generation
-- [ ] **ASM-08**: Asset transitions to `quarantined` when MIME/magic-byte validation fails or scanner flags the file
-- [ ] **ASM-09**: Asset transitions to `deleted` after purge completes; record is retained for audit log
-- [ ] **ASM-10**: Invalid state transitions are rejected; no direct jump from `staged` to `ready`
+- [x] **ASM-01**: Asset transitions `staged → validating` when upload is received and verification begins
+- [x] **ASM-02**: Asset transitions `validating → analyzing` after MIME and size validation passes
+- [x] **ASM-03**: Asset transitions `analyzing → promoting` after metadata extraction completes
+- [x] **ASM-04**: Asset transitions `promoting → available` after attachment is written atomically
+- [x] **ASM-05**: Asset transitions `available → processing` when variant generation begins
+- [x] **ASM-06**: Asset transitions `processing → ready` when all required variants are generated successfully
+- [x] **ASM-07**: Asset transitions to `degraded` when some but not all variants fail generation
+- [x] **ASM-08**: Asset transitions to `quarantined` when MIME/magic-byte validation fails or scanner flags the file
+- [x] **ASM-09**: Asset transitions to `deleted` after purge completes; record is retained for audit log
+- [x] **ASM-10**: Invalid state transitions are rejected; no direct jump from `staged` to `ready`
 
 ### Variant State Machine
 
-- [ ] **VSM-01**: Variant is created in `planned` state when an asset is promoted and profile specifies the variant
-- [ ] **VSM-02**: Variant transitions `planned → queued` when Oban job is enqueued
-- [ ] **VSM-03**: Variant transitions `queued → processing` when Oban job begins execution
-- [ ] **VSM-04**: Variant transitions `processing → ready` when storage write succeeds and DB record is updated
-- [ ] **VSM-05**: Variant transitions to `failed` when processing errors exceed retry limit
-- [ ] **VSM-06**: Variant transitions to `stale` when asset profile's recipe digest changes after the variant was generated
-- [ ] **VSM-07**: Variant transitions to `missing` when storage reconciliation detects the object is absent
-- [ ] **VSM-08**: Variant transitions to `purged` after variant-level purge completes
+- [x] **VSM-01**: Variant is created in `planned` state when an asset is promoted and profile specifies the variant
+- [x] **VSM-02**: Variant transitions `planned → queued` when Oban job is enqueued
+- [x] **VSM-03**: Variant transitions `queued → processing` when Oban job begins execution
+- [x] **VSM-04**: Variant transitions `processing → ready` when storage write succeeds and DB record is updated
+- [x] **VSM-05**: Variant transitions to `failed` when processing errors exceed retry limit
+- [x] **VSM-06**: Variant transitions to `stale` when asset profile's recipe digest changes after the variant was generated
+- [x] **VSM-07**: Variant transitions to `missing` when storage reconciliation detects the object is absent
+- [x] **VSM-08**: Variant transitions to `purged` after variant-level purge completes
 
 ### Upload Session State Machine
 
-- [ ] **USM-01**: Upload session is created in `initialized` state via `Rindle.initiate_upload/2`
-- [ ] **USM-02**: Session transitions `initialized → signed` when presigned PUT URL is generated and returned to client
-- [ ] **USM-03**: Session transitions `signed → uploading` when client begins PUT (optional — may stay `signed` until verification)
-- [ ] **USM-04**: Session transitions to `uploaded` when storage reports object exists at expected key
-- [ ] **USM-05**: Session transitions `uploaded → verifying` when server-side verification begins (MIME check, size check)
-- [ ] **USM-06**: Session transitions `verifying → completed` when verification passes and asset is promoted
-- [ ] **USM-07**: Session transitions to `aborted` when client cancels or server rejects the session
-- [ ] **USM-08**: Session transitions to `expired` when TTL elapses before completion
-- [ ] **USM-09**: Session transitions to `failed` when verification fails (MIME mismatch, size exceeded, scanner rejection)
+- [x] **USM-01**: Upload session is created in `initialized` state via `Rindle.initiate_upload/2`
+- [x] **USM-02**: Session transitions `initialized → signed` when presigned PUT URL is generated and returned to client
+- [x] **USM-03**: Session transitions `signed → uploading` when client begins PUT (optional — may stay `signed` until verification)
+- [x] **USM-04**: Session transitions to `uploaded` when storage reports object exists at expected key
+- [x] **USM-05**: Session transitions `uploaded → verifying` when server-side verification begins (MIME check, size check)
+- [x] **USM-06**: Session transitions `verifying → completed` when verification passes and asset is promoted
+- [x] **USM-07**: Session transitions to `aborted` when client cancels or server rejects the session
+- [x] **USM-08**: Session transitions to `expired` when TTL elapses before completion
+- [x] **USM-09**: Session transitions to `failed` when verification fails (MIME mismatch, size exceeded, scanner rejection)
 
 ### Core Behaviours
 
@@ -165,8 +165,8 @@
 ### Stale Variant Detection
 
 - [x] **STALE-01**: When a profile's variant spec changes, recipe digest changes and all existing variants for that spec transition to `stale`
-- [ ] **STALE-02**: `Rindle.url/2` for a `stale` variant returns the existing URL with a configurable staleness behavior (serve stale or fallback to original)
-- [ ] **STALE-03**: `mix rindle.regenerate_variants --stale` targets only stale variants for regeneration
+- [x] **STALE-02**: `Rindle.url/2` for a `stale` variant returns the existing URL with a configurable staleness behavior (serve stale or fallback to original)
+- [x] **STALE-03**: `mix rindle.regenerate_variants --stale` targets only stale variants for regeneration
 
 ### Responsive Image Helper
 
@@ -187,9 +187,9 @@
 
 - [ ] **ERR-01**: All public API functions return tagged tuples `{:ok, result}` or `{:error, reason}`; no bare raises in public API
 - [ ] **ERR-02**: Storage failures during variant processing are logged with asset ID, variant name, and error reason at `:error` level
-- [ ] **ERR-03**: State transition failures log the attempted transition, current state, and reason at `:warning` level
-- [ ] **ERR-04**: Upload session expiry events are logged at `:info` level with session ID and elapsed time
-- [ ] **ERR-05**: Quarantine events are logged at `:warning` level with asset ID, detected MIME, and rejection reason
+- [x] **ERR-03**: State transition failures log the attempted transition, current state, and reason at `:warning` level
+- [x] **ERR-04**: Upload session expiry events are logged at `:info` level with session ID and elapsed time
+- [x] **ERR-05**: Quarantine events are logged at `:warning` level with asset ID, detected MIME, and rejection reason
 
 ### CI Quality Gates
 
@@ -279,14 +279,14 @@
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | SCHEMA-01 through SCHEMA-08 | M1 | Complete (01-01) |
-| ASM-01 through ASM-10 | M1 | Pending |
-| VSM-01 through VSM-08 | M1 | Pending |
-| USM-01 through USM-09 | M1 | Pending |
+| ASM-01 through ASM-10 | M1 | Complete (01-04) |
+| VSM-01 through VSM-08 | M1 | Complete (01-04) |
+| USM-01 through USM-09 | M1 | Complete (01-04) |
 | BHV-01 through BHV-06 | M1 | Complete (01-02) |
 | PROF-01 through PROF-07 | M1 | Complete (01-03) |
 | SEC-01 through SEC-08 | M1 | Pending |
 | STOR-01 through STOR-07 | M1 | Pending |
-| STALE-01 through STALE-03 | M1 | In progress (STALE-01 complete in 01-03) |
+| STALE-01 through STALE-03 | M1 | Complete (STALE-01 in 01-03, STALE-02/03 in 01-04) |
 | UPLD-01 through UPLD-07 | M2 | Pending |
 | PROC-01 through PROC-07 | M2 | Pending |
 | BG-01 through BG-07 | M2 | Pending |
@@ -296,7 +296,7 @@
 | VIEW-01 through VIEW-04 | M3 | Pending |
 | OPS-01 through OPS-09 | M4 | Pending |
 | CONF-01 through CONF-05 | M1 | In progress (CONF-02 complete in 01-03) |
-| ERR-01 through ERR-05 | M1 | Pending |
+| ERR-01 through ERR-05 | M1 | In progress (ERR-03/04/05 complete in 01-04) |
 | CI-01 through CI-09 | M5 | Pending |
 | DOC-01 through DOC-08 | M5 | Pending |
 
@@ -307,4 +307,4 @@
 
 ---
 *Requirements defined: 2026-04-24*
-*Last updated: 2026-04-24 after Phase 01-03 profile DSL and digest completion*
+*Last updated: 2026-04-24 after Phase 01-04 lifecycle FSM and stale policy completion*
