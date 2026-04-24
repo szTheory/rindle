@@ -15,7 +15,7 @@ defmodule Rindle.Security.Mime do
             case IO.binread(io, @magic_probe_bytes) do
               data when is_binary(data) and byte_size(data) > 0 ->
                 data
-                |> ExMarcel.MimeType.for({:string, data})
+                |> then(&ExMarcel.MimeType.for({:string, &1}))
                 |> normalize_detected_mime()
 
               _ ->
