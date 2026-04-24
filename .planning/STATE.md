@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 01-05-PLAN.md
-last_updated: "2026-04-24T17:46:14Z"
-last_activity: 2026-04-24 -- Completed plan 01-05 (upload security primitives: MIME, limits, sanitization, promotion gate)
+stopped_at: Completed 01-06-PLAN.md
+last_updated: "2026-04-24T17:56:27Z"
+last_activity: 2026-04-24 -- Completed plan 01-06 (storage adapters, config defaults, and adapter conformance tests)
 progress:
   total_phases: 5
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 6
-  completed_plans: 5
-  percent: 83
+  completed_plans: 6
+  percent: 100
 ---
 
 # Project State
@@ -25,31 +25,31 @@ See: .planning/PROJECT.md (updated 2026-04-24)
 
 ## Current Position
 
-Phase: 01 (foundation) — EXECUTING
-Plan: 6 of 6
-Status: Executing Phase 01
-Last activity: 2026-04-24 -- Completed plan 01-05 (upload security primitives: MIME, limits, sanitization, promotion gate)
+Phase: 01 (foundation) — COMPLETE
+Plan: 6 of 6 complete
+Status: Ready for Phase 02 planning/execution
+Last activity: 2026-04-24 -- Completed plan 01-06 (storage adapters, config defaults, and adapter conformance tests)
 
-Progress: [████████░░] 83%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 5
-- Average duration: 3 min
-- Total execution time: 0.3 hours
+- Total plans completed: 6
+- Average duration: 4 min
+- Total execution time: 0.4 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 01-foundation | 5 | 16 min | 3 min |
+| 01-foundation | 6 | 21 min | 4 min |
 
 **Recent Trend:**
 
-- Last 5 plans: 2 min, 2 min, 5 min, 3 min, 4 min
-- Trend: Stable to improving
+- Last 5 plans: 2 min, 5 min, 3 min, 4 min, 5 min
+- Trend: Stable
 
 *Updated after each plan completion*
 
@@ -79,13 +79,15 @@ Recent decisions affecting current work:
 - [01-04]: Lifecycle state enforcement uses explicit allowlist FSM modules that reject invalid jumps with tagged tuple errors.
 - [01-04]: Transition failure, quarantine, and upload-session expiry flows emit structured warning/info logs with contextual metadata keys.
 - [01-04]: Stale serving behavior and stale-only query scope are established as foundational policy primitives for Phase 3/4 consumers.
+- [01-06]: Storage adapters are selected per profile module (`profile.storage_adapter/0`) to support mixed backends in one adopter application.
+- [01-06]: Local and S3 adapters advertise strict capability lists (`[:local]`, `[:presigned_put]`) validated by conformance tests.
+- [01-06]: Storage failure boundaries in `Rindle` facade are tuple-only and log `rindle.storage.variant_processing_failed` metadata for asset/variant diagnostics.
 
 ### Pending Todos
 
 - Study phx_media_library v0.6.0 API before Phase 5 public API finalization
 - Verify Cloudflare R2 presigned PUT semantics in Phase 5 CI integration lane
 - Ensure `capabilities/0` on Storage behaviour is extensible enough to accommodate GCS POST-then-PUT flow (design in Phase 1)
-- Update mix.exs: `oban: "~> 2.21"`, `image: "~> 0.65"`, add `ex_aws_s3`, `ex_aws`, `ex_marcel` (Phase 1)
 - Add libvips system dependency note to CI config and getting started guide
 
 ### Blockers/Concerns
@@ -95,7 +97,7 @@ None yet.
 ## Session Continuity
 
 Last session: --stopped-at
-Stopped at: Completed 01-05-PLAN.md
+Stopped at: Completed 01-06-PLAN.md
 Resume file: --resume-file
 
 ### Decision-Making Preference
@@ -105,4 +107,4 @@ Resume file: --resume-file
 - If escalation is not possible in-session, use a reversible default and log the assumption.
 - Workflow preference: skip discuss by default (`workflow.skip_discuss=true`) and move directly into planning/execution unless a high-impact ambiguity is detected.
 
-**Planned Phase:** 01 (Foundation) — 6 plans — 2026-04-24T16:53:18.837Z
+**Next Phase:** 02 (Upload & Processing) — planning/execution pending

@@ -84,13 +84,13 @@
 
 ### Storage Adapters
 
-- [ ] **STOR-01**: Local disk adapter implements all `Rindle.Storage` callbacks and passes the behaviour's test suite
-- [ ] **STOR-02**: S3-compatible adapter implements all `Rindle.Storage` callbacks including presigned PUT URL generation
-- [ ] **STOR-03**: S3 adapter `capabilities/0` returns `[:presigned_put]`; does not advertise unsupported operations
-- [ ] **STOR-04**: Local disk adapter `capabilities/0` returns `[:local]`; does not generate presigned URLs
-- [ ] **STOR-05**: Adapter selection is configured per profile, not globally, allowing multiple backends in one application
-- [ ] **STOR-06**: Storage errors are returned as tagged tuples `{:error, reason}`, never raised silently inside DB transactions
-- [ ] **STOR-07**: S3 adapter is tested against a real S3-compatible endpoint (MinIO) in CI integration lane
+- [x] **STOR-01**: Local disk adapter implements all `Rindle.Storage` callbacks and passes the behaviour's test suite
+- [x] **STOR-02**: S3-compatible adapter implements all `Rindle.Storage` callbacks including presigned PUT URL generation
+- [x] **STOR-03**: S3 adapter `capabilities/0` returns `[:presigned_put]`; does not advertise unsupported operations
+- [x] **STOR-04**: Local disk adapter `capabilities/0` returns `[:local]`; does not generate presigned URLs
+- [x] **STOR-05**: Adapter selection is configured per profile, not globally, allowing multiple backends in one application
+- [x] **STOR-06**: Storage errors are returned as tagged tuples `{:error, reason}`, never raised silently inside DB transactions
+- [x] **STOR-07**: S3 adapter is tested against a real S3-compatible endpoint (MinIO) in CI integration lane
 
 ### Upload Paths
 
@@ -177,16 +177,16 @@
 
 ### Configuration
 
-- [ ] **CONF-01**: Rindle is configured via `config :rindle` in application config; no runtime config file required
+- [x] **CONF-01**: Rindle is configured via `config :rindle` in application config; no runtime config file required
 - [x] **CONF-02**: Storage adapter is selected per profile via `storage: MyAdapter` option in profile definition
-- [ ] **CONF-03**: Oban queue name for Rindle workers is configurable; defaults to `:rindle`
-- [ ] **CONF-04**: Default signed URL TTL is configurable globally with per-profile override
-- [ ] **CONF-05**: Upload session TTL is configurable; defaults to a documented value
+- [x] **CONF-03**: Oban queue name for Rindle workers is configurable; defaults to `:rindle`
+- [x] **CONF-04**: Default signed URL TTL is configurable globally with per-profile override
+- [x] **CONF-05**: Upload session TTL is configurable; defaults to a documented value
 
 ### Error Handling & Logging
 
-- [ ] **ERR-01**: All public API functions return tagged tuples `{:ok, result}` or `{:error, reason}`; no bare raises in public API
-- [ ] **ERR-02**: Storage failures during variant processing are logged with asset ID, variant name, and error reason at `:error` level
+- [x] **ERR-01**: All public API functions return tagged tuples `{:ok, result}` or `{:error, reason}`; no bare raises in public API
+- [x] **ERR-02**: Storage failures during variant processing are logged with asset ID, variant name, and error reason at `:error` level
 - [x] **ERR-03**: State transition failures log the attempted transition, current state, and reason at `:warning` level
 - [x] **ERR-04**: Upload session expiry events are logged at `:info` level with session ID and elapsed time
 - [x] **ERR-05**: Quarantine events are logged at `:warning` level with asset ID, detected MIME, and rejection reason
@@ -285,7 +285,7 @@
 | BHV-01 through BHV-06 | M1 | Complete (01-02) |
 | PROF-01 through PROF-07 | M1 | Complete (01-03) |
 | SEC-01 through SEC-08 | M1 | Complete (01-05) |
-| STOR-01 through STOR-07 | M1 | Pending |
+| STOR-01 through STOR-07 | M1 | Complete (01-06) |
 | STALE-01 through STALE-03 | M1 | Complete (STALE-01 in 01-03, STALE-02/03 in 01-04) |
 | UPLD-01 through UPLD-07 | M2 | Pending |
 | PROC-01 through PROC-07 | M2 | Pending |
@@ -295,8 +295,8 @@
 | TEL-01 through TEL-08 | M3 | Pending |
 | VIEW-01 through VIEW-04 | M3 | Pending |
 | OPS-01 through OPS-09 | M4 | Pending |
-| CONF-01 through CONF-05 | M1 | In progress (CONF-02 complete in 01-03) |
-| ERR-01 through ERR-05 | M1 | In progress (ERR-03/04/05 complete in 01-04) |
+| CONF-01 through CONF-05 | M1 | Complete (CONF-02 in 01-03; CONF-01/03/04/05 in 01-06) |
+| ERR-01 through ERR-05 | M1 | Complete (ERR-03/04/05 in 01-04; ERR-01/02 in 01-06) |
 | CI-01 through CI-09 | M5 | Pending |
 | DOC-01 through DOC-08 | M5 | Pending |
 
@@ -307,4 +307,4 @@
 
 ---
 *Requirements defined: 2026-04-24*
-*Last updated: 2026-04-24 after Phase 01-04 lifecycle FSM and stale policy completion*
+*Last updated: 2026-04-24 after Phase 01-06 storage adapters, config contracts, and adapter conformance coverage*

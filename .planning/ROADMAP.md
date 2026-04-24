@@ -12,8 +12,8 @@ Rindle ships in five phases that mirror the natural dependency graph of a produc
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Foundation** - Schemas, behaviours, state machines, security primitives, and local storage
-- [ ] **Phase 2: Upload & Processing** - Upload paths, image processing pipeline, Oban workers, and S3 adapter
+- [x] **Phase 1: Foundation** - Schemas, behaviours, state machines, security primitives, and local/S3 storage adapters
+- [ ] **Phase 2: Upload & Processing** - Upload paths, image processing pipeline, and Oban workers
 - [ ] **Phase 3: Delivery & Observability** - Signed URL delivery, telemetry public contract, and responsive image helper
 - [ ] **Phase 4: Day-2 Operations** - Mix tasks, cron workers, stale detection, and operational recovery paths
 - [ ] **Phase 5: CI & 1.0 Readiness** - Integration lane, adopter validation, documentation, and release gates
@@ -30,7 +30,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Uploading a file with a mismatched MIME/extension causes the asset to transition to `quarantined` — verifiable via DB query
   4. A custom storage adapter that implements `Rindle.Storage` callbacks passes the behaviour's test suite with local disk adapter
   5. State machine transitions reject invalid jumps (e.g., `staged → ready`) and accept valid ones, with each outcome reflected in the DB record
-**Plans**: `01-01` complete (`.planning/phases/01-foundation/01-01-SUMMARY.md`), `01-02` complete (`.planning/phases/01-foundation/01-02-SUMMARY.md`), `01-03` complete (`.planning/phases/01-foundation/01-03-SUMMARY.md`), `01-04` complete (`.planning/phases/01-foundation/01-04-SUMMARY.md`), `01-05` complete (`.planning/phases/01-foundation/01-05-SUMMARY.md`); remaining plans in progress
+**Plans**: `01-01` complete (`.planning/phases/01-foundation/01-01-SUMMARY.md`), `01-02` complete (`.planning/phases/01-foundation/01-02-SUMMARY.md`), `01-03` complete (`.planning/phases/01-foundation/01-03-SUMMARY.md`), `01-04` complete (`.planning/phases/01-foundation/01-04-SUMMARY.md`), `01-05` complete (`.planning/phases/01-foundation/01-05-SUMMARY.md`), `01-06` complete (`.planning/phases/01-foundation/01-06-SUMMARY.md`)
 
 ### Phase 2: Upload & Processing
 **Goal**: A file can travel the full path from upload initiation through variant generation — either via Phoenix-proxied upload or direct presigned PUT — with Oban workers handling all async processing
@@ -88,7 +88,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 5/6 | In progress | - |
+| 1. Foundation | 6/6 | Complete | 2026-04-24 |
 | 2. Upload & Processing | 0/TBD | Not started | - |
 | 3. Delivery & Observability | 0/TBD | Not started | - |
 | 4. Day-2 Operations | 0/TBD | Not started | - |
