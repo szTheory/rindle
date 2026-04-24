@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: planning
-stopped_at: Phase 1 context gathered (assumptions mode)
-last_updated: "2026-04-24T14:41:13.280Z"
-last_activity: 2026-04-24 — Roadmap created from REQUIREMENTS.md and research SUMMARY.md
+status: executing
+stopped_at: Completed 01-01-PLAN.md
+last_updated: "2026-04-24T17:01:18.000Z"
+last_activity: 2026-04-24 -- Completed plan 01-01 (Phase 1 schema substrate)
 progress:
   total_phases: 5
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  total_plans: 6
+  completed_plans: 2
+  percent: 33
 ---
 
 # Project State
@@ -21,35 +21,35 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-24)
 
 **Core value:** Media, made durable — full media lifecycle after upload for Phoenix applications with production confidence
-**Current focus:** Phase 1 — Foundation
+**Current focus:** Phase 01 — foundation
 
 ## Current Position
 
-Phase: 1 of 5 (Foundation)
-Plan: 0 of TBD in current phase
-Status: Ready to plan
-Last activity: 2026-04-24 — Roadmap created from REQUIREMENTS.md and research SUMMARY.md
+Phase: 01 (foundation) — EXECUTING
+Plan: 2 of 6
+Status: Executing Phase 01
+Last activity: 2026-04-24 -- Completed plan 01-01 (Phase 1 schema substrate)
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [███░░░░░░░] 33%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 0
-- Average duration: —
-- Total execution time: 0 hours
+- Total plans completed: 2
+- Average duration: 2 min
+- Total execution time: 0.1 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| — | — | — | — |
+| 01-foundation | 2 | 4 min | 2 min |
 
 **Recent Trend:**
 
-- Last 5 plans: —
-- Trend: —
+- Last 5 plans: 2 min, 2 min
+- Trend: Stable
 
 *Updated after each plan completion*
 
@@ -69,6 +69,9 @@ Recent decisions affecting current work:
 - [Pre-Phase 1]: `Rindle.Repo` remains test/dev harness only for this repository's own ExUnit integration setup
 - [Pre-Phase 1]: Rindle does not supervise Oban; adopters own Oban topology and lifecycle while Rindle provides workers/contracts
 - [Pre-Phase 1]: Autonomous decision policy enabled — low/medium-impact calls are agent-decided; only high-impact decisions escalate
+- [01-01]: Lifecycle state and expiry data remain first-class indexed columns across all core media tables for queryable operations.
+- [01-01]: Schema-layer changesets must mirror DB constraints (`foreign_key_constraint`, `unique_constraint`) for deterministic failures.
+- [01-01]: `media_variants.recipe_digest` is persisted and validated to support stale detection in future regeneration paths.
 
 ### Pending Todos
 
@@ -85,7 +88,7 @@ None yet.
 ## Session Continuity
 
 Last session: --stopped-at
-Stopped at: Phase 1 context gathered (assumptions mode)
+Stopped at: Completed 01-01-PLAN.md
 Resume file: --resume-file
 
 ### Decision-Making Preference
@@ -94,3 +97,5 @@ Resume file: --resume-file
 - Escalate only for high-impact decisions (public API/semver, destructive data changes, security/compliance, irreversible infra/cost, major product-scope shifts).
 - If escalation is not possible in-session, use a reversible default and log the assumption.
 - Workflow preference: skip discuss by default (`workflow.skip_discuss=true`) and move directly into planning/execution unless a high-impact ambiguity is detected.
+
+**Planned Phase:** 01 (Foundation) — 6 plans — 2026-04-24T16:53:18.837Z

@@ -7,14 +7,14 @@
 
 ### Schema & Data Model
 
-- [ ] **SCHEMA-01**: Database migration creates `media_assets` table with all required columns and indexes
-- [ ] **SCHEMA-02**: Database migration creates `media_attachments` table linking assets to application records via polymorphic association
-- [ ] **SCHEMA-03**: Database migration creates `media_variants` table with recipe name, digest, storage key, and state columns
-- [ ] **SCHEMA-04**: Database migration creates `media_upload_sessions` table tracking presigned PUT lifecycle
-- [ ] **SCHEMA-05**: Database migration creates `media_processing_runs` table recording Oban job outcomes per asset
-- [ ] **SCHEMA-06**: All tables have queryable state columns (not JSON blobs) so cleanup jobs and admin queries can filter by state
-- [ ] **SCHEMA-07**: Recipe digest column on `media_variants` allows detection of stale variants after profile changes
-- [ ] **SCHEMA-08**: Ecto schemas expose typed changesets for all tables with validations matching DB constraints
+- [x] **SCHEMA-01**: Database migration creates `media_assets` table with all required columns and indexes
+- [x] **SCHEMA-02**: Database migration creates `media_attachments` table linking assets to application records via polymorphic association
+- [x] **SCHEMA-03**: Database migration creates `media_variants` table with recipe name, digest, storage key, and state columns
+- [x] **SCHEMA-04**: Database migration creates `media_upload_sessions` table tracking presigned PUT lifecycle
+- [x] **SCHEMA-05**: Database migration creates `media_processing_runs` table recording Oban job outcomes per asset
+- [x] **SCHEMA-06**: All tables have queryable state columns (not JSON blobs) so cleanup jobs and admin queries can filter by state
+- [x] **SCHEMA-07**: Recipe digest column on `media_variants` allows detection of stale variants after profile changes
+- [x] **SCHEMA-08**: Ecto schemas expose typed changesets for all tables with validations matching DB constraints
 
 ### Asset State Machine
 
@@ -278,7 +278,7 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SCHEMA-01 through SCHEMA-08 | M1 | Pending |
+| SCHEMA-01 through SCHEMA-08 | M1 | Complete (01-01) |
 | ASM-01 through ASM-10 | M1 | Pending |
 | VSM-01 through VSM-08 | M1 | Pending |
 | USM-01 through USM-09 | M1 | Pending |
@@ -307,4 +307,4 @@
 
 ---
 *Requirements defined: 2026-04-24*
-*Last updated: 2026-04-24 after initial definition from PROJECT.md and feature research*
+*Last updated: 2026-04-24 after Phase 01-01 schema substrate completion*
