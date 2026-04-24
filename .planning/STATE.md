@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 01-01-PLAN.md
-last_updated: "2026-04-24T17:01:18.000Z"
-last_activity: 2026-04-24 -- Completed plan 01-01 (Phase 1 schema substrate)
+stopped_at: Completed 01-02-PLAN.md
+last_updated: "2026-04-24T17:10:07.000Z"
+last_activity: 2026-04-24 -- Completed plan 01-02 (Phase 1 behaviour contracts)
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 6
-  completed_plans: 2
-  percent: 33
+  completed_plans: 3
+  percent: 50
 ---
 
 # Project State
@@ -26,30 +26,30 @@ See: .planning/PROJECT.md (updated 2026-04-24)
 ## Current Position
 
 Phase: 01 (foundation) — EXECUTING
-Plan: 2 of 6
+Plan: 3 of 6
 Status: Executing Phase 01
-Last activity: 2026-04-24 -- Completed plan 01-01 (Phase 1 schema substrate)
+Last activity: 2026-04-24 -- Completed plan 01-02 (Phase 1 behaviour contracts)
 
-Progress: [███░░░░░░░] 33%
+Progress: [█████░░░░░] 50%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 2
-- Average duration: 2 min
-- Total execution time: 0.1 hours
+- Total plans completed: 3
+- Average duration: 3 min
+- Total execution time: 0.2 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 01-foundation | 2 | 4 min | 2 min |
+| 01-foundation | 3 | 9 min | 3 min |
 
 **Recent Trend:**
 
-- Last 5 plans: 2 min, 2 min
-- Trend: Stable
+- Last 5 plans: 2 min, 2 min, 5 min
+- Trend: Stable to improving
 
 *Updated after each plan completion*
 
@@ -72,6 +72,8 @@ Recent decisions affecting current work:
 - [01-01]: Lifecycle state and expiry data remain first-class indexed columns across all core media tables for queryable operations.
 - [01-01]: Schema-layer changesets must mirror DB constraints (`foreign_key_constraint`, `unique_constraint`) for deterministic failures.
 - [01-01]: `media_variants.recipe_digest` is persisted and validated to support stale detection in future regeneration paths.
+- [01-02]: Core adapter seams are frozen as behaviours with typed callbacks and tagged tuple return contracts.
+- [01-02]: Storage capability branching is standardized via `capabilities/0`; mocks must validate callback semantics before adapter implementation.
 
 ### Pending Todos
 
@@ -88,7 +90,7 @@ None yet.
 ## Session Continuity
 
 Last session: --stopped-at
-Stopped at: Completed 01-01-PLAN.md
+Stopped at: Completed 01-02-PLAN.md
 Resume file: --resume-file
 
 ### Decision-Making Preference

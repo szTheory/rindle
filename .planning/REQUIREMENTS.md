@@ -54,12 +54,12 @@
 
 ### Core Behaviours
 
-- [ ] **BHV-01**: `Rindle.Storage` behaviour defines `store/3`, `delete/2`, `url/2`, `presigned_put/3`, and `capabilities/0` callbacks
-- [ ] **BHV-02**: `Rindle.Processor` behaviour defines `process/3` callback taking source path, variant spec, and destination path
-- [ ] **BHV-03**: `Rindle.Analyzer` behaviour defines `analyze/1` callback returning metadata map (dimensions, duration, colorspace, etc.)
-- [ ] **BHV-04**: `Rindle.Scanner` behaviour defines `scan/1` callback returning `:ok` or `{:quarantine, reason}`
-- [ ] **BHV-05**: `Rindle.Authorizer` behaviour defines `authorize/3` callback for delivery authorization decisions
-- [ ] **BHV-06**: All behaviours include `@callback` specs and are testable via mock implementations
+- [x] **BHV-01**: `Rindle.Storage` behaviour defines `store/3`, `delete/2`, `url/2`, `presigned_put/3`, and `capabilities/0` callbacks
+- [x] **BHV-02**: `Rindle.Processor` behaviour defines `process/3` callback taking source path, variant spec, and destination path
+- [x] **BHV-03**: `Rindle.Analyzer` behaviour defines `analyze/1` callback returning metadata map (dimensions, duration, colorspace, etc.)
+- [x] **BHV-04**: `Rindle.Scanner` behaviour defines `scan/1` callback returning `:ok` or `{:quarantine, reason}`
+- [x] **BHV-05**: `Rindle.Authorizer` behaviour defines `authorize/3` callback for delivery authorization decisions
+- [x] **BHV-06**: All behaviours include `@callback` specs and are testable via mock implementations
 
 ### Profile / Recipe DSL
 
@@ -282,7 +282,7 @@
 | ASM-01 through ASM-10 | M1 | Pending |
 | VSM-01 through VSM-08 | M1 | Pending |
 | USM-01 through USM-09 | M1 | Pending |
-| BHV-01 through BHV-06 | M1 | Pending |
+| BHV-01 through BHV-06 | M1 | Complete (01-02) |
 | PROF-01 through PROF-07 | M1 | Pending |
 | SEC-01 through SEC-08 | M1 | Pending |
 | STOR-01 through STOR-07 | M1 | Pending |
@@ -307,4 +307,4 @@
 
 ---
 *Requirements defined: 2026-04-24*
-*Last updated: 2026-04-24 after Phase 01-01 schema substrate completion*
+*Last updated: 2026-04-24 after Phase 01-02 behaviour contract completion*
