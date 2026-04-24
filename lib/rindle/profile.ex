@@ -42,6 +42,16 @@ defmodule Rindle.Profile do
       def validate_upload(upload) do
         Rindle.Profile.Validator.validate_upload(upload, @rindle_upload_policy)
       end
+
+      @spec recipe_digest(atom()) :: String.t()
+      def recipe_digest(variant_name) do
+        if Enum.any?(@rindle_variants, fn {name, _spec} -> name == variant_name end) do
+          Rindle.Profile.Digest.for_variant(__MODULE__, variant_name)
+        else
+          raise ArgumentError,
+                "unknown variant #{inspect(variant_name)} for profile #{inspect(__MODULE__)}"
+        end
+      end
     end
   end
 end
