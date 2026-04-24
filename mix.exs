@@ -42,13 +42,18 @@ defmodule Rindle.MixProject do
       {:jason, "~> 1.4"},
 
       # Background processing
-      {:oban, "~> 2.18"},
+      {:oban, "~> 2.21"},
 
       # Image processing
-      {:image, "~> 0.54"},
+      {:image, "~> 0.65"},
 
       # Configuration validation
       {:nimble_options, "~> 1.1"},
+
+      # Security
+      {:ex_marcel, "~> 0.2"},
+      {:ex_aws, "~> 2.5"},
+      {:ex_aws_s3, "~> 2.5"},
 
       # Observability
       {:telemetry, "~> 1.2"},
@@ -57,6 +62,8 @@ defmodule Rindle.MixProject do
       # Required by :color (via :image) visualizer modules in non-prod envs
       {:plug, "~> 1.16", only: [:dev, :test]},
       {:mox, "~> 1.2", only: :test},
+      {:bypass, "~> 2.1", only: :test},
+      {:ex_machina, "~> 2.7", only: :test},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.34", only: :dev, runtime: false}
