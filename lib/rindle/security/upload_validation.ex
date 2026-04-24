@@ -195,7 +195,7 @@ defmodule Rindle.Security.UploadValidation do
     end
   end
 
-  defp ensure_max_pixels(_upload, _max_pixels), do: {:error, {:quarantine, :max_pixels_exceeded}}
+  defp ensure_max_pixels(_upload, _max_pixels), do: {:error, {:quarantine, :invalid_pixel_dimensions}}
 
   defp direct_upload?(upload) do
     Map.get(upload, :direct_upload) || Map.get(upload, "direct_upload") || false

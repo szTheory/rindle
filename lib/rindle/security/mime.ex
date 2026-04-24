@@ -8,6 +8,8 @@ defmodule Rindle.Security.Mime do
 
   @spec detect(Path.t()) :: {:ok, String.t()} | {:error, :unknown_mime}
   def detect(path) do
+    ensure_marcel_ready()
+
     if is_binary(path) do
       case File.open(path, [:read, :binary]) do
         {:ok, io} ->
@@ -36,6 +38,8 @@ defmodule Rindle.Security.Mime do
   @spec extension_matches_mime?(String.t(), String.t()) :: boolean()
   def extension_matches_mime?(extension, detected_mime)
       when is_binary(extension) and is_binary(detected_mime) do
+    ensure_marcel_ready()
+
     extension_mime =
       extension
       |> normalize_extension()
@@ -73,4 +77,16 @@ defmodule Rindle.Security.Mime do
   end
 
   defp mime_matches_detected?(_extension_mime, _detected_mime), do: true
+
+  defp ensure_marcel_ready do
+    if :ets.whereis(:wrapper) == :undefined do
+      case ExMarcel.TableWrapper.start_link([]) do
+        {:ok, _pid} -> :ok
+        {:error, {:already_started, _pid}} -> :ok
+        _ -> :ok
+      end
+    else
+      :ok
+    end
+  end
 end
