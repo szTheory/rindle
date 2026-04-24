@@ -30,7 +30,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Uploading a file with a mismatched MIME/extension causes the asset to transition to `quarantined` — verifiable via DB query
   4. A custom storage adapter that implements `Rindle.Storage` callbacks passes the behaviour's test suite with local disk adapter
   5. State machine transitions reject invalid jumps (e.g., `staged → ready`) and accept valid ones, with each outcome reflected in the DB record
-**Plans**: `01-01` complete (`.planning/phases/01-foundation/01-01-SUMMARY.md`), `01-02` complete (`.planning/phases/01-foundation/01-02-SUMMARY.md`); remaining plans in progress
+**Plans**: `01-01` complete (`.planning/phases/01-foundation/01-01-SUMMARY.md`), `01-02` complete (`.planning/phases/01-foundation/01-02-SUMMARY.md`), `01-03` complete (`.planning/phases/01-foundation/01-03-SUMMARY.md`); remaining plans in progress
 
 ### Phase 2: Upload & Processing
 **Goal**: A file can travel the full path from upload initiation through variant generation — either via Phoenix-proxied upload or direct presigned PUT — with Oban workers handling all async processing
@@ -88,7 +88,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 3/6 | In progress | - |
+| 1. Foundation | 4/6 | In progress | - |
 | 2. Upload & Processing | 0/TBD | Not started | - |
 | 3. Delivery & Observability | 0/TBD | Not started | - |
 | 4. Day-2 Operations | 0/TBD | Not started | - |

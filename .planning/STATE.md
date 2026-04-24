@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 01-02-PLAN.md
-last_updated: "2026-04-24T17:10:07.000Z"
-last_activity: 2026-04-24 -- Completed plan 01-02 (Phase 1 behaviour contracts)
+stopped_at: Completed 01-03-PLAN.md
+last_updated: "2026-04-24T17:20:54Z"
+last_activity: 2026-04-24 -- Completed plan 01-03 (Phase 1 profile DSL + digest primitives)
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 6
-  completed_plans: 3
-  percent: 50
+  completed_plans: 4
+  percent: 67
 ---
 
 # Project State
@@ -26,17 +26,17 @@ See: .planning/PROJECT.md (updated 2026-04-24)
 ## Current Position
 
 Phase: 01 (foundation) — EXECUTING
-Plan: 3 of 6
+Plan: 4 of 6
 Status: Executing Phase 01
-Last activity: 2026-04-24 -- Completed plan 01-02 (Phase 1 behaviour contracts)
+Last activity: 2026-04-24 -- Completed plan 01-03 (Phase 1 profile DSL + digest primitives)
 
-Progress: [█████░░░░░] 50%
+Progress: [███████░░░] 67%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 3
+- Total plans completed: 4
 - Average duration: 3 min
 - Total execution time: 0.2 hours
 
@@ -44,11 +44,11 @@ Progress: [█████░░░░░] 50%
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 01-foundation | 3 | 9 min | 3 min |
+| 01-foundation | 4 | 12 min | 3 min |
 
 **Recent Trend:**
 
-- Last 5 plans: 2 min, 2 min, 5 min
+- Last 5 plans: 2 min, 2 min, 5 min, 3 min
 - Trend: Stable to improving
 
 *Updated after each plan completion*
@@ -74,6 +74,8 @@ Recent decisions affecting current work:
 - [01-01]: `media_variants.recipe_digest` is persisted and validated to support stale detection in future regeneration paths.
 - [01-02]: Core adapter seams are frozen as behaviours with typed callbacks and tagged tuple return contracts.
 - [01-02]: Storage capability branching is standardized via `capabilities/0`; mocks must validate callback semantics before adapter implementation.
+- [01-03]: Profile DSL macro expands option literals before validation so module aliases and variant specs fail fast at compile time when invalid.
+- [01-03]: Recipe digest generation canonicalizes variant option key ordering before hashing, making stale detection deterministic.
 
 ### Pending Todos
 
@@ -90,7 +92,7 @@ None yet.
 ## Session Continuity
 
 Last session: --stopped-at
-Stopped at: Completed 01-02-PLAN.md
+Stopped at: Completed 01-03-PLAN.md
 Resume file: --resume-file
 
 ### Decision-Making Preference

@@ -63,13 +63,13 @@
 
 ### Profile / Recipe DSL
 
-- [ ] **PROF-01**: `use Rindle.Profile` macro compiles profile configuration at application startup
-- [ ] **PROF-02**: Profile DSL accepts allowlist for MIME types, file extensions, max byte size, and max pixel count
-- [ ] **PROF-03**: Profile DSL accepts named variant definitions with processor options (resize mode, dimensions, format, quality)
-- [ ] **PROF-04**: Invalid profile configuration (unknown processor option, contradictory settings) raises a compile-time error
-- [ ] **PROF-05**: Recipe digest is computed as a stable hash of variant spec options so digest changes when recipe changes
-- [ ] **PROF-06**: Profile exposes `variants/0` returning a list of variant specs for use by processing workers
-- [ ] **PROF-07**: Profile exposes `validate_upload/1` returning `{:ok, metadata}` or `{:error, reason}` against configured allowlists
+- [x] **PROF-01**: `use Rindle.Profile` macro compiles profile configuration at application startup
+- [x] **PROF-02**: Profile DSL accepts allowlist for MIME types, file extensions, max byte size, and max pixel count
+- [x] **PROF-03**: Profile DSL accepts named variant definitions with processor options (resize mode, dimensions, format, quality)
+- [x] **PROF-04**: Invalid profile configuration (unknown processor option, contradictory settings) raises a compile-time error
+- [x] **PROF-05**: Recipe digest is computed as a stable hash of variant spec options so digest changes when recipe changes
+- [x] **PROF-06**: Profile exposes `variants/0` returning a list of variant specs for use by processing workers
+- [x] **PROF-07**: Profile exposes `validate_upload/1` returning `{:ok, metadata}` or `{:error, reason}` against configured allowlists
 
 ### Validation & Security
 
@@ -164,7 +164,7 @@
 
 ### Stale Variant Detection
 
-- [ ] **STALE-01**: When a profile's variant spec changes, recipe digest changes and all existing variants for that spec transition to `stale`
+- [x] **STALE-01**: When a profile's variant spec changes, recipe digest changes and all existing variants for that spec transition to `stale`
 - [ ] **STALE-02**: `Rindle.url/2` for a `stale` variant returns the existing URL with a configurable staleness behavior (serve stale or fallback to original)
 - [ ] **STALE-03**: `mix rindle.regenerate_variants --stale` targets only stale variants for regeneration
 
@@ -178,7 +178,7 @@
 ### Configuration
 
 - [ ] **CONF-01**: Rindle is configured via `config :rindle` in application config; no runtime config file required
-- [ ] **CONF-02**: Storage adapter is selected per profile via `storage: MyAdapter` option in profile definition
+- [x] **CONF-02**: Storage adapter is selected per profile via `storage: MyAdapter` option in profile definition
 - [ ] **CONF-03**: Oban queue name for Rindle workers is configurable; defaults to `:rindle`
 - [ ] **CONF-04**: Default signed URL TTL is configurable globally with per-profile override
 - [ ] **CONF-05**: Upload session TTL is configurable; defaults to a documented value
@@ -283,10 +283,10 @@
 | VSM-01 through VSM-08 | M1 | Pending |
 | USM-01 through USM-09 | M1 | Pending |
 | BHV-01 through BHV-06 | M1 | Complete (01-02) |
-| PROF-01 through PROF-07 | M1 | Pending |
+| PROF-01 through PROF-07 | M1 | Complete (01-03) |
 | SEC-01 through SEC-08 | M1 | Pending |
 | STOR-01 through STOR-07 | M1 | Pending |
-| STALE-01 through STALE-03 | M1 | Pending |
+| STALE-01 through STALE-03 | M1 | In progress (STALE-01 complete in 01-03) |
 | UPLD-01 through UPLD-07 | M2 | Pending |
 | PROC-01 through PROC-07 | M2 | Pending |
 | BG-01 through BG-07 | M2 | Pending |
@@ -295,7 +295,7 @@
 | TEL-01 through TEL-08 | M3 | Pending |
 | VIEW-01 through VIEW-04 | M3 | Pending |
 | OPS-01 through OPS-09 | M4 | Pending |
-| CONF-01 through CONF-05 | M1 | Pending |
+| CONF-01 through CONF-05 | M1 | In progress (CONF-02 complete in 01-03) |
 | ERR-01 through ERR-05 | M1 | Pending |
 | CI-01 through CI-09 | M5 | Pending |
 | DOC-01 through DOC-08 | M5 | Pending |
@@ -307,4 +307,4 @@
 
 ---
 *Requirements defined: 2026-04-24*
-*Last updated: 2026-04-24 after Phase 01-02 behaviour contract completion*
+*Last updated: 2026-04-24 after Phase 01-03 profile DSL and digest completion*
