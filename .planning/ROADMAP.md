@@ -1,0 +1,95 @@
+# Roadmap: Rindle
+
+## Overview
+
+Rindle ships in five phases that mirror the natural dependency graph of a production media lifecycle library. The foundation (schemas, behaviours, FSMs, security primitives) comes first because everything else builds on queryable DB state and correct I/O contracts. Upload paths and processing follow, then delivery and observability, then Day-2 operational tooling, and finally the CI integration lane that gates 1.0. Each phase delivers a coherent, independently verifiable capability.
+
+## Phases
+
+**Phase Numbering:**
+- Integer phases (1, 2, 3): Planned milestone work
+- Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
+
+Decimal phases appear between their surrounding integers in numeric order.
+
+- [ ] **Phase 1: Foundation** - Schemas, behaviours, state machines, security primitives, and local storage
+- [ ] **Phase 2: Upload & Processing** - Upload paths, image processing pipeline, Oban workers, and S3 adapter
+- [ ] **Phase 3: Delivery & Observability** - Signed URL delivery, telemetry public contract, and responsive image helper
+- [ ] **Phase 4: Day-2 Operations** - Mix tasks, cron workers, stale detection, and operational recovery paths
+- [ ] **Phase 5: CI & 1.0 Readiness** - Integration lane, adopter validation, documentation, and release gates
+
+## Phase Details
+
+### Phase 1: Foundation
+**Goal**: The queryable data model, behaviour contracts, and security primitives are in place so that all subsequent phases have a correct substrate to build on
+**Depends on**: Nothing (first phase)
+**Requirements**: SCHEMA-01, SCHEMA-02, SCHEMA-03, SCHEMA-04, SCHEMA-05, SCHEMA-06, SCHEMA-07, SCHEMA-08, ASM-01, ASM-02, ASM-03, ASM-04, ASM-05, ASM-06, ASM-07, ASM-08, ASM-09, ASM-10, VSM-01, VSM-02, VSM-03, VSM-04, VSM-05, VSM-06, VSM-07, VSM-08, USM-01, USM-02, USM-03, USM-04, USM-05, USM-06, USM-07, USM-08, USM-09, BHV-01, BHV-02, BHV-03, BHV-04, BHV-05, BHV-06, PROF-01, PROF-02, PROF-03, PROF-04, PROF-05, PROF-06, PROF-07, SEC-01, SEC-02, SEC-03, SEC-04, SEC-05, SEC-06, SEC-07, SEC-08, STOR-01, STOR-02, STOR-03, STOR-04, STOR-05, STOR-06, STOR-07, STALE-01, STALE-02, STALE-03, CONF-01, CONF-02, CONF-03, CONF-04, CONF-05, ERR-01, ERR-02, ERR-03, ERR-04, ERR-05
+**Success Criteria** (what must be TRUE):
+  1. Running migrations creates all five tables (`media_assets`, `media_attachments`, `media_variants`, `media_upload_sessions`, `media_processing_runs`) with queryable state columns and correct indexes
+  2. A `use Rindle.Profile` module with invalid configuration raises a compile-time error; a valid configuration compiles and exposes `variants/0` and `validate_upload/1`
+  3. Uploading a file with a mismatched MIME/extension causes the asset to transition to `quarantined` — verifiable via DB query
+  4. A custom storage adapter that implements `Rindle.Storage` callbacks passes the behaviour's test suite with local disk adapter
+  5. State machine transitions reject invalid jumps (e.g., `staged → ready`) and accept valid ones, with each outcome reflected in the DB record
+**Plans**: TBD
+
+### Phase 2: Upload & Processing
+**Goal**: A file can travel the full path from upload initiation through variant generation — either via Phoenix-proxied upload or direct presigned PUT — with Oban workers handling all async processing
+**Depends on**: Phase 1
+**Requirements**: UPLD-01, UPLD-02, UPLD-03, UPLD-04, UPLD-05, UPLD-06, UPLD-07, PROC-01, PROC-02, PROC-03, PROC-04, PROC-05, PROC-06, PROC-07, BG-01, BG-02, BG-03, BG-04, BG-05, BG-06, BG-07, ATT-01, ATT-02, ATT-03, ATT-04, ATT-05
+**Success Criteria** (what must be TRUE):
+  1. A Phoenix controller can receive a multipart upload, stream it to storage without loading the full file into memory, and return an asset ID
+  2. A LiveView form can initiate a direct upload, receive a presigned PUT URL, and after the client PUT completes, `verify_completion/1` transitions the session to `completed` and promotes the asset
+  3. After a valid upload is promoted, Oban workers generate all named variants defined in the profile and transition each variant from `planned → queued → processing → ready`
+  4. If variant processing fails after max retries, the variant transitions to `failed` and the asset to `degraded` — both queryable via DB
+  5. `Rindle.attach/3` detects a concurrent attachment replacement and returns `{:error, :replaced}` rather than overwriting the newer upload
+  6. `Rindle.detach/2` removes the attachment record in a DB transaction and enqueues a storage delete worker — the storage object is absent after worker completes
+**Plans**: TBD
+
+### Phase 3: Delivery & Observability
+**Goal**: Assets and variants can be securely delivered via signed URLs (private by default), all lifecycle events emit telemetry as a locked public contract, and Phoenix templates have a responsive image helper
+**Depends on**: Phase 2
+**Requirements**: DELV-01, DELV-02, DELV-03, DELV-04, DELV-05, DELV-06, TEL-01, TEL-02, TEL-03, TEL-04, TEL-05, TEL-06, TEL-07, TEL-08, VIEW-01, VIEW-02, VIEW-03, VIEW-04
+**Success Criteria** (what must be TRUE):
+  1. `Rindle.url/2` on a private-profile asset returns a signed URL that expires; calling it on a public-profile asset returns an unsigned URL
+  2. A profile with no `public: true` raises when `Rindle.url/2` is called without a signed URL-capable storage adapter
+  3. Attaching a telemetry handler captures `[:rindle, :upload, :start]`, `[:rindle, :asset, :state_change]`, `[:rindle, :variant, :state_change]`, `[:rindle, :delivery, :signed]`, and `[:rindle, :cleanup, :run]` events with numeric measurements and `profile`/`adapter` metadata
+  4. `Rindle.HTML.picture_tag/3` renders a `<picture>` element with correct `srcset` and `<source>` elements for configured variants, and passes through standard HTML attributes
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 4: Day-2 Operations
+**Goal**: Production systems can be maintained without manual SQL — orphans cleaned, stale variants regenerated, storage reconciled, and incomplete uploads aborted — all scriptable and CI-friendly
+**Depends on**: Phase 2
+**Requirements**: OPS-01, OPS-02, OPS-03, OPS-04, OPS-05, OPS-06, OPS-07, OPS-08, OPS-09
+**Success Criteria** (what must be TRUE):
+  1. `mix rindle.cleanup_orphans --dry-run` logs affected records without deleting; without `--dry-run` it deletes expired sessions and their staged objects
+  2. `mix rindle.regenerate_variants --profile Avatar --variant thumbnail` enqueues Oban jobs only for matching `stale` or `missing` variants
+  3. `mix rindle.verify_storage` outputs a summary (total checked, missing, present, errors) and marks absent variants as `missing` in the DB
+  4. `mix rindle.abort_incomplete_uploads` transitions `signed`/`uploading` sessions past their TTL to `expired` and prevents storage cost leaks
+  5. All Mix tasks exit non-zero on errors, enabling use in CI pipelines and cron scripts
+**Plans**: TBD
+
+### Phase 5: CI & 1.0 Readiness
+**Goal**: The public API is validated by a real integration in CI, all quality gates pass on every PR, and documentation is complete enough for a Phoenix developer to ship media features on day one
+**Depends on**: Phase 3, Phase 4
+**Requirements**: CI-01, CI-02, CI-03, CI-04, CI-05, CI-06, CI-07, CI-08, CI-09, DOC-01, DOC-02, DOC-03, DOC-04, DOC-05, DOC-06, DOC-07, DOC-08
+**Success Criteria** (what must be TRUE):
+  1. CI passes all five lanes on every PR: format check, warnings-as-errors compile, test coverage threshold, Credo, and Dialyzer
+  2. CI contract lane asserts telemetry event names and metadata schemas match the documented public contract — a name change breaks the lane
+  3. CI integration lane runs upload → processing → delivery → cleanup against real MinIO + PostgreSQL and exits zero
+  4. CI adopter lane runs at least one canonical host integration and verifies the end-to-end media lifecycle
+  5. The getting started guide is copy-pasteable: a developer following it completes a working upload → variant → delivery flow in a Phoenix app with no gaps
+**Plans**: TBD
+
+## Progress
+
+**Execution Order:**
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 1. Foundation | 0/TBD | Not started | - |
+| 2. Upload & Processing | 0/TBD | Not started | - |
+| 3. Delivery & Observability | 0/TBD | Not started | - |
+| 4. Day-2 Operations | 0/TBD | Not started | - |
+| 5. CI & 1.0 Readiness | 0/TBD | Not started | - |
