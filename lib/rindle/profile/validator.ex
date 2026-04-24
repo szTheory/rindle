@@ -5,7 +5,7 @@ defmodule Rindle.Profile.Validator do
 
   @profile_schema [
     storage: [
-      type: :mod_arg,
+      type: :atom,
       required: true
     ],
     allow_mime: [

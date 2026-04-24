@@ -10,7 +10,8 @@ defmodule Rindle.Profile do
   @type variant_entry :: {atom(), variant_spec()}
 
   defmacro __using__(opts) do
-    validated = Rindle.Profile.Validator.validate!(opts)
+    expanded_opts = Macro.expand_literals(opts, __CALLER__)
+    validated = Rindle.Profile.Validator.validate!(expanded_opts)
 
     storage = Map.fetch!(validated, :storage)
     variants = Map.fetch!(validated, :variants)
