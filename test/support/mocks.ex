@@ -1,0 +1,5 @@
+Mox.defmock(Rindle.StorageMock, for: Rindle.Storage)
+Mox.defmock(Rindle.ProcessorMock, for: Rindle.Processor)
+Mox.defmock(Rindle.AnalyzerMock, for: Rindle.Analyzer)
+Mox.defmock(Rindle.ScannerMock, for: Rindle.Scanner)
+Mox.defmock(Rindle.AuthorizerMock, for: Rindle.Authorizer)
