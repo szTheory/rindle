@@ -1,12 +1,18 @@
 {
   "mode": "yolo",
+  "commit_docs": true,
   "parallelization": true,
   "depth": "quick",
   "workflow": {
     "research": true,
-    "plan_checker": true,
+    "plan_check": true,
     "verifier": true,
     "auto_advance": true,
-    "skip_discuss": false
-  }
+    "research_before_questions": false,
+    "discuss_mode": "assumptions",
+    "skip_discuss": true,
+    "max_discuss_passes": 1,
+    "_auto_chain_active": false
+  },
+  "model_profile": "balanced"
 }

@@ -136,6 +136,11 @@ Media, made durable.
 | Atomic promote: reload + verify before writing | Prevents stale background job from overwriting a newer attachment when user replaces an upload mid-processing (Shrine lesson) | — Pending |
 | Day-2 operations are v1 scope, not deferred | Cleanup, regeneration, verification, and reconciliation are what make a library production-ready; deferring them is how libraries stay "upload wrappers" | — Pending |
 | CI adopter lane required before release candidate | At least one canonical host/adopter integration must be continuously verified; docs-only integration claims are not sufficient | — Pending |
+| Repo ownership is adopter-first (`repo: MyApp.Repo`), not library-owned | Matches idiomatic Ecto library architecture (Oban-style), avoids split pool/config ownership and multi-tenant surprises | ✓ Good |
+| Runtime DB config stays in adopter app (`runtime.exs`), not in Rindle dependency | Library-level runtime secret management is surprising and brittle; host app is source of truth for credentials and deploy config | ✓ Good |
+| `Rindle.Repo` is test/dev harness only, not a consumer runtime dependency | Keeps local library development practical while preserving adopter-owned runtime boundaries | ✓ Good |
+| Rindle ships Oban workers but does not start/supervise Oban itself | Queue topology and reliability settings belong to the host app; avoids hidden runtime ownership | ✓ Good |
+| Decision policy is left-shifted: auto-decide low/medium impact, escalate only high impact | Maximizes execution speed while preserving user control over irreversible API/security/scope calls | ✓ Good |
 
 ---
-*Last updated: 2026-04-24 after initial project initialization*
+*Last updated: 2026-04-24 after architecture and workflow decision refinement*

@@ -1,0 +1,104 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  MIX_ENV: test
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    name: Quality
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - elixir: "1.15"
+            otp: "26"
+          - elixir: "1.17"
+            otp: "27"
+    env:
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGHOST: localhost
+      PGPORT: "5432"
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: rindle_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: ${{ matrix.elixir }}
+          otp-version: ${{ matrix.otp }}
+
+      - name: Restore deps cache
+        uses: actions/cache@v4
+        with:
+          path: deps
+          key: deps-${{ runner.os }}-${{ matrix.elixir }}-${{ matrix.otp }}-${{ hashFiles('**/mix.lock') }}
+          restore-keys: deps-${{ runner.os }}-${{ matrix.elixir }}-${{ matrix.otp }}-
+
+      - name: Restore build cache
+        uses: actions/cache@v4
+        with:
+          path: _build
+          key: build-${{ runner.os }}-${{ matrix.elixir }}-${{ matrix.otp }}-${{ hashFiles('**/mix.lock') }}
+          restore-keys: build-${{ runner.os }}-${{ matrix.elixir }}-${{ matrix.otp }}-
+
+      - name: Install dependencies
+        run: mix deps.get
+
+      - name: Compile (warnings as errors)
+        run: mix compile --warnings-as-errors
+
+      - name: Check formatting
+        run: mix format --check-formatted
+
+      - name: Credo (strict)
+        run: mix credo --strict
+
+      - name: Run tests
+        run: mix test
+
+      - name: Restore PLT cache
+        uses: actions/cache@v4
+        id: plt-cache
+        with:
+          path: priv/plts
+          key: plt-${{ runner.os }}-${{ matrix.elixir }}-${{ matrix.otp }}-${{ hashFiles('**/mix.lock') }}
+          restore-keys: plt-${{ runner.os }}-${{ matrix.elixir }}-${{ matrix.otp }}-
+
+      - name: Create PLT directory
+        if: steps.plt-cache.outputs.cache-hit != 'true'
+        run: mkdir -p priv/plts
+
+      - name: Build PLT
+        if: steps.plt-cache.outputs.cache-hit != 'true'
+        run: mix dialyzer --plt
+
+      - name: Dialyzer
+        run: mix dialyzer --format github

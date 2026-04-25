@@ -142,6 +142,30 @@ Use these entry points:
 - `/gsd-execute-phase` for planned phase work
 
 Do not make direct repo edits outside a GSD workflow unless the user explicitly asks to bypass it.
+
+### Decision Authority Default (Left-Shifted)
+
+Default behavior: Claude decides discussion and planning details without asking the user.
+
+Escalate only when a decision is high impact:
+1. Public API or semver contract changes
+2. Destructive or irreversible data model or migration choices
+3. Security, privacy, or compliance posture changes
+4. Irreversible infrastructure or major cost commitments
+5. Product-scope tradeoffs that materially change delivered value
+
+If none apply, choose the best default and proceed.
+Do not pause for "proceed?" confirmation when impact is low/medium.
+
+### Escalation Format
+
+When escalation is required, ask one compact decision packet:
+- Decision
+- Recommended default
+- Blast radius if wrong
+- Reversible fallback
+
+If user input is unavailable, proceed with the recommended reversible default and log it in `.planning/STATE.md`.
 <!-- gsd-workflow-end -->
 
 

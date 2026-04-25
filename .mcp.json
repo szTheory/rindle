@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "gsd-workflow": {
+      "command": "/Users/jon/.asdf/installs/nodejs/22.14.0/bin/node",
+      "args": [
+        "/Users/jon/.asdf/installs/nodejs/22.14.0/lib/node_modules/gsd-pi/packages/mcp-server/dist/cli.js"
+      ],
+      "cwd": "/Users/jon/projects/rindle",
+      "env": {
+        "GSD_CLI_PATH": "/Users/jon/.asdf/installs/nodejs/22.14.0/bin/gsd",
+        "GSD_WORKFLOW_EXECUTORS_MODULE": "/Users/jon/.gsd/agent/extensions/gsd/tools/workflow-tool-executors.js",
+        "GSD_WORKFLOW_WRITE_GATE_MODULE": "/Users/jon/.gsd/agent/extensions/gsd/bootstrap/write-gate.js",
+        "GSD_PERSIST_WRITE_GATE_STATE": "1",
+        "GSD_WORKFLOW_PROJECT_ROOT": "/Users/jon/projects/rindle"
+      }
+    }
+  }
+}
