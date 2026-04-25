@@ -10,6 +10,9 @@ defmodule Rindle.Storage do
   @callback store(key :: String.t(), source :: Path.t(), opts :: keyword()) ::
               {:ok, term()} | {:error, term()}
 
+  @callback download(key :: String.t(), destination :: Path.t(), opts :: keyword()) ::
+              {:ok, Path.t()} | {:error, term()}
+
   @callback delete(key :: String.t(), opts :: keyword()) ::
               {:ok, term()} | {:error, term()}
 
@@ -17,6 +20,9 @@ defmodule Rindle.Storage do
               {:ok, String.t()} | {:error, term()}
 
   @callback presigned_put(key :: String.t(), expires_in :: pos_integer(), opts :: keyword()) ::
+              {:ok, map()} | {:error, term()}
+
+  @callback head(key :: String.t(), opts :: keyword()) ::
               {:ok, map()} | {:error, term()}
 
   @callback capabilities() :: [atom()]

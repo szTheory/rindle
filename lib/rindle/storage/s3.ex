@@ -19,6 +19,19 @@ defmodule Rindle.Storage.S3 do
   end
 
   @impl true
+  def download(key, destination_path, opts) do
+    with {:ok, bucket} <- bucket(opts),
+         :ok <- File.mkdir_p(Path.dirname(destination_path)),
+         :ok <-
+           S3.download_file(bucket, key, destination_path)
+           |> request(opts) do
+      {:ok, destination_path}
+    else
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  @impl true
   def delete(key, opts) do
     with {:ok, bucket} <- bucket(opts),
          {:ok, result} <- request(S3.delete_object(bucket, key), opts) do
@@ -46,7 +59,41 @@ defmodule Rindle.Storage.S3 do
   end
 
   @impl true
-  def capabilities, do: [:presigned_put]
+  def head(key, opts) do
+    with {:ok, bucket} <- bucket(opts) do
+      case request(S3.head_object(bucket, key), opts) do
+        {:ok, %{headers: headers}} ->
+          # Normalize headers to lowercase to handle varying S3 provider implementations
+          normalized = Enum.into(headers, %{}, fn {k, v} -> {String.downcase(k), v} end)
+
+          {:ok,
+           %{
+             size: parse_size(Map.get(normalized, "content-length")),
+             content_type: Map.get(normalized, "content-type")
+           }}
+
+        {:error, %{status_code: 404}} ->
+          {:error, :not_found}
+
+        {:error, reason} ->
+          {:error, reason}
+      end
+    end
+  end
+
+  @impl true
+  def capabilities, do: [:presigned_put, :head]
+
+  defp parse_size(nil), do: 0
+
+  defp parse_size(val) when is_binary(val) do
+    case Integer.parse(val) do
+      {int, _} -> int
+      _ -> 0
+    end
+  end
+
+  defp parse_size(val) when is_integer(val), do: val
 
   defp bucket(opts) do
     case Keyword.get(opts, :bucket) || Application.get_env(:rindle, __MODULE__, [])[:bucket] do

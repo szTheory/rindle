@@ -39,8 +39,8 @@ defmodule Rindle.Storage.StorageAdapterTest do
   end
 
   test "capability lists are truthful for local and s3 adapters" do
-    assert [:local] == Rindle.Storage.Local.capabilities()
-    assert [:presigned_put] == Rindle.Storage.S3.capabilities()
+    assert [:local, :presigned_put] == Rindle.Storage.Local.capabilities()
+    assert [:presigned_put, :head] == Rindle.Storage.S3.capabilities()
   end
 
   test "local adapter supports store/url/delete with tagged tuple responses" do

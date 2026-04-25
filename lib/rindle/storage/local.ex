@@ -18,6 +18,18 @@ defmodule Rindle.Storage.Local do
   end
 
   @impl true
+  def download(key, destination_path, opts) do
+    source_path = storage_path(key, opts)
+
+    with :ok <- File.mkdir_p(Path.dirname(destination_path)),
+         :ok <- File.cp(source_path, destination_path) do
+      {:ok, destination_path}
+    else
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  @impl true
   def delete(key, opts) do
     case File.rm(storage_path(key, opts)) do
       :ok -> {:ok, %{key: key}}
@@ -31,12 +43,24 @@ defmodule Rindle.Storage.Local do
   end
 
   @impl true
-  def presigned_put(_key, _expires_in, _opts) do
-    {:error, :unsupported_operation}
+  def presigned_put(key, _expires_in, opts) do
+    # Simulated presigned PUT for local development parity
+    {:ok, %{url: "file://" <> storage_path(key, opts), method: "PUT", headers: []}}
   end
 
   @impl true
-  def capabilities, do: [:local]
+  def head(key, opts) do
+    path = storage_path(key, opts)
+
+    if File.exists?(path) do
+      {:ok, %{size: File.stat!(path).size}}
+    else
+      {:error, :not_found}
+    end
+  end
+
+  @impl true
+  def capabilities, do: [:local, :presigned_put]
 
   defp storage_path(key, opts) do
     Path.join(local_root(opts), key)
