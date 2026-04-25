@@ -1,0 +1,38 @@
+# Elixir/Mix
+/_build/
+/cover/
+/deps/
+/doc/
+/.fetch
+erl_crash.dump
+*.ez
+*.beam
+
+# Dialyzer
+/priv/plts/
+
+# Environment
+.env
+.env.*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+*.sublime-*
+
+# GSD tooling runtime artifacts
+.bg-shell/
+.recovery/
+.gsd-archive-*/
+.planning/.gsd-archive-latest
+.planning/GSD1-RECOVERY.md
+
+# Mix lock (library — check in mix.lock)
+# /mix.lock
