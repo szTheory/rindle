@@ -14,6 +14,8 @@ defmodule Rindle.Domain.MediaVariant do
     field :state, :string, default: "planned"
     field :recipe_digest, :string
     field :storage_key, :string
+    field :byte_size, :integer
+    field :content_type, :string
     field :error_reason, :string
     field :generated_at, :utc_datetime_usec
 
@@ -25,7 +27,17 @@ defmodule Rindle.Domain.MediaVariant do
   @spec changeset(t() | %__MODULE__{}, map()) :: Ecto.Changeset.t()
   def changeset(variant, attrs) do
     variant
-    |> cast(attrs, [:asset_id, :name, :state, :recipe_digest, :storage_key, :error_reason, :generated_at])
+    |> cast(attrs, [
+      :asset_id,
+      :name,
+      :state,
+      :recipe_digest,
+      :storage_key,
+      :byte_size,
+      :content_type,
+      :error_reason,
+      :generated_at
+    ])
     |> validate_required([:asset_id, :name, :state, :recipe_digest])
     |> validate_inclusion(:state, @states)
     |> foreign_key_constraint(:asset_id)
