@@ -20,14 +20,18 @@ defmodule Rindle.Profile do
       validated
       |> Map.take([:allow_mime, :allow_extensions, :max_bytes, :max_pixels])
 
+    delivery_policy = Map.fetch!(validated, :delivery)
+
     quote bind_quoted: [
             storage: storage,
             variants: Macro.escape(variants),
-            upload_policy: Macro.escape(upload_policy)
+            upload_policy: Macro.escape(upload_policy),
+            delivery_policy: Macro.escape(delivery_policy)
           ] do
       @rindle_storage storage
       @rindle_variants variants
       @rindle_upload_policy upload_policy
+      @rindle_delivery_policy delivery_policy
 
       @spec storage_adapter() :: module()
       def storage_adapter, do: @rindle_storage
@@ -46,6 +50,9 @@ defmodule Rindle.Profile do
       def validate_upload(upload) do
         Rindle.Profile.Validator.validate_upload(upload, @rindle_upload_policy)
       end
+
+      @spec delivery_policy() :: map()
+      def delivery_policy, do: @rindle_delivery_policy
 
       @spec recipe_digest(atom()) :: String.t()
       def recipe_digest(variant_name) do

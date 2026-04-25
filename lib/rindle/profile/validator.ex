@@ -27,6 +27,25 @@ defmodule Rindle.Profile.Validator do
     variants: [
       type: :keyword_list,
       required: true
+    ],
+    delivery: [
+      type: :keyword_list,
+      default: []
+    ]
+  ]
+
+  @delivery_schema [
+    public: [
+      type: :boolean,
+      default: false
+    ],
+    signed_url_ttl_seconds: [
+      type: {:or, [:pos_integer, nil]},
+      default: nil
+    ],
+    authorizer: [
+      type: {:or, [:atom, nil]},
+      default: nil
     ]
   ]
 
@@ -85,6 +104,7 @@ defmodule Rindle.Profile.Validator do
       |> Keyword.new()
 
     variants = validate_variants!(Keyword.fetch!(validated, :variants))
+    delivery = validate_delivery!(Keyword.get(validated, :delivery, []))
 
     %{
       storage: Keyword.fetch!(validated, :storage),
@@ -92,7 +112,8 @@ defmodule Rindle.Profile.Validator do
       allow_extensions: Keyword.fetch!(validated, :allow_extensions),
       max_bytes: Keyword.fetch!(validated, :max_bytes),
       max_pixels: Keyword.fetch!(validated, :max_pixels),
-      variants: variants
+      variants: variants,
+      delivery: delivery
     }
   rescue
     error in NimbleOptions.ValidationError ->
@@ -117,6 +138,36 @@ defmodule Rindle.Profile.Validator do
     |> Enum.sort_by(fn {name, _spec} -> Atom.to_string(name) end)
     |> Enum.map(fn {name, variant_opts} -> {name, validate_variant!(name, variant_opts)} end)
     |> Map.new()
+  end
+
+  defp validate_delivery!(delivery_opts) do
+    delivery_opts
+    |> normalize_delivery_opts!()
+    |> NimbleOptions.validate!(@delivery_schema)
+    |> Keyword.new()
+    |> then(fn delivery ->
+      ttl =
+        case Keyword.fetch!(delivery, :signed_url_ttl_seconds) do
+          nil -> Rindle.Config.signed_url_ttl_seconds()
+          value -> value
+        end
+
+      %{
+        public: Keyword.fetch!(delivery, :public),
+        signed_url_ttl_seconds: ttl,
+        authorizer: Keyword.fetch!(delivery, :authorizer)
+      }
+    end)
+  rescue
+    error in NimbleOptions.ValidationError ->
+      raise ArgumentError, "delivery: #{Exception.message(error)}"
+  end
+
+  defp normalize_delivery_opts!(delivery_opts) when is_list(delivery_opts), do: delivery_opts
+  defp normalize_delivery_opts!(delivery_opts) when is_map(delivery_opts), do: Enum.to_list(delivery_opts)
+  defp normalize_delivery_opts!(delivery_opts) do
+    raise ArgumentError,
+          "delivery configuration must be a keyword list or map, got: #{inspect(delivery_opts)}"
   end
 
   defp validate_variant!(name, variant_opts) when is_atom(name) do

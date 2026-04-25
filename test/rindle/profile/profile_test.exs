@@ -129,6 +129,48 @@ defmodule Rindle.Profile.ProfileTest do
     assert digest_before != digest_after
   end
 
+  test "delivery policy defaults to private delivery with config ttl" do
+    module =
+      compile_profile("""
+      storage: Rindle.StorageMock,
+      variants: [thumb: [mode: :fit, width: 320]],
+      allow_mime: ["image/jpeg"],
+      allow_extensions: [".jpg"],
+      delivery: []
+      """)
+
+    assert %{public: false, signed_url_ttl_seconds: 900, authorizer: nil} = module.delivery_policy()
+  end
+
+  test "delivery policy accepts explicit public opt-in and authorizer" do
+    module =
+      compile_profile("""
+      storage: Rindle.StorageMock,
+      variants: [thumb: [mode: :fit, width: 320]],
+      allow_mime: ["image/jpeg"],
+      allow_extensions: [".jpg"],
+      delivery: [public: true, signed_url_ttl_seconds: 120, authorizer: Rindle.AuthorizerMock]
+      """)
+
+    assert %{public: true, signed_url_ttl_seconds: 120, authorizer: Rindle.AuthorizerMock} =
+             module.delivery_policy()
+  end
+
+  test "unknown delivery options raise at compile time" do
+    assert_raise ArgumentError, ~r/cache_urls/, fn ->
+      Code.compile_string("""
+      defmodule #{unique_module_name("InvalidProfileDelivery")} do
+        use Rindle.Profile,
+          storage: Rindle.StorageMock,
+          allow_mime: ["image/jpeg"],
+          allow_extensions: [".jpg"],
+          variants: [thumb: [mode: :fit, width: 120]],
+          delivery: [cache_urls: true]
+      end
+      """)
+    end
+  end
+
   defp compile_profile(profile_opts_source) do
     module_name = unique_module_name("CompiledProfile")
 
