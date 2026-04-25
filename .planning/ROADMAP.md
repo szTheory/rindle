@@ -13,7 +13,7 @@ Rindle ships in five phases that mirror the natural dependency graph of a produc
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation** - Schemas, behaviours, state machines, security primitives, and local/S3 storage adapters
-- [ ] **Phase 2: Upload & Processing** - Upload paths, image processing pipeline, and Oban workers
+- [x] **Phase 2: Upload & Processing** - Upload paths, image processing pipeline, and Oban workers (completed 2026-04-25)
 - [ ] **Phase 3: Delivery & Observability** - Signed URL delivery, telemetry public contract, and responsive image helper
 - [ ] **Phase 4: Day-2 Operations** - Mix tasks, cron workers, stale detection, and operational recovery paths
 - [ ] **Phase 5: CI & 1.0 Readiness** - Integration lane, adopter validation, documentation, and release gates
@@ -43,7 +43,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. If variant processing fails after max retries, the variant transitions to `failed` and the asset to `degraded` — both queryable via DB
   5. `Rindle.attach/3` detects a concurrent attachment replacement and returns `{:error, :replaced}` rather than overwriting the newer upload
   6. `Rindle.detach/2` removes the attachment record in a DB transaction and enqueues a storage delete worker — the storage object is absent after worker completes
-**Plans**: TBD
+**Plans**: `02-01` complete (`.planning/phases/02-upload-processing/02-01-SUMMARY.md`), `02-02` complete (`.planning/phases/02-upload-processing/02-02-SUMMARY.md`), `02-03` complete (`.planning/phases/02-upload-processing/02-03-SUMMARY.md`), `02-04` complete (`.planning/phases/02-upload-processing/02-04-SUMMARY.md`), `02-05` complete (`.planning/phases/02-upload-processing/02-05-SUMMARY.md`), `02-06` complete (`.planning/phases/02-upload-processing/02-06-SUMMARY.md`)
 
 ### Phase 3: Delivery & Observability
 **Goal**: Assets and variants can be securely delivered via signed URLs (private by default), all lifecycle events emit telemetry as a locked public contract, and Phoenix templates have a responsive image helper
@@ -54,7 +54,10 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. A profile with no `public: true` raises when `Rindle.url/2` is called without a signed URL-capable storage adapter
   3. Attaching a telemetry handler captures `[:rindle, :upload, :start]`, `[:rindle, :asset, :state_change]`, `[:rindle, :variant, :state_change]`, `[:rindle, :delivery, :signed]`, and `[:rindle, :cleanup, :run]` events with numeric measurements and `profile`/`adapter` metadata
   4. `Rindle.HTML.picture_tag/3` renders a `<picture>` element with correct `srcset` and `<source>` elements for configured variants, and passes through standard HTML attributes
-**Plans**: TBD
+**Plans**: 3 plans
+- [ ] 03-01-PLAN.md — private-by-default delivery, signed URL policy, and variant fallback
+- [ ] 03-02-PLAN.md — public telemetry contract and lifecycle instrumentation
+- [ ] 03-03-PLAN.md — responsive picture_tag helper with safe HTML fallback
 **UI hint**: yes
 
 ### Phase 4: Day-2 Operations
@@ -89,7 +92,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation | 6/6 | Complete | 2026-04-24 |
-| 2. Upload & Processing | 0/TBD | Not started | - |
+| 2. Upload & Processing | 6/6 | Complete | 2026-04-25 |
 | 3. Delivery & Observability | 0/TBD | Not started | - |
 | 4. Day-2 Operations | 0/TBD | Not started | - |
 | 5. CI & 1.0 Readiness | 0/TBD | Not started | - |
