@@ -47,6 +47,9 @@ defmodule Rindle.MixProject do
       # Image processing
       {:image, "~> 0.65"},
 
+      # LiveView integration (optional — Rindle.LiveView helpers are no-op without it)
+      {:phoenix_live_view, "~> 1.0", optional: true},
+
       # Configuration validation
       {:nimble_options, "~> 1.1"},
 
@@ -58,9 +61,10 @@ defmodule Rindle.MixProject do
       # Observability
       {:telemetry, "~> 1.2"},
 
+      # Plug — required by :image (color visualizer) and phoenix_live_view transitively
+      {:plug, "~> 1.16"},
+
       # Dev/Test
-      # Required by :color (via :image) visualizer modules in non-prod envs
-      {:plug, "~> 1.16", only: [:dev, :test]},
       {:mox, "~> 1.2", only: :test},
       {:bypass, "~> 2.1", only: :test},
       {:ex_machina, "~> 2.7", only: :test},
