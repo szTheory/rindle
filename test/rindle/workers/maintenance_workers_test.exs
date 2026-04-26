@@ -179,4 +179,86 @@ defmodule Rindle.Workers.MaintenanceWorkersTest do
       assert {:ok, _job} = Oban.insert(AbortIncompleteUploads.new(job_args))
     end
   end
+
+  # ---------------------------------------------------------------------------
+  # Telemetry emission (Plan 05-01 / TEL-05)
+  # ---------------------------------------------------------------------------
+
+  describe "telemetry emission (Plan 05-01 / TEL-05)" do
+    setup do
+      ref =
+        :telemetry_test.attach_event_handlers(self(), [
+          [:rindle, :cleanup, :run]
+        ])
+
+      on_exit(fn -> :telemetry.detach(ref) end)
+      {:ok, ref: ref}
+    end
+
+    test "CleanupOrphans emits [:rindle, :cleanup, :run] on success", %{ref: ref} do
+      asset = create_asset()
+      _session = create_session(asset, %{state: "expired", expires_at: expired_at()})
+
+      expect(Rindle.StorageMock, :delete, fn _key, _opts ->
+        {:ok, :deleted}
+      end)
+
+      assert :ok =
+               perform_job(CleanupOrphans, %{
+                 "dry_run" => false,
+                 "storage" => to_string(Rindle.StorageMock)
+               })
+
+      assert_received {[:rindle, :cleanup, :run], ^ref, measurements, metadata}
+      assert is_integer(measurements.sessions_deleted)
+      assert is_integer(measurements.objects_deleted)
+      assert metadata.profile == :unknown
+      assert metadata.adapter == Rindle.StorageMock
+      assert is_boolean(metadata.dry_run)
+      assert metadata.worker == CleanupOrphans
+    end
+
+    test "CleanupOrphans emits in dry-run with adapter and dry_run=true", %{ref: ref} do
+      _ = create_asset()
+
+      assert :ok = perform_job(CleanupOrphans, %{"dry_run" => true})
+
+      assert_received {[:rindle, :cleanup, :run], ^ref, measurements, metadata}
+      assert is_integer(measurements.sessions_deleted)
+      assert is_integer(measurements.objects_deleted)
+      assert metadata.dry_run == true
+      assert metadata.worker == CleanupOrphans
+    end
+
+    test "CleanupOrphans does NOT emit on storage adapter resolution failure", %{ref: ref} do
+      assert {:error, _} =
+               perform_job(CleanupOrphans, %{
+                 "dry_run" => false,
+                 "storage" => "Rindle.DoesNotExist.Module"
+               })
+
+      refute_received {[:rindle, :cleanup, :run], ^ref, _, _}
+    end
+
+    test "AbortIncompleteUploads emits [:rindle, :cleanup, :run] on success", %{ref: ref} do
+      asset = create_asset()
+      _session = create_session(asset, %{state: "signed", expires_at: expired_at()})
+
+      assert :ok = perform_job(AbortIncompleteUploads, %{})
+
+      assert_received {[:rindle, :cleanup, :run], ^ref, measurements, metadata}
+      assert is_integer(measurements.sessions_aborted)
+      assert metadata.profile == :unknown
+      assert metadata.adapter == :unknown
+      assert metadata.worker == AbortIncompleteUploads
+    end
+
+    test "AbortIncompleteUploads emits even when no sessions match", %{ref: ref} do
+      assert :ok = perform_job(AbortIncompleteUploads, %{})
+
+      assert_received {[:rindle, :cleanup, :run], ^ref, measurements, metadata}
+      assert measurements.sessions_aborted == 0
+      assert metadata.worker == AbortIncompleteUploads
+    end
+  end
 end
