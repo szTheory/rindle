@@ -202,9 +202,11 @@ defmodule Rindle.Ops.VariantMaintenanceTest do
       _present = insert_variant(asset, :thumb, "ready", "variants/thumb.jpg")
       _ready_large = insert_variant(asset, :large, "ready", "variants/large.jpg")
 
-      Rindle.StorageMock
-      |> expect(:head, fn "variants/thumb.jpg", _opts -> {:ok, %{}} end)
-      |> expect(:head, fn "variants/large.jpg", _opts -> {:error, :not_found} end)
+      # Use stub to handle both variants regardless of DB row order
+      stub(Rindle.StorageMock, :head, fn
+        "variants/thumb.jpg", _opts -> {:ok, %{}}
+        "variants/large.jpg", _opts -> {:error, :not_found}
+      end)
 
       {:ok, result} = VariantMaintenance.verify_storage(%{})
 
