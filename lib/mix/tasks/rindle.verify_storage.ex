@@ -75,10 +75,10 @@ defmodule Mix.Tasks.Rindle.VerifyStorage do
 
   alias Rindle.Ops.VariantMaintenance
 
+  @requirements ["app.start"]
+
   @impl Mix.Task
   def run(args) do
-    Mix.Task.run("app.start")
-
     {opts, _rest, _invalid} =
       OptionParser.parse(args,
         strict: [profile: :string, variant: :string]
