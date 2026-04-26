@@ -23,6 +23,7 @@ defmodule Rindle.Ops.UploadMaintenance do
   import Ecto.Query
 
   alias Rindle.Domain.MediaUploadSession
+  alias Rindle.Domain.UploadSessionFSM
   alias Rindle.Repo
 
   # ---------------------------------------------------------------------------
@@ -246,6 +247,25 @@ defmodule Rindle.Ops.UploadMaintenance do
   end
 
   defp expire_session(session, acc) do
+    # Gate the persistence on the FSM so any future expansion of the query
+    # set (e.g. expiring `uploaded`/`verifying` rows) is caught at the
+    # invariant boundary instead of silently violating the FSM contract.
+    case UploadSessionFSM.transition(session.state, "expired", %{session_id: session.id}) do
+      :ok ->
+        do_expire_session(session, acc)
+
+      {:error, {:invalid_transition, from, to}} ->
+        Logger.warning("rindle.upload_maintenance.session_expiry_invalid_transition",
+          session_id: session.id,
+          from_state: from,
+          to_state: to
+        )
+
+        Map.update!(acc, :abort_errors, &(&1 + 1))
+    end
+  end
+
+  defp do_expire_session(session, acc) do
     changeset = MediaUploadSession.changeset(session, %{state: "expired"})
 
     case Repo.update(changeset) do

@@ -22,6 +22,7 @@ defmodule Rindle.Ops.VariantMaintenance do
   import Ecto.Query
 
   alias Rindle.Domain.{MediaAsset, MediaVariant}
+  alias Rindle.Domain.VariantFSM
   alias Rindle.Repo
   alias Rindle.Workers.ProcessVariant
 
@@ -215,7 +216,7 @@ defmodule Rindle.Ops.VariantMaintenance do
     |> Oban.insert()
   end
 
-  defp check_object(%{variant_id: variant_id, storage_key: key, asset_profile: profile}) do
+  defp check_object(%{variant_id: variant_id, variant_state: state, storage_key: key, asset_profile: profile}) do
     storage_adapter = resolve_storage_adapter(profile)
 
     case storage_adapter.head(key, []) do
@@ -223,8 +224,7 @@ defmodule Rindle.Ops.VariantMaintenance do
         :present
 
       {:error, :not_found} ->
-        mark_missing(variant_id)
-        :missing
+        mark_missing(variant_id, state)
 
       {:error, _other} ->
         :error
@@ -238,9 +238,51 @@ defmodule Rindle.Ops.VariantMaintenance do
     _e -> raise "Cannot resolve storage adapter for profile: #{profile_string}"
   end
 
-  defp mark_missing(variant_id) do
-    from(v in MediaVariant, where: v.id == ^variant_id)
-    |> Repo.update_all(set: [state: "missing"])
+  # Gate the missing-flip on the FSM. The query set includes "stale" and
+  # "failed" today and the FSM forbids those source states transitioning to
+  # "missing" — flipping them silently would erase the prior FSM decision.
+  # When the transition is invalid, classify as :error so the verify_storage
+  # report and Mix-task exit code reflect the situation; do NOT mutate state.
+  defp mark_missing(variant_id, current_state) do
+    case VariantFSM.transition(current_state, "missing", %{variant_id: variant_id}) do
+      :ok ->
+        # Use a real changeset so validate_inclusion runs (a typo in the
+        # constant "missing" would otherwise pass update_all silently).
+        case Repo.get(MediaVariant, variant_id) do
+          nil ->
+            Logger.warning("rindle.variant_maintenance.variant_disappeared",
+              variant_id: variant_id
+            )
+
+            :error
+
+          variant ->
+            variant
+            |> MediaVariant.changeset(%{state: "missing"})
+            |> Repo.update()
+            |> case do
+              {:ok, _updated} ->
+                :missing
+
+              {:error, reason} ->
+                Logger.warning("rindle.variant_maintenance.mark_missing_failed",
+                  variant_id: variant_id,
+                  reason: inspect(reason)
+                )
+
+                :error
+            end
+        end
+
+      {:error, {:invalid_transition, from, to}} ->
+        Logger.warning("rindle.variant_maintenance.mark_missing_invalid_transition",
+          variant_id: variant_id,
+          from_state: from,
+          to_state: to
+        )
+
+        :error
+    end
   end
 
   defp safe_all(query) do

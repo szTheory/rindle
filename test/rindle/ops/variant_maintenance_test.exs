@@ -233,6 +233,47 @@ defmodule Rindle.Ops.VariantMaintenanceTest do
       assert result.checked == 1
     end
 
+    test "does not silently flip a failed variant to missing (FSM forbids)" do
+      # CR-07 regression: VariantFSM allows ready -> missing but NOT
+      # failed -> missing. The verifier must classify a failed variant
+      # whose object disappeared as :error, leaving its state untouched.
+      asset = insert_asset()
+      variant = insert_variant(asset, :thumb, "failed", "variants/thumb.jpg")
+
+      expect(Rindle.StorageMock, :head, fn _key, _opts ->
+        {:error, :not_found}
+      end)
+
+      {:ok, result} = VariantMaintenance.verify_storage(%{})
+
+      assert result.checked == 1
+      assert result.missing == 0
+      assert result.errors == 1
+
+      preserved = Rindle.Repo.get!(MediaVariant, variant.id)
+      assert preserved.state == "failed"
+    end
+
+    test "does not silently flip a stale variant to missing (FSM forbids)" do
+      # Same invariant: stale -> missing is not in VariantFSM allowed
+      # transitions, so a not_found HEAD on a stale variant must surface
+      # as an error rather than rewriting state.
+      asset = insert_asset()
+      variant = insert_variant(asset, :thumb, "stale", "variants/thumb.jpg")
+
+      expect(Rindle.StorageMock, :head, fn _key, _opts ->
+        {:error, :not_found}
+      end)
+
+      {:ok, result} = VariantMaintenance.verify_storage(%{})
+
+      assert result.missing == 0
+      assert result.errors == 1
+
+      preserved = Rindle.Repo.get!(MediaVariant, variant.id)
+      assert preserved.state == "stale"
+    end
+
     test "reports summary with all counts" do
       asset = insert_asset()
       _present = insert_variant(asset, :thumb, "ready", "variants/thumb.jpg")

@@ -225,5 +225,16 @@ defmodule Rindle.Ops.UploadMaintenanceTest do
       assert is_map(report)
       assert Map.has_key?(report, :sessions_aborted)
     end
+
+    test "respects the FSM contract on expiry" do
+      # CR-07 regression: even if the underlying query were ever to surface a
+      # session in a state from which UploadSessionFSM forbids `expired`,
+      # expire_session/2 must NOT silently flip it. We exercise this by
+      # invoking the private FSM gate path indirectly: an `uploaded` session
+      # would today not be in the query set, but the gate is the invariant.
+      # A direct unit-style assertion: the FSM disallows `uploaded -> expired`.
+      assert {:error, {:invalid_transition, "uploaded", "expired"}} =
+               Rindle.Domain.UploadSessionFSM.transition("uploaded", "expired", %{})
+    end
   end
 end
