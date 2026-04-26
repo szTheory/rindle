@@ -86,36 +86,45 @@ defmodule Rindle.Ops.MetadataBackfill do
     analyzer_mod = Keyword.fetch!(opts, :analyzer)
     profile_filter = Keyword.get(opts, :profile)
 
-    assets = fetch_eligible_assets(profile_filter)
+    case fetch_eligible_assets(profile_filter) do
+      {:ok, assets} ->
+        base_report = %{
+          assets_found: length(assets),
+          assets_updated: 0,
+          failures: 0
+        }
 
-    base_report = %{
-      assets_found: length(assets),
-      assets_updated: 0,
-      failures: 0
-    }
+        report =
+          Enum.reduce(assets, base_report, fn asset, acc ->
+            backfill_asset(asset, storage_mod, analyzer_mod, acc)
+          end)
 
-    report =
-      Enum.reduce(assets, base_report, fn asset, acc ->
-        backfill_asset(asset, storage_mod, analyzer_mod, acc)
-      end)
+        {:ok, report}
 
-    {:ok, report}
+      {:error, reason} ->
+        # WR-05 / IN-02: distinguish a query-level infrastructure failure
+        # (DB outage, missing migration, table renamed) from a clean zero-
+        # asset run. Collapsing both to {:ok, %{assets_found: 0}} silently
+        # let cron pipelines exit 0 on a broken database.
+        {:error, reason}
+    end
   end
 
   # ---------------------------------------------------------------------------
   # Private — query helpers
   # ---------------------------------------------------------------------------
 
-  @spec fetch_eligible_assets(String.t() | nil) :: [MediaAsset.t()]
+  @spec fetch_eligible_assets(String.t() | nil) ::
+          {:ok, [MediaAsset.t()]} | {:error, term()}
   defp fetch_eligible_assets(nil) do
     query = from(a in MediaAsset, where: a.state in @backfillable_states, select: a)
 
     try do
-      Repo.all(query)
+      {:ok, Repo.all(query)}
     rescue
       e ->
         Logger.error("rindle.metadata_backfill.query_failed", reason: inspect(e))
-        []
+        {:error, e}
     end
   end
 
@@ -128,7 +137,7 @@ defmodule Rindle.Ops.MetadataBackfill do
       )
 
     try do
-      Repo.all(query)
+      {:ok, Repo.all(query)}
     rescue
       e ->
         Logger.error("rindle.metadata_backfill.query_failed",
@@ -136,7 +145,7 @@ defmodule Rindle.Ops.MetadataBackfill do
           reason: inspect(e)
         )
 
-        []
+        {:error, e}
     end
   end
 
