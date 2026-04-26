@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Foundation** - Schemas, behaviours, state machines, security primitives, and local/S3 storage adapters
 - [x] **Phase 2: Upload & Processing** - Upload paths, image processing pipeline, and Oban workers (completed 2026-04-25)
 - [x] **Phase 3: Delivery & Observability** - Signed URL delivery, telemetry public contract, and responsive image helper (completed 2026-04-26)
-- [ ] **Phase 4: Day-2 Operations** - Mix tasks, cron workers, stale detection, and operational recovery paths
+- [x] **Phase 4: Day-2 Operations** - Mix tasks, cron workers, stale detection, and operational recovery paths
 - [ ] **Phase 5: CI & 1.0 Readiness** - Integration lane, adopter validation, documentation, and release gates
 
 ## Phase Details
@@ -94,5 +94,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 1. Foundation | 6/6 | Complete | 2026-04-24 |
 | 2. Upload & Processing | 6/6 | Complete | 2026-04-25 |
 | 3. Delivery & Observability | 3/3 | Complete | 2026-04-26 |
-| 4. Day-2 Operations | 3/3 | In progress | - |
+| 4. Day-2 Operations | 3/3 | Complete | 2026-04-26 |
 | 5. CI & 1.0 Readiness | 0/TBD | Not started | - |
