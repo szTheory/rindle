@@ -28,6 +28,7 @@ defmodule Rindle.Ops.VariantMaintenance do
 
   @regeneration_states ["stale", "missing"]
   @verifiable_states ["ready", "stale", "missing", "failed"]
+  @allowed_filter_keys [:profile, :variant_name]
 
   @type filters :: %{
           optional(:profile) => String.t(),
@@ -75,6 +76,12 @@ defmodule Rindle.Ops.VariantMaintenance do
   """
   @spec regenerate_variants(filters()) :: {:ok, regenerate_result()} | {:error, term()}
   def regenerate_variants(filters) when is_map(filters) do
+    with :ok <- validate_filters(filters) do
+      do_regenerate_variants(filters)
+    end
+  end
+
+  defp do_regenerate_variants(filters) do
     query =
       from v in MediaVariant,
         join: a in MediaAsset,
@@ -152,6 +159,12 @@ defmodule Rindle.Ops.VariantMaintenance do
   """
   @spec verify_storage(filters()) :: {:ok, verify_result()} | {:error, term()}
   def verify_storage(filters) when is_map(filters) do
+    with :ok <- validate_filters(filters) do
+      do_verify_storage(filters)
+    end
+  end
+
+  defp do_verify_storage(filters) do
     query =
       from v in MediaVariant,
         join: a in MediaAsset,
@@ -187,6 +200,17 @@ defmodule Rindle.Ops.VariantMaintenance do
   # ---------------------------------------------------------------------------
   # Private helpers
   # ---------------------------------------------------------------------------
+
+  # WR-08: filter typos in a destructive lane should be loud. The Mix tasks
+  # already constrain CLI flags via OptionParser, but the Elixir-callable API
+  # needs an explicit guard so e.g. `%{prof: ...}` or `%{variant: ...}` does
+  # not silently regenerate every variant in the system.
+  defp validate_filters(filters) do
+    case Map.keys(filters) -- @allowed_filter_keys do
+      [] -> :ok
+      unknown -> {:error, {:unknown_filters, unknown}}
+    end
+  end
 
   defp maybe_filter_profile(query, %{profile: profile}) when is_binary(profile) do
     from [_v, a] in query, where: a.profile == ^profile

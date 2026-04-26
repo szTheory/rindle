@@ -120,6 +120,20 @@ defmodule Rindle.Ops.VariantMaintenanceTest do
       assert result.errors == 0
     end
 
+    test "rejects unknown filter keys instead of silently ignoring them" do
+      # WR-08: typo'd filter keys (`prof` instead of `profile`, `variant`
+      # instead of `variant_name`) must surface as errors so a destructive
+      # caller does not accidentally target every variant in the system.
+      assert {:error, {:unknown_filters, [:prof]}} =
+               VariantMaintenance.regenerate_variants(%{prof: "X"})
+
+      assert {:error, {:unknown_filters, [:variant]}} =
+               VariantMaintenance.regenerate_variants(%{variant: "thumb"})
+
+      assert {:error, {:unknown_filters, [:prof]}} =
+               VariantMaintenance.verify_storage(%{prof: "X"})
+    end
+
     test "second call does not enqueue duplicate jobs (Oban uniqueness)" do
       # CR-03 regression: back-to-back runs must not double-enqueue
       # ProcessVariant work for the same (asset_id, variant_name).
