@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: Completed 01-06-PLAN.md
-last_updated: "2026-04-24T17:56:27Z"
-last_activity: 2026-04-24 -- Completed plan 01-06 (storage adapters, config defaults, and adapter conformance tests)
+status: ready_to_plan
+stopped_at: Completed 03-EXECUTION-SUMMARY.md
+last_updated: "2026-04-26T00:41:36.126Z"
+last_activity: 2026-04-26
 progress:
   total_phases: 5
-  completed_phases: 1
-  total_plans: 6
-  completed_plans: 6
+  completed_phases: 3
+  total_plans: 15
+  completed_plans: 15
   percent: 100
 ---
 
@@ -18,17 +18,17 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-04-24)
+See: .planning/PROJECT.md (updated 2026-04-25)
 
 **Core value:** Media, made durable — full media lifecycle after upload for Phoenix applications with production confidence
-**Current focus:** Phase 01 — foundation
+**Current focus:** Phase 03 — delivery-observability
 
 ## Current Position
 
-Phase: 01 (foundation) — COMPLETE
-Plan: 6 of 6 complete
-Status: Ready for Phase 02 planning/execution
-Last activity: 2026-04-24 -- Completed plan 01-06 (storage adapters, config defaults, and adapter conformance tests)
+Phase: 03 (delivery-observability) — COMPLETE
+Plan: 3 of 3 complete
+Status: Phase complete — ready for Phase 04 planning/execution
+Last activity: 2026-04-26
 
 Progress: [██████████] 100%
 
@@ -36,15 +36,17 @@ Progress: [██████████] 100%
 
 **Velocity:**
 
-- Total plans completed: 6
-- Average duration: 4 min
-- Total execution time: 0.4 hours
+- Total plans completed: 15
+- Average duration: 5 min
+- Total execution time: 1.3 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-foundation | 6 | 21 min | 4 min |
+| 02-upload-processing | 6 | 24 min | 4 min |
+| 03-delivery-observability | 3 | 30 min | 10 min |
 
 **Recent Trend:**
 
@@ -82,6 +84,10 @@ Recent decisions affecting current work:
 - [01-06]: Storage adapters are selected per profile module (`profile.storage_adapter/0`) to support mixed backends in one adopter application.
 - [01-06]: Local and S3 adapters advertise strict capability lists (`[:local]`, `[:presigned_put]`) validated by conformance tests.
 - [01-06]: Storage failure boundaries in `Rindle` facade are tuple-only and log `rindle.storage.variant_processing_failed` metadata for asset/variant diagnostics.
+- Delivery policy lives in Rindle.Delivery; profiles opt into public delivery explicitly.
+- Non-ready variants fall back to the original asset or placeholder instead of surfacing broken links.
+- picture_tag/3 stays thin and delegates URL resolution to the delivery layer.
+- S3 adapters advertise :signed_url capability so private delivery can enforce capability checks.
 
 ### Pending Todos
 
@@ -96,9 +102,9 @@ None yet.
 
 ## Session Continuity
 
-Last session: --stopped-at
-Stopped at: Completed 01-06-PLAN.md
-Resume file: --resume-file
+Last session: 2026-04-26T00:41:36.111Z
+Stopped at: Completed 03-EXECUTION-SUMMARY.md
+Resume file: None
 
 ### Decision-Making Preference
 
@@ -107,4 +113,4 @@ Resume file: --resume-file
 - If escalation is not possible in-session, use a reversible default and log the assumption.
 - Workflow preference: skip discuss by default (`workflow.skip_discuss=true`) and move directly into planning/execution unless a high-impact ambiguity is detected.
 
-**Next Phase:** 02 (Upload & Processing) — planning/execution pending
+**Next Phase:** 04 (Day-2 Operations) — planning/execution pending

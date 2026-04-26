@@ -94,61 +94,75 @@
 
 ### Upload Paths
 
-- [ ] **UPLD-01**: Phoenix-proxied upload accepts multipart form data and streams to storage without loading full file into memory
-- [ ] **UPLD-02**: Phoenix-proxied upload returns asset ID on success for subsequent attach call
-- [ ] **UPLD-03**: Direct upload broker `initiate_session/2` creates upload session record and returns presigned PUT URL
-- [ ] **UPLD-04**: Direct upload broker `verify_completion/1` checks object exists at signed key, runs validation, transitions session
-- [ ] **UPLD-05**: Direct upload broker `attach/2` promotes asset and links to application record after successful verification
-- [ ] **UPLD-06**: LiveView helper provides `allow_upload` integration for Phoenix LiveView upload flow
-- [ ] **UPLD-07**: Controller helper provides plug/action helpers for standard controller upload flow
+- [x] **UPLD-01**: Phoenix-proxied upload accepts multipart form data and streams to storage without loading full file into memory
+- [x] **UPLD-02**: Phoenix-proxied upload returns asset ID on success for subsequent attach call
+- [x] **UPLD-03**: Direct upload broker `initiate_session/2` creates upload session record and returns presigned PUT URL
+- [x] **UPLD-04**: Direct upload broker `verify_completion/1` checks object exists at signed key, runs validation, transitions session
+- [x] **UPLD-05**: Direct upload broker `attach/2` promotes asset and links to application record after successful verification
+- [x] **UPLD-06**: LiveView helper provides `allow_upload` integration for Phoenix LiveView upload flow
+- [x] **UPLD-07**: Controller helper provides plug/action helpers for standard controller upload flow
 
 ### Image Processing
 
-- [ ] **PROC-01**: Image/Vix (libvips) processor implements `Rindle.Processor` behaviour
-- [ ] **PROC-02**: Processor supports resize operations: `:fit`, `:fill`, `:crop` modes with width/height dimensions
-- [ ] **PROC-03**: Processor supports output format conversion: JPEG, PNG, WebP, AVIF
-- [ ] **PROC-04**: Processor supports quality setting per variant spec
-- [ ] **PROC-05**: Processor accepts named variant from profile spec and returns path to processed file
-- [ ] **PROC-06**: Processor errors are returned as `{:error, reason}` and trigger variant `failed` transition after retries exhausted
-- [ ] **PROC-07**: ImageMagick and FFmpeg are not dependencies; they are documented as opt-in adapter paths
+- [x] **PROC-01**: Image/Vix (libvips) processor implements `Rindle.Processor` behaviour
+- [x] **PROC-02**: Processor supports resize operations: `:fit`, `:fill`, `:crop` modes with width/height dimensions
+- [x] **PROC-03**: Processor supports output format conversion: JPEG, PNG, WebP, AVIF
+- [x] **PROC-04**: Processor supports quality setting per variant spec
+- [x] **PROC-05**: Processor accepts named variant from profile spec and returns path to processed file
+- [x] **PROC-06**: Processor errors are returned as `{:error, reason}` and trigger variant `failed` transition after retries exhausted
+- [x] **PROC-07**: ImageMagick and FFmpeg are not dependencies; they are documented as opt-in adapter paths
 
 ### Background Processing
 
-- [ ] **BG-01**: Eager variant generation is implemented as an Oban worker enqueued transactionally with asset promotion
-- [ ] **BG-02**: Oban worker retries failed variants up to configured max attempts before transitioning to `failed`
-- [ ] **BG-03**: Oban worker marks variant `processing` before starting and `ready` or `failed` after completion
-- [ ] **BG-04**: Oban cron worker runs scheduled cleanup of expired upload sessions on a configurable schedule
-- [ ] **BG-05**: Oban cron worker runs scheduled cleanup of orphaned staged objects on a configurable schedule
-- [ ] **BG-06**: All Oban workers are idempotent: re-running a completed job does not corrupt state
-- [ ] **BG-07**: Oban is a required dependency; no alternative job runner is supported
+- [x] **BG-01**: Eager variant generation is implemented as an Oban worker enqueued transactionally with asset promotion
+- [x] **BG-02**: Oban worker retries failed variants up to configured max attempts before transitioning to `failed`
+- [x] **BG-03**: Oban worker marks variant `processing` before starting and `ready` or `failed` after completion
+- [x] **BG-04**: Oban cron worker runs scheduled cleanup of expired upload sessions on a configurable schedule
+- [x] **BG-05**: Oban cron worker runs scheduled cleanup of orphaned staged objects on a configurable schedule
+- [x] **BG-06**: All Oban workers are idempotent: re-running a completed job does not corrupt state
+- [x] **BG-07**: Oban is a required dependency; no alternative job runner is supported
 
 ### Attach / Promote / Purge
 
-- [ ] **ATT-01**: `Rindle.attach/3` reloads the attachment record inside the transaction to detect concurrent replacement
-- [ ] **ATT-02**: `Rindle.attach/3` aborts and returns `{:error, :replaced}` if attachment has changed since job was enqueued
-- [ ] **ATT-03**: `Rindle.detach/2` removes attachment record in a DB transaction and enqueues async storage delete after commit
-- [ ] **ATT-04**: Storage delete worker is idempotent: if object is already absent, worker completes successfully without error
-- [ ] **ATT-05**: Purge path records deletion outcome in `media_processing_runs` for audit visibility
+- [x] **ATT-01**: `Rindle.attach/3` reloads the attachment record inside the transaction to detect concurrent replacement
+- [x] **ATT-02**: `Rindle.attach/3` aborts and returns `{:error, :replaced}` if attachment has changed since job was enqueued
+- [x] **ATT-03**: `Rindle.detach/2` removes attachment record in a DB transaction and enqueues async storage delete after commit
+- [x] **ATT-04**: Storage delete worker is idempotent: if object is already absent, worker completes successfully without error
+- [x] **ATT-05**: Purge path records deletion outcome in `media_processing_runs` for audit visibility
 
 ### Delivery
 
-- [ ] **DELV-01**: `Rindle.url/2` returns a signed URL for private assets by default
-- [ ] **DELV-02**: Signed URLs include expiry; default TTL is configurable per profile
-- [ ] **DELV-03**: Profiles with `public: true` opt-in allow `Rindle.url/2` to return unsigned public URLs
-- [ ] **DELV-04**: `Rindle.url/2` raises if called on a private-profile asset without a signed URL capability adapter
-- [ ] **DELV-05**: Variant URLs are generated per named variant; fallback to original if variant is not `ready`
-- [ ] **DELV-06**: `Rindle.Authorizer` callback is invoked before URL generation when configured on a profile
+- [x] **DELV-01
+**: `Rindle.url/2` returns a signed URL for private assets by default
+- [x] **DELV-02
+**: Signed URLs include expiry; default TTL is configurable per profile
+- [x] **DELV-03
+**: Profiles with `public: true` opt-in allow `Rindle.url/2` to return unsigned public URLs
+- [x] **DELV-04
+**: `Rindle.url/2` raises if called on a private-profile asset without a signed URL capability adapter
+- [x] **DELV-05
+**: Variant URLs are generated per named variant; fallback to original if variant is not `ready`
+- [x] **DELV-06
+**: `Rindle.Authorizer` callback is invoked before URL generation when configured on a profile
 
 ### Telemetry
 
-- [ ] **TEL-01**: `[:rindle, :upload, :start]` and `[:rindle, :upload, :stop]` events are emitted for all upload paths
-- [ ] **TEL-02**: `[:rindle, :asset, :state_change]` event is emitted on every asset state transition with `from` and `to` measurements
-- [ ] **TEL-03**: `[:rindle, :variant, :state_change]` event is emitted on every variant state transition
-- [ ] **TEL-04**: `[:rindle, :delivery, :signed]` event is emitted when a signed URL is generated
-- [ ] **TEL-05**: `[:rindle, :cleanup, :run]` event is emitted when a cleanup worker executes with count of affected records
-- [ ] **TEL-06**: All telemetry events include `profile` and `adapter` metadata fields
-- [ ] **TEL-07**: Telemetry event names and metadata field names are documented as public API; changes require major version bump
-- [ ] **TEL-08**: Telemetry measurements are numeric (duration in native units, byte counts, record counts); no string measurements
+- [x] **TEL-01
+**: `[:rindle, :upload, :start]` and `[:rindle, :upload, :stop]` events are emitted for all upload paths
+- [x] **TEL-02
+**: `[:rindle, :asset, :state_change]` event is emitted on every asset state transition with `from` and `to` measurements
+- [x] **TEL-03
+**: `[:rindle, :variant, :state_change]` event is emitted on every variant state transition
+- [x] **TEL-04
+**: `[:rindle, :delivery, :signed]` event is emitted when a signed URL is generated
+- [x] **TEL-05
+**: `[:rindle, :cleanup, :run]` event is emitted when a cleanup worker executes with count of affected records
+- [x] **TEL-06
+**: All telemetry events include `profile` and `adapter` metadata fields
+- [x] **TEL-07
+**: Telemetry event names and metadata field names are documented as public API; changes require major version bump
+- [x] **TEL-08
+**: Telemetry measurements are numeric (duration in native units, byte counts, record counts); no string measurements
 
 ### Day-2 Mix Tasks
 
@@ -170,10 +184,14 @@
 
 ### Responsive Image Helper
 
-- [ ] **VIEW-01**: `Rindle.HTML.picture_tag/3` renders a `<picture>` element with `<source>` elements per named variant
-- [ ] **VIEW-02**: `picture_tag/3` generates `srcset` attribute from variant URLs when multiple size variants are configured
-- [ ] **VIEW-03**: `picture_tag/3` accepts placeholder option for low-quality image placeholder (LQIP) `src` attribute
-- [ ] **VIEW-04**: `picture_tag/3` accepts standard HTML attributes (alt, class, loading, etc.) passed through to the `<img>` element
+- [x] **VIEW-01
+**: `Rindle.HTML.picture_tag/3` renders a `<picture>` element with `<source>` elements per named variant
+- [x] **VIEW-02
+**: `picture_tag/3` generates `srcset` attribute from variant URLs when multiple size variants are configured
+- [x] **VIEW-03
+**: `picture_tag/3` accepts placeholder option for low-quality image placeholder (LQIP) `src` attribute
+- [x] **VIEW-04
+**: `picture_tag/3` accepts standard HTML attributes (alt, class, loading, etc.) passed through to the `<img>` element
 
 ### Configuration
 
