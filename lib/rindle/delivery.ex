@@ -28,8 +28,9 @@ defmodule Rindle.Delivery do
   def url(profile, key, opts \\ []) do
     mode = delivery_mode(profile)
     adapter = profile.storage_adapter()
+    subject = %{profile: profile, key: key, mode: mode}
 
-    with :ok <- authorize_delivery(profile, :deliver, key, opts),
+    with :ok <- authorize_delivery(profile, :deliver, subject, opts),
          :ok <- ensure_signed_delivery_support(adapter, mode),
          {:ok, url} <- resolve_url(adapter, key, mode, opts, signed_url_ttl_seconds(profile)) do
       {:ok, url}

@@ -163,7 +163,15 @@ defmodule Rindle do
   """
   @spec url(module(), String.t(), keyword()) :: storage_result()
   def url(profile, key, opts \\ []) do
-    invoke_storage(profile, :url, [key, opts])
+    Rindle.Delivery.url(profile, key, opts)
+  end
+
+  @doc """
+  Generates a delivery URL for a variant, falling back when needed.
+  """
+  @spec variant_url(module(), map(), map(), keyword()) :: storage_result()
+  def variant_url(profile, asset, variant, opts \\ []) do
+    Rindle.Delivery.variant_url(profile, asset, variant, opts)
   end
 
   @doc """

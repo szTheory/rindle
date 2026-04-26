@@ -82,7 +82,7 @@ defmodule Rindle.Storage.S3 do
   end
 
   @impl true
-  def capabilities, do: [:presigned_put, :head]
+  def capabilities, do: [:presigned_put, :head, :signed_url]
 
   defp parse_size(nil), do: 0
 
