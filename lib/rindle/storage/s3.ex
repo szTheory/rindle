@@ -9,10 +9,15 @@ defmodule Rindle.Storage.S3 do
 
   @impl true
   def store(key, source_path, opts) do
+    # Return shape mirrors Rindle.Storage.Local.store/3 — `%{key: key, ...}` —
+    # so consumers of the Storage behaviour (e.g. Rindle.Workers.ProcessVariant)
+    # can read `storage_meta.key` uniformly across adapters. Surfaced by the
+    # adopter lifecycle test in Plan 05-04 (CI-08).
     with {:ok, bucket} <- bucket(opts),
          {:ok, body} <- File.read(source_path),
-         {:ok, result} <- request(S3.put_object(bucket, key, body, object_opts(opts)), opts) do
-      {:ok, result}
+         {:ok, response} <-
+           request(S3.put_object(bucket, key, body, object_opts(opts)), opts) do
+      {:ok, %{key: key, bucket: bucket, response: response}}
     else
       {:error, reason} -> {:error, reason}
     end
@@ -20,9 +25,14 @@ defmodule Rindle.Storage.S3 do
 
   @impl true
   def download(key, destination_path, opts) do
+    # ExAws.S3.download_file returns an ExAws.S3.Download struct; ExAws.request
+    # on a Download struct returns {:ok, :done} on success, NOT bare :ok.
+    # Surfaced by the adopter lifecycle test in Plan 05-04 (CI-08); this was
+    # a latent Rule-1 bug (Local adapter is used everywhere upstream so no
+    # downstream test exercised this S3-specific path until now).
     with {:ok, bucket} <- bucket(opts),
          :ok <- File.mkdir_p(Path.dirname(destination_path)),
-         :ok <-
+         {:ok, _result} <-
            S3.download_file(bucket, key, destination_path)
            |> request(opts) do
       {:ok, destination_path}
@@ -53,7 +63,8 @@ defmodule Rindle.Storage.S3 do
   @impl true
   def presigned_put(key, expires_in, opts) do
     with {:ok, bucket} <- bucket(opts),
-         {:ok, url} <- S3.presigned_url(s3_config(opts), :put, bucket, key, expires_in: expires_in) do
+         {:ok, url} <-
+           S3.presigned_url(s3_config(opts), :put, bucket, key, expires_in: expires_in) do
       {:ok, %{url: url, method: :put, headers: %{}}}
     end
   end

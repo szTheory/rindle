@@ -64,6 +64,11 @@ defmodule Rindle.MixProject do
       {:ex_marcel, "~> 0.2"},
       {:ex_aws, "~> 2.5"},
       {:ex_aws_s3, "~> 2.5"},
+      # ExAws optional HTTP client — needed for the integration + adopter
+      # CI lanes to actually talk to MinIO/S3. Confined to :test so adopters
+      # pick their own HTTP client (hackney, req, or finch via ex_aws_*) at
+      # runtime without a forced transitive dep from Rindle.
+      {:hackney, "~> 1.20", only: :test},
 
       # Observability
       {:telemetry, "~> 1.2"},
