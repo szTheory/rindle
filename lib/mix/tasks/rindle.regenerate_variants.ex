@@ -40,7 +40,11 @@ defmodule Mix.Tasks.Rindle.RegenerateVariants do
       Rindle: scanning for stale/missing variants...
         enqueued: 12
         skipped:  3
+        errors:   0
       Done.
+
+  When `errors` is non-zero the task halts with exit 1 after printing the
+  summary so cron / CI pipelines surface the failure.
 
   ## Examples
 
@@ -77,10 +81,17 @@ defmodule Mix.Tasks.Rindle.RegenerateVariants do
     Mix.shell().info("Rindle: scanning for stale/missing variants...")
 
     case VariantMaintenance.regenerate_variants(filters) do
-      {:ok, %{enqueued: enqueued, skipped: skipped}} ->
+      {:ok, %{enqueued: enqueued, skipped: skipped, errors: errors}} ->
         Mix.shell().info("  enqueued: #{enqueued}")
         Mix.shell().info("  skipped:  #{skipped}")
+        Mix.shell().info("  errors:   #{errors}")
         Mix.shell().info("Done.")
+
+        if errors > 0 do
+          # Documented exit code: 1 — Query or job-insertion error.
+          Mix.shell().error("#{errors} job insertion error(s)")
+          System.halt(1)
+        end
 
       {:error, reason} ->
         Mix.shell().error("Rindle.RegenerateVariants failed: #{inspect(reason)}")
