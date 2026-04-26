@@ -70,7 +70,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 3 plans
 - [x] 04-01-PLAN.md — expire incomplete uploads and clean orphaned staged objects
 - [x] 04-02-PLAN.md — regenerate stale variants and verify storage reconciliation
-- [ ] 04-03-PLAN.md — backfill metadata and add cron-capable maintenance workers
+- [x] 04-03-PLAN.md — backfill metadata and add cron-capable maintenance workers
 
 ### Phase 5: CI & 1.0 Readiness
 **Goal**: The public API is validated by a real integration in CI, all quality gates pass on every PR, and documentation is complete enough for a Phoenix developer to ship media features on day one
@@ -94,5 +94,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 1. Foundation | 6/6 | Complete | 2026-04-24 |
 | 2. Upload & Processing | 6/6 | Complete | 2026-04-25 |
 | 3. Delivery & Observability | 3/3 | Complete | 2026-04-26 |
-| 4. Day-2 Operations | 2/3 | In progress | - |
+| 4. Day-2 Operations | 3/3 | In progress | - |
 | 5. CI & 1.0 Readiness | 0/TBD | Not started | - |
