@@ -177,33 +177,50 @@ defmodule Rindle.Ops.UploadMaintenance do
   end
 
   defp delete_session_and_object(session, acc, storage_mod) do
-    # 1. Delete the DB row first (storage side effects outside transactions)
-    case Repo.delete(session) do
-      {:ok, _} ->
-        acc_after_db = Map.update!(acc, :sessions_deleted, &(&1 + 1))
+    # 1. Attempt storage deletion FIRST so the upload_key reference (only
+    #    persisted on the session row) is preserved if storage fails. This
+    #    keeps the row available for retry on the next cleanup cycle.
+    case attempt_storage_delete(session, storage_mod) do
+      {:ok, object_increment} ->
+        # 2. Storage object is gone (or there was no adapter); now safe to
+        #    drop the DB row.
+        case Repo.delete(session) do
+          {:ok, _} ->
+            acc
+            |> Map.update!(:sessions_deleted, &(&1 + 1))
+            |> Map.update!(:objects_deleted, &(&1 + object_increment))
 
-        # 2. Attempt storage deletion outside the transaction
-        delete_staged_object(session, acc_after_db, storage_mod)
+          {:error, reason} ->
+            Logger.warning("rindle.upload_maintenance.session_delete_failed",
+              session_id: session.id,
+              reason: inspect(reason)
+            )
 
-      {:error, reason} ->
-        Logger.warning("rindle.upload_maintenance.session_delete_failed",
-          session_id: session.id,
-          reason: inspect(reason)
-        )
+            # Storage object was removed but the DB row stuck around. Reflect
+            # the storage success in the counter so operators can correlate
+            # the warning with a concrete object.
+            Map.update!(acc, :objects_deleted, &(&1 + object_increment))
+        end
 
-        acc
+      :storage_error ->
+        # Storage delete failed transiently. Leave the DB row in place so the
+        # next cron run can retry — without the row we would never find the
+        # upload_key again.
+        Map.update!(acc, :storage_errors, &(&1 + 1))
     end
   end
 
-  defp delete_staged_object(_session, acc, nil) do
-    # No storage adapter configured; skip object deletion
-    acc
-  end
+  # No storage adapter configured; skip object deletion and proceed to DB delete.
+  defp attempt_storage_delete(_session, nil), do: {:ok, 0}
 
-  defp delete_staged_object(session, acc, storage_mod) do
+  defp attempt_storage_delete(session, storage_mod) do
     case storage_mod.delete(session.upload_key, []) do
       {:ok, _} ->
-        Map.update!(acc, :objects_deleted, &(&1 + 1))
+        {:ok, 1}
+
+      {:error, :not_found} ->
+        # Object already gone — treat as success so the DB row can be cleaned up.
+        {:ok, 0}
 
       {:error, reason} ->
         Logger.warning("rindle.upload_maintenance.object_delete_failed",
@@ -212,7 +229,7 @@ defmodule Rindle.Ops.UploadMaintenance do
           reason: inspect(reason)
         )
 
-        Map.update!(acc, :storage_errors, &(&1 + 1))
+        :storage_error
     end
   end
 

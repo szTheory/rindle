@@ -115,9 +115,9 @@ defmodule Rindle.Ops.UploadMaintenanceTest do
       assert report.sessions_deleted == 0
     end
 
-    test "continues when storage delete fails, surfaces error count" do
+    test "preserves DB row when storage delete fails so a future run can retry" do
       asset = create_asset()
-      _session = create_session(asset, %{state: "expired", expires_at: expired_at()})
+      session = create_session(asset, %{state: "expired", expires_at: expired_at()})
 
       expect(Rindle.StorageMock, :delete, fn _key, _opts ->
         {:error, :storage_unavailable}
@@ -126,8 +126,28 @@ defmodule Rindle.Ops.UploadMaintenanceTest do
       {:ok, report} = UploadMaintenance.cleanup_orphans(dry_run: false, storage: Rindle.StorageMock)
 
       assert report.storage_errors >= 1
-      # Session should still be deleted from DB even when storage fails
+      # Critical correctness invariant: the DB row must remain so a later
+      # cleanup pass can retry the storage delete using the same upload_key.
+      assert report.sessions_deleted == 0
+      assert Rindle.Repo.get(MediaUploadSession, session.id) != nil
+    end
+
+    test "deletes DB row when storage reports object already not found" do
+      asset = create_asset()
+      session = create_session(asset, %{state: "expired", expires_at: expired_at()})
+
+      expect(Rindle.StorageMock, :delete, fn _key, _opts ->
+        {:error, :not_found}
+      end)
+
+      {:ok, report} = UploadMaintenance.cleanup_orphans(dry_run: false, storage: Rindle.StorageMock)
+
+      # Object already absent — counter should not increment for it, but the
+      # session row should still be removed because there's nothing to retry.
+      assert report.storage_errors == 0
+      assert report.objects_deleted == 0
       assert report.sessions_deleted >= 1
+      assert Rindle.Repo.get(MediaUploadSession, session.id) == nil
     end
 
     test "deletes only expired sessions when mixed states exist" do
