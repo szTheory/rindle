@@ -84,6 +84,20 @@ defmodule Rindle.Workers.CleanupOrphans do
             dry_run: dry_run?
           )
 
+          :telemetry.execute(
+            [:rindle, :cleanup, :run],
+            %{
+              sessions_deleted: report.sessions_deleted,
+              objects_deleted: report.objects_deleted
+            },
+            %{
+              profile: :unknown,
+              adapter: storage_mod || :unknown,
+              dry_run: dry_run?,
+              worker: __MODULE__
+            }
+          )
+
           :ok
 
         {:error, reason} ->
