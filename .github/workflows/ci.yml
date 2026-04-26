@@ -69,6 +69,9 @@ jobs:
           key: build-${{ runner.os }}-${{ matrix.elixir }}-${{ matrix.otp }}-${{ hashFiles('**/mix.lock') }}
           restore-keys: build-${{ runner.os }}-${{ matrix.elixir }}-${{ matrix.otp }}-
 
+      - name: Install libvips
+        run: sudo apt-get install -y libvips-dev
+
       - name: Install dependencies
         run: mix deps.get
 
@@ -81,8 +84,8 @@ jobs:
       - name: Credo (strict)
         run: mix credo --strict
 
-      - name: Run tests
-        run: mix test
+      - name: Run tests with coverage
+        run: mix coveralls
 
       - name: Restore PLT cache
         uses: actions/cache@v4
