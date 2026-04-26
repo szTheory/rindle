@@ -2,6 +2,8 @@ defmodule Rindle.LiveViewTest do
   use Rindle.DataCase, async: true
   import Mox
 
+  Code.ensure_loaded?(Rindle.LiveView)
+
   setup :set_mox_from_context
   setup :verify_on_exit!
 
