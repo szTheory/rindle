@@ -41,6 +41,19 @@ defmodule Rindle.Workers.CleanupOrphans do
   Failures appear as Oban job errors with `attempt` and `max_attempts` metadata.
   The underlying `UploadMaintenance` service also emits `Logger.warning` events
   tagged with `rindle.upload_maintenance.*` for storage-level errors.
+
+  Worker-level events:
+
+    * `Logger.info("rindle.workers.cleanup_orphans.completed", ...)` — emitted
+      after a successful cleanup with `sessions_found`, `sessions_deleted`,
+      `objects_deleted`, `storage_skipped`, `storage_errors`, `dry_run`.
+    * `Logger.error("rindle.workers.cleanup_orphans.failed", ...)` — emitted
+      when the maintenance service returns `{:error, reason}` AND when the
+      storage adapter cannot be resolved (`stage: :resolve_storage_adapter`).
+      Operators should alert on this event for both pipelines.
+    * `Logger.error("rindle.workers.cleanup_orphans.storage_load_failed", ...)`
+      and `…storage_not_found` — more specific events emitted by the helper
+      before the worker-level `…failed` event fires.
   """
 
   use Oban.Worker, queue: :rindle_maintenance, max_attempts: 3
@@ -66,6 +79,7 @@ defmodule Rindle.Workers.CleanupOrphans do
             sessions_found: report.sessions_found,
             sessions_deleted: report.sessions_deleted,
             objects_deleted: report.objects_deleted,
+            storage_skipped: report.storage_skipped,
             storage_errors: report.storage_errors,
             dry_run: dry_run?
           )
@@ -80,6 +94,17 @@ defmodule Rindle.Workers.CleanupOrphans do
 
           {:error, reason}
       end
+    else
+      # WR-06: surface adapter-load errors via the documented `…failed` event
+      # so operators who alert on it see the failure (the helper already emits
+      # the more specific `…storage_load_failed` / `…storage_not_found` events).
+      {:error, reason} ->
+        Logger.error("rindle.workers.cleanup_orphans.failed",
+          reason: inspect(reason),
+          stage: :resolve_storage_adapter
+        )
+
+        {:error, reason}
     end
   end
 

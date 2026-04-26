@@ -34,7 +34,8 @@ defmodule Rindle.Ops.UploadMaintenance do
           sessions_found: non_neg_integer(),
           sessions_deleted: non_neg_integer(),
           objects_deleted: non_neg_integer(),
-          storage_errors: non_neg_integer()
+          storage_errors: non_neg_integer(),
+          storage_skipped: non_neg_integer()
         }
 
   @type abort_report :: %{
@@ -167,16 +168,33 @@ defmodule Rindle.Ops.UploadMaintenance do
       sessions_found: length(sessions),
       sessions_deleted: 0,
       objects_deleted: 0,
-      storage_errors: 0
+      storage_errors: 0,
+      storage_skipped: 0
     }
 
-    if dry_run? do
-      log_dry_run_report(base_report)
-      base_report
-    else
-      Enum.reduce(sessions, base_report, fn session, acc ->
-        delete_session_and_object(session, acc, storage_mod)
-      end)
+    cond do
+      dry_run? ->
+        log_dry_run_report(base_report)
+        base_report
+
+      is_nil(storage_mod) and sessions != [] ->
+        # WR-03: silently no-opping the storage delete leaves orphaned objects
+        # invisible. Surface the bypass once per run with a warning AND a
+        # report counter so operators can detect the misconfiguration.
+        Logger.warning("rindle.upload_maintenance.storage_adapter_missing",
+          sessions_to_clean: length(sessions),
+          remediation:
+            "Configure :rindle :default_storage or pass --storage MODULE; staged objects will be left in storage."
+        )
+
+        Enum.reduce(sessions, base_report, fn session, acc ->
+          delete_session_and_object(session, acc, storage_mod)
+        end)
+
+      true ->
+        Enum.reduce(sessions, base_report, fn session, acc ->
+          delete_session_and_object(session, acc, storage_mod)
+        end)
     end
   end
 
@@ -186,25 +204,13 @@ defmodule Rindle.Ops.UploadMaintenance do
     #    keeps the row available for retry on the next cleanup cycle.
     case attempt_storage_delete(session, storage_mod) do
       {:ok, object_increment} ->
-        # 2. Storage object is gone (or there was no adapter); now safe to
-        #    drop the DB row.
-        case Repo.delete(session) do
-          {:ok, _} ->
-            acc
-            |> Map.update!(:sessions_deleted, &(&1 + 1))
-            |> Map.update!(:objects_deleted, &(&1 + object_increment))
+        proceed_with_db_delete(session, acc, object_increment, _skipped_increment = 0)
 
-          {:error, reason} ->
-            Logger.warning("rindle.upload_maintenance.session_delete_failed",
-              session_id: session.id,
-              reason: inspect(reason)
-            )
-
-            # Storage object was removed but the DB row stuck around. Reflect
-            # the storage success in the counter so operators can correlate
-            # the warning with a concrete object.
-            Map.update!(acc, :objects_deleted, &(&1 + object_increment))
-        end
+      {:skipped, skipped_increment} ->
+        # Storage adapter is missing — increment the bypass counter so the
+        # report surfaces the misconfiguration, then still delete the DB row
+        # so the cleanup lane is not blocked indefinitely.
+        proceed_with_db_delete(session, acc, _object_increment = 0, skipped_increment)
 
       :storage_error ->
         # Storage delete failed transiently. Leave the DB row in place so the
@@ -214,8 +220,29 @@ defmodule Rindle.Ops.UploadMaintenance do
     end
   end
 
-  # No storage adapter configured; skip object deletion and proceed to DB delete.
-  defp attempt_storage_delete(_session, nil), do: {:ok, 0}
+  defp proceed_with_db_delete(session, acc, object_increment, skipped_increment) do
+    case Repo.delete(session) do
+      {:ok, _} ->
+        acc
+        |> Map.update!(:sessions_deleted, &(&1 + 1))
+        |> Map.update!(:objects_deleted, &(&1 + object_increment))
+        |> Map.update!(:storage_skipped, &(&1 + skipped_increment))
+
+      {:error, reason} ->
+        Logger.warning("rindle.upload_maintenance.session_delete_failed",
+          session_id: session.id,
+          reason: inspect(reason)
+        )
+
+        acc
+        |> Map.update!(:objects_deleted, &(&1 + object_increment))
+        |> Map.update!(:storage_skipped, &(&1 + skipped_increment))
+    end
+  end
+
+  # No storage adapter configured; skip object deletion (the report surfaces
+  # this via storage_skipped) and proceed to the DB delete.
+  defp attempt_storage_delete(_session, nil), do: {:skipped, 1}
 
   defp attempt_storage_delete(session, storage_mod) do
     case storage_mod.delete(session.upload_key, []) do

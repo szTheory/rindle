@@ -142,8 +142,16 @@ defmodule Mix.Tasks.Rindle.CleanupOrphans do
       Sessions found:   #{report.sessions_found}
       Sessions deleted: #{report.sessions_deleted}
       Objects deleted:  #{report.objects_deleted}
+      Storage skipped:  #{report.storage_skipped}
       Storage errors:   #{report.storage_errors}
     """)
+
+    if report.storage_skipped > 0 do
+      Mix.shell().error(
+        "WARNING: storage adapter not configured — #{report.storage_skipped} object(s) " <>
+          "left in storage. Pass --storage MODULE or set :rindle :default_storage."
+      )
+    end
   end
 
   defp maybe_exit_nonzero(0), do: :ok
