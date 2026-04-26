@@ -6,12 +6,14 @@ defmodule Mix.Tasks.Rindle.CleanupOrphans do
 
   ## Usage
 
-      mix rindle.cleanup_orphans [--live] [--storage MODULE]
+      mix rindle.cleanup_orphans [--dry-run | --no-dry-run | --live] [--storage MODULE]
 
   ## Options
 
-    * `--live` — perform destructive deletions. Without this flag the task
-      runs in dry-run mode and reports what *would* be removed.
+    * `--dry-run` — explicitly request preview mode (this is also the default
+      when no flag is given).
+    * `--no-dry-run` / `--live` — perform destructive deletions. `--live` is
+      kept as an alias for clarity in scripts.
     * `--storage MODULE` — fully-qualified module name of the storage adapter
       to use for object deletion. When omitted the adapter is resolved from
       the `:rindle` application configuration under `:default_storage`.
@@ -23,23 +25,26 @@ defmodule Mix.Tasks.Rindle.CleanupOrphans do
 
   ## Examples
 
-      # Preview what would be removed (default; safe)
+      # Preview what would be removed (safe default)
       mix rindle.cleanup_orphans
 
-      # Live cleanup using configured default storage (destructive)
-      mix rindle.cleanup_orphans --live
+      # Same, made explicit (matches OPS-02 documented contract)
+      mix rindle.cleanup_orphans --dry-run
 
-      # Live cleanup against a specific adapter
+      # Destructive cleanup using configured default storage
+      mix rindle.cleanup_orphans --no-dry-run
+
+      # Destructive cleanup using the `--live` alias against a specific adapter
       mix rindle.cleanup_orphans --live --storage Rindle.Storage.Local
 
   ## Safety default
 
   The CLI, the underlying service (`Rindle.Ops.UploadMaintenance.cleanup_orphans/1`),
   and the cron worker (`Rindle.Workers.CleanupOrphans`) all default to dry-run.
-  Destructive execution requires an explicit opt-in (`--live` here, `dry_run: false`
-  for the service, `"dry_run" => false` for the worker job args). This is the
-  T-04-01 mitigation: dry-run and destructive execution are kept separate, with
-  the safer default everywhere.
+  Destructive execution requires an explicit opt-in (`--no-dry-run`/`--live` here,
+  `dry_run: false` for the service, `"dry_run" => false` for the worker job args).
+  This is the T-04-01 mitigation: dry-run and destructive execution are kept
+  separate, with the safer default everywhere.
 
   ## Notes
 
@@ -61,12 +66,16 @@ defmodule Mix.Tasks.Rindle.CleanupOrphans do
   def run(argv) do
     {opts, _args, _invalid} =
       OptionParser.parse(argv,
-        strict: [live: :boolean, storage: :string]
+        strict: [dry_run: :boolean, live: :boolean, storage: :string]
       )
 
-    # Default to the safe (non-destructive) mode — operators must explicitly
-    # opt in with --live to delete anything. See @moduledoc "Safety default".
-    dry_run? = not Keyword.get(opts, :live, false)
+    # Default to safe (non-destructive). Explicit --dry-run / --no-dry-run wins;
+    # otherwise --live is honored as a backward-compatible destructive opt-in.
+    dry_run? =
+      case Keyword.fetch(opts, :dry_run) do
+        {:ok, value} -> value
+        :error -> not Keyword.get(opts, :live, false)
+      end
     storage_mod = resolve_storage_adapter(opts)
 
     Mix.shell().info("Running upload-session cleanup (dry_run=#{dry_run?})...")
