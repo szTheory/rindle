@@ -259,4 +259,35 @@ defmodule Rindle.Ops.UploadMaintenanceTest do
                Rindle.Domain.UploadSessionFSM.transition("uploaded", "expired", %{})
     end
   end
+
+  describe "telemetry emission boundary (Plan 05-01 / D-02)" do
+    test "cleanup_orphans/1 does NOT emit [:rindle, :cleanup, :run] from service layer" do
+      ref =
+        :telemetry_test.attach_event_handlers(self(), [
+          [:rindle, :cleanup, :run]
+        ])
+
+      on_exit(fn -> :telemetry.detach(ref) end)
+
+      asset = create_asset()
+      _session = create_session(asset, %{state: "expired", expires_at: expired_at()})
+
+      assert {:ok, _report} = UploadMaintenance.cleanup_orphans(dry_run: true)
+
+      refute_received {[:rindle, :cleanup, :run], ^ref, _, _}
+    end
+
+    test "abort_incomplete_uploads/1 does NOT emit [:rindle, :cleanup, :run] from service layer" do
+      ref =
+        :telemetry_test.attach_event_handlers(self(), [
+          [:rindle, :cleanup, :run]
+        ])
+
+      on_exit(fn -> :telemetry.detach(ref) end)
+
+      assert {:ok, _report} = UploadMaintenance.abort_incomplete_uploads([])
+
+      refute_received {[:rindle, :cleanup, :run], ^ref, _, _}
+    end
+  end
 end

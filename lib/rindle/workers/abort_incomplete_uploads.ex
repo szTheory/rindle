@@ -78,6 +78,16 @@ defmodule Rindle.Workers.AbortIncompleteUploads do
           abort_errors: report.abort_errors
         )
 
+        :telemetry.execute(
+          [:rindle, :cleanup, :run],
+          %{sessions_aborted: report.sessions_aborted},
+          %{
+            profile: :unknown,
+            adapter: :unknown,
+            worker: __MODULE__
+          }
+        )
+
         :ok
 
       {:error, reason} ->

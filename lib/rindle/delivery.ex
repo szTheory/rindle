@@ -18,7 +18,11 @@ defmodule Rindle.Delivery do
 
   @spec signed_url_ttl_seconds(module()) :: pos_integer()
   def signed_url_ttl_seconds(profile) do
-    Map.get(profile_delivery_policy(profile), :signed_url_ttl_seconds, Rindle.Config.signed_url_ttl_seconds())
+    Map.get(
+      profile_delivery_policy(profile),
+      :signed_url_ttl_seconds,
+      Rindle.Config.signed_url_ttl_seconds()
+    )
   end
 
   @spec delivery_authorizer(module()) :: module() | nil
@@ -33,6 +37,16 @@ defmodule Rindle.Delivery do
     with :ok <- authorize_delivery(profile, :deliver, subject, opts),
          :ok <- ensure_signed_delivery_support(adapter, mode),
          {:ok, url} <- resolve_url(adapter, key, mode, opts, signed_url_ttl_seconds(profile)) do
+      :telemetry.execute(
+        [:rindle, :delivery, :signed],
+        %{system_time: System.system_time()},
+        %{
+          profile: profile,
+          adapter: adapter,
+          mode: mode
+        }
+      )
+
       {:ok, url}
     end
   end
@@ -110,5 +124,6 @@ defmodule Rindle.Delivery do
     _ -> []
   end
 
-  defp key_for(%{} = record, key), do: Map.get(record, key) || Map.get(record, Atom.to_string(key))
+  defp key_for(%{} = record, key),
+    do: Map.get(record, key) || Map.get(record, Atom.to_string(key))
 end

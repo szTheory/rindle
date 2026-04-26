@@ -111,4 +111,72 @@ defmodule Rindle.Upload.BrokerTest do
       assert asset.state == "staged"
     end
   end
+
+  describe "telemetry emission (Plan 05-01 / TEL-01)" do
+    setup do
+      ref =
+        :telemetry_test.attach_event_handlers(self(), [
+          [:rindle, :upload, :start],
+          [:rindle, :upload, :stop]
+        ])
+
+      on_exit(fn -> :telemetry.detach(ref) end)
+      {:ok, ref: ref}
+    end
+
+    test "initiate_session/2 emits [:rindle, :upload, :start] after Repo.transaction commits",
+         %{ref: ref} do
+      {:ok, session} = Broker.initiate_session(TestProfile, filename: "telemetry-start.jpg")
+
+      assert_received {[:rindle, :upload, :start], ^ref, measurements, metadata}
+      assert is_integer(measurements.system_time)
+      assert Map.has_key?(metadata, :profile)
+      assert Map.has_key?(metadata, :adapter)
+      assert metadata.session_id == session.id
+    end
+
+    test "verify_completion/2 emits [:rindle, :upload, :stop] after Multi commits",
+         %{ref: ref} do
+      {:ok, session} = Broker.initiate_session(TestProfile, filename: "telemetry-stop.jpg")
+
+      expect(Rindle.StorageMock, :presigned_put, fn _key, _expires_in, _opts ->
+        {:ok, %{url: "http://example.com", method: :put, headers: %{}}}
+      end)
+
+      {:ok, %{session: session}} = Broker.sign_url(session.id)
+
+      expect(Rindle.StorageMock, :head, fn _key, _opts ->
+        {:ok, %{size: 1234, content_type: "image/jpeg"}}
+      end)
+
+      {:ok, %{session: completed, asset: promoted}} = Broker.verify_completion(session.id)
+
+      assert completed.state == "completed"
+      assert promoted.state == "validating"
+
+      assert_received {[:rindle, :upload, :stop], ^ref, measurements, metadata}
+      assert is_integer(measurements.system_time)
+      assert Map.has_key?(metadata, :profile)
+      assert Map.has_key?(metadata, :adapter)
+      assert metadata.session_id == completed.id
+      assert metadata.asset_id == promoted.id
+    end
+
+    test "verify_completion/2 does NOT emit when storage object is missing", %{ref: ref} do
+      {:ok, session} = Broker.initiate_session(TestProfile, filename: "telemetry-missing.jpg")
+
+      expect(Rindle.StorageMock, :presigned_put, fn _key, _expires_in, _opts ->
+        {:ok, %{url: "http://example.com", method: :put, headers: %{}}}
+      end)
+
+      {:ok, %{session: session}} = Broker.sign_url(session.id)
+
+      expect(Rindle.StorageMock, :head, fn _key, _opts ->
+        {:error, :not_found}
+      end)
+
+      assert {:error, :storage_object_missing} = Broker.verify_completion(session.id)
+      refute_received {[:rindle, :upload, :stop], ^ref, _measurements, _metadata}
+    end
+  end
 end

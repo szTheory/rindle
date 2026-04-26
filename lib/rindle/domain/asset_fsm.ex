@@ -33,6 +33,18 @@ defmodule Rindle.Domain.AssetFSM do
   def transition(current_state, target_state, context \\ %{}) do
     if target_state in Map.get(@allowed_transitions, current_state, []) do
       :ok
+      |> tap(fn _ ->
+        :telemetry.execute(
+          [:rindle, :asset, :state_change],
+          %{system_time: System.system_time()},
+          %{
+            profile: Map.get(context, :profile, :unknown),
+            adapter: Map.get(context, :adapter, :unknown),
+            from: current_state,
+            to: target_state
+          }
+        )
+      end)
     else
       log_transition_failure(current_state, target_state, context)
       {:error, {:invalid_transition, current_state, target_state}}
