@@ -161,10 +161,12 @@ defmodule Rindle.Workers.MaintenanceWorkersTest do
 
   describe "cron scheduling contract" do
     test "CleanupOrphans implements Oban.Worker" do
+      Code.ensure_loaded(CleanupOrphans)
       assert function_exported?(CleanupOrphans, :perform, 1)
     end
 
     test "AbortIncompleteUploads implements Oban.Worker" do
+      Code.ensure_loaded(AbortIncompleteUploads)
       assert function_exported?(AbortIncompleteUploads, :perform, 1)
     end
 
