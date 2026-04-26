@@ -14,7 +14,7 @@ Media, made durable.
 
 <!-- Shipped and confirmed valuable. -->
 
-(None yet — ship to validate)
+- Phase 2 — Upload & Processing: direct upload broker, proxied uploads, image processing, Oban workers, attachment replacement, and LiveView helpers are implemented and verified.
 
 ### Active
 
@@ -33,13 +33,13 @@ Media, made durable.
 - [ ] Allowlist-based validation: extensions, MIME types, byte size, pixel count limits
 
 **M2 — Upload Paths + Processing**
-- [ ] Phoenix-proxied upload path (controller + LiveView helpers)
-- [ ] Direct upload broker: initiate session → sign URL → verify completion → attach
-- [ ] Image/Vix (libvips) processor for named image variants
-- [ ] Eager variant generation via Oban workers
-- [ ] Signed lazy variant generation (opt-in, signed, bounded)
-- [ ] Atomic attach/promote: reload record, verify attachment unchanged before writing
-- [ ] Idempotent purge: detach in DB transaction, enqueue async storage delete
+- [x] Phoenix-proxied upload path (controller + LiveView helpers)
+- [x] Direct upload broker: initiate session → sign URL → verify completion → attach
+- [x] Image/Vix (libvips) processor for named image variants
+- [x] Eager variant generation via Oban workers
+- [x] Signed lazy variant generation (opt-in, signed, bounded)
+- [x] Atomic attach/promote: reload record, verify attachment unchanged before writing
+- [x] Idempotent purge: detach in DB transaction, enqueue async storage delete
 
 **M3 — Delivery + Observability**
 - [ ] Signed URL delivery (private-by-default)
@@ -143,4 +143,4 @@ Media, made durable.
 | Decision policy is left-shifted: auto-decide low/medium impact, escalate only high impact | Maximizes execution speed while preserving user control over irreversible API/security/scope calls | ✓ Good |
 
 ---
-*Last updated: 2026-04-24 after architecture and workflow decision refinement*
+*Last updated: 2026-04-25 after Phase 2 upload-processing completion*
