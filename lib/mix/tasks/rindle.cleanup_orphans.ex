@@ -96,17 +96,41 @@ defmodule Mix.Tasks.Rindle.CleanupOrphans do
         Application.get_env(:rindle, :default_storage)
 
       module_str ->
-        case Code.ensure_loaded(String.to_atom(module_str)) do
-          {:module, mod} ->
-            mod
+        load_storage_module(module_str)
+    end
+  end
 
-          {:error, reason} ->
-            Mix.shell().error(
-              "Could not load storage adapter #{module_str}: #{inspect(reason)}"
-            )
+  # Use String.to_existing_atom/1 + behaviour validation so untrusted operator
+  # input cannot exhaust the atom table (T-04-09). Mirrors the pattern in
+  # Rindle.Workers.CleanupOrphans.resolve_storage_adapter/1.
+  defp load_storage_module(module_str) do
+    mod =
+      try do
+        String.to_existing_atom(module_str)
+      rescue
+        ArgumentError ->
+          Mix.shell().error(
+            "Storage adapter #{module_str} is not a known module (atom does not exist)."
+          )
 
-            exit({:shutdown, 1})
+          exit({:shutdown, 1})
+      end
+
+    case Code.ensure_loaded(mod) do
+      {:module, ^mod} ->
+        unless function_exported?(mod, :delete, 2) do
+          Mix.shell().error(
+            "Module #{module_str} is loaded but does not implement the Rindle.Storage behaviour."
+          )
+
+          exit({:shutdown, 1})
         end
+
+        mod
+
+      {:error, reason} ->
+        Mix.shell().error("Could not load storage adapter #{module_str}: #{inspect(reason)}")
+        exit({:shutdown, 1})
     end
   end
 

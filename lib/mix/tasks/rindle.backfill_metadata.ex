@@ -112,19 +112,46 @@ defmodule Mix.Tasks.Rindle.BackfillMetadata do
         Application.get_env(:rindle, app_config_key)
 
       module_str ->
-        case Code.ensure_loaded(String.to_atom(module_str)) do
-          {:module, mod} ->
-            mod
-
-          {:error, reason} ->
-            Mix.shell().error(
-              "Could not load module #{module_str}: #{inspect(reason)}"
-            )
-
-            exit({:shutdown, 1})
-        end
+        load_module(module_str, opt_key)
     end
   end
+
+  # Use String.to_existing_atom/1 so untrusted operator input cannot exhaust
+  # the atom table (T-04-09). After loading, validate the resolved module
+  # implements the expected callback for its role.
+  defp load_module(module_str, opt_key) do
+    mod =
+      try do
+        String.to_existing_atom(module_str)
+      rescue
+        ArgumentError ->
+          Mix.shell().error(
+            "Module #{module_str} is not a known atom (load order or typo?)."
+          )
+
+          exit({:shutdown, 1})
+      end
+
+    case Code.ensure_loaded(mod) do
+      {:module, ^mod} ->
+        unless implements_expected_callback?(mod, opt_key) do
+          Mix.shell().error(
+            "Module #{module_str} does not implement the expected #{opt_key} behaviour."
+          )
+
+          exit({:shutdown, 1})
+        end
+
+        mod
+
+      {:error, reason} ->
+        Mix.shell().error("Could not load module #{module_str}: #{inspect(reason)}")
+        exit({:shutdown, 1})
+    end
+  end
+
+  defp implements_expected_callback?(mod, :storage), do: function_exported?(mod, :download, 3)
+  defp implements_expected_callback?(mod, :analyzer), do: function_exported?(mod, :analyze, 1)
 
   defp maybe_put_profile(opts, argv_opts) do
     case Keyword.get(argv_opts, :profile) do
