@@ -70,8 +70,10 @@ defmodule Mix.Tasks.Rindle.AbortIncompleteUploads do
     """)
   end
 
+  # Exits 0 when no errors occurred.
   defp maybe_exit_nonzero(0), do: :ok
 
+  # Exits non-zero so CI and cron scripts can detect problems.
   defp maybe_exit_nonzero(error_count) do
     Mix.shell().error("#{error_count} session(s) could not be transitioned to expired.")
     exit({:shutdown, 1})
