@@ -65,8 +65,12 @@ defmodule Rindle.Ops.MetadataBackfill do
 
   ## Returns
 
-    `{:ok, backfill_report()}` always — failures are counted in the report
-    rather than short-circuiting the run, so operators get a full picture.
+    * `{:ok, backfill_report()}` on success — per-asset failures are counted
+      in the `:failures` field rather than short-circuiting the run, so
+      operators get a full picture.
+    * `{:error, reason}` reserved for catastrophic conditions (e.g. eligible-
+      asset query failure). Callers MUST handle this clause defensively even
+      if the current implementation does not yet exercise it.
 
   ## Examples
 
@@ -76,7 +80,7 @@ defmodule Rindle.Ops.MetadataBackfill do
       ...> )
       {:ok, %{assets_found: 42, assets_updated: 40, failures: 2}}
   """
-  @spec backfill_metadata(keyword()) :: {:ok, backfill_report()}
+  @spec backfill_metadata(keyword()) :: {:ok, backfill_report()} | {:error, term()}
   def backfill_metadata(opts) when is_list(opts) do
     storage_mod = Keyword.fetch!(opts, :storage)
     analyzer_mod = Keyword.fetch!(opts, :analyzer)

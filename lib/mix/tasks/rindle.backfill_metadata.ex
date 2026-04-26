@@ -99,6 +99,13 @@ defmodule Mix.Tasks.Rindle.BackfillMetadata do
       {:ok, report} ->
         print_report(report)
         maybe_exit_nonzero(report.failures)
+
+      # Defensive: the service contract is currently {:ok, report} only, but
+      # if it ever surfaces query failures via {:error, _} (see IN-02), we
+      # want a clean operator message instead of a MatchError crash.
+      {:error, reason} ->
+        Mix.shell().error("Backfill failed: #{inspect(reason)}")
+        exit({:shutdown, 1})
     end
   end
 
