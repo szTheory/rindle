@@ -120,12 +120,15 @@ defmodule Rindle.Ops.UploadMaintenance do
 
   @spec fetch_expired_sessions() :: {:ok, [MediaUploadSession.t()]} | {:error, term()}
   defp fetch_expired_sessions do
-    now = DateTime.utc_now()
-
+    # The state column is the source of truth for cleanup eligibility — the
+    # FSM transition into "expired" is the authoritative lifecycle decision.
+    # Filtering additionally on expires_at < now would strand
+    # administratively-expired sessions whose expires_at sits in the future
+    # (e.g. a future cancellation feature, or a long-TTL session marked
+    # expired manually by an operator).
     query =
       from(s in MediaUploadSession,
         where: s.state == "expired",
-        where: s.expires_at < ^now,
         select: s
       )
 

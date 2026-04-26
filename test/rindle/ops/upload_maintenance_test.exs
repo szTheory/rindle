@@ -150,6 +150,28 @@ defmodule Rindle.Ops.UploadMaintenanceTest do
       assert Rindle.Repo.get(MediaUploadSession, session.id) == nil
     end
 
+    test "cleans up expired sessions even when expires_at is in the future" do
+      # CR-08 regression: state='expired' is the source of truth for cleanup
+      # eligibility. A session that was administratively transitioned to
+      # 'expired' before its TTL elapsed must still be reaped.
+      asset = create_asset()
+      future = DateTime.add(DateTime.utc_now(), 7200, :second)
+
+      session =
+        create_session(asset, %{
+          state: "expired",
+          expires_at: future
+        })
+
+      expect(Rindle.StorageMock, :delete, fn _key, _opts -> {:ok, :deleted} end)
+
+      {:ok, report} =
+        UploadMaintenance.cleanup_orphans(dry_run: false, storage: Rindle.StorageMock)
+
+      assert report.sessions_deleted >= 1
+      assert Rindle.Repo.get(MediaUploadSession, session.id) == nil
+    end
+
     test "deletes only expired sessions when mixed states exist" do
       asset1 = create_asset()
       asset2 = create_asset()
