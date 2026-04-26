@@ -137,6 +137,17 @@ defmodule Rindle.Ops.VariantMaintenanceTest do
     test "second call does not enqueue duplicate jobs (Oban uniqueness)" do
       # CR-03 regression: back-to-back runs must not double-enqueue
       # ProcessVariant work for the same (asset_id, variant_name).
+      #
+      # This test exercises the REAL Oban uniqueness path:
+      #   1. Oban.insert/2 runs through Oban.Engines.Basic regardless of
+      #      `testing: :inline | :manual` mode — the uniqueness lookup is a
+      #      Postgres query against `oban_jobs`, not a sandbox shortcut.
+      #   2. The `length(jobs) == 1` assertion below queries the actual DB
+      #      table, confirming the keyword shape `unique: [fields:, keys:,
+      #      states:, period:]` is interpreted correctly by the engine.
+      #
+      # If Oban's keyword shape were misinterpreted, BOTH inserts would
+      # succeed and length(jobs) would be 2 — the test would fail loudly.
       asset = insert_asset()
       _stale = insert_variant(asset, :thumb, "stale")
 
@@ -152,6 +163,8 @@ defmodule Rindle.Ops.VariantMaintenanceTest do
       assert second.errors == 0
 
       # Verify only ONE job is in the queue for this (asset, variant) pair.
+      # This is the production-equivalent assertion: the row count in
+      # `oban_jobs` reflects what would happen against a real Oban worker.
       jobs =
         Rindle.Repo.all(
           Ecto.Query.from(j in Oban.Job,
@@ -162,6 +175,49 @@ defmodule Rindle.Ops.VariantMaintenanceTest do
         )
 
       assert length(jobs) == 1
+    end
+
+    test "uniqueness rejection produces an Oban.Job{conflict?: true} (real engine path)" do
+      # CR-03 contract lock: the orchestration code in `enqueue_job/2` keys
+      # off `%Oban.Job{conflict?: true}` to differentiate "already enqueued"
+      # from "freshly inserted". If Oban ever changed the contract (or the
+      # uniqueness keyword shape silently stopped matching), this test would
+      # fail before regenerate_variants/1 silently double-enqueues anything.
+      asset = insert_asset()
+      _stale = insert_variant(asset, :thumb, "stale")
+
+      # First insert succeeds normally.
+      args = %{"asset_id" => asset.id, "variant_name" => "thumb"}
+
+      {:ok, first_job} =
+        Rindle.Workers.ProcessVariant.new(args,
+          unique: [
+            fields: [:args, :worker, :queue],
+            keys: [:asset_id, :variant_name],
+            states: [:available, :scheduled, :executing, :retryable],
+            period: :infinity
+          ]
+        )
+        |> Oban.insert()
+
+      refute first_job.conflict?
+
+      # Second insert with the same uniqueness opts MUST be flagged conflict?
+      {:ok, second_job} =
+        Rindle.Workers.ProcessVariant.new(args,
+          unique: [
+            fields: [:args, :worker, :queue],
+            keys: [:asset_id, :variant_name],
+            states: [:available, :scheduled, :executing, :retryable],
+            period: :infinity
+          ]
+        )
+        |> Oban.insert()
+
+      assert second_job.conflict?,
+             "Expected Oban to flag the duplicate insert with conflict?: true. " <>
+               "If this assertion fails, the keyword shape used by " <>
+               "VariantMaintenance.enqueue_job/2 is no longer suppressing duplicates."
     end
   end
 
@@ -250,7 +306,8 @@ defmodule Rindle.Ops.VariantMaintenanceTest do
     test "does not silently flip a failed variant to missing (FSM forbids)" do
       # CR-07 regression: VariantFSM allows ready -> missing but NOT
       # failed -> missing. The verifier must classify a failed variant
-      # whose object disappeared as :error, leaving its state untouched.
+      # whose object disappeared as :fsm_blocked (informational, not an
+      # infrastructure failure), leaving its state untouched.
       asset = insert_asset()
       variant = insert_variant(asset, :thumb, "failed", "variants/thumb.jpg")
 
@@ -262,7 +319,10 @@ defmodule Rindle.Ops.VariantMaintenanceTest do
 
       assert result.checked == 1
       assert result.missing == 0
-      assert result.errors == 1
+      # FSM-blocked: counted separately so verify_storage exit code stays 0
+      # for FSM enforcement on terminal states.
+      assert result.fsm_blocked == 1
+      assert result.errors == 0
 
       preserved = Rindle.Repo.get!(MediaVariant, variant.id)
       assert preserved.state == "failed"
@@ -271,7 +331,7 @@ defmodule Rindle.Ops.VariantMaintenanceTest do
     test "does not silently flip a stale variant to missing (FSM forbids)" do
       # Same invariant: stale -> missing is not in VariantFSM allowed
       # transitions, so a not_found HEAD on a stale variant must surface
-      # as an error rather than rewriting state.
+      # as :fsm_blocked rather than rewriting state.
       asset = insert_asset()
       variant = insert_variant(asset, :thumb, "stale", "variants/thumb.jpg")
 
@@ -282,7 +342,8 @@ defmodule Rindle.Ops.VariantMaintenanceTest do
       {:ok, result} = VariantMaintenance.verify_storage(%{})
 
       assert result.missing == 0
-      assert result.errors == 1
+      assert result.fsm_blocked == 1
+      assert result.errors == 0
 
       preserved = Rindle.Repo.get!(MediaVariant, variant.id)
       assert preserved.state == "stale"

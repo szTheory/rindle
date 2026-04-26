@@ -24,8 +24,10 @@ defmodule Mix.Tasks.Rindle.VerifyStorage do
   ## Exit codes
 
     * `0` — Reconciliation completed cleanly (zero storage errors). Missing
-      variants do not affect the exit code — they are an expected, recoverable
-      outcome that gets reflected in the next regenerate run.
+      variants and FSM-blocked transitions do not affect the exit code —
+      they are expected, recoverable outcomes (the next regenerate run will
+      pick missing variants up; FSM-blocked transitions reflect intentional
+      invariant enforcement on already-terminal states like `failed`).
     * `1` — Query failure, OR one or more non-`:not_found` storage errors
       occurred during HEAD checks (e.g. connection refused, auth failure).
       The summary is still printed before halting so operators can see the
@@ -36,13 +38,17 @@ defmodule Mix.Tasks.Rindle.VerifyStorage do
   The task emits a deterministic summary that is script-friendly:
 
       Rindle: verifying storage for variants...
-        checked:  10
-        present:  8
-        missing:  2
-        errors:   0
+        checked:      10
+        present:      8
+        missing:      1
+        fsm_blocked:  1
+        errors:       0
       Done.
 
   The summary is stable and pipe-friendly (no progress bars or spinners).
+  `fsm_blocked` counts variants whose object disappeared but whose current
+  state (e.g. `failed`) is forbidden from transitioning to `missing` by the
+  variant FSM. These are surfaced for visibility but do not trigger exit-1.
 
   ## Reconciliation behavior
 
@@ -92,17 +98,28 @@ defmodule Mix.Tasks.Rindle.VerifyStorage do
     Mix.shell().info("Rindle: verifying storage for variants...")
 
     case VariantMaintenance.verify_storage(filters) do
-      {:ok, %{checked: checked, present: present, missing: missing, errors: errors}} ->
-        Mix.shell().info("  checked:  #{checked}")
-        Mix.shell().info("  present:  #{present}")
-        Mix.shell().info("  missing:  #{missing}")
-        Mix.shell().info("  errors:   #{errors}")
+      {:ok, report} ->
+        %{
+          checked: checked,
+          present: present,
+          missing: missing,
+          fsm_blocked: fsm_blocked,
+          errors: errors
+        } = report
+
+        Mix.shell().info("  checked:      #{checked}")
+        Mix.shell().info("  present:      #{present}")
+        Mix.shell().info("  missing:      #{missing}")
+        Mix.shell().info("  fsm_blocked:  #{fsm_blocked}")
+        Mix.shell().info("  errors:       #{errors}")
         Mix.shell().info("Done.")
 
         if errors > 0 do
           # Documented exit code: 1 — Query or storage connection failure.
           # Non-:not_found storage errors during HEAD checks (network, auth,
           # adapter resolution) need to surface so cron / CI alerts fire.
+          # `fsm_blocked` is intentionally NOT counted here — it represents
+          # FSM invariant enforcement on terminal states, not infra failure.
           Mix.shell().error("#{errors} storage error(s) during verification")
           System.halt(1)
         end

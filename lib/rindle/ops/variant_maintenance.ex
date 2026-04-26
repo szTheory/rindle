@@ -44,6 +44,7 @@ defmodule Rindle.Ops.VariantMaintenance do
           checked: non_neg_integer(),
           present: non_neg_integer(),
           missing: non_neg_integer(),
+          fsm_blocked: non_neg_integer(),
           errors: non_neg_integer()
         }
 
@@ -147,6 +148,16 @@ defmodule Rindle.Ops.VariantMaintenance do
   `missing` state. Other error types are counted as errors without mutating
   the record (network errors, auth failures, etc.).
 
+  Counters are kept distinct so operators can tell infrastructure problems
+  apart from FSM invariant enforcement:
+
+    * `:errors` — true infrastructure failures (storage connection, auth,
+      adapter resolution, repo failure). Mix-task callers exit non-zero on
+      any non-zero `:errors` count.
+    * `:fsm_blocked` — the FSM rejected the `→ missing` transition (e.g. a
+      `failed` variant whose object disappears). The state is left as-is and
+      logged; this is informational and does NOT trigger a non-zero exit.
+
   ## Filters
 
     * `:variant_name` — restrict to variants with this exact name.
@@ -154,7 +165,7 @@ defmodule Rindle.Ops.VariantMaintenance do
 
   ## Returns
 
-    * `{:ok, %{checked: N, present: P, missing: M, errors: E}}` on success.
+    * `{:ok, %{checked: N, present: P, missing: M, fsm_blocked: B, errors: E}}` on success.
     * `{:error, reason}` if the initial query fails.
   """
   @spec verify_storage(filters()) :: {:ok, verify_result()} | {:error, term()}
@@ -182,13 +193,16 @@ defmodule Rindle.Ops.VariantMaintenance do
     query = maybe_filter_variant_name(query, filters)
 
     with {:ok, rows} <- safe_all(query) do
+      acc0 = %{checked: 0, present: 0, missing: 0, fsm_blocked: 0, errors: 0}
+
       result =
-        Enum.reduce(rows, %{checked: 0, present: 0, missing: 0, errors: 0}, fn row, acc ->
+        Enum.reduce(rows, acc0, fn row, acc ->
           acc = Map.update!(acc, :checked, &(&1 + 1))
 
           case check_object(row) do
             :present -> Map.update!(acc, :present, &(&1 + 1))
             :missing -> Map.update!(acc, :missing, &(&1 + 1))
+            :fsm_blocked -> Map.update!(acc, :fsm_blocked, &(&1 + 1))
             :error -> Map.update!(acc, :errors, &(&1 + 1))
           end
         end)
@@ -292,8 +306,9 @@ defmodule Rindle.Ops.VariantMaintenance do
   # Gate the missing-flip on the FSM. The query set includes "stale" and
   # "failed" today and the FSM forbids those source states transitioning to
   # "missing" — flipping them silently would erase the prior FSM decision.
-  # When the transition is invalid, classify as :error so the verify_storage
-  # report and Mix-task exit code reflect the situation; do NOT mutate state.
+  # When the transition is invalid, classify as :fsm_blocked (informational,
+  # non-error) so the verify_storage report distinguishes FSM enforcement
+  # from real infrastructure failures. Mix-task exit code is unaffected.
   defp mark_missing(variant_id, current_state) do
     case VariantFSM.transition(current_state, "missing", %{variant_id: variant_id}) do
       :ok ->
@@ -332,7 +347,7 @@ defmodule Rindle.Ops.VariantMaintenance do
           to_state: to
         )
 
-        :error
+        :fsm_blocked
     end
   end
 
