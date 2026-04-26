@@ -235,3 +235,96 @@ jobs:
 
       - name: Run contract tests
         run: mix test --only contract
+
+  adopter:
+    name: Adopter
+    runs-on: ubuntu-latest
+    # Adopter lane (CI-08): proves the canonical adopter-facing media
+    # lifecycle works end-to-end against MinIO + PostgreSQL. Runs ONLY
+    # after quality, integration, and contract have all passed — this is
+    # the release-readiness signal (D-09 in 05-CONTEXT.md). Listing all
+    # three explicitly makes the dependency graph readable in the workflow
+    # visualization (integration already needs quality, but the redundancy
+    # is intentional documentation).
+    needs: [quality, integration, contract]
+    env:
+      MIX_ENV: test
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGHOST: localhost
+      PGPORT: "5432"
+      RINDLE_MINIO_URL: http://localhost:9000
+      RINDLE_MINIO_ACCESS_KEY: minioadmin
+      RINDLE_MINIO_SECRET_KEY: minioadmin
+      RINDLE_MINIO_BUCKET: rindle-test
+      RINDLE_MINIO_REGION: us-east-1
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: rindle_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: "1.17"
+          otp-version: "27"
+
+      - name: Install libvips
+        run: sudo apt-get install -y libvips-dev
+
+      - name: Restore deps cache
+        uses: actions/cache@v4
+        with:
+          path: deps
+          key: deps-${{ runner.os }}-1.17-27-${{ hashFiles('**/mix.lock') }}
+          restore-keys: deps-${{ runner.os }}-1.17-27-
+
+      - name: Restore build cache
+        uses: actions/cache@v4
+        with:
+          path: _build
+          key: build-${{ runner.os }}-1.17-27-${{ hashFiles('**/mix.lock') }}
+          restore-keys: build-${{ runner.os }}-1.17-27-
+
+      - name: Install dependencies
+        run: mix deps.get
+
+      - name: Start MinIO
+        run: |
+          docker run -d --name rindle-minio -p 9000:9000 -e MINIO_ROOT_USER=minioadmin -e MINIO_ROOT_PASSWORD=minioadmin minio/minio server /data --console-address ":9001"
+          for _ in $(seq 1 30); do
+            if curl -fsS http://localhost:9000/minio/health/ready >/dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          exit 1
+
+      - name: Install MinIO client
+        run: |
+          curl -fsSL https://dl.min.io/client/mc/release/linux-amd64/mc -o mc
+          chmod +x mc
+          sudo mv mc /usr/local/bin/mc
+
+      - name: Create MinIO bucket
+        run: |
+          mc alias set local http://localhost:9000 minioadmin minioadmin
+          mc mb --ignore-existing local/rindle-test
+
+      - name: Run adopter tests
+        run: mix test --only adopter test/adopter/canonical_app/lifecycle_test.exs

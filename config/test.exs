@@ -14,6 +14,26 @@ config :rindle, Rindle.Repo,
   pool: Ecto.Adapters.SQL.Sandbox,
   pool_size: System.schedulers_online() * 2
 
+# Adopter Repo for CI-08 lane (Plan 05-04).
+#
+# This Repo is intentionally NOT registered in `:ecto_repos` (and is not started
+# by the application supervisor) — it exists only to prove the adopter-repo-first
+# pattern works architecturally. The adopter lifecycle test starts it explicitly
+# via `start_supervised/1`, and shares the same test database as `Rindle.Repo`
+# via Ecto SQL Sandbox (Assumption A3 in 05-RESEARCH.md).
+#
+# The runtime gap — `lib/rindle.ex` still hard-codes `Rindle.Repo` at multiple
+# call sites (L91/101/123/130/211) — is documented as a v1.1 follow-up in the
+# adopter lifecycle test's TODO comment (D-09 / Open Question 1).
+config :rindle, Rindle.Adopter.CanonicalApp.Repo,
+  username: db_user,
+  password: db_password,
+  hostname: db_host,
+  port: db_port,
+  database: "rindle_test#{System.get_env("MIX_TEST_PARTITION")}",
+  pool: Ecto.Adapters.SQL.Sandbox,
+  pool_size: 2
+
 config :logger, level: :warning
 
 config :oban, Oban, testing: :inline
