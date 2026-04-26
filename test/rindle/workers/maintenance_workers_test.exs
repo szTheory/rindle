@@ -29,7 +29,7 @@ defmodule Rindle.Workers.MaintenanceWorkersTest do
     |> Rindle.Repo.insert!()
   end
 
-  defp create_session(asset, overrides \\ %{}) do
+  defp create_session(asset, overrides) do
     %MediaUploadSession{}
     |> MediaUploadSession.changeset(
       Map.merge(
@@ -87,11 +87,13 @@ defmodule Rindle.Workers.MaintenanceWorkersTest do
 
     test "worker is schedulable as Oban cron job" do
       # Verify the worker uses :rindle_maintenance queue
-      assert CleanupOrphans.__queue__() == :rindle_maintenance
+      opts = CleanupOrphans.__opts__()
+      assert Keyword.get(opts, :queue) == :rindle_maintenance
     end
 
     test "worker has max_attempts set for observability" do
-      assert CleanupOrphans.__max_attempts__() >= 1
+      opts = CleanupOrphans.__opts__()
+      assert Keyword.get(opts, :max_attempts) >= 1
     end
   end
 
@@ -143,11 +145,13 @@ defmodule Rindle.Workers.MaintenanceWorkersTest do
     end
 
     test "worker is schedulable as Oban cron job" do
-      assert AbortIncompleteUploads.__queue__() == :rindle_maintenance
+      opts = AbortIncompleteUploads.__opts__()
+      assert Keyword.get(opts, :queue) == :rindle_maintenance
     end
 
     test "worker has max_attempts set for observability" do
-      assert AbortIncompleteUploads.__max_attempts__() >= 1
+      opts = AbortIncompleteUploads.__opts__()
+      assert Keyword.get(opts, :max_attempts) >= 1
     end
   end
 
