@@ -46,6 +46,20 @@ defmodule Rindle.Workers.AbortIncompleteUploads do
   Failures appear as Oban job errors with `attempt` and `max_attempts` metadata.
   The underlying `UploadMaintenance` service emits structured `Logger` events
   tagged with `rindle.upload_maintenance.*` for per-session transitions and errors.
+
+  This worker also emits:
+
+    * `Logger.info("rindle.workers.abort_incomplete_uploads.completed", ...)` on
+      success, with `sessions_found`, `sessions_aborted`, and `abort_errors` counts.
+    * `Logger.error("rindle.workers.abort_incomplete_uploads.failed", ...)` when the
+      underlying service returns `{:error, reason}`.
+
+  ## Idempotency
+
+  Running this worker multiple times is safe — sessions already in terminal states
+  (`completed`, `expired`, `aborted`, `failed`) are not targeted. Each run only
+  processes sessions in `signed` or `uploading` states whose `expires_at` is in
+  the past.
   """
 
   use Oban.Worker, queue: :rindle_maintenance, max_attempts: 3
