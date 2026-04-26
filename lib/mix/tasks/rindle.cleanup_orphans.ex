@@ -6,12 +6,12 @@ defmodule Mix.Tasks.Rindle.CleanupOrphans do
 
   ## Usage
 
-      mix rindle.cleanup_orphans [--dry-run] [--storage MODULE]
+      mix rindle.cleanup_orphans [--live] [--storage MODULE]
 
   ## Options
 
-    * `--dry-run` — report what would be deleted without making any changes
-      (safe for inspection; exits zero).
+    * `--live` — perform destructive deletions. Without this flag the task
+      runs in dry-run mode and reports what *would* be removed.
     * `--storage MODULE` — fully-qualified module name of the storage adapter
       to use for object deletion. When omitted the adapter is resolved from
       the `:rindle` application configuration under `:default_storage`.
@@ -23,14 +23,23 @@ defmodule Mix.Tasks.Rindle.CleanupOrphans do
 
   ## Examples
 
-      # Preview what would be removed
-      mix rindle.cleanup_orphans --dry-run
-
-      # Live cleanup using configured default storage
+      # Preview what would be removed (default; safe)
       mix rindle.cleanup_orphans
 
+      # Live cleanup using configured default storage (destructive)
+      mix rindle.cleanup_orphans --live
+
       # Live cleanup against a specific adapter
-      mix rindle.cleanup_orphans --storage Rindle.Storage.Local
+      mix rindle.cleanup_orphans --live --storage Rindle.Storage.Local
+
+  ## Safety default
+
+  The CLI, the underlying service (`Rindle.Ops.UploadMaintenance.cleanup_orphans/1`),
+  and the cron worker (`Rindle.Workers.CleanupOrphans`) all default to dry-run.
+  Destructive execution requires an explicit opt-in (`--live` here, `dry_run: false`
+  for the service, `"dry_run" => false` for the worker job args). This is the
+  T-04-01 mitigation: dry-run and destructive execution are kept separate, with
+  the safer default everywhere.
 
   ## Notes
 
@@ -52,10 +61,12 @@ defmodule Mix.Tasks.Rindle.CleanupOrphans do
   def run(argv) do
     {opts, _args, _invalid} =
       OptionParser.parse(argv,
-        strict: [dry_run: :boolean, storage: :string]
+        strict: [live: :boolean, storage: :string]
       )
 
-    dry_run? = Keyword.get(opts, :dry_run, false)
+    # Default to the safe (non-destructive) mode — operators must explicitly
+    # opt in with --live to delete anything. See @moduledoc "Safety default".
+    dry_run? = not Keyword.get(opts, :live, false)
     storage_mod = resolve_storage_adapter(opts)
 
     Mix.shell().info("Running upload-session cleanup (dry_run=#{dry_run?})...")
