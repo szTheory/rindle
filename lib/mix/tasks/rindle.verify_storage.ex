@@ -39,6 +39,21 @@ defmodule Mix.Tasks.Rindle.VerifyStorage do
 
   The summary is stable and pipe-friendly (no progress bars or spinners).
 
+  ## Reconciliation behavior
+
+  Variants are eligible for verification when they have a non-nil `storage_key`
+  and are in one of the following states: `ready`, `stale`, `missing`, or
+  `failed`. Variants without a `storage_key` (e.g., `planned`, `queued`) are
+  skipped entirely.
+
+  On each HEAD call:
+
+    * `{:ok, _}` — object is present; variant state is left unchanged.
+    * `{:error, :not_found}` — object is absent; variant is flipped to `missing`.
+    * `{:error, other}` — unexpected error (network, auth); counted as an error
+      but the variant state is not mutated. Investigate manually if error count
+      is non-zero.
+
   ## Examples
 
       # Verify all variants
@@ -46,6 +61,9 @@ defmodule Mix.Tasks.Rindle.VerifyStorage do
 
       # Verify only thumb variants
       mix rindle.verify_storage --variant thumb
+
+      # Verify only variants for a specific profile
+      mix rindle.verify_storage --profile Elixir.MyApp.AvatarProfile
   """
 
   use Mix.Task

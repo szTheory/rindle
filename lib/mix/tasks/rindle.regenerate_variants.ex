@@ -22,6 +22,26 @@ defmodule Mix.Tasks.Rindle.RegenerateVariants do
     * `0` — Operation completed (even if 0 variants were enqueued).
     * `1` — Query or job-insertion error.
 
+  ## Targeting rules
+
+  Only variants in `stale` or `missing` states are eligible for re-enqueueing.
+  Variants that are `queued`, `processing`, or `ready` are counted as skipped
+  and will not generate duplicate Oban jobs.
+
+  The `stale` state means the variant's `recipe_digest` no longer matches the
+  profile's current recipe — the variant was generated from an outdated
+  configuration. The `missing` state means the storage object is absent (as
+  detected by a prior `mix rindle.verify_storage` run).
+
+  ## Output
+
+  The task emits a deterministic summary:
+
+      Rindle: scanning for stale/missing variants...
+        enqueued: 12
+        skipped:  3
+      Done.
+
   ## Examples
 
       # Requeue all stale/missing variants
