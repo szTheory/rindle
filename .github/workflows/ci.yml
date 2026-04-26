@@ -190,3 +190,48 @@ jobs:
         run: |
           mix test test/rindle/upload/lifecycle_integration_test.exs --include integration
           mix test test/rindle/storage/storage_adapter_test.exs --include minio
+
+  contract:
+    name: Contract
+    runs-on: ubuntu-latest
+    # `needs: quality` waits for ALL matrix entries of the quality job
+    # (Elixir 1.15/OTP 26 AND Elixir 1.17/OTP 27) to succeed. This is the
+    # standard GitHub Actions matrix-needs interaction: a downstream job
+    # with `needs: <matrixed_job>` blocks until every matrix variant
+    # completes successfully. See:
+    # https://docs.github.com/actions/using-jobs/using-jobs-in-a-workflow#defining-prerequisite-jobs
+    needs: quality
+    env:
+      MIX_ENV: test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: "1.17"
+          otp-version: "27"
+
+      - name: Restore deps cache
+        uses: actions/cache@v4
+        with:
+          path: deps
+          key: deps-${{ runner.os }}-1.17-27-${{ hashFiles('**/mix.lock') }}
+          restore-keys: deps-${{ runner.os }}-1.17-27-
+
+      - name: Restore build cache
+        uses: actions/cache@v4
+        with:
+          path: _build
+          key: build-${{ runner.os }}-1.17-27-${{ hashFiles('**/mix.lock') }}
+          restore-keys: build-${{ runner.os }}-1.17-27-
+
+      - name: Install dependencies
+        run: mix deps.get
+
+      - name: Compile
+        run: mix compile
+
+      - name: Run contract tests
+        run: mix test --only contract
