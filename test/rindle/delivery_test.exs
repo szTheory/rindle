@@ -130,4 +130,79 @@ defmodule Rindle.DeliveryTest do
     assert {:ok, url} = Rindle.url(PublicProfile, key)
     assert url == "https://public.example/#{key}"
   end
+
+  describe "telemetry emission (Plan 05-01 / TEL-04)" do
+    setup do
+      ref =
+        :telemetry_test.attach_event_handlers(self(), [
+          [:rindle, :delivery, :signed]
+        ])
+
+      on_exit(fn -> :telemetry.detach(ref) end)
+      {:ok, ref: ref}
+    end
+
+    test "url/3 emits [:rindle, :delivery, :signed] inside with success arm (private mode)",
+         %{ref: ref} do
+      key = "assets/asset-1/original.jpg"
+
+      expect(Rindle.AuthorizerMock, :authorize, fn nil, :deliver, %{profile: PrivateProfile, key: ^key, mode: :private} ->
+        :ok
+      end)
+
+      expect(Rindle.StorageMock, :capabilities, fn -> [:signed_url] end)
+
+      expect(Rindle.StorageMock, :url, fn ^key, _opts ->
+        {:ok, "https://signed.example/#{key}?ttl=120"}
+      end)
+
+      assert {:ok, _url} = Rindle.Delivery.url(PrivateProfile, key)
+
+      assert_received {[:rindle, :delivery, :signed], ^ref, measurements, metadata}
+      assert is_integer(measurements.system_time)
+      assert metadata.profile == PrivateProfile
+      assert metadata.adapter == PrivateProfile.storage_adapter()
+      assert metadata.mode == :private
+    end
+
+    test "url/3 emits [:rindle, :delivery, :signed] for public mode", %{ref: ref} do
+      key = "assets/asset-1/original.jpg"
+
+      expect(Rindle.AuthorizerMock, :authorize, fn nil, :deliver, %{profile: PublicProfile, key: ^key, mode: :public} ->
+        :ok
+      end)
+
+      expect(Rindle.StorageMock, :url, fn ^key, _opts ->
+        {:ok, "https://public.example/#{key}"}
+      end)
+
+      assert {:ok, _url} = Rindle.Delivery.url(PublicProfile, key)
+
+      assert_received {[:rindle, :delivery, :signed], ^ref, _measurements, metadata}
+      assert metadata.profile == PublicProfile
+      assert metadata.mode == :public
+    end
+
+    test "url/3 does NOT emit when authorize_delivery/4 returns {:error, _}", %{ref: ref} do
+      key = "assets/asset-1/original.jpg"
+
+      expect(Rindle.AuthorizerMock, :authorize, fn _actor, :deliver, _subject ->
+        {:error, :forbidden}
+      end)
+
+      assert {:error, :forbidden} = Rindle.Delivery.url(PrivateProfile, key)
+      refute_received {[:rindle, :delivery, :signed], ^ref, _measurements, _metadata}
+    end
+
+    test "url/3 does NOT emit when storage adapter lacks :signed_url capability", %{ref: ref} do
+      key = "assets/asset-1/original.jpg"
+
+      expect(Rindle.AuthorizerMock, :authorize, fn _actor, :deliver, _subject -> :ok end)
+
+      assert {:error, {:delivery_unsupported, :signed_url}} =
+               Rindle.Delivery.url(UnsupportedProfile, key)
+
+      refute_received {[:rindle, :delivery, :signed], ^ref, _measurements, _metadata}
+    end
+  end
 end
