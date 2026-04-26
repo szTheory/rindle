@@ -143,23 +143,40 @@ defmodule Rindle.Ops.MetadataBackfill do
   defp backfill_asset(asset, storage_mod, analyzer_mod, acc) do
     tmp_path = Path.join(System.tmp_dir!(), "rindle_backfill_#{Ecto.UUID.generate()}")
 
+    # WR-01: keep cleanup_temp/1 in `after` so a raise inside the analyzer or
+    # any other helper still removes the temp file, AND wrap in try/rescue so
+    # the per-asset failure is counted and the rest of the run continues
+    # (matching the moduledoc contract that promises per-asset failures are
+    # accumulated rather than aborting the run).
     result =
-      with {:ok, _path} <- download_source(storage_mod, asset.storage_key, tmp_path),
-           {:ok, metadata} <- analyze_source(analyzer_mod, tmp_path),
-           {:ok, _updated} <- persist_metadata(asset, metadata) do
-        :updated
-      else
-        {:error, reason} ->
-          Logger.warning("rindle.metadata_backfill.asset_failed",
+      try do
+        with {:ok, _path} <- download_source(storage_mod, asset.storage_key, tmp_path),
+             {:ok, metadata} <- analyze_source(analyzer_mod, tmp_path),
+             {:ok, _updated} <- persist_metadata(asset, metadata) do
+          :updated
+        else
+          {:error, reason} ->
+            Logger.warning("rindle.metadata_backfill.asset_failed",
+              asset_id: asset.id,
+              storage_key: asset.storage_key,
+              reason: inspect(reason)
+            )
+
+            :failed
+        end
+      rescue
+        e ->
+          Logger.warning("rindle.metadata_backfill.asset_raised",
             asset_id: asset.id,
             storage_key: asset.storage_key,
-            reason: inspect(reason)
+            kind: e.__struct__,
+            message: Exception.message(e)
           )
 
           :failed
+      after
+        cleanup_temp(tmp_path)
       end
-
-    cleanup_temp(tmp_path)
 
     case result do
       :updated -> Map.update!(acc, :assets_updated, &(&1 + 1))
