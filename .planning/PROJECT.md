@@ -49,13 +49,13 @@ Media, made durable.
 - [ ] Responsive image helper (`picture_tag/3`, srcset, placeholder)
 
 **M4 — Day-2 Operations**
-- [ ] `mix rindle.cleanup_orphans` — expired sessions, detached staged objects
-- [ ] `mix rindle.regenerate_variants` — stale/missing variants by profile/name
-- [ ] `mix rindle.verify_storage` — reconcile DB records against storage
-- [ ] `mix rindle.abort_incomplete_uploads` — multipart cost leak prevention
-- [ ] `mix rindle.backfill_metadata` — re-analyze existing assets
-- [ ] Oban cron workers for scheduled cleanup
-- [ ] `stale` variant detection when recipe digest changes
+- [x] `mix rindle.cleanup_orphans` — expired sessions, detached staged objects
+- [x] `mix rindle.regenerate_variants` — stale/missing variants by profile/name
+- [x] `mix rindle.verify_storage` — reconcile DB records against storage
+- [x] `mix rindle.abort_incomplete_uploads` — multipart cost leak prevention
+- [x] `mix rindle.backfill_metadata` — re-analyze existing assets
+- [x] Oban cron workers for scheduled cleanup
+- [x] `stale` variant detection when recipe digest changes
 
 **M5 — Quality, Docs, CI**
 - [ ] CI quality lane: format, compile warnings-as-errors, tests, Credo, Dialyzer
@@ -143,4 +143,4 @@ Media, made durable.
 | Decision policy is left-shifted: auto-decide low/medium impact, escalate only high impact | Maximizes execution speed while preserving user control over irreversible API/security/scope calls | ✓ Good |
 
 ---
-*Last updated: 2026-04-25 after Phase 2 upload-processing completion*
+*Last updated: 2026-04-26 after Phase 4 day-2-operations completion*
