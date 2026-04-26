@@ -241,26 +241,53 @@ defmodule Rindle.Ops.VariantMaintenance do
   end
 
   defp check_object(%{variant_id: variant_id, variant_state: state, storage_key: key, asset_profile: profile}) do
-    storage_adapter = resolve_storage_adapter(profile)
+    case resolve_storage_adapter(profile) do
+      {:ok, storage_adapter} ->
+        case storage_adapter.head(key, []) do
+          {:ok, _meta} ->
+            :present
 
-    case storage_adapter.head(key, []) do
-      {:ok, _meta} ->
-        :present
+          {:error, :not_found} ->
+            mark_missing(variant_id, state)
 
-      {:error, :not_found} ->
-        mark_missing(variant_id, state)
+          {:error, _other} ->
+            :error
+        end
 
-      {:error, _other} ->
+      {:error, reason} ->
+        # WR-09: do NOT raise — that would abort the whole verify walk on the
+        # first malformed profile string. Bump the :error counter and log so
+        # operators can investigate without losing the rest of the run.
+        Logger.warning("rindle.variant_maintenance.resolve_adapter_failed",
+          variant_id: variant_id,
+          profile_present: not is_nil(profile),
+          reason: inspect(reason)
+        )
+
         :error
     end
   end
 
   defp resolve_storage_adapter(profile_string) when is_binary(profile_string) do
-    profile_module = String.to_existing_atom(profile_string)
-    profile_module.storage_adapter()
-  rescue
-    _e -> raise "Cannot resolve storage adapter for profile: #{profile_string}"
+    try do
+      mod = String.to_existing_atom(profile_string)
+
+      cond do
+        not Code.ensure_loaded?(mod) ->
+          {:error, :module_not_loaded}
+
+        not function_exported?(mod, :storage_adapter, 0) ->
+          {:error, :no_storage_adapter_callback}
+
+        true ->
+          {:ok, mod.storage_adapter()}
+      end
+    rescue
+      ArgumentError -> {:error, :unknown_profile}
+    end
   end
+
+  defp resolve_storage_adapter(_), do: {:error, :invalid_profile_value}
 
   # Gate the missing-flip on the FSM. The query set includes "stale" and
   # "failed" today and the FSM forbids those source states transitioning to
