@@ -23,8 +23,13 @@ defmodule Mix.Tasks.Rindle.VerifyStorage do
 
   ## Exit codes
 
-    * `0` — Reconciliation completed (even when missing variants are found).
-    * `1` — Query or storage connection failure.
+    * `0` — Reconciliation completed cleanly (zero storage errors). Missing
+      variants do not affect the exit code — they are an expected, recoverable
+      outcome that gets reflected in the next regenerate run.
+    * `1` — Query failure, OR one or more non-`:not_found` storage errors
+      occurred during HEAD checks (e.g. connection refused, auth failure).
+      The summary is still printed before halting so operators can see the
+      partial counts.
 
   ## Output
 
@@ -93,6 +98,14 @@ defmodule Mix.Tasks.Rindle.VerifyStorage do
         Mix.shell().info("  missing:  #{missing}")
         Mix.shell().info("  errors:   #{errors}")
         Mix.shell().info("Done.")
+
+        if errors > 0 do
+          # Documented exit code: 1 — Query or storage connection failure.
+          # Non-:not_found storage errors during HEAD checks (network, auth,
+          # adapter resolution) need to surface so cron / CI alerts fire.
+          Mix.shell().error("#{errors} storage error(s) during verification")
+          System.halt(1)
+        end
 
       {:error, reason} ->
         Mix.shell().error("Rindle.VerifyStorage failed: #{inspect(reason)}")
