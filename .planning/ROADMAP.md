@@ -67,7 +67,10 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. `mix rindle.verify_storage` outputs a summary (total checked, missing, present, errors) and marks absent variants as `missing` in the DB
   4. `mix rindle.abort_incomplete_uploads` transitions `signed`/`uploading` sessions past their TTL to `expired` and prevents storage cost leaks
   5. All Mix tasks exit non-zero on errors, enabling use in CI pipelines and cron scripts
-**Plans**: TBD
+**Plans**: 3 plans
+- [ ] 04-01-PLAN.md — expire incomplete uploads and clean orphaned staged objects
+- [ ] 04-02-PLAN.md — regenerate stale variants and verify storage reconciliation
+- [ ] 04-03-PLAN.md — backfill metadata and add cron-capable maintenance workers
 
 ### Phase 5: CI & 1.0 Readiness
 **Goal**: The public API is validated by a real integration in CI, all quality gates pass on every PR, and documentation is complete enough for a Phoenix developer to ship media features on day one
