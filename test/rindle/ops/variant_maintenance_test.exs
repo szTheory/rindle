@@ -57,6 +57,7 @@ defmodule Rindle.Ops.VariantMaintenanceTest do
 
       assert result.enqueued == 1
       assert result.skipped == 0
+      assert result.errors == 0
       assert_enqueued(worker: Rindle.Workers.ProcessVariant, args: %{"asset_id" => asset.id, "variant_name" => "thumb"})
     end
 
@@ -67,6 +68,7 @@ defmodule Rindle.Ops.VariantMaintenanceTest do
       {:ok, result} = VariantMaintenance.regenerate_variants(%{})
 
       assert result.enqueued == 1
+      assert result.errors == 0
       assert_enqueued(worker: Rindle.Workers.ProcessVariant, args: %{"asset_id" => asset.id, "variant_name" => "thumb"})
     end
 
@@ -78,6 +80,7 @@ defmodule Rindle.Ops.VariantMaintenanceTest do
 
       assert result.enqueued == 0
       assert result.skipped == 1
+      assert result.errors == 0
       refute_enqueued(worker: Rindle.Workers.ProcessVariant)
     end
 
@@ -89,6 +92,7 @@ defmodule Rindle.Ops.VariantMaintenanceTest do
       {:ok, result} = VariantMaintenance.regenerate_variants(%{variant_name: "thumb"})
 
       assert result.enqueued == 1
+      assert result.errors == 0
       assert_enqueued(worker: Rindle.Workers.ProcessVariant, args: %{"variant_name" => "thumb"})
       refute_enqueued(worker: Rindle.Workers.ProcessVariant, args: %{"variant_name" => "large"})
     end
@@ -101,6 +105,7 @@ defmodule Rindle.Ops.VariantMaintenanceTest do
       {:ok, result} = VariantMaintenance.regenerate_variants(%{profile: "Elixir.SomeOtherProfile"})
 
       assert result.enqueued == 0
+      assert result.errors == 0
     end
 
     test "returns enqueued and skipped counts" do
@@ -112,6 +117,37 @@ defmodule Rindle.Ops.VariantMaintenanceTest do
 
       assert result.enqueued == 2
       assert result.skipped == 0
+      assert result.errors == 0
+    end
+
+    test "second call does not enqueue duplicate jobs (Oban uniqueness)" do
+      # CR-03 regression: back-to-back runs must not double-enqueue
+      # ProcessVariant work for the same (asset_id, variant_name).
+      asset = insert_asset()
+      _stale = insert_variant(asset, :thumb, "stale")
+
+      {:ok, first} = VariantMaintenance.regenerate_variants(%{})
+      assert first.enqueued == 1
+      assert first.skipped == 0
+
+      # Second call: the previous job is still :available — uniqueness
+      # should detect the conflict and skip rather than enqueue again.
+      {:ok, second} = VariantMaintenance.regenerate_variants(%{})
+      assert second.enqueued == 0
+      assert second.skipped >= 1
+      assert second.errors == 0
+
+      # Verify only ONE job is in the queue for this (asset, variant) pair.
+      jobs =
+        Rindle.Repo.all(
+          Ecto.Query.from(j in Oban.Job,
+            where: j.worker == "Rindle.Workers.ProcessVariant",
+            where: fragment("?->>'asset_id' = ?", j.args, ^asset.id),
+            where: fragment("?->>'variant_name' = ?", j.args, "thumb")
+          )
+        )
+
+      assert length(jobs) == 1
     end
   end
 

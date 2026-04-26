@@ -17,6 +17,8 @@ defmodule Rindle.Ops.VariantMaintenance do
   can detect non-zero exits.
   """
 
+  require Logger
+
   import Ecto.Query
 
   alias Rindle.Domain.{MediaAsset, MediaVariant}
@@ -31,7 +33,11 @@ defmodule Rindle.Ops.VariantMaintenance do
           optional(:variant_name) => String.t()
         }
 
-  @type regenerate_result :: %{enqueued: non_neg_integer(), skipped: non_neg_integer()}
+  @type regenerate_result :: %{
+          enqueued: non_neg_integer(),
+          skipped: non_neg_integer(),
+          errors: non_neg_integer()
+        }
   @type verify_result :: %{
           checked: non_neg_integer(),
           present: non_neg_integer(),
@@ -55,8 +61,16 @@ defmodule Rindle.Ops.VariantMaintenance do
 
   ## Returns
 
-    * `{:ok, %{enqueued: N, skipped: M}}` on success.
-    * `{:error, reason}` if the query or job insertion fails.
+    * `{:ok, %{enqueued: N, skipped: M, errors: E}}` on success.
+      - `enqueued` is the count of newly inserted ProcessVariant jobs.
+      - `skipped` includes both eligible variants whose insertion was a
+        no-op due to Oban uniqueness (an equivalent job is already in-flight)
+        and variants in non-regeneratable states (`queued`, `processing`,
+        `ready`).
+      - `errors` is the count of `Oban.insert/1` failures (non-uniqueness
+        rejection — e.g. DB connection, validation failure). Callers should
+        exit non-zero when this is greater than zero.
+    * `{:error, reason}` if the underlying query fails.
   """
   @spec regenerate_variants(filters()) :: {:ok, regenerate_result()} | {:error, term()}
   def regenerate_variants(filters) when is_map(filters) do
@@ -71,27 +85,48 @@ defmodule Rindle.Ops.VariantMaintenance do
     query = maybe_filter_variant_name(query, filters)
 
     with {:ok, rows} <- safe_all(query) do
-      {enqueued, skipped} =
-        Enum.reduce(rows, {0, 0}, fn {_variant_id, variant_name, asset_id, _state}, {enq, skip} ->
-          case enqueue_job(asset_id, variant_name) do
-            {:ok, _job} -> {enq + 1, skip}
-            {:error, _reason} -> {enq, skip + 1}
-          end
-        end)
-
-      # Also count ready/processing/queued variants for the skipped tally
+      # Compute the "already in a non-regeneratable state" tally BEFORE we
+      # touch Oban so a query failure here does not strand half-enqueued work
+      # in the queue (WR-04). Restrict to operationally-relevant states only
+      # ("queued", "processing", "ready") rather than the open-ended
+      # "anything not in @regeneration_states" set, which over-counted purged
+      # / failed / planned variants as "skipped".
       skipped_query =
         from v in MediaVariant,
           join: a in MediaAsset,
           on: a.id == v.asset_id,
-          where: v.state not in @regeneration_states,
+          where: v.state in ["queued", "processing", "ready"],
           select: count(v.id)
 
       skipped_query = maybe_filter_profile(skipped_query, filters)
       skipped_query = maybe_filter_variant_name(skipped_query, filters)
 
       with {:ok, [existing_skip_count]} <- safe_all(skipped_query) do
-        {:ok, %{enqueued: enqueued, skipped: skipped + existing_skip_count}}
+        {enqueued, skipped, errors} =
+          Enum.reduce(rows, {0, 0, 0}, fn {_variant_id, variant_name, asset_id, _state},
+                                          {enq, skip, err} ->
+            case enqueue_job(asset_id, variant_name) do
+              # Oban uniqueness rejected this insert because an equivalent job
+              # is already in-flight — count as skipped, not enqueued.
+              {:ok, %Oban.Job{conflict?: true}} ->
+                {enq, skip + 1, err}
+
+              {:ok, _job} ->
+                {enq + 1, skip, err}
+
+              {:error, reason} ->
+                Logger.error("rindle.variant_maintenance.enqueue_failed",
+                  asset_id: asset_id,
+                  variant_name: variant_name,
+                  reason: inspect(reason)
+                )
+
+                {enq, skip, err + 1}
+            end
+          end)
+
+        {:ok,
+         %{enqueued: enqueued, skipped: skipped + existing_skip_count, errors: errors}}
       end
     end
   end
@@ -165,8 +200,18 @@ defmodule Rindle.Ops.VariantMaintenance do
   defp maybe_filter_variant_name(query, _filters), do: query
 
   defp enqueue_job(asset_id, variant_name) do
+    # Uniqueness scoped to (worker, queue, asset_id, variant_name) for any
+    # in-flight or queued state. Two back-to-back regenerate_variants runs (or
+    # two cron firings) must not duplicate work — T-04-08 mitigation.
     %{"asset_id" => asset_id, "variant_name" => variant_name}
-    |> ProcessVariant.new()
+    |> ProcessVariant.new(
+      unique: [
+        fields: [:args, :worker, :queue],
+        keys: [:asset_id, :variant_name],
+        states: [:available, :scheduled, :executing, :retryable],
+        period: :infinity
+      ]
+    )
     |> Oban.insert()
   end
 
