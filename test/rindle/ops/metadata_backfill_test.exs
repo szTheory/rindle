@@ -120,7 +120,7 @@ defmodule Rindle.Ops.MetadataBackfillTest do
   describe "backfill_metadata/1 — failures" do
     test "counts storage download failures and continues" do
       asset1 = create_asset()
-      asset2 = create_asset()
+      _asset2 = create_asset()
 
       # asset1 fails download, asset2 succeeds
       expect(Rindle.StorageMock, :download, 2, fn key, tmp_path, _opts ->
