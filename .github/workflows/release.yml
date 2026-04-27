@@ -1,0 +1,98 @@
+name: Release
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    name: Release Check
+    runs-on: ubuntu-latest
+    environment: release
+    # Blocker 6 / T-05-05-01 mitigation: the `environment: release` declaration
+    # above ties this job to a GitHub Actions Environment named `release`.
+    # Once a repo admin configures protection rules on this environment
+    # (required reviewers, branch restriction to `main` and tag refs only),
+    # any secret bound to it (e.g. a future HEX_API_KEY) is gated behind
+    # those rules. Fork PRs and unauthorized branch pushes cannot trigger
+    # this job in a way that exposes the secret. The environment must be
+    # created in repo settings BEFORE any real HEX_API_KEY is added as an
+    # environment secret.
+    env:
+      MIX_ENV: dev
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: "1.17"
+          otp-version: "27"
+
+      - name: Restore deps cache
+        uses: actions/cache@v4
+        with:
+          path: deps
+          key: deps-${{ runner.os }}-1.17-27-${{ hashFiles('**/mix.lock') }}
+          restore-keys: deps-${{ runner.os }}-1.17-27-
+
+      - name: Install dependencies
+        run: mix deps.get
+
+      # Hex auth shim — `mix hex.publish --dry-run` requires Hex auth (A1
+      # resolved during 05-05 execution: confirmed locally that the dry-run
+      # exits 1 with "No authenticated user found. Run `mix hex.user auth`").
+      # Set a dummy HEX_API_KEY so the dry-run never attempts a real publish
+      # even if the auth check is bypassed; the dry-run does not actually
+      # PUT to the Hex API. When 1.0 cutover wires a real key, replace this
+      # with `${{ secrets.HEX_API_KEY }}` (which becomes available because of
+      # the `environment: release` declaration above).
+      - name: Set Hex auth shim
+        run: echo "HEX_API_KEY=dryrun-placeholder" >> $GITHUB_ENV
+
+      # Step 1: hex.build is the must-pass step (no auth required).
+      - name: Build package artifact
+        run: mix hex.build --unpack
+
+      - name: Assert required paths present in tarball
+        run: |
+          set -e
+          ls rindle-*/lib/rindle.ex
+          ls rindle-*/mix.exs
+          ls rindle-*/README.md
+          ls rindle-*/LICENSE
+
+      - name: Assert prohibited paths absent from tarball
+        run: |
+          set -e
+          if [ -e rindle-*/_build ];      then echo "FAIL: _build leaked into tarball"; exit 1; fi
+          if [ -e rindle-*/.planning ];   then echo "FAIL: .planning leaked into tarball"; exit 1; fi
+          if [ -e rindle-*/priv/plts ];   then echo "FAIL: priv/plts leaked into tarball"; exit 1; fi
+          if [ -e rindle-*/test ];        then echo "FAIL: test/ leaked into tarball"; exit 1; fi
+          if [ -e rindle-*/coveralls.json ]; then echo "FAIL: coveralls.json leaked"; exit 1; fi
+          if [ -e rindle-*/.github ];     then echo "FAIL: .github leaked into tarball"; exit 1; fi
+
+      # Step 2: hex.publish --dry-run is the additional metadata gate.
+      # If it fails due to auth (A1 — confirmed required by Hex CLI),
+      # tolerate the failure with a warning rather than failing the lane —
+      # the artifact inspection above is the primary gate.
+      - name: Dry-run publish (optional — A1 risk tolerance)
+        run: |
+          set +e
+          mix hex.publish package --dry-run --yes 2>&1 | tee /tmp/dryrun.log
+          status=${PIPESTATUS[0]}
+          if [ $status -ne 0 ]; then
+            if grep -q "No authenticated user found" /tmp/dryrun.log; then
+              echo "::warning::mix hex.publish --dry-run requires auth (A1 resolved in 05-05). Artifact inspection above is the active gate. To enable dry-run, configure HEX_API_KEY as a 'release' environment secret (NOT a repo-level secret)."
+              exit 0
+            fi
+            echo "::error::mix hex.publish --dry-run failed for non-auth reason"
+            exit $status
+          fi
