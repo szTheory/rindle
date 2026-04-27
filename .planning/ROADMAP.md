@@ -82,7 +82,16 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. CI integration lane runs upload → processing → delivery → cleanup against real MinIO + PostgreSQL and exits zero
   4. CI adopter lane runs at least one canonical host integration and verifies the end-to-end media lifecycle
   5. The getting started guide is copy-pasteable: a developer following it completes a working upload → variant → delivery flow in a Phoenix app with no gaps
-**Plans**: TBD
+**Plans**: 9 plans
+- [x] 05-01-PLAN.md — Backfill the locked Phase 3 telemetry public contract
+- [x] 05-02-PLAN.md — Implement the CI-06 contract lane
+- [x] 05-03-PLAN.md — Harden the CI quality lane
+- [x] 05-04-PLAN.md — Implement CI-08 (adopter lane) and ensure CI-07 (integration lane) is preserved
+- [x] 05-05-PLAN.md — Implement CI-09 (release lane)
+- [x] 05-06-PLAN.md — Complete the DOC-08 audit and docs configuration
+- [x] 05-07-PLAN.md — Author the seven narrative guides
+- [ ] 05-08-PLAN.md — Address CI pipeline and test hygiene gaps (gap closure)
+- [ ] 05-09-PLAN.md — Fix Broker correctness defects (gap closure)
 
 ## Progress
 
@@ -95,4 +104,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 2. Upload & Processing | 6/6 | Complete | 2026-04-25 |
 | 3. Delivery & Observability | 3/3 | Complete | 2026-04-26 |
 | 4. Day-2 Operations | 3/3 | Complete | 2026-04-26 |
-| 5. CI & 1.0 Readiness | 0/TBD | Not started | - |
+| 5. CI & 1.0 Readiness | 7/9 | Executing | - |
