@@ -328,3 +328,24 @@ jobs:
 
       - name: Run adopter tests
         run: mix test --only adopter test/adopter/canonical_app/lifecycle_test.exs
+
+      - name: Verify guides/getting_started.md matches adopter lane (D-16 drift gate)
+        run: |
+          set -e
+          GUIDE=guides/getting_started.md
+          if [ ! -f "$GUIDE" ]; then
+            echo "FAIL (D-16): $GUIDE missing — DOC-01 must be authored before adopter lane drift check can pass"
+            exit 1
+          fi
+          # The canonical adopter lifecycle uses these three public API calls.
+          # If any are missing from the guide snippet, the guide has drifted
+          # from the working code path (D-16 / success criterion 5.5).
+          MATCHES=$(grep -E "Broker\.initiate_session|Broker\.verify_completion|Rindle\.Delivery\.url" "$GUIDE" | wc -l)
+          if [ "$MATCHES" -lt 3 ]; then
+            echo "FAIL (D-16): $GUIDE missing one or more canonical adopter API calls"
+            echo "Expected at least 3 lines matching: Broker.initiate_session, Broker.verify_completion, Rindle.Delivery.url"
+            echo "Found: $MATCHES line(s)"
+            grep -nE "Broker\.initiate_session|Broker\.verify_completion|Rindle\.Delivery\.url" "$GUIDE" || true
+            exit 1
+          fi
+          echo "OK: $GUIDE references all 3 canonical adopter API calls ($MATCHES line(s))"
