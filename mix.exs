@@ -92,10 +92,57 @@ defmodule Rindle.MixProject do
       main: "Rindle",
       source_url: @source_url,
       extras: [
-        "README.md"
-      ]
+        "README.md",
+        "guides/getting_started.md",
+        "guides/core_concepts.md",
+        "guides/profiles.md",
+        "guides/secure_delivery.md",
+        "guides/background_processing.md",
+        "guides/operations.md",
+        "guides/troubleshooting.md"
+      ],
+      groups_for_extras: [
+        Guides: ~r/guides\/.*/
+      ],
+      before_closing_head_tag: &before_closing_head_tag/1
     ]
   end
+
+  # Mermaid CDN injection so ```mermaid fences in guides and @moduledoc blocks
+  # render as interactive SVG diagrams in the generated HexDocs HTML.
+  # Only the :html target needs this; :epub returns an empty string.
+  defp before_closing_head_tag(:html) do
+    """
+    <script defer src="https://cdn.jsdelivr.net/npm/mermaid@10.2.3/dist/mermaid.min.js"></script>
+    <script>
+      let initialized = false;
+      window.addEventListener("exdoc:loaded", () => {
+        if (!initialized) {
+          mermaid.initialize({
+            startOnLoad: false,
+            theme: document.body.className.includes("dark") ? "dark" : "default"
+          });
+          initialized = true;
+        }
+        let id = 0;
+        for (const codeEl of document.querySelectorAll("pre code.mermaid")) {
+          const preEl = codeEl.parentElement;
+          const graphDefinition = codeEl.textContent;
+          const graphEl = document.createElement("div");
+          const graphId = "mermaid-graph-" + id++;
+          mermaid.render(graphId, graphDefinition).then(({svg, bindFunctions}) => {
+            graphEl.innerHTML = svg;
+            bindFunctions?.(graphEl);
+            preEl.insertAdjacentElement("afterend", graphEl);
+            preEl.remove();
+          });
+        }
+      });
+    </script>
+    """
+  end
+
+  defp before_closing_head_tag(:epub), do: ""
 
   defp package do
     [
