@@ -21,7 +21,7 @@ defmodule Rindle.AttachDetachTest do
   end
 
   setup do
-    asset = 
+    asset =
       %MediaAsset{}
       |> MediaAsset.changeset(%{
         state: "available",
@@ -29,9 +29,9 @@ defmodule Rindle.AttachDetachTest do
         storage_key: "user/1/avatar.jpg"
       })
       |> Rindle.Repo.insert!()
-      
+
     user = %User{id: Ecto.UUID.generate()}
-      
+
     {:ok, asset: asset, user: user}
   end
 
@@ -48,9 +48,9 @@ defmodule Rindle.AttachDetachTest do
     test "replaces existing attachment and enqueues purge", %{asset: asset, user: user} do
       # 1. Attach first asset
       {:ok, _} = Rindle.attach(asset, user, "avatar")
-      
+
       # 2. Create second asset
-      asset2 = 
+      asset2 =
         %MediaAsset{}
         |> MediaAsset.changeset(%{
           state: "available",
@@ -61,27 +61,30 @@ defmodule Rindle.AttachDetachTest do
 
       # 3. Attach second asset (replaces first)
       {:ok, attachment} = Rindle.attach(asset2, user, "avatar")
-      
+
       assert attachment.asset_id == asset2.id
-      
+
       # 4. Verify old attachment is gone
       attachments = Rindle.Repo.all(MediaAttachment)
       assert length(attachments) == 1
       assert hd(attachments).asset_id == asset2.id
-      
+
       # 5. Verify purge was enqueued for first asset
-      assert_enqueued worker: Rindle.Workers.PurgeStorage, args: %{"asset_id" => asset.id, "profile" => asset.profile}
+      assert_enqueued worker: Rindle.Workers.PurgeStorage,
+                      args: %{"asset_id" => asset.id, "profile" => asset.profile}
     end
   end
 
   describe "detach/3" do
     test "removes attachment and enqueues purge", %{asset: asset, user: user} do
       {:ok, _} = Rindle.attach(asset, user, "avatar")
-      
+
       assert :ok = Rindle.detach(user, "avatar")
-      
+
       assert Rindle.Repo.all(MediaAttachment) == []
-      assert_enqueued worker: Rindle.Workers.PurgeStorage, args: %{"asset_id" => asset.id, "profile" => asset.profile}
+
+      assert_enqueued worker: Rindle.Workers.PurgeStorage,
+                      args: %{"asset_id" => asset.id, "profile" => asset.profile}
     end
 
     test "is idempotent", %{user: user} do

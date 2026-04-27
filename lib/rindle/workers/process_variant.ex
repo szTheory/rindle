@@ -7,6 +7,7 @@ defmodule Rindle.Workers.ProcessVariant do
 
   alias Rindle.Domain.{MediaAsset, MediaVariant}
   alias Rindle.Domain.VariantFSM
+  alias Rindle.Processor.Image
   alias Rindle.Repo
   import Ecto.Query
 
@@ -23,21 +24,20 @@ defmodule Rindle.Workers.ProcessVariant do
   defp process(asset, variant) do
     profile_module = String.to_existing_atom(asset.profile)
     variant_spec = get_variant_spec(profile_module, variant.name)
-    
+
     # 1. Atomic Promote Check: reload and verify attachment hasn't changed
-    # In this phase, we don't have polymorphic attachments yet, 
+    # In this phase, we don't have polymorphic attachments yet,
     # but we check if the asset's own storage_key has changed (unlikely here).
     # Once we have MediaAttachment (Phase 2), we reload the attachment.
-    
+
     with :ok <- transition_variant(variant, "queued"),
          variant <- Repo.get!(MediaVariant, variant.id),
          :ok <- transition_variant(variant, "processing"),
          variant <- Repo.get!(MediaVariant, variant.id),
          {:ok, source_tmp} <- download_source(asset),
          {:ok, dest_tmp} <- generate_dest_path(variant),
-         {:ok, _} <- Rindle.Processor.Image.process(source_tmp, variant_spec, dest_tmp),
+         {:ok, _} <- Image.process(source_tmp, variant_spec, dest_tmp),
          {:ok, storage_meta} <- upload_variant(asset, variant, dest_tmp) do
-      
       # 2. Final atomic update
       variant
       |> MediaVariant.changeset(%{
@@ -48,15 +48,16 @@ defmodule Rindle.Workers.ProcessVariant do
       })
       |> Repo.update()
       |> case do
-        {:ok, _} -> 
+        {:ok, _} ->
           cleanup_temp_files([source_tmp, dest_tmp])
           :ok
-        {:error, reason} -> 
+
+        {:error, reason} ->
           cleanup_temp_files([source_tmp, dest_tmp])
           {:error, reason}
       end
     else
-      {:error, reason} -> 
+      {:error, reason} ->
         handle_failure(variant, reason)
     end
   end
@@ -95,7 +96,7 @@ defmodule Rindle.Workers.ProcessVariant do
     # Variant key: assets/{asset_id}/{variant_name}.{ext}
     extension = Path.extname(path)
     variant_key = Path.join([asset.profile, asset.id, "#{variant.name}#{extension}"])
-    
+
     Rindle.store(profile_module, variant_key, path)
   end
 
@@ -111,7 +112,7 @@ defmodule Rindle.Workers.ProcessVariant do
     variant
     |> MediaVariant.changeset(%{state: "failed", error_reason: inspect(reason)})
     |> Repo.update()
-    
+
     {:error, reason}
   end
 end

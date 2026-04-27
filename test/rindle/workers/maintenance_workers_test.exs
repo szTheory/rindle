@@ -3,9 +3,9 @@ defmodule Rindle.Workers.MaintenanceWorkersTest do
   use Oban.Testing, repo: Rindle.Repo
   import Mox
 
-  alias Rindle.Workers.CleanupOrphans
-  alias Rindle.Workers.AbortIncompleteUploads
   alias Rindle.Domain.{MediaAsset, MediaUploadSession}
+  alias Rindle.Workers.AbortIncompleteUploads
+  alias Rindle.Workers.CleanupOrphans
 
   setup :set_mox_from_context
   setup :verify_on_exit!

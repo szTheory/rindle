@@ -2,7 +2,7 @@ defmodule Rindle.Upload.LifecycleIntegrationTest do
   use Rindle.DataCase, async: false
   use Oban.Testing, repo: Rindle.Repo
 
-  alias Rindle.Domain.{MediaAsset, MediaAttachment, MediaVariant, MediaUploadSession}
+  alias Rindle.Domain.{MediaAsset, MediaAttachment, MediaUploadSession, MediaVariant}
   alias Rindle.Upload.Broker
   alias Rindle.Workers.{ProcessVariant, PromoteAsset, PurgeStorage}
 

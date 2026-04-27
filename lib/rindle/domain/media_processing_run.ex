@@ -40,7 +40,16 @@ defmodule Rindle.Domain.MediaProcessingRun do
   @spec changeset(t() | %__MODULE__{}, map()) :: Ecto.Changeset.t()
   def changeset(processing_run, attrs) do
     processing_run
-    |> cast(attrs, [:asset_id, :variant_name, :worker, :state, :attempt, :started_at, :finished_at, :error_reason])
+    |> cast(attrs, [
+      :asset_id,
+      :variant_name,
+      :worker,
+      :state,
+      :attempt,
+      :started_at,
+      :finished_at,
+      :error_reason
+    ])
     |> validate_required([:asset_id, :variant_name, :worker, :state, :attempt])
     |> validate_inclusion(:state, @states)
     |> validate_number(:attempt, greater_than_or_equal_to: 1)

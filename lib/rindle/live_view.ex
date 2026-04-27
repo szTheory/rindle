@@ -59,36 +59,44 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             Phoenix.LiveView.Socket.t()
     def allow_upload(socket, name, profile, opts \\ []) do
       external_fn = fn entry, socket ->
-        filename = entry.client_name
-
-        case Rindle.initiate_upload(profile, filename: filename) do
-          {:ok, session} ->
-            adapter = profile.storage_adapter()
-
-            case adapter.presigned_put(session.upload_key, 3600, []) do
-              {:ok, presigned} ->
-                meta = %{
-                  uploader: "Rindle",
-                  url: presigned.url,
-                  method: Map.get(presigned, :method, "PUT"),
-                  headers: Map.get(presigned, :headers, %{}),
-                  session_id: session.id,
-                  asset_id: Ecto.UUID.generate()
-                }
-
-                {:ok, meta, socket}
-
-              {:error, reason} ->
-                {:error, reason}
-            end
-
-          {:error, reason} ->
-            {:error, reason}
-        end
+        do_allow_upload(entry, socket, profile)
       end
 
       merged_opts = Keyword.merge(opts, external: external_fn)
       Upload.allow_upload(socket, name, merged_opts)
+    end
+
+    defp do_allow_upload(entry, socket, profile) do
+      filename = entry.client_name
+
+      case Rindle.initiate_upload(profile, filename: filename) do
+        {:ok, session} ->
+          handle_initiate_upload(session, profile, socket)
+
+        {:error, reason} ->
+          {:error, reason}
+      end
+    end
+
+    defp handle_initiate_upload(session, profile, socket) do
+      adapter = profile.storage_adapter()
+
+      case adapter.presigned_put(session.upload_key, 3600, []) do
+        {:ok, presigned} ->
+          meta = %{
+            uploader: "Rindle",
+            url: presigned.url,
+            method: Map.get(presigned, :method, "PUT"),
+            headers: Map.get(presigned, :headers, %{}),
+            session_id: session.id,
+            asset_id: Ecto.UUID.generate()
+          }
+
+          {:ok, meta, socket}
+
+        {:error, reason} ->
+          {:error, reason}
+      end
     end
 
     @doc """
@@ -113,20 +121,24 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     @spec consume_uploaded_entries(Phoenix.LiveView.Socket.t(), atom(), function()) :: list()
     def consume_uploaded_entries(socket, name, func) when is_function(func, 2) do
       Upload.consume_uploaded_entries(socket, name, fn meta, entry ->
-        session_id = Map.get(meta, "session_id") || Map.get(meta, :session_id)
-
-        if session_id do
-          case Rindle.verify_upload(session_id) do
-            {:ok, %{asset: _asset}} ->
-              func.(entry, meta)
-
-            {:error, reason} ->
-              {:error, reason}
-          end
-        else
-          func.(entry, meta)
-        end
+        do_consume(meta, entry, func)
       end)
+    end
+
+    defp do_consume(meta, entry, func) do
+      session_id = Map.get(meta, "session_id") || Map.get(meta, :session_id)
+
+      if session_id do
+        case Rindle.verify_upload(session_id) do
+          {:ok, %{asset: _asset}} ->
+            func.(entry, meta)
+
+          {:error, reason} ->
+            {:error, reason}
+        end
+      else
+        func.(entry, meta)
+      end
     end
   end
 end

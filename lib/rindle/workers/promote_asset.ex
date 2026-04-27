@@ -5,9 +5,10 @@ defmodule Rindle.Workers.PromoteAsset do
   """
   use Oban.Worker, queue: :rindle_promote, max_attempts: 3
 
-  alias Rindle.Domain.{MediaAsset, MediaVariant}
   alias Rindle.Domain.AssetFSM
+  alias Rindle.Domain.{MediaAsset, MediaVariant}
   alias Rindle.Repo
+  alias Rindle.Workers.ProcessVariant
 
   @impl Oban.Worker
   def perform(%Oban.Job{args: %{"asset_id" => asset_id}}) do
@@ -22,11 +23,10 @@ defmodule Rindle.Workers.PromoteAsset do
     # 1. Advance state chain to 'available'
     # We follow: validating -> analyzing -> promoting -> available
     # Some steps might have happened already, so we handle them gracefully.
-    
+
     with :ok <- advance_to_promoting(asset),
          asset <- Repo.get!(MediaAsset, asset.id),
          :ok <- AssetFSM.transition(asset.state, "available", %{asset_id: asset.id}) do
-      
       Ecto.Multi.new()
       |> Ecto.Multi.update(:asset, MediaAsset.changeset(asset, %{state: "available"}))
       |> enqueue_variants(asset)
@@ -41,12 +41,12 @@ defmodule Rindle.Workers.PromoteAsset do
   end
 
   defp advance_to_promoting(%{state: "promoting"}), do: :ok
-  
+
   defp advance_to_promoting(%{state: "analyzing"} = asset) do
     with :ok <- AssetFSM.transition(asset.state, "promoting", %{asset_id: asset.id}),
-         {:ok, _asset} <- 
-           asset 
-           |> MediaAsset.changeset(%{state: "promoting"}) 
+         {:ok, _asset} <-
+           asset
+           |> MediaAsset.changeset(%{state: "promoting"})
            |> Repo.update() do
       :ok
     else
@@ -56,9 +56,9 @@ defmodule Rindle.Workers.PromoteAsset do
 
   defp advance_to_promoting(%{state: "validating"} = asset) do
     with :ok <- AssetFSM.transition(asset.state, "analyzing", %{asset_id: asset.id}),
-         {:ok, asset} <- 
-           asset 
-           |> MediaAsset.changeset(%{state: "analyzing"}) 
+         {:ok, asset} <-
+           asset
+           |> MediaAsset.changeset(%{state: "analyzing"})
            |> Repo.update() do
       advance_to_promoting(asset)
     else
@@ -77,8 +77,8 @@ defmodule Rindle.Workers.PromoteAsset do
     Enum.reduce(variants, multi, fn {name, _spec}, acc ->
       name_str = Atom.to_string(name)
       digest = profile_module.recipe_digest(name)
-      
-      variant_changeset = 
+
+      variant_changeset =
         %MediaVariant{}
         |> MediaVariant.changeset(%{
           asset_id: asset.id,
@@ -87,10 +87,11 @@ defmodule Rindle.Workers.PromoteAsset do
           recipe_digest: digest
         })
 
-      job = Rindle.Workers.ProcessVariant.new(%{
-        "asset_id" => asset.id,
-        "variant_name" => name_str
-      })
+      job =
+        ProcessVariant.new(%{
+          "asset_id" => asset.id,
+          "variant_name" => name_str
+        })
 
       acc
       |> Ecto.Multi.insert({:variant, name}, variant_changeset)

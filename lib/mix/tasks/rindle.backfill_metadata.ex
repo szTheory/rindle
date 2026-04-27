@@ -132,9 +132,7 @@ defmodule Mix.Tasks.Rindle.BackfillMetadata do
         String.to_existing_atom(module_str)
       rescue
         ArgumentError ->
-          Mix.shell().error(
-            "Module #{module_str} is not a known atom (load order or typo?)."
-          )
+          Mix.shell().error("Module #{module_str} is not a known atom (load order or typo?).")
 
           exit({:shutdown, 1})
       end

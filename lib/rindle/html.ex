@@ -13,64 +13,71 @@ if Code.ensure_loaded?(Phoenix.HTML) do
     def picture_tag(profile, asset, opts \\ []) do
       variant_specs = Keyword.get(opts, :variants, [])
       placeholder = Keyword.get(opts, :placeholder)
-      html_attrs = opts |> Keyword.drop([:variants, :placeholder]) |> Enum.sort_by(fn {k, _} -> to_string(k) end)
+
+      html_attrs =
+        opts
+        |> Keyword.drop([:variants, :placeholder])
+        |> Enum.sort_by(fn {k, _} -> to_string(k) end)
 
       sources =
         variant_specs
-        |> Enum.flat_map(fn spec ->
-          case resolve_variant_spec(spec) do
-            {:ok, name, media} ->
-              case ready_variant(asset, name) do
-                nil ->
-                  []
-
-                variant ->
-                  case Rindle.Delivery.variant_url(profile, asset, variant, opts) do
-                    {:ok, url} ->
-                      ["<source", media_attr(media), " srcset=\"", escape(url), "\">"]
-
-                    {:error, _reason} ->
-                      []
-                  end
-              end
-
-            :error ->
-              []
-          end
-        end)
+        |> Enum.flat_map(&build_source(&1, profile, asset, opts))
 
       fallback_src = fallback_source(profile, asset, placeholder, opts)
 
-      ["<picture>", sources, "<img", attrs_markup(html_attrs), " src=\"", escape(fallback_src), "\">", "</picture>"]
+      [
+        "<picture>",
+        sources,
+        "<img",
+        attrs_markup(html_attrs),
+        " src=\"",
+        escape(fallback_src),
+        "\">",
+        "</picture>"
+      ]
       |> raw()
     end
 
+    defp build_source(spec, profile, asset, opts) do
+      with {:ok, name, media} <- resolve_variant_spec(spec),
+           variant when not is_nil(variant) <- ready_variant(asset, name),
+           {:ok, url} <- Rindle.Delivery.variant_url(profile, asset, variant, opts) do
+        ["<source", media_attr(media), " srcset=\"", escape(url), "\">"]
+      else
+        _ -> []
+      end
+    end
+
     defp resolve_variant_spec({name, media}) when is_atom(name), do: {:ok, name, media}
-    defp resolve_variant_spec(%{name: name, media: media}) when is_atom(name), do: {:ok, name, media}
+
+    defp resolve_variant_spec(%{name: name, media: media}) when is_atom(name),
+      do: {:ok, name, media}
+
     defp resolve_variant_spec(%{name: name}) when is_atom(name), do: {:ok, name, nil}
     defp resolve_variant_spec(name) when is_atom(name), do: {:ok, name, nil}
     defp resolve_variant_spec(_), do: :error
 
     defp ready_variant(%{variants: variants}, name) when is_list(variants) do
-      Enum.find(variants, fn variant -> variant_name(variant) == Atom.to_string(name) and variant_state(variant) == "ready" end)
+      Enum.find(variants, fn variant ->
+        variant_name(variant) == Atom.to_string(name) and variant_state(variant) == "ready"
+      end)
     end
 
     defp ready_variant(_asset, _name), do: nil
 
     defp fallback_source(profile, asset, placeholder, opts) do
-      cond do
-        is_binary(placeholder) and placeholder != "" ->
-          placeholder
-
-        true ->
-          case asset_source_url(profile, asset, opts) do
-            {:ok, url} -> url
-            {:error, _reason} -> ""
-          end
+      if is_binary(placeholder) and placeholder != "" do
+        placeholder
+      else
+        case asset_source_url(profile, asset, opts) do
+          {:ok, url} -> url
+          {:error, _reason} -> ""
+        end
       end
     end
 
-    defp asset_source_url(profile, %{storage_key: storage_key}, opts) when is_binary(storage_key) do
+    defp asset_source_url(profile, %{storage_key: storage_key}, opts)
+         when is_binary(storage_key) do
       Rindle.Delivery.url(profile, storage_key, opts)
     end
 

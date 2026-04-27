@@ -1,4 +1,11 @@
 defmodule Rindle do
+  alias Rindle.Domain.MediaAsset
+  alias Rindle.Domain.MediaAttachment
+  alias Rindle.Security.UploadValidation
+  alias Rindle.Upload.Broker
+  alias Rindle.Workers.PromoteAsset
+  alias Rindle.Workers.PurgeStorage
+
   @moduledoc """
   Phoenix/Ecto-native media lifecycle library.
 
@@ -31,7 +38,7 @@ defmodule Rindle do
   @doc """
   Initiates a direct upload session through the broker.
 
-  Delegates to `Rindle.Upload.Broker.initiate_session/2`. Returns
+  Delegates to `Broker.initiate_session/2`. Returns
   `{:ok, %MediaUploadSession{}}` on success.
 
   ## Examples
@@ -44,13 +51,13 @@ defmodule Rindle do
   """
   @spec initiate_upload(module(), keyword()) :: {:ok, map()} | {:error, term()}
   def initiate_upload(profile, opts \\ []) do
-    Rindle.Upload.Broker.initiate_session(profile, opts)
+    Broker.initiate_session(profile, opts)
   end
 
   @doc """
   Verifies a direct upload completion through the broker.
 
-  Delegates to `Rindle.Upload.Broker.verify_completion/2`. Promotes the
+  Delegates to `Broker.verify_completion/2`. Promotes the
   session to `completed` and the asset to `validating`.
 
   ## Examples
@@ -65,7 +72,7 @@ defmodule Rindle do
   """
   @spec verify_upload(binary(), keyword()) :: {:ok, map()} | {:error, term()}
   def verify_upload(session_id, opts \\ []) do
-    Rindle.Upload.Broker.verify_completion(session_id, opts)
+    Broker.verify_completion(session_id, opts)
   end
 
   @doc """
@@ -103,7 +110,7 @@ defmodule Rindle do
   Attaches a MediaAsset to an owner at a specific slot.
 
   If an attachment already exists in that slot, it is replaced and the old
-  asset is purged asynchronously via `Rindle.Workers.PurgeStorage`.
+  asset is purged asynchronously via `PurgeStorage`.
 
   ## Examples
 
@@ -123,7 +130,7 @@ defmodule Rindle do
     |> Ecto.Multi.run(:existing, fn repo, _ ->
       existing =
         repo.one(
-          from a in Rindle.Domain.MediaAttachment,
+          from a in MediaAttachment,
             where: a.owner_type == ^owner_type and a.owner_id == ^owner_id and a.slot == ^slot
         )
 
@@ -137,8 +144,8 @@ defmodule Rindle do
       end
     end)
     |> Ecto.Multi.insert(:attachment, fn _ ->
-      %Rindle.Domain.MediaAttachment{}
-      |> Rindle.Domain.MediaAttachment.changeset(%{
+      %MediaAttachment{}
+      |> MediaAttachment.changeset(%{
         asset_id: asset_id,
         owner_type: owner_type,
         owner_id: owner_id,
@@ -147,10 +154,10 @@ defmodule Rindle do
     end)
     |> Ecto.Multi.run(:purge_old, fn _repo, %{existing: existing} ->
       if existing do
-        old_asset = Rindle.Repo.get!(Rindle.Domain.MediaAsset, existing.asset_id)
+        old_asset = Rindle.Repo.get!(MediaAsset, existing.asset_id)
 
         job =
-          Rindle.Workers.PurgeStorage.new(%{
+          PurgeStorage.new(%{
             "asset_id" => old_asset.id,
             "profile" => old_asset.profile
           })
@@ -188,7 +195,7 @@ defmodule Rindle do
     |> Ecto.Multi.run(:existing, fn repo, _ ->
       existing =
         repo.one(
-          from a in Rindle.Domain.MediaAttachment,
+          from a in MediaAttachment,
             where: a.owner_type == ^owner_type and a.owner_id == ^owner_id and a.slot == ^slot
         )
 
@@ -196,10 +203,10 @@ defmodule Rindle do
     end)
     |> Ecto.Multi.delete(:attachment, fn %{existing: existing} -> existing end)
     |> Ecto.Multi.run(:purge, fn _repo, %{existing: existing} ->
-      old_asset = Rindle.Repo.get!(Rindle.Domain.MediaAsset, existing.asset_id)
+      old_asset = Rindle.Repo.get!(MediaAsset, existing.asset_id)
 
       job =
-        Rindle.Workers.PurgeStorage.new(%{
+        PurgeStorage.new(%{
           "asset_id" => old_asset.id,
           "profile" => old_asset.profile
         })
@@ -215,7 +222,7 @@ defmodule Rindle do
     end
   end
 
-  defp get_asset_id(%Rindle.Domain.MediaAsset{id: id}), do: id
+  defp get_asset_id(%MediaAsset{id: id}), do: id
   defp get_asset_id(id) when is_binary(id), do: id
 
   defp get_owner_info(%{__struct__: module, id: id}) do
@@ -317,7 +324,7 @@ defmodule Rindle do
     policy = profile_module.upload_policy()
 
     with {:ok, validation} <-
-           Rindle.Security.UploadValidation.validate_for_promotion(
+           UploadValidation.validate_for_promotion(
              upload,
              policy,
              profile_name,
@@ -327,8 +334,8 @@ defmodule Rindle do
       Ecto.Multi.new()
       |> Ecto.Multi.insert(
         :asset,
-        %Rindle.Domain.MediaAsset{id: asset_id}
-        |> Rindle.Domain.MediaAsset.changeset(%{
+        %MediaAsset{id: asset_id}
+        |> MediaAsset.changeset(%{
           state: "analyzing",
           profile: profile_name,
           storage_key: validation.storage_key,
@@ -337,7 +344,7 @@ defmodule Rindle do
           byte_size: upload.byte_size
         })
       )
-      |> Oban.insert(:promote_job, Rindle.Workers.PromoteAsset.new(%{asset_id: asset_id}))
+      |> Oban.insert(:promote_job, PromoteAsset.new(%{asset_id: asset_id}))
       |> Rindle.Repo.transaction()
       |> case do
         {:ok, %{asset: asset}} -> {:ok, asset}

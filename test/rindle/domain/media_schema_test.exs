@@ -1,18 +1,23 @@
 defmodule Rindle.Domain.MediaSchemaTest do
   use Rindle.DataCase, async: true
 
+  alias MediaAsset
+  alias MediaUploadSession
+  alias MediaVariant
   alias Rindle.Domain.MediaAsset
+  alias Rindle.Domain.MediaAttachment
+  alias Rindle.Domain.MediaProcessingRun
   alias Rindle.Domain.MediaUploadSession
   alias Rindle.Domain.MediaVariant
   alias Rindle.Repo
 
   describe "schema sources" do
     test "maps each schema to its backing table" do
-      assert "media_assets" == Rindle.Domain.MediaAsset.__schema__(:source)
-      assert "media_attachments" == Rindle.Domain.MediaAttachment.__schema__(:source)
-      assert "media_variants" == Rindle.Domain.MediaVariant.__schema__(:source)
-      assert "media_upload_sessions" == Rindle.Domain.MediaUploadSession.__schema__(:source)
-      assert "media_processing_runs" == Rindle.Domain.MediaProcessingRun.__schema__(:source)
+      assert "media_assets" == MediaAsset.__schema__(:source)
+      assert "media_attachments" == MediaAttachment.__schema__(:source)
+      assert "media_variants" == MediaVariant.__schema__(:source)
+      assert "media_upload_sessions" == MediaUploadSession.__schema__(:source)
+      assert "media_processing_runs" == MediaProcessingRun.__schema__(:source)
     end
   end
 
@@ -40,7 +45,9 @@ defmodule Rindle.Domain.MediaSchemaTest do
 
       assert {:ok, _variant} = %MediaVariant{} |> MediaVariant.changeset(attrs) |> Repo.insert()
 
-      assert {:error, changeset} = %MediaVariant{} |> MediaVariant.changeset(attrs) |> Repo.insert()
+      assert {:error, changeset} =
+               %MediaVariant{} |> MediaVariant.changeset(attrs) |> Repo.insert()
+
       assert {"has already been taken", _meta} = Keyword.fetch!(changeset.errors, :asset_id)
     end
 

@@ -2,8 +2,8 @@ defmodule Rindle.Upload.BrokerTest do
   use Rindle.DataCase, async: true
   import Mox
 
-  alias Rindle.Upload.Broker
   alias Rindle.Domain.{MediaAsset, MediaUploadSession}
+  alias Rindle.Upload.Broker
 
   setup :set_mox_from_context
   setup :verify_on_exit!
@@ -25,7 +25,7 @@ defmodule Rindle.Upload.BrokerTest do
       assert session.state == "initialized"
       assert session.upload_key =~ "testprofile"
       assert session.upload_key =~ ".jpg"
-      
+
       asset = Rindle.Repo.preload(session, :asset).asset
       assert asset.state == "staged"
       assert asset.profile == to_string(TestProfile)
@@ -51,11 +51,11 @@ defmodule Rindle.Upload.BrokerTest do
 
     test "fails if session is in invalid state" do
       {:ok, session} = Broker.initiate_session(TestProfile, filename: "test.jpg")
-      
+
       # Manually set to completed to make sign_url invalid
-      {:ok, session} = 
-        session 
-        |> MediaUploadSession.changeset(%{state: "completed"}) 
+      {:ok, session} =
+        session
+        |> MediaUploadSession.changeset(%{state: "completed"})
         |> Rindle.Repo.update()
 
       assert {:error, {:invalid_transition, "completed", "signed"}} = Broker.sign_url(session.id)
@@ -70,31 +70,46 @@ defmodule Rindle.Upload.BrokerTest do
       expect(Rindle.StorageMock, :presigned_put, fn _key, _expires_in, _opts ->
         {:ok, %{url: "http://example.com", method: :put, headers: %{}}}
       end)
+
       {:ok, %{session: session}} = Broker.sign_url(session.id)
-      
+
       # Mock head check success
       expect(Rindle.StorageMock, :head, fn key, _opts ->
         assert key == session.upload_key
         {:ok, %{size: 1234, content_type: "image/jpeg"}}
       end)
 
-      {:ok, %{session: updated_session, asset: updated_asset}} = Broker.verify_completion(session.id)
+      {:ok, %{session: updated_session, asset: updated_asset}} =
+        Broker.verify_completion(session.id)
 
       assert updated_session.state == "completed"
       assert updated_session.verified_at != nil
-      
+
       assert updated_asset.state == "validating"
       assert updated_asset.byte_size == 1234
       assert updated_asset.content_type == "image/jpeg"
     end
 
+    test "returns error if profile is unknown" do
+      {:ok, session} = Broker.initiate_session(TestProfile, filename: "test.jpg")
+      asset = Rindle.Repo.preload(session, :asset).asset
+
+      # Corrupt the profile name in DB
+      asset
+      |> MediaAsset.changeset(%{profile: "Elixir.NonExistentProfile12345"})
+      |> Rindle.Repo.update!()
+
+      assert {:error, :unknown_profile} = Broker.verify_completion(session.id)
+    end
+
     test "fails if storage object is missing" do
       {:ok, session} = Broker.initiate_session(TestProfile, filename: "test.jpg")
-      
+
       # Transition to signed first
       expect(Rindle.StorageMock, :presigned_put, fn _key, _expires_in, _opts ->
         {:ok, %{url: "http://example.com", method: :put, headers: %{}}}
       end)
+
       {:ok, %{session: session}} = Broker.sign_url(session.id)
 
       expect(Rindle.StorageMock, :head, fn _key, _opts ->
@@ -102,11 +117,11 @@ defmodule Rindle.Upload.BrokerTest do
       end)
 
       assert {:error, :storage_object_missing} = Broker.verify_completion(session.id)
-      
+
       # Verify states didn't change
       session = Rindle.Repo.get!(MediaUploadSession, session.id)
       assert session.state == "signed"
-      
+
       asset = Rindle.Repo.get!(MediaAsset, session.asset_id)
       assert asset.state == "staged"
     end

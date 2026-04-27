@@ -81,6 +81,8 @@ defmodule Rindle.Contracts.BehaviourContractTest do
     end)
 
     assert :ok = Rindle.AuthorizerMock.authorize(actor, action, subject)
-    assert {:error, :unauthorized} = Rindle.AuthorizerMock.authorize(unauthorized_actor, action, subject)
+
+    assert {:error, :unauthorized} =
+             Rindle.AuthorizerMock.authorize(unauthorized_actor, action, subject)
   end
 end

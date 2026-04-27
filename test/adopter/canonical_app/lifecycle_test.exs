@@ -23,6 +23,7 @@ defmodule Rindle.Adopter.CanonicalApp.LifecycleTest do
   use Rindle.DataCase, async: false
   use Oban.Testing, repo: Rindle.Repo
 
+  alias Ecto.Adapters.SQL.Sandbox
   alias Rindle.Adopter.CanonicalApp.Profile, as: AdopterProfile
   alias Rindle.Domain.{MediaAsset, MediaVariant}
   alias Rindle.Upload.Broker
@@ -60,8 +61,8 @@ defmodule Rindle.Adopter.CanonicalApp.LifecycleTest do
       {:error, {:already_started, _}} -> :ok
     end
 
-    Ecto.Adapters.SQL.Sandbox.checkout(Rindle.Adopter.CanonicalApp.Repo)
-    Ecto.Adapters.SQL.Sandbox.mode(Rindle.Adopter.CanonicalApp.Repo, {:shared, self()})
+    Sandbox.checkout(Rindle.Adopter.CanonicalApp.Repo)
+    Sandbox.mode(Rindle.Adopter.CanonicalApp.Repo, {:shared, self()})
 
     # Configure the S3 adapter for MinIO from env vars (CI sets these; locally
     # they default to a localhost MinIO at :9000 with the published default
@@ -140,7 +141,7 @@ defmodule Rindle.Adopter.CanonicalApp.LifecycleTest do
       variants =
         Rindle.Repo.all(Ecto.Query.from(v in MediaVariant, where: v.asset_id == ^asset.id))
 
-      assert length(variants) >= 1
+      assert variants != []
 
       for variant <- variants do
         assert :ok =

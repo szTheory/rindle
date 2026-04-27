@@ -76,6 +76,7 @@ defmodule Mix.Tasks.Rindle.CleanupOrphans do
         {:ok, value} -> value
         :error -> not Keyword.get(opts, :live, false)
       end
+
     storage_mod = resolve_storage_adapter(opts)
 
     Mix.shell().info("Running upload-session cleanup (dry_run=#{dry_run?})...")

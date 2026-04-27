@@ -3,11 +3,12 @@ defmodule Rindle.Upload.Broker do
   Manages direct-to-storage upload sessions.
   """
 
+  alias Rindle.Domain.AssetFSM
   alias Rindle.Domain.{MediaAsset, MediaUploadSession}
+  alias Rindle.Domain.UploadSessionFSM
   alias Rindle.Repo
   alias Rindle.Security.StorageKey
-  alias Rindle.Domain.UploadSessionFSM
-  alias Rindle.Domain.AssetFSM
+  alias Rindle.Workers.PromoteAsset
 
   @doc """
   Initiates a new direct upload session.
@@ -100,7 +101,7 @@ defmodule Rindle.Upload.Broker do
     with %MediaUploadSession{} = session <- Repo.get(MediaUploadSession, session_id),
          :ok <- UploadSessionFSM.transition(session.state, "signed", %{session_id: session.id}),
          asset <- Repo.preload(session, :asset).asset,
-         profile_module <- profile_name_to_module(asset.profile),
+         {:ok, profile_module} <- profile_name_to_module(asset.profile),
          adapter <- profile_module.storage_adapter(),
          expires_in <- Keyword.get(opts, :expires_in, 3600),
          {:ok, presigned} <- adapter.presigned_put(session.upload_key, expires_in, opts) do
@@ -122,7 +123,7 @@ defmodule Rindle.Upload.Broker do
   Verifies that a direct upload was completed in storage.
 
   Transitions the session to `completed` and the asset to `validating`,
-  then enqueues `Rindle.Workers.PromoteAsset`. Emits
+  then enqueues `PromoteAsset`. Emits
   `[:rindle, :upload, :stop]` telemetry AFTER the `Ecto.Multi` commits.
 
   ## Examples
@@ -139,52 +140,72 @@ defmodule Rindle.Upload.Broker do
   def verify_completion(session_id, opts \\ []) do
     with %MediaUploadSession{} = session <- Repo.get(MediaUploadSession, session_id),
          asset <- Repo.preload(session, :asset).asset,
-         profile_module <- profile_name_to_module(asset.profile),
+         {:ok, profile_module} <- profile_name_to_module(asset.profile),
          adapter <- profile_module.storage_adapter(),
          # Check storage for object existence (Pitfall 5)
          {:ok, metadata} <- adapter.head(session.upload_key, opts),
          :ok <- UploadSessionFSM.transition(session.state, "verifying", %{session_id: session.id}),
          :ok <- AssetFSM.transition(asset.state, "validating", %{asset_id: asset.id}) do
-      Ecto.Multi.new()
-      |> Ecto.Multi.update(
-        :session,
-        MediaUploadSession.changeset(session, %{
-          state: "completed",
-          verified_at: DateTime.utc_now()
-        })
-      )
-      |> Ecto.Multi.update(
-        :asset,
-        MediaAsset.changeset(asset, %{
-          state: "validating",
-          byte_size: Map.get(metadata, :size),
-          content_type: Map.get(metadata, :content_type)
-        })
-      )
-      |> Oban.insert(:promote_job, Rindle.Workers.PromoteAsset.new(%{asset_id: asset.id}))
-      |> Repo.transaction()
-      |> case do
-        {:ok, %{session: updated_session, asset: updated_asset}} ->
-          :telemetry.execute(
-            [:rindle, :upload, :stop],
-            %{system_time: System.system_time()},
-            %{
-              profile: asset.profile,
-              adapter: profile_module.storage_adapter(),
-              session_id: updated_session.id,
-              asset_id: updated_asset.id
-            }
-          )
-
-          {:ok, %{session: updated_session, asset: updated_asset}}
-
-        {:error, _name, reason, _changes} ->
-          {:error, reason}
-      end
+      execute_verify_completion(session, asset, profile_module, metadata)
     else
       nil -> {:error, :not_found}
       {:error, :not_found} -> {:error, :storage_object_missing}
       {:error, reason} -> {:error, reason}
+    end
+  end
+
+  defp execute_verify_completion(session, asset, profile_module, metadata) do
+    Ecto.Multi.new()
+    |> Ecto.Multi.update(
+      :verifying_session,
+      MediaUploadSession.changeset(session, %{state: "verifying"})
+    )
+    |> Ecto.Multi.run(:verify_fsm_complete, fn _repo, %{verifying_session: vs} ->
+      do_fsm_transition(vs)
+    end)
+    |> Ecto.Multi.update(
+      :session,
+      fn %{verifying_session: vs} ->
+        MediaUploadSession.changeset(vs, %{
+          state: "completed",
+          verified_at: DateTime.utc_now()
+        })
+      end
+    )
+    |> Ecto.Multi.update(
+      :asset,
+      MediaAsset.changeset(asset, %{
+        state: "validating",
+        byte_size: Map.get(metadata, :size),
+        content_type: Map.get(metadata, :content_type)
+      })
+    )
+    |> Oban.insert(:promote_job, PromoteAsset.new(%{asset_id: asset.id}))
+    |> Repo.transaction()
+    |> case do
+      {:ok, %{session: updated_session, asset: updated_asset}} ->
+        :telemetry.execute(
+          [:rindle, :upload, :stop],
+          %{system_time: System.system_time()},
+          %{
+            profile: asset.profile,
+            adapter: profile_module.storage_adapter(),
+            session_id: updated_session.id,
+            asset_id: updated_asset.id
+          }
+        )
+
+        {:ok, %{session: updated_session, asset: updated_asset}}
+
+      {:error, _name, reason, _changes} ->
+        {:error, reason}
+    end
+  end
+
+  defp do_fsm_transition(vs) do
+    case UploadSessionFSM.transition(vs.state, "completed", %{session_id: vs.id}) do
+      :ok -> {:ok, :transitioned}
+      err -> err
     end
   end
 
@@ -193,8 +214,8 @@ defmodule Rindle.Upload.Broker do
   end
 
   defp profile_name_to_module(name) do
-    String.to_existing_atom(name)
+    {:ok, String.to_existing_atom(name)}
   rescue
-    _ -> nil
+    ArgumentError -> {:error, :unknown_profile}
   end
 end

@@ -72,25 +72,23 @@ defmodule Rindle.Storage.S3 do
   @impl true
   def head(key, opts) do
     with {:ok, bucket} <- bucket(opts) do
-      case request(S3.head_object(bucket, key), opts) do
-        {:ok, %{headers: headers}} ->
-          # Normalize headers to lowercase to handle varying S3 provider implementations
-          normalized = Enum.into(headers, %{}, fn {k, v} -> {String.downcase(k), v} end)
-
-          {:ok,
-           %{
-             size: parse_size(Map.get(normalized, "content-length")),
-             content_type: Map.get(normalized, "content-type")
-           }}
-
-        {:error, %{status_code: 404}} ->
-          {:error, :not_found}
-
-        {:error, reason} ->
-          {:error, reason}
-      end
+      handle_head_response(request(S3.head_object(bucket, key), opts))
     end
   end
+
+  defp handle_head_response({:ok, %{headers: headers}}) do
+    # Normalize headers to lowercase to handle varying S3 provider implementations
+    normalized = Enum.into(headers, %{}, fn {k, v} -> {String.downcase(k), v} end)
+
+    {:ok,
+     %{
+       size: parse_size(Map.get(normalized, "content-length")),
+       content_type: Map.get(normalized, "content-type")
+     }}
+  end
+
+  defp handle_head_response({:error, %{status_code: 404}}), do: {:error, :not_found}
+  defp handle_head_response({:error, reason}), do: {:error, reason}
 
   @impl true
   def capabilities, do: [:presigned_put, :head, :signed_url]

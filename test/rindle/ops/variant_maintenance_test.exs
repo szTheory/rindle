@@ -3,8 +3,9 @@ defmodule Rindle.Ops.VariantMaintenanceTest do
   use Oban.Testing, repo: Rindle.Repo
   import Mox
 
-  alias Rindle.Ops.VariantMaintenance
   alias Rindle.Domain.{MediaAsset, MediaVariant}
+  alias Rindle.Ops.VariantMaintenance
+  alias Rindle.Workers.ProcessVariant
 
   setup :set_mox_from_context
   setup :verify_on_exit!
@@ -58,7 +59,11 @@ defmodule Rindle.Ops.VariantMaintenanceTest do
       assert result.enqueued == 1
       assert result.skipped == 0
       assert result.errors == 0
-      assert_enqueued(worker: Rindle.Workers.ProcessVariant, args: %{"asset_id" => asset.id, "variant_name" => "thumb"})
+
+      assert_enqueued(
+        worker: ProcessVariant,
+        args: %{"asset_id" => asset.id, "variant_name" => "thumb"}
+      )
     end
 
     test "enqueues jobs for missing variants" do
@@ -69,7 +74,11 @@ defmodule Rindle.Ops.VariantMaintenanceTest do
 
       assert result.enqueued == 1
       assert result.errors == 0
-      assert_enqueued(worker: Rindle.Workers.ProcessVariant, args: %{"asset_id" => asset.id, "variant_name" => "thumb"})
+
+      assert_enqueued(
+        worker: ProcessVariant,
+        args: %{"asset_id" => asset.id, "variant_name" => "thumb"}
+      )
     end
 
     test "skips ready variants" do
@@ -81,7 +90,7 @@ defmodule Rindle.Ops.VariantMaintenanceTest do
       assert result.enqueued == 0
       assert result.skipped == 1
       assert result.errors == 0
-      refute_enqueued(worker: Rindle.Workers.ProcessVariant)
+      refute_enqueued(worker: ProcessVariant)
     end
 
     test "filters by variant name when specified" do
@@ -93,8 +102,8 @@ defmodule Rindle.Ops.VariantMaintenanceTest do
 
       assert result.enqueued == 1
       assert result.errors == 0
-      assert_enqueued(worker: Rindle.Workers.ProcessVariant, args: %{"variant_name" => "thumb"})
-      refute_enqueued(worker: Rindle.Workers.ProcessVariant, args: %{"variant_name" => "large"})
+      assert_enqueued(worker: ProcessVariant, args: %{"variant_name" => "thumb"})
+      refute_enqueued(worker: ProcessVariant, args: %{"variant_name" => "large"})
     end
 
     test "filters by profile when specified" do
@@ -102,7 +111,8 @@ defmodule Rindle.Ops.VariantMaintenanceTest do
       _stale = insert_variant(asset, :thumb, "stale")
 
       # Filter for a different profile — should enqueue nothing
-      {:ok, result} = VariantMaintenance.regenerate_variants(%{profile: "Elixir.SomeOtherProfile"})
+      {:ok, result} =
+        VariantMaintenance.regenerate_variants(%{profile: "Elixir.SomeOtherProfile"})
 
       assert result.enqueued == 0
       assert result.errors == 0
@@ -190,7 +200,7 @@ defmodule Rindle.Ops.VariantMaintenanceTest do
       args = %{"asset_id" => asset.id, "variant_name" => "thumb"}
 
       {:ok, first_job} =
-        Rindle.Workers.ProcessVariant.new(args,
+        ProcessVariant.new(args,
           unique: [
             fields: [:args, :worker, :queue],
             keys: [:asset_id, :variant_name],
@@ -204,7 +214,7 @@ defmodule Rindle.Ops.VariantMaintenanceTest do
 
       # Second insert with the same uniqueness opts MUST be flagged conflict?
       {:ok, second_job} =
-        Rindle.Workers.ProcessVariant.new(args,
+        ProcessVariant.new(args,
           unique: [
             fields: [:args, :worker, :queue],
             keys: [:asset_id, :variant_name],

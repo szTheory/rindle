@@ -20,17 +20,21 @@ defmodule Rindle.Profile.Digest do
 
   defp fetch_variant_spec!(profile_module, variant_name) do
     if function_exported?(profile_module, :variants, 0) do
-      case Enum.find(profile_module.variants(), fn {name, _spec} -> name == variant_name end) do
-        {_name, spec} ->
-          spec
-
-        nil ->
-          raise ArgumentError,
-                "unknown variant #{inspect(variant_name)} for profile #{inspect(profile_module)}"
-      end
+      do_fetch_variant_spec!(profile_module, variant_name)
     else
       raise ArgumentError,
             "profile #{inspect(profile_module)} does not implement variants/0"
+    end
+  end
+
+  defp do_fetch_variant_spec!(profile_module, variant_name) do
+    case Enum.find(profile_module.variants(), fn {name, _spec} -> name == variant_name end) do
+      {_name, spec} ->
+        spec
+
+      nil ->
+        raise ArgumentError,
+              "unknown variant #{inspect(variant_name)} for profile #{inspect(profile_module)}"
     end
   end
 

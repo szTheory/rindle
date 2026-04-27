@@ -138,22 +138,27 @@ defmodule Rindle.Delivery do
     variant_state = key_for(variant, :state)
 
     with {:ok, original_url} <- url(profile, original_key, opts) do
-      case variant_state do
-        "ready" when is_binary(variant_key) ->
-          url(profile, variant_key, opts)
-
-        "stale" when is_binary(variant_key) ->
-          stale_mode = Keyword.get(opts, :stale_mode, :fallback_original)
-
-          case StalePolicy.resolve_stale_variant(stale_mode, variant_state, original_url) do
-            {:serve_variant, :stale} -> url(profile, variant_key, opts)
-            {:serve_original, fallback_url} -> {:ok, fallback_url}
-          end
-
-        _other_state ->
-          {:ok, original_url}
-      end
+      do_variant_url(profile, variant_key, variant_state, original_url, opts)
     end
+  end
+
+  defp do_variant_url(profile, variant_key, "ready", _original_url, opts)
+       when is_binary(variant_key) do
+    url(profile, variant_key, opts)
+  end
+
+  defp do_variant_url(profile, variant_key, "stale", original_url, opts)
+       when is_binary(variant_key) do
+    stale_mode = Keyword.get(opts, :stale_mode, :fallback_original)
+
+    case StalePolicy.resolve_stale_variant(stale_mode, "stale", original_url) do
+      {:serve_variant, :stale} -> url(profile, variant_key, opts)
+      {:serve_original, fallback_url} -> {:ok, fallback_url}
+    end
+  end
+
+  defp do_variant_url(_profile, _variant_key, _variant_state, original_url, _opts) do
+    {:ok, original_url}
   end
 
   defp delivery_mode(profile) do

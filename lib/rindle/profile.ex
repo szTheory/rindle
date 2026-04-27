@@ -9,9 +9,12 @@ defmodule Rindle.Profile do
   @type variant_spec :: %{required(atom()) => term()}
   @type variant_entry :: {atom(), variant_spec()}
 
+  alias Rindle.Profile.Digest
+  alias Rindle.Profile.Validator
+
   defmacro __using__(opts) do
     expanded_opts = Macro.expand_literals(opts, __CALLER__)
-    validated = Rindle.Profile.Validator.validate!(expanded_opts)
+    validated = Validator.validate!(expanded_opts)
 
     storage = Map.fetch!(validated, :storage)
     variants = Map.fetch!(validated, :variants)
@@ -48,7 +51,7 @@ defmodule Rindle.Profile do
 
       @spec validate_upload(map()) :: {:ok, map()} | {:error, term()}
       def validate_upload(upload) do
-        Rindle.Profile.Validator.validate_upload(upload, @rindle_upload_policy)
+        Validator.validate_upload(upload, @rindle_upload_policy)
       end
 
       @spec delivery_policy() :: map()
@@ -57,7 +60,7 @@ defmodule Rindle.Profile do
       @spec recipe_digest(atom()) :: String.t()
       def recipe_digest(variant_name) do
         if Enum.any?(@rindle_variants, fn {name, _spec} -> name == variant_name end) do
-          Rindle.Profile.Digest.for_variant(__MODULE__, variant_name)
+          Digest.for_variant(__MODULE__, variant_name)
         else
           raise ArgumentError,
                 "unknown variant #{inspect(variant_name)} for profile #{inspect(__MODULE__)}"

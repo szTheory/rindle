@@ -20,11 +20,11 @@ defmodule Rindle.Upload.ProxiedTest do
     tmp_path = Path.join(System.tmp_dir!(), "test_#{Ecto.UUID.generate()}.jpg")
     # JPEG magic bytes: FF D8 FF
     File.write!(tmp_path, <<0xFF, 0xD8, 0xFF, 0xDB, 0x00, 0x43, 0x00, 0x08, 0x06, 0x06>>)
-    
+
     on_exit(fn ->
       File.rm(tmp_path)
     end)
-    
+
     {:ok, tmp_path: tmp_path}
   end
 
@@ -51,13 +51,15 @@ defmodule Rindle.Upload.ProxiedTest do
     test "quarantines file with mismatched MIME", %{tmp_path: tmp_path} do
       # Overwrite with different magic bytes (e.g., PNG)
       File.write!(tmp_path, <<0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A>>)
-      
+
       upload_params = %{
         path: tmp_path,
-        filename: "test.jpg" # Extension says JPG, bytes say PNG
+        # Extension says JPG, bytes say PNG
+        filename: "test.jpg"
       }
 
-      assert {:error, {:quarantine, :extension_mime_mismatch}} = Rindle.upload(TestProfile, upload_params)
+      assert {:error, {:quarantine, :extension_mime_mismatch}} =
+               Rindle.upload(TestProfile, upload_params)
     end
 
     test "quarantines file exceeding max_bytes", %{tmp_path: tmp_path} do
@@ -69,13 +71,14 @@ defmodule Rindle.Upload.ProxiedTest do
           allow_mime: ["image/jpeg"],
           max_bytes: 1
       end
-      
+
       upload_params = %{
         path: tmp_path,
         filename: "test.jpg"
       }
 
-      assert {:error, {:quarantine, :max_bytes_exceeded}} = Rindle.upload(TinyProfile, upload_params)
+      assert {:error, {:quarantine, :max_bytes_exceeded}} =
+               Rindle.upload(TinyProfile, upload_params)
     end
   end
 end

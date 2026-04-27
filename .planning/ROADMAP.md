@@ -90,8 +90,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] 05-05-PLAN.md — Implement CI-09 (release lane)
 - [x] 05-06-PLAN.md — Complete the DOC-08 audit and docs configuration
 - [x] 05-07-PLAN.md — Author the seven narrative guides
-- [ ] 05-08-PLAN.md — Address CI pipeline and test hygiene gaps (gap closure)
-- [ ] 05-09-PLAN.md — Fix Broker correctness defects (gap closure)
+- [x] 05-08-PLAN.md — Address CI pipeline and test hygiene gaps (gap closure)
+- [x] 05-09-PLAN.md — Fix Broker correctness defects (gap closure)
 
 ## Progress
 
@@ -104,4 +104,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 2. Upload & Processing | 6/6 | Complete | 2026-04-25 |
 | 3. Delivery & Observability | 3/3 | Complete | 2026-04-26 |
 | 4. Day-2 Operations | 3/3 | Complete | 2026-04-26 |
-| 5. CI & 1.0 Readiness | 7/9 | Executing | - |
+| 5. CI & 1.0 Readiness | 9/9 | Complete | 2026-04-27 |

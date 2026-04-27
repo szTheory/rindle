@@ -3,8 +3,8 @@ defmodule Rindle.Workers.ProcessVariantTest do
   use Oban.Testing, repo: Rindle.Repo
   import Mox
 
-  alias Rindle.Workers.ProcessVariant
   alias Rindle.Domain.{MediaAsset, MediaVariant}
+  alias Rindle.Workers.ProcessVariant
 
   setup :set_mox_from_context
   setup :verify_on_exit!
@@ -20,7 +20,7 @@ defmodule Rindle.Workers.ProcessVariantTest do
   end
 
   setup do
-    asset = 
+    asset =
       %MediaAsset{}
       |> MediaAsset.changeset(%{
         state: "available",
@@ -28,8 +28,8 @@ defmodule Rindle.Workers.ProcessVariantTest do
         storage_key: "test/key.jpg"
       })
       |> Rindle.Repo.insert!()
-      
-    variant = 
+
+    variant =
       %MediaVariant{}
       |> MediaVariant.changeset(%{
         asset_id: asset.id,
@@ -38,7 +38,7 @@ defmodule Rindle.Workers.ProcessVariantTest do
         recipe_digest: TestProfile.recipe_digest(:thumb)
       })
       |> Rindle.Repo.insert!()
-      
+
     {:ok, asset: asset, variant: variant}
   end
 
@@ -46,7 +46,15 @@ defmodule Rindle.Workers.ProcessVariantTest do
     # 1. Mock download of source
     expect(Rindle.StorageMock, :download, fn _key, tmp_path, _opts ->
       # Create a fake source image
-      File.write!(tmp_path, <<0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x08, 0x02, 0x00, 0x00, 0x00, 0x90, 0x77, 0x53, 0xDE, 0x00, 0x00, 0x00, 0x0C, 0x49, 0x44, 0x41, 0x54, 0x08, 0xD7, 0x63, 0xF8, 0xFF, 0xFF, 0x3F, 0x00, 0x05, 0xFE, 0x02, 0xFE, 0xDC, 0x44, 0x74, 0x06, 0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82>>)
+      File.write!(
+        tmp_path,
+        <<0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D, 0x49, 0x48,
+          0x44, 0x52, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x08, 0x02, 0x00, 0x00,
+          0x00, 0x90, 0x77, 0x53, 0xDE, 0x00, 0x00, 0x00, 0x0C, 0x49, 0x44, 0x41, 0x54, 0x08,
+          0xD7, 0x63, 0xF8, 0xFF, 0xFF, 0x3F, 0x00, 0x05, 0xFE, 0x02, 0xFE, 0xDC, 0x44, 0x74,
+          0x06, 0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82>>
+      )
+
       {:ok, tmp_path}
     end)
 
@@ -58,7 +66,7 @@ defmodule Rindle.Workers.ProcessVariantTest do
     end)
 
     assert :ok = perform_job(ProcessVariant, %{"asset_id" => asset.id, "variant_name" => "thumb"})
-    
+
     variant = Rindle.Repo.get!(MediaVariant, variant.id)
     assert variant.state == "ready"
     assert variant.storage_key =~ asset.id
@@ -72,8 +80,9 @@ defmodule Rindle.Workers.ProcessVariantTest do
       {:error, :not_found}
     end)
 
-    assert {:error, :not_found} = perform_job(ProcessVariant, %{"asset_id" => asset.id, "variant_name" => "thumb"})
-    
+    assert {:error, :not_found} =
+             perform_job(ProcessVariant, %{"asset_id" => asset.id, "variant_name" => "thumb"})
+
     variant = Rindle.Repo.get!(MediaVariant, variant.id)
     assert variant.state == "failed"
     assert variant.error_reason =~ ":not_found"

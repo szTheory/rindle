@@ -33,7 +33,13 @@ defmodule Rindle.DeliveryTest do
   test "Rindle.url/2 delegates delivery policy for private assets" do
     key = "assets/asset-1/original.jpg"
 
-    expect(Rindle.AuthorizerMock, :authorize, fn nil, :deliver, %{profile: PrivateProfile, key: ^key, mode: :private} ->
+    expect(Rindle.AuthorizerMock, :authorize, fn nil,
+                                                 :deliver,
+                                                 %{
+                                                   profile: PrivateProfile,
+                                                   key: ^key,
+                                                   mode: :private
+                                                 } ->
       :ok
     end)
 
@@ -53,7 +59,13 @@ defmodule Rindle.DeliveryTest do
   test "public delivery stays unsigned and still authorizes" do
     key = "assets/asset-1/original.jpg"
 
-    expect(Rindle.AuthorizerMock, :authorize, fn nil, :deliver, %{profile: PublicProfile, key: ^key, mode: :public} ->
+    expect(Rindle.AuthorizerMock, :authorize, fn nil,
+                                                 :deliver,
+                                                 %{
+                                                   profile: PublicProfile,
+                                                   key: ^key,
+                                                   mode: :public
+                                                 } ->
       :ok
     end)
 
@@ -69,18 +81,31 @@ defmodule Rindle.DeliveryTest do
   test "private delivery without signed capability is rejected" do
     key = "assets/asset-1/original.jpg"
 
-    expect(Rindle.AuthorizerMock, :authorize, fn nil, :deliver, %{profile: UnsupportedProfile, key: ^key, mode: :private} ->
+    expect(Rindle.AuthorizerMock, :authorize, fn nil,
+                                                 :deliver,
+                                                 %{
+                                                   profile: UnsupportedProfile,
+                                                   key: ^key,
+                                                   mode: :private
+                                                 } ->
       :ok
     end)
 
-    assert {:error, {:delivery_unsupported, :signed_url}} = Rindle.Delivery.url(UnsupportedProfile, key)
+    assert {:error, {:delivery_unsupported, :signed_url}} =
+             Rindle.Delivery.url(UnsupportedProfile, key)
   end
 
   test "variant_url/4 falls back to original for non-ready variants" do
     asset = %{storage_key: "assets/asset-1/original.jpg"}
     variant = %{state: "processing", storage_key: "assets/asset-1/thumb.jpg"}
 
-    expect(Rindle.AuthorizerMock, :authorize, fn nil, :deliver, %{profile: PublicProfile, key: "assets/asset-1/original.jpg", mode: :public} ->
+    expect(Rindle.AuthorizerMock, :authorize, fn nil,
+                                                 :deliver,
+                                                 %{
+                                                   profile: PublicProfile,
+                                                   key: "assets/asset-1/original.jpg",
+                                                   mode: :public
+                                                 } ->
       :ok
     end)
 
@@ -96,7 +121,13 @@ defmodule Rindle.DeliveryTest do
     asset = %{storage_key: "assets/asset-1/original.jpg"}
     variant = %{state: "stale", storage_key: "assets/asset-1/thumb.jpg"}
 
-    expect(Rindle.AuthorizerMock, :authorize, fn nil, :deliver, %{profile: PublicProfile, key: "assets/asset-1/original.jpg", mode: :public} ->
+    expect(Rindle.AuthorizerMock, :authorize, fn nil,
+                                                 :deliver,
+                                                 %{
+                                                   profile: PublicProfile,
+                                                   key: "assets/asset-1/original.jpg",
+                                                   mode: :public
+                                                 } ->
       :ok
     end)
 
@@ -104,7 +135,13 @@ defmodule Rindle.DeliveryTest do
       {:ok, "https://public.example/assets/asset-1/original.jpg"}
     end)
 
-    expect(Rindle.AuthorizerMock, :authorize, fn nil, :deliver, %{profile: PublicProfile, key: "assets/asset-1/thumb.jpg", mode: :public} ->
+    expect(Rindle.AuthorizerMock, :authorize, fn nil,
+                                                 :deliver,
+                                                 %{
+                                                   profile: PublicProfile,
+                                                   key: "assets/asset-1/thumb.jpg",
+                                                   mode: :public
+                                                 } ->
       :ok
     end)
 
@@ -112,14 +149,22 @@ defmodule Rindle.DeliveryTest do
       {:ok, "https://public.example/assets/asset-1/thumb.jpg"}
     end)
 
-    assert {:ok, url} = Rindle.Delivery.variant_url(PublicProfile, asset, variant, stale_mode: :serve_stale)
+    assert {:ok, url} =
+             Rindle.Delivery.variant_url(PublicProfile, asset, variant, stale_mode: :serve_stale)
+
     assert url == "https://public.example/assets/asset-1/thumb.jpg"
   end
 
   test "Rindle.url/2 routes through the delivery layer" do
     key = "assets/asset-1/original.jpg"
 
-    expect(Rindle.AuthorizerMock, :authorize, fn nil, :deliver, %{profile: PublicProfile, key: ^key, mode: :public} ->
+    expect(Rindle.AuthorizerMock, :authorize, fn nil,
+                                                 :deliver,
+                                                 %{
+                                                   profile: PublicProfile,
+                                                   key: ^key,
+                                                   mode: :public
+                                                 } ->
       :ok
     end)
 
@@ -146,7 +191,13 @@ defmodule Rindle.DeliveryTest do
          %{ref: ref} do
       key = "assets/asset-1/original.jpg"
 
-      expect(Rindle.AuthorizerMock, :authorize, fn nil, :deliver, %{profile: PrivateProfile, key: ^key, mode: :private} ->
+      expect(Rindle.AuthorizerMock, :authorize, fn nil,
+                                                   :deliver,
+                                                   %{
+                                                     profile: PrivateProfile,
+                                                     key: ^key,
+                                                     mode: :private
+                                                   } ->
         :ok
       end)
 
@@ -168,7 +219,13 @@ defmodule Rindle.DeliveryTest do
     test "url/3 emits [:rindle, :delivery, :signed] for public mode", %{ref: ref} do
       key = "assets/asset-1/original.jpg"
 
-      expect(Rindle.AuthorizerMock, :authorize, fn nil, :deliver, %{profile: PublicProfile, key: ^key, mode: :public} ->
+      expect(Rindle.AuthorizerMock, :authorize, fn nil,
+                                                   :deliver,
+                                                   %{
+                                                     profile: PublicProfile,
+                                                     key: ^key,
+                                                     mode: :public
+                                                   } ->
         :ok
       end)
 

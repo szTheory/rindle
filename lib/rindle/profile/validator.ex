@@ -117,7 +117,7 @@ defmodule Rindle.Profile.Validator do
     }
   rescue
     error in NimbleOptions.ValidationError ->
-      raise ArgumentError, Exception.message(error)
+      reraise ArgumentError, Exception.message(error), __STACKTRACE__
   end
 
   @spec validate_upload(upload_metadata() | map(), profile_options()) ::
@@ -160,11 +160,14 @@ defmodule Rindle.Profile.Validator do
     end)
   rescue
     error in NimbleOptions.ValidationError ->
-      raise ArgumentError, "delivery: #{Exception.message(error)}"
+      reraise ArgumentError, "delivery: #{Exception.message(error)}", __STACKTRACE__
   end
 
   defp normalize_delivery_opts!(delivery_opts) when is_list(delivery_opts), do: delivery_opts
-  defp normalize_delivery_opts!(delivery_opts) when is_map(delivery_opts), do: Enum.to_list(delivery_opts)
+
+  defp normalize_delivery_opts!(delivery_opts) when is_map(delivery_opts),
+    do: Enum.to_list(delivery_opts)
+
   defp normalize_delivery_opts!(delivery_opts) do
     raise ArgumentError,
           "delivery configuration must be a keyword list or map, got: #{inspect(delivery_opts)}"
@@ -189,7 +192,9 @@ defmodule Rindle.Profile.Validator do
     |> Map.new()
   rescue
     error in NimbleOptions.ValidationError ->
-      raise ArgumentError, "variant #{inspect(name)}: #{Exception.message(error)}"
+      reraise ArgumentError,
+              "variant #{inspect(name)}: #{Exception.message(error)}",
+              __STACKTRACE__
   end
 
   defp validate_variant!(name, _variant_opts) do
@@ -197,20 +202,25 @@ defmodule Rindle.Profile.Validator do
   end
 
   defp normalize_variant_opts!(variant_opts) when is_list(variant_opts), do: variant_opts
-  defp normalize_variant_opts!(variant_opts) when is_map(variant_opts), do: Enum.to_list(variant_opts)
+
+  defp normalize_variant_opts!(variant_opts) when is_map(variant_opts),
+    do: Enum.to_list(variant_opts)
 
   defp normalize_variant_opts!(variant_opts) do
-    raise ArgumentError, "variant configuration must be a keyword list or map, got: #{inspect(variant_opts)}"
+    raise ArgumentError,
+          "variant configuration must be a keyword list or map, got: #{inspect(variant_opts)}"
   end
 
   defp validate_profile_options!(opts), do: NimbleOptions.validate!(opts, @profile_schema)
 
   defp validate_variant_dimensions!(name, :crop, nil, _height) do
-    raise ArgumentError, "variant #{inspect(name)} with mode :crop requires both :width and :height"
+    raise ArgumentError,
+          "variant #{inspect(name)} with mode :crop requires both :width and :height"
   end
 
   defp validate_variant_dimensions!(name, :crop, _width, nil) do
-    raise ArgumentError, "variant #{inspect(name)} with mode :crop requires both :width and :height"
+    raise ArgumentError,
+          "variant #{inspect(name)} with mode :crop requires both :width and :height"
   end
 
   defp validate_variant_dimensions!(_name, mode, nil, nil) when mode in [:fit, :fill] do
@@ -253,12 +263,10 @@ defmodule Rindle.Profile.Validator do
   defp validate_byte_size(upload, max_bytes) do
     byte_size = Map.get(upload, :byte_size) || Map.get(upload, "byte_size")
 
-    cond do
-      is_integer(byte_size) and byte_size <= max_bytes ->
-        :ok
-
-      true ->
-        {:error, {:byte_size_exceeded, byte_size, max_bytes}}
+    if is_integer(byte_size) and byte_size <= max_bytes do
+      :ok
+    else
+      {:error, {:byte_size_exceeded, byte_size, max_bytes}}
     end
   end
 

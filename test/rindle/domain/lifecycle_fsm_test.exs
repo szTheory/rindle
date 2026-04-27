@@ -8,6 +8,7 @@ defmodule Rindle.Domain.LifecycleFSMTest do
   alias Rindle.Domain.StalePolicy
   alias Rindle.Domain.UploadSessionFSM
   alias Rindle.Domain.VariantFSM
+  alias VariantFSM
 
   describe "asset transition matrix" do
     test "accepts the nominal asset lifecycle path" do
@@ -45,9 +46,9 @@ defmodule Rindle.Domain.LifecycleFSMTest do
 
   describe "variant transition matrix" do
     test "accepts planned through ready path" do
-      assert :ok == Rindle.Domain.VariantFSM.transition("planned", "queued")
-      assert :ok == Rindle.Domain.VariantFSM.transition("queued", "processing")
-      assert :ok == Rindle.Domain.VariantFSM.transition("processing", "ready")
+      assert :ok == VariantFSM.transition("planned", "queued")
+      assert :ok == VariantFSM.transition("queued", "processing")
+      assert :ok == VariantFSM.transition("processing", "ready")
     end
 
     test "accepts variant failure and stale lifecycle branches" do

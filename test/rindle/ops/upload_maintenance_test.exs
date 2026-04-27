@@ -2,8 +2,9 @@ defmodule Rindle.Ops.UploadMaintenanceTest do
   use Rindle.DataCase, async: false
   import Mox
 
-  alias Rindle.Ops.UploadMaintenance
   alias Rindle.Domain.{MediaAsset, MediaUploadSession}
+  alias Rindle.Domain.UploadSessionFSM
+  alias Rindle.Ops.UploadMaintenance
 
   setup :set_mox_from_context
   setup :verify_on_exit!
@@ -27,7 +28,7 @@ defmodule Rindle.Ops.UploadMaintenanceTest do
     |> Rindle.Repo.insert!()
   end
 
-  defp create_session(asset, overrides \\ %{}) do
+  defp create_session(asset, overrides) do
     %MediaUploadSession{}
     |> MediaUploadSession.changeset(
       Map.merge(
@@ -97,7 +98,8 @@ defmodule Rindle.Ops.UploadMaintenanceTest do
         {:ok, :deleted}
       end)
 
-      {:ok, report} = UploadMaintenance.cleanup_orphans(dry_run: false, storage: Rindle.StorageMock)
+      {:ok, report} =
+        UploadMaintenance.cleanup_orphans(dry_run: false, storage: Rindle.StorageMock)
 
       assert report.sessions_deleted >= 1
       assert report.objects_deleted >= 1
@@ -110,7 +112,8 @@ defmodule Rindle.Ops.UploadMaintenanceTest do
       _active_session = create_session(asset, %{state: "signed"})
 
       # No storage.delete expected
-      {:ok, report} = UploadMaintenance.cleanup_orphans(dry_run: false, storage: Rindle.StorageMock)
+      {:ok, report} =
+        UploadMaintenance.cleanup_orphans(dry_run: false, storage: Rindle.StorageMock)
 
       assert report.sessions_deleted == 0
     end
@@ -123,7 +126,8 @@ defmodule Rindle.Ops.UploadMaintenanceTest do
         {:error, :storage_unavailable}
       end)
 
-      {:ok, report} = UploadMaintenance.cleanup_orphans(dry_run: false, storage: Rindle.StorageMock)
+      {:ok, report} =
+        UploadMaintenance.cleanup_orphans(dry_run: false, storage: Rindle.StorageMock)
 
       assert report.storage_errors >= 1
       # Critical correctness invariant: the DB row must remain so a later
@@ -140,7 +144,8 @@ defmodule Rindle.Ops.UploadMaintenanceTest do
         {:error, :not_found}
       end)
 
-      {:ok, report} = UploadMaintenance.cleanup_orphans(dry_run: false, storage: Rindle.StorageMock)
+      {:ok, report} =
+        UploadMaintenance.cleanup_orphans(dry_run: false, storage: Rindle.StorageMock)
 
       # Object already absent — counter should not increment for it, but the
       # session row should still be removed because there's nothing to retry.
@@ -183,7 +188,8 @@ defmodule Rindle.Ops.UploadMaintenanceTest do
         {:ok, :deleted}
       end)
 
-      {:ok, report} = UploadMaintenance.cleanup_orphans(dry_run: false, storage: Rindle.StorageMock)
+      {:ok, report} =
+        UploadMaintenance.cleanup_orphans(dry_run: false, storage: Rindle.StorageMock)
 
       assert report.sessions_deleted == 1
       assert Rindle.Repo.get(MediaUploadSession, expired_session.id) == nil
@@ -256,7 +262,7 @@ defmodule Rindle.Ops.UploadMaintenanceTest do
       # would today not be in the query set, but the gate is the invariant.
       # A direct unit-style assertion: the FSM disallows `uploaded -> expired`.
       assert {:error, {:invalid_transition, "uploaded", "expired"}} =
-               Rindle.Domain.UploadSessionFSM.transition("uploaded", "expired", %{})
+               UploadSessionFSM.transition("uploaded", "expired", %{})
     end
   end
 

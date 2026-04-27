@@ -2,8 +2,8 @@ defmodule Rindle.Ops.MetadataBackfillTest do
   use Rindle.DataCase, async: false
   import Mox
 
-  alias Rindle.Ops.MetadataBackfill
   alias Rindle.Domain.MediaAsset
+  alias Rindle.Ops.MetadataBackfill
 
   setup :set_mox_from_context
   setup :verify_on_exit!
@@ -193,7 +193,12 @@ defmodule Rindle.Ops.MetadataBackfillTest do
         {:ok, %{"source" => "profile_a"}}
       end)
 
-      opts = [storage: Rindle.StorageMock, analyzer: Rindle.AnalyzerMock, profile: "Elixir.ProfileA"]
+      opts = [
+        storage: Rindle.StorageMock,
+        analyzer: Rindle.AnalyzerMock,
+        profile: "Elixir.ProfileA"
+      ]
+
       {:ok, report} = MetadataBackfill.backfill_metadata(opts)
 
       assert report.assets_found == 1

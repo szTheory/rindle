@@ -6,8 +6,8 @@ defmodule Rindle.Security.UploadValidation do
   file bytes, then checked against profile allowlists and extension consistency.
   """
 
-  alias Rindle.Security.Mime
   alias Rindle.Security.Filename
+  alias Rindle.Security.Mime
   alias Rindle.Security.StorageKey
 
   @type upload_metadata :: %{
@@ -29,11 +29,14 @@ defmodule Rindle.Security.UploadValidation do
         }
 
   @spec validate_mime_and_extension(upload_metadata(), profile_policy()) ::
-          {:ok, %{detected_mime: String.t(), extension: String.t()}} | {:error, {:quarantine, atom()}}
+          {:ok, %{detected_mime: String.t(), extension: String.t()}}
+          | {:error, {:quarantine, atom()}}
   def validate_mime_and_extension(upload, profile_policy)
       when is_map(upload) and is_map(profile_policy) do
     allow_mime = Map.get(profile_policy, :allow_mime, [])
-    allow_extensions = Map.get(profile_policy, :allow_extensions, []) |> Enum.map(&Mime.normalize_extension/1)
+
+    allow_extensions =
+      Map.get(profile_policy, :allow_extensions, []) |> Enum.map(&Mime.normalize_extension/1)
 
     with {:ok, path} <- fetch_path(upload),
          {:ok, detected_mime} <- Mime.detect(path),
@@ -45,9 +48,11 @@ defmodule Rindle.Security.UploadValidation do
     end
   end
 
-  def validate_mime_and_extension(_upload, _profile_policy), do: {:error, {:quarantine, :invalid_upload}}
+  def validate_mime_and_extension(_upload, _profile_policy),
+    do: {:error, {:quarantine, :invalid_upload}}
 
-  @spec validate_limits(upload_metadata(), profile_policy()) :: :ok | {:error, {:quarantine, atom()}}
+  @spec validate_limits(upload_metadata(), profile_policy()) ::
+          :ok | {:error, {:quarantine, atom()}}
   def validate_limits(upload, profile_policy) when is_map(upload) and is_map(profile_policy) do
     max_bytes = Map.get(profile_policy, :max_bytes)
     max_pixels = Map.get(profile_policy, :max_pixels)
@@ -85,7 +90,8 @@ defmodule Rindle.Security.UploadValidation do
     end
   end
 
-  def validate_promotion_gate(_upload, _validation_result), do: {:error, {:quarantine, :invalid_upload}}
+  def validate_promotion_gate(_upload, _validation_result),
+    do: {:error, {:quarantine, :invalid_upload}}
 
   @spec validate_for_promotion(upload_metadata(), profile_policy(), String.t(), String.t()) ::
           {:ok,
@@ -195,7 +201,8 @@ defmodule Rindle.Security.UploadValidation do
     end
   end
 
-  defp ensure_max_pixels(_upload, _max_pixels), do: {:error, {:quarantine, :invalid_pixel_dimensions}}
+  defp ensure_max_pixels(_upload, _max_pixels),
+    do: {:error, {:quarantine, :invalid_pixel_dimensions}}
 
   defp direct_upload?(upload) do
     Map.get(upload, :direct_upload) || Map.get(upload, "direct_upload") || false

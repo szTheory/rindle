@@ -5,18 +5,19 @@ defmodule Rindle.Workers.PurgeStorage do
   """
   use Oban.Worker, queue: :rindle_purge, max_attempts: 3
 
-  alias Rindle.Repo
   alias Rindle.Domain.{MediaAsset, MediaVariant}
+  alias Rindle.Repo
   import Ecto.Query
 
   @impl Oban.Worker
   def perform(%Oban.Job{args: %{"asset_id" => asset_id, "profile" => profile_name}}) do
     profile_module = String.to_existing_atom(profile_name)
-    
+
     # 1. Collect all storage keys to delete
     # We load variants before potentially deleting the asset from DB
-    variant_keys = Repo.all(from v in MediaVariant, where: v.asset_id == ^asset_id, select: v.storage_key)
-    
+    variant_keys =
+      Repo.all(from v in MediaVariant, where: v.asset_id == ^asset_id, select: v.storage_key)
+
     asset = Repo.get(MediaAsset, asset_id)
     source_key = if asset, do: asset.storage_key, else: nil
 

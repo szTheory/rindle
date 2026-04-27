@@ -67,47 +67,13 @@ defmodule Rindle.Workers.CleanupOrphans do
     dry_run? = Map.get(args, "dry_run", true)
 
     with {:ok, storage_mod} <- resolve_storage_adapter(args) do
-      cleanup_opts =
-        [dry_run: dry_run?]
-        |> then(fn o ->
-          if storage_mod, do: Keyword.put(o, :storage, storage_mod), else: o
-        end)
+      cleanup_opts = build_cleanup_opts(dry_run?, storage_mod)
 
-      case UploadMaintenance.cleanup_orphans(cleanup_opts) do
-        {:ok, report} ->
-          Logger.info("rindle.workers.cleanup_orphans.completed",
-            sessions_found: report.sessions_found,
-            sessions_deleted: report.sessions_deleted,
-            objects_deleted: report.objects_deleted,
-            storage_skipped: report.storage_skipped,
-            storage_errors: report.storage_errors,
-            dry_run: dry_run?
-          )
-
-          :telemetry.execute(
-            [:rindle, :cleanup, :run],
-            %{
-              sessions_deleted: report.sessions_deleted,
-              objects_deleted: report.objects_deleted
-            },
-            %{
-              profile: :unknown,
-              adapter: storage_mod || :unknown,
-              dry_run: dry_run?,
-              worker: __MODULE__
-            }
-          )
-
-          :ok
-
-        {:error, reason} ->
-          Logger.error("rindle.workers.cleanup_orphans.failed",
-            reason: inspect(reason),
-            dry_run: dry_run?
-          )
-
-          {:error, reason}
-      end
+      handle_cleanup_result(
+        UploadMaintenance.cleanup_orphans(cleanup_opts),
+        dry_run?,
+        storage_mod
+      )
     else
       # WR-06: surface adapter-load errors via the documented `…failed` event
       # so operators who alert on it see the failure (the helper already emits
@@ -120,6 +86,50 @@ defmodule Rindle.Workers.CleanupOrphans do
 
         {:error, reason}
     end
+  end
+
+  defp build_cleanup_opts(dry_run?, storage_mod) do
+    if storage_mod do
+      [dry_run: dry_run?, storage: storage_mod]
+    else
+      [dry_run: dry_run?]
+    end
+  end
+
+  defp handle_cleanup_result({:ok, report}, dry_run?, storage_mod) do
+    Logger.info("rindle.workers.cleanup_orphans.completed",
+      sessions_found: report.sessions_found,
+      sessions_deleted: report.sessions_deleted,
+      objects_deleted: report.objects_deleted,
+      storage_skipped: report.storage_skipped,
+      storage_errors: report.storage_errors,
+      dry_run: dry_run?
+    )
+
+    :telemetry.execute(
+      [:rindle, :cleanup, :run],
+      %{
+        sessions_deleted: report.sessions_deleted,
+        objects_deleted: report.objects_deleted
+      },
+      %{
+        profile: :unknown,
+        adapter: storage_mod || :unknown,
+        dry_run: dry_run?,
+        worker: __MODULE__
+      }
+    )
+
+    :ok
+  end
+
+  defp handle_cleanup_result({:error, reason}, dry_run?, _storage_mod) do
+    Logger.error("rindle.workers.cleanup_orphans.failed",
+      reason: inspect(reason),
+      dry_run: dry_run?
+    )
+
+    {:error, reason}
   end
 
   # ---------------------------------------------------------------------------

@@ -7,31 +7,32 @@ defmodule Rindle.Security.Mime do
   @unknown_mime "application/octet-stream"
 
   @spec detect(Path.t()) :: {:ok, String.t()} | {:error, :unknown_mime}
-  def detect(path) do
+  def detect(path) when is_binary(path) do
     ensure_marcel_ready()
+    do_detect(path)
+  end
 
-    if is_binary(path) do
-      case File.open(path, [:read, :binary]) do
-        {:ok, io} ->
-          result =
-            case IO.binread(io, @magic_probe_bytes) do
-              data when is_binary(data) and byte_size(data) > 0 ->
-                data
-                |> then(&ExMarcel.MimeType.for({:string, &1}))
-                |> normalize_detected_mime()
+  def detect(_path), do: {:error, :unknown_mime}
 
-              _ ->
-                {:error, :unknown_mime}
-            end
+  defp do_detect(path) do
+    case File.open(path, [:read, :binary]) do
+      {:ok, io} ->
+        result =
+          case IO.binread(io, @magic_probe_bytes) do
+            data when is_binary(data) and byte_size(data) > 0 ->
+              data
+              |> then(&ExMarcel.MimeType.for({:string, &1}))
+              |> normalize_detected_mime()
 
-          File.close(io)
-          result
+            _ ->
+              {:error, :unknown_mime}
+          end
 
-        {:error, _reason} ->
-          {:error, :unknown_mime}
-      end
-    else
-      {:error, :unknown_mime}
+        File.close(io)
+        result
+
+      {:error, _reason} ->
+        {:error, :unknown_mime}
     end
   end
 

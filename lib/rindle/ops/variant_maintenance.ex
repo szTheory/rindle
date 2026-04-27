@@ -93,50 +93,45 @@ defmodule Rindle.Ops.VariantMaintenance do
     query = maybe_filter_profile(query, filters)
     query = maybe_filter_variant_name(query, filters)
 
-    with {:ok, rows} <- safe_all(query) do
-      # Compute the "already in a non-regeneratable state" tally BEFORE we
-      # touch Oban so a query failure here does not strand half-enqueued work
-      # in the queue (WR-04). Restrict to operationally-relevant states only
-      # ("queued", "processing", "ready") rather than the open-ended
-      # "anything not in @regeneration_states" set, which over-counted purged
-      # / failed / planned variants as "skipped".
-      skipped_query =
-        from v in MediaVariant,
-          join: a in MediaAsset,
-          on: a.id == v.asset_id,
-          where: v.state in ["queued", "processing", "ready"],
-          select: count(v.id)
+    skipped_query =
+      from v in MediaVariant,
+        join: a in MediaAsset,
+        on: a.id == v.asset_id,
+        where: v.state in ["queued", "processing", "ready"],
+        select: count(v.id)
 
-      skipped_query = maybe_filter_profile(skipped_query, filters)
-      skipped_query = maybe_filter_variant_name(skipped_query, filters)
+    skipped_query = maybe_filter_profile(skipped_query, filters)
+    skipped_query = maybe_filter_variant_name(skipped_query, filters)
 
-      with {:ok, [existing_skip_count]} <- safe_all(skipped_query) do
-        {enqueued, skipped, errors} =
-          Enum.reduce(rows, {0, 0, 0}, fn {_variant_id, variant_name, asset_id, _state},
-                                          {enq, skip, err} ->
-            case enqueue_job(asset_id, variant_name) do
-              # Oban uniqueness rejected this insert because an equivalent job
-              # is already in-flight — count as skipped, not enqueued.
-              {:ok, %Oban.Job{conflict?: true}} ->
-                {enq, skip + 1, err}
+    with {:ok, rows} <- safe_all(query),
+         {:ok, [existing_skip_count]} <- safe_all(skipped_query) do
+      {enqueued, skipped, errors} =
+        Enum.reduce(rows, {0, 0, 0}, fn {_variant_id, variant_name, asset_id, _state}, acc ->
+          process_enqueue_job(asset_id, variant_name, acc)
+        end)
 
-              {:ok, _job} ->
-                {enq + 1, skip, err}
+      {:ok, %{enqueued: enqueued, skipped: skipped + existing_skip_count, errors: errors}}
+    end
+  end
 
-              {:error, reason} ->
-                Logger.error("rindle.variant_maintenance.enqueue_failed",
-                  asset_id: asset_id,
-                  variant_name: variant_name,
-                  reason: inspect(reason)
-                )
+  defp process_enqueue_job(asset_id, variant_name, {enq, skip, err}) do
+    case enqueue_job(asset_id, variant_name) do
+      # Oban uniqueness rejected this insert because an equivalent job
+      # is already in-flight — count as skipped, not enqueued.
+      {:ok, %Oban.Job{conflict?: true}} ->
+        {enq, skip + 1, err}
 
-                {enq, skip, err + 1}
-            end
-          end)
+      {:ok, _job} ->
+        {enq + 1, skip, err}
 
-        {:ok,
-         %{enqueued: enqueued, skipped: skipped + existing_skip_count, errors: errors}}
-      end
+      {:error, reason} ->
+        Logger.error("rindle.variant_maintenance.enqueue_failed",
+          asset_id: asset_id,
+          variant_name: variant_name,
+          reason: inspect(reason)
+        )
+
+        {enq, skip, err + 1}
     end
   end
 
@@ -192,22 +187,28 @@ defmodule Rindle.Ops.VariantMaintenance do
     query = maybe_filter_profile(query, filters)
     query = maybe_filter_variant_name(query, filters)
 
-    with {:ok, rows} <- safe_all(query) do
-      acc0 = %{checked: 0, present: 0, missing: 0, fsm_blocked: 0, errors: 0}
+    case safe_all(query) do
+      {:ok, rows} -> {:ok, process_verify_rows(rows)}
+      {:error, reason} -> {:error, reason}
+    end
+  end
 
-      result =
-        Enum.reduce(rows, acc0, fn row, acc ->
-          acc = Map.update!(acc, :checked, &(&1 + 1))
+  defp process_verify_rows(rows) do
+    acc0 = %{checked: 0, present: 0, missing: 0, fsm_blocked: 0, errors: 0}
 
-          case check_object(row) do
-            :present -> Map.update!(acc, :present, &(&1 + 1))
-            :missing -> Map.update!(acc, :missing, &(&1 + 1))
-            :fsm_blocked -> Map.update!(acc, :fsm_blocked, &(&1 + 1))
-            :error -> Map.update!(acc, :errors, &(&1 + 1))
-          end
-        end)
+    Enum.reduce(rows, acc0, fn row, acc ->
+      process_check_object(row, acc)
+    end)
+  end
 
-      {:ok, result}
+  defp process_check_object(row, acc) do
+    acc = Map.update!(acc, :checked, &(&1 + 1))
+
+    case check_object(row) do
+      :present -> Map.update!(acc, :present, &(&1 + 1))
+      :missing -> Map.update!(acc, :missing, &(&1 + 1))
+      :fsm_blocked -> Map.update!(acc, :fsm_blocked, &(&1 + 1))
+      :error -> Map.update!(acc, :errors, &(&1 + 1))
     end
   end
 
@@ -254,7 +255,12 @@ defmodule Rindle.Ops.VariantMaintenance do
     |> Oban.insert()
   end
 
-  defp check_object(%{variant_id: variant_id, variant_state: state, storage_key: key, asset_profile: profile}) do
+  defp check_object(%{
+         variant_id: variant_id,
+         variant_state: state,
+         storage_key: key,
+         asset_profile: profile
+       }) do
     case resolve_storage_adapter(profile) do
       {:ok, storage_adapter} ->
         case storage_adapter.head(key, []) do
@@ -283,22 +289,20 @@ defmodule Rindle.Ops.VariantMaintenance do
   end
 
   defp resolve_storage_adapter(profile_string) when is_binary(profile_string) do
-    try do
-      mod = String.to_existing_atom(profile_string)
+    mod = String.to_existing_atom(profile_string)
 
-      cond do
-        not Code.ensure_loaded?(mod) ->
-          {:error, :module_not_loaded}
+    cond do
+      not Code.ensure_loaded?(mod) ->
+        {:error, :module_not_loaded}
 
-        not function_exported?(mod, :storage_adapter, 0) ->
-          {:error, :no_storage_adapter_callback}
+      not function_exported?(mod, :storage_adapter, 0) ->
+        {:error, :no_storage_adapter_callback}
 
-        true ->
-          {:ok, mod.storage_adapter()}
-      end
-    rescue
-      ArgumentError -> {:error, :unknown_profile}
+      true ->
+        {:ok, mod.storage_adapter()}
     end
+  rescue
+    ArgumentError -> {:error, :unknown_profile}
   end
 
   defp resolve_storage_adapter(_), do: {:error, :invalid_profile_value}
@@ -314,31 +318,7 @@ defmodule Rindle.Ops.VariantMaintenance do
       :ok ->
         # Use a real changeset so validate_inclusion runs (a typo in the
         # constant "missing" would otherwise pass update_all silently).
-        case Repo.get(MediaVariant, variant_id) do
-          nil ->
-            Logger.warning("rindle.variant_maintenance.variant_disappeared",
-              variant_id: variant_id
-            )
-
-            :error
-
-          variant ->
-            variant
-            |> MediaVariant.changeset(%{state: "missing"})
-            |> Repo.update()
-            |> case do
-              {:ok, _updated} ->
-                :missing
-
-              {:error, reason} ->
-                Logger.warning("rindle.variant_maintenance.mark_missing_failed",
-                  variant_id: variant_id,
-                  reason: inspect(reason)
-                )
-
-                :error
-            end
-        end
+        update_missing_variant(variant_id)
 
       {:error, {:invalid_transition, from, to}} ->
         Logger.warning("rindle.variant_maintenance.mark_missing_invalid_transition",
@@ -355,5 +335,33 @@ defmodule Rindle.Ops.VariantMaintenance do
     {:ok, Repo.all(query)}
   rescue
     e -> {:error, e}
+  end
+
+  defp update_missing_variant(variant_id) do
+    case Repo.get(MediaVariant, variant_id) do
+      nil ->
+        Logger.warning("rindle.variant_maintenance.variant_disappeared",
+          variant_id: variant_id
+        )
+
+        :error
+
+      variant ->
+        variant
+        |> MediaVariant.changeset(%{state: "missing"})
+        |> Repo.update()
+        |> case do
+          {:ok, _updated} ->
+            :missing
+
+          {:error, reason} ->
+            Logger.warning("rindle.variant_maintenance.mark_missing_failed",
+              variant_id: variant_id,
+              reason: inspect(reason)
+            )
+
+            :error
+        end
+    end
   end
 end

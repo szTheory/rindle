@@ -63,8 +63,12 @@ defmodule Rindle.Profile.ProfileTest do
     }
 
     assert {:ok, ^valid_upload} = TestProfile.validate_upload(valid_upload)
-    assert {:error, {:mime_not_allowed, "image/gif"}} = TestProfile.validate_upload(%{valid_upload | content_type: "image/gif"})
-    assert {:error, {:byte_size_exceeded, 10_000_000, 5_000_000}} = TestProfile.validate_upload(%{valid_upload | byte_size: 10_000_000})
+
+    assert {:error, {:mime_not_allowed, "image/gif"}} =
+             TestProfile.validate_upload(%{valid_upload | content_type: "image/gif"})
+
+    assert {:error, {:byte_size_exceeded, 10_000_000, 5_000_000}} =
+             TestProfile.validate_upload(%{valid_upload | byte_size: 10_000_000})
   end
 
   test "digest is stable when equivalent specs use reordered keys" do
@@ -139,7 +143,8 @@ defmodule Rindle.Profile.ProfileTest do
       delivery: []
       """)
 
-    assert %{public: false, signed_url_ttl_seconds: 900, authorizer: nil} = module.delivery_policy()
+    assert %{public: false, signed_url_ttl_seconds: 900, authorizer: nil} =
+             module.delivery_policy()
   end
 
   test "delivery policy accepts explicit public opt-in and authorizer" do

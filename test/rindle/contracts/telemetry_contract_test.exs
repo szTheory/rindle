@@ -1,4 +1,7 @@
 defmodule Rindle.Contracts.TelemetryContractTest do
+  alias Rindle.Domain.AssetFSM
+  alias Rindle.Domain.VariantFSM
+
   @moduledoc """
   Telemetry public contract — locked event family.
 
@@ -61,7 +64,7 @@ defmodule Rindle.Contracts.TelemetryContractTest do
     test "AssetFSM.transition/3 emits with required metadata + numeric measurements",
          %{ref: ref} do
       assert :ok =
-               Rindle.Domain.AssetFSM.transition("staged", "validating", %{
+               AssetFSM.transition("staged", "validating", %{
                  profile: "TestProfile",
                  adapter: __MODULE__
                })
@@ -76,7 +79,7 @@ defmodule Rindle.Contracts.TelemetryContractTest do
     test "VariantFSM.transition/3 emits with required metadata + numeric measurements",
          %{ref: ref} do
       assert :ok =
-               Rindle.Domain.VariantFSM.transition("planned", "queued", %{
+               VariantFSM.transition("planned", "queued", %{
                  profile: "TestProfile",
                  adapter: __MODULE__
                })
@@ -146,9 +149,9 @@ defmodule Rindle.Contracts.TelemetryContractTest do
       on_exit(fn -> :telemetry.detach(handler_id) end)
 
       # Trigger every locked emission site we can fire in-process.
-      Rindle.Domain.AssetFSM.transition("staged", "validating", %{profile: "p", adapter: A})
+      AssetFSM.transition("staged", "validating", %{profile: "p", adapter: A})
 
-      Rindle.Domain.VariantFSM.transition("planned", "queued", %{
+      VariantFSM.transition("planned", "queued", %{
         profile: "p",
         adapter: A
       })

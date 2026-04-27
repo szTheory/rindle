@@ -32,7 +32,13 @@ defmodule Rindle.HTMLTest do
         variant("wide", "processing", "assets/asset-1/wide.jpg")
       ])
 
-    expect(Rindle.AuthorizerMock, :authorize, fn nil, :deliver, %{profile: PublicProfile, key: "assets/asset-1/original.jpg", mode: :public} ->
+    expect(Rindle.AuthorizerMock, :authorize, fn nil,
+                                                 :deliver,
+                                                 %{
+                                                   profile: PublicProfile,
+                                                   key: "assets/asset-1/original.jpg",
+                                                   mode: :public
+                                                 } ->
       :ok
     end)
 
@@ -40,7 +46,13 @@ defmodule Rindle.HTMLTest do
       {:ok, "https://public.example/assets/asset-1/original.jpg"}
     end)
 
-    expect(Rindle.AuthorizerMock, :authorize, fn nil, :deliver, %{profile: PublicProfile, key: "assets/asset-1/thumb.jpg", mode: :public} ->
+    expect(Rindle.AuthorizerMock, :authorize, fn nil,
+                                                 :deliver,
+                                                 %{
+                                                   profile: PublicProfile,
+                                                   key: "assets/asset-1/thumb.jpg",
+                                                   mode: :public
+                                                 } ->
       :ok
     end)
 
@@ -74,7 +86,13 @@ defmodule Rindle.HTMLTest do
         variant("thumb", "processing", "assets/asset-1/thumb.jpg")
       ])
 
-    expect(Rindle.AuthorizerMock, :authorize, fn nil, :deliver, %{profile: PublicProfile, key: "assets/asset-1/original.jpg", mode: :public} ->
+    expect(Rindle.AuthorizerMock, :authorize, fn nil,
+                                                 :deliver,
+                                                 %{
+                                                   profile: PublicProfile,
+                                                   key: "assets/asset-1/original.jpg",
+                                                   mode: :public
+                                                 } ->
       :ok
     end)
 

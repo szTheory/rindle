@@ -186,6 +186,9 @@ jobs:
           mc alias set local http://localhost:9000 minioadmin minioadmin
           mc mb --ignore-existing local/rindle-test
 
+      - name: Install libvips
+        run: sudo apt-get install -y libvips-dev
+
       - name: Run integration tests
         run: |
           mix test test/rindle/upload/lifecycle_integration_test.exs --include integration

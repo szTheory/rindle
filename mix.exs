@@ -21,8 +21,13 @@ defmodule Rindle.MixProject do
         plt_file: {:no_warn, "priv/plts/dialyzer.plt"},
         plt_add_apps: [:mix, :ex_unit]
       ],
-      test_coverage: [tool: ExCoveralls],
-      preferred_cli_env: [
+      test_coverage: [tool: ExCoveralls]
+    ]
+  end
+
+  def cli do
+    [
+      preferred_envs: [
         coveralls: :test,
         "coveralls.detail": :test,
         "coveralls.html": :test,
