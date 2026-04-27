@@ -1,4 +1,29 @@
 defmodule Rindle.Domain.MediaVariant do
+  @moduledoc """
+  Ecto schema for a derived variant of a media asset.
+
+  A `MediaVariant` represents one named output (e.g. `:thumb`, `:large`)
+  derived from a source asset. Each variant moves through the
+  `Rindle.Domain.VariantFSM` lifecycle and stores its own storage key,
+  recipe digest, and ready/failed/stale state.
+
+  ## States
+
+  | State | Meaning |
+  |-------|---------|
+  | `"planned"` | Variant row exists; processing not yet enqueued. |
+  | `"queued"` | Oban job enqueued; awaiting processor. |
+  | `"processing"` | Processor is generating the variant. |
+  | `"ready"` | Variant generated and stored; deliverable. |
+  | `"failed"` | Processing failed past the retry budget. |
+  | `"stale"` | Recipe digest changed; existing object outdated. |
+  | `"missing"` | Storage reconciliation found the object absent. |
+  | `"purged"` | Variant explicitly removed; storage object deleted. |
+
+  See `Rindle.Domain.VariantFSM` for valid state transitions and
+  `Rindle.Domain.StalePolicy` for stale-serving behavior.
+  """
+
   use Ecto.Schema
   import Ecto.Changeset
 

@@ -1,4 +1,18 @@
 defmodule Rindle.Domain.MediaProcessingRun do
+  @moduledoc """
+  Ecto schema recording the outcome of a single processing or maintenance
+  operation against a media asset or variant.
+
+  A `MediaProcessingRun` is the audit trail for background work — variant
+  generation outcomes, purge results, scanner verdicts, and metadata
+  backfill runs. Each row captures the worker module, the affected
+  record, the outcome (`:queued`, `:processing`, `:succeeded`, `:failed`),
+  and any structured detail emitted by the operation.
+
+  Processing runs are not consulted for delivery decisions; they exist
+  for operator visibility, retry diagnostics, and Day-2 cleanup queries.
+  """
+
   use Ecto.Schema
   import Ecto.Changeset
 

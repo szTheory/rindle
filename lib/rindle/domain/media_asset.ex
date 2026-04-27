@@ -1,4 +1,30 @@
 defmodule Rindle.Domain.MediaAsset do
+  @moduledoc """
+  Ecto schema for a media asset.
+
+  A `MediaAsset` represents a single uploaded file moving through the
+  `Rindle.Domain.AssetFSM` lifecycle. Each row tracks the asset's current
+  state, MIME type, byte size, and the storage key under which the
+  original file is stored.
+
+  ## States
+
+  | State | Meaning |
+  |-------|---------|
+  | `"staged"` | Reserved slot; upload has not been verified. |
+  | `"validating"` | Upload verified; MIME scan in progress. |
+  | `"analyzing"` | Dimensions / metadata extraction in progress. |
+  | `"promoting"` | Promotion job running. |
+  | `"available"` | Ready for variant processing and delivery. |
+  | `"processing"` | One or more variant jobs running. |
+  | `"ready"` | All configured variants generated. |
+  | `"degraded"` | One or more variants failed; original still deliverable. |
+  | `"quarantined"` | MIME mismatch or scan failure; not deliverable. |
+  | `"deleted"` | Soft-deleted; storage object may already be purged. |
+
+  See `Rindle.Domain.AssetFSM` for valid state transitions.
+  """
+
   use Ecto.Schema
   import Ecto.Changeset
 

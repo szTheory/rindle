@@ -1,4 +1,29 @@
 defmodule Rindle.Domain.MediaUploadSession do
+  @moduledoc """
+  Ecto schema for a presigned upload session.
+
+  A `MediaUploadSession` tracks the lifecycle of a direct-to-storage
+  upload — from the moment Rindle issues a presigned PUT URL through
+  verification of the uploaded object.
+
+  ## States
+
+  | State | Meaning |
+  |-------|---------|
+  | `"initialized"` | Session created; no presigned URL yet. |
+  | `"signed"` | Presigned PUT URL issued to client. |
+  | `"uploading"` | Client has begun (or is presumed to have begun) the PUT. |
+  | `"uploaded"` | Storage reports the object exists at the expected key. |
+  | `"verifying"` | Server-side validation (MIME, size) in progress. |
+  | `"completed"` | Verification passed; asset promoted. |
+  | `"aborted"` | Client cancelled or server rejected. |
+  | `"expired"` | TTL elapsed before completion. |
+  | `"failed"` | Verification failed (MIME mismatch, size limit, scanner). |
+
+  See `Rindle.Domain.UploadSessionFSM` for valid transitions and
+  `Rindle.Upload.Broker` for the lifecycle entry points.
+  """
+
   use Ecto.Schema
   import Ecto.Changeset
 

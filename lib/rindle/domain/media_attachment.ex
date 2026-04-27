@@ -1,4 +1,25 @@
 defmodule Rindle.Domain.MediaAttachment do
+  @moduledoc """
+  Ecto schema linking a `Rindle.Domain.MediaAsset` to an owning entity.
+
+  Attachments are the polymorphic association layer: any application
+  record (a `User`, a `Post`, an `Article`) can own one or more assets
+  via attachment rows. The attachment record carries the owner type,
+  owner id, and an optional slot name (e.g. `"avatar"`, `"hero"`)
+  that disambiguates multiple attachments of the same kind.
+
+  Attachments have no lifecycle state machine of their own — they
+  reflect a current ownership claim. Use `Rindle.attach/4` and
+  `Rindle.detach/3` to mutate attachment rows; both functions
+  participate in the same DB transaction as the asset state change
+  they describe.
+
+  Concurrent replacement (two clients attaching different assets to
+  the same owner+slot) is detected by reloading inside the transaction
+  and returning `{:error, :replaced}` rather than overwriting the
+  newer attachment (see `Rindle.attach/4`).
+  """
+
   use Ecto.Schema
   import Ecto.Changeset
 
