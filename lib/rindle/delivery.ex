@@ -10,12 +10,48 @@ defmodule Rindle.Delivery do
 
   @type delivery_mode :: :public | :private
 
+  @doc """
+  Returns the delivery policy map declared by a profile module.
+
+  ## Examples
+
+      # Requires a profile module that defines `delivery_policy/0`.
+      iex> Rindle.Delivery.profile_delivery_policy(MyApp.MediaProfile)
+      %{public: false, signed_url_ttl_seconds: 900}
+
+  """
   @spec profile_delivery_policy(module()) :: map()
   def profile_delivery_policy(profile), do: profile.delivery_policy()
 
+  @doc """
+  Returns `true` when the profile opts in to public delivery.
+
+  Defaults to `false` (private-by-default).
+
+  ## Examples
+
+      # Requires a profile module.
+      iex> Rindle.Delivery.public_delivery?(MyApp.MediaProfile)
+      false
+
+  """
   @spec public_delivery?(module()) :: boolean()
   def public_delivery?(profile), do: Map.get(profile_delivery_policy(profile), :public, false)
 
+  @doc """
+  Returns the signed URL TTL (seconds) for a profile.
+
+  Falls back to the application-wide default in `Rindle.Config` when the
+  profile does not override it.
+
+  ## Examples
+
+      # Requires a profile module.
+      iex> ttl = Rindle.Delivery.signed_url_ttl_seconds(MyApp.MediaProfile)
+      iex> is_integer(ttl) and ttl > 0
+      true
+
+  """
   @spec signed_url_ttl_seconds(module()) :: pos_integer()
   def signed_url_ttl_seconds(profile) do
     Map.get(
@@ -25,9 +61,37 @@ defmodule Rindle.Delivery do
     )
   end
 
+  @doc """
+  Returns the configured delivery authorizer module, or `nil` if none is set.
+
+  Authorizers implement `c:Rindle.Authorizer.authorize/3` and run before any
+  delivery URL is issued.
+
+  ## Examples
+
+      # Requires a profile module.
+      iex> Rindle.Delivery.delivery_authorizer(MyApp.MediaProfile)
+      nil
+
+  """
   @spec delivery_authorizer(module()) :: module() | nil
   def delivery_authorizer(profile), do: Map.get(profile_delivery_policy(profile), :authorizer)
 
+  @doc """
+  Returns a deliverable URL for an asset's storage key.
+
+  Public profiles return the storage adapter's bare URL; private profiles
+  return a signed URL with the profile's configured TTL. Emits
+  `[:rindle, :delivery, :signed]` telemetry on success.
+
+  ## Examples
+
+      # Requires a configured storage adapter and a key that exists in storage.
+      iex> {:ok, url} = Rindle.Delivery.url(MyApp.MediaProfile, "uploads/abc.png")
+      iex> is_binary(url)
+      true
+
+  """
   @spec url(module(), String.t(), keyword()) :: {:ok, String.t()} | {:error, term()}
   def url(profile, key, opts \\ []) do
     mode = delivery_mode(profile)
@@ -51,6 +115,22 @@ defmodule Rindle.Delivery do
     end
   end
 
+  @doc """
+  Returns a deliverable URL for a variant, falling back to the original asset
+  when the variant is not yet `ready`.
+
+  Stale variants are resolved against `Rindle.Domain.StalePolicy`; missing or
+  failed variants fall back to the original asset URL so callers never see
+  broken links.
+
+  ## Examples
+
+      # Requires a configured storage adapter and ready/stale variant rows.
+      iex> {:ok, url} = Rindle.Delivery.variant_url(MyApp.MediaProfile, asset, variant)
+      iex> is_binary(url)
+      true
+
+  """
   @spec variant_url(module(), map(), map(), keyword()) :: {:ok, String.t()} | {:error, term()}
   def variant_url(profile, asset, variant, opts \\ []) do
     original_key = key_for(asset, :storage_key)

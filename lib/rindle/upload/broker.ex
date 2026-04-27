@@ -11,7 +11,18 @@ defmodule Rindle.Upload.Broker do
 
   @doc """
   Initiates a new direct upload session.
-  Creates a staged MediaAsset and an initialized MediaUploadSession.
+
+  Creates a staged `MediaAsset` and an `initialized` `MediaUploadSession` in
+  a single DB transaction, then emits `[:rindle, :upload, :start]`
+  telemetry AFTER commit.
+
+  ## Examples
+
+      # Requires Rindle.Repo running and a profile module.
+      iex> {:ok, session} = Rindle.Upload.Broker.initiate_session(MyApp.MediaProfile, filename: "photo.png")
+      iex> session.state
+      "initialized"
+
   """
   def initiate_session(profile_module, opts \\ []) do
     profile_name = profile_module_to_name(profile_module)
@@ -70,7 +81,20 @@ defmodule Rindle.Upload.Broker do
 
   @doc """
   Generates a presigned URL for an initialized session.
-  Transitions session state to `signed`.
+
+  Transitions the session to `signed` and returns
+  `{:ok, %{session: %MediaUploadSession{}, presigned: %{url: String.t()}}}`.
+
+  ## Examples
+
+      # Requires Rindle.Repo + a configured S3-compatible storage adapter.
+      iex> {:ok, %{session: session, presigned: %{url: url}}} =
+      ...>   Rindle.Upload.Broker.sign_url(session_id)
+      iex> session.state
+      "signed"
+      iex> is_binary(url)
+      true
+
   """
   def sign_url(session_id, opts \\ []) do
     with %MediaUploadSession{} = session <- Repo.get(MediaUploadSession, session_id),
@@ -96,7 +120,21 @@ defmodule Rindle.Upload.Broker do
 
   @doc """
   Verifies that a direct upload was completed in storage.
-  Transitions session to `completed` and asset to `validating`.
+
+  Transitions the session to `completed` and the asset to `validating`,
+  then enqueues `Rindle.Workers.PromoteAsset`. Emits
+  `[:rindle, :upload, :stop]` telemetry AFTER the `Ecto.Multi` commits.
+
+  ## Examples
+
+      # Requires Rindle.Repo + the upload object to exist in storage.
+      iex> {:ok, %{session: session, asset: asset}} =
+      ...>   Rindle.Upload.Broker.verify_completion(session_id)
+      iex> session.state
+      "completed"
+      iex> asset.state
+      "validating"
+
   """
   def verify_completion(session_id, opts \\ []) do
     with %MediaUploadSession{} = session <- Repo.get(MediaUploadSession, session_id),
