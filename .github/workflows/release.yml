@@ -14,6 +14,7 @@ jobs:
     name: Release Check
     runs-on: ubuntu-latest
     environment: release
+    concurrency: release
     # Blocker 6 / T-05-05-01 mitigation: the `environment: release` declaration
     # above ties this job to a GitHub Actions Environment named `release`.
     # Once a repo admin configures protection rules on this environment
@@ -95,37 +96,18 @@ jobs:
           mc alias set local http://localhost:9000 minioadmin minioadmin
           mc mb --ignore-existing local/rindle-test
 
-      # Hex auth shim — `mix hex.publish --dry-run` requires Hex auth (A1
-      # resolved during 05-05 execution: confirmed locally that the dry-run
-      # exits 1 with "No authenticated user found. Run `mix hex.user auth`").
-      # Set a dummy HEX_API_KEY so the dry-run never attempts a real publish
-      # even if the auth check is bypassed; the dry-run does not actually
-      # PUT to the Hex API. When 1.0 cutover wires a real key, replace this
-      # shim with the protected release-environment Hex secret made available
-      # through the `environment: release` declaration above.
-      - name: Set Hex auth shim
-        run: echo "HEX_API_KEY=dryrun-placeholder" >> $GITHUB_ENV
-
       # Step 1: shared release preflight is the must-pass gate. It builds the
       # unpacked artifact, inspects package metadata, reuses the package-consumer
       # install smoke lane from Phase 9, and treats docs warnings as failures.
       - name: Run release preflight
         run: bash scripts/release_preflight.sh
 
-      # Step 2: hex.publish --dry-run is the additional metadata gate.
-      # If it fails due to auth (A1 — confirmed required by Hex CLI),
-      # tolerate the failure with a warning rather than failing the lane —
-      # the artifact inspection above is the primary gate.
-      - name: Dry-run publish (optional — A1 risk tolerance)
+      - name: Live publish to Hex
+        env:
+          HEX_API_KEY: ${{ secrets.HEX_API_KEY }}
         run: |
-          set +e
-          mix hex.publish package --dry-run --yes 2>&1 | tee /tmp/dryrun.log
-          status=${PIPESTATUS[0]}
-          if [ $status -ne 0 ]; then
-            if grep -q "No authenticated user found" /tmp/dryrun.log; then
-              echo "::warning::mix hex.publish --dry-run requires auth (A1 resolved in 05-05). Artifact inspection above is the active gate. To enable dry-run, configure HEX_API_KEY as a 'release' environment secret (NOT a repo-level secret)."
-              exit 0
-            fi
-            echo "::error::mix hex.publish --dry-run failed for non-auth reason"
-            exit $status
+          if [ -z "$HEX_API_KEY" ] || [ "$HEX_API_KEY" = "dryrun-placeholder" ]; then
+            echo "::error::HEX_API_KEY is missing or invalid. Cannot publish. Ensure the 'release' environment secret is configured."
+            exit 1
           fi
+          mix hex.publish --yes
