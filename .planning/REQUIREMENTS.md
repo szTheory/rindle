@@ -15,7 +15,8 @@
 
 ### Release Automation
 
-- [ ] **RELEASE-06**: Protected release automation can publish Rindle to
+- [x] **RELEASE-06
+**: Protected release automation can publish Rindle to
   `Hex.pm` with a scoped publish credential without requiring ad hoc local
   maintainer auth
 - [ ] **RELEASE-07**: Release automation fails before publication when package

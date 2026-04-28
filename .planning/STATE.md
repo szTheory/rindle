@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: milestone
 status: verifying
-stopped_at: Phase 11 context gathered (assumptions mode)
-last_updated: "2026-04-28T20:37:11.513Z"
+stopped_at: Completed 11-01-PLAN.md
+last_updated: "2026-04-28T21:20:35.678Z"
 last_activity: 2026-04-28
 progress:
   total_phases: 3
@@ -78,6 +78,7 @@ Recent decisions affecting current work:
 - Reserve resumable capability atoms additively without adding new callbacks or changing tagged error tuple contracts.
 - Keep CAP-02 proof inside the existing MinIO-backed suites rather than introducing a second harness or helper path.
 - Assert :presigned_put and :multipart_upload before each real direct-upload scenario so capability honesty is proven before remote I/O begins.
+- Swapped out dry-run publish step for a live publish step guarded by real HEX_API_KEY environment variable logic.
 
 ### Pending Todos
 
@@ -94,9 +95,9 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: --stopped-at
-Stopped at: Phase 11 context gathered (assumptions mode)
-Resume file: --resume-file
+Last session: 2026-04-28T21:20:35.440Z
+Stopped at: Completed 11-01-PLAN.md
+Resume file: None
 
 ### Decision-Making Preference
 
@@ -114,3 +115,5 @@ Resume file: --resume-file
 **Next Phase:** Phase 10 — run `$gsd-plan-phase 10`
 
 **Last Completed Milestone:** v1.1 (Phases 06-09) — archived 2026-04-28
+
+**Planned Phase:** 11 (protected-publish-automation) — 2 plans — 2026-04-28T20:50:24.387Z
