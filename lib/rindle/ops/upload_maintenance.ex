@@ -22,9 +22,9 @@ defmodule Rindle.Ops.UploadMaintenance do
 
   import Ecto.Query
 
+  alias Rindle.Config
   alias Rindle.Domain.MediaUploadSession
   alias Rindle.Domain.UploadSessionFSM
-  alias Rindle.Repo
 
   # ---------------------------------------------------------------------------
   # Types
@@ -121,6 +121,8 @@ defmodule Rindle.Ops.UploadMaintenance do
 
   @spec fetch_expired_sessions() :: {:ok, [MediaUploadSession.t()]} | {:error, term()}
   defp fetch_expired_sessions do
+    repo = Config.repo()
+
     # The state column is the source of truth for cleanup eligibility — the
     # FSM transition into "expired" is the authoritative lifecycle decision.
     # Filtering additionally on expires_at < now would strand
@@ -134,7 +136,7 @@ defmodule Rindle.Ops.UploadMaintenance do
       )
 
     try do
-      {:ok, Repo.all(query)}
+      {:ok, repo.all(query)}
     rescue
       e -> {:error, e}
     end
@@ -143,6 +145,7 @@ defmodule Rindle.Ops.UploadMaintenance do
   @spec fetch_incomplete_timed_out_sessions() ::
           {:ok, [MediaUploadSession.t()]} | {:error, term()}
   defp fetch_incomplete_timed_out_sessions do
+    repo = Config.repo()
     now = DateTime.utc_now()
 
     query =
@@ -153,7 +156,7 @@ defmodule Rindle.Ops.UploadMaintenance do
       )
 
     try do
-      {:ok, Repo.all(query)}
+      {:ok, repo.all(query)}
     rescue
       e -> {:error, e}
     end
@@ -221,7 +224,9 @@ defmodule Rindle.Ops.UploadMaintenance do
   end
 
   defp proceed_with_db_delete(session, acc, object_increment, skipped_increment) do
-    case Repo.delete(session) do
+    repo = Config.repo()
+
+    case repo.delete(session) do
       {:ok, _} ->
         acc
         |> Map.update!(:sessions_deleted, &(&1 + 1))
@@ -296,9 +301,10 @@ defmodule Rindle.Ops.UploadMaintenance do
   end
 
   defp do_expire_session(session, acc) do
+    repo = Config.repo()
     changeset = MediaUploadSession.changeset(session, %{state: "expired"})
 
-    case Repo.update(changeset) do
+    case repo.update(changeset) do
       {:ok, _updated} ->
         Logger.info("rindle.upload_maintenance.session_expired",
           session_id: session.id,
