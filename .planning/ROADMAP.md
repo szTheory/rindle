@@ -68,9 +68,9 @@ and trigger path narrowly controlled
    install proof drift
 
 Plans:
-- [ ] 11-01-PLAN.md — wire real publish auth and trigger policy into the
+- [x] 11-01-PLAN.md — wire real publish auth and trigger policy into the
   existing release workflow
-- [ ] 11-02-PLAN.md — make publish gating fail-safe and keep dry-run/build
+- [x] 11-02-PLAN.md — make publish gating fail-safe and keep dry-run/build
   checks aligned with the live publish path
 
 ### Phase 12: Public Verification and Release Operations
@@ -101,5 +101,5 @@ Phases execute in numeric order: 10 -> 11 -> 12
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 10. Publish Readiness | 0/2 | Pending | — |
-| 11. Protected Publish Automation | 0/2 | Pending | — |
+| 11. Protected Publish Automation | 2/2 | Complete | 2026-04-28 |
 | 12. Public Verification and Release Operations | 0/2 | Pending | — |

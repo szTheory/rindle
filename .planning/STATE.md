@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: milestone
 status: verifying
-stopped_at: Completed 11-01-PLAN.md
-last_updated: "2026-04-28T21:20:35.678Z"
+stopped_at: Completed 11-02-PLAN.md
+last_updated: "2026-04-28T21:23:07.646Z"
 last_activity: 2026-04-28
 progress:
   total_phases: 3
@@ -79,6 +79,7 @@ Recent decisions affecting current work:
 - Keep CAP-02 proof inside the existing MinIO-backed suites rather than introducing a second harness or helper path.
 - Assert :presigned_put and :multipart_upload before each real direct-upload scenario so capability honesty is proven before remote I/O begins.
 - Swapped out dry-run publish step for a live publish step guarded by real HEX_API_KEY environment variable logic.
+- Ensured publish pipeline fails fast if the Git tag does not match the mix.exs version.
 
 ### Pending Todos
 
@@ -95,8 +96,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-28T21:20:35.440Z
-Stopped at: Completed 11-01-PLAN.md
+Last session: 2026-04-28T21:23:07.640Z
+Stopped at: Completed 11-02-PLAN.md
 Resume file: None
 
 ### Decision-Making Preference
