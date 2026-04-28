@@ -4,9 +4,9 @@ defmodule Rindle.Upload.Broker do
   """
 
   alias Rindle.Domain.AssetFSM
+  alias Rindle.Config
   alias Rindle.Domain.{MediaAsset, MediaUploadSession}
   alias Rindle.Domain.UploadSessionFSM
-  alias Rindle.Repo
   alias Rindle.Security.StorageKey
   alias Rindle.Workers.PromoteAsset
 
@@ -19,13 +19,14 @@ defmodule Rindle.Upload.Broker do
 
   ## Examples
 
-      # Requires Rindle.Repo running and a profile module.
+      # Requires `config :rindle, :repo, MyApp.Repo` and a profile module.
       iex> {:ok, session} = Rindle.Upload.Broker.initiate_session(MyApp.MediaProfile, filename: "photo.png")
       iex> session.state
       "initialized"
 
   """
   def initiate_session(profile_module, opts \\ []) do
+    repo = Config.repo()
     profile_name = profile_module_to_name(profile_module)
     filename = Keyword.get(opts, :filename, "unknown")
     extension = Path.extname(filename)
@@ -39,7 +40,7 @@ defmodule Rindle.Upload.Broker do
     expires_in_seconds = Keyword.get(opts, :expires_in, 3600)
     expires_at = DateTime.add(DateTime.utc_now(), expires_in_seconds, :second)
 
-    case Repo.transaction(fn ->
+    case repo.transaction(fn ->
            {:ok, asset} =
              %MediaAsset{id: asset_id}
              |> MediaAsset.changeset(%{
@@ -48,17 +49,17 @@ defmodule Rindle.Upload.Broker do
                storage_key: storage_key,
                filename: filename
              })
-             |> Repo.insert()
+             |> repo.insert()
 
            {:ok, session} =
              %MediaUploadSession{}
              |> MediaUploadSession.changeset(%{
                asset_id: asset.id,
-               state: "initialized",
-               upload_key: storage_key,
-               expires_at: expires_at
-             })
-             |> Repo.insert()
+                state: "initialized",
+                upload_key: storage_key,
+                expires_at: expires_at
+              })
+             |> repo.insert()
 
            session
          end) do
@@ -88,7 +89,7 @@ defmodule Rindle.Upload.Broker do
 
   ## Examples
 
-      # Requires Rindle.Repo + a configured S3-compatible storage adapter.
+      # Requires `config :rindle, :repo, MyApp.Repo` and a configured S3-compatible storage adapter.
       iex> {:ok, %{session: session, presigned: %{url: url}}} =
       ...>   Rindle.Upload.Broker.sign_url(session_id)
       iex> session.state
@@ -98,18 +99,20 @@ defmodule Rindle.Upload.Broker do
 
   """
   def sign_url(session_id, opts \\ []) do
-    with %MediaUploadSession{} = session <- Repo.get(MediaUploadSession, session_id),
+    repo = Config.repo()
+
+    with %MediaUploadSession{} = session <- repo.get(MediaUploadSession, session_id),
          :ok <- UploadSessionFSM.transition(session.state, "signed", %{session_id: session.id}),
-         asset <- Repo.preload(session, :asset).asset,
+         asset <- repo.preload(session, :asset).asset,
          {:ok, profile_module} <- profile_name_to_module(asset.profile),
          adapter <- profile_module.storage_adapter(),
          expires_in <- Keyword.get(opts, :expires_in, 3600),
          {:ok, presigned} <- adapter.presigned_put(session.upload_key, expires_in, opts) do
-      Repo.transaction(fn ->
+      repo.transaction(fn ->
         {:ok, updated_session} =
           session
           |> MediaUploadSession.changeset(%{state: "signed"})
-          |> Repo.update()
+          |> repo.update()
 
         %{session: updated_session, presigned: presigned}
       end)
@@ -128,7 +131,7 @@ defmodule Rindle.Upload.Broker do
 
   ## Examples
 
-      # Requires Rindle.Repo + the upload object to exist in storage.
+      # Requires `config :rindle, :repo, MyApp.Repo`, the upload object to exist in storage, and the default `Oban` instance running.
       iex> {:ok, %{session: session, asset: asset}} =
       ...>   Rindle.Upload.Broker.verify_completion(session_id)
       iex> session.state
@@ -138,15 +141,17 @@ defmodule Rindle.Upload.Broker do
 
   """
   def verify_completion(session_id, opts \\ []) do
-    with %MediaUploadSession{} = session <- Repo.get(MediaUploadSession, session_id),
-         asset <- Repo.preload(session, :asset).asset,
+    repo = Config.repo()
+
+    with %MediaUploadSession{} = session <- repo.get(MediaUploadSession, session_id),
+         asset <- repo.preload(session, :asset).asset,
          {:ok, profile_module} <- profile_name_to_module(asset.profile),
          adapter <- profile_module.storage_adapter(),
          # Check storage for object existence (Pitfall 5)
          {:ok, metadata} <- adapter.head(session.upload_key, opts),
          :ok <- UploadSessionFSM.transition(session.state, "verifying", %{session_id: session.id}),
          :ok <- AssetFSM.transition(asset.state, "validating", %{asset_id: asset.id}) do
-      execute_verify_completion(session, asset, profile_module, metadata)
+      execute_verify_completion(repo, session, asset, profile_module, metadata)
     else
       nil -> {:error, :not_found}
       {:error, :not_found} -> {:error, :storage_object_missing}
@@ -154,7 +159,7 @@ defmodule Rindle.Upload.Broker do
     end
   end
 
-  defp execute_verify_completion(session, asset, profile_module, metadata) do
+  defp execute_verify_completion(repo, session, asset, profile_module, metadata) do
     Ecto.Multi.new()
     |> Ecto.Multi.update(
       :verifying_session,
@@ -181,7 +186,7 @@ defmodule Rindle.Upload.Broker do
       })
     )
     |> Oban.insert(:promote_job, PromoteAsset.new(%{asset_id: asset.id}))
-    |> Repo.transaction()
+    |> repo.transaction()
     |> case do
       {:ok, %{session: updated_session, asset: updated_asset}} ->
         :telemetry.execute(
