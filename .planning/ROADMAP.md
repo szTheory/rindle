@@ -101,6 +101,7 @@ Plans:
 and succeed without relying on repo-local assumptions or hidden setup knowledge
 **Depends on**: Phase 6, Phase 8
 **Requirements**: RELEASE-01, RELEASE-02, RELEASE-03
+**Plans**: 3 plans
 **Success Criteria** (what must be TRUE):
 1. A package-consumer smoke path installs Rindle into a fresh Phoenix app from
    the built artifact and completes the canonical upload-to-delivery flow
@@ -108,6 +109,11 @@ and succeed without relying on repo-local assumptions or hidden setup knowledge
    repository checkout
 3. README and getting-started guidance match the proven adopter path, including
    Repo ownership, Oban expectations, and capability constraints
+
+Plans:
+- [x] 09-01-PLAN.md — build the generated-app smoke harness, explicit migration-path setup, and shared consumer-smoke runner
+- [x] 09-02-PLAN.md — wire the shared consumer-smoke runner into PR CI and release without duplicating package-consumer logic
+- [x] 09-03-PLAN.md — rewrite README/getting-started around the proved quickstart and add docs parity drift gates
 
 ## Progress
 
