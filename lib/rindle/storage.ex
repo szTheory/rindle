@@ -7,6 +7,15 @@ defmodule Rindle.Storage do
   steps.
   """
 
+  @typedoc """
+  Shared storage capability vocabulary exposed by adapters via `c:capabilities/0`.
+
+  Current adapters only need to advertise the capabilities they actually
+  support. Additional resumable-oriented atoms are reserved additively for
+  future adapters.
+  """
+  @type capability :: Rindle.Storage.Capabilities.capability()
+
   @callback store(key :: String.t(), source :: Path.t(), opts :: keyword()) ::
               {:ok, term()} | {:error, term()}
 
@@ -52,5 +61,10 @@ defmodule Rindle.Storage do
   @callback head(key :: String.t(), opts :: keyword()) ::
               {:ok, map()} | {:error, term()}
 
-  @callback capabilities() :: [atom()]
+  @doc """
+  Returns the adapter's supported capability atoms.
+
+  Values must come from `t:capability/0`.
+  """
+  @callback capabilities() :: [capability()]
 end
