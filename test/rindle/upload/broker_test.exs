@@ -60,6 +60,16 @@ defmodule Rindle.Upload.BrokerTest do
       max_bytes: 10_485_760
   end
 
+  defmodule UnsupportedMultipartProfile do
+    use Rindle.Profile,
+      storage: Rindle.Storage.Local,
+      variants: [
+        thumb: [mode: :crop, width: 100, height: 100]
+      ],
+      allow_mime: ["image/jpeg"],
+      max_bytes: 10_485_760
+  end
+
   setup do
     case start_supervised(Rindle.Adopter.CanonicalApp.Repo) do
       {:ok, _pid} -> :ok
@@ -209,6 +219,123 @@ defmodule Rindle.Upload.BrokerTest do
 
       asset = Rindle.Adopter.CanonicalApp.Repo.get!(MediaAsset, session.asset_id)
       assert asset.state == "staged"
+    end
+  end
+
+  describe "multipart upload lifecycle" do
+    test "Rindle.initiate_multipart_upload/2 creates a multipart session and returns bootstrap data" do
+      expect(Rindle.StorageMock, :capabilities, fn ->
+        [:presigned_put, :head, :signed_url, :multipart_upload]
+      end)
+
+      expect(Rindle.StorageMock, :initiate_multipart_upload, fn key, part_size, _opts ->
+        assert key =~ "testprofile"
+        assert part_size > 0
+        {:ok, %{upload_id: "upload-123", upload_key: key, part_size: part_size, part_headers: %{}}}
+      end)
+
+      assert {:ok, %{session: session, multipart: multipart}} =
+               Rindle.initiate_multipart_upload(TestProfile, filename: "multipart.jpg")
+
+      assert session.state == "initialized"
+      assert session.upload_strategy == "multipart"
+      assert session.multipart_upload_id == "upload-123"
+      assert multipart.upload_id == "upload-123"
+      assert multipart.upload_key == session.upload_key
+      assert multipart.part_headers == %{}
+      assert multipart.part_size > 0
+    end
+
+    test "sign_multipart_part/3 signs a specific part through the multipart adapter path" do
+      expect(Rindle.StorageMock, :capabilities, fn ->
+        [:presigned_put, :head, :signed_url, :multipart_upload]
+      end)
+
+      expect(Rindle.StorageMock, :initiate_multipart_upload, fn key, part_size, _opts ->
+        {:ok, %{upload_id: "upload-456", upload_key: key, part_size: part_size, part_headers: %{}}}
+      end)
+
+      {:ok, %{session: session}} =
+        Broker.initiate_multipart_session(TestProfile, filename: "multipart.jpg")
+
+      expect(Rindle.StorageMock, :capabilities, fn ->
+        [:presigned_put, :head, :signed_url, :multipart_upload]
+      end)
+
+      expect(Rindle.StorageMock, :presigned_upload_part, fn key, upload_id, part_number, expires_in, _opts ->
+        assert key == session.upload_key
+        assert upload_id == "upload-456"
+        assert part_number == 3
+        assert expires_in == 1800
+        {:ok, %{url: "https://example.com/part-3", method: :put, headers: %{}}}
+      end)
+
+      assert {:ok, %{session: updated_session, presigned: presigned}} =
+               Broker.sign_multipart_part(session.id, 3, expires_in: 1800)
+
+      assert updated_session.state == "signed"
+      assert presigned.url == "https://example.com/part-3"
+    end
+
+    test "complete_multipart_upload/3 persists the manifest, completes remotely, and reuses verification" do
+      expect(Rindle.StorageMock, :capabilities, 3, fn ->
+        [:presigned_put, :head, :signed_url, :multipart_upload]
+      end)
+
+      expect(Rindle.StorageMock, :initiate_multipart_upload, fn key, part_size, _opts ->
+        {:ok, %{upload_id: "upload-789", upload_key: key, part_size: part_size, part_headers: %{}}}
+      end)
+
+      {:ok, %{session: session}} =
+        Broker.initiate_multipart_session(TestProfile, filename: "multipart.jpg")
+
+      expect(Rindle.StorageMock, :presigned_upload_part, fn _key, _upload_id, _part_number, _expires_in, _opts ->
+        {:ok, %{url: "https://example.com/part", method: :put, headers: %{}}}
+      end)
+
+      {:ok, %{session: signed_session}} = Broker.sign_multipart_part(session.id, 1)
+
+      expect(Rindle.StorageMock, :complete_multipart_upload, fn key, upload_id, parts, _opts ->
+        assert key == signed_session.upload_key
+        assert upload_id == "upload-789"
+
+        assert parts == [
+                 %{part_number: 1, etag: "\"etag-1\""},
+                 %{part_number: 2, etag: "\"etag-2\""}
+               ]
+
+        {:ok, %{upload_id: upload_id, upload_key: key}}
+      end)
+
+      expect(Rindle.StorageMock, :head, fn key, _opts ->
+        assert key == signed_session.upload_key
+        {:ok, %{size: 1234, content_type: "image/jpeg"}}
+      end)
+
+      parts = [
+        %{part_number: 2, etag: "\"etag-2\""},
+        %{part_number: 1, etag: "\"etag-1\""}
+      ]
+
+      assert {:ok, %{session: completed_session, asset: asset}} =
+               Broker.complete_multipart_upload(session.id, parts)
+
+      persisted = Rindle.Adopter.CanonicalApp.Repo.get!(MediaUploadSession, completed_session.id)
+
+      assert persisted.multipart_parts == %{
+               "parts" => [
+                 %{"part_number" => 1, "etag" => "\"etag-1\""},
+                 %{"part_number" => 2, "etag" => "\"etag-2\""}
+               ]
+             }
+
+      assert completed_session.state == "completed"
+      assert asset.state == "validating"
+    end
+
+    test "multipart on an unsupported adapter fails with a tagged capability error" do
+      assert {:error, {:upload_unsupported, :multipart_upload}} =
+               Broker.initiate_multipart_session(UnsupportedMultipartProfile, filename: "multipart.jpg")
     end
   end
 
