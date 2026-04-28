@@ -77,6 +77,7 @@ defmodule Rindle.Upload.Broker do
     adapter = profile_module.storage_adapter()
 
     with :ok <- ensure_capability(adapter, :multipart_upload),
+         {:ok, multipart} <- adapter.initiate_multipart_upload(storage_key, part_size, opts),
          {:ok, session} <-
            create_upload_session(
              repo,
@@ -88,17 +89,15 @@ defmodule Rindle.Upload.Broker do
              %{
                state: "initialized",
                upload_strategy: "multipart",
+               multipart_upload_id: multipart.upload_id,
                multipart_parts: %{}
              }
-           ),
-         {:ok, multipart} <- adapter.initiate_multipart_upload(storage_key, part_size, opts),
-         {:ok, persisted_session} <-
-           update_session(repo, session, %{multipart_upload_id: multipart.upload_id}) do
-      emit_upload_start(profile_name, adapter, persisted_session.id)
+           ) do
+      emit_upload_start(profile_name, adapter, session.id)
 
       {:ok,
        %{
-         session: persisted_session,
+         session: session,
          multipart: %{
            upload_id: multipart.upload_id,
            upload_key: storage_key,
@@ -304,7 +303,15 @@ defmodule Rindle.Upload.Broker do
     end
   end
 
-  defp create_upload_session(repo, asset_id, profile_name, storage_key, filename, expires_at, session_attrs) do
+  defp create_upload_session(
+         repo,
+         asset_id,
+         profile_name,
+         storage_key,
+         filename,
+         expires_at,
+         session_attrs
+       ) do
     case repo.transaction(fn ->
            {:ok, asset} =
              %MediaAsset{id: asset_id}

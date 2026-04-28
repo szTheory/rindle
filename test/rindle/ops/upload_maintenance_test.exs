@@ -191,6 +191,54 @@ defmodule Rindle.Ops.UploadMaintenanceTest do
       assert report.sessions_deleted == 0
     end
 
+    test "defaults to the configured storage adapter when :storage is omitted" do
+      asset = create_asset()
+      session = create_session(asset, %{state: "expired", expires_at: expired_at()})
+      previous_default_storage = Application.get_env(:rindle, :default_storage)
+      Application.put_env(:rindle, :default_storage, Rindle.StorageMock)
+
+      expect(Rindle.StorageMock, :delete, fn key, _opts ->
+        assert key == session.upload_key
+        {:ok, :deleted}
+      end)
+
+      on_exit(fn ->
+        if previous_default_storage do
+          Application.put_env(:rindle, :default_storage, previous_default_storage)
+        else
+          Application.delete_env(:rindle, :default_storage)
+        end
+      end)
+
+      {:ok, report} = UploadMaintenance.cleanup_orphans(dry_run: false)
+
+      assert report.sessions_deleted == 1
+      assert report.objects_deleted == 1
+      assert AdopterRepo.get(MediaUploadSession, session.id) == nil
+    end
+
+    test "preserves rows when no storage adapter can be resolved" do
+      asset = create_asset()
+      session = create_session(asset, %{state: "expired", expires_at: expired_at()})
+      previous_default_storage = Application.get_env(:rindle, :default_storage)
+      Application.delete_env(:rindle, :default_storage)
+
+      on_exit(fn ->
+        if previous_default_storage do
+          Application.put_env(:rindle, :default_storage, previous_default_storage)
+        end
+      end)
+
+      {:ok, report} = UploadMaintenance.cleanup_orphans(dry_run: false)
+
+      assert report.sessions_found == 1
+      assert report.storage_skipped == 1
+      assert report.sessions_deleted == 0
+      assert AdopterRepo.get(MediaUploadSession, session.id) != nil
+      assert_received {:repo_probe, :all}
+      refute_received {:repo_probe, {:delete, MediaUploadSession}}
+    end
+
     test "preserves DB row when storage delete fails so a future run can retry" do
       asset = create_asset()
       session = create_session(asset, %{state: "expired", expires_at: expired_at()})

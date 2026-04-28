@@ -4,6 +4,7 @@ defmodule Rindle.Upload.BrokerTest do
   import Mox
 
   alias Ecto.Adapters.SQL.Sandbox
+  alias Rindle.Adopter.CanonicalApp.Repo, as: AdopterRepo
   alias Rindle.Domain.{MediaAsset, MediaUploadSession}
   alias Rindle.Upload.Broker
 
@@ -131,7 +132,9 @@ defmodule Rindle.Upload.BrokerTest do
 
       {:ok, %{session: updated_session, presigned: presigned}} = Broker.sign_url(session.id)
 
-      assert_received {:repo_probe, {:get, MediaUploadSession, session_id}} when session_id == session.id
+      assert_received {:repo_probe, {:get, MediaUploadSession, session_id}}
+                      when session_id == session.id
+
       assert_received {:repo_probe, {:preload, :asset}}
       assert_received {:repo_probe, :transaction}
       assert_received {:repo_probe, {:update, MediaUploadSession}}
@@ -173,7 +176,9 @@ defmodule Rindle.Upload.BrokerTest do
       {:ok, %{session: updated_session, asset: updated_asset}} =
         Broker.verify_completion(session.id)
 
-      assert_received {:repo_probe, {:get, MediaUploadSession, session_id}} when session_id == session.id
+      assert_received {:repo_probe, {:get, MediaUploadSession, session_id}}
+                      when session_id == session.id
+
       assert_received {:repo_probe, {:preload, :asset}}
       assert_received {:repo_probe, :transaction}
 
@@ -231,7 +236,9 @@ defmodule Rindle.Upload.BrokerTest do
       expect(Rindle.StorageMock, :initiate_multipart_upload, fn key, part_size, _opts ->
         assert key =~ "testprofile"
         assert part_size > 0
-        {:ok, %{upload_id: "upload-123", upload_key: key, part_size: part_size, part_headers: %{}}}
+
+        {:ok,
+         %{upload_id: "upload-123", upload_key: key, part_size: part_size, part_headers: %{}}}
       end)
 
       assert {:ok, %{session: session, multipart: multipart}} =
@@ -246,13 +253,33 @@ defmodule Rindle.Upload.BrokerTest do
       assert multipart.part_size > 0
     end
 
+    test "initiate_multipart_session/2 does not persist rows when remote multipart initiation fails" do
+      expect(Rindle.StorageMock, :capabilities, fn ->
+        [:presigned_put, :head, :signed_url, :multipart_upload]
+      end)
+
+      expect(Rindle.StorageMock, :initiate_multipart_upload, fn _key, _part_size, _opts ->
+        {:error, :storage_unavailable}
+      end)
+
+      session_count_before = length(AdopterRepo.all(MediaUploadSession))
+      asset_count_before = length(AdopterRepo.all(MediaAsset))
+
+      assert {:error, :storage_unavailable} =
+               Broker.initiate_multipart_session(TestProfile, filename: "multipart.jpg")
+
+      assert length(AdopterRepo.all(MediaUploadSession)) == session_count_before
+      assert length(AdopterRepo.all(MediaAsset)) == asset_count_before
+    end
+
     test "sign_multipart_part/3 signs a specific part through the multipart adapter path" do
       expect(Rindle.StorageMock, :capabilities, fn ->
         [:presigned_put, :head, :signed_url, :multipart_upload]
       end)
 
       expect(Rindle.StorageMock, :initiate_multipart_upload, fn key, part_size, _opts ->
-        {:ok, %{upload_id: "upload-456", upload_key: key, part_size: part_size, part_headers: %{}}}
+        {:ok,
+         %{upload_id: "upload-456", upload_key: key, part_size: part_size, part_headers: %{}}}
       end)
 
       {:ok, %{session: session}} =
@@ -262,7 +289,11 @@ defmodule Rindle.Upload.BrokerTest do
         [:presigned_put, :head, :signed_url, :multipart_upload]
       end)
 
-      expect(Rindle.StorageMock, :presigned_upload_part, fn key, upload_id, part_number, expires_in, _opts ->
+      expect(Rindle.StorageMock, :presigned_upload_part, fn key,
+                                                            upload_id,
+                                                            part_number,
+                                                            expires_in,
+                                                            _opts ->
         assert key == session.upload_key
         assert upload_id == "upload-456"
         assert part_number == 3
@@ -283,13 +314,18 @@ defmodule Rindle.Upload.BrokerTest do
       end)
 
       expect(Rindle.StorageMock, :initiate_multipart_upload, fn key, part_size, _opts ->
-        {:ok, %{upload_id: "upload-789", upload_key: key, part_size: part_size, part_headers: %{}}}
+        {:ok,
+         %{upload_id: "upload-789", upload_key: key, part_size: part_size, part_headers: %{}}}
       end)
 
       {:ok, %{session: session}} =
         Broker.initiate_multipart_session(TestProfile, filename: "multipart.jpg")
 
-      expect(Rindle.StorageMock, :presigned_upload_part, fn _key, _upload_id, _part_number, _expires_in, _opts ->
+      expect(Rindle.StorageMock, :presigned_upload_part, fn _key,
+                                                            _upload_id,
+                                                            _part_number,
+                                                            _expires_in,
+                                                            _opts ->
         {:ok, %{url: "https://example.com/part", method: :put, headers: %{}}}
       end)
 
@@ -335,7 +371,9 @@ defmodule Rindle.Upload.BrokerTest do
 
     test "multipart on an unsupported adapter fails with a tagged capability error" do
       assert {:error, {:upload_unsupported, :multipart_upload}} =
-               Broker.initiate_multipart_session(UnsupportedMultipartProfile, filename: "multipart.jpg")
+               Broker.initiate_multipart_session(UnsupportedMultipartProfile,
+                 filename: "multipart.jpg"
+               )
     end
   end
 

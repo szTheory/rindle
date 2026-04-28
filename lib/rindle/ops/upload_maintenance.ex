@@ -68,7 +68,7 @@ defmodule Rindle.Ops.UploadMaintenance do
   @spec cleanup_orphans(keyword()) :: {:ok, cleanup_report()} | {:error, term()}
   def cleanup_orphans(opts \\ []) do
     dry_run? = Keyword.get(opts, :dry_run, true)
-    storage_mod = Keyword.get(opts, :storage, nil)
+    storage_mod = Keyword.get(opts, :storage, Application.get_env(:rindle, :default_storage))
 
     case fetch_expired_sessions() do
       {:ok, sessions} ->
@@ -181,18 +181,13 @@ defmodule Rindle.Ops.UploadMaintenance do
         base_report
 
       is_nil(storage_mod) and sessions != [] ->
-        # WR-03: silently no-opping the storage delete leaves orphaned objects
-        # invisible. Surface the bypass once per run with a warning AND a
-        # report counter so operators can detect the misconfiguration.
         Logger.warning("rindle.upload_maintenance.storage_adapter_missing",
           sessions_to_clean: length(sessions),
           remediation:
-            "Configure :rindle :default_storage or pass --storage MODULE; staged objects will be left in storage."
+            "Configure :rindle :default_storage or pass --storage MODULE; cleanup is skipped so upload handles remain retryable."
         )
 
-        Enum.reduce(sessions, base_report, fn session, acc ->
-          delete_session_and_object(session, acc, storage_mod)
-        end)
+        %{base_report | storage_skipped: length(sessions)}
 
       true ->
         Enum.reduce(sessions, base_report, fn session, acc ->
