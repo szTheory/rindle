@@ -43,7 +43,7 @@ defmodule Rindle do
 
   ## Examples
 
-      # Requires Rindle.Repo running and a configured profile module.
+      # Requires `config :rindle, :repo, MyApp.Repo` and a configured profile module.
       iex> {:ok, session} = Rindle.initiate_upload(MyApp.MediaProfile, filename: "photo.png")
       iex> session.state
       "initialized"
@@ -62,7 +62,7 @@ defmodule Rindle do
 
   ## Examples
 
-      # Requires Rindle.Repo + the upload object to exist in storage.
+      # Requires a configured Rindle repo + the upload object to exist in storage.
       iex> {:ok, %{session: session, asset: asset}} = Rindle.verify_upload(session_id)
       iex> session.state
       "completed"
@@ -114,7 +114,7 @@ defmodule Rindle do
 
   ## Examples
 
-      # Requires Rindle.Repo + an existing MediaAsset and owner record.
+      # Requires a configured Rindle repo + an existing MediaAsset and owner record.
       iex> {:ok, attachment} = Rindle.attach(asset_id, %MyApp.User{id: user_id}, "avatar")
       iex> attachment.slot
       "avatar"
@@ -123,6 +123,7 @@ defmodule Rindle do
   @spec attach(struct() | binary(), struct(), String.t(), keyword()) ::
           {:ok, struct()} | {:error, term()}
   def attach(asset_or_id, owner, slot, _opts \\ []) do
+    repo = Rindle.Config.repo()
     asset_id = get_asset_id(asset_or_id)
     {owner_type, owner_id} = get_owner_info(owner)
 
@@ -152,9 +153,9 @@ defmodule Rindle do
         slot: slot
       })
     end)
-    |> Ecto.Multi.run(:purge_old, fn _repo, %{existing: existing} ->
+    |> Ecto.Multi.run(:purge_old, fn tx_repo, %{existing: existing} ->
       if existing do
-        old_asset = Rindle.Repo.get!(MediaAsset, existing.asset_id)
+        old_asset = tx_repo.get!(MediaAsset, existing.asset_id)
 
         job =
           PurgeStorage.new(%{
@@ -167,7 +168,7 @@ defmodule Rindle do
         {:ok, nil}
       end
     end)
-    |> Rindle.Repo.transaction()
+    |> repo.transaction()
     |> case do
       {:ok, %{attachment: attachment}} -> {:ok, attachment}
       {:error, _name, reason, _changes} -> {:error, reason}
@@ -181,7 +182,7 @@ defmodule Rindle do
 
   ## Examples
 
-      # Requires Rindle.Repo + an existing attachment at owner+slot.
+      # Requires a configured Rindle repo + an existing attachment at owner+slot.
       iex> :ok = Rindle.detach(%MyApp.User{id: user_id}, "avatar")
       iex> :ok
       :ok
@@ -189,6 +190,7 @@ defmodule Rindle do
   """
   @spec detach(struct(), String.t(), keyword()) :: :ok | {:error, term()}
   def detach(owner, slot, _opts \\ []) do
+    repo = Rindle.Config.repo()
     {owner_type, owner_id} = get_owner_info(owner)
 
     Ecto.Multi.new()
@@ -202,8 +204,8 @@ defmodule Rindle do
       if existing, do: {:ok, existing}, else: {:error, :not_found}
     end)
     |> Ecto.Multi.delete(:attachment, fn %{existing: existing} -> existing end)
-    |> Ecto.Multi.run(:purge, fn _repo, %{existing: existing} ->
-      old_asset = Rindle.Repo.get!(MediaAsset, existing.asset_id)
+    |> Ecto.Multi.run(:purge, fn tx_repo, %{existing: existing} ->
+      old_asset = tx_repo.get!(MediaAsset, existing.asset_id)
 
       job =
         PurgeStorage.new(%{
@@ -213,7 +215,7 @@ defmodule Rindle do
 
       Oban.insert(job)
     end)
-    |> Rindle.Repo.transaction()
+    |> repo.transaction()
     |> case do
       {:ok, _} -> :ok
       # Idempotent
@@ -308,7 +310,7 @@ defmodule Rindle do
 
   ## Examples
 
-      # Requires Rindle.Repo + a configured storage adapter + a Plug.Upload.
+      # Requires a configured Rindle repo + a configured storage adapter + a Plug.Upload.
       iex> {:ok, asset} = Rindle.upload(MyApp.MediaProfile, %Plug.Upload{path: "/tmp/x.png", filename: "x.png"})
       iex> asset.state
       "analyzing"
@@ -316,6 +318,7 @@ defmodule Rindle do
   """
   @spec upload(module(), map() | struct(), keyword()) :: {:ok, struct()} | {:error, term()}
   def upload(profile_module, upload, opts \\ []) do
+    repo = Rindle.Config.repo()
     upload = normalize_upload(upload)
     profile_name = to_string(profile_module)
     asset_id = Ecto.UUID.generate()
@@ -345,7 +348,7 @@ defmodule Rindle do
         })
       )
       |> Oban.insert(:promote_job, PromoteAsset.new(%{asset_id: asset_id}))
-      |> Rindle.Repo.transaction()
+      |> repo.transaction()
       |> case do
         {:ok, %{asset: asset}} -> {:ok, asset}
         {:error, _name, reason, _changes} -> {:error, reason}
