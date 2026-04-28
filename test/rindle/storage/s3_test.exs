@@ -44,6 +44,8 @@ defmodule Rindle.Storage.S3Test do
       ]
     ]
 
+    assert_upload_capabilities!(S3.capabilities())
+
     part1 = String.duplicate("a", @multipart_min_part_size)
     part2 = "multipart-part-two"
 
@@ -78,6 +80,50 @@ defmodule Rindle.Storage.S3Test do
     assert {:ok, _result} = S3.delete(key, opts)
   end
 
+  @tag :minio
+  @tag skip: @minio_skip_reason
+  test "round-trips presigned put, head, download, url, delete, and not_found against MinIO" do
+    root =
+      Path.join(System.tmp_dir!(), "rindle-s3-test-#{System.unique_integer([:positive])}")
+
+    destination = Path.join(root, "downloaded.jpg")
+    key = "integration/#{System.unique_integer([:positive])}.jpg"
+    uri = URI.parse(@minio_url)
+    body = "s3-adapter-test-data"
+
+    File.mkdir_p!(root)
+
+    opts = [
+      bucket: @minio_bucket,
+      content_type: "image/jpeg",
+      aws_config: [
+        access_key_id: @minio_access_key,
+        secret_access_key: @minio_secret_key,
+        scheme: "http://",
+        host: uri.host,
+        port: uri.port,
+        region: @minio_region
+      ]
+    ]
+
+    assert_upload_capabilities!(S3.capabilities())
+
+    assert {:ok, %{url: put_url, method: :put, headers: %{}}} = S3.presigned_put(key, 60, opts)
+    assert String.contains?(put_url, key)
+
+    :ok = put_to_presigned_url(put_url, body)
+
+    assert {:ok, %{size: 20, content_type: "image/jpeg"}} = S3.head(key, opts)
+    assert {:ok, ^destination} = S3.download(key, destination, opts)
+    assert File.read!(destination) == body
+
+    assert {:ok, url} = S3.url(key, opts)
+    assert String.contains?(url, key)
+
+    assert {:ok, _result} = S3.delete(key, opts)
+    assert {:error, :not_found} = S3.head(key, opts)
+  end
+
   defp put_part_to_presigned_url(presigned_url, body) do
     request = {String.to_charlist(presigned_url), [], ~c"application/octet-stream", body}
 
@@ -101,45 +147,24 @@ defmodule Rindle.Storage.S3Test do
     end
   end
 
-  @tag :minio
-  @tag skip: @minio_skip_reason
-  test "round-trips store, head, download, url, delete, and not_found against MinIO" do
-    root =
-      Path.join(System.tmp_dir!(), "rindle-s3-test-#{System.unique_integer([:positive])}")
+  defp put_to_presigned_url(presigned_url, body) do
+    request = {String.to_charlist(presigned_url), [], ~c"application/octet-stream", body}
 
-    source = Path.join(root, "source.jpg")
-    destination = Path.join(root, "downloaded.jpg")
-    key = "integration/#{System.unique_integer([:positive])}.jpg"
-    uri = URI.parse(@minio_url)
+    case :httpc.request(:put, request, [], []) do
+      {:ok, {{_http_version, status, _reason}, _response_headers, _resp_body}}
+      when status in 200..299 ->
+        :ok
 
-    File.mkdir_p!(root)
-    File.write!(source, "s3-adapter-test-data")
+      {:ok, {{_http_version, status, reason}, _response_headers, resp_body}} ->
+        flunk("presigned PUT failed with status #{status} #{reason}: #{inspect(resp_body)}")
 
-    opts = [
-      bucket: @minio_bucket,
-      content_type: "image/jpeg",
-      aws_config: [
-        access_key_id: @minio_access_key,
-        secret_access_key: @minio_secret_key,
-        scheme: "http://",
-        host: uri.host,
-        port: uri.port,
-        region: @minio_region
-      ]
-    ]
+      {:error, reason} ->
+        flunk("presigned PUT failed: #{inspect(reason)}")
+    end
+  end
 
-    assert {:ok, %{key: ^key}} = S3.store(key, source, opts)
-    assert {:ok, %{size: 20, content_type: "image/jpeg"}} = S3.head(key, opts)
-    assert {:ok, ^destination} = S3.download(key, destination, opts)
-    assert File.read!(destination) == "s3-adapter-test-data"
-
-    assert {:ok, url} = S3.url(key, opts)
-    assert String.contains?(url, key)
-
-    assert {:ok, %{url: put_url, method: :put, headers: %{}}} = S3.presigned_put(key, 60, opts)
-    assert String.contains?(put_url, key)
-
-    assert {:ok, _result} = S3.delete(key, opts)
-    assert {:error, :not_found} = S3.head(key, opts)
+  defp assert_upload_capabilities!(capabilities) do
+    assert :presigned_put in capabilities
+    assert :multipart_upload in capabilities
   end
 end
