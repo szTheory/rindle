@@ -1,11 +1,11 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.1
-milestone_name: milestone
-status: milestone_complete
-stopped_at: Completed Phase 09
-last_updated: "2026-04-28T17:13:53.000Z"
-last_activity: 2026-04-28 -- Phase 09 completed and milestone v1.1 closed
+milestone_name: adopter hardening
+status: milestone_archived
+stopped_at: Milestone archived
+last_updated: "2026-04-28T17:42:11Z"
+last_activity: 2026-04-28 -- archived milestone v1.1 and prepared next-milestone handoff
 progress:
   total_phases: 4
   completed_phases: 4
@@ -21,17 +21,17 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-28)
 
 **Core value:** Media, made durable.
-**Current focus:** Milestone v1.1 complete
-all planned phases for v1.1 are implemented and verified
+**Current focus:** Awaiting next milestone definition
+v1.1 is archived and the active planning docs are reset for the next cycle.
 
 ## Current Position
 
-Phase: Completed
-Plan: Complete
-Status: Milestone complete
-Last activity: 2026-04-28 -- Phase 09 completed and milestone v1.1 closed
+Phase: —
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-04-28 -- archived milestone v1.1 and prepared next-milestone handoff
 
-Progress: [█████████░] 89%
+Progress: [██████████] 100%
 
 ## Accumulated Context
 
@@ -85,11 +85,11 @@ Recent decisions affecting current work:
   public API surface beyond this milestone
 
 - Keep the capability model forward-compatible with future GCS resumable work
-- Cut the first package-consumer smoke path once phase 9 is reached
+- Plan the first Hex.pm publish and release posture in the next milestone
 
 ### Blockers/Concerns
 
-- None currently; milestone v1.1 is complete.
+- None currently; the project is waiting on next-milestone definition.
 
 ## Session Continuity
 
@@ -110,6 +110,6 @@ Resume file: None
 - Workflow preference: skip discuss by default and move directly into
   planning/execution unless a high-impact ambiguity is detected.
 
-**Next Phase:** None — milestone complete
+**Next Phase:** None — run `$gsd-new-milestone`
 
-**Completed Phase:** 09 (install-release-confidence) — verified 2026-04-28
+**Last Completed Milestone:** v1.1 (Phases 06-09) — archived 2026-04-28

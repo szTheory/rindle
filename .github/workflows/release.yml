@@ -137,6 +137,11 @@ jobs:
           RINDLE_INSTALL_SMOKE_PACKAGE_ROOT=$(echo "$GITHUB_WORKSPACE"/rindle-*)
           bash scripts/install_smoke.sh
 
+      - name: Run docs parity gate directly
+        env:
+          MIX_ENV: test
+        run: mix test test/install_smoke/docs_parity_test.exs
+
       # Step 2: hex.publish --dry-run is the additional metadata gate.
       # If it fails due to auth (A1 — confirmed required by Hex CLI),
       # tolerate the failure with a warning rather than failing the lane —

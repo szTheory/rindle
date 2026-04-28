@@ -20,6 +20,7 @@ key-files:
 decisions:
   - Keep CAP-02 proof inside the existing MinIO-backed suites rather than introducing a second harness or helper path.
   - Assert `:presigned_put` and `:multipart_upload` at the start of each real direct-upload scenario so capability honesty is proven before remote I/O begins.
+requirements-completed: [CAP-02]
 metrics:
   duration: 7 min
   completed: 2026-04-28

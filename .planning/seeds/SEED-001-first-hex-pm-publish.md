@@ -1,10 +1,12 @@
 ---
 id: SEED-001
-status: dormant
+status: promoted
 planted: 2026-04-28
 planted_during: v1.1 / Phase 08
 trigger_when: "When package-consumer install proof is complete or the next milestone scope includes first public package publication / release automation."
 scope: Medium
+resolved: 2026-04-28
+resolution: "Promoted from open seed to next-milestone candidate after v1.1 install proof completed."
 ---
 
 # SEED-001: Plan the first Hex.pm publish for Rindle
@@ -65,3 +67,9 @@ Related code and decisions found in the current codebase:
   becomes the goal.
 - If the first publish happens during `0.x`, the plan should explicitly decide
   how much public API/semver stability is being promised.
+
+## Resolution
+
+Install proof is now complete, so this idea no longer needs to remain an open
+seed. Treat it as promoted input for the next milestone-definition pass rather
+than unresolved milestone-close work.

@@ -97,7 +97,8 @@ Each worker has `@max_attempts` configured for its expected failure profile:
 - `ProcessVariant` — 5 attempts (network/IO; processor occasionally retries
   on transient libvips/storage errors)
 - `PurgeStorage` — 3 attempts (idempotent — safe to retry)
-- Cron workers — 1 attempt (next cron run handles transient failures)
+- Cron workers — 3 attempts (maintenance jobs retry transient failures, then
+  fall back to the next scheduled run)
 
 ## Transactional Enqueueing
 

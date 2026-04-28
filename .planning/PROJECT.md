@@ -2,38 +2,23 @@
 
 ## Current State
 
-Milestone v1.0 is shipped and archived, and Phases 6 and 7 of v1.1 are now
-complete. Rindle now covers the core post-upload media lifecycle for Phoenix
-applications, an adopter-owned runtime Repo boundary, and a first-class
-multipart upload path with MinIO-backed completion and cleanup proof.
+Milestone `v1.1 Adopter Hardening` shipped on `2026-04-28`. Rindle now has a
+proved adopter-owned runtime Repo contract, first-class multipart direct
+uploads, explicit storage capability negotiation, MinIO-backed capability
+proof, and package-consumer install and release confidence from the built
+artifact.
 
-The remaining v1.1 work should compound that trust: provider capability honesty
-across MinIO and Cloudflare R2, then package-consumer install proof from the
-built artifact.
-
-## Current Milestone: v1.1 Adopter Hardening
-
-**Goal:** turn Rindle from a promising library into an adopter-safe and
-cloud-realistic package by making host-app ownership real at runtime, closing
-the highest-leverage upload capability gaps, and proving installation from the
-outside in.
-
-**Target features:**
-- Config-driven adopter-owned Repo resolution in all consumer runtime paths
-- S3 multipart upload support and cleanup for larger production workloads
-- Capability-verified provider compatibility for MinIO and Cloudflare R2
-- Package/install smoke proof plus docs aligned to the canonical adopter path
+The core library now covers the durable post-upload media lifecycle plus the
+highest-leverage adopter trust gaps that blocked a credible public release
+story after `v1.0`.
 
 ## Next Milestone Goals
 
-- Convert the adopter-repo-first architecture from a documented principle into
-  an enforced runtime contract.
-- Expand direct-upload support beyond simple presigned PUT so larger SaaS media
-  workloads have a credible path on day one.
-- Prove that storage capability negotiation works against real providers and
-  fails explicitly when a backend cannot honor a requested flow.
-- Tighten the install/adoption loop so a fresh Phoenix app can consume the
-  package without repo-internal assumptions leaking through.
+- Plan the first Hex.pm publish and release posture now that built-artifact
+  install proof exists.
+- Decide whether the next highest-leverage upload expansion is GCS resumable,
+  tus, or a narrower protocol-specific follow-up.
+- Revisit public API ergonomics before expanding the surface area further.
 
 ## What This Is
 
@@ -70,13 +55,16 @@ Media, made durable.
   in v1.1.
 - Phase 7 — Multipart Uploads: multipart session persistence, cleanup, and real
   MinIO-backed completion/abort proofs verified in v1.1.
+- Phase 8 — Storage Capability Confidence: shared capability vocabulary,
+  MinIO-backed proof, and honest Cloudflare R2 compatibility guidance verified
+  in v1.1.
+- Phase 9 — Install & Release Confidence: generated-app package-consumer smoke,
+  CI and release reuse, and executable install-doc parity proof verified in
+  v1.1.
 
 ### Active
 
-- [ ] Storage capability negotiation is verified against real providers and
-  unsupported flows fail loudly
-- [ ] Fresh-package installation and canonical adopter docs prove a clean path
-  from dependency add to production-shaped integration
+None. The next milestone has not been defined yet.
 
 ### Out of Scope
 
@@ -104,25 +92,16 @@ Media, made durable.
 
 ## Context
 
-**v1.0 result:** Rindle now has a credible core lifecycle, but the canonical
-adopter lane still documents a runtime leak: public paths in `lib/rindle.ex`
-hard-code `Rindle.Repo`, which contradicts the adopter-repo-first stance.
-This is the clearest architectural trust gap surfaced by the repo itself.
+**v1.1 result:** the adopter-owned runtime boundary is now real, multipart
+uploads are additive on top of the existing trusted promotion flow, capability
+claims are centralized and proved against MinIO, and a fresh Phoenix consumer
+can install the built package and follow a docs path that is enforced by tests.
 
-**Adopter trust signal:** CI, docs, and telemetry matter, but a SaaS team will
-still hesitate if the host app cannot truly own its Repo/runtime boundary, if
-larger direct uploads have no first-class story, or if provider differences are
-handled implicitly rather than through explicit capabilities.
-
-**Storage provider reality:** S3-compatible does not mean identical.
-Cloudflare R2 and MinIO need verification around presigned and multipart flows;
-GCS requires a distinct resumable model. Capability negotiation must stay
-precise so Rindle does not over-promise backend support.
-
-**Installability reality:** README is intentionally thin today, while the real
-adoption path lives in the guides and canonical adopter test. v1.1 should make
-package-consumer success more explicit by proving install and integration from a
-fresh adopter perspective.
+**Next inflection point:** Rindle now looks like a publishable library, but the
+first public Hex.pm release posture is still a planning problem rather than a
+shipped milestone outcome. Distribution, semver promises, and future upload
+protocol expansion should be scoped deliberately instead of leaking into the
+planning vacuum after `v1.1`.
 
 **Reference implementations:**
 - Rails Active Storage: attachment/blob ownership patterns, redirect-style
@@ -170,9 +149,26 @@ fresh adopter perspective.
 | Async purge after DB commit | Storage I/O inside DB transactions is a consistency and latency trap | ✓ Good |
 | Repo ownership is adopter-first (`repo: MyApp.Repo`), not library-owned | Matches idiomatic Ecto library architecture and avoids split ownership | ✓ Good |
 | `Rindle.Repo` is test/dev harness only, not a consumer runtime dependency | Keeps library development practical while preserving adopter-owned runtime boundaries | ✓ Validated in Phase 6 |
-| Capability-driven storage negotiation is the contract boundary | Backend support differs materially across S3-compatible providers and future GCS/resumable flows | — Pending |
+| Capability-driven storage negotiation is the contract boundary | Backend support differs materially across S3-compatible providers and future GCS/resumable flows | ✓ Validated in Phase 8 |
 | Multipart uploads belong in v1.1, not v1.0 | Presigned PUT was enough for the first release, but larger production workloads need a better direct-upload path | ✓ Validated in Phase 7 |
-| Install proof should be package-consumer-first | A passing repo CI lane is not the same as a fresh Phoenix adopter succeeding from the published artifact | — Pending |
+| Install proof should be package-consumer-first | A passing repo CI lane is not the same as a fresh Phoenix adopter succeeding from the published artifact | ✓ Validated in Phase 9 |
+
+## Historical Snapshot
+
+<details>
+<summary>v1.1 planning snapshot</summary>
+
+The active `v1.1` milestone focused on adopter runtime ownership, multipart
+upload support, capability honesty across MinIO and Cloudflare R2, and
+package-consumer install proof from the built artifact.
+
+Full artifacts live in:
+
+- [.planning/milestones/v1.1-ROADMAP.md](/Users/jon/projects/rindle/.planning/milestones/v1.1-ROADMAP.md)
+- [.planning/milestones/v1.1-REQUIREMENTS.md](/Users/jon/projects/rindle/.planning/milestones/v1.1-REQUIREMENTS.md)
+- [.planning/milestones/v1.1-MILESTONE-AUDIT.md](/Users/jon/projects/rindle/.planning/milestones/v1.1-MILESTONE-AUDIT.md)
+
+</details>
 
 ## Evolution
 
@@ -192,4 +188,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-28 after Phase 7 completion*
+*Last updated: 2026-04-28 after milestone v1.1 completion*
