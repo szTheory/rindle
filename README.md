@@ -37,7 +37,7 @@ Run `mix deps.get`.
 
 ## Runtime Ownership
 
-Rindle persists through your app's Repo. Configure that explicitly:
+Rindle persists through your adopter-owned Repo. Configure that explicitly:
 
 ```elixir
 config :rindle, :repo, MyApp.Repo

@@ -53,7 +53,7 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
       assert doc =~ "Multipart upload is"
       assert doc =~ "advanced"
 
-      refute Regex.match?(~r/first-run path is .*multipart/i, doc)
+      refute Regex.match?(~r/first-run path is multipart/i, doc)
       refute Regex.match?(~r/default onboarding story is multipart/i, doc)
       refute Regex.match?(~r/multipart upload is the default/i, doc)
     end

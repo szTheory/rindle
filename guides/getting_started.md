@@ -41,7 +41,7 @@ Run `mix deps.get`.
 
 ## 2. Configure Adopter-Owned Runtime Boundaries
 
-Rindle persists runtime state through your app's Repo. Configure that
+Rindle persists runtime state through your adopter-owned Repo. Configure that
 explicitly:
 
 ```elixir
