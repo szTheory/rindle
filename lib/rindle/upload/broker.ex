@@ -10,6 +10,8 @@ defmodule Rindle.Upload.Broker do
   alias Rindle.Security.StorageKey
   alias Rindle.Workers.PromoteAsset
 
+  @default_multipart_part_size 8 * 1024 * 1024
+
   @doc """
   Initiates a new direct upload session.
 
@@ -40,44 +42,72 @@ defmodule Rindle.Upload.Broker do
     expires_in_seconds = Keyword.get(opts, :expires_in, 3600)
     expires_at = DateTime.add(DateTime.utc_now(), expires_in_seconds, :second)
 
-    case repo.transaction(fn ->
-           {:ok, asset} =
-             %MediaAsset{id: asset_id}
-             |> MediaAsset.changeset(%{
-               state: "staged",
-               profile: profile_name,
-               storage_key: storage_key,
-               filename: filename
-             })
-             |> repo.insert()
-
-           {:ok, session} =
-             %MediaUploadSession{}
-             |> MediaUploadSession.changeset(%{
-               asset_id: asset.id,
-                state: "initialized",
-                upload_key: storage_key,
-                expires_at: expires_at
-              })
-             |> repo.insert()
-
-           session
-         end) do
+    case create_upload_session(
+           repo,
+           asset_id,
+           profile_name,
+           storage_key,
+           filename,
+           expires_at,
+           %{state: "initialized"}
+         ) do
       {:ok, session} ->
-        :telemetry.execute(
-          [:rindle, :upload, :start],
-          %{system_time: System.system_time()},
-          %{
-            profile: profile_name,
-            adapter: profile_module.storage_adapter(),
-            session_id: session.id
-          }
-        )
+        emit_upload_start(profile_name, profile_module.storage_adapter(), session.id)
 
         {:ok, session}
 
       {:error, reason} ->
         {:error, reason}
+    end
+  end
+
+  @doc """
+  Initiates a new multipart upload session through the broker-owned lifecycle.
+  """
+  def initiate_multipart_session(profile_module, opts \\ []) do
+    repo = Config.repo()
+    profile_name = profile_module_to_name(profile_module)
+    filename = Keyword.get(opts, :filename, "unknown")
+    extension = Path.extname(filename)
+    asset_id = Ecto.UUID.generate()
+    storage_key = StorageKey.generate(profile_name, asset_id, extension)
+    expires_in_seconds = Keyword.get(opts, :expires_in, 3600)
+    expires_at = DateTime.add(DateTime.utc_now(), expires_in_seconds, :second)
+    part_size = Keyword.get(opts, :part_size, @default_multipart_part_size)
+    adapter = profile_module.storage_adapter()
+
+    with :ok <- ensure_capability(adapter, :multipart_upload),
+         {:ok, session} <-
+           create_upload_session(
+             repo,
+             asset_id,
+             profile_name,
+             storage_key,
+             filename,
+             expires_at,
+             %{
+               state: "initialized",
+               upload_strategy: "multipart",
+               multipart_parts: %{}
+             }
+           ),
+         {:ok, multipart} <- adapter.initiate_multipart_upload(storage_key, part_size, opts),
+         {:ok, persisted_session} <-
+           update_session(repo, session, %{multipart_upload_id: multipart.upload_id}) do
+      emit_upload_start(profile_name, adapter, persisted_session.id)
+
+      {:ok,
+       %{
+         session: persisted_session,
+         multipart: %{
+           upload_id: multipart.upload_id,
+           upload_key: storage_key,
+           part_size: Map.get(multipart, :part_size, part_size),
+           part_headers: Map.get(multipart, :part_headers, %{})
+         }
+       }}
+    else
+      {:error, reason} -> {:error, reason}
     end
   end
 
@@ -116,6 +146,66 @@ defmodule Rindle.Upload.Broker do
 
         %{session: updated_session, presigned: presigned}
       end)
+    else
+      nil -> {:error, :not_found}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  @doc """
+  Signs a multipart upload part without falling back to the presigned PUT path.
+  """
+  def sign_multipart_part(session_id, part_number, opts \\ []) do
+    repo = Config.repo()
+
+    with %MediaUploadSession{} = session <- repo.get(MediaUploadSession, session_id),
+         :ok <- ensure_multipart_session(session),
+         asset <- repo.preload(session, :asset).asset,
+         {:ok, profile_module} <- profile_name_to_module(asset.profile),
+         adapter <- profile_module.storage_adapter(),
+         :ok <- ensure_capability(adapter, :multipart_upload),
+         expires_in <- Keyword.get(opts, :expires_in, 3600),
+         {:ok, presigned} <-
+           adapter.presigned_upload_part(
+             session.upload_key,
+             session.multipart_upload_id,
+             part_number,
+             expires_in,
+             opts
+           ),
+         {:ok, updated_session} <- ensure_session_marked_signed(repo, session) do
+      {:ok, %{session: updated_session, presigned: presigned}}
+    else
+      nil -> {:error, :not_found}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  @doc """
+  Completes a multipart upload, then converges into the trusted verification lane.
+  """
+  def complete_multipart_upload(session_id, parts, opts \\ []) do
+    repo = Config.repo()
+
+    with %MediaUploadSession{} = session <- repo.get(MediaUploadSession, session_id),
+         :ok <- ensure_multipart_session(session),
+         {:ok, normalized_parts} <- normalize_multipart_parts(parts),
+         asset <- repo.preload(session, :asset).asset,
+         {:ok, profile_module} <- profile_name_to_module(asset.profile),
+         adapter <- profile_module.storage_adapter(),
+         :ok <- ensure_capability(adapter, :multipart_upload),
+         {:ok, persisted_session} <-
+           update_session(repo, session, %{
+             multipart_parts: %{"parts" => encode_multipart_parts(normalized_parts)}
+           }),
+         {:ok, _result} <-
+           adapter.complete_multipart_upload(
+             persisted_session.upload_key,
+             persisted_session.multipart_upload_id,
+             normalized_parts,
+             opts
+           ) do
+      verify_completion(persisted_session.id, opts)
     else
       nil -> {:error, :not_found}
       {:error, reason} -> {:error, reason}
@@ -212,6 +302,130 @@ defmodule Rindle.Upload.Broker do
       :ok -> {:ok, :transitioned}
       err -> err
     end
+  end
+
+  defp create_upload_session(repo, asset_id, profile_name, storage_key, filename, expires_at, session_attrs) do
+    case repo.transaction(fn ->
+           {:ok, asset} =
+             %MediaAsset{id: asset_id}
+             |> MediaAsset.changeset(%{
+               state: "staged",
+               profile: profile_name,
+               storage_key: storage_key,
+               filename: filename
+             })
+             |> repo.insert()
+
+           {:ok, session} =
+             %MediaUploadSession{}
+             |> MediaUploadSession.changeset(
+               Map.merge(
+                 %{
+                   asset_id: asset.id,
+                   state: "initialized",
+                   upload_key: storage_key,
+                   expires_at: expires_at
+                 },
+                 session_attrs
+               )
+             )
+             |> repo.insert()
+
+           session
+         end) do
+      {:ok, session} -> {:ok, session}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  defp update_session(repo, session, attrs) do
+    repo.transaction(fn ->
+      {:ok, updated_session} =
+        session
+        |> MediaUploadSession.changeset(attrs)
+        |> repo.update()
+
+      updated_session
+    end)
+  end
+
+  defp ensure_capability(adapter, capability) do
+    if capability in adapter.capabilities() do
+      :ok
+    else
+      {:error, {:upload_unsupported, capability}}
+    end
+  end
+
+  defp ensure_multipart_session(%MediaUploadSession{
+         upload_strategy: "multipart",
+         multipart_upload_id: upload_id
+       })
+       when is_binary(upload_id) and upload_id != "",
+       do: :ok
+
+  defp ensure_multipart_session(%MediaUploadSession{upload_strategy: "multipart"}),
+    do: {:error, :multipart_upload_not_initialized}
+
+  defp ensure_multipart_session(_session), do: {:error, {:upload_unsupported, :multipart_upload}}
+
+  defp ensure_session_marked_signed(_repo, %MediaUploadSession{state: "signed"} = session),
+    do: {:ok, session}
+
+  defp ensure_session_marked_signed(repo, %MediaUploadSession{} = session) do
+    with :ok <- UploadSessionFSM.transition(session.state, "signed", %{session_id: session.id}),
+         {:ok, updated_session} <- update_session(repo, session, %{state: "signed"}) do
+      {:ok, updated_session}
+    end
+  end
+
+  defp normalize_multipart_parts(parts) when is_list(parts) do
+    parts
+    |> Enum.reduce_while({:ok, []}, fn part, {:ok, acc} ->
+      case normalize_multipart_part(part) do
+        {:ok, normalized_part} -> {:cont, {:ok, [normalized_part | acc]}}
+        {:error, reason} -> {:halt, {:error, reason}}
+      end
+    end)
+    |> case do
+      {:ok, normalized_parts} ->
+        {:ok, Enum.sort_by(normalized_parts, & &1.part_number)}
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
+  defp normalize_multipart_parts(_parts), do: {:error, :invalid_multipart_parts}
+
+  defp normalize_multipart_part(%{part_number: part_number, etag: etag})
+       when is_integer(part_number) and part_number > 0 and is_binary(etag) do
+    {:ok, %{part_number: part_number, etag: etag}}
+  end
+
+  defp normalize_multipart_part(%{"part_number" => part_number, "etag" => etag})
+       when is_integer(part_number) and part_number > 0 and is_binary(etag) do
+    {:ok, %{part_number: part_number, etag: etag}}
+  end
+
+  defp normalize_multipart_part(_part), do: {:error, :invalid_multipart_parts}
+
+  defp encode_multipart_parts(parts) do
+    Enum.map(parts, fn %{part_number: part_number, etag: etag} ->
+      %{"part_number" => part_number, "etag" => etag}
+    end)
+  end
+
+  defp emit_upload_start(profile_name, adapter, session_id) do
+    :telemetry.execute(
+      [:rindle, :upload, :start],
+      %{system_time: System.system_time()},
+      %{
+        profile: profile_name,
+        adapter: adapter,
+        session_id: session_id
+      }
+    )
   end
 
   defp profile_module_to_name(module) do

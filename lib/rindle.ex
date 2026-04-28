@@ -55,6 +55,30 @@ defmodule Rindle do
   end
 
   @doc """
+  Initiates a multipart direct upload session through the broker.
+  """
+  @spec initiate_multipart_upload(module(), keyword()) :: {:ok, map()} | {:error, term()}
+  def initiate_multipart_upload(profile, opts \\ []) do
+    Broker.initiate_multipart_session(profile, opts)
+  end
+
+  @doc """
+  Signs a single multipart upload part through the broker.
+  """
+  @spec sign_multipart_part(binary(), pos_integer(), keyword()) :: {:ok, map()} | {:error, term()}
+  def sign_multipart_part(session_id, part_number, opts \\ []) do
+    Broker.sign_multipart_part(session_id, part_number, opts)
+  end
+
+  @doc """
+  Completes a multipart upload through the broker and reuses upload verification.
+  """
+  @spec complete_multipart_upload(binary(), [map()], keyword()) :: {:ok, map()} | {:error, term()}
+  def complete_multipart_upload(session_id, parts, opts \\ []) do
+    Broker.complete_multipart_upload(session_id, parts, opts)
+  end
+
+  @doc """
   Verifies a direct upload completion through the broker.
 
   Delegates to `Broker.verify_completion/2`. Promotes the
