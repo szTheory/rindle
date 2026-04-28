@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
-status: executing
-stopped_at: Completed 06-02-PLAN.md
-last_updated: "2026-04-28T09:35:47.501Z"
+status: verifying
+stopped_at: Completed 06-03-PLAN.md
+last_updated: "2026-04-28T09:40:19.681Z"
 last_activity: 2026-04-28
 progress:
   total_phases: 4
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 3
-  completed_plans: 2
-  percent: 67
+  completed_plans: 3
+  percent: 100
 ---
 
 # Project State
@@ -28,10 +28,10 @@ boundaries real, expand trusted upload capability, and prove installability
 
 Phase: 06 (adopter-runtime-ownership) — EXECUTING
 Plan: 3 of 3
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-04-28
 
-Progress: [███████░░░] 67%
+Progress: [██████████] 100%
 
 ## Accumulated Context
 
@@ -64,6 +64,8 @@ Recent decisions affecting current work:
 - Limit 06-01 to the facade repo seam and defer adopter-only proof for direct and proxied upload paths to Plan 06-02.
 - Keep default Oban scope and fix enqueue callsites rather than adding named-instance ownership in Phase 6.
 - Use per-test sandbox_repo ownership plus targeted-file tag unblocking so adopter proofs fail on repo leaks instead of being silently excluded.
+- Teach config :rindle, :repo, MyApp.Repo as the adopter contract in public guides.
+- Keep Phase 6 Oban guidance scoped to the default Oban path and defer named-instance / :oban_name support.
 
 ### Pending Todos
 
@@ -80,8 +82,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-28T09:35:47.496Z
-Stopped at: Completed 06-02-PLAN.md
+Last session: 2026-04-28T09:40:19.675Z
+Stopped at: Completed 06-03-PLAN.md
 Resume file: None
 
 ### Decision-Making Preference

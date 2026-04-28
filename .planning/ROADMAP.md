@@ -50,7 +50,7 @@ Rindle APIs no longer require or leak `Rindle.Repo` in consumer code paths
 Plans:
 - [x] 06-01-PLAN.md — add the runtime Repo seam and remove facade-level `Rindle.Repo` ownership leaks
 - [x] 06-02-PLAN.md — move broker flows and canonical adopter proof onto the runtime Repo contract
-- [ ] 06-03-PLAN.md — align guides with adopter-owned Repo setup and explicit default-Oban scope
+- [x] 06-03-PLAN.md — align guides with adopter-owned Repo setup and explicit default-Oban scope
 
 ### Phase 7: Multipart Uploads
 **Goal**: larger production uploads have a first-class multipart path that
