@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
-status: ready_to_plan
-stopped_at: Completed 07-03-PLAN.md
-last_updated: "2026-04-28T12:20:39.693Z"
+status: executing
+stopped_at: Completed 08-01-PLAN.md
+last_updated: "2026-04-28T14:03:05.499Z"
 last_activity: 2026-04-28
 progress:
   total_phases: 4
-  completed_phases: 4
-  total_plans: 6
-  completed_plans: 6
-  percent: 100
+  completed_phases: 2
+  total_plans: 9
+  completed_plans: 7
+  percent: 78
 ---
 
 # Project State
@@ -27,12 +27,12 @@ and Cloudflare R2 without regressing the new multipart lane
 
 ## Current Position
 
-Phase: 8
-Plan: Not started
-Status: Ready to plan
+Phase: 08 (storage-capability-confidence) — EXECUTING
+Plan: 2 of 3
+Status: Ready to execute
 Last activity: 2026-04-28
 
-Progress: [██████████] 100%
+Progress: [████████░░] 78%
 
 ## Accumulated Context
 
@@ -75,6 +75,8 @@ Recent decisions affecting current work:
 - Keep multipart proof in the existing MinIO-backed suites instead of introducing a parallel harness.
 - Use production-valid multipart part sizing in real MinIO tests so the proof matches S3 semantics rather than a toy split.
 - Treat MinIO's {:http_error, 404, ...} HEAD response shape as :not_found so delete and cleanup proofs remain adapter-honest.
+- Keep current adapter capability lists unchanged and validate them against one shared vocabulary.
+- Reserve resumable capability atoms additively without adding new callbacks or changing tagged error tuple contracts.
 
 ### Pending Todos
 
@@ -86,12 +88,12 @@ Recent decisions affecting current work:
 
 ### Blockers/Concerns
 
-- None currently; Phase 7 is complete and Phase 8 is ready for planning.
+- None currently; Phase 8 execution is in progress.
 
 ## Session Continuity
 
-Last session: 2026-04-28T12:20:39.686Z
-Stopped at: Completed 07-03-PLAN.md
+Last session: 2026-04-28T14:03:05.490Z
+Stopped at: Completed 08-01-PLAN.md
 Resume file: None
 
 ### Decision-Making Preference

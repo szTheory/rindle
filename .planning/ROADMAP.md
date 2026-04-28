@@ -78,6 +78,7 @@ Plans:
 verified against real backends so adopters know exactly what Rindle supports
 **Depends on**: Phase 6, Phase 7
 **Requirements**: CAP-01, CAP-02, CAP-03, CAP-04
+**Plans**: 3 plans
 **Success Criteria** (what must be TRUE):
 1. Capability flags for upload and delivery flows are centralized, documented,
    and validated by tests
@@ -87,6 +88,11 @@ verified against real backends so adopters know exactly what Rindle supports
    tagged, user-actionable capability error
 4. The capability model remains forward-compatible with a future GCS resumable
    adapter without changing current adopter-facing contracts
+
+Plans:
+- [x] 08-01-PLAN.md — centralize capability vocabulary and tagged unsupported behavior without changing current adopter contracts
+- [ ] 08-02-PLAN.md — prove presigned PUT and multipart capability truth through the existing MinIO-backed adapter and adopter harnesses
+- [ ] 08-03-PLAN.md — add the opt-in R2 contract lane, publish the R2-facing capability matrix, and remove docs drift while reserving additive resumable semantics
 
 ### Phase 9: Install & Release Confidence
 **Goal**: a fresh Phoenix adopter can consume Rindle from the built artifact
@@ -110,5 +116,5 @@ Phases execute in numeric order: 6 -> 7 -> 8 -> 9
 |-------|----------------|--------|-----------|
 | 6. Adopter Runtime Ownership | 3/3 | Complete | 2026-04-28 |
 | 7. Multipart Uploads | 3/3 | Complete | 2026-04-28 |
-| 8. Storage Capability Confidence | 0/0 | Pending | — |
+| 8. Storage Capability Confidence | 1/3 | In Progress | — |
 | 9. Install & Release Confidence | 0/0 | Pending | — |

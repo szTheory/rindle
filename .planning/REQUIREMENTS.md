@@ -29,14 +29,14 @@
 
 ### Storage Capability Confidence
 
-- [ ] **CAP-01**: Storage adapters advertise precise capability flags for
+- [x] **CAP-01**: Storage adapters advertise precise capability flags for
   delivery and upload flows (`:presigned_put`, `:multipart_upload`,
   `:signed_url`, future-resumable-safe extension points)
 - [ ] **CAP-02**: MinIO/S3 integration tests exercise both presigned PUT and
   multipart flows end-to-end against real storage
 - [ ] **CAP-03**: Cloudflare R2 compatibility is documented and verified so
   unsupported flows fail explicitly rather than implicitly degrading
-- [ ] **CAP-04**: Capability negotiation remains extensible for a future GCS
+- [x] **CAP-04**: Capability negotiation remains extensible for a future GCS
   resumable adapter without breaking current adapter contracts
 
 ### Install and Release Confidence
