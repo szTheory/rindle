@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
-status: executing
-stopped_at: Completed 08-02-PLAN.md
-last_updated: "2026-04-28T14:05:29.668Z"
+status: ready_to_plan
+stopped_at: Completed Phase 08
+last_updated: "2026-04-28T14:30:00.000Z"
 last_activity: 2026-04-28
 progress:
   total_phases: 4
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 9
-  completed_plans: 8
-  percent: 89
+  completed_plans: 9
+  percent: 100
 ---
 
 # Project State
@@ -21,15 +21,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-28)
 
 **Core value:** Media, made durable.
-**Current focus:** Phase 08 — storage-capability-confidence
-harden capability negotiation and prove provider-specific behavior across MinIO
-and Cloudflare R2 without regressing the new multipart lane
+**Current focus:** Phase 09 — install-release-confidence
+prove the built package from a fresh adopter perspective so installability is
+validated outside the repo-local checkout assumptions
 
 ## Current Position
 
-Phase: 08 (storage-capability-confidence) — EXECUTING
-Plan: 3 of 3
-Status: Ready to execute
+Phase: 09 (install-release-confidence)
+Plan: Not started
+Status: Ready to plan
 Last activity: 2026-04-28
 
 Progress: [█████████░] 89%
@@ -90,7 +90,7 @@ Recent decisions affecting current work:
 
 ### Blockers/Concerns
 
-- None currently; Phase 8 execution is in progress.
+- None currently; Phase 8 is complete and Phase 9 is ready for planning.
 
 ## Session Continuity
 
@@ -111,6 +111,6 @@ Resume file: None
 - Workflow preference: skip discuss by default and move directly into
   planning/execution unless a high-impact ambiguity is detected.
 
-**Next Phase:** 8. Storage Capability Confidence
+**Next Phase:** 9. Install & Release Confidence
 
-**Completed Phase:** 07 (multipart-uploads) — verified 2026-04-28
+**Completed Phase:** 08 (storage-capability-confidence) — verified 2026-04-28

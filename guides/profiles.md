@@ -121,8 +121,8 @@ end
 
 Capability promises are documented centrally in
 [Storage Capabilities](storage_capabilities.html). That guide is the source of
-truth for the current adapter/provider matrix, the opt-in/manual Cloudflare R2
-lane, and the reserved future resumable vocabulary.
+truth for the current adapter/provider matrix, the Cloudflare R2 compatibility
+posture, and the reserved future resumable vocabulary.
 
 At the profile layer, the important rule is simpler: choose an adapter whose
 advertised capabilities match the flows your profile requires. For example:

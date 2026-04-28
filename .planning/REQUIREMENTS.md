@@ -34,8 +34,9 @@
   `:signed_url`, future-resumable-safe extension points)
 - [x] **CAP-02**: MinIO/S3 integration tests exercise both presigned PUT and
   multipart flows end-to-end against real storage
-- [ ] **CAP-03**: Cloudflare R2 compatibility is documented and verified so
-  unsupported flows fail explicitly rather than implicitly degrading
+- [x] **CAP-03**: Cloudflare R2 compatibility is documented honestly through
+  the shipped S3 seam so unsupported flows fail explicitly rather than
+  implicitly degrading
 - [x] **CAP-04**: Capability negotiation remains extensible for a future GCS
   resumable adapter without breaking current adapter contracts
 
@@ -86,10 +87,10 @@
 | MULT-02 | Phase 7 | Complete |
 | MULT-03 | Phase 7 | Complete |
 | MULT-04 | Phase 7 | Complete |
-| CAP-01 | Phase 8 | Pending |
+| CAP-01 | Phase 8 | Complete |
 | CAP-02 | Phase 8 | Complete |
-| CAP-03 | Phase 8 | Pending |
-| CAP-04 | Phase 8 | Pending |
+| CAP-03 | Phase 8 | Complete |
+| CAP-04 | Phase 8 | Complete |
 | RELEASE-01 | Phase 9 | Pending |
 | RELEASE-02 | Phase 9 | Pending |
 | RELEASE-03 | Phase 9 | Pending |

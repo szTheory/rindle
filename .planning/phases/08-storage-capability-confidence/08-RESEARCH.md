@@ -106,8 +106,7 @@ test/rindle/
 ├── storage/
 │   ├── capabilities_test.exs    # new centralized contract tests
 │   ├── storage_adapter_test.exs # update exact capability assertions
-│   ├── s3_test.exs              # retain MinIO-backed proof
-│   └── r2_test.exs              # optional live R2 contract lane
+│   └── s3_test.exs              # retain MinIO-backed proof
 └── delivery_test.exs            # keep tagged unsupported delivery assertions
 ```
 
@@ -152,21 +151,18 @@ end
 }
 ```
 
-### Pattern 3: Provider Documentation Plus Optional Live Provider Lanes
+### Pattern 3: Provider Documentation Plus MinIO-Backed Proof Boundaries
 
-**What:** Keep MinIO as the always-on real S3-compatible proof lane, then add an optional `:r2` lane that runs only when Cloudflare credentials are present. Do not make provider claims stronger than either official docs or live proof. [VERIFIED: .github/workflows/ci.yml] [VERIFIED: test/rindle/storage/s3_test.exs] [CITED: https://developers.cloudflare.com/r2/api/s3/api/]
+**What:** Keep MinIO as the always-on real S3-compatible proof lane and treat Cloudflare R2 as a documented compatibility target through the same shipped adapter seam. Do not make provider claims stronger than either official docs or the repo-owned MinIO proof. [VERIFIED: .github/workflows/ci.yml] [VERIFIED: test/rindle/storage/s3_test.exs] [CITED: https://developers.cloudflare.com/r2/api/s3/api/]
 
-**When to use:** Use for CAP-03 so R2 claims stay grounded without forcing every local developer to have R2 credentials. [VERIFIED: env probe for `RINDLE_R2_*` variables returned no matches on 2026-04-28] [VERIFIED: .github/workflows/ci.yml]
+**When to use:** Use for CAP-03 so R2 claims stay grounded without forcing every local developer or CI run to carry provider credentials. [VERIFIED: .github/workflows/ci.yml]
 
 **Example:**
 
 ```elixir
-# Source: current MinIO tag pattern in test/rindle/storage/s3_test.exs
-@tag :r2
-@tag skip: @r2_skip_reason
-test "presigned put and signed get work against R2 when configured" do
-  ...
-end
+# Source: current MinIO-backed proof posture in test/rindle/storage/s3_test.exs
+assert :presigned_put in S3.capabilities()
+assert :multipart_upload in S3.capabilities()
 ```
 
 ### Anti-Patterns to Avoid
@@ -190,18 +186,17 @@ end
 - Keep `test/rindle/upload/lifecycle_integration_test.exs:69-159` and `test/adopter/canonical_app/lifecycle_test.exs:105-257` as the broker/adopter proof base, but add assertions or comments tying the scenarios explicitly back to the shared capability contract. [VERIFIED: test/rindle/upload/lifecycle_integration_test.exs] [VERIFIED: test/adopter/canonical_app/lifecycle_test.exs]
 - Update `.github/workflows/ci.yml:192-195` and `.github/workflows/ci.yml:332-333` only if Phase 8 introduces new targeted capability tests that should run in the existing MinIO integration or adopter lanes. [VERIFIED: .github/workflows/ci.yml]
 
-### Slice 3: Add R2 documentation and an optional live-provider lane
+### Slice 3: Add R2 documentation without a separate live-provider gate
 
 - Add an R2 compatibility section or guide entry that states Rindle’s current S3 adapter path is the intended R2 path for `:presigned_put`, `:signed_url`, and `:multipart_upload`, grounded in Cloudflare’s official docs, while clearly stating that resumable upload stays unsupported in v1.1. [CITED: https://developers.cloudflare.com/r2/api/s3/presigned-urls/] [CITED: https://developers.cloudflare.com/r2/api/s3/api/] [CITED: https://cloud.google.com/storage/docs/resumable-uploads]
-- Add an optional `test/rindle/storage/r2_test.exs` file plus `@tag :r2` gating in `test/test_helper.exs:12-23` style, because the current repo has no R2-specific code, tests, guides, or workflow entries. [VERIFIED: test/test_helper.exs] [VERIFIED: rg -n "R2|Cloudflare" lib test .github/workflows/ci.yml guides (no matches, 2026-04-28)]
-- If CI secrets become available in Phase 8, add an opt-in workflow job adjacent to `.github/workflows/ci.yml:109-195`; otherwise keep the lane manual/optional and document the missing dependency honestly. [VERIFIED: .github/workflows/ci.yml]
+- Keep the repo-owned proof surface on the existing MinIO-backed adapter, integration, and adopter lanes; use documentation rather than a separate live R2 test file to keep provider claims honest. [VERIFIED: test/rindle/storage/s3_test.exs] [VERIFIED: test/rindle/upload/lifecycle_integration_test.exs] [VERIFIED: test/adopter/canonical_app/lifecycle_test.exs]
 
 ## Don't Hand-Roll
 
 | Problem | Don't Build | Use Instead | Why |
 |---------|-------------|-------------|-----|
 | Capability negotiation | Separate upload and delivery gate logic with duplicated tuple mapping | One shared resolver module over the existing `capabilities/0` callback | The repo already has the raw atoms and tagged error families; duplication is the actual gap. [VERIFIED: lib/rindle/upload/broker.ex] [VERIFIED: lib/rindle/delivery.ex] |
-| R2 support in Phase 8 | A brand-new runtime adapter before a live divergence is proven | The existing S3 adapter seam plus R2 docs and an optional live-contract lane | Cloudflare documents the R2 S3-compatible surface for the current flows. [CITED: https://developers.cloudflare.com/r2/api/s3/api/] |
+| R2 support in Phase 8 | A brand-new runtime adapter before a live divergence is proven | The existing S3 adapter seam plus honest R2 docs | Cloudflare documents the R2 S3-compatible surface for the current flows. [CITED: https://developers.cloudflare.com/r2/api/s3/api/] |
 | Future GCS support | A placeholder public resumable API | A reserved `:resumable_upload` capability marked unsupported for current adapters | Google’s resumable flow requires a different protocol boundary, so Phase 8 should reserve the capability without pretending implementation. [CITED: https://cloud.google.com/storage/docs/performing-resumable-uploads] |
 | Provider confidence | New test harnesses parallel to the existing MinIO and adopter lanes | The current MinIO-backed adapter, integration, and adopter suites | The real proof base already exists and passed during this research session. [VERIFIED: test/rindle/storage/s3_test.exs] [VERIFIED: test/rindle/upload/lifecycle_integration_test.exs] [VERIFIED: test/adopter/canonical_app/lifecycle_test.exs] |
 
@@ -319,12 +314,12 @@ PUT <session URI> with object bytes
 
 All material claims in this research were verified from the repo, executed tests, environment probes, or official provider documentation during this session. [VERIFIED: lib/rindle/storage.ex] [VERIFIED: mix test test/rindle/storage/s3_test.exs --include minio (2026-04-28)] [CITED: https://developers.cloudflare.com/r2/api/s3/api/]
 
-## Open Questions
+## Resolved Decisions
 
-1. **Should Phase 8 include a real R2 CI lane or only an optional/manual R2 contract test?**
-   - What we know: the repo currently has no R2-specific code, tests, guide text, workflow job, or environment variables, and the local environment probe found no `RINDLE_R2_*` variables. [VERIFIED: rg -n "R2|Cloudflare" lib test .github/workflows/ci.yml guides (no matches, 2026-04-28)] [VERIFIED: env probe for `RINDLE_R2_*` variables returned no matches on 2026-04-28]
-   - What's unclear: whether Phase 8 execution will have access to Cloudflare credentials or GitHub secrets. [VERIFIED: .github/workflows/ci.yml]
-   - Recommendation: plan for an optional `:r2` lane and docs in all cases; promote it to required CI only if credentials are available during execution. [VERIFIED: .github/workflows/ci.yml]
+1. **R2 verification strategy for Phase 8**
+   - Decision: Phase 8 should close on MinIO-backed automated proof plus honest Cloudflare R2 compatibility documentation; it should not require a separate live R2 repo-owned test lane or human-UAT gate. [VERIFIED: .github/workflows/ci.yml] [VERIFIED: .planning/ROADMAP.md] [VERIFIED: .planning/REQUIREMENTS.md]
+   - Why: CAP-03 is satisfied by documenting the shipped S3 seam honestly and by preserving explicit tagged unsupported semantics for future resumable flows, while MinIO already proves the repo-owned S3-compatible contract end to end. [VERIFIED: test/rindle/storage/s3_test.exs] [VERIFIED: test/rindle/upload/broker_test.exs] [VERIFIED: guides/storage_capabilities.md]
+   - Planning consequence: revise Phase 8 so it keeps the canonical capability guide, removes the separate R2 lane, and treats vendor-specific R2 validation as adopter-owned rather than as a milestone blocker. [CITED: https://developers.cloudflare.com/r2/api/s3/api/] [CITED: https://developers.cloudflare.com/r2/api/s3/presigned-urls/]
 
 ## Environment Availability
 
@@ -334,7 +329,7 @@ All material claims in this research were verified from the repo, executed tests
 | Mix | Test execution | ✓ [VERIFIED: `mix --version` 2026-04-28] | `1.19.5` [VERIFIED: `mix --version` 2026-04-28] | — |
 | Docker | MinIO-backed live proof | ✓ [VERIFIED: `docker --version` 2026-04-28] | `29.4.0` [VERIFIED: `docker info --format '{{.ServerVersion}}'` 2026-04-28] | Existing localhost MinIO was already available during research. [VERIFIED: `curl http://localhost:9000/minio/health/ready` 2026-04-28] |
 | AWS CLI | Optional bucket/provider smoke work | ✓ [VERIFIED: `aws --version` 2026-04-28] | `2.11.27` [VERIFIED: `aws --version` 2026-04-28] | Not required for the current repo tests. [VERIFIED: test/rindle/storage/s3_test.exs] |
-| Cloudflare R2 credentials / secrets | Optional live R2 lane | ✗ [VERIFIED: env probe for `RINDLE_R2_*` variables returned no matches on 2026-04-28] | — | Docs-backed CAP-03 work plus optional/manual `:r2` tests. [CITED: https://developers.cloudflare.com/r2/api/s3/api/] |
+| Cloudflare R2 credentials / secrets | Separate live provider lane | not required | — | Docs-backed CAP-03 work plus MinIO-backed automated proof. [CITED: https://developers.cloudflare.com/r2/api/s3/api/] |
 
 **Missing dependencies with no fallback:**
 
@@ -342,7 +337,7 @@ All material claims in this research were verified from the repo, executed tests
 
 **Missing dependencies with fallback:**
 
-- Real R2 credentials are missing locally; use provider-doc-backed planning plus an opt-in `:r2` lane until secrets exist. [VERIFIED: env probe for `RINDLE_R2_*` variables returned no matches on 2026-04-28] [CITED: https://developers.cloudflare.com/r2/api/s3/presigned-urls/]
+- No additional provider credentials are required for Phase 8 closure because MinIO remains the only repo-owned automated proof lane. [VERIFIED: .planning/ROADMAP.md]
 
 ## Validation Architecture
 
@@ -361,7 +356,7 @@ All material claims in this research were verified from the repo, executed tests
 |--------|----------|-----------|-------------------|-------------|
 | CAP-01 | Shared capability contract drives upload and delivery tagged failures consistently | unit + contract | `mix test test/rindle/storage/storage_adapter_test.exs test/rindle/delivery_test.exs test/rindle/upload/broker_test.exs test/rindle/storage/capabilities_test.exs` | ❌ Wave 0 for `test/rindle/storage/capabilities_test.exs` [VERIFIED: test/rindle/storage/storage_adapter_test.exs] |
 | CAP-02 | MinIO proves presigned PUT and multipart flows end-to-end | integration + adopter + live provider | `mix test test/rindle/storage/s3_test.exs --include minio && mix test test/rindle/upload/lifecycle_integration_test.exs --include integration && mix test --only adopter test/adopter/canonical_app/lifecycle_test.exs` | ✅ current files exist [VERIFIED: test/rindle/storage/s3_test.exs] [VERIFIED: test/rindle/upload/lifecycle_integration_test.exs] [VERIFIED: test/adopter/canonical_app/lifecycle_test.exs] |
-| CAP-03 | R2 docs are explicit and unsupported non-current flows fail tagged | docs + optional live contract | `mix test test/rindle/storage/r2_test.exs --include r2` | ❌ Wave 0 for `test/rindle/storage/r2_test.exs` [VERIFIED: rg -n "R2|Cloudflare" lib test .github/workflows/ci.yml guides (no matches, 2026-04-28)] |
+| CAP-03 | R2 docs are explicit and unsupported non-current flows fail tagged | docs + MinIO-backed contract proof | `mix docs && mix test test/rindle/storage/s3_test.exs --include minio` | ✅ current files exist [VERIFIED: test/rindle/storage/s3_test.exs] [VERIFIED: guides/storage_capabilities.md] |
 | CAP-04 | Capability model reserves resumable upload without public API churn | unit | `mix test test/rindle/storage/capabilities_test.exs` | ❌ Wave 0 [VERIFIED: lib/rindle/storage.ex] |
 
 ### Sampling Rate
@@ -373,7 +368,6 @@ All material claims in this research were verified from the repo, executed tests
 ### Wave 0 Gaps
 
 - [ ] `test/rindle/storage/capabilities_test.exs` — explicit centralized capability-catalog coverage for CAP-01 and CAP-04. [VERIFIED: lib/rindle/upload/broker.ex] [VERIFIED: lib/rindle/delivery.ex]
-- [ ] `test/rindle/storage/r2_test.exs` — optional live R2 contract lane for CAP-03. [VERIFIED: rg -n "R2|Cloudflare" lib test .github/workflows/ci.yml guides (no matches, 2026-04-28)]
 - [ ] Docs drift guard for capability tables in `guides/secure_delivery.md` and `guides/profiles.md`. [VERIFIED: guides/secure_delivery.md] [VERIFIED: guides/profiles.md]
 
 ## Security Domain

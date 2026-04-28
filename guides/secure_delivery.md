@@ -141,9 +141,9 @@ falling back to an unsigned URL. This is intentional — the failure mode
 should be loud, not silent.
 
 Cloudflare R2, when used through the shipped `Rindle.Storage.S3` adapter seam,
-belongs to the same delivery contract. Phase 8 adds an opt-in/manual R2 lane
-for signed URL generation, but it does not claim live R2 proof in default CI
-and does not add a bespoke R2 adapter.
+belongs to the same delivery contract. Phase 8 documents it as an adopter-owned
+compatibility target through the shipped S3 seam, but it does not claim
+provider-specific live R2 proof in CI and does not add a bespoke R2 adapter.
 
 ## Variant URLs and the Stale-Variant Fallback
 

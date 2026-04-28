@@ -59,7 +59,7 @@ provider choices.
 | Local filesystem | `Rindle.Storage.Local` | `[:local, :presigned_put]` | Automated in the default test suite | Presigned PUT is a local-development parity shim, not a remote-object-store claim. Multipart and signed delivery fail explicitly with tagged unsupported tuples. |
 | MinIO | `Rindle.Storage.S3` | `[:presigned_put, :head, :signed_url, :multipart_upload]` | Automated in default CI and local integration lanes | This is the always-on real S3-compatible proof for direct PUT, multipart upload, metadata verification, and signed delivery URL generation. |
 | Generic S3-compatible provider | `Rindle.Storage.S3` | `[:presigned_put, :head, :signed_url, :multipart_upload]` | Expected by contract; not proven against every vendor in default CI | Rindle uses the shipped S3 adapter seam. Provider-specific behavior beyond that seam should be validated in adopter-owned environments. |
-| Cloudflare R2 | `Rindle.Storage.S3` | `[:presigned_put, :head, :signed_url, :multipart_upload]` when the provider honors the shipped S3-compatible operations | Opt-in/manual contract lane via `mix test test/rindle/storage/r2_test.exs --include r2` | Phase 8 does not add a bespoke R2 adapter and does not require live R2 credentials in default CI. The repo only claims the current shipped S3-style operations it can exercise through the existing adapter seam. |
+| Cloudflare R2 | `Rindle.Storage.S3` | `[:presigned_put, :head, :signed_url, :multipart_upload]` when the provider honors the shipped S3-compatible operations | Documented compatibility target; adopters validate vendor behavior in their own environments | Phase 8 does not add a bespoke R2 adapter. The repo only claims the current shipped S3-style operations it can exercise through the existing adapter seam, with MinIO as the automated proof lane. |
 
 ## Proof Boundaries
 
@@ -67,16 +67,16 @@ Rindle separates "documented contract" from "what the repo proves by default":
 
 - MinIO is the default real-provider proof lane in CI for the shipped S3
   adapter contract.
-- Cloudflare R2 has an executable opt-in/manual lane in
-  `test/rindle/storage/r2_test.exs`.
-- Default CI does not include live R2 because the repo does not ship R2
-  credentials.
+- Cloudflare R2 is documented as a compatibility target through the shipped
+  `Rindle.Storage.S3` seam.
+- Default CI proves the shipped S3-style contract against MinIO, not against
+  every vendor-branded backend.
 - Generic S3 providers are expected to match the shipped S3 adapter contract,
   but adopters should still validate vendor-specific behavior in their own
   environments before rollout.
 
 That distinction matters: Phase 8 improves auditability, not marketing claims.
-This guide does not imply live R2 proof in default CI.
+This guide does not imply provider-specific live R2 proof in CI.
 
 ## Cloudflare R2 Boundary
 
@@ -92,37 +92,8 @@ This guide does not claim:
 
 - A bespoke `Rindle.Storage.R2` adapter.
 - HTML form POST uploads as part of the shipped contract.
-- Live R2 coverage in default CI.
+- Provider-specific live R2 coverage in CI.
 - A shipped resumable-upload API.
-
-## Opt-In R2 Manual Verification
-
-To run the live R2 contract lane, export:
-
-- `RINDLE_R2_URL`
-- `RINDLE_R2_ACCESS_KEY_ID`
-- `RINDLE_R2_SECRET_ACCESS_KEY`
-- `RINDLE_R2_BUCKET`
-- `RINDLE_R2_REGION` (optional, defaults to `auto`)
-
-Then run:
-
-```bash
-mix test test/rindle/storage/r2_test.exs --include r2
-```
-
-When credentials are present, that lane verifies only the current shipped
-contract:
-
-- Presigned PUT upload round-trip plus `head/2`
-- Signed URL generation when the adapter advertises `:signed_url`
-- Multipart upload round-trip when the adapter advertises `:multipart_upload`
-- Explicit reserved-capability failure via
-  `{:error, {:upload_unsupported, :resumable_upload}}`
-
-When credentials are absent, the lane skips with an explicit message. That is
-intentional and keeps R2 proof opt-in/manual instead of pretending the repo has
-default-CI coverage it does not have.
 
 ## Future Resumable Uploads
 
