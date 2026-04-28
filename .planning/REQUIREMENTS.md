@@ -7,9 +7,9 @@
 
 ### Adopter Runtime Ownership
 
-- [ ] **ADOPT-01**: Adopter can configure Rindle's runtime Repo via
+- [x] **ADOPT-01**: Adopter can configure Rindle's runtime Repo via
   `config :rindle, :repo, MyApp.Repo`
-- [ ] **ADOPT-02**: Public runtime APIs use the configured adopter Repo instead
+- [x] **ADOPT-02**: Public runtime APIs use the configured adopter Repo instead
   of hard-coded `Rindle.Repo`
 - [ ] **ADOPT-03**: Canonical adopter integration proves upload, attach,
   detach, and delivery flows work with an adopter-owned Repo
@@ -78,8 +78,8 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ADOPT-01 | Phase 6 | Pending |
-| ADOPT-02 | Phase 6 | Pending |
+| ADOPT-01 | Phase 6 | Complete |
+| ADOPT-02 | Phase 6 | Complete |
 | ADOPT-03 | Phase 6 | Pending |
 | ADOPT-04 | Phase 6 | Pending |
 | MULT-01 | Phase 7 | Pending |

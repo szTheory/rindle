@@ -37,6 +37,7 @@ perspective.
 Rindle APIs no longer require or leak `Rindle.Repo` in consumer code paths
 **Depends on**: Phase 5
 **Requirements**: ADOPT-01, ADOPT-02, ADOPT-03, ADOPT-04
+**Plans**: 3 plans
 **Success Criteria** (what must be TRUE):
 1. Setting `config :rindle, :repo, MyApp.Repo` causes public runtime paths to
    use `MyApp.Repo` without any consumer code touching `Rindle.Repo`
@@ -45,6 +46,11 @@ Rindle APIs no longer require or leak `Rindle.Repo` in consumer code paths
 3. The canonical adopter integration uses an adopter-owned Repo end-to-end and
    no longer relies on the shared `Rindle.Repo` loophole
 4. Guides and examples describe Repo and Oban ownership in adopter-first terms
+
+Plans:
+- [x] 06-01-PLAN.md — add the runtime Repo seam and remove facade-level `Rindle.Repo` ownership leaks
+- [ ] 06-02-PLAN.md — move broker flows and canonical adopter proof onto the runtime Repo contract
+- [ ] 06-03-PLAN.md — align guides with adopter-owned Repo setup and explicit default-Oban scope
 
 ### Phase 7: Multipart Uploads
 **Goal**: larger production uploads have a first-class multipart path that
@@ -96,7 +102,7 @@ Phases execute in numeric order: 6 -> 7 -> 8 -> 9
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 6. Adopter Runtime Ownership | 0/0 | Pending | — |
+| 6. Adopter Runtime Ownership | 1/3 | In Progress | — |
 | 7. Multipart Uploads | 0/0 | Pending | — |
 | 8. Storage Capability Confidence | 0/0 | Pending | — |
 | 9. Install & Release Confidence | 0/0 | Pending | — |
