@@ -17,7 +17,7 @@ perspective.
 - Integer phases (6, 7, 8, 9): planned milestone work continuing from v1.0
 - Decimal phases (6.1, 6.2): urgent insertions if needed later
 
-- [ ] **Phase 6: Adopter Runtime Ownership** - Replace consumer runtime
+- [x] **Phase 6: Adopter Runtime Ownership** - Replace consumer runtime
   hard-coding of `Rindle.Repo` with adopter-owned Repo resolution and prove it
   in the canonical adopter path
 - [ ] **Phase 7: Multipart Uploads** - Add first-class multipart direct-upload
@@ -69,7 +69,7 @@ preserves Rindle's verification, cleanup, and state-machine guarantees
    errors instead of ambiguous runtime failures
 
 Plans:
-- [ ] 07-01-PLAN.md — add multipart session persistence, storage callbacks, broker entrypoints, and tagged capability errors
+- [x] 07-01-PLAN.md — add multipart session persistence, storage callbacks, broker entrypoints, and tagged capability errors
 - [ ] 07-02-PLAN.md — close the maintenance repo seam and add retry-safe multipart abort cleanup
 - [ ] 07-03-PLAN.md — prove multipart completion and cleanup through the MinIO-backed integration and adopter harness
 
@@ -108,7 +108,7 @@ Phases execute in numeric order: 6 -> 7 -> 8 -> 9
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 6. Adopter Runtime Ownership | 2/3 | In Progress | — |
-| 7. Multipart Uploads | 0/3 | Pending | — |
+| 6. Adopter Runtime Ownership | 3/3 | Complete | 2026-04-28 |
+| 7. Multipart Uploads | 1/3 | In Progress | — |
 | 8. Storage Capability Confidence | 0/0 | Pending | — |
 | 9. Install & Release Confidence | 0/0 | Pending | — |

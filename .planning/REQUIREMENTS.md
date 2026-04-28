@@ -18,13 +18,13 @@
 
 ### Multipart Uploads
 
-- [ ] **MULT-01**: User can initiate an S3 multipart upload session when the
+- [x] **MULT-01**: User can initiate an S3 multipart upload session when the
   selected storage adapter advertises multipart capability
-- [ ] **MULT-02**: User can upload parts, complete the multipart upload, and
+- [x] **MULT-02**: User can upload parts, complete the multipart upload, and
   verify completion before promotion proceeds
 - [ ] **MULT-03**: Timed-out or abandoned multipart uploads can be aborted by
   maintenance flows to prevent orphaned storage costs
-- [ ] **MULT-04**: Requesting multipart upload on an adapter without multipart
+- [x] **MULT-04**: Requesting multipart upload on an adapter without multipart
   capability returns a tagged unsupported-capability error
 
 ### Storage Capability Confidence
@@ -82,10 +82,10 @@
 | ADOPT-02 | Phase 6 | Complete |
 | ADOPT-03 | Phase 6 | Complete |
 | ADOPT-04 | Phase 6 | Complete |
-| MULT-01 | Phase 7 | Pending |
-| MULT-02 | Phase 7 | Pending |
+| MULT-01 | Phase 7 | Complete |
+| MULT-02 | Phase 7 | Complete |
 | MULT-03 | Phase 7 | Pending |
-| MULT-04 | Phase 7 | Pending |
+| MULT-04 | Phase 7 | Complete |
 | CAP-01 | Phase 8 | Pending |
 | CAP-02 | Phase 8 | Pending |
 | CAP-03 | Phase 8 | Pending |
