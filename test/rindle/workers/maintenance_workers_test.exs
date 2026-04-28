@@ -102,6 +102,19 @@ defmodule Rindle.Workers.MaintenanceWorkersTest do
     |> AdopterRepo.insert!()
   end
 
+  defp create_multipart_session(asset, overrides) do
+    create_session(
+      asset,
+      Map.merge(
+        %{
+          upload_strategy: "multipart",
+          multipart_upload_id: "upload-#{System.unique_integer([:positive])}"
+        },
+        overrides
+      )
+    )
+  end
+
   defp expired_at, do: DateTime.add(DateTime.utc_now(), -100, :second)
 
   # ---------------------------------------------------------------------------
@@ -207,6 +220,19 @@ defmodule Rindle.Workers.MaintenanceWorkersTest do
 
     test "returns :ok when no sessions to abort" do
       assert :ok = perform_job(AbortIncompleteUploads, %{})
+    end
+
+    test "expires multipart-tagged sessions without cleanup side effects in the worker" do
+      asset = create_asset()
+      session = create_multipart_session(asset, %{state: "uploading", expires_at: expired_at()})
+
+      assert :ok = perform_job(AbortIncompleteUploads, %{})
+
+      updated = AdopterRepo.get!(MediaUploadSession, session.id)
+      assert updated.state == "expired"
+      assert_received {:repo_probe, :all}
+      assert_received {:repo_probe, {:update, MediaUploadSession}}
+      refute_received {:repo_probe, {:delete, MediaUploadSession}}
     end
 
     test "worker is schedulable as Oban cron job" do

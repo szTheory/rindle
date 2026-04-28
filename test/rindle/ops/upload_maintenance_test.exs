@@ -101,6 +101,19 @@ defmodule Rindle.Ops.UploadMaintenanceTest do
     |> AdopterRepo.insert!()
   end
 
+  defp create_multipart_session(asset, overrides) do
+    create_session(
+      asset,
+      Map.merge(
+        %{
+          upload_strategy: "multipart",
+          multipart_upload_id: "upload-#{System.unique_integer([:positive])}"
+        },
+        overrides
+      )
+    )
+  end
+
   defp expired_at, do: DateTime.add(DateTime.utc_now(), -100, :second)
 
   # ---------------------------------------------------------------------------
@@ -262,6 +275,57 @@ defmodule Rindle.Ops.UploadMaintenanceTest do
       assert_received {:repo_probe, :all}
       assert_received {:repo_probe, {:delete, MediaUploadSession}}
     end
+
+    test "aborts expired multipart uploads before deleting the session row" do
+      asset = create_asset()
+      session = create_multipart_session(asset, %{state: "expired", expires_at: expired_at()})
+
+      expect(Rindle.StorageMock, :abort_multipart_upload, fn key, upload_id, _opts ->
+        assert key == session.upload_key
+        assert upload_id == session.multipart_upload_id
+        {:ok, :aborted}
+      end)
+
+      {:ok, report} =
+        UploadMaintenance.cleanup_orphans(dry_run: false, storage: Rindle.StorageMock)
+
+      assert report.sessions_deleted == 1
+      assert report.objects_deleted == 1
+      assert AdopterRepo.get(MediaUploadSession, session.id) == nil
+    end
+
+    test "deletes expired multipart rows when remote abort reports not found" do
+      asset = create_asset()
+      session = create_multipart_session(asset, %{state: "expired", expires_at: expired_at()})
+
+      expect(Rindle.StorageMock, :abort_multipart_upload, fn _key, _upload_id, _opts ->
+        {:error, :not_found}
+      end)
+
+      {:ok, report} =
+        UploadMaintenance.cleanup_orphans(dry_run: false, storage: Rindle.StorageMock)
+
+      assert report.storage_errors == 0
+      assert report.sessions_deleted == 1
+      assert report.objects_deleted == 0
+      assert AdopterRepo.get(MediaUploadSession, session.id) == nil
+    end
+
+    test "keeps expired multipart rows when remote abort fails so cleanup can retry" do
+      asset = create_asset()
+      session = create_multipart_session(asset, %{state: "expired", expires_at: expired_at()})
+
+      expect(Rindle.StorageMock, :abort_multipart_upload, fn _key, _upload_id, _opts ->
+        {:error, :storage_unavailable}
+      end)
+
+      {:ok, report} =
+        UploadMaintenance.cleanup_orphans(dry_run: false, storage: Rindle.StorageMock)
+
+      assert report.storage_errors == 1
+      assert report.sessions_deleted == 0
+      assert AdopterRepo.get(MediaUploadSession, session.id) != nil
+    end
   end
 
   # ---------------------------------------------------------------------------
@@ -315,6 +379,21 @@ defmodule Rindle.Ops.UploadMaintenanceTest do
       {:ok, report} = UploadMaintenance.abort_incomplete_uploads([])
 
       assert report.sessions_aborted == 0
+    end
+
+    test "expires multipart-tagged sessions without attempting storage cleanup" do
+      asset = create_asset()
+      session = create_multipart_session(asset, %{state: "uploading", expires_at: expired_at()})
+
+      {:ok, report} = UploadMaintenance.abort_incomplete_uploads([])
+
+      assert report.sessions_aborted == 1
+
+      updated = AdopterRepo.get!(MediaUploadSession, session.id)
+      assert updated.state == "expired"
+      assert_received {:repo_probe, :all}
+      assert_received {:repo_probe, {:update, MediaUploadSession}}
+      refute_received {:repo_probe, {:delete, MediaUploadSession}}
     end
 
     test "returns error tuple when repo raises" do
