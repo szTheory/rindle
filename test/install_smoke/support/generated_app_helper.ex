@@ -11,6 +11,8 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
   @host_migration_version "20260428170000"
 
   def prove_package_install! do
+    network_version = System.get_env("RINDLE_INSTALL_SMOKE_NETWORK_VERSION")
+
     workspace_root =
       Path.join(System.tmp_dir!(), "rindle-install-smoke-#{System.unique_integer([:positive])}")
 
@@ -23,10 +25,27 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     db_name = "#{app_name}_#{System.unique_integer([:positive])}_test"
     shared_env = shared_env(db_name)
 
-    ensure_package!(workspace_root, package_root)
+    if is_nil(network_version) do
+      ensure_package!(workspace_root, package_root)
+    end
+
     generate_phoenix_app!(workspace_root, generated_app_root)
-    patch_generated_app!(generated_app_root, app_name, app_module, package_root)
-    _ = run_cmd!(generated_app_root, ["mix", "deps.get"], shared_env)
+    patch_generated_app!(generated_app_root, app_name, app_module, package_root, network_version)
+
+    if network_version do
+      Enum.reduce_while(1..30, :error, fn attempt, _acc ->
+        case run_cmd(generated_app_root, ["mix", "deps.get"], shared_env) do
+          %{exit_code: 0} -> {:halt, :ok}
+          _ when attempt == 30 -> raise "deps.get failed after 30 attempts"
+          _ ->
+            Process.sleep(10_000)
+            {:cont, :error}
+        end
+      end)
+    else
+      _ = run_cmd!(generated_app_root, ["mix", "deps.get"], shared_env)
+    end
+
     compile_result = run_cmd!(generated_app_root, ["mix", "compile"], shared_env)
     _ = run_cmd!(generated_app_root, ["mix", "ecto.create"], shared_env)
     _ = run_cmd!(generated_app_root, ["mix", "run", "--no-start", "priv/install_smoke/migrate.exs"], shared_env)
@@ -42,6 +61,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       compile_exit_code: compile_result.exit_code,
       boot_exit_code: boot_result.exit_code,
       smoke_exit_code: smoke_result.exit_code,
+      network_mode?: not is_nil(network_version),
       host_migration_ran?: migration_report["host_migration_ran"] == true,
       migration_resolution: migration_report["resolver"] |> to_existing_atom_safe(),
       rindle_migration_path: migration_report["rindle_migration_path"],
@@ -94,8 +114,8 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       )
   end
 
-  defp patch_generated_app!(root, app_name, app_module, package_root) do
-    patch_mix_exs!(root, package_root)
+  defp patch_generated_app!(root, app_name, app_module, package_root, network_version) do
+    patch_mix_exs!(root, package_root, network_version)
     patch_test_config!(root, app_name)
     patch_runtime_config!(root, app_name, app_module)
     patch_application!(root, app_name, app_module)
@@ -106,9 +126,15 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     write_fixture!(root)
   end
 
-  defp patch_mix_exs!(root, package_root) do
+  defp patch_mix_exs!(root, package_root, network_version \\ nil) do
     path = Path.join(root, "mix.exs")
     oban_requirement = oban_requirement()
+    rindle_dep =
+      if network_version do
+        "{:rindle, \"~> #{network_version}\"}"
+      else
+        "{:rindle, path: #{inspect(package_root)}}"
+      end
 
     updated =
       path
@@ -119,7 +145,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
         {:bandit, "~> 1.5"},
               {:oban, "#{oban_requirement}"},
               {:hackney, "~> 1.20"},
-              {:rindle, path: #{inspect(package_root)}}
+              #{rindle_dep}
         """
       )
 

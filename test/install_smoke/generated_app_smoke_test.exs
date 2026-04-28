@@ -17,7 +17,11 @@ defmodule Rindle.InstallSmoke.GeneratedAppSmokeTest do
     report: report
   } do
     assert File.dir?(report.generated_app_root)
-    assert File.dir?(report.package_root)
+
+    if not report.network_mode? do
+      assert File.dir?(report.package_root)
+    end
+
     refute File.exists?(Path.join(report.generated_app_root, "deps/rindle"))
     assert report.compile_exit_code == 0
     assert report.boot_exit_code == 0
