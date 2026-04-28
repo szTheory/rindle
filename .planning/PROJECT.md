@@ -2,14 +2,14 @@
 
 ## Current State
 
-Milestone v1.0 is shipped and archived. Rindle now covers the core post-upload
-media lifecycle for Phoenix applications: staged uploads, verification,
-analysis, variants, background processing, secure delivery, day-2 operations,
-CI gates, and narrative guides.
+Milestone v1.0 is shipped and archived, and Phase 6 of v1.1 is now complete.
+Rindle now covers the core post-upload media lifecycle for Phoenix
+applications, plus an adopter-owned runtime Repo boundary that no longer leaks
+`Rindle.Repo` through public runtime paths.
 
-The next milestone should not just add surface area. It should remove the
-remaining reasons a serious SaaS team would hesitate to adopt Rindle in a real
-application.
+The remaining v1.1 work should build on that trust win rather than backtrack on
+it: multipart uploads, capability honesty across providers, and package-consumer
+install proof are still the highest-leverage gaps.
 
 ## Current Milestone: v1.1 Adopter Hardening
 
@@ -65,6 +65,9 @@ Media, made durable.
   metadata backfill, and maintenance workers shipped in v1.0.
 - Phase 5 — CI & 1.0 Readiness: CI lanes, adopter integration, release lane,
   and narrative guides shipped in v1.0.
+- Phase 6 — Adopter Runtime Ownership: public runtime Repo resolution,
+  adopter-only lifecycle proofs, and adopter-first Repo/Oban guidance verified
+  in v1.1.
 
 ### Active
 
@@ -168,7 +171,7 @@ fresh adopter perspective.
 | Named presets only by default; dynamic transforms opt-in and signed | Unsigned dynamic transforms are a DoS/cost vector | ✓ Good |
 | Async purge after DB commit | Storage I/O inside DB transactions is a consistency and latency trap | ✓ Good |
 | Repo ownership is adopter-first (`repo: MyApp.Repo`), not library-owned | Matches idiomatic Ecto library architecture and avoids split ownership | ✓ Good |
-| `Rindle.Repo` is test/dev harness only, not a consumer runtime dependency | Keeps library development practical while preserving adopter-owned runtime boundaries | ⚠️ Revisit in v1.1 until runtime hard-coding is removed |
+| `Rindle.Repo` is test/dev harness only, not a consumer runtime dependency | Keeps library development practical while preserving adopter-owned runtime boundaries | ✓ Validated in Phase 6 |
 | Capability-driven storage negotiation is the contract boundary | Backend support differs materially across S3-compatible providers and future GCS/resumable flows | — Pending |
 | Multipart uploads belong in v1.1, not v1.0 | Presigned PUT was enough for the first release, but larger production workloads need a better direct-upload path | — Pending |
 | Install proof should be package-consumer-first | A passing repo CI lane is not the same as a fresh Phoenix adopter succeeding from the published artifact | — Pending |
@@ -191,4 +194,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-28 after milestone v1.1 initialization*
+*Last updated: 2026-04-28 after Phase 6 completion*
