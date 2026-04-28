@@ -1,19 +1,17 @@
 # Getting Started with Rindle
 
-Rindle is a Phoenix/Ecto-native media lifecycle library. It manages everything
-that happens *after* a file is uploaded: durable session state, validation,
-analysis, variant generation, signed delivery, and day-2 operations.
+Rindle is a Phoenix/Ecto-native media lifecycle library. It manages the work
+that happens after upload: durable upload sessions, verification, asset state,
+variants, signed delivery, and day-2 cleanup.
 
-This guide walks you from `mix new` to a working upload → process → deliver
-loop. The four-step lifecycle shown below is the **same code path** the
-adopter integration test exercises end-to-end against MinIO and PostgreSQL —
-drift between this snippet and `test/adopter/canonical_app/lifecycle_test.exs`
-is a CI failure (per Phase 5 decision D-16, enforced by the adopter lane's
-drift-gate step).
+This is the canonical deep adopter guide for the same first-run path shown in
+[`README.md`](../README.md). The lifecycle calls below are the same public path
+the repo proves in `test/adopter/canonical_app/lifecycle_test.exs` and the
+built-artifact install smoke from Phase 9.
 
-## Installation
+## 1. Add Dependencies
 
-Add Rindle to your `mix.exs` deps:
+Add Rindle to your deps:
 
 ```elixir
 def deps do
@@ -23,44 +21,98 @@ def deps do
 end
 ```
 
-Pick an HTTP client for ExAws if you plan to use the S3 storage adapter
-(Rindle ships ExAws as a dependency but does not pin an HTTP client):
+If you use `Rindle.Storage.S3`, also choose an ExAws HTTP client. `:hackney`
+is the most-tested path in this repo:
 
 ```elixir
-{:hackney, "~> 1.20"}   # most-tested ExAws backend
-# OR
-{:req, "~> 0.4"}        # if your app already uses Req
-# OR
-{:finch, "~> 0.18"}     # paired with :ex_aws_finch
+def deps do
+  [
+    {:rindle, "~> 0.1"},
+    {:hackney, "~> 1.20"}
+  ]
+end
 ```
 
-Run `mix deps.get` and `mix ecto.migrate` to install Rindle's schemas.
+Run `mix deps.get`.
 
 > **System dependency:** the default image processor (Image/Vix) needs
-> `libvips` installed. On Debian/Ubuntu: `apt install libvips-dev`. On
-> macOS with Homebrew: `brew install vips`.
+> `libvips` installed. On Debian/Ubuntu: `apt install libvips-dev`. On macOS:
+> `brew install vips`.
 
-## Configure Runtime Ownership
+## 2. Configure Adopter-Owned Runtime Boundaries
 
-Rindle persists runtime state through **your** Ecto repo. Configure that
-explicitly in your app so `Rindle.attach/4`, `Rindle.detach/3`,
-`Rindle.upload/3`, and the direct-upload broker all transact through
-`MyApp.Repo` instead of assuming a library-owned runtime repo:
+Rindle persists runtime state through your app's Repo. Configure that
+explicitly:
 
 ```elixir
-# config/config.exs (or runtime.exs)
 config :rindle, :repo, MyApp.Repo
 ```
 
-That matches the Phase 6 adopter proof: the canonical direct-upload lane and
-the dedicated proxied-upload proof both override `:rindle, :repo` to an
-adopter-owned repo before calling the public API.
+That is the adopter contract for public runtime paths such as `Rindle.attach/4`,
+`Rindle.detach/3`, `Rindle.upload/3`, and the direct-upload broker.
 
-## Define a Profile
+Rindle also requires the default `Oban` path for background work. Adopters own
+Oban supervision, queue config, and the default Oban Repo:
 
-A `Rindle.Profile` declares how a particular family of media is handled —
-which storage adapter to use, what variants to generate, what the upload
-constraints are:
+```elixir
+config :my_app, Oban,
+  repo: MyApp.Repo,
+  queues: [
+    rindle_promote: 5,
+    rindle_process: 10,
+    rindle_purge: 2,
+    rindle_maintenance: 1
+  ]
+```
+
+Then start Oban in your application:
+
+```elixir
+children = [
+  MyApp.Repo,
+  {Oban, Application.fetch_env!(:my_app, Oban)}
+]
+```
+
+Named-instance or custom `:oban_name` routing is not the v1.1 contract. The
+shipped path is the default `Oban` module.
+
+## 3. Run Host-App And Rindle Migrations Explicitly
+
+Your app owns its own migrations, and Rindle ships a second migration path
+inside the package. The package-consumer smoke lane proves the explicit
+`Application.app_dir(:rindle, "priv/repo/migrations")` handoff below:
+
+```elixir
+Application.ensure_all_started(:rindle)
+{:ok, _pid} = MyApp.Repo.start_link()
+
+host_path = Path.join([File.cwd!(), "priv", "repo", "migrations"])
+rindle_path = Application.app_dir(:rindle, "priv/repo/migrations")
+
+unless File.dir?(rindle_path) do
+  raise "Rindle migration path missing: #{rindle_path}"
+end
+
+{:ok, _, _} =
+  Ecto.Migrator.with_repo(MyApp.Repo, fn repo ->
+    for path <- [host_path, rindle_path] do
+      Ecto.Migrator.run(repo, path, :up, all: true)
+    end
+  end)
+```
+
+Rindle does not add a public `mix rindle.*` install task in Phase 9. The
+public install path is this docs snippet; the repo-private helper that automates
+it exists only inside the smoke harness.
+
+If your app uses binary IDs globally, keep your Repo migration defaults aligned
+with your host app conventions before running the shared path.
+
+## 4. Define A Profile
+
+A `Rindle.Profile` declares storage, variants, and upload constraints for a
+family of media:
 
 ```elixir
 defmodule MyApp.MediaProfile do
@@ -72,42 +124,43 @@ defmodule MyApp.MediaProfile do
 end
 ```
 
-The Profile DSL validates options at compile time, so an invalid configuration
-fails fast before runtime upload flows execute. See [Profiles](profiles.html)
-for the full reference.
+The Profile DSL validates options at compile time so invalid configuration
+fails before runtime upload flows begin.
 
-## The Upload Lifecycle
+## 5. First-Run Upload Lifecycle
 
-The canonical flow has four steps. Each step exercises a specific public
-function on `Rindle.Upload.Broker` or `Rindle.Delivery`:
+The first-run path is presigned PUT. It is the narrowest direct-upload contract
+Rindle proves from the built artifact:
 
 ```elixir
-# 1. Initiate a session — creates a server-side row in the `staged` state.
+alias Rindle.Upload.Broker
+
 {:ok, session} =
-  Rindle.Upload.Broker.initiate_session(MyApp.MediaProfile, filename: "photo.png")
+  Broker.initiate_session(MyApp.MediaProfile, filename: "photo.png")
 
-# 2. Request a presigned PUT URL — client uploads directly to storage.
-{:ok, %{session: signed, presigned: %{url: upload_url}}} =
-  Rindle.Upload.Broker.sign_url(session.id)
+{:ok, %{session: signed, presigned: presigned}} =
+  Broker.sign_url(session.id)
 
-# ── your client (browser / mobile / curl) PUTs the file bytes to upload_url ──
+# your client PUTs the file bytes to presigned.url
 
-# 3. Verify the upload — promotes the asset, enqueues variant jobs.
 {:ok, %{session: completed, asset: asset}} =
-  Rindle.Upload.Broker.verify_completion(session.id)
+  Broker.verify_completion(session.id)
 
-# 4. Deliver — request a signed URL for the original or any variant.
 {:ok, signed_url} =
   Rindle.Delivery.url(MyApp.MediaProfile, asset.storage_key)
 ```
 
-This is the **exact** code path exercised by the adopter integration test in
-`test/adopter/canonical_app/lifecycle_test.exs`. The `Broker.initiate_session`,
-`Broker.verify_completion`, and `Rindle.Delivery.url` calls above are the three
-canonical entry points the adopter lane's drift-gate greps for.
+The parity gate for this guide and `README.md` asserts the canonical lifecycle
+calls above: `Broker.initiate_session`, `Broker.sign_url`,
+`Broker.verify_completion`, and `Rindle.Delivery.url`.
 
-If you prefer a server-side or proxied upload path, the same runtime Repo
-contract applies there too:
+Multipart upload is available, but it belongs in the advanced lane after the
+presigned PUT path is working. See
+[`storage_capabilities.md`](storage_capabilities.md) for the capability contract
+and proof boundaries.
+
+If you prefer a proxied/server-side upload, the same adopter-owned Repo
+contract applies:
 
 ```elixir
 {:ok, asset} =
@@ -118,56 +171,42 @@ contract applies there too:
   })
 ```
 
-That is the flow proved in `test/rindle/upload/lifecycle_integration_test.exs`
-under the adopter-repo override added in Plan 06-02.
+## 6. What Happens After Verification
 
-## What Happens Behind the Scenes
+After `Broker.verify_completion/1` returns, Rindle enqueues background work in
+Oban:
 
-After `verify_completion/2` returns, several things are happening asynchronously
-in Oban workers (you do not need to invoke them manually):
+1. `Rindle.Workers.PromoteAsset` advances the asset through validation,
+   analysis, and promotion.
+2. `Rindle.Workers.ProcessVariant` runs for each declared variant.
+3. Variants move to `ready` when processing completes.
 
-1. `Rindle.Workers.PromoteAsset` advances the asset through
-   `validating → analyzing → promoting → available` — analyzers extract MIME,
-   dimensions, and other metadata from the bytes in storage.
-2. `Rindle.Workers.ProcessVariant` is enqueued for each variant declared on
-   the profile (the `thumb` in the example above) and runs the configured
-   processor (Image/Vix by default) to derive the variant from the original.
-3. Variants land in the `ready` state when their processing job completes.
+See [`background_processing.md`](background_processing.md) for queue ownership,
+worker details, retry posture, and telemetry.
 
-You can observe these transitions via the public telemetry events
-(`[:rindle, :asset, :state_change]`, `[:rindle, :variant, :state_change]`)
-covered in [Background Processing](background_processing.html).
+## 7. Attach To Your Domain Record
 
-## Attaching to a Domain Object
-
-Use `Rindle.attach/4` to associate a verified asset with one of your own
-records (a `User`, `Post`, `Product`, etc.) on a named slot:
+Associate a verified asset with one of your own records:
 
 ```elixir
 {:ok, attachment} = Rindle.attach(asset.id, current_user, "avatar")
 ```
 
-When you replace or delete the attachment later, use `Rindle.detach/3`. The
-detach path is *async-by-design*: the database transaction commits the detach
-immediately, and an Oban `PurgeStorage` job is enqueued to remove the storage
-objects after commit. This avoids the Active-Storage-style failure mode where
-a storage error inside a DB transaction leaves the database in an inconsistent
-state.
+Detach later with:
 
 ```elixir
 :ok = Rindle.detach(current_user, "avatar")
 ```
 
-## Next Steps
+Detach is async by design: the DB change commits first, then an Oban purge job
+removes storage objects after commit.
 
-- [Core Concepts](core_concepts.html) — assets, variants, sessions, and the
-  finite-state machines that govern their lifecycles
-- [Profiles](profiles.html) — full Profile DSL reference: variants, allowlists,
-  delivery options, authorizers
-- [Secure Delivery](secure_delivery.html) — private-by-default, signed URL
-  TTL, public opt-in, authorizer hook
-- [Background Processing](background_processing.html) — Oban workers, retry
-  behavior, queue configuration, telemetry surface
-- [Operations](operations.html) — Mix tasks for Day-2 maintenance
-  (cleanup, regeneration, storage verification, expiry, backfill)
-- [Troubleshooting](troubleshooting.html) — common failure modes and recovery
+## Next Reads
+
+- [`../README.md`](../README.md): quickstart version of this path
+- [`background_processing.md`](background_processing.md): default Oban ownership
+  and worker behavior
+- [`storage_capabilities.md`](storage_capabilities.md): presigned PUT vs.
+  multipart capability boundaries
+- [`secure_delivery.md`](secure_delivery.md): signed delivery contract
+- [`operations.md`](operations.md): day-2 maintenance tasks
