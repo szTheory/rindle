@@ -13,8 +13,12 @@ defmodule Rindle.InstallSmoke.PackageMetadataTest do
   @prohibited_paths ["_build", ".planning", "test", ".github", "coveralls.json"]
 
   setup_all do
-    package_root = ensure_package!()
+    package_root = build_package!()
     metadata_path = Path.join(package_root, "hex_metadata.config")
+
+    on_exit(fn ->
+      File.rm_rf(Path.dirname(package_root))
+    end)
 
     {:ok,
      %{
@@ -63,21 +67,25 @@ defmodule Rindle.InstallSmoke.PackageMetadataTest do
     refute script =~ "mix hex.publish"
   end
 
-  defp ensure_package! do
-    package_root = package_root()
+  defp build_package! do
+    output_root =
+      Path.join(System.tmp_dir!(), "rindle-package-metadata-#{System.unique_integer([:positive])}")
 
-    if File.dir?(package_root) do
-      package_root
-    else
-      {_, 0} =
-        System.cmd("mix", ["hex.build", "--unpack"], cwd: @repo_root, env: [{"MIX_ENV", "dev"}])
+    package_root = Path.join(output_root, "rindle-#{Mix.Project.config()[:version]}")
 
-      package_root
-    end
-  end
+    File.mkdir_p!(output_root)
 
-  defp package_root do
-    Path.join(@repo_root, "rindle-#{Mix.Project.config()[:version]}")
+    {output, 0} =
+      System.cmd("mix", ["hex.build", "--unpack", "--output", package_root],
+        cd: @repo_root,
+        env: [{"MIX_ENV", "dev"}],
+        stderr_to_stdout: true
+      )
+
+    assert output =~ "Building rindle"
+    assert output =~ "Saved to"
+
+    package_root
   end
 
   defp command_position(script, command) do
