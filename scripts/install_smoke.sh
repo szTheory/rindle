@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 WORK_DIR=$(mktemp -d "${TMPDIR:-/tmp}/rindle-install-smoke-script-XXXXXX")
 PACKAGE_NAME=$(cd "$ROOT_DIR" && mix run --no-start -e 'project = Mix.Project.config(); IO.write("#{project[:app]}-#{project[:version]}")')
-PACKAGE_ROOT="$WORK_DIR/$PACKAGE_NAME"
+PACKAGE_ROOT="${RINDLE_INSTALL_SMOKE_PACKAGE_ROOT:-$WORK_DIR/$PACKAGE_NAME}"
 
 cleanup() {
   rm -rf "$WORK_DIR"
@@ -13,7 +13,10 @@ cleanup() {
 trap cleanup EXIT
 
 cd "$ROOT_DIR"
-mix hex.build --unpack --output "$PACKAGE_ROOT"
+
+if [ -z "${RINDLE_INSTALL_SMOKE_PACKAGE_ROOT:-}" ]; then
+  mix hex.build --unpack --output "$PACKAGE_ROOT"
+fi
 
 if [ ! -d "$PACKAGE_ROOT" ]; then
   echo "install smoke package missing: $PACKAGE_ROOT" >&2

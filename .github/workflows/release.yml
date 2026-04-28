@@ -117,6 +117,7 @@ jobs:
           ls rindle-*/mix.exs
           ls rindle-*/README.md
           ls rindle-*/LICENSE
+          ls rindle-*/guides/getting_started.md
 
       - name: Assert prohibited paths absent from tarball
         run: |
@@ -131,7 +132,10 @@ jobs:
       - name: Run package-consumer install smoke
         env:
           MIX_ENV: test
-        run: bash scripts/install_smoke.sh
+        run: |
+          export RINDLE_INSTALL_SMOKE_PACKAGE_ROOT
+          RINDLE_INSTALL_SMOKE_PACKAGE_ROOT=$(echo "$GITHUB_WORKSPACE"/rindle-*)
+          bash scripts/install_smoke.sh
 
       # Step 2: hex.publish --dry-run is the additional metadata gate.
       # If it fails due to auth (A1 — confirmed required by Hex CLI),
