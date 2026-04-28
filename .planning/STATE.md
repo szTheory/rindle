@@ -4,8 +4,8 @@ milestone: v1.0
 milestone_name: milestone
 status: completed
 stopped_at: Milestone complete
-last_updated: "2026-04-27T16:45:00.000Z"
-last_activity: 2026-04-27 -- Milestone complete
+last_updated: "2026-04-28T00:00:00.000Z"
+last_activity: 2026-04-28 -- Milestone complete
 progress:
   total_phases: 5
   completed_phases: 5
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-25)
 
 **Core value:** Media, made durable — full media lifecycle after upload for Phoenix applications with production confidence
-**Current focus:** Phase 05 — ci-1-0-readiness
+**Current focus:** v1.0 archived; next milestone not yet defined
 
 ## Current Position
 
 Phase: All — COMPLETE
 Plan: 9 of 9
 Status: Complete
-Last activity: 2026-04-27 -- Milestone complete
+Last activity: 2026-04-28 -- Milestone complete
 
 Progress: [██████████] 100%
 
@@ -114,6 +114,6 @@ Resume file: --resume-file
 - If escalation is not possible in-session, use a reversible default and log the assumption.
 - Workflow preference: skip discuss by default (`workflow.skip_discuss=true`) and move directly into planning/execution unless a high-impact ambiguity is detected.
 
-**Next Phase:** 04 (Day-2 Operations) — planning/execution pending
+**Next Phase:** none
 
-**Planned Phase:** 05 (CI & 1.0 Readiness) — 7 plans — 2026-04-26T21:34:04.978Z
+**Planned Phase:** none

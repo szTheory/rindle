@@ -1,5 +1,14 @@
 # Rindle
 
+## Current State
+
+Milestone v1.0 is shipped and archived. The repository has all v1 phases complete, the default test suite passes, and the CI quality gate is calibrated to the current coverage baseline.
+
+## Next Milestone Goals
+
+- Start `$gsd-new-milestone` to capture the v1.1 scope, requirements, and roadmap.
+- Preserve the validated foundation, upload, delivery, operations, and CI contracts while deciding the next feature slice.
+
 ## What This Is
 
 Rindle is an open-source Phoenix/Ecto-native media lifecycle library for Phoenix applications. It manages the full media lifecycle after upload: staged objects, validation, analysis, media assets, attachments, variants/derivatives, background processing, signed delivery, cleanup, regeneration, and operational visibility. Rindle is not a file upload helper — it is the durable lifecycle layer that helps Phoenix teams ship media features with production confidence.

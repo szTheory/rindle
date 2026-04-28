@@ -74,11 +74,16 @@ defmodule Rindle.Profile.Validator do
 
   @type profile_options :: %{
           storage: module(),
-          allow_mime: [String.t()],
+          allow_mime: [String.t() | Regex.t()],
           allow_extensions: [String.t()],
-          max_bytes: pos_integer() | nil,
+          max_bytes: pos_integer(),
           max_pixels: pos_integer() | nil,
-          variants: %{required(atom()) => map()}
+          variants: %{required(atom()) => map()},
+          delivery: %{
+            public: boolean(),
+            authorizer: module() | nil,
+            signed_url_ttl_seconds: pos_integer()
+          }
         }
 
   @type upload_metadata :: %{

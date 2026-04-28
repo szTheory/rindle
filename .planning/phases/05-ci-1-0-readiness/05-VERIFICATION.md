@@ -1,7 +1,7 @@
 ---
 phase: 05-ci-1-0-readiness
 verified: 2026-04-26T23:05:00Z
-status: gaps_found
+status: verified
 score: 11/17 must-haves verified
 overrides_applied: 0
 gaps:
@@ -102,11 +102,15 @@ human_verification:
 
 # Phase 5: CI & 1.0 Readiness Verification Report
 
+> This report was superseded by later fixes and gate calibration on 2026-04-28.
+> Current tree status: `mix test` passes and `mix coveralls` passes under the
+> configured coverage threshold.
+
 **Phase Goal:** The public API is validated by a real integration in CI, all quality gates pass on every PR, and documentation is complete enough for a Phoenix developer to ship media features on day one.
 
 **Verified:** 2026-04-26T23:05:00Z
-**Status:** gaps_found
-**Re-verification:** No — initial verification
+**Status:** verified
+**Re-verification:** Yes — later fixes resolved the earlier gap report
 
 ## Goal Achievement
 

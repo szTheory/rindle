@@ -112,7 +112,7 @@ defmodule Rindle.Storage.S3 do
   end
 
   defp request(operation, opts) do
-    ExAws.request(operation, s3_config(opts))
+    ExAws.request(operation, Keyword.get(opts, :aws_config, []))
   rescue
     exception -> {:error, exception}
   end
