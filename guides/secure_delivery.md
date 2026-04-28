@@ -16,6 +16,9 @@ This guide covers:
 - The storage-adapter capability contract for signed URLs
 - Threat-model notes on signed URLs
 
+For the full adapter/provider matrix, proof posture, and future resumable
+boundary, see [Storage Capabilities](storage_capabilities.html).
+
 ## Default: Private with Signed URLs
 
 A profile that declares no `delivery:` option is private:
@@ -122,16 +125,25 @@ auth.
 Private delivery requires the storage adapter to support signed URLs.
 Adapters declare their capabilities via `c:Rindle.Storage.capabilities/0`:
 
-| Adapter              | Capabilities                                                |
-| -------------------- | ----------------------------------------------------------- |
-| `Rindle.Storage.S3`  | `[:presigned_put, :signed_url]`                             |
-| `Rindle.Storage.Local` | `[:local]`                                                |
+Rindle documents the complete capability matrix centrally in
+[Storage Capabilities](storage_capabilities.html). For delivery specifically,
+the contract is:
+
+- Private delivery needs `:signed_url`.
+- Public delivery does not need `:signed_url`.
+- Unsupported private delivery fails explicitly with
+  `{:error, {:delivery_unsupported, :signed_url}}`.
 
 If you point a private profile at an adapter that does not advertise
 `:signed_url`, `Rindle.Delivery.url/3` returns
 `{:error, {:delivery_unsupported, :signed_url}}` rather than silently
 falling back to an unsigned URL. This is intentional — the failure mode
 should be loud, not silent.
+
+Cloudflare R2, when used through the shipped `Rindle.Storage.S3` adapter seam,
+belongs to the same delivery contract. Phase 8 adds an opt-in/manual R2 lane
+for signed URL generation, but it does not claim live R2 proof in default CI
+and does not add a bespoke R2 adapter.
 
 ## Variant URLs and the Stale-Variant Fallback
 
