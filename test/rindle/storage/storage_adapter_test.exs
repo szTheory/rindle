@@ -41,9 +41,32 @@ defmodule Rindle.Storage.StorageAdapterTest do
     end
   end
 
+  test "storage behaviour exposes multipart callbacks" do
+    callbacks = Rindle.Storage.behaviour_info(:callbacks)
+
+    assert {:initiate_multipart_upload, 3} in callbacks
+    assert {:presigned_upload_part, 5} in callbacks
+    assert {:complete_multipart_upload, 4} in callbacks
+    assert {:abort_multipart_upload, 3} in callbacks
+  end
+
   test "capability lists are truthful for local and s3 adapters" do
     assert [:local, :presigned_put] == Local.capabilities()
-    assert [:presigned_put, :head, :signed_url] == S3.capabilities()
+    assert [:presigned_put, :head, :signed_url, :multipart_upload] == S3.capabilities()
+  end
+
+  test "local multipart operations fail with an explicit capability error" do
+    assert {:error, {:upload_unsupported, :multipart_upload}} =
+             Local.initiate_multipart_upload("uploads/test.bin", 5_242_880, [])
+
+    assert {:error, {:upload_unsupported, :multipart_upload}} =
+             Local.presigned_upload_part("uploads/test.bin", "upload-123", 1, 3600, [])
+
+    assert {:error, {:upload_unsupported, :multipart_upload}} =
+             Local.complete_multipart_upload("uploads/test.bin", "upload-123", [], [])
+
+    assert {:error, {:upload_unsupported, :multipart_upload}} =
+             Local.abort_multipart_upload("uploads/test.bin", "upload-123", [])
   end
 
   test "local adapter supports store/url/delete with tagged tuple responses" do
