@@ -3,6 +3,7 @@ defmodule Rindle.InstallSmoke.PackageMetadataTest do
 
   @repo_root Path.expand("../..", __DIR__)
   @preflight_script Path.join(@repo_root, "scripts/release_preflight.sh")
+  @docs_assertion_script Path.join(@repo_root, "scripts/assert_release_docs_html.sh")
   @required_paths [
     "mix.exs",
     "README.md",
@@ -24,7 +25,8 @@ defmodule Rindle.InstallSmoke.PackageMetadataTest do
      %{
        package_root: package_root,
        metadata: File.read!(metadata_path),
-       script: File.read!(@preflight_script)
+       script: File.read!(@preflight_script),
+       docs_assertion_script: File.read!(@docs_assertion_script)
      }}
   end
 
@@ -51,11 +53,12 @@ defmodule Rindle.InstallSmoke.PackageMetadataTest do
 
   test "release preflight script runs the release gates in order", %{script: script} do
     commands = [
-      "mix hex.build --unpack",
-      "mix test test/install_smoke/package_metadata_test.exs",
-      "mix test test/install_smoke/release_docs_parity_test.exs",
-      "bash scripts/install_smoke.sh",
-      "mix docs --warnings-as-errors"
+      "MIX_ENV=dev mix hex.build --unpack",
+      "MIX_ENV=test mix test test/install_smoke/package_metadata_test.exs",
+      "MIX_ENV=test mix test test/install_smoke/release_docs_parity_test.exs",
+      "MIX_ENV=test bash scripts/install_smoke.sh",
+      "MIX_ENV=dev mix docs --warnings-as-errors",
+      "bash scripts/assert_release_docs_html.sh"
     ]
 
     positions = Enum.map(commands, &command_position(script, &1))
@@ -65,6 +68,18 @@ defmodule Rindle.InstallSmoke.PackageMetadataTest do
 
     refute script =~ "HEX_API_KEY"
     refute script =~ "mix hex.publish"
+  end
+
+  test "docs HTML assertion script checks generated navigation and adopter boundary", %{
+    docs_assertion_script: script
+  } do
+    assert script =~ "release_publish.html"
+    assert script =~ "sidebar_items-*.js"
+    assert script =~ ~s("id":"release_publish")
+    assert script =~ "operations.html"
+    assert script =~ "readme.html"
+    assert script =~ "getting_started.html"
+    assert script =~ "HEX_API_KEY|mix hex\\.user|mix hex\\.owner"
   end
 
   defp build_package! do

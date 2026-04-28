@@ -3,7 +3,8 @@ status: complete
 phase: 10-publish-readiness
 source:
   - 10-VERIFICATION.md
-started: 2026-04-28T19:46:31Z
+  - 10-HUMAN-UAT.md
+started: 2026-04-28T19:54:10Z
 updated: 2026-04-28T20:05:32Z
 ---
 
@@ -34,4 +35,6 @@ blocked: 0
 
 ## Notes
 
-This seed file is now historical only. The former human-only checks were automated by the shared CI/release preflight and generated-doc HTML assertions on 2026-04-28.
+Manual UAT was replaced by executable automation on 2026-04-28:
+- `.github/workflows/ci.yml` now runs `bash scripts/release_preflight.sh` in the service-backed package-consumer lane before merge.
+- `scripts/assert_release_docs_html.sh` now verifies generated HexDocs navigation and the generated adopter-doc boundary after `mix docs`.

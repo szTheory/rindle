@@ -240,12 +240,12 @@ jobs:
         run: mix test --only contract
 
   package-consumer:
-    name: Package Consumer
+    name: Package Consumer + Release Preflight
     runs-on: ubuntu-latest
-    # Keep the smoke lane narrow and package-consumer-first: it only waits for
-    # the shared quality gate, then reuses the same install_smoke helper that
-    # builds with `mix hex.build --unpack` and generates a fresh `mix phx.new`
-    # adopter app.
+    # Shift release readiness left into PR CI by reusing the same service-backed
+    # package-consumer lane for the shared release preflight. This keeps the
+    # fresh-adopter smoke proof from Phase 9, while also proving tarball
+    # metadata, generated docs, and the release-doc HTML wiring before tag time.
     needs: quality
     env:
       MIX_ENV: test
@@ -326,8 +326,10 @@ jobs:
           mc alias set local http://localhost:9000 minioadmin minioadmin
           mc mb --ignore-existing local/rindle-test
 
-      - name: Run package-consumer install smoke
-        run: bash scripts/install_smoke.sh
+      - name: Run release preflight
+        env:
+          MIX_ENV: dev
+        run: bash scripts/release_preflight.sh
 
   adopter:
     name: Adopter
