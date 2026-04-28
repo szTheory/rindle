@@ -102,6 +102,9 @@ jobs:
       - name: Run release preflight
         run: bash scripts/release_preflight.sh
 
+      - name: Verify version alignment
+        run: bash scripts/assert_version_match.sh
+
       - name: Live publish to Hex
         env:
           HEX_API_KEY: ${{ secrets.HEX_API_KEY }}
