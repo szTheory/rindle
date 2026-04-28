@@ -91,7 +91,7 @@ verified against real backends so adopters know exactly what Rindle supports
 
 Plans:
 - [x] 08-01-PLAN.md — centralize capability vocabulary and tagged unsupported behavior without changing current adopter contracts
-- [ ] 08-02-PLAN.md — prove presigned PUT and multipart capability truth through the existing MinIO-backed adapter and adopter harnesses
+- [x] 08-02-PLAN.md — prove presigned PUT and multipart capability truth through the existing MinIO-backed adapter and adopter harnesses
 - [ ] 08-03-PLAN.md — add the opt-in R2 contract lane, publish the R2-facing capability matrix, and remove docs drift while reserving additive resumable semantics
 
 ### Phase 9: Install & Release Confidence
