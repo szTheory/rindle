@@ -12,13 +12,15 @@ The core library now covers the durable post-upload media lifecycle plus the
 highest-leverage adopter trust gaps that blocked a credible public release
 story after `v1.0`.
 
-## Next Milestone Goals
+## Current Milestone: v1.2 First Hex Publish
 
-- Plan the first Hex.pm publish and release posture now that built-artifact
-  install proof exists.
-- Decide whether the next highest-leverage upload expansion is GCS resumable,
-  tus, or a narrower protocol-specific follow-up.
-- Revisit public API ergonomics before expanding the surface area further.
+**Goal:** prove Rindle's first real `Hex.pm` publication path end to end so
+future releases can reuse a practiced, documented, test-backed workflow.
+
+**Target features:**
+- First public `Hex.pm` publish readiness and execution path
+- Reusable release automation around the publish flow
+- Docs and package-consumer verification aligned with the published artifact
 
 ## What This Is
 
@@ -64,7 +66,12 @@ Media, made durable.
 
 ### Active
 
-None. The next milestone has not been defined yet.
+- [ ] First public `Hex.pm` publish path is exercised from the real repository
+  workflow
+- [ ] Release automation can perform a protected real publish and fail safely
+  before publication if package/docs/install gates drift
+- [ ] A maintainer can verify the published package from Hex.pm and follow a
+  documented rollback path if needed
 
 ### Out of Scope
 
@@ -97,11 +104,11 @@ uploads are additive on top of the existing trusted promotion flow, capability
 claims are centralized and proved against MinIO, and a fresh Phoenix consumer
 can install the built package and follow a docs path that is enforced by tests.
 
-**Next inflection point:** Rindle now looks like a publishable library, but the
-first public Hex.pm release posture is still a planning problem rather than a
-shipped milestone outcome. Distribution, semver promises, and future upload
-protocol expansion should be scoped deliberately instead of leaking into the
-planning vacuum after `v1.1`.
+**v1.2 inflection point:** Rindle now looks like a publishable library, but the
+first public `Hex.pm` release path has not yet been exercised for real.
+Distribution, owner/auth setup, rollback posture, and future release routine
+need one deliberate public cut before the next milestone shifts back to API or
+upload-surface expansion.
 
 **Reference implementations:**
 - Rails Active Storage: attachment/blob ownership patterns, redirect-style
@@ -152,6 +159,7 @@ planning vacuum after `v1.1`.
 | Capability-driven storage negotiation is the contract boundary | Backend support differs materially across S3-compatible providers and future GCS/resumable flows | ✓ Validated in Phase 8 |
 | Multipart uploads belong in v1.1, not v1.0 | Presigned PUT was enough for the first release, but larger production workloads need a better direct-upload path | ✓ Validated in Phase 7 |
 | Install proof should be package-consumer-first | A passing repo CI lane is not the same as a fresh Phoenix adopter succeeding from the published artifact | ✓ Validated in Phase 9 |
+| First public Hex publish should be scoped narrowly and exercised before broader API cleanup | The release path is the remaining trust gap and should become routine before new surface-area bets | — Pending |
 
 ## Historical Snapshot
 
@@ -188,4 +196,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-28 after milestone v1.1 completion*
+*Last updated: 2026-04-28 after milestone v1.2 initialization*

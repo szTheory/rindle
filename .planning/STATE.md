@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.1
-milestone_name: adopter hardening
-status: milestone_archived
-stopped_at: Milestone archived
-last_updated: "2026-04-28T17:42:11Z"
-last_activity: 2026-04-28 -- archived milestone v1.1 and prepared next-milestone handoff
+milestone: v1.2
+milestone_name: first hex publish
+status: milestone_initialized
+stopped_at: Milestone initialized
+last_updated: "2026-04-28T17:51:37Z"
+last_activity: 2026-04-28 -- initialized milestone v1.2 and created roadmap
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 12
-  completed_plans: 12
-  percent: 100
+  total_phases: 3
+  completed_phases: 0
+  total_plans: 6
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -21,17 +21,17 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-28)
 
 **Core value:** Media, made durable.
-**Current focus:** Awaiting next milestone definition
-v1.1 is archived and the active planning docs are reset for the next cycle.
+**Current focus:** Phase 10 — Publish Readiness
+v1.2 is active and the project is ready to start planning Phase 10.
 
 ## Current Position
 
-Phase: —
+Phase: 10
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-04-28 -- archived milestone v1.1 and prepared next-milestone handoff
+Status: Milestone initialized
+Last activity: 2026-04-28 -- initialized milestone v1.2 and created roadmap
 
-Progress: [██████████] 100%
+Progress: [░░░░░░░░░░] 0%
 
 ## Accumulated Context
 
@@ -86,10 +86,11 @@ Recent decisions affecting current work:
 
 - Keep the capability model forward-compatible with future GCS resumable work
 - Plan the first Hex.pm publish and release posture in the next milestone
+- Exercise the first public Hex.pm publish path so future releases can reuse it
 
 ### Blockers/Concerns
 
-- None currently; the project is waiting on next-milestone definition.
+- None currently; the project is ready to begin Phase 10 planning.
 
 ## Session Continuity
 
@@ -110,6 +111,6 @@ Resume file: None
 - Workflow preference: skip discuss by default and move directly into
   planning/execution unless a high-impact ambiguity is detected.
 
-**Next Phase:** None — run `$gsd-new-milestone`
+**Next Phase:** Phase 10 — run `$gsd-plan-phase 10`
 
 **Last Completed Milestone:** v1.1 (Phases 06-09) — archived 2026-04-28
