@@ -91,7 +91,7 @@ defmodule Rindle.Upload.LifecycleIntegrationTest do
 
   @tag :integration
   test "multipart upload completes through broker and queues promotion" do
-    expect(Rindle.StorageMock, :capabilities, 3, fn ->
+    expect(Rindle.StorageMock, :capabilities, 4, fn ->
       [:presigned_put, :head, :signed_url, :multipart_upload]
     end)
 

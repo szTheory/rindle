@@ -83,7 +83,7 @@ defmodule Rindle.Storage.S3Test do
       {:ok, {{_http_version, status, _reason}, response_headers, _resp_body}} when status in 200..299 ->
         response_headers
         |> Enum.find_value(fn
-          {header, value} when header in ['etag', 'ETag'] -> List.to_string(value)
+          {header, value} when header in [~c"etag", ~c"ETag"] -> List.to_string(value)
           _other -> nil
         end)
         |> case do
