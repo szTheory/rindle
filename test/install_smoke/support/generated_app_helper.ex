@@ -18,12 +18,12 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
 
     app_name = "rindle_smoke_app"
     app_module = Macro.camelize(app_name)
-    package_root = Path.join(workspace_root, "package/#{package_name()}")
+    package_root = System.get_env("RINDLE_INSTALL_SMOKE_PACKAGE_ROOT") || Path.join(workspace_root, "package/#{package_name()}")
     generated_app_root = Path.join(workspace_root, app_name)
     db_name = "#{app_name}_#{System.unique_integer([:positive])}_test"
     shared_env = shared_env(db_name)
 
-    build_package!(workspace_root, package_root)
+    ensure_package!(workspace_root, package_root)
     generate_phoenix_app!(workspace_root, generated_app_root)
     patch_generated_app!(generated_app_root, app_name, app_module, package_root)
     _ = run_cmd!(generated_app_root, ["mix", "deps.get"], shared_env)
@@ -56,6 +56,14 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
   end
 
   def cleanup(_report), do: :ok
+
+  defp ensure_package!(workspace_root, package_root) do
+    if File.dir?(package_root) do
+      :ok
+    else
+      build_package!(workspace_root, package_root)
+    end
+  end
 
   defp build_package!(workspace_root, package_root) do
     File.mkdir_p!(Path.join(workspace_root, "package"))
