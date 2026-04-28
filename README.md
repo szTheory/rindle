@@ -116,6 +116,18 @@ canonical adopter lifecycle test.
 - [`guides/storage_capabilities.md`](guides/storage_capabilities.md): capability
   boundaries, including multipart as an advanced path
 
+## GSD Hygiene
+
+For local GSD cleanup, run `mix gsd.clean`. It removes known transient outputs,
+prunes stale worktree metadata, and reports any remaining `.planning/` dirt
+without deleting tracked planning artifacts.
+
+Use the GSD workflows for the tracked planning lifecycle:
+
+- `$gsd-complete-milestone` when a milestone is actually done
+- `$gsd-cleanup` to archive completed milestone phase directories
+- `$gsd-pr-branch` to prepare a review branch without `.planning/` commits
+
 ## License
 
 MIT

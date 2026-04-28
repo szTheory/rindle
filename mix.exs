@@ -163,6 +163,7 @@ defmodule Rindle.MixProject do
 
   defp aliases do
     [
+      "gsd.clean": ["cmd bash scripts/gsd_cleanup.sh"],
       setup: ["deps.get", "ecto.setup"],
       "ecto.setup": ["ecto.create", "ecto.migrate"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],

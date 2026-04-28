@@ -33,6 +33,12 @@ Thumbs.db
 .gsd-archive-*/
 .planning/.gsd-archive-latest
 .planning/GSD1-RECOVERY.md
+/init.json
+/progress.txt
+/recent.txt
+/roadmap.json
+/state.json
+/rindle-*/
 
 # Mix lock (library — check in mix.lock)
 # /mix.lock
