@@ -40,6 +40,22 @@ Run `mix deps.get` and `mix ecto.migrate` to install Rindle's schemas.
 > `libvips` installed. On Debian/Ubuntu: `apt install libvips-dev`. On
 > macOS with Homebrew: `brew install vips`.
 
+## Configure Runtime Ownership
+
+Rindle persists runtime state through **your** Ecto repo. Configure that
+explicitly in your app so `Rindle.attach/4`, `Rindle.detach/3`,
+`Rindle.upload/3`, and the direct-upload broker all transact through
+`MyApp.Repo` instead of assuming a library-owned runtime repo:
+
+```elixir
+# config/config.exs (or runtime.exs)
+config :rindle, :repo, MyApp.Repo
+```
+
+That matches the Phase 6 adopter proof: the canonical direct-upload lane and
+the dedicated proxied-upload proof both override `:rindle, :repo` to an
+adopter-owned repo before calling the public API.
+
 ## Define a Profile
 
 A `Rindle.Profile` declares how a particular family of media is handled —
@@ -89,6 +105,21 @@ This is the **exact** code path exercised by the adopter integration test in
 `test/adopter/canonical_app/lifecycle_test.exs`. The `Broker.initiate_session`,
 `Broker.verify_completion`, and `Rindle.Delivery.url` calls above are the three
 canonical entry points the adopter lane's drift-gate greps for.
+
+If you prefer a server-side or proxied upload path, the same runtime Repo
+contract applies there too:
+
+```elixir
+{:ok, asset} =
+  Rindle.upload(MyApp.MediaProfile, %{
+    path: "/tmp/photo.png",
+    filename: "photo.png",
+    byte_size: File.stat!("/tmp/photo.png").size
+  })
+```
+
+That is the flow proved in `test/rindle/upload/lifecycle_integration_test.exs`
+under the adopter-repo override added in Plan 06-02.
 
 ## What Happens Behind the Scenes
 

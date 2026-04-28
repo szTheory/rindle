@@ -37,7 +37,7 @@ this string.
    ```elixir
    asset
    |> Ecto.Changeset.change(state: "available")
-   |> Rindle.Repo.update!()
+   |> MyApp.Repo.update!()
    ```
 
    Document the audit trail (who reversed the quarantine, why, when).
@@ -59,7 +59,7 @@ attempts on `Rindle.Workers.ProcessVariant`). The Oban job is in the
 
 **Diagnosing root cause:**
 
-1. Inspect the Oban job: `Oban.Job |> Repo.get(job_id)` — the `errors`
+1. Inspect the Oban job: `MyApp.Repo.get!(Oban.Job, job_id)` — the `errors`
    column has the stack trace from each attempt.
 2. Check the variant's recipe: did the spec change recently? A recipe
    bug (e.g., `quality: 200`, which is out of range) will fail every
@@ -195,14 +195,14 @@ Quick queries you can run to triage state distribution:
 ```elixir
 # Asset state distribution
 import Ecto.Query
-Rindle.Repo.all(
+MyApp.Repo.all(
   from a in Rindle.Domain.MediaAsset,
     group_by: a.state,
     select: {a.state, count(a.id)}
 )
 
 # Variants in non-ready state
-Rindle.Repo.all(
+MyApp.Repo.all(
   from v in Rindle.Domain.MediaVariant,
     where: v.state in ["failed", "stale", "missing"],
     group_by: [v.state, v.name],
@@ -210,7 +210,7 @@ Rindle.Repo.all(
 )
 
 # Upload sessions past their TTL but not yet expired
-Rindle.Repo.all(
+MyApp.Repo.all(
   from s in Rindle.Domain.MediaUploadSession,
     where: s.state in ["signed", "uploading"] and s.expires_at < ago(0, "second"),
     select: count(s.id)
