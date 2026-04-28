@@ -2,16 +2,48 @@
 
 ## Current State
 
-Milestone v1.0 is shipped and archived. The repository has all v1 phases complete, the default test suite passes, and the CI quality gate is calibrated to the current coverage baseline.
+Milestone v1.0 is shipped and archived. Rindle now covers the core post-upload
+media lifecycle for Phoenix applications: staged uploads, verification,
+analysis, variants, background processing, secure delivery, day-2 operations,
+CI gates, and narrative guides.
+
+The next milestone should not just add surface area. It should remove the
+remaining reasons a serious SaaS team would hesitate to adopt Rindle in a real
+application.
+
+## Current Milestone: v1.1 Adopter Hardening
+
+**Goal:** turn Rindle from a promising library into an adopter-safe and
+cloud-realistic package by making host-app ownership real at runtime, closing
+the highest-leverage upload capability gaps, and proving installation from the
+outside in.
+
+**Target features:**
+- Config-driven adopter-owned Repo resolution in all consumer runtime paths
+- S3 multipart upload support and cleanup for larger production workloads
+- Capability-verified provider compatibility for MinIO and Cloudflare R2
+- Package/install smoke proof plus docs aligned to the canonical adopter path
 
 ## Next Milestone Goals
 
-- Start `$gsd-new-milestone` to capture the v1.1 scope, requirements, and roadmap.
-- Preserve the validated foundation, upload, delivery, operations, and CI contracts while deciding the next feature slice.
+- Convert the adopter-repo-first architecture from a documented principle into
+  an enforced runtime contract.
+- Expand direct-upload support beyond simple presigned PUT so larger SaaS media
+  workloads have a credible path on day one.
+- Prove that storage capability negotiation works against real providers and
+  fails explicitly when a backend cannot honor a requested flow.
+- Tighten the install/adoption loop so a fresh Phoenix app can consume the
+  package without repo-internal assumptions leaking through.
 
 ## What This Is
 
-Rindle is an open-source Phoenix/Ecto-native media lifecycle library for Phoenix applications. It manages the full media lifecycle after upload: staged objects, validation, analysis, media assets, attachments, variants/derivatives, background processing, signed delivery, cleanup, regeneration, and operational visibility. Rindle is not a file upload helper — it is the durable lifecycle layer that helps Phoenix teams ship media features with production confidence.
+Rindle is an open-source Phoenix/Ecto-native media lifecycle library for
+Phoenix applications. It manages the full media lifecycle after upload: staged
+objects, validation, analysis, media assets, attachments,
+variants/derivatives, background processing, signed delivery, cleanup,
+regeneration, and operational visibility. Rindle is not a file upload helper;
+it is the durable lifecycle layer that helps Phoenix teams ship media features
+with production confidence.
 
 ## Core Value
 
@@ -23,133 +55,140 @@ Media, made durable.
 
 <!-- Shipped and confirmed valuable. -->
 
-- Phase 2 — Upload & Processing: direct upload broker, proxied uploads, image processing, Oban workers, attachment replacement, and LiveView helpers are implemented and verified.
+- Phase 1 — Foundation: schemas, FSMs, profile DSL, validation primitives, and
+  local/S3 storage adapters shipped in v1.0.
+- Phase 2 — Upload & Processing: proxied/direct upload flows, image
+  processing, Oban workers, and atomic attach/purge behavior shipped in v1.0.
+- Phase 3 — Delivery & Observability: signed delivery, telemetry contract, and
+  responsive image helpers shipped in v1.0.
+- Phase 4 — Day-2 Operations: cleanup, regeneration, storage verification,
+  metadata backfill, and maintenance workers shipped in v1.0.
+- Phase 5 — CI & 1.0 Readiness: CI lanes, adopter integration, release lane,
+  and narrative guides shipped in v1.0.
 
 ### Active
 
-**M1 — Domain Core + Storage Foundation**
-- [ ] Ecto migrations and schemas for `media_assets`, `media_attachments`, `media_variants`, `media_upload_sessions`, `media_processing_runs`
-- [ ] Core behaviours: `Rindle.Storage`, `Rindle.Processor`, `Rindle.Analyzer`, `Rindle.Scanner`, `Rindle.Authorizer`
-- [ ] Profile/recipe DSL (`use Rindle.Profile`) with compile-time validation
-- [ ] Recipe digest computation (stable hash so stale variants are detectable)
-- [ ] Local disk storage adapter
-- [ ] S3-compatible storage adapter with presigned PUT direct upload
-- [ ] Asset state machine: `staged → validating → analyzing → promoting → available → processing → ready / degraded / quarantined / deleted`
-- [ ] Variant state machine: `planned → queued → processing → ready / stale / missing / failed / purged`
-- [ ] Upload session state machine: `initialized → signed → uploading → uploaded → verifying → completed / aborted / expired / failed`
-- [ ] Magic-byte MIME detection (never trust client Content-Type alone)
-- [ ] Filename sanitization and generated storage keys (no user-controlled paths)
-- [ ] Allowlist-based validation: extensions, MIME types, byte size, pixel count limits
-
-**M2 — Upload Paths + Processing**
-- [x] Phoenix-proxied upload path (controller + LiveView helpers)
-- [x] Direct upload broker: initiate session → sign URL → verify completion → attach
-- [x] Image/Vix (libvips) processor for named image variants
-- [x] Eager variant generation via Oban workers
-- [x] Signed lazy variant generation (opt-in, signed, bounded)
-- [x] Atomic attach/promote: reload record, verify attachment unchanged before writing
-- [x] Idempotent purge: detach in DB transaction, enqueue async storage delete
-
-**M3 — Delivery + Observability**
-- [ ] Signed URL delivery (private-by-default)
-- [ ] Safe public delivery opt-in per profile
-- [ ] Telemetry events with public-contract naming: `[:rindle, :upload, :*]`, `[:rindle, :asset, :*]`, `[:rindle, :variant, :*]`, `[:rindle, :delivery, :*]`, `[:rindle, :cleanup, :*]`
-- [ ] Telemetry metadata and measurements schemas (public contract)
-- [ ] Responsive image helper (`picture_tag/3`, srcset, placeholder)
-
-**M4 — Day-2 Operations**
-- [x] `mix rindle.cleanup_orphans` — expired sessions, detached staged objects
-- [x] `mix rindle.regenerate_variants` — stale/missing variants by profile/name
-- [x] `mix rindle.verify_storage` — reconcile DB records against storage
-- [x] `mix rindle.abort_incomplete_uploads` — multipart cost leak prevention
-- [x] `mix rindle.backfill_metadata` — re-analyze existing assets
-- [x] Oban cron workers for scheduled cleanup
-- [x] `stale` variant detection when recipe digest changes
-
-**M5 — Quality, Docs, CI**
-- [ ] CI quality lane: format, compile warnings-as-errors, tests, Credo, Dialyzer
-- [ ] CI contract lane: docs contracts, workflow/release config validation
-- [ ] CI integration lane: storage (MinIO/LocalStack) + DB + processing path
-- [ ] CI adopter lane: canonical host integration proof (at least one verified integration)
-- [ ] CI release lane: release automation, dry-run publish, post-publish parity check
-- [ ] Getting started guide (copy-pasteable, Phoenix-workflow-first)
-- [ ] Core concepts / lifecycle guide
-- [ ] Profile and recipe definitions guide
-- [ ] Secure delivery guide
-- [ ] Background processing guide
-- [ ] Operations and cleanup guide
-- [ ] Failure modes and troubleshooting guide
+- [ ] Adopter-owned Repo resolution is configurable and enforced in public
+  runtime paths
+- [ ] Large direct uploads have a first-class multipart workflow on supported
+  S3-compatible backends
+- [ ] Storage capability negotiation is verified against real providers and
+  unsupported flows fail loudly
+- [ ] Fresh-package installation and canonical adopter docs prove a clean path
+  from dependency add to production-shaped integration
 
 ### Out of Scope
 
-- Full HLS/DASH streaming platform, DRM, global adaptive video management — Rindle is a lifecycle library, not a media platform; these belong to provider adapters (Mux, Transloadit)
-- Arbitrary unsigned dynamic transformation API — unsigned dynamic resizes are a DoS/cost vector; named presets and signed transforms only
-- Built-in GPU/AI runtime requirements — AI processors are extension points backed by external providers, not core dependencies
-- Office/PDF/SVG broad processing by default — requires hardened sandboxing that is not universally available; explicit opt-in with documented container/sandbox guidance
-- "Cloud replacement" or managed CDN product positioning — Rindle is a library; CDN behavior is an adopter responsibility
-- tus/resumable upload protocol in v1 — direct presigned PUT is sufficient for v1; tus and GCS resumable are v1.x adapters
-- S3 multipart upload in v1 — presigned PUT covers the primary case; multipart is v1.x
-- FFmpeg/Membrane adapters in v1 — image-first; video/audio adapters follow as plugins
-- PDF preview adapter in v1 — out-of-scope until sandboxing posture is documented
-- Admin LiveView UI in v1 — LiveDashboard page or minimal read-only admin is a stretch goal; full admin UI is v2
+- Full HLS/DASH streaming platform, DRM, global adaptive video management —
+  Rindle is a lifecycle library, not a media platform; these belong to provider
+  adapters (Mux, Transloadit)
+- Arbitrary unsigned dynamic transformation API — unsigned dynamic resizes are
+  a DoS/cost vector; named presets and signed transforms only
+- Built-in GPU/AI runtime requirements — AI processors are extension points
+  backed by external providers, not core dependencies
+- Office/PDF/SVG broad processing by default — requires hardened
+  sandbox/container guidance that is not universally available
+- "Cloud replacement" or managed CDN product positioning — Rindle is a
+  library; CDN behavior is an adopter responsibility
+- Full GCS adapter in v1.1 — capability design should remain ready for GCS, but
+  the adapter and resumable flow stay deferred until after multipart/S3 support
+- tus/resumable upload protocol in v1.1 — multipart is the nearer production
+  need; tus remains a later adapter path
+- FFmpeg/Membrane adapters in v1.1 — image-first remains the wedge; video/audio
+  adapters follow once host-app/runtime boundaries are solid
+- PDF preview adapter in v1.1 — still out-of-scope until sandboxing posture is
+  documented
+- Admin LiveView UI in v1.1 — operator workflows remain code/telemetry/task
+  driven for now
 
 ## Context
 
-**Ecosystem gap:** Phoenix and LiveView have excellent upload UX (progress, cancellation, direct external uploads), but no framework-level durable media lifecycle layer. Waffle covers storage + versions + Ecto casting but lacks persistent variant state, resumable direct uploads, Oban-native processing, admin UI, cleanup, stale detection, and telemetry. `phx_media_library` (v0.6.0, published March 2026) is the nearest emerging competitor — study its API before finalizing public APIs.
+**v1.0 result:** Rindle now has a credible core lifecycle, but the canonical
+adopter lane still documents a runtime leak: public paths in `lib/rindle.ex`
+hard-code `Rindle.Repo`, which contradicts the adopter-repo-first stance.
+This is the clearest architectural trust gap surfaced by the repo itself.
+
+**Adopter trust signal:** CI, docs, and telemetry matter, but a SaaS team will
+still hesitate if the host app cannot truly own its Repo/runtime boundary, if
+larger direct uploads have no first-class story, or if provider differences are
+handled implicitly rather than through explicit capabilities.
+
+**Storage provider reality:** S3-compatible does not mean identical.
+Cloudflare R2 and MinIO need verification around presigned and multipart flows;
+GCS requires a distinct resumable model. Capability negotiation must stay
+precise so Rindle does not over-promise backend support.
+
+**Installability reality:** README is intentionally thin today, while the real
+adoption path lives in the guides and canonical adopter test. v1.1 should make
+package-consumer success more explicit by proving install and integration from a
+fresh adopter perspective.
 
 **Reference implementations:**
-- Rails Active Storage: attachment/blob/variant/analysis model; lazy variants with redirection; async purge pattern; warn against sync processing in templates
-- Shrine: derivatives as separate records with recipe names; atomic promote pattern; backgrounding + cleanup as first-class concerns
-- Spatie Media Library: conversion regeneration as Day-2 command; responsive image srcset; beloved DX through opinionated defaults
-- imgproxy: signed dynamic transform URLs as a security requirement, not a feature
-- Mux/Transloadit: async media workflow ergonomics; upload session → webhook → state transition model
-
-**Image processing:** Image/Vix (libvips) is the default for image variants — roughly 2–3× faster than Mogrify, ~5× less memory. ImageMagick and FFmpeg require explicit opt-in with documented sandbox/container guidance due to their security history (ImageTragick, hostile-input risks in FFmpeg).
-
-**Storage provider reality:** S3-compatible ≠ identical. Cloudflare R2 does not support presigned POST multipart form uploads. GCS uses a POST-then-PUT resumable upload flow. Storage adapters must expose capabilities (`:presigned_put`, `:multipart_upload`, `:resumable_upload`, etc.) rather than pretending all backends are the same.
-
-**Brand name status:** "rindle" is amber — used by an npm streams utility and older project management products. Use `rindle` as the Elixir package name; consider `rindle_media` as the fallback repo/package namespace. Confirm GitHub org and Hex availability before launch.
+- Rails Active Storage: attachment/blob ownership patterns, redirect-style
+  delivery, and background purge lessons
+- Shrine: host-app ownership, atomic promotion, and derivatives as first-class
+  records
+- Spatie Media Library: strong "day-two" ergonomics and opinionated DX
+- imgproxy: capability- and signature-driven delivery constraints
 
 **Security invariants (must hold in all implementations):**
-1. Never trust client MIME/filename — enforce magic-byte sniffing and allowlists
+1. Never trust client MIME/filename; enforce magic-byte sniffing and allowlists
 2. Do not attach/process direct uploads until completion is verified
-3. Do not allow unbounded variant explosion — named presets only by default
+3. Do not allow unbounded variant explosion; named presets only by default
 4. Storage side effects are not hidden inside DB transactions
 5. Purge paths are async, idempotent, and auditable
-6. Concurrent replacement races resolve safely (atomic promote pattern)
+6. Concurrent replacement races resolve safely
 7. Missing/stale/failed variant states are visible, queryable, and actionable
 
 ## Constraints
 
-- **Tech stack**: Elixir/Phoenix/Ecto — no non-Elixir runtimes in core; all adapters are optional dependencies
-- **Processing default**: Image/Vix (libvips) for images; no ImageMagick or FFmpeg in core — they are opt-in adapters requiring explicit sandbox guidance
-- **Background jobs**: Oban is the required job backend — do not invent a parallel job runner
-- **Telemetry**: Telemetry event names and metadata shapes are public API contracts — breaking them requires a major version bump
-- **Security defaults**: private storage and signed delivery are the default; public URLs require explicit profile opt-in
-- **Dynamic transforms**: named recipes by default; dynamic transforms require signing + rate limits + pixel bounds — never exposed unsigned
-- **DB schema**: normalized tables for assets, attachments, variants, upload sessions, processing runs — no JSON-column-only variant storage; admins, SREs, and cleanup jobs need queryable state
-- **CI**: quality gates, contract lane, integration lane, and adopter lane must exist before any release candidate
-- **Docs posture**: practical, copy-pasteable, production-aware; no hype language, no "magic" framing; peer-to-peer maintainer tone
+- **Tech stack**: Elixir/Phoenix/Ecto only in core; no non-Elixir runtime in
+  the library
+- **Repo ownership**: adopter apps own the runtime Repo and DB credentials; the
+  library may keep `Rindle.Repo` only as a local test/dev harness
+- **Background jobs**: Oban remains the required job backend; multipart flows
+  and cleanup must integrate with Oban rather than invent a parallel runner
+- **Security defaults**: private delivery remains the default; multipart support
+  must preserve the same verification and allowlist guarantees as presigned PUT
+- **Capability honesty**: adapters must advertise only what they truly support;
+  unsupported flows must fail as tagged errors, not degraded surprises
+- **Backward compatibility**: existing presigned PUT flows stay supported;
+  multipart is additive and must not break current adopters
+- **Docs posture**: practical, copy-pasteable, production-aware, and
+  maintainer-to-maintainer in tone
 
 ## Key Decisions
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Media-agnostic core, image-first implementation | Images are the highest-leverage v1 wedge; core domain model must not assume image so video/audio slots in cleanly | — Pending |
-| Variants are first-class DB records, not hidden filenames | Queryable state enables admin UI, retries, stale detection, cleanup, and reporting; JSON-only breaks Day-2 operations | — Pending |
-| Oban as required job backend (not optional) | Oban is SQL-backed, persistent, observable, and supports transactional job enqueueing; inventing a parallel runner creates divergence risk | — Pending |
-| Telemetry naming and metadata are public contracts | Operators build dashboards and alerts against these; breaking them silently is an incident | — Pending |
-| Image/Vix (libvips) as default image processor | 2–3× faster, ~5× less memory than Mogrify; avoids shell-out security risk in default path | — Pending |
-| Named presets only by default; dynamic transforms opt-in and signed | Unsigned dynamic transforms are a DoS/cost vector (imgproxy lesson); escape hatch exists but is not the default | — Pending |
-| Async purge: detach in DB transaction, enqueue storage delete after commit | Storage I/O inside a DB transaction can fail after state is committed, or slow/block the transaction (Active Storage lesson) | — Pending |
-| Atomic promote: reload + verify before writing | Prevents stale background job from overwriting a newer attachment when user replaces an upload mid-processing (Shrine lesson) | — Pending |
-| Day-2 operations are v1 scope, not deferred | Cleanup, regeneration, verification, and reconciliation are what make a library production-ready; deferring them is how libraries stay "upload wrappers" | — Pending |
-| CI adopter lane required before release candidate | At least one canonical host/adopter integration must be continuously verified; docs-only integration claims are not sufficient | — Pending |
-| Repo ownership is adopter-first (`repo: MyApp.Repo`), not library-owned | Matches idiomatic Ecto library architecture (Oban-style), avoids split pool/config ownership and multi-tenant surprises | ✓ Good |
-| Runtime DB config stays in adopter app (`runtime.exs`), not in Rindle dependency | Library-level runtime secret management is surprising and brittle; host app is source of truth for credentials and deploy config | ✓ Good |
-| `Rindle.Repo` is test/dev harness only, not a consumer runtime dependency | Keeps local library development practical while preserving adopter-owned runtime boundaries | ✓ Good |
-| Rindle ships Oban workers but does not start/supervise Oban itself | Queue topology and reliability settings belong to the host app; avoids hidden runtime ownership | ✓ Good |
-| Decision policy is left-shifted: auto-decide low/medium impact, escalate only high impact | Maximizes execution speed while preserving user control over irreversible API/security/scope calls | ✓ Good |
+| Media-agnostic core, image-first implementation | Images are the highest-leverage wedge; core domain model must not assume image so video/audio can slot in later | ✓ Good |
+| Variants are first-class DB records, not hidden filenames | Queryable state enables admin, retries, stale detection, cleanup, and reporting | ✓ Good |
+| Oban as required job backend | Oban is SQL-backed, persistent, observable, and supports transactional enqueueing | ✓ Good |
+| Telemetry naming and metadata are public contracts | Operators will build dashboards and alerts against these; silent breakage is unacceptable | ✓ Good |
+| Named presets only by default; dynamic transforms opt-in and signed | Unsigned dynamic transforms are a DoS/cost vector | ✓ Good |
+| Async purge after DB commit | Storage I/O inside DB transactions is a consistency and latency trap | ✓ Good |
+| Repo ownership is adopter-first (`repo: MyApp.Repo`), not library-owned | Matches idiomatic Ecto library architecture and avoids split ownership | ✓ Good |
+| `Rindle.Repo` is test/dev harness only, not a consumer runtime dependency | Keeps library development practical while preserving adopter-owned runtime boundaries | ⚠️ Revisit in v1.1 until runtime hard-coding is removed |
+| Capability-driven storage negotiation is the contract boundary | Backend support differs materially across S3-compatible providers and future GCS/resumable flows | — Pending |
+| Multipart uploads belong in v1.1, not v1.0 | Presigned PUT was enough for the first release, but larger production workloads need a better direct-upload path | — Pending |
+| Install proof should be package-consumer-first | A passing repo CI lane is not the same as a fresh Phoenix adopter succeeding from the published artifact | — Pending |
+
+## Evolution
+
+This document evolves at phase transitions and milestone boundaries.
+
+**After each phase transition** (via `$gsd-transition`):
+1. Requirements invalidated? Move to Out of Scope with reason
+2. Requirements validated? Move to Validated with phase reference
+3. New requirements emerged? Add to Active
+4. Decisions to log? Add to Key Decisions
+5. "What This Is" still accurate? Update if drifted
+
+**After each milestone** (via `$gsd-complete-milestone`):
+1. Full review of all sections
+2. Core Value check; still the right priority?
+3. Audit Out of Scope; reasons still valid?
+4. Update Context with current state
 
 ---
-*Last updated: 2026-04-26 after Phase 4 day-2-operations completion*
+*Last updated: 2026-04-28 after milestone v1.1 initialization*
