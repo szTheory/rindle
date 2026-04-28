@@ -18,9 +18,20 @@ This guide covers:
 ## Oban Ownership
 
 **Rindle ships Oban workers but does not start or supervise Oban itself.**
-Adopters own the Oban supervision tree, queue topology, and reliability
-settings. This avoids hidden runtime ownership and lets adopters tune
-queue concurrency to their host environment.
+Adopters own the Oban supervision tree, queue topology, reliability
+settings, and the **default Oban Repo** that backs those jobs. In Phase 6,
+Rindle enqueues through the default `Oban` module path, so your app is
+responsible for running Oban against the same repo you configured with
+`config :rindle, :repo, MyApp.Repo`. This avoids hidden runtime ownership and
+lets adopters tune queue concurrency to their host environment.
+
+In plain terms: adopters own Oban supervision, adopters own queue config, and
+adopters own the default Oban Repo.
+
+Phase 6 does **not** add named-instance support. If your app uses a
+named-instance or custom `:oban_name`, treat that as out of scope for the
+current release: the delivered contract is compatibility with the default
+`Oban` path only.
 
 Add Oban to your application:
 
@@ -61,6 +72,11 @@ children = [
   # ...
 ]
 ```
+
+That supervisor setup is the contract Rindle proves today: adopters own Oban
+startup, adopters own queue config, and Rindle relies on the default `Oban`
+instance being available for enqueueing. Named-instance routing via
+`:oban_name` is intentionally deferred from this phase.
 
 ## Worker Modules
 
@@ -107,14 +123,20 @@ where a job runs against a state that the database never committed.
 The same pattern applies on the detach path:
 
 ```elixir
-# detach: commit the DB change, then enqueue purge AFTER commit (separate path)
-Repo.transaction(fn -> # ... detach attachment ... end)
-Rindle.Workers.PurgeStorage.new(%{asset_id: id, profile: profile_name}) |> Oban.insert()
+# detach: delete the attachment row and enqueue the purge job in one repo-owned unit of work
+Ecto.Multi.new()
+|> Ecto.Multi.delete(:attachment, attachment)
+|> Oban.insert(:purge, Rindle.Workers.PurgeStorage.new(%{
+  "asset_id" => asset.id,
+  "profile" => asset.profile
+}))
+|> MyApp.Repo.transaction()
 ```
 
-Detach uses post-commit enqueueing because storage I/O should never run
-inside a DB transaction. The detach commit makes the database
-authoritative; the purge job runs idempotently after.
+The database change and job insert stay atomic, but the actual storage I/O
+still happens later in `Rindle.Workers.PurgeStorage`. That keeps storage side
+effects out of the DB transaction while preserving the guarantee that a
+successful detach already has a purge job durably queued.
 
 ## Retry Behavior
 
