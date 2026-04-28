@@ -26,7 +26,7 @@ perspective.
 - [x] **Phase 8: Storage Capability Confidence** - Harden capability
   negotiation and verify provider-specific behavior across MinIO while
   documenting Cloudflare R2 compatibility honestly
-- [ ] **Phase 9: Install & Release Confidence** - Prove package-consumer
+- [x] **Phase 9: Install & Release Confidence** - Prove package-consumer
   installation in a fresh Phoenix app and align top-level docs with the real
   adopter path
 
@@ -125,4 +125,4 @@ Phases execute in numeric order: 6 -> 7 -> 8 -> 9
 | 6. Adopter Runtime Ownership | 3/3 | Complete | 2026-04-28 |
 | 7. Multipart Uploads | 3/3 | Complete | 2026-04-28 |
 | 8. Storage Capability Confidence | 3/3 | Complete | 2026-04-28 |
-| 9. Install & Release Confidence | 0/0 | Pending | — |
+| 9. Install & Release Confidence | 3/3 | Complete | 2026-04-28 |

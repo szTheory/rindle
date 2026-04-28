@@ -42,11 +42,11 @@
 
 ### Install and Release Confidence
 
-- [ ] **RELEASE-01**: A fresh Phoenix adopter can install Rindle from the built
+- [x] **RELEASE-01**: A fresh Phoenix adopter can install Rindle from the built
   package and complete the canonical upload-to-delivery path
-- [ ] **RELEASE-02**: CI includes a package-consumer smoke path that validates
+- [x] **RELEASE-02**: CI includes a package-consumer smoke path that validates
   installability from the built artifact rather than only from the repo source
-- [ ] **RELEASE-03**: README and getting-started guidance match the canonical
+- [x] **RELEASE-03**: README and getting-started guidance match the canonical
   adopter path, including Repo ownership and upload capability constraints
 
 ## v1.x Requirements
@@ -91,9 +91,9 @@
 | CAP-02 | Phase 8 | Complete |
 | CAP-03 | Phase 8 | Complete |
 | CAP-04 | Phase 8 | Complete |
-| RELEASE-01 | Phase 9 | Pending |
-| RELEASE-02 | Phase 9 | Pending |
-| RELEASE-03 | Phase 9 | Pending |
+| RELEASE-01 | Phase 9 | Complete |
+| RELEASE-02 | Phase 9 | Complete |
+| RELEASE-03 | Phase 9 | Complete |
 
 **Coverage:**
 - v1.1 requirements: 15 total
