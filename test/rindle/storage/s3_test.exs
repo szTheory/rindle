@@ -3,6 +3,8 @@ defmodule Rindle.Storage.S3Test do
 
   alias Rindle.Storage.S3
 
+  @multipart_min_part_size 5 * 1024 * 1024
+
   @minio_url System.get_env("RINDLE_MINIO_URL")
   @minio_access_key System.get_env("RINDLE_MINIO_ACCESS_KEY")
   @minio_secret_key System.get_env("RINDLE_MINIO_SECRET_KEY")
@@ -42,13 +44,13 @@ defmodule Rindle.Storage.S3Test do
       ]
     ]
 
-    part1 = "multipart-part-one"
+    part1 = String.duplicate("a", @multipart_min_part_size)
     part2 = "multipart-part-two"
 
     assert {:ok, %{upload_id: upload_id, upload_key: ^key, part_size: part_size}} =
-             S3.initiate_multipart_upload(key, 5 * 1024 * 1024, opts)
+             S3.initiate_multipart_upload(key, @multipart_min_part_size, opts)
 
-    assert part_size == 5 * 1024 * 1024
+    assert part_size == @multipart_min_part_size
 
     assert {:ok, %{url: part1_url, part_number: 1, upload_id: ^upload_id}} =
              S3.presigned_upload_part(key, upload_id, 1, 60, opts)

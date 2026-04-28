@@ -142,6 +142,7 @@ defmodule Rindle.Storage.S3 do
   end
 
   defp handle_head_response({:error, %{status_code: 404}}), do: {:error, :not_found}
+  defp handle_head_response({:error, {:http_error, 404, _response}}), do: {:error, :not_found}
   defp handle_head_response({:error, reason}), do: {:error, reason}
 
   @impl true
