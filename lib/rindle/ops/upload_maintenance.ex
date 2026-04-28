@@ -249,6 +249,35 @@ defmodule Rindle.Ops.UploadMaintenance do
   # this via storage_skipped) and proceed to the DB delete.
   defp attempt_storage_delete(_session, nil), do: {:skipped, 1}
 
+  # Remote storage cleanup stays outside DB transactions so multipart abort
+  # retries do not hold database locks or hide network I/O in persistence work.
+  defp attempt_storage_delete(
+         %MediaUploadSession{
+           upload_strategy: "multipart",
+           multipart_upload_id: multipart_upload_id
+         } = session,
+         storage_mod
+       )
+       when is_binary(multipart_upload_id) and multipart_upload_id != "" do
+    case storage_mod.abort_multipart_upload(session.upload_key, multipart_upload_id, []) do
+      {:ok, _} ->
+        {:ok, 1}
+
+      {:error, :not_found} ->
+        {:ok, 0}
+
+      {:error, reason} ->
+        Logger.warning("rindle.upload_maintenance.multipart_abort_failed",
+          session_id: session.id,
+          upload_key: session.upload_key,
+          multipart_upload_id: multipart_upload_id,
+          reason: inspect(reason)
+        )
+
+        :storage_error
+    end
+  end
+
   defp attempt_storage_delete(session, storage_mod) do
     case storage_mod.delete(session.upload_key, []) do
       {:ok, _} ->
