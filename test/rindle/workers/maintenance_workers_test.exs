@@ -235,6 +235,19 @@ defmodule Rindle.Workers.MaintenanceWorkersTest do
       refute_received {:repo_probe, {:delete, MediaUploadSession}}
     end
 
+    test "expires initialized multipart sessions without cleanup side effects in the worker" do
+      asset = create_asset()
+      session = create_multipart_session(asset, %{state: "initialized", expires_at: expired_at()})
+
+      assert :ok = perform_job(AbortIncompleteUploads, %{})
+
+      updated = AdopterRepo.get!(MediaUploadSession, session.id)
+      assert updated.state == "expired"
+      assert_received {:repo_probe, :all}
+      assert_received {:repo_probe, {:update, MediaUploadSession}}
+      refute_received {:repo_probe, {:delete, MediaUploadSession}}
+    end
+
     test "worker is schedulable as Oban cron job" do
       opts = AbortIncompleteUploads.__opts__()
       assert Keyword.get(opts, :queue) == :rindle_maintenance

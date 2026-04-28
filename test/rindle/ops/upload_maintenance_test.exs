@@ -444,6 +444,21 @@ defmodule Rindle.Ops.UploadMaintenanceTest do
       refute_received {:repo_probe, {:delete, MediaUploadSession}}
     end
 
+    test "expires initialized multipart sessions that already have a remote upload id" do
+      asset = create_asset()
+      session = create_multipart_session(asset, %{state: "initialized", expires_at: expired_at()})
+
+      {:ok, report} = UploadMaintenance.abort_incomplete_uploads([])
+
+      assert report.sessions_aborted == 1
+
+      updated = AdopterRepo.get!(MediaUploadSession, session.id)
+      assert updated.state == "expired"
+      assert_received {:repo_probe, :all}
+      assert_received {:repo_probe, {:update, MediaUploadSession}}
+      refute_received {:repo_probe, {:delete, MediaUploadSession}}
+    end
+
     test "returns error tuple when repo raises" do
       # Simulate an error by calling with a bad repo — we just verify the shape
       # via the normal success path being {:ok, map}

@@ -150,7 +150,10 @@ defmodule Rindle.Ops.UploadMaintenance do
 
     query =
       from(s in MediaUploadSession,
-        where: s.state in ["signed", "uploading"],
+        where:
+          s.state in ["signed", "uploading"] or
+            (s.state == "initialized" and s.upload_strategy == "multipart" and
+               not is_nil(s.multipart_upload_id)),
         where: s.expires_at < ^now,
         select: s
       )

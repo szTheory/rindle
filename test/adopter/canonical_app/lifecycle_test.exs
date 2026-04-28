@@ -172,7 +172,8 @@ defmodule Rindle.Adopter.CanonicalApp.LifecycleTest do
         Repo.all(
           Ecto.Query.from(a in MediaAttachment,
             where:
-              a.owner_type == ^to_string(Owner) and a.owner_id == ^owner.id and a.slot == ^"primary"
+              a.owner_type == ^to_string(Owner) and a.owner_id == ^owner.id and
+                a.slot == ^"primary"
           )
         )
 
@@ -260,12 +261,11 @@ defmodule Rindle.Adopter.CanonicalApp.LifecycleTest do
       {:ok, %{session: session}} =
         Rindle.initiate_multipart_upload(AdopterProfile, filename: "stale-multipart.png")
 
-      {:ok, %{session: signed}} = Rindle.sign_multipart_part(session.id, 1)
-      assert signed.state == "signed"
-
       expired_session =
-        signed
-        |> MediaUploadSession.changeset(%{expires_at: DateTime.add(DateTime.utc_now(), -120, :second)})
+        session
+        |> MediaUploadSession.changeset(%{
+          expires_at: DateTime.add(DateTime.utc_now(), -120, :second)
+        })
         |> Repo.update!()
 
       {:ok, abort_report} = UploadMaintenance.abort_incomplete_uploads([])
@@ -274,7 +274,10 @@ defmodule Rindle.Adopter.CanonicalApp.LifecycleTest do
       assert Repo.get!(MediaUploadSession, expired_session.id).state == "expired"
 
       {:ok, cleanup_report} =
-        UploadMaintenance.cleanup_orphans(dry_run: false, storage: AdopterProfile.storage_adapter())
+        UploadMaintenance.cleanup_orphans(
+          dry_run: false,
+          storage: AdopterProfile.storage_adapter()
+        )
 
       assert cleanup_report.sessions_deleted >= 1
       assert Repo.get(MediaUploadSession, expired_session.id) == nil
@@ -321,7 +324,8 @@ defmodule Rindle.Adopter.CanonicalApp.LifecycleTest do
     request = {url_charlist, [], ~c"application/octet-stream", body}
 
     case :httpc.request(:put, request, [], []) do
-      {:ok, {{_http_version, status, _reason}, response_headers, _resp_body}} when status in 200..299 ->
+      {:ok, {{_http_version, status, _reason}, response_headers, _resp_body}}
+      when status in 200..299 ->
         response_headers
         |> Enum.find_value(fn
           {header, value} when header in [~c"etag", ~c"ETag"] -> List.to_string(value)

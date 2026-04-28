@@ -51,6 +51,12 @@ defmodule Rindle.Upload.BrokerTest do
     end
   end
 
+  defmodule FailingTransactionRepo do
+    @moduledoc false
+
+    def transaction(_fun), do: {:error, :session_insert_failed}
+  end
+
   defmodule TestProfile do
     use Rindle.Profile,
       storage: Rindle.StorageMock,
@@ -270,6 +276,41 @@ defmodule Rindle.Upload.BrokerTest do
 
       assert length(AdopterRepo.all(MediaUploadSession)) == session_count_before
       assert length(AdopterRepo.all(MediaAsset)) == asset_count_before
+    end
+
+    test "initiate_multipart_session/2 aborts the remote upload when session persistence fails" do
+      previous_repo = Application.get_env(:rindle, :repo)
+      Application.put_env(:rindle, :repo, FailingTransactionRepo)
+
+      expect(Rindle.StorageMock, :capabilities, fn ->
+        [:presigned_put, :head, :signed_url, :multipart_upload]
+      end)
+
+      expect(Rindle.StorageMock, :initiate_multipart_upload, fn key, part_size, _opts ->
+        {:ok,
+         %{
+           upload_id: "upload-rollback",
+           upload_key: key,
+           part_size: part_size,
+           part_headers: %{}
+         }}
+      end)
+
+      expect(Rindle.StorageMock, :abort_multipart_upload, fn key, upload_id, _opts ->
+        assert key =~ "testprofile"
+        assert upload_id == "upload-rollback"
+        {:ok, :aborted}
+      end)
+
+      on_exit(fn ->
+        case previous_repo do
+          nil -> Application.delete_env(:rindle, :repo)
+          value -> Application.put_env(:rindle, :repo, value)
+        end
+      end)
+
+      assert {:error, :session_insert_failed} =
+               Broker.initiate_multipart_session(TestProfile, filename: "multipart.jpg")
     end
 
     test "sign_multipart_part/3 signs a specific part through the multipart adapter path" do

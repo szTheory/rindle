@@ -79,19 +79,16 @@ defmodule Rindle.Upload.Broker do
     with :ok <- ensure_capability(adapter, :multipart_upload),
          {:ok, multipart} <- adapter.initiate_multipart_upload(storage_key, part_size, opts),
          {:ok, session} <-
-           create_upload_session(
+           persist_multipart_session(
              repo,
+             adapter,
              asset_id,
              profile_name,
              storage_key,
              filename,
              expires_at,
-             %{
-               state: "initialized",
-               upload_strategy: "multipart",
-               multipart_upload_id: multipart.upload_id,
-               multipart_parts: %{}
-             }
+             multipart,
+             opts
            ) do
       emit_upload_start(profile_name, adapter, session.id)
 
@@ -342,6 +339,61 @@ defmodule Rindle.Upload.Broker do
          end) do
       {:ok, session} -> {:ok, session}
       {:error, reason} -> {:error, reason}
+    end
+  end
+
+  defp persist_multipart_session(
+         repo,
+         adapter,
+         asset_id,
+         profile_name,
+         storage_key,
+         filename,
+         expires_at,
+         multipart,
+         opts
+       ) do
+    case create_upload_session(
+           repo,
+           asset_id,
+           profile_name,
+           storage_key,
+           filename,
+           expires_at,
+           %{
+             state: "initialized",
+             upload_strategy: "multipart",
+             multipart_upload_id: multipart.upload_id,
+             multipart_parts: %{}
+           }
+         ) do
+      {:ok, session} ->
+        {:ok, session}
+
+      {:error, reason} ->
+        compensate_failed_multipart_persist(adapter, storage_key, multipart.upload_id, opts)
+        {:error, reason}
+    end
+  end
+
+  defp compensate_failed_multipart_persist(adapter, storage_key, upload_id, opts) do
+    case adapter.abort_multipart_upload(storage_key, upload_id, opts) do
+      {:ok, _} ->
+        :ok
+
+      {:error, :not_found} ->
+        :ok
+
+      {:error, reason} ->
+        require Logger
+
+        Logger.warning("rindle.upload.broker.multipart_persist_compensation_failed",
+          upload_key: storage_key,
+          multipart_upload_id: upload_id,
+          reason: inspect(reason)
+        )
+
+        :ok
     end
   end
 
