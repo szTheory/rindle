@@ -381,12 +381,12 @@ end)
 
 All material claims in this research were verified against the repo, local tool output, or official documentation in this session. No user confirmation is required for core planning decisions. [VERIFIED: this file’s source tags]
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should Phase 9 ship a public Rindle install helper for migrations, or only document a host-app helper?**
-   - What we know: official Ecto tooling already supports the needed multi-path migration behavior, and `Application.app_dir/2` resolves the installed Rindle migration path correctly in a fresh consumer app. [CITED: https://hexdocs.pm/ecto_sql/Ecto.Migrator.html] [CITED: https://hexdocs.pm/elixir/main/Application.html] [VERIFIED: fresh consumer `Application.app_dir(:rindle, \"priv/repo/migrations\")` output (2026-04-28)]
-   - What's unclear: whether the project wants a new public `mix rindle.*` installation task or prefers to avoid expanding the public operational surface in this phase. [VERIFIED: current `lib/mix/tasks/` contains ops tasks but no install task]
-   - Recommendation: plan the smoke harness around a checked-in helper first, and only promote it to a public Mix task if the README would otherwise need brittle host-app boilerplate. [VERIFIED: .planning/phases/09-install-release-confidence/09-CONTEXT.md]
+   - Resolution: **do not add a new public `mix rindle.*` install task in Phase 9.** Keep the executable helper private to the repo-owned smoke harness, and document the adopter-facing install path as an explicit host-app migration snippet built on `Application.app_dir(:rindle, "priv/repo/migrations")`. [VERIFIED: .planning/phases/09-install-release-confidence/09-CONTEXT.md]
+   - Why this is the right cut now: official Ecto tooling already supports the needed multi-path migration behavior, `Application.app_dir/2` resolves the installed Rindle migration path correctly in a fresh consumer app, and adding a new public install task would expand the library's public operational surface without being required to satisfy `RELEASE-01/02/03`. [CITED: https://hexdocs.pm/ecto_sql/Ecto.Migrator.html] [CITED: https://hexdocs.pm/elixir/main/Application.html] [VERIFIED: fresh consumer `Application.app_dir(:rindle, \"priv/repo/migrations\")` output (2026-04-28)]
+   - Planner implication: implement the migration/install proof with a checked-in smoke helper plus docs snippets only; public install-task design is explicitly deferred beyond this phase unless execution proves the documented snippet is unacceptably brittle.
 
 ## Environment Availability
 
