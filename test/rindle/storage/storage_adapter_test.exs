@@ -1,4 +1,5 @@
 defmodule Rindle.Storage.StorageAdapterTest do
+  alias Rindle.Storage.Capabilities
   alias Rindle.Storage.Local
   alias Rindle.Storage.S3
   use ExUnit.Case, async: true
@@ -29,6 +30,14 @@ defmodule Rindle.Storage.StorageAdapterTest do
       variants: [thumb: [mode: :fit, width: 32]]
   end
 
+  defmodule MalformedCapabilitiesAdapter do
+    def capabilities, do: :nope
+  end
+
+  defmodule RaisingCapabilitiesAdapter do
+    def capabilities, do: raise("boom")
+  end
+
   test "both adapters implement the storage behaviour callbacks" do
     Code.ensure_loaded!(Local)
     Code.ensure_loaded!(S3)
@@ -50,9 +59,27 @@ defmodule Rindle.Storage.StorageAdapterTest do
     assert {:abort_multipart_upload, 3} in callbacks
   end
 
+  test "known capabilities include shipped atoms and reserved resumable atoms" do
+    known = Capabilities.known()
+
+    assert :presigned_put in known
+    assert :multipart_upload in known
+    assert :signed_url in known
+    assert :resumable_upload in known
+    assert :resumable_upload_session in known
+  end
+
+  test "safe capabilities normalize malformed adapter implementations" do
+    assert [] == Capabilities.safe(MalformedCapabilitiesAdapter)
+    assert [] == Capabilities.safe(RaisingCapabilitiesAdapter)
+  end
+
   test "capability lists are truthful for local and s3 adapters" do
     assert [:local, :presigned_put] == Local.capabilities()
     assert [:presigned_put, :head, :signed_url, :multipart_upload] == S3.capabilities()
+
+    assert Enum.all?(Local.capabilities(), &(&1 in Capabilities.known()))
+    assert Enum.all?(S3.capabilities(), &(&1 in Capabilities.known()))
   end
 
   test "local multipart operations fail with an explicit capability error" do
