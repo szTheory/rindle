@@ -114,3 +114,8 @@ jobs:
             exit 1
           fi
           mix hex.publish --yes
+
+      - name: Verify public Hex.pm artifact
+        env:
+          HEX_API_KEY: ""
+        run: bash scripts/public_smoke.sh
