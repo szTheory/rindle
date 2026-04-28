@@ -7,6 +7,7 @@ defmodule Rindle.Delivery do
   """
 
   alias Rindle.Domain.StalePolicy
+  alias Rindle.Storage.Capabilities
 
   @type delivery_mode :: :public | :private
 
@@ -99,7 +100,7 @@ defmodule Rindle.Delivery do
     subject = %{profile: profile, key: key, mode: mode}
 
     with :ok <- authorize_delivery(profile, :deliver, subject, opts),
-         :ok <- ensure_signed_delivery_support(adapter, mode),
+         :ok <- require_delivery_support(adapter, mode),
          {:ok, url} <- resolve_url(adapter, key, mode, opts, signed_url_ttl_seconds(profile)) do
       :telemetry.execute(
         [:rindle, :delivery, :signed],
@@ -180,17 +181,10 @@ defmodule Rindle.Delivery do
     end
   end
 
-  defp ensure_signed_delivery_support(_adapter, :public), do: :ok
+  defp require_delivery_support(_adapter, :public), do: :ok
 
-  defp ensure_signed_delivery_support(adapter, :private) do
-    capabilities = safe_capabilities(adapter)
-
-    if :signed_url in capabilities do
-      :ok
-    else
-      {:error, {:delivery_unsupported, :signed_url}}
-    end
-  end
+  defp require_delivery_support(adapter, :private),
+    do: Capabilities.require_delivery(adapter, :signed_url)
 
   defp resolve_url(adapter, key, :public, opts, _ttl) do
     adapter.url(key, opts)
@@ -198,15 +192,6 @@ defmodule Rindle.Delivery do
 
   defp resolve_url(adapter, key, :private, opts, ttl) do
     adapter.url(key, Keyword.put_new(opts, :expires_in, ttl))
-  end
-
-  defp safe_capabilities(adapter) do
-    case adapter.capabilities() do
-      caps when is_list(caps) -> caps
-      _ -> []
-    end
-  rescue
-    _ -> []
   end
 
   defp key_for(%{} = record, key),

@@ -6,6 +6,7 @@ defmodule Rindle.Upload.Broker do
   alias Rindle.Domain.AssetFSM
   alias Rindle.Config
   alias Rindle.Domain.{MediaAsset, MediaUploadSession}
+  alias Rindle.Storage.Capabilities
   alias Rindle.Domain.UploadSessionFSM
   alias Rindle.Security.StorageKey
   alias Rindle.Workers.PromoteAsset
@@ -76,7 +77,7 @@ defmodule Rindle.Upload.Broker do
     part_size = Keyword.get(opts, :part_size, @default_multipart_part_size)
     adapter = profile_module.storage_adapter()
 
-    with :ok <- ensure_capability(adapter, :multipart_upload),
+    with :ok <- Capabilities.require_upload(adapter, :multipart_upload),
          {:ok, multipart} <- adapter.initiate_multipart_upload(storage_key, part_size, opts),
          {:ok, session} <-
            persist_multipart_session(
@@ -159,7 +160,7 @@ defmodule Rindle.Upload.Broker do
          asset <- repo.preload(session, :asset).asset,
          {:ok, profile_module} <- profile_name_to_module(asset.profile),
          adapter <- profile_module.storage_adapter(),
-         :ok <- ensure_capability(adapter, :multipart_upload),
+         :ok <- Capabilities.require_upload(adapter, :multipart_upload),
          expires_in <- Keyword.get(opts, :expires_in, 3600),
          {:ok, presigned} <-
            adapter.presigned_upload_part(
@@ -189,7 +190,7 @@ defmodule Rindle.Upload.Broker do
          asset <- repo.preload(session, :asset).asset,
          {:ok, profile_module} <- profile_name_to_module(asset.profile),
          adapter <- profile_module.storage_adapter(),
-         :ok <- ensure_capability(adapter, :multipart_upload),
+         :ok <- Capabilities.require_upload(adapter, :multipart_upload),
          {:ok, persisted_session} <-
            update_session(repo, session, %{
              multipart_parts: %{"parts" => encode_multipart_parts(normalized_parts)}
@@ -406,14 +407,6 @@ defmodule Rindle.Upload.Broker do
 
       updated_session
     end)
-  end
-
-  defp ensure_capability(adapter, capability) do
-    if capability in adapter.capabilities() do
-      :ok
-    else
-      {:error, {:upload_unsupported, capability}}
-    end
   end
 
   defp ensure_multipart_session(%MediaUploadSession{
