@@ -2,6 +2,7 @@ defmodule Rindle.DeliveryTest do
   use Rindle.DataCase, async: true
 
   import Mox
+  alias Rindle.Storage.Capabilities
 
   setup :set_mox_from_context
   setup :verify_on_exit!
@@ -93,6 +94,11 @@ defmodule Rindle.DeliveryTest do
 
     assert {:error, {:delivery_unsupported, :signed_url}} =
              Rindle.Delivery.url(UnsupportedProfile, key)
+  end
+
+  test "shared delivery capability helper preserves tagged unsupported tuples" do
+    assert {:error, {:delivery_unsupported, :signed_url}} =
+             Capabilities.require_delivery(Rindle.Storage.Local, :signed_url)
   end
 
   test "variant_url/4 falls back to original for non-ready variants" do

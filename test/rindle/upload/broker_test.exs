@@ -77,6 +77,20 @@ defmodule Rindle.Upload.BrokerTest do
       max_bytes: 10_485_760
   end
 
+  defmodule MalformedCapabilitiesStorage do
+    def capabilities, do: :broken
+  end
+
+  defmodule MalformedCapabilitiesProfile do
+    use Rindle.Profile,
+      storage: MalformedCapabilitiesStorage,
+      variants: [
+        thumb: [mode: :crop, width: 100, height: 100]
+      ],
+      allow_mime: ["image/jpeg"],
+      max_bytes: 10_485_760
+  end
+
   setup do
     case start_supervised(Rindle.Adopter.CanonicalApp.Repo) do
       {:ok, _pid} -> :ok
@@ -313,6 +327,14 @@ defmodule Rindle.Upload.BrokerTest do
                Broker.initiate_multipart_session(TestProfile, filename: "multipart.jpg")
     end
 
+    test "initiate_multipart_session/2 treats malformed capability declarations as unsupported" do
+      assert {:error, {:upload_unsupported, :multipart_upload}} =
+               Broker.initiate_multipart_session(
+                 MalformedCapabilitiesProfile,
+                 filename: "multipart.jpg"
+               )
+    end
+
     test "sign_multipart_part/3 signs a specific part through the multipart adapter path" do
       expect(Rindle.StorageMock, :capabilities, fn ->
         [:presigned_put, :head, :signed_url, :multipart_upload]
@@ -414,6 +436,14 @@ defmodule Rindle.Upload.BrokerTest do
       assert {:error, {:upload_unsupported, :multipart_upload}} =
                Broker.initiate_multipart_session(UnsupportedMultipartProfile,
                  filename: "multipart.jpg"
+               )
+    end
+
+    test "reserved resumable capabilities fail with the same tagged helper contract" do
+      assert {:error, {:upload_unsupported, :resumable_upload_session}} =
+               Rindle.Storage.Capabilities.require_upload(
+                 UnsupportedMultipartProfile.storage_adapter(),
+                 :resumable_upload_session
                )
     end
   end
