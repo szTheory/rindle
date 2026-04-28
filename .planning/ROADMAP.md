@@ -49,7 +49,7 @@ Rindle APIs no longer require or leak `Rindle.Repo` in consumer code paths
 
 Plans:
 - [x] 06-01-PLAN.md — add the runtime Repo seam and remove facade-level `Rindle.Repo` ownership leaks
-- [ ] 06-02-PLAN.md — move broker flows and canonical adopter proof onto the runtime Repo contract
+- [x] 06-02-PLAN.md — move broker flows and canonical adopter proof onto the runtime Repo contract
 - [ ] 06-03-PLAN.md — align guides with adopter-owned Repo setup and explicit default-Oban scope
 
 ### Phase 7: Multipart Uploads
@@ -102,7 +102,7 @@ Phases execute in numeric order: 6 -> 7 -> 8 -> 9
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 6. Adopter Runtime Ownership | 1/3 | In Progress | — |
+| 6. Adopter Runtime Ownership | 2/3 | In Progress | — |
 | 7. Multipart Uploads | 0/0 | Pending | — |
 | 8. Storage Capability Confidence | 0/0 | Pending | — |
 | 9. Install & Release Confidence | 0/0 | Pending | — |

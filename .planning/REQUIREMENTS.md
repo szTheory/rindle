@@ -11,9 +11,9 @@
   `config :rindle, :repo, MyApp.Repo`
 - [x] **ADOPT-02**: Public runtime APIs use the configured adopter Repo instead
   of hard-coded `Rindle.Repo`
-- [ ] **ADOPT-03**: Canonical adopter integration proves upload, attach,
+- [x] **ADOPT-03**: Canonical adopter integration proves upload, attach,
   detach, and delivery flows work with an adopter-owned Repo
-- [ ] **ADOPT-04**: Guides and examples document adopter-owned Repo and Oban
+- [x] **ADOPT-04**: Guides and examples document adopter-owned Repo and Oban
   ownership without repo-internal assumptions
 
 ### Multipart Uploads
@@ -80,8 +80,8 @@
 |-------------|-------|--------|
 | ADOPT-01 | Phase 6 | Complete |
 | ADOPT-02 | Phase 6 | Complete |
-| ADOPT-03 | Phase 6 | Pending |
-| ADOPT-04 | Phase 6 | Pending |
+| ADOPT-03 | Phase 6 | Complete |
+| ADOPT-04 | Phase 6 | Complete |
 | MULT-01 | Phase 7 | Pending |
 | MULT-02 | Phase 7 | Pending |
 | MULT-03 | Phase 7 | Pending |
