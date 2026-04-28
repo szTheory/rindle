@@ -137,6 +137,13 @@ def handle_event([:rindle, :cleanup, :run], measurements, meta, _) do
 end
 ```
 
+## Release Publishing
+
+Maintainer-only first-publish steps live in
+[`guides/release_publish.md`](release_publish.html). Keep release
+versioning, Hex owner/auth checks, and package-metadata review there so
+adopter onboarding docs stay focused on installation and runtime use.
+
 ## Operational Tips
 
 - **Always start in dry-run.** `mix rindle.cleanup_orphans` defaults to

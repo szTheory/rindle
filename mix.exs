@@ -106,6 +106,7 @@ defmodule Rindle.MixProject do
         "guides/secure_delivery.md",
         "guides/background_processing.md",
         "guides/operations.md",
+        "guides/release_publish.md",
         "guides/troubleshooting.md"
       ],
       groups_for_extras: [
