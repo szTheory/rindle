@@ -101,46 +101,16 @@ jobs:
       # Set a dummy HEX_API_KEY so the dry-run never attempts a real publish
       # even if the auth check is bypassed; the dry-run does not actually
       # PUT to the Hex API. When 1.0 cutover wires a real key, replace this
-      # with `${{ secrets.HEX_API_KEY }}` (which becomes available because of
-      # the `environment: release` declaration above).
+      # shim with the protected release-environment Hex secret made available
+      # through the `environment: release` declaration above.
       - name: Set Hex auth shim
         run: echo "HEX_API_KEY=dryrun-placeholder" >> $GITHUB_ENV
 
-      # Step 1: hex.build is the must-pass step (no auth required).
-      - name: Build package artifact
-        run: mix hex.build --unpack
-
-      - name: Assert required paths present in tarball
-        run: |
-          set -e
-          ls rindle-*/lib/rindle.ex
-          ls rindle-*/mix.exs
-          ls rindle-*/README.md
-          ls rindle-*/LICENSE
-          ls rindle-*/guides/getting_started.md
-
-      - name: Assert prohibited paths absent from tarball
-        run: |
-          set -e
-          if [ -e rindle-*/_build ];      then echo "FAIL: _build leaked into tarball"; exit 1; fi
-          if [ -e rindle-*/.planning ];   then echo "FAIL: .planning leaked into tarball"; exit 1; fi
-          if [ -e rindle-*/priv/plts ];   then echo "FAIL: priv/plts leaked into tarball"; exit 1; fi
-          if [ -e rindle-*/test ];        then echo "FAIL: test/ leaked into tarball"; exit 1; fi
-          if [ -e rindle-*/coveralls.json ]; then echo "FAIL: coveralls.json leaked"; exit 1; fi
-          if [ -e rindle-*/.github ];     then echo "FAIL: .github leaked into tarball"; exit 1; fi
-
-      - name: Run package-consumer install smoke
-        env:
-          MIX_ENV: test
-        run: |
-          export RINDLE_INSTALL_SMOKE_PACKAGE_ROOT
-          RINDLE_INSTALL_SMOKE_PACKAGE_ROOT=$(echo "$GITHUB_WORKSPACE"/rindle-*)
-          bash scripts/install_smoke.sh
-
-      - name: Run docs parity gate directly
-        env:
-          MIX_ENV: test
-        run: mix test test/install_smoke/docs_parity_test.exs
+      # Step 1: shared release preflight is the must-pass gate. It builds the
+      # unpacked artifact, inspects package metadata, reuses the package-consumer
+      # install smoke lane from Phase 9, and treats docs warnings as failures.
+      - name: Run release preflight
+        run: bash scripts/release_preflight.sh
 
       # Step 2: hex.publish --dry-run is the additional metadata gate.
       # If it fails due to auth (A1 — confirmed required by Hex CLI),

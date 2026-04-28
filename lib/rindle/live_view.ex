@@ -38,18 +38,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     @doc """
     Configures an upload on the socket with Rindle's external upload signer.
 
-    Wraps `Phoenix.LiveView.Upload.allow_upload/3` and sets the `:external`
-    option to a function that initiates a Rindle upload session and returns
-    a presigned PUT URL.
+    Wraps LiveView upload configuration and sets the `:external` option to a
+    function that initiates a Rindle upload session and returns a presigned PUT
+    URL.
 
     ## Parameters
 
       * `socket` - The LiveView socket
       * `name` - The upload name (atom), e.g. `:avatar`
       * `profile` - The Rindle profile module to use for storage/validation
-      * `opts` - Options passed through to `allow_upload/3` (e.g. `:accept`,
-        `:max_entries`, `:max_file_size`). The `:external` key is set by Rindle
-        and should not be provided.
+      * `opts` - Options passed through to the LiveView upload configuration
+        (for example `:accept`, `:max_entries`, `:max_file_size`). The
+        `:external` key is set by Rindle and should not be provided.
 
     ## Returns
 
