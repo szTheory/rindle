@@ -177,3 +177,102 @@ defmodule Rindle.Upload.LifecycleIntegrationTest do
     refute File.exists?(Path.join(root, asset.storage_key))
   end
 end
+
+defmodule Rindle.Upload.AdopterRepoLifecycleIntegrationTest do
+  use Rindle.DataCase, async: false
+  use Oban.Testing, repo: Rindle.Adopter.CanonicalApp.Repo
+
+  alias Rindle.Adopter.CanonicalApp.Repo
+  alias Rindle.Domain.{MediaAsset, MediaVariant}
+  alias Rindle.Workers.{ProcessVariant, PromoteAsset}
+
+  @moduletag :integration
+  @moduletag sandbox_repo: Rindle.Adopter.CanonicalApp.Repo
+
+  @png_1x1 <<0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D, 0x49, 0x48,
+             0x44, 0x52, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x08, 0x02, 0x00, 0x00,
+             0x00, 0x90, 0x77, 0x53, 0xDE, 0x00, 0x00, 0x00, 0x0C, 0x49, 0x44, 0x41, 0x54, 0x08,
+             0xD7, 0x63, 0xF8, 0xFF, 0xFF, 0x3F, 0x00, 0x05, 0xFE, 0x02, 0xFE, 0xDC, 0x44, 0x74,
+             0x06, 0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82>>
+
+  defmodule LocalProfile do
+    use Rindle.Profile,
+      storage: Rindle.Storage.Local,
+      variants: [thumb: [mode: :fit, width: 8, height: 8]],
+      allow_mime: ["image/png"],
+      max_bytes: 10_485_760
+  end
+
+  setup do
+    case start_supervised(Rindle.Adopter.CanonicalApp.Repo) do
+      {:ok, _pid} -> :ok
+      {:error, {:already_started, _}} -> :ok
+    end
+
+    root =
+      Path.join(System.tmp_dir!(), "rindle-adopter-integration-#{System.unique_integer([:positive])}")
+
+    File.mkdir_p!(root)
+
+    previous_local = Application.get_env(:rindle, Rindle.Storage.Local)
+    previous_repo = Application.get_env(:rindle, :repo)
+
+    Application.put_env(:rindle, Rindle.Storage.Local, root: root)
+    Application.put_env(:rindle, :repo, Rindle.Adopter.CanonicalApp.Repo)
+
+    on_exit(fn ->
+      case previous_local do
+        nil -> Application.delete_env(:rindle, Rindle.Storage.Local)
+        value -> Application.put_env(:rindle, Rindle.Storage.Local, value)
+      end
+
+      case previous_repo do
+        nil -> Application.delete_env(:rindle, :repo)
+        value -> Application.put_env(:rindle, :repo, value)
+      end
+
+      File.rm_rf(root)
+    end)
+
+    {:ok, root: root}
+  end
+
+  defp write_fixture(root, name) do
+    path = Path.join(root, name)
+    File.write!(path, @png_1x1)
+    path
+  end
+
+  test "proxied upload promotes the asset and generates a ready variant through the adopter repo", %{
+    root: root
+  } do
+    source = write_fixture(root, "proxied-adopter-source.png")
+
+    {:ok, asset} =
+      Rindle.upload(LocalProfile, %{
+        path: source,
+        filename: "proxied-adopter.png",
+        byte_size: File.stat!(source).size
+      })
+
+    assert asset.state == "analyzing"
+    assert File.exists?(Path.join(root, asset.storage_key))
+    assert_enqueued worker: PromoteAsset, args: %{"asset_id" => asset.id}
+
+    assert :ok = perform_job(PromoteAsset, %{"asset_id" => asset.id})
+
+    asset = Repo.get!(MediaAsset, asset.id)
+    assert asset.state == "available"
+
+    assert_enqueued worker: ProcessVariant,
+                    args: %{"asset_id" => asset.id, "variant_name" => "thumb"}
+
+    assert :ok = perform_job(ProcessVariant, %{"asset_id" => asset.id, "variant_name" => "thumb"})
+
+    variant = Repo.get_by!(MediaVariant, asset_id: asset.id, name: "thumb")
+
+    assert variant.state == "ready"
+    assert variant.byte_size > 0
+    assert File.exists?(Path.join(root, variant.storage_key))
+  end
+end

@@ -7,29 +7,19 @@ defmodule Rindle.Adopter.CanonicalApp.LifecycleTest do
   This file is the source of truth for `guides/getting_started.md` (D-16).
   The snippet shown in that guide must match the public API calls below;
   drift between this file and the guide breaks DOC-01 acceptance.
-
-  # TODO(adopter-repo): `Rindle.Repo` is hard-coded inside `lib/rindle.ex`
-  # at lines 91, 101, 123, 130, and 211 (in `attach/4`, `detach/3`, and
-  # `upload/3`). Per D-09 in `.planning/phases/05-ci-1-0-readiness/05-CONTEXT.md`
-  # and Open Question 1 in `05-RESEARCH.md`, this leak is documented as a
-  # v1.1 follow-up: introduce `config :rindle, :repo` runtime resolution so
-  # the public facade respects the adopter-repo-first stance (D-01 in
-  # `01-CONTEXT.md`). The adopter test currently still funnels through
-  # `Rindle.Repo` via the shared Sandbox-wrapped test DB (Assumption A3 in
-  # `05-RESEARCH.md`); this works in CI but leaves the runtime contract
-  # unenforced. Track in v1.1.
   """
 
   use Rindle.DataCase, async: false
-  use Oban.Testing, repo: Rindle.Repo
+  use Oban.Testing, repo: Rindle.Adopter.CanonicalApp.Repo
 
-  alias Ecto.Adapters.SQL.Sandbox
   alias Rindle.Adopter.CanonicalApp.Profile, as: AdopterProfile
-  alias Rindle.Domain.{MediaAsset, MediaVariant}
+  alias Rindle.Adopter.CanonicalApp.Repo
+  alias Rindle.Domain.{MediaAsset, MediaAttachment, MediaVariant}
   alias Rindle.Upload.Broker
   alias Rindle.Workers.{ProcessVariant, PromoteAsset, PurgeStorage}
 
   @moduletag :adopter
+  @moduletag sandbox_repo: Rindle.Adopter.CanonicalApp.Repo
 
   # 1×1 transparent PNG — matches the fixture used in the proxied integration
   # test (test/rindle/upload/lifecycle_integration_test.exs L9-13).
@@ -61,9 +51,6 @@ defmodule Rindle.Adopter.CanonicalApp.LifecycleTest do
       {:error, {:already_started, _}} -> :ok
     end
 
-    Sandbox.checkout(Rindle.Adopter.CanonicalApp.Repo)
-    Sandbox.mode(Rindle.Adopter.CanonicalApp.Repo, {:shared, self()})
-
     # Configure the S3 adapter for MinIO from env vars (CI sets these; locally
     # they default to a localhost MinIO at :9000 with the published default
     # credentials).
@@ -75,9 +62,11 @@ defmodule Rindle.Adopter.CanonicalApp.LifecycleTest do
 
     %URI{host: host, port: port, scheme: scheme} = URI.parse(minio_url)
 
+    previous_repo = Application.get_env(:rindle, :repo)
     previous_s3 = Application.get_env(:rindle, Rindle.Storage.S3)
     previous_ex_aws = Application.get_env(:ex_aws, :s3)
 
+    Application.put_env(:rindle, :repo, Rindle.Adopter.CanonicalApp.Repo)
     Application.put_env(:rindle, Rindle.Storage.S3, bucket: bucket)
 
     Application.put_env(:ex_aws, :s3,
@@ -90,6 +79,11 @@ defmodule Rindle.Adopter.CanonicalApp.LifecycleTest do
     )
 
     on_exit(fn ->
+      case previous_repo do
+        nil -> Application.delete_env(:rindle, :repo)
+        value -> Application.put_env(:rindle, :repo, value)
+      end
+
       case previous_s3 do
         nil -> Application.delete_env(:rindle, Rindle.Storage.S3)
         value -> Application.put_env(:rindle, Rindle.Storage.S3, value)
@@ -128,18 +122,19 @@ defmodule Rindle.Adopter.CanonicalApp.LifecycleTest do
       assert completed.state == "completed"
       assert asset.state == "validating"
       assert_enqueued(worker: PromoteAsset, args: %{"asset_id" => asset.id})
+      assert Repo.get!(Rindle.Domain.MediaUploadSession, session.id).state == "completed"
 
       # ── Step 5: Run promotion synchronously ──────────────────────────────
       assert :ok = perform_job(PromoteAsset, %{"asset_id" => asset.id})
 
-      asset = Rindle.Repo.get!(MediaAsset, asset.id)
+      asset = Repo.get!(MediaAsset, asset.id)
       assert asset.state in ["available", "processing", "ready"]
 
       # ── Step 6: Run any enqueued ProcessVariant jobs ─────────────────────
       # ProcessVariant takes %{"asset_id", "variant_name"} (NOT variant_id);
       # see lib/rindle/workers/process_variant.ex:14.
       variants =
-        Rindle.Repo.all(Ecto.Query.from(v in MediaVariant, where: v.asset_id == ^asset.id))
+        Repo.all(Ecto.Query.from(v in MediaVariant, where: v.asset_id == ^asset.id))
 
       assert variants != []
 
@@ -153,7 +148,7 @@ defmodule Rindle.Adopter.CanonicalApp.LifecycleTest do
 
       # Reload variants to confirm they reached :ready.
       ready_variants =
-        Rindle.Repo.all(Ecto.Query.from(v in MediaVariant, where: v.asset_id == ^asset.id))
+        Repo.all(Ecto.Query.from(v in MediaVariant, where: v.asset_id == ^asset.id))
 
       assert Enum.all?(ready_variants, &(&1.state == "ready"))
 
@@ -167,13 +162,25 @@ defmodule Rindle.Adopter.CanonicalApp.LifecycleTest do
       #   Rindle.attach(asset_or_id, owner, slot, _opts \\ [])
       #   → {:ok, %MediaAttachment{}} | {:error, term()}
       owner = %Owner{id: Ecto.UUID.generate()}
-      {:ok, _attachment} = Rindle.attach(asset.id, owner, "primary")
+      {:ok, attachment} = Rindle.attach(asset.id, owner, "primary")
+      assert attachment.asset_id == asset.id
+
+      attachments =
+        Repo.all(
+          Ecto.Query.from(a in MediaAttachment,
+            where:
+              a.owner_type == ^to_string(Owner) and a.owner_id == ^owner.id and a.slot == ^"primary"
+          )
+        )
+
+      assert length(attachments) == 1
 
       # ── Step 9: Adopter detaches and triggers async purge ────────────────
       # Public signature (lib/rindle.ex:112):
       #   Rindle.detach(owner, slot, _opts \\ [])
       #   → :ok | {:error, term()}
       assert :ok = Rindle.detach(owner, "primary")
+      assert Repo.all(MediaAttachment) == []
       assert_enqueued(worker: PurgeStorage, args: %{"asset_id" => asset.id})
     end
   end

@@ -20,11 +20,9 @@ config :rindle, Rindle.Repo,
 # by the application supervisor) — it exists only to prove the adopter-repo-first
 # pattern works architecturally. The adopter lifecycle test starts it explicitly
 # via `start_supervised/1`, and shares the same test database as `Rindle.Repo`
-# via Ecto SQL Sandbox (Assumption A3 in 05-RESEARCH.md).
-#
-# The runtime gap — `lib/rindle.ex` still hard-codes `Rindle.Repo` at multiple
-# call sites (L91/101/123/130/211) — is documented as a v1.1 follow-up in the
-# adopter lifecycle test's TODO comment (D-09 / Open Question 1).
+# via Ecto SQL Sandbox (Assumption A3 in 05-RESEARCH.md). Phase 06 uses it to
+# prove the configured runtime repo boundary instead of falling back to
+# `Rindle.Repo`.
 config :rindle, Rindle.Adopter.CanonicalApp.Repo,
   username: db_user,
   password: db_password,

@@ -20,7 +20,8 @@ defmodule Rindle.DataCase do
   end
 
   def setup_sandbox(tags) do
-    pid = Sandbox.start_owner!(Rindle.Repo, shared: not tags[:async])
+    repo = tags[:sandbox_repo] || Rindle.Repo
+    pid = Sandbox.start_owner!(repo, shared: not tags[:async])
     on_exit(fn -> Sandbox.stop_owner(pid) end)
   end
 end
