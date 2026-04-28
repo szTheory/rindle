@@ -49,6 +49,26 @@ defmodule Rindle.Storage.Local do
   end
 
   @impl true
+  def initiate_multipart_upload(_key, _part_size, _opts) do
+    {:error, {:upload_unsupported, :multipart_upload}}
+  end
+
+  @impl true
+  def presigned_upload_part(_key, _upload_id, _part_number, _expires_in, _opts) do
+    {:error, {:upload_unsupported, :multipart_upload}}
+  end
+
+  @impl true
+  def complete_multipart_upload(_key, _upload_id, _parts, _opts) do
+    {:error, {:upload_unsupported, :multipart_upload}}
+  end
+
+  @impl true
+  def abort_multipart_upload(_key, _upload_id, _opts) do
+    {:error, {:upload_unsupported, :multipart_upload}}
+  end
+
+  @impl true
   def head(key, opts) do
     path = storage_path(key, opts)
 

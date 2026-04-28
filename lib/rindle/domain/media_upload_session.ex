@@ -1,6 +1,6 @@
 defmodule Rindle.Domain.MediaUploadSession do
   @moduledoc """
-  Ecto schema for a presigned upload session.
+  Ecto schema for a direct upload session.
 
   A `MediaUploadSession` tracks the lifecycle of a direct-to-storage
   upload — from the moment Rindle issues a presigned PUT URL through
@@ -47,6 +47,9 @@ defmodule Rindle.Domain.MediaUploadSession do
   schema "media_upload_sessions" do
     field :state, :string, default: "initialized"
     field :upload_key, :string
+    field :upload_strategy, :string, default: "presigned_put"
+    field :multipart_upload_id, :string
+    field :multipart_parts, :map, default: %{}
     field :expires_at, :utc_datetime_usec
     field :verified_at, :utc_datetime_usec
     field :failure_reason, :string
@@ -59,8 +62,18 @@ defmodule Rindle.Domain.MediaUploadSession do
   @spec changeset(t() | %__MODULE__{}, map()) :: Ecto.Changeset.t()
   def changeset(upload_session, attrs) do
     upload_session
-    |> cast(attrs, [:asset_id, :state, :upload_key, :expires_at, :verified_at, :failure_reason])
-    |> validate_required([:asset_id, :state, :upload_key, :expires_at])
+    |> cast(attrs, [
+      :asset_id,
+      :state,
+      :upload_key,
+      :upload_strategy,
+      :multipart_upload_id,
+      :multipart_parts,
+      :expires_at,
+      :verified_at,
+      :failure_reason
+    ])
+    |> validate_required([:asset_id, :state, :upload_key, :upload_strategy, :expires_at])
     |> validate_inclusion(:state, @states)
     |> foreign_key_constraint(:asset_id)
   end

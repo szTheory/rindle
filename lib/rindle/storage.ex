@@ -22,6 +22,33 @@ defmodule Rindle.Storage do
   @callback presigned_put(key :: String.t(), expires_in :: pos_integer(), opts :: keyword()) ::
               {:ok, map()} | {:error, term()}
 
+  @callback initiate_multipart_upload(
+              key :: String.t(),
+              part_size :: pos_integer(),
+              opts :: keyword()
+            ) :: {:ok, map()} | {:error, term()}
+
+  @callback presigned_upload_part(
+              key :: String.t(),
+              upload_id :: String.t(),
+              part_number :: pos_integer(),
+              expires_in :: pos_integer(),
+              opts :: keyword()
+            ) :: {:ok, map()} | {:error, term()}
+
+  @callback complete_multipart_upload(
+              key :: String.t(),
+              upload_id :: String.t(),
+              parts :: [map() | {pos_integer(), String.t()}],
+              opts :: keyword()
+            ) :: {:ok, map()} | {:error, term()}
+
+  @callback abort_multipart_upload(
+              key :: String.t(),
+              upload_id :: String.t(),
+              opts :: keyword()
+            ) :: {:ok, term()} | {:error, term()}
+
   @callback head(key :: String.t(), opts :: keyword()) ::
               {:ok, map()} | {:error, term()}
 

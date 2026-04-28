@@ -70,6 +70,60 @@ defmodule Rindle.Storage.S3 do
   end
 
   @impl true
+  def initiate_multipart_upload(key, part_size, opts) do
+    with {:ok, bucket} <- bucket(opts),
+         {:ok, %{body: %{upload_id: upload_id}}} <-
+           request(S3.initiate_multipart_upload(bucket, key, object_opts(opts)), opts) do
+      {:ok, %{upload_id: upload_id, upload_key: key, bucket: bucket, part_size: part_size}}
+    else
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  @impl true
+  def presigned_upload_part(key, upload_id, part_number, expires_in, opts) do
+    with {:ok, bucket} <- bucket(opts),
+         {:ok, url} <-
+           S3.presigned_url(s3_config(opts), :put, bucket, key,
+             expires_in: expires_in,
+             query_params: [
+               {"partNumber", Integer.to_string(part_number)},
+               {"uploadId", upload_id}
+             ]
+           ) do
+      {:ok,
+       %{
+         url: url,
+         method: :put,
+         headers: %{},
+         part_number: part_number,
+         upload_id: upload_id
+       }}
+    end
+  end
+
+  @impl true
+  def complete_multipart_upload(key, upload_id, parts, opts) do
+    with {:ok, bucket} <- bucket(opts),
+         {:ok, %{body: body}} <-
+           request(S3.complete_multipart_upload(bucket, key, upload_id, normalize_parts(parts)), opts) do
+      {:ok, Map.merge(%{upload_id: upload_id, upload_key: key, bucket: bucket}, body)}
+    else
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  @impl true
+  def abort_multipart_upload(key, upload_id, opts) do
+    with {:ok, bucket} <- bucket(opts),
+         {:ok, response} <- request(S3.abort_multipart_upload(bucket, key, upload_id), opts) do
+      {:ok, %{response: response, upload_id: upload_id, upload_key: key, bucket: bucket}}
+    else
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  @impl true
   def head(key, opts) do
     with {:ok, bucket} <- bucket(opts) do
       handle_head_response(request(S3.head_object(bucket, key), opts))
@@ -91,7 +145,7 @@ defmodule Rindle.Storage.S3 do
   defp handle_head_response({:error, reason}), do: {:error, reason}
 
   @impl true
-  def capabilities, do: [:presigned_put, :head, :signed_url]
+  def capabilities, do: [:presigned_put, :head, :signed_url, :multipart_upload]
 
   defp parse_size(nil), do: 0
 
@@ -103,6 +157,14 @@ defmodule Rindle.Storage.S3 do
   end
 
   defp parse_size(val) when is_integer(val), do: val
+
+  defp normalize_parts(parts) do
+    Enum.map(parts, fn
+      %{part_number: part_number, etag: etag} -> {part_number, etag}
+      %{"part_number" => part_number, "etag" => etag} -> {part_number, etag}
+      {part_number, etag} -> {part_number, etag}
+    end)
+  end
 
   defp bucket(opts) do
     case Keyword.get(opts, :bucket) || Application.get_env(:rindle, __MODULE__, [])[:bucket] do
