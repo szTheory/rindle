@@ -2,6 +2,8 @@ defmodule Rindle.Upload.LifecycleIntegrationTest do
   use Rindle.DataCase, async: false
   use Oban.Testing, repo: Rindle.Repo
 
+  import Mox
+
   alias Rindle.Domain.{MediaAsset, MediaAttachment, MediaUploadSession, MediaVariant}
   alias Rindle.Upload.Broker
   alias Rindle.Workers.{ProcessVariant, PromoteAsset, PurgeStorage}
@@ -15,6 +17,14 @@ defmodule Rindle.Upload.LifecycleIntegrationTest do
   defmodule LocalProfile do
     use Rindle.Profile,
       storage: Rindle.Storage.Local,
+      variants: [thumb: [mode: :fit, width: 8, height: 8]],
+      allow_mime: ["image/png"],
+      max_bytes: 10_485_760
+  end
+
+  defmodule MultipartProfile do
+    use Rindle.Profile,
+      storage: Rindle.StorageMock,
       variants: [thumb: [mode: :fit, width: 8, height: 8]],
       allow_mime: ["image/png"],
       max_bytes: 10_485_760
@@ -77,6 +87,78 @@ defmodule Rindle.Upload.LifecycleIntegrationTest do
 
     assert Rindle.Repo.get!(MediaUploadSession, session.id).state == "completed"
     assert_enqueued worker: PromoteAsset, args: %{"asset_id" => asset.id}
+  end
+
+  @tag :integration
+  test "multipart upload completes through broker and queues promotion" do
+    expect(Rindle.StorageMock, :capabilities, 3, fn ->
+      [:presigned_put, :head, :signed_url, :multipart_upload]
+    end)
+
+    expect(Rindle.StorageMock, :initiate_multipart_upload, fn key, part_size, _opts ->
+      assert String.ends_with?(key, ".png")
+      assert part_size > 0
+      {:ok, %{upload_id: "upload-123", upload_key: key, part_size: part_size, part_headers: %{}}}
+    end)
+
+    expect(Rindle.StorageMock, :presigned_upload_part, 2, fn key, "upload-123", part_number, _expires_in, _opts ->
+      {:ok,
+       %{
+         url: "https://example.com/#{key}?partNumber=#{part_number}",
+         method: :put,
+         headers: %{},
+         upload_id: "upload-123",
+         part_number: part_number
+       }}
+    end)
+
+    expect(Rindle.StorageMock, :complete_multipart_upload, fn key, "upload-123", parts, _opts ->
+      assert [%{etag: "\"etag-1\"", part_number: 1}, %{etag: "\"etag-2\"", part_number: 2}] = parts
+      {:ok, %{upload_id: "upload-123", upload_key: key}}
+    end)
+
+    expect(Rindle.StorageMock, :head, fn _key, _opts ->
+      {:ok, %{size: byte_size(@png_1x1), content_type: "image/png"}}
+    end)
+
+    assert {:ok, %{session: session, multipart: multipart}} =
+             Rindle.initiate_multipart_upload(MultipartProfile, filename: "direct-multipart.png")
+
+    assert session.state == "initialized"
+    assert session.upload_strategy == "multipart"
+    assert multipart.upload_id == "upload-123"
+
+    assert {:ok, %{session: signed_session, presigned: part1}} =
+             Rindle.sign_multipart_part(session.id, 1)
+
+    assert {:ok, %{session: signed_again, presigned: part2}} =
+             Rindle.sign_multipart_part(session.id, 2)
+
+    assert signed_session.state == "signed"
+    assert signed_again.state == "signed"
+    assert part1.part_number == 1
+    assert part2.part_number == 2
+
+    assert {:ok, %{session: completed, asset: asset}} =
+             Rindle.complete_multipart_upload(session.id, [
+               %{part_number: 1, etag: "\"etag-1\""},
+               %{part_number: 2, etag: "\"etag-2\""}
+             ])
+
+    assert completed.state == "completed"
+    assert completed.verified_at != nil
+    assert asset.state == "validating"
+    assert_enqueued worker: PromoteAsset, args: %{"asset_id" => asset.id}
+
+    persisted = Rindle.Repo.get!(MediaUploadSession, session.id)
+    assert persisted.state == "completed"
+    assert persisted.multipart_upload_id == "upload-123"
+    assert persisted.multipart_parts == %{
+             "parts" => [
+               %{"etag" => "\"etag-1\"", "part_number" => 1},
+               %{"etag" => "\"etag-2\"", "part_number" => 2}
+             ]
+           }
   end
 
   @tag :integration
