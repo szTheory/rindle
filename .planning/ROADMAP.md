@@ -70,7 +70,7 @@ preserves Rindle's verification, cleanup, and state-machine guarantees
 
 Plans:
 - [x] 07-01-PLAN.md — add multipart session persistence, storage callbacks, broker entrypoints, and tagged capability errors
-- [ ] 07-02-PLAN.md — close the maintenance repo seam and add retry-safe multipart abort cleanup
+- [x] 07-02-PLAN.md — close the maintenance repo seam and add retry-safe multipart abort cleanup
 - [ ] 07-03-PLAN.md — prove multipart completion and cleanup through the MinIO-backed integration and adopter harness
 
 ### Phase 8: Storage Capability Confidence
@@ -109,6 +109,6 @@ Phases execute in numeric order: 6 -> 7 -> 8 -> 9
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 6. Adopter Runtime Ownership | 3/3 | Complete | 2026-04-28 |
-| 7. Multipart Uploads | 1/3 | In Progress | — |
+| 7. Multipart Uploads | 2/3 | In Progress | — |
 | 8. Storage Capability Confidence | 0/0 | Pending | — |
 | 9. Install & Release Confidence | 0/0 | Pending | — |
