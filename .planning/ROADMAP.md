@@ -57,6 +57,7 @@ Plans:
 preserves Rindle's verification, cleanup, and state-machine guarantees
 **Depends on**: Phase 6
 **Requirements**: MULT-01, MULT-02, MULT-03, MULT-04
+**Plans**: 3 plans
 **Success Criteria** (what must be TRUE):
 1. A supported S3-compatible adapter can initiate multipart uploads and return
    the data the client needs to upload parts safely
@@ -66,6 +67,11 @@ preserves Rindle's verification, cleanup, and state-machine guarantees
    so incomplete uploads do not leak storage cost
 4. Adapters that do not support multipart return explicit tagged capability
    errors instead of ambiguous runtime failures
+
+Plans:
+- [ ] 07-01-PLAN.md — add multipart session persistence, storage callbacks, broker entrypoints, and tagged capability errors
+- [ ] 07-02-PLAN.md — close the maintenance repo seam and add retry-safe multipart abort cleanup
+- [ ] 07-03-PLAN.md — prove multipart completion and cleanup through the MinIO-backed integration and adopter harness
 
 ### Phase 8: Storage Capability Confidence
 **Goal**: provider differences are encoded honestly in capability contracts and
@@ -103,6 +109,6 @@ Phases execute in numeric order: 6 -> 7 -> 8 -> 9
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 6. Adopter Runtime Ownership | 2/3 | In Progress | — |
-| 7. Multipart Uploads | 0/0 | Pending | — |
+| 7. Multipart Uploads | 0/3 | Pending | — |
 | 8. Storage Capability Confidence | 0/0 | Pending | — |
 | 9. Install & Release Confidence | 0/0 | Pending | — |

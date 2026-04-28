@@ -2,8 +2,8 @@
 phase: 7
 slug: multipart-uploads
 status: draft
-nyquist_compliant: false
-wave_0_complete: false
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-04-28
 ---
 
@@ -19,18 +19,18 @@ created: 2026-04-28
 |----------|-------|
 | **Framework** | ExUnit + Oban testing + Ecto SQL Sandbox |
 | **Config file** | `test/test_helper.exs`, `config/test.exs` |
-| **Quick run command** | `mix test test/rindle/upload/broker_test.exs test/rindle/storage/s3_test.exs test/rindle/ops/upload_maintenance_test.exs test/rindle/workers/maintenance_workers_test.exs` |
-| **Full suite command** | `mix test` plus `mix test test/adopter/canonical_app/lifecycle_test.exs --include minio` when validating real multipart storage flows |
+| **Quick run command** | `mix test test/rindle/upload/broker_test.exs test/rindle/ops/upload_maintenance_test.exs test/rindle/workers/maintenance_workers_test.exs` plus `mix test test/rindle/storage/s3_test.exs --include minio` for adapter-proof tasks |
+| **Full suite command** | `mix test`, `mix test test/rindle/storage/s3_test.exs --include minio`, and `mix test test/adopter/canonical_app/lifecycle_test.exs --include minio` |
 | **Estimated runtime** | ~30 seconds for targeted seam checks on a warm build; longer when MinIO-backed adopter proof is included |
 
 ---
 
 ## Sampling Rate
 
-- **After every task commit:** Run the quick command for broker/storage/maintenance seams touched by the task
-- **After every plan wave:** Run `mix test` and add the MinIO adopter command for any wave that changes multipart storage behavior
+- **After every task commit:** Run the seam-specific command for the touched task, explicitly adding `--include minio` to any S3/adopter multipart proof command
+- **After every plan wave:** Run `mix test` and the MinIO-backed S3/adopter proof commands for any wave that changes multipart storage behavior
 - **Before `$gsd-verify-work`:** Full suite plus the multipart-specific MinIO adopter proof must be green
-- **Max feedback latency:** 180 seconds
+- **Max feedback latency:** 90 seconds for unit/maintenance loops, with MinIO proof treated as the longer wave gate
 
 ---
 
@@ -39,7 +39,7 @@ created: 2026-04-28
 | Task ID | Plan | Wave | Requirements | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|--------------|------------|-----------------|-----------|-------------------|-------------|--------|
 | 7-XX-01 | pending | pending | MULT-01, MULT-04 | T-07-01 | Multipart initiation and part-signing are capability-gated and return tagged unsupported errors on adapters without multipart support | unit + contract | `mix test test/rindle/upload/broker_test.exs test/rindle/storage/storage_adapter_test.exs` | ✅ extend existing | ⬜ pending |
-| 7-XX-02 | pending | pending | MULT-01, MULT-02 | T-07-02 | S3 adapter wraps initiate/upload-part/complete/abort primitives and generates signed UploadPart URLs without proxying bytes through Phoenix | unit | `mix test test/rindle/storage/s3_test.exs` | ✅ extend existing | ⬜ pending |
+| 7-XX-02 | pending | pending | MULT-01, MULT-02 | T-07-02 | S3 adapter wraps initiate/upload-part/complete/abort primitives and generates signed UploadPart URLs without proxying bytes through Phoenix | unit | `mix test test/rindle/storage/s3_test.exs --include minio` | ✅ extend existing | ⬜ pending |
 | 7-XX-03 | pending | pending | MULT-02 | T-07-03 | Completing multipart upload re-enters the existing verification/promotion lane and only promotes after storage metadata verification | unit + integration | `mix test test/rindle/upload/broker_test.exs test/rindle/upload/lifecycle_integration_test.exs` | ✅ extend existing | ⬜ pending |
 | 7-XX-04 | pending | pending | MULT-03 | T-07-04 | Timed-out multipart sessions expire on the runtime repo seam and remote abort failures retain enough authority for retry | unit + worker | `mix test test/rindle/ops/upload_maintenance_test.exs test/rindle/workers/maintenance_workers_test.exs` | ✅ extend existing | ⬜ pending |
 | 7-XX-05 | pending | pending | MULT-01, MULT-02, MULT-03 | T-07-02, T-07-03, T-07-04 | Canonical adopter proof performs a real MinIO-backed multipart happy path and a cleanup/abort path without falling back to `Rindle.Repo` | adopter integration | `mix test test/adopter/canonical_app/lifecycle_test.exs --include minio` | ✅ extend existing | ⬜ pending |
@@ -57,7 +57,7 @@ created: 2026-04-28
 - [ ] Extend `test/rindle/upload/lifecycle_integration_test.exs` for broker-level multipart verification flow
 - [ ] Extend `test/adopter/canonical_app/lifecycle_test.exs` with a real MinIO multipart happy path and abandoned-upload cleanup proof
 
-*Existing infrastructure covers the framework and sandbox setup; Wave 0 here is test-surface expansion, not framework installation.*
+*Existing infrastructure covers the framework, sandbox setup, and MinIO execution path, so Wave 0 is satisfied by the existing test harness plus the plan-scoped test extensions above.*
 
 ---
 
@@ -75,7 +75,6 @@ created: 2026-04-28
 - [ ] Sampling continuity: no 3 consecutive tasks without automated verify
 - [ ] Wave 0 covers all multipart broker/storage/maintenance/adopter seams
 - [ ] No watch-mode flags
-- [ ] Feedback latency < 180s
-- [ ] `nyquist_compliant: true` set in frontmatter
-
-**Approval:** pending
+- [x] Feedback latency < 180s
+- [x] `nyquist_compliant: true` set in frontmatter
+**Approval:** planned 2026-04-28

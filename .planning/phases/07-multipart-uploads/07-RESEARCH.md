@@ -338,17 +338,17 @@ Ecto.Multi.new()
 | A2 | The targeted broker/storage/maintenance test command should stay under roughly 30 seconds on a warm build. [ASSUMED] | Validation Architecture | Low; task-level sampling frequency may need to be relaxed if the suite is slower locally or in CI. |
 | A3 | A 30-day validity window is sufficient before re-checking fast-moving ExAws/AWS multipart guidance. [ASSUMED] | Metadata | Low; a planner may want a shorter refresh cadence if implementation is delayed. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Should multipart part manifests live as JSON on `media_upload_sessions` or in a dedicated child table?**
-   - What we know: D-07 only locks session-level authority, not the exact schema split. [VERIFIED: .planning/phases/07-multipart-uploads/07-CONTEXT.md]
-   - What's unclear: Whether the planner prefers a simple metadata map for v1.1 speed or a normalized child table for retry/audit ergonomics. [VERIFIED: lib/rindle/domain/media_upload_session.ex]
-   - Recommendation: Keep the public plan neutral on names, but require persisted authoritative part manifests, retry-safe cleanup, and no lifecycle split away from `media_upload_sessions`. [VERIFIED: .planning/phases/07-multipart-uploads/07-CONTEXT.md] [CITED: https://docs.aws.amazon.com/AmazonS3/latest/API/API_CompleteMultipartUpload.html]
+1. **Multipart part manifests should live on `media_upload_sessions` for v1.1.**
+   - Resolution: Persist the authoritative multipart manifest on the existing session row rather than introducing a child table in this phase. [VERIFIED: .planning/phases/07-multipart-uploads/07-01-PLAN.md]
+   - Why: D-07 locks session-level lifecycle authority onto `media_upload_sessions`, and Phase 7 needs the lowest-churn path that still preserves retry-safe cleanup and authoritative completion input. A row-local manifest satisfies AWS completion requirements without splitting lifecycle state across new tables. [VERIFIED: .planning/phases/07-multipart-uploads/07-CONTEXT.md] [CITED: https://docs.aws.amazon.com/AmazonS3/latest/API/API_CompleteMultipartUpload.html]
+   - Consequence for planning: Plan 07-01 extends `media_upload_sessions` with multipart-specific fields and treats that row as the source of truth for `upload_id` and ordered part metadata. [VERIFIED: .planning/phases/07-multipart-uploads/07-01-PLAN.md]
 
-2. **Does Phase 7 include LiveView helper multipart support or only broker/public API support?**
-   - What we know: `Rindle.LiveView` currently calls `adapter.presigned_put/3` directly rather than `Broker.sign_url/2`. [VERIFIED: lib/rindle/live_view.ex]
-   - What's unclear: Whether multipart needs equivalent LiveView ergonomics in this phase or can stay broker/API-only. [VERIFIED: lib/rindle/live_view.ex]
-   - Recommendation: Plan broker/public API and adapter correctness as the must-have scope; treat LiveView multipart UX as a follow-up unless a plan task can reuse the same broker endpoints without expanding public surface too far. [VERIFIED: .planning/STATE.md]
+2. **Phase 7 scope is broker/public API plus storage/maintenance proof, not new LiveView multipart UX.**
+   - Resolution: Keep LiveView multipart ergonomics out of scope for Phase 7. [VERIFIED: .planning/phases/07-multipart-uploads/07-03-PLAN.md]
+   - Why: The locked requirements are MULT-01..04, which focus on broker initiation, completion verification, cleanup, and capability honesty. `Rindle.LiveView` currently talks to `presigned_put/3` directly, and broadening that surface would expand public UX scope beyond the phase goal without being required for the milestone trust gap. [VERIFIED: .planning/REQUIREMENTS.md] [VERIFIED: lib/rindle/live_view.ex]
+   - Consequence for planning: Phase 7 plans must prove multipart correctness through broker/public APIs, maintenance services, and the MinIO-backed adopter lane; LiveView can adopt those broker endpoints in a later phase if needed. [VERIFIED: .planning/phases/07-multipart-uploads/07-03-PLAN.md]
 
 ## Environment Availability
 
