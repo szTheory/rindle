@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
-status: verifying
+status: ready_to_plan
 stopped_at: Completed 07-03-PLAN.md
 last_updated: "2026-04-28T12:20:39.693Z"
 last_activity: 2026-04-28
 progress:
   total_phases: 4
-  completed_phases: 2
+  completed_phases: 4
   total_plans: 6
   completed_plans: 6
   percent: 100
@@ -21,15 +21,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-28)
 
 **Core value:** Media, made durable.
-**Current focus:** Phase 07 — multipart-uploads
-ship a first-class multipart path without breaking Rindle's verification,
-cleanup, and lifecycle guarantees
+**Current focus:** Phase 08 — storage-capability-confidence
+harden capability negotiation and prove provider-specific behavior across MinIO
+and Cloudflare R2 without regressing the new multipart lane
 
 ## Current Position
 
-Phase: 07 (multipart-uploads) — EXECUTING
-Plan: 3 of 3
-Status: Phase complete — ready for verification
+Phase: 8
+Plan: Not started
+Status: Ready to plan
 Last activity: 2026-04-28
 
 Progress: [██████████] 100%
@@ -86,7 +86,7 @@ Recent decisions affecting current work:
 
 ### Blockers/Concerns
 
-- None currently; Phase 7 is complete and ready for Phase 8 verification and follow-on capability work.
+- None currently; Phase 7 is complete and Phase 8 is ready for planning.
 
 ## Session Continuity
 
@@ -107,6 +107,6 @@ Resume file: None
 - Workflow preference: skip discuss by default and move directly into
   planning/execution unless a high-impact ambiguity is detected.
 
-**Next Phase:** 7. Multipart Uploads
+**Next Phase:** 8. Storage Capability Confidence
 
-**Planned Phase:** 07 (multipart-uploads) — 3 plans — 2026-04-28T11:53:31.101Z
+**Completed Phase:** 07 (multipart-uploads) — verified 2026-04-28

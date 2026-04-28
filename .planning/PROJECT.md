@@ -2,14 +2,14 @@
 
 ## Current State
 
-Milestone v1.0 is shipped and archived, and Phase 6 of v1.1 is now complete.
-Rindle now covers the core post-upload media lifecycle for Phoenix
-applications, plus an adopter-owned runtime Repo boundary that no longer leaks
-`Rindle.Repo` through public runtime paths.
+Milestone v1.0 is shipped and archived, and Phases 6 and 7 of v1.1 are now
+complete. Rindle now covers the core post-upload media lifecycle for Phoenix
+applications, an adopter-owned runtime Repo boundary, and a first-class
+multipart upload path with MinIO-backed completion and cleanup proof.
 
-The remaining v1.1 work should build on that trust win rather than backtrack on
-it: multipart uploads, capability honesty across providers, and package-consumer
-install proof are still the highest-leverage gaps.
+The remaining v1.1 work should compound that trust: provider capability honesty
+across MinIO and Cloudflare R2, then package-consumer install proof from the
+built artifact.
 
 ## Current Milestone: v1.1 Adopter Hardening
 
@@ -68,13 +68,11 @@ Media, made durable.
 - Phase 6 — Adopter Runtime Ownership: public runtime Repo resolution,
   adopter-only lifecycle proofs, and adopter-first Repo/Oban guidance verified
   in v1.1.
+- Phase 7 — Multipart Uploads: multipart session persistence, cleanup, and real
+  MinIO-backed completion/abort proofs verified in v1.1.
 
 ### Active
 
-- [ ] Adopter-owned Repo resolution is configurable and enforced in public
-  runtime paths
-- [ ] Large direct uploads have a first-class multipart workflow on supported
-  S3-compatible backends
 - [ ] Storage capability negotiation is verified against real providers and
   unsupported flows fail loudly
 - [ ] Fresh-package installation and canonical adopter docs prove a clean path
@@ -173,7 +171,7 @@ fresh adopter perspective.
 | Repo ownership is adopter-first (`repo: MyApp.Repo`), not library-owned | Matches idiomatic Ecto library architecture and avoids split ownership | ✓ Good |
 | `Rindle.Repo` is test/dev harness only, not a consumer runtime dependency | Keeps library development practical while preserving adopter-owned runtime boundaries | ✓ Validated in Phase 6 |
 | Capability-driven storage negotiation is the contract boundary | Backend support differs materially across S3-compatible providers and future GCS/resumable flows | — Pending |
-| Multipart uploads belong in v1.1, not v1.0 | Presigned PUT was enough for the first release, but larger production workloads need a better direct-upload path | — Pending |
+| Multipart uploads belong in v1.1, not v1.0 | Presigned PUT was enough for the first release, but larger production workloads need a better direct-upload path | ✓ Validated in Phase 7 |
 | Install proof should be package-consumer-first | A passing repo CI lane is not the same as a fresh Phoenix adopter succeeding from the published artifact | — Pending |
 
 ## Evolution
@@ -194,4 +192,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-28 after Phase 6 completion*
+*Last updated: 2026-04-28 after Phase 7 completion*
