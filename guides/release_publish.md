@@ -95,3 +95,18 @@ After `0.1.0` is published:
 3. Bump `mix.exs` on `main` back to the next `-dev` version.
 4. Keep this runbook current if the owner roster, links, or release
    checklist changes.
+
+## Rollback and Revert
+
+Package rollback and revert procedures are manual maintainer actions; they are not automated in CI.
+
+If a published release is broken, you can revert it using the native Hex tooling:
+
+```bash
+mix hex.revert rindle VERSION
+```
+
+**Important Constraints:**
+- You have a **1-hour window** to revert a release.
+- For the *first* release (`0.1.0`), this window is extended to **24 hours**.
+- Once a version is reverted, you **can** reuse that version number for a future publish.
