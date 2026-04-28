@@ -14,9 +14,12 @@ defmodule Rindle.Adopter.CanonicalApp.LifecycleTest do
 
   alias Rindle.Adopter.CanonicalApp.Profile, as: AdopterProfile
   alias Rindle.Adopter.CanonicalApp.Repo
-  alias Rindle.Domain.{MediaAsset, MediaAttachment, MediaVariant}
+  alias Rindle.Domain.{MediaAsset, MediaAttachment, MediaUploadSession, MediaVariant}
+  alias Rindle.Ops.UploadMaintenance
   alias Rindle.Upload.Broker
   alias Rindle.Workers.{ProcessVariant, PromoteAsset, PurgeStorage}
+
+  @multipart_min_part_size 5 * 1024 * 1024
 
   @moduletag :adopter
   @moduletag sandbox_repo: Rindle.Adopter.CanonicalApp.Repo
@@ -183,6 +186,99 @@ defmodule Rindle.Adopter.CanonicalApp.LifecycleTest do
       assert Repo.all(MediaAttachment) == []
       assert_enqueued(worker: PurgeStorage, args: %{"asset_id" => asset.id})
     end
+
+    test "multipart upload through MinIO promotes asset, generates ready variant, and serves signed URL" do
+      {part1, part2} = multipart_png_fixture_parts()
+
+      {:ok, %{session: session, multipart: multipart}} =
+        Rindle.initiate_multipart_upload(AdopterProfile, filename: "adopter-multipart.png")
+
+      assert session.state == "initialized"
+      assert session.upload_strategy == "multipart"
+      assert multipart.upload_id != nil
+
+      {:ok, %{session: signed, presigned: presigned_part1}} =
+        Rindle.sign_multipart_part(session.id, 1)
+
+      {:ok, %{session: signed_again, presigned: presigned_part2}} =
+        Rindle.sign_multipart_part(session.id, 2)
+
+      assert signed.state == "signed"
+      assert signed_again.state == "signed"
+
+      etag1 = put_part_to_presigned_url(presigned_part1.url, part1)
+      etag2 = put_part_to_presigned_url(presigned_part2.url, part2)
+
+      {:ok, %{session: completed, asset: asset}} =
+        Rindle.complete_multipart_upload(session.id, [
+          %{part_number: 1, etag: etag1},
+          %{part_number: 2, etag: etag2}
+        ])
+
+      assert completed.state == "completed"
+      assert asset.state == "validating"
+      assert_enqueued(worker: PromoteAsset, args: %{"asset_id" => asset.id})
+      assert Repo.get!(MediaUploadSession, session.id).state == "completed"
+
+      assert :ok = perform_job(PromoteAsset, %{"asset_id" => asset.id})
+
+      asset = Repo.get!(MediaAsset, asset.id)
+      assert asset.state in ["available", "processing", "ready"]
+
+      variants =
+        Repo.all(Ecto.Query.from(v in MediaVariant, where: v.asset_id == ^asset.id))
+
+      assert variants != []
+
+      for variant <- variants do
+        assert :ok =
+                 perform_job(ProcessVariant, %{
+                   "asset_id" => asset.id,
+                   "variant_name" => variant.name
+                 })
+      end
+
+      ready_variants =
+        Repo.all(Ecto.Query.from(v in MediaVariant, where: v.asset_id == ^asset.id))
+
+      assert Enum.all?(ready_variants, &(&1.state == "ready"))
+
+      {:ok, signed_url} = Rindle.Delivery.url(AdopterProfile, asset.storage_key)
+      assert is_binary(signed_url)
+      assert String.contains?(signed_url, asset.storage_key)
+
+      owner = %Owner{id: Ecto.UUID.generate()}
+      {:ok, attachment} = Rindle.attach(asset.id, owner, "primary")
+      assert attachment.asset_id == asset.id
+
+      assert :ok = Rindle.detach(owner, "primary")
+      assert Repo.all(MediaAttachment) == []
+      assert_enqueued(worker: PurgeStorage, args: %{"asset_id" => asset.id})
+    end
+
+    test "multipart uploads expire first and are deleted only after cleanup aborts them remotely" do
+      {:ok, %{session: session}} =
+        Rindle.initiate_multipart_upload(AdopterProfile, filename: "stale-multipart.png")
+
+      {:ok, %{session: signed}} = Rindle.sign_multipart_part(session.id, 1)
+      assert signed.state == "signed"
+
+      expired_session =
+        signed
+        |> MediaUploadSession.changeset(%{expires_at: DateTime.add(DateTime.utc_now(), -120, :second)})
+        |> Repo.update!()
+
+      {:ok, abort_report} = UploadMaintenance.abort_incomplete_uploads([])
+      assert abort_report.sessions_aborted >= 1
+
+      assert Repo.get!(MediaUploadSession, expired_session.id).state == "expired"
+
+      {:ok, cleanup_report} =
+        UploadMaintenance.cleanup_orphans(dry_run: false, storage: AdopterProfile.storage_adapter())
+
+      assert cleanup_report.sessions_deleted >= 1
+      assert Repo.get(MediaUploadSession, expired_session.id) == nil
+    end
   end
 
   # ─────────────────────────────────────────────────────────────────────────
@@ -217,5 +313,37 @@ defmodule Rindle.Adopter.CanonicalApp.LifecycleTest do
       {:error, reason} ->
         raise "Presigned PUT to MinIO failed: #{inspect(reason)}"
     end
+  end
+
+  defp put_part_to_presigned_url(presigned_url, body)
+       when is_binary(presigned_url) and is_binary(body) do
+    url_charlist = String.to_charlist(presigned_url)
+    request = {url_charlist, [], ~c"application/octet-stream", body}
+
+    case :httpc.request(:put, request, [], []) do
+      {:ok, {{_http_version, status, _reason}, response_headers, _resp_body}} when status in 200..299 ->
+        response_headers
+        |> Enum.find_value(fn
+          {header, value} when header in [~c"etag", ~c"ETag"] -> List.to_string(value)
+          _other -> nil
+        end)
+        |> case do
+          nil -> raise "Multipart UploadPart response did not include an ETag header"
+          etag -> etag
+        end
+
+      {:ok, {{_http_version, status, reason}, _response_headers, resp_body}} ->
+        raise "Multipart UploadPart failed with status #{status} #{reason}: #{inspect(resp_body)}"
+
+      {:error, reason} ->
+        raise "Multipart UploadPart to MinIO failed: #{inspect(reason)}"
+    end
+  end
+
+  defp multipart_png_fixture_parts do
+    padding_size = @multipart_min_part_size - byte_size(@png_1x1)
+    first_part = @png_1x1 <> :binary.copy(<<0>>, padding_size)
+    second_part = "multipart-tail"
+    {first_part, second_part}
   end
 end
