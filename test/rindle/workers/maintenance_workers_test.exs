@@ -1,14 +1,71 @@
 defmodule Rindle.Workers.MaintenanceWorkersTest do
   use Rindle.DataCase, async: false
-  use Oban.Testing, repo: Rindle.Repo
+  use Oban.Testing, repo: Rindle.Adopter.CanonicalApp.Repo
   import Mox
 
+  alias Ecto.Adapters.SQL.Sandbox
+  alias Rindle.Adopter.CanonicalApp.Repo, as: AdopterRepo
   alias Rindle.Domain.{MediaAsset, MediaUploadSession}
   alias Rindle.Workers.AbortIncompleteUploads
   alias Rindle.Workers.CleanupOrphans
 
   setup :set_mox_from_context
   setup :verify_on_exit!
+
+  defmodule TestRepoProbe do
+    @moduledoc false
+
+    def all(queryable) do
+      notify(:all)
+      AdopterRepo.all(queryable)
+    end
+
+    def delete(struct) do
+      notify({:delete, struct.__struct__})
+      AdopterRepo.delete(struct)
+    end
+
+    def update(changeset) do
+      notify({:update, changeset.data.__struct__})
+      AdopterRepo.update(changeset)
+    end
+
+    defp notify(event) do
+      if owner = Application.get_env(:rindle, :repo_probe_owner) do
+        send(owner, {:repo_probe, event})
+      end
+    end
+  end
+
+  setup do
+    previous_repo = Application.get_env(:rindle, :repo)
+    previous_probe_owner = Application.get_env(:rindle, :repo_probe_owner)
+
+    case start_supervised(AdopterRepo) do
+      {:ok, _pid} -> :ok
+      {:error, {:already_started, _pid}} -> :ok
+    end
+
+    Sandbox.checkout(AdopterRepo)
+    Sandbox.mode(AdopterRepo, {:shared, self()})
+
+    Application.put_env(:rindle, :repo, TestRepoProbe)
+    Application.put_env(:rindle, :repo_probe_owner, self())
+
+    on_exit(fn ->
+      case previous_repo do
+        nil -> Application.delete_env(:rindle, :repo)
+        value -> Application.put_env(:rindle, :repo, value)
+      end
+
+      case previous_probe_owner do
+        nil -> Application.delete_env(:rindle, :repo_probe_owner)
+        value -> Application.put_env(:rindle, :repo_probe_owner, value)
+      end
+    end)
+
+    :ok
+  end
 
   # ---------------------------------------------------------------------------
   # Helpers
@@ -26,7 +83,7 @@ defmodule Rindle.Workers.MaintenanceWorkersTest do
         overrides
       )
     )
-    |> Rindle.Repo.insert!()
+    |> AdopterRepo.insert!()
   end
 
   defp create_session(asset, overrides) do
@@ -42,7 +99,7 @@ defmodule Rindle.Workers.MaintenanceWorkersTest do
         overrides
       )
     )
-    |> Rindle.Repo.insert!()
+    |> AdopterRepo.insert!()
   end
 
   defp expired_at, do: DateTime.add(DateTime.utc_now(), -100, :second)
@@ -65,6 +122,9 @@ defmodule Rindle.Workers.MaintenanceWorkersTest do
                  "dry_run" => false,
                  "storage" => to_string(Rindle.StorageMock)
                })
+
+      assert_received {:repo_probe, :all}
+      assert_received {:repo_probe, {:delete, MediaUploadSession}}
     end
 
     test "returns :ok on dry-run without touching storage" do
@@ -73,6 +133,7 @@ defmodule Rindle.Workers.MaintenanceWorkersTest do
 
       # No storage.delete expected in dry-run
       assert :ok = perform_job(CleanupOrphans, %{"dry_run" => true})
+      assert_received {:repo_probe, :all}
     end
 
     test "returns {:error, reason} when cleanup fails" do
@@ -126,8 +187,10 @@ defmodule Rindle.Workers.MaintenanceWorkersTest do
 
       assert :ok = perform_job(AbortIncompleteUploads, %{})
 
-      updated = Rindle.Repo.get!(MediaUploadSession, session.id)
+      updated = AdopterRepo.get!(MediaUploadSession, session.id)
       assert updated.state == "expired"
+      assert_received {:repo_probe, :all}
+      assert_received {:repo_probe, {:update, MediaUploadSession}}
     end
 
     test "transitions uploading sessions to expired" do
@@ -136,8 +199,10 @@ defmodule Rindle.Workers.MaintenanceWorkersTest do
 
       assert :ok = perform_job(AbortIncompleteUploads, %{})
 
-      updated = Rindle.Repo.get!(MediaUploadSession, session.id)
+      updated = AdopterRepo.get!(MediaUploadSession, session.id)
       assert updated.state == "expired"
+      assert_received {:repo_probe, :all}
+      assert_received {:repo_probe, {:update, MediaUploadSession}}
     end
 
     test "returns :ok when no sessions to abort" do
