@@ -5,9 +5,11 @@ defmodule Rindle.Upload.LifecycleIntegrationTest do
   import Mox
 
   alias Rindle.Domain.{MediaAsset, MediaAttachment, MediaUploadSession, MediaVariant}
+  alias Rindle.Storage.S3
   alias Rindle.Upload.Broker
   alias Rindle.Workers.{ProcessVariant, PromoteAsset, PurgeStorage}
 
+  @multipart_min_part_size 5 * 1024 * 1024
   @png_1x1 <<0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D, 0x49, 0x48,
              0x44, 0x52, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x08, 0x02, 0x00, 0x00,
              0x00, 0x90, 0x77, 0x53, 0xDE, 0x00, 0x00, 0x00, 0x0C, 0x49, 0x44, 0x41, 0x54, 0x08,
@@ -30,23 +32,65 @@ defmodule Rindle.Upload.LifecycleIntegrationTest do
       max_bytes: 10_485_760
   end
 
+  defmodule MinioProfile do
+    use Rindle.Profile,
+      storage: Rindle.Storage.S3,
+      variants: [thumb: [mode: :fit, width: 8, height: 8]],
+      allow_mime: ["image/png"],
+      max_bytes: 10_485_760
+  end
+
   defmodule User do
     defstruct [:id]
   end
 
   setup do
+    case :inets.start() do
+      :ok -> :ok
+      {:error, {:already_started, :inets}} -> :ok
+    end
+
     root =
       Path.join(System.tmp_dir!(), "rindle-integration-#{System.unique_integer([:positive])}")
 
     File.mkdir_p!(root)
 
     previous_local = Application.get_env(:rindle, Rindle.Storage.Local)
+    previous_s3 = Application.get_env(:rindle, Rindle.Storage.S3)
+    previous_ex_aws = Application.get_env(:ex_aws, :s3)
+    minio_url = System.get_env("RINDLE_MINIO_URL", "http://localhost:9000")
+    bucket = System.get_env("RINDLE_MINIO_BUCKET", "rindle-test")
+    access_key = System.get_env("RINDLE_MINIO_ACCESS_KEY", "minioadmin")
+    secret_key = System.get_env("RINDLE_MINIO_SECRET_KEY", "minioadmin")
+    region = System.get_env("RINDLE_MINIO_REGION", "us-east-1")
+    %URI{host: host, port: port, scheme: scheme} = URI.parse(minio_url)
+
     Application.put_env(:rindle, Rindle.Storage.Local, root: root)
+    Application.put_env(:rindle, Rindle.Storage.S3, bucket: bucket)
+
+    Application.put_env(:ex_aws, :s3,
+      scheme: "#{scheme}://",
+      host: host,
+      port: port,
+      region: region,
+      access_key_id: access_key,
+      secret_access_key: secret_key
+    )
 
     on_exit(fn ->
       case previous_local do
         nil -> Application.delete_env(:rindle, Rindle.Storage.Local)
         value -> Application.put_env(:rindle, Rindle.Storage.Local, value)
+      end
+
+      case previous_s3 do
+        nil -> Application.delete_env(:rindle, Rindle.Storage.S3)
+        value -> Application.put_env(:rindle, Rindle.Storage.S3, value)
+      end
+
+      case previous_ex_aws do
+        nil -> Application.delete_env(:ex_aws, :s3)
+        value -> Application.put_env(:ex_aws, :s3, value)
       end
 
       File.rm_rf(root)
@@ -63,6 +107,58 @@ defmodule Rindle.Upload.LifecycleIntegrationTest do
 
   defp storage_path_from_url(url) do
     URI.parse(url).path
+  end
+
+  defp put_to_presigned_url(presigned_url, body) do
+    request = {String.to_charlist(presigned_url), [], ~c"application/octet-stream", body}
+
+    case :httpc.request(:put, request, [], []) do
+      {:ok, {{_http_version, status, _reason}, _response_headers, _resp_body}}
+      when status in 200..299 ->
+        :ok
+
+      {:ok, {{_http_version, status, reason}, _response_headers, resp_body}} ->
+        flunk("presigned PUT failed with status #{status} #{reason}: #{inspect(resp_body)}")
+
+      {:error, reason} ->
+        flunk("presigned PUT failed: #{inspect(reason)}")
+    end
+  end
+
+  defp put_part_to_presigned_url(presigned_url, body) do
+    request = {String.to_charlist(presigned_url), [], ~c"application/octet-stream", body}
+
+    case :httpc.request(:put, request, [], []) do
+      {:ok, {{_http_version, status, _reason}, response_headers, _resp_body}}
+      when status in 200..299 ->
+        response_headers
+        |> Enum.find_value(fn
+          {header, value} when header in [~c"etag", ~c"ETag"] -> List.to_string(value)
+          _other -> nil
+        end)
+        |> case do
+          nil -> flunk("multipart UploadPart response did not include an ETag header")
+          etag -> etag
+        end
+
+      {:ok, {{_http_version, status, reason}, _response_headers, resp_body}} ->
+        flunk("multipart UploadPart failed with status #{status} #{reason}: #{inspect(resp_body)}")
+
+      {:error, reason} ->
+        flunk("multipart UploadPart failed: #{inspect(reason)}")
+    end
+  end
+
+  defp multipart_png_fixture_parts do
+    padding_size = @multipart_min_part_size - byte_size(@png_1x1)
+    first_part = @png_1x1 <> :binary.copy(<<0>>, padding_size)
+    second_part = "multipart-tail"
+    {first_part, second_part}
+  end
+
+  defp assert_upload_capabilities!(capabilities) do
+    assert :presigned_put in capabilities
+    assert :multipart_upload in capabilities
   end
 
   @tag :integration
@@ -87,6 +183,29 @@ defmodule Rindle.Upload.LifecycleIntegrationTest do
 
     assert Rindle.Repo.get!(MediaUploadSession, session.id).state == "completed"
     assert_enqueued worker: PromoteAsset, args: %{"asset_id" => asset.id}
+  end
+
+  @tag :integration
+  test "MinIO direct upload asserts the capability contract and promotes through broker" do
+    assert_upload_capabilities!(S3.capabilities())
+
+    {:ok, session} = Broker.initiate_session(MinioProfile, filename: "direct-minio.png")
+    {:ok, %{session: signed, presigned: presigned}} = Broker.sign_url(session.id)
+
+    assert signed.state == "signed"
+    :ok = put_to_presigned_url(presigned.url, @png_1x1)
+
+    {:ok, %{session: completed, asset: asset}} = Broker.verify_completion(session.id)
+
+    assert completed.state == "completed"
+    assert completed.verified_at != nil
+    assert asset.state == "validating"
+    assert_enqueued worker: PromoteAsset, args: %{"asset_id" => asset.id}
+
+    assert :ok = perform_job(PromoteAsset, %{"asset_id" => asset.id})
+
+    promoted_asset = Rindle.Repo.get!(MediaAsset, asset.id)
+    assert promoted_asset.state in ["available", "processing", "ready"]
   end
 
   @tag :integration
@@ -159,6 +278,48 @@ defmodule Rindle.Upload.LifecycleIntegrationTest do
                %{"etag" => "\"etag-2\"", "part_number" => 2}
              ]
            }
+  end
+
+  @tag :integration
+  test "MinIO multipart upload asserts the capability contract and promotes through broker" do
+    assert_upload_capabilities!(S3.capabilities())
+
+    {part1, part2} = multipart_png_fixture_parts()
+
+    assert {:ok, %{session: session, multipart: multipart}} =
+             Rindle.initiate_multipart_upload(MinioProfile, filename: "direct-multipart-minio.png")
+
+    assert session.state == "initialized"
+    assert session.upload_strategy == "multipart"
+    assert multipart.upload_id != nil
+
+    assert {:ok, %{session: signed_session, presigned: presigned_part1}} =
+             Rindle.sign_multipart_part(session.id, 1)
+
+    assert {:ok, %{session: signed_again, presigned: presigned_part2}} =
+             Rindle.sign_multipart_part(session.id, 2)
+
+    assert signed_session.state == "signed"
+    assert signed_again.state == "signed"
+
+    etag1 = put_part_to_presigned_url(presigned_part1.url, part1)
+    etag2 = put_part_to_presigned_url(presigned_part2.url, part2)
+
+    assert {:ok, %{session: completed, asset: asset}} =
+             Rindle.complete_multipart_upload(session.id, [
+               %{part_number: 1, etag: etag1},
+               %{part_number: 2, etag: etag2}
+             ])
+
+    assert completed.state == "completed"
+    assert completed.verified_at != nil
+    assert asset.state == "validating"
+    assert_enqueued worker: PromoteAsset, args: %{"asset_id" => asset.id}
+
+    assert :ok = perform_job(PromoteAsset, %{"asset_id" => asset.id})
+
+    promoted_asset = Rindle.Repo.get!(MediaAsset, asset.id)
+    assert promoted_asset.state in ["available", "processing", "ready"]
   end
 
   @tag :integration

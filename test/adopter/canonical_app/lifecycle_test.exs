@@ -103,6 +103,8 @@ defmodule Rindle.Adopter.CanonicalApp.LifecycleTest do
 
   describe "canonical adopter lifecycle" do
     test "direct upload through MinIO promotes asset, generates ready variant, and serves signed URL" do
+      assert_upload_capabilities!(AdopterProfile.storage_adapter().capabilities())
+
       # ── Step 1: Adopter initiates an upload session ──────────────────────
       {:ok, session} = Broker.initiate_session(AdopterProfile, filename: "adopter.png")
       assert session.state == "initialized"
@@ -189,6 +191,8 @@ defmodule Rindle.Adopter.CanonicalApp.LifecycleTest do
     end
 
     test "multipart upload through MinIO promotes asset, generates ready variant, and serves signed URL" do
+      assert_upload_capabilities!(AdopterProfile.storage_adapter().capabilities())
+
       {part1, part2} = multipart_png_fixture_parts()
 
       {:ok, %{session: session, multipart: multipart}} =
@@ -349,5 +353,10 @@ defmodule Rindle.Adopter.CanonicalApp.LifecycleTest do
     first_part = @png_1x1 <> :binary.copy(<<0>>, padding_size)
     second_part = "multipart-tail"
     {first_part, second_part}
+  end
+
+  defp assert_upload_capabilities!(capabilities) do
+    assert :presigned_put in capabilities
+    assert :multipart_upload in capabilities
   end
 end
