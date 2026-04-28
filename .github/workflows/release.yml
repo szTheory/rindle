@@ -25,6 +25,30 @@ jobs:
     # environment secret.
     env:
       MIX_ENV: dev
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGHOST: localhost
+      PGPORT: "5432"
+      RINDLE_MINIO_URL: http://localhost:9000
+      RINDLE_MINIO_ACCESS_KEY: minioadmin
+      RINDLE_MINIO_SECRET_KEY: minioadmin
+      RINDLE_MINIO_BUCKET: rindle-test
+      RINDLE_MINIO_REGION: us-east-1
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: rindle_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
       - name: Checkout
@@ -43,8 +67,33 @@ jobs:
           key: deps-${{ runner.os }}-1.17-27-${{ hashFiles('**/mix.lock') }}
           restore-keys: deps-${{ runner.os }}-1.17-27-
 
+      - name: Install libvips
+        run: sudo apt-get install -y libvips-dev
+
       - name: Install dependencies
         run: mix deps.get
+
+      - name: Start MinIO
+        run: |
+          docker run -d --name rindle-minio -p 9000:9000 -e MINIO_ROOT_USER=minioadmin -e MINIO_ROOT_PASSWORD=minioadmin minio/minio server /data --console-address ":9001"
+          for _ in $(seq 1 30); do
+            if curl -fsS http://localhost:9000/minio/health/ready >/dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          exit 1
+
+      - name: Install MinIO client
+        run: |
+          curl -fsSL https://dl.min.io/client/mc/release/linux-amd64/mc -o mc
+          chmod +x mc
+          sudo mv mc /usr/local/bin/mc
+
+      - name: Create MinIO bucket
+        run: |
+          mc alias set local http://localhost:9000 minioadmin minioadmin
+          mc mb --ignore-existing local/rindle-test
 
       # Hex auth shim — `mix hex.publish --dry-run` requires Hex auth (A1
       # resolved during 05-05 execution: confirmed locally that the dry-run
@@ -78,6 +127,11 @@ jobs:
           if [ -e rindle-*/test ];        then echo "FAIL: test/ leaked into tarball"; exit 1; fi
           if [ -e rindle-*/coveralls.json ]; then echo "FAIL: coveralls.json leaked"; exit 1; fi
           if [ -e rindle-*/.github ];     then echo "FAIL: .github leaked into tarball"; exit 1; fi
+
+      - name: Run package-consumer install smoke
+        env:
+          MIX_ENV: test
+        run: bash scripts/install_smoke.sh
 
       # Step 2: hex.publish --dry-run is the additional metadata gate.
       # If it fails due to auth (A1 — confirmed required by Hex CLI),
