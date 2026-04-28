@@ -5,32 +5,34 @@ defmodule Rindle.Workers.PromoteAsset do
   """
   use Oban.Worker, queue: :rindle_promote, max_attempts: 3
 
+  alias Rindle.Config
   alias Rindle.Domain.AssetFSM
   alias Rindle.Domain.{MediaAsset, MediaVariant}
-  alias Rindle.Repo
   alias Rindle.Workers.ProcessVariant
 
   @impl Oban.Worker
   def perform(%Oban.Job{args: %{"asset_id" => asset_id}}) do
-    with %MediaAsset{} = asset <- Repo.get(MediaAsset, asset_id) do
-      promote(asset)
+    repo = Config.repo()
+
+    with %MediaAsset{} = asset <- repo.get(MediaAsset, asset_id) do
+      promote(repo, asset)
     else
       nil -> {:error, :not_found}
     end
   end
 
-  defp promote(asset) do
+  defp promote(repo, asset) do
     # 1. Advance state chain to 'available'
     # We follow: validating -> analyzing -> promoting -> available
     # Some steps might have happened already, so we handle them gracefully.
 
-    with :ok <- advance_to_promoting(asset),
-         asset <- Repo.get!(MediaAsset, asset.id),
+    with :ok <- advance_to_promoting(repo, asset),
+         asset <- repo.get!(MediaAsset, asset.id),
          :ok <- AssetFSM.transition(asset.state, "available", %{asset_id: asset.id}) do
       Ecto.Multi.new()
       |> Ecto.Multi.update(:asset, MediaAsset.changeset(asset, %{state: "available"}))
       |> enqueue_variants(asset)
-      |> Repo.transaction()
+      |> repo.transaction()
       |> case do
         {:ok, _} -> :ok
         {:error, _name, reason, _changes} -> {:error, reason}
@@ -40,33 +42,33 @@ defmodule Rindle.Workers.PromoteAsset do
     end
   end
 
-  defp advance_to_promoting(%{state: "promoting"}), do: :ok
+  defp advance_to_promoting(_repo, %{state: "promoting"}), do: :ok
 
-  defp advance_to_promoting(%{state: "analyzing"} = asset) do
+  defp advance_to_promoting(repo, %{state: "analyzing"} = asset) do
     with :ok <- AssetFSM.transition(asset.state, "promoting", %{asset_id: asset.id}),
          {:ok, _asset} <-
            asset
            |> MediaAsset.changeset(%{state: "promoting"})
-           |> Repo.update() do
+           |> repo.update() do
       :ok
     else
       {:error, reason} -> {:error, reason}
     end
   end
 
-  defp advance_to_promoting(%{state: "validating"} = asset) do
+  defp advance_to_promoting(repo, %{state: "validating"} = asset) do
     with :ok <- AssetFSM.transition(asset.state, "analyzing", %{asset_id: asset.id}),
          {:ok, asset} <-
            asset
            |> MediaAsset.changeset(%{state: "analyzing"})
-           |> Repo.update() do
-      advance_to_promoting(asset)
+           |> repo.update() do
+      advance_to_promoting(repo, asset)
     else
       {:error, reason} -> {:error, reason}
     end
   end
 
-  defp advance_to_promoting(asset) do
+  defp advance_to_promoting(_repo, asset) do
     {:error, {:invalid_start_state, asset.state}}
   end
 

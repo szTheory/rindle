@@ -153,19 +153,25 @@ defmodule Rindle do
         slot: slot
       })
     end)
-    |> Ecto.Multi.run(:purge_old, fn tx_repo, %{existing: existing} ->
+    |> Ecto.Multi.run(:old_asset, fn tx_repo, %{existing: existing} ->
       if existing do
-        old_asset = tx_repo.get!(MediaAsset, existing.asset_id)
-
-        job =
+        {:ok, tx_repo.get!(MediaAsset, existing.asset_id)}
+      else
+        {:ok, nil}
+      end
+    end)
+    |> Ecto.Multi.merge(fn %{old_asset: old_asset} ->
+      if old_asset do
+        Ecto.Multi.new()
+        |> Oban.insert(
+          :purge_old,
           PurgeStorage.new(%{
             "asset_id" => old_asset.id,
             "profile" => old_asset.profile
           })
-
-        Oban.insert(job)
+        )
       else
-        {:ok, nil}
+        Ecto.Multi.new()
       end
     end)
     |> repo.transaction()
@@ -203,18 +209,19 @@ defmodule Rindle do
 
       if existing, do: {:ok, existing}, else: {:error, :not_found}
     end)
+    |> Ecto.Multi.run(:old_asset, fn tx_repo, %{existing: existing} ->
+      {:ok, tx_repo.get!(MediaAsset, existing.asset_id)}
+    end)
     |> Ecto.Multi.delete(:attachment, fn %{existing: existing} -> existing end)
-    |> Ecto.Multi.run(:purge, fn tx_repo, %{existing: existing} ->
-      old_asset = tx_repo.get!(MediaAsset, existing.asset_id)
-
-      job =
+    |> Oban.insert(
+      :purge,
+      fn %{old_asset: old_asset} ->
         PurgeStorage.new(%{
           "asset_id" => old_asset.id,
           "profile" => old_asset.profile
         })
-
-      Oban.insert(job)
-    end)
+      end
+    )
     |> repo.transaction()
     |> case do
       {:ok, _} -> :ok

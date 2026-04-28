@@ -5,23 +5,25 @@ defmodule Rindle.Workers.ProcessVariant do
   """
   use Oban.Worker, queue: :rindle_process, max_attempts: 5
 
+  alias Rindle.Config
   alias Rindle.Domain.{MediaAsset, MediaVariant}
   alias Rindle.Domain.VariantFSM
   alias Rindle.Processor.Image
-  alias Rindle.Repo
   import Ecto.Query
 
   @impl Oban.Worker
   def perform(%Oban.Job{args: %{"asset_id" => asset_id, "variant_name" => variant_name}}) do
-    with %MediaAsset{} = asset <- Repo.get(MediaAsset, asset_id),
-         %MediaVariant{} = variant <- get_variant(asset_id, variant_name) do
-      process(asset, variant)
+    repo = Config.repo()
+
+    with %MediaAsset{} = asset <- repo.get(MediaAsset, asset_id),
+         %MediaVariant{} = variant <- get_variant(repo, asset_id, variant_name) do
+      process(repo, asset, variant)
     else
       nil -> {:error, :not_found}
     end
   end
 
-  defp process(asset, variant) do
+  defp process(repo, asset, variant) do
     profile_module = String.to_existing_atom(asset.profile)
     variant_spec = get_variant_spec(profile_module, variant.name)
 
@@ -30,10 +32,10 @@ defmodule Rindle.Workers.ProcessVariant do
     # but we check if the asset's own storage_key has changed (unlikely here).
     # Once we have MediaAttachment (Phase 2), we reload the attachment.
 
-    with :ok <- transition_variant(variant, "queued"),
-         variant <- Repo.get!(MediaVariant, variant.id),
-         :ok <- transition_variant(variant, "processing"),
-         variant <- Repo.get!(MediaVariant, variant.id),
+    with :ok <- transition_variant(repo, variant, "queued"),
+         variant <- repo.get!(MediaVariant, variant.id),
+         :ok <- transition_variant(repo, variant, "processing"),
+         variant <- repo.get!(MediaVariant, variant.id),
          {:ok, source_tmp} <- download_source(asset),
          {:ok, dest_tmp} <- generate_dest_path(variant),
          {:ok, _} <- Image.process(source_tmp, variant_spec, dest_tmp),
@@ -46,7 +48,7 @@ defmodule Rindle.Workers.ProcessVariant do
         byte_size: get_file_size(dest_tmp),
         generated_at: DateTime.utc_now()
       })
-      |> Repo.update()
+      |> repo.update()
       |> case do
         {:ok, _} ->
           cleanup_temp_files([source_tmp, dest_tmp])
@@ -58,12 +60,12 @@ defmodule Rindle.Workers.ProcessVariant do
       end
     else
       {:error, reason} ->
-        handle_failure(variant, reason)
+        handle_failure(repo, variant, reason)
     end
   end
 
-  defp get_variant(asset_id, name) do
-    Repo.one(from v in MediaVariant, where: v.asset_id == ^asset_id and v.name == ^name)
+  defp get_variant(repo, asset_id, name) do
+    repo.one(from v in MediaVariant, where: v.asset_id == ^asset_id and v.name == ^name)
   end
 
   defp get_variant_spec(profile_module, name) do
@@ -72,9 +74,9 @@ defmodule Rindle.Workers.ProcessVariant do
     |> elem(1)
   end
 
-  defp transition_variant(variant, target_state) do
+  defp transition_variant(repo, variant, target_state) do
     with :ok <- VariantFSM.transition(variant.state, target_state, %{variant_id: variant.id}),
-         {:ok, _} <- variant |> MediaVariant.changeset(%{state: target_state}) |> Repo.update() do
+         {:ok, _} <- variant |> MediaVariant.changeset(%{state: target_state}) |> repo.update() do
       :ok
     else
       {:error, reason} -> {:error, reason}
@@ -108,10 +110,10 @@ defmodule Rindle.Workers.ProcessVariant do
     Enum.each(paths, &File.rm/1)
   end
 
-  defp handle_failure(variant, reason) do
+  defp handle_failure(repo, variant, reason) do
     variant
     |> MediaVariant.changeset(%{state: "failed", error_reason: inspect(reason)})
-    |> Repo.update()
+    |> repo.update()
 
     {:error, reason}
   end
