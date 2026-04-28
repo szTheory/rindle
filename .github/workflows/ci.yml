@@ -331,6 +331,20 @@ jobs:
           MIX_ENV: dev
         run: bash scripts/release_preflight.sh
 
+      - name: Verify version alignment (mocking tag)
+        env:
+          MIX_ENV: dev
+        run: |
+          MIX_VERSION=$(mix run --no-start -e 'IO.write(Mix.Project.config()[:version])')
+          export GITHUB_REF_NAME="v${MIX_VERSION}"
+          bash scripts/assert_version_match.sh
+
+      - name: Dry-run Hex publish
+        env:
+          MIX_ENV: dev
+          HEX_API_KEY: dryrun-placeholder
+        run: mix hex.publish --dry-run --yes
+
   adopter:
     name: Adopter
     runs-on: ubuntu-latest
