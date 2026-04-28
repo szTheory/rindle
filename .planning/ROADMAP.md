@@ -20,7 +20,7 @@ perspective.
 - [x] **Phase 6: Adopter Runtime Ownership** - Replace consumer runtime
   hard-coding of `Rindle.Repo` with adopter-owned Repo resolution and prove it
   in the canonical adopter path
-- [ ] **Phase 7: Multipart Uploads** - Add first-class multipart direct-upload
+- [x] **Phase 7: Multipart Uploads** - Add first-class multipart direct-upload
   support, completion verification, and abort/recovery paths for larger
   workloads
 - [ ] **Phase 8: Storage Capability Confidence** - Harden capability
@@ -71,7 +71,7 @@ preserves Rindle's verification, cleanup, and state-machine guarantees
 Plans:
 - [x] 07-01-PLAN.md — add multipart session persistence, storage callbacks, broker entrypoints, and tagged capability errors
 - [x] 07-02-PLAN.md — close the maintenance repo seam and add retry-safe multipart abort cleanup
-- [ ] 07-03-PLAN.md — prove multipart completion and cleanup through the MinIO-backed integration and adopter harness
+- [x] 07-03-PLAN.md — prove multipart completion and cleanup through the MinIO-backed integration and adopter harness
 
 ### Phase 8: Storage Capability Confidence
 **Goal**: provider differences are encoded honestly in capability contracts and
@@ -109,6 +109,6 @@ Phases execute in numeric order: 6 -> 7 -> 8 -> 9
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 6. Adopter Runtime Ownership | 3/3 | Complete | 2026-04-28 |
-| 7. Multipart Uploads | 2/3 | In Progress | — |
+| 7. Multipart Uploads | 3/3 | Complete | 2026-04-28 |
 | 8. Storage Capability Confidence | 0/0 | Pending | — |
 | 9. Install & Release Confidence | 0/0 | Pending | — |
