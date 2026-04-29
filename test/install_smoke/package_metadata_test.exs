@@ -126,15 +126,25 @@ defmodule Rindle.InstallSmoke.PackageMetadataTest do
   test "release workflow automates public verification on a fresh runner", %{
     release_workflow: workflow
   } do
+    assert workflow =~ "Release Please"
+    assert workflow =~ "Gate on Exact-SHA Green CI"
+    assert workflow =~ "workflow_dispatch:"
+    assert workflow =~ "recovery_reason:"
+    assert workflow =~ "recovery_ref:"
+    assert workflow =~ "Wait for CI to finish green on release SHA"
+    assert workflow =~ ~s(workflow_id: 'ci.yml')
+    assert workflow =~ ~s(mix hex.publish --dry-run --yes)
+    assert workflow =~ ~s(mix hex.publish --yes)
     assert workflow =~ "public_verify:"
-    assert workflow =~ "needs: release"
+    assert workflow =~ "needs: [gate-ci-green, publish]"
+    assert workflow =~ ~s(name: Wait for Hex.pm index)
     assert workflow =~ ~s(name: Verify public Hex.pm artifact)
     assert workflow =~ ~s(HEX_API_KEY: "")
-    assert workflow =~ ~s(VERSION="${GITHUB_REF_NAME#v}")
+    assert workflow =~ ~s(mix hex.info rindle "$VERSION")
     assert workflow =~ ~s(bash scripts/public_smoke.sh "$VERSION")
   end
 
-  test "CI shifts release-proof contract left before tag time", %{ci_workflow: workflow} do
+  test "CI shifts release-proof contract left before live publish", %{ci_workflow: workflow} do
     assert workflow =~ "package-consumer:"
     assert workflow =~ "name: Run release preflight"
     assert workflow =~ "name: Verify version alignment (mocking tag)"

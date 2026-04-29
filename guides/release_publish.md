@@ -2,64 +2,58 @@
 
 This maintainer runbook covers Rindle's first public Hex.pm release
 (`0.1.0`), routine releases after `0.1.0`, and the manual rollback/revert
-path for a bad public release. It keeps publish-time ownership, versioning,
-and workflow operations in maintainer docs instead of pushing them into
+path for a bad public release. It keeps workflow operations and one-time
+publish prerequisites in maintainer docs instead of pushing them into
 `README.md` or `guides/getting_started.md`.
 
 ## First Public Release (0.1.0)
 
-Use this sequence on the release branch:
+Use this sequence on `main`:
 
-1. Change `@version "0.1.0-dev"` in `mix.exs` to `0.1.0`.
+1. Complete the one-time publish prerequisites in this guide.
 2. Confirm the root `CHANGELOG.md` has a `0.1.0` entry matching the release scope.
-3. Commit the release version change.
-4. Create tag `v0.1.0`.
-5. Push the tag so `.github/workflows/release.yml` runs the `Release`
-   workflow.
-6. After the workflow succeeds, bump `mix.exs` on `main` to the next
-   `-dev` version and commit that follow-up.
+3. Merge the Release Please PR that updates `mix.exs` from `@version "0.1.0-dev"` to `0.1.0` and tags `v0.1.0`.
+4. Let `.github/workflows/release.yml` wait for `ci.yml` to finish green on the exact release SHA, then run the publish lane.
+5. After the workflow succeeds, verify the initial owner state with `mix hex.owner list rindle` and add any additional maintainers.
 
-Do not leave `main` on the release version after the publish completes.
+Release intent starts from a reviewed Release Please PR on `main`, not from a manually pushed tag.
 
 ## Routine Releases After 0.1.0
 
 Use this sequence for every later public release:
 
-1. Derive the release version from the current `-dev` value in `mix.exs`.
-2. Update `mix.exs` from the current `-dev` value to the release value.
-3. Commit the version change.
-4. Create and push tag `vVERSION`.
-5. Monitor GitHub Actions until the `Release` workflow completes these
+1. Merge the Release Please PR for the next version on `main`.
+2. Monitor GitHub Actions until the `Release` workflow completes these
    step names in order:
+   - `Release Please`
+   - `Wait for CI to finish green on release SHA`
    - `Run release preflight`
    - `Verify version alignment`
+   - `Dry run Hex publish`
    - `Live publish to Hex`
+   - `Wait for Hex.pm index`
    - `Verify public Hex.pm artifact`
-6. After the workflow succeeds, bump `mix.exs` on `main` to the next
-   `-dev` version and commit that follow-up.
+3. Use the recovery-only manual dispatch lane only if the trusted publish path must be rerun from an exact tag or 40-character SHA.
 
-## Hex Auth Check
+## One-Time Publish Prerequisites
 
-Confirm the current maintainer account before any publish attempt:
+Before enabling the first live publish, complete these maintainer-controlled checks outside CI:
 
 ```bash
 mix hex.user whoami
 ```
 
-Maintainers verify their identity with `mix hex.user whoami` before
-pushing a release tag. The tag-triggered `Release` workflow then performs
-the live publish using `HEX_API_KEY` stored in the `release` GitHub
-Actions environment. After publish, the `public_verify` job runs the
-`Verify public Hex.pm artifact` step on a fresh runner with `HEX_API_KEY`
-cleared, confirming network resolution independently of the publish job.
-The maintainer identity and owner checks above remain manual proof, not CI proof.
+- Confirm the current maintainer identity with `mix hex.user whoami`.
+- Confirm Hex.pm package-name availability for `rindle` before the inaugural publish.
+- Configure the `release` GitHub Actions environment secret `HEX_API_KEY`.
+- Keep maintainer identity and package-name availability checks outside `scripts/release_preflight.sh` and outside secret-gated automation.
 
 ## First Publish Owner Model
 
 The first public publish is personal-first: the maintainer account that
 performs the inaugural publish becomes the initial owner for `rindle`.
 
-Confirm the current owner set before and after the release:
+After the first public publish, confirm the current owner set:
 
 ```bash
 mix hex.owner list rindle
@@ -73,34 +67,18 @@ mix hex.owner add rindle USERNAME
 
 Do not rely on informal handoff. Owner follow-up is part of the release.
 
-## Pre-Tag Go/No-Go Checklist
-
-Before creating or pushing a release tag, confirm all of the following:
-
-1. `mix hex.user whoami` shows the intended publishing maintainer.
-2. `mix hex.owner list rindle` matches the expected owner state for this release.
-3. Hex.pm package-name availability for `rindle` is still acceptable for the first public publish.
-4. `CHANGELOG.md` includes the `0.1.0` entry for the first public release, or the current release entry for later cuts.
-5. `bash scripts/release_preflight.sh` passes locally on the exact release-candidate commit.
-6. GitHub Actions CI is green on the exact release-candidate SHA, and the GitHub Actions run URL is recorded in the release-candidate checklist.
-
-Items 1 through 3 remain manual maintainer checks because they depend on mutable external Hex account and registry state.
-
-## Exact-SHA Release Candidate Proof
+## Exact-SHA Release Proof
 
 Local preflight is diagnostic preparation, not authoritative release proof.
 Authoritative signoff requires a green GitHub Actions run on the exact release-candidate SHA.
 The maintainer can use `bash scripts/release_preflight.sh` and local
-`mix hex.build --unpack` runs to iterate on the candidate, but Phase 15 is
-not complete until GitHub Actions CI is green on the exact release-candidate
-SHA that Phase 16 will tag.
+`mix hex.build --unpack` runs to iterate on the candidate, but the release
+workflow does not publish until `ci.yml` is green on the exact release-candidate
+SHA selected by Release Please or recovery dispatch.
 
-Record that SHA and the GitHub Actions run URL in
-`.planning/phases/15-ci-integrity-and-publish-preflight/15-RELEASE-CANDIDATE-CHECKLIST.md`.
 Do not substitute a green branch head, a rerun on a different commit, or a
-local-only shell transcript for this proof.
-Maintainer-only Hex identity, owner, and package-name availability checks stay
-outside `scripts/release_preflight.sh` and outside secret-gated automation.
+local-only shell transcript for this proof. The `Package Consumer + Release Preflight`
+lane in `ci.yml` is part of that exact-SHA proof.
 
 ## Package metadata review
 
@@ -131,50 +109,58 @@ source, before both the first public release and every routine release
 after it.
 
 The packaged metadata review is still diagnostic until the same commit is
-green in GitHub Actions CI. Record both the local review result and the exact
-remote CI proof in the release-candidate checklist.
+green in GitHub Actions CI.
 
 ## Preflight Commands
 
-Run this preflight sequence before publishing:
+Run this preflight sequence before merging or recovering a release:
 
 ```bash
-mix hex.user whoami
-mix hex.owner list rindle
 bash scripts/release_preflight.sh
 ```
 
 Review the unpacked package contents and `hex_metadata.config` after the
 preflight build. If any identity, license, link, changelog, or docs inclusion
-check fails, fix the source and rebuild before publishing.
+check fails, fix the source and rebuild before the Release Please PR merges or before running recovery publish.
 
 These commands are maintainer diagnostics. They do not replace the required
 remote CI proof on the exact release-candidate SHA.
 
 ## Release Workflow Contract
 
-Tagged releases are anchored to the repository workflow and commands already
-shipped in the repo. The `Release` workflow runs:
+Mainline releases are anchored to a Release Please PR on `main` plus the
+repository workflow and commands already shipped in the repo. The `Release`
+workflow runs:
 
 ```bash
 bash scripts/release_preflight.sh
 bash scripts/assert_version_match.sh
+mix hex.publish --dry-run --yes
 mix hex.publish --yes
 bash scripts/public_smoke.sh
 ```
 
 The repo's `package-consumer` CI lane shifts the release contract left before
-tag time by running the shared preflight, mocking tag/version alignment, and
-exercising `mix hex.publish --dry-run --yes`. The release workflow's
-`Verify public Hex.pm artifact` step then serves as the automated
-post-publish proof on a fresh runner with `HEX_API_KEY` cleared, so no
-separate human UAT step is required.
+publish time by running the shared preflight, mocking tag/version alignment,
+and exercising `mix hex.publish --dry-run --yes`. The release workflow then
+waits for `ci.yml` on the exact release SHA to finish green before it can enter
+the protected publish lane. After live publish, the `Verify public Hex.pm artifact`
+step serves as the automated post-publish proof on a fresh runner with
+`HEX_API_KEY` cleared, so no separate human UAT step is required.
 
-For Phase 15 signoff, the authoritative pre-publish proof is the GitHub
-Actions CI run for the exact release-candidate SHA, including the
-`Package Consumer + Release Preflight` lane. Manual maintainer checks for
-`mix hex.user whoami`, `mix hex.owner list rindle`, and package-name
-availability stay outside CI and must be recorded explicitly in the checklist.
+Manual maintainer checks for `mix hex.user whoami` and first-release
+package-name availability stay outside CI as one-time prerequisites.
+
+## Recovery Workflow Contract
+
+The `workflow_dispatch` path in `.github/workflows/release.yml` is recovery-only.
+It requires:
+
+- `recovery_reason`
+- `recovery_ref` set to an exact existing tag or a 40-character commit SHA
+
+Recovery reruns the same exact-SHA green CI gate, preflight, dry-run publish,
+live publish, and public verification as the normal Release Please path.
 
 ## Post-Publish Follow-Up
 
@@ -187,8 +173,7 @@ After every release, including `0.1.0`:
 
 1. Verify the `Release` workflow finished successfully.
 2. Confirm `Verify public Hex.pm artifact` passed.
-3. Bump `mix.exs` on `main` back to the next `-dev` version.
-4. Keep this runbook current if the owner roster, links, or release
+3. Keep this runbook current if the owner roster, links, or release
    checklist changes.
 
 ## Rollback and Revert

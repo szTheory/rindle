@@ -4,10 +4,6 @@ defmodule Rindle.InstallSmoke.ReleaseDocsParityTest do
   @mix_exs_path Path.expand("../../mix.exs", __DIR__)
   @release_guide_path Path.expand("../../guides/release_publish.md", __DIR__)
   @release_workflow_path Path.expand("../../.github/workflows/release.yml", __DIR__)
-  @release_candidate_checklist_path Path.expand(
-                                      "../../.planning/phases/15-ci-integrity-and-publish-preflight/15-RELEASE-CANDIDATE-CHECKLIST.md",
-                                      __DIR__
-                                    )
   @operations_path Path.expand("../../guides/operations.md", __DIR__)
   @readme_path Path.expand("../../README.md", __DIR__)
   @getting_started_path Path.expand("../../guides/getting_started.md", __DIR__)
@@ -18,7 +14,6 @@ defmodule Rindle.InstallSmoke.ReleaseDocsParityTest do
        mix_exs: File.read!(@mix_exs_path),
        release_guide: File.read!(@release_guide_path),
        release_workflow: File.read!(@release_workflow_path),
-       release_candidate_checklist: File.read!(@release_candidate_checklist_path),
        operations: File.read!(@operations_path),
        readme: File.read!(@readme_path),
        getting_started: File.read!(@getting_started_path)
@@ -31,42 +26,37 @@ defmodule Rindle.InstallSmoke.ReleaseDocsParityTest do
     assert release_guide =~ ~s(@version "0.1.0-dev")
     assert release_guide =~ ~s(0.1.0)
     assert release_guide =~ ~s(v0.1.0)
-    assert release_guide =~ "publish"
-    assert release_guide =~ "next `-dev`"
+    assert release_guide =~ "Release Please"
+    assert release_guide =~ "main"
   end
 
-  test "release guide states auth and personal-first owner follow-up", %{
+  test "release guide keeps one-time publish prerequisites and personal-first owner follow-up", %{
     release_guide: release_guide
   } do
     for snippet <- [
           "mix hex.user whoami",
-          "mix hex.owner list rindle",
-          "mix hex.owner add rindle USERNAME",
+          "HEX_API_KEY",
           "initial owner",
-          "package-name availability"
+          "package-name availability",
+          "mix hex.owner list rindle",
+          "mix hex.owner add rindle USERNAME"
         ] do
       assert release_guide =~ snippet
     end
   end
 
   test "release guide separates local diagnostics from exact-SHA CI proof", %{
-    release_guide: release_guide,
-    release_candidate_checklist: release_candidate_checklist
+    release_guide: release_guide
   } do
     for snippet <- [
           "Local preflight is diagnostic preparation, not authoritative release proof.",
           "Authoritative signoff requires a green GitHub Actions run on the exact release-candidate SHA",
-          "GitHub Actions CI is green on the exact release-candidate SHA",
-          "GitHub Actions run URL",
+          "waits for `ci.yml` on the exact release SHA to finish green",
           "Package Consumer + Release Preflight",
-          "mix hex.user whoami",
-          "mix hex.owner list rindle",
-          "package-name availability",
           "outside `scripts/release_preflight.sh`",
           "outside secret-gated automation"
         ] do
       assert release_guide =~ snippet
-      assert release_candidate_checklist =~ snippet
     end
   end
 
@@ -113,9 +103,13 @@ defmodule Rindle.InstallSmoke.ReleaseDocsParityTest do
          release_workflow: release_workflow
        } do
     step_names = [
+      "Release Please",
+      "Wait for CI to finish green on release SHA",
       "Run release preflight",
       "Verify version alignment",
+      "Dry run Hex publish",
       "Live publish to Hex",
+      "Wait for Hex.pm index",
       "Verify public Hex.pm artifact"
     ]
 
@@ -135,6 +129,7 @@ defmodule Rindle.InstallSmoke.ReleaseDocsParityTest do
     commands = [
       "bash scripts/release_preflight.sh",
       "bash scripts/assert_version_match.sh",
+      "mix hex.publish --dry-run --yes",
       "mix hex.publish --yes",
       "bash scripts/public_smoke.sh"
     ]
@@ -166,5 +161,21 @@ defmodule Rindle.InstallSmoke.ReleaseDocsParityTest do
     # The guide must still discuss HEX_API_KEY as current reality, not future work
     assert release_guide =~ "HEX_API_KEY",
            "release_publish.md must mention HEX_API_KEY as part of the live workflow description"
+  end
+
+  test "release guide documents recovery-only publish from an exact ref", %{
+    release_guide: release_guide,
+    release_workflow: release_workflow
+  } do
+    for snippet <- [
+          "workflow_dispatch",
+          "recovery_reason",
+          "recovery_ref",
+          "40-character commit SHA",
+          "existing tag"
+        ] do
+      assert release_guide =~ snippet
+      assert release_workflow =~ snippet
+    end
   end
 end
