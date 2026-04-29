@@ -6,12 +6,20 @@ ROOT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 # Change to root dir so mix can find mix.exs
 cd "$ROOT_DIR"
 
-MIX_VERSION=$(mix run --no-start -e 'IO.write(Mix.Project.config()[:version])')
+MIX_VERSION=$(
+  mix run --no-start -e 'IO.puts(Mix.Project.config()[:version])' \
+    | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+([-.][0-9A-Za-z.]+)?' \
+    | tail -n1 \
+    | tr -d '\r'
+)
 EXPECTED_VERSION="${RINDLE_EXPECTED_VERSION:-}"
 RELEASE_REF="${RINDLE_RELEASE_TAG:-${GITHUB_REF_NAME:-}}"
 
 if [ -n "$RELEASE_REF" ]; then
-  TAG_VERSION=${RELEASE_REF#v}
+  TAG_VERSION=${RELEASE_REF##*-v}
+  if [ "$TAG_VERSION" = "$RELEASE_REF" ]; then
+    TAG_VERSION=${RELEASE_REF#v}
+  fi
 
   if [ "$MIX_VERSION" != "$TAG_VERSION" ]; then
     echo "::error::Release ref version ($TAG_VERSION) does not match mix.exs version ($MIX_VERSION). Aborting publish." >&2
