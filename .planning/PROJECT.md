@@ -12,15 +12,17 @@ The core library now covers the durable post-upload media lifecycle plus the
 highest-leverage adopter trust gaps that blocked a credible public release
 story after `v1.0`.
 
-## Current Milestone: v1.2 First Hex Publish
+## Current Milestone: v1.2 First Hex Publish — COMPLETE (2026-04-29)
 
 **Goal:** prove Rindle's first real `Hex.pm` publication path end to end so
 future releases can reuse a practiced, documented, test-backed workflow.
 
 **Target features:**
-- First public `Hex.pm` publish readiness and execution path
-- Reusable release automation around the publish flow
-- Docs and package-consumer verification aligned with the published artifact
+- First public `Hex.pm` publish readiness and execution path — ✓ Done (Phase 10)
+- Reusable release automation around the publish flow — ✓ Done (Phase 11)
+- Docs and package-consumer verification aligned with the published artifact — ✓ Done (Phase 12)
+- Release traceability and runbook alignment — ✓ Done (Phase 13)
+- Nyquist validation closure for all phases — ✓ Done (Phase 14)
 
 ## What This Is
 
@@ -74,6 +76,8 @@ Media, made durable.
   documented rollback path if needed (Validated in Phase 12: Public Verification)
 - [x] Release requirement traceability metadata and runbook aligned with live
   workflow contract (Validated in Phase 13: Release Traceability)
+- [x] Phases 10 and 11 VALIDATION artifacts completed so v1.2 milestone audit
+  can treat all Nyquist closure as done without draft residue (Validated in Phase 14)
 
 ### Out of Scope
 
@@ -161,7 +165,7 @@ upload-surface expansion.
 | Capability-driven storage negotiation is the contract boundary | Backend support differs materially across S3-compatible providers and future GCS/resumable flows | ✓ Validated in Phase 8 |
 | Multipart uploads belong in v1.1, not v1.0 | Presigned PUT was enough for the first release, but larger production workloads need a better direct-upload path | ✓ Validated in Phase 7 |
 | Install proof should be package-consumer-first | A passing repo CI lane is not the same as a fresh Phoenix adopter succeeding from the published artifact | ✓ Validated in Phase 9 |
-| First public Hex publish should be scoped narrowly and exercised before broader API cleanup | The release path is the remaining trust gap and should become routine before new surface-area bets | — Pending |
+| First public Hex publish should be scoped narrowly and exercised before broader API cleanup | The release path is the remaining trust gap and should become routine before new surface-area bets | ✓ Validated in Phases 10–14 |
 
 ## Historical Snapshot
 
@@ -198,4 +202,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-28 after milestone v1.2 initialization*
+*Last updated: 2026-04-29 after Phase 14 completion — v1.2 milestone complete*
