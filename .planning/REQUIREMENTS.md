@@ -76,30 +76,30 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PUBLISH-01 | TBD | Pending |
-| PUBLISH-02 | TBD | Pending |
-| PUBLISH-03 | TBD | Pending |
-| VERIFY-01 | TBD | Pending |
-| VERIFY-02 | TBD | Pending |
-| RELEASE-01 | TBD | Pending |
-| RELEASE-02 | TBD | Pending |
-| API-01 | TBD | Pending |
-| API-02 | TBD | Pending |
-| API-03 | TBD | Pending |
-| API-04 | TBD | Pending |
-| API-05 | TBD | Pending |
-| API-06 | TBD | Pending |
-| API-07 | TBD | Pending |
-| API-08 | TBD | Pending |
-| API-09 | TBD | Pending |
-| API-10 | TBD | Pending |
-| API-11 | TBD | Pending |
+| PUBLISH-01 | Phase 15 | Pending |
+| PUBLISH-02 | Phase 15 | Pending |
+| PUBLISH-03 | Phase 16 | Pending |
+| VERIFY-01 | Phase 16 | Pending |
+| VERIFY-02 | Phase 16 | Pending |
+| RELEASE-01 | Phase 16 | Pending |
+| RELEASE-02 | Phase 16 | Pending |
+| API-01 | Phase 17 | Pending |
+| API-02 | Phase 17 | Pending |
+| API-03 | Phase 17 | Pending |
+| API-04 | Phase 17 | Pending |
+| API-05 | Phase 17 | Pending |
+| API-06 | Phase 18 | Pending |
+| API-07 | Phase 18 | Pending |
+| API-08 | Phase 18 | Pending |
+| API-09 | Phase 19 | Pending |
+| API-10 | Phase 19 | Pending |
+| API-11 | Phase 19 | Pending |
 
 **Coverage:**
 - v1.3 requirements: 18 total
-- Mapped to phases: TBD (roadmap not yet created)
-- Unmapped: 18 ⚠️ (to be resolved by roadmapper)
+- Mapped to phases: 18/18 ✓
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-04-29*
-*Last updated: 2026-04-29 after initial definition*
+*Last updated: 2026-04-29 — traceability mapped after roadmap creation*

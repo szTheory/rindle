@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Live Publish & API Ergonomics
-status: planning
-stopped_at: milestone v1.3 started — defining requirements
+status: ready_to_plan
+stopped_at: roadmap created — Phase 15 ready to plan
 last_updated: "2026-04-29T00:00:00.000Z"
 last_activity: 2026-04-29
 progress:
-  total_phases: 0
+  total_phases: 5
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -21,14 +21,31 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-29)
 
 **Core value:** Media, made durable.
-**Current focus:** Milestone v1.3 — Live Publish & API Ergonomics
+**Current focus:** Phase 15 — CI Integrity and Publish Preflight
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-04-29 — Milestone v1.3 started
+Phase: 15 of 19 (CI Integrity and Publish Preflight)
+Plan: — (not yet planned)
+Status: Ready to plan
+Last activity: 2026-04-29 — Roadmap created for v1.3, Phase 15 ready to plan
+
+Progress: [░░░░░░░░░░] 0%
+
+## Performance Metrics
+
+**Velocity:**
+- Total plans completed: 0 (v1.3)
+- Average duration: —
+- Total execution time: —
+
+**By Phase:**
+
+| Phase | Plans | Total | Avg/Plan |
+|-------|-------|-------|----------|
+| - | - | - | - |
+
+*Updated after each plan completion*
 
 ## Accumulated Context
 
@@ -36,13 +53,12 @@ Last activity: 2026-04-29 — Milestone v1.3 started
 
 Decisions are logged in PROJECT.md Key Decisions table.
 
-Most recent milestone decisions (v1.2):
-- Keep Phase 10 preflight-only; route release checks through `scripts/release_preflight.sh` and leave live Hex credentials for Phase 11.
-- Swapped dry-run publish step for a live publish step guarded by real `HEX_API_KEY` environment variable logic.
-- Ensured publish pipeline fails fast if the Git tag does not match the `mix.exs` version.
-- Moved the previously local/manual dry-run validation into a fully automated CI test.
-- Normalize all Phase 11 and Phase 12 summaries to `requirements-completed` (canonical audit key).
-- Encode the workflow contract as both positive and refutation assertions in the parity test.
+Recent decisions affecting current work (v1.2 close / v1.3 start):
+- Publish first, then run API audit as separate phases — breaking changes go to v0.2.0, not v0.1.x
+- Boundary audit (Phase 17) must precede documentation sprint (Phase 18) — internal modules must be hidden before any @doc additions
+- Live publish (Phase 16) must precede API renaming (Phase 17) — claim package name before any rename work
+- `@spec` types must be tightened before `0.1.0` ships — narrowing after publish is a Dialyzer breaking change
+- `doctor ~> 0.22.0` added as dev dependency to fill @doc/@spec coverage gap that Credo/Dialyxir leave open
 
 ### Pending Todos
 
@@ -51,12 +67,13 @@ Most recent milestone decisions (v1.2):
 
 ### Blockers/Concerns
 
-- None. v1.2 is archived and v1.3 planning has started.
+- One-time human prerequisite before Phase 16 tag push: confirm Hex.pm email and verify `rindle` package name availability — cannot be validated by CI
+- First 60 minutes post-publish are a hot observation window (24h revert window closes to 1h for subsequent versions)
 
 ## Session Continuity
 
 Last session: 2026-04-29
-Stopped at: Milestone v1.3 started
+Stopped at: v1.3 roadmap created — 5 phases (15–19), 18 requirements mapped
 Resume file: None
 
 ### Decision-Making Preference
@@ -70,6 +87,6 @@ Resume file: None
 - Workflow preference: skip discuss by default and move directly into
   planning/execution unless a high-impact ambiguity is detected.
 
-**Last Completed Milestone:** v1.2 (Phases 10-14) — archived 2026-04-29
+**Last Completed Milestone:** v1.2 (Phases 10–14) — archived 2026-04-29
 
 **Next Step:** Run `/gsd-plan-phase 15` to start v1.3 execution
