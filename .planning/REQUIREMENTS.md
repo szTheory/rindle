@@ -7,29 +7,27 @@
 
 ### First Publish Readiness
 
-- [ ] **RELEASE-04**: Maintainer can prepare Rindle for its first public
+- [x] **RELEASE-04**: Maintainer can prepare Rindle for its first public
   `Hex.pm` publish with explicit package metadata, owner/auth setup, and a
   documented versioning/release checklist
-- [ ] **RELEASE-05**: Maintainer can inspect the exact package tarball and docs
+- [x] **RELEASE-05**: Maintainer can inspect the exact package tarball and docs
   build output before any live publish occurs
 
 ### Release Automation
 
-- [x] **RELEASE-06
-**: Protected release automation can publish Rindle to
+- [x] **RELEASE-06**: Protected release automation can publish Rindle to
   `Hex.pm` with a scoped publish credential without requiring ad hoc local
   maintainer auth
-- [x] **RELEASE-07
-**: Release automation fails before publication when package
+- [x] **RELEASE-07**: Release automation fails before publication when package
   contents, docs generation, or package-consumer install proof drift from the
   expected release path
 
 ### Public Verification and Operations
 
-- [ ] **RELEASE-08**: Maintainer can verify a freshly published Rindle version
+- [x] **RELEASE-08**: Maintainer can verify a freshly published Rindle version
   by resolving it from `Hex.pm` in a fresh consumer flow instead of only from a
   local package path
-- [ ] **RELEASE-09**: Maintainer-facing docs describe the first-publish flow,
+- [x] **RELEASE-09**: Maintainer-facing docs describe the first-publish flow,
   future routine release flow, and the immediate rollback/revert path for a bad
   release
 
@@ -60,12 +58,12 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| RELEASE-04 | Phase 10 | Pending |
-| RELEASE-05 | Phase 10 | Pending |
-| RELEASE-06 | Phase 11 | Pending |
-| RELEASE-07 | Phase 11 | Pending |
-| RELEASE-08 | Phase 12 | Pending |
-| RELEASE-09 | Phase 12 | Pending |
+| RELEASE-04 | Phase 13 | Complete |
+| RELEASE-05 | Phase 13 | Complete |
+| RELEASE-06 | Phase 13 | Complete |
+| RELEASE-07 | Phase 13 | Complete |
+| RELEASE-08 | Phase 13 | Complete |
+| RELEASE-09 | Phase 13 | Complete |
 
 **Coverage:**
 - v1.2 requirements: 6 total
@@ -74,4 +72,4 @@
 
 ---
 *Requirements defined: 2026-04-28*
-*Last updated: 2026-04-28 after milestone v1.2 initialization*
+*Last updated: 2026-04-29 after milestone v1.2 audit gap planning*
