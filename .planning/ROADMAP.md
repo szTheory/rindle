@@ -147,9 +147,9 @@ and 11
    without special-casing validation residue
 
 Plans:
-- [ ] 14-01-PLAN.md — bring Phase 10 validation artifacts to completed,
+- [x] 14-01-PLAN.md — bring Phase 10 validation artifacts to completed,
   evidence-backed state
-- [ ] 14-02-PLAN.md — bring Phase 11 validation artifacts to completed,
+- [x] 14-02-PLAN.md — bring Phase 11 validation artifacts to completed,
   evidence-backed state
 
 ## Progress
