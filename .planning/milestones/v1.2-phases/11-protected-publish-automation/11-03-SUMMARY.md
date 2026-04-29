@@ -24,6 +24,7 @@ key_files:
     - .github/workflows/ci.yml
 key_decisions:
   - "Moved the previously local/manual dry-run validation into a fully automated CI test to avoid manual verification."
+requirements-completed: []
 performance_metrics:
   duration: 10
   tasks_completed: 1

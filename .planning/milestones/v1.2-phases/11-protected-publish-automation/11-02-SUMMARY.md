@@ -25,6 +25,7 @@ key_files:
     - .github/workflows/release.yml
 key_decisions:
   - Ensured publish pipeline fails fast if the Git tag does not match the mix.exs version.
+requirements-completed: [RELEASE-07]
 metrics:
   duration_minutes: 2
   completed_at: 2026-04-28T21:22:57Z

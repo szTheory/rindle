@@ -24,6 +24,7 @@ key_files:
     - .github/workflows/release.yml
 key_decisions:
   - Swapped out dry-run publish step for a live publish step guarded by real HEX_API_KEY environment variable logic.
+requirements-completed: [RELEASE-06]
 metrics:
   duration_minutes: 1
   completed_at: 2026-04-28T21:20:10Z
