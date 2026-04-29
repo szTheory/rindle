@@ -11,11 +11,12 @@ and workflow operations in maintainer docs instead of pushing them into
 Use this sequence on the release branch:
 
 1. Change `@version "0.1.0-dev"` in `mix.exs` to `0.1.0`.
-2. Commit the release version change.
-3. Create tag `v0.1.0`.
-4. Push the tag so `.github/workflows/release.yml` runs the `Release`
+2. Confirm the root `CHANGELOG.md` has a `0.1.0` entry matching the release scope.
+3. Commit the release version change.
+4. Create tag `v0.1.0`.
+5. Push the tag so `.github/workflows/release.yml` runs the `Release`
    workflow.
-5. After the workflow succeeds, bump `mix.exs` on `main` to the next
+6. After the workflow succeeds, bump `mix.exs` on `main` to the next
    `-dev` version and commit that follow-up.
 
 Do not leave `main` on the release version after the publish completes.
@@ -51,6 +52,7 @@ the live publish using `HEX_API_KEY` stored in the `release` GitHub
 Actions environment. After publish, the `public_verify` job runs the
 `Verify public Hex.pm artifact` step on a fresh runner with `HEX_API_KEY`
 cleared, confirming network resolution independently of the publish job.
+The maintainer identity and owner checks above remain manual proof, not CI proof.
 
 ## First Publish Owner Model
 
@@ -71,21 +73,40 @@ mix hex.owner add rindle USERNAME
 
 Do not rely on informal handoff. Owner follow-up is part of the release.
 
+## Pre-Tag Go/No-Go Checklist
+
+Before creating or pushing a release tag, confirm all of the following:
+
+1. `mix hex.user whoami` shows the intended publishing maintainer.
+2. `mix hex.owner list rindle` matches the expected owner state for this release.
+3. Hex.pm package-name availability for `rindle` is still acceptable for the first public publish.
+4. `CHANGELOG.md` includes the `0.1.0` entry for the first public release, or the current release entry for later cuts.
+5. `bash scripts/release_preflight.sh` passes locally on the exact release-candidate commit.
+
+Items 1 through 3 remain manual maintainer checks because they depend on mutable external Hex account and registry state.
+
 ## Package metadata review
 
 Before any live publish step, build the package exactly as shipped:
 
 ```bash
-mix hex.build --unpack
+bash scripts/release_preflight.sh
 ```
 
-Compare source metadata in `mix.exs` with the unpacked
-`hex_metadata.config` and confirm all of the following:
+The shared preflight script builds the package with `mix hex.build --unpack`
+and then runs metadata, docs parity, install smoke, and docs validation in the
+same order used by CI and the live release workflow.
+That docs validation includes `mix docs --warnings-as-errors`.
+
+Compare source metadata in `mix.exs` with the unpacked `hex_metadata.config`
+and confirm all of the following:
 
 - Package name is `rindle`.
 - Release version matches the intended cut.
 - License remains `MIT`.
 - GitHub links point at the canonical repository.
+- Package description matches the intended Hex.pm summary.
+- Packaged root files include `CHANGELOG.md`.
 - Packaged docs include `guides/release_publish.md`.
 
 The point of this checklist is to validate shipped metadata, not just repo
@@ -99,13 +120,12 @@ Run this preflight sequence before publishing:
 ```bash
 mix hex.user whoami
 mix hex.owner list rindle
-mix docs --warnings-as-errors
-mix hex.build --unpack
+bash scripts/release_preflight.sh
 ```
 
 Review the unpacked package contents and `hex_metadata.config` after the
-build step. If any identity, license, link, or docs inclusion check fails,
-fix the source and rebuild before publishing.
+preflight build. If any identity, license, link, changelog, or docs inclusion
+check fails, fix the source and rebuild before publishing.
 
 ## Release Workflow Contract
 

@@ -2,8 +2,21 @@
 set -euo pipefail
 
 ROOT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
-PACKAGE_NAME=$(cd "$ROOT_DIR" && mix run --no-start -e 'project = Mix.Project.config(); IO.write("#{project[:app]}-#{project[:version]}")')
-PACKAGE_ROOT="${RINDLE_INSTALL_SMOKE_PACKAGE_ROOT:-$ROOT_DIR/$PACKAGE_NAME}"
+PACKAGE_ROOT="${RINDLE_INSTALL_SMOKE_PACKAGE_ROOT:-}"
+WORK_DIR=""
+
+cleanup() {
+  if [ -n "$WORK_DIR" ]; then
+    rm -rf "$WORK_DIR"
+  fi
+}
+
+trap cleanup EXIT
+
+if [ -z "$PACKAGE_ROOT" ]; then
+  WORK_DIR=$(mktemp -d "${TMPDIR:-/tmp}/rp-XXXXXX")
+  PACKAGE_ROOT="$WORK_DIR/pkg"
+fi
 
 cd "$ROOT_DIR"
 

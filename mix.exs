@@ -158,7 +158,7 @@ defmodule Rindle.MixProject do
       links: %{
         "GitHub" => @source_url
       },
-      files: ~w(lib priv/repo/migrations mix.exs README.md LICENSE guides)
+      files: ~w(lib priv/repo/migrations mix.exs README.md CHANGELOG.md LICENSE guides)
     ]
   end
 

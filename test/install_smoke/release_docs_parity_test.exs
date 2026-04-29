@@ -37,7 +37,8 @@ defmodule Rindle.InstallSmoke.ReleaseDocsParityTest do
           "mix hex.user whoami",
           "mix hex.owner list rindle",
           "mix hex.owner add rindle USERNAME",
-          "initial owner"
+          "initial owner",
+          "package-name availability"
         ] do
       assert release_guide =~ snippet
     end
@@ -65,6 +66,8 @@ defmodule Rindle.InstallSmoke.ReleaseDocsParityTest do
     release_guide: release_guide
   } do
     for snippet <- [
+          "CHANGELOG.md",
+          "0.1.0",
           "Package metadata review",
           "mix hex.build --unpack",
           "hex_metadata.config",

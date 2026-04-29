@@ -18,6 +18,8 @@ if [ -z "${RINDLE_INSTALL_SMOKE_PACKAGE_ROOT:-}" ]; then
   mix hex.build --unpack --output "$PACKAGE_ROOT"
 fi
 
+bash scripts/ensure_minio.sh
+
 if [ ! -d "$PACKAGE_ROOT" ]; then
   echo "install smoke package missing: $PACKAGE_ROOT" >&2
   exit 1

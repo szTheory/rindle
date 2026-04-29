@@ -126,7 +126,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     write_fixture!(root)
   end
 
-  defp patch_mix_exs!(root, package_root, network_version \\ nil) do
+  defp patch_mix_exs!(root, package_root, network_version) do
     path = Path.join(root, "mix.exs")
     oban_requirement = oban_requirement()
     rindle_dep =

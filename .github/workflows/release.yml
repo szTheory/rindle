@@ -115,7 +115,80 @@ jobs:
           fi
           mix hex.publish --yes
 
+  # D-02: this job proves the published package from a fresh runner so the
+  # anonymous verification path cannot inherit publish-job workspace state.
+  public_verify:
+    name: Public Verify
+    needs: release
+    runs-on: ubuntu-latest
+    env:
+      MIX_ENV: dev
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGHOST: localhost
+      PGPORT: "5432"
+      RINDLE_MINIO_URL: http://localhost:9000
+      RINDLE_MINIO_ACCESS_KEY: minioadmin
+      RINDLE_MINIO_SECRET_KEY: minioadmin
+      RINDLE_MINIO_BUCKET: rindle-test
+      RINDLE_MINIO_REGION: us-east-1
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: rindle_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: "1.17"
+          otp-version: "27"
+
+      - name: Install libvips
+        run: sudo apt-get install -y libvips-dev
+
+      - name: Install dependencies
+        run: mix deps.get
+
+      - name: Start MinIO
+        run: |
+          docker run -d --name rindle-minio -p 9000:9000 -e MINIO_ROOT_USER=minioadmin -e MINIO_ROOT_PASSWORD=minioadmin minio/minio server /data --console-address ":9001"
+          for _ in $(seq 1 30); do
+            if curl -fsS http://localhost:9000/minio/health/ready >/dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          exit 1
+
+      - name: Install MinIO client
+        run: |
+          curl -fsSL https://dl.min.io/client/mc/release/linux-amd64/mc -o mc
+          chmod +x mc
+          sudo mv mc /usr/local/bin/mc
+
+      - name: Create MinIO bucket
+        run: |
+          mc alias set local http://localhost:9000 minioadmin minioadmin
+          mc mb --ignore-existing local/rindle-test
+
       - name: Verify public Hex.pm artifact
         env:
           HEX_API_KEY: ""
-        run: bash scripts/public_smoke.sh
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          bash scripts/public_smoke.sh "$VERSION"
