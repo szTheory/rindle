@@ -14,6 +14,7 @@ fi
 
 echo "Running public smoke test for published Hex.pm version: $VERSION"
 
+export MIX_ENV=test
 export RINDLE_INSTALL_SMOKE_NETWORK_VERSION="$VERSION"
 
 bash "$SCRIPT_DIR/ensure_minio.sh"

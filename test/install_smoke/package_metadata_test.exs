@@ -82,9 +82,9 @@ defmodule Rindle.InstallSmoke.PackageMetadataTest do
       "MIX_ENV=dev mix hex.build --unpack --output \"$PACKAGE_ROOT\"",
       "MIX_ENV=test mix test test/install_smoke/package_metadata_test.exs",
       "MIX_ENV=test mix test test/install_smoke/release_docs_parity_test.exs",
-      "MIX_ENV=test bash scripts/install_smoke.sh",
+      "MIX_ENV=test RINDLE_PROJECT_ROOT=\"$ROOT_DIR\" bash \"$SCRIPT_DIR/install_smoke.sh\"",
       "MIX_ENV=dev mix docs --warnings-as-errors",
-      "bash scripts/assert_release_docs_html.sh"
+      "RINDLE_PROJECT_ROOT=\"$ROOT_DIR\" bash \"$SCRIPT_DIR/assert_release_docs_html.sh\""
     ]
 
     positions = Enum.map(commands, &command_position(script, &1))
@@ -118,7 +118,7 @@ defmodule Rindle.InstallSmoke.PackageMetadataTest do
     public_smoke_script: public_smoke_script
   } do
     for script <- [install_smoke_script, public_smoke_script] do
-      assert script =~ "bash scripts/ensure_minio.sh"
+      assert script =~ "bash \"$SCRIPT_DIR/ensure_minio.sh\""
       assert script =~ "generated_app_smoke_test.exs --include minio"
     end
   end
