@@ -13,22 +13,31 @@ readiness gaps around metadata, owner/auth setup, and preflight visibility.
 Phase 11 upgrades the existing release lane from dry-run-only proof to a real,
 protected publish path. Phase 12 then proves the public package from the
 outside in and captures the maintainer runbook so future releases reuse the
-same path instead of rediscovering it.
+same path instead of rediscovering it. Phase 13 closes the audit's
+traceability and runbook drift, and Phase 14 finishes the remaining Nyquist
+validation artifacts needed for a clean milestone closeout.
 
 ## Phases
 
 **Phase Numbering:**
-- Integer phases (10, 11, 12): planned milestone work continuing from v1.1
+- Integer phases (10, 11, 12, 13, 14): planned milestone work continuing from
+  v1.1
 - Decimal phases (10.1, 10.2): urgent insertions if needed later
 
-- [ ] **Phase 10: Publish Readiness** - Finalize metadata, ownership/auth
+- [x] **Phase 10: Publish Readiness** - Finalize metadata, ownership/auth
   setup, and preflight package/docs visibility for the first public release
-- [ ] **Phase 11: Protected Publish Automation** - Turn the existing release
+- [x] **Phase 11: Protected Publish Automation** - Turn the existing release
   lane into a real `Hex.pm` publish path guarded by environment controls and
   fail-fast release gates
-- [ ] **Phase 12: Public Verification and Release Operations** - Prove the
+- [x] **Phase 12: Public Verification and Release Operations** - Prove the
   published package from Hex.pm and document the repeatable maintainer release
   and rollback path
+- [ ] **Phase 13: Release Traceability and Runbook Alignment** - Close audit
+  debt in requirement metadata, summary traceability, and release-doc/workflow
+  parity coverage
+- [ ] **Phase 14: Validation Closure for Publish Milestone** - Finish the
+  remaining Phase 10 and Phase 11 validation artifacts so the milestone can
+  pass audit without draft Nyquist residue
 
 ## Phase Details
 
@@ -58,7 +67,7 @@ same preflight checks already proved locally while keeping the write credential
 and trigger path narrowly controlled
 **Depends on**: Phase 10
 **Requirements**: RELEASE-06, RELEASE-07
-**Plans**: 2 plans
+**Plans**: 3 plans
 **Success Criteria** (what must be TRUE):
 1. A scoped publish credential can be used from the protected GitHub `release`
    environment without requiring local maintainer auth during the release run
@@ -72,6 +81,8 @@ Plans:
   existing release workflow
 - [x] 11-02-PLAN.md — make publish gating fail-safe and keep dry-run/build
   checks aligned with the live publish path
+- [x] 11-03-PLAN.md — move dry-run publish validation into CI so the release
+  flow is exercised continuously outside the protected live publish lane
 
 ### Phase 12: Public Verification and Release Operations
 **Goal**: Rindle's first public release is proved from the outside in and the
@@ -93,6 +104,54 @@ Plans:
 - [ ] 12-02-PLAN.md — finalize maintainer release, rollback, and future-routine
   documentation around the proved workflow
 
+### Phase 13: Release Traceability and Runbook Alignment
+**Goal**: the v1.2 release milestone is traceable end to end in the planning
+artifacts, and maintainer documentation stays aligned with the shipped release
+workflow
+**Depends on**: Phase 12
+**Requirements**: RELEASE-04, RELEASE-05, RELEASE-06, RELEASE-07, RELEASE-08,
+RELEASE-09
+**Gap Closure**: Closes v1.2 audit tech debt around requirement metadata,
+summary frontmatter, stale release-guide language, and missing doc/workflow
+parity coverage
+**Plans**: 2 plans
+**Success Criteria** (what must be TRUE):
+1. `.planning/REQUIREMENTS.md`, phase verification reports, and summary
+   frontmatter agree on requirement completion status for `RELEASE-04` through
+   `RELEASE-09`
+2. Phase 11 and Phase 12 summaries expose requirement completion using one
+   consistent frontmatter key that the audit tooling can consume directly
+3. `guides/release_publish.md` matches the shipped release workflow contract,
+   and an automated parity check prevents this class of drift from recurring
+
+Plans:
+- [ ] 13-01-PLAN.md — normalize requirement trace metadata across summaries,
+  requirements tracking, and audit-facing planning artifacts
+- [ ] 13-02-PLAN.md — align `guides/release_publish.md` with the live workflow
+  contract and add a parity check for future drift
+
+### Phase 14: Validation Closure for Publish Milestone
+**Goal**: the milestone's remaining partial validation artifacts are completed
+so audit closure no longer depends on draft Nyquist state
+**Depends on**: Phase 13
+**Requirements**: none
+**Gap Closure**: Closes the v1.2 audit's partial Nyquist status for Phases 10
+and 11
+**Plans**: 2 plans
+**Success Criteria** (what must be TRUE):
+1. Phase 10 validation reflects the tests and wave artifacts that now exist,
+   with sign-off fields advanced from pending/draft where appropriate
+2. Phase 11 validation reflects the shipped publish automation and validation
+   probes, with wave completion and approval state no longer left incomplete
+3. A follow-up milestone audit can treat Phases 10 through 12 as fully closed
+   without special-casing validation residue
+
+Plans:
+- [ ] 14-01-PLAN.md — bring Phase 10 validation artifacts to completed,
+  evidence-backed state
+- [ ] 14-02-PLAN.md — bring Phase 11 validation artifacts to completed,
+  evidence-backed state
+
 ## Progress
 
 **Execution Order:**
@@ -100,7 +159,8 @@ Phases execute in numeric order: 10 -> 11 -> 12
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 10. Publish Readiness | 0/2 | Pending | — |
+| 10. Publish Readiness | 2/2 | Complete | 2026-04-28 |
 | 11. Protected Publish Automation | 3/3 | Complete | 2026-04-28 |
-| 12. Public Verification and Release Operations | 0/2 | Pending | — |
- Public Verification and Release Operations | 0/2 | Pending | — |
+| 12. Public Verification and Release Operations | 2/2 | Complete | 2026-04-28 |
+| 13. Release Traceability and Runbook Alignment | 0/2 | Pending | — |
+| 14. Validation Closure for Publish Milestone | 0/2 | Pending | — |

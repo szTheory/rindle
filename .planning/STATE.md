@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: milestone
 status: verifying
-stopped_at: Phase 12 verification found requirement gaps
-last_updated: "2026-04-28T22:14:51.000Z"
-last_activity: 2026-04-28 -- Phase 12 verification reported gaps
+stopped_at: Completed 13-01-PLAN.md — release traceability metadata normalized
+last_updated: "2026-04-29T02:07:41.572Z"
+last_activity: 2026-04-29
 progress:
-  total_phases: 3
-  completed_phases: 0
-  total_plans: 2
-  completed_plans: 0
-  percent: 0
+  total_phases: 5
+  completed_phases: 1
+  total_plans: 4
+  completed_plans: 3
+  percent: 75
 ---
 
 # Project State
@@ -28,10 +28,10 @@ v1.2 is active and the project is ready to start planning Phase 10.
 
 Phase: 12 (public-verification-and-release-operations) — VERIFYING
 Plan: 2 of 2
-Status: Verification found gaps
-Last activity: 2026-04-28 -- Phase 12 verification reported gaps
+Status: Phase complete — ready for verification
+Last activity: 2026-04-29
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [████████░░] 75%
 
 ## Accumulated Context
 
@@ -81,6 +81,8 @@ Recent decisions affecting current work:
 - Swapped out dry-run publish step for a live publish step guarded by real HEX_API_KEY environment variable logic.
 - Ensured publish pipeline fails fast if the Git tag does not match the mix.exs version.
 - Moved the previously local/manual dry-run validation into a fully automated CI test to avoid manual verification.
+- Normalize all Phase 11 and Phase 12 summaries to requirements-completed (the canonical audit key) rather than mixed requirement:/requirements: fields that blocked the strict three-source milestone audit.
+- 11-03-SUMMARY.md receives requirements-completed: [] because the CI gap-closure plan did not claim a release requirement, normalizing the schema without inventing ownership.
 
 ### Pending Todos
 
@@ -97,9 +99,9 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: --stopped-at
-Stopped at: Phase 12 context gathered (assumptions mode)
-Resume file: --resume-file
+Last session: 2026-04-29T02:07:41.566Z
+Stopped at: Completed 13-01-PLAN.md — release traceability metadata normalized
+Resume file: None
 
 ### Decision-Making Preference
 
@@ -118,4 +120,4 @@ Resume file: --resume-file
 
 **Last Completed Milestone:** v1.1 (Phases 06-09) — archived 2026-04-28
 
-**Planned Phase:** 12 (public-verification-and-release-operations) — 2 plans — 2026-04-28T22:03:36.846Z
+**Planned Phase:** 13 (Release Traceability and Runbook Alignment) — 2 plans — 2026-04-29T01:54:46.462Z
