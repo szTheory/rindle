@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: milestone
-status: verifying
-stopped_at: Completed 13-02-PLAN.md — runbook aligned with live workflow contract and parity test extended
-last_updated: "2026-04-29T02:11:07.302Z"
-last_activity: 2026-04-29
+status: active
+stopped_at: Phase 13 complete — traceability metadata normalized, runbook aligned, parity test extended
+last_updated: "2026-04-28T00:00:00.000Z"
+last_activity: 2026-04-28
 progress:
   total_phases: 5
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 4
   completed_plans: 4
-  percent: 100
+  percent: 80
 ---
 
 # Project State
@@ -21,13 +21,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-28)
 
 **Core value:** Media, made durable.
-**Current focus:** Phase 12 — public-verification-and-release-operations
-v1.2 is active and the project is ready to start planning Phase 10.
+**Current focus:** Phase 14 — validation-closure-for-publish-milestone
 
 ## Current Position
 
-Phase: 12 (public-verification-and-release-operations) — VERIFYING
-Plan: 2 of 2
+Phase: 14 (validation-closure-for-publish-milestone) — NEXT
+Plan: 0 of pending
 Status: Phase complete — ready for verification
 Last activity: 2026-04-29
 

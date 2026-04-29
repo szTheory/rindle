@@ -32,7 +32,7 @@ validation artifacts needed for a clean milestone closeout.
 - [x] **Phase 12: Public Verification and Release Operations** - Prove the
   published package from Hex.pm and document the repeatable maintainer release
   and rollback path
-- [ ] **Phase 13: Release Traceability and Runbook Alignment** - Close audit
+- [x] **Phase 13: Release Traceability and Runbook Alignment** - Close audit
   debt in requirement metadata, summary traceability, and release-doc/workflow
   parity coverage
 - [ ] **Phase 14: Validation Closure for Publish Milestone** - Finish the
