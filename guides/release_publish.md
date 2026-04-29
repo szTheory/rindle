@@ -1,24 +1,41 @@
 # Release Publishing
 
-This runbook is for maintainers preparing Rindle's first public Hex.pm
-release. It keeps publish-time ownership, versioning, and package review
-steps in maintainer docs instead of pushing them into `README.md` or
-`guides/getting_started.md`.
+This maintainer runbook covers Rindle's first public Hex.pm release
+(`0.1.0`), routine releases after `0.1.0`, and the manual rollback/revert
+path for a bad public release. It keeps publish-time ownership, versioning,
+and workflow operations in maintainer docs instead of pushing them into
+`README.md` or `guides/getting_started.md`.
 
-## Versioning
-
-The first public release is `0.1.0`.
+## First Public Release (0.1.0)
 
 Use this sequence on the release branch:
 
 1. Change `@version "0.1.0-dev"` in `mix.exs` to `0.1.0`.
 2. Commit the release version change.
 3. Create tag `v0.1.0`.
-4. Run the preflight commands and publish.
-5. After the release is live, bump `mix.exs` on `main` to the next `-dev`
-   version.
+4. Push the tag so `.github/workflows/release.yml` runs the `Release`
+   workflow.
+5. After the workflow succeeds, bump `mix.exs` on `main` to the next
+   `-dev` version and commit that follow-up.
 
 Do not leave `main` on the release version after the publish completes.
+
+## Routine Releases After 0.1.0
+
+Use this sequence for every later public release:
+
+1. Derive the release version from the current `-dev` value in `mix.exs`.
+2. Update `mix.exs` from the current `-dev` value to the release value.
+3. Commit the version change.
+4. Create and push tag `vVERSION`.
+5. Monitor GitHub Actions until the `Release` workflow completes these
+   step names in order:
+   - `Run release preflight`
+   - `Verify version alignment`
+   - `Live publish to Hex`
+   - `Verify public Hex.pm artifact`
+6. After the workflow succeeds, bump `mix.exs` on `main` to the next
+   `-dev` version and commit that follow-up.
 
 ## Hex Auth Check
 
@@ -28,9 +45,12 @@ Confirm the current maintainer account before any publish attempt:
 mix hex.user whoami
 ```
 
-This phase does not wire live `HEX_API_KEY` automation. The goal here is
-to verify the human publish operator and the runbook contract before Phase
-11 adds write-capable automation.
+Maintainers verify their identity with `mix hex.user whoami` before
+pushing a release tag. The tag-triggered `Release` workflow then performs
+the live publish using `HEX_API_KEY` stored in the `release` GitHub
+Actions environment. After publish, the `public_verify` job runs the
+`Verify public Hex.pm artifact` step on a fresh runner with `HEX_API_KEY`
+cleared, confirming network resolution independently of the publish job.
 
 ## First Publish Owner Model
 
@@ -69,7 +89,8 @@ Compare source metadata in `mix.exs` with the unpacked
 - Packaged docs include `guides/release_publish.md`.
 
 The point of this checklist is to validate shipped metadata, not just repo
-source, before the first public release.
+source, before both the first public release and every routine release
+after it.
 
 ## Preflight Commands
 
@@ -86,19 +107,45 @@ Review the unpacked package contents and `hex_metadata.config` after the
 build step. If any identity, license, link, or docs inclusion check fails,
 fix the source and rebuild before publishing.
 
+## Release Workflow Contract
+
+Tagged releases are anchored to the repository workflow and commands already
+shipped in the repo. The `Release` workflow runs:
+
+```bash
+bash scripts/release_preflight.sh
+bash scripts/assert_version_match.sh
+mix hex.publish --yes
+bash scripts/public_smoke.sh
+```
+
+The repo's `package-consumer` CI lane shifts the release contract left before
+tag time by running the shared preflight, mocking tag/version alignment, and
+exercising `mix hex.publish --dry-run --yes`. The release workflow's
+`Verify public Hex.pm artifact` step then serves as the automated
+post-publish proof on a fresh runner with `HEX_API_KEY` cleared, so no
+separate human UAT step is required.
+
 ## Post-Publish Follow-Up
 
-After `0.1.0` is published:
+After the first `0.1.0` release:
 
 1. Verify the owner list again with `mix hex.owner list rindle`.
 2. Add additional maintainers with `mix hex.owner add rindle USERNAME`.
+
+After every release, including `0.1.0`:
+
+1. Verify the `Release` workflow finished successfully.
+2. Confirm `Verify public Hex.pm artifact` passed.
 3. Bump `mix.exs` on `main` back to the next `-dev` version.
 4. Keep this runbook current if the owner roster, links, or release
    checklist changes.
 
 ## Rollback and Revert
 
-Package rollback and revert procedures are manual maintainer actions; they are not automated in CI.
+Package rollback and revert procedures are manual maintainer actions; they
+are not automated in CI. This applies to both the first `0.1.0` release
+and every routine release after it.
 
 If a published release is broken, you can revert it using the native Hex tooling:
 
