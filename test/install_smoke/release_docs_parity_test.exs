@@ -3,6 +3,7 @@ defmodule Rindle.InstallSmoke.ReleaseDocsParityTest do
 
   @mix_exs_path Path.expand("../../mix.exs", __DIR__)
   @release_guide_path Path.expand("../../guides/release_publish.md", __DIR__)
+  @release_workflow_path Path.expand("../../.github/workflows/release.yml", __DIR__)
   @operations_path Path.expand("../../guides/operations.md", __DIR__)
   @readme_path Path.expand("../../README.md", __DIR__)
   @getting_started_path Path.expand("../../guides/getting_started.md", __DIR__)
@@ -12,6 +13,7 @@ defmodule Rindle.InstallSmoke.ReleaseDocsParityTest do
      %{
        mix_exs: File.read!(@mix_exs_path),
        release_guide: File.read!(@release_guide_path),
+       release_workflow: File.read!(@release_workflow_path),
        operations: File.read!(@operations_path),
        readme: File.read!(@readme_path),
        getting_started: File.read!(@getting_started_path)
@@ -74,5 +76,65 @@ defmodule Rindle.InstallSmoke.ReleaseDocsParityTest do
         ] do
       assert release_guide =~ snippet
     end
+  end
+
+  test "release guide names all live workflow step names matching the shipped release workflow", %{
+    release_guide: release_guide,
+    release_workflow: release_workflow
+  } do
+    step_names = [
+      "Run release preflight",
+      "Verify version alignment",
+      "Live publish to Hex",
+      "Verify public Hex.pm artifact"
+    ]
+
+    for step_name <- step_names do
+      assert release_guide =~ step_name,
+             "release_publish.md is missing shipped step name: #{inspect(step_name)}"
+
+      assert release_workflow =~ step_name,
+             "release.yml is missing step name: #{inspect(step_name)} — workflow may have drifted"
+    end
+  end
+
+  test "release guide includes all shipped repo commands matching the live workflow contract", %{
+    release_guide: release_guide,
+    release_workflow: release_workflow
+  } do
+    commands = [
+      "bash scripts/release_preflight.sh",
+      "bash scripts/assert_version_match.sh",
+      "mix hex.publish --yes",
+      "bash scripts/public_smoke.sh"
+    ]
+
+    for command <- commands do
+      assert release_guide =~ command,
+             "release_publish.md is missing shipped command: #{inspect(command)}"
+
+      assert release_workflow =~ command,
+             "release.yml is missing command: #{inspect(command)} — workflow may have drifted"
+    end
+  end
+
+  test "release guide does not contain stale deferred-automation wording about HEX_API_KEY", %{
+    release_guide: release_guide
+  } do
+    stale_phrases = [
+      "Phase 11 adds write-capable automation",
+      "does not wire live `HEX_API_KEY` automation",
+      "HEX_API_KEY automation is not wired yet",
+      "deferred to Phase 11"
+    ]
+
+    for phrase <- stale_phrases do
+      refute release_guide =~ phrase,
+             "release_publish.md still contains stale deferred-automation claim: #{inspect(phrase)}"
+    end
+
+    # The guide must still discuss HEX_API_KEY as current reality, not future work
+    assert release_guide =~ "HEX_API_KEY",
+           "release_publish.md must mention HEX_API_KEY as part of the live workflow description"
   end
 end
