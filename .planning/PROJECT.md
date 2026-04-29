@@ -66,12 +66,14 @@ Media, made durable.
 
 ### Active
 
-- [ ] First public `Hex.pm` publish path is exercised from the real repository
-  workflow
-- [ ] Release automation can perform a protected real publish and fail safely
-  before publication if package/docs/install gates drift
-- [ ] A maintainer can verify the published package from Hex.pm and follow a
-  documented rollback path if needed
+- [x] First public `Hex.pm` publish path is exercised from the real repository
+  workflow (Validated in Phase 11: Protected Publish Automation)
+- [x] Release automation can perform a protected real publish and fail safely
+  before publication if package/docs/install gates drift (Validated in Phase 11)
+- [x] A maintainer can verify the published package from Hex.pm and follow a
+  documented rollback path if needed (Validated in Phase 12: Public Verification)
+- [x] Release requirement traceability metadata and runbook aligned with live
+  workflow contract (Validated in Phase 13: Release Traceability)
 
 ### Out of Scope
 
