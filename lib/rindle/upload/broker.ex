@@ -236,7 +236,8 @@ defmodule Rindle.Upload.Broker do
          adapter <- profile_module.storage_adapter(),
          # Check storage for object existence (Pitfall 5)
          {:ok, metadata} <- adapter.head(session.upload_key, opts),
-         :ok <- UploadSessionFSM.transition(session.state, "verifying", %{session_id: session.id}),
+         :ok <-
+           UploadSessionFSM.transition(session.state, "verifying", %{session_id: session.id}),
          :ok <- AssetFSM.transition(asset.state, "validating", %{asset_id: asset.id}) do
       execute_verify_completion(repo, session, asset, profile_module, metadata)
     else
