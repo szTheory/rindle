@@ -35,7 +35,7 @@ validation artifacts needed for a clean milestone closeout.
 - [x] **Phase 13: Release Traceability and Runbook Alignment** - Close audit
   debt in requirement metadata, summary traceability, and release-doc/workflow
   parity coverage
-- [ ] **Phase 14: Validation Closure for Publish Milestone** - Finish the
+- [x] **Phase 14: Validation Closure for Publish Milestone** - Finish the (completed 2026-04-29)
   remaining Phase 10 and Phase 11 validation artifacts so the milestone can
   pass audit without draft Nyquist residue
 
@@ -163,4 +163,4 @@ Phases execute in numeric order: 10 -> 11 -> 12
 | 11. Protected Publish Automation | 3/3 | Complete | 2026-04-28 |
 | 12. Public Verification and Release Operations | 2/2 | Complete | 2026-04-28 |
 | 13. Release Traceability and Runbook Alignment | 0/2 | Pending | — |
-| 14. Validation Closure for Publish Milestone | 0/2 | Pending | — |
+| 14. Validation Closure for Publish Milestone | 2/2 | Complete    | 2026-04-29 |
