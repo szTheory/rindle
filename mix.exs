@@ -89,8 +89,18 @@ defmodule Rindle.MixProject do
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:excoveralls, "~> 0.18", only: [:test, :dev], runtime: false},
+      json_polyfill_dep(),
       {:ex_doc, "~> 0.40", only: :dev, runtime: false}
     ]
+    |> Enum.reject(&is_nil/1)
+  end
+
+  defp json_polyfill_dep do
+    otp_major = System.otp_release() |> String.to_integer()
+
+    if otp_major < 27 do
+      {:json_polyfill, "~> 0.2", only: [:test, :dev]}
+    end
   end
 
   defp docs do

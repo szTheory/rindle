@@ -76,7 +76,7 @@ defmodule Rindle.Profile.Validator do
           storage: module(),
           allow_mime: [String.t() | Regex.t()],
           allow_extensions: [String.t()],
-          max_bytes: pos_integer(),
+          max_bytes: pos_integer() | nil,
           max_pixels: pos_integer() | nil,
           variants: %{required(atom()) => map()},
           delivery: %{
@@ -84,6 +84,13 @@ defmodule Rindle.Profile.Validator do
             authorizer: module() | nil,
             signed_url_ttl_seconds: pos_integer()
           }
+        }
+
+  @type upload_policy :: %{
+          allow_mime: [String.t() | Regex.t()],
+          allow_extensions: [String.t()],
+          max_bytes: pos_integer() | nil,
+          max_pixels: pos_integer() | nil
         }
 
   @type upload_metadata :: %{
@@ -125,7 +132,7 @@ defmodule Rindle.Profile.Validator do
       reraise ArgumentError, Exception.message(error), __STACKTRACE__
   end
 
-  @spec validate_upload(upload_metadata() | map(), profile_options()) ::
+  @spec validate_upload(upload_metadata() | map(), upload_policy()) ::
           {:ok, map()} | {:error, term()}
   def validate_upload(upload, profile) when is_map(upload) do
     with :ok <- validate_mime(upload, profile.allow_mime),

@@ -46,10 +46,11 @@ defmodule Rindle.Profile do
         |> Enum.sort_by(fn {variant_name, _spec} -> Atom.to_string(variant_name) end)
       end
 
-      @spec upload_policy() :: map()
+      @spec upload_policy() :: Rindle.Profile.Validator.upload_policy()
       def upload_policy, do: @rindle_upload_policy
 
-      @spec validate_upload(map()) :: {:ok, map()} | {:error, term()}
+      @spec validate_upload(Rindle.Profile.Validator.upload_metadata()) ::
+              {:ok, map()} | {:error, term()}
       def validate_upload(upload) do
         Validator.validate_upload(upload, @rindle_upload_policy)
       end
