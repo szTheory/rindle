@@ -5,6 +5,8 @@ Status: BLOCKED pending exact-SHA remote CI proof and maintainer signoff
 As of 2026-04-29, local HEAD `566f6f4a7f0ff4ac73befa62d050ef55036769c4` had no recorded GitHub Actions CI proof for the exact release-candidate SHA. Before Phase 16 pushes a live tag, replace that missing-proof state with the exact commit that will actually be tagged and the matching CI run URL.
 
 Local preflight is diagnostic preparation, not authoritative release proof.
+Authoritative signoff requires a green GitHub Actions run on the exact release-candidate SHA.
+Maintainer-only Hex identity, owner, and package-name availability checks stay outside `scripts/release_preflight.sh` and outside secret-gated automation.
 
 ## Release Candidate
 

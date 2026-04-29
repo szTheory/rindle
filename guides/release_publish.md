@@ -89,6 +89,7 @@ Items 1 through 3 remain manual maintainer checks because they depend on mutable
 ## Exact-SHA Release Candidate Proof
 
 Local preflight is diagnostic preparation, not authoritative release proof.
+Authoritative signoff requires a green GitHub Actions run on the exact release-candidate SHA.
 The maintainer can use `bash scripts/release_preflight.sh` and local
 `mix hex.build --unpack` runs to iterate on the candidate, but Phase 15 is
 not complete until GitHub Actions CI is green on the exact release-candidate
@@ -98,6 +99,8 @@ Record that SHA and the GitHub Actions run URL in
 `.planning/phases/15-ci-integrity-and-publish-preflight/15-RELEASE-CANDIDATE-CHECKLIST.md`.
 Do not substitute a green branch head, a rerun on a different commit, or a
 local-only shell transcript for this proof.
+Maintainer-only Hex identity, owner, and package-name availability checks stay
+outside `scripts/release_preflight.sh` and outside secret-gated automation.
 
 ## Package metadata review
 
