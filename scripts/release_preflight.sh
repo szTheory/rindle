@@ -23,6 +23,11 @@ fi
 
 cd "$ROOT_DIR"
 
+if ! mix phx.new --version >/dev/null 2>&1; then
+  echo "Installing Phoenix generator archive for install smoke..."
+  MIX_ENV=dev mix archive.install hex phx_new --force
+fi
+
 MIX_ENV=dev mix hex.build --unpack --output "$PACKAGE_ROOT"
 
 export RINDLE_INSTALL_SMOKE_PACKAGE_ROOT="$PACKAGE_ROOT"
