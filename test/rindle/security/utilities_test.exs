@@ -23,7 +23,7 @@ defmodule Rindle.Security.UtilitiesTest do
       refute String.contains?(key, " ")
     end
 
-  test "falls back when segments are not usable" do
+    test "falls back when segments are not usable" do
       key = StorageKey.generate(nil, nil, nil)
 
       assert String.starts_with?(key, "profile/asset/")

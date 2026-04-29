@@ -106,7 +106,10 @@ defmodule Rindle.Storage.S3 do
   def complete_multipart_upload(key, upload_id, parts, opts) do
     with {:ok, bucket} <- bucket(opts),
          {:ok, %{body: body}} <-
-           request(S3.complete_multipart_upload(bucket, key, upload_id, normalize_parts(parts)), opts) do
+           request(
+             S3.complete_multipart_upload(bucket, key, upload_id, normalize_parts(parts)),
+             opts
+           ) do
       {:ok, Map.merge(%{upload_id: upload_id, upload_key: key, bucket: bucket}, body)}
     else
       {:error, reason} -> {:error, reason}

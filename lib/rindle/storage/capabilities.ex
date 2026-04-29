@@ -47,7 +47,8 @@ defmodule Rindle.Storage.Capabilities do
   @spec supports?(module(), capability()) :: boolean()
   def supports?(adapter, capability), do: capability in safe(adapter)
 
-  @spec require_upload(module(), capability()) :: :ok | {:error, {:upload_unsupported, capability()}}
+  @spec require_upload(module(), capability()) ::
+          :ok | {:error, {:upload_unsupported, capability()}}
   def require_upload(adapter, capability) do
     if supports?(adapter, capability) do
       :ok

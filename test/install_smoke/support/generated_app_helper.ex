@@ -1,12 +1,11 @@
 defmodule Rindle.InstallSmoke.GeneratedAppHelper do
   @moduledoc false
 
-  @png_1x1 <<0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D, 0x49,
-             0x48, 0x44, 0x52, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x08, 0x02,
-             0x00, 0x00, 0x00, 0x90, 0x77, 0x53, 0xDE, 0x00, 0x00, 0x00, 0x0C, 0x49, 0x44,
-             0x41, 0x54, 0x08, 0xD7, 0x63, 0xF8, 0xFF, 0xFF, 0x3F, 0x00, 0x05, 0xFE, 0x02,
-             0xFE, 0xDC, 0x44, 0x74, 0x06, 0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44,
-             0xAE, 0x42, 0x60, 0x82>>
+  @png_1x1 <<0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D, 0x49, 0x48,
+             0x44, 0x52, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x08, 0x02, 0x00, 0x00,
+             0x00, 0x90, 0x77, 0x53, 0xDE, 0x00, 0x00, 0x00, 0x0C, 0x49, 0x44, 0x41, 0x54, 0x08,
+             0xD7, 0x63, 0xF8, 0xFF, 0xFF, 0x3F, 0x00, 0x05, 0xFE, 0x02, 0xFE, 0xDC, 0x44, 0x74,
+             0x06, 0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82>>
 
   @host_migration_version "20260428170000"
 
@@ -20,7 +19,11 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
 
     app_name = "rindle_smoke_app"
     app_module = Macro.camelize(app_name)
-    package_root = System.get_env("RINDLE_INSTALL_SMOKE_PACKAGE_ROOT") || Path.join(workspace_root, "package/#{package_name()}")
+
+    package_root =
+      System.get_env("RINDLE_INSTALL_SMOKE_PACKAGE_ROOT") ||
+        Path.join(workspace_root, "package/#{package_name()}")
+
     generated_app_root = Path.join(workspace_root, app_name)
     db_name = "#{app_name}_#{System.unique_integer([:positive])}_test"
     shared_env = shared_env(db_name)
@@ -35,8 +38,12 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     if network_version do
       Enum.reduce_while(1..30, :error, fn attempt, _acc ->
         case run_cmd(generated_app_root, ["mix", "deps.get"], shared_env) do
-          %{exit_code: 0} -> {:halt, :ok}
-          _ when attempt == 30 -> raise "deps.get failed after 30 attempts"
+          %{exit_code: 0} ->
+            {:halt, :ok}
+
+          _ when attempt == 30 ->
+            raise "deps.get failed after 30 attempts"
+
           _ ->
             Process.sleep(10_000)
             {:cont, :error}
@@ -48,10 +55,25 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
 
     compile_result = run_cmd!(generated_app_root, ["mix", "compile"], shared_env)
     _ = run_cmd!(generated_app_root, ["mix", "ecto.create"], shared_env)
-    _ = run_cmd!(generated_app_root, ["mix", "run", "--no-start", "priv/install_smoke/migrate.exs"], shared_env)
-    migration_report = read_json!(Path.join(generated_app_root, "tmp/install_smoke_migration_report.json"))
+
+    _ =
+      run_cmd!(
+        generated_app_root,
+        ["mix", "run", "--no-start", "priv/install_smoke/migrate.exs"],
+        shared_env
+      )
+
+    migration_report =
+      read_json!(Path.join(generated_app_root, "tmp/install_smoke_migration_report.json"))
+
     boot_result = boot_app!(generated_app_root, app_module, shared_env)
-    smoke_result = run_cmd!(generated_app_root, ["mix", "test", "test/rindle_install_smoke_test.exs"], shared_env)
+
+    smoke_result =
+      run_cmd!(
+        generated_app_root,
+        ["mix", "test", "test/rindle_install_smoke_test.exs"],
+        shared_env
+      )
 
     %{
       workspace_root: workspace_root,
@@ -65,7 +87,9 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       host_migration_ran?: migration_report["host_migration_ran"] == true,
       migration_resolution: migration_report["resolver"] |> to_existing_atom_safe(),
       rindle_migration_path: migration_report["rindle_migration_path"],
-      lifecycle_proved?: smoke_result.exit_code == 0 and String.contains?(smoke_result.output, "2 tests, 0 failures")
+      lifecycle_proved?:
+        smoke_result.exit_code == 0 and
+          String.contains?(smoke_result.output, "2 tests, 0 failures")
     }
   end
 
@@ -129,6 +153,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
   defp patch_mix_exs!(root, package_root, network_version) do
     path = Path.join(root, "mix.exs")
     oban_requirement = oban_requirement()
+
     rindle_dep =
       if network_version do
         "{:rindle, \"~> #{network_version}\"}"
@@ -158,28 +183,32 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     updated =
       path
       |> File.read!()
-      |> String.replace(~r/username: "postgres"/, "username: System.get_env(\"PGUSER\") || System.get_env(\"USER\") || \"postgres\"")
+      |> String.replace(
+        ~r/username: "postgres"/,
+        "username: System.get_env(\"PGUSER\") || System.get_env(\"USER\") || \"postgres\""
+      )
       |> String.replace(~r/password: "postgres"/, "password: System.get_env(\"PGPASSWORD\")")
-      |> String.replace(~r/hostname: "localhost"/, "hostname: System.get_env(\"PGHOST\") || \"localhost\"")
+      |> String.replace(
+        ~r/hostname: "localhost"/,
+        "hostname: System.get_env(\"PGHOST\") || \"localhost\""
+      )
       |> String.replace(
         ~r/database: "#{app_name}_test#\{System.get_env\("MIX_TEST_PARTITION"\)\}"/,
         "database: System.fetch_env!(\"RINDLE_INSTALL_SMOKE_DB\")"
       )
-      |> Kernel.<>(
-        """
+      |> Kernel.<>("""
 
-        config :#{app_name}, Oban,
-          repo: #{Macro.camelize(app_name)}.Repo,
-          testing: :manual,
-          queues: false
+      config :#{app_name}, Oban,
+        repo: #{Macro.camelize(app_name)}.Repo,
+        testing: :manual,
+        queues: false
 
-        config :#{app_name}, #{Macro.camelize(app_name)}.Repo,
-          migration_primary_key: [type: :binary_id],
-          migration_timestamps: [type: :utc_datetime_usec]
+      config :#{app_name}, #{Macro.camelize(app_name)}.Repo,
+        migration_primary_key: [type: :binary_id],
+        migration_timestamps: [type: :utc_datetime_usec]
 
-        config :rindle, :repo, #{Macro.camelize(app_name)}.Repo
-        """
-      )
+      config :rindle, :repo, #{Macro.camelize(app_name)}.Repo
+      """)
 
     File.write!(path, updated)
   end
@@ -251,7 +280,11 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
   end
 
   defp write_host_migration!(root) do
-    path = Path.join(root, "priv/repo/migrations/#{@host_migration_version}_create_install_smoke_markers.exs")
+    path =
+      Path.join(
+        root,
+        "priv/repo/migrations/#{@host_migration_version}_create_install_smoke_markers.exs"
+      )
 
     File.write!(
       path,

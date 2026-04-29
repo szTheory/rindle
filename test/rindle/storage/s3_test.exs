@@ -10,11 +10,12 @@ defmodule Rindle.Storage.S3Test do
   @minio_secret_key System.get_env("RINDLE_MINIO_SECRET_KEY")
   @minio_bucket System.get_env("RINDLE_MINIO_BUCKET")
   @minio_region System.get_env("RINDLE_MINIO_REGION") || "us-east-1"
-  @minio_skip_reason (
-                       if Enum.any?([@minio_url, @minio_access_key, @minio_secret_key, @minio_bucket], &is_nil/1) do
-                         "Skipping MinIO-backed S3 adapter test because one or more RINDLE_MINIO_* environment variables are missing"
-                       end
-                     )
+  @minio_skip_reason (if Enum.any?(
+                           [@minio_url, @minio_access_key, @minio_secret_key, @minio_bucket],
+                           &is_nil/1
+                         ) do
+                        "Skipping MinIO-backed S3 adapter test because one or more RINDLE_MINIO_* environment variables are missing"
+                      end)
 
   test "returns missing_bucket when no bucket is configured" do
     assert {:error, :missing_bucket} = S3.store("assets/a1.jpg", "/tmp/missing", [])
@@ -128,7 +129,8 @@ defmodule Rindle.Storage.S3Test do
     request = {String.to_charlist(presigned_url), [], ~c"application/octet-stream", body}
 
     case :httpc.request(:put, request, [], []) do
-      {:ok, {{_http_version, status, _reason}, response_headers, _resp_body}} when status in 200..299 ->
+      {:ok, {{_http_version, status, _reason}, response_headers, _resp_body}}
+      when status in 200..299 ->
         response_headers
         |> Enum.find_value(fn
           {header, value} when header in [~c"etag", ~c"ETag"] -> List.to_string(value)
@@ -140,7 +142,9 @@ defmodule Rindle.Storage.S3Test do
         end
 
       {:ok, {{_http_version, status, reason}, _response_headers, resp_body}} ->
-        flunk("multipart UploadPart failed with status #{status} #{reason}: #{inspect(resp_body)}")
+        flunk(
+          "multipart UploadPart failed with status #{status} #{reason}: #{inspect(resp_body)}"
+        )
 
       {:error, reason} ->
         flunk("multipart UploadPart failed: #{inspect(reason)}")

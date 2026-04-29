@@ -13,9 +13,10 @@ defmodule Rindle.InstallSmoke.GeneratedAppSmokeTest do
     {:ok, report: report}
   end
 
-  test "generated Phoenix app installs Rindle from the unpacked artifact and never falls back to repo-local deps", %{
-    report: report
-  } do
+  test "generated Phoenix app installs Rindle from the unpacked artifact and never falls back to repo-local deps",
+       %{
+         report: report
+       } do
     assert File.dir?(report.generated_app_root)
 
     if not report.network_mode? do

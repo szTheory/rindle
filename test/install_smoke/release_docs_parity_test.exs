@@ -81,10 +81,11 @@ defmodule Rindle.InstallSmoke.ReleaseDocsParityTest do
     end
   end
 
-  test "release guide names all live workflow step names matching the shipped release workflow", %{
-    release_guide: release_guide,
-    release_workflow: release_workflow
-  } do
+  test "release guide names all live workflow step names matching the shipped release workflow",
+       %{
+         release_guide: release_guide,
+         release_workflow: release_workflow
+       } do
     step_names = [
       "Run release preflight",
       "Verify version alignment",

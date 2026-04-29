@@ -142,7 +142,9 @@ defmodule Rindle.Upload.LifecycleIntegrationTest do
         end
 
       {:ok, {{_http_version, status, reason}, _response_headers, resp_body}} ->
-        flunk("multipart UploadPart failed with status #{status} #{reason}: #{inspect(resp_body)}")
+        flunk(
+          "multipart UploadPart failed with status #{status} #{reason}: #{inspect(resp_body)}"
+        )
 
       {:error, reason} ->
         flunk("multipart UploadPart failed: #{inspect(reason)}")
@@ -220,7 +222,11 @@ defmodule Rindle.Upload.LifecycleIntegrationTest do
       {:ok, %{upload_id: "upload-123", upload_key: key, part_size: part_size, part_headers: %{}}}
     end)
 
-    expect(Rindle.StorageMock, :presigned_upload_part, 2, fn key, "upload-123", part_number, _expires_in, _opts ->
+    expect(Rindle.StorageMock, :presigned_upload_part, 2, fn key,
+                                                             "upload-123",
+                                                             part_number,
+                                                             _expires_in,
+                                                             _opts ->
       {:ok,
        %{
          url: "https://example.com/#{key}?partNumber=#{part_number}",
@@ -232,7 +238,9 @@ defmodule Rindle.Upload.LifecycleIntegrationTest do
     end)
 
     expect(Rindle.StorageMock, :complete_multipart_upload, fn key, "upload-123", parts, _opts ->
-      assert [%{etag: "\"etag-1\"", part_number: 1}, %{etag: "\"etag-2\"", part_number: 2}] = parts
+      assert [%{etag: "\"etag-1\"", part_number: 1}, %{etag: "\"etag-2\"", part_number: 2}] =
+               parts
+
       {:ok, %{upload_id: "upload-123", upload_key: key}}
     end)
 
@@ -272,6 +280,7 @@ defmodule Rindle.Upload.LifecycleIntegrationTest do
     persisted = Rindle.Repo.get!(MediaUploadSession, session.id)
     assert persisted.state == "completed"
     assert persisted.multipart_upload_id == "upload-123"
+
     assert persisted.multipart_parts == %{
              "parts" => [
                %{"etag" => "\"etag-1\"", "part_number" => 1},
@@ -287,7 +296,9 @@ defmodule Rindle.Upload.LifecycleIntegrationTest do
     {part1, part2} = multipart_png_fixture_parts()
 
     assert {:ok, %{session: session, multipart: multipart}} =
-             Rindle.initiate_multipart_upload(MinioProfile, filename: "direct-multipart-minio.png")
+             Rindle.initiate_multipart_upload(MinioProfile,
+               filename: "direct-multipart-minio.png"
+             )
 
     assert session.state == "initialized"
     assert session.upload_strategy == "multipart"
@@ -453,7 +464,10 @@ defmodule Rindle.Upload.AdopterRepoLifecycleIntegrationTest do
     end
 
     root =
-      Path.join(System.tmp_dir!(), "rindle-adopter-integration-#{System.unique_integer([:positive])}")
+      Path.join(
+        System.tmp_dir!(),
+        "rindle-adopter-integration-#{System.unique_integer([:positive])}"
+      )
 
     File.mkdir_p!(root)
 
@@ -486,9 +500,10 @@ defmodule Rindle.Upload.AdopterRepoLifecycleIntegrationTest do
     path
   end
 
-  test "proxied upload promotes the asset and generates a ready variant through the adopter repo", %{
-    root: root
-  } do
+  test "proxied upload promotes the asset and generates a ready variant through the adopter repo",
+       %{
+         root: root
+       } do
     source = write_fixture(root, "proxied-adopter-source.png")
 
     {:ok, asset} =

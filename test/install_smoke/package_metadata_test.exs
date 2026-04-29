@@ -48,7 +48,10 @@ defmodule Rindle.InstallSmoke.PackageMetadataTest do
     assert metadata =~ ~s({<<"description">>,)
     assert metadata =~ "Phoenix/Ecto-native media lifecycle library. Media, made durable."
     assert metadata =~ ~s({<<"licenses">>,[<<"MIT">>]}.)
-    assert metadata =~ ~s({<<"links">>,[{<<"GitHub">>,<<"https://github.com/szTheory/rindle">>}]}.)
+
+    assert metadata =~
+             ~s({<<"links">>,[{<<"GitHub">>,<<"https://github.com/szTheory/rindle">>}]}.)
+
     assert metadata =~ ~s({<<"GitHub">>,<<"https://github.com/szTheory/rindle">>})
 
     for rel_path <- @required_paths do
@@ -129,7 +132,10 @@ defmodule Rindle.InstallSmoke.PackageMetadataTest do
 
   defp build_package! do
     output_root =
-      Path.join(System.tmp_dir!(), "rindle-package-metadata-#{System.unique_integer([:positive])}")
+      Path.join(
+        System.tmp_dir!(),
+        "rindle-package-metadata-#{System.unique_integer([:positive])}"
+      )
 
     package_root = Path.join(output_root, "rindle-#{Mix.Project.config()[:version]}")
 
