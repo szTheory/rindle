@@ -1,12 +1,14 @@
 defmodule Rindle.Upload.BrokerTest do
+  alias Rindle.Adopter.CanonicalApp.Repo, as: AdopterRepo
+  alias Rindle.Domain.{MediaAsset, MediaUploadSession}
+  alias Rindle.Storage.Capabilities
+  alias Rindle.Upload.Broker
+
   use Rindle.DataCase, async: false
-  use Oban.Testing, repo: Rindle.Adopter.CanonicalApp.Repo
+  use Oban.Testing, repo: AdopterRepo
   import Mox
 
   alias Ecto.Adapters.SQL.Sandbox
-  alias Rindle.Adopter.CanonicalApp.Repo, as: AdopterRepo
-  alias Rindle.Domain.{MediaAsset, MediaUploadSession}
-  alias Rindle.Upload.Broker
 
   setup :set_mox_from_context
   setup :verify_on_exit!
@@ -16,32 +18,32 @@ defmodule Rindle.Upload.BrokerTest do
 
     def transaction(fun) when is_function(fun, 0) do
       notify(:transaction)
-      Rindle.Adopter.CanonicalApp.Repo.transaction(fun)
+      AdopterRepo.transaction(fun)
     end
 
     def transaction(multi) do
       notify(:transaction)
-      Rindle.Adopter.CanonicalApp.Repo.transaction(multi)
+      AdopterRepo.transaction(multi)
     end
 
     def insert(changeset) do
       notify({:insert, changeset.data.__struct__})
-      Rindle.Adopter.CanonicalApp.Repo.insert(changeset)
+      AdopterRepo.insert(changeset)
     end
 
     def update(changeset) do
       notify({:update, changeset.data.__struct__})
-      Rindle.Adopter.CanonicalApp.Repo.update(changeset)
+      AdopterRepo.update(changeset)
     end
 
     def get(schema, id) do
       notify({:get, schema, id})
-      Rindle.Adopter.CanonicalApp.Repo.get(schema, id)
+      AdopterRepo.get(schema, id)
     end
 
     def preload(struct_or_structs, preloads) do
       notify({:preload, preloads})
-      Rindle.Adopter.CanonicalApp.Repo.preload(struct_or_structs, preloads)
+      AdopterRepo.preload(struct_or_structs, preloads)
     end
 
     defp notify(event) do
@@ -92,13 +94,13 @@ defmodule Rindle.Upload.BrokerTest do
   end
 
   setup do
-    case start_supervised(Rindle.Adopter.CanonicalApp.Repo) do
+    case start_supervised(AdopterRepo) do
       {:ok, _pid} -> :ok
       {:error, {:already_started, _}} -> :ok
     end
 
-    Sandbox.checkout(Rindle.Adopter.CanonicalApp.Repo)
-    Sandbox.mode(Rindle.Adopter.CanonicalApp.Repo, {:shared, self()})
+    Sandbox.checkout(AdopterRepo)
+    Sandbox.mode(AdopterRepo, {:shared, self()})
 
     previous_repo = Application.get_env(:rindle, :repo)
     previous_probe_owner = Application.get_env(:rindle, :repo_probe_owner)
@@ -133,7 +135,7 @@ defmodule Rindle.Upload.BrokerTest do
       assert_received {:repo_probe, {:insert, MediaAsset}}
       assert_received {:repo_probe, {:insert, MediaUploadSession}}
 
-      asset = Rindle.Adopter.CanonicalApp.Repo.preload(session, :asset).asset
+      asset = AdopterRepo.preload(session, :asset).asset
       assert asset.state == "staged"
       assert asset.profile == to_string(TestProfile)
       assert asset.storage_key == session.upload_key
@@ -170,7 +172,7 @@ defmodule Rindle.Upload.BrokerTest do
       {:ok, session} =
         session
         |> MediaUploadSession.changeset(%{state: "completed"})
-        |> Rindle.Adopter.CanonicalApp.Repo.update()
+        |> AdopterRepo.update()
 
       assert {:error, {:invalid_transition, "completed", "signed"}} = Broker.sign_url(session.id)
     end
@@ -212,12 +214,12 @@ defmodule Rindle.Upload.BrokerTest do
 
     test "returns error if profile is unknown" do
       {:ok, session} = Broker.initiate_session(TestProfile, filename: "test.jpg")
-      asset = Rindle.Adopter.CanonicalApp.Repo.preload(session, :asset).asset
+      asset = AdopterRepo.preload(session, :asset).asset
 
       # Corrupt the profile name in DB
       asset
       |> MediaAsset.changeset(%{profile: "Elixir.NonExistentProfile12345"})
-      |> Rindle.Adopter.CanonicalApp.Repo.update!()
+      |> AdopterRepo.update!()
 
       assert {:error, :unknown_profile} = Broker.verify_completion(session.id)
     end
@@ -239,10 +241,10 @@ defmodule Rindle.Upload.BrokerTest do
       assert {:error, :storage_object_missing} = Broker.verify_completion(session.id)
 
       # Verify states didn't change
-      session = Rindle.Adopter.CanonicalApp.Repo.get!(MediaUploadSession, session.id)
+      session = AdopterRepo.get!(MediaUploadSession, session.id)
       assert session.state == "signed"
 
-      asset = Rindle.Adopter.CanonicalApp.Repo.get!(MediaAsset, session.asset_id)
+      asset = AdopterRepo.get!(MediaAsset, session.asset_id)
       assert asset.state == "staged"
     end
   end
@@ -419,7 +421,7 @@ defmodule Rindle.Upload.BrokerTest do
       assert {:ok, %{session: completed_session, asset: asset}} =
                Broker.complete_multipart_upload(session.id, parts)
 
-      persisted = Rindle.Adopter.CanonicalApp.Repo.get!(MediaUploadSession, completed_session.id)
+      persisted = AdopterRepo.get!(MediaUploadSession, completed_session.id)
 
       assert persisted.multipart_parts == %{
                "parts" => [
@@ -441,7 +443,7 @@ defmodule Rindle.Upload.BrokerTest do
 
     test "reserved resumable capabilities fail with the same tagged helper contract" do
       assert {:error, {:upload_unsupported, :resumable_upload_session}} =
-               Rindle.Storage.Capabilities.require_upload(
+               Capabilities.require_upload(
                  UnsupportedMultipartProfile.storage_adapter(),
                  :resumable_upload_session
                )

@@ -1,5 +1,6 @@
 defmodule Rindle.InstallSmoke.GeneratedAppHelper do
   @moduledoc false
+  alias Mix.Dep.Lock
 
   @png_1x1 <<0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D, 0x49, 0x48,
              0x44, 0x52, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x08, 0x02, 0x00, 0x00,
@@ -35,23 +36,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     generate_phoenix_app!(workspace_root, generated_app_root)
     patch_generated_app!(generated_app_root, app_name, app_module, package_root, network_version)
 
-    if network_version do
-      Enum.reduce_while(1..30, :error, fn attempt, _acc ->
-        case run_cmd(generated_app_root, ["mix", "deps.get"], shared_env) do
-          %{exit_code: 0} ->
-            {:halt, :ok}
-
-          _ when attempt == 30 ->
-            raise "deps.get failed after 30 attempts"
-
-          _ ->
-            Process.sleep(10_000)
-            {:cont, :error}
-        end
-      end)
-    else
-      _ = run_cmd!(generated_app_root, ["mix", "deps.get"], shared_env)
-    end
+    fetch_deps!(generated_app_root, shared_env, network_version)
 
     compile_result = run_cmd!(generated_app_root, ["mix", "compile"], shared_env)
     _ = run_cmd!(generated_app_root, ["mix", "ecto.create"], shared_env)
@@ -497,15 +482,15 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     [
       {"MIX_ENV", "test"},
       {"RINDLE_INSTALL_SMOKE_DB", db_name},
-      {"PGUSER", System.get_env("PGUSER") || System.get_env("USER") || "postgres"},
+      {"PGUSER", env_or_default("PGUSER", System.get_env("USER") || "postgres")},
       {"PGPASSWORD", System.get_env("PGPASSWORD")},
-      {"PGHOST", System.get_env("PGHOST") || "localhost"},
-      {"PGPORT", System.get_env("PGPORT") || "5432"},
-      {"RINDLE_MINIO_URL", System.get_env("RINDLE_MINIO_URL") || "http://localhost:9000"},
-      {"RINDLE_MINIO_BUCKET", System.get_env("RINDLE_MINIO_BUCKET") || "rindle-test"},
-      {"RINDLE_MINIO_ACCESS_KEY", System.get_env("RINDLE_MINIO_ACCESS_KEY") || "minioadmin"},
-      {"RINDLE_MINIO_SECRET_KEY", System.get_env("RINDLE_MINIO_SECRET_KEY") || "minioadmin"},
-      {"RINDLE_MINIO_REGION", System.get_env("RINDLE_MINIO_REGION") || "us-east-1"}
+      {"PGHOST", env_or_default("PGHOST", "localhost")},
+      {"PGPORT", env_or_default("PGPORT", "5432")},
+      {"RINDLE_MINIO_URL", env_or_default("RINDLE_MINIO_URL", "http://localhost:9000")},
+      {"RINDLE_MINIO_BUCKET", env_or_default("RINDLE_MINIO_BUCKET", "rindle-test")},
+      {"RINDLE_MINIO_ACCESS_KEY", env_or_default("RINDLE_MINIO_ACCESS_KEY", "minioadmin")},
+      {"RINDLE_MINIO_SECRET_KEY", env_or_default("RINDLE_MINIO_SECRET_KEY", "minioadmin")},
+      {"RINDLE_MINIO_REGION", env_or_default("RINDLE_MINIO_REGION", "us-east-1")}
     ]
     |> Enum.reject(fn {_key, value} -> is_nil(value) end)
   end
@@ -519,7 +504,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
   end
 
   defp oban_requirement do
-    case Mix.Dep.Lock.read()[:oban] do
+    case Lock.read()[:oban] do
       {:hex, :oban, version, _checksum, _managers, _deps, _repo, _outer_checksum} ->
         "~> #{version}"
 
@@ -530,4 +515,30 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
 
   defp to_existing_atom_safe(nil), do: nil
   defp to_existing_atom_safe(value) when is_binary(value), do: String.to_atom(value)
+
+  defp fetch_deps!(generated_app_root, shared_env, network_version) do
+    if network_version do
+      retry_network_deps_get!(generated_app_root, shared_env)
+    else
+      _ = run_cmd!(generated_app_root, ["mix", "deps.get"], shared_env)
+    end
+  end
+
+  defp retry_network_deps_get!(generated_app_root, shared_env) do
+    Enum.reduce_while(1..30, :error, fn attempt, _acc ->
+      case run_cmd(generated_app_root, ["mix", "deps.get"], shared_env) do
+        %{exit_code: 0} ->
+          {:halt, :ok}
+
+        _ when attempt == 30 ->
+          raise "deps.get failed after 30 attempts"
+
+        _ ->
+          Process.sleep(10_000)
+          {:cont, :error}
+      end
+    end)
+  end
+
+  defp env_or_default(name, default), do: System.get_env(name) || default
 end

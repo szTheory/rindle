@@ -3,12 +3,10 @@ defmodule Rindle.Upload.Broker do
   Manages direct-to-storage upload sessions.
   """
 
-  alias Rindle.Domain.AssetFSM
   alias Rindle.Config
-  alias Rindle.Domain.{MediaAsset, MediaUploadSession}
-  alias Rindle.Storage.Capabilities
-  alias Rindle.Domain.UploadSessionFSM
+  alias Rindle.Domain.{AssetFSM, MediaAsset, MediaUploadSession, UploadSessionFSM}
   alias Rindle.Security.StorageKey
+  alias Rindle.Storage.Capabilities
   alias Rindle.Workers.PromoteAsset
 
   @default_multipart_part_size 8 * 1024 * 1024
@@ -83,11 +81,13 @@ defmodule Rindle.Upload.Broker do
            persist_multipart_session(
              repo,
              adapter,
-             asset_id,
-             profile_name,
-             storage_key,
-             filename,
-             expires_at,
+             %{
+               asset_id: asset_id,
+               profile_name: profile_name,
+               storage_key: storage_key,
+               filename: filename,
+               expires_at: expires_at
+             },
              multipart,
              opts
            ) do
@@ -344,24 +344,14 @@ defmodule Rindle.Upload.Broker do
     end
   end
 
-  defp persist_multipart_session(
-         repo,
-         adapter,
-         asset_id,
-         profile_name,
-         storage_key,
-         filename,
-         expires_at,
-         multipart,
-         opts
-       ) do
+  defp persist_multipart_session(repo, adapter, session_seed, multipart, opts) do
     case create_upload_session(
            repo,
-           asset_id,
-           profile_name,
-           storage_key,
-           filename,
-           expires_at,
+           session_seed.asset_id,
+           session_seed.profile_name,
+           session_seed.storage_key,
+           session_seed.filename,
+           session_seed.expires_at,
            %{
              state: "initialized",
              upload_strategy: "multipart",
@@ -373,7 +363,13 @@ defmodule Rindle.Upload.Broker do
         {:ok, session}
 
       {:error, reason} ->
-        compensate_failed_multipart_persist(adapter, storage_key, multipart.upload_id, opts)
+        compensate_failed_multipart_persist(
+          adapter,
+          session_seed.storage_key,
+          multipart.upload_id,
+          opts
+        )
+
         {:error, reason}
     end
   end
