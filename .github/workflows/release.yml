@@ -144,7 +144,7 @@ jobs:
           set -euo pipefail
           VERSION=$(
             sed -nE \
-              -e 's/^@version[[:space:]]+"([^"]+)"/\1/p' \
+              -e 's/^[[:space:]]*@version[[:space:]]+"([^"]+)"/\1/p' \
               -e 's/^[[:space:]]+version:[[:space:]]+"([^"]+)",?/\1/p' \
               mix.exs | head -n1
           )
