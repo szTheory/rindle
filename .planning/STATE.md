@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: milestone
 status: verifying
-stopped_at: Completed 13-01-PLAN.md — release traceability metadata normalized
-last_updated: "2026-04-29T02:07:41.572Z"
+stopped_at: Completed 13-02-PLAN.md — runbook aligned with live workflow contract and parity test extended
+last_updated: "2026-04-29T02:11:07.302Z"
 last_activity: 2026-04-29
 progress:
   total_phases: 5
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 4
-  completed_plans: 3
-  percent: 75
+  completed_plans: 4
+  percent: 100
 ---
 
 # Project State
@@ -31,7 +31,7 @@ Plan: 2 of 2
 Status: Phase complete — ready for verification
 Last activity: 2026-04-29
 
-Progress: [████████░░] 75%
+Progress: [██████████] 100%
 
 ## Accumulated Context
 
@@ -83,6 +83,8 @@ Recent decisions affecting current work:
 - Moved the previously local/manual dry-run validation into a fully automated CI test to avoid manual verification.
 - Normalize all Phase 11 and Phase 12 summaries to requirements-completed (the canonical audit key) rather than mixed requirement:/requirements: fields that blocked the strict three-source milestone audit.
 - 11-03-SUMMARY.md receives requirements-completed: [] because the CI gap-closure plan did not claim a release requirement, normalizing the schema without inventing ownership.
+- Encode the workflow contract as both positive assertions (step names and commands must appear) and refutation assertions (stale Phase 11 deferred wording must be absent) in the parity test to catch both omission and regression drift.
+- Extend setup_all fixture to include release.yml so parity tests can cross-check the guide against the live workflow contract, not just the guide in isolation.
 
 ### Pending Todos
 
@@ -99,8 +101,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-29T02:07:41.566Z
-Stopped at: Completed 13-01-PLAN.md — release traceability metadata normalized
+Last session: 2026-04-29T02:11:07.297Z
+Stopped at: Completed 13-02-PLAN.md — runbook aligned with live workflow contract and parity test extended
 Resume file: None
 
 ### Decision-Making Preference
