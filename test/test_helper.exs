@@ -1,6 +1,11 @@
 {:ok, _} = Rindle.Repo.start_link()
 Ecto.Adapters.SQL.Sandbox.mode(Rindle.Repo, :manual)
 
+case ExMarcel.TableWrapper.start_link([]) do
+  {:ok, _pid} -> :ok
+  {:error, {:already_started, _pid}} -> :ok
+end
+
 case Rindle.Adopter.CanonicalApp.Repo.start_link() do
   {:ok, _pid} -> :ok
   {:error, {:already_started, _pid}} -> :ok

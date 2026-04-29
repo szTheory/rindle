@@ -5,7 +5,9 @@ defmodule Rindle.Application do
 
   @impl true
   def start(_type, _args) do
-    children = []
+    children = [
+      ExMarcel.TableWrapper
+    ]
 
     opts = [strategy: :one_for_one, name: Rindle.Supervisor]
     Supervisor.start_link(children, opts)
