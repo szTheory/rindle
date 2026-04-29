@@ -64,7 +64,7 @@ Full archive: [.planning/milestones/v1.0-ROADMAP.md](.planning/milestones/v1.0-R
   4. All preflight gates in `scripts/release_preflight.sh` pass on the exact commit to be tagged
 **Plans**: 2 plans
 Plans:
-- [ ] 15-01-PLAN.md — Harden shared preflight unpack/changelog contract and close the repo-owned tarball failure path
+- [x] 15-01-PLAN.md — Harden shared preflight unpack/changelog contract and close the repo-owned tarball failure path
 - [ ] 15-02-PLAN.md — Capture exact-SHA remote CI proof and maintainer release-candidate signoff evidence
 
 ### Phase 16: Live Publish Execution and Post-Publish Verification
@@ -122,7 +122,7 @@ Plans:
 | 12. Public Verification and Release Operations | v1.2 | 2/2 | Complete | 2026-04-28 |
 | 13. Release Traceability and Runbook Alignment | v1.2 | 2/2 | Complete | 2026-04-29 |
 | 14. Validation Closure for Publish Milestone | v1.2 | 2/2 | Complete | 2026-04-29 |
-| 15. CI Integrity and Publish Preflight | v1.3 | 0/TBD | Not started | - |
+| 15. CI Integrity and Publish Preflight | v1.3 | 1/2 | In Progress | - |
 | 16. Live Publish Execution and Post-Publish Verification | v1.3 | 0/TBD | Not started | - |
 | 17. API Surface Boundary Audit | v1.3 | 0/TBD | Not started | - |
 | 18. Documentation and Typespec Coverage | v1.3 | 0/TBD | Not started | - |

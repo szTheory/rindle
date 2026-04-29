@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Live Publish & API Ergonomics
-status: ready_to_plan
-stopped_at: roadmap created — Phase 15 ready to plan
-last_updated: "2026-04-29T00:00:00.000Z"
-last_activity: 2026-04-29
+status: executing
+stopped_at: v1.3 roadmap created — 5 phases (15–19), 18 requirements mapped
+last_updated: "2026-04-29T19:05:41.690Z"
+last_activity: 2026-04-29 -- Awaiting exact-SHA CI proof and maintainer signoff for plan 15-02
 progress:
   total_phases: 5
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  total_plans: 2
+  completed_plans: 1
+  percent: 50
 ---
 
 # Project State
@@ -21,21 +21,22 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-29)
 
 **Core value:** Media, made durable.
-**Current focus:** Phase 15 — CI Integrity and Publish Preflight
+**Current focus:** Phase 15 — ci-integrity-and-publish-preflight
 
 ## Current Position
 
-Phase: 15 of 19 (CI Integrity and Publish Preflight)
-Plan: — (not yet planned)
-Status: Ready to plan
-Last activity: 2026-04-29 — Roadmap created for v1.3, Phase 15 ready to plan
+Phase: 15 (ci-integrity-and-publish-preflight) — EXECUTING
+Plan: 2 of 2
+Status: Awaiting human checkpoint
+Last activity: 2026-04-29 -- Awaiting exact-SHA CI proof and maintainer signoff for plan 15-02
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [█████░░░░░] 50%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 0 (v1.3)
+
+- Total plans completed: 1 (v1.3)
 - Average duration: —
 - Total execution time: —
 
@@ -54,6 +55,7 @@ Progress: [░░░░░░░░░░] 0%
 Decisions are logged in PROJECT.md Key Decisions table.
 
 Recent decisions affecting current work (v1.2 close / v1.3 start):
+
 - Publish first, then run API audit as separate phases — breaking changes go to v0.2.0, not v0.1.x
 - Boundary audit (Phase 17) must precede documentation sprint (Phase 18) — internal modules must be hidden before any @doc additions
 - Live publish (Phase 16) must precede API renaming (Phase 17) — claim package name before any rename work
@@ -82,8 +84,10 @@ Resume file: None
 - Escalate only for high-impact decisions (public API/semver, destructive data
   changes, security/compliance, irreversible infra/cost, major product-scope
   shifts).
+
 - If escalation is not possible in-session, use a reversible default and log
   the assumption.
+
 - Workflow preference: skip discuss by default and move directly into
   planning/execution unless a high-impact ambiguity is detected.
 

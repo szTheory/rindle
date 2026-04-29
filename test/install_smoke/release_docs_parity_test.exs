@@ -4,6 +4,10 @@ defmodule Rindle.InstallSmoke.ReleaseDocsParityTest do
   @mix_exs_path Path.expand("../../mix.exs", __DIR__)
   @release_guide_path Path.expand("../../guides/release_publish.md", __DIR__)
   @release_workflow_path Path.expand("../../.github/workflows/release.yml", __DIR__)
+  @release_candidate_checklist_path Path.expand(
+                                      "../../.planning/phases/15-ci-integrity-and-publish-preflight/15-RELEASE-CANDIDATE-CHECKLIST.md",
+                                      __DIR__
+                                    )
   @operations_path Path.expand("../../guides/operations.md", __DIR__)
   @readme_path Path.expand("../../README.md", __DIR__)
   @getting_started_path Path.expand("../../guides/getting_started.md", __DIR__)
@@ -14,6 +18,7 @@ defmodule Rindle.InstallSmoke.ReleaseDocsParityTest do
        mix_exs: File.read!(@mix_exs_path),
        release_guide: File.read!(@release_guide_path),
        release_workflow: File.read!(@release_workflow_path),
+       release_candidate_checklist: File.read!(@release_candidate_checklist_path),
        operations: File.read!(@operations_path),
        readme: File.read!(@readme_path),
        getting_started: File.read!(@getting_started_path)
@@ -41,6 +46,24 @@ defmodule Rindle.InstallSmoke.ReleaseDocsParityTest do
           "package-name availability"
         ] do
       assert release_guide =~ snippet
+    end
+  end
+
+  test "release guide separates local diagnostics from exact-SHA CI proof", %{
+    release_guide: release_guide,
+    release_candidate_checklist: release_candidate_checklist
+  } do
+    for snippet <- [
+          "Local preflight is diagnostic preparation, not authoritative release proof.",
+          "GitHub Actions CI is green on the exact release-candidate SHA",
+          "GitHub Actions run URL",
+          "Package Consumer + Release Preflight",
+          "mix hex.user whoami",
+          "mix hex.owner list rindle",
+          "package-name availability"
+        ] do
+      assert release_guide =~ snippet
+      assert release_candidate_checklist =~ snippet
     end
   end
 

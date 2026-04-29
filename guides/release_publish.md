@@ -82,8 +82,22 @@ Before creating or pushing a release tag, confirm all of the following:
 3. Hex.pm package-name availability for `rindle` is still acceptable for the first public publish.
 4. `CHANGELOG.md` includes the `0.1.0` entry for the first public release, or the current release entry for later cuts.
 5. `bash scripts/release_preflight.sh` passes locally on the exact release-candidate commit.
+6. GitHub Actions CI is green on the exact release-candidate SHA, and the GitHub Actions run URL is recorded in the release-candidate checklist.
 
 Items 1 through 3 remain manual maintainer checks because they depend on mutable external Hex account and registry state.
+
+## Exact-SHA Release Candidate Proof
+
+Local preflight is diagnostic preparation, not authoritative release proof.
+The maintainer can use `bash scripts/release_preflight.sh` and local
+`mix hex.build --unpack` runs to iterate on the candidate, but Phase 15 is
+not complete until GitHub Actions CI is green on the exact release-candidate
+SHA that Phase 16 will tag.
+
+Record that SHA and the GitHub Actions run URL in
+`.planning/phases/15-ci-integrity-and-publish-preflight/15-RELEASE-CANDIDATE-CHECKLIST.md`.
+Do not substitute a green branch head, a rerun on a different commit, or a
+local-only shell transcript for this proof.
 
 ## Package metadata review
 
@@ -113,6 +127,10 @@ The point of this checklist is to validate shipped metadata, not just repo
 source, before both the first public release and every routine release
 after it.
 
+The packaged metadata review is still diagnostic until the same commit is
+green in GitHub Actions CI. Record both the local review result and the exact
+remote CI proof in the release-candidate checklist.
+
 ## Preflight Commands
 
 Run this preflight sequence before publishing:
@@ -126,6 +144,9 @@ bash scripts/release_preflight.sh
 Review the unpacked package contents and `hex_metadata.config` after the
 preflight build. If any identity, license, link, changelog, or docs inclusion
 check fails, fix the source and rebuild before publishing.
+
+These commands are maintainer diagnostics. They do not replace the required
+remote CI proof on the exact release-candidate SHA.
 
 ## Release Workflow Contract
 
@@ -145,6 +166,12 @@ exercising `mix hex.publish --dry-run --yes`. The release workflow's
 `Verify public Hex.pm artifact` step then serves as the automated
 post-publish proof on a fresh runner with `HEX_API_KEY` cleared, so no
 separate human UAT step is required.
+
+For Phase 15 signoff, the authoritative pre-publish proof is the GitHub
+Actions CI run for the exact release-candidate SHA, including the
+`Package Consumer + Release Preflight` lane. Manual maintainer checks for
+`mix hex.user whoami`, `mix hex.owner list rindle`, and package-name
+availability stay outside CI and must be recorded explicitly in the checklist.
 
 ## Post-Publish Follow-Up
 
