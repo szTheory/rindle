@@ -4,10 +4,13 @@ set -euo pipefail
 ROOT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 PACKAGE_ROOT="${RINDLE_INSTALL_SMOKE_PACKAGE_ROOT:-}"
 WORK_DIR=""
+KEEP_ARTIFACT="${RINDLE_RELEASE_PREFLIGHT_KEEP_ARTIFACT:-}"
 
 cleanup() {
-  if [ -n "$WORK_DIR" ]; then
+  if [ -n "$WORK_DIR" ] && [ -z "$KEEP_ARTIFACT" ]; then
     rm -rf "$WORK_DIR"
+  elif [ -n "$WORK_DIR" ]; then
+    echo "Keeping unpacked artifact at $PACKAGE_ROOT"
   fi
 }
 
