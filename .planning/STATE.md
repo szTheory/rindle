@@ -1,33 +1,32 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.2
-milestone_name: milestone
+milestone_name: First Hex Publish
 status: milestone_complete
-stopped_at: Completed 13-02-PLAN.md — runbook aligned with live workflow contract and parity test extended
-last_updated: "2026-04-29T02:50:02.531Z"
+stopped_at: v1.2 milestone archived — all phases complete, git tag created
+last_updated: "2026-04-29T00:00:00.000Z"
 last_activity: 2026-04-29
 progress:
   total_phases: 5
-  completed_phases: 3
-  total_plans: 6
-  completed_plans: 4
-  percent: 60
+  completed_phases: 5
+  total_plans: 11
+  completed_plans: 11
+  percent: 100
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-04-28)
+See: .planning/PROJECT.md (updated 2026-04-29)
 
 **Core value:** Media, made durable.
-**Current focus:** Phase 14 — validation-closure-for-publish-milestone
+**Current focus:** Planning next milestone
 
 ## Current Position
 
-Phase: 14
-Plan: Not started
-Status: Milestone complete
+Phase: 14 (complete)
+Status: v1.2 milestone archived
 Last activity: 2026-04-29
 
 Progress: [██████████] 100%
@@ -37,71 +36,30 @@ Progress: [██████████] 100%
 ### Decisions
 
 Decisions are logged in PROJECT.md Key Decisions table.
-Recent decisions affecting current work:
 
-- [v1.0]: Rindle's first release proved the end-to-end lifecycle, but not yet
-  a true adopter-owned runtime contract.
-
-- [v1.1 planning]: The clearest remaining trust gap is hard-coded
-  `Rindle.Repo` usage in consumer runtime paths surfaced by the canonical
-  adopter lane.
-
-- [v1.1 planning]: The next milestone should prioritize compounding trust wins
-  rather than broad new feature surface area.
-
-- [v1.1 planning]: Multipart uploads are the highest-leverage next direct
-  upload capability because they unlock larger real-world workloads without
-  changing the image-first product wedge.
-
-- [v1.1 planning]: Provider capability honesty is part of the public contract;
-  unsupported backend flows should fail explicitly.
-
-- [v1.1 planning]: Installability must be proven from the built artifact, not
-  inferred from repo-local CI alone.
-
-- Keep Rindle.Repo as the repo-local default while shifting consumer runtime paths to Rindle.Config.repo/0.
-- Limit 06-01 to the facade repo seam and defer adopter-only proof for direct and proxied upload paths to Plan 06-02.
-- Keep default Oban scope and fix enqueue callsites rather than adding named-instance ownership in Phase 6.
-- Use per-test sandbox_repo ownership plus targeted-file tag unblocking so adopter proofs fail on repo leaks instead of being silently excluded.
-- Teach config :rindle, :repo, MyApp.Repo as the adopter contract in public guides.
-- Keep Phase 6 Oban guidance scoped to the default Oban path and defer named-instance / :oban_name support.
-- Persist multipart authority on the existing media_upload_sessions row instead of introducing a new table.
-- Gate multipart entrypoints against adapter.capabilities/0 and return tagged unsupported capability errors before adapter-specific work.
-- Reuse verify_completion/2 after multipart completion so promotion stays behind the existing trust boundary.
-- Keep abort_incomplete_uploads/1 as the terminal-state transition only; remote multipart abort stays in cleanup_orphans/1.
-- Treat {:error, :not_found} from multipart abort as safe cleanup success, but preserve rows on other abort errors for retry.
-- Keep multipart proof in the existing MinIO-backed suites instead of introducing a parallel harness.
-- Use production-valid multipart part sizing in real MinIO tests so the proof matches S3 semantics rather than a toy split.
-- Treat MinIO's {:http_error, 404, ...} HEAD response shape as :not_found so delete and cleanup proofs remain adapter-honest.
-- Keep current adapter capability lists unchanged and validate them against one shared vocabulary.
-- Reserve resumable capability atoms additively without adding new callbacks or changing tagged error tuple contracts.
-- Keep CAP-02 proof inside the existing MinIO-backed suites rather than introducing a second harness or helper path.
-- Assert :presigned_put and :multipart_upload before each real direct-upload scenario so capability honesty is proven before remote I/O begins.
-- Swapped out dry-run publish step for a live publish step guarded by real HEX_API_KEY environment variable logic.
-- Ensured publish pipeline fails fast if the Git tag does not match the mix.exs version.
-- Moved the previously local/manual dry-run validation into a fully automated CI test to avoid manual verification.
-- Normalize all Phase 11 and Phase 12 summaries to requirements-completed (the canonical audit key) rather than mixed requirement:/requirements: fields that blocked the strict three-source milestone audit.
-- 11-03-SUMMARY.md receives requirements-completed: [] because the CI gap-closure plan did not claim a release requirement, normalizing the schema without inventing ownership.
-- Encode the workflow contract as both positive assertions (step names and commands must appear) and refutation assertions (stale Phase 11 deferred wording must be absent) in the parity test to catch both omission and regression drift.
-- Extend setup_all fixture to include release.yml so parity tests can cross-check the guide against the live workflow contract, not just the guide in isolation.
+Most recent milestone decisions:
+- Keep Phase 10 preflight-only; route release checks through `scripts/release_preflight.sh` and leave live Hex credentials for Phase 11.
+- Swapped dry-run publish step for a live publish step guarded by real `HEX_API_KEY` environment variable logic.
+- Ensured publish pipeline fails fast if the Git tag does not match the `mix.exs` version.
+- Moved the previously local/manual dry-run validation into a fully automated CI test.
+- Normalize all Phase 11 and Phase 12 summaries to `requirements-completed` (canonical audit key).
+- Encode the workflow contract as both positive and refutation assertions in the parity test.
 
 ### Pending Todos
 
 - Study `phx_media_library` v0.6.0 API ergonomics before locking additional
-  public API surface beyond this milestone
-
-- Keep the capability model forward-compatible with future GCS resumable work
-- Plan the first Hex.pm publish and release posture in the next milestone
-- Exercise the first public Hex.pm publish path so future releases can reuse it
+  public API surface beyond this milestone (API-01)
+- Plan GCS adapter resumable upload flow (GCS-01)
+- Evaluate tus/resumable protocol once release distribution is routine (TUS-01)
 
 ### Blockers/Concerns
 
-- None currently; the project is ready to begin Phase 10 planning.
+- None. v1.2 is archived and ready for next milestone planning.
 
 ## Session Continuity
 
-Last session: 2026-04-29T02:11:07.297Z
-Stopped at: Completed 13-02-PLAN.md — runbook aligned with live workflow contract and parity test extended
+Last session: 2026-04-29
+Stopped at: v1.2 milestone archived
 Resume file: None
 
 ### Decision-Making Preference
@@ -110,15 +68,11 @@ Resume file: None
 - Escalate only for high-impact decisions (public API/semver, destructive data
   changes, security/compliance, irreversible infra/cost, major product-scope
   shifts).
-
 - If escalation is not possible in-session, use a reversible default and log
   the assumption.
-
 - Workflow preference: skip discuss by default and move directly into
   planning/execution unless a high-impact ambiguity is detected.
 
-**Next Phase:** Phase 10 — run `$gsd-plan-phase 10`
+**Last Completed Milestone:** v1.2 (Phases 10-14) — archived 2026-04-29
 
-**Last Completed Milestone:** v1.1 (Phases 06-09) — archived 2026-04-28
-
-**Planned Phase:** 14 (Validation Closure for Publish Milestone) — 2 plans — 2026-04-29T02:48:42.684Z
+**Next Step:** Run `/gsd-new-milestone` to start v1.3 planning

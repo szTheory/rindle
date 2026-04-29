@@ -2,27 +2,24 @@
 
 ## Current State
 
-Milestone `v1.1 Adopter Hardening` shipped on `2026-04-28`. Rindle now has a
-proved adopter-owned runtime Repo contract, first-class multipart direct
-uploads, explicit storage capability negotiation, MinIO-backed capability
-proof, and package-consumer install and release confidence from the built
-artifact.
+Milestone `v1.2 First Hex Publish` shipped on `2026-04-29`. Rindle now has a
+proved Hex.pm publication path with protected release automation, a version
+drift gate, post-publish public verification, a maintainer release runbook
+with rollback/revert instructions, and Nyquist-compliant validation artifacts
+for all milestone phases.
 
-The core library now covers the durable post-upload media lifecycle plus the
-highest-leverage adopter trust gaps that blocked a credible public release
-story after `v1.0`.
+The release path is now a practiced, test-backed workflow that future releases
+can reuse without rediscovering the mechanics.
 
-## Current Milestone: v1.2 First Hex Publish — COMPLETE (2026-04-29)
+## Next Milestone Goals
 
-**Goal:** prove Rindle's first real `Hex.pm` publication path end to end so
-future releases can reuse a practiced, documented, test-backed workflow.
+The highest-leverage next areas (to be confirmed in `/gsd-new-milestone`):
 
-**Target features:**
-- First public `Hex.pm` publish readiness and execution path — ✓ Done (Phase 10)
-- Reusable release automation around the publish flow — ✓ Done (Phase 11)
-- Docs and package-consumer verification aligned with the published artifact — ✓ Done (Phase 12)
-- Release traceability and runbook alignment — ✓ Done (Phase 13)
-- Nyquist validation closure for all phases — ✓ Done (Phase 14)
+- **API ergonomics review (API-01):** public surface cleanup now that the
+  publish path is exercised and adopter trust gaps are closed
+- **GCS adapter (GCS-01):** resumable upload flow behind capability flags
+- **tus/resumable protocol (TUS-01):** evaluate once release distribution is
+  routine
 
 ## What This Is
 
@@ -65,19 +62,23 @@ Media, made durable.
 - Phase 9 — Install & Release Confidence: generated-app package-consumer smoke,
   CI and release reuse, and executable install-doc parity proof verified in
   v1.1.
+- ✓ First public `Hex.pm` publish path exercised from the real repository
+  workflow — v1.2 (Phase 11)
+- ✓ Release automation performs a protected real publish and fails safely before
+  publication if package/docs/install gates drift — v1.2 (Phase 11)
+- ✓ Maintainer can verify the published package from Hex.pm and follow a
+  documented rollback path — v1.2 (Phase 12)
+- ✓ Release requirement traceability metadata and runbook aligned with live
+  workflow contract — v1.2 (Phase 13)
+- ✓ Phases 10 and 11 VALIDATION artifacts completed to Nyquist-compliant state
+  — v1.2 (Phase 14)
 
 ### Active
 
-- [x] First public `Hex.pm` publish path is exercised from the real repository
-  workflow (Validated in Phase 11: Protected Publish Automation)
-- [x] Release automation can perform a protected real publish and fail safely
-  before publication if package/docs/install gates drift (Validated in Phase 11)
-- [x] A maintainer can verify the published package from Hex.pm and follow a
-  documented rollback path if needed (Validated in Phase 12: Public Verification)
-- [x] Release requirement traceability metadata and runbook aligned with live
-  workflow contract (Validated in Phase 13: Release Traceability)
-- [x] Phases 10 and 11 VALIDATION artifacts completed so v1.2 milestone audit
-  can treat all Nyquist closure as done without draft residue (Validated in Phase 14)
+<!-- Next milestone requirements go here. -->
+
+- [ ] Public API ergonomics reviewed after the publish path is proven so future
+  surface-area growth does not calcify awkward release-era seams (API-01)
 
 ### Out of Scope
 
@@ -170,17 +171,34 @@ upload-surface expansion.
 ## Historical Snapshot
 
 <details>
-<summary>v1.1 planning snapshot</summary>
+<summary>v1.2 First Hex Publish (Phases 10–14) — SHIPPED 2026-04-29</summary>
 
-The active `v1.1` milestone focused on adopter runtime ownership, multipart
+Milestone v1.2 proved Rindle's first real `Hex.pm` publication path end to end.
+Delivered: shared release preflight, protected live publish with scoped
+credentials, version drift gate, automated CI dry-run publish, post-publish
+public verification job, maintainer release runbook with rollback/revert, and
+Nyquist-compliant validation artifacts for all milestone phases.
+
+Full artifacts live in:
+
+- [.planning/milestones/v1.2-ROADMAP.md](.planning/milestones/v1.2-ROADMAP.md)
+- [.planning/milestones/v1.2-REQUIREMENTS.md](.planning/milestones/v1.2-REQUIREMENTS.md)
+- [.planning/milestones/v1.2-MILESTONE-AUDIT.md](.planning/milestones/v1.2-MILESTONE-AUDIT.md)
+
+</details>
+
+<details>
+<summary>v1.1 Adopter Hardening (Phases 6–9) — SHIPPED 2026-04-28</summary>
+
+The `v1.1` milestone focused on adopter runtime ownership, multipart
 upload support, capability honesty across MinIO and Cloudflare R2, and
 package-consumer install proof from the built artifact.
 
 Full artifacts live in:
 
-- [.planning/milestones/v1.1-ROADMAP.md](/Users/jon/projects/rindle/.planning/milestones/v1.1-ROADMAP.md)
-- [.planning/milestones/v1.1-REQUIREMENTS.md](/Users/jon/projects/rindle/.planning/milestones/v1.1-REQUIREMENTS.md)
-- [.planning/milestones/v1.1-MILESTONE-AUDIT.md](/Users/jon/projects/rindle/.planning/milestones/v1.1-MILESTONE-AUDIT.md)
+- [.planning/milestones/v1.1-ROADMAP.md](.planning/milestones/v1.1-ROADMAP.md)
+- [.planning/milestones/v1.1-REQUIREMENTS.md](.planning/milestones/v1.1-REQUIREMENTS.md)
+- [.planning/milestones/v1.1-MILESTONE-AUDIT.md](.planning/milestones/v1.1-MILESTONE-AUDIT.md)
 
 </details>
 
@@ -202,4 +220,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-29 after Phase 14 completion — v1.2 milestone complete*
+*Last updated: 2026-04-29 after v1.2 milestone completion*
