@@ -62,7 +62,10 @@ Full archive: [.planning/milestones/v1.0-ROADMAP.md](.planning/milestones/v1.0-R
   2. Maintainer can inspect package metadata (`:description`, `:licenses`, `:links`), verify a `CHANGELOG.md` with a `0.1.0` entry exists, and confirm the `rindle` package name is available on Hex.pm
   3. Maintainer can run `mix hex.build --unpack` and confirm tarball contents match expectations before any live push
   4. All preflight gates in `scripts/release_preflight.sh` pass on the exact commit to be tagged
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 15-01-PLAN.md — Harden shared preflight unpack/changelog contract and close the repo-owned tarball failure path
+- [ ] 15-02-PLAN.md — Capture exact-SHA remote CI proof and maintainer release-candidate signoff evidence
 
 ### Phase 16: Live Publish Execution and Post-Publish Verification
 **Goal**: Maintainer can push a v0.1.0 git tag and have the release workflow publish `rindle 0.1.0` to Hex.pm automatically, and adopters can immediately resolve and browse the published package
