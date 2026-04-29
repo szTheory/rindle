@@ -201,7 +201,7 @@ jobs:
   publish:
     name: Publish to Hex
     needs: gate-ci-green
-    if: ${{ needs.gate-ci-green.result == 'success' }}
+    if: ${{ always() && needs.gate-ci-green.result == 'success' }}
     runs-on: ubuntu-latest
     environment: release
     permissions:
@@ -324,7 +324,7 @@ jobs:
   public_verify:
     name: Public Verify
     needs: [gate-ci-green, publish]
-    if: ${{ needs.publish.result == 'success' }}
+    if: ${{ always() && needs.publish.result == 'success' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
