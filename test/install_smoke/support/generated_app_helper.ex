@@ -351,7 +351,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
 
         @moduletag :minio
 
-        @png_1x1 #{inspect(@png_1x1)}
+        @png_1x1 #{inspect(@png_1x1, limit: :infinity)}
 
         setup do
           case :inets.start() do
