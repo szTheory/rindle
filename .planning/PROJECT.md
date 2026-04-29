@@ -1,25 +1,25 @@
 # Rindle
 
+## Current Milestone: v1.3 Live Publish & API Ergonomics
+
+**Goal:** Execute Rindle's first real Hex.pm publish from the repo workflow and clean up the public API surface before adoption grows.
+
+**Target features:**
+- First live Hex.pm publish — cut v0.1.0 tag, trigger release workflow with `HEX_API_KEY`, confirm post-publish public verification resolves from Hex.pm
+- Routine release path — every subsequent release is a predictable one-command sequence; runbook stays executable
+- API naming — identify and fix naming inconsistencies across public modules and functions
+- Convenience functions — surface things adopters will need that are buried or not yet public
+- Docs/typespec coverage — `@doc`, `@spec`, `@moduledoc` gaps on public functions resolved
+- Breaking-change audit — lock the right public surface area before 1.0
+
 ## Current State
 
 Milestone `v1.2 First Hex Publish` shipped on `2026-04-29`. Rindle now has a
 proved Hex.pm publication path with protected release automation, a version
 drift gate, post-publish public verification, a maintainer release runbook
 with rollback/revert instructions, and Nyquist-compliant validation artifacts
-for all milestone phases.
-
-The release path is now a practiced, test-backed workflow that future releases
-can reuse without rediscovering the mechanics.
-
-## Next Milestone Goals
-
-The highest-leverage next areas (to be confirmed in `/gsd-new-milestone`):
-
-- **API ergonomics review (API-01):** public surface cleanup now that the
-  publish path is exercised and adopter trust gaps are closed
-- **GCS adapter (GCS-01):** resumable upload flow behind capability flags
-- **tus/resumable protocol (TUS-01):** evaluate once release distribution is
-  routine
+for all milestone phases. The `HEX_API_KEY` is now configured in the GitHub
+`release` environment — the first real publish is the next step.
 
 ## What This Is
 
@@ -75,10 +75,21 @@ Media, made durable.
 
 ### Active
 
-<!-- Next milestone requirements go here. -->
+<!-- v1.3 requirements — updated 2026-04-29 -->
 
-- [ ] Public API ergonomics reviewed after the publish path is proven so future
-  surface-area growth does not calcify awkward release-era seams (API-01)
+- [ ] First live Hex.pm publish executed from the real repo workflow with
+  `HEX_API_KEY` and post-publish public verification confirmed (PUBLISH-01)
+- [ ] CI failures in the release pipeline diagnosed and fixed before live
+  publish attempt (PUBLISH-02)
+- [ ] Routine release path documented and executable after first publish
+  (PUBLISH-03)
+- [ ] Public API surface reviewed for naming inconsistencies (API-01)
+- [ ] Missing convenience functions identified and added to public surface
+  (API-02)
+- [ ] `@doc`, `@spec`, `@moduledoc` coverage gaps resolved on public functions
+  (API-03)
+- [ ] Breaking-change audit completed to lock the right surface area before 1.0
+  (API-04)
 
 ### Out of Scope
 
@@ -220,4 +231,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-29 after v1.2 milestone completion*
+*Last updated: 2026-04-29 — milestone v1.3 started*
