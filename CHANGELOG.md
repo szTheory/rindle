@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.4](https://github.com/szTheory/rindle/compare/rindle-v0.1.3...rindle-v0.1.4) (2026-04-29)
+
+
+### Bug Fixes
+
+* **test:** supervise ex_marcel table wrapper ([876afd7](https://github.com/szTheory/rindle/commit/876afd79223fd62b028e281f386680d6b5aedcdb))
+
 ## [0.1.3](https://github.com/szTheory/rindle/compare/rindle-v0.1.2...rindle-v0.1.3) (2026-04-29)
 
 
