@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.2](https://github.com/szTheory/rindle/compare/rindle-v0.1.1...rindle-v0.1.2) (2026-04-29)
+
+
+### Bug Fixes
+
+* **ci:** write full smoke fixture binary ([3584039](https://github.com/szTheory/rindle/commit/358403901ee0113562c600d5ce2071ee563ef975))
+
 ## [0.1.1](https://github.com/szTheory/rindle/compare/rindle-v0.1.0...rindle-v0.1.1) (2026-04-29)
 
 
