@@ -15,7 +15,7 @@ on:
         type: string
 
 concurrency:
-  group: release-${{ github.ref }}
+  group: ${{ github.event_name == 'workflow_dispatch' && format('release-recovery-{0}', inputs.recovery_ref) || 'release-main' }}
   cancel-in-progress: false
 
 permissions:
@@ -236,20 +236,21 @@ jobs:
           --health-retries 5
 
     steps:
-      - name: Checkout exact release ref
+      - name: Checkout current release tooling
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
           fetch-tags: true
-          ref: ${{ needs.gate-ci-green.outputs.checkout_ref }}
 
-      - name: Confirm recovery checkout is detached to the validated immutable ref
-        if: ${{ github.event_name == 'workflow_dispatch' }}
+      - name: Materialize immutable release source tree
+        id: release_source
         shell: bash
         run: |
           set -euo pipefail
-          git checkout --detach HEAD
-          echo "Recovered immutable ref: ${{ needs.gate-ci-green.outputs.checkout_ref }}"
+          RELEASE_ROOT="$RUNNER_TEMP/rindle-release-source"
+          rm -rf "$RELEASE_ROOT"
+          git worktree add --detach "$RELEASE_ROOT" "${{ needs.gate-ci-green.outputs.checkout_ref }}"
+          echo "project_root=$RELEASE_ROOT" >> "$GITHUB_OUTPUT"
 
       - name: Set up Elixir
         uses: erlef/setup-beam@v1
@@ -265,7 +266,7 @@ jobs:
       - name: Restore deps cache
         uses: actions/cache@v4
         with:
-          path: deps
+          path: ${{ steps.release_source.outputs.project_root }}/deps
           key: deps-${{ runner.os }}-1.17-27-${{ hashFiles('**/mix.lock') }}
           restore-keys: deps-${{ runner.os }}-1.17-27-
 
@@ -273,6 +274,7 @@ jobs:
         run: sudo apt-get install -y libvips-dev
 
       - name: Install dependencies
+        working-directory: ${{ steps.release_source.outputs.project_root }}
         run: mix deps.get
 
       - name: Start MinIO
@@ -298,10 +300,13 @@ jobs:
           mc mb --ignore-existing local/rindle-test
 
       - name: Run release preflight
+        env:
+          RINDLE_PROJECT_ROOT: ${{ steps.release_source.outputs.project_root }}
         run: bash scripts/release_preflight.sh
 
       - name: Verify version alignment
         env:
+          RINDLE_PROJECT_ROOT: ${{ steps.release_source.outputs.project_root }}
           RINDLE_RELEASE_TAG: ${{ needs.gate-ci-green.outputs.release_tag }}
           RINDLE_EXPECTED_VERSION: ${{ needs.gate-ci-green.outputs.release_version }}
         run: bash scripts/assert_version_match.sh
@@ -309,11 +314,13 @@ jobs:
       - name: Dry run Hex publish
         env:
           HEX_API_KEY: ${{ secrets.HEX_API_KEY }}
+        working-directory: ${{ steps.release_source.outputs.project_root }}
         run: mix hex.publish --dry-run --yes
 
       - name: Live publish to Hex
         env:
           HEX_API_KEY: ${{ secrets.HEX_API_KEY }}
+        working-directory: ${{ steps.release_source.outputs.project_root }}
         run: |
           if [ -z "$HEX_API_KEY" ] || [ "$HEX_API_KEY" = "dryrun-placeholder" ]; then
             echo "::error::HEX_API_KEY is missing or invalid. Cannot publish. Ensure the 'release' environment secret is configured."
@@ -356,10 +363,8 @@ jobs:
           --health-retries 5
 
     steps:
-      - name: Checkout release ref for public verification
+      - name: Checkout current verification tooling
         uses: actions/checkout@v4
-        with:
-          ref: ${{ needs.gate-ci-green.outputs.checkout_ref }}
 
       - name: Set up Elixir
         uses: erlef/setup-beam@v1
