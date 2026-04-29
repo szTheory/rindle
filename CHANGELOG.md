@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.3](https://github.com/szTheory/rindle/compare/rindle-v0.1.2...rindle-v0.1.3) (2026-04-29)
+
+
+### Bug Fixes
+
+* **ci:** fall back when rg is unavailable ([f0ad8b4](https://github.com/szTheory/rindle/commit/f0ad8b4a2cb9816e1265a8e7788715b223a58bdd))
+
 ## [0.1.2](https://github.com/szTheory/rindle/compare/rindle-v0.1.1...rindle-v0.1.2) (2026-04-29)
 
 
