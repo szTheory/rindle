@@ -55,12 +55,15 @@ defmodule Rindle.InstallSmoke.ReleaseDocsParityTest do
   } do
     for snippet <- [
           "Local preflight is diagnostic preparation, not authoritative release proof.",
+          "Authoritative signoff requires a green GitHub Actions run on the exact release-candidate SHA",
           "GitHub Actions CI is green on the exact release-candidate SHA",
           "GitHub Actions run URL",
           "Package Consumer + Release Preflight",
           "mix hex.user whoami",
           "mix hex.owner list rindle",
-          "package-name availability"
+          "package-name availability",
+          "outside `scripts/release_preflight.sh`",
+          "outside secret-gated automation"
         ] do
       assert release_guide =~ snippet
       assert release_candidate_checklist =~ snippet
