@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.1.1](https://github.com/szTheory/rindle/compare/rindle-v0.1.0...rindle-v0.1.1) (2026-04-29)
+
+
+### Bug Fixes
+
+* **ci:** install phx.new for release preflight ([17b3385](https://github.com/szTheory/rindle/commit/17b3385b22d614e079b18c2f825bd411c5d69e49))
+* **release:** allow indented version parsing ([a7efefd](https://github.com/szTheory/rindle/commit/a7efefd475ffaf9b488838f6013ebb871a9f2880))
+* **release:** read version without deps ([4cae7f5](https://github.com/szTheory/rindle/commit/4cae7f579e5c695c1a678c536edf1f278b19adc5))
+
 ## 0.1.0 (2026-04-29)
 
 
