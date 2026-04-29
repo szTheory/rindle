@@ -4,6 +4,17 @@ set -euo pipefail
 ROOT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 DOC_DIR="${1:-$ROOT_DIR/doc}"
 
+search() {
+  local pattern=$1
+  shift
+
+  if command -v rg >/dev/null 2>&1; then
+    rg -n "$pattern" "$@" >/dev/null
+  else
+    grep -nE "$pattern" "$@" >/dev/null
+  fi
+}
+
 if [ ! -d "$DOC_DIR" ]; then
   echo "docs output missing: $DOC_DIR" >&2
   exit 1
@@ -35,13 +46,13 @@ if [ -z "$SIDEBAR_FILE" ]; then
   exit 1
 fi
 
-rg -n '<title>Release Publishing' "$RELEASE_DOC" >/dev/null
-rg -n '"title":"Release Publishing"' "$SIDEBAR_FILE" >/dev/null
-rg -n '"id":"release_publish"' "$SIDEBAR_FILE" >/dev/null
-rg -n 'href="release_publish\.html"' "$OPERATIONS_DOC" >/dev/null
-rg -n 'Release Publishing' "$OPERATIONS_DOC" >/dev/null
+search '<title>Release Publishing' "$RELEASE_DOC"
+search '"title":"Release Publishing"' "$SIDEBAR_FILE"
+search '"id":"release_publish"' "$SIDEBAR_FILE"
+search 'href="release_publish\.html"' "$OPERATIONS_DOC"
+search 'Release Publishing' "$OPERATIONS_DOC"
 
-if rg -n 'HEX_API_KEY|mix hex\.user|mix hex\.owner' "$README_DOC" "$GETTING_STARTED_DOC" >/dev/null; then
+if search 'HEX_API_KEY|mix hex\.user|mix hex\.owner' "$README_DOC" "$GETTING_STARTED_DOC"; then
   echo "maintainer-only Hex publish instructions leaked into generated adopter docs" >&2
   exit 1
 fi
