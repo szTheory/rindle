@@ -60,6 +60,17 @@ defmodule Rindle.InstallSmoke.PackageMetadataTest do
     end
   end
 
+  test "unpacked changelog ships with the first-release entry", %{
+    metadata: metadata,
+    package_root: package_root
+  } do
+    changelog = package_root |> Path.join("CHANGELOG.md") |> File.read!()
+
+    assert metadata =~ ~s(<<"CHANGELOG.md">>)
+    assert changelog =~ "## 0.1.0"
+    assert changelog =~ "First public Hex.pm release of Rindle."
+  end
+
   test "unpacked artifact excludes prohibited repo-only paths", %{package_root: package_root} do
     for rel_path <- @prohibited_paths do
       refute File.exists?(Path.join(package_root, rel_path))
@@ -83,6 +94,8 @@ defmodule Rindle.InstallSmoke.PackageMetadataTest do
     assert script =~ "mktemp -d"
     assert script =~ "export RINDLE_INSTALL_SMOKE_PACKAGE_ROOT=\"$PACKAGE_ROOT\""
     assert script =~ "rm -rf \"$WORK_DIR\""
+    assert script =~ "RINDLE_RELEASE_PREFLIGHT_KEEP_ARTIFACT"
+    assert script =~ "Keeping unpacked artifact at $PACKAGE_ROOT"
 
     refute script =~ "HEX_API_KEY"
     refute script =~ "mix hex.publish"
