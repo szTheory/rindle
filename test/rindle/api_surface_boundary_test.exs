@@ -31,6 +31,7 @@ defmodule Rindle.ApiSurfaceBoundaryTest do
 
   @helper_hidden_modules [
     Rindle.Config,
+    Rindle.Internal.VariantFailureLogger,
     Rindle.Repo,
     Rindle.Security.Filename,
     Rindle.Security.Mime,
