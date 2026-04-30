@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Live Publish & API Ergonomics
 status: executing
-stopped_at: Completed 17-02-PLAN.md
-last_updated: "2026-04-30T19:07:19.351Z"
+stopped_at: Completed 17-03-PLAN.md
+last_updated: "2026-04-30T19:11:28.876Z"
 last_activity: 2026-04-30
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 9
-  completed_plans: 6
-  percent: 67
+  completed_plans: 7
+  percent: 78
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-04-29)
 ## Current Position
 
 Phase: 17 (api-surface-boundary-audit) — EXECUTING
-Plan: 3 of 5
+Plan: 4 of 5
 Status: Ready to execute
 Last activity: 2026-04-30
 
-Progress: [███████░░░] 67%
+Progress: [████████░░] 78%
 
 ## Performance Metrics
 
@@ -49,6 +49,7 @@ Progress: [███████░░░] 67%
 *Updated after each plan completion*
 | Phase 17 P01 | 7min | 2 tasks | 2 files |
 | Phase 17 P02 | 4min | 2 tasks | 15 files |
+| Phase 17 P03 | 2min | 2 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -68,6 +69,8 @@ Recent decisions affecting current work (v1.2 close / v1.3 start):
 - Hide D-05 helper modules with @moduledoc false instead of relying on ExDoc omission or per-function hiding.
 - Keep Rindle.Storage, Rindle.Storage.Local, and Rindle.Storage.S3 explicitly visible in the Storage Adapters ExDoc group per D-03.
 - Remove public docs links to hidden helper modules and inline the public storage capability type instead of re-exposing internal modules.
+- Hide domain invariant modules with @moduledoc false so public schema docs remain the only documented domain API.
+- Rewrite public docs to describe lifecycle tables and stale-serving policy instead of linking to hidden domain internals.
 
 ### Pending Todos
 
@@ -82,8 +85,8 @@ Recent decisions affecting current work (v1.2 close / v1.3 start):
 
 ## Session Continuity
 
-Last session: 2026-04-30T19:07:19.345Z
-Stopped at: Completed 17-02-PLAN.md
+Last session: 2026-04-30T19:11:28.870Z
+Stopped at: Completed 17-03-PLAN.md
 Resume file: None
 
 ### Decision-Making Preference
