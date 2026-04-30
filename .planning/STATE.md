@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Live Publish & API Ergonomics
 status: executing
-stopped_at: Completed 17-03-PLAN.md
-last_updated: "2026-04-30T19:11:28.876Z"
+stopped_at: Completed 17-05-PLAN.md
+last_updated: "2026-04-30T19:16:47.833Z"
 last_activity: 2026-04-30
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 9
-  completed_plans: 7
-  percent: 78
+  completed_plans: 8
+  percent: 89
 ---
 
 # Project State
@@ -30,13 +30,13 @@ Plan: 4 of 5
 Status: Ready to execute
 Last activity: 2026-04-30
 
-Progress: [████████░░] 78%
+Progress: [█████████░] 89%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 4 (v1.3)
+- Total plans completed: 8 (v1.3)
 - Average duration: —
 - Total execution time: —
 
@@ -50,6 +50,7 @@ Progress: [████████░░] 78%
 | Phase 17 P01 | 7min | 2 tasks | 2 files |
 | Phase 17 P02 | 4min | 2 tasks | 15 files |
 | Phase 17 P03 | 2min | 2 tasks | 12 files |
+| Phase 17 P05 | 4min | 2 tasks | 13 files |
 
 ## Accumulated Context
 
@@ -71,6 +72,8 @@ Recent decisions affecting current work (v1.2 close / v1.3 start):
 - Remove public docs links to hidden helper modules and inline the public storage capability type instead of re-exposing internal modules.
 - Hide domain invariant modules with @moduledoc false so public schema docs remain the only documented domain API.
 - Rewrite public docs to describe lifecycle tables and stale-serving policy instead of linking to hidden domain internals.
+- Hide Rindle.Ops.* and internal promote/process/purge workers from ExDoc while keeping Mix tasks plus CleanupOrphans and AbortIncompleteUploads as the public operational surface.
+- When public docs still reference newly hidden modules, rewrite those docs around supported entrypoints instead of linking to internal services or pipeline workers.
 
 ### Pending Todos
 
@@ -85,8 +88,8 @@ Recent decisions affecting current work (v1.2 close / v1.3 start):
 
 ## Session Continuity
 
-Last session: 2026-04-30T19:11:28.870Z
-Stopped at: Completed 17-03-PLAN.md
+Last session: 2026-04-30T19:16:47.828Z
+Stopped at: Completed 17-05-PLAN.md
 Resume file: None
 
 ### Decision-Making Preference
@@ -104,4 +107,4 @@ Resume file: None
 
 **Last Completed Milestone:** v1.2 (Phases 10–14) — archived 2026-04-29
 
-**Next Step:** Commit and push the Phase 16 workflow/runbook changes, then run `gh workflow run release.yml -f recovery_reason="phase 16 probe rehearsal" -f recovery_ref=60da526b92a382396d2ba63d2fb1c2f4ce4061e4` so GitHub exercises the fixed idempotent recovery path.
+**Next Step:** Execute `17-04-PLAN.md` to land the facade naming/logging compatibility shims and the semver decision artifact that the boundary harness still expects.
