@@ -47,7 +47,7 @@ Full archive: [.planning/milestones/v1.0-ROADMAP.md](.planning/milestones/v1.0-R
 
 - [x] **Phase 15: CI Integrity and Publish Preflight** — Capture exact-SHA remote proof and maintainer signoff for the shipped publish candidate
 - [ ] **Phase 16: Live Publish Execution and Post-Publish Verification** — Close the remaining publish gaps after `0.1.4`: idempotent recovery reruns, revert rehearsal evidence, and runbook deviation capture
-- [ ] **Phase 17: API Surface Boundary Audit** — Apply @moduledoc false/@doc false to all internal modules, resolve naming inconsistencies, and complete breaking-change determination before any documentation additions
+- [x] **Phase 17: API Surface Boundary Audit** — Apply @moduledoc false/@doc false to all internal modules, resolve naming inconsistencies, and complete breaking-change determination before any documentation additions
 - [ ] **Phase 18: Documentation and Typespec Coverage** — Add @doc/@spec to all intentionally public surface and enforce coverage thresholds via mix doctor in CI
 - [ ] **Phase 19: Convenience API Additions** — Add helper functions and bang variants that adopters need on the public surface
 
@@ -98,7 +98,7 @@ Plans:
 - [x] 17-01-PLAN.md — Create the Wave 0 boundary-audit and facade-first docs parity harness
 - [x] 17-02-PLAN.md — Hide internal infrastructure/helper modules and define ExDoc public module tiers
 - [x] 17-03-PLAN.md — Hide domain FSM and stale-policy internals while preserving public schema data types
-- [ ] 17-04-PLAN.md — Add facade naming/logging compatibility shims, rewrite onboarding docs, and record the semver decision
+- [x] 17-04-PLAN.md — Add facade naming/logging compatibility shims, rewrite onboarding docs, and record the semver decision
 - [x] 17-05-PLAN.md — Hide internal ops modules and pipeline workers while preserving supported operational entrypoints
 
 ### Phase 18: Documentation and Typespec Coverage
@@ -133,6 +133,6 @@ Plans:
 | 14. Validation Closure for Publish Milestone | v1.2 | 2/2 | Complete | 2026-04-29 |
 | 15. CI Integrity and Publish Preflight | v1.3 | 2/2 | Complete | 2026-04-30 |
 | 16. Live Publish Execution and Post-Publish Verification | v1.3 | 2/2 | In Progress | - |
-| 17. API Surface Boundary Audit | v1.3 | 4/5 | In Progress | - |
+| 17. API Surface Boundary Audit | v1.3 | 5/5 | Complete | 2026-04-30 |
 | 18. Documentation and Typespec Coverage | v1.3 | 0/TBD | Not started | - |
 | 19. Convenience API Additions | v1.3 | 0/TBD | Not started | - |

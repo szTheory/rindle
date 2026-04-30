@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Live Publish & API Ergonomics
 status: executing
-stopped_at: Completed 17-05-PLAN.md
-last_updated: "2026-04-30T19:16:47.833Z"
+stopped_at: Completed 17-04-PLAN.md
+last_updated: "2026-04-30T19:23:43.743Z"
 last_activity: 2026-04-30
 progress:
   total_phases: 5
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 9
-  completed_plans: 8
-  percent: 89
+  completed_plans: 9
+  percent: 100
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-29)
 
 **Core value:** Media, made durable.
-**Current focus:** Phase 17 — api-surface-boundary-audit
+**Current focus:** Phase 18 — documentation-and-typespec-coverage
 
 ## Current Position
 
-Phase: 17 (api-surface-boundary-audit) — EXECUTING
-Plan: 4 of 5
-Status: Ready to execute
+Phase: 18 (documentation-and-typespec-coverage) — READY TO PLAN
+Plan: TBD
+Status: Awaiting planning
 Last activity: 2026-04-30
 
-Progress: [█████████░] 89%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -51,6 +51,7 @@ Progress: [█████████░] 89%
 | Phase 17 P02 | 4min | 2 tasks | 15 files |
 | Phase 17 P03 | 2min | 2 tasks | 12 files |
 | Phase 17 P05 | 4min | 2 tasks | 13 files |
+| Phase 17-api-surface-boundary-audit P04 | 5min | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -74,6 +75,9 @@ Recent decisions affecting current work (v1.2 close / v1.3 start):
 - Rewrite public docs to describe lifecycle tables and stale-serving policy instead of linking to hidden domain internals.
 - Hide Rindle.Ops.* and internal promote/process/purge workers from ExDoc while keeping Mix tasks plus CleanupOrphans and AbortIncompleteUploads as the public operational surface.
 - When public docs still reference newly hidden modules, rewrite those docs around supported entrypoints instead of linking to internal services or pipeline workers.
+- Keep verify_upload/2 documented on 0.1.x with deprecation metadata instead of hiding it.
+- Keep Rindle.Upload.Broker.sign_url/1 as the transport-specific presign step while onboarding stays centered on Rindle and Rindle.Profile.
+- Hide variant failure logging behind Rindle.Internal.VariantFailureLogger and leave only an undocumented facade shim.
 
 ### Pending Todos
 
@@ -88,8 +92,8 @@ Recent decisions affecting current work (v1.2 close / v1.3 start):
 
 ## Session Continuity
 
-Last session: 2026-04-30T19:16:47.828Z
-Stopped at: Completed 17-05-PLAN.md
+Last session: 2026-04-30T19:23:43.738Z
+Stopped at: Completed 17-04-PLAN.md
 Resume file: None
 
 ### Decision-Making Preference
@@ -107,4 +111,4 @@ Resume file: None
 
 **Last Completed Milestone:** v1.2 (Phases 10–14) — archived 2026-04-29
 
-**Next Step:** Execute `17-04-PLAN.md` to land the facade naming/logging compatibility shims and the semver decision artifact that the boundary harness still expects.
+**Next Step:** Plan Phase 18 to add `@doc` and `@spec` coverage on the now-locked public API surface.
