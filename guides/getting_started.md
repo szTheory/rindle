@@ -4,6 +4,10 @@ Rindle is a Phoenix/Ecto-native media lifecycle library. It manages the work
 that happens after upload: durable upload sessions, verification, asset state,
 variants, signed delivery, and day-2 cleanup.
 
+The first-tier adopter concepts are `Rindle` and `Rindle.Profile`: define a
+profile once, then stay on the facade for the common upload, attach, and
+delivery path.
+
 This is the canonical deep adopter guide for the same first-run path shown in
 [`README.md`](../README.md). The lifecycle calls below are the same public path
 the repo proves in `test/adopter/canonical_app/lifecycle_test.exs` and the
@@ -48,8 +52,9 @@ explicitly:
 config :rindle, :repo, MyApp.Repo
 ```
 
-That is the adopter contract for public runtime paths such as `Rindle.attach/4`,
-`Rindle.detach/3`, `Rindle.upload/3`, and the direct-upload broker.
+That is the adopter contract for public runtime paths such as
+`Rindle.initiate_upload/2`, `Rindle.verify_completion/2`, `Rindle.attach/4`,
+`Rindle.detach/3`, `Rindle.upload/3`, and `Rindle.url/3`.
 
 Rindle also requires the default `Oban` path for background work. Adopters own
 Oban supervision, queue config, and the default Oban Repo:
@@ -133,26 +138,31 @@ The first-run path is presigned PUT. It is the narrowest direct-upload contract
 Rindle proves from the built artifact:
 
 ```elixir
-alias Rindle.Upload.Broker
-
 {:ok, session} =
-  Broker.initiate_session(MyApp.MediaProfile, filename: "photo.png")
+  Rindle.initiate_upload(MyApp.MediaProfile, filename: "photo.png")
 
 {:ok, %{session: signed, presigned: presigned}} =
-  Broker.sign_url(session.id)
+  Rindle.Upload.Broker.sign_url(session.id)
 
 # your client PUTs the file bytes to presigned.url
 
 {:ok, %{session: completed, asset: asset}} =
-  Broker.verify_completion(session.id)
+  Rindle.verify_completion(session.id)
+
+{:ok, attachment} =
+  Rindle.attach(asset.id, current_user, "avatar")
 
 {:ok, signed_url} =
-  Rindle.Delivery.url(MyApp.MediaProfile, asset.storage_key)
+  Rindle.url(MyApp.MediaProfile, asset.storage_key)
 ```
 
 The parity gate for this guide and `README.md` asserts the canonical lifecycle
-calls above: `Broker.initiate_session`, `Broker.sign_url`,
-`Broker.verify_completion`, and `Rindle.Delivery.url`.
+calls above: `Rindle.initiate_upload`, `Rindle.verify_completion`,
+`Rindle.attach`, and `Rindle.url`.
+
+`Rindle.Upload.Broker.sign_url/1` stays available for the presign transport
+step, but it is reference material rather than the first concept adopters
+should learn.
 
 Multipart upload is available, but it belongs in the advanced lane after the
 presigned PUT path is working. See
@@ -173,7 +183,7 @@ contract applies:
 
 ## 6. What Happens After Verification
 
-After `Broker.verify_completion/1` returns, Rindle enqueues background work in
+After `Rindle.verify_completion/1` returns, Rindle enqueues background work in
 Oban:
 
 1. An internal promote worker advances the asset through validation,

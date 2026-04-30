@@ -1,6 +1,7 @@
 defmodule Rindle do
   alias Rindle.Domain.MediaAsset
   alias Rindle.Domain.MediaAttachment
+  alias Rindle.Internal.VariantFailureLogger
   alias Rindle.Security.UploadValidation
   alias Rindle.Upload.Broker
   alias Rindle.Workers.PromoteAsset
@@ -15,7 +16,6 @@ defmodule Rindle do
   day-2 operations.
   """
 
-  require Logger
   import Ecto.Query
 
   @typedoc "Tagged storage result shape: {:ok, result} | {:error, reason}"
@@ -479,27 +479,10 @@ defmodule Rindle do
     end
   end
 
-  @doc """
-  Logs a structured storage processing failure for downstream observability.
-
-  Emits an `:error`-level log with the literal message
-  `"rindle.storage.variant_processing_failed"` and the contextual
-  metadata keys `:asset_id`, `:variant_name`, and `:reason`. Operator
-  dashboards alert on this exact message.
-
-  ## Examples
-
-      iex> Rindle.log_variant_processing_failure("asset-uuid", "thumb", :timeout)
-      :ok
-
-  """
+  @doc false
   @spec log_variant_processing_failure(term(), term(), term()) :: :ok
   def log_variant_processing_failure(asset_id, variant_name, reason) do
-    Logger.error("rindle.storage.variant_processing_failed",
-      asset_id: asset_id,
-      variant_name: variant_name,
-      reason: reason
-    )
+    VariantFailureLogger.log(asset_id, variant_name, reason)
   end
 
   defp invoke_storage(profile, function_name, args) do

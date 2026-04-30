@@ -6,6 +6,10 @@ Phoenix/Ecto-native media lifecycle library. Rindle owns the durable work that
 happens after upload: session tracking, verification, asset state, variants,
 background processing, signed delivery, and cleanup.
 
+The first-tier adopter concepts are `Rindle` and `Rindle.Profile`: define a
+profile once, then use the facade for upload lifecycle, attachments, and
+delivery.
+
 `README.md` is the narrow quickstart. [`guides/getting_started.md`](guides/getting_started.md)
 is the canonical deep adopter guide for the same first-run path.
 
@@ -86,25 +90,36 @@ supported, but it is an advanced capability and not the default onboarding
 story.
 
 ```elixir
-alias Rindle.Upload.Broker
+defmodule MyApp.MediaProfile do
+  use Rindle.Profile,
+    storage: Rindle.Storage.S3,
+    variants: [thumb: [mode: :fit, width: 64, height: 64]],
+    allow_mime: ["image/png", "image/jpeg"],
+    max_bytes: 10_485_760
+end
 
 {:ok, session} =
-  Broker.initiate_session(MyApp.MediaProfile, filename: "photo.png")
+  Rindle.initiate_upload(MyApp.MediaProfile, filename: "photo.png")
 
 {:ok, %{session: signed, presigned: presigned}} =
-  Broker.sign_url(session.id)
+  Rindle.Upload.Broker.sign_url(session.id)
 
 # your client PUTs bytes to presigned.url
 
 {:ok, %{session: completed, asset: asset}} =
-  Broker.verify_completion(session.id)
+  Rindle.verify_completion(session.id)
+
+{:ok, attachment} =
+  Rindle.attach(asset.id, current_user, "avatar")
 
 {:ok, signed_url} =
-  Rindle.Delivery.url(MyApp.MediaProfile, asset.storage_key)
+  Rindle.url(MyApp.MediaProfile, asset.storage_key)
 ```
 
-That is the same public path proven by the built-artifact install smoke and the
-canonical adopter lifecycle test.
+That keeps the first-run story on the facade while leaving
+`Rindle.Upload.Broker.sign_url/1` as an advanced transport step. The same
+public path is proven by the built-artifact install smoke and the canonical
+adopter lifecycle test.
 
 ## Next Reads
 
