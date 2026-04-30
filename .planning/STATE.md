@@ -4,14 +4,14 @@ milestone: v1.3
 milestone_name: Live Publish & API Ergonomics
 status: planning
 stopped_at: Phase 18 context gathered (assumptions mode + parallel research)
-last_updated: "2026-04-30T20:15:32.540Z"
+last_updated: "2026-04-30T21:10:40.798Z"
 last_activity: 2026-04-30
 progress:
   total_phases: 5
   completed_phases: 3
-  total_plans: 9
+  total_plans: 14
   completed_plans: 9
-  percent: 100
+  percent: 64
 ---
 
 # Project State
@@ -112,3 +112,5 @@ Resume file: --resume-file
 **Last Completed Milestone:** v1.2 (Phases 10–14) — archived 2026-04-29
 
 **Next Step:** Plan Phase 18 to add `@doc` and `@spec` coverage on the now-locked public API surface.
+
+**Planned Phase:** 18 (Documentation and Typespec Coverage) — 5 plans — 2026-04-30T21:10:40.791Z

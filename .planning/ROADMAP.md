@@ -109,7 +109,13 @@ Plans:
   1. Adopter can read `@doc` annotations on every intentionally public module, function, and behaviour callback in the `Rindle` surface
   2. Adopter can use Dialyzer with accurate named struct types (`MediaAsset.t()`, `Attachment.t()`, etc.) in `@spec` annotations instead of opaque `map()` or `term()` return types on public functions
   3. `mix doctor --raise` passes in CI and a failing `@doc`/`@spec` addition causes the CI job to exit non-zero
-**Plans**: TBD
+**Plans**: 5 plans
+Plans:
+- [ ] 18-01-PLAN.md — Add :doctor dep, baseline .doctor.exs, CI step, and the failing doctor_thresholds_test.exs ratchet harness (RED-only)
+- [ ] 18-02-PLAN.md — Tighten Rindle facade @specs to schema struct types; declare named result types on Rindle.Storage and Rindle.Upload.Broker (D-03/D-04/D-05)
+- [ ] 18-03-PLAN.md — Add @doc to all 5 behaviour modules' @callbacks; add 6 missing @specs to Broker; promote Rindle.Processor.Image to public adapter (D-27); ship behaviour_docs_test.exs backstop
+- [ ] 18-04-PLAN.md — Add @doc/@spec to Profile macro and HTML helper; narrow worker @specs; add @deprecated to facade shim; verify Mix tasks; add README callback-doc convention note
+- [ ] 18-05-PLAN.md — Ratchet .doctor.exs to D-07 target (100/100/100/95/95); turn doctor_thresholds_test green; CHANGELOG entry; manual failing-doc regression probe; optional D-21 callback summaries
 
 ### Phase 19: Convenience API Additions
 **Goal**: Adopters have concise helper functions and bang variants on the public Rindle surface so common operations do not require raw Ecto queries or manual error unwrapping
@@ -134,5 +140,5 @@ Plans:
 | 15. CI Integrity and Publish Preflight | v1.3 | 2/2 | Complete | 2026-04-30 |
 | 16. Live Publish Execution and Post-Publish Verification | v1.3 | 2/2 | In Progress | - |
 | 17. API Surface Boundary Audit | v1.3 | 5/5 | Complete    | 2026-04-30 |
-| 18. Documentation and Typespec Coverage | v1.3 | 0/TBD | Not started | - |
+| 18. Documentation and Typespec Coverage | v1.3 | 0/5 | Not started | - |
 | 19. Convenience API Additions | v1.3 | 0/TBD | Not started | - |
