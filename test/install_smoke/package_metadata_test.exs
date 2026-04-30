@@ -86,9 +86,9 @@ defmodule Rindle.InstallSmoke.PackageMetadataTest do
       "MIX_ENV=test mix test test/install_smoke/package_metadata_test.exs",
       "MIX_ENV=test mix test test/install_smoke/release_docs_parity_test.exs",
       "MIX_ENV=test mix test test/install_smoke/hex_release_exists_test.exs",
-      "MIX_ENV=test RINDLE_PROJECT_ROOT=\"$ROOT_DIR\" bash \"$SCRIPT_DIR/install_smoke.sh\"",
+      "MIX_ENV=test RINDLE_PROJECT_ROOT=\"$SOURCE_ROOT\" bash \"$SCRIPT_DIR/install_smoke.sh\"",
       "MIX_ENV=dev mix docs --warnings-as-errors",
-      "RINDLE_PROJECT_ROOT=\"$ROOT_DIR\" bash \"$SCRIPT_DIR/assert_release_docs_html.sh\""
+      "RINDLE_PROJECT_ROOT=\"$SOURCE_ROOT\" bash \"$SCRIPT_DIR/assert_release_docs_html.sh\""
     ]
 
     positions = Enum.map(commands, &command_position(script, &1))
@@ -225,27 +225,34 @@ defmodule Rindle.InstallSmoke.PackageMetadataTest do
   end
 
   defp build_package! do
-    output_root =
-      Path.join(
-        System.tmp_dir!(),
-        "rindle-package-metadata-#{System.unique_integer([:positive])}"
-      )
+    case System.get_env("RINDLE_INSTALL_SMOKE_PACKAGE_ROOT") do
+      package_root when is_binary(package_root) and package_root != "" ->
+        assert File.exists?(package_root)
+        package_root
 
-    package_root = Path.join(output_root, "rindle-#{Mix.Project.config()[:version]}")
+      _ ->
+        output_root =
+          Path.join(
+            System.tmp_dir!(),
+            "rindle-package-metadata-#{System.unique_integer([:positive])}"
+          )
 
-    File.mkdir_p!(output_root)
+        package_root = Path.join(output_root, "rindle-#{Mix.Project.config()[:version]}")
 
-    {output, 0} =
-      System.cmd("mix", ["hex.build", "--unpack", "--output", package_root],
-        cd: @repo_root,
-        env: [{"MIX_ENV", "dev"}],
-        stderr_to_stdout: true
-      )
+        File.mkdir_p!(output_root)
 
-    assert output =~ "Building rindle"
-    assert output =~ "Saved to"
+        {output, 0} =
+          System.cmd("mix", ["hex.build", "--unpack", "--output", package_root],
+            cd: @repo_root,
+            env: [{"MIX_ENV", "dev"}],
+            stderr_to_stdout: true
+          )
 
-    package_root
+        assert output =~ "Building rindle"
+        assert output =~ "Saved to"
+
+        package_root
+    end
   end
 
   defp command_position(script, command) do

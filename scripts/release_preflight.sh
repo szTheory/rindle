@@ -2,7 +2,8 @@
 set -euo pipefail
 
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-ROOT_DIR="${RINDLE_PROJECT_ROOT:-$(cd "$SCRIPT_DIR/.." && pwd)}"
+TOOLING_ROOT=$(cd "$SCRIPT_DIR/.." && pwd)
+SOURCE_ROOT="${RINDLE_PROJECT_ROOT:-$TOOLING_ROOT}"
 PACKAGE_ROOT="${RINDLE_INSTALL_SMOKE_PACKAGE_ROOT:-}"
 WORK_DIR=""
 KEEP_ARTIFACT="${RINDLE_RELEASE_PREFLIGHT_KEEP_ARTIFACT:-}"
@@ -22,20 +23,23 @@ if [ -z "$PACKAGE_ROOT" ]; then
   PACKAGE_ROOT="$WORK_DIR/pkg"
 fi
 
-cd "$ROOT_DIR"
+cd "$TOOLING_ROOT"
 
 if ! mix phx.new --version >/dev/null 2>&1; then
   echo "Installing Phoenix generator archive for install smoke..."
   MIX_ENV=dev mix archive.install hex phx_new --force
 fi
 
-MIX_ENV=dev mix hex.build --unpack --output "$PACKAGE_ROOT"
+(
+  cd "$SOURCE_ROOT"
+  MIX_ENV=dev mix hex.build --unpack --output "$PACKAGE_ROOT"
+)
 
 export RINDLE_INSTALL_SMOKE_PACKAGE_ROOT="$PACKAGE_ROOT"
 
 MIX_ENV=test mix test test/install_smoke/package_metadata_test.exs
 MIX_ENV=test mix test test/install_smoke/release_docs_parity_test.exs
 MIX_ENV=test mix test test/install_smoke/hex_release_exists_test.exs
-MIX_ENV=test RINDLE_PROJECT_ROOT="$ROOT_DIR" bash "$SCRIPT_DIR/install_smoke.sh"
+MIX_ENV=test RINDLE_PROJECT_ROOT="$SOURCE_ROOT" bash "$SCRIPT_DIR/install_smoke.sh"
 MIX_ENV=dev mix docs --warnings-as-errors
-RINDLE_PROJECT_ROOT="$ROOT_DIR" bash "$SCRIPT_DIR/assert_release_docs_html.sh"
+RINDLE_PROJECT_ROOT="$SOURCE_ROOT" bash "$SCRIPT_DIR/assert_release_docs_html.sh"
