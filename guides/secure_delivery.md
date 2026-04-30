@@ -159,8 +159,8 @@ variant, with safe fallback semantics for non-`ready` variants:
 | `purged`      | Fall back to the original asset URL                       |
 
 Adopters never see broken-image links because of variant state; the original
-is always a valid fallback. See `Rindle.Domain.StalePolicy` for the
-stale-variant semantics.
+is always a valid fallback. The stale-variant semantics are controlled by the
+configured stale-serving policy.
 
 ## Threat Model Notes
 

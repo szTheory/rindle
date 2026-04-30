@@ -120,7 +120,7 @@ defmodule Rindle.Delivery do
   Returns a deliverable URL for a variant, falling back to the original asset
   when the variant is not yet `ready`.
 
-  Stale variants are resolved against `Rindle.Domain.StalePolicy`; missing or
+  Stale variants are resolved against the configured stale-serving policy; missing or
   failed variants fall back to the original asset URL so callers never see
   broken links.
 

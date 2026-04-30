@@ -3,7 +3,7 @@ defmodule Rindle.Domain.MediaAsset do
   Ecto schema for a media asset.
 
   A `MediaAsset` represents a single uploaded file moving through the
-  `Rindle.Domain.AssetFSM` lifecycle. Each row tracks the asset's current
+  asset lifecycle. Each row tracks the asset's current
   state, MIME type, byte size, and the storage key under which the
   original file is stored.
 
@@ -22,7 +22,7 @@ defmodule Rindle.Domain.MediaAsset do
   | `"quarantined"` | MIME mismatch or scan failure; not deliverable. |
   | `"deleted"` | Soft-deleted; storage object may already be purged. |
 
-  See `Rindle.Domain.AssetFSM` for valid state transitions.
+  See the state table below for the supported lifecycle transitions.
   """
 
   use Ecto.Schema

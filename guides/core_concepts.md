@@ -58,7 +58,7 @@ State meanings:
 | `quarantined`  | MIME mismatch, scanner verdict, or other policy rejection          |
 | `deleted`      | Soft-deleted; storage purge enqueued                               |
 
-See `Rindle.Domain.AssetFSM` for the canonical transition map.
+The table and diagram above are the canonical transition map.
 
 ## Variant Lifecycle
 
@@ -100,7 +100,7 @@ State meanings:
 | `failed`     | Processing exhausted retries                                         |
 | `purged`     | Variant intentionally removed (post-detach, post-cleanup)            |
 
-See `Rindle.Domain.VariantFSM`. Stale variants can be re-queued via
+Stale variants can be re-queued via
 `mix rindle.regenerate_variants`; missing variants are detected by
 `mix rindle.verify_storage` and similarly re-enqueued.
 
@@ -152,7 +152,7 @@ State meanings:
 | `expired`     | TTL elapsed before completion (`mix rindle.abort_incomplete_uploads`) |
 | `failed`      | Verification failed (object missing, integrity check failed, etc.)  |
 
-See `Rindle.Domain.UploadSessionFSM`. Note that the session FSM is more
+Note that the session lifecycle is more
 permissive than the asset/variant FSMs: from `initialized` you can jump
 directly to `verifying` (clients that don't report intermediate progress),
 and abort/expire/fail are reachable from any non-terminal state.

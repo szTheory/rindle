@@ -316,7 +316,7 @@ defmodule Rindle do
   Generates a delivery URL for a variant, falling back when needed.
 
   Delegates to `Rindle.Delivery.variant_url/4`. Stale or non-ready variants
-  fall back to the original asset URL per `Rindle.Domain.StalePolicy`.
+  fall back to the original asset URL per the configured stale-serving policy.
 
   ## Examples
 

@@ -20,7 +20,7 @@ defmodule Rindle.Domain.MediaUploadSession do
   | `"expired"` | TTL elapsed before completion. |
   | `"failed"` | Verification failed (MIME mismatch, size limit, scanner). |
 
-  See `Rindle.Domain.UploadSessionFSM` for valid transitions and
+  See the state table below for the supported transitions and
   `Rindle.Upload.Broker` for the lifecycle entry points.
   """
 

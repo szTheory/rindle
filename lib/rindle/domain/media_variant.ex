@@ -4,7 +4,7 @@ defmodule Rindle.Domain.MediaVariant do
 
   A `MediaVariant` represents one named output (e.g. `:thumb`, `:large`)
   derived from a source asset. Each variant moves through the
-  `Rindle.Domain.VariantFSM` lifecycle and stores its own storage key,
+  variant lifecycle and stores its own storage key,
   recipe digest, and ready/failed/stale state.
 
   ## States
@@ -20,8 +20,8 @@ defmodule Rindle.Domain.MediaVariant do
   | `"missing"` | Storage reconciliation found the object absent. |
   | `"purged"` | Variant explicitly removed; storage object deleted. |
 
-  See `Rindle.Domain.VariantFSM` for valid state transitions and
-  `Rindle.Domain.StalePolicy` for stale-serving behavior.
+  See the state table below for valid transitions and stale-serving
+  behavior.
   """
 
   use Ecto.Schema

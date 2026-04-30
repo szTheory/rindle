@@ -226,8 +226,7 @@ LiveView for at-a-glance health.
 If you encounter a state or error tuple that is not covered here,
 the canonical references are:
 
-- `Rindle.Domain.AssetFSM`, `Rindle.Domain.VariantFSM`,
-  `Rindle.Domain.UploadSessionFSM` for the transition rules
+- The lifecycle/state tables in the core concepts guide for transition rules
 - `Rindle.Upload.Broker`, `Rindle.Delivery`, `Rindle` (the public
   facade module) for the public API contracts
 - The Mix task `@moduledoc` blocks for command-line behavior
