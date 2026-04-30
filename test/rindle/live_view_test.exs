@@ -83,6 +83,14 @@ defmodule Rindle.LiveViewTest do
     test "module is defined and has consume_uploaded_entries/3" do
       assert function_exported?(Rindle.LiveView, :consume_uploaded_entries, 3)
     end
+
+    test "module docs teach verify_completion/2 as the verification path" do
+      {:docs_v1, _, _, _, moduledoc, _, _} = Code.fetch_docs(Rindle.LiveView)
+      rendered_doc = extract_doc(moduledoc)
+
+      assert rendered_doc =~ "Rindle.verify_completion/2"
+      refute rendered_doc =~ "Rindle.verify_upload/2"
+    end
   end
 
   describe "module availability" do
@@ -98,4 +106,8 @@ defmodule Rindle.LiveViewTest do
       assert function_exported?(Rindle.LiveView, :consume_uploaded_entries, 3)
     end
   end
+
+  defp extract_doc(%{"en" => doc}), do: doc
+  defp extract_doc(doc) when is_binary(doc), do: doc
+  defp extract_doc(_doc), do: ""
 end
