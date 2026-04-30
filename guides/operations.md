@@ -21,7 +21,7 @@ they reference.
 
 - **Module:** `Mix.Tasks.Rindle.CleanupOrphans`
 - **Worker equivalent:** `Rindle.Workers.CleanupOrphans` (cron-schedulable)
-- **Underlying service:** `Rindle.Ops.UploadMaintenance.cleanup_orphans/1`
+- **Implementation note:** the Mix task and cron worker share the same internal cleanup service.
 - **Defaults:** dry-run is the safe default. Pass `--no-dry-run` or
   `--live` to perform destructive deletions.
 
@@ -34,9 +34,8 @@ Re-enqueues variants in `stale` or `missing` state so the variant pipeline
 regenerates them. Optionally filter by profile or variant name.
 
 - **Module:** `Mix.Tasks.Rindle.RegenerateVariants`
-- **Worker equivalent:** `Rindle.Workers.ProcessVariant` (the underlying
-  job; this task only enqueues — it does not process synchronously)
-- **Underlying service:** `Rindle.Ops.VariantMaintenance.regenerate_variants/1`
+- **Execution model:** this task only enqueues internal variant-processing jobs;
+  it does not process variants synchronously.
 - **Targeting rules:** only `stale` and `missing` variants are eligible.
   `queued`, `processing`, and `ready` variants are counted as skipped.
 
@@ -50,7 +49,7 @@ variant's storage object. Variants whose object is gone flip to
 `missing`; other errors are counted but do not mutate state.
 
 - **Module:** `Mix.Tasks.Rindle.VerifyStorage`
-- **Underlying service:** `Rindle.Ops.VariantMaintenance.verify_storage/1`
+- **Implementation note:** storage verification runs through an internal maintenance service.
 - **Output counters:** `checked`, `present`, `missing`, `fsm_blocked`,
   `errors`. Non-`:not_found` errors (auth failures, network issues)
   cause exit-1; missing objects do not.
@@ -68,7 +67,7 @@ TTL into the `expired` state. This is the prerequisite to
 - **Module:** `Mix.Tasks.Rindle.AbortIncompleteUploads`
 - **Worker equivalent:** `Rindle.Workers.AbortIncompleteUploads`
   (cron-schedulable)
-- **Underlying service:** `Rindle.Ops.UploadMaintenance.abort_incomplete_uploads/1`
+- **Implementation note:** the Mix task and cron worker share the same internal expiry service.
 
 Sessions already in terminal states (`completed`, `expired`, `aborted`,
 `failed`) are not touched.
@@ -81,7 +80,7 @@ analyzer output changes (new fields added, bug fixes in analysis logic,
 or assets that were promoted before analysis ran).
 
 - **Module:** `Mix.Tasks.Rindle.BackfillMetadata`
-- **Underlying service:** `Rindle.Ops.MetadataBackfill.backfill_metadata/1`
+- **Implementation note:** the Mix task fronts an internal metadata backfill service.
 - **Filtering:** `--profile` restricts to a single profile;
   `--storage`/`--analyzer` override the default modules.
 

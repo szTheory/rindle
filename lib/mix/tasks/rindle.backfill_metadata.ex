@@ -8,7 +8,7 @@ defmodule Mix.Tasks.Rindle.BackfillMetadata do
   This is the recovery path when analyzer output changes (new fields added,
   bug fixes in analysis logic, or assets promoted before analysis ran).
 
-  The CLI is a thin wrapper around `Rindle.Ops.MetadataBackfill.backfill_metadata/1`
+  The CLI is a thin wrapper around Rindle's internal metadata backfill service
   (T-04-09 mitigation: arguments cannot bypass the analyzer or persistence rules).
 
   ## Usage

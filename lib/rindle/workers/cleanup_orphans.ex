@@ -2,7 +2,7 @@ defmodule Rindle.Workers.CleanupOrphans do
   @moduledoc """
   Oban cron worker for removing expired upload sessions and their staged objects.
 
-  Delegates entirely to `Rindle.Ops.UploadMaintenance.cleanup_orphans/1` — no
+  Delegates entirely to Rindle's internal upload-maintenance service — no
   cleanup logic lives here. Adopters can schedule this worker from their Oban
   cron config without requiring Rindle to supervise Oban.
 

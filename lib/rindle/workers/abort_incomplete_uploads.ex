@@ -2,8 +2,8 @@ defmodule Rindle.Workers.AbortIncompleteUploads do
   @moduledoc """
   Oban cron worker for transitioning incomplete upload sessions to `expired`.
 
-  Delegates entirely to `Rindle.Ops.UploadMaintenance.abort_incomplete_uploads/1`
-  — no expiry logic lives here. Adopters can schedule this worker from their
+  Delegates entirely to Rindle's internal upload-maintenance service — no
+  expiry logic lives here. Adopters can schedule this worker from their
   Oban cron config without requiring Rindle to supervise Oban.
 
   This worker should be scheduled **before** `Rindle.Workers.CleanupOrphans`

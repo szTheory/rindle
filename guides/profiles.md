@@ -98,7 +98,7 @@ defmodule MyApp.PostImageProfile do
 end
 ```
 
-Each variant generates a separate `Rindle.Workers.ProcessVariant` Oban job.
+Each variant generates a separate internal Oban job.
 Variants are individually retryable and individually queryable for state.
 
 ## Storage Adapter Selection

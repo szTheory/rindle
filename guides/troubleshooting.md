@@ -54,7 +54,7 @@ directly to recover from a false positive).
 **State:** `MediaVariant.state == "failed"`
 
 **What it means:** The variant exhausted its retry budget (default 5
-attempts on `Rindle.Workers.ProcessVariant`). The Oban job is in the
+attempts on the internal variant-processing worker). The Oban job is in the
 `discarded` state; the variant row is in `failed`.
 
 **Diagnosing root cause:**

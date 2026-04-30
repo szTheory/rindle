@@ -1,8 +1,5 @@
 defmodule Rindle.Workers.ProcessVariant do
-  @moduledoc """
-  Oban worker responsible for generating a specific media variant.
-  Implements the Atomic Promote pattern to handle concurrent replacements.
-  """
+  @moduledoc false
   use Oban.Worker, queue: :rindle_process, max_attempts: 5
 
   alias Rindle.Config

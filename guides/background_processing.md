@@ -80,23 +80,24 @@ instance being available for enqueueing. Named-instance routing via
 
 ## Worker Modules
 
-Rindle ships five Oban workers; you do not invoke them directly except
-in tests. They are enqueued automatically by the public API:
+Rindle ships two public maintenance workers plus three internal pipeline
+workers. Adopters should only schedule the maintenance workers directly;
+pipeline jobs are enqueued automatically by the public API:
 
-| Worker                                | Queue                | Triggered By                                      | Job Args                              |
-| ------------------------------------- | -------------------- | ------------------------------------------------- | ------------------------------------- |
-| `Rindle.Workers.PromoteAsset`         | `rindle_promote`     | `Broker.verify_completion/2` (transactional)      | `%{"asset_id" => uuid}`               |
-| `Rindle.Workers.ProcessVariant`       | `rindle_process`     | `PromoteAsset.enqueue_variants/2` (post-promotion) | `%{"asset_id" => uuid, "variant_name" => name}` |
-| `Rindle.Workers.PurgeStorage`         | `rindle_purge`       | `Rindle.detach/3` (post-commit)                   | `%{"asset_id" => uuid, "profile" => mod_name}` |
-| `Rindle.Workers.CleanupOrphans`       | `rindle_maintenance` | Cron / `mix rindle.cleanup_orphans`               | `%{"dry_run" => bool, "storage" => mod_name}` |
-| `Rindle.Workers.AbortIncompleteUploads` | `rindle_maintenance` | Cron / `mix rindle.abort_incomplete_uploads`      | (none)                                |
+| Worker surface                          | Queue                | Triggered By                                 | Job Args                              |
+| --------------------------------------- | -------------------- | -------------------------------------------- | ------------------------------------- |
+| Internal promote worker                 | `rindle_promote`     | `Broker.verify_completion/2` (transactional) | `%{"asset_id" => uuid}`               |
+| Internal variant-processing worker      | `rindle_process`     | Post-promotion pipeline                      | `%{"asset_id" => uuid, "variant_name" => name}` |
+| Internal purge worker                   | `rindle_purge`       | `Rindle.detach/3` (post-commit)              | `%{"asset_id" => uuid, "profile" => mod_name}` |
+| `Rindle.Workers.CleanupOrphans`         | `rindle_maintenance` | Cron / `mix rindle.cleanup_orphans`          | `%{"dry_run" => bool, "storage" => mod_name}` |
+| `Rindle.Workers.AbortIncompleteUploads` | `rindle_maintenance` | Cron / `mix rindle.abort_incomplete_uploads` | (none)                                |
 
 Each worker has `@max_attempts` configured for its expected failure profile:
 
-- `PromoteAsset` — 3 attempts (mostly fast DB transitions)
-- `ProcessVariant` — 5 attempts (network/IO; processor occasionally retries
+- Internal promote worker — 3 attempts (mostly fast DB transitions)
+- Internal variant-processing worker — 5 attempts (network/IO; processor occasionally retries
   on transient libvips/storage errors)
-- `PurgeStorage` — 3 attempts (idempotent — safe to retry)
+- Internal purge worker — 3 attempts (idempotent — safe to retry)
 - Cron workers — 3 attempts (maintenance jobs retry transient failures, then
   fall back to the next scheduled run)
 
@@ -112,14 +113,15 @@ relies on `Oban.insert/3` working inside an `Ecto.Multi`:
 Ecto.Multi.new()
 |> Ecto.Multi.update(:session, MediaUploadSession.changeset(session, %{state: "completed"}))
 |> Ecto.Multi.update(:asset,   MediaAsset.changeset(asset,     %{state: "validating"}))
-|> Oban.insert(:promote_job,   Rindle.Workers.PromoteAsset.new(%{asset_id: asset.id}))
+|> Oban.insert(:promote_job,   internal_promote_job(asset.id))
 |> Repo.transaction()
 ```
 
 If the transaction commits, the job is durably queued. If the transaction
 rolls back, the job was never inserted. There is no window where the asset
 is `validating` but no `PromoteAsset` job exists, and there is no window
-where a job runs against a state that the database never committed.
+where a job runs against a state that the database never committed. The job
+payload and queue module are internal implementation details.
 
 The same pattern applies on the detach path:
 
@@ -127,15 +129,12 @@ The same pattern applies on the detach path:
 # detach: delete the attachment row and enqueue the purge job in one repo-owned unit of work
 Ecto.Multi.new()
 |> Ecto.Multi.delete(:attachment, attachment)
-|> Oban.insert(:purge, Rindle.Workers.PurgeStorage.new(%{
-  "asset_id" => asset.id,
-  "profile" => asset.profile
-}))
+|> Oban.insert(:purge, internal_purge_job(asset.id, asset.profile))
 |> MyApp.Repo.transaction()
 ```
 
 The database change and job insert stay atomic, but the actual storage I/O
-still happens later in `Rindle.Workers.PurgeStorage`. That keeps storage side
+still happens later in an internal purge worker. That keeps storage side
 effects out of the DB transaction while preserving the guarantee that a
 successful detach already has a purge job durably queued.
 
@@ -146,7 +145,7 @@ above caps the total tries; after that, the job sits in the `discarded`
 state. You can override per-job at the call site:
 
 ```elixir
-Rindle.Workers.ProcessVariant.new(args, max_attempts: 10)
+internal_variant_job(args, max_attempts: 10)
 ```
 
 For variant processing failures, the worker also transitions the
@@ -261,7 +260,7 @@ Two ordering invariants Rindle enforces:
    from `Broker.sign_url/2` (which calls `presigned_put/3` *outside*
    the transaction that updates the session row).
 2. **Purge is async and idempotent.** Detach commits the DB row
-   change; purge runs in `Rindle.Workers.PurgeStorage` post-commit.
+   change; purge runs in an internal worker post-commit.
    If the purge fails (transient network error, etc.), Oban retries
    it. Storage failures cannot leave the DB in an inconsistent state.
 

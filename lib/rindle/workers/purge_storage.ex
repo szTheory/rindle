@@ -1,8 +1,5 @@
 defmodule Rindle.Workers.PurgeStorage do
-  @moduledoc """
-  Oban worker responsible for deleting media assets and their variants from storage.
-  This is an idempotent operation; missing objects are handled gracefully.
-  """
+  @moduledoc false
   use Oban.Worker, queue: :rindle_purge, max_attempts: 3
 
   alias Rindle.Config

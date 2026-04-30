@@ -1,8 +1,5 @@
 defmodule Rindle.Workers.PromoteAsset do
-  @moduledoc """
-  Oban worker responsible for promoting a MediaAsset to the 'available' state.
-  Triggers async variant generation upon successful promotion.
-  """
+  @moduledoc false
   use Oban.Worker, queue: :rindle_promote, max_attempts: 3
 
   alias Rindle.Config

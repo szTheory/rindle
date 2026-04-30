@@ -176,9 +176,9 @@ contract applies:
 After `Broker.verify_completion/1` returns, Rindle enqueues background work in
 Oban:
 
-1. `Rindle.Workers.PromoteAsset` advances the asset through validation,
+1. An internal promote worker advances the asset through validation,
    analysis, and promotion.
-2. `Rindle.Workers.ProcessVariant` runs for each declared variant.
+2. Internal variant-processing jobs run for each declared variant.
 3. Variants move to `ready` when processing completes.
 
 See [`background_processing.md`](background_processing.md) for queue ownership,

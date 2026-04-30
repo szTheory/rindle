@@ -92,7 +92,7 @@ State meanings:
 | State        | Meaning                                                              |
 | ------------ | -------------------------------------------------------------------- |
 | `planned`    | Row exists; processing not yet enqueued                              |
-| `queued`     | Oban job enqueued via `Rindle.Workers.ProcessVariant`                |
+| `queued`     | Oban job enqueued via the internal variant-processing pipeline       |
 | `processing` | Worker actively running the variant pipeline                         |
 | `ready`      | Variant object exists in storage; deliverable                        |
 | `stale`      | Profile recipe digest changed; variant predates the new recipe       |
@@ -173,10 +173,10 @@ A user-initiated upload threads through all three entities:
    asset to `validating`. An Oban `PromoteAsset` job is enqueued *inside the
    same Ecto transaction* (transactional enqueueing — see
    [Background Processing](background_processing.html)).
-5. `Rindle.Workers.PromoteAsset` advances the asset through `validating →
-   analyzing → promoting → available` and enqueues `Rindle.Workers.ProcessVariant`
+5. An internal promote worker advances the asset through `validating →
+   analyzing → promoting → available` and enqueues internal variant-processing
    jobs for each variant declared on the profile.
-6. Each `ProcessVariant` job runs the configured processor and transitions
+6. Each variant-processing job runs the configured processor and transitions
    its `MediaVariant` row from `queued → processing → ready`.
 7. Once attached via `Rindle.attach/4`, the asset is delivered through
    `Rindle.Delivery.url/3` (signed by default — see [Secure Delivery](secure_delivery.html)).
@@ -187,7 +187,7 @@ The state machines also enforce key safety properties:
   before a worker writes a `ready` outcome, so a stale background job can't
   overwrite a newer attachment.
 - **Async purge** — detach commits *immediately* in a DB transaction; the
-  storage delete is enqueued as `Rindle.Workers.PurgeStorage` and runs
+  storage delete is enqueued as an internal purge worker and runs
   outside the transaction (so storage I/O never blocks or fails a DB write).
 - **No silent transitions** — every transition emits
   `[:rindle, :asset, :state_change]` or `[:rindle, :variant, :state_change]`

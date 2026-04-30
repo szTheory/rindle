@@ -39,8 +39,8 @@ defmodule Mix.Tasks.Rindle.CleanupOrphans do
 
   ## Safety default
 
-  The CLI, the underlying service (`Rindle.Ops.UploadMaintenance.cleanup_orphans/1`),
-  and the cron worker (`Rindle.Workers.CleanupOrphans`) all default to dry-run.
+  The CLI, the internal cleanup service, and the cron worker
+  (`Rindle.Workers.CleanupOrphans`) all default to dry-run.
   Destructive execution requires an explicit opt-in (`--no-dry-run`/`--live` here,
   `dry_run: false` for the service, `"dry_run" => false` for the worker job args).
   This is the T-04-01 mitigation: dry-run and destructive execution are kept
