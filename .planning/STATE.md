@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Live Publish & API Ergonomics
-status: executing
-stopped_at: Phase 15 complete — release-candidate proof boundary recorded retroactively against 0.1.4 publish
-last_updated: "2026-04-30T11:33:00.000Z"
-last_activity: 2026-04-30 -- Phase 15 closed: 15-02 checkpoint filled with current HEAD evidence (SHA 6dd0d54, CI run 25135464796) after reality-reconciliation note
+status: completed
+stopped_at: Phase 16 context gathered (assumptions mode + 3 research subagents) — reframed scope = (a) runbook deviations + (b) workflow_dispatch idempotency fix + (c) SC-5 tabletop rehearsal
+last_updated: "2026-04-30T15:55:57.833Z"
+last_activity: "2026-04-30 -- Phase 15 closed: 15-02 checkpoint filled with current HEAD evidence (SHA 6dd0d54, CI run 25135464796) after reality-reconciliation note"
 progress:
   total_phases: 5
   completed_phases: 1
@@ -75,9 +75,9 @@ Recent decisions affecting current work (v1.2 close / v1.3 start):
 
 ## Session Continuity
 
-Last session: 2026-04-30 (Claude Code; Gemini CLI crashed mid-checkpoint on 2026-04-29)
-Stopped at: Phase 15 closed retroactively against current HEAD; Phase 16 needs reality reconciliation before it runs
-Resume file: None
+Last session: --stopped-at
+Stopped at: Phase 16 context gathered (assumptions mode + 3 research subagents) — reframed scope = (a) runbook deviations + (b) workflow_dispatch idempotency fix + (c) SC-5 tabletop rehearsal
+Resume file: --resume-file
 
 ### Decision-Making Preference
 
