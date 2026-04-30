@@ -12,20 +12,35 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
      }}
   end
 
-  test "README and getting-started guide share the canonical lifecycle and handoff", %{
+  test "README and getting-started guide teach the facade-first lifecycle and handoff", %{
     readme: readme,
     guide: guide
   } do
     for doc <- [readme, guide] do
-      assert doc =~ "Broker.initiate_session"
-      assert doc =~ "Broker.sign_url"
-      assert doc =~ "Broker.verify_completion"
-      assert doc =~ "Rindle.Delivery.url"
+      assert doc =~ "Rindle.Profile"
+      assert doc =~ "Rindle.initiate_upload"
+      assert doc =~ "Rindle.verify_completion"
+      assert doc =~ "Rindle.attach"
+      assert doc =~ "Rindle.url"
     end
 
     assert readme =~ "guides/getting_started.md"
     assert readme =~ "canonical deep adopter guide"
     assert guide =~ "[`README.md`](../README.md)"
+  end
+
+  test "introductory sections keep Rindle and Rindle.Profile as the first-tier concepts", %{
+    readme: readme,
+    guide: guide
+  } do
+    for {doc, name} <- [{readme, "README"}, {guide, "getting-started"}] do
+      intro = introductory_section(doc)
+
+      assert intro =~ "Rindle", "#{name} intro should mention Rindle"
+      assert intro =~ "Rindle.Profile", "#{name} intro should mention Rindle.Profile"
+      refute intro =~ "Rindle.Upload.Broker",
+             "#{name} intro should not present Rindle.Upload.Broker as the default entrypoint"
+    end
   end
 
   test "docs call out adopter-owned Repo, default Oban ownership, and explicit migrations", %{
@@ -56,6 +71,15 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
       refute Regex.match?(~r/first-run path is multipart/i, doc)
       refute Regex.match?(~r/default onboarding story is multipart/i, doc)
       refute Regex.match?(~r/multipart upload is the default/i, doc)
+      refute Regex.match?(~r/Rindle\.Upload\.Broker.+default first-run entrypoint/is, doc)
+      refute Regex.match?(~r/Broker\.(initiate_session|verify_completion).+first-run/is, doc)
+    end
+  end
+
+  defp introductory_section(doc) do
+    case Regex.split(~r/^##\s+/m, doc, parts: 2) do
+      [intro] -> intro
+      [intro, _rest] -> intro
     end
   end
 end
