@@ -289,6 +289,9 @@ jobs:
         run: sudo apt-get install -y libvips-dev
 
       - name: Install dependencies
+        run: mix deps.get
+
+      - name: Install frozen-source dependencies
         working-directory: ${{ steps.release_source.outputs.project_root }}
         run: mix deps.get
 
