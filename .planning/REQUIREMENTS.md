@@ -25,11 +25,11 @@
 
 - [ ] **API-01**: Maintainer has resolved the `verify_upload/2` vs `complete_multipart_upload/3` vocabulary inconsistency — either renamed to a consistent verb or explicitly documented as distinct operations
 - [ ] **API-02**: Maintainer has removed `log_variant_processing_failure/3` from the public `Rindle` facade or explicitly documented it as an internal observability utility
-- [ ] **API-03**: Adopter can read consistent module and function names across the public `Rindle` surface with no mismatched verb, noun, or arity patterns
+- [x] **API-03**: Adopter can read consistent module and function names across the public `Rindle` surface with no mismatched verb, noun, or arity patterns
 
 ### API Surface Audit
 
-- [ ] **API-04**: Maintainer has applied `@moduledoc false` or `@doc false` to all internal modules (Storage.Local, Storage.S3, Storage.Capabilities internal helpers, Security.*, Profile.Digest, domain FSMs) before any documentation sprint
+- [x] **API-04**: Maintainer has applied `@moduledoc false` or `@doc false` to all internal modules (Storage.Local, Storage.S3, Storage.Capabilities internal helpers, Security.*, Profile.Digest, domain FSMs) before any documentation sprint
 - [ ] **API-05**: Maintainer has completed a breaking-change determination — renames affecting published function signatures are either shipped before `0.1.0` or explicitly deferred to `v0.2.0`
 
 ### Documentation & Typespec Coverage
@@ -85,8 +85,8 @@
 | RELEASE-02 | Phase 16 | Pending |
 | API-01 | Phase 17 | Pending |
 | API-02 | Phase 17 | Pending |
-| API-03 | Phase 17 | Pending |
-| API-04 | Phase 17 | Pending |
+| API-03 | Phase 17 | Complete |
+| API-04 | Phase 17 | Complete |
 | API-05 | Phase 17 | Pending |
 | API-06 | Phase 18 | Pending |
 | API-07 | Phase 18 | Pending |
