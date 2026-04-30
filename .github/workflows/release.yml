@@ -150,9 +150,18 @@ jobs:
         run: |
           set -euo pipefail
           VERSION=$(
-            mix run --no-start --no-deps-check -e 'IO.puts(Mix.Project.config()[:version])' \
-              | tail -n1 \
-              | tr -d '\r'
+            elixir -e '
+              source = File.read!("mix.exs")
+
+              version =
+                Regex.run(~r/@version\s+"([^"]+)"/, source, capture: :all_but_first) ||
+                  Regex.run(~r/version:\s+"([^"]+)"/, source, capture: :all_but_first)
+
+              case version do
+                [value] -> IO.puts(value)
+                _ -> raise "Unable to parse version from mix.exs"
+              end
+            ' | tr -d '\r'
           )
           test -n "$VERSION"
           echo "release_version=$VERSION" >> "$GITHUB_OUTPUT"

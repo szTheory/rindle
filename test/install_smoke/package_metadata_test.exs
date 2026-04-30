@@ -168,11 +168,13 @@ defmodule Rindle.InstallSmoke.PackageMetadataTest do
     refute workflow =~ "release-main"
   end
 
-  test "release workflow uses canonical Mix.Project.config version parsing", %{
+  test "release workflow parses version from mix.exs without compiling the frozen source", %{
     release_workflow: workflow
   } do
-    assert workflow =~ "Mix.Project.config()[:version]"
-    assert workflow =~ "--no-deps-check"
+    assert workflow =~ "elixir -e '"
+    assert workflow =~ "source = File.read!(\"mix.exs\")"
+    assert workflow =~ "capture: :all_but_first"
+    assert workflow =~ "Unable to parse version from mix.exs"
     refute workflow =~ "sed -nE"
   end
 
