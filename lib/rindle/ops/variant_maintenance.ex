@@ -1,21 +1,5 @@
 defmodule Rindle.Ops.VariantMaintenance do
-  @moduledoc """
-  Shared variant maintenance operations for Day-2 operations.
-
-  Provides two primary operations:
-
-  - `regenerate_variants/1` — Enqueues `ProcessVariant` jobs for stale or missing
-    variants, optionally filtered by profile module or variant name. Only targets
-    actionable states; ready/queued/processing variants are skipped.
-
-  - `verify_storage/1` — HEAD-checks the storage object for each variant with a
-    `storage_key` and flips absent entries to `missing`. Returns structured counts
-    so the caller (or Mix task) can emit a deterministic summary.
-
-  Both operations fail loudly on unexpected errors (query failures, storage
-  connection problems) via `{:error, reason}` tuple returns so scripted callers
-  can detect non-zero exits.
-  """
+  @moduledoc false
 
   require Logger
 

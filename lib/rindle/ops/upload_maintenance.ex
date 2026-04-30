@@ -1,22 +1,5 @@
 defmodule Rindle.Ops.UploadMaintenance do
-  @moduledoc """
-  Shared service for upload-session maintenance operations.
-
-  Provides two core operations:
-
-    * `cleanup_orphans/1` — deletes expired upload sessions and their staged
-      objects from storage. Supports a dry-run mode that reports planned
-      actions without executing destructive side effects.
-
-    * `abort_incomplete_uploads/1` — transitions `signed` and `uploading`
-      sessions that have passed their TTL into the `expired` state so that
-      a subsequent cleanup run can remove them.
-
-  Storage side effects are intentionally kept outside DB transactions per the
-  Rindle security invariant. Failures in individual storage deletes are
-  accumulated and surfaced in the report rather than short-circuiting the
-  entire cleanup lane.
-  """
+  @moduledoc false
 
   require Logger
 

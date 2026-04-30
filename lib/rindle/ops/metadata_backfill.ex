@@ -1,28 +1,5 @@
 defmodule Rindle.Ops.MetadataBackfill do
-  @moduledoc """
-  Shared service for backfilling metadata on existing media assets.
-
-  Iterates assets in backfillable states, downloads each source file, reruns
-  the configured analyzer, and persists the updated metadata back to the asset
-  record.
-
-  Only analyst output is persisted — raw media bytes and other secrets are never
-  logged (T-04-07 mitigation).
-
-  ## Design
-
-  Storage side effects (downloads) are intentionally kept outside DB transactions
-  per the Rindle security invariant. Per-asset failures are accumulated and
-  surfaced in the report rather than aborting the entire run. Operators can detect
-  problems via the returned report and the non-zero exit from the Mix task.
-
-  ## Backfillable States
-
-  Assets in `ready`, `available`, and `degraded` states are eligible. Assets in
-  terminal or in-progress states (`staged`, `validating`, `analyzing`,
-  `promoting`, `processing`, `quarantined`, `deleted`) are skipped because they
-  are either not yet promoted or are in active use by the pipeline.
-  """
+  @moduledoc false
 
   require Logger
 
