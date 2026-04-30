@@ -1,7 +1,5 @@
 defmodule Rindle.Security.Filename do
-  @moduledoc """
-  Sanitizes client-provided filenames for safe metadata storage.
-  """
+  @moduledoc false
 
   @default_filename "upload"
 

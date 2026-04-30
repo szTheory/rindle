@@ -1,7 +1,5 @@
 defmodule Rindle.Security.StorageKey do
-  @moduledoc """
-  Generates non-user-controlled storage keys for uploaded assets.
-  """
+  @moduledoc false
 
   @spec generate(String.t(), String.t(), String.t()) :: String.t()
   def generate(profile, asset_id, extension) do

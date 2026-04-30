@@ -1,7 +1,5 @@
 defmodule Rindle.Config do
-  @moduledoc """
-  Centralized accessors for foundational runtime configuration.
-  """
+  @moduledoc false
 
   @spec queue_name() :: atom()
   def queue_name do

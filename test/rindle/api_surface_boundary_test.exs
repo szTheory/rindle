@@ -29,7 +29,7 @@ defmodule Rindle.ApiSurfaceBoundaryTest do
     Rindle.Domain.MediaProcessingRun
   ]
 
-  @hidden_modules [
+  @helper_hidden_modules [
     Rindle.Config,
     Rindle.Repo,
     Rindle.Security.Filename,
@@ -38,11 +38,17 @@ defmodule Rindle.ApiSurfaceBoundaryTest do
     Rindle.Security.UploadValidation,
     Rindle.Profile.Validator,
     Rindle.Profile.Digest,
-    Rindle.Storage.Capabilities,
+    Rindle.Storage.Capabilities
+  ]
+
+  @domain_hidden_modules [
     Rindle.Domain.AssetFSM,
     Rindle.Domain.UploadSessionFSM,
     Rindle.Domain.VariantFSM,
-    Rindle.Domain.StalePolicy,
+    Rindle.Domain.StalePolicy
+  ]
+
+  @ops_hidden_modules [
     Rindle.Ops.MetadataBackfill,
     Rindle.Ops.UploadMaintenance,
     Rindle.Ops.VariantMaintenance,
@@ -59,8 +65,22 @@ defmodule Rindle.ApiSurfaceBoundaryTest do
       end
     end
 
-    test "D-05 and D-06 internal namespaces resolve to hidden module docs" do
-      for module <- @hidden_modules do
+    test "D-05 helper modules resolve to hidden module docs" do
+      for module <- @helper_hidden_modules do
+        assert hidden_module?(module),
+               "#{inspect(module)} should be hidden from compiled docs"
+      end
+    end
+
+    test "D-05 domain invariants resolve to hidden module docs" do
+      for module <- @domain_hidden_modules do
+        assert hidden_module?(module),
+               "#{inspect(module)} should be hidden from compiled docs"
+      end
+    end
+
+    test "D-06 ops and internal workers resolve to hidden module docs" do
+      for module <- @ops_hidden_modules do
         assert hidden_module?(module),
                "#{inspect(module)} should be hidden from compiled docs"
       end

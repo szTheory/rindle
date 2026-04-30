@@ -1,7 +1,5 @@
 defmodule Rindle.Profile.Validator do
-  @moduledoc """
-  Compile-time and runtime validation helpers for profile modules.
-  """
+  @moduledoc false
 
   @profile_schema [
     storage: [

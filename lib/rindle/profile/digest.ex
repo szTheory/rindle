@@ -1,7 +1,5 @@
 defmodule Rindle.Profile.Digest do
-  @moduledoc """
-  Deterministic digest generation for profile variant recipes.
-  """
+  @moduledoc false
 
   @spec for_variant(module(), atom()) :: String.t()
   def for_variant(profile_module, variant_name) when is_atom(variant_name) do

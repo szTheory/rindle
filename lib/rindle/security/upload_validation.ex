@@ -1,10 +1,5 @@
 defmodule Rindle.Security.UploadValidation do
-  @moduledoc """
-  Server-side upload validation primitives.
-
-  Client-provided metadata is treated as advisory. MIME detection is based on
-  file bytes, then checked against profile allowlists and extension consistency.
-  """
+  @moduledoc false
 
   alias Rindle.Security.Filename
   alias Rindle.Security.Mime

@@ -1,7 +1,5 @@
 defmodule Rindle.Security.Mime do
-  @moduledoc """
-  Helpers for server-side MIME detection and extension consistency checks.
-  """
+  @moduledoc false
 
   @magic_probe_bytes 8_192
   @unknown_mime "application/octet-stream"

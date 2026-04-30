@@ -1,7 +1,5 @@
 defmodule Rindle.Storage.Capabilities do
-  @moduledoc """
-  Shared storage capability vocabulary and negotiation helpers.
-  """
+  @moduledoc false
 
   @typedoc """
   Known adapter capability atoms.
