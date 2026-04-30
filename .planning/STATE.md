@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Live Publish & API Ergonomics
-status: executing
+status: ready_to_plan
 stopped_at: Completed 17-04-PLAN.md
 last_updated: "2026-04-30T19:23:43.743Z"
 last_activity: 2026-04-30
 progress:
   total_phases: 5
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 9
   completed_plans: 9
-  percent: 100
+  percent: 80
 ---
 
 # Project State
@@ -25,9 +25,9 @@ See: .planning/PROJECT.md (updated 2026-04-29)
 
 ## Current Position
 
-Phase: 18 (documentation-and-typespec-coverage) — READY TO PLAN
-Plan: TBD
-Status: Awaiting planning
+Phase: 18
+Plan: Not started
+Status: Ready to plan
 Last activity: 2026-04-30
 
 Progress: [██████████] 100%
@@ -36,7 +36,7 @@ Progress: [██████████] 100%
 
 **Velocity:**
 
-- Total plans completed: 8 (v1.3)
+- Total plans completed: 13 (v1.3)
 - Average duration: —
 - Total execution time: —
 
@@ -44,7 +44,7 @@ Progress: [██████████] 100%
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| - | - | - | - |
+| 17 | 5 | - | - |
 
 *Updated after each plan completion*
 | Phase 17 P01 | 7min | 2 tasks | 2 files |
