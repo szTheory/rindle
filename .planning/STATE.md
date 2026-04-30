@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Live Publish & API Ergonomics
 status: executing
-stopped_at: v1.3 roadmap created — 5 phases (15–19), 18 requirements mapped
-last_updated: "2026-04-29T19:05:41.690Z"
-last_activity: 2026-04-29 -- Awaiting exact-SHA CI proof and maintainer signoff for plan 15-02
+stopped_at: Phase 15 complete — release-candidate proof boundary recorded retroactively against 0.1.4 publish
+last_updated: "2026-04-30T11:33:00.000Z"
+last_activity: 2026-04-30 -- Phase 15 closed: 15-02 checkpoint filled with current HEAD evidence (SHA 6dd0d54, CI run 25135464796) after reality-reconciliation note
 progress:
   total_phases: 5
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 1
-  percent: 50
+  completed_plans: 2
+  percent: 100
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-04-29)
 
 ## Current Position
 
-Phase: 15 (ci-integrity-and-publish-preflight) — EXECUTING
-Plan: 2 of 2
-Status: Awaiting human checkpoint
-Last activity: 2026-04-29 -- Awaiting exact-SHA CI proof and maintainer signoff for plan 15-02
+Phase: 15 (ci-integrity-and-publish-preflight) — COMPLETE
+Plan: 2 of 2 — closed
+Status: Phase 15 complete; ready to advance to Phase 16 (with reality reconciliation — see Blockers/Concerns)
+Last activity: 2026-04-30 -- Phase 15 closed: 15-02 checkpoint filled with current HEAD evidence (SHA 6dd0d54, CI run 25135464796) after reality-reconciliation note
 
-Progress: [█████░░░░░] 50%
+Progress: [██████████] 100% (Phase 15 of 5 complete)
 
 ## Performance Metrics
 
@@ -69,13 +69,14 @@ Recent decisions affecting current work (v1.2 close / v1.3 start):
 
 ### Blockers/Concerns
 
-- One-time human prerequisite before Phase 16 tag push: confirm Hex.pm email and verify `rindle` package name availability — cannot be validated by CI
-- First 60 minutes post-publish are a hot observation window (24h revert window closes to 1h for subsequent versions)
+- **Reality reconciliation needed for Phase 16+**: v1.3 roadmap (Phases 15–19) was authored assuming v0.1.0 was the upcoming first publish. During Phase 15 execution, release-please auto-bumped through 0.1.0–0.1.4 and 0.1.4 is live on Hex.pm. Phase 16 ("Live Publish Execution") is effectively done; consider replanning or repurposing it.
+- **Release pipeline regression**: most recent `Release` workflow `workflow_dispatch` run (`25135467509`, 2026-04-29T21:43Z) failed after `Publish to Hex` emitted release_version. Manual recovery path in `release.yml` is currently broken; needs investigation before next release.
+- First 60 minutes post-publish are a hot observation window (24h revert window closes to 1h for subsequent versions) — moot for 0.1.4 (window closed 2026-04-30T21:43Z); applies fresh on every future release.
 
 ## Session Continuity
 
-Last session: 2026-04-29
-Stopped at: v1.3 roadmap created — 5 phases (15–19), 18 requirements mapped
+Last session: 2026-04-30 (Claude Code; Gemini CLI crashed mid-checkpoint on 2026-04-29)
+Stopped at: Phase 15 closed retroactively against current HEAD; Phase 16 needs reality reconciliation before it runs
 Resume file: None
 
 ### Decision-Making Preference
@@ -93,4 +94,4 @@ Resume file: None
 
 **Last Completed Milestone:** v1.2 (Phases 10–14) — archived 2026-04-29
 
-**Next Step:** Run `/gsd-plan-phase 15` to start v1.3 execution
+**Next Step:** Reconcile v1.3 roadmap (Phases 16–19) against post-0.1.4 reality, then continue. Phase 16 ("Live Publish Execution") is effectively done by release-please autopilot; reframe or skip. Investigate `Release` workflow `workflow_dispatch` recovery failure before next release.
