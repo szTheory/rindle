@@ -9,16 +9,16 @@
 
 - [ ] **PUBLISH-01**: Maintainer can verify CI is green and all preflight gates pass on the release candidate commit before pushing a live tag
 - [ ] **PUBLISH-02**: Maintainer can review package metadata (`:description`, `:licenses`, `:links`), confirm `CHANGELOG.md` exists with a `0.1.0` entry, inspect tarball contents via `mix hex.build --unpack`, and verify `rindle` is available as a Hex.pm package name before first publish
-- [ ] **PUBLISH-03**: Maintainer can push a `v0.1.0` git tag and have the release workflow publish `rindle 0.1.0` to Hex.pm with no manual intervention beyond the tag push
+- [ ] **PUBLISH-03**: Maintainer can trigger the release workflow from an exact immutable ref and have it either publish a new Hex.pm version or skip safely when that version is already live, with no manual mutation beyond the trusted workflow entrypoint
 
 ### Publish Verification
 
-- [ ] **VERIFY-01**: Adopter can add `{:rindle, "~> 0.1.0"}` to a fresh Phoenix app's `mix.exs` and have `mix deps.get` resolve from Hex.pm without access to the Rindle source repo
+- [ ] **VERIFY-01**: Adopter can add `{:rindle, "~> 0.1.0"}` to a fresh Phoenix app's `mix.exs` and have `mix deps.get` resolve from the published Hex.pm package without access to the Rindle source repo
 - [ ] **VERIFY-02**: Adopter can browse `hexdocs.pm/rindle` and find module documentation immediately after publish completes
 
 ### Routine Release
 
-- [ ] **RELEASE-01**: Maintainer can follow a step-by-step runbook for all routine releases after `0.1.0` with no guesswork, updated to reflect any observed deviations from the first live publish
+- [ ] **RELEASE-01**: Maintainer can follow a step-by-step runbook for all routine releases after the first publish window with no guesswork, updated to reflect the observed deviations from `0.1.0` through `0.1.4`
 - [ ] **RELEASE-02**: Maintainer can execute `mix hex.publish --revert VERSION` within the correction window (24h for first publish, 1h for subsequent) using documented runbook steps
 
 ### API Naming

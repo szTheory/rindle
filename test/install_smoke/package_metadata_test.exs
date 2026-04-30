@@ -6,6 +6,8 @@ defmodule Rindle.InstallSmoke.PackageMetadataTest do
   @install_smoke_script Path.join(@repo_root, "scripts/install_smoke.sh")
   @public_smoke_script Path.join(@repo_root, "scripts/public_smoke.sh")
   @docs_assertion_script Path.join(@repo_root, "scripts/assert_release_docs_html.sh")
+  @release_exists_script Path.join(@repo_root, "scripts/hex_release_exists.sh")
+  @assert_version_script Path.join(@repo_root, "scripts/assert_version_match.sh")
   @release_workflow Path.join(@repo_root, ".github/workflows/release.yml")
   @ci_workflow Path.join(@repo_root, ".github/workflows/ci.yml")
   @required_paths [
@@ -34,6 +36,8 @@ defmodule Rindle.InstallSmoke.PackageMetadataTest do
        install_smoke_script: File.read!(@install_smoke_script),
        public_smoke_script: File.read!(@public_smoke_script),
        docs_assertion_script: File.read!(@docs_assertion_script),
+       release_exists_script: File.read!(@release_exists_script),
+       assert_version_script: File.read!(@assert_version_script),
        release_workflow: File.read!(@release_workflow),
        ci_workflow: File.read!(@ci_workflow)
      }}
@@ -52,21 +56,20 @@ defmodule Rindle.InstallSmoke.PackageMetadataTest do
     assert metadata =~
              ~s({<<"links">>,[{<<"GitHub">>,<<"https://github.com/szTheory/rindle">>}]}.)
 
-    assert metadata =~ ~s({<<"GitHub">>,<<"https://github.com/szTheory/rindle">>})
-
     for rel_path <- @required_paths do
       assert metadata =~ ~s(<<"#{rel_path}">>)
       assert File.exists?(Path.join(package_root, rel_path))
     end
   end
 
-  test "unpacked changelog ships with the first-release entry", %{
+  test "unpacked changelog ships with the first-release entry and pipeline-iteration note", %{
     metadata: metadata,
     package_root: package_root
   } do
     changelog = package_root |> Path.join("CHANGELOG.md") |> File.read!()
 
     assert metadata =~ ~s(<<"CHANGELOG.md">>)
+    assert changelog =~ "0.1.0-0.1.3 were release-pipeline shakedown iterations"
     assert changelog =~ "## 0.1.0"
     assert changelog =~ "First public Hex.pm release of Rindle."
   end
@@ -82,6 +85,7 @@ defmodule Rindle.InstallSmoke.PackageMetadataTest do
       "MIX_ENV=dev mix hex.build --unpack --output \"$PACKAGE_ROOT\"",
       "MIX_ENV=test mix test test/install_smoke/package_metadata_test.exs",
       "MIX_ENV=test mix test test/install_smoke/release_docs_parity_test.exs",
+      "MIX_ENV=test mix test test/install_smoke/hex_release_exists_test.exs",
       "MIX_ENV=test RINDLE_PROJECT_ROOT=\"$ROOT_DIR\" bash \"$SCRIPT_DIR/install_smoke.sh\"",
       "MIX_ENV=dev mix docs --warnings-as-errors",
       "RINDLE_PROJECT_ROOT=\"$ROOT_DIR\" bash \"$SCRIPT_DIR/assert_release_docs_html.sh\""
@@ -132,16 +136,61 @@ defmodule Rindle.InstallSmoke.PackageMetadataTest do
     assert workflow =~ "recovery_reason:"
     assert workflow =~ "recovery_ref:"
     assert workflow =~ "Wait for CI to finish green on release SHA"
-    assert workflow =~ ~s(workflow_id: 'ci.yml')
-    assert workflow =~ ~s(mix hex.publish --dry-run --yes)
-    assert workflow =~ ~s(mix hex.publish --yes)
+    assert workflow =~ "workflow_id: 'ci.yml'"
+    assert workflow =~ "name: Check whether Hex.pm release already exists"
+    assert workflow =~ "mix hex.publish --dry-run --yes"
+    assert workflow =~ "name: Publish to Hex.pm (live)"
+    assert workflow =~ "mix hex.publish --yes"
     assert workflow =~ "public_verify:"
     assert workflow =~ "needs: [gate-ci-green, publish]"
-    assert workflow =~ ~s(name: Wait for Hex.pm index)
-    assert workflow =~ ~s(name: Verify public Hex.pm artifact)
+    assert workflow =~ "name: Wait for Hex.pm index (post-publish)"
+    assert workflow =~ "name: Verify public Hex.pm artifact"
     assert workflow =~ ~s(HEX_API_KEY: "")
     assert workflow =~ ~s(mix hex.info rindle "$VERSION")
     assert workflow =~ ~s(bash scripts/public_smoke.sh "$VERSION")
+  end
+
+  test "release workflow gates publish on idempotency probe", %{release_workflow: workflow} do
+    assert workflow =~ "bash scripts/hex_release_exists.sh"
+    assert workflow =~ "id: idempotency"
+    assert workflow =~ "if: ${{ steps.idempotency.outputs.already_published != 'true' }}"
+  end
+
+  test "release workflow writes an idempotent publish summary", %{release_workflow: workflow} do
+    assert workflow =~ "Idempotent publish summary"
+    assert workflow =~ "GITHUB_STEP_SUMMARY"
+    assert workflow =~ "Skipped publish: rindle $VERSION was already on Hex.pm."
+  end
+
+  test "release workflow uses a single global concurrency token", %{release_workflow: workflow} do
+    assert workflow =~ "group: release-publish-rindle"
+    refute workflow =~ "release-recovery-{0}"
+    refute workflow =~ "release-main"
+  end
+
+  test "release workflow uses canonical Mix.Project.config version parsing", %{
+    release_workflow: workflow
+  } do
+    assert workflow =~ "Mix.Project.config()[:version]"
+    assert workflow =~ "--no-deps-check"
+    refute workflow =~ "sed -nE"
+  end
+
+  test "release workflow has the improved HEX_API_KEY guard message", %{
+    release_workflow: workflow
+  } do
+    assert workflow =~ "Settings → Environments → release"
+    assert workflow =~ "guides/release_publish.md"
+  end
+
+  test "release workflow documents the four-job topology near the top", %{
+    release_workflow: workflow
+  } do
+    [top | _] = String.split(workflow, "jobs:", parts: 2)
+    assert top =~ "release-please / recovery-validation"
+    assert top =~ "gate-ci-green"
+    assert top =~ "publish runs preflight"
+    assert top =~ "public_verify"
   end
 
   test "CI shifts release-proof contract left before live publish", %{ci_workflow: workflow} do
@@ -151,6 +200,26 @@ defmodule Rindle.InstallSmoke.PackageMetadataTest do
     assert workflow =~ "name: Dry-run Hex publish"
     assert workflow =~ "HEX_API_KEY: dryrun-placeholder"
     assert workflow =~ "mix hex.publish --dry-run --yes"
+  end
+
+  test "release scripts accept RINDLE_PROJECT_ROOT discipline", %{
+    release_exists_script: release_exists_script,
+    assert_version_script: assert_version_script,
+    install_smoke_script: install_smoke_script,
+    public_smoke_script: public_smoke_script,
+    script: preflight_script,
+    docs_assertion_script: docs_assertion_script
+  } do
+    for script <- [
+          release_exists_script,
+          assert_version_script,
+          install_smoke_script,
+          public_smoke_script,
+          preflight_script,
+          docs_assertion_script
+        ] do
+      assert script =~ "RINDLE_PROJECT_ROOT"
+    end
   end
 
   defp build_package! do

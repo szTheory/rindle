@@ -23,11 +23,15 @@ defmodule Rindle.InstallSmoke.ReleaseDocsParityTest do
   test "release guide states the first public versioning sequence", %{
     release_guide: release_guide
   } do
-    assert release_guide =~ ~s(@version "0.1.0-dev")
-    assert release_guide =~ ~s(0.1.0)
-    assert release_guide =~ ~s(v0.1.0)
-    assert release_guide =~ "Release Please"
-    assert release_guide =~ "main"
+    for snippet <- [
+          ~s(@version "0.1.0-dev"),
+          "0.1.0",
+          "v0.1.0",
+          "Release Please",
+          "main"
+        ] do
+      assert release_guide =~ snippet
+    end
   end
 
   test "release guide keeps one-time publish prerequisites and personal-first owner follow-up", %{
@@ -50,8 +54,8 @@ defmodule Rindle.InstallSmoke.ReleaseDocsParityTest do
   } do
     for snippet <- [
           "Local preflight is diagnostic preparation, not authoritative release proof.",
-          "Authoritative signoff requires a green GitHub Actions run on the exact release-candidate SHA",
-          "waits for `ci.yml` on the exact release SHA to finish green",
+          "Authoritative signoff requires a green GitHub Actions run on the exact release-candidate SHA.",
+          "waits for `ci.yml` on the exact release SHA",
           "Package Consumer + Release Preflight",
           "outside `scripts/release_preflight.sh`",
           "outside secret-gated automation"
@@ -84,7 +88,7 @@ defmodule Rindle.InstallSmoke.ReleaseDocsParityTest do
     for snippet <- [
           "CHANGELOG.md",
           "0.1.0",
-          "Package metadata review",
+          "Package Metadata Review",
           "mix hex.build --unpack",
           "hex_metadata.config",
           "rindle",
@@ -107,18 +111,16 @@ defmodule Rindle.InstallSmoke.ReleaseDocsParityTest do
       "Wait for CI to finish green on release SHA",
       "Run release preflight",
       "Verify version alignment",
+      "Check whether Hex.pm release already exists",
       "Dry run Hex publish",
-      "Live publish to Hex",
-      "Wait for Hex.pm index",
+      "Publish to Hex.pm (live)",
+      "Wait for Hex.pm index (post-publish)",
       "Verify public Hex.pm artifact"
     ]
 
     for step_name <- step_names do
-      assert release_guide =~ step_name,
-             "release_publish.md is missing shipped step name: #{inspect(step_name)}"
-
-      assert release_workflow =~ step_name,
-             "release.yml is missing step name: #{inspect(step_name)} — workflow may have drifted"
+      assert release_guide =~ step_name
+      assert release_workflow =~ step_name
     end
   end
 
@@ -129,17 +131,15 @@ defmodule Rindle.InstallSmoke.ReleaseDocsParityTest do
     commands = [
       "bash scripts/release_preflight.sh",
       "bash scripts/assert_version_match.sh",
+      "bash scripts/hex_release_exists.sh",
       "mix hex.publish --dry-run --yes",
       "mix hex.publish --yes",
       "bash scripts/public_smoke.sh"
     ]
 
     for command <- commands do
-      assert release_guide =~ command,
-             "release_publish.md is missing shipped command: #{inspect(command)}"
-
-      assert release_workflow =~ command,
-             "release.yml is missing command: #{inspect(command)} — workflow may have drifted"
+      assert release_guide =~ command
+      assert release_workflow =~ command
     end
   end
 
@@ -154,13 +154,10 @@ defmodule Rindle.InstallSmoke.ReleaseDocsParityTest do
     ]
 
     for phrase <- stale_phrases do
-      refute release_guide =~ phrase,
-             "release_publish.md still contains stale deferred-automation claim: #{inspect(phrase)}"
+      refute release_guide =~ phrase
     end
 
-    # The guide must still discuss HEX_API_KEY as current reality, not future work
-    assert release_guide =~ "HEX_API_KEY",
-           "release_publish.md must mention HEX_API_KEY as part of the live workflow description"
+    assert release_guide =~ "HEX_API_KEY"
   end
 
   test "release guide documents recovery-only publish from an exact ref", %{
@@ -177,5 +174,113 @@ defmodule Rindle.InstallSmoke.ReleaseDocsParityTest do
       assert release_guide =~ snippet
       assert release_workflow =~ snippet
     end
+  end
+
+  test "release guide keeps a tl dr cheatsheet within five lines", %{release_guide: release_guide} do
+    [_, tl_dr | _] = String.split(release_guide, "## TL;DR\n\n", parts: 2)
+    [section | _] = String.split(tl_dr, "\n\n", parts: 2)
+    lines = section |> String.split("\n", trim: true)
+
+    assert length(lines) <= 5
+    assert Enum.all?(lines, &String.starts_with?(&1, "- "))
+  end
+
+  test "release guide footguns inventory covers the known publish traps", %{
+    release_guide: release_guide
+  } do
+    for snippet <- [
+          "Hex.pm versions are immutable",
+          "Reverting the last release",
+          "mix hex.owner add",
+          "8MB",
+          "Git dependencies",
+          "Conventional commits",
+          "autorelease: pending",
+          "Manual tag pushes",
+          "mix docs --warnings-as-errors",
+          "Owner key and API key",
+          "Component tags",
+          "Trusted current tooling"
+        ] do
+      assert release_guide =~ snippet
+    end
+  end
+
+  test "release guide appendix a captures the publish-window deviations", %{
+    release_guide: release_guide
+  } do
+    for snippet <- [
+          "Appendix A: Deviation Log",
+          "a7efefd",
+          "d5c21ad",
+          "65728e5",
+          "71a0f99",
+          "6dd0d54",
+          "idempotent recovery reruns"
+        ] do
+      assert release_guide =~ snippet
+    end
+  end
+
+  test "release guide appendix b explains current tooling frozen source architecture", %{
+    release_guide: release_guide
+  } do
+    for snippet <- [
+          "Appendix B: Architecture Note",
+          "current tooling",
+          "frozen source",
+          "git worktree",
+          "recovery_ref",
+          "main HEAD"
+        ] do
+      assert release_guide =~ snippet
+    end
+  end
+
+  test "release guide voice is imperative and avoids stale hedge phrasing", %{
+    release_guide: release_guide
+  } do
+    refute release_guide =~ "you should consider"
+    refute release_guide =~ "the maintainer can"
+    assert release_guide =~ "Run this sequence"
+  end
+
+  test "release guide rollback rewrite uses canonical commands and retirement caveats", %{
+    release_guide: release_guide
+  } do
+    for snippet <- [
+          "mix hex.publish --revert VERSION",
+          "mix hex.retire rindle VERSION REASON --message",
+          "renamed",
+          "deprecated",
+          "security",
+          "invalid",
+          "other",
+          "mix hex.docs publish",
+          "lockfiles still install the bad version",
+          "24h for the first publish",
+          "1h for subsequent releases",
+          "Adopter advisory",
+          "fix(release): retire BAD_VERSION, ship FIX_VERSION"
+        ] do
+      assert release_guide =~ snippet
+    end
+
+    assert release_guide =~ "mix hex.revert rindle VERSION"
+    assert release_guide =~ "wrong legacy wording"
+  end
+
+  test "release guide bans replace in ci and explains the local-only exception", %{
+    release_guide: release_guide
+  } do
+    assert release_guide =~ "Do not use `--replace` in CI."
+    assert release_guide =~ "mix hex.publish --replace --yes"
+  end
+
+  test "release guide documents recovery skip semantics for already-published versions", %{
+    release_guide: release_guide
+  } do
+    assert release_guide =~ "skips both publish steps"
+    assert release_guide =~ "still runs public verification"
   end
 end

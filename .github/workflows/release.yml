@@ -1,3 +1,10 @@
+#
+# Release topology:
+# 1. release-please / recovery-validation chooses the immutable release target.
+# 2. gate-ci-green waits for ci.yml success on that exact SHA.
+# 3. publish runs preflight, version checks, and Hex publish from frozen source.
+# 4. public_verify waits for Hex indexing and proves the public artifact on a fresh runner.
+#
 name: Release
 
 on:
@@ -15,7 +22,7 @@ on:
         type: string
 
 concurrency:
-  group: ${{ github.event_name == 'workflow_dispatch' && format('release-recovery-{0}', inputs.recovery_ref) || 'release-main' }}
+  group: release-publish-rindle
   cancel-in-progress: false
 
 permissions:
@@ -143,10 +150,9 @@ jobs:
         run: |
           set -euo pipefail
           VERSION=$(
-            sed -nE \
-              -e 's/^[[:space:]]*@version[[:space:]]+"([^"]+)"/\1/p' \
-              -e 's/^[[:space:]]+version:[[:space:]]+"([^"]+)",?/\1/p' \
-              mix.exs | head -n1
+            mix run --no-start --no-deps-check -e 'IO.puts(Mix.Project.config()[:version])' \
+              | tail -n1 \
+              | tr -d '\r'
           )
           test -n "$VERSION"
           echo "release_version=$VERSION" >> "$GITHUB_OUTPUT"
@@ -311,22 +317,43 @@ jobs:
           RINDLE_EXPECTED_VERSION: ${{ needs.gate-ci-green.outputs.release_version }}
         run: bash scripts/assert_version_match.sh
 
+      - name: Check whether Hex.pm release already exists
+        id: idempotency
+        env:
+          RINDLE_PROJECT_ROOT: ${{ steps.release_source.outputs.project_root }}
+          VERSION: ${{ needs.gate-ci-green.outputs.release_version }}
+        run: bash scripts/hex_release_exists.sh
+
       - name: Dry run Hex publish
+        if: ${{ steps.idempotency.outputs.already_published != 'true' }}
         env:
           HEX_API_KEY: ${{ secrets.HEX_API_KEY }}
         working-directory: ${{ steps.release_source.outputs.project_root }}
         run: mix hex.publish --dry-run --yes
 
-      - name: Live publish to Hex
+      - name: Publish to Hex.pm (live)
+        id: live_publish
+        if: ${{ steps.idempotency.outputs.already_published != 'true' }}
         env:
           HEX_API_KEY: ${{ secrets.HEX_API_KEY }}
         working-directory: ${{ steps.release_source.outputs.project_root }}
         run: |
           if [ -z "$HEX_API_KEY" ] || [ "$HEX_API_KEY" = "dryrun-placeholder" ]; then
-            echo "::error::HEX_API_KEY is missing or invalid. Cannot publish. Ensure the 'release' environment secret is configured."
+            echo "::error::HEX_API_KEY missing/invalid. Configure repo Settings → Environments → release → secret HEX_API_KEY. See guides/release_publish.md 'One-Time Publish Prerequisites'."
             exit 1
           fi
           mix hex.publish --yes
+
+      - name: Idempotent publish summary
+        if: ${{ always() }}
+        env:
+          VERSION: ${{ needs.gate-ci-green.outputs.release_version }}
+        run: |
+          if [ "${{ steps.idempotency.outputs.already_published }}" = "true" ]; then
+            echo "Skipped publish: rindle $VERSION was already on Hex.pm." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Published rindle $VERSION to Hex.pm." >> "$GITHUB_STEP_SUMMARY"
+          fi
 
   public_verify:
     name: Public Verify
@@ -405,7 +432,7 @@ jobs:
           mc alias set local http://localhost:9000 minioadmin minioadmin
           mc mb --ignore-existing local/rindle-test
 
-      - name: Wait for Hex.pm index
+      - name: Wait for Hex.pm index (post-publish)
         env:
           VERSION: ${{ needs.publish.outputs.release_version }}
         run: |

@@ -43,10 +43,10 @@ Full archive: [.planning/milestones/v1.0-ROADMAP.md](.planning/milestones/v1.0-R
 
 ### 🚧 v1.3 Live Publish & API Ergonomics (In Progress)
 
-**Milestone Goal:** Execute Rindle's first real Hex.pm publish from the repo workflow and clean up the public API surface before adoption grows.
+**Milestone Goal:** Close the real Hex.pm publish loop around the already-shipped `0.1.4` release flow, then clean up the public API surface before adoption grows.
 
-- [ ] **Phase 15: CI Integrity and Publish Preflight** — Fix any CI failures on the release candidate and verify all preflight gates pass before the live tag is pushed
-- [ ] **Phase 16: Live Publish Execution and Post-Publish Verification** — Push v0.1.0 tag to trigger release workflow, confirm package resolves from Hex.pm, and update the routine release runbook
+- [x] **Phase 15: CI Integrity and Publish Preflight** — Capture exact-SHA remote proof and maintainer signoff for the shipped publish candidate
+- [ ] **Phase 16: Live Publish Execution and Post-Publish Verification** — Close the remaining publish gaps after `0.1.4`: idempotent recovery reruns, revert rehearsal evidence, and runbook deviation capture
 - [ ] **Phase 17: API Surface Boundary Audit** — Apply @moduledoc false/@doc false to all internal modules, resolve naming inconsistencies, and complete breaking-change determination before any documentation additions
 - [ ] **Phase 18: Documentation and Typespec Coverage** — Add @doc/@spec to all intentionally public surface and enforce coverage thresholds via mix doctor in CI
 - [ ] **Phase 19: Convenience API Additions** — Add helper functions and bang variants that adopters need on the public surface
@@ -65,19 +65,22 @@ Full archive: [.planning/milestones/v1.0-ROADMAP.md](.planning/milestones/v1.0-R
 **Plans**: 2 plans
 Plans:
 - [x] 15-01-PLAN.md — Harden shared preflight unpack/changelog contract and close the repo-owned tarball failure path
-- [ ] 15-02-PLAN.md — Capture exact-SHA remote CI proof and maintainer release-candidate signoff evidence
+- [x] 15-02-PLAN.md — Capture exact-SHA remote CI proof and maintainer release-candidate signoff evidence
 
 ### Phase 16: Live Publish Execution and Post-Publish Verification
-**Goal**: Maintainer can push a v0.1.0 git tag and have the release workflow publish `rindle 0.1.0` to Hex.pm automatically, and adopters can immediately resolve and browse the published package
+**Goal**: Maintainer can recover and verify the already-shipped `0.1.4` publish path without republishing, prove adopters can resolve the public package, and update the release runbook around the real deviations observed during the first publish window
 **Depends on**: Phase 15
 **Requirements**: PUBLISH-03, VERIFY-01, VERIFY-02, RELEASE-01, RELEASE-02
 **Success Criteria** (what must be TRUE):
-  1. Maintainer pushes a `v0.1.0` git tag and the release workflow completes — `rindle 0.1.0` appears on Hex.pm — with no manual intervention beyond the tag push
-  2. Adopter can add `{:rindle, "~> 0.1.0"}` to a fresh Phoenix app's `mix.exs` and have `mix deps.get` resolve from Hex.pm without access to the Rindle source repo
-  3. Adopter can browse `hexdocs.pm/rindle` and find module documentation immediately after publish completes
-  4. Maintainer can follow a step-by-step runbook for all routine releases after `0.1.0` updated to reflect any observed deviations from the first live publish
+  1. Maintainer can rerun the recovery path against an exact immutable ref and see the workflow skip publish safely when that version is already live on Hex.pm
+  2. Adopter can add `{:rindle, "~> 0.1.0"}` to a fresh Phoenix app's `mix.exs` and have `mix deps.get` resolve from the already-published Hex.pm package without access to the Rindle source repo
+  3. Adopter can browse `hexdocs.pm/rindle` and find module documentation for the public package immediately after publish verification completes
+  4. Maintainer can follow a step-by-step runbook for all routine releases after the first publish window, updated to reflect the observed deviations from `0.1.0` through `0.1.4`
   5. Maintainer can execute `mix hex.publish --revert VERSION` within the correction window using documented runbook steps
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [x] 16-01-PLAN.md — Add the Hex.pm idempotency probe and its shimmed unit-test harness
+- [x] 16-02-PLAN.md — Wire the probe into `release.yml` and align workflow/runbook parity around skip-on-rerun behavior
 **UI hint**: no
 
 ### Phase 17: API Surface Boundary Audit
@@ -122,8 +125,8 @@ Plans:
 | 12. Public Verification and Release Operations | v1.2 | 2/2 | Complete | 2026-04-28 |
 | 13. Release Traceability and Runbook Alignment | v1.2 | 2/2 | Complete | 2026-04-29 |
 | 14. Validation Closure for Publish Milestone | v1.2 | 2/2 | Complete | 2026-04-29 |
-| 15. CI Integrity and Publish Preflight | v1.3 | 1/2 | In Progress | - |
-| 16. Live Publish Execution and Post-Publish Verification | v1.3 | 0/TBD | Not started | - |
+| 15. CI Integrity and Publish Preflight | v1.3 | 2/2 | Complete | 2026-04-30 |
+| 16. Live Publish Execution and Post-Publish Verification | v1.3 | 2/2 | In Progress | - |
 | 17. API Surface Boundary Audit | v1.3 | 0/TBD | Not started | - |
 | 18. Documentation and Typespec Coverage | v1.3 | 0/TBD | Not started | - |
 | 19. Convenience API Additions | v1.3 | 0/TBD | Not started | - |

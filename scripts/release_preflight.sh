@@ -35,6 +35,7 @@ export RINDLE_INSTALL_SMOKE_PACKAGE_ROOT="$PACKAGE_ROOT"
 
 MIX_ENV=test mix test test/install_smoke/package_metadata_test.exs
 MIX_ENV=test mix test test/install_smoke/release_docs_parity_test.exs
+MIX_ENV=test mix test test/install_smoke/hex_release_exists_test.exs
 MIX_ENV=test RINDLE_PROJECT_ROOT="$ROOT_DIR" bash "$SCRIPT_DIR/install_smoke.sh"
 MIX_ENV=dev mix docs --warnings-as-errors
 RINDLE_PROJECT_ROOT="$ROOT_DIR" bash "$SCRIPT_DIR/assert_release_docs_html.sh"
