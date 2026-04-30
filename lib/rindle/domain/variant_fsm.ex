@@ -1,7 +1,5 @@
 defmodule Rindle.Domain.VariantFSM do
-  @moduledoc """
-  Transition rules for media variant lifecycle state changes.
-  """
+  @moduledoc false
 
   @allowed_transitions %{
     "planned" => ["queued"],

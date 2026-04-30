@@ -1,7 +1,5 @@
 defmodule Rindle.Domain.UploadSessionFSM do
-  @moduledoc """
-  Transition rules for media upload session lifecycle state changes.
-  """
+  @moduledoc false
 
   require Logger
 

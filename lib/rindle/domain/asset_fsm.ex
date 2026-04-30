@@ -1,7 +1,5 @@
 defmodule Rindle.Domain.AssetFSM do
-  @moduledoc """
-  Transition rules for media asset lifecycle state changes.
-  """
+  @moduledoc false
 
   require Logger
 

@@ -1,7 +1,5 @@
 defmodule Rindle.Domain.StalePolicy do
-  @moduledoc """
-  Stale variant serving and regeneration targeting helpers.
-  """
+  @moduledoc false
 
   import Ecto.Query, only: [where: 3]
 
