@@ -5,7 +5,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     These helpers wrap Phoenix LiveView's upload primitives to configure
     external (direct-to-storage) uploads using Rindle's presigned URL
-    generation and post-upload verification pipeline.
+    generation and the `Rindle.verify_completion/2` post-upload verification
+    pipeline.
 
     ## Usage
 
@@ -102,7 +103,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     @doc """
     Consumes completed upload entries and verifies them through Rindle.
 
-    For each completed entry, calls `Rindle.verify_upload/2` to confirm
+    For each completed entry, calls `Rindle.verify_completion/2` to confirm
     the object landed in storage, then invokes the user-provided function
     with the entry and its metadata.
 
@@ -129,7 +130,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       session_id = Map.get(meta, "session_id") || Map.get(meta, :session_id)
 
       if session_id do
-        case Rindle.verify_upload(session_id) do
+        case Rindle.verify_completion(session_id) do
           {:ok, %{asset: _asset}} ->
             func.(entry, meta)
 

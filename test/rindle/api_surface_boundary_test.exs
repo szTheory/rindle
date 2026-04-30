@@ -100,10 +100,15 @@ defmodule Rindle.ApiSurfaceBoundaryTest do
              "Rindle.verify_completion/2 should be publicly documented"
     end
 
-    test "legacy and shim functions stay callable but disappear from the docs contract" do
-      assert hidden_function_doc?(Rindle, :verify_upload, 2),
-             "Rindle.verify_upload/2 should become a hidden compatibility shim"
+    test "legacy verify_upload/2 stays documented with an explicit deprecation marker" do
+      assert visible_function_doc?(Rindle, :verify_upload, 2),
+             "Rindle.verify_upload/2 should remain documented during 0.1.x"
 
+      assert deprecated_function_doc?(Rindle, :verify_upload, 2, "Use verify_completion/2"),
+             "Rindle.verify_upload/2 should point callers at verify_completion/2"
+    end
+
+    test "multipart and logging shim visibility stays aligned with the boundary contract" do
       assert visible_function_doc?(Rindle, :complete_multipart_upload, 3),
              "Rindle.complete_multipart_upload/3 stays public"
 
@@ -132,7 +137,29 @@ defmodule Rindle.ApiSurfaceBoundaryTest do
     function_doc_state(module, name, arity) in [:hidden, :none, nil]
   end
 
+  defp deprecated_function_doc?(module, name, arity, message) do
+    function_doc_metadata(module, name, arity)
+    |> Map.get(:deprecated)
+    |> Kernel.==(message)
+  end
+
   defp function_doc_state(module, name, arity) do
+    function_doc_entry(module, name, arity)
+    |> case do
+      nil -> nil
+      {_, _, _, doc, _} -> doc
+    end
+  end
+
+  defp function_doc_metadata(module, name, arity) do
+    function_doc_entry(module, name, arity)
+    |> case do
+      nil -> %{}
+      {_, _, _, _, metadata} -> metadata
+    end
+  end
+
+  defp function_doc_entry(module, name, arity) do
     {:docs_v1, _, _, _, _, _, docs} = fetch_docs!(module)
 
     docs
@@ -140,10 +167,6 @@ defmodule Rindle.ApiSurfaceBoundaryTest do
       {{:function, doc_name, doc_arity}, _, _, _, _} -> doc_name == name and doc_arity == arity
       _ -> false
     end)
-    |> case do
-      nil -> nil
-      {_, _, _, doc, _} -> doc
-    end
   end
 
   defp fetch_docs!(module) do

@@ -87,6 +87,28 @@ defmodule Rindle do
   ## Examples
 
       # Requires a configured Rindle repo + the upload object to exist in storage.
+      iex> {:ok, %{session: session, asset: asset}} = Rindle.verify_completion(session_id)
+      iex> session.state
+      "completed"
+      iex> asset.state
+      "validating"
+
+  """
+  @spec verify_completion(binary(), keyword()) :: {:ok, map()} | {:error, term()}
+  def verify_completion(session_id, opts \\ []) do
+    Broker.verify_completion(session_id, opts)
+  end
+
+  @doc deprecated: "Use verify_completion/2"
+  @doc """
+  Verifies a direct upload completion through the broker.
+
+  Legacy compatibility shim for `0.1.x`. Delegates to
+  `verify_completion/2` while the older name remains supported.
+
+  ## Examples
+
+      # Requires a configured Rindle repo + the upload object to exist in storage.
       iex> {:ok, %{session: session, asset: asset}} = Rindle.verify_upload(session_id)
       iex> session.state
       "completed"
@@ -96,7 +118,7 @@ defmodule Rindle do
   """
   @spec verify_upload(binary(), keyword()) :: {:ok, map()} | {:error, term()}
   def verify_upload(session_id, opts \\ []) do
-    Broker.verify_completion(session_id, opts)
+    verify_completion(session_id, opts)
   end
 
   @doc """
