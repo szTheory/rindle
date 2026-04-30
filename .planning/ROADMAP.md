@@ -93,7 +93,12 @@ Plans:
   3. `log_variant_processing_failure/3` is either removed from the public `Rindle` facade or annotated `@doc false` with an explicit rationale
   4. Adopter can read consistent module and function names across the public `Rindle` surface with no mismatched verb, noun, or arity patterns
   5. A breaking-change determination document exists — renames affecting published function signatures are either shipped before `0.1.0` or explicitly deferred to `v0.2.0` with a recorded rationale
-**Plans**: TBD
+**Plans**: 4 plans
+Plans:
+- [ ] 17-01-PLAN.md — Create the Wave 0 boundary-audit and facade-first docs parity harness
+- [ ] 17-02-PLAN.md — Hide internal infrastructure/helper modules and define ExDoc public module tiers
+- [ ] 17-03-PLAN.md — Hide domain FSM, ops, and internal worker modules while preserving supported operational entrypoints
+- [ ] 17-04-PLAN.md — Add facade naming/logging compatibility shims, rewrite onboarding docs, and record the semver decision
 
 ### Phase 18: Documentation and Typespec Coverage
 **Goal**: Every intentionally public function and module has @doc and @spec annotations, named struct types replace opaque types in all public specs, and CI prevents coverage regressions
