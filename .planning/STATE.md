@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Live Publish & API Ergonomics
 status: executing
-stopped_at: Phase 16 context gathered (assumptions mode + 3 research subagents) — reframed scope = (a) runbook deviations + (b) workflow_dispatch idempotency fix + (c) SC-5 tabletop rehearsal
-last_updated: "2026-04-30T16:55:00.000Z"
-last_activity: "2026-04-30 -- Phase 16 local execution verified: plan summaries written, targeted tests green, remote recovery rehearsal pending push"
+stopped_at: Completed 17-01-PLAN.md
+last_updated: "2026-04-30T19:02:18.435Z"
+last_activity: 2026-04-30
 progress:
   total_phases: 5
-  completed_phases: 1
-  total_plans: 4
-  completed_plans: 4
-  percent: 100
+  completed_phases: 2
+  total_plans: 9
+  completed_plans: 5
+  percent: 56
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-29)
 
 **Core value:** Media, made durable.
-**Current focus:** Phase 16 — live-publish-execution-and-post-publish-verification
+**Current focus:** Phase 17 — api-surface-boundary-audit
 
 ## Current Position
 
-Phase: 16 (live-publish-execution-and-post-publish-verification) — EXECUTING
-Plan: 2 of 2
-Status: Local phase execution complete; remote recovery rehearsal still pending
-Last activity: 2026-04-30 -- Phase 16 local execution verified: plan summaries written, targeted tests green, remote recovery rehearsal pending push
+Phase: 17 (api-surface-boundary-audit) — EXECUTING
+Plan: 2 of 5
+Status: Ready to execute
+Last activity: 2026-04-30
 
-Progress: [██████████] Phase 16 plans executed locally; awaiting remote workflow proof
+Progress: [██████░░░░] 56%
 
 ## Performance Metrics
 
@@ -47,6 +47,7 @@ Progress: [██████████] Phase 16 plans executed locally; awai
 | - | - | - | - |
 
 *Updated after each plan completion*
+| Phase 17 P01 | 7min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -61,6 +62,8 @@ Recent decisions affecting current work (v1.2 close / v1.3 start):
 - Live publish closure (Phase 16) must precede API renaming (Phase 17) so the release workflow and runbook are stable before public-surface changes
 - `@spec` types must be tightened before the next semver-sensitive public surface change — narrowing after publish is a Dialyzer breaking change
 - `doctor ~> 0.22.0` added as dev dependency to fill @doc/@spec coverage gap that Credo/Dialyxir leave open
+- Keep plan 17-01 as RED-only TDD commits because this plan delivers failing harness coverage before implementation.
+- Use mix test --trace for focused verification on Mix 1.19.5 because the plan's legacy -x flag is invalid.
 
 ### Pending Todos
 
@@ -75,9 +78,9 @@ Recent decisions affecting current work (v1.2 close / v1.3 start):
 
 ## Session Continuity
 
-Last session: --stopped-at
-Stopped at: Phase 16 context gathered (assumptions mode + 3 research subagents) — reframed scope = (a) runbook deviations + (b) workflow_dispatch idempotency fix + (c) SC-5 tabletop rehearsal
-Resume file: --resume-file
+Last session: 2026-04-30T19:02:18.430Z
+Stopped at: Completed 17-01-PLAN.md
+Resume file: None
 
 ### Decision-Making Preference
 

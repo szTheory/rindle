@@ -95,7 +95,7 @@ Plans:
   5. A breaking-change determination document exists — renames affecting published function signatures are either shipped before `0.1.0` or explicitly deferred to `v0.2.0` with a recorded rationale
 **Plans**: 5 plans
 Plans:
-- [ ] 17-01-PLAN.md — Create the Wave 0 boundary-audit and facade-first docs parity harness
+- [x] 17-01-PLAN.md — Create the Wave 0 boundary-audit and facade-first docs parity harness
 - [ ] 17-02-PLAN.md — Hide internal infrastructure/helper modules and define ExDoc public module tiers
 - [ ] 17-03-PLAN.md — Hide domain FSM and stale-policy internals while preserving public schema data types
 - [ ] 17-04-PLAN.md — Add facade naming/logging compatibility shims, rewrite onboarding docs, and record the semver decision
@@ -133,6 +133,6 @@ Plans:
 | 14. Validation Closure for Publish Milestone | v1.2 | 2/2 | Complete | 2026-04-29 |
 | 15. CI Integrity and Publish Preflight | v1.3 | 2/2 | Complete | 2026-04-30 |
 | 16. Live Publish Execution and Post-Publish Verification | v1.3 | 2/2 | In Progress | - |
-| 17. API Surface Boundary Audit | v1.3 | 0/TBD | Not started | - |
+| 17. API Surface Boundary Audit | v1.3 | 1/5 | In Progress | - |
 | 18. Documentation and Typespec Coverage | v1.3 | 0/TBD | Not started | - |
 | 19. Convenience API Additions | v1.3 | 0/TBD | Not started | - |
