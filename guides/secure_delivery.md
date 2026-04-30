@@ -45,8 +45,8 @@ URL issuance, with `profile`, `adapter`, and `mode` metadata.
 
 ## Configuring Signed URL TTL
 
-The default signed URL TTL comes from `Rindle.Config.signed_url_ttl_seconds/0`.
-A profile can override it per-profile:
+The default signed URL TTL comes from the application-wide Rindle delivery
+configuration. A profile can override it per-profile:
 
 ```elixir
 defmodule MyApp.SensitiveDocsProfile do

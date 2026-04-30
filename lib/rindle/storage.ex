@@ -14,7 +14,14 @@ defmodule Rindle.Storage do
   support. Additional resumable-oriented atoms are reserved additively for
   future adapters.
   """
-  @type capability :: Rindle.Storage.Capabilities.capability()
+  @type capability ::
+          :presigned_put
+          | :multipart_upload
+          | :signed_url
+          | :head
+          | :local
+          | :resumable_upload
+          | :resumable_upload_session
 
   @callback store(key :: String.t(), source :: Path.t(), opts :: keyword()) ::
               {:ok, term()} | {:error, term()}

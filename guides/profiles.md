@@ -19,9 +19,9 @@ defmodule MyApp.AvatarProfile do
 end
 ```
 
-The DSL validates options at compile time via `Rindle.Profile.Validator`,
-so an unknown option, a malformed variant spec, or a non-atom storage
-module all fail at `mix compile` — not at runtime.
+The DSL validates options at compile time, so an unknown option, a malformed
+variant spec, or a non-atom storage module all fail at `mix compile` — not at
+runtime.
 
 ## DSL Options
 

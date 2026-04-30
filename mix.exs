@@ -122,6 +122,51 @@ defmodule Rindle.MixProject do
       groups_for_extras: [
         Guides: ~r/guides\/.*/
       ],
+      groups_for_modules: [
+        Facade: [
+          Rindle
+        ],
+        Profiles: [
+          Rindle.Profile
+        ],
+        Upload: [
+          Rindle.Upload.Broker
+        ],
+        Delivery: [
+          Rindle.Delivery
+        ],
+        "Optional Integrations": [
+          Rindle.LiveView,
+          Rindle.HTML
+        ],
+        "Extension Points": [
+          Rindle.Authorizer,
+          Rindle.Analyzer,
+          Rindle.Scanner,
+          Rindle.Processor
+        ],
+        "Storage Adapters": [
+          Rindle.Storage,
+          Rindle.Storage.Local,
+          Rindle.Storage.S3
+        ],
+        Operations: [
+          Mix.Tasks.Rindle.AbortIncompleteUploads,
+          Mix.Tasks.Rindle.BackfillMetadata,
+          Mix.Tasks.Rindle.CleanupOrphans,
+          Mix.Tasks.Rindle.RegenerateVariants,
+          Mix.Tasks.Rindle.VerifyStorage,
+          Rindle.Workers.AbortIncompleteUploads,
+          Rindle.Workers.CleanupOrphans
+        ],
+        "Data Types": [
+          Rindle.Domain.MediaAsset,
+          Rindle.Domain.MediaAttachment,
+          Rindle.Domain.MediaUploadSession,
+          Rindle.Domain.MediaVariant,
+          Rindle.Domain.MediaProcessingRun
+        ]
+      ],
       before_closing_head_tag: &before_closing_head_tag/1
     ]
   end

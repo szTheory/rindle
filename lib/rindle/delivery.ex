@@ -42,8 +42,8 @@ defmodule Rindle.Delivery do
   @doc """
   Returns the signed URL TTL (seconds) for a profile.
 
-  Falls back to the application-wide default in `Rindle.Config` when the
-  profile does not override it.
+  Falls back to the application-wide default when the profile does not
+  override it.
 
   ## Examples
 

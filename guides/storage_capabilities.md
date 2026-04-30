@@ -2,9 +2,8 @@
 
 Rindle exposes storage capabilities as an explicit adapter contract so adopters
 can tell which upload and delivery flows are expected to work before wiring a
-profile to a backend. The runtime vocabulary lives in
-`Rindle.Storage.Capabilities`; unsupported flows fail with tagged tuples instead
-of falling back silently.
+profile to a backend. Unsupported flows fail with tagged tuples instead of
+falling back silently.
 
 This guide is the canonical capability reference for v1.1. Other guides link
 here instead of repeating provider matrices inline.
