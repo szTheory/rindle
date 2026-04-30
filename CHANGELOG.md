@@ -2,6 +2,20 @@
 
 0.1.0-0.1.3 were release-pipeline shakedown iterations; treat 0.1.4 as the first recommended pin.
 
+## [0.1.5](https://github.com/szTheory/rindle/compare/rindle-v0.1.4...rindle-v0.1.5) (2026-04-30)
+
+
+### Bug Fixes
+
+* **release:** allow publish after skipped recovery gate ([d5c21ad](https://github.com/szTheory/rindle/commit/d5c21ad7dcee2a2052f4a032461f7442ff74a728))
+* **release:** install deps for current tooling preflight ([92d581e](https://github.com/szTheory/rindle/commit/92d581e023c3b63784bd64f61b6e5df88229b966))
+* **release:** make recovery publish idempotent ([f528bb1](https://github.com/szTheory/rindle/commit/f528bb13d723c74308453d5da8b6ff4fa6d9d119))
+* **release:** read frozen version without compiling deps ([e9a8aa3](https://github.com/szTheory/rindle/commit/e9a8aa3e9b3882a2c3e6cc32b58c8c960a5c8cad))
+* **release:** run preflight checks from current tooling ([0c12ad3](https://github.com/szTheory/rindle/commit/0c12ad31017ed7832bf42a276cef4d71668d3304))
+* **release:** run public smoke in test env ([6dd0d54](https://github.com/szTheory/rindle/commit/6dd0d54081c89b68c630d9642a40453d310008c6))
+* **release:** run recovery publish with current tooling ([71a0f99](https://github.com/szTheory/rindle/commit/71a0f99778cca2cdc09958b2a64a336eb8a62db3))
+* **release:** support component-tag recovery refs ([65728e5](https://github.com/szTheory/rindle/commit/65728e520868878a32290bdb716332d44509cd8c))
+
 ## [0.1.4](https://github.com/szTheory/rindle/compare/rindle-v0.1.3...rindle-v0.1.4) (2026-04-29)
 
 
