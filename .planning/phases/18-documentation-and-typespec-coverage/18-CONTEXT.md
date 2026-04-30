@@ -16,7 +16,7 @@ This phase does **not** expand the public surface (Phase 17 owns that), does **n
 
 ### Public surface scope (carried from Phase 17 D-03/D-04/D-06)
 
-- **D-01:** Phase 18 documents only the intentionally public modules locked in `.planning/phases/17-api-surface-boundary-audit/17-CONTEXT.md`. Internal modules already hidden via `@moduledoc false` (D-05 there) stay out of scope. The public set: `Rindle`, `Rindle.Profile`, `Rindle.Upload.Broker`, `Rindle.Delivery`, `Rindle.Storage` + `Local`/`S3`, the four extension behaviours (`Authorizer`/`Analyzer`/`Scanner`/`Processor`), `Rindle.LiveView`, `Rindle.HTML`, all `Mix.Tasks.Rindle.*`, `Rindle.Workers.AbortIncompleteUploads`, `Rindle.Workers.CleanupOrphans`, and the five `Rindle.Domain.*` schema modules.
+- **D-01:** Phase 18 documents only the intentionally public modules locked in `.planning/phases/17-api-surface-boundary-audit/17-CONTEXT.md`. Internal modules already hidden via `@moduledoc false` (D-05 there) stay out of scope. The public set: `Rindle`, `Rindle.Profile`, `Rindle.Upload.Broker`, `Rindle.Delivery`, `Rindle.Storage` + `Local`/`S3`, the four extension behaviours (`Authorizer`/`Analyzer`/`Scanner`/`Processor`), **`Rindle.Processor.Image` (added in Phase 18 — see D-27)**, `Rindle.LiveView`, `Rindle.HTML`, all `Mix.Tasks.Rindle.*`, `Rindle.Workers.AbortIncompleteUploads`, `Rindle.Workers.CleanupOrphans`, and the five `Rindle.Domain.*` schema modules.
 - **D-02:** Coverage starting state (verified by direct grep on the codebase): `Rindle` facade + `Rindle.Delivery` + all five `Rindle.Domain.*` schemas are already complete on `@doc`/`@spec`/`@type t`. Largest gaps: `Rindle.Upload.Broker` has `@doc` on every public function but **zero `@spec`**; the four extension behaviours plus `Rindle.Storage` have `@callback`s without per-callback `@doc`; all five `Mix.Tasks.Rindle.*` lack any `@spec`; both cron workers lack `@doc`/`@spec` on `perform/1`; `Rindle.HTML.picture_tag/3` lacks `@doc`; `Rindle.Profile.__using__/1` macro lacks `@doc`/`@spec`.
 
 ### Named struct types (API-07)
@@ -72,6 +72,28 @@ This phase does **not** expand the public surface (Phase 17 owns that), does **n
 
 - **D-26:** Continue the project's existing GSD preference (saved feedback memory + STATE.md "Decision-Making Preference" block): the agent decides by default with deep subagent research and locked recommendations; escalate only for VERY impactful items (public API / module / function renames touching the published surface, semver-affecting changes, deletion of git history or hex versions, secret/auth scope changes, cost-bearing infra, milestone/scope reshape). Phase 18 has zero such items — every decision above is mechanical and recoverable.
 
+### Phase 17 boundary correction: `Rindle.Processor.Image` becomes public
+
+- **D-27:** **`Rindle.Processor.Image` is intentionally public** — promote to documented adapter symmetric with `Rindle.Storage.S3` and `Rindle.Storage.Local`. Locked via 2 parallel research subagents (ecosystem precedent + DX/UX walkthrough; reports archived at `/tmp/processor-image-ecosystem-research.md` and `/tmp/processor-image-dx-ux-analysis.md`). Rationale:
+  1. **Ecosystem precedent (overwhelming):** Every major Elixir library that ships a behaviour + bundled reference adapter documents the adapter publicly — Tesla (`Tesla.Adapter.Hackney/Mint/Httpc/Finch`), Ecto (`Ecto.Adapters.Postgres/MyXQL/SQLite3`), Plug (`Plug.Session.COOKIE/ETS`), Oban (`Oban.Notifiers.Postgres/PG`, `Oban.Engines.Basic/Lite/Inline`), Broadway (`Broadway.DummyProducer/NoopAcknowledger`), Bamboo (`Bamboo.SMTPAdapter` etc.), Swoosh (`Swoosh.Adapters.SMTP/Mailgun/Sendgrid`), Waffle (`Waffle.Storage.S3/Local`), Nx (`Nx.BinaryBackend`, `EXLA.Backend`), Membrane (every element). **Zero precedents found** for hiding a sole bundled adapter behind `@moduledoc false`.
+  2. **Symmetry with Phase 17:** Phase 17 D-03 made `Rindle.Storage.S3` and `Rindle.Storage.Local` public alongside the `Rindle.Storage` behaviour but did not name any `Rindle.Processor.*` adapter. This was an oversight (Storage was the more frontline configuration surface), not a deliberate asymmetric posture. Adopters trained on the Storage pattern will reasonably expect Processor parity.
+  3. **Adopter discovery:** The `variant_spec` map keys (`:width`, `:height`, `:mode`, `:format`, `:quality`) and supported modes (`:fit`, `:crop`, `:fill`) are the *actual API* of the bundled processor. The `Rindle.Processor` callback signature shows them only as `map()` — there is currently nowhere in ExDoc to discover them without source-diving. Documenting them on the adapter is the only way to surface them.
+  4. **Worst-quadrant escape:** Current state (option C / Defer per the analysis) leaves a visible `@moduledoc` on a module that's NOT in `@public_modules` and NOT in `groups_for_modules` — adopters who navigate to it directly see docs implying support, while CI's boundary test does not enforce stability. That's the genuinely worst posture; Phase 18 is the natural place to resolve it.
+  5. **No semver impact:** `0.1.4` already publishes the module with a visible `@moduledoc`. Promoting it to formally-documented surface is **additive**.
+
+  **What Phase 18 must do for D-27 (lands in Plan 18-03 alongside the other behaviours/adapters):**
+  - Expand `@moduledoc` on `Rindle.Processor.Image` to document the recognized `variant_spec` keys (`:width`, `:height`, `:mode`, `:format`, `:quality`) and the supported modes (`:fit`, `:crop`, `:fill`).
+  - Add `@impl Rindle.Processor` annotation on `process/3`.
+  - Add `@spec process(Path.t(), map(), Path.t()) :: {:ok, Path.t()} | {:error, term()}` (the `{:error, term()}` branch matches the `Rindle.Processor` callback contract — see "Specifics" note re: not narrowing error terms in `0.1.x`).
+  - Add `Rindle.Processor.Image` to `@public_modules` in `test/rindle/api_surface_boundary_test.exs`.
+  - Add `Rindle.Processor.Image` to `mix.exs` `groups_for_modules` — preferred slot is **"Storage and Processor Adapters"** (rename the existing "Storage Adapters" group) symmetric across both adapter families. Alternative: keep "Storage Adapters" + add new "Processor Adapters" group. **Claude's discretion** (default: rename to a unified group; if `groups_for_modules` already pluralizes by family, keep symmetry).
+
+  **Risks accepted:**
+  - The libvips/Vix-specific option shape is now part of the public contract. Renaming a `variant_spec` key would be a soft-deprecation event. Mitigation: keys are already de facto contract (consumed by `Rindle.Workers.ProcessVariant`).
+  - A future `Rindle.Processor.Vips` rename would be a breaking change. Mitigation: name `Image` is generic enough to survive backend swaps; if a real backend split happens, ship `Rindle.Processor.Image` as a delegating wrapper.
+
+  **Footgun-2 acknowledgment:** `Rindle.Workers.ProcessVariant` (itself `@moduledoc false`) currently calls `Rindle.Processor.Image.process/3` with a hardcoded module reference. The internal pipeline depends on the `{:ok, dest_path}` shape plus extension-driven format inference from the destination path. Both are reasonable to commit to publicly. Plan 18-03 expands the `@moduledoc` to cover format inference behavior so adopter expectations match pipeline expectations.
+
 ### Claude's Discretion
 
 - Exact `.doctor.exs` baseline numbers (Plan 18-01 captures these via `mix doctor.gen.config` rather than hand-rolling).
@@ -103,7 +125,7 @@ This phase does **not** expand the public surface (Phase 17 owns that), does **n
 - `/Users/jon/projects/rindle/.planning/phases/17-api-surface-boundary-audit/17-BREAKING-CHANGE-DECISION.md` — semver decision record
 
 ### Code surface under documentation
-- `/Users/jon/projects/rindle/mix.exs` — deps + `groups_for_modules` already configured by Phase 17; `:doctor` to be added in Plan 18-01
+- `/Users/jon/projects/rindle/mix.exs` — deps + `groups_for_modules` already configured by Phase 17; `:doctor` to be added in Plan 18-01; Phase 18 D-27 adds `Rindle.Processor.Image` to the adapter group
 - `/Users/jon/projects/rindle/.github/workflows/ci.yml` — `quality` job is the insertion point for the doctor step
 - `/Users/jon/projects/rindle/lib/rindle.ex` — facade; opaque return types to tighten + `@doc false` shim with `@deprecated` to add
 - `/Users/jon/projects/rindle/lib/rindle/upload/broker.ex` — every public function lacks `@spec` (largest single gap)
@@ -112,6 +134,8 @@ This phase does **not** expand the public surface (Phase 17 owns that), does **n
 - `/Users/jon/projects/rindle/lib/rindle/storage.ex` — 10+ `@callback`s without per-callback `@doc`; behaviour-level result types to define
 - `/Users/jon/projects/rindle/lib/rindle/storage/local.ex`, `/Users/jon/projects/rindle/lib/rindle/storage/s3.ex` — adapter implementations; `@impl` callbacks reference the behaviour types
 - `/Users/jon/projects/rindle/lib/rindle/authorizer.ex`, `/Users/jon/projects/rindle/lib/rindle/analyzer.ex`, `/Users/jon/projects/rindle/lib/rindle/scanner.ex`, `/Users/jon/projects/rindle/lib/rindle/processor.ex` — each has one `@callback` without `@doc`
+- `/Users/jon/projects/rindle/lib/rindle/processor/image.ex` — Phase 18 D-27: promote to public adapter (expand `@moduledoc`, add `@impl`, add `@spec`)
+- `/Users/jon/projects/rindle/test/rindle/api_surface_boundary_test.exs` — Phase 18 D-27: add `Rindle.Processor.Image` to `@public_modules`
 - `/Users/jon/projects/rindle/lib/rindle/live_view.ex`, `/Users/jon/projects/rindle/lib/rindle/html.ex` — conditional-compile modules; `picture_tag/3` lacks `@doc`
 - `/Users/jon/projects/rindle/lib/rindle/workers/abort_incomplete_uploads.ex`, `/Users/jon/projects/rindle/lib/rindle/workers/cleanup_orphans.ex` — `@moduledoc` enrichment + drop `@doc` on `perform/1`
 - `/Users/jon/projects/rindle/lib/mix/tasks/rindle.*.ex` — five Mix tasks; `@shortdoc` + `@moduledoc` + `@impl true` only
