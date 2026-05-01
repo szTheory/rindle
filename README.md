@@ -121,6 +121,71 @@ That keeps the first-run story on the facade while leaving
 public path is proven by the built-artifact install smoke and the canonical
 adopter lifecycle test.
 
+## After First Run: Querying Attachments and Variants
+
+Once an asset is attached, you'll typically render it from a Phoenix
+controller or LiveView. Two helpers cover the common reads without writing
+raw Ecto queries:
+
+```elixir
+# In MyAppWeb.UserController.show/2
+def show(conn, _params) do
+  user = conn.assigns.current_user
+
+  avatar = Rindle.attachment_for(user, "avatar")
+  # %Rindle.Domain.MediaAttachment{} | nil — :asset is preloaded by default
+
+  thumbs = Rindle.ready_variants_for(avatar.asset)
+  # [%Rindle.Domain.MediaVariant{name: :thumb, state: "ready", ...}, ...]
+
+  render(conn, :show, avatar: avatar, thumbs: thumbs)
+end
+```
+
+`Rindle.attachment_for/2` returns the most recent attachment for an
+`(owner, slot)` pair (tie-broken by `inserted_at desc`) with `:asset`
+preloaded. Pass `Rindle.attachment_for(user, "avatar", preload: [:asset, :variants])`
+to override the preload list (REPLACE semantics, not merge).
+
+`Rindle.ready_variants_for/1` accepts either a `%MediaAsset{}` struct or a
+binary asset id and returns variants with `state == "ready"`, ordered by
+`:name asc`. Pending or failed variants are filtered out.
+
+### Bang Variants
+
+Five bang variants are available for happy-path code that prefers
+exceptions over `{:error, reason}` tuples. Each delegates to its non-bang
+twin and raises `Rindle.Error` on generic failures:
+
+```elixir
+# Raises Rindle.Error{action: :attach, reason: :not_found} if the asset is missing.
+attachment = Rindle.attach!(asset.id, current_user, "avatar")
+
+# Raises Rindle.Error{action: :detach, reason: ...} on storage failure.
+:ok = Rindle.detach!(current_user, "avatar")
+
+# Raises Rindle.Error{action: :upload, reason: ...} on validation/storage failure.
+asset = Rindle.upload!(MyApp.MediaProfile, %{
+  path: "/tmp/photo.png",
+  filename: "photo.png",
+  byte_size: File.stat!("/tmp/photo.png").size
+})
+
+# Raises Rindle.Error{action: :url, reason: :delivery_unsupported} if the
+# configured storage adapter does not advertise :signed_url capability.
+signed = Rindle.url!(MyApp.MediaProfile, asset.storage_key)
+
+# Raises Rindle.Error{action: :variant_url, reason: :variant_not_ready} if
+# the named variant has not finished processing.
+thumb_url = Rindle.variant_url!(MyApp.MediaProfile, asset, :thumb)
+```
+
+Bangs are intended for happy-path callers (controllers, scripts, tests).
+For user-facing flows that must render validation errors, prefer the
+non-bang twins (`Rindle.attach/4`, `Rindle.detach/3`, `Rindle.upload/3`,
+`Rindle.url/3`, `Rindle.variant_url/4`) which return `{:ok, value}` /
+`{:error, reason}` tuples.
+
 ## Next Reads
 
 - [`guides/getting_started.md`](guides/getting_started.md): canonical deep

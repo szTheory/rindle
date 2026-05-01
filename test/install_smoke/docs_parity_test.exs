@@ -29,6 +29,27 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
     assert guide =~ "[`README.md`](../README.md)"
   end
 
+  test "README and getting-started guide teach Phase 19 convenience helpers and bangs", %{
+    readme: readme,
+    guide: guide
+  } do
+    for doc <- [readme, guide] do
+      # Read helpers (API-09, API-10)
+      assert doc =~ "Rindle.attachment_for"
+      assert doc =~ "Rindle.ready_variants_for"
+
+      # Bang variants (API-11)
+      assert doc =~ "Rindle.attach!"
+      assert doc =~ "Rindle.detach!"
+      assert doc =~ "Rindle.upload!"
+      assert doc =~ "Rindle.url!"
+      assert doc =~ "Rindle.variant_url!"
+
+      # Boundary contract surfaced (Phase 17 D-01 allowlist)
+      assert doc =~ "Rindle.Error"
+    end
+  end
+
   test "introductory sections keep Rindle and Rindle.Profile as the first-tier concepts", %{
     readme: readme,
     guide: guide

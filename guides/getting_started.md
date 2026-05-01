@@ -211,6 +211,95 @@ Detach later with:
 Detach is async by design: the DB change commits first, then an Oban purge job
 removes storage objects after commit.
 
+## 8. Querying Attachments and Variants
+
+Once an attachment exists, the most common adopter operation is rendering
+the asset (and its ready variants) from a controller or LiveView template.
+Rindle ships two read helpers so you don't write raw Ecto queries inside
+Phoenix view code:
+
+```elixir
+avatar = Rindle.attachment_for(current_user, "avatar")
+# %Rindle.Domain.MediaAttachment{} | nil
+# — :asset is preloaded by default
+
+avatar_with_variants =
+  Rindle.attachment_for(current_user, "avatar", preload: [:asset, :variants])
+# The :preload option REPLACES the default [:asset] preload list rather
+# than merging — declare every association you want preloaded.
+
+thumbs = Rindle.ready_variants_for(avatar.asset)
+# [%Rindle.Domain.MediaVariant{name: :thumb, state: "ready", ...}, ...]
+# — only variants with state == "ready" are returned, ordered by :name asc
+```
+
+`Rindle.attachment_for/2,3` resolves the most recent attachment for an
+`(owner, slot)` pair, tie-broken by `inserted_at desc`. The owner can be
+any Ecto schema struct your application defines; the `slot` is the same
+string you passed to `Rindle.attach/4`.
+
+`Rindle.ready_variants_for/1` accepts either a `%Rindle.Domain.MediaAsset{}`
+struct or a binary asset id. Pending, processing, and failed variants are
+filtered out — the helper exists precisely to make "render the variants
+that are safe to display" a one-liner.
+
+Both helpers go through `Rindle.repo()` so they inherit the same Repo
+ownership posture documented earlier in this guide.
+
+## 9. Bang Variants
+
+For happy-path callers that prefer exceptions over `{:error, reason}`
+tuples, Rindle ships five bang variants of the lifecycle functions. Each
+delegates to its non-bang twin and raises `Rindle.Error` on generic
+failures (or, for `upload!/3`, `detach!/3`, `url!/3`, and
+`variant_url!/4`, raises `Ecto.InvalidChangesetError` on changeset
+failures from the non-bang twin):
+
+```elixir
+attachment = Rindle.attach!(asset.id, current_user, "avatar")
+# Raises Rindle.Error{action: :attach, reason: :not_found} if asset missing.
+
+:ok = Rindle.detach!(current_user, "avatar")
+# Raises Rindle.Error{action: :detach, reason: ...} on storage failure.
+
+asset =
+  Rindle.upload!(MyApp.MediaProfile, %{
+    path: "/tmp/photo.png",
+    filename: "photo.png",
+    byte_size: File.stat!("/tmp/photo.png").size
+  })
+# Raises Rindle.Error{action: :upload, reason: ...} on validation/storage error.
+
+signed = Rindle.url!(MyApp.MediaProfile, asset.storage_key)
+# Raises Rindle.Error{action: :url, reason: :delivery_unsupported} if the
+# storage adapter does not advertise the :signed_url capability.
+
+thumb_url = Rindle.variant_url!(MyApp.MediaProfile, asset, :thumb)
+# Raises Rindle.Error{action: :variant_url, reason: :variant_not_ready}
+# if the variant has not finished processing.
+```
+
+Use bangs in scripts, tests, Mix tasks, and controller actions where you
+want failures to escalate to the supervisor. For user-facing forms where
+validation errors must render inline, keep using the non-bang twins
+(`Rindle.attach/4`, `Rindle.detach/3`, `Rindle.upload/3`, `Rindle.url/3`,
+`Rindle.variant_url/4`) and pattern-match on `{:ok, value}` /
+`{:error, reason}`.
+
+`Rindle.Error` is a documented public exception with `:action` (atom) and
+`:reason` (term) fields — pattern-match on `:action` to distinguish which
+bang raised:
+
+```elixir
+try do
+  Rindle.url!(MyApp.MediaProfile, key)
+rescue
+  e in Rindle.Error ->
+    Logger.warn("Rindle url! failed: action=#{e.action} reason=#{inspect(e.reason)}")
+    nil
+end
+```
+
 ## Next Reads
 
 - [`../README.md`](../README.md): quickstart version of this path
