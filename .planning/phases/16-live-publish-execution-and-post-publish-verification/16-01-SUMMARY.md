@@ -6,6 +6,7 @@ tags: [release, hex, idempotency, shell, testing]
 requirements_completed:
   - PUBLISH-03
   - RELEASE-01
+  - VERIFY-01
 completed: 2026-04-30
 ---
 
@@ -28,4 +29,4 @@ The probe suite passed with 7 tests on 2026-04-30.
 
 ## Notes
 
-- The probe and its tests remain uncommitted in the current working tree; this summary records verified execution state, not a pushed Git history boundary.
+- All four idempotency artifacts (`scripts/hex_release_exists.sh`, `test/install_smoke/hex_release_exists_test.exs`, `test/install_smoke/support/fake_hex_bin.sh`, `.github/workflows/release.yml`) are tracked in git as of 2026-04-30; the v1.3 milestone audit reflects this at `.planning/v1.3-MILESTONE-AUDIT.md:200-201` (TD-16 entry).

@@ -6,6 +6,8 @@ tags: [release, github-actions, hex, runbook, parity]
 requirements_completed:
   - PUBLISH-03
   - RELEASE-01
+  - VERIFY-02
+  - RELEASE-02
 completed: 2026-04-30
 ---
 
