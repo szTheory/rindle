@@ -49,6 +49,15 @@ defmodule Rindle.Domain.MediaVariant do
     timestamps()
   end
 
+  @doc """
+  Builds a changeset for a variant row.
+
+  Casts the variant-recipe, storage, and lifecycle columns; requires the
+  minimum invariants (`:asset_id`, `:name`, `:state`, `:recipe_digest`);
+  validates the lifecycle state against the canonical state list and enforces
+  uniqueness across `(:asset_id, :name)` so each variant exists at most once
+  per asset.
+  """
   @spec changeset(t() | %__MODULE__{}, map()) :: Ecto.Changeset.t()
   def changeset(variant, attrs) do
     variant

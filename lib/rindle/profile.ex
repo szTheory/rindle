@@ -56,9 +56,16 @@ defmodule Rindle.Profile do
       @rindle_upload_policy upload_policy
       @rindle_delivery_policy delivery_policy
 
+      @doc """
+      Returns the storage adapter module configured for this profile.
+      """
       @spec storage_adapter() :: module()
       def storage_adapter, do: @rindle_storage
 
+      @doc """
+      Returns the profile's variant recipes as a list of `{name, spec}` tuples,
+      sorted by variant name for deterministic iteration.
+      """
       @spec variants() :: [Rindle.Profile.variant_entry()]
       def variants do
         @rindle_variants
@@ -66,18 +73,35 @@ defmodule Rindle.Profile do
         |> Enum.sort_by(fn {variant_name, _spec} -> Atom.to_string(variant_name) end)
       end
 
+      @doc """
+      Returns the profile's upload policy map (allowed MIME types, allowed
+      extensions, max bytes, max pixels).
+      """
       @spec upload_policy() :: Rindle.Profile.Validator.upload_policy()
       def upload_policy, do: @rindle_upload_policy
 
+      @doc """
+      Validates an upload metadata map against the profile's upload policy,
+      returning `{:ok, normalized_upload}` or `{:error, reason}`.
+      """
       @spec validate_upload(Rindle.Profile.Validator.upload_metadata()) ::
               {:ok, map()} | {:error, term()}
       def validate_upload(upload) do
         Validator.validate_upload(upload, @rindle_upload_policy)
       end
 
+      @doc """
+      Returns the profile's delivery policy map (`:public`,
+      `:signed_url_ttl_seconds`, etc.).
+      """
       @spec delivery_policy() :: map()
       def delivery_policy, do: @rindle_delivery_policy
 
+      @doc """
+      Returns the deterministic digest for `variant_name` derived from the
+      profile module and its declared recipe. Raises `ArgumentError` if the
+      profile does not declare `variant_name`.
+      """
       @spec recipe_digest(atom()) :: String.t()
       def recipe_digest(variant_name) do
         if Enum.any?(@rindle_variants, fn {name, _spec} -> name == variant_name end) do

@@ -32,19 +32,22 @@
     # Internal pipeline workers (AbortIncompleteUploads / CleanupOrphans are public)
     Rindle.Workers.PromoteAsset,
     Rindle.Workers.ProcessVariant,
-    Rindle.Workers.PurgeStorage
+    Rindle.Workers.PurgeStorage,
+
+    # Test-support case template (@moduledoc false, not adopter-facing)
+    Rindle.DataCase
   ],
   ignore_paths: [],
-  # Baseline thresholds — D-22 baseline-then-ratchet pattern. Plan 18-05 ratchets
-  # these to the D-07 target values (100/100/100/95/95) once Plans 18-02..18-04
-  # close the @doc/@spec gaps. The ratchet test in
-  # test/rindle/doctor_thresholds_test.exs asserts the D-07 target and is
-  # therefore RED in Plan 18-01 — that failure is the visible commitment.
-  min_module_doc_coverage: 0,
-  min_module_spec_coverage: 0,
-  min_overall_doc_coverage: 50,
+  # D-07 target thresholds — ratcheted in Plan 18-05 from the Plan 18-01 baseline
+  # per the D-22 baseline-then-ratchet pattern. The ratchet harness at
+  # test/rindle/doctor_thresholds_test.exs (D-23) asserts these exact values and
+  # ships GREEN at this commit. Future doc/spec regressions on the public
+  # surface fail `mix doctor --raise` in CI.
+  min_module_doc_coverage: 100,
+  min_module_spec_coverage: 95,
+  min_overall_doc_coverage: 100,
   min_overall_moduledoc_coverage: 100,
-  min_overall_spec_coverage: 0,
+  min_overall_spec_coverage: 95,
   raise: false,
   reporter: Doctor.Reporters.Full,
   struct_type_spec_required: true,

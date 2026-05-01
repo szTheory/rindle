@@ -38,6 +38,13 @@ defmodule Rindle.Domain.MediaAttachment do
     timestamps()
   end
 
+  @doc """
+  Builds a changeset for an attachment row.
+
+  Casts the owner reference fields, requires every column on the join row, and
+  enforces uniqueness across `(:owner_type, :owner_id, :slot)` to prevent
+  duplicate slot bindings.
+  """
   @spec changeset(t() | %__MODULE__{}, map()) :: Ecto.Changeset.t()
   def changeset(attachment, attrs) do
     attachment

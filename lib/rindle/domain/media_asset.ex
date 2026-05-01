@@ -64,6 +64,13 @@ defmodule Rindle.Domain.MediaAsset do
     timestamps()
   end
 
+  @doc """
+  Builds a changeset for an asset row.
+
+  Casts the writable lifecycle and storage fields, requires the minimum
+  promotion-time invariants (`:state`, `:storage_key`, `:profile`), and
+  validates the lifecycle state against the canonical state list.
+  """
   @spec changeset(t() | %__MODULE__{}, map()) :: Ecto.Changeset.t()
   def changeset(asset, attrs) do
     asset
