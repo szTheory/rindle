@@ -65,6 +65,7 @@ defmodule Rindle.Upload.Broker do
       "initialized"
 
   """
+  @spec initiate_session(module(), keyword()) :: session_only_result()
   def initiate_session(profile_module, opts \\ []) do
     repo = Config.repo()
     profile_name = profile_module_to_name(profile_module)
@@ -102,6 +103,7 @@ defmodule Rindle.Upload.Broker do
   @doc """
   Initiates a new multipart upload session through the broker-owned lifecycle.
   """
+  @spec initiate_multipart_session(module(), keyword()) :: initiate_multipart_result()
   def initiate_multipart_session(profile_module, opts \\ []) do
     repo = Config.repo()
     profile_name = profile_module_to_name(profile_module)
@@ -164,6 +166,7 @@ defmodule Rindle.Upload.Broker do
       true
 
   """
+  @spec sign_url(binary(), keyword()) :: sign_url_result()
   def sign_url(session_id, opts \\ []) do
     repo = Config.repo()
 
@@ -191,6 +194,7 @@ defmodule Rindle.Upload.Broker do
   @doc """
   Signs a multipart upload part without falling back to the presigned PUT path.
   """
+  @spec sign_multipart_part(binary(), pos_integer(), keyword()) :: sign_part_result()
   def sign_multipart_part(session_id, part_number, opts \\ []) do
     repo = Config.repo()
 
@@ -220,6 +224,7 @@ defmodule Rindle.Upload.Broker do
   @doc """
   Completes a multipart upload, then converges into the trusted verification lane.
   """
+  @spec complete_multipart_upload(binary(), [map()], keyword()) :: verify_result()
   def complete_multipart_upload(session_id, parts, opts \\ []) do
     repo = Config.repo()
 
@@ -266,6 +271,7 @@ defmodule Rindle.Upload.Broker do
       "validating"
 
   """
+  @spec verify_completion(binary(), keyword()) :: verify_result()
   def verify_completion(session_id, opts \\ []) do
     repo = Config.repo()
 

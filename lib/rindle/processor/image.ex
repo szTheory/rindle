@@ -1,13 +1,43 @@
 defmodule Rindle.Processor.Image do
   @moduledoc """
-  Image processor adapter using the Image library (powered by libvips/Vix).
+  Image processor adapter using the [Image](https://hex.pm/packages/image) library
+  (powered by libvips/Vix).
+
+  This is Rindle's bundled reference processor — symmetric with `Rindle.Storage.S3`
+  and `Rindle.Storage.Local` for the `Rindle.Storage` behaviour. Adopters can
+  swap in a custom processor by implementing `Rindle.Processor` and configuring
+  the profile's `:processor` option, but most use cases are well-served by this
+  adapter.
+
+  ## Recognized variant_spec keys
+
+  The `variant_spec` map passed to `process/3` recognizes these keys:
+
+    * `:width` — target width in pixels (`pos_integer()`)
+    * `:height` — target height in pixels (`pos_integer()`)
+    * `:mode` — resize strategy, one of `:fit`, `:crop`, `:fill` (default: `:fit`)
+    * `:format` — output format, one of `:jpg`, `:png`, `:webp`, or a string
+      extension. When omitted, format is inferred from `destination_path`'s extension.
+    * `:quality` — output quality, `1..100` (default: `80`)
+
+  ## Supported modes
+
+    * `:fit` — resize the image to fit within `:width` x `:height`, preserving aspect ratio
+    * `:crop` — crop the image to exactly `:width` x `:height`, centered
+    * `:fill` — like `:crop` but optimized for filling the target dimensions
+
+  ## Format inference
+
+  When `:format` is omitted from `variant_spec`, the adapter infers the format
+  from `destination_path`'s file extension via `Path.extname/1`. Recognized
+  extensions: `.jpg` / `.jpeg` -> JPEG, `.png` -> PNG, `.webp` -> WebP. Unknown
+  extensions fall back to libvips's default for the file extension.
   """
 
   @behaviour Rindle.Processor
 
-  @doc """
-  Processes an image from source_path to destination_path according to variant_spec.
-  """
+  @impl Rindle.Processor
+  @spec process(Path.t(), map(), Path.t()) :: {:ok, Path.t()} | {:error, term()}
   def process(source_path, variant_spec, destination_path) do
     width = Map.get(variant_spec, :width)
     height = Map.get(variant_spec, :height)

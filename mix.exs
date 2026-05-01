@@ -146,10 +146,11 @@ defmodule Rindle.MixProject do
           Rindle.Scanner,
           Rindle.Processor
         ],
-        "Storage Adapters": [
+        "Storage and Processor Adapters": [
           Rindle.Storage,
           Rindle.Storage.Local,
-          Rindle.Storage.S3
+          Rindle.Storage.S3,
+          Rindle.Processor.Image
         ],
         Operations: [
           Mix.Tasks.Rindle.AbortIncompleteUploads,
