@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Live Publish & API Ergonomics
 status: executing
-stopped_at: Completed 20-01-PLAN.md (G1, G2, G3, TD-Req closed)
-last_updated: "2026-05-01T20:07:32.093Z"
+stopped_at: Completed 20-02-PLAN.md (LiveView corrective patch committed; TD-17 closed)
+last_updated: "2026-05-01T20:12:00.621Z"
 last_activity: 2026-05-01
 progress:
   total_phases: 5
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-29)
 ## Current Position
 
 Phase: 20 (v1.3-verification-and-metadata-closure) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 Last activity: 2026-05-01
 
@@ -56,6 +56,7 @@ Progress: [██████████] 100%
 | Phase 19 P01 | 3min | 3 tasks | 2 files |
 | Phase 19 P02 | 12min | 6 tasks | 4 files |
 | Phase 20 P20-01 | 14min | 6 tasks | 5 files |
+| Phase 20-v1.3-verification-and-metadata-closure P20-02 | 3min | 3 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -89,6 +90,7 @@ Recent decisions affecting current work (v1.2 close / v1.3 start):
 - 20-01: VERIFY-02 marked SATISFIED (functional) with forward_reference: phase-21 in 16-VERIFICATION.md — never 'partial' (D-03), to prevent re-flagging G4 in next milestone audit
 - 20-01: Single atomic docs(20) commit for all five files; LiveView corrective patch (lib/rindle/live_view.ex + test/rindle/live_view_test.exs) preserved unstaged for Plan 20-02 (D-16 atomic-commit discipline)
 - 20-01: VERIFY-02 stays Pending in REQUIREMENTS.md (Active checkbox + traceability row) because Phase 21 has not yet shipped (D-09); preempting would falsely declare closure earned
+- 20-02: Working-tree LiveView corrective patch committed AS-IS in single Phase 20 commit per D-11/D-12; Phase 17 history verified unchanged at original SHAs (D-11 satisfied)
 
 ### Pending Todos
 
@@ -103,8 +105,8 @@ Recent decisions affecting current work (v1.2 close / v1.3 start):
 
 ## Session Continuity
 
-Last session: 2026-05-01T20:07:32.086Z
-Stopped at: Completed 20-01-PLAN.md (G1, G2, G3, TD-Req closed)
+Last session: 2026-05-01T20:12:00.613Z
+Stopped at: Completed 20-02-PLAN.md (LiveView corrective patch committed; TD-17 closed)
 Resume file: None
 
 ### Decision-Making Preference

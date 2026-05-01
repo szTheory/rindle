@@ -147,7 +147,7 @@ Plans:
 **Plans**: 3 plans
 Plans:
 - [x] 20-01-PLAN.md — Retrofit 15/16 VERIFICATION.md, fix 16 SUMMARY frontmatter, reconcile REQUIREMENTS.md (closes G1, G2, G3, TD-Req)
-- [ ] 20-02-PLAN.md — Commit residual Phase 17 LiveView corrective patch (closes 17-VERIFICATION.md:85-89 anti-patterns; TD-17)
+- [x] 20-02-PLAN.md — Commit residual Phase 17 LiveView corrective patch (closes 17-VERIFICATION.md:85-89 anti-patterns; TD-17)
 - [ ] 20-03-PLAN.md — Teach Phase 19 helpers (attachment_for, ready_variants_for, bangs) in README.md + guides/getting_started.md; extend docs_parity_test.exs (TD-19)
 **UI hint**: no
 
