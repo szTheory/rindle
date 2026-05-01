@@ -3,6 +3,7 @@ defmodule Rindle.ApiSurfaceBoundaryTest do
 
   @public_modules [
     Rindle,
+    Rindle.Error,
     Rindle.Profile,
     Rindle.Upload.Broker,
     Rindle.Delivery,
