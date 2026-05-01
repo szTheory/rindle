@@ -173,7 +173,7 @@ Plans:
   2. Onboarding nil-deref (WR-04) and other warnings (WR-01..WR-05) are resolved.
 **Plans**: 1 plan
 Plans:
-- [ ] 22-01-PLAN.md — Fix LiveView protocol defects, doc nil-derefs, and spec/warning issues
+- [x] 22-01-PLAN.md — Fix LiveView protocol defects, doc nil-derefs, and spec/warning issues
 **UI hint**: no
 
 ## Progress
@@ -192,4 +192,4 @@ Plans:
 | 19. Convenience API Additions | v1.3 | 2/2 | Complete    | 2026-05-01 |
 | 20. v1.3 Verification & Metadata Closure | v1.3 | 3/3 | Complete    | 2026-05-01 |
 | 21. VERIFY-02 hexdocs.pm Reachability Probe | v1.3 | 0/0 | Not started | - |
-| 22. LiveView Corrective Fixes | v1.3 | 0/1 | Not started | - |
+| 22. LiveView Corrective Fixes | v1.3 | 1/1 | Complete | 2026-05-01 |

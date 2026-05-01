@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Live Publish & API Ergonomics
-status: milestone_complete
-stopped_at: Completed 20-03-PLAN.md (TD-19 closed; Phase 19 helpers taught in onboarding prose with parity-test gating)
-last_updated: "2026-05-01T20:15:28Z"
+status: verifying
+stopped_at: Completed 22-01-PLAN.md
+last_updated: "2026-05-01T21:11:37.359Z"
 last_activity: 2026-05-01
 progress:
   total_phases: 5
-  completed_phases: 6
-  total_plans: 17
-  completed_plans: 17
-  percent: 120
+  completed_phases: 5
+  total_plans: 16
+  completed_plans: 16
+  percent: 100
 ---
 
 # Project State
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-29)
 
 **Core value:** Media, made durable.
-**Current focus:** Phase 20 — v1.3-verification-and-metadata-closure
+**Current focus:** Phase 22 — liveview-corrective-fixes
 
 ## Current Position
 
-Phase: 20
-Plan: Not started
-Status: Milestone complete
+Phase: 22 — EXECUTING
+Plan: 1 of 1
+Status: Phase complete — ready for verification
 Last activity: 2026-05-01
 
 Progress: [██████████] 100%
@@ -59,6 +59,7 @@ Progress: [██████████] 100%
 | Phase 20 P20-01 | 14min | 6 tasks | 5 files |
 | Phase 20-v1.3-verification-and-metadata-closure P20-02 | 3min | 3 tasks | 2 files |
 | Phase 20-v1.3-verification-and-metadata-closure P20-03 | 5min | 5 tasks | 3 files |
+| Phase 22 P01 | 10min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -95,6 +96,9 @@ Recent decisions affecting current work (v1.2 close / v1.3 start):
 - 20-02: Working-tree LiveView corrective patch committed AS-IS in single Phase 20 commit per D-11/D-12; Phase 17 history verified unchanged at original SHAs (D-11 satisfied)
 - 20-03: README brief / guide deeper prose split honored per existing README-vs-guide convention; Rindle.Error contract surfaced once in README and twice in guide (section-9 prose + try/rescue example) per D-13/D-14
 - 20-03: Single docs(20) commit shipped 3 files atomically per D-16; doctor gate re-verified 100/100/100 across 34 modules to prove onboarding-prose edits did not affect lib/-scoped doctor coverage
+- Verification failures in consume_uploaded_entries/3 now postpone entries instead of consuming them.
+- Repeated LiveView consume callbacks short-circuit already-completed sessions in the wrapper.
+- Onboarding attachment examples must branch on nil before looking up variants.
 
 ### Pending Todos
 
@@ -109,8 +113,8 @@ Recent decisions affecting current work (v1.2 close / v1.3 start):
 
 ## Session Continuity
 
-Last session: 2026-05-01T20:15:28Z
-Stopped at: Completed 20-03-PLAN.md (TD-19 closed; Phase 19 helpers taught in onboarding prose; parity test at 5/5 GREEN)
+Last session: 2026-05-01T21:11:37.352Z
+Stopped at: Completed 22-01-PLAN.md
 Resume file: None
 
 ### Decision-Making Preference
