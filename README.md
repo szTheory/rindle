@@ -143,6 +143,10 @@ Use the GSD workflows for the tracked planning lifecycle:
 - `$gsd-cleanup` to archive completed milestone phase directories
 - `$gsd-pr-branch` to prepare a review branch without `.planning/` commits
 
+## Documentation conventions
+
+Every public `@callback` must be preceded by `@doc """..."""`. Use `@doc false` only for internal compatibility shims.
+
 ## License
 
 MIT
