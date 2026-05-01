@@ -49,7 +49,7 @@ Full archive: [.planning/milestones/v1.0-ROADMAP.md](.planning/milestones/v1.0-R
 - [ ] **Phase 16: Live Publish Execution and Post-Publish Verification** — Close the remaining publish gaps after `0.1.4`: idempotent recovery reruns, revert rehearsal evidence, and runbook deviation capture
 - [x] **Phase 17: API Surface Boundary Audit** — Apply @moduledoc false/@doc false to all internal modules, resolve naming inconsistencies, and complete breaking-change determination before any documentation additions
 - [ ] **Phase 18: Documentation and Typespec Coverage** — Add @doc/@spec to all intentionally public surface and enforce coverage thresholds via mix doctor in CI
-- [ ] **Phase 19: Convenience API Additions** — Add helper functions and bang variants that adopters need on the public surface
+- [x] **Phase 19: Convenience API Additions** — Add helper functions and bang variants that adopters need on the public surface
 
 ## Phase Details
 
@@ -126,7 +126,9 @@ Plans:
   2. Adopter can call `Rindle.ready_variants_for(asset)` to fetch ready variants without writing a raw Ecto query
   3. Adopter can use bang variants (`attach!/4`, `detach!/3`, `upload!/3`, `url!/3`, `variant_url!/4`) for happy-path code that prefers exceptions over `{:error, reason}` tuples
   4. All new helper functions and bang variants have `@doc` and `@spec` annotations that pass `mix doctor --raise`
-**Plans**: TBD
+**Plans**:
+- [x] 19-01-PLAN.md — RED test harness for convenience API + boundary allowlist for Rindle.Error (22 failing tests, 9 describe blocks)
+- [x] 19-02-PLAN.md — GREEN implementation: Rindle.Error module + 8 facade functions (attachment_for/2,3, ready_variants_for/1, attach!/4, detach!/3, upload!/3, url!/3, variant_url!/4); mix.exs Facade group + CHANGELOG entry
 
 ## Progress
 
@@ -141,4 +143,4 @@ Plans:
 | 16. Live Publish Execution and Post-Publish Verification | v1.3 | 2/2 | In Progress | - |
 | 17. API Surface Boundary Audit | v1.3 | 5/5 | Complete    | 2026-04-30 |
 | 18. Documentation and Typespec Coverage | v1.3 | 0/5 | Not started | - |
-| 19. Convenience API Additions | v1.3 | 1/2 | In Progress | - |
+| 19. Convenience API Additions | v1.3 | 2/2 | Complete | 2026-05-01 |

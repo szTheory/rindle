@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Live Publish & API Ergonomics
-status: executing
-stopped_at: Plan 19-01 RED commit landed (ec8c716); ready to execute Plan 19-02 GREEN
-last_updated: "2026-05-01T16:46:50.538Z"
+status: verifying
+stopped_at: Plan 19-02 GREEN landed; Phase 19 implementation-complete (all 22 convenience-API tests + 278 full-suite tests GREEN; doctor 100/100/100; ready for /gsd-verify-work)
+last_updated: "2026-05-01T17:05:25.147Z"
 last_activity: 2026-05-01
 progress:
   total_phases: 5
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 16
-  completed_plans: 15
-  percent: 94
+  completed_plans: 16
+  percent: 100
 ---
 
 # Project State
@@ -27,10 +27,10 @@ See: .planning/PROJECT.md (updated 2026-04-29)
 
 Phase: 19 (convenience-api-additions) — EXECUTING
 Plan: 2 of 2
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-05-01
 
-Progress: [█████████░] 94%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -53,6 +53,7 @@ Progress: [█████████░] 94%
 | Phase 17 P05 | 4min | 2 tasks | 13 files |
 | Phase 17-api-surface-boundary-audit P04 | 5min | 2 tasks | 8 files |
 | Phase 19 P01 | 3min | 3 tasks | 2 files |
+| Phase 19 P02 | 12min | 6 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -80,6 +81,8 @@ Recent decisions affecting current work (v1.2 close / v1.3 start):
 - Keep Rindle.Upload.Broker.sign_url/1 as the transport-specific presign step while onboarding stays centered on Rindle and Rindle.Profile.
 - Hide variant failure logging behind Rindle.Internal.VariantFailureLogger and leave only an undocumented facade shim.
 - 19-01: Use struct!/2 (runtime resolution) instead of %Rindle.Error{} struct literals in test fixtures so test files compile before forward-referenced modules exist — preserves RED signal as runtime UndefinedFunctionError, not compile error.
+- 19-02: attach!/4 raises Rindle.Error for ALL non-success outcomes (including DB constraint changesets) — Ecto.InvalidChangesetError reserved for the four other bangs whose non-bang twins can produce pure validation changesets independent of FK constraint failures.
+- 19-02: url!/3 and variant_url!/4 test fixtures use explicit Mox expect on Rindle.StorageMock.capabilities/0 (returns [:signed_url] for url tests, [] for variant_url failure test) — required because TestProfile is private and require_delivery_support short-circuits before reaching adapter.url unless capabilities are advertised.
 
 ### Pending Todos
 
@@ -94,8 +97,8 @@ Recent decisions affecting current work (v1.2 close / v1.3 start):
 
 ## Session Continuity
 
-Last session: 2026-05-01T16:46:50.535Z
-Stopped at: Plan 19-01 RED commit landed (ec8c716); ready to execute Plan 19-02 GREEN
+Last session: 2026-05-01T17:05:25.141Z
+Stopped at: Plan 19-02 GREEN landed; Phase 19 implementation-complete (all 22 convenience-API tests + 278 full-suite tests GREEN; doctor 100/100/100; ready for /gsd-verify-work)
 Resume file: None
 
 ### Decision-Making Preference

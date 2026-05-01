@@ -43,9 +43,12 @@
 
 ### Convenience API
 
-- [ ] **API-09**: Adopter can call `Rindle.attachment_for(owner, slot)` to fetch an attachment without writing a raw Ecto query
-- [ ] **API-10**: Adopter can call `Rindle.ready_variants_for(asset)` to fetch ready variants without writing a raw Ecto query
-- [ ] **API-11**: Adopter can use bang variants (`attach!/4`, `detach!/3`, `upload!/3`, `url!/3`, `variant_url!/4`) for happy-path callers who prefer exceptions over `{:error, reason}` tuples
+- [x] **API-09
+**: Adopter can call `Rindle.attachment_for(owner, slot)` to fetch an attachment without writing a raw Ecto query
+- [x] **API-10
+**: Adopter can call `Rindle.ready_variants_for(asset)` to fetch ready variants without writing a raw Ecto query
+- [x] **API-11
+**: Adopter can use bang variants (`attach!/4`, `detach!/3`, `upload!/3`, `url!/3`, `variant_url!/4`) for happy-path callers who prefer exceptions over `{:error, reason}` tuples
 
 ## Future Requirements
 
