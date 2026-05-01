@@ -35,6 +35,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     """
 
     alias Phoenix.LiveView.Upload
+    alias Rindle.Upload.Broker
 
     @doc """
     Configures an upload on the socket with Rindle's external upload signer.
@@ -79,18 +80,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     end
 
-    defp handle_initiate_upload(session, profile, socket) do
-      adapter = profile.storage_adapter()
-
-      case adapter.presigned_put(session.upload_key, 3600, []) do
-        {:ok, presigned} ->
+    defp handle_initiate_upload(session, _profile, socket) do
+      case Broker.sign_url(session.id) do
+        {:ok, %{session: signed_session, presigned: presigned}} ->
           meta = %{
             uploader: "Rindle",
             url: presigned.url,
             method: Map.get(presigned, :method, "PUT"),
             headers: Map.get(presigned, :headers, %{}),
-            session_id: session.id,
-            asset_id: Ecto.UUID.generate()
+            session_id: signed_session.id,
+            asset_id: signed_session.asset_id
           }
 
           {:ok, meta, socket}

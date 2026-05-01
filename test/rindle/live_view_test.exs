@@ -4,6 +4,9 @@ defmodule Rindle.LiveViewTest do
 
   Code.ensure_loaded?(Rindle.LiveView)
 
+  alias Phoenix.LiveView.{UploadConfig, UploadEntry}
+  alias Rindle.Domain.{MediaAsset, MediaUploadSession}
+
   setup :set_mox_from_context
   setup :verify_on_exit!
 
@@ -58,7 +61,7 @@ defmodule Rindle.LiveViewTest do
       assert config.max_file_size == 50_000_000
     end
 
-    test "external signer calls initiate_upload and presigned_put" do
+    test "external signer returns broker-owned session and asset metadata" do
       socket = build_socket()
 
       updated_socket =
@@ -67,21 +70,74 @@ defmodule Rindle.LiveViewTest do
           max_entries: 1
         )
 
-      # Extract the external function and invoke it with a mock entry
       external_fn = updated_socket.assigns.uploads[:avatar].external
-      assert is_function(external_fn, 2)
+      entry = %UploadEntry{client_name: "avatar.png", ref: "avatar-ref"}
 
-      # The external function expects an entry struct with client_name
-      # and returns {:ok, meta, socket} on success.
-      # We can't fully test the presigned flow without mocking the broker
-      # and storage, but we verify the function is properly wired.
-      assert is_function(external_fn, 2)
+      expect(Rindle.StorageMock, :presigned_put, fn key, _expires_in, _opts ->
+        assert key =~ ".png"
+        {:ok, %{url: "https://example.com/upload", method: :put, headers: %{"x-test" => "1"}}}
+      end)
+
+      {:ok, meta, returned_socket} = external_fn.(entry, updated_socket)
+
+      assert returned_socket == updated_socket
+      assert meta.uploader == "Rindle"
+      assert meta.url == "https://example.com/upload"
+      assert meta.method == :put
+      assert meta.headers == %{"x-test" => "1"}
+
+      session = Repo.get!(MediaUploadSession, meta.session_id)
+      assert session.state == "signed"
+      assert meta.asset_id == session.asset_id
+
+      asset = Repo.get!(MediaAsset, meta.asset_id)
+      assert asset.id == session.asset_id
+      assert asset.storage_key == session.upload_key
     end
   end
 
   describe "consume_uploaded_entries/3" do
-    test "module is defined and has consume_uploaded_entries/3" do
-      assert function_exported?(Rindle.LiveView, :consume_uploaded_entries, 3)
+    test "verifies the persisted broker session before invoking the callback" do
+      socket = build_socket()
+
+      updated_socket =
+        Rindle.LiveView.allow_upload(socket, :avatar, TestProfile,
+          accept: ~w(.jpg .jpeg .png),
+          max_entries: 1
+        )
+
+      external_fn = updated_socket.assigns.uploads[:avatar].external
+      entry = %UploadEntry{client_name: "avatar.png", ref: "avatar-ref"}
+
+      expect(Rindle.StorageMock, :presigned_put, fn _key, _expires_in, _opts ->
+        {:ok, %{url: "https://example.com/upload", method: :put, headers: %{}}}
+      end)
+
+      {:ok, meta, _socket} = external_fn.(entry, updated_socket)
+
+      expect(Rindle.StorageMock, :head, fn key, _opts ->
+        session = Repo.get!(MediaUploadSession, meta.session_id)
+        assert key == session.upload_key
+        {:ok, %{size: 1234, content_type: "image/png"}}
+      end)
+
+      completed_socket = put_completed_entry(updated_socket, :avatar, entry, meta)
+
+      results =
+        Rindle.LiveView.consume_uploaded_entries(completed_socket, :avatar, fn uploaded_entry, uploaded_meta ->
+          {:ok, {uploaded_entry.client_name, uploaded_meta.asset_id}}
+        end)
+
+      assert results == [{"avatar.png", meta.asset_id}]
+
+      session = Repo.get!(MediaUploadSession, meta.session_id)
+      asset = Repo.get!(MediaAsset, meta.asset_id)
+
+      assert session.state == "completed"
+      assert session.verified_at != nil
+      assert asset.state == "validating"
+      assert asset.byte_size == 1234
+      assert asset.content_type == "image/png"
     end
 
     test "module docs teach verify_completion/2 as the verification path" do
@@ -105,6 +161,28 @@ defmodule Rindle.LiveViewTest do
     test "consume_uploaded_entries/3 is exported" do
       assert function_exported?(Rindle.LiveView, :consume_uploaded_entries, 3)
     end
+  end
+
+  defp put_completed_entry(socket, name, %UploadEntry{} = entry, meta) do
+    %UploadConfig{} = conf = socket.assigns.uploads[name]
+
+    completed_entry = %UploadEntry{
+      entry
+      | done?: true,
+        progress: 100,
+        upload_config: name,
+        upload_ref: conf.ref,
+        uuid: "upload-entry-uuid",
+        valid?: true
+    }
+
+    updated_conf = %UploadConfig{
+      conf
+      | entries: [completed_entry],
+        entry_refs_to_metas: %{completed_entry.ref => meta}
+    }
+
+    put_in(socket.assigns.uploads[name], updated_conf)
   end
 
   defp extract_doc(%{"en" => doc}), do: doc
