@@ -14,12 +14,16 @@
 
 ## Current State
 
-Milestone `v1.2 First Hex Publish` shipped on `2026-04-29`. Rindle now has a
-proved Hex.pm publication path with protected release automation, a version
-drift gate, post-publish public verification, a maintainer release runbook
-with rollback/revert instructions, and Nyquist-compliant validation artifacts
-for all milestone phases. The `HEX_API_KEY` is now configured in the GitHub
-`release` environment — the first real publish is the next step.
+Milestone `v1.2 First Hex Publish` shipped on `2026-04-29`. v1.3 phases
+shipped: the first live Hex.pm publish completed (Phases 15/16), the public
+API surface boundary is locked (Phase 17), docs and typespec coverage holds at
+100/100/100 (Phase 18), the eight Phase 19 convenience helpers are shipped and
+taught in onboarding prose, and Phase 20 closed all v1.3 verification &
+metadata gaps (G1, G2, G3, TD-Req, TD-17, TD-19) — `/gsd-audit-milestone v1.3`
+should now report `passed`. **Open follow-ups after Phase 20**: Phase 21
+(VERIFY-02 hexdocs.pm reachability probe — only remaining v1.3 requirement);
+LiveView corrective fixes for CR-01/CR-02/WR-01..WR-05 captured in
+`20-REVIEW.md` and tracked in `20-HUMAN-UAT.md`.
 
 ## What This Is
 
@@ -72,17 +76,18 @@ Media, made durable.
   workflow contract — v1.2 (Phase 13)
 - ✓ Phases 10 and 11 VALIDATION artifacts completed to Nyquist-compliant state
   — v1.2 (Phase 14)
+- ✓ First live Hex.pm publish executed from the real repo workflow with
+  `HEX_API_KEY` and post-publish public verification confirmed — v1.3
+  (Phases 15/16, formally verified Phase 20) (PUBLISH-01)
+- ✓ CI failures in the release pipeline diagnosed and fixed before live
+  publish attempt — v1.3 (Phase 15, formally verified Phase 20) (PUBLISH-02)
+- ✓ Routine release path documented and executable after first publish — v1.3
+  (Phase 16, formally verified Phase 20) (PUBLISH-03)
 
 ### Active
 
-<!-- v1.3 requirements — updated 2026-04-29 -->
+<!-- v1.3 requirements — updated 2026-05-01 -->
 
-- [ ] First live Hex.pm publish executed from the real repo workflow with
-  `HEX_API_KEY` and post-publish public verification confirmed (PUBLISH-01)
-- [ ] CI failures in the release pipeline diagnosed and fixed before live
-  publish attempt (PUBLISH-02)
-- [ ] Routine release path documented and executable after first publish
-  (PUBLISH-03)
 - [ ] Public API surface reviewed for naming inconsistencies (API-01)
 - [ ] Missing convenience functions identified and added to public surface
   (API-02)
@@ -231,4 +236,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-01 — Phase 19 (Convenience API Additions) complete; v1.3 milestone phases all shipped, ready for `/gsd-complete-milestone`.*
+*Last updated: 2026-05-01 — Phase 20 (v1.3 Verification & Metadata Closure) complete; PUBLISH-01/02/03 moved to Validated; only Phase 21 (VERIFY-02 reachability probe) and a follow-up LiveView fix phase remain before milestone close.*
