@@ -941,7 +941,7 @@ Append to the `## [Unreleased]` section in `CHANGELOG.md` under `### Added`:
 
 ---
 
-## Open Questions for Planner
+## Open Questions for Planner (RESOLVED)
 
 1. **`preload: false` vs `preload: []` in tests and docs** — D-23 says "planner decides exact override semantics." Recommend documenting `preload: []` (empty list) as the canonical opt for disabling preloads, not `preload: false`. The implementation's `Keyword.get(opts, :preload, [:asset])` naturally handles this.
 
