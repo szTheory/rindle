@@ -12,6 +12,26 @@ defmodule Rindle.Profile do
   alias Rindle.Profile.Digest
   alias Rindle.Profile.Validator
 
+  @doc """
+  Declares a Rindle profile.
+
+  When `use`d, this macro validates the supplied options at compile time and
+  generates the `storage_adapter/0`, `variants/0`, `upload_policy/0`,
+  `validate_upload/1`, `delivery_policy/0`, and `recipe_digest/1` functions
+  that the rest of Rindle dispatches through.
+
+  ## Example
+
+      defmodule MyApp.AvatarProfile do
+        use Rindle.Profile,
+          storage: Rindle.Storage.S3,
+          allow_mime: ["image/png", "image/jpeg"],
+          max_bytes: 10_000_000,
+          delivery: %{public: false, signed_url_ttl_seconds: 900},
+          variants: %{thumb: %{width: 128, height: 128, format: :webp}}
+      end
+  """
+  @spec __using__(keyword()) :: Macro.t()
   defmacro __using__(opts) do
     expanded_opts = Macro.expand_literals(opts, __CALLER__)
     validated = Validator.validate!(expanded_opts)

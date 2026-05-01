@@ -9,6 +9,29 @@ if Code.ensure_loaded?(Phoenix.HTML) do
 
     import Phoenix.HTML, only: [raw: 1, html_escape: 1, safe_to_string: 1]
 
+    @doc """
+    Renders a `<picture>` element with `<source>` entries for each ready variant
+    and an `<img>` fallback to the original asset.
+
+    Variant order in `:variants` is preserved as the source order rendered into
+    the markup. Stale or non-ready variants are skipped — the fallback `<img>`
+    URL always resolves to the original asset.
+
+    ## Options
+
+      * `:variants` — list of `{name, media_query}` tuples, `%{name: ..., media: ...}`
+        maps, or bare atom variant names. Variants are rendered in the order given.
+      * `:placeholder` — string to use as the `src` attribute when no variant is
+        ready and the asset has no `:storage_key`.
+      * Any other key is rendered as a literal HTML attribute on the `<img>` tag.
+
+    ## Example
+
+        <%= Rindle.HTML.picture_tag(MyApp.AvatarProfile, asset,
+              variants: [{:thumb, "(max-width: 480px)"}, {:large, nil}],
+              alt: "User avatar"
+            ) %>
+    """
     @spec picture_tag(module(), map(), keyword()) :: Phoenix.HTML.safe()
     def picture_tag(profile, asset, opts \\ []) do
       variant_specs = Keyword.get(opts, :variants, [])

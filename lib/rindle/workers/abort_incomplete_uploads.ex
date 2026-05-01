@@ -68,6 +68,7 @@ defmodule Rindle.Workers.AbortIncompleteUploads do
 
   alias Rindle.Ops.UploadMaintenance
 
+  @spec perform(Oban.Job.t()) :: :ok | {:error, term()}
   @impl Oban.Worker
   def perform(%Oban.Job{}) do
     case UploadMaintenance.abort_incomplete_uploads([]) do

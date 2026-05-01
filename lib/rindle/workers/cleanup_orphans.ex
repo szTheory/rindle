@@ -62,6 +62,7 @@ defmodule Rindle.Workers.CleanupOrphans do
 
   alias Rindle.Ops.UploadMaintenance
 
+  @spec perform(Oban.Job.t()) :: :ok | {:error, term()}
   @impl Oban.Worker
   def perform(%Oban.Job{args: args}) do
     dry_run? = Map.get(args, "dry_run", true)
