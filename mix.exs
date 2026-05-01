@@ -125,7 +125,8 @@ defmodule Rindle.MixProject do
       ],
       groups_for_modules: [
         Facade: [
-          Rindle
+          Rindle,
+          Rindle.Error
         ],
         Profiles: [
           Rindle.Profile
