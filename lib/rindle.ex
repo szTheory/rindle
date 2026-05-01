@@ -3,6 +3,7 @@ defmodule Rindle do
   alias Rindle.Domain.MediaAttachment
   alias Rindle.Domain.MediaVariant
   alias Rindle.Domain.MediaUploadSession
+  alias Rindle.Error
   alias Rindle.Internal.VariantFailureLogger
   alias Rindle.Security.UploadValidation
   alias Rindle.Upload.Broker
@@ -279,6 +280,43 @@ defmodule Rindle do
     end
   end
 
+  # Bang variants — Phase 19 (API-11).
+
+  @doc "Same as `attach/4` but raises `Rindle.Error` on failure or re-raises the original exception for storage adapter exceptions. Database constraint failures (e.g., foreign-key violations) surface as `Rindle.Error` with the underlying changeset as the reason."
+  @spec attach!(MediaAsset.t() | binary(), struct(), String.t()) :: MediaAttachment.t()
+  @spec attach!(MediaAsset.t() | binary(), struct(), String.t(), keyword()) :: MediaAttachment.t()
+  def attach!(asset_or_id, owner, slot, opts \\ []) do
+    case attach(asset_or_id, owner, slot, opts) do
+      {:ok, attachment} ->
+        attachment
+
+      {:error, {:storage_adapter_exception, exception}} when is_exception(exception) ->
+        raise exception
+
+      {:error, reason} ->
+        raise Error, action: :attach, reason: reason
+    end
+  end
+
+  @doc "Same as `detach/3` but raises `Rindle.Error` on failure."
+  @spec detach!(struct(), String.t()) :: :ok
+  @spec detach!(struct(), String.t(), keyword()) :: :ok
+  def detach!(owner, slot, opts \\ []) do
+    case detach(owner, slot, opts) do
+      :ok ->
+        :ok
+
+      {:error, %Ecto.Changeset{} = cs} ->
+        raise Ecto.InvalidChangesetError, action: :delete, changeset: cs
+
+      {:error, {:storage_adapter_exception, exception}} when is_exception(exception) ->
+        raise exception
+
+      {:error, reason} ->
+        raise Error, action: :detach, reason: reason
+    end
+  end
+
   # Convenience read helpers — Phase 19 (API-09 / API-10).
 
   @doc """
@@ -416,6 +454,25 @@ defmodule Rindle do
     Rindle.Delivery.url(profile, key, opts)
   end
 
+  @doc "Same as `url/3` but raises `Rindle.Error` on failure or re-raises the original exception for storage adapter exceptions."
+  @spec url!(module(), String.t()) :: String.t()
+  @spec url!(module(), String.t(), keyword()) :: String.t()
+  def url!(profile, key, opts \\ []) do
+    case url(profile, key, opts) do
+      {:ok, url_string} ->
+        url_string
+
+      {:error, %Ecto.Changeset{} = cs} ->
+        raise Ecto.InvalidChangesetError, action: :insert, changeset: cs
+
+      {:error, {:storage_adapter_exception, exception}} when is_exception(exception) ->
+        raise exception
+
+      {:error, reason} ->
+        raise Error, action: :url, reason: reason
+    end
+  end
+
   @doc """
   Generates a delivery URL for a variant, falling back when needed.
 
@@ -433,6 +490,25 @@ defmodule Rindle do
   @spec variant_url(module(), map(), map(), keyword()) :: storage_result()
   def variant_url(profile, asset, variant, opts \\ []) do
     Rindle.Delivery.variant_url(profile, asset, variant, opts)
+  end
+
+  @doc "Same as `variant_url/4` but raises `Rindle.Error` on failure or re-raises the original exception for storage adapter exceptions."
+  @spec variant_url!(module(), map(), map()) :: String.t()
+  @spec variant_url!(module(), map(), map(), keyword()) :: String.t()
+  def variant_url!(profile, asset, variant, opts \\ []) do
+    case variant_url(profile, asset, variant, opts) do
+      {:ok, url_string} ->
+        url_string
+
+      {:error, %Ecto.Changeset{} = cs} ->
+        raise Ecto.InvalidChangesetError, action: :insert, changeset: cs
+
+      {:error, {:storage_adapter_exception, exception}} when is_exception(exception) ->
+        raise exception
+
+      {:error, reason} ->
+        raise Error, action: :variant_url, reason: reason
+    end
   end
 
   @doc """
@@ -497,6 +573,25 @@ defmodule Rindle do
 
       {:error, reason} ->
         {:error, reason}
+    end
+  end
+
+  @doc "Same as `upload/3` but raises `Rindle.Error` on failure, `Ecto.InvalidChangesetError` for changeset failures, or re-raises the original exception for storage adapter exceptions."
+  @spec upload!(module(), map() | Plug.Upload.t()) :: MediaAsset.t()
+  @spec upload!(module(), map() | Plug.Upload.t(), keyword()) :: MediaAsset.t()
+  def upload!(profile_module, upload, opts \\ []) do
+    case upload(profile_module, upload, opts) do
+      {:ok, asset} ->
+        asset
+
+      {:error, %Ecto.Changeset{} = cs} ->
+        raise Ecto.InvalidChangesetError, action: :insert, changeset: cs
+
+      {:error, {:storage_adapter_exception, exception}} when is_exception(exception) ->
+        raise exception
+
+      {:error, reason} ->
+        raise Error, action: :upload, reason: reason
     end
   end
 

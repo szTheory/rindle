@@ -264,6 +264,9 @@ defmodule Rindle.ConvenienceApiTest do
 
   describe "url!/3" do
     test "returns the unwrapped URL string on success" do
+      # Private TestProfile + StorageMock requires advertising :signed_url so
+      # Rindle.Delivery.require_delivery_support/2 lets the call reach :url.
+      expect(Rindle.StorageMock, :capabilities, fn -> [:signed_url] end)
       expect(Rindle.StorageMock, :url, fn _key, _opts -> {:ok, "https://example.com/u.jpg"} end)
 
       result = Rindle.url!(TestProfile, "uploads/u.jpg")
@@ -273,6 +276,7 @@ defmodule Rindle.ConvenienceApiTest do
     end
 
     test "raises Rindle.Error on storage failure" do
+      expect(Rindle.StorageMock, :capabilities, fn -> [:signed_url] end)
       expect(Rindle.StorageMock, :url, fn _key, _opts -> {:error, :unauthorized} end)
 
       assert_raise Rindle.Error, fn ->
@@ -283,8 +287,12 @@ defmodule Rindle.ConvenienceApiTest do
 
   describe "variant_url!/4" do
     test "raises Rindle.Error on failure" do
-      # Force a failure path: pass a variant struct in a non-ready state with no fallback.
-      # variant_url/4 will return {:error, _} which the bang must convert to a raise.
+      # Force a failure path: TestProfile is private and StorageMock advertises
+      # no capabilities, so `Rindle.Delivery.url/3` returns
+      # {:error, {:delivery_unsupported, :signed_url}} before reaching adapter.url.
+      # The bang must convert that to a raise.
+      expect(Rindle.StorageMock, :capabilities, fn -> [] end)
+
       asset = %MediaAsset{
         id: Ecto.UUID.generate(),
         profile: to_string(TestProfile),
