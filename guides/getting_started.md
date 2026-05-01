@@ -219,18 +219,21 @@ Rindle ships two read helpers so you don't write raw Ecto queries inside
 Phoenix view code:
 
 ```elixir
-avatar = Rindle.attachment_for(current_user, "avatar")
-# %Rindle.Domain.MediaAttachment{} | nil
-# — :asset is preloaded by default
+{avatar, thumbs} =
+  case Rindle.attachment_for(current_user, "avatar") do
+    %{asset: asset} = attachment ->
+      {attachment, Rindle.ready_variants_for(asset)}
+
+    nil ->
+      {nil, []}
+  end
+# avatar is %Rindle.Domain.MediaAttachment{} | nil
+# thumbs is [] when no attachment exists yet
 
 avatar_with_variants =
   Rindle.attachment_for(current_user, "avatar", preload: [:asset, :variants])
 # The :preload option REPLACES the default [:asset] preload list rather
 # than merging — declare every association you want preloaded.
-
-thumbs = Rindle.ready_variants_for(avatar.asset)
-# [%Rindle.Domain.MediaVariant{name: :thumb, state: "ready", ...}, ...]
-# — only variants with state == "ready" are returned, ordered by :name asc
 ```
 
 `Rindle.attachment_for/2,3` resolves the most recent attachment for an

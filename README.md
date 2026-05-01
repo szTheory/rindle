@@ -132,11 +132,16 @@ raw Ecto queries:
 def show(conn, _params) do
   user = conn.assigns.current_user
 
-  avatar = Rindle.attachment_for(user, "avatar")
-  # %Rindle.Domain.MediaAttachment{} | nil — :asset is preloaded by default
+  {avatar, thumbs} =
+    case Rindle.attachment_for(user, "avatar") do
+      %{asset: asset} = attachment ->
+        {attachment, Rindle.ready_variants_for(asset)}
 
-  thumbs = Rindle.ready_variants_for(avatar.asset)
-  # [%Rindle.Domain.MediaVariant{name: :thumb, state: "ready", ...}, ...]
+      nil ->
+        {nil, []}
+    end
+  # avatar is %Rindle.Domain.MediaAttachment{} | nil
+  # thumbs is [] when no attachment exists
 
   render(conn, :show, avatar: avatar, thumbs: thumbs)
 end
