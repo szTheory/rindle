@@ -146,7 +146,7 @@ Plans:
   6. `.planning/REQUIREMENTS.md` traceability table marks API-06/API-07/API-08 (and any other satisfied IDs) as `Complete`, the bold-span line breaks at L26–51 are tightened, and the coverage note matches the new state
 **Plans**: 3 plans
 Plans:
-- [ ] 20-01-PLAN.md — Retrofit 15/16 VERIFICATION.md, fix 16 SUMMARY frontmatter, reconcile REQUIREMENTS.md (closes G1, G2, G3, TD-Req)
+- [x] 20-01-PLAN.md — Retrofit 15/16 VERIFICATION.md, fix 16 SUMMARY frontmatter, reconcile REQUIREMENTS.md (closes G1, G2, G3, TD-Req)
 - [ ] 20-02-PLAN.md — Commit residual Phase 17 LiveView corrective patch (closes 17-VERIFICATION.md:85-89 anti-patterns; TD-17)
 - [ ] 20-03-PLAN.md — Teach Phase 19 helpers (attachment_for, ready_variants_for, bangs) in README.md + guides/getting_started.md; extend docs_parity_test.exs (TD-19)
 **UI hint**: no
@@ -177,5 +177,5 @@ Plans:
 | 17. API Surface Boundary Audit | v1.3 | 5/5 | Complete    | 2026-04-30 |
 | 18. Documentation and Typespec Coverage | v1.3 | 0/5 | Not started | - |
 | 19. Convenience API Additions | v1.3 | 2/2 | Complete    | 2026-05-01 |
-| 20. v1.3 Verification & Metadata Closure | v1.3 | 0/3 | Not started | - |
+| 20. v1.3 Verification & Metadata Closure | v1.3 | 1/3 | In Progress | - |
 | 21. VERIFY-02 hexdocs.pm Reachability Probe | v1.3 | 0/0 | Not started | - |

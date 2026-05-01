@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Live Publish & API Ergonomics
-status: completed
-stopped_at: Phase 20 context gathered (assumptions mode)
-last_updated: "2026-05-01T19:51:34.295Z"
+status: executing
+stopped_at: Completed 20-01-PLAN.md (G1, G2, G3, TD-Req closed)
+last_updated: "2026-05-01T20:07:32.093Z"
 last_activity: 2026-05-01
 progress:
   total_phases: 5
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-29)
 
 **Core value:** Media, made durable.
-**Current focus:** Phase 19 — convenience-api-additions
+**Current focus:** Phase 20 — v1.3-verification-and-metadata-closure
 
 ## Current Position
 
-Phase: 19
-Plan: Not started
-Status: Milestone complete
+Phase: 20 (v1.3-verification-and-metadata-closure) — EXECUTING
+Plan: 2 of 3
+Status: Ready to execute
 Last activity: 2026-05-01
 
 Progress: [██████████] 100%
@@ -55,6 +55,7 @@ Progress: [██████████] 100%
 | Phase 17-api-surface-boundary-audit P04 | 5min | 2 tasks | 8 files |
 | Phase 19 P01 | 3min | 3 tasks | 2 files |
 | Phase 19 P02 | 12min | 6 tasks | 4 files |
+| Phase 20 P20-01 | 14min | 6 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -84,6 +85,10 @@ Recent decisions affecting current work (v1.2 close / v1.3 start):
 - 19-01: Use struct!/2 (runtime resolution) instead of %Rindle.Error{} struct literals in test fixtures so test files compile before forward-referenced modules exist — preserves RED signal as runtime UndefinedFunctionError, not compile error.
 - 19-02: attach!/4 raises Rindle.Error for ALL non-success outcomes (including DB constraint changesets) — Ecto.InvalidChangesetError reserved for the four other bangs whose non-bang twins can produce pure validation changesets independent of FK constraint failures.
 - 19-02: url!/3 and variant_url!/4 test fixtures use explicit Mox expect on Rindle.StorageMock.capabilities/0 (returns [:signed_url] for url tests, [] for variant_url failure test) — required because TestProfile is private and require_delivery_support short-circuits before reaching adapter.url unless capabilities are advertised.
+- 20-01: Used Phase 18 Success-Criteria-driven VERIFICATION format for both 15 and 16 retrofits because both ROADMAP blocks declare explicit success criteria
+- 20-01: VERIFY-02 marked SATISFIED (functional) with forward_reference: phase-21 in 16-VERIFICATION.md — never 'partial' (D-03), to prevent re-flagging G4 in next milestone audit
+- 20-01: Single atomic docs(20) commit for all five files; LiveView corrective patch (lib/rindle/live_view.ex + test/rindle/live_view_test.exs) preserved unstaged for Plan 20-02 (D-16 atomic-commit discipline)
+- 20-01: VERIFY-02 stays Pending in REQUIREMENTS.md (Active checkbox + traceability row) because Phase 21 has not yet shipped (D-09); preempting would falsely declare closure earned
 
 ### Pending Todos
 
@@ -98,9 +103,9 @@ Recent decisions affecting current work (v1.2 close / v1.3 start):
 
 ## Session Continuity
 
-Last session: --stopped-at
-Stopped at: Phase 20 context gathered (assumptions mode)
-Resume file: --resume-file
+Last session: 2026-05-01T20:07:32.086Z
+Stopped at: Completed 20-01-PLAN.md (G1, G2, G3, TD-Req closed)
+Resume file: None
 
 ### Decision-Making Preference
 
