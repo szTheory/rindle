@@ -24,8 +24,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         def handle_event("save", _params, socket) do
           results =
-            Rindle.LiveView.consume_uploaded_entries(socket, :avatar, fn entry, _meta ->
-              {:ok, entry.asset_id}
+            Rindle.LiveView.consume_uploaded_entries(socket, :avatar, fn _entry, meta ->
+              {:ok, meta.asset_id}
             end)
 
           {:noreply, socket}
@@ -35,7 +35,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     """
 
     alias Phoenix.LiveView.Upload
+    alias Rindle.Config
+    alias Rindle.Domain.MediaUploadSession
     alias Rindle.Upload.Broker
+
+    @type consume_result :: {:ok, term()} | {:postpone, term()}
+    @type consume_func :: (Phoenix.LiveView.UploadEntry.t(), map() -> consume_result())
 
     @doc """
     Configures an upload on the socket with Rindle's external upload signer.
@@ -76,7 +81,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           handle_initiate_upload(session, profile, socket)
 
         {:error, reason} ->
-          {:error, reason}
+          {:error, %{reason: inspect(reason)}, socket}
       end
     end
 
@@ -95,7 +100,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           {:ok, meta, socket}
 
         {:error, reason} ->
-          {:error, reason}
+          {:error, %{reason: inspect(reason)}, socket}
       end
     end
 
@@ -118,7 +123,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     A list of results from the user function.
     """
-    @spec consume_uploaded_entries(Phoenix.LiveView.Socket.t(), atom(), function()) :: list()
+    @spec consume_uploaded_entries(Phoenix.LiveView.Socket.t(), atom(), consume_func()) :: list()
     def consume_uploaded_entries(socket, name, func) when is_function(func, 2) do
       Upload.consume_uploaded_entries(socket, name, fn meta, entry ->
         do_consume(meta, entry, func)
@@ -126,18 +131,31 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     defp do_consume(meta, entry, func) do
-      session_id = Map.get(meta, "session_id") || Map.get(meta, :session_id)
+      case Map.get(meta, "session_id") || Map.get(meta, :session_id) do
+        nil ->
+          raise ArgumentError,
+                "Rindle.LiveView.consume_uploaded_entries/3 requires :session_id in upload meta. " <>
+                  "Got keys: #{inspect(Map.keys(meta))}"
 
-      if session_id do
-        case Rindle.verify_completion(session_id) do
-          {:ok, %{asset: _asset}} ->
+        session_id ->
+          if already_completed?(session_id) do
             func.(entry, meta)
+          else
+            case Rindle.verify_completion(session_id) do
+              {:ok, %{asset: _asset}} ->
+                func.(entry, meta)
 
-          {:error, reason} ->
-            {:error, reason}
-        end
-      else
-        func.(entry, meta)
+              {:error, reason} ->
+                {:postpone, {:error, {:rindle_verify_failed, reason}}}
+            end
+          end
+      end
+    end
+
+    defp already_completed?(session_id) do
+      case Config.repo().get(MediaUploadSession, session_id) do
+        %MediaUploadSession{state: "completed"} -> true
+        _ -> false
       end
     end
   end
