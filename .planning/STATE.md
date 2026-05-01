@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Live Publish & API Ergonomics
-status: planning
-stopped_at: Phase 19 context gathered (assumptions mode)
-last_updated: "2026-05-01T15:24:24.166Z"
+status: executing
+stopped_at: Plan 19-01 RED commit landed (ec8c716); ready to execute Plan 19-02 GREEN
+last_updated: "2026-05-01T16:46:50.538Z"
 last_activity: 2026-05-01
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 16
-  completed_plans: 14
-  percent: 88
+  completed_plans: 15
+  percent: 94
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-04-29)
 
 ## Current Position
 
-Phase: 19
-Plan: Not started
-Status: Ready to plan
+Phase: 19 (convenience-api-additions) — EXECUTING
+Plan: 2 of 2
+Status: Ready to execute
 Last activity: 2026-05-01
 
-Progress: [██████████] 100%
+Progress: [█████████░] 94%
 
 ## Performance Metrics
 
@@ -52,6 +52,7 @@ Progress: [██████████] 100%
 | Phase 17 P03 | 2min | 2 tasks | 12 files |
 | Phase 17 P05 | 4min | 2 tasks | 13 files |
 | Phase 17-api-surface-boundary-audit P04 | 5min | 2 tasks | 8 files |
+| Phase 19 P01 | 3min | 3 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -78,6 +79,7 @@ Recent decisions affecting current work (v1.2 close / v1.3 start):
 - Keep verify_upload/2 documented on 0.1.x with deprecation metadata instead of hiding it.
 - Keep Rindle.Upload.Broker.sign_url/1 as the transport-specific presign step while onboarding stays centered on Rindle and Rindle.Profile.
 - Hide variant failure logging behind Rindle.Internal.VariantFailureLogger and leave only an undocumented facade shim.
+- 19-01: Use struct!/2 (runtime resolution) instead of %Rindle.Error{} struct literals in test fixtures so test files compile before forward-referenced modules exist — preserves RED signal as runtime UndefinedFunctionError, not compile error.
 
 ### Pending Todos
 
@@ -92,9 +94,9 @@ Recent decisions affecting current work (v1.2 close / v1.3 start):
 
 ## Session Continuity
 
-Last session: --stopped-at
-Stopped at: Phase 19 context gathered (assumptions mode)
-Resume file: --resume-file
+Last session: 2026-05-01T16:46:50.535Z
+Stopped at: Plan 19-01 RED commit landed (ec8c716); ready to execute Plan 19-02 GREEN
+Resume file: None
 
 ### Decision-Making Preference
 

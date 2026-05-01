@@ -141,4 +141,4 @@ Plans:
 | 16. Live Publish Execution and Post-Publish Verification | v1.3 | 2/2 | In Progress | - |
 | 17. API Surface Boundary Audit | v1.3 | 5/5 | Complete    | 2026-04-30 |
 | 18. Documentation and Typespec Coverage | v1.3 | 0/5 | Not started | - |
-| 19. Convenience API Additions | v1.3 | 0/TBD | Not started | - |
+| 19. Convenience API Additions | v1.3 | 1/2 | In Progress | - |
