@@ -175,8 +175,11 @@ defmodule Rindle.ApiSurfaceBoundaryTest do
     assert Code.ensure_loaded?(module), "#{inspect(module)} must be loadable for boundary checks"
 
     case Code.fetch_docs(module) do
-      {:error, reason} -> flunk("expected compiled docs for #{inspect(module)}, got #{inspect(reason)}")
-      docs -> docs
+      {:error, reason} ->
+        flunk("expected compiled docs for #{inspect(module)}, got #{inspect(reason)}")
+
+      docs ->
+        docs
     end
   end
 end
