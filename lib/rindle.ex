@@ -476,11 +476,12 @@ defmodule Rindle do
         {:ok, result}
 
       {:error, reason} = error ->
-        log_variant_processing_failure(asset_id, variant_name, reason)
+        VariantFailureLogger.log(asset_id, variant_name, reason)
         error
     end
   end
 
+  @deprecated "Use Rindle.Internal.VariantFailureLogger.log/3 instead — facade shim kept for 0.1.x compatibility only"
   @doc false
   @spec log_variant_processing_failure(term(), term(), term()) :: :ok
   def log_variant_processing_failure(asset_id, variant_name, reason) do
