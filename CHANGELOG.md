@@ -41,6 +41,23 @@
   (100% module-doc / 100% overall-doc / 100% moduledoc / 95% module-spec /
   95% overall-spec). Future doc/spec regressions on the public surface
   fail `mix doctor --raise` in CI.
+- Convenience helpers: `Rindle.attachment_for/2,3` — fetch the most-recent
+  `MediaAttachment` for an `(owner, slot)` pair without writing a raw Ecto
+  query. Auto-preloads `:asset` by default; pass `preload: [asset: :variants]`
+  (or `preload: []`) to extend or override (API-09).
+- Convenience helpers: `Rindle.ready_variants_for/1` — fetch all
+  `MediaVariant` rows in the `"ready"` state for an asset (by struct or id),
+  ordered by name. Returns an empty list when none are ready (API-10).
+- Convenience helpers: `Rindle.attach!/4`, `Rindle.detach!/3`,
+  `Rindle.upload!/3`, `Rindle.url!/3`, `Rindle.variant_url!/4` — bang
+  variants of the corresponding non-bang functions. Raise
+  `Ecto.InvalidChangesetError` for changeset failures, re-raise the
+  original exception for storage adapter failures, and raise `Rindle.Error`
+  for all other failures (API-11).
+- `Rindle.Error` — new exception module with `:action` and `:reason` fields.
+  Raised by bang variants for non-changeset, non-adapter-exception failures.
+  Provides a structured `message/1` that formats the action and reason into
+  a readable string (API-11).
 
 ### Changed
 
