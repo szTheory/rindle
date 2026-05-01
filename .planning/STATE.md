@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Live Publish & API Ergonomics
-status: verifying
+status: milestone_complete
 stopped_at: Plan 19-02 GREEN landed; Phase 19 implementation-complete (all 22 convenience-API tests + 278 full-suite tests GREEN; doctor 100/100/100; ready for /gsd-verify-work)
 last_updated: "2026-05-01T17:05:25.147Z"
 last_activity: 2026-05-01
 progress:
   total_phases: 5
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 16
   completed_plans: 16
-  percent: 100
+  percent: 120
 ---
 
 # Project State
@@ -25,9 +25,9 @@ See: .planning/PROJECT.md (updated 2026-04-29)
 
 ## Current Position
 
-Phase: 19 (convenience-api-additions) — EXECUTING
-Plan: 2 of 2
-Status: Phase complete — ready for verification
+Phase: 19
+Plan: Not started
+Status: Milestone complete
 Last activity: 2026-05-01
 
 Progress: [██████████] 100%
@@ -36,7 +36,7 @@ Progress: [██████████] 100%
 
 **Velocity:**
 
-- Total plans completed: 13 (v1.3)
+- Total plans completed: 15 (v1.3)
 - Average duration: —
 - Total execution time: —
 
@@ -45,6 +45,7 @@ Progress: [██████████] 100%
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 17 | 5 | - | - |
+| 19 | 2 | - | - |
 
 *Updated after each plan completion*
 | Phase 17 P01 | 7min | 2 tasks | 2 files |

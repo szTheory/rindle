@@ -97,9 +97,9 @@
 | API-06 | Phase 18 | Pending |
 | API-07 | Phase 18 | Pending |
 | API-08 | Phase 18 | Pending |
-| API-09 | Phase 19 | Pending |
-| API-10 | Phase 19 | Pending |
-| API-11 | Phase 19 | Pending |
+| API-09 | Phase 19 | Complete |
+| API-10 | Phase 19 | Complete |
+| API-11 | Phase 19 | Complete |
 
 **Coverage:**
 - v1.3 requirements: 18 total
