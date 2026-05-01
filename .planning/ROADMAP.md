@@ -114,7 +114,7 @@ Plans:
 - [x] 18-01-PLAN.md — Add :doctor dep, baseline .doctor.exs, CI step, and the failing doctor_thresholds_test.exs ratchet harness (RED-only)
 - [x] 18-02-PLAN.md — Tighten Rindle facade @specs to schema struct types; declare named result types on Rindle.Storage and Rindle.Upload.Broker (D-03/D-04/D-05)
 - [x] 18-03-PLAN.md — Add @doc to all 5 behaviour modules' @callbacks; add 6 missing @specs to Broker; promote Rindle.Processor.Image to public adapter (D-27); ship behaviour_docs_test.exs backstop
-- [ ] 18-04-PLAN.md — Add @doc/@spec to Profile macro and HTML helper; narrow worker @specs; add @deprecated to facade shim; verify Mix tasks; add README callback-doc convention note
+- [x] 18-04-PLAN.md — Add @doc/@spec to Profile macro and HTML helper; narrow worker @specs; add @deprecated to facade shim; verify Mix tasks; add README callback-doc convention note
 - [ ] 18-05-PLAN.md — Ratchet .doctor.exs to D-07 target (100/100/100/95/95); turn doctor_thresholds_test green; CHANGELOG entry; manual failing-doc regression probe; optional D-21 callback summaries
 
 ### Phase 19: Convenience API Additions
