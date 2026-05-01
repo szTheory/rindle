@@ -50,7 +50,7 @@ Full archive: [.planning/milestones/v1.0-ROADMAP.md](.planning/milestones/v1.0-R
 - [x] **Phase 17: API Surface Boundary Audit** — Apply @moduledoc false/@doc false to all internal modules, resolve naming inconsistencies, and complete breaking-change determination before any documentation additions
 - [ ] **Phase 18: Documentation and Typespec Coverage** — Add @doc/@spec to all intentionally public surface and enforce coverage thresholds via mix doctor in CI
 - [x] **Phase 19: Convenience API Additions** — Add helper functions and bang variants that adopters need on the public surface
-- [ ] **Phase 20: v1.3 Verification & Metadata Closure** — Produce missing VERIFICATION.md artifacts for Phases 15 and 16, reconcile SUMMARY/REQUIREMENTS metadata, commit Phase 17 LiveView corrective patch, and teach Phase 19 helpers in onboarding prose
+- [x] **Phase 20: v1.3 Verification & Metadata Closure** — Produce missing VERIFICATION.md artifacts for Phases 15 and 16, reconcile SUMMARY/REQUIREMENTS metadata, commit Phase 17 LiveView corrective patch, and teach Phase 19 helpers in onboarding prose
 - [ ] **Phase 21: VERIFY-02 hexdocs.pm Reachability Probe** — Add a first-party HTTP probe of `https://hexdocs.pm/rindle/<version>` to the post-publish public_verify job and a parity assertion test
 
 ## Phase Details
@@ -148,7 +148,7 @@ Plans:
 Plans:
 - [x] 20-01-PLAN.md — Retrofit 15/16 VERIFICATION.md, fix 16 SUMMARY frontmatter, reconcile REQUIREMENTS.md (closes G1, G2, G3, TD-Req)
 - [x] 20-02-PLAN.md — Commit residual Phase 17 LiveView corrective patch (closes 17-VERIFICATION.md:85-89 anti-patterns; TD-17)
-- [ ] 20-03-PLAN.md — Teach Phase 19 helpers (attachment_for, ready_variants_for, bangs) in README.md + guides/getting_started.md; extend docs_parity_test.exs (TD-19)
+- [x] 20-03-PLAN.md — Teach Phase 19 helpers (attachment_for, ready_variants_for, bangs) in README.md + guides/getting_started.md; extend docs_parity_test.exs (TD-19)
 **UI hint**: no
 
 ### Phase 21: VERIFY-02 hexdocs.pm Reachability Probe
@@ -177,5 +177,5 @@ Plans:
 | 17. API Surface Boundary Audit | v1.3 | 5/5 | Complete    | 2026-04-30 |
 | 18. Documentation and Typespec Coverage | v1.3 | 0/5 | Not started | - |
 | 19. Convenience API Additions | v1.3 | 2/2 | Complete    | 2026-05-01 |
-| 20. v1.3 Verification & Metadata Closure | v1.3 | 1/3 | In Progress | - |
+| 20. v1.3 Verification & Metadata Closure | v1.3 | 3/3 | Complete | 2026-05-01 |
 | 21. VERIFY-02 hexdocs.pm Reachability Probe | v1.3 | 0/0 | Not started | - |

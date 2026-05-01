@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Live Publish & API Ergonomics
 status: executing
-stopped_at: Completed 20-02-PLAN.md (LiveView corrective patch committed; TD-17 closed)
-last_updated: "2026-05-01T20:12:00.621Z"
+stopped_at: Completed 20-03-PLAN.md (TD-19 closed; Phase 19 helpers taught in onboarding prose with parity-test gating)
+last_updated: "2026-05-01T20:15:28Z"
 last_activity: 2026-05-01
 progress:
   total_phases: 5
   completed_phases: 5
-  total_plans: 16
-  completed_plans: 16
+  total_plans: 17
+  completed_plans: 17
   percent: 100
 ---
 
@@ -25,9 +25,9 @@ See: .planning/PROJECT.md (updated 2026-04-29)
 
 ## Current Position
 
-Phase: 20 (v1.3-verification-and-metadata-closure) — EXECUTING
-Plan: 3 of 3
-Status: Ready to execute
+Phase: 20 (v1.3-verification-and-metadata-closure) — COMPLETE
+Plan: 3 of 3 (all complete)
+Status: Phase 20 shipped; v1.3 milestone audit re-run unblocked
 Last activity: 2026-05-01
 
 Progress: [██████████] 100%
@@ -57,6 +57,7 @@ Progress: [██████████] 100%
 | Phase 19 P02 | 12min | 6 tasks | 4 files |
 | Phase 20 P20-01 | 14min | 6 tasks | 5 files |
 | Phase 20-v1.3-verification-and-metadata-closure P20-02 | 3min | 3 tasks | 2 files |
+| Phase 20-v1.3-verification-and-metadata-closure P20-03 | 5min | 5 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -91,6 +92,8 @@ Recent decisions affecting current work (v1.2 close / v1.3 start):
 - 20-01: Single atomic docs(20) commit for all five files; LiveView corrective patch (lib/rindle/live_view.ex + test/rindle/live_view_test.exs) preserved unstaged for Plan 20-02 (D-16 atomic-commit discipline)
 - 20-01: VERIFY-02 stays Pending in REQUIREMENTS.md (Active checkbox + traceability row) because Phase 21 has not yet shipped (D-09); preempting would falsely declare closure earned
 - 20-02: Working-tree LiveView corrective patch committed AS-IS in single Phase 20 commit per D-11/D-12; Phase 17 history verified unchanged at original SHAs (D-11 satisfied)
+- 20-03: README brief / guide deeper prose split honored per existing README-vs-guide convention; Rindle.Error contract surfaced once in README and twice in guide (section-9 prose + try/rescue example) per D-13/D-14
+- 20-03: Single docs(20) commit shipped 3 files atomically per D-16; doctor gate re-verified 100/100/100 across 34 modules to prove onboarding-prose edits did not affect lib/-scoped doctor coverage
 
 ### Pending Todos
 
@@ -105,8 +108,8 @@ Recent decisions affecting current work (v1.2 close / v1.3 start):
 
 ## Session Continuity
 
-Last session: 2026-05-01T20:12:00.613Z
-Stopped at: Completed 20-02-PLAN.md (LiveView corrective patch committed; TD-17 closed)
+Last session: 2026-05-01T20:15:28Z
+Stopped at: Completed 20-03-PLAN.md (TD-19 closed; Phase 19 helpers taught in onboarding prose; parity test at 5/5 GREEN)
 Resume file: None
 
 ### Decision-Making Preference
@@ -124,6 +127,6 @@ Resume file: None
 
 **Last Completed Milestone:** v1.2 (Phases 10–14) — archived 2026-04-29
 
-**Next Step:** Plan Phase 18 to add `@doc` and `@spec` coverage on the now-locked public API surface.
+**Next Step:** Run `/gsd-audit-milestone v1.3` re-run (now unblocked — G1, G2, G3, TD-17, TD-19 all closed in code/docs); G4 remains routed exclusively to Phase 21.
 
-**Planned Phase:** 20 (v1.3 Verification & Metadata Closure) — 3 plans — 2026-05-01T19:51:34.286Z
+**Planned Phase:** 20 (v1.3 Verification & Metadata Closure) — 3 plans — 2026-05-01T19:51:34.286Z (complete 2026-05-01T20:15:28Z)
