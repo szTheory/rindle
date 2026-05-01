@@ -1,6 +1,7 @@
 defmodule Rindle do
   alias Rindle.Domain.MediaAsset
   alias Rindle.Domain.MediaAttachment
+  alias Rindle.Domain.MediaUploadSession
   alias Rindle.Internal.VariantFailureLogger
   alias Rindle.Security.UploadValidation
   alias Rindle.Upload.Broker
@@ -49,7 +50,7 @@ defmodule Rindle do
       "initialized"
 
   """
-  @spec initiate_upload(module(), keyword()) :: {:ok, map()} | {:error, term()}
+  @spec initiate_upload(module(), keyword()) :: {:ok, MediaUploadSession.t()} | {:error, term()}
   def initiate_upload(profile, opts \\ []) do
     Broker.initiate_session(profile, opts)
   end
@@ -57,7 +58,7 @@ defmodule Rindle do
   @doc """
   Initiates a multipart direct upload session through the broker.
   """
-  @spec initiate_multipart_upload(module(), keyword()) :: {:ok, map()} | {:error, term()}
+  @spec initiate_multipart_upload(module(), keyword()) :: Broker.initiate_multipart_result()
   def initiate_multipart_upload(profile, opts \\ []) do
     Broker.initiate_multipart_session(profile, opts)
   end
@@ -65,7 +66,7 @@ defmodule Rindle do
   @doc """
   Signs a single multipart upload part through the broker.
   """
-  @spec sign_multipart_part(binary(), pos_integer(), keyword()) :: {:ok, map()} | {:error, term()}
+  @spec sign_multipart_part(binary(), pos_integer(), keyword()) :: Broker.sign_part_result()
   def sign_multipart_part(session_id, part_number, opts \\ []) do
     Broker.sign_multipart_part(session_id, part_number, opts)
   end
@@ -73,7 +74,7 @@ defmodule Rindle do
   @doc """
   Completes a multipart upload through the broker and reuses upload verification.
   """
-  @spec complete_multipart_upload(binary(), [map()], keyword()) :: {:ok, map()} | {:error, term()}
+  @spec complete_multipart_upload(binary(), [map()], keyword()) :: Broker.verify_result()
   def complete_multipart_upload(session_id, parts, opts \\ []) do
     Broker.complete_multipart_upload(session_id, parts, opts)
   end
@@ -94,7 +95,7 @@ defmodule Rindle do
       "validating"
 
   """
-  @spec verify_completion(binary(), keyword()) :: {:ok, map()} | {:error, term()}
+  @spec verify_completion(binary(), keyword()) :: Broker.verify_result()
   def verify_completion(session_id, opts \\ []) do
     Broker.verify_completion(session_id, opts)
   end
@@ -116,7 +117,7 @@ defmodule Rindle do
       "validating"
 
   """
-  @spec verify_upload(binary(), keyword()) :: {:ok, map()} | {:error, term()}
+  @spec verify_upload(binary(), keyword()) :: Broker.verify_result()
   def verify_upload(session_id, opts \\ []) do
     verify_completion(session_id, opts)
   end
@@ -166,8 +167,8 @@ defmodule Rindle do
       "avatar"
 
   """
-  @spec attach(struct() | binary(), struct(), String.t(), keyword()) ::
-          {:ok, struct()} | {:error, term()}
+  @spec attach(MediaAsset.t() | binary(), struct(), String.t(), keyword()) ::
+          {:ok, MediaAttachment.t()} | {:error, term()}
   def attach(asset_or_id, owner, slot, _opts \\ []) do
     repo = Rindle.Config.repo()
     asset_id = get_asset_id(asset_or_id)
@@ -369,7 +370,8 @@ defmodule Rindle do
       "analyzing"
 
   """
-  @spec upload(module(), map() | struct(), keyword()) :: {:ok, struct()} | {:error, term()}
+  @spec upload(module(), map() | Plug.Upload.t(), keyword()) ::
+          {:ok, MediaAsset.t()} | {:error, term()}
   def upload(profile_module, upload, opts \\ []) do
     repo = Rindle.Config.repo()
     upload = normalize_upload(upload)

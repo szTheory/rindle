@@ -11,6 +11,45 @@ defmodule Rindle.Upload.Broker do
 
   @default_multipart_part_size 8 * 1024 * 1024
 
+  @typedoc "Tagged result wrapping just an upload session."
+  @type session_only_result :: {:ok, MediaUploadSession.t()} | {:error, term()}
+
+  @typedoc "Tagged result of `initiate_multipart_session/2` — session plus multipart upload metadata."
+  @type initiate_multipart_result ::
+          {:ok,
+           %{
+             session: MediaUploadSession.t(),
+             multipart: %{
+               upload_id: String.t(),
+               upload_key: String.t(),
+               part_size: pos_integer(),
+               part_headers: map()
+             }
+           }}
+          | {:error, term()}
+
+  @typedoc "Presigned upload payload returned by sign_url and sign_multipart_part."
+  @type presigned_payload :: %{
+          required(:url) => String.t(),
+          required(:method) => atom() | String.t(),
+          required(:headers) => map() | list(),
+          optional(:part_number) => pos_integer(),
+          optional(:upload_id) => String.t()
+        }
+
+  @typedoc "Tagged result of `sign_url/2` — session plus presigned PUT payload."
+  @type sign_url_result ::
+          {:ok, %{session: MediaUploadSession.t(), presigned: presigned_payload()}}
+          | {:error, term()}
+
+  @typedoc "Tagged result of `sign_multipart_part/3` — session plus presigned part payload."
+  @type sign_part_result :: sign_url_result()
+
+  @typedoc "Tagged result of `verify_completion/2` and `complete_multipart_upload/3` — session plus promoted asset."
+  @type verify_result ::
+          {:ok, %{session: MediaUploadSession.t(), asset: MediaAsset.t()}}
+          | {:error, term()}
+
   @doc """
   Initiates a new direct upload session.
 
