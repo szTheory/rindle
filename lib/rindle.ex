@@ -1,6 +1,7 @@
 defmodule Rindle do
   alias Rindle.Domain.MediaAsset
   alias Rindle.Domain.MediaAttachment
+  alias Rindle.Domain.MediaVariant
   alias Rindle.Domain.MediaUploadSession
   alias Rindle.Internal.VariantFailureLogger
   alias Rindle.Security.UploadValidation
@@ -276,6 +277,86 @@ defmodule Rindle do
       {:error, :existing, :not_found, _} -> :ok
       {:error, _name, reason, _changes} -> {:error, reason}
     end
+  end
+
+  # Convenience read helpers — Phase 19 (API-09 / API-10).
+
+  @doc """
+  Fetches the most recent `MediaAttachment` for an `(owner, slot)` pair.
+
+  Returns the attachment row with `:asset` preloaded by default, or `nil`
+  when no attachment exists at the slot. Pass `preload: <list>` to override
+  the default preload (the override **replaces** `[:asset]` rather than
+  merging — pass `preload: [asset: :variants]` to extend, `preload: []` to
+  disable preloading entirely).
+
+  When multiple attachment rows exist for the same `(owner, slot)` (possible
+  because the join schema enforces uniqueness only at the application level
+  via `attach/4`'s last-write-wins replacement), the most-recent row by
+  `:inserted_at` is returned.
+
+  This helper does **not** issue a write or a side-effect query; it is safe
+  to call in render paths.
+
+  ## Examples
+
+      # Requires a configured Rindle repo + an existing owner record.
+      iex> attachment = Rindle.attachment_for(%MyApp.User{id: user_id}, "avatar")
+      iex> attachment && attachment.slot
+      "avatar"
+
+  """
+  @spec attachment_for(struct(), String.t()) :: MediaAttachment.t() | nil
+  @spec attachment_for(struct(), String.t(), keyword()) :: MediaAttachment.t() | nil
+  def attachment_for(owner, slot, opts \\ []) do
+    repo = Rindle.Config.repo()
+    {owner_type, owner_id} = get_owner_info(owner)
+    preloads = Keyword.get(opts, :preload, [:asset])
+
+    query =
+      from a in MediaAttachment,
+        where: a.owner_type == ^owner_type and a.owner_id == ^owner_id and a.slot == ^slot,
+        order_by: [desc: a.inserted_at],
+        limit: 1
+
+    case repo.one(query) do
+      nil -> nil
+      attachment -> repo.preload(attachment, preloads)
+    end
+  end
+
+  @doc """
+  Lists `MediaVariant` rows in the `"ready"` state for a given asset.
+
+  Accepts either a `%MediaAsset{}` struct or a binary asset id. Returns a
+  list of variants ordered by `:name` ascending; returns `[]` when no
+  variants are ready. The unique constraint on `(asset_id, name)` makes the
+  ordering deterministic.
+
+  Only variants in the `"ready"` state are returned — variants in
+  `"planned"`, `"queued"`, `"processing"`, `"stale"`, `"missing"`,
+  `"failed"`, or `"purged"` are excluded. Adopters wanting fallback
+  behavior should call `variant_url/4`, which already orchestrates the
+  stale-policy fallback.
+
+  ## Examples
+
+      # Requires a configured Rindle repo + at least one ready variant row.
+      iex> variants = Rindle.ready_variants_for(asset)
+      iex> Enum.all?(variants, &(&1.state == "ready"))
+      true
+
+  """
+  @spec ready_variants_for(MediaAsset.t() | binary()) :: [MediaVariant.t()]
+  def ready_variants_for(asset_or_id) do
+    repo = Rindle.Config.repo()
+    asset_id = get_asset_id(asset_or_id)
+
+    repo.all(
+      from v in MediaVariant,
+        where: v.asset_id == ^asset_id and v.state == "ready",
+        order_by: [asc: v.name]
+    )
   end
 
   defp get_asset_id(%MediaAsset{id: id}), do: id
