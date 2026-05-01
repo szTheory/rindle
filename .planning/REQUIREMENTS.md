@@ -82,13 +82,13 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PUBLISH-01 | Phase 15 | Pending |
-| PUBLISH-02 | Phase 15 | Pending |
-| PUBLISH-03 | Phase 16 | Pending |
-| VERIFY-01 | Phase 16 | Pending |
-| VERIFY-02 | Phase 16 | Pending |
-| RELEASE-01 | Phase 16 | Pending |
-| RELEASE-02 | Phase 16 | Pending |
+| PUBLISH-01 | Phase 15 → Phase 20 (closure) | Pending |
+| PUBLISH-02 | Phase 15 → Phase 20 (closure) | Pending |
+| PUBLISH-03 | Phase 16 → Phase 20 (closure) | Pending |
+| VERIFY-01 | Phase 16 → Phase 20 (closure) | Pending |
+| VERIFY-02 | Phase 16 → Phase 21 (closure) | Pending |
+| RELEASE-01 | Phase 16 → Phase 20 (closure) | Pending |
+| RELEASE-02 | Phase 16 → Phase 20 (closure) | Pending |
 | API-01 | Phase 17 | Complete |
 | API-02 | Phase 17 | Complete |
 | API-03 | Phase 17 | Complete |
@@ -105,7 +105,8 @@
 - v1.3 requirements: 18 total
 - Mapped to phases: 18/18 ✓
 - Unmapped: 0 ✓
+- Pending closure: 7 (routed to Phase 20 process/metadata closure and Phase 21 hexdocs reachability probe per `.planning/v1.3-MILESTONE-AUDIT.md`)
 
 ---
 *Requirements defined: 2026-04-29*
-*Last updated: 2026-04-29 — traceability mapped after roadmap creation*
+*Last updated: 2026-05-01 — gap closure phases 20/21 assigned after v1.3 milestone audit*
