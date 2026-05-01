@@ -60,7 +60,9 @@ defmodule Rindle.InstallSmoke.HexReleaseExistsTest do
   end
 
   test "probe honors RINDLE_PROJECT_ROOT before invoking mix" do
-    tmp_root = Path.join(System.tmp_dir!(), "hex_probe_root_#{System.unique_integer([:positive])}")
+    tmp_root =
+      Path.join(System.tmp_dir!(), "hex_probe_root_#{System.unique_integer([:positive])}")
+
     File.mkdir_p!(tmp_root)
     on_exit(fn -> File.rm_rf!(tmp_root) end)
 
@@ -87,7 +89,9 @@ defmodule Rindle.InstallSmoke.HexReleaseExistsTest do
   end
 
   test "probe appends identical result to GITHUB_OUTPUT when set" do
-    tmp_dir = Path.join(System.tmp_dir!(), "hex_probe_output_#{System.unique_integer([:positive])}")
+    tmp_dir =
+      Path.join(System.tmp_dir!(), "hex_probe_output_#{System.unique_integer([:positive])}")
+
     File.mkdir_p!(tmp_dir)
     on_exit(fn -> File.rm_rf!(tmp_dir) end)
 
@@ -105,7 +109,9 @@ defmodule Rindle.InstallSmoke.HexReleaseExistsTest do
   end
 
   defp run_probe(env_overrides) do
-    shim_dir = Path.join(System.tmp_dir!(), "hex_probe_shim_#{System.unique_integer([:positive])}")
+    shim_dir =
+      Path.join(System.tmp_dir!(), "hex_probe_shim_#{System.unique_integer([:positive])}")
+
     File.mkdir_p!(shim_dir)
     on_exit(fn -> File.rm_rf!(shim_dir) end)
 

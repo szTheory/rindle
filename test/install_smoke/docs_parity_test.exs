@@ -38,6 +38,7 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
 
       assert intro =~ "Rindle", "#{name} intro should mention Rindle"
       assert intro =~ "Rindle.Profile", "#{name} intro should mention Rindle.Profile"
+
       refute intro =~ "Rindle.Upload.Broker",
              "#{name} intro should not present Rindle.Upload.Broker as the default entrypoint"
     end

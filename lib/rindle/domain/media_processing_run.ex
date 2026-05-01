@@ -37,6 +37,14 @@ defmodule Rindle.Domain.MediaProcessingRun do
     timestamps()
   end
 
+  @doc """
+  Builds a changeset for a processing-run row.
+
+  Casts the worker, lifecycle, attempt, and timing columns; requires the
+  minimum invariants (`:asset_id`, `:variant_name`, `:worker`, `:state`,
+  `:attempt`); validates the lifecycle state and an attempt count of at least
+  one.
+  """
   @spec changeset(t() | %__MODULE__{}, map()) :: Ecto.Changeset.t()
   def changeset(processing_run, attrs) do
     processing_run

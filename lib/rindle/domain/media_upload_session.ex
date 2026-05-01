@@ -59,6 +59,14 @@ defmodule Rindle.Domain.MediaUploadSession do
     timestamps()
   end
 
+  @doc """
+  Builds a changeset for an upload-session row.
+
+  Casts the lifecycle, multipart, and verification columns; requires the
+  minimum invariants (`:asset_id`, `:state`, `:upload_key`, `:upload_strategy`,
+  `:expires_at`); validates the lifecycle state against the canonical state
+  list.
+  """
   @spec changeset(t() | %__MODULE__{}, map()) :: Ecto.Changeset.t()
   def changeset(upload_session, attrs) do
     upload_session

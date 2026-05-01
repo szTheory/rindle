@@ -2,6 +2,64 @@
 
 0.1.0-0.1.3 were release-pipeline shakedown iterations; treat 0.1.4 as the first recommended pin.
 
+## [Unreleased]
+
+### Added
+
+- `@doc` annotations on every public `@callback` across `Rindle.Storage`,
+  `Rindle.Authorizer`, `Rindle.Analyzer`, `Rindle.Scanner`, and
+  `Rindle.Processor`, surfacing the contract for each behaviour callback in
+  ExDoc (API-06).
+- Behaviour-level named result types on `Rindle.Storage`
+  (`put_result`, `delete_result`, `url_result`, `presign_result`,
+  `multipart_init_result`, `multipart_complete_result`, `head_result`),
+  replacing opaque `map()` returns in callback specs (API-07).
+- Module-level named-type aliases on `Rindle.Upload.Broker`
+  (`session_only_result`, `initiate_multipart_result`, `presigned_payload`,
+  `sign_url_result`, `sign_part_result`, `verify_result`) for adopters using
+  Dialyzer (API-07).
+- `@spec` annotations on every public function of `Rindle.Upload.Broker`
+  (the largest pre-existing spec gap, now closed).
+- `@doc` and `@spec` on `Rindle.Profile.__using__/1` macro and
+  `Rindle.HTML.picture_tag/3` helper.
+- `@doc` on every macro-generated profile function
+  (`storage_adapter/0`, `variants/0`, `upload_policy/0`, `validate_upload/1`,
+  `delivery_policy/0`, `recipe_digest/1`) and on every `Rindle.Domain.*`
+  schema `changeset/2` so the doctor 100% module-doc gate is honored across
+  the public surface.
+- `Rindle.Processor.Image` promoted to documented public adapter, symmetric
+  with `Rindle.Storage.S3` and `Rindle.Storage.Local`. The `variant_spec`
+  keys (`:width`, `:height`, `:mode`, `:format`, `:quality`) and supported
+  modes (`:fit`, `:crop`, `:fill`) are now documented in the adapter's
+  `@moduledoc`.
+- `mix doctor` (`~> 0.22.0`) added as a dev/test-only static analyzer, with
+  `MIX_ENV=test mix doctor --full --raise` enforced in the CI quality job
+  on both Elixir 1.15 and 1.17 lanes (API-08).
+- ExDoc grouping: "Storage Adapters" renamed to "Storage and Processor
+  Adapters" to host the bundled adapters across both behaviour families.
+- Doctor coverage thresholds ratcheted to the D-07 target
+  (100% module-doc / 100% overall-doc / 100% moduledoc / 95% module-spec /
+  95% overall-spec). Future doc/spec regressions on the public surface
+  fail `mix doctor --raise` in CI.
+
+### Changed
+
+- Public `@spec`s on `Rindle` facade functions (`initiate_upload/2`,
+  `initiate_multipart_upload/2`, `sign_multipart_part/3`,
+  `complete_multipart_upload/3`, `verify_completion/2`, `verify_upload/2`,
+  `attach/4`, `upload/3`) now use `MediaAsset.t()`, `MediaUploadSession.t()`,
+  `MediaAttachment.t()`, and named `Broker.*_result()` types instead of
+  `{:ok, map()}` / `{:ok, struct()}`.
+- `Rindle.log_variant_processing_failure/3` (the hidden facade shim) now
+  emits a compile-time deprecation warning via `@deprecated`. Use
+  `Rindle.Internal.VariantFailureLogger.log/3` directly.
+
+### Notes
+
+- Error branches across all tightened specs retain `{:error, term()}` to
+  preserve the 0.1.x semver posture (narrowing error terms is a Dialyzer-
+  breaking change for adopters pattern-matching on them).
+
 ## [0.1.4](https://github.com/szTheory/rindle/compare/rindle-v0.1.3...rindle-v0.1.4) (2026-04-29)
 
 
