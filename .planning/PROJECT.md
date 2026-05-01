@@ -231,4 +231,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-29 — milestone v1.3 started*
+*Last updated: 2026-05-01 — Phase 19 (Convenience API Additions) complete; v1.3 milestone phases all shipped, ready for `/gsd-complete-milestone`.*
