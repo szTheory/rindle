@@ -88,6 +88,7 @@ defmodule Rindle.MixProject do
       {:ex_machina, "~> 2.7", only: :test},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
+      {:doctor, "~> 0.22.0", only: [:dev, :test], runtime: false},
       {:excoveralls, "~> 0.18", only: [:test, :dev], runtime: false},
       json_polyfill_dep(),
       {:ex_doc, "~> 0.40", only: :dev, runtime: false}
