@@ -177,5 +177,5 @@ Plans:
 | 17. API Surface Boundary Audit | v1.3 | 5/5 | Complete    | 2026-04-30 |
 | 18. Documentation and Typespec Coverage | v1.3 | 0/5 | Not started | - |
 | 19. Convenience API Additions | v1.3 | 2/2 | Complete    | 2026-05-01 |
-| 20. v1.3 Verification & Metadata Closure | v1.3 | 3/3 | Complete | 2026-05-01 |
+| 20. v1.3 Verification & Metadata Closure | v1.3 | 3/3 | Complete    | 2026-05-01 |
 | 21. VERIFY-02 hexdocs.pm Reachability Probe | v1.3 | 0/0 | Not started | - |

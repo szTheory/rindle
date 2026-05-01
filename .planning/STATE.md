@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Live Publish & API Ergonomics
-status: executing
+status: milestone_complete
 stopped_at: Completed 20-03-PLAN.md (TD-19 closed; Phase 19 helpers taught in onboarding prose with parity-test gating)
 last_updated: "2026-05-01T20:15:28Z"
 last_activity: 2026-05-01
 progress:
   total_phases: 5
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 17
   completed_plans: 17
-  percent: 100
+  percent: 120
 ---
 
 # Project State
@@ -25,9 +25,9 @@ See: .planning/PROJECT.md (updated 2026-04-29)
 
 ## Current Position
 
-Phase: 20 (v1.3-verification-and-metadata-closure) — COMPLETE
-Plan: 3 of 3 (all complete)
-Status: Phase 20 shipped; v1.3 milestone audit re-run unblocked
+Phase: 20
+Plan: Not started
+Status: Milestone complete
 Last activity: 2026-05-01
 
 Progress: [██████████] 100%
@@ -36,7 +36,7 @@ Progress: [██████████] 100%
 
 **Velocity:**
 
-- Total plans completed: 15 (v1.3)
+- Total plans completed: 18 (v1.3)
 - Average duration: —
 - Total execution time: —
 
@@ -46,6 +46,7 @@ Progress: [██████████] 100%
 |-------|-------|-------|----------|
 | 17 | 5 | - | - |
 | 19 | 2 | - | - |
+| 20 | 3 | - | - |
 
 *Updated after each plan completion*
 | Phase 17 P01 | 7min | 2 tasks | 2 files |
