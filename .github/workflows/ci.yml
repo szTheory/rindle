@@ -84,6 +84,9 @@ jobs:
       - name: Credo (strict)
         run: mix credo --strict
 
+      - name: Doctor (full, raise)
+        run: MIX_ENV=test mix doctor --full --raise
+
       - name: Run tests with coverage
         run: mix coveralls
 
