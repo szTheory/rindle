@@ -52,7 +52,7 @@ Full archive: [.planning/milestones/v1.0-ROADMAP.md](.planning/milestones/v1.0-R
 - [x] **Phase 19: Convenience API Additions** — Add helper functions and bang variants that adopters need on the public surface
 - [x] **Phase 20: v1.3 Verification & Metadata Closure** — Produce missing VERIFICATION.md artifacts for Phases 15 and 16, reconcile SUMMARY/REQUIREMENTS metadata, commit Phase 17 LiveView corrective patch, and teach Phase 19 helpers in onboarding prose
 - [ ] **Phase 21: VERIFY-02 hexdocs.pm Reachability Probe** — Add a first-party HTTP probe of `https://hexdocs.pm/rindle/<version>` to the post-publish public_verify job and a parity assertion test
-- [ ] **Phase 22: LiveView Corrective Fixes** — Address CR-01/CR-02/WR-01..WR-05 + WR-04 onboarding nil-deref from Phase 20 code review
+- [x] **Phase 22: LiveView Corrective Fixes** — Address CR-01/CR-02/WR-01..WR-05 + WR-04 onboarding nil-deref from Phase 20 code review (completed 2026-05-01)
 
 ## Phase Details
 
@@ -167,7 +167,7 @@ Plans:
 ### Phase 22: LiveView Corrective Fixes
 **Goal**: Fix the code review and warning findings from Phase 20 regarding LiveView and onboarding nil-derefs.
 **Depends on**: Phase 20
-**Requirements**: TD-17
+**Tech Debt**: TD-17
 **Success Criteria** (what must be TRUE):
   1. LiveView components no longer trigger CR-01/CR-02 issues.
   2. Onboarding nil-deref (WR-04) and other warnings (WR-01..WR-05) are resolved.
@@ -192,4 +192,4 @@ Plans:
 | 19. Convenience API Additions | v1.3 | 2/2 | Complete    | 2026-05-01 |
 | 20. v1.3 Verification & Metadata Closure | v1.3 | 3/3 | Complete    | 2026-05-01 |
 | 21. VERIFY-02 hexdocs.pm Reachability Probe | v1.3 | 0/0 | Not started | - |
-| 22. LiveView Corrective Fixes | v1.3 | 1/1 | Complete | 2026-05-01 |
+| 22. LiveView Corrective Fixes | v1.3 | 1/1 | Complete    | 2026-05-01 |

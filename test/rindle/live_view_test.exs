@@ -111,7 +111,9 @@ defmodule Rindle.LiveViewTest do
         {:error, :timeout}
       end)
 
-      assert {:error, %{reason: ":timeout"}, ^updated_socket} = external_fn.(entry, updated_socket)
+      assert {:error,
+              %{reason: "upload_unavailable", code: "upload_sign_failed"},
+              ^updated_socket} = external_fn.(entry, updated_socket)
     end
   end
 

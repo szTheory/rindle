@@ -34,6 +34,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     The `:external` option is set automatically — you do not need to provide it.
     """
 
+    require Logger
+
     alias Phoenix.LiveView.Upload
     alias Rindle.Config
     alias Rindle.Domain.MediaUploadSession
@@ -81,7 +83,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           handle_initiate_upload(session, profile, socket)
 
         {:error, reason} ->
-          {:error, %{reason: inspect(reason)}, socket}
+          log_upload_error("initiate", reason)
+          {:error, %{reason: "upload_unavailable", code: "upload_init_failed"}, socket}
       end
     end
 
@@ -97,10 +100,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             asset_id: signed_session.asset_id
           }
 
-          {:ok, meta, socket}
+        {:ok, meta, socket}
 
         {:error, reason} ->
-          {:error, %{reason: inspect(reason)}, socket}
+          log_upload_error("sign", reason)
+          {:error, %{reason: "upload_unavailable", code: "upload_sign_failed"}, socket}
       end
     end
 
@@ -157,6 +161,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         %MediaUploadSession{state: "completed"} -> true
         _ -> false
       end
+    end
+
+    defp log_upload_error(stage, reason) do
+      Logger.warning("Rindle.LiveView #{stage} upload failed: #{inspect(reason)}")
     end
   end
 end

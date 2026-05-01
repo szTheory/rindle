@@ -24,7 +24,7 @@ key-decisions:
 patterns-established:
   - "LiveView external upload callbacks must always return {:ok, meta, socket} or {:error, meta, socket}."
   - "Consumer-facing examples should show safe nil handling for optional attachments."
-requirements-completed: [TD-17]
+requirements-completed: []
 duration: 10min
 completed: 2026-05-01
 ---
@@ -63,6 +63,7 @@ Each task was committed atomically:
 - Used an explicit `ArgumentError` for missing `session_id` because silent verification bypass crosses the client-to-server trust boundary documented in the plan.
 - Preserved retryability on verification failures with `:postpone` instead of returning `{:error, reason}`, which Phoenix would treat as malformed and consume anyway.
 - Kept duplicate callback idempotency in the LiveView wrapper rather than changing broker FSM behavior, limiting the fix to the owned files and Phoenix integration boundary.
+- Treated `TD-17` as roadmap tech debt, not a `.planning/REQUIREMENTS.md` requirement ID, so phase traceability stays aligned with the v1.3 requirements ledger.
 
 ## Deviations from Plan
 

@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Live Publish & API Ergonomics
-status: verifying
+status: ready
 stopped_at: Completed 22-01-PLAN.md
-last_updated: "2026-05-01T21:11:37.359Z"
+last_updated: "2026-05-01T21:21:24Z"
 last_activity: 2026-05-01
 progress:
-  total_phases: 5
+  total_phases: 8
   completed_phases: 5
-  total_plans: 16
-  completed_plans: 16
-  percent: 100
+  total_plans: 20
+  completed_plans: 15
+  percent: 75
 ---
 
 # Project State
@@ -21,22 +21,22 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-29)
 
 **Core value:** Media, made durable.
-**Current focus:** Phase 22 — liveview-corrective-fixes
+**Current focus:** Phase 21 — hexdocs reachability probe
 
 ## Current Position
 
-Phase: 22 — EXECUTING
-Plan: 1 of 1
-Status: Phase complete — ready for verification
+Phase: 21
+Plan: Not started
+Status: Phase 22 complete; milestone in progress
 Last activity: 2026-05-01
 
-Progress: [██████████] 100%
+Progress: [███████░░░] 75%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 18 (v1.3)
+- Total plans completed: 20 (v1.3)
 - Average duration: —
 - Total execution time: —
 
@@ -47,6 +47,7 @@ Progress: [██████████] 100%
 | 17 | 5 | - | - |
 | 19 | 2 | - | - |
 | 20 | 3 | - | - |
+| 22 | 1 | - | - |
 
 *Updated after each plan completion*
 | Phase 17 P01 | 7min | 2 tasks | 2 files |
@@ -132,6 +133,6 @@ Resume file: None
 
 **Last Completed Milestone:** v1.2 (Phases 10–14) — archived 2026-04-29
 
-**Next Step:** Run `/gsd-audit-milestone v1.3` re-run (now unblocked — G1, G2, G3, TD-17, TD-19 all closed in code/docs); G4 remains routed exclusively to Phase 21.
+**Next Step:** Plan or execute Phase 21 (`VERIFY-02` hexdocs.pm reachability probe), then re-run `/gsd-audit-milestone v1.3`.
 
-**Planned Phase:** 20 (v1.3 Verification & Metadata Closure) — 3 plans — 2026-05-01T19:51:34.286Z (complete 2026-05-01T20:15:28Z)
+**Planned Phase:** 21 (VERIFY-02 hexdocs.pm Reachability Probe) — plans TBD
