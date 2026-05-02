@@ -144,10 +144,27 @@ defmodule Rindle.InstallSmoke.PackageMetadataTest do
     assert workflow =~ "public_verify:"
     assert workflow =~ "needs: [gate-ci-green, publish]"
     assert workflow =~ "name: Wait for Hex.pm index (post-publish)"
+    assert workflow =~ "name: Verify HexDocs reachability"
     assert workflow =~ "name: Verify public Hex.pm artifact"
     assert workflow =~ ~s(HEX_API_KEY: "")
     assert workflow =~ ~s(mix hex.info rindle "$VERSION")
+    assert workflow =~
+             ~s(curl --fail --location --silent --show-error "https://hexdocs.pm/rindle/$VERSION")
+
+    assert workflow =~ "DEADLINE=$(( SECONDS + 300 ))"
+    assert workflow =~ "Release blocked: HexDocs did not serve"
+    assert workflow =~ "sleep 15"
     assert workflow =~ ~s(bash scripts/public_smoke.sh "$VERSION")
+
+    wait_pos = String.index(workflow, "name: Wait for Hex.pm index (post-publish)")
+    docs_pos = String.index(workflow, "name: Verify HexDocs reachability")
+    smoke_pos = String.index(workflow, "name: Verify public Hex.pm artifact")
+
+    assert is_integer(wait_pos)
+    assert is_integer(docs_pos)
+    assert is_integer(smoke_pos)
+    assert wait_pos < docs_pos
+    assert docs_pos < smoke_pos
   end
 
   test "release workflow gates publish on idempotency probe", %{release_workflow: workflow} do

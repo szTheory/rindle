@@ -115,6 +115,7 @@ defmodule Rindle.InstallSmoke.ReleaseDocsParityTest do
       "Dry run Hex publish",
       "Publish to Hex.pm (live)",
       "Wait for Hex.pm index (post-publish)",
+      "Verify HexDocs reachability",
       "Verify public Hex.pm artifact"
     ]
 
@@ -134,6 +135,7 @@ defmodule Rindle.InstallSmoke.ReleaseDocsParityTest do
       "bash scripts/hex_release_exists.sh",
       "mix hex.publish --dry-run --yes",
       "mix hex.publish --yes",
+      ~s(curl --fail --location --silent --show-error "https://hexdocs.pm/rindle/$VERSION"),
       "bash scripts/public_smoke.sh"
     ]
 
