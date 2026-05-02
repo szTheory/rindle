@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Live Publish & API Ergonomics
 status: ready
-stopped_at: Completed 22-01-PLAN.md
-last_updated: "2026-05-01T21:21:24Z"
+stopped_at: Phase 21 context gathered (assumptions mode)
+last_updated: "2026-05-02T00:59:01Z"
 last_activity: 2026-05-01
 progress:
   total_phases: 8
@@ -116,7 +116,7 @@ Recent decisions affecting current work (v1.2 close / v1.3 start):
 
 Last session: 2026-05-01T21:11:37.352Z
 Stopped at: Completed 22-01-PLAN.md
-Resume file: None
+Resume file: .planning/phases/21-verify-02-hexdocs-reachability-probe/21-CONTEXT.md
 
 ### Decision-Making Preference
 
