@@ -1,5 +1,27 @@
 # Milestones
 
+## v1.3 Live Publish & API Ergonomics (Shipped: 2026-05-02)
+
+**Phases completed:** 8 phases (15-22), 21 plans
+
+**Key accomplishments:**
+
+- Preflight validation script `scripts/release_preflight.sh` to locally unpack and inspect the hex release candidate for structural compliance.
+- Complete first-party HTTP probe for `hexdocs.pm/rindle` reachability in the release workflow, closing the observability gap post-publish.
+- Explicit `Rindle.Error` struct with typed reason tracking and deterministic behavior across constraints, variants, and attachments.
+- Added `@doc` and `@spec` coverage enforced via `mix doctor --raise` to guarantee coverage and catch regressions in CI.
+- Introduced ergonomic `attachment_for/2`, `ready_variants_for/1` and matching `!` bang variants for all public facade functions.
+- Tightened `Dialyzer` struct resolution, enforcing deterministic test setup before code executes without compilation faults.
+- Fixed residual `LiveView` correctness issues (consume callback duplicates and nil-derefs on fresh attachments).
+- Completed retrospective metadata closure, ensuring goal-backward traceability for all Phase 15 and 16 requirements.
+
+**Archive:**
+- `.planning/milestones/v1.3-ROADMAP.md`
+- `.planning/milestones/v1.3-REQUIREMENTS.md`
+- `.planning/milestones/v1.3-MILESTONE-AUDIT.md`
+
+---
+
 ## v1.2 First Hex Publish (Shipped: 2026-04-29)
 
 **Phases completed:** 5 phases (10–14), 11 plans
