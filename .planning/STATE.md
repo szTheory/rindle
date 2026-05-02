@@ -1,13 +1,13 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.4
-milestone_name: TBD
+milestone_name: Video & Audio Wedge
 status: planning
-stopped_at: Completed v1.3 milestone archive
-last_updated: "2026-05-02T02:00:00.000Z"
+stopped_at: v1.4 milestone scope locked; awaiting roadmap
+last_updated: "2026-05-02T03:00:00.000Z"
 last_activity: 2026-05-02
 progress:
-  total_phases: 1
+  total_phases: 6
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -18,17 +18,17 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-04-29)
+See: .planning/PROJECT.md (updated 2026-05-02)
 
 **Core value:** Media, made durable.
-**Current focus:** Define v1.4 milestone scope
+**Current focus:** v1.4 Video & Audio Wedge — locked scope, awaiting roadmap
 
 ## Current Position
 
-Phase: 23
+Phase: 23 (AV Foundations — pending plan)
 Plan: 0 of 0
-Status: Ready for planning
-Last activity: 2026-05-02
+Status: Awaiting roadmap
+Last activity: 2026-05-02 — v1.4 scope locked from parallel research synthesis
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -44,7 +44,12 @@ Progress: [░░░░░░░░░░] 0%
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 23 | 0 | - | - |
+| 23 (AV Foundations) | 0 | - | - |
+| 24 (Domain Model & DSL) | 0 | - | - |
+| 25 (Rindle.Processor.AV) | 0 | - | - |
+| 26 (Delivery Surface) | 0 | - | - |
+| 27 (HTML + LiveView) | 0 | - | - |
+| 28 (Onboarding + CI) | 0 | - | - |
 
 ## Accumulated Context
 
@@ -52,15 +57,20 @@ Progress: [░░░░░░░░░░] 0%
 
 Decisions are logged in PROJECT.md Key Decisions table.
 
-Recent decisions affecting current work (v1.3 close / v1.4 start):
+Recent decisions affecting current work (v1.4 open):
 
-- Live publish E2E verification closed observability gaps for first-party reachability probe against hexdocs.pm (VERIFY-02).
-- Strict API surface boundaries enforced.
+- v1.4 = Video & Audio Wedge. System FFmpeg subprocess (FFmpex + MuonTrap) over Membrane / NIFs / bundled providers. Single `media_assets` table + `:kind` enum; cross-kind variants via `:output_kind`. HLS / DASH / DRM / live streaming explicitly out of scope.
+- Security invariants extended 7 → 13: argv-array discipline, `-protocol_whitelist file,crypto,data` mandatory, four-cap enforcement (`-t` / `-fs` / `-timelimit` / wall-clock), untrusted container metadata, MKV / HLS / DASH ingest rejected, MuonTrap-supervised subprocess with cgroup parent-death kill, sweepable `Rindle.tmp/` root.
+- `Rindle.Delivery.streaming_url/3` reserved as no-op delegate so future Mux / Cloudflare Stream provider adapters land without template churn.
+- Stock 720p H.264 + AAC + scene poster preset ships in v1.4 so adopters get a real demo, not just primitives.
+- Resource defaults locked conservative: max_duration 7200s, max_output 500MB, max_wall 600s, max_cpu 300s, ffmpeg_threads 2 (loosening per profile is non-breaking; tightening later would be).
 
 ### Pending Todos
 
 - Plan GCS adapter resumable upload flow (GCS-01)
 - Evaluate tus/resumable protocol once release distribution is routine (TUS-01)
+- Provider-delegated Mux / Cloudflare Stream adapter as bundled package (post-v1.4 — adopter feedback gate)
+- Adaptive bitrate ladder + HLS / DASH manifest authoring (post-v1.4 streaming milestone)
 
 ### Blockers/Concerns
 
@@ -68,8 +78,8 @@ Recent decisions affecting current work (v1.3 close / v1.4 start):
 
 ## Session Continuity
 
-Last session: 2026-05-02T02:00:00.000Z
-Stopped at: Completed v1.3 milestone archive
+Last session: 2026-05-02T03:00:00.000Z
+Stopped at: v1.4 milestone scope locked from parallel research synthesis (.planning/research/v1.4/SYNTHESIS.md); awaiting roadmap
 Resume file: None
 
 ### Decision-Making Preference
@@ -87,6 +97,6 @@ Resume file: None
 
 **Last Completed Milestone:** v1.3 (Phases 15–22) — archived 2026-05-02
 
-**Next Step:** Define goals and roadmaps for milestone v1.4.
+**Next Step:** Spawn `gsd-roadmapper` to author `.planning/ROADMAP.md` for v1.4 (Phases 23–28).
 
-**Planned Phase:** 23 (TBD)
+**Planned Phase:** 23 (AV Foundations)

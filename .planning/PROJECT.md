@@ -1,29 +1,30 @@
 # Rindle
 
-## Current Milestone: v1.3 Live Publish & API Ergonomics
+## Current Milestone: v1.4 Video & Audio Wedge
 
-**Goal:** Execute Rindle's first real Hex.pm publish from the repo workflow and clean up the public API surface before adoption grows.
+**Goal:** Extend Rindle from image-first to image+video+audio by shipping a system-FFmpeg-backed processor (`Rindle.Processor.AV`), an `ffprobe`-driven analyzer, and `Rindle.HTML.video_tag/3` + `audio_tag/3` helpers — all riding the existing `Rindle.Processor` behaviour, `MediaAsset`/`MediaVariant` rows, Oban workers, and signed-URL delivery.
 
 **Target features:**
-- First live Hex.pm publish — cut v0.1.0 tag, trigger release workflow with `HEX_API_KEY`, confirm post-publish public verification resolves from Hex.pm
-- Routine release path — every subsequent release is a predictable one-command sequence; runbook stays executable
-- API naming — identify and fix naming inconsistencies across public modules and functions
-- Convenience functions — surface things adopters will need that are buried or not yet public
-- Docs/typespec coverage — `@doc`, `@spec`, `@moduledoc` gaps on public functions resolved
-- Breaking-change audit — lock the right public surface area before 1.0
+- Video / audio domain model — single `media_assets` table + `:kind` discriminator (`:image | :video | :audio`); single `media_variants` table + `:output_kind` (`:image | :video | :audio | :waveform`); typed probe columns for duration / dimensions / track presence; JSONB metadata for codec / bitrate / tags; one additive migration; existing image profiles compile unchanged
+- AV processor — `Rindle.Processor.AV` shells out to FFmpeg via FFmpex with MuonTrap-supervised subprocesses; ships H.264+AAC mp4 transcode, scene-detected poster, AAC/MP3 audio transcode, EBU R128 single-pass loudnorm, and JSON waveform peaks; idempotent worker; output post-condition probe; orphan-tempfile sweeper
+- Capability negotiation — new `Rindle.Processor.Capabilities` module mirrors existing `Rindle.Storage.Capabilities`; `mix rindle.doctor` reports per-variant capability status with `mix phx.gen`-style fix messages; boot probe runs `ffmpeg -version` + `-codecs` and fails fast at supervisor boot when video/audio profiles are configured but FFmpeg is missing
+- Delivery surface — production stays signed-redirect (S3/R2/GCS/MinIO already serve `Range` natively, zero BEAM time on streaming bytes); new opt-in `Rindle.Delivery.LocalPlug` gives dev parity for `Rindle.Storage.Local`; `Rindle.Delivery.streaming_url/3` ships as a no-op delegate so Mux / Cloudflare Stream provider adapters can land post-v1.4 without template churn
+- HTML + LiveView ergonomics — `Rindle.HTML.video_tag/3` and `audio_tag/3` mirror existing `picture_tag/3` shape with codec-aware `<source>` ordering and DSL-resolved poster; `Rindle.LiveView.subscribe/2` exposes per-variant transcode progress via PubSub (`rindle:variant:#{id}`) for live status UIs; `Rindle.cancel_processing/1` cancels in-flight transcodes
+- Security invariants for AV — argv-array discipline (no shells, no string interpolation); mandatory `-protocol_whitelist file,crypto,data`; four-cap enforcement (`-t` / `-fs` / `-timelimit` / external wall-clock); MuonTrap-supervised subprocess with cgroup parent-death kill; sweepable `Rindle.tmp/` root with scheduled orphan reaper; FFmpeg minimum version 6.0 enforced at boot; HLS / DASH / MKV ingest explicitly rejected; container metadata treated as untrusted UGC
 
 ## Current State
 
-Milestone `v1.2 First Hex Publish` shipped on `2026-04-29`. v1.3 phases
-shipped: the first live Hex.pm publish completed (Phases 15/16), the public
-API surface boundary is locked (Phase 17), docs and typespec coverage holds at
-100/100/100 (Phase 18), the eight Phase 19 convenience helpers are shipped and
-taught in onboarding prose, and Phase 20 closed all v1.3 verification &
-metadata gaps (G1, G2, G3, TD-Req, TD-17, TD-19) — `/gsd-audit-milestone v1.3`
-should now report `passed`. **Open follow-ups after Phase 20**: Phase 21
-(VERIFY-02 hexdocs.pm reachability probe — only remaining v1.3 requirement);
-LiveView corrective fixes for CR-01/CR-02/WR-01..WR-05 captured in
-`20-REVIEW.md` and tracked in `20-HUMAN-UAT.md`.
+Milestone `v1.3 Live Publish & API Ergonomics` shipped on `2026-05-02`
+(Phases 15–22, 21 plans). v1.3 delivered the first live Hex.pm publish with
+post-publish HTTP probe for `hexdocs.pm/rindle`, locked the public API
+surface boundary, brought `@doc`/`@spec`/`@moduledoc` coverage to 100/100/100
+enforced via `mix doctor --raise`, shipped ergonomic `attachment_for/2`,
+`ready_variants_for/1` and `!`-bang convenience helpers, tightened Dialyzer
+struct resolution, and resolved residual LiveView correctness issues. v1.4
+opens the video / audio wedge: Rindle finally moves beyond image-first and
+extends the same lifecycle architecture (FSMs, durable variant rows, Oban
+workers, signed delivery) to mp4 / mov / webm video and mp3 / m4a / wav /
+flac / ogg audio.
 
 ## What This Is
 
@@ -83,18 +84,48 @@ Media, made durable.
   publish attempt — v1.3 (Phase 15, formally verified Phase 20) (PUBLISH-02)
 - ✓ Routine release path documented and executable after first publish — v1.3
   (Phase 16, formally verified Phase 20) (PUBLISH-03)
+- ✓ Public API surface reviewed for naming inconsistencies — v1.3 (Phase 17)
+  (API-01)
+- ✓ Missing convenience functions identified and added to public surface
+  (`attachment_for/2`, `ready_variants_for/1`, `!`-bang variants) — v1.3
+  (Phase 19) (API-02)
+- ✓ `@doc`, `@spec`, `@moduledoc` coverage gaps resolved on public functions
+  (100/100/100, enforced via `mix doctor --raise`) — v1.3 (Phase 18) (API-03)
+- ✓ Breaking-change audit completed to lock the right surface area before 1.0
+  — v1.3 (Phase 17) (API-04)
+- ✓ HexDocs reachability probe verifies post-publish public docs availability
+  — v1.3 (Phase 21) (VERIFY-02)
 
 ### Active
 
-<!-- v1.3 requirements — updated 2026-05-01 -->
+<!-- v1.4 requirements — updated 2026-05-02 -->
 
-- [ ] Public API surface reviewed for naming inconsistencies (API-01)
-- [ ] Missing convenience functions identified and added to public surface
-  (API-02)
-- [ ] `@doc`, `@spec`, `@moduledoc` coverage gaps resolved on public functions
-  (API-03)
-- [ ] Breaking-change audit completed to lock the right surface area before 1.0
-  (API-04)
+- [ ] AV foundations: capability vocabulary, processor capabilities behaviour,
+  MuonTrap subprocess discipline, FFmpeg boot probe, `mix rindle.doctor`,
+  argv-array safety, `-protocol_whitelist` defaults, four-cap resource
+  enforcement (AV-01)
+- [ ] Domain model + DSL extension: `:kind` and `:output_kind` migration with
+  typed probe columns; per-kind NimbleOptions schemas in profile validator;
+  `transcoding` asset state and `cancelled` variant state; `Rindle.Probe`
+  behaviour with bundled `Rindle.Probe.AVProbe` (AV-02)
+- [ ] `Rindle.Processor.AV` ships H.264+AAC mp4 transcode, scene-detected
+  poster, AAC/MP3 audio transcode, EBU R128 loudnorm, and JSON waveform
+  peaks; idempotent worker with output post-condition probe and orphan
+  tempfile sweeper (AV-03)
+- [ ] Delivery surface: `Rindle.Delivery.streaming_url/3` ships as no-op
+  delegate (kind: :progressive); `Rindle.Delivery.LocalPlug` provides
+  range-aware dev parity for `Rindle.Storage.Local`; signed-URL TTL guidance
+  documented per content type (AV-04)
+- [ ] HTML helpers + LiveView integration: `Rindle.HTML.video_tag/3` and
+  `audio_tag/3` mirror `picture_tag/3` with codec-aware sources and
+  DSL-resolved poster; `Rindle.LiveView.subscribe/2` exposes
+  rate-limited PubSub progress; `Rindle.cancel_processing/1` cancels
+  in-flight transcodes (AV-05)
+- [ ] Onboarding + CI proof: stock 720p web preset profile fixture; per-
+  platform install paths documented (macOS, Ubuntu, Fly.io, Heroku, Render,
+  GitHub Actions); CI verifies FFmpeg detection plus a real-world
+  smartphone-source video round-trip; capability-mismatch error vocabulary
+  frozen with parity test (AV-06)
 
 ### Out of Scope
 
@@ -149,6 +180,29 @@ upload-surface expansion.
 5. Purge paths are async, idempotent, and auditable
 6. Concurrent replacement races resolve safely
 7. Missing/stale/failed variant states are visible, queryable, and actionable
+8. FFmpeg / FFprobe subprocess invocation uses argv list only — never shell.
+   All user-controllable parameters (codec, container, dimensions, duration,
+   bitrate) are validated against named-preset allowlists before reaching argv.
+9. Every FFmpeg / FFprobe invocation passes `-protocol_whitelist file,crypto,data`
+   and runs under hard caps for duration (`-t`), output size (`-fs`), CPU
+   time (`-timelimit`), wall-clock time (external), and threads (`-threads`).
+   Wall-clock kill is enforced externally; FFmpeg's `-timelimit` alone is
+   insufficient.
+10. Container metadata (title, artist, comment, embedded subtitles,
+    attachments) is treated as untrusted user-controlled content end-to-end.
+    Rindle stores it opaquely (truncated, control-chars stripped); adopters
+    MUST sanitize on render.
+11. HLS / DASH / playlist-style ingest is out of scope. Inputs accepted by
+    ingest are single-container files only (mp4, mov, webm, m4a, mp3, wav,
+    flac, ogg).
+12. Rindle declares an FFmpeg minimum version (≥ 6.0), capability-probes at
+    supervisor boot, and refuses to start with stale or missing FFmpeg when
+    video / audio profiles are configured. Adopters never silently inherit
+    FFmpeg CVE exposure.
+13. Temp files for transcoding live under a single sweepable root
+    (`Rindle.tmp/`); orphans are reaped by a scheduled `Rindle.Ops` worker.
+    No transcode is allowed without an enforceable parent-death subprocess
+    kill (MuonTrap on Linux; Rambo on macOS / Windows dev).
 
 ## Constraints
 
@@ -183,8 +237,38 @@ upload-surface expansion.
 | Multipart uploads belong in v1.1, not v1.0 | Presigned PUT was enough for the first release, but larger production workloads need a better direct-upload path | ✓ Validated in Phase 7 |
 | Install proof should be package-consumer-first | A passing repo CI lane is not the same as a fresh Phoenix adopter succeeding from the published artifact | ✓ Validated in Phase 9 |
 | First public Hex publish should be scoped narrowly and exercised before broader API cleanup | The release path is the remaining trust gap and should become routine before new surface-area bets | ✓ Validated in Phases 10–14 |
+| Public API surface and convenience helpers locked before 1.0 | Adoption pressure grows after first publish; renames carry semver cost | ✓ Validated in Phases 17–19 |
+| Video / audio ships via system FFmpeg subprocess (FFmpex + MuonTrap), not Membrane / NIFs / bundled provider | Out-of-process subprocess crashes retry cleanly via Oban; NIFs that wrap libavcodec turn FFmpeg CVEs into BEAM crashes; Membrane is the right tool for streaming pipelines, wrong tool for one-shot file derivatives; every peer lib (Active Storage, Shrine, Spatie, CarrierWave, Django) shells out to FFmpeg | Locked v1.4 |
+| Single `media_assets` + `:kind` discriminator (vs polymorphic / split tables) | Active Storage validates the single-table approach at scale; Elixir pattern matching shines on atom enums; operator queryability requires typed columns, not JSONB-only | Locked v1.4 |
+| Variants stay first-class DB rows with `:output_kind`; cross-kind derivatives (video → poster image, audio → waveform) are plain rows, no special cases | Day-2 ops queries (`WHERE state='failed' AND output_kind=:video`) stay SQL-native; Shrine's flat-derivatives JSON blob loses this | Locked v1.4 |
+| HLS / DASH / DRM / live streaming / dynamic per-request video transforms remain out of core scope | Streaming framework territory (Mux, Cloudflare Stream, Membrane); manifest ingest is an SSRF + RCE surface (CVE-2016-1897, CVE-2020-13904, multiple HackerOne reports) | Locked v1.4 |
+| Provider-delegated processors (Mux / Cloudflare Stream / Transloadit) ship as a documented custom-`Rindle.Processor` recipe, not as bundled adapters in core | Adopter contract stays narrow; adapter pluggability can land in v1.5+ if real adopter feedback requests it; v1.2 / v1.3 retro confirmed tight scope ships cleanly | Locked v1.4 |
+| `Rindle.Delivery.streaming_url/3` ships as a no-op delegate now to reserve the surface for HLS / Mux / CF Stream provider adapters | Active Storage's mistake was conflating progressive-blob URLs with manifest URLs; reserving the namespace now means adopter video templates won't churn when streaming providers land | Locked v1.4 |
 
 ## Historical Snapshot
+
+<details>
+<summary>v1.3 Live Publish & API Ergonomics (Phases 15–22) — SHIPPED 2026-05-02</summary>
+
+Milestone v1.3 executed Rindle's first real Hex.pm publish from the
+repository workflow and locked the public API surface before adoption
+pressure grew. Delivered: live `0.1.0` publish via the protected release
+workflow with `HEX_API_KEY`, post-publish HTTP probe for `hexdocs.pm/rindle`
+reachability, explicit `Rindle.Error` struct with typed reasons across
+constraints / variants / attachments, 100/100/100 `@doc` / `@spec` /
+`@moduledoc` coverage enforced via `mix doctor --raise`, ergonomic
+`attachment_for/2` / `ready_variants_for/1` plus `!`-bang variants on the
+public facade, tightened Dialyzer struct resolution, residual LiveView
+correctness fixes, and goal-backward retrospective metadata closure for
+Phases 15 and 16.
+
+Full artifacts live in:
+
+- [.planning/milestones/v1.3-ROADMAP.md](.planning/milestones/v1.3-ROADMAP.md)
+- [.planning/milestones/v1.3-REQUIREMENTS.md](.planning/milestones/v1.3-REQUIREMENTS.md)
+- [.planning/milestones/v1.3-MILESTONE-AUDIT.md](.planning/milestones/v1.3-MILESTONE-AUDIT.md)
+
+</details>
 
 <details>
 <summary>v1.2 First Hex Publish (Phases 10–14) — SHIPPED 2026-04-29</summary>
@@ -236,4 +320,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-01 — Phase 20 (v1.3 Verification & Metadata Closure) complete; PUBLISH-01/02/03 moved to Validated; only Phase 21 (VERIFY-02 reachability probe) and a follow-up LiveView fix phase remain before milestone close.*
+*Last updated: 2026-05-02 — v1.3 archived (PUBLISH-01/02/03, API-01/02/03/04, VERIFY-02 → Validated); v1.4 Video & Audio Wedge opens with AV-01..AV-06 active; security invariants extended to 13 (FFmpeg argv discipline, `-protocol_whitelist`, four-cap enforcement, untrusted container metadata, MKV/HLS rejection, MuonTrap-supervised subprocess); `Rindle.Processor.AV` locked over Membrane / NIFs / bundled providers based on cross-language peer-lib evidence (Active Storage, Shrine, Spatie, CarrierWave, Django).*

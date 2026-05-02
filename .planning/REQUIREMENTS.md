@@ -1,27 +1,324 @@
-# Requirements: Rindle v1.4
+# Requirements: Rindle v1.4 — Video & Audio Wedge
 
 **Defined:** 2026-05-02
 **Core Value:** Media, made durable.
+**Source:** `.planning/research/v1.4/SYNTHESIS.md` (synthesizes parallel research in `ADAPTER.md`, `LIFECYCLE.md`, `DELIVERY-DX.md`, `FOOTGUNS.md`).
 
 ## v1.4 Requirements
 
-- [ ] **REQ-01**: TBD
+### AV Foundations
+
+Foundation work that every later phase depends on. Capability vocabulary,
+subprocess discipline, security argv hygiene, resource caps, boot probe,
+preflight tooling.
+
+- [ ] **AV-01-01**: New `Rindle.Processor.Capabilities` module mirrors
+  `Rindle.Storage.Capabilities` (parallel namespace; no extension of storage
+  caps). Vocabulary includes `:image_resize`, `:image_format_convert`,
+  `:image_strip_metadata`, `:video_transcode`, `:video_frame_extract`,
+  `:video_thumbnail_strip`, `:video_clip`, `:audio_transcode`,
+  `:audio_normalize`, `:audio_waveform`.
+- [ ] **AV-01-02**: `Rindle.Processor` behaviour gains optional `capabilities/0`
+  and `supports?/1` callbacks (default `[]` and derived; existing custom
+  processors compile unchanged).
+- [ ] **AV-01-03**: `Rindle.Processor.AV.probe_capabilities/0` runs
+  `ffmpeg -version` and `ffmpeg -codecs` at supervisor boot, caches result in
+  `:persistent_term`, emits `[:rindle, :capability, :ffmpeg]` telemetry, and
+  fails fast with `Rindle.Error{reason: {:ffmpeg_not_found, ...}}` only when a
+  configured profile declares video / audio variants.
+- [ ] **AV-01-04**: `Rindle.Profile.validate_profile!/1` cross-checks declared
+  variants against processor capabilities at compile time and raises
+  `Rindle.Profile.IncompatibleVariant` with `mix phx.gen`-style fix guidance
+  (concrete shell commands, processor swap suggestions, profile edit hint).
+- [ ] **AV-01-05**: `mix rindle.doctor [Profile]` task validates profile against
+  registered processors and storage adapter; reports per-variant capability
+  status with PASS / FAIL / fix guidance; non-zero exit on FAIL.
+- [ ] **AV-01-06**: All FFmpeg / FFprobe subprocess invocations route through
+  a shared `Rindle.Processor.FFmpeg` shim that uses argv-array exec (FFmpex +
+  Rambo by default; opt-in MuonTrap with cgroup containment via
+  `config :rindle, :processor_runner, {:muontrap, opts}`). Direct
+  `System.shell/2`, `:os.cmd/1`, raw `Port.open/2`, or string-interpolated
+  argv are forbidden by code review and CI grep gate.
+- [ ] **AV-01-07**: Every FFmpeg / FFprobe invocation passes
+  `-protocol_whitelist file,crypto,data` ahead of `-i` and runs under hard
+  caps for duration (`-t`), output size (`-fs`), CPU time (`-timelimit`),
+  threads (`-threads`), and external wall-clock kill. Missing any cap is a
+  test-suite regression.
+- [ ] **AV-01-08**: FFmpeg minimum version `6.0` declared in package metadata
+  and runtime probe; older versions are refused at boot when video / audio
+  profiles are configured.
+- [ ] **AV-01-09**: `Rindle.Capability.report/0` returns a map of detected AV
+  capabilities (FFmpeg version, supported codecs, supported containers) for
+  inclusion in adopter admin pages and CI logs.
+- [ ] **AV-01-10**: Stock conservative resource defaults documented and
+  enforced: `max_duration_seconds: 7200`, `max_output_bytes: 500_000_000`,
+  `max_wall_seconds: 600`, `max_cpu_seconds: 300`, `ffmpeg_threads: 2`.
+  Profile-overridable; loosening is non-breaking, tightening would be.
+
+### Domain Model & DSL Extension
+
+Schema, FSMs, profile DSL, probe behaviour. Backward-compatible for all
+existing image-only adopters.
+
+- [ ] **AV-02-01**: One additive Ecto migration adds `kind` enum
+  (`:image | :video | :audio`, default `:image`) and typed probe columns
+  (`width`, `height`, `duration_ms`, `has_video_track`, `has_audio_track`)
+  to `media_assets`; adds `output_kind` enum
+  (`:image | :video | :audio | :waveform`, backfilled `:image`) plus
+  `duration_ms`, `width`, `height` to `media_variants`. New columns nullable
+  or default-`:image` so existing rows are valid pre-deploy.
+- [ ] **AV-02-02**: `Rindle.Domain.MediaAsset.changeset/2` validates kind /
+  field consistency (no `width` on `:audio`, no `duration_ms` on `:image`,
+  no `has_video_track` on `:image`).
+- [ ] **AV-02-03**: Asset FSM gains `transcoding` state (separate from
+  existing `processing`); transitions: `available → transcoding → ready`,
+  `transcoding → degraded`, `transcoding → quarantined`. All existing image
+  transitions preserved.
+- [ ] **AV-02-04**: Variant FSM gains `cancelled` terminal state for
+  `Rindle.cancel_processing/1`; existing 8 states preserved.
+- [ ] **AV-02-05**: `Rindle.Probe` behaviour mirrors `Rindle.Processor`:
+  `probe(source) :: {:ok, result()} | {:error, term()}`,
+  `accepts?(content_type) :: boolean()`. Result map standardizes
+  `{kind, width?, height?, duration_ms?, has_video_track?,
+  has_audio_track?, metadata?}`.
+- [ ] **AV-02-06**: Bundled `Rindle.Probe.Image` (existing libvips path) and
+  `Rindle.Probe.AVProbe` (FFprobe via FFmpex; declared as optional dep).
+- [ ] **AV-02-07**: Profile DSL accepts `:kind` discriminator on each variant
+  with per-kind NimbleOptions schemas (`@image_variant_schema`,
+  `@video_variant_schema`, `@audio_variant_schema`,
+  `@waveform_variant_schema`). Existing image-only profiles compile unchanged
+  (validator defaults `:kind` to `:image` when omitted).
+- [ ] **AV-02-08**: Profile DSL forbids cross-variant chaining (no
+  `from_variant:` references); variants depend only on the source asset.
+  Compile-time rejection.
+- [ ] **AV-02-09**: Probe step in `analyzing` lifecycle phase dispatches to
+  the correct `Rindle.Probe` adapter by detected MIME; failures send asset
+  to `quarantined` with `error_reason` set.
+- [ ] **AV-02-10**: Container metadata sanitization: titles / artist / comment
+  / tags truncated to 1024 bytes and stripped of control characters
+  (`\x00-\x1F` except `\t`) at ingest before storage in `metadata` JSONB.
+- [ ] **AV-02-11**: CI proves backward compat by running an existing
+  image-only profile (no `:kind` declared, all v1.0 syntax) through the v1.4
+  validator and lifecycle byte-for-byte.
+
+### Rindle.Processor.AV — Transcode, Poster, Normalize, Waveform
+
+The single transcoder module. Out-of-process FFmpeg via FFmpex; idempotent
+worker; orphan tempfile sweeper; concurrent-transcode race guard.
+
+- [ ] **AV-03-01**: `Rindle.Processor.AV` implements `Rindle.Processor` plus
+  `capabilities/0` returning `[:video_transcode, :video_frame_extract,
+  :video_thumbnail_strip, :audio_transcode, :audio_normalize, :audio_waveform]`.
+  Single module covers both video and audio (cross-kind workflows like
+  video → audio extraction concentrated in one place).
+- [ ] **AV-03-02**: H.264 + AAC mp4 transcode with named-preset codec / bitrate
+  / dimension options validated against allowlists (no raw `filter_complex`,
+  no raw `-vf`, no user-controllable codec strings). Default web preset:
+  720p, CRF 23, AAC 128k, `+faststart`.
+- [ ] **AV-03-03**: Scene-detected poster frame extraction following Rails
+  Active Storage's algorithm (first I-frame after a scene change with `>0.4`
+  threshold; fallback to first I-frame; fallback to first frame). Output as
+  jpeg / webp via existing image processor pipeline.
+- [ ] **AV-03-04**: Thumbnail strip (sprite sheet of N frames) for video
+  scrubbing UIs; configurable frame count and dimensions.
+- [ ] **AV-03-05**: AAC m4a and MP3 audio transcode at named-preset bitrates
+  with optional channel reduction.
+- [ ] **AV-03-06**: EBU R128 single-pass audio normalization
+  (`-af loudnorm=I=-16:TP=-1.5:LRA=11`); two-pass available via
+  `two_pass: true` variant option for high-fidelity workflows.
+- [ ] **AV-03-07**: JSON waveform peaks (`{length, sample_rate, peaks: [...]}`)
+  via FFmpeg + jq pipeline or BBC `audiowaveform` shell; default 1000 peaks,
+  configurable.
+- [ ] **AV-03-08**: Worker is fully idempotent: same `(asset_id, variant_name)`
+  invocation produces same output. Variant `storage_key` is deterministic
+  from `recipe_digest`; partial-output overwrite is safe.
+- [ ] **AV-03-09**: Output post-condition probe: after FFmpeg exits 0, run
+  `Rindle.Probe.AVProbe` on the output and require `output_duration_ms`
+  within 1% of source `duration_ms` (catches FFmpeg's silent truncation
+  failure mode documented in Jellyfin issue #13668). Mismatch → variant
+  `failed`.
+- [ ] **AV-03-10**: Atomic-promote check on flip-to-`ready`: reload asset,
+  compare `storage_key` and `recipe_digest`, abort if changed (handles the
+  re-upload-during-transcode race; Shrine `AttachmentChanged` equivalent).
+- [ ] **AV-03-11**: Oban worker uses dedicated `:rindle_media` queue
+  (default concurrency 2, image queue separate). Per-worker `timeout/1`
+  callback (default 30 min for video, 5 min for audio); profile-overridable.
+  `unique` constraint on `(worker, asset_id, variant_name)` for active
+  states (matches existing `VariantMaintenance` pattern).
+- [ ] **AV-03-12**: All temp files under `Rindle.tmp/<uuid>/` prefix; single
+  sweepable root.
+- [ ] **AV-03-13**: `Rindle.Ops.SweepOrphanedTempFiles` Oban worker runs hourly,
+  removes anything in `Rindle.tmp/` older than 4h (configurable). Telemetry
+  on orphan count so operators see worker-crash signals.
+- [ ] **AV-03-14**: Disk-space precheck before enqueuing a transcode: refuse
+  enqueue if free < `2 × max_output_bytes` for the profile.
+- [ ] **AV-03-15**: Ephemeral runtime detection: refuse video transcodes when
+  `LAMBDA_TASK_ROOT` / `VERCEL` / similar env vars detected; image variants
+  unaffected. Logged warning at boot.
+- [ ] **AV-03-16**: Transcode telemetry events (`[:rindle, :media, :transcode,
+  :start | :stop | :exception]`, `[:rindle, :variant, :progress]`, etc.)
+  with documented measurement / metadata schemas.
+- [ ] **AV-03-17**: Variant transcode emits PubSub progress on
+  `"rindle:variant:#{variant_id}"` topic at ≤ 2 events/sec (rate-limited);
+  rolls up to `"rindle:asset:#{asset_id}"`.
+- [ ] **AV-03-18**: Stock 720p H.264 + AAC + scene-detected poster preset
+  shipped as `Rindle.Profile.Presets.Web` (or equivalent) so adopters have a
+  real demo, not just primitives.
+
+### Delivery Surface
+
+Production stays signed-redirect. Add range-aware Local dev plug. Reserve
+streaming-URL surface for post-v1.4 provider adapters.
+
+- [ ] **AV-04-01**: `Rindle.Delivery.streaming_url(profile, key, opts)` ships
+  as a no-op delegate to `url/3` returning
+  `{:ok, %{url, kind: :progressive, mime}}`. Adopter `<video>` / `<audio>`
+  templates calling `streaming_url/3` work unchanged when Mux / Cloudflare
+  Stream provider adapters land post-v1.4.
+- [ ] **AV-04-02**: `Rindle.Streaming.Provider` behaviour reserved
+  (`streaming_url/3`, `capabilities/0`) for v2.0+ providers; no
+  implementation in v1.4 core.
+- [ ] **AV-04-03**: `Rindle.Delivery.LocalPlug` provides range-aware delivery
+  for `Rindle.Storage.Local`: signed-token verification (HMAC over
+  `key + expiry + actor_subject`), single-range `Range:` header support via
+  `Plug.Conn.send_file/5` (OS `sendfile(2)`), multi-range and unparseable
+  Range fall back to 200 + full body (RFC 7233 graceful degradation).
+- [ ] **AV-04-04**: `Rindle.Delivery.LocalPlug` refuses to mount unless the
+  configured storage adapter is `Rindle.Storage.Local`; fails fast at adopter
+  boot, not at first request.
+- [ ] **AV-04-05**: `Rindle.Delivery.LocalPlug` `@moduledoc` clearly marks the
+  plug as dev-parity-only; production at adopter risk with documented
+  caveats (no scaling beyond OS `sendfile(2)`, no CDN fronting).
+- [ ] **AV-04-06**: `[:rindle, :delivery, :streaming, :resolved]` and
+  `[:rindle, :delivery, :range_request]` telemetry events ship with
+  documented measurement / metadata schemas.
+- [ ] **AV-04-07**: Per-content-type signed-URL TTL guidance documented:
+  image 15 min (existing default), audio 1 h, video VOD 2 h, long-form
+  video → adopter implements token refresh hook on player side.
+- [ ] **AV-04-08**: `Content-Disposition: attachment; filename*=UTF-8''<...>`
+  (RFC 5987) for sanitized download filenames; never raw container metadata.
+
+### HTML Helpers + LiveView Integration
+
+Phoenix-friendly `<video>` and `<audio>` helpers; PubSub-driven progress UX;
+transcode cancellation API.
+
+- [ ] **AV-05-01**: `Rindle.HTML.video_tag(profile, asset, opts)` mirrors
+  existing `picture_tag/3` shape: `(profile, asset, opts)`. Codec-aware
+  `<source>` ordering preserved from `:variants` opt; DSL-resolved poster
+  via `:poster` variant atom; `preload="metadata"` default; `:tracks`
+  keyword reserved for v1.5 captions; pass-through HTML attrs.
+- [ ] **AV-05-02**: `Rindle.HTML.audio_tag(profile, asset, opts)` mirrors
+  `video_tag/3` minus `:poster`; defaults `controls: true`,
+  `preload: :metadata`.
+- [ ] **AV-05-03**: Stale or non-ready variants are skipped from `<source>`
+  list; fallback to original asset source preserved (matches existing
+  `picture_tag/3` semantics).
+- [ ] **AV-05-04**: `Rindle.LiveView.subscribe(:variant | :asset |
+  :upload_session, id)` returns subscription topic; adopter handles
+  `{:rindle_event, type, payload}` in `handle_info/2`. Mirror
+  `unsubscribe/1`.
+- [ ] **AV-05-05**: PubSub event vocabulary ships:
+  `:variant_started`, `:variant_progress` (rate-limited ≤ 2/sec),
+  `:variant_ready`, `:variant_failed`, `:variant_cancelled`. Documented
+  payload schema for each.
+- [ ] **AV-05-06**: `Rindle.cancel_processing(asset_id)` cancels queued /
+  executing Oban jobs for the asset's variants, flips affected variants to
+  `cancelled`, broadcasts `:variant_cancelled` events. Returns
+  `:ok | {:error, :not_processing}`.
+- [ ] **AV-05-07**: `Rindle.Error.message/1` extends to cover the 8 locked
+  v1.4 error variants (`:processor_capability_missing`, `:ffmpeg_not_found`,
+  `:capability_drift`, `:variant_source_not_found`, `:unsupported_codec`,
+  `:streaming_not_configured`, `:variant_processing_cancelled`,
+  `:range_unparseable`); all messages self-explain the fix in
+  `mix phx.gen` style.
+
+### Onboarding, Docs, CI Proof
+
+Per-platform install paths, CI round-trip, parity gates.
+
+- [ ] **AV-06-01**: `RUNNING.md` (or equivalent docs page) documents per-
+  platform FFmpeg install paths: macOS (Homebrew), Ubuntu / Debian (apt),
+  Alpine (apk), Fly.io (Dockerfile snippet), Heroku (Aptfile), Render
+  (Dockerfile), GitHub Actions (`FedericoCarboni/setup-ffmpeg` for pinned
+  version).
+- [ ] **AV-06-02**: README / getting-started guide teaches the smallest
+  install path for video: `mix deps.get`, system FFmpeg install, declare
+  one `:kind => :video` variant, run `mix rindle.doctor`. Copy-pasteable.
+- [ ] **AV-06-03**: CI runs `mix rindle.doctor` against every example /
+  fixture profile and fails the build on any FAIL.
+- [ ] **AV-06-04**: CI exercises a real-world smartphone-source video
+  fixture (varying codec, container, rotation) through the full lifecycle:
+  upload → probe → transcode → variant ready → poster → signed URL.
+- [ ] **AV-06-05**: Capability-mismatch error vocabulary frozen with an
+  ExUnit parity gate (assert exact message text and reason atom for the 8
+  locked variants); prevents drift between docs and runtime.
+- [ ] **AV-06-06**: Stock `Rindle.Profile.Presets.Web` profile exercised
+  end-to-end in CI as the canonical demo.
+- [ ] **AV-06-07**: Telemetry event names verified against documented
+  conventions (existing v1.0 telemetry contract preserved; new events use
+  `:start / :stop / :exception` triplet pattern).
+- [ ] **AV-06-08**: Anti-pattern grep gate in CI: fail the build if any
+  invocation of `System.shell/2`, `:os.cmd/1`, raw `Port.open/2` for
+  FFmpeg / FFprobe, or string-interpolated argv pattern is added under
+  `lib/rindle/`.
+
+## Future Requirements
+
+Deferred until adopter feedback or downstream milestone signals.
+
+- Provider-delegated processor adapters (Mux, Cloudflare Stream, Transloadit)
+  bundled in core. v1.4 ships docs only; package adapters land if real
+  adopter feedback requests them.
+- Adaptive bitrate (ABR) ladder + HLS / DASH manifest authoring. Likely a
+  dedicated v2.0 streaming milestone.
+- DRM (Widevine, FairPlay, PlayReady) — provider-delegated only; never core.
+- Live streaming ingest (RTMP, WebRTC). Membrane Framework territory.
+- Subtitle / caption `<track>` elements rendered by `video_tag/3`; the
+  `:tracks` keyword is reserved in v1.4 helper signatures so v1.5 doesn't
+  break the helper API.
+- Hardware-accelerated transcode (NVENC / QuickSync). Adopter ops-specific;
+  document config flag without default.
+- Animated GIF / WebP from video derivatives.
+- Spectrogram / audio fingerprinting (Chromaprint).
+- Picture-element responsive posters (native `<video poster>` is single URL).
+- Frame-accurate trimming / NLE primitives.
+- GCS adapter resumable upload flow (carry-over from v1.1; deferred).
+- tus / resumable upload protocol (carry-over from v1.1; deferred).
 
 ## Out of Scope
 
 | Feature | Reason |
-|---------|--------|
-| Admin LiveView UI | Operator workflows remain code/telemetry/task driven; out of scope until v2+ |
-| FFmpeg/Membrane adapters | Image-first remains the wedge; video/audio follow after host-app/runtime boundaries are solid |
-| PDF preview adapter | Out-of-scope until sandboxing posture is documented |
-| Full HLS/DASH/DRM streaming | Rindle is a lifecycle library, not a media platform |
-| Unsigned dynamic transformation API | DoS/cost vector; named presets and signed transforms only |
+|---|---|
+| HLS playlists (`.m3u8`), DASH (`.mpd`), playlist-style ingest | Manifest ingest is an SSRF + RCE surface (CVE-2016-1897, CVE-2020-13904, multiple HackerOne reports). Postpone behind a manifest-sanitizer milestone. |
+| Adaptive bitrate (ABR) ladder | Multi-rendition + segmenter + manifest authoring — needs a `Rindle.RenditionSet` concept. v2.0 streaming milestone. |
+| DRM (Widevine, FairPlay, PlayReady) | Cert provisioning, key servers — full platform territory. Provider-delegated only, never core. |
+| Live streaming (RTMP / WebRTC ingest) | Different domain (streaming framework, not lifecycle library). Membrane Framework territory. |
+| Subtitle / caption burn-in, watermarking | Adopter-specific; custom processor recipe. CarrierWave-video footgun: opaque watermark errors. |
+| Hardware-accelerated transcode (NVENC / QSV) | Adopter ops / hardware-specific; document config flag, no default. |
+| Animated GIF / WebP from video | Edge case; defer to v1.5+ if asked. |
+| Spectrogram, fingerprinting (Chromaprint) | Specialty; custom processor. |
+| Frame-accurate trimming / non-linear edit primitives | Out of "lifecycle library" scope. |
+| MKV ingest (general) | Container's attachment mechanism is an exfiltration vector (Jellyfin GHSA-866x-wj5j-2vf4 class). WebM (Matroska subset) only on a strict subset. |
+| Raw AAC ingest | Has no proper container magic; require m4a container. |
+| Raw `filter_complex` / arbitrary FFmpeg filter graphs in adopter API | Argument-injection class. Named presets compose pre-validated primitives only. |
+| Bundled provider adapters (Mux, CF Stream, Transloadit) in core | Ship doc-only example as custom-`Rindle.Processor` recipe. Adapter pluggability for v1.5+ if feedback requests it. |
+| Bundled precompiled FFmpeg (vendored) | License complexity (x264 GPL); large per-platform release matrix. Document install path instead. |
+| Membrane Framework integration | Right tool for streaming pipelines, wrong shape for one-shot file derivatives. |
+| Broadway alongside Oban for video pipelines | Two job systems is worst of both. Oban queue concurrency suffices for upload-driven workloads. |
+| Picture-element responsive posters with srcset | Native `<video poster>` is single URL; niche need; adopter hand-rolls. |
+| Dynamic per-request video transformation API | DoS / cost vector. Named-preset transcoded outputs serve the 80% case; dynamic per-request needs Mux / Cloudinary. |
 
 ## Traceability
 
 | Requirement | Phase | Status |
-|-------------|-------|--------|
-| REQ-01 | TBD | Pending |
+|---|---|---|
+| AV-01-01..10 | Phase 23 (AV Foundations) | Pending |
+| AV-02-01..11 | Phase 24 (Domain Model & DSL) | Pending |
+| AV-03-01..18 | Phase 25 (Rindle.Processor.AV) | Pending |
+| AV-04-01..08 | Phase 26 (Delivery Surface) | Pending |
+| AV-05-01..07 | Phase 27 (HTML + LiveView) | Pending |
+| AV-06-01..08 | Phase 28 (Onboarding + CI) | Pending |
 
 ---
-*Requirements defined: 2026-05-02*
+*Requirements defined: 2026-05-02. Synthesized from `.planning/research/v1.4/SYNTHESIS.md`.*
