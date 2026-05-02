@@ -81,6 +81,7 @@ Run this sequence on every release after the inaugural publish:
    - `Dry run Hex publish`
    - `Publish to Hex.pm (live)`
    - `Wait for Hex.pm index (post-publish)`
+   - `Verify HexDocs reachability`
    - `Verify public Hex.pm artifact`
 3. Use the recovery-only dispatch lane only when you must rerun the trusted path from an exact immutable ref.
 
@@ -94,14 +95,18 @@ bash scripts/assert_version_match.sh
 bash scripts/hex_release_exists.sh
 mix hex.publish --dry-run --yes
 mix hex.publish --yes
+curl --fail --location --silent --show-error "https://hexdocs.pm/rindle/$VERSION"
 bash scripts/public_smoke.sh
 ```
 
 The repo's `package-consumer` lane shifts the release contract left before
 publish time. The release workflow waits for `ci.yml` on the exact release SHA
 to finish green before entering the protected publish lane. After live publish,
-`Verify public Hex.pm artifact` proves the package from a fresh runner with
-`HEX_API_KEY` cleared.
+`Wait for Hex.pm index (post-publish)` and `Verify HexDocs reachability` poll
+for up to 5 minutes with 15-second retries. The HexDocs probe follows
+redirects to the final `2xx` response for
+`https://hexdocs.pm/rindle/$VERSION`. `Verify public Hex.pm artifact` then
+proves the package from a fresh runner with `HEX_API_KEY` cleared.
 
 Do not use `--replace` in CI. If you need `mix hex.publish --replace --yes`,
 run it locally during the grace window with deliberate human review. For
@@ -130,8 +135,9 @@ After the first publish:
 After every publish:
 
 1. Confirm the `Release` workflow finished successfully.
-2. Confirm `Verify public Hex.pm artifact` passed.
-3. Update this runbook when workflow behavior changes.
+2. Confirm `Verify HexDocs reachability` passed for `https://hexdocs.pm/rindle/$VERSION`.
+3. Confirm `Verify public Hex.pm artifact` passed.
+4. Update this runbook when workflow behavior changes.
 
 ## Rollback and Revert
 
