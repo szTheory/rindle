@@ -460,6 +460,23 @@ jobs:
           done
           echo "Hex.pm indexed rindle $VERSION."
 
+      - name: Verify HexDocs reachability
+        env:
+          VERSION: ${{ needs.publish.outputs.release_version }}
+        run: |
+          set -euo pipefail
+          URL="https://hexdocs.pm/rindle/$VERSION"
+          DEADLINE=$(( SECONDS + 300 ))
+          until curl --fail --location --silent --show-error "$URL" >/dev/null; do
+            if [ "$SECONDS" -ge "$DEADLINE" ]; then
+              echo "Release blocked: HexDocs did not serve rindle $VERSION within 5 minutes."
+              exit 1
+            fi
+            echo "Waiting for HexDocs to serve rindle $VERSION..."
+            sleep 15
+          done
+          echo "HexDocs served rindle $VERSION."
+
       - name: Verify public Hex.pm artifact
         env:
           HEX_API_KEY: ""
