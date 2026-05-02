@@ -1425,7 +1425,7 @@ the per-phase decisions in `24-CONTEXT.md` (D-01 through D-23). Specifically:
 | A7 | The v1.3 `:thumb` digest snapshot value (`@v13_thumb_digest`) MUST be captured in plan 1 task 1 BEFORE any validator.ex edits. The plan must include this as a discrete step (`mix run -e 'IO.puts(...)'` on a clean v1.3 checkout, capture into the test file). | Pattern 2 | If captured AFTER validator changes, the snapshot is whatever the new validator produces — not a regression guard. Plan ordering is load-bearing. |
 | A8 | Probe step downloads source via the existing storage adapter (same primitive `ProcessVariant` uses at `lib/rindle/workers/process_variant.ex:85`). The exact storage download API may need a small extraction/refactor if `ProcessVariant` does it inline today. | Pattern 6 | If the download primitive is hard-coded inside ProcessVariant, the planner extracts it into a shared helper; this is a small refactor task. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should `:kind` ever appear in the validated variant spec for `:video` /
    `:audio` / `:waveform`?** Pattern 1 sets `maybe_put_kind/3` to persist
