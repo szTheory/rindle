@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Video & Audio Wedge
 status: planning
-stopped_at: v1.4 milestone scope locked; awaiting roadmap
-last_updated: "2026-05-02T03:00:00.000Z"
+stopped_at: v1.4 roadmap authored (Phases 23–28); awaiting /gsd-plan-phase 23
+last_updated: "2026-05-02T03:30:00.000Z"
 last_activity: 2026-05-02
 progress:
   total_phases: 6
   completed_phases: 0
-  total_plans: 0
+  total_plans: 26
   completed_plans: 0
   percent: 0
 ---
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-02)
 
 **Core value:** Media, made durable.
-**Current focus:** v1.4 Video & Audio Wedge — locked scope, awaiting roadmap
+**Current focus:** v1.4 Video & Audio Wedge — roadmap authored, awaiting plan-phase
 
 ## Current Position
 
 Phase: 23 (AV Foundations — pending plan)
 Plan: 0 of 0
-Status: Awaiting roadmap
-Last activity: 2026-05-02 — v1.4 scope locked from parallel research synthesis
+Status: Awaiting plan-phase
+Last activity: 2026-05-02 — v1.4 roadmap authored from synthesis lock (Phases 23–28; 26 plans estimated)
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -42,14 +42,14 @@ Progress: [░░░░░░░░░░] 0%
 
 **By Phase:**
 
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
-| 23 (AV Foundations) | 0 | - | - |
-| 24 (Domain Model & DSL) | 0 | - | - |
-| 25 (Rindle.Processor.AV) | 0 | - | - |
-| 26 (Delivery Surface) | 0 | - | - |
-| 27 (HTML + LiveView) | 0 | - | - |
-| 28 (Onboarding + CI) | 0 | - | - |
+| Phase | Plans (est.) | Total | Avg/Plan |
+|-------|--------------|-------|----------|
+| 23 (AV Foundations) | 4 | - | - |
+| 24 (Domain Model & DSL) | 5 | - | - |
+| 25 (Rindle.Processor.AV) | 6 | - | - |
+| 26 (Delivery Surface) | 3 | - | - |
+| 27 (HTML + LiveView) | 4 | - | - |
+| 28 (Onboarding + CI) | 4 | - | - |
 
 ## Accumulated Context
 
@@ -64,6 +64,7 @@ Recent decisions affecting current work (v1.4 open):
 - `Rindle.Delivery.streaming_url/3` reserved as no-op delegate so future Mux / Cloudflare Stream provider adapters land without template churn.
 - Stock 720p H.264 + AAC + scene poster preset ships in v1.4 so adopters get a real demo, not just primitives.
 - Resource defaults locked conservative: max_duration 7200s, max_output 500MB, max_wall 600s, max_cpu 300s, ffmpeg_threads 2 (loosening per profile is non-breaking; tightening later would be).
+- Phase ordering locked: 23 (foundations) blocks 24–28; 24 (domain model) blocks 25/26/27; 25/26/27 have minimal coupling between them; 28 (onboarding + CI proof) lands last.
 
 ### Pending Todos
 
@@ -78,8 +79,8 @@ Recent decisions affecting current work (v1.4 open):
 
 ## Session Continuity
 
-Last session: 2026-05-02T03:00:00.000Z
-Stopped at: v1.4 milestone scope locked from parallel research synthesis (.planning/research/v1.4/SYNTHESIS.md); awaiting roadmap
+Last session: 2026-05-02T03:30:00.000Z
+Stopped at: v1.4 ROADMAP authored (Phases 23–28; 26 plans estimated; 100% AV-* requirement coverage); awaiting `/gsd-plan-phase 23`
 Resume file: None
 
 ### Decision-Making Preference
@@ -97,6 +98,6 @@ Resume file: None
 
 **Last Completed Milestone:** v1.3 (Phases 15–22) — archived 2026-05-02
 
-**Next Step:** Spawn `gsd-roadmapper` to author `.planning/ROADMAP.md` for v1.4 (Phases 23–28).
+**Next Step:** Run `/gsd-plan-phase 23` to author Phase 23 (AV Foundations) plan.
 
 **Planned Phase:** 23 (AV Foundations)
