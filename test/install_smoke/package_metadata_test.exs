@@ -21,12 +21,14 @@ defmodule Rindle.InstallSmoke.PackageMetadataTest do
   @prohibited_paths ["_build", ".planning", "test", ".github", "coveralls.json"]
 
   setup_all do
-    package_root = build_package!()
+    {package_root, cleanup_root} = build_package!()
     metadata_path = Path.join(package_root, "hex_metadata.config")
 
-    on_exit(fn ->
-      File.rm_rf(Path.dirname(package_root))
-    end)
+    if cleanup_root do
+      on_exit(fn ->
+        File.rm_rf(cleanup_root)
+      end)
+    end
 
     {:ok,
      %{
@@ -122,6 +124,7 @@ defmodule Rindle.InstallSmoke.PackageMetadataTest do
     public_smoke_script: public_smoke_script
   } do
     for script <- [install_smoke_script, public_smoke_script] do
+      assert script =~ "export RINDLE_MINIO_RESET_BUCKET=1"
       assert script =~ "bash \"$SCRIPT_DIR/ensure_minio.sh\""
       assert script =~ "generated_app_smoke_test.exs --include minio"
     end
@@ -245,7 +248,7 @@ defmodule Rindle.InstallSmoke.PackageMetadataTest do
     case System.get_env("RINDLE_INSTALL_SMOKE_PACKAGE_ROOT") do
       package_root when is_binary(package_root) and package_root != "" ->
         assert File.exists?(package_root)
-        package_root
+        {package_root, nil}
 
       _ ->
         output_root =
@@ -268,7 +271,7 @@ defmodule Rindle.InstallSmoke.PackageMetadataTest do
         assert output =~ "Building rindle"
         assert output =~ "Saved to"
 
-        package_root
+        {package_root, output_root}
     end
   end
 

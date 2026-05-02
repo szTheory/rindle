@@ -239,17 +239,15 @@ assert workflow =~ "name: Verify public Hex.pm artifact"
 |---|-------|---------|---------------|
 | A1 | “Check raw URL status only” is the previously assumed/naive approach worth comparing against. [ASSUMED] | State of the Art | Low; it does not affect the recommended implementation, which is verified independently. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Should the exact step name include `hexdocs.pm` or stay shorter as `Verify HexDocs reachability`?** [VERIFIED: .planning/phases/21-verify-02-hexdocs-reachability-probe/21-CONTEXT.md]
-   - What we know: parity tests assert literal step names today, so the name should be stable and concise. [VERIFIED: test/install_smoke/release_docs_parity_test.exs]
-   - What's unclear: naming preference only; functionality is unaffected. [VERIFIED: .planning/phases/21-verify-02-hexdocs-reachability-probe/21-CONTEXT.md]
-   - Recommendation: use `Verify HexDocs reachability` unless the planner wants the host spelled out for log clarity. [VERIFIED: test/install_smoke/release_docs_parity_test.exs]
+1. **RESOLVED: Use the shorter step name `Verify HexDocs reachability`.** [VERIFIED: .planning/phases/21-verify-02-hexdocs-reachability-probe/21-CONTEXT.md]
+   - Reason: parity tests already assert literal step names, so the name should stay stable, concise, and readable in workflow logs. [VERIFIED: test/install_smoke/release_docs_parity_test.exs]
+   - Outcome: the workflow, runbook, and parity tests should all mirror `Verify HexDocs reachability` exactly. [VERIFIED: test/install_smoke/release_docs_parity_test.exs]
 
-2. **Should `package_metadata_test.exs` assert the full `curl` command or only the new step name plus ordering?** [VERIFIED: test/install_smoke/package_metadata_test.exs]
-   - What we know: that file already checks literal workflow snippets such as `mix hex.info rindle "$VERSION"` and `bash scripts/public_smoke.sh "$VERSION"`. [VERIFIED: test/install_smoke/package_metadata_test.exs]
-   - What's unclear: whether to keep the assertion resilient to harmless flag reordering. [VERIFIED: test/install_smoke/package_metadata_test.exs]
-   - Recommendation: assert step name, `curl`, `--fail`, `--location`, and URL shape as separate substrings instead of one giant exact line. [VERIFIED: test/install_smoke/package_metadata_test.exs] [CITED: https://curl.se/docs/manpage.html]
+2. **RESOLVED: In `package_metadata_test.exs`, assert distinctive probe substrings rather than one giant exact `curl` line.** [VERIFIED: test/install_smoke/package_metadata_test.exs]
+   - Reason: the file already checks literal workflow snippets, but asserting `curl`, `--fail`, `--location`, the URL shape, ordering, and retry-cadence substrings separately stays robust to harmless flag reordering while still locking the contract. [VERIFIED: test/install_smoke/package_metadata_test.exs] [CITED: https://curl.se/docs/manpage.html]
+   - Outcome: the workflow wiring test should assert the new step name, placement between index wait and `public_smoke.sh`, and the bounded retry markers (`DEADLINE=$(( SECONDS + 300 ))`, `sleep 15`, timeout message). [VERIFIED: .github/workflows/release.yml]
 
 ## Environment Availability
 

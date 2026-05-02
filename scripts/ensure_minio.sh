@@ -5,6 +5,7 @@ MINIO_URL="${RINDLE_MINIO_URL:-http://localhost:9000}"
 MINIO_BUCKET="${RINDLE_MINIO_BUCKET:-rindle-test}"
 MINIO_ACCESS_KEY="${RINDLE_MINIO_ACCESS_KEY:-minioadmin}"
 MINIO_SECRET_KEY="${RINDLE_MINIO_SECRET_KEY:-minioadmin}"
+MINIO_RESET_BUCKET="${RINDLE_MINIO_RESET_BUCKET:-}"
 
 healthcheck_url() {
   printf '%s/minio/health/ready' "${MINIO_URL%/}"
@@ -102,6 +103,10 @@ ensure_binary() {
 ensure_bucket() {
   "$MC_BIN" alias set local "$MINIO_URL" "$MINIO_ACCESS_KEY" "$MINIO_SECRET_KEY" >/dev/null
   "$MC_BIN" mb --ignore-existing "local/$MINIO_BUCKET" >/dev/null
+
+  if [ -n "$MINIO_RESET_BUCKET" ]; then
+    "$MC_BIN" rm --recursive --force "local/$MINIO_BUCKET" >/dev/null 2>&1 || true
+  fi
 }
 
 start_embedded_minio() {

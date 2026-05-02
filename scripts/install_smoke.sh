@@ -19,6 +19,7 @@ if [ -z "${RINDLE_INSTALL_SMOKE_PACKAGE_ROOT:-}" ]; then
   mix hex.build --unpack --output "$PACKAGE_ROOT"
 fi
 
+export RINDLE_MINIO_RESET_BUCKET=1
 bash "$SCRIPT_DIR/ensure_minio.sh"
 
 if [ ! -d "$PACKAGE_ROOT" ]; then

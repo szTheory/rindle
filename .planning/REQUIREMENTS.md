@@ -14,7 +14,7 @@
 ### Publish Verification
 
 - [x] **VERIFY-01**: Adopter can add `{:rindle, "~> 0.1.0"}` to a fresh Phoenix app's `mix.exs` and have `mix deps.get` resolve from the published Hex.pm package without access to the Rindle source repo
-- [ ] **VERIFY-02**: Adopter can browse `hexdocs.pm/rindle` and find module documentation immediately after publish completes
+- [x] **VERIFY-02**: Adopter can browse `hexdocs.pm/rindle` and find module documentation immediately after publish completes
 
 ### Routine Release
 
@@ -80,7 +80,7 @@
 | PUBLISH-02 | Phase 15 → Phase 20 (closure) | Complete |
 | PUBLISH-03 | Phase 16 → Phase 20 (closure) | Complete |
 | VERIFY-01 | Phase 16 → Phase 20 (closure) | Complete |
-| VERIFY-02 | Phase 16 → Phase 21 (closure) | Pending |
+| VERIFY-02 | Phase 16 → Phase 21 (closure) | Complete |
 | RELEASE-01 | Phase 16 → Phase 20 (closure) | Complete |
 | RELEASE-02 | Phase 16 → Phase 20 (closure) | Complete |
 | API-01 | Phase 17 | Complete |
@@ -99,8 +99,8 @@
 - v1.3 requirements: 18 total
 - Mapped to phases: 18/18 ✓
 - Unmapped: 0 ✓
-- Pending closure: 1 (VERIFY-02 routed to Phase 21 hexdocs reachability probe per `.planning/v1.3-MILESTONE-AUDIT.md` G4 — Phase 20 closed PUBLISH-01/02/03, VERIFY-01, RELEASE-01/02 process gaps and API-06/07/08 traceability flips on 2026-05-01)
+- Pending closure: 0
 
 ---
 *Requirements defined: 2026-04-29*
-*Last updated: 2026-05-01 — Phase 20 closed v1.3 process/metadata gaps; VERIFY-02 routed to Phase 21*
+*Last updated: 2026-05-02 — Phase 21 closed VERIFY-02 and completed v1.3 requirement traceability*

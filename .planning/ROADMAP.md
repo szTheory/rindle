@@ -51,7 +51,7 @@ Full archive: [.planning/milestones/v1.0-ROADMAP.md](.planning/milestones/v1.0-R
 - [ ] **Phase 18: Documentation and Typespec Coverage** — Add @doc/@spec to all intentionally public surface and enforce coverage thresholds via mix doctor in CI
 - [x] **Phase 19: Convenience API Additions** — Add helper functions and bang variants that adopters need on the public surface
 - [x] **Phase 20: v1.3 Verification & Metadata Closure** — Produce missing VERIFICATION.md artifacts for Phases 15 and 16, reconcile SUMMARY/REQUIREMENTS metadata, commit Phase 17 LiveView corrective patch, and teach Phase 19 helpers in onboarding prose
-- [ ] **Phase 21: VERIFY-02 hexdocs.pm Reachability Probe** — Add a first-party HTTP probe of `https://hexdocs.pm/rindle/<version>` to the post-publish public_verify job and a parity assertion test
+- [x] **Phase 21: VERIFY-02 hexdocs.pm Reachability Probe** — Add a first-party HTTP probe of `https://hexdocs.pm/rindle/<version>` to the post-publish public_verify job and a parity assertion test (completed 2026-05-02)
 - [x] **Phase 22: LiveView Corrective Fixes** — Address CR-01/CR-02/WR-01..WR-05 + WR-04 onboarding nil-deref from Phase 20 code review (completed 2026-05-01)
 
 ## Phase Details
@@ -161,7 +161,9 @@ Plans:
   1. `.github/workflows/release.yml` post-publish public_verify job issues an HTTP request against `https://hexdocs.pm/rindle/<version>` and fails the workflow on non-2xx response, with a bounded retry/backoff window aligned with hex.info index propagation
   2. A test asserts the probe step exists and is correctly wired (e.g., parity assertion in `test/install_smoke/release_docs_parity_test.exs` or a dedicated workflow-level test)
   3. The probe documentation is reflected in `guides/release_publish.md` so the runbook deviation history stays synchronized
-**Plans**: TBD — to be drafted by `/gsd-plan-phase 21`
+**Plans**: 1 plan
+Plans:
+- [x] 21-01-PLAN.md — Add the bounded HexDocs public_verify probe, lock it with install-smoke parity tests, and sync the release runbook
 **UI hint**: no
 
 ### Phase 22: LiveView Corrective Fixes
@@ -191,5 +193,5 @@ Plans:
 | 18. Documentation and Typespec Coverage | v1.3 | 0/5 | Not started | - |
 | 19. Convenience API Additions | v1.3 | 2/2 | Complete    | 2026-05-01 |
 | 20. v1.3 Verification & Metadata Closure | v1.3 | 3/3 | Complete    | 2026-05-01 |
-| 21. VERIFY-02 hexdocs.pm Reachability Probe | v1.3 | 0/0 | Not started | - |
+| 21. VERIFY-02 hexdocs.pm Reachability Probe | v1.3 | 1/1 | Complete   | 2026-05-02 |
 | 22. LiveView Corrective Fixes | v1.3 | 1/1 | Complete    | 2026-05-01 |
