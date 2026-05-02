@@ -156,9 +156,9 @@ defmodule Rindle.InstallSmoke.PackageMetadataTest do
     assert workflow =~ "sleep 15"
     assert workflow =~ ~s(bash scripts/public_smoke.sh "$VERSION")
 
-    wait_pos = String.index(workflow, "name: Wait for Hex.pm index (post-publish)")
-    docs_pos = String.index(workflow, "name: Verify HexDocs reachability")
-    smoke_pos = String.index(workflow, "name: Verify public Hex.pm artifact")
+    wait_pos = snippet_position(workflow, "name: Wait for Hex.pm index (post-publish)")
+    docs_pos = snippet_position(workflow, "name: Verify HexDocs reachability")
+    smoke_pos = snippet_position(workflow, "name: Verify public Hex.pm artifact")
 
     assert is_integer(wait_pos)
     assert is_integer(docs_pos)
@@ -278,4 +278,6 @@ defmodule Rindle.InstallSmoke.PackageMetadataTest do
       :nomatch -> nil
     end
   end
+
+  defp snippet_position(content, snippet), do: command_position(content, snippet)
 end
