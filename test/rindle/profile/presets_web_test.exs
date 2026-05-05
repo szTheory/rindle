@@ -9,7 +9,7 @@ defmodule Rindle.Profile.PresetsWebTest do
 
     use Web,
       storage: Rindle.Storage.Local,
-      allow_mime: ["video/mp4"],
+      allow_mime: ["video/mp4", "video/quicktime", "video/webm"],
       max_bytes: 524_288_000
   end
 
@@ -18,7 +18,7 @@ defmodule Rindle.Profile.PresetsWebTest do
 
     use Web,
       storage: Rindle.Storage.Local,
-      allow_mime: ["video/mp4"],
+      allow_mime: ["video/mp4", "video/quicktime", "video/webm"],
       max_bytes: 524_288_000,
       scrub_strip: true
   end
