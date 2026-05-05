@@ -6,6 +6,7 @@ defmodule Rindle.Workers.PromoteAsset do
   alias Rindle.Domain.AssetFSM
   alias Rindle.Domain.{MediaAsset, MediaVariant}
   alias Rindle.Processor.AV
+  alias Rindle.Processor.AV.RuntimeGuard
   alias Rindle.Workers.ProcessVariant
 
   @impl Oban.Worker
@@ -78,6 +79,13 @@ defmodule Rindle.Workers.PromoteAsset do
   defp enqueue_variants(multi, asset) do
     profile_module = String.to_existing_atom(asset.profile)
     variants = profile_module.variants()
+
+    RuntimeGuard.warn_unsupported_runtime([
+      %{
+        name: profile_module,
+        variants: Enum.map(variants, fn {_name, spec} -> normalized_variant_spec(spec) end)
+      }
+    ])
 
     Enum.reduce(variants, multi, fn {name, spec}, acc ->
       name_str = Atom.to_string(name)
@@ -177,11 +185,24 @@ defmodule Rindle.Workers.PromoteAsset do
     do: normalized_variant_spec(Map.new(spec))
 
   defp normalized_variant_spec(%{} = spec) do
-    case AV.normalize(spec) do
-      {:ok, normalized} -> normalized
-      {:error, _reason} -> spec
+    if normalized_av_spec?(spec) do
+      spec
+    else
+      case AV.normalize(spec) do
+        {:ok, normalized} -> normalized
+        {:error, _reason} -> spec
+      end
     end
   end
+
+  defp normalized_av_spec?(%{} = spec) do
+    Map.has_key?(spec, :output_kind) or
+      Map.has_key?(spec, :container) or
+      Map.has_key?(spec, :video_codec) or
+      Map.has_key?(spec, :audio_codec)
+  end
+
+  defp normalized_av_spec?(_spec), do: false
 
   defp download_to(asset, destination_path) do
     profile_module = String.to_existing_atom(asset.profile)

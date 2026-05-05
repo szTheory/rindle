@@ -223,11 +223,6 @@ defmodule Rindle.Workers.ProcessVariantTest do
       })
       |> Rindle.Repo.insert!()
 
-    expect(Rindle.StorageMock, :download, fn _key, tmp_path, _opts ->
-      build_video_fixture!(tmp_path)
-      {:ok, tmp_path}
-    end)
-
     assert {:error, {:unsupported_ephemeral_runtime, :lambda}} =
              perform_job(ProcessVariant, %{"asset_id" => asset.id, "variant_name" => "hero"})
 

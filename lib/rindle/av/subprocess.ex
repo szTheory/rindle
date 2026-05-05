@@ -16,18 +16,16 @@ defmodule Rindle.AV.Subprocess do
 
   @doc false
   def build_opts(opts) do
-    # max_wall 600s
-    timeout = Keyword.get(opts, :timeout, 600_000)
+    timeout = Keyword.get(opts, :timeout, Keyword.get(opts, :max_wall_ms, 600_000))
     base = [into: "", stderr_to_stdout: true, timeout: timeout]
-    
+
     if :os.type() == {:unix, :linux} and Keyword.get(opts, :use_cgroups, true) do
-      # Calculate memory limits and cpu quotas
       cgroup_sets = [
         {"memory", "memory.limit_in_bytes", "536870912"},
         {"cpu", "cpu.cfs_period_us", "100000"},
         {"cpu", "cpu.cfs_quota_us", "50000"}
       ]
-      
+
       base ++ [
         cgroup_controllers: ["memory", "cpu"],
         cgroup_base: @cgroup_base,
@@ -39,16 +37,23 @@ defmodule Rindle.AV.Subprocess do
   end
 
   @doc false
-  def build_args("ffmpeg", args, _opts) do
+  def build_args("ffmpeg", args, opts) do
+    max_cpu_seconds = Keyword.get(opts, :max_cpu_seconds, 300)
+    max_duration_seconds = Keyword.get(opts, :max_duration_seconds, 7200)
+    max_output_bytes = Keyword.get(opts, :max_output_bytes, 500_000_000)
+
     common = [
-      "-protocol_whitelist", "file,crypto,data",
-      "-timelimit", "300",
-      "-t", "7200"
+      "-protocol_whitelist",
+      "file,crypto,data",
+      "-timelimit",
+      Integer.to_string(max_cpu_seconds),
+      "-t",
+      Integer.to_string(max_duration_seconds)
     ]
 
     case List.pop_at(args, -1) do
       {destination, input_and_output_args} when is_binary(destination) ->
-        common ++ input_and_output_args ++ ["-fs", "500000000", destination]
+        common ++ input_and_output_args ++ ["-fs", Integer.to_string(max_output_bytes), destination]
 
       _ ->
         common ++ args

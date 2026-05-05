@@ -8,8 +8,10 @@ defmodule Rindle.Workers.ProcessVariant do
   alias Rindle.Domain.AssetAggregate
   alias Rindle.Domain.{MediaAsset, MediaVariant}
   alias Rindle.Processor.AV
+  alias Rindle.Processor.AV.{Audio, Video}
+  alias Rindle.Processor.AV.{OutputProbe, RuntimeGuard}
   alias Rindle.Domain.VariantFSM
-  alias Rindle.Processor.Image
+  alias Rindle.Processor.{Image, Waveform}
   import Ecto.Query
 
   @av_queue :rindle_media
@@ -68,11 +70,14 @@ defmodule Rindle.Workers.ProcessVariant do
            variant <- repo.get!(MediaVariant, variant.id),
            {:ok, run_dir} <- TempRunDir.create() do
         try do
-          with {:ok, source_tmp} <- download_source(asset, run_dir),
+          with :ok <- RuntimeGuard.check!(variant_spec, path: run_dir),
+               {:ok, source_tmp} <- download_source(asset, run_dir),
                {:ok, dest_tmp} <- generate_dest_path(variant, variant_spec, run_dir),
                {:ok, _} <- process_variant(source_tmp, variant_spec, dest_tmp),
+               {:ok, output_attrs} <- OutputProbe.verify!(dest_tmp, asset, variant_spec),
                {:ok, storage_meta} <- upload_variant(asset, variant, dest_tmp, variant_spec),
-               :ok <- persist_ready(repo, asset, variant, storage_meta, dest_tmp, variant_spec) do
+               :ok <-
+                 persist_ready(repo, asset, variant, storage_meta, dest_tmp, variant_spec, output_attrs) do
             :ok
           else
             {:cancel, reason} = cancel ->
@@ -145,13 +150,13 @@ defmodule Rindle.Workers.ProcessVariant do
   end
 
   defp process_variant(source_tmp, variant_spec, dest_tmp) do
-    case processor_for(variant_spec).process(source_tmp, variant_spec, dest_tmp) do
+    case processor_for(variant_spec).(source_tmp, variant_spec, dest_tmp) do
       {:ok, _path} = ok -> ok
       {:error, reason} -> {:error, reason}
     end
   end
 
-  defp persist_ready(repo, asset, variant, storage_meta, dest_tmp, variant_spec) do
+  defp persist_ready(repo, asset, variant, storage_meta, dest_tmp, variant_spec, output_attrs) do
     current_asset = repo.get!(MediaAsset, asset.id)
     current_variant = repo.get!(MediaVariant, variant.id)
 
@@ -164,14 +169,20 @@ defmodule Rindle.Workers.ProcessVariant do
 
       true ->
         with :ok <-
-               update_variant_state(repo, current_variant, "ready", %{
-                 storage_key: storage_meta.key,
-                 byte_size: get_file_size(dest_tmp),
-                 content_type: content_type_for(variant_spec),
-                 output_kind: output_kind_for(variant_spec),
-                 generated_at: DateTime.utc_now(),
-                 error_reason: nil
-               }),
+               update_variant_state(
+                 repo,
+                 current_variant,
+                 "ready",
+                 %{
+                   storage_key: storage_meta.key,
+                   byte_size: get_file_size(dest_tmp),
+                   content_type: content_type_for(variant_spec),
+                   output_kind: output_kind_for(variant_spec),
+                   generated_at: DateTime.utc_now(),
+                   error_reason: nil
+                 }
+                 |> Map.merge(Map.take(output_attrs, [:duration_ms, :width, :height]))
+               ),
              :ok <- AssetAggregate.recompute(repo, asset.id) do
           :ok
         end
@@ -204,22 +215,38 @@ defmodule Rindle.Workers.ProcessVariant do
     {:error, reason}
   end
 
-  defp processor_for(%{kind: kind}) when kind in [:video, :audio, :waveform], do: AV
-  defp processor_for(_variant_spec), do: Image
+  defp processor_for(%{kind: :video, output_kind: :video}), do: &Video.transcode/3
+  defp processor_for(%{kind: :image, output_kind: :image}), do: &Video.image_output/3
+  defp processor_for(%{kind: :audio, output_kind: :audio}), do: &Audio.transcode/3
+  defp processor_for(%{kind: :waveform, output_kind: :waveform}), do: &Waveform.generate/3
+  defp processor_for(_variant_spec), do: &Image.process/3
 
   defp normalize_variant_spec(variant_spec) when is_list(variant_spec) do
     normalize_variant_spec(Map.new(variant_spec))
   end
 
   defp normalize_variant_spec(%{} = variant_spec) do
-    case AV.normalize(variant_spec) do
-      {:ok, normalized} -> normalized
-      {:error, _reason} -> variant_spec
+    if normalized_av_spec?(variant_spec) do
+      variant_spec
+    else
+      case AV.normalize(variant_spec) do
+        {:ok, normalized} -> normalized
+        {:error, _reason} -> variant_spec
+      end
     end
   end
 
   defp av_variant?(%{kind: kind}) when kind in [:video, :audio, :waveform], do: true
   defp av_variant?(_variant_spec), do: false
+
+  defp normalized_av_spec?(%{} = variant_spec) do
+    Map.has_key?(variant_spec, :output_kind) or
+      Map.has_key?(variant_spec, :container) or
+      Map.has_key?(variant_spec, :video_codec) or
+      Map.has_key?(variant_spec, :audio_codec)
+  end
+
+  defp normalized_av_spec?(_variant_spec), do: false
 
   defp maybe_put_timeout(args, variant_spec) do
     if av_variant?(variant_spec) do
