@@ -38,11 +38,20 @@ defmodule Rindle.Domain.MediaAsset do
     "promoting",
     "available",
     "processing",
+    "transcoding",
     "ready",
     "degraded",
     "quarantined",
     "deleted"
   ]
+
+  @kinds ~w(image video audio)
+
+  @kind_field_invariants %{
+    "image" => [:duration_ms, :has_video_track, :has_audio_track],
+    "video" => [],
+    "audio" => [:width, :height, :has_video_track]
+  }
 
   @type t :: %__MODULE__{}
 
@@ -55,6 +64,13 @@ defmodule Rindle.Domain.MediaAsset do
     field :metadata, :map, default: %{}
     field :recipe_digest, :string
     field :profile, :string
+    field :kind, :string, default: "image"
+    field :width, :integer
+    field :height, :integer
+    field :duration_ms, :integer
+    field :has_video_track, :boolean
+    field :has_audio_track, :boolean
+    field :error_reason, :string
 
     has_many :attachments, Rindle.Domain.MediaAttachment, foreign_key: :asset_id
     has_many :variants, Rindle.Domain.MediaVariant, foreign_key: :asset_id
@@ -82,10 +98,42 @@ defmodule Rindle.Domain.MediaAsset do
       :filename,
       :metadata,
       :recipe_digest,
-      :profile
+      :profile,
+      :kind,
+      :width,
+      :height,
+      :duration_ms,
+      :has_video_track,
+      :has_audio_track,
+      :error_reason
     ])
-    |> validate_required([:state, :storage_key, :profile])
+    |> validate_required([:state, :storage_key, :profile, :kind])
     |> validate_inclusion(:state, @states)
+    |> validate_inclusion(:kind, @kinds)
+    |> validate_kind_field_consistency()
     |> unique_constraint(:storage_key)
+  end
+
+  defp validate_kind_field_consistency(changeset) do
+    case get_field(changeset, :kind) do
+      nil ->
+        changeset
+
+      kind ->
+        forbidden = Map.get(@kind_field_invariants, kind, [])
+
+        Enum.reduce(forbidden, changeset, fn field, acc ->
+          case get_field(acc, field) do
+            nil ->
+              acc
+
+            _value ->
+              add_error(acc, field, "must be nil for kind=#{kind} (probe column not applicable)",
+                kind: kind,
+                field: field
+              )
+          end
+        end)
+    end
   end
 end
