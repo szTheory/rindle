@@ -2,6 +2,7 @@ defmodule Rindle.Processor.AVTest do
   use ExUnit.Case, async: true
 
   alias Rindle.Processor.AV
+  alias Rindle.Processor.AV.Video
   alias Rindle.Probe.AVProbe
   alias Rindle.Processor.Ffmpeg
 
@@ -111,6 +112,51 @@ defmodule Rindle.Processor.AVTest do
     end
   end
 
+  describe "process/3 explicit image outputs" do
+    test "extracts a poster from the first scene-change I-frame", %{tmp_dir: tmp_dir} do
+      source = Path.join(tmp_dir, "scene-source.mp4")
+      destination = Path.join(tmp_dir, "poster.jpg")
+
+      build_scene_change_fixture!(source)
+
+      assert {:ok, %{path: ^destination, strategy: :scene_change}} =
+               Video.poster(source, AV.normalize!(%{kind: :image, preset: :video_poster_scene}), destination)
+
+      assert File.exists?(destination)
+      assert image_width(destination) == 320
+      assert image_height(destination) == 180
+      assert grayscale_luma(destination) > 200
+    end
+
+    test "falls back to the first I-frame when no scene-change frame qualifies", %{tmp_dir: tmp_dir} do
+      source = Path.join(tmp_dir, "static-source.mp4")
+      destination = Path.join(tmp_dir, "poster-fallback.jpg")
+
+      build_static_video_fixture!(source)
+
+      assert {:ok, %{path: ^destination, strategy: :first_i_frame}} =
+               Video.poster(source, AV.normalize!(%{kind: :image, preset: :video_poster_scene}), destination)
+
+      assert File.exists?(destination)
+      assert image_width(destination) == 320
+      assert image_height(destination) == 180
+    end
+
+    test "generates a thumbnail strip only when explicitly requested", %{tmp_dir: tmp_dir} do
+      source = Path.join(tmp_dir, "strip-source.mp4")
+      destination = Path.join(tmp_dir, "strip.jpg")
+
+      build_strip_fixture!(source)
+
+      assert {:ok, ^destination} =
+               AV.process(source, %{kind: :image, preset: :video_thumbnail_strip}, destination)
+
+      assert File.exists?(destination)
+      assert image_width(destination) == 640
+      assert image_height(destination) == 90
+    end
+  end
+
   defp build_video_fixture!(path) do
     args = [
       "-y",
@@ -122,6 +168,95 @@ defmodule Rindle.Processor.AVTest do
       "lavfi",
       "-i",
       "sine=frequency=880:sample_rate=48000:duration=1.2",
+      "-map",
+      "0:v:0",
+      "-map",
+      "1:a:0",
+      "-c:v",
+      "libx264",
+      "-pix_fmt",
+      "yuv420p",
+      "-c:a",
+      "aac",
+      path
+    ]
+
+    {_output, 0} = System.cmd("ffmpeg", args, stderr_to_stdout: true)
+  end
+
+  defp build_scene_change_fixture!(path) do
+    args = [
+      "-y",
+      "-f",
+      "lavfi",
+      "-i",
+      "color=c=black:size=320x180:rate=2:duration=0.5",
+      "-f",
+      "lavfi",
+      "-i",
+      "color=c=white:size=320x180:rate=2:duration=0.5",
+      "-f",
+      "lavfi",
+      "-i",
+      "sine=frequency=660:sample_rate=48000:duration=1.0",
+      "-filter_complex",
+      "[0:v][1:v]concat=n=2:v=1:a=0[v]",
+      "-map",
+      "[v]",
+      "-map",
+      "2:a:0",
+      "-c:v",
+      "libx264",
+      "-pix_fmt",
+      "yuv420p",
+      "-force_key_frames",
+      "0.5",
+      "-c:a",
+      "aac",
+      path
+    ]
+
+    {_output, 0} = System.cmd("ffmpeg", args, stderr_to_stdout: true)
+  end
+
+  defp build_static_video_fixture!(path) do
+    args = [
+      "-y",
+      "-f",
+      "lavfi",
+      "-i",
+      "color=c=gray:size=320x180:rate=2:duration=1.0",
+      "-f",
+      "lavfi",
+      "-i",
+      "sine=frequency=550:sample_rate=48000:duration=1.0",
+      "-map",
+      "0:v:0",
+      "-map",
+      "1:a:0",
+      "-c:v",
+      "libx264",
+      "-pix_fmt",
+      "yuv420p",
+      "-c:a",
+      "aac",
+      path
+    ]
+
+    {_output, 0} = System.cmd("ffmpeg", args, stderr_to_stdout: true)
+  end
+
+  defp build_strip_fixture!(path) do
+    args = [
+      "-y",
+      "-f",
+      "lavfi",
+      "-i",
+      "testsrc=size=320x180:rate=1:duration=4",
+      "-f",
+      "lavfi",
+      "-i",
+      "sine=frequency=330:sample_rate=48000:duration=4",
       "-map",
       "0:v:0",
       "-map",
@@ -174,5 +309,15 @@ defmodule Rindle.Processor.AVTest do
 
     {output, 0} = System.cmd("ffprobe", args, stderr_to_stdout: true)
     String.trim(output)
+  end
+
+  defp image_width(path), do: ffprobe_stream_value!(path, "v:0", "width") |> String.to_integer()
+  defp image_height(path), do: ffprobe_stream_value!(path, "v:0", "height") |> String.to_integer()
+
+  defp grayscale_luma(path) do
+    args = ["-v", "error", "-i", path, "-vf", "scale=1:1,format=gray", "-frames:v", "1", "-f", "rawvideo", "-"]
+    {output, 0} = System.cmd("ffmpeg", args, stderr_to_stdout: false)
+    <<luma, _rest::binary>> = output
+    luma
   end
 end
