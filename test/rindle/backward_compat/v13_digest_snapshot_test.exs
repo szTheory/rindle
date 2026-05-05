@@ -31,16 +31,14 @@ defmodule Rindle.BackwardCompat.V13DigestSnapshotTest do
     assert AdopterProfile.recipe_digest(:thumb) == @v13_thumb_digest
   end
 
-  @tag :skip
-  test "explicit :kind => :image yields the same digest as omitted :kind (unskip after Plan 04)" do
+  test "explicit :kind => :image yields the same digest as omitted :kind" do
     explicit = compile_profile_with_explicit_image_kind()
     omitted = compile_profile_with_omitted_kind()
 
     assert explicit.recipe_digest(:thumb) == omitted.recipe_digest(:thumb)
   end
 
-  @tag :skip
-  test "validated :thumb spec does NOT carry a :kind key (unskip after Plan 04)" do
+  test "validated :thumb spec does NOT carry a :kind key" do
     spec = AdopterProfile.variants()[:thumb]
 
     refute Map.has_key?(spec, :kind),
