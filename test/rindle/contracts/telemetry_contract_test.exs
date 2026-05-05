@@ -77,6 +77,7 @@ defmodule Rindle.Contracts.TelemetryContractTest do
     [:rindle, :media, :transcode, :stop],
     [:rindle, :media, :transcode, :exception]
   ]
+  @background_processing_path Path.expand("../../../guides/background_processing.md", __DIR__)
 
   setup do
     ref = :telemetry_test.attach_event_handlers(self(), @public_events)
@@ -93,6 +94,18 @@ defmodule Rindle.Contracts.TelemetryContractTest do
         assert length(event) in [3, 4]
         assert Enum.all?(event, &is_atom/1)
         assert hd(event) == :rindle
+      end
+    end
+
+    test "background processing guide documents the public telemetry allowlist and AV triplet" do
+      guide = File.read!(@background_processing_path)
+
+      assert guide =~ ":start / :stop / :exception"
+      assert guide =~ "@public_events"
+      assert guide =~ "test/rindle/contracts/telemetry_contract_test.exs"
+
+      for event_name <- Enum.map(@public_events, &format_event_name/1) do
+        assert guide =~ event_name
       end
     end
   end
@@ -443,5 +456,11 @@ defmodule Rindle.Contracts.TelemetryContractTest do
   defp request_path(url) do
     uri = URI.parse(url)
     uri.path <> if(uri.query, do: "?" <> uri.query, else: "")
+  end
+
+  defp format_event_name(event) do
+    event
+    |> Enum.map_join(", ", &inspect/1)
+    |> then(&"[#{&1}]")
   end
 end
