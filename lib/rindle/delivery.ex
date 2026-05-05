@@ -117,6 +117,38 @@ defmodule Rindle.Delivery do
   end
 
   @doc """
+  Returns a progressive streaming URL wrapper for an asset's storage key.
+
+  This is an additive future-stable playback surface. In v1.4 it delegates to
+  `url/3`, preserving the same authorization, TTL, and error semantics while
+  wrapping successful results as `%{url, kind, mime}`. Emits
+  `[:rindle, :delivery, :streaming, :resolved]` telemetry on success.
+  """
+  @spec streaming_url(module(), String.t(), keyword()) ::
+          {:ok, %{url: String.t(), kind: :progressive, mime: String.t()}} | {:error, term()}
+  def streaming_url(profile, key, opts \\ []) do
+    mime = Keyword.get(opts, :mime, "video/mp4")
+    adapter = profile.storage_adapter()
+    mode = delivery_mode(profile)
+
+    with {:ok, url} <- url(profile, key, opts) do
+      :telemetry.execute(
+        [:rindle, :delivery, :streaming, :resolved],
+        %{system_time: System.system_time()},
+        %{
+          profile: profile,
+          adapter: adapter,
+          mode: mode,
+          kind: :progressive,
+          mime: mime
+        }
+      )
+
+      {:ok, %{url: url, kind: :progressive, mime: mime}}
+    end
+  end
+
+  @doc """
   Returns a deliverable URL for a variant, falling back to the original asset
   when the variant is not yet `ready`.
 

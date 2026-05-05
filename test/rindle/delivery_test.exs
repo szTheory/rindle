@@ -182,11 +182,92 @@ defmodule Rindle.DeliveryTest do
     assert url == "https://public.example/#{key}"
   end
 
+  describe "streaming_url/3" do
+    test "wraps signed delivery with progressive shape and default mime" do
+      key = "assets/asset-1/video.mp4"
+
+      expect(Rindle.AuthorizerMock, :authorize, fn nil,
+                                                   :deliver,
+                                                   %{
+                                                     profile: PrivateProfile,
+                                                     key: ^key,
+                                                     mode: :private
+                                                   } ->
+        :ok
+      end)
+
+      expect(Rindle.StorageMock, :capabilities, fn -> [:signed_url] end)
+
+      expect(Rindle.StorageMock, :url, fn ^key, opts ->
+        assert Keyword.get(opts, :expires_in) == 120
+        {:ok, "https://signed.example/#{key}?ttl=120"}
+      end)
+
+      assert {:ok, %{url: url, kind: :progressive, mime: "video/mp4"}} =
+               Rindle.Delivery.streaming_url(PrivateProfile, key)
+
+      assert url == "https://signed.example/#{key}?ttl=120"
+    end
+
+    test "preserves request-time expires_in override and explicit mime" do
+      key = "assets/asset-1/video.mp4"
+
+      expect(Rindle.AuthorizerMock, :authorize, fn :viewer,
+                                                   :deliver,
+                                                   %{
+                                                     profile: PrivateProfile,
+                                                     key: ^key,
+                                                     mode: :private
+                                                   } ->
+        :ok
+      end)
+
+      expect(Rindle.StorageMock, :capabilities, fn -> [:signed_url] end)
+
+      expect(Rindle.StorageMock, :url, fn ^key, opts ->
+        assert Keyword.get(opts, :expires_in) == 45
+        {:ok, "https://signed.example/#{key}?ttl=45"}
+      end)
+
+      assert {:ok, %{url: url, kind: :progressive, mime: "audio/mpeg"}} =
+               Rindle.Delivery.streaming_url(
+                 PrivateProfile,
+                 key,
+                 actor: :viewer,
+                 expires_in: 45,
+                 mime: "audio/mpeg"
+               )
+
+      assert url == "https://signed.example/#{key}?ttl=45"
+    end
+
+    test "returns the same tagged delivery errors as url/3" do
+      key = "assets/asset-1/video.mp4"
+
+      expect(Rindle.AuthorizerMock, :authorize, fn _actor, :deliver, _subject -> :ok end)
+
+      assert {:error, {:delivery_unsupported, :signed_url}} =
+               Rindle.Delivery.streaming_url(UnsupportedProfile, key)
+    end
+
+    test "reserved provider namespace is callback-only" do
+      behaviours =
+        Rindle.Streaming.Provider.module_info(:attributes)
+        |> Keyword.get(:behaviour, [])
+
+      assert behaviours == []
+      assert function_exported?(Rindle.Streaming.Provider, :behaviour_info, 1)
+      assert {:streaming_url, 3} in Rindle.Streaming.Provider.behaviour_info(:callbacks)
+      assert {:capabilities, 0} in Rindle.Streaming.Provider.behaviour_info(:callbacks)
+    end
+  end
+
   describe "telemetry emission (Plan 05-01 / TEL-04)" do
     setup do
       ref =
         :telemetry_test.attach_event_handlers(self(), [
-          [:rindle, :delivery, :signed]
+          [:rindle, :delivery, :signed],
+          [:rindle, :delivery, :streaming, :resolved]
         ])
 
       on_exit(fn -> :telemetry.detach(ref) end)
@@ -266,6 +347,47 @@ defmodule Rindle.DeliveryTest do
                Rindle.Delivery.url(UnsupportedProfile, key)
 
       refute_received {[:rindle, :delivery, :signed], ^ref, _measurements, _metadata}
+    end
+
+    test "streaming_url/3 emits [:rindle, :delivery, :streaming, :resolved] on success",
+         %{ref: ref} do
+      key = "assets/asset-1/video.mp4"
+
+      expect(Rindle.AuthorizerMock, :authorize, fn nil,
+                                                   :deliver,
+                                                   %{
+                                                     profile: PublicProfile,
+                                                     key: ^key,
+                                                     mode: :public
+                                                   } ->
+        :ok
+      end)
+
+      expect(Rindle.StorageMock, :url, fn ^key, _opts ->
+        {:ok, "https://public.example/#{key}"}
+      end)
+
+      assert {:ok, %{url: _url, kind: :progressive, mime: "video/mp4"}} =
+               Rindle.Delivery.streaming_url(PublicProfile, key)
+
+      assert_received {[:rindle, :delivery, :streaming, :resolved], ^ref, measurements, metadata}
+      assert is_integer(measurements.system_time)
+      assert metadata.profile == PublicProfile
+      assert metadata.adapter == PublicProfile.storage_adapter()
+      assert metadata.mode == :public
+      assert metadata.kind == :progressive
+      assert metadata.mime == "video/mp4"
+    end
+
+    test "streaming_url/3 does NOT emit when url resolution fails", %{ref: ref} do
+      key = "assets/asset-1/video.mp4"
+
+      expect(Rindle.AuthorizerMock, :authorize, fn _actor, :deliver, _subject ->
+        {:error, :forbidden}
+      end)
+
+      assert {:error, :forbidden} = Rindle.Delivery.streaming_url(PrivateProfile, key)
+      refute_received {[:rindle, :delivery, :streaming, :resolved], ^ref, _, _}
     end
   end
 end
