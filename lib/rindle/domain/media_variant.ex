@@ -30,7 +30,9 @@ defmodule Rindle.Domain.MediaVariant do
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
 
-  @states ["planned", "queued", "processing", "ready", "stale", "missing", "failed", "purged"]
+  @states ~w(planned queued processing ready stale missing failed cancelled purged)
+
+  @output_kinds ~w(image video audio waveform)
 
   @type t :: %__MODULE__{}
 
@@ -43,6 +45,10 @@ defmodule Rindle.Domain.MediaVariant do
     field :content_type, :string
     field :error_reason, :string
     field :generated_at, :utc_datetime_usec
+    field :output_kind, :string, default: "image"
+    field :duration_ms, :integer
+    field :width, :integer
+    field :height, :integer
 
     belongs_to :asset, Rindle.Domain.MediaAsset
 
@@ -70,10 +76,15 @@ defmodule Rindle.Domain.MediaVariant do
       :byte_size,
       :content_type,
       :error_reason,
-      :generated_at
+      :generated_at,
+      :output_kind,
+      :duration_ms,
+      :width,
+      :height
     ])
-    |> validate_required([:asset_id, :name, :state, :recipe_digest])
+    |> validate_required([:asset_id, :name, :state, :recipe_digest, :output_kind])
     |> validate_inclusion(:state, @states)
+    |> validate_inclusion(:output_kind, @output_kinds)
     |> foreign_key_constraint(:asset_id)
     |> unique_constraint([:asset_id, :name])
   end
