@@ -13,6 +13,7 @@ defmodule Rindle.Adopter.CanonicalApp.LifecycleTest do
   use Oban.Testing, repo: Rindle.Adopter.CanonicalApp.Repo
 
   alias Rindle.Adopter.CanonicalApp.Profile, as: AdopterProfile
+  alias Rindle.Adopter.CanonicalApp.VideoProfile, as: AdopterVideoProfile
   alias Rindle.Adopter.CanonicalApp.Repo
   alias Rindle.Domain.{MediaAsset, MediaAttachment, MediaUploadSession, MediaVariant}
   alias Rindle.Ops.UploadMaintenance
@@ -287,6 +288,42 @@ defmodule Rindle.Adopter.CanonicalApp.LifecycleTest do
       assert cleanup_report.sessions_deleted >= 1
       assert Repo.get(MediaUploadSession, expired_session.id) == nil
     end
+
+    test "stock web preset round-trips a canonical video upload end to end" do
+      assert_upload_capabilities!(AdopterVideoProfile.storage_adapter().capabilities())
+
+      {:ok, session} = Broker.initiate_session(AdopterVideoProfile, filename: "adopter.mp4")
+      video_bytes = build_video_fixture_bytes!()
+
+      {:ok, %{session: signed, presigned: presigned}} = Broker.sign_url(session.id)
+      assert signed.state == "signed"
+      :ok = put_to_presigned_url(presigned.url, video_bytes)
+
+      {:ok, %{session: completed, asset: asset}} = Broker.verify_completion(session.id)
+      assert completed.state == "completed"
+      assert :ok = perform_job(PromoteAsset, %{"asset_id" => asset.id})
+
+      variants =
+        Repo.all(Ecto.Query.from(v in MediaVariant, where: v.asset_id == ^asset.id, order_by: v.name))
+
+      assert Enum.map(variants, & &1.name) == ["poster", "web_720p"]
+
+      for variant <- variants do
+        assert :ok =
+                 perform_job(ProcessVariant, %{
+                   "asset_id" => asset.id,
+                   "variant_name" => variant.name
+                 })
+      end
+
+      ready_variants =
+        Repo.all(Ecto.Query.from(v in MediaVariant, where: v.asset_id == ^asset.id, order_by: v.name))
+
+      assert Enum.map(ready_variants, &{&1.name, &1.output_kind, &1.state}) == [
+               {"poster", "image", "ready"},
+               {"web_720p", "video", "ready"}
+             ]
+    end
   end
 
   describe "v1.0 → v1.4 backward-compat parity (AV-02-11, D-22)" do
@@ -382,5 +419,40 @@ defmodule Rindle.Adopter.CanonicalApp.LifecycleTest do
   defp assert_upload_capabilities!(capabilities) do
     assert :presigned_put in capabilities
     assert :multipart_upload in capabilities
+  end
+
+  defp build_video_fixture_bytes! do
+    tmp_path =
+      Path.join(System.tmp_dir!(), "rindle-adopter-video-#{System.unique_integer([:positive])}.mp4")
+
+    args = [
+      "-y",
+      "-f",
+      "lavfi",
+      "-i",
+      "testsrc=size=320x180:rate=30:duration=1.2",
+      "-f",
+      "lavfi",
+      "-i",
+      "sine=frequency=880:sample_rate=48000:duration=1.2",
+      "-map",
+      "0:v:0",
+      "-map",
+      "1:a:0",
+      "-c:v",
+      "libx264",
+      "-pix_fmt",
+      "yuv420p",
+      "-c:a",
+      "aac",
+      tmp_path
+    ]
+
+    try do
+      {_output, 0} = System.cmd("ffmpeg", args, stderr_to_stdout: true)
+      File.read!(tmp_path)
+    after
+      File.rm(tmp_path)
+    end
   end
 end

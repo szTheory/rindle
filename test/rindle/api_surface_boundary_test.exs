@@ -5,6 +5,7 @@ defmodule Rindle.ApiSurfaceBoundaryTest do
     Rindle,
     Rindle.Error,
     Rindle.Profile,
+    Rindle.Profile.Presets.Web,
     Rindle.Upload.Broker,
     Rindle.Delivery,
     Rindle.Storage,
