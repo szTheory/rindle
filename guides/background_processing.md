@@ -163,9 +163,33 @@ purge).
 ## Telemetry Surface (Public Contract)
 
 Rindle emits telemetry events at the locked event-family boundaries
-defined in Phase 3. The contract test
-(`test/rindle/telemetry/contract_test.exs`) asserts these are stable;
-breaking the surface requires a major version bump.
+defined in Phase 3 and extended by the AV ship gate in Phase 28. The runtime
+source of truth is `@public_events` in
+`test/rindle/contracts/telemetry_contract_test.exs`; this guide explains the
+operator-facing meaning of that allowlist without creating a second registry.
+
+AV processing follows one public triplet naming convention:
+`:start / :stop / :exception`. For Rindle v1.4 that triplet is
+`[:rindle, :media, :transcode, :start]`,
+`[:rindle, :media, :transcode, :stop]`, and
+`[:rindle, :media, :transcode, :exception]`.
+
+The exact public event allowlist is:
+
+- `[:rindle, :upload, :start]`
+- `[:rindle, :upload, :stop]`
+- `[:rindle, :asset, :state_change]`
+- `[:rindle, :variant, :state_change]`
+- `[:rindle, :delivery, :signed]`
+- `[:rindle, :delivery, :streaming, :resolved]`
+- `[:rindle, :delivery, :range_request]`
+- `[:rindle, :cleanup, :run]`
+- `[:rindle, :media, :transcode, :start]`
+- `[:rindle, :media, :transcode, :stop]`
+- `[:rindle, :media, :transcode, :exception]`
+
+Breaking the allowlist, the AV transcode triplet, required metadata keys, or
+measurement types requires a major version bump.
 
 | Event                                    | Triggered By                                   | Required Metadata Keys             |
 | ---------------------------------------- | ---------------------------------------------- | ---------------------------------- |
@@ -174,7 +198,12 @@ breaking the surface requires a major version bump.
 | `[:rindle, :asset, :state_change]`       | Every `AssetFSM.transition/3` success          | `:profile`, `:adapter`, `:from`, `:to` |
 | `[:rindle, :variant, :state_change]`     | Every `VariantFSM.transition/3` success        | `:profile`, `:adapter`, `:from`, `:to` |
 | `[:rindle, :delivery, :signed]`          | `Delivery.url/3` success                       | `:profile`, `:adapter`, `:mode`    |
+| `[:rindle, :delivery, :streaming, :resolved]` | `Delivery.streaming_url/3` success         | `:profile`, `:adapter`, `:mode`, `:kind`, `:mime` |
+| `[:rindle, :delivery, :range_request]`   | `Delivery.LocalPlug` range request             | `:profile`, `:adapter`, `:key`, `:actor_subject` |
 | `[:rindle, :cleanup, :run]`              | Every cleanup worker run                       | `:worker`, plus numeric measurements |
+| `[:rindle, :media, :transcode, :start]`  | `ProcessVariant` AV transcode begins           | `:profile`, `:asset_id`, `:variant_id`, `:variant_name`, `:preset`, `:output_kind` |
+| `[:rindle, :media, :transcode, :stop]`   | `ProcessVariant` AV transcode succeeds         | `:profile`, `:asset_id`, `:variant_id`, `:variant_name`, `:preset`, `:output_kind` |
+| `[:rindle, :media, :transcode, :exception]` | `ProcessVariant` AV transcode fails         | `:profile`, `:asset_id`, `:variant_id`, `:variant_name`, `:preset`, `:output_kind`, `:kind`, `:reason` |
 
 All measurements are numeric (counts, byte sizes, durations in microseconds,
 or `system_time`). All metadata maps include `:profile` and `:adapter`
@@ -183,7 +212,7 @@ where applicable so dashboards can group by either.
 The contract test attaches `:telemetry.attach_many/4` handlers, exercises
 minimal in-process flows, and asserts the exact event-name allowlist plus
 required metadata keys. Any change to event names, metadata keys, or
-measurement types breaks the contract lane.
+measurement types breaks the contract lane before docs can drift.
 
 ## Wiring a Telemetry Handler
 
