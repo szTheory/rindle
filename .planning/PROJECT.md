@@ -1,30 +1,22 @@
 # Rindle
 
-## Current Milestone: v1.4 Video & Audio Wedge
-
-**Goal:** Extend Rindle from image-first to image+video+audio by shipping a system-FFmpeg-backed processor (`Rindle.Processor.AV`), an `ffprobe`-driven analyzer, and `Rindle.HTML.video_tag/3` + `audio_tag/3` helpers — all riding the existing `Rindle.Processor` behaviour, `MediaAsset`/`MediaVariant` rows, Oban workers, and signed-URL delivery.
-
-**Target features:**
-- Video / audio domain model — single `media_assets` table + `:kind` discriminator (`:image | :video | :audio`); single `media_variants` table + `:output_kind` (`:image | :video | :audio | :waveform`); typed probe columns for duration / dimensions / track presence; JSONB metadata for codec / bitrate / tags; one additive migration; existing image profiles compile unchanged
-- AV processor — `Rindle.Processor.AV` shells out to FFmpeg via FFmpex with MuonTrap-supervised subprocesses; ships H.264+AAC mp4 transcode, scene-detected poster, AAC/MP3 audio transcode, EBU R128 single-pass loudnorm, and JSON waveform peaks; idempotent worker; output post-condition probe; orphan-tempfile sweeper
-- Capability negotiation — new `Rindle.Processor.Capabilities` module mirrors existing `Rindle.Storage.Capabilities`; `mix rindle.doctor` reports per-variant capability status with `mix phx.gen`-style fix messages; boot probe runs `ffmpeg -version` + `-codecs` and fails fast at supervisor boot when video/audio profiles are configured but FFmpeg is missing
-- Delivery surface — production stays signed-redirect (S3/R2/GCS/MinIO already serve `Range` natively, zero BEAM time on streaming bytes); new opt-in `Rindle.Delivery.LocalPlug` gives dev parity for `Rindle.Storage.Local`; `Rindle.Delivery.streaming_url/3` ships as a no-op delegate so Mux / Cloudflare Stream provider adapters can land post-v1.4 without template churn
-- HTML + LiveView ergonomics — `Rindle.HTML.video_tag/3` and `audio_tag/3` mirror existing `picture_tag/3` shape with codec-aware `<source>` ordering and DSL-resolved poster; `Rindle.LiveView.subscribe/2` exposes per-variant transcode progress via PubSub (`rindle:variant:#{id}`) for live status UIs; `Rindle.cancel_processing/1` cancels in-flight transcodes
-- Security invariants for AV — argv-array discipline (no shells, no string interpolation); mandatory `-protocol_whitelist file,crypto,data`; four-cap enforcement (`-t` / `-fs` / `-timelimit` / external wall-clock); MuonTrap-supervised subprocess with cgroup parent-death kill; sweepable `Rindle.tmp/` root with scheduled orphan reaper; FFmpeg minimum version 6.0 enforced at boot; HLS / DASH / MKV ingest explicitly rejected; container metadata treated as untrusted UGC
-
 ## Current State
 
-Milestone `v1.3 Live Publish & API Ergonomics` shipped on `2026-05-02`
-(Phases 15–22, 21 plans). v1.3 delivered the first live Hex.pm publish with
-post-publish HTTP probe for `hexdocs.pm/rindle`, locked the public API
-surface boundary, brought `@doc`/`@spec`/`@moduledoc` coverage to 100/100/100
-enforced via `mix doctor --raise`, shipped ergonomic `attachment_for/2`,
-`ready_variants_for/1` and `!`-bang convenience helpers, tightened Dialyzer
-struct resolution, and resolved residual LiveView correctness issues. v1.4
-opens the video / audio wedge: Rindle finally moves beyond image-first and
-extends the same lifecycle architecture (FSMs, durable variant rows, Oban
-workers, signed delivery) to mp4 / mov / webm video and mp3 / m4a / wav /
-flac / ogg audio.
+Milestone `v1.4 Video & Audio Wedge` shipped on `2026-05-05` (Phases 23-28,
+27 plans). Rindle now supports the same durable lifecycle model for video and
+audio that it already used for images: typed AV domain fields, MIME-dispatched
+probe adapters, `Rindle.Processor.AV`, local and signed playback seams,
+Phoenix-facing AV helpers, LiveView progress/cancellation contracts, and a
+public onboarding lane proved in CI against smartphone-source fixtures.
+
+## Next Milestone Goals
+
+No active milestone is open.
+
+The next milestone should be defined with `$gsd-new-milestone`. Likely inputs
+to that discussion are the deferred provider-adapter/streaming work, the GCS
+and tus carry-over items, and any adopter feedback surfaced after the v1.4 AV
+ship.
 
 ## What This Is
 
@@ -95,37 +87,26 @@ Media, made durable.
   — v1.3 (Phase 17) (API-04)
 - ✓ HexDocs reachability probe verifies post-publish public docs availability
   — v1.3 (Phase 21) (VERIFY-02)
+- ✓ AV capability negotiation, guarded FFmpeg/FFprobe subprocess execution,
+  boot probing, and `mix rindle.doctor` shipped — v1.4 (Phase 23) (AV-01)
+- ✓ Typed AV domain fields, per-kind DSL validation, probe dispatch, and
+  image-only backward compatibility shipped — v1.4 (Phase 24) (AV-02)
+- ✓ `Rindle.Processor.AV` shipped preset-led video/audio outputs, waveform
+  generation, runtime guards, and durable worker contracts — v1.4 (Phase 25)
+  (AV-03)
+- ✓ Delivery gained `streaming_url/3`, local range-aware playback, RFC 5987
+  filenames, and frozen delivery telemetry — v1.4 (Phase 26) (AV-04)
+- ✓ Phoenix-facing AV helpers, LiveView progress/cancellation, and the locked
+  AV error vocabulary shipped — v1.4 (Phase 27) (AV-05)
+- ✓ Public AV onboarding, profile-aware doctor CI gates, smartphone-source
+  lifecycle proof, and docs/telemetry parity shipped — v1.4 (Phase 28)
+  (AV-06)
 
 ### Active
 
-<!-- v1.4 requirements — updated 2026-05-02 -->
-
-- [ ] AV foundations: capability vocabulary, processor capabilities behaviour,
-  MuonTrap subprocess discipline, FFmpeg boot probe, `mix rindle.doctor`,
-  argv-array safety, `-protocol_whitelist` defaults, four-cap resource
-  enforcement (AV-01)
-- [ ] Domain model + DSL extension: `:kind` and `:output_kind` migration with
-  typed probe columns; per-kind NimbleOptions schemas in profile validator;
-  `transcoding` asset state and `cancelled` variant state; `Rindle.Probe`
-  behaviour with bundled `Rindle.Probe.AVProbe` (AV-02)
-- [ ] `Rindle.Processor.AV` ships H.264+AAC mp4 transcode, scene-detected
-  poster, AAC/MP3 audio transcode, EBU R128 loudnorm, and JSON waveform
-  peaks; idempotent worker with output post-condition probe and orphan
-  tempfile sweeper (AV-03)
-- [ ] Delivery surface: `Rindle.Delivery.streaming_url/3` ships as no-op
-  delegate (kind: :progressive); `Rindle.Delivery.LocalPlug` provides
-  range-aware dev parity for `Rindle.Storage.Local`; signed-URL TTL guidance
-  documented per content type (AV-04)
-- [ ] HTML helpers + LiveView integration: `Rindle.HTML.video_tag/3` and
-  `audio_tag/3` mirror `picture_tag/3` with codec-aware sources and
-  DSL-resolved poster; `Rindle.LiveView.subscribe/2` exposes
-  rate-limited PubSub progress; `Rindle.cancel_processing/1` cancels
-  in-flight transcodes (AV-05)
-- [ ] Onboarding + CI proof: stock 720p web preset profile fixture; per-
-  platform install paths documented (macOS, Ubuntu, Fly.io, Heroku, Render,
-  GitHub Actions); CI verifies FFmpeg detection plus a real-world
-  smartphone-source video round-trip; capability-mismatch error vocabulary
-  frozen with parity test (AV-06)
+No active milestone requirements are open. Start the next milestone with
+`$gsd-new-milestone`; that workflow will create a fresh
+`.planning/REQUIREMENTS.md`.
 
 ### Out of Scope
 
@@ -153,16 +134,14 @@ Media, made durable.
 
 ## Context
 
-**v1.1 result:** the adopter-owned runtime boundary is now real, multipart
-uploads are additive on top of the existing trusted promotion flow, capability
-claims are centralized and proved against MinIO, and a fresh Phoenix consumer
-can install the built package and follow a docs path that is enforced by tests.
+**v1.4 result:** Rindle now has a complete AV wedge on top of the existing
+image-first lifecycle model: system-FFmpeg-backed processing, typed probe and
+domain persistence, AV playback helpers, LiveView progress/cancellation, and a
+copy-pasteable onboarding path proved in CI.
 
-**v1.2 inflection point:** Rindle now looks like a publishable library, but the
-first public `Hex.pm` release path has not yet been exercised for real.
-Distribution, owner/auth setup, rollback posture, and future release routine
-need one deliberate public cut before the next milestone shifts back to API or
-upload-surface expansion.
+**Next milestone setup:** No active milestone is currently open. Future work
+should be chosen from deferred provider-adapter/streaming expansion, GCS/tus
+carry-over work, and real adopter feedback after the v1.4 ship.
 
 **Reference implementations:**
 - Rails Active Storage: attachment/blob ownership patterns, redirect-style
@@ -248,6 +227,24 @@ upload-surface expansion.
 ## Historical Snapshot
 
 <details>
+<summary>v1.4 Video & Audio Wedge (Phases 23–28) — SHIPPED 2026-05-05</summary>
+
+Milestone v1.4 expanded Rindle from image-first into image+video+audio without
+changing the core lifecycle philosophy. Delivered: AV capability negotiation,
+guarded FFmpeg/FFprobe subprocesses, typed `kind`/`output_kind` domain fields,
+`Rindle.Processor.AV`, range-aware local playback, `video_tag/3` and
+`audio_tag/3`, LiveView progress/cancellation contracts, and a smartphone-source
+adopter proof lane that locks the public onboarding story into docs and CI.
+
+Full artifacts live in:
+
+- [.planning/milestones/v1.4-ROADMAP.md](.planning/milestones/v1.4-ROADMAP.md)
+- [.planning/milestones/v1.4-REQUIREMENTS.md](.planning/milestones/v1.4-REQUIREMENTS.md)
+- [.planning/milestones/v1.4-MILESTONE-AUDIT.md](.planning/milestones/v1.4-MILESTONE-AUDIT.md)
+
+</details>
+
+<details>
 <summary>v1.3 Live Publish & API Ergonomics (Phases 15–22) — SHIPPED 2026-05-02</summary>
 
 Milestone v1.3 executed Rindle's first real Hex.pm publish from the
@@ -320,4 +317,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-02 — v1.3 archived (PUBLISH-01/02/03, API-01/02/03/04, VERIFY-02 → Validated); v1.4 Video & Audio Wedge opens with AV-01..AV-06 active; security invariants extended to 13 (FFmpeg argv discipline, `-protocol_whitelist`, four-cap enforcement, untrusted container metadata, MKV/HLS rejection, MuonTrap-supervised subprocess); `Rindle.Processor.AV` locked over Membrane / NIFs / bundled providers based on cross-language peer-lib evidence (Active Storage, Shrine, Spatie, CarrierWave, Django).*
+*Last updated: 2026-05-05 — v1.4 archived (AV-01..AV-06 → Validated); no active milestone is open; next milestone setup returns to `$gsd-new-milestone`.*

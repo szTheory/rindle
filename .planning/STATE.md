@@ -1,116 +1,64 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.4
-milestone_name: Video & Audio Wedge
-status: planning
-stopped_at: Phase 26 execution complete
-last_updated: "2026-05-05T19:56:24Z"
+milestone: none
+milestone_name: No active milestone
+status: milestone_complete
+stopped_at: v1.4 archived
+last_updated: "2026-05-05T22:43:54Z"
 last_activity: 2026-05-05
 progress:
   total_phases: 6
-  completed_phases: 4
+  completed_phases: 6
   total_plans: 27
-  completed_plans: 19
-  percent: 70
+  completed_plans: 27
+  percent: 100
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-05-02)
+See: .planning/PROJECT.md (updated 2026-05-05)
 
 **Core value:** Media, made durable.
-**Current focus:** v1.4 Video & Audio Wedge — Phase 26 executed, ready to start Phase 27
+**Current focus:** No active milestone. v1.4 has been archived and the project is ready for next-milestone definition.
 
 ## Current Position
 
-Phase: 27 (HTML Helpers + LiveView Integration)
-Plan: Not started
-Status: Ready to discuss and plan
+Milestone status: `v1.4 Video & Audio Wedge` shipped and archived
+Current phase: none
+Status: awaiting next milestone
 Last activity: 2026-05-05
 
-Progress: [----------] 0%
+Progress: [##########] 100%
 
-## Performance Metrics
+## Recent Completion
 
-**Velocity:**
+- Last completed milestone: `v1.4 Video & Audio Wedge`
+- Scope: Phases 23-28, 27 plans
+- Audit status: passed
+- Archive files:
+  - `.planning/milestones/v1.4-ROADMAP.md`
+  - `.planning/milestones/v1.4-REQUIREMENTS.md`
+  - `.planning/milestones/v1.4-MILESTONE-AUDIT.md`
 
-- Total plans completed: 19 (v1.4)
-- Average duration: —
-- Total execution time: —
+## Pending Todos
 
-**By Phase:**
+- Plan provider-delegated streaming adapters if adopter feedback demands them.
+- Evaluate ABR/HLS/DASH as a dedicated future streaming milestone.
+- Revisit deferred GCS resumable upload work.
+- Revisit deferred tus/resumable protocol work.
 
-| Phase | Plans (est.) | Total | Avg/Plan |
-|-------|--------------|-------|----------|
-| 23 (AV Foundations) | 5 | 5 tasks | mixed |
-| 24 (Domain Model & DSL) | 5 | 5 plans | verified |
-| 25 (Rindle.Processor.AV) | 6 | 6 plans | verified |
-| 26 (Delivery Surface) | 3 | 3 plans | executed |
-| 27 (HTML + LiveView) | 4 | - | - |
-| 28 (Onboarding + CI) | 4 | - | - |
-| Phase 24 P01 | 3 | 4 commits | summary written |
-| Phase 24 P02 | 3 | 7 commits | summary written |
-| Phase 24 P03 | 2 | 5 commits | summary written |
-| Phase 24 P04 | 2 | 4 commits | summary written |
-| Phase 24 P05 | 3 | 5 commits | summary written |
+## Blockers/Concerns
 
-## Accumulated Context
-
-### Decisions
-
-Decisions are logged in PROJECT.md Key Decisions table.
-
-Recent decisions affecting current work (v1.4 open):
-
-- v1.4 = Video & Audio Wedge. System FFmpeg subprocess (FFmpex + MuonTrap) over Membrane / NIFs / bundled providers. Single `media_assets` table + `:kind` enum; cross-kind variants via `:output_kind`. HLS / DASH / DRM / live streaming explicitly out of scope.
-- Security invariants extended 7 → 13: argv-array discipline, `-protocol_whitelist file,crypto,data` mandatory, four-cap enforcement (`-t` / `-fs` / `-timelimit` / wall-clock), untrusted container metadata, MKV / HLS / DASH ingest rejected, MuonTrap-supervised subprocess with cgroup parent-death kill, sweepable `Rindle.tmp/` root.
-- `Rindle.Delivery.streaming_url/3` reserved as no-op delegate so future Mux / Cloudflare Stream provider adapters land without template churn.
-- Stock 720p H.264 + AAC + scene poster preset ships in v1.4 so adopters get a real demo, not just primitives.
-- Resource defaults locked conservative: max_duration 7200s, max_output 500MB, max_wall 600s, max_cpu 300s, ffmpeg_threads 2 (loosening per profile is non-breaking; tightening later would be).
-- Phase ordering locked: 23 (foundations) blocks 24–28; 24 (domain model) blocks 25/26/27; 25/26/27 have minimal coupling between them; 28 (onboarding + CI proof) lands last.
-- Strict validation against shell interpolation using allow-list approach combined with explicit rejection of unsafe characters
-- Capability vocabulary explicitly modeled to prevent arbitrary capability execution
-- Conditionally applying cgroup configuration based on OS type
-- FFmpeg >= 6.0 is enforced synchronously at boot via Boot Probe
-- Validates full constructed FFmpeg arguments list using Rindle.Security.Argv after incorporating Subprocess.build_args prepends
-- Used standard string replacements to HTML escape FFprobe JSON metadata strings to prevent XSS.
-- Orphan Reaper configured to use file modification time (mtime) mapped from File.lstat safely against the configured threshold.
-
-### Pending Todos
-
-- Plan GCS adapter resumable upload flow (GCS-01)
-- Evaluate tus/resumable protocol once release distribution is routine (TUS-01)
-- Provider-delegated Mux / Cloudflare Stream adapter as bundled package (post-v1.4 — adopter feedback gate)
-- Adaptive bitrate ladder + HLS / DASH manifest authoring (post-v1.4 streaming milestone)
-
-### Blockers/Concerns
-
-- None currently identified. Phase 26 execution verification passed across delivery, local playback, and telemetry contract lanes.
+- None. Open artifact audit was clear at milestone close.
 
 ## Session Continuity
 
-Last session: execute-phase
-Stopped at: Phase 26 execution complete
-Resume file: --resume-file
+Last session: complete-milestone
+Stopped at: v1.4 archived and tagged locally
+Resume file: --
 
-### Decision-Making Preference
+**Last Completed Milestone:** v1.4 (Phases 23-28) — archived 2026-05-05
 
-- Default: agent decides discussion/planning details.
-- Escalate only for high-impact decisions (public API/semver, destructive data
-  changes, security/compliance, irreversible infra/cost, major product-scope
-  shifts).
-
-- If escalation is not possible in-session, use a reversible default and log
-  the assumption.
-
-- Workflow preference: skip discuss by default and move directly into
-  planning/execution unless a high-impact ambiguity is detected.
-
-**Last Completed Milestone:** v1.3 (Phases 15–22) — archived 2026-05-02
-
-**Next Step:** Run `/gsd-discuss-phase 27` to start Phase 27 context gathering.
-
-**Last Executed Phase:** 26 (Delivery Surface) — 3 plans — 2026-05-05
-**Next Planned Phase:** 27 (HTML Helpers + LiveView Integration)
+**Next Step:** Run `$gsd-new-milestone` to define the next milestone and create a fresh `.planning/REQUIREMENTS.md`.

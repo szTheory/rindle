@@ -1,5 +1,27 @@
 # Milestones
 
+## v1.4 Video & Audio Wedge (Shipped: 2026-05-05)
+
+**Phases completed:** 6 phases (23-28), 27 plans
+**Files changed:** 131 (17,189 insertions / 209 deletions)
+**Timeline:** 4 days (2026-05-02 → 2026-05-05)
+
+**Key accomplishments:**
+
+- Shipped the AV foundation seam: capability vocabulary, guarded FFmpeg/FFprobe subprocess execution, boot probing, and `mix rindle.doctor`.
+- Extended the domain model and profile DSL for `:image`, `:video`, `:audio`, and `:waveform` without breaking existing image-only adopters.
+- Added `Rindle.Processor.AV` with preset-led video/audio outputs, poster extraction, waveform generation, deterministic worker behavior, and runtime/output guards.
+- Added the delivery surface for playback with `Rindle.Delivery.streaming_url/3`, local range-aware dev parity, RFC 5987 download filenames, and frozen delivery telemetry.
+- Shipped Phoenix-facing `video_tag/3` and `audio_tag/3`, public LiveView progress/cancellation contracts, and the locked AV error vocabulary.
+- Locked the public AV onboarding story with install docs, profile-aware doctor CI gates, smartphone-source adopter proof, and AV hygiene checks.
+
+**Archive:**
+- `.planning/milestones/v1.4-ROADMAP.md`
+- `.planning/milestones/v1.4-REQUIREMENTS.md`
+- `.planning/milestones/v1.4-MILESTONE-AUDIT.md`
+
+---
+
 ## v1.3 Live Publish & API Ergonomics (Shipped: 2026-05-02)
 
 **Phases completed:** 8 phases (15-22), 21 plans
@@ -65,5 +87,3 @@
 - Fresh `mix phx.new` install smoke for the built Rindle artifact, with explicit host plus library migrations and a shared runner for presigned PUT verification
 - PR CI now proves package-consumer installability from the built artifact, while release reuses the same smoke helper and keeps the deeper tarball and dry-run gates
 - README and getting-started docs now teach the exact smoke-proven presigned PUT install path, and RELEASE-03 is enforced by an executable ExUnit parity gate
-
----
