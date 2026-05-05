@@ -175,6 +175,51 @@ defmodule Rindle.Domain.MediaSchemaTest do
     end
   end
 
+  describe "media_variants - output_kind (Phase 24)" do
+    @variant_valid_base_attrs %{
+      asset_id: Ecto.UUID.generate(),
+      name: "thumb",
+      state: "planned",
+      recipe_digest: "deadbeef",
+      output_kind: "image"
+    }
+
+    test "accepts output_kind=image (default-shape)" do
+      assert MediaVariant.changeset(%MediaVariant{}, @variant_valid_base_attrs).valid?
+    end
+
+    test "accepts output_kind=video with duration_ms/width/height" do
+      attrs =
+        %{@variant_valid_base_attrs | output_kind: "video"}
+        |> Map.merge(%{duration_ms: 30_000, width: 1280, height: 720})
+
+      assert MediaVariant.changeset(%MediaVariant{}, attrs).valid?
+    end
+
+    test "accepts output_kind=audio with duration_ms" do
+      attrs =
+        %{@variant_valid_base_attrs | output_kind: "audio"}
+        |> Map.put(:duration_ms, 180_000)
+
+      assert MediaVariant.changeset(%MediaVariant{}, attrs).valid?
+    end
+
+    test "accepts output_kind=waveform (waveform IS a valid output kind)" do
+      attrs = %{@variant_valid_base_attrs | output_kind: "waveform"}
+      assert MediaVariant.changeset(%MediaVariant{}, attrs).valid?
+    end
+
+    test "rejects output_kind=garbage" do
+      attrs = %{@variant_valid_base_attrs | output_kind: "garbage"}
+      refute MediaVariant.changeset(%MediaVariant{}, attrs).valid?
+    end
+
+    test "cancelled is a valid state (AV-02-04 prerequisite)" do
+      attrs = %{@variant_valid_base_attrs | state: "cancelled"}
+      assert MediaVariant.changeset(%MediaVariant{}, attrs).valid?
+    end
+  end
+
   defp insert_asset! do
     %MediaAsset{}
     |> MediaAsset.changeset(%{
