@@ -70,6 +70,14 @@ defmodule Rindle.Profile.Validator do
     ]
   ]
 
+  @av_image_variant_schema [
+    preset: [
+      type: {:in, [:video_poster_scene, :video_thumbnail_strip]},
+      required: true,
+      doc: "Named AV image preset for explicit poster or scrub-strip variants."
+    ]
+  ]
+
   # Per-kind schemas added in Phase 24 (AV-02-06).
   # Allowlist values mirror SYNTHESIS §2.4 in/out scope; nothing in the
   # "Out of v1.4" column (HLS, DASH, MKV ingest, raw AAC, hardware accel)
@@ -238,14 +246,14 @@ defmodule Rindle.Profile.Validator do
     {kind, kind_explicit?, rest} = pop_kind!(name, normalized)
     guard_no_from_variant!(name, rest)
 
-    schema = schema_for_kind(kind)
+    schema = schema_for_variant(kind, rest)
 
     validated_kw =
       rest
       |> NimbleOptions.validate!(schema)
       |> Keyword.new()
 
-    if kind == :image do
+    if kind == :image and not Keyword.has_key?(rest, :preset) do
       mode = Keyword.fetch!(validated_kw, :mode)
       width = Keyword.fetch!(validated_kw, :width)
       height = Keyword.fetch!(validated_kw, :height)
@@ -294,10 +302,13 @@ defmodule Rindle.Profile.Validator do
     end
   end
 
-  defp schema_for_kind(:image), do: @image_variant_schema
-  defp schema_for_kind(:video), do: @video_variant_schema
-  defp schema_for_kind(:audio), do: @audio_variant_schema
-  defp schema_for_kind(:waveform), do: @waveform_variant_schema
+  defp schema_for_variant(:image, opts) do
+    if Keyword.has_key?(opts, :preset), do: @av_image_variant_schema, else: @image_variant_schema
+  end
+
+  defp schema_for_variant(:video, _opts), do: @video_variant_schema
+  defp schema_for_variant(:audio, _opts), do: @audio_variant_schema
+  defp schema_for_variant(:waveform, _opts), do: @waveform_variant_schema
 
   # D-14 LOAD-BEARING: omit :kind from the validated map for default-:image
   # AND explicit-:image, so v1.0 image profiles digest identically to v1.4

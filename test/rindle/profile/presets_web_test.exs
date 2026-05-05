@@ -6,11 +6,8 @@ defmodule Rindle.Profile.PresetsWebTest do
   defmodule PresetProfile do
     @moduledoc false
 
-    @variants Web.variants()
-
-    use Rindle.Profile,
+    use Web,
       storage: Rindle.Storage.Local,
-      variants: @variants,
       allow_mime: ["video/mp4"],
       max_bytes: 524_288_000
   end
@@ -18,13 +15,11 @@ defmodule Rindle.Profile.PresetsWebTest do
   defmodule PresetProfileWithStrip do
     @moduledoc false
 
-    @variants Web.variants(scrub_strip: true)
-
-    use Rindle.Profile,
+    use Web,
       storage: Rindle.Storage.Local,
-      variants: @variants,
       allow_mime: ["video/mp4"],
-      max_bytes: 524_288_000
+      max_bytes: 524_288_000,
+      scrub_strip: true
   end
 
   describe "variants/1" do
@@ -47,16 +42,16 @@ defmodule Rindle.Profile.PresetsWebTest do
   describe "profile consumption" do
     test "compiles into a real profile without inventing raw FFmpeg policy" do
       assert PresetProfile.variants() == [
-               poster: %{kind: :image, preset: :video_poster_scene},
-               web_720p: %{kind: :video, preset: :web_720p}
+               poster: %{preset: :video_poster_scene},
+               web_720p: %{kind: :video, preset: :web_720p, faststart: true}
              ]
     end
 
     test "adds the scrub strip only when requested" do
       assert PresetProfileWithStrip.variants() == [
-               poster: %{kind: :image, preset: :video_poster_scene},
-               scrub_strip: %{kind: :image, preset: :video_thumbnail_strip},
-               web_720p: %{kind: :video, preset: :web_720p}
+               poster: %{preset: :video_poster_scene},
+               scrub_strip: %{preset: :video_thumbnail_strip},
+               web_720p: %{kind: :video, preset: :web_720p, faststart: true}
              ]
     end
   end

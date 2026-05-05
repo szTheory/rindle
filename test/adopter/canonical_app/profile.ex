@@ -24,11 +24,8 @@ defmodule Rindle.Adopter.CanonicalApp.VideoProfile do
   public onboarding path rather than a bespoke FFmpeg recipe.
   """
 
-  @video_variants Rindle.Profile.Presets.Web.variants()
-
-  use Rindle.Profile,
+  use Rindle.Profile.Presets.Web,
     storage: Rindle.Storage.S3,
-    variants: @video_variants,
     allow_mime: ["video/mp4"],
     max_bytes: 524_288_000
 end

@@ -24,6 +24,8 @@ defmodule Rindle.Processor.AV do
   @spec normalize(map()) :: {:ok, map()} | {:error, term()}
   def normalize(%{kind: :image} = spec), do: normalize_image_recipe(spec)
   def normalize(%{output_kind: :image} = spec), do: normalize_image_recipe(Map.put_new(spec, :kind, :image))
+  def normalize(%{preset: preset} = spec) when preset in [:video_poster_scene, :video_thumbnail_strip],
+    do: normalize_image_recipe(Map.put_new(spec, :kind, :image))
   def normalize(%{kind: :waveform} = spec), do: normalize_waveform_recipe(spec)
   def normalize(spec), do: Recipe.normalize(spec)
 
