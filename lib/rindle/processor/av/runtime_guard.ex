@@ -114,7 +114,11 @@ defmodule Rindle.Processor.AV.RuntimeGuard do
   defp video_variant?(_variant_spec), do: false
 
   defp profile_has_av?(%{variants: variants}) when is_list(variants) do
-    Enum.any?(variants, &av_variant?/1)
+    Enum.any?(variants, fn
+      {_name, spec} when is_map(spec) -> av_variant?(spec)
+      spec when is_map(spec) -> av_variant?(spec)
+      _other -> false
+    end)
   end
 
   defp profile_has_av?(_profile), do: false

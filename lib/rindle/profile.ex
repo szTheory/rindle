@@ -80,6 +80,10 @@ defmodule Rindle.Profile do
       @spec upload_policy() :: Rindle.Profile.Validator.upload_policy()
       def upload_policy, do: @rindle_upload_policy
 
+      @doc false
+      @spec __rindle_profile__() :: true
+      def __rindle_profile__, do: true
+
       @doc """
       Validates an upload metadata map against the profile's upload policy,
       returning `{:ok, normalized_upload}` or `{:error, reason}`.

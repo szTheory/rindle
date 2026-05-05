@@ -20,4 +20,29 @@ defmodule Rindle.Config do
   def upload_session_ttl_seconds do
     Application.get_env(:rindle, :upload_session_ttl_seconds, 86_400)
   end
+
+  @spec profile_modules() :: [module()]
+  def profile_modules do
+    configured =
+      Application.get_env(:rindle, :profiles, [])
+      |> Enum.filter(&profile_module?/1)
+
+    discovered =
+      :application.loaded_applications()
+      |> Enum.flat_map(fn {app, _description, _version} ->
+        Application.spec(app, :modules) || []
+      end)
+      |> Enum.filter(&profile_module?/1)
+
+    (configured ++ discovered)
+    |> Enum.uniq()
+  end
+
+  defp profile_module?(module) when is_atom(module) do
+    Code.ensure_loaded?(module) and
+      function_exported?(module, :__rindle_profile__, 0) and
+      function_exported?(module, :variants, 0)
+  end
+
+  defp profile_module?(_module), do: false
 end
