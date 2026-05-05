@@ -62,10 +62,19 @@ defmodule Rindle.Workers.ProcessVariant do
   def cancel_processing(asset_id) when is_binary(asset_id) do
     repo = Config.repo()
 
-    if processing_variant_exists?(repo, asset_id) do
+    with %MediaAsset{} = asset <- repo.get(MediaAsset, asset_id),
+         [_ | _] = variants <- processing_variants(repo, asset_id) do
+      :ok = cancel_jobs(asset_id)
+      :ok = cancel_variants(repo, variants)
+      :ok = AssetAggregate.recompute(repo, asset_id)
+
+      Enum.each(variants, fn variant ->
+        broadcast_progress(asset, variant, 0, "cancelled")
+      end)
+
       :ok
     else
-      {:error, :not_processing}
+      _ -> {:error, :not_processing}
     end
   end
 
@@ -128,11 +137,34 @@ defmodule Rindle.Workers.ProcessVariant do
     repo.one(from v in MediaVariant, where: v.asset_id == ^asset_id and v.name == ^name)
   end
 
-  defp processing_variant_exists?(repo, asset_id) do
-    repo.exists?(
+  defp processing_variants(repo, asset_id) do
+    repo.all(
       from v in MediaVariant,
-        where: v.asset_id == ^asset_id and v.state in ["queued", "processing"]
+        where: v.asset_id == ^asset_id and v.state in ["queued", "processing"],
+        order_by: [asc: v.name]
     )
+  end
+
+  defp cancel_jobs(asset_id) do
+    asset_query =
+      from j in Job,
+        where: j.worker == "Rindle.Workers.ProcessVariant",
+        where: fragment("?->>'asset_id' = ?", j.args, ^asset_id)
+
+    with {:ok, _count} <- Oban.cancel_all_jobs(asset_query) do
+      :ok
+    end
+  end
+
+  defp cancel_variants(repo, variants) do
+    Enum.reduce_while(variants, :ok, fn variant, :ok ->
+      case update_variant_state(repo, variant, "cancelled", %{
+             error_reason: inspect(:variant_processing_cancelled)
+           }) do
+        :ok -> {:cont, :ok}
+        {:error, reason} -> {:halt, {:error, reason}}
+      end
+    end)
   end
 
   defp get_variant_spec(profile_module, name) do
@@ -282,6 +314,7 @@ defmodule Rindle.Workers.ProcessVariant do
 
         {:cancel, reason} = cancel ->
           broadcast_progress(asset, variant, 0, "cancelled")
+
           emit_transcode_event(
             :exception,
             duration_measurements(started_at),
@@ -292,6 +325,7 @@ defmodule Rindle.Workers.ProcessVariant do
 
         {:error, reason} = error ->
           broadcast_progress(asset, variant, 0, "failed")
+
           emit_transcode_event(
             :exception,
             duration_measurements(started_at),
@@ -306,7 +340,10 @@ defmodule Rindle.Workers.ProcessVariant do
   end
 
   defp av_variant?(%{kind: kind}) when kind in [:video, :audio, :waveform], do: true
-  defp av_variant?(%{preset: preset}) when preset in [:video_poster_scene, :video_thumbnail_strip], do: true
+
+  defp av_variant?(%{preset: preset})
+       when preset in [:video_poster_scene, :video_thumbnail_strip], do: true
+
   defp av_variant?(_variant_spec), do: false
 
   defp normalized_av_spec?(%{} = variant_spec) do

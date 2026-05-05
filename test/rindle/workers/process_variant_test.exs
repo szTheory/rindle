@@ -148,6 +148,79 @@ defmodule Rindle.Workers.ProcessVariantTest do
     assert run_temp_entries(tmp_dir) == []
   end
 
+  test "cancel_processing/1 cancels queued jobs, marks variants cancelled, and broadcasts public events",
+       %{
+         asset: asset,
+         variant: variant,
+         tmp_dir: tmp_dir
+       } do
+    queued_variant =
+      variant
+      |> MediaVariant.changeset(%{state: "queued"})
+      |> Rindle.Repo.update!()
+
+    {:ok, job} =
+      ProcessVariant.new(%{"asset_id" => asset.id, "variant_name" => queued_variant.name})
+      |> Oban.insert()
+
+    Phoenix.PubSub.subscribe(Rindle.PubSub, "rindle:variant:#{queued_variant.id}")
+    Phoenix.PubSub.subscribe(Rindle.PubSub, "rindle:asset:#{asset.id}")
+
+    assert :ok = Rindle.cancel_processing(asset.id)
+
+    queued_variant = Rindle.Repo.get!(MediaVariant, queued_variant.id)
+    asset = Rindle.Repo.get!(MediaAsset, asset.id)
+    cancelled_job = Rindle.Repo.get!(Oban.Job, job.id)
+    asset_id = asset.id
+    variant_id = queued_variant.id
+
+    assert queued_variant.state == "cancelled"
+    assert queued_variant.error_reason =~ "variant_processing_cancelled"
+    assert asset.state == "degraded"
+    assert cancelled_job.state == "cancelled"
+
+    assert_received {:rindle_event, :variant_cancelled,
+                     %{asset_id: ^asset_id, variant_id: ^variant_id, state: "cancelled"}}
+
+    assert_received {:rindle_event, :variant_cancelled,
+                     %{asset_id: ^asset_id, variant_id: ^variant_id, state: "cancelled"}}
+
+    assert run_temp_entries(tmp_dir) == []
+  end
+
+  test "cancel_processing/1 cancels executing jobs and persists the visible cancelled outcome",
+       %{asset: asset, variant: variant, tmp_dir: tmp_dir} do
+    processing_variant =
+      variant
+      |> MediaVariant.changeset(%{state: "processing"})
+      |> Rindle.Repo.update!()
+
+    {:ok, job} =
+      ProcessVariant.new(%{"asset_id" => asset.id, "variant_name" => processing_variant.name})
+      |> Oban.insert()
+
+    Rindle.Repo.update_all(
+      Ecto.Query.from(j in Oban.Job, where: j.id == ^job.id),
+      set: [
+        state: "executing",
+        attempted_at: DateTime.utc_now(),
+        attempted_by: ["test", "worker"]
+      ]
+    )
+
+    assert :ok = Rindle.cancel_processing(asset.id)
+
+    processing_variant = Rindle.Repo.get!(MediaVariant, processing_variant.id)
+    asset = Rindle.Repo.get!(MediaAsset, asset.id)
+    cancelled_job = Rindle.Repo.get!(Oban.Job, job.id)
+
+    assert processing_variant.state == "cancelled"
+    assert processing_variant.error_reason =~ "variant_processing_cancelled"
+    assert asset.state == "degraded"
+    assert cancelled_job.state == "cancelled"
+    assert run_temp_entries(tmp_dir) == []
+  end
+
   @tag :race_guard
   test "cancels stale-source promotions before the ready write", %{
     asset: asset,
@@ -209,7 +282,9 @@ defmodule Rindle.Workers.ProcessVariantTest do
     assert second_job.conflict?
   end
 
-  test "fails AV variants before processing on unsupported ephemeral runtimes", %{tmp_dir: tmp_dir} do
+  test "fails AV variants before processing on unsupported ephemeral runtimes", %{
+    tmp_dir: tmp_dir
+  } do
     System.put_env("LAMBDA_TASK_ROOT", "/tmp/lambda")
 
     on_exit(fn ->
@@ -333,8 +408,7 @@ defmodule Rindle.Workers.ProcessVariantTest do
     asset_id = asset.id
     variant_id = variant.id
 
-    assert_received {:rindle_event,
-                     :variant_started,
+    assert_received {:rindle_event, :variant_started,
                      %{
                        asset_id: ^asset_id,
                        progress: 0,
@@ -343,8 +417,7 @@ defmodule Rindle.Workers.ProcessVariantTest do
                        state: "processing"
                      }}
 
-    assert_received {:rindle_event,
-                     :variant_started,
+    assert_received {:rindle_event, :variant_started,
                      %{
                        asset_id: ^asset_id,
                        progress: 0,
@@ -353,8 +426,7 @@ defmodule Rindle.Workers.ProcessVariantTest do
                        state: "processing"
                      }}
 
-    assert_received {:rindle_event,
-                     :variant_ready,
+    assert_received {:rindle_event, :variant_ready,
                      %{
                        asset_id: ^asset_id,
                        progress: 100,
@@ -363,8 +435,7 @@ defmodule Rindle.Workers.ProcessVariantTest do
                        state: "ready"
                      }}
 
-    assert_received {:rindle_event,
-                     :variant_ready,
+    assert_received {:rindle_event, :variant_ready,
                      %{
                        asset_id: ^asset_id,
                        progress: 100,
