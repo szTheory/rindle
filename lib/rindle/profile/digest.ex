@@ -1,6 +1,8 @@
 defmodule Rindle.Profile.Digest do
   @moduledoc false
 
+  alias Rindle.Processor.AV
+
   @spec for_variant(module(), atom()) :: String.t()
   def for_variant(profile_module, variant_name) when is_atom(variant_name) do
     spec = fetch_variant_spec!(profile_module, variant_name)
@@ -37,6 +39,8 @@ defmodule Rindle.Profile.Digest do
   end
 
   defp normalize(value) when is_map(value) do
+    value = normalize_av_recipe(value)
+
     value
     |> Enum.map(fn {key, nested_value} ->
       {normalize_key(key), normalize(nested_value)}
@@ -59,6 +63,15 @@ defmodule Rindle.Profile.Digest do
   end
 
   defp normalize(value), do: value
+
+  defp normalize_av_recipe(%{kind: kind} = value) when kind in [:video, :audio, :waveform] do
+    case AV.normalize(value) do
+      {:ok, normalized} -> normalized
+      {:error, _reason} -> value
+    end
+  end
+
+  defp normalize_av_recipe(value), do: value
 
   defp normalize_key(key) when is_atom(key), do: Atom.to_string(key)
   defp normalize_key(key) when is_binary(key), do: key

@@ -80,38 +80,10 @@ defmodule Rindle.Profile.Validator do
       required: true,
       doc: "Named transcode preset. Phase 25 ships :web_720p; :web_480p reserved."
     ],
-    codec: [
-      type: {:in, [:h264]},
-      default: :h264,
-      doc: "Video codec. Only :h264 supported in v1.4 (named-presets-only)."
-    ],
-    container: [
-      type: {:in, [:mp4]},
-      default: :mp4,
-      doc: "Output container. Only :mp4 supported in v1.4."
-    ],
-    audio_codec: [
-      type: {:in, [:aac, :none]},
-      default: :aac,
-      doc: "Audio codec for muxed output. :none drops audio."
-    ],
-    width: [
-      type: {:or, [:pos_integer, nil]},
-      default: nil
-    ],
-    height: [
-      type: {:or, [:pos_integer, nil]},
-      default: nil
-    ],
     faststart: [
       type: :boolean,
       default: true,
       doc: "Move moov atom to start (`+faststart`) for progressive playback."
-    ],
-    max_duration_seconds: [
-      type: {:or, [:pos_integer, nil]},
-      default: nil,
-      doc: "Override profile-level max duration; nil inherits."
     ]
   ]
 
@@ -120,20 +92,6 @@ defmodule Rindle.Profile.Validator do
       type: {:in, [:m4a_128k, :mp3_128k]},
       required: true,
       doc: "Named audio preset (codec + bitrate combination)."
-    ],
-    codec: [
-      type: {:in, [:aac, :mp3]},
-      default: :aac,
-      doc: "Audio codec. v1.4 supports :aac (m4a) and :mp3 only."
-    ],
-    container: [
-      type: {:in, [:m4a, :mp3]},
-      default: :m4a,
-      doc: "Output container; must match codec."
-    ],
-    bitrate_kbps: [
-      type: {:or, [:pos_integer, nil]},
-      default: nil
     ],
     channels: [
       type: {:in, [1, 2, nil]},
@@ -153,15 +111,20 @@ defmodule Rindle.Profile.Validator do
   ]
 
   @waveform_variant_schema [
+    preset: [
+      type: {:in, [:overview]},
+      required: true,
+      doc: "Named waveform preset. v1.4 ships a single overview contract."
+    ],
     format: [
       type: {:in, [:json]},
       default: :json,
       doc: "Output format. Only :json supported in v1.4."
     ],
-    peaks: [
+    length: [
       type: :pos_integer,
       default: 1000,
-      doc: "Number of peak samples in the output array."
+      doc: "Number of buckets in the output waveform contract."
     ],
     sample_rate: [
       type: {:or, [:pos_integer, nil]},
