@@ -110,4 +110,31 @@ defmodule Rindle.HTMLTest do
     assert html =~ "src=\"https://public.example/assets/asset-1/original.jpg\""
     refute html =~ "thumb.jpg"
   end
+
+  test "picture_tag/3 stays on image markup and does not adopt AV playback elements" do
+    asset = asset_with_variants([])
+
+    expect(Rindle.AuthorizerMock, :authorize, fn nil,
+                                                 :deliver,
+                                                 %{
+                                                   profile: PublicProfile,
+                                                   key: "assets/asset-1/original.jpg",
+                                                   mode: :public
+                                                 } ->
+      :ok
+    end)
+
+    expect(Rindle.StorageMock, :url, fn "assets/asset-1/original.jpg", _opts ->
+      {:ok, "https://public.example/assets/asset-1/original.jpg"}
+    end)
+
+    html =
+      Rindle.HTML.picture_tag(PublicProfile, asset, alt: "Still image")
+      |> Phoenix.HTML.safe_to_string()
+
+    assert html =~ "<picture>"
+    assert html =~ "<img"
+    refute html =~ "<video"
+    refute html =~ "<audio"
+  end
 end

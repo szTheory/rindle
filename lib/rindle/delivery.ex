@@ -4,6 +4,27 @@ defmodule Rindle.Delivery do
 
   Private delivery is the default. Public delivery is an explicit profile opt-in,
   and authorization (when configured) runs before any URL is issued.
+
+  Production delivery remains redirect-oriented: Rindle resolves URLs and lets
+  the underlying storage or future streaming provider serve bytes directly.
+
+  Signed URL TTL guidance stays intentionally policy-level rather than
+  widening the profile DSL:
+
+  - images: about 15 minutes (`900` seconds)
+  - audio: about 1 hour (`3600` seconds)
+  - video-on-demand: about 2 hours (`7200` seconds)
+  - long-form playback: keep the same delivery surface and refresh tokens on
+    the adopter side instead of introducing per-request TTL knobs
+
+  Telemetry contract:
+
+  - `[:rindle, :delivery, :signed]`
+    measurements: `%{system_time: integer()}`
+    metadata: `%{profile: module(), adapter: module(), mode: :public | :private}`
+  - `[:rindle, :delivery, :streaming, :resolved]`
+    measurements: `%{system_time: integer()}`
+    metadata: `%{profile: module(), adapter: module(), mode: :public | :private, kind: :progressive, mime: String.t()}`
   """
 
   alias Rindle.Delivery.ContentDisposition
@@ -128,6 +149,11 @@ defmodule Rindle.Delivery do
   `url/3`, preserving the same authorization, TTL, and error semantics while
   wrapping successful results as `%{url, kind, mime}`. Emits
   `[:rindle, :delivery, :streaming, :resolved]` telemetry on success.
+
+  Use the profile's single `signed_url_ttl_seconds` policy as the runtime TTL
+  source. Recommended defaults are 15 minutes for images, 1 hour for audio,
+  and 2 hours for video-on-demand. Long-form playback should refresh tokens at
+  the application edge rather than widening the delivery API.
   """
   @spec streaming_url(module(), String.t(), keyword()) ::
           {:ok, %{url: String.t(), kind: :progressive, mime: String.t()}} | {:error, term()}

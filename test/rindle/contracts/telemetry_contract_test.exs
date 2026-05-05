@@ -3,8 +3,10 @@ defmodule Rindle.Contracts.TelemetryContractTest do
   use Oban.Testing, repo: Rindle.Repo
   import Mox
 
+  alias Plug.Test
   alias Rindle.Domain.AssetFSM
   alias Rindle.Domain.{MediaAsset, MediaVariant, VariantFSM}
+  alias Rindle.Delivery.LocalPlug
   alias Rindle.Workers.ProcessVariant
 
   @moduledoc """
@@ -51,12 +53,25 @@ defmodule Rindle.Contracts.TelemetryContractTest do
       delivery: [public: true]
   end
 
+  defmodule StreamingContractProfile do
+    @moduledoc false
+
+    use Rindle.Profile,
+      storage: Rindle.StorageMock,
+      variants: [web: [kind: :video, preset: :web_720p]],
+      allow_mime: ["video/mp4"],
+      max_bytes: 524_288_000,
+      delivery: [public: true]
+  end
+
   @public_events [
     [:rindle, :upload, :start],
     [:rindle, :upload, :stop],
     [:rindle, :asset, :state_change],
     [:rindle, :variant, :state_change],
     [:rindle, :delivery, :signed],
+    [:rindle, :delivery, :streaming, :resolved],
+    [:rindle, :delivery, :range_request],
     [:rindle, :cleanup, :run],
     [:rindle, :media, :transcode, :start],
     [:rindle, :media, :transcode, :stop],
@@ -71,7 +86,7 @@ defmodule Rindle.Contracts.TelemetryContractTest do
 
   describe "public event allowlist" do
     test "is exactly the documented public contract" do
-      assert length(@public_events) == 9
+      assert length(@public_events) == 11
 
       for event <- @public_events do
         assert is_list(event)
@@ -136,6 +151,85 @@ defmodule Rindle.Contracts.TelemetryContractTest do
       assert_numeric_measurements(measurements)
       assert metadata.profile == LocalContractProfile
       assert metadata.adapter == Rindle.Storage.Local
+    end
+
+    test "Delivery.streaming_url/3 emits :delivery :streaming :resolved with stable metadata",
+         %{ref: ref} do
+      key = "telemetry/video.mp4"
+
+      expect(Rindle.StorageMock, :url, fn ^key, _opts ->
+        {:ok, "https://stream.example/#{key}"}
+      end)
+
+      assert {:ok, %{url: url, kind: :progressive, mime: "audio/mpeg"}} =
+               Rindle.Delivery.streaming_url(
+                 StreamingContractProfile,
+                 key,
+                 mime: "audio/mpeg"
+               )
+
+      assert url == "https://stream.example/#{key}"
+
+      assert_received {[:rindle, :delivery, :streaming, :resolved], ^ref, measurements, metadata}
+      assert_numeric_measurements(measurements)
+      assert metadata.profile == StreamingContractProfile
+      assert metadata.adapter == Rindle.StorageMock
+      assert metadata.mode == :public
+      assert metadata.kind == :progressive
+      assert metadata.mime == "audio/mpeg"
+    end
+
+    test "LocalPlug emits :delivery :range_request with stable metadata", %{ref: ref} do
+      root =
+        Path.join(System.tmp_dir!(), "rindle-contract-range-#{System.unique_integer([:positive])}")
+
+      File.mkdir_p!(root)
+      on_exit(fn -> File.rm_rf(root) end)
+
+      key = "telemetry/video.mp4"
+      path = Rindle.Storage.Local.path_for(key, root: root)
+      File.mkdir_p!(Path.dirname(path))
+      File.write!(path, "0123456789abcdef")
+
+      route = [
+        base_url: "http://example.test/rindle/local",
+        secret_key_base: String.duplicate("contract-secret-", 4)
+      ]
+
+      {:ok, %{url: url}} =
+        Rindle.Delivery.streaming_url(
+          LocalContractProfile,
+          key,
+          root: root,
+          local_route: route,
+          actor: %{id: "viewer-1"}
+        )
+
+      conn =
+        Test.conn("GET", request_path(url))
+        |> Map.put(:secret_key_base, route[:secret_key_base])
+        |> Plug.Conn.put_req_header("range", "bytes=4-7")
+
+      opts =
+        LocalPlug.init(
+          profile: LocalContractProfile,
+          root: root,
+          secret_key_base: route[:secret_key_base]
+        )
+
+      response = LocalPlug.call(conn, opts)
+
+      assert response.status == 206
+
+      assert_received {[:rindle, :delivery, :range_request], ^ref, measurements, metadata}
+      assert_numeric_measurements(measurements)
+      assert measurements.offset == 4
+      assert measurements.length == 4
+      assert measurements.file_size == 16
+      assert metadata.profile == LocalContractProfile
+      assert metadata.adapter == Rindle.Storage.Local
+      assert metadata.key == key
+      assert metadata.actor_subject == "viewer-1"
     end
 
     test "ProcessVariant emits the AV transcode start/stop contract on success", %{ref: ref} do
@@ -344,5 +438,10 @@ defmodule Rindle.Contracts.TelemetryContractTest do
     ]
 
     {_output, 0} = System.cmd("ffmpeg", args, stderr_to_stdout: true)
+  end
+
+  defp request_path(url) do
+    uri = URI.parse(url)
+    uri.path <> if(uri.query, do: "?" <> uri.query, else: "")
   end
 end

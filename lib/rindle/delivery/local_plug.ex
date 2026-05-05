@@ -6,6 +6,16 @@ defmodule Rindle.Delivery.LocalPlug do
   development when the storage adapter is `Rindle.Storage.Local`. It is not the
   production delivery posture for Rindle; production delivery stays on
   redirect/native object-store byte serving.
+
+  Local responses reuse the same explicit, sanitized filename/disposition policy
+  as redirect delivery by consuming the normalized
+  `Rindle.Delivery.ContentDisposition` payload.
+
+  Telemetry contract:
+
+  - `[:rindle, :delivery, :range_request]`
+    measurements: `%{system_time: integer(), offset: non_neg_integer(), length: pos_integer(), file_size: pos_integer()}`
+    metadata: `%{profile: module(), adapter: module(), key: String.t(), actor_subject: String.t()}`
   """
 
   @behaviour Plug
