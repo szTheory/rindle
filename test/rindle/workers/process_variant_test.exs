@@ -280,7 +280,7 @@ defmodule Rindle.Workers.ProcessVariantTest do
     assert run_temp_entries(tmp_dir) == []
   end
 
-  test "broadcasts explicit AV progress to both variant and asset topics", %{tmp_dir: tmp_dir} do
+  test "broadcasts public LiveView events to both variant and asset topics", %{tmp_dir: tmp_dir} do
     asset =
       %MediaAsset{}
       |> MediaAsset.changeset(%{
@@ -320,7 +320,8 @@ defmodule Rindle.Workers.ProcessVariantTest do
     asset_id = asset.id
     variant_id = variant.id
 
-    assert_received {:rindle_variant_progress,
+    assert_received {:rindle_event,
+                     :variant_started,
                      %{
                        asset_id: ^asset_id,
                        progress: 0,
@@ -329,7 +330,8 @@ defmodule Rindle.Workers.ProcessVariantTest do
                        state: "processing"
                      }}
 
-    assert_received {:rindle_variant_progress,
+    assert_received {:rindle_event,
+                     :variant_started,
                      %{
                        asset_id: ^asset_id,
                        progress: 0,
@@ -338,7 +340,8 @@ defmodule Rindle.Workers.ProcessVariantTest do
                        state: "processing"
                      }}
 
-    assert_received {:rindle_variant_progress,
+    assert_received {:rindle_event,
+                     :variant_ready,
                      %{
                        asset_id: ^asset_id,
                        progress: 100,
@@ -347,7 +350,8 @@ defmodule Rindle.Workers.ProcessVariantTest do
                        state: "ready"
                      }}
 
-    assert_received {:rindle_variant_progress,
+    assert_received {:rindle_event,
+                     :variant_ready,
                      %{
                        asset_id: ^asset_id,
                        progress: 100,
@@ -357,6 +361,7 @@ defmodule Rindle.Workers.ProcessVariantTest do
                      }}
 
     refute_received {:rindle_variant_progress, _payload}
+    refute_received {:rindle_event, :variant_progress, _payload}
     assert run_temp_entries(tmp_dir) == []
   end
 
