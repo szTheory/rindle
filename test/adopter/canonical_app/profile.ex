@@ -26,6 +26,6 @@ defmodule Rindle.Adopter.CanonicalApp.VideoProfile do
 
   use Rindle.Profile.Presets.Web,
     storage: Rindle.Storage.S3,
-    allow_mime: ["video/mp4"],
+    allow_mime: ["video/mp4", "video/quicktime", "video/webm"],
     max_bytes: 524_288_000
 end

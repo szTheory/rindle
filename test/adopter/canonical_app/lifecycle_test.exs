@@ -441,13 +441,14 @@ defmodule Rindle.Adopter.CanonicalApp.LifecycleTest do
   end
 
   defp smartphone_fixture_matrix do
-    root = Path.expand("../support/fixtures/smartphone", __DIR__)
+    root = Path.expand("../../support/fixtures/smartphone", __DIR__)
 
     [
       %{
         name: "portrait quicktime rotation",
         path: Path.join(root, "portrait_rotation.mov"),
         upload_filename: "portrait_rotation.mov",
+        content_type: "video/quicktime",
         width: 360,
         height: 640,
         rotation: 90
@@ -456,6 +457,7 @@ defmodule Rindle.Adopter.CanonicalApp.LifecycleTest do
         name: "android webm",
         path: Path.join(root, "android_capture.webm"),
         upload_filename: "android_capture.webm",
+        content_type: "video/webm",
         width: 640,
         height: 360,
         rotation: nil
@@ -464,23 +466,37 @@ defmodule Rindle.Adopter.CanonicalApp.LifecycleTest do
   end
 
   defp assert_fixture_probe!(fixture, asset) do
+    assert asset.content_type == fixture.content_type
     assert asset.width == fixture.width
     assert asset.height == fixture.height
 
-    rotation =
-      asset.metadata
-      |> Map.get("streams", [])
-      |> Enum.find(fn stream -> stream["codec_type"] == "video" end)
-      |> case do
-        nil ->
-          nil
+    assert fixture_rotation(fixture.path) == fixture.rotation
+  end
 
-        stream ->
-          stream
-          |> Map.get("side_data_list", [])
-          |> Enum.find_value(fn side_data -> side_data["rotation"] end)
-      end
+  defp fixture_rotation(path) do
+    {json, 0} =
+      System.cmd("ffprobe", [
+        "-v",
+        "error",
+        "-print_format",
+        "json",
+        "-show_format",
+        "-show_streams",
+        path
+      ])
 
-    assert rotation == fixture.rotation
+    json
+    |> Jason.decode!()
+    |> Map.get("streams", [])
+    |> Enum.find(fn stream -> stream["codec_type"] == "video" end)
+    |> case do
+      nil ->
+        nil
+
+      stream ->
+        stream
+        |> Map.get("side_data_list", [])
+        |> Enum.find_value(fn side_data -> side_data["rotation"] end)
+    end
   end
 end
