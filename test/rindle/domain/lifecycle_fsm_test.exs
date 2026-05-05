@@ -44,6 +44,74 @@ defmodule Rindle.Domain.LifecycleFSMTest do
     end
   end
 
+  describe "asset transition matrix — Phase 24 additive (AV-02-03)" do
+    alias Rindle.Domain.AssetFSM
+
+    test "available → transcoding is allowed (NEW edge)" do
+      assert :ok == AssetFSM.transition("available", "transcoding")
+    end
+
+    test "transcoding → ready is allowed (NEW edge)" do
+      assert :ok == AssetFSM.transition("transcoding", "ready")
+    end
+
+    test "transcoding → degraded is allowed (NEW edge)" do
+      assert :ok == AssetFSM.transition("transcoding", "degraded")
+    end
+
+    test "transcoding → quarantined is allowed (NEW edge)" do
+      assert :ok == AssetFSM.transition("transcoding", "quarantined")
+    end
+
+    test "analyzing → quarantined is allowed (NEW; probe-failure path per AV-02-09; A4 deviation from D-09)" do
+      assert :ok == AssetFSM.transition("analyzing", "quarantined")
+    end
+
+    test "transcoding → deleted is rejected (terminal-fan only via ready/degraded/quarantined)" do
+      assert {:error, {:invalid_transition, "transcoding", "deleted"}} =
+               AssetFSM.transition("transcoding", "deleted")
+    end
+
+    test "transcoding → available is rejected (no backward edge)" do
+      assert {:error, {:invalid_transition, "transcoding", "available"}} =
+               AssetFSM.transition("transcoding", "available")
+    end
+  end
+
+  describe "asset transition matrix — REGRESSION GUARDS (image-flow byte-for-byte)" do
+    alias Rindle.Domain.AssetFSM
+
+    test "available → processing still allowed (image flow)" do
+      assert :ok == AssetFSM.transition("available", "processing")
+    end
+
+    test "available → quarantined still allowed" do
+      assert :ok == AssetFSM.transition("available", "quarantined")
+    end
+
+    test "processing → ready still allowed" do
+      assert :ok == AssetFSM.transition("processing", "ready")
+    end
+
+    test "processing → quarantined still allowed" do
+      assert :ok == AssetFSM.transition("processing", "quarantined")
+    end
+
+    test "ready → degraded / deleted still allowed" do
+      assert :ok == AssetFSM.transition("ready", "degraded")
+      assert :ok == AssetFSM.transition("ready", "deleted")
+    end
+
+    test "non-allowlisted jump still rejected" do
+      assert {:error, {:invalid_transition, "staged", "ready"}} =
+               AssetFSM.transition("staged", "ready")
+    end
+
+    test "analyzing → promoting still allowed (existing happy-path edge preserved)" do
+      assert :ok == AssetFSM.transition("analyzing", "promoting")
+    end
+  end
+
   describe "variant transition matrix" do
     test "accepts planned through ready path" do
       assert :ok == VariantFSM.transition("planned", "queued")
