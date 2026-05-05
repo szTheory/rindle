@@ -166,7 +166,15 @@ defmodule Rindle.Delivery do
 
     with :ok <- authorize_delivery(profile, :deliver, subject, opts),
          :ok <- require_streaming_support(adapter, mode, opts),
-         {:ok, url} <- resolve_streaming_url(profile, adapter, key, mode, opts, signed_url_ttl_seconds(profile)) do
+         {:ok, url} <-
+           resolve_streaming_url(
+             profile,
+             adapter,
+             key,
+             mode,
+             opts,
+             signed_url_ttl_seconds(profile)
+           ) do
       :telemetry.execute(
         [:rindle, :delivery, :streaming, :resolved],
         %{system_time: System.system_time()},
@@ -257,7 +265,8 @@ defmodule Rindle.Delivery do
     if local_playback_route?(opts), do: :ok, else: {:error, :streaming_not_configured}
   end
 
-  defp require_streaming_support(adapter, mode, _opts), do: require_delivery_support(adapter, mode)
+  defp require_streaming_support(adapter, mode, _opts),
+    do: require_delivery_support(adapter, mode)
 
   defp resolve_url(adapter, key, :public, opts, _ttl) do
     adapter.url(key, opts)

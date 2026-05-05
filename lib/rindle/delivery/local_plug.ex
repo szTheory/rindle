@@ -159,7 +159,11 @@ defmodule Rindle.Delivery.LocalPlug do
     put_resp_header(conn, "content-disposition", header)
   end
 
-  defp maybe_put_content_disposition(conn, %{type: type, filename: filename, filename_star: filename_star}) do
+  defp maybe_put_content_disposition(conn, %{
+         type: type,
+         filename: filename,
+         filename_star: filename_star
+       }) do
     header = "#{type}; filename=\"#{filename}\"; filename*=#{filename_star}"
     put_resp_header(conn, "content-disposition", header)
   end

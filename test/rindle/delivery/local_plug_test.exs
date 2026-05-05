@@ -171,20 +171,20 @@ defmodule Rindle.Delivery.LocalPlugTest do
       assert metadata.actor_subject == "viewer-1"
     end
 
-    test "supports suffix and open-ended single-byte ranges", %{root: root, key: key, route: route} do
+    test "supports suffix and open-ended single-byte ranges", %{
+      root: root,
+      key: key,
+      route: route
+    } do
       suffix_conn =
-        playback_conn(root, route, key,
-          req_headers: [{"range", "bytes=-4"}]
-        )
+        playback_conn(root, route, key, req_headers: [{"range", "bytes=-4"}])
 
       assert suffix_conn.status == 206
       assert suffix_conn.resp_body == "cdef"
       assert Conn.get_resp_header(suffix_conn, "content-range") == ["bytes 12-15/16"]
 
       open_ended_conn =
-        playback_conn(root, route, key,
-          req_headers: [{"range", "bytes=10-"}]
-        )
+        playback_conn(root, route, key, req_headers: [{"range", "bytes=10-"}])
 
       assert open_ended_conn.status == 206
       assert open_ended_conn.resp_body == "abcdef"
@@ -193,26 +193,22 @@ defmodule Rindle.Delivery.LocalPlugTest do
 
     test "falls back to 200 full body for multi-range and malformed range headers while publishing a stable parse reason",
          %{
-      root: root,
-      key: key,
-      route: route
-    } do
+           root: root,
+           key: key,
+           route: route
+         } do
       ref = :telemetry_test.attach_event_handlers(self(), [[:rindle, :delivery, :range_fallback]])
       on_exit(fn -> :telemetry.detach(ref) end)
 
       multi_range_conn =
-        playback_conn(root, route, key,
-          req_headers: [{"range", "bytes=0-1,4-5"}]
-        )
+        playback_conn(root, route, key, req_headers: [{"range", "bytes=0-1,4-5"}])
 
       assert multi_range_conn.status == 200
       assert multi_range_conn.resp_body == "0123456789abcdef"
       assert Conn.get_resp_header(multi_range_conn, "content-range") == []
 
       malformed_conn =
-        playback_conn(root, route, key,
-          req_headers: [{"range", "not-a-range"}]
-        )
+        playback_conn(root, route, key, req_headers: [{"range", "not-a-range"}])
 
       assert malformed_conn.status == 200
       assert malformed_conn.resp_body == "0123456789abcdef"
@@ -235,7 +231,9 @@ defmodule Rindle.Delivery.LocalPlugTest do
       invalid_conn = request(invalid_token_url, root, route)
       assert invalid_conn.status == 403
 
-      missing_conn = request(signed_local_url(root, route, "assets/asset-1/missing.mp4"), root, route)
+      missing_conn =
+        request(signed_local_url(root, route, "assets/asset-1/missing.mp4"), root, route)
+
       assert missing_conn.status == 404
     end
 
@@ -254,7 +252,12 @@ defmodule Rindle.Delivery.LocalPlugTest do
   end
 
   defp playback_conn(root, route, key, opts) do
-    request(signed_local_url(root, route, key, opts), root, route, Keyword.get(opts, :req_headers, []))
+    request(
+      signed_local_url(root, route, key, opts),
+      root,
+      route,
+      Keyword.get(opts, :req_headers, [])
+    )
   end
 
   defp request(url, root, route, req_headers \\ []) do
@@ -263,7 +266,9 @@ defmodule Rindle.Delivery.LocalPlugTest do
       |> Map.put(:secret_key_base, Keyword.fetch!(route, :secret_key_base))
       |> put_req_headers(req_headers)
 
-    opts = LocalPlug.init(profile: LocalProfile, root: root, secret_key_base: route[:secret_key_base])
+    opts =
+      LocalPlug.init(profile: LocalProfile, root: root, secret_key_base: route[:secret_key_base])
+
     LocalPlug.call(conn, opts)
   end
 

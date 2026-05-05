@@ -260,7 +260,9 @@ defmodule Rindle.Workers.ProcessVariant do
     variant = repo.get!(MediaVariant, variant.id)
 
     with :ok <-
-           update_variant_state(repo, variant, "cancelled", %{error_reason: inspect(public_reason)}),
+           update_variant_state(repo, variant, "cancelled", %{
+             error_reason: inspect(public_reason)
+           }),
          :ok <- AssetAggregate.recompute(repo, variant.asset_id) do
       :ok
     end
@@ -347,7 +349,10 @@ defmodule Rindle.Workers.ProcessVariant do
   defp normalize_public_reason(:not_found), do: :variant_source_not_found
   defp normalize_public_reason(:variant_processing_cancelled), do: :variant_processing_cancelled
   defp normalize_public_reason({:stale_source, _why}), do: :variant_source_not_found
-  defp normalize_public_reason({:unsupported_ephemeral_runtime, _runtime}), do: :processor_capability_missing
+
+  defp normalize_public_reason({:unsupported_ephemeral_runtime, _runtime}),
+    do: :processor_capability_missing
+
   defp normalize_public_reason({:output_duration_mismatch, _details}), do: :capability_drift
   defp normalize_public_reason({:ffmpeg_failed, _middle, _output}), do: :unsupported_codec
   defp normalize_public_reason({:ffmpeg_missing_output, _kind}), do: :capability_drift
