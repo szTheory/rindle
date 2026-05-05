@@ -239,7 +239,7 @@ defmodule Rindle.Delivery.LocalPlugTest do
     end
   end
 
-  defp playback_conn(root, route, key, opts \\ []) do
+  defp playback_conn(root, route, key, opts) do
     request(signed_local_url(root, route, key, opts), root, route, Keyword.get(opts, :req_headers, []))
   end
 
