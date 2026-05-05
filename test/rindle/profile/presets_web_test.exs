@@ -1,6 +1,7 @@
 defmodule Rindle.Profile.PresetsWebTest do
   use ExUnit.Case, async: true
 
+  alias Rindle.Adopter.CanonicalApp.VideoProfile, as: CanonicalVideoProfile
   alias Rindle.Profile.Presets.Web
 
   defmodule PresetProfile do
@@ -53,6 +54,19 @@ defmodule Rindle.Profile.PresetsWebTest do
                scrub_strip: %{preset: :video_thumbnail_strip},
                web_720p: %{kind: :video, preset: :web_720p, faststart: true}
              ]
+    end
+
+    test "keeps the canonical adopter profile on the exact stock onboarding surface" do
+      assert CanonicalVideoProfile.variants() == PresetProfile.variants()
+
+      assert CanonicalVideoProfile.upload_policy().allow_mime == [
+               "video/mp4",
+               "video/quicktime",
+               "video/webm"
+             ]
+
+      assert PresetProfile.upload_policy().allow_mime ==
+               CanonicalVideoProfile.upload_policy().allow_mime
     end
   end
 end
