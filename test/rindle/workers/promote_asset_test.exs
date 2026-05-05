@@ -92,8 +92,22 @@ defmodule Rindle.Workers.PromoteAssetTest do
       max_bytes: 10_485_760
   end
 
+  defmodule QueueAwareProfile do
+    use Rindle.Profile,
+      storage: Rindle.StorageMock,
+      variants: [
+        thumb: [mode: :crop, width: 100, height: 100],
+        hero: [kind: :video, preset: :web_720p],
+        preview: [kind: :audio, preset: :m4a_128k]
+      ],
+      allow_mime: ["image/jpeg"],
+      max_bytes: 10_485_760
+  end
+
   setup do
-    tmp_dir = Path.join(System.tmp_dir!(), "rindle-promote-asset-#{System.unique_integer([:positive])}")
+    tmp_dir =
+      Path.join(System.tmp_dir!(), "rindle-promote-asset-#{System.unique_integer([:positive])}")
+
     File.mkdir_p!(tmp_dir)
 
     previous_tmp_dir = Application.get_env(:rindle, :tmp_dir)
@@ -144,6 +158,52 @@ defmodule Rindle.Workers.PromoteAssetTest do
 
     assert_enqueued worker: Rindle.Workers.ProcessVariant,
                     args: %{"asset_id" => asset.id, "variant_name" => "large"}
+  end
+
+  test "uses normalized variant specs to route AV jobs onto the media queue" do
+    asset =
+      %MediaAsset{}
+      |> MediaAsset.changeset(%{
+        state: "analyzing",
+        profile: to_string(QueueAwareProfile),
+        storage_key: "test/queue-aware.jpg"
+      })
+      |> Rindle.Repo.insert!()
+
+    expect_download(:png)
+
+    assert :ok = perform_job(PromoteAsset, %{"asset_id" => asset.id})
+
+    variants =
+      Rindle.Repo.all(
+        Ecto.Query.from(v in MediaVariant, where: v.asset_id == ^asset.id, order_by: v.name)
+      )
+
+    assert Enum.map(variants, &{&1.name, &1.output_kind}) == [
+             {"hero", "video"},
+             {"preview", "audio"},
+             {"thumb", "image"}
+           ]
+
+    jobs =
+      Rindle.Repo.all(
+        Ecto.Query.from(j in Oban.Job,
+          where: j.worker == "Rindle.Workers.ProcessVariant",
+          where: fragment("?->>'asset_id' = ?", j.args, ^asset.id)
+        )
+      )
+
+    assert Enum.any?(jobs, &(&1.args["variant_name"] == "thumb" and &1.queue == "rindle_process"))
+
+    assert Enum.any?(jobs, fn job ->
+             job.args["variant_name"] == "hero" and job.queue == "rindle_media" and
+               job.args["timeout"] == :timer.minutes(10)
+           end)
+
+    assert Enum.any?(jobs, fn job ->
+             job.args["variant_name"] == "preview" and job.queue == "rindle_media" and
+               job.args["timeout"] == :timer.minutes(10)
+           end)
   end
 
   test "handles assets starting from validating state", %{asset: asset} do

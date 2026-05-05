@@ -2,11 +2,19 @@ defmodule Rindle.Workers.ProcessVariant do
   @moduledoc false
   use Oban.Worker, queue: :rindle_process, max_attempts: 5
 
+  alias Oban.Job
+  alias Rindle.AV.TempRunDir
   alias Rindle.Config
+  alias Rindle.Domain.AssetAggregate
   alias Rindle.Domain.{MediaAsset, MediaVariant}
+  alias Rindle.Processor.AV
   alias Rindle.Domain.VariantFSM
   alias Rindle.Processor.Image
   import Ecto.Query
+
+  @av_queue :rindle_media
+  @av_timeout_ms :timer.minutes(10)
+  @unique_states [:available, :scheduled, :executing, :retryable]
 
   @impl Oban.Worker
   def perform(%Oban.Job{args: %{"asset_id" => asset_id, "variant_name" => variant_name}}) do
@@ -20,44 +28,71 @@ defmodule Rindle.Workers.ProcessVariant do
     end
   end
 
+  @impl Oban.Worker
+  def timeout(%Job{args: %{"timeout" => timeout}}) when is_integer(timeout), do: timeout
+
+  def timeout(%Job{}), do: :infinity
+
+  @spec job_args_for_variant(Ecto.UUID.t(), String.t(), map() | keyword()) :: map()
+  def job_args_for_variant(asset_id, variant_name, variant_spec) do
+    normalized_spec = normalize_variant_spec(variant_spec)
+
+    %{"asset_id" => asset_id, "variant_name" => variant_name}
+    |> maybe_put_timeout(normalized_spec)
+  end
+
+  @spec job_opts_for_variant(map() | keyword()) :: keyword()
+  def job_opts_for_variant(variant_spec) do
+    normalized_spec = normalize_variant_spec(variant_spec)
+
+    base_opts = [unique: unique_job_opts()]
+
+    if av_variant?(normalized_spec) do
+      Keyword.put(base_opts, :queue, @av_queue)
+    else
+      base_opts
+    end
+  end
+
   defp process(repo, asset, variant) do
     profile_module = String.to_existing_atom(asset.profile)
-    variant_spec = get_variant_spec(profile_module, variant.name)
+    variant_spec = get_variant_spec(profile_module, variant.name) |> normalize_variant_spec()
 
-    # 1. Atomic Promote Check: reload and verify attachment hasn't changed
-    # In this phase, we don't have polymorphic attachments yet,
-    # but we check if the asset's own storage_key has changed (unlikely here).
-    # Once we have MediaAttachment (Phase 2), we reload the attachment.
+    if variant.state == "ready" do
+      :ok
+    else
+      with :ok <- ensure_variant_state(repo, variant, "queued"),
+           variant <- repo.get!(MediaVariant, variant.id),
+           :ok <- ensure_variant_state(repo, variant, "processing"),
+           :ok <- AssetAggregate.recompute(repo, asset.id),
+           variant <- repo.get!(MediaVariant, variant.id),
+           {:ok, run_dir} <- TempRunDir.create() do
+        try do
+          with {:ok, source_tmp} <- download_source(asset, run_dir),
+               {:ok, dest_tmp} <- generate_dest_path(variant, variant_spec, run_dir),
+               {:ok, _} <- process_variant(source_tmp, variant_spec, dest_tmp),
+               {:ok, storage_meta} <- upload_variant(asset, variant, dest_tmp, variant_spec),
+               :ok <- persist_ready(repo, asset, variant, storage_meta, dest_tmp, variant_spec) do
+            :ok
+          else
+            {:cancel, reason} = cancel ->
+              _ = handle_cancel(repo, variant, reason)
+              cancel
 
-    with :ok <- transition_variant(repo, variant, "queued"),
-         variant <- repo.get!(MediaVariant, variant.id),
-         :ok <- transition_variant(repo, variant, "processing"),
-         variant <- repo.get!(MediaVariant, variant.id),
-         {:ok, source_tmp} <- download_source(asset),
-         {:ok, dest_tmp} <- generate_dest_path(variant),
-         {:ok, _} <- Image.process(source_tmp, variant_spec, dest_tmp),
-         {:ok, storage_meta} <- upload_variant(asset, variant, dest_tmp) do
-      # 2. Final atomic update
-      variant
-      |> MediaVariant.changeset(%{
-        state: "ready",
-        storage_key: storage_meta.key,
-        byte_size: get_file_size(dest_tmp),
-        generated_at: DateTime.utc_now()
-      })
-      |> repo.update()
-      |> case do
-        {:ok, _} ->
-          cleanup_temp_files([source_tmp, dest_tmp])
-          :ok
+            {:error, reason} ->
+              handle_failure(repo, variant, reason)
+          end
+        after
+          _ = TempRunDir.cleanup(run_dir)
+        end
+      else
+        {:cancel, reason} = cancel ->
+          _ = handle_cancel(repo, variant, reason)
+          cancel
 
         {:error, reason} ->
-          cleanup_temp_files([source_tmp, dest_tmp])
-          {:error, reason}
+          handle_failure(repo, variant, reason)
       end
-    else
-      {:error, reason} ->
-        handle_failure(repo, variant, reason)
     end
   end
 
@@ -71,47 +106,161 @@ defmodule Rindle.Workers.ProcessVariant do
     |> elem(1)
   end
 
-  defp transition_variant(repo, variant, target_state) do
+  defp ensure_variant_state(_repo, %{state: target_state}, target_state), do: :ok
+
+  defp ensure_variant_state(repo, variant, target_state) do
+    update_variant_state(repo, variant, target_state, %{})
+  end
+
+  defp update_variant_state(repo, variant, target_state, attrs) do
     with :ok <- VariantFSM.transition(variant.state, target_state, %{variant_id: variant.id}),
-         {:ok, _} <- variant |> MediaVariant.changeset(%{state: target_state}) |> repo.update() do
+         {:ok, _} <-
+           variant
+           |> MediaVariant.changeset(Map.put(attrs, :state, target_state))
+           |> repo.update() do
       :ok
     else
       {:error, reason} -> {:error, reason}
     end
   end
 
-  defp download_source(asset) do
+  defp download_source(asset, run_dir) do
     profile_module = String.to_existing_atom(asset.profile)
-    tmp_path = Path.join(System.tmp_dir!(), "rindle_source_#{Ecto.UUID.generate()}")
+    source_name = "source#{Path.extname(asset.storage_key || "")}"
+    tmp_path = TempRunDir.child(run_dir, source_name)
     Rindle.download(profile_module, asset.storage_key, tmp_path)
   end
 
-  defp generate_dest_path(_variant) do
-    {:ok, Path.join(System.tmp_dir!(), "rindle_dest_#{Ecto.UUID.generate()}.jpg")}
+  defp generate_dest_path(variant, variant_spec, run_dir) do
+    extension = output_extension(variant_spec)
+    {:ok, TempRunDir.child(run_dir, "#{variant.name}#{extension}")}
   end
 
-  defp upload_variant(asset, variant, path) do
+  defp upload_variant(asset, variant, path, variant_spec) do
     profile_module = String.to_existing_atom(asset.profile)
-    # Variant key: assets/{asset_id}/{variant_name}.{ext}
-    extension = Path.extname(path)
-    variant_key = Path.join([asset.profile, asset.id, "#{variant.name}#{extension}"])
+    extension = output_extension(variant_spec)
+    variant_key = deterministic_storage_key(asset, variant, extension)
 
     Rindle.store(profile_module, variant_key, path)
+  end
+
+  defp process_variant(source_tmp, variant_spec, dest_tmp) do
+    case processor_for(variant_spec).process(source_tmp, variant_spec, dest_tmp) do
+      {:ok, _path} = ok -> ok
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  defp persist_ready(repo, asset, variant, storage_meta, dest_tmp, variant_spec) do
+    current_asset = repo.get!(MediaAsset, asset.id)
+    current_variant = repo.get!(MediaVariant, variant.id)
+
+    cond do
+      current_asset.storage_key != asset.storage_key ->
+        {:cancel, {:stale_source, :asset_changed}}
+
+      current_variant.recipe_digest != variant.recipe_digest ->
+        {:cancel, {:stale_source, :recipe_changed}}
+
+      true ->
+        with :ok <-
+               update_variant_state(repo, current_variant, "ready", %{
+                 storage_key: storage_meta.key,
+                 byte_size: get_file_size(dest_tmp),
+                 content_type: content_type_for(variant_spec),
+                 output_kind: output_kind_for(variant_spec),
+                 generated_at: DateTime.utc_now(),
+                 error_reason: nil
+               }),
+             :ok <- AssetAggregate.recompute(repo, asset.id) do
+          :ok
+        end
+    end
   end
 
   defp get_file_size(path) do
     File.stat!(path).size
   end
 
-  defp cleanup_temp_files(paths) do
-    Enum.each(paths, &File.rm/1)
+  defp handle_cancel(repo, variant, reason) do
+    variant = repo.get!(MediaVariant, variant.id)
+
+    with :ok <- update_variant_state(repo, variant, "cancelled", %{error_reason: inspect(reason)}),
+         :ok <- AssetAggregate.recompute(repo, variant.asset_id) do
+      :ok
+    end
   end
 
   defp handle_failure(repo, variant, reason) do
-    variant
-    |> MediaVariant.changeset(%{state: "failed", error_reason: inspect(reason)})
-    |> repo.update()
+    variant = repo.get!(MediaVariant, variant.id)
+
+    _ =
+      update_variant_state(repo, variant, "failed", %{
+        error_reason: inspect(reason)
+      })
+
+    _ = AssetAggregate.recompute(repo, variant.asset_id)
 
     {:error, reason}
   end
+
+  defp processor_for(%{kind: kind}) when kind in [:video, :audio, :waveform], do: AV
+  defp processor_for(_variant_spec), do: Image
+
+  defp normalize_variant_spec(variant_spec) when is_list(variant_spec) do
+    normalize_variant_spec(Map.new(variant_spec))
+  end
+
+  defp normalize_variant_spec(%{} = variant_spec) do
+    case AV.normalize(variant_spec) do
+      {:ok, normalized} -> normalized
+      {:error, _reason} -> variant_spec
+    end
+  end
+
+  defp av_variant?(%{kind: kind}) when kind in [:video, :audio, :waveform], do: true
+  defp av_variant?(_variant_spec), do: false
+
+  defp maybe_put_timeout(args, variant_spec) do
+    if av_variant?(variant_spec) do
+      Map.put(args, "timeout", @av_timeout_ms)
+    else
+      args
+    end
+  end
+
+  defp unique_job_opts do
+    [
+      fields: [:args, :worker, :queue],
+      keys: [:asset_id, :variant_name],
+      states: @unique_states,
+      period: :infinity
+    ]
+  end
+
+  defp deterministic_storage_key(asset, variant, extension) do
+    Path.join([asset.profile, asset.id, "#{variant.name}-#{variant.recipe_digest}#{extension}"])
+  end
+
+  defp output_extension(%{kind: :video, container: container}), do: ".#{container}"
+  defp output_extension(%{kind: :audio, container: container}), do: ".#{container}"
+  defp output_extension(%{kind: :waveform}), do: ".json"
+  defp output_extension(%{format: format}), do: ".#{normalize_format(format)}"
+  defp output_extension(_variant_spec), do: ".jpg"
+
+  defp normalize_format(format) when format in [:jpg, :jpeg, :png, :webp], do: format
+  defp normalize_format(format) when is_binary(format), do: String.trim_leading(format, ".")
+  defp normalize_format(_format), do: "jpg"
+
+  defp content_type_for(%{kind: :video, container: :mp4}), do: "video/mp4"
+  defp content_type_for(%{kind: :audio, container: :m4a}), do: "audio/mp4"
+  defp content_type_for(%{kind: :audio, container: :mp3}), do: "audio/mpeg"
+  defp content_type_for(%{kind: :waveform}), do: "application/json"
+  defp content_type_for(%{format: :png}), do: "image/png"
+  defp content_type_for(%{format: :webp}), do: "image/webp"
+  defp content_type_for(_variant_spec), do: "image/jpeg"
+
+  defp output_kind_for(%{output_kind: output_kind}), do: to_string(output_kind)
+  defp output_kind_for(%{kind: kind}), do: to_string(kind)
+  defp output_kind_for(_variant_spec), do: "image"
 end

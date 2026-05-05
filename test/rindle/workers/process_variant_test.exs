@@ -20,6 +20,24 @@ defmodule Rindle.Workers.ProcessVariantTest do
   end
 
   setup do
+    tmp_dir =
+      Path.join(System.tmp_dir!(), "rindle-process-variant-#{System.unique_integer([:positive])}")
+
+    File.mkdir_p!(tmp_dir)
+
+    previous_tmp_dir = Application.get_env(:rindle, :tmp_dir)
+    Application.put_env(:rindle, :tmp_dir, tmp_dir)
+
+    on_exit(fn ->
+      if is_nil(previous_tmp_dir) do
+        Application.delete_env(:rindle, :tmp_dir)
+      else
+        Application.put_env(:rindle, :tmp_dir, previous_tmp_dir)
+      end
+
+      File.rm_rf(tmp_dir)
+    end)
+
     asset =
       %MediaAsset{}
       |> MediaAsset.changeset(%{
@@ -35,17 +53,21 @@ defmodule Rindle.Workers.ProcessVariantTest do
         asset_id: asset.id,
         name: "thumb",
         state: "planned",
-        recipe_digest: TestProfile.recipe_digest(:thumb)
+        recipe_digest: TestProfile.recipe_digest(:thumb),
+        output_kind: "image"
       })
       |> Rindle.Repo.insert!()
 
-    {:ok, asset: asset, variant: variant}
+    {:ok, asset: asset, variant: variant, tmp_dir: tmp_dir}
   end
 
-  test "generates and stores variant successfully", %{asset: asset, variant: variant} do
-    # 1. Mock download of source
+  test "generates and stores variant successfully with deterministic storage key and temp cleanup",
+       %{
+         asset: asset,
+         variant: variant,
+         tmp_dir: tmp_dir
+       } do
     expect(Rindle.StorageMock, :download, fn _key, tmp_path, _opts ->
-      # Create a fake source image
       File.write!(
         tmp_path,
         <<0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D, 0x49, 0x48,
@@ -58,24 +80,33 @@ defmodule Rindle.Workers.ProcessVariantTest do
       {:ok, tmp_path}
     end)
 
-    # 2. Mock upload of result
     expect(Rindle.StorageMock, :store, fn key, _path, _opts ->
       assert key =~ asset.id
       assert key =~ "thumb"
+      assert key =~ variant.recipe_digest
       {:ok, %{key: key}}
     end)
 
     assert :ok = perform_job(ProcessVariant, %{"asset_id" => asset.id, "variant_name" => "thumb"})
 
     variant = Rindle.Repo.get!(MediaVariant, variant.id)
+    asset = Rindle.Repo.get!(MediaAsset, asset.id)
+
     assert variant.state == "ready"
     assert variant.storage_key =~ asset.id
+    assert variant.storage_key =~ variant.recipe_digest
     assert variant.byte_size > 0
     assert variant.generated_at != nil
+    assert variant.content_type == "image/jpeg"
+    assert asset.state == "ready"
+    assert run_temp_entries(tmp_dir) == []
   end
 
-  test "handles processing failure", %{asset: asset, variant: variant} do
-    # Mock download failure
+  test "marks failed variants degraded and cleans temp roots on handled failure", %{
+    asset: asset,
+    variant: variant,
+    tmp_dir: tmp_dir
+  } do
     expect(Rindle.StorageMock, :download, fn _key, _tmp, _opts ->
       {:error, :not_found}
     end)
@@ -84,7 +115,82 @@ defmodule Rindle.Workers.ProcessVariantTest do
              perform_job(ProcessVariant, %{"asset_id" => asset.id, "variant_name" => "thumb"})
 
     variant = Rindle.Repo.get!(MediaVariant, variant.id)
+    asset = Rindle.Repo.get!(MediaAsset, asset.id)
+
     assert variant.state == "failed"
     assert variant.error_reason =~ ":not_found"
+    assert asset.state == "degraded"
+    assert run_temp_entries(tmp_dir) == []
+  end
+
+  @tag :race_guard
+  test "cancels stale-source promotions before the ready write", %{
+    asset: asset,
+    variant: variant,
+    tmp_dir: tmp_dir
+  } do
+    expect(Rindle.StorageMock, :download, fn _key, tmp_path, _opts ->
+      File.write!(
+        tmp_path,
+        <<0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D, 0x49, 0x48,
+          0x44, 0x52, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x08, 0x02, 0x00, 0x00,
+          0x00, 0x90, 0x77, 0x53, 0xDE, 0x00, 0x00, 0x00, 0x0C, 0x49, 0x44, 0x41, 0x54, 0x08,
+          0xD7, 0x63, 0xF8, 0xFF, 0xFF, 0x3F, 0x00, 0x05, 0xFE, 0x02, 0xFE, 0xDC, 0x44, 0x74,
+          0x06, 0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82>>
+      )
+
+      {:ok, tmp_path}
+    end)
+
+    expect(Rindle.StorageMock, :store, fn key, _path, _opts ->
+      Rindle.Repo.update_all(
+        Ecto.Query.from(a in MediaAsset, where: a.id == ^asset.id),
+        set: [storage_key: "test/reuploaded.jpg"]
+      )
+
+      {:ok, %{key: key}}
+    end)
+
+    assert {:cancel, {:stale_source, :asset_changed}} =
+             perform_job(ProcessVariant, %{"asset_id" => asset.id, "variant_name" => "thumb"})
+
+    variant = Rindle.Repo.get!(MediaVariant, variant.id)
+    asset = Rindle.Repo.get!(MediaAsset, asset.id)
+
+    assert variant.state == "cancelled"
+    assert variant.error_reason =~ "stale_source"
+    assert asset.state == "degraded"
+    assert run_temp_entries(tmp_dir) == []
+  end
+
+  @tag :worker_opts
+  test "builds AV job options with dedicated queue, timeout, and active-job uniqueness" do
+    args =
+      ProcessVariant.job_args_for_variant("asset-1", "hero", %{kind: :video, preset: :web_720p})
+
+    opts = ProcessVariant.job_opts_for_variant(%{kind: :video, preset: :web_720p})
+
+    {:ok, first_job} =
+      ProcessVariant.new(args, opts)
+      |> Oban.insert()
+
+    {:ok, second_job} =
+      ProcessVariant.new(args, opts)
+      |> Oban.insert()
+
+    assert first_job.queue == "rindle_media"
+    assert first_job.args["timeout"] == :timer.minutes(10)
+    assert ProcessVariant.timeout(first_job) == :timer.minutes(10)
+    assert second_job.conflict?
+  end
+
+  defp run_temp_entries(tmp_dir) do
+    tmp_dir
+    |> Path.join("Rindle.tmp")
+    |> File.ls()
+    |> case do
+      {:ok, entries} -> entries
+      {:error, :enoent} -> []
+    end
   end
 end

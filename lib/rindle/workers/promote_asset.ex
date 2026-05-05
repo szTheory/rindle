@@ -5,6 +5,7 @@ defmodule Rindle.Workers.PromoteAsset do
   alias Rindle.Config
   alias Rindle.Domain.AssetFSM
   alias Rindle.Domain.{MediaAsset, MediaVariant}
+  alias Rindle.Processor.AV
   alias Rindle.Workers.ProcessVariant
 
   @impl Oban.Worker
@@ -53,7 +54,8 @@ defmodule Rindle.Workers.PromoteAsset do
       {:error, :probe_failed, reason} ->
         quarantine_asset(repo, asset, reason)
 
-      {:error, reason} -> {:error, reason}
+      {:error, reason} ->
+        {:error, reason}
     end
   end
 
@@ -77,9 +79,10 @@ defmodule Rindle.Workers.PromoteAsset do
     profile_module = String.to_existing_atom(asset.profile)
     variants = profile_module.variants()
 
-    Enum.reduce(variants, multi, fn {name, _spec}, acc ->
+    Enum.reduce(variants, multi, fn {name, spec}, acc ->
       name_str = Atom.to_string(name)
       digest = profile_module.recipe_digest(name)
+      normalized_spec = normalized_variant_spec(spec)
 
       variant_changeset =
         %MediaVariant{}
@@ -87,14 +90,13 @@ defmodule Rindle.Workers.PromoteAsset do
           asset_id: asset.id,
           name: name_str,
           state: "planned",
-          recipe_digest: digest
+          recipe_digest: digest,
+          output_kind: normalized_spec |> Map.get(:output_kind, :image) |> to_string()
         })
 
-      job =
-        ProcessVariant.new(%{
-          "asset_id" => asset.id,
-          "variant_name" => name_str
-        })
+      job_args = ProcessVariant.job_args_for_variant(asset.id, name_str, normalized_spec)
+      job_opts = ProcessVariant.job_opts_for_variant(normalized_spec)
+      job = ProcessVariant.new(job_args, job_opts)
 
       acc
       |> Ecto.Multi.insert({:variant, name}, variant_changeset)
@@ -170,6 +172,16 @@ defmodule Rindle.Workers.PromoteAsset do
   end
 
   defp tmp_dir, do: Application.get_env(:rindle, :tmp_dir, System.tmp_dir!())
+
+  defp normalized_variant_spec(spec) when is_list(spec),
+    do: normalized_variant_spec(Map.new(spec))
+
+  defp normalized_variant_spec(%{} = spec) do
+    case AV.normalize(spec) do
+      {:ok, normalized} -> normalized
+      {:error, _reason} -> spec
+    end
+  end
 
   defp download_to(asset, destination_path) do
     profile_module = String.to_existing_atom(asset.profile)
