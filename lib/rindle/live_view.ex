@@ -13,13 +13,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     In your LiveView:
 
         def mount(_params, _session, socket) do
-          {:ok,
-           socket
-           |> Rindle.LiveView.allow_upload(:avatar, MyApp.AvatarProfile,
-                accept: ~w(.jpg .jpeg .png),
-                max_entries: 1,
-                max_file_size: 10_000_000
-              )}
+          socket =
+            socket
+            |> Rindle.LiveView.allow_upload(:avatar, MyApp.AvatarProfile,
+                 accept: ~w(.jpg .jpeg .png),
+                 max_entries: 1,
+                 max_file_size: 10_000_000
+               )
+            |> assign(:asset_topic, Rindle.LiveView.subscribe(:asset, "asset-id"))
+
+          {:ok, socket}
         end
 
         def handle_event("save", _params, socket) do
@@ -28,7 +31,17 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               {:ok, meta.asset_id}
             end)
 
-          {:noreply, socket}
+          {:noreply, assign(socket, :uploaded_asset_ids, results)}
+        end
+
+        def handle_info({:rindle_event, type, payload}, socket) do
+          case type do
+            :variant_started -> {:noreply, assign(socket, :variant_status, payload.state)}
+            :variant_progress -> {:noreply, assign(socket, :variant_progress, payload.progress)}
+            :variant_ready -> {:noreply, assign(socket, :variant_status, payload.state)}
+            :variant_failed -> {:noreply, assign(socket, :variant_error, payload)}
+            :variant_cancelled -> {:noreply, assign(socket, :variant_status, payload.state)}
+          end
         end
 
     The `:external` option is set automatically — you do not need to provide it.
@@ -36,6 +49,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     require Logger
 
+    alias Phoenix.PubSub
     alias Phoenix.LiveView.Upload
     alias Rindle.Config
     alias Rindle.Domain.MediaUploadSession
@@ -43,6 +57,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     @type consume_result :: {:ok, term()} | {:postpone, term()}
     @type consume_func :: (Phoenix.LiveView.UploadEntry.t(), map() -> consume_result())
+    @type subscription_scope :: :variant | :asset | :upload_session
 
     @doc """
     Configures an upload on the socket with Rindle's external upload signer.
@@ -73,6 +88,25 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       merged_opts = Keyword.merge(opts, external: external_fn)
       Upload.allow_upload(socket, name, merged_opts)
+    end
+
+    @doc """
+    Subscribes the current process to a Rindle PubSub topic for a supported scope.
+
+    Supported scopes are `:variant`, `:asset`, and `:upload_session`. The
+    returned topic string can be passed back to `unsubscribe/1` later.
+    """
+    @spec subscribe(subscription_scope(), term()) :: String.t()
+    def subscribe(:variant, id), do: subscribe_topic(topic_for(:variant, id))
+    def subscribe(:asset, id), do: subscribe_topic(topic_for(:asset, id))
+    def subscribe(:upload_session, id), do: subscribe_topic(topic_for(:upload_session, id))
+
+    @doc """
+    Unsubscribes the current process from a topic returned by `subscribe/2`.
+    """
+    @spec unsubscribe(String.t()) :: :ok
+    def unsubscribe(topic) when is_binary(topic) do
+      PubSub.unsubscribe(pubsub_server(), topic)
     end
 
     defp do_allow_upload(entry, socket, profile) do
@@ -165,6 +199,19 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     defp log_upload_error(stage, reason) do
       Logger.warning("Rindle.LiveView #{stage} upload failed: #{inspect(reason)}")
+    end
+
+    defp subscribe_topic(topic) do
+      :ok = PubSub.subscribe(pubsub_server(), topic)
+      topic
+    end
+
+    defp topic_for(:variant, id), do: "rindle:variant:#{id}"
+    defp topic_for(:asset, id), do: "rindle:asset:#{id}"
+    defp topic_for(:upload_session, id), do: "rindle:upload_session:#{id}"
+
+    defp pubsub_server do
+      Application.get_env(:rindle, :pubsub_server, Rindle.PubSub)
     end
   end
 end
