@@ -7,6 +7,7 @@ defmodule Rindle.InstallSmoke.ReleaseDocsParityTest do
   @operations_path Path.expand("../../guides/operations.md", __DIR__)
   @readme_path Path.expand("../../README.md", __DIR__)
   @getting_started_path Path.expand("../../guides/getting_started.md", __DIR__)
+  @running_path Path.expand("../../RUNNING.md", __DIR__)
 
   setup_all do
     {:ok,
@@ -16,7 +17,8 @@ defmodule Rindle.InstallSmoke.ReleaseDocsParityTest do
        release_workflow: File.read!(@release_workflow_path),
        operations: File.read!(@operations_path),
        readme: File.read!(@readme_path),
-       getting_started: File.read!(@getting_started_path)
+       getting_started: File.read!(@getting_started_path),
+       running: File.read!(@running_path)
      }}
   end
 
@@ -284,5 +286,20 @@ defmodule Rindle.InstallSmoke.ReleaseDocsParityTest do
   } do
     assert release_guide =~ "skips both publish steps"
     assert release_guide =~ "still runs public verification"
+  end
+
+  test "public onboarding docs cross-link the runtime matrix without importing maintainer release copy", %{
+    readme: readme,
+    getting_started: getting_started,
+    running: running
+  } do
+    for doc <- [readme, getting_started] do
+      assert doc =~ "RUNNING.md"
+      refute doc =~ "Release Please"
+      refute doc =~ "HEX_API_KEY"
+    end
+
+    assert running =~ "setup-ffmpeg"
+    refute running =~ "Release Please"
   end
 end

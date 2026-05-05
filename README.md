@@ -39,6 +39,10 @@ end
 
 Run `mix deps.get`.
 
+For AV profiles, install `FFmpeg >= 6.0` before you touch background jobs, then
+run `mix rindle.doctor`. The per-platform install/runtime matrix lives in
+[`RUNNING.md`](RUNNING.md).
+
 ## Runtime Ownership
 
 Rindle persists through your adopter-owned Repo. Configure that explicitly:
@@ -83,23 +87,49 @@ Rindle does not ship a public `mix rindle.*` install task for this in v1.1.
 The public path is the docs snippet above; the repo-private automation lives in
 the install smoke harness.
 
-## First Run: Presigned PUT
+## First Run: AV Quickstart
 
-The first-run path is direct upload by presigned PUT. Multipart upload is
-supported, but it is an advanced capability and not the default onboarding
-story.
+The locked onboarding path is:
+
+1. `mix deps.get`
+2. install `FFmpeg >= 6.0` from [`RUNNING.md`](RUNNING.md)
+3. declare one `kind: :video` variant plus the stock poster
+4. run `mix rindle.doctor`
+5. follow the normal facade-first upload lifecycle
+
+The canonical deep guide expands the same path in
+[`guides/getting_started.md`](guides/getting_started.md). The stock onboarding
+story is `Rindle.Profile.Presets.Web`: `web_720p` video output plus `poster`
+image output. The equivalent explicit profile looks like this:
 
 ```elixir
-defmodule MyApp.MediaProfile do
+defmodule MyApp.VideoProfile do
   use Rindle.Profile,
     storage: Rindle.Storage.S3,
-    variants: [thumb: [mode: :fit, width: 64, height: 64]],
-    allow_mime: ["image/png", "image/jpeg"],
-    max_bytes: 10_485_760
+    variants: [
+      web_720p: [kind: :video, preset: :web_720p],
+      poster: [kind: :image, preset: :video_poster_scene]
+    ],
+    allow_mime: ["video/mp4", "video/quicktime", "video/webm"],
+    max_bytes: 250_000_000
 end
+```
 
+If you prefer the stock preset module directly, use
+`Rindle.Profile.Presets.Web` with the same storage and upload constraints, then
+verify the host with:
+
+```bash
+mix rindle.doctor
+```
+
+Once the runtime is healthy, the first-run path is still direct upload by
+presigned PUT. Multipart upload is supported, but it is an advanced capability
+and not the default onboarding story.
+
+```elixir
 {:ok, session} =
-  Rindle.initiate_upload(MyApp.MediaProfile, filename: "photo.png")
+  Rindle.initiate_upload(MyApp.VideoProfile, filename: "clip.mp4")
 
 {:ok, %{session: signed, presigned: presigned}} =
   Rindle.Upload.Broker.sign_url(session.id)
@@ -110,10 +140,10 @@ end
   Rindle.verify_completion(session.id)
 
 {:ok, attachment} =
-  Rindle.attach(asset.id, current_user, "avatar")
+  Rindle.attach(asset.id, current_user, "hero_video")
 
 {:ok, signed_url} =
-  Rindle.url(MyApp.MediaProfile, asset.storage_key)
+  Rindle.url(MyApp.VideoProfile, asset.storage_key)
 ```
 
 That keeps the first-run story on the facade while leaving
@@ -194,8 +224,10 @@ non-bang twins (`Rindle.attach/4`, `Rindle.detach/3`, `Rindle.upload/3`,
 ## Next Reads
 
 - [`guides/getting_started.md`](guides/getting_started.md): canonical deep
-  adopter guide for Repo ownership, Oban ownership, migrations, profile setup,
-  and the same presigned PUT lifecycle
+  adopter guide for the full AV onboarding path, Repo ownership, Oban
+  ownership, migrations, profile setup, and the same presigned PUT lifecycle
+- [`RUNNING.md`](RUNNING.md): FFmpeg install/runtime matrix for macOS,
+  Ubuntu/Debian, Alpine, Fly.io, Heroku, Render, and GitHub Actions
 - [`guides/background_processing.md`](guides/background_processing.md): default
   Oban ownership and queue details
 - [`guides/storage_capabilities.md`](guides/storage_capabilities.md): capability

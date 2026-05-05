@@ -39,9 +39,18 @@ end
 
 Run `mix deps.get`.
 
-> **System dependency:** the default image processor (Image/Vix) needs
-> `libvips` installed. On Debian/Ubuntu: `apt install libvips-dev`. On macOS:
-> `brew install vips`.
+The first AV onboarding path is explicit:
+
+1. `mix deps.get`
+2. install `FFmpeg >= 6.0` for the target platform
+3. define one `kind: :video` variant plus `poster`
+4. run `mix rindle.doctor`
+5. then let the stock facade lifecycle process the upload
+
+Use [`../RUNNING.md`](../RUNNING.md) for the per-platform FFmpeg install
+surface: macOS/Homebrew, Ubuntu or Debian/apt, Alpine/apk, Fly.io Dockerfile,
+Heroku Aptfile, Render Dockerfile, and GitHub Actions via
+`FedericoCarboni/setup-ffmpeg`.
 
 ## 2. Configure Adopter-Owned Runtime Boundaries
 
@@ -114,32 +123,55 @@ it exists only inside the smoke harness.
 If your app uses binary IDs globally, keep your Repo migration defaults aligned
 with your host app conventions before running the shared path.
 
-## 4. Define A Profile
+## 4. Define The Canonical AV Profile
 
-A `Rindle.Profile` declares storage, variants, and upload constraints for a
-family of media:
+Phase 28 locks the public AV story to the stock `web_720p` plus `poster`
+surface. `Rindle.Profile.Presets.Web` is the canonical helper, and its explicit
+equivalent looks like this:
 
 ```elixir
-defmodule MyApp.MediaProfile do
+defmodule MyApp.VideoProfile do
   use Rindle.Profile,
     storage: Rindle.Storage.S3,
-    variants: [thumb: [mode: :fit, width: 64, height: 64]],
-    allow_mime: ["image/png", "image/jpeg"],
-    max_bytes: 10_485_760
+    variants: [
+      web_720p: [kind: :video, preset: :web_720p],
+      poster: [kind: :image, preset: :video_poster_scene]
+    ],
+    allow_mime: ["video/mp4", "video/quicktime", "video/webm"],
+    max_bytes: 250_000_000
+end
+```
+
+If you want the stock preset module directly, this is the same public shape:
+
+```elixir
+defmodule MyApp.VideoProfile do
+  use Rindle.Profile.Presets.Web,
+    storage: Rindle.Storage.S3,
+    allow_mime: ["video/mp4", "video/quicktime", "video/webm"],
+    max_bytes: 250_000_000
 end
 ```
 
 The Profile DSL validates options at compile time so invalid configuration
-fails before runtime upload flows begin.
+fails before runtime upload flows begin. Before you enqueue any AV work, verify
+the runtime:
+
+```bash
+mix rindle.doctor
+```
+
+`mix rindle.doctor` should be the last setup step before you touch background
+jobs or chase variant failures.
 
 ## 5. First-Run Upload Lifecycle
 
 The first-run path is presigned PUT. It is the narrowest direct-upload contract
-Rindle proves from the built artifact:
+Rindle proves from the built artifact and the source-of-truth adopter test:
 
 ```elixir
 {:ok, session} =
-  Rindle.initiate_upload(MyApp.MediaProfile, filename: "photo.png")
+  Rindle.initiate_upload(MyApp.VideoProfile, filename: "clip.mp4")
 
 {:ok, %{session: signed, presigned: presigned}} =
   Rindle.Upload.Broker.sign_url(session.id)
@@ -150,10 +182,10 @@ Rindle proves from the built artifact:
   Rindle.verify_completion(session.id)
 
 {:ok, attachment} =
-  Rindle.attach(asset.id, current_user, "avatar")
+  Rindle.attach(asset.id, current_user, "hero_video")
 
 {:ok, signed_url} =
-  Rindle.url(MyApp.MediaProfile, asset.storage_key)
+  Rindle.url(MyApp.VideoProfile, asset.storage_key)
 ```
 
 The parity gate for this guide and `README.md` asserts the canonical lifecycle
@@ -174,10 +206,10 @@ contract applies:
 
 ```elixir
 {:ok, asset} =
-  Rindle.upload(MyApp.MediaProfile, %{
-    path: "/tmp/photo.png",
-    filename: "photo.png",
-    byte_size: File.stat!("/tmp/photo.png").size
+  Rindle.upload(MyApp.VideoProfile, %{
+    path: "/tmp/clip.mp4",
+    filename: "clip.mp4",
+    byte_size: File.stat!("/tmp/clip.mp4").size
   })
 ```
 
@@ -306,6 +338,8 @@ end
 ## Next Reads
 
 - [`../README.md`](../README.md): quickstart version of this path
+- [`../RUNNING.md`](../RUNNING.md): FFmpeg install/runtime matrix for the
+  supported adopter and CI platforms
 - [`background_processing.md`](background_processing.md): default Oban ownership
   and worker behavior
 - [`storage_capabilities.md`](storage_capabilities.md): presigned PUT vs.
