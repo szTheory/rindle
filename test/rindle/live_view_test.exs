@@ -226,6 +226,14 @@ defmodule Rindle.LiveViewTest do
       assert rendered_doc =~ "{:ok, meta.asset_id}"
       refute rendered_doc =~ "entry.asset_id"
     end
+
+    test "documents the public rindle_event handle_info contract" do
+      {:docs_v1, _, _, _, moduledoc, _, _} = Code.fetch_docs(Rindle.LiveView)
+      rendered_doc = extract_doc(moduledoc)
+
+      assert rendered_doc =~ "handle_info({:rindle_event, type, payload}, socket)"
+      refute rendered_doc =~ "{:rindle_variant_progress, payload}"
+    end
   end
 
   describe "module availability" do
@@ -239,6 +247,47 @@ defmodule Rindle.LiveViewTest do
 
     test "consume_uploaded_entries/3 is exported" do
       assert function_exported?(Rindle.LiveView, :consume_uploaded_entries, 3)
+    end
+
+    test "subscribe/2 is exported" do
+      assert function_exported?(Rindle.LiveView, :subscribe, 2)
+    end
+
+    test "unsubscribe/1 is exported" do
+      assert function_exported?(Rindle.LiveView, :unsubscribe, 1)
+    end
+  end
+
+  describe "subscribe/2 and unsubscribe/1" do
+    setup do
+      start_pubsub!()
+      :ok
+    end
+
+    test "subscribes to variant topics and returns the topic string" do
+      topic = Rindle.LiveView.subscribe(:variant, "variant-123")
+
+      assert topic == "rindle:variant:variant-123"
+
+      Phoenix.PubSub.broadcast(Rindle.PubSub, topic, {:rindle_event, :variant_progress, %{id: 1}})
+      assert_received {:rindle_event, :variant_progress, %{id: 1}}
+
+      assert :ok = Rindle.LiveView.unsubscribe(topic)
+      Phoenix.PubSub.broadcast(Rindle.PubSub, topic, {:rindle_event, :variant_ready, %{id: 1}})
+      refute_received {:rindle_event, :variant_ready, %{id: 1}}
+    end
+
+    test "supports asset and upload_session scopes with locked topic formatting" do
+      assert Rindle.LiveView.subscribe(:asset, "asset-123") == "rindle:asset:asset-123"
+
+      assert Rindle.LiveView.subscribe(:upload_session, "session-123") ==
+               "rindle:upload_session:session-123"
+    end
+
+    test "rejects unsupported scopes" do
+      assert_raise FunctionClauseError, fn ->
+        Rindle.LiveView.subscribe(:profile, "bad")
+      end
     end
   end
 
@@ -293,4 +342,14 @@ defmodule Rindle.LiveViewTest do
   defp extract_doc(%{"en" => doc}), do: doc
   defp extract_doc(doc) when is_binary(doc), do: doc
   defp extract_doc(_doc), do: ""
+
+  defp start_pubsub! do
+    case Process.whereis(Rindle.PubSub) do
+      nil ->
+        start_supervised!({Phoenix.PubSub, name: Rindle.PubSub})
+
+      _pid ->
+        :ok
+    end
+  end
 end

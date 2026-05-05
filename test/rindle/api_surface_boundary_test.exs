@@ -131,6 +131,16 @@ defmodule Rindle.ApiSurfaceBoundaryTest do
     end
   end
 
+  describe "liveview helper surface" do
+    test "subscribe/2 and unsubscribe/1 stay publicly documented on Rindle.LiveView" do
+      assert visible_function_doc?(Rindle.LiveView, :subscribe, 2),
+             "Rindle.LiveView.subscribe/2 should be publicly documented"
+
+      assert visible_function_doc?(Rindle.LiveView, :unsubscribe, 1),
+             "Rindle.LiveView.unsubscribe/1 should be publicly documented"
+    end
+  end
+
   defp visible_module?(module) do
     case fetch_docs!(module) do
       {:docs_v1, _, _, _, moduledoc, _, _} -> moduledoc not in [:hidden, false, nil]
