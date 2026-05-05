@@ -375,12 +375,20 @@ defmodule Rindle.Workers.ProcessVariant do
       state: state
     }
 
+    event_type = public_event_type(progress, state)
+
     for topic <- ["rindle:variant:#{variant.id}", "rindle:asset:#{asset.id}"] do
-      :ok = PubSub.broadcast(pubsub_server(), topic, {:rindle_variant_progress, payload})
+      :ok = PubSub.broadcast(pubsub_server(), topic, {:rindle_event, event_type, payload})
     end
 
     :ok
   end
+
+  defp public_event_type(0, "processing"), do: :variant_started
+  defp public_event_type(_progress, "processing"), do: :variant_progress
+  defp public_event_type(_progress, "ready"), do: :variant_ready
+  defp public_event_type(_progress, "failed"), do: :variant_failed
+  defp public_event_type(_progress, "cancelled"), do: :variant_cancelled
 
   defp ensure_pubsub_started do
     case Process.whereis(pubsub_server()) do
