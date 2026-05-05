@@ -289,40 +289,59 @@ defmodule Rindle.Adopter.CanonicalApp.LifecycleTest do
       assert Repo.get(MediaUploadSession, expired_session.id) == nil
     end
 
-    test "stock web preset round-trips a canonical video upload end to end" do
+    test "stock web preset round-trips realistic smartphone uploads end to end" do
       assert_upload_capabilities!(AdopterVideoProfile.storage_adapter().capabilities())
 
-      {:ok, session} = Broker.initiate_session(AdopterVideoProfile, filename: "adopter.mp4")
-      video_bytes = build_video_fixture_bytes!()
+      for fixture <- smartphone_fixture_matrix() do
+        {:ok, session} =
+          Rindle.initiate_upload(AdopterVideoProfile, filename: fixture.upload_filename)
 
-      {:ok, %{session: signed, presigned: presigned}} = Broker.sign_url(session.id)
-      assert signed.state == "signed"
-      :ok = put_to_presigned_url(presigned.url, video_bytes)
+        {:ok, %{session: signed, presigned: presigned}} = Broker.sign_url(session.id)
+        assert signed.state == "signed"
+        :ok = put_to_presigned_url(presigned.url, File.read!(fixture.path))
 
-      {:ok, %{session: completed, asset: asset}} = Broker.verify_completion(session.id)
-      assert completed.state == "completed"
-      assert :ok = perform_job(PromoteAsset, %{"asset_id" => asset.id})
+        {:ok, %{session: completed, asset: asset}} = Rindle.verify_completion(session.id)
+        assert completed.state == "completed"
+        assert :ok = perform_job(PromoteAsset, %{"asset_id" => asset.id})
 
-      variants =
-        Repo.all(Ecto.Query.from(v in MediaVariant, where: v.asset_id == ^asset.id, order_by: v.name))
+        promoted_asset = Repo.get!(MediaAsset, asset.id)
+        assert promoted_asset.kind == "video"
+        assert promoted_asset.has_video_track == true
+        assert promoted_asset.has_audio_track == true
+        assert promoted_asset.duration_ms > 0
+        assert_fixture_probe!(fixture, promoted_asset)
 
-      assert Enum.map(variants, & &1.name) == ["poster", "web_720p"]
+        variants =
+          Repo.all(
+            Ecto.Query.from(v in MediaVariant, where: v.asset_id == ^asset.id, order_by: v.name)
+          )
 
-      for variant <- variants do
-        assert :ok =
-                 perform_job(ProcessVariant, %{
-                   "asset_id" => asset.id,
-                   "variant_name" => variant.name
-                 })
+        assert Enum.map(variants, & &1.name) == ["poster", "web_720p"]
+
+        for variant <- variants do
+          assert :ok =
+                   perform_job(ProcessVariant, %{
+                     "asset_id" => asset.id,
+                     "variant_name" => variant.name
+                   })
+        end
+
+        ready_variants =
+          Repo.all(
+            Ecto.Query.from(v in MediaVariant, where: v.asset_id == ^asset.id, order_by: v.name)
+          )
+
+        assert Enum.map(ready_variants, &{&1.name, &1.output_kind, &1.state}) == [
+                 {"poster", "image", "ready"},
+                 {"web_720p", "video", "ready"}
+               ]
+
+        assert Enum.all?(ready_variants, &(is_binary(&1.storage_key) and &1.byte_size > 0))
+
+        {:ok, signed_url} = Rindle.url(AdopterVideoProfile, promoted_asset.storage_key)
+        assert is_binary(signed_url)
+        assert String.contains?(signed_url, promoted_asset.storage_key)
       end
-
-      ready_variants =
-        Repo.all(Ecto.Query.from(v in MediaVariant, where: v.asset_id == ^asset.id, order_by: v.name))
-
-      assert Enum.map(ready_variants, &{&1.name, &1.output_kind, &1.state}) == [
-               {"poster", "image", "ready"},
-               {"web_720p", "video", "ready"}
-             ]
     end
   end
 
@@ -421,38 +440,47 @@ defmodule Rindle.Adopter.CanonicalApp.LifecycleTest do
     assert :multipart_upload in capabilities
   end
 
-  defp build_video_fixture_bytes! do
-    tmp_path =
-      Path.join(System.tmp_dir!(), "rindle-adopter-video-#{System.unique_integer([:positive])}.mp4")
+  defp smartphone_fixture_matrix do
+    root = Path.expand("../support/fixtures/smartphone", __DIR__)
 
-    args = [
-      "-y",
-      "-f",
-      "lavfi",
-      "-i",
-      "testsrc=size=320x180:rate=30:duration=1.2",
-      "-f",
-      "lavfi",
-      "-i",
-      "sine=frequency=880:sample_rate=48000:duration=1.2",
-      "-map",
-      "0:v:0",
-      "-map",
-      "1:a:0",
-      "-c:v",
-      "libx264",
-      "-pix_fmt",
-      "yuv420p",
-      "-c:a",
-      "aac",
-      tmp_path
+    [
+      %{
+        name: "portrait quicktime rotation",
+        path: Path.join(root, "portrait_rotation.mov"),
+        upload_filename: "portrait_rotation.mov",
+        width: 360,
+        height: 640,
+        rotation: 90
+      },
+      %{
+        name: "android webm",
+        path: Path.join(root, "android_capture.webm"),
+        upload_filename: "android_capture.webm",
+        width: 640,
+        height: 360,
+        rotation: nil
+      }
     ]
+  end
 
-    try do
-      {_output, 0} = System.cmd("ffmpeg", args, stderr_to_stdout: true)
-      File.read!(tmp_path)
-    after
-      File.rm(tmp_path)
-    end
+  defp assert_fixture_probe!(fixture, asset) do
+    assert asset.width == fixture.width
+    assert asset.height == fixture.height
+
+    rotation =
+      asset.metadata
+      |> Map.get("streams", [])
+      |> Enum.find(fn stream -> stream["codec_type"] == "video" end)
+      |> case do
+        nil ->
+          nil
+
+        stream ->
+          stream
+          |> Map.get("side_data_list", [])
+          |> Enum.find_value(fn side_data -> side_data["rotation"] end)
+      end
+
+    assert rotation == fixture.rotation
   end
 end
