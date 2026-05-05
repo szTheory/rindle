@@ -38,6 +38,24 @@ defmodule Rindle.BackwardCompat.V13DigestSnapshotTest do
     assert explicit.recipe_digest(:thumb) == omitted.recipe_digest(:thumb)
   end
 
+  test "adding AV siblings does not perturb the v1.3 image digest snapshot" do
+    profile_with_av =
+      compile_profile("""
+      storage: Rindle.StorageMock,
+      variants: [
+        thumb: [mode: :fit, width: 64, height: 64],
+        hero: [kind: :video, preset: :web_720p],
+        preview: [kind: :audio, preset: :m4a_128k]
+      ],
+      allow_mime: ["image/jpeg", "video/mp4", "audio/mp4"],
+      allow_extensions: [".jpg", ".mp4", ".m4a"],
+      max_bytes: 5_000_000,
+      max_pixels: 24_000_000
+      """)
+
+    assert profile_with_av.recipe_digest(:thumb) == @v13_thumb_digest
+  end
+
   test "validated :thumb spec does NOT carry a :kind key" do
     spec = AdopterProfile.variants()[:thumb]
 

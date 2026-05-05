@@ -47,8 +47,9 @@ defmodule Rindle.Profile.ValidatorTest do
       hero = mod.variants()[:hero]
       assert hero[:kind] == :video
       assert hero[:preset] == :web_720p
-      assert hero[:codec] == :h264
-      assert hero[:container] == :mp4
+      assert hero[:faststart] == true
+      refute Map.has_key?(hero, :codec)
+      refute Map.has_key?(hero, :container)
     end
 
     test ":kind => :audio persists into validated map" do
@@ -62,19 +63,21 @@ defmodule Rindle.Profile.ValidatorTest do
       aac = mod.variants()[:aac]
       assert aac[:kind] == :audio
       assert aac[:preset] == :m4a_128k
+      assert aac[:normalize] == false
+      assert aac[:two_pass] == false
     end
 
     test ":kind => :waveform persists into validated map" do
       mod = compile_profile("""
       storage: Rindle.StorageMock,
-      variants: [peaks: [kind: :waveform, peaks: 500]],
+      variants: [peaks: [kind: :waveform, preset: :overview]],
       allow_mime: ["audio/mpeg"],
       allow_extensions: [".mp3"]
       """)
 
       peaks = mod.variants()[:peaks]
       assert peaks[:kind] == :waveform
-      assert peaks[:peaks] == 500
+      assert peaks[:preset] == :overview
       assert peaks[:format] == :json
     end
 
@@ -127,57 +130,57 @@ defmodule Rindle.Profile.ValidatorTest do
   end
 
   describe "per-kind schema rejection of cross-kind keys" do
-    test ":image schema rejects :codec (video key)" do
+    test ":image schema rejects :preset (AV key)" do
       assert_raise ArgumentError, ~r/unknown options/, fn ->
         Code.compile_string("""
-        defmodule #{unique_module_name("ImageWithCodec")} do
+        defmodule #{unique_module_name("ImageWithPreset")} do
           use Rindle.Profile,
             storage: Rindle.StorageMock,
             allow_mime: ["image/jpeg"],
             allow_extensions: [".jpg"],
-            variants: [thumb: [mode: :fit, width: 64, codec: :h264]]
+            variants: [thumb: [mode: :fit, width: 64, preset: :web_720p]]
         end
         """)
       end
     end
 
-    test ":video schema rejects :peaks (waveform key)" do
+    test ":video schema rejects raw codec passthrough" do
       assert_raise ArgumentError, ~r/unknown options/, fn ->
         Code.compile_string("""
-        defmodule #{unique_module_name("VideoWithPeaks")} do
+        defmodule #{unique_module_name("VideoWithCodec")} do
           use Rindle.Profile,
             storage: Rindle.StorageMock,
             allow_mime: ["video/mp4"],
             allow_extensions: [".mp4"],
-            variants: [hero: [kind: :video, preset: :web_720p, peaks: 1000]]
+            variants: [hero: [kind: :video, preset: :web_720p, codec: :h264]]
         end
         """)
       end
     end
 
-    test ":audio schema rejects :width" do
+    test ":audio schema rejects raw bitrate passthrough" do
       assert_raise ArgumentError, ~r/unknown options/, fn ->
         Code.compile_string("""
-        defmodule #{unique_module_name("AudioWithWidth")} do
+        defmodule #{unique_module_name("AudioWithBitrate")} do
           use Rindle.Profile,
             storage: Rindle.StorageMock,
             allow_mime: ["audio/mp4"],
             allow_extensions: [".m4a"],
-            variants: [aac: [kind: :audio, preset: :m4a_128k, width: 100]]
+            variants: [aac: [kind: :audio, preset: :m4a_128k, bitrate_kbps: 192]]
         end
         """)
       end
     end
 
-    test ":waveform schema rejects :codec" do
+    test ":waveform schema rejects raw peaks passthrough" do
       assert_raise ArgumentError, ~r/unknown options/, fn ->
         Code.compile_string("""
-        defmodule #{unique_module_name("WaveformWithCodec")} do
+        defmodule #{unique_module_name("WaveformWithPeaks")} do
           use Rindle.Profile,
             storage: Rindle.StorageMock,
             allow_mime: ["audio/mpeg"],
             allow_extensions: [".mp3"],
-            variants: [peaks: [kind: :waveform, peaks: 1000, codec: :h264]]
+            variants: [peaks: [kind: :waveform, preset: :overview, peaks: 1000]]
         end
         """)
       end
@@ -213,18 +216,60 @@ defmodule Rindle.Profile.ValidatorTest do
       end
     end
 
-    test ":video codec must be :h264 (no other codecs in v1.4)" do
-      assert_raise ArgumentError, ~r/codec/, fn ->
+    test ":waveform preset must be :overview" do
+      assert_raise ArgumentError, ~r/preset/, fn ->
         Code.compile_string("""
-        defmodule #{unique_module_name("VideoBadCodec")} do
+        defmodule #{unique_module_name("WaveformBadPreset")} do
           use Rindle.Profile,
             storage: Rindle.StorageMock,
-            allow_mime: ["video/mp4"],
-            allow_extensions: [".mp4"],
-            variants: [hero: [kind: :video, preset: :web_720p, codec: :vp9]]
+            allow_mime: ["audio/mpeg"],
+            allow_extensions: [".mp3"],
+            variants: [wave: [kind: :waveform, preset: :detailed]]
         end
         """)
       end
+    end
+  end
+
+  describe "normalized AV digest stability" do
+    test "equivalent video specs hash identically after normalization" do
+      implicit_defaults =
+        compile_profile("""
+        storage: Rindle.StorageMock,
+        allow_mime: ["video/mp4"],
+        allow_extensions: [".mp4"],
+        variants: [hero: [kind: :video, preset: :web_720p]]
+        """)
+
+      explicit_defaults =
+        compile_profile("""
+        storage: Rindle.StorageMock,
+        allow_mime: ["video/mp4"],
+        allow_extensions: [".mp4"],
+        variants: [hero: [faststart: true, preset: :web_720p, kind: :video]]
+        """)
+
+      assert implicit_defaults.recipe_digest(:hero) == explicit_defaults.recipe_digest(:hero)
+    end
+
+    test "equivalent audio specs hash identically after normalization" do
+      implicit_defaults =
+        compile_profile("""
+        storage: Rindle.StorageMock,
+        allow_mime: ["audio/mp4"],
+        allow_extensions: [".m4a"],
+        variants: [preview: [kind: :audio, preset: :m4a_128k]]
+        """)
+
+      explicit_defaults =
+        compile_profile("""
+        storage: Rindle.StorageMock,
+        allow_mime: ["audio/mp4"],
+        allow_extensions: [".m4a"],
+        variants: [preview: [preset: :m4a_128k, kind: :audio, normalize: false, two_pass: false]]
+        """)
+
+      assert implicit_defaults.recipe_digest(:preview) == explicit_defaults.recipe_digest(:preview)
     end
   end
 
