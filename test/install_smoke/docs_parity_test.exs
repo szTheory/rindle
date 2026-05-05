@@ -3,12 +3,16 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
 
   @readme_path Path.expand("../../README.md", __DIR__)
   @guide_path Path.expand("../../guides/getting_started.md", __DIR__)
+  @troubleshooting_path Path.expand("../../guides/troubleshooting.md", __DIR__)
+  @running_path Path.expand("../../RUNNING.md", __DIR__)
 
   setup_all do
     {:ok,
-     %{
+       %{
        readme: File.read!(@readme_path),
-       guide: File.read!(@guide_path)
+       guide: File.read!(@guide_path),
+       troubleshooting: File.read!(@troubleshooting_path),
+       running: File.read!(@running_path)
      }}
   end
 
@@ -96,6 +100,48 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
       refute Regex.match?(~r/Rindle\.Upload\.Broker.+default first-run entrypoint/is, doc)
       refute Regex.match?(~r/Broker\.(initiate_session|verify_completion).+first-run/is, doc)
     end
+  end
+
+  test "README and getting-started guide teach the locked AV onboarding path", %{
+    readme: readme,
+    guide: guide
+  } do
+    for doc <- [readme, guide] do
+      assert doc =~ "mix deps.get"
+      assert doc =~ "mix rindle.doctor"
+      assert doc =~ "Rindle.Profile.Presets.Web"
+      assert doc =~ "kind: :video"
+      assert doc =~ "preset: :web_720p"
+      assert doc =~ "preset: :video_poster_scene"
+      assert doc =~ "FFmpeg >= 6.0"
+      assert doc =~ "RUNNING.md"
+    end
+  end
+
+  test "running guide publishes the durable FFmpeg install matrix", %{running: running} do
+    for snippet <- [
+          "FFmpeg >= 6.0",
+          "brew install ffmpeg",
+          "apt-get install -y ffmpeg",
+          "apk add --no-cache ffmpeg",
+          "FedericoCarboni/setup-ffmpeg",
+          "Fly.io Dockerfile",
+          "Heroku Aptfile",
+          "Render Dockerfile",
+          "mix rindle.doctor"
+        ] do
+      assert running =~ snippet
+    end
+  end
+
+  test "troubleshooting guide is part of the public AV docs surface", %{
+    guide: guide,
+    troubleshooting: troubleshooting
+  } do
+    assert guide =~ "troubleshooting.md"
+    assert troubleshooting =~ "mix rindle.doctor"
+    assert troubleshooting =~ "Rindle.Error.message/1"
+    assert troubleshooting =~ "test/rindle/error_test.exs"
   end
 
   defp introductory_section(doc) do

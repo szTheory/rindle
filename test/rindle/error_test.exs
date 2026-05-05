@@ -1,6 +1,114 @@
 defmodule Rindle.ErrorTest do
   use ExUnit.Case, async: true
 
+  @troubleshooting_path Path.expand("../../guides/troubleshooting.md", __DIR__)
+  @av_public_reasons [
+    :processor_capability_missing,
+    :ffmpeg_not_found,
+    :capability_drift,
+    :variant_source_not_found,
+    :unsupported_codec,
+    :streaming_not_configured,
+    :variant_processing_cancelled,
+    :range_unparseable
+  ]
+
+  test "locks the eight public AV reason atoms" do
+    assert @av_public_reasons == [
+             :processor_capability_missing,
+             :ffmpeg_not_found,
+             :capability_drift,
+             :variant_source_not_found,
+             :unsupported_codec,
+             :streaming_not_configured,
+             :variant_processing_cancelled,
+             :range_unparseable
+           ]
+  end
+
+  test "renders exact messages for generic AV-facing reason atoms" do
+    expected_messages = %{
+      processor_capability_missing:
+        exact("""
+        Variant processing requires a processor capability that is not available.
+
+        To fix:
+          1. Confirm FFmpeg is installed and on PATH (`which ffmpeg`).
+          2. Use a processor that declares the required AV capability.
+          3. Or remove the incompatible AV variant from the profile.
+
+        Run `mix rindle.doctor` to verify.
+        """),
+      ffmpeg_not_found:
+        exact("""
+        FFmpeg executable not found on PATH.
+
+        Rindle's video and audio processors require FFmpeg ≥ 4.0. To fix:
+          • macOS:        brew install ffmpeg
+          • Debian/Ubuntu: apt-get install ffmpeg
+          • Alpine/Docker: apk add ffmpeg
+
+        If FFmpeg is installed elsewhere, set:
+          config :rindle, :ffmpeg_path, "/usr/local/bin/ffmpeg"
+        """),
+      capability_drift:
+        exact("""
+        A previously available Rindle capability is no longer advertised by the current runtime.
+
+        To proceed, either:
+          1. Restore the missing capability in the adapter or processor configuration.
+          2. Migrate any in-flight work that depended on it.
+          3. Drop the capability requirement from your profile.
+        """),
+      variant_source_not_found:
+        exact("""
+        Source media could not be downloaded from storage before variant processing started.
+
+        Check that the asset still exists, the storage adapter can read it, and the original ProcessVariant job is not racing with a purge or detach.
+        """),
+      unsupported_codec:
+        exact("""
+        The requested audio or video codec is not supported by the current Rindle processor configuration.
+
+        Check your FFmpeg build and the variant's declared codec requirements before retrying.
+        """),
+      streaming_not_configured:
+        exact("""
+        Streaming playback was requested, but the current profile is not configured for that delivery path.
+
+        Until a streaming provider is configured, callers should use `Rindle.Delivery.url/3` for progressive playback.
+        """),
+      variant_processing_cancelled:
+        exact("""
+        Variant processing was cancelled.
+
+        This is expected when Rindle.cancel_processing/1 is called. The variant will not retry automatically; re-trigger it explicitly if needed.
+        """),
+      range_unparseable:
+        exact("""
+        The HTTP Range header could not be parsed.
+
+        Rindle falls back to a `200 OK` full-body response for malformed ranges by default. Fix the caller's Range header or enable strict parsing if you need hard failures.
+        """)
+    }
+
+    for {reason, expected} <- expected_messages do
+      error = struct!(Rindle.Error, action: :test_contract, reason: reason)
+      assert Rindle.Error.message(error) == expected
+    end
+  end
+
+  test "troubleshooting guide points operators back to the runtime-owned AV error contract" do
+    troubleshooting = File.read!(@troubleshooting_path)
+
+    assert troubleshooting =~ "Rindle.Error.message/1"
+    assert troubleshooting =~ "test/rindle/error_test.exs"
+
+    for reason <- @av_public_reasons do
+      assert troubleshooting =~ "`#{inspect(reason)}`"
+    end
+  end
+
   test "renders exact message for processor_capability_missing" do
     error =
       struct!(Rindle.Error,
