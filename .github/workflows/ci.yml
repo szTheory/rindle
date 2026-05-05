@@ -275,6 +275,9 @@ jobs:
       - name: Compile
         run: mix compile
 
+      - name: Run AV hygiene gate
+        run: bash scripts/assert_av_hygiene.sh
+
       - name: Run contract tests
         run: mix test --only contract
 
@@ -483,23 +486,56 @@ jobs:
       - name: Run adopter tests
         run: mix test --only adopter test/adopter/canonical_app/lifecycle_test.exs
 
-      - name: Verify guides/getting_started.md matches adopter lane (D-16 drift gate)
+      - name: Verify AV onboarding docs stay on the public facade path
         run: |
-          set -e
-          GUIDE=guides/getting_started.md
-          if [ ! -f "$GUIDE" ]; then
-            echo "FAIL (D-16): $GUIDE missing — DOC-01 must be authored before adopter lane drift check can pass"
-            exit 1
-          fi
-          # The canonical adopter lifecycle uses these three public API calls.
-          # If any are missing from the guide snippet, the guide has drifted
-          # from the working code path (D-16 / success criterion 5.5).
-          MATCHES=$(grep -E "Broker\.initiate_session|Broker\.verify_completion|Rindle\.Delivery\.url" "$GUIDE" | wc -l)
-          if [ "$MATCHES" -lt 3 ]; then
-            echo "FAIL (D-16): $GUIDE missing one or more canonical adopter API calls"
-            echo "Expected at least 3 lines matching: Broker.initiate_session, Broker.verify_completion, Rindle.Delivery.url"
-            echo "Found: $MATCHES line(s)"
-            grep -nE "Broker\.initiate_session|Broker\.verify_completion|Rindle\.Delivery\.url" "$GUIDE" || true
-            exit 1
-          fi
-          echo "OK: $GUIDE references all 3 canonical adopter API calls ($MATCHES line(s))"
+          set -euo pipefail
+
+          search_fixed() {
+            local pattern=$1
+            local file=$2
+
+            if command -v rg >/dev/null 2>&1; then
+              rg -nF "$pattern" "$file" >/dev/null
+            else
+              grep -nF "$pattern" "$file" >/dev/null
+            fi
+          }
+
+          search_regex() {
+            local pattern=$1
+            local file=$2
+
+            if command -v rg >/dev/null 2>&1; then
+              rg -n "$pattern" "$file" >/dev/null
+            else
+              grep -nE "$pattern" "$file" >/dev/null
+            fi
+          }
+
+          for DOC in README.md guides/getting_started.md; do
+            if [ ! -f "$DOC" ]; then
+              echo "FAIL: onboarding doc missing: $DOC"
+              exit 1
+            fi
+
+            for REQUIRED in \
+              "mix rindle.doctor" \
+              "Rindle.Profile.Presets.Web" \
+              "Rindle.initiate_upload" \
+              "Rindle.verify_completion" \
+              "Rindle.attach" \
+              "Rindle.url"
+            do
+              if ! search_fixed "$REQUIRED" "$DOC"; then
+                echo "FAIL: $DOC is missing required AV onboarding reference: $REQUIRED"
+                exit 1
+              fi
+            done
+
+            if search_regex "Broker\\.initiate_session|Broker\\.verify_completion|Rindle\\.Delivery\\.url" "$DOC"; then
+              echo "FAIL: $DOC still references stale non-facade onboarding calls"
+              exit 1
+            fi
+          done
+
+          echo "OK: README.md and guides/getting_started.md stay aligned to the public AV onboarding path"
