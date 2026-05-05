@@ -135,6 +135,19 @@ defmodule Rindle.Workers.ProcessVariantTest do
     assert run_temp_entries(tmp_dir) == []
   end
 
+  test "cancel_processing/1 returns not_processing when the asset has no queued or executing work",
+       %{
+         asset: asset,
+         tmp_dir: tmp_dir
+       } do
+    assert {:error, :not_processing} = Rindle.cancel_processing(asset.id)
+
+    asset = Rindle.Repo.get!(MediaAsset, asset.id)
+
+    assert asset.state == "available"
+    assert run_temp_entries(tmp_dir) == []
+  end
+
   @tag :race_guard
   test "cancels stale-source promotions before the ready write", %{
     asset: asset,

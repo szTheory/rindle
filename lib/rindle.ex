@@ -397,6 +397,32 @@ defmodule Rindle do
     )
   end
 
+  @doc """
+  Cancels active variant processing for an asset.
+
+  Returns `:ok` when the asset has queued or executing variant work that can be
+  cancelled. Returns `{:error, :not_processing}` when the asset has no queued
+  or executing variant work.
+
+  The public surface remains asset-scoped; callers do not need to know variant
+  ids, job ids, or Oban internals to stop in-flight processing.
+
+  ## Examples
+
+      iex> Rindle.cancel_processing(asset_id)
+      :ok
+
+      iex> Rindle.cancel_processing("missing-or-idle-asset")
+      {:error, :not_processing}
+
+  """
+  @spec cancel_processing(MediaAsset.t() | binary()) :: :ok | {:error, :not_processing}
+  def cancel_processing(asset_or_id) do
+    asset_or_id
+    |> get_asset_id()
+    |> Rindle.Workers.ProcessVariant.cancel_processing()
+  end
+
   defp get_asset_id(%MediaAsset{id: id}), do: id
   defp get_asset_id(id) when is_binary(id), do: id
 

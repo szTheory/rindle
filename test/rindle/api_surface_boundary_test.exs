@@ -96,6 +96,7 @@ defmodule Rindle.ApiSurfaceBoundaryTest do
       assert function_exported?(Rindle, :verify_completion, 2)
       assert function_exported?(Rindle, :verify_upload, 2)
       assert function_exported?(Rindle, :complete_multipart_upload, 3)
+      assert function_exported?(Rindle, :cancel_processing, 1)
       assert function_exported?(Rindle, :log_variant_processing_failure, 3)
     end
 
@@ -118,6 +119,11 @@ defmodule Rindle.ApiSurfaceBoundaryTest do
 
       assert hidden_function_doc?(Rindle, :log_variant_processing_failure, 3),
              "Rindle.log_variant_processing_failure/3 should become a hidden compatibility shim"
+    end
+
+    test "asset-scoped cancel_processing/1 stays publicly documented on the facade" do
+      assert visible_function_doc?(Rindle, :cancel_processing, 1),
+             "Rindle.cancel_processing/1 should be publicly documented"
     end
   end
 

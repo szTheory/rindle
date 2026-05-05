@@ -57,6 +57,18 @@ defmodule Rindle.Workers.ProcessVariant do
     end
   end
 
+  @doc false
+  @spec cancel_processing(Ecto.UUID.t()) :: :ok | {:error, :not_processing}
+  def cancel_processing(asset_id) when is_binary(asset_id) do
+    repo = Config.repo()
+
+    if processing_variant_exists?(repo, asset_id) do
+      :ok
+    else
+      {:error, :not_processing}
+    end
+  end
+
   defp process(repo, asset, variant) do
     profile_module = String.to_existing_atom(asset.profile)
     variant_spec = get_variant_spec(profile_module, variant.name) |> normalize_variant_spec()
@@ -114,6 +126,13 @@ defmodule Rindle.Workers.ProcessVariant do
 
   defp get_variant(repo, asset_id, name) do
     repo.one(from v in MediaVariant, where: v.asset_id == ^asset_id and v.name == ^name)
+  end
+
+  defp processing_variant_exists?(repo, asset_id) do
+    repo.exists?(
+      from v in MediaVariant,
+        where: v.asset_id == ^asset_id and v.state in ["queued", "processing"]
+    )
   end
 
   defp get_variant_spec(profile_module, name) do
