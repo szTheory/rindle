@@ -5,12 +5,13 @@ defmodule Rindle.Processor.Ffmpeg do
 
   @behaviour Rindle.Processor
 
+  alias Rindle.Processor.AV
   alias Rindle.AV.Subprocess
   alias Rindle.Security.Argv
 
   @impl Rindle.Processor
   @spec process(Path.t(), map(), Path.t()) :: {:ok, Path.t()} | {:error, term()}
-  def process(source_path, variant_spec, destination_path) do
+  def process(source_path, %{capability: _capability} = variant_spec, destination_path) do
     case build_args(source_path, variant_spec, destination_path) do
       {:ok, args} ->
         full_args = Subprocess.build_args("ffmpeg", args, [])
@@ -26,6 +27,10 @@ defmodule Rindle.Processor.Ffmpeg do
       {:error, reason} ->
         {:error, reason}
     end
+  end
+
+  def process(source_path, variant_spec, destination_path) do
+    AV.process(source_path, variant_spec, destination_path)
   end
 
   defp build_args(source, %{capability: :video_transcode} = spec, dest) do
