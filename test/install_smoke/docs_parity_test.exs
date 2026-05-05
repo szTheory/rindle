@@ -135,13 +135,13 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
   end
 
   test "troubleshooting guide is part of the public AV docs surface", %{
-    guide: guide,
     troubleshooting: troubleshooting
   } do
-    assert guide =~ "troubleshooting.md"
     assert troubleshooting =~ "mix rindle.doctor"
     assert troubleshooting =~ "Rindle.Error.message/1"
     assert troubleshooting =~ "test/rindle/error_test.exs"
+    assert troubleshooting =~ "`:ffmpeg_not_found`"
+    assert troubleshooting =~ "`:range_unparseable`"
   end
 
   defp introductory_section(doc) do

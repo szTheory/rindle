@@ -8,6 +8,39 @@ typically a Mix task that automates the recovery.
 For the full state diagrams, see [Core Concepts](core_concepts.html). For
 the day-2 task reference, see [Operations](operations.html).
 
+## AV Error Contract
+
+Rindle v1.4 freezes eight AV-facing error reasons as a public operator
+vocabulary:
+
+- `:processor_capability_missing`
+- `:ffmpeg_not_found`
+- `:capability_drift`
+- `:variant_source_not_found`
+- `:unsupported_codec`
+- `:streaming_not_configured`
+- `:variant_processing_cancelled`
+- `:range_unparseable`
+
+The exact user-facing text for those reasons is owned by
+`Rindle.Error.message/1` and locked in `test/rindle/error_test.exs`. Treat this
+guide as the recovery map, not a second wording authority.
+
+| Reason | What it usually means | First operator move |
+| ------ | --------------------- | ------------------- |
+| `:processor_capability_missing` | The configured processor cannot satisfy a declared AV variant. | Run `mix rindle.doctor` and compare the profile's variants to the processor capability list. |
+| `:ffmpeg_not_found` | FFmpeg is missing from PATH or not configured at `:ffmpeg_path`. | Install FFmpeg, then re-run `mix rindle.doctor`. |
+| `:capability_drift` | A storage or processor capability disappeared after the profile was already in use. | Re-check runtime configuration, then reconcile any in-flight work before retrying. |
+| `:variant_source_not_found` | Variant processing could not download the original media from storage. | Confirm the original object still exists and that the adapter can read it. |
+| `:unsupported_codec` | The declared codec is not available in the current FFmpeg build or processor allowlist. | Inspect `ffmpeg -codecs` and compare it to the variant recipe. |
+| `:streaming_not_configured` | A caller asked for streaming playback without a configured streaming provider. | Fall back to progressive delivery with `Rindle.Delivery.url/3`. |
+| `:variant_processing_cancelled` | An in-flight transcode was intentionally cancelled. | Verify whether `Rindle.cancel_processing/1` was invoked, then re-trigger only if the work should resume. |
+| `:range_unparseable` | A malformed HTTP `Range` header reached the local streaming surface. | Fix the caller/header generator or enable strict parsing if your app wants hard failures. |
+
+The common FFmpeg- and capability-related recovery path is still
+`mix rindle.doctor`, because it exercises the same runtime boundary that emits
+these reasons.
+
 ## Quarantined Assets
 
 **State:** `MediaAsset.state == "quarantined"`
@@ -229,8 +262,10 @@ the canonical references are:
 - The lifecycle/state tables in the core concepts guide for transition rules
 - `Rindle.Upload.Broker`, `Rindle.Delivery`, `Rindle` (the public
   facade module) for the public API contracts
+- `Rindle.Error.message/1` and `test/rindle/error_test.exs` for the locked AV
+  error text and remediation wording
 - The Mix task `@moduledoc` blocks for command-line behavior
-- The telemetry contract test (`test/rindle/telemetry/contract_test.exs`)
+- The telemetry contract test (`test/rindle/contracts/telemetry_contract_test.exs`)
   for the locked event surface
 
 When in doubt, **the FSM is the source of truth.** If the FSM forbids
