@@ -115,26 +115,6 @@ defmodule Rindle.Profile.Validator do
       type: {:in, [:overview]},
       required: true,
       doc: "Named waveform preset. v1.4 ships a single overview contract."
-    ],
-    format: [
-      type: {:in, [:json]},
-      default: :json,
-      doc: "Output format. Only :json supported in v1.4."
-    ],
-    length: [
-      type: :pos_integer,
-      default: 1000,
-      doc: "Number of buckets in the output waveform contract."
-    ],
-    sample_rate: [
-      type: {:or, [:pos_integer, nil]},
-      default: nil,
-      doc: "Resample audio before peak extraction; nil = source rate."
-    ],
-    channels: [
-      type: {:in, [1, 2, nil]},
-      default: nil,
-      doc: "Channel count for analysis: 1=mono mix, 2=stereo, nil=source."
     ]
   ]
 
