@@ -25,6 +25,53 @@ defmodule Rindle.HTMLTest do
     %Rindle.Domain.MediaVariant{name: name, state: state, storage_key: storage_key}
   end
 
+  defp av_asset_with_variants(kind, storage_key, content_type, variants) do
+    %Rindle.Domain.MediaAsset{
+      kind: to_string(kind),
+      storage_key: storage_key,
+      content_type: content_type,
+      variants: variants
+    }
+  end
+
+  defp av_variant(name, state, storage_key, output_kind, content_type) do
+    %Rindle.Domain.MediaVariant{
+      name: name,
+      state: state,
+      storage_key: storage_key,
+      output_kind: to_string(output_kind),
+      content_type: content_type
+    }
+  end
+
+  defp expect_public_delivery(key) when is_binary(key) do
+    expect(Rindle.AuthorizerMock, :authorize, fn nil,
+                                                 :deliver,
+                                                 %{profile: PublicProfile, key: ^key, mode: :public} ->
+      :ok
+    end)
+
+    expect(Rindle.StorageMock, :url, fn ^key, _opts ->
+      {:ok, "https://public.example/#{key}"}
+    end)
+  end
+
+  defp expect_public_delivery(keys) when is_list(keys) do
+    allowed_keys = MapSet.new(keys)
+
+    expect(Rindle.AuthorizerMock, :authorize, length(keys), fn nil,
+                                                               :deliver,
+                                                               %{profile: PublicProfile, key: key, mode: :public} ->
+      assert MapSet.member?(allowed_keys, key)
+      :ok
+    end)
+
+    expect(Rindle.StorageMock, :url, length(keys), fn key, _opts ->
+      assert MapSet.member?(allowed_keys, key)
+      {:ok, "https://public.example/#{key}"}
+    end)
+  end
+
   test "picture_tag/3 renders ready variants in order and passes through html attrs" do
     asset =
       asset_with_variants([
@@ -136,5 +183,108 @@ defmodule Rindle.HTMLTest do
     assert html =~ "<img"
     refute html =~ "<video"
     refute html =~ "<audio"
+  end
+
+  test "video_tag/3 preserves variant order, defaults preload, resolves poster variants, and passes attrs through" do
+    asset =
+      av_asset_with_variants(:video, "assets/asset-1/original.mp4", "video/mp4", [
+        av_variant("web_480p", "ready", "assets/asset-1/web-480.mp4", :video, "video/mp4"),
+        av_variant("poster", "ready", "assets/asset-1/poster.jpg", :image, "image/jpeg"),
+        av_variant("web_720p", "ready", "assets/asset-1/web-720.mp4", :video, "video/mp4")
+      ])
+
+    expect_public_delivery([
+      "assets/asset-1/original.mp4",
+      "assets/asset-1/original.mp4",
+      "assets/asset-1/web-720.mp4",
+      "assets/asset-1/web-480.mp4",
+      "assets/asset-1/poster.jpg"
+    ])
+
+    html =
+      Rindle.HTML.video_tag(PublicProfile, asset,
+        variants: [:web_720p, :web_480p],
+        poster: :poster,
+        controls: true,
+        class: "player"
+      )
+      |> Phoenix.HTML.safe_to_string()
+
+    assert html =~ "<video"
+    assert html =~ "class=\"player\""
+    assert html =~ "controls"
+    assert html =~ "preload=\"metadata\""
+    assert html =~ "poster=\"https://public.example/assets/asset-1/poster.jpg\""
+    assert html =~ "src=\"https://public.example/assets/asset-1/original.mp4\""
+    assert html =~ "type=\"video/mp4\""
+
+    {first_index, _} = :binary.match(html, "https://public.example/assets/asset-1/web-720.mp4")
+    {second_index, _} = :binary.match(html, "https://public.example/assets/asset-1/web-480.mp4")
+
+    assert first_index < second_index
+  end
+
+  test "video_tag/3 skips non-ready variants and falls back to the original asset url" do
+    asset =
+      av_asset_with_variants(:video, "assets/asset-1/original.mp4", "video/mp4", [
+        av_variant("web_720p", "processing", "assets/asset-1/web-720.mp4", :video, "video/mp4")
+      ])
+
+    expect(Rindle.AuthorizerMock, :authorize, fn nil,
+                                                 :deliver,
+                                                 %{profile: PublicProfile, key: "assets/asset-1/original.mp4", mode: :public} ->
+      :ok
+    end)
+
+    expect(Rindle.StorageMock, :url, fn "assets/asset-1/original.mp4", _opts ->
+      {:ok, "https://public.example/assets/asset-1/original.mp4"}
+    end)
+
+    html =
+      Rindle.HTML.video_tag(PublicProfile, asset,
+        variants: [:web_720p],
+        poster: "https://cdn.example/posters/manual.jpg"
+      )
+      |> Phoenix.HTML.safe_to_string()
+
+    assert html =~ "src=\"https://public.example/assets/asset-1/original.mp4\""
+    assert html =~ "poster=\"https://cdn.example/posters/manual.jpg\""
+    refute html =~ "web-720.mp4"
+  end
+
+  test "audio_tag/3 defaults controls and preload, preserves source order, and accepts reserved tracks" do
+    asset =
+      av_asset_with_variants(:audio, "assets/asset-1/original.m4a", "audio/mp4", [
+        av_variant("podcast_mp3", "ready", "assets/asset-1/podcast.mp3", :audio, "audio/mpeg"),
+        av_variant("podcast_m4a", "ready", "assets/asset-1/podcast.m4a", :audio, "audio/mp4")
+      ])
+
+    expect_public_delivery([
+      "assets/asset-1/original.m4a",
+      "assets/asset-1/podcast.mp3",
+      "assets/asset-1/podcast.m4a"
+    ])
+
+    html =
+      Rindle.HTML.audio_tag(PublicProfile, asset,
+        variants: [:podcast_mp3, :podcast_m4a],
+        tracks: [%{kind: "captions", srclang: "en"}],
+        class: "podcast-player"
+      )
+      |> Phoenix.HTML.safe_to_string()
+
+    assert html =~ "<audio"
+    assert html =~ "class=\"podcast-player\""
+    assert html =~ "controls"
+    assert html =~ "preload=\"metadata\""
+    assert html =~ "src=\"https://public.example/assets/asset-1/original.m4a\""
+    assert html =~ "type=\"audio/mpeg\""
+    assert html =~ "type=\"audio/mp4\""
+    refute html =~ "<track"
+
+    {first_index, _} = :binary.match(html, "https://public.example/assets/asset-1/podcast.mp3")
+    {second_index, _} = :binary.match(html, "https://public.example/assets/asset-1/podcast.m4a")
+
+    assert first_index < second_index
   end
 end

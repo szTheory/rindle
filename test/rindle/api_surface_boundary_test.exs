@@ -121,6 +121,16 @@ defmodule Rindle.ApiSurfaceBoundaryTest do
     end
   end
 
+  describe "html helper surface" do
+    test "video_tag/3 and audio_tag/3 stay publicly documented on Rindle.HTML" do
+      assert visible_function_doc?(Rindle.HTML, :video_tag, 3),
+             "Rindle.HTML.video_tag/3 should be publicly documented"
+
+      assert visible_function_doc?(Rindle.HTML, :audio_tag, 3),
+             "Rindle.HTML.audio_tag/3 should be publicly documented"
+    end
+  end
+
   defp visible_module?(module) do
     case fetch_docs!(module) do
       {:docs_v1, _, _, _, moduledoc, _, _} -> moduledoc not in [:hidden, false, nil]
