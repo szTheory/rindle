@@ -20,6 +20,7 @@ defmodule Rindle.Adopter.CanonicalApp.LifecycleTest do
   alias Rindle.Workers.{ProcessVariant, PromoteAsset, PurgeStorage}
 
   @multipart_min_part_size 5 * 1024 * 1024
+  @v13_thumb_digest "3a9ab2f60b2d26217471f22cc329252acba546c6341111a3ef89a8d9978d30a7"
 
   @moduletag :adopter
   @moduletag sandbox_repo: Rindle.Adopter.CanonicalApp.Repo
@@ -285,6 +286,29 @@ defmodule Rindle.Adopter.CanonicalApp.LifecycleTest do
 
       assert cleanup_report.sessions_deleted >= 1
       assert Repo.get(MediaUploadSession, expired_session.id) == nil
+    end
+  end
+
+  describe "v1.0 → v1.4 backward-compat parity (AV-02-11, D-22)" do
+    alias Rindle.Adopter.CanonicalApp.Profile, as: AdopterProfile
+
+    test "image-only canonical profile compiles unchanged on v1.4 (D-22 condition 1)" do
+      assert Code.ensure_loaded?(AdopterProfile)
+      assert function_exported?(AdopterProfile, :variants, 0)
+      assert function_exported?(AdopterProfile, :recipe_digest, 1)
+    end
+
+    test "Profile.variants()[:thumb] does NOT contain :kind key (D-14 + D-22 condition 2)" do
+      thumb = AdopterProfile.variants()[:thumb]
+
+      refute Map.has_key?(thumb, :kind),
+             "image-default canonical profile must omit :kind from validated map " <>
+               "(D-14); persisting :kind would break recipe digest stability for every " <>
+               "existing image-only adopter."
+    end
+
+    test "Profile.recipe_digest(:thumb) matches v1.3 snapshot byte-for-byte (D-22 condition 3 — THE load-bearing assertion)" do
+      assert AdopterProfile.recipe_digest(:thumb) == @v13_thumb_digest
     end
   end
 
