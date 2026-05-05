@@ -1,21 +1,40 @@
 defmodule Rindle.Contracts.TelemetryContractTest do
+  use Rindle.DataCase, async: false
+  use Oban.Testing, repo: Rindle.Repo
+  import Mox
+
   alias Rindle.Domain.AssetFSM
-  alias Rindle.Domain.VariantFSM
+  alias Rindle.Domain.{MediaAsset, MediaVariant, VariantFSM}
+  alias Rindle.Workers.ProcessVariant
 
   @moduledoc """
   Telemetry public contract — locked event family.
 
   Asserts the exact event-name allowlist, required `profile` + `adapter`
-  metadata keys, and that all measurements are numeric. A name change or
-  metadata-key drop breaks this lane (Phase 5 success criterion 5.2).
+  metadata keys, and that all measurements are numeric. A name change,
+  metadata-key drift, or AV transcode event-shape drift breaks this lane.
 
   Run: `mix test --only contract`
 
   Per D-04/D-05/D-06 in `.planning/phases/05-ci-1-0-readiness/05-CONTEXT.md`.
   """
 
-  use ExUnit.Case, async: false
   @moduletag :contract
+
+  setup :set_mox_from_context
+  setup :verify_on_exit!
+
+  defmodule AVContractProfile do
+    @moduledoc false
+
+    use Rindle.Profile,
+      storage: Rindle.StorageMock,
+      variants: [
+        web_720p: [kind: :video, preset: :web_720p]
+      ],
+      allow_mime: ["video/mp4"],
+      max_bytes: 524_288_000
+  end
 
   defmodule LocalContractProfile do
     @moduledoc false
@@ -38,7 +57,10 @@ defmodule Rindle.Contracts.TelemetryContractTest do
     [:rindle, :asset, :state_change],
     [:rindle, :variant, :state_change],
     [:rindle, :delivery, :signed],
-    [:rindle, :cleanup, :run]
+    [:rindle, :cleanup, :run],
+    [:rindle, :media, :transcode, :start],
+    [:rindle, :media, :transcode, :stop],
+    [:rindle, :media, :transcode, :exception]
   ]
 
   setup do
@@ -48,12 +70,12 @@ defmodule Rindle.Contracts.TelemetryContractTest do
   end
 
   describe "public event allowlist" do
-    test "is exactly the six events documented in the public contract" do
-      assert length(@public_events) == 6
+    test "is exactly the documented public contract" do
+      assert length(@public_events) == 9
 
       for event <- @public_events do
         assert is_list(event)
-        assert length(event) == 3
+        assert length(event) in [3, 4]
         assert Enum.all?(event, &is_atom/1)
         assert hd(event) == :rindle
       end
@@ -115,6 +137,107 @@ defmodule Rindle.Contracts.TelemetryContractTest do
       assert metadata.profile == LocalContractProfile
       assert metadata.adapter == Rindle.Storage.Local
     end
+
+    test "ProcessVariant emits the AV transcode start/stop contract on success", %{ref: ref} do
+      asset =
+        %MediaAsset{}
+        |> MediaAsset.changeset(%{
+          state: "available",
+          profile: to_string(AVContractProfile),
+          kind: "video",
+          storage_key: "telemetry/source.mp4",
+          duration_ms: 1_200
+        })
+        |> Rindle.Repo.insert!()
+
+      variant =
+        %MediaVariant{}
+        |> MediaVariant.changeset(%{
+          asset_id: asset.id,
+          name: "web_720p",
+          state: "planned",
+          recipe_digest: AVContractProfile.recipe_digest(:web_720p),
+          output_kind: "video"
+        })
+        |> Rindle.Repo.insert!()
+
+      expect(Rindle.StorageMock, :download, fn _key, tmp_path, _opts ->
+        build_video_fixture!(tmp_path)
+        {:ok, tmp_path}
+      end)
+
+      expect(Rindle.StorageMock, :store, fn key, _path, _opts ->
+        {:ok, %{key: key}}
+      end)
+
+      assert :ok =
+               perform_job(ProcessVariant, %{
+                 "asset_id" => asset.id,
+                 "variant_name" => variant.name
+               })
+
+      assert_received {[:rindle, :media, :transcode, :start], ^ref, start_measurements, start_metadata}
+      assert_received {[:rindle, :media, :transcode, :stop], ^ref, stop_measurements, stop_metadata}
+
+      assert start_measurements == %{system_time: start_measurements.system_time}
+      assert stop_measurements.duration > 0
+      assert is_integer(stop_measurements.system_time)
+
+      assert start_metadata == %{
+               asset_id: asset.id,
+               output_kind: "video",
+               preset: :web_720p,
+               profile: to_string(AVContractProfile),
+               variant_id: variant.id,
+               variant_name: variant.name
+             }
+
+      assert stop_metadata == start_metadata
+    end
+
+    test "ProcessVariant emits the AV transcode exception contract on failure", %{ref: ref} do
+      asset =
+        %MediaAsset{}
+        |> MediaAsset.changeset(%{
+          state: "available",
+          profile: to_string(AVContractProfile),
+          kind: "video",
+          storage_key: "telemetry/missing.mp4",
+          duration_ms: 1_200
+        })
+        |> Rindle.Repo.insert!()
+
+      variant =
+        %MediaVariant{}
+        |> MediaVariant.changeset(%{
+          asset_id: asset.id,
+          name: "web_720p",
+          state: "planned",
+          recipe_digest: AVContractProfile.recipe_digest(:web_720p),
+          output_kind: "video"
+        })
+        |> Rindle.Repo.insert!()
+
+      expect(Rindle.StorageMock, :download, fn _key, _tmp_path, _opts ->
+        {:error, :missing_source}
+      end)
+
+      assert {:error, :missing_source} =
+               perform_job(ProcessVariant, %{
+                 "asset_id" => asset.id,
+                 "variant_name" => variant.name
+               })
+
+      assert_received {[:rindle, :media, :transcode, :start], ^ref, _start_measurements, start_metadata}
+
+      assert_received {[:rindle, :media, :transcode, :exception], ^ref, exception_measurements,
+                       exception_metadata}
+
+      assert exception_measurements.duration > 0
+      assert is_integer(exception_measurements.system_time)
+
+      assert exception_metadata == Map.merge(start_metadata, %{kind: :error, reason: :missing_source})
+    end
   end
 
   describe "no event outside allowlist fires" do
@@ -134,7 +257,10 @@ defmodule Rindle.Contracts.TelemetryContractTest do
             [:rindle, :asset, :transitioned],
             [:rindle, :variant, :transitioned],
             [:rindle, :delivery, :issued],
-            [:rindle, :cleanup, :ran]
+            [:rindle, :cleanup, :ran],
+            [:rindle, :media, :transcode, :began],
+            [:rindle, :media, :transcode, :ended],
+            [:rindle, :media, :transcode, :failed]
           ]
 
       :telemetry.attach_many(
@@ -191,5 +317,32 @@ defmodule Rindle.Contracts.TelemetryContractTest do
     after
       10 -> Enum.reverse(acc)
     end
+  end
+
+  defp build_video_fixture!(path) do
+    args = [
+      "-y",
+      "-f",
+      "lavfi",
+      "-i",
+      "testsrc=size=320x180:rate=30:duration=1.2",
+      "-f",
+      "lavfi",
+      "-i",
+      "sine=frequency=880:sample_rate=48_000:duration=1.2",
+      "-map",
+      "0:v:0",
+      "-map",
+      "1:a:0",
+      "-c:v",
+      "libx264",
+      "-pix_fmt",
+      "yuv420p",
+      "-c:a",
+      "aac",
+      path
+    ]
+
+    {_output, 0} = System.cmd("ffmpeg", args, stderr_to_stdout: true)
   end
 end

@@ -48,6 +48,8 @@ defmodule Rindle.Workers.ProcessVariantTest do
       File.rm_rf(tmp_dir)
     end)
 
+    start_pubsub!()
+
     asset =
       %MediaAsset{}
       |> MediaAsset.changeset(%{
@@ -278,6 +280,86 @@ defmodule Rindle.Workers.ProcessVariantTest do
     assert run_temp_entries(tmp_dir) == []
   end
 
+  test "broadcasts explicit AV progress to both variant and asset topics", %{tmp_dir: tmp_dir} do
+    asset =
+      %MediaAsset{}
+      |> MediaAsset.changeset(%{
+        state: "available",
+        profile: to_string(AVProfile),
+        kind: "video",
+        storage_key: "test/source.mp4",
+        duration_ms: 1_200
+      })
+      |> Rindle.Repo.insert!()
+
+    variant =
+      %MediaVariant{}
+      |> MediaVariant.changeset(%{
+        asset_id: asset.id,
+        name: "hero",
+        state: "planned",
+        recipe_digest: AVProfile.recipe_digest(:hero),
+        output_kind: "video"
+      })
+      |> Rindle.Repo.insert!()
+
+    Phoenix.PubSub.subscribe(Rindle.PubSub, "rindle:variant:#{variant.id}")
+    Phoenix.PubSub.subscribe(Rindle.PubSub, "rindle:asset:#{asset.id}")
+
+    expect(Rindle.StorageMock, :download, fn _key, tmp_path, _opts ->
+      build_video_fixture!(tmp_path)
+      {:ok, tmp_path}
+    end)
+
+    expect(Rindle.StorageMock, :store, fn key, _path, _opts ->
+      {:ok, %{key: key}}
+    end)
+
+    assert :ok = perform_job(ProcessVariant, %{"asset_id" => asset.id, "variant_name" => "hero"})
+
+    asset_id = asset.id
+    variant_id = variant.id
+
+    assert_received {:rindle_variant_progress,
+                     %{
+                       asset_id: ^asset_id,
+                       progress: 0,
+                       variant_id: ^variant_id,
+                       variant_name: "hero",
+                       state: "processing"
+                     }}
+
+    assert_received {:rindle_variant_progress,
+                     %{
+                       asset_id: ^asset_id,
+                       progress: 0,
+                       variant_id: ^variant_id,
+                       variant_name: "hero",
+                       state: "processing"
+                     }}
+
+    assert_received {:rindle_variant_progress,
+                     %{
+                       asset_id: ^asset_id,
+                       progress: 100,
+                       variant_id: ^variant_id,
+                       variant_name: "hero",
+                       state: "ready"
+                     }}
+
+    assert_received {:rindle_variant_progress,
+                     %{
+                       asset_id: ^asset_id,
+                       progress: 100,
+                       variant_id: ^variant_id,
+                       variant_name: "hero",
+                       state: "ready"
+                     }}
+
+    refute_received {:rindle_variant_progress, _payload}
+    assert run_temp_entries(tmp_dir) == []
+  end
+
   defp run_temp_entries(tmp_dir) do
     tmp_dir
     |> Path.join("Rindle.tmp")
@@ -313,5 +395,15 @@ defmodule Rindle.Workers.ProcessVariantTest do
     ]
 
     {_output, 0} = System.cmd("ffmpeg", args, stderr_to_stdout: true)
+  end
+
+  defp start_pubsub! do
+    case Process.whereis(Rindle.PubSub) do
+      nil ->
+        start_supervised!({Phoenix.PubSub, name: Rindle.PubSub})
+
+      _pid ->
+        :ok
+    end
   end
 end
