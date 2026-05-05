@@ -140,6 +140,62 @@ defmodule Rindle.Domain.LifecycleFSMTest do
     end
   end
 
+  describe "variant transition matrix — Phase 24 additive (AV-02-04)" do
+    alias Rindle.Domain.VariantFSM
+
+    test "planned → cancelled is allowed (NEW)" do
+      assert :ok == VariantFSM.transition("planned", "cancelled")
+    end
+
+    test "queued → cancelled is allowed (NEW)" do
+      assert :ok == VariantFSM.transition("queued", "cancelled")
+    end
+
+    test "processing → cancelled is allowed (NEW)" do
+      assert :ok == VariantFSM.transition("processing", "cancelled")
+    end
+
+    test "cancelled is terminal — cannot leave" do
+      for target <- ~w(planned queued processing ready stale missing failed purged) do
+        assert {:error, {:invalid_transition, "cancelled", ^target}} =
+                 VariantFSM.transition("cancelled", target)
+      end
+    end
+
+    test "ready → cancelled is rejected (only ready transitions to stale/missing/purged)" do
+      assert {:error, {:invalid_transition, "ready", "cancelled"}} =
+               VariantFSM.transition("ready", "cancelled")
+    end
+  end
+
+  describe "variant transition matrix — REGRESSION GUARDS" do
+    alias Rindle.Domain.VariantFSM
+
+    test "planned → queued still allowed" do
+      assert :ok == VariantFSM.transition("planned", "queued")
+    end
+
+    test "queued → processing still allowed" do
+      assert :ok == VariantFSM.transition("queued", "processing")
+    end
+
+    test "processing → ready / failed still allowed" do
+      assert :ok == VariantFSM.transition("processing", "ready")
+      assert :ok == VariantFSM.transition("processing", "failed")
+    end
+
+    test "ready → stale / missing / purged still allowed" do
+      assert :ok == VariantFSM.transition("ready", "stale")
+      assert :ok == VariantFSM.transition("ready", "missing")
+      assert :ok == VariantFSM.transition("ready", "purged")
+    end
+
+    test "stale → queued / purged still allowed" do
+      assert :ok == VariantFSM.transition("stale", "queued")
+      assert :ok == VariantFSM.transition("stale", "purged")
+    end
+  end
+
   describe "upload session transition matrix" do
     test "accepts initialized through completed path" do
       assert :ok == UploadSessionFSM.transition("initialized", "signed")
