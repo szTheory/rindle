@@ -47,7 +47,7 @@ Full archive: [.planning/milestones/v1.0-ROADMAP.md](.planning/milestones/v1.0-R
 - [ ] **Phase 23: AV Foundations** — Capability vocabulary, FFmpeg/FFprobe shim, MuonTrap subprocess discipline, boot probe, `mix rindle.doctor`, security argv hygiene, four-cap resource enforcement
 - [ ] **Phase 24: Domain Model & DSL Extension** — Single additive migration adding `:kind`/`:output_kind`/probe columns, per-kind NimbleOptions schemas, `transcoding` and `cancelled` FSM states, `Rindle.Probe` behaviour with `Rindle.Probe.AVProbe`, backward compat for image-only profiles
 - [ ] **Phase 25: Rindle.Processor.AV** — H.264+AAC mp4 transcode, scene-detected poster, AAC/MP3 audio transcode, EBU R128 loudnorm, JSON waveform peaks, idempotent worker, output post-condition probe, orphan-tempfile sweeper, race guard
-- [ ] **Phase 26: Delivery Surface** — `Rindle.Delivery.streaming_url/3` no-op delegate (reserves the surface), range-aware `Rindle.Delivery.LocalPlug` for dev parity, RFC 5987 download filenames, signed-URL TTL guidance per content type
+- [x] **Phase 26: Delivery Surface** — `Rindle.Delivery.streaming_url/3` no-op delegate (reserves the surface), range-aware `Rindle.Delivery.LocalPlug` for dev parity, RFC 5987 download filenames, signed-URL TTL guidance per content type
 - [ ] **Phase 27: HTML Helpers + LiveView Integration** — `Rindle.HTML.video_tag/3` + `audio_tag/3` mirroring `picture_tag/3`, `Rindle.LiveView.subscribe/2`, `Rindle.cancel_processing/1`, rate-limited PubSub progress, frozen error vocabulary
 - [ ] **Phase 28: Onboarding, Docs, CI Proof** — Stock 720p web preset profile fixture, per-platform install paths (macOS / Ubuntu / Fly.io / Heroku / Render / GitHub Actions), real-world smartphone-source video round-trip in CI, parity gates, anti-pattern grep gate
 
@@ -76,7 +76,13 @@ Full archive: [.planning/milestones/v1.0-ROADMAP.md](.planning/milestones/v1.0-R
   3. Adopter using a v1.0 image-only profile (no `:kind` declared) compiles, validates, and runs the full lifecycle end-to-end on v1.4 with zero source changes (CI-enforced parity)
   4. Operator querying `media_assets WHERE kind = :video AND has_audio_track = true` returns the right rows without parsing JSONB
   5. Adopter uploading a video file sees the asset transition through `analyzing → available → transcoding → ready` (or `→ degraded` / `→ quarantined`) with FSM logging, and any container metadata (title, artist, comment) is stored truncated to 1024 bytes with control characters stripped
-**Plans**: 5 plans (estimated)
+**Plans**: 5 plans
+Plans:
+- [ ] 24-01-PLAN.md — Wave 0: capture v1.3 :thumb digest snapshot (load-bearing) + ship Rindle.Probe behaviour + Rindle.AV.MetadataSanitizer
+- [ ] 24-02-PLAN.md — Wave 1: additive Ecto migration + MediaAsset/MediaVariant schema enums + per-kind changeset validation (D-11)
+- [ ] 24-03-PLAN.md — Wave 1: AssetFSM + VariantFSM additive transitions (transcoding, cancelled, analyzing→quarantined deviation)
+- [ ] 24-04-PLAN.md — Wave 1: per-kind NimbleOptions schemas + dispatch + from_variant compile-time guard + maybe_put_kind/3 (D-14)
+- [ ] 24-05-PLAN.md — Wave 2: Rindle.Probe.Image + Rindle.Probe.AVProbe adapters + PromoteAsset probe-step wiring + canonical adopter parity test (AV-02-11)
 **UI hint**: no
 
 ### Phase 25: Rindle.Processor.AV
@@ -137,7 +143,7 @@ Full archive: [.planning/milestones/v1.0-ROADMAP.md](.planning/milestones/v1.0-R
 |-------|-----------|----------------|--------|-----------|
 | 23. AV Foundations | v1.4 | 0/4 | Not started | - |
 | 24. Domain Model & DSL Extension | v1.4 | 0/5 | Not started | - |
-| 25. Rindle.Processor.AV | v1.4 | 0/6 | Not started | - |
-| 26. Delivery Surface | v1.4 | 0/3 | Not started | - |
+| 25. Rindle.Processor.AV | v1.4 | 6/6 | Executed | 2026-05-05 |
+| 26. Delivery Surface | v1.4 | 3/3 | Executed | 2026-05-05 |
 | 27. HTML Helpers + LiveView Integration | v1.4 | 0/4 | Not started | - |
 | 28. Onboarding, Docs, CI Proof | v1.4 | 0/4 | Not started | - |
