@@ -5,8 +5,10 @@ defmodule Rindle.Processor.AV do
 
   @behaviour Rindle.Processor
 
+  alias Rindle.Processor.AV.Audio
   alias Rindle.Processor.AV.Recipe
   alias Rindle.Processor.AV.Video
+  alias Rindle.Processor.Waveform
   @capabilities [
     :video_transcode,
     :video_frame_extract,
@@ -22,6 +24,7 @@ defmodule Rindle.Processor.AV do
   @spec normalize(map()) :: {:ok, map()} | {:error, term()}
   def normalize(%{kind: :image} = spec), do: normalize_image_recipe(spec)
   def normalize(%{output_kind: :image} = spec), do: normalize_image_recipe(Map.put_new(spec, :kind, :image))
+  def normalize(%{kind: :waveform} = spec), do: normalize_waveform_recipe(spec)
   def normalize(spec), do: Recipe.normalize(spec)
 
   @spec normalize!(map()) :: map()
@@ -46,8 +49,8 @@ defmodule Rindle.Processor.AV do
 
   defp processor_for(%{kind: :video, output_kind: :video}), do: {:ok, &Video.transcode/3}
   defp processor_for(%{kind: :image, output_kind: :image}), do: {:ok, &Video.image_output/3}
-  defp processor_for(%{kind: :audio}), do: {:error, {:processor_unsupported, :audio}}
-  defp processor_for(%{kind: :waveform}), do: {:error, {:processor_unsupported, :audio_waveform}}
+  defp processor_for(%{kind: :audio, output_kind: :audio}), do: {:ok, &Audio.transcode/3}
+  defp processor_for(%{kind: :waveform, output_kind: :waveform}), do: {:ok, &Waveform.generate/3}
   defp processor_for(spec), do: {:error, {:unsupported_recipe, spec}}
 
   defp normalize_image_recipe(spec) do
@@ -94,4 +97,33 @@ defmodule Rindle.Processor.AV do
   end
 
   defp image_preset(preset), do: {:error, {:unknown_preset, preset}}
+
+  defp normalize_waveform_recipe(spec) do
+    allowed_keys = [:kind, :preset]
+
+    unsupported =
+      spec
+      |> Map.keys()
+      |> Enum.reject(&(&1 in allowed_keys))
+      |> Enum.sort()
+
+    case {spec[:preset], unsupported} do
+      {:overview, []} ->
+        {:ok,
+         %{
+           kind: :waveform,
+           output_kind: :waveform,
+           preset: :overview,
+           format: :json,
+           length: 1000,
+           analysis_sample_rate: 8_000
+         }}
+
+      {_preset, [_ | _] = keys} ->
+        {:error, {:unsupported_keys, keys}}
+
+      {preset, []} ->
+        {:error, {:unknown_preset, preset}}
+    end
+  end
 end
