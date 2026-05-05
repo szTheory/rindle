@@ -2,6 +2,7 @@ defmodule Rindle.Processor.AVTest do
   use ExUnit.Case, async: true
 
   alias Rindle.Processor.AV
+  alias Rindle.Processor.AV.Audio
   alias Rindle.Processor.AV.Video
   alias Rindle.Probe.AVProbe
   alias Rindle.Processor.Ffmpeg
@@ -59,13 +60,26 @@ defmodule Rindle.Processor.AVTest do
     end
 
     test "canonicalizes equivalent audio specs into the same map" do
-      assert AV.normalize!(%{kind: :audio, preset: :m4a_128k}) ==
+      canonical = AV.normalize!(%{kind: :audio, preset: :m4a_128k})
+
+      assert canonical ==
                AV.normalize!(%{
                  preset: :m4a_128k,
                  kind: :audio,
                  normalize: false,
                  two_pass: false
                })
+
+      assert canonical == %{
+               kind: :audio,
+               output_kind: :audio,
+               preset: :m4a_128k,
+               container: :m4a,
+               audio_codec: :aac,
+               audio_bitrate_kbps: 128,
+               normalize: false,
+               two_pass: false
+             }
     end
 
     test "rejects raw ffmpeg passthrough keys at the AV boundary" do
@@ -86,6 +100,64 @@ defmodule Rindle.Processor.AVTest do
 
       assert {:error, {:unsupported_keys, [:codec]}} =
                Ffmpeg.process(source, %{kind: :video, preset: :web_720p, codec: :h264}, dest)
+    end
+  end
+
+  describe "process/3 audio outputs" do
+    test "transcodes the m4a preset into real AAC audio and supports channel reduction", %{tmp_dir: tmp_dir} do
+      source = Path.join(tmp_dir, "source.wav")
+      destination = Path.join(tmp_dir, "preview.m4a")
+
+      build_stereo_audio_fixture!(source)
+
+      assert {:ok, ^destination} =
+               AV.process(source, %{kind: :audio, preset: :m4a_128k, channels: 1}, destination)
+
+      assert {:ok, probe} = AVProbe.probe(destination)
+      assert probe.kind == :audio
+      assert probe.has_audio_track == true
+      assert probe.has_video_track == false
+      assert audio_codec_name(destination) == "aac"
+      assert audio_channel_count(destination) == 1
+    end
+
+    test "single-pass loudnorm produces a real mp3 output", %{tmp_dir: tmp_dir} do
+      source = Path.join(tmp_dir, "quiet.wav")
+      destination = Path.join(tmp_dir, "normalized.mp3")
+
+      build_stereo_audio_fixture!(source, volume_db: -20)
+
+      assert {:ok, ^destination} =
+               AV.process(source, %{kind: :audio, preset: :mp3_128k, normalize: true}, destination)
+
+      assert {:ok, probe} = AVProbe.probe(destination)
+      assert probe.kind == :audio
+      assert audio_codec_name(destination) == "mp3"
+    end
+
+    test "two-pass loudnorm uses the explicit higher-fidelity branch", %{tmp_dir: tmp_dir} do
+      source = Path.join(tmp_dir, "quiet-two-pass.wav")
+      destination = Path.join(tmp_dir, "normalized-two-pass.m4a")
+
+      build_stereo_audio_fixture!(source, volume_db: -20)
+
+      assert {:ok, ^destination} =
+               AV.process(
+                 source,
+                 %{kind: :audio, preset: :m4a_128k, normalize: true, two_pass: true},
+                 destination
+               )
+
+      assert {:ok, probe} = AVProbe.probe(destination)
+      assert probe.kind == :audio
+      assert audio_codec_name(destination) == "aac"
+    end
+  end
+
+  describe "audio transcode helpers" do
+    test "rejects two_pass without normalize at the audio boundary" do
+      assert {:error, {:invalid_audio_recipe, :two_pass_requires_normalize}} =
+               Audio.transcode("/tmp/in.wav", %{two_pass: true, normalize: false}, "/tmp/out.m4a")
     end
   end
 
@@ -178,6 +250,32 @@ defmodule Rindle.Processor.AVTest do
       "yuv420p",
       "-c:a",
       "aac",
+      path
+    ]
+
+    {_output, 0} = System.cmd("ffmpeg", args, stderr_to_stdout: true)
+  end
+
+  defp build_stereo_audio_fixture!(path, opts \\ []) do
+    volume_db = Keyword.get(opts, :volume_db, -6)
+    volume = "volume=#{volume_db}dB"
+
+    args = [
+      "-y",
+      "-f",
+      "lavfi",
+      "-i",
+      "sine=frequency=440:sample_rate=48000:duration=1.2",
+      "-f",
+      "lavfi",
+      "-i",
+      "sine=frequency=660:sample_rate=48000:duration=1.2",
+      "-filter_complex",
+      "[0:a]#{volume}[left];[1:a]#{volume}[right];[left][right]join=inputs=2:channel_layout=stereo[a]",
+      "-map",
+      "[a]",
+      "-c:a",
+      "pcm_s16le",
       path
     ]
 
@@ -279,6 +377,10 @@ defmodule Rindle.Processor.AVTest do
 
   defp audio_codec_name(path) do
     ffprobe_stream_value!(path, "a:0", "codec_name")
+  end
+
+  defp audio_channel_count(path) do
+    ffprobe_stream_value!(path, "a:0", "channels") |> String.to_integer()
   end
 
   defp faststart_enabled?(path) do

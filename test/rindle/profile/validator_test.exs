@@ -78,7 +78,7 @@ defmodule Rindle.Profile.ValidatorTest do
       peaks = mod.variants()[:peaks]
       assert peaks[:kind] == :waveform
       assert peaks[:preset] == :overview
-      assert peaks[:format] == :json
+      assert Map.keys(peaks) |> Enum.sort() == [:kind, :preset]
     end
 
     test ":kind => :unknown raises with allowed-list fix hint (D-13)" do
@@ -181,6 +181,34 @@ defmodule Rindle.Profile.ValidatorTest do
             allow_mime: ["audio/mpeg"],
             allow_extensions: [".mp3"],
             variants: [peaks: [kind: :waveform, preset: :overview, peaks: 1000]]
+        end
+        """)
+      end
+    end
+
+    test ":waveform schema rejects sample_rate passthrough" do
+      assert_raise ArgumentError, ~r/unknown options/, fn ->
+        Code.compile_string("""
+        defmodule #{unique_module_name("WaveformWithSampleRate")} do
+          use Rindle.Profile,
+            storage: Rindle.StorageMock,
+            allow_mime: ["audio/mpeg"],
+            allow_extensions: [".mp3"],
+            variants: [peaks: [kind: :waveform, preset: :overview, sample_rate: 8_000]]
+        end
+        """)
+      end
+    end
+
+    test ":waveform schema rejects channels passthrough" do
+      assert_raise ArgumentError, ~r/unknown options/, fn ->
+        Code.compile_string("""
+        defmodule #{unique_module_name("WaveformWithChannels")} do
+          use Rindle.Profile,
+            storage: Rindle.StorageMock,
+            allow_mime: ["audio/mpeg"],
+            allow_extensions: [".mp3"],
+            variants: [peaks: [kind: :waveform, preset: :overview, channels: 1]]
         end
         """)
       end
