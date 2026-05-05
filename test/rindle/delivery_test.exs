@@ -390,4 +390,94 @@ defmodule Rindle.DeliveryTest do
       refute_received {[:rindle, :delivery, :streaming, :resolved], ^ref, _, _}
     end
   end
+
+  describe "content disposition normalization" do
+    test "sanitizes explicit filename and disposition for private delivery" do
+      key = "assets/asset-1/original.jpg"
+
+      expect(Rindle.AuthorizerMock, :authorize, fn nil,
+                                                   :deliver,
+                                                   %{
+                                                     profile: PrivateProfile,
+                                                     key: ^key,
+                                                     mode: :private
+                                                   } ->
+        :ok
+      end)
+
+      expect(Rindle.StorageMock, :capabilities, fn -> [:signed_url] end)
+
+      expect(Rindle.StorageMock, :url, fn ^key, opts ->
+        assert Keyword.get(opts, :expires_in) == 120
+
+        assert Keyword.get(opts, :content_disposition) == %{
+                 type: :attachment,
+                 filename: "my_resume_.mp4",
+                 filename_star: "UTF-8''my_resume_.mp4"
+               }
+
+        {:ok, "https://signed.example/#{key}?ttl=120"}
+      end)
+
+      assert {:ok, _url} =
+               Rindle.Delivery.url(
+                 PrivateProfile,
+                 key,
+                 filename: "../my resume?.mp4",
+                 disposition: :attachment
+               )
+    end
+
+    test "omits content disposition when caller does not request it" do
+      key = "assets/asset-1/original.jpg"
+
+      expect(Rindle.AuthorizerMock, :authorize, fn nil,
+                                                   :deliver,
+                                                   %{
+                                                     profile: PrivateProfile,
+                                                     key: ^key,
+                                                     mode: :private
+                                                   } ->
+        :ok
+      end)
+
+      expect(Rindle.StorageMock, :capabilities, fn -> [:signed_url] end)
+
+      expect(Rindle.StorageMock, :url, fn ^key, opts ->
+        refute Keyword.has_key?(opts, :content_disposition)
+        {:ok, "https://signed.example/#{key}?ttl=120"}
+      end)
+
+      assert {:ok, _url} = Rindle.Delivery.url(PrivateProfile, key)
+    end
+
+    test "defaults attachment filename from sanitized key basename when caller omits one" do
+      key = "uploads/unsafe path/my clip?.mp4"
+
+      expect(Rindle.AuthorizerMock, :authorize, fn nil,
+                                                   :deliver,
+                                                   %{
+                                                     profile: PrivateProfile,
+                                                     key: ^key,
+                                                     mode: :private
+                                                   } ->
+        :ok
+      end)
+
+      expect(Rindle.StorageMock, :capabilities, fn -> [:signed_url] end)
+
+      expect(Rindle.StorageMock, :url, fn ^key, opts ->
+        assert Keyword.get(opts, :content_disposition) == %{
+                 type: :attachment,
+                 filename: "my_clip_.mp4",
+                 filename_star: "UTF-8''my_clip_.mp4"
+               }
+
+        {:ok, "https://signed.example/#{key}?ttl=120"}
+      end)
+
+      assert {:ok, _url} =
+               Rindle.Delivery.url(PrivateProfile, key, disposition: :attachment)
+    end
+  end
 end

@@ -6,6 +6,7 @@ defmodule Rindle.Delivery do
   and authorization (when configured) runs before any URL is issued.
   """
 
+  alias Rindle.Delivery.ContentDisposition
   alias Rindle.Domain.StalePolicy
   alias Rindle.Storage.Capabilities
 
@@ -98,6 +99,7 @@ defmodule Rindle.Delivery do
     mode = delivery_mode(profile)
     adapter = profile.storage_adapter()
     subject = %{profile: profile, key: key, mode: mode}
+    opts = normalize_delivery_opts(key, opts)
 
     with :ok <- authorize_delivery(profile, :deliver, subject, opts),
          :ok <- require_delivery_support(adapter, mode),
@@ -224,6 +226,13 @@ defmodule Rindle.Delivery do
 
   defp resolve_url(adapter, key, :private, opts, ttl) do
     adapter.url(key, Keyword.put_new(opts, :expires_in, ttl))
+  end
+
+  defp normalize_delivery_opts(key, opts) do
+    case ContentDisposition.normalize(key, opts) do
+      nil -> opts
+      content_disposition -> Keyword.put(opts, :content_disposition, content_disposition)
+    end
   end
 
   defp key_for(%{} = record, key),
