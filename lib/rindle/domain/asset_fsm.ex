@@ -6,10 +6,13 @@ defmodule Rindle.Domain.AssetFSM do
   @allowed_transitions %{
     "staged" => ["validating"],
     "validating" => ["analyzing"],
-    "analyzing" => ["promoting"],
+    # NOTE: "analyzing" => "quarantined" added per AV-02-09 (probe-failure path).
+    # CONTEXT.md D-09 omitted this edge; researcher-flagged in RESEARCH.md A4 + Pitfall 5.
+    "analyzing" => ["promoting", "quarantined"],
     "promoting" => ["available"],
-    "available" => ["processing", "quarantined"],
+    "available" => ["processing", "transcoding", "quarantined"],
     "processing" => ["ready", "quarantined"],
+    "transcoding" => ["ready", "degraded", "quarantined"],
     "ready" => ["degraded", "deleted"],
     "degraded" => ["quarantined", "deleted"],
     "quarantined" => ["deleted"],
