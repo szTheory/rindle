@@ -3,6 +3,7 @@ defmodule Rindle.Workers.ProcessVariant do
   use Oban.Worker, queue: :rindle_process, max_attempts: 5
 
   alias Oban.Job
+  alias Phoenix.PubSub
   alias Rindle.AV.TempRunDir
   alias Rindle.Config
   alias Rindle.Domain.AssetAggregate
@@ -63,41 +64,51 @@ defmodule Rindle.Workers.ProcessVariant do
     if variant.state == "ready" do
       :ok
     else
-      with :ok <- ensure_variant_state(repo, variant, "queued"),
-           variant <- repo.get!(MediaVariant, variant.id),
-           :ok <- ensure_variant_state(repo, variant, "processing"),
-           :ok <- AssetAggregate.recompute(repo, asset.id),
-           variant <- repo.get!(MediaVariant, variant.id),
-           {:ok, run_dir} <- TempRunDir.create() do
-        try do
-          with :ok <- RuntimeGuard.check!(variant_spec, path: run_dir),
-               {:ok, source_tmp} <- download_source(asset, run_dir),
-               {:ok, dest_tmp} <- generate_dest_path(variant, variant_spec, run_dir),
-               {:ok, _} <- process_variant(source_tmp, variant_spec, dest_tmp),
-               {:ok, output_attrs} <- OutputProbe.verify!(dest_tmp, asset, variant_spec),
-               {:ok, storage_meta} <- upload_variant(asset, variant, dest_tmp, variant_spec),
-               :ok <-
-                 persist_ready(repo, asset, variant, storage_meta, dest_tmp, variant_spec, output_attrs) do
-            :ok
-          else
-            {:cancel, reason} = cancel ->
-              _ = handle_cancel(repo, variant, reason)
-              cancel
+      execute_with_contract(asset, variant, variant_spec, fn ->
+        with :ok <- ensure_variant_state(repo, variant, "queued"),
+             variant <- repo.get!(MediaVariant, variant.id),
+             :ok <- ensure_variant_state(repo, variant, "processing"),
+             :ok <- AssetAggregate.recompute(repo, asset.id),
+             variant <- repo.get!(MediaVariant, variant.id),
+             {:ok, run_dir} <- TempRunDir.create() do
+          try do
+            with :ok <- RuntimeGuard.check!(variant_spec, path: run_dir),
+                 {:ok, source_tmp} <- download_source(asset, run_dir),
+                 {:ok, dest_tmp} <- generate_dest_path(variant, variant_spec, run_dir),
+                 {:ok, _} <- process_variant(source_tmp, variant_spec, dest_tmp),
+                 {:ok, output_attrs} <- OutputProbe.verify!(dest_tmp, asset, variant_spec),
+                 {:ok, storage_meta} <- upload_variant(asset, variant, dest_tmp, variant_spec),
+                 :ok <-
+                   persist_ready(
+                     repo,
+                     asset,
+                     variant,
+                     storage_meta,
+                     dest_tmp,
+                     variant_spec,
+                     output_attrs
+                   ) do
+              :ok
+            else
+              {:cancel, reason} = cancel ->
+                _ = handle_cancel(repo, variant, reason)
+                cancel
 
-            {:error, reason} ->
-              handle_failure(repo, variant, reason)
+              {:error, reason} ->
+                handle_failure(repo, variant, reason)
+            end
+          after
+            _ = TempRunDir.cleanup(run_dir)
           end
-        after
-          _ = TempRunDir.cleanup(run_dir)
-        end
-      else
-        {:cancel, reason} = cancel ->
-          _ = handle_cancel(repo, variant, reason)
-          cancel
+        else
+          {:cancel, reason} = cancel ->
+            _ = handle_cancel(repo, variant, reason)
+            cancel
 
-        {:error, reason} ->
-          handle_failure(repo, variant, reason)
-      end
+          {:error, reason} ->
+            handle_failure(repo, variant, reason)
+        end
+      end)
     end
   end
 
@@ -236,7 +247,47 @@ defmodule Rindle.Workers.ProcessVariant do
     end
   end
 
+  defp execute_with_contract(asset, variant, variant_spec, fun) do
+    if av_variant?(variant_spec) do
+      started_at = System.monotonic_time()
+      metadata = transcode_metadata(asset, variant, variant_spec)
+
+      emit_transcode_event(:start, %{system_time: System.system_time()}, metadata)
+      broadcast_progress(asset, variant, 0, "processing")
+
+      case fun.() do
+        :ok = ok ->
+          broadcast_progress(asset, variant, 100, "ready")
+          emit_transcode_event(:stop, duration_measurements(started_at), metadata)
+          ok
+
+        {:cancel, reason} = cancel ->
+          broadcast_progress(asset, variant, 0, "cancelled")
+          emit_transcode_event(
+            :exception,
+            duration_measurements(started_at),
+            Map.merge(metadata, %{kind: :error, reason: reason})
+          )
+
+          cancel
+
+        {:error, reason} = error ->
+          broadcast_progress(asset, variant, 0, "failed")
+          emit_transcode_event(
+            :exception,
+            duration_measurements(started_at),
+            Map.merge(metadata, %{kind: :error, reason: reason})
+          )
+
+          error
+      end
+    else
+      fun.()
+    end
+  end
+
   defp av_variant?(%{kind: kind}) when kind in [:video, :audio, :waveform], do: true
+  defp av_variant?(%{preset: preset}) when preset in [:video_poster_scene, :video_thumbnail_strip], do: true
   defp av_variant?(_variant_spec), do: false
 
   defp normalized_av_spec?(%{} = variant_spec) do
@@ -290,4 +341,55 @@ defmodule Rindle.Workers.ProcessVariant do
   defp output_kind_for(%{output_kind: output_kind}), do: to_string(output_kind)
   defp output_kind_for(%{kind: kind}), do: to_string(kind)
   defp output_kind_for(_variant_spec), do: "image"
+
+  defp duration_measurements(started_at) do
+    %{
+      duration: max(System.monotonic_time() - started_at, 1),
+      system_time: System.system_time()
+    }
+  end
+
+  defp transcode_metadata(asset, variant, variant_spec) do
+    %{
+      asset_id: asset.id,
+      output_kind: output_kind_for(variant_spec),
+      preset: Map.get(variant_spec, :preset),
+      profile: asset.profile,
+      variant_id: variant.id,
+      variant_name: variant.name
+    }
+  end
+
+  defp emit_transcode_event(stage, measurements, metadata) do
+    :telemetry.execute([:rindle, :media, :transcode, stage], measurements, metadata)
+  end
+
+  defp broadcast_progress(asset, variant, progress, state) do
+    ensure_pubsub_started()
+
+    payload = %{
+      asset_id: asset.id,
+      progress: progress,
+      variant_id: variant.id,
+      variant_name: variant.name,
+      state: state
+    }
+
+    for topic <- ["rindle:variant:#{variant.id}", "rindle:asset:#{asset.id}"] do
+      :ok = PubSub.broadcast(pubsub_server(), topic, {:rindle_variant_progress, payload})
+    end
+
+    :ok
+  end
+
+  defp ensure_pubsub_started do
+    case Process.whereis(pubsub_server()) do
+      nil -> :ok
+      _pid -> :ok
+    end
+  end
+
+  defp pubsub_server do
+    Application.get_env(:rindle, :pubsub_server, Rindle.PubSub)
+  end
 end

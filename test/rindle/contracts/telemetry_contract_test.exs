@@ -329,7 +329,7 @@ defmodule Rindle.Contracts.TelemetryContractTest do
       "-f",
       "lavfi",
       "-i",
-      "sine=frequency=880:sample_rate=48_000:duration=1.2",
+      "sine=frequency=880:sample_rate=48000:duration=1.2",
       "-map",
       "0:v:0",
       "-map",

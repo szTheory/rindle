@@ -11,7 +11,8 @@ defmodule Rindle.Application do
     run_startup_checks()
 
     children = [
-      ExMarcel.TableWrapper
+      ExMarcel.TableWrapper,
+      {Phoenix.PubSub, name: Rindle.PubSub}
     ]
 
     opts = [strategy: :one_for_one, name: Rindle.Supervisor]
