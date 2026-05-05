@@ -134,6 +134,14 @@ defmodule Rindle.Delivery.LocalPlug do
         |> put_resp_header("content-length", Integer.to_string(file_size))
         |> send_file(200, path, 0, :all)
         |> halt()
+
+      {:fallback, :range_unparseable} ->
+        emit_range_fallback(opts, payload)
+
+        conn
+        |> put_resp_header("content-length", Integer.to_string(file_size))
+        |> send_file(200, path, 0, :all)
+        |> halt()
     end
   end
 
@@ -162,11 +170,11 @@ defmodule Rindle.Delivery.LocalPlug do
   defp parse_range("bytes=" <> value, file_size) do
     case String.split(value, ",", trim: true) do
       [single_range] -> parse_single_range(String.trim(single_range), file_size)
-      _multiple -> :all
+      _multiple -> {:fallback, :range_unparseable}
     end
   end
 
-  defp parse_range(_header, _file_size), do: :all
+  defp parse_range(_header, _file_size), do: {:fallback, :range_unparseable}
 
   defp parse_single_range("-" <> suffix, file_size) do
     with {suffix_length, ""} <- Integer.parse(suffix),
@@ -174,7 +182,7 @@ defmodule Rindle.Delivery.LocalPlug do
       offset = max(file_size - suffix_length, 0)
       {:range, offset, file_size - 1}
     else
-      _ -> :all
+      _ -> {:fallback, :range_unparseable}
     end
   end
 
@@ -185,7 +193,7 @@ defmodule Rindle.Delivery.LocalPlug do
              true <- start_offset < file_size do
           {:range, start_offset, file_size - 1}
         else
-          _ -> :all
+          _ -> {:fallback, :range_unparseable}
         end
 
       [start_value, stop_value] ->
@@ -195,12 +203,26 @@ defmodule Rindle.Delivery.LocalPlug do
              true <- start_offset < file_size do
           {:range, start_offset, min(stop_offset, file_size - 1)}
         else
-          _ -> :all
+          _ -> {:fallback, :range_unparseable}
         end
 
       _ ->
-        :all
+        {:fallback, :range_unparseable}
     end
+  end
+
+  defp emit_range_fallback(opts, payload) do
+    :telemetry.execute(
+      [:rindle, :delivery, :range_fallback],
+      %{system_time: System.system_time()},
+      %{
+        profile: opts[:profile],
+        adapter: opts[:adapter],
+        key: payload["key"],
+        actor_subject: payload["actor_subject"],
+        reason: :range_unparseable
+      }
+    )
   end
 
   defp within_root?(path, root) do

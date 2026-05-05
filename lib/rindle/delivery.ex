@@ -254,7 +254,7 @@ defmodule Rindle.Delivery do
     do: Capabilities.require_delivery(adapter, :signed_url)
 
   defp require_streaming_support(Local, _mode, opts) do
-    if local_playback_route?(opts), do: :ok, else: require_delivery_support(Local, :private)
+    if local_playback_route?(opts), do: :ok, else: {:error, :streaming_not_configured}
   end
 
   defp require_streaming_support(adapter, mode, _opts), do: require_delivery_support(adapter, mode)

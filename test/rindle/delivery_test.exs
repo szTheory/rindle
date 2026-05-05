@@ -241,12 +241,12 @@ defmodule Rindle.DeliveryTest do
       assert url == "https://signed.example/#{key}?ttl=45"
     end
 
-    test "returns the same tagged delivery errors as url/3" do
+    test "normalizes missing local playback route context to the locked AV vocabulary" do
       key = "assets/asset-1/video.mp4"
 
       expect(Rindle.AuthorizerMock, :authorize, fn _actor, :deliver, _subject -> :ok end)
 
-      assert {:error, {:delivery_unsupported, :signed_url}} =
+      assert {:error, :streaming_not_configured} =
                Rindle.Delivery.streaming_url(UnsupportedProfile, key)
     end
 

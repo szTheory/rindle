@@ -111,9 +111,9 @@ defmodule Rindle.Workers.ProcessVariant do
                    ) do
               :ok
             else
-              {:cancel, reason} = cancel ->
+              {:cancel, reason} ->
                 _ = handle_cancel(repo, variant, reason)
-                cancel
+                {:cancel, normalize_public_reason(reason)}
 
               {:error, reason} ->
                 handle_failure(repo, variant, reason)
@@ -122,9 +122,9 @@ defmodule Rindle.Workers.ProcessVariant do
             _ = TempRunDir.cleanup(run_dir)
           end
         else
-          {:cancel, reason} = cancel ->
+          {:cancel, reason} ->
             _ = handle_cancel(repo, variant, reason)
-            cancel
+            {:cancel, normalize_public_reason(reason)}
 
           {:error, reason} ->
             handle_failure(repo, variant, reason)
@@ -256,25 +256,28 @@ defmodule Rindle.Workers.ProcessVariant do
   end
 
   defp handle_cancel(repo, variant, reason) do
+    public_reason = normalize_public_reason(reason)
     variant = repo.get!(MediaVariant, variant.id)
 
-    with :ok <- update_variant_state(repo, variant, "cancelled", %{error_reason: inspect(reason)}),
+    with :ok <-
+           update_variant_state(repo, variant, "cancelled", %{error_reason: inspect(public_reason)}),
          :ok <- AssetAggregate.recompute(repo, variant.asset_id) do
       :ok
     end
   end
 
   defp handle_failure(repo, variant, reason) do
+    public_reason = normalize_public_reason(reason)
     variant = repo.get!(MediaVariant, variant.id)
 
     _ =
       update_variant_state(repo, variant, "failed", %{
-        error_reason: inspect(reason)
+        error_reason: inspect(public_reason)
       })
 
     _ = AssetAggregate.recompute(repo, variant.asset_id)
 
-    {:error, reason}
+    {:error, public_reason}
   end
 
   defp processor_for(%{kind: :video, output_kind: :video}), do: &Video.transcode/3
@@ -312,32 +315,43 @@ defmodule Rindle.Workers.ProcessVariant do
           emit_transcode_event(:stop, duration_measurements(started_at), metadata)
           ok
 
-        {:cancel, reason} = cancel ->
+        {:cancel, reason} ->
+          public_reason = normalize_public_reason(reason)
           broadcast_progress(asset, variant, 0, "cancelled")
 
           emit_transcode_event(
             :exception,
             duration_measurements(started_at),
-            Map.merge(metadata, %{kind: :error, reason: reason})
+            Map.merge(metadata, %{kind: :error, reason: public_reason})
           )
 
-          cancel
+          {:cancel, public_reason}
 
-        {:error, reason} = error ->
+        {:error, reason} ->
+          public_reason = normalize_public_reason(reason)
           broadcast_progress(asset, variant, 0, "failed")
 
           emit_transcode_event(
             :exception,
             duration_measurements(started_at),
-            Map.merge(metadata, %{kind: :error, reason: reason})
+            Map.merge(metadata, %{kind: :error, reason: public_reason})
           )
 
-          error
+          {:error, public_reason}
       end
     else
       fun.()
     end
   end
+
+  defp normalize_public_reason(:not_found), do: :variant_source_not_found
+  defp normalize_public_reason(:variant_processing_cancelled), do: :variant_processing_cancelled
+  defp normalize_public_reason({:stale_source, _why}), do: :variant_source_not_found
+  defp normalize_public_reason({:unsupported_ephemeral_runtime, _runtime}), do: :processor_capability_missing
+  defp normalize_public_reason({:output_duration_mismatch, _details}), do: :capability_drift
+  defp normalize_public_reason({:ffmpeg_failed, _middle, _output}), do: :unsupported_codec
+  defp normalize_public_reason({:ffmpeg_missing_output, _kind}), do: :capability_drift
+  defp normalize_public_reason(reason), do: reason
 
   defp av_variant?(%{kind: kind}) when kind in [:video, :audio, :waveform], do: true
 

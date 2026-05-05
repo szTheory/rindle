@@ -94,12 +94,12 @@ defmodule Rindle.Delivery.LocalPlugTest do
       refute first_url == second_url
     end
 
-    test "streaming_url/3 preserves the existing delivery error when no local route context is provided",
+    test "streaming_url/3 normalizes missing local route context to the locked AV reason",
          %{
            root: root,
            key: key
          } do
-      assert {:error, {:delivery_unsupported, :signed_url}} =
+      assert {:error, :streaming_not_configured} =
                Rindle.Delivery.streaming_url(LocalProfile, key, root: root)
     end
   end
@@ -191,11 +191,15 @@ defmodule Rindle.Delivery.LocalPlugTest do
       assert Conn.get_resp_header(open_ended_conn, "content-range") == ["bytes 10-15/16"]
     end
 
-    test "falls back to 200 full body for multi-range and malformed range headers", %{
+    test "falls back to 200 full body for multi-range and malformed range headers while publishing a stable parse reason",
+         %{
       root: root,
       key: key,
       route: route
     } do
+      ref = :telemetry_test.attach_event_handlers(self(), [[:rindle, :delivery, :range_fallback]])
+      on_exit(fn -> :telemetry.detach(ref) end)
+
       multi_range_conn =
         playback_conn(root, route, key,
           req_headers: [{"range", "bytes=0-1,4-5"}]
@@ -212,6 +216,16 @@ defmodule Rindle.Delivery.LocalPlugTest do
 
       assert malformed_conn.status == 200
       assert malformed_conn.resp_body == "0123456789abcdef"
+
+      assert_received {[:rindle, :delivery, :range_fallback], ^ref, measurements, metadata}
+      assert is_integer(measurements.system_time)
+      assert metadata.reason == :range_unparseable
+      assert metadata.profile == LocalProfile
+      assert metadata.adapter == Local
+      assert metadata.key == key
+
+      assert_received {[:rindle, :delivery, :range_fallback], ^ref, _measurements, metadata}
+      assert metadata.reason == :range_unparseable
     end
 
     test "rejects invalid tokens and missing files", %{root: root, key: key, route: route} do

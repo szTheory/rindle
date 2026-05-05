@@ -123,14 +123,14 @@ defmodule Rindle.Workers.ProcessVariantTest do
       {:error, :not_found}
     end)
 
-    assert {:error, :not_found} =
+    assert {:error, :variant_source_not_found} =
              perform_job(ProcessVariant, %{"asset_id" => asset.id, "variant_name" => "thumb"})
 
     variant = Rindle.Repo.get!(MediaVariant, variant.id)
     asset = Rindle.Repo.get!(MediaAsset, asset.id)
 
     assert variant.state == "failed"
-    assert variant.error_reason =~ ":not_found"
+    assert variant.error_reason == inspect(:variant_source_not_found)
     assert asset.state == "degraded"
     assert run_temp_entries(tmp_dir) == []
   end
@@ -249,14 +249,14 @@ defmodule Rindle.Workers.ProcessVariantTest do
       {:ok, %{key: key}}
     end)
 
-    assert {:cancel, {:stale_source, :asset_changed}} =
+    assert {:cancel, :variant_source_not_found} =
              perform_job(ProcessVariant, %{"asset_id" => asset.id, "variant_name" => "thumb"})
 
     variant = Rindle.Repo.get!(MediaVariant, variant.id)
     asset = Rindle.Repo.get!(MediaAsset, asset.id)
 
     assert variant.state == "cancelled"
-    assert variant.error_reason =~ "stale_source"
+    assert variant.error_reason == inspect(:variant_source_not_found)
     assert asset.state == "degraded"
     assert run_temp_entries(tmp_dir) == []
   end
@@ -313,14 +313,14 @@ defmodule Rindle.Workers.ProcessVariantTest do
       })
       |> Rindle.Repo.insert!()
 
-    assert {:error, {:unsupported_ephemeral_runtime, :lambda}} =
+    assert {:error, :processor_capability_missing} =
              perform_job(ProcessVariant, %{"asset_id" => asset.id, "variant_name" => "hero"})
 
     variant = Rindle.Repo.get!(MediaVariant, variant.id)
     asset = Rindle.Repo.get!(MediaAsset, asset.id)
 
     assert variant.state == "failed"
-    assert variant.error_reason =~ "unsupported_ephemeral_runtime"
+    assert variant.error_reason == inspect(:processor_capability_missing)
     assert asset.state == "degraded"
     assert run_temp_entries(tmp_dir) == []
   end
@@ -353,16 +353,14 @@ defmodule Rindle.Workers.ProcessVariantTest do
       {:ok, tmp_path}
     end)
 
-    assert {:error, {:output_duration_mismatch, %{expected_ms: 4_000, actual_ms: actual_ms}}} =
+    assert {:error, :capability_drift} =
              perform_job(ProcessVariant, %{"asset_id" => asset.id, "variant_name" => "hero"})
-
-    assert is_integer(actual_ms)
 
     variant = Rindle.Repo.get!(MediaVariant, variant.id)
     asset = Rindle.Repo.get!(MediaAsset, asset.id)
 
     assert variant.state == "failed"
-    assert variant.error_reason =~ "output_duration_mismatch"
+    assert variant.error_reason == inspect(:capability_drift)
     assert is_nil(variant.storage_key)
     assert asset.state == "degraded"
     assert run_temp_entries(tmp_dir) == []
