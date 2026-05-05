@@ -2,13 +2,14 @@ defmodule Rindle.Domain.VariantFSM do
   @moduledoc false
 
   @allowed_transitions %{
-    "planned" => ["queued"],
-    "queued" => ["processing"],
-    "processing" => ["ready", "failed"],
+    "planned" => ["queued", "cancelled"],
+    "queued" => ["processing", "cancelled"],
+    "processing" => ["ready", "failed", "cancelled"],
     "ready" => ["stale", "missing", "purged"],
     "stale" => ["queued", "purged"],
     "missing" => ["queued", "purged"],
     "failed" => ["queued", "purged"],
+    "cancelled" => [],
     "purged" => []
   }
 
