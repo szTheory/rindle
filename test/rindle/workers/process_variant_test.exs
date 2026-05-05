@@ -19,6 +19,16 @@ defmodule Rindle.Workers.ProcessVariantTest do
       max_bytes: 10_485_760
   end
 
+  defmodule AVProfile do
+    use Rindle.Profile,
+      storage: Rindle.StorageMock,
+      variants: [
+        hero: [kind: :video, preset: :web_720p]
+      ],
+      allow_mime: ["video/mp4"],
+      max_bytes: 524_288_000
+  end
+
   setup do
     tmp_dir =
       Path.join(System.tmp_dir!(), "rindle-process-variant-#{System.unique_integer([:positive])}")
@@ -184,6 +194,95 @@ defmodule Rindle.Workers.ProcessVariantTest do
     assert second_job.conflict?
   end
 
+  test "fails AV variants before processing on unsupported ephemeral runtimes", %{tmp_dir: tmp_dir} do
+    System.put_env("LAMBDA_TASK_ROOT", "/tmp/lambda")
+
+    on_exit(fn ->
+      System.delete_env("LAMBDA_TASK_ROOT")
+    end)
+
+    asset =
+      %MediaAsset{}
+      |> MediaAsset.changeset(%{
+        state: "available",
+        profile: to_string(AVProfile),
+        kind: "video",
+        storage_key: "test/source.mp4",
+        duration_ms: 1_200
+      })
+      |> Rindle.Repo.insert!()
+
+    variant =
+      %MediaVariant{}
+      |> MediaVariant.changeset(%{
+        asset_id: asset.id,
+        name: "hero",
+        state: "planned",
+        recipe_digest: AVProfile.recipe_digest(:hero),
+        output_kind: "video"
+      })
+      |> Rindle.Repo.insert!()
+
+    expect(Rindle.StorageMock, :download, fn _key, tmp_path, _opts ->
+      build_video_fixture!(tmp_path)
+      {:ok, tmp_path}
+    end)
+
+    assert {:error, {:unsupported_ephemeral_runtime, :lambda}} =
+             perform_job(ProcessVariant, %{"asset_id" => asset.id, "variant_name" => "hero"})
+
+    variant = Rindle.Repo.get!(MediaVariant, variant.id)
+    asset = Rindle.Repo.get!(MediaAsset, asset.id)
+
+    assert variant.state == "failed"
+    assert variant.error_reason =~ "unsupported_ephemeral_runtime"
+    assert asset.state == "degraded"
+    assert run_temp_entries(tmp_dir) == []
+  end
+
+  test "rejects truncated AV outputs before upload and ready flip", %{tmp_dir: tmp_dir} do
+    asset =
+      %MediaAsset{}
+      |> MediaAsset.changeset(%{
+        state: "available",
+        profile: to_string(AVProfile),
+        kind: "video",
+        storage_key: "test/source.mp4",
+        duration_ms: 4_000
+      })
+      |> Rindle.Repo.insert!()
+
+    variant =
+      %MediaVariant{}
+      |> MediaVariant.changeset(%{
+        asset_id: asset.id,
+        name: "hero",
+        state: "planned",
+        recipe_digest: AVProfile.recipe_digest(:hero),
+        output_kind: "video"
+      })
+      |> Rindle.Repo.insert!()
+
+    expect(Rindle.StorageMock, :download, fn _key, tmp_path, _opts ->
+      build_video_fixture!(tmp_path)
+      {:ok, tmp_path}
+    end)
+
+    assert {:error, {:output_duration_mismatch, %{expected_ms: 4_000, actual_ms: actual_ms}}} =
+             perform_job(ProcessVariant, %{"asset_id" => asset.id, "variant_name" => "hero"})
+
+    assert is_integer(actual_ms)
+
+    variant = Rindle.Repo.get!(MediaVariant, variant.id)
+    asset = Rindle.Repo.get!(MediaAsset, asset.id)
+
+    assert variant.state == "failed"
+    assert variant.error_reason =~ "output_duration_mismatch"
+    assert is_nil(variant.storage_key)
+    assert asset.state == "degraded"
+    assert run_temp_entries(tmp_dir) == []
+  end
+
   defp run_temp_entries(tmp_dir) do
     tmp_dir
     |> Path.join("Rindle.tmp")
@@ -192,5 +291,32 @@ defmodule Rindle.Workers.ProcessVariantTest do
       {:ok, entries} -> entries
       {:error, :enoent} -> []
     end
+  end
+
+  defp build_video_fixture!(path) do
+    args = [
+      "-y",
+      "-f",
+      "lavfi",
+      "-i",
+      "testsrc=size=320x180:rate=30:duration=1.2",
+      "-f",
+      "lavfi",
+      "-i",
+      "sine=frequency=880:sample_rate=48000:duration=1.2",
+      "-map",
+      "0:v:0",
+      "-map",
+      "1:a:0",
+      "-c:v",
+      "libx264",
+      "-pix_fmt",
+      "yuv420p",
+      "-c:a",
+      "aac",
+      path
+    ]
+
+    {_output, 0} = System.cmd("ffmpeg", args, stderr_to_stdout: true)
   end
 end

@@ -1,22 +1,53 @@
 defmodule Rindle.AV.SubprocessTest do
   use ExUnit.Case, async: true
+
   alias Rindle.AV.Subprocess
 
-  describe "run/3" do
-    test "appends four-cap arguments and protocol whitelist for ffmpeg" do
-      # Run a command that just echoes its arguments so we can inspect what was actually executed
-      # We use a script or a command that ignores unknown flags, or just 'echo'
-      # But wait, Subprocess.run("ffmpeg", ...) might be hardcoded to check "ffmpeg"
-      # Let's pass "echo" as the command, and see if we can trick it or if we just test a builder.
-      # To be robust, let's expose `build_args/2` and `build_opts/1` for testing.
-      
-      args = Subprocess.build_args("ffmpeg", ["-i", "input.mp4", "output.mp4"], [])
-      
-      assert "-protocol_whitelist" in args
-      assert "file,crypto,data" in args
-      assert "-timelimit" in args
-      assert "-t" in args
-      assert "-fs" in args
+  describe "build_args/3" do
+    test "prepends protocol whitelist and three ffmpeg caps before input, with fs before destination" do
+      args =
+        Subprocess.build_args(
+          "ffmpeg",
+          ["-y", "-i", "input.mp4", "-c:v", "libx264", "output.mp4"],
+          []
+        )
+
+      assert Enum.take(args, 6) == [
+               "-protocol_whitelist",
+               "file,crypto,data",
+               "-timelimit",
+               "300",
+               "-t",
+               "7200"
+             ]
+
+      assert Enum.slice(args, 6, 4) == ["-y", "-i", "input.mp4", "-c:v"]
+      assert Enum.take(Enum.drop_while(args, &(&1 != "-fs")), 3) == ["-fs", "500000000", "output.mp4"]
+    end
+
+    test "allows ffmpeg cap overrides through opts while keeping enforcement centralized" do
+      args =
+        Subprocess.build_args(
+          "ffmpeg",
+          ["-i", "input.mp4", "output.mp4"],
+          max_cpu_seconds: 15,
+          max_duration_seconds: 45,
+          max_output_bytes: 12_345
+        )
+
+      assert args == [
+               "-protocol_whitelist",
+               "file,crypto,data",
+               "-timelimit",
+               "15",
+               "-t",
+               "45",
+               "-i",
+               "input.mp4",
+               "-fs",
+               "12345",
+               "output.mp4"
+             ]
     end
 
     test "does not append four-cap arguments for non-ffmpeg commands" do
@@ -24,11 +55,13 @@ defmodule Rindle.AV.SubprocessTest do
       refute "-protocol_whitelist" in args
       assert args == ["hello"]
     end
+  end
 
-    test "build_opts/1 configures timeout and cgroups" do
+  describe "build_opts/1" do
+    test "configures timeout and cgroups" do
       opts = Subprocess.build_opts(timeout: 5000)
       assert opts[:timeout] == 5000
-      
+
       if :os.type() == {:unix, :linux} do
         assert opts[:cgroup_base] == "rindle_av"
         assert is_list(opts[:cgroup_controllers])
