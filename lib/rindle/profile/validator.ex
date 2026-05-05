@@ -47,7 +47,7 @@ defmodule Rindle.Profile.Validator do
     ]
   ]
 
-  @variant_schema [
+  @image_variant_schema [
     mode: [
       type: {:in, [:fit, :fill, :crop]},
       required: true
@@ -69,6 +69,113 @@ defmodule Rindle.Profile.Validator do
       default: nil
     ]
   ]
+
+  # Per-kind schemas added in Phase 24 (AV-02-06).
+  # Allowlist values mirror SYNTHESIS §2.4 in/out scope; nothing in the
+  # "Out of v1.4" column (HLS, DASH, MKV ingest, raw AAC, hardware accel)
+  # may appear here.
+  @video_variant_schema [
+    preset: [
+      type: {:in, [:web_720p, :web_480p]},
+      required: true,
+      doc: "Named transcode preset. Phase 25 ships :web_720p; :web_480p reserved."
+    ],
+    codec: [
+      type: {:in, [:h264]},
+      default: :h264,
+      doc: "Video codec. Only :h264 supported in v1.4 (named-presets-only)."
+    ],
+    container: [
+      type: {:in, [:mp4]},
+      default: :mp4,
+      doc: "Output container. Only :mp4 supported in v1.4."
+    ],
+    audio_codec: [
+      type: {:in, [:aac, :none]},
+      default: :aac,
+      doc: "Audio codec for muxed output. :none drops audio."
+    ],
+    width: [
+      type: {:or, [:pos_integer, nil]},
+      default: nil
+    ],
+    height: [
+      type: {:or, [:pos_integer, nil]},
+      default: nil
+    ],
+    faststart: [
+      type: :boolean,
+      default: true,
+      doc: "Move moov atom to start (`+faststart`) for progressive playback."
+    ],
+    max_duration_seconds: [
+      type: {:or, [:pos_integer, nil]},
+      default: nil,
+      doc: "Override profile-level max duration; nil inherits."
+    ]
+  ]
+
+  @audio_variant_schema [
+    preset: [
+      type: {:in, [:m4a_128k, :mp3_128k]},
+      required: true,
+      doc: "Named audio preset (codec + bitrate combination)."
+    ],
+    codec: [
+      type: {:in, [:aac, :mp3]},
+      default: :aac,
+      doc: "Audio codec. v1.4 supports :aac (m4a) and :mp3 only."
+    ],
+    container: [
+      type: {:in, [:m4a, :mp3]},
+      default: :m4a,
+      doc: "Output container; must match codec."
+    ],
+    bitrate_kbps: [
+      type: {:or, [:pos_integer, nil]},
+      default: nil
+    ],
+    channels: [
+      type: {:in, [1, 2, nil]},
+      default: nil,
+      doc: "Channel count: 1=mono, 2=stereo, nil=preserve source."
+    ],
+    normalize: [
+      type: :boolean,
+      default: false,
+      doc: "Apply EBU R128 single-pass loudnorm (-16 LUFS, -1.5 TP, 11 LRA)."
+    ],
+    two_pass: [
+      type: :boolean,
+      default: false,
+      doc: "Two-pass loudnorm for higher fidelity (Phase 25)."
+    ]
+  ]
+
+  @waveform_variant_schema [
+    format: [
+      type: {:in, [:json]},
+      default: :json,
+      doc: "Output format. Only :json supported in v1.4."
+    ],
+    peaks: [
+      type: :pos_integer,
+      default: 1000,
+      doc: "Number of peak samples in the output array."
+    ],
+    sample_rate: [
+      type: {:or, [:pos_integer, nil]},
+      default: nil,
+      doc: "Resample audio before peak extraction; nil = source rate."
+    ],
+    channels: [
+      type: {:in, [1, 2, nil]},
+      default: nil,
+      doc: "Channel count for analysis: 1=mono mix, 2=stereo, nil=source."
+    ]
+  ]
+
+  @allowed_kinds [:image, :video, :audio, :waveform]
 
   @type profile_options :: %{
           storage: module(),
@@ -184,22 +291,29 @@ defmodule Rindle.Profile.Validator do
   end
 
   defp validate_variant!(name, variant_opts) when is_atom(name) do
-    normalized_variant_opts = normalize_variant_opts!(variant_opts)
+    normalized = normalize_variant_opts!(variant_opts)
+    {kind, kind_explicit?, rest} = pop_kind!(name, normalized)
+    guard_no_from_variant!(name, rest)
 
-    validated_variant =
-      normalized_variant_opts
-      |> NimbleOptions.validate!(@variant_schema)
+    schema = schema_for_kind(kind)
+
+    validated_kw =
+      rest
+      |> NimbleOptions.validate!(schema)
       |> Keyword.new()
 
-    mode = Keyword.fetch!(validated_variant, :mode)
-    width = Keyword.fetch!(validated_variant, :width)
-    height = Keyword.fetch!(validated_variant, :height)
+    if kind == :image do
+      mode = Keyword.fetch!(validated_kw, :mode)
+      width = Keyword.fetch!(validated_kw, :width)
+      height = Keyword.fetch!(validated_kw, :height)
 
-    validate_variant_dimensions!(name, mode, width, height)
+      validate_variant_dimensions!(name, mode, width, height)
+    end
 
-    validated_variant
+    validated_kw
     |> Enum.reject(fn {_key, value} -> is_nil(value) end)
     |> Map.new()
+    |> maybe_put_kind(kind, kind_explicit?)
   rescue
     error in NimbleOptions.ValidationError ->
       reraise ArgumentError,
@@ -210,6 +324,47 @@ defmodule Rindle.Profile.Validator do
   defp validate_variant!(name, _variant_opts) do
     raise ArgumentError, "variant names must be atoms, got: #{inspect(name)}"
   end
+
+  defp pop_kind!(name, opts) do
+    case Keyword.pop(opts, :kind, nil) do
+      {nil, rest} ->
+        {:image, false, rest}
+
+      {kind, rest} when kind in @allowed_kinds ->
+        {kind, true, rest}
+
+      {bad, _rest} ->
+        raise ArgumentError,
+              "variant #{inspect(name)} declared `:kind => #{inspect(bad)}`; " <>
+                "allowed: :image | :video | :audio | :waveform"
+    end
+  end
+
+  # AV-02-08 (D-15): forbid cross-variant chaining at compile time.
+  # The fix-hint message names the offending key and the rule.
+  defp guard_no_from_variant!(name, opts) do
+    if Keyword.has_key?(opts, :from_variant) do
+      raise ArgumentError,
+            "variant #{inspect(name)} declared `:from_variant`; cross-variant " <>
+              "chaining is not supported. Variants depend only on the source asset. " <>
+              "(AV-02-08)"
+    end
+  end
+
+  defp schema_for_kind(:image), do: @image_variant_schema
+  defp schema_for_kind(:video), do: @video_variant_schema
+  defp schema_for_kind(:audio), do: @audio_variant_schema
+  defp schema_for_kind(:waveform), do: @waveform_variant_schema
+
+  # D-14 LOAD-BEARING: omit :kind from the validated map for default-:image
+  # AND explicit-:image, so v1.0 image profiles digest identically to v1.4
+  # explicit-:image profiles AND to v1.0 (no :kind) profiles. The :kind
+  # information is recoverable from the variant SCHEMA at runtime via the
+  # variant's structure (presence of :preset / :peaks / etc.); the persisted
+  # spec doesn't need to carry it. For non-image kinds, :kind IS persisted
+  # so MediaVariant.changeset/2 can route by it.
+  defp maybe_put_kind(map, :image, _explicit?), do: map
+  defp maybe_put_kind(map, kind, _explicit?), do: Map.put(map, :kind, kind)
 
   defp normalize_variant_opts!(variant_opts) when is_list(variant_opts), do: variant_opts
 
