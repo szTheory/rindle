@@ -188,7 +188,7 @@ defmodule Rindle.Workers.PromoteAssetTest do
     assert asset.kind == "audio"
     assert is_integer(asset.duration_ms)
     assert asset.duration_ms >= 100
-    assert asset.has_video_track == false
+    assert is_nil(asset.has_video_track)
     assert asset.has_audio_track == true
     assert is_nil(asset.width)
     assert is_nil(asset.height)
@@ -236,9 +236,13 @@ defmodule Rindle.Workers.PromoteAssetTest do
   end
 
   test "retries from analyzing by probing again when typed fields are empty", %{asset: asset} do
+    expect_download(:png)
+    assert :ok = perform_job(PromoteAsset, %{"asset_id" => asset.id})
+    Rindle.Repo.delete_all(MediaVariant)
+
     Rindle.Repo.update_all(
       Ecto.Query.from(a in MediaAsset, where: a.id == ^asset.id),
-      set: [state: "analyzing", kind: nil, width: nil, height: nil]
+      set: [state: "analyzing", width: nil, height: nil]
     )
 
     expect_download(:png)
@@ -286,6 +290,8 @@ defmodule Rindle.Workers.PromoteAssetTest do
       "yuv420p",
       "-c:a",
       "aac",
+      "-f",
+      "mp4",
       "-metadata",
       "title=#{title}",
       tmp_path
@@ -303,6 +309,8 @@ defmodule Rindle.Workers.PromoteAssetTest do
       "sine=frequency=660:duration=0.2",
       "-c:a",
       "libmp3lame",
+      "-f",
+      "mp3",
       tmp_path
     ]
 
