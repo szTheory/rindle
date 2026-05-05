@@ -82,14 +82,13 @@ defmodule Rindle.Delivery.LocalPlugTest do
       refute first_url == second_url
     end
 
-    test "streaming_url/3 falls back to the adapter URL when no local route context is provided", %{
-      root: root,
-      key: key
-    } do
-      assert {:ok, %{url: url, kind: :progressive, mime: "video/mp4"}} =
+    test "streaming_url/3 preserves the existing delivery error when no local route context is provided",
+         %{
+           root: root,
+           key: key
+         } do
+      assert {:error, {:delivery_unsupported, :signed_url}} =
                Rindle.Delivery.streaming_url(LocalProfile, key, root: root)
-
-      assert url == "file://" <> Local.path_for(key, root: root)
     end
   end
 end

@@ -9,8 +9,11 @@ defmodule Rindle.Delivery do
   alias Rindle.Delivery.ContentDisposition
   alias Rindle.Domain.StalePolicy
   alias Rindle.Storage.Capabilities
+  alias Rindle.Storage.Local
 
   @type delivery_mode :: :public | :private
+
+  @local_playback_salt "rindle:delivery:local-playback"
 
   @doc """
   Returns the delivery policy map declared by a profile module.
@@ -129,11 +132,15 @@ defmodule Rindle.Delivery do
   @spec streaming_url(module(), String.t(), keyword()) ::
           {:ok, %{url: String.t(), kind: :progressive, mime: String.t()}} | {:error, term()}
   def streaming_url(profile, key, opts \\ []) do
+    opts = normalize_delivery_opts(key, opts)
     mime = Keyword.get(opts, :mime, "video/mp4")
     adapter = profile.storage_adapter()
     mode = delivery_mode(profile)
+    subject = %{profile: profile, key: key, mode: mode}
 
-    with {:ok, url} <- url(profile, key, opts) do
+    with :ok <- authorize_delivery(profile, :deliver, subject, opts),
+         :ok <- require_streaming_support(adapter, mode, opts),
+         {:ok, url} <- resolve_streaming_url(profile, adapter, key, mode, opts, signed_url_ttl_seconds(profile)) do
       :telemetry.execute(
         [:rindle, :delivery, :streaming, :resolved],
         %{system_time: System.system_time()},
@@ -220,6 +227,12 @@ defmodule Rindle.Delivery do
   defp require_delivery_support(adapter, :private),
     do: Capabilities.require_delivery(adapter, :signed_url)
 
+  defp require_streaming_support(Local, _mode, opts) do
+    if local_playback_route?(opts), do: :ok, else: require_delivery_support(Local, :private)
+  end
+
+  defp require_streaming_support(adapter, mode, _opts), do: require_delivery_support(adapter, mode)
+
   defp resolve_url(adapter, key, :public, opts, _ttl) do
     adapter.url(key, opts)
   end
@@ -228,12 +241,85 @@ defmodule Rindle.Delivery do
     adapter.url(key, Keyword.put_new(opts, :expires_in, ttl))
   end
 
+  defp resolve_streaming_url(profile, Local, key, _mode, opts, ttl) do
+    if local_playback_route?(opts) do
+      {:ok, local_playback_url(profile, key, opts, ttl)}
+    else
+      resolve_url(Local, key, :private, opts, ttl)
+    end
+  end
+
+  defp resolve_streaming_url(_profile, adapter, key, mode, opts, ttl) do
+    resolve_url(adapter, key, mode, opts, ttl)
+  end
+
   defp normalize_delivery_opts(key, opts) do
     case ContentDisposition.normalize(key, opts) do
       nil -> opts
       content_disposition -> Keyword.put(opts, :content_disposition, content_disposition)
     end
   end
+
+  defp local_playback_route?(opts) do
+    case Keyword.get(opts, :local_route) do
+      route_opts when is_list(route_opts) ->
+        is_binary(Keyword.get(route_opts, :base_url)) and
+          is_binary(Keyword.get(route_opts, :secret_key_base))
+
+      _ ->
+        false
+    end
+  end
+
+  defp local_playback_url(profile, key, opts, ttl) do
+    route_opts = Keyword.fetch!(opts, :local_route)
+    base_url = Keyword.fetch!(route_opts, :base_url)
+    secret_key_base = Keyword.fetch!(route_opts, :secret_key_base)
+    expires_in = Keyword.get(opts, :expires_in, ttl)
+    now = System.system_time(:second)
+
+    token =
+      Plug.Crypto.sign(
+        secret_key_base,
+        @local_playback_salt,
+        %{
+          "actor_subject" => actor_subject(Keyword.get(opts, :actor)),
+          "content_disposition" => Keyword.get(opts, :content_disposition),
+          "expires_at" => now + expires_in,
+          "key" => key,
+          "mime" => Keyword.get(opts, :mime, "video/mp4"),
+          "profile" => inspect(profile)
+        },
+        max_age: expires_in,
+        signed_at: now
+      )
+
+    uri = URI.parse(base_url)
+    query = uri.query |> decode_query() |> Map.put("token", token) |> URI.encode_query()
+
+    uri
+    |> Map.put(:query, query)
+    |> URI.to_string()
+  end
+
+  defp actor_subject(nil), do: "anonymous"
+  defp actor_subject(actor) when is_binary(actor), do: actor
+  defp actor_subject(actor) when is_atom(actor), do: Atom.to_string(actor)
+
+  defp actor_subject(%{id: id}) when is_binary(id) or is_integer(id),
+    do: to_string(id)
+
+  defp actor_subject(%{"id" => id}) when is_binary(id) or is_integer(id),
+    do: to_string(id)
+
+  defp actor_subject(actor) do
+    actor
+    |> :erlang.term_to_binary()
+    |> Base.url_encode64(padding: false)
+  end
+
+  defp decode_query(nil), do: %{}
+  defp decode_query(query), do: URI.decode_query(query)
 
   defp key_for(%{} = record, key),
     do: Map.get(record, key) || Map.get(record, Atom.to_string(key))
