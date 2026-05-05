@@ -40,12 +40,19 @@ defmodule Rindle.AV.Subprocess do
 
   @doc false
   def build_args("ffmpeg", args, _opts) do
-    [
+    common = [
       "-protocol_whitelist", "file,crypto,data",
       "-timelimit", "300",
-      "-t", "7200",
-      "-fs", "500000000"
-    ] ++ args
+      "-t", "7200"
+    ]
+
+    case List.pop_at(args, -1) do
+      {destination, input_and_output_args} when is_binary(destination) ->
+        common ++ input_and_output_args ++ ["-fs", "500000000", destination]
+
+      _ ->
+        common ++ args
+    end
   end
 
   def build_args(_cmd, args, _opts), do: args
