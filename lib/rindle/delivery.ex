@@ -27,6 +27,8 @@ defmodule Rindle.Delivery do
     metadata: `%{profile: module(), adapter: module(), mode: :public | :private, kind: :progressive, mime: String.t()}`
   """
 
+  require Logger
+
   alias Rindle.Delivery.ContentDisposition
   alias Rindle.Domain.MediaProviderAsset
   alias Rindle.Domain.StalePolicy
@@ -297,6 +299,21 @@ defmodule Rindle.Delivery do
 
         {:error, _} = err ->
           err
+
+        # WR-01: defensive catch-all. The Rindle.Streaming.Provider behaviour
+        # requires kind: :hls in the success shape; any other shape (including
+        # bare :ok, kind: :progressive, or missing :kind / :url / :mime) is
+        # treated as a misbehaving adapter and surfaced as a typed
+        # :provider_sync_failed rather than crashing core dispatch with
+        # CaseClauseError.
+        other ->
+          Logger.warning(
+            "rindle.streaming.provider_returned_invalid_shape provider=" <>
+              inspect(streaming_config.provider) <>
+              " returned=" <> inspect(other, limit: 5)
+          )
+
+          {:error, :provider_sync_failed}
       end
     end
   end
