@@ -214,6 +214,26 @@ end
 
 ---
 
+## Fixes Applied
+
+Applied 2026-05-06 by gsd-code-fixer (scope: critical + warning only; Info findings deferred).
+
+| Finding | Severity | Commit | Description |
+| --- | --- | --- | --- |
+| CR-01 | Critical | `d16cd02` | Added `authorize_delivery/4` call in `dispatch_provider_signed_url/4` (streaming-shaped subject `%{profile, playback_id, mode, kind: :hls}`) before the provider call. Added two regression tests in `streaming_dispatch_test.exs`: rejection short-circuits before the provider and emits no `[:rindle, :delivery, :streaming, :resolved]` telemetry; approval still proceeds. |
+| WR-01 | Warning | `a344614` | Added defensive catch-all clause to the `case` in `dispatch_provider_signed_url/4`. Logs an invalid-shape warning via `Logger.warning/1` and returns `{:error, :provider_sync_failed}` for any `:ok` shape that does not match `%{url, kind: :hls, mime}`. Added `require Logger` to the module. |
+| WR-02 | Warning | `730b668` | Dropped bare `nil` from every `{:or, [..., nil]}` schema entry across `@profile_schema`, `@delivery_schema`, and `@image_variant_schema` (option (b)). Removed `default: nil` from those fields (NimbleOptions 1.1+ validates declared defaults against the type, which would reject `default: nil` once `nil` is removed from the type list). Added `drop_nil_values/1` pre-filter applied at every `NimbleOptions.validate!/2` entry point, and switched downstream `Keyword.fetch!` callsites to `Keyword.get(.., nil)` so absent → nil semantics are preserved. The `{:in, [1, 2, nil]}` allowlist on `@audio_variant_schema` was left unchanged because that's the documented allowlist pattern, not the bare-`nil` pitfall in `:or`. |
+| WR-03 | Warning | `3a7609b` | Replaced the unconditional recursive call in `do_progressive_streaming_url(profile, asset, opts) when is_map(asset)` with a `case key_for(asset, :storage_key)` that returns `{:error, :provider_asset_not_ready}` when the resolved key is not a binary, instead of crashing with `FunctionClauseError`. |
+| WR-04 | Warning | `0d35cff` | Added `streaming_config_drift/2`: cross-checks the persisted `playback_policy` and `ingest_mode` on `:ready` rows against the live `streaming_config` (after `Atom.to_string` normalization). When they disagree, refuses to mint and emits a `[:rindle, :delivery, :streaming, :config_drift]` warning telemetry event with `field`, `row_value`, `expected`, `profile`, `provider` metadata; returns `{:error, :provider_sync_failed}`. nil row fields are treated as "not yet recorded" and skipped (no drift) for backward-compatibility. Added three regression tests covering policy drift, mode drift, and aligned rows. |
+
+**Regression suite:** `mix test test/rindle/streaming/ test/rindle/domain/ test/rindle/error_streaming_freeze_test.exs test/rindle/capability_test.exs test/rindle/error_test.exs test/rindle/delivery_test.exs test/rindle/delivery/ test/rindle/profile/validator_test.exs test/rindle/contracts/telemetry_contract_test.exs` — **235 tests, 0 failures (14 excluded by tag)**.
+
+**v1.4 telemetry tripwires:** `delivery_test.exs:352-391` (the renumbered counterparts) and `telemetry_contract_test.exs:74,277` remain byte-for-byte unchanged; the `[:rindle, :delivery, :streaming, :resolved]` event still fires on Branches 1 and 6 with `kind: :progressive` and on Branch 5 (when authorized + no drift) with `kind: :hls`. The new `[:rindle, :delivery, :streaming, :config_drift]` event is additive.
+
+**Info findings deferred:** IN-01 through IN-05 are out of scope for this fix pass and remain open for future cleanup.
+
+---
+
 _Reviewed: 2026-05-06T00:00:00Z_
 _Reviewer: Claude (gsd-code-reviewer)_
 _Depth: standard_
