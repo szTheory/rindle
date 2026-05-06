@@ -338,9 +338,20 @@ defmodule Rindle.Adopter.CanonicalApp.LifecycleTest do
 
         assert Enum.all?(ready_variants, &(is_binary(&1.storage_key) and &1.byte_size > 0))
 
+        poster_variant = Enum.find(ready_variants, &(&1.name == "poster"))
+        web_variant = Enum.find(ready_variants, &(&1.name == "web_720p"))
+
+        assert is_binary(poster_variant.storage_key)
+        assert is_binary(web_variant.storage_key)
+        assert String.contains?(web_variant.storage_key, "web_720p")
+
         {:ok, signed_url} = Rindle.url(AdopterVideoProfile, promoted_asset.storage_key)
         assert is_binary(signed_url)
         assert String.contains?(signed_url, promoted_asset.storage_key)
+
+        {:ok, playback_url} = Rindle.url(AdopterVideoProfile, web_variant.storage_key)
+        assert is_binary(playback_url)
+        assert String.contains?(playback_url, web_variant.storage_key)
       end
     end
   end

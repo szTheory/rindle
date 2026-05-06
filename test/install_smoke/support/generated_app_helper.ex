@@ -10,7 +10,12 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
 
   @host_migration_version "20260428170000"
 
-  def prove_package_install! do
+  def profile_enabled?(profile_mode) when profile_mode in [:image, :video] do
+    selected_profiles()
+    |> Enum.member?(profile_mode)
+  end
+
+  def prove_package_install!(profile_mode \\ :image) when profile_mode in [:image, :video] do
     network_version = System.get_env("RINDLE_INSTALL_SMOKE_NETWORK_VERSION")
     install_mode = install_mode(network_version)
 
@@ -35,7 +40,14 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     end
 
     generate_phoenix_app!(workspace_root, generated_app_root)
-    patch_generated_app!(generated_app_root, app_name, app_module, package_root, network_version)
+    patch_generated_app!(
+      generated_app_root,
+      app_name,
+      app_module,
+      package_root,
+      network_version,
+      profile_mode
+    )
 
     fetch_deps!(generated_app_root, shared_env, network_version)
 
@@ -62,12 +74,15 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       )
 
     deps_rindle_present? = File.exists?(Path.join(generated_app_root, "deps/rindle"))
+    av_report_path = Path.join(generated_app_root, "tmp/install_smoke_av_report.json")
+    av_report = if File.exists?(av_report_path), do: read_json!(av_report_path), else: %{}
 
     %{
       workspace_root: workspace_root,
       generated_app_root: generated_app_root,
       package_root: package_root,
       database_name: db_name,
+      profile_mode: profile_mode,
       install_mode: install_mode,
       install_source:
         install_source(install_mode, package_root, network_version),
@@ -79,9 +94,12 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       host_migration_ran?: migration_report["host_migration_ran"] == true,
       migration_resolution: migration_report["resolver"] |> to_existing_atom_safe(),
       rindle_migration_path: migration_report["rindle_migration_path"],
+      smoke_output: smoke_result.output,
+      av_ready_variants: av_report["ready_variants"] || [],
+      av_playback_storage_key: av_report["playback_storage_key"],
+      av_delivery_path: av_report["delivery_path"],
       lifecycle_proved?:
-        smoke_result.exit_code == 0 and
-          String.contains?(smoke_result.output, "2 tests, 0 failures")
+        smoke_result.exit_code == 0 and String.contains?(smoke_result.output, "0 failures")
     }
   end
 
@@ -130,7 +148,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       )
   end
 
-  defp patch_generated_app!(root, app_name, app_module, package_root, network_version) do
+  defp patch_generated_app!(root, app_name, app_module, package_root, network_version, profile_mode) do
     patch_mix_exs!(root, package_root, network_version)
     patch_test_config!(root, app_name)
     patch_runtime_config!(root, app_name, app_module)
@@ -138,8 +156,8 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     write_profile!(root, app_name, app_module)
     write_host_migration!(root)
     write_migration_runner!(root, app_name, app_module)
-    write_smoke_test!(root, app_module)
-    write_fixture!(root)
+    write_smoke_test!(root, app_module, profile_mode)
+    write_fixture!(root, profile_mode)
   end
 
   defp patch_mix_exs!(root, package_root, network_version) do
@@ -267,6 +285,15 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
           allow_mime: ["image/png", "image/jpeg"],
           max_bytes: 10_485_760
       end
+
+      defmodule #{app_module}.VideoProfile do
+        @moduledoc false
+
+        use Rindle.Profile.Presets.Web,
+          storage: Rindle.Storage.S3,
+          allow_mime: ["video/mp4", "video/quicktime", "video/webm"],
+          max_bytes: 524_288_000
+      end
       """
     )
   end
@@ -339,8 +366,9 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     )
   end
 
-  defp write_smoke_test!(root, app_module) do
+  defp write_smoke_test!(root, app_module, profile_mode) do
     path = Path.join(root, "test/rindle_install_smoke_test.exs")
+    lifecycle_test = lifecycle_test_source(app_module, profile_mode)
 
     File.write!(
       path,
@@ -349,8 +377,11 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
         use #{app_module}.DataCase, async: false
         use Oban.Testing, repo: #{app_module}.Repo
 
+        import Ecto.Query
+
         alias #{app_module}.Repo
         alias #{app_module}.RindleProfile
+        alias #{app_module}.VideoProfile
         alias Rindle.Domain.MediaAsset
         alias Rindle.Domain.MediaVariant
         alias Rindle.Upload.Broker
@@ -376,42 +407,13 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
           refute File.exists?(Path.join(File.cwd!(), "deps/rindle"))
         end
 
-        test "generated app completes the canonical presigned PUT lifecycle" do
+      #{lifecycle_test}
+
+        defp assert_install_smoke_marker! do
           assert {:ok, result} =
                    Repo.query("select to_regclass('public.install_smoke_markers')::text")
 
           assert result.rows == [["install_smoke_markers"]]
-
-          {:ok, session} = Broker.initiate_session(RindleProfile, filename: "generated-app.png")
-          {:ok, %{session: signed, presigned: presigned}} = Broker.sign_url(session.id)
-          assert signed.state == "signed"
-
-          :ok = put_to_presigned_url(presigned.url, @png_1x1)
-
-          {:ok, %{session: completed, asset: asset}} = Broker.verify_completion(session.id)
-          assert completed.state == "completed"
-          assert_enqueued(worker: PromoteAsset, args: %{"asset_id" => asset.id})
-          assert :ok = perform_job(PromoteAsset, %{"asset_id" => asset.id})
-
-          asset = Repo.get!(MediaAsset, asset.id)
-          assert asset.state in ["available", "processing", "ready"]
-
-          variants = Repo.all(from variant in MediaVariant, where: variant.asset_id == ^asset.id)
-          assert variants != []
-
-          for variant <- variants do
-            assert :ok =
-                     perform_job(ProcessVariant, %{
-                       "asset_id" => asset.id,
-                       "variant_name" => variant.name
-                     })
-          end
-
-          ready_variants = Repo.all(from variant in MediaVariant, where: variant.asset_id == ^asset.id)
-          assert Enum.all?(ready_variants, &(&1.state == "ready"))
-
-          {:ok, signed_url} = Rindle.Delivery.url(RindleProfile, asset.storage_key)
-          assert String.contains?(signed_url, asset.storage_key)
         end
 
         defp put_to_presigned_url(presigned_url, body) do
@@ -433,9 +435,13 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     )
   end
 
-  defp write_fixture!(root) do
+  defp write_fixture!(root, profile_mode) do
     File.mkdir_p!(Path.join(root, "tmp"))
     File.write!(Path.join(root, "tmp/generated-app.png"), @png_1x1)
+
+    if profile_mode == :video do
+      File.cp!(video_fixture_path(), Path.join(root, "tmp/generated-app-video.webm"))
+    end
   end
 
   defp boot_app!(generated_app_root, app_module, env) do
@@ -551,6 +557,136 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
           {:cont, :error}
       end
     end)
+  end
+
+  defp selected_profiles do
+    case System.get_env("RINDLE_INSTALL_SMOKE_PROFILE", "all") do
+      "all" -> [:image, :video]
+      "image" -> [:image]
+      "video" -> [:video]
+      other -> raise "unsupported RINDLE_INSTALL_SMOKE_PROFILE: #{inspect(other)}"
+    end
+  end
+
+  defp lifecycle_test_source(_app_module, :image) do
+    """
+        test "generated app completes the canonical presigned PUT lifecycle" do
+          assert_install_smoke_marker!()
+
+          {:ok, session} = Broker.initiate_session(RindleProfile, filename: "generated-app.png")
+          {:ok, %{session: signed, presigned: presigned}} = Broker.sign_url(session.id)
+          assert signed.state == "signed"
+
+          :ok = put_to_presigned_url(presigned.url, @png_1x1)
+
+          {:ok, %{session: completed, asset: asset}} = Broker.verify_completion(session.id)
+          assert completed.state == "completed"
+          assert_enqueued(worker: PromoteAsset, args: %{"asset_id" => asset.id})
+          assert :ok = perform_job(PromoteAsset, %{"asset_id" => asset.id})
+
+          asset = Repo.get!(MediaAsset, asset.id)
+          assert asset.state in ["available", "processing", "ready"]
+
+          variants = Repo.all(from variant in MediaVariant, where: variant.asset_id == ^asset.id)
+          assert variants != []
+
+          for variant <- variants do
+            assert :ok =
+                     perform_job(ProcessVariant, %{
+                       "asset_id" => asset.id,
+                       "variant_name" => variant.name
+                     })
+          end
+
+          ready_variants = Repo.all(from variant in MediaVariant, where: variant.asset_id == ^asset.id)
+          assert Enum.all?(ready_variants, &(&1.state == "ready"))
+
+          {:ok, signed_url} = Rindle.Delivery.url(RindleProfile, asset.storage_key)
+          assert String.contains?(signed_url, asset.storage_key)
+        end
+    """
+  end
+
+  defp lifecycle_test_source(_app_module, :video) do
+    """
+        test "generated app proves the canonical AV upload, processing, playback-ready variants, and signed delivery path" do
+          assert_install_smoke_marker!()
+          assert :presigned_put in VideoProfile.storage_adapter().capabilities()
+
+          fixture_path = Path.expand("../tmp/generated-app-video.webm", __DIR__)
+
+          {:ok, session} = Rindle.initiate_upload(VideoProfile, filename: "generated-app-video.webm")
+          {:ok, %{session: signed, presigned: presigned}} = Broker.sign_url(session.id)
+          assert signed.state == "signed"
+
+          :ok = put_to_presigned_url(presigned.url, File.read!(fixture_path))
+
+          {:ok, %{session: completed, asset: asset}} = Rindle.verify_completion(session.id)
+          assert completed.state == "completed"
+          assert_enqueued(worker: PromoteAsset, args: %{"asset_id" => asset.id})
+          assert :ok = perform_job(PromoteAsset, %{"asset_id" => asset.id})
+
+          promoted_asset = Repo.get!(MediaAsset, asset.id)
+          assert promoted_asset.kind == "video"
+          assert promoted_asset.has_video_track == true
+          assert promoted_asset.has_audio_track == true
+          assert promoted_asset.duration_ms > 0
+
+          variants =
+            Repo.all(
+              from variant in MediaVariant,
+                where: variant.asset_id == ^asset.id,
+                order_by: variant.name
+            )
+
+          assert Enum.map(variants, & &1.name) == ["poster", "web_720p"]
+
+          for variant <- variants do
+            assert :ok =
+                     perform_job(ProcessVariant, %{
+                       "asset_id" => asset.id,
+                       "variant_name" => variant.name
+                     })
+          end
+
+          ready_variants =
+            Repo.all(
+              from variant in MediaVariant,
+                where: variant.asset_id == ^asset.id,
+                order_by: variant.name
+            )
+
+          assert Enum.map(ready_variants, &{&1.name, &1.output_kind, &1.state}) == [
+                   {"poster", "image", "ready"},
+                   {"web_720p", "video", "ready"}
+                 ]
+
+          poster_variant = Enum.find(ready_variants, &(&1.name == "poster"))
+          web_variant = Enum.find(ready_variants, &(&1.name == "web_720p"))
+
+          assert is_binary(poster_variant.storage_key) and poster_variant.byte_size > 0
+          assert is_binary(web_variant.storage_key) and web_variant.byte_size > 0
+          assert String.contains?(web_variant.storage_key, "web_720p")
+
+          {:ok, signed_url} = Rindle.url(VideoProfile, web_variant.storage_key)
+          assert String.contains?(signed_url, web_variant.storage_key)
+
+          File.mkdir_p!("tmp")
+
+          File.write!(
+            "tmp/install_smoke_av_report.json",
+            Jason.encode!(%{
+              ready_variants: Enum.map(ready_variants, & &1.name),
+              playback_storage_key: web_variant.storage_key,
+              delivery_path: URI.parse(signed_url).path
+            })
+          )
+        end
+    """
+  end
+
+  defp video_fixture_path do
+    Path.join(repo_root(), "test/support/fixtures/smartphone/android_capture.webm")
   end
 
   defp env_or_default(name, default), do: System.get_env(name) || default
