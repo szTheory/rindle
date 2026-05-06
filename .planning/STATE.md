@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: Provider Boundary + Mux
-status: ready_for_next_phase
-stopped_at: Phase 33 complete (verified 33/33 must-haves; CR-01 fix applied)
-last_updated: "2026-05-06T23:30:00.000Z"
-last_activity: 2026-05-06 -- Phase 34 planned (4 PLAN.md files, 3 waves, plan-checker verified after 1 revision)
+status: executing
+stopped_at: Phase 34 wave 1 complete (34-01 adapter foundation merged)
+last_updated: "2026-05-06T23:50:00.000Z"
+last_activity: 2026-05-06 -- Phase 34 wave 1 (34-01) merged to main; mux/jose deps installed; 21/21 Mux tests pass post-merge
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 17
-  completed_plans: 4
-  percent: 24
+  completed_plans: 5
+  percent: 29
 ---
 
 # Project State
@@ -27,10 +27,10 @@ single reference streaming adapter without expanding into a video platform.
 
 ## Current Position
 
-Phase: 34 — Mux REST Adapter + Server-Push Sync (planned)
-Plan: 4 plans across 3 waves (34-01 → 34-02/03 parallel → 34-04)
-Status: Ready to execute — `/gsd-execute-phase 34`
-Last activity: 2026-05-06 -- Phase 34 plans verified (1 revision iteration; 7 blockers + 4 warnings fixed; cross-cutting truths locked: PLURAL SDK keys, optional-dep guard, atomic-promote, security invariant 14)
+Phase: 34 — Mux REST Adapter + Server-Push Sync (executing, wave 2/3)
+Plan: 4 plans across 3 waves (34-01 ✓ merged → 34-02/03 parallel → 34-04)
+Status: Executing wave 2 — `/gsd-execute-phase 34`
+Last activity: 2026-05-06 -- Wave 1 (34-01) merged: optional mux+jose deps wired, Rindle.Streaming.Provider.Mux + HTTP/Client/Event modules implemented, 21/21 tests pass
 
 ## Recent Completion
 
