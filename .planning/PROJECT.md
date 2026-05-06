@@ -8,14 +8,54 @@ image-only and AV-enabled adopters, explicit lifecycle repair surfaces, runtime
 drift diagnostics, and a CI-proved upgrade path from pre-v1.4 installs into the
 current AV-aware lifecycle.
 
-## Next Milestone Goals
+Milestone `v1.6 Provider Boundary + Mux` is now active (planning). It
+productizes the v1.4 `streaming_url/3` seam, ships `Rindle.Streaming.Provider`
+as a real behaviour, and adds `Rindle.Streaming.Provider.Mux` as the single
+reference adapter — without making Rindle a video platform.
 
-- Decide whether the next milestone should widen the support matrix with GCS or
-  provider adapters, or spend one more cycle on operational depth.
-- Keep the generated-app package-consumer harness as the truth source for any
-  new breadth work.
-- Preserve the current bias toward narrow public surfaces, explicit repair
-  verbs, and truthful operator diagnostics.
+## Current Milestone: v1.6 Provider Boundary + Mux
+
+**Goal:** Productize `Rindle.Streaming.Provider` as a real adapter contract and
+ship Mux as the single reference streaming provider — turning v1.4's reserved
+`streaming_url/3` seam into provider-aware playback with durable provider state,
+signed-webhook ingest, and Oban-driven sync — without expanding into a video
+platform.
+
+**Target features:**
+- Provider behaviour contract (locked callbacks, capability vocabulary).
+- `Rindle.Streaming.Provider.Mux` reference adapter (server-push ingest from an
+  existing AV-produced variant; signed HLS playback via JOSE-signed JWT).
+- `Rindle.Delivery.WebhookPlug` mountable signed-webhook plug with multi-secret
+  rotation, replay window, and idempotent Oban-deferred ingest.
+- New `media_provider_assets` Ecto table for durable provider state (additive;
+  no changes to `media_assets` or `media_variants`).
+- Profile DSL `:streaming` key with locked named-preset playback policy
+  (`:signed` / `:public`); raw provider knobs forbidden.
+- Provider-aware `streaming_url/3` dispatch rule with non-strict default
+  (progressive fallback while ingest is in flight) and `:strict` opt for
+  provider-only.
+- Five additive locked error atoms; v1.4-frozen delivery telemetry preserved
+  with one documented metadata extension (`kind: :hls`).
+- Generated-app package-consumer `mux-enabled` proof lane alongside the existing
+  image-only and av-enabled lanes.
+
+**Key context:**
+- Single provider only — Cloudflare Stream / Bunny Stream / Transloadit are
+  v1.7+ adapters that test the contract, not v1.6 scope.
+- Mux SDK (`mux ~> 3.2`, optional dep) already implements the two highest-risk
+  pieces (HMAC webhook verification + JOSE JWT signing); Rindle adds the
+  contract, the Plug, and the dispatch rule rather than reimplementing them.
+- Out of scope explicitly: live streaming/RTMP/WebRTC, DRM, multi-region
+  failover, browser→Mux direct creator upload (Phase 37 is optional pull-forward
+  only if time permits), tus protocol (deferred), GCS adapter (deferred).
+- Locked recommendation:
+  `.planning/research/v1.6-CANDIDATE-PROVIDER-MUX.md`.
+
+**Deferred candidates (reserved for v1.7+):**
+- `GCS-01`: truthful `Rindle.Storage.GCS` resumable adapter — see
+  `.planning/research/v1.6-CANDIDATE-GCS.md` for the locked v1.7 plan.
+- `TUS-01`: tus protocol family on a mountable Plug — see
+  `.planning/research/v1.6-CANDIDATE-TUS.md` for the locked v1.8 plan.
 
 ## What This Is
 
@@ -103,12 +143,32 @@ Media, made durable.
 
 ### Active
 
-- None. The next milestone is not defined yet.
+- `STREAM-01..09`: provider boundary contract — capability vocabulary,
+  promoted `Rindle.Streaming.Provider` behaviour, `media_provider_assets`
+  schema + FSM, profile DSL `:streaming` key, `streaming_url/3` dispatch rule,
+  `Rindle.Error` extension, capability report — v1.6 Phase 33.
+- `MUX-01..08`: Mux REST adapter + server-push sync — `mux ~> 3.2` optional
+  dep, signed-playback URL minting via `Mux.Token`, `MuxIngestVariant` Oban
+  worker with idempotent unique args, atomic-promote on flip-to-ready,
+  `MuxSyncProviderAsset` defensive polling — v1.6 Phase 34.
+- `MUX-09..14`: signed-webhook plug + idempotent ingest — mountable
+  `Rindle.Delivery.WebhookPlug`, `Mux.Webhooks.verify_header/4` + Stripe-parity
+  multi-secret rotation + 300s replay window, raw-body cache pattern,
+  Oban-deferred `IngestProviderWebhook` with event-UUID idempotency, dead-letter
+  via `media_provider_assets.last_sync_error` — v1.6 Phase 35.
+- `MUX-15..19`: public DX, onboarding, CI proof — `Rindle.Profile.Presets.MuxWeb`,
+  `mix rindle.doctor` streaming validation, `guides/streaming_providers.md`,
+  generated-app `mux-enabled` package-consumer lane — v1.6 Phase 36.
+- `MUX-20..23` (optional Phase 37): browser→Mux direct creator upload —
+  `Rindle.Streaming.Provider.Mux.create_direct_upload/2`,
+  `video.upload.asset_created` webhook handler, LiveView `:provider_asset_*`
+  PubSub. Pulled in only if Phase 33-36 ship under budget.
 
-**Candidate next requirements:**
-- `GCS-01`: truthful `Rindle.Storage.GCS` adapter with resumable semantics
-- `STREAM-01`: provider boundary behind `streaming_url/3` with one reference adapter
-- `TUS-01`: resumable protocol family only if adopter demand justifies boundary expansion
+**Candidate next requirements (deferred):**
+- `GCS-01..04` + `RESUMABLE-01..14`: truthful `Rindle.Storage.GCS` resumable
+  adapter — locked v1.7 plan in `.planning/research/v1.6-CANDIDATE-GCS.md`
+- `TUS-01..19`: tus protocol family on a mountable Plug — locked v1.8 plan in
+  `.planning/research/v1.6-CANDIDATE-TUS.md`
 
 ### Out of Scope
 
@@ -183,6 +243,14 @@ and tus only if real adopter demand proves the boundary should widen.
     (`Rindle.tmp/`); orphans are reaped by a scheduled `Rindle.Ops` worker.
     No transcode is allowed without an enforceable parent-death subprocess
     kill (MuonTrap on Linux; Rambo on macOS / Windows dev).
+14. Raw provider identifiers (`provider_asset_id`, provider upload IDs,
+    provider session URIs) are never exposed in adopter-facing paths,
+    URLs, logs, telemetry metadata, or `inspect/2` output. Only the
+    public-side `playback_id` (or equivalent) crosses into URLs. Telemetry
+    metadata redacts provider-internal IDs to last-4-char tags. Provider
+    bearer credentials (Mux signing keys, GCS resumable session URIs, tus
+    upload URLs) are treated as secrets at rest and in transit; custom
+    `Inspect` impls on persistence rows redact them. (Added v1.6.)
 
 ## Constraints
 
@@ -338,4 +406,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-06 — archived v1.5 Adopter Hardening & Lifecycle Repair after audit pass; next milestone remains to be defined.*
+*Last updated: 2026-05-06 — archived v1.5 Adopter Hardening & Lifecycle Repair after audit pass; v1.6 Provider Boundary + Mux locked from research-driven candidate evaluation (see `.planning/research/v1.6-CANDIDATE-PROVIDER-MUX.md`); GCS and tus reserved for v1.7+.*

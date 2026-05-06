@@ -24,6 +24,17 @@ key_files:
 key_decisions:
   - Used standard string replacements to HTML escape FFprobe JSON metadata strings to prevent XSS.
   - Orphan Reaper configured to use file modification time (mtime) mapped from `File.lstat` safely against the configured threshold.
+requirements-completed:
+  - AV-01-01
+  - AV-01-02
+  - AV-01-03
+  - AV-01-04
+  - AV-01-05
+  - AV-01-06
+  - AV-01-07
+  - AV-01-08
+  - AV-01-09
+  - AV-01-10
 metrics:
   duration: 5
   completed_date: "2024-05-18" # Will be updated via git automatically in reality, using placeholder

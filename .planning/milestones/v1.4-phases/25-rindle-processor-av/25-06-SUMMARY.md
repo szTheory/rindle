@@ -1,3 +1,30 @@
+---
+phase: 25
+requirements-completed:
+  - AV-03-01
+  - AV-03-02
+  - AV-03-03
+  - AV-03-04
+  - AV-03-05
+  - AV-03-06
+  - AV-03-07
+  - AV-03-08
+  - AV-03-09
+  - AV-03-10
+  - AV-03-11
+  - AV-03-12
+  - AV-03-13
+  - AV-03-14
+  - AV-03-15
+  - AV-03-16
+  - AV-03-17
+  - AV-03-18
+verified:
+  - mix test test/rindle/contracts/telemetry_contract_test.exs test/rindle/api_surface_boundary_test.exs test/rindle/workers/process_variant_test.exs --include contract
+  - mix test test/rindle/profile/presets_web_test.exs test/adopter/canonical_app/lifecycle_test.exs test/rindle/api_surface_boundary_test.exs --include adopter
+  - mix test test/rindle/contracts/telemetry_contract_test.exs test/rindle/api_surface_boundary_test.exs test/rindle/workers/process_variant_test.exs test/rindle/profile/presets_web_test.exs test/adopter/canonical_app/lifecycle_test.exs --include contract --include adopter
+---
+
 # Phase 25 Plan 06 Summary
 
 Stock AV contract closure for Phase 25: public `:media/:transcode` telemetry, bounded variant/asset progress broadcasts, and a reusable `Rindle.Profile.Presets.Web` onboarding story proved through the canonical adopter video lifecycle.

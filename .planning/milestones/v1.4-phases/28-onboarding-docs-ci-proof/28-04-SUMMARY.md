@@ -1,3 +1,21 @@
+---
+phase: 28
+requirements-completed:
+  - AV-06-01
+  - AV-06-02
+  - AV-06-03
+  - AV-06-04
+  - AV-06-05
+  - AV-06-06
+  - AV-06-07
+  - AV-06-08
+verified:
+  - mix test test/rindle/error_test.exs test/install_smoke/docs_parity_test.exs --warnings-as-errors
+  - mix test test/rindle/contracts/telemetry_contract_test.exs --warnings-as-errors --include contract
+  - mix test test/rindle/error_test.exs test/rindle/contracts/telemetry_contract_test.exs test/install_smoke/docs_parity_test.exs
+  - mix test test/rindle/error_test.exs test/rindle/contracts/telemetry_contract_test.exs test/install_smoke/docs_parity_test.exs --include contract --warnings-as-errors
+---
+
 # Phase 28 Plan 04 Summary
 
 ## Outcome

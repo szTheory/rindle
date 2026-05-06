@@ -5,6 +5,14 @@ plan_id: 27-04
 title: AV error vocabulary closure
 status: completed
 code_commit: e8c8331
+requirements-completed:
+  - AV-05-01
+  - AV-05-02
+  - AV-05-03
+  - AV-05-04
+  - AV-05-05
+  - AV-05-06
+  - AV-05-07
 verified:
   - mix test test/rindle/error_test.exs test/rindle/delivery_test.exs test/rindle/delivery/local_plug_test.exs test/rindle/workers/process_variant_test.exs
 files_modified:

@@ -31,6 +31,15 @@ key_files:
 decisions:
   - delivery TTL guidance remains documentation and profile-policy guidance, not new DSL
   - local range telemetry stays scoped to LocalPlug rather than widening delivery-wide KPIs
+requirements-completed:
+  - AV-04-01
+  - AV-04-02
+  - AV-04-03
+  - AV-04-04
+  - AV-04-05
+  - AV-04-06
+  - AV-04-07
+  - AV-04-08
 metrics:
   completed_at: 2026-05-05T19:56:24Z
   task_commits: 1
