@@ -16,38 +16,38 @@ video platform.
 
 ### Provider Boundary & State Schema
 
-- [ ] **STREAM-01**: Rindle ships a `Rindle.Streaming.Capabilities` module with
+- [x] **STREAM-01**: Rindle ships a `Rindle.Streaming.Capabilities` module with
   a closed vocabulary (`:signed_playback`, `:public_playback`, `:webhook_ingest`,
   `:server_push_ingest`, `:direct_creator_upload`) consumed by
   `mix rindle.doctor` and `Rindle.Capability.report/0`.
-- [ ] **STREAM-02**: `Rindle.Streaming.Provider` is promoted from a reserved
+- [x] **STREAM-02**: `Rindle.Streaming.Provider` is promoted from a reserved
   behaviour to a runtime contract with locked `@callback` signatures (capability
   query, asset create/get/delete, signed playback URL, webhook verify, optional
   direct-creator-upload).
-- [ ] **STREAM-03**: Adopters get an additive `media_provider_assets` Ecto
+- [x] **STREAM-03**: Adopters get an additive `media_provider_assets` Ecto
   table (one row per `(asset, profile, provider)`) without any change to
   `media_assets` or `media_variants`.
-- [ ] **STREAM-04**: `Rindle.Domain.MediaProviderAsset` schema, changeset, and
+- [x] **STREAM-04**: `Rindle.Domain.MediaProviderAsset` schema, changeset, and
   finite state machine cover `pending → uploading → processing → ready |
   errored | deleted` transitions.
-- [ ] **STREAM-05**: Profile DSL accepts a `:streaming` key with locked named
+- [x] **STREAM-05**: Profile DSL accepts a `:streaming` key with locked named
   options (`:provider`, `:playback_policy`, `:ingest_mode`, `:source_variant`)
   validated through NimbleOptions; raw provider knobs are forbidden; image-only
   and AV-only profiles compile unchanged.
-- [ ] **STREAM-06**: `Rindle.Delivery.streaming_url/3` dispatches via a single
+- [x] **STREAM-06**: `Rindle.Delivery.streaming_url/3` dispatches via a single
   deterministic decision tree — provider-ready row returns provider URL,
   in-flight ingest returns `:provider_asset_not_ready`, errored row returns
   `:provider_sync_failed`, no row falls back to existing progressive (or to a
   strict-mode error when `opts[:strict]` is set).
-- [ ] **STREAM-07**: `Rindle.Error` vocabulary extends with five additive
+- [x] **STREAM-07**: `Rindle.Error` vocabulary extends with five additive
   locked atoms: `:provider_asset_not_ready`, `:provider_webhook_invalid`,
   `:provider_sync_failed`, `:provider_quota_exceeded`,
   `:streaming_provider_requires_asset_struct`. Existing v1.4
   `:streaming_not_configured` is reused unchanged.
-- [ ] **STREAM-08**: `Rindle.Capability.report/0` lists detected streaming
+- [x] **STREAM-08**: `Rindle.Capability.report/0` lists detected streaming
   providers and signed-playback configuration status alongside the existing
   storage/processor capability output.
-- [ ] **STREAM-09**: An ExUnit parity gate asserts the exact reason atom and
+- [x] **STREAM-09**: An ExUnit parity gate asserts the exact reason atom and
   message text for the five new error variants (matches the AV-06-05 freeze
   pattern) so the v1.6 streaming vocabulary can be safely frozen at ship.
 
@@ -153,7 +153,7 @@ Filled by `gsd-roadmapper` once the v1.6 ROADMAP.md is approved.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| STREAM-01..09 | Phase 33 | Planned (v1.6 roadmap) |
+| STREAM-01..09 | Phase 33 | Validated 2026-05-06 |
 | MUX-01..08 | Phase 34 | Planned (v1.6 roadmap) |
 | MUX-09..14 | Phase 35 | Planned (v1.6 roadmap) |
 | MUX-15..19 | Phase 36 | Planned (v1.6 roadmap) |
@@ -229,15 +229,15 @@ duplicates. Coverage: 32 / 32 ✓.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| STREAM-01 | Phase 33 — Provider Boundary + State Schema | Planned |
-| STREAM-02 | Phase 33 — Provider Boundary + State Schema | Planned |
-| STREAM-03 | Phase 33 — Provider Boundary + State Schema | Planned |
-| STREAM-04 | Phase 33 — Provider Boundary + State Schema | Planned |
-| STREAM-05 | Phase 33 — Provider Boundary + State Schema | Planned |
-| STREAM-06 | Phase 33 — Provider Boundary + State Schema | Planned |
-| STREAM-07 | Phase 33 — Provider Boundary + State Schema | Planned |
-| STREAM-08 | Phase 33 — Provider Boundary + State Schema | Planned |
-| STREAM-09 | Phase 33 — Provider Boundary + State Schema | Planned |
+| STREAM-01 | Phase 33 — Provider Boundary + State Schema | Validated 2026-05-06 |
+| STREAM-02 | Phase 33 — Provider Boundary + State Schema | Validated 2026-05-06 |
+| STREAM-03 | Phase 33 — Provider Boundary + State Schema | Validated 2026-05-06 |
+| STREAM-04 | Phase 33 — Provider Boundary + State Schema | Validated 2026-05-06 |
+| STREAM-05 | Phase 33 — Provider Boundary + State Schema | Validated 2026-05-06 |
+| STREAM-06 | Phase 33 — Provider Boundary + State Schema | Validated 2026-05-06 |
+| STREAM-07 | Phase 33 — Provider Boundary + State Schema | Validated 2026-05-06 |
+| STREAM-08 | Phase 33 — Provider Boundary + State Schema | Validated 2026-05-06 |
+| STREAM-09 | Phase 33 — Provider Boundary + State Schema | Validated 2026-05-06 |
 | MUX-01 | Phase 34 — Mux REST Adapter + Server-Push Sync | Planned |
 | MUX-02 | Phase 34 — Mux REST Adapter + Server-Push Sync | Planned |
 | MUX-03 | Phase 34 — Mux REST Adapter + Server-Push Sync | Planned |
