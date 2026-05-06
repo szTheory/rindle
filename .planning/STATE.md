@@ -4,8 +4,8 @@ milestone: v1.6
 milestone_name: Provider Boundary + Mux
 status: ready_for_next_phase
 stopped_at: Phase 33 complete (verified 33/33 must-haves; CR-01 fix applied)
-last_updated: "2026-05-06T21:30:00.000Z"
-last_activity: 2026-05-06 -- Phase 33 verified passed; ready for Phase 34
+last_updated: "2026-05-06T22:00:00.000Z"
+last_activity: 2026-05-06 -- Phase 34 context gathered (research-driven one-shot); ready to plan
 progress:
   total_phases: 5
   completed_phases: 1
@@ -27,10 +27,10 @@ single reference streaming adapter without expanding into a video platform.
 
 ## Current Position
 
-Phase: 34 — Mux REST Adapter + Server-Push Sync (next up)
+Phase: 34 — Mux REST Adapter + Server-Push Sync (context gathered)
 Plan: —
-Status: Phase 33 complete (verified passed); ready for Phase 34 discuss/plan
-Last activity: 2026-05-06 -- Phase 33 verified passed (33/33 must-haves, 9/9 STREAM requirements)
+Status: Phase 34 CONTEXT.md committed; ready for `/gsd-plan-phase 34`
+Last activity: 2026-05-06 -- Phase 34 context (43 decisions locked, two parallel research subagents, 4 memo corrections surfaced)
 
 ## Recent Completion
 
@@ -47,8 +47,8 @@ Last activity: 2026-05-06 -- Phase 33 verified passed (33/33 must-haves, 9/9 STR
 
 ## Pending Todos
 
-- Plan Phase 33: Provider Boundary + State Schema
-  (`STREAM-01..09`) — `/gsd-plan-phase 33`.
+- Plan Phase 34: Mux REST Adapter + Server-Push Sync
+  (`MUX-01..08`) — `/gsd-plan-phase 34`.
 
 - Preserve GCS resumable uploads (`.planning/research/v1.6-CANDIDATE-GCS.md`)
   and tus (`.planning/research/v1.6-CANDIDATE-TUS.md`) as locked candidate
@@ -70,11 +70,15 @@ Last activity: 2026-05-06 -- Phase 33 verified passed (33/33 must-haves, 9/9 STR
 
 ## Session Continuity
 
-Last session: Phase 33 context gathered (research-driven one-shot, no
-interview turns); 32 decisions locked from candidate memo
-Stopped at: Phase 33 CONTEXT.md + DISCUSSION-LOG.md committed
-Resume file: .planning/phases/33-provider-boundary-state-schema/33-CONTEXT.md
+Last session: Phase 34 context gathered (research-driven one-shot, no
+interview turns); 43 decisions locked. Two parallel research subagents
+verified Mux SDK 3.2.x surface (surfacing 4 memo corrections — D-04
+playback_policy singular/string, D-06 sign_playback_id current export,
+D-09 7-day default expiration footgun, D-10 single-secret webhook API)
+and Oban patterns (added MuxSyncCoordinator coordinator-worker pattern).
+Stopped at: Phase 34 CONTEXT.md + DISCUSSION-LOG.md committed (4a1c8ae)
+Resume file: .planning/phases/34-mux-rest-adapter-server-push-sync/34-CONTEXT.md
 
 **Last Completed Milestone:** v1.5 (Phases 29-32) — archived 2026-05-06
 
-**Next Step:** `/gsd-plan-phase 33`
+**Next Step:** `/gsd-plan-phase 34`
