@@ -333,6 +333,117 @@ defmodule Rindle.Delivery.StreamingDispatchTest do
     end
   end
 
+  # WR-04: Branch 5 must cross-check the persisted playback_policy / ingest_mode
+  # on the media_provider_assets row against the live streaming_config. When
+  # they disagree, refuse the URL and emit a config_drift warning telemetry.
+  describe "Branch 5: config drift between row and profile (WR-04)" do
+    test "row playback_policy differs from streaming_config returns :provider_sync_failed and emits drift telemetry" do
+      drift_ref =
+        :telemetry_test.attach_event_handlers(self(), [
+          [:rindle, :delivery, :streaming, :config_drift]
+        ])
+
+      on_exit(fn -> :telemetry.detach(drift_ref) end)
+
+      resolved_ref = attach_streaming_telemetry()
+      asset = insert_asset!()
+
+      # StreamingProfile declares playback_policy: :signed; persist a row that
+      # disagrees ("public") to simulate config drift between the persisted
+      # provider asset and the live profile config.
+      _row =
+        insert_provider_asset!(asset, %{
+          state: "ready",
+          playback_ids: ["pb-drift-1234"],
+          playback_policy: "public",
+          ingest_mode: "server_push"
+        })
+
+      # Provider must NOT be called when drift is detected.
+      assert {:error, :provider_sync_failed} =
+               Rindle.Delivery.streaming_url(StreamingProfile, asset)
+
+      assert_received {[:rindle, :delivery, :streaming, :config_drift], ^drift_ref,
+                       _measurements, drift_metadata}
+
+      assert drift_metadata.field == :playback_policy
+      assert drift_metadata.row_value == "public"
+      assert drift_metadata.expected == "signed"
+      assert drift_metadata.profile == StreamingProfile
+      assert drift_metadata.provider == Rindle.Streaming.ProviderMock
+
+      refute_received {[:rindle, :delivery, :streaming, :resolved], ^resolved_ref, _, _}
+    end
+
+    test "row ingest_mode differs from streaming_config returns :provider_sync_failed and emits drift telemetry" do
+      drift_ref =
+        :telemetry_test.attach_event_handlers(self(), [
+          [:rindle, :delivery, :streaming, :config_drift]
+        ])
+
+      on_exit(fn -> :telemetry.detach(drift_ref) end)
+
+      resolved_ref = attach_streaming_telemetry()
+      asset = insert_asset!()
+
+      # StreamingProfile declares ingest_mode: :server_push; persist a row
+      # whose policy matches but ingest_mode disagrees.
+      _row =
+        insert_provider_asset!(asset, %{
+          state: "ready",
+          playback_ids: ["pb-drift-mode-1234"],
+          playback_policy: "signed",
+          ingest_mode: "direct_creator_upload"
+        })
+
+      assert {:error, :provider_sync_failed} =
+               Rindle.Delivery.streaming_url(StreamingProfile, asset)
+
+      assert_received {[:rindle, :delivery, :streaming, :config_drift], ^drift_ref,
+                       _measurements, drift_metadata}
+
+      assert drift_metadata.field == :ingest_mode
+      assert drift_metadata.row_value == "direct_creator_upload"
+      assert drift_metadata.expected == "server_push"
+
+      refute_received {[:rindle, :delivery, :streaming, :resolved], ^resolved_ref, _, _}
+    end
+
+    test "row playback_policy/ingest_mode matching the streaming_config proceeds to provider call" do
+      drift_ref =
+        :telemetry_test.attach_event_handlers(self(), [
+          [:rindle, :delivery, :streaming, :config_drift]
+        ])
+
+      on_exit(fn -> :telemetry.detach(drift_ref) end)
+
+      asset = insert_asset!()
+
+      _row =
+        insert_provider_asset!(asset, %{
+          state: "ready",
+          playback_ids: ["pb-aligned-1234"],
+          playback_policy: "signed",
+          ingest_mode: "server_push"
+        })
+
+      expect(Rindle.Streaming.ProviderMock, :signed_playback_url, fn StreamingProfile,
+                                                                     "pb-aligned-1234",
+                                                                     _opts ->
+        {:ok,
+         %{
+           url: "https://stream.example/pb-aligned-1234.m3u8?token=ok",
+           kind: :hls,
+           mime: "application/vnd.apple.mpegurl"
+         }}
+      end)
+
+      assert {:ok, %{kind: :hls}} = Rindle.Delivery.streaming_url(StreamingProfile, asset)
+
+      refute_received {[:rindle, :delivery, :streaming, :config_drift], ^drift_ref, _, _}
+    end
+  end
+
   # CR-01: Branch 5 must call the configured authorizer before the provider call.
   # Without this, profiles with both :streaming AND :authorizer leak signed HLS
   # URLs to callers the authorizer would have rejected, as soon as the row state

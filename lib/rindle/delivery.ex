@@ -272,9 +272,28 @@ defmodule Rindle.Delivery do
         # Branch 5b — defensive: state is :ready but no playback id available yet.
         {:error, :provider_asset_not_ready}
 
-      %MediaProviderAsset{state: "ready", playback_ids: [playback_id | _]} ->
-        # Branch 5
-        dispatch_provider_signed_url(profile, streaming_config, playback_id, opts)
+      %MediaProviderAsset{state: "ready", playback_ids: [playback_id | _]} = row ->
+        # Branch 5 — but first cross-check the row's persisted playback_policy
+        # and ingest_mode against the live streaming_config (WR-04). When
+        # they disagree, refuse to mint and emit a config_drift warning so
+        # operators can see the divergence without it surfacing as a silent
+        # successful URL.
+        case streaming_config_drift(row, streaming_config) do
+          :ok ->
+            dispatch_provider_signed_url(profile, streaming_config, playback_id, opts)
+
+          {:drift, drift_meta} ->
+            :telemetry.execute(
+              [:rindle, :delivery, :streaming, :config_drift],
+              %{system_time: System.system_time()},
+              Map.merge(drift_meta, %{
+                profile: profile,
+                provider: streaming_config.provider
+              })
+            )
+
+            {:error, :provider_sync_failed}
+        end
 
       # Defensive: any other state ("deleted" or unexpected) falls through to the
       # not-ready error so callers never see a successful URL for a deleted asset.
@@ -333,6 +352,41 @@ defmodule Rindle.Delivery do
     |> Module.split()
     |> List.last()
     |> Macro.underscore()
+  end
+
+  # WR-04 — cross-check the persisted policy/mode on a :ready row against the
+  # live streaming_config. nil row fields are treated as "not yet recorded"
+  # and skipped (no drift), matching how D-19 historically used `state` as the
+  # source of truth pre-Phase 33. When BOTH the row and the config carry a
+  # value AND they disagree, return drift metadata so the dispatch layer can
+  # emit a warning telemetry event and refuse the URL.
+  defp streaming_config_drift(
+         %MediaProviderAsset{playback_policy: row_policy, ingest_mode: row_mode},
+         streaming_config
+       ) do
+    expected_policy = Atom.to_string(streaming_config.playback_policy)
+    expected_mode = Atom.to_string(streaming_config.ingest_mode)
+
+    cond do
+      is_binary(row_policy) and row_policy != expected_policy ->
+        {:drift,
+         %{
+           field: :playback_policy,
+           row_value: row_policy,
+           expected: expected_policy
+         }}
+
+      is_binary(row_mode) and row_mode != expected_mode ->
+        {:drift,
+         %{
+           field: :ingest_mode,
+           row_value: row_mode,
+           expected: expected_mode
+         }}
+
+      true ->
+        :ok
+    end
   end
 
   # Pull the asset's binary_id. Supports schema struct or plain map (for tests).
