@@ -3,14 +3,13 @@
 > Out-of-scope discoveries logged during plan execution. NOT fixed by the
 > originating plan. Triage during phase wrap-up or spin into a follow-up plan.
 
+> All four items below were independently confirmed pre-existing on base
+> commit `c6aeead` by **Plan 33-01**, **Plan 33-02**, and **Plan 33-04** during
+> their respective full-suite quality gates.
+
 ---
 
-## Pre-existing test failures (full-suite only)
-
-Discovered during `mix test --color` for Plan 33-01 quality gate. Confirmed
-pre-existing on base commit `c6aeead` BEFORE any Phase 33 changes were applied.
-
-### 1. `Rindle.ApplicationTest` — baseline 2 failures
+## 1. `Rindle.ApplicationTest` — baseline 2 failures
 
 | Test | File | Symptom |
 |---|---|---|
@@ -19,17 +18,20 @@ pre-existing on base commit `c6aeead` BEFORE any Phase 33 changes were applied.
 
 **Cause (suspected):** The Rindle adopter canonical-app profile module is being
 discovered by the runtime guard's profile-walk regardless of test-app config
-isolation. Pre-existing on base; not introduced by Plan 33-01.
+isolation. The adopter test fixtures load via `elixirc_paths(:test) =
+["lib", "test/support", "test/adopter"]` (`mix.exs:46`), so
+`Rindle.Adopter.CanonicalApp.VideoProfile` is present in
+`Application.get_env(:rindle, :profiles)` during the assertion. Pre-existing on
+base; not introduced by Phase 33.
 
 **Reproduction:** `mix test test/rindle/application_test.exs --color` on
 `c6aeead` (verified by checking out base and running the test in isolation).
 
 **Disposition:** Out of scope for Phase 33. Likely an Application/profile
 isolation regression introduced before this phase. Triage as a separate
-follow-up (potentially a Phase 33 plan amendment if the verifier blocks on it,
-otherwise hand-off to a maintenance plan).
+follow-up.
 
-### 2. AV / ffmpeg / ffprobe `:epipe` failures (parallelism flake)
+## 2. AV / ffmpeg / ffprobe `:epipe` failures (parallelism flake)
 
 | Tests | Files | Symptom |
 |---|---|---|
@@ -44,40 +46,49 @@ subprocess output. Each affected test passes in isolation:
 - `mix test test/rindle/processor/waveform_test.exs --color` → 3/3 green
 - `mix test test/rindle/probe/av_probe_test.exs --color` → 5/5 green
 
-**Disposition:** Pre-existing parallelism flake, not caused by Plan 33-01.
-Recommended fix (out of scope here): tag AV-process tests with `async: false`
-or reduce `max_cases` for those modules. Triage in a maintenance plan.
+**Disposition:** Pre-existing parallelism flake, not caused by any Phase 33
+plan. Recommended fix (out of scope here): tag AV-process tests with
+`async: false` or reduce `max_cases` for those modules. Triage in a
+maintenance plan.
 
 ---
 
-### 3. Pre-existing `mix credo --strict` non-zero exit (47 issues)
+## 3. Pre-existing `mix credo --strict` non-zero exit (47 issues)
 
 `mix credo --strict --color` exits with code 14 on the **base commit `c6aeead`**
-BEFORE any Phase 33 changes are applied. Plan 33-01 adds zero new credo
+BEFORE any Phase 33 changes are applied. Phase 33 plans add zero new credo
 issues — issue counts are byte-identical between baseline and HEAD:
 
 > 10 refactoring opportunities, 21 code readability issues, 16 software design suggestions
 
-None of the 47 issues touch `lib/rindle/streaming/capabilities.ex` or
-`lib/rindle/streaming/provider.ex` (verified via grep).
+None of the 47 issues touch any Phase 33 plan-modified files (verified via
+grep against `lib/rindle/streaming/`, `lib/rindle/domain/media_provider_asset.ex`,
+`lib/rindle/domain/provider_asset_fsm.ex`, `lib/rindle/error.ex`, or
+`lib/rindle/capability.ex`).
 
-**Disposition:** Out of scope for Plan 33-01. The plan acceptance criterion
+Affected files (pre-existing): `lib/rindle/processor/ffmpeg.ex`,
+`lib/rindle/live_view.ex`, `lib/rindle/ops/runtime_status.ex`,
+`lib/rindle/av/capability.ex`, `lib/rindle/domain/media_asset.ex`,
+`lib/rindle/processor/av/video.ex`, `lib/rindle/workers/process_variant.ex`,
+`lib/rindle/ops/lifecycle_repair.ex`, etc.
+
+**Disposition:** Out of scope for Phase 33. The acceptance criterion
 "mix credo --strict must be clean" is unattainable without first cleaning up
-pre-existing baseline issues — that work belongs to a maintenance plan, not
-to a contract-extension-only plan.
+pre-existing baseline issues — that work belongs to a maintenance plan.
 
-### 4. Pre-existing `mix dialyzer` non-zero exit (11 errors)
+## 4. Pre-existing `mix dialyzer` non-zero exit (11 errors)
 
 `mix dialyzer` reports "Total errors: 11" on base. All 11 warnings are in
-pre-existing files NOT touched by Plan 33-01:
+pre-existing files NOT touched by Phase 33:
 
 - `lib/rindle/html.ex`
 - `lib/rindle/ops/runtime_status.ex`
 - `lib/rindle/workers/process_variant.ex`
 - `lib/rindle/workers/promote_asset.ex`
 
-Plan 33-01 adds zero new dialyzer warnings (verified — `grep streaming`
-against the dialyzer log returns nothing).
+Phase 33 plans add zero new dialyzer warnings (verified — `grep streaming`,
+`grep provider_asset`, `grep capability` against the dialyzer log return
+nothing relevant to plan files).
 
 **Disposition:** Out of scope. Triage in a maintenance plan.
 
@@ -85,13 +96,17 @@ against the dialyzer log returns nothing).
 
 ## Notes
 
-- Plan 33-01 modifies only:
-  - `lib/rindle/streaming/capabilities.ex` (new)
-  - `lib/rindle/streaming/provider.ex` (rewrite)
-  - `test/rindle/streaming/capabilities_test.exs` (new)
-  - `test/rindle/streaming/provider_test.exs` (new)
-  - `test/rindle/delivery_test.exs` (Rule 1 auto-fix — see SUMMARY for the
+- Phase 33 plan-modified files (verified zero-impact on the four issues above):
+  - `lib/rindle/streaming/capabilities.ex` (Plan 01, new)
+  - `lib/rindle/streaming/provider.ex` (Plan 01, rewrite)
+  - `lib/rindle/domain/media_provider_asset.ex` (Plan 02, new)
+  - `lib/rindle/domain/provider_asset_fsm.ex` (Plan 02, new)
+  - `priv/repo/migrations/20260506120000_create_media_provider_assets.exs` (Plan 02, new)
+  - `lib/rindle/error.ex` (Plan 04, additive only — 5 new bare-atom clauses)
+  - `lib/rindle/capability.ex` (Plan 04, new)
+  - `test/rindle/streaming/`, `test/rindle/domain/`, `test/rindle/error_streaming_freeze_test.exs`, `test/rindle/capability_test.exs` (test files)
+  - `test/rindle/delivery_test.exs` (Plan 01 Rule 1 auto-fix — see 33-01-SUMMARY for the
     one assertion flip required by D-05 + D-08)
 - None of these files touch FFmpeg/Port/Application-startup/credo/dialyzer paths.
-- The plan's explicit tripwires (`delivery_test.exs:352-380`, `delivery_test.exs:382-391`,
-  `error_test.exs`, `profile/validator_test.exs`) all stay green.
+- Plan-explicit tripwires all stay green: `delivery_test.exs:352-380`,
+  `delivery_test.exs:382-391`, `error_test.exs`, `profile/validator_test.exs`.
