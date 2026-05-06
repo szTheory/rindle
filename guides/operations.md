@@ -12,6 +12,22 @@ Re-authoring the task documentation here would create drift between the
 guide and the `@moduledoc` block. Click through to the module docs for
 the authoritative reference.
 
+## Package-Consumer Proof Matrix
+
+Phase 29 proves the public install posture from a generated package-consumer
+Phoenix app in two lanes: image-only and AV-enabled. Keep the split disciplined:
+
+- [`README.md`](../README.md) stays the narrow adopter quickstart.
+- [`getting_started.md`](getting_started.md) is the canonical deep guide for
+  the installed-artifact lifecycle, explicit migrations, `mix rindle.doctor`,
+  and the image-only plus AV package-consumer matrix.
+- [`release_publish.md`](release_publish.md) holds maintainer-only commands for
+  `bash scripts/release_preflight.sh` and `bash scripts/public_smoke.sh VERSION`
+  when proving a published artifact.
+
+Use the Mix tasks below for day-2 runtime maintenance after the install proof
+has passed; do not treat this page as a second install guide.
+
 ## Task Reference
 
 ### `mix rindle.cleanup_orphans`

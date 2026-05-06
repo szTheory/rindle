@@ -8,8 +8,8 @@ defmodule Rindle.Probe do
   outside this callback; probes operate on local paths only.
 
   This is symmetric with `Rindle.Processor` (see `lib/rindle/processor.ex`)
-  and intentionally distinct from `Rindle.AV.Probe`, which is the boot-time
-  FFmpeg version probe (D-05). See SYNTHESIS §2.2 for the naming choice.
+  and intentionally distinct from the internal boot-time FFmpeg version probe
+  used by `mix rindle.doctor` (D-05). See SYNTHESIS §2.2 for the naming choice.
 
   See:
     * `Rindle.Probe.Image` — libvips-backed image probe (no FFmpeg required).

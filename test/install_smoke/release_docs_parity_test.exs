@@ -56,9 +56,9 @@ defmodule Rindle.InstallSmoke.ReleaseDocsParityTest do
   } do
     for snippet <- [
           "Local preflight is diagnostic preparation, not authoritative release proof.",
-          "Authoritative signoff requires a green GitHub Actions run on the exact release-candidate SHA.",
+      "Authoritative signoff requires a green GitHub Actions run on the exact release-candidate SHA.",
           "waits for `ci.yml` on the exact release SHA",
-          "Package Consumer + Release Preflight",
+          "Package Consumer Proof Matrix + Release Preflight",
           "outside `scripts/release_preflight.sh`",
           "outside secret-gated automation"
         ] do
@@ -138,7 +138,7 @@ defmodule Rindle.InstallSmoke.ReleaseDocsParityTest do
       "mix hex.publish --dry-run --yes",
       "mix hex.publish --yes",
       ~s(curl --fail --location --silent --show-error "https://hexdocs.pm/rindle/$VERSION"),
-      "bash scripts/public_smoke.sh"
+      ~s(bash scripts/public_smoke.sh "$VERSION")
     ]
 
     for command <- commands do
@@ -301,5 +301,21 @@ defmodule Rindle.InstallSmoke.ReleaseDocsParityTest do
 
     assert running =~ "setup-ffmpeg"
     refute running =~ "Release Please"
+  end
+
+  test "operations guide stays a thin index while cross-linking the package-consumer proof surface", %{
+    operations: operations
+  } do
+    for snippet <- [
+          "Package-Consumer Proof Matrix",
+          "image-only",
+          "AV-enabled",
+          "mix rindle.doctor",
+          "bash scripts/release_preflight.sh",
+          ~s(bash scripts/public_smoke.sh VERSION),
+          "Use the Mix tasks below for day-2 runtime maintenance"
+        ] do
+      assert operations =~ snippet
+    end
   end
 end

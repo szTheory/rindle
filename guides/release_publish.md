@@ -43,7 +43,7 @@ while iterating, then rely on the exact-SHA `ci.yml` run selected by Release
 Please or `workflow_dispatch` recovery.
 
 Do not substitute a green branch head, a rerun on a different commit, or a
-local-only transcript for this proof. The `Package Consumer + Release Preflight`
+local-only transcript for this proof. The `Package Consumer Proof Matrix + Release Preflight`
 lane in `ci.yml` is part of the exact-SHA boundary.
 
 ## Package Metadata Review
@@ -96,7 +96,7 @@ bash scripts/hex_release_exists.sh
 mix hex.publish --dry-run --yes
 mix hex.publish --yes
 curl --fail --location --silent --show-error "https://hexdocs.pm/rindle/$VERSION"
-bash scripts/public_smoke.sh
+bash scripts/public_smoke.sh "$VERSION"
 ```
 
 The repo's `package-consumer` lane shifts the release contract left before
