@@ -227,9 +227,18 @@ defmodule Rindle.Delivery do
 
   # When the caller passed an asset struct/map, Branch 1 / Branch 6's progressive
   # path needs a storage key. Pull from the struct.
+  #
+  # WR-03: guard the recursive call. If the caller passes a map that has no
+  # :storage_key (or a non-binary one), `key_for/2` returns `nil` and the
+  # binary clause above does NOT match (it requires `is_binary(key)`). Falling
+  # through would raise FunctionClauseError from inside core dispatch; surface
+  # a typed `:provider_asset_not_ready` instead so callers stay inside the
+  # locked public-error vocabulary.
   defp do_progressive_streaming_url(profile, asset, opts) when is_map(asset) do
-    key = key_for(asset, :storage_key)
-    do_progressive_streaming_url(profile, key, opts)
+    case key_for(asset, :storage_key) do
+      key when is_binary(key) -> do_progressive_streaming_url(profile, key, opts)
+      _ -> {:error, :provider_asset_not_ready}
+    end
   end
 
   defp dispatch_streaming(profile, streaming_config, asset, opts) do
