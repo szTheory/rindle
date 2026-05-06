@@ -174,13 +174,18 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
     Differs from `process_variant.ex:408-415` by adding `:profile` to keys
     (since the same `asset_id` can ingest into multiple profiles) and using
     `period: 86_400` instead of `:infinity` (re-ingest is possible after 24h).
+
+    Includes `:available` in `states` because Oban inserts newly-enqueued
+    jobs in `:available` state by default — without it the unique constraint
+    never fires for the most common dedup case (re-enqueue right after the
+    first insert, before the worker picks up the job).
     """
     @spec unique_job_opts() :: keyword()
     def unique_job_opts do
       [
         fields: [:args, :worker, :queue],
         keys: [:asset_id, :profile, :variant_name],
-        states: [:scheduled, :executing, :retryable, :completed],
+        states: [:available, :scheduled, :executing, :retryable, :completed],
         period: 86_400
       ]
     end
