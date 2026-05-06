@@ -59,7 +59,10 @@ defmodule Rindle.Capability do
     # return an empty list.
     for profile <- profiles, into: %{} do
       processor = safely_call_zero(profile, :processor)
-      caps = if processor, do: List.wrap(safely_call_zero(processor, :capabilities) || []), else: []
+
+      caps =
+        if processor, do: List.wrap(safely_call_zero(processor, :capabilities) || []), else: []
+
       {processor || profile, caps}
     end
   end
