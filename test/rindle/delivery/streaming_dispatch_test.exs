@@ -60,6 +60,26 @@ defmodule Rindle.Delivery.StreamingDispatchTest do
       ]
   end
 
+  # CR-01 regression: profile with BOTH :streaming AND :authorizer configured.
+  # Branch 5 must run the authorizer before calling the provider — otherwise
+  # signed HLS URLs leak past the authorizer the profile declared.
+  defmodule AuthorizedStreamingProfile do
+    use Rindle.Profile,
+      storage: Rindle.StorageMock,
+      variants: [web: [kind: :video, preset: :web_720p]],
+      allow_mime: ["video/mp4"],
+      delivery: [
+        public: false,
+        authorizer: Rindle.AuthorizerMock,
+        streaming: [
+          provider: Rindle.Streaming.ProviderMock,
+          playback_policy: :signed,
+          ingest_mode: :server_push,
+          source_variant: :web
+        ]
+      ]
+  end
+
   # Helpers --------------------------------------------------------------------
 
   defp insert_asset!(attrs \\ %{}) do
@@ -83,9 +103,13 @@ defmodule Rindle.Delivery.StreamingDispatchTest do
   end
 
   defp insert_provider_asset!(asset, attrs) do
+    insert_provider_asset!(asset, StreamingProfile, attrs)
+  end
+
+  defp insert_provider_asset!(asset, profile_module, attrs) do
     base = %{
       asset_id: asset.id,
-      profile: to_string(StreamingProfile),
+      profile: to_string(profile_module),
       provider_name: "provider_mock",
       state: "pending"
     }
@@ -306,6 +330,108 @@ defmodule Rindle.Delivery.StreamingDispatchTest do
       # Expect only the matching row's state branches (errored → :provider_sync_failed).
       assert {:error, :provider_sync_failed} =
                Rindle.Delivery.streaming_url(StreamingProfile, asset)
+    end
+  end
+
+  # CR-01: Branch 5 must call the configured authorizer before the provider call.
+  # Without this, profiles with both :streaming AND :authorizer leak signed HLS
+  # URLs to callers the authorizer would have rejected, as soon as the row state
+  # flips to :ready. Mirrors the Branch 1/6 (progressive) authorize_delivery
+  # contract.
+  describe "Branch 5: authorizer integration (CR-01 regression)" do
+    defp insert_authorized_asset!(attrs \\ %{}) do
+      %MediaAsset{}
+      |> MediaAsset.changeset(
+        Map.merge(
+          %{
+            state: "available",
+            storage_key: "assets/#{System.unique_integer([:positive])}/orig.mp4",
+            content_type: "video/mp4",
+            byte_size: 1024,
+            filename: "orig.mp4",
+            recipe_digest: "abc",
+            profile: inspect(AuthorizedStreamingProfile),
+            kind: "video"
+          },
+          attrs
+        )
+      )
+      |> Repo.insert!()
+    end
+
+    test "authorizer rejection on :ready row returns {:error, :forbidden} and emits no telemetry" do
+      ref = attach_streaming_telemetry()
+      asset = insert_authorized_asset!()
+
+      _row =
+        insert_provider_asset!(asset, AuthorizedStreamingProfile, %{
+          state: "ready",
+          playback_ids: ["pb-secret-1234"]
+        })
+
+      expect(Rindle.AuthorizerMock, :authorize, fn _actor,
+                                                   :deliver,
+                                                   %{
+                                                     profile: AuthorizedStreamingProfile,
+                                                     playback_id: "pb-secret-1234",
+                                                     mode: :private,
+                                                     kind: :hls
+                                                   } ->
+        {:error, :forbidden}
+      end)
+
+      # Provider must NOT be called when the authorizer rejects.
+      # Mox.verify_on_exit! enforces no unexpected calls.
+
+      assert {:error, :forbidden} =
+               Rindle.Delivery.streaming_url(AuthorizedStreamingProfile, asset)
+
+      refute_received {[:rindle, :delivery, :streaming, :resolved], ^ref, _, _}
+    end
+
+    test "authorizer approval on :ready row proceeds through the provider call" do
+      ref = attach_streaming_telemetry()
+      asset = insert_authorized_asset!()
+
+      _row =
+        insert_provider_asset!(asset, AuthorizedStreamingProfile, %{
+          state: "ready",
+          playback_ids: ["pb-allowed-1234"]
+        })
+
+      expect(Rindle.AuthorizerMock, :authorize, fn _actor,
+                                                   :deliver,
+                                                   %{
+                                                     profile: AuthorizedStreamingProfile,
+                                                     playback_id: "pb-allowed-1234",
+                                                     mode: :private,
+                                                     kind: :hls
+                                                   } ->
+        :ok
+      end)
+
+      expect(Rindle.Streaming.ProviderMock, :signed_playback_url, fn AuthorizedStreamingProfile,
+                                                                     "pb-allowed-1234",
+                                                                     _opts ->
+        {:ok,
+         %{
+           url: "https://stream.example/pb-allowed-1234.m3u8?token=ok",
+           kind: :hls,
+           mime: "application/vnd.apple.mpegurl"
+         }}
+      end)
+
+      assert {:ok,
+              %{
+                url: "https://stream.example/pb-allowed-1234.m3u8?token=ok",
+                kind: :hls,
+                mime: "application/vnd.apple.mpegurl"
+              }} = Rindle.Delivery.streaming_url(AuthorizedStreamingProfile, asset)
+
+      assert_received {[:rindle, :delivery, :streaming, :resolved], ^ref, _measurements, metadata}
+      assert metadata.profile == AuthorizedStreamingProfile
+      assert metadata.kind == :hls
+      assert metadata.mode == :private
     end
   end
 end

@@ -274,26 +274,30 @@ defmodule Rindle.Delivery do
 
   defp dispatch_provider_signed_url(profile, streaming_config, playback_id, opts) do
     mime = Keyword.get(opts, :mime, "application/vnd.apple.mpegurl")
+    mode = delivery_mode(profile)
+    subject = %{profile: profile, playback_id: playback_id, mode: mode, kind: :hls}
 
-    case streaming_config.provider.signed_playback_url(profile, playback_id, opts) do
-      {:ok, %{url: _url, kind: :hls, mime: returned_mime}} = result ->
-        :telemetry.execute(
-          [:rindle, :delivery, :streaming, :resolved],
-          %{system_time: System.system_time()},
-          %{
-            profile: profile,
-            adapter: profile.storage_adapter(),
-            mode: delivery_mode(profile),
-            kind: :hls,
-            mime: returned_mime || mime
-          }
-        )
+    with :ok <- authorize_delivery(profile, :deliver, subject, opts) do
+      case streaming_config.provider.signed_playback_url(profile, playback_id, opts) do
+        {:ok, %{url: _url, kind: :hls, mime: returned_mime}} = result ->
+          :telemetry.execute(
+            [:rindle, :delivery, :streaming, :resolved],
+            %{system_time: System.system_time()},
+            %{
+              profile: profile,
+              adapter: profile.storage_adapter(),
+              mode: mode,
+              kind: :hls,
+              mime: returned_mime || mime
+            }
+          )
 
-        # D-23 — pass-through return shape unchanged.
-        result
+          # D-23 — pass-through return shape unchanged.
+          result
 
-      {:error, _} = err ->
-        err
+        {:error, _} = err ->
+          err
+      end
     end
   end
 
