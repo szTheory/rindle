@@ -1956,22 +1956,25 @@ block — they do not require user confirmation.
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should `Rindle.Streaming.Capabilities` ship `supports?/2` even though the comparable `Rindle.Storage.Capabilities` ships `require_upload/2` + `require_delivery/2`?**
    - What we know: D-03 explicitly omits `require_streaming/2` (deferred to Phase 37 / MUX-22). The Storage analog has both `supports?/2` (line 45-46) AND `require_upload/2` (line 48-56) AND `require_delivery/2` (line 58-66).
    - What's unclear: D-03 only mentions omitting `require_streaming/2`; it does NOT say whether `supports?/2` should ship.
    - Recommendation: Ship `supports?/2` (it's the boolean predicate version of `require_*/2` and is harmless in isolation; `Rindle.Capability.report/0` will benefit from it indirectly). Plan can omit it and Phase 37 can add it alongside `require_streaming/2` if executor prefers strict minimalism. **The CODE EXAMPLE above includes `supports?/2`; this is the recommended choice.**
+   - **RESOLVED:** Ship `supports?/2` in `Rindle.Streaming.Capabilities` alongside `known/0` and `safe/1` (boolean predicate; harmless without `require_streaming/2`).
 
 2. **In the `:streaming.source_variant` validator, when does the variant existence check run — before or after individual variant validation?**
    - What we know: D-18 says check that the atom is declared in `variants/0`. The existing `validate!/1` in `lib/rindle/profile/validator.ex:168-189` runs `validate_variants!` before `validate_delivery!`.
    - What's unclear: The cleanest refactor either (a) passes the validated variants list into `validate_delivery!/1` so the check happens inline, or (b) does a post-validate check at the top of `validate!/1` after both have run independently.
    - Recommendation: Option (b) — a single post-check function called at the end of `validate!/1`. Cleaner separation, less coupling. Executor discretion per CONTEXT.md.
+   - **RESOLVED:** Run `source_variant` existence check at end of `Rindle.Profile.Validator.validate!/1` (cleaner separation than embedding in `validate_delivery!/1`).
 
 3. **Should the dispatch tree's "step 6 progressive fallback" emit a different telemetry metadata field (e.g., `streaming_provider_configured: true | false`) so observability can distinguish "old v1.4 progressive" from "v1.6 fell back from provider"?**
    - What we know: D-24 says "the same event fires with `kind: :hls`" once Phase 34 lights up; v1.4 contract preserved otherwise.
    - What's unclear: Whether observability practitioners will want to distinguish "no streaming configured" from "streaming configured but no row yet."
    - Recommendation: **Don't add new metadata fields in Phase 33.** D-24 explicitly says "preserved unchanged." If Phase 34 / Phase 36 demonstrate a need, extend additively then. Resist scope creep.
+   - **RESOLVED:** Do NOT add new metadata fields to step-6 progressive fallback. D-24 says preserved unchanged; resist scope creep.
 
 These three open questions are all in "Claude's Discretion" territory per CONTEXT.md; recommendations are documented for the planner.
 
