@@ -40,6 +40,8 @@ export RINDLE_INSTALL_SMOKE_PACKAGE_ROOT="$PACKAGE_ROOT"
 MIX_ENV=test mix test test/install_smoke/package_metadata_test.exs
 MIX_ENV=test mix test test/install_smoke/release_docs_parity_test.exs
 MIX_ENV=test mix test test/install_smoke/hex_release_exists_test.exs
-MIX_ENV=test RINDLE_PROJECT_ROOT="$SOURCE_ROOT" bash "$SCRIPT_DIR/install_smoke.sh"
+echo "Running built-artifact package-consumer proof: image-only generated app via install_smoke.sh image"
+MIX_ENV=test RINDLE_PROJECT_ROOT="$SOURCE_ROOT" bash "$SCRIPT_DIR/install_smoke.sh" image
+echo "Published-version AV companion command: bash scripts/public_smoke.sh <published-version> video"
 MIX_ENV=dev mix docs --warnings-as-errors
 RINDLE_PROJECT_ROOT="$SOURCE_ROOT" bash "$SCRIPT_DIR/assert_release_docs_html.sh"

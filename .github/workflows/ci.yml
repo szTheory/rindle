@@ -282,7 +282,7 @@ jobs:
         run: mix test --only contract
 
   package-consumer:
-    name: Package Consumer + Release Preflight
+    name: Package Consumer Proof Matrix + Release Preflight
     runs-on: ubuntu-latest
     # Shift release readiness left into PR CI by reusing the same service-backed
     # package-consumer lane for the shared release preflight. This keeps the
@@ -346,7 +346,7 @@ jobs:
       - name: Install dependencies
         run: mix deps.get
 
-      - name: Start MinIO
+      - name: Start MinIO for S3-compatible package-consumer proofs
         run: |
           docker run -d --name rindle-minio -p 9000:9000 -e MINIO_ROOT_USER=minioadmin -e MINIO_ROOT_PASSWORD=minioadmin minio/minio server /data --console-address ":9001"
           for _ in $(seq 1 30); do
@@ -363,7 +363,7 @@ jobs:
           chmod +x mc
           sudo mv mc /usr/local/bin/mc
 
-      - name: Create MinIO bucket
+      - name: Create MinIO bucket for real S3-compatible smoke coverage
         run: |
           mc alias set local http://localhost:9000 minioadmin minioadmin
           mc mb --ignore-existing local/rindle-test
@@ -372,6 +372,9 @@ jobs:
         env:
           MIX_ENV: dev
         run: bash scripts/release_preflight.sh
+
+      - name: Run built-artifact AV package-consumer proof against MinIO
+        run: bash scripts/install_smoke.sh video
 
       - name: Verify version alignment (mocking tag)
         env:

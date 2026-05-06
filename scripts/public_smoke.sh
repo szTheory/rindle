@@ -6,7 +6,7 @@ ROOT_DIR="${RINDLE_PROJECT_ROOT:-$(cd "$SCRIPT_DIR/.." && pwd)}"
 cd "$ROOT_DIR"
 
 VERSION="${1:-${RINDLE_INSTALL_SMOKE_NETWORK_VERSION:-}}"
-PROFILE="${RINDLE_INSTALL_SMOKE_PROFILE:-all}"
+PROFILE="${2:-${RINDLE_INSTALL_SMOKE_PROFILE:-all}}"
 
 if [ -z "$VERSION" ]; then
   echo "public smoke test requires a published version as \$1 or RINDLE_INSTALL_SMOKE_NETWORK_VERSION" >&2

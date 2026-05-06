@@ -6,6 +6,7 @@ ROOT_DIR="${RINDLE_PROJECT_ROOT:-$(cd "$SCRIPT_DIR/.." && pwd)}"
 WORK_DIR=$(mktemp -d "${TMPDIR:-/tmp}/rindle-install-smoke-script-XXXXXX")
 PACKAGE_NAME=$(cd "$ROOT_DIR" && mix run --no-start -e 'project = Mix.Project.config(); IO.write("#{project[:app]}-#{project[:version]}")')
 PACKAGE_ROOT="${RINDLE_INSTALL_SMOKE_PACKAGE_ROOT:-$WORK_DIR/$PACKAGE_NAME}"
+PROFILE="${1:-${RINDLE_INSTALL_SMOKE_PROFILE:-image}}"
 
 cleanup() {
   rm -rf "$WORK_DIR"
@@ -15,11 +16,20 @@ trap cleanup EXIT
 
 cd "$ROOT_DIR"
 
+case "$PROFILE" in
+  all|image|video) ;;
+  *)
+    echo "unsupported install smoke profile: $PROFILE" >&2
+    exit 1
+    ;;
+esac
+
 if [ -z "${RINDLE_INSTALL_SMOKE_PACKAGE_ROOT:-}" ]; then
   mix hex.build --unpack --output "$PACKAGE_ROOT"
 fi
 
 unset RINDLE_INSTALL_SMOKE_NETWORK_VERSION
+export RINDLE_INSTALL_SMOKE_PROFILE="$PROFILE"
 export RINDLE_MINIO_RESET_BUCKET=1
 bash "$SCRIPT_DIR/ensure_minio.sh"
 
