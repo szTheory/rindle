@@ -22,6 +22,7 @@ defmodule Rindle.ApiSurfaceBoundaryTest do
     Mix.Tasks.Rindle.BackfillMetadata,
     Mix.Tasks.Rindle.CleanupOrphans,
     Mix.Tasks.Rindle.RegenerateVariants,
+    Mix.Tasks.Rindle.RuntimeStatus,
     Mix.Tasks.Rindle.VerifyStorage,
     Rindle.Workers.AbortIncompleteUploads,
     Rindle.Workers.CleanupOrphans,
@@ -53,7 +54,9 @@ defmodule Rindle.ApiSurfaceBoundaryTest do
   ]
 
   @ops_hidden_modules [
+    Rindle.Ops.LifecycleRepair,
     Rindle.Ops.MetadataBackfill,
+    Rindle.Ops.RuntimeStatus,
     Rindle.Ops.UploadMaintenance,
     Rindle.Ops.VariantMaintenance,
     Rindle.Workers.PromoteAsset,
@@ -97,6 +100,9 @@ defmodule Rindle.ApiSurfaceBoundaryTest do
       assert function_exported?(Rindle, :verify_upload, 2)
       assert function_exported?(Rindle, :complete_multipart_upload, 3)
       assert function_exported?(Rindle, :cancel_processing, 1)
+      assert function_exported?(Rindle, :reprobe, 1)
+      assert function_exported?(Rindle, :requeue_variants, 2)
+      assert function_exported?(Rindle, :runtime_status, 1)
       assert function_exported?(Rindle, :log_variant_processing_failure, 3)
     end
 
@@ -124,6 +130,21 @@ defmodule Rindle.ApiSurfaceBoundaryTest do
     test "asset-scoped cancel_processing/1 stays publicly documented on the facade" do
       assert visible_function_doc?(Rindle, :cancel_processing, 1),
              "Rindle.cancel_processing/1 should be publicly documented"
+    end
+
+    test "asset-scoped reprobe/1 stays publicly documented on the facade" do
+      assert visible_function_doc?(Rindle, :reprobe, 1),
+             "Rindle.reprobe/1 should be publicly documented"
+    end
+
+    test "asset-scoped requeue_variants/2 stays publicly documented on the facade" do
+      assert visible_function_doc?(Rindle, :requeue_variants, 2),
+             "Rindle.requeue_variants/2 should be publicly documented"
+    end
+
+    test "runtime_status/1 stays publicly documented on the facade" do
+      assert visible_function_doc?(Rindle, :runtime_status, 1),
+             "Rindle.runtime_status/1 should be publicly documented"
     end
   end
 

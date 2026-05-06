@@ -2,12 +2,24 @@ defmodule Rindle.Workers.PromoteAsset do
   @moduledoc false
   use Oban.Worker, queue: :rindle_promote, max_attempts: 3
 
+  import Ecto.Changeset
+
   alias Rindle.Config
   alias Rindle.Domain.AssetFSM
   alias Rindle.Domain.{MediaAsset, MediaVariant}
   alias Rindle.Processor.AV
   alias Rindle.Processor.AV.RuntimeGuard
   alias Rindle.Workers.ProcessVariant
+
+  @probe_fields [
+    :content_type,
+    :kind,
+    :width,
+    :height,
+    :duration_ms,
+    :has_video_track,
+    :has_audio_track
+  ]
 
   @impl Oban.Worker
   def perform(%Oban.Job{args: %{"asset_id" => asset_id}}) do
@@ -18,6 +30,53 @@ defmodule Rindle.Workers.PromoteAsset do
     else
       nil -> {:error, :not_found}
     end
+  end
+
+  @spec probe_fields() :: [atom()]
+  def probe_fields, do: @probe_fields
+
+  @spec probe_asset(MediaAsset.t()) :: {:ok, map()} | {:error, {:probe_failed, term()}}
+  def probe_asset(asset) do
+    tmp_path = Path.join(tmp_dir(), "rindle_probe_#{Ecto.UUID.generate()}")
+
+    try do
+      with :ok <- download_to(asset, tmp_path),
+           {:ok, mime} <- Rindle.Security.Mime.detect(tmp_path),
+           {:ok, probe_module} <- dispatch_probe(mime),
+           {:ok, result} <- probe_module.probe(tmp_path) do
+        {:ok, build_probe_attrs(mime, result)}
+      else
+        {:error, reason} -> {:error, {:probe_failed, reason}}
+      end
+    after
+      _ = File.rm(tmp_path)
+    end
+  end
+
+  @spec persist_probe_result(Ecto.Repo.t(), MediaAsset.t(), map(), keyword()) ::
+          {:ok, MediaAsset.t()} | {:error, Ecto.Changeset.t()}
+  def persist_probe_result(repo, asset, attrs, opts \\ []) do
+    allowed_fields = Keyword.get(opts, :allowed_fields, @probe_fields ++ [:metadata])
+    clear_missing? = Keyword.get(opts, :clear_missing?, true)
+
+    persisted_attrs =
+      Enum.reduce(allowed_fields, %{}, fn field, acc ->
+        cond do
+          Map.has_key?(attrs, field) ->
+            Map.put(acc, field, Map.fetch!(attrs, field))
+
+          clear_missing? and field in @probe_fields ->
+            Map.put(acc, field, nil)
+
+          true ->
+            acc
+        end
+      end)
+
+    asset
+    |> MediaAsset.changeset(persisted_attrs)
+    |> put_change(:updated_at, NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second))
+    |> repo.update()
   end
 
   defp promote(repo, asset) do
@@ -115,21 +174,20 @@ defmodule Rindle.Workers.PromoteAsset do
   defp maybe_run_probe_step(repo, asset), do: run_probe_step(repo, asset)
 
   defp run_probe_step(repo, asset) do
-    tmp_path = Path.join(tmp_dir(), "rindle_probe_#{Ecto.UUID.generate()}")
-
-    try do
-      with :ok <- download_to(asset, tmp_path),
-           {:ok, mime} <- Rindle.Security.Mime.detect(tmp_path),
-           {:ok, probe_module} <- dispatch_probe(mime),
-           {:ok, result} <- probe_module.probe(tmp_path),
-           {:ok, asset} <- write_probe_result(repo, asset, mime, result) do
-        {:ok, asset}
-      else
-        {:error, reason} -> {:error, :probe_failed, reason}
-      end
-    after
-      _ = File.rm(tmp_path)
+    with {:ok, attrs} <- probe_asset(asset),
+         {:ok, asset} <- persist_probe_result(repo, asset, attrs) do
+      {:ok, asset}
+    else
+      {:error, {:probe_failed, reason}} -> {:error, :probe_failed, reason}
+      {:error, reason} -> {:error, :probe_failed, reason}
     end
+  end
+
+  defp build_probe_attrs(mime, result) do
+    result
+    |> Map.put(:content_type, mime)
+    |> stringify_kind()
+    |> normalize_probe_attrs_for_storage()
   end
 
   defp dispatch_probe(mime) do
@@ -140,18 +198,6 @@ defmodule Rindle.Workers.PromoteAsset do
     end
   end
 
-  defp write_probe_result(repo, asset, mime, result) do
-    attrs =
-      result
-      |> Map.put(:content_type, mime)
-      |> stringify_kind()
-      |> normalize_probe_attrs_for_storage()
-
-    asset
-    |> MediaAsset.changeset(attrs)
-    |> repo.update()
-  end
-
   defp stringify_kind(%{kind: kind} = result) when is_atom(kind),
     do: Map.put(result, :kind, Atom.to_string(kind))
 
@@ -159,6 +205,10 @@ defmodule Rindle.Workers.PromoteAsset do
 
   defp normalize_probe_attrs_for_storage(%{kind: "audio"} = result) do
     Map.drop(result, [:width, :height, :has_video_track])
+  end
+
+  defp normalize_probe_attrs_for_storage(%{kind: "image"} = result) do
+    Map.drop(result, [:duration_ms, :has_video_track, :has_audio_track])
   end
 
   defp normalize_probe_attrs_for_storage(result), do: result

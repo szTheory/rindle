@@ -38,6 +38,20 @@ defmodule Rindle.Config do
     |> Enum.uniq()
   end
 
+  @spec local_playback_route() :: keyword() | nil
+  def local_playback_route do
+    case Application.get_env(:rindle, :local_playback_route) do
+      route when is_list(route) -> route
+      route when is_map(route) -> Enum.to_list(route)
+      _ -> nil
+    end
+  end
+
+  @spec migrations_path() :: String.t()
+  def migrations_path do
+    Application.app_dir(:rindle, "priv/repo/migrations")
+  end
+
   defp profile_module?(module) when is_atom(module) do
     Code.ensure_loaded?(module) and
       function_exported?(module, :__rindle_profile__, 0) and

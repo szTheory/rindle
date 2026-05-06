@@ -14,6 +14,9 @@ delivery.
 is the canonical deep adopter guide for the same first-run path. Phase 29
 proves that path from a generated package-consumer Phoenix app in two
 outside-in lanes from installed artifacts: image-only and AV-enabled.
+Existing adopters upgrading from the pre-v1.4 image-only shape should use
+[`guides/upgrading.md`](guides/upgrading.md) instead of stretching the
+greenfield quickstart into an upgrade runbook.
 
 ## Install
 
@@ -238,6 +241,8 @@ non-bang twins (`Rindle.attach/4`, `Rindle.detach/3`, `Rindle.upload/3`,
 
 ## Next Reads
 
+- [`guides/upgrading.md`](guides/upgrading.md): canonical existing-adopter
+  upgrade runbook for the pre-v1.4 to current path
 - [`guides/getting_started.md`](guides/getting_started.md): canonical deep
   adopter guide for the full AV onboarding path, Repo ownership, Oban
   ownership, migrations, profile setup, and the same presigned PUT lifecycle

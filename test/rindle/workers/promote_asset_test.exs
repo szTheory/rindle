@@ -316,6 +316,30 @@ defmodule Rindle.Workers.PromoteAssetTest do
     assert asset.height == 1
   end
 
+  test "clears stale AV probe fields when an analyzing asset re-probes as image", %{asset: asset} do
+    Rindle.Repo.update_all(
+      Ecto.Query.from(a in MediaAsset, where: a.id == ^asset.id),
+      set: [
+        duration_ms: 12_000,
+        has_video_track: true,
+        has_audio_track: true
+      ]
+    )
+
+    expect_download(:png)
+
+    assert :ok = perform_job(PromoteAsset, %{"asset_id" => asset.id})
+
+    updated = Rindle.Repo.get!(MediaAsset, asset.id)
+    assert updated.state == "available"
+    assert updated.kind == "image"
+    assert updated.width == 1
+    assert updated.height == 1
+    assert is_nil(updated.duration_ms)
+    assert is_nil(updated.has_video_track)
+    assert is_nil(updated.has_audio_track)
+  end
+
   defp expect_download(kind) do
     expect(Rindle.StorageMock, :download, fn _key, tmp_path, _opts ->
       write_fixture!(kind, tmp_path)

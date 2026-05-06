@@ -9,7 +9,7 @@ defmodule Rindle.Domain.VariantFSM do
     "stale" => ["queued", "purged"],
     "missing" => ["queued", "purged"],
     "failed" => ["queued", "purged"],
-    "cancelled" => [],
+    "cancelled" => ["queued"],
     "purged" => []
   }
 

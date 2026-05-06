@@ -1,17 +1,23 @@
+Code.require_file("support/generated_app_helper.ex", __DIR__)
+
 defmodule Rindle.InstallSmoke.DocsParityTest do
   use ExUnit.Case, async: true
 
   @readme_path Path.expand("../../README.md", __DIR__)
   @guide_path Path.expand("../../guides/getting_started.md", __DIR__)
+  @upgrade_path Path.expand("../../guides/upgrading.md", __DIR__)
   @troubleshooting_path Path.expand("../../guides/troubleshooting.md", __DIR__)
+  @release_path Path.expand("../../guides/release_publish.md", __DIR__)
   @running_path Path.expand("../../RUNNING.md", __DIR__)
 
   setup_all do
     {:ok,
-       %{
+     %{
        readme: File.read!(@readme_path),
        guide: File.read!(@guide_path),
+       upgrade: File.read!(@upgrade_path),
        troubleshooting: File.read!(@troubleshooting_path),
+       release: File.read!(@release_path),
        running: File.read!(@running_path)
      }}
   end
@@ -42,7 +48,7 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
     assert readme =~ "AV-enabled"
     assert readme =~ "installed artifact"
 
-      for snippet <- [
+    for snippet <- [
           "package-consumer proof matrix",
           "generated app",
           "built-artifact proof",
@@ -154,6 +160,31 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
     end
   end
 
+  test "upgrade guidance is discoverable without polluting the greenfield path", %{
+    readme: readme,
+    guide: guide,
+    upgrade: upgrade,
+    release: release
+  } do
+    assert readme =~ "guides/upgrading.md"
+    assert guide =~ "[`upgrading.md`](upgrading.md)"
+    assert release =~ "[`upgrading.md`](upgrading.md)"
+    assert upgrade =~ "[`getting_started.md`](getting_started.md)"
+    assert upgrade =~ "pre-v1.4"
+    assert String.downcase(upgrade) =~ "existing adopters"
+  end
+
+  test "upgrade guide mirrors the canonical generated-app proof sequence", %{upgrade: upgrade} do
+    steps = Rindle.InstallSmoke.GeneratedAppHelper.canonical_upgrade_step_sequence()
+
+    for step <- steps do
+      assert String.downcase(upgrade) =~ String.downcase(step.checkpoint)
+      assert upgrade =~ step.proof
+    end
+
+    assert_in_order!(upgrade, Enum.map(steps, & &1.checkpoint))
+  end
+
   test "running guide publishes the durable FFmpeg install matrix", %{running: running} do
     for snippet <- [
           "FFmpeg >= 6.0",
@@ -174,16 +205,59 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
     troubleshooting: troubleshooting
   } do
     assert troubleshooting =~ "mix rindle.doctor"
+    assert troubleshooting =~ "mix rindle.runtime_status"
     assert troubleshooting =~ "Rindle.Error.message/1"
     assert troubleshooting =~ "test/rindle/error_test.exs"
     assert troubleshooting =~ "`:ffmpeg_not_found`"
     assert troubleshooting =~ "`:range_unparseable`"
   end
 
+  test "operations and troubleshooting guides teach the phase 31 diagnostics split" do
+    operations = File.read!(Path.expand("../../guides/operations.md", __DIR__))
+    troubleshooting = File.read!(@troubleshooting_path)
+
+    assert operations =~ "mix rindle.doctor"
+    assert operations =~ "mix rindle.runtime_status"
+    assert operations =~ "doctor validates setup and drift"
+    assert operations =~ "runtime status reports degraded or stuck work"
+    assert operations =~ "repair verbs perform change"
+    assert operations =~ "no dashboard"
+    assert operations =~ "no auto-remediation"
+
+    assert troubleshooting =~ "mix rindle.doctor"
+    assert troubleshooting =~ "mix rindle.runtime_status"
+    assert troubleshooting =~ "doctor validates setup and drift"
+    assert troubleshooting =~ "runtime status reports degraded or stuck work"
+  end
+
   defp introductory_section(doc) do
     case Regex.split(~r/^##\s+/m, doc, parts: 2) do
       [intro] -> intro
       [intro, _rest] -> intro
+    end
+  end
+
+  defp assert_in_order!(doc, snippets) do
+    normalized_doc = String.downcase(doc)
+
+    {_last_index, _last_snippet} =
+      Enum.reduce(snippets, {-1, nil}, fn snippet, {last_index, _last_snippet} ->
+        index = string_index(normalized_doc, String.downcase(snippet))
+
+        assert index,
+               "expected snippet #{inspect(snippet)} to appear in order after index #{last_index}"
+
+        assert index > last_index,
+               "expected snippet #{inspect(snippet)} to appear after #{last_index}, got #{index}"
+
+        {index, snippet}
+      end)
+  end
+
+  defp string_index(doc, snippet) do
+    case :binary.match(doc, snippet) do
+      {index, _length} -> index
+      :nomatch -> nil
     end
   end
 end

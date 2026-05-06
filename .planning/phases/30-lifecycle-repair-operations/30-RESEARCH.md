@@ -412,15 +412,15 @@ This is the current proof that reprobe must explicitly clear non-applicable prob
 
 | # | Claim | Section | Risk if Wrong |
 |---|-------|---------|---------------|
-| A1 | The final public names will likely be a small asset-scoped pair such as `reprobe/1` plus a targeted requeue function, but the exact naming remains planner discretion. [ASSUMED] | Open Questions | Medium — docs, error text, and boundary tests would freeze the wrong public API names. |
+| A1 | The final public names should be a small asset-scoped pair: `Rindle.reprobe/1` for probe refresh and `Rindle.requeue_variants/2` for targeted failed/cancelled requeue. [RESOLVED] | Open Questions | Medium — docs, error text, and boundary tests would freeze the wrong public API names. |
 | A2 | New dedicated test files such as `test/rindle/repair_api_test.exs` or a dedicated repair-report contract test will probably be the cleanest Wave 0 additions, though equivalent coverage could also land in existing files. [ASSUMED] | Validation Architecture | Low — file naming can change without altering the underlying verification strategy. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **What exact public names should the two new asset-scoped repair APIs use?**
-   - What we know: the boundary is locked to asset scope, explicit naming, and no generic filter DSL. [VERIFIED: .planning/phases/30-lifecycle-repair-operations/30-CONTEXT.md]
-   - What's unclear: whether the facade should prefer `reprobe_asset/1` and `requeue_variants/2`, or shorter names such as `reprobe/1` and `repair_variants/2`. [ASSUMED]
-   - Recommendation: decide this in `30-01`/`30-02` before changing docs or error messages, and freeze the names in boundary tests immediately. [VERIFIED: test/rindle/api_surface_boundary_test.exs]
+   - Decision: use `Rindle.reprobe/1` for probe-field refresh and `Rindle.requeue_variants/2` for targeted failed/cancelled variant repair. [RESOLVED]
+   - Why: these names keep the verbs explicit, stay asset-scoped, and avoid implying a broad generic repair DSL. `reprobe/1` matches the locked naming guidance directly, while `requeue_variants/2` makes the enqueue-only behavior explicit and avoids overloading `repair`. [VERIFIED: .planning/phases/30-lifecycle-repair-operations/30-CONTEXT.md, test/rindle/api_surface_boundary_test.exs]
+   - Consequence: boundary tests, `Rindle.Error` messaging, docs, and plan files should freeze these names immediately so the operator surface does not drift. [VERIFIED: .planning/phases/30-lifecycle-repair-operations/30-02-PLAN.md]
 
 ## Environment Availability
 

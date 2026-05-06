@@ -2,6 +2,7 @@ defmodule Rindle.ErrorTest do
   use ExUnit.Case, async: true
 
   @troubleshooting_path Path.expand("../../guides/troubleshooting.md", __DIR__)
+  @operations_path Path.expand("../../guides/operations.md", __DIR__)
   @av_public_reasons [
     :processor_capability_missing,
     :ffmpeg_not_found,
@@ -82,7 +83,7 @@ defmodule Rindle.ErrorTest do
         exact("""
         Variant processing was cancelled.
 
-        This is expected when Rindle.cancel_processing/1 is called. The variant will not retry automatically; re-trigger it explicitly if needed.
+        This is expected when Rindle.cancel_processing/1 is called. The variant will not retry automatically; use `Rindle.requeue_variants/2` for asset-scoped repair if needed.
         """),
       range_unparseable:
         exact("""
@@ -107,6 +108,28 @@ defmodule Rindle.ErrorTest do
     for reason <- @av_public_reasons do
       assert troubleshooting =~ "`#{inspect(reason)}`"
     end
+  end
+
+  test "operations and troubleshooting guides teach the supported repair verbs explicitly" do
+    operations = File.read!(@operations_path)
+    troubleshooting = File.read!(@troubleshooting_path)
+
+    for guide <- [operations, troubleshooting] do
+      assert guide =~ "reprobe"
+      assert guide =~ "requeue"
+      assert guide =~ "regenerate"
+      assert guide =~ "cleanup"
+      assert guide =~ "sweep"
+    end
+
+    assert operations =~ "Rindle.reprobe/1"
+    assert operations =~ "Rindle.requeue_variants/2"
+    assert operations =~ "mix rindle.regenerate_variants"
+    assert operations =~ "mix rindle.cleanup_orphans"
+    assert operations =~ "mix rindle.sweep_orphaned_temp_files"
+
+    assert troubleshooting =~ "Rindle.reprobe/1"
+    assert troubleshooting =~ "Rindle.requeue_variants/2"
   end
 
   test "renders exact message for processor_capability_missing" do
@@ -272,7 +295,7 @@ defmodule Rindle.ErrorTest do
              exact("""
              Variant variant-123 processing was cancelled (reason: user_cancelled, at: 2026-05-02 14:23:11Z).
 
-             This is expected when Rindle.cancel_processing/1 is called. The variant will not retry; re-trigger with Rindle.regenerate_variant/2 if needed.
+             This is expected when Rindle.cancel_processing/1 is called. The variant will not retry; requeue the asset-scoped repair with Rindle.requeue_variants/2 if needed. Broad preset or profile drift stays on `mix rindle.regenerate_variants`.
              """)
   end
 

@@ -155,8 +155,12 @@ defmodule Rindle.Domain.LifecycleFSMTest do
       assert :ok == VariantFSM.transition("processing", "cancelled")
     end
 
-    test "cancelled is terminal — cannot leave" do
-      for target <- ~w(planned queued processing ready stale missing failed purged) do
+    test "cancelled -> queued is allowed for explicit asset-scoped resume" do
+      assert :ok == VariantFSM.transition("cancelled", "queued")
+    end
+
+    test "cancelled still rejects every other outbound edge" do
+      for target <- ~w(planned processing ready stale missing failed purged) do
         assert {:error, {:invalid_transition, "cancelled", ^target}} =
                  VariantFSM.transition("cancelled", target)
       end

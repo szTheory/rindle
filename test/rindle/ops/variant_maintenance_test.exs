@@ -130,6 +130,18 @@ defmodule Rindle.Ops.VariantMaintenanceTest do
       assert result.errors == 0
     end
 
+    test "does not treat failed variants as part of broad regeneration" do
+      asset = insert_asset()
+      _failed = insert_variant(asset, :thumb, "failed")
+
+      {:ok, result} = VariantMaintenance.regenerate_variants(%{variant_name: "thumb"})
+
+      assert result.enqueued == 0
+      assert result.skipped == 0
+      assert result.errors == 0
+      refute_enqueued(worker: ProcessVariant, args: %{"variant_name" => "thumb"})
+    end
+
     test "rejects unknown filter keys instead of silently ignoring them" do
       # WR-08: typo'd filter keys (`prof` instead of `profile`, `variant`
       # instead of `variant_name`) must surface as errors so a destructive

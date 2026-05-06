@@ -1,9 +1,13 @@
 defmodule Mix.Tasks.Rindle.RegenerateVariants do
-  @shortdoc "Requeue stale or missing variants for regeneration"
+  @shortdoc "Broadly requeue stale or missing variants for regeneration"
 
   @moduledoc """
-  Enqueues `ProcessVariant` Oban jobs for all stale or missing variants,
-  optionally filtered by profile module or variant name.
+  Enqueues `ProcessVariant` Oban jobs for broad stale/missing variant
+  regeneration, optionally filtered by profile module or variant name.
+
+  This is the explicit maintenance lane for preset/profile drift and
+  storage-verified missing derivatives. It is intentionally Mix-task-first and
+  is not a single-asset public repair facade.
 
   ## Usage
 
@@ -25,8 +29,9 @@ defmodule Mix.Tasks.Rindle.RegenerateVariants do
   ## Targeting rules
 
   Only variants in `stale` or `missing` states are eligible for re-enqueueing.
-  Variants that are `queued`, `processing`, or `ready` are counted as skipped
-  and will not generate duplicate Oban jobs.
+  Variants in `queued`, `processing`, `ready`, `failed`, or `cancelled` states
+  are not part of this broad maintenance lane and will not generate duplicate
+  Oban jobs.
 
   The `stale` state means the variant's `recipe_digest` no longer matches the
   profile's current recipe — the variant was generated from an outdated
@@ -37,7 +42,7 @@ defmodule Mix.Tasks.Rindle.RegenerateVariants do
 
   The task emits a deterministic summary:
 
-      Rindle: scanning for stale/missing variants...
+      Rindle: broad regeneration scan for stale/missing variants...
         enqueued: 12
         skipped:  3
         errors:   0
@@ -57,7 +62,9 @@ defmodule Mix.Tasks.Rindle.RegenerateVariants do
       # Requeue only stale/missing variants for a specific profile
       mix rindle.regenerate_variants --profile Elixir.MyApp.ImageProfile
 
-  The task reports the number of enqueued and skipped variants on completion.
+  Use asset-scoped repair surfaces for one-off failed/cancelled recovery. Use
+  this task when you need auditable broad maintenance after recipe drift or
+  after `mix rindle.verify_storage` has marked variants as `missing`.
   """
 
   use Mix.Task
@@ -78,7 +85,7 @@ defmodule Mix.Tasks.Rindle.RegenerateVariants do
       |> maybe_put(:profile, Keyword.get(opts, :profile))
       |> maybe_put(:variant_name, Keyword.get(opts, :variant))
 
-    Mix.shell().info("Rindle: scanning for stale/missing variants...")
+    Mix.shell().info("Rindle: broad regeneration scan for stale/missing variants...")
 
     case VariantMaintenance.regenerate_variants(filters) do
       {:ok, %{enqueued: enqueued, skipped: skipped, errors: errors}} ->

@@ -15,6 +15,8 @@ Phase 29 package-consumer proof matrix. That matrix exercises a generated
 Phoenix app from installed artifacts in two lanes: image-only and AV-enabled.
 The built-artifact proof runs before publish, and the published-artifact proof
 reuses the same generated-app posture against the released Hex package.
+If you are upgrading an existing adopter from the pre-v1.4 image-only shape,
+stop here and use the dedicated runbook in [`upgrading.md`](upgrading.md).
 
 ## 1. Add Dependencies
 
@@ -233,6 +235,7 @@ The proof matrix keeps this guide disciplined:
 - built-artifact proof validates the generated app before publish
 - published-artifact proof re-runs the same generated-app posture against a
   released Hex version
+- existing-adopter upgrade procedure lives in [`upgrading.md`](upgrading.md)
 - maintainer-only release orchestration stays in
   [`release_publish.md`](release_publish.md), not here
 

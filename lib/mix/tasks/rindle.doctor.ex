@@ -22,6 +22,8 @@ defmodule Mix.Tasks.Rindle.Doctor do
 
   use Mix.Task
 
+  alias Rindle.Ops.RuntimeChecks
+
   @impl Mix.Task
   def run(args) do
     run_checks(args)
@@ -30,116 +32,42 @@ defmodule Mix.Tasks.Rindle.Doctor do
   @doc false
   def run_checks(args, opts \\ []) do
     shell = Keyword.get(opts, :shell, Mix.shell())
-    probe = Keyword.get(opts, :probe, fn -> Rindle.AV.Probe.check_ffmpeg!() end)
-    env = Keyword.get(opts, :env, System.get_env())
+    mix_app = Keyword.get(opts, :mix_app, Mix.Project.config()[:app])
+    exit_on_failure? = Keyword.get(opts, :exit_on_failure?, true)
 
     shell.info("Rindle: running environment checks...")
 
-    try do
-      probe.()
-      shell.info("  FFmpeg: OK")
-
+    report =
       args
-      |> resolve_profiles!()
-      |> Enum.each(&check_profile!(&1, shell, env))
+      |> RuntimeChecks.run(Keyword.put(opts, :mix_app, mix_app))
+      |> emit_report(shell)
 
-      shell.info("Rindle: Environment checks passed.")
-      :ok
-    rescue
-      e in RuntimeError ->
-        fail!(shell, e.message)
+    if exit_on_failure? and not report.success? do
+      raise Mix.Error, message: "Rindle.Doctor failed: #{report.failed} check(s) failed"
     end
+
+    report
   end
 
-  defp resolve_profiles!(args) do
-    Enum.map(args, fn arg ->
-      module = module_from_string(arg)
+  defp emit_report(report, shell) do
+    Enum.each(report.checks, &emit_check(shell, &1))
 
-      ensure_profile_loaded(module, arg)
-
-      if Code.ensure_loaded?(module) and function_exported?(module, :__rindle_profile__, 0) and
-           function_exported?(module, :variants, 0) do
-        module
-      else
-        raise "unknown profile module #{arg}. Pass a loaded Rindle profile module like Rindle.Adopter.CanonicalApp.VideoProfile."
-      end
-    end)
-  end
-
-  defp check_profile!(module, shell, env) do
-    variants =
-      module.variants()
-      |> Enum.filter(fn {_name, spec} -> av_variant?(spec) end)
-
-    Enum.each(variants, fn {name, spec} ->
-      normalized =
-        case Rindle.Processor.AV.normalize(spec) do
-          {:ok, value} -> value
-          {:error, reason} -> raise "profile #{inspect(module)} variant #{inspect(name)} is invalid: #{inspect(reason)}"
-        end
-
-      case Rindle.Processor.AV.RuntimeGuard.check!(normalized, env: env) do
-        :ok -> :ok
-        {:error, reason} -> raise "profile #{inspect(module)} variant #{inspect(name)} failed runtime checks: #{inspect(reason)}"
-      end
-
-      capability = required_capability(normalized)
-
-      unless capability in Rindle.Processor.AV.capabilities() do
-        raise "profile #{inspect(module)} variant #{inspect(name)} requires unsupported processor capability #{inspect(capability)}"
-      end
-    end)
-
-    shell.info("  Profile #{inspect(module)}: OK (variants checked: #{length(variants)})")
-  end
-
-  defp required_capability(%{kind: :video, output_kind: :video}), do: :video_transcode
-  defp required_capability(%{kind: :audio, output_kind: :audio}), do: :audio_transcode
-  defp required_capability(%{kind: :waveform, output_kind: :waveform}), do: :audio_waveform
-  defp required_capability(%{preset: :video_thumbnail_strip}), do: :video_thumbnail_strip
-  defp required_capability(%{kind: :image, output_kind: :image}), do: :video_frame_extract
-
-  defp av_variant?(spec) when is_list(spec), do: spec |> Map.new() |> av_variant?()
-  defp av_variant?(%{kind: kind}) when kind in [:video, :audio, :waveform], do: true
-
-  defp av_variant?(%{preset: preset})
-       when preset in [:video_poster_scene, :video_thumbnail_strip],
-       do: true
-
-  defp av_variant?(_spec), do: false
-
-  defp module_from_string(name) do
-    name
-    |> String.split(".")
-    |> Module.concat()
-  end
-
-  defp ensure_profile_loaded(module, module_name) do
-    if Code.ensure_loaded?(module) do
-      :ok
+    if report.success? do
+      shell.info("Rindle: Environment checks passed (#{report.total} checks).")
     else
-      case source_path_for_module(module_name) do
-        nil ->
-          :ok
-
-        path ->
-          Code.compile_file(path)
-          :ok
-      end
+      shell.info(
+        "Rindle: Environment checks failed (#{report.failed}/#{report.total} checks failed)."
+      )
     end
+
+    report
   end
 
-  defp source_path_for_module(module_name) do
-    ["lib", "test/support", "test/adopter"]
-    |> Enum.flat_map(&Path.wildcard(Path.join(&1, "**/*.ex")))
-    |> Enum.find(fn path ->
-      File.read!(path) =~ "defmodule #{module_name} do"
-    end)
-  end
+  defp emit_check(shell, %{status: status, id: id, component: component, summary: summary, fix: fix}) do
+    shell.info("[#{String.upcase(to_string(status))}] #{id} (#{component}) #{summary}")
 
-  defp fail!(shell, message) do
-    formatted = "Rindle.Doctor failed: #{message}"
-    shell.error(formatted)
-    raise Mix.Error, message: formatted
+    if status == :error do
+      shell.info("  Fix: #{fix}")
+    end
   end
 end

@@ -58,6 +58,29 @@ defmodule Rindle.Workers.ProcessVariant do
   end
 
   @doc false
+  @spec build_job(Ecto.UUID.t(), String.t(), map() | keyword()) :: Ecto.Changeset.t()
+  def build_job(asset_id, variant_name, variant_spec) do
+    job_args_for_variant(asset_id, variant_name, variant_spec)
+    |> new(job_opts_for_variant(variant_spec))
+  end
+
+  @doc false
+  @spec image_queue() :: atom()
+  def image_queue, do: :rindle_process
+
+  @doc false
+  @spec av_queue() :: atom()
+  def av_queue, do: @av_queue
+
+  @doc false
+  @spec av_timeout_ms() :: pos_integer()
+  def av_timeout_ms, do: @av_timeout_ms
+
+  @doc false
+  @spec active_job_states() :: [atom()]
+  def active_job_states, do: @unique_states
+
+  @doc false
   @spec cancel_processing(Ecto.UUID.t()) :: :ok | {:error, :not_processing}
   def cancel_processing(asset_id) when is_binary(asset_id) do
     repo = Config.repo()

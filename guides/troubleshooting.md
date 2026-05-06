@@ -8,6 +8,39 @@ typically a Mix task that automates the recovery.
 For the full state diagrams, see [Core Concepts](core_concepts.html). For
 the day-2 task reference, see [Operations](operations.html).
 
+## Diagnostics Split
+
+Start with the read-only surfaces first:
+
+- `mix rindle.doctor` validates setup and drift.
+- `mix rindle.runtime_status` reports degraded or stuck work.
+- The repair verbs perform change only after diagnostics identify the right lane.
+
+In short: doctor validates setup and drift, runtime status reports degraded or stuck work, and repair verbs perform change.
+
+The contract intentionally has no dashboard and no auto-remediation layer in
+this release.
+
+For upgrade troubleshooting, keep the same order: explicit migrations,
+`mix rindle.doctor`, optional `mix rindle.runtime_status`, then the repair verb
+that matches the actual state.
+
+## Supported Recovery Verbs
+
+Phase 30 makes the recovery lanes explicit:
+
+- `reprobe` — `Rindle.reprobe/1` for probe-derived field drift on one asset
+- `requeue` — `Rindle.requeue_variants/2` for failed or cancelled variants on
+  one asset
+- `regenerate` — `mix rindle.regenerate_variants` for broad `stale` or
+  `missing` derivative drift
+- `cleanup` — `mix rindle.cleanup_orphans` after
+  `mix rindle.abort_incomplete_uploads` for expired upload residue
+- `sweep` — `mix rindle.sweep_orphaned_temp_files` for AV temp-run-dir residue
+
+Use the same verb vocabulary here that the operations guide teaches. If one of
+these verbs applies, prefer it over direct DB row mutation.
+
 ## AV Error Contract
 
 Rindle v1.4 freezes eight AV-facing error reasons as a public operator
@@ -30,11 +63,11 @@ guide as the recovery map, not a second wording authority.
 | ------ | --------------------- | ------------------- |
 | `:processor_capability_missing` | The configured processor cannot satisfy a declared AV variant. | Run `mix rindle.doctor` and compare the profile's variants to the processor capability list. |
 | `:ffmpeg_not_found` | FFmpeg is missing from PATH or not configured at `:ffmpeg_path`. | Install FFmpeg, then re-run `mix rindle.doctor`. |
-| `:capability_drift` | A storage or processor capability disappeared after the profile was already in use. | Re-check runtime configuration, then reconcile any in-flight work before retrying. |
+| `:capability_drift` | A storage or processor capability disappeared after the profile was already in use. | Re-check runtime configuration, then use the supported `cleanup`, `requeue`, or `regenerate` lane that matches the affected work before retrying. |
 | `:variant_source_not_found` | Variant processing could not download the original media from storage. | Confirm the original object still exists and that the adapter can read it. |
 | `:unsupported_codec` | The declared codec is not available in the current FFmpeg build or processor allowlist. | Inspect `ffmpeg -codecs` and compare it to the variant recipe. |
 | `:streaming_not_configured` | A caller asked for streaming playback without a configured streaming provider. | Fall back to progressive delivery with `Rindle.Delivery.url/3`. |
-| `:variant_processing_cancelled` | An in-flight transcode was intentionally cancelled. | Verify whether `Rindle.cancel_processing/1` was invoked, then re-trigger only if the work should resume. |
+| `:variant_processing_cancelled` | An in-flight transcode was intentionally cancelled. | Verify whether `Rindle.cancel_processing/1` was invoked, then use `Rindle.requeue_variants/2` if the asset should resume work. |
 | `:range_unparseable` | A malformed HTTP `Range` header reached the local streaming surface. | Fix the caller/header generator or enable strict parsing if your app wants hard failures. |
 
 The common FFmpeg- and capability-related recovery path is still
@@ -65,7 +98,8 @@ this string.
    should not host. Run a deletion through `Rindle.delete/3` (which
    transitions to `deleted` and enqueues `PurgeStorage`).
 2. **False positive — un-quarantine manually**: There is no public API
-   for this because it should be rare and audited. Direct DB update:
+   for this because it should be rare and audited. Manual DB update remains
+   the exception path here:
 
    ```elixir
    asset
@@ -79,8 +113,9 @@ this string.
    verify the verdict before any reversal.
 
 The `quarantined` → `deleted` transition is allowed; `quarantined` →
-`available` is **not** allowed by the FSM (you must update the row
-directly to recover from a false positive).
+`available` is **not** allowed by the FSM. This is one of the narrow cases
+where the supported Phase 30 verbs do not apply and a documented manual update
+is still required.
 
 ## Failed Variants
 
@@ -104,17 +139,23 @@ attempts on the internal variant-processing worker). The Oban job is in the
 
 **Recovery options:**
 
-| Cause                          | Action                                                                  |
-| ------------------------------ | ----------------------------------------------------------------------- |
-| Transient (network, storage)   | `mix rindle.regenerate_variants --variant <name>` re-enqueues          |
-| Recipe bug (now fixed)         | Update the profile, then `mix rindle.regenerate_variants`              |
-| Corrupt source                 | Fix the source bytes, then re-enqueue (or accept the variant as lost) |
-| OOM / resource exhaustion      | Reduce `rindle_process` concurrency or move to a larger node           |
+| Cause | Action |
+| ----- | ------ |
+| Transient (network, storage) | `Rindle.requeue_variants/2` for the affected asset (`requeue`) |
+| Intentional cancellation that should be resumed | `Rindle.requeue_variants/2` for the affected asset (`requeue`) |
+| Recipe bug fixed for many assets | Update the profile, then `mix rindle.regenerate_variants` (`regenerate`) |
+| Corrupt source repaired for one asset | Fix the source bytes, then `Rindle.requeue_variants/2` (`requeue`) |
+| OOM / resource exhaustion | Reduce `rindle_process` concurrency or move to a larger node before retrying with `requeue` or `regenerate` |
 
-The variant FSM allows `failed → queued`, so re-enqueueing is always a
-valid transition. If the underlying issue persists, the variant will
-flip back to `failed` after another 5 attempts; investigate further
-rather than re-enqueuing in a loop.
+The supported split is intentional: `requeue` is asset-scoped repair for
+failed/cancelled work, while `regenerate` remains the broad maintenance lane
+for `stale`/`missing` drift. If the underlying issue persists, the variant will
+flip back to `failed` after another 5 attempts; investigate further rather than
+re-enqueuing in a loop.
+
+That same split applies to upgraded adopters: use `Rindle.requeue_variants/2`
+for one failed or cancelled upgraded asset, and keep `mix
+rindle.regenerate_variants` for broader drift only.
 
 ## Stale Variants
 
@@ -130,7 +171,7 @@ a variant URL, it compares the stored digest to the current profile
 digest, and if they differ, transitions the variant to `stale`. So
 "stale" is observable as soon as you change a profile.
 
-**Recovery:** `mix rindle.regenerate_variants` walks all stale
+**Recovery:** `mix rindle.regenerate_variants` (`regenerate`) walks all stale
 variants and re-enqueues them. Filter by profile or variant name if
 you only want to regenerate a subset:
 
@@ -174,7 +215,7 @@ Rindle: verifying storage for variants...
 Done.
 ```
 
-**Recovery:** `mix rindle.regenerate_variants` re-enqueues missing
+**Recovery:** `mix rindle.regenerate_variants` (`regenerate`) re-enqueues missing
 variants the same way it does stale ones. The processor downloads
 the original (which must still be present) and re-derives the
 variant.
@@ -204,6 +245,35 @@ transitions out of `expired`. The flow is:
    sessions to `expired`.
 2. `mix rindle.cleanup_orphans` removes `expired` sessions and any
    staged storage objects they reference.
+
+This is the supported `cleanup` lane. Do not remove expired upload-session rows
+manually unless the cleanup workflow itself is broken and you have preserved an
+audit trail.
+
+## Probe Drift
+
+**Symptom:** An asset's source object is still authoritative, but the stored
+probe-derived fields are stale or were persisted before improved detection
+landed.
+
+**Recovery:** Use `Rindle.reprobe/1` (`reprobe`) for that asset. This refreshes
+probe-owned fields such as MIME, kind, dimensions, duration, and track booleans
+without mutating unrelated lifecycle state, variants, or upload sessions.
+
+If the problem is analyzer metadata rather than probe facts, stay on
+`mix rindle.backfill_metadata`; `reprobe` is not a metadata backfill surrogate.
+
+## AV Temp Residue
+
+**Symptom:** AV processing left abandoned directories under `Rindle.tmp/`.
+
+**Recovery:** Use `mix rindle.sweep_orphaned_temp_files` (`sweep`). Start in
+dry-run, confirm the counts, then opt into live deletion with `--no-dry-run`
+or a cron job configured with `"dry_run" => false` if you want destructive
+execution.
+
+This is separate from upload-session `cleanup`: temp sweeping targets local
+transcoding residue, not staged upload objects or upload-session rows.
 
 If the user wants to retry their upload, they must call
 `Broker.initiate_session/2` to start a new session. There is no

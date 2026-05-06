@@ -6,6 +6,7 @@ defmodule Rindle.Workers.MaintenanceWorkersTest do
   alias Ecto.Adapters.SQL.Sandbox
   alias Rindle.Adopter.CanonicalApp.Repo, as: AdopterRepo
   alias Rindle.Domain.{MediaAsset, MediaUploadSession}
+  alias Rindle.Ops.SweepOrphanedTempFiles
   alias Rindle.Workers.AbortIncompleteUploads
   alias Rindle.Workers.CleanupOrphans
 
@@ -117,6 +118,21 @@ defmodule Rindle.Workers.MaintenanceWorkersTest do
 
   defp expired_at, do: DateTime.add(DateTime.utc_now(), -100, :second)
 
+  defp build_temp_run_dir!(root_dir, name, age_sec) do
+    run_dir = Path.join(root_dir, name)
+    nested = Path.join(run_dir, "nested")
+    now = System.system_time(:second)
+
+    File.mkdir_p!(nested)
+    File.write!(Path.join(run_dir, "source.mp4"), "source")
+    File.write!(Path.join(nested, "artifact.mp4"), "artifact")
+    File.touch!(run_dir, now - age_sec)
+    File.touch!(nested, now - age_sec)
+    File.touch!(Path.join(run_dir, "source.mp4"), now - age_sec)
+    File.touch!(Path.join(nested, "artifact.mp4"), now - age_sec)
+    run_dir
+  end
+
   # ---------------------------------------------------------------------------
   # CleanupOrphans worker — delegation
   # ---------------------------------------------------------------------------
@@ -186,6 +202,62 @@ defmodule Rindle.Workers.MaintenanceWorkersTest do
 
       # No storage.delete expected — default should be dry_run: true
       assert :ok = perform_job(CleanupOrphans, %{})
+    end
+  end
+
+  describe "SweepOrphanedTempFiles — scheduled maintenance parity" do
+    setup do
+      tmp_dir =
+        Path.join(
+          System.tmp_dir!(),
+          "rindle-maintenance-sweep-#{System.unique_integer([:positive])}"
+        )
+
+      File.mkdir_p!(tmp_dir)
+
+      previous_tmp_dir = Application.get_env(:rindle, :tmp_dir)
+      Application.put_env(:rindle, :tmp_dir, tmp_dir)
+
+      on_exit(fn ->
+        if is_nil(previous_tmp_dir) do
+          Application.delete_env(:rindle, :tmp_dir)
+        else
+          Application.put_env(:rindle, :tmp_dir, previous_tmp_dir)
+        end
+
+        File.rm_rf(tmp_dir)
+      end)
+
+      {:ok, sweep_root: Path.join(tmp_dir, "Rindle.tmp")}
+    end
+
+    test "worker is schedulable on the maintenance queue" do
+      opts = SweepOrphanedTempFiles.__opts__()
+      assert Keyword.get(opts, :queue) == :rindle_maintenance
+      assert Keyword.get(opts, :max_attempts) >= 1
+    end
+
+    test "worker defaults to dry-run for scheduled previews", %{sweep_root: sweep_root} do
+      run_dir = build_temp_run_dir!(sweep_root, "scheduled-default-dry-run", 5 * 3600)
+
+      assert :ok =
+               perform_job(SweepOrphanedTempFiles, %{
+                 "threshold_sec" => 4 * 3600
+               })
+
+      assert File.exists?(run_dir)
+    end
+
+    test "worker performs live deletion only with explicit opt-in", %{sweep_root: sweep_root} do
+      run_dir = build_temp_run_dir!(sweep_root, "scheduled-live-run", 5 * 3600)
+
+      assert :ok =
+               perform_job(SweepOrphanedTempFiles, %{
+                 "dry_run" => false,
+                 "threshold_sec" => 4 * 3600
+               })
+
+      refute File.exists?(run_dir)
     end
   end
 

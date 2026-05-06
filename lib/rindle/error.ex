@@ -228,7 +228,7 @@ defmodule Rindle.Error do
     """
     Variant #{variant_id} processing was cancelled (reason: #{reason}, at: #{cancelled_at}).
 
-    This is expected when Rindle.cancel_processing/1 is called. The variant will not retry; re-trigger with Rindle.regenerate_variant/2 if needed.
+    This is expected when Rindle.cancel_processing/1 is called. The variant will not retry; requeue the asset-scoped repair with Rindle.requeue_variants/2 if needed. Broad preset or profile drift stays on `mix rindle.regenerate_variants`.
     """
     |> String.trim()
   end
@@ -237,7 +237,7 @@ defmodule Rindle.Error do
     """
     Variant processing was cancelled.
 
-    This is expected when Rindle.cancel_processing/1 is called. The variant will not retry automatically; re-trigger it explicitly if needed.
+    This is expected when Rindle.cancel_processing/1 is called. The variant will not retry automatically; use `Rindle.requeue_variants/2` for asset-scoped repair if needed.
     """
     |> String.trim()
   end

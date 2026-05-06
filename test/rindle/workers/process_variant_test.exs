@@ -282,6 +282,67 @@ defmodule Rindle.Workers.ProcessVariantTest do
     assert second_job.conflict?
   end
 
+  test "build_job/3 reuses the shared args and uniqueness contract" do
+    job =
+      ProcessVariant.build_job("asset-1", "thumb", %{mode: :crop, width: 10, height: 10})
+
+    assert job.changes.args == %{"asset_id" => "asset-1", "variant_name" => "thumb"}
+    assert job.changes.queue == "rindle_process"
+
+    assert job.changes.unique == %{
+             fields: [:args, :worker, :queue],
+             keys: [:asset_id, :variant_name],
+             period: :infinity,
+             states: [:available, :scheduled, :executing, :retryable],
+             timestamp: :inserted_at
+           }
+  end
+
+  test "processes an explicitly resumed cancelled variant through the queued transition", %{
+    asset: asset,
+    variant: variant,
+    tmp_dir: tmp_dir
+  } do
+    cancelled_variant =
+      variant
+      |> MediaVariant.changeset(%{
+        state: "cancelled",
+        error_reason: inspect(:variant_processing_cancelled)
+      })
+      |> Rindle.Repo.update!()
+
+    expect(Rindle.StorageMock, :download, fn _key, tmp_path, _opts ->
+      File.write!(
+        tmp_path,
+        <<0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D, 0x49, 0x48,
+          0x44, 0x52, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x08, 0x02, 0x00, 0x00,
+          0x00, 0x90, 0x77, 0x53, 0xDE, 0x00, 0x00, 0x00, 0x0C, 0x49, 0x44, 0x41, 0x54, 0x08,
+          0xD7, 0x63, 0xF8, 0xFF, 0xFF, 0x3F, 0x00, 0x05, 0xFE, 0x02, 0xFE, 0xDC, 0x44, 0x74,
+          0x06, 0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82>>
+      )
+
+      {:ok, tmp_path}
+    end)
+
+    expect(Rindle.StorageMock, :store, fn key, _path, _opts ->
+      assert key =~ asset.id
+      assert key =~ "thumb"
+      assert key =~ cancelled_variant.recipe_digest
+      {:ok, %{key: key}}
+    end)
+
+    assert :ok = perform_job(ProcessVariant, %{"asset_id" => asset.id, "variant_name" => "thumb"})
+
+    variant = Rindle.Repo.get!(MediaVariant, cancelled_variant.id)
+    asset = Rindle.Repo.get!(MediaAsset, asset.id)
+
+    assert variant.state == "ready"
+    assert variant.storage_key =~ asset.id
+    assert variant.error_reason == nil
+    assert asset.state == "ready"
+    assert run_temp_entries(tmp_dir) == []
+  end
+
   test "fails AV variants before processing on unsupported ephemeral runtimes", %{
     tmp_dir: tmp_dir
   } do

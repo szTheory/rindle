@@ -1,6 +1,9 @@
 defmodule Rindle.Ops.SweepOrphanedTempFiles do
   @moduledoc """
   Dedicated recursive sweeper for `Rindle.tmp/` AV run directories.
+
+  This module is the shared service contract for the direct Elixir call,
+  the on-demand Mix task, and the scheduled Oban worker lane.
   """
 
   use Oban.Worker, queue: :rindle_maintenance, max_attempts: 3
@@ -21,7 +24,7 @@ defmodule Rindle.Ops.SweepOrphanedTempFiles do
   @spec perform(Oban.Job.t()) :: :ok
   def perform(%Oban.Job{args: args}) do
     threshold_sec = Map.get(args, "threshold_sec", @default_threshold_sec)
-    dry_run? = Map.get(args, "dry_run", false)
+    dry_run? = Map.get(args, "dry_run", true)
     report = sweep(threshold_sec: threshold_sec, dry_run: dry_run?)
 
     Logger.info("rindle.ops.sweep_orphaned_temp_files.completed",
@@ -51,7 +54,7 @@ defmodule Rindle.Ops.SweepOrphanedTempFiles do
   def sweep(opts \\ []) do
     root = Keyword.get(opts, :dir, TempRunDir.root_dir())
     threshold_sec = Keyword.get(opts, :threshold_sec, @default_threshold_sec)
-    dry_run? = Keyword.get(opts, :dry_run, false)
+    dry_run? = Keyword.get(opts, :dry_run, true)
     threshold_time = System.system_time(:second) - threshold_sec
 
     base = %{run_dirs_scanned: 0, orphan_count: 0, run_dirs_deleted: 0, errors: 0}

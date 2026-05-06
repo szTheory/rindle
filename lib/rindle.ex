@@ -5,6 +5,7 @@ defmodule Rindle do
   alias Rindle.Domain.MediaUploadSession
   alias Rindle.Error
   alias Rindle.Internal.VariantFailureLogger
+  alias Rindle.Ops.LifecycleRepair
   alias Rindle.Security.UploadValidation
   alias Rindle.Upload.Broker
   alias Rindle.Workers.PromoteAsset
@@ -421,6 +422,82 @@ defmodule Rindle do
     asset_or_id
     |> get_asset_id()
     |> Rindle.Workers.ProcessVariant.cancel_processing()
+  end
+
+  @doc """
+  Reruns probe detection for an asset and persists only probe-derived fields.
+
+  Accepts either a `%MediaAsset{}` struct or a binary asset id. Reprobe is
+  asset-scoped and refreshes only `content_type`, `kind`, `width`, `height`,
+  `duration_ms`, `has_video_track`, and `has_audio_track`; fields that no
+  longer apply are cleared explicitly, while unrelated lifecycle state and
+  ownership data stay untouched.
+
+  Returns `{:ok, report}` on a completed probe refresh and `{:error, reason}`
+  when the run could not be completed.
+
+  ## Examples
+
+      iex> {:ok, report} = Rindle.reprobe(asset_id)
+      iex> report.kind
+      "image"
+
+  """
+  @spec reprobe(MediaAsset.t() | binary()) ::
+          {:ok, LifecycleRepair.reprobe_report()} | {:error, term()}
+  def reprobe(asset_or_id) do
+    LifecycleRepair.reprobe_asset(asset_or_id)
+  end
+
+  @doc """
+  Requeues failed or cancelled variants for a single asset.
+
+  Accepts either a `%MediaAsset{}` struct or a binary asset id. By default,
+  only this asset's variants currently in `failed` or `cancelled` state are
+  targeted. Pass `variant_names: [...]` to narrow the repair to explicit
+  variant names; unknown names fail loudly, and already-ready siblings stay
+  untouched.
+
+  Returns `{:ok, report}` after the enqueue attempt finishes, including
+  deterministic counters for selected, enqueued, skipped, and errored
+  variants. Equivalent in-flight jobs are counted as skipped through Oban
+  uniqueness rather than double-enqueued.
+
+  ## Examples
+
+      iex> {:ok, report} = Rindle.requeue_variants(asset_id)
+      iex> report.enqueued
+      1
+
+      iex> {:ok, report} = Rindle.requeue_variants(asset_id, variant_names: ["thumb"])
+      iex> report.selected
+      1
+
+  """
+  @spec requeue_variants(MediaAsset.t() | binary(), keyword() | map()) ::
+          {:ok, LifecycleRepair.requeue_report()} | {:error, term()}
+  def requeue_variants(asset_or_id, opts \\ []) do
+    LifecycleRepair.requeue_failed_variants(asset_or_id, opts)
+  end
+
+  @doc """
+  Returns a bounded runtime diagnostics report for operators.
+
+  The report is read-only and groups lifecycle drift, stuck work, and upload
+  residue into a stable map shape with counts, oldest age, and bounded
+  examples. Supported filters are intentionally narrow: `:profile`,
+  `:older_than`, `:limit`, and `:format`.
+
+  ## Examples
+
+      iex> {:ok, report} = Rindle.runtime_status(limit: 3)
+      iex> is_map(report.variants)
+      true
+
+  """
+  @spec runtime_status(keyword() | map()) :: {:ok, map()} | {:error, term()}
+  def runtime_status(opts \\ []) do
+    Rindle.Ops.RuntimeStatus.runtime_status(opts)
   end
 
   defp get_asset_id(%MediaAsset{id: id}), do: id

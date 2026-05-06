@@ -7,6 +7,7 @@ defmodule Rindle.Contracts.TelemetryContractTest do
   alias Rindle.Domain.AssetFSM
   alias Rindle.Domain.{MediaAsset, MediaVariant, VariantFSM}
   alias Rindle.Delivery.LocalPlug
+  alias Rindle.Ops.RuntimeChecks
   alias Rindle.Workers.ProcessVariant
 
   @moduledoc """
@@ -73,6 +74,11 @@ defmodule Rindle.Contracts.TelemetryContractTest do
     [:rindle, :delivery, :streaming, :resolved],
     [:rindle, :delivery, :range_request],
     [:rindle, :cleanup, :run],
+    [:rindle, :repair, :start],
+    [:rindle, :repair, :stop],
+    [:rindle, :repair, :exception],
+    [:rindle, :runtime, :refusal],
+    [:rindle, :runtime, :check, :stop],
     [:rindle, :media, :transcode, :start],
     [:rindle, :media, :transcode, :stop],
     [:rindle, :media, :transcode, :exception]
@@ -87,7 +93,7 @@ defmodule Rindle.Contracts.TelemetryContractTest do
 
   describe "public event allowlist" do
     test "is exactly the documented public contract" do
-      assert length(@public_events) == 11
+      assert length(@public_events) == 16
 
       for event <- @public_events do
         assert is_list(event)
@@ -107,6 +113,91 @@ defmodule Rindle.Contracts.TelemetryContractTest do
       for event_name <- Enum.map(@public_events, &format_event_name/1) do
         assert guide =~ event_name
       end
+    end
+
+    test "asset-scoped repair flows emit the additive repair telemetry family", %{ref: ref} do
+      asset =
+        %MediaAsset{}
+        |> MediaAsset.changeset(%{
+          state: "degraded",
+          profile: to_string(LocalContractProfile),
+          kind: "image",
+          content_type: "image/png",
+          storage_key: "repair/source.png"
+        })
+        |> Rindle.Repo.insert!()
+
+      _variant =
+        %MediaVariant{}
+        |> MediaVariant.changeset(%{
+          asset_id: asset.id,
+          name: "thumb",
+          state: "failed",
+          recipe_digest: LocalContractProfile.recipe_digest(:thumb),
+          output_kind: "image"
+        })
+        |> Rindle.Repo.insert!()
+
+      assert {:ok, _report} = Rindle.requeue_variants(asset.id)
+
+      assert_received {[:rindle, :repair, :start], ^ref, start_measurements, start_metadata}
+      assert_received {[:rindle, :repair, :stop], ^ref, stop_measurements, stop_metadata}
+
+      assert_numeric_measurements(start_measurements)
+      assert_numeric_measurements(stop_measurements)
+      assert start_metadata == %{operation: :requeue, scope: :asset, result: :started, dry_run: false}
+      assert stop_metadata.operation == :requeue
+      assert stop_metadata.scope == :asset
+      assert stop_metadata.result == :ok
+      assert stop_metadata.dry_run == false
+      assert stop_measurements.enqueued == 1
+    end
+
+    test "repair exception telemetry stays low-cardinality", %{ref: ref} do
+      assert_raise FunctionClauseError, fn ->
+        Rindle.reprobe(123)
+      end
+
+      assert_received {[:rindle, :repair, :start], ^ref, start_measurements, start_metadata}
+      assert_received {[:rindle, :repair, :exception], ^ref, exception_measurements, exception_metadata}
+
+      assert_numeric_measurements(start_measurements)
+      assert_numeric_measurements(exception_measurements)
+      assert start_metadata == %{operation: :reprobe, scope: :asset, result: :started, dry_run: false}
+      assert exception_metadata == %{operation: :reprobe, scope: :asset, result: :exception, dry_run: false}
+    end
+
+    test "runtime_status invalid filters emit runtime refusal telemetry", %{ref: ref} do
+      assert {:error, {:unknown_filters, [:unknown]}} = Rindle.runtime_status(%{unknown: true})
+
+      assert_received {[:rindle, :runtime, :refusal], ^ref, measurements, metadata}
+      assert_numeric_measurements(measurements)
+      assert metadata == %{surface: :runtime_status, reason: :unknown_filters, mode: :api}
+    end
+
+    test "doctor check runner emits runtime check stop telemetry", %{ref: ref} do
+      _report =
+        RuntimeChecks.run([],
+          probe: fn -> :ok end,
+          env: %{},
+          profiles: [],
+          oban_config: [
+            repo: Rindle.Repo,
+            queues: [
+              rindle_promote: 1,
+              rindle_process: 1,
+              rindle_purge: 1,
+              rindle_maintenance: 1
+            ]
+          ],
+          migration_statuses: []
+        )
+
+      assert_received {[:rindle, :runtime, :check, :stop], ^ref, measurements, metadata}
+      assert_numeric_measurements(measurements)
+      assert is_binary(metadata.check)
+      assert metadata.status in [:ok, :error]
+      assert is_atom(metadata.component)
     end
   end
 
@@ -365,6 +456,8 @@ defmodule Rindle.Contracts.TelemetryContractTest do
             [:rindle, :variant, :transitioned],
             [:rindle, :delivery, :issued],
             [:rindle, :cleanup, :ran],
+            [:rindle, :repair, :ran],
+            [:rindle, :runtime, :denied],
             [:rindle, :media, :transcode, :began],
             [:rindle, :media, :transcode, :ended],
             [:rindle, :media, :transcode, :failed]

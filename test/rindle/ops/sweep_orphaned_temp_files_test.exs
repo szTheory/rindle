@@ -2,7 +2,10 @@ defmodule Rindle.Ops.SweepOrphanedTempFilesTest do
   use Rindle.DataCase, async: false
   use Oban.Testing, repo: Rindle.Repo
 
+  import ExUnit.CaptureLog
+
   alias Rindle.AV.TempRunDir
+  alias Mix.Tasks.Rindle.SweepOrphanedTempFiles, as: SweepOrphanedTempFilesTask
   alias Rindle.Ops.SweepOrphanedTempFiles
 
   setup do
@@ -24,10 +27,19 @@ defmodule Rindle.Ops.SweepOrphanedTempFilesTest do
       File.rm_rf(tmp_dir)
     end)
 
+    previous_shell = Mix.shell()
+    Mix.shell(Mix.Shell.Process)
+
+    on_exit(fn ->
+      Mix.shell(previous_shell)
+    end)
+
     {:ok, root_dir: TempRunDir.root_dir()}
   end
 
-  test "recursively deletes orphaned run directories older than the configured threshold", %{root_dir: root_dir} do
+  test "recursively deletes orphaned run directories older than the configured threshold", %{
+    root_dir: root_dir
+  } do
     old_dir = build_run_dir!(root_dir, "old-run", 5 * 3600)
     fresh_dir = build_run_dir!(root_dir, "fresh-run", 60)
 
@@ -44,7 +56,17 @@ defmodule Rindle.Ops.SweepOrphanedTempFilesTest do
   test "supports dry runs without deleting directories", %{root_dir: root_dir} do
     old_dir = build_run_dir!(root_dir, "old-run", 5 * 3600)
 
-    report = SweepOrphanedTempFiles.sweep(threshold_sec: 4 * 3600, dry_run: true)
+    report = SweepOrphanedTempFiles.sweep(threshold_sec: 4 * 3600)
+
+    assert report.orphan_count == 1
+    assert report.run_dirs_deleted == 0
+    assert File.exists?(old_dir)
+  end
+
+  test "defaults direct service calls to dry-run", %{root_dir: root_dir} do
+    old_dir = build_run_dir!(root_dir, "default-dry-run", 5 * 3600)
+
+    report = SweepOrphanedTempFiles.sweep(threshold_sec: 4 * 3600)
 
     assert report.orphan_count == 1
     assert report.run_dirs_deleted == 0
@@ -53,7 +75,10 @@ defmodule Rindle.Ops.SweepOrphanedTempFilesTest do
 
   test "worker emits orphan-count telemetry on success", %{root_dir: root_dir} do
     _old_dir = build_run_dir!(root_dir, "telemetry-old-run", 5 * 3600)
-    ref = :telemetry_test.attach_event_handlers(self(), [[:rindle, :media, :sweep_orphans, :stop]])
+
+    ref =
+      :telemetry_test.attach_event_handlers(self(), [[:rindle, :media, :sweep_orphans, :stop]])
+
     on_exit(fn -> :telemetry.detach(ref) end)
 
     assert :ok =
@@ -68,6 +93,81 @@ defmodule Rindle.Ops.SweepOrphanedTempFilesTest do
     assert metadata.worker == SweepOrphanedTempFiles
     assert metadata.sweep_root == root_dir
     assert metadata.dry_run == false
+  end
+
+  test "worker defaults to dry-run when not specified", %{root_dir: root_dir} do
+    old_dir = build_run_dir!(root_dir, "worker-default-dry-run", 5 * 3600)
+
+    assert :ok = perform_job(SweepOrphanedTempFiles, %{"threshold_sec" => 4 * 3600})
+
+    assert File.exists?(old_dir)
+  end
+
+  test "mix task defaults to dry-run and prints the shared report counters", %{root_dir: root_dir} do
+    old_dir = build_run_dir!(root_dir, "task-default-dry-run", 5 * 3600)
+
+    capture_log(fn ->
+      SweepOrphanedTempFilesTask.run(["--threshold-sec", Integer.to_string(4 * 3600)])
+    end)
+
+    assert File.exists?(old_dir)
+
+    assert_received {:mix_shell, :info,
+                     [
+                       "Rindle: sweeping orphaned temp run directories (dry_run=true, threshold_sec=14400)..."
+                     ]}
+
+    assert_received {:mix_shell, :info, ["  run_dirs_scanned: 1"]}
+    assert_received {:mix_shell, :info, ["  orphan_count:     1"]}
+    assert_received {:mix_shell, :info, ["  run_dirs_deleted: 0"]}
+    assert_received {:mix_shell, :info, ["  errors:           0"]}
+    assert_received {:mix_shell, :info, ["Done."]}
+  end
+
+  test "format_report/2 keeps summary counters first and bounds tagged failures" do
+    lines =
+      SweepOrphanedTempFilesTask.format_report(
+        %{run_dirs_scanned: 7, orphan_count: 4, run_dirs_deleted: 3, errors: 3},
+        2
+      )
+
+    assert lines == [
+             "  run_dirs_scanned: 7",
+             "  orphan_count:     4",
+             "  run_dirs_deleted: 3",
+             "  errors:           3",
+             "  [filesystem] scan_or_delete_failed: 3 filesystem operation(s) failed during sweep; inspect logs for per-path detail.",
+             "  [filesystem] scan_or_delete_failed: 3 filesystem operation(s) failed during sweep; inspect logs for per-path detail.",
+             "  ... 1 additional sweep failure(s) omitted"
+           ]
+  end
+
+  test "mix task and worker agree on live sweep counters", %{root_dir: root_dir} do
+    task_dir = build_run_dir!(root_dir, "task-live-run", 5 * 3600)
+
+    capture_log(fn ->
+      SweepOrphanedTempFilesTask.run([
+        "--no-dry-run",
+        "--threshold-sec",
+        Integer.to_string(4 * 3600)
+      ])
+    end)
+
+    assert_received {:mix_shell, :info, ["  run_dirs_scanned: 1"]}
+    assert_received {:mix_shell, :info, ["  orphan_count:     1"]}
+    assert_received {:mix_shell, :info, ["  run_dirs_deleted: 1"]}
+    assert_received {:mix_shell, :info, ["  errors:           0"]}
+    refute File.exists?(task_dir)
+
+    worker_dir = build_run_dir!(root_dir, "worker-live-run", 5 * 3600)
+
+    assert :ok =
+             perform_job(SweepOrphanedTempFiles, %{
+               "dry_run" => false,
+               "threshold_sec" => 4 * 3600
+             })
+
+    refute File.exists?(worker_dir)
   end
 
   defp build_run_dir!(root_dir, name, age_sec) do
