@@ -8,10 +8,16 @@ image-only and AV-enabled adopters, explicit lifecycle repair surfaces, runtime
 drift diagnostics, and a CI-proved upgrade path from pre-v1.4 installs into the
 current AV-aware lifecycle.
 
-Milestone `v1.6 Provider Boundary + Mux` is now active (planning). It
-productizes the v1.4 `streaming_url/3` seam, ships `Rindle.Streaming.Provider`
-as a real behaviour, and adds `Rindle.Streaming.Provider.Mux` as the single
-reference adapter — without making Rindle a video platform.
+Milestone `v1.6 Provider Boundary + Mux` is in flight. **Phase 33 — Provider
+Boundary + State Schema — completed `2026-05-06`** (4 plans, STREAM-01..09
+validated): the locked public seam is in place — `Rindle.Streaming.Provider`
+runtime behaviour, `Rindle.Streaming.Capabilities` closed vocabulary, additive
+`media_provider_assets` Ecto table + `MediaProviderAsset` schema with FSM and
+Inspect redaction, Profile DSL `:streaming` key, 8-branch
+`Rindle.Delivery.streaming_url/3` dispatch tree (with authorization + config
+drift checks), 5 streaming reason atoms with byte-frozen parity test, and
+`Rindle.Capability.report/0` aggregator. Phase 34 (Mux REST adapter +
+server-push sync) is up next.
 
 ## Current Milestone: v1.6 Provider Boundary + Mux
 
@@ -406,4 +412,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-06 — archived v1.5 Adopter Hardening & Lifecycle Repair after audit pass; v1.6 Provider Boundary + Mux locked from research-driven candidate evaluation (see `.planning/research/v1.6-CANDIDATE-PROVIDER-MUX.md`); GCS and tus reserved for v1.7+.*
+*Last updated: 2026-05-06 — Phase 33 (Provider Boundary + State Schema) complete (4 plans, 9 STREAM requirements validated); CR-01 authorization-bypass blocker fixed before sign-off; archived v1.5 Adopter Hardening & Lifecycle Repair after audit pass; v1.6 Provider Boundary + Mux locked from research-driven candidate evaluation (see `.planning/research/v1.6-CANDIDATE-PROVIDER-MUX.md`); GCS and tus reserved for v1.7+.*
