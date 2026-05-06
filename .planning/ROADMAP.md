@@ -89,7 +89,7 @@ dispatch return values).
 Plans:
 - [x] 33-01-PLAN.md — Capabilities vocabulary + Provider behaviour (STREAM-01, STREAM-02) — 2026-05-06
 - [x] 33-02-PLAN.md — Migration + MediaProviderAsset schema + FSM + Inspect redaction (STREAM-03, STREAM-04) — 2026-05-06
-- [ ] 33-03-PLAN.md — Profile DSL `:streaming` key + Delivery dispatch tree (STREAM-05, STREAM-06)
+- [x] 33-03-PLAN.md — Profile DSL `:streaming` key + Delivery dispatch tree (STREAM-05, STREAM-06) — 2026-05-06
 - [x] 33-04-PLAN.md — Error vocabulary + parity freeze + Capability.report (STREAM-07, STREAM-08, STREAM-09) — 2026-05-06
 
 **UI hint**: no
