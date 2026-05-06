@@ -153,11 +153,11 @@ Filled by `gsd-roadmapper` once the v1.6 ROADMAP.md is approved.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| STREAM-01..09 | Phase 33 | Pending |
-| MUX-01..08 | Phase 34 | Pending |
-| MUX-09..14 | Phase 35 | Pending |
-| MUX-15..19 | Phase 36 | Pending |
-| MUX-20..23 | Phase 37 (optional) | Pending |
+| STREAM-01..09 | Phase 33 | Planned (v1.6 roadmap) |
+| MUX-01..08 | Phase 34 | Planned (v1.6 roadmap) |
+| MUX-09..14 | Phase 35 | Planned (v1.6 roadmap) |
+| MUX-15..19 | Phase 36 | Planned (v1.6 roadmap) |
+| MUX-20..23 | Phase 37 (optional) | Planned (v1.6 roadmap) |
 
 ## Deferred Candidate Requirements (v1.7+)
 
@@ -224,4 +224,51 @@ days, 6/10 score; in-process Plug on `tussle ~> 0.3.1`).
 
 ## Traceability
 
-Filled in by `gsd-roadmapper`.
+Every v1.6 requirement is mapped to exactly one phase. No orphans. No
+duplicates. Coverage: 32 / 32 ✓.
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| STREAM-01 | Phase 33 — Provider Boundary + State Schema | Planned |
+| STREAM-02 | Phase 33 — Provider Boundary + State Schema | Planned |
+| STREAM-03 | Phase 33 — Provider Boundary + State Schema | Planned |
+| STREAM-04 | Phase 33 — Provider Boundary + State Schema | Planned |
+| STREAM-05 | Phase 33 — Provider Boundary + State Schema | Planned |
+| STREAM-06 | Phase 33 — Provider Boundary + State Schema | Planned |
+| STREAM-07 | Phase 33 — Provider Boundary + State Schema | Planned |
+| STREAM-08 | Phase 33 — Provider Boundary + State Schema | Planned |
+| STREAM-09 | Phase 33 — Provider Boundary + State Schema | Planned |
+| MUX-01 | Phase 34 — Mux REST Adapter + Server-Push Sync | Planned |
+| MUX-02 | Phase 34 — Mux REST Adapter + Server-Push Sync | Planned |
+| MUX-03 | Phase 34 — Mux REST Adapter + Server-Push Sync | Planned |
+| MUX-04 | Phase 34 — Mux REST Adapter + Server-Push Sync | Planned |
+| MUX-05 | Phase 34 — Mux REST Adapter + Server-Push Sync | Planned |
+| MUX-06 | Phase 34 — Mux REST Adapter + Server-Push Sync | Planned |
+| MUX-07 | Phase 34 — Mux REST Adapter + Server-Push Sync | Planned |
+| MUX-08 | Phase 34 — Mux REST Adapter + Server-Push Sync | Planned |
+| MUX-09 | Phase 35 — Signed-Webhook Plug + Idempotent Ingest | Planned |
+| MUX-10 | Phase 35 — Signed-Webhook Plug + Idempotent Ingest | Planned |
+| MUX-11 | Phase 35 — Signed-Webhook Plug + Idempotent Ingest | Planned |
+| MUX-12 | Phase 35 — Signed-Webhook Plug + Idempotent Ingest | Planned |
+| MUX-13 | Phase 35 — Signed-Webhook Plug + Idempotent Ingest | Planned |
+| MUX-14 | Phase 35 — Signed-Webhook Plug + Idempotent Ingest | Planned |
+| MUX-15 | Phase 36 — Public DX, Onboarding, CI Proof | Planned |
+| MUX-16 | Phase 36 — Public DX, Onboarding, CI Proof | Planned |
+| MUX-17 | Phase 36 — Public DX, Onboarding, CI Proof | Planned |
+| MUX-18 | Phase 36 — Public DX, Onboarding, CI Proof | Planned |
+| MUX-19 | Phase 36 — Public DX, Onboarding, CI Proof | Planned |
+| MUX-20 | Phase 37 (optional) — Browser → Mux Direct Creator Upload | Planned |
+| MUX-21 | Phase 37 (optional) — Browser → Mux Direct Creator Upload | Planned |
+| MUX-22 | Phase 37 (optional) — Browser → Mux Direct Creator Upload | Planned |
+| MUX-23 | Phase 37 (optional) — Browser → Mux Direct Creator Upload | Planned |
+
+**Phase summary** (Phase → REQ-ID range, count):
+
+| Phase | REQ-IDs | Count |
+|-------|---------|-------|
+| Phase 33 | STREAM-01..09 | 9 |
+| Phase 34 | MUX-01..08 | 8 |
+| Phase 35 | MUX-09..14 | 6 |
+| Phase 36 | MUX-15..19 | 5 |
+| Phase 37 (optional) | MUX-20..23 | 4 |
+| **Total** | — | **32** |

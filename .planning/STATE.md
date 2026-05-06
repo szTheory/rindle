@@ -6,9 +6,9 @@ status: planning
 last_updated: "2026-05-06T15:42:43.679Z"
 last_activity: 2026-05-06
 progress:
-  total_phases: 0
+  total_phases: 5
   completed_phases: 0
-  total_plans: 0
+  total_plans: 17
   completed_plans: 0
   percent: 0
 ---
@@ -26,10 +26,11 @@ single reference streaming adapter without expanding into a video platform.
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 33 — Provider Boundary + State Schema (not started)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-05-06 — Milestone v1.6 started
+Status: Roadmap approved; awaiting `/gsd-discuss-phase 33`
+Last activity: 2026-05-06 — Milestone v1.6 roadmap drafted (5 phases, 17
+plans, 32 requirements covered)
 
 ## Recent Completion
 
@@ -46,21 +47,16 @@ Last activity: 2026-05-06 — Milestone v1.6 started
 
 ## Pending Todos
 
-- Define v1.6 requirements (`STREAM-01..09`, `MUX-01..23`) and roadmap
-  (Phases 33-37).
-- Reconcile the leftover phase-directory state from v1.4/v1.5 before any new
-  phase numbering touches `.planning/phases/`.
+- Discuss/plan Phase 33: Provider Boundary + State Schema
+  (`STREAM-01..09`) — `/gsd-discuss-phase 33` then `/gsd-plan-phase 33`.
 - Preserve GCS resumable uploads (`.planning/research/v1.6-CANDIDATE-GCS.md`)
   and tus (`.planning/research/v1.6-CANDIDATE-TUS.md`) as locked candidate
   scope for v1.7+.
 
 ## Blockers/Concerns
 
-- v1.4 phase directories (23-28) and v1.5 phase directories (29-32) are still
-  in `.planning/phases/`, with uncommitted plan/validation/verification files
-  that were never moved into `.planning/milestones/v1.4-phases/` or
-  `v1.5-phases/`. Needs reconciliation before v1.6 phase numbering starts at
-  Phase 33.
+- None. v1.4/v1.5 phase-directory reconciliation completed in commit b09b1c9
+  (archived to `.planning/milestones/v1.4-phases/` and `v1.5-phases/`).
 
 ## Decision-Making Preference
 
@@ -73,12 +69,12 @@ Last activity: 2026-05-06 — Milestone v1.6 started
 
 ## Session Continuity
 
-Last session: start milestone v1.6 (Provider Boundary + Mux)
-Stopped at: PROJECT.md updated, STATE.md switched, requirements/roadmap pending
+Last session: roadmap v1.6 (Provider Boundary + Mux) drafted from locked
+candidate memo
+Stopped at: ROADMAP.md, STATE.md, REQUIREMENTS.md (traceability) all written;
+awaiting orchestrator commit and user approval
 Resume file: .planning/research/v1.6-CANDIDATE-PROVIDER-MUX.md
 
 **Last Completed Milestone:** v1.5 (Phases 29-32) — archived 2026-05-06
 
-**Next Step:** Reconcile leftover phase directories (23-32), then write
-`.planning/REQUIREMENTS.md` for v1.6 and spawn `gsd-roadmapper` to produce
-ROADMAP.md continuing phase numbering at 33.
+**Next Step:** `/gsd-discuss-phase 33`
