@@ -1,5 +1,31 @@
 # Milestones
 
+## v1.5 Adopter Hardening & Lifecycle Repair (Shipped: 2026-05-06)
+
+**Phases completed:** 4 phases (29-32), 14 plans
+**Timeline:** 2 days (2026-05-05 → 2026-05-06)
+
+**Key accomplishments:**
+
+- Proved the real package-consumer happy path for both image-only and
+  AV-enabled adopters from shipped artifacts rather than only from the repo.
+- Added explicit repair surfaces for reprobe, targeted requeue, dry-run-first
+  sweep, and truthful regeneration guidance.
+- Rebuilt runtime diagnostics around deterministic `mix rindle.doctor` checks,
+  bounded `mix rindle.runtime_status` reporting, and additive repair/runtime
+  telemetry.
+- Proved the upgrade path from pre-v1.4 image-only installs into the current
+  AV-aware lifecycle and locked the recovery story into docs and CI.
+- Preserved future breadth work as deferred candidate scope: GCS, provider
+  adapters, and tus remain out of milestone close until explicitly selected.
+
+**Archive:**
+- `.planning/milestones/v1.5-ROADMAP.md`
+- `.planning/milestones/v1.5-REQUIREMENTS.md`
+- `.planning/milestones/v1.5-MILESTONE-AUDIT.md`
+
+---
+
 ## v1.4 Video & Audio Wedge (Shipped: 2026-05-05)
 
 **Phases completed:** 6 phases (23-28), 27 plans

@@ -2,64 +2,77 @@
 gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: Adopter Hardening & Lifecycle Repair
-status: phase_completed
-stopped_at: completed phase 29; ready for phase 30 planning
-last_updated: "2026-05-06T01:55:00Z"
+status: milestone_completed
+stopped_at: archived v1.5 milestone; ready to define the next milestone
+last_updated: "2026-05-06T11:30:00Z"
 last_activity: 2026-05-06
 progress:
   total_phases: 4
-  completed_phases: 1
-  total_plans: 4
-  completed_plans: 4
-  percent: 25
+  completed_phases: 4
+  total_plans: 14
+  completed_plans: 14
+  percent: 100
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-05-05)
+See: .planning/PROJECT.md (updated 2026-05-06)
 
 **Core value:** Media, made durable.
-**Current focus:** v1.5 Adopter Hardening & Lifecycle Repair — roadmap defined
-for adopter proof, lifecycle repair, runtime diagnostics, and upgrade safety.
+**Current focus:** v1.5 Adopter Hardening & Lifecycle Repair shipped; next
+milestone definition is pending.
 
 ## Current Position
 
-Milestone status: `v1.5 Adopter Hardening & Lifecycle Repair` active
-Current phase: Phase 29 — Adopter Proof Matrix (completed)
-Status: phase completed
+Milestone status: `v1.5 Adopter Hardening & Lifecycle Repair` shipped
+Current phase: milestone wrap-up complete
+Status: milestone completed
 Last activity: 2026-05-06
 
-Progress: [##--------] 25%
+Progress: [##########] 100%
 
 ## Recent Completion
 
-- Last completed milestone: `v1.4 Video & Audio Wedge`
-- Scope: Phases 23-28, 27 plans
-- Audit status: passed
+- Last completed milestone: `v1.5 Adopter Hardening & Lifecycle Repair`
+- Scope: Phases 29-32, 14 plans
+- Audit status: passed on 2026-05-06
 - Archive files:
+  - `.planning/milestones/v1.5-ROADMAP.md`
+  - `.planning/milestones/v1.5-REQUIREMENTS.md`
+  - `.planning/milestones/v1.5-MILESTONE-AUDIT.md`
   - `.planning/milestones/v1.4-ROADMAP.md`
   - `.planning/milestones/v1.4-REQUIREMENTS.md`
   - `.planning/milestones/v1.4-MILESTONE-AUDIT.md`
 
 ## Pending Todos
 
-- Start Phase 30 planning: Lifecycle Repair Operations.
-- Keep v1.5 tightly bounded to proof, repair, diagnostics, and upgrade safety.
-- Preserve GCS resumable uploads, provider adapters, and tus as deferred
-  breadth-expansion candidates outside this roadmap.
+- Define the next milestone with `$gsd-new-milestone`.
+- Decide whether v1.6 should prioritize GCS/resumable breadth, provider
+  adapters, or another focused hardening pass.
+- Preserve GCS resumable uploads, provider adapters, and tus as candidate
+  scope only until a new milestone is explicitly defined.
 
 ## Blockers/Concerns
 
-- None. Open artifact audit was clear at milestone close.
+- Milestone close is structurally complete, but the worktree still contains
+  broader uncommitted implementation changes outside the archive files.
+
+## Decision-Making Preference
+
+- Downstream agents should front-load research, prefer coherent one-shot
+  recommendations, and decide by default.
+- Escalate only for very impactful decisions such as public semver reshapes,
+  destructive or irreversible operations, security/compliance boundaries, or
+  similarly high-blast-radius tradeoffs.
 
 ## Session Continuity
 
-Last session: execute phase 29
-Stopped at: completed phase 29; ready for phase 30 planning
-Resume file: .planning/phases/29-adopter-proof-matrix/29-04-SUMMARY.md
+Last session: complete milestone v1.5
+Stopped at: archived v1.5 and collapsed live roadmap/requirements
+Resume file: .planning/milestones/v1.5-ROADMAP.md
 
-**Last Completed Milestone:** v1.4 (Phases 23-28) — archived 2026-05-05
+**Last Completed Milestone:** v1.5 (Phases 29-32) — archived 2026-05-06
 
-**Next Step:** Plan `Phase 30: Lifecycle Repair Operations`.
+**Next Step:** Define the next milestone and create fresh requirements.

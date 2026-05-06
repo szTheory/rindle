@@ -2,21 +2,20 @@
 
 ## Current State
 
-Milestone `v1.4 Video & Audio Wedge` shipped on `2026-05-05` (Phases 23-28,
-27 plans). Rindle now supports the same durable lifecycle model for video and
-audio that it already used for images: typed AV domain fields, MIME-dispatched
-probe adapters, `Rindle.Processor.AV`, local and signed playback seams,
-Phoenix-facing AV helpers, LiveView progress/cancellation contracts, and a
-public onboarding lane proved in CI against smartphone-source fixtures.
+Milestone `v1.5 Adopter Hardening & Lifecycle Repair` shipped on `2026-05-06`
+(Phases 29-32, 14 plans). Rindle now has outside-in package-consumer proof for
+image-only and AV-enabled adopters, explicit lifecycle repair surfaces, runtime
+drift diagnostics, and a CI-proved upgrade path from pre-v1.4 installs into the
+current AV-aware lifecycle.
 
 ## Next Milestone Goals
 
-No active milestone is open.
-
-The next milestone should be defined with `$gsd-new-milestone`. Likely inputs
-to that discussion are the deferred provider-adapter/streaming work, the GCS
-and tus carry-over items, and any adopter feedback surfaced after the v1.4 AV
-ship.
+- Decide whether the next milestone should widen the support matrix with GCS or
+  provider adapters, or spend one more cycle on operational depth.
+- Keep the generated-app package-consumer harness as the truth source for any
+  new breadth work.
+- Preserve the current bias toward narrow public surfaces, explicit repair
+  verbs, and truthful operator diagnostics.
 
 ## What This Is
 
@@ -104,9 +103,12 @@ Media, made durable.
 
 ### Active
 
-No active milestone requirements are open. Start the next milestone with
-`$gsd-new-milestone`; that workflow will create a fresh
-`.planning/REQUIREMENTS.md`.
+- None. The next milestone is not defined yet.
+
+**Candidate next requirements:**
+- `GCS-01`: truthful `Rindle.Storage.GCS` adapter with resumable semantics
+- `STREAM-01`: provider boundary behind `streaming_url/3` with one reference adapter
+- `TUS-01`: resumable protocol family only if adopter demand justifies boundary expansion
 
 ### Out of Scope
 
@@ -134,14 +136,13 @@ No active milestone requirements are open. Start the next milestone with
 
 ## Context
 
-**v1.4 result:** Rindle now has a complete AV wedge on top of the existing
-image-first lifecycle model: system-FFmpeg-backed processing, typed probe and
-domain persistence, AV playback helpers, LiveView progress/cancellation, and a
-copy-pasteable onboarding path proved in CI.
+**v1.5 result:** Rindle now has an operator-grade adoption lane for the current
+AV lifecycle: published package-consumer proof, explicit repair operations,
+runtime diagnostics, and a public upgrade path from pre-v1.4 installs.
 
-**Next milestone setup:** No active milestone is currently open. Future work
-should be chosen from deferred provider-adapter/streaming expansion, GCS/tus
-carry-over work, and real adopter feedback after the v1.4 ship.
+**Current milestone setup:** no new milestone is open yet. Candidate expansion
+work remains GCS resumable uploads, provider adapters/streaming boundary work,
+and tus only if real adopter demand proves the boundary should widen.
 
 **Reference implementations:**
 - Rails Active Storage: attachment/blob ownership patterns, redirect-style
@@ -225,6 +226,26 @@ carry-over work, and real adopter feedback after the v1.4 ship.
 | `Rindle.Delivery.streaming_url/3` ships as a no-op delegate now to reserve the surface for HLS / Mux / CF Stream provider adapters | Active Storage's mistake was conflating progressive-blob URLs with manifest URLs; reserving the namespace now means adopter video templates won't churn when streaming providers land | Locked v1.4 |
 
 ## Historical Snapshot
+
+<details>
+<summary>v1.5 Adopter Hardening & Lifecycle Repair (Phases 29–32) — SHIPPED 2026-05-06</summary>
+
+Milestone v1.5 turned the fresh AV wedge into a much more truthful adoption and
+operations story. Delivered: package-consumer proof for image-only and
+AV-enabled installs from shipped artifacts, explicit `reprobe` and
+`requeue_variants` repair surfaces, dry-run-first sweep and truthful
+regeneration guidance, deterministic `mix rindle.doctor` and
+`mix rindle.runtime_status` diagnostics, additive repair/runtime telemetry, and
+a generated-app proof lane for upgrading pre-v1.4 adopters into the current
+AV-aware shape and recovering cancelled work.
+
+Full artifacts live in:
+
+- [.planning/milestones/v1.5-ROADMAP.md](.planning/milestones/v1.5-ROADMAP.md)
+- [.planning/milestones/v1.5-REQUIREMENTS.md](.planning/milestones/v1.5-REQUIREMENTS.md)
+- [.planning/milestones/v1.5-MILESTONE-AUDIT.md](.planning/milestones/v1.5-MILESTONE-AUDIT.md)
+
+</details>
 
 <details>
 <summary>v1.4 Video & Audio Wedge (Phases 23–28) — SHIPPED 2026-05-05</summary>
@@ -317,4 +338,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-05 — v1.4 archived (AV-01..AV-06 → Validated); no active milestone is open; next milestone setup returns to `$gsd-new-milestone`.*
+*Last updated: 2026-05-06 — archived v1.5 Adopter Hardening & Lifecycle Repair after audit pass; next milestone remains to be defined.*
