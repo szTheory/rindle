@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: Provider Boundary + Mux
 status: executing
-stopped_at: Phase 34 wave 1 complete (34-01 adapter foundation merged)
-last_updated: "2026-05-06T23:50:00.000Z"
-last_activity: 2026-05-06 -- Phase 34 wave 1 (34-01) merged to main; mux/jose deps installed; 21/21 Mux tests pass post-merge
+stopped_at: Phase 34 wave 2 complete (34-02 ingest worker + 34-03 sync workers merged)
+last_updated: "2026-05-06T23:55:00.000Z"
+last_activity: 2026-05-06 -- Phase 34 wave 2 (34-02, 34-03) merged to main; 40/40 plan tests + 160/160 broader regression tests pass post-merge
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 17
-  completed_plans: 5
-  percent: 29
+  completed_plans: 7
+  percent: 41
 ---
 
 # Project State
@@ -27,10 +27,10 @@ single reference streaming adapter without expanding into a video platform.
 
 ## Current Position
 
-Phase: 34 — Mux REST Adapter + Server-Push Sync (executing, wave 2/3)
-Plan: 4 plans across 3 waves (34-01 ✓ merged → 34-02/03 parallel → 34-04)
-Status: Executing wave 2 — `/gsd-execute-phase 34`
-Last activity: 2026-05-06 -- Wave 1 (34-01) merged: optional mux+jose deps wired, Rindle.Streaming.Provider.Mux + HTTP/Client/Event modules implemented, 21/21 tests pass
+Phase: 34 — Mux REST Adapter + Server-Push Sync (executing, wave 3/3)
+Plan: 4 plans across 3 waves (34-01 ✓ → 34-02 ✓ + 34-03 ✓ → 34-04 next)
+Status: Executing wave 3 — `/gsd-execute-phase 34`
+Last activity: 2026-05-06 -- Wave 2 merged: MuxIngestVariant (server-push ingest, atomic-promote, 429 snooze) + MuxSyncCoordinator (cron fan-out) + MuxSyncProviderAsset (per-row defensive sync, :stuck transition); 40/40 plan + 160/160 regression tests pass
 
 ## Recent Completion
 

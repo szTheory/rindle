@@ -139,8 +139,8 @@ error vocabulary).
 
 Plans:
 - [x] 34-01-adapter-foundation-PLAN.md — Optional deps (MUX-01), `Rindle.Streaming.Provider.Mux` adapter + Client behaviour + HTTP impl + Event normalizer (MUX-02), `signed_playback_url/3` (MUX-04), `MediaProviderAsset.redact_id/1` public-promote, ClientMock — 2026-05-06
-- [ ] 34-02-ingest-worker-PLAN.md — `Rindle.Workers.MuxIngestVariant` (MUX-03, MUX-05, MUX-06): atomic-promote race, Oban unique idempotency, 429 Retry-After snooze, security-invariant-14 telemetry redaction
-- [ ] 34-03-sync-workers-PLAN.md — `Rindle.Workers.MuxSyncCoordinator` + `Rindle.Workers.MuxSyncProviderAsset` (MUX-07): cron coordinator, per-row defensive sync, stuck-threshold transition, `:resolved`/`:stuck` telemetry
+- [x] 34-02-ingest-worker-PLAN.md — `Rindle.Workers.MuxIngestVariant` (MUX-03, MUX-05, MUX-06): atomic-promote race, Oban unique idempotency, 429 Retry-After snooze, security-invariant-14 telemetry redaction — 2026-05-06
+- [x] 34-03-sync-workers-PLAN.md — `Rindle.Workers.MuxSyncCoordinator` + `Rindle.Workers.MuxSyncProviderAsset` (MUX-07): cron coordinator, per-row defensive sync, stuck-threshold transition, `:resolved`/`:stuck` telemetry — 2026-05-06
 - [ ] 34-04-telemetry-parity-PLAN.md — Cross-cutting redaction-parity test + telemetry contract `@moduledoc` documentation + Dialyzer PLT regen + end-to-end smoke (MUX-08)
 
 **UI hint**: no
