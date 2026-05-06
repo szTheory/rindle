@@ -11,7 +11,9 @@ profile once, then use the facade for upload lifecycle, attachments, and
 delivery.
 
 `README.md` is the narrow quickstart. [`guides/getting_started.md`](guides/getting_started.md)
-is the canonical deep adopter guide for the same first-run path.
+is the canonical deep adopter guide for the same first-run path. Phase 29
+proves that path from a generated package-consumer Phoenix app in two
+outside-in lanes from installed artifacts: image-only and AV-enabled.
 
 ## Install
 
@@ -38,6 +40,12 @@ end
 ```
 
 Run `mix deps.get`.
+
+The package-consumer proof posture is intentionally narrow in this README:
+maintainers prove the installed artifact from a generated app, while adopters
+follow the same public setup contract described here. The built-artifact lane
+proves image-only and AV-enabled installs before publish; the published-artifact
+companion repeats the same generated-app posture against the released package.
 
 For AV profiles, install `FFmpeg >= 6.0` before you touch background jobs, then
 run `mix rindle.doctor`. The per-platform install/runtime matrix lives in
@@ -96,6 +104,13 @@ The locked onboarding path is:
 3. declare one `kind: :video` variant plus the stock poster
 4. run `mix rindle.doctor`
 5. follow the normal facade-first upload lifecycle
+
+Phase 29 locks that onboarding contract to the package-consumer proof matrix:
+- image-only generated-app proof from the installed artifact
+- AV-enabled generated-app proof from the installed artifact
+
+The deep guide explains where built-artifact proof ends and published-artifact
+proof begins without turning this quickstart into a release runbook.
 
 The canonical deep guide expands the same path in
 [`guides/getting_started.md`](guides/getting_started.md). The stock onboarding

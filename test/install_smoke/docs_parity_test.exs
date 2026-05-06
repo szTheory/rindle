@@ -33,6 +33,28 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
     assert guide =~ "[`README.md`](../README.md)"
   end
 
+  test "README and getting-started guide lock docs to the package-consumer proof matrix", %{
+    readme: readme,
+    guide: guide
+  } do
+    assert readme =~ "generated package-consumer Phoenix app"
+    assert readme =~ "image-only"
+    assert readme =~ "AV-enabled"
+    assert readme =~ "installed artifact"
+
+      for snippet <- [
+          "package-consumer proof matrix",
+          "generated app",
+          "built-artifact proof",
+          "published-artifact proof",
+          "image-only",
+          "AV-enabled",
+          "signed delivery"
+        ] do
+      assert guide =~ snippet
+    end
+  end
+
   test "README and getting-started guide teach Phase 19 convenience helpers and bangs", %{
     readme: readme,
     guide: guide
@@ -115,6 +137,20 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
       assert doc =~ "preset: :video_poster_scene"
       assert doc =~ "FFmpeg >= 6.0"
       assert doc =~ "RUNNING.md"
+    end
+  end
+
+  test "docs distinguish public install guidance from maintainer-only release runbooks", %{
+    readme: readme,
+    guide: guide
+  } do
+    assert readme =~ "release runbook"
+    assert guide =~ "maintainer-only release orchestration stays in"
+    assert guide =~ "[`release_publish.md`](release_publish.md)"
+
+    for doc <- [readme, guide] do
+      refute doc =~ "mix hex.user whoami"
+      refute doc =~ "HEX_API_KEY"
     end
   end
 

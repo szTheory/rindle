@@ -11,7 +11,10 @@ delivery path.
 This is the canonical deep adopter guide for the same first-run path shown in
 [`README.md`](../README.md). The lifecycle calls below are the same public path
 the repo proves in `test/adopter/canonical_app/lifecycle_test.exs` and the
-built-artifact install smoke from Phase 9.
+Phase 29 package-consumer proof matrix. That matrix exercises a generated
+Phoenix app from installed artifacts in two lanes: image-only and AV-enabled.
+The built-artifact proof runs before publish, and the published-artifact proof
+reuses the same generated-app posture against the released Hex package.
 
 ## 1. Add Dependencies
 
@@ -38,6 +41,17 @@ end
 ```
 
 Run `mix deps.get`.
+
+Phase 29 keeps two outside-in package-consumer truths aligned:
+
+1. image-only adopters can install Rindle into a generated app and complete
+   upload, processing, and signed delivery from the installed artifact
+2. AV-enabled adopters can install Rindle into a generated app and prove probe,
+   transcode, poster generation, local playback-ready output, and signed
+   delivery from the installed artifact
+
+Those are maintainer proof lanes, but they intentionally exercise the same
+public docs snippets and facade calls adopters use in a real host app.
 
 The first AV onboarding path is explicit:
 
@@ -94,7 +108,7 @@ shipped path is the default `Oban` module.
 ## 3. Run Host-App And Rindle Migrations Explicitly
 
 Your app owns its own migrations, and Rindle ships a second migration path
-inside the package. The package-consumer smoke lane proves the explicit
+inside the package. The package-consumer generated-app proof proves the explicit
 `Application.app_dir(:rindle, "priv/repo/migrations")` handoff below:
 
 ```elixir
@@ -116,16 +130,16 @@ end
   end)
 ```
 
-Rindle does not add a public `mix rindle.*` install task in Phase 9. The
+Rindle does not add a public `mix rindle.*` install task in Phase 29. The
 public install path is this docs snippet; the repo-private helper that automates
-it exists only inside the smoke harness.
+it exists only inside the package-consumer smoke harness.
 
 If your app uses binary IDs globally, keep your Repo migration defaults aligned
 with your host app conventions before running the shared path.
 
 ## 4. Define The Canonical AV Profile
 
-Phase 28 locks the public AV story to the stock `web_720p` plus `poster`
+Phase 29 locks the public AV story to the stock `web_720p` plus `poster`
 surface. `Rindle.Profile.Presets.Web` is the canonical helper, and its explicit
 equivalent looks like this:
 
@@ -167,7 +181,8 @@ jobs or chase variant failures.
 ## 5. First-Run Upload Lifecycle
 
 The first-run path is presigned PUT. It is the narrowest direct-upload contract
-Rindle proves from the built artifact and the source-of-truth adopter test:
+Rindle proves from the built artifact, the published artifact, and the
+source-of-truth adopter test:
 
 ```elixir
 {:ok, session} =
@@ -212,6 +227,14 @@ contract applies:
     byte_size: File.stat!("/tmp/clip.mp4").size
   })
 ```
+
+The proof matrix keeps this guide disciplined:
+
+- built-artifact proof validates the generated app before publish
+- published-artifact proof re-runs the same generated-app posture against a
+  released Hex version
+- maintainer-only release orchestration stays in
+  [`release_publish.md`](release_publish.md), not here
 
 ## 6. What Happens After Verification
 
