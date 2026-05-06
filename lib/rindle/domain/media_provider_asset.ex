@@ -76,6 +76,25 @@ defmodule Rindle.Domain.MediaProviderAsset do
   ]
 
   @doc """
+  Redact a `provider_asset_id` to its last-4-character tag (`"...abcd"`).
+  Returns `nil` for `nil`, `"...redacted"` for ids shorter than 4 chars.
+
+  Used by telemetry emit sites and log lines to enforce security invariant 14
+  (provider-internal identifiers never cross into adopter-facing telemetry,
+  log lines, or `inspect/2` output). The `defimpl Inspect` block below
+  delegates to this helper so the Inspect rendering and the telemetry emit
+  sites use the same redaction routine.
+  """
+  @spec redact_id(nil | String.t()) :: nil | String.t()
+  def redact_id(nil), do: nil
+
+  def redact_id(id) when is_binary(id) and byte_size(id) >= 4 do
+    "..." <> String.slice(id, -4, 4)
+  end
+
+  def redact_id(_), do: "...redacted"
+
+  @doc """
   Builds a changeset for a `MediaProviderAsset` row.
 
   Casts the writable fields, requires the minimum invariants, validates the
@@ -101,18 +120,10 @@ defimpl Inspect, for: Rindle.Domain.MediaProviderAsset do
   def inspect(asset, opts) do
     redacted = %{
       asset
-      | provider_asset_id: redact_id(asset.provider_asset_id),
+      | provider_asset_id: Rindle.Domain.MediaProviderAsset.redact_id(asset.provider_asset_id),
         raw_provider_metadata: %{redacted: true}
     }
 
     Inspect.Any.inspect(redacted, opts)
   end
-
-  defp redact_id(nil), do: nil
-
-  defp redact_id(id) when is_binary(id) and byte_size(id) >= 4 do
-    "..." <> String.slice(id, -4, 4)
-  end
-
-  defp redact_id(_), do: "...redacted"
 end

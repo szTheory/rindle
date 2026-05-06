@@ -1,0 +1,17 @@
+{
+  "type": "video.asset.errored",
+  "id": "evt-fixture-errored-0001",
+  "object": {
+    "type": "asset",
+    "id": "AbCd1234EfGh5678IjKl9012MnOp3456QrSt"
+  },
+  "data": {
+    "id": "AbCd1234EfGh5678IjKl9012MnOp3456QrSt",
+    "status": "errored",
+    "errors": {
+      "type": "input_error",
+      "messages": ["Failed to fetch input from signed URL"]
+    }
+  },
+  "created_at": "2026-05-06T00:01:00.000Z"
+}
