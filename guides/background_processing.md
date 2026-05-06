@@ -184,6 +184,11 @@ The exact public event allowlist is:
 - `[:rindle, :delivery, :streaming, :resolved]`
 - `[:rindle, :delivery, :range_request]`
 - `[:rindle, :cleanup, :run]`
+- `[:rindle, :repair, :start]`
+- `[:rindle, :repair, :stop]`
+- `[:rindle, :repair, :exception]`
+- `[:rindle, :runtime, :refusal]`
+- `[:rindle, :runtime, :check, :stop]`
 - `[:rindle, :media, :transcode, :start]`
 - `[:rindle, :media, :transcode, :stop]`
 - `[:rindle, :media, :transcode, :exception]`
@@ -201,6 +206,11 @@ measurement types requires a major version bump.
 | `[:rindle, :delivery, :streaming, :resolved]` | `Delivery.streaming_url/3` success         | `:profile`, `:adapter`, `:mode`, `:kind`, `:mime` |
 | `[:rindle, :delivery, :range_request]`   | `Delivery.LocalPlug` range request             | `:profile`, `:adapter`, `:key`, `:actor_subject` |
 | `[:rindle, :cleanup, :run]`              | Every cleanup worker run                       | `:worker`, plus numeric measurements |
+| `[:rindle, :repair, :start]`             | Asset-scoped repair begins                     | `:operation`, `:scope`, `:result`, `:dry_run` |
+| `[:rindle, :repair, :stop]`              | Asset-scoped repair completes                  | `:operation`, `:scope`, `:result`, `:dry_run` |
+| `[:rindle, :repair, :exception]`         | Asset-scoped repair raises unexpectedly        | `:operation`, `:scope`, `:result`, `:dry_run` |
+| `[:rindle, :runtime, :refusal]`          | Runtime status rejects an invalid request      | `:surface`, `:reason`, `:mode` |
+| `[:rindle, :runtime, :check, :stop]`     | A doctor/runtime drift check completes         | `:check`, `:status`, `:component` |
 | `[:rindle, :media, :transcode, :start]`  | `ProcessVariant` AV transcode begins           | `:profile`, `:asset_id`, `:variant_id`, `:variant_name`, `:preset`, `:output_kind` |
 | `[:rindle, :media, :transcode, :stop]`   | `ProcessVariant` AV transcode succeeds         | `:profile`, `:asset_id`, `:variant_id`, `:variant_name`, `:preset`, `:output_kind` |
 | `[:rindle, :media, :transcode, :exception]` | `ProcessVariant` AV transcode fails         | `:profile`, `:asset_id`, `:variant_id`, `:variant_name`, `:preset`, `:output_kind`, `:kind`, `:reason` |
@@ -208,6 +218,11 @@ measurement types requires a major version bump.
 All measurements are numeric (counts, byte sizes, durations in microseconds,
 or `system_time`). All metadata maps include `:profile` and `:adapter`
 where applicable so dashboards can group by either.
+
+Phase 31 keeps diagnostics boring on purpose: doctor validates setup and drift,
+runtime status reports degraded or stuck work, and repair verbs perform change.
+There is no separate dashboard contract and no auto-remediation family in this
+telemetry layer.
 
 The contract test attaches `:telemetry.attach_many/4` handlers, exercises
 minimal in-process flows, and asserts the exact event-name allowlist plus
