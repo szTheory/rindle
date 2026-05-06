@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: Adopter Hardening & Lifecycle Repair
-status: phase_in_progress
-stopped_at: completed 29-01-PLAN.md; ready for 29-02
-last_updated: "2026-05-06T01:28:33Z"
-last_activity: 2026-05-05
+status: phase_completed
+stopped_at: completed phase 29; ready for phase 30 planning
+last_updated: "2026-05-06T01:55:00Z"
+last_activity: 2026-05-06
 progress:
   total_phases: 4
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 4
-  completed_plans: 1
+  completed_plans: 4
   percent: 25
 ---
 
@@ -27,11 +27,11 @@ for adopter proof, lifecycle repair, runtime diagnostics, and upgrade safety.
 ## Current Position
 
 Milestone status: `v1.5 Adopter Hardening & Lifecycle Repair` active
-Current phase: Phase 29 — Adopter Proof Matrix (in progress)
-Status: phase in progress
-Last activity: 2026-05-05
+Current phase: Phase 29 — Adopter Proof Matrix (completed)
+Status: phase completed
+Last activity: 2026-05-06
 
-Progress: [###-------] 25%
+Progress: [##--------] 25%
 
 ## Recent Completion
 
@@ -45,7 +45,7 @@ Progress: [###-------] 25%
 
 ## Pending Todos
 
-- Execute remaining Phase 29 plans: 29-02 through 29-04.
+- Start Phase 30 planning: Lifecycle Repair Operations.
 - Keep v1.5 tightly bounded to proof, repair, diagnostics, and upgrade safety.
 - Preserve GCS resumable uploads, provider adapters, and tus as deferred
   breadth-expansion candidates outside this roadmap.
@@ -56,10 +56,10 @@ Progress: [###-------] 25%
 
 ## Session Continuity
 
-Last session: execute 29-01
-Stopped at: completed 29-01-PLAN.md; ready for 29-02
-Resume file: .planning/phases/29-adopter-proof-matrix/29-01-SUMMARY.md
+Last session: execute phase 29
+Stopped at: completed phase 29; ready for phase 30 planning
+Resume file: .planning/phases/29-adopter-proof-matrix/29-04-SUMMARY.md
 
 **Last Completed Milestone:** v1.4 (Phases 23-28) — archived 2026-05-05
 
-**Next Step:** Execute `29-02-PLAN.md`.
+**Next Step:** Plan `Phase 30: Lifecycle Repair Operations`.

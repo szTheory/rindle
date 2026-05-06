@@ -12,13 +12,13 @@ direction memos plus current project context in `.planning/PROJECT.md`.
 - [x] **PROOF-01**: Maintainer can generate a fresh package-consumer Phoenix
   app for an image-only profile and prove install, upload, processing, and
   signed delivery from the published Rindle artifact.
-- [ ] **PROOF-02**: Maintainer can generate a fresh package-consumer Phoenix
+- [x] **PROOF-02**: Maintainer can generate a fresh package-consumer Phoenix
   app for an AV-enabled profile and prove install, probe, transcode, local
   playback, and signed delivery from the published Rindle artifact.
-- [ ] **PROOF-03**: CI proves the canonical adopter matrix across local storage
+- [x] **PROOF-03**: CI proves the canonical adopter matrix across local storage
   and at least one real S3-compatible path without regressing the existing
   happy path.
-- [ ] **PROOF-04**: README, getting-started, AV onboarding, and ops guidance
+- [x] **PROOF-04**: README, getting-started, AV onboarding, and ops guidance
   are kept in lockstep with the proved package-consumer flows by executable
   parity gates.
 
@@ -83,9 +83,9 @@ direction memos plus current project context in `.planning/PROJECT.md`.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | PROOF-01 | Phase 29 | Complete (29-01) |
-| PROOF-02 | Phase 29 | Pending |
-| PROOF-03 | Phase 29 | Pending |
-| PROOF-04 | Phase 29 | Pending |
+| PROOF-02 | Phase 29 | Complete (29-02) |
+| PROOF-03 | Phase 29 | Complete (29-03) |
+| PROOF-04 | Phase 29 | Complete (29-04) |
 | REPAIR-01 | Phase 30 | Pending |
 | REPAIR-02 | Phase 30 | Pending |
 | REPAIR-03 | Phase 30 | Pending |
@@ -105,4 +105,4 @@ direction memos plus current project context in `.planning/PROJECT.md`.
 
 ---
 *Requirements defined: 2026-05-05*
-*Last updated: 2026-05-06 after 29-01 execution*
+*Last updated: 2026-05-06 after phase 29 execution*

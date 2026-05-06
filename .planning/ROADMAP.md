@@ -11,7 +11,7 @@
 
 ## Phases
 
-- [ ] **Phase 29: Adopter Proof Matrix** - Published package-consumer flows
+- [x] **Phase 29: Adopter Proof Matrix** - Published package-consumer flows
   prove image-only and AV-enabled adoption outside the repo.
 - [ ] **Phase 30: Lifecycle Repair Operations** - Operators can explicitly
   repair, requeue, regenerate, and sweep drifted lifecycle state.
@@ -99,7 +99,7 @@ parity.
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 29. Adopter Proof Matrix | 1/4 | In progress | 2026-05-05 |
+| 29. Adopter Proof Matrix | 4/4 | Complete | 2026-05-06 |
 | 30. Lifecycle Repair Operations | 0/0 | Not started | - |
 | 31. Runtime Diagnostics & Drift Visibility | 0/0 | Not started | - |
 | 32. Upgrade & Migration Safety | 0/0 | Not started | - |
