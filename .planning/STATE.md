@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: none
-milestone_name: No active milestone
-status: milestone_complete
-stopped_at: v1.4 archived
-last_updated: "2026-05-05T22:43:54Z"
+milestone: v1.5
+milestone_name: Adopter Hardening & Lifecycle Repair
+status: phase_in_progress
+stopped_at: completed 29-01-PLAN.md; ready for 29-02
+last_updated: "2026-05-06T01:28:33Z"
 last_activity: 2026-05-05
 progress:
-  total_phases: 6
-  completed_phases: 6
-  total_plans: 27
-  completed_plans: 27
-  percent: 100
+  total_phases: 4
+  completed_phases: 0
+  total_plans: 4
+  completed_plans: 1
+  percent: 25
 ---
 
 # Project State
@@ -21,16 +21,17 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-05)
 
 **Core value:** Media, made durable.
-**Current focus:** No active milestone. v1.4 has been archived and the project is ready for next-milestone definition.
+**Current focus:** v1.5 Adopter Hardening & Lifecycle Repair — roadmap defined
+for adopter proof, lifecycle repair, runtime diagnostics, and upgrade safety.
 
 ## Current Position
 
-Milestone status: `v1.4 Video & Audio Wedge` shipped and archived
-Current phase: none
-Status: awaiting next milestone
+Milestone status: `v1.5 Adopter Hardening & Lifecycle Repair` active
+Current phase: Phase 29 — Adopter Proof Matrix (in progress)
+Status: phase in progress
 Last activity: 2026-05-05
 
-Progress: [##########] 100%
+Progress: [###-------] 25%
 
 ## Recent Completion
 
@@ -44,10 +45,10 @@ Progress: [##########] 100%
 
 ## Pending Todos
 
-- Plan provider-delegated streaming adapters if adopter feedback demands them.
-- Evaluate ABR/HLS/DASH as a dedicated future streaming milestone.
-- Revisit deferred GCS resumable upload work.
-- Revisit deferred tus/resumable protocol work.
+- Execute remaining Phase 29 plans: 29-02 through 29-04.
+- Keep v1.5 tightly bounded to proof, repair, diagnostics, and upgrade safety.
+- Preserve GCS resumable uploads, provider adapters, and tus as deferred
+  breadth-expansion candidates outside this roadmap.
 
 ## Blockers/Concerns
 
@@ -55,10 +56,10 @@ Progress: [##########] 100%
 
 ## Session Continuity
 
-Last session: complete-milestone
-Stopped at: v1.4 archived and tagged locally
-Resume file: --
+Last session: execute 29-01
+Stopped at: completed 29-01-PLAN.md; ready for 29-02
+Resume file: .planning/phases/29-adopter-proof-matrix/29-01-SUMMARY.md
 
 **Last Completed Milestone:** v1.4 (Phases 23-28) — archived 2026-05-05
 
-**Next Step:** Run `$gsd-new-milestone` to define the next milestone and create a fresh `.planning/REQUIREMENTS.md`.
+**Next Step:** Execute `29-02-PLAN.md`.
