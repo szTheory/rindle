@@ -40,5 +40,11 @@ Thumbs.db
 /state.json
 /rindle-*/
 
+# Claude Code runtime (worktrees, scheduled-task locks, etc.)
+.claude/
+
+# Test scratch directories
+/tmp/
+
 # Mix lock (library — check in mix.lock)
 # /mix.lock
