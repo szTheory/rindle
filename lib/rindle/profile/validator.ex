@@ -1,6 +1,12 @@
 defmodule Rindle.Profile.Validator do
   @moduledoc false
 
+  # WR-02: NimbleOptions does not officially document `nil` as a stand-alone
+  # type marker. Its supported nil-handling pattern is `default: nil` plus
+  # nil-valued keys getting stripped BEFORE the schema sees them (so the
+  # default applies). The validator pre-filters nil-valued keys via
+  # `drop_nil_values/1` before each NimbleOptions.validate!/2 call, so the
+  # type lists below intentionally do NOT include `nil`.
   @profile_schema [
     storage: [
       type: :atom,
@@ -14,13 +20,14 @@ defmodule Rindle.Profile.Validator do
       type: {:list, :string},
       default: []
     ],
+    # WR-02: no `default: nil` because NimbleOptions 1.1+ validates defaults
+    # against the type, and `nil` is not a `:pos_integer`. Absent → key is
+    # omitted post-validation; downstream uses `Keyword.get(.., nil)`.
     max_bytes: [
-      type: {:or, [:pos_integer, nil]},
-      default: nil
+      type: :pos_integer
     ],
     max_pixels: [
-      type: {:or, [:pos_integer, nil]},
-      default: nil
+      type: :pos_integer
     ],
     variants: [
       type: :keyword_list,
@@ -37,17 +44,16 @@ defmodule Rindle.Profile.Validator do
       type: :boolean,
       default: false
     ],
+    # WR-02: no `default: nil` (see @profile_schema note above). Downstream
+    # uses `Keyword.get(.., nil)` and treats absent keys as nil.
     signed_url_ttl_seconds: [
-      type: {:or, [:pos_integer, nil]},
-      default: nil
+      type: :pos_integer
     ],
     authorizer: [
-      type: {:or, [:atom, nil]},
-      default: nil
+      type: :atom
     ],
     streaming: [
-      type: {:or, [:keyword_list, {:map, :atom, :any}, nil]},
-      default: nil,
+      type: {:or, [:keyword_list, {:map, :atom, :any}]},
       doc: "Optional streaming-provider configuration (Phase 33). See `@streaming_schema`."
     ]
   ]
@@ -80,21 +86,20 @@ defmodule Rindle.Profile.Validator do
       type: {:in, [:fit, :fill, :crop]},
       required: true
     ],
+    # WR-02: no `default: nil` (see @profile_schema note above). Downstream
+    # uses `Keyword.get(.., nil)` and treats absent keys as nil.
     width: [
-      type: {:or, [:pos_integer, nil]},
-      default: nil
+      type: :pos_integer
     ],
     height: [
-      type: {:or, [:pos_integer, nil]},
-      default: nil
+      type: :pos_integer
     ],
     format: [
       type: {:in, [:jpeg, :png, :webp, :avif]},
       default: :jpeg
     ],
     quality: [
-      type: {:or, [{:in, 1..100}, nil]},
-      default: nil
+      type: {:in, 1..100}
     ]
   ]
 
@@ -214,8 +219,9 @@ defmodule Rindle.Profile.Validator do
       storage: Keyword.fetch!(validated, :storage),
       allow_mime: Keyword.fetch!(validated, :allow_mime),
       allow_extensions: Keyword.fetch!(validated, :allow_extensions),
-      max_bytes: Keyword.fetch!(validated, :max_bytes),
-      max_pixels: Keyword.fetch!(validated, :max_pixels),
+      # WR-02: optional pos_integer keys — no schema default, absent → nil.
+      max_bytes: Keyword.get(validated, :max_bytes),
+      max_pixels: Keyword.get(validated, :max_pixels),
       variants: variants,
       delivery: delivery
     }
@@ -247,11 +253,14 @@ defmodule Rindle.Profile.Validator do
   defp validate_delivery!(delivery_opts, variant_keys) do
     delivery_opts
     |> normalize_delivery_opts!()
+    |> drop_nil_values()
     |> NimbleOptions.validate!(@delivery_schema)
     |> Keyword.new()
     |> then(fn delivery ->
+      # WR-02: signed_url_ttl_seconds and authorizer are optional pos_integer
+      # / atom keys with no schema default (absent → nil).
       ttl =
-        case Keyword.fetch!(delivery, :signed_url_ttl_seconds) do
+        case Keyword.get(delivery, :signed_url_ttl_seconds) do
           nil -> Rindle.Config.signed_url_ttl_seconds()
           value -> value
         end
@@ -261,7 +270,7 @@ defmodule Rindle.Profile.Validator do
       %{
         public: Keyword.fetch!(delivery, :public),
         signed_url_ttl_seconds: ttl,
-        authorizer: Keyword.fetch!(delivery, :authorizer),
+        authorizer: Keyword.get(delivery, :authorizer),
         streaming: streaming
       }
     end)
@@ -277,6 +286,7 @@ defmodule Rindle.Profile.Validator do
     validated =
       streaming_opts
       |> normalize_delivery_opts!()
+      |> drop_nil_values()
       |> NimbleOptions.validate!(@streaming_schema)
       |> Keyword.new()
 
@@ -320,13 +330,16 @@ defmodule Rindle.Profile.Validator do
 
     validated_kw =
       rest
+      |> drop_nil_values()
       |> NimbleOptions.validate!(schema)
       |> Keyword.new()
 
     if kind == :image and not Keyword.has_key?(rest, :preset) do
       mode = Keyword.fetch!(validated_kw, :mode)
-      width = Keyword.fetch!(validated_kw, :width)
-      height = Keyword.fetch!(validated_kw, :height)
+      # WR-02: width/height are optional pos_integer keys with no schema
+      # default (absent → nil), so use Keyword.get/2 here.
+      width = Keyword.get(validated_kw, :width)
+      height = Keyword.get(validated_kw, :height)
 
       validate_variant_dimensions!(name, mode, width, height)
     end
@@ -400,7 +413,22 @@ defmodule Rindle.Profile.Validator do
           "variant configuration must be a keyword list or map, got: #{inspect(variant_opts)}"
   end
 
-  defp validate_profile_options!(opts), do: NimbleOptions.validate!(opts, @profile_schema)
+  defp validate_profile_options!(opts) do
+    opts
+    |> drop_nil_values()
+    |> NimbleOptions.validate!(@profile_schema)
+  end
+
+  # WR-02: pre-filter `nil` values out of a keyword list before NimbleOptions
+  # sees them. NimbleOptions does not officially accept the bare literal `nil`
+  # as a stand-alone type marker in `{:or, [...]}`; the documented pattern is
+  # `default: nil` plus stripped-nil keys so the default applies.
+  defp drop_nil_values(opts) when is_list(opts) do
+    Enum.reject(opts, fn
+      {_key, nil} -> true
+      _ -> false
+    end)
+  end
 
   defp validate_variant_dimensions!(name, :crop, nil, _height) do
     raise ArgumentError,
