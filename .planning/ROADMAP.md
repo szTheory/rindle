@@ -81,8 +81,16 @@ STREAM-06, STREAM-07, STREAM-08, STREAM-09 (9 total).
    status.
 6. No Mux code is merged in this phase.
 
-**Plans:** 4 plans (TBD by `/gsd-plan-phase 33`). Plan-count guidance: STREAM-01..09
-≈ 4–5 plans; chosen 4 to match the v1.5 phase rhythm (Phase 32 shipped 3 plans).
+**Plans:** 4 plans (planned 2026-05-06 by `/gsd-plan-phase 33`). Wave 1 (parallel):
+plans 01, 02, 04 — independent. Wave 2: plan 03 — depends on 01 (capabilities) +
+02 (`MediaProviderAsset` schema for Repo lookup) + 04 (5 new error atoms used in
+dispatch return values).
+
+Plans:
+- [ ] 33-01-PLAN.md — Capabilities vocabulary + Provider behaviour (STREAM-01, STREAM-02)
+- [ ] 33-02-PLAN.md — Migration + MediaProviderAsset schema + FSM + Inspect redaction (STREAM-03, STREAM-04)
+- [ ] 33-03-PLAN.md — Profile DSL `:streaming` key + Delivery dispatch tree (STREAM-05, STREAM-06)
+- [ ] 33-04-PLAN.md — Error vocabulary + parity freeze + Capability.report (STREAM-07, STREAM-08, STREAM-09)
 
 **UI hint**: no
 
