@@ -96,7 +96,9 @@ defmodule Rindle.Delivery.StreamingDispatchTest do
   end
 
   defp attach_streaming_telemetry do
-    ref = :telemetry_test.attach_event_handlers(self(), [[:rindle, :delivery, :streaming, :resolved]])
+    ref =
+      :telemetry_test.attach_event_handlers(self(), [[:rindle, :delivery, :streaming, :resolved]])
+
     on_exit(fn -> :telemetry.detach(ref) end)
     ref
   end
@@ -115,8 +117,7 @@ defmodule Rindle.Delivery.StreamingDispatchTest do
       assert {:ok, %{url: _url, kind: :progressive, mime: "video/mp4"}} =
                Rindle.Delivery.streaming_url(NoStreamingProfile, key)
 
-      assert_received {[:rindle, :delivery, :streaming, :resolved], ^ref, measurements,
-                       metadata}
+      assert_received {[:rindle, :delivery, :streaming, :resolved], ^ref, measurements, metadata}
 
       assert is_integer(measurements.system_time)
       assert metadata.profile == NoStreamingProfile
@@ -203,8 +204,8 @@ defmodule Rindle.Delivery.StreamingDispatchTest do
         })
 
       expect(Rindle.Streaming.ProviderMock, :signed_playback_url, fn StreamingProfile,
-                                                                    "pb-abc-1234",
-                                                                    _opts ->
+                                                                     "pb-abc-1234",
+                                                                     _opts ->
         {:ok,
          %{
            url: "https://stream.example/pb-abc-1234.m3u8?token=abc",
@@ -220,8 +221,7 @@ defmodule Rindle.Delivery.StreamingDispatchTest do
                 mime: "application/vnd.apple.mpegurl"
               }} = Rindle.Delivery.streaming_url(StreamingProfile, asset)
 
-      assert_received {[:rindle, :delivery, :streaming, :resolved], ^ref, measurements,
-                       metadata}
+      assert_received {[:rindle, :delivery, :streaming, :resolved], ^ref, measurements, metadata}
 
       assert is_integer(measurements.system_time)
       assert metadata.profile == StreamingProfile
@@ -262,8 +262,7 @@ defmodule Rindle.Delivery.StreamingDispatchTest do
       assert {:ok, %{url: _url, kind: :progressive, mime: "video/mp4"}} =
                Rindle.Delivery.streaming_url(StreamingProfile, asset)
 
-      assert_received {[:rindle, :delivery, :streaming, :resolved], ^ref, _measurements,
-                       metadata}
+      assert_received {[:rindle, :delivery, :streaming, :resolved], ^ref, _measurements, metadata}
 
       assert metadata.kind == :progressive
       assert metadata.profile == StreamingProfile

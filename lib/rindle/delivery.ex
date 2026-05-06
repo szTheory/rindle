@@ -28,6 +28,7 @@ defmodule Rindle.Delivery do
   """
 
   alias Rindle.Delivery.ContentDisposition
+  alias Rindle.Domain.MediaProviderAsset
   alias Rindle.Domain.StalePolicy
   alias Rindle.Storage.Capabilities
   alias Rindle.Storage.Local
@@ -143,21 +144,52 @@ defmodule Rindle.Delivery do
   end
 
   @doc """
-  Returns a progressive streaming URL wrapper for an asset's storage key.
+  Returns a streaming URL for an asset.
 
-  This is an additive future-stable playback surface. In v1.4 it delegates to
-  `url/3`, preserving the same authorization, TTL, and error semantics while
-  wrapping successful results as `%{url, kind, mime}`. Emits
-  `[:rindle, :delivery, :streaming, :resolved]` telemetry on success.
+  Phase 33 — Promotes the v1.4 no-op delegate to a deterministic 8-branch
+  dispatch tree (per CONTEXT D-19). When a profile has not opted into streaming
+  via the `:streaming` key, behaviour is byte-for-byte identical to v1.4:
+  progressive playback wrapped as `%{url, kind: :progressive, mime}` with the
+  existing `[:rindle, :delivery, :streaming, :resolved]` telemetry emit.
 
-  Use the profile's single `signed_url_ttl_seconds` policy as the runtime TTL
-  source. Recommended defaults are 15 minutes for images, 1 hour for audio,
-  and 2 hours for video-on-demand. Long-form playback should refresh tokens at
-  the application edge rather than widening the delivery API.
+  When a profile has opted in:
+
+    1. profile streaming nil                → existing v1.4 progressive path (Branch 1)
+    2. streaming + binary key               → :streaming_provider_requires_asset_struct (Branch 2)
+    3. row in (pending|uploading|processing) → :provider_asset_not_ready (Branch 3)
+    4. row in :errored                      → :provider_sync_failed (Branch 4)
+    5. row in :ready + playback_id          → provider.signed_playback_url/3 (Branch 5)
+    6. no row + opts[:strict] == false      → progressive fallback (Branch 6)
+    7. no row + opts[:strict] == true       → :provider_asset_not_ready (Branch 7, D-20)
+
+  `[:rindle, :delivery, :streaming, :resolved]` telemetry is preserved verbatim
+  on Branches 1 and 6 (`kind: :progressive`); fires with `kind: :hls` on Branch 5
+  (D-24).
   """
-  @spec streaming_url(module(), String.t(), keyword()) ::
-          {:ok, %{url: String.t(), kind: :progressive, mime: String.t()}} | {:error, term()}
-  def streaming_url(profile, key, opts \\ []) do
+  @spec streaming_url(module(), String.t() | map(), keyword()) ::
+          {:ok, %{url: String.t(), kind: :progressive | :hls, mime: String.t()}}
+          | {:error, term()}
+  def streaming_url(profile, asset_or_key, opts \\ []) do
+    streaming_config = Map.get(profile.delivery_policy(), :streaming)
+
+    cond do
+      # Branch 1: no streaming configured → v1.4 progressive path verbatim.
+      is_nil(streaming_config) ->
+        do_progressive_streaming_url(profile, asset_or_key, opts)
+
+      # Branch 2: streaming configured + binary key → require asset struct.
+      is_binary(asset_or_key) ->
+        {:error, :streaming_provider_requires_asset_struct}
+
+      # Branches 3-7: streaming configured + asset struct → Repo lookup + dispatch.
+      true ->
+        dispatch_streaming(profile, streaming_config, asset_or_key, opts)
+    end
+  end
+
+  # Preserves the v1.4 body verbatim. Called from Branch 1 AND Branch 6 (no row,
+  # non-strict). D-24 — telemetry contract preservation.
+  defp do_progressive_streaming_url(profile, key, opts) when is_binary(key) do
     opts = normalize_delivery_opts(key, opts)
     mime = Keyword.get(opts, :mime, "video/mp4")
     adapter = profile.storage_adapter()
@@ -190,6 +222,93 @@ defmodule Rindle.Delivery do
       {:ok, %{url: url, kind: :progressive, mime: mime}}
     end
   end
+
+  # When the caller passed an asset struct/map, Branch 1 / Branch 6's progressive
+  # path needs a storage key. Pull from the struct.
+  defp do_progressive_streaming_url(profile, asset, opts) when is_map(asset) do
+    key = key_for(asset, :storage_key)
+    do_progressive_streaming_url(profile, key, opts)
+  end
+
+  defp dispatch_streaming(profile, streaming_config, asset, opts) do
+    provider_name = derive_provider_name(streaming_config.provider)
+    asset_id = asset_id_of(asset)
+
+    case Rindle.Repo.get_by(MediaProviderAsset,
+           asset_id: asset_id,
+           profile: to_string(profile),
+           provider_name: provider_name
+         ) do
+      nil ->
+        if Keyword.get(opts, :strict, false) do
+          # Branch 7
+          {:error, :provider_asset_not_ready}
+        else
+          # Branch 6
+          do_progressive_streaming_url(profile, asset, opts)
+        end
+
+      %MediaProviderAsset{state: state}
+      when state in ["pending", "uploading", "processing"] ->
+        # Branches 3a/3b/3c
+        {:error, :provider_asset_not_ready}
+
+      %MediaProviderAsset{state: "errored"} ->
+        # Branch 4
+        {:error, :provider_sync_failed}
+
+      %MediaProviderAsset{state: "ready", playback_ids: []} ->
+        # Branch 5b — defensive: state is :ready but no playback id available yet.
+        {:error, :provider_asset_not_ready}
+
+      %MediaProviderAsset{state: "ready", playback_ids: [playback_id | _]} ->
+        # Branch 5
+        dispatch_provider_signed_url(profile, streaming_config, playback_id, opts)
+
+      # Defensive: any other state ("deleted" or unexpected) falls through to the
+      # not-ready error so callers never see a successful URL for a deleted asset.
+      %MediaProviderAsset{} ->
+        {:error, :provider_asset_not_ready}
+    end
+  end
+
+  defp dispatch_provider_signed_url(profile, streaming_config, playback_id, opts) do
+    mime = Keyword.get(opts, :mime, "application/vnd.apple.mpegurl")
+
+    case streaming_config.provider.signed_playback_url(profile, playback_id, opts) do
+      {:ok, %{url: _url, kind: :hls, mime: returned_mime}} = result ->
+        :telemetry.execute(
+          [:rindle, :delivery, :streaming, :resolved],
+          %{system_time: System.system_time()},
+          %{
+            profile: profile,
+            adapter: profile.storage_adapter(),
+            mode: delivery_mode(profile),
+            kind: :hls,
+            mime: returned_mime || mime
+          }
+        )
+
+        # D-23 — pass-through return shape unchanged.
+        result
+
+      {:error, _} = err ->
+        err
+    end
+  end
+
+  # D-22 — provider_name derivation. Module suffix to underscore.
+  defp derive_provider_name(provider_module) when is_atom(provider_module) do
+    provider_module
+    |> Module.split()
+    |> List.last()
+    |> Macro.underscore()
+  end
+
+  # Pull the asset's binary_id. Supports schema struct or plain map (for tests).
+  defp asset_id_of(%{id: id}) when is_binary(id), do: id
+  defp asset_id_of(%{"id" => id}) when is_binary(id), do: id
+  defp asset_id_of(asset), do: key_for(asset, :id)
 
   @doc """
   Returns a deliverable URL for a variant, falling back to the original asset
