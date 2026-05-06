@@ -12,6 +12,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
 
   def prove_package_install! do
     network_version = System.get_env("RINDLE_INSTALL_SMOKE_NETWORK_VERSION")
+    install_mode = install_mode(network_version)
 
     workspace_root =
       Path.join(System.tmp_dir!(), "rindle-install-smoke-#{System.unique_integer([:positive])}")
@@ -60,15 +61,21 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
         shared_env
       )
 
+    deps_rindle_present? = File.exists?(Path.join(generated_app_root, "deps/rindle"))
+
     %{
       workspace_root: workspace_root,
       generated_app_root: generated_app_root,
       package_root: package_root,
       database_name: db_name,
+      install_mode: install_mode,
+      install_source:
+        install_source(install_mode, package_root, network_version),
       compile_exit_code: compile_result.exit_code,
       boot_exit_code: boot_result.exit_code,
       smoke_exit_code: smoke_result.exit_code,
-      network_mode?: not is_nil(network_version),
+      network_mode?: install_mode == :network,
+      deps_rindle_present?: deps_rindle_present?,
       host_migration_ran?: migration_report["host_migration_ran"] == true,
       migration_resolution: migration_report["resolver"] |> to_existing_atom_safe(),
       rindle_migration_path: migration_report["rindle_migration_path"],
@@ -498,6 +505,12 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
   defp package_name do
     "#{Mix.Project.config()[:app]}-#{Mix.Project.config()[:version]}"
   end
+
+  defp install_mode(nil), do: :package
+  defp install_mode(_network_version), do: :network
+
+  defp install_source(:package, package_root, _network_version), do: package_root
+  defp install_source(:network, _package_root, network_version), do: "hex:#{network_version}"
 
   defp repo_root do
     File.cwd!()

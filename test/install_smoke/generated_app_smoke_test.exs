@@ -13,17 +13,23 @@ defmodule Rindle.InstallSmoke.GeneratedAppSmokeTest do
     {:ok, report: report}
   end
 
-  test "generated Phoenix app installs Rindle from the unpacked artifact and never falls back to repo-local deps",
+  test "generated Phoenix app installs Rindle from the configured package source and never falls back to repo-local deps",
        %{
          report: report
        } do
     assert File.dir?(report.generated_app_root)
+    assert report.install_mode in [:package, :network]
+    assert report.install_source
 
-    if not report.network_mode? do
+    if report.install_mode == :package do
       assert File.dir?(report.package_root)
+      assert report.install_source == report.package_root
+    else
+      assert report.network_mode?
+      assert String.starts_with?(report.install_source, "hex:")
     end
 
-    refute File.exists?(Path.join(report.generated_app_root, "deps/rindle"))
+    refute report.deps_rindle_present?
     assert report.compile_exit_code == 0
     assert report.boot_exit_code == 0
   end
