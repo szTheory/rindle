@@ -65,7 +65,8 @@ defmodule Rindle.Domain.MediaProviderAssetTest do
 
     for state <- ~w(pending uploading processing ready errored deleted) do
       test "accepts state=#{state}", %{asset: asset} do
-        changeset = MediaProviderAsset.changeset(%MediaProviderAsset{}, base_attrs(asset, unquote(state)))
+        changeset =
+          MediaProviderAsset.changeset(%MediaProviderAsset{}, base_attrs(asset, unquote(state)))
 
         assert changeset.valid?,
                "expected state=#{unquote(state)} to be valid; got: #{inspect(changeset.errors)}"
@@ -73,7 +74,8 @@ defmodule Rindle.Domain.MediaProviderAssetTest do
     end
 
     test "rejects unknown states", %{asset: asset} do
-      for bad <- ~w(validating analyzing unknown promoting available transcoding degraded quarantined) do
+      for bad <-
+            ~w(validating analyzing unknown promoting available transcoding degraded quarantined) do
         changeset = MediaProviderAsset.changeset(%MediaProviderAsset{}, base_attrs(asset, bad))
         refute changeset.valid?, "expected state=#{bad} to be rejected"
         assert {"is invalid", _meta} = Keyword.fetch!(changeset.errors, :state)
