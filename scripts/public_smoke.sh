@@ -15,6 +15,7 @@ fi
 echo "Running public smoke test for published Hex.pm version: $VERSION"
 
 export MIX_ENV=test
+unset RINDLE_INSTALL_SMOKE_PACKAGE_ROOT
 export RINDLE_INSTALL_SMOKE_NETWORK_VERSION="$VERSION"
 export RINDLE_MINIO_RESET_BUCKET=1
 
