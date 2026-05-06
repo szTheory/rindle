@@ -8,41 +8,48 @@ defmodule Rindle.Profile.ValidatorTest do
 
   describe "validate_variant! :kind dispatch (AV-02-06)" do
     test "default :kind => :image (omitted) compiles and produces a variant map without :kind" do
-      mod = compile_profile("""
-      storage: Rindle.StorageMock,
-      variants: [thumb: [mode: :fit, width: 64, height: 64]],
-      allow_mime: ["image/jpeg"],
-      allow_extensions: [".jpg"],
-      max_bytes: 5_000_000,
-      max_pixels: 24_000_000
-      """)
+      mod =
+        compile_profile("""
+        storage: Rindle.StorageMock,
+        variants: [thumb: [mode: :fit, width: 64, height: 64]],
+        allow_mime: ["image/jpeg"],
+        allow_extensions: [".jpg"],
+        max_bytes: 5_000_000,
+        max_pixels: 24_000_000
+        """)
 
       thumb = mod.variants()[:thumb]
-      refute Map.has_key?(thumb, :kind), "default :image must omit :kind from validated map (D-14)"
+
+      refute Map.has_key?(thumb, :kind),
+             "default :image must omit :kind from validated map (D-14)"
+
       assert thumb.mode == :fit
       assert thumb.width == 64
     end
 
     test "explicit :kind => :image compiles and ALSO omits :kind from validated map (D-14 invariant)" do
-      mod = compile_profile("""
-      storage: Rindle.StorageMock,
-      variants: [thumb: [kind: :image, mode: :fit, width: 64, height: 64]],
-      allow_mime: ["image/jpeg"],
-      allow_extensions: [".jpg"]
-      """)
+      mod =
+        compile_profile("""
+        storage: Rindle.StorageMock,
+        variants: [thumb: [kind: :image, mode: :fit, width: 64, height: 64]],
+        allow_mime: ["image/jpeg"],
+        allow_extensions: [".jpg"]
+        """)
 
       thumb = mod.variants()[:thumb]
+
       refute Map.has_key?(thumb, :kind),
              "explicit :image must ALSO omit :kind for digest parity with default :image (D-14)"
     end
 
     test ":kind => :video persists into validated map" do
-      mod = compile_profile("""
-      storage: Rindle.StorageMock,
-      variants: [hero: [kind: :video, preset: :web_720p]],
-      allow_mime: ["video/mp4"],
-      allow_extensions: [".mp4"]
-      """)
+      mod =
+        compile_profile("""
+        storage: Rindle.StorageMock,
+        variants: [hero: [kind: :video, preset: :web_720p]],
+        allow_mime: ["video/mp4"],
+        allow_extensions: [".mp4"]
+        """)
 
       hero = mod.variants()[:hero]
       assert hero[:kind] == :video
@@ -53,12 +60,13 @@ defmodule Rindle.Profile.ValidatorTest do
     end
 
     test ":kind => :audio persists into validated map" do
-      mod = compile_profile("""
-      storage: Rindle.StorageMock,
-      variants: [aac: [kind: :audio, preset: :m4a_128k]],
-      allow_mime: ["audio/mp4"],
-      allow_extensions: [".m4a"]
-      """)
+      mod =
+        compile_profile("""
+        storage: Rindle.StorageMock,
+        variants: [aac: [kind: :audio, preset: :m4a_128k]],
+        allow_mime: ["audio/mp4"],
+        allow_extensions: [".m4a"]
+        """)
 
       aac = mod.variants()[:aac]
       assert aac[:kind] == :audio
@@ -68,12 +76,13 @@ defmodule Rindle.Profile.ValidatorTest do
     end
 
     test ":kind => :waveform persists into validated map" do
-      mod = compile_profile("""
-      storage: Rindle.StorageMock,
-      variants: [peaks: [kind: :waveform, preset: :overview]],
-      allow_mime: ["audio/mpeg"],
-      allow_extensions: [".mp3"]
-      """)
+      mod =
+        compile_profile("""
+        storage: Rindle.StorageMock,
+        variants: [peaks: [kind: :waveform, preset: :overview]],
+        allow_mime: ["audio/mpeg"],
+        allow_extensions: [".mp3"]
+        """)
 
       peaks = mod.variants()[:peaks]
       assert peaks[:kind] == :waveform
@@ -297,7 +306,8 @@ defmodule Rindle.Profile.ValidatorTest do
         variants: [preview: [preset: :m4a_128k, kind: :audio, normalize: false, two_pass: false]]
         """)
 
-      assert implicit_defaults.recipe_digest(:preview) == explicit_defaults.recipe_digest(:preview)
+      assert implicit_defaults.recipe_digest(:preview) ==
+               explicit_defaults.recipe_digest(:preview)
     end
   end
 
@@ -328,6 +338,293 @@ defmodule Rindle.Profile.ValidatorTest do
         end
         """)
       end
+    end
+  end
+
+  describe "validate_delivery! :streaming key (Phase 33 STREAM-05; D-15..D-18)" do
+    test "full valid :streaming config compiles and produces all 4 keys (D-15)" do
+      mod =
+        compile_profile("""
+        storage: Rindle.StorageMock,
+        allow_mime: ["video/mp4"],
+        allow_extensions: [".mp4"],
+        variants: [web: [kind: :video, preset: :web_720p]],
+        delivery: [
+          streaming: [
+            provider: Rindle.Streaming.Provider.Mux,
+            playback_policy: :signed,
+            ingest_mode: :server_push,
+            source_variant: :web
+          ]
+        ]
+        """)
+
+      streaming = mod.delivery_policy()[:streaming]
+      assert streaming.provider == Rindle.Streaming.Provider.Mux
+      assert streaming.playback_policy == :signed
+      assert streaming.ingest_mode == :server_push
+      assert streaming.source_variant == :web
+    end
+
+    test "no :streaming key → delivery.streaming is nil (D-17)" do
+      mod =
+        compile_profile("""
+        storage: Rindle.StorageMock,
+        allow_mime: ["image/jpeg"],
+        allow_extensions: [".jpg"],
+        variants: [thumb: [mode: :fit, width: 64]],
+        delivery: [public: false]
+        """)
+
+      assert Map.get(mod.delivery_policy(), :streaming) == nil
+    end
+
+    test "explicit streaming: nil → delivery.streaming is nil (D-17)" do
+      mod =
+        compile_profile("""
+        storage: Rindle.StorageMock,
+        allow_mime: ["image/jpeg"],
+        allow_extensions: [".jpg"],
+        variants: [thumb: [mode: :fit, width: 64]],
+        delivery: [streaming: nil]
+        """)
+
+      assert Map.get(mod.delivery_policy(), :streaming) == nil
+    end
+
+    test "image-only profile compiles without :streaming (D-17 regression)" do
+      mod =
+        compile_profile("""
+        storage: Rindle.StorageMock,
+        allow_mime: ["image/jpeg"],
+        allow_extensions: [".jpg"],
+        variants: [thumb: [mode: :fit, width: 64, height: 64]]
+        """)
+
+      thumb = mod.variants()[:thumb]
+      assert thumb.mode == :fit
+      assert Map.get(mod.delivery_policy(), :streaming) == nil
+    end
+
+    test "AV-only profile (variant kind: :video) compiles without :streaming (D-17)" do
+      mod =
+        compile_profile("""
+        storage: Rindle.StorageMock,
+        allow_mime: ["video/mp4"],
+        allow_extensions: [".mp4"],
+        variants: [web: [kind: :video, preset: :web_720p]]
+        """)
+
+      web = mod.variants()[:web]
+      assert web[:kind] == :video
+      assert Map.get(mod.delivery_policy(), :streaming) == nil
+    end
+
+    test "raw provider knob :max_resolution_tier raises (D-16)" do
+      assert_raise ArgumentError,
+                   ~r/(unknown options.*max_resolution_tier|max_resolution_tier.*unknown)/i,
+                   fn ->
+                     Code.compile_string("""
+                     defmodule #{unique_module_name("StreamingRawKnob")} do
+                       use Rindle.Profile,
+                         storage: Rindle.StorageMock,
+                         allow_mime: ["video/mp4"],
+                         allow_extensions: [".mp4"],
+                         variants: [web: [kind: :video, preset: :web_720p]],
+                         delivery: [
+                           streaming: [
+                             provider: Rindle.Streaming.Provider.Mux,
+                             playback_policy: :signed,
+                             ingest_mode: :server_push,
+                             source_variant: :web,
+                             max_resolution_tier: "1080p"
+                           ]
+                         ]
+                     end
+                     """)
+                   end
+    end
+
+    test "raw provider knob :input raises (D-16)" do
+      assert_raise ArgumentError, ~r/unknown options.*input/i, fn ->
+        Code.compile_string("""
+        defmodule #{unique_module_name("StreamingInputKnob")} do
+          use Rindle.Profile,
+            storage: Rindle.StorageMock,
+            allow_mime: ["video/mp4"],
+            allow_extensions: [".mp4"],
+            variants: [web: [kind: :video, preset: :web_720p]],
+            delivery: [
+              streaming: [
+                provider: Rindle.Streaming.Provider.Mux,
+                playback_policy: :signed,
+                ingest_mode: :server_push,
+                source_variant: :web,
+                input: "https://example/foo.mp4"
+              ]
+            ]
+        end
+        """)
+      end
+    end
+
+    test "missing :provider raises (NimbleOptions required)" do
+      assert_raise ArgumentError, ~r/required.*:provider|:provider.*required/i, fn ->
+        Code.compile_string("""
+        defmodule #{unique_module_name("StreamingNoProvider")} do
+          use Rindle.Profile,
+            storage: Rindle.StorageMock,
+            allow_mime: ["video/mp4"],
+            allow_extensions: [".mp4"],
+            variants: [web: [kind: :video, preset: :web_720p]],
+            delivery: [
+              streaming: [
+                playback_policy: :signed,
+                ingest_mode: :server_push,
+                source_variant: :web
+              ]
+            ]
+        end
+        """)
+      end
+    end
+
+    test ":playback_policy must be :signed or :public (rejects :other)" do
+      assert_raise ArgumentError, ~r/playback_policy/, fn ->
+        Code.compile_string("""
+        defmodule #{unique_module_name("StreamingBadPolicy")} do
+          use Rindle.Profile,
+            storage: Rindle.StorageMock,
+            allow_mime: ["video/mp4"],
+            allow_extensions: [".mp4"],
+            variants: [web: [kind: :video, preset: :web_720p]],
+            delivery: [
+              streaming: [
+                provider: Rindle.Streaming.Provider.Mux,
+                playback_policy: :other,
+                ingest_mode: :server_push,
+                source_variant: :web
+              ]
+            ]
+        end
+        """)
+      end
+    end
+
+    test ":ingest_mode must be :server_push or :direct_creator_upload (rejects :other)" do
+      assert_raise ArgumentError, ~r/ingest_mode/, fn ->
+        Code.compile_string("""
+        defmodule #{unique_module_name("StreamingBadIngest")} do
+          use Rindle.Profile,
+            storage: Rindle.StorageMock,
+            allow_mime: ["video/mp4"],
+            allow_extensions: [".mp4"],
+            variants: [web: [kind: :video, preset: :web_720p]],
+            delivery: [
+              streaming: [
+                provider: Rindle.Streaming.Provider.Mux,
+                playback_policy: :signed,
+                ingest_mode: :other,
+                source_variant: :web
+              ]
+            ]
+        end
+        """)
+      end
+    end
+
+    test ":source_variant non-atom raises (NimbleOptions :atom type check)" do
+      assert_raise ArgumentError, ~r/source_variant/, fn ->
+        Code.compile_string("""
+        defmodule #{unique_module_name("StreamingBadVariantType")} do
+          use Rindle.Profile,
+            storage: Rindle.StorageMock,
+            allow_mime: ["video/mp4"],
+            allow_extensions: [".mp4"],
+            variants: [web: [kind: :video, preset: :web_720p]],
+            delivery: [
+              streaming: [
+                provider: Rindle.Streaming.Provider.Mux,
+                playback_policy: :signed,
+                ingest_mode: :server_push,
+                source_variant: "web"
+              ]
+            ]
+        end
+        """)
+      end
+    end
+
+    test "source_variant atom not declared in variants/0 raises (D-18 partial)" do
+      assert_raise ArgumentError, ~r/source_variant.*:nonexistent.*not declared/i, fn ->
+        Code.compile_string("""
+        defmodule #{unique_module_name("StreamingMissingVariant")} do
+          use Rindle.Profile,
+            storage: Rindle.StorageMock,
+            allow_mime: ["video/mp4"],
+            allow_extensions: [".mp4"],
+            variants: [web: [kind: :video, preset: :web_720p]],
+            delivery: [
+              streaming: [
+                provider: Rindle.Streaming.Provider.Mux,
+                playback_policy: :signed,
+                ingest_mode: :server_push,
+                source_variant: :nonexistent
+              ]
+            ]
+        end
+        """)
+      end
+    end
+
+    test "source_variant points at :image-kind variant compiles in Phase 33 (D-18 deferred to Phase 34)" do
+      # Phase 33 only validates atom presence in variants/0; per-variant kind: enforcement
+      # (e.g. source_variant must be :video/:audio) is deferred to Phase 34.
+      mod =
+        compile_profile("""
+        storage: Rindle.StorageMock,
+        allow_mime: ["image/jpeg"],
+        allow_extensions: [".jpg"],
+        variants: [web: [mode: :fit, width: 1024]],
+        delivery: [
+          streaming: [
+            provider: Rindle.Streaming.Provider.Mux,
+            playback_policy: :signed,
+            ingest_mode: :server_push,
+            source_variant: :web
+          ]
+        ]
+        """)
+
+      assert mod.delivery_policy()[:streaming].source_variant == :web
+    end
+
+    test "pre-existing delivery: [public: true] without :streaming compiles unchanged (regression)" do
+      mod =
+        compile_profile("""
+        storage: Rindle.StorageMock,
+        allow_mime: ["image/jpeg"],
+        allow_extensions: [".jpg"],
+        variants: [thumb: [mode: :fit, width: 64]],
+        delivery: [public: true]
+        """)
+
+      assert mod.delivery_policy().public == true
+      assert Map.get(mod.delivery_policy(), :streaming) == nil
+    end
+
+    test "pre-existing delivery: [signed_url_ttl_seconds: 3600] without :streaming compiles unchanged (regression)" do
+      mod =
+        compile_profile("""
+        storage: Rindle.StorageMock,
+        allow_mime: ["image/jpeg"],
+        allow_extensions: [".jpg"],
+        variants: [thumb: [mode: :fit, width: 64]],
+        delivery: [signed_url_ttl_seconds: 3600]
+        """)
+
+      assert mod.delivery_policy().signed_url_ttl_seconds == 3600
+      assert Map.get(mod.delivery_policy(), :streaming) == nil
     end
   end
 

@@ -44,6 +44,34 @@ defmodule Rindle.Profile.Validator do
     authorizer: [
       type: {:or, [:atom, nil]},
       default: nil
+    ],
+    streaming: [
+      type: {:or, [:keyword_list, {:map, :atom, :any}, nil]},
+      default: nil,
+      doc: "Optional streaming-provider configuration (Phase 33). See `@streaming_schema`."
+    ]
+  ]
+
+  @streaming_schema [
+    provider: [
+      type: :atom,
+      required: true,
+      doc: "Module implementing `Rindle.Streaming.Provider`."
+    ],
+    playback_policy: [
+      type: {:in, [:signed, :public]},
+      required: true,
+      doc: "Named playback policy. `:signed` requires the provider to have signing configured."
+    ],
+    ingest_mode: [
+      type: {:in, [:server_push, :direct_creator_upload]},
+      required: true,
+      doc: "Ingest path. `:direct_creator_upload` is reserved for Phase 37."
+    ],
+    source_variant: [
+      type: :atom,
+      required: true,
+      doc: "Atom naming the variant in the same profile that feeds the provider ingest."
     ]
   ]
 
@@ -138,7 +166,15 @@ defmodule Rindle.Profile.Validator do
           delivery: %{
             public: boolean(),
             authorizer: module() | nil,
-            signed_url_ttl_seconds: pos_integer()
+            signed_url_ttl_seconds: pos_integer(),
+            streaming:
+              %{
+                provider: module(),
+                playback_policy: :signed | :public,
+                ingest_mode: :server_push | :direct_creator_upload,
+                source_variant: atom()
+              }
+              | nil
           }
         }
 
@@ -172,7 +208,7 @@ defmodule Rindle.Profile.Validator do
       |> Keyword.new()
 
     variants = validate_variants!(Keyword.fetch!(validated, :variants))
-    delivery = validate_delivery!(Keyword.get(validated, :delivery, []))
+    delivery = validate_delivery!(Keyword.get(validated, :delivery, []), Map.keys(variants))
 
     %{
       storage: Keyword.fetch!(validated, :storage),
@@ -208,7 +244,7 @@ defmodule Rindle.Profile.Validator do
     |> Map.new()
   end
 
-  defp validate_delivery!(delivery_opts) do
+  defp validate_delivery!(delivery_opts, variant_keys) do
     delivery_opts
     |> normalize_delivery_opts!()
     |> NimbleOptions.validate!(@delivery_schema)
@@ -220,15 +256,49 @@ defmodule Rindle.Profile.Validator do
           value -> value
         end
 
+      streaming = validate_streaming!(Keyword.get(delivery, :streaming), variant_keys)
+
       %{
         public: Keyword.fetch!(delivery, :public),
         signed_url_ttl_seconds: ttl,
-        authorizer: Keyword.fetch!(delivery, :authorizer)
+        authorizer: Keyword.fetch!(delivery, :authorizer),
+        streaming: streaming
       }
     end)
   rescue
     error in NimbleOptions.ValidationError ->
       reraise ArgumentError, "delivery: #{Exception.message(error)}", __STACKTRACE__
+  end
+
+  defp validate_streaming!(nil, _variant_keys), do: nil
+
+  defp validate_streaming!(streaming_opts, variant_keys)
+       when is_list(streaming_opts) or is_map(streaming_opts) do
+    validated =
+      streaming_opts
+      |> normalize_delivery_opts!()
+      |> NimbleOptions.validate!(@streaming_schema)
+      |> Keyword.new()
+
+    source_variant = Keyword.fetch!(validated, :source_variant)
+
+    unless source_variant in variant_keys do
+      raise ArgumentError,
+            "streaming: source_variant #{inspect(source_variant)} not declared in variants/0 " <>
+              "(declared: #{inspect(variant_keys)})"
+    end
+
+    %{
+      provider: Keyword.fetch!(validated, :provider),
+      playback_policy: Keyword.fetch!(validated, :playback_policy),
+      ingest_mode: Keyword.fetch!(validated, :ingest_mode),
+      source_variant: source_variant
+    }
+  rescue
+    error in NimbleOptions.ValidationError ->
+      reraise ArgumentError,
+              "streaming: #{Exception.message(error)}",
+              __STACKTRACE__
   end
 
   defp normalize_delivery_opts!(delivery_opts) when is_list(delivery_opts), do: delivery_opts
