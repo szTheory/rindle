@@ -19,7 +19,7 @@ defmodule Rindle.MixProject do
       description: "Phoenix/Ecto-native media lifecycle library. Media, made durable.",
       dialyzer: [
         plt_file: {:no_warn, "priv/plts/dialyzer.plt"},
-        plt_add_apps: [:mix, :ex_unit],
+        plt_add_apps: [:mix, :ex_unit, :mux, :jose],
         ignore_warnings: ".dialyzer_ignore.exs"
       ],
       test_coverage: [tool: ExCoveralls]
@@ -63,6 +63,10 @@ defmodule Rindle.MixProject do
 
       # LiveView integration (optional — Rindle.LiveView helpers are no-op without it)
       {:phoenix_live_view, "~> 1.0", optional: true},
+
+      # Streaming providers (optional — Mux adapter only loads when these are present)
+      {:mux, "~> 3.2", optional: true},
+      {:jose, "~> 1.11", optional: true},
 
       # Configuration validation
       {:nimble_options, "~> 1.1"},

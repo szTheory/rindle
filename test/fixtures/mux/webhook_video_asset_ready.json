@@ -1,0 +1,20 @@
+{
+  "type": "video.asset.ready",
+  "id": "evt-fixture-ready-0001",
+  "object": {
+    "type": "asset",
+    "id": "AbCd1234EfGh5678IjKl9012MnOp3456QrSt"
+  },
+  "data": {
+    "id": "AbCd1234EfGh5678IjKl9012MnOp3456QrSt",
+    "status": "ready",
+    "playback_ids": [
+      {
+        "id": "playback-id-test-fixture-1234",
+        "policy": "signed"
+      }
+    ],
+    "duration": 30.5
+  },
+  "created_at": "2026-05-06T00:00:00.000Z"
+}
