@@ -117,6 +117,7 @@ defmodule Rindle.MixProject do
         "README.md",
         "RUNNING.md",
         "guides/getting_started.md",
+        "guides/upgrading.md",
         "guides/core_concepts.md",
         "guides/storage_capabilities.md",
         "guides/profiles.md",
