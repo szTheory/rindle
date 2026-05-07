@@ -535,53 +535,65 @@ defmodule Rindle.Ops.RuntimeChecksTest do
       finch_name = :"rindle_probe_test_finch_#{System.unique_integer([:positive])}"
       {:ok, _} = Finch.start_link(name: finch_name)
 
-      goth_name = :"rindle_probe_test_goth_#{System.unique_integer([:positive])}"
-      fake_creds = SigningKeyFixture.fixture_json()
-      {:ok, _} = Goth.start_link(name: goth_name, source: {:service_account, fake_creds, []})
+      # `:token` opt is the test-only seam — Bypass-mocked unit tests cannot
+      # round-trip through Google's real OAuth endpoint to exchange a fake
+      # service-account JWT for a token, so we inject a fixed bearer instead.
+      # `goth_name` is still passed through for the precondition-presence check
+      # in probe_gcs_bucket/4 (nil goth_name → {:precondition_missing, ...}).
+      goth_name = :rindle_probe_test_fake_goth_name
 
       base_url = "http://localhost:#{bypass.port}"
+      fake_token = "test-bearer-token-#{System.unique_integer([:positive])}"
 
-      {:ok, bypass: bypass, finch_name: finch_name, goth_name: goth_name, base_url: base_url}
+      _ = SigningKeyFixture
+
+      {:ok,
+       bypass: bypass,
+       finch_name: finch_name,
+       goth_name: goth_name,
+       base_url: base_url,
+       token: fake_token}
     end
 
-    test "200 → :ok", %{bypass: bypass, finch_name: f, goth_name: g, base_url: u} do
+    test "200 → :ok", %{bypass: bypass, finch_name: f, goth_name: g, base_url: u, token: t} do
       Bypass.expect_once(bypass, "GET", "/storage/v1/b/my-bucket", fn conn ->
         Plug.Conn.resp(conn, 200, ~s({"name":"my-bucket"}))
       end)
 
-      assert RuntimeChecks.do_probe("my-bucket", f, g, base_url: u) == :ok
+      assert RuntimeChecks.do_probe("my-bucket", f, g, base_url: u, token: t) == :ok
     end
 
     test "403 → :ok (bucket exists; ACL-restricted; name resolution healthy per RESEARCH §7)",
-         %{bypass: bypass, finch_name: f, goth_name: g, base_url: u} do
+         %{bypass: bypass, finch_name: f, goth_name: g, base_url: u, token: t} do
       Bypass.expect_once(bypass, "GET", "/storage/v1/b/my-bucket", fn conn ->
         Plug.Conn.resp(conn, 403, ~s({"error":{"code":403,"message":"Forbidden"}}))
       end)
 
-      assert RuntimeChecks.do_probe("my-bucket", f, g, base_url: u) == :ok
+      assert RuntimeChecks.do_probe("my-bucket", f, g, base_url: u, token: t) == :ok
     end
 
     test "404 → {:bucket_missing, 404}", %{
       bypass: bypass,
       finch_name: f,
       goth_name: g,
-      base_url: u
+      base_url: u,
+      token: t
     } do
       Bypass.expect_once(bypass, "GET", "/storage/v1/b/my-bucket", fn conn ->
         Plug.Conn.resp(conn, 404, ~s({"error":{"code":404,"message":"Not Found"}}))
       end)
 
-      assert RuntimeChecks.do_probe("my-bucket", f, g, base_url: u) ==
+      assert RuntimeChecks.do_probe("my-bucket", f, g, base_url: u, token: t) ==
                {:bucket_missing, 404}
     end
 
     test "500 → {:unexpected_status, 500}",
-         %{bypass: bypass, finch_name: f, goth_name: g, base_url: u} do
+         %{bypass: bypass, finch_name: f, goth_name: g, base_url: u, token: t} do
       Bypass.expect_once(bypass, "GET", "/storage/v1/b/my-bucket", fn conn ->
         Plug.Conn.resp(conn, 500, "Internal Server Error")
       end)
 
-      assert RuntimeChecks.do_probe("my-bucket", f, g, base_url: u) ==
+      assert RuntimeChecks.do_probe("my-bucket", f, g, base_url: u, token: t) ==
                {:unexpected_status, 500}
     end
 
@@ -589,12 +601,13 @@ defmodule Rindle.Ops.RuntimeChecksTest do
       bypass: bypass,
       finch_name: f,
       goth_name: g,
-      base_url: u
+      base_url: u,
+      token: t
     } do
       Bypass.down(bypass)
 
       assert {:probe_error, _reason} =
-               RuntimeChecks.do_probe("my-bucket", f, g, base_url: u)
+               RuntimeChecks.do_probe("my-bucket", f, g, base_url: u, token: t)
     end
 
     test "precondition: nil finch_name → {:precondition_missing, :finch_not_configured}",
@@ -614,7 +627,7 @@ defmodule Rindle.Ops.RuntimeChecksTest do
     # directly) because do_probe/4 returns raw tuples; error_result/4 stringifies
     # them via inspect/1.
     test "doctor row: probe error_result NEVER echoes bearer token (security invariant)",
-         %{bypass: bypass, finch_name: f, goth_name: g, base_url: u} do
+         %{bypass: bypass, finch_name: f, goth_name: g, base_url: u, token: t} do
       Bypass.expect_once(bypass, "GET", "/storage/v1/b/my-bucket", fn conn ->
         # Server replies with body that includes a bogus bearer-shaped string —
         # the probe MUST NOT include the body in the error tuple, only the status.
@@ -627,7 +640,8 @@ defmodule Rindle.Ops.RuntimeChecksTest do
         bucket: "my-bucket",
         finch: f,
         goth: g,
-        base_url: u
+        base_url: u,
+        token: t
       )
 
       try do
