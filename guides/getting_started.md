@@ -361,6 +361,21 @@ rescue
 end
 ```
 
+## 10. Streaming with Mux (optional)
+
+For HLS streaming via signed playback URLs, opt a profile into a streaming provider:
+
+```elixir
+defmodule MyApp.Streaming do
+  use Rindle.Profile.Presets.MuxWeb,
+    storage: Rindle.Storage.S3,
+    allow_mime: ["video/mp4", "video/quicktime", "video/webm"],
+    max_bytes: 524_288_000
+end
+```
+
+End-to-end onboarding — signing keys, webhook plug, cron, local tunnel, secret rotation, and `mix rindle.doctor --streaming` — lives in [`streaming_providers.md`](streaming_providers.md).
+
 ## Next Reads
 
 - [`../README.md`](../README.md): quickstart version of this path
