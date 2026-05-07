@@ -1576,53 +1576,49 @@ in their first task.
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Is `:finch` already a transitive non-optional dep?**
-   - What we know: `mix deps.tree | grep finch` shows nothing in the
-     current tree (no Goth installed yet).
-   - What's unclear: CONTEXT D-07 explicitly states "already in tree as a
-     non-optional dep elsewhere" — this is verifiably wrong against the
-     current tree.
-   - Recommendation: Add `{:finch, "~> 0.21", optional: true}` to deps AND
-     add `:finch` to `plt_add_apps`. Cost: zero. Benefit: Dialyzer doesn't
-     warn on Finch typespec gaps. Note this discrepancy in the plan.
+1. **Is `:finch` already a transitive non-optional dep?** — **RESOLVED 2026-05-07.**
+   - Verified: `mix deps.tree | grep finch` returns empty; `mix.lock:60`
+     shows `:finch` only as Tesla's `optional: true` ref. CONTEXT D-07's
+     "already in tree as a non-optional dep elsewhere" is wrong.
+   - **Resolution:** Plan 01 adds `{:finch, "~> 0.21", optional: true}` to
+     `mix.exs` deps AND adds `:finch` to `plt_add_apps`. Plans cite
+     Pitfall-numbering "Q9 / A4" for this override.
 
-2. **Which Goth fetch variant: `Goth.fetch/1` or `Goth.fetch!/1`?**
-   - What we know: `fetch/1` returns `{:ok, token}` | `nil` per docs;
-     `fetch!/1` raises on error.
-   - What's unclear: Which is idiomatic for adapter use — fail-fast or
-     return-tuple?
-   - Recommendation: Use `Goth.fetch/1` (return-tuple); the adapter wraps
-     the `nil` / `{:error, _}` paths into `:goth_unconfigured`. This keeps
-     the adapter's error-tuple discipline intact.
+2. **Which Goth fetch variant: `Goth.fetch/1` or `Goth.fetch!/1`?** — **RESOLVED 2026-05-07.**
+   - **Resolution:** Use `Goth.fetch/1` (return-tuple). The adapter
+     translates `nil` / `{:error, _}` → `{:error, :goth_unconfigured}`.
+     CRITICAL — see Pitfall 6: when the named Goth instance is NOT in the
+     supervision tree, `Goth.fetch/1` raises `ArgumentError` (NOT `:exit,
+     :noproc`). Plans MUST `rescue ArgumentError` (defense-in-depth: also
+     `catch :exit, _` is fine but ArgumentError is the documented path).
 
-3. **Should `download/3` stream to disk or load entire body to memory?**
-   - What we know: Finch supports both `Finch.request/2` (loads body) and
-     `Finch.stream/4` (streams chunks).
-   - What's unclear: Phase 37 has no explicit large-file requirement;
-     adopters using local-file ingest path likely have small images.
-   - Recommendation: Phase 37 ships load-to-memory (simpler); add a
-     follow-up TODO for streaming if/when video adopters complain. Phase
-     38–39 resumable work covers the large-file path.
+3. **Should `download/3` stream to disk or load entire body to memory?** — **RESOLVED 2026-05-07.**
+   - **Resolution:** Phase 37 ships load-to-memory via `Finch.request/3`
+     (simpler; Phase 37 adopters use the image-only local-file ingest
+     path). `Finch.stream/4` deferred to Phase 38–39 resumable work where
+     large-file paths matter. TODO-comment in `gcs/client.ex` flags the
+     follow-up.
 
-4. **Does `Bypass` work with `async: true` ExUnit cases?**
-   - What we know: Bypass uses ports; each `Bypass.open()` allocates a
-     fresh port.
-   - What's unclear: Whether `async: true` causes port-allocation
-     contention.
-   - Recommendation: Try `async: true` first; if flaky, fall back to
-     `async: false` for `gcs/client_test.exs` only.
+4. **Does `Bypass` work with `async: true` ExUnit cases?** — **RESOLVED 2026-05-07.**
+   - **Resolution:** Plan 01 ships `gcs/client_test.exs` with `async:
+     false` (conservative). Each `Bypass.open()` allocates a fresh port,
+     and the existing rindle test suite has no Bypass adopter — this is
+     the first. If subsequent phases prove `async: true` is safe across
+     N suite runs, flip to `async: true` then.
 
 5. **Should the `signing_key` config support a file path string in
-   addition to map and PEM?**
-   - What we know: `GcsSignedUrl.Client.load/1` accepts both map and file
-     path.
-   - What's unclear: Whether passing a file path through Rindle config is
-     useful or just a footgun (file might not exist at runtime).
-   - Recommendation: Phase 37 supports map (decoded JSON) and PEM string
-     only. File-path loading is adopter responsibility (decode at app
-     boot, pass map). Document this in the in-module `@doc`.
+   addition to map and PEM?** — **RESOLVED 2026-05-07 (LOCKED).**
+   - **Resolution:** Phase 37 supports **decoded JSON map (preferred)
+     and PEM string only**. File-path loading is adopter responsibility
+     (decode at app boot via `Jason.decode!(File.read!(...))`, pass the
+     map). Plans MUST raise `ArgumentError` for file-path input — file
+     might not exist at runtime, security ergonomics differ between
+     deploy environments, and CONTEXT D-08's literal config example
+     comment reads "service-account JSON or PEM" (no file path). This
+     resolution OVERRIDES any earlier plan that accepted file paths via
+     `GcsSignedUrl.Client.load_from_file/1`.
 
 ---
 

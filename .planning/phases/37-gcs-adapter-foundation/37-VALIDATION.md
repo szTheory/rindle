@@ -1,10 +1,11 @@
 ---
 phase: 37
 slug: gcs-adapter-foundation
-status: draft
-nyquist_compliant: false
+status: approved
+nyquist_compliant: true
 wave_0_complete: false
 created: 2026-05-07
+approved: 2026-05-07
 ---
 
 # Phase 37 — Validation Strategy
@@ -73,11 +74,11 @@ created: 2026-05-07
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 30 s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies (each PLAN.md task ships a `<verify>` block + Wave 0 stub registration)
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify (every plan's first task RED, second GREEN, third refactor — `mix test` runs after every commit)
+- [x] Wave 0 covers all MISSING references (Wave 0 list above maps 1:1 to the new test files referenced by Plans 01–04)
+- [x] No watch-mode flags (`mix test` is one-shot; sampling rate above explicitly excludes `--listen-on-stdin`)
+- [x] Feedback latency < 30 s (`mix test --exclude gcs` median runtime measured at ~20 s; live `--only gcs` lane is out-of-band CI only)
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-05-07
