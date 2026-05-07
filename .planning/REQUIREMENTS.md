@@ -188,28 +188,28 @@ Carried forward from v1.6 Phase 37 (not pulled forward at v1.6 close).
 ## Traceability
 
 Every v1.7 requirement is mapped to exactly one phase. No orphans. No
-duplicates. Coverage: 18 / 18 ✓ (filled by roadmapper).
+duplicates. Coverage: 18 / 18 ✓
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| GCS-01 | Phase 37 — GCS Adapter Foundation | Planned |
-| GCS-02 | Phase 37 — GCS Adapter Foundation | Planned |
-| GCS-03 | Phase 37 — GCS Adapter Foundation | Planned |
-| GCS-04 | Phase 37 — GCS Adapter Foundation | Planned |
-| RESUMABLE-01 | Phase 38 — Resumable Persistence + FSM | Planned |
-| RESUMABLE-02 | Phase 38 — Resumable Persistence + FSM | Planned |
-| RESUMABLE-03 | Phase 38 — Resumable Persistence + FSM | Planned |
-| RESUMABLE-04 | Phase 39 — Resumable Adapter Behaviour + Broker Wiring | Planned |
-| RESUMABLE-05 | Phase 39 — Resumable Adapter Behaviour + Broker Wiring | Planned |
-| RESUMABLE-06 | Phase 39 — Resumable Adapter Behaviour + Broker Wiring | Planned |
-| RESUMABLE-07 | Phase 39 — Resumable Adapter Behaviour + Broker Wiring | Planned |
-| RESUMABLE-08 | Phase 39 — Resumable Adapter Behaviour + Broker Wiring | Planned |
-| RESUMABLE-09 | Phase 40 — Maintenance + Cancel Contract | Planned |
-| RESUMABLE-10 | Phase 40 — Maintenance + Cancel Contract | Planned |
-| RESUMABLE-11 | Phase 40 — Maintenance + Cancel Contract | Planned |
-| RESUMABLE-12 | Phase 41 — Onboarding + Docs + Doctor + Package-Consumer Proof | Planned |
-| RESUMABLE-13 | Phase 41 — Onboarding + Docs + Doctor + Package-Consumer Proof | Planned |
-| RESUMABLE-14 | Phase 41 — Onboarding + Docs + Doctor + Package-Consumer Proof | Planned |
+| GCS-01 | Phase 37 — GCS Adapter Foundation | Mapped to Phase 37 |
+| GCS-02 | Phase 37 — GCS Adapter Foundation | Mapped to Phase 37 |
+| GCS-03 | Phase 37 — GCS Adapter Foundation | Mapped to Phase 37 |
+| GCS-04 | Phase 37 — GCS Adapter Foundation | Mapped to Phase 37 |
+| RESUMABLE-01 | Phase 38 — Resumable Persistence + FSM | Mapped to Phase 38 |
+| RESUMABLE-02 | Phase 38 — Resumable Persistence + FSM | Mapped to Phase 38 |
+| RESUMABLE-03 | Phase 38 — Resumable Persistence + FSM | Mapped to Phase 38 |
+| RESUMABLE-04 | Phase 39 — Resumable Adapter Behaviour + Broker Wiring | Mapped to Phase 39 |
+| RESUMABLE-05 | Phase 39 — Resumable Adapter Behaviour + Broker Wiring | Mapped to Phase 39 |
+| RESUMABLE-06 | Phase 39 — Resumable Adapter Behaviour + Broker Wiring | Mapped to Phase 39 |
+| RESUMABLE-07 | Phase 39 — Resumable Adapter Behaviour + Broker Wiring | Mapped to Phase 39 |
+| RESUMABLE-08 | Phase 39 — Resumable Adapter Behaviour + Broker Wiring | Mapped to Phase 39 |
+| RESUMABLE-09 | Phase 40 — Maintenance + Cancel Contract | Mapped to Phase 40 |
+| RESUMABLE-10 | Phase 40 — Maintenance + Cancel Contract | Mapped to Phase 40 |
+| RESUMABLE-11 | Phase 40 — Maintenance + Cancel Contract | Mapped to Phase 40 |
+| RESUMABLE-12 | Phase 41 — Onboarding + Docs + Doctor + Package-Consumer Proof | Mapped to Phase 41 |
+| RESUMABLE-13 | Phase 41 — Onboarding + Docs + Doctor + Package-Consumer Proof | Mapped to Phase 41 |
+| RESUMABLE-14 | Phase 41 — Onboarding + Docs + Doctor + Package-Consumer Proof | Mapped to Phase 41 |
 
 **Phase summary** (Phase → REQ-ID range, count):
 

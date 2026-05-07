@@ -6,9 +6,9 @@ status: planning
 last_updated: "2026-05-07T14:59:37.958Z"
 last_activity: 2026-05-07
 progress:
-  total_phases: 0
+  total_phases: 5
   completed_phases: 0
-  total_plans: 0
+  total_plans: 18
   completed_plans: 0
   percent: 0
 ---
@@ -28,10 +28,10 @@ file-server. Locked candidate plan: `.planning/research/v1.6-CANDIDATE-GCS.md`
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: Not started (Phase 37 next — GCS Adapter Foundation, GCS-01..04)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-05-07 — Milestone v1.7 started
+Status: Roadmap created — ready for Phase 37
+Last activity: 2026-05-07 — v1.7 ROADMAP.md written; 18/18 requirements mapped
 
 ## Recent Completion
 
@@ -48,18 +48,15 @@ Last activity: 2026-05-07 — Milestone v1.7 started
 
 ## Pending Todos
 
-- Define v1.7 REQUIREMENTS.md from locked candidate plan
-  (`.planning/research/v1.6-CANDIDATE-GCS.md`): 18 reqs (GCS-01..04 +
-  RESUMABLE-01..14).
-- Spawn `gsd-roadmapper` to write v1.7 ROADMAP.md (5 phases: 37–41,
-  18 plans, ~13 days).
+- Start Phase 37 (GCS Adapter Foundation, GCS-01..04, ~3 days, LOW risk):
+  `/gsd-discuss-phase 37` or `/gsd-plan-phase 37`.
 - Phase 34/35 code-review polish — advisory Warning/Info findings deferred
   from v1.6 close. Either auto-fix early in v1.7 via `/gsd-code-review N --fix`
   or defer to v1.8.
 - Preserve tus protocol candidate (`v1.6-CANDIDATE-TUS.md`, 6/10) as locked
   v1.8 scope.
-- Preserve Phase 37 pull-forward (browser→Mux direct creator upload,
-  MUX-20..23, ~1 day, LOW risk) as v1.8+ candidate.
+- Preserve Phase 37-style pull-forward of browser→Mux direct creator upload
+  (MUX-20..23, ~1 day, LOW risk) as v1.8+ candidate.
 
 ## Blockers/Concerns
 
@@ -101,7 +98,9 @@ deferral remains.
 ## Session Continuity
 
 Last session: 2026-05-07T14:59:00Z — milestone v1.6 closed and archived,
-v1.7 GCS Resumable Adapter started via `/gsd-new-milestone`.
+v1.7 GCS Resumable Adapter started via `/gsd-new-milestone`; v1.7
+REQUIREMENTS.md and ROADMAP.md written (5 phases, 18 plans, 18 reqs,
+100% coverage).
 
 **Last Completed Milestone:** v1.6 (Phases 33-36) — archived 2026-05-07,
 tag `v1.6` pushed.
@@ -111,7 +110,9 @@ Adapter Foundation) or `/gsd-plan-phase 37` (skip discussion, plan directly).
 
 ## Operator Next Steps
 
-- Define v1.7 REQUIREMENTS.md and ROADMAP.md (in-flight via this
-  `/gsd-new-milestone` invocation).
-- After roadmap approval: `/gsd-discuss-phase 37` to start Phase 37
-  (GCS Adapter Foundation, GCS-01..04, ~3 days, LOW risk).
+- Start Phase 37 (GCS Adapter Foundation, GCS-01..04, ~3 days, LOW risk):
+  `/gsd-discuss-phase 37` or `/gsd-plan-phase 37`.
+- Subsequent phases: 38 (Resumable Persistence + FSM, ~2 days, LOW),
+  39 (Resumable Adapter + Broker, ~4 days, MEDIUM), 40 (Maintenance + Cancel,
+  ~2 days, LOW), 41 (Onboarding + Docs + Doctor + Package-Consumer Proof,
+  ~2 days, LOW).
