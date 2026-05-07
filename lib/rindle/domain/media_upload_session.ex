@@ -50,6 +50,10 @@ defmodule Rindle.Domain.MediaUploadSession do
     field :upload_strategy, :string, default: "presigned_put"
     field :multipart_upload_id, :string
     field :multipart_parts, :map, default: %{}
+    field :session_uri, :string
+    field :session_uri_expires_at, :utc_datetime_usec
+    field :last_known_offset, :integer, default: 0
+    field :region_hint, :string
     field :expires_at, :utc_datetime_usec
     field :verified_at, :utc_datetime_usec
     field :failure_reason, :string
@@ -77,6 +81,10 @@ defmodule Rindle.Domain.MediaUploadSession do
       :upload_strategy,
       :multipart_upload_id,
       :multipart_parts,
+      :session_uri,
+      :session_uri_expires_at,
+      :last_known_offset,
+      :region_hint,
       :expires_at,
       :verified_at,
       :failure_reason
@@ -84,5 +92,21 @@ defmodule Rindle.Domain.MediaUploadSession do
     |> validate_required([:asset_id, :state, :upload_key, :upload_strategy, :expires_at])
     |> validate_inclusion(:state, @states)
     |> foreign_key_constraint(:asset_id)
+  end
+
+  @spec redact_session_uri(nil | String.t()) :: nil | String.t()
+  def redact_session_uri(nil), do: nil
+  def redact_session_uri(session_uri) when is_binary(session_uri), do: "[REDACTED]"
+  def redact_session_uri(_session_uri), do: "[REDACTED]"
+end
+
+defimpl Inspect, for: Rindle.Domain.MediaUploadSession do
+  def inspect(session, opts) do
+    redacted = %{
+      session
+      | session_uri: Rindle.Domain.MediaUploadSession.redact_session_uri(session.session_uri)
+    }
+
+    Inspect.Any.inspect(redacted, opts)
   end
 end
