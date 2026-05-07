@@ -17,6 +17,11 @@ defmodule Mix.Tasks.Rindle.RuntimeStatus do
     * `--older-than-sec` — restrict findings to rows older than the given age in seconds.
     * `--limit` — cap the number of samples shown per finding bucket.
     * `--format` — `text` (default) or `json`.
+    * `--provider-stuck` — surface streaming-provider rows stuck in `:uploading`
+      or `:processing` past the configured threshold (default 7200s;
+      `--older-than-sec` OVERRIDES the default when provided). Each sample
+      includes the full `MediaAsset` UUID and the REDACTED last-4-char
+      `provider_asset_id` tag (security invariant 14).
   """
 
   use Mix.Task
@@ -27,7 +32,13 @@ defmodule Mix.Tasks.Rindle.RuntimeStatus do
   def run(args) do
     {opts, _rest, _invalid} =
       OptionParser.parse(args,
-        strict: [profile: :string, older_than_sec: :integer, limit: :integer, format: :string]
+        strict: [
+          profile: :string,
+          older_than_sec: :integer,
+          limit: :integer,
+          format: :string,
+          provider_stuck: :boolean
+        ]
       )
 
     filters =
@@ -36,6 +47,7 @@ defmodule Mix.Tasks.Rindle.RuntimeStatus do
       |> maybe_put(:older_than, Keyword.get(opts, :older_than_sec))
       |> maybe_put(:limit, Keyword.get(opts, :limit))
       |> maybe_put(:format, Keyword.get(opts, :format))
+      |> maybe_put(:provider_stuck, Keyword.get(opts, :provider_stuck))
 
     case Rindle.runtime_status(filters) do
       {:ok, report} ->
@@ -70,6 +82,7 @@ defmodule Mix.Tasks.Rindle.RuntimeStatus do
       format_findings(report.variants.findings) ++
       format_upload_findings(report.upload_sessions.findings) ++
       format_section("upload_sessions", report.upload_sessions.counts) ++
+      format_provider_findings(report.provider_assets.findings) ++
       format_recommendations(report.recommendations) ++ ["Done."]
   end
 
@@ -111,6 +124,21 @@ defmodule Mix.Tasks.Rindle.RuntimeStatus do
         ] ++
           Enum.map(finding.samples, fn sample ->
             "    - #{sample.session_id}: #{sample.failure_reason || "operator attention required"}"
+          end)
+      end)
+  end
+
+  @doc false
+  def format_provider_findings([]), do: ["Provider asset findings:", "  none"]
+
+  def format_provider_findings(findings) do
+    ["Provider asset findings:"] ++
+      Enum.flat_map(findings, fn finding ->
+        [
+          "  #{finding.class}: #{finding.count} (oldest_age_seconds=#{finding.oldest_age_seconds})"
+        ] ++
+          Enum.map(finding.samples, fn sample ->
+            "    - #{sample.asset_id} (#{sample.provider_asset_id}): #{sample.reason}"
           end)
       end)
   end
