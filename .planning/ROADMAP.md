@@ -2,7 +2,7 @@
 
 ## Milestones
 
-- 🚧 **v1.6 Provider Boundary + Mux** — Phases 33–37 (Phase 33 complete 2026-05-06; see Active Milestone)
+- 🚧 **v1.6 Provider Boundary + Mux** — Phases 33–37 (Phases 33-34 complete 2026-05-06; see Active Milestone)
 - ✅ **v1.5 Adopter Hardening & Lifecycle Repair** — Phases 29–32 (shipped 2026-05-06, see archive)
 - ✅ **v1.0 MVP** — Phases 1–5 (shipped 2026-04-xx, see archive)
 - ✅ **v1.1 Adopter Hardening** — Phases 6–9 (shipped 2026-04-28, see archive)

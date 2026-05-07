@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: Provider Boundary + Mux
-status: executing
-stopped_at: Phase 34 wave 2 complete (34-02 ingest worker + 34-03 sync workers merged)
-last_updated: "2026-05-06T23:55:00.000Z"
-last_activity: 2026-05-06 -- Phase 34 wave 2 (34-02, 34-03) merged to main; 40/40 plan tests + 160/160 broader regression tests pass post-merge
+status: ready_for_next_phase
+stopped_at: Phase 34 complete (verified 5/5 must-haves + 8/8 requirement IDs; 4 BL fixes applied; 60/60 Phase 34 bundle tests pass)
+last_updated: "2026-05-06T20:45:00.000Z"
+last_activity: 2026-05-06 -- Phase 34 complete; verifier passed after BL-01..BL-04 auto-fix pass (compensating Mux delete, :errored cancel, nil-safe Event extract, provider_state String.t() typespec)
 progress:
   total_phases: 5
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 17
-  completed_plans: 7
-  percent: 41
+  completed_plans: 8
+  percent: 47
 ---
 
 # Project State
@@ -27,10 +27,10 @@ single reference streaming adapter without expanding into a video platform.
 
 ## Current Position
 
-Phase: 34 — Mux REST Adapter + Server-Push Sync (executing, wave 3/3)
-Plan: 4 plans across 3 waves (34-01 ✓ → 34-02 ✓ + 34-03 ✓ → 34-04 next)
-Status: Executing wave 3 — `/gsd-execute-phase 34`
-Last activity: 2026-05-06 -- Wave 2 merged: MuxIngestVariant (server-push ingest, atomic-promote, 429 snooze) + MuxSyncCoordinator (cron fan-out) + MuxSyncProviderAsset (per-row defensive sync, :stuck transition); 40/40 plan + 160/160 regression tests pass
+Phase: 35 — Signed-Webhook Plug + Idempotent Ingest (next)
+Plan: TBD — `/gsd-discuss-phase 35` or `/gsd-plan-phase 35`
+Status: Ready for next phase — Phase 34 verified passed
+Last activity: 2026-05-06 -- Phase 34 closed: all 4 plans + 4 BLOCKER fixes shipped; 60/60 bundle tests pass; verifier passed; code review 9 WR + 3 IN remain (advisory, deferred to v1.6 polish or v1.7)
 
 ## Recent Completion
 
@@ -47,8 +47,12 @@ Last activity: 2026-05-06 -- Wave 2 merged: MuxIngestVariant (server-push ingest
 
 ## Pending Todos
 
-- Execute Phase 34: Mux REST Adapter + Server-Push Sync
-  (`MUX-01..08`) — `/gsd-execute-phase 34`.
+- Discuss/plan Phase 35: Signed-Webhook Plug + Idempotent Ingest
+  (`MUX-09..14`) — `/gsd-discuss-phase 35` or `/gsd-plan-phase 35`.
+
+- Phase 34 follow-ups (advisory, not blocking ship):
+  - 9 Warning + 3 Info findings in `34-REVIEW.md` — auto-fix via
+    `/gsd-code-review 34 --fix --all` or defer to v1.7 polish.
 
 - Preserve GCS resumable uploads (`.planning/research/v1.6-CANDIDATE-GCS.md`)
   and tus (`.planning/research/v1.6-CANDIDATE-TUS.md`) as locked candidate
@@ -81,4 +85,4 @@ Resume file: .planning/phases/34-mux-rest-adapter-server-push-sync/34-CONTEXT.md
 
 **Last Completed Milestone:** v1.5 (Phases 29-32) — archived 2026-05-06
 
-**Next Step:** `/gsd-plan-phase 34`
+**Next Step:** `/gsd-discuss-phase 35` or `/gsd-plan-phase 35`
