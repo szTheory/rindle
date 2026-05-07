@@ -6,12 +6,14 @@ defmodule Rindle.Storage.GCS.ClientTest do
   @bucket "my-bucket"
 
   setup do
+    # Bypass 2.1 auto-cleans the cowboy listener when the test process exits;
+    # there is no public `Bypass.shutdown/1`. Linking via Bypass.open() is
+    # sufficient.
     bypass = Bypass.open()
-    on_exit(fn -> Bypass.shutdown(bypass) end)
 
     # Each test gets a fresh Finch supervisor name via System.unique_integer/1 to
-    # avoid name collisions across async tests. Start it in setup; on_exit stops
-    # it implicitly when the test process exits (the Finch supervisor is linked).
+    # avoid name collisions across async tests. start_supervised!/1 ensures the
+    # Finch supervisor is torn down when the test process exits.
     finch_name = Module.concat(__MODULE__, :"Finch_#{System.unique_integer([:positive])}")
     {:ok, _pid} = Finch.start_link(name: finch_name)
 
