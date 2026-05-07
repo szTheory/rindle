@@ -41,14 +41,27 @@ defmodule Rindle.Streaming.Provider.Mux.Event do
   defp normalize_state("errored"), do: "errored"
   defp normalize_state(_), do: nil
 
+  # BL-03 fix: `Map.get(data, "playback_ids", [])` returns `nil` (NOT the
+  # default) when the key is present with an explicit null value. Mux sends
+  # `"playback_ids": null` on `video.asset.created` webhooks (the very first
+  # event that fires before transcoding completes), so the previous shape
+  # would crash `Enum.map(nil, _)` with `Protocol.UndefinedError` on every
+  # real-world `video.asset.created` payload. Mirror the adapter's
+  # `extract_playback_id_strings/1` shape: pattern-match `is_list(list)` and
+  # fall through to `[]` for `nil`/missing/non-list values.
   defp extract_playback_ids(data) do
-    data
-    |> Map.get("playback_ids", [])
-    |> Enum.map(fn
-      %{"id" => id} -> id
-      _ -> nil
-    end)
-    |> Enum.reject(&is_nil/1)
+    case Map.get(data, "playback_ids") do
+      list when is_list(list) ->
+        list
+        |> Enum.map(fn
+          %{"id" => id} -> id
+          _ -> nil
+        end)
+        |> Enum.reject(&is_nil/1)
+
+      _ ->
+        []
+    end
   end
 
   defp parse_occurred_at(nil), do: nil

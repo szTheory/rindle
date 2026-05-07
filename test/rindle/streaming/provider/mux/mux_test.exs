@@ -185,4 +185,70 @@ defmodule Rindle.Streaming.Provider.MuxTest do
     assert {:ok, %{type: :ready, provider_asset_id: _, state: "ready", playback_ids: [_ | _]}} =
              Adapter.verify_webhook(body, headers, ["wrong-secret-a", secret, "wrong-secret-c"])
   end
+
+  # ===========================================================
+  # BL-03 — Event.extract_playback_ids/1 must tolerate explicit null
+  # ===========================================================
+
+  describe "BL-03: Event.normalize/1 nil-safety on playback_ids" do
+    alias Rindle.Streaming.Provider.Mux.Event
+
+    test "normalizes a video.asset.created payload with playback_ids: null without crashing" do
+      # Mux fires `video.asset.created` BEFORE transcoding completes, with an
+      # explicit "playback_ids": null. The previous Map.get(data, "playback_ids", [])
+      # shape returned nil (not the default) and Enum.map(nil, _) raised
+      # Protocol.UndefinedError, taking down verify_webhook/3 in the wild.
+      body = File.read!("test/fixtures/mux/webhook_video_asset_created.json")
+      raw = Jason.decode!(body)
+
+      assert {:ok, evt} = Event.normalize(raw)
+      assert evt.type == :created
+      assert evt.provider_asset_id == "AbCd1234EfGh5678IjKl9012MnOp3456QrSt"
+      assert evt.state == "processing"
+      assert evt.playback_ids == []
+    end
+
+    test "normalizes a payload with playback_ids: missing key as []" do
+      raw = %{
+        "type" => "video.asset.created",
+        "data" => %{"id" => "asset-without-playback-key", "status" => "preparing"}
+      }
+
+      assert {:ok, %{playback_ids: []}} = Event.normalize(raw)
+    end
+
+    test "normalizes a payload with playback_ids: non-list value as []" do
+      # Defensive: future Mux schema drift could produce a string or map here.
+      raw = %{
+        "type" => "video.asset.created",
+        "data" => %{"id" => "x", "status" => "preparing", "playback_ids" => "weird"}
+      }
+
+      assert {:ok, %{playback_ids: []}} = Event.normalize(raw)
+    end
+
+    test "verify_webhook/3 successfully verifies + normalizes an asset.created payload with playback_ids: null" do
+      secret = "test-webhook-secret"
+      body = File.read!("test/fixtures/mux/webhook_video_asset_created.json")
+      timestamp = System.system_time(:second)
+
+      signed_payload = "#{timestamp}.#{body}"
+
+      sig =
+        :crypto.mac(:hmac, :sha256, secret, signed_payload)
+        |> Base.encode16(case: :lower)
+
+      headers = %{"mux-signature" => "t=#{timestamp},v1=#{sig}"}
+
+      # End-to-end: previously this path raised Protocol.UndefinedError;
+      # the regression locks in the {:ok, _} happy path.
+      assert {:ok,
+              %{
+                type: :created,
+                provider_asset_id: "AbCd1234EfGh5678IjKl9012MnOp3456QrSt",
+                state: "processing",
+                playback_ids: []
+              }} = Adapter.verify_webhook(body, headers, [secret])
+    end
+  end
 end
