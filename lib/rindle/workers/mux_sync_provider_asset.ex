@@ -162,11 +162,13 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
           :ok
 
         true ->
-          # Always persist the live PLURAL playback_ids list (default to []
-          # if Mux returned no ids — schema default is [] so this is safe).
+          # Always persist the live PLURAL playback_ids list. The adapter
+          # contract (`get_asset/1`) guarantees `playback_ids` is a list
+          # (never nil) — `extract_playback_id_strings/1` returns [] on
+          # missing or malformed payloads.
           attrs = %{
             state: live_state,
-            playback_ids: playback_ids || []
+            playback_ids: playback_ids
           }
 
           # B4 fix: third arg is a MAP.

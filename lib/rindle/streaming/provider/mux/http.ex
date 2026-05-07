@@ -24,7 +24,6 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
       case Mux.Video.Assets.create(build_client(), params) do
         {:ok, asset, _env} -> {:ok, asset}
         {:error, msg, env} -> {:error, msg, env}
-        other -> {:error, other}
       end
     end
 
@@ -33,7 +32,6 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
       case Mux.Video.Assets.get(build_client(), provider_asset_id) do
         {:ok, asset, _env} -> {:ok, asset}
         {:error, msg, env} -> {:error, msg, env}
-        other -> {:error, other}
       end
     end
 
@@ -45,7 +43,6 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
         # returns `:ok` for both successful delete and already-deleted assets.
         {:error, _msg, %{status: 404}} -> :ok
         {:error, msg, env} -> {:error, msg, env}
-        other -> {:error, other}
       end
     end
 
