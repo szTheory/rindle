@@ -90,19 +90,17 @@ Items acknowledged and deferred at v1.6 milestone close on 2026-05-07:
 | uat | Phase 36 — HexDocs publish wire (`mix docs` rendering of MuxWeb + streaming_providers.md) | pending (post-publish observable) |
 | uat | Phase 36 — Fork-secret leak boundary on `streaming`-labelled fork PR | pending (GitHub fork secret semantics) |
 | uat | Phase 36 — `Rindle.InstallSmoke.GeneratedAppSmokeMuxTest` in spawned Phoenix project | pending (CI package-consumer step only) |
-| code-review | Phase 36 CR-01 — `mux_soak_cleanup.sh` filter ↔ producer metadata mismatch (soak cleanup non-functional) | deferred to v1.7 polish |
-| code-review | Phase 36 CR-02 — soak lifecycle ETS insert ordered after assertions (cleanup misses on failure) | deferred to v1.7 polish |
-| code-review | Phase 36 CR-03 — `shared_env/1` unconditional Mux fixture read couples `:image`/`:video` runs | deferred to v1.7 polish |
-| code-review | Phase 36 — 10 WR-* warnings (version pin drift, `_invalid` flag discard, queue check, etc.) | deferred to v1.7 polish |
 | code-review | Phase 34 — 9 Warning + 3 Info findings in `34-REVIEW.md` | deferred to v1.7 polish |
 | code-review | Phase 35 — 6 Warning + 7 Info findings (advisory) | deferred to v1.7 polish |
 
 Phase 36 verifier passed 5/5 must-haves at artifact-and-wiring level; the
 5 UAT items above are CI-time observables by design (Plan 03 SUMMARY
-explicitly defers them to the package-consumer CI step). The 3 BLOCKER
-review findings (CR-01/02/03) are operational defects in the soak lane —
-they do not block the milestone goal but should be fixed before steady-
-state soak operation. Tracked for `/gsd-code-review 36 --fix` in v1.7.
+explicitly defers them to the package-consumer CI step).
+
+Phase 36 code-review findings — **all 12 already resolved before close**
+(commits `8b291c1` CR-01, `744755e` CR-02, `12dfd0f` CR-03, `a1e5e94`–`c901124`
+WR-01..WR-10). REVIEW.md `status: fixes_applied`. No Phase 36 review
+deferral remains.
 
 ## Decision-Making Preference
 

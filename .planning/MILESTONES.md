@@ -21,7 +21,7 @@
 
 - Locked v1.7+ adapter scope: GCS resumable adapter (5 phases, ~13 days, locked plan in `.planning/research/v1.6-CANDIDATE-GCS.md`) and tus protocol (5 phases, ~13–15 days, locked plan in `.planning/research/v1.6-CANDIDATE-TUS.md`) preserved as research-locked candidate scope. Phase 37 (browser→Mux direct creator upload, MUX-20..23) deferred to v1.7 since milestone budget held without pulling forward.
 
-**Known deferred items at close:** 5 Phase 36 UAT scenarios (CI-only by design — cassette PR run, mux-soak real-Mux, HexDocs publish wire, fork-secret boundary, generated-app cassette test); 3 BLOCKER review findings in Phase 36 soak lane (CR-01/02/03 — operational defects, not goal-blocking); ~25 Warning + Info findings across Phases 34/35/36 — all routed to v1.7 polish via `/gsd-code-review --fix` (see STATE.md `## Deferred Items`).
+**Known deferred items at close:** 5 Phase 36 UAT scenarios (CI-only by design — cassette PR run, mux-soak real-Mux, HexDocs publish wire, fork-secret boundary, generated-app cassette test); ~25 Warning + Info findings across Phases 34/35 routed to v1.7 polish via `/gsd-code-review --fix`. **Phase 36's 3 BLOCKER + 10 WARNING review findings (CR-01/02/03 + WR-01..WR-10) were resolved pre-close** in commits `8b291c1`–`c901124`; REVIEW.md `status: fixes_applied`. (See STATE.md `## Deferred Items`.)
 
 **Archive:**
 - `.planning/milestones/v1.6-ROADMAP.md`
