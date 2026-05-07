@@ -75,7 +75,11 @@ defmodule Rindle.Streaming.Provider.Mux.EventTest do
         }
       }
 
-      assert {:ok, %{provider_asset_id: "must-be-the-asset-id", upload_id: "should-not-leak-into-provider_asset_id"}} =
+      assert {:ok,
+              %{
+                provider_asset_id: "must-be-the-asset-id",
+                upload_id: "should-not-leak-into-provider_asset_id"
+              }} =
                Event.normalize(raw)
     end
   end
