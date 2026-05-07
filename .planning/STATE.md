@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: Provider Boundary + Mux
-status: ready_for_execution
-stopped_at: Phase 35 plans committed (4 plans in 2 waves; plan-checker found 1 BLOCKER + 5 WARNINGS, all fixed in 415da1c)
-last_updated: "2026-05-06T22:30:00.000Z"
-last_activity: 2026-05-06 -- Phase 35 PLAN.md committed (1448365 + 415da1c); 4 plans across 2 waves (W1 parallel = 35-01 Plug + 35-03 test fixtures; W2 sequential = 35-02 worker depends on 35-01+35-03, 35-04 runtime_status depends on 35-02); plan-checker passed after fixes for @doc false collision (Plan 01 dispatch_kind), MUX-13 traceability (Plan 01 frontmatter), D-30 transcription note (Plan 02 Task 1), MediaAsset insert_stuck_row helper fields (Plan 04 Task 1), and redaction-prefix grep (Plan 04 acceptance criterion). Ready for `/gsd-execute-phase 35`.
+status: executing
+stopped_at: Phase 35 CONTEXT.md + DISCUSSION-LOG.md committed (d6cfa5f)
+last_updated: "2026-05-07T02:21:19.187Z"
+last_activity: 2026-05-07 -- Phase 35 execution started
 progress:
-  total_phases: 5
+  total_phases: 3
   completed_phases: 2
-  total_plans: 21
+  total_plans: 12
   completed_plans: 8
-  percent: 38
+  percent: 67
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06)
 
 **Core value:** Media, made durable.
-**Current focus:** v1.6 Provider Boundary + Mux — productize
+**Current focus:** Phase 35 — signed-webhook-plug-idempotent-ingest
 `Rindle.Streaming.Provider` as a real adapter contract and ship Mux as the
 single reference streaming adapter without expanding into a video platform.
 
 ## Current Position
 
-Phase: 35 — Signed-Webhook Plug + Idempotent Ingest (plans committed)
-Plan: 4 plans across 2 waves — `/gsd-execute-phase 35`
-Status: Ready for execution — Phase 35 plans committed (1448365 + 415da1c) and plan-checker fixes applied
-Last activity: 2026-05-06 -- Phase 35 plans landed: 35-PATTERNS.md (18 files mapped to analogs), 35-01-PLAN.md (Plug + body reader, 4 files, MUX-09..13), 35-02-PLAN.md (worker + Event.normalize extension + end-to-end Plug tests, 6 files, MUX-12+MUX-13), 35-03-PLAN.md (test signing helper + 5 fixtures, 7 files, MUX-09..13), 35-04-PLAN.md (runtime_status --provider-stuck, 4 files, MUX-14). Plan-checker found 1 BLOCKER (Plan 01 @doc false collision on dispatch_kind/1) + 5 warnings; all fixed in 415da1c. Ready for `/gsd-execute-phase 35`.
+Phase: 35 (signed-webhook-plug-idempotent-ingest) — EXECUTING
+Plan: 1 of 4
+Status: Executing Phase 35
+Last activity: 2026-05-07 -- Phase 35 execution started
 
 ## Recent Completion
 

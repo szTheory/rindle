@@ -3,10 +3,10 @@
   "id": "evt-fixture-created-0001",
   "object": {
     "type": "asset",
-    "id": "AbCd1234EfGh5678IjKl9012MnOp3456QrSt"
+    "id": "00ecNLnqiG02mmQwOgcEeYQU3aAtqiHIyMb01YGKcrt017A"
   },
   "data": {
-    "id": "AbCd1234EfGh5678IjKl9012MnOp3456QrSt",
+    "id": "00ecNLnqiG02mmQwOgcEeYQU3aAtqiHIyMb01YGKcrt017A",
     "status": "preparing",
     "playback_ids": null
   },

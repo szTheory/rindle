@@ -1,0 +1,13 @@
+{
+  "type": "video.asset.deleted",
+  "id": "evt-fixture-deleted-0001",
+  "object": {
+    "type": "asset",
+    "id": "00ecNLnqiG02mmQwOgcEeYQU3aAtqiHIyMb01YGKdel017A"
+  },
+  "data": {
+    "id": "00ecNLnqiG02mmQwOgcEeYQU3aAtqiHIyMb01YGKdel017A",
+    "status": "deleted"
+  },
+  "created_at": "2026-05-06T00:03:00.000Z"
+}
