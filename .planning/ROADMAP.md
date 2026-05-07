@@ -111,7 +111,7 @@ via Goth) + `gcs_signed_url ~> 0.4.6`.
 
 Plans:
 - [x] 37-01-PLAN.md — Hand-rolled Finch JSON-API client (Rindle.Storage.GCS.Client) + optional dep declarations + dialyzer PLT entries (Wave 1, GCS-01)
-- [ ] 37-02-PLAN.md — V4 signed URL wrapper (Rindle.Storage.GCS.Signer) over gcs_signed_url Client mode + signing-key dispatch + TTL fallback (Wave 2, GCS-03)
+- [x] 37-02-PLAN.md — V4 signed URL wrapper (Rindle.Storage.GCS.Signer) over gcs_signed_url Client mode + signing-key dispatch + TTL fallback (Wave 2, GCS-03)
 - [ ] 37-03-PLAN.md — Public Rindle.Storage.GCS @behaviour adapter + capabilities/0 lock + cross-adapter parity test extension + hexdoc grouping (Wave 3, GCS-01, GCS-02)
 - [ ] 37-04-PLAN.md — gcs-soak CI lane (secret-gated) + mix rindle.doctor GCS health checks (profile-aware) (Wave 4, GCS-04)
 
