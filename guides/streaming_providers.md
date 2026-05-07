@@ -26,7 +26,7 @@ This guide covers:
 - A performance note on high-throughput JWT signing
 
 For the canonical AV-progressive-download path that does NOT require a
-streaming provider, see [Secure Delivery](secure_delivery.html).
+streaming provider, see [Secure Delivery](secure_delivery.md).
 
 ## 1. Why a Streaming Provider?
 
