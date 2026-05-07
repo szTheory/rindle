@@ -168,6 +168,7 @@ defmodule Rindle.MixProject do
           Rindle.Storage,
           Rindle.Storage.Local,
           Rindle.Storage.S3,
+          Rindle.Storage.GCS,
           Rindle.Processor.Image
         ],
         Operations: [

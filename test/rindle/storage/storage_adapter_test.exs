@@ -1,5 +1,6 @@
 defmodule Rindle.Storage.StorageAdapterTest do
   alias Rindle.Storage.Capabilities
+  alias Rindle.Storage.GCS
   alias Rindle.Storage.Local
   alias Rindle.Storage.S3
   use ExUnit.Case, async: true
@@ -38,15 +39,17 @@ defmodule Rindle.Storage.StorageAdapterTest do
     def capabilities, do: raise("boom")
   end
 
-  test "both adapters implement the storage behaviour callbacks" do
+  test "all adapters implement the storage behaviour callbacks" do
     Code.ensure_loaded!(Local)
     Code.ensure_loaded!(S3)
+    Code.ensure_loaded!(GCS)
 
     callbacks = Rindle.Storage.behaviour_info(:callbacks)
 
     for {name, arity} <- callbacks do
       assert function_exported?(Local, name, arity)
       assert function_exported?(S3, name, arity)
+      assert function_exported?(GCS, name, arity)
     end
   end
 
@@ -74,12 +77,16 @@ defmodule Rindle.Storage.StorageAdapterTest do
     assert [] == Capabilities.safe(RaisingCapabilitiesAdapter)
   end
 
-  test "capability lists are truthful for local and s3 adapters" do
+  test "capability lists are truthful for all adapters" do
     assert [:local, :presigned_put] == Local.capabilities()
     assert [:presigned_put, :head, :signed_url, :multipart_upload] == S3.capabilities()
+    # Phase 37 / GCS-02: GCS ships [:signed_url, :head] only.
+    # Phase 39 will rewrite this to include :resumable_upload + :resumable_upload_session.
+    assert [:signed_url, :head] == GCS.capabilities()
 
     assert Enum.all?(Local.capabilities(), &(&1 in Capabilities.known()))
     assert Enum.all?(S3.capabilities(), &(&1 in Capabilities.known()))
+    assert Enum.all?(GCS.capabilities(), &(&1 in Capabilities.known()))
   end
 
   test "local multipart operations fail with an explicit capability error" do
