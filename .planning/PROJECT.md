@@ -49,7 +49,32 @@ Milestone `v1.6 Provider Boundary + Mux` is in flight. **Phases 33-34 complete
   Verifier passed 5/5 must-haves; code review surfaced 0 critical / 6 warning /
   7 info (advisory, tracked for v1.6 polish or v1.7).
 
-Phase 36 (public DX, onboarding, CI proof) is up next.
+- **Phase 36** — Public DX, Onboarding, CI Proof (complete `2026-05-07`, 3
+  plans, MUX-15..19 validated): `Rindle.Profile.Presets.MuxWeb` public preset
+  ships alongside `Web` with `:streaming` opt-in + `:signed` named playback
+  policy (Plan 01); `mix rindle.doctor --streaming` adds 4 PASS/FAIL checks
+  (token id/secret, signing-key id + RSA private key via `JOSE.JWK` struct
+  match, webhook secrets, 5s smoke ping with `Task.yield/Task.shutdown`)
+  emitting env-var names only, never values (Plan 01); `guides/streaming_
+  providers.md` (341 lines, 11 D-10 sections) ships as the canonical Mux
+  adopter reference, `mix.exs` extras wired, README + getting_started gain
+  14-line "Streaming with Mux (optional)" subsections without displacing the
+  image/AV first-run path, doc-parity guard adds `Rindle.Profile.Presets.
+  MuxWeb` as required string (Plan 02); generated-app harness gains `:mux`
+  profile mode (Mox-on-`:http_client`, lifecycle test source with `import Mox`
+  + `setup :set_mox_from_context`), `bash scripts/install_smoke.sh mux`
+  cassette lane on every PR, label-gated `mux-soak` real-Mux sibling job on
+  `streaming`-labelled PRs with three-layer asset-leak mitigation
+  (try/after + if:always() + idempotent cleanup with last-4 redaction),
+  `test/fixtures/mux/test_signing_public_key.pem` committed (Plan 03).
+  Verifier passed 5/5 must-haves at artifact-and-wiring level; 5 items
+  persisted in `36-HUMAN-UAT.md` for real-CI validation. Code review
+  surfaced 3 BLOCKER (CR-01 cleanup-script metadata mismatch, CR-02
+  try/after asset-leak window, CR-03 fixture coupling) + 10 warnings,
+  remediation tracked via `/gsd-code-review 36 --fix`.
+
+Milestone v1.6 plan slate (Phases 33-36) is now complete. Next: cut the v0.2.0
+release via `/gsd-complete-milestone` (release-please auto-bumps 0.1.4 → 0.2.0).
 
 ## Current Milestone: v1.6 Provider Boundary + Mux
 
@@ -444,4 +469,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-07 — Phase 35 (Signed-Webhook Plug + Idempotent Ingest) complete (4 plans, 6 MUX requirements validated MUX-09..14); verifier passed 5/5 must-haves with 0 gaps; code review surfaced 0 critical / 6 warning / 7 info (top WARNINGs: WR-01 fetch_raw_body fallback length, WR-02 unique_job_opts duplication drift hazard, WR-04 nil-tolerance ArithmeticError, WR-05 nil event_id Oban-unique collision; advisory, tracked for v1.6 polish or v1.7); 47 new tests pass; 3 pre-existing test failures (waveform :epipe + 2 ApplicationTest profile-discovery) confirmed unrelated to Phase 35 and tracked in deferred-items.md.*
+*Last updated: 2026-05-07 — Phase 36 (Public DX, Onboarding, CI Proof) complete (3 plans, 5 MUX requirements validated MUX-15..19); milestone v1.6 plan slate now closed (Phases 33-36 done). Verifier passed 5/5 must-haves at artifact-and-wiring level; 5 human-verification items persisted in 36-HUMAN-UAT.md for real-CI validation (cassette PR run, mux-soak real-Mux on streaming-labelled PR, HexDocs publish wire, fork-secret boundary, generated-app cassette WebM upload). Code review surfaced 3 BLOCKER (CR-01 cleanup-script metadata mismatch, CR-02 try/after asset-leak window, CR-03 fixture coupling) + 10 warnings; remediation via /gsd-code-review 36 --fix tracked separately. 3 pre-existing test failures (waveform :epipe + 2 ApplicationTest profile-discovery) confirmed unrelated to Phase 36 — same set tracked since Phase 35. Next: /gsd-complete-milestone to cut v0.2.0 (release-please 0.1.4 → 0.2.0).*
