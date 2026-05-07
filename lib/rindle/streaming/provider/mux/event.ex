@@ -12,8 +12,33 @@ defmodule Rindle.Streaming.Provider.Mux.Event do
   `Rindle.Streaming.Provider.@type provider_event`).
 
   Returns `{:error, :provider_webhook_invalid}` for malformed payloads.
+
+  ## `video.upload.asset_created` typed branch (D-29)
+
+  The `video.upload.asset_created` event ships a different `data` layout from
+  the asset-scoped events: `data.id` is the UPLOAD identifier (NOT the
+  asset id) and `data.asset_id` is the asset id. Without the typed branch
+  below, the generic clause would mis-attribute `data.id` to
+  `provider_asset_id` — silent data corruption when Phase 37 enables direct
+  creator uploads. Phase 35 lands the typed branch as forward-compat; the
+  Phase 35 worker no-ops on `:upload_asset_created` (D-27).
   """
   @spec normalize(map()) :: {:ok, map()} | {:error, term()}
+  def normalize(%{"type" => "video.upload.asset_created", "data" => data} = raw)
+      when is_map(data) do
+    {:ok,
+     %{
+       type: :upload_asset_created,
+       # NB: `data.asset_id` is the asset id; `data.id` is the upload id.
+       provider_asset_id: Map.get(data, "asset_id"),
+       upload_id: Map.get(data, "id"),
+       playback_ids: [],
+       state: nil,
+       occurred_at: parse_occurred_at(Map.get(raw, "created_at")),
+       raw: raw
+     }}
+  end
+
   def normalize(%{"type" => type, "data" => data} = raw) when is_map(data) do
     {:ok,
      %{
@@ -32,6 +57,7 @@ defmodule Rindle.Streaming.Provider.Mux.Event do
   defp normalize_type("video.asset.errored"), do: :errored
   defp normalize_type("video.asset.created"), do: :created
   defp normalize_type("video.asset.deleted"), do: :deleted
+  defp normalize_type("video.upload.asset_created"), do: :upload_asset_created
   defp normalize_type(other) when is_binary(other), do: :unknown
   defp normalize_type(_), do: :unknown
 

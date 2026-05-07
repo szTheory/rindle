@@ -172,10 +172,15 @@ defmodule Rindle.Delivery.WebhookPlug do
             "event" => stringify_event(event)
           }
 
+          # Mirror Rindle.Workers.IngestProviderWebhook.unique_job_opts/0 (D-20).
+          # `:available` MUST be in the states list — Oban inserts newly-enqueued
+          # jobs in `:available` first; without it, the unique constraint never
+          # fires for the most common re-delivery dedup case (the second webhook
+          # arrives before the worker picks up the first job).
           unique_opts = [
             fields: [:args],
             keys: [:event_id],
-            states: [:scheduled, :executing, :retryable],
+            states: [:available, :scheduled, :executing, :retryable],
             period: 86_400
           ]
 
