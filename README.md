@@ -239,6 +239,21 @@ non-bang twins (`Rindle.attach/4`, `Rindle.detach/3`, `Rindle.upload/3`,
 `Rindle.url/3`, `Rindle.variant_url/4`) which return `{:ok, value}` /
 `{:error, reason}` tuples.
 
+## Streaming with Mux (optional)
+
+For HLS streaming via signed playback URLs, opt a profile into a streaming provider:
+
+```elixir
+defmodule MyApp.Streaming do
+  use Rindle.Profile.Presets.MuxWeb,
+    storage: Rindle.Storage.S3,
+    allow_mime: ["video/mp4", "video/quicktime", "video/webm"],
+    max_bytes: 524_288_000
+end
+```
+
+End-to-end onboarding — signing keys, webhook plug, cron, local tunnel, secret rotation, and `mix rindle.doctor --streaming` — lives in [`guides/streaming_providers.md`](guides/streaming_providers.md).
+
 ## Next Reads
 
 - [`guides/upgrading.md`](guides/upgrading.md): canonical existing-adopter
