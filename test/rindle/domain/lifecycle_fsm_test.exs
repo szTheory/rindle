@@ -212,13 +212,22 @@ defmodule Rindle.Domain.LifecycleFSMTest do
     test "accepts upload session terminal branches" do
       assert :ok == UploadSessionFSM.transition("initialized", "expired")
       assert :ok == UploadSessionFSM.transition("signed", "failed")
+      assert :ok == UploadSessionFSM.transition("resuming", "aborted")
       assert :ok == UploadSessionFSM.transition("uploading", "aborted")
       assert :ok == UploadSessionFSM.transition("verifying", "failed")
+    end
+
+    test "accepts explicit resumable recovery lane" do
+      assert :ok == UploadSessionFSM.transition("signed", "resuming")
+      assert :ok == UploadSessionFSM.transition("resuming", "uploading")
     end
 
     test "rejects invalid upload session transitions" do
       assert {:error, {:invalid_transition, "initialized", "completed"}} =
                UploadSessionFSM.transition("initialized", "completed")
+
+      assert {:error, {:invalid_transition, "uploading", "resuming"}} =
+               UploadSessionFSM.transition("uploading", "resuming")
 
       assert {:error, {:invalid_transition, "uploaded", "completed"}} =
                UploadSessionFSM.transition("uploaded", "completed")
