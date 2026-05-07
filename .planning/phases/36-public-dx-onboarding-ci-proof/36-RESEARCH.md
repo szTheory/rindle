@@ -993,27 +993,15 @@ end
 | A7 | `Phoenix.new` 1.7.x compatibility — current helper works, Phase 36 changes don't introduce new shape-matching. | Pitfall 5 | LOW — Phase 29 (v1.5 package-consumer proof) shipped this helper; v1.5 + v1.6 phases 33-35 all built atop it without Phoenix-version drift issues. |
 | A8 | Free-tier Mux account set up at the org level (not per-developer) — secrets injected via repo-level GitHub Secrets. | D-24 maintainer setup | MEDIUM — One-time maintainer setup; documented as such in CONTEXT.md but not actionable until a maintainer creates the Mux account and adds the five secrets. Phase 36 PRs CAN ship and merge without the secrets configured (cassette lane runs without them; soak lane only runs on label, and label-gating gracefully no-ops if secrets are absent). |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Does CONTEXT.md require committing both PEMs (private+public) or only deriving public-from-private at test time?**
-   - What we know: D-31 lists `test/fixtures/mux/test_signing_public_key.pem` as a NEW file with the openssl command. Existing pattern at `signed_playback_url_test.exs:66-70` derives the public key in-test from the private PEM.
-   - What's unclear: Is the public PEM file load-bearing for any future test, or is the derivation pattern preferred (no extra file to maintain)?
-   - Recommendation: **Defer to planner.** If planner ships the public PEM file per D-31, it works (just one more committed file); if planner uses derivation per the existing test pattern, it also works (no new file). Either is correct. Planner picks based on consistency preference.
+1. **RESOLVED: Commit `test/fixtures/mux/test_signing_public_key.pem` per D-31.** Plan 03 Task 1 generates the public PEM via `openssl rsa -in test/fixtures/mux/test_signing_private_key.pem -pubout -out test/fixtures/mux/test_signing_public_key.pem` and commits it. Rationale: keeps the fixture-staging path single-source-of-truth (one fixture, no in-test derivation drift). The `signed_playback_url_test.exs:66-70` derivation pattern is preserved for that test only.
 
-2. **Should the `:mux` lifecycle test source pull `import Mox` and `setup :set_mox_from_context` from inside the generated app, or wire those via a generated `RindleInstallSmokeMuxHelper` test-support module copied alongside?**
-   - What we know: Pitfall 2 establishes the requirement; the existing `:image` and `:video` heads don't need Mox.
-   - What's unclear: Whether stamping `import Mox` and `setup` callbacks directly in the lifecycle test source (option A) vs. extracting them into a shared test-support module copied into the generated app (option B) is cleaner.
-   - Recommendation: **Option A (stamp directly).** The `lifecycle_test_source/2` head-clauses are already verbose; one extra `import Mox` line is not a maintenance hazard. Option B requires the existing helper's test-support copying surface to extend, which is invasive.
+2. **RESOLVED: Stamp `import Mox` and `setup :set_mox_from_context` directly in `lifecycle_test_source(_, :mux)`.** Plan 03 Task 2 emits the Mox setup inline in the new lifecycle head. Rationale: Option A (stamp directly) is less invasive than extracting a `RindleInstallSmokeMuxHelper` test-support module; the existing helper's verbosity makes one extra import unobtrusive.
 
-3. **Should `scripts/mux_soak_cleanup.sh` use `mix` (Elixir + adapter) or pure `curl` (no compile dep on the host)?**
-   - What we know: D-22 says "belt-and-suspenders sweep"; CONTEXT.md leaves the implementation to the planner.
-   - What's unclear: GitHub Actions `if: always()` step runs even if the previous step failed compile-time; if `mix` itself can't be invoked (because compile failed), a pure-curl fallback survives. But pure-curl requires hand-rolling Mux's basic-auth header.
-   - Recommendation: **`mix run` script with a pure-curl fallback.** Primary path `mix run -e 'Rindle.Streaming.Provider.Mux.HTTP.list(...) |> Enum.each(&Mux.Video.Assets.delete/2)'`; if `mix` fails (compile error), fall back to `curl -u $TOKEN_ID:$TOKEN_SECRET ...`. The fallback is ~10 lines of bash and survives any host-side rindle compile failure.
+3. **RESOLVED: `scripts/mux_soak_cleanup.sh` uses `mix run` primary with curl fallback.** Plan 03 Task 1 ships a bash script that first attempts `mix run -e ...` (Elixir + Mux SDK) and falls back to `curl -u $TOKEN_ID:$TOKEN_SECRET ...` if `mix` fails (compile error survival). Rationale: `if: always()` GitHub Actions step needs to run even when the host-side rindle compile fails; the pure-bash fallback is the belt-and-suspenders survival path D-22 demands.
 
-4. **Do all four doctor checks need separate test files, or can `runtime_checks_streaming_test.exs` cover them with describe blocks?**
-   - What we know: D-31 lists ONE file. CONTEXT.md `## Claude's Discretion` allows extracting a private helper module if cohesion improves.
-   - What's unclear: Test coverage organization preference — one file per check (4 files) vs. one file with 4 describe blocks (1 file).
-   - Recommendation: **One file with describe blocks.** Existing `runtime_checks_test.exs` uses describe blocks for the 8 existing checks; mirror that pattern. Keeps test discoverability local.
+4. **RESOLVED: One test file with describe blocks per check.** Plan 01 Task 2 emits `test/rindle/ops/runtime_checks_streaming_test.exs` with 4 `describe` blocks (one per `defp check_streaming_*` clause). Rationale: mirrors the existing `runtime_checks_test.exs` pattern (8 existing checks in describe blocks); keeps test discoverability local.
 
 ## Environment Availability
 
