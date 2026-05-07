@@ -198,9 +198,9 @@ Wave 2 (depends on Plan 02): plan 04 (runtime_status `--provider-stuck`
 extension — depends on the worker for end-to-end stuck-row visibility).
 
 Plans:
-- [ ] 35-01-PLAN.md — Webhook plug + body reader + Mux adapter cleanup (MUX-09, MUX-10, MUX-11, MUX-12)
+- [x] 35-01-PLAN.md — Webhook plug + body reader + Mux adapter cleanup (MUX-09, MUX-10, MUX-11, MUX-12)
 - [ ] 35-02-PLAN.md — Ingest worker + event dispatch + PubSub broadcast + end-to-end Plug tests (MUX-12, MUX-13)
-- [ ] 35-03-PLAN.md — Test signing helper + Mux webhook fixtures (MUX-09, MUX-10, MUX-11, MUX-12, MUX-13)
+- [x] 35-03-PLAN.md — Test signing helper + Mux webhook fixtures (MUX-09, MUX-10, MUX-11, MUX-12, MUX-13)
 - [ ] 35-04-PLAN.md — runtime_status `--provider-stuck` extension (MUX-14)
 
 **UI hint**: no
