@@ -32,7 +32,14 @@ defmodule Rindle.Ops.RuntimeStatusTest do
     _failed = insert_variant(failed_asset, %{state: "failed", updated_at: age_ago(600)})
     _cancelled = insert_variant(cancelled_asset, %{state: "cancelled", updated_at: age_ago(600)})
     _stale = insert_variant(stale_asset, %{state: "stale", updated_at: age_ago(600)})
-    _missing = insert_variant(missing_asset, %{state: "missing", updated_at: age_ago(600), storage_key: "variants/missing.png"})
+
+    _missing =
+      insert_variant(missing_asset, %{
+        state: "missing",
+        updated_at: age_ago(600),
+        storage_key: "variants/missing.png"
+      })
+
     _starved = insert_variant(starved_asset, %{state: "queued", updated_at: age_ago(601)})
 
     assert {:ok, report} = RuntimeStatus.runtime_status(limit: 2)
@@ -69,7 +76,8 @@ defmodule Rindle.Ops.RuntimeStatusTest do
         has_video_track: true
       })
 
-    _variant = insert_variant(asset, %{name: "web_720p", state: "processing", updated_at: age_ago(1_201)})
+    _variant =
+      insert_variant(asset, %{name: "web_720p", state: "processing", updated_at: age_ago(1_201)})
 
     assert {:ok, report} = RuntimeStatus.runtime_status(limit: 2)
 
@@ -102,7 +110,13 @@ defmodule Rindle.Ops.RuntimeStatusTest do
 
   test "reports expired and failed upload sessions with cleanup recommendation" do
     asset = insert_asset(%{profile: to_string(StatusImageProfile)})
-    _expired = insert_upload_session(asset, %{state: "expired", expires_at: DateTime.add(DateTime.utc_now(), -900, :second)})
+
+    _expired =
+      insert_upload_session(asset, %{
+        state: "expired",
+        expires_at: DateTime.add(DateTime.utc_now(), -900, :second)
+      })
+
     _failed = insert_upload_session(asset, %{state: "failed", failure_reason: "mime_mismatch"})
 
     assert {:ok, report} = RuntimeStatus.runtime_status(limit: 2)
@@ -121,10 +135,14 @@ defmodule Rindle.Ops.RuntimeStatusTest do
 
   test "filters by profile and older_than without changing the public report shape" do
     old_asset = insert_asset(%{profile: to_string(StatusImageProfile)})
-    _old_variant = insert_variant(old_asset, %{name: "thumb", state: "failed", updated_at: age_ago(800)})
+
+    _old_variant =
+      insert_variant(old_asset, %{name: "thumb", state: "failed", updated_at: age_ago(800)})
 
     fresh_asset = insert_asset(%{profile: to_string(StatusVideoProfile)})
-    _fresh_variant = insert_variant(fresh_asset, %{name: "web_720p", state: "failed", updated_at: age_ago(10)})
+
+    _fresh_variant =
+      insert_variant(fresh_asset, %{name: "web_720p", state: "failed", updated_at: age_ago(10)})
 
     assert {:ok, report} =
              RuntimeStatus.runtime_status(
@@ -138,6 +156,7 @@ defmodule Rindle.Ops.RuntimeStatusTest do
     assert report.filters.older_than == 300
     assert report.filters.format == :json
     assert report.variants.counts.failed == 1
+
     assert Enum.all?(report.variants.findings, fn finding ->
              Enum.all?(finding.samples, &(&1.asset_id == old_asset.id))
            end)
@@ -277,7 +296,10 @@ defmodule Rindle.Ops.RuntimeStatusTest do
       assert {:ok, report} = RuntimeStatus.runtime_status(provider_stuck: true)
 
       rec = Enum.find(report.recommendations, &(&1.class == :provider_stuck))
-      assert rec, "expected :provider_stuck recommendation, got: #{inspect(report.recommendations)}"
+
+      assert rec,
+             "expected :provider_stuck recommendation, got: #{inspect(report.recommendations)}"
+
       assert rec.action == :resync
       assert rec.surface == "Rindle.Workers.MuxSyncProviderAsset"
     end
@@ -316,7 +338,11 @@ defmodule Rindle.Ops.RuntimeStatusTest do
         profile: asset.profile,
         provider_name: "mux",
         provider_asset_id:
-          Map.get(attrs, :provider_asset_id, "mux-asset-#{System.unique_integer([:positive])}-tail"),
+          Map.get(
+            attrs,
+            :provider_asset_id,
+            "mux-asset-#{System.unique_integer([:positive])}-tail"
+          ),
         state: Map.get(attrs, :state, "processing")
       }
       |> Map.merge(Map.drop(attrs, [:updated_at, :provider_asset_id, :state]))
