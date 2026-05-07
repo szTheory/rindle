@@ -60,6 +60,7 @@ defmodule Rindle.Ops.RuntimeChecksTest do
                "doctor.oban_default_instance",
                "doctor.oban_required_queues",
                "doctor.profile_runtime_fit",
+               "doctor.resumable_session_schema",
                "doctor.streaming_credentials",
                "doctor.streaming_signing_key",
                "doctor.streaming_smoke_ping",
@@ -203,6 +204,66 @@ defmodule Rindle.Ops.RuntimeChecksTest do
       assert unresolved.status == :error
       assert unresolved.summary =~ "20260425090000"
       assert unresolved.fix =~ "missing from local code"
+    end
+
+    test "reports resumable session schema success when columns and filtered index are present" do
+      report =
+        RuntimeChecks.run([],
+          probe: fn -> :ok end,
+          env: %{},
+          profiles: [],
+          oban_config: [
+            repo: Rindle.Repo,
+            queues: [
+              rindle_promote: 1,
+              rindle_process: 1,
+              rindle_purge: 1,
+              rindle_maintenance: 1
+            ]
+          ],
+          migration_statuses: []
+        )
+
+      check = fetch_check(report, "doctor.resumable_session_schema")
+      assert check.status == :ok
+      assert check.summary =~ "All resumable session columns and the expiry index are present"
+      assert check.fix =~ "Keep the packaged resumable migration applied"
+    end
+
+    test "reports resumable session schema drift when required column or index is missing" do
+      report =
+        RuntimeChecks.run([],
+          probe: fn -> :ok end,
+          env: %{},
+          profiles: [],
+          oban_config: [
+            repo: Rindle.Repo,
+            queues: [
+              rindle_promote: 1,
+              rindle_process: 1,
+              rindle_purge: 1,
+              rindle_maintenance: 1
+            ]
+          ],
+          migration_statuses: [],
+          resumable_session_schema_catalog: %{
+            columns: %{
+              "session_uri" => %{is_nullable: "YES", column_default: nil},
+              "session_uri_expires_at" => %{is_nullable: "YES", column_default: nil},
+              "last_known_offset" => %{is_nullable: "YES", column_default: nil}
+            },
+            indexes: [
+              "CREATE INDEX media_upload_sessions_expires_at_index ON public.media_upload_sessions USING btree (expires_at)"
+            ]
+          }
+        )
+
+      check = fetch_check(report, "doctor.resumable_session_schema")
+      assert check.status == :error
+      assert check.summary =~ "missing columns: region_hint"
+      assert check.summary =~ "last_known_offset must be NOT NULL DEFAULT 0"
+      assert check.summary =~ "missing resumable expiry index"
+      assert check.fix =~ "Re-run the packaged resumable migration"
     end
   end
 
