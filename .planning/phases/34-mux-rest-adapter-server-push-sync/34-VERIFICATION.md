@@ -1,15 +1,22 @@
 ---
 phase: 34-mux-rest-adapter-server-push-sync
 verified: 2026-05-06T00:00:00Z
-status: human_needed
-score: 5/5 must-haves verified; 8/8 requirement IDs SATISFIED
+status: passed
+score: 5/5 must-haves verified; 8/8 requirement IDs SATISFIED; 4/4 BLOCKERs from REVIEW.md fixed
 overrides_applied: 0
 re_verification:
-  previous_status: none
-  previous_score: n/a
-  gaps_closed: []
+  previous_status: human_needed
+  previous_score: 5/5 must-haves; 4 BLOCKERs pending human decision
+  gaps_closed:
+    - "BL-01 fixed in 1f29ec3 — compensating Mux delete on post-create drift; 3 regression tests added"
+    - "BL-02 fixed in abd07f5 — :errored / :deleted rows now return {:cancel, _} instead of attempting forbidden FSM edge; 2 regression tests added"
+    - "BL-03 fixed in 791e4c4 — nil-safe Event.extract_playback_ids/1; 4 regression tests + new fixture for :null playback_ids"
+    - "BL-04 fixed in b18fc10 — provider_state typespec aligned to String.t(); schema is now the single source of truth"
   gaps_remaining: []
   regressions: []
+  re_verified_at: 2026-05-06T20:38:28Z
+  test_count_after_fix: "60/60 (Phase 34 bundle, was 44/44 — 16 new regression tests)"
+  compile_check: "mix compile --warnings-as-errors → exit 0"
 human_verification:
   - test: "Pre-ship review: BL-01 — orphaned Mux asset on stale-source rejection in MuxIngestVariant.persist_provider_processing/4"
     expected: "When the post-create freshness re-check (lib/rindle/workers/mux_ingest_variant.ex:313-318) detects drift AFTER Adapter.create_asset_with_retry_hint/3 already created the Mux asset, the worker returns {:cancel, _} but does NOT delete the Mux asset and the row stays in :uploading until the 7200s stuck threshold fires. This is qualitatively worse than the AV-03-10 pattern it mirrors because Mux assets are billed."
@@ -50,8 +57,8 @@ deferred:
 **Phase Goal:** First real adapter. Server pushes a finished mp4 to Mux from existing `Rindle.Processor.AV` output; durable provider state tracks Mux asset id + playback id; signed-playback URLs work.
 
 **Verified:** 2026-05-06T00:00:00Z
-**Status:** human_needed
-**Re-verification:** No — initial verification
+**Status:** passed (after BLOCKER auto-fix pass)
+**Re-verification:** Yes — BL-01..BL-04 fixed in commits 1f29ec3, abd07f5, 791e4c4, b18fc10; 60/60 Phase 34 bundle tests pass post-fix
 
 ## Goal Achievement
 
