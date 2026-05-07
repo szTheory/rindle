@@ -275,9 +275,21 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
         {:ok, sig_header} ->
           tolerance = config(:webhook_tolerance_seconds, 300)
 
-          Enum.find_value(secrets, {:error, :provider_webhook_invalid}, fn secret ->
+          # D-17: provider-internal telemetry. The PUBLIC callback contract
+          # (`{:ok, provider_event()} | {:error, :provider_webhook_invalid}`)
+          # is UNCHANGED; this telemetry is additive and lets operators
+          # distinguish secret-rotation issues from upstream queue lag.
+          secrets
+          |> Enum.with_index()
+          |> Enum.find_value({:error, :provider_webhook_invalid}, fn {secret, index} ->
             case Mux.Webhooks.verify_header(raw_body, sig_header, secret, tolerance) do
               :ok ->
+                :telemetry.execute(
+                  [:rindle, :provider, :mux, :webhook_attempt, :secret_used],
+                  %{system_time: System.system_time()},
+                  %{secret_index: index}
+                )
+
                 with {:ok, decoded} <- Jason.decode(raw_body),
                      {:ok, evt} <- Event.normalize(decoded) do
                   {:ok, evt}
@@ -285,21 +297,71 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
                   _ -> nil
                 end
 
-              {:error, _} ->
+              {:error, sdk_reason} ->
+                :telemetry.execute(
+                  [:rindle, :provider, :mux, :webhook_attempt, :rejected],
+                  %{system_time: System.system_time()},
+                  %{secret_index: index, sdk_reason: inspect(sdk_reason)}
+                )
+
                 nil
             end
           end)
 
         :error ->
+          :telemetry.execute(
+            [:rindle, :provider, :mux, :webhook_attempt, :rejected],
+            %{system_time: System.system_time()},
+            %{secret_index: nil, sdk_reason: ":missing_header"}
+          )
+
           {:error, :provider_webhook_invalid}
       end
     end
 
+    @doc false
+    # Internal helper consumed by `Rindle.Delivery.WebhookPlug` to decide whether
+    # a verified Mux event should be enqueued (`:dispatch`) or acknowledged with
+    # 200 OK and dropped (`:drop`).
+    #
+    # Phase 35 dispatches: `video.asset.{ready,errored,deleted,created}` and
+    # `video.upload.asset_created` (forward-compat for Phase 37; worker no-ops).
+    # Everything else drops — Mux ships event types Rindle does not act on
+    # (master files, tracks, static renditions, live-stream, etc.). Returning
+    # 200 OK ensures Mux does not retry; the verified-but-dropped events surface
+    # in `[:rindle, :provider, :webhook, :verified]` telemetry with `kind: :dropped`.
+    #
+    # Default for unknown event types is `:drop` (forward-compat safety — Mux
+    # ships new types regularly; the library should not crash or queue work for
+    # types Rindle does not recognize).
+    @spec dispatch_kind(String.t() | nil) :: :dispatch | :drop
+    def dispatch_kind("video.asset.ready"), do: :dispatch
+    def dispatch_kind("video.asset.errored"), do: :dispatch
+    def dispatch_kind("video.asset.deleted"), do: :dispatch
+    def dispatch_kind("video.asset.created"), do: :dispatch
+    def dispatch_kind("video.upload.asset_created"), do: :dispatch
+
+    # DROP table — events Rindle v1.6 does not act on (Mux 2026 catalog).
+    def dispatch_kind("video.asset.updated"), do: :drop
+    def dispatch_kind("video.asset.warning"), do: :drop
+    def dispatch_kind("video.asset.non_standard_input_detected"), do: :drop
+    def dispatch_kind("video.asset.master." <> _), do: :drop
+    def dispatch_kind("video.asset.track." <> _), do: :drop
+    def dispatch_kind("video.asset.static_rendition." <> _), do: :drop
+    def dispatch_kind("video.asset.live_stream_completed"), do: :drop
+    def dispatch_kind("video.upload." <> _), do: :drop
+    def dispatch_kind("video.live_stream." <> _), do: :drop
+
+    # Forward-compat default — unknown events drop. Mux ships novelty regularly.
+    def dispatch_kind(_other), do: :drop
+
+    # Plug.Conn lowercases all request headers per HTTP/2 spec (D-05).
+    # Headers reaching this function via the Plug already come from
+    # `conn.req_headers` (lowercase). Tests pass the map shape directly.
     defp fetch_sig_header(headers) do
-      cond do
-        Map.has_key?(headers, "mux-signature") -> {:ok, Map.fetch!(headers, "mux-signature")}
-        Map.has_key?(headers, "Mux-Signature") -> {:ok, Map.fetch!(headers, "Mux-Signature")}
-        true -> :error
+      case Map.fetch(headers, "mux-signature") do
+        {:ok, value} -> {:ok, value}
+        :error -> :error
       end
     end
 
