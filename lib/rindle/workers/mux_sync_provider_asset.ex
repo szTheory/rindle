@@ -2,25 +2,44 @@
 # Adopters who do not configure streaming pay zero transitive cost.
 if Code.ensure_loaded?(Mux.Video.Assets) do
   defmodule Rindle.Workers.MuxSyncProviderAsset do
-    @moduledoc false
-    # Per-row defensive sync for `media_provider_assets` rows that may have
-    # missed a webhook. Called by `Rindle.Workers.MuxSyncCoordinator`.
-    #
-    # Plan 04 promotes this to a documented `@moduledoc`; for Phase 34 wave 2
-    # this worker is only invoked from the coordinator (internal contract).
-    #
-    # Behavior:
-    #   1. Fetch row by `provider_asset_id`.
-    #   2. If the row is past the stuck threshold, transition to `:errored`
-    #      with `last_sync_error: "stuck in :<state> past threshold"` and emit
-    #      `[:rindle, :provider, :sync, :stuck]`.
-    #   3. Otherwise, call `Rindle.Streaming.Provider.Mux.get_asset/1` and
-    #      reconcile FSM/playback_ids. Emit `[:rindle, :provider, :sync, :resolved]`.
-    #   4. If Mux returns 404, transition to `:errored` with reason
-    #      `"mux asset not found"` and emit `:resolved`.
-    #
-    # Telemetry metadata always carries the redacted `asset_id` per security
-    # invariant 14 (`Rindle.Domain.MediaProviderAsset.redact_id/1`).
+    @moduledoc """
+    Per-row defensive sync for `media_provider_assets` rows that may have
+    missed a webhook. Called by `Rindle.Workers.MuxSyncCoordinator` (Phase 34
+    ships the cron coordinator; Phase 35 wires up webhook-driven sync).
+
+    ## Job Arguments
+
+        %{"provider_asset_id" => mux_asset_id}
+
+    ## Behavior
+
+      1. Fetch row by `provider_asset_id`.
+      2. If the row is past the stuck threshold, transition to `:errored`
+         with `last_sync_error: "stuck in :<state> past threshold"` and emit
+         `[:rindle, :provider, :sync, :stuck]`.
+      3. Otherwise, call `Rindle.Streaming.Provider.Mux.get_asset/1` and
+         reconcile FSM/playback_ids. Emit `[:rindle, :provider, :sync, :resolved]`.
+      4. If Mux returns 404, transition to `:errored` with reason
+         `"mux asset not found"` and emit `:resolved` (the row IS now reconciled
+         with reality — there is no asset to wait for).
+
+    ## Telemetry Contract
+
+      * `[:rindle, :provider, :sync, :resolved]` — fires on every successful
+        `get_asset/1` call (whether or not a state change occurred).
+
+            measurements: %{system_time}
+            metadata:     %{profile, provider, asset_id, provider_state, age_ms}
+
+      * `[:rindle, :provider, :sync, :stuck]` — fires when the row's
+        `updated_at` exceeds `:provider_stuck_threshold_seconds` (default 7200).
+        Same metadata shape; `provider_state` reflects the row's final
+        `:errored` state.
+
+    `metadata.asset_id` is the redacted last-4-char tag of the
+    `provider_asset_id` (security invariant 14, via
+    `Rindle.Domain.MediaProviderAsset.redact_id/1`).
+    """
 
     use Oban.Worker, queue: :rindle_provider, max_attempts: 3
 

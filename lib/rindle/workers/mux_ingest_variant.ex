@@ -65,6 +65,16 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
          returns `:ok` immediately. It does NOT re-call the adapter and does
          NOT attempt the forbidden `processing → uploading` FSM edge
          (`provider_asset_fsm.ex:9-16`).
+
+    ## Telemetry — kind metadata
+
+    `[:rindle, :provider, :ingest, :exception]` events carry an additional
+    `metadata.kind` key:
+
+      * `:cancelled` — atomic-promote race aborted the job (`{:cancel, ...}`)
+      * `:error` — a genuine failure (`{:error, _}`)
+
+    Adopters can route the two cases differently in their handlers.
     """
 
     use Oban.Worker, queue: :rindle_provider, max_attempts: 5

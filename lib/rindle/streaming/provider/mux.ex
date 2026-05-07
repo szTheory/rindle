@@ -57,6 +57,36 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
     * `signed_playback_url/3` ALWAYS passes `:expiration` explicitly to
       `Mux.Token.sign_playback_id/2`. The SDK default is 7 days (Pitfall 1) —
       relying on it would silently mint over-long tokens.
+
+    ## Telemetry Contract
+
+    The adapter and its companion workers emit the following events. All
+    events with `metadata.asset_id` redact the value to its last-4-char tag
+    (`"...abcd"`) via `Rindle.Domain.MediaProviderAsset.redact_id/1`
+    (security invariant 14). Adopters writing telemetry handlers MUST treat
+    `asset_id` as a redacted identifier — it is not a stable correlation key.
+
+      * `[:rindle, :provider, :ingest, :start | :stop | :exception]` — emitted
+        by `Rindle.Workers.MuxIngestVariant` (Phase 34).
+        - measurements: `%{system_time, duration?}` (`duration` only on `:stop`/`:exception`)
+        - metadata: `%{profile, provider, asset_id, variant_name, kind?, reason?}`
+        - `kind: :error | :cancelled` is added on `:exception` to distinguish
+          genuine errors (`{:error, _}`) from atomic-promote cancellations
+          (`{:cancel, {:stale_source, _}}`).
+
+      * `[:rindle, :provider, :sync, :resolved | :stuck]` — emitted by
+        `Rindle.Workers.MuxSyncProviderAsset` (Phase 34).
+        - measurements: `%{system_time}`
+        - metadata: `%{profile, provider, asset_id, provider_state, age_ms}`
+        - `:stuck` fires when a row in `:processing`/`:uploading` exceeds
+          `:provider_stuck_threshold_seconds` (default 7200).
+
+      * `[:rindle, :delivery, :streaming, :resolved]` — already shipped by
+        Phase 33's `dispatch_streaming/4`. No new event from Phase 34 on this
+        path; the metadata extension is the documented v1.4-contract addition.
+
+    Phase 35 will add `[:rindle, :provider, :webhook, _]` events. Phase 34
+    does not emit them.
     """
 
     @behaviour Rindle.Streaming.Provider
