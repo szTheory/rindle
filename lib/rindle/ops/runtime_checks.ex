@@ -390,7 +390,9 @@ defmodule Rindle.Ops.RuntimeChecks do
            repo,
            fn started_repo ->
              Migrator.migrations(started_repo, path)
-           end, mode: :temporary) do
+           end,
+           mode: :temporary
+         ) do
       {:ok, statuses, _apps} ->
         statuses
 
@@ -626,11 +628,16 @@ defmodule Rindle.Ops.RuntimeChecks do
         )
     end
   rescue
-    _ ->
+    exception ->
+      # Phase 36 WR-10: surface the exception class (NOT the message — the
+      # message could echo PEM content). The struct name is non-sensitive
+      # and unlocks "is it MatchError or FunctionClauseError?" diagnosis
+      # for `mix rindle.doctor --raise` without leaking key material.
       error_result(
         "doctor.streaming_signing_key",
         :streaming,
-        "RINDLE_MUX_SIGNING_PRIVATE_KEY parse raised (malformed PEM).",
+        "RINDLE_MUX_SIGNING_PRIVATE_KEY parse raised: " <>
+          inspect(exception.__struct__) <> " (malformed PEM).",
         @streaming_signing_key_fix
       )
   end
