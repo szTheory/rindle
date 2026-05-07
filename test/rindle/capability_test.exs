@@ -110,4 +110,97 @@ defmodule Rindle.CapabilityTest do
       refute rendered =~ "kid-leak-test"
     end
   end
+
+  # Phase 36 WR-07: configured_streaming_profiles/1 is a public seam for the
+  # doctor's streaming checks; the four input-shape branches need direct
+  # coverage so a regression in the map vs keyword-list dual handling cannot
+  # silently slip through.
+  describe "configured_streaming_profiles/1 (Phase 36 WR-07)" do
+    defmodule NoDeliveryProfile do
+      @moduledoc false
+      use Rindle.Profile,
+        storage: Rindle.Storage.S3,
+        variants: [thumb: [mode: :fit, width: 64, height: 64]]
+    end
+
+    defmodule MapStreamingProfile do
+      @moduledoc false
+      # The MuxWeb preset emits a keyword-list-shaped :streaming block which
+      # delivery_policy/0 normalizes to a map. Use the preset to exercise the
+      # map-shape branch end-to-end.
+      use Rindle.Profile.Presets.MuxWeb,
+        storage: Rindle.Storage.S3,
+        allow_mime: ["video/mp4"],
+        max_bytes: 100_000_000
+    end
+
+    defmodule KeywordStreamingProfile do
+      @moduledoc false
+      # Adopters who write a hand-rolled :streaming keyword list should hit
+      # the keyword-shape branch in streaming_provider/1.
+      use Rindle.Profile,
+        storage: Rindle.Storage.S3,
+        variants: [hero: [mode: :fit, width: 320]],
+        allow_mime: ["video/mp4"],
+        max_bytes: 100_000_000,
+        delivery: [
+          streaming: [
+            provider: Rindle.Streaming.Provider.Mux,
+            playback_policy: :signed,
+            ingest_mode: :server_push,
+            source_variant: :hero
+          ]
+        ]
+    end
+
+    defmodule RaisingDeliveryProfile do
+      @moduledoc false
+      # Stub a profile module whose delivery_policy/0 raises. The capability
+      # aggregator's safely_call_zero/2 wraps this in a rescue and returns
+      # nil, which configured_streaming_profiles/1 must treat as "not
+      # streaming".
+      def __rindle_profile__, do: true
+      def variants, do: []
+      def storage_adapter, do: Rindle.Storage.S3
+      def delivery_policy, do: raise("boom")
+    end
+
+    test "(a) profile with no :streaming key returns []" do
+      assert Rindle.Capability.configured_streaming_profiles([NoDeliveryProfile]) == []
+    end
+
+    test "(b) profile with map-shape :streaming is included" do
+      assert Rindle.Capability.configured_streaming_profiles([MapStreamingProfile]) ==
+               [MapStreamingProfile]
+    end
+
+    test "(c) profile with keyword-shape :streaming is included" do
+      assert Rindle.Capability.configured_streaming_profiles([KeywordStreamingProfile]) ==
+               [KeywordStreamingProfile]
+    end
+
+    test "(d) profile whose delivery_policy/0 raises is excluded gracefully" do
+      assert Rindle.Capability.configured_streaming_profiles([RaisingDeliveryProfile]) == []
+    end
+
+    test "mixed list filters non-streaming, includes streaming, ignores raising" do
+      profiles = [
+        NoDeliveryProfile,
+        MapStreamingProfile,
+        KeywordStreamingProfile,
+        RaisingDeliveryProfile
+      ]
+
+      result = Rindle.Capability.configured_streaming_profiles(profiles)
+
+      assert MapStreamingProfile in result
+      assert KeywordStreamingProfile in result
+      refute NoDeliveryProfile in result
+      refute RaisingDeliveryProfile in result
+    end
+
+    test "empty profile list returns []" do
+      assert Rindle.Capability.configured_streaming_profiles([]) == []
+    end
+  end
 end
