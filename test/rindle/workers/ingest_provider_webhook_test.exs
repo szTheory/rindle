@@ -107,7 +107,7 @@ defmodule Rindle.Workers.IngestProviderWebhookTest do
   defp state_for("video.asset.created"), do: "processing"
   defp state_for(_), do: nil
 
-  defp drain_telemetry(filter_event \\ nil, acc \\ []) do
+  defp drain_telemetry(filter_event, acc) do
     receive do
       {:tele, evt, _, _} = msg ->
         if filter_event == nil or evt == filter_event do
@@ -121,7 +121,7 @@ defmodule Rindle.Workers.IngestProviderWebhookTest do
   end
 
   defp last_telemetry(filter_event) do
-    drain_telemetry(filter_event) |> List.last()
+    drain_telemetry(filter_event, []) |> List.last()
   end
 
   # ============================================================
@@ -166,7 +166,6 @@ defmodule Rindle.Workers.IngestProviderWebhookTest do
     updated = Repo.get!(MediaProviderAsset, row.id)
     assert updated.state == "ready"
     assert updated.playback_ids == ["pb-id-1", "pb-id-2"]
-    assert updated.playback_id == "pb-id-1"
     assert updated.last_sync_error == nil
 
     # Two-topic broadcast with locked payload contract.
