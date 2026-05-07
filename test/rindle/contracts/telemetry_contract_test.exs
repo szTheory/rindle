@@ -8,6 +8,7 @@ defmodule Rindle.Contracts.TelemetryContractTest do
   alias Rindle.Domain.{MediaAsset, MediaVariant, VariantFSM}
   alias Rindle.Delivery.LocalPlug
   alias Rindle.Ops.RuntimeChecks
+  alias Rindle.Upload.ResumableTelemetry
   alias Rindle.Workers.ProcessVariant
 
   @moduledoc """
@@ -93,11 +94,14 @@ defmodule Rindle.Contracts.TelemetryContractTest do
 
   describe "public event allowlist" do
     test "is exactly the documented public contract" do
-      assert length(@public_events) == 16
+      assert length(@public_events) == 18
+
+      assert [:rindle, :upload, :resumable, :status] in @public_events
+      assert [:rindle, :upload, :resumable, :cancel] in @public_events
 
       for event <- @public_events do
         assert is_list(event)
-        assert length(event) in [3, 4]
+        assert length(event) in [3, 4, 5]
         assert Enum.all?(event, &is_atom/1)
         assert hd(event) == :rindle
       end
@@ -198,6 +202,40 @@ defmodule Rindle.Contracts.TelemetryContractTest do
       assert is_binary(metadata.check)
       assert metadata.status in [:ok, :error]
       assert is_atom(metadata.component)
+    end
+
+    test "resumable telemetry helpers emit the locked public contract", %{ref: ref} do
+      session = %Rindle.Domain.MediaUploadSession{id: "sess-1", session_uri: "https://storage.googleapis.com/upload/secret"}
+
+      ResumableTelemetry.emit_status(
+        "TestProfile",
+        Rindle.Storage.GCS,
+        session,
+        %{state: "resuming", source: :poll, session_uri: session.session_uri},
+        %{committed_bytes: 128, offset_delta: 64}
+      )
+
+      ResumableTelemetry.emit_cancel(
+        "TestProfile",
+        Rindle.Storage.GCS,
+        session,
+        %{outcome: :cancelled, reason: :operator_request, source: :maintenance},
+        %{duration_us: 42}
+      )
+
+      assert_received {[:rindle, :upload, :resumable, :status], ^ref, status_measurements, status_metadata}
+      assert_received {[:rindle, :upload, :resumable, :cancel], ^ref, cancel_measurements, cancel_metadata}
+
+      assert_required_metadata_keys(status_metadata)
+      assert_required_metadata_keys(cancel_metadata)
+      assert_numeric_measurements(status_measurements)
+      assert_numeric_measurements(cancel_measurements)
+
+      refute Map.has_key?(status_metadata, :session_uri)
+      assert status_metadata.profile == "TestProfile"
+      assert status_metadata.adapter == Rindle.Storage.GCS
+      assert cancel_metadata.profile == "TestProfile"
+      assert cancel_metadata.adapter == Rindle.Storage.GCS
     end
   end
 
