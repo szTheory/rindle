@@ -59,7 +59,11 @@ defmodule Rindle.Ops.RuntimeChecksTest do
                "doctor.migrations.unresolved",
                "doctor.oban_default_instance",
                "doctor.oban_required_queues",
-               "doctor.profile_runtime_fit"
+               "doctor.profile_runtime_fit",
+               "doctor.streaming_credentials",
+               "doctor.streaming_signing_key",
+               "doctor.streaming_smoke_ping",
+               "doctor.streaming_webhook_secrets"
              ]
 
       assert report.success?

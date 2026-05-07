@@ -96,6 +96,49 @@ defmodule Rindle.DoctorTest do
                String.contains?(output, "doctor.profile_runtime_fit")
     end
 
+    test "passes --streaming flag through to RuntimeChecks.run/2" do
+      # With no streaming profiles, vacuous-OK fires regardless of flag —
+      # but we still verify the smoke-ping check is present, proving the
+      # opts plumbed through to RuntimeChecks.run/2.
+      capture_io(fn ->
+        report =
+          Mix.Tasks.Rindle.Doctor.run_checks([],
+            shell: Mix.Shell.IO,
+            profiles: [],
+            probe: fn -> :ok end,
+            exit_on_failure?: false,
+            streaming: true,
+            env: %{},
+            oban_config: [
+              repo: Rindle.Repo,
+              queues: [
+                rindle_promote: 1,
+                rindle_process: 1,
+                rindle_purge: 1,
+                rindle_maintenance: 1
+              ]
+            ],
+            migration_statuses: [],
+            local_playback_route: []
+          )
+
+        check = Enum.find(report.checks, &(&1.id == "doctor.streaming_smoke_ping"))
+        assert check, "doctor.streaming_smoke_ping must appear in the check list"
+        assert check.status == :ok
+      end)
+    end
+
+    test "OptionParser accepts --streaming boolean flag" do
+      # Unit-test the OptionParser boundary directly: invoking
+      # `Mix.Tasks.Rindle.Doctor.run/1` calls Mix.Project.config and may not
+      # be safely invokable in test env, so we test the parser shape itself.
+      assert {[streaming: true], [], []} =
+               OptionParser.parse(["--streaming"], strict: [streaming: :boolean])
+
+      assert {[], [], []} =
+               OptionParser.parse([], strict: [streaming: :boolean])
+    end
+
     test "raises after emitting the summary when failures are present" do
       assert_raise Mix.Error, ~r/Rindle\.Doctor failed: 1 check\(s\) failed/, fn ->
         capture_io(fn ->

@@ -8,11 +8,18 @@ defmodule Mix.Tasks.Rindle.Doctor do
     * `ffmpeg` >= 6.0 is installed and available in the system PATH.
     * optional profile module arguments can be loaded and their AV variants are
       compatible with the bundled runtime/processor contract.
+    * Phase 36 / MUX-16 — when at least one profile opts into `:streaming`,
+      four additional checks validate Mux credentials, signing key, webhook
+      secrets, and (with `--streaming`) a 5s-bounded live API smoke ping.
 
   ## Usage
 
       mix rindle.doctor
       mix rindle.doctor MyApp.VideoProfile MyApp.PodcastProfile
+      mix rindle.doctor --streaming
+
+  Pass `--streaming` to enable a 5-second live smoke ping against
+  `Mux.Video.Assets.list/1`. The default run never hits the network.
 
   ## Exit codes
 
@@ -26,7 +33,12 @@ defmodule Mix.Tasks.Rindle.Doctor do
 
   @impl Mix.Task
   def run(args) do
-    run_checks(args)
+    {parsed, rest, _invalid} =
+      OptionParser.parse(args, strict: [streaming: :boolean])
+
+    streaming? = Keyword.get(parsed, :streaming, false)
+
+    run_checks(rest, streaming: streaming?)
   end
 
   @doc false
@@ -34,12 +46,17 @@ defmodule Mix.Tasks.Rindle.Doctor do
     shell = Keyword.get(opts, :shell, Mix.shell())
     mix_app = Keyword.get(opts, :mix_app, Mix.Project.config()[:app])
     exit_on_failure? = Keyword.get(opts, :exit_on_failure?, true)
+    streaming? = Keyword.get(opts, :streaming, false)
 
     shell.info("Rindle: running environment checks...")
 
     report =
       args
-      |> RuntimeChecks.run(Keyword.put(opts, :mix_app, mix_app))
+      |> RuntimeChecks.run(
+        opts
+        |> Keyword.put(:mix_app, mix_app)
+        |> Keyword.put(:streaming, streaming?)
+      )
       |> emit_report(shell)
 
     if exit_on_failure? and not report.success? do

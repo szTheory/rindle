@@ -87,7 +87,16 @@ defmodule Rindle.Capability do
       is_binary(cfg_get(cfg, :signing_private_key))
   end
 
-  defp configured_streaming_profiles(profiles) do
+  @doc """
+  Returns the subset of `profiles` that opt into the `:streaming` delivery key.
+
+  Public seam used by `mix rindle.doctor`'s streaming checks (Phase 36 / MUX-16)
+  as the single source of truth for "is this profile streaming-enabled?". The
+  predicate is identity with the inner `report/0` filter — both call
+  `streaming_config_for/1` via `delivery_policy/0`.
+  """
+  @spec configured_streaming_profiles([module()]) :: [module()]
+  def configured_streaming_profiles(profiles) do
     for profile <- profiles,
         not is_nil(streaming_config_for(profile)) do
       profile
