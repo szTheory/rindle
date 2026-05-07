@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: Provider Boundary + Mux
-status: ready_for_next_phase
-stopped_at: Phase 34 complete (verified 5/5 must-haves + 8/8 requirement IDs; 4 BL fixes applied; 60/60 Phase 34 bundle tests pass)
-last_updated: "2026-05-06T20:45:00.000Z"
-last_activity: 2026-05-06 -- Phase 34 complete; verifier passed after BL-01..BL-04 auto-fix pass (compensating Mux delete, :errored cancel, nil-safe Event extract, provider_state String.t() typespec)
+status: ready_for_planning
+stopped_at: Phase 35 context gathered (46 decisions locked across mountable Plug, raw-body cache, worker contract, Mux event dispatch, PubSub broadcast, test signing, runtime_status extension)
+last_updated: "2026-05-06T21:00:00.000Z"
+last_activity: 2026-05-06 -- Phase 35 CONTEXT.md committed (d6cfa5f); research-driven one-shot, three parallel subagents (Plug shape / worker contract / Mux event surface); surfaced silent data-corruption fix for Phase 37 (D-29 Event.normalize/1 typed branch for video.upload.asset_created — data.id is upload-id, not asset-id)
 progress:
   total_phases: 5
   completed_phases: 2
@@ -27,10 +27,10 @@ single reference streaming adapter without expanding into a video platform.
 
 ## Current Position
 
-Phase: 35 — Signed-Webhook Plug + Idempotent Ingest (next)
-Plan: TBD — `/gsd-discuss-phase 35` or `/gsd-plan-phase 35`
-Status: Ready for next phase — Phase 34 verified passed
-Last activity: 2026-05-06 -- Phase 34 closed: all 4 plans + 4 BLOCKER fixes shipped; 60/60 bundle tests pass; verifier passed; code review 9 WR + 3 IN remain (advisory, deferred to v1.6 polish or v1.7)
+Phase: 35 — Signed-Webhook Plug + Idempotent Ingest (context gathered)
+Plan: TBD — `/gsd-plan-phase 35`
+Status: Ready for planning — Phase 35 CONTEXT.md committed
+Last activity: 2026-05-06 -- Phase 35 context gathered; 46 decisions locked; ready for `/gsd-plan-phase 35` to produce the 4-plan PLAN.md per ROADMAP.md plan-count guidance
 
 ## Recent Completion
 
@@ -47,8 +47,10 @@ Last activity: 2026-05-06 -- Phase 34 closed: all 4 plans + 4 BLOCKER fixes ship
 
 ## Pending Todos
 
-- Discuss/plan Phase 35: Signed-Webhook Plug + Idempotent Ingest
-  (`MUX-09..14`) — `/gsd-discuss-phase 35` or `/gsd-plan-phase 35`.
+- Plan Phase 35: Signed-Webhook Plug + Idempotent Ingest (`MUX-09..14`) —
+  `/gsd-plan-phase 35`. CONTEXT.md committed; 4-plan target per ROADMAP.md
+  guidance (highest-fidelity v1.6 phase: raw-body cache, multi-secret
+  rotation, replay protection, idempotency).
 
 - Phase 34 follow-ups (advisory, not blocking ship):
   - 9 Warning + 3 Info findings in `34-REVIEW.md` — auto-fix via
@@ -74,15 +76,22 @@ Last activity: 2026-05-06 -- Phase 34 closed: all 4 plans + 4 BLOCKER fixes ship
 
 ## Session Continuity
 
-Last session: Phase 34 context gathered (research-driven one-shot, no
-interview turns); 43 decisions locked. Two parallel research subagents
-verified Mux SDK 3.2.x surface (surfacing 4 memo corrections — D-04
-playback_policy singular/string, D-06 sign_playback_id current export,
-D-09 7-day default expiration footgun, D-10 single-secret webhook API)
-and Oban patterns (added MuxSyncCoordinator coordinator-worker pattern).
-Stopped at: Phase 34 CONTEXT.md + DISCUSSION-LOG.md committed (4a1c8ae)
-Resume file: .planning/phases/34-mux-rest-adapter-server-push-sync/34-CONTEXT.md
+Last session: Phase 35 context gathered (research-driven one-shot, no
+interview turns); 46 decisions locked. Three parallel research subagents:
+(A) mountable Plug + raw-body cache pattern (Stripe.WebhookPlug peer
+comparison, body_reader MFA, init opt validation), (B) IngestProviderWebhook
+worker contract (race-snooze for missing row, FSM concurrency, two-topic
+PubSub broadcast, telemetry namespace split, runtime_status --provider-stuck
+extension), (C) Mux event catalog (full 2026 set with v1.6 disposition;
+DROP table; HMAC test signing via Mux.Webhooks.TestUtils.generate_signature/2;
+fixture payloads). Surfaced silent data-corruption fix for Phase 37:
+Event.normalize/1 mis-attributes data.id for video.upload.asset_created
+(data.id is upload-id; asset-id lives in data.asset_id) — Phase 35 lands
+the typed branch as forward-compat (D-29).
+
+Stopped at: Phase 35 CONTEXT.md + DISCUSSION-LOG.md committed (d6cfa5f)
+Resume file: .planning/phases/35-signed-webhook-plug-idempotent-ingest/35-CONTEXT.md
 
 **Last Completed Milestone:** v1.5 (Phases 29-32) — archived 2026-05-06
 
-**Next Step:** `/gsd-discuss-phase 35` or `/gsd-plan-phase 35`
+**Next Step:** `/gsd-plan-phase 35`
