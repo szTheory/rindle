@@ -27,7 +27,26 @@ findings:
   blocker: 3
   warning: 9
   total: 12
-status: issues_found
+status: fixes_applied
+fixes_applied:
+  applied_at: 2026-05-07T00:00:00Z
+  iteration: 1
+  fixed: 12
+  skipped: 0
+  commits:
+    - {id: CR-01, sha_prefix: 8b291c1, summary: "tag soak Mux assets with passthrough so cleanup script can filter them"}
+    - {id: CR-02, sha_prefix: 744755e, summary: "record provider_asset_id before streaming-URL assertions"}
+    - {id: CR-03, sha_prefix: 12dfd0f, summary: "decouple shared_env from Mux fixtures for non-mux profiles"}
+    - {id: WR-01, sha_prefix: a1e5e94, summary: "pin streaming guide to ~> 0.1 until 0.2.0 ships"}
+    - {id: WR-02, sha_prefix: c6820fb, summary: "add guides/upgrading.md to mix.exs :extras list"}
+    - {id: WR-03, sha_prefix: b8563e8, summary: "require rindle_provider queue when streaming profile present"}
+    - {id: WR-04, sha_prefix: 0304532, summary: "add rindle_provider to mux lane via single oban_queues_for helper"}
+    - {id: WR-05, sha_prefix: ca74c32, summary: "use documented Mox setup-callback form in generated mux test"}
+    - {id: WR-06, sha_prefix: 4368236, summary: "mix rindle.doctor fails loudly on unknown CLI flags"}
+    - {id: WR-07, sha_prefix: abc624e, summary: "add direct test for Rindle.Capability.configured_streaming_profiles/1"}
+    - {id: WR-08, sha_prefix: a48e18e, summary: "use .md extension for cross-guide link in streaming_providers.md"}
+    - {id: WR-09, sha_prefix: 9c74f24, summary: "remove unused _app_name parameter from mux_config_block"}
+    - {id: WR-10, sha_prefix: c901124, summary: "surface exception class in verify_signing_key_pem rescue"}
 ---
 
 # Phase 36: Code Review Report
