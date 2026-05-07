@@ -928,7 +928,12 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
          "RINDLE_MUX_WEBHOOK_SECRETS",
          "whsec_test_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
        )},
-      {"RINDLE_MUX_USE_REAL_API", System.get_env("RINDLE_MUX_USE_REAL_API")}
+      {"RINDLE_MUX_USE_REAL_API", System.get_env("RINDLE_MUX_USE_REAL_API")},
+      # Phase 36 CR-01: propagate the soak passthrough tag into the
+      # generated app's worker process. Unset on cassette runs so the
+      # cassette mock never sees the key (cassette test asserts the
+      # request body matches the stub, no passthrough field expected).
+      {"RINDLE_MUX_PASSTHROUGH_TAG", System.get_env("RINDLE_MUX_PASSTHROUGH_TAG")}
     ]
 
     (base_env ++ mux_env)

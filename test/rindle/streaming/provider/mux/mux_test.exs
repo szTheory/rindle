@@ -76,6 +76,33 @@ defmodule Rindle.Streaming.Provider.MuxTest do
     assert first == "playback-id-test-fixture-1234"
   end
 
+  test "create_asset/3 forwards :passthrough to the SDK request body (Phase 36 CR-01 cleanup contract)" do
+    # The soak install-smoke lane sets `RINDLE_MUX_PASSTHROUGH_TAG=rindle_soak`
+    # so every Mux asset created during the lane carries
+    # `passthrough: "rindle_soak"`. The layer-3 cleanup script
+    # (`scripts/mux_soak_cleanup.sh`) filters on the same field — this
+    # regression locks the producer/cleanup tag agreement.
+    expect(ClientMock, :create_asset, fn params ->
+      assert params["passthrough"] == "rindle_soak"
+      {:ok, fixture("asset_create_201.json")}
+    end)
+
+    assert {:ok, %{provider_asset_id: _, playback_ids: _}} =
+             Adapter.create_asset(TestProfile, "https://signed.example/v.mp4",
+               playback_policy: :signed,
+               passthrough: "rindle_soak"
+             )
+  end
+
+  test "create_asset/3 omits :passthrough when not supplied (default Mux request shape)" do
+    expect(ClientMock, :create_asset, fn params ->
+      refute Map.has_key?(params, "passthrough")
+      {:ok, fixture("asset_create_201.json")}
+    end)
+
+    assert {:ok, _} = Adapter.create_asset(TestProfile, "https://signed.example/v.mp4")
+  end
+
   test "create_asset/3 maps 429 to :provider_quota_exceeded" do
     expect(ClientMock, :create_asset, fn _params ->
       {:error, "rate_limited", %{status: 429, headers: [{"retry-after", "30"}]}}

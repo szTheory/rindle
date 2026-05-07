@@ -571,6 +571,12 @@ jobs:
     env:
       MIX_ENV: test
       RINDLE_MUX_USE_REAL_API: "1"
+      # Phase 36 CR-01: stamp every Mux asset created during the soak lane
+      # with `passthrough: "rindle_soak"` so the layer-3 cleanup script
+      # (`scripts/mux_soak_cleanup.sh`) can filter on a tag the producer
+      # actually writes (the previously-used `meta.rindle_soak` tag was
+      # never written by any code path).
+      RINDLE_MUX_PASSTHROUGH_TAG: "rindle_soak"
       RINDLE_MUX_TOKEN_ID: ${{ secrets.RINDLE_MUX_TOKEN_ID }}
       RINDLE_MUX_TOKEN_SECRET: ${{ secrets.RINDLE_MUX_TOKEN_SECRET }}
       RINDLE_MUX_SIGNING_KEY_ID: ${{ secrets.RINDLE_MUX_SIGNING_KEY_ID }}

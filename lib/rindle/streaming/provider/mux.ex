@@ -113,7 +113,7 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
     def create_asset(profile, source_url, opts \\ [])
         when is_atom(profile) and is_binary(source_url) and is_list(opts) do
       policy_atom = Keyword.get(opts, :playback_policy, :signed)
-      params = build_create_params(source_url, policy_atom)
+      params = build_create_params(source_url, policy_atom, opts)
 
       case http_client().create_asset(params) do
         {:ok, %{"id" => provider_asset_id, "playback_ids" => playback_ids}} ->
@@ -163,7 +163,7 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
     def create_asset_with_retry_hint(profile, source_url, opts \\ [])
         when is_atom(profile) and is_binary(source_url) and is_list(opts) do
       policy_atom = Keyword.get(opts, :playback_policy, :signed)
-      params = build_create_params(source_url, policy_atom)
+      params = build_create_params(source_url, policy_atom, opts)
 
       case http_client().create_asset(params) do
         {:ok, %{"id" => provider_asset_id, "playback_ids" => playback_ids}} ->
@@ -197,13 +197,24 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
 
     # SDK-boundary param construction — PLURAL keys, single source of truth.
     # NEVER duplicate this in workers (D-04 memo correction).
-    defp build_create_params(source_url, policy_atom) do
-      %{
+    #
+    # `:passthrough` (CR-01) — when supplied, stamped onto the create-asset
+    # request as the Mux REST `passthrough` field. The soak install-smoke
+    # lane sets this to `"rindle_soak"` so the layer-3 cleanup script can
+    # filter on a tag that the producer actually writes (the previously-used
+    # `meta.rindle_soak` tag was never written by any code path).
+    defp build_create_params(source_url, policy_atom, opts) do
+      base = %{
         "inputs" => [%{"url" => source_url}],
         "playback_policies" => [Atom.to_string(policy_atom)],
         "mp4_support" => "standard",
         "max_resolution_tier" => "1080p"
       }
+
+      case Keyword.get(opts, :passthrough) do
+        nil -> base
+        passthrough when is_binary(passthrough) -> Map.put(base, "passthrough", passthrough)
+      end
     end
 
     @impl Rindle.Streaming.Provider

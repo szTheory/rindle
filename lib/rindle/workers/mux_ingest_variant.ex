@@ -439,7 +439,23 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
     defp call_mux_create(profile_mod, signed_url) do
       # Phase 34 default policy is :signed (capability `[:signed_playback, ...]`).
       # Profile-level overrides happen at the adapter layer, not the worker.
-      case Adapter.create_asset_with_retry_hint(profile_mod, signed_url, playback_policy: :signed) do
+      #
+      # Phase 36 CR-01: when the soak install-smoke lane sets
+      # `RINDLE_MUX_PASSTHROUGH_TAG=rindle_soak`, the adapter stamps the
+      # `passthrough` field on the create-asset request so the layer-3
+      # cleanup script (`scripts/mux_soak_cleanup.sh`) can filter on a
+      # tag that is actually written. Unset in normal production runs —
+      # `nil` → adapter omits the key.
+      opts = [playback_policy: :signed]
+
+      opts =
+        case System.get_env("RINDLE_MUX_PASSTHROUGH_TAG") do
+          nil -> opts
+          "" -> opts
+          tag when is_binary(tag) -> Keyword.put(opts, :passthrough, tag)
+        end
+
+      case Adapter.create_asset_with_retry_hint(profile_mod, signed_url, opts) do
         {:ok, %{provider_asset_id: _, playback_ids: _} = ok} ->
           {:ok, ok}
 

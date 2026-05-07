@@ -8,11 +8,19 @@
 #      both pass and fail, but only knows about the asset it created.
 #   2. The lifecycle test's normal-path delete on success.
 #   3. THIS script — invoked from the workflow's `if: always()` step. Lists
-#      every asset tagged `{"meta": {"rindle_soak": "true"}}` in the test Mux
+#      every asset tagged `passthrough == "rindle_soak"` in the test Mux
 #      account and deletes them. Idempotent: re-runs are safe; deleted-or-
 #      missing assets do not produce a non-zero exit. Logs redact
 #      `provider_asset_id` to last-4 chars (security invariant 14) via
 #      `Rindle.Domain.MediaProviderAsset.redact_id/1`.
+#
+# Phase 36 CR-01: the producer side (`Rindle.Workers.MuxIngestVariant`)
+# stamps `passthrough: "rindle_soak"` on every create-asset request when
+# the `RINDLE_MUX_PASSTHROUGH_TAG` env var is set in the soak lane. The
+# filter below MUST stay in lock-step with that producer tag — the
+# regression test
+# `test/rindle/streaming/provider/mux/mux_test.exs#"create_asset/3 forwards :passthrough to the SDK request body (Phase 36 CR-01 cleanup contract)"`
+# pins the contract.
 #
 # Exits 0 (no-op) when `RINDLE_MUX_TOKEN_ID` or `RINDLE_MUX_TOKEN_SECRET`
 # resolve to empty strings — fork PRs labeled `streaming` cannot reach secrets,
@@ -70,12 +78,12 @@ case Mux.Video.Assets.list(client, %{limit: 100}) do
   {:ok, assets, _env} when is_list(assets) ->
     soak_assets =
       Enum.filter(assets, fn asset ->
-        meta = Map.get(asset, "meta") || Map.get(asset, :meta) || %{}
-        Map.get(meta, "rindle_soak") == "true" or Map.get(meta, :rindle_soak) == "true"
+        passthrough = Map.get(asset, "passthrough") || Map.get(asset, :passthrough)
+        passthrough == "rindle_soak"
       end)
 
     if soak_assets == [] do
-      IO.puts("mux_soak_cleanup: no soak assets found (meta.rindle_soak=true) — exit 0")
+      IO.puts("mux_soak_cleanup: no soak assets found (passthrough=rindle_soak) — exit 0")
     else
       IO.puts("mux_soak_cleanup: found #{length(soak_assets)} soak asset(s)")
 
