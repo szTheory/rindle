@@ -5,6 +5,11 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+    # Phase 36 D-19 / external research Topic 1: `labeled` MUST be added
+    # explicitly — defaults are [opened, synchronize, reopened] and applying
+    # a label to an existing PR will not fire the workflow without it. The
+    # other three are defaults but must be enumerated once `types:` is set.
+    types: [opened, synchronize, reopened, labeled]
 
 env:
   MIX_ENV: test
@@ -376,6 +381,9 @@ jobs:
       - name: Run built-artifact AV package-consumer proof against MinIO
         run: bash scripts/install_smoke.sh video
 
+      - name: Run built-artifact Mux-enabled package-consumer proof (cassette mode)
+        run: bash scripts/install_smoke.sh mux
+
       - name: Verify version alignment (mocking tag)
         env:
           MIX_ENV: dev
@@ -543,3 +551,97 @@ jobs:
           done
 
           echo "OK: README.md and guides/getting_started.md stay aligned to the public AV onboarding path"
+
+  # Phase 36 (D-19, D-20, D-22, T-36-FORK-SECRETS, T-36-ASSET-LEAK):
+  # Real-Mux soak proof. Sibling top-level job (NOT a step inside
+  # package-consumer). Label-gated on `streaming` so only maintainer-
+  # initiated PRs hit api.mux.com. Workflow trigger is the safe
+  # pull-request event (the targeted/elevated variant is intentionally
+  # NOT used) so fork PRs labeled `streaming` fire the lane but
+  # ${{ secrets.RINDLE_MUX_* }} resolve to empty strings — the lane
+  # fails closed, no fork-secret leak. Three-layer cleanup
+  # mitigation: (1) Elixir try/after inside lifecycle_test_source(_, :mux),
+  # (2) the lane's normal-path delete on success, (3) `if: always()` step
+  # invoking scripts/mux_soak_cleanup.sh as a belt-and-suspenders sweep.
+  mux-soak:
+    name: Mux Soak (real API)
+    runs-on: ubuntu-latest
+    needs: quality
+    if: contains(github.event.pull_request.labels.*.name, 'streaming')
+    env:
+      MIX_ENV: test
+      RINDLE_MUX_USE_REAL_API: "1"
+      RINDLE_MUX_TOKEN_ID: ${{ secrets.RINDLE_MUX_TOKEN_ID }}
+      RINDLE_MUX_TOKEN_SECRET: ${{ secrets.RINDLE_MUX_TOKEN_SECRET }}
+      RINDLE_MUX_SIGNING_KEY_ID: ${{ secrets.RINDLE_MUX_SIGNING_KEY_ID }}
+      RINDLE_MUX_SIGNING_PRIVATE_KEY: ${{ secrets.RINDLE_MUX_SIGNING_PRIVATE_KEY }}
+      RINDLE_MUX_WEBHOOK_SECRETS: ${{ secrets.RINDLE_MUX_WEBHOOK_SECRETS }}
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGHOST: localhost
+      PGPORT: "5432"
+      RINDLE_MINIO_URL: http://localhost:9000
+      RINDLE_MINIO_ACCESS_KEY: minioadmin
+      RINDLE_MINIO_SECRET_KEY: minioadmin
+      RINDLE_MINIO_BUCKET: rindle-test
+      RINDLE_MINIO_REGION: us-east-1
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: rindle_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: "1.17"
+          otp-version: "27"
+
+      - name: Install libvips
+        run: sudo apt-get install -y libvips-dev
+
+      - name: Install dependencies
+        run: mix deps.get
+
+      - name: Start MinIO for soak proof
+        run: |
+          docker run -d --name rindle-minio -p 9000:9000 -e MINIO_ROOT_USER=minioadmin -e MINIO_ROOT_PASSWORD=minioadmin minio/minio server /data --console-address ":9001"
+          for _ in $(seq 1 30); do
+            if curl -fsS http://localhost:9000/minio/health/ready >/dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          exit 1
+
+      - name: Install MinIO client
+        run: |
+          curl -fsSL https://dl.min.io/client/mc/release/linux-amd64/mc -o mc
+          chmod +x mc
+          sudo mv mc /usr/local/bin/mc
+
+      - name: Create MinIO bucket
+        run: |
+          mc alias set local http://localhost:9000 minioadmin minioadmin
+          mc mb --ignore-existing local/rindle-test
+
+      - name: Run real-Mux soak proof
+        run: bash scripts/install_smoke.sh mux
+
+      - name: Always-cleanup leaked Mux soak assets (layer 3 belt-and-suspenders)
+        if: always()
+        run: bash scripts/mux_soak_cleanup.sh

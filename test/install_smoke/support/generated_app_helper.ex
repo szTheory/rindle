@@ -11,12 +11,13 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
   @host_migration_version "20260428170000"
   @legacy_rindle_migration_version 20_260_428_110_000
 
-  def profile_enabled?(profile_mode) when profile_mode in [:image, :video] do
+  def profile_enabled?(profile_mode) when profile_mode in [:image, :video, :mux] do
     selected_profiles()
     |> Enum.member?(profile_mode)
   end
 
-  def prove_package_install!(profile_mode \\ :image) when profile_mode in [:image, :video] do
+  def prove_package_install!(profile_mode \\ :image)
+      when profile_mode in [:image, :video, :mux] do
     network_version = System.get_env("RINDLE_INSTALL_SMOKE_NETWORK_VERSION")
     install_mode = install_mode(network_version)
 
@@ -99,6 +100,8 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       av_ready_variants: av_report["ready_variants"] || [],
       av_playback_storage_key: av_report["playback_storage_key"],
       av_delivery_path: av_report["delivery_path"],
+      delivery_path: av_report["delivery_path"],
+      streaming_url_kind: av_report["streaming_url_kind"],
       lifecycle_proved?:
         smoke_result.exit_code == 0 and String.contains?(smoke_result.output, "0 failures")
     }
@@ -301,16 +304,44 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
          profile_mode
        ) do
     patch_mix_exs!(root, package_root, network_version)
-    patch_test_config!(root, app_name)
+    patch_test_config!(root, app_name, profile_mode)
+    patch_test_helper!(root, profile_mode)
     patch_runtime_config!(root, app_name, app_module)
     patch_application!(root, app_name, app_module)
-    write_profile!(root, app_name, app_module)
+    write_profile!(root, app_name, app_module, profile_mode)
     write_host_migration!(root)
     write_migration_runner!(root, app_name, app_module)
     write_legacy_upgrade_preparer!(root, app_module)
     write_smoke_test!(root, app_module, profile_mode)
     write_fixture!(root, profile_mode)
   end
+
+  defp patch_test_helper!(root, :mux) do
+    path = Path.join(root, "test/test_helper.exs")
+    existing = if File.exists?(path), do: File.read!(path), else: ""
+
+    # Phase 36: define the Mox mock in the generated app's test_helper.
+    # `Rindle.Streaming.Provider.Mux.ClientMock` is normally defined in
+    # the library's `test/support/mocks.ex`, which is NOT shipped in the
+    # Hex package. The generated app must define its own mock pointing at
+    # the same `@behaviour` (which IS in the package: `lib/.../mux/client.ex`).
+    mox_setup = """
+
+    # Phase 36 cassette lane (D-16): Mox mock for the Mux HTTP client behaviour.
+    # The behaviour itself lives in the published package
+    # (`lib/rindle/streaming/provider/mux/client.ex`); the mock is defined
+    # here at test_helper time so the package consumer can pin
+    # `:http_client` to `Rindle.Streaming.Provider.Mux.ClientMock` without
+    # depending on the library's test-support files.
+    Mox.defmock(Rindle.Streaming.Provider.Mux.ClientMock,
+      for: Rindle.Streaming.Provider.Mux.Client
+    )
+    """
+
+    File.write!(path, existing <> mox_setup)
+  end
+
+  defp patch_test_helper!(_root, _profile_mode), do: :ok
 
   defp patch_mix_exs!(root, package_root, network_version) do
     path = Path.join(root, "mix.exs")
@@ -332,6 +363,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
         {:bandit, "~> 1.5"},
               {:oban, "#{oban_requirement}"},
               {:hackney, "~> 1.20"},
+              {:mox, "~> 1.1", only: :test},
               #{rindle_dep}
         """
       )
@@ -339,10 +371,10 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     File.write!(path, updated)
   end
 
-  defp patch_test_config!(root, app_name) do
+  defp patch_test_config!(root, app_name, profile_mode) do
     path = Path.join(root, "config/test.exs")
 
-    updated =
+    base_updated =
       path
       |> File.read!()
       |> String.replace(
@@ -378,7 +410,71 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       config :rindle, :repo, #{Macro.camelize(app_name)}.Repo
       """)
 
-    File.write!(path, updated)
+    # Phase 36 D-21 / Pitfall 3: Mux config block is appended AFTER the
+    # existing Oban + repo blocks. The `RINDLE_MUX_USE_REAL_API` conditional
+    # is evaluated HOST-SIDE at patch time (NOT inside the generated app's
+    # runtime), so the generated `config/test.exs` either contains
+    # `http_client: ClientMock` (cassette) or omits the key (soak).
+    final =
+      if profile_mode == :mux do
+        stage_mux_fixtures!(root)
+        base_updated <> mux_config_block(app_name)
+      else
+        base_updated
+      end
+
+    File.write!(path, final)
+  end
+
+  defp mux_config_block(_app_name) do
+    if System.get_env("RINDLE_MUX_USE_REAL_API") == "1" do
+      # Soak mode: omit :http_client; defaults to Rindle.Streaming.Provider.Mux.HTTP
+      """
+
+      config :rindle, Rindle.Streaming.Provider.Mux,
+        token_id: System.get_env("RINDLE_MUX_TOKEN_ID"),
+        token_secret: System.get_env("RINDLE_MUX_TOKEN_SECRET"),
+        signing_key_id: System.get_env("RINDLE_MUX_SIGNING_KEY_ID"),
+        signing_private_key: System.get_env("RINDLE_MUX_SIGNING_PRIVATE_KEY"),
+        webhook_secrets:
+          System.get_env("RINDLE_MUX_WEBHOOK_SECRETS", "") |> String.split(",", trim: true)
+      """
+    else
+      # Cassette mode: Mox client; fixture creds still set so resolution works
+      """
+
+      config :rindle, Rindle.Streaming.Provider.Mux,
+        http_client: Rindle.Streaming.Provider.Mux.ClientMock,
+        token_id: System.get_env("RINDLE_MUX_TOKEN_ID"),
+        token_secret: System.get_env("RINDLE_MUX_TOKEN_SECRET"),
+        signing_key_id: System.get_env("RINDLE_MUX_SIGNING_KEY_ID"),
+        signing_private_key: System.get_env("RINDLE_MUX_SIGNING_PRIVATE_KEY"),
+        webhook_secrets:
+          System.get_env("RINDLE_MUX_WEBHOOK_SECRETS", "") |> String.split(",", trim: true)
+      """
+    end
+  end
+
+  defp stage_mux_fixtures!(root) do
+    fixture_dir = Path.join(root, "test/fixtures/mux")
+    File.mkdir_p!(fixture_dir)
+
+    fixtures = ~w(
+      asset_create_201.json
+      asset_get_ready.json
+      asset_get_processing.json
+      webhook_video_asset_ready.json
+      test_signing_private_key.pem
+      test_signing_public_key.pem
+    )
+
+    for fixture <- fixtures do
+      src = Path.join("test/fixtures/mux", fixture)
+
+      if File.exists?(src) do
+        File.cp!(src, Path.join(fixture_dir, fixture))
+      end
+    end
   end
 
   defp patch_runtime_config!(root, app_name, app_module) do
@@ -434,8 +530,19 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     File.write!(path, updated)
   end
 
-  defp write_profile!(root, app_name, app_module) do
+  defp write_profile!(root, app_name, app_module, profile_mode) do
     path = Path.join(root, "lib/#{app_name}/rindle_profile.ex")
+
+    # The `:mux` lane swaps Rindle.Profile.Presets.Web for
+    # Rindle.Profile.Presets.MuxWeb (Plan 01) — same web_720p + poster
+    # variants verbatim (D-04 byte-identical), but with a locked streaming
+    # block. Module name `VideoProfile` stays so the assertion sites in
+    # the lifecycle test source remain byte-identical to the :video lane.
+    video_preset =
+      case profile_mode do
+        :mux -> "Rindle.Profile.Presets.MuxWeb"
+        _ -> "Rindle.Profile.Presets.Web"
+      end
 
     File.write!(
       path,
@@ -453,7 +560,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       defmodule #{app_module}.VideoProfile do
         @moduledoc false
 
-        use Rindle.Profile.Presets.Web,
+        use #{video_preset},
           storage: Rindle.Storage.S3,
           allow_mime: ["video/mp4", "video/quicktime", "video/webm"],
           max_bytes: 524_288_000
@@ -646,6 +753,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     path = Path.join(root, "test/rindle_install_smoke_test.exs")
     lifecycle_test = lifecycle_test_source(app_module, profile_mode)
     upgrade_test = upgrade_test_source(app_module)
+    extra_imports = mux_test_imports(profile_mode)
 
     File.write!(
       path,
@@ -656,7 +764,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
 
         import ExUnit.CaptureIO
         import Ecto.Query
-
+      #{extra_imports}
         alias Oban.Job
         alias #{app_module}.Repo
         alias #{app_module}.RindleProfile
@@ -734,7 +842,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     File.mkdir_p!(Path.join(root, "tmp"))
     File.write!(Path.join(root, "tmp/generated-app.png"), @png_1x1)
 
-    if profile_mode == :video do
+    if profile_mode in [:video, :mux] do
       File.cp!(video_fixture_path(), Path.join(root, "tmp/generated-app-video.webm"))
     end
   end
@@ -787,7 +895,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
   end
 
   defp shared_env(db_name) do
-    [
+    base_env = [
       {"MIX_ENV", "test"},
       {"RINDLE_INSTALL_SMOKE_DB", db_name},
       {"PGUSER", env_or_default("PGUSER", System.get_env("USER") || "postgres")},
@@ -800,6 +908,30 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       {"RINDLE_MINIO_SECRET_KEY", env_or_default("RINDLE_MINIO_SECRET_KEY", "minioadmin")},
       {"RINDLE_MINIO_REGION", env_or_default("RINDLE_MINIO_REGION", "us-east-1")}
     ]
+
+    # Phase 36 D-17: Mux fixture env vars. `env_or_default/2` semantics —
+    # `System.get_env(name) || default` — are load-bearing: in soak mode the
+    # GitHub Actions job's `env:` block (real `${{ secrets.* }}`) wins via
+    # `System.get_env/1`; in cassette mode, fixtures win.
+    private_key_pem =
+      System.get_env("RINDLE_MUX_SIGNING_PRIVATE_KEY") ||
+        File.read!("test/fixtures/mux/test_signing_private_key.pem")
+
+    mux_env = [
+      {"RINDLE_MUX_TOKEN_ID", env_or_default("RINDLE_MUX_TOKEN_ID", "test-token-id")},
+      {"RINDLE_MUX_TOKEN_SECRET", env_or_default("RINDLE_MUX_TOKEN_SECRET", "test-token-secret")},
+      {"RINDLE_MUX_SIGNING_KEY_ID",
+       env_or_default("RINDLE_MUX_SIGNING_KEY_ID", "test-signing-key-id")},
+      {"RINDLE_MUX_SIGNING_PRIVATE_KEY", private_key_pem},
+      {"RINDLE_MUX_WEBHOOK_SECRETS",
+       env_or_default(
+         "RINDLE_MUX_WEBHOOK_SECRETS",
+         "whsec_test_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+       )},
+      {"RINDLE_MUX_USE_REAL_API", System.get_env("RINDLE_MUX_USE_REAL_API")}
+    ]
+
+    (base_env ++ mux_env)
     |> Enum.reject(fn {_key, value} -> is_nil(value) end)
   end
 
@@ -856,9 +988,10 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
 
   defp selected_profiles do
     case System.get_env("RINDLE_INSTALL_SMOKE_PROFILE", "all") do
-      "all" -> [:image, :video]
+      "all" -> [:image, :video, :mux]
       "image" -> [:image]
       "video" -> [:video]
+      "mux" -> [:mux]
       other -> raise "unsupported RINDLE_INSTALL_SMOKE_PROFILE: #{inspect(other)}"
     end
   end
@@ -976,6 +1109,204 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
               delivery_path: URI.parse(signed_url).path
             })
           )
+        end
+    """
+  end
+
+  # Phase 36 D-15 / Pitfall 2: the `:mux` lane mirrors the `:video` lane's
+  # variant assertions verbatim (`["poster", "web_720p"]`) and adds two new
+  # streaming-URL assertions at the end:
+  #   1. `Rindle.Delivery.streaming_url/3` returns a Mux-signed HLS URL.
+  #   2. The URL's `?token=` JWT decodes against the test signing PUBLIC key
+  #      staged into the generated app's `test/fixtures/mux/`.
+  #
+  # Mox setup MUST go at the top of the generated test module (Pitfall 2):
+  # `setup :set_mox_from_context` is required so cross-process workers
+  # spawned by `perform_job/2` can see the stubs configured in the test
+  # process. Without it, the cassette lane fails with `Mox.UnexpectedCallError`.
+  #
+  # In SOAK mode (real Mux), the lifecycle is wrapped in `try/after` so
+  # `Mux.Video.Assets.delete/2` runs on the created `provider_asset_id`
+  # even if assertions fail (D-22 layer 1). In CASSETTE mode the
+  # `try/after` is a no-op (Mox returns canned responses; nothing to delete)
+  # — still emitted for shape symmetry.
+  defp lifecycle_test_source(_app_module, :mux) do
+    """
+        @cassette_mode? Application.compile_env(
+                          :rindle,
+                          [Rindle.Streaming.Provider.Mux, :http_client]
+                        ) == Rindle.Streaming.Provider.Mux.ClientMock or
+                          Application.compile_env(:rindle, :__mux_cassette_mode__, false)
+
+        setup do
+          # Pitfall 2: required for cross-process worker stubs (Oban perform_job).
+          if @cassette_mode? do
+            Mox.set_mox_from_context(%{async: false})
+            Mox.verify_on_exit!(self())
+          end
+
+          :ok
+        end
+
+        test "generated app proves the canonical AV lifecycle PLUS Mux-signed HLS streaming URL" do
+          assert_install_smoke_marker!()
+          assert :presigned_put in VideoProfile.storage_adapter().capabilities()
+
+          fixture_path = Path.expand("../tmp/generated-app-video.webm", __DIR__)
+          provider_asset_id_ref = make_ref()
+          provider_asset_id_table = :ets.new(:rindle_provider_asset_id, [:public, :set])
+
+          stub_cassette_mux_calls = fn ->
+            if Application.get_env(:rindle, Rindle.Streaming.Provider.Mux)[:http_client] ==
+                 Rindle.Streaming.Provider.Mux.ClientMock do
+              Mox.stub(Rindle.Streaming.Provider.Mux.ClientMock, :create_asset, fn _params ->
+                {:ok,
+                 %{
+                   "id" => "cassette-asset-id-aaaa",
+                   "playback_ids" => [%{"id" => "cassette-playback-id-bbbb", "policy" => "signed"}],
+                   "status" => "preparing"
+                 }}
+              end)
+
+              Mox.stub(Rindle.Streaming.Provider.Mux.ClientMock, :get_asset, fn _id ->
+                {:ok,
+                 %{
+                   "id" => "cassette-asset-id-aaaa",
+                   "playback_ids" => [%{"id" => "cassette-playback-id-bbbb", "policy" => "signed"}],
+                   "status" => "ready"
+                 }}
+              end)
+
+              Mox.stub(Rindle.Streaming.Provider.Mux.ClientMock, :delete_asset, fn _id -> :ok end)
+              :cassette
+            else
+              :soak
+            end
+          end
+
+          mode = stub_cassette_mux_calls.()
+
+          try do
+            {:ok, session} =
+              Rindle.initiate_upload(VideoProfile, filename: "generated-app-video.webm")
+
+            {:ok, %{session: signed, presigned: presigned}} = Broker.sign_url(session.id)
+            assert signed.state == "signed"
+
+            :ok = put_to_presigned_url(presigned.url, File.read!(fixture_path))
+
+            {:ok, %{session: completed, asset: asset}} = Rindle.verify_completion(session.id)
+            assert completed.state == "completed"
+            assert_enqueued(worker: PromoteAsset, args: %{"asset_id" => asset.id})
+            assert :ok = perform_job(PromoteAsset, %{"asset_id" => asset.id})
+
+            promoted_asset = Repo.get!(MediaAsset, asset.id)
+            assert promoted_asset.kind == "video"
+            assert promoted_asset.has_video_track == true
+
+            variants =
+              Repo.all(
+                from variant in MediaVariant,
+                  where: variant.asset_id == ^asset.id,
+                  order_by: variant.name
+              )
+
+            assert Enum.map(variants, & &1.name) == ["poster", "web_720p"]
+
+            for variant <- variants do
+              assert :ok =
+                       perform_job(ProcessVariant, %{
+                         "asset_id" => asset.id,
+                         "variant_name" => variant.name
+                       })
+            end
+
+            ready_variants =
+              Repo.all(
+                from variant in MediaVariant,
+                  where: variant.asset_id == ^asset.id,
+                  order_by: variant.name
+              )
+
+            # Phase 36 D-15: byte-identical to the :video lane (D-04 contract).
+            assert Enum.map(ready_variants, &{&1.name, &1.output_kind, &1.state}) == [
+                     {"poster", "image", "ready"},
+                     {"web_720p", "video", "ready"}
+                   ]
+
+            web_variant = Enum.find(ready_variants, &(&1.name == "web_720p"))
+            assert is_binary(web_variant.storage_key)
+            assert String.contains?(web_variant.storage_key, "web_720p")
+
+            # NEW Phase 36 streaming-URL assertions:
+            asset_for_streaming = Repo.get!(MediaAsset, asset.id)
+
+            {:ok, %{url: streaming_url, kind: :hls}} =
+              Rindle.Delivery.streaming_url(VideoProfile, asset_for_streaming)
+
+            assert streaming_url =~ ~r{^https://stream\\.mux\\.com/[A-Za-z0-9_-]+\\.m3u8\\?token=}
+
+            %URI{query: query} = URI.parse(streaming_url)
+            %{"token" => jwt} = URI.decode_query(query)
+
+            public_jwk =
+              Path.expand("../test/fixtures/mux/test_signing_public_key.pem", __DIR__)
+              |> File.read!()
+              |> JOSE.JWK.from_pem()
+
+            assert match?({true, _payload, _jws}, JOSE.JWT.verify_strict(public_jwk, ["RS256"], jwt))
+
+            File.mkdir_p!("tmp")
+
+            File.write!(
+              "tmp/install_smoke_av_report.json",
+              Jason.encode!(%{
+                ready_variants: Enum.map(ready_variants, & &1.name),
+                playback_storage_key: web_variant.storage_key,
+                delivery_path: URI.parse(streaming_url).path,
+                streaming_url_kind: "hls"
+              })
+            )
+
+            # Record provider_asset_id for soak-lane delete-on-finally.
+            if mode == :soak do
+              provider_row =
+                Repo.one(
+                  from p in Rindle.Domain.MediaProviderAsset,
+                    where: p.asset_id == ^asset.id,
+                    limit: 1
+                )
+
+              if provider_row do
+                :ets.insert(
+                  provider_asset_id_table,
+                  {provider_asset_id_ref, provider_row.provider_asset_id}
+                )
+              end
+            end
+          after
+            # D-22 layer 1: soak-mode delete-on-finally so the asset is reaped
+            # even if assertions above failed. Cassette mode is a no-op.
+            if mode == :soak do
+              case :ets.lookup(provider_asset_id_table, provider_asset_id_ref) do
+                [{^provider_asset_id_ref, provider_asset_id}] when is_binary(provider_asset_id) ->
+                  if Code.ensure_loaded?(Mux.Video.Assets) do
+                    client =
+                      Mux.Base.new(
+                        System.get_env("RINDLE_MUX_TOKEN_ID"),
+                        System.get_env("RINDLE_MUX_TOKEN_SECRET")
+                      )
+
+                    _ = Mux.Video.Assets.delete(client, provider_asset_id)
+                  end
+
+                _ ->
+                  :ok
+              end
+            end
+
+            :ets.delete(provider_asset_id_table)
+          end
         end
     """
   end
@@ -1187,6 +1518,12 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
   defp video_fixture_path do
     Path.join(repo_root(), "test/support/fixtures/smartphone/android_capture.webm")
   end
+
+  # Phase 36 Pitfall 2: Mox `import` is required at the top of the generated
+  # test module ONLY for the `:mux` profile mode. For `:image` and `:video`,
+  # the generated app does not depend on Mox.
+  defp mux_test_imports(:mux), do: "  import Mox\n"
+  defp mux_test_imports(_other), do: ""
 
   defp env_or_default(name, default), do: System.get_env(name) || default
 end

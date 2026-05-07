@@ -17,7 +17,7 @@ trap cleanup EXIT
 cd "$ROOT_DIR"
 
 case "$PROFILE" in
-  all|image|video) ;;
+  all|image|video|mux) ;;
   *)
     echo "unsupported install smoke profile: $PROFILE" >&2
     exit 1
