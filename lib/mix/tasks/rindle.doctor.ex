@@ -33,8 +33,23 @@ defmodule Mix.Tasks.Rindle.Doctor do
 
   @impl Mix.Task
   def run(args) do
-    {parsed, rest, _invalid} =
+    {parsed, rest, invalid} =
       OptionParser.parse(args, strict: [streaming: :boolean])
+
+    # Phase 36 WR-06: fail loudly on unknown flags so a typo like
+    # `--streming` surfaces immediately. Mix tasks generally fail on
+    # unknown flags; the previous implementation discarded `invalid`
+    # and silently ran without the requested flag.
+    case invalid do
+      [] ->
+        :ok
+
+      invalid_flags ->
+        Mix.raise(
+          "Unknown options: " <>
+            Enum.map_join(invalid_flags, ", ", fn {flag, _} -> flag end)
+        )
+    end
 
     streaming? = Keyword.get(parsed, :streaming, false)
 
@@ -80,7 +95,13 @@ defmodule Mix.Tasks.Rindle.Doctor do
     report
   end
 
-  defp emit_check(shell, %{status: status, id: id, component: component, summary: summary, fix: fix}) do
+  defp emit_check(shell, %{
+         status: status,
+         id: id,
+         component: component,
+         summary: summary,
+         fix: fix
+       }) do
     shell.info("[#{String.upcase(to_string(status))}] #{id} (#{component}) #{summary}")
 
     if status == :error do
