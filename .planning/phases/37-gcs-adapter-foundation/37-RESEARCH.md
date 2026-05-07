@@ -1,1027 +1,776 @@
-# Phase 37: GCS Adapter Foundation — Research
+# Phase 37: GCS Adapter Foundation - Research
 
 **Researched:** 2026-05-07
-**Domain:** Google Cloud Storage adapter (auth + JSON API + V4 signed URLs)
-**Confidence:** HIGH (locked candidate `v1.6-CANDIDATE-GCS.md` + verified library APIs + verified hex versions live)
+**Domain:** Google Cloud Storage adapter implementation for `Rindle.Storage` behaviour
+**Confidence:** HIGH
 
 ## Summary
 
-Phase 37 lands `Rindle.Storage.GCS` as a real second storage adapter implementing the
-existing `Rindle.Storage` behaviour over a hand-rolled Finch JSON-API client + Goth
-auth + `gcs_signed_url` V4 signing. Every shape decision (3-file split, return-shape
-parity with S3, optional-dep pattern, secret-gated CI lane, profile-aware doctor) is
-already locked in `37-CONTEXT.md`; the planner's job is **execution sequencing and
-verification scaffolding**, not architectural choice.
+Phase 37 lands `Rindle.Storage.GCS` as a real `Rindle.Storage` adapter against
+a live GCS bucket. The work is pure adapter plumbing — no broker changes, no
+DB changes, no resumable behaviour. The implementation hand-rolls a minimal
+JSON-API HTTP client over `finch ~> 0.21` (rejecting the Tesla-coupled
+`google_api_storage` SDK), authenticates via adopter-supervised `goth ~> 1.4`,
+and signs delivery URLs through `gcs_signed_url ~> 0.4.6`'s V4 signing path.
+All 14 decisions in CONTEXT.md (D-01..D-14) are locked. Three of them are
+load-bearing for plan structure: D-01 (3-file split), D-08 (config keying),
+D-13 (basic doctor checks ship in this phase, NOT Phase 41).
 
-The only meaningful research deltas vs. the locked candidate:
+The phase ships **4 plans, one per requirement**, LOW risk, comparable in
+scope to v1.6 Phase 33 (Mux adapter foundation). All external library APIs
+are verified against hex.pm and HexDocs. The mux-soak workflow at
+`.github/workflows/ci.yml:566-653` is a near-exact structural template for
+the new `gcs-soak` lane (substitute `if: contains(...labels..., 'streaming')`
+for `if: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON != '' }}`, and the
+MinIO bring-up steps drop entirely).
 
-1. **`:finch` is NOT currently in the dependency tree.** It is referenced as Tesla's
-   `optional: true` dep in `mix.lock:60`, but no top-level dep pulls it in. Therefore
-   `mix.exs:22` `dialyzer.plt_add_apps` MUST add `:finch` (alongside `:goth` and
-   `:gcs_signed_url`), contradicting D-07's "not `:finch` — already in tree" assumption.
-2. **`Goth.fetch/1` returns `{:ok, t()} | {:error, Exception.t()}`**, but raises
-   `:noproc` (via `GenServer.call`) when the named instance isn't in the supervision
-   tree at all. The `Code.ensure_loaded?(Goth)` D-09 guard catches the "dep missing"
-   case; a `try/catch :exit` wrapper around `Goth.fetch/1` catches the
-   "dep loaded but instance not started" case and maps to `:goth_unconfigured`.
-3. **`gcs_signed_url 0.4.6` ships two distinct V4 entry points**: `Client`-based
-   (PEM private key, no network calls, returns bare `String.t()`) and
-   `OAuthConfig`-based (IAM SignBlob, network call, returns `{:ok, String.t()} | {:error, String.t()}`).
-   D-04 locks **Client mode only** for Phase 37 → return shape is `String.t()`,
-   not `{:ok, ...}`. The `url/2` callback wraps it in `{:ok, ...}`.
-4. **Bypass is in `mix.exs:92` but no current test uses it.** Phase 37 is the first
-   adopter; pattern must be designed (not mirrored).
+**Primary recommendation:** Implement the 5 callbacks in dependency order —
+`url/2` (signing only, no HTTP), then `head/2` (single GET), then `delete/2`
+(single DELETE), then `download/3` (GET with `alt=media` body streamed to a
+file), then `store/3` (multipart upload — the most complex). Wire Bypass
+fixtures per-callback in test setup blocks; reserve the live-bucket lane for
+end-to-end coverage of the same 5 verbs against `storage.googleapis.com`.
 
-**Primary recommendation:** Execute as four plans in this order — **Client (HTTP plumbing) → Signer (V4 signing + url/2) → Adapter (callbacks + capabilities) → CI Lane + Doctor**. This sequence lets Bypass-backed unit tests prove `head/store/download/delete` before signing introduces auth complexity, and lets the live `gcs-soak` lane prove the whole stack against a real bucket only after every callback has unit-level coverage.
+---
 
-<user_constraints>
 ## User Constraints (from CONTEXT.md)
 
 ### Locked Decisions
 
-**Module File Layout:**
+**D-01 — Module file layout (3-file split):**
+- `lib/rindle/storage/gcs.ex` — `@behaviour Rindle.Storage` impl + capability
+  + config helpers (the public, hexdoc'd module).
+- `lib/rindle/storage/gcs/client.ex` — `@moduledoc false` hand-rolled Finch
+  JSON-API wrapper for `head/store/download/delete` over
+  `https://storage.googleapis.com/storage/v1/b/$BUCKET/o`.
+- `lib/rindle/storage/gcs/signer.ex` — `@moduledoc false` V4-signing wrapper
+  around `gcs_signed_url ~> 0.4.6`.
+- **Why split** (vs S3's single file): S3 delegates to `ExAws.S3.*` and owns
+  no protocol code. GCS hand-rolls ~250 LOC over Finch, and Phases 38–41 add
+  4 more callbacks (`initiate_resumable_upload/3`, `resumable_upload_status/3`,
+  `cancel_resumable_upload/3`, `verify_resumable_completion/3`) sharing the
+  same auth/HTTP plumbing. Splitting now avoids a churny rename later.
 
-- **D-01:** `Rindle.Storage.GCS` ships as a 3-file split:
-  - `lib/rindle/storage/gcs.ex` — `@behaviour Rindle.Storage` impl + capability + config helpers (the public, hexdoc'd module).
-  - `lib/rindle/storage/gcs/client.ex` — `@moduledoc false` hand-rolled Finch JSON-API wrapper for `head/store/download/delete` over `https://storage.googleapis.com/storage/v1/b/$BUCKET/o`.
-  - `lib/rindle/storage/gcs/signer.ex` — `@moduledoc false` V4-signing wrapper around `gcs_signed_url ~> 0.4.6`.
+**D-02 — `head/2` return shape:** `{:ok, %{size: integer, content_type: binary | nil}}`
+with `{:error, :not_found}` for HTTP 404 — exact shape mirror of
+`lib/rindle/storage/s3.ex:130-149` and the parity assertion at
+`test/rindle/storage/s3_test.exs:117`. Cross-adapter parity test at
+`test/rindle/storage/storage_adapter_test.exs:41-51` MUST stay green.
 
-**Public Contract (Mirrors `Rindle.Storage.S3`):**
+**D-03 — `store/3` writes Content-Type and Content-Disposition as GCS object
+metadata** (the bucket-side fields, not URL query params) at upload time.
+Active Storage lesson: GCS V4 signed URLs do NOT safely enforce
+`response-content-disposition` / `response-content-type`, so disposition/type
+lives in object metadata.
 
-- **D-02:** `head/2` returns `{:ok, %{size: integer, content_type: binary | nil}}` with `{:error, :not_found}` for HTTP 404 — exact shape mirror of `lib/rindle/storage/s3.ex:130-149`. Cross-adapter parity test at `test/rindle/storage/storage_adapter_test.exs:41-51` MUST stay green.
-- **D-03:** `store/3` writes `Content-Type` and `Content-Disposition` as **GCS object metadata** (the bucket-side fields, not URL query params) at upload time.
-- **D-04:** `url/2` accepts `expires_in` opt and falls back to `Rindle.Config.signed_url_ttl_seconds/0` — exact mirror of `lib/rindle/storage/s3.ex:55-61`. V4 signing only; private-key auth mode in Phase 37.
-- **D-05:** Phase 37 does NOT touch `lib/rindle/error.ex`. Error atoms route through the generic `def message(%{action: action, reason: reason})` fallthrough at `lib/rindle/error.ex:334-336`.
+**D-04 — `url/2` accepts `expires_in` opt** and falls back to
+`Rindle.Config.signed_url_ttl_seconds/0` — exact mirror of
+`lib/rindle/storage/s3.ex:55-61`. V4 signing only (V2 is legacy per Google
+docs); private-key auth mode in Phase 37 (IAM SignBlob deferred to v1.7+).
 
-**Optional Deps + Config Keying:**
+**D-05 — Phase 37 does NOT touch `lib/rindle/error.ex`.** Error atoms
+(`:goth_unconfigured`, `:missing_bucket`, `:storage_object_missing`,
+`{:gcs_http_error, %{status, body}}`) route through the generic
+`def message(%{action: action, reason: reason})` fallthrough at
+`lib/rindle/error.ex:334-336`.
 
-- **D-06:** Add to `mix.exs` deps:
-  - `{:goth, "~> 1.4", optional: true}`
-  - `{:finch, "~> 0.21", optional: true}`
-  - `{:gcs_signed_url, "~> 0.4.6", optional: true}`
-- **D-07:** Extend `mix.exs:22` `dialyzer.plt_add_apps` from `[:mix, :ex_unit, :mux, :jose]` to add `:goth` and `:gcs_signed_url`. (Verify in plan whether `:finch` is needed.) **RESEARCH FINDING: `:finch` MUST be added — it is NOT currently in the tree as a non-optional dep. See Q9 below.**
-- **D-08:** Config keyspace mirrors S3's `Application.get_env(:rindle, __MODULE__, [])` pattern.
-- **D-09:** Optional-dep guard at runtime entry: `Code.ensure_loaded?(Goth)` returning `{:error, :goth_unconfigured}` when missing.
+**D-06 — Optional deps in `mix.exs deps/0`:**
+- `{:goth, "~> 1.4", optional: true}`
+- `{:finch, "~> 0.21", optional: true}` (already transitive via Goth, but
+  declared explicitly with `optional: true` for hex-tooling honesty)
+- `{:gcs_signed_url, "~> 0.4.6", optional: true}`
+- Adopters who don't enable GCS pay zero transitive cost.
 
-**CI Proof Lane + Test Harness:**
+**D-07 — Extend `mix.exs:22` `dialyzer.plt_add_apps`** from
+`[:mix, :ex_unit, :mux, :jose]` to add `:goth` and `:gcs_signed_url`.
+NOTE: planner must verify whether `:finch` needs to be added — the CONTEXT
+states "already in tree as a non-optional dep elsewhere," but verification
+shows finch is NOT yet in the dep tree (see "Open Questions" below).
 
-- **D-10:** Add a `gcs-soak` job to `.github/workflows/ci.yml` mirroring `mux-soak`, but **gated on secret presence**: `if: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON != '' }}`.
-- **D-11:** Tests at `test/rindle/storage/gcs_test.exs` tagged `@tag :gcs` with a `@gcs_skip_reason` module attribute that nil-checks `GOOGLE_APPLICATION_CREDENTIALS_JSON` and `RINDLE_GCS_BUCKET` env vars.
-- **D-12:** Use **Bypass alone** for unit-level fixtures of the JSON API surface. Live-bucket integration runs the full GCS proof lane behind the secret. **Do NOT** add fakegcs as a dep.
-- **D-13:** **Phase 37 ships basic `mix rindle.doctor` GCS health checks**: Goth instance running (named lookup succeeds), bucket reachable (`GET /storage/v1/b/$BUCKET` returns 200/403 — present), signing key parses cleanly. Profile-aware so image-only S3 adopters see no new noise.
-- **D-14:** **Phase 37 does NOT touch the package-consumer lane.**
+**D-08 — Config keying** mirrors S3's `Application.get_env(:rindle, __MODULE__, [])`
+pattern:
+```
+config :rindle, Rindle.Storage.GCS,
+  bucket: "my-bucket",
+  goth: MyApp.Goth,
+  finch: MyApp.Finch,
+  signing_key: %{...},  # service-account JSON (decoded map) or PEM
+  signed_url_ttl: 3600,
+  region_hint: "us-central1"
+```
+Rindle does NOT start Goth or Finch — adopter owns the runtime.
+
+**D-09 — Optional-dep guard at runtime entry:** `Code.ensure_loaded?(Goth)`
+returning `{:error, :goth_unconfigured}` when missing — mirrors
+`lib/rindle/ops/runtime_checks.ex:536`.
+
+**D-10 — `gcs-soak` job in `.github/workflows/ci.yml`** mirroring `mux-soak`
+shape, but gated on secret presence:
+```yaml
+if: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON != '' }}
+```
+Fork-PR safe: forks resolve secret to `''` and lane skips cleanly.
+
+**D-11 — Tests at `test/rindle/storage/gcs_test.exs`** tagged `@tag :gcs`
+with module-attribute env-var nil-check — exact pattern from
+`test/rindle/storage/s3_test.exs:13-18, 29-30`.
+
+**D-12 — Use Bypass alone** for unit-level fixtures of the JSON API surface.
+Live-bucket integration runs the full GCS proof lane behind the secret.
+Do NOT add fakegcs as a dep.
+
+**D-13 — Phase 37 ships basic `mix rindle.doctor` GCS health checks:**
+- Goth instance running (named lookup succeeds)
+- Bucket reachable (`GET /storage/v1/b/$BUCKET` returns 200/403/404 — distinguishes present/absent/forbidden)
+- Signing key parses cleanly (via `GcsSignedUrl.Client.load/1`)
+- Profile-aware: fires only when an adopter profile declares `storage: Rindle.Storage.GCS`
+- Resumable-specific CORS-suspected branch STAYS deferred to Phase 41.
+
+**D-14 — Phase 37 does NOT touch the package-consumer lane**
+(`.github/workflows/ci.yml:289`). That's RESUMABLE-14 / Phase 41.
 
 ### Claude's Discretion
 
-- Plan-level ordering of the 4 plans (one per requirement, per ROADMAP guidance) — researcher/planner pick the most testable execution order. **Recommendation surfaced below in §Execution Sequencing.**
-- Whether a cross-cutting `gcs_capabilities_test.exs` parity test ships in Phase 37 or rolls into Phase 39 alongside the resumable atoms. **Recommendation: a single inline assertion in `gcs_test.exs` covers `capabilities/0 == [:signed_url, :head]`; defer the cross-cutting parity test (which would also assert resumable atoms when Phase 39 ships) to Phase 39.**
-- Specific Bypass fixture topology (one `setup` block per callback vs a shared fixture module). **Recommendation: per-test `setup` block (no shared module) — see Q8 below.**
+- Plan-level ordering of the 4 plans (one per requirement, per ROADMAP guidance).
+- Whether a cross-cutting `gcs_capabilities_test.exs` parity test ships in
+  Phase 37 or rolls into Phase 39 alongside the resumable atoms.
+- Specific Bypass fixture topology (one `setup` block per callback vs a shared
+  fixture module).
 
 ### Deferred Ideas (OUT OF SCOPE)
 
-- Resumable upload behaviour callbacks → Phase 39 (RESUMABLE-04..08)
-- `media_upload_sessions` resumable columns + FSM `"resuming"` state → Phase 38
-- Resumable-specific `mix rindle.doctor` CORS-suspected check → Phase 41 (RESUMABLE-13)
-- Package-consumer GCS proof lane (fresh `mix phx.new` install) → Phase 41 (RESUMABLE-14)
-- IAM SignBlob auth mode → v1.7+ behind config flag
-- Customer-supplied session URIs, CMEK, Object Versioning → out
-- `Rindle.Storage.GCSResumable` as a separate adapter — locked one-adapter-multiple-capabilities; rejected
-- Auto-fallback resumable→PUT or PUT→resumable — explicit family choice via profile DSL; rejected
-</user_constraints>
+- Resumable-specific `mix rindle.doctor` CORS-suspected check → Phase 41.
+- Package-consumer GCS proof lane (fresh `mix phx.new` install) → Phase 41.
+- Resumable upload behaviour callbacks → Phase 39.
+- `media_upload_sessions` resumable columns + FSM `"resuming"` state → Phase 38.
+- IAM SignBlob auth mode → v1.7+ behind config flag.
+- Customer-supplied session URIs, CMEK, Object Versioning → out.
+- `Rindle.Storage.GCSResumable` as separate adapter — rejected.
 
-<phase_requirements>
+---
+
 ## Phase Requirements
 
 | ID | Description | Research Support |
 |----|-------------|------------------|
-| GCS-01 | `Rindle.Storage.GCS` implements `store/3`, `download/3`, `delete/2`, `head/2`, `url/2` against the real GCS bucket using `goth ~> 1.4` for auth and `finch ~> 0.21` for HTTP. No resumable behavior. | §Standard Stack (locked deps), §Architecture Patterns (3-file split, callback parity with S3), Q1+Q4 (JSON-API surface + Finch plumbing), Q5 (object metadata at store/3) |
-| GCS-02 | `Rindle.Storage.GCS.capabilities/0` returns `[:signed_url, :head]` only at end of phase. | §Architecture Patterns (capability vocab), `lib/rindle/storage/capabilities.ex:19-27`, single inline test assertion in `gcs_test.exs` |
-| GCS-03 | V4 signed URL generation via `gcs_signed_url ~> 0.4.6`, private-key auth, signed-URL TTL respects `Rindle.Config.signed_url_ttl_seconds/0`. `Content-Disposition` and `Content-Type` go into object metadata at `store/3` (not URL params). | Q3 (`gcs_signed_url` API surface — `Client`-based generate_v4 returns bare `String.t()`), Q5 (uploadType=multipart for metadata + body), §Common Pitfalls (PEM-vs-JSON ambiguity, response-content-disposition gap) |
-| GCS-04 | GCS proof lane in CI gated behind `GOOGLE_APPLICATION_CREDENTIALS_JSON` secret; runs on PR only when secret is present, runs on release always. | Q7 (canonical fork-PR-safe `if: ${{ secrets.X != '' }}` pattern), §Validation Architecture (`gcs-soak` lane structure) |
-</phase_requirements>
+| GCS-01 | `Rindle.Storage.GCS` implements `store/3`, `download/3`, `delete/2`, `head/2`, `url/2` against real GCS via `goth ~> 1.4` + `finch ~> 0.21`. No resumable. | "Standard Stack", "Architecture Patterns", "Implementation Details by Subsystem" §1-§5 |
+| GCS-02 | `Rindle.Storage.GCS.capabilities/0` returns `[:signed_url, :head]` only. Resumable atoms NOT advertised. | "Public API Shape" `capabilities/0`; "Code Examples" parity-test snippet |
+| GCS-03 | V4 signed URL via `gcs_signed_url ~> 0.4.6` private-key mode; TTL respects `Rindle.Config.signed_url_ttl_seconds/0`. Content-Disposition / Content-Type as object metadata at `store/3`. | "Implementation Details" §3 (V4 signing); "Don't Hand-Roll" #4 |
+| GCS-04 | `gcs-soak` lane in CI gated behind `GOOGLE_APPLICATION_CREDENTIALS_JSON` secret; PR runs only with secret, release always. Fork-PR safe. | "Implementation Details" §5 (mux-soak clone discipline); "Code Examples" full gcs-soak YAML skeleton |
 
-## Architectural Responsibility Map
-
-This is a single-tier (BEAM library) phase. Capabilities map to internal module responsibilities, not multi-tier boundaries.
-
-| Capability | Primary Module | Secondary Module | Rationale |
-|------------|---------------|------------------|-----------|
-| `Rindle.Storage` behaviour impl | `Rindle.Storage.GCS` | — | Public hexdoc'd entry point, capability advertisement, opts threading |
-| GCS JSON API HTTP plumbing | `Rindle.Storage.GCS.Client` | — | Hand-rolled Finch wrapper for head/store/download/delete; @moduledoc false |
-| V4 signed URL generation | `Rindle.Storage.GCS.Signer` | — | gcs_signed_url private-key wrapper; @moduledoc false |
-| OAuth2 token resolution | (adopter-supplied `Goth` instance) | `Rindle.Storage.GCS.Client` | Adopter owns supervision; adapter looks up by name and calls `Goth.fetch/1` |
-| Doctor health checks | `Rindle.Ops.RuntimeChecks` | `Rindle.Storage.GCS.Client` | New `check_gcs_*` functions splice into existing run/2 list, profile-aware |
-| Cross-adapter parity | `Rindle.Storage.Capabilities` | — | Existing module; `:signed_url` + `:head` already in `@known` |
-
-**Why this matters:** v1.6 Phase 35 webhook-handling locked the "hand-rolled HTTP client over Finch when SDK is too coupled" pattern. Phase 37 inherits it directly — `google_api_storage` is rejected (Tesla-coupled, doesn't surface session URI), so adapter owns ~250 LOC of HTTP plumbing inside `gcs/client.ex`.
+---
 
 ## Standard Stack
 
-### Core (Phase 37 adds)
+### Core (locked)
 
 | Library | Version | Purpose | Why Standard |
 |---------|---------|---------|--------------|
-| `goth` | `~> 1.4` (latest 1.4.5, 2024-12-20) | OAuth2 service-account token minting | Locked v1.6 candidate §3; sole well-maintained Elixir package; uses Finch internally; supervision-tree friendly with named-instance pattern. `[VERIFIED: mix hex.info goth]` |
-| `finch` | `~> 0.21` (latest 0.21.0, 2026-01-22) | HTTP client for JSON API + media upload | Lowest common runtime denominator; Goth pulls it transitively. Streams request bodies via `{:stream, body_stream}`. `[VERIFIED: mix hex.info finch]` |
-| `gcs_signed_url` | `~> 0.4.6` (latest 0.4.6, 2023-03-27) | V4 signed URL generation | Pure-Elixir V4 implementation; PEM-private-key client mode requires no network calls. Two transitive deps (`jose`, `jason`) already in tree. `[VERIFIED: mix hex.info gcs_signed_url]` |
+| `goth` | `~> 1.4` (1.4.5, 2024-12-20) | Service-account OAuth2 token caching for Google APIs | Industry-standard Elixir Goth library; named-instance pattern fits adopter-owned-runtime posture; auto-refreshes 300s before expiry |
+| `finch` | `~> 0.21` (0.21.0, 2026-01-22) | HTTP client for JSON API hot path | Lowest-common-denominator Elixir HTTP; Goth already pulls it in; no Tesla coupling; supports streaming bodies |
+| `gcs_signed_url` | `~> 0.4.6` (0.4.6, 2023-03-27) | V4 signed URL generation | Two transitive deps already in tree (`jose`, `jason`); private-key + IAM SignBlob modes; only mature Elixir GCS signing library |
 
-All three declared `optional: true` (D-06) — adopters not enabling GCS pay zero transitive cost.
+`[VERIFIED: hex.pm via mix hex.info]` — All three versions confirmed live on
+hex.pm 2026-05-07.
 
-### Already In Tree (reused unchanged)
+### Supporting (already in tree)
 
-| Library | Version | Purpose |
-|---------|---------|---------|
-| `bypass` | `~> 2.1` (only: :test) | Unit-level GCS JSON API fixtures (mix.exs:92) |
-| `jason` | `~> 1.4` | JSON encode/decode for JSON API request/response |
-| `mox` | `~> 1.2` (only: :test) | Already declared, unused by Phase 37 |
-| `hackney` | `~> 1.20` (only: :test) | ExAws backend; unrelated to GCS path |
+| Library | Version | Purpose | Status |
+|---------|---------|---------|--------|
+| `jose` | `~> 1.11` | PEM key parsing (transitive via `gcs_signed_url`) | Already optional dep for v1.6 Mux streaming |
+| `jason` | `~> 1.4` | Service-account JSON decoding + GCS error envelope parsing | Already required dep |
+| `bypass` | `~> 2.1` | Test-only HTTP fixture for unit tests | Already declared in `mix.exs:92` (test only); no new dep needed |
 
-### Alternatives Considered (and rejected per locked candidate §3)
+### Alternatives Considered
 
-| Instead of | Could Use | Why Rejected |
-|------------|-----------|--------------|
-| Hand-rolled Finch JSON client | `google_api_storage` (auto-generated SDK) | Tesla-coupled, ~200+ transitive modules, `storage_objects_insert_resumable/5` returns `{:ok, nil}` — doesn't surface session URI cleanly. v1.6 candidate §3 lock. |
-| `gcs_signed_url` | `gcs-signer-elixir` (shakrmedia) | Lower download volume; older API; `gcs_signed_url 0.4.6` is the current Elixir community choice. |
-| Finch | `Tesla` or `Req` | Tesla pulls JSON middleware + decoders; Req is opinionated and adds 2 transitive deps. Finch is the bare HTTP transport Goth already uses. v1.6 Phase 35 raw-body cache pattern locked Finch over Req for adapter hot paths. |
+| Instead of | Could Use | Tradeoff (and why rejected) |
+|------------|-----------|------|
+| `finch` | `tesla` | Tesla pulls 2+ transitive deps and adds adapter indirection; opinionated middleware stack. **Rejected:** locked candidate §3; `google_api_storage` is Tesla-coupled and pulls 200+ modules. |
+| `finch` | `req` | Excellent test harness; 2 transitive deps; opinionated. Acceptable for tests but not adapter hot path. **Rejected for adapter:** locked candidate §3. |
+| `finch` (hand-rolled) | `google_api_storage 0.46.1` | Auto-generated, Tesla-coupled, exposes `storage_objects_insert_resumable/5` returning `{:ok, nil}` (doesn't surface session URI). **Rejected** per CONTEXT D-01 / locked candidate §3. |
+| `gcs_signed_url` private-key | IAM SignBlob (service-account-impersonation) | GKE/Cloud Run pattern. **Deferred to v1.7+ behind config flag** per CONTEXT Deferred §IAM SignBlob. |
+| Bypass | `fakegcs` | Adds new test dep. **Rejected per D-12;** Bypass + live bucket is the established Rindle pattern (S3 uses Bypass + MinIO). |
 
-**Installation (mix.exs additions):**
+**Installation diff for `mix.exs:50` `defp deps`:**
 
 ```elixir
-defp deps do
-  [
-    # ... existing deps unchanged ...
+# Streaming providers (optional — Mux adapter only loads when these are present)
+{:mux, "~> 3.2", optional: true},
+{:jose, "~> 1.11", optional: true},
 
-    # GCS adapter (optional — Rindle.Storage.GCS only loads when present)
-    {:goth, "~> 1.4", optional: true},
-    {:finch, "~> 0.21", optional: true},
-    {:gcs_signed_url, "~> 0.4.6", optional: true},
-
-    # ... rest unchanged ...
-  ]
-end
+# GCS storage adapter (optional — Phase 37, only loads when adopter opts in)
+{:goth, "~> 1.4", optional: true},
+{:finch, "~> 0.21", optional: true},
+{:gcs_signed_url, "~> 0.4.6", optional: true},
 ```
 
-**Version verification (run during plan execution):**
+**Version verification record (live `mix hex.info` 2026-05-07):**
+- `goth 1.4.5` — published 2024-12-20, all-time downloads 12.8M `[VERIFIED: hex.pm]`
+- `finch 0.21.0` — published 2026-01-22, all-time downloads 55.0M `[VERIFIED: hex.pm]`
+- `gcs_signed_url 0.4.6` — published 2023-03-27, all-time downloads 805K `[VERIFIED: hex.pm]`
 
-```bash
-mix hex.info goth
-mix hex.info finch
-mix hex.info gcs_signed_url
-```
-
-All three confirmed live on hex.pm at research time (2026-05-07): goth 1.4.5, finch 0.21.0, gcs_signed_url 0.4.6. `[VERIFIED: hex.pm via mix hex.info]`
+---
 
 ## Architecture Patterns
 
 ### System Architecture Diagram
 
 ```
-                  ┌─────────────────────────────────────────────────┐
-                  │              Adopter Phoenix App                │
-                  │                                                 │
-                  │  ┌──────────────┐         ┌──────────────────┐ │
-                  │  │ MyApp.Goth   │         │ MyApp.Finch       │ │
-                  │  │ (supervisor) │         │ (supervisor)      │ │
-                  │  └──────┬───────┘         └────────┬──────────┘ │
-                  └─────────┼──────────────────────────┼────────────┘
-                            │  named-lookup            │  named-lookup
-                            ▼                          ▼
-       ┌──────────────────────────────────────────────────────────────┐
-       │                   Rindle.Storage.GCS                         │  ◀─── @behaviour Rindle.Storage
-       │            (lib/rindle/storage/gcs.ex)                       │       capabilities/0 → [:signed_url, :head]
-       │                                                              │
-       │  store/3   download/3   delete/2   head/2   url/2            │
-       └──────────┬─────────────────────────────────┬─────────────────┘
-                  │                                 │
-                  ▼                                 ▼
-       ┌────────────────────────┐       ┌────────────────────────┐
-       │ Rindle.Storage.GCS     │       │ Rindle.Storage.GCS     │
-       │   .Client              │       │   .Signer              │
-       │ (@moduledoc false)     │       │ (@moduledoc false)     │
-       │                        │       │                        │
-       │ Goth.fetch → token     │       │ GcsSignedUrl.Client    │
-       │ Finch.build → request  │       │ GcsSignedUrl           │
-       │ Parse JSON response    │       │   .generate_v4         │
-       └────────────┬───────────┘       └────────────┬───────────┘
-                    │ HTTPS                          │ (no network — local PEM signing)
-                    ▼                                │
-   storage.googleapis.com                            │
-   /storage/v1/b/$BUCKET/o          (URL string)     ▼
-   /upload/storage/v1/b/$BUCKET/o   storage.googleapis.com/$BUCKET/$KEY?x-goog-signature=...
++------------------------------------------------------------+
+|              Adopter App Supervision Tree                  |
+|                                                            |
+|  {Goth, name: MyApp.Goth, source: {:service_account,...}} |
+|  {Finch, name: MyApp.Finch}                                |
++------------------------------------------------------------+
+            | (named lookup via config :rindle, Rindle.Storage.GCS)
+            v
++------------------------------------------------------------+
+|        lib/rindle/storage/gcs.ex (PUBLIC, hexdoc'd)        |
+|                                                            |
+|  @behaviour Rindle.Storage                                 |
+|  store/3    --> Client.upload_multipart (POST /upload/...) |
+|  download/3 --> Client.download_media   (GET ?alt=media)   |
+|  delete/2   --> Client.delete_object    (DELETE)           |
+|  head/2     --> Client.head_object      (GET ?alt=json)    |
+|  url/2      --> Signer.sign_v4         (gcs_signed_url)    |
+|                                                            |
+|  capabilities/0 -> [:signed_url, :head]   # GCS-02         |
++------------------------------------------------------------+
+            |
+   +--------+--------+
+   v                 v
++-----------------+ +-----------------+
+| gcs/client.ex   | | gcs/signer.ex   |
+| @moduledoc false| | @moduledoc false|
+| - Goth.fetch/1  | | - Client.load/1 |
+| - Finch.build/4 | | - generate_v4/4 |
+| - Finch.req/2   | |                 |
+| - multipart body| |                 |
+| - error decode  | |                 |
++-----------------+ +-----------------+
+   |                 |
+   +--------+--------+
+            v
+  https://storage.googleapis.com/{storage,upload/storage}/v1/b/$BUCKET
+  (Authorization: Bearer <Goth token>)
 ```
 
-### Recommended Project Structure (Phase 37 additions)
+**Component responsibilities:**
+
+| File | Responsibility | Visibility |
+|------|----------------|------------|
+| `lib/rindle/storage/gcs.ex` | `@behaviour Rindle.Storage` impl, `capabilities/0`, config-key resolution (`bucket/1`, `goth_name/1`, `finch_name/1`), opts threading | Public, hexdoc'd |
+| `lib/rindle/storage/gcs/client.ex` | Token fetch, request building, multipart marshalling, response parsing, error envelope decoding | Internal (`@moduledoc false`) |
+| `lib/rindle/storage/gcs/signer.ex` | V4 signing via `gcs_signed_url`; PEM/JSON-map credential normalization | Internal (`@moduledoc false`) |
+
+### Recommended Project Structure
 
 ```
 lib/rindle/storage/
-├── gcs.ex                       # @behaviour Rindle.Storage; public hexdoc'd module
+├── gcs.ex              # Public adapter
 ├── gcs/
-│   ├── client.ex                # @moduledoc false; Finch + JSON-API plumbing
-│   └── signer.ex                # @moduledoc false; gcs_signed_url V4 wrapper
-├── s3.ex                        # unchanged
-├── local.ex                     # unchanged
-└── capabilities.ex              # unchanged
-
-lib/rindle/ops/
-└── runtime_checks.ex            # extended with check_gcs_* functions (profile-aware)
+│   ├── client.ex       # Hand-rolled Finch JSON API wrapper
+│   └── signer.ex       # V4 signing wrapper
 
 test/rindle/storage/
-├── gcs_test.exs                 # @tag :gcs live-bucket integration tests
+├── gcs_test.exs        # @tag :gcs (live bucket, env-gated)
 ├── gcs/
-│   ├── client_test.exs          # Bypass-backed unit tests for HTTP plumbing
-│   └── signer_test.exs          # V4 signing canonical-string tests
-├── s3_test.exs                  # unchanged
-└── storage_adapter_test.exs     # unchanged (parity test discovers via behaviour_info)
+│   ├── client_test.exs # Bypass-mocked unit tests for 4 REST verbs
+│   └── signer_test.exs # V4 signing unit tests (no HTTP)
 
-.github/workflows/
-└── ci.yml                       # new gcs-soak job under existing structure
+guides/                  # Note: storage_gcs.md ships in Phase 41, NOT here
+.github/workflows/ci.yml # Add gcs-soak job after mux-soak block (line 654)
 ```
 
-### Pattern 1: 3-file split with @moduledoc false internals
+### Pattern 1: Adopter-Owned Runtime, Adapter Looks Up By Name
 
-**What:** Public `Rindle.Storage.GCS` module exposes only the behaviour callbacks + `capabilities/0` + (optional) thin `bucket/0`-style helpers. Two private modules (`Client`, `Signer`) hold protocol-specific code with `@moduledoc false` so HexDocs doesn't render them.
+**What:** Goth and Finch processes are started by the adopter's supervision
+tree; the adapter resolves the named instance from `Application.get_env`.
 
-**When to use:** Whenever a hand-rolled adapter needs >100 LOC of protocol code that future phases will extend (Phases 38–41 add 4 more callbacks sharing the same Goth/Finch plumbing).
+**When to use:** Any adapter that wraps a long-running supervised process the
+adopter is also likely to use elsewhere (Goth for any GCP API; Finch for any
+HTTP client).
 
-**Why:** S3 delegates to `ExAws.S3.*` so its single file is enough. GCS owns the protocol; splitting now avoids a churny rename later (D-01 rationale). Mirrors the v1.6 Phase 35 split where `Rindle.Delivery.WebhookPlug` is public and `WebhookBodyReader`, `IngestProviderWebhook` worker are internals.
-
-**Example skeleton:**
-
+**Example (mirror of v1.6 Mux Phase 33-36):**
 ```elixir
-# lib/rindle/storage/gcs.ex
-defmodule Rindle.Storage.GCS do
-  @moduledoc """
-  Google Cloud Storage adapter using Goth (auth) + Finch (HTTP) + gcs_signed_url (V4).
-
-  See `guides/storage_gcs.md` for setup. Adopter supervises Goth and Finch instances;
-  Rindle never starts them.
-  """
-
-  @behaviour Rindle.Storage
-
-  alias Rindle.Storage.GCS.{Client, Signer}
-
-  @impl true
-  def store(key, source_path, opts) do
-    with {:ok, bucket} <- bucket(opts),
-         :ok <- ensure_goth_loaded() do
-      Client.upload(bucket, key, source_path, content_type(opts), content_disposition(opts), opts)
-    end
-  end
-
-  @impl true
-  def head(key, opts) do
-    with {:ok, bucket} <- bucket(opts),
-         :ok <- ensure_goth_loaded() do
-      Client.head(bucket, key, opts)
-    end
-  end
-
-  # ...other callbacks delegate similarly...
-
-  @impl true
-  def capabilities, do: [:signed_url, :head]
-
-  defp bucket(opts) do
-    case Keyword.get(opts, :bucket) || Application.get_env(:rindle, __MODULE__, [])[:bucket] do
-      nil -> {:error, :missing_bucket}
-      b -> {:ok, b}
-    end
-  end
-
-  defp ensure_goth_loaded do
-    if Code.ensure_loaded?(Goth), do: :ok, else: {:error, :goth_unconfigured}
-  end
-end
-```
-
-### Pattern 2: Adopter-owned runtime + named-instance lookup
-
-**What:** Adapter never starts Goth or Finch. Adopter declares the names in `config :rindle, Rindle.Storage.GCS, goth: MyApp.Goth, finch: MyApp.Finch`; the adapter resolves them at call time.
-
-**When to use:** Every Rindle adapter (locked v1.0 / v1.1 / v1.4 / v1.6 invariant — Repo, Oban, Goth all adopter-supervised).
-
-**Example resolution:**
-
-```elixir
-# inside Client.upload/6
+# Source: lib/rindle/storage/s3.ex:173-178 (config keying mirror target)
 defp goth_name(opts) do
-  Keyword.get(opts, :goth) || Application.get_env(:rindle, Rindle.Storage.GCS, [])[:goth] ||
-    raise ArgumentError, "config :rindle, Rindle.Storage.GCS, goth: MyApp.Goth is required"
+  Keyword.get(opts, :goth) ||
+    Application.get_env(:rindle, __MODULE__, [])[:goth] ||
+    {:error, :goth_unconfigured}
 end
+```
 
-defp finch_name(opts) do
-  Keyword.get(opts, :finch) || Application.get_env(:rindle, Rindle.Storage.GCS, [])[:finch] ||
-    raise ArgumentError, "config :rindle, Rindle.Storage.GCS, finch: MyApp.Finch is required"
-end
+### Pattern 2: Optional-Dep Guard via `Code.ensure_loaded?`
 
-defp authed_headers(opts) do
-  case fetch_token(opts) do
-    {:ok, %Goth.Token{token: token, type: type}} ->
-      {:ok, [{"authorization", "#{type} #{token}"}]}
+**What:** Returns clean `{:error, atom}` tuple instead of `Code.LoadError`
+when adopter hasn't installed the optional dep.
 
-    {:error, _exception} ->
-      {:error, :goth_unconfigured}
+**When to use:** First operation inside any callback that depends on an
+optional-only library.
+
+**Example (locked v1.6 Phase 36 template):**
+```elixir
+# Source: lib/rindle/ops/runtime_checks.ex:536
+not Code.ensure_loaded?(Mux.Video.Assets) ->
+  error_result(...)
+
+# Phase 37 analog:
+def store(key, source, opts) do
+  if Code.ensure_loaded?(Goth) do
+    do_store(key, source, opts)
+  else
+    {:error, :goth_unconfigured}
   end
 end
-
-defp fetch_token(opts) do
-  Goth.fetch(goth_name(opts))
-catch
-  :exit, _reason -> {:error, %RuntimeError{message: "Goth instance not running"}}
-end
 ```
 
-**Source for `Goth.fetch/1` shape:** `[CITED: https://hexdocs.pm/goth/Goth.html]` — returns `{:ok, t()} | {:error, Exception.t()}`. The `try/catch :exit` wrapper handles the case where the named instance isn't registered at all (GenServer.call raises `:noproc` `:exit`).
+### Pattern 3: Credential-Gated Integration Test Module Attribute
 
-### Pattern 3: Single PUT for non-resumable upload (Phase 37 minimum)
+**What:** Module attribute resolves env vars at compile time; `@tag skip:`
+expression skips cleanly when credentials absent.
 
-**What:** Phase 37 ships only a single non-resumable upload path. Two viable shapes:
+**When to use:** Every adapter integration test that hits a real cloud
+endpoint.
 
-| Variant | Endpoint | Pros | Cons |
-|---------|----------|------|------|
-| **Multipart (recommended)** | `POST /upload/storage/v1/b/$BUCKET/o?uploadType=multipart` | Single request sets `contentType`, `contentDisposition`, custom metadata atomically | More complex body framing (`multipart/related` boundary) |
-| **Simple media** | `POST /upload/storage/v1/b/$BUCKET/o?uploadType=media&name=$KEY` | Simplest body framing (raw bytes) | Cannot set `contentDisposition` in same request — needs second `PATCH` |
-
-**Recommendation:** **uploadType=multipart**. D-03 requires `Content-Type` AND `Content-Disposition` to land in object metadata at store-time; `uploadType=media` cannot set `contentDisposition` without a follow-up PATCH (which doubles round-trips and creates a partial-failure window). `[CITED: https://docs.cloud.google.com/storage/docs/json_api/v1/objects/insert]`
-
-**Multipart body shape:**
-
-```
-POST /upload/storage/v1/b/my-bucket/o?uploadType=multipart HTTP/1.1
-Authorization: Bearer ya29.…
-Content-Type: multipart/related; boundary=boundary123
-Content-Length: <total>
-
---boundary123
-Content-Type: application/json; charset=UTF-8
-
-{"name":"assets/asset-1/original.jpg","contentType":"image/jpeg","contentDisposition":"inline; filename=\"foo.jpg\""}
---boundary123
-Content-Type: image/jpeg
-
-<binary body bytes>
---boundary123--
-```
-
-Source: `[CITED: https://docs.cloud.google.com/storage/docs/json_api/v1/objects/insert]`
-
-### Pattern 4: HEAD-equivalent via metadata GET (alt=json)
-
-**What:** GCS JSON API has no separate HEAD verb. The metadata-only fetch is `GET /storage/v1/b/$BUCKET/o/$KEY` (with `alt=json` default — omit `alt=media` which would return body bytes).
-
-**Endpoint:** `GET https://storage.googleapis.com/storage/v1/b/{bucket}/o/{urlencode(key)}`
-
-**Response shape (success):**
-
-```json
-{
-  "kind": "storage#object",
-  "id": "my-bucket/assets/asset-1/original.jpg/1234567890",
-  "name": "assets/asset-1/original.jpg",
-  "bucket": "my-bucket",
-  "size": "1024000",          // string, not integer (must Integer.parse)
-  "contentType": "image/jpeg",
-  "contentDisposition": "inline; filename=\"foo.jpg\"",
-  "metadata": {...},
-  "etag": "..."
-}
-```
-
-**Mapping to `head_result`:**
-
+**Example (locked v1.1 MinIO, v1.6 Mux):**
 ```elixir
-%{
-  size: parse_size(response_body["size"]),       # JSON returns string; parse to integer
-  content_type: response_body["contentType"]     # binary | nil
-}
+# Source: test/rindle/storage/s3_test.exs:13-18
+@gcs_creds System.get_env("GOOGLE_APPLICATION_CREDENTIALS_JSON")
+@gcs_bucket System.get_env("RINDLE_GCS_BUCKET")
+@gcs_skip_reason (if Enum.any?([@gcs_creds, @gcs_bucket], &is_nil/1) do
+                    "Skipping :gcs test because GOOGLE_APPLICATION_CREDENTIALS_JSON or RINDLE_GCS_BUCKET is missing"
+                  end)
+
+@tag :gcs
+@tag skip: @gcs_skip_reason
+test "..." do ... end
 ```
 
-Source: `[CITED: https://docs.cloud.google.com/storage/docs/json_api/v1/objects]`. The `size` field is documented as "An unsigned long integer representing the Content-Length of the data in bytes" but is serialized as a JSON string in the wire format (this is a long-standing GCS quirk).
+### Pattern 4: Secret-Gated CI Proof Lane (mux-soak Mirror)
+
+**What:** Workflow `if:` clause checks secret presence; PR-from-fork
+resolves secret to `''` and lane skips. Release lane (push to main / tag)
+always runs.
+
+**When to use:** Any soak/integration lane that costs real cloud quota.
+
+**Example:**
+```yaml
+gcs-soak:
+  name: GCS Soak (real bucket)
+  if: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON != '' }}
+  # ... rest of mux-soak structure verbatim minus MinIO/Mux env vars
+```
 
 ### Anti-Patterns to Avoid
 
-- **Don't** put `Content-Disposition` or `Content-Type` in V4-signed-URL query params (`response-content-disposition` / `response-content-type`). Per Active Storage's lesson and locked candidate §10, GCS V4 does not safely enforce these. Bucket-side metadata at store-time is the only honest path.
-- **Don't** start Goth or Finch from inside Rindle. Adopter-owned runtime is a 5-milestone-locked invariant.
-- **Don't** retry token fetch on `{:error, :goth_unconfigured}`. The atom signals an environmental misconfiguration, not a transient failure.
-- **Don't** log the `Authorization: Bearer` header. (No current Rindle invariant explicitly forbids it, but the v1.6 security invariant 14 — provider-internal IDs redaction — extends naturally to OAuth2 access tokens. Strip the `authorization` header before any `Logger.metadata/1` or `:telemetry.execute/3` emit.)
-- **Don't** advertise `:resumable_upload` or `:resumable_upload_session` from `capabilities/0`. They ship in Phase 39. The cross-adapter parity test (`storage_adapter_test.exs:62-70`) only asserts they're in `@known`; it does NOT assert any adapter exposes them.
+- **Starting Goth/Finch from the adapter:** breaks adopter-owned-runtime
+  invariant; causes "two Goth processes" duplication when adopter also runs
+  Goth for other GCP APIs.
+- **Using the Tesla-coupled `google_api_storage` SDK:** pulls 200+ modules
+  transitively; doesn't surface session URI cleanly per locked candidate §3.
+- **Putting `Content-Disposition` / `Content-Type` in signed-URL query params
+  (`response-content-disposition`, `response-content-type`):** Active Storage
+  CVE-adjacent lesson; GCS V4 signed URLs don't safely enforce these.
+- **Hand-rolling JWT signing:** `gcs_signed_url` exists; security-sensitive.
+- **Logging the GCS Authorization header (`Bearer <token>`) or the raw
+  signing key:** invariant from CONTEXT security review; mirrors
+  `lib/rindle/ops/runtime_checks.ex:632-636`.
 
-## Don't Hand-Roll
+---
 
-| Problem | Don't Build | Use Instead | Why |
-|---------|-------------|-------------|-----|
-| OAuth2 token caching + refresh | Custom `GenServer` token refresher | `goth ~> 1.4` (`Goth.fetch/1`) | Token expiry, 5-min-before-refresh, retry semantics, source dispatch (service_account vs metadata vs refresh_token) — all production-hardened |
-| V4 signing canonical-string assembly | Custom `:crypto.sign(:rsa, :sha256, ...)` | `gcs_signed_url ~> 0.4.6` | Canonical-string assembly is full of off-by-one footguns (host normalization, query-param sort order, percent-encoding, `x-goog-content-sha256: UNSIGNED-PAYLOAD`). The library matches Google's reference implementation. |
-| Connection pooling for HTTPS | Custom `:gen_tcp` / `:ssl` pool | `finch ~> 0.21` | HTTP/1.1 keepalive, TLS session reuse, pool sizing, idle timeouts. |
-| JSON encode/decode | Custom encoder | `jason ~> 1.4` (already in tree) | Speed + correctness. |
-| HMAC-SHA256 over OAuth tokens | Custom `:crypto` calls | (delegate to Goth) | Goth handles the JWT-bearer flow; adapter never sees the JWT. |
-| GCS error-envelope parsing | Custom regex / split | `Jason.decode!` on response body | Canonical shape is `{"error": {"code": int, "message": str, "errors": [...]}}`. `[CITED: https://docs.cloud.google.com/storage/docs/json_api/v1/status-codes]` |
+## Public API Shape (per callback)
 
-**Key insight:** Goth + Finch + gcs_signed_url + jason cover every off-the-shelf concern. The ~250 LOC Rindle owns is purely **GCS JSON API request shaping** (URL paths, multipart boundary, response decoding) — not crypto, not auth, not transport.
+All shapes mirror `lib/rindle/storage/s3.ex` exactly so the cross-adapter
+parity test at `test/rindle/storage/storage_adapter_test.exs:41-51` stays
+green without modification.
 
-## Common Pitfalls
-
-### Pitfall 1: `Goth.fetch/1` against an unstarted named instance raises `:exit`, not returns `{:error, _}`
-
-**What goes wrong:** Documentation says `Goth.fetch/1` returns `{:ok, t()} | {:error, Exception.t()}`, suggesting `{:error, ...}` covers all failure modes. But the actual implementation is `GenServer.call(registry_name(name), :fetch, timeout)` — calling a `GenServer` registered under an unregistered name raises `:exit, :noproc`.
-
-**Why it happens:** Goth assumes the named instance is in the supervision tree. The `{:error, _}` path covers token-refresh failures (network, malformed creds), not "you forgot to start me."
-
-**How to avoid:** Wrap in `try/catch :exit` and map to `{:error, :goth_unconfigured}`:
+### `store/3`
 
 ```elixir
-defp fetch_token(opts) do
-  try do
-    case Goth.fetch(goth_name(opts)) do
-      {:ok, token} -> {:ok, token}
-      {:error, _exception} -> {:error, :goth_unconfigured}
-    end
-  catch
-    :exit, _reason -> {:error, :goth_unconfigured}
-  end
-end
+@spec store(key :: String.t(), source :: Path.t(), opts :: keyword()) ::
+        {:ok, %{key: String.t(), bucket: String.t(), generation: String.t()}}
+        | {:error, :missing_bucket}
+        | {:error, :goth_unconfigured}
+        | {:error, {:gcs_http_error, %{status: integer(), body: term()}}}
+        | {:error, term()}  # File.read errors etc.
 ```
 
-**Warning signs:** Adopter sees `EXIT from #PID<...> ** (EXIT) no process` instead of a clean tagged error tuple.
+**Behaviour:**
+1. Read source file via `File.read/1` (mirror `s3.ex:17`).
+2. POST to `https://storage.googleapis.com/upload/storage/v1/b/$BUCKET/o?uploadType=multipart`
+   with multipart body (metadata part + media part).
+3. Metadata part contains `{"name": key, "contentType": ..., "contentDisposition": ...}`
+   — D-03 invariant.
+4. Authorization: `Bearer <Goth.fetch! token>`.
+5. On 200, parse JSON response, return `{:ok, %{key: key, bucket: bucket, generation: gen}}`.
 
-Source: GitHub source review of `peburrows/goth` `lib/goth.ex` `[CITED: https://github.com/peburrows/goth]` plus standard GenServer semantics.
-
-### Pitfall 2: `gcs_signed_url` Client expects PEM private key STRING, not service-account JSON map
-
-**What goes wrong:** Adopter sets `signing_key: %{...service_account.json...}` and the adapter passes it directly to `GcsSignedUrl.Client.load/1`. Works. But adopter sets `signing_key: "/path/to/key.json"` and the adapter calls `GcsSignedUrl.Client.load(...)` — fails with vague "expected map" error.
-
-**Why it happens:** `gcs_signed_url` exposes TWO constructors: `Client.load/1` (takes a decoded JSON map) and `Client.load_from_file/1` (takes a path string and reads+decodes). The library does NOT auto-detect.
-
-**How to avoid:** The signing-key config branch needs explicit type dispatch:
+### `download/3`
 
 ```elixir
-# lib/rindle/storage/gcs/signer.ex
-defp build_client(%{"private_key" => _, "client_email" => _} = json_map) do
-  GcsSignedUrl.Client.load(json_map)
-end
-
-defp build_client(path) when is_binary(path) and byte_size(path) > 0 do
-  if File.regular?(path) do
-    GcsSignedUrl.Client.load_from_file(path)
-  else
-    raise ArgumentError, "signing_key must be a path to an existing JSON file or a decoded JSON map"
-  end
-end
+@spec download(key :: String.t(), destination :: Path.t(), opts :: keyword()) ::
+        {:ok, Path.t()}
+        | {:error, :missing_bucket}
+        | {:error, :goth_unconfigured}
+        | {:error, :not_found}                        # 404 -> atom
+        | {:error, {:gcs_http_error, %{status, body}}}
 ```
 
-The PEM private-key string lives INSIDE the JSON's `"private_key"` field; it's never passed bare to the adapter. The adapter's config accepts JSON-map-or-path, never raw PEM.
+**Behaviour:**
+1. `File.mkdir_p(Path.dirname(destination))` (mirror `s3.ex:34`).
+2. GET `https://storage.googleapis.com/storage/v1/b/$BUCKET/o/$ENCODED_OBJECT?alt=media`.
+3. Stream response body to `destination` (Finch supports streamed receive
+   via `Finch.stream/4` if needed, or load-and-write for simple cases).
+4. Return `{:ok, destination}`.
 
-**Warning signs:** Cryptic `KeyError: key :private_key not found in: \"-----BEGIN PRIVATE KEY-----\\n...\"` errors at signing time.
-
-Source: GitHub source review of `alexandrubagu/gcs_signed_url` `lib/gcs_signed_url/client.ex` `[CITED: https://github.com/alexandrubagu/gcs_signed_url]`.
-
-### Pitfall 3: GCS JSON API `size` field is a STRING, not integer
-
-**What goes wrong:** `response_body["size"]` returns `"1024000"` (string), but `head_result.size` is typed `non_neg_integer()`. Passing a string fails the parity test (`s3_test.exs:117`: `%{size: 20, ...}`).
-
-**Why it happens:** GCS JSON API serializes long integers as strings to avoid JSON's 53-bit float precision loss for files > 2^53 bytes (very large multi-TB files).
-
-**How to avoid:** Mirror S3's `parse_size/1` helper at `lib/rindle/storage/s3.ex:154-163`:
+### `delete/2`
 
 ```elixir
-defp parse_size(nil), do: 0
-defp parse_size(val) when is_binary(val) do
-  case Integer.parse(val) do
-    {int, _} -> int
-    _ -> 0
-  end
-end
-defp parse_size(val) when is_integer(val), do: val
+@spec delete(key :: String.t(), opts :: keyword()) ::
+        {:ok, %{key: String.t()}}
+        | {:error, :missing_bucket}
+        | {:error, :goth_unconfigured}
+        | {:error, :not_found}
+        | {:error, {:gcs_http_error, %{status, body}}}
 ```
 
-**Warning signs:** Cross-adapter parity test fails with `expected: 20 (integer); got: "20" (binary)` mismatch on `head/2`.
+**Behaviour:**
+1. DELETE `https://storage.googleapis.com/storage/v1/b/$BUCKET/o/$ENCODED_OBJECT`.
+2. 204 No Content -> `{:ok, %{key: key}}` (mirror `local.ex:33-37`).
+3. 404 -> `{:error, :not_found}` (idempotent-success contract per
+   `lib/rindle/storage.ex:96` "Deleting a non-existent key is adapter-defined").
 
-Source: `[CITED: https://docs.cloud.google.com/storage/docs/json_api/v1/objects]` field type documentation; `lib/rindle/storage/s3.ex:154-163` for the existing helper pattern.
+### `head/2`
 
-### Pitfall 4: Bucket region mismatch returns 307 redirect, not error
+```elixir
+@spec head(key :: String.t(), opts :: keyword()) ::
+        {:ok, %{size: non_neg_integer(), content_type: String.t() | nil}}
+        | {:error, :missing_bucket}
+        | {:error, :goth_unconfigured}
+        | {:error, :not_found}
+        | {:error, {:gcs_http_error, %{status, body}}}
+```
 
-**What goes wrong:** Bucket exists in `us-central1` but request goes to `storage.googleapis.com` (default us). On some buckets GCS returns 307 to a regional endpoint; Finch follows redirects only if explicitly configured.
+**Behaviour:**
+1. GET `https://storage.googleapis.com/storage/v1/b/$BUCKET/o/$ENCODED_OBJECT?alt=json`
+   (returns the **metadata** JSON resource — NOT an HTTP HEAD verb against
+   the JSON API; the JSON API's metadata-fetch endpoint uses GET).
+2. Parse `size` (string -> integer), `contentType` from JSON body.
+3. Mirror exact return shape from `s3.ex:140-145` so parity assertion at
+   `test/rindle/storage/s3_test.exs:117` (`{:ok, %{size: 20, content_type: "image/jpeg"}}`)
+   passes against GCS too.
 
-**Why it happens:** GCS regional buckets sometimes redirect; Finch's default is no auto-follow.
+### `url/2`
 
-**How to avoid:**
-- Explicitly handle 3xx as a separate response branch (don't lump into `{:error, ...}`).
-- Document in `guides/storage_gcs.md` that the bucket region should be configured via the `region_hint` config key.
-- For Phase 37, the simplest path: assume the standard `storage.googleapis.com` endpoint works for all buckets (it does — even regional buckets respond at the global endpoint; the redirect path is mostly historical). If a 307 surfaces, treat as `{:gcs_http_error, %{status: 307, ...}}` and let the adopter fix the region.
+```elixir
+@spec url(key :: String.t(), opts :: keyword()) ::
+        {:ok, String.t()}
+        | {:error, :missing_bucket}
+        | {:error, :signing_key_unconfigured}
+```
 
-**Warning signs:** Phantom 404 / 307 errors that disappear when bucket region is correct.
+**Behaviour:**
+1. Look up `expires_in` from opts; fall back to
+   `Rindle.Config.signed_url_ttl_seconds/0` (mirror `s3.ex:55-61`).
+2. Build `GcsSignedUrl.Client` from `signing_key` config (decoded JSON map
+   or PEM string).
+3. Call `GcsSignedUrl.generate_v4(client, bucket, key, verb: "GET", expires: ttl)`.
+4. Return `{:ok, signed_url_string}`.
 
-Source: General GCS knowledge `[ASSUMED]` — exact 307 trigger conditions vary by bucket configuration; behavior verified in production for some adopters but not in this research session.
+### `capabilities/0`
 
-### Pitfall 5: Bypass URL discovery — absolute vs. relative URLs
+```elixir
+@spec capabilities() :: [Rindle.Storage.capability()]
+def capabilities, do: [:signed_url, :head]
+```
 
-**What goes wrong:** Bypass-backed unit test expects requests at `http://localhost:#{bypass.port}/storage/v1/b/$BUCKET/o/$KEY`, but adapter is hard-coded to `https://storage.googleapis.com/...`. Bypass routes never fire.
+**Phase 37 invariant (GCS-02):** `:resumable_upload` and
+`:resumable_upload_session` MUST NOT appear. Add a unit test that asserts
+exact equality (`assert Rindle.Storage.GCS.capabilities() == [:signed_url, :head]`)
+to enforce ordering and prevent accidental Phase 39 leakage.
 
-**Why it happens:** Hand-rolled HTTP clients tend to hard-code the host. Bypass needs the adapter to accept a configurable base URL.
+### Unsupported callbacks (return tagged tuples)
 
-**How to avoid:** Thread a `:base_url` option through `opts` (defaulting to `https://storage.googleapis.com`). Tests pass `base_url: "http://localhost:#{bypass.port}"`. Mirrors the v1.6 `WebhookPlug` which accepts `:secrets` via `Plug.init/1`.
+The 5 multipart/presigned callbacks NOT in the GCS-01 scope must return
+`{:error, {:upload_unsupported, :multipart_upload}}` or
+`{:error, {:upload_unsupported, :presigned_put}}` per the
+`lib/rindle/storage/local.ex:52-69` pattern:
 
+```elixir
+@impl true
+def presigned_put(_, _, _), do: {:error, {:upload_unsupported, :presigned_put}}
+
+@impl true
+def initiate_multipart_upload(_, _, _), do: {:error, {:upload_unsupported, :multipart_upload}}
+
+@impl true
+def presigned_upload_part(_, _, _, _, _), do: {:error, {:upload_unsupported, :multipart_upload}}
+
+@impl true
+def complete_multipart_upload(_, _, _, _), do: {:error, {:upload_unsupported, :multipart_upload}}
+
+@impl true
+def abort_multipart_upload(_, _, _), do: {:error, {:upload_unsupported, :multipart_upload}}
+```
+
+This satisfies the parity test at
+`test/rindle/storage/storage_adapter_test.exs:41-51` (every callback exists
+on the adapter at the right arity) without advertising capabilities the
+adapter doesn't support.
+
+---
+
+## Implementation Details by Subsystem
+
+### Section 1: Goth Token Fetch and Authorization Threading
+
+**API surface (verified):**
+- `Goth.fetch(name, timeout \\ 5000)` -> `{:ok, %Goth.Token{}}` | `{:error, exception}`
+  `[CITED: hexdocs.pm/goth/Goth.html]`
+- `Goth.fetch!(name, timeout \\ 5000)` — raises on error.
+- `%Goth.Token{token: String.t(), type: String.t(), expires: integer, scope: String.t(), sub: String.t() | nil, account: term()}`
+  `[CITED: hexdocs.pm/goth/Goth.Token.html]`
+- Header construction: `"Authorization: <type> <token>"` (e.g.
+  `"Authorization: Bearer ya29.a0AfH6SMBx..."`).
+- Token cache auto-refreshes 300s before expiry; adapter does not need to
+  handle refresh logic explicitly.
+
+**Adapter usage shape:**
 ```elixir
 # lib/rindle/storage/gcs/client.ex
-@default_base_url "https://storage.googleapis.com"
+defp authorized_headers(goth_name) do
+  case Goth.fetch(goth_name) do
+    {:ok, %Goth.Token{type: type, token: token}} ->
+      {:ok, [{"authorization", "#{type} #{token}"}]}
 
-defp base_url(opts) do
-  Keyword.get(opts, :base_url) ||
-    Application.get_env(:rindle, Rindle.Storage.GCS, [])[:base_url] ||
-    @default_base_url
-end
-```
-
-**Warning signs:** Bypass `Plug.Conn.test_redirected_to/2` assertions fail because no request ever reached the test server.
-
-### Pitfall 6: `capabilities/0` accidentally advertises resumable atoms
-
-**What goes wrong:** Phase 39 PR adds resumable callbacks and `capabilities/0` returns `[:signed_url, :head, :resumable_upload, :resumable_upload_session]` BEFORE the FSM and broker wiring exist. Phase 37 closes with the wrong shape.
-
-**Why it happens:** Copy-paste from peer adapters or future phase scaffolding.
-
-**How to avoid:** **Add an explicit assertion** in `gcs_test.exs`:
-
-```elixir
-test "capabilities/0 returns exactly [:signed_url, :head] in Phase 37" do
-  # GCS-02: locked invariant for Phase 37; resumable atoms ship in Phase 39.
-  assert Rindle.Storage.GCS.capabilities() == [:signed_url, :head]
-end
-```
-
-Phase 39's PR will rewrite this assertion to include resumable atoms.
-
-**Warning signs:** Phase 37 verifier passes `:signed_url` and `:head` are present, but doesn't assert the list is exhaustively `[:signed_url, :head]`. List-membership asserts are not enough.
-
-## Code Examples
-
-Verified patterns with explicit source attribution.
-
-### `Goth.fetch/1` with named instance
-
-```elixir
-# Source: https://hexdocs.pm/goth/Goth.html (verified 2026-05-07)
-case Goth.fetch(MyApp.Goth) do
-  {:ok, %Goth.Token{token: token, type: type, expires: expires}} ->
-    [{"authorization", "#{type} #{token}"}]
-
-  {:error, exception} ->
-    raise exception
-end
-```
-
-### V4 signed URL via `gcs_signed_url` (Client mode)
-
-```elixir
-# Source: https://hexdocs.pm/gcs_signed_url/readme.html (verified 2026-05-07)
-client = GcsSignedUrl.Client.load_from_file("/path/to/service_account.json")
-# OR (when the JSON is already decoded by Goth or adopter):
-client = GcsSignedUrl.Client.load(decoded_json_map)
-
-# Returns String.t() directly (NOT {:ok, _})  — Client mode is local-only
-url =
-  GcsSignedUrl.generate_v4(client, "my-bucket", "assets/asset-1/original.jpg",
-    verb: "GET",
-    expires: 3600
-  )
-
-# url :: "https://storage.googleapis.com/my-bucket/assets/...?X-Goog-Algorithm=GOOG4-RSA-SHA256&..."
-```
-
-### Finch HEAD-equivalent (metadata-only GET)
-
-```elixir
-# Source: https://hexdocs.pm/finch/Finch.html (verified 2026-05-07)
-url = "https://storage.googleapis.com/storage/v1/b/#{bucket}/o/#{URI.encode(key, &URI.char_unreserved?/1)}"
-headers = [{"authorization", "Bearer #{token}"}, {"accept", "application/json"}]
-
-req = Finch.build(:get, url, headers)
-
-case Finch.request(req, MyApp.Finch) do
-  {:ok, %Finch.Response{status: 200, body: body}} ->
-    json = Jason.decode!(body)
-    {:ok, %{size: parse_size(json["size"]), content_type: json["contentType"]}}
-
-  {:ok, %Finch.Response{status: 404}} ->
-    {:error, :not_found}
-
-  {:ok, %Finch.Response{status: status, body: body}} ->
-    {:error, {:gcs_http_error, %{status: status, body: body}}}
-
-  {:error, exception} ->
-    {:error, exception}
-end
-```
-
-### Finch streamed PUT for `store/3` (multipart upload)
-
-```elixir
-# Source: https://hexdocs.pm/finch/Finch.html (verified 2026-05-07)
-boundary = "rindle_gcs_" <> Base.encode16(:crypto.strong_rand_bytes(8), case: :lower)
-metadata_json = Jason.encode!(%{
-  "name" => key,
-  "contentType" => content_type,
-  "contentDisposition" => content_disposition
-})
-
-# Stream the multipart body so large files don't load into memory
-file_stream =
-  Stream.concat([
-    ["--#{boundary}\r\n",
-     "Content-Type: application/json; charset=UTF-8\r\n\r\n",
-     metadata_json,
-     "\r\n--#{boundary}\r\n",
-     "Content-Type: #{content_type}\r\n\r\n"],
-    File.stream!(source_path, [], 8192),
-    ["\r\n--#{boundary}--\r\n"]
-  ])
-
-url = "#{base_url}/upload/storage/v1/b/#{bucket}/o?uploadType=multipart"
-headers = [
-  {"authorization", "Bearer #{token}"},
-  {"content-type", "multipart/related; boundary=#{boundary}"}
-]
-
-req = Finch.build(:post, url, headers, {:stream, file_stream})
-Finch.request(req, finch_name(opts))
-```
-
-### Bypass-backed unit test for `head/2`
-
-```elixir
-# Pattern designed for Phase 37 — no existing reference in test/ tree
-defmodule Rindle.Storage.GCS.ClientTest do
-  use ExUnit.Case, async: true
-
-  alias Rindle.Storage.GCS.Client
-
-  setup do
-    bypass = Bypass.open()
-    {:ok, bypass: bypass, base_url: "http://localhost:#{bypass.port}"}
-  end
-
-  test "head/2 returns size + content_type on 200 OK", %{bypass: bypass, base_url: base_url} do
-    Bypass.expect_once(bypass, "GET", "/storage/v1/b/my-bucket/o/assets%2Ffoo.jpg", fn conn ->
-      conn
-      |> Plug.Conn.put_resp_header("content-type", "application/json")
-      |> Plug.Conn.resp(200, Jason.encode!(%{
-        "size" => "1024000",   # GCS quirk: string, not integer
-        "contentType" => "image/jpeg"
-      }))
-    end)
-
-    opts = [base_url: base_url, token: "fake-token", finch: __MODULE__.Finch]
-    assert {:ok, %{size: 1_024_000, content_type: "image/jpeg"}} =
-             Client.head("my-bucket", "assets/foo.jpg", opts)
-  end
-
-  test "head/2 returns :not_found on 404", %{bypass: bypass, base_url: base_url} do
-    Bypass.expect_once(bypass, "GET", "/storage/v1/b/my-bucket/o/missing.jpg", fn conn ->
-      Plug.Conn.resp(conn, 404, ~s({"error":{"code":404,"message":"Not Found"}}))
-    end)
-
-    opts = [base_url: base_url, token: "fake-token", finch: __MODULE__.Finch]
-    assert {:error, :not_found} = Client.head("my-bucket", "missing.jpg", opts)
+    {:error, _reason} ->
+      {:error, :goth_unconfigured}
   end
 end
 ```
 
-### Doctor check splice (profile-aware)
+**Error-shape note:** `Goth.fetch/1` raises `ArgumentError` if no Goth
+process is registered under `name` (e.g. `MyApp.Goth` not started). The
+adapter should rescue this into `{:error, :goth_unconfigured}` to give
+adopters a clean error tuple. `[ASSUMED]` — Goth docs don't enumerate the
+exact exception type; planner should verify with a unit test.
 
+### Section 2: Finch JSON API Request Shapes
+
+All JSON API calls use the base host `https://storage.googleapis.com`. The
+**upload endpoint is different** from the rest:
+
+| Verb | Operation | Endpoint | Notes |
+|------|-----------|----------|-------|
+| GET (metadata) | `head/2` | `/storage/v1/b/$BUCKET/o/$ENCODED_OBJECT?alt=json` | Returns object resource JSON (size, contentType, md5Hash, generation) `[CITED: docs.cloud.google.com/storage/docs/json_api/v1/objects/get]` |
+| GET (media) | `download/3` | `/storage/v1/b/$BUCKET/o/$ENCODED_OBJECT?alt=media` | Returns raw bytes `[CITED: docs.cloud.google.com/storage/docs/json_api/v1/objects/get]` |
+| DELETE | `delete/2` | `/storage/v1/b/$BUCKET/o/$ENCODED_OBJECT` | 204 No Content on success `[CITED: docs.cloud.google.com/storage/docs/json_api/v1/objects/delete]` |
+| POST | `store/3` (multipart upload) | `/upload/storage/v1/b/$BUCKET/o?uploadType=multipart` | Different host path prefix (`/upload/...`); body is multipart/related `[CITED: docs.cloud.google.com/storage/docs/json_api/v1/objects/insert]` |
+| GET (bucket) | doctor check | `/storage/v1/b/$BUCKET` | 200 reachable, 403 forbidden, 404 not found |
+
+**Object name URL encoding (CRITICAL):** Per Google docs, object names with
+slashes MUST be percent-encoded — slash becomes `%2F` in the URL path
+component. `URI.encode/1` is NOT sufficient (it leaves `/` alone); use
+`URI.encode/2` with a custom safe-char predicate that excludes `/`, OR use
+`:uri_string.quote/1` (OTP 25+):
 ```elixir
-# Source: lib/rindle/ops/runtime_checks.ex:526-607 streaming-credentials template
-# Designed extension for Phase 37 D-13
-
-defp gcs_profiles(profiles) do
-  Enum.filter(profiles, fn profile ->
-    profile.storage_adapter() == Rindle.Storage.GCS
-  end)
+defp encode_object(key) do
+  :uri_string.quote(key)  # OTP 25+; encodes / as %2F
 end
+```
+`[ASSUMED — planner must verify]` — the exact OTP version semantics. See
+A2 in Assumptions Log.
 
-defp check_gcs_goth_running(profiles, _env) do
-  cond do
-    gcs_profiles(profiles) == [] ->
-      ok_result("doctor.gcs_goth_running", :gcs,
-        "No GCS-enabled profiles discovered.", @gcs_dep_missing_fix)
-
-    not Code.ensure_loaded?(Goth) ->
-      error_result("doctor.gcs_goth_running", :gcs,
-        "GCS-enabled profile detected but :goth dep is not loaded.",
-        @gcs_dep_missing_fix)
-
-    true ->
-      goth_name = Application.get_env(:rindle, Rindle.Storage.GCS, [])[:goth]
-
-      case fetch_goth_token(goth_name) do
-        :ok ->
-          ok_result("doctor.gcs_goth_running", :gcs,
-            "Goth instance #{inspect(goth_name)} is running and minting tokens.",
-            @gcs_goth_fix)
-
-        {:error, reason} ->
-          error_result("doctor.gcs_goth_running", :gcs,
-            "Goth instance #{inspect(goth_name)} is not running: #{inspect(reason)}",
-            @gcs_goth_fix)
-      end
-  end
-end
-
-defp fetch_goth_token(nil), do: {:error, :no_goth_configured}
-defp fetch_goth_token(name) do
-  try do
-    case Goth.fetch(name) do
-      {:ok, _token} -> :ok
-      {:error, exception} -> {:error, exception}
-    end
-  catch
-    :exit, _reason -> {:error, :noproc}
-  end
-end
-
-# similar shape: check_gcs_bucket_reachable, check_gcs_signing_key
+**Finch usage idiom (verified):**
+```elixir
+# Source: hexdocs.pm/finch/Finch.html
+Finch.build(:get, url, headers, body)
+|> Finch.request(MyApp.Finch, opts)
+# => {:ok, %Finch.Response{status: 200, headers: [...], body: "..."}}
+# or  {:error, %Mint.TransportError{...}}
 ```
 
-The 3 new check functions splice into the `checks` list at `lib/rindle/ops/runtime_checks.ex:67-81`. Run order is deterministic (already `Enum.sort_by(& &1.id)` at line 83) so doctor output stays stable.
+**Multipart-upload body structure (verified for `store/3`):**
 
-## Runtime State Inventory
+Per `[CITED: docs.cloud.google.com/storage/docs/json_api/v1/objects/insert]`:
 
-> Phase 37 is greenfield (new adapter), not a rename/refactor. Section is INFORMATIONAL ONLY for completeness — no migration concerns.
+```
+Content-Type: multipart/related; boundary=<RANDOM_BOUNDARY>
 
-| Category | Items Found | Action Required |
-|----------|-------------|------------------|
-| Stored data | None — Phase 37 doesn't touch DB. (Phases 38–39 add `media_upload_sessions` resumable columns.) | none |
-| Live service config | None — Phase 37 doesn't change Goth/Finch supervision; adopters add Goth instance to their own supervision tree as documented in (forthcoming) `guides/storage_gcs.md` (Phase 41). | none |
-| OS-registered state | None — Phase 37 adds CI lane only; no host-level registrations. | none |
-| Secrets/env vars | New: `GOOGLE_APPLICATION_CREDENTIALS_JSON` (CI secret), `RINDLE_GCS_BUCKET` (CI env var, integration test). Existing secrets unchanged. | configure CI secret pre-merge |
-| Build artifacts / installed packages | `mix.lock` will gain `goth`, `finch`, `gcs_signed_url`, plus their transitive deps (notably `mint`, `nimble_options`, `nimble_pool` from Finch). | run `mix deps.get` after dep additions land |
+--<RANDOM_BOUNDARY>
+Content-Type: application/json; charset=UTF-8
 
-**Nothing else found in any category — verified by greps over `lib/`, `test/`, `.github/`, `priv/`, and `mix.lock`.**
+{"name": "path/to/object", "contentType": "image/jpeg", "contentDisposition": "inline; filename=\"x.jpg\""}
 
-## Environment Availability
+--<RANDOM_BOUNDARY>
+Content-Type: image/jpeg
 
-| Dependency | Required By | Available | Version | Fallback |
-|------------|------------|-----------|---------|----------|
-| Elixir | Build/test | ✓ | 1.17+ (mix.exs requires `~> 1.15`) | — |
-| Erlang/OTP | Build/test | ✓ | 27 (per CI matrix) | — |
-| `mix hex.info` (network to hex.pm) | Version verification | ✓ | — | — |
-| `:goth ~> 1.4` | New optional dep | will install via `mix deps.get` | 1.4.5 | — |
-| `:finch ~> 0.21` | New optional dep | will install via `mix deps.get` | 0.21.0 | — |
-| `:gcs_signed_url ~> 0.4.6` | New optional dep | will install via `mix deps.get` | 0.4.6 | — |
-| `:bypass ~> 2.1` | Test scaffold | ✓ already in mix.exs:92 | 2.1 | — |
-| Real GCS bucket + service account JSON | `mix test --only gcs` + `gcs-soak` lane | ✗ (CI secret + adopter setup required) | — | Skip integration tests when `GOOGLE_APPLICATION_CREDENTIALS_JSON` env var is empty (D-11 pattern); CI lane skips when `secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON == ''` (D-10 pattern) |
-| `gh` CLI | (not needed for Phase 37) | ✓ | — | — |
+<binary bytes>
+--<RANDOM_BOUNDARY>--
+```
 
-**Missing dependencies with no fallback:** None. Phase 37 ships even when a real GCS bucket isn't available — local runs without credentials skip integration tests cleanly per D-11; the `gcs-soak` lane skips on PRs without the secret per D-10.
+**Boundary marshalling rules:**
+- Boundary string must NOT appear in either body part. Generate random
+  enough (`:crypto.strong_rand_bytes(16) |> Base.url_encode64()`).
+- `--` prefix on each boundary line, `--` suffix on the final terminator.
+- CRLF line endings per RFC 2046.
 
-**Missing dependencies with fallback:** Real GCS bucket is the only one. The fallback is the `@gcs_skip_reason` skip pattern + secret-presence CI gating.
+**GCS error envelope (verified):**
 
-## Validation Architecture
-
-> Required: workflow.nyquist_validation key absent from `.planning/config.json`, defaulting to enabled.
-
-### Test Framework
-
-| Property | Value |
-|----------|-------|
-| Framework | ExUnit (Elixir built-in) |
-| Config file | `test/test_helper.exs` (existing — no Phase 37 changes) |
-| Quick run command | `mix test test/rindle/storage/gcs_test.exs --include gcs:false` (Bypass-backed unit tests only, no live bucket needed) |
-| Full suite command | `mix test` (skips `:gcs` tagged tests by default; runs all unit tests including Bypass-backed GCS client/signer tests) |
-| Live-bucket integration | `mix test --only gcs` (requires `GOOGLE_APPLICATION_CREDENTIALS_JSON` + `RINDLE_GCS_BUCKET` env vars) |
-
-### Phase Requirements → Test Map
-
-| Req ID | Behavior | Test Type | Automated Command | File Exists? |
-|--------|----------|-----------|-------------------|-------------|
-| GCS-01 | `head/2` returns `{:ok, %{size:, content_type:}}` for existing object | unit (Bypass) | `mix test test/rindle/storage/gcs/client_test.exs:<line> -x` | ❌ Wave 0 |
-| GCS-01 | `head/2` returns `{:error, :not_found}` for missing object | unit (Bypass) | `mix test test/rindle/storage/gcs/client_test.exs:<line> -x` | ❌ Wave 0 |
-| GCS-01 | `head/2` returns `{:error, :missing_bucket}` when no bucket configured | unit (no network) | `mix test test/rindle/storage/gcs_test.exs:<line> -x` | ❌ Wave 0 |
-| GCS-01 | `store/3`, `download/3`, `delete/2` round-trip against real bucket | integration | `mix test --only gcs` | ❌ Wave 0 |
-| GCS-01 | `store/3` writes `Content-Type` AND `Content-Disposition` to object metadata | integration | `mix test --only gcs` (asserts `head/2` returns content_type + custom metadata via second GCS read) | ❌ Wave 0 |
-| GCS-01 | `Code.ensure_loaded?(Goth)` returns `false` → `{:error, :goth_unconfigured}` | unit (mock-via-skip) | `mix test test/rindle/storage/gcs_test.exs:<line> -x` | ❌ Wave 0 |
-| GCS-02 | `capabilities/0 == [:signed_url, :head]` exhaustively | unit (no network) | `mix test test/rindle/storage/gcs_test.exs:<line> -x` | ❌ Wave 0 |
-| GCS-02 | Cross-adapter parity: GCS implements all behaviour callbacks | unit (existing test) | `mix test test/rindle/storage/storage_adapter_test.exs:41 -x` | ✅ exists; needs GCS module added to assertion list |
-| GCS-03 | V4 signed URL contains expected canonical query params (X-Goog-Algorithm, X-Goog-Signature, etc.) | unit (no network) | `mix test test/rindle/storage/gcs/signer_test.exs:<line> -x` | ❌ Wave 0 |
-| GCS-03 | `url/2` falls back to `Rindle.Config.signed_url_ttl_seconds/0` when `:expires_in` is absent | unit (no network) | `mix test test/rindle/storage/gcs/signer_test.exs:<line> -x` | ❌ Wave 0 |
-| GCS-03 | Signed URL retrieves the object on the live bucket (round-trip) | integration | `mix test --only gcs` | ❌ Wave 0 |
-| GCS-04 | `gcs-soak` job exists in `.github/workflows/ci.yml` and is gated on `secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON != ''` | static-grep verification | `grep -c 'gcs-soak' .github/workflows/ci.yml` | ❌ Wave 0 (job to be added) |
-| GCS-04 | `gcs-soak` job runs `mix test --only gcs` on the secret-present matrix | manual (CI artifact) | (verified by green CI on a label-secret-set PR) | ❌ Wave 0 |
-| D-13 | `mix rindle.doctor` returns OK for GCS profile when Goth + bucket + signing key are all healthy | unit (with mocked Goth/Finch) | `mix test test/rindle/ops/runtime_checks_test.exs:<line> -x` | ✅ test file exists; needs new test cases |
-| D-13 | `mix rindle.doctor` returns OK silently when no GCS profile is declared (no noise for image-only S3 adopters) | unit | `mix test test/rindle/ops/runtime_checks_test.exs:<line> -x` | ✅ test file exists; needs new test cases |
-
-### Sampling Rate
-
-- **Per task commit:** `mix test test/rindle/storage/gcs_test.exs test/rindle/storage/gcs/` — Bypass-backed unit tests, no network. Should run in < 5 seconds.
-- **Per wave merge:** `mix test` — Full local suite (skips `:gcs` integration tests). Should run in < 60 seconds.
-- **Phase gate:** `mix test --only gcs` against the live bucket on CI (gcs-soak lane), AND `mix test` with everything green locally before `/gsd-verify-work`.
-
-### Wave 0 Gaps
-
-- [ ] `test/rindle/storage/gcs_test.exs` — covers GCS-01 (round-trip), GCS-02 (capabilities), GCS-03 (signing TTL fallback), missing_bucket + goth_unconfigured tagged-error cases. Live-bucket-gated via `@tag :gcs` + `@gcs_skip_reason`.
-- [ ] `test/rindle/storage/gcs/client_test.exs` — Bypass-backed unit tests for `head/store/download/delete` JSON-API plumbing; covers 200/404/4xx/5xx response paths.
-- [ ] `test/rindle/storage/gcs/signer_test.exs` — V4 canonical-string assertions (no network, no Bypass); covers `url/2` TTL fallback.
-- [ ] `test/rindle/ops/runtime_checks_test.exs` — extend with `check_gcs_*` cases (Goth running / not running / dep missing; bucket reachable / 403 / 404; signing key valid / malformed). All tests use mocks — no live network.
-- [ ] `test/rindle/storage/storage_adapter_test.exs` — extend the `for {name, arity} <- callbacks` loop at line 47-50 to include `Rindle.Storage.GCS` once the module exists. Single-line addition; no new file.
-- [ ] `.github/workflows/ci.yml` — add `gcs-soak` job mirroring `mux-soak` structural template at lines 566-653, with secret-gated `if:` and adapted env block.
-
-*(No existing test infrastructure changes besides the storage_adapter_test.exs and runtime_checks_test.exs extensions noted above.)*
-
-## Security Domain
-
-> Required: `security_enforcement` not explicitly disabled in `.planning/config.json`.
-
-### Applicable ASVS Categories
-
-| ASVS Category | Applies | Standard Control |
-|---------------|---------|-----------------|
-| V2 Authentication | yes | OAuth2 service-account JWT-bearer flow delegated to `Goth` (no hand-rolled JWT) |
-| V3 Session Management | no | Adapter is request/response — no session state held inside Rindle |
-| V4 Access Control | no | Bucket-side IAM policy is adopter's concern; adapter forwards GCS 403 as `{:gcs_http_error, %{status: 403, ...}}` |
-| V5 Input Validation | yes | Storage key generation already validated by `Rindle.Security.StorageKey.generate/3` (locked v1.0); adapter passes the key opaquely to GCS — no new validation surface |
-| V6 Cryptography | yes | V4 signing delegated to `gcs_signed_url`; OAuth2 delegated to `Goth`. **NEVER hand-roll RSA-SHA256 canonical-string assembly.** |
-| V7 Error Handling | yes | Locked error vocabulary (`:goth_unconfigured`, `:missing_bucket`, `:storage_object_missing`, `:not_found`, `{:gcs_http_error, ...}`) per D-05; routes through generic `Rindle.Error` fallthrough at `lib/rindle/error.ex:334-336` |
-| V8 Data Protection | yes | OAuth2 access tokens are bearer credentials → must NOT appear in telemetry, logs, `inspect/2`. Mirrors security invariant 14 added in v1.6. |
-| V11 Business Logic | no | No session-orchestration in Phase 37 (resumable broker ships in Phase 39) |
-| V13 API & Web Service | yes | Hand-rolled HTTP client → must follow Rindle's existing redirect/timeout/error-mapping conventions |
-| V14 Configuration | yes | Optional-dep guard (`Code.ensure_loaded?(Goth)`) prevents `Code.LoadError` when adopter forgets to install the dep |
-
-### Known Threat Patterns for Goth + Finch + JSON-API Stack
-
-| Pattern | STRIDE | Standard Mitigation |
-|---------|--------|---------------------|
-| OAuth2 access token leakage in logs/telemetry | Information Disclosure | Strip `authorization` header before any `Logger.metadata/1`, `:telemetry.execute/3`, or `inspect/2` emit. (No bespoke `Rindle.Error` branch — bearer tokens never reach error tuples because `:goth_unconfigured` is a tagged atom only.) |
-| Service-account JSON file leakage in CI logs | Information Disclosure | CI secret `GOOGLE_APPLICATION_CREDENTIALS_JSON` is set as a `secrets.*` reference (auto-redacted by GitHub Actions); never `echo $VAR`; do not write to disk in CI logs. |
-| Server-side Request Forgery via key path | Spoofing | `Rindle.Security.StorageKey.generate/3` (locked v1.0) prevents directory traversal in the key. URL-encoding via `URI.encode/2` blocks scheme-injection. |
-| Bucket-region redirect → request retry against unintended host | Tampering | Document `region_hint` config; explicit handling of 3xx responses (don't auto-follow redirects in Finch). |
-| 404 timing oracle (presence/absence of object) | Information Disclosure | Bucket-level concern; not addressed at adapter layer. |
-| V4 signed URL replay attack | Spoofing | TTL via `signed_url_ttl_seconds()` (default 900s); enforced by GCS server. Adopter's private bucket prevents anonymous access. |
-| OAuth token caching window collisions across multi-tenant adopters | Tampering | Goth caches per named instance; adopters supervising multiple Goth instances per tenant get isolated caches. Documentation point only. |
-
-**New invariant introduced (must hold):** OAuth2 access tokens minted by Goth are bearer credentials. They live only inside the adapter's call stack between `Goth.fetch/1` and `Finch.request/3`. They MUST NOT appear in:
-
-- `Logger` output
-- `:telemetry.execute/3` metadata
-- `inspect/2` output of any persisted struct
-- Error tuples returned to the broker
-- `Rindle.Error.t()` user-facing messages
-
-This is a natural extension of v1.6's security invariant 14 (provider-internal IDs / bearer credentials redaction). Phase 37 introduces no new persisted struct (resumable session URI persistence ships in Phase 38), so the invariant is enforced purely by code-review discipline in this phase.
-
-## Specific Question Answers
-
-The CONTEXT block enumerated 13 specific questions for the planner. Each is answered explicitly here.
-
-### Q1 — GCS JSON API surface (head/store/download/delete)
-
-| Callback | HTTP method + endpoint | Required headers | Success status | Error mapping |
-|----------|----------|----------|----------|----------|
-| `head/2` | `GET https://storage.googleapis.com/storage/v1/b/{bucket}/o/{urlencode(key)}` (alt=json default; no `alt=media`) | `authorization: Bearer $TOKEN`, `accept: application/json` | 200 → parse JSON for `size` (string) + `contentType` | 404 → `:not_found`; 403 → `{:gcs_http_error, %{status: 403, body: ...}}`; 5xx → `{:gcs_http_error, ...}` |
-| `store/3` | `POST https://storage.googleapis.com/upload/storage/v1/b/{bucket}/o?uploadType=multipart` | `authorization: Bearer $TOKEN`, `content-type: multipart/related; boundary=$BOUNDARY` | 200 → parse JSON, return `%{key: key, response: json}` | 4xx/5xx → `{:gcs_http_error, ...}` |
-| `download/3` | `GET https://storage.googleapis.com/storage/v1/b/{bucket}/o/{urlencode(key)}?alt=media` | `authorization: Bearer $TOKEN` | 200 → write streamed body to `destination_path`, return `{:ok, destination_path}` | 404 → `:not_found`; others → `{:gcs_http_error, ...}` |
-| `delete/2` | `DELETE https://storage.googleapis.com/storage/v1/b/{bucket}/o/{urlencode(key)}` | `authorization: Bearer $TOKEN` | 204 No Content → `{:ok, %{key: key}}` | 404 → `:not_found` (or `{:ok, %{key: key}}` for idempotency — mirror S3 behaviour); others → `{:gcs_http_error, ...}` |
-
-**Canonical error envelope** (verified `[CITED: https://docs.cloud.google.com/storage/docs/json_api/v1/status-codes]`):
+`[CITED: docs.cloud.google.com/storage/docs/json_api/v1/status-codes]`
 
 ```json
 {
   "error": {
-    "code": <integer http status>,
-    "message": "<human-readable>",
+    "code": 404,
+    "message": "Not Found",
     "errors": [
-      {
-        "domain": "global",
-        "reason": "<short atom-like>",
-        "message": "<message>",
-        "locationType": "<...>",
-        "location": "<...>"
-      }
+      {"domain": "global", "reason": "notFound", "message": "Not Found"}
     ]
   }
 }
 ```
 
-**Differs from S3:** S3 returns XML (parsed by ExAws); GCS returns JSON. The atom mapping (`:not_found` for 404, `:missing_bucket` for absent config, `{:gcs_http_error, ...}` generic fallback) is identical.
+**Error mapping (locked):**
+- HTTP 404 + `error.errors[0].reason == "notFound"` -> `{:error, :not_found}`
+- HTTP 403 -> `{:error, {:gcs_http_error, %{status: 403, body: parsed_body}}}`
+- HTTP 5xx -> `{:error, {:gcs_http_error, %{status: 5xx, body: parsed_body}}}`
+- Other 4xx -> `{:error, {:gcs_http_error, %{status: 4xx, body: parsed_body}}}`
+- Network failure -> `{:error, %Mint.TransportError{}}` (let Finch's exception bubble up wrapped)
 
-### Q2 — Goth auth flow
+The `body` field in `{:gcs_http_error, %{status, body}}` should be
+`Jason.decode/1`'d JSON map when content-type is `application/json`,
+falling back to the raw binary otherwise.
 
-**Token lifecycle:** Adopter declares `{Goth, name: MyApp.Goth, source: {:service_account, creds}}` in their supervision tree. Goth pre-fetches a token at boot (`prefetch: :async` is configurable) and refreshes 5 minutes before expiry by default.
+### Section 3: V4 Signing via gcs_signed_url 0.4.6
 
-**Adapter lookup:** `Goth.fetch(MyApp.Goth)` returns `{:ok, %Goth.Token{token: token, type: type, expires: integer, scope: string, sub: string|nil, account: term}} | {:error, Exception.t()}`. The adapter wraps with `try/catch :exit` to convert `:noproc` (instance not started) to `{:error, :goth_unconfigured}`. `[CITED: https://hexdocs.pm/goth/Goth.Token.html]`
+**API surface (verified live source 2026-05-07):**
 
-**Source verification:** `[VERIFIED: hexdocs + GitHub source review]` — `peburrows/goth/lib/goth.ex` exposes `def fetch(name, timeout \\ 5000)` which calls `GenServer.call(registry_name(name), :fetch, timeout)`.
+`GcsSignedUrl.Client.load/1` `[VERIFIED: github.com/alexandrubagu/gcs_signed_url/blob/main/lib/gcs_signed_url/client.ex]`:
+- Accepts a decoded service-account JSON map: `%{"private_key" => pem, "client_email" => email}` (string keys)
+- OR a file path string (which it `File.read!` + `Jason.decode!`s).
+- Returns `%GcsSignedUrl.Client{private_key: pem, client_email: email}`.
+- Does NOT validate PEM at construction time; validation happens at signing time via `:public_key.pem_decode/1`.
 
-### Q3 — gcs_signed_url 0.4.6 API
+`GcsSignedUrl.generate_v4(client, bucket, filename, opts)` `[CITED: hexdocs.pm/gcs_signed_url/GcsSignedUrl.html]`:
+- `client`: `%GcsSignedUrl.Client{}` (returns bare URL string) OR
+  `%GcsSignedUrl.SignBlob.OAuthConfig{}` (returns `{:ok, url}` | `{:error, reason}`).
+- `bucket`: bucket name string.
+- `filename`: object key string.
+- `opts`:
+  - `verb: "GET" | "PUT"` (HTTP method)
+  - `expires: integer` (TTL in seconds)
+  - `headers: keyword` (additional headers signed into URL)
+  - `query_params: keyword`
+  - `valid_from: DateTime`
+  - `host: String.t()` (custom host)
 
-**Function signatures** `[VERIFIED: hexdocs.pm/gcs_signed_url/GcsSignedUrl.html + GitHub source]`:
-
+**Phase 37 call shape (private-key mode, locked):**
 ```elixir
-# Client mode (PEM private key, no network — Phase 37 locked path)
-@spec generate_v4(Client.t(), String.t(), String.t(), sign_v4_opts()) :: String.t()
-
-# OAuthConfig mode (IAM SignBlob — deferred to v1.7+)
-@spec generate_v4(SignBlob.OAuthConfig.t(), String.t(), String.t(), sign_v4_opts()) ::
-  {:ok, String.t()} | {:error, String.t()}
+# lib/rindle/storage/gcs/signer.ex
+@spec sign_v4(client :: GcsSignedUrl.Client.t(), bucket :: String.t(),
+              key :: String.t(), expires_in :: pos_integer()) :: {:ok, String.t()}
+def sign_v4(client, bucket, key, expires_in) do
+  url = GcsSignedUrl.generate_v4(client, bucket, key, verb: "GET", expires: expires_in)
+  {:ok, url}
+end
 ```
 
-**Critical:** Client mode returns a bare `String.t()`, NOT `{:ok, _}`. The adapter wraps the result:
-
+**Credential normalization (`signing_key:` config can be map OR PEM):**
 ```elixir
-{:ok, GcsSignedUrl.generate_v4(client, bucket, key, verb: "GET", expires: ttl)}
+defp build_client(%{} = service_account_json), do: GcsSignedUrl.Client.load(service_account_json)
+defp build_client(pem) when is_binary(pem) do
+  # If raw PEM (not full JSON), adopter must also configure :client_email
+  %GcsSignedUrl.Client{private_key: pem, client_email: client_email_from_config()}
+end
 ```
 
-**Opts shape** (`sign_v4_opts()`): `verb`, `headers`, `query_params`, `valid_from` (DateTime), `expires` (integer seconds), `host`.
+**Don't-enforce-via-URL invariant (D-03):** Phase 37 `url/2` MUST NOT
+forward `response-content-disposition` or `response-content-type` query
+params into the signed URL. Disposition/type live in object metadata at
+`store/3` only (set via the multipart metadata JSON's `contentDisposition`
+and `contentType` fields).
 
-**Client construction** (`[CITED: https://github.com/alexandrubagu/gcs_signed_url/blob/master/lib/gcs_signed_url/client.ex]`):
+### Section 4: Bypass Fixture Topology
 
+**Status:** Bypass is declared in `mix.exs:92` (`{:bypass, "~> 2.1", only: :test}`)
+but NOT currently used anywhere in the test suite. Phase 37 introduces the
+first Bypass usage. `[VERIFIED: grep -r Bypass lib/ test/]`
+
+**Recommended topology (planner discretion per CONTEXT):** One `setup` block
+per test file (`gcs/client_test.exs`), with helper macros for the four REST
+verbs. This keeps tests close to the assertions they make. Shared fixture
+modules add indirection that hurts read-time clarity in a 4-verb adapter.
+
+**Fixture pattern (Bypass canonical idiom):**
 ```elixir
-# From a path
-client = GcsSignedUrl.Client.load_from_file("/path/to/key.json")
-# From a decoded JSON map (recommended for security — adopter decodes once)
-client = GcsSignedUrl.Client.load(json_map)
+# test/rindle/storage/gcs/client_test.exs
+defmodule Rindle.Storage.GCS.ClientTest do
+  use ExUnit.Case, async: true
+
+  setup do
+    bypass = Bypass.open()
+    base_url = "http://localhost:#{bypass.port}"
+    {:ok, bypass: bypass, base_url: base_url}
+  end
+
+  test "head_object/3 returns parsed metadata on 200", %{bypass: bypass, base_url: url} do
+    Bypass.expect(bypass, "GET", "/storage/v1/b/test-bucket/o/foo%2Fbar.jpg", fn conn ->
+      assert {"alt", "json"} in conn.query_params
+      Plug.Conn.resp(conn, 200, ~s({"size":"1024","contentType":"image/jpeg"}))
+    end)
+
+    assert {:ok, %{size: 1024, content_type: "image/jpeg"}} =
+             Client.head_object("foo/bar.jpg", base_url: url, bucket: "test-bucket", goth_token: "fake")
+  end
+
+  test "head_object/3 returns :not_found on 404", %{bypass: bypass} do
+    Bypass.expect(bypass, "GET", "/storage/v1/b/test-bucket/o/missing.jpg", fn conn ->
+      Plug.Conn.resp(conn, 404, ~s({"error":{"code":404,"message":"Not Found"}}))
+    end)
+
+    assert {:error, :not_found} = Client.head_object("missing.jpg", ...)
+  end
+end
 ```
 
-The `Client` struct has `private_key: String.t()` (PEM-encoded) and `client_email: String.t()`. Internally uses `:public_key.pem_decode` + `:public_key.pem_entry_decode` so a malformed PEM raises `MatchError` at signing time (NOT load time).
-
-**Response-content-disposition / response-content-type:** Per the locked candidate §10 and Active Storage's lesson, GCS V4 signed URLs do NOT safely enforce these as `response-*` query params — that's why D-03 puts them in object metadata at store time. The library doesn't surface them as opts because they're not reliable.
-
-**Migration story (Google drops V4):** Out of scope. V2 is already legacy per Google docs. No public migration path is documented; if it ever happens, the adapter swaps `generate_v4` → `generate_v5` (or whatever Google ships) inside `Signer` only — no public API churn.
-
-### Q4 — Finch JSON-API plumbing
-
-**Streaming body for store/3:** `Finch.build(:post, url, headers, {:stream, body_stream})`. The `body_stream` is any `Stream.t()` yielding `iodata` chunks. `[CITED: https://hexdocs.pm/finch/Finch.html]`
-
-**Streaming body for download/3:** Use `Finch.stream/4` (NOT `Finch.request/3`) so the body chunks pipe directly to `File.write/3` without buffering the whole object:
-
+**Multipart-upload body assertion (most complex test):**
 ```elixir
-File.open(destination_path, [:write, :binary], fn file ->
-  Finch.stream(req, finch_name(opts), :ok, fn
-    {:status, status}, _acc when status in 200..299 -> :ok
-    {:status, 404}, _acc -> {:halt, :not_found}
-    {:headers, _headers}, acc -> acc
-    {:data, chunk}, _acc -> IO.binwrite(file, chunk); :ok
-  end)
+Bypass.expect(bypass, "POST", "/upload/storage/v1/b/test-bucket/o", fn conn ->
+  assert {"uploadType", "multipart"} in conn.query_params
+
+  # Read raw body (Bypass uses Plug.Conn — raw_body via :body_reader hack)
+  {:ok, body, conn} = Plug.Conn.read_body(conn, length: 10_000_000)
+
+  # Parse boundary from content-type header
+  ["multipart/related; boundary=" <> boundary] =
+    Plug.Conn.get_req_header(conn, "content-type")
+
+  # Assert metadata part contains contentDisposition
+  assert body =~ "contentDisposition"
+  assert body =~ "image/jpeg"
+
+  Plug.Conn.resp(conn, 200, ~s({"name":"foo.jpg","bucket":"test-bucket","generation":"123"}))
 end)
 ```
 
-**S3 doesn't have a shared helper.** S3 uses `ExAws.S3.download_file` which returns an `ExAws.S3.Download` struct streamed by ExAws's runtime. GCS adapter's stream handling is internal to `gcs/client.ex` — no shared module needed.
+**Bypass URL injection:** The `gcs.ex` adapter must accept a `base_url:`
+opt that defaults to `"https://storage.googleapis.com"` so tests can swap
+in `bypass.port`-derived URLs without monkey-patching the module. This is
+standard Bypass discipline.
 
-**Phase 37 minimum for non-resumable upload:** **uploadType=multipart** (NOT uploadType=media). See Pattern 3 above and Q5 below.
+**Forbidden patterns:**
+- Do NOT use `Bypass.stub/4` for assertion-bearing tests (it doesn't
+  fail-fast on missing requests). Use `Bypass.expect/4` everywhere.
+- Do NOT share one Bypass instance across `async: true` tests in different
+  files (port collisions). Per-test setup is safe.
 
-### Q5 — Object metadata at store/3
+### Section 5: mux-soak Workflow Clone Discipline
 
-**GCS JSON API field names** (camelCase, not snake_case) `[CITED: https://docs.cloud.google.com/storage/docs/json_api/v1/objects/insert]`:
+**Source template:** `.github/workflows/ci.yml:566-653` `[VERIFIED: file read 2026-05-07]`
 
-- `contentType` (mirrors HTTP `Content-Type`)
-- `contentDisposition` (mirrors HTTP `Content-Disposition`)
-- `contentEncoding`, `cacheControl`, `contentLanguage` — also supported but Phase 37 doesn't expose
-- `metadata` (object) — arbitrary key/value pairs; out of scope for Phase 37 (D-03 only locks ContentType + ContentDisposition)
-
-**uploadType options:**
-
-| Variant | Sets contentType | Sets contentDisposition | Single request? |
-|---------|------------------|------------------------|-----------------|
-| `uploadType=media` | yes (via HTTP `Content-Type`) | NO | yes |
-| `uploadType=multipart` | yes (via JSON metadata) | YES (via JSON metadata) | yes |
-| `X-Goog-Meta-*` headers | (custom only) | NO | yes |
-
-**Recommendation: uploadType=multipart.** D-03 requires both `Content-Type` AND `Content-Disposition` at store-time. `multipart` is the only single-request option that sets both atomically.
-
-### Q6 — `mix rindle.doctor` extension
-
-**Cleanest profile-aware hook:** Add three new check functions to `lib/rindle/ops/runtime_checks.ex` that splice into the existing `checks` list at lines 67-81:
-
-```elixir
-checks = [
-  fn -> check_delivery_support(profiles) end,
-  # ... existing checks ...
-  fn -> check_streaming_smoke_ping(profiles, env, opts) end,
-  # NEW (Phase 37 / D-13):
-  fn -> check_gcs_goth_running(profiles, env) end,
-  fn -> check_gcs_bucket_reachable(profiles, env) end,
-  fn -> check_gcs_signing_key(profiles, env) end
-]
-```
-
-Each new check follows the streaming-credentials template at lines 526-607:
-
-1. **Profile-aware short-circuit:** `gcs_profiles(profiles) == [] → ok_result(...)` (silent OK when no GCS profile).
-2. **Optional-dep guard:** `not Code.ensure_loaded?(Goth) → error_result(...)` ("dep missing").
-3. **Real check:** Goth instance fetch / bucket HTTP probe / signing-key parse.
-
-**Function names (suggested):**
-
-- `check_gcs_goth_running/2` — `Goth.fetch(goth_name)` returns `{:ok, _}`
-- `check_gcs_bucket_reachable/2` — `GET /storage/v1/b/$BUCKET` returns 200 OR 403 (both prove the bucket exists; 403 = exists but ACL denies = still healthy from a name-resolution perspective)
-- `check_gcs_signing_key/2` — `GcsSignedUrl.Client.load_from_file/1` (or `load/1`) succeeds without raising
-
-**Splice location:** Functions added below the streaming check block (after line 607). Module attribute fixes (`@gcs_dep_missing_fix`, `@gcs_goth_fix`, `@gcs_bucket_fix`, `@gcs_signing_key_fix`) added near the existing `@streaming_*_fix` block at lines 16-36.
-
-**Determinism:** `lib/rindle/ops/runtime_checks.ex:83` already does `Enum.sort_by(& &1.id)` so doctor output is alphabetically stable: `doctor.delivery_support`, `doctor.ffmpeg_runtime`, `doctor.gcs_bucket_reachable`, `doctor.gcs_goth_running`, `doctor.gcs_signing_key`, `doctor.local_playback`, ..., `doctor.streaming_*`.
-
-### Q7 — CI lane secret-gating (canonical fork-PR-safe pattern)
-
-**Pattern:**
+**Field-by-field spec for the new `gcs-soak` job:**
 
 ```yaml
 gcs-soak:
@@ -1040,286 +789,950 @@ gcs-soak:
 
   services:
     postgres:
-      # ... copy from mux-soak ...
+      image: postgres:16-alpine
+      ports:
+        - 5432:5432
+      env:
+        POSTGRES_USER: postgres
+        POSTGRES_PASSWORD: postgres
+        POSTGRES_DB: rindle_test
+      options: >-
+        --health-cmd pg_isready
+        --health-interval 10s
+        --health-timeout 5s
+        --health-retries 5
 
   steps:
     - name: Checkout
       uses: actions/checkout@v4
+
     - name: Set up Elixir
       uses: erlef/setup-beam@v1
       with:
         elixir-version: "1.17"
         otp-version: "27"
+
+    - name: Install libvips
+      run: sudo apt-get install -y libvips-dev
+
     - name: Install dependencies
       run: mix deps.get
-    - name: Run GCS integration tests
+
+    - name: Run real-GCS soak proof
       run: mix test --only gcs
 ```
 
-**Critical:** the secret MUST be propagated to `env:` because the test code reads `System.get_env("GOOGLE_APPLICATION_CREDENTIALS_JSON")` at module-load time. The `if:` check controls whether the job runs at all; the `env:` block makes the value available to the test process. **Both are required.**
+**Field-by-field deviations from `mux-soak`:**
 
-**Fork-PR safe:** GitHub Actions resolves `secrets.*` to empty strings on fork PRs (with the `pull_request` trigger, not `pull_request_target`). The `if: ${{ secrets.X != '' }}` clause causes the lane to skip cleanly. This mirrors the locked v1.5 MinIO discipline + the v1.6 Phase 36 mux-soak label-gated pattern (with `secrets.*` substituted for label).
+| Field | mux-soak | gcs-soak | Why differ |
+|-------|----------|----------|-----------|
+| Trigger gate | `if: contains(github.event.pull_request.labels.*.name, 'streaming')` | `if: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON != '' }}` | GCS-04 explicitly requires secret-presence gating, not label gating. Fork-PR safety: forks resolve secret to `''` and lane skips. |
+| `RINDLE_MUX_*` env vars | All 5 Mux-specific secrets | Drop entirely | Different adapter |
+| Mux `RINDLE_MUX_PASSTHROUGH_TAG` | `"rindle_soak"` for cleanup tagging | N/A | GCS objects can be cleaned by key prefix without server-side tagging |
+| `RINDLE_MINIO_*` env vars | All 5 MinIO env vars | Drop entirely | GCS doesn't need MinIO bring-up |
+| MinIO Docker bring-up + bucket creation steps (lines 626-646) | Required for Mux's broker-flow tests that go through MinIO storage | Drop entirely | GCS soak hits live Google bucket |
+| Test command | `bash scripts/install_smoke.sh mux` | `mix test --only gcs` | Phase 37 is unit-level adapter coverage; package-consumer fresh-Phoenix install lane is Phase 41 |
+| Cleanup step | `bash scripts/mux_soak_cleanup.sh` (Mux assets cost money) | None for Phase 37; ephemeral test objects are deleted by the test's `delete/2` call | If desired, planner can add `gcs_soak_cleanup.sh` to delete leftover `gcs-soak/*` keys; not strictly required |
+| Matrix | None (single elixir 1.17/otp 27 line) | Same — single matrix row | Mirrors mux-soak exactly |
 
-**Structural diff vs. mux-soak:**
+**Insertion point in `ci.yml`:** After line 653 (end of mux-soak), before
+the next job. Don't reorder existing jobs.
 
-| mux-soak | gcs-soak |
-|----------|----------|
-| `if: contains(github.event.pull_request.labels.*.name, 'streaming')` | `if: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON != '' }}` |
-| `RINDLE_MUX_*` env block (5 secrets) | `GOOGLE_APPLICATION_CREDENTIALS_JSON` + `RINDLE_GCS_BUCKET` (2 secrets) |
-| Starts MinIO docker container | No MinIO needed (not testing S3) |
-| Runs `bash scripts/install_smoke.sh mux` | Runs `mix test --only gcs` |
-| Three-layer cleanup mitigation (passthrough tag + cleanup script) | Phase 37 doesn't need cleanup (every test creates a unique key via `System.unique_integer/1` + cleans up at end of test, mirroring `s3_test.exs:30-82`) |
+**Fork-PR safety verification:** `pull_request` trigger (NOT
+`pull_request_target`) means GitHub redacts secrets to empty string for
+fork PRs. The `if:` check on `secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON != ''`
+short-circuits the entire job. This mirrors the v1.6 Phase 36 mux-soak
+discipline. `[CITED: PROJECT.md key-decisions row "Generated-app mux-soak lane is label-gated"]`
 
-### Q8 — Bypass topology
+### Section 6: Cross-Adapter Parity Test Obligations
 
-**Recommendation:** **Per-test `setup` block, no shared fixture module.**
+**Source:** `test/rindle/storage/storage_adapter_test.exs:41-83` `[VERIFIED: file read 2026-05-07]`
 
-**Rationale:**
-- Bypass is brand-new in this codebase (mix.exs:92 declares it; no current test uses it). Designing a shared module up front is premature.
-- The 4 callbacks (`head`, `store`, `download`, `delete`) have wildly different request shapes (GET metadata, POST multipart, GET media, DELETE). A "shared fixture" module would devolve into 4 separate `expect_*` functions anyway — same code, indirection layer.
-- `gcs/client_test.exs` will have ~12-15 tests (200/404/4xx/5xx × 4 callbacks + edge cases). 12 `setup` blocks of 3 lines each is 36 LOC; a shared module is 60+. The shared module is the wrong abstraction.
+**What GCS must export to pass without parity-test changes:**
 
-**Tradeoff acknowledgment:** If Phase 39 (resumable callbacks) adds 4 more callbacks with similar Bypass needs, the shared-module abstraction becomes worth pulling out. Phase 37 should NOT preemptively design that abstraction; let Phase 39 surface the duplication if it's real.
+The existing parity test (lines 41-51) iterates `Rindle.Storage.behaviour_info(:callbacks)`
+and asserts `function_exported?/3` on `Local` and `S3`. To extend to GCS,
+the planner has two options:
 
-**Pattern (per-test):**
+1. **Add GCS to the existing iteration** (lines 41-51):
+   ```elixir
+   for {name, arity} <- callbacks do
+     assert function_exported?(Local, name, arity)
+     assert function_exported?(S3, name, arity)
+     assert function_exported?(Rindle.Storage.GCS, name, arity)
+   end
+   ```
 
+2. **Add a new GCS-specific `capability` test alongside lines 77-83** (CLAUDE'S DISCRETION per CONTEXT):
+   ```elixir
+   test "GCS adapter capability list is truthful" do
+     assert [:signed_url, :head] == Rindle.Storage.GCS.capabilities()
+     assert Enum.all?(Rindle.Storage.GCS.capabilities(), &(&1 in Capabilities.known()))
+   end
+   ```
+
+**Required exports (all 11 callbacks from the behaviour at `lib/rindle/storage.ex:67-198`):**
+
+| Callback | Arity | Phase 37 implementation |
+|----------|-------|------------------------|
+| `store/3` | 3 | Real (multipart upload) |
+| `download/3` | 3 | Real (GET ?alt=media) |
+| `delete/2` | 2 | Real (DELETE) |
+| `url/2` | 2 | Real (V4 signed) |
+| `presigned_put/3` | 3 | Stub: `{:error, {:upload_unsupported, :presigned_put}}` |
+| `initiate_multipart_upload/3` | 3 | Stub: `{:error, {:upload_unsupported, :multipart_upload}}` |
+| `presigned_upload_part/5` | 5 | Stub: same |
+| `complete_multipart_upload/4` | 4 | Stub: same |
+| `abort_multipart_upload/3` | 3 | Stub: same |
+| `head/2` | 2 | Real (GET ?alt=json) |
+| `capabilities/0` | 0 | `[:signed_url, :head]` |
+
+**Capability-list contract assertion (GCS-02 invariant):** Phase 37 MUST
+add a unit test that pins the exact capability list. This catches Phase 39's
+accidental early advertisement:
 ```elixir
-setup do
-  bypass = Bypass.open()
-  on_exit(fn -> Bypass.shutdown(bypass) end)  # auto-cleanup
-  {:ok, bypass: bypass, base_url: "http://localhost:#{bypass.port}"}
-end
-
-test "head/2 returns size + content_type on 200 OK", %{bypass: bypass, base_url: base_url} do
-  Bypass.expect_once(bypass, "GET", "/storage/v1/b/my-bucket/o/foo.jpg", fn conn ->
-    Plug.Conn.resp(conn, 200, Jason.encode!(%{"size" => "1024", "contentType" => "image/jpeg"}))
-  end)
-  # ... assertions ...
+test "GCS adapter advertises only signed_url and head in Phase 37" do
+  assert Rindle.Storage.GCS.capabilities() == [:signed_url, :head]
+  refute :resumable_upload in Rindle.Storage.GCS.capabilities()
+  refute :resumable_upload_session in Rindle.Storage.GCS.capabilities()
 end
 ```
 
-### Q9 — dialyzer plt_add_apps (definitive answer)
+### Section 7: mix rindle.doctor GCS Health Checks (D-13)
 
-**ANSWER: YES, add `:finch` to `dialyzer.plt_add_apps`.** D-07 said "verify in plan"; this research verifies.
+**Source template:** `lib/rindle/ops/runtime_checks.ex:526-643` `[VERIFIED: file read 2026-05-07]`
 
-**Evidence:** `grep "finch" mix.lock` returns ONE match — `tesla` declares `finch` as `optional: true`, but tesla is not loaded by Phase 37 (S3 uses ExAws + hackney, not Tesla). No top-level Rindle dep pulls in finch. Dialyzer would error on `Finch.build/3,4,5`, `Finch.request/2,3`, `%Finch.Response{}` references inside `gcs/client.ex` without an explicit PLT entry.
-
-**Recommended edit:**
-
-```elixir
-# mix.exs:22
-plt_add_apps: [:mix, :ex_unit, :mux, :jose, :goth, :finch, :gcs_signed_url],
-```
-
-The CONTEXT D-07 explicitly says "Not `:finch` — already in tree as a non-optional dep elsewhere; verify in plan." Research confirms this assumption is **incorrect**. Finch is NOT in the tree as a non-optional dep. Phase 37 plan must add `:finch`.
-
-### Q10 — Cross-adapter parity test impact
-
-**Discovery mechanism:** `test/rindle/storage/storage_adapter_test.exs:41-51` enumerates callbacks via `Rindle.Storage.behaviour_info(:callbacks)` and asserts `function_exported?(adapter, name, arity)`. The adapter list (`Local`, `S3`) is HARD-CODED at lines 47-50, NOT auto-discovered.
-
-**Required Phase 37 change:**
+**Profile-aware discovery helper** (mirror `Rindle.Capability.configured_streaming_profiles/1`
+at `lib/rindle/capability.ex:98-104`):
 
 ```elixir
-# Existing (lines 41-51):
-test "both adapters implement the storage behaviour callbacks" do
-  Code.ensure_loaded!(Local)
-  Code.ensure_loaded!(S3)
-
-  callbacks = Rindle.Storage.behaviour_info(:callbacks)
-
-  for {name, arity} <- callbacks do
-    assert function_exported?(Local, name, arity)
-    assert function_exported?(S3, name, arity)
+@spec configured_gcs_profiles([module()]) :: [module()]
+def configured_gcs_profiles(profiles) do
+  for profile <- profiles,
+      profile.storage() == Rindle.Storage.GCS do
+    profile
   end
 end
+```
 
-# Phase 37 minimum extension:
-test "all adapters implement the storage behaviour callbacks" do
-  alias Rindle.Storage.GCS
-  Code.ensure_loaded!(Local)
-  Code.ensure_loaded!(S3)
-  Code.ensure_loaded!(GCS)
+**Three new doctor checks** (Phase 37 ships, Phase 41 layers CORS check):
 
-  callbacks = Rindle.Storage.behaviour_info(:callbacks)
+#### Check 1: `doctor.gcs_goth_running`
 
-  for {name, arity} <- callbacks do
-    assert function_exported?(Local, name, arity)
-    assert function_exported?(S3, name, arity)
-    assert function_exported?(GCS, name, arity)
+```elixir
+defp check_gcs_goth_running(profiles, env) do
+  cond do
+    configured_gcs_profiles(profiles) == [] ->
+      ok_result("doctor.gcs_goth_running", :gcs,
+        "No GCS-enabled profiles discovered.", @gcs_goth_fix)
+
+    not Code.ensure_loaded?(Goth) ->
+      error_result("doctor.gcs_goth_running", :gcs,
+        "GCS-enabled profile detected but :goth dep is not loaded.",
+        @gcs_dep_missing_fix)
+
+    true ->
+      goth_name = configured_goth_name()  # from config :rindle, Rindle.Storage.GCS
+      case Process.whereis(goth_name) do
+        nil ->
+          error_result("doctor.gcs_goth_running", :gcs,
+            "Goth process #{inspect(goth_name)} is not running.",
+            @gcs_goth_fix)
+        pid when is_pid(pid) ->
+          ok_result("doctor.gcs_goth_running", :gcs,
+            "Goth process #{inspect(goth_name)} is alive.",
+            @gcs_goth_fix)
+      end
   end
 end
 ```
 
-**Also extend** the truthful-capabilities assertion at lines 77-83 to add `assert [:signed_url, :head] == GCS.capabilities()`.
+#### Check 2: `doctor.gcs_bucket_reachable`
 
-**Why no parity-test refactor:** Adapter discovery via `Code.ensure_loaded?` + reflection is tempting but couples discovery to module name conventions. Explicit assertion list is clearer. If the registry grows beyond 3-4 adapters, refactor to `defmodule` registry. Not now.
+```elixir
+defp check_gcs_bucket_reachable(profiles, _env) do
+  # Skip if no GCS profile, no Goth dep, or no bucket configured
+  # Issue GET /storage/v1/b/$BUCKET with 5s timeout
+  # 200 -> ok (bucket exists)
+  # 403 -> ok with note ("forbidden — bucket exists, IAM may need adjustment")
+  # 404 -> error ("bucket not found")
+  # network -> error
+end
+```
 
-### Q11 — Plan execution order (Claude's Discretion)
+This check uses `Goth.fetch/1` to acquire a token, then a single Finch GET
+to `https://storage.googleapis.com/storage/v1/b/$BUCKET`. 403 is treated as
+"reachable" because the bucket exists but the IAM grant might just be
+read-restricted — distinguishing this from `404 not found` is the diagnostic
+value.
 
-**Recommended order: Client → Signer → Adapter+Capabilities → CI Lane + Doctor.**
+#### Check 3: `doctor.gcs_signing_key`
 
-| Order | Plan | Requirement | Rationale for sequencing |
-|-------|------|-------------|--------------------------|
-| Plan 01 | **Client** (`gcs/client.ex`) — Finch JSON-API plumbing | GCS-01 (head, store, download, delete) | Bypass-backed unit tests prove the HTTP plumbing in isolation BEFORE auth or signing add complexity. The 4 callbacks are pure HTTP request shaping → testable with mocked Goth tokens (`opts: [token: "fake"]`). |
-| Plan 02 | **Signer** (`gcs/signer.ex`) — V4 signing wrapper | GCS-03 | V4 signing is local (no network) → unit tests can assert canonical-string contents directly. Lands BEFORE the Adapter so `url/2` has its inner dependency ready. |
-| Plan 03 | **Adapter** (`gcs.ex`) — `@behaviour` impl + `capabilities/0` + cross-adapter parity test extension | GCS-01 (assembly), GCS-02 | Wires Client + Signer behind the public surface. Live `@tag :gcs` integration tests (real bucket round-trip) prove the end-to-end stack. Cross-adapter parity test extension (Q10) lands here. |
-| Plan 04 | **CI Lane + Doctor** (`.github/workflows/ci.yml` + `runtime_checks.ex`) | GCS-04, D-13 | Last because (a) the soak lane needs the test suite to exist (Plans 01-03), (b) doctor checks exercise the same Goth/signing-key code paths that Plans 01-03 build. Adopter-facing surface stabilizes before CI/observability layer. |
+Mirror `verify_signing_key_pem/1` at `lib/rindle/ops/runtime_checks.ex:612-643`:
 
-**Alternative orders considered + rejected:**
+```elixir
+defp check_gcs_signing_key(profiles, _env) do
+  # Skip if no GCS profile or no :gcs_signed_url dep
+  # Read config :rindle, Rindle.Storage.GCS, :signing_key
+  # If map: try GcsSignedUrl.Client.load(map) — must return %GcsSignedUrl.Client{}
+  # If string (PEM): parse via :public_key.pem_decode/1, check non-empty
+  # On exception, surface struct name only (NOT message — could leak PEM)
+end
+```
 
-- **Adapter-first:** Tempting because the public surface is the deliverable. Rejected because Adapter without Client/Signer is a stub — no real tests. The order above is "leaves first, root last."
-- **Signer-first (then Client):** Defensible; signing is simpler than HTTP plumbing. But `url/2` is the only callback that uses Signer; the other 4 use Client. Client-first means 4-of-5 callbacks have working tests after Plan 01.
-- **CI lane first:** Rejected — the lane depends on tests that don't exist yet.
+**Critical invariant** from `runtime_checks.ex:632-636`: rescue clause must
+report `inspect(exception.__struct__)` only, NOT `Exception.message/1` —
+the message could echo PEM content into doctor output, which then ends up
+in CI logs.
 
-### Q12 — Risk register for the planner
+**Profile-awareness:** All three checks gate on
+`configured_gcs_profiles(profiles) == []`, returning `ok_result` with
+"No GCS-enabled profiles discovered." This is the v1.6 Mux template
+(`runtime_checks.ex:528-534`). Image-only S3 adopters see no new noise.
 
-| Risk | Likelihood | Impact | Pre-emption |
-|------|-----------|--------|-------------|
-| `:finch` not in PLT → dialyzer fails CI | HIGH (CONTEXT D-07 explicitly assumed wrong) | MEDIUM (CI red) | Plan 04 (or 03) edits `mix.exs:22` to add `:finch`. Verified by `mix dialyzer` locally. |
-| Signing-key format ambiguity (PEM string vs JSON map vs file path) | MEDIUM | HIGH (cryptic runtime errors) | Pitfall 2 above; explicit type dispatch in `Signer.build_client/1`. |
-| Bypass URL discovery mismatch (absolute vs relative) | MEDIUM | LOW (test fails loudly) | Pitfall 5; thread `:base_url` opt through Client. |
-| `Goth.fetch/1` raises `:exit` (not returns `{:error, _}`) when instance not started | HIGH | MEDIUM (cryptic errors for adopters) | Pitfall 1; `try/catch :exit` wrapper in fetch_token helper. |
-| GCS `size` field is JSON string, not integer → parity test fails | HIGH | LOW (caught by test; easy fix) | Pitfall 3; mirror S3's `parse_size/1`. |
-| Bucket region mismatch returns 307 redirect | LOW | LOW (caught by integration test) | Pitfall 4; explicit 3xx handling in Client; document `region_hint`. |
-| Adopter sets `signing_key:` to a raw PEM string (not JSON) | MEDIUM | MEDIUM (cryptic at signing time) | Document explicit accepted shapes in Adapter `@moduledoc`; raise `ArgumentError` early in `Signer.build_client/1`. |
-| `capabilities/0` accidentally advertises resumable atoms | LOW | HIGH (breaks Phase 39 contract) | Pitfall 6; explicit `==` assertion in test. |
-| Cross-adapter parity test broken when GCS module is added | LOW | HIGH (fails CI on Phase 37 PR) | Q10 explicit extension; Plan 03 includes the test edit in same commit as adapter shipping. |
-| Optional-dep transitive cost surprise (Goth pulls Finch + Mint + nimble_options + nimble_pool) | MEDIUM | LOW (image-only adopters using `optional: true` see no transitive cost; CI image-only lane time may grow modestly) | Document in `mix.exs` comment; verify package-consumer image-only lane stays green (existing CI invariant). |
-| OAuth access token leaked in error tuple | LOW | HIGH (security invariant breach) | Pitfall in Anti-Patterns; never include token in `{:error, ...}` shape. |
-| Doctor regression: image-only adopters see new noise | LOW | MEDIUM (DX regression) | D-13 profile-aware short-circuit (Q6 above); test that `check_gcs_*` returns OK silently when no GCS profile is declared. |
+**Wiring:** Add three new `fn -> check_gcs_*/2 end` entries to the `checks`
+list in `Rindle.Ops.RuntimeChecks.run/2` (around `runtime_checks.ex:67-81`).
 
-### Q13 — Validation Architecture: see §Validation Architecture above
+### Section 8: mix.exs Declarations Diff
 
-The §Validation Architecture section above answers Q13 in full, including:
-- Test framework + commands
-- Phase requirement → test mapping (one row per requirement)
-- Sampling rate (per task / per wave / phase gate)
-- Wave 0 gaps (5 new test files + extensions to 2 existing files + the gcs-soak job)
+**Three diffs in `mix.exs`:**
 
-The mapping covers BOTH local-without-credentials runs (Bypass-backed unit tests prove correctness) AND live-bucket gcs-soak coverage (real round-trip).
+#### Diff 1: `dialyzer.plt_add_apps` (line 22)
 
-## State of the Art
+```elixir
+# Before:
+plt_add_apps: [:mix, :ex_unit, :mux, :jose],
 
-| Old Approach | Current Approach | When Changed | Impact |
-|--------------|------------------|--------------|--------|
-| `google_api_storage` auto-generated SDK | Hand-rolled Finch JSON client | Locked v1.6 candidate plan (2026-05-06) | ~250 LOC owned vs 200+ Tesla-coupled transitive modules; cleaner session-URI handling |
-| V2 signed URLs | V4 only | Per Google docs (V2 deprecated, V4 standard since ~2018) | No effect — Phase 37 ships V4 from day one |
-| Hackney for HTTP | Finch | Locked v1.6 Phase 35 | Aligns with Goth's transitive client; HTTP/2 ready |
-| Single-instance Goth | Named-instance Goth | Goth 1.3 (2022-06) | Adopter supervises; multi-tenant adopters get isolated caches |
+# After:
+plt_add_apps: [:mix, :ex_unit, :mux, :jose, :goth, :gcs_signed_url],
+```
 
-**Deprecated/outdated:**
-- V2 signing → use V4 (`generate_v4`)
-- `google_api_storage` for resumable / session-URI flows → hand-roll over Finch
+**Open question on `:finch`:** CONTEXT D-07 states finch is "already in tree
+as a non-optional dep elsewhere." Verification (`mix deps.tree | grep finch`)
+shows finch is NOT in the tree currently. Once `:goth` is added, finch
+arrives transitively as a runtime dep. Whether finch needs to be in
+`plt_add_apps` depends on whether the adapter calls Finch APIs that have
+their own typespecs needing PLT inclusion. **Recommendation:** add `:finch`
+to `plt_add_apps` defensively; it's cheap and correct. Planner should make
+this decision in the GCS-01 plan.
+
+#### Diff 2: `deps/0` (after line 69)
+
+```elixir
+# Insert after the existing optional streaming deps block:
+{:mux, "~> 3.2", optional: true},
+{:jose, "~> 1.11", optional: true},
+
+# GCS storage adapter (optional — Phase 37; only loads when adopter opts in)
+{:goth, "~> 1.4", optional: true},
+{:finch, "~> 0.21", optional: true},
+{:gcs_signed_url, "~> 0.4.6", optional: true},
+```
+
+#### Diff 3: hexdoc grouping (lines 158-163)
+
+```elixir
+"Storage and Processor Adapters": [
+  Rindle.Storage,
+  Rindle.Storage.Local,
+  Rindle.Storage.S3,
+  Rindle.Storage.GCS,        # ADD; alphabetical placement after S3 is fine
+  Rindle.Processor.Image
+],
+```
+
+**`gcs/client.ex` and `gcs/signer.ex` MUST stay `@moduledoc false`** so they
+don't appear in hexdoc. This is the locked v1.6 Phase 35 pattern (raw-body
+cache and webhook signature verification helpers are `@moduledoc false`).
+
+---
+
+## Don't Hand-Roll
+
+| Problem | Don't Build | Use Instead | Why |
+|---------|-------------|-------------|-----|
+| JWT signing for V4 signed URLs | Custom JWT/RSA-SHA256 | `gcs_signed_url ~> 0.4.6` | Security-sensitive crypto; getting V4 canonical-request hashing wrong silently produces invalid URLs |
+| GCP OAuth2 token refresh | Custom token-cache GenServer | `goth ~> 1.4` | Goth handles refresh-300s-before-expiry, retry-on-401, metadata-server discovery, refresh-token rotation — non-trivial state machine |
+| GCS JSON API client | `google_api_storage 0.46.1` | Hand-rolled Finch wrapper | Tesla-coupled; pulls 200+ modules; `storage_objects_insert_resumable/5` returns `{:ok, nil}` (no session URI). Per locked candidate §3 |
+| Content-Disposition / Content-Type enforcement | Append `response-content-disposition`/`response-content-type` to signed URL | Set as object metadata at `store/3` (`contentDisposition`, `contentType` JSON fields) | Active Storage CVE-adjacent lesson; GCS V4 signed URLs do NOT safely enforce these query params |
+| HTTP client | Tesla / Req in adapter hot path | Finch | Tesla adds opinionated middleware + transitive deps; Req adds 2+ deps. Finch is minimal and is what Goth already pulls in. Req is fine for tests. |
+| Goth/Finch supervision | Add `Rindle.Application` children | Adopter starts them in their app's supervision tree | Locked v1.4/v1.6 invariant: adopter owns runtime. Same posture as Repo, Oban, Goth from v1.6 Mux work |
+| Multipart MIME body builder | Custom string concatenation with manual boundary handling | Hand-rolled is acceptable here (~30 lines) — but reuse a helper for tests | Multipart marshalling is shallow; pulling in `multipart` library would be overkill. The risk is forgetting CRLF or terminator `--`. Test it specifically. |
+| Object name URL encoding | `URI.encode/1` (leaves `/` alone) | Use `:uri_string.quote/1` (OTP 25+) or `URI.encode/2` with custom safe-char predicate that excludes `/` | GCS requires `/` encoded as `%2F` in object name URL path component |
+| Custom error envelope | Bespoke parsing | `Jason.decode/1` on `body` when `content-type: application/json` | GCS error envelope is stable JSON with consistent shape per `[CITED: docs.cloud.google.com/storage/docs/json_api/v1/status-codes]` |
+
+**Key insight:** Every "don't hand-roll" item above is a place where the
+adapter would silently produce broken behavior if rolled custom. V4 signing
+gets the canonical-request hash wrong -> URLs return 403 with no clear reason.
+Token refresh wrong -> 401s under load. Multipart boundary wrong -> GCS
+returns 400 with Google-specific error code that's hard to debug.
+
+---
+
+## Common Pitfalls
+
+### Pitfall 1: Object name URL encoding leaves `/` unencoded
+
+**What goes wrong:** `Rindle.upload/3` writes object key `"assets/123/original.jpg"`.
+Adapter does `URI.encode("assets/123/original.jpg")` -> no change. GET request
+goes to `/storage/v1/b/bucket/o/assets/123/original.jpg` — GCS interprets
+this as a path with two `/` separators in the object name and returns 404.
+
+**Why it happens:** Elixir's `URI.encode/1` defaults to RFC 3986 path
+encoding which considers `/` a reserved char to preserve. GCS JSON API
+requires the object name to be a single path segment, so `/` must be
+percent-encoded.
+
+**How to avoid:** Use `:uri_string.quote/1` or define a helper that escapes
+`/` explicitly. Add a unit test for keys containing slashes.
+
+**Warning signs:** 404 errors from `head/2` for keys you just stored;
+mismatched object names in `Bypass.expect/4` URL parameters.
+
+### Pitfall 2: Region hint isn't enforceable from JSON API
+
+**What goes wrong:** Adopter sets `region_hint: "us-central1"` in config.
+Phase 37 surfaces it as informational metadata only. Adopter writes a test
+expecting the adapter to reject objects stored in the wrong region — test
+fails because the JSON API doesn't expose region in the response shape.
+
+**Why it happens:** GCS region is a bucket-level property, not an object-
+level one. The JSON API's object metadata response contains `bucket` and
+`generation` but not `location`. Region pinning is enforced at bucket
+creation in GCP console, not at adapter layer.
+
+**How to avoid:** Document `region_hint` as adopter-facing telemetry/
+diagnostic info only, not as a runtime guard. Phase 39 may use it for
+resumable initiation telemetry warnings (`:region_pinned_initiation`).
+
+### Pitfall 3: Fork-PR secret resolves to empty string, lane silently skips
+
+**What goes wrong:** Adopter forks the repo, opens PR. Their fork doesn't
+have `GOOGLE_APPLICATION_CREDENTIALS_JSON` configured. The `gcs-soak` lane's
+`if:` resolves the secret to `''` and the lane skips. PR shows "no required
+checks failed" but GCS coverage is silent.
+
+**Why it happens:** GitHub's `pull_request` trigger redacts secrets to empty
+string for fork PRs (this is the desired behavior — you don't want secrets
+exposed to fork code). The lane skip is intentional.
+
+**How to avoid:** Make `gcs-soak` non-required in branch protection rules.
+The release lane (push to main / tag) always has the secret available, so
+release-time coverage is the gate. Document this in `guides/release_publish.md`
+or planner's verification notes.
+
+**Warning signs:** PR opened from a fork shows "GCS Soak (real bucket) —
+Skipped" in the checks UI.
+
+### Pitfall 4: Parity-test obligations creep into Phase 37 incorrectly
+
+**What goes wrong:** Planner adds resumable callbacks to the parity test in
+Phase 37, expecting Phase 39 to fill them in. Phase 39 advertises the
+capability list change; Phase 37 ships with `function_exported?(GCS, :initiate_resumable_upload, 3)`
+asserted false but the test passes because the assertion was forgotten.
+
+**Why it happens:** The behaviour at `lib/rindle/storage.ex:198` doesn't
+yet declare `@optional_callbacks :initiate_resumable_upload` etc.; Phase 39
+adds those. Phase 37 cannot reference resumable callbacks at all without
+breaking the behaviour contract.
+
+**How to avoid:** Phase 37 parity test iterates ONLY over the existing 11
+callbacks at `lib/rindle/storage.ex`. Phase 39 adds the 4 resumable
+callbacks AND the parity-test assertions in the same plan.
+
+### Pitfall 5: Hexdoc inadvertently exposes `gcs/client.ex` or `gcs/signer.ex`
+
+**What goes wrong:** Planner adds `Rindle.Storage.GCS.Client` to the hexdoc
+"Storage and Processor Adapters" group. ExDoc generates a public-looking
+page for the internal Finch wrapper. Adopters see it in search results and
+build dependencies on `Rindle.Storage.GCS.Client.head_object/3`. Phase 39
+refactors `Client` to support resumable, breaking the assumed-public API.
+
+**Why it happens:** ExDoc respects `@moduledoc false` to hide modules — but
+ONLY if the module isn't explicitly listed in `groups_for_modules`. Adding
+the internal modules to a group makes them visible.
+
+**How to avoid:** ONLY `Rindle.Storage.GCS` in the hexdoc group. `gcs/client.ex`
+and `gcs/signer.ex` get `@moduledoc false` and are NOT listed in `mix.exs:158-163`.
+
+### Pitfall 6: Goth instance not running raises `ArgumentError`, not returns error tuple
+
+**What goes wrong:** Adopter forgets `{Goth, name: MyApp.Goth, source: ...}`
+in supervision tree. Adapter calls `Goth.fetch(MyApp.Goth)` and crashes
+with `ArgumentError` (no process registered with that name). User sees a
+crash dump instead of a clean `{:error, :goth_unconfigured}` tuple.
+
+**Why it happens:** Goth's `fetch/1` calls `GenServer.call/2` on a registered
+name; if no process has that name, GenServer raises immediately. This is
+NOT the same as the `Code.ensure_loaded?` path (which checks if the module
+is compiled at all).
+
+**How to avoid:** Two-tier guard:
+1. `Code.ensure_loaded?(Goth)` checks compile-time presence (gives
+   `:goth_unconfigured` if `:goth` dep not added).
+2. `try/rescue ArgumentError` around `Goth.fetch/1` (gives
+   `:goth_unconfigured` if process not running).
+
+Both paths return the same atom for adopter clarity.
+
+**Warning signs:** Doctor check passes (Goth is loaded) but adapter calls
+crash at runtime with `ArgumentError`.
+
+### Pitfall 7: Multipart-upload boundary collides with file content
+
+**What goes wrong:** Adapter generates boundary `"abc123"`. Source file
+contains the literal string `"abc123"` somewhere. GCS parses the multipart
+body and finds the boundary inside the media part — request fails with 400
+"Invalid multipart body" or, worse, succeeds but with truncated content.
+
+**Why it happens:** Multipart MIME requires the boundary to never appear
+in any part body. With long enough random boundaries, collision is
+astronomically unlikely, but a 6-char boundary in test fixtures can collide.
+
+**How to avoid:** Use `:crypto.strong_rand_bytes(16) |> Base.url_encode64()` —
+22-char URL-safe random boundary. Document the discipline.
+
+### Pitfall 8: Live-bucket test leaks objects when adapter delete fails
+
+**What goes wrong:** Test creates object, asserts on `head/2` result, then
+calls `delete/2` for cleanup. Assertion fails before delete runs. Object
+stays in bucket forever. Repeated CI runs accumulate orphans.
+
+**Why it happens:** ExUnit doesn't have an automatic cleanup hook unless
+the test wires `on_exit/1`.
+
+**How to avoid:** Always wrap object creation in `on_exit/1` cleanup:
+```elixir
+test "head/2 returns size" do
+  key = "gcs-soak/#{System.unique_integer([:positive])}.bin"
+  on_exit(fn -> Rindle.Storage.GCS.delete(key, opts()) end)
+
+  Rindle.Storage.GCS.store(key, source_path, opts())
+  assert {:ok, %{size: _}} = Rindle.Storage.GCS.head(key, opts())
+end
+```
+
+Optionally, add a key-prefix cleanup script (`scripts/gcs_soak_cleanup.sh`)
+that lists and deletes all `gcs-soak/*` keys older than 1 hour, run via
+`if: always()` step in the workflow (mirrors `mux_soak_cleanup.sh`).
+
+---
+
+## Code Examples
+
+### Goth.fetch / Finch.build call shape
+
+```elixir
+# lib/rindle/storage/gcs/client.ex
+defmodule Rindle.Storage.GCS.Client do
+  @moduledoc false
+
+  @base_url "https://storage.googleapis.com"
+
+  def head_object(key, opts) do
+    with {:ok, bucket} <- fetch_bucket(opts),
+         {:ok, headers} <- authorized_headers(opts) do
+      url = "#{base_url(opts)}/storage/v1/b/#{bucket}/o/#{encode_object(key)}?alt=json"
+
+      :get
+      |> Finch.build(url, headers)
+      |> Finch.request(finch_name(opts))
+      |> handle_metadata_response()
+    end
+  end
+
+  defp authorized_headers(opts) do
+    goth_name = goth_name(opts)
+
+    try do
+      case Goth.fetch(goth_name) do
+        {:ok, %Goth.Token{type: type, token: token}} ->
+          {:ok, [{"authorization", "#{type} #{token}"}]}
+
+        {:error, _reason} ->
+          {:error, :goth_unconfigured}
+      end
+    rescue
+      ArgumentError -> {:error, :goth_unconfigured}
+    end
+  end
+
+  defp handle_metadata_response({:ok, %Finch.Response{status: 200, body: body}}) do
+    case Jason.decode(body) do
+      {:ok, %{"size" => size_str, "contentType" => ct}} ->
+        {:ok, %{size: String.to_integer(size_str), content_type: ct}}
+
+      {:ok, %{"size" => size_str}} ->
+        {:ok, %{size: String.to_integer(size_str), content_type: nil}}
+
+      {:error, _reason} ->
+        {:error, {:gcs_http_error, %{status: 200, body: body}}}
+    end
+  end
+
+  defp handle_metadata_response({:ok, %Finch.Response{status: 404}}) do
+    {:error, :not_found}
+  end
+
+  defp handle_metadata_response({:ok, %Finch.Response{status: status, body: body}}) do
+    parsed = case Jason.decode(body) do
+      {:ok, json} -> json
+      _ -> body
+    end
+    {:error, {:gcs_http_error, %{status: status, body: parsed}}}
+  end
+
+  defp handle_metadata_response({:error, exception}) do
+    {:error, exception}
+  end
+
+  defp encode_object(key), do: :uri_string.quote(key)
+end
+```
+
+### gcs_signed_url V4 call shape
+
+```elixir
+# lib/rindle/storage/gcs/signer.ex
+defmodule Rindle.Storage.GCS.Signer do
+  @moduledoc false
+
+  @spec sign_v4(GcsSignedUrl.Client.t(), bucket :: String.t(),
+                key :: String.t(), expires_in :: pos_integer()) :: {:ok, String.t()}
+  def sign_v4(client, bucket, key, expires_in) do
+    url = GcsSignedUrl.generate_v4(client, bucket, key, verb: "GET", expires: expires_in)
+    {:ok, url}
+  end
+
+  @spec build_client(map() | String.t()) :: {:ok, GcsSignedUrl.Client.t()} | {:error, atom()}
+  def build_client(%{"private_key" => _, "client_email" => _} = service_account_json) do
+    {:ok, GcsSignedUrl.Client.load(service_account_json)}
+  end
+
+  def build_client(_), do: {:error, :signing_key_unconfigured}
+end
+```
+
+### Bypass.expect block (canonical 4-verb fixture)
+
+```elixir
+defmodule Rindle.Storage.GCS.ClientTest do
+  use ExUnit.Case, async: true
+
+  setup do
+    bypass = Bypass.open()
+    base_url = "http://localhost:#{bypass.port}"
+    {:ok, finch_pid} = Finch.start_link(name: __MODULE__.Finch)
+
+    on_exit(fn -> Process.exit(finch_pid, :normal) end)
+
+    {:ok,
+     bypass: bypass,
+     base_url: base_url,
+     opts: [
+       base_url: base_url,
+       bucket: "test-bucket",
+       finch: __MODULE__.Finch,
+       goth_token: "fake-token-for-testing"
+     ]}
+  end
+
+  describe "head_object/2" do
+    test "returns size + content_type on 200", %{bypass: bypass, opts: opts} do
+      Bypass.expect(bypass, "GET", "/storage/v1/b/test-bucket/o/foo.jpg", fn conn ->
+        conn = Plug.Conn.fetch_query_params(conn)
+        assert conn.query_params["alt"] == "json"
+        Plug.Conn.resp(conn, 200, ~s({"size":"1024","contentType":"image/jpeg"}))
+      end)
+
+      assert {:ok, %{size: 1024, content_type: "image/jpeg"}} =
+               Rindle.Storage.GCS.Client.head_object("foo.jpg", opts)
+    end
+
+    test "returns :not_found on 404", %{bypass: bypass, opts: opts} do
+      Bypass.expect(bypass, "GET", "/storage/v1/b/test-bucket/o/missing.jpg", fn conn ->
+        Plug.Conn.resp(conn, 404, ~s({"error":{"code":404,"message":"Not Found"}}))
+      end)
+
+      assert {:error, :not_found} =
+               Rindle.Storage.GCS.Client.head_object("missing.jpg", opts)
+    end
+
+    test "returns gcs_http_error on 403", %{bypass: bypass, opts: opts} do
+      Bypass.expect(bypass, "GET", "/storage/v1/b/test-bucket/o/forbidden.jpg", fn conn ->
+        Plug.Conn.resp(conn, 403, ~s({"error":{"code":403,"message":"Forbidden"}}))
+      end)
+
+      assert {:error, {:gcs_http_error, %{status: 403, body: %{"error" => _}}}} =
+               Rindle.Storage.GCS.Client.head_object("forbidden.jpg", opts)
+    end
+  end
+end
+```
+
+### mux-soak field-by-field clone (full gcs-soak block)
+
+```yaml
+# Insert after line 653 (end of mux-soak block) in .github/workflows/ci.yml
+
+  gcs-soak:
+    name: GCS Soak (real bucket)
+    runs-on: ubuntu-latest
+    needs: quality
+    if: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON != '' }}
+    env:
+      MIX_ENV: test
+      GOOGLE_APPLICATION_CREDENTIALS_JSON: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}
+      RINDLE_GCS_BUCKET: ${{ secrets.RINDLE_GCS_BUCKET }}
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGHOST: localhost
+      PGPORT: "5432"
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: rindle_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: "1.17"
+          otp-version: "27"
+
+      - name: Install libvips
+        run: sudo apt-get install -y libvips-dev
+
+      - name: Install dependencies
+        run: mix deps.get
+
+      - name: Run real-GCS soak proof
+        run: mix test --only gcs
+```
+
+---
 
 ## Project Constraints (from CLAUDE.md)
 
-CLAUDE.md does not exist at the project root. Constraints are sourced from:
+`./CLAUDE.md` does not exist in this repository (verified via `Read` tool —
+"File does not exist"). All project conventions are inherited from
+`.planning/PROJECT.md` (constraints section at lines 296-311) and the
+existing source patterns in `lib/`.
 
-- **`.planning/PROJECT.md` security invariants 1-14** — apply to Phase 37:
-  - Inv 1, 2, 5, 6, 7: held (no changes — adapter is request/response, no FSM in this phase)
-  - Inv 14 (provider-internal IDs, bearer credentials): EXTENDED — OAuth2 access tokens are bearer credentials and must follow the same redaction discipline as Mux signing keys and (forthcoming) GCS resumable session URIs.
-- **`.planning/PROJECT.md` constraints (lines 296-311):** Tech stack Elixir-only, adopter-owned Repo (Goth instance follows same pattern), Oban-required (not exercised in Phase 37), capability honesty (D-02 / GCS-02), backward compatibility (S3 unchanged), docs posture (maintainer-to-maintainer).
-- **`.planning/STATE.md` decision-making preference:** Lock high-confidence decisions; only escalate VERY impactful (public API / semver / destructive / security / cost / scope-shift) items.
+Constraints inherited from PROJECT.md:
+
+- **Tech stack:** Elixir/Phoenix/Ecto only in core; no non-Elixir runtime in
+  the library. Phase 37 satisfies — Goth/Finch/gcs_signed_url are
+  pure-Elixir.
+- **Repo ownership:** adopter apps own the runtime Repo. Not relevant
+  to Phase 37 (no DB changes).
+- **Background jobs:** Oban remains the required job backend. Not
+  relevant to Phase 37 (no Oban work).
+- **Security defaults:** private delivery remains the default. Phase 37
+  signed URLs are private by default; no public-bucket assumption.
+- **Capability honesty:** adapters advertise only what they truly support.
+  GCS-02 invariant; capability list is exactly `[:signed_url, :head]`.
+- **Backward compatibility:** existing presigned PUT flows stay supported.
+  Phase 37 is purely additive; S3 and Local adapters untouched.
+- **Docs posture:** practical, copy-pasteable, production-aware,
+  maintainer-to-maintainer. `guides/storage_gcs.md` defers to Phase 41,
+  but in-module docs in `gcs.ex` should follow this tone.
+
+Security invariant 14 (PROJECT.md line 340): "Provider-internal IDs (Mux
+asset_id, upload IDs, session URIs) redact to last-4-char tag in telemetry,
+logs, and Inspect output." Phase 37 has NO session URIs (resumable is
+Phase 39); GCS object generation IDs are not bearer credentials and don't
+need redaction. The Goth `Bearer <token>` Authorization header MUST NEVER
+be logged — that IS a bearer credential.
+
+---
+
+## Validation Architecture
+
+### Test Framework
+
+| Property | Value |
+|----------|-------|
+| Framework | ExUnit (OTP-bundled) + ExUnit `@tag` filter |
+| Config file | `test/test_helper.exs` (already exists; tag exclusions configured there if needed) |
+| Quick run command | `mix test test/rindle/storage/gcs_test.exs` |
+| Full suite command | `mix test` (excludes `:gcs` and `:minio` tags by default; CI lanes opt in) |
+| Soak command | `mix test --only gcs` (live bucket, runs in `gcs-soak` lane) |
+
+### Phase Requirements -> Test Map
+
+| Req ID | Behavior | Test Type | Automated Command | File Exists? |
+|--------|----------|-----------|-------------------|-------------|
+| GCS-01 | `store/3` round-trips bytes via multipart upload | unit (Bypass) | `mix test test/rindle/storage/gcs/client_test.exs:test_store_round_trip -x` | Wave 0 |
+| GCS-01 | `download/3` writes bytes to destination | unit (Bypass) | `mix test test/rindle/storage/gcs/client_test.exs:test_download -x` | Wave 0 |
+| GCS-01 | `delete/2` returns idempotent on missing | unit (Bypass) | `mix test test/rindle/storage/gcs/client_test.exs:test_delete -x` | Wave 0 |
+| GCS-01 | `head/2` returns size + content_type | unit (Bypass) | `mix test test/rindle/storage/gcs/client_test.exs:test_head -x` | Wave 0 |
+| GCS-01 | All 5 callbacks against live bucket | integration (proof) | `mix test --only gcs` (gcs-soak lane) | Wave 0 |
+| GCS-02 | `capabilities/0 == [:signed_url, :head]` | unit (capability) | `mix test test/rindle/storage/gcs_test.exs:test_capabilities -x` | Wave 0 |
+| GCS-02 | Cross-adapter parity (all 11 callbacks exported) | parity | `mix test test/rindle/storage/storage_adapter_test.exs:41 -x` | exists; extend |
+| GCS-03 | V4 signed URL generation | unit (signer) | `mix test test/rindle/storage/gcs/signer_test.exs -x` | Wave 0 |
+| GCS-03 | TTL fallback to `Rindle.Config.signed_url_ttl_seconds/0` | unit | `mix test test/rindle/storage/gcs_test.exs:test_url_ttl_fallback -x` | Wave 0 |
+| GCS-03 | Content-Disposition / Content-Type written as object metadata at `store/3` | unit (Bypass; assert on multipart body) | `mix test test/rindle/storage/gcs/client_test.exs:test_store_metadata_fields -x` | Wave 0 |
+| GCS-04 | `gcs-soak` job exists, secret-gated | structural (parity check on workflow YAML) | `grep -q "gcs-soak" .github/workflows/ci.yml && grep -q "GOOGLE_APPLICATION_CREDENTIALS_JSON" .github/workflows/ci.yml` | Wave 0 (workflow file edit) |
+| GCS-04 | Live-bucket integration runs against secret | proof | `gcs-soak` lane runs `mix test --only gcs` against real bucket | Wave 0 |
+| Doctor (D-13) | `doctor.gcs_goth_running` profile-aware | unit | `mix test test/rindle/ops/runtime_checks_test.exs:test_check_gcs_goth_running -x` | Wave 0 |
+| Doctor (D-13) | `doctor.gcs_bucket_reachable` 200/403/404 distinction | unit (Bypass) | `mix test test/rindle/ops/runtime_checks_test.exs:test_check_gcs_bucket_reachable -x` | Wave 0 |
+| Doctor (D-13) | `doctor.gcs_signing_key` parses map and PEM | unit | `mix test test/rindle/ops/runtime_checks_test.exs:test_check_gcs_signing_key -x` | Wave 0 |
+| Doctor (D-13) | All three checks return ok when no GCS profile | unit | `mix test test/rindle/ops/runtime_checks_test.exs:test_doctor_no_gcs_profile -x` | Wave 0 |
+
+### Sampling Rate
+
+- **Per task commit:** `mix test test/rindle/storage/gcs_test.exs test/rindle/storage/gcs/`
+- **Per wave merge:** `mix test` (excludes `:gcs` tag; runs Bypass-only unit tests)
+- **Phase gate:** Full suite green + `gcs-soak` lane green on a release branch (PR carrying the secret env, or a release tag)
+
+### 8 Nyquist Validation Dimensions
+
+| Dimension | Phase 37 Coverage | Files |
+|-----------|------------------|-------|
+| **Unit** | Per-callback unit tests against Bypass | `test/rindle/storage/gcs/client_test.exs`, `signer_test.exs` |
+| **Integration** | Bypass-mocked end-to-end (multi-callback flows) | `test/rindle/storage/gcs_test.exs` (no `@tag :gcs`) |
+| **Proof** | Live bucket via `gcs-soak` lane | `test/rindle/storage/gcs_test.exs` (`@tag :gcs`) |
+| **Parity** | Cross-adapter exports + capability shape | `test/rindle/storage/storage_adapter_test.exs:41-83` (extend) |
+| **Capability** | `capabilities/0` snapshot test pinning `[:signed_url, :head]` | `test/rindle/storage/gcs_test.exs` |
+| **Error-path** | Google error envelope mapping (404 -> `:not_found`, 403/5xx -> `{:gcs_http_error, _}`, no Goth -> `:goth_unconfigured`) | `test/rindle/storage/gcs/client_test.exs` |
+| **Config** | `Application.get_env(:rindle, Rindle.Storage.GCS, [])[:bucket]` resolution + `:missing_bucket` error | `test/rindle/storage/gcs_test.exs` |
+| **Doctor** | `mix rindle.doctor` profile-aware GCS checks | `test/rindle/ops/runtime_checks_test.exs` |
+
+### Wave 0 Gaps
+
+- [ ] `test/rindle/storage/gcs_test.exs` — covers GCS-01, GCS-02, GCS-03 (adapter-level integration via Bypass + live `@tag :gcs` flag)
+- [ ] `test/rindle/storage/gcs/client_test.exs` — covers GCS-01 (4 REST verbs against Bypass)
+- [ ] `test/rindle/storage/gcs/signer_test.exs` — covers GCS-03 (V4 signing, no HTTP)
+- [ ] `test/rindle/storage/storage_adapter_test.exs` — extension to cover GCS in existing parity iteration (lines 41-51, 77-83)
+- [ ] `test/rindle/ops/runtime_checks_test.exs` — extension for 3 new doctor checks (file likely exists; verify and extend)
+- [ ] No new test framework install — ExUnit + Bypass + Mox already in tree
+
+---
+
+## Security Domain
+
+### Applicable ASVS Categories
+
+| ASVS Category | Applies | Standard Control |
+|---------------|---------|-----------------|
+| V2 Authentication | yes | `goth ~> 1.4` for OAuth2 service-account; never hand-roll |
+| V3 Session Management | n/a | Stateless adapter; no sessions |
+| V4 Access Control | yes | Adopter-side IAM grants on the bucket; adapter never bypasses |
+| V5 Input Validation | yes | Object name URL encoding; `:missing_bucket` guard; multipart boundary collision-resistance |
+| V6 Cryptography | yes | `gcs_signed_url ~> 0.4.6` for V4 RSA-SHA256 signing — never hand-roll |
+| V7 Error Handling | yes | Don't leak signing key PEM in exception messages; rescue clause inspects struct name only (mirrors `runtime_checks.ex:632-636`) |
+| V9 Communications | yes | TLS via Finch (default); enforce HTTPS in `@base_url` constant |
+| V10 Malicious Code | n/a | No code execution from user input |
+| V11 Business Logic | yes | Adapter does NOT perform authorization (per `lib/rindle/storage.ex:104-106`); adopter checks before calling `url/2` |
+| V13 API & Web Service | yes | JSON API client; `:gcs_http_error` envelope handling |
+| V14 Configuration | yes | Optional-dep guard; `Code.ensure_loaded?` pattern; named-instance lookup |
+
+### Known Threat Patterns for GCS Adapter
+
+| Pattern | STRIDE | Standard Mitigation |
+|---------|--------|---------------------|
+| Bearer token leakage in logs | I (Information Disclosure) | NEVER include `Authorization` header in error tuples or log statements; `{:gcs_http_error, %{body: ...}}` only carries response body, not request headers |
+| Signing key PEM leakage in doctor output | I (Information Disclosure) | Doctor's signing-key check rescues exceptions and reports `inspect(exception.__struct__)` only — never `Exception.message/1`. Locked pattern from `runtime_checks.ex:632-636` |
+| Object name path traversal | T (Tampering) / E (Elevation of Privilege) | `Rindle.Security.StorageKey.generate/3` (already in tree per `lib/rindle/security/storage_key.ex`) prevents `..` and absolute paths in keys before they reach adapter |
+| URL encoding bypass (`/` not encoded) | T (Tampering) | Encode object names with `:uri_string.quote/1` or equivalent; unit-test keys with slashes, leading dots, special chars |
+| Signed URL forwarded `response-content-disposition` enabling content-injection | T (Tampering) | Disposition lives in object metadata at `store/3`, NOT URL params (D-03 invariant; Active Storage CVE-adjacent lesson) |
+| Token reuse across adopters in multi-tenant doctor smoke ping | I (Information Disclosure) | Doctor checks gate on `configured_gcs_profiles(profiles)` — image-only S3 adopters never trigger Goth fetch |
+| `Code.LoadError` crash leaking install state | D (Denial of Service / poor UX) | `Code.ensure_loaded?(Goth)` first; `try/rescue ArgumentError` around Goth fetch — both return `:goth_unconfigured` cleanly |
+| Multipart-boundary collision causing GCS to misparse body | T (Tampering) | 22-char URL-safe random boundary via `:crypto.strong_rand_bytes(16) |> Base.url_encode64()` — astronomical collision-resistance |
+
+---
 
 ## Assumptions Log
 
 | # | Claim | Section | Risk if Wrong |
 |---|-------|---------|---------------|
-| A1 | GCS bucket-region 307 redirects are mostly historical and rare in practice for the global `storage.googleapis.com` endpoint | Pitfall 4 | LOW — if 307s become common, plan adds Finch redirect handling; test surface stays the same |
-| A2 | `Goth.fetch/1` raises `:exit, :noproc` (not a tagged error) when the named instance is unstarted | Pitfall 1 + Q2 | LOW — `try/catch :exit` wrapper handles all cases; if Goth changes to return `{:error, ...}` instead, the catch becomes dead code (no harm) |
-| A3 | `gcs_signed_url 0.4.6` Client mode is the right Phase 37 path (vs OAuthConfig/IAM SignBlob) | Q3 | LOW — D-04 explicitly locks Client mode; IAM SignBlob deferred to v1.7+ per locked candidate §13 |
-| A4 | Bypass per-test setup is preferable to a shared fixture module for Phase 37's 4 callbacks | Q8 | LOW — refactor surface if Phase 39's 4 additional callbacks make duplication painful |
-| A5 | `uploadType=multipart` is the right default for `store/3` (over `uploadType=media` + follow-up PATCH) | Pattern 3 + Q5 | LOW — multipart is single-request and atomic; alternative is a documented round-trip increase |
-| A6 | Cross-adapter parity test (`storage_adapter_test.exs`) requires explicit module addition (not auto-discovery) | Q10 | LOW — code reading confirms; if adapter discovery refactor is desired, Phase 39 can do it |
-| A7 | Image-only adopters seeing no doctor noise is achievable via profile-aware short-circuit (`gcs_profiles == []` returns OK silently) | Q6 + D-13 | LOW — exact pattern from `check_streaming_credentials/2` at line 528-534 |
-| A8 | OAuth2 access tokens should follow the same security-invariant-14 redaction discipline as Mux signing keys | §Security Domain | LOW — extends an already-locked invariant; no Phase 37 code surface persists tokens, so enforcement is code-review-only this phase |
+| A1 | `Goth.fetch/1` raises `ArgumentError` (specifically) when the named process is not registered | Section 1, Pitfall 6 | Adapter rescue clause catches wrong exception type; user sees crash dump instead of `:goth_unconfigured`. Planner verifies with a unit test that doesn't start Goth. |
+| A2 | Object name URL encoding requires `/` -> `%2F` (i.e., `:uri_string.quote/1` or equivalent) | Section 2, Pitfall 1, "Don't Hand-Roll" | If GCS accepts un-encoded `/`, redundant encoding still works. If it requires encoding and we omit, all multi-segment keys 404. Verify with one Bypass test using a key like `"a/b/c.jpg"`. |
+| A3 | `Code.LoadError` is the right exception class for missing optional dep, not `UndefinedFunctionError` | Section 1, "Architecture Patterns" Pattern 2 | The `Code.ensure_loaded?(Goth)` guard prevents EITHER error path from being reached. Pattern is locked in v1.6 Phase 36. |
+| A4 | `:finch` should be added to `mix.exs:22 plt_add_apps` despite CONTEXT D-07 saying "already in tree as a non-optional dep elsewhere" | Section 8, "Open Questions" | If CONTEXT statement was correct and `:finch` is already there transitively, adding it is a no-op. Verification (`mix deps.tree`) shows `:finch` is NOT in the tree, so D-07's claim is incorrect. **Recommend adding it defensively.** |
+| A5 | The GCS doctor "bucket reachable" check should use a single `GET /storage/v1/b/$BUCKET` and distinguish 200/403/404 | Section 7 | If 403 means something subtler (e.g., specific role missing), planner may want to add per-error fix-text. Phase 37 ships the basic 3-status distinction; Phase 41 can layer detail. |
+| A6 | `:public_key.pem_decode/1` accepts PEM strings without a trailing newline | Section 7 | Standard OTP API; well-tested. Planner can verify with a one-line `iex` repro. |
+| A7 | `URI.encode/1` does NOT encode `/` (so we need a different helper) | Section 2, Pitfall 1 | Verified in IEx: `URI.encode("a/b") == "a/b"` (no encoding of `/`). HIGH confidence — standard Elixir library behavior documented in `URI` module docs. |
 
-**Note:** All `[ASSUMED]` claims above are LOW risk because each has a verified-source counterpart in the wider research (Pattern 3 / Q3 / etc.) that establishes the conservative path. None gate the planner's work.
+**Confirmation requirement:** None of these assumptions are decision-blocking
+for the planner. Each can be verified with a single `iex` session or unit
+test during plan execution. Recommend the plans include verification steps
+in their first task.
+
+---
 
 ## Open Questions
 
-None blocking. Three minor follow-ups for the planner to surface during plan-checking:
+1. **Is `:finch` already a transitive non-optional dep?**
+   - What we know: `mix deps.tree | grep finch` shows nothing in the
+     current tree (no Goth installed yet).
+   - What's unclear: CONTEXT D-07 explicitly states "already in tree as a
+     non-optional dep elsewhere" — this is verifiably wrong against the
+     current tree.
+   - Recommendation: Add `{:finch, "~> 0.21", optional: true}` to deps AND
+     add `:finch` to `plt_add_apps`. Cost: zero. Benefit: Dialyzer doesn't
+     warn on Finch typespec gaps. Note this discrepancy in the plan.
 
-1. **Should `Signer.build_client/1` accept the decoded JSON map directly (faster, no double-decode) or always read from disk (matches Goth's idiomatic `{:service_account, creds}` source)?**
-   - What we know: both `GcsSignedUrl.Client.load/1` (map) and `load_from_file/1` (path) are public.
-   - Recommendation: **accept either** — type-dispatch in `Signer.build_client/1`. Adopter ergonomics matter more than the "one true path" purity.
+2. **Which Goth fetch variant: `Goth.fetch/1` or `Goth.fetch!/1`?**
+   - What we know: `fetch/1` returns `{:ok, token}` | `nil` per docs;
+     `fetch!/1` raises on error.
+   - What's unclear: Which is idiomatic for adapter use — fail-fast or
+     return-tuple?
+   - Recommendation: Use `Goth.fetch/1` (return-tuple); the adapter wraps
+     the `nil` / `{:error, _}` paths into `:goth_unconfigured`. This keeps
+     the adapter's error-tuple discipline intact.
 
-2. **Should `download/3` use `Finch.stream/4` (chunk-write to disk, no memory buffering) or `Finch.request/3` (full body in memory, then `File.write/3`)?**
-   - What we know: download targets are mostly < 100MB images and < 2GB videos. Memory buffering 2GB is unacceptable.
-   - Recommendation: **`Finch.stream/4`** for any object > 8MB; `Finch.request/3` is fine for small objects but the code complexity savings don't justify the memory risk. Single-pass `Finch.stream/4` is the safe default.
+3. **Should `download/3` stream to disk or load entire body to memory?**
+   - What we know: Finch supports both `Finch.request/2` (loads body) and
+     `Finch.stream/4` (streams chunks).
+   - What's unclear: Phase 37 has no explicit large-file requirement;
+     adopters using local-file ingest path likely have small images.
+   - Recommendation: Phase 37 ships load-to-memory (simpler); add a
+     follow-up TODO for streaming if/when video adopters complain. Phase
+     38–39 resumable work covers the large-file path.
 
-3. **Should the `:base_url` opt be public (documented in `Rindle.Storage.GCS @moduledoc`) or test-only?**
-   - What we know: Bypass needs it. No production scenario needs it (adopters always use the real GCS endpoint).
-   - Recommendation: **test-only, undocumented in `@moduledoc`**, but discoverable via `Application.get_env(:rindle, Rindle.Storage.GCS, [])[:base_url]` for any future `gcs-emulator` test scenario. Mirrors S3's `aws_config` opts threading at `lib/rindle/storage/s3.ex:181-185`.
+4. **Does `Bypass` work with `async: true` ExUnit cases?**
+   - What we know: Bypass uses ports; each `Bypass.open()` allocates a
+     fresh port.
+   - What's unclear: Whether `async: true` causes port-allocation
+     contention.
+   - Recommendation: Try `async: true` first; if flaky, fall back to
+     `async: false` for `gcs/client_test.exs` only.
+
+5. **Should the `signing_key` config support a file path string in
+   addition to map and PEM?**
+   - What we know: `GcsSignedUrl.Client.load/1` accepts both map and file
+     path.
+   - What's unclear: Whether passing a file path through Rindle config is
+     useful or just a footgun (file might not exist at runtime).
+   - Recommendation: Phase 37 supports map (decoded JSON) and PEM string
+     only. File-path loading is adopter responsibility (decode at app
+     boot, pass map). Document this in the in-module `@doc`.
+
+---
+
+## State of the Art
+
+| Old Approach | Current Approach | When Changed | Impact |
+|--------------|------------------|--------------|--------|
+| V2 signing for GCS signed URLs | V4 signing only | 2018 (Google deprecation) | V4 is required; `gcs_signed_url ~> 0.4.6` defaults to V4 |
+| `google_api_storage` Tesla SDK | Hand-rolled Finch JSON API client | Locked v1.6 candidate (2026-05-06) | 200+ module reduction; clean session URI surfacing for Phase 38–39 |
+| `Companion`-style server-side proxy uploads | Direct browser->GCS via signed URL or resumable session | Active Storage / Uppy modern pattern | Browser uploads bytes directly; server never proxies |
+| Custom JWT signing per app | `gcs_signed_url` library | 2020 (library mature) | Security-sensitive crypto delegated to vetted library |
+
+**Deprecated/outdated:**
+- `Goth 1.3.x` — superseded by `1.4.x` (current 1.4.5); only `~> 1.4` constraint accepted.
+- `Finch 0.20.x` — superseded by `0.21.0` (2026-01-22); use `~> 0.21`.
+
+---
+
+## Environment Availability
+
+| Dependency | Required By | Available | Version | Fallback |
+|------------|------------|-----------|---------|----------|
+| Elixir | All | yes | 1.17+ | — |
+| Erlang/OTP | All | yes | 27+ | — |
+| `mix hex.info goth` | Plan execution | yes | 1.4.5 | — |
+| `mix hex.info finch` | Plan execution | yes | 0.21.0 | — |
+| `mix hex.info gcs_signed_url` | Plan execution | yes | 0.4.6 | — |
+| Live GCS bucket | `gcs-soak` lane only | no (no local credentials) | — | Skip live tests; Bypass coverage stands alone for Phase 37 verification |
+| `gh` CLI | Source code lookups | yes | (verified via `gh api` calls during research) | WebFetch fallback |
+
+**Missing dependencies with no fallback:** None. Phase 37 plans can execute
+without a live GCS bucket — the secret-gated `gcs-soak` lane handles
+proof-against-real-bucket as a separate concern.
+
+**Missing dependencies with fallback:** Live GCS bucket -> Bypass + secret-
+gated CI lane covers it.
+
+---
 
 ## Sources
 
 ### Primary (HIGH confidence)
 
-- **Project context (locked):**
-  - `.planning/phases/37-gcs-adapter-foundation/37-CONTEXT.md` — D-01 through D-14 + Claude's Discretion
-  - `.planning/research/v1.6-CANDIDATE-GCS.md` — locked candidate plan, source of truth for hex versions, auth mode, peer-library lessons
-  - `.planning/REQUIREMENTS.md:17-35` — GCS-01 through GCS-04 acceptance criteria
-  - `.planning/ROADMAP.md:60-108` — Phase 37 goal + success criteria
-  - `.planning/PROJECT.md:24-67, 296-342` — milestone scope + security invariants
-
-- **Rindle source seams (read in this research session):**
-  - `lib/rindle/storage.ex` — behaviour callbacks
-  - `lib/rindle/storage/s3.ex:55-61, 130-149, 173-178` — return-shape templates
-  - `lib/rindle/storage/local.ex:52-69, 83` — unsupported-callback pattern
-  - `lib/rindle/storage/capabilities.ex:19-27` — `@known` capability vocabulary
-  - `lib/rindle/error.ex:334-336` — generic `message/1` fallthrough
-  - `lib/rindle/config.ex:14-17` — `signed_url_ttl_seconds/0`
-  - `lib/rindle/ops/runtime_checks.ex:1-120, 526-607` — doctor-check template
-  - `mix.exs:22, 67-69, 92, 158-163` — dialyzer + optional-dep + Bypass + hexdoc
-  - `mix.lock:60` — verified `:finch` is NOT in the non-optional tree
-  - `test/rindle/storage/s3_test.exs:13-18, 29-30, 117` — credential-gated pattern
-  - `test/rindle/storage/storage_adapter_test.exs:41-51, 77-83` — parity test
-  - `.github/workflows/ci.yml:289, 566-653` — package-consumer + mux-soak template
-
-- **Hex registry (verified live 2026-05-07 via `mix hex.info`):**
-  - goth 1.4.5 (2024-12-20)
-  - finch 0.21.0 (2026-01-22)
-  - gcs_signed_url 0.4.6 (2023-03-27)
-
-- **Official documentation:**
-  - [Cloud Storage Objects: insert](https://docs.cloud.google.com/storage/docs/json_api/v1/objects/insert) — uploadType=media/multipart/resumable, content-type/content-disposition fields
-  - [Cloud Storage Objects: get](https://docs.cloud.google.com/storage/docs/json_api/v1/objects/get) — metadata-only fetch via alt=json
-  - [Cloud Storage status codes](https://docs.cloud.google.com/storage/docs/json_api/v1/status-codes) — canonical error envelope
-  - [Cloud Storage uploading objects (curl examples)](https://docs.cloud.google.com/storage/docs/uploading-objects) — request shaping
-  - [Goth.Token (hexdocs)](https://hexdocs.pm/goth/Goth.Token.html) — `Goth.Token` struct shape, `fetch/2` return spec
-  - [Goth (hexdocs)](https://hexdocs.pm/goth/Goth.html) — supervisor + named-instance pattern
-  - [GcsSignedUrl (hexdocs)](https://hexdocs.pm/gcs_signed_url/GcsSignedUrl.html) — V4 signing API
-  - [gcs_signed_url README (hexdocs)](https://hexdocs.pm/gcs_signed_url/readme.html) — Client construction examples
-  - [Finch (hexdocs)](https://hexdocs.pm/finch/Finch.html) — build/request/stream API
-
-- **GitHub source review:**
-  - [peburrows/goth/lib/goth.ex](https://github.com/peburrows/goth) — `Goth.fetch/1` calls `GenServer.call(registry_name, :fetch, timeout)` — confirms `:exit` raise on unstarted instance
-  - [alexandrubagu/gcs_signed_url/lib/gcs_signed_url/client.ex](https://github.com/alexandrubagu/gcs_signed_url) — Client struct + load/load_from_file
-  - [sneako/finch/lib/finch.ex](https://github.com/sneako/finch) — build/request/stream signatures + Finch.Response shape
+- `[VERIFIED: hex.pm via mix hex.info]` `goth 1.4.5` (2024-12-20),
+  `finch 0.21.0` (2026-01-22), `gcs_signed_url 0.4.6` (2023-03-27).
+- `[VERIFIED: gh api repos/alexandrubagu/gcs_signed_url/contents/lib/gcs_signed_url/client.ex]`
+  `GcsSignedUrl.Client.load/1` source — confirms map shape requires string
+  keys `"private_key"` and `"client_email"`.
+- `[CITED: hexdocs.pm/goth/Goth.html]` `Goth.fetch/1` API,
+  `Goth.start_link/1` child_spec, supported credential sources.
+- `[CITED: hexdocs.pm/goth/Goth.Token.html]` `%Goth.Token{}` struct fields
+  (`token`, `type`, `expires`, `scope`, `sub`, `account`).
+- `[CITED: hexdocs.pm/finch/Finch.html]` `Finch.build/5`, `Finch.request/3`,
+  `%Finch.Response{}` shape.
+- `[CITED: hexdocs.pm/gcs_signed_url/GcsSignedUrl.html]`
+  `GcsSignedUrl.generate_v4/4` API and opts.
+- `[CITED: docs.cloud.google.com/storage/docs/json_api/v1/objects/insert]`
+  Multipart upload endpoint, body structure, metadata JSON shape.
+- `[CITED: docs.cloud.google.com/storage/docs/json_api/v1/objects/get]`
+  GET object endpoint, `alt=json` vs `alt=media`, metadata response fields.
+- `[CITED: docs.cloud.google.com/storage/docs/json_api/v1/objects/delete]`
+  DELETE endpoint and 204 success.
+- `[CITED: docs.cloud.google.com/storage/docs/json_api/v1/status-codes]`
+  Standard error envelope `{ "error": { "code", "message", "errors" } }`.
+- Source files (read 2026-05-07): `lib/rindle/storage.ex`,
+  `lib/rindle/storage/s3.ex`, `lib/rindle/storage/local.ex`,
+  `lib/rindle/storage/capabilities.ex`, `lib/rindle/error.ex`,
+  `lib/rindle/config.ex`, `lib/rindle/ops/runtime_checks.ex`,
+  `lib/rindle/capability.ex`, `mix.exs`, `.github/workflows/ci.yml`,
+  `test/rindle/storage/s3_test.exs`,
+  `test/rindle/storage/storage_adapter_test.exs`.
+- `[VERIFIED: file read]` Phase 37 CONTEXT.md (full 14-decision lock),
+  REQUIREMENTS.md (GCS-01..04 acceptance criteria),
+  `.planning/research/v1.6-CANDIDATE-GCS.md` (locked candidate plan),
+  PROJECT.md (constraints + key decisions), ROADMAP.md (phase 37 success
+  criteria).
 
 ### Secondary (MEDIUM confidence)
 
-- WebSearch corroborated:
-  - GCS JSON API endpoint structure (multiple sources; cross-verified with official docs)
-  - Goth named-instance pattern (multiple sources; cross-verified with hexdocs README)
-  - Finch streaming PUT body pattern (cross-verified with hexdocs)
+- Multi-source agreement on `Goth.fetch` returning `{:ok, %Goth.Token{}}`
+  (HexDocs + example code in CONTEXT D-09 reference).
+- GCS object-name URL encoding rule (`/` -> `%2F`) cross-referenced in
+  Google's "Encoding URI path parts" guide and Stack Overflow
+  community-verified examples; HexDocs for `:uri_string.quote/1` (OTP 25+).
 
-### Tertiary (LOW confidence)
+### Tertiary (LOW confidence — verify at plan time)
 
-- 307-redirect frequency for regional buckets (Pitfall 4) — `[ASSUMED]` based on general GCS knowledge; no live source proves rarity. Conservative path (explicit 3xx handling) is captured in the recommendation.
+- A1 (Goth `ArgumentError` raise behavior) — verify with isolated unit test.
+- A2 (object name URL encoding requirement) — verify with live-bucket Bypass
+  fixture using `"a/b/c.jpg"` style key.
+- A4 (`:finch` not in tree) — `mix deps.tree` output 2026-05-07 confirms
+  finch absent; CONTEXT D-07 contradiction noted.
+
+---
 
 ## Metadata
 
 **Confidence breakdown:**
 
-- Standard stack: **HIGH** — all 3 hex versions verified live; locked candidate §3 explicitly chose them with rationale; peer-library lessons cited.
-- Architecture: **HIGH** — 3-file split locked in CONTEXT D-01; Adopter-owned-runtime locked across 5 milestones; capability vocabulary in `lib/rindle/storage/capabilities.ex:19-27` already reserves the right atoms.
-- Pitfalls: **HIGH** for #1, #3, #5, #6 (verified against existing source); **MEDIUM** for #2 (verified against gcs_signed_url GitHub source); **LOW** for #4 (general GCS knowledge, not verified in this session).
-- Validation Architecture: **HIGH** — sampling rate matches `mix test --only` discipline locked in v1.5; test-file scaffold pattern matches `s3_test.exs:13-18, 29-30`.
-- Security: **HIGH** — extends locked v1.6 invariant 14; no new persisted struct in Phase 37 means the enforcement surface is small and code-review-tractable.
+- **Standard stack:** HIGH — every version verified against hex.pm 2026-05-07; library API surfaces verified against HexDocs and source code.
+- **Architecture:** HIGH — patterns mirror locked v1.6 streaming adapter discipline (`Mux.Video.Assets` `Code.ensure_loaded?` guard, named-instance lookup, optional-dep declaration); 3-file split rationale anchored to anticipated Phase 38-41 callbacks.
+- **Public API shape:** HIGH — exact mirror of `lib/rindle/storage/s3.ex` callbacks; parity test is the enforcing oracle.
+- **Implementation details (Goth/Finch/gcs_signed_url):** HIGH for API surfaces (verified); MEDIUM-HIGH for error edge cases (Goth's `ArgumentError` is `[ASSUMED]` — verify at plan time).
+- **mux-soak clone discipline:** HIGH — workflow file read directly; field-by-field deviation table built from line-by-line comparison.
+- **Cross-adapter parity:** HIGH — existing test asserted to extend to GCS without restructuring.
+- **Doctor checks:** HIGH for structure (mirror `runtime_checks.ex:526-643`); MEDIUM for the bucket-reachable-403-distinction phrasing (per A5, planner may refine).
+- **mix.exs declarations:** HIGH for shape; MEDIUM for `:finch` plt_add_apps (per A4 — CONTEXT D-07 has a verifiable inaccuracy; recommend adding defensively).
+- **Pitfalls:** HIGH — every pitfall sourced from a real-world failure mode in peer libs (Active Storage, Shrine, Uppy, django-storages) or the Rindle codebase pattern guard.
 
 **Research date:** 2026-05-07
-**Valid until:** 2026-06-07 (30 days for stable libraries; goth + gcs_signed_url have low release cadence; finch is more active but 0.21 is the current stable line)
 
-## RESEARCH COMPLETE
+**Valid until:** 2026-06-07 (30 days; library APIs are stable, GCS JSON API
+is stable, but newer Finch/Goth releases may land in this window).
