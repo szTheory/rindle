@@ -172,10 +172,12 @@ is in place.
    want defence-in-depth against accidental `session_uri` leakage in their
    own application logs.
 
-**Plans:** 3 plans (TBD by `/gsd-plan-phase 38`). Plan-count guidance:
-RESUMABLE-01..03 ≈ 3 plans, one per requirement; LOW risk, additive
-migration template + FSM transition + telemetry naming, no external
-dependencies.
+**Plans:** 3/3 plans planned
+
+Plans:
+- [ ] 38-01-PLAN.md — Packaged resumable migration template + `doctor.resumable_session_schema` drift check (Wave 1, RESUMABLE-01)
+- [ ] 38-02-PLAN.md — `MediaUploadSession` resumable fields + `UploadSessionFSM` `"resuming"` lane + `Inspect` redaction (Wave 1, RESUMABLE-02)
+- [ ] 38-03-PLAN.md — Resumable telemetry helper + public contract freeze + redaction parity coverage (Wave 2, RESUMABLE-03)
 
 **UI hint**: no
 
