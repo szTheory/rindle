@@ -5,7 +5,8 @@ defmodule Rindle.Domain.UploadSessionFSM do
 
   @allowed_transitions %{
     "initialized" => ["signed", "aborted", "expired", "failed"],
-    "signed" => ["uploading", "uploaded", "verifying", "aborted", "expired", "failed"],
+    "signed" => ["resuming", "uploading", "uploaded", "verifying", "aborted", "expired", "failed"],
+    "resuming" => ["uploading", "aborted", "expired", "failed"],
     "uploading" => ["uploaded", "verifying", "aborted", "expired", "failed"],
     "uploaded" => ["verifying"],
     "verifying" => ["completed", "failed"],
