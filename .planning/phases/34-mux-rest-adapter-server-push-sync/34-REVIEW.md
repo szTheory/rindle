@@ -27,7 +27,20 @@ findings:
   warning: 9
   info: 3
   total: 16
-status: issues_found
+status: blockers_fixed_warnings_remain
+fix_log:
+  - id: BL-01
+    commit: 1f29ec3
+    summary: "Compensating Adapter.delete_asset/1 on post-create drift; regression tests cover storage_key drift, recipe_digest drift, and best-effort delete-failure tolerance."
+  - id: BL-02
+    commit: abd07f5
+    summary: "Re-ingest against :errored / :deleted rows now returns {:cancel, _} instead of falling through to forbidden FSM transition; regression tests cover both terminal cases."
+  - id: BL-03
+    commit: 791e4c4
+    summary: "Nil-safe Event.extract_playback_ids/1 (case is_list/_ -> []) plus webhook_video_asset_created.json fixture with explicit \"playback_ids\": null; regression tests cover unit and verify_webhook/3 paths."
+  - id: BL-04
+    commit: b18fc10
+    summary: "Aligned @type provider_state to String.t() to match the schema column, FSM keys, and adapter implementation. Verified no caller depended on atom states."
 ---
 
 # Phase 34: Code Review Report
@@ -83,6 +96,7 @@ I could find, and the phase-gate telemetry test enforces this.
 
 ### BL-01: Orphaned Mux asset when atomic-promote rejects after Mux REST call
 
+**Status:** fixed: 1f29ec3
 **File:** `lib/rindle/workers/mux_ingest_variant.ex:107-176, 302-350`
 **Issue:** The ingest worker calls `Adapter.create_asset_with_retry_hint/3`
 (line 114) — which actually creates an asset on Mux's side — BEFORE the
@@ -133,6 +147,7 @@ end
 
 ### BL-02: Re-ingest from `:errored` state breaks FSM (silent failure)
 
+**Status:** fixed: abd07f5
 **File:** `lib/rindle/workers/mux_ingest_variant.ex:269-282, 284-298`
 **Issue:** `maybe_skip_already_in_progress/4` returns `{:cont, row}` for any
 state outside `["uploading", "processing", "ready", "pending"]`. That includes
@@ -185,6 +200,7 @@ the test suite never exercises this branch, hence the silent breakage.
 
 ### BL-03: `Event.extract_playback_ids/1` crashes when payload has explicit `null`
 
+**Status:** fixed: 791e4c4
 **File:** `lib/rindle/streaming/provider/mux/event.ex:44-52`
 **Issue:** `Map.get(data, "playback_ids", [])` returns `nil` (NOT the default)
 when `data` contains the key with an explicit null value, e.g.,
@@ -227,6 +243,7 @@ There is also no test in `mux_test.exs` exercising a `null` or missing
 
 ### BL-04: Behaviour callback `get_asset/1` violates declared `provider_state` type
 
+**Status:** fixed: b18fc10
 **File:** `lib/rindle/streaming/provider.ex:31-33, 67-75` /
 `lib/rindle/streaming/provider/mux.ex:210-240, 306-311`
 **Issue:** The behaviour declares:
