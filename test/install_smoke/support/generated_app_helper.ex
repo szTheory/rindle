@@ -306,7 +306,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     patch_mix_exs!(root, package_root, network_version)
     patch_test_config!(root, app_name, profile_mode)
     patch_test_helper!(root, profile_mode)
-    patch_runtime_config!(root, app_name, app_module)
+    patch_runtime_config!(root, app_name, app_module, profile_mode)
     patch_application!(root, app_name, app_module)
     write_profile!(root, app_name, app_module, profile_mode)
     write_host_migration!(root)
@@ -395,13 +395,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       config :#{app_name}, Oban,
         repo: #{Macro.camelize(app_name)}.Repo,
         testing: :manual,
-        queues: [
-          rindle_media: 1,
-          rindle_promote: 1,
-          rindle_process: 1,
-          rindle_purge: 1,
-          rindle_maintenance: 1
-        ]
+        queues: #{oban_queues_block(profile_mode)}
 
       config :#{app_name}, #{Macro.camelize(app_name)}.Repo,
         migration_primary_key: [type: :binary_id],
@@ -495,7 +489,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     end
   end
 
-  defp patch_runtime_config!(root, app_name, app_module) do
+  defp patch_runtime_config!(root, app_name, app_module, profile_mode) do
     path = Path.join(root, "config/runtime.exs")
 
     runtime_append = """
@@ -522,16 +516,33 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     config :#{app_name}, Oban,
       repo: #{app_module}.Repo,
       testing: :manual,
-      queues: [
-        rindle_media: 1,
-        rindle_promote: 1,
-        rindle_process: 1,
-        rindle_purge: 1,
-        rindle_maintenance: 1
-      ]
+      queues: #{oban_queues_block(profile_mode)}
     """
 
     File.write!(path, File.read!(path) <> runtime_append)
+  end
+
+  # Phase 36 WR-04: single source of truth for the generated app's Oban
+  # queue list. patch_test_config!/3 and patch_runtime_config!/4 both
+  # render this so the two blocks cannot drift. The :mux profile mode
+  # adds `rindle_provider` (Phase 36 WR-03 / streaming guide §6 — the
+  # MuxSyncCoordinator and MuxIngestVariant workers enqueue here).
+  defp oban_queues_block(profile_mode) do
+    queues =
+      [
+        {:rindle_media, 1},
+        {:rindle_promote, 1},
+        {:rindle_process, 1},
+        {:rindle_purge, 1},
+        {:rindle_maintenance, 1}
+      ] ++ if profile_mode == :mux, do: [{:rindle_provider, 1}], else: []
+
+    rendered =
+      Enum.map_join(queues, ",\n        ", fn {name, concurrency} ->
+        "#{name}: #{concurrency}"
+      end)
+
+    "[\n        #{rendered}\n      ]"
   end
 
   defp patch_application!(root, app_name, app_module) do
