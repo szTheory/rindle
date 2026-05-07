@@ -48,6 +48,11 @@ defmodule Rindle.Streaming.Provider do
 
   `state` is `nil` when the webhook payload carries no recognized status
   (e.g. lifecycle events like `video.asset.created` that pre-date transcoding).
+
+  `:upload_id` is OPTIONAL and populated only by adapter typed branches that
+  carry both an upload id and a provider asset id (e.g. Mux's
+  `video.upload.asset_created` — see D-29 / D-30, added in Phase 35 as
+  forward-compat for Phase 37 / direct-creator-upload).
   """
   @type provider_event :: %{
           required(:type) => atom(),
@@ -55,7 +60,8 @@ defmodule Rindle.Streaming.Provider do
           required(:playback_ids) => [playback_id()],
           required(:state) => provider_state() | nil,
           required(:occurred_at) => DateTime.t() | nil,
-          required(:raw) => map()
+          required(:raw) => map(),
+          optional(:upload_id) => String.t() | nil
         }
 
   @typedoc "Capability atom advertised by `capabilities/0`. Closed vocabulary lives in `Rindle.Streaming.Capabilities`."
