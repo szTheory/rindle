@@ -82,6 +82,15 @@ defmodule Rindle.Ops.RuntimeChecks do
     migration_statuses =
       Keyword.get_lazy(opts, :migration_statuses, fn -> migration_statuses(opts) end)
 
+    resumable_session_schema_catalog =
+      Keyword.get_lazy(opts, :resumable_session_schema_catalog, fn ->
+        if Keyword.has_key?(opts, :migration_statuses) do
+          expected_resumable_session_schema_catalog()
+        else
+          resumable_session_schema_catalog()
+        end
+      end)
+
     gcs_extra =
       if gcs_profiles(profiles) != [] do
         [
@@ -104,6 +113,7 @@ defmodule Rindle.Ops.RuntimeChecks do
          fn -> check_local_playback(profiles, local_playback_route) end,
          fn -> check_migration_pending(migration_statuses) end,
          fn -> check_migration_unresolved(migration_statuses) end,
+         fn -> check_resumable_session_schema(resumable_session_schema_catalog) end,
          fn -> check_oban_default_instance(oban_config) end,
          fn -> check_oban_required_queues(profiles, oban_config) end,
          fn -> check_profile_runtime_fit(resolved, env) end,
@@ -362,6 +372,42 @@ defmodule Rindle.Ops.RuntimeChecks do
     end
   end
 
+  defp check_resumable_session_schema({:error, reason}) do
+    error_result(
+      "doctor.resumable_session_schema",
+      :migrations,
+      "Could not inspect media_upload_sessions resumable schema: #{Exception.message(normalize_exception(reason))}.",
+      "Verify the configured Rindle repo can query information_schema and pg_indexes, then re-run `mix rindle.doctor`."
+    )
+  end
+
+  defp check_resumable_session_schema(%{columns: columns, indexes: indexes}) do
+    missing_columns =
+      ["session_uri", "session_uri_expires_at", "last_known_offset", "region_hint"] --
+        Map.keys(columns)
+
+    issues = []
+    issues = append_missing_columns_issue(issues, missing_columns)
+    issues = append_offset_issue(issues, columns)
+    issues = append_index_issue(issues, indexes)
+
+    if issues == [] do
+      ok_result(
+        "doctor.resumable_session_schema",
+        :migrations,
+        "All resumable session columns and the expiry index are present on media_upload_sessions.",
+        "Keep the packaged resumable migration applied on the adopter-owned media_upload_sessions table."
+      )
+    else
+      error_result(
+        "doctor.resumable_session_schema",
+        :migrations,
+        Enum.join(issues, "; ") <> ".",
+        "Re-run the packaged resumable migration so media_upload_sessions regains the locked resumable columns, NOT NULL DEFAULT 0 offset posture, and filtered expiry index."
+      )
+    end
+  end
+
   defp resolve_profiles([], profiles), do: %{profiles: Enum.uniq(profiles), error: nil}
 
   defp resolve_profiles(args, _profiles) do
@@ -438,6 +484,59 @@ defmodule Rindle.Ops.RuntimeChecks do
   rescue
     error ->
       [{:down, -1, "migration inspection failed: #{Exception.message(error)}"}]
+  end
+
+  defp resumable_session_schema_catalog do
+    case Migrator.with_repo(
+           Config.repo(),
+           fn started_repo ->
+             with {:ok, %{rows: column_rows}} <-
+                    started_repo.query(
+                      """
+                      SELECT column_name, is_nullable, column_default
+                      FROM information_schema.columns
+                      WHERE table_schema = 'public' AND table_name = 'media_upload_sessions'
+                        AND column_name IN ('session_uri', 'session_uri_expires_at', 'last_known_offset', 'region_hint')
+                      """,
+                      []
+                    ),
+                  {:ok, %{rows: index_rows}} <-
+                    started_repo.query(
+                      """
+                      SELECT indexdef
+                      FROM pg_indexes
+                      WHERE schemaname = 'public' AND tablename = 'media_upload_sessions'
+                      """,
+                      []
+                    ) do
+               %{
+                 columns:
+                   Map.new(column_rows, fn [name, is_nullable, column_default] ->
+                     {name, %{is_nullable: is_nullable, column_default: column_default}}
+                   end),
+                 indexes: Enum.map(index_rows, fn [indexdef] -> indexdef end)
+               }
+             end
+           end,
+           mode: :temporary
+         ) do
+      {:ok, catalog, _apps} -> catalog
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  defp expected_resumable_session_schema_catalog do
+    %{
+      columns: %{
+        "session_uri" => %{is_nullable: "YES", column_default: nil},
+        "session_uri_expires_at" => %{is_nullable: "YES", column_default: nil},
+        "last_known_offset" => %{is_nullable: "NO", column_default: "0"},
+        "region_hint" => %{is_nullable: "YES", column_default: nil}
+      },
+      indexes: [
+        "CREATE INDEX media_upload_sessions_resumable_expiry_idx ON public.media_upload_sessions USING btree (session_uri_expires_at) WHERE ((upload_strategy = 'resumable'::text))"
+      ]
+    }
   end
 
   defp profile_runtime_failures(profiles, env) do
@@ -519,6 +618,44 @@ defmodule Rindle.Ops.RuntimeChecks do
 
   defp local_av_profile?(profile) do
     profile.storage_adapter() == Local and profile_has_av_variants?(profile)
+  end
+
+  defp append_missing_columns_issue(issues, []), do: issues
+
+  defp append_missing_columns_issue(issues, missing_columns) do
+    ["missing columns: #{Enum.join(missing_columns, ", ")}" | issues]
+  end
+
+  defp append_offset_issue(issues, columns) do
+    case Map.get(columns, "last_known_offset") do
+      %{is_nullable: "NO", column_default: default} when is_binary(default) ->
+        if String.contains?(default, "0") do
+          issues
+        else
+          ["last_known_offset must be NOT NULL DEFAULT 0" | issues]
+        end
+
+      _other ->
+        ["last_known_offset must be NOT NULL DEFAULT 0" | issues]
+    end
+  end
+
+  defp append_index_issue(issues, indexes) do
+    if resumable_expiry_index_present?(indexes) do
+      issues
+    else
+      ["missing resumable expiry index on session_uri_expires_at for upload_strategy = 'resumable'" | issues]
+    end
+  end
+
+  defp resumable_expiry_index_present?(indexes) do
+    Enum.any?(indexes, fn indexdef ->
+      normalized = String.downcase(indexdef)
+
+      String.contains?(normalized, "session_uri_expires_at") and
+        String.contains?(normalized, "upload_strategy") and
+        String.contains?(normalized, "resumable")
+    end)
   end
 
   defp profile_has_av_variants?(profile) do

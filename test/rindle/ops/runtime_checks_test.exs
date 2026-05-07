@@ -33,7 +33,7 @@ defmodule Rindle.Ops.RuntimeChecksTest do
   describe "run/2" do
     test "returns deterministic stable check ids" do
       report =
-        RuntimeChecks.run([],
+        run_runtime_checks(
           probe: fn -> :ok end,
           env: %{},
           profiles: [ImageProfile, VideoProfile],
@@ -73,7 +73,7 @@ defmodule Rindle.Ops.RuntimeChecksTest do
 
     test "does not require rindle_media for image-only profiles" do
       report =
-        RuntimeChecks.run([],
+        run_runtime_checks(
           probe: fn -> :ok end,
           env: %{},
           profiles: [ImageProfile],
@@ -98,7 +98,7 @@ defmodule Rindle.Ops.RuntimeChecksTest do
 
     test "requires rindle_media when AV-capable profiles are present" do
       report =
-        RuntimeChecks.run([],
+        run_runtime_checks(
           probe: fn -> :ok end,
           env: %{},
           profiles: [VideoProfile],
@@ -124,7 +124,7 @@ defmodule Rindle.Ops.RuntimeChecksTest do
 
     test "flags private delivery on adapters without signed_url support" do
       report =
-        RuntimeChecks.run([],
+        run_runtime_checks(
           probe: fn -> :ok end,
           env: %{},
           profiles: [PrivateLocalImageProfile],
@@ -148,7 +148,7 @@ defmodule Rindle.Ops.RuntimeChecksTest do
 
     test "flags local playback route drift only for local AV profiles" do
       report =
-        RuntimeChecks.run([],
+        run_runtime_checks(
           probe: fn -> :ok end,
           env: %{},
           profiles: [PublicLocalVideoProfile],
@@ -175,7 +175,7 @@ defmodule Rindle.Ops.RuntimeChecksTest do
 
     test "distinguishes pending and unresolved migration drift" do
       report =
-        RuntimeChecks.run([],
+        run_runtime_checks(
           probe: fn -> :ok end,
           env: %{},
           profiles: [],
@@ -208,7 +208,7 @@ defmodule Rindle.Ops.RuntimeChecksTest do
 
     test "reports resumable session schema success when columns and filtered index are present" do
       report =
-        RuntimeChecks.run([],
+        run_runtime_checks(
           probe: fn -> :ok end,
           env: %{},
           profiles: [],
@@ -232,7 +232,7 @@ defmodule Rindle.Ops.RuntimeChecksTest do
 
     test "reports resumable session schema drift when required column or index is missing" do
       report =
-        RuntimeChecks.run([],
+        run_runtime_checks(
           probe: fn -> :ok end,
           env: %{},
           profiles: [],
@@ -285,7 +285,7 @@ defmodule Rindle.Ops.RuntimeChecksTest do
     # gcs_profiles(profiles) != []. NOT three silent-OK rows — literal absence.
     test "S3-only adopter sees zero gcs_ rows in doctor.checks" do
       report =
-        RuntimeChecks.run([],
+        run_runtime_checks(
           probe: fn -> :ok end,
           env: %{},
           profiles: [LocalProfile],
@@ -336,7 +336,7 @@ defmodule Rindle.Ops.RuntimeChecksTest do
 
       try do
         report =
-          RuntimeChecks.run([],
+          run_runtime_checks(
             probe: fn -> :ok end,
             env: %{},
             profiles: [GCSProfile],
@@ -383,7 +383,7 @@ defmodule Rindle.Ops.RuntimeChecksTest do
 
       try do
         report =
-          RuntimeChecks.run([],
+          run_runtime_checks(
             probe: fn -> :ok end,
             env: %{},
             profiles: [GCSProfile],
@@ -417,7 +417,7 @@ defmodule Rindle.Ops.RuntimeChecksTest do
 
       try do
         report =
-          RuntimeChecks.run([],
+          run_runtime_checks(
             probe: fn -> :ok end,
             env: %{},
             profiles: [GCSProfile],
@@ -460,7 +460,7 @@ defmodule Rindle.Ops.RuntimeChecksTest do
 
       try do
         report =
-          RuntimeChecks.run([],
+          run_runtime_checks(
             probe: fn -> :ok end,
             env: %{},
             profiles: [GCSProfile],
@@ -506,7 +506,7 @@ defmodule Rindle.Ops.RuntimeChecksTest do
 
       try do
         report =
-          RuntimeChecks.run([],
+          run_runtime_checks(
             probe: fn -> :ok end,
             env: %{},
             profiles: [GCSProfile],
@@ -549,7 +549,7 @@ defmodule Rindle.Ops.RuntimeChecksTest do
 
       try do
         report =
-          RuntimeChecks.run([],
+          run_runtime_checks(
             probe: fn -> :ok end,
             env: %{},
             profiles: [GCSProfile],
@@ -707,7 +707,7 @@ defmodule Rindle.Ops.RuntimeChecksTest do
 
       try do
         report =
-          RuntimeChecks.run([],
+          run_runtime_checks(
             probe: fn -> :ok end,
             env: %{},
             profiles: [GCSProbeProfile],
@@ -743,5 +743,25 @@ defmodule Rindle.Ops.RuntimeChecksTest do
   defp fetch_check(report, id) do
     Enum.find(report.checks, &(&1.id == id)) ||
       flunk("expected check #{inspect(id)} to be present")
+  end
+
+  defp run_runtime_checks(opts) do
+    RuntimeChecks.run([],
+      Keyword.put_new(opts, :resumable_session_schema_catalog, resumable_session_schema_fixture())
+    )
+  end
+
+  defp resumable_session_schema_fixture do
+    %{
+      columns: %{
+        "session_uri" => %{is_nullable: "YES", column_default: nil},
+        "session_uri_expires_at" => %{is_nullable: "YES", column_default: nil},
+        "last_known_offset" => %{is_nullable: "NO", column_default: "0"},
+        "region_hint" => %{is_nullable: "YES", column_default: nil}
+      },
+      indexes: [
+        "CREATE INDEX media_upload_sessions_resumable_expiry_idx ON public.media_upload_sessions USING btree (session_uri_expires_at) WHERE ((upload_strategy = 'resumable'::text))"
+      ]
+    }
   end
 end
