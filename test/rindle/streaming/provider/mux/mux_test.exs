@@ -4,6 +4,7 @@ defmodule Rindle.Streaming.Provider.MuxTest do
 
   alias Rindle.Streaming.Provider.Mux, as: Adapter
   alias Rindle.Streaming.Provider.Mux.ClientMock
+  alias Rindle.Test.MuxWebhookFixtures
 
   setup :set_mox_from_context
   setup :verify_on_exit!
@@ -169,17 +170,9 @@ defmodule Rindle.Streaming.Provider.MuxTest do
   test "verify_webhook/3 verifies and normalizes when at least one secret matches" do
     secret = "test-webhook-secret"
     body = File.read!("test/fixtures/mux/webhook_video_asset_ready.json")
-    timestamp = System.system_time(:second)
 
-    # Compute the v1 signature the same way Mux.Webhooks.verify_header does:
-    # HMAC-SHA256("#{timestamp}.#{body}", secret) -> hex.
-    signed_payload = "#{timestamp}.#{body}"
-
-    sig =
-      :crypto.mac(:hmac, :sha256, secret, signed_payload)
-      |> Base.encode16(case: :lower)
-
-    headers = %{"mux-signature" => "t=#{timestamp},v1=#{sig}"}
+    # HMAC recipe centralized in Rindle.Test.MuxWebhookFixtures (D-34).
+    headers = %{"mux-signature" => MuxWebhookFixtures.sign_header(body, secret)}
 
     # Multi-secret rotation: verify_webhook/3 loops the list and OR-s results.
     assert {:ok, %{type: :ready, provider_asset_id: _, state: "ready", playback_ids: [_ | _]}} =
@@ -230,15 +223,9 @@ defmodule Rindle.Streaming.Provider.MuxTest do
     test "verify_webhook/3 successfully verifies + normalizes an asset.created payload with playback_ids: null" do
       secret = "test-webhook-secret"
       body = File.read!("test/fixtures/mux/webhook_video_asset_created.json")
-      timestamp = System.system_time(:second)
 
-      signed_payload = "#{timestamp}.#{body}"
-
-      sig =
-        :crypto.mac(:hmac, :sha256, secret, signed_payload)
-        |> Base.encode16(case: :lower)
-
-      headers = %{"mux-signature" => "t=#{timestamp},v1=#{sig}"}
+      # HMAC recipe centralized in Rindle.Test.MuxWebhookFixtures (D-34).
+      headers = %{"mux-signature" => MuxWebhookFixtures.sign_header(body, secret)}
 
       # End-to-end: previously this path raised Protocol.UndefinedError;
       # the regression locks in the {:ok, _} happy path.
