@@ -299,6 +299,11 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
 
     # B1 fix: persist `playback_ids` (PLURAL ARRAY), not singular `playback_id`.
     # Phase 33 schema field is `field :playback_ids, {:array, :string}`.
+    #
+    # BL-01 fix: when the post-create freshness re-check rejects the promotion,
+    # the Mux asset was already created (and is billed). We MUST best-effort
+    # delete it before returning `{:cancel, _}` to avoid a billing/lifecycle
+    # leak. `Adapter.delete_asset/1` is idempotent on 404 (mux.ex:246).
     defp persist_provider_processing(repo, args, mux_response, profile_mod) do
       # Atomic-promote: re-fetch source rows just before flipping to processing.
       # Mirrors process_variant.ex:244-275 with arg-shape swap.
@@ -312,9 +317,11 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
 
       cond do
         current_asset.storage_key != args["expected_storage_key"] ->
+          compensate_delete_mux_asset(mux_response, :asset_changed)
           {:cancel, {:stale_source, :asset_changed}}
 
         current_variant.recipe_digest != args["expected_recipe_digest"] ->
+          compensate_delete_mux_asset(mux_response, :recipe_changed)
           {:cancel, {:stale_source, :recipe_changed}}
 
         true ->
@@ -348,6 +355,50 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
           end
       end
     end
+
+    # BL-01 compensating delete: best-effort idempotent cleanup of the Mux
+    # asset created at line 114 when the post-create freshness re-check
+    # rejects the promotion. Result is intentionally discarded — failure to
+    # delete is logged but does not change the {:cancel, _} return value
+    # (the row is already in :uploading and the sync coordinator will reap
+    # it on the next pass). The adapter absorbs 404 to :ok so a double-fire
+    # is safe.
+    defp compensate_delete_mux_asset(%{provider_asset_id: provider_asset_id}, reason)
+         when is_binary(provider_asset_id) do
+      case Adapter.delete_asset(provider_asset_id) do
+        :ok ->
+          Logger.debug("rindle.workers.mux_ingest_variant.compensating_delete",
+            asset_id: MediaProviderAsset.redact_id(provider_asset_id),
+            reason: reason
+          )
+
+          :ok
+
+        {:error, err_reason} ->
+          # Best-effort: log + drop. The sync coordinator's stuck-threshold
+          # path provides eventual consistency for the row state; the Mux
+          # asset itself remains as cleanup debt the operator can reconcile
+          # via a Mux dashboard sweep.
+          Logger.warning("rindle.workers.mux_ingest_variant.compensating_delete_failed",
+            asset_id: MediaProviderAsset.redact_id(provider_asset_id),
+            reason: reason,
+            error: inspect(err_reason)
+          )
+
+          {:error, err_reason}
+
+        {:error, err_reason, _env} ->
+          Logger.warning("rindle.workers.mux_ingest_variant.compensating_delete_failed",
+            asset_id: MediaProviderAsset.redact_id(provider_asset_id),
+            reason: reason,
+            error: inspect(err_reason)
+          )
+
+          {:error, err_reason}
+      end
+    end
+
+    defp compensate_delete_mux_asset(_mux_response, _reason), do: :ok
 
     # ============================================================
     # Adapter call — routed through `create_asset_with_retry_hint/3`.

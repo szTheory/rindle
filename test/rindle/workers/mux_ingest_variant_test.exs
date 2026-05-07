@@ -203,6 +203,94 @@ defmodule Rindle.Workers.MuxIngestVariantTest do
              perform_job(MuxIngestVariant, ctx.args)
   end
 
+  # ===========================================================
+  # BL-01 — compensating Mux delete on post-create drift detection
+  # ===========================================================
+
+  test "BL-01: post-create storage_key drift triggers compensating Adapter.delete_asset/1",
+       ctx do
+    # Sequence: create_asset succeeds (Mux asset is now billed) -> drift is
+    # mutated AFTER create -> persist_provider_processing/4 detects drift in
+    # its post-create re-fetch -> worker MUST best-effort delete the asset
+    # before returning {:cancel, _}.
+    test_pid = self()
+
+    expect(ClientMock, :create_asset, fn _params ->
+      # Mutate storage_key BETWEEN the SDK call and the post-create re-check.
+      # This simulates a concurrent re-upload landing during the Mux REST
+      # round trip — the exact race BL-01 protects against.
+      {:ok, _} =
+        ctx.asset
+        |> MediaAsset.changeset(%{
+          storage_key: "media/" <> ctx.asset.id <> "/raced.mp4"
+        })
+        |> Repo.update()
+
+      {:ok, fixture("asset_create_201.json")}
+    end)
+
+    # The compensating delete MUST fire with the freshly-created Mux asset id.
+    expect(ClientMock, :delete_asset, fn provider_asset_id ->
+      send(test_pid, {:compensating_delete_called, provider_asset_id})
+      :ok
+    end)
+
+    assert {:cancel, {:stale_source, :asset_changed}} =
+             perform_job(MuxIngestVariant, ctx.args)
+
+    assert_receive {:compensating_delete_called, "AbCd1234EfGh5678IjKl9012MnOp3456QrSt"}, 500
+  end
+
+  test "BL-01: post-create recipe_digest drift triggers compensating Adapter.delete_asset/1",
+       ctx do
+    test_pid = self()
+
+    expect(ClientMock, :create_asset, fn _params ->
+      # Mutate recipe_digest BETWEEN SDK call and post-create re-check.
+      {:ok, _} =
+        ctx.variant
+        |> MediaVariant.changeset(%{
+          recipe_digest: "sha256:" <> String.duplicate("c", 64)
+        })
+        |> Repo.update()
+
+      {:ok, fixture("asset_create_201.json")}
+    end)
+
+    expect(ClientMock, :delete_asset, fn provider_asset_id ->
+      send(test_pid, {:compensating_delete_called, provider_asset_id})
+      :ok
+    end)
+
+    assert {:cancel, {:stale_source, :recipe_changed}} =
+             perform_job(MuxIngestVariant, ctx.args)
+
+    assert_receive {:compensating_delete_called, "AbCd1234EfGh5678IjKl9012MnOp3456QrSt"}, 500
+  end
+
+  test "BL-01: compensating delete failure does NOT change the {:cancel, _} return", ctx do
+    # Belt-and-suspenders: best-effort delete absorbs adapter errors so the
+    # worker still returns the {:cancel, _} verdict (the row's eventual
+    # reconciliation lives with the sync coordinator's stuck-threshold path).
+    expect(ClientMock, :create_asset, fn _params ->
+      {:ok, _} =
+        ctx.asset
+        |> MediaAsset.changeset(%{
+          storage_key: "media/" <> ctx.asset.id <> "/raced2.mp4"
+        })
+        |> Repo.update()
+
+      {:ok, fixture("asset_create_201.json")}
+    end)
+
+    expect(ClientMock, :delete_asset, fn _provider_asset_id ->
+      {:error, :provider_sync_failed}
+    end)
+
+    assert {:cancel, {:stale_source, :asset_changed}} =
+             perform_job(MuxIngestVariant, ctx.args)
+  end
+
   test "atomic_promote: drift emits [:rindle, :provider, :ingest, :exception] with kind: :cancelled",
        ctx do
     test_pid = self()
