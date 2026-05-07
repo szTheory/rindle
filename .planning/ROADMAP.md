@@ -182,7 +182,7 @@ idempotency all land here.
    than the configured threshold (extends the v1.5 surface; no new
    dead-letter queue).
 
-**Plans:** 4 plans (planned 2026-05-06 by `/gsd-plan-phase 35`). Plan-count
+**Plans:** 4/4 plans complete
 guidance: MUX-09..14 ≈ 3–4 plans; chosen 4 because Phase 35 is the highest-risk
 phase in the milestone (HIGH risk; ~40% of milestone effort) and warrants the
 slightly finer-grained verification rhythm.

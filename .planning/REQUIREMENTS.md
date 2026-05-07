@@ -84,29 +84,29 @@ video platform.
 
 ### Signed-Webhook Plug & Idempotent Ingest
 
-- [ ] **MUX-09**: `Rindle.Delivery.WebhookPlug` is a mountable provider-aware
+- [x] **MUX-09**: `Rindle.Delivery.WebhookPlug` is a mountable provider-aware
   Plug that adopters mount via a documented `forward` declaration; it reads
   the raw body via a shipped `Rindle.Delivery.WebhookBodyReader` and bypasses
   `Plug.Parsers` JSON decoding for the webhook scope.
-- [ ] **MUX-10**: Webhook signature verification delegates to
+- [x] **MUX-10**: Webhook signature verification delegates to
   `Mux.Webhooks.verify_header/4` (HMAC-SHA256, constant-time compare,
   Stripe-parity 300s default tolerance, configurable up to 900s, rejected
   below 60s).
-- [ ] **MUX-11**: The Plug supports multi-secret rotation via an ordered
+- [x] **MUX-11**: The Plug supports multi-secret rotation via an ordered
   `:webhook_secrets` config list; first-match wins; a metric records which
   secret index matched so operators can confirm rotation completed before
   retiring the previous secret.
-- [ ] **MUX-12**: On verified webhook, the Plug enqueues the raw payload to a
+- [x] **MUX-12**: On verified webhook, the Plug enqueues the raw payload to a
   `Rindle.Workers.IngestProviderWebhook` Oban job and returns `202 Accepted`;
   signature failures and replay-window failures both return `400` with
   `:provider_webhook_invalid` (operators distinguish via telemetry metadata,
   not error variants).
-- [ ] **MUX-13**: `IngestProviderWebhook` is idempotent under Oban `unique`
+- [x] **MUX-13**: `IngestProviderWebhook` is idempotent under Oban `unique`
   keyed on the Mux event UUID; it dispatches on `event.type` to flip
   `media_provider_assets` state, persist `playback_ids`, and broadcast
   `:provider_asset_*` PubSub; unknown event types persist `last_event_at`
   without crashing.
-- [ ] **MUX-14**: Workers exceeding `max_attempts` leave the affected row in
+- [x] **MUX-14**: Workers exceeding `max_attempts` leave the affected row in
   its last-known good state with `last_sync_error` populated; `mix
   rindle.runtime_status` (v1.5 surface) gains a `--provider-stuck` filter
   listing stuck/uploading rows older than the configured threshold.
