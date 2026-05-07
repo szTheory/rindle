@@ -54,4 +54,29 @@ defmodule Rindle.Streaming.ProviderTest do
       end
     end
   end
+
+  describe "BL-04: provider_state typespec aligned to String.t() (schema is :string)" do
+    # The schema column `media_provider_assets.state` is a string field
+    # (Rindle.Domain.MediaProviderAsset), the FSM keys
+    # (Rindle.Domain.ProviderAssetFSM.@allowed_transitions) are strings, and
+    # adapter implementations (e.g. Rindle.Streaming.Provider.Mux.normalize_state/1)
+    # return strings. The behaviour typespec must mirror that surface — atom
+    # states would be a contract drift that Dialyzer would (correctly) flag as
+    # soon as adopter callers land in Phase 36.
+    test "provider_state type spec resolves to a String.t() / binary form" do
+      # We can't introspect @type definitions cheaply at runtime, so this test
+      # locks behavior end-to-end: the Mux adapter returns strings, and the
+      # behaviour declares `state: provider_state()` for get_asset/1; if a
+      # future commit re-introduces atom states in the typespec without
+      # converting at the boundary, this assertion still passes (because the
+      # impl is what matters), but the regression for Mux specifically is
+      # caught by mux_test.exs (`%{state: "ready", ...}`). Here we lock that
+      # the schema-canonical state set stays a list of strings.
+      states = Rindle.Domain.MediaProviderAsset.states()
+      assert Enum.all?(states, &is_binary/1)
+
+      assert Enum.sort(states) ==
+               Enum.sort(["pending", "uploading", "processing", "ready", "errored", "deleted"])
+    end
+  end
 end

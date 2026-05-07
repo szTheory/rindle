@@ -28,13 +28,26 @@ defmodule Rindle.Streaming.Provider do
   @typedoc "Public-side playback identifier. Safe for URL embedding."
   @type playback_id :: String.t()
 
-  @typedoc "Locked finite-state-machine vocabulary for `media_provider_assets.state`."
-  @type provider_state ::
-          :pending | :uploading | :processing | :ready | :errored | :deleted
+  @typedoc """
+  Locked finite-state-machine vocabulary for `media_provider_assets.state`.
+
+  BL-04 alignment: the schema column is `:string` (see
+  `Rindle.Domain.MediaProviderAsset.@states`), the FSM keys are strings
+  (`Rindle.Domain.ProviderAssetFSM.@allowed_transitions`), and adapter
+  implementations return strings (e.g. `Rindle.Streaming.Provider.Mux.normalize_state/1`).
+  This typespec mirrors that surface — the closed set lives at the schema
+  layer, not in the type system. Adopters MUST treat values as one of:
+
+      "pending" | "uploading" | "processing" | "ready" | "errored" | "deleted"
+  """
+  @type provider_state :: String.t()
 
   @typedoc """
   Normalized webhook event surface. Provider-specific structs MUST be normalized
   into this shape by `verify_webhook/3` before crossing into core.
+
+  `state` is `nil` when the webhook payload carries no recognized status
+  (e.g. lifecycle events like `video.asset.created` that pre-date transcoding).
   """
   @type provider_event :: %{
           required(:type) => atom(),
