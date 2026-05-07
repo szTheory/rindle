@@ -3,11 +3,11 @@ gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: Provider Boundary + Mux
 status: executing
-stopped_at: Phase 35 CONTEXT.md + DISCUSSION-LOG.md committed (d6cfa5f)
-last_updated: "2026-05-07T03:17:18.997Z"
+stopped_at: Phase 36 context gathered (assumptions mode)
+last_updated: "2026-05-07T10:59:07.095Z"
 last_activity: 2026-05-07
 progress:
-  total_phases: 3
+  total_phases: 4
   completed_phases: 3
   total_plans: 12
   completed_plans: 12
@@ -90,7 +90,7 @@ Last activity: 2026-05-07
 
 ## Session Continuity
 
-Last session: Phase 35 context gathered (research-driven one-shot, no
+Last session: 2026-05-07T10:59:07.090Z
 interview turns); 46 decisions locked. Three parallel research subagents:
 (A) mountable Plug + raw-body cache pattern (Stripe.WebhookPlug peer
 comparison, body_reader MFA, init opt validation), (B) IngestProviderWebhook
@@ -103,8 +103,8 @@ Event.normalize/1 mis-attributes data.id for video.upload.asset_created
 (data.id is upload-id; asset-id lives in data.asset_id) — Phase 35 lands
 the typed branch as forward-compat (D-29).
 
-Stopped at: Phase 35 CONTEXT.md + DISCUSSION-LOG.md committed (d6cfa5f)
-Resume file: .planning/phases/35-signed-webhook-plug-idempotent-ingest/35-CONTEXT.md
+Stopped at: Phase 36 context gathered (assumptions mode)
+Resume file: .planning/phases/36-public-dx-onboarding-ci-proof/36-CONTEXT.md
 
 **Last Completed Milestone:** v1.5 (Phases 29-32) — archived 2026-05-06
 
