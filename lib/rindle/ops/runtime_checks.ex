@@ -35,6 +35,24 @@ defmodule Rindle.Ops.RuntimeChecks do
 
   @streaming_dep_missing_fix ~s(Add {:mux, "~> 3.2", optional: true} and {:jose, "~> 1.11", optional: true} to your deps.)
 
+  @gcs_dep_missing_fix ~s(Add {:goth, "~> 1.4", optional: true}, {:finch, "~> 0.21", optional: true}, and {:gcs_signed_url, "~> 0.4.6", optional: true} to your deps and run mix deps.get.)
+
+  @gcs_goth_fix """
+  Add {Goth, name: MyApp.Goth, source: {:service_account, creds}} to your supervision tree, then set config :rindle, Rindle.Storage.GCS, goth: MyApp.Goth.
+  """
+
+  @gcs_bucket_fix """
+  Verify config :rindle, Rindle.Storage.GCS, bucket: "my-bucket" matches a bucket your service account can access.
+  """
+
+  @gcs_signing_key_fix """
+  Verify the signing_key config is either a decoded service-account JSON map or an existing file path.
+  """
+
+  @gcs_precondition_fix """
+  Start `MyApp.Finch` and `MyApp.Goth` in your application supervision tree, then set config :rindle, Rindle.Storage.GCS, finch: MyApp.Finch, goth: MyApp.Goth.
+  """
+
   @type check_status :: :ok | :error
   @type check_result :: %{
           id: String.t(),
@@ -64,21 +82,36 @@ defmodule Rindle.Ops.RuntimeChecks do
     migration_statuses =
       Keyword.get_lazy(opts, :migration_statuses, fn -> migration_statuses(opts) end)
 
+    gcs_extra =
+      if gcs_profiles(profiles) != [] do
+        [
+          # Phase 37 / D-13 — GCS adapter health checks. Conditionally appended
+          # so image-only S3 adopters see no new doctor noise (WARNING 3 lock —
+          # not even silent OK rows). Resumable-specific CORS check defers to
+          # Phase 41 RESUMABLE-13.
+          fn -> check_gcs_goth_running(profiles, env) end,
+          fn -> check_gcs_bucket_reachable(profiles, env) end,
+          fn -> check_gcs_signing_key(profiles, env) end
+        ]
+      else
+        []
+      end
+
     checks =
-      [
-        fn -> check_delivery_support(profiles) end,
-        fn -> check_ffmpeg_runtime(probe) end,
-        fn -> check_local_playback(profiles, local_playback_route) end,
-        fn -> check_migration_pending(migration_statuses) end,
-        fn -> check_migration_unresolved(migration_statuses) end,
-        fn -> check_oban_default_instance(oban_config) end,
-        fn -> check_oban_required_queues(profiles, oban_config) end,
-        fn -> check_profile_runtime_fit(resolved, env) end,
-        fn -> check_streaming_credentials(profiles, env) end,
-        fn -> check_streaming_signing_key(profiles, env) end,
-        fn -> check_streaming_webhook_secrets(profiles, env) end,
-        fn -> check_streaming_smoke_ping(profiles, env, opts) end
-      ]
+      ([
+         fn -> check_delivery_support(profiles) end,
+         fn -> check_ffmpeg_runtime(probe) end,
+         fn -> check_local_playback(profiles, local_playback_route) end,
+         fn -> check_migration_pending(migration_statuses) end,
+         fn -> check_migration_unresolved(migration_statuses) end,
+         fn -> check_oban_default_instance(oban_config) end,
+         fn -> check_oban_required_queues(profiles, oban_config) end,
+         fn -> check_profile_runtime_fit(resolved, env) end,
+         fn -> check_streaming_credentials(profiles, env) end,
+         fn -> check_streaming_signing_key(profiles, env) end,
+         fn -> check_streaming_webhook_secrets(profiles, env) end,
+         fn -> check_streaming_smoke_ping(profiles, env, opts) end
+       ] ++ gcs_extra)
       |> Enum.map(&run_check/1)
       |> Enum.sort_by(& &1.id)
 
@@ -799,6 +832,342 @@ defmodule Rindle.Ops.RuntimeChecks do
           @streaming_smoke_ping_fix
         )
     end
+  end
+
+  # --- GCS checks (Phase 37 / D-13) ---
+
+  # WARNING 4 fix — single-line delegator mirroring streaming_profiles/1 at lines
+  # 522-524. Single source of truth for profile filtering lives in
+  # Rindle.Capability.configured_gcs_profiles/1.
+  defp gcs_profiles(profiles) do
+    Rindle.Capability.configured_gcs_profiles(profiles)
+  end
+
+  # Two-branch cond — the profile-aware short-circuit moved to the splice site
+  # in run/2 per WARNING 3.
+  defp check_gcs_goth_running(_profiles, _env) do
+    cond do
+      not Code.ensure_loaded?(Goth) ->
+        error_result(
+          "doctor.gcs_goth_running",
+          :gcs,
+          "GCS-enabled profile detected but :goth dep is not loaded.",
+          @gcs_dep_missing_fix
+        )
+
+      true ->
+        goth_name = Application.get_env(:rindle, Rindle.Storage.GCS, [])[:goth]
+
+        case fetch_gcs_goth_token(goth_name) do
+          :ok ->
+            ok_result(
+              "doctor.gcs_goth_running",
+              :gcs,
+              "Goth instance #{inspect(goth_name)} is running and minting tokens.",
+              @gcs_goth_fix
+            )
+
+          {:error, :no_goth_configured} ->
+            error_result(
+              "doctor.gcs_goth_running",
+              :gcs,
+              "config :rindle, Rindle.Storage.GCS, goth: ... is not set.",
+              @gcs_goth_fix
+            )
+
+          {:error, reason} ->
+            error_result(
+              "doctor.gcs_goth_running",
+              :gcs,
+              "Goth instance #{inspect(goth_name)} is not minting tokens: #{inspect(reason)}.",
+              @gcs_goth_fix
+            )
+        end
+    end
+  end
+
+  defp fetch_gcs_goth_token(nil), do: {:error, :no_goth_configured}
+
+  defp fetch_gcs_goth_token(name) do
+    # RESEARCH Pitfall 6: Goth.fetch/1 raises ArgumentError when the named
+    # instance is not in the supervision tree (NOT `:exit, :noproc`). The
+    # load-bearing trap is `rescue ArgumentError`. The `catch :exit, _reason`
+    # branch is retained as defense-in-depth for older Goth versions or
+    # unexpected exit propagation but is NOT the primary trap.
+    try do
+      case Goth.fetch(name) do
+        {:ok, _token} -> :ok
+        {:error, exception} when is_struct(exception) -> {:error, exception.__struct__}
+        {:error, reason} -> {:error, reason}
+      end
+    rescue
+      ArgumentError -> {:error, :argument_error}
+    catch
+      :exit, _reason -> {:error, :noproc}
+    end
+  end
+
+  defp check_gcs_bucket_reachable(_profiles, _env) do
+    cond do
+      not Code.ensure_loaded?(Finch) ->
+        error_result(
+          "doctor.gcs_bucket_reachable",
+          :gcs,
+          "GCS-enabled profile detected but :finch dep is not loaded.",
+          @gcs_dep_missing_fix
+        )
+
+      true ->
+        app_env = Application.get_env(:rindle, Rindle.Storage.GCS, [])
+
+        case app_env[:bucket] do
+          nil ->
+            error_result(
+              "doctor.gcs_bucket_reachable",
+              :gcs,
+              "config :rindle, Rindle.Storage.GCS, bucket: \"...\" is not set.",
+              @gcs_bucket_fix
+            )
+
+          bucket ->
+            finch_name = app_env[:finch]
+            goth_name = app_env[:goth]
+            base_url = app_env[:base_url]
+            token = app_env[:token]
+
+            opts =
+              []
+              |> then(fn acc -> if base_url, do: [{:base_url, base_url} | acc], else: acc end)
+              |> then(fn acc -> if token, do: [{:token, token} | acc], else: acc end)
+
+            case probe_gcs_bucket(bucket, finch_name, goth_name, opts) do
+              :ok ->
+                ok_result(
+                  "doctor.gcs_bucket_reachable",
+                  :gcs,
+                  "Bucket #{inspect(bucket)} is reachable (HTTP 200/403 from /storage/v1/b/$BUCKET).",
+                  @gcs_bucket_fix
+                )
+
+              {:precondition_missing, which} ->
+                error_result(
+                  "doctor.gcs_bucket_reachable",
+                  :gcs,
+                  "GCS bucket reachability could not be probed (#{which}). Start Finch + Goth in your supervision tree and configure their names.",
+                  @gcs_precondition_fix
+                )
+
+              {:bucket_missing, _status} ->
+                error_result(
+                  "doctor.gcs_bucket_reachable",
+                  :gcs,
+                  "GCS bucket #{inspect(bucket)} not found (404).",
+                  @gcs_bucket_fix
+                )
+
+              {:unexpected_status, status} ->
+                error_result(
+                  "doctor.gcs_bucket_reachable",
+                  :gcs,
+                  "GCS API returned unexpected status #{status} for bucket #{inspect(bucket)}.",
+                  @gcs_bucket_fix
+                )
+
+              {:probe_error, reason} ->
+                # Security invariant: Finch.request errors are atoms / Mint
+                # transport structs — never raw response bodies. Goth errors
+                # surface as exception struct names. Bearer tokens NEVER
+                # appear in `reason`.
+                error_result(
+                  "doctor.gcs_bucket_reachable",
+                  :gcs,
+                  "GCS bucket #{inspect(bucket)} probe failed: #{inspect(reason)}.",
+                  @gcs_bucket_fix
+                )
+            end
+        end
+    end
+  end
+
+  # BLOCKER 2 — D-13 LOCK: real HTTP probe with explicit precondition guards.
+  # Public (def) so Bypass-mocked unit tests can exercise it directly.
+  # @doc false marks it as not part of the documented public API.
+  @doc false
+  def probe_gcs_bucket(bucket, finch_name, goth_name, opts \\ []) do
+    cond do
+      not Code.ensure_loaded?(Finch) ->
+        {:precondition_missing, :finch_unavailable}
+
+      finch_name == nil ->
+        {:precondition_missing, :finch_not_configured}
+
+      not Code.ensure_loaded?(Goth) ->
+        {:precondition_missing, :goth_unavailable}
+
+      goth_name == nil ->
+        {:precondition_missing, :goth_not_configured}
+
+      true ->
+        do_probe(bucket, finch_name, goth_name, opts)
+    end
+  end
+
+  # BLOCKER 2 — D-13 LOCK: actual HTTP request issuance. Public (def) for
+  # testability; @doc false. `:base_url` opt allows Bypass redirection in unit
+  # tests; `:token` opt is a test-only seam that bypasses Goth.fetch/1 (which
+  # would otherwise call Google's real OAuth endpoint with the fake fixture
+  # credentials and fail). Both seams mirror Plan 01's Client conventions.
+  @doc false
+  def do_probe(bucket, finch_name, goth_name, opts \\ []) do
+    base_url = Keyword.get(opts, :base_url, "https://storage.googleapis.com")
+    encoded_bucket = URI.encode(bucket)
+    url = "#{base_url}/storage/v1/b/#{encoded_bucket}"
+
+    with {:ok, token} <- probe_token(goth_name, opts),
+         req = Finch.build(:get, url, [{"Authorization", "Bearer " <> token}]),
+         {:ok, %Finch.Response{status: status}} <- Finch.request(req, finch_name) do
+      case status do
+        s when s in [200, 403] -> :ok
+        404 -> {:bucket_missing, 404}
+        s -> {:unexpected_status, s}
+      end
+    else
+      {:error, reason} -> {:probe_error, reason}
+    end
+  catch
+    :exit, reason -> {:probe_error, {:exit, reason}}
+  end
+
+  # `:token` opt is a test-only seam (mirrors Plan 01 Client `:token` opt) so
+  # Bypass-mocked unit tests do not have to round-trip through Google's real
+  # OAuth endpoint with fake fixture credentials. Production callers do not
+  # set `:token` and the Goth path runs.
+  defp probe_token(goth_name, opts) do
+    case Keyword.get(opts, :token) do
+      token when is_binary(token) ->
+        {:ok, token}
+
+      _ ->
+        case Goth.fetch(goth_name) do
+          {:ok, %Goth.Token{token: token}} -> {:ok, token}
+          {:error, reason} -> {:error, reason}
+        end
+    end
+  end
+
+  defp check_gcs_signing_key(_profiles, _env) do
+    cond do
+      not Code.ensure_loaded?(GcsSignedUrl.Client) ->
+        error_result(
+          "doctor.gcs_signing_key",
+          :gcs,
+          "GCS-enabled profile detected but :gcs_signed_url dep is not loaded.",
+          @gcs_dep_missing_fix
+        )
+
+      true ->
+        case Application.get_env(:rindle, Rindle.Storage.GCS, [])[:signing_key] do
+          nil ->
+            error_result(
+              "doctor.gcs_signing_key",
+              :gcs,
+              "config :rindle, Rindle.Storage.GCS, signing_key: ... is not set.",
+              @gcs_signing_key_fix
+            )
+
+          signing_key ->
+            verify_gcs_signing_key(signing_key)
+        end
+    end
+  end
+
+  # Pattern mirrors verify_signing_key_pem/1 at lines 612-643 (Phase 36 WR-10
+  # security parity): emit only inspect(exception.__struct__), NEVER
+  # Exception.message/1 — so PEM body / JSON content never echo into doctor
+  # output even on failure.
+  defp verify_gcs_signing_key(%{"private_key" => _, "client_email" => _} = json_map) do
+    try do
+      _client = GcsSignedUrl.Client.load(json_map)
+
+      ok_result(
+        "doctor.gcs_signing_key",
+        :gcs,
+        "GCS signing key parses as a valid service-account JSON map.",
+        @gcs_signing_key_fix
+      )
+    rescue
+      exception ->
+        error_result(
+          "doctor.gcs_signing_key",
+          :gcs,
+          "GCS signing_key parse raised: #{inspect(exception.__struct__)} (malformed service-account JSON).",
+          @gcs_signing_key_fix
+        )
+    end
+  end
+
+  defp verify_gcs_signing_key(path) when is_binary(path) and byte_size(path) > 0 do
+    cond do
+      String.starts_with?(path, "-----BEGIN ") ->
+        error_result(
+          "doctor.gcs_signing_key",
+          :gcs,
+          "GCS signing_key is a raw PEM string; expected a decoded service-account JSON map or a file path.",
+          @gcs_signing_key_fix
+        )
+
+      File.regular?(path) ->
+        try do
+          _client = GcsSignedUrl.Client.load_from_file(path)
+
+          ok_result(
+            "doctor.gcs_signing_key",
+            :gcs,
+            "GCS signing key file parses as a valid service-account JSON.",
+            @gcs_signing_key_fix
+          )
+        rescue
+          exception ->
+            error_result(
+              "doctor.gcs_signing_key",
+              :gcs,
+              "GCS signing_key file parse raised: #{inspect(exception.__struct__)}.",
+              @gcs_signing_key_fix
+            )
+        end
+
+      true ->
+        error_result(
+          "doctor.gcs_signing_key",
+          :gcs,
+          "GCS signing_key path #{inspect(path)} does not exist or is not a regular file.",
+          @gcs_signing_key_fix
+        )
+    end
+  end
+
+  # WARNING 5 fix — explicit is_map/1 guard. Map.get(other, :__struct__)
+  # returns the struct module name for a struct map and nil for a bare map;
+  # the `|| :map_without_struct` fallback handles bare maps cleanly. NO rescue
+  # clause needed.
+  defp verify_gcs_signing_key(other) when is_map(other) do
+    error_result(
+      "doctor.gcs_signing_key",
+      :gcs,
+      "GCS signing_key has unexpected shape: #{inspect(Map.get(other, :__struct__) || :map_without_struct)}.",
+      @gcs_signing_key_fix
+    )
+  end
+
+  # WARNING 5 fix — plain catchall for non-map / non-binary inputs (nil,
+  # integers, lists, tuples). NO rescue needed.
+  defp verify_gcs_signing_key(_other) do
+    error_result(
+      "doctor.gcs_signing_key",
+      :gcs,
+      "GCS signing_key has unexpected shape (not a map or binary).",
+      @gcs_signing_key_fix
+    )
   end
 
   defp ok_result(id, component, summary, fix) do

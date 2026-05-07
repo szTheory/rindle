@@ -103,6 +103,22 @@ defmodule Rindle.Capability do
     end
   end
 
+  @doc """
+  Returns the subset of `profiles` that select `Rindle.Storage.GCS` as their storage adapter.
+
+  Public seam used by `mix rindle.doctor`'s GCS checks (Phase 37 / D-13) as the
+  single source of truth for "is this profile GCS-enabled?". Mirrors
+  `configured_streaming_profiles/1` (Phase 36 / MUX-16) — both delegate from
+  `runtime_checks.ex` so the doctor module never inlines profile-filter logic.
+  """
+  @spec configured_gcs_profiles([module()]) :: [module()]
+  def configured_gcs_profiles(profiles) do
+    for profile <- profiles,
+        safely_call_zero(profile, :storage_adapter) == Rindle.Storage.GCS do
+      profile
+    end
+  end
+
   # --- helpers ---
 
   defp profile_modules do
