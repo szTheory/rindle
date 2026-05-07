@@ -203,7 +203,7 @@ defmodule Rindle.Streaming.Provider.MuxTest do
 
       assert {:ok, evt} = Event.normalize(raw)
       assert evt.type == :created
-      assert evt.provider_asset_id == "AbCd1234EfGh5678IjKl9012MnOp3456QrSt"
+      assert evt.provider_asset_id == "00ecNLnqiG02mmQwOgcEeYQU3aAtqiHIyMb01YGKcrt017A"
       assert evt.state == "processing"
       assert evt.playback_ids == []
     end
@@ -245,7 +245,7 @@ defmodule Rindle.Streaming.Provider.MuxTest do
       assert {:ok,
               %{
                 type: :created,
-                provider_asset_id: "AbCd1234EfGh5678IjKl9012MnOp3456QrSt",
+                provider_asset_id: "00ecNLnqiG02mmQwOgcEeYQU3aAtqiHIyMb01YGKcrt017A",
                 state: "processing",
                 playback_ids: []
               }} = Adapter.verify_webhook(body, headers, [secret])

@@ -1,0 +1,13 @@
+{
+  "type": "video.upload.asset_created",
+  "id": "evt-fixture-upload-asset-created-0001",
+  "object": {
+    "type": "upload",
+    "id": "01uploadIdABCDEFGHIJKLMNOPQRSTUVWXYZ123456789aB"
+  },
+  "data": {
+    "id": "01uploadIdABCDEFGHIJKLMNOPQRSTUVWXYZ123456789aB",
+    "asset_id": "00ecNLnqiG02mmQwOgcEeYQU3aAtqiHIyMb01YGKupl017A"
+  },
+  "created_at": "2026-05-06T00:04:00.000Z"
+}
