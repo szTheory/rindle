@@ -61,7 +61,8 @@ defmodule Rindle.Ops.RuntimeChecks do
     oban_config = Keyword.get(opts, :oban_config, Application.get_env(mix_app, Oban))
     local_playback_route = Keyword.get(opts, :local_playback_route, Config.local_playback_route())
 
-    migration_statuses = Keyword.get_lazy(opts, :migration_statuses, fn -> migration_statuses(opts) end)
+    migration_statuses =
+      Keyword.get_lazy(opts, :migration_statuses, fn -> migration_statuses(opts) end)
 
     checks =
       [
@@ -234,19 +235,19 @@ defmodule Rindle.Ops.RuntimeChecks do
         "Keep private profiles on adapters that advertise `:signed_url`, or opt the profile into explicit public delivery."
       )
     else
-        error_result(
-          "doctor.delivery_support",
-          :delivery,
-          Enum.join(failures, " "),
-          "Switch the failing profile to an adapter that advertises `:signed_url`, or set `delivery: [public: true]` when public delivery is intentional."
-        )
+      error_result(
+        "doctor.delivery_support",
+        :delivery,
+        Enum.join(failures, " "),
+        "Switch the failing profile to an adapter that advertises `:signed_url`, or set `delivery: [public: true]` when public delivery is intentional."
+      )
     end
   end
 
   defp check_local_playback(profiles, local_playback_route) do
     local_av_profiles =
       profiles
-      |> Enum.filter(&(local_av_profile?(&1)))
+      |> Enum.filter(&local_av_profile?(&1))
       |> Enum.map(&inspect/1)
 
     cond do
@@ -385,9 +386,11 @@ defmodule Rindle.Ops.RuntimeChecks do
     repo = Config.repo()
     path = Keyword.get(opts, :migrations_path, Config.migrations_path())
 
-    case Migrator.with_repo(repo, fn started_repo ->
-           Migrator.migrations(started_repo, path)
-         end, mode: :temporary) do
+    case Migrator.with_repo(
+           repo,
+           fn started_repo ->
+             Migrator.migrations(started_repo, path)
+           end, mode: :temporary) do
       {:ok, statuses, _apps} ->
         statuses
 
@@ -437,6 +440,19 @@ defmodule Rindle.Ops.RuntimeChecks do
         @base_queues ++ [:rindle_media]
       else
         @base_queues
+      end
+
+    # Phase 36 WR-03: streaming-enabled profiles must declare
+    # `:rindle_provider` (the queue MuxSyncCoordinator and MuxIngestVariant
+    # workers enqueue onto). The streaming guide instructs adopters to
+    # configure `queues: [rindle_provider: 4]`, but the doctor check
+    # previously did not enforce it — adopters who mistyped the queue
+    # name got a green doctor while their Mux ingestion silently failed.
+    queues =
+      if Rindle.Capability.configured_streaming_profiles(profiles) == [] do
+        queues
+      else
+        queues ++ [:rindle_provider]
       end
 
     Enum.sort(queues)

@@ -27,8 +27,7 @@ defmodule Rindle.Ops.RuntimeChecksStreamingTest do
     "RINDLE_MUX_TOKEN_SECRET" => "sk_xxx",
     "RINDLE_MUX_SIGNING_KEY_ID" => "skid_xxx",
     "RINDLE_MUX_SIGNING_PRIVATE_KEY" => @valid_pem,
-    "RINDLE_MUX_WEBHOOK_SECRETS" =>
-      "whsec_test_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    "RINDLE_MUX_WEBHOOK_SECRETS" => "whsec_test_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
   }
 
   defp run(opts) do
@@ -170,6 +169,79 @@ defmodule Rindle.Ops.RuntimeChecksStreamingTest do
       check = fetch(report, "doctor.streaming_smoke_ping")
       assert check.status == :ok
       assert check.summary =~ "Smoke ping skipped"
+    end
+  end
+
+  describe "doctor.oban_required_queues with streaming profiles (Phase 36 WR-03)" do
+    test "PASS when streaming-enabled profile is present and rindle_provider queue is declared" do
+      report =
+        run(
+          profiles: [MuxStreamingProfile],
+          env: @full_env,
+          oban_config: [
+            repo: Rindle.Repo,
+            queues: [
+              rindle_promote: 1,
+              rindle_process: 1,
+              rindle_purge: 1,
+              rindle_maintenance: 1,
+              rindle_media: 1,
+              rindle_provider: 4
+            ]
+          ]
+        )
+
+      check = fetch(report, "doctor.oban_required_queues")
+      assert check.status == :ok
+      assert check.summary =~ "rindle_provider"
+    end
+
+    test "FAIL when streaming-enabled profile is present but rindle_provider queue is missing" do
+      report =
+        run(
+          profiles: [MuxStreamingProfile],
+          env: @full_env,
+          oban_config: [
+            repo: Rindle.Repo,
+            queues: [
+              rindle_promote: 1,
+              rindle_process: 1,
+              rindle_purge: 1,
+              rindle_maintenance: 1,
+              rindle_media: 1
+              # rindle_provider intentionally omitted — adopters who follow
+              # the streaming guide but mistype the queue name fall here.
+            ]
+          ]
+        )
+
+      check = fetch(report, "doctor.oban_required_queues")
+      assert check.status == :error
+      assert check.summary =~ "rindle_provider"
+      assert check.summary =~ "missing required queues"
+    end
+
+    test "PASS without rindle_provider when only non-streaming profiles are present" do
+      report =
+        run(
+          profiles: [ImageProfile],
+          env: %{},
+          oban_config: [
+            repo: Rindle.Repo,
+            queues: [
+              rindle_promote: 1,
+              rindle_process: 1,
+              rindle_purge: 1,
+              rindle_maintenance: 1
+              # rindle_provider intentionally omitted — non-streaming
+              # profiles MUST NOT require it.
+            ]
+          ]
+        )
+
+      check = fetch(report, "doctor.oban_required_queues")
+      assert check.status == :ok
+      refute check.summary =~ "rindle_provider"
     end
   end
 end
