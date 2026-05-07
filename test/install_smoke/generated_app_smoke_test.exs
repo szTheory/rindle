@@ -11,7 +11,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppSmokeAssertions do
 
       defp assert_install_source!(report) do
         assert File.dir?(report.generated_app_root)
-        assert report.profile_mode in [:image, :video, :upgrade]
+        assert report.profile_mode in [:image, :video, :upgrade, :mux]
         assert report.install_mode in [:package, :network]
         assert report.install_source
 
@@ -90,6 +90,40 @@ if GeneratedAppHelper.profile_enabled?(:video) do
       assert String.contains?(report.av_playback_storage_key, "web_720p")
       assert is_binary(report.av_delivery_path)
       assert String.contains?(report.av_delivery_path, report.av_playback_storage_key)
+    end
+  end
+end
+
+if GeneratedAppHelper.profile_enabled?(:mux) do
+  defmodule Rindle.InstallSmoke.GeneratedAppSmokeMuxTest do
+    use ExUnit.Case, async: false
+    use Rindle.InstallSmoke.GeneratedAppSmokeAssertions
+
+    setup_all do
+      report = GeneratedAppHelper.prove_package_install!(:mux)
+      on_exit(fn -> GeneratedAppHelper.cleanup(report) end)
+      {:ok, report: report}
+    end
+
+    test "generated Phoenix app installs the Mux-enabled profile from the configured package source without repo-local fallback",
+         %{report: report} do
+      assert_install_source!(report)
+    end
+
+    test "generated Phoenix app proves the canonical AV path PLUS Mux-signed HLS streaming URL via cassette",
+         %{report: report} do
+      assert report.host_migration_ran?
+      assert report.migration_resolution == :application_app_dir
+      assert String.ends_with?(report.rindle_migration_path, "/priv/repo/migrations")
+      refute String.contains?(report.rindle_migration_path, "deps/rindle")
+      assert report.smoke_exit_code == 0
+      assert report.lifecycle_proved?
+      assert report.av_ready_variants == ["poster", "web_720p"]
+      assert is_binary(report.av_playback_storage_key)
+      assert String.contains?(report.av_playback_storage_key, "web_720p")
+      assert is_binary(report.delivery_path)
+      assert report.streaming_url_kind == "hls"
+      assert String.contains?(report.delivery_path, ".m3u8")
     end
   end
 end
