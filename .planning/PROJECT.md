@@ -2,81 +2,44 @@
 
 ## Current State
 
-Milestone `v1.5 Adopter Hardening & Lifecycle Repair` shipped on `2026-05-06`
-(Phases 29-32, 14 plans). Rindle now has outside-in package-consumer proof for
-image-only and AV-enabled adopters, explicit lifecycle repair surfaces, runtime
-drift diagnostics, and a CI-proved upgrade path from pre-v1.4 installs into the
-current AV-aware lifecycle.
+Milestone `v1.6 Provider Boundary + Mux` shipped on `2026-05-07` (Phases 33-36,
+15 plans, 28/32 requirements validated). Rindle now ships a runtime provider
+contract with `Rindle.Streaming.Provider.Mux` as the reference adapter:
+server-push ingest from existing AV variants, signed HLS playback via
+JOSE-signed JWT, mountable signed-webhook Plug with multi-secret rotation +
+replay protection, durable provider state in `media_provider_assets`,
+defensive Oban-driven sync, and a generated-app `mux-enabled` package-consumer
+proof lane alongside the v1.5 image-only and AV-enabled lanes. The
+optional/deferred `:mux ~> 3.2` + `:jose ~> 1.11` deps mean non-streaming
+adopters pay zero transitive cost.
 
-Milestone `v1.6 Provider Boundary + Mux` is in flight. **Phases 33-34 complete
-`2026-05-06`** (8 plans, STREAM-01..09 + MUX-01..08 validated):
+Milestone v1.6 closes the streaming wedge that v1.4's reserved
+`streaming_url/3` seam pointed at. The next milestone is open for definition
+via `/gsd-new-milestone`. Locked v1.7+ adapter scope: GCS resumable adapter
+(`v1.6-CANDIDATE-GCS.md`, 5 phases) and tus protocol (`v1.6-CANDIDATE-TUS.md`,
+5 phases) are research-locked candidates; Phase 37 (browser→Mux direct
+creator upload, MUX-20..23) deferred to v1.7 since v1.6 budget held without
+pulling forward.
 
-- **Phase 33** — Provider Boundary + State Schema: locked public seam —
-  `Rindle.Streaming.Provider` runtime behaviour, `Rindle.Streaming.Capabilities`
-  closed vocabulary, additive `media_provider_assets` Ecto table +
-  `MediaProviderAsset` schema with FSM and Inspect redaction, Profile DSL
-  `:streaming` key, 8-branch `Rindle.Delivery.streaming_url/3` dispatch tree, 5
-  streaming reason atoms with byte-frozen parity test, and
-  `Rindle.Capability.report/0` aggregator.
-- **Phase 34** — Mux REST Adapter + Server-Push Sync: optional `:mux ~> 3.2` +
-  `:jose ~> 1.11` deps; `Rindle.Streaming.Provider.Mux` implements all 6
-  callbacks with PLURAL SDK keys (`inputs`, `playback_policies`) and explicit
-  `:expiration` for signed playback URLs (defeats 7-day default footgun);
-  `Rindle.Workers.MuxIngestVariant` server-push ingest worker (atomic-promote
-  race protection mirroring `process_variant.ex`, two-layer Oban idempotency,
-  429 Retry-After → snooze, compensating Mux delete on post-create drift);
-  `Rindle.Workers.MuxSyncCoordinator` (cron fan-out) +
-  `Rindle.Workers.MuxSyncProviderAsset` (per-row defensive sync, stuck-threshold
-  transition); cross-cutting telemetry redaction parity test enforces security
-  invariant 14 (last-4-char `asset_id` tag at every emit site). 60/60 Phase 34
-  bundle tests pass; verifier passed after 4-BLOCKER auto-fix loop.
+## Next Milestone Goals
 
-- **Phase 35** — Signed-Webhook Plug + Idempotent Ingest (complete `2026-05-07`,
-  4 plans, MUX-09..14 validated): `Rindle.Delivery.WebhookPlug` mountable
-  `@behaviour Plug` with all 6 response codes, 4 secret-resolver shapes,
-  multi-secret rotation with `secret_index` telemetry, configurable tolerance
-  (60-900s), replay-window guard via `Mux.Webhooks.check_timestamp/2`, raw-body
-  cache via `Rindle.Delivery.WebhookBodyReader` (1 MiB cap, drain loop, list-of-
-  binaries assigns shape); `Rindle.Workers.IngestProviderWebhook` Oban worker
-  with `unique` keyed on Mux event UUID for two-layer idempotency, race-snooze
-  on row-missing, `:provider_asset_ready` PubSub broadcast with security-
-  invariant-14 redaction; typed branch for `video.upload.asset_created` (D-29)
-  + `optional(:upload_id)` on `provider_event` typespec (D-30);
-  `Mux.dispatch_kind/1` `:dispatch | :drop` allowlist; provider-internal
-  telemetry inside `Mux.verify_webhook/3`; `mix rindle.runtime_status
-  --provider-stuck` operator-visibility extension. 47 new tests pass (7 body-
-  reader + 14 worker + 12 plug E2E + 6 event + 5 fixtures + 3 runtime-status).
-  Verifier passed 5/5 must-haves; code review surfaced 0 critical / 6 warning /
-  7 info (advisory, tracked for v1.6 polish or v1.7).
+No active milestone yet — start with `/gsd-new-milestone`. Candidate scope:
 
-- **Phase 36** — Public DX, Onboarding, CI Proof (complete `2026-05-07`, 3
-  plans, MUX-15..19 validated): `Rindle.Profile.Presets.MuxWeb` public preset
-  ships alongside `Web` with `:streaming` opt-in + `:signed` named playback
-  policy (Plan 01); `mix rindle.doctor --streaming` adds 4 PASS/FAIL checks
-  (token id/secret, signing-key id + RSA private key via `JOSE.JWK` struct
-  match, webhook secrets, 5s smoke ping with `Task.yield/Task.shutdown`)
-  emitting env-var names only, never values (Plan 01); `guides/streaming_
-  providers.md` (341 lines, 11 D-10 sections) ships as the canonical Mux
-  adopter reference, `mix.exs` extras wired, README + getting_started gain
-  14-line "Streaming with Mux (optional)" subsections without displacing the
-  image/AV first-run path, doc-parity guard adds `Rindle.Profile.Presets.
-  MuxWeb` as required string (Plan 02); generated-app harness gains `:mux`
-  profile mode (Mox-on-`:http_client`, lifecycle test source with `import Mox`
-  + `setup :set_mox_from_context`), `bash scripts/install_smoke.sh mux`
-  cassette lane on every PR, label-gated `mux-soak` real-Mux sibling job on
-  `streaming`-labelled PRs with three-layer asset-leak mitigation
-  (try/after + if:always() + idempotent cleanup with last-4 redaction),
-  `test/fixtures/mux/test_signing_public_key.pem` committed (Plan 03).
-  Verifier passed 5/5 must-haves at artifact-and-wiring level; 5 items
-  persisted in `36-HUMAN-UAT.md` for real-CI validation. Code review
-  surfaced 3 BLOCKER (CR-01 cleanup-script metadata mismatch, CR-02
-  try/after asset-leak window, CR-03 fixture coupling) + 10 warnings,
-  remediation tracked via `/gsd-code-review 36 --fix`.
+- **v1.7 — GCS Resumable Adapter** (locked plan): `Rindle.Storage.GCS` adapter
+  on the existing `Rindle.Storage` behaviour using `goth ~> 1.4` + `finch` +
+  `gcs_signed_url`; resumable upload session promotion (RESUMABLE-01..14);
+  generated-app GCS proof lane.
+- **v1.7 — Phase 37 pull-forward** (browser→Mux direct creator upload,
+  MUX-20..23): small additive surface on already-built primitives,
+  `Rindle.Streaming.Provider.Mux.create_direct_upload/2`, LiveView PubSub
+  vocabulary extension.
+- **v1.7+ — Code-review polish**: address Phase 36 CR-01/02/03 soak-lane
+  defects + ~25 Warning/Info findings deferred from Phases 34/35/36.
+- **v1.8 — tus Resumable Upload Protocol** (locked plan): mountable
+  `Rindle.Upload.TusPlug` macro on `tussle ~> 0.3.1`; HMAC-signed tus URLs;
+  S3 multipart `UploadPart` per-PATCH on the S3 path; Ecto-backed Tussle cache.
 
-Milestone v1.6 plan slate (Phases 33-36) is now complete. Next: cut the v0.2.0
-release via `/gsd-complete-milestone` (release-please auto-bumps 0.1.4 → 0.2.0).
-
-## Current Milestone: v1.6 Provider Boundary + Mux
+## Historical Milestone: v1.6 Provider Boundary + Mux (SHIPPED 2026-05-07)
 
 **Goal:** Productize `Rindle.Streaming.Provider` as a real adapter contract and
 ship Mux as the single reference streaming provider — turning v1.4's reserved
@@ -203,35 +166,48 @@ Media, made durable.
 - ✓ Public AV onboarding, profile-aware doctor CI gates, smartphone-source
   lifecycle proof, and docs/telemetry parity shipped — v1.4 (Phase 28)
   (AV-06)
+- ✓ Provider boundary contract — capability vocabulary, promoted
+  `Rindle.Streaming.Provider` runtime behaviour, additive
+  `media_provider_assets` Ecto table + FSM, profile DSL `:streaming` key,
+  `streaming_url/3` dispatch tree, 5 streaming reason atoms with parity
+  freeze, `Rindle.Capability.report/0` extension — v1.6 (Phase 33)
+  (STREAM-01..09)
+- ✓ Mux REST adapter + server-push sync — `mux ~> 3.2` + `jose ~> 1.11`
+  optional deps, signed-playback URL minting via `Mux.Token` with explicit
+  TTL (defeats 7-day default), `MuxIngestVariant` Oban worker with two-layer
+  idempotency + atomic-promote race protection + 429 Retry-After snooze,
+  `MuxSyncCoordinator` + `MuxSyncProviderAsset` defensive polling, telemetry
+  redaction parity — v1.6 (Phase 34) (MUX-01..08)
+- ✓ Signed-webhook plug + idempotent ingest — mountable
+  `Rindle.Delivery.WebhookPlug`, raw-body cache pattern via
+  `WebhookBodyReader`, `Mux.Webhooks.verify_header/4` HMAC-SHA256 verify,
+  multi-secret rotation with `secret_index` telemetry, 60–900s configurable
+  replay window, `IngestProviderWebhook` Oban worker idempotent on Mux event
+  UUID, race-snooze on row-missing, two-topic PubSub broadcast,
+  `mix rindle.runtime_status --provider-stuck` extension — v1.6 (Phase 35)
+  (MUX-09..14)
+- ✓ Public DX, onboarding, CI proof — `Rindle.Profile.Presets.MuxWeb` preset,
+  `mix rindle.doctor --streaming` 4 PASS/FAIL checks + 5s smoke ping,
+  `guides/streaming_providers.md` (341 lines), README + getting-started
+  `Streaming with Mux (optional)` subsections, generated-app `mux-enabled`
+  cassette lane (every PR) + label-gated `mux-soak` real-Mux sibling
+  (`streaming`-labelled PRs only) with three-layer asset-leak mitigation
+  — v1.6 (Phase 36) (MUX-15..19)
 
 ### Active
 
-- `STREAM-01..09`: provider boundary contract — capability vocabulary,
-  promoted `Rindle.Streaming.Provider` behaviour, `media_provider_assets`
-  schema + FSM, profile DSL `:streaming` key, `streaming_url/3` dispatch rule,
-  `Rindle.Error` extension, capability report — v1.6 Phase 33.
-- `MUX-01..08`: Mux REST adapter + server-push sync — `mux ~> 3.2` optional
-  dep, signed-playback URL minting via `Mux.Token`, `MuxIngestVariant` Oban
-  worker with idempotent unique args, atomic-promote on flip-to-ready,
-  `MuxSyncProviderAsset` defensive polling — v1.6 Phase 34.
-- `MUX-09..14`: signed-webhook plug + idempotent ingest — mountable
-  `Rindle.Delivery.WebhookPlug`, `Mux.Webhooks.verify_header/4` + Stripe-parity
-  multi-secret rotation + 300s replay window, raw-body cache pattern,
-  Oban-deferred `IngestProviderWebhook` with event-UUID idempotency, dead-letter
-  via `media_provider_assets.last_sync_error` — v1.6 Phase 35.
-- `MUX-15..19`: public DX, onboarding, CI proof — `Rindle.Profile.Presets.MuxWeb`,
-  `mix rindle.doctor` streaming validation, `guides/streaming_providers.md`,
-  generated-app `mux-enabled` package-consumer lane — v1.6 Phase 36.
-- `MUX-20..23` (optional Phase 37): browser→Mux direct creator upload —
-  `Rindle.Streaming.Provider.Mux.create_direct_upload/2`,
-  `video.upload.asset_created` webhook handler, LiveView `:provider_asset_*`
-  PubSub. Pulled in only if Phase 33-36 ship under budget.
+(None — milestone v1.6 closed. Start the next milestone with
+`/gsd-new-milestone`.)
 
-**Candidate next requirements (deferred):**
+**Candidate next requirements (deferred from v1.6):**
+- `MUX-20..23`: browser→Mux direct creator upload — Phase 37 not pulled
+  forward in v1.6; clean additive surface on already-built primitives.
 - `GCS-01..04` + `RESUMABLE-01..14`: truthful `Rindle.Storage.GCS` resumable
   adapter — locked v1.7 plan in `.planning/research/v1.6-CANDIDATE-GCS.md`
 - `TUS-01..19`: tus protocol family on a mountable Plug — locked v1.8 plan in
   `.planning/research/v1.6-CANDIDATE-TUS.md`
+- Code-review polish for Phases 34/35/36 — CR-01/02/03 (Phase 36 soak-lane
+  operational defects) + ~25 Warning/Info findings deferred to v1.7.
 
 ### Out of Scope
 
@@ -259,13 +235,19 @@ Media, made durable.
 
 ## Context
 
-**v1.5 result:** Rindle now has an operator-grade adoption lane for the current
-AV lifecycle: published package-consumer proof, explicit repair operations,
-runtime diagnostics, and a public upgrade path from pre-v1.4 installs.
+**v1.6 result:** Rindle ships a real streaming provider contract with Mux as
+the single reference adapter — the v1.4-reserved `streaming_url/3` seam now
+backs a runtime behaviour, durable provider state, signed-webhook ingest with
+multi-secret rotation, idempotent Oban-driven sync, and a generated-app
+package-consumer `mux-enabled` proof lane alongside v1.5's image-only and
+AV-enabled lanes. Optional `mux` + `jose` deps preserve zero transitive cost
+for non-streaming adopters. The single-provider rule keeps the abstraction
+honest; v1.7+ adapters (GCS, second streaming provider) become contract tests.
 
-**Current milestone setup:** no new milestone is open yet. Candidate expansion
-work remains GCS resumable uploads, provider adapters/streaming boundary work,
-and tus only if real adopter demand proves the boundary should widen.
+**Current milestone setup:** v1.6 closed. No new milestone is open yet.
+Candidate expansion work: pull Phase 37 forward (browser→Mux direct creator
+upload, MUX-20..23), GCS resumable adapter (locked v1.7 plan), tus protocol
+(locked v1.8 plan), and code-review polish for Phase 36 soak-lane defects.
 
 **Reference implementations:**
 - Rails Active Storage: attachment/blob ownership patterns, redirect-style
@@ -354,9 +336,41 @@ and tus only if real adopter demand proves the boundary should widen.
 | Variants stay first-class DB rows with `:output_kind`; cross-kind derivatives (video → poster image, audio → waveform) are plain rows, no special cases | Day-2 ops queries (`WHERE state='failed' AND output_kind=:video`) stay SQL-native; Shrine's flat-derivatives JSON blob loses this | Locked v1.4 |
 | HLS / DASH / DRM / live streaming / dynamic per-request video transforms remain out of core scope | Streaming framework territory (Mux, Cloudflare Stream, Membrane); manifest ingest is an SSRF + RCE surface (CVE-2016-1897, CVE-2020-13904, multiple HackerOne reports) | Locked v1.4 |
 | Provider-delegated processors (Mux / Cloudflare Stream / Transloadit) ship as a documented custom-`Rindle.Processor` recipe, not as bundled adapters in core | Adopter contract stays narrow; adapter pluggability can land in v1.5+ if real adopter feedback requests it; v1.2 / v1.3 retro confirmed tight scope ships cleanly | Locked v1.4 |
-| `Rindle.Delivery.streaming_url/3` ships as a no-op delegate now to reserve the surface for HLS / Mux / CF Stream provider adapters | Active Storage's mistake was conflating progressive-blob URLs with manifest URLs; reserving the namespace now means adopter video templates won't churn when streaming providers land | Locked v1.4 |
+| `Rindle.Delivery.streaming_url/3` ships as a no-op delegate now to reserve the surface for HLS / Mux / CF Stream provider adapters | Active Storage's mistake was conflating progressive-blob URLs with manifest URLs; reserving the namespace now means adopter video templates won't churn when streaming providers land | ✓ Validated in v1.6 (Phase 33: 8-branch dispatch tree on the reserved surface; zero adopter churn) |
+| `Rindle.Streaming.Provider` is the contract boundary, not adapter modules; Mux is the reference adapter, not the contract | Single-provider rule keeps abstraction honest; second adapter (Cloudflare/Bunny) is the contract test in v1.7+, not v1.6 scope | Locked v1.6 |
+| `mux ~> 3.2` + `jose ~> 1.11` ship as optional deps, not required deps | Adopters who don't enable streaming pay zero transitive cost; Mux SDK's Tesla + JOSE surface stays adapter-local | ✓ Validated v1.6 (Phase 34) |
+| Webhook signature verification delegates to `Mux.Webhooks.verify_header/4`, not reimplemented in Rindle | Mux SDK's HMAC + JOSE implementations are the highest-risk pieces; reimplementing risks divergence from the provider's own constant-time semantics | ✓ Validated v1.6 (Phase 35) |
+| Raw-body cache for webhooks is the `Plug.Parsers :body_reader` MFA pattern, not a separate route or `pull_request_target`-style escape hatch | Same pattern Stripe.WebhookPlug uses; mountable via documented `forward` declaration; bypasses JSON decoding only in the webhook scope | ✓ Validated v1.6 (Phase 35) |
+| Provider-internal IDs (Mux `asset_id`, upload IDs, session URIs) redact to last-4-char tag in telemetry, logs, and `Inspect` output (security invariant 14) | Raw provider IDs leak across adopter boundaries in dashboards and traces; cross-cutting parity test enforces last-4 redaction at every emit site | Locked v1.6 |
+| Generated-app `mux-soak` lane is label-gated (`streaming` PR label), not on every PR; cassette lane runs every PR with zero secrets | Real-Mux quota + cost; fork-PR safety: secrets resolve to empty strings on forks via `pull_request` (NOT `pull_request_target`) trigger | ✓ Validated v1.6 (Phase 36) |
+| Phase 37 (browser→Mux direct creator upload) ships only if Phases 33-36 ship under budget | Single-provider rule keeps milestone scope honest; direct-creator-upload is small additive surface on already-built primitives — clean v1.7 deferral | ✓ Deferred to v1.7 (Phases 33-36 closed at budget without pulling forward) |
 
 ## Historical Snapshot
+
+<details>
+<summary>v1.6 Provider Boundary + Mux (Phases 33–36) — SHIPPED 2026-05-07</summary>
+
+Milestone v1.6 turned v1.4's reserved `streaming_url/3` seam into a real
+provider contract with Mux as the single reference adapter, without making
+Rindle a video platform. Delivered: `Rindle.Streaming.Provider` runtime
+behaviour with locked callbacks, additive `media_provider_assets` durable
+state schema, profile DSL `:streaming` key, 8-branch dispatch tree,
+`Rindle.Streaming.Provider.Mux` reference adapter (server-push ingest,
+signed HLS playback, defensive sync workers, security-invariant-14
+telemetry redaction), mountable `Rindle.Delivery.WebhookPlug` with
+multi-secret rotation + replay protection + raw-body cache, idempotent
+`IngestProviderWebhook` Oban worker, public `Rindle.Profile.Presets.MuxWeb`,
+`mix rindle.doctor --streaming` validation, `guides/streaming_providers.md`
+adopter reference, and a generated-app `mux-enabled` package-consumer
+proof lane (cassette every PR + label-gated real-Mux soak). Optional
+`mux` + `jose` deps mean non-streaming adopters pay zero transitive cost.
+
+Full artifacts live in:
+
+- [.planning/milestones/v1.6-ROADMAP.md](.planning/milestones/v1.6-ROADMAP.md)
+- [.planning/milestones/v1.6-REQUIREMENTS.md](.planning/milestones/v1.6-REQUIREMENTS.md)
+
+</details>
 
 <details>
 <summary>v1.5 Adopter Hardening & Lifecycle Repair (Phases 29–32) — SHIPPED 2026-05-06</summary>
@@ -469,4 +483,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-07 — Phase 36 (Public DX, Onboarding, CI Proof) complete (3 plans, 5 MUX requirements validated MUX-15..19); milestone v1.6 plan slate now closed (Phases 33-36 done). Verifier passed 5/5 must-haves at artifact-and-wiring level; 5 human-verification items persisted in 36-HUMAN-UAT.md for real-CI validation (cassette PR run, mux-soak real-Mux on streaming-labelled PR, HexDocs publish wire, fork-secret boundary, generated-app cassette WebM upload). Code review surfaced 3 BLOCKER (CR-01 cleanup-script metadata mismatch, CR-02 try/after asset-leak window, CR-03 fixture coupling) + 10 warnings; remediation via /gsd-code-review 36 --fix tracked separately. 3 pre-existing test failures (waveform :epipe + 2 ApplicationTest profile-discovery) confirmed unrelated to Phase 36 — same set tracked since Phase 35. Next: /gsd-complete-milestone to cut v0.2.0 (release-please 0.1.4 → 0.2.0).*
+*Last updated: 2026-05-07 after v1.6 milestone — Provider Boundary + Mux shipped (Phases 33-36, 15 plans, 28/32 requirements validated; STREAM-01..09 + MUX-01..19 → Validated; MUX-20..23 deferred to v1.7). Active section now empty pending `/gsd-new-milestone`. Key Decisions extended with 8 new locked v1.6 outcomes (provider contract boundary, optional `mux`/`jose` deps, webhook signature delegation to `Mux.Webhooks.verify_header/4`, raw-body MFA pattern, security invariant 14, label-gated soak lane, Phase 37 deferral). Historical Snapshot prepended with v1.6 entry. Next: release-please auto-bumps `0.1.4 → 0.2.0` after `v1.6` tag pushes.*

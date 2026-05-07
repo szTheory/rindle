@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: Provider Boundary + Mux
-status: executing
+status: Awaiting next milestone
 stopped_at: Phase 36 context gathered (assumptions mode)
-last_updated: "2026-05-07T14:22:28.515Z"
-last_activity: 2026-05-07
+last_updated: "2026-05-07T14:38:23.494Z"
+last_activity: 2026-05-07 — Milestone v1.6 completed and archived
 progress:
   total_phases: 4
   completed_phases: 4
@@ -27,10 +27,10 @@ single reference streaming adapter without expanding into a video platform.
 
 ## Current Position
 
-Phase: 36
-Plan: Not started
-Status: Executing Phase 36
-Last activity: 2026-05-07
+Phase: Milestone v1.6 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-05-07 — Milestone v1.6 completed and archived
 
 ## Recent Completion
 
@@ -79,6 +79,31 @@ Last activity: 2026-05-07
 - None. v1.4/v1.5 phase-directory reconciliation completed in commit b09b1c9
   (archived to `.planning/milestones/v1.4-phases/` and `v1.5-phases/`).
 
+## Deferred Items
+
+Items acknowledged and deferred at v1.6 milestone close on 2026-05-07:
+
+| Category | Item | Status |
+|----------|------|--------|
+| uat | Phase 36 — `bash scripts/install_smoke.sh mux` cassette PR run | pending (CI-only by Plan 03 design) |
+| uat | Phase 36 — `mux-soak` real-Mux lane against `streaming`-labelled PR | pending (requires 5 GitHub Secrets) |
+| uat | Phase 36 — HexDocs publish wire (`mix docs` rendering of MuxWeb + streaming_providers.md) | pending (post-publish observable) |
+| uat | Phase 36 — Fork-secret leak boundary on `streaming`-labelled fork PR | pending (GitHub fork secret semantics) |
+| uat | Phase 36 — `Rindle.InstallSmoke.GeneratedAppSmokeMuxTest` in spawned Phoenix project | pending (CI package-consumer step only) |
+| code-review | Phase 36 CR-01 — `mux_soak_cleanup.sh` filter ↔ producer metadata mismatch (soak cleanup non-functional) | deferred to v1.7 polish |
+| code-review | Phase 36 CR-02 — soak lifecycle ETS insert ordered after assertions (cleanup misses on failure) | deferred to v1.7 polish |
+| code-review | Phase 36 CR-03 — `shared_env/1` unconditional Mux fixture read couples `:image`/`:video` runs | deferred to v1.7 polish |
+| code-review | Phase 36 — 10 WR-* warnings (version pin drift, `_invalid` flag discard, queue check, etc.) | deferred to v1.7 polish |
+| code-review | Phase 34 — 9 Warning + 3 Info findings in `34-REVIEW.md` | deferred to v1.7 polish |
+| code-review | Phase 35 — 6 Warning + 7 Info findings (advisory) | deferred to v1.7 polish |
+
+Phase 36 verifier passed 5/5 must-haves at artifact-and-wiring level; the
+5 UAT items above are CI-time observables by design (Plan 03 SUMMARY
+explicitly defers them to the package-consumer CI step). The 3 BLOCKER
+review findings (CR-01/02/03) are operational defects in the soak lane —
+they do not block the milestone goal but should be fixed before steady-
+state soak operation. Tracked for `/gsd-code-review 36 --fix` in v1.7.
+
 ## Decision-Making Preference
 
 - Downstream agents should front-load research, prefer coherent one-shot
@@ -109,3 +134,7 @@ Resume file: .planning/phases/36-public-dx-onboarding-ci-proof/36-CONTEXT.md
 **Last Completed Milestone:** v1.5 (Phases 29-32) — archived 2026-05-06
 
 **Next Step:** `/gsd-plan-phase 35`
+
+## Operator Next Steps
+
+- Start the next milestone with /gsd-new-milestone

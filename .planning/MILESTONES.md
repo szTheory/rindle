@@ -1,5 +1,34 @@
 # Milestones
 
+## v1.6 Provider Boundary + Mux (Shipped: 2026-05-07)
+
+**Phases completed:** 4 phases (33-36), 15 plans
+**Files changed:** 144 (42,665 insertions / 188 deletions)
+**Timeline:** ~22 hours (2026-05-06 → 2026-05-07)
+**Requirements validated:** 28/32 (STREAM-01..09 + MUX-01..19); MUX-20..23 deferred to v1.7 (Phase 37 not pulled forward)
+
+**Key accomplishments:**
+
+- Promoted `Rindle.Streaming.Provider` from a v1.4-reserved 2-callback seam to a runtime contract with locked `@callback` signatures (capability query, asset CRUD, signed playback URL, webhook verify, optional direct-creator-upload), with closed `Rindle.Streaming.Capabilities` vocabulary, profile DSL `:streaming` key validated through NimbleOptions, 8-branch `Rindle.Delivery.streaming_url/3` dispatch tree, and 5 additive locked error atoms with byte-frozen parity test (Phase 33, STREAM-01..09).
+
+- Shipped `Rindle.Streaming.Provider.Mux` reference adapter with all 6 callback implementations and `mux ~> 3.2` + `jose ~> 1.11` as **optional deps** (zero transitive cost for non-streaming adopters); `Rindle.Workers.MuxIngestVariant` server-push ingest worker (atomic-promote race protection, two-layer Oban-unique idempotency, 429 Retry-After snooze, compensating Mux delete on drift); explicit JOSE-signed JWT TTL respecting profile policy (defeats Mux SDK's 7-day default footgun); `MuxSyncCoordinator` + `MuxSyncProviderAsset` defensive-poll workers with stuck-threshold transition; cross-cutting telemetry redaction parity test enforcing security invariant 14 (Phase 34, MUX-01..08).
+
+- Mountable `Rindle.Delivery.WebhookPlug` with raw-body cache pattern (`WebhookBodyReader`, 1 MiB cap, list-of-binaries assigns shape, `Plug.Parsers` JSON bypass), HMAC-SHA256 verify via `Mux.Webhooks.verify_header/4`, configurable 60–900s replay window, multi-secret rotation with `secret_index` telemetry; `Rindle.Workers.IngestProviderWebhook` Oban worker idempotent on Mux event UUID, race-snooze on row-missing, two-topic PubSub broadcast with provider-id redaction; typed `video.upload.asset_created` branch (locks D-29 forward-compat for Phase 37); `mix rindle.runtime_status --provider-stuck` operator-visibility extension (Phase 35, MUX-09..14).
+
+- Public adopter onboarding for Mux: `Rindle.Profile.Presets.MuxWeb` ships alongside `Rindle.Profile.Presets.Web` with `:streaming` opt-in + `:signed` named playback policy; `mix rindle.doctor --streaming` adds 4 PASS/FAIL streaming checks (token id/secret, signing key, webhook secrets, 5s smoke ping to `Mux.Video.Assets.list/1`) emitting env-var names only, never values; `guides/streaming_providers.md` (341 lines, 11 sections) documents env vars, signing-key creation, secret rotation, raw-body wiring, ngrok-tunnel guidance; README + getting-started gain `Streaming with Mux (optional)` subsections (≤15 lines each) without displacing image/AV first-run path (Phase 36, MUX-15..17, MUX-19).
+
+- Generated-app `mux-enabled` package-consumer proof harness — cassette lane runs every PR (Mox-on-`:http_client`, zero secrets); label-gated `mux-soak` sibling job runs against real Mux on `streaming`-labelled PRs only, fork-PR-safe via no-credential branch; three-layer asset-leak mitigation (try/after + `if: always()` + idempotent cleanup with last-4 redaction); `Rindle.InstallSmoke.GeneratedAppSmokeMuxTest` validates JWT-signed HLS URL through `JOSE.JWT.verify_strict/3` against committed test signing key (Phase 36, MUX-18).
+
+- Locked v1.7+ adapter scope: GCS resumable adapter (5 phases, ~13 days, locked plan in `.planning/research/v1.6-CANDIDATE-GCS.md`) and tus protocol (5 phases, ~13–15 days, locked plan in `.planning/research/v1.6-CANDIDATE-TUS.md`) preserved as research-locked candidate scope. Phase 37 (browser→Mux direct creator upload, MUX-20..23) deferred to v1.7 since milestone budget held without pulling forward.
+
+**Known deferred items at close:** 5 Phase 36 UAT scenarios (CI-only by design — cassette PR run, mux-soak real-Mux, HexDocs publish wire, fork-secret boundary, generated-app cassette test); 3 BLOCKER review findings in Phase 36 soak lane (CR-01/02/03 — operational defects, not goal-blocking); ~25 Warning + Info findings across Phases 34/35/36 — all routed to v1.7 polish via `/gsd-code-review --fix` (see STATE.md `## Deferred Items`).
+
+**Archive:**
+- `.planning/milestones/v1.6-ROADMAP.md`
+- `.planning/milestones/v1.6-REQUIREMENTS.md`
+
+---
+
 ## v1.5 Adopter Hardening & Lifecycle Repair (Shipped: 2026-05-06)
 
 **Phases completed:** 4 phases (29-32), 14 plans
@@ -9,17 +38,22 @@
 
 - Proved the real package-consumer happy path for both image-only and
   AV-enabled adopters from shipped artifacts rather than only from the repo.
+
 - Added explicit repair surfaces for reprobe, targeted requeue, dry-run-first
   sweep, and truthful regeneration guidance.
+
 - Rebuilt runtime diagnostics around deterministic `mix rindle.doctor` checks,
   bounded `mix rindle.runtime_status` reporting, and additive repair/runtime
   telemetry.
+
 - Proved the upgrade path from pre-v1.4 image-only installs into the current
   AV-aware lifecycle and locked the recovery story into docs and CI.
+
 - Preserved future breadth work as deferred candidate scope: GCS, provider
   adapters, and tus remain out of milestone close until explicitly selected.
 
 **Archive:**
+
 - `.planning/milestones/v1.5-ROADMAP.md`
 - `.planning/milestones/v1.5-REQUIREMENTS.md`
 - `.planning/milestones/v1.5-MILESTONE-AUDIT.md`
@@ -42,6 +76,7 @@
 - Locked the public AV onboarding story with install docs, profile-aware doctor CI gates, smartphone-source adopter proof, and AV hygiene checks.
 
 **Archive:**
+
 - `.planning/milestones/v1.4-ROADMAP.md`
 - `.planning/milestones/v1.4-REQUIREMENTS.md`
 - `.planning/milestones/v1.4-MILESTONE-AUDIT.md`
@@ -64,6 +99,7 @@
 - Completed retrospective metadata closure, ensuring goal-backward traceability for all Phase 15 and 16 requirements.
 
 **Archive:**
+
 - `.planning/milestones/v1.3-ROADMAP.md`
 - `.planning/milestones/v1.3-REQUIREMENTS.md`
 - `.planning/milestones/v1.3-MILESTONE-AUDIT.md`
@@ -89,6 +125,7 @@
 - Phase 10 and Phase 11 VALIDATION artifacts completed to Nyquist-compliant state (status: complete, wave_0_complete: true, all sign-offs checked, Approval: approved), clearing all v1.2 audit residue.
 
 **Archive:**
+
 - `.planning/milestones/v1.2-ROADMAP.md`
 - `.planning/milestones/v1.2-REQUIREMENTS.md`
 - `.planning/milestones/v1.2-MILESTONE-AUDIT.md`

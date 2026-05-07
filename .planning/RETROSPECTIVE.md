@@ -54,15 +54,87 @@
 
 ---
 
+## Milestone: v1.6 — Provider Boundary + Mux
+
+**Shipped:** 2026-05-07
+**Phases:** 4 (33–36) | **Plans:** 15
+
+### What Was Built
+
+- `Rindle.Streaming.Provider` promoted from a v1.4-reserved 2-callback seam to a runtime contract with locked callbacks (capability query, asset CRUD, signed playback URL, webhook verify, optional direct-creator-upload)
+- Closed `Rindle.Streaming.Capabilities` vocabulary; profile DSL `:streaming` key validated through NimbleOptions; 8-branch `Rindle.Delivery.streaming_url/3` dispatch tree; 5 additive locked error atoms with byte-frozen parity test
+- Additive `media_provider_assets` Ecto table + `MediaProviderAsset` schema with FSM and `Inspect` redaction (security invariant 14)
+- `Rindle.Streaming.Provider.Mux` reference adapter with `mux ~> 3.2` + `jose ~> 1.11` as **optional deps** (zero transitive cost for non-streaming adopters)
+- `MuxIngestVariant` server-push ingest worker with atomic-promote race protection, two-layer Oban-unique idempotency, 429 Retry-After snooze, compensating Mux delete on drift
+- Explicit JOSE-signed JWT TTL respecting profile policy (defeats Mux SDK's 7-day default footgun)
+- `MuxSyncCoordinator` + `MuxSyncProviderAsset` defensive-poll workers with stuck-threshold transition; cross-cutting telemetry redaction parity test
+- Mountable `Rindle.Delivery.WebhookPlug` with raw-body cache (`WebhookBodyReader`, 1 MiB cap, list-of-binaries assigns shape, `Plug.Parsers` JSON bypass)
+- HMAC-SHA256 verify via `Mux.Webhooks.verify_header/4`, configurable 60–900s replay window, multi-secret rotation with `secret_index` telemetry
+- `IngestProviderWebhook` Oban worker idempotent on Mux event UUID, race-snooze on row-missing, two-topic PubSub broadcast with provider-id redaction
+- Typed `video.upload.asset_created` branch (D-29 silent-corruption fix as forward-compat for Phase 37)
+- `mix rindle.runtime_status --provider-stuck` operator-visibility extension on the v1.5 surface
+- `Rindle.Profile.Presets.MuxWeb` ships alongside `Rindle.Profile.Presets.Web` with `:streaming` opt-in + `:signed` named playback policy
+- `mix rindle.doctor --streaming` adds 4 PASS/FAIL streaming checks + 5s smoke ping to `Mux.Video.Assets.list/1` (env-var names only, never values)
+- `guides/streaming_providers.md` (341 lines, 11 sections) — env vars, signing-key creation, secret rotation, raw-body wiring, ngrok-tunnel guidance
+- README + getting-started gain `Streaming with Mux (optional)` subsections (≤15 lines each) without displacing image/AV first-run path
+- Generated-app `mux-enabled` proof harness — cassette lane every PR (Mox-on-`:http_client`, zero secrets); label-gated `mux-soak` real-Mux sibling job on `streaming`-labelled PRs only with three-layer asset-leak mitigation
+
+### What Worked
+
+- **Locked candidate research up front:** Three locked candidate plans (`v1.6-CANDIDATE-PROVIDER-MUX.md`, `v1.6-CANDIDATE-GCS.md`, `v1.6-CANDIDATE-TUS.md`) before milestone planning meant the scope conversation became a scoring exercise (8/10 vs 7.5/10 vs 6/10) rather than open-ended ideation. v1.7 and v1.8 candidates emerged free as research byproducts.
+- **Single-provider rule kept the abstraction honest:** Resisting "ship Cloudflare Stream alongside Mux" preserved the contract boundary; the second adapter becomes the contract test in v1.7+ rather than a parallel codepath that drifts.
+- **Optional deps pattern (`mux` + `jose`):** Adopters who don't enable streaming pay zero transitive cost — `Mox.set_mox_from_context` with `Code.ensure_loaded?` guards mean even the test suite respects the optional boundary.
+- **Phase 33 lock-without-Mux-code:** Landing the contract, schema, DSL, dispatch tree, and error vocabulary in Phase 33 with **zero Mux code** meant Phases 34-36 had a stable contract to consume; a single behaviour signature change in Phase 34 would have rippled across 11 plans.
+- **D-29 forward-compat fix:** Phase 35 landed the typed `video.upload.asset_created` branch as forward-compat (D-29) even though Phase 37 was always optional. When Phase 37 didn't pull forward, the branch still exists in Phase 35 with no rework needed when v1.7 adds direct creator upload.
+- **Three-layer soak cleanup design:** try/after + `if: always()` + idempotent cleanup with last-4 redaction was the right defense-in-depth pattern for Mux quota burn (CR-01/02 found gaps in two of three layers; layer 2 still works).
+- **Decision-making preference paid off:** "Front-load research, decide by default, escalate only impactful decisions" cut interview cost on Phases 33-36 dramatically. 46 decisions locked in Phase 35 alone via three parallel research subagents.
+
+### What Was Inefficient
+
+- **Verification status `human_needed` is structurally underweighted at close:** Phase 36 verifier reported 5/5 must-haves at artifact-and-wiring level but routed 5 items to human queue because they're CI-time observables. The audit-open output flagged this as "Verification Gaps" even though no gaps exist — the routing is by design. A `human_verification_routed` status (distinct from `human_needed`) would avoid the false-alarm pattern.
+- **Code-review BLOCKERs without verifier blocking:** CR-01/02/03 in Phase 36 were operational defects in the soak lane that didn't block the milestone goal but were classified BLOCKER by the reviewer. Better classification (e.g., `goal-blocking BLOCKER` vs `operational BLOCKER`) would let the verifier resolve "5/5 must-haves verified, 3 advisory blockers tracked" without ambiguity at close.
+- **Auto-extracted milestone accomplishments:** `gsd-sdk milestone.complete` produced 14 noisy auto-extracted lines mixing real accomplishments with code-review fix entries and test-pass strings. Required manual rewrite to match v1.5's milestone-summary cadence.
+- **`requirements-completed` not flipped at phase summary time:** REQUIREMENTS.md still showed `MUX-01..08`, `MUX-15..19` as `[ ] (Planned)` even after Phases 34-36 closed because the per-plan SUMMARY frontmatter wasn't propagated into REQUIREMENTS.md. Required manual ticking before milestone archive.
+
+### Patterns Established
+
+- **Reserved-then-promoted contract pattern:** v1.4 reserved `streaming_url/3` and `Rindle.Streaming.Provider` as no-op delegates / 2-callback stubs; v1.6 Phase 33 promoted them to runtime behaviour with zero adopter churn. This is a v2.0-safe namespace pattern for future provider work.
+- **Optional-dep + Mox-on-client pattern:** Provider SDKs (`mux`, future `cloudflare_stream_*`) ship as optional deps; Rindle defines a `Client` behaviour; production wires the SDK; tests wire `Mox`-stubbed `ClientMock`. Cassette lanes pass with zero secrets.
+- **Raw-body cache via `Plug.Parsers :body_reader` MFA:** Adopters mount via documented `forward` declaration; Stripe.WebhookPlug parity. The MFA pattern bypasses JSON decoding only in the webhook scope without inventing a separate route.
+- **Three-layer cleanup pattern for external resource leaks (CI):** try/after (in-test) + `if: always()` (CI step) + idempotent cleanup script (belt-and-suspenders). Even when one layer fails (CR-01/02), the other two contain the leak.
+- **Label-gated real-API CI lane:** Cassette lane runs every PR (zero secrets); real-API soak lane is `streaming`-PR-label-gated and uses `pull_request` (NOT `pull_request_target`) to fail closed on fork PRs.
+- **Provider-internal ID redaction (security invariant 14):** Last-4-char tag redaction in telemetry, logs, `Inspect`, and PubSub payloads. Cross-cutting parity test enforces redaction at every emit site.
+- **D-style typed-branch forward-compat:** When a downstream phase is optional but a future-adjacent surface is risky, land the typed handler as a no-op or pass-through in the current phase rather than wait for the optional phase. Avoids retrofit cost if the optional phase later pulls forward.
+
+### Key Lessons
+
+- Single-provider rule is non-negotiable: the contract is the deliverable, not the catalog of providers. Second-adapter pull-in is the contract test, not the contract.
+- Optional deps need test-suite-aware design: `Code.ensure_loaded?` guards aren't enough — Mox stubs need `:http_client` config wiring at the adapter level, not module-level conditional compilation.
+- Provider-internal IDs leak everywhere by default: telemetry, logs, `Inspect`, PubSub, error messages. A cross-cutting redaction parity test is the only way to prevent regression as new emit sites are added.
+- "Defer to next milestone" is a first-class scope move, not a scope failure: Phase 37 deferral kept v1.6 budget honest. Pulling it forward would have added ~1 day on top of an already-tight 7.5-day milestone.
+- CI-time observables ≠ artifact gaps: A verifier scoring 5/5 with 5 items routed to human queue is a closed phase, not an open one. The audit semantics need to distinguish "verification didn't happen yet" from "verification can only happen in this environment."
+
+### Cost Observations
+
+- Sessions: spanned 2 days (2026-05-06 → 2026-05-07), 152 commits in milestone range
+- Notable: Phase 35 took ≈40% of milestone effort (4 plans, highest-risk webhook + Plug + worker work) but landed without rework via parallel research subagents (mountable Plug pattern + IngestProviderWebhook contract + Mux event catalog)
+- Notable: Phase 33 (4 plans, zero Mux code) was the highest-leverage phase — locking the contract before any adapter code meant Phases 34-36 consumed it without negotiation
+- Notable: 144 files changed / 42,665 insertions; ratio of test:lib commits ≈ 1:1 (true TDD cadence on adapter callbacks + Plug + worker contracts)
+
+---
+
 ## Cross-Milestone Trends
 
-| Trend | v1.1 | v1.2 |
-|-------|------|------|
-| Cleanup phases needed | 0 | 2 (Phases 13, 14) |
-| Audit status at close | passed | tech_debt (closed) |
-| Plans per phase (avg) | 3.0 | 2.2 |
-| Phase count | 4 | 5 |
-| Files changed | — | 60 |
-| Timeline (days) | — | 5 |
+| Trend | v1.1 | v1.2 | v1.5 | v1.6 |
+|-------|------|------|------|------|
+| Cleanup phases needed | 0 | 2 (Phases 13, 14) | 0 | 0 |
+| Audit status at close | passed | tech_debt (closed) | passed | acknowledged-and-defer (5 UAT routed to human; 3 advisory BLOCKERs to v1.7) |
+| Plans per phase (avg) | 3.0 | 2.2 | 3.5 | 3.75 |
+| Phase count | 4 | 5 | 4 | 4 |
+| Files changed | — | 60 | — | 144 |
+| Timeline (days) | — | 5 | 2 | ~1 (~22h) |
+| Optional phase deferred | — | — | — | Phase 37 (deferred to v1.7) |
 
-**Recurring observation:** Each milestone has ended with some planning artifact debt (stale STATE.md references, incomplete VALIDATION files, metadata inconsistencies). The debt accumulates faster than it is addressed during execution. A milestone-close checklist that explicitly audits these before declaring done would reduce closure phase count.
+**Recurring observation:** Each milestone has ended with some planning artifact debt (stale STATE.md references, incomplete VALIDATION files, metadata inconsistencies, REQUIREMENTS.md checkboxes not flipped). The debt accumulates faster than it is addressed during execution. A milestone-close checklist that explicitly audits these before declaring done would reduce closure phase count.
+
+**v1.6 trend:** First milestone to formalize "acknowledged-and-defer" close mode — recognizing that some artifact-and-wiring-complete phases route observable proof to CI/maintainer environments by design. The audit semantics need to evolve to distinguish these from real gaps. Optional-phase deferral (Phase 37 → v1.7) emerged as a clean scope-management primitive separate from cleanup-phase work.
