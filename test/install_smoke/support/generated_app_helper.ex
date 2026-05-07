@@ -1233,6 +1233,31 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
                   order_by: variant.name
               )
 
+            # Phase 36 CR-02: record provider_asset_id IMMEDIATELY once the
+            # variant jobs have run (which is when MuxIngestVariant has
+            # already created the asset on Mux's side). The previous
+            # placement of this block was after the streaming-URL
+            # assertions — if any of those assertions failed, control
+            # transferred to the after-block before the ETS row was
+            # written, leaving the soak asset orphaned on Mux's side
+            # (the layer-1 cleanup only ran on test success). Record
+            # the id here so the after-block always has it on hand.
+            if mode == :soak do
+              provider_row =
+                Repo.one(
+                  from p in Rindle.Domain.MediaProviderAsset,
+                    where: p.asset_id == ^asset.id,
+                    limit: 1
+                )
+
+              if provider_row do
+                :ets.insert(
+                  provider_asset_id_table,
+                  {provider_asset_id_ref, provider_row.provider_asset_id}
+                )
+              end
+            end
+
             # Phase 36 D-15: byte-identical to the :video lane (D-04 contract).
             assert Enum.map(ready_variants, &{&1.name, &1.output_kind, &1.state}) == [
                      {"poster", "image", "ready"},
@@ -1272,23 +1297,6 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
                 streaming_url_kind: "hls"
               })
             )
-
-            # Record provider_asset_id for soak-lane delete-on-finally.
-            if mode == :soak do
-              provider_row =
-                Repo.one(
-                  from p in Rindle.Domain.MediaProviderAsset,
-                    where: p.asset_id == ^asset.id,
-                    limit: 1
-                )
-
-              if provider_row do
-                :ets.insert(
-                  provider_asset_id_table,
-                  {provider_asset_id_ref, provider_row.provider_asset_id}
-                )
-              end
-            end
           after
             # D-22 layer 1: soak-mode delete-on-finally so the asset is reaped
             # even if assertions above failed. Cassette mode is a no-op.
