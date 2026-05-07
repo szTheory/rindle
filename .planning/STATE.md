@@ -4,14 +4,14 @@ milestone: v1.6
 milestone_name: Provider Boundary + Mux
 status: executing
 stopped_at: Phase 36 context gathered (assumptions mode)
-last_updated: "2026-05-07T10:59:07.095Z"
-last_activity: 2026-05-07
+last_updated: "2026-05-07T13:05:14.679Z"
+last_activity: 2026-05-07 -- Phase 36 execution started
 progress:
   total_phases: 4
   completed_phases: 3
-  total_plans: 12
+  total_plans: 14
   completed_plans: 12
-  percent: 100
+  percent: 86
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06)
 
 **Core value:** Media, made durable.
-**Current focus:** Phase 35 — signed-webhook-plug-idempotent-ingest
+**Current focus:** Phase 36 — public-dx-onboarding-ci-proof
 `Rindle.Streaming.Provider` as a real adapter contract and ship Mux as the
 single reference streaming adapter without expanding into a video platform.
 
 ## Current Position
 
-Phase: 35
-Plan: Not started
-Status: Executing Phase 35
-Last activity: 2026-05-07
+Phase: 36 (public-dx-onboarding-ci-proof) — EXECUTING
+Plan: 1 of 2
+Status: Executing Phase 36
+Last activity: 2026-05-07 -- Phase 36 execution started
 
 ## Recent Completion
 
