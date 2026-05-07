@@ -182,10 +182,26 @@ idempotency all land here.
    than the configured threshold (extends the v1.5 surface; no new
    dead-letter queue).
 
-**Plans:** 4 plans (TBD by `/gsd-plan-phase 35`). Plan-count guidance: MUX-09..14
-≈ 3–4 plans; chosen 4 because Phase 35 is the highest-risk phase in the
-milestone (HIGH risk; ~40% of milestone effort) and warrants the slightly
-finer-grained verification rhythm.
+**Plans:** 4 plans (planned 2026-05-06 by `/gsd-plan-phase 35`). Plan-count
+guidance: MUX-09..14 ≈ 3–4 plans; chosen 4 because Phase 35 is the highest-risk
+phase in the milestone (HIGH risk; ~40% of milestone effort) and warrants the
+slightly finer-grained verification rhythm.
+
+Wave 1 (parallel): plans 01 (Plug + body reader + Mux adapter modifications),
+03 (test signing helper + fixtures — independent test infrastructure).
+
+Wave 2 (depends on Wave 1): plan 02 (worker + Event.normalize extension +
+end-to-end Plug tests — consumes Plan 01's Plug invariants AND Plan 03's
+signing helper).
+
+Wave 2 (depends on Plan 02): plan 04 (runtime_status `--provider-stuck`
+extension — depends on the worker for end-to-end stuck-row visibility).
+
+Plans:
+- [ ] 35-01-PLAN.md — Webhook plug + body reader + Mux adapter cleanup (MUX-09, MUX-10, MUX-11, MUX-12)
+- [ ] 35-02-PLAN.md — Ingest worker + event dispatch + PubSub broadcast + end-to-end Plug tests (MUX-12, MUX-13)
+- [ ] 35-03-PLAN.md — Test signing helper + Mux webhook fixtures (MUX-09, MUX-10, MUX-11, MUX-12, MUX-13)
+- [ ] 35-04-PLAN.md — runtime_status `--provider-stuck` extension (MUX-14)
 
 **UI hint**: no
 
