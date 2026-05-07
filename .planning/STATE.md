@@ -1,78 +1,65 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.6
-milestone_name: Provider Boundary + Mux
-status: Awaiting next milestone
-stopped_at: Phase 36 context gathered (assumptions mode)
-last_updated: "2026-05-07T14:38:23.494Z"
-last_activity: 2026-05-07 — Milestone v1.6 completed and archived
+milestone: v1.7
+milestone_name: GCS Resumable Adapter
+status: planning
+last_updated: "2026-05-07T14:59:37.958Z"
+last_activity: 2026-05-07
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 15
-  completed_plans: 15
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-05-06)
+See: .planning/PROJECT.md (updated 2026-05-07)
 
 **Core value:** Media, made durable.
-**Current focus:** Phase 36 — public-dx-onboarding-ci-proof
-`Rindle.Streaming.Provider` as a real adapter contract and ship Mux as the
-single reference streaming adapter without expanding into a video platform.
+**Current focus:** v1.7 GCS Resumable Adapter — productize `Rindle.Storage.GCS`
+as a real second storage adapter, promoting `:resumable_upload` +
+`:resumable_upload_session` from reserved to shipped without making Rindle a
+file-server. Locked candidate plan: `.planning/research/v1.6-CANDIDATE-GCS.md`
+(7.5/10, ~13 days, 5 phases, 18 plans).
 
 ## Current Position
 
-Phase: Milestone v1.6 complete
+Phase: Not started (defining requirements)
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-05-07 — Milestone v1.6 completed and archived
+Status: Defining requirements
+Last activity: 2026-05-07 — Milestone v1.7 started
 
 ## Recent Completion
 
-- Last completed milestone: `v1.5 Adopter Hardening & Lifecycle Repair`
-- Scope: Phases 29-32, 14 plans
-- Audit status: passed on 2026-05-06
+- Last completed milestone: `v1.6 Provider Boundary + Mux`
+- Scope: Phases 33-36, 15 plans, 28/32 reqs validated (MUX-20..23 deferred)
+- Tag: `v1.6` pushed 2026-05-07 (release-please should bump 0.1.4 → 0.2.0)
 - Archive files:
+  - `.planning/milestones/v1.6-ROADMAP.md`
+  - `.planning/milestones/v1.6-REQUIREMENTS.md`
+  - `.planning/milestones/v1.6-phases/` (Phases 33-36 artifacts)
   - `.planning/milestones/v1.5-ROADMAP.md`
   - `.planning/milestones/v1.5-REQUIREMENTS.md`
   - `.planning/milestones/v1.5-MILESTONE-AUDIT.md`
-  - `.planning/milestones/v1.4-ROADMAP.md`
-  - `.planning/milestones/v1.4-REQUIREMENTS.md`
-  - `.planning/milestones/v1.4-MILESTONE-AUDIT.md`
 
 ## Pending Todos
 
-- Execute Phase 35: Signed-Webhook Plug + Idempotent Ingest (`MUX-09..14`) —
-  `/gsd-execute-phase 35`. 4 plans committed across 2 waves; recommended
-  to `/clear` first for a fresh context window since Plan 02 has
-  cross-plan dependencies on 35-01 and 35-03.
-
-- **Cut hex release at v1.6 milestone close (after Phase 36 ships +
-  `/gsd-complete-milestone v1.6`).** Last release `rindle-v0.1.4` was
-  2026-04-29; since then v1.3 + v1.4 + v1.5 + v1.6 phases 33-34 all
-  shipped (109 conventional `feat:`/`fix:` commits, 0 BREAKING). Wait
-  for v1.6 close because Phase 35 (webhook plug) is what makes the
-  Mux story end-to-end and Phase 36 ships the documented onboarding
-  lane (`MuxWeb` preset, `mix rindle.doctor` streaming smoke,
-  `guides/streaming_providers.md`, package-consumer `mux-enabled` CI
-  lane). Release-please will auto-bump `0.1.4 → 0.2.0` (minor — no
-  breaking changes). Trigger via the existing `release-please-config.json`
-  pipeline; verify post-publish via `mix hex.publish docs` reachability
-  probe (v1.3 surface). Add v1.4/v1.5/v1.6 highlights to the release
-  body when the release-please PR opens.
-
-- Phase 34 follow-ups (advisory, not blocking ship):
-  - 9 Warning + 3 Info findings in `34-REVIEW.md` — auto-fix via
-    `/gsd-code-review 34 --fix --all` or defer to v1.7 polish.
-
-- Preserve GCS resumable uploads (`.planning/research/v1.6-CANDIDATE-GCS.md`)
-  and tus (`.planning/research/v1.6-CANDIDATE-TUS.md`) as locked candidate
-  scope for v1.7+.
+- Define v1.7 REQUIREMENTS.md from locked candidate plan
+  (`.planning/research/v1.6-CANDIDATE-GCS.md`): 18 reqs (GCS-01..04 +
+  RESUMABLE-01..14).
+- Spawn `gsd-roadmapper` to write v1.7 ROADMAP.md (5 phases: 37–41,
+  18 plans, ~13 days).
+- Phase 34/35 code-review polish — advisory Warning/Info findings deferred
+  from v1.6 close. Either auto-fix early in v1.7 via `/gsd-code-review N --fix`
+  or defer to v1.8.
+- Preserve tus protocol candidate (`v1.6-CANDIDATE-TUS.md`, 6/10) as locked
+  v1.8 scope.
+- Preserve Phase 37 pull-forward (browser→Mux direct creator upload,
+  MUX-20..23, ~1 day, LOW risk) as v1.8+ candidate.
 
 ## Blockers/Concerns
 
@@ -113,26 +100,18 @@ deferral remains.
 
 ## Session Continuity
 
-Last session: 2026-05-07T10:59:07.090Z
-interview turns); 46 decisions locked. Three parallel research subagents:
-(A) mountable Plug + raw-body cache pattern (Stripe.WebhookPlug peer
-comparison, body_reader MFA, init opt validation), (B) IngestProviderWebhook
-worker contract (race-snooze for missing row, FSM concurrency, two-topic
-PubSub broadcast, telemetry namespace split, runtime_status --provider-stuck
-extension), (C) Mux event catalog (full 2026 set with v1.6 disposition;
-DROP table; HMAC test signing via Mux.Webhooks.TestUtils.generate_signature/2;
-fixture payloads). Surfaced silent data-corruption fix for Phase 37:
-Event.normalize/1 mis-attributes data.id for video.upload.asset_created
-(data.id is upload-id; asset-id lives in data.asset_id) — Phase 35 lands
-the typed branch as forward-compat (D-29).
+Last session: 2026-05-07T14:59:00Z — milestone v1.6 closed and archived,
+v1.7 GCS Resumable Adapter started via `/gsd-new-milestone`.
 
-Stopped at: Phase 36 context gathered (assumptions mode)
-Resume file: .planning/phases/36-public-dx-onboarding-ci-proof/36-CONTEXT.md
+**Last Completed Milestone:** v1.6 (Phases 33-36) — archived 2026-05-07,
+tag `v1.6` pushed.
 
-**Last Completed Milestone:** v1.5 (Phases 29-32) — archived 2026-05-06
-
-**Next Step:** `/gsd-plan-phase 35`
+**Next Step:** `/gsd-discuss-phase 37` (gather context for Phase 37 — GCS
+Adapter Foundation) or `/gsd-plan-phase 37` (skip discussion, plan directly).
 
 ## Operator Next Steps
 
-- Start the next milestone with /gsd-new-milestone
+- Define v1.7 REQUIREMENTS.md and ROADMAP.md (in-flight via this
+  `/gsd-new-milestone` invocation).
+- After roadmap approval: `/gsd-discuss-phase 37` to start Phase 37
+  (GCS Adapter Foundation, GCS-01..04, ~3 days, LOW risk).
