@@ -67,4 +67,63 @@ defmodule Rindle.Domain.MigrationTest do
       assert Enum.any?(indexes, &String.contains?(&1, "kind"))
     end
   end
+
+  describe "extend_media_upload_sessions_for_resumable migration (Phase 38)" do
+    test "media_upload_sessions has the resumable columns" do
+      {:ok, %{rows: rows}} =
+        Repo.query("""
+        SELECT column_name FROM information_schema.columns
+        WHERE table_schema = 'public' AND table_name = 'media_upload_sessions'
+        """)
+
+      column_names = Enum.map(rows, fn [name] -> name end) |> MapSet.new()
+
+      for required <- ~w(session_uri session_uri_expires_at last_known_offset region_hint) do
+        assert required in column_names,
+               "missing column #{required} on media_upload_sessions after Phase 38 migration"
+      end
+    end
+
+    test "media_upload_sessions.last_known_offset is bigint not null with default 0" do
+      {:ok, %{rows: [[data_type, is_nullable, default]]}} =
+        Repo.query("""
+        SELECT data_type, is_nullable, column_default
+        FROM information_schema.columns
+        WHERE table_schema = 'public' AND table_name = 'media_upload_sessions'
+          AND column_name = 'last_known_offset'
+        """)
+
+      assert data_type == "bigint"
+      assert is_nullable == "NO"
+      assert default =~ "0"
+    end
+
+    test "media_upload_sessions.session_uri uses text" do
+      {:ok, %{rows: [[data_type]]}} =
+        Repo.query("""
+        SELECT data_type
+        FROM information_schema.columns
+        WHERE table_schema = 'public' AND table_name = 'media_upload_sessions'
+          AND column_name = 'session_uri'
+        """)
+
+      assert data_type == "text"
+    end
+
+    test "media_upload_sessions has a resumable expiry partial index" do
+      {:ok, %{rows: rows}} =
+        Repo.query("""
+        SELECT indexdef FROM pg_indexes
+        WHERE schemaname = 'public' AND tablename = 'media_upload_sessions'
+        """)
+
+      index_defs = Enum.map(rows, fn [indexdef] -> indexdef end)
+
+      assert Enum.any?(index_defs, fn indexdef ->
+               String.contains?(indexdef, "session_uri_expires_at") and
+                 (String.contains?(indexdef, "WHERE ((upload_strategy = 'resumable'::text))") or
+                    String.contains?(indexdef, "WHERE (upload_strategy = 'resumable'::text)"))
+             end)
+    end
+  end
 end
