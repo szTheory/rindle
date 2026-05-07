@@ -56,6 +56,14 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
         `floor_seconds`. The coordinator emits no per-row telemetry — that
         responsibility lives with `Rindle.Workers.MuxSyncProviderAsset` per
         row, with redacted `asset_id` metadata.
+
+    ## Telemetry
+
+    This worker emits NO `[:rindle, :provider, :sync, _]` events itself —
+    the per-row `Rindle.Workers.MuxSyncProviderAsset` worker is the source
+    of truth for telemetry. The coordinator logs structured events under
+    `Logger.info("rindle.workers.mux_sync_coordinator.completed", ...)` for
+    operator visibility.
     """
 
     use Oban.Worker, queue: :rindle_provider, max_attempts: 1
