@@ -7,7 +7,7 @@ defmodule Rindle.DoctorTest do
     test "prints success message when ffmpeg is valid" do
       output = capture_io(fn ->
         report =
-          Mix.Tasks.Rindle.Doctor.run_checks([],
+          run_doctor_checks([],
             exit_on_failure?: false,
             probe: fn -> :ok end,
             env: %{},
@@ -37,7 +37,7 @@ defmodule Rindle.DoctorTest do
       output =
         capture_io(fn ->
           report =
-            Mix.Tasks.Rindle.Doctor.run_checks(
+            run_doctor_checks(
               [
                 "Rindle.Adopter.CanonicalApp.Profile",
                 "Rindle.Adopter.CanonicalApp.VideoProfile"
@@ -73,7 +73,7 @@ defmodule Rindle.DoctorTest do
       output =
         capture_io(fn ->
           report =
-            Mix.Tasks.Rindle.Doctor.run_checks(["Does.Not.Exist"],
+            run_doctor_checks(["Does.Not.Exist"],
               exit_on_failure?: false,
               probe: fn -> raise RuntimeError, "ffmpeg missing" end,
               env: %{},
@@ -102,7 +102,7 @@ defmodule Rindle.DoctorTest do
       # opts plumbed through to RuntimeChecks.run/2.
       capture_io(fn ->
         report =
-          Mix.Tasks.Rindle.Doctor.run_checks([],
+          run_doctor_checks([],
             shell: Mix.Shell.IO,
             profiles: [],
             probe: fn -> :ok end,
@@ -142,7 +142,7 @@ defmodule Rindle.DoctorTest do
     test "raises after emitting the summary when failures are present" do
       assert_raise Mix.Error, ~r/Rindle\.Doctor failed: 1 check\(s\) failed/, fn ->
         capture_io(fn ->
-          Mix.Tasks.Rindle.Doctor.run_checks([],
+          run_doctor_checks([],
             probe: fn -> :ok end,
             env: %{},
             profiles: [],
@@ -162,5 +162,26 @@ defmodule Rindle.DoctorTest do
         end)
       end
     end
+  end
+
+  defp run_doctor_checks(args, opts) do
+    Mix.Tasks.Rindle.Doctor.run_checks(
+      args,
+      Keyword.put_new(opts, :resumable_session_schema_catalog, resumable_session_schema_fixture())
+    )
+  end
+
+  defp resumable_session_schema_fixture do
+    %{
+      columns: %{
+        "session_uri" => %{is_nullable: "YES", column_default: nil},
+        "session_uri_expires_at" => %{is_nullable: "YES", column_default: nil},
+        "last_known_offset" => %{is_nullable: "NO", column_default: "0"},
+        "region_hint" => %{is_nullable: "YES", column_default: nil}
+      },
+      indexes: [
+        "CREATE INDEX media_upload_sessions_resumable_expiry_idx ON public.media_upload_sessions USING btree (session_uri_expires_at) WHERE ((upload_strategy = 'resumable'::text))"
+      ]
+    }
   end
 end

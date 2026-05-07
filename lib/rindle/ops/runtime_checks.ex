@@ -84,11 +84,7 @@ defmodule Rindle.Ops.RuntimeChecks do
 
     resumable_session_schema_catalog =
       Keyword.get_lazy(opts, :resumable_session_schema_catalog, fn ->
-        if Keyword.has_key?(opts, :migration_statuses) do
-          expected_resumable_session_schema_catalog()
-        else
-          resumable_session_schema_catalog()
-        end
+        resumable_session_schema_catalog()
       end)
 
     gcs_extra =
@@ -523,20 +519,6 @@ defmodule Rindle.Ops.RuntimeChecks do
       {:ok, catalog, _apps} -> catalog
       {:error, reason} -> {:error, reason}
     end
-  end
-
-  defp expected_resumable_session_schema_catalog do
-    %{
-      columns: %{
-        "session_uri" => %{is_nullable: "YES", column_default: nil},
-        "session_uri_expires_at" => %{is_nullable: "YES", column_default: nil},
-        "last_known_offset" => %{is_nullable: "NO", column_default: "0"},
-        "region_hint" => %{is_nullable: "YES", column_default: nil}
-      },
-      indexes: [
-        "CREATE INDEX media_upload_sessions_resumable_expiry_idx ON public.media_upload_sessions USING btree (session_uri_expires_at) WHERE ((upload_strategy = 'resumable'::text))"
-      ]
-    }
   end
 
   defp profile_runtime_failures(profiles, env) do
