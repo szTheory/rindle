@@ -35,7 +35,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
 
     generated_app_root = Path.join(workspace_root, app_name)
     db_name = "#{app_name}_#{System.unique_integer([:positive])}_test"
-    shared_env = shared_env(db_name)
+    shared_env = shared_env(db_name, profile_mode)
 
     if is_nil(network_version) do
       ensure_package!(workspace_root, package_root)
@@ -125,7 +125,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
 
     generated_app_root = Path.join(workspace_root, app_name)
     db_name = "#{app_name}_#{System.unique_integer([:positive])}_test"
-    shared_env = shared_env(db_name)
+    shared_env = shared_env(db_name, :video)
 
     if is_nil(network_version) do
       ensure_package!(workspace_root, package_root)
@@ -468,12 +468,30 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       test_signing_public_key.pem
     )
 
+    # Phase 36 CR-03: raise loudly on missing fixtures rather than
+    # silently skipping. Previously, an `if File.exists?(src)` guard
+    # silently dropped missing fixtures; the eventual failure surfaced
+    # in the generated-app test as a confusing "private key parse
+    # error" or "cassette stub returned wrong shape" stack trace
+    # instead of a clear "the Mux profile requires fixture X". A loud
+    # failure here pins the diagnosis to the staging step.
     for fixture <- fixtures do
       src = Path.join("test/fixtures/mux", fixture)
 
-      if File.exists?(src) do
-        File.cp!(src, Path.join(fixture_dir, fixture))
+      unless File.exists?(src) do
+        raise """
+        stage_mux_fixtures!/1: required Mux fixture missing at #{src}
+
+        The :mux profile install-smoke lane requires the full Mux fixture
+        tree to be present in the source repo. If you cleaned the test
+        fixtures (or are running against a leaner checkout), restore the
+        files under test/fixtures/mux/ from git before re-running.
+
+        Fix: `git checkout -- test/fixtures/mux/`
+        """
       end
+
+      File.cp!(src, Path.join(fixture_dir, fixture))
     end
   end
 
@@ -894,7 +912,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     %{output: output, exit_code: exit_code}
   end
 
-  defp shared_env(db_name) do
+  defp shared_env(db_name, profile_mode) do
     base_env = [
       {"MIX_ENV", "test"},
       {"RINDLE_INSTALL_SMOKE_DB", db_name},
@@ -909,15 +927,34 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       {"RINDLE_MINIO_REGION", env_or_default("RINDLE_MINIO_REGION", "us-east-1")}
     ]
 
-    # Phase 36 D-17: Mux fixture env vars. `env_or_default/2` semantics —
-    # `System.get_env(name) || default` — are load-bearing: in soak mode the
-    # GitHub Actions job's `env:` block (real `${{ secrets.* }}`) wins via
-    # `System.get_env/1`; in cassette mode, fixtures win.
+    # Phase 36 CR-03: only the :mux profile reads the Mux fixture private
+    # key. Previously this `File.read!/1` ran for every profile mode
+    # (`:image`, `:video`, `:mux`), which coupled non-Mux runs to a
+    # Mux-only fixture file — running `bash scripts/install_smoke.sh image`
+    # against a checkout that lacked `test/fixtures/mux/test_signing_private_key.pem`
+    # crashed with a low-level `File.Error` stack trace instead of cleanly
+    # skipping. Push the read into the `:mux` branch so :image/:video runs
+    # never touch the Mux fixture tree.
+    full_env =
+      if profile_mode == :mux do
+        base_env ++ build_mux_env()
+      else
+        base_env
+      end
+
+    Enum.reject(full_env, fn {_key, value} -> is_nil(value) end)
+  end
+
+  # Phase 36 D-17 + CR-03: Mux fixture env vars. `env_or_default/2`
+  # semantics — `System.get_env(name) || default` — are load-bearing: in
+  # soak mode the GitHub Actions job's `env:` block (real `${{ secrets.* }}`)
+  # wins via `System.get_env/1`; in cassette mode, fixtures win.
+  defp build_mux_env do
     private_key_pem =
       System.get_env("RINDLE_MUX_SIGNING_PRIVATE_KEY") ||
         File.read!("test/fixtures/mux/test_signing_private_key.pem")
 
-    mux_env = [
+    [
       {"RINDLE_MUX_TOKEN_ID", env_or_default("RINDLE_MUX_TOKEN_ID", "test-token-id")},
       {"RINDLE_MUX_TOKEN_SECRET", env_or_default("RINDLE_MUX_TOKEN_SECRET", "test-token-secret")},
       {"RINDLE_MUX_SIGNING_KEY_ID",
@@ -935,9 +972,6 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       # request body matches the stub, no passthrough field expected).
       {"RINDLE_MUX_PASSTHROUGH_TAG", System.get_env("RINDLE_MUX_PASSTHROUGH_TAG")}
     ]
-
-    (base_env ++ mux_env)
-    |> Enum.reject(fn {_key, value} -> is_nil(value) end)
   end
 
   defp package_name do
