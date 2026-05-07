@@ -6,6 +6,15 @@
 
 ### Added
 
+- Public adopter onboarding for streaming providers — `Rindle.Profile.Presets.MuxWeb`
+  preset (signed-HLS twin of `Rindle.Profile.Presets.Web`),
+  `mix rindle.doctor --streaming` smoke check (credentials / signing-key
+  parse / webhook-secrets / 5s `api.mux.com` ping), the
+  [`guides/streaming_providers.md`](guides/streaming_providers.md) end-to-end
+  guide (deps, signing key, profile config, webhook plug, cron, cloudflared
+  tunnel, secret rotation, doctor recipe, stuck-asset runbook, JOSE perf
+  note), and the generated-app `mux-enabled` package-consumer CI lane
+  (cassette default + label-gated `mux-soak` lane against real Mux).
 - `@doc` annotations on every public `@callback` across `Rindle.Storage`,
   `Rindle.Authorizer`, `Rindle.Analyzer`, `Rindle.Scanner`, and
   `Rindle.Processor`, surfacing the contract for each behaviour callback in

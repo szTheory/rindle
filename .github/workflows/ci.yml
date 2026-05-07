@@ -527,7 +527,8 @@ jobs:
               "Rindle.initiate_upload" \
               "Rindle.verify_completion" \
               "Rindle.attach" \
-              "Rindle.url"
+              "Rindle.url" \
+              "Rindle.Profile.Presets.MuxWeb"
             do
               if ! search_fixed "$REQUIRED" "$DOC"; then
                 echo "FAIL: $DOC is missing required AV onboarding reference: $REQUIRED"
