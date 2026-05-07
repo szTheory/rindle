@@ -190,16 +190,24 @@ Media, made durable.
   (`streaming`-labelled PRs only) with three-layer asset-leak mitigation
   — v1.6 (Phase 36) (MUX-15..19)
 
+- ✓ `Rindle.Storage.GCS` adapter foundation — public `@behaviour Rindle.Storage`
+  surface (store/download/delete/head/url) wired over hand-rolled Finch JSON-API
+  client + `gcs_signed_url` PEM Client mode; `capabilities/0 == [:signed_url, :head]`
+  (resumable atoms reserved for Phase 39); secret-gated `gcs-soak` CI lane and
+  GCS-aware `mix rindle.doctor` checks shipped with adopter zero-noise guarantee
+  for image-only profiles — v1.7 (Phase 37) (GCS-01..04). Live-bucket round-trip
+  and CI lane execution remain `human_needed` (37-HUMAN-UAT.md).
+
 ### Active
 
-(None — milestone v1.6 closed. Start the next milestone with
-`/gsd-new-milestone`.)
+(Phase 37 — GCS Adapter Foundation — closed. Resumable behaviour ships in
+Phases 38–39.)
 
 **Candidate next requirements (deferred from v1.6):**
 - `MUX-20..23`: browser→Mux direct creator upload — Phase 37 not pulled
   forward in v1.6; clean additive surface on already-built primitives.
-- `GCS-01..04` + `RESUMABLE-01..14`: truthful `Rindle.Storage.GCS` resumable
-  adapter — locked v1.7 plan in `.planning/research/v1.6-CANDIDATE-GCS.md`
+- `RESUMABLE-01..14`: GCS resumable upload session FSM + capability promotion —
+  Phases 38–41 of v1.7 build on the foundation shipped in Phase 37.
 - `TUS-01..19`: tus protocol family on a mountable Plug — locked v1.8 plan in
   `.planning/research/v1.6-CANDIDATE-TUS.md`
 - Code-review polish for Phases 34/35/36 — CR-01/02/03 (Phase 36 soak-lane
@@ -479,4 +487,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-07 — milestone v1.7 GCS Resumable Adapter started via `/gsd-new-milestone`. Locked candidate plan from v1.6 (`v1.6-CANDIDATE-GCS.md`, 7.5/10) carries forward unchanged. Scope: 5 phases (37–41), 18 plans, 18 requirements (GCS-01..04 + RESUMABLE-01..14), ~13 working days, MEDIUM overall risk. Browser→Mux direct creator upload (MUX-20..23) and tus protocol remain deferred candidates. Next: define v1.7 REQUIREMENTS.md and roadmap.*
+*Last updated: 2026-05-07 — Phase 37 (GCS Adapter Foundation) closed: GCS-01..04 validated, 4 plans / 4 waves shipped (`Rindle.Storage.GCS` + Client + Signer + CI gcs-soak lane + `mix rindle.doctor` GCS checks). Live-bucket round-trip and CI lane execution remain `human_needed` (`37-HUMAN-UAT.md`). Code review surfaced 3 BLOCKERs (CR-01 download error tuple, CR-02 url/2 contract, CR-03 Goth error masking) deferred for triage. Resumable behaviour and `:resumable_upload*` capability promotion ship in Phases 38–41 (RESUMABLE-01..14).*
