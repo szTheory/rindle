@@ -20,7 +20,7 @@ ship in Phase 39).
 **Out of scope (deferred to later phases):**
 - Resumable upload behaviour callbacks → Phase 39 (RESUMABLE-04..08)
 - `media_upload_sessions` resumable columns + FSM `"resuming"` state → Phase 38
-- `mix rindle.doctor` GCS-aware checks → Phase 41 (RESUMABLE-13)
+- Resumable-specific `mix rindle.doctor` CORS-suspected check → Phase 41 (RESUMABLE-13). (Basic Goth/bucket/signing-key health checks DO ship in Phase 37 per D-13.)
 - Package-consumer GCS proof lane (fresh `mix phx.new` install) → Phase 41 (RESUMABLE-14)
 - IAM SignBlob auth mode → v1.7+ behind config flag
 - Customer-supplied session URIs, CMEK, Object Versioning → out
@@ -135,11 +135,18 @@ ship in Phase 39).
   secret. **Do NOT** add fakegcs as a dep — Bypass + live bucket is the
   established Rindle pattern (S3 uses Bypass + MinIO; mirror it).
 
-- **D-13:** **Phase 37 does NOT add a `mix rindle.doctor` GCS branch.** Per
-  REQUIREMENTS.md, the doctor GCS check is RESUMABLE-13 (Phase 41). The
-  ROADMAP success criterion #5 mentioning doctor is loose phrasing — the
-  locked candidate plan §2 firmly places it in Phase 41. Phase 37 stops at
-  the adapter + V4 signing + CI proof lane.
+- **D-13:** **Phase 37 ships basic `mix rindle.doctor` GCS health checks**:
+  Goth instance running (named lookup succeeds), bucket reachable
+  (`GET /storage/v1/b/$BUCKET` returns 200/403 — present), signing key
+  parses cleanly. Per ROADMAP success criterion #5 (`.planning/ROADMAP.md:105-108`),
+  user-confirmed in `37-DISCUSSION-LOG.md` "Corrections Made" 2026-05-07.
+  The doctor checks are **profile-aware** so image-only S3 adopters see no
+  new noise — fires only when an adopter profile declares
+  `storage: Rindle.Storage.GCS`. Mirrors the v1.6 `mix rindle.doctor --streaming`
+  profile-aware discipline at `lib/rindle/ops/runtime_checks.ex:526-607`.
+  The resumable-specific "CORS suspected when profile uses GCS+resumable"
+  check STAYS deferred to Phase 41 (RESUMABLE-13) — no resumable concerns
+  leak into Phase 37 doctor output.
 
 - **D-14:** **Phase 37 does NOT touch the package-consumer lane**
   (`.github/workflows/ci.yml:289`). That's RESUMABLE-14 / Phase 41 (fresh
@@ -202,8 +209,10 @@ v1.8+ Phase-37-style pull-forward) are out of Phase 37 scope.
 - `test/rindle/storage/storage_adapter_test.exs` (lines 41-51, 77-83) —
   cross-adapter parity tests Phase 37's GCS adapter must satisfy.
 - `lib/rindle/ops/runtime_checks.ex` (lines 526-607) — streaming-credentials
-  doctor check is the future template for RESUMABLE-13 (Phase 41) but NOT
-  Phase 37.
+  doctor check is the **template Phase 37 follows for the basic Goth /
+  bucket-reachable / signing-key health checks (D-13)**. The
+  resumable-specific CORS-suspected branch defers to Phase 41 (RESUMABLE-13)
+  and layers on top of the same module without restructuring it.
 </canonical_refs>
 
 <code_context>
@@ -297,12 +306,16 @@ v1.8+ Phase-37-style pull-forward) are out of Phase 37 scope.
 <deferred>
 ## Deferred Ideas
 
-- **`mix rindle.doctor` GCS branch** → Phase 41 (RESUMABLE-13). ROADMAP
-  success criterion #5 mentions doctor; locked candidate plan §2 firmly
-  places it in Phase 41. Scope-tightening: Phase 37 stops at adapter + V4
-  signing + CI proof lane. *Note this scope correction surfaced during
-  assumption analysis — ROADMAP wording is loose, REQUIREMENTS is the
-  binding contract.*
+- **Resumable-specific `mix rindle.doctor` CORS-suspected check** → Phase 41
+  (RESUMABLE-13). The "CORS suspected when profile uses GCS+resumable" branch
+  needs the resumable capability advertised (Phase 39 promotes
+  `:resumable_upload_session` from reserved to shipped) before the check has
+  meaning. Phase 37 ships ONLY the basic Goth/bucket/signing-key health checks
+  (D-13); the resumable-specific layering happens cleanly on top in Phase 41.
+  *Earlier assumption-analysis run (same date) initially deferred ALL doctor
+  work to Phase 41; user corrected on 2026-05-07 to honor ROADMAP success
+  criterion #5 — basic doctor checks DO ship in Phase 37, resumable-specific
+  layering defers to Phase 41.*
 - **Package-consumer GCS proof lane** (fresh `mix phx.new` install) →
   Phase 41 (RESUMABLE-14).
 - **Resumable upload behaviour callbacks** (`initiate_resumable_upload/3`,

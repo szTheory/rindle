@@ -47,18 +47,36 @@
 
 ## Corrections Made
 
+### 2026-05-07 (initial run)
+
 No corrections — user selected "Yes, proceed" and confirmed all 4
 assumption areas as locked decisions.
 
+### 2026-05-07 (continuation run, doctor scope re-opened)
+
+Re-ran assumption analysis to surface unresolved scope ambiguity. User
+**flipped the doctor-scope decision** from the initial run:
+
+| Decision | Initial run | User correction |
+|----------|-------------|-----------------|
+| Does Phase 37 ship `mix rindle.doctor` GCS health checks? | NO — defer all doctor work to Phase 41 (RESUMABLE-13) | YES — Phase 37 ships basic Goth/bucket/signing-key health checks; Phase 41 layers the resumable-specific CORS-suspected check on top |
+| Reason | Loose ROADMAP phrasing read as superseded by candidate plan §2 placing all doctor work in Phase 41 | ROADMAP success criterion #5 (`.planning/ROADMAP.md:105-108`) is the binding contract; basic checks belong with the adapter that needs to be checked, resumable-specific check belongs with the resumable capability promotion in Phase 41 |
+| Effect on CONTEXT.md | D-13 read "Phase 37 does NOT add doctor branch" | D-13 now reads "Phase 37 ships basic doctor health checks; resumable-specific CORS check stays Phase 41" |
+
+User also confirmed the other 5 area assumptions correct as written:
+adapter shape (D-01..D-05), config & runtime (D-06..D-09 + Area 2 framing
+of `:finch_unconfigured`), V4 signing & metadata (D-02..D-04 + Area 3
+framing), CI lane (D-10..D-11), test seam (D-12 + Area 5 framing —
+real-bucket-only in Phase 37, defer Bypass-fakegcs to Phase 39).
+
 ## Scope Correction Surfaced
 
-ROADMAP.md success criterion #5 for Phase 37 mentions
-`mix rindle.doctor reports GCS adapter health when configured` —
-loose phrasing. The locked candidate plan §2 firmly places doctor in
-Phase 41 (RESUMABLE-13), and REQUIREMENTS.md maps the doctor work to
-RESUMABLE-13 / Phase 41. **Phase 37 does NOT add a doctor branch.**
-Recorded in CONTEXT.md `<deferred>` section to prevent scope creep
-during planning.
+The earlier "scope correction" framing — that ROADMAP wording was loose and
+REQUIREMENTS was the binding contract — was itself the wrong call. ROADMAP
+success criterion #5 IS the binding scope statement for Phase 37; REQUIREMENTS
+GCS-01..04 don't enumerate every shipping artifact (that's the ROADMAP's job).
+The basic doctor checks belong in Phase 37 and Phase 41 layers the
+resumable-specific branch on top.
 
 ## External Research
 
