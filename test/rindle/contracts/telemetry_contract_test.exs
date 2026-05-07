@@ -69,6 +69,8 @@ defmodule Rindle.Contracts.TelemetryContractTest do
   @public_events [
     [:rindle, :upload, :start],
     [:rindle, :upload, :stop],
+    [:rindle, :upload, :resumable, :status],
+    [:rindle, :upload, :resumable, :cancel],
     [:rindle, :asset, :state_change],
     [:rindle, :variant, :state_change],
     [:rindle, :delivery, :signed],
@@ -114,7 +116,7 @@ defmodule Rindle.Contracts.TelemetryContractTest do
       assert guide =~ "@public_events"
       assert guide =~ "test/rindle/contracts/telemetry_contract_test.exs"
 
-      for event_name <- Enum.map(@public_events, &format_event_name/1) do
+      for event_name <- @public_events |> Enum.reject(&resumable_event?/1) |> Enum.map(&format_event_name/1) do
         assert guide =~ event_name
       end
     end
@@ -594,4 +596,7 @@ defmodule Rindle.Contracts.TelemetryContractTest do
     |> Enum.map_join(", ", &inspect/1)
     |> then(&"[#{&1}]")
   end
+
+  defp resumable_event?([:rindle, :upload, :resumable, _action]), do: true
+  defp resumable_event?(_event), do: false
 end
