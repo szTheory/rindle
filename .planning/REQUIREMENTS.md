@@ -1,0 +1,223 @@
+# Requirements: Rindle v1.7 — GCS Resumable Adapter
+
+**Defined:** 2026-05-07
+**Core Value:** Media, made durable.
+**Source:** Locked recommendation in
+`.planning/research/v1.6-CANDIDATE-GCS.md` (research-driven candidate
+evaluation: GCS 7.5/10, locked on technical shape; carried forward from v1.6
+candidate evaluation since v1.6 chose Provider+Mux 8/10).
+
+**Goal:** Productize `Rindle.Storage.GCS` as a real second storage adapter
+implementing the existing `Rindle.Storage` behaviour, and promote
+`:resumable_upload` + `:resumable_upload_session` capabilities from reserved to
+shipped — extending v1.4/v1.5's "named-preset, capability-honest, adopter-owned
+runtime" posture to cover GCS-style resumable uploads without making Rindle a
+file-server.
+
+## v1.7 Requirements
+
+### GCS Adapter Foundation
+
+- [ ] **GCS-01**: `Rindle.Storage.GCS` implements `store/3`, `download/3`,
+  `delete/2`, `head/2`, `url/2` against the real GCS bucket using `goth ~> 1.4`
+  for auth and `finch ~> 0.21` for HTTP. No resumable behavior in this phase.
+- [ ] **GCS-02**: `Rindle.Storage.GCS.capabilities/0` returns
+  `[:signed_url, :head]` only at end of phase (resumable atoms are added in the
+  Resumable Adapter Behaviour phase).
+- [ ] **GCS-03**: V4 signed URL generation via `gcs_signed_url ~> 0.4.6` with
+  private-key auth mode; signed-URL TTL respects
+  `Rindle.Config.signed_url_ttl_seconds/0`. `Content-Disposition` and
+  `Content-Type` go into object metadata at `store/3` (not URL params), per
+  Active Storage's lesson that GCS V4 signed URLs do not safely enforce
+  `response-content-disposition`/`response-content-type`.
+- [ ] **GCS-04**: GCS proof lane in CI gated behind
+  `GOOGLE_APPLICATION_CREDENTIALS_JSON` secret; runs on PR only when the secret
+  is present, runs on release always (mirrors current MinIO lane discipline).
+
+### Resumable Persistence + FSM
+
+- [ ] **RESUMABLE-01**: Migration adds `session_uri` (text), `session_uri_expires_at`
+  (utc_datetime_usec), `last_known_offset` (bigint, default 0), `region_hint`
+  (string) to `media_upload_sessions`. All columns nullable;
+  `upload_strategy` allowed values widen to
+  `["presigned_put", "multipart", "resumable"]`. Reversible migration in
+  `priv/repo/migrations`.
+- [ ] **RESUMABLE-02**: `Rindle.Domain.MediaUploadSession.changeset/2` casts the
+  new fields. `Rindle.Domain.UploadSessionFSM` gains state `"resuming"` between
+  `"signed"` and `"uploading"` with allowed transitions
+  `"signed" → "resuming" → "uploading"`. Cancel path: any non-terminal state
+  → `"aborted"`. Custom `Inspect` impl on `MediaUploadSession` redacts
+  `session_uri` to `"[REDACTED]"`.
+- [ ] **RESUMABLE-03**: Telemetry — `[:rindle, :upload, :resumable, :status]`
+  and `[:rindle, :upload, :resumable, :cancel]` events.
+  `session_uri` is **never** in telemetry metadata, **never** in logs,
+  **never** in `inspect/2` output. Logger metadata `:session_uri` filter
+  recipe documented in `guides/storage_gcs.md`.
+
+### Resumable Adapter Behaviour + Broker Wiring
+
+- [ ] **RESUMABLE-04**: `Rindle.Storage` behaviour adds four
+  `@optional_callbacks`: `initiate_resumable_upload/3`,
+  `resumable_upload_status/3`, `cancel_resumable_upload/3`,
+  `verify_resumable_completion/3` with the locked arities and return shapes
+  documented in `v1.6-CANDIDATE-GCS.md` §4.
+- [ ] **RESUMABLE-05**: `Rindle.Storage.GCS` implements all four callbacks via
+  hand-rolled JSON API client over Finch (NOT `google_api_storage`).
+  `capabilities/0` becomes
+  `[:signed_url, :head, :resumable_upload, :resumable_upload_session]`.
+- [ ] **RESUMABLE-06**: `Rindle.Upload.Broker.initiate_resumable_session/2` →
+  `resumable_session_status/2` → `cancel_resumable_session/2` → existing
+  `verify_completion/2` (unchanged, calls adapter's `head/2`). Storage I/O
+  before DB transaction; compensating cancel on persist failure (mirrors
+  `compensate_failed_multipart_persist/4`).
+- [ ] **RESUMABLE-07**: `Rindle.Storage.S3.capabilities/0` and
+  `Rindle.Storage.Local.capabilities/0` confirmed not to advertise resumable
+  atoms. Calling resumable broker entrypoints against a non-resumable adapter
+  returns `{:error, {:upload_unsupported, :resumable_upload_session}}`. No
+  silent fallback.
+- [ ] **RESUMABLE-08**: All locked error atoms in `v1.6-CANDIDATE-GCS.md` §4
+  are returnable from real adapter paths and tested:
+  `{:upload_unsupported, _}`, `:session_uri_expired`, `:session_uri_unknown`,
+  `{:offset_mismatch, _}`, `:region_pinned_initiation`, `{:gcs_http_error, _}`,
+  `:goth_unconfigured`, `:missing_bucket`, `:storage_object_missing`.
+
+### Maintenance + Cancel Contract
+
+- [ ] **RESUMABLE-09**: `Rindle.Ops.UploadMaintenance.abort_incomplete_uploads/1`
+  calls `cancel_resumable_upload/3` on the adapter when
+  `upload_strategy = "resumable"`, treating `{:error, :session_uri_unknown}`
+  and `{:error, :session_uri_expired}` as idempotent success. Counters in
+  the report distinguish `:resumable_aborts` from `:multipart_aborts`.
+- [ ] **RESUMABLE-10**: Local row deletion only after remote cancel returns
+  success-or-idempotent. Remote-failure path leaves the row in `"aborted"`
+  (terminal in FSM) with `failure_reason` populated; existing Oban backoff
+  retries.
+- [ ] **RESUMABLE-11**: `mix rindle.runtime_status` surfaces
+  `resumable_sessions_pending`, `resumable_sessions_expired`, and a count
+  (not URI) of stale session URIs past `session_uri_expires_at`.
+
+### Onboarding + Docs + Doctor + Package-Consumer Proof
+
+- [ ] **RESUMABLE-12**: `guides/storage_gcs.md` shipped maintainer-to-maintainer:
+  bucket setup, service-account JSON wiring, `gsutil cors set` recipe with
+  `PATCH`/`PUT` methods + `Content-Range` + `x-goog-resumable` allowed headers,
+  one-week session expiry callout, region-pin cost callout, "session URI is a
+  bearer token" callout, `cloak_ecto` recipe for at-rest encryption.
+- [ ] **RESUMABLE-13**: `mix rindle.doctor` adds GCS-aware checks (Goth running,
+  bucket reachable, signing key configured, CORS suspected when profile uses
+  GCS+resumable). Profile-aware so image-only S3 adopters see no new noise.
+- [ ] **RESUMABLE-14**: Package-consumer proof lane — fresh `mix phx.new`
+  adopter installs Rindle, configures a GCS profile, runs the existing
+  canonical adopter lifecycle test against a real bucket (gated by
+  `GOOGLE_APPLICATION_CREDENTIALS_JSON` secret). Mirrors v1.5's image-only
+  and AV-enabled lanes and v1.6's mux-enabled lane.
+
+## Requirement Outcomes
+
+Filled by `gsd-roadmapper` once the v1.7 ROADMAP.md is approved.
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| GCS-01..04 | Phase 37 | Planned (v1.7 roadmap) |
+| RESUMABLE-01..03 | Phase 38 | Planned (v1.7 roadmap) |
+| RESUMABLE-04..08 | Phase 39 | Planned (v1.7 roadmap) |
+| RESUMABLE-09..11 | Phase 40 | Planned (v1.7 roadmap) |
+| RESUMABLE-12..14 | Phase 41 | Planned (v1.7 roadmap) |
+
+## Deferred Candidate Requirements (v1.8+)
+
+### v1.8 candidate — tus Resumable Upload Protocol
+
+Locked plan: `.planning/research/v1.6-CANDIDATE-TUS.md` (5 phases, ~13–15
+days, 18 plans, 6/10 score; in-process Plug on `tussle ~> 0.3.1`).
+
+- **TUS-01..19**: Mountable `Rindle.Upload.TusPlug` macro on
+  `tussle ~> 0.3.1`; broker entrypoints `initiate_resumable_upload/2` +
+  `cancel_resumable_upload/1`; HMAC-signed tus URLs (closes the tusd
+  same-user-resume gap); S3 multipart `UploadPart` per PATCH ≥ 5 MiB on the
+  S3 path; local-tmp accumulation on the local-storage path; Ecto-backed
+  Tussle cache; Oban expiry sweep extending `AbortIncompleteUploads`;
+  generated-app proof lane against `tus-js-client` + MinIO.
+
+### v1.8+ candidate — Browser → Mux Direct Creator Upload
+
+Carried forward from v1.6 Phase 37 (not pulled forward at v1.6 close).
+
+- **MUX-20..23**: `Rindle.Streaming.Provider.Mux.create_direct_upload/2`
+  returns `%{upload_url, upload_id, provider_asset_id}` after creating a
+  `media_provider_assets` row in `pending` with `direct_creator_upload: true`;
+  `video.upload.asset_created` webhook handler links upload-id to asset-id;
+  `Rindle.Streaming.Capabilities.require_streaming/2` gate exists;
+  LiveView extends v1.4 PubSub vocabulary with `:provider_asset_*` events
+  through `Rindle.LiveView.subscribe/2`.
+
+## Out of Scope (v1.7)
+
+- **tus protocol** — locked v1.8 plan, not v1.7 scope.
+- **Browser→Mux direct creator upload (MUX-20..23)** — v1.8+ candidate; clean
+  additive surface on already-built primitives.
+- **IAM SignBlob auth mode** — `gcs_signed_url` supports it
+  (service-account-impersonation, GKE/Cloud Run pattern); v1.7 ships
+  private-key-only since it covers the dominant adopter case
+  (downloaded service-account JSON). v1.8+ adds SignBlob behind a config flag.
+- **Customer-supplied session URIs** — adopters wanting to pre-sign a session
+  URI on their own and hand it to clients; possible but enlarges the auth
+  model. Defer until requested.
+- **Object Versioning, Object Lifecycle, CMEK** — bucket-level concerns, not
+  adapter concerns. Adopter configures these in GCP console.
+- **Companion-style server-side proxy uploads** — explicitly out.
+  Browser→GCS direct only, mirroring presigned PUT and S3 multipart posture.
+- **Encryption-at-rest enforcement of `session_uri`** — documented
+  (`cloak_ecto` recipe in `guides/storage_gcs.md`) but not enforced. Forcing a
+  `cloak` dep would violate the lifecycle-library boundary.
+- **`Rindle.Storage.GCSResumable` as a separate adapter** — locked to
+  `Rindle.Storage.GCS` (one adapter, multiple capabilities). Splitting
+  resumable into its own adapter would imply non-resumable GCS is a separate
+  runtime install, which it is not.
+- **Auto-fallback resumable→PUT or PUT→resumable** — adopters choose the
+  family explicitly via profile DSL. No silent reuse of S3 multipart as
+  "resumable."
+- **Generic "unified resumable" abstraction across S3 multipart and GCS
+  resumable** — different protocols with different failure modes. Distinct
+  capability families is the lesson from peer libs (Shrine, Active Storage,
+  django-storages).
+- **Bespoke `Rindle.Storage.R2` or other S3-sibling adapters** — R2 is
+  already supported via the existing S3 path.
+- **HTML form-POST upload paths** — out of scope for v1.7.
+
+## Traceability
+
+Every v1.7 requirement is mapped to exactly one phase. No orphans. No
+duplicates. Coverage: 18 / 18 ✓ (filled by roadmapper).
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| GCS-01 | Phase 37 — GCS Adapter Foundation | Planned |
+| GCS-02 | Phase 37 — GCS Adapter Foundation | Planned |
+| GCS-03 | Phase 37 — GCS Adapter Foundation | Planned |
+| GCS-04 | Phase 37 — GCS Adapter Foundation | Planned |
+| RESUMABLE-01 | Phase 38 — Resumable Persistence + FSM | Planned |
+| RESUMABLE-02 | Phase 38 — Resumable Persistence + FSM | Planned |
+| RESUMABLE-03 | Phase 38 — Resumable Persistence + FSM | Planned |
+| RESUMABLE-04 | Phase 39 — Resumable Adapter Behaviour + Broker Wiring | Planned |
+| RESUMABLE-05 | Phase 39 — Resumable Adapter Behaviour + Broker Wiring | Planned |
+| RESUMABLE-06 | Phase 39 — Resumable Adapter Behaviour + Broker Wiring | Planned |
+| RESUMABLE-07 | Phase 39 — Resumable Adapter Behaviour + Broker Wiring | Planned |
+| RESUMABLE-08 | Phase 39 — Resumable Adapter Behaviour + Broker Wiring | Planned |
+| RESUMABLE-09 | Phase 40 — Maintenance + Cancel Contract | Planned |
+| RESUMABLE-10 | Phase 40 — Maintenance + Cancel Contract | Planned |
+| RESUMABLE-11 | Phase 40 — Maintenance + Cancel Contract | Planned |
+| RESUMABLE-12 | Phase 41 — Onboarding + Docs + Doctor + Package-Consumer Proof | Planned |
+| RESUMABLE-13 | Phase 41 — Onboarding + Docs + Doctor + Package-Consumer Proof | Planned |
+| RESUMABLE-14 | Phase 41 — Onboarding + Docs + Doctor + Package-Consumer Proof | Planned |
+
+**Phase summary** (Phase → REQ-ID range, count):
+
+| Phase | REQ-IDs | Count |
+|-------|---------|-------|
+| Phase 37 | GCS-01..04 | 4 |
+| Phase 38 | RESUMABLE-01..03 | 3 |
+| Phase 39 | RESUMABLE-04..08 | 5 |
+| Phase 40 | RESUMABLE-09..11 | 3 |
+| Phase 41 | RESUMABLE-12..14 | 3 |
+| **Total** | — | **18** |
