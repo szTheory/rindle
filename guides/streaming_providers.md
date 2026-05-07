@@ -50,7 +50,7 @@ and global delivery; the source media still lives in your storage adapter
 defp deps do
   [
     # ... your existing deps ...
-    {:rindle, "~> 0.2.0"},
+    {:rindle, "~> 0.1"},
     {:mux, "~> 3.2", optional: true},
     {:jose, "~> 1.11", optional: true}
   ]
