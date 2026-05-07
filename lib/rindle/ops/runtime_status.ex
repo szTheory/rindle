@@ -5,19 +5,21 @@ defmodule Rindle.Ops.RuntimeStatus do
 
   alias Oban.Job
   alias Rindle.Config
-  alias Rindle.Domain.{MediaAsset, MediaUploadSession, MediaVariant}
+  alias Rindle.Domain.{MediaAsset, MediaProviderAsset, MediaUploadSession, MediaVariant}
   alias Rindle.Workers.ProcessVariant
 
-  @allowed_filter_keys [:profile, :older_than, :limit, :format]
+  @allowed_filter_keys [:profile, :older_than, :limit, :format, :provider_stuck]
   @default_limit 5
   @queue_starved_age_seconds 5 * 60
   @image_orphan_age_seconds 15 * 60
+  @provider_stuck_default_threshold_seconds 7200
 
   @type filters :: %{
           profile: String.t() | nil,
           older_than: non_neg_integer() | nil,
           limit: pos_integer(),
-          format: :text | :json
+          format: :text | :json,
+          provider_stuck: boolean()
         }
 
   @type report :: %{
@@ -27,6 +29,7 @@ defmodule Rindle.Ops.RuntimeStatus do
           assets: map(),
           variants: map(),
           upload_sessions: map(),
+          provider_assets: map(),
           recommendations: [map()]
         }
 
@@ -44,6 +47,7 @@ defmodule Rindle.Ops.RuntimeStatus do
          assets: asset_report(filters),
          variants: variant_report(filters, cutoff, now),
          upload_sessions: upload_session_report(filters, cutoff, now),
+         provider_assets: provider_assets_report(filters, now),
          recommendations: recommendations(filters, cutoff, now)
        }}
     else
@@ -130,6 +134,96 @@ defmodule Rindle.Ops.RuntimeStatus do
     }
   end
 
+  defp provider_assets_report(filters, now) do
+    threshold = effective_provider_stuck_threshold(filters)
+
+    rows =
+      if filters.provider_stuck do
+        provider_assets_finding_rows_query(filters, threshold, now)
+        |> Config.repo().all()
+        |> Enum.map(&provider_asset_sample(&1, now))
+      else
+        []
+      end
+
+    findings = summarize_findings(rows, filters.limit)
+
+    counts =
+      from(p in MediaProviderAsset,
+        select: {p.state, count(p.id)}
+      )
+      |> maybe_filter_provider_assets_profile(filters.profile)
+      |> group_by([p], p.state)
+      |> Config.repo().all()
+      |> count_map()
+
+    %{
+      counts: Map.put(counts, :total, Enum.sum(Map.values(counts))),
+      threshold_seconds: threshold,
+      findings: findings
+    }
+  end
+
+  defp effective_provider_stuck_threshold(%{older_than: older_than})
+       when is_integer(older_than) do
+    older_than
+  end
+
+  defp effective_provider_stuck_threshold(_filters) do
+    :rindle
+    |> Application.get_env(Rindle.Streaming.Provider.Mux, [])
+    |> Keyword.get(:provider_stuck_threshold_seconds, @provider_stuck_default_threshold_seconds)
+  end
+
+  defp provider_assets_finding_rows_query(filters, threshold_seconds, now) do
+    cutoff =
+      now
+      |> DateTime.to_naive()
+      |> NaiveDateTime.add(-threshold_seconds, :second)
+
+    from(p in MediaProviderAsset,
+      where: p.state in ["uploading", "processing"],
+      where: p.updated_at < ^cutoff,
+      select: %{
+        asset_id: p.asset_id,
+        provider_asset_id: p.provider_asset_id,
+        profile: p.profile,
+        provider_name: p.provider_name,
+        state: p.state,
+        updated_at: p.updated_at,
+        last_event_at: p.last_event_at,
+        last_sync_error: p.last_sync_error
+      }
+    )
+    |> maybe_filter_provider_assets_profile(filters.profile)
+  end
+
+  defp maybe_filter_provider_assets_profile(query, nil), do: query
+
+  defp maybe_filter_provider_assets_profile(query, profile) do
+    from p in query, where: p.profile == ^profile
+  end
+
+  defp provider_asset_sample(row, now) do
+    age = age_seconds(row.updated_at, now)
+
+    %{
+      class: :provider_stuck,
+      age_seconds: age,
+      sample: %{
+        asset_id: row.asset_id,
+        provider_asset_id: MediaProviderAsset.redact_id(row.provider_asset_id),
+        profile: row.profile,
+        provider: row.provider_name,
+        state: row.state,
+        updated_at: row.updated_at,
+        last_event_at: row.last_event_at,
+        last_sync_error: row.last_sync_error,
+        reason: "row stuck in #{row.state} for #{age}s"
+      }
+    }
+  end
+
   defp recommendations(filters, cutoff, now) do
     report_classes =
       runtime_checks_report(filters, cutoff, now).findings
@@ -139,11 +233,15 @@ defmodule Rindle.Ops.RuntimeStatus do
       variant_report(filters, cutoff, now).findings
       |> Enum.map(& &1.class)
 
+    provider_classes =
+      provider_assets_report(filters, now).findings
+      |> Enum.map(& &1.class)
+
     upload_states =
       upload_session_report(filters, cutoff, now).findings
       |> Enum.map(& &1.state)
 
-    (report_classes ++ variant_classes)
+    (report_classes ++ variant_classes ++ provider_classes)
     |> Enum.uniq()
     |> Enum.map(&recommendation_for_class/1)
     |> Enum.reject(&is_nil/1)
@@ -237,11 +335,21 @@ defmodule Rindle.Ops.RuntimeStatus do
 
       row.state == "queued" and age_seconds > @queue_starved_age_seconds and
           MapSet.disjoint?(active_states, MapSet.new(ProcessVariant.active_job_states())) ->
-        variant_sample(:queue_starved, row, age_seconds, "queued variant lacks corroborating Oban job")
+        variant_sample(
+          :queue_starved,
+          row,
+          age_seconds,
+          "queued variant lacks corroborating Oban job"
+        )
 
       row.state == "processing" and age_seconds > processing_threshold_seconds(row) and
           MapSet.disjoint?(active_states, MapSet.new([:executing, :retryable])) ->
-        variant_sample(:orphan_suspect, row, age_seconds, "processing variant lacks executing Oban job")
+        variant_sample(
+          :orphan_suspect,
+          row,
+          age_seconds,
+          "processing variant lacks executing Oban job"
+        )
 
       true ->
         nil
@@ -259,7 +367,8 @@ defmodule Rindle.Ops.RuntimeStatus do
       where: j.state in ^Enum.map(ProcessVariant.active_job_states(), &Atom.to_string/1),
       where: fragment("?->>'asset_id' = ANY(?)", j.args, ^asset_ids),
       where: fragment("?->>'variant_name' = ANY(?)", j.args, ^names),
-      select: {fragment("?->>'asset_id'", j.args), fragment("?->>'variant_name'", j.args), j.state}
+      select:
+        {fragment("?->>'asset_id'", j.args), fragment("?->>'variant_name'", j.args), j.state}
     )
     |> Config.repo().all()
     |> Enum.reduce(%{}, fn {asset_id, variant_name, state}, acc ->
@@ -299,7 +408,8 @@ defmodule Rindle.Ops.RuntimeStatus do
       mismatch_kind_and_content_type?(row.kind, row.content_type) ->
         "content type does not match persisted video kind"
 
-      is_nil(row.duration_ms) or is_nil(row.width) or is_nil(row.height) or row.has_video_track != true ->
+      is_nil(row.duration_ms) or is_nil(row.width) or is_nil(row.height) or
+          row.has_video_track != true ->
         "video asset is missing probe-owned AV fields"
 
       true ->
@@ -325,7 +435,8 @@ defmodule Rindle.Ops.RuntimeStatus do
       mismatch_kind_and_content_type?(row.kind, row.content_type) ->
         "content type does not match persisted image kind"
 
-      not is_nil(row.duration_ms) or not is_nil(row.has_video_track) or not is_nil(row.has_audio_track) ->
+      not is_nil(row.duration_ms) or not is_nil(row.has_video_track) or
+          not is_nil(row.has_audio_track) ->
         "image asset still carries AV-only probe fields"
 
       true ->
@@ -404,7 +515,8 @@ defmodule Rindle.Ops.RuntimeStatus do
       class: class,
       action: :requeue,
       surface: "Rindle.requeue_variants/2",
-      summary: "Requeue affected failed or stuck asset-scoped variant work after confirming the root cause."
+      summary:
+        "Requeue affected failed or stuck asset-scoped variant work after confirming the root cause."
     }
   end
 
@@ -414,6 +526,16 @@ defmodule Rindle.Ops.RuntimeStatus do
       action: :regenerate,
       surface: "mix rindle.regenerate_variants",
       summary: "Run the broad regeneration lane for stale or missing derivatives."
+    }
+  end
+
+  defp recommendation_for_class(:provider_stuck) do
+    %{
+      class: :provider_stuck,
+      action: :resync,
+      surface: "Rindle.Workers.MuxSyncProviderAsset",
+      summary:
+        "Re-sync provider state for rows stuck in :uploading or :processing past threshold."
     }
   end
 
@@ -492,6 +614,7 @@ defmodule Rindle.Ops.RuntimeStatus do
   end
 
   defp maybe_filter_updated_at(query, nil), do: query
+
   defp maybe_filter_updated_at(query, cutoff) do
     from r in query, where: r.updated_at <= ^cutoff
   end
@@ -499,7 +622,8 @@ defmodule Rindle.Ops.RuntimeStatus do
   defp maybe_filter_upload_cutoff(query, nil), do: query
 
   defp maybe_filter_upload_cutoff(query, cutoff) do
-    from s in query, where: s.updated_at <= ^cutoff or (not is_nil(s.expires_at) and s.expires_at <= ^cutoff)
+    from s in query,
+      where: s.updated_at <= ^cutoff or (not is_nil(s.expires_at) and s.expires_at <= ^cutoff)
   end
 
   defp normalize_filters(opts) when is_list(opts) do
@@ -514,8 +638,16 @@ defmodule Rindle.Ops.RuntimeStatus do
          {:ok, profile} <- normalize_profile(Map.get(normalized, :profile)),
          {:ok, older_than} <- normalize_older_than(Map.get(normalized, :older_than)),
          {:ok, limit} <- normalize_limit(Map.get(normalized, :limit)),
-         {:ok, format} <- normalize_format(Map.get(normalized, :format)) do
-      {:ok, %{profile: profile, older_than: older_than, limit: limit, format: format}}
+         {:ok, format} <- normalize_format(Map.get(normalized, :format)),
+         {:ok, provider_stuck} <- normalize_provider_stuck(Map.get(normalized, :provider_stuck)) do
+      {:ok,
+       %{
+         profile: profile,
+         older_than: older_than,
+         limit: limit,
+         format: format,
+         provider_stuck: provider_stuck
+       }}
     end
   end
 
@@ -538,6 +670,9 @@ defmodule Rindle.Ops.RuntimeStatus do
 
         {"format", value}, acc ->
           Map.put(acc, :format, value)
+
+        {"provider_stuck", value}, acc ->
+          Map.put(acc, :provider_stuck, value)
 
         {key, value}, acc ->
           Map.put(acc, key, value)
@@ -571,6 +706,11 @@ defmodule Rindle.Ops.RuntimeStatus do
   defp normalize_format("text"), do: {:ok, :text}
   defp normalize_format("json"), do: {:ok, :json}
   defp normalize_format(value), do: {:error, {:invalid_format, value}}
+
+  defp normalize_provider_stuck(nil), do: {:ok, false}
+  defp normalize_provider_stuck(true), do: {:ok, true}
+  defp normalize_provider_stuck(false), do: {:ok, false}
+  defp normalize_provider_stuck(value), do: {:error, {:invalid_provider_stuck, value}}
 
   defp emit_runtime_refusal(reason) do
     :telemetry.execute(
