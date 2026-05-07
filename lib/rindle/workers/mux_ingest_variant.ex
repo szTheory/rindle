@@ -144,6 +144,24 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
 
           :ok
 
+        {:halt, {:cancel, reason}} ->
+          # BL-02 fix: row is in a terminal state for ingest (`:errored` or
+          # `:deleted`). The FSM forbids errored→uploading, so attempting to
+          # transition would burn `max_attempts: 5` retries with no useful
+          # state change. Return `{:cancel, _}` so Oban stops retrying;
+          # operators reset the row out-of-band before re-ingest.
+          emit_event(
+            :exception,
+            %{
+              system_time: System.system_time(),
+              duration: System.monotonic_time() - start_time
+            },
+            base_metadata(profile_mod, args["variant_name"], nil)
+            |> Map.put(:kind, :cancelled)
+          )
+
+          {:cancel, reason}
+
         {:cancel, {:stale_source, _why} = reason} ->
           emit_event(
             :exception,
@@ -266,6 +284,17 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
     # `processing → uploading` is NOT in @allowed_transitions
     # (provider_asset_fsm.ex:9-16). Re-performs on rows in those states
     # are no-op idempotent successes, NOT FSM violations.
+    #
+    # BL-02 fix: treat `:errored` and `:deleted` as terminal for THIS worker
+    # path. The FSM only allows `errored → processing | deleted` (NOT
+    # `errored → uploading`), so falling through to transition_uploading/4
+    # would burn `max_attempts: 5` retries with `{:invalid_transition,
+    # "errored", "uploading"}` on every attempt. Returning `{:cancel, _}`
+    # signals Oban to stop retrying — operators who want to re-ingest an
+    # `:errored` row must reset it explicitly via a maintenance task that
+    # walks `errored → processing` (or by deleting the row). The reason
+    # tuple carries `last_sync_error` so dashboards can surface why we
+    # stopped.
     defp maybe_skip_already_in_progress(row, _profile, _args, _start_time) do
       case row.state do
         "pending" ->
@@ -274,10 +303,11 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
         state when state in ["uploading", "processing", "ready"] ->
           {:halt, :already_in_progress}
 
-        # :errored / :deleted fall through to normal flow; transition_uploading
-        # will fail safely if the FSM rejects it.
-        _ ->
-          {:cont, row}
+        "errored" ->
+          {:halt, {:cancel, {:provider_asset_errored, row.last_sync_error}}}
+
+        "deleted" ->
+          {:halt, {:cancel, :provider_asset_deleted}}
       end
     end
 

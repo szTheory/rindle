@@ -204,6 +204,70 @@ defmodule Rindle.Workers.MuxIngestVariantTest do
   end
 
   # ===========================================================
+  # BL-02 — :errored row terminal-cancel (no FSM-violation retry burn)
+  # ===========================================================
+
+  test "BL-02: re-ingest against an :errored row returns {:cancel, _} (no FSM transition attempted)",
+       ctx do
+    # The FSM only allows errored → processing|deleted (provider_asset_fsm.ex:14).
+    # Falling through to transition_uploading/4 would produce
+    # {:invalid_transition, "errored", "uploading"} on every retry up to
+    # max_attempts: 5. The fix MUST return :cancel so Oban does not retry.
+    {:ok, _row} =
+      %MediaProviderAsset{}
+      |> MediaProviderAsset.changeset(%{
+        asset_id: ctx.asset.id,
+        profile: to_string(TestProfile),
+        provider_name: "mux",
+        playback_policy: "signed",
+        state: "errored",
+        last_sync_error: "previous attempt failed"
+      })
+      |> Repo.insert()
+
+    # ClientMock.create_asset MUST NOT be called: the worker short-circuits
+    # before calling the SDK. `verify_on_exit!` enforces this — any expect()
+    # that fires would surface as an unexpected call.
+    Mox.stub(ClientMock, :create_asset, fn _ ->
+      raise "create_asset must not be called for :errored rows"
+    end)
+
+    assert {:cancel, {:provider_asset_errored, "previous attempt failed"}} =
+             perform_job(MuxIngestVariant, ctx.args)
+
+    # Row state must remain `:errored` (no spurious FSM transition attempted).
+    row =
+      Repo.get_by!(MediaProviderAsset,
+        asset_id: ctx.asset.id,
+        profile: to_string(TestProfile),
+        provider_name: "mux"
+      )
+
+    assert row.state == "errored"
+  end
+
+  test "BL-02: re-ingest against a :deleted row returns {:cancel, :provider_asset_deleted}",
+       ctx do
+    {:ok, _row} =
+      %MediaProviderAsset{}
+      |> MediaProviderAsset.changeset(%{
+        asset_id: ctx.asset.id,
+        profile: to_string(TestProfile),
+        provider_name: "mux",
+        playback_policy: "signed",
+        state: "deleted"
+      })
+      |> Repo.insert()
+
+    Mox.stub(ClientMock, :create_asset, fn _ ->
+      raise "create_asset must not be called for :deleted rows"
+    end)
+
+    assert {:cancel, :provider_asset_deleted} =
+             perform_job(MuxIngestVariant, ctx.args)
+  end
+
+  # ===========================================================
   # BL-01 — compensating Mux delete on post-create drift detection
   # ===========================================================
 
