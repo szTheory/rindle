@@ -13,6 +13,28 @@ defmodule Rindle.Ops.RuntimeChecks do
   Configure `config :rindle, :local_playback_route, [base_url: ..., secret_key_base: ...]` and mount `Rindle.Delivery.LocalPlug` for local AV playback, or use `Rindle.Delivery.url/3` for progressive delivery instead.
   """
 
+  @streaming_required_env_vars ~w(RINDLE_MUX_TOKEN_ID RINDLE_MUX_TOKEN_SECRET
+                                  RINDLE_MUX_SIGNING_KEY_ID RINDLE_MUX_SIGNING_PRIVATE_KEY
+                                  RINDLE_MUX_WEBHOOK_SECRETS)
+
+  @streaming_credentials_fix """
+  Set RINDLE_MUX_TOKEN_ID, RINDLE_MUX_TOKEN_SECRET, RINDLE_MUX_SIGNING_KEY_ID, RINDLE_MUX_SIGNING_PRIVATE_KEY, and RINDLE_MUX_WEBHOOK_SECRETS in your runtime config. See guides/streaming_providers.md for setup.
+  """
+
+  @streaming_signing_key_fix """
+  Verify RINDLE_MUX_SIGNING_PRIVATE_KEY is a valid PEM-encoded RSA private key (re-download from Mux Dashboard -> Settings -> Signing Keys if unsure; Mux does not allow re-downloading the same key, so creating a fresh one is safest).
+  """
+
+  @streaming_webhook_secrets_fix """
+  Set RINDLE_MUX_WEBHOOK_SECRETS to a comma-separated list of webhook secrets, each at least 32 characters. See Mux Dashboard -> Settings -> Webhooks.
+  """
+
+  @streaming_smoke_ping_fix """
+  Pass --streaming to enable a live 5s smoke ping to Mux.Video.Assets.list/1. Re-run with `mix rindle.doctor --streaming` once credentials are configured.
+  """
+
+  @streaming_dep_missing_fix ~s(Add {:mux, "~> 3.2", optional: true} and {:jose, "~> 1.11", optional: true} to your deps.)
+
   @type check_status :: :ok | :error
   @type check_result :: %{
           id: String.t(),
@@ -50,7 +72,11 @@ defmodule Rindle.Ops.RuntimeChecks do
         fn -> check_migration_unresolved(migration_statuses) end,
         fn -> check_oban_default_instance(oban_config) end,
         fn -> check_oban_required_queues(profiles, oban_config) end,
-        fn -> check_profile_runtime_fit(resolved, env) end
+        fn -> check_profile_runtime_fit(resolved, env) end,
+        fn -> check_streaming_credentials(profiles, env) end,
+        fn -> check_streaming_signing_key(profiles, env) end,
+        fn -> check_streaming_webhook_secrets(profiles, env) end,
+        fn -> check_streaming_smoke_ping(profiles, env, opts) end
       ]
       |> Enum.map(&run_check/1)
       |> Enum.sort_by(& &1.id)
@@ -471,6 +497,285 @@ defmodule Rindle.Ops.RuntimeChecks do
     name
     |> String.split(".")
     |> Module.concat()
+  end
+
+  # --- streaming checks (Phase 36 / MUX-16) ---
+
+  defp streaming_profiles(profiles) do
+    Rindle.Capability.configured_streaming_profiles(profiles)
+  end
+
+  defp check_streaming_credentials(profiles, env) do
+    cond do
+      streaming_profiles(profiles) == [] ->
+        ok_result(
+          "doctor.streaming_credentials",
+          :streaming,
+          "No streaming-enabled profiles discovered.",
+          @streaming_credentials_fix
+        )
+
+      not Code.ensure_loaded?(Mux.Video.Assets) ->
+        error_result(
+          "doctor.streaming_credentials",
+          :streaming,
+          "Streaming-enabled profile detected but :mux dep is not loaded.",
+          @streaming_dep_missing_fix
+        )
+
+      true ->
+        case missing_streaming_credentials(env) do
+          [] ->
+            ok_result(
+              "doctor.streaming_credentials",
+              :streaming,
+              "All five RINDLE_MUX_* credentials are set.",
+              @streaming_credentials_fix
+            )
+
+          missing ->
+            error_result(
+              "doctor.streaming_credentials",
+              :streaming,
+              "Missing RINDLE_MUX_* credentials: #{Enum.join(missing, ", ")}.",
+              @streaming_credentials_fix
+            )
+        end
+    end
+  end
+
+  defp missing_streaming_credentials(env) do
+    Enum.filter(@streaming_required_env_vars, fn name ->
+      case Map.get(env, name) do
+        nil -> true
+        "" -> true
+        _ -> false
+      end
+    end)
+  end
+
+  defp check_streaming_signing_key(profiles, env) do
+    cond do
+      streaming_profiles(profiles) == [] ->
+        ok_result(
+          "doctor.streaming_signing_key",
+          :streaming,
+          "No streaming-enabled profiles discovered.",
+          @streaming_signing_key_fix
+        )
+
+      not Code.ensure_loaded?(JOSE.JWK) ->
+        error_result(
+          "doctor.streaming_signing_key",
+          :streaming,
+          "Streaming-enabled profile detected but :jose dep is not loaded.",
+          @streaming_dep_missing_fix
+        )
+
+      true ->
+        case Map.get(env, "RINDLE_MUX_SIGNING_PRIVATE_KEY", "") do
+          "" ->
+            error_result(
+              "doctor.streaming_signing_key",
+              :streaming,
+              "RINDLE_MUX_SIGNING_PRIVATE_KEY is not set.",
+              @streaming_signing_key_fix
+            )
+
+          value ->
+            verify_signing_key_pem(value)
+        end
+    end
+  end
+
+  # Pitfall 1: JOSE.JWK.from_pem/1 returns `[]` (NOT raises) on malformed PEM.
+  # MUST pattern-match against %JOSE.JWK{}, not just truthy. We also rescue
+  # exceptions defensively in case a future jose version changes behavior.
+  defp verify_signing_key_pem(value) do
+    case JOSE.JWK.from_pem(value) do
+      %JOSE.JWK{} ->
+        ok_result(
+          "doctor.streaming_signing_key",
+          :streaming,
+          "RINDLE_MUX_SIGNING_PRIVATE_KEY parses as a valid JOSE JWK.",
+          @streaming_signing_key_fix
+        )
+
+      _other ->
+        error_result(
+          "doctor.streaming_signing_key",
+          :streaming,
+          "RINDLE_MUX_SIGNING_PRIVATE_KEY did not parse as a JOSE JWK (malformed PEM).",
+          @streaming_signing_key_fix
+        )
+    end
+  rescue
+    _ ->
+      error_result(
+        "doctor.streaming_signing_key",
+        :streaming,
+        "RINDLE_MUX_SIGNING_PRIVATE_KEY parse raised (malformed PEM).",
+        @streaming_signing_key_fix
+      )
+  end
+
+  defp check_streaming_webhook_secrets(profiles, env) do
+    cond do
+      streaming_profiles(profiles) == [] ->
+        ok_result(
+          "doctor.streaming_webhook_secrets",
+          :streaming,
+          "No streaming-enabled profiles discovered.",
+          @streaming_webhook_secrets_fix
+        )
+
+      true ->
+        raw = Map.get(env, "RINDLE_MUX_WEBHOOK_SECRETS", "")
+        secrets = raw |> String.split(",", trim: true) |> Enum.map(&String.trim/1)
+
+        cond do
+          secrets == [] ->
+            error_result(
+              "doctor.streaming_webhook_secrets",
+              :streaming,
+              "RINDLE_MUX_WEBHOOK_SECRETS is empty.",
+              @streaming_webhook_secrets_fix
+            )
+
+          Enum.any?(secrets, &(String.length(&1) < 32)) ->
+            error_result(
+              "doctor.streaming_webhook_secrets",
+              :streaming,
+              "At least one RINDLE_MUX_WEBHOOK_SECRETS entry is shorter than the 32-character Mux minimum.",
+              @streaming_webhook_secrets_fix
+            )
+
+          true ->
+            ok_result(
+              "doctor.streaming_webhook_secrets",
+              :streaming,
+              "RINDLE_MUX_WEBHOOK_SECRETS has #{length(secrets)} secret(s), all >= 32 chars.",
+              @streaming_webhook_secrets_fix
+            )
+        end
+    end
+  end
+
+  defp check_streaming_smoke_ping(profiles, _env, opts) do
+    streaming? = Keyword.get(opts, :streaming, false)
+
+    cond do
+      streaming_profiles(profiles) == [] ->
+        ok_result(
+          "doctor.streaming_smoke_ping",
+          :streaming,
+          "No streaming-enabled profiles discovered.",
+          @streaming_smoke_ping_fix
+        )
+
+      not streaming? ->
+        ok_result(
+          "doctor.streaming_smoke_ping",
+          :streaming,
+          "Smoke ping skipped (pass --streaming to enable live API check).",
+          @streaming_smoke_ping_fix
+        )
+
+      not Code.ensure_loaded?(Mux.Video.Assets) ->
+        error_result(
+          "doctor.streaming_smoke_ping",
+          :streaming,
+          "Streaming-enabled profile detected but :mux dep is not loaded.",
+          @streaming_dep_missing_fix
+        )
+
+      true ->
+        run_smoke_ping_with_timeout()
+    end
+  end
+
+  # Hard 5s wall-clock ceiling via Task.yield + Task.shutdown(:brutal_kill)
+  # (RESEARCH "Don't hand-roll" — defer to OTP). The task body returns the
+  # raw {:ok, _, _} | {:error, _, _} shape from Mux.Video.Assets.list/2, with
+  # exceptions and exits captured into uniform tuples for the case below.
+  defp run_smoke_ping_with_timeout do
+    task =
+      Task.async(fn ->
+        try do
+          cfg = Application.get_env(:rindle, Rindle.Streaming.Provider.Mux, [])
+          token_id = Keyword.get(cfg, :token_id)
+          token_secret = Keyword.get(cfg, :token_secret)
+
+          if is_binary(token_id) and is_binary(token_secret) do
+            client = Mux.Base.new(token_id, token_secret)
+            Mux.Video.Assets.list(client, %{limit: 1})
+          else
+            {:error, :no_credentials}
+          end
+        rescue
+          e -> {:rescue, e}
+        catch
+          kind, reason -> {:catch, kind, reason}
+        end
+      end)
+
+    case Task.yield(task, 5_000) || Task.shutdown(task, :brutal_kill) do
+      {:ok, {:ok, _list, _env}} ->
+        ok_result(
+          "doctor.streaming_smoke_ping",
+          :streaming,
+          "Mux.Video.Assets.list/1 returned 200 (smoke ping OK).",
+          @streaming_smoke_ping_fix
+        )
+
+      {:ok, {:error, _msg, %{status: status}}} when status in [401, 403] ->
+        error_result(
+          "doctor.streaming_smoke_ping",
+          :streaming,
+          "Mux smoke ping returned #{status}.",
+          "Verify RINDLE_MUX_TOKEN_ID and RINDLE_MUX_TOKEN_SECRET in your runtime config."
+        )
+
+      {:ok, {:error, _msg, %{status: 429}}} ->
+        error_result(
+          "doctor.streaming_smoke_ping",
+          :streaming,
+          "Mux smoke ping returned 429.",
+          "Mux rate-limited the smoke ping; retry in a few seconds."
+        )
+
+      {:ok, {:error, _msg, %{status: status}}} ->
+        error_result(
+          "doctor.streaming_smoke_ping",
+          :streaming,
+          "Mux smoke ping returned status #{status}.",
+          @streaming_smoke_ping_fix
+        )
+
+      {:ok, {:error, :no_credentials}} ->
+        error_result(
+          "doctor.streaming_smoke_ping",
+          :streaming,
+          "Mux smoke ping skipped: RINDLE_MUX_TOKEN_ID / RINDLE_MUX_TOKEN_SECRET are not configured.",
+          @streaming_credentials_fix
+        )
+
+      nil ->
+        error_result(
+          "doctor.streaming_smoke_ping",
+          :streaming,
+          "Mux smoke ping timed out after 5s.",
+          "Could not reach api.mux.com within 5s; check network / proxy / DNS."
+        )
+
+      {:ok, _other} ->
+        error_result(
+          "doctor.streaming_smoke_ping",
+          :streaming,
+          "Mux smoke ping returned an unexpected shape.",
+          @streaming_smoke_ping_fix
+        )
+    end
   end
 
   defp ok_result(id, component, summary, fix) do
