@@ -1188,14 +1188,19 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
                         ) == Rindle.Streaming.Provider.Mux.ClientMock or
                           Application.compile_env(:rindle, :__mux_cassette_mode__, false)
 
-        setup do
-          # Pitfall 2: required for cross-process worker stubs (Oban perform_job).
-          if @cassette_mode? do
-            Mox.set_mox_from_context(%{async: false})
-            Mox.verify_on_exit!(self())
-          end
-
-          :ok
+        # Phase 36 WR-05: use the documented Mox setup-callback form.
+        # Previously this called `Mox.verify_on_exit!(self())` and
+        # `Mox.set_mox_from_context(%{async: false})` from inside a
+        # top-level `setup do` block — `verify_on_exit!/1` binds its
+        # arg to `_context` and discards it (passing `self()` works
+        # only by accident), and `set_mox_from_context` is documented
+        # to be wired via `setup :set_mox_from_context` so it receives
+        # the real ExUnit context. Both are required for cross-process
+        # worker stubs (Pitfall 2 — Oban perform_job spawns a worker
+        # in a different process than the test).
+        if @cassette_mode? do
+          setup :set_mox_from_context
+          setup :verify_on_exit!
         end
 
         test "generated app proves the canonical AV lifecycle PLUS Mux-signed HLS streaming URL" do
