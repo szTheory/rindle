@@ -58,7 +58,7 @@ approved: 2026-05-07
 - [ ] `test/rindle/storage/gcs/signer_test.exs` — V4 signed URL TTL/expires_in, signing-key dispatch (PEM string vs service-account JSON map vs file path)
 - [ ] `test/rindle/storage/gcs_test.exs` — `@tag :gcs` + `@gcs_skip_reason` module attribute, env-var nil-checks (`GOOGLE_APPLICATION_CREDENTIALS_JSON`, `RINDLE_GCS_BUCKET`); mirrors `test/rindle/storage/s3_test.exs:13-18, 29-30`
 - [ ] `test/rindle/storage/storage_adapter_test.exs` — extend with GCS adapter row in cross-adapter parity test (lines 41-51, 77-83); confirm head-shape parity assertion at S3 line 117 covers GCS
-- [ ] `test/support/gcs_bypass_fixture.ex` (or similar) — shared Bypass fixture module for unit-level JSON-API stubs (per CONTEXT D-12, Bypass alone — no fakegcs dep)
+- [ ] Per-test Bypass setup blocks within `test/rindle/storage/gcs/client_test.exs` — no shared fixture module (per CONTEXT D-12 Bypass-alone discipline + RESEARCH Q8 planner-taste lock; Plan 01 Wave 0 deliverable IS `client_test.exs` itself, with one Bypass per test)
 
 ---
 
