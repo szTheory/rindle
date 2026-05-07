@@ -113,22 +113,22 @@ video platform.
 
 ### Public DX, Onboarding, & CI Proof
 
-- [ ] **MUX-15**: `Rindle.Profile.Presets.MuxWeb` ships alongside the existing
+- [x] **MUX-15**: `Rindle.Profile.Presets.MuxWeb` ships alongside the existing
   `Rindle.Profile.Presets.Web` and demonstrates `:streaming` opt-in with the
   `:signed` named playback policy.
-- [ ] **MUX-16**: `mix rindle.doctor` validates streaming configuration —
+- [x] **MUX-16**: `mix rindle.doctor` validates streaming configuration —
   presence of token id/secret, signing key id + RSA private key, webhook
   secrets, and a 5s smoke ping to `Mux.Video.Assets.list/1` — and reports
   per-profile streaming status with PASS/FAIL.
-- [ ] **MUX-17**: `guides/streaming_providers.md` ships with a Mux-only
+- [x] **MUX-17**: `guides/streaming_providers.md` ships with a Mux-only
   section: env vars, signing-key creation steps, webhook secret rotation
   workflow, raw-body cache wiring, ngrok-style local webhook tunnel
   guidance, and the `mix rindle.doctor` smoke check.
-- [ ] **MUX-18**: The generated-app package-consumer proof harness gains a
+- [x] **MUX-18**: The generated-app package-consumer proof harness gains a
   `mux-enabled` lane (alongside the v1.5 `image-only` and `av-enabled` lanes).
   PR builds run cassette-based Mux fixtures by default; a gated `mux-soak`
   lane runs against real Mux every PR labelled `streaming`.
-- [ ] **MUX-19**: README and getting-started gain a "Streaming with Mux"
+- [x] **MUX-19**: README and getting-started gain a "Streaming with Mux"
   subsection that points at `guides/streaming_providers.md`; image and AV
   onboarding paths remain the canonical first-run story.
 

@@ -238,7 +238,7 @@ end-to-end).
    "Streaming with Mux" subsection that points at the new guide while the
    image and AV onboarding paths remain the canonical first-run story.
 
-**Plans:** 3 plans (TBD by `/gsd-plan-phase 36`). Plan-count guidance: MUX-15..19
+**Plans:** 3/3 plans complete
 ≈ 3–4 plans; chosen 3 to match Phase 32's velocity baseline (3 plans) and the
 fact that this phase is mostly DX/docs/CI-infra integration rather than novel
 runtime work.
