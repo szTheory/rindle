@@ -412,7 +412,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     final =
       if profile_mode == :mux do
         stage_mux_fixtures!(root)
-        base_updated <> mux_config_block(app_name)
+        base_updated <> mux_config_block()
       else
         base_updated
       end
@@ -420,7 +420,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     File.write!(path, final)
   end
 
-  defp mux_config_block(_app_name) do
+  defp mux_config_block do
     if System.get_env("RINDLE_MUX_USE_REAL_API") == "1" do
       # Soak mode: omit :http_client; defaults to Rindle.Streaming.Provider.Mux.HTTP
       """
