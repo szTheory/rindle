@@ -107,7 +107,7 @@ via Goth) + `gcs_signed_url ~> 0.4.6`.
    reachable, signing key present); image-only S3 adopters see no new
    noise in `doctor` output.
 
-**Plans:** 4 plans
+**Plans:** 4/4 plans complete
 
 Plans:
 - [x] 37-01-PLAN.md — Hand-rolled Finch JSON-API client (Rindle.Storage.GCS.Client) + optional dep declarations + dialyzer PLT entries (Wave 1, GCS-01)

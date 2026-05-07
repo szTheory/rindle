@@ -18,19 +18,19 @@ file-server.
 
 ### GCS Adapter Foundation
 
-- [ ] **GCS-01**: `Rindle.Storage.GCS` implements `store/3`, `download/3`,
+- [x] **GCS-01**: `Rindle.Storage.GCS` implements `store/3`, `download/3`,
   `delete/2`, `head/2`, `url/2` against the real GCS bucket using `goth ~> 1.4`
   for auth and `finch ~> 0.21` for HTTP. No resumable behavior in this phase.
-- [ ] **GCS-02**: `Rindle.Storage.GCS.capabilities/0` returns
+- [x] **GCS-02**: `Rindle.Storage.GCS.capabilities/0` returns
   `[:signed_url, :head]` only at end of phase (resumable atoms are added in the
   Resumable Adapter Behaviour phase).
-- [ ] **GCS-03**: V4 signed URL generation via `gcs_signed_url ~> 0.4.6` with
+- [x] **GCS-03**: V4 signed URL generation via `gcs_signed_url ~> 0.4.6` with
   private-key auth mode; signed-URL TTL respects
   `Rindle.Config.signed_url_ttl_seconds/0`. `Content-Disposition` and
   `Content-Type` go into object metadata at `store/3` (not URL params), per
   Active Storage's lesson that GCS V4 signed URLs do not safely enforce
   `response-content-disposition`/`response-content-type`.
-- [ ] **GCS-04**: GCS proof lane in CI gated behind
+- [x] **GCS-04**: GCS proof lane in CI gated behind
   `GOOGLE_APPLICATION_CREDENTIALS_JSON` secret; runs on PR only when the secret
   is present, runs on release always (mirrors current MinIO lane discipline).
 
