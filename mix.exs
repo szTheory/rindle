@@ -121,6 +121,7 @@ defmodule Rindle.MixProject do
         "guides/storage_capabilities.md",
         "guides/profiles.md",
         "guides/secure_delivery.md",
+        "guides/streaming_providers.md",
         "guides/background_processing.md",
         "guides/operations.md",
         "guides/release_publish.md",
