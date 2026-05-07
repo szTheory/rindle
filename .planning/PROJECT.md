@@ -31,7 +31,25 @@ Milestone `v1.6 Provider Boundary + Mux` is in flight. **Phases 33-34 complete
   invariant 14 (last-4-char `asset_id` tag at every emit site). 60/60 Phase 34
   bundle tests pass; verifier passed after 4-BLOCKER auto-fix loop.
 
-Phase 35 (signed-webhook plug + idempotent ingest) is up next.
+- **Phase 35** — Signed-Webhook Plug + Idempotent Ingest (complete `2026-05-07`,
+  4 plans, MUX-09..14 validated): `Rindle.Delivery.WebhookPlug` mountable
+  `@behaviour Plug` with all 6 response codes, 4 secret-resolver shapes,
+  multi-secret rotation with `secret_index` telemetry, configurable tolerance
+  (60-900s), replay-window guard via `Mux.Webhooks.check_timestamp/2`, raw-body
+  cache via `Rindle.Delivery.WebhookBodyReader` (1 MiB cap, drain loop, list-of-
+  binaries assigns shape); `Rindle.Workers.IngestProviderWebhook` Oban worker
+  with `unique` keyed on Mux event UUID for two-layer idempotency, race-snooze
+  on row-missing, `:provider_asset_ready` PubSub broadcast with security-
+  invariant-14 redaction; typed branch for `video.upload.asset_created` (D-29)
+  + `optional(:upload_id)` on `provider_event` typespec (D-30);
+  `Mux.dispatch_kind/1` `:dispatch | :drop` allowlist; provider-internal
+  telemetry inside `Mux.verify_webhook/3`; `mix rindle.runtime_status
+  --provider-stuck` operator-visibility extension. 47 new tests pass (7 body-
+  reader + 14 worker + 12 plug E2E + 6 event + 5 fixtures + 3 runtime-status).
+  Verifier passed 5/5 must-haves; code review surfaced 0 critical / 6 warning /
+  7 info (advisory, tracked for v1.6 polish or v1.7).
+
+Phase 36 (public DX, onboarding, CI proof) is up next.
 
 ## Current Milestone: v1.6 Provider Boundary + Mux
 
@@ -426,4 +444,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-06 — Phase 34 (Mux REST Adapter + Server-Push Sync) complete (4 plans, 8 MUX requirements validated MUX-01..08); 4 BLOCKER findings auto-fixed before sign-off (compensating Mux delete on drift, :errored row cancel, nil-safe Event.extract_playback_ids/1, provider_state String.t() typespec alignment); 9 Warning + 3 Info advisory findings tracked for v1.6 polish or v1.7 deferral; 60/60 Phase 34 bundle tests pass; security invariant 14 enforced phase-wide via cross-cutting redaction-parity test.*
+*Last updated: 2026-05-07 — Phase 35 (Signed-Webhook Plug + Idempotent Ingest) complete (4 plans, 6 MUX requirements validated MUX-09..14); verifier passed 5/5 must-haves with 0 gaps; code review surfaced 0 critical / 6 warning / 7 info (top WARNINGs: WR-01 fetch_raw_body fallback length, WR-02 unique_job_opts duplication drift hazard, WR-04 nil-tolerance ArithmeticError, WR-05 nil event_id Oban-unique collision; advisory, tracked for v1.6 polish or v1.7); 47 new tests pass; 3 pre-existing test failures (waveform :epipe + 2 ApplicationTest profile-discovery) confirmed unrelated to Phase 35 and tracked in deferred-items.md.*
