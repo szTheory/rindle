@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: Provider Boundary + Mux
-status: ready_for_planning
-stopped_at: Phase 35 context gathered (46 decisions locked across mountable Plug, raw-body cache, worker contract, Mux event dispatch, PubSub broadcast, test signing, runtime_status extension)
-last_updated: "2026-05-06T21:00:00.000Z"
-last_activity: 2026-05-06 -- Phase 35 CONTEXT.md committed (d6cfa5f); research-driven one-shot, three parallel subagents (Plug shape / worker contract / Mux event surface); surfaced silent data-corruption fix for Phase 37 (D-29 Event.normalize/1 typed branch for video.upload.asset_created — data.id is upload-id, not asset-id)
+status: ready_for_execution
+stopped_at: Phase 35 plans committed (4 plans in 2 waves; plan-checker found 1 BLOCKER + 5 WARNINGS, all fixed in 415da1c)
+last_updated: "2026-05-06T22:30:00.000Z"
+last_activity: 2026-05-06 -- Phase 35 PLAN.md committed (1448365 + 415da1c); 4 plans across 2 waves (W1 parallel = 35-01 Plug + 35-03 test fixtures; W2 sequential = 35-02 worker depends on 35-01+35-03, 35-04 runtime_status depends on 35-02); plan-checker passed after fixes for @doc false collision (Plan 01 dispatch_kind), MUX-13 traceability (Plan 01 frontmatter), D-30 transcription note (Plan 02 Task 1), MediaAsset insert_stuck_row helper fields (Plan 04 Task 1), and redaction-prefix grep (Plan 04 acceptance criterion). Ready for `/gsd-execute-phase 35`.
 progress:
   total_phases: 5
   completed_phases: 2
-  total_plans: 17
+  total_plans: 21
   completed_plans: 8
-  percent: 47
+  percent: 38
 ---
 
 # Project State
@@ -27,10 +27,10 @@ single reference streaming adapter without expanding into a video platform.
 
 ## Current Position
 
-Phase: 35 — Signed-Webhook Plug + Idempotent Ingest (context gathered)
-Plan: TBD — `/gsd-plan-phase 35`
-Status: Ready for planning — Phase 35 CONTEXT.md committed
-Last activity: 2026-05-06 -- Phase 35 context gathered; 46 decisions locked; ready for `/gsd-plan-phase 35` to produce the 4-plan PLAN.md per ROADMAP.md plan-count guidance
+Phase: 35 — Signed-Webhook Plug + Idempotent Ingest (plans committed)
+Plan: 4 plans across 2 waves — `/gsd-execute-phase 35`
+Status: Ready for execution — Phase 35 plans committed (1448365 + 415da1c) and plan-checker fixes applied
+Last activity: 2026-05-06 -- Phase 35 plans landed: 35-PATTERNS.md (18 files mapped to analogs), 35-01-PLAN.md (Plug + body reader, 4 files, MUX-09..13), 35-02-PLAN.md (worker + Event.normalize extension + end-to-end Plug tests, 6 files, MUX-12+MUX-13), 35-03-PLAN.md (test signing helper + 5 fixtures, 7 files, MUX-09..13), 35-04-PLAN.md (runtime_status --provider-stuck, 4 files, MUX-14). Plan-checker found 1 BLOCKER (Plan 01 @doc false collision on dispatch_kind/1) + 5 warnings; all fixed in 415da1c. Ready for `/gsd-execute-phase 35`.
 
 ## Recent Completion
 
@@ -47,10 +47,10 @@ Last activity: 2026-05-06 -- Phase 35 context gathered; 46 decisions locked; rea
 
 ## Pending Todos
 
-- Plan Phase 35: Signed-Webhook Plug + Idempotent Ingest (`MUX-09..14`) —
-  `/gsd-plan-phase 35`. CONTEXT.md committed; 4-plan target per ROADMAP.md
-  guidance (highest-fidelity v1.6 phase: raw-body cache, multi-secret
-  rotation, replay protection, idempotency).
+- Execute Phase 35: Signed-Webhook Plug + Idempotent Ingest (`MUX-09..14`) —
+  `/gsd-execute-phase 35`. 4 plans committed across 2 waves; recommended
+  to `/clear` first for a fresh context window since Plan 02 has
+  cross-plan dependencies on 35-01 and 35-03.
 
 - **Cut hex release at v1.6 milestone close (after Phase 36 ships +
   `/gsd-complete-milestone v1.6`).** Last release `rindle-v0.1.4` was
