@@ -14,10 +14,10 @@ defmodule Rindle.Streaming.Provider.Mux.TelemetryTest do
   use Oban.Testing, repo: Rindle.Repo
   import Mox
 
-  alias Rindle.Domain.{MediaAsset, MediaVariant, MediaProviderAsset}
-  alias Rindle.Workers.{MuxIngestVariant, MuxSyncProviderAsset}
+  alias Rindle.Domain.{MediaAsset, MediaProviderAsset, MediaVariant}
   alias Rindle.Streaming.Provider.Mux, as: Adapter
   alias Rindle.Streaming.Provider.Mux.ClientMock
+  alias Rindle.Workers.{MuxIngestVariant, MuxSyncProviderAsset}
 
   setup :set_mox_from_context
   setup :verify_on_exit!

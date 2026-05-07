@@ -2,14 +2,19 @@
 
 ## Pre-existing AV runtime-guard test flakiness (out of scope)
 
-When running the full test suite (`mix test`), 4 tests fail with seemingly
+When running the full test suite (`mix test`), 5 tests fail with seemingly
 unrelated AV/runtime errors:
 
 - `test/rindle/probe/av_probe_test.exs:58` — ffprobe stderr capture flake
 - `test/rindle/av/ffprobe_test.exs:13` — ffprobe failure-handling flake
 - `test/rindle/processor/waveform_test.exs:14` — waveform JSON contract flake
+- `test/rindle/processor/ffmpeg_test.exs` — ffmpeg `process/3` video_transcode
+  capability flake (same family as the waveform/ffprobe flakes)
 - `test/rindle/application_test.exs:41,58` — AV runtime guard test pollution
-  from `Rindle.Adopter.CanonicalApp.VideoProfile` leaking between modules
+  from `Rindle.Adopter.CanonicalApp.VideoProfile` leaking between modules.
+  Confirmed pre-Phase-34: `git checkout db21116 -- . && mix test
+  test/rindle/application_test.exs:41` reproduces the same failure on the
+  pre-Plan-04 base commit — this is not a Plan 04 regression.
 
 These are NOT caused by Phase 34 changes:
 
