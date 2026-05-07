@@ -122,7 +122,8 @@ defmodule Rindle.Domain.MigrationTest do
       assert Enum.any?(index_defs, fn indexdef ->
                String.contains?(indexdef, "session_uri_expires_at") and
                  (String.contains?(indexdef, "WHERE ((upload_strategy = 'resumable'::text))") or
-                    String.contains?(indexdef, "WHERE (upload_strategy = 'resumable'::text)"))
+                    String.contains?(indexdef, "WHERE (upload_strategy = 'resumable'::text)") or
+                    String.contains?(indexdef, "WHERE ((upload_strategy)::text = 'resumable'::text)"))
              end)
     end
   end
