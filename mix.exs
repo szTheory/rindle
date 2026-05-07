@@ -19,7 +19,7 @@ defmodule Rindle.MixProject do
       description: "Phoenix/Ecto-native media lifecycle library. Media, made durable.",
       dialyzer: [
         plt_file: {:no_warn, "priv/plts/dialyzer.plt"},
-        plt_add_apps: [:mix, :ex_unit, :mux, :jose],
+        plt_add_apps: [:mix, :ex_unit, :mux, :jose, :goth, :finch, :gcs_signed_url],
         ignore_warnings: ".dialyzer_ignore.exs"
       ],
       test_coverage: [tool: ExCoveralls]
@@ -68,6 +68,11 @@ defmodule Rindle.MixProject do
       {:mux, "~> 3.2", optional: true},
       {:jose, "~> 1.11", optional: true},
 
+      # GCS adapter (optional — Rindle.Storage.GCS only loads when these are present)
+      {:goth, "~> 1.4", optional: true},
+      {:finch, "~> 0.21", optional: true},
+      {:gcs_signed_url, "~> 0.4.6", optional: true},
+
       # Configuration validation
       {:nimble_options, "~> 1.1"},
 
@@ -76,10 +81,14 @@ defmodule Rindle.MixProject do
       {:ex_aws, "~> 2.5"},
       {:ex_aws_s3, "~> 2.5"},
       # ExAws optional HTTP client — needed for the integration + adopter
-      # CI lanes to actually talk to MinIO/S3. Confined to :test so adopters
+      # CI lanes to actually talk to MinIO/S3. Declared optional so adopters
       # pick their own HTTP client (hackney, req, or finch via ex_aws_*) at
-      # runtime without a forced transitive dep from Rindle.
-      {:hackney, "~> 1.20", only: :test},
+      # runtime without a forced transitive dep from Rindle. Optional rather
+      # than `only: :test` because the optional `gcs_signed_url ~> 0.4.6` dep
+      # (Phase 37) pulls `httpoison ~> 2.0` whose hackney requirement is
+      # `optional: false` — mix's `:only` calculation requires consistency
+      # across all paths reaching hackney. See `.planning/phases/37-gcs-adapter-foundation/37-01-PLAN.md` Task 1.
+      {:hackney, "~> 1.20", optional: true},
 
       # Observability
       {:telemetry, "~> 1.2"},
