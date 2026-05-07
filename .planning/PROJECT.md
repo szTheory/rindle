@@ -8,16 +8,30 @@ image-only and AV-enabled adopters, explicit lifecycle repair surfaces, runtime
 drift diagnostics, and a CI-proved upgrade path from pre-v1.4 installs into the
 current AV-aware lifecycle.
 
-Milestone `v1.6 Provider Boundary + Mux` is in flight. **Phase 33 — Provider
-Boundary + State Schema — completed `2026-05-06`** (4 plans, STREAM-01..09
-validated): the locked public seam is in place — `Rindle.Streaming.Provider`
-runtime behaviour, `Rindle.Streaming.Capabilities` closed vocabulary, additive
-`media_provider_assets` Ecto table + `MediaProviderAsset` schema with FSM and
-Inspect redaction, Profile DSL `:streaming` key, 8-branch
-`Rindle.Delivery.streaming_url/3` dispatch tree (with authorization + config
-drift checks), 5 streaming reason atoms with byte-frozen parity test, and
-`Rindle.Capability.report/0` aggregator. Phase 34 (Mux REST adapter +
-server-push sync) is up next.
+Milestone `v1.6 Provider Boundary + Mux` is in flight. **Phases 33-34 complete
+`2026-05-06`** (8 plans, STREAM-01..09 + MUX-01..08 validated):
+
+- **Phase 33** — Provider Boundary + State Schema: locked public seam —
+  `Rindle.Streaming.Provider` runtime behaviour, `Rindle.Streaming.Capabilities`
+  closed vocabulary, additive `media_provider_assets` Ecto table +
+  `MediaProviderAsset` schema with FSM and Inspect redaction, Profile DSL
+  `:streaming` key, 8-branch `Rindle.Delivery.streaming_url/3` dispatch tree, 5
+  streaming reason atoms with byte-frozen parity test, and
+  `Rindle.Capability.report/0` aggregator.
+- **Phase 34** — Mux REST Adapter + Server-Push Sync: optional `:mux ~> 3.2` +
+  `:jose ~> 1.11` deps; `Rindle.Streaming.Provider.Mux` implements all 6
+  callbacks with PLURAL SDK keys (`inputs`, `playback_policies`) and explicit
+  `:expiration` for signed playback URLs (defeats 7-day default footgun);
+  `Rindle.Workers.MuxIngestVariant` server-push ingest worker (atomic-promote
+  race protection mirroring `process_variant.ex`, two-layer Oban idempotency,
+  429 Retry-After → snooze, compensating Mux delete on post-create drift);
+  `Rindle.Workers.MuxSyncCoordinator` (cron fan-out) +
+  `Rindle.Workers.MuxSyncProviderAsset` (per-row defensive sync, stuck-threshold
+  transition); cross-cutting telemetry redaction parity test enforces security
+  invariant 14 (last-4-char `asset_id` tag at every emit site). 60/60 Phase 34
+  bundle tests pass; verifier passed after 4-BLOCKER auto-fix loop.
+
+Phase 35 (signed-webhook plug + idempotent ingest) is up next.
 
 ## Current Milestone: v1.6 Provider Boundary + Mux
 
@@ -412,4 +426,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-06 — Phase 33 (Provider Boundary + State Schema) complete (4 plans, 9 STREAM requirements validated); CR-01 authorization-bypass blocker fixed before sign-off; archived v1.5 Adopter Hardening & Lifecycle Repair after audit pass; v1.6 Provider Boundary + Mux locked from research-driven candidate evaluation (see `.planning/research/v1.6-CANDIDATE-PROVIDER-MUX.md`); GCS and tus reserved for v1.7+.*
+*Last updated: 2026-05-06 — Phase 34 (Mux REST Adapter + Server-Push Sync) complete (4 plans, 8 MUX requirements validated MUX-01..08); 4 BLOCKER findings auto-fixed before sign-off (compensating Mux delete on drift, :errored row cancel, nil-safe Event.extract_playback_ids/1, provider_state String.t() typespec alignment); 9 Warning + 3 Info advisory findings tracked for v1.6 polish or v1.7 deferral; 60/60 Phase 34 bundle tests pass; security invariant 14 enforced phase-wide via cross-cutting redaction-parity test.*
