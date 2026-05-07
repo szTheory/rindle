@@ -52,6 +52,20 @@ Last activity: 2026-05-06 -- Phase 35 context gathered; 46 decisions locked; rea
   guidance (highest-fidelity v1.6 phase: raw-body cache, multi-secret
   rotation, replay protection, idempotency).
 
+- **Cut hex release at v1.6 milestone close (after Phase 36 ships +
+  `/gsd-complete-milestone v1.6`).** Last release `rindle-v0.1.4` was
+  2026-04-29; since then v1.3 + v1.4 + v1.5 + v1.6 phases 33-34 all
+  shipped (109 conventional `feat:`/`fix:` commits, 0 BREAKING). Wait
+  for v1.6 close because Phase 35 (webhook plug) is what makes the
+  Mux story end-to-end and Phase 36 ships the documented onboarding
+  lane (`MuxWeb` preset, `mix rindle.doctor` streaming smoke,
+  `guides/streaming_providers.md`, package-consumer `mux-enabled` CI
+  lane). Release-please will auto-bump `0.1.4 → 0.2.0` (minor — no
+  breaking changes). Trigger via the existing `release-please-config.json`
+  pipeline; verify post-publish via `mix hex.publish docs` reachability
+  probe (v1.3 surface). Add v1.4/v1.5/v1.6 highlights to the release
+  body when the release-please PR opens.
+
 - Phase 34 follow-ups (advisory, not blocking ship):
   - 9 Warning + 3 Info findings in `34-REVIEW.md` — auto-fix via
     `/gsd-code-review 34 --fix --all` or defer to v1.7 polish.
