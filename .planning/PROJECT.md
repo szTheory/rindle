@@ -2,82 +2,45 @@
 
 ## Current State
 
-Milestone `v1.6 Provider Boundary + Mux` shipped on `2026-05-07` (Phases 33-36,
-15 plans, 28/32 requirements validated). Rindle now ships a runtime provider
-contract with `Rindle.Streaming.Provider.Mux` as the reference adapter:
-server-push ingest from existing AV variants, signed HLS playback via
-JOSE-signed JWT, mountable signed-webhook Plug with multi-secret rotation +
-replay protection, durable provider state in `media_provider_assets`,
-defensive Oban-driven sync, and a generated-app `mux-enabled` package-consumer
-proof lane alongside the v1.5 image-only and AV-enabled lanes. The
-optional/deferred `:mux ~> 3.2` + `:jose ~> 1.11` deps mean non-streaming
-adopters pay zero transitive cost.
+Milestone `v1.7 GCS Resumable Adapter` shipped on `2026-05-08` (Phases 37-41,
+17 plans, 18/18 requirements validated). Rindle now ships a real second
+storage adapter in `Rindle.Storage.GCS`, plus honest resumable-upload support
+across storage capabilities, broker lifecycle, maintenance, runtime status,
+doctor guidance, and package-consumer proof. Session URIs are now treated as
+bearer credentials throughout the public runtime surface and are redacted from
+inspection, telemetry, and operator output.
 
-Milestone v1.6 closes the streaming wedge that v1.4's reserved
-`streaming_url/3` seam pointed at. The next milestone is open for definition
-via `/gsd-new-milestone`. Locked v1.7+ adapter scope: GCS resumable adapter
-(`v1.6-CANDIDATE-GCS.md`, 5 phases) and tus protocol (`v1.6-CANDIDATE-TUS.md`,
-5 phases) are research-locked candidates; Phase 37 (browser→Mux direct
-creator upload, MUX-20..23) deferred to v1.7 since v1.6 budget held without
-pulling forward.
+This milestone closes the locked GCS candidate carried out of `v1.6`. The next
+milestone is open for definition via `/gsd-new-milestone`; the leading carried
+forward candidates are the locked `v1.8` tus protocol plan and the deferred
+browser→Mux direct creator upload slice (`MUX-20..23`).
 
-## Current Milestone: v1.7 GCS Resumable Adapter
+## Next Milestone Goals
 
-**Goal:** Productize `Rindle.Storage.GCS` as a real second storage adapter
-implementing the existing `Rindle.Storage` behaviour, and promote
-`:resumable_upload` + `:resumable_upload_session` capabilities from reserved to
-shipped — extending v1.4/v1.5's "named-preset, capability-honest, adopter-owned
-runtime" posture to cover GCS-style resumable uploads without making Rindle a
-file-server.
-
-**Target features:**
-- `Rindle.Storage.GCS` adapter implementing `store/3`, `download/3`, `delete/2`,
-  `head/2`, `url/2` against real GCS via `goth ~> 1.4` (auth) + `finch ~> 0.21`
-  (HTTP) + `gcs_signed_url ~> 0.4.6` (V4-only signing).
-- Additive `media_upload_sessions` columns (`session_uri`,
-  `session_uri_expires_at`, `last_known_offset`, `region_hint`) +
-  `upload_strategy = "resumable"` + `UploadSessionFSM` `"resuming"` state.
-- 4 new `@optional_callbacks` on `Rindle.Storage`
-  (`initiate_resumable_upload/3`, `resumable_upload_status/3`,
-  `cancel_resumable_upload/3`, `verify_resumable_completion/3`).
-- 3 new broker entrypoints (`initiate_resumable_session/2`,
-  `resumable_session_status/2`, `cancel_resumable_session/2`); existing
-  `verify_completion/2` remains the single trust gate.
-- Idempotent cancel/cleanup contract on `AbortIncompleteUploads` +
-  `CleanupOrphans`; `mix rindle.runtime_status` resumable counters.
-- `mix rindle.doctor` GCS-aware checks (Goth running, bucket reachable, signing
-  key valid, CORS hint when profile uses GCS+resumable).
-- `guides/storage_gcs.md` + package-consumer GCS proof lane (gated behind
-  `GOOGLE_APPLICATION_CREDENTIALS_JSON` secret, mirroring v1.5 MinIO discipline).
-
-**Key context:**
-- Locked recommendation: `.planning/research/v1.6-CANDIDATE-GCS.md` (carried
-  forward from v1.6 candidate evaluation, score 7.5/10; locked on shape).
-- Effort estimate: ~13 working days, 5 phases, 18 plans, MEDIUM overall risk.
-- New security invariant: session URIs are bearer credentials — never logged,
-  telemetry-tagged, inspected, or persisted unencrypted in shared logs. Custom
-  `Inspect` impl on `MediaUploadSession` redacts `session_uri` to `[REDACTED]`.
-- Out of scope: tus protocol (locked v1.8 plan), Phase 37 pull-forward
-  (MUX-20..23 stays deferred), IAM SignBlob auth mode (v1.7+ behind config flag),
-  customer-supplied session URIs, CMEK, Object Versioning, Companion-style
-  server-side proxy uploads, generic "unified resumable" abstraction across S3
-  multipart and GCS resumable.
-- Phase numbering continues from v1.6: v1.7 = Phases 37–41 (Phase 37 was
-  reserved-but-never-executed in v1.6 since the optional Mux Direct Creator
-  Upload didn't pull forward — that work remains deferred).
-
-## Deferred Milestone Goals (v1.8+)
-
-- **v1.8 — tus Resumable Upload Protocol** (locked plan): mountable
+- **v1.8 — tus Resumable Upload Protocol**: mountable
   `Rindle.Upload.TusPlug` macro on `tussle ~> 0.3.1`; HMAC-signed tus URLs;
   S3 multipart `UploadPart` per-PATCH on the S3 path; Ecto-backed Tussle cache.
-- **v1.8+ — Phase 37 pull-forward** (browser→Mux direct creator upload,
-  MUX-20..23): small additive surface on already-built primitives,
-  `Rindle.Streaming.Provider.Mux.create_direct_upload/2`, LiveView PubSub
-  vocabulary extension.
-- **v1.7+ — Code-review polish**: address Phase 34/35 advisory Warning/Info
-  findings deferred from v1.6 close (Phase 36 findings already resolved in
-  commits `8b291c1..c901124`).
+- **v1.8+ — Browser → Mux direct creator upload**: pull forward `MUX-20..23`
+  on top of the existing provider and LiveView primitives.
+- **Future polish**: clean up advisory Phase 34/35 code-review findings that
+  were deferred because they did not block v1.7 shipment.
+
+## Recently Shipped Milestone
+
+<details>
+<summary>v1.7 GCS Resumable Adapter archive notes</summary>
+
+- `Rindle.Storage.GCS` now ships `store/3`, `download/3`, `delete/2`, `head/2`,
+  and `url/2` against real GCS with V4 signed URLs and CI-backed live-bucket
+  proof.
+- Resumable session persistence, the `"resuming"` FSM lane, redaction, and
+  telemetry are all first-class shipped surfaces.
+- Broker-owned resumable initiate/status/cancel entrypoints and maintenance
+  cancel/cleanup behavior are live and verified.
+- `guides/storage_gcs.md`, warning-capable `mix rindle.doctor`, and generated-app
+  GCS proof lanes complete the adopter-facing story.
+
+</details>
 
 ## What This Is
 
@@ -195,15 +158,12 @@ Media, made durable.
   client + `gcs_signed_url` PEM Client mode; `capabilities/0 == [:signed_url, :head]`
   (resumable atoms reserved for Phase 39); secret-gated `gcs-soak` CI lane and
   GCS-aware `mix rindle.doctor` checks shipped with adopter zero-noise guarantee
-  for image-only profiles — v1.7 (Phase 37) (GCS-01..04). Live-bucket round-trip
-  and CI lane execution remain `human_needed` (37-HUMAN-UAT.md).
+  for image-only profiles — v1.7 (Phase 37) (GCS-01..04). Live-bucket proof is
+  accepted CI automation via `gcs-soak` (`ci_verified`), not manual follow-up.
 
-### Active
+### Candidate Next Requirements
 
-(Phase 37 — GCS Adapter Foundation — closed. Resumable behaviour ships in
-Phases 38–39.)
-
-**Candidate next requirements (deferred from v1.6):**
+`v1.7` is shipped. The next candidate requirements are:
 - `MUX-20..23`: browser→Mux direct creator upload — Phase 37 not pulled
   forward in v1.6; clean additive surface on already-built primitives.
 - `RESUMABLE-01..14`: GCS resumable upload session FSM + capability promotion —
@@ -211,7 +171,8 @@ Phases 38–39.)
 - `TUS-01..19`: tus protocol family on a mountable Plug — locked v1.8 plan in
   `.planning/research/v1.6-CANDIDATE-TUS.md`
 - Code-review polish for Phases 34/35/36 — CR-01/02/03 (Phase 36 soak-lane
-  operational defects) + ~25 Warning/Info findings deferred to v1.7.
+  operational defects) + remaining advisory Warning/Info findings deferred
+  past v1.7.
 
 ### Out of Scope
 
@@ -248,10 +209,10 @@ AV-enabled lanes. Optional `mux` + `jose` deps preserve zero transitive cost
 for non-streaming adopters. The single-provider rule keeps the abstraction
 honest; v1.7+ adapters (GCS, second streaming provider) become contract tests.
 
-**Current milestone setup:** v1.6 closed. No new milestone is open yet.
-Candidate expansion work: pull Phase 37 forward (browser→Mux direct creator
-upload, MUX-20..23), GCS resumable adapter (locked v1.7 plan), tus protocol
-(locked v1.8 plan), and code-review polish for Phase 36 soak-lane defects.
+**Current milestone setup:** v1.7 closed. No new milestone is open yet.
+Candidate expansion work: tus protocol (locked v1.8 plan), browser→Mux direct
+creator upload (`MUX-20..23`), and advisory code-review polish that remains
+valuable but non-blocking.
 
 **Reference implementations:**
 - Rails Active Storage: attachment/blob ownership patterns, redirect-style
@@ -487,4 +448,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-07 — Phase 37 (GCS Adapter Foundation) closed: GCS-01..04 validated, 4 plans / 4 waves shipped (`Rindle.Storage.GCS` + Client + Signer + CI gcs-soak lane + `mix rindle.doctor` GCS checks). Live-bucket round-trip and CI lane execution remain `human_needed` (`37-HUMAN-UAT.md`). Code review surfaced 3 BLOCKERs (CR-01 download error tuple, CR-02 url/2 contract, CR-03 Goth error masking) deferred for triage. Resumable behaviour and `:resumable_upload*` capability promotion ship in Phases 38–41 (RESUMABLE-01..14).*
+*Last updated: 2026-05-08 — v1.7 shipped. Provider-backed CI proofs now route to `ci_verified`, not `human_needed`; the milestone archive and audit treat `gcs-soak` and `package-consumer-gcs-live` as accepted automated closure evidence.*

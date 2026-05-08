@@ -1,5 +1,30 @@
 # Milestones
 
+## v1.7 GCS Resumable Adapter (Shipped: 2026-05-08)
+
+**Phases completed:** 5 phases (37-41), 17 plans
+**Files changed:** 56 (13,509 insertions / 175 deletions)
+**Timeline:** 2 days (2026-05-07 → 2026-05-08)
+**Requirements validated:** 18/18 (`GCS-01..04`, `RESUMABLE-01..14`)
+
+**Key accomplishments:**
+
+- Shipped `Rindle.Storage.GCS` as a real second storage adapter with hand-rolled Finch JSON-API plumbing, V4 signed URLs via `gcs_signed_url`, profile-aware doctor checks, and a secret-gated `gcs-soak` CI proof lane for real-bucket closure.
+- Added the resumable persistence surface on `media_upload_sessions`: additive migration template, `"resuming"` FSM lane, `session_uri` redaction in `Inspect`, and resumable telemetry that never exposes bearer session URIs.
+- Promoted resumable uploads into the public contract with four new `Rindle.Storage` optional callbacks, three broker entrypoints, honest per-adapter capability semantics, the locked resumable error vocabulary, and a real-bucket end-to-end resumable upload proof harness.
+- Extended maintenance and operator visibility so resumable cancel/cleanup flow through the existing maintenance lane with idempotent success semantics, retry-safe failure handling, additive abort/cleanup counters, and bounded resumable `runtime_status` reporting.
+- Closed the adopter-facing path with `guides/storage_gcs.md`, warning-capable `mix rindle.doctor` GCS/resumable diagnostics, an always-on structural generated-app `gcs` smoke lane, and a separate secret-gated `package-consumer-gcs-live` proof.
+
+**Known deferred items at close:** Browser → Mux direct creator upload (`MUX-20..23`) remains deferred to `v1.8+`; tus resumable protocol (`TUS-01..19`) remains the locked `v1.8` candidate; advisory Phase 34/35 code-review polish remains available for future cleanup.
+
+**Archive:**
+- `.planning/milestones/v1.7-ROADMAP.md`
+- `.planning/milestones/v1.7-REQUIREMENTS.md`
+- `.planning/milestones/v1.7-MILESTONE-AUDIT.md`
+- `.planning/milestones/v1.7-phases/`
+
+---
+
 ## v1.6 Provider Boundary + Mux (Shipped: 2026-05-07)
 
 **Phases completed:** 4 phases (33-36), 15 plans

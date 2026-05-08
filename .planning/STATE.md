@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.7
 milestone_name: GCS Resumable Adapter
-status: executing
-last_updated: "2026-05-07T19:13:07.028Z"
-last_activity: 2026-05-07
+status: shipped
+last_updated: "2026-05-08T14:05:00.000Z"
+last_activity: 2026-05-08 -- v1.7 archived; tag creation next
 progress:
-  total_phases: 1
-  completed_phases: 1
-  total_plans: 4
-  completed_plans: 4
+  total_phases: 5
+  completed_phases: 5
+  total_plans: 17
+  completed_plans: 17
   percent: 100
 ---
 
@@ -20,36 +20,32 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-07)
 
 **Core value:** Media, made durable.
-**Current focus:** Phase 37 — gcs-adapter-foundation
-as a real second storage adapter, promoting `:resumable_upload` +
-`:resumable_upload_session` from reserved to shipped without making Rindle a
-file-server. Locked candidate plan: `.planning/research/v1.6-CANDIDATE-GCS.md`
-(7.5/10, ~13 days, 5 phases, 18 plans).
+**Current focus:** No active milestone
+Milestone `v1.7` is shipped and archived. The next operator action is to open
+the next milestone with `/gsd-new-milestone`.
 
 ## Current Position
 
-Phase: 37
-Plan: Not started
-Status: Executing Phase 37
-Last activity: 2026-05-07
+Phase: Post-close handoff (`v1.7`) — COMPLETE
+Plan: Start the next milestone when scope is ready
+Status: Phases 37-41 complete; milestone archived
+Last activity: 2026-05-08 -- v1.7 archived and tagged for release closure
 
 ## Recent Completion
 
-- Last completed milestone: `v1.6 Provider Boundary + Mux`
-- Scope: Phases 33-36, 15 plans, 28/32 reqs validated (MUX-20..23 deferred)
-- Tag: `v1.6` pushed 2026-05-07 (release-please should bump 0.1.4 → 0.2.0)
+- Last completed milestone: `v1.7 GCS Resumable Adapter`
+- Scope: Phases 37-41, 17 plans, 18/18 reqs validated
+- Tag: `v1.7` (milestone close tag)
 - Archive files:
+  - `.planning/milestones/v1.7-ROADMAP.md`
+  - `.planning/milestones/v1.7-REQUIREMENTS.md`
+  - `.planning/milestones/v1.7-MILESTONE-AUDIT.md`
+  - `.planning/milestones/v1.7-phases/` (Phases 37-41 artifacts)
   - `.planning/milestones/v1.6-ROADMAP.md`
   - `.planning/milestones/v1.6-REQUIREMENTS.md`
   - `.planning/milestones/v1.6-phases/` (Phases 33-36 artifacts)
-  - `.planning/milestones/v1.5-ROADMAP.md`
-  - `.planning/milestones/v1.5-REQUIREMENTS.md`
-  - `.planning/milestones/v1.5-MILESTONE-AUDIT.md`
 
 ## Pending Todos
-
-- Start Phase 37 (GCS Adapter Foundation, GCS-01..04, ~3 days, LOW risk):
-  `/gsd-discuss-phase 37` or `/gsd-plan-phase 37`.
 
 - Phase 34/35 code-review polish — advisory Warning/Info findings deferred
   from v1.6 close. Either auto-fix early in v1.7 via `/gsd-code-review N --fix`
@@ -91,12 +87,29 @@ deferral remains.
 
 ## Decision-Making Preference
 
-- Downstream agents should front-load research, prefer coherent one-shot
-  recommendations, and decide by default.
+- Downstream agents should front-load research, use subagents when helpful,
+  prefer coherent one-shot recommendation sets, and decide by default rather
+  than escalating routine design choices.
 
-- Escalate only for very impactful decisions such as public semver reshapes,
-  destructive or irreversible operations, security/compliance boundaries, or
-  similarly high-blast-radius tradeoffs.
+- Recommendation sets should be ecosystem-aware and internally coherent:
+  prefer idiomatic Elixir/Phoenix/Ecto/Plug patterns for this kind of
+  library, check successful peer libraries/apps for lessons and footguns,
+  and synthesize a single cohesive direction instead of presenting loosely
+  related options back to the user.
+
+- Shift this preference left: front-load research, use subagents when helpful,
+  and default to one-shot recommendation sets that let planning/execution
+  proceed without reopening routine design choices.
+
+- Default toward least-surprise public contracts, strong developer
+  ergonomics, and operator-friendly behaviour. When a choice is advisory
+  rather than truly blocking, prefer telemetry/docs/metadata over expanding
+  the returned error surface.
+
+- Escalate only for genuinely high-blast-radius decisions such as public
+  semver reshapes, destructive or irreversible operations,
+  security/compliance boundaries, real-cost surprises, or milestone/scope
+  reshapes.
 
 ## Session Continuity
 
@@ -105,18 +118,12 @@ v1.7 GCS Resumable Adapter started via `/gsd-new-milestone`; v1.7
 REQUIREMENTS.md and ROADMAP.md written (5 phases, 18 plans, 18 reqs,
 100% coverage).
 
-**Last Completed Milestone:** v1.6 (Phases 33-36) — archived 2026-05-07,
-tag `v1.6` pushed.
+**Last Completed Milestone:** v1.7 (Phases 37-41) — archived 2026-05-08,
+tag `v1.7`.
 
-**Next Step:** `/gsd-discuss-phase 37` (gather context for Phase 37 — GCS
-Adapter Foundation) or `/gsd-plan-phase 37` (skip discussion, plan directly).
+**Next Step:** `/gsd-new-milestone` (define the next milestone and write fresh
+requirements).
 
 ## Operator Next Steps
 
-- Start Phase 37 (GCS Adapter Foundation, GCS-01..04, ~3 days, LOW risk):
-  `/gsd-discuss-phase 37` or `/gsd-plan-phase 37`.
-
-- Subsequent phases: 38 (Resumable Persistence + FSM, ~2 days, LOW),
-  39 (Resumable Adapter + Broker, ~4 days, MEDIUM), 40 (Maintenance + Cancel,
-  ~2 days, LOW), 41 (Onboarding + Docs + Doctor + Package-Consumer Proof,
-  ~2 days, LOW).
+- Start the next milestone with `/gsd-new-milestone`.
