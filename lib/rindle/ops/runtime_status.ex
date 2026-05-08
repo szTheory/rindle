@@ -278,8 +278,8 @@ defmodule Rindle.Ops.RuntimeStatus do
   defp build_recommendations(runtime_checks, variants, upload_sessions, provider_assets) do
     classes =
       Enum.map(runtime_checks.findings, & &1.class) ++
-      Enum.map(variants.findings, & &1.class) ++
-      Enum.map(provider_assets.findings, & &1.class)
+        Enum.map(variants.findings, & &1.class) ++
+        Enum.map(provider_assets.findings, & &1.class)
 
     upload_states = Enum.map(upload_sessions.findings, & &1.state)
 

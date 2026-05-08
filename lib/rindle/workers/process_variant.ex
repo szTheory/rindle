@@ -429,7 +429,8 @@ defmodule Rindle.Workers.ProcessVariant do
   defp av_variant?(%{kind: kind}) when kind in [:video, :audio, :waveform], do: true
 
   defp av_variant?(%{preset: preset})
-       when preset in [:video_poster_scene, :video_thumbnail_strip], do: true
+       when preset in [:video_poster_scene, :video_thumbnail_strip],
+       do: true
 
   defp av_variant?(_variant_spec), do: false
 

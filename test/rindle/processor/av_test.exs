@@ -413,7 +413,9 @@ defmodule Rindle.Processor.AVTest do
           "-of",
           "default=nokey=1:noprint_wrappers=1",
           path
-        ], stderr_to_stdout: true)
+        ],
+        stderr_to_stdout: true
+      )
 
     # Also verify the moov atom appears before mdat in the binary, which is the
     # operational effect `+faststart` is meant to guarantee.

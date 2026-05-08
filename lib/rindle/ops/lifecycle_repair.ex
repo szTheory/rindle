@@ -362,7 +362,8 @@ defmodule Rindle.Ops.LifecycleRepair do
   defp repair_result({:ok, %{errors: 0, failures: []}}), do: :ok
 
   defp repair_result({:ok, %{enqueued: enqueued, failures: failures}})
-       when enqueued > 0 and failures != [], do: :partial
+       when enqueued > 0 and failures != [],
+       do: :partial
 
   defp repair_result({:ok, %{errors: 0}}), do: :ok
   defp repair_result({:ok, _report}), do: :error

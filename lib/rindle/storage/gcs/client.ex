@@ -84,7 +84,8 @@ defmodule Rindle.Storage.GCS.Client do
       req = Finch.build(:post, url, headers, {:stream, file_stream})
 
       case finch_request(req, opts) do
-        {:ok, %{__struct__: Finch.Response, status: status, body: body}} when status in 200..299 ->
+        {:ok, %{__struct__: Finch.Response, status: status, body: body}}
+        when status in 200..299 ->
           {:ok, %{key: key, bucket: bucket, response: Jason.decode!(body)}}
 
         {:ok, %{__struct__: Finch.Response, status: status, body: body}} ->
