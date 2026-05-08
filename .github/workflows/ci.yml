@@ -20,7 +20,7 @@ permissions:
 jobs:
   quality:
     name: Quality
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
@@ -130,7 +130,7 @@ jobs:
 
   integration:
     name: Integration
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: quality
     env:
       MIX_ENV: test
@@ -223,7 +223,7 @@ jobs:
 
   contract:
     name: Contract
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     # `needs: quality` waits for ALL matrix entries of the quality job
     # (Elixir 1.15/OTP 26 AND Elixir 1.17/OTP 27) to succeed. This is the
     # standard GitHub Actions matrix-needs interaction: a downstream job
@@ -291,7 +291,7 @@ jobs:
 
   package-consumer:
     name: Package Consumer Proof Matrix + Release Preflight
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     # Shift release readiness left into PR CI by reusing the same service-backed
     # package-consumer lane for the shared release preflight. This keeps the
     # fresh-adopter smoke proof from Phase 9, while also proving tarball
@@ -406,7 +406,7 @@ jobs:
 
   adopter:
     name: Adopter
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     # Adopter lane (CI-08): proves the canonical adopter-facing media
     # lifecycle works end-to-end against MinIO + PostgreSQL. Runs ONLY
     # after quality, integration, and contract have all passed — this is
@@ -572,7 +572,7 @@ jobs:
   # invoking scripts/mux_soak_cleanup.sh as a belt-and-suspenders sweep.
   mux-soak:
     name: Mux Soak (real API)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: quality
     if: contains(github.event.pull_request.labels.*.name, 'streaming')
     env:
@@ -668,7 +668,7 @@ jobs:
   # cleanly without leaking secrets to fork code. Closes GCS-04.
   gcs-soak:
     name: GCS Soak (real bucket)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: quality
     if: ${{ github.repository == 'szTheory/rindle' }}
     env:
@@ -716,7 +716,7 @@ jobs:
 
   package-consumer-gcs-live:
     name: Package Consumer GCS Live Proof
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: quality
     if: ${{ github.repository == 'szTheory/rindle' }}
     env:
