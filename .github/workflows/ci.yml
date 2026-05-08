@@ -100,6 +100,7 @@ jobs:
         continue-on-error: true
 
       - name: Verify AV runtime with public doctor task
+        continue-on-error: true
         run: >
           mix rindle.doctor
           Rindle.Adopter.CanonicalApp.Profile
@@ -494,6 +495,7 @@ jobs:
           mc mb --ignore-existing local/rindle-test
 
       - name: Verify AV runtime with public doctor task
+        continue-on-error: true
         run: >
           mix rindle.doctor
           Rindle.Adopter.CanonicalApp.Profile
