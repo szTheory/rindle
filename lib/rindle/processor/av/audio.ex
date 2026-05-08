@@ -53,7 +53,8 @@ defmodule Rindle.Processor.AV.Audio do
       [destination_path]
   end
 
-  defp maybe_audio_filters(%{normalize: true, two_pass: true}, measurements) when is_map(measurements) do
+  defp maybe_audio_filters(%{normalize: true, two_pass: true}, measurements)
+       when is_map(measurements) do
     ["-af", two_pass_loudnorm_filter(measurements)]
   end
 
@@ -70,16 +71,17 @@ defmodule Rindle.Processor.AV.Audio do
   defp maybe_channels(_spec), do: []
 
   defp loudnorm_measurements(source_path, spec) do
-    args = [
-      "-y",
-      "-i",
-      source_path,
-      "-vn",
-      "-map",
-      "0:a:0"
-    ] ++
-      maybe_channels(spec) ++
-      ["-af", "#{base_loudnorm_filter()}:print_format=json", "-f", "null", null_device()]
+    args =
+      [
+        "-y",
+        "-i",
+        source_path,
+        "-vn",
+        "-map",
+        "0:a:0"
+      ] ++
+        maybe_channels(spec) ++
+        ["-af", "#{base_loudnorm_filter()}:print_format=json", "-f", "null", null_device()]
 
     with :ok <- validate_command(args),
          {output, 0} <- Subprocess.run("ffmpeg", args),

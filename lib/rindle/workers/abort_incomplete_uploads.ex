@@ -76,12 +76,18 @@ defmodule Rindle.Workers.AbortIncompleteUploads do
         Logger.info("rindle.workers.abort_incomplete_uploads.completed",
           sessions_found: report.sessions_found,
           sessions_aborted: report.sessions_aborted,
-          abort_errors: report.abort_errors
+          abort_errors: report.abort_errors,
+          resumable_aborts: report.resumable_aborts,
+          multipart_aborts: report.multipart_aborts,
+          presigned_put_aborts: report.presigned_put_aborts
         )
 
         :telemetry.execute(
           [:rindle, :cleanup, :run],
-          %{sessions_aborted: report.sessions_aborted},
+          %{
+            sessions_aborted: report.sessions_aborted,
+            resumable_aborts: report.resumable_aborts
+          },
           %{
             profile: :unknown,
             adapter: :unknown,
@@ -89,7 +95,11 @@ defmodule Rindle.Workers.AbortIncompleteUploads do
           }
         )
 
-        :ok
+        if report.abort_errors > 0 do
+          {:error, {:abort_errors, report.abort_errors}}
+        else
+          :ok
+        end
 
       {:error, reason} ->
         Logger.error("rindle.workers.abort_incomplete_uploads.failed",

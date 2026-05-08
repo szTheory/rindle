@@ -54,7 +54,8 @@ defmodule Rindle.Delivery.ContentDisposition do
   end
 
   defp encode_byte(byte)
-       when byte in ?0..?9 or byte in ?A..?Z or byte in ?a..?z or byte in [?!, ?#, ?$, ?&, ?+, ?-, ?., ?^, ?_, ?`, ?|, ?~] do
+       when byte in ?0..?9 or byte in ?A..?Z or byte in ?a..?z or
+              byte in [?!, ?#, ?$, ?&, ?+, ?-, ?., ?^, ?_, ?`, ?|, ?~] do
     <<byte>>
   end
 

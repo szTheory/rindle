@@ -25,6 +25,10 @@ For upgrade troubleshooting, keep the same order: explicit migrations,
 `mix rindle.doctor`, optional `mix rindle.runtime_status`, then the repair verb
 that matches the actual state.
 
+If the failing profile uses `Rindle.Storage.GCS`, keep the same order and then
+use [`storage_gcs.md`](storage_gcs.md) for the bucket, CORS, `session_uri`, and
+resumable-upload operator runbook instead of rebuilding that flow from logs.
+
 ## Supported Recovery Verbs
 
 Phase 30 makes the recovery lanes explicit:

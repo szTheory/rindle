@@ -46,7 +46,9 @@ defmodule Rindle.Processor.AV.OutputProbe do
   end
 
   defp ensure_kind(%{kind: kind}, kind), do: :ok
-  defp ensure_kind(%{kind: actual}, expected), do: {:error, {:output_kind_mismatch, %{expected: expected, actual: actual}}}
+
+  defp ensure_kind(%{kind: actual}, expected),
+    do: {:error, {:output_kind_mismatch, %{expected: expected, actual: actual}}}
 
   defp ensure_duration(%{duration_ms: expected_ms}, %{duration_ms: actual_ms})
        when is_integer(expected_ms) and is_integer(actual_ms) do
@@ -61,12 +63,19 @@ defmodule Rindle.Processor.AV.OutputProbe do
 
   defp ensure_track_presence(%{has_audio_track: true}, %{kind: :video}), do: :ok
   defp ensure_track_presence(%{has_audio_track: true}, %{kind: :audio}), do: :ok
-  defp ensure_track_presence(%{has_audio_track: false}, %{kind: :video}), do: {:error, {:output_track_missing, :audio}}
-  defp ensure_track_presence(%{has_audio_track: false}, %{kind: :audio}), do: {:error, {:output_track_missing, :audio}}
+
+  defp ensure_track_presence(%{has_audio_track: false}, %{kind: :video}),
+    do: {:error, {:output_track_missing, :audio}}
+
+  defp ensure_track_presence(%{has_audio_track: false}, %{kind: :audio}),
+    do: {:error, {:output_track_missing, :audio}}
+
   defp ensure_track_presence(_probe, _variant_spec), do: :ok
 
   defp ensure_waveform_length(%{"length" => length}, length) when is_integer(length), do: :ok
-  defp ensure_waveform_length(%{"length" => actual}, expected), do: {:error, {:waveform_length_mismatch, %{expected: expected, actual: actual}}}
+
+  defp ensure_waveform_length(%{"length" => actual}, expected),
+    do: {:error, {:waveform_length_mismatch, %{expected: expected, actual: actual}}}
 
   defp output_kind(%{output_kind: kind}) when is_atom(kind), do: kind
   defp output_kind(%{kind: kind}) when is_atom(kind), do: kind

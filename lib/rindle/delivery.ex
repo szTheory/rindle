@@ -389,10 +389,13 @@ defmodule Rindle.Delivery do
     end
   end
 
-  # Pull the asset's binary_id. Supports schema struct or plain map (for tests).
+  # Pull the asset's binary_id. Supports asset structs/maps and variant-like
+  # structs/maps that only carry `asset_id`.
+  defp asset_id_of(%{asset_id: asset_id}) when is_binary(asset_id), do: asset_id
+  defp asset_id_of(%{"asset_id" => asset_id}) when is_binary(asset_id), do: asset_id
   defp asset_id_of(%{id: id}) when is_binary(id), do: id
   defp asset_id_of(%{"id" => id}) when is_binary(id), do: id
-  defp asset_id_of(asset), do: key_for(asset, :id)
+  defp asset_id_of(asset), do: key_for(asset, :id) || key_for(asset, :asset_id)
 
   @doc """
   Returns a deliverable URL for a variant, falling back to the original asset

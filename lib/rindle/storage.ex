@@ -10,9 +10,9 @@ defmodule Rindle.Storage do
   @typedoc """
   Shared storage capability vocabulary exposed by adapters via `c:capabilities/0`.
 
-  Current adapters only need to advertise the capabilities they actually
-  support. Additional resumable-oriented atoms are reserved additively for
-  future adapters.
+  Adapters only advertise the capabilities they actually support. The resumable
+  atoms are shipped broker-facing contracts, but non-resumable adapters remain
+  honest by omitting them from `c:capabilities/0`.
   """
   @type capability ::
           :presigned_put
@@ -61,6 +61,32 @@ defmodule Rindle.Storage do
   @type head_result :: %{
           required(:size) => non_neg_integer(),
           optional(:content_type) => String.t() | nil,
+          optional(atom()) => term()
+        }
+
+  @typedoc """
+  Resumable-upload initiation metadata.
+
+  `:session_uri`, `:upload_id`, and `:expires_at` are required; any region
+  pinning or transport hints remain advisory metadata only.
+  """
+  @type resumable_init_result :: %{
+          required(:session_uri) => String.t(),
+          required(:upload_id) => String.t(),
+          required(:expires_at) => DateTime.t(),
+          optional(:region_hint) => String.t() | nil,
+          optional(atom()) => term()
+        }
+
+  @typedoc """
+  Resumable-upload status metadata.
+
+  `:committed_bytes` is the server-observed offset and `:state` reflects the
+  remote session lifecycle only.
+  """
+  @type resumable_status_result :: %{
+          required(:committed_bytes) => non_neg_integer(),
+          required(:state) => :in_progress | :complete | :expired,
           optional(atom()) => term()
         }
 
@@ -191,9 +217,70 @@ defmodule Rindle.Storage do
               {:ok, head_result()} | {:error, term()}
 
   @doc """
+  Initiates a resumable upload session for `key`.
+
+  Adapters expose this callback only when they advertise the
+  `:resumable_upload` capability. Along with
+  `c:verify_resumable_completion/3`, it forms the minimum adapter surface
+  behind broker resumable initiation; the broker still owns the session
+  lifecycle and persistence rules.
+  """
+  @callback initiate_resumable_upload(
+              key :: String.t(),
+              expected_size :: pos_integer() | nil,
+              opts :: keyword()
+            ) :: {:ok, resumable_init_result()} | {:error, term()}
+
+  @doc """
+  Returns remote status for an in-flight resumable upload session.
+
+  Adapters expose this callback only when they advertise the
+  `:resumable_upload_session` capability. Together with
+  `c:cancel_resumable_upload/3`, it provides the broker's operational surface
+  for polling and cleanup.
+  """
+  @callback resumable_upload_status(
+              key :: String.t(),
+              session_uri :: String.t(),
+              opts :: keyword()
+            ) :: {:ok, resumable_status_result()} | {:error, term()}
+
+  @doc """
+  Cancels a resumable upload session, releasing remote-side state when possible.
+
+  Adapters expose this callback only when they advertise the
+  `:resumable_upload_session` capability. Missing or expired sessions may still
+  return tagged adapter errors callers treat as idempotent cleanup.
+  """
+  @callback cancel_resumable_upload(
+              key :: String.t(),
+              session_uri :: String.t(),
+              opts :: keyword()
+            ) :: {:ok, %{cancelled: boolean()}} | {:error, term()}
+
+  @doc """
+  Verifies resumable completion through adapter-side metadata lookup.
+
+  Adapters expose this callback only when they advertise the
+  `:resumable_upload` capability. This exists for adapter parity and storage
+  protocol handling, but it does not redefine broker trust:
+  `Rindle.Upload.Broker.verify_completion/2` remains `c:head/2`-based.
+  """
+  @callback verify_resumable_completion(
+              key :: String.t(),
+              session_uri :: String.t(),
+              opts :: keyword()
+            ) :: {:ok, head_result()} | {:error, term()}
+
+  @doc """
   Returns the adapter's supported capability atoms.
 
   Values must come from `t:capability/0`.
   """
   @callback capabilities() :: [capability()]
+
+  @optional_callbacks initiate_resumable_upload: 3,
+                      resumable_upload_status: 3,
+                      cancel_resumable_upload: 3,
+                      verify_resumable_completion: 3
 end

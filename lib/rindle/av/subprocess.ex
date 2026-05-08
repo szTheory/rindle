@@ -26,11 +26,12 @@ defmodule Rindle.AV.Subprocess do
         {"cpu", "cpu.cfs_quota_us", "50000"}
       ]
 
-      base ++ [
-        cgroup_controllers: ["memory", "cpu"],
-        cgroup_base: @cgroup_base,
-        cgroup_sets: cgroup_sets
-      ]
+      base ++
+        [
+          cgroup_controllers: ["memory", "cpu"],
+          cgroup_base: @cgroup_base,
+          cgroup_sets: cgroup_sets
+        ]
     else
       base
     end
@@ -53,7 +54,8 @@ defmodule Rindle.AV.Subprocess do
 
     case List.pop_at(args, -1) do
       {destination, input_and_output_args} when is_binary(destination) ->
-        common ++ input_and_output_args ++ ["-fs", Integer.to_string(max_output_bytes), destination]
+        common ++
+          input_and_output_args ++ ["-fs", Integer.to_string(max_output_bytes), destination]
 
       _ ->
         common ++ args

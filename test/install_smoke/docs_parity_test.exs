@@ -130,6 +130,21 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
     end
   end
 
+  test "README and getting-started expose GCS only as an optional advanced pointer", %{
+    readme: readme,
+    guide: guide
+  } do
+    for doc <- [readme, guide] do
+      assert doc =~ "Storage with GCS (optional)"
+      assert doc =~ "mix rindle.doctor"
+      assert doc =~ "storage_gcs.md"
+      assert Regex.match?(~r/GCS resumable upload is ((a shipped|an) )?advanced path/i, doc)
+
+      refute Regex.match?(~r/GCS resumable upload is the canonical first-run/i, doc)
+      refute Regex.match?(~r/GCS resumable upload is the default onboarding/i, doc)
+    end
+  end
+
   test "README and getting-started guide teach the locked AV onboarding path", %{
     readme: readme,
     guide: guide

@@ -254,6 +254,14 @@ end
 
 End-to-end onboarding — signing keys, webhook plug, cron, local tunnel, secret rotation, and `mix rindle.doctor --streaming` — lives in [`guides/streaming_providers.md`](guides/streaming_providers.md).
 
+## Storage with GCS (optional)
+
+GCS resumable upload is a shipped advanced path, not the canonical first-run
+story. If you need `Rindle.Storage.GCS`, adopter-owned `MyApp.Goth` and
+`MyApp.Finch` supervision, bucket CORS, and resumable session hygiene, validate
+the runtime with `mix rindle.doctor` and use
+[`guides/storage_gcs.md`](guides/storage_gcs.md).
+
 ## Next Reads
 
 - [`guides/upgrading.md`](guides/upgrading.md): canonical existing-adopter

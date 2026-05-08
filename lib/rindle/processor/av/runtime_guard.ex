@@ -68,7 +68,8 @@ defmodule Rindle.Processor.AV.RuntimeGuard do
       required_bytes = max_output_bytes(variant_spec) * 2
 
       if free_bytes < required_bytes do
-        {:error, {:insufficient_disk_headroom, %{free_bytes: free_bytes, required_bytes: required_bytes}}}
+        {:error,
+         {:insufficient_disk_headroom, %{free_bytes: free_bytes, required_bytes: required_bytes}}}
       else
         :ok
       end
@@ -83,9 +84,14 @@ defmodule Rindle.Processor.AV.RuntimeGuard do
 
   defp unsupported_runtime(env) when is_map(env) do
     cond do
-      present?(env["LAMBDA_TASK_ROOT"]) or present?(env["AWS_LAMBDA_FUNCTION_NAME"]) -> :lambda
-      present?(env["VERCEL"]) or present?(env["VERCEL_ENV"]) or present?(env["NOW_REGION"]) -> :vercel
-      true -> nil
+      present?(env["LAMBDA_TASK_ROOT"]) or present?(env["AWS_LAMBDA_FUNCTION_NAME"]) ->
+        :lambda
+
+      present?(env["VERCEL"]) or present?(env["VERCEL_ENV"]) or present?(env["NOW_REGION"]) ->
+        :vercel
+
+      true ->
+        nil
     end
   end
 

@@ -7,11 +7,9 @@ defmodule Rindle.InstallSmoke.GeneratedAppSmokeAssertions do
 
   using do
     quote do
-      @moduletag :minio
-
       defp assert_install_source!(report) do
         assert File.dir?(report.generated_app_root)
-        assert report.profile_mode in [:image, :video, :upgrade, :mux]
+        assert report.profile_mode in [:image, :video, :upgrade, :mux, :gcs]
         assert report.install_mode in [:package, :network]
         assert report.install_source
 
@@ -33,10 +31,58 @@ end
 
 alias Rindle.InstallSmoke.GeneratedAppHelper
 
+if GeneratedAppHelper.profile_enabled?(:gcs) do
+  defmodule Rindle.InstallSmoke.GeneratedAppSmokeGCSTest do
+    use ExUnit.Case, async: false
+    use Rindle.InstallSmoke.GeneratedAppSmokeAssertions
+
+    setup_all do
+      report = GeneratedAppHelper.prove_package_install!(:gcs)
+      on_exit(fn -> GeneratedAppHelper.cleanup(report) end)
+      {:ok, report: report}
+    end
+
+    test "generated Phoenix app installs the GCS-enabled profile from the configured package source without repo-local fallback",
+         %{report: report} do
+      assert_install_source!(report)
+    end
+
+    test "generated Phoenix app exposes a first-class GCS path with doctor and resumable status proof surfaces",
+         %{report: report} do
+      assert report.host_migration_ran?
+      assert report.migration_resolution == :application_app_dir
+      assert String.ends_with?(report.rindle_migration_path, "/priv/repo/migrations")
+      refute String.contains?(report.rindle_migration_path, "deps/rindle")
+      assert report.smoke_exit_code == 0
+      assert report.lifecycle_proved?
+      assert report.doctor_command =~ "mix rindle.doctor"
+      assert report.gcs_status_surface == "Rindle.resumable_session_status/2"
+    end
+
+    test "generated Phoenix app proves the live GCS resumable lifecycle only when bucket secrets are present",
+         %{report: report} do
+      if report.gcs_live_enabled? do
+        assert report.doctor_success?
+        assert report.gcs_status_state == "complete"
+        assert is_integer(report.gcs_status_committed_bytes)
+        assert report.gcs_status_committed_bytes > 0
+        assert report.gcs_asset_state_after_verify == "validating"
+        assert report.gcs_asset_state_after_promote in ["available", "processing", "ready"]
+        assert is_binary(report.gcs_upload_key)
+      else
+        refute report.doctor_success?
+        assert is_nil(report.gcs_status_state)
+        assert is_nil(report.gcs_asset_state_after_promote)
+      end
+    end
+  end
+end
+
 if GeneratedAppHelper.profile_enabled?(:image) do
   defmodule Rindle.InstallSmoke.GeneratedAppSmokeImageTest do
     use ExUnit.Case, async: false
     use Rindle.InstallSmoke.GeneratedAppSmokeAssertions
+    @moduletag :minio
 
     setup_all do
       report = GeneratedAppHelper.prove_package_install!(:image)
@@ -65,6 +111,7 @@ if GeneratedAppHelper.profile_enabled?(:video) do
   defmodule Rindle.InstallSmoke.GeneratedAppSmokeVideoTest do
     use ExUnit.Case, async: false
     use Rindle.InstallSmoke.GeneratedAppSmokeAssertions
+    @moduletag :minio
 
     setup_all do
       report = GeneratedAppHelper.prove_package_install!(:video)
@@ -98,6 +145,7 @@ if GeneratedAppHelper.profile_enabled?(:mux) do
   defmodule Rindle.InstallSmoke.GeneratedAppSmokeMuxTest do
     use ExUnit.Case, async: false
     use Rindle.InstallSmoke.GeneratedAppSmokeAssertions
+    @moduletag :minio
 
     setup_all do
       report = GeneratedAppHelper.prove_package_install!(:mux)
@@ -132,6 +180,7 @@ if GeneratedAppHelper.profile_enabled?(:video) do
   defmodule Rindle.InstallSmoke.GeneratedAppSmokeUpgradeTest do
     use ExUnit.Case, async: false
     use Rindle.InstallSmoke.GeneratedAppSmokeAssertions
+    @moduletag :minio
 
     setup_all do
       report = GeneratedAppHelper.prove_upgrade_install!()

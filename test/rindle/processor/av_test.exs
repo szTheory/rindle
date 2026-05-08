@@ -8,7 +8,9 @@ defmodule Rindle.Processor.AVTest do
   alias Rindle.Processor.Ffmpeg
 
   setup do
-    tmp_dir = Path.join(System.tmp_dir!(), "rindle-processor-av-#{System.unique_integer([:positive])}")
+    tmp_dir =
+      Path.join(System.tmp_dir!(), "rindle-processor-av-#{System.unique_integer([:positive])}")
+
     File.mkdir_p!(tmp_dir)
     on_exit(fn -> File.rm_rf(tmp_dir) end)
     {:ok, tmp_dir: tmp_dir}
@@ -104,7 +106,9 @@ defmodule Rindle.Processor.AVTest do
   end
 
   describe "process/3 audio outputs" do
-    test "transcodes the m4a preset into real AAC audio and supports channel reduction", %{tmp_dir: tmp_dir} do
+    test "transcodes the m4a preset into real AAC audio and supports channel reduction", %{
+      tmp_dir: tmp_dir
+    } do
       source = Path.join(tmp_dir, "source.wav")
       destination = Path.join(tmp_dir, "preview.m4a")
 
@@ -128,7 +132,11 @@ defmodule Rindle.Processor.AVTest do
       build_stereo_audio_fixture!(source, volume_db: -20)
 
       assert {:ok, ^destination} =
-               AV.process(source, %{kind: :audio, preset: :mp3_128k, normalize: true}, destination)
+               AV.process(
+                 source,
+                 %{kind: :audio, preset: :mp3_128k, normalize: true},
+                 destination
+               )
 
       assert {:ok, probe} = AVProbe.probe(destination)
       assert probe.kind == :audio
@@ -192,7 +200,11 @@ defmodule Rindle.Processor.AVTest do
       build_scene_change_fixture!(source)
 
       assert {:ok, %{path: ^destination, strategy: :scene_change}} =
-               Video.poster(source, AV.normalize!(%{kind: :image, preset: :video_poster_scene}), destination)
+               Video.poster(
+                 source,
+                 AV.normalize!(%{kind: :image, preset: :video_poster_scene}),
+                 destination
+               )
 
       assert File.exists?(destination)
       assert image_width(destination) == 320
@@ -200,14 +212,20 @@ defmodule Rindle.Processor.AVTest do
       assert grayscale_luma(destination) > 200
     end
 
-    test "falls back to the first I-frame when no scene-change frame qualifies", %{tmp_dir: tmp_dir} do
+    test "falls back to the first I-frame when no scene-change frame qualifies", %{
+      tmp_dir: tmp_dir
+    } do
       source = Path.join(tmp_dir, "static-source.mp4")
       destination = Path.join(tmp_dir, "poster-fallback.jpg")
 
       build_static_video_fixture!(source)
 
       assert {:ok, %{path: ^destination, strategy: :first_i_frame}} =
-               Video.poster(source, AV.normalize!(%{kind: :image, preset: :video_poster_scene}), destination)
+               Video.poster(
+                 source,
+                 AV.normalize!(%{kind: :image, preset: :video_poster_scene}),
+                 destination
+               )
 
       assert File.exists?(destination)
       assert image_width(destination) == 320
@@ -385,7 +403,17 @@ defmodule Rindle.Processor.AVTest do
 
   defp faststart_enabled?(path) do
     {output, 0} =
-      System.cmd("ffprobe", ["-v", "error", "-show_entries", "format_tags=major_brand", "-of", "default=nokey=1:noprint_wrappers=1", path], stderr_to_stdout: true)
+      System.cmd(
+        "ffprobe",
+        [
+          "-v",
+          "error",
+          "-show_entries",
+          "format_tags=major_brand",
+          "-of",
+          "default=nokey=1:noprint_wrappers=1",
+          path
+        ], stderr_to_stdout: true)
 
     # Also verify the moov atom appears before mdat in the binary, which is the
     # operational effect `+faststart` is meant to guarantee.
@@ -393,7 +421,8 @@ defmodule Rindle.Processor.AVTest do
     moov_index = :binary.match(binary, "moov")
     mdat_index = :binary.match(binary, "mdat")
 
-    String.trim(output) == "isom" and moov_index != :nomatch and mdat_index != :nomatch and moov_index < mdat_index
+    String.trim(output) == "isom" and moov_index != :nomatch and mdat_index != :nomatch and
+      moov_index < mdat_index
   end
 
   defp ffprobe_stream_value!(path, selector, entry) do
@@ -417,7 +446,20 @@ defmodule Rindle.Processor.AVTest do
   defp image_height(path), do: ffprobe_stream_value!(path, "v:0", "height") |> String.to_integer()
 
   defp grayscale_luma(path) do
-    args = ["-v", "error", "-i", path, "-vf", "scale=1:1,format=gray", "-frames:v", "1", "-f", "rawvideo", "-"]
+    args = [
+      "-v",
+      "error",
+      "-i",
+      path,
+      "-vf",
+      "scale=1:1,format=gray",
+      "-frames:v",
+      "1",
+      "-f",
+      "rawvideo",
+      "-"
+    ]
+
     {output, 0} = System.cmd("ffmpeg", args, stderr_to_stdout: false)
     <<luma, _rest::binary>> = output
     luma

@@ -51,6 +51,7 @@ defmodule Rindle.Profile.ProfileTest do
     assert [banner: banner, thumb: thumb] = TestProfile.variants()
     assert banner.mode == :crop
     assert thumb.mode == :fit
+
     refute Map.has_key?(banner, :kind),
            "image-default variant must omit :kind from validated map (D-14)"
   end

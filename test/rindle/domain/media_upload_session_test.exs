@@ -24,7 +24,10 @@ defmodule Rindle.Domain.MediaUploadSessionTest do
 
       assert changeset.valid?
       assert Ecto.Changeset.get_change(changeset, :session_uri) == attrs.session_uri
-      assert Ecto.Changeset.get_change(changeset, :session_uri_expires_at) == session_uri_expires_at
+
+      assert Ecto.Changeset.get_change(changeset, :session_uri_expires_at) ==
+               session_uri_expires_at
+
       assert Ecto.Changeset.get_change(changeset, :last_known_offset) == 1024
       assert Ecto.Changeset.get_change(changeset, :region_hint) == "us-east1"
     end

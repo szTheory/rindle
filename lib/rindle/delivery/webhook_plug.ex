@@ -152,62 +152,66 @@ defmodule Rindle.Delivery.WebhookPlug do
     event_id = Map.get(raw, "id")
     event_type = Map.get(raw, "type")
 
-    case provider.dispatch_kind(event_type) do
-      :drop ->
-        emit_verified(%{
-          provider: provider_atom(provider),
-          event_type: event_type,
-          event_id: event_id,
-          kind: :dropped
-        })
+    if is_nil(event_id) do
+      emit_rejected(:missing_event_id, %{
+        provider: provider_atom(provider),
+        event_type: event_type
+      })
 
-        conn |> send_resp(200, "") |> halt()
-
-      :dispatch ->
-        try do
-          args = %{
-            "event_id" => event_id,
-            "provider" => provider_atom_string(provider),
-            "event_type" => event_type,
-            "event" => stringify_event(event)
-          }
-
-          # Mirror Rindle.Workers.IngestProviderWebhook.unique_job_opts/0 (D-20).
-          # `:available` MUST be in the states list — Oban inserts newly-enqueued
-          # jobs in `:available` first; without it, the unique constraint never
-          # fires for the most common re-delivery dedup case (the second webhook
-          # arrives before the worker picks up the first job).
-          unique_opts = [
-            fields: [:args],
-            keys: [:event_id],
-            states: [:available, :scheduled, :executing, :retryable],
-            period: 86_400
-          ]
-
-          {:ok, _job} =
-            args
-            |> Rindle.Workers.IngestProviderWebhook.new(unique: unique_opts)
-            |> Oban.insert()
-
+      send_invalid(conn)
+    else
+      case provider.dispatch_kind(event_type) do
+        :drop ->
           emit_verified(%{
             provider: provider_atom(provider),
             event_type: event_type,
             event_id: event_id,
-            kind: :enqueued
+            kind: :dropped
           })
 
-          conn |> send_resp(202, "") |> halt()
-        rescue
-          error ->
-            emit_rejected(:oban_unavailable, %{
+          conn |> send_resp(200, "") |> halt()
+
+        :dispatch ->
+          try do
+            args = %{
+              "event_id" => event_id,
+              "provider" => provider_atom_string(provider),
+              "event_type" => event_type,
+              "event" => stringify_event(event)
+            }
+
+            # Mirror Rindle.Workers.IngestProviderWebhook.unique_job_opts/0 (D-20).
+            # `:available` MUST be in the states list — Oban inserts newly-enqueued
+            # jobs in `:available` first; without it, the unique constraint never
+            # fires for the most common re-delivery dedup case (the second webhook
+            # arrives before the worker picks up the first job).
+            {:ok, _job} =
+              args
+              |> Rindle.Workers.IngestProviderWebhook.new(
+                unique: Rindle.Workers.IngestProviderWebhook.unique_job_opts()
+              )
+              |> Oban.insert()
+
+            emit_verified(%{
               provider: provider_atom(provider),
               event_type: event_type,
               event_id: event_id,
-              error: Exception.message(error)
+              kind: :enqueued
             })
 
-            conn |> send_resp(503, "") |> halt()
-        end
+            conn |> send_resp(202, "") |> halt()
+          rescue
+            error ->
+              emit_rejected(:oban_unavailable, %{
+                provider: provider_atom(provider),
+                event_type: event_type,
+                event_id: event_id,
+                error: Exception.message(error)
+              })
+
+              conn |> send_resp(503, "") |> halt()
+          end
+      end
     end
   end
 
@@ -280,7 +284,7 @@ defmodule Rindle.Delivery.WebhookPlug do
   defp valid_secrets_resolver?({:system, env}) when is_binary(env), do: true
 
   defp valid_secrets_resolver?({:application, app, path})
-       when is_atom(app) and is_list(path),
+       when is_atom(app) and is_list(path) and path != [],
        do: Enum.all?(path, &is_atom/1)
 
   defp valid_secrets_resolver?(fun) when is_function(fun, 0), do: true
@@ -326,11 +330,15 @@ defmodule Rindle.Delivery.WebhookPlug do
   defp provider_atom(Rindle.Streaming.Provider.Mux), do: :mux
 
   defp provider_atom(other) when is_atom(other) do
-    other
-    |> Module.split()
-    |> List.last()
-    |> String.downcase()
-    |> String.to_atom()
+    try do
+      other
+      |> Module.split()
+      |> List.last()
+      |> String.downcase()
+      |> String.to_existing_atom()
+    rescue
+      ArgumentError -> :unknown_provider
+    end
   end
 
   defp provider_atom_string(provider), do: provider |> provider_atom() |> Atom.to_string()

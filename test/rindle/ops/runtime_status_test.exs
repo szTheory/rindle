@@ -128,6 +128,46 @@ defmodule Rindle.Ops.RuntimeStatusTest do
     assert Enum.any?(report.recommendations, &(&1.action == :cleanup))
   end
 
+  test "reports bounded resumable counters under upload_sessions without exposing URIs" do
+    asset = insert_asset(%{profile: to_string(StatusImageProfile)})
+
+    _pending =
+      insert_upload_session(asset, %{
+        state: "signed",
+        upload_strategy: "resumable",
+        session_uri: "https://secret.example/live-session",
+        session_uri_expires_at: DateTime.add(DateTime.utc_now(), 3600, :second)
+      })
+
+    _expired_resolved =
+      insert_upload_session(asset, %{
+        state: "expired",
+        upload_strategy: "resumable",
+        session_uri: nil,
+        session_uri_expires_at: DateTime.add(DateTime.utc_now(), -60, :second)
+      })
+
+    _expired_stale =
+      insert_upload_session(asset, %{
+        state: "expired",
+        upload_strategy: "resumable",
+        session_uri: "https://secret.example/stale-session",
+        session_uri_expires_at: DateTime.add(DateTime.utc_now(), -120, :second)
+      })
+
+    assert {:ok, report} = RuntimeStatus.runtime_status(limit: 2)
+
+    assert report.upload_sessions.resumable == %{
+             resumable_sessions_pending: 1,
+             resumable_sessions_expired: 2,
+             resumable_session_uris_stale: 1
+           }
+
+    encoded = Jason.encode!(report)
+    refute encoded =~ "\"session_uri\":"
+    refute encoded =~ "secret.example"
+  end
+
   test "rejects unknown filter keys instead of widening into a query dsl" do
     assert {:error, {:unknown_filters, [:unknown]}} =
              RuntimeStatus.runtime_status(%{unknown: :value})
@@ -156,6 +196,7 @@ defmodule Rindle.Ops.RuntimeStatusTest do
     assert report.filters.older_than == 300
     assert report.filters.format == :json
     assert report.variants.counts.failed == 1
+    assert Map.has_key?(report.upload_sessions, :resumable)
 
     assert Enum.all?(report.variants.findings, fn finding ->
              Enum.all?(finding.samples, &(&1.asset_id == old_asset.id))

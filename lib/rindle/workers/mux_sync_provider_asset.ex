@@ -127,26 +127,35 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
           # Mux deleted the asset; transition to :errored.
           profile_atom = String.to_existing_atom(row.profile)
 
-          # B4 fix: third arg is a MAP.
-          with :ok <-
-                 ProviderAssetFSM.transition(row.state, "errored", %{
-                   profile: profile_atom,
-                   provider: :mux,
-                   asset_id: row.asset_id
-                 }),
-               {:ok, updated} <-
-                 row
-                 |> MediaProviderAsset.changeset(%{
-                   state: "errored",
-                   last_sync_error: "mux asset not found"
-                 })
-                 |> repo.update() do
-            emit_sync_event(:resolved, updated, profile_atom)
-            :ok
-          end
+          reconcile_to_errored(repo, row, profile_atom, "mux asset not found")
 
         {:error, reason} ->
+          error_str = inspect(reason) |> String.slice(0, 4096)
+
+          row
+          |> MediaProviderAsset.changeset(%{last_sync_error: error_str})
+          |> repo.update()
+
           {:error, reason}
+      end
+    end
+
+    defp reconcile_to_errored(repo, row, profile_atom, reason) do
+      with :ok <-
+             ProviderAssetFSM.transition(row.state, "errored", %{
+               profile: profile_atom,
+               provider: :mux,
+               asset_id: row.asset_id
+             }),
+           {:ok, updated} <-
+             row
+             |> MediaProviderAsset.changeset(%{
+               state: "errored",
+               last_sync_error: reason
+             })
+             |> repo.update() do
+        emit_sync_event(:resolved, updated, profile_atom)
+        :ok
       end
     end
 
@@ -155,34 +164,46 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
     defp apply_state_transition(repo, row, live_state, playback_ids) do
       profile_atom = String.to_existing_atom(row.profile)
 
-      cond do
-        live_state == row.state ->
-          # No transition needed; just emit :resolved with current state.
-          emit_sync_event(:resolved, row, profile_atom)
-          :ok
+      if live_state == row.state do
+        # No transition needed; just emit :resolved with current state.
+        emit_sync_event(:resolved, row, profile_atom, no_change: true)
+        :ok
+      else
+        # Always persist the live PLURAL playback_ids list. The adapter
+        # contract (`get_asset/1`) guarantees `playback_ids` is a list
+        # (never nil) — `extract_playback_id_strings/1` returns [] on
+        # missing or malformed payloads.
+        attrs = %{
+          state: live_state,
+          playback_ids: playback_ids
+        }
 
-        true ->
-          # Always persist the live PLURAL playback_ids list. The adapter
-          # contract (`get_asset/1`) guarantees `playback_ids` is a list
-          # (never nil) — `extract_playback_id_strings/1` returns [] on
-          # missing or malformed payloads.
-          attrs = %{
-            state: live_state,
-            playback_ids: playback_ids
-          }
+        case ProviderAssetFSM.transition(row.state, live_state, %{
+               profile: profile_atom,
+               provider: :mux,
+               asset_id: row.asset_id
+             }) do
+          :ok ->
+            case row |> MediaProviderAsset.changeset(attrs) |> repo.update() do
+              {:ok, updated} ->
+                emit_sync_event(:resolved, updated, profile_atom)
+                :ok
 
-          # B4 fix: third arg is a MAP.
-          with :ok <-
-                 ProviderAssetFSM.transition(row.state, live_state, %{
-                   profile: profile_atom,
-                   provider: :mux,
-                   asset_id: row.asset_id
-                 }),
-               {:ok, updated} <-
-                 row |> MediaProviderAsset.changeset(attrs) |> repo.update() do
-            emit_sync_event(:resolved, updated, profile_atom)
-            :ok
-          end
+              {:error, _} = err ->
+                err
+            end
+
+          {:error, {:invalid_transition, from, to}} ->
+            reconcile_to_errored(
+              repo,
+              row,
+              profile_atom,
+              "live state #{to} not reachable from #{from}"
+            )
+
+          err ->
+            err
+        end
       end
     end
 
@@ -190,7 +211,7 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
     # Telemetry — security invariant 14 redaction at every emit.
     # ============================================================
 
-    defp emit_sync_event(stage, row, profile) do
+    defp emit_sync_event(stage, row, profile, opts \\ []) do
       :telemetry.execute(
         [:rindle, :provider, :sync, stage],
         %{system_time: System.system_time()},
@@ -199,7 +220,8 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
           provider: :mux,
           asset_id: MediaProviderAsset.redact_id(row.provider_asset_id),
           provider_state: row.state,
-          age_ms: age_ms(row.updated_at)
+          age_ms: age_ms(row.updated_at),
+          no_change: Keyword.get(opts, :no_change, false)
         }
       )
     end

@@ -45,8 +45,10 @@ defmodule Rindle.Storage.StorageAdapterTest do
     Code.ensure_loaded!(GCS)
 
     callbacks = Rindle.Storage.behaviour_info(:callbacks)
+    optional_callbacks = MapSet.new(Rindle.Storage.behaviour_info(:optional_callbacks))
 
-    for {name, arity} <- callbacks do
+    for {name, arity} <- callbacks,
+        not MapSet.member?(optional_callbacks, {name, arity}) do
       assert function_exported?(Local, name, arity)
       assert function_exported?(S3, name, arity)
       assert function_exported?(GCS, name, arity)
@@ -60,6 +62,21 @@ defmodule Rindle.Storage.StorageAdapterTest do
     assert {:presigned_upload_part, 5} in callbacks
     assert {:complete_multipart_upload, 4} in callbacks
     assert {:abort_multipart_upload, 3} in callbacks
+  end
+
+  test "storage behaviour exposes resumable callbacks as optional broker-facing contracts" do
+    callbacks = Rindle.Storage.behaviour_info(:callbacks)
+    optional_callbacks = Rindle.Storage.behaviour_info(:optional_callbacks)
+
+    assert {:initiate_resumable_upload, 3} in callbacks
+    assert {:resumable_upload_status, 3} in callbacks
+    assert {:cancel_resumable_upload, 3} in callbacks
+    assert {:verify_resumable_completion, 3} in callbacks
+
+    assert {:initiate_resumable_upload, 3} in optional_callbacks
+    assert {:resumable_upload_status, 3} in optional_callbacks
+    assert {:cancel_resumable_upload, 3} in optional_callbacks
+    assert {:verify_resumable_completion, 3} in optional_callbacks
   end
 
   test "known capabilities include shipped atoms and reserved resumable atoms" do
@@ -80,13 +97,37 @@ defmodule Rindle.Storage.StorageAdapterTest do
   test "capability lists are truthful for all adapters" do
     assert [:local, :presigned_put] == Local.capabilities()
     assert [:presigned_put, :head, :signed_url, :multipart_upload] == S3.capabilities()
-    # Phase 37 / GCS-02: GCS ships [:signed_url, :head] only.
-    # Phase 39 will rewrite this to include :resumable_upload + :resumable_upload_session.
-    assert [:signed_url, :head] == GCS.capabilities()
+
+    assert [:signed_url, :head, :resumable_upload, :resumable_upload_session] ==
+             GCS.capabilities()
 
     assert Enum.all?(Local.capabilities(), &(&1 in Capabilities.known()))
     assert Enum.all?(S3.capabilities(), &(&1 in Capabilities.known()))
     assert Enum.all?(GCS.capabilities(), &(&1 in Capabilities.known()))
+  end
+
+  test "non-resumable adapters remain honest about resumable support" do
+    refute function_exported?(Local, :initiate_resumable_upload, 3)
+    refute function_exported?(Local, :resumable_upload_status, 3)
+    refute function_exported?(Local, :cancel_resumable_upload, 3)
+    refute function_exported?(Local, :verify_resumable_completion, 3)
+
+    refute function_exported?(S3, :initiate_resumable_upload, 3)
+    refute function_exported?(S3, :resumable_upload_status, 3)
+    refute function_exported?(S3, :cancel_resumable_upload, 3)
+    refute function_exported?(S3, :verify_resumable_completion, 3)
+
+    assert {:error, {:upload_unsupported, :resumable_upload}} =
+             Capabilities.require_upload(Local, :resumable_upload)
+
+    assert {:error, {:upload_unsupported, :resumable_upload_session}} =
+             Capabilities.require_upload(Local, :resumable_upload_session)
+
+    assert {:error, {:upload_unsupported, :resumable_upload}} =
+             Capabilities.require_upload(S3, :resumable_upload)
+
+    assert {:error, {:upload_unsupported, :resumable_upload_session}} =
+             Capabilities.require_upload(S3, :resumable_upload_session)
   end
 
   test "local multipart operations fail with an explicit capability error" do

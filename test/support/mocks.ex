@@ -5,4 +5,5 @@ Mox.defmock(Rindle.ScannerMock, for: Rindle.Scanner)
 Mox.defmock(Rindle.AuthorizerMock, for: Rindle.Authorizer)
 
 Mox.defmock(Rindle.Streaming.Provider.Mux.ClientMock,
-  for: Rindle.Streaming.Provider.Mux.Client)
+  for: Rindle.Streaming.Provider.Mux.Client
+)

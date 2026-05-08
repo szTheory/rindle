@@ -334,14 +334,25 @@ defmodule Rindle.Ops.LifecycleRepair do
          {:ok, %{attempted: attempted, refreshed: refreshed, errors: errors}},
          started_at
        ) do
-    %{duration_us: elapsed_us(started_at), attempted: attempted, refreshed: refreshed, errors: errors}
+    %{
+      duration_us: elapsed_us(started_at),
+      attempted: attempted,
+      refreshed: refreshed,
+      errors: errors
+    }
   end
 
   defp repair_measurements(
          {:ok, %{selected: selected, enqueued: enqueued, skipped: skipped, errors: errors}},
          started_at
        ) do
-    %{duration_us: elapsed_us(started_at), selected: selected, enqueued: enqueued, skipped: skipped, errors: errors}
+    %{
+      duration_us: elapsed_us(started_at),
+      selected: selected,
+      enqueued: enqueued,
+      skipped: skipped,
+      errors: errors
+    }
   end
 
   defp repair_measurements({:error, _reason}, started_at) do
@@ -349,7 +360,10 @@ defmodule Rindle.Ops.LifecycleRepair do
   end
 
   defp repair_result({:ok, %{errors: 0, failures: []}}), do: :ok
-  defp repair_result({:ok, %{enqueued: enqueued, failures: failures}}) when enqueued > 0 and failures != [], do: :partial
+
+  defp repair_result({:ok, %{enqueued: enqueued, failures: failures}})
+       when enqueued > 0 and failures != [], do: :partial
+
   defp repair_result({:ok, %{errors: 0}}), do: :ok
   defp repair_result({:ok, _report}), do: :error
   defp repair_result({:error, _reason}), do: :error

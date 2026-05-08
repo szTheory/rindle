@@ -46,14 +46,18 @@ defmodule Rindle.Ops.RuntimeChecks do
   """
 
   @gcs_signing_key_fix """
-  Verify the signing_key config is either a decoded service-account JSON map or an existing file path.
+  Verify the signing_key config is either a decoded service-account JSON map (preferred) or a raw PEM string with `client_email:` configured separately. File-path loading is not supported here; decode the service-account JSON at boot via `Jason.decode!(File.read!("path/to/key.json"))` and pass the resulting map.
   """
 
   @gcs_precondition_fix """
   Start `MyApp.Finch` and `MyApp.Goth` in your application supervision tree, then set config :rindle, Rindle.Storage.GCS, finch: MyApp.Finch, goth: MyApp.Goth.
   """
 
-  @type check_status :: :ok | :error
+  @gcs_resumable_cors_fix """
+  Configure bucket CORS for your app origins with `PUT` and `PATCH`, and allow `Content-Range` plus `x-goog-resumable` in the browser-facing response/header policy. Keep `session_uri` secret because it is a bearer credential, expect resumable sessions to expire within one week, and treat region pinning as normal when you choose the bucket location.
+  """
+
+  @type check_status :: :ok | :warn | :error
   @type check_result :: %{
           id: String.t(),
           status: check_status(),
@@ -89,7 +93,7 @@ defmodule Rindle.Ops.RuntimeChecks do
 
     gcs_extra =
       if gcs_profiles(profiles) != [] do
-        [
+        base_checks = [
           # Phase 37 / D-13 — GCS adapter health checks. Conditionally appended
           # so image-only S3 adopters see no new doctor noise (WARNING 3 lock —
           # not even silent OK rows). Resumable-specific CORS check defers to
@@ -98,6 +102,12 @@ defmodule Rindle.Ops.RuntimeChecks do
           fn -> check_gcs_bucket_reachable(profiles, env) end,
           fn -> check_gcs_signing_key(profiles, env) end
         ]
+
+        if resumable_gcs_profiles(profiles) != [] do
+          base_checks ++ [fn -> check_gcs_resumable_cors(profiles, opts) end]
+        else
+          base_checks
+        end
       else
         []
       end
@@ -626,7 +636,10 @@ defmodule Rindle.Ops.RuntimeChecks do
     if resumable_expiry_index_present?(indexes) do
       issues
     else
-      ["missing resumable expiry index on session_uri_expires_at for upload_strategy = 'resumable'" | issues]
+      [
+        "missing resumable expiry index on session_uri_expires_at for upload_strategy = 'resumable'"
+        | issues
+      ]
     end
   end
 
@@ -763,7 +776,7 @@ defmodule Rindle.Ops.RuntimeChecks do
   # exceptions defensively in case a future jose version changes behavior.
   defp verify_signing_key_pem(value) do
     case JOSE.JWK.from_pem(value) do
-      %JOSE.JWK{} ->
+      %{__struct__: JOSE.JWK} ->
         ok_result(
           "doctor.streaming_signing_key",
           :streaming,
@@ -960,6 +973,19 @@ defmodule Rindle.Ops.RuntimeChecks do
   # Rindle.Capability.configured_gcs_profiles/1.
   defp gcs_profiles(profiles) do
     Rindle.Capability.configured_gcs_profiles(profiles)
+  end
+
+  defp resumable_gcs_profiles(profiles) do
+    Enum.filter(gcs_profiles(profiles), fn profile ->
+      case profile.storage_adapter() do
+        adapter when is_atom(adapter) ->
+          function_exported?(adapter, :capabilities, 0) and
+            :resumable_upload_session in adapter.capabilities()
+
+        _other ->
+          false
+      end
+    end)
   end
 
   # Two-branch cond — the profile-aware short-circuit moved to the splice site
@@ -1228,29 +1254,20 @@ defmodule Rindle.Ops.RuntimeChecks do
   defp verify_gcs_signing_key(path) when is_binary(path) and byte_size(path) > 0 do
     cond do
       String.starts_with?(path, "-----BEGIN ") ->
-        error_result(
-          "doctor.gcs_signing_key",
-          :gcs,
-          "GCS signing_key is a raw PEM string; expected a decoded service-account JSON map or a file path.",
-          @gcs_signing_key_fix
-        )
+        case Application.get_env(:rindle, Rindle.Storage.GCS, [])[:client_email] do
+          client_email when is_binary(client_email) and client_email != "" ->
+            ok_result(
+              "doctor.gcs_signing_key",
+              :gcs,
+              "GCS signing key is a raw PEM string and client_email is configured separately.",
+              @gcs_signing_key_fix
+            )
 
-      File.regular?(path) ->
-        try do
-          _client = GcsSignedUrl.Client.load_from_file(path)
-
-          ok_result(
-            "doctor.gcs_signing_key",
-            :gcs,
-            "GCS signing key file parses as a valid service-account JSON.",
-            @gcs_signing_key_fix
-          )
-        rescue
-          exception ->
+          _missing ->
             error_result(
               "doctor.gcs_signing_key",
               :gcs,
-              "GCS signing_key file parse raised: #{inspect(exception.__struct__)}.",
+              "GCS signing_key is a raw PEM string but config :rindle, Rindle.Storage.GCS, client_email: ... is not set.",
               @gcs_signing_key_fix
             )
         end
@@ -1259,7 +1276,7 @@ defmodule Rindle.Ops.RuntimeChecks do
         error_result(
           "doctor.gcs_signing_key",
           :gcs,
-          "GCS signing_key path #{inspect(path)} does not exist or is not a regular file.",
+          "GCS signing_key is a non-PEM binary. Doctor and the signer accept only a decoded service-account JSON map, or a raw PEM string with client_email configured separately; file-path loading is not supported.",
           @gcs_signing_key_fix
         )
     end
@@ -1289,8 +1306,201 @@ defmodule Rindle.Ops.RuntimeChecks do
     )
   end
 
+  defp check_gcs_resumable_cors(_profiles, opts) do
+    app_env = Application.get_env(:rindle, Rindle.Storage.GCS, [])
+    bucket = app_env[:bucket]
+    finch_name = app_env[:finch]
+    goth_name = app_env[:goth]
+
+    cors_source =
+      Keyword.get(opts, :gcs_bucket_cors) ||
+        extract_bucket_cors(Keyword.get(opts, :gcs_bucket_metadata)) ||
+        app_env[:bucket_cors] ||
+        extract_bucket_cors(app_env[:bucket_metadata]) ||
+        app_env[:cors]
+
+    result =
+      case cors_source do
+        nil ->
+          fetch_gcs_bucket_cors(bucket, finch_name, goth_name, app_env, opts)
+
+        cors_rules ->
+          {:ok, cors_rules}
+      end
+
+    build_gcs_resumable_cors_result(result)
+  end
+
+  defp build_gcs_resumable_cors_result({:ok, cors_rules}) do
+    issues = gcs_resumable_cors_issues(cors_rules)
+
+    if issues == [] do
+      ok_result(
+        "doctor.gcs_resumable_cors",
+        :gcs,
+        "Bucket CORS metadata includes app origins plus resumable browser requirements for `PUT`, `PATCH`, `Content-Range`, and `x-goog-resumable`.",
+        @gcs_resumable_cors_fix
+      )
+    else
+      warn_result(
+        "doctor.gcs_resumable_cors",
+        :gcs,
+        "Bucket CORS metadata looks incomplete for browser resumable uploads: #{Enum.join(issues, "; ")}.",
+        @gcs_resumable_cors_fix
+      )
+    end
+  end
+
+  defp build_gcs_resumable_cors_result({:error, reason}) do
+    warn_result(
+      "doctor.gcs_resumable_cors",
+      :gcs,
+      "Bucket CORS metadata could not be inspected automatically: #{format_gcs_cors_reason(reason)}.",
+      @gcs_resumable_cors_fix
+    )
+  end
+
+  defp fetch_gcs_bucket_cors(nil, _finch_name, _goth_name, _app_env, _opts),
+    do: {:error, :bucket_not_configured}
+
+  defp fetch_gcs_bucket_cors(bucket, finch_name, goth_name, app_env, opts) do
+    cond do
+      not Code.ensure_loaded?(Finch) ->
+        {:error, :finch_unavailable}
+
+      not Code.ensure_loaded?(Goth) ->
+        {:error, :goth_unavailable}
+
+      is_nil(finch_name) ->
+        {:error, :finch_not_configured}
+
+      is_nil(goth_name) ->
+        {:error, :goth_not_configured}
+
+      not Code.ensure_loaded?(Jason) ->
+        {:error, :json_unavailable}
+
+      true ->
+        base_url =
+          Keyword.get(opts, :gcs_bucket_base_url) || app_env[:base_url] ||
+            "https://storage.googleapis.com"
+
+        encoded_bucket = URI.encode(bucket)
+        url = "#{base_url}/storage/v1/b/#{encoded_bucket}?fields=cors"
+
+        with {:ok, token} <- probe_token(goth_name, opts),
+             req = Finch.build(:get, url, [{"Authorization", "Bearer " <> token}]),
+             {:ok, %Finch.Response{status: 200, body: body}} <- Finch.request(req, finch_name),
+             {:ok, decoded} <- Jason.decode(body) do
+          {:ok, extract_bucket_cors(decoded) || []}
+        else
+          {:ok, %Finch.Response{status: status}} when status in [403, 404] ->
+            {:error, {:unexpected_status, status}}
+
+          {:ok, %Finch.Response{status: status}} ->
+            {:error, {:unexpected_status, status}}
+
+          {:error, %Jason.DecodeError{} = error} ->
+            {:error, {:decode_error, inspect(error.__struct__)}}
+
+          {:error, reason} ->
+            {:error, reason}
+        end
+    end
+  catch
+    :exit, reason -> {:error, {:exit, reason}}
+  end
+
+  defp extract_bucket_cors(%{"cors" => cors}) when is_list(cors), do: cors
+  defp extract_bucket_cors(%{cors: cors}) when is_list(cors), do: cors
+  defp extract_bucket_cors(_other), do: nil
+
+  defp gcs_resumable_cors_issues(cors_rules) when is_list(cors_rules) do
+    rules =
+      Enum.filter(cors_rules, fn
+        rule when is_map(rule) -> true
+        _other -> false
+      end)
+
+    []
+    |> maybe_add_cors_issue(cors_origins_present?(rules), "missing app origins")
+    |> maybe_add_cors_issue(
+      cors_methods_present?(rules, ["put", "patch"]),
+      "missing `PUT`/`PATCH`"
+    )
+    |> maybe_add_cors_issue(
+      cors_headers_present?(rules, ["content-range", "x-goog-resumable"]),
+      "missing `Content-Range`/`x-goog-resumable`"
+    )
+  end
+
+  defp gcs_resumable_cors_issues(_other),
+    do: ["bucket CORS metadata is not a list of rules"]
+
+  defp maybe_add_cors_issue(issues, true, _message), do: issues
+  defp maybe_add_cors_issue(issues, false, message), do: issues ++ [message]
+
+  defp cors_origins_present?(rules) do
+    Enum.any?(rules, fn rule ->
+      rule
+      |> cors_rule_values(["origin", :origin])
+      |> Enum.any?(&(&1 != ""))
+    end)
+  end
+
+  defp cors_methods_present?(rules, required) do
+    Enum.any?(rules, fn rule ->
+      values = cors_rule_values(rule, ["method", :method])
+      wildcard_or_superset?(values, required)
+    end)
+  end
+
+  defp cors_headers_present?(rules, required) do
+    Enum.any?(rules, fn rule ->
+      values = cors_rule_values(rule, ["responseHeader", :responseHeader, :response_header])
+      wildcard_or_superset?(values, required)
+    end)
+  end
+
+  defp wildcard_or_superset?(values, required) do
+    normalized =
+      values
+      |> Enum.map(&String.downcase/1)
+      |> MapSet.new()
+
+    MapSet.member?(normalized, "*") or
+      Enum.all?(required, &MapSet.member?(normalized, &1))
+  end
+
+  defp cors_rule_values(rule, keys) do
+    keys
+    |> Enum.flat_map(fn key ->
+      case Map.get(rule, key) do
+        values when is_list(values) -> values
+        value when is_binary(value) -> [value]
+        _other -> []
+      end
+    end)
+    |> Enum.map(&String.trim/1)
+  end
+
+  defp format_gcs_cors_reason({:unexpected_status, status}),
+    do: "GCS bucket metadata returned status #{status}"
+
+  defp format_gcs_cors_reason({:decode_error, detail}),
+    do: "GCS bucket metadata returned unreadable JSON (#{detail})"
+
+  defp format_gcs_cors_reason({:exit, reason}),
+    do: "bucket metadata request exited: #{inspect(reason)}"
+
+  defp format_gcs_cors_reason(reason), do: inspect(reason)
+
   defp ok_result(id, component, summary, fix) do
     %{id: id, status: :ok, component: component, summary: summary, fix: fix}
+  end
+
+  defp warn_result(id, component, summary, fix) do
+    %{id: id, status: :warn, component: component, summary: summary, fix: fix}
   end
 
   defp error_result(id, component, summary, fix) do

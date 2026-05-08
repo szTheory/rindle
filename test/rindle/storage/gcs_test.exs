@@ -2,6 +2,7 @@ defmodule Rindle.Storage.GCSTest do
   use ExUnit.Case, async: false
 
   alias Rindle.Storage.GCS
+  alias Rindle.Storage.Capabilities
 
   @gcs_credentials System.get_env("GOOGLE_APPLICATION_CREDENTIALS_JSON")
   @gcs_bucket System.get_env("RINDLE_GCS_BUCKET")
@@ -25,18 +26,17 @@ defmodule Rindle.Storage.GCSTest do
       end
     end
 
-    test "capabilities/0 returns exactly [:signed_url, :head] (GCS-02 / Capabilities drift detector)" do
-      # GCS-02: Phase 37 ships ONLY :signed_url + :head. Phase 39 will rewrite
-      # this assertion to include :resumable_upload + :resumable_upload_session.
-      # The == form (not Enum.member?/2) is deliberate — list-membership asserts
-      # would let resumable atoms slip in undetected.
-      assert GCS.capabilities() == [:signed_url, :head]
+    test "capabilities/0 advertises the shipped resumable atoms once callbacks exist" do
+      assert GCS.capabilities() ==
+               [:signed_url, :head, :resumable_upload, :resumable_upload_session]
     end
 
-    test "capabilities/0 does NOT advertise resumable atoms in Phase 37 (defensive)" do
+    test "capabilities/0 remains truthful for broker resumable gates" do
       caps = GCS.capabilities()
-      refute :resumable_upload in caps
-      refute :resumable_upload_session in caps
+      assert :resumable_upload in caps
+      assert :resumable_upload_session in caps
+      assert :ok == Capabilities.require_upload(GCS, :resumable_upload)
+      assert :ok == Capabilities.require_upload(GCS, :resumable_upload_session)
     end
 
     test "presigned_put/3 returns {:upload_unsupported, :presigned_put}" do
@@ -56,6 +56,31 @@ defmodule Rindle.Storage.GCSTest do
 
       assert {:error, {:upload_unsupported, :multipart_upload}} =
                GCS.abort_multipart_upload("k", "u", [])
+    end
+
+    test "resumable callbacks return :missing_bucket when bucket config is absent" do
+      original = Application.get_env(:rindle, GCS)
+      Application.delete_env(:rindle, GCS)
+
+      try do
+        assert {:error, :missing_bucket} =
+                 GCS.initiate_resumable_upload("assets/a1.jpg", 1024, [])
+
+        assert {:error, :missing_bucket} =
+                 GCS.resumable_upload_status("assets/a1.jpg", "https://example.test/session", [])
+
+        assert {:error, :missing_bucket} =
+                 GCS.cancel_resumable_upload("assets/a1.jpg", "https://example.test/session", [])
+
+        assert {:error, :missing_bucket} =
+                 GCS.verify_resumable_completion(
+                   "assets/a1.jpg",
+                   "https://example.test/session",
+                   []
+                 )
+      after
+        if original, do: Application.put_env(:rindle, GCS, original)
+      end
     end
   end
 

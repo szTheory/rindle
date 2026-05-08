@@ -2,7 +2,7 @@ defmodule Rindle.RuntimeStatusTaskTest do
   use Rindle.DataCase, async: false
 
   alias Mix.Tasks.Rindle.RuntimeStatus, as: RuntimeStatusTask
-  alias Rindle.Domain.{MediaAsset, MediaVariant}
+  alias Rindle.Domain.{MediaAsset, MediaUploadSession, MediaVariant}
 
   defmodule TaskProfile do
     use Rindle.Profile,
@@ -36,6 +36,7 @@ defmodule Rindle.RuntimeStatusTaskTest do
   test "emits JSON output when requested" do
     asset = insert_asset()
     _failed = insert_variant(asset, %{state: "failed", updated_at: age_ago(700)})
+    _session = insert_resumable_session(asset)
 
     RuntimeStatusTask.run(["--format", "json", "--limit", "1"])
 
@@ -43,6 +44,9 @@ defmodule Rindle.RuntimeStatusTaskTest do
     assert output =~ "\"variants\""
     assert output =~ "\"recommendations\""
     assert output =~ "\"failed_work\""
+    assert output =~ "\"resumable_sessions_pending\""
+    refute output =~ "\"session_uri\":"
+    refute output =~ "secret.example"
   end
 
   test "exits non-zero on invalid format after surfacing the failure" do
@@ -102,6 +106,21 @@ defmodule Rindle.RuntimeStatusTaskTest do
       assert provider_idx < rec_idx
     end
 
+    test "format_text_report/1 renders resumable counters inside the Upload sessions section" do
+      report = build_report_with_provider_findings([])
+      lines = RuntimeStatusTask.format_text_report(report)
+
+      upload_idx = Enum.find_index(lines, &(&1 == "Upload sessions:"))
+      resumable_idx = Enum.find_index(lines, &(&1 =~ "resumable_sessions_pending: 2"))
+      provider_idx = Enum.find_index(lines, &(&1 == "Provider asset findings:"))
+
+      assert is_integer(upload_idx)
+      assert is_integer(resumable_idx)
+      assert is_integer(provider_idx)
+      assert upload_idx < resumable_idx
+      assert resumable_idx < provider_idx
+    end
+
     test "redacted provider_asset_id appears in the rendered text output" do
       report = build_report_with_provider_findings([build_provider_finding()])
       lines = RuntimeStatusTask.format_text_report(report)
@@ -144,7 +163,15 @@ defmodule Rindle.RuntimeStatusTaskTest do
       runtime_checks: %{counts: %{total: 0}, findings: []},
       assets: %{counts: %{total: 0}},
       variants: %{counts: %{total: 0}, findings: []},
-      upload_sessions: %{counts: %{total: 0}, findings: []},
+      upload_sessions: %{
+        counts: %{total: 0},
+        findings: [],
+        resumable: %{
+          resumable_sessions_pending: 2,
+          resumable_sessions_expired: 1,
+          resumable_session_uris_stale: 1
+        }
+      },
       provider_assets: %{
         counts: %{total: 1, processing: 1},
         threshold_seconds: 7200,
@@ -179,6 +206,20 @@ defmodule Rindle.RuntimeStatusTaskTest do
 
     %MediaVariant{}
     |> MediaVariant.changeset(params)
+    |> Rindle.Repo.insert!()
+  end
+
+  defp insert_resumable_session(asset) do
+    %MediaUploadSession{}
+    |> MediaUploadSession.changeset(%{
+      asset_id: asset.id,
+      state: "signed",
+      upload_key: "uploads/#{System.unique_integer([:positive])}.bin",
+      upload_strategy: "resumable",
+      session_uri: "https://secret.example/runtime-status-session",
+      session_uri_expires_at: DateTime.add(DateTime.utc_now(), 3600, :second),
+      expires_at: DateTime.add(DateTime.utc_now(), 3600, :second)
+    })
     |> Rindle.Repo.insert!()
   end
 

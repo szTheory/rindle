@@ -4,8 +4,9 @@ defmodule Rindle.Storage.Capabilities do
   @typedoc """
   Known adapter capability atoms.
 
-  Reserved resumable capability names are additive placeholders for future
-  adapters and do not require current adapters to advertise them.
+  `:resumable_upload` is the broker-facing initiation contract.
+  `:resumable_upload_session` widens that surface to status/cancel lifecycle
+  operations. Adapters must advertise only the atoms they actually implement.
   """
   @type capability ::
           :presigned_put

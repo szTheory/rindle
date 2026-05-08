@@ -119,15 +119,22 @@ defmodule Rindle.InstallSmoke.PackageMetadataTest do
     assert script =~ "HEX_API_KEY|mix hex\\.user|mix hex\\.owner"
   end
 
-  test "local smoke scripts bootstrap MinIO before MinIO-tagged generated-app tests", %{
-    install_smoke_script: install_smoke_script,
-    public_smoke_script: public_smoke_script
-  } do
-    for script <- [install_smoke_script, public_smoke_script] do
-      assert script =~ "export RINDLE_MINIO_RESET_BUCKET=1"
-      assert script =~ "bash \"$SCRIPT_DIR/ensure_minio.sh\""
-      assert script =~ "generated_app_smoke_test.exs --include minio"
-    end
+  test "local smoke scripts keep MinIO bootstrapping scoped to MinIO-tagged generated-app tests",
+       %{
+         install_smoke_script: install_smoke_script,
+         public_smoke_script: public_smoke_script
+       } do
+    assert install_smoke_script =~ "if [ \"$PROFILE\" != \"gcs\" ]; then"
+    assert install_smoke_script =~ "bash \"$SCRIPT_DIR/ensure_minio.sh\""
+    assert install_smoke_script =~ "if [ \"$PROFILE\" = \"gcs\" ]; then"
+    assert install_smoke_script =~ "mix test test/install_smoke/generated_app_smoke_test.exs"
+
+    assert install_smoke_script =~
+             "mix test test/install_smoke/generated_app_smoke_test.exs --include minio"
+
+    assert public_smoke_script =~ "export RINDLE_MINIO_RESET_BUCKET=1"
+    assert public_smoke_script =~ "bash \"$SCRIPT_DIR/ensure_minio.sh\""
+    assert public_smoke_script =~ "generated_app_smoke_test.exs --include minio"
   end
 
   test "release workflow automates public verification on a fresh runner", %{
@@ -151,6 +158,7 @@ defmodule Rindle.InstallSmoke.PackageMetadataTest do
     assert workflow =~ "name: Verify public Hex.pm artifact"
     assert workflow =~ ~s(HEX_API_KEY: "")
     assert workflow =~ ~s(mix hex.info rindle "$VERSION")
+
     assert workflow =~
              ~s(curl --fail --location --silent --show-error "https://hexdocs.pm/rindle/$VERSION")
 

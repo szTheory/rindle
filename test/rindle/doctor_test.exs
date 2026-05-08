@@ -3,29 +3,36 @@ defmodule Rindle.DoctorTest do
 
   import ExUnit.CaptureIO
 
+  defmodule GCSProfile do
+    use Rindle.Profile,
+      storage: Rindle.Storage.GCS,
+      variants: [thumb: [mode: :fit, width: 32]]
+  end
+
   describe "run_checks/2 success output" do
     test "prints success message when ffmpeg is valid" do
-      output = capture_io(fn ->
-        report =
-          run_doctor_checks([],
-            exit_on_failure?: false,
-            probe: fn -> :ok end,
-            env: %{},
-            profiles: [],
-            oban_config: [
-              repo: Rindle.Repo,
-              queues: [
-                rindle_promote: 1,
-                rindle_process: 1,
-                rindle_purge: 1,
-                rindle_maintenance: 1
-              ]
-            ],
-            migration_statuses: []
-          )
+      output =
+        capture_io(fn ->
+          report =
+            run_doctor_checks([],
+              exit_on_failure?: false,
+              probe: fn -> :ok end,
+              env: %{},
+              profiles: [],
+              oban_config: [
+                repo: Rindle.Repo,
+                queues: [
+                  rindle_promote: 1,
+                  rindle_process: 1,
+                  rindle_purge: 1,
+                  rindle_maintenance: 1
+                ]
+              ],
+              migration_statuses: []
+            )
 
-        assert report.success?
-      end)
+          assert report.success?
+        end)
 
       assert output =~ "Rindle: running environment checks"
       assert output =~ "doctor.ffmpeg_runtime"
@@ -59,7 +66,7 @@ defmodule Rindle.DoctorTest do
             )
 
           assert report.success?
-      end)
+        end)
 
       assert output =~ "doctor.profile_runtime_fit"
       assert output =~ "Profile/runtime fit OK for 2 profile(s)"
@@ -162,6 +169,83 @@ defmodule Rindle.DoctorTest do
         end)
       end
     end
+
+    test "renders warning rows as [WARN] and does not raise for warning-only reports" do
+      bypass = Bypass.open()
+      finch_name = :"rindle_doctor_warn_finch_#{System.unique_integer([:positive])}"
+      goth_name = :"rindle_doctor_warn_goth_#{System.unique_integer([:positive])}"
+      {:ok, _} = Finch.start_link(name: finch_name)
+
+      {:ok, _} =
+        Goth.start_link(
+          name: goth_name,
+          source: gcs_fixture_goth_source("http://localhost:#{bypass.port}/token")
+        )
+
+      Bypass.stub(bypass, "POST", "/token", fn conn ->
+        Plug.Conn.resp(
+          conn,
+          200,
+          ~s({"access_token":"test-token","token_type":"Bearer","expires_in":3600})
+        )
+      end)
+
+      Bypass.stub(bypass, "GET", "/storage/v1/b/my-bucket", fn conn ->
+        body =
+          case conn.query_string do
+            "fields=cors" -> ~s({"cors":[]})
+            _ -> ~s({"name":"my-bucket"})
+          end
+
+        Plug.Conn.resp(conn, 200, body)
+      end)
+
+      original = Application.get_env(:rindle, Rindle.Storage.GCS)
+
+      Application.put_env(:rindle, Rindle.Storage.GCS,
+        bucket: "my-bucket",
+        finch: finch_name,
+        goth: goth_name,
+        base_url: "http://localhost:#{bypass.port}",
+        signing_key: Rindle.Storage.GCS.SigningKeyFixture.fixture_json()
+      )
+
+      try do
+        output =
+          capture_io(fn ->
+            report =
+              run_doctor_checks([],
+                exit_on_failure?: true,
+                probe: fn -> :ok end,
+                env: %{},
+                profiles: [GCSProfile],
+                oban_config: [
+                  repo: Rindle.Repo,
+                  queues: [
+                    rindle_promote: 1,
+                    rindle_process: 1,
+                    rindle_purge: 1,
+                    rindle_maintenance: 1
+                  ]
+                ],
+                migration_statuses: []
+              )
+
+            assert report.success?
+            assert report.failed == 0
+          end)
+
+        assert output =~ "[WARN] doctor.gcs_resumable_cors"
+        assert output =~ "Fix:"
+        assert output =~ "Rindle: Environment checks passed"
+      after
+        if original do
+          Application.put_env(:rindle, Rindle.Storage.GCS, original)
+        else
+          Application.delete_env(:rindle, Rindle.Storage.GCS)
+        end
+      end
+    end
   end
 
   defp run_doctor_checks(args, opts) do
@@ -183,5 +267,9 @@ defmodule Rindle.DoctorTest do
         "CREATE INDEX media_upload_sessions_resumable_expiry_idx ON public.media_upload_sessions USING btree (session_uri_expires_at) WHERE ((upload_strategy = 'resumable'::text))"
       ]
     }
+  end
+
+  defp gcs_fixture_goth_source(token_url) do
+    {:service_account, Rindle.Storage.GCS.SigningKeyFixture.fixture_json(), url: token_url}
   end
 end

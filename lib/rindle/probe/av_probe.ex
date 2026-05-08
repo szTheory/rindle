@@ -18,7 +18,10 @@ defmodule Rindle.Probe.AVProbe do
   @impl Rindle.Probe
   @spec accepts?(term()) :: boolean()
   def accepts?(content_type) when is_binary(content_type) do
-    Enum.any?(@video_mime_prefixes ++ @audio_mime_prefixes, &String.starts_with?(content_type, &1))
+    Enum.any?(
+      @video_mime_prefixes ++ @audio_mime_prefixes,
+      &String.starts_with?(content_type, &1)
+    )
   end
 
   def accepts?(_), do: false

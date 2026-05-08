@@ -36,14 +36,14 @@ defmodule Rindle.AV.FfprobeTest do
         ]
       }
       """
-      
+
       assert {:ok, metadata} = Ffprobe.parse_and_sanitize(json)
       assert metadata["format"]["tags"]["title"] == "&lt;script&gt;alert(1)&lt;/script&gt;"
       assert metadata["format"]["duration"] == "10.5"
       assert hd(metadata["streams"])["tags"]["language"] == "eng&quot; onerror=&quot;alert(1)"
       assert hd(metadata["streams"])["codec_name"] == "h264"
     end
-    
+
     test "returns error on invalid JSON" do
       assert {:error, :invalid_json} = Ffprobe.parse_and_sanitize("{invalid")
     end

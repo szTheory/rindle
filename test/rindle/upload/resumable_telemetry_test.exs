@@ -29,7 +29,9 @@ defmodule Rindle.Upload.ResumableTelemetryTest do
     %{session: session}
   end
 
-  test "emit_status/5 emits the locked public event without leaking session_uri", %{session: session} do
+  test "emit_status/5 emits the locked public event without leaking session_uri", %{
+    session: session
+  } do
     ResumableTelemetry.emit_status(
       "test-profile",
       Rindle.Storage.GCS,
@@ -45,7 +47,10 @@ defmodule Rindle.Upload.ResumableTelemetryTest do
     assert metadata.state == "signed"
     assert metadata.source == :poll
     assert metadata.session_id == "sess-1"
-    assert Map.keys(metadata) |> Enum.sort() == Enum.sort([:adapter, :profile, :session_id, :source, :state])
+
+    assert Map.keys(metadata) |> Enum.sort() ==
+             Enum.sort([:adapter, :profile, :session_id, :source, :state])
+
     assert Enum.all?(Map.keys(metadata), &(&1 in @allowed_metadata_keys))
     refute Map.has_key?(metadata, :session_uri)
     refute Map.has_key?(metadata, :upload_key)
@@ -56,7 +61,9 @@ defmodule Rindle.Upload.ResumableTelemetryTest do
     assert is_integer(measurements.system_time)
   end
 
-  test "emit_cancel/5 emits the locked public event with allowed metadata only", %{session: session} do
+  test "emit_cancel/5 emits the locked public event with allowed metadata only", %{
+    session: session
+  } do
     ResumableTelemetry.emit_cancel(
       "test-profile",
       Rindle.Storage.GCS,

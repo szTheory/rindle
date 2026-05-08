@@ -111,6 +111,13 @@ deferral remains.
   security/compliance boundaries, real-cost surprises, or milestone/scope
   reshapes.
 
+## Research Notes
+
+- Mux integration should stay on the official Elixir SDK with a thin
+  Rindle-owned adapter boundary. Do not reimplement the Mux client unless the
+  SDK becomes a hard blocker.
+- Preserved memo: `.planning/research/v1.8-MUX-SDK-BOUNDARY.md`
+
 ## Session Continuity
 
 Last session: 2026-05-07T15:34:36.918Z

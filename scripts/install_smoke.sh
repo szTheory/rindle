@@ -17,7 +17,7 @@ trap cleanup EXIT
 cd "$ROOT_DIR"
 
 case "$PROFILE" in
-  all|image|video|mux) ;;
+  all|image|video|mux|gcs) ;;
   *)
     echo "unsupported install smoke profile: $PROFILE" >&2
     exit 1
@@ -30,8 +30,11 @@ fi
 
 unset RINDLE_INSTALL_SMOKE_NETWORK_VERSION
 export RINDLE_INSTALL_SMOKE_PROFILE="$PROFILE"
-export RINDLE_MINIO_RESET_BUCKET=1
-bash "$SCRIPT_DIR/ensure_minio.sh"
+
+if [ "$PROFILE" != "gcs" ]; then
+  export RINDLE_MINIO_RESET_BUCKET=1
+  bash "$SCRIPT_DIR/ensure_minio.sh"
+fi
 
 if [ ! -d "$PACKAGE_ROOT" ]; then
   echo "install smoke package missing: $PACKAGE_ROOT" >&2
@@ -40,4 +43,8 @@ fi
 
 export RINDLE_INSTALL_SMOKE_PACKAGE_ROOT="$PACKAGE_ROOT"
 
-mix test test/install_smoke/generated_app_smoke_test.exs --include minio
+if [ "$PROFILE" = "gcs" ]; then
+  mix test test/install_smoke/generated_app_smoke_test.exs
+else
+  mix test test/install_smoke/generated_app_smoke_test.exs --include minio
+fi

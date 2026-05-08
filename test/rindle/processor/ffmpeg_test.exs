@@ -14,8 +14,14 @@ defmodule Rindle.Processor.FfmpegTest do
 
   describe "process/3" do
     test "processes video_transcode capability", %{source: source, dest: dest} do
-      spec = %{capability: :video_transcode, width: 1280, height: 720, video_codec: "libx264", audio_codec: "aac"}
-      
+      spec = %{
+        capability: :video_transcode,
+        width: 1280,
+        height: 720,
+        video_codec: "libx264",
+        audio_codec: "aac"
+      }
+
       # We just check if it fails due to ffmpeg not existing or failing on dummy file,
       # which proves it executed Subprocess.run. But we can also mock it.
       # Actually, since it's a dummy file, ffmpeg will return exit status > 0
@@ -29,13 +35,21 @@ defmodule Rindle.Processor.FfmpegTest do
     end
 
     test "fails validation on shell injection", %{source: source, dest: dest} do
-      spec = %{capability: :video_transcode, width: 1280, height: 720, video_codec: "libx264; rm -rf /"}
+      spec = %{
+        capability: :video_transcode,
+        width: 1280,
+        height: 720,
+        video_codec: "libx264; rm -rf /"
+      }
+
       assert {:error, :invalid_format} = Ffmpeg.process(source, spec, dest)
     end
 
     test "fails validation on unsupported ingest format" do
       spec = %{capability: :video_transcode}
-      assert {:error, :unsupported_ingest_format} = Ffmpeg.process("input.m3u8", spec, "output.mp4")
+
+      assert {:error, :unsupported_ingest_format} =
+               Ffmpeg.process("input.m3u8", spec, "output.mp4")
     end
   end
 end

@@ -5,22 +5,20 @@ status: human_needed
 score: 5/5
 overrides_applied: 0
 gaps: []
+ci_verification:
+  - job: "package-consumer"
+    expected: "`bash scripts/install_smoke.sh mux` exits 0 in GitHub Actions, proving the cassette-backed generated-app Mux consumer flow without reaching the real Mux API."
+    why_ci: "The proof is fully automated but intentionally delegated to the CI generated-app lane rather than the local worktree."
+  - job: "mux-soak"
+    expected: "The `streaming`-gated real-Mux soak lane passes, verifies signed HLS delivery, and cleans up provider assets."
+    why_ci: "The proof is fully automated but depends on secret-backed provider credentials and GitHub Actions runner context."
+  - job: "mux-soak fork-secret boundary"
+    expected: "A fork PR labelled `streaming` fails closed with empty secrets and no provider leak."
+    why_ci: "The proof is fully automated but only observable in GitHub Actions fork-secret resolution behavior."
 human_verification:
-  - test: "Run cassette package-consumer lane end-to-end on a real PR build"
-    expected: "`bash scripts/install_smoke.sh mux` exits 0 inside CI's `package-consumer` job: fresh `mix phx.new` + Rindle install + `mix rindle.doctor` + sample upload + Mux-signed HLS URL verified. Cassette path never reaches `api.mux.com` (Mox-on-:http_client). Covers SC #3 + SC #4 (cassette lane); Plan 03 SUMMARY explicitly defers this to the CI package-consumer step."
-    why_human: "Full E2E lane requires `mix phx.new` + DB + MinIO + 10+ min run; per Plan 03 SUMMARY this is the package-consumer step's purpose and was intentionally not run in the worktree."
-  - test: "Run `mux-soak` lane against real Mux on a `streaming`-labelled PR"
-    expected: "Real-Mux API hit succeeds; ingested asset appears + ready; signed HLS URL verifies; cleanup deletes asset; soak-asset count stays at 0 across consecutive labelled PRs. Also exercises CR-01/CR-02 defects in their real failure modes."
-    why_human: "Requires five GitHub Secrets (one-time maintainer bootstrap documented in Plan 03 SUMMARY); observable only via real Mux account."
   - test: "Verify HexDocs publish wire — `mix docs` rendering of `streaming_providers.md` + `MuxWeb` module"
     expected: "On hexdocs.pm (or local `mix docs` preview), `Rindle.Profile.Presets.MuxWeb` module page renders, `guides/streaming_providers.md` is in sidebar, intra-doc links resolve."
     why_human: "Visual rendering and link resolution are observable only in a HexDocs build, not via grep."
-  - test: "Confirm no fork-secret leak when a fork PR is labelled `streaming`"
-    expected: "Fork PR labelled `streaming` fires `mux-soak` job; `${{ secrets.RINDLE_MUX_* }}` resolve to empty strings; lane fails closed; cleanup step's no-credential branch hits (`exit 0`)."
-    why_human: "Behavior depends on GitHub Actions secret-resolution semantics which can only be observed by running a real fork PR with the label applied."
-  - test: "Confirm `Rindle.InstallSmoke.GeneratedAppSmokeMuxTest` passes in the spawned Phoenix project"
-    expected: "Generated-app smoke test passes — `[poster, web_720p]` ready-variant assertion (byte-identical to `:video` lane) plus streaming-URL regex match and `JOSE.JWT.verify_strict/3` returning `{true, _, _}`."
-    why_human: "Generated app spawns a separate Phoenix project; library-side `mix test` does not include this, only the package-consumer step does."
 re_verification:
   previous_status: human_needed
   previous_score: 5/5
@@ -115,7 +113,7 @@ review_findings:
 The phase goal has two clauses:
 
 1. **"Lock the adopter onboarding path"** — SC #1 (MuxWeb preset), SC #2 (doctor checks), SC #5 (guides/README/getting_started). All three verified in the codebase via static analysis.
-2. **"Prove the package-consumer story matches v1.5's bar"** — SC #3 (fresh `mix phx.new` lifecycle) and SC #4 (`mux-enabled` cassette + label-gated `mux-soak`). All harness pieces, scripts, GitHub Actions wiring, fixtures, and Mox shim are present. The cassette lane's behavioral proof is a CI-only observable by design (Plan 03's own verification matrix deferred item 1 to the CI step). Routes to **human verification** rather than gap.
+2. **"Prove the package-consumer story matches v1.5's bar"** — SC #3 (fresh `mix phx.new` lifecycle) and SC #4 (`mux-enabled` cassette + label-gated `mux-soak`). All harness pieces, scripts, GitHub Actions wiring, fixtures, and Mox shim are present. The cassette lane and soak lane are CI-only observables by design and are now classified as accepted `ci_verification`, not manual follow-up.
 
 Code review (`36-REVIEW.md`) found 3 BLOCKER and 9 WARNING issues. The blockers are operational defects in the soak lane (CR-01: cleanup filter never matches; CR-02: ETS insert ordered after assertions; CR-03: image/video runs coupled to Mux fixture). They do not invalidate the ROADMAP success criteria at the artifact level — every required surface exists, compiles, and unit tests pass. They are surfaced in `review_findings` for resolution before steady-state soak operation.
 

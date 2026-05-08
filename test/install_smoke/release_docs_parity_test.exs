@@ -56,7 +56,7 @@ defmodule Rindle.InstallSmoke.ReleaseDocsParityTest do
   } do
     for snippet <- [
           "Local preflight is diagnostic preparation, not authoritative release proof.",
-      "Authoritative signoff requires a green GitHub Actions run on the exact release-candidate SHA.",
+          "Authoritative signoff requires a green GitHub Actions run on the exact release-candidate SHA.",
           "waits for `ci.yml` on the exact release SHA",
           "Package Consumer Proof Matrix + Release Preflight",
           "outside `scripts/release_preflight.sh`",
@@ -100,6 +100,18 @@ defmodule Rindle.InstallSmoke.ReleaseDocsParityTest do
           "mix docs --warnings-as-errors"
         ] do
       assert release_guide =~ snippet
+    end
+  end
+
+  test "public entrypoint docs keep GCS resumable as an optional pointer", %{
+    readme: readme,
+    getting_started: getting_started
+  } do
+    for doc <- [readme, getting_started] do
+      assert doc =~ "Storage with GCS (optional)"
+      assert doc =~ "storage_gcs.md"
+      assert doc =~ "mix rindle.doctor"
+      refute Regex.match?(~r/GCS resumable upload is the canonical first-run/i, doc)
     end
   end
 
@@ -288,11 +300,12 @@ defmodule Rindle.InstallSmoke.ReleaseDocsParityTest do
     assert release_guide =~ "still runs public verification"
   end
 
-  test "public onboarding docs cross-link the runtime matrix without importing maintainer release copy", %{
-    readme: readme,
-    getting_started: getting_started,
-    running: running
-  } do
+  test "public onboarding docs cross-link the runtime matrix without importing maintainer release copy",
+       %{
+         readme: readme,
+         getting_started: getting_started,
+         running: running
+       } do
     for doc <- [readme, getting_started] do
       assert doc =~ "RUNNING.md"
       refute doc =~ "Release Please"
@@ -303,9 +316,10 @@ defmodule Rindle.InstallSmoke.ReleaseDocsParityTest do
     refute running =~ "Release Please"
   end
 
-  test "operations guide stays a thin index while cross-linking the package-consumer proof surface", %{
-    operations: operations
-  } do
+  test "operations guide stays a thin index while cross-linking the package-consumer proof surface",
+       %{
+         operations: operations
+       } do
     for snippet <- [
           "Package-Consumer Proof Matrix",
           "image-only",

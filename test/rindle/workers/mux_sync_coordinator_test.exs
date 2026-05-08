@@ -52,8 +52,12 @@ defmodule Rindle.Workers.MuxSyncCoordinatorTest do
   end
 
   test "fans out per-row jobs for processing/uploading rows older than the floor" do
-    Application.put_env(:rindle, Rindle.Streaming.Provider.Mux,
-      provider_polling_floor_seconds: 30
+    prev = Application.get_env(:rindle, Rindle.Streaming.Provider.Mux, [])
+
+    Application.put_env(
+      :rindle,
+      Rindle.Streaming.Provider.Mux,
+      Keyword.merge(prev, provider_polling_floor_seconds: 30)
     )
 
     _stale_processing = insert_row("processing", 60, "AbCd1234EfGh5678IjKl9012MnOp3456QrSt")
@@ -86,8 +90,12 @@ defmodule Rindle.Workers.MuxSyncCoordinatorTest do
   end
 
   test "second tick does not re-enqueue still-running per-row jobs (unique period: 60)" do
-    Application.put_env(:rindle, Rindle.Streaming.Provider.Mux,
-      provider_polling_floor_seconds: 30
+    prev = Application.get_env(:rindle, Rindle.Streaming.Provider.Mux, [])
+
+    Application.put_env(
+      :rindle,
+      Rindle.Streaming.Provider.Mux,
+      Keyword.merge(prev, provider_polling_floor_seconds: 30)
     )
 
     _row = insert_row("processing", 60, "DupCheck1234EfGh5678IjKl9012MnOp3456")
@@ -105,8 +113,12 @@ defmodule Rindle.Workers.MuxSyncCoordinatorTest do
   end
 
   test "respects custom provider_polling_floor_seconds" do
-    Application.put_env(:rindle, Rindle.Streaming.Provider.Mux,
-      provider_polling_floor_seconds: 120
+    prev = Application.get_env(:rindle, Rindle.Streaming.Provider.Mux, [])
+
+    Application.put_env(
+      :rindle,
+      Rindle.Streaming.Provider.Mux,
+      Keyword.merge(prev, provider_polling_floor_seconds: 120)
     )
 
     _just_old = insert_row("processing", 60, "JustOld1234EfGh5678IjKl9012MnOp3456QrSt")

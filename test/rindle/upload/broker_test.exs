@@ -1,11 +1,14 @@
 defmodule Rindle.Upload.BrokerTest do
   alias Rindle.Adopter.CanonicalApp.Repo, as: AdopterRepo
   alias Rindle.Domain.{MediaAsset, MediaUploadSession}
+  alias Rindle.Ops.{RuntimeStatus, UploadMaintenance}
   alias Rindle.Storage.Capabilities
+  alias Rindle.Storage.GCS
   alias Rindle.Upload.Broker
 
   use Rindle.DataCase, async: false
   use Oban.Testing, repo: AdopterRepo
+  import Ecto.Query
   import Mox
 
   alias Ecto.Adapters.SQL.Sandbox
@@ -36,9 +39,24 @@ defmodule Rindle.Upload.BrokerTest do
       AdopterRepo.update(changeset)
     end
 
+    def all(queryable) do
+      notify(:all)
+      AdopterRepo.all(queryable)
+    end
+
+    def one(queryable) do
+      notify(:one)
+      AdopterRepo.one(queryable)
+    end
+
     def get(schema, id) do
       notify({:get, schema, id})
       AdopterRepo.get(schema, id)
+    end
+
+    def delete(struct) do
+      notify({:delete, struct.__struct__})
+      AdopterRepo.delete(struct)
     end
 
     def preload(struct_or_structs, preloads) do
@@ -92,6 +110,22 @@ defmodule Rindle.Upload.BrokerTest do
       allow_mime: ["image/jpeg"],
       max_bytes: 10_485_760
   end
+
+  defmodule LiveGCSProfile do
+    use Rindle.Profile,
+      storage: Rindle.Storage.GCS,
+      variants: [
+        thumb: [mode: :crop, width: 100, height: 100]
+      ],
+      allow_mime: ["text/plain", "image/jpeg"],
+      max_bytes: 10_485_760
+  end
+
+  @gcs_credentials System.get_env("GOOGLE_APPLICATION_CREDENTIALS_JSON")
+  @gcs_bucket System.get_env("RINDLE_GCS_BUCKET")
+  @gcs_skip_reason (if Enum.any?([@gcs_credentials, @gcs_bucket], &is_nil/1) do
+                      "Skipping live resumable broker proof because GOOGLE_APPLICATION_CREDENTIALS_JSON or RINDLE_GCS_BUCKET is missing"
+                    end)
 
   setup do
     case start_supervised(AdopterRepo) do
@@ -450,6 +484,208 @@ defmodule Rindle.Upload.BrokerTest do
     end
   end
 
+  describe "resumable upload lifecycle" do
+    test "initiate_resumable_session/2 creates a signed resumable session and returns bootstrap data" do
+      expect(Rindle.StorageMock, :capabilities, fn ->
+        [:presigned_put, :head, :signed_url, :resumable_upload, :resumable_upload_session]
+      end)
+
+      expires_at = DateTime.add(DateTime.utc_now(), 7, :day)
+
+      expect(Rindle.StorageMock, :initiate_resumable_upload, fn key, expected_size, _opts ->
+        assert key =~ "testprofile"
+        assert expected_size == 4096
+
+        {:ok,
+         %{
+           session_uri: "https://storage.googleapis.com/upload/session-123",
+           upload_id: "session-123",
+           expires_at: expires_at,
+           region_hint: "us-east1"
+         }}
+      end)
+
+      assert {:ok, %{session: session, resumable: resumable}} =
+               Broker.initiate_resumable_session(TestProfile,
+                 filename: "resumable.jpg",
+                 expected_size: 4096
+               )
+
+      assert session.state == "signed"
+      assert session.upload_strategy == "resumable"
+      assert session.session_uri == "https://storage.googleapis.com/upload/session-123"
+      assert session.session_uri_expires_at == expires_at
+      assert session.last_known_offset == 0
+      assert session.region_hint == "us-east1"
+      assert resumable.session_uri == session.session_uri
+      assert resumable.upload_id == "session-123"
+      assert resumable.expires_at == expires_at
+    end
+
+    test "initiate_resumable_session/2 does not persist rows when remote initiation fails" do
+      expect(Rindle.StorageMock, :capabilities, fn ->
+        [:presigned_put, :head, :signed_url, :resumable_upload, :resumable_upload_session]
+      end)
+
+      expect(Rindle.StorageMock, :initiate_resumable_upload, fn _key, _expected_size, _opts ->
+        {:error, :storage_unavailable}
+      end)
+
+      session_count_before = length(AdopterRepo.all(MediaUploadSession))
+      asset_count_before = length(AdopterRepo.all(MediaAsset))
+
+      assert {:error, :storage_unavailable} =
+               Broker.initiate_resumable_session(TestProfile, filename: "resumable.jpg")
+
+      assert length(AdopterRepo.all(MediaUploadSession)) == session_count_before
+      assert length(AdopterRepo.all(MediaAsset)) == asset_count_before
+    end
+
+    test "initiate_resumable_session/2 cancels the remote session when persistence fails" do
+      previous_repo = Application.get_env(:rindle, :repo)
+      Application.put_env(:rindle, :repo, FailingTransactionRepo)
+
+      expect(Rindle.StorageMock, :capabilities, fn ->
+        [:presigned_put, :head, :signed_url, :resumable_upload, :resumable_upload_session]
+      end)
+
+      expect(Rindle.StorageMock, :initiate_resumable_upload, fn key, _expected_size, _opts ->
+        {:ok,
+         %{
+           session_uri: "https://storage.googleapis.com/upload/session-rollback",
+           upload_id: "session-rollback",
+           expires_at: DateTime.add(DateTime.utc_now(), 7, :day),
+           region_hint: "us-east1",
+           upload_key: key
+         }}
+      end)
+
+      expect(Rindle.StorageMock, :cancel_resumable_upload, fn key, session_uri, _opts ->
+        assert key =~ "testprofile"
+        assert session_uri == "https://storage.googleapis.com/upload/session-rollback"
+        {:ok, %{cancelled: true}}
+      end)
+
+      on_exit(fn ->
+        case previous_repo do
+          nil -> Application.delete_env(:rindle, :repo)
+          value -> Application.put_env(:rindle, :repo, value)
+        end
+      end)
+
+      assert {:error, :session_insert_failed} =
+               Broker.initiate_resumable_session(TestProfile, filename: "resumable.jpg")
+    end
+
+    test "initiate_resumable_session/2 treats malformed capability declarations as unsupported" do
+      assert {:error, {:upload_unsupported, :resumable_upload}} =
+               Broker.initiate_resumable_session(
+                 MalformedCapabilitiesProfile,
+                 filename: "resumable.jpg"
+               )
+    end
+
+    test "status polling refreshes bookkeeping without moving durable state" do
+      expect(Rindle.StorageMock, :capabilities, fn ->
+        [:presigned_put, :head, :signed_url, :resumable_upload, :resumable_upload_session]
+      end)
+
+      expires_at = DateTime.add(DateTime.utc_now(), 7, :day)
+
+      expect(Rindle.StorageMock, :initiate_resumable_upload, fn _key, _expected_size, _opts ->
+        {:ok,
+         %{
+           session_uri: "https://storage.googleapis.com/upload/session-status",
+           upload_id: "session-status",
+           expires_at: expires_at,
+           region_hint: "us-east1"
+         }}
+      end)
+
+      {:ok, %{session: session}} =
+        Broker.initiate_resumable_session(TestProfile, filename: "resumable.jpg")
+
+      expect(Rindle.StorageMock, :capabilities, fn ->
+        [:presigned_put, :head, :signed_url, :resumable_upload, :resumable_upload_session]
+      end)
+
+      expect(Rindle.StorageMock, :resumable_upload_status, fn key, session_uri, _opts ->
+        assert key == session.upload_key
+        assert session_uri == session.session_uri
+
+        {:ok,
+         %{
+           committed_bytes: 2048,
+           state: :in_progress,
+           expires_at: DateTime.add(expires_at, 1, :day),
+           region_hint: "us-central1"
+         }}
+      end)
+
+      assert {:ok, %{session: updated_session, committed_bytes: 2048, state: :in_progress}} =
+               Broker.resumable_session_status(session.id)
+
+      assert updated_session.state == "signed"
+      assert updated_session.last_known_offset == 2048
+      assert updated_session.region_hint == "us-central1"
+
+      persisted = AdopterRepo.get!(MediaUploadSession, session.id)
+      assert persisted.state == "signed"
+      assert persisted.last_known_offset == 2048
+      assert persisted.region_hint == "us-central1"
+    end
+
+    test "cancel_resumable_session/2 uses the adapter callback and persists aborted state" do
+      expect(Rindle.StorageMock, :capabilities, fn ->
+        [:presigned_put, :head, :signed_url, :resumable_upload, :resumable_upload_session]
+      end)
+
+      expires_at = DateTime.add(DateTime.utc_now(), 7, :day)
+
+      expect(Rindle.StorageMock, :initiate_resumable_upload, fn _key, _expected_size, _opts ->
+        {:ok,
+         %{
+           session_uri: "https://storage.googleapis.com/upload/session-cancel",
+           upload_id: "session-cancel",
+           expires_at: expires_at
+         }}
+      end)
+
+      {:ok, %{session: session}} =
+        Broker.initiate_resumable_session(TestProfile, filename: "resumable.jpg")
+
+      expect(Rindle.StorageMock, :capabilities, fn ->
+        [:presigned_put, :head, :signed_url, :resumable_upload, :resumable_upload_session]
+      end)
+
+      expect(Rindle.StorageMock, :cancel_resumable_upload, fn key, session_uri, _opts ->
+        assert key == session.upload_key
+        assert session_uri == session.session_uri
+        {:ok, %{cancelled: true}}
+      end)
+
+      assert {:ok, %{session: cancelled_session}} = Broker.cancel_resumable_session(session.id)
+      assert cancelled_session.state == "aborted"
+      assert AdopterRepo.get!(MediaUploadSession, session.id).state == "aborted"
+    end
+
+    test "unsupported status and cancel calls return tagged resumable capability errors" do
+      assert {:error, {:upload_unsupported, :resumable_upload}} =
+               Broker.initiate_resumable_session(UnsupportedMultipartProfile,
+                 filename: "resumable.jpg"
+               )
+
+      {:ok, session} =
+        Broker.initiate_session(UnsupportedMultipartProfile, filename: "fallback.jpg")
+
+      assert {:error, {:upload_unsupported, :resumable_upload_session}} =
+               Broker.resumable_session_status(session.id)
+
+      assert {:error, {:upload_unsupported, :resumable_upload_session}} =
+               Broker.cancel_resumable_session(session.id)
+    end
+  end
+
   describe "telemetry emission (Plan 05-01 / TEL-01)" do
     setup do
       ref =
@@ -516,5 +752,186 @@ defmodule Rindle.Upload.BrokerTest do
       assert {:error, :storage_object_missing} = Broker.verify_completion(session.id)
       refute_received {[:rindle, :upload, :stop], ^ref, _measurements, _metadata}
     end
+  end
+
+  describe "live resumable proof" do
+    @tag :gcs
+    @tag skip: @gcs_skip_reason
+    test "streams a resumable upload through the broker lifecycle and converges via verify_completion/2" do
+      with_live_gcs_env(fn finch_name ->
+        body = "resumable-broker-live-proof"
+        midpoint = div(byte_size(body), 2)
+        first_chunk = binary_part(body, 0, midpoint)
+        second_chunk = binary_part(body, midpoint, byte_size(body) - midpoint)
+
+        assert {:ok, %{session: session, resumable: resumable}} =
+                 Broker.initiate_resumable_session(LiveGCSProfile,
+                   filename: "live-proof.txt",
+                   expected_size: byte_size(body),
+                   content_type: "text/plain"
+                 )
+
+        first_response =
+          Finch.build(
+            :put,
+            resumable.session_uri,
+            [
+              {"content-length", Integer.to_string(byte_size(first_chunk))},
+              {"content-range", "bytes 0-#{midpoint - 1}/#{byte_size(body)}"},
+              {"content-type", "text/plain"}
+            ],
+            first_chunk
+          )
+          |> Finch.request(finch_name)
+
+        assert {:ok, %Finch.Response{status: 308}} = first_response
+
+        final_response =
+          Finch.build(
+            :put,
+            resumable.session_uri,
+            [
+              {"content-length", Integer.to_string(byte_size(second_chunk))},
+              {"content-range", "bytes #{midpoint}-#{byte_size(body) - 1}/#{byte_size(body)}"},
+              {"content-type", "text/plain"}
+            ],
+            second_chunk
+          )
+          |> Finch.request(finch_name)
+
+        assert {:ok, %Finch.Response{status: status}} = final_response
+        assert status in 200..299
+
+        assert {:ok, %{session: completed_session, asset: asset}} =
+                 Broker.verify_completion(session.id)
+
+        assert completed_session.state == "completed"
+        assert asset.state == "validating"
+        assert asset.byte_size == byte_size(body)
+        assert inspect(completed_session) =~ "[REDACTED]"
+        refute inspect(completed_session) =~ resumable.session_uri
+        assert {:ok, %{size: size, content_type: "text/plain"}} = GCS.head(session.upload_key, [])
+        assert size == byte_size(body)
+        _ = GCS.delete(session.upload_key, [])
+      end)
+    end
+
+    @tag :gcs
+    @tag skip: @gcs_skip_reason
+    test "maintenance abort and cleanup clear a live resumable session through the existing lane" do
+      with_live_gcs_env(fn _finch_name ->
+        assert {:ok, %{session: session}} =
+                 Broker.initiate_resumable_session(LiveGCSProfile,
+                   filename: "maintenance-cancel.txt",
+                   expected_size: 128,
+                   content_type: "text/plain"
+                 )
+
+        backdate_session_expiry!(session.id)
+
+        assert {:ok, abort_report} = UploadMaintenance.abort_incomplete_uploads([])
+        assert abort_report.sessions_aborted == 1
+        assert abort_report.resumable_aborts == 1
+        assert abort_report.abort_errors == 0
+
+        updated = AdopterRepo.get!(MediaUploadSession, session.id)
+        assert updated.state == "expired"
+        assert updated.session_uri == nil
+
+        assert {:ok, report} =
+                 RuntimeStatus.runtime_status(profile: to_string(LiveGCSProfile), format: :json)
+
+        assert Map.get(report.upload_sessions.counts, :expired, 0) == 1
+        refute Jason.encode!(report) =~ session.session_uri
+
+        assert {:ok, cleanup_report} =
+                 UploadMaintenance.cleanup_orphans(dry_run: false, storage: GCS)
+
+        assert cleanup_report.sessions_deleted == 1
+        assert AdopterRepo.get(MediaUploadSession, session.id) == nil
+        _ = GCS.delete(session.upload_key, [])
+      end)
+    end
+
+    @tag :gcs
+    @tag skip: @gcs_skip_reason
+    test "maintenance treats stale live resumable session URIs as idempotent success before cleanup" do
+      with_live_gcs_env(fn _finch_name ->
+        assert {:ok, %{session: session}} =
+                 Broker.initiate_resumable_session(LiveGCSProfile,
+                   filename: "maintenance-stale.txt",
+                   expected_size: 128,
+                   content_type: "text/plain"
+                 )
+
+        backdate_session_expiry!(session.id)
+
+        stale_uri = session.session_uri <> "-stale"
+
+        from(s in MediaUploadSession, where: s.id == ^session.id)
+        |> AdopterRepo.update_all(
+          set: [
+            session_uri: stale_uri,
+            session_uri_expires_at: DateTime.add(DateTime.utc_now(), -120, :second)
+          ]
+        )
+
+        assert {:ok, abort_report} = UploadMaintenance.abort_incomplete_uploads([])
+        assert abort_report.sessions_aborted == 1
+        assert abort_report.resumable_aborts == 1
+        assert abort_report.abort_errors == 0
+
+        updated = AdopterRepo.get!(MediaUploadSession, session.id)
+        assert updated.state == "expired"
+        assert updated.session_uri == nil
+
+        assert {:ok, report} =
+                 RuntimeStatus.runtime_status(profile: to_string(LiveGCSProfile), format: :json)
+
+        assert report.upload_sessions.resumable.resumable_sessions_expired == 1
+        assert report.upload_sessions.resumable.resumable_session_uris_stale == 0
+        refute Jason.encode!(report) =~ stale_uri
+
+        assert {:ok, cleanup_report} =
+                 UploadMaintenance.cleanup_orphans(dry_run: false, storage: GCS)
+
+        assert cleanup_report.sessions_deleted == 1
+        assert AdopterRepo.get(MediaUploadSession, session.id) == nil
+        _ = GCS.delete(session.upload_key, [])
+      end)
+    end
+  end
+
+  defp with_live_gcs_env(fun) when is_function(fun, 1) do
+    decoded = Jason.decode!(@gcs_credentials)
+    goth_name = :"rindle_resumable_gcs_test_goth_#{System.unique_integer([:positive])}"
+    finch_name = :"rindle_resumable_gcs_test_finch_#{System.unique_integer([:positive])}"
+
+    {:ok, _} = Goth.start_link(name: goth_name, source: {:service_account, decoded})
+    {:ok, _} = Finch.start_link(name: finch_name)
+
+    original_env = Application.get_env(:rindle, GCS)
+
+    Application.put_env(:rindle, GCS,
+      bucket: @gcs_bucket,
+      goth: goth_name,
+      finch: finch_name,
+      signing_key: decoded
+    )
+
+    try do
+      fun.(finch_name)
+    after
+      if original_env do
+        Application.put_env(:rindle, GCS, original_env)
+      else
+        Application.delete_env(:rindle, GCS)
+      end
+    end
+  end
+
+  defp backdate_session_expiry!(session_id) do
+    from(s in MediaUploadSession, where: s.id == ^session_id)
+    |> AdopterRepo.update_all(set: [expires_at: DateTime.add(DateTime.utc_now(), -60, :second)])
   end
 end

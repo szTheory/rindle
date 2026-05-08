@@ -149,12 +149,20 @@ defmodule Mix.Tasks.Rindle.CleanupOrphans do
 
     Mix.shell().info("""
     #{mode}Upload-session cleanup complete:
-      Sessions found:   #{report.sessions_found}
-      Sessions deleted: #{report.sessions_deleted}
-      Objects deleted:  #{report.objects_deleted}
-      Storage skipped:  #{report.storage_skipped}
-      Storage errors:   #{report.storage_errors}
+      Sessions found:     #{report.sessions_found}
+      Sessions deleted:   #{report.sessions_deleted}
+      Objects deleted:    #{report.objects_deleted}
+      Resumable skipped:  #{report.resumable_skipped}
+      Storage skipped:    #{report.storage_skipped}
+      Storage errors:     #{report.storage_errors}
     """)
+
+    if report.resumable_skipped > 0 do
+      Mix.shell().error(
+        "WARNING: #{report.resumable_skipped} resumable session(s) were retained because " <>
+          "their session URI proof marker is still present. Run the abort lane first."
+      )
+    end
 
     if report.storage_skipped > 0 do
       Mix.shell().error(

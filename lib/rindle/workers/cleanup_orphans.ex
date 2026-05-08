@@ -102,6 +102,7 @@ defmodule Rindle.Workers.CleanupOrphans do
       sessions_found: report.sessions_found,
       sessions_deleted: report.sessions_deleted,
       objects_deleted: report.objects_deleted,
+      resumable_skipped: report.resumable_skipped,
       storage_skipped: report.storage_skipped,
       storage_errors: report.storage_errors,
       dry_run: dry_run?
@@ -111,7 +112,8 @@ defmodule Rindle.Workers.CleanupOrphans do
       [:rindle, :cleanup, :run],
       %{
         sessions_deleted: report.sessions_deleted,
-        objects_deleted: report.objects_deleted
+        objects_deleted: report.objects_deleted,
+        resumable_skipped: report.resumable_skipped
       },
       %{
         profile: :unknown,

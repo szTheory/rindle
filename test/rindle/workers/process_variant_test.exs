@@ -29,6 +29,25 @@ defmodule Rindle.Workers.ProcessVariantTest do
       max_bytes: 524_288_000
   end
 
+  defmodule MuxAVProfile do
+    use Rindle.Profile,
+      storage: Rindle.StorageMock,
+      variants: [
+        hero: [kind: :video, preset: :web_720p],
+        poster: [kind: :image, preset: :video_poster_scene]
+      ],
+      allow_mime: ["video/mp4"],
+      max_bytes: 524_288_000,
+      delivery: [
+        streaming: [
+          provider: Rindle.Streaming.Provider.Mux,
+          playback_policy: :signed,
+          ingest_mode: :server_push,
+          source_variant: :hero
+        ]
+      ]
+  end
+
   setup do
     tmp_dir =
       Path.join(System.tmp_dir!(), "rindle-process-variant-#{System.unique_integer([:positive])}")
@@ -505,6 +524,107 @@ defmodule Rindle.Workers.ProcessVariantTest do
 
     refute_received {:rindle_variant_progress, _payload}
     refute_received {:rindle_event, :variant_progress, _payload}
+    assert run_temp_entries(tmp_dir) == []
+  end
+
+  test "enqueues MuxIngestVariant when the configured streaming source_variant reaches ready",
+       %{tmp_dir: tmp_dir} do
+    asset =
+      %MediaAsset{}
+      |> MediaAsset.changeset(%{
+        state: "available",
+        profile: to_string(MuxAVProfile),
+        kind: "video",
+        storage_key: "test/source.mp4",
+        duration_ms: 1_200
+      })
+      |> Rindle.Repo.insert!()
+
+    variant =
+      %MediaVariant{}
+      |> MediaVariant.changeset(%{
+        asset_id: asset.id,
+        name: "hero",
+        state: "planned",
+        recipe_digest: MuxAVProfile.recipe_digest(:hero),
+        output_kind: "video"
+      })
+      |> Rindle.Repo.insert!()
+
+    expect(Rindle.StorageMock, :download, fn _key, tmp_path, _opts ->
+      build_video_fixture!(tmp_path)
+      {:ok, tmp_path}
+    end)
+
+    expect(Rindle.StorageMock, :store, fn key, _path, _opts ->
+      {:ok, %{key: key}}
+    end)
+
+    assert :ok = perform_job(ProcessVariant, %{"asset_id" => asset.id, "variant_name" => "hero"})
+
+    assert_enqueued(
+      worker: Rindle.Workers.MuxIngestVariant,
+      queue: :rindle_provider,
+      args: %{
+        "asset_id" => asset.id,
+        "profile" => to_string(MuxAVProfile),
+        "variant_name" => "hero",
+        "expected_storage_key" => "test/source.mp4",
+        "expected_recipe_digest" => MuxAVProfile.recipe_digest(:hero)
+      }
+    )
+
+    variant = Rindle.Repo.get!(MediaVariant, variant.id)
+    assert variant.state == "ready"
+    assert run_temp_entries(tmp_dir) == []
+  end
+
+  test "does not enqueue MuxIngestVariant for non-source variants on streaming-enabled profiles",
+       %{tmp_dir: tmp_dir} do
+    asset =
+      %MediaAsset{}
+      |> MediaAsset.changeset(%{
+        state: "available",
+        profile: to_string(MuxAVProfile),
+        kind: "video",
+        storage_key: "test/source.mp4",
+        duration_ms: 1_200
+      })
+      |> Rindle.Repo.insert!()
+
+    variant =
+      %MediaVariant{}
+      |> MediaVariant.changeset(%{
+        asset_id: asset.id,
+        name: "poster",
+        state: "planned",
+        recipe_digest: MuxAVProfile.recipe_digest(:poster),
+        output_kind: "image"
+      })
+      |> Rindle.Repo.insert!()
+
+    expect(Rindle.StorageMock, :download, fn _key, tmp_path, _opts ->
+      build_video_fixture!(tmp_path)
+      {:ok, tmp_path}
+    end)
+
+    expect(Rindle.StorageMock, :store, fn key, _path, _opts ->
+      {:ok, %{key: key}}
+    end)
+
+    assert :ok =
+             perform_job(ProcessVariant, %{"asset_id" => asset.id, "variant_name" => "poster"})
+
+    refute_enqueued(
+      worker: Rindle.Workers.MuxIngestVariant,
+      args: %{
+        "asset_id" => asset.id,
+        "variant_name" => "poster"
+      }
+    )
+
+    variant = Rindle.Repo.get!(MediaVariant, variant.id)
+    assert variant.state == "ready"
     assert run_temp_entries(tmp_dir) == []
   end
 

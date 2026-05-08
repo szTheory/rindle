@@ -1,6 +1,7 @@
 defmodule Rindle.Workers.ProcessVariant do
   @moduledoc false
   use Oban.Worker, queue: :rindle_process, max_attempts: 5
+  require Logger
 
   alias Oban.Job
   alias Phoenix.PubSub
@@ -132,6 +133,7 @@ defmodule Rindle.Workers.ProcessVariant do
                      variant_spec,
                      output_attrs
                    ) do
+              maybe_enqueue_streaming_ingest(asset, variant, profile_module)
               :ok
             else
               {:cancel, reason} ->
@@ -271,6 +273,49 @@ defmodule Rindle.Workers.ProcessVariant do
              :ok <- AssetAggregate.recompute(repo, asset.id) do
           :ok
         end
+    end
+  end
+
+  defp maybe_enqueue_streaming_ingest(asset, variant, profile_module) do
+    with %{provider: Rindle.Streaming.Provider.Mux, source_variant: source_variant} <-
+           streaming_config_for(profile_module),
+         true <- Atom.to_string(source_variant) == variant.name,
+         true <- Code.ensure_loaded?(Rindle.Workers.MuxIngestVariant) do
+      args = %{
+        "asset_id" => asset.id,
+        "profile" => to_string(profile_module),
+        "variant_name" => variant.name,
+        "expected_storage_key" => asset.storage_key,
+        "expected_recipe_digest" => variant.recipe_digest
+      }
+
+      job =
+        Rindle.Workers.MuxIngestVariant.new(
+          args,
+          unique: Rindle.Workers.MuxIngestVariant.unique_job_opts()
+        )
+
+      case Oban.insert(job) do
+        {:ok, _job} ->
+          :ok
+
+        {:error, reason} ->
+          Logger.warning(
+            "rindle.workers.process_variant.stream_ingest_enqueue_failed " <>
+              "asset_id=#{asset.id} variant_name=#{variant.name} reason=#{inspect(reason)}"
+          )
+
+          :ok
+      end
+    else
+      _ -> :ok
+    end
+  end
+
+  defp streaming_config_for(profile_module) do
+    case profile_module.delivery_policy() do
+      %{streaming: streaming} -> streaming
+      _ -> nil
     end
   end
 

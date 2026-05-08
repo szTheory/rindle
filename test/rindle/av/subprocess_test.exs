@@ -22,7 +22,12 @@ defmodule Rindle.AV.SubprocessTest do
              ]
 
       assert Enum.slice(args, 6, 4) == ["-y", "-i", "input.mp4", "-c:v"]
-      assert Enum.take(Enum.drop_while(args, &(&1 != "-fs")), 3) == ["-fs", "500000000", "output.mp4"]
+
+      assert Enum.take(Enum.drop_while(args, &(&1 != "-fs")), 3) == [
+               "-fs",
+               "500000000",
+               "output.mp4"
+             ]
     end
 
     test "allows ffmpeg cap overrides through opts while keeping enforcement centralized" do

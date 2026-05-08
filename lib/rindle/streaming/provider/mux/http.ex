@@ -21,34 +21,51 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
 
     @impl true
     def create_asset(params) when is_map(params) do
-      case Mux.Video.Assets.create(build_client(), params) do
-        {:ok, asset, _env} -> {:ok, asset}
-        {:error, msg, env} -> {:error, msg, env}
+      with {:ok, client} <- build_client() do
+        case Mux.Video.Assets.create(client, params) do
+          {:ok, asset, _env} -> {:ok, asset}
+          {:error, msg, env} -> {:error, msg, env}
+        end
       end
     end
 
     @impl true
     def get_asset(provider_asset_id) when is_binary(provider_asset_id) do
-      case Mux.Video.Assets.get(build_client(), provider_asset_id) do
-        {:ok, asset, _env} -> {:ok, asset}
-        {:error, msg, env} -> {:error, msg, env}
+      with {:ok, client} <- build_client() do
+        case Mux.Video.Assets.get(client, provider_asset_id) do
+          {:ok, asset, _env} -> {:ok, asset}
+          {:error, msg, env} -> {:error, msg, env}
+        end
       end
     end
 
     @impl true
     def delete_asset(provider_asset_id) when is_binary(provider_asset_id) do
-      case Mux.Video.Assets.delete(build_client(), provider_asset_id) do
-        {:ok, _body, _env} -> :ok
-        # Idempotent on :not_found per Phase 33 contract — `delete_asset/1`
-        # returns `:ok` for both successful delete and already-deleted assets.
-        {:error, _msg, %{status: 404}} -> :ok
-        {:error, msg, env} -> {:error, msg, env}
+      with {:ok, client} <- build_client() do
+        case Mux.Video.Assets.delete(client, provider_asset_id) do
+          {:ok, _body, _env} -> :ok
+          # Idempotent on :not_found per Phase 33 contract — `delete_asset/1`
+          # returns `:ok` for both successful delete and already-deleted assets.
+          {:error, _msg, %{status: 404}} -> :ok
+          {:error, msg, env} -> {:error, msg, env}
+        end
       end
     end
 
     defp build_client do
       cfg = Application.get_env(:rindle, Rindle.Streaming.Provider.Mux, [])
-      Mux.Base.new(Keyword.fetch!(cfg, :token_id), Keyword.fetch!(cfg, :token_secret))
+
+      with {:ok, token_id} <- fetch_required(cfg, :token_id),
+           {:ok, token_secret} <- fetch_required(cfg, :token_secret) do
+        {:ok, Mux.Base.new(token_id, token_secret)}
+      end
+    end
+
+    defp fetch_required(cfg, key) do
+      case Keyword.get(cfg, key) do
+        v when is_binary(v) and v != "" -> {:ok, v}
+        _ -> {:error, {:missing_config, key}}
+      end
     end
   end
 end

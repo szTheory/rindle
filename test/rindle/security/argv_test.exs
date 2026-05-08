@@ -4,8 +4,13 @@ defmodule Rindle.Security.ArgvTest do
 
   describe "validate/1" do
     test "accepts safe strings without shell characters" do
-      assert {:ok, _} = Argv.validate("-i input.mp4 -c:v libx264 -protocol_whitelist file,crypto,data output.mp4")
-      assert {:ok, _} = Argv.validate("ffmpeg -i test.mp4 -protocol_whitelist file,crypto,data out.mp4")
+      assert {:ok, _} =
+               Argv.validate(
+                 "-i input.mp4 -c:v libx264 -protocol_whitelist file,crypto,data output.mp4"
+               )
+
+      assert {:ok, _} =
+               Argv.validate("ffmpeg -i test.mp4 -protocol_whitelist file,crypto,data out.mp4")
     end
 
     test "rejects shell interpolation patterns" do
@@ -24,12 +29,23 @@ defmodule Rindle.Security.ArgvTest do
     end
 
     test "rejects HLS, DASH, and MKV ingest inputs" do
-      assert {:error, :unsupported_ingest_format} = Argv.validate("-i test.m3u8 -protocol_whitelist file,crypto,data out.mp4")
-      assert {:error, :unsupported_ingest_format} = Argv.validate("-i test.mpd -protocol_whitelist file,crypto,data out.mp4")
-      assert {:error, :unsupported_ingest_format} = Argv.validate("-i test.mkv -protocol_whitelist file,crypto,data out.mp4")
-      assert {:error, :unsupported_ingest_format} = Argv.validate("-f hls -i test -protocol_whitelist file,crypto,data out.mp4")
-      assert {:error, :unsupported_ingest_format} = Argv.validate("-f dash -i test -protocol_whitelist file,crypto,data out.mp4")
-      assert {:error, :unsupported_ingest_format} = Argv.validate("-f matroska -i test -protocol_whitelist file,crypto,data out.mp4")
+      assert {:error, :unsupported_ingest_format} =
+               Argv.validate("-i test.m3u8 -protocol_whitelist file,crypto,data out.mp4")
+
+      assert {:error, :unsupported_ingest_format} =
+               Argv.validate("-i test.mpd -protocol_whitelist file,crypto,data out.mp4")
+
+      assert {:error, :unsupported_ingest_format} =
+               Argv.validate("-i test.mkv -protocol_whitelist file,crypto,data out.mp4")
+
+      assert {:error, :unsupported_ingest_format} =
+               Argv.validate("-f hls -i test -protocol_whitelist file,crypto,data out.mp4")
+
+      assert {:error, :unsupported_ingest_format} =
+               Argv.validate("-f dash -i test -protocol_whitelist file,crypto,data out.mp4")
+
+      assert {:error, :unsupported_ingest_format} =
+               Argv.validate("-f matroska -i test -protocol_whitelist file,crypto,data out.mp4")
     end
   end
 

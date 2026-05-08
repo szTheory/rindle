@@ -116,7 +116,8 @@ defmodule Rindle.Contracts.TelemetryContractTest do
       assert guide =~ "@public_events"
       assert guide =~ "test/rindle/contracts/telemetry_contract_test.exs"
 
-      for event_name <- @public_events |> Enum.reject(&resumable_event?/1) |> Enum.map(&format_event_name/1) do
+      for event_name <-
+            @public_events |> Enum.reject(&resumable_event?/1) |> Enum.map(&format_event_name/1) do
         assert guide =~ event_name
       end
     end
@@ -151,7 +152,14 @@ defmodule Rindle.Contracts.TelemetryContractTest do
 
       assert_numeric_measurements(start_measurements)
       assert_numeric_measurements(stop_measurements)
-      assert start_metadata == %{operation: :requeue, scope: :asset, result: :started, dry_run: false}
+
+      assert start_metadata == %{
+               operation: :requeue,
+               scope: :asset,
+               result: :started,
+               dry_run: false
+             }
+
       assert stop_metadata.operation == :requeue
       assert stop_metadata.scope == :asset
       assert stop_metadata.result == :ok
@@ -165,12 +173,26 @@ defmodule Rindle.Contracts.TelemetryContractTest do
       end
 
       assert_received {[:rindle, :repair, :start], ^ref, start_measurements, start_metadata}
-      assert_received {[:rindle, :repair, :exception], ^ref, exception_measurements, exception_metadata}
+
+      assert_received {[:rindle, :repair, :exception], ^ref, exception_measurements,
+                       exception_metadata}
 
       assert_numeric_measurements(start_measurements)
       assert_numeric_measurements(exception_measurements)
-      assert start_metadata == %{operation: :reprobe, scope: :asset, result: :started, dry_run: false}
-      assert exception_metadata == %{operation: :reprobe, scope: :asset, result: :exception, dry_run: false}
+
+      assert start_metadata == %{
+               operation: :reprobe,
+               scope: :asset,
+               result: :started,
+               dry_run: false
+             }
+
+      assert exception_metadata == %{
+               operation: :reprobe,
+               scope: :asset,
+               result: :exception,
+               dry_run: false
+             }
     end
 
     test "runtime_status invalid filters emit runtime refusal telemetry", %{ref: ref} do
@@ -207,7 +229,10 @@ defmodule Rindle.Contracts.TelemetryContractTest do
     end
 
     test "resumable telemetry helpers emit the locked public contract", %{ref: ref} do
-      session = %Rindle.Domain.MediaUploadSession{id: "sess-1", session_uri: "https://storage.googleapis.com/upload/secret"}
+      session = %Rindle.Domain.MediaUploadSession{
+        id: "sess-1",
+        session_uri: "https://storage.googleapis.com/upload/secret"
+      }
 
       ResumableTelemetry.emit_status(
         "TestProfile",
@@ -225,8 +250,11 @@ defmodule Rindle.Contracts.TelemetryContractTest do
         %{duration_us: 42}
       )
 
-      assert_received {[:rindle, :upload, :resumable, :status], ^ref, status_measurements, status_metadata}
-      assert_received {[:rindle, :upload, :resumable, :cancel], ^ref, cancel_measurements, cancel_metadata}
+      assert_received {[:rindle, :upload, :resumable, :status], ^ref, status_measurements,
+                       status_metadata}
+
+      assert_received {[:rindle, :upload, :resumable, :cancel], ^ref, cancel_measurements,
+                       cancel_metadata}
 
       assert_required_metadata_keys(status_metadata)
       assert_required_metadata_keys(cancel_metadata)
@@ -325,7 +353,10 @@ defmodule Rindle.Contracts.TelemetryContractTest do
 
     test "LocalPlug emits :delivery :range_request with stable metadata", %{ref: ref} do
       root =
-        Path.join(System.tmp_dir!(), "rindle-contract-range-#{System.unique_integer([:positive])}")
+        Path.join(
+          System.tmp_dir!(),
+          "rindle-contract-range-#{System.unique_integer([:positive])}"
+        )
 
       File.mkdir_p!(root)
       on_exit(fn -> File.rm_rf(root) end)
@@ -414,8 +445,11 @@ defmodule Rindle.Contracts.TelemetryContractTest do
                  "variant_name" => variant.name
                })
 
-      assert_received {[:rindle, :media, :transcode, :start], ^ref, start_measurements, start_metadata}
-      assert_received {[:rindle, :media, :transcode, :stop], ^ref, stop_measurements, stop_metadata}
+      assert_received {[:rindle, :media, :transcode, :start], ^ref, start_measurements,
+                       start_metadata}
+
+      assert_received {[:rindle, :media, :transcode, :stop], ^ref, stop_measurements,
+                       stop_metadata}
 
       assert start_measurements == %{system_time: start_measurements.system_time}
       assert stop_measurements.duration > 0
@@ -466,7 +500,8 @@ defmodule Rindle.Contracts.TelemetryContractTest do
                  "variant_name" => variant.name
                })
 
-      assert_received {[:rindle, :media, :transcode, :start], ^ref, _start_measurements, start_metadata}
+      assert_received {[:rindle, :media, :transcode, :start], ^ref, _start_measurements,
+                       start_metadata}
 
       assert_received {[:rindle, :media, :transcode, :exception], ^ref, exception_measurements,
                        exception_metadata}
@@ -474,7 +509,8 @@ defmodule Rindle.Contracts.TelemetryContractTest do
       assert exception_measurements.duration > 0
       assert is_integer(exception_measurements.system_time)
 
-      assert exception_metadata == Map.merge(start_metadata, %{kind: :error, reason: :missing_source})
+      assert exception_metadata ==
+               Map.merge(start_metadata, %{kind: :error, reason: :missing_source})
     end
   end
 

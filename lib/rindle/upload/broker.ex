@@ -7,6 +7,7 @@ defmodule Rindle.Upload.Broker do
   alias Rindle.Domain.{AssetFSM, MediaAsset, MediaUploadSession, UploadSessionFSM}
   alias Rindle.Security.StorageKey
   alias Rindle.Storage.Capabilities
+  alias Rindle.Upload.ResumableTelemetry
   alias Rindle.Workers.PromoteAsset
 
   @default_multipart_part_size 8 * 1024 * 1024
@@ -49,6 +50,32 @@ defmodule Rindle.Upload.Broker do
   @type verify_result ::
           {:ok, %{session: MediaUploadSession.t(), asset: MediaAsset.t()}}
           | {:error, term()}
+
+  @typedoc "Tagged result of `initiate_resumable_session/2` — session plus resumable session metadata."
+  @type initiate_resumable_result ::
+          {:ok,
+           %{
+             session: MediaUploadSession.t(),
+             resumable: %{
+               session_uri: String.t(),
+               upload_id: String.t(),
+               expires_at: DateTime.t()
+             }
+           }}
+          | {:error, term()}
+
+  @typedoc "Tagged result of `resumable_session_status/2` — session plus remote committed bytes."
+  @type resumable_status_result ::
+          {:ok,
+           %{
+             session: MediaUploadSession.t(),
+             committed_bytes: non_neg_integer(),
+             state: :in_progress | :complete | :expired
+           }}
+          | {:error, term()}
+
+  @typedoc "Tagged result of `cancel_resumable_session/2` — session after broker-side cancellation bookkeeping."
+  @type cancel_resumable_result :: {:ok, %{session: MediaUploadSession.t()}} | {:error, term()}
 
   @doc """
   Initiates a new direct upload session.
@@ -142,6 +169,54 @@ defmodule Rindle.Upload.Broker do
            upload_key: storage_key,
            part_size: Map.get(multipart, :part_size, part_size),
            part_headers: Map.get(multipart, :part_headers, %{})
+         }
+       }}
+    else
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  @doc """
+  Initiates a new resumable upload session through the broker-owned lifecycle.
+  """
+  @spec initiate_resumable_session(module(), keyword()) :: initiate_resumable_result()
+  def initiate_resumable_session(profile_module, opts \\ []) do
+    repo = Config.repo()
+    profile_name = profile_module_to_name(profile_module)
+    filename = Keyword.get(opts, :filename, "unknown")
+    extension = Path.extname(filename)
+    asset_id = Ecto.UUID.generate()
+    storage_key = StorageKey.generate(profile_name, asset_id, extension)
+    expires_in_seconds = Keyword.get(opts, :expires_in, 3600)
+    expires_at = DateTime.add(DateTime.utc_now(), expires_in_seconds, :second)
+    expected_size = Keyword.get(opts, :expected_size)
+    adapter = profile_module.storage_adapter()
+
+    with :ok <- Capabilities.require_upload(adapter, :resumable_upload),
+         {:ok, resumable} <- adapter.initiate_resumable_upload(storage_key, expected_size, opts),
+         {:ok, session} <-
+           persist_resumable_session(
+             repo,
+             adapter,
+             %{
+               asset_id: asset_id,
+               profile_name: profile_name,
+               storage_key: storage_key,
+               filename: filename,
+               expires_at: expires_at
+             },
+             resumable,
+             opts
+           ) do
+      emit_upload_start(profile_name, adapter, session.id)
+
+      {:ok,
+       %{
+         session: session,
+         resumable: %{
+           session_uri: resumable.session_uri,
+           upload_id: resumable.upload_id,
+           expires_at: resumable.expires_at
          }
        }}
     else
@@ -247,6 +322,75 @@ defmodule Rindle.Upload.Broker do
              opts
            ) do
       verify_completion(persisted_session.id, opts)
+    else
+      nil -> {:error, :not_found}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  @doc """
+  Reads resumable session status without broadening the durable FSM semantics.
+  """
+  @spec resumable_session_status(binary(), keyword()) :: resumable_status_result()
+  def resumable_session_status(session_id, opts \\ []) do
+    repo = Config.repo()
+
+    with %MediaUploadSession{} = session <- repo.get(MediaUploadSession, session_id),
+         :ok <- ensure_resumable_session(session),
+         asset <- repo.preload(session, :asset).asset,
+         {:ok, profile_module} <- profile_name_to_module(asset.profile),
+         adapter <- profile_module.storage_adapter(),
+         :ok <- Capabilities.require_upload(adapter, :resumable_upload_session),
+         {:ok, status} <-
+           adapter.resumable_upload_status(session.upload_key, session.session_uri, opts),
+         {:ok, updated_session} <-
+           update_session(repo, session, resumable_status_attrs(session, status)),
+         :ok <-
+           ResumableTelemetry.emit_status(
+             asset.profile,
+             adapter,
+             updated_session,
+             %{state: status.state, source: Keyword.get(opts, :source, :poll), outcome: :ok},
+             %{
+               committed_bytes: status.committed_bytes,
+               offset_delta: status.committed_bytes - (session.last_known_offset || 0)
+             }
+           ) do
+      {:ok,
+       %{session: updated_session, committed_bytes: status.committed_bytes, state: status.state}}
+    else
+      nil -> {:error, :not_found}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  @doc """
+  Cancels a resumable session through the adapter's session-scoped lifecycle.
+  """
+  @spec cancel_resumable_session(binary(), keyword()) :: cancel_resumable_result()
+  def cancel_resumable_session(session_id, opts \\ []) do
+    repo = Config.repo()
+    started_at = System.monotonic_time(:microsecond)
+
+    with %MediaUploadSession{} = session <- repo.get(MediaUploadSession, session_id),
+         :ok <- ensure_resumable_session(session),
+         asset <- repo.preload(session, :asset).asset,
+         {:ok, profile_module} <- profile_name_to_module(asset.profile),
+         adapter <- profile_module.storage_adapter(),
+         :ok <- Capabilities.require_upload(adapter, :resumable_upload_session),
+         {:ok, _result} <-
+           adapter.cancel_resumable_upload(session.upload_key, session.session_uri, opts),
+         :ok <- UploadSessionFSM.transition(session.state, "aborted", %{session_id: session.id}),
+         {:ok, updated_session} <- update_session(repo, session, %{state: "aborted"}),
+         :ok <-
+           ResumableTelemetry.emit_cancel(
+             asset.profile,
+             adapter,
+             updated_session,
+             %{outcome: :ok, source: Keyword.get(opts, :source, :user)},
+             %{duration_us: System.monotonic_time(:microsecond) - started_at}
+           ) do
+      {:ok, %{session: updated_session}}
     else
       nil -> {:error, :not_found}
       {:error, reason} -> {:error, reason}
@@ -419,6 +563,38 @@ defmodule Rindle.Upload.Broker do
     end
   end
 
+  defp persist_resumable_session(repo, adapter, session_seed, resumable, opts) do
+    case create_upload_session(
+           repo,
+           session_seed.asset_id,
+           session_seed.profile_name,
+           session_seed.storage_key,
+           session_seed.filename,
+           session_seed.expires_at,
+           %{
+             state: "signed",
+             upload_strategy: "resumable",
+             session_uri: resumable.session_uri,
+             session_uri_expires_at: resumable.expires_at,
+             last_known_offset: 0,
+             region_hint: Map.get(resumable, :region_hint)
+           }
+         ) do
+      {:ok, session} ->
+        {:ok, session}
+
+      {:error, reason} ->
+        compensate_failed_resumable_persist(
+          adapter,
+          session_seed.storage_key,
+          resumable.session_uri,
+          opts
+        )
+
+        {:error, reason}
+    end
+  end
+
   defp compensate_failed_multipart_persist(adapter, storage_key, upload_id, opts) do
     case adapter.abort_multipart_upload(storage_key, upload_id, opts) do
       {:ok, _} ->
@@ -433,6 +609,29 @@ defmodule Rindle.Upload.Broker do
         Logger.warning("rindle.upload.broker.multipart_persist_compensation_failed",
           upload_key: storage_key,
           multipart_upload_id: upload_id,
+          reason: inspect(reason)
+        )
+
+        :ok
+    end
+  end
+
+  defp compensate_failed_resumable_persist(adapter, storage_key, session_uri, opts) do
+    case adapter.cancel_resumable_upload(storage_key, session_uri, opts) do
+      {:ok, _} ->
+        :ok
+
+      {:error, :session_uri_unknown} ->
+        :ok
+
+      {:error, :session_uri_expired} ->
+        :ok
+
+      {:error, reason} ->
+        require Logger
+
+        Logger.warning("rindle.upload.broker.resumable_persist_compensation_failed",
+          upload_key: storage_key,
           reason: inspect(reason)
         )
 
@@ -462,6 +661,19 @@ defmodule Rindle.Upload.Broker do
     do: {:error, :multipart_upload_not_initialized}
 
   defp ensure_multipart_session(_session), do: {:error, {:upload_unsupported, :multipart_upload}}
+
+  defp ensure_resumable_session(%MediaUploadSession{
+         upload_strategy: "resumable",
+         session_uri: session_uri
+       })
+       when is_binary(session_uri) and session_uri != "",
+       do: :ok
+
+  defp ensure_resumable_session(%MediaUploadSession{upload_strategy: "resumable"}),
+    do: {:error, :resumable_upload_not_initialized}
+
+  defp ensure_resumable_session(_session),
+    do: {:error, {:upload_unsupported, :resumable_upload_session}}
 
   defp ensure_session_marked_signed(_repo, %MediaUploadSession{state: "signed"} = session),
     do: {:ok, session}
@@ -508,6 +720,16 @@ defmodule Rindle.Upload.Broker do
     Enum.map(parts, fn %{part_number: part_number, etag: etag} ->
       %{"part_number" => part_number, "etag" => etag}
     end)
+  end
+
+  defp resumable_status_attrs(session, status) do
+    %{
+      last_known_offset: status.committed_bytes,
+      session_uri_expires_at:
+        Map.get(status, :expires_at) || Map.get(status, :session_uri_expires_at) ||
+          session.session_uri_expires_at,
+      region_hint: Map.get(status, :region_hint) || session.region_hint
+    }
   end
 
   defp emit_upload_start(profile_name, adapter, session_id) do

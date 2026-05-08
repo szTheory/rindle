@@ -76,7 +76,9 @@ defmodule Rindle.Probe.ImageTest do
   >>
 
   setup do
-    tmp_dir = Path.join(System.tmp_dir!(), "rindle-probe-image-#{System.unique_integer([:positive])}")
+    tmp_dir =
+      Path.join(System.tmp_dir!(), "rindle-probe-image-#{System.unique_integer([:positive])}")
+
     File.mkdir_p!(tmp_dir)
 
     source_path = Path.join(tmp_dir, "source.png")

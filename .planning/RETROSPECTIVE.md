@@ -91,7 +91,7 @@
 
 ### What Was Inefficient
 
-- **Verification status `human_needed` is structurally underweighted at close:** Phase 36 verifier reported 5/5 must-haves at artifact-and-wiring level but routed 5 items to human queue because they're CI-time observables. The audit-open output flagged this as "Verification Gaps" even though no gaps exist — the routing is by design. A `human_verification_routed` status (distinct from `human_needed`) would avoid the false-alarm pattern.
+- **Verification status model needed a CI-specific state:** Phase 36 proved that CI-time provider observables were being misclassified as `human_needed` even when no human interaction was required. The repo now uses `ci_verified` for accepted secret-backed/provider-backed automation, reserving `human_needed` for true manual review.
 - **Code-review BLOCKERs without verifier blocking:** CR-01/02/03 in Phase 36 were operational defects in the soak lane that didn't block the milestone goal but were classified BLOCKER by the reviewer. Better classification (e.g., `goal-blocking BLOCKER` vs `operational BLOCKER`) would let the verifier resolve "5/5 must-haves verified, 3 advisory blockers tracked" without ambiguity at close.
 - **Auto-extracted milestone accomplishments:** `gsd-sdk milestone.complete` produced 14 noisy auto-extracted lines mixing real accomplishments with code-review fix entries and test-pass strings. Required manual rewrite to match v1.5's milestone-summary cadence.
 - **`requirements-completed` not flipped at phase summary time:** REQUIREMENTS.md still showed `MUX-01..08`, `MUX-15..19` as `[ ] (Planned)` even after Phases 34-36 closed because the per-plan SUMMARY frontmatter wasn't propagated into REQUIREMENTS.md. Required manual ticking before milestone archive.

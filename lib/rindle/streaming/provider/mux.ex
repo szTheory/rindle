@@ -2,6 +2,8 @@
 # Adopters who do not configure streaming pay zero transitive cost.
 if Code.ensure_loaded?(Mux.Video.Assets) do
   defmodule Rindle.Streaming.Provider.Mux do
+    require Logger
+
     @moduledoc """
     Mux REST adapter implementing `Rindle.Streaming.Provider`.
 
@@ -263,20 +265,24 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
     @impl Rindle.Streaming.Provider
     def signed_playback_url(profile, playback_id, _opts \\ [])
         when is_atom(profile) and is_binary(playback_id) do
-      ttl = Rindle.Delivery.signed_url_ttl_seconds(profile)
+      with {:ok, key_id} <- fetch_required(:signing_key_id),
+           {:ok, private_key} <- fetch_required(:signing_private_key) do
+        ttl = Rindle.Delivery.signed_url_ttl_seconds(profile)
+        encoded_playback_id = URI.encode_www_form(playback_id)
 
-      jwt =
-        Mux.Token.sign_playback_id(playback_id,
-          type: :video,
-          # MUST pass :expiration explicitly — SDK default is 7 days (Pitfall 1).
-          expiration: ttl,
-          token_id: config(:signing_key_id),
-          token_secret: config(:signing_private_key)
-        )
+        jwt =
+          Mux.Token.sign_playback_id(encoded_playback_id,
+            type: :video,
+            # MUST pass :expiration explicitly — SDK default is 7 days (Pitfall 1).
+            expiration: ttl,
+            token_id: key_id,
+            token_secret: private_key
+          )
 
-      url = "https://stream.mux.com/#{playback_id}.m3u8?token=#{jwt}"
+        url = "https://stream.mux.com/#{encoded_playback_id}.m3u8?token=#{jwt}"
 
-      {:ok, %{url: url, kind: :hls, mime: "application/vnd.apple.mpegurl"}}
+        {:ok, %{url: url, kind: :hls, mime: "application/vnd.apple.mpegurl"}}
+      end
     end
 
     @impl Rindle.Streaming.Provider
@@ -284,7 +290,7 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
         when is_binary(raw_body) and is_map(headers) and is_list(secrets) do
       case fetch_sig_header(headers) do
         {:ok, sig_header} ->
-          tolerance = config(:webhook_tolerance_seconds, 300)
+          tolerance = get_tolerance()
 
           # D-17: provider-internal telemetry. The PUBLIC callback contract
           # (`{:ok, provider_event()} | {:error, :provider_webhook_invalid}`)
@@ -305,7 +311,7 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
                      {:ok, evt} <- Event.normalize(decoded) do
                   {:ok, evt}
                 else
-                  _ -> nil
+                  _ -> {:error, :provider_webhook_invalid}
                 end
 
               {:error, sdk_reason} ->
@@ -380,7 +386,13 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
     defp normalize_state("preparing"), do: "processing"
     defp normalize_state("ready"), do: "ready"
     defp normalize_state("errored"), do: "errored"
-    defp normalize_state(other) when is_binary(other), do: other
+    defp normalize_state("deleted"), do: "deleted"
+
+    defp normalize_state(other) when is_binary(other) do
+      Logger.warning("rindle.mux.unknown_status", status: other)
+      nil
+    end
+
     defp normalize_state(_), do: nil
 
     defp extract_playback_id_strings(list) when is_list(list) do
@@ -421,10 +433,26 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
       config(:http_client, Rindle.Streaming.Provider.Mux.HTTP)
     end
 
-    defp config(key, default \\ nil) do
+    defp get_tolerance do
+      case config(:webhook_tolerance_seconds, 300) do
+        n when is_integer(n) and n > 0 -> n
+        _ -> 300
+      end
+    end
+
+    defp config(key, default) do
       :rindle
       |> Application.get_env(__MODULE__, [])
       |> Keyword.get(key, default)
+    end
+
+    defp fetch_required(key) do
+      cfg = Application.get_env(:rindle, __MODULE__, [])
+
+      case Keyword.get(cfg, key) do
+        v when is_binary(v) and v != "" -> {:ok, v}
+        _ -> {:error, {:missing_config, key}}
+      end
     end
   end
 end

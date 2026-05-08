@@ -2,7 +2,7 @@ defmodule Rindle.AV.Capability do
   @moduledoc """
   Domain vocabulary for processing capabilities.
   """
-  
+
   @type t :: :video_transcode | :audio_normalize
 
   @capabilities [

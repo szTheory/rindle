@@ -11,8 +11,10 @@ defmodule Rindle.AV.Ffprobe do
   """
   def probe(file_path) do
     args = [
-      "-v", "error",
-      "-print_format", "json",
+      "-v",
+      "error",
+      "-print_format",
+      "json",
       "-show_format",
       "-show_streams",
       file_path

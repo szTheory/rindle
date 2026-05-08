@@ -23,10 +23,10 @@ defmodule Rindle.Storage.GCS do
 
   ## Capabilities
 
-  This adapter advertises `[:signed_url, :head]`. Resumable upload capabilities
-  (`:resumable_upload`, `:resumable_upload_session`) are reserved in
-  `Rindle.Storage.Capabilities.@known` but not advertised by this adapter — they
-  ship in a future phase.
+  This adapter advertises `[:signed_url, :head, :resumable_upload,
+  :resumable_upload_session]`. `:resumable_upload` covers broker-owned
+  initiation plus adapter-side completion verification; the session-scoped atom
+  widens that to remote status and cancel operations.
 
   See `guides/storage_gcs.md` (forthcoming) for the full setup walk-through,
   including service-account JSON wiring, signed-URL lifecycle, and the
@@ -78,7 +78,39 @@ defmodule Rindle.Storage.GCS do
     end
   end
 
-  ## Unsupported callbacks (Phase 37)
+  @impl true
+  def initiate_resumable_upload(key, expected_size, opts) do
+    with {:ok, bucket} <- bucket(opts),
+         :ok <- ensure_goth_loaded() do
+      Client.initiate_resumable_upload(bucket, key, expected_size, inject_credentials(opts))
+    end
+  end
+
+  @impl true
+  def resumable_upload_status(key, session_uri, opts) do
+    with {:ok, bucket} <- bucket(opts),
+         :ok <- ensure_goth_loaded() do
+      Client.resumable_upload_status(bucket, key, session_uri, inject_credentials(opts))
+    end
+  end
+
+  @impl true
+  def cancel_resumable_upload(key, session_uri, opts) do
+    with {:ok, bucket} <- bucket(opts),
+         :ok <- ensure_goth_loaded() do
+      Client.cancel_resumable_upload(bucket, key, session_uri, inject_credentials(opts))
+    end
+  end
+
+  @impl true
+  def verify_resumable_completion(key, session_uri, opts) do
+    with {:ok, bucket} <- bucket(opts),
+         :ok <- ensure_goth_loaded() do
+      Client.verify_resumable_completion(bucket, key, session_uri, inject_credentials(opts))
+    end
+  end
+
+  ## Unsupported callbacks (multipart/presigned PUT)
 
   @impl true
   def presigned_put(_key, _expires_in, _opts) do
@@ -106,7 +138,7 @@ defmodule Rindle.Storage.GCS do
   end
 
   @impl true
-  def capabilities, do: [:signed_url, :head]
+  def capabilities, do: [:signed_url, :head, :resumable_upload, :resumable_upload_session]
 
   ## Helpers
 

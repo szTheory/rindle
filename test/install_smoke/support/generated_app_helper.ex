@@ -11,13 +11,13 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
   @host_migration_version "20260428170000"
   @legacy_rindle_migration_version 20_260_428_110_000
 
-  def profile_enabled?(profile_mode) when profile_mode in [:image, :video, :mux] do
+  def profile_enabled?(profile_mode) when profile_mode in [:image, :video, :mux, :gcs] do
     selected_profiles()
     |> Enum.member?(profile_mode)
   end
 
   def prove_package_install!(profile_mode \\ :image)
-      when profile_mode in [:image, :video, :mux] do
+      when profile_mode in [:image, :video, :mux, :gcs] do
     network_version = System.get_env("RINDLE_INSTALL_SMOKE_NETWORK_VERSION")
     install_mode = install_mode(network_version)
 
@@ -26,7 +26,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
 
     File.mkdir_p!(workspace_root)
 
-    app_name = "rindle_smoke_app"
+    app_name = install_smoke_app_name(profile_mode)
     app_module = Macro.camelize(app_name)
 
     package_root =
@@ -79,6 +79,8 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     deps_rindle_present? = File.exists?(Path.join(generated_app_root, "deps/rindle"))
     av_report_path = Path.join(generated_app_root, "tmp/install_smoke_av_report.json")
     av_report = if File.exists?(av_report_path), do: read_json!(av_report_path), else: %{}
+    gcs_report_path = Path.join(generated_app_root, "tmp/install_smoke_gcs_report.json")
+    gcs_report = if File.exists?(gcs_report_path), do: read_json!(gcs_report_path), else: %{}
 
     %{
       workspace_root: workspace_root,
@@ -102,6 +104,15 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       av_delivery_path: av_report["delivery_path"],
       delivery_path: av_report["delivery_path"],
       streaming_url_kind: av_report["streaming_url_kind"],
+      doctor_command: gcs_report["doctor_command"],
+      doctor_success?: gcs_report["doctor_success"] == true,
+      gcs_live_enabled?: gcs_report["live_enabled"] == true,
+      gcs_status_surface: gcs_report["status_surface"],
+      gcs_status_state: gcs_report["status_state"],
+      gcs_status_committed_bytes: gcs_report["status_committed_bytes"],
+      gcs_asset_state_after_verify: gcs_report["asset_state_after_verify"],
+      gcs_asset_state_after_promote: gcs_report["asset_state_after_promote"],
+      gcs_upload_key: gcs_report["upload_key"],
       lifecycle_proved?:
         smoke_result.exit_code == 0 and String.contains?(smoke_result.output, "0 failures")
     }
@@ -303,11 +314,11 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
          network_version,
          profile_mode
        ) do
-    patch_mix_exs!(root, package_root, network_version)
+    patch_mix_exs!(root, package_root, network_version, profile_mode)
     patch_test_config!(root, app_name, profile_mode)
     patch_test_helper!(root, profile_mode)
     patch_runtime_config!(root, app_name, app_module, profile_mode)
-    patch_application!(root, app_name, app_module)
+    patch_application!(root, app_name, app_module, profile_mode)
     write_profile!(root, app_name, app_module, profile_mode)
     write_host_migration!(root)
     write_migration_runner!(root, app_name, app_module)
@@ -343,7 +354,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
 
   defp patch_test_helper!(_root, _profile_mode), do: :ok
 
-  defp patch_mix_exs!(root, package_root, network_version) do
+  defp patch_mix_exs!(root, package_root, network_version, profile_mode) do
     path = Path.join(root, "mix.exs")
     oban_requirement = oban_requirement()
 
@@ -352,6 +363,19 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
         "{:rindle, \"~> #{network_version}\"}"
       else
         "{:rindle, path: #{inspect(package_root)}}"
+      end
+
+    extra_deps =
+      case profile_mode do
+        :gcs ->
+          """
+                {:goth, "~> 1.4"},
+                {:finch, "~> 0.21"},
+                {:gcs_signed_url, "~> 0.4.6"},
+          """
+
+        _ ->
+          ""
       end
 
     updated =
@@ -364,6 +388,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
               {:oban, "#{oban_requirement}"},
               {:hackney, "~> 1.20"},
               {:mox, "~> 1.1", only: :test},
+        #{extra_deps}
               #{rindle_dep}
         """
       )
@@ -492,32 +517,67 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
   defp patch_runtime_config!(root, app_name, app_module, profile_mode) do
     path = Path.join(root, "config/runtime.exs")
 
-    runtime_append = """
+    runtime_append =
+      case profile_mode do
+        :gcs ->
+          """
 
-    minio_url = System.get_env("RINDLE_MINIO_URL", "http://localhost:9000")
-    bucket = System.get_env("RINDLE_MINIO_BUCKET", "rindle-test")
-    access_key = System.get_env("RINDLE_MINIO_ACCESS_KEY", "minioadmin")
-    secret_key = System.get_env("RINDLE_MINIO_SECRET_KEY", "minioadmin")
-    region = System.get_env("RINDLE_MINIO_REGION", "us-east-1")
+          gcs_credentials_json = System.get_env("GOOGLE_APPLICATION_CREDENTIALS_JSON")
 
-    %URI{host: host, port: port, scheme: scheme} = URI.parse(minio_url)
+          gcs_signing_key =
+            case gcs_credentials_json do
+              json when is_binary(json) and json != "" ->
+                Jason.decode!(json)
 
-    config :rindle, :repo, #{app_module}.Repo
-    config :rindle, Rindle.Storage.S3, bucket: bucket
+              _ ->
+                %{
+                  "private_key" => "-----BEGIN PRIVATE KEY-----\\ninvalid\\n-----END PRIVATE KEY-----\\n",
+                  "client_email" => "generated-install-smoke@example.invalid"
+                }
+            end
 
-    config :ex_aws, :s3,
-      scheme: "\#{scheme}://",
-      host: host,
-      port: port,
-      region: region,
-      access_key_id: access_key,
-      secret_access_key: secret_key
+          config :rindle, :repo, #{app_module}.Repo
 
-    config :#{app_name}, Oban,
-      repo: #{app_module}.Repo,
-      testing: :manual,
-      queues: #{oban_queues_block(profile_mode)}
-    """
+          config :rindle, Rindle.Storage.GCS,
+            bucket: System.get_env("RINDLE_GCS_BUCKET", "generated-install-smoke-bucket"),
+            goth: #{app_module}.Goth,
+            finch: #{app_module}.Finch,
+            signing_key: gcs_signing_key
+
+          config :#{app_name}, Oban,
+            repo: #{app_module}.Repo,
+            testing: :manual,
+            queues: #{oban_queues_block(profile_mode)}
+          """
+
+        _ ->
+          """
+
+          minio_url = System.get_env("RINDLE_MINIO_URL", "http://localhost:9000")
+          bucket = System.get_env("RINDLE_MINIO_BUCKET", "rindle-test")
+          access_key = System.get_env("RINDLE_MINIO_ACCESS_KEY", "minioadmin")
+          secret_key = System.get_env("RINDLE_MINIO_SECRET_KEY", "minioadmin")
+          region = System.get_env("RINDLE_MINIO_REGION", "us-east-1")
+
+          %URI{host: host, port: port, scheme: scheme} = URI.parse(minio_url)
+
+          config :rindle, :repo, #{app_module}.Repo
+          config :rindle, Rindle.Storage.S3, bucket: bucket
+
+          config :ex_aws, :s3,
+            scheme: "\#{scheme}://",
+            host: host,
+            port: port,
+            region: region,
+            access_key_id: access_key,
+            secret_access_key: secret_key
+
+          config :#{app_name}, Oban,
+            repo: #{app_module}.Repo,
+            testing: :manual,
+            queues: #{oban_queues_block(profile_mode)}
+          """
+      end
 
     File.write!(path, File.read!(path) <> runtime_append)
   end
@@ -535,7 +595,12 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
         {:rindle_process, 1},
         {:rindle_purge, 1},
         {:rindle_maintenance, 1}
-      ] ++ if profile_mode == :mux, do: [{:rindle_provider, 1}], else: []
+      ] ++
+        if profile_mode == :mux do
+          [{:rindle_provider, 1}]
+        else
+          []
+        end
 
     rendered =
       Enum.map_join(queues, ",\n        ", fn {name, concurrency} ->
@@ -545,18 +610,46 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     "[\n        #{rendered}\n      ]"
   end
 
-  defp patch_application!(root, app_name, app_module) do
+  defp patch_application!(root, app_name, app_module, profile_mode) do
     path = Path.join(root, "lib/#{app_name}/application.ex")
 
     updated =
       path
       |> File.read!()
+      |> maybe_patch_gcs_children(app_module, profile_mode)
       |> String.replace(
         "#{app_module}.Repo,",
         "#{app_module}.Repo,\n      {Oban, Application.fetch_env!(:#{app_name}, Oban)},"
       )
 
     File.write!(path, updated)
+  end
+
+  defp maybe_patch_gcs_children(source, _app_module, profile_mode) when profile_mode != :gcs,
+    do: source
+
+  defp maybe_patch_gcs_children(source, app_module, :gcs) do
+    source
+    |> String.replace(
+      "children = [",
+      """
+      gcs_children =
+        case System.get_env("GOOGLE_APPLICATION_CREDENTIALS_JSON") do
+          json when is_binary(json) and json != "" ->
+            decoded = Jason.decode!(json)
+
+            [
+              {Finch, name: #{app_module}.Finch},
+              {Goth, name: #{app_module}.Goth, source: {:service_account, decoded}}
+            ]
+
+          _ ->
+            []
+        end
+
+      children = gcs_children ++ [
+      """
+    )
   end
 
   defp write_profile!(root, app_name, app_module, profile_mode) do
@@ -573,6 +666,12 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
         _ -> "Rindle.Profile.Presets.Web"
       end
 
+    image_storage =
+      case profile_mode do
+        :gcs -> "Rindle.Storage.GCS"
+        _ -> "Rindle.Storage.S3"
+      end
+
     File.write!(
       path,
       """
@@ -580,7 +679,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
         @moduledoc false
 
         use Rindle.Profile,
-          storage: Rindle.Storage.S3,
+          storage: #{image_storage},
           variants: [thumb: [mode: :fit, width: 64, height: 64]],
           allow_mime: ["image/png", "image/jpeg"],
           max_bytes: 10_485_760
@@ -783,6 +882,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     lifecycle_test = lifecycle_test_source(app_module, profile_mode)
     upgrade_test = upgrade_test_source(app_module)
     extra_imports = mux_test_imports(profile_mode)
+    profile_helpers = profile_test_helpers(app_module, profile_mode)
 
     File.write!(
       path,
@@ -804,7 +904,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
         alias Rindle.Upload.Broker
         alias Rindle.Workers.{ProcessVariant, PromoteAsset}
 
-        @moduletag :minio
+      #{profile_test_moduletag(profile_mode)}
 
         @png_1x1 #{inspect(@png_1x1, limit: :infinity)}
 
@@ -819,7 +919,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
 
         test "generated app boots with adopter repo ownership and default Oban wiring" do
           assert Application.fetch_env!(:rindle, :repo) == Repo
-          assert Application.fetch_env!(:rindle_smoke_app, Oban)[:repo] == Repo
+          assert Application.fetch_env!(:#{Macro.underscore(app_module)}, Oban)[:repo] == Repo
           assert File.dir?(Application.app_dir(:rindle, "priv/repo/migrations"))
           refute File.exists?(Path.join(File.cwd!(), "deps/rindle"))
         end
@@ -829,6 +929,8 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       if File.exists?(Path.expand("../tmp/install_smoke_upgrade_seed.json", __DIR__)) do
       #{upgrade_test}
       end
+
+      #{profile_helpers}
 
         defp assert_install_smoke_marker! do
           assert {:ok, result} =
@@ -947,10 +1049,10 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     # skipping. Push the read into the `:mux` branch so :image/:video runs
     # never touch the Mux fixture tree.
     full_env =
-      if profile_mode == :mux do
-        base_env ++ build_mux_env()
-      else
-        base_env
+      case profile_mode do
+        :mux -> base_env ++ build_mux_env()
+        :gcs -> base_env ++ build_gcs_env()
+        _other -> base_env
       end
 
     Enum.reject(full_env, fn {_key, value} -> is_nil(value) end)
@@ -982,6 +1084,17 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       # cassette mock never sees the key (cassette test asserts the
       # request body matches the stub, no passthrough field expected).
       {"RINDLE_MUX_PASSTHROUGH_TAG", System.get_env("RINDLE_MUX_PASSTHROUGH_TAG")}
+    ]
+  end
+
+  defp build_gcs_env do
+    [
+      {"GOOGLE_APPLICATION_CREDENTIALS_JSON",
+       System.get_env("GOOGLE_APPLICATION_CREDENTIALS_JSON")},
+      {"RINDLE_GCS_BUCKET", System.get_env("RINDLE_GCS_BUCKET")},
+      {"RINDLE_INSTALL_SMOKE_GCS_PREFIX", System.get_env("RINDLE_INSTALL_SMOKE_GCS_PREFIX")},
+      {"RINDLE_INSTALL_SMOKE_GCS_CLEANUP_FILE",
+       System.get_env("RINDLE_INSTALL_SMOKE_GCS_CLEANUP_FILE")}
     ]
   end
 
@@ -1038,10 +1151,11 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
 
   defp selected_profiles do
     case System.get_env("RINDLE_INSTALL_SMOKE_PROFILE", "all") do
-      "all" -> [:image, :video, :mux]
+      "all" -> [:image, :video, :mux, :gcs]
       "image" -> [:image]
       "video" -> [:video]
       "mux" -> [:mux]
+      "gcs" -> [:gcs]
       other -> raise "unsupported RINDLE_INSTALL_SMOKE_PROFILE: #{inspect(other)}"
     end
   end
@@ -1159,6 +1273,137 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
               delivery_path: URI.parse(signed_url).path
             })
           )
+        end
+    """
+  end
+
+  defp lifecycle_test_source(app_module, :gcs) do
+    """
+        test "generated app wires the GCS adopter path and exercises mix rindle.doctor structurally" do
+          assert_install_smoke_marker!()
+          assert RindleProfile.storage_adapter() == Rindle.Storage.GCS
+          assert :resumable_upload in RindleProfile.storage_adapter().capabilities()
+          assert :resumable_upload_session in RindleProfile.storage_adapter().capabilities()
+
+          doctor_output =
+            capture_io(fn ->
+              report = Doctor.run_checks([inspect(RindleProfile)], exit_on_failure?: false)
+              write_gcs_report!(%{
+                doctor_command: "mix rindle.doctor #{app_module}.RindleProfile",
+                doctor_success: report.success?,
+                live_enabled: gcs_live_env?(),
+                status_surface: "Rindle.resumable_session_status/2"
+              })
+
+              IO.puts("doctor_command=mix rindle.doctor #{app_module}.RindleProfile")
+              IO.puts("doctor_success=\#{report.success?}")
+            end)
+
+          assert doctor_output =~ "Rindle: running environment checks..."
+          assert doctor_output =~ "doctor_command=mix rindle.doctor #{app_module}.RindleProfile"
+        end
+
+        if is_binary(System.get_env("GOOGLE_APPLICATION_CREDENTIALS_JSON")) and
+             System.get_env("GOOGLE_APPLICATION_CREDENTIALS_JSON") != "" and
+             is_binary(System.get_env("RINDLE_GCS_BUCKET")) and
+             System.get_env("RINDLE_GCS_BUCKET") != "" do
+          test "generated app streams a live GCS resumable upload, converges via Rindle.resumable_session_status/2, and promotes the asset" do
+            assert_install_smoke_marker!()
+
+            body = @png_1x1
+            midpoint = div(byte_size(body), 2)
+            first_chunk = binary_part(body, 0, midpoint)
+            second_chunk = binary_part(body, midpoint, byte_size(body) - midpoint)
+            cleanup_key = make_ref()
+
+            try do
+              assert {:ok, %{session: session, resumable: resumable}} =
+                       Rindle.initiate_resumable_session(RindleProfile,
+                         filename: "generated-app-gcs.png",
+                         expected_size: byte_size(body),
+                         content_type: "image/png"
+                       )
+
+              Process.put(cleanup_key, session.upload_key)
+              register_gcs_cleanup_key!(session.upload_key)
+
+              assert {:ok, %Finch.Response{status: 308}} =
+                       Finch.build(
+                         :put,
+                         resumable.session_uri,
+                         [
+                           {"content-length", Integer.to_string(byte_size(first_chunk))},
+                           {"content-range", "bytes 0-\#{midpoint - 1}/\#{byte_size(body)}"},
+                           {"content-type", "image/png"}
+                         ],
+                         first_chunk
+                       )
+                       |> Finch.request(#{app_module}.Finch)
+
+              assert {:ok,
+                      %{session: in_progress, committed_bytes: committed_bytes, state: :in_progress}} =
+                       Rindle.resumable_session_status(session.id,
+                         client_offset: byte_size(first_chunk),
+                         source: :poll
+                       )
+
+              assert in_progress.state == "signed"
+              assert committed_bytes == byte_size(first_chunk)
+
+              assert {:ok, %Finch.Response{status: final_status}} =
+                       Finch.build(
+                         :put,
+                         resumable.session_uri,
+                         [
+                           {"content-length", Integer.to_string(byte_size(second_chunk))},
+                           {"content-range",
+                            "bytes \#{midpoint}-\#{byte_size(body) - 1}/\#{byte_size(body)}"},
+                           {"content-type", "image/png"}
+                         ],
+                         second_chunk
+                       )
+                       |> Finch.request(#{app_module}.Finch)
+
+              assert final_status in 200..299
+
+              assert {:ok,
+                      %{session: complete_status, committed_bytes: total_bytes, state: :complete}} =
+                       Rindle.resumable_session_status(session.id,
+                         client_offset: byte_size(body),
+                         source: :poll
+                       )
+
+              assert complete_status.state == "signed"
+              assert total_bytes == byte_size(body)
+
+              assert {:ok, %{session: completed, asset: asset}} =
+                       Rindle.verify_completion(session.id)
+
+              assert completed.state == "completed"
+              assert asset.state == "validating"
+              assert_enqueued(worker: PromoteAsset, args: %{"asset_id" => asset.id})
+              assert :ok = perform_job(PromoteAsset, %{"asset_id" => asset.id})
+
+              promoted_asset = Repo.get!(MediaAsset, asset.id)
+              assert promoted_asset.state in ["available", "processing", "ready"]
+
+              merge_gcs_report!(%{
+                status_state: "complete",
+                status_committed_bytes: total_bytes,
+                asset_state_after_verify: asset.state,
+                asset_state_after_promote: promoted_asset.state,
+                upload_key: session.upload_key
+              })
+            after
+              case Process.get(cleanup_key) do
+                upload_key when is_binary(upload_key) ->
+                  _ = Rindle.Storage.GCS.delete(upload_key, [])
+
+                _ ->
+                  :ok
+              end
+            end
+          end
         end
     """
   end
@@ -1283,9 +1528,32 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
                   order_by: variant.name
               )
 
+            web_variant = Enum.find(ready_variants, &(&1.name == "web_720p"))
+            assert web_variant
+
+            assert_enqueued(
+              worker: Rindle.Workers.MuxIngestVariant,
+              args: %{
+                "asset_id" => asset.id,
+                "profile" => to_string(VideoProfile),
+                "variant_name" => "web_720p",
+                "expected_storage_key" => promoted_asset.storage_key,
+                "expected_recipe_digest" => web_variant.recipe_digest
+              }
+            )
+
+            assert :ok =
+                     perform_job(Rindle.Workers.MuxIngestVariant, %{
+                       "asset_id" => asset.id,
+                       "profile" => to_string(VideoProfile),
+                       "variant_name" => "web_720p",
+                       "expected_storage_key" => promoted_asset.storage_key,
+                       "expected_recipe_digest" => web_variant.recipe_digest
+                     })
+
             # Phase 36 CR-02: record provider_asset_id IMMEDIATELY once the
-            # variant jobs have run (which is when MuxIngestVariant has
-            # already created the asset on Mux's side). The previous
+            # provider ingest job has run and created the Mux-side asset.
+            # The previous
             # placement of this block was after the streaming-URL
             # assertions — if any of those assertions failed, control
             # transferred to the after-block before the ETS row was
@@ -1308,13 +1576,26 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
               end
             end
 
+            if mode == :cassette do
+              provider_row =
+                Repo.one!(
+                  from p in Rindle.Domain.MediaProviderAsset,
+                    where: p.asset_id == ^asset.id,
+                    limit: 1
+                )
+
+              assert :ok =
+                       perform_job(Rindle.Workers.MuxSyncProviderAsset, %{
+                         "provider_asset_id" => provider_row.provider_asset_id
+                       })
+            end
+
             # Phase 36 D-15: byte-identical to the :video lane (D-04 contract).
             assert Enum.map(ready_variants, &{&1.name, &1.output_kind, &1.state}) == [
                      {"poster", "image", "ready"},
                      {"web_720p", "video", "ready"}
                    ]
 
-            web_variant = Enum.find(ready_variants, &(&1.name == "web_720p"))
             assert is_binary(web_variant.storage_key)
             assert String.contains?(web_variant.storage_key, "web_720p")
 
@@ -1587,6 +1868,73 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
   # the generated app does not depend on Mox.
   defp mux_test_imports(:mux), do: "  import Mox\n"
   defp mux_test_imports(_other), do: ""
+
+  defp profile_test_moduletag(:gcs), do: ""
+  defp profile_test_moduletag(_other), do: "  @moduletag :minio\n"
+
+  defp profile_test_helpers(_app_module, :gcs) do
+    """
+        defp gcs_live_env? do
+          is_binary(System.get_env("GOOGLE_APPLICATION_CREDENTIALS_JSON")) and
+            System.get_env("GOOGLE_APPLICATION_CREDENTIALS_JSON") != "" and
+            is_binary(System.get_env("RINDLE_GCS_BUCKET")) and
+            System.get_env("RINDLE_GCS_BUCKET") != ""
+        end
+
+        defp read_gcs_report! do
+          case File.read("tmp/install_smoke_gcs_report.json") do
+            {:ok, body} -> Jason.decode!(body)
+            {:error, :enoent} -> %{}
+          end
+        end
+
+        defp write_gcs_report!(attrs) do
+          File.mkdir_p!("tmp")
+          File.write!("tmp/install_smoke_gcs_report.json", Jason.encode!(attrs))
+        end
+
+        defp merge_gcs_report!(attrs) do
+          attrs = Map.merge(read_gcs_report!(), attrs)
+          write_gcs_report!(attrs)
+        end
+
+        defp register_gcs_cleanup_key!(upload_key) do
+          case System.get_env("RINDLE_INSTALL_SMOKE_GCS_CLEANUP_FILE") do
+            path when is_binary(path) and path != "" ->
+              File.mkdir_p!(Path.dirname(path))
+              File.write!(path, upload_key <> "\\n", [:append])
+
+            _ ->
+              :ok
+          end
+        end
+    """
+  end
+
+  defp profile_test_helpers(_app_module, _other), do: ""
+
+  defp install_smoke_app_name(:gcs) do
+    case System.get_env("RINDLE_INSTALL_SMOKE_GCS_PREFIX") do
+      prefix when is_binary(prefix) and prefix != "" ->
+        "rindle_smoke_app_#{sanitize_app_suffix(prefix)}"
+
+      _ ->
+        "rindle_smoke_app"
+    end
+  end
+
+  defp install_smoke_app_name(_profile_mode), do: "rindle_smoke_app"
+
+  defp sanitize_app_suffix(value) do
+    value
+    |> String.downcase()
+    |> String.replace(~r/[^a-z0-9_]/u, "_")
+    |> String.trim("_")
+    |> case do
+      "" -> "gcs"
+      cleaned -> String.slice(cleaned, 0, 32)
+    end
+  end
 
   defp env_or_default(name, default), do: System.get_env(name) || default
 end

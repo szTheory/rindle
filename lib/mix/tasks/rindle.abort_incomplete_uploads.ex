@@ -2,14 +2,15 @@ defmodule Mix.Tasks.Rindle.AbortIncompleteUploads do
   @shortdoc "Transition timed-out upload sessions to expired"
 
   @moduledoc """
-  Transitions upload sessions in the `signed` or `uploading` state that have
-  passed their TTL (`expires_at`) into the `expired` state.
+  Transitions timed-out upload sessions through the abort half of Rindle's
+  maintenance lane.
 
   This is a prerequisite for `mix rindle.cleanup_orphans`, which only removes
   sessions that are already in the `expired` state. Running both tasks in
   sequence provides a safe, two-step cleanup lane:
 
-  1. `mix rindle.abort_incomplete_uploads` — mark timed-out sessions as expired.
+  1. `mix rindle.abort_incomplete_uploads` — mark timed-out sessions as expired
+     and cancel resumable sessions remotely when needed.
   2. `mix rindle.cleanup_orphans` — delete expired sessions and their objects.
 
   ## Usage
@@ -30,8 +31,10 @@ defmodule Mix.Tasks.Rindle.AbortIncompleteUploads do
   ## Notes
 
   Sessions that are already in a terminal state (`completed`, `expired`,
-  `aborted`, `failed`) are not touched. Only `signed` and `uploading` sessions
-  past their expiry are eligible.
+  `failed`) are not touched by the first-pass timeout scan. Timed-out
+  resumable sessions are cancelled only from this abort lane, and retryable
+  resumable cancel failures are retried here until they converge or exhaust
+  worker attempts.
   """
 
   use Mix.Task
@@ -64,9 +67,12 @@ defmodule Mix.Tasks.Rindle.AbortIncompleteUploads do
   defp print_abort_report(report) do
     Mix.shell().info("""
     Incomplete-upload abort complete:
-      Sessions found:   #{report.sessions_found}
-      Sessions aborted: #{report.sessions_aborted}
-      Abort errors:     #{report.abort_errors}
+      Sessions found:         #{report.sessions_found}
+      Sessions aborted:       #{report.sessions_aborted}
+      Resumable aborts:       #{report.resumable_aborts}
+      Multipart aborts:       #{report.multipart_aborts}
+      Presigned PUT aborts:   #{report.presigned_put_aborts}
+      Abort errors:           #{report.abort_errors}
     """)
   end
 

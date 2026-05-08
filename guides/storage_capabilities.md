@@ -19,12 +19,11 @@ Rindle currently knows these capability atoms:
 | `:signed_url` | The adapter can mint a time-limited signed delivery URL for private delivery. |
 | `:head` | The adapter can read remote object metadata for verification and cleanup. |
 | `:local` | The adapter is backed by local filesystem semantics. |
-| `:resumable_upload` | Reserved for a future resumable-upload family. Not shipped in v1.1. |
-| `:resumable_upload_session` | Reserved for a future resumable-upload session family. Not shipped in v1.1. |
+| `:resumable_upload` | The adapter can drive a resumable upload lifecycle instead of a single-shot direct PUT. |
+| `:resumable_upload_session` | The adapter can create and continue provider-owned resumable upload sessions. |
 
-The reserved resumable atoms are additive placeholders only. Phase 8 does not
-ship a GCS adapter, a public resumable API, or hidden resumable behavior under
-the existing direct-upload entrypoints.
+These atoms are shipped vocabulary, but adapter-specific. Rindle does not imply
+that every storage backend supports them.
 
 ## Unsupported Flow Contract
 
@@ -42,7 +41,8 @@ Examples:
   for multipart entrypoints.
 - Private delivery against an adapter without `:signed_url` returns
   `{:error, {:delivery_unsupported, :signed_url}}`.
-- The reserved future resumable path is intentionally explicit today:
+- A resumable path against an adapter that does not advertise it remains
+  intentionally explicit:
   `{:error, {:upload_unsupported, :resumable_upload}}`.
 
 These failures are part of the adopter-facing contract. Rindle does not guess,
@@ -55,10 +55,11 @@ provider choices.
 
 | Backend / provider | Runtime seam | Expected capabilities today | Proof posture | Notes |
 | ------------------ | ------------ | --------------------------- | ------------- | ----- |
-| Local filesystem | `Rindle.Storage.Local` | `[:local, :presigned_put]` | Automated in the default test suite | Presigned PUT is a local-development parity shim, not a remote-object-store claim. Multipart and signed delivery fail explicitly with tagged unsupported tuples. |
-| MinIO | `Rindle.Storage.S3` | `[:presigned_put, :head, :signed_url, :multipart_upload]` | Automated in default CI and local integration lanes | This is the always-on real S3-compatible proof for direct PUT, multipart upload, metadata verification, and signed delivery URL generation. |
+| Local filesystem | `Rindle.Storage.Local` | `[:local, :presigned_put]` | Automated in the default test suite | Presigned PUT is a local-development parity shim, not a remote-object-store claim. `Rindle.Storage.Local` does not advertise `:resumable_upload` or `:resumable_upload_session`. |
+| MinIO | `Rindle.Storage.S3` | `[:presigned_put, :head, :signed_url, :multipart_upload]` | Automated in default CI and local integration lanes | This is the always-on real S3-compatible proof for direct PUT, multipart upload, metadata verification, and signed delivery URL generation. `Rindle.Storage.S3` does not advertise the resumable capability family. |
 | Generic S3-compatible provider | `Rindle.Storage.S3` | `[:presigned_put, :head, :signed_url, :multipart_upload]` | Expected by contract; not proven against every vendor in default CI | Rindle uses the shipped S3 adapter seam. Provider-specific behavior beyond that seam should be validated in adopter-owned environments. |
 | Cloudflare R2 | `Rindle.Storage.S3` | `[:presigned_put, :head, :signed_url, :multipart_upload]` when the provider honors the shipped S3-compatible operations | Documented compatibility target; adopters validate vendor behavior in their own environments | Phase 8 does not add a bespoke R2 adapter. The repo only claims the current shipped S3-style operations it can exercise through the existing adapter seam, with MinIO as the automated proof lane. |
+| Google Cloud Storage | `Rindle.Storage.GCS` | `[:head, :signed_url, :resumable_upload, :resumable_upload_session]` | Live GCS proof exists in the GCS test lanes; adopters still own bucket and browser wiring | `Rindle.Storage.GCS` is the shipped adapter that honestly advertises the resumable capability family. See [`storage_gcs.md`](storage_gcs.md) for runtime wiring, CORS, and session hygiene. |
 
 ## Proof Boundaries
 
@@ -77,6 +78,18 @@ Rindle separates "documented contract" from "what the repo proves by default":
 That distinction matters: Phase 8 improves auditability, not marketing claims.
 This guide does not imply provider-specific live R2 proof in CI.
 
+## Adapter Honesty
+
+Capability claims are adapter-specific, not marketing-wide:
+
+- `Rindle.Storage.GCS` advertises `:resumable_upload` and `:resumable_upload_session`
+- `Rindle.Storage.S3` advertises neither resumable capability today
+- `Rindle.Storage.Local` advertises neither resumable capability today
+- custom adapters may honestly advertise either, both, or neither depending on
+  what they actually implement
+
+Rindle does not silently downgrade resumable requests into presigned PUT.
+
 ## Cloudflare R2 Boundary
 
 Cloudflare R2 is documented here as an S3-compatible provider path through the
@@ -92,17 +105,17 @@ This guide does not claim:
 - A bespoke `Rindle.Storage.R2` adapter.
 - HTML form POST uploads as part of the shipped contract.
 - Provider-specific live R2 coverage in CI.
-- A shipped resumable-upload API.
+- A shipped resumable-upload API through the S3 adapter.
 
-## Future Resumable Uploads
+## Resumable Boundary
 
-The reserved resumable atoms exist so future work can add a distinct resumable
-capability family without breaking the current contract. That future work is
-expected to be additive:
+Resumable upload is shipped where the adapter advertises it. Today that means
+`Rindle.Storage.GCS`.
 
-- New adapter behavior for resumable session creation and continuation
-- New proof lanes for providers that use resumable semantics
-- New public API only when there is a verified adapter behind it
+That does not mean:
 
-Until then, resumable flows remain unsupported and should fail loudly through
-the existing tagged tuple contract.
+- every adapter supports resumable upload
+- Rindle falls back automatically from resumable upload to presigned PUT
+- S3-compatible providers inherit resumable semantics through `Rindle.Storage.S3`
+- Rindle ships tus or a provider-agnostic resumable abstraction beyond the
+  honest capability contract

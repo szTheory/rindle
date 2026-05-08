@@ -187,12 +187,15 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
             },
             base_metadata(profile_mod, args["variant_name"], nil)
             |> Map.put(:kind, :error)
-            |> Map.put(:reason, reason)
+            |> Map.put(:reason, safe_reason(reason))
           )
 
           err
       end
     end
+
+    defp safe_reason(reason) when is_atom(reason), do: reason
+    defp safe_reason(reason), do: reason |> inspect() |> String.slice(0, 200)
 
     @doc """
     Oban `unique` opts for job-level idempotency. Wrap as

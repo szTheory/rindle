@@ -81,7 +81,7 @@ defmodule Mix.Tasks.Rindle.RuntimeStatus do
       format_findings(report.runtime_checks.findings) ++
       format_findings(report.variants.findings) ++
       format_upload_findings(report.upload_sessions.findings) ++
-      format_section("upload_sessions", report.upload_sessions.counts) ++
+      format_upload_sessions(report.upload_sessions) ++
       format_provider_findings(report.provider_assets.findings) ++
       format_recommendations(report.recommendations) ++ ["Done."]
   end
@@ -96,6 +96,13 @@ defmodule Mix.Tasks.Rindle.RuntimeStatus do
     ["#{String.capitalize(String.replace(name, "_", " "))}:", "  total: #{total}"] ++
       (counts
        |> Enum.reject(fn {key, _value} -> key == :total end)
+       |> Enum.sort_by(fn {key, _value} -> Atom.to_string(key) end)
+       |> Enum.map(fn {key, value} -> "  #{key}: #{value}" end))
+  end
+
+  defp format_upload_sessions(upload_sessions) do
+    format_section("upload_sessions", upload_sessions.counts) ++
+      (upload_sessions.resumable
        |> Enum.sort_by(fn {key, _value} -> Atom.to_string(key) end)
        |> Enum.map(fn {key, value} -> "  #{key}: #{value}" end))
   end

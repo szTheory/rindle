@@ -363,8 +363,8 @@ defmodule Rindle.Delivery.StreamingDispatchTest do
       assert {:error, :provider_sync_failed} =
                Rindle.Delivery.streaming_url(StreamingProfile, asset)
 
-      assert_received {[:rindle, :delivery, :streaming, :config_drift], ^drift_ref,
-                       _measurements, drift_metadata}
+      assert_received {[:rindle, :delivery, :streaming, :config_drift], ^drift_ref, _measurements,
+                       drift_metadata}
 
       assert drift_metadata.field == :playback_policy
       assert drift_metadata.row_value == "public"
@@ -399,8 +399,8 @@ defmodule Rindle.Delivery.StreamingDispatchTest do
       assert {:error, :provider_sync_failed} =
                Rindle.Delivery.streaming_url(StreamingProfile, asset)
 
-      assert_received {[:rindle, :delivery, :streaming, :config_drift], ^drift_ref,
-                       _measurements, drift_metadata}
+      assert_received {[:rindle, :delivery, :streaming, :config_drift], ^drift_ref, _measurements,
+                       drift_metadata}
 
       assert drift_metadata.field == :ingest_mode
       assert drift_metadata.row_value == "direct_creator_upload"

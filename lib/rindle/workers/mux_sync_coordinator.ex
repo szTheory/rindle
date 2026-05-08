@@ -80,6 +80,7 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
     def perform(%Oban.Job{}) do
       repo = Rindle.Config.repo()
       floor = config(:provider_polling_floor_seconds, @default_polling_floor_seconds)
+      limit = config(:provider_polling_batch_size, 1_000)
       cutoff = DateTime.add(DateTime.utc_now(), -floor, :second)
 
       provider_asset_ids =
@@ -89,23 +90,36 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
               r.state in ["processing", "uploading"] and
                 r.updated_at < ^cutoff and
                 not is_nil(r.provider_asset_id),
+            order_by: [asc: r.updated_at],
+            limit: ^limit,
             select: r.provider_asset_id
         )
 
-      enqueued =
+      {ok_fresh, ok_conflict, errors} =
         provider_asset_ids
-        |> Enum.map(fn provider_asset_id ->
-          %{"provider_asset_id" => provider_asset_id}
-          |> Rindle.Workers.MuxSyncProviderAsset.new(
-            unique: [fields: [:args, :worker], period: 60, keys: [:provider_asset_id]]
-          )
-          |> Oban.insert()
+        |> Enum.reduce({0, 0, 0}, fn provider_asset_id, {fresh, conflict, errs} ->
+          result =
+            %{"provider_asset_id" => provider_asset_id}
+            |> Rindle.Workers.MuxSyncProviderAsset.new(
+              unique: [fields: [:args, :worker], period: 60, keys: [:provider_asset_id]]
+            )
+            |> Oban.insert()
+
+          case result do
+            {:ok, %{conflict?: true}} -> {fresh, conflict + 1, errs}
+            {:ok, _job} -> {fresh + 1, conflict, errs}
+            {:error, _} -> {fresh, conflict, errs + 1}
+          end
         end)
-        |> Enum.count(&match?({:ok, _}, &1))
+
+      if errors > 0 do
+        Logger.warning("rindle.workers.mux_sync_coordinator.enqueue_errors", count: errors)
+      end
 
       Logger.info("rindle.workers.mux_sync_coordinator.completed",
         rows_scanned: length(provider_asset_ids),
-        jobs_enqueued: enqueued,
+        jobs_enqueued: ok_fresh,
+        jobs_conflicted: ok_conflict,
         floor_seconds: floor
       )
 

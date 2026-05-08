@@ -18,8 +18,7 @@ defmodule Rindle.Processor.AV.RuntimeGuardTest do
     end
 
     test "refuses AV work when free disk is below twice max output bytes" do
-      assert {:error,
-              {:insufficient_disk_headroom, %{free_bytes: 199, required_bytes: 200}}} =
+      assert {:error, {:insufficient_disk_headroom, %{free_bytes: 199, required_bytes: 200}}} =
                RuntimeGuard.check!(
                  %{kind: :audio, max_output_bytes: 100},
                  env: %{},

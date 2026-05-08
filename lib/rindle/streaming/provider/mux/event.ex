@@ -65,6 +65,14 @@ defmodule Rindle.Streaming.Provider.Mux.Event do
   defp normalize_state("preparing"), do: "processing"
   defp normalize_state("ready"), do: "ready"
   defp normalize_state("errored"), do: "errored"
+  defp normalize_state("deleted"), do: "deleted"
+
+  defp normalize_state(other) when is_binary(other) do
+    require Logger
+    Logger.warning("rindle.mux.unknown_status", status: other)
+    nil
+  end
+
   defp normalize_state(_), do: nil
 
   # BL-03 fix: `Map.get(data, "playback_ids", [])` returns `nil` (NOT the
@@ -92,10 +100,16 @@ defmodule Rindle.Streaming.Provider.Mux.Event do
 
   defp parse_occurred_at(nil), do: nil
 
-  defp parse_occurred_at(iso) when is_binary(iso) do
-    case DateTime.from_iso8601(iso) do
-      {:ok, dt, _offset} -> dt
-      _ -> nil
+  defp parse_occurred_at(time_str) when is_binary(time_str) do
+    case DateTime.from_iso8601(time_str) do
+      {:ok, dt, _offset} ->
+        dt
+
+      _ ->
+        case Integer.parse(time_str) do
+          {seconds, ""} -> DateTime.from_unix!(seconds, :second)
+          _ -> nil
+        end
     end
   end
 

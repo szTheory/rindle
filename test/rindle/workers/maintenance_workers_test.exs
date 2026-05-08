@@ -13,6 +13,16 @@ defmodule Rindle.Workers.MaintenanceWorkersTest do
   setup :set_mox_from_context
   setup :verify_on_exit!
 
+  defmodule TestProfile do
+    use Rindle.Profile,
+      storage: Rindle.StorageMock,
+      variants: [
+        thumb: [mode: :crop, width: 100, height: 100]
+      ],
+      allow_mime: ["image/jpeg"],
+      max_bytes: 10_485_760
+  end
+
   defmodule TestRepoProbe do
     @moduledoc false
 
@@ -29,6 +39,11 @@ defmodule Rindle.Workers.MaintenanceWorkersTest do
     def update(changeset) do
       notify({:update, changeset.data.__struct__})
       AdopterRepo.update(changeset)
+    end
+
+    def preload(struct_or_structs, preloads) do
+      notify({:preload, preloads})
+      AdopterRepo.preload(struct_or_structs, preloads)
     end
 
     defp notify(event) do
@@ -78,7 +93,7 @@ defmodule Rindle.Workers.MaintenanceWorkersTest do
       Map.merge(
         %{
           state: "staged",
-          profile: "TestProfile",
+          profile: to_string(TestProfile),
           storage_key: "uploads/#{Ecto.UUID.generate()}.jpg"
         },
         overrides
@@ -110,6 +125,21 @@ defmodule Rindle.Workers.MaintenanceWorkersTest do
         %{
           upload_strategy: "multipart",
           multipart_upload_id: "upload-#{System.unique_integer([:positive])}"
+        },
+        overrides
+      )
+    )
+  end
+
+  defp create_resumable_session(asset, overrides) do
+    create_session(
+      asset,
+      Map.merge(
+        %{
+          state: "resuming",
+          upload_strategy: "resumable",
+          session_uri: "https://storage.example/upload/#{System.unique_integer([:positive])}",
+          session_uri_expires_at: DateTime.add(DateTime.utc_now(), 3600, :second)
         },
         overrides
       )
@@ -202,6 +232,19 @@ defmodule Rindle.Workers.MaintenanceWorkersTest do
 
       # No storage.delete expected — default should be dry_run: true
       assert :ok = perform_job(CleanupOrphans, %{})
+    end
+
+    test "leaves proof-missing resumable rows in place while reporting success" do
+      asset = create_asset()
+      session = create_resumable_session(asset, %{state: "expired", expires_at: expired_at()})
+
+      assert :ok =
+               perform_job(CleanupOrphans, %{
+                 "dry_run" => false,
+                 "storage" => to_string(Rindle.StorageMock)
+               })
+
+      assert AdopterRepo.get(MediaUploadSession, session.id) != nil
     end
   end
 
@@ -329,6 +372,23 @@ defmodule Rindle.Workers.MaintenanceWorkersTest do
       opts = AbortIncompleteUploads.__opts__()
       assert Keyword.get(opts, :max_attempts) >= 1
     end
+
+    test "returns error when resumable abort errors remain so Oban can retry" do
+      asset = create_asset()
+      session = create_resumable_session(asset, %{expires_at: expired_at()})
+
+      expect(Rindle.StorageMock, :capabilities, fn -> [:resumable_upload_session] end)
+
+      expect(Rindle.StorageMock, :cancel_resumable_upload, fn _, _, _ ->
+        {:error, :timeout}
+      end)
+
+      assert {:error, {:abort_errors, 1}} = perform_job(AbortIncompleteUploads, %{})
+
+      updated = AdopterRepo.get!(MediaUploadSession, session.id)
+      assert updated.state == "aborted"
+      assert updated.failure_reason == "resumable_cancel_failed:transport"
+    end
   end
 
   # ---------------------------------------------------------------------------
@@ -390,9 +450,28 @@ defmodule Rindle.Workers.MaintenanceWorkersTest do
       assert_received {[:rindle, :cleanup, :run], ^ref, measurements, metadata}
       assert is_integer(measurements.sessions_deleted)
       assert is_integer(measurements.objects_deleted)
+      assert is_integer(measurements.resumable_skipped)
       assert metadata.profile == :unknown
       assert metadata.adapter == Rindle.StorageMock
       assert is_boolean(metadata.dry_run)
+      assert metadata.worker == CleanupOrphans
+    end
+
+    test "CleanupOrphans telemetry includes resumable skip counts for proof-missing rows", %{
+      ref: ref
+    } do
+      asset = create_asset()
+      _session = create_resumable_session(asset, %{state: "expired", expires_at: expired_at()})
+
+      assert :ok =
+               perform_job(CleanupOrphans, %{
+                 "dry_run" => false,
+                 "storage" => to_string(Rindle.StorageMock)
+               })
+
+      assert_received {[:rindle, :cleanup, :run], ^ref, measurements, metadata}
+      assert measurements.sessions_deleted == 0
+      assert measurements.resumable_skipped == 1
       assert metadata.worker == CleanupOrphans
     end
 
@@ -420,12 +499,21 @@ defmodule Rindle.Workers.MaintenanceWorkersTest do
 
     test "AbortIncompleteUploads emits [:rindle, :cleanup, :run] on success", %{ref: ref} do
       asset = create_asset()
-      _session = create_session(asset, %{state: "signed", expires_at: expired_at()})
+      session = create_resumable_session(asset, %{expires_at: expired_at()})
+
+      expect(Rindle.StorageMock, :capabilities, fn -> [:resumable_upload_session] end)
+
+      expect(Rindle.StorageMock, :cancel_resumable_upload, fn key, session_uri, _opts ->
+        assert key == session.upload_key
+        assert session_uri == session.session_uri
+        {:ok, %{cancelled: true}}
+      end)
 
       assert :ok = perform_job(AbortIncompleteUploads, %{})
 
       assert_received {[:rindle, :cleanup, :run], ^ref, measurements, metadata}
       assert is_integer(measurements.sessions_aborted)
+      assert measurements.resumable_aborts == 1
       assert metadata.profile == :unknown
       assert metadata.adapter == :unknown
       assert metadata.worker == AbortIncompleteUploads

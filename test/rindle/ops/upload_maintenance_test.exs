@@ -11,6 +11,16 @@ defmodule Rindle.Ops.UploadMaintenanceTest do
   setup :set_mox_from_context
   setup :verify_on_exit!
 
+  defmodule TestProfile do
+    use Rindle.Profile,
+      storage: Rindle.StorageMock,
+      variants: [
+        thumb: [mode: :crop, width: 100, height: 100]
+      ],
+      allow_mime: ["image/jpeg"],
+      max_bytes: 10_485_760
+  end
+
   defmodule TestRepoProbe do
     @moduledoc false
 
@@ -27,6 +37,11 @@ defmodule Rindle.Ops.UploadMaintenanceTest do
     def update(changeset) do
       notify({:update, changeset.data.__struct__})
       AdopterRepo.update(changeset)
+    end
+
+    def preload(struct_or_structs, preloads) do
+      notify({:preload, preloads})
+      AdopterRepo.preload(struct_or_structs, preloads)
     end
 
     defp notify(event) do
@@ -76,7 +91,7 @@ defmodule Rindle.Ops.UploadMaintenanceTest do
       Map.merge(
         %{
           state: "staged",
-          profile: "TestProfile",
+          profile: to_string(TestProfile),
           storage_key: "uploads/#{Ecto.UUID.generate()}.jpg"
         },
         overrides
@@ -108,6 +123,21 @@ defmodule Rindle.Ops.UploadMaintenanceTest do
         %{
           upload_strategy: "multipart",
           multipart_upload_id: "upload-#{System.unique_integer([:positive])}"
+        },
+        overrides
+      )
+    )
+  end
+
+  defp create_resumable_session(asset, overrides) do
+    create_session(
+      asset,
+      Map.merge(
+        %{
+          state: "resuming",
+          upload_strategy: "resumable",
+          session_uri: "https://storage.example/upload/#{System.unique_integer([:positive])}",
+          session_uri_expires_at: DateTime.add(DateTime.utc_now(), 3600, :second)
         },
         overrides
       )
@@ -256,6 +286,45 @@ defmodule Rindle.Ops.UploadMaintenanceTest do
       assert report.sessions_deleted == 0
       assert AdopterRepo.get(MediaUploadSession, session.id) != nil
       assert_received {:repo_probe, :all}
+    end
+
+    test "deletes resumable expired rows only when the session URI proof marker is cleared" do
+      asset = create_asset()
+
+      session =
+        create_resumable_session(asset, %{
+          state: "expired",
+          session_uri: nil,
+          expires_at: expired_at()
+        })
+
+      expect(Rindle.StorageMock, :delete, fn key, _opts ->
+        assert key == session.upload_key
+        {:ok, :deleted}
+      end)
+
+      {:ok, report} =
+        UploadMaintenance.cleanup_orphans(dry_run: false, storage: Rindle.StorageMock)
+
+      assert report.sessions_deleted == 1
+      assert report.resumable_skipped == 0
+      assert AdopterRepo.get(MediaUploadSession, session.id) == nil
+    end
+
+    test "skips resumable expired rows that still retain their session URI proof marker" do
+      asset = create_asset()
+      session = create_resumable_session(asset, %{state: "expired", expires_at: expired_at()})
+
+      {:ok, report} =
+        UploadMaintenance.cleanup_orphans(dry_run: false, storage: Rindle.StorageMock)
+
+      assert report.sessions_found == 1
+      assert report.sessions_deleted == 0
+      assert report.resumable_skipped == 1
+      assert report.objects_deleted == 0
+      assert report.storage_errors == 0
+      assert AdopterRepo.get(MediaUploadSession, session.id) != nil
+      refute_received {:repo_probe, {:delete, MediaUploadSession}}
     end
 
     test "deletes DB row when storage reports object already not found" do
@@ -459,6 +528,137 @@ defmodule Rindle.Ops.UploadMaintenanceTest do
       refute_received {:repo_probe, {:delete, MediaUploadSession}}
     end
 
+    test "cancels timed-out resumable resuming sessions and clears the session URI" do
+      asset = create_asset()
+      session = create_resumable_session(asset, %{state: "resuming", expires_at: expired_at()})
+
+      expect(Rindle.StorageMock, :capabilities, fn -> [:resumable_upload_session] end)
+
+      expect(Rindle.StorageMock, :cancel_resumable_upload, fn key, session_uri, _opts ->
+        assert key == session.upload_key
+        assert session_uri == session.session_uri
+        {:ok, %{cancelled: true}}
+      end)
+
+      {:ok, report} = UploadMaintenance.abort_incomplete_uploads([])
+
+      assert report.sessions_aborted == 1
+      assert report.resumable_aborts == 1
+      assert report.multipart_aborts == 0
+      assert report.presigned_put_aborts == 0
+
+      updated = AdopterRepo.get!(MediaUploadSession, session.id)
+      assert updated.state == "expired"
+      assert updated.session_uri == nil
+      assert updated.failure_reason == nil
+      assert_received {:repo_probe, {:preload, :asset}}
+    end
+
+    test "treats unknown and expired resumable session URIs as idempotent cancel success" do
+      for cancel_reason <- [:session_uri_unknown, :session_uri_expired] do
+        asset = create_asset()
+
+        session =
+          create_resumable_session(asset, %{
+            state: "uploading",
+            upload_key: "uploads/#{cancel_reason}-#{System.unique_integer([:positive])}.jpg",
+            session_uri:
+              "https://storage.example/#{cancel_reason}-#{System.unique_integer([:positive])}",
+            expires_at: expired_at()
+          })
+
+        expect(Rindle.StorageMock, :capabilities, fn -> [:resumable_upload_session] end)
+
+        expect(Rindle.StorageMock, :cancel_resumable_upload, fn _, _, _ ->
+          {:error, cancel_reason}
+        end)
+
+        {:ok, report} = UploadMaintenance.abort_incomplete_uploads([])
+
+        assert report.sessions_aborted == 1
+        assert report.abort_errors == 0
+        assert report.resumable_aborts == 1
+
+        updated = AdopterRepo.get!(MediaUploadSession, session.id)
+        assert updated.state == "expired"
+        assert updated.session_uri == nil
+        assert updated.failure_reason == nil
+
+        AdopterRepo.delete!(updated)
+      end
+    end
+
+    test "maps resumable cancel failures to bounded failure reasons" do
+      cases = [
+        {:goth_unconfigured, "resumable_cancel_failed:goth_unconfigured"},
+        {{:gcs_http_error, %{status: 409, body: "conflict"}},
+         "resumable_cancel_failed:gcs_http_4xx"},
+        {{:gcs_http_error, %{status: 503, body: "down"}}, "resumable_cancel_failed:gcs_http_5xx"},
+        {:timeout, "resumable_cancel_failed:transport"}
+      ]
+
+      for {cancel_result, expected_reason} <- cases do
+        asset = create_asset()
+
+        session =
+          create_resumable_session(asset, %{
+            upload_key: "uploads/#{System.unique_integer([:positive])}.jpg",
+            session_uri: "https://storage.example/fail/#{System.unique_integer([:positive])}",
+            expires_at: expired_at()
+          })
+
+        expect(Rindle.StorageMock, :capabilities, fn -> [:resumable_upload_session] end)
+
+        expect(Rindle.StorageMock, :cancel_resumable_upload, fn _, _, _ ->
+          {:error, cancel_result}
+        end)
+
+        {:ok, report} = UploadMaintenance.abort_incomplete_uploads([])
+
+        assert report.sessions_aborted == 0
+        assert report.abort_errors == 1
+        assert report.resumable_aborts == 0
+
+        updated = AdopterRepo.get!(MediaUploadSession, session.id)
+        assert updated.state == "aborted"
+        assert updated.session_uri == session.session_uri
+        assert updated.failure_reason == expected_reason
+
+        AdopterRepo.delete!(updated)
+      end
+    end
+
+    test "retries aborted resumable rows that retained their session URI after a prior cancel failure" do
+      asset = create_asset()
+
+      session =
+        create_resumable_session(asset, %{
+          state: "aborted",
+          expires_at: DateTime.add(DateTime.utc_now(), 3600, :second),
+          failure_reason: "resumable_cancel_failed:transport"
+        })
+
+      expect(Rindle.StorageMock, :capabilities, fn -> [:resumable_upload_session] end)
+
+      expect(Rindle.StorageMock, :cancel_resumable_upload, fn key, session_uri, _opts ->
+        assert key == session.upload_key
+        assert session_uri == session.session_uri
+        {:ok, %{cancelled: true}}
+      end)
+
+      {:ok, report} = UploadMaintenance.abort_incomplete_uploads([])
+
+      assert report.sessions_found == 1
+      assert report.sessions_aborted == 1
+      assert report.abort_errors == 0
+      assert report.resumable_aborts == 1
+
+      updated = AdopterRepo.get!(MediaUploadSession, session.id)
+      assert updated.state == "expired"
+      assert updated.session_uri == nil
+      assert updated.failure_reason == nil
+    end
+
     test "returns error tuple when repo raises" do
       # Simulate an error by calling with a bad repo — we just verify the shape
       # via the normal success path being {:ok, map}
@@ -494,6 +694,20 @@ defmodule Rindle.Ops.UploadMaintenanceTest do
       assert {:ok, _report} = UploadMaintenance.cleanup_orphans(dry_run: true)
 
       refute_received {[:rindle, :cleanup, :run], ^ref, _, _}
+    end
+
+    test "cleanup dry-run reports resumable skip counts without mutating rows" do
+      asset = create_asset()
+      session = create_resumable_session(asset, %{state: "expired", expires_at: expired_at()})
+
+      assert {:ok, report} = UploadMaintenance.cleanup_orphans(dry_run: true)
+
+      assert report.sessions_found == 1
+      assert report.resumable_skipped == 1
+      assert report.sessions_deleted == 0
+      assert AdopterRepo.get(MediaUploadSession, session.id) != nil
+      assert_received {:repo_probe, :all}
+      refute_received {:repo_probe, {:delete, MediaUploadSession}}
     end
 
     test "abort_incomplete_uploads/1 does NOT emit [:rindle, :cleanup, :run] from service layer" do

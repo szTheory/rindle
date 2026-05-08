@@ -127,7 +127,8 @@ defmodule Rindle.Domain.MediaSchemaTest do
     end
 
     test "rejects kind=audio with height" do
-      attrs = %{@valid_base_attrs | kind: "audio", storage_key: "a/y.m4a"} |> Map.put(:height, 100)
+      attrs =
+        %{@valid_base_attrs | kind: "audio", storage_key: "a/y.m4a"} |> Map.put(:height, 100)
 
       changeset = MediaAsset.changeset(%MediaAsset{}, attrs)
       refute changeset.valid?

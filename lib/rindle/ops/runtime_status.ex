@@ -39,16 +39,22 @@ defmodule Rindle.Ops.RuntimeStatus do
       now = DateTime.utc_now()
       cutoff = older_than_cutoff(now, filters.older_than)
 
+      runtime_checks = runtime_checks_report(filters, cutoff, now)
+      variants = variant_report(filters, cutoff, now)
+      upload_sessions = upload_session_report(filters, cutoff, now)
+      provider_assets = provider_assets_report(filters, now)
+
       {:ok,
        %{
          generated_at: now,
          filters: filters,
-         runtime_checks: runtime_checks_report(filters, cutoff, now),
+         runtime_checks: runtime_checks,
          assets: asset_report(filters),
-         variants: variant_report(filters, cutoff, now),
-         upload_sessions: upload_session_report(filters, cutoff, now),
-         provider_assets: provider_assets_report(filters, now),
-         recommendations: recommendations(filters, cutoff, now)
+         variants: variants,
+         upload_sessions: upload_sessions,
+         provider_assets: provider_assets,
+         recommendations:
+           build_recommendations(runtime_checks, variants, upload_sessions, provider_assets)
        }}
     else
       {:error, reason} = error ->
@@ -130,7 +136,52 @@ defmodule Rindle.Ops.RuntimeStatus do
 
     %{
       counts: Map.put(counts, :total, Enum.sum(Map.values(counts))),
-      findings: findings
+      findings: findings,
+      resumable: resumable_session_summary(filters, now)
+    }
+  end
+
+  defp resumable_session_summary(filters, now) do
+    pending =
+      from(s in MediaUploadSession,
+        join: a in MediaAsset,
+        on: a.id == s.asset_id,
+        where: s.upload_strategy == "resumable",
+        where: s.state in ["signed", "resuming", "uploading"],
+        select: count(s.id)
+      )
+      |> maybe_filter_profile(:upload_session, filters.profile)
+      |> Config.repo().one()
+
+    expired =
+      from(s in MediaUploadSession,
+        join: a in MediaAsset,
+        on: a.id == s.asset_id,
+        where: s.upload_strategy == "resumable",
+        where: not is_nil(s.session_uri_expires_at),
+        where: s.session_uri_expires_at < ^now,
+        select: count(s.id)
+      )
+      |> maybe_filter_profile(:upload_session, filters.profile)
+      |> Config.repo().one()
+
+    stale =
+      from(s in MediaUploadSession,
+        join: a in MediaAsset,
+        on: a.id == s.asset_id,
+        where: s.upload_strategy == "resumable",
+        where: not is_nil(s.session_uri_expires_at),
+        where: s.session_uri_expires_at < ^now,
+        where: not is_nil(s.session_uri),
+        select: count(s.id)
+      )
+      |> maybe_filter_profile(:upload_session, filters.profile)
+      |> Config.repo().one()
+
+    %{
+      resumable_sessions_pending: pending || 0,
+      resumable_sessions_expired: expired || 0,
+      resumable_session_uris_stale: stale || 0
     }
   end
 
@@ -224,24 +275,15 @@ defmodule Rindle.Ops.RuntimeStatus do
     }
   end
 
-  defp recommendations(filters, cutoff, now) do
-    report_classes =
-      runtime_checks_report(filters, cutoff, now).findings
-      |> Enum.map(& &1.class)
+  defp build_recommendations(runtime_checks, variants, upload_sessions, provider_assets) do
+    classes =
+      Enum.map(runtime_checks.findings, & &1.class) ++
+      Enum.map(variants.findings, & &1.class) ++
+      Enum.map(provider_assets.findings, & &1.class)
 
-    variant_classes =
-      variant_report(filters, cutoff, now).findings
-      |> Enum.map(& &1.class)
+    upload_states = Enum.map(upload_sessions.findings, & &1.state)
 
-    provider_classes =
-      provider_assets_report(filters, now).findings
-      |> Enum.map(& &1.class)
-
-    upload_states =
-      upload_session_report(filters, cutoff, now).findings
-      |> Enum.map(& &1.state)
-
-    (report_classes ++ variant_classes ++ provider_classes)
+    classes
     |> Enum.uniq()
     |> Enum.map(&recommendation_for_class/1)
     |> Enum.reject(&is_nil/1)
@@ -473,7 +515,7 @@ defmodule Rindle.Ops.RuntimeStatus do
     |> Enum.group_by(& &1.class)
     |> Enum.sort_by(fn {class, _} -> Atom.to_string(class) end)
     |> Enum.map(fn {class, rows} ->
-      sorted = Enum.sort_by(rows, &{-&1.age_seconds, inspect(&1.sample)})
+      sorted = Enum.sort_by(rows, &{-&1.age_seconds, &1.sample.asset_id})
 
       %{
         class: class,
@@ -489,7 +531,7 @@ defmodule Rindle.Ops.RuntimeStatus do
     |> Enum.group_by(& &1.state)
     |> Enum.sort_by(fn {state, _} -> state end)
     |> Enum.map(fn {state, rows} ->
-      sorted = Enum.sort_by(rows, &{-&1.age_seconds, inspect(&1.sample)})
+      sorted = Enum.sort_by(rows, &{-&1.age_seconds, &1.sample.asset_id})
 
       %{
         state: state,

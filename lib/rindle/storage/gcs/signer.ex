@@ -46,7 +46,7 @@ defmodule Rindle.Storage.GCS.Signer do
         client_email = configured_client_email()
 
         if is_binary(client_email) and client_email != "" do
-          %GcsSignedUrl.Client{private_key: pem, client_email: client_email}
+          %{__struct__: GcsSignedUrl.Client, private_key: pem, client_email: client_email}
         else
           raise ArgumentError,
                 "Rindle.Storage.GCS :signing_key was given as a bare PEM string but " <>

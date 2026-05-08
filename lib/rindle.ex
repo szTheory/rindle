@@ -83,6 +83,30 @@ defmodule Rindle do
   end
 
   @doc """
+  Initiates a resumable upload session through the broker.
+  """
+  @spec initiate_resumable_session(module(), keyword()) :: Broker.initiate_resumable_result()
+  def initiate_resumable_session(profile, opts \\ []) do
+    Broker.initiate_resumable_session(profile, opts)
+  end
+
+  @doc """
+  Polls the broker-owned resumable upload session without changing completion trust.
+  """
+  @spec resumable_session_status(binary(), keyword()) :: Broker.resumable_status_result()
+  def resumable_session_status(session_id, opts \\ []) do
+    Broker.resumable_session_status(session_id, opts)
+  end
+
+  @doc """
+  Cancels a broker-owned resumable upload session.
+  """
+  @spec cancel_resumable_session(binary(), keyword()) :: Broker.cancel_resumable_result()
+  def cancel_resumable_session(session_id, opts \\ []) do
+    Broker.cancel_resumable_session(session_id, opts)
+  end
+
+  @doc """
   Verifies a direct upload completion through the broker.
 
   Delegates to `Broker.verify_completion/2`. Promotes the

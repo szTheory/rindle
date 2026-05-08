@@ -111,8 +111,7 @@ defmodule Rindle.LiveViewTest do
         {:error, :timeout}
       end)
 
-      assert {:error,
-              %{reason: "upload_unavailable", code: "upload_sign_failed"},
+      assert {:error, %{reason: "upload_unavailable", code: "upload_sign_failed"},
               ^updated_socket} = external_fn.(entry, updated_socket)
     end
   end
@@ -145,7 +144,8 @@ defmodule Rindle.LiveViewTest do
       completed_socket = put_completed_entry(updated_socket, :avatar, entry, meta)
 
       results =
-        Rindle.LiveView.consume_uploaded_entries(completed_socket, :avatar, fn uploaded_entry, uploaded_meta ->
+        Rindle.LiveView.consume_uploaded_entries(completed_socket, :avatar, fn uploaded_entry,
+                                                                               uploaded_meta ->
           {:ok, {uploaded_entry.client_name, uploaded_meta.asset_id}}
         end)
 
@@ -164,10 +164,15 @@ defmodule Rindle.LiveViewTest do
     test "raises when upload meta is missing session_id" do
       socket = build_socket()
       entry = %UploadEntry{client_name: "avatar.png", ref: "avatar-ref"}
-      completed_socket = put_completed_entry(socket_with_upload(socket), :avatar, entry, %{asset_id: Ecto.UUID.generate()})
+
+      completed_socket =
+        put_completed_entry(socket_with_upload(socket), :avatar, entry, %{
+          asset_id: Ecto.UUID.generate()
+        })
 
       assert_raise ArgumentError, ~r/requires :session_id/, fn ->
-        Rindle.LiveView.consume_uploaded_entries(completed_socket, :avatar, fn _uploaded_entry, _uploaded_meta ->
+        Rindle.LiveView.consume_uploaded_entries(completed_socket, :avatar, fn _uploaded_entry,
+                                                                               _uploaded_meta ->
           {:ok, :unexpected}
         end)
       end
@@ -181,30 +186,44 @@ defmodule Rindle.LiveViewTest do
       end)
 
       assert [{:error, {:rindle_verify_failed, :storage_object_missing}}] =
-               Rindle.LiveView.consume_uploaded_entries(completed_socket, :avatar, fn _uploaded_entry, _uploaded_meta ->
-                 {:ok, :unexpected}
-               end)
+               Rindle.LiveView.consume_uploaded_entries(
+                 completed_socket,
+                 :avatar,
+                 fn _uploaded_entry, _uploaded_meta ->
+                   {:ok, :unexpected}
+                 end
+               )
 
       persisted_session = Repo.get!(MediaUploadSession, meta.session_id)
       assert persisted_session.state == "signed"
     end
 
     test "allows idempotent duplicate consume calls for a completed session" do
-      %{updated_socket: updated_socket, completed_socket: completed_socket, entry: entry, meta: meta} =
+      %{
+        updated_socket: updated_socket,
+        completed_socket: completed_socket,
+        entry: entry,
+        meta: meta
+      } =
         completed_socket_fixture()
 
       expect(Rindle.StorageMock, :head, fn _key, _opts ->
         {:ok, %{size: 1234, content_type: "image/png"}}
       end)
 
-      assert Rindle.LiveView.consume_uploaded_entries(completed_socket, :avatar, fn uploaded_entry, uploaded_meta ->
-               {:ok, {uploaded_entry.client_name, uploaded_meta.asset_id}}
-             end) == [{"avatar.png", meta.asset_id}]
+      assert Rindle.LiveView.consume_uploaded_entries(
+               completed_socket,
+               :avatar,
+               fn uploaded_entry, uploaded_meta ->
+                 {:ok, {uploaded_entry.client_name, uploaded_meta.asset_id}}
+               end
+             ) == [{"avatar.png", meta.asset_id}]
 
       replay_socket = put_completed_entry(updated_socket, :avatar, entry, meta)
 
       assert ["avatar.png"] =
-               Rindle.LiveView.consume_uploaded_entries(replay_socket, :avatar, fn uploaded_entry, _uploaded_meta ->
+               Rindle.LiveView.consume_uploaded_entries(replay_socket, :avatar, fn uploaded_entry,
+                                                                                   _uploaded_meta ->
                  {:ok, uploaded_entry.client_name}
                end)
     end
@@ -300,7 +319,8 @@ defmodule Rindle.LiveViewTest do
       {:ok, %{url: "https://example.com/upload", method: :put, headers: %{}}}
     end)
 
-    {:ok, meta, _socket} = updated_socket.assigns.uploads[:avatar].external.(entry, updated_socket)
+    {:ok, meta, _socket} =
+      updated_socket.assigns.uploads[:avatar].external.(entry, updated_socket)
 
     %{
       updated_socket: updated_socket,

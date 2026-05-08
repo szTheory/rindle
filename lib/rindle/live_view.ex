@@ -134,7 +134,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             asset_id: signed_session.asset_id
           }
 
-        {:ok, meta, socket}
+          {:ok, meta, socket}
 
         {:error, reason} ->
           log_upload_error("sign", reason)

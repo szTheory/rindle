@@ -150,7 +150,8 @@ if Code.ensure_loaded?(Phoenix.HTML) do
     defp build_media_source(spec, profile, asset, opts) do
       with {:ok, name, _media} <- resolve_variant_spec(spec),
            variant when not is_nil(variant) <- ready_variant(asset, name),
-           {:ok, %{url: url, mime: mime}} <- streaming_source(profile, variant, opts, asset_content_type(asset)) do
+           {:ok, %{url: url, mime: mime}} <-
+             streaming_source(profile, variant, opts, asset_content_type(asset)) do
         ["<source src=\"", escape(url), "\"", source_type_attr(mime), ">"]
       else
         _ -> []
@@ -203,12 +204,16 @@ if Code.ensure_loaded?(Phoenix.HTML) do
          when is_binary(storage_key) do
       streaming_opts =
         opts
-        |> Keyword.put(:mime, asset_content_type(source) || fallback_mime || default_streaming_mime(source))
+        |> Keyword.put(
+          :mime,
+          asset_content_type(source) || fallback_mime || default_streaming_mime(source)
+        )
 
-      Rindle.Delivery.streaming_url(profile, storage_key, streaming_opts)
+      Rindle.Delivery.streaming_url(profile, source, streaming_opts)
     end
 
-    defp streaming_source(_profile, _source, _opts, _fallback_mime), do: {:error, :missing_storage_key}
+    defp streaming_source(_profile, _source, _opts, _fallback_mime),
+      do: {:error, :missing_storage_key}
 
     defp resolve_video_html_attrs(profile, asset, opts) do
       html_attrs =
@@ -246,7 +251,9 @@ if Code.ensure_loaded?(Phoenix.HTML) do
       end
     end
 
-    defp asset_content_type(%{content_type: content_type}) when is_binary(content_type), do: content_type
+    defp asset_content_type(%{content_type: content_type}) when is_binary(content_type),
+      do: content_type
+
     defp asset_content_type(_asset), do: nil
 
     defp default_streaming_mime(%{kind: "audio"}), do: "audio/mpeg"

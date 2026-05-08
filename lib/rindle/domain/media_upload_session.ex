@@ -33,6 +33,7 @@ defmodule Rindle.Domain.MediaUploadSession do
   @states [
     "initialized",
     "signed",
+    "resuming",
     "uploading",
     "uploaded",
     "verifying",

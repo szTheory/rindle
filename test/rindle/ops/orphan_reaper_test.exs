@@ -72,7 +72,7 @@ defmodule Rindle.Ops.OrphanReaperTest do
 
     test "handles non-existent directory" do
       report = OrphanReaper.reap(dir: "/path/does/not/exist/for/sure", threshold_sec: 24 * 3600)
-      
+
       assert report.files_scanned == 0
       assert report.files_deleted == 0
       assert report.errors == 0

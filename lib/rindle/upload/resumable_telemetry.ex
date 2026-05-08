@@ -8,7 +8,13 @@ defmodule Rindle.Upload.ResumableTelemetry do
   @allowed_metadata_keys [:state, :outcome, :reason, :source]
   @forbidden_metadata_keys [:session_uri, :upload_key, :headers, :body, :session_id]
 
-  @spec emit_status(term(), term(), MediaUploadSession.t() | nil, map() | keyword(), map() | keyword()) ::
+  @spec emit_status(
+          term(),
+          term(),
+          MediaUploadSession.t() | nil,
+          map() | keyword(),
+          map() | keyword()
+        ) ::
           :ok
   def emit_status(profile, adapter, session_or_nil, metadata_overrides, measurements_overrides) do
     measurements =
@@ -24,7 +30,13 @@ defmodule Rindle.Upload.ResumableTelemetry do
     emit(@status_event, profile, adapter, session_or_nil, metadata_overrides, measurements)
   end
 
-  @spec emit_cancel(term(), term(), MediaUploadSession.t() | nil, map() | keyword(), map() | keyword()) ::
+  @spec emit_cancel(
+          term(),
+          term(),
+          MediaUploadSession.t() | nil,
+          map() | keyword(),
+          map() | keyword()
+        ) ::
           :ok
   def emit_cancel(profile, adapter, session_or_nil, metadata_overrides, measurements_overrides) do
     measurements =
@@ -52,8 +64,9 @@ defmodule Rindle.Upload.ResumableTelemetry do
     :telemetry.execute(event, measurements, metadata)
   end
 
-  defp maybe_put_session_id(metadata, %MediaUploadSession{id: session_id}) when is_binary(session_id),
-    do: Map.put(metadata, :session_id, session_id)
+  defp maybe_put_session_id(metadata, %MediaUploadSession{id: session_id})
+       when is_binary(session_id),
+       do: Map.put(metadata, :session_id, session_id)
 
   defp maybe_put_session_id(metadata, _session_or_nil), do: metadata
 

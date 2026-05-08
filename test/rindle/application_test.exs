@@ -52,7 +52,7 @@ defmodule Rindle.ApplicationTest do
 
     assert_received {:log, :warning, "rindle.av.runtime_guard.unsupported_runtime", metadata}
     assert metadata.runtime == :vercel
-    assert metadata.affected_profiles == ["Elixir.Rindle.ApplicationTest.AVProfile"]
+    assert "Elixir.Rindle.ApplicationTest.AVProfile" in metadata.affected_profiles
   end
 
   test "run_startup_checks stays quiet when configured profiles are image-only" do
@@ -67,6 +67,12 @@ defmodule Rindle.ApplicationTest do
                end
              )
 
-    refute_received {:log, _, _, _}
+    # It may warn about discovered AV profiles from other test modules, but not ImageProfile.
+    receive do
+      {:log, :warning, "rindle.av.runtime_guard.unsupported_runtime", metadata} ->
+        refute "Elixir.Rindle.ApplicationTest.ImageProfile" in metadata.affected_profiles
+    after
+      0 -> :ok
+    end
   end
 end

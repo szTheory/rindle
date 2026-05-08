@@ -48,7 +48,10 @@ defmodule Rindle.Ops.RuntimeChecksTest do
             ]
           ],
           migration_statuses: [],
-          local_playback_route: [base_url: "http://example.test/rindle/local", secret_key_base: "secret"]
+          local_playback_route: [
+            base_url: "http://example.test/rindle/local",
+            secret_key_base: "secret"
+          ]
         )
 
       assert Enum.map(report.checks, & &1.id) == [
@@ -361,6 +364,7 @@ defmodule Rindle.Ops.RuntimeChecksTest do
         assert ids == [
                  "doctor.gcs_bucket_reachable",
                  "doctor.gcs_goth_running",
+                 "doctor.gcs_resumable_cors",
                  "doctor.gcs_signing_key"
                ]
       after
@@ -496,7 +500,7 @@ defmodule Rindle.Ops.RuntimeChecksTest do
       end
     end
 
-    test "check_gcs_signing_key: error when signing key is malformed; summary echoes only the exception struct name (security parity with Phase 36 WR-10)" do
+    test "check_gcs_signing_key: error when signing key is a non-PEM binary; summary does not echo secret material" do
       original = Application.get_env(:rindle, Rindle.Storage.GCS)
 
       Application.put_env(:rindle, Rindle.Storage.GCS,
@@ -525,9 +529,8 @@ defmodule Rindle.Ops.RuntimeChecksTest do
         check = Enum.find(report.checks, &(&1.id == "doctor.gcs_signing_key"))
         assert check.status == :error
         assert check.component == :gcs
+        assert check.summary =~ "non-PEM binary"
 
-        # Security parity with Phase 36 WR-10: only inspect the exception STRUCT NAME,
-        # never echo PEM body or JSON content into doctor output.
         refute check.summary =~ ~r/-----BEGIN/
         refute check.summary =~ ~r/private_key/
       after
@@ -575,6 +578,261 @@ defmodule Rindle.Ops.RuntimeChecksTest do
           Application.delete_env(:rindle, Rindle.Storage.GCS)
         end
       end
+    end
+
+    test "check_gcs_signing_key: ok when signing key is a raw PEM string and client_email is configured" do
+      original = Application.get_env(:rindle, Rindle.Storage.GCS)
+
+      Application.put_env(:rindle, Rindle.Storage.GCS,
+        bucket: "my-bucket",
+        signing_key: Rindle.Storage.GCS.SigningKeyFixture.fixture_pem(),
+        client_email: Rindle.Storage.GCS.SigningKeyFixture.fixture_client_email()
+      )
+
+      try do
+        report =
+          run_runtime_checks(
+            probe: fn -> :ok end,
+            env: %{},
+            profiles: [GCSProfile],
+            oban_config: [
+              repo: Rindle.Repo,
+              queues: [
+                rindle_promote: 1,
+                rindle_process: 1,
+                rindle_purge: 1,
+                rindle_maintenance: 1
+              ]
+            ],
+            migration_statuses: []
+          )
+
+        check = Enum.find(report.checks, &(&1.id == "doctor.gcs_signing_key"))
+        assert check.status == :ok
+        assert check.component == :gcs
+        assert check.summary =~ "raw PEM string"
+      after
+        if original do
+          Application.put_env(:rindle, Rindle.Storage.GCS, original)
+        else
+          Application.delete_env(:rindle, Rindle.Storage.GCS)
+        end
+      end
+    end
+
+    test "check_gcs_signing_key: error when signing key is a raw PEM string without client_email" do
+      original = Application.get_env(:rindle, Rindle.Storage.GCS)
+
+      Application.put_env(:rindle, Rindle.Storage.GCS,
+        bucket: "my-bucket",
+        signing_key: Rindle.Storage.GCS.SigningKeyFixture.fixture_pem()
+      )
+
+      try do
+        report =
+          run_runtime_checks(
+            probe: fn -> :ok end,
+            env: %{},
+            profiles: [GCSProfile],
+            oban_config: [
+              repo: Rindle.Repo,
+              queues: [
+                rindle_promote: 1,
+                rindle_process: 1,
+                rindle_purge: 1,
+                rindle_maintenance: 1
+              ]
+            ],
+            migration_statuses: []
+          )
+
+        check = Enum.find(report.checks, &(&1.id == "doctor.gcs_signing_key"))
+        assert check.status == :error
+        assert check.component == :gcs
+        assert check.summary =~ "client_email"
+        refute check.summary =~ ~r/-----BEGIN/
+      after
+        if original do
+          Application.put_env(:rindle, Rindle.Storage.GCS, original)
+        else
+          Application.delete_env(:rindle, Rindle.Storage.GCS)
+        end
+      end
+    end
+
+    test "check_gcs_signing_key: error when signing key looks like a file path because file-path loading is unsupported" do
+      original = Application.get_env(:rindle, Rindle.Storage.GCS)
+
+      Application.put_env(:rindle, Rindle.Storage.GCS,
+        bucket: "my-bucket",
+        signing_key: "/path/to/service-account.json"
+      )
+
+      try do
+        report =
+          run_runtime_checks(
+            probe: fn -> :ok end,
+            env: %{},
+            profiles: [GCSProfile],
+            oban_config: [
+              repo: Rindle.Repo,
+              queues: [
+                rindle_promote: 1,
+                rindle_process: 1,
+                rindle_purge: 1,
+                rindle_maintenance: 1
+              ]
+            ],
+            migration_statuses: []
+          )
+
+        check = Enum.find(report.checks, &(&1.id == "doctor.gcs_signing_key"))
+        assert check.status == :error
+        assert check.component == :gcs
+        assert check.summary =~ "file-path loading is not supported"
+      after
+        if original do
+          Application.put_env(:rindle, Rindle.Storage.GCS, original)
+        else
+          Application.delete_env(:rindle, Rindle.Storage.GCS)
+        end
+      end
+    end
+
+    test "check_gcs_resumable_cors: absent when no resumable GCS profile exists" do
+      report =
+        run_runtime_checks(
+          probe: fn -> :ok end,
+          env: %{},
+          profiles: [LocalProfile],
+          oban_config: [
+            repo: Rindle.Repo,
+            queues: [
+              rindle_promote: 1,
+              rindle_process: 1,
+              rindle_purge: 1,
+              rindle_maintenance: 1
+            ]
+          ],
+          migration_statuses: []
+        )
+
+      refute Enum.any?(report.checks, &(&1.id == "doctor.gcs_resumable_cors"))
+    end
+
+    test "check_gcs_resumable_cors: warns when bucket CORS shape is missing required resumable rules" do
+      bypass = Bypass.open()
+      finch_name = :"rindle_cors_warn_finch_#{System.unique_integer([:positive])}"
+      goth_name = :"rindle_cors_warn_goth_#{System.unique_integer([:positive])}"
+      {:ok, _} = Finch.start_link(name: finch_name)
+
+      {:ok, _} =
+        Goth.start_link(
+          name: goth_name,
+          source: gcs_fixture_goth_source("http://localhost:#{bypass.port}/token")
+        )
+
+      Bypass.stub(bypass, "POST", "/token", fn conn ->
+        Plug.Conn.resp(
+          conn,
+          200,
+          ~s({"access_token":"test-token","token_type":"Bearer","expires_in":3600})
+        )
+      end)
+
+      Bypass.stub(bypass, "GET", "/storage/v1/b/my-bucket", fn conn ->
+        body =
+          case conn.query_string do
+            "fields=cors" ->
+              ~s({"cors":[{"origin":["https://app.example.test"],"method":["GET"],"responseHeader":["Content-Type"]}]})
+
+            _ ->
+              ~s({"name":"my-bucket"})
+          end
+
+        Plug.Conn.resp(conn, 200, body)
+      end)
+
+      original = Application.get_env(:rindle, Rindle.Storage.GCS)
+
+      Application.put_env(:rindle, Rindle.Storage.GCS,
+        bucket: "my-bucket",
+        finch: finch_name,
+        goth: goth_name,
+        base_url: "http://localhost:#{bypass.port}",
+        signing_key: Rindle.Storage.GCS.SigningKeyFixture.fixture_json()
+      )
+
+      try do
+        report =
+          run_runtime_checks(
+            probe: fn -> :ok end,
+            env: %{},
+            profiles: [GCSProfile],
+            oban_config: [
+              repo: Rindle.Repo,
+              queues: [
+                rindle_promote: 1,
+                rindle_process: 1,
+                rindle_purge: 1,
+                rindle_maintenance: 1
+              ]
+            ],
+            migration_statuses: []
+          )
+
+        check = fetch_check(report, "doctor.gcs_resumable_cors")
+        assert check.status == :warn
+        assert check.summary =~ "missing `PUT`/`PATCH`"
+        assert check.summary =~ "missing `Content-Range`/`x-goog-resumable`"
+        assert check.fix =~ "app origins"
+        assert check.fix =~ "PUT"
+        assert check.fix =~ "PATCH"
+        assert check.fix =~ "Content-Range"
+        assert check.fix =~ "x-goog-resumable"
+        assert check.fix =~ "session_uri"
+        assert check.fix =~ "one week"
+        assert check.fix =~ "region pinning"
+        assert report.failed == 0
+        assert report.success?
+      after
+        if original do
+          Application.put_env(:rindle, Rindle.Storage.GCS, original)
+        else
+          Application.delete_env(:rindle, Rindle.Storage.GCS)
+        end
+      end
+    end
+
+    test "warnings do not increment failure count, but errors still do" do
+      report =
+        run_runtime_checks(
+          probe: fn -> raise RuntimeError, "ffmpeg missing" end,
+          env: %{},
+          profiles: [GCSProfile],
+          oban_config: [
+            repo: Rindle.Repo,
+            queues: [
+              rindle_promote: 1,
+              rindle_process: 1,
+              rindle_purge: 1,
+              rindle_maintenance: 1
+            ]
+          ],
+          migration_statuses: [],
+          gcs_bucket_cors: [
+            %{
+              "origin" => ["https://app.example.test"],
+              "method" => ["PUT"],
+              "responseHeader" => ["x-goog-resumable"]
+            }
+          ]
+        )
+
+      assert fetch_check(report, "doctor.gcs_resumable_cors").status == :warn
+      assert report.failed == Enum.count(report.checks, &(&1.status == :error))
+      assert report.failed > 0
+      refute report.success?
     end
   end
 
@@ -746,7 +1004,8 @@ defmodule Rindle.Ops.RuntimeChecksTest do
   end
 
   defp run_runtime_checks(opts) do
-    RuntimeChecks.run([],
+    RuntimeChecks.run(
+      [],
       Keyword.put_new(opts, :resumable_session_schema_catalog, resumable_session_schema_fixture())
     )
   end
@@ -763,5 +1022,9 @@ defmodule Rindle.Ops.RuntimeChecksTest do
         "CREATE INDEX media_upload_sessions_resumable_expiry_idx ON public.media_upload_sessions USING btree (session_uri_expires_at) WHERE ((upload_strategy = 'resumable'::text))"
       ]
     }
+  end
+
+  defp gcs_fixture_goth_source(token_url) do
+    {:service_account, Rindle.Storage.GCS.SigningKeyFixture.fixture_json(), url: token_url}
   end
 end

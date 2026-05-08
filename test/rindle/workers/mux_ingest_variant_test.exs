@@ -386,8 +386,7 @@ defmodule Rindle.Workers.MuxIngestVariantTest do
 
   test "429 from Mux returns {:snooze, retry_after_seconds}", ctx do
     expect(ClientMock, :create_asset, fn _params ->
-      {:error, "rate limit",
-       %Tesla.Env{status: 429, headers: [{"retry-after", "60"}], body: ""}}
+      {:error, "rate limit", %Tesla.Env{status: 429, headers: [{"retry-after", "60"}], body: ""}}
     end)
 
     assert {:snooze, 60} = perform_job(MuxIngestVariant, ctx.args)

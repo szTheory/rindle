@@ -13,7 +13,8 @@ defmodule Rindle.Domain.MigrationTest do
 
       column_names = Enum.map(rows, fn [name] -> name end) |> MapSet.new()
 
-      for required <- ~w(kind width height duration_ms has_video_track has_audio_track error_reason) do
+      for required <-
+            ~w(kind width height duration_ms has_video_track has_audio_track error_reason) do
         assert required in column_names,
                "missing column #{required} on media_assets after Phase 24 migration"
       end
@@ -123,7 +124,10 @@ defmodule Rindle.Domain.MigrationTest do
                String.contains?(indexdef, "session_uri_expires_at") and
                  (String.contains?(indexdef, "WHERE ((upload_strategy = 'resumable'::text))") or
                     String.contains?(indexdef, "WHERE (upload_strategy = 'resumable'::text)") or
-                    String.contains?(indexdef, "WHERE ((upload_strategy)::text = 'resumable'::text)"))
+                    String.contains?(
+                      indexdef,
+                      "WHERE ((upload_strategy)::text = 'resumable'::text)"
+                    ))
              end)
     end
   end

@@ -17,24 +17,29 @@ defmodule Rindle.Storage.GCS.ClientTest do
     finch_name = Module.concat(__MODULE__, :"Finch_#{System.unique_integer([:positive])}")
     {:ok, _pid} = Finch.start_link(name: finch_name)
 
-    {:ok,
-     bypass: bypass,
-     base_url: "http://localhost:#{bypass.port}",
-     finch: finch_name}
+    {:ok, bypass: bypass, base_url: "http://localhost:#{bypass.port}", finch: finch_name}
   end
 
   describe "head/3" do
-    test "returns size + content_type on 200 OK", %{bypass: bypass, base_url: base_url, finch: finch} do
+    test "returns size + content_type on 200 OK", %{
+      bypass: bypass,
+      base_url: base_url,
+      finch: finch
+    } do
       Bypass.expect_once(bypass, "GET", "/storage/v1/b/#{@bucket}/o/assets%2Ffoo.jpg", fn conn ->
         conn
         |> Plug.Conn.put_resp_header("content-type", "application/json")
-        |> Plug.Conn.resp(200, Jason.encode!(%{
-          "size" => "1024000",
-          "contentType" => "image/jpeg"
-        }))
+        |> Plug.Conn.resp(
+          200,
+          Jason.encode!(%{
+            "size" => "1024000",
+            "contentType" => "image/jpeg"
+          })
+        )
       end)
 
       opts = [base_url: base_url, token: "fake-token", finch: finch]
+
       assert {:ok, %{size: 1_024_000, content_type: "image/jpeg"}} =
                Client.head(@bucket, "assets/foo.jpg", opts)
     end
@@ -48,22 +53,32 @@ defmodule Rindle.Storage.GCS.ClientTest do
       assert {:error, :not_found} = Client.head(@bucket, "missing.jpg", opts)
     end
 
-    test "returns {:gcs_http_error, ...} on 403", %{bypass: bypass, base_url: base_url, finch: finch} do
+    test "returns {:gcs_http_error, ...} on 403", %{
+      bypass: bypass,
+      base_url: base_url,
+      finch: finch
+    } do
       Bypass.expect_once(bypass, "GET", "/storage/v1/b/#{@bucket}/o/forbidden.jpg", fn conn ->
         Plug.Conn.resp(conn, 403, ~s({"error":{"code":403,"message":"Forbidden"}}))
       end)
 
       opts = [base_url: base_url, token: "fake-token", finch: finch]
+
       assert {:error, {:gcs_http_error, %{status: 403, body: _body}}} =
                Client.head(@bucket, "forbidden.jpg", opts)
     end
 
-    test "returns {:gcs_http_error, ...} on 500", %{bypass: bypass, base_url: base_url, finch: finch} do
+    test "returns {:gcs_http_error, ...} on 500", %{
+      bypass: bypass,
+      base_url: base_url,
+      finch: finch
+    } do
       Bypass.expect_once(bypass, "GET", "/storage/v1/b/#{@bucket}/o/boom.jpg", fn conn ->
         Plug.Conn.resp(conn, 500, ~s({"error":{"code":500,"message":"Internal"}}))
       end)
 
       opts = [base_url: base_url, token: "fake-token", finch: finch]
+
       assert {:error, {:gcs_http_error, %{status: 500, body: _body}}} =
                Client.head(@bucket, "boom.jpg", opts)
     end
@@ -79,6 +94,7 @@ defmodule Rindle.Storage.GCS.ClientTest do
       end)
 
       opts = [base_url: base_url, token: "fake-token", finch: finch]
+
       assert {:ok, %{size: 1, content_type: "image/jpeg"}} =
                Client.head(@bucket, "seam.jpg", opts)
     end
@@ -95,6 +111,7 @@ defmodule Rindle.Storage.GCS.ClientTest do
       end)
 
       opts = [base_url: base_url, token: "fake-token", finch: finch]
+
       assert {:ok, %{size: 10, content_type: "image/jpeg"}} =
                Client.head(@bucket, "a/b/c.jpg", opts)
     end
@@ -103,7 +120,9 @@ defmodule Rindle.Storage.GCS.ClientTest do
   describe "store/4 (multipart)" do
     test "POSTs to uploadType=multipart and writes contentType + contentDisposition atomically",
          %{bypass: bypass, base_url: base_url, finch: finch} do
-      tmp = Path.join(System.tmp_dir!(), "rindle-gcs-store-#{System.unique_integer([:positive])}.bin")
+      tmp =
+        Path.join(System.tmp_dir!(), "rindle-gcs-store-#{System.unique_integer([:positive])}.bin")
+
       File.write!(tmp, "abc123")
 
       Bypass.expect_once(bypass, "POST", "/upload/storage/v1/b/#{@bucket}/o", fn conn ->
@@ -113,7 +132,12 @@ defmodule Rindle.Storage.GCS.ClientTest do
         assert body =~ "\"contentType\":\"image/jpeg\""
         assert body =~ "\"contentDisposition\":\"inline; filename=\\\"foo.jpg\\\"\""
         assert body =~ "abc123"
-        Plug.Conn.resp(conn, 200, Jason.encode!(%{"name" => "assets/foo.jpg", "bucket" => @bucket}))
+
+        Plug.Conn.resp(
+          conn,
+          200,
+          Jason.encode!(%{"name" => "assets/foo.jpg", "bucket" => @bucket})
+        )
       end)
 
       opts = [
@@ -130,8 +154,17 @@ defmodule Rindle.Storage.GCS.ClientTest do
       _ = File.rm(Path.join(System.tmp_dir!(), "rindle-gcs-store-fake"))
     end
 
-    test "returns {:gcs_http_error, ...} on 400", %{bypass: bypass, base_url: base_url, finch: finch} do
-      tmp = Path.join(System.tmp_dir!(), "rindle-gcs-store-bad-#{System.unique_integer([:positive])}.bin")
+    test "returns {:gcs_http_error, ...} on 400", %{
+      bypass: bypass,
+      base_url: base_url,
+      finch: finch
+    } do
+      tmp =
+        Path.join(
+          System.tmp_dir!(),
+          "rindle-gcs-store-bad-#{System.unique_integer([:positive])}.bin"
+        )
+
       File.write!(tmp, "x")
 
       Bypass.expect_once(bypass, "POST", "/upload/storage/v1/b/#{@bucket}/o", fn conn ->
@@ -139,20 +172,27 @@ defmodule Rindle.Storage.GCS.ClientTest do
       end)
 
       opts = [base_url: base_url, token: "fake-token", finch: finch, content_type: "image/jpeg"]
+
       assert {:error, {:gcs_http_error, %{status: 400, body: _}}} =
                Client.store(@bucket, "k.jpg", tmp, opts)
     end
   end
 
   describe "download/4" do
-    test "streams body to destination on 200 OK", %{bypass: bypass, base_url: base_url, finch: finch} do
+    test "streams body to destination on 200 OK", %{
+      bypass: bypass,
+      base_url: base_url,
+      finch: finch
+    } do
       Bypass.expect_once(bypass, "GET", "/storage/v1/b/#{@bucket}/o/dl.bin", fn conn ->
         conn = Plug.Conn.fetch_query_params(conn)
         assert conn.query_params["alt"] == "media"
         Plug.Conn.resp(conn, 200, "STREAMED-BYTES")
       end)
 
-      dest = Path.join(System.tmp_dir!(), "rindle-gcs-dl-#{System.unique_integer([:positive])}.bin")
+      dest =
+        Path.join(System.tmp_dir!(), "rindle-gcs-dl-#{System.unique_integer([:positive])}.bin")
+
       opts = [base_url: base_url, token: "fake-token", finch: finch]
       assert {:ok, ^dest} = Client.download(@bucket, "dl.bin", dest, opts)
       assert File.read!(dest) == "STREAMED-BYTES"
@@ -163,9 +203,175 @@ defmodule Rindle.Storage.GCS.ClientTest do
         Plug.Conn.resp(conn, 404, ~s({"error":{"code":404,"message":"Not Found"}}))
       end)
 
-      dest = Path.join(System.tmp_dir!(), "rindle-gcs-dl-404-#{System.unique_integer([:positive])}.bin")
+      dest =
+        Path.join(
+          System.tmp_dir!(),
+          "rindle-gcs-dl-404-#{System.unique_integer([:positive])}.bin"
+        )
+
       opts = [base_url: base_url, token: "fake-token", finch: finch]
       assert {:error, :not_found} = Client.download(@bucket, "gone.bin", dest, opts)
+    end
+  end
+
+  describe "resumable_upload lifecycle" do
+    test "initiates via uploadType=resumable and returns broker-safe metadata",
+         %{bypass: bypass, base_url: base_url, finch: finch} do
+      Bypass.expect_once(bypass, "POST", "/upload/storage/v1/b/#{@bucket}/o", fn conn ->
+        conn = Plug.Conn.fetch_query_params(conn)
+        assert conn.query_params["uploadType"] == "resumable"
+        assert Plug.Conn.get_req_header(conn, "x-goog-resumable") == ["start"]
+        assert Plug.Conn.get_req_header(conn, "x-upload-content-length") == ["1024"]
+        {:ok, body, conn} = Plug.Conn.read_body(conn, length: 1_000_000)
+        assert body =~ "\"name\":\"assets/resumable.bin\""
+
+        conn
+        |> Plug.Conn.put_resp_header("location", "#{base_url}/session/upload-123")
+        |> Plug.Conn.put_resp_header("x-guploader-uploadid", "upload-123")
+        |> Plug.Conn.put_resp_header("x-goog-upload-region", "us-east1")
+        |> Plug.Conn.resp(201, "")
+      end)
+
+      opts = [base_url: base_url, token: "fake-token", finch: finch]
+
+      assert {:ok,
+              %{
+                session_uri: session_uri,
+                upload_id: "upload-123",
+                expires_at: %DateTime{},
+                region_hint: "us-east1"
+              }} = Client.initiate_resumable_upload(@bucket, "assets/resumable.bin", 1024, opts)
+
+      assert session_uri == "#{base_url}/session/upload-123"
+    end
+
+    test "maps 308 Range to in-progress committed bytes",
+         %{bypass: bypass, base_url: base_url, finch: finch} do
+      Bypass.expect_once(bypass, "PUT", "/session/upload-123", fn conn ->
+        assert Plug.Conn.get_req_header(conn, "content-range") == ["bytes */*"]
+
+        conn
+        |> Plug.Conn.put_resp_header("range", "bytes=0-511")
+        |> Plug.Conn.resp(308, "")
+      end)
+
+      opts = [base_url: base_url, token: "fake-token", finch: finch]
+
+      assert {:ok, %{committed_bytes: 512, state: :in_progress}} =
+               Client.resumable_upload_status(
+                 @bucket,
+                 "assets/resumable.bin",
+                 "#{base_url}/session/upload-123",
+                 opts
+               )
+    end
+
+    test "maps status polling offset disagreements to {:offset_mismatch, ...}",
+         %{bypass: bypass, base_url: base_url, finch: finch} do
+      Bypass.expect_once(bypass, "PUT", "/session/upload-offset", fn conn ->
+        conn
+        |> Plug.Conn.put_resp_header("range", "bytes=0-255")
+        |> Plug.Conn.resp(308, "")
+      end)
+
+      opts = [base_url: base_url, token: "fake-token", finch: finch, client_offset: 128]
+
+      assert {:error, {:offset_mismatch, %{server: 256, client: 128}}} =
+               Client.resumable_upload_status(
+                 @bucket,
+                 "assets/resumable.bin",
+                 "#{base_url}/session/upload-offset",
+                 opts
+               )
+    end
+
+    test "maps 404 and 410 to locked session-uri errors",
+         %{bypass: bypass, base_url: base_url, finch: finch} do
+      Bypass.expect_once(bypass, "PUT", "/session/upload-missing", fn conn ->
+        Plug.Conn.resp(conn, 404, "")
+      end)
+
+      Bypass.expect_once(bypass, "PUT", "/session/upload-expired", fn conn ->
+        Plug.Conn.resp(conn, 410, "")
+      end)
+
+      opts = [base_url: base_url, token: "fake-token", finch: finch]
+
+      assert {:error, :session_uri_unknown} =
+               Client.resumable_upload_status(
+                 @bucket,
+                 "assets/resumable.bin",
+                 "#{base_url}/session/upload-missing",
+                 opts
+               )
+
+      assert {:error, :session_uri_expired} =
+               Client.resumable_upload_status(
+                 @bucket,
+                 "assets/resumable.bin",
+                 "#{base_url}/session/upload-expired",
+                 opts
+               )
+    end
+
+    test "returns :complete with stored content length when the upload is finalized",
+         %{bypass: bypass, base_url: base_url, finch: finch} do
+      Bypass.expect_once(bypass, "PUT", "/session/upload-complete", fn conn ->
+        conn
+        |> Plug.Conn.put_resp_header("x-goog-stored-content-length", "1024")
+        |> Plug.Conn.resp(200, "")
+      end)
+
+      opts = [base_url: base_url, token: "fake-token", finch: finch, client_offset: 1024]
+
+      assert {:ok, %{committed_bytes: 1024, state: :complete}} =
+               Client.resumable_upload_status(
+                 @bucket,
+                 "assets/resumable.bin",
+                 "#{base_url}/session/upload-complete",
+                 opts
+               )
+    end
+
+    test "cancel returns success and preserves 404/410 mappings",
+         %{bypass: bypass, base_url: base_url, finch: finch} do
+      Bypass.expect_once(bypass, "DELETE", "/session/upload-cancelled", fn conn ->
+        Plug.Conn.resp(conn, 204, "")
+      end)
+
+      Bypass.expect_once(bypass, "DELETE", "/session/upload-gone", fn conn ->
+        Plug.Conn.resp(conn, 404, "")
+      end)
+
+      Bypass.expect_once(bypass, "DELETE", "/session/upload-expired", fn conn ->
+        Plug.Conn.resp(conn, 410, "")
+      end)
+
+      opts = [base_url: base_url, token: "fake-token", finch: finch]
+
+      assert {:ok, %{cancelled: true}} =
+               Client.cancel_resumable_upload(
+                 @bucket,
+                 "assets/resumable.bin",
+                 "#{base_url}/session/upload-cancelled",
+                 opts
+               )
+
+      assert {:error, :session_uri_unknown} =
+               Client.cancel_resumable_upload(
+                 @bucket,
+                 "assets/resumable.bin",
+                 "#{base_url}/session/upload-gone",
+                 opts
+               )
+
+      assert {:error, :session_uri_expired} =
+               Client.cancel_resumable_upload(
+                 @bucket,
+                 "assets/resumable.bin",
+                 "#{base_url}/session/upload-expired",
+                 opts
+               )
     end
   end
 

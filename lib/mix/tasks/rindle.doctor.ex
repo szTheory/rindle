@@ -104,7 +104,7 @@ defmodule Mix.Tasks.Rindle.Doctor do
        }) do
     shell.info("[#{String.upcase(to_string(status))}] #{id} (#{component}) #{summary}")
 
-    if status == :error do
+    if status in [:warn, :error] do
       shell.info("  Fix: #{fix}")
     end
   end

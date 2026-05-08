@@ -376,6 +376,13 @@ end
 
 End-to-end onboarding — signing keys, webhook plug, cron, local tunnel, secret rotation, and `mix rindle.doctor --streaming` — lives in [`streaming_providers.md`](streaming_providers.md).
 
+## 11. Storage with GCS (optional)
+
+GCS resumable upload is an advanced path after the canonical presigned PUT
+first run is already healthy. If your profile uses `Rindle.Storage.GCS`, wire
+adopter-owned `MyApp.Goth`, `MyApp.Finch`, bucket CORS, and the signing key,
+then run `mix rindle.doctor` and follow [`storage_gcs.md`](storage_gcs.md).
+
 ## Next Reads
 
 - [`../README.md`](../README.md): quickstart version of this path

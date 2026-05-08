@@ -68,7 +68,8 @@ defmodule Rindle.Processor.AV.Video do
     end
   end
 
-  defp run_fallback_attempts([], _destination_path), do: {:error, {:ffmpeg_missing_output, :poster}}
+  defp run_fallback_attempts([], _destination_path),
+    do: {:error, {:ffmpeg_missing_output, :poster}}
 
   defp run_fallback_attempts([{strategy, args} | rest], destination_path) do
     _ = File.rm(destination_path)

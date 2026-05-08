@@ -35,16 +35,16 @@ defmodule Rindle.Processor.Ffmpeg do
 
   defp build_args(source, %{capability: :video_transcode} = spec, dest) do
     base = ["-i", source]
-    
+
     vcodec = if Map.has_key?(spec, :video_codec), do: ["-c:v", spec.video_codec], else: []
     acodec = if Map.has_key?(spec, :audio_codec), do: ["-c:a", spec.audio_codec], else: []
-    
-    scale = 
+
+    scale =
       case {Map.get(spec, :width), Map.get(spec, :height)} do
         {w, h} when not is_nil(w) and not is_nil(h) -> ["-vf", "scale=#{w}:#{h}"]
         _ -> []
       end
-      
+
     {:ok, base ++ vcodec ++ acodec ++ scale ++ [dest]}
   end
 

@@ -68,6 +68,20 @@
   Provides a structured `message/1` that formats the action and reason into
   a readable string (API-11).
 
+### Fixed
+
+- Mux server-push ingest now wires into the live AV runtime: after the
+  configured streaming source variant reaches `ready`,
+  `Rindle.Workers.ProcessVariant` enqueues
+  `Rindle.Workers.MuxIngestVariant` with the expected storage-key and
+  recipe-digest guards, making the Phase 34 idempotent ingest path reachable
+  end to end.
+- `Rindle.HTML.video_tag/3` and `audio_tag/3` now pass asset/variant structs
+  into `Rindle.Delivery.streaming_url/3` on streaming-enabled profiles, and
+  provider dispatch now accepts variant-like maps keyed by `asset_id`, so
+  Phoenix playback resolves provider-backed HLS URLs through the shipped
+  consumer surface instead of tripping the binary-key guard.
+
 ### Changed
 
 - Public `@spec`s on `Rindle` facade functions (`initiate_upload/2`,
