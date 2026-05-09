@@ -3,6 +3,7 @@ defmodule Rindle.Ops.RuntimeChecksTest do
 
   alias Rindle.Ops.RuntimeChecks
   alias Rindle.Storage.Local
+  alias Rindle.Storage.GCS.SigningKeyFixture
 
   defmodule ImageProfile do
     use Rindle.Profile,

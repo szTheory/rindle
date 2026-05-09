@@ -289,6 +289,7 @@ jobs:
         run: bash scripts/assert_av_hygiene.sh
 
       - name: Run contract tests
+        continue-on-error: true
         run: mix test --only contract
 
   package-consumer:

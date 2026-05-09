@@ -1192,7 +1192,7 @@ defmodule Rindle.Ops.RuntimeChecks do
 
       _ ->
         case Goth.fetch(goth_name) do
-          {:ok, %Goth.Token{token: token}} -> {:ok, token}
+          {:ok, %{__struct__: Goth.Token, token: token}} -> {:ok, token}
           {:error, reason} -> {:error, reason}
         end
     end
