@@ -56,15 +56,15 @@ defmodule Rindle.Storage.GCS.Signer do
     else
       # Anything else that's a binary (file path, garbage) is rejected.
       # File-path loading is adopter responsibility per Q5 LOCKED — adopters
-        # who want to load from a file decode at app boot via
-        # `Jason.decode!(File.read!("path/to/key.json"))` and pass the map.
-        raise ArgumentError,
-              "Rindle.Storage.GCS :signing_key must be either a decoded service-account JSON " <>
-                "map (preferred) or a bare PEM string (in which case `client_email:` must also " <>
-                "be configured). File-path loading is not supported in Phase 37 — decode your " <>
-                "service-account JSON at boot via " <>
-                "`Jason.decode!(File.read!(\"path/to/key.json\"))` and pass the resulting map. " <>
-                "Got: #{inspect(pem)}"
+      # who want to load from a file decode at app boot via
+      # `Jason.decode!(File.read!("path/to/key.json"))` and pass the map.
+      raise ArgumentError,
+            "Rindle.Storage.GCS :signing_key must be either a decoded service-account JSON " <>
+              "map (preferred) or a bare PEM string (in which case `client_email:` must also " <>
+              "be configured). File-path loading is not supported in Phase 37 — decode your " <>
+              "service-account JSON at boot via " <>
+              "`Jason.decode!(File.read!(\"path/to/key.json\"))` and pass the resulting map. " <>
+              "Got: #{inspect(pem)}"
     end
   end
 

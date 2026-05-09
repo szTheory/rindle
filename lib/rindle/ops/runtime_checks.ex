@@ -1221,6 +1221,7 @@ defmodule Rindle.Ops.RuntimeChecks do
       end
     end
   end
+
   # Pattern mirrors verify_signing_key_pem/1 at lines 612-643 (Phase 36 WR-10
   # security parity): emit only inspect(exception.__struct__), NEVER
   # Exception.message/1 — so PEM body / JSON content never echo into doctor
