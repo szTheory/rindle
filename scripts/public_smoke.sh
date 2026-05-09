@@ -29,6 +29,11 @@ export RINDLE_INSTALL_SMOKE_NETWORK_VERSION="$VERSION"
 export RINDLE_INSTALL_SMOKE_PROFILE="$PROFILE"
 export RINDLE_MINIO_RESET_BUCKET=1
 
+if ! mix phx.new --version >/dev/null 2>&1; then
+  echo "Installing Phoenix generator archive for install smoke..."
+  mix archive.install hex phx_new --force
+fi
+
 bash "$SCRIPT_DIR/ensure_minio.sh"
 
 mix test test/install_smoke/generated_app_smoke_test.exs --include minio
