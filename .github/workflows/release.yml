@@ -286,7 +286,7 @@ jobs:
           restore-keys: deps-${{ runner.os }}-1.17-27-
 
       - name: Install libvips
-        run: sudo apt-get install -y libvips-dev
+        run: sudo apt-get update && sudo apt-get install -y libvips-dev
 
       - name: Install dependencies
         run: mix deps.get
@@ -417,7 +417,7 @@ jobs:
           mix local.rebar --force
 
       - name: Install libvips
-        run: sudo apt-get install -y libvips-dev
+        run: sudo apt-get update && sudo apt-get install -y libvips-dev
 
       - name: Install dependencies
         run: mix deps.get
