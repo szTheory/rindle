@@ -1386,14 +1386,15 @@ defmodule Rindle.Ops.RuntimeChecks do
 
         with {:ok, token} <- probe_token(goth_name, opts),
              req = Finch.build(:get, url, [{"Authorization", "Bearer " <> token}]),
-             {:ok, %Finch.Response{status: 200, body: body}} <- Finch.request(req, finch_name),
+             {:ok, %{__struct__: Finch.Response, status: 200, body: body}} <-
+               Finch.request(req, finch_name),
              {:ok, decoded} <- Jason.decode(body) do
           {:ok, extract_bucket_cors(decoded) || []}
         else
-          {:ok, %Finch.Response{status: status}} when status in [403, 404] ->
+          {:ok, %{__struct__: Finch.Response, status: status}} when status in [403, 404] ->
             {:error, {:unexpected_status, status}}
 
-          {:ok, %Finch.Response{status: status}} ->
+          {:ok, %{__struct__: Finch.Response, status: status}} ->
             {:error, {:unexpected_status, status}}
 
           {:error, %Jason.DecodeError{} = error} ->
