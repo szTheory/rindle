@@ -1,4 +1,7 @@
 defmodule Rindle.Delivery.WebhookPlug do
+  alias Rindle.Delivery.WebhookBodyReader
+  alias Rindle.Workers.IngestProviderWebhook
+
   @moduledoc """
   Mountable provider-aware Plug for streaming-provider webhooks.
 
@@ -9,7 +12,7 @@ defmodule Rindle.Delivery.WebhookPlug do
       plug Plug.Parsers,
         parsers: [:urlencoded, :multipart, :json],
         pass: ["*/*"],
-        body_reader: {Rindle.Delivery.WebhookBodyReader, :read_body, []},
+        body_reader: {WebhookBodyReader, :read_body, []},
         json_decoder: Jason
 
   Step 2 — mount the Plug in `router.ex`, one `forward` per provider:
@@ -66,9 +69,9 @@ defmodule Rindle.Delivery.WebhookPlug do
 
   @behaviour Plug
 
-  # `Rindle.Workers.IngestProviderWebhook` ships in Plan 02; the module reference
+  # `IngestProviderWebhook` ships in Plan 02; the module reference
   # compiles fine because Elixir resolves modules lazily at runtime.
-  @compile {:no_warn_undefined, Rindle.Workers.IngestProviderWebhook}
+  @compile {:no_warn_undefined, IngestProviderWebhook}
 
   import Plug.Conn
 
@@ -180,16 +183,14 @@ defmodule Rindle.Delivery.WebhookPlug do
               "event" => stringify_event(event)
             }
 
-            # Mirror Rindle.Workers.IngestProviderWebhook.unique_job_opts/0 (D-20).
+            # Mirror IngestProviderWebhook.unique_job_opts/0 (D-20).
             # `:available` MUST be in the states list — Oban inserts newly-enqueued
             # jobs in `:available` first; without it, the unique constraint never
             # fires for the most common re-delivery dedup case (the second webhook
             # arrives before the worker picks up the first job).
             {:ok, _job} =
               args
-              |> Rindle.Workers.IngestProviderWebhook.new(
-                unique: Rindle.Workers.IngestProviderWebhook.unique_job_opts()
-              )
+              |> IngestProviderWebhook.new(unique: IngestProviderWebhook.unique_job_opts())
               |> Oban.insert()
 
             emit_verified(%{
@@ -225,7 +226,7 @@ defmodule Rindle.Delivery.WebhookPlug do
   end
 
   defp fetch_raw_body(conn) do
-    case Rindle.Delivery.WebhookBodyReader.raw_body(conn) do
+    case WebhookBodyReader.raw_body(conn) do
       binary when is_binary(binary) and byte_size(binary) > 0 ->
         {:ok, binary, conn}
 
@@ -330,15 +331,13 @@ defmodule Rindle.Delivery.WebhookPlug do
   defp provider_atom(Rindle.Streaming.Provider.Mux), do: :mux
 
   defp provider_atom(other) when is_atom(other) do
-    try do
-      other
-      |> Module.split()
-      |> List.last()
-      |> String.downcase()
-      |> String.to_existing_atom()
-    rescue
-      ArgumentError -> :unknown_provider
-    end
+    other
+    |> Module.split()
+    |> List.last()
+    |> String.downcase()
+    |> String.to_existing_atom()
+  rescue
+    ArgumentError -> :unknown_provider
   end
 
   defp provider_atom_string(provider), do: provider |> provider_atom() |> Atom.to_string()

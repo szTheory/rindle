@@ -6,7 +6,7 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
     Oban cron worker that fans out per-row sync jobs for `media_provider_assets`
     rows in (`processing`, `uploading`) older than `provider_polling_floor_seconds`.
 
-    Delegates per-row work to `Rindle.Workers.MuxSyncProviderAsset`. No sync
+    Delegates per-row work to `MuxSyncProviderAsset`. No sync
     logic lives here. Adopters can schedule this worker from their Oban cron
     config without requiring Rindle to supervise Oban.
 
@@ -54,13 +54,13 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
       * `Logger.info("rindle.workers.mux_sync_coordinator.completed", ...)` —
         emitted after each fan-out with `rows_scanned`, `jobs_enqueued`, and
         `floor_seconds`. The coordinator emits no per-row telemetry — that
-        responsibility lives with `Rindle.Workers.MuxSyncProviderAsset` per
+        responsibility lives with `MuxSyncProviderAsset` per
         row, with redacted `asset_id` metadata.
 
     ## Telemetry
 
     This worker emits NO `[:rindle, :provider, :sync, _]` events itself —
-    the per-row `Rindle.Workers.MuxSyncProviderAsset` worker is the source
+    the per-row `MuxSyncProviderAsset` worker is the source
     of truth for telemetry. The coordinator logs structured events under
     `Logger.info("rindle.workers.mux_sync_coordinator.completed", ...)` for
     operator visibility.
@@ -72,6 +72,7 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
     import Ecto.Query, only: [from: 2]
 
     alias Rindle.Domain.MediaProviderAsset
+    alias Rindle.Workers.MuxSyncProviderAsset
 
     @default_polling_floor_seconds 30
 
@@ -100,7 +101,7 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
         |> Enum.reduce({0, 0, 0}, fn provider_asset_id, {fresh, conflict, errs} ->
           result =
             %{"provider_asset_id" => provider_asset_id}
-            |> Rindle.Workers.MuxSyncProviderAsset.new(
+            |> MuxSyncProviderAsset.new(
               unique: [fields: [:args, :worker], period: 60, keys: [:provider_asset_id]]
             )
             |> Oban.insert()

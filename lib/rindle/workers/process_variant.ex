@@ -9,11 +9,12 @@ defmodule Rindle.Workers.ProcessVariant do
   alias Rindle.Config
   alias Rindle.Domain.AssetAggregate
   alias Rindle.Domain.{MediaAsset, MediaVariant}
+  alias Rindle.Domain.VariantFSM
   alias Rindle.Processor.AV
   alias Rindle.Processor.AV.{Audio, Video}
   alias Rindle.Processor.AV.{OutputProbe, RuntimeGuard}
-  alias Rindle.Domain.VariantFSM
   alias Rindle.Processor.{Image, Waveform}
+  alias Rindle.Workers.MuxIngestVariant
   import Ecto.Query
 
   @av_queue :rindle_media
@@ -110,42 +111,37 @@ defmodule Rindle.Workers.ProcessVariant do
       :ok
     else
       execute_with_contract(asset, variant, variant_spec, fn ->
-        with :ok <- ensure_variant_state(repo, variant, "queued"),
-             variant <- repo.get!(MediaVariant, variant.id),
-             :ok <- ensure_variant_state(repo, variant, "processing"),
-             :ok <- AssetAggregate.recompute(repo, asset.id),
-             variant <- repo.get!(MediaVariant, variant.id),
-             {:ok, run_dir} <- TempRunDir.create() do
-          try do
-            with :ok <- RuntimeGuard.check!(variant_spec, path: run_dir),
-                 {:ok, source_tmp} <- download_source(asset, run_dir),
-                 {:ok, dest_tmp} <- generate_dest_path(variant, variant_spec, run_dir),
-                 {:ok, _} <- process_variant(source_tmp, variant_spec, dest_tmp),
-                 {:ok, output_attrs} <- OutputProbe.verify!(dest_tmp, asset, variant_spec),
-                 {:ok, storage_meta} <- upload_variant(asset, variant, dest_tmp, variant_spec),
-                 :ok <-
-                   persist_ready(
-                     repo,
-                     asset,
-                     variant,
-                     storage_meta,
-                     dest_tmp,
-                     variant_spec,
-                     output_attrs
-                   ) do
-              maybe_enqueue_streaming_ingest(asset, variant, profile_module)
-              :ok
-            else
-              {:cancel, reason} ->
-                _ = handle_cancel(repo, variant, reason)
-                {:cancel, normalize_public_reason(reason)}
+        do_process_variant(repo, asset, variant, variant_spec, profile_module)
+      end)
+    end
+  end
 
-              {:error, reason} ->
-                handle_failure(repo, variant, reason)
-            end
-          after
-            _ = TempRunDir.cleanup(run_dir)
-          end
+  defp do_process_variant(repo, asset, variant, variant_spec, profile_module) do
+    with :ok <- ensure_variant_state(repo, variant, "queued"),
+         variant <- repo.get!(MediaVariant, variant.id),
+         :ok <- ensure_variant_state(repo, variant, "processing"),
+         :ok <- AssetAggregate.recompute(repo, asset.id),
+         variant <- repo.get!(MediaVariant, variant.id),
+         {:ok, run_dir} <- TempRunDir.create() do
+      try do
+        with :ok <- RuntimeGuard.check!(variant_spec, path: run_dir),
+             {:ok, source_tmp} <- download_source(asset, run_dir),
+             {:ok, dest_tmp} <- generate_dest_path(variant, variant_spec, run_dir),
+             {:ok, _} <- process_variant(source_tmp, variant_spec, dest_tmp),
+             {:ok, output_attrs} <- OutputProbe.verify!(dest_tmp, asset, variant_spec),
+             {:ok, storage_meta} <- upload_variant(asset, variant, dest_tmp, variant_spec),
+             :ok <-
+               persist_ready(
+                 repo,
+                 asset,
+                 variant,
+                 storage_meta,
+                 dest_tmp,
+                 variant_spec,
+                 output_attrs
+               ) do
+          maybe_enqueue_streaming_ingest(asset, variant, profile_module)
+          :ok
         else
           {:cancel, reason} ->
             _ = handle_cancel(repo, variant, reason)
@@ -154,7 +150,16 @@ defmodule Rindle.Workers.ProcessVariant do
           {:error, reason} ->
             handle_failure(repo, variant, reason)
         end
-      end)
+      after
+        _ = TempRunDir.cleanup(run_dir)
+      end
+    else
+      {:cancel, reason} ->
+        _ = handle_cancel(repo, variant, reason)
+        {:cancel, normalize_public_reason(reason)}
+
+      {:error, reason} ->
+        handle_failure(repo, variant, reason)
     end
   end
 
@@ -280,7 +285,7 @@ defmodule Rindle.Workers.ProcessVariant do
     with %{provider: Rindle.Streaming.Provider.Mux, source_variant: source_variant} <-
            streaming_config_for(profile_module),
          true <- Atom.to_string(source_variant) == variant.name,
-         true <- Code.ensure_loaded?(Rindle.Workers.MuxIngestVariant) do
+         true <- Code.ensure_loaded?(MuxIngestVariant) do
       args = %{
         "asset_id" => asset.id,
         "profile" => to_string(profile_module),
@@ -290,9 +295,9 @@ defmodule Rindle.Workers.ProcessVariant do
       }
 
       job =
-        Rindle.Workers.MuxIngestVariant.new(
+        MuxIngestVariant.new(
           args,
-          unique: Rindle.Workers.MuxIngestVariant.unique_job_opts()
+          unique: MuxIngestVariant.unique_job_opts()
         )
 
       case Oban.insert(job) do

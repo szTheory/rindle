@@ -3,6 +3,7 @@ defmodule Rindle.DeliveryTest do
 
   import Mox
   alias Rindle.Storage.Capabilities
+  alias Rindle.Streaming.Provider
 
   setup :set_mox_from_context
   setup :verify_on_exit!
@@ -250,23 +251,23 @@ defmodule Rindle.DeliveryTest do
                Rindle.Delivery.streaming_url(UnsupportedProfile, key)
     end
 
-    test "Rindle.Streaming.Provider is callback-only and does not declare streaming_url/3 (Phase 33 D-05)" do
+    test "Provider is callback-only and does not declare streaming_url/3 (Phase 33 D-05)" do
       behaviours =
-        Rindle.Streaming.Provider.module_info(:attributes)
+        Provider.module_info(:attributes)
         |> Keyword.get(:behaviour, [])
 
       assert behaviours == []
-      assert function_exported?(Rindle.Streaming.Provider, :behaviour_info, 1)
+      assert function_exported?(Provider, :behaviour_info, 1)
 
       # D-05 (Phase 33): streaming_url/3 dispatch lives on Rindle.Delivery only,
-      # NOT on the Rindle.Streaming.Provider behaviour. The v1.4 reservation
+      # NOT on the Provider behaviour. The v1.4 reservation
       # callback was removed when the behaviour was promoted (see D-08 — the
       # replacement is non-breaking because no v1.4 implementations existed).
-      refute {:streaming_url, 3} in Rindle.Streaming.Provider.behaviour_info(:callbacks)
+      refute {:streaming_url, 3} in Provider.behaviour_info(:callbacks)
 
       # capabilities/0 remains a callback on the promoted Phase 33 behaviour
       # (it is one of the 6 required callbacks per D-04).
-      assert {:capabilities, 0} in Rindle.Streaming.Provider.behaviour_info(:callbacks)
+      assert {:capabilities, 0} in Provider.behaviour_info(:callbacks)
     end
   end
 

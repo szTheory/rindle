@@ -41,23 +41,21 @@ defmodule Rindle.Storage.GCS.Signer do
   end
 
   defp build_client(pem) when is_binary(pem) do
-    cond do
-      String.starts_with?(pem, "-----BEGIN ") ->
-        client_email = configured_client_email()
+    if String.starts_with?(pem, "-----BEGIN ") do
+      client_email = configured_client_email()
 
-        if is_binary(client_email) and client_email != "" do
-          %{__struct__: GcsSignedUrl.Client, private_key: pem, client_email: client_email}
-        else
-          raise ArgumentError,
-                "Rindle.Storage.GCS :signing_key was given as a bare PEM string but " <>
-                  "`config :rindle, Rindle.Storage.GCS, client_email: \"...\"` is not set. " <>
-                  "Either pass the full decoded service-account JSON map (preferred) or " <>
-                  "configure :client_email separately."
-        end
-
-      true ->
-        # Anything else that's a binary (file path, garbage) is rejected.
-        # File-path loading is adopter responsibility per Q5 LOCKED — adopters
+      if is_binary(client_email) and client_email != "" do
+        %{__struct__: GcsSignedUrl.Client, private_key: pem, client_email: client_email}
+      else
+        raise ArgumentError,
+              "Rindle.Storage.GCS :signing_key was given as a bare PEM string but " <>
+                "`config :rindle, Rindle.Storage.GCS, client_email: \"...\"` is not set. " <>
+                "Either pass the full decoded service-account JSON map (preferred) or " <>
+                "configure :client_email separately."
+      end
+    else
+      # Anything else that's a binary (file path, garbage) is rejected.
+      # File-path loading is adopter responsibility per Q5 LOCKED — adopters
         # who want to load from a file decode at app boot via
         # `Jason.decode!(File.read!("path/to/key.json"))` and pass the map.
         raise ArgumentError,

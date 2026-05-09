@@ -547,7 +547,7 @@ defmodule Rindle.Ops.RuntimeChecksTest do
 
       Application.put_env(:rindle, Rindle.Storage.GCS,
         bucket: "my-bucket",
-        signing_key: Rindle.Storage.GCS.SigningKeyFixture.fixture_json()
+        signing_key: SigningKeyFixture.fixture_json()
       )
 
       try do
@@ -585,8 +585,8 @@ defmodule Rindle.Ops.RuntimeChecksTest do
 
       Application.put_env(:rindle, Rindle.Storage.GCS,
         bucket: "my-bucket",
-        signing_key: Rindle.Storage.GCS.SigningKeyFixture.fixture_pem(),
-        client_email: Rindle.Storage.GCS.SigningKeyFixture.fixture_client_email()
+        signing_key: SigningKeyFixture.fixture_pem(),
+        client_email: SigningKeyFixture.fixture_client_email()
       )
 
       try do
@@ -625,7 +625,7 @@ defmodule Rindle.Ops.RuntimeChecksTest do
 
       Application.put_env(:rindle, Rindle.Storage.GCS,
         bucket: "my-bucket",
-        signing_key: Rindle.Storage.GCS.SigningKeyFixture.fixture_pem()
+        signing_key: SigningKeyFixture.fixture_pem()
       )
 
       try do
@@ -760,7 +760,7 @@ defmodule Rindle.Ops.RuntimeChecksTest do
         finch: finch_name,
         goth: goth_name,
         base_url: "http://localhost:#{bypass.port}",
-        signing_key: Rindle.Storage.GCS.SigningKeyFixture.fixture_json()
+        signing_key: SigningKeyFixture.fixture_json()
       )
 
       try do
@@ -842,6 +842,7 @@ defmodule Rindle.Ops.RuntimeChecksTest do
   # Goth.fetch/1 source via a per-test Goth instance using a fresh fixture.
   describe "probe_gcs_bucket/4 + do_probe/4 (Bypass-mocked HTTP probe — BLOCKER 2 D-13 lock)" do
     alias Rindle.Storage.GCS.SigningKeyFixture
+    alias SigningKeyFixture
 
     defmodule GCSProbeProfile do
       use Rindle.Profile,
@@ -1025,6 +1026,6 @@ defmodule Rindle.Ops.RuntimeChecksTest do
   end
 
   defp gcs_fixture_goth_source(token_url) do
-    {:service_account, Rindle.Storage.GCS.SigningKeyFixture.fixture_json(), url: token_url}
+    {:service_account, SigningKeyFixture.fixture_json(), url: token_url}
   end
 end

@@ -1,10 +1,10 @@
 defmodule Rindle.Processor.AVTest do
   use ExUnit.Case, async: true
 
+  alias Rindle.Probe.AVProbe
   alias Rindle.Processor.AV
   alias Rindle.Processor.AV.Audio
   alias Rindle.Processor.AV.Video
-  alias Rindle.Probe.AVProbe
   alias Rindle.Processor.Ffmpeg
 
   setup do

@@ -1,6 +1,7 @@
 Code.require_file("support/generated_app_helper.ex", __DIR__)
 
 defmodule Rindle.InstallSmoke.DocsParityTest do
+  alias Rindle.InstallSmoke.GeneratedAppHelper
   use ExUnit.Case, async: true
 
   @readme_path Path.expand("../../README.md", __DIR__)
@@ -190,7 +191,7 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
   end
 
   test "upgrade guide mirrors the canonical generated-app proof sequence", %{upgrade: upgrade} do
-    steps = Rindle.InstallSmoke.GeneratedAppHelper.canonical_upgrade_step_sequence()
+    steps = GeneratedAppHelper.canonical_upgrade_step_sequence()
 
     for step <- steps do
       assert String.downcase(upgrade) =~ String.downcase(step.checkpoint)

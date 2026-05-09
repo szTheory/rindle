@@ -1,4 +1,6 @@
 defmodule Rindle.Processor.AV.RuntimeGuard do
+  alias Rindle.AV.TempRunDir
+
   @moduledoc """
   Runtime admission checks for AV processing.
   """
@@ -61,7 +63,7 @@ defmodule Rindle.Processor.AV.RuntimeGuard do
     if av_variant?(variant_spec) do
       free_bytes =
         Keyword.get_lazy(opts, :disk_free_bytes, fn ->
-          Keyword.get(opts, :path, Rindle.AV.TempRunDir.root_dir())
+          Keyword.get(opts, :path, TempRunDir.root_dir())
           |> disk_free_bytes()
         end)
 

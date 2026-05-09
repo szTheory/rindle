@@ -2,6 +2,7 @@ defmodule Rindle.Workers.MuxSyncCoordinatorTest do
   use Rindle.DataCase, async: false
   use Oban.Testing, repo: Rindle.Repo
 
+  alias Ecto.Adapters.SQL
   alias Rindle.Domain.{MediaAsset, MediaProviderAsset}
   alias Rindle.Workers.{MuxSyncCoordinator, MuxSyncProviderAsset}
 
@@ -42,7 +43,7 @@ defmodule Rindle.Workers.MuxSyncCoordinatorTest do
       |> Repo.insert()
 
     # Force the updated_at to simulate age (changeset always bumps it).
-    Ecto.Adapters.SQL.query!(
+    SQL.query!(
       Repo,
       "UPDATE media_provider_assets SET updated_at = $1 WHERE id = $2",
       [updated, Ecto.UUID.dump!(row.id)]

@@ -121,19 +121,22 @@ defmodule Rindle.Domain.MediaAsset do
 
       kind ->
         forbidden = Map.get(@kind_field_invariants, kind, [])
-
-        Enum.reduce(forbidden, changeset, fn field, acc ->
-          case get_field(acc, field) do
-            nil ->
-              acc
-
-            _value ->
-              add_error(acc, field, "must be nil for kind=#{kind} (probe column not applicable)",
-                kind: kind,
-                field: field
-              )
-          end
-        end)
+        validate_forbidden_fields(changeset, kind, forbidden)
     end
+  end
+
+  defp validate_forbidden_fields(changeset, kind, forbidden) do
+    Enum.reduce(forbidden, changeset, fn field, acc ->
+      case get_field(acc, field) do
+        nil ->
+          acc
+
+        _value ->
+          add_error(acc, field, "must be nil for kind=#{kind} (probe column not applicable)",
+            kind: kind,
+            field: field
+          )
+      end
+    end)
   end
 end

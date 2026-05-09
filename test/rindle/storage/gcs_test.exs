@@ -1,8 +1,8 @@
 defmodule Rindle.Storage.GCSTest do
   use ExUnit.Case, async: false
 
-  alias Rindle.Storage.GCS
   alias Rindle.Storage.Capabilities
+  alias Rindle.Storage.GCS
 
   @gcs_credentials System.get_env("GOOGLE_APPLICATION_CREDENTIALS_JSON")
   @gcs_bucket System.get_env("RINDLE_GCS_BUCKET")

@@ -4,9 +4,9 @@ defmodule Rindle.Workers.MuxIngestVariantTest do
   import Mox
   import Ecto.Query, only: [from: 2]
 
-  alias Rindle.Domain.{MediaAsset, MediaVariant, MediaProviderAsset}
-  alias Rindle.Workers.MuxIngestVariant
+  alias Rindle.Domain.{MediaAsset, MediaProviderAsset, MediaVariant}
   alias Rindle.Streaming.Provider.Mux.ClientMock
+  alias Rindle.Workers.MuxIngestVariant
 
   setup :set_mox_from_context
   setup :verify_on_exit!

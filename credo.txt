@@ -1,0 +1,85 @@
+[R] ↘ lib/rindle.ex:4:9 The alias `Rindle.Domain.MediaVariant` is not alphabetically ordered among its group.
+[D] ↘ lib/rindle.ex:448:8 Nested modules could be aliased at the top of the invoking module.
+[D] ↘ lib/rindle.ex:524:5 Nested modules could be aliased at the top of the invoking module.
+[F] → lib/rindle/av/probe.ex:13:13 Function body is nested too deep (max depth is 2, was 3).
+[F] → lib/rindle/delivery.ex:244:8 Function is too complex (cyclomatic complexity is 10, max is 9).
+[D] ↘ lib/rindle/delivery/webhook_plug.ex:190:18 Nested modules could be aliased at the top of the invoking module.
+[D] ↘ lib/rindle/delivery/webhook_plug.ex:191:25 Nested modules could be aliased at the top of the invoking module.
+[R] ↘ lib/rindle/delivery/webhook_plug.ex:219:5 Prefer using an implicit `try` rather than explicit `try`.
+[D] ↘ lib/rindle/delivery/webhook_plug.ex:228:10 Nested modules could be aliased at the top of the invoking module.
+[R] ↘ lib/rindle/delivery/webhook_plug.ex:333:5 Prefer using an implicit `try` rather than explicit `try`.
+[F] → lib/rindle/domain/media_asset.ex:126:11 Function body is nested too deep (max depth is 2, was 3).
+[R] ↘ lib/rindle/live_view.ex:52:11 The alias `Phoenix.PubSub` is not alphabetically ordered among its group.
+[F] → lib/rindle/live_view.ex:182:13 Function body is nested too deep (max depth is 2, was 3).
+[R] ↘ lib/rindle/ops/lifecycle_repair.ex:11:9 The alias `Rindle.Workers.PromoteAsset` is not alphabetically ordered among its group.
+[F] → lib/rindle/ops/lifecycle_repair.ex:82:84 Function body is nested too deep (max depth is 2, was 3).
+[D] ↘ lib/rindle/ops/runtime_checks.ex:79:45 Nested modules could be aliased at the top of the invoking module.
+[R] ↘ lib/rindle/ops/runtime_checks.ex:158:5 Prefer using an implicit `try` rather than explicit `try`.
+[F] → lib/rindle/ops/runtime_checks.ex:499:14 Function body is nested too deep (max depth is 2, was 3).
+[F] → lib/rindle/ops/runtime_checks.ex:539:9 Function body is nested too deep (max depth is 2, was 3).
+[F] → lib/rindle/ops/runtime_checks.ex:811:5 Cond statements should contain at least two conditions besides `true`, consider using `if` instead.
+[F] → lib/rindle/ops/runtime_checks.ex:889:8 Function is too complex (cyclomatic complexity is 12, max is 9).
+[D] ↘ lib/rindle/ops/runtime_checks.ex:899:13 Nested modules could be aliased at the top of the invoking module.
+[F] → lib/rindle/ops/runtime_checks.ex:994:5 Cond statements should contain at least two conditions besides `true`, consider using `if` instead.
+[R] ↘ lib/rindle/ops/runtime_checks.ex:1042:5 Prefer using an implicit `try` rather than explicit `try`.
+[F] → lib/rindle/ops/runtime_checks.ex:1055:8 Function is too complex (cyclomatic complexity is 12, max is 9).
+[F] → lib/rindle/ops/runtime_checks.ex:1056:5 Cond statements should contain at least two conditions besides `true`, consider using `if` instead.
+[F] → lib/rindle/ops/runtime_checks.ex:1086:33 Function body is nested too deep (max depth is 2, was 4).
+[F] → lib/rindle/ops/runtime_checks.ex:1204:5 Cond statements should contain at least two conditions besides `true`, consider using `if` instead.
+[R] ↘ lib/rindle/ops/runtime_checks.ex:1234:5 Prefer using an implicit `try` rather than explicit `try`.
+[F] → lib/rindle/ops/runtime_checks.ex:1255:5 Cond statements should contain at least two conditions besides `true`, consider using `if` instead.
+[F] → lib/rindle/ops/runtime_checks.ex:1366:8 Function is too complex (cyclomatic complexity is 10, max is 9).
+[F] → lib/rindle/ops/runtime_status.ex:360:8 Function is too complex (cyclomatic complexity is 12, max is 9).
+[F] → lib/rindle/ops/upload_maintenance.ex:212:11 Function body is nested too deep (max depth is 2, was 3).
+[D] ↘ lib/rindle/processor/av/runtime_guard.ex:64:36 Nested modules could be aliased at the top of the invoking module.
+[F] → lib/rindle/processor/av/video.ex:59:11 Function body is nested too deep (max depth is 2, was 3).
+[F] → lib/rindle/processor/av/video.ex:87:11 Function body is nested too deep (max depth is 2, was 3).
+[R] ↘ lib/rindle/processor/ffmpeg.ex:8:9 The alias `Rindle.Processor.AV` is not alphabetically ordered among its group.
+[F] → lib/rindle/processor/ffmpeg.ex:21:11 Function body is nested too deep (max depth is 2, was 3).
+[D] ↘ lib/rindle/profile/presets/mux_web.ex:71:9 Nested modules could be aliased at the top of the invoking module.
+[F] → lib/rindle/storage/gcs/client.ex:130:15 Function body is nested too deep (max depth is 2, was 4).
+[F] → lib/rindle/storage/gcs/client.ex:218:11 Function body is nested too deep (max depth is 2, was 3).
+[F] → lib/rindle/storage/gcs/client.ex:272:11 Function body is nested too deep (max depth is 2, was 3).
+[F] → lib/rindle/storage/gcs/signer.ex:44:5 Cond statements should contain at least two conditions besides `true`, consider using `if` instead.
+[F] → lib/rindle/streaming/provider/mux.ex:165:9 Function is too complex (cyclomatic complexity is 10, max is 9).
+[F] → lib/rindle/streaming/provider/mux.ex:310:17 Function body is nested too deep (max depth is 2, was 4).
+[D] ↘ lib/rindle/streaming/provider/mux/http.ex:25:14 Nested modules could be aliased at the top of the invoking module.
+[D] ↘ lib/rindle/streaming/provider/mux/http.ex:35:14 Nested modules could be aliased at the top of the invoking module.
+[D] ↘ lib/rindle/streaming/provider/mux/http.ex:45:14 Nested modules could be aliased at the top of the invoking module.
+[R] ↘ lib/rindle/workers/mux_ingest_variant.ex:84:38 The alias `Rindle.Domain.MediaVariant` is not alphabetically ordered among its group.
+[D] ↘ lib/rindle/workers/mux_sync_coordinator.ex:103:16 Nested modules could be aliased at the top of the invoking module.
+[F] → lib/rindle/workers/mux_sync_provider_asset.ex:187:13 Function body is nested too deep (max depth is 2, was 3).
+[R] ↘ lib/rindle/workers/process_variant.ex:12:9 The alias `Rindle.Processor.AV` is not alphabetically ordered among its group.
+[F] → lib/rindle/workers/process_variant.ex:113:9 Function body is nested too deep (max depth is 2, was 3).
+[D] ↘ lib/rindle/workers/process_variant.ex:293:9 Nested modules could be aliased at the top of the invoking module.
+[D] ↘ lib/rindle/workers/process_variant.ex:295:19 Nested modules could be aliased at the top of the invoking module.
+[D] ↘ lib/rindle/workers/promote_asset.ex:44:27 Nested modules could be aliased at the top of the invoking module.
+[D] ↘ lib/rindle/workers/promote_asset.ex:195:7 Nested modules could be aliased at the top of the invoking module.
+[D] ↘ lib/rindle/workers/promote_asset.ex:196:7 Nested modules could be aliased at the top of the invoking module.
+[R] ↘ test/adopter/canonical_app/lifecycle_test.exs:16:9 The alias `Rindle.Adopter.CanonicalApp.VideoProfile` is not alphabetically ordered among its group.
+[D] ↘ test/install_smoke/docs_parity_test.exs:193:13 Nested modules could be aliased at the top of the invoking module.
+[R] ↘ test/rindle/contracts/telemetry_contract_test.exs:7:9 The alias `Rindle.Domain.AssetFSM` is not alphabetically ordered among its group.
+[D] ↘ test/rindle/contracts/telemetry_contract_test.exs:365:14 Nested modules could be aliased at the top of the invoking module.
+[D] ↘ test/rindle/delivery_test.exs:255:9 Nested modules could be aliased at the top of the invoking module.
+[D] ↘ test/rindle/delivery_test.exs:265:37 Nested modules could be aliased at the top of the invoking module.
+[D] ↘ test/rindle/delivery_test.exs:269:36 Nested modules could be aliased at the top of the invoking module.
+[D] ↘ test/rindle/doctor_test.exs:210:22 Nested modules could be aliased at the top of the invoking module.
+[D] ↘ test/rindle/doctor_test.exs:252:5 Nested modules could be aliased at the top of the invoking module.
+[D] ↘ test/rindle/doctor_test.exs:273:24 Nested modules could be aliased at the top of the invoking module.
+[D] ↘ test/rindle/html_test.exs:353:10 Nested modules could be aliased at the top of the invoking module.
+[D] ↘ test/rindle/html_test.exs:405:10 Nested modules could be aliased at the top of the invoking module.
+[D] ↘ test/rindle/ops/runtime_checks_test.exs:550:22 Nested modules could be aliased at the top of the invoking module.
+[D] ↘ test/rindle/ops/runtime_checks_test.exs:588:22 Nested modules could be aliased at the top of the invoking module.
+[D] ↘ test/rindle/ops/runtime_checks_test.exs:589:23 Nested modules could be aliased at the top of the invoking module.
+[D] ↘ test/rindle/ops/runtime_checks_test.exs:628:22 Nested modules could be aliased at the top of the invoking module.
+[D] ↘ test/rindle/ops/runtime_checks_test.exs:763:22 Nested modules could be aliased at the top of the invoking module.
+[D] ↘ test/rindle/ops/runtime_checks_test.exs:1028:24 Nested modules could be aliased at the top of the invoking module.
+[R] ↘ test/rindle/ops/sweep_orphaned_temp_files_test.exs:7:9 The alias `Rindle.AV.TempRunDir` is not alphabetically ordered among its group.
+[R] ↘ test/rindle/processor/av_test.exs:4:9 The alias `Rindle.Processor.AV` is not alphabetically ordered among its group.
+[R] ↘ test/rindle/storage/gcs_test.exs:4:9 The alias `Rindle.Storage.GCS` is not alphabetically ordered among its group.
+[D] ↘ test/rindle/streaming/provider/mux/optional_dep_test.exs:36:17 Nested modules could be aliased at the top of the invoking module.
+[D] ↘ test/rindle/streaming/provider_test.exs:75:16 Nested modules could be aliased at the top of the invoking module.
+[R] ↘ test/rindle/workers/mux_ingest_variant_test.exs:7:36 The alias `Rindle.Domain.MediaVariant` is not alphabetically ordered among its group.
+[R] ↘ test/rindle/workers/mux_ingest_variant_test.exs:8:9 The alias `Rindle.Workers.MuxIngestVariant` is not alphabetically ordered among its group.
+[D] ↘ test/rindle/workers/mux_sync_coordinator_test.exs:45:5 Nested modules could be aliased at the top of the invoking module.
+[D] ↘ test/rindle/workers/mux_sync_provider_asset_test.exs:76:5 Nested modules could be aliased at the top of the invoking module.

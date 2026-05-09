@@ -4,8 +4,8 @@ defmodule Rindle.Ops.SweepOrphanedTempFilesTest do
 
   import ExUnit.CaptureLog
 
-  alias Rindle.AV.TempRunDir
   alias Mix.Tasks.Rindle.SweepOrphanedTempFiles, as: SweepOrphanedTempFilesTask
+  alias Rindle.AV.TempRunDir
   alias Rindle.Ops.SweepOrphanedTempFiles
 
   setup do

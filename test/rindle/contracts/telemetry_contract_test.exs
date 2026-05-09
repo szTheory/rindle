@@ -4,10 +4,11 @@ defmodule Rindle.Contracts.TelemetryContractTest do
   import Mox
 
   alias Plug.Test
+  alias Rindle.Delivery.LocalPlug
   alias Rindle.Domain.AssetFSM
   alias Rindle.Domain.{MediaAsset, MediaVariant, VariantFSM}
-  alias Rindle.Delivery.LocalPlug
   alias Rindle.Ops.RuntimeChecks
+  alias Rindle.Storage.Local
   alias Rindle.Upload.ResumableTelemetry
   alias Rindle.Workers.ProcessVariant
 
@@ -48,7 +49,7 @@ defmodule Rindle.Contracts.TelemetryContractTest do
     # [:rindle, :delivery, :signed] event still fires for both :public and
     # :private modes (mode is metadata, not a separate event name).
     use Rindle.Profile,
-      storage: Rindle.Storage.Local,
+      storage: Local,
       variants: [thumb: [mode: :fit, width: 8, height: 8]],
       allow_mime: ["image/png"],
       max_bytes: 10_485_760,
@@ -304,13 +305,13 @@ defmodule Rindle.Contracts.TelemetryContractTest do
         Path.join(System.tmp_dir!(), "rindle-contract-#{System.unique_integer([:positive])}")
 
       File.mkdir_p!(root)
-      previous = Application.get_env(:rindle, Rindle.Storage.Local)
-      Application.put_env(:rindle, Rindle.Storage.Local, root: root)
+      previous = Application.get_env(:rindle, Local)
+      Application.put_env(:rindle, Local, root: root)
 
       on_exit(fn ->
         case previous do
-          nil -> Application.delete_env(:rindle, Rindle.Storage.Local)
-          value -> Application.put_env(:rindle, Rindle.Storage.Local, value)
+          nil -> Application.delete_env(:rindle, Local)
+          value -> Application.put_env(:rindle, Local, value)
         end
 
         File.rm_rf(root)
@@ -322,7 +323,7 @@ defmodule Rindle.Contracts.TelemetryContractTest do
       assert_required_metadata_keys(metadata)
       assert_numeric_measurements(measurements)
       assert metadata.profile == LocalContractProfile
-      assert metadata.adapter == Rindle.Storage.Local
+      assert metadata.adapter == Local
     end
 
     test "Delivery.streaming_url/3 emits :delivery :streaming :resolved with stable metadata",
@@ -362,7 +363,7 @@ defmodule Rindle.Contracts.TelemetryContractTest do
       on_exit(fn -> File.rm_rf(root) end)
 
       key = "telemetry/video.mp4"
-      path = Rindle.Storage.Local.path_for(key, root: root)
+      path = Local.path_for(key, root: root)
       File.mkdir_p!(Path.dirname(path))
       File.write!(path, "0123456789abcdef")
 
@@ -402,7 +403,7 @@ defmodule Rindle.Contracts.TelemetryContractTest do
       assert measurements.length == 4
       assert measurements.file_size == 16
       assert metadata.profile == LocalContractProfile
-      assert metadata.adapter == Rindle.Storage.Local
+      assert metadata.adapter == Local
       assert metadata.key == key
       assert metadata.actor_subject == "viewer-1"
     end

@@ -1,4 +1,6 @@
 defmodule Rindle.DoctorTest do
+  alias Mix.Tasks.Rindle.Doctor
+  alias Rindle.Storage.GCS.SigningKeyFixture
   use ExUnit.Case
 
   import ExUnit.CaptureIO
@@ -137,7 +139,7 @@ defmodule Rindle.DoctorTest do
 
     test "OptionParser accepts --streaming boolean flag" do
       # Unit-test the OptionParser boundary directly: invoking
-      # `Mix.Tasks.Rindle.Doctor.run/1` calls Mix.Project.config and may not
+      # `Doctor.run/1` calls Mix.Project.config and may not
       # be safely invokable in test env, so we test the parser shape itself.
       assert {[streaming: true], [], []} =
                OptionParser.parse(["--streaming"], strict: [streaming: :boolean])
@@ -207,7 +209,7 @@ defmodule Rindle.DoctorTest do
         finch: finch_name,
         goth: goth_name,
         base_url: "http://localhost:#{bypass.port}",
-        signing_key: Rindle.Storage.GCS.SigningKeyFixture.fixture_json()
+        signing_key: SigningKeyFixture.fixture_json()
       )
 
       try do
@@ -249,7 +251,7 @@ defmodule Rindle.DoctorTest do
   end
 
   defp run_doctor_checks(args, opts) do
-    Mix.Tasks.Rindle.Doctor.run_checks(
+    Doctor.run_checks(
       args,
       Keyword.put_new(opts, :resumable_session_schema_catalog, resumable_session_schema_fixture())
     )
@@ -270,6 +272,6 @@ defmodule Rindle.DoctorTest do
   end
 
   defp gcs_fixture_goth_source(token_url) do
-    {:service_account, Rindle.Storage.GCS.SigningKeyFixture.fixture_json(), url: token_url}
+    {:service_account, SigningKeyFixture.fixture_json(), url: token_url}
   end
 end

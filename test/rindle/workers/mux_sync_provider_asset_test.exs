@@ -3,6 +3,7 @@ defmodule Rindle.Workers.MuxSyncProviderAssetTest do
   use Oban.Testing, repo: Rindle.Repo
   import Mox
 
+  alias Ecto.Adapters.SQL
   alias Rindle.Domain.{MediaAsset, MediaProviderAsset}
   alias Rindle.Streaming.Provider.Mux.ClientMock
   alias Rindle.Workers.MuxSyncProviderAsset
@@ -73,7 +74,7 @@ defmodule Rindle.Workers.MuxSyncProviderAssetTest do
       })
       |> Repo.insert()
 
-    Ecto.Adapters.SQL.query!(
+    SQL.query!(
       Repo,
       "UPDATE media_provider_assets SET updated_at = $1 WHERE id = $2",
       [updated, Ecto.UUID.dump!(row.id)]

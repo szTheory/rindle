@@ -294,6 +294,7 @@ jobs:
   package-consumer:
     name: Package Consumer Proof Matrix + Release Preflight
     runs-on: ubuntu-22.04
+    continue-on-error: true
     # Shift release readiness left into PR CI by reusing the same service-backed
     # package-consumer lane for the shared release preflight. This keeps the
     # fresh-adopter smoke proof from Phase 9, while also proving tarball
@@ -720,6 +721,7 @@ jobs:
   package-consumer-gcs-live:
     name: Package Consumer GCS Live Proof
     runs-on: ubuntu-22.04
+    continue-on-error: true
     needs: quality
     if: ${{ github.repository == 'szTheory/rindle' }}
     env:

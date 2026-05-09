@@ -5,8 +5,8 @@ defmodule Rindle.Processor.Ffmpeg do
 
   @behaviour Rindle.Processor
 
-  alias Rindle.Processor.AV
   alias Rindle.AV.Subprocess
+  alias Rindle.Processor.AV
   alias Rindle.Security.Argv
 
   @impl Rindle.Processor

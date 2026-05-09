@@ -81,7 +81,7 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
 
     require Logger
 
-    alias Rindle.Domain.{MediaAsset, MediaVariant, MediaProviderAsset, ProviderAssetFSM}
+    alias Rindle.Domain.{MediaAsset, MediaProviderAsset, MediaVariant, ProviderAssetFSM}
     alias Rindle.Streaming.Provider.Mux, as: Adapter
 
     @impl Oban.Worker

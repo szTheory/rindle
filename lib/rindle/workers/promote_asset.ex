@@ -7,8 +7,11 @@ defmodule Rindle.Workers.PromoteAsset do
   alias Rindle.Config
   alias Rindle.Domain.AssetFSM
   alias Rindle.Domain.{MediaAsset, MediaVariant}
+  alias Rindle.Probe.AVProbe
+  alias Rindle.Probe.Image
   alias Rindle.Processor.AV
   alias Rindle.Processor.AV.RuntimeGuard
+  alias Rindle.Security.Mime
   alias Rindle.Workers.ProcessVariant
 
   @probe_fields [
@@ -41,7 +44,7 @@ defmodule Rindle.Workers.PromoteAsset do
 
     try do
       with :ok <- download_to(asset, tmp_path),
-           {:ok, mime} <- Rindle.Security.Mime.detect(tmp_path),
+           {:ok, mime} <- Mime.detect(tmp_path),
            {:ok, probe_module} <- dispatch_probe(mime),
            {:ok, result} <- probe_module.probe(tmp_path) do
         {:ok, build_probe_attrs(mime, result)}
@@ -192,8 +195,8 @@ defmodule Rindle.Workers.PromoteAsset do
 
   defp dispatch_probe(mime) do
     cond do
-      Rindle.Probe.AVProbe.accepts?(mime) -> {:ok, Rindle.Probe.AVProbe}
-      Rindle.Probe.Image.accepts?(mime) -> {:ok, Rindle.Probe.Image}
+      AVProbe.accepts?(mime) -> {:ok, AVProbe}
+      Image.accepts?(mime) -> {:ok, Image}
       true -> {:error, {:no_probe_for_mime, mime}}
     end
   end

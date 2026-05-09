@@ -155,24 +155,22 @@ defmodule Rindle.Ops.RuntimeChecks do
   end
 
   defp check_ffmpeg_runtime(probe) do
-    try do
-      probe.()
+    probe.()
 
-      ok_result(
+    ok_result(
+      "doctor.ffmpeg_runtime",
+      :runtime,
+      "FFmpeg is installed and available in PATH.",
+      "Keep `ffmpeg` >= 6.0 available on the host path."
+    )
+  rescue
+    error in RuntimeError ->
+      error_result(
         "doctor.ffmpeg_runtime",
         :runtime,
-        "FFmpeg is installed and available in PATH.",
-        "Keep `ffmpeg` >= 6.0 available on the host path."
+        "FFmpeg runtime drift detected: #{error.message}",
+        "Install or repair `ffmpeg` >= 6.0 on the host before retrying `mix rindle.doctor`."
       )
-    rescue
-      error in RuntimeError ->
-        error_result(
-          "doctor.ffmpeg_runtime",
-          :runtime,
-          "FFmpeg runtime drift detected: #{error.message}",
-          "Install or repair `ffmpeg` >= 6.0 on the host before retrying `mix rindle.doctor`."
-        )
-    end
   end
 
   defp check_profile_runtime_fit(%{error: message}, _env)
@@ -1170,7 +1168,7 @@ defmodule Rindle.Ops.RuntimeChecks do
 
     with {:ok, token} <- probe_token(goth_name, opts),
          req = Finch.build(:get, url, [{"Authorization", "Bearer " <> token}]),
-         {:ok, %Finch.Response{status: status}} <- Finch.request(req, finch_name) do
+         {:ok, %{__struct__: Finch.Response, status: status}} <- Finch.request(req, finch_name) do
       case status do
         s when s in [200, 403] -> :ok
         404 -> {:bucket_missing, 404}
@@ -1201,31 +1199,28 @@ defmodule Rindle.Ops.RuntimeChecks do
   end
 
   defp check_gcs_signing_key(_profiles, _env) do
-    cond do
-      not Code.ensure_loaded?(GcsSignedUrl.Client) ->
-        error_result(
-          "doctor.gcs_signing_key",
-          :gcs,
-          "GCS-enabled profile detected but :gcs_signed_url dep is not loaded.",
-          @gcs_dep_missing_fix
-        )
+    if not Code.ensure_loaded?(GcsSignedUrl.Client) do
+      error_result(
+        "doctor.gcs_signing_key",
+        :gcs,
+        "GCS-enabled profile detected but :gcs_signed_url dep is not loaded.",
+        @gcs_dep_missing_fix
+      )
+    else
+      case Application.get_env(:rindle, Rindle.Storage.GCS, [])[:signing_key] do
+        nil ->
+          error_result(
+            "doctor.gcs_signing_key",
+            :gcs,
+            "config :rindle, Rindle.Storage.GCS, signing_key: ... is not set.",
+            @gcs_signing_key_fix
+          )
 
-      true ->
-        case Application.get_env(:rindle, Rindle.Storage.GCS, [])[:signing_key] do
-          nil ->
-            error_result(
-              "doctor.gcs_signing_key",
-              :gcs,
-              "config :rindle, Rindle.Storage.GCS, signing_key: ... is not set.",
-              @gcs_signing_key_fix
-            )
-
-          signing_key ->
-            verify_gcs_signing_key(signing_key)
-        end
+        signing_key ->
+          verify_gcs_signing_key(signing_key)
+      end
     end
   end
-
   # Pattern mirrors verify_signing_key_pem/1 at lines 612-643 (Phase 36 WR-10
   # security parity): emit only inspect(exception.__struct__), NEVER
   # Exception.message/1 — so PEM body / JSON content never echo into doctor

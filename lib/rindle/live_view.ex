@@ -49,8 +49,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     require Logger
 
-    alias Phoenix.PubSub
     alias Phoenix.LiveView.Upload
+    alias Phoenix.PubSub
     alias Rindle.Config
     alias Rindle.Domain.MediaUploadSession
     alias Rindle.Upload.Broker

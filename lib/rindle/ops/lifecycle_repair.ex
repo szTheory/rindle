@@ -8,8 +8,8 @@ defmodule Rindle.Ops.LifecycleRepair do
   alias Rindle.Config
   alias Rindle.Domain.MediaAsset
   alias Rindle.Domain.MediaVariant
-  alias Rindle.Workers.PromoteAsset
   alias Rindle.Workers.ProcessVariant
+  alias Rindle.Workers.PromoteAsset
 
   @type failure_class :: :configuration | :enqueue | :state_conflict
   @type reprobe_report :: %{

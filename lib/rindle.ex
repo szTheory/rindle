@@ -1,13 +1,15 @@
 defmodule Rindle do
   alias Rindle.Domain.MediaAsset
   alias Rindle.Domain.MediaAttachment
-  alias Rindle.Domain.MediaVariant
   alias Rindle.Domain.MediaUploadSession
+  alias Rindle.Domain.MediaVariant
   alias Rindle.Error
   alias Rindle.Internal.VariantFailureLogger
   alias Rindle.Ops.LifecycleRepair
+  alias Rindle.Ops.RuntimeStatus
   alias Rindle.Security.UploadValidation
   alias Rindle.Upload.Broker
+  alias Rindle.Workers.ProcessVariant
   alias Rindle.Workers.PromoteAsset
   alias Rindle.Workers.PurgeStorage
 
@@ -445,7 +447,7 @@ defmodule Rindle do
   def cancel_processing(asset_or_id) do
     asset_or_id
     |> get_asset_id()
-    |> Rindle.Workers.ProcessVariant.cancel_processing()
+    |> ProcessVariant.cancel_processing()
   end
 
   @doc """
@@ -521,7 +523,7 @@ defmodule Rindle do
   """
   @spec runtime_status(keyword() | map()) :: {:ok, map()} | {:error, term()}
   def runtime_status(opts \\ []) do
-    Rindle.Ops.RuntimeStatus.runtime_status(opts)
+    RuntimeStatus.runtime_status(opts)
   end
 
   defp get_asset_id(%MediaAsset{id: id}), do: id

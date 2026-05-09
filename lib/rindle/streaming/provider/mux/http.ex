@@ -1,13 +1,14 @@
 # Compiled only when {:mux, "~> 3.2"} is loaded.
 # Adopters who do not configure streaming pay zero transitive cost.
-if Code.ensure_loaded?(Mux.Video.Assets) do
+if Code.ensure_loaded?(Assets) do
   defmodule Rindle.Streaming.Provider.Mux.HTTP do
+    alias Mux.Video.Assets
     @moduledoc false
 
     @behaviour Rindle.Streaming.Provider.Mux.Client
 
     # Real HTTP-client implementation for the Mux REST adapter. Delegates to the
-    # `mux` SDK's `Mux.Video.Assets` module. The `Mux.Base.new/2` Tesla client is
+    # `mux` SDK's `Assets` module. The `Mux.Base.new/2` Tesla client is
     # constructed per call (D-30 — no caching of credentials at module load time;
     # adopters using runtime config are unaffected).
     #
@@ -22,7 +23,7 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
     @impl true
     def create_asset(params) when is_map(params) do
       with {:ok, client} <- build_client() do
-        case Mux.Video.Assets.create(client, params) do
+        case Assets.create(client, params) do
           {:ok, asset, _env} -> {:ok, asset}
           {:error, msg, env} -> {:error, msg, env}
         end
@@ -32,7 +33,7 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
     @impl true
     def get_asset(provider_asset_id) when is_binary(provider_asset_id) do
       with {:ok, client} <- build_client() do
-        case Mux.Video.Assets.get(client, provider_asset_id) do
+        case Assets.get(client, provider_asset_id) do
           {:ok, asset, _env} -> {:ok, asset}
           {:error, msg, env} -> {:error, msg, env}
         end
@@ -42,7 +43,7 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
     @impl true
     def delete_asset(provider_asset_id) when is_binary(provider_asset_id) do
       with {:ok, client} <- build_client() do
-        case Mux.Video.Assets.delete(client, provider_asset_id) do
+        case Assets.delete(client, provider_asset_id) do
           {:ok, _body, _env} -> :ok
           # Idempotent on :not_found per Phase 33 contract — `delete_asset/1`
           # returns `:ok` for both successful delete and already-deleted assets.

@@ -1,4 +1,5 @@
 defmodule Rindle.Streaming.Provider.Mux.OptionalDepTest do
+  alias Rindle.Streaming.Provider.Mux.Client
   use ExUnit.Case, async: true
 
   # MUX-01 smoke test (D-31, D-33). The :mux and :jose deps are loaded in the
@@ -31,9 +32,9 @@ defmodule Rindle.Streaming.Provider.Mux.OptionalDepTest do
     assert Code.ensure_loaded?(JOSE.JWK)
   end
 
-  test "Rindle.Streaming.Provider.Mux.Client behaviour declares the three SDK-shape callbacks" do
-    assert Code.ensure_loaded?(Rindle.Streaming.Provider.Mux.Client)
-    callbacks = Rindle.Streaming.Provider.Mux.Client.behaviour_info(:callbacks)
+  test "Client behaviour declares the three SDK-shape callbacks" do
+    assert Code.ensure_loaded?(Client)
+    callbacks = Client.behaviour_info(:callbacks)
     assert {:create_asset, 1} in callbacks
     assert {:get_asset, 1} in callbacks
     assert {:delete_asset, 1} in callbacks

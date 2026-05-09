@@ -13,8 +13,8 @@ defmodule Rindle.Adopter.CanonicalApp.LifecycleTest do
   use Oban.Testing, repo: Rindle.Adopter.CanonicalApp.Repo
 
   alias Rindle.Adopter.CanonicalApp.Profile, as: AdopterProfile
-  alias Rindle.Adopter.CanonicalApp.VideoProfile, as: AdopterVideoProfile
   alias Rindle.Adopter.CanonicalApp.Repo
+  alias Rindle.Adopter.CanonicalApp.VideoProfile, as: AdopterVideoProfile
   alias Rindle.Domain.{MediaAsset, MediaAttachment, MediaUploadSession, MediaVariant}
   alias Rindle.Ops.UploadMaintenance
   alias Rindle.Upload.Broker

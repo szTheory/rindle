@@ -6,6 +6,7 @@ defmodule Rindle.HTMLTest do
   setup :set_mox_from_context
   setup :verify_on_exit!
 
+  alias Rindle.Domain.MediaAsset
   alias Rindle.Domain.MediaProviderAsset
 
   defmodule PublicProfile do
@@ -62,7 +63,7 @@ defmodule Rindle.HTMLTest do
   end
 
   defp asset_with_variants(variants) do
-    %Rindle.Domain.MediaAsset{
+    %MediaAsset{
       storage_key: "assets/asset-1/original.jpg",
       variants: variants
     }
@@ -73,7 +74,7 @@ defmodule Rindle.HTMLTest do
   end
 
   defp av_asset_with_variants(kind, storage_key, content_type, variants) do
-    %Rindle.Domain.MediaAsset{
+    %MediaAsset{
       kind: to_string(kind),
       storage_key: storage_key,
       content_type: content_type,
@@ -349,8 +350,8 @@ defmodule Rindle.HTMLTest do
 
   test "video_tag/3 uses provider-backed streaming URLs for streaming-enabled profiles" do
     db_asset =
-      %Rindle.Domain.MediaAsset{}
-      |> Rindle.Domain.MediaAsset.changeset(%{
+      %MediaAsset{}
+      |> MediaAsset.changeset(%{
         state: "ready",
         profile: to_string(StreamingProfile),
         kind: "video",
@@ -360,7 +361,7 @@ defmodule Rindle.HTMLTest do
       |> Repo.insert!()
 
     asset =
-      %Rindle.Domain.MediaAsset{
+      %MediaAsset{
         id: db_asset.id,
         kind: "video",
         storage_key: "assets/asset-1/original.mp4",
@@ -401,8 +402,8 @@ defmodule Rindle.HTMLTest do
 
   test "audio_tag/3 uses provider-backed streaming URLs for streaming-enabled profiles" do
     db_asset =
-      %Rindle.Domain.MediaAsset{}
-      |> Rindle.Domain.MediaAsset.changeset(%{
+      %MediaAsset{}
+      |> MediaAsset.changeset(%{
         state: "ready",
         profile: to_string(StreamingProfile),
         kind: "audio",
@@ -412,7 +413,7 @@ defmodule Rindle.HTMLTest do
       |> Repo.insert!()
 
     asset =
-      %Rindle.Domain.MediaAsset{
+      %MediaAsset{
         id: db_asset.id,
         kind: "audio",
         storage_key: "assets/asset-1/original.m4a",

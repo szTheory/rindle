@@ -1,13 +1,15 @@
 defmodule Rindle.Profile.Presets.MuxWeb do
+  alias Rindle.Profile.Presets.Web
+
   @moduledoc """
   Mux streaming preset — the canonical AV web preset PLUS streaming opt-in.
 
   Inherits the `web_720p` + `poster` variant set verbatim from
-  `Rindle.Profile.Presets.Web` and adds a locked `:streaming` delivery block
+  `Web` and adds a locked `:streaming` delivery block
   (provider Mux, signed playback, server-push ingest, web_720p source).
 
   Adopters who want AV-only without streaming should keep using
-  `Rindle.Profile.Presets.Web`. There is no `__using__/1` opt-out for the
+  `Web`. There is no `__using__/1` opt-out for the
   streaming block — `MuxWeb` is streaming-on by definition.
 
   The preset compiles even when the optional `:mux` dep is absent: the DSL
@@ -31,7 +33,7 @@ defmodule Rindle.Profile.Presets.MuxWeb do
   setup (Mux dashboard, webhook plug, doctor smoke, secret rotation).
   """
 
-  @type option :: Rindle.Profile.Presets.Web.option()
+  @type option :: Web.option()
 
   @doc false
   defmacro __using__(opts) do
@@ -68,7 +70,7 @@ defmodule Rindle.Profile.Presets.MuxWeb do
       |> Keyword.delete(:delivery)
       |> Keyword.put(
         :variants,
-        Rindle.Profile.Presets.Web.variants(scrub_strip: scrub_strip?)
+        Web.variants(scrub_strip: scrub_strip?)
       )
       |> Keyword.put(:delivery, delivery)
 

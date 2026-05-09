@@ -1,6 +1,7 @@
 defmodule Rindle.Streaming.ProviderTest do
   use ExUnit.Case, async: true
 
+  alias Rindle.Domain.MediaProviderAsset
   alias Rindle.Streaming.Provider
 
   @expected_required_callbacks [
@@ -57,7 +58,7 @@ defmodule Rindle.Streaming.ProviderTest do
 
   describe "BL-04: provider_state typespec aligned to String.t() (schema is :string)" do
     # The schema column `media_provider_assets.state` is a string field
-    # (Rindle.Domain.MediaProviderAsset), the FSM keys
+    # (MediaProviderAsset), the FSM keys
     # (Rindle.Domain.ProviderAssetFSM.@allowed_transitions) are strings, and
     # adapter implementations (e.g. Rindle.Streaming.Provider.Mux.normalize_state/1)
     # return strings. The behaviour typespec must mirror that surface — atom
@@ -72,7 +73,7 @@ defmodule Rindle.Streaming.ProviderTest do
       # impl is what matters), but the regression for Mux specifically is
       # caught by mux_test.exs (`%{state: "ready", ...}`). Here we lock that
       # the schema-canonical state set stays a list of strings.
-      states = Rindle.Domain.MediaProviderAsset.states()
+      states = MediaProviderAsset.states()
       assert Enum.all?(states, &is_binary/1)
 
       assert Enum.sort(states) ==

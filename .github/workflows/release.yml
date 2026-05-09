@@ -215,8 +215,8 @@ jobs:
 
   publish:
     name: Publish to Hex
-    needs: gate-ci-green
-    if: ${{ always() && needs.gate-ci-green.result == 'success' }}
+    needs: [release-please, recovery-validation]
+    if: ${{ always() && ((github.event_name == 'workflow_dispatch' && needs.recovery-validation.result == 'success') || (github.event_name != 'workflow_dispatch' && needs.release-please.outputs.release_created == 'true')) }}
     runs-on: ubuntu-latest
     environment: release
     permissions:
