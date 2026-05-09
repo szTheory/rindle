@@ -1,11 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if [ -n "${GITHUB_OUTPUT:-}" ]; then
-  printf 'already_published=false\n' >> "$GITHUB_OUTPUT"
-fi
-exit 0
-
 ROOT_DIR="${RINDLE_PROJECT_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 cd "$ROOT_DIR"
 
@@ -43,7 +38,7 @@ fi
 mix_stderr="$(cat "$MIX_LOG" 2>/dev/null || true)"
 
 http_status=""
-if http_status="$(curl -fsS -o /dev/null -w '%{http_code}' "$URL" 2>"$CURL_LOG")"; then
+if http_status="$(curl -sS -o /dev/null -w '%{http_code}' "$URL" 2>"$CURL_LOG")"; then
   curl_exit=0
 else
   curl_exit=$?
