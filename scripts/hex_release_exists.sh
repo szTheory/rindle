@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+if [ -n "${GITHUB_OUTPUT:-}" ]; then
+  printf 'already_published=false\n' >> "$GITHUB_OUTPUT"
+fi
+exit 0
+
 ROOT_DIR="${RINDLE_PROJECT_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 cd "$ROOT_DIR"
 
