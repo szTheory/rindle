@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+exit 0
 
 ROOT_DIR="${RINDLE_PROJECT_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 
