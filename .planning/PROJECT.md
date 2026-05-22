@@ -11,19 +11,56 @@ bearer credentials throughout the public runtime surface and are redacted from
 inspection, telemetry, and operator output.
 
 This milestone closes the locked GCS candidate carried out of `v1.6`. The next
-milestone is open for definition via `/gsd-new-milestone`; the leading carried
-forward candidates are the locked `v1.8` tus protocol plan and the deferred
-browser→Mux direct creator upload slice (`MUX-20..23`).
+milestone, `v1.8 Resumable Browser Ingest`, is now open (started
+`2026-05-22` via `/gsd-new-milestone`).
 
-## Next Milestone Goals
+## Current Milestone: v1.8 Resumable Browser Ingest
 
-- **v1.8 — tus Resumable Upload Protocol**: mountable
-  `Rindle.Upload.TusPlug` macro on `tussle ~> 0.3.1`; HMAC-signed tus URLs;
-  S3 multipart `UploadPart` per-PATCH on the S3 path; Ecto-backed Tussle cache.
-- **v1.8+ — Browser → Mux direct creator upload**: pull forward `MUX-20..23`
-  on top of the existing provider and LiveView primitives.
-- **Future polish**: clean up advisory Phase 34/35 code-review findings that
-  were deferred because they did not block v1.7 shipment.
+**Goal:** Make unreliable-network, large-file, browser-origin uploads durable —
+ship the tus 1.0 protocol on a mountable bare Plug (Local + S3/MinIO backing),
+pull forward browser→Mux direct creator upload, so every browser ingest path
+Rindle exposes is resume-safe and converges into the one trusted verify/promote
+lane.
+
+**Target features:**
+
+- **tus 1.0 protocol (spine)** — `Rindle.Upload.TusPlug` as a **bare `Plug`**
+  (NO `tussle` dependency, NO Phoenix dependency; mirror the in-repo
+  `WebhookPlug`/`LocalPlug` `forward`-mount idiom). HEAD/PATCH/OPTIONS/POST/DELETE
+  with tus headers; HMAC-signed bearer URLs via `Plug.Crypto`; scope = Core +
+  Creation + Expiration + Termination only.
+- **S3 multipart-per-PATCH + Local tmp-append backing** — one new optional
+  adapter callback `upload_part_stream/5`; PATCH chunks flush to S3 `UploadPart`
+  (sub-5 MiB final chunk buffered under the sweepable `Rindle.tmp/` root) or
+  append to a local tmp file; completion converges into the existing
+  `verify_completion/2` lane (zero new completion vocabulary).
+- **One new capability atom `:tus_upload`** (Topology B: server-mediated, bytes
+  on the BEAM hot path) — kept distinct from v1.7's `:resumable_upload`
+  (Topology A: provider-direct session URI, GCS-native). No silent downgrade.
+- **Reuse the v1.7 substrate** — `upload_strategy: "resumable"`, the `"resuming"`
+  FSM lane, broker resumable entrypoints, the reaper, `session_uri` redaction,
+  and resumable telemetry. Add exactly ONE column (`resumable_protocol`) to
+  discriminate `"gcs_native"` vs `"tus"`.
+- **Browser → Mux direct creator upload (`MUX-20..23`, sibling, droppable)** —
+  implement the reserved `create_direct_upload/2` callback (returns
+  `provider_asset_id: nil` at create); upgrade the no-op
+  `video.upload.asset_created` worker branch into the upload→asset linker
+  (correlate via Mux `passthrough`); thin streaming-side entrypoint + LiveView
+  `:external`/UpChunk DX. ~1.5–2 days, LOW risk; the clean cut if the milestone
+  runs long.
+- **Hygiene sub-stream** — fold the ~25 advisory Phase 34/35 code-review
+  findings into the foundation/docs phases (not a standalone milestone). Close
+  the 5 Phase 36 CI-only UAT items by observation during v1.8 CI.
+
+**Key context:**
+- The v1.6 locked tus candidate plan (`v1.6-CANDIDATE-TUS.md`) and the
+  `TUS-CANDIDATE-MEMO.md` are now **stale**: both predate v1.7, which already
+  shipped ~60% of the "tus foundations" substrate. The locked v1.8 shape
+  (bare Plug, one column, `:tus_upload` atom, 3 tus phases) lives in
+  `.planning/research/v1.8/`. Deferred to v1.9+: tus Checksum/Concatenation,
+  IETF RUFH (tus 2.0, draft-11), GCS-as-tus-backend, a Rindle-owned tus JS
+  client, a LiveView tus uploader component, a second streaming provider.
+- **Hex semver:** cut `0.2.0` at v1.8 close (additive only, still pre-1.0).
 
 ## Recently Shipped Milestone
 
@@ -161,18 +198,22 @@ Media, made durable.
   for image-only profiles — v1.7 (Phase 37) (GCS-01..04). Live-bucket proof is
   accepted CI automation via `gcs-soak` (`ci_verified`), not manual follow-up.
 
-### Candidate Next Requirements
+### Active (v1.8 Resumable Browser Ingest)
 
-`v1.7` is shipped. The next candidate requirements are:
-- `MUX-20..23`: browser→Mux direct creator upload — Phase 37 not pulled
-  forward in v1.6; clean additive surface on already-built primitives.
-- `RESUMABLE-01..14`: GCS resumable upload session FSM + capability promotion —
-  Phases 38–41 of v1.7 build on the foundation shipped in Phase 37.
-- `TUS-01..19`: tus protocol family on a mountable Plug — locked v1.8 plan in
-  `.planning/research/v1.6-CANDIDATE-TUS.md`
-- Code-review polish for Phases 34/35/36 — CR-01/02/03 (Phase 36 soak-lane
-  operational defects) + remaining advisory Warning/Info findings deferred
-  past v1.7.
+In scope for `v1.8` (see `.planning/REQUIREMENTS.md` for the full list):
+- `TUS-*`: tus 1.0 protocol on a bare `Rindle.Upload.TusPlug` (Core + Creation
+  + Expiration + Termination), `upload_part_stream/5` adapter callback,
+  `:tus_upload` capability, HMAC-signed URLs, S3 multipart + Local backing,
+  reaper branch, DX/docs/doctor/telemetry, MinIO + tus-js-client CI proof. The
+  locked shape lives in `.planning/research/v1.8/TUS-RESEARCH.md`.
+- `MUX-20..23`: browser→Mux direct creator upload (sibling slice, droppable
+  under budget). Locked detail in `.planning/research/v1.8/MUX-DIRECT-UPLOAD-RESEARCH.md`.
+- `CR-*`: advisory Phase 34/35 code-review polish folded in as a hygiene
+  sub-stream.
+
+Deferred to `v1.9+`: tus Checksum/Concatenation, IETF RUFH (tus 2.0),
+GCS-as-tus-backend, a Rindle-owned tus JS client, a LiveView tus uploader
+component, a second streaming provider.
 
 ### Out of Scope
 
@@ -448,4 +489,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-08 — v1.7 shipped. Provider-backed CI proofs now route to `ci_verified`, not `human_needed`; the milestone archive and audit treat `gcs-soak` and `package-consumer-gcs-live` as accepted automated closure evidence.*
+*Last updated: 2026-05-22 — v1.8 Resumable Browser Ingest started. Locked scope: tus 1.0 protocol on a bare Plug (no tussle/Phoenix dep), browser→Mux direct creator upload sibling, Phase 34/35 code-review polish folded in. Cut Hex 0.2.0 at close. Research-backed shape in `.planning/research/v1.8/`.*
