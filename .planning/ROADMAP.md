@@ -93,7 +93,12 @@ the bare-Plug / one-column / `:tus_upload`-atom decisions are not relitigated he
   4. tus sessions expire (`expires_at` → `Upload-Expires` + `410 Gone`) and `DELETE` terminates; the `UploadMaintenance`/`AbortIncompleteUploads` reaper branches on `resumable_protocol` (`"tus"` → abort the S3 multipart or remove the local tmp; `"gcs_native"` → existing session-URI cancel).
   5. A MinIO integration proof completes a ≥ 1 GiB tus upload with a mid-flight drop + resume, and asserts that after abandonment + reaper, `list_multipart_uploads` returns empty.
 
-**Plans**: TBD
+**Plans**: 5 plans
+- [ ] 43-01-PLAN.md — Wave 0: declare upload_part_stream/5 + complete_part_stream/4 OPTIONAL callbacks + test scaffolding (2 NEW test files, 3 extended)
+- [ ] 43-02-PLAN.md — S3 adapter: tail-buffer upload_part_stream/5 (ETag-from-headers), complete_part_stream/3, advertise :tus_upload
+- [ ] 43-03-PLAN.md — Reaper: branch expire_session on resumable_protocol; tus -> abort S3 multipart (closes the orphaned-multipart leak)
+- [ ] 43-04-PLAN.md — Local impl + TusPlug polymorphic dispatch; converge into UNCHANGED verify_completion/2 (D-08)
+- [ ] 43-05-PLAN.md — MinIO >= 1 GiB drop+resume + list_multipart_uploads-empty zero-leak proof (+ CI checkpoint)
 **UI hint**: no
 
 ### Phase 44: Auth Hardening, DX, Docs, Telemetry, CI Proof
