@@ -16,6 +16,7 @@ defmodule Rindle.Storage.Capabilities do
           | :local
           | :resumable_upload
           | :resumable_upload_session
+          | :tus_upload
 
   @known [
     :presigned_put,
@@ -24,7 +25,8 @@ defmodule Rindle.Storage.Capabilities do
     :head,
     :local,
     :resumable_upload,
-    :resumable_upload_session
+    :resumable_upload_session,
+    :tus_upload
   ]
 
   @spec known() :: [capability()]

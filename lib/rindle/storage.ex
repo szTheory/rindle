@@ -22,6 +22,7 @@ defmodule Rindle.Storage do
           | :local
           | :resumable_upload
           | :resumable_upload_session
+          | :tus_upload
 
   @typedoc "Successful storage write metadata. Adapters MUST include `:key`; other fields are adapter-specific."
   @type put_result :: %{:key => String.t(), optional(atom()) => term()}

@@ -80,7 +80,7 @@ defmodule Rindle.Storage.Local do
   end
 
   @impl true
-  def capabilities, do: [:local, :presigned_put]
+  def capabilities, do: [:local, :presigned_put, :tus_upload]
 
   @doc """
   Returns the expanded local storage root for the given opts.
