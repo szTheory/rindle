@@ -87,6 +87,7 @@ defmodule Rindle.Storage.StorageAdapterTest do
     assert :signed_url in known
     assert :resumable_upload in known
     assert :resumable_upload_session in known
+    assert :tus_upload in known
   end
 
   test "safe capabilities normalize malformed adapter implementations" do
@@ -95,7 +96,7 @@ defmodule Rindle.Storage.StorageAdapterTest do
   end
 
   test "capability lists are truthful for all adapters" do
-    assert [:local, :presigned_put] == Local.capabilities()
+    assert [:local, :presigned_put, :tus_upload] == Local.capabilities()
     assert [:presigned_put, :head, :signed_url, :multipart_upload] == S3.capabilities()
 
     assert [:signed_url, :head, :resumable_upload, :resumable_upload_session] ==
