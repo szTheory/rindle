@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.8
 milestone_name: Resumable Browser Ingest
 status: planning
-last_updated: "2026-05-22T10:30:00.000Z"
-last_activity: 2026-05-22
+last_updated: "2026-05-22T13:38:47.430Z"
+last_activity: 2026-05-22 — v1.8 ROADMAP.md written (Phases 42–45, 100% coverage)
 progress:
   total_phases: 4
   completed_phases: 0
@@ -130,16 +130,18 @@ code-review debt is POLISH-01 (Phase 42) and POLISH-02 (Phase 44).
 - tus locked architecture: `.planning/research/v1.8/TUS-RESEARCH.md` (authoritative
   — bare Plug, no tussle/Phoenix, one `resumable_protocol` column, `:tus_upload`
   atom, `upload_part_stream/5`, §12 phase plan).
+
 - Mux direct upload locked detail: `.planning/research/v1.8/MUX-DIRECT-UPLOAD-RESEARCH.md`
   (callback returns `provider_asset_id: nil` at create; correlate via Mux
   `passthrough`, not upload id).
+
 - Sequencing rationale + budget cut order: `.planning/research/v1.8/STRATEGY-SEQUENCING.md`.
 - Mux SDK boundary: stay on the official Elixir SDK with a thin adapter; see
   `.planning/research/v1.8-MUX-SDK-BOUNDARY.md`.
 
 ## Session Continuity
 
-Last session: 2026-05-22 — v1.8 Resumable Browser Ingest roadmap written. 4
+Last session: 2026-05-22T13:38:47.425Z
 phases (42–45), 20/20 requirements mapped at 100% coverage. ROADMAP.md,
 REQUIREMENTS.md traceability, and STATE.md updated.
 
