@@ -53,7 +53,7 @@ resume-safe and converges into the one trusted `verify_completion/2` promote lan
   `204` + new `Upload-Offset` on success and **`409`** on offset mismatch (the
   contract tus-js-client auto-retries).
 
-- [ ] **TUS-04**: `OPTIONS` advertises `Tus-Version`, `Tus-Resumable`,
+- [x] **TUS-04**: `OPTIONS` advertises `Tus-Version`, `Tus-Resumable`,
   `Tus-Extension` (creation, expiration, termination — only what is implemented),
   and `Tus-Max-Size`.
 
@@ -195,7 +195,7 @@ Which phases cover which requirements. Phase numbering continues from v1.7
 | TUS-01 | Phase 42 — tus Protocol Edge (bare Plug) | Complete |
 | TUS-02 | Phase 42 — tus Protocol Edge (bare Plug) | Complete |
 | TUS-03 | Phase 42 — tus Protocol Edge (bare Plug) | Pending |
-| TUS-04 | Phase 42 — tus Protocol Edge (bare Plug) | Pending |
+| TUS-04 | Phase 42 — tus Protocol Edge (bare Plug) | Complete |
 | TUS-05 | Phase 42 — tus Protocol Edge (bare Plug) | Complete |
 | POLISH-01 | Phase 42 — tus Protocol Edge (bare Plug) | Complete |
 | TUS-06 | Phase 43 — S3 Multipart Backing + MinIO Proof | Pending |
