@@ -381,6 +381,59 @@ defmodule Rindle.Workers.MuxIngestVariantTest do
   end
 
   # ===========================================================
+  # WR-09 (POLISH-01/D-13) — :exception telemetry redacts the error reason
+  # via safe_reason/1 (atoms pass; everything else inspect |> slice(0,200)).
+  # invariant-14-adjacent: prevents a raw struct/string error reason (which
+  # could carry a provider_asset_id) from leaking into telemetry metadata.
+  # ===========================================================
+
+  describe "WR-09: :exception telemetry routes reason through safe_reason/1" do
+    setup do
+      test_pid = self()
+      handler_id = "ingest-wr09-#{System.unique_integer([:positive])}"
+
+      :telemetry.attach(
+        handler_id,
+        [:rindle, :provider, :ingest, :exception],
+        fn _event, _m, metadata, _ -> send(test_pid, {:tele, metadata}) end,
+        nil
+      )
+
+      on_exit(fn -> :telemetry.detach(handler_id) end)
+      :ok
+    end
+
+    test "an atom error reason passes through unchanged", ctx do
+      expect(ClientMock, :create_asset, fn _params ->
+        {:error, :provider_sync_failed}
+      end)
+
+      assert {:error, :provider_sync_failed} = perform_job(MuxIngestVariant, ctx.args)
+
+      assert_receive {:tele, %{kind: :error, reason: :provider_sync_failed}}, 1_000
+    end
+
+    test "a non-atom error reason is inspect-truncated to 200 chars (never raw)", ctx do
+      # A leak-prone reason: a long string that could embed a provider id. The
+      # 2-tuple {:error, reason} passes through the adapter verbatim, so the
+      # worker's :exception branch must redact it via safe_reason/1.
+      leaky = "asset_id=" <> String.duplicate("Z", 500)
+
+      expect(ClientMock, :create_asset, fn _params ->
+        {:error, leaky}
+      end)
+
+      assert {:error, ^leaky} = perform_job(MuxIngestVariant, ctx.args)
+
+      assert_receive {:tele, %{kind: :error, reason: redacted}}, 1_000
+      # safe_reason/1: non-atom -> inspect |> String.slice(0, 200).
+      assert is_binary(redacted)
+      assert String.length(redacted) <= 200
+      assert redacted == leaky |> inspect() |> String.slice(0, 200)
+    end
+  end
+
+  # ===========================================================
   # Pitfall 3 — 429 Retry-After extraction (SDK Issue #42)
   # ===========================================================
 
