@@ -265,4 +265,69 @@ defmodule Rindle.Streaming.Provider.MuxTest do
               }} = Adapter.verify_webhook(body, headers, [secret])
     end
   end
+
+  # ===========================================================
+  # WR-02 (POLISH-01/D-13) — case-insensitive signature header lookup
+  # ===========================================================
+
+  describe "WR-02: case-insensitive Mux-Signature header lookup (RFC 7230)" do
+    test "verify_webhook/3 resolves a mixed-case `Mux-Signature` header" do
+      secret = "test-webhook-secret"
+      body = File.read!("test/fixtures/mux/webhook_video_asset_ready.json")
+
+      # Title-case header — an edge proxy or adopter wrapper may emit any
+      # casing. Pre-WR-02 the hardcoded "mux-signature" lookup would miss this
+      # and reject a valid signature with {:error, :provider_webhook_invalid}.
+      headers = %{"Mux-Signature" => MuxWebhookFixtures.sign_header(body, secret)}
+
+      assert {:ok, %{type: :ready}} =
+               Adapter.verify_webhook(body, headers, [secret])
+    end
+
+    test "verify_webhook/3 resolves an upper-case `MUX-SIGNATURE` header" do
+      secret = "test-webhook-secret"
+      body = File.read!("test/fixtures/mux/webhook_video_asset_ready.json")
+
+      headers = %{"MUX-SIGNATURE" => MuxWebhookFixtures.sign_header(body, secret)}
+
+      assert {:ok, %{type: :ready}} =
+               Adapter.verify_webhook(body, headers, [secret])
+    end
+  end
+
+  # ===========================================================
+  # WR-05 (POLISH-01/D-13) — unknown Mux status -> nil + Logger.warning
+  # ===========================================================
+
+  describe "WR-05: normalize_state/1 allowlists known Mux statuses" do
+    test "get_asset/1 maps an unknown status to nil and logs a warning" do
+      import ExUnit.CaptureLog
+
+      expect(ClientMock, :get_asset, fn _id ->
+        {:ok, %{"id" => "asset-unknown-status", "status" => "transcoding", "playback_ids" => []}}
+      end)
+
+      {result, log} =
+        with_log(fn -> Adapter.get_asset("asset-unknown-status") end)
+
+      # Unknown status is treated as "ignore" (nil) rather than passed through
+      # to the FSM, where it would burn retries on an invalid transition.
+      assert {:ok, %{state: nil}} = result
+      assert log =~ "rindle.mux.unknown_status"
+    end
+
+    test "get_asset/1 passes through preparing|ready|errored statuses" do
+      for {mux_status, expected} <- [
+            {"preparing", "processing"},
+            {"ready", "ready"},
+            {"errored", "errored"}
+          ] do
+        expect(ClientMock, :get_asset, fn _id ->
+          {:ok, %{"id" => "asset-#{mux_status}", "status" => mux_status, "playback_ids" => []}}
+        end)
+
+        assert {:ok, %{state: ^expected}} = Adapter.get_asset("asset-#{mux_status}")
+      end
+    end
+  end
 end

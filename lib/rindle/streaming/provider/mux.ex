@@ -372,11 +372,16 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
     # Forward-compat default — unknown events drop. Mux ships novelty regularly.
     def dispatch_kind(_other), do: :drop
 
-    # Plug.Conn lowercases all request headers per HTTP/2 spec (D-05).
-    # Headers reaching this function via the Plug already come from
-    # `conn.req_headers` (lowercase). Tests pass the map shape directly.
+    # WR-02 (POLISH-01/D-13): HTTP header names are case-insensitive (RFC 7230).
+    # Plug.Conn lowercases request headers per the HTTP/2 spec, but adopter
+    # wrappers, edge proxies, or future libraries may pass other casings
+    # (`MUX-SIGNATURE`, `Mux-Signature`, ...). Downcase the entire header map
+    # once, then `Map.fetch("mux-signature")` so a valid signature under any
+    # casing resolves instead of silently failing signature verification.
     defp fetch_sig_header(headers) do
-      case Map.fetch(headers, "mux-signature") do
+      downcased = Map.new(headers, fn {k, v} -> {String.downcase(to_string(k)), v} end)
+
+      case Map.fetch(downcased, "mux-signature") do
         {:ok, value} -> {:ok, value}
         :error -> :error
       end

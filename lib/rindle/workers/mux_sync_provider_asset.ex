@@ -29,7 +29,7 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
         `get_asset/1` call (whether or not a state change occurred).
 
             measurements: %{system_time}
-            metadata:     %{profile, provider, asset_id, provider_state, age_ms}
+            metadata:     %{profile, provider, asset_id, provider_state, age_ms, no_change}
 
       * `[:rindle, :provider, :sync, :stuck]` — fires when the row's
         `updated_at` exceeds `:provider_stuck_threshold_seconds` (default 7200).
@@ -39,6 +39,28 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
     `metadata.asset_id` is the redacted last-4-char tag of the
     `provider_asset_id` (security invariant 14, via
     `Rindle.Domain.MediaProviderAsset.redact_id/1`).
+
+    ### `age_ms` semantics across `:resolved` and `:stuck` (WR-03 / POLISH-01/D-13)
+
+    `metadata.age_ms` is ALWAYS "time since the row's `updated_at`", never
+    "time since the last sync attempt". Because a no-op `:resolved` event
+    (live state already matches the row — see `metadata.no_change: true`)
+    performs no DB write, `updated_at` is unchanged and `age_ms` keeps growing
+    while syncs are succeeding. The same metric therefore carries two
+    operational semantics depending on the event/branch:
+
+      * `:resolved` with `no_change: false` — a transition just happened, so
+        `age_ms` measures the age of the row *before* this sync resolved it.
+      * `:resolved` with `no_change: true` — nothing changed, so `age_ms`
+        reflects "time since the last actual state change", which legitimately
+        balloons even though sync is healthy. Dashboards MUST gate on
+        `no_change` (or use `:stuck`) before treating a large `age_ms` as a
+        liveness problem.
+      * `:stuck` — `age_ms` IS the threshold-driving liveness metric (the row
+        exceeded `:provider_stuck_threshold_seconds`).
+
+    Filter `:resolved` events by `no_change` before alerting on `age_ms`; the
+    `:stuck` event is the canonical staleness signal.
     """
 
     use Oban.Worker, queue: :rindle_provider, max_attempts: 3
