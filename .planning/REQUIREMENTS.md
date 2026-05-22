@@ -47,7 +47,7 @@ resume-safe and converges into the one trusted `verify_completion/2` promote lan
   `Rindle.Upload.Broker.initiate_tus_upload/2`, which initiates the S3 multipart
   upload and persists a `"resumable"` session with `resumable_protocol: "tus"`).
 
-- [ ] **TUS-03**: tus client reads the authoritative offset (`HEAD` → `204` +
+- [x] **TUS-03**: tus client reads the authoritative offset (`HEAD` → `204` +
   `Upload-Offset` from `last_known_offset`, `Cache-Control: no-store`) and
   resumes by `PATCH` (`application/offset+octet-stream`) at that offset, getting
   `204` + new `Upload-Offset` on success and **`409`** on offset mismatch (the
@@ -194,7 +194,7 @@ Which phases cover which requirements. Phase numbering continues from v1.7
 |-------------|-------|--------|
 | TUS-01 | Phase 42 — tus Protocol Edge (bare Plug) | Complete |
 | TUS-02 | Phase 42 — tus Protocol Edge (bare Plug) | Complete |
-| TUS-03 | Phase 42 — tus Protocol Edge (bare Plug) | Pending |
+| TUS-03 | Phase 42 — tus Protocol Edge (bare Plug) | Complete |
 | TUS-04 | Phase 42 — tus Protocol Edge (bare Plug) | Complete |
 | TUS-05 | Phase 42 — tus Protocol Edge (bare Plug) | Complete |
 | POLISH-01 | Phase 42 — tus Protocol Edge (bare Plug) | Complete |
