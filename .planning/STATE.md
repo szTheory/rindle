@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v1.8
 milestone_name: Resumable Browser Ingest
 status: planning
-last_updated: "2026-05-22T09:24:02.248Z"
+last_updated: "2026-05-22T10:30:00.000Z"
 last_activity: 2026-05-22
 progress:
-  total_phases: 0
+  total_phases: 4
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -17,19 +17,39 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-05-07)
+See: .planning/PROJECT.md (updated 2026-05-22)
 
 **Core value:** Media, made durable.
-**Current focus:** No active milestone
-Milestone `v1.7` is shipped and archived. The next operator action is to open
-the next milestone with `/gsd-new-milestone`.
+**Current focus:** v1.8 Resumable Browser Ingest — ship the tus 1.0 protocol on a
+bare mountable Plug (Local + S3/MinIO backing), plus browser→Mux direct creator
+upload, so every browser ingest path converges into the one trusted
+`verify_completion/2` promote lane. Roadmap written (4 phases, 42–45, 20/20
+requirements mapped). Next: plan Phase 42.
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-05-22 — Milestone v1.8 started
+Phase: 42 — tus Protocol Edge (bare Plug)
+Plan: — (ready to plan)
+Status: Roadmap complete; Phase 42 ready to plan
+Last activity: 2026-05-22 — v1.8 ROADMAP.md written (Phases 42–45, 100% coverage)
+
+Progress: [____________________] 0% (0/4 phases, 0 plans)
+
+## Milestone Roadmap (v1.8)
+
+Phase numbering continues from v1.7 (last phase = 41). Execution order:
+42 → 43 → 44 → 45. Phase 45 (Mux direct upload) is independent of the tus spine
+(42–44) and is **droppable under budget pressure** — the clean cut if the
+milestone runs long.
+
+| Phase | Name | Requirements | Status |
+|-------|------|--------------|--------|
+| 42 | tus Protocol Edge (bare Plug) | TUS-01..05, POLISH-01 | Not started (ready to plan) |
+| 43 | S3 Multipart Backing + MinIO Proof | TUS-06..09 | Not started |
+| 44 | Auth Hardening, DX, Docs, Telemetry, CI Proof | TUS-10..14, POLISH-02 | Not started |
+| 45 | Browser → Mux Direct Creator Upload (droppable) | MUX-20..23 | Not started |
+
+Hex semver: cut `0.2.0` (additive only, still pre-1.0) at v1.8 close.
 
 ## Recent Completion
 
@@ -47,43 +67,41 @@ Last activity: 2026-05-22 — Milestone v1.8 started
 
 ## Pending Todos
 
-- Phase 34/35 code-review polish — advisory Warning/Info findings deferred
-  from v1.6 close. Either auto-fix early in v1.7 via `/gsd-code-review N --fix`
-  or defer to v1.8.
+- Phase 34/35 code-review polish is now in-milestone scope: POLISH-01 folds into
+  Phase 42 (natural locality with the Mux files MUX-20..23 also touch), POLISH-02
+  folds into Phase 44. Resolve via `/gsd-code-review N --fix` or explicit waiver.
 
-- Preserve tus protocol candidate (`v1.6-CANDIDATE-TUS.md`, 6/10) as locked
-  v1.8 scope.
-
-- Preserve Phase 37-style pull-forward of browser→Mux direct creator upload
-  (MUX-20..23, ~1 day, LOW risk) as v1.8+ candidate.
+- Architect `TusPlug` as a thin protocol-versioned edge so IETF RUFH (tus 2.0)
+  can be an additive second handler later (TUS-RESEARCH.md §13) — not a v1.8
+  deliverable, but a Phase 42 design constraint.
 
 ## Blockers/Concerns
 
-- None. v1.4/v1.5 phase-directory reconciliation completed in commit b09b1c9
-  (archived to `.planning/milestones/v1.4-phases/` and `v1.5-phases/`).
+- None blocking. The locked architecture (bare Plug, one `resumable_protocol`
+  column, `:tus_upload` atom, `upload_part_stream/5` callback) is authoritative in
+  `.planning/research/v1.8/` and is not to be relitigated during planning.
 
-## Deferred Items
+- MEDIUM confidence on adopter *demand* for tus (no in-repo adopter ticket; case
+  inferred from the v1.4 AV wedge). Architecture/scope confidence is HIGH. Phase
+  45 (Mux direct) is the budget-pressure release valve.
 
-Items acknowledged and deferred at v1.6 milestone close on 2026-05-07:
+## Deferred Items (to v1.9+ or out of scope)
 
 | Category | Item | Status |
 |----------|------|--------|
-| uat | Phase 36 — `bash scripts/install_smoke.sh mux` cassette PR run | pending (CI-only by Plan 03 design) |
-| uat | Phase 36 — `mux-soak` real-Mux lane against `streaming`-labelled PR | pending (requires 5 GitHub Secrets) |
-| uat | Phase 36 — HexDocs publish wire (`mix docs` rendering of MuxWeb + streaming_providers.md) | pending (post-publish observable) |
-| uat | Phase 36 — Fork-secret leak boundary on `streaming`-labelled fork PR | pending (GitHub fork secret semantics) |
-| uat | Phase 36 — `Rindle.InstallSmoke.GeneratedAppSmokeMuxTest` in spawned Phoenix project | pending (CI package-consumer step only) |
-| code-review | Phase 34 — 9 Warning + 3 Info findings in `34-REVIEW.md` | deferred to v1.7 polish |
-| code-review | Phase 35 — 6 Warning + 7 Info findings (advisory) | deferred to v1.7 polish |
+| tus | Checksum extension (per-chunk SHA-1, 460) | deferred v1.9+ |
+| tus | Concatenation / parallel partial uploads | deferred v1.9+ |
+| tus | `Upload-Defer-Length` (size unknown at create) | deferred v1.9+ |
+| tus | IETF RUFH / tus 2.0 (`104 Upload Resumption`) | deferred (architect edge for it) |
+| tus | GCS-as-tus-backend / R2-native tus proxying | out of scope (GCS keeps Topology A) |
+| tus | Rindle-owned tus JS client | out of scope (use tus-js-client/`@uppy/tus`) |
+| tus | LiveView tus uploader component | deferred v1.9 |
+| streaming | Second streaming provider (Cloudflare/Bunny) | deferred (no demand signal) |
+| mux | `cancel_direct_upload/1` | deferred (Mux auto-`timed_out` covers it) |
 
-Phase 36 verifier passed 5/5 must-haves at artifact-and-wiring level; the
-5 UAT items above are CI-time observables by design (Plan 03 SUMMARY
-explicitly defers them to the package-consumer CI step).
-
-Phase 36 code-review findings — **all 12 already resolved before close**
-(commits `8b291c1` CR-01, `744755e` CR-02, `12dfd0f` CR-03, `a1e5e94`–`c901124`
-WR-01..WR-10). REVIEW.md `status: fixes_applied`. No Phase 36 review
-deferral remains.
+Phase 36 CI-only UAT items (5) and Phase 34/35 advisory code-review debt are
+addressed in v1.8: the UAT items close by observation during v1.8 CI; the
+code-review debt is POLISH-01 (Phase 42) and POLISH-02 (Phase 44).
 
 ## Decision-Making Preference
 
@@ -97,10 +115,6 @@ deferral remains.
   and synthesize a single cohesive direction instead of presenting loosely
   related options back to the user.
 
-- Shift this preference left: front-load research, use subagents when helpful,
-  and default to one-shot recommendation sets that let planning/execution
-  proceed without reopening routine design choices.
-
 - Default toward least-surprise public contracts, strong developer
   ergonomics, and operator-friendly behaviour. When a choice is advisory
   rather than truly blocking, prefer telemetry/docs/metadata over expanding
@@ -113,25 +127,28 @@ deferral remains.
 
 ## Research Notes
 
-- Mux integration should stay on the official Elixir SDK with a thin
-  Rindle-owned adapter boundary. Do not reimplement the Mux client unless the
-  SDK becomes a hard blocker.
-
-- Preserved memo: `.planning/research/v1.8-MUX-SDK-BOUNDARY.md`
+- tus locked architecture: `.planning/research/v1.8/TUS-RESEARCH.md` (authoritative
+  — bare Plug, no tussle/Phoenix, one `resumable_protocol` column, `:tus_upload`
+  atom, `upload_part_stream/5`, §12 phase plan).
+- Mux direct upload locked detail: `.planning/research/v1.8/MUX-DIRECT-UPLOAD-RESEARCH.md`
+  (callback returns `provider_asset_id: nil` at create; correlate via Mux
+  `passthrough`, not upload id).
+- Sequencing rationale + budget cut order: `.planning/research/v1.8/STRATEGY-SEQUENCING.md`.
+- Mux SDK boundary: stay on the official Elixir SDK with a thin adapter; see
+  `.planning/research/v1.8-MUX-SDK-BOUNDARY.md`.
 
 ## Session Continuity
 
-Last session: 2026-05-07T15:34:36.918Z
-v1.7 GCS Resumable Adapter started via `/gsd-new-milestone`; v1.7
-REQUIREMENTS.md and ROADMAP.md written (5 phases, 18 plans, 18 reqs,
-100% coverage).
+Last session: 2026-05-22 — v1.8 Resumable Browser Ingest roadmap written. 4
+phases (42–45), 20/20 requirements mapped at 100% coverage. ROADMAP.md,
+REQUIREMENTS.md traceability, and STATE.md updated.
 
 **Last Completed Milestone:** v1.7 (Phases 37-41) — archived 2026-05-08,
 tag `v1.7`.
 
-**Next Step:** `/gsd-new-milestone` (define the next milestone and write fresh
-requirements).
+**Next Step:** `/gsd:plan-phase 42` (decompose Phase 42 — tus Protocol Edge —
+into executable plans).
 
 ## Operator Next Steps
 
-- Start the next milestone with `/gsd-new-milestone`.
+- Plan Phase 42 with `/gsd:plan-phase 42`.

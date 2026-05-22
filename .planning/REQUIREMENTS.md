@@ -168,21 +168,43 @@ prevent scope creep and "why didn't you include X" later.
 
 ## Traceability
 
-Which phases cover which requirements. Populated during roadmap creation.
+Which phases cover which requirements. Phase numbering continues from v1.7
+(last phase = 41); v1.8 spans Phases 42–45.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| TUS-01..05 | TBD | Pending |
-| TUS-06..09 | TBD | Pending |
-| TUS-10..14 | TBD | Pending |
-| MUX-20..23 | TBD | Pending |
-| POLISH-01..02 | TBD | Pending |
+| TUS-01 | Phase 42 — tus Protocol Edge (bare Plug) | Pending |
+| TUS-02 | Phase 42 — tus Protocol Edge (bare Plug) | Pending |
+| TUS-03 | Phase 42 — tus Protocol Edge (bare Plug) | Pending |
+| TUS-04 | Phase 42 — tus Protocol Edge (bare Plug) | Pending |
+| TUS-05 | Phase 42 — tus Protocol Edge (bare Plug) | Pending |
+| POLISH-01 | Phase 42 — tus Protocol Edge (bare Plug) | Pending |
+| TUS-06 | Phase 43 — S3 Multipart Backing + MinIO Proof | Pending |
+| TUS-07 | Phase 43 — S3 Multipart Backing + MinIO Proof | Pending |
+| TUS-08 | Phase 43 — S3 Multipart Backing + MinIO Proof | Pending |
+| TUS-09 | Phase 43 — S3 Multipart Backing + MinIO Proof | Pending |
+| TUS-10 | Phase 44 — Auth Hardening, DX, Docs, Telemetry, CI Proof | Pending |
+| TUS-11 | Phase 44 — Auth Hardening, DX, Docs, Telemetry, CI Proof | Pending |
+| TUS-12 | Phase 44 — Auth Hardening, DX, Docs, Telemetry, CI Proof | Pending |
+| TUS-13 | Phase 44 — Auth Hardening, DX, Docs, Telemetry, CI Proof | Pending |
+| TUS-14 | Phase 44 — Auth Hardening, DX, Docs, Telemetry, CI Proof | Pending |
+| POLISH-02 | Phase 44 — Auth Hardening, DX, Docs, Telemetry, CI Proof | Pending |
+| MUX-20 | Phase 45 — Browser → Mux Direct Creator Upload (droppable) | Pending |
+| MUX-21 | Phase 45 — Browser → Mux Direct Creator Upload (droppable) | Pending |
+| MUX-22 | Phase 45 — Browser → Mux Direct Creator Upload (droppable) | Pending |
+| MUX-23 | Phase 45 — Browser → Mux Direct Creator Upload (droppable) | Pending |
 
 **Coverage:**
 - v1.8 requirements: 20 total (14 TUS + 4 MUX + 2 POLISH)
-- Mapped to phases: 0 (roadmap pending)
-- Unmapped: 20 ⚠️ (will be 0 after roadmap)
+- Mapped to phases: 20 ✓ (every requirement → exactly one phase, no orphans, no duplicates)
+- Unmapped: 0 ✓
+
+**Phase distribution:**
+- Phase 42 (tus Protocol Edge): TUS-01..05 + POLISH-01 (6)
+- Phase 43 (S3 Multipart Backing + MinIO Proof): TUS-06..09 (4)
+- Phase 44 (Auth, DX, Docs, Telemetry, CI Proof): TUS-10..14 + POLISH-02 (6)
+- Phase 45 (Browser → Mux Direct Creator Upload, droppable): MUX-20..23 (4)
 
 ---
 *Requirements defined: 2026-05-22*
-*Last updated: 2026-05-22 after initial definition*
+*Last updated: 2026-05-22 — roadmap created; 100% coverage mapped across Phases 42–45.*
