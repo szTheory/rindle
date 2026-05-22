@@ -20,6 +20,19 @@ Note: the set of FFmpeg `:epipe` failures is non-deterministic across runs (3–
 AVTest failures depending on subprocess timing), confirming an environmental
 (subprocess/pipe) cause rather than a code regression.
 
+## Pre-existing credo refactoring opportunities (42-04 / POLISH-01)
+
+Observed during 42-04 (POLISH-01) execution on 2026-05-22. Confirmed pre-existing
+on HEAD (present before any 42-04 edit) and NOT caused by the WR-02/WR-03 changes.
+Out of scope per the executor SCOPE BOUNDARY rule (pre-existing, unrelated to the
+selective POLISH-01 fixes).
+
+| Location | Credo finding | Disposition |
+|----------|---------------|-------------|
+| `lib/rindle/streaming/provider/mux.ex:165` `create_asset_with_retry_hint/3` | cyclomatic complexity 10 (max 9) | Out of scope — pre-existing on HEAD |
+| `lib/rindle/streaming/provider/mux.ex:~310` `verify_webhook/3` | function body nested too deep (4, max 2) | Out of scope — pre-existing on HEAD (the multi-secret `Enum.find_value` + nested `case` predates 42-04) |
+| `lib/rindle/workers/mux_sync_provider_asset.ex:~209` `apply_state_transition/4` | function body nested too deep (3, max 2) | Out of scope — pre-existing on HEAD (the WR-04 `case`/`reconcile` shape predates 42-04) |
+
 The plan-mandated gates are green:
 - `mix test test/rindle/storage/local_tus_test.exs` — 7/7 pass.
 - `mix test test/rindle/storage/` — 54 pass, 1 skipped, 0 failures.

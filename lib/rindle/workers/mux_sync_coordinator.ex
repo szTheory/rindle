@@ -84,6 +84,9 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
       limit = config(:provider_polling_batch_size, 1_000)
       cutoff = DateTime.add(DateTime.utc_now(), -floor, :second)
 
+      # WAIVED (POLISH-01/D-13): WR-07 was a documented v1.7 deferral (unbounded
+      # scan; add LIMIT only on a >1k-stuck-rows adopter signal). No behavior
+      # change is required here — the `limit`/`order_by` cap is already in place.
       provider_asset_ids =
         repo.all(
           from r in MediaProviderAsset,

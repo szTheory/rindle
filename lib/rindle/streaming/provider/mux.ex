@@ -268,6 +268,9 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
       with {:ok, key_id} <- fetch_required(:signing_key_id),
            {:ok, private_key} <- fetch_required(:signing_private_key) do
         ttl = Rindle.Delivery.signed_url_ttl_seconds(profile)
+        # WAIVED (POLISH-01/D-13): IN-03 — playback_id is a documented URL-safe
+        # alphanumeric (Mux contract); the `URI.encode_www_form/1` here is
+        # belt-and-suspenders only. No behavior change required.
         encoded_playback_id = URI.encode_www_form(playback_id)
 
         jwt =
