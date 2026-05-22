@@ -485,7 +485,7 @@ end
 
 **No `[ASSUMED]` package claims** — Phase 42 installs nothing.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Path-info token extraction under `forward` (A1).**
    - What we know: `forward` strips the mount prefix into `conn.script_name`, leaving the remainder in `conn.path_info` (Plug semantics).
