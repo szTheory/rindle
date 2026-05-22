@@ -65,7 +65,11 @@ the bare-Plug / one-column / `:tus_upload`-atom decisions are not relitigated he
   3. Every tus URL is HMAC-signed via `Plug.Crypto.sign/verify` against `secret_key_base` and verified on each `HEAD`/`PATCH`/`DELETE`; a missing/tampered/expired signature returns `404`/`401`, never `200`, and the URL is stored redacted in `session_uri` and never appears in logs/telemetry/`inspect`.
   4. A `tus-js-client` contract test uploads through the Plug to the Local tmp-append sink (`Rindle.tmp/tus/`, atomic-rename on completion) across simulated PATCH retries and produces a `ready` `MediaAsset` via the existing `verify_completion/2` lane; the additive migration adds exactly one `resumable_protocol` column (`"gcs_native" | "tus"`, nil for legacy) plus a covering index, and the `:tus_upload` capability atom is registered.
   5. Phase 34 advisory code-review findings (9 Warning + 3 Info in `34-REVIEW.md`) are resolved via `/gsd-code-review 34 --fix` or explicitly waived with rationale (POLISH-01).
-**Plans**: TBD
+**Plans**: 4 plans
+- [ ] 42-01-PLAN.md — Foundation: :tus_upload capability + resumable_protocol migration/schema + Broker.initiate_tus_upload/2 + Local tmp-append backing [Wave 1]
+- [ ] 42-02-PLAN.md — TusPlug edge: init/1 capability raise, OPTIONS, POST (HMAC sign + Location), path_info token verify, HEAD [Wave 2]
+- [ ] 42-03-PLAN.md — TusPlug PATCH hot path (409/415/413 + streaming), completion into unchanged verify_completion/2, DELETE, full resume contract flow [Wave 3]
+- [ ] 42-04-PLAN.md — POLISH-01: D-13 selective Mux code-review fixes (8 fix / 3 waive / 1 document), tus-isolated [Wave 1, parallel]
 **UI hint**: no
 
 ### Phase 43: S3 Multipart Backing + MinIO Proof
@@ -116,7 +120,7 @@ without affecting the tus spine.
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 42. tus Protocol Edge (bare Plug) | v1.8 | 0/TBD | Not started | - |
+| 42. tus Protocol Edge (bare Plug) | v1.8 | 0/4 | Planned | - |
 | 43. S3 Multipart Backing + MinIO Proof | v1.8 | 0/TBD | Not started | - |
 | 44. Auth Hardening, DX, Docs, Telemetry, CI Proof | v1.8 | 0/TBD | Not started | - |
 | 45. Browser → Mux Direct Creator Upload (droppable) | v1.8 | 0/TBD | Not started | - |
