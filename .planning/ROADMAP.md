@@ -76,7 +76,7 @@ the bare-Plug / one-column / `:tus_upload`-atom decisions are not relitigated he
 - [x] 42-01-PLAN.md — Foundation: :tus_upload capability + resumable_protocol migration/schema + Broker.initiate_tus_upload/2 + Local tmp-append backing [Wave 1]
 - [ ] 42-02-PLAN.md — TusPlug edge: init/1 capability raise, OPTIONS, POST (HMAC sign + Location), path_info token verify, HEAD [Wave 2]
 - [ ] 42-03-PLAN.md — TusPlug PATCH hot path (409/415/413 + streaming), completion into unchanged verify_completion/2, DELETE, full resume contract flow [Wave 3]
-- [ ] 42-04-PLAN.md — POLISH-01: D-13 selective Mux code-review fixes (8 fix / 3 waive / 1 document), tus-isolated [Wave 1, parallel]
+- [x] 42-04-PLAN.md — POLISH-01: D-13 selective Mux code-review fixes (8 fix / 3 waive / 1 document), tus-isolated [Wave 1, parallel]
 
 **UI hint**: no
 
@@ -137,7 +137,7 @@ without affecting the tus spine.
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 42. tus Protocol Edge (bare Plug) | v1.8 | 1/4 | In Progress|  |
+| 42. tus Protocol Edge (bare Plug) | v1.8 | 2/4 | In Progress|  |
 | 43. S3 Multipart Backing + MinIO Proof | v1.8 | 0/TBD | Not started | - |
 | 44. Auth Hardening, DX, Docs, Telemetry, CI Proof | v1.8 | 0/TBD | Not started | - |
 | 45. Browser → Mux Direct Creator Upload (droppable) | v1.8 | 0/TBD | Not started | - |

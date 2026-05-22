@@ -157,7 +157,7 @@ resume-safe and converges into the one trusted `verify_completion/2` promote lan
 
 ### Code-Review Polish (hygiene sub-stream)
 
-- [ ] **POLISH-01**: Phase 34 advisory code-review findings (9 Warning + 3 Info
+- [x] **POLISH-01**: Phase 34 advisory code-review findings (9 Warning + 3 Info
   in `34-REVIEW.md`) are resolved via `/gsd-code-review 34 --fix`, or explicitly
   waived with rationale. Folded into the foundation phase (natural locality —
   these touch Mux files that MUX-20..23 also touch).
@@ -197,7 +197,7 @@ Which phases cover which requirements. Phase numbering continues from v1.7
 | TUS-03 | Phase 42 — tus Protocol Edge (bare Plug) | Pending |
 | TUS-04 | Phase 42 — tus Protocol Edge (bare Plug) | Pending |
 | TUS-05 | Phase 42 — tus Protocol Edge (bare Plug) | Complete |
-| POLISH-01 | Phase 42 — tus Protocol Edge (bare Plug) | Pending |
+| POLISH-01 | Phase 42 — tus Protocol Edge (bare Plug) | Complete |
 | TUS-06 | Phase 43 — S3 Multipart Backing + MinIO Proof | Pending |
 | TUS-07 | Phase 43 — S3 Multipart Backing + MinIO Proof | Pending |
 | TUS-08 | Phase 43 — S3 Multipart Backing + MinIO Proof | Pending |

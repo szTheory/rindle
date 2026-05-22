@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.8
 milestone_name: Resumable Browser Ingest
 status: executing
-last_updated: "2026-05-22T14:20:24.104Z"
+last_updated: "2026-05-22T18:12:57.369Z"
 last_activity: 2026-05-22
 progress:
   total_phases: 4
