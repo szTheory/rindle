@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.8
 milestone_name: Resumable Browser Ingest
 status: executing
-last_updated: "2026-05-22T14:04:35.289Z"
-last_activity: 2026-05-22 -- Phase 42 planning complete
+last_updated: "2026-05-22T14:20:24.104Z"
+last_activity: 2026-05-22
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 4
-  completed_plans: 0
-  percent: 0
+  completed_plans: 1
+  percent: 25
 ---
 
 # Project State
@@ -20,7 +20,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-22)
 
 **Core value:** Media, made durable.
-**Current focus:** v1.8 Resumable Browser Ingest — ship the tus 1.0 protocol on a
+**Current focus:** Phase 42 — tus-protocol-edge-bare-plug
 bare mountable Plug (Local + S3/MinIO backing), plus browser→Mux direct creator
 upload, so every browser ingest path converges into the one trusted
 `verify_completion/2` promote lane. Roadmap written (4 phases, 42–45, 20/20
@@ -28,12 +28,12 @@ requirements mapped). Next: plan Phase 42.
 
 ## Current Position
 
-Phase: 42 — tus Protocol Edge (bare Plug)
-Plan: — (ready to plan)
+Phase: 42 (tus-protocol-edge-bare-plug) — EXECUTING
+Plan: 2 of 4
 Status: Ready to execute
-Last activity: 2026-05-22 -- Phase 42 planning complete
+Last activity: 2026-05-22
 
-Progress: [____________________] 0% (0/4 phases, 0 plans)
+Progress: [█████_______________] 25% (0/4 phases, 1/4 plans)
 
 ## Milestone Roadmap (v1.8)
 
@@ -141,7 +141,7 @@ code-review debt is POLISH-01 (Phase 42) and POLISH-02 (Phase 44).
 
 ## Session Continuity
 
-Last session: 2026-05-22T13:38:47.425Z
+Last session: 2026-05-22T14:20:16.572Z
 phases (42–45), 20/20 requirements mapped at 100% coverage. ROADMAP.md,
 REQUIREMENTS.md traceability, and STATE.md updated.
 
@@ -154,3 +154,13 @@ into executable plans).
 ## Operator Next Steps
 
 - Plan Phase 42 with `/gsd:plan-phase 42`.
+
+## Performance Metrics
+
+| Phase | Plan | Duration | Notes |
+|-------|------|----------|-------|
+| Phase 42 P01 | 10min | 4 tasks | 8 files |
+
+## Decisions
+
+- [Phase ?]: tus foundation reuses the v1.7 resumable lane with one resumable_protocol discriminator column (D-10); :tus_upload advertised by Local only, no silent downgrade (D-09); initiate_tus_upload/2 makes no S3-multipart call for the Local sink (D-02)

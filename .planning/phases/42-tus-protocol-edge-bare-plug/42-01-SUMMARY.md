@@ -149,6 +149,10 @@ None - no external service configuration required.
 - Verification gates green: `mix compile --warnings-as-errors` clean; `mix test test/rindle/storage/local_tus_test.exs` 7/7; `mix test test/rindle/storage/` 54 pass / 1 skip / 0 failures; migration additive + reversible (`mix ecto.migrate` / `mix ecto.rollback`).
 - The session_uri (signed tus URL) minting/storage is intentionally deferred to the Plug edge (42-02), which owns `secret_key_base` — the broker returns the unsigned session. POLISH-01 (the D-13 selective Mux code-review fixes) is part of Phase 42 scope but was NOT in this plan's task list; it remains for a later 42 plan.
 
+## Self-Check: PASSED
+
+All created files exist (migration, local_tus_test.exs, SUMMARY.md) and all task commits + the plan-metadata commit are present in git history (`9118878`, `5771ece`, `ef14dfa`, `5dcfa1c`, `0ab2141`).
+
 ---
 *Phase: 42-tus-protocol-edge-bare-plug*
 *Completed: 2026-05-22*
