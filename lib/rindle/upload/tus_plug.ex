@@ -53,15 +53,19 @@ defmodule Rindle.Upload.TusPlug do
 
   alias Rindle.Config
   alias Rindle.Domain.MediaUploadSession
-  alias Rindle.Storage.Capabilities
+  alias Rindle.Storage.{Capabilities, Local}
   alias Rindle.Upload.Broker
 
   @tus_url_salt "rindle:tus:url"
   @tus_version "1.0.0"
   @tus_extensions "creation,expiration,termination"
+  @offset_content_type "application/offset+octet-stream"
   # Conservative adopter-overridable default (5 GiB). The only adopter-facing
-  # size knob; the PATCH read-loop constants stay fixed (Plan 03).
+  # size knob; the PATCH read-loop constants below stay fixed (D-07).
   @default_max_size 5 * 1024 * 1024 * 1024
+  # Socket fill + per-read return size — a fixed safety constant so a slow-loris
+  # PATCH cannot pin memory (D-07). Never adopter config.
+  @read_length 1_048_576
 
   @impl true
   def init(opts) do
@@ -185,22 +189,160 @@ defmodule Rindle.Upload.TusPlug do
     end
   end
 
-  # ── PATCH / DELETE (Plan 03) ─────────────────────────────────────────────────
-  # Dispatch stubs so these tus methods do not 405; their bodies land in Plan 03.
+  # ── PATCH (resumable write + completion convergence) ─────────────────────────
 
   defp handle_patch(conn, opts) do
-    case verify_token(conn, opts) do
-      {:ok, _payload} -> tus_error(conn, 404, "")
+    # Order is strict: token → session → 415 (Content-Type) → 409 (offset) all
+    # gate BEFORE any body is read (the 409 contract spine; never drain on mismatch).
+    with {:ok, payload} <- verify_token(conn, opts),
+         {:ok, session} <- load_active_session(payload),
+         :ok <- require_offset_octet_stream(conn),
+         {:ok, inbound_offset} <- parse_upload_offset(conn),
+         :ok <- check_offset_match(inbound_offset, session.last_known_offset),
+         {:ok, new_offset} <- stream_append(conn, session, payload, opts) do
+      {:ok, advanced} = persist_offset(session, new_offset)
+      maybe_complete(conn, advanced, new_offset, payload, opts)
+    else
       {:error, reason} -> tus_error(conn, status_for(reason), "")
     end
   end
 
+  # Streams the request body in 1 MiB chunks straight to the tmp .part file —
+  # never buffers the whole body (D-07). Bounds total bytes by the per-PATCH
+  # ceiling (max_size) AND the declared Upload-Length → 413.
+  defp stream_append(conn, session, payload, opts) do
+    part_path = Local.tus_part_path(session.id, root: opts[:root])
+    File.mkdir_p!(Path.dirname(part_path))
+    ceiling = opts[:max_size]
+    upload_length = payload["length"]
+
+    case File.open(part_path, [:append, :binary]) do
+      {:ok, file} ->
+        try do
+          drain(conn, file, session.last_known_offset, 0, ceiling, upload_length)
+        after
+          File.close(file)
+        end
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
+  defp drain(conn, file, base_offset, written, ceiling, upload_length) do
+    case Plug.Conn.read_body(conn, length: @read_length, read_length: @read_length) do
+      {:ok, chunk, _conn} ->
+        write_chunk(file, chunk, base_offset, written, ceiling, upload_length, :done)
+
+      {:more, chunk, conn} ->
+        case write_chunk(file, chunk, base_offset, written, ceiling, upload_length, :more) do
+          {:cont, new_written} ->
+            drain(conn, file, base_offset, new_written, ceiling, upload_length)
+
+          other ->
+            other
+        end
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
+  defp write_chunk(file, chunk, base_offset, written, ceiling, upload_length, mode) do
+    new_written = written + byte_size(chunk)
+
+    cond do
+      new_written > ceiling ->
+        {:error, :too_large}
+
+      is_integer(upload_length) and base_offset + new_written > upload_length ->
+        {:error, :too_large}
+
+      true ->
+        IO.binwrite(file, chunk)
+        if mode == :done, do: {:ok, base_offset + new_written}, else: {:cont, new_written}
+    end
+  end
+
+  defp persist_offset(session, new_offset) do
+    session
+    |> MediaUploadSession.changeset(%{last_known_offset: new_offset})
+    |> Config.repo().update()
+  end
+
+  defp maybe_complete(conn, session, new_offset, payload, opts) do
+    if new_offset == payload["length"] do
+      complete_upload(conn, session, opts)
+    else
+      conn
+      |> put_tus_resumable()
+      |> put_resp_header("upload-offset", Integer.to_string(new_offset))
+      |> put_resp_header("upload-expires", http_date(session.expires_at))
+      |> send_resp(204, "")
+      |> halt()
+    end
+  end
+
+  # Completion: atomic-rename the tmp part into the final key, then converge into
+  # the UNCHANGED verify_completion/2 lane (D-08 — zero new completion vocabulary).
+  # The session is in "signed", so verify_completion's signed -> verifying edge is
+  # legal (never parked in "resuming" — Pitfall 7).
+  defp complete_upload(conn, session, opts) do
+    with {:ok, _path} <- Local.tus_complete(session.id, session.upload_key, root: opts[:root]),
+         {:ok, %{session: _completed}} <- Broker.verify_completion(session.id, root: opts[:root]) do
+      conn
+      |> put_tus_resumable()
+      |> put_resp_header("upload-offset", Integer.to_string(session.last_known_offset))
+      |> send_resp(204, "")
+      |> halt()
+    else
+      {:error, _reason} -> tus_error(conn, 500, "")
+    end
+  end
+
+  # ── DELETE (Termination) ─────────────────────────────────────────────────────
+
   defp handle_delete(conn, opts) do
-    case verify_token(conn, opts) do
-      {:ok, _payload} -> tus_error(conn, 404, "")
+    with {:ok, payload} <- verify_token(conn, opts),
+         {:ok, session} <- load_active_session(payload) do
+      session
+      |> MediaUploadSession.changeset(%{state: "aborted"})
+      |> Config.repo().update()
+
+      # Best-effort tmp cleanup; the reaper sweeps Rindle.tmp/ regardless.
+      File.rm(Local.tus_part_path(session.id, root: opts[:root]))
+
+      conn
+      |> put_tus_resumable()
+      |> send_resp(204, "")
+      |> halt()
+    else
       {:error, reason} -> tus_error(conn, status_for(reason), "")
     end
   end
+
+  defp require_offset_octet_stream(conn) do
+    case get_req_header(conn, "content-type") do
+      [@offset_content_type <> _rest] -> :ok
+      _ -> {:error, :wrong_content_type}
+    end
+  end
+
+  defp parse_upload_offset(conn) do
+    case get_req_header(conn, "upload-offset") do
+      [value] ->
+        case Integer.parse(value) do
+          {offset, ""} when offset >= 0 -> {:ok, offset}
+          _ -> {:error, :invalid_offset}
+        end
+
+      _ ->
+        {:error, :invalid_offset}
+    end
+  end
+
+  defp check_offset_match(inbound, current) when inbound == current, do: :ok
+  defp check_offset_match(_inbound, _current), do: {:error, :offset_mismatch}
 
   # ── Token extraction + verification ──────────────────────────────────────────
 
@@ -244,6 +386,10 @@ defmodule Rindle.Upload.TusPlug do
   defp status_for(:not_found), do: 404
   defp status_for(:expired_token), do: 401
   defp status_for(:gone), do: 410
+  defp status_for(:wrong_content_type), do: 415
+  defp status_for(:offset_mismatch), do: 409
+  defp status_for(:too_large), do: 413
+  defp status_for(:invalid_offset), do: 400
 
   defp tus_error(conn, status, body) do
     conn

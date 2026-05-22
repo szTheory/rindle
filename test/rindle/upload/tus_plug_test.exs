@@ -7,13 +7,14 @@ defmodule Rindle.Upload.TusPlugTest do
   """
 
   use Rindle.DataCase, async: false
+  use Oban.Testing, repo: Rindle.Adopter.CanonicalApp.Repo
 
   import Plug.Test
   import Plug.Conn
 
   alias Ecto.Adapters.SQL.Sandbox
   alias Rindle.Adopter.CanonicalApp.Repo, as: AdopterRepo
-  alias Rindle.Domain.MediaUploadSession
+  alias Rindle.Domain.{MediaAsset, MediaUploadSession}
   alias Rindle.Storage.Local
   alias Rindle.Upload.{Broker, TusPlug}
 
@@ -97,6 +98,41 @@ defmodule Rindle.Upload.TusPlugTest do
     [location] = get_resp_header(conn, "location")
     token = location |> String.split("/") |> List.last()
     {conn, location, token}
+  end
+
+  # Plan-03 direct-call helpers — drive TusPlug.call/2 with opts bound to the
+  # test's tmp root so PATCH/completion file IO is isolated per test.
+  defp opts_for(root) do
+    TusPlug.init(
+      profile: TusProfile,
+      secret_key_base: @secret_key_base,
+      max_size: @max_size,
+      root: root
+    )
+  end
+
+  defp create(opts, length) do
+    conn =
+      conn(:post, "/uploads/tus")
+      |> put_req_header("upload-length", Integer.to_string(length))
+      |> put_req_header("upload-metadata", "filename Y2xpcC5qcGc=")
+      |> TusPlug.call(opts)
+
+    [location] = get_resp_header(conn, "location")
+    token = location |> String.split("/") |> List.last()
+    {:ok, payload} = Plug.Crypto.verify(@secret_key_base, @tus_url_salt, token)
+    {token, payload["session_id"]}
+  end
+
+  defp patch(opts, token, offset, body) do
+    conn(:patch, "/uploads/tus/" <> token, body)
+    |> put_req_header("content-type", "application/offset+octet-stream")
+    |> put_req_header("upload-offset", Integer.to_string(offset))
+    |> TusPlug.call(opts)
+  end
+
+  defp head(opts, token) do
+    conn(:head, "/uploads/tus/" <> token) |> TusPlug.call(opts)
   end
 
   describe "Task 1 — Wave-0 de-risk: init/1 capability raise + method guard" do
@@ -279,6 +315,139 @@ defmodule Rindle.Upload.TusPlugTest do
       assert session.session_uri == location
       assert inspect(session) =~ "[REDACTED]"
       refute inspect(session) =~ token
+    end
+  end
+
+  describe "Plan 03 Task 1 — PATCH gates (415/409/413) + streaming append" do
+    test "PATCH with the wrong Content-Type returns 415 without reading the body", %{root: root} do
+      opts = opts_for(root)
+      {token, sid} = create(opts, 100)
+
+      conn =
+        conn(:patch, "/uploads/tus/" <> token, "0123456789")
+        |> put_req_header("content-type", "text/plain")
+        |> put_req_header("upload-offset", "0")
+        |> TusPlug.call(opts)
+
+      assert conn.status == 415
+      assert AdopterRepo.get!(MediaUploadSession, sid).last_known_offset == 0
+    end
+
+    test "PATCH at the wrong offset returns 409, body NOT consumed, offset unchanged", %{
+      root: root
+    } do
+      opts = opts_for(root)
+      {token, sid} = create(opts, 100)
+      part_path = Local.tus_part_path(sid, root: root)
+
+      conn = patch(opts, token, 5, "0123456789")
+
+      assert conn.status == 409
+      assert AdopterRepo.get!(MediaUploadSession, sid).last_known_offset == 0
+      # body not consumed: stream_append was never reached, so no part file was opened
+      refute File.exists?(part_path)
+    end
+
+    test "PATCH at the correct offset streams to the tmp file and advances the offset", %{
+      root: root
+    } do
+      opts = opts_for(root)
+      {token, sid} = create(opts, 100)
+      part_path = Local.tus_part_path(sid, root: root)
+
+      conn = patch(opts, token, 0, "0123456789")
+
+      assert conn.status == 204
+      assert get_resp_header(conn, "upload-offset") == ["10"]
+      assert get_resp_header(conn, "tus-resumable") == ["1.0.0"]
+      assert File.stat!(part_path).size == 10
+      assert AdopterRepo.get!(MediaUploadSession, sid).last_known_offset == 10
+    end
+
+    test "PATCH that would exceed the declared Upload-Length returns 413", %{root: root} do
+      opts = opts_for(root)
+      {token, _sid} = create(opts, 5)
+
+      conn = patch(opts, token, 0, "0123456789")
+
+      assert conn.status == 413
+    end
+  end
+
+  describe "Plan 03 Task 2 — DELETE termination" do
+    test "DELETE with a valid token returns 204, aborts the session, removes the tmp file", %{
+      root: root
+    } do
+      opts = opts_for(root)
+      {token, sid} = create(opts, 100)
+      assert patch(opts, token, 0, "0123456789").status == 204
+      part_path = Local.tus_part_path(sid, root: root)
+      assert File.exists?(part_path)
+
+      conn = conn(:delete, "/uploads/tus/" <> token) |> TusPlug.call(opts)
+
+      assert conn.status == 204
+      assert get_resp_header(conn, "tus-resumable") == ["1.0.0"]
+      assert AdopterRepo.get!(MediaUploadSession, sid).state == "aborted"
+      refute File.exists?(part_path)
+    end
+
+    test "DELETE with a tampered token returns 404, never 200", %{root: root} do
+      opts = opts_for(root)
+      {token, _sid} = create(opts, 100)
+
+      conn = conn(:delete, "/uploads/tus/" <> token <> "tamper") |> TusPlug.call(opts)
+
+      assert conn.status == 404
+      refute conn.status == 200
+    end
+  end
+
+  describe "Plan 03 Task 3 — full tus-js-client-shaped resume contract flow" do
+    # Phase 42 proves the tus wire sequence via Plug.Test synthetic conns; the live
+    # Node tus-js-client + MinIO proof is Phase 44 (RESEARCH Open Question 3) — the
+    # verifier should NOT expect a Node harness here.
+    test "POST -> HEAD -> PATCH(partial) -> drop(409) -> HEAD -> PATCH(resume) -> completion -> validating",
+         %{root: root} do
+      opts = opts_for(root)
+      total = 16
+      {token, sid} = create(opts, total)
+
+      # 1. HEAD -> offset 0
+      assert get_resp_header(head(opts, token), "upload-offset") == ["0"]
+
+      # 2. PATCH the first 8 bytes
+      p1 = patch(opts, token, 0, "01234567")
+      assert p1.status == 204
+      assert get_resp_header(p1, "upload-offset") == ["8"]
+
+      # 3. Simulated network drop: client retries the already-applied chunk at offset 0
+      stale = patch(opts, token, 0, "01234567")
+      assert stale.status == 409
+      assert AdopterRepo.get!(MediaUploadSession, sid).last_known_offset == 8
+
+      # 4. Client re-HEADs for the authoritative offset
+      assert get_resp_header(head(opts, token), "upload-offset") == ["8"]
+
+      # 5. PATCH the remaining 8 bytes at offset 8 -> completion
+      p2 = patch(opts, token, 8, "89abcdef")
+      assert p2.status == 204
+      assert get_resp_header(p2, "upload-offset") == ["16"]
+
+      # 6. Convergence into the UNCHANGED verify_completion/2 lane
+      session = AdopterRepo.get!(MediaUploadSession, sid)
+      assert session.state == "completed"
+
+      asset = AdopterRepo.get!(MediaAsset, session.asset_id)
+      assert asset.state in ["validating", "ready"]
+      assert asset.byte_size == total
+
+      # 7. The reassembled file landed at the final key; the tmp part is gone
+      final_path = Local.path_for(session.upload_key, root: root)
+      assert File.exists?(final_path)
+      assert File.stat!(final_path).size == total
+      assert File.read!(final_path) == "0123456789abcdef"
+      refute File.exists?(Local.tus_part_path(sid, root: root))
     end
   end
 end
