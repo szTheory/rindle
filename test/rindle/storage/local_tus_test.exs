@@ -122,6 +122,124 @@ defmodule Rindle.Storage.LocalTusTest do
     end
   end
 
+  describe "upload_part_stream/5 + complete_part_stream/4 (TUS-06 Local, Plan 04)" do
+    # The polymorphic tus-sink callbacks wrap the Phase-42 helpers so the Plug can
+    # dispatch through the behaviour (adapter.upload_part_stream/5 +
+    # adapter.complete_part_stream/4) without hard-wiring Local. part_number
+    # semantics do not exist for Local; the return is %{offset: n} with NO
+    # :upload_id/:parts keys (Pitfall 5).
+
+    test "upload_part_stream/5 appends the temp-file bytes and returns %{offset: base + n}", %{
+      root: root
+    } do
+      session_id = Ecto.UUID.generate()
+      key = "assets/asset-1/clip.jpg"
+      temp_path = Path.join(root, "patch-1.part")
+      File.write!(temp_path, "0123456789")
+
+      assert {:ok, state} =
+               Local.upload_part_stream(key, temp_path, 0, %{offset: 0},
+                 session_id: session_id,
+                 root: root
+               )
+
+      assert state.offset == 10
+      # Local has no part semantics — no :upload_id/:parts keys (Pitfall 5).
+      refute Map.has_key?(state, :upload_id)
+      refute Map.has_key?(state, :parts)
+
+      part_path = Local.tus_part_path(session_id, root: root)
+      assert File.stat!(part_path).size == 10
+    end
+
+    test "upload_part_stream/5 accumulates across PATCHes (offset advances by base_offset)", %{
+      root: root
+    } do
+      session_id = Ecto.UUID.generate()
+      key = "assets/asset-2/clip.jpg"
+
+      temp_a = Path.join(root, "patch-a.part")
+      File.write!(temp_a, "01234567")
+
+      assert {:ok, s1} =
+               Local.upload_part_stream(key, temp_a, 0, %{offset: 0},
+                 session_id: session_id,
+                 root: root
+               )
+
+      assert s1.offset == 8
+
+      temp_b = Path.join(root, "patch-b.part")
+      File.write!(temp_b, "89abcdef")
+
+      assert {:ok, s2} =
+               Local.upload_part_stream(key, temp_b, s1.offset, s1,
+                 session_id: session_id,
+                 root: root
+               )
+
+      assert s2.offset == 16
+      assert File.stat!(Local.tus_part_path(session_id, root: root)).size == 16
+    end
+
+    test "upload_part_stream/5 streams large temp files without buffering whole into memory", %{
+      root: root
+    } do
+      session_id = Ecto.UUID.generate()
+      key = "assets/asset-large/clip.bin"
+      temp_path = Path.join(root, "patch-large.part")
+      payload = String.duplicate("x", 3 * 1024 * 1024)
+      File.write!(temp_path, payload)
+
+      assert {:ok, state} =
+               Local.upload_part_stream(key, temp_path, 0, %{offset: 0},
+                 session_id: session_id,
+                 root: root
+               )
+
+      assert state.offset == byte_size(payload)
+      assert File.stat!(Local.tus_part_path(session_id, root: root)).size == byte_size(payload)
+    end
+
+    test "complete_part_stream/4 atomic-renames the part into the final key", %{root: root} do
+      session_id = Ecto.UUID.generate()
+      key = "assets/asset-3/clip.jpg"
+      temp_path = Path.join(root, "patch-final.part")
+      File.write!(temp_path, "0123456789abcdef")
+
+      {:ok, _state} =
+        Local.upload_part_stream(key, temp_path, 0, %{offset: 0},
+          session_id: session_id,
+          root: root
+        )
+
+      part_path = Local.tus_part_path(session_id, root: root)
+      assert File.exists?(part_path)
+
+      assert {:ok, %{upload_key: ^key}} =
+               Local.complete_part_stream(key, nil, %{offset: 16},
+                 session_id: session_id,
+                 root: root
+               )
+
+      final_path = Local.path_for(key, root: root)
+      refute File.exists?(part_path)
+      assert File.exists?(final_path)
+      assert File.read!(final_path) == "0123456789abcdef"
+    end
+
+    test "complete_part_stream/4 propagates an error when there is no part file", %{root: root} do
+      session_id = Ecto.UUID.generate()
+      key = "assets/asset-missing/clip.jpg"
+
+      assert {:error, _reason} =
+               Local.complete_part_stream(key, nil, %{offset: 0},
+                 session_id: session_id,
+                 root: root
+               )
+    end
+  end
+
   describe "resumable_protocol column (D-10)" do
     test "a row persisted with the tus protocol reads back as tus" do
       assert {:ok, %{session: session}} =
