@@ -106,7 +106,7 @@ the bare-Plug / one-column / `:tus_upload`-atom decisions are not relitigated he
 - [x] 43-09-PLAN.md — Gap closure: tus DELETE aborts the backing multipart (CR-01) + honours update result (WR-02) + Plug single-node moduledoc (CR-04) [Wave 3]
 - [x] 43-10-PLAN.md — Gap closure: MinIO proof — DELETE-then-list_multipart_uploads-empty + post-reap tail-gone (SC5/IN-04) [Wave 4]
 - [ ] 43-11-PLAN.md — Gap closure: DELETE-abort-failure becomes reaper-recoverable — tus_abort_failed marker + fetch_retryable_tus_abort_sessions re-abort + WR-03 FSM reconciliation (CR-01) [Wave 5]
-- [ ] 43-12-PLAN.md — Gap closure: strengthen cross-node tail guard to fire on offset > committed_part_bytes, closing the pre-first-part silent-corruption window (CR-04) [Wave 5]
+- [x] 43-12-PLAN.md — Gap closure: strengthen cross-node tail guard to fire on offset > committed_part_bytes, closing the pre-first-part silent-corruption window (CR-04) [Wave 5]
 
 **UI hint**: no
 
