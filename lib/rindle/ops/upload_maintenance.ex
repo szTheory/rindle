@@ -384,12 +384,32 @@ defmodule Rindle.Ops.UploadMaintenance do
   end
 
   defp expire_session(session, acc) do
-    if resumable_abort_session?(session) do
-      expire_resumable_session(session, acc)
-    else
-      expire_standard_session(session, acc)
+    # Order is load-bearing (TUS-09 / Pitfall 1): tus sessions are
+    # `upload_strategy: "resumable"` and would otherwise be swallowed by
+    # `resumable_abort_session?/1` and mis-routed to the GCS session-URI cancel
+    # path (which fails the `:resumable_upload_session` capability gate for
+    # S3/Local), leaving the S3 multipart upload orphaned (cost leak). Branch on
+    # `resumable_protocol: "tus"` FIRST so tus sessions abort the S3 multipart
+    # (or remove the Local tmp) before the resumable check.
+    cond do
+      tus_session?(session) ->
+        expire_tus_session(session, acc)
+
+      resumable_abort_session?(session) ->
+        expire_resumable_session(session, acc)
+
+      true ->
+        expire_standard_session(session, acc)
     end
   end
+
+  defp tus_session?(%MediaUploadSession{
+         upload_strategy: "resumable",
+         resumable_protocol: "tus"
+       }),
+       do: true
+
+  defp tus_session?(_session), do: false
 
   defp expire_standard_session(session, acc) do
     # Gate the persistence on the FSM so any future expansion of the query
@@ -417,6 +437,123 @@ defmodule Rindle.Ops.UploadMaintenance do
 
       {:error, failure_reason} ->
         persist_resumable_abort_failure(session, acc, failure_reason)
+    end
+  end
+
+  # TUS-09: reap a tus session. Abort the S3 multipart upload (or remove the
+  # Local tmp part/tail) idempotently FIRST, then persist `state: "expired"`.
+  # On a backing-abort failure the row is left in place (increment
+  # `:abort_errors`) so the next cron run retries — one failing session never
+  # aborts the reduce over the batch (T-43-07).
+  defp expire_tus_session(session, acc) do
+    case abort_tus_backing(session) do
+      :ok ->
+        do_expire_tus_session(session, acc)
+
+      {:error, reason} ->
+        Logger.warning("rindle.upload_maintenance.tus_abort_failed",
+          session_id: session.id,
+          multipart_upload_id: session.multipart_upload_id,
+          reason: inspect(reason)
+        )
+
+        Map.update!(acc, :abort_errors, &(&1 + 1))
+    end
+  end
+
+  defp do_expire_tus_session(session, acc) do
+    repo = Config.repo()
+    changeset = MediaUploadSession.changeset(session, %{state: "expired"})
+
+    case repo.update(changeset) do
+      {:ok, _updated} ->
+        Logger.info("rindle.upload_maintenance.tus_session_expired",
+          session_id: session.id,
+          previous_state: session.state
+        )
+
+        acc
+        |> Map.update!(:sessions_aborted, &(&1 + 1))
+        |> increment_abort_strategy(session)
+
+      {:error, reason} ->
+        Logger.warning("rindle.upload_maintenance.tus_session_expiry_failed",
+          session_id: session.id,
+          reason: inspect(reason)
+        )
+
+        Map.update!(acc, :abort_errors, &(&1 + 1))
+    end
+  end
+
+  # S3-backed tus session: abort the multipart upload via the resolved adapter.
+  # `{:error, :not_found}` is treated as idempotent success (the upload was
+  # already aborted/completed). The 5 MiB tail buffer the PATCH lane spills to
+  # `<Rindle.tmp>/tus/<session_id>.tail` is removed best-effort regardless.
+  defp abort_tus_backing(%MediaUploadSession{multipart_upload_id: id} = session)
+       when is_binary(id) and id != "" do
+    remove_tus_tail(session)
+
+    with {:ok, adapter} <- resolve_tus_adapter(session) do
+      case adapter.abort_multipart_upload(session.upload_key, id, []) do
+        {:ok, _} -> :ok
+        # Idempotent: the multipart upload is already gone.
+        {:error, :not_found} -> :ok
+        {:error, _reason} = err -> err
+      end
+    end
+  end
+
+  # Local-backed tus session (no multipart_upload_id): best-effort removal of
+  # the tmp part file and the tail buffer. The orphan reaper sweeps `Rindle.tmp`
+  # anyway, so failures here are non-fatal — always return `:ok`.
+  defp abort_tus_backing(%MediaUploadSession{} = session) do
+    _ = File.rm(Rindle.Storage.Local.tus_part_path(session.id, []))
+    remove_tus_tail(session)
+    :ok
+  end
+
+  defp remove_tus_tail(%MediaUploadSession{id: session_id}) do
+    tail_path = Path.join([Rindle.AV.TempRunDir.root_dir(), "tus", session_id <> ".tail"])
+    _ = File.rm(tail_path)
+    :ok
+  end
+
+  # Mirrors `resolve_resumable_adapter/1` but is intended for the tus
+  # (`:tus_upload`) backing capability rather than the GCS-native
+  # `:resumable_upload_session` lifecycle capability. The capability is probed
+  # for intent/observability only — the abort itself is NOT hard-gated on it,
+  # because failing to abort here is the exact cost-leak TUS-09 closes
+  # (T-43-cost-leak). If the profile/adapter cannot be resolved at all we
+  # surface the error so the row is retried next cron.
+  defp resolve_tus_adapter(session) do
+    repo = Config.repo()
+    asset = repo.preload(session, :asset).asset
+
+    with %{profile: profile_name} when is_binary(profile_name) <- asset,
+         {:ok, profile_module} <- profile_name_to_module(profile_name),
+         adapter when is_atom(adapter) <- profile_module.storage_adapter() do
+      maybe_warn_tus_capability(adapter)
+      {:ok, adapter}
+    else
+      nil -> {:error, :asset_missing}
+      {:error, reason} -> {:error, reason}
+      _ -> {:error, :invalid_profile_value}
+    end
+  end
+
+  defp maybe_warn_tus_capability(adapter) do
+    case Capabilities.require_upload(adapter, :tus_upload) do
+      :ok ->
+        :ok
+
+      {:error, {:upload_unsupported, :tus_upload}} ->
+        # Defensive only: still abort the backing so the multipart is reaped.
+        Logger.debug("rindle.upload_maintenance.tus_adapter_capability_unadvertised",
+          adapter: inspect(adapter)
+        )
+
+        :ok
     end
   end
 
@@ -547,6 +684,12 @@ defmodule Rindle.Ops.UploadMaintenance do
        do: "resumable_cancel_failed:gcs_http_5xx"
 
   defp resumable_failure_reason(_reason), do: "resumable_cancel_failed:transport"
+
+  # tus sessions are reaped by `expire_tus_session/2` (the `tus_session?/1`
+  # branch of `expire_session/2`). Exclude them here so a future expansion of
+  # the abortable-session query can never double-route a tus session into the
+  # GCS-native session-URI cancel lane.
+  defp resumable_abort_session?(%MediaUploadSession{resumable_protocol: "tus"}), do: false
 
   defp resumable_abort_session?(%MediaUploadSession{upload_strategy: "resumable", state: state})
        when state in ["signed", "resuming", "uploading", "aborted"],
