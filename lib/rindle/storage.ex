@@ -91,6 +91,32 @@ defmodule Rindle.Storage do
           optional(atom()) => term()
         }
 
+  @typedoc """
+  Per-PATCH streaming part-write state for a tus upload (Topology B,
+  server-mediated — bytes flow on the BEAM hot path).
+
+  `:offset` is the new committed offset (== the tus `Upload-Offset`) the edge
+  persists and reports on the next `HEAD`. The optional keys carry the
+  cross-PATCH multipart bookkeeping S3 needs and Local omits:
+
+    * `:upload_id` — the S3 multipart `UploadId` (absent for Local; Local has no
+      part semantics).
+    * `:parts` — the accumulated, server-issued part list, each entry a
+      `%{part_number: pos_integer(), etag: String.t()}`. `part_number` is
+      1-based and strictly increasing; reassembly is by `part_number`, never by
+      arrival order, and the ETag is sourced from S3 responses, never the client.
+
+  The map is persisted between PATCHes (S3 keeps it in `multipart_parts` +
+  `multipart_upload_id` on the session row) and threaded back in as the `state`
+  argument on the next call.
+  """
+  @type tus_part_state :: %{
+          required(:offset) => non_neg_integer(),
+          optional(:upload_id) => String.t(),
+          optional(:parts) => [%{part_number: pos_integer(), etag: String.t()}],
+          optional(atom()) => term()
+        }
+
   @doc """
   Stores the file at `source` under `key`, returning adapter-specific write metadata.
 
@@ -274,6 +300,67 @@ defmodule Rindle.Storage do
             ) :: {:ok, head_result()} | {:error, term()}
 
   @doc """
+  Streams one PATCH body into the adapter's resumable part store for a tus upload.
+
+  Adapters expose this callback only when they advertise the `:tus_upload`
+  capability. The tus edge (`Rindle.Upload.TusPlug`) drains the PATCH body to a
+  temp file FIRST — bounded by the per-PATCH ceiling, so an oversize body is
+  rejected with `413` before this callback is reached — then hands that
+  `temp_path`. The temp file therefore holds exactly ONE PATCH worth of bytes;
+  the adapter pulls bytes from it and never buffers the whole upload in memory.
+
+  `base_offset` is the upload's committed offset before this PATCH (the tus
+  `Upload-Offset` the client sent). `state` carries the prior
+  `t:tus_part_state/0` (S3's `:upload_id` + accumulated `:parts`, or `%{offset:
+  n}` for Local). Returns the updated `t:tus_part_state/0` to persist on the
+  session row.
+
+  S3 appends the temp file to a tail buffer under the sweepable `Rindle.tmp/`
+  root, slicing off each full 5 MiB part as a multipart `UploadPart` and keeping
+  any sub-5-MiB remainder buffered across PATCHes. Local appends the bytes to its
+  per-session part file. The edge dispatches polymorphically — it never branches
+  on the adapter module.
+  """
+  @callback upload_part_stream(
+              key :: String.t(),
+              temp_path :: String.t(),
+              base_offset :: non_neg_integer(),
+              state :: tus_part_state(),
+              opts :: keyword()
+            ) :: {:ok, tus_part_state()} | {:error, term()}
+
+  @doc """
+  Finalizes a tus upload after the last PATCH, converging into the trusted
+  verify/promote lane.
+
+  Adapters expose this callback only when they advertise the `:tus_upload`
+  capability. It is the symmetric companion to `c:upload_part_stream/5`: the edge
+  calls it once, polymorphically, after the final PATCH brings the committed
+  offset to `Upload-Length` — there is no `if adapter == Local` branch.
+
+  `temp_path` is the final PATCH's drained temp file (the last bytes of the
+  upload), passed for symmetry with `c:upload_part_stream/5`; the edge has
+  already appended those bytes during the matching `c:upload_part_stream/5`
+  call, so `temp_path` is the residual handle the adapter may flush as the last
+  part. `state` carries the accumulated `t:tus_part_state/0` (S3's `:upload_id` +
+  ordered `:parts`).
+
+  S3 flushes the remaining tail buffer as the final `UploadPart` (any size, even
+  below the 5 MiB minimum, since it is the last part) and then
+  `complete_multipart_upload/4` with the full ordered `parts` list from `state`.
+  Local performs the atomic same-filesystem `File.rename` of its part file onto
+  the final key. After this returns `{:ok, _}` the edge calls
+  `Rindle.Upload.Broker.verify_completion/2`, the single `c:head/2`-based trust
+  gate (unchanged), to promote the asset.
+  """
+  @callback complete_part_stream(
+              key :: String.t(),
+              temp_path :: String.t() | nil,
+              state :: tus_part_state(),
+              opts :: keyword()
+            ) :: {:ok, map()} | {:error, term()}
+
+  @doc """
   Returns the adapter's supported capability atoms.
 
   Values must come from `t:capability/0`.
@@ -283,5 +370,7 @@ defmodule Rindle.Storage do
   @optional_callbacks initiate_resumable_upload: 3,
                       resumable_upload_status: 3,
                       cancel_resumable_upload: 3,
-                      verify_resumable_completion: 3
+                      verify_resumable_completion: 3,
+                      upload_part_stream: 5,
+                      complete_part_stream: 4
 end
