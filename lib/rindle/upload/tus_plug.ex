@@ -45,6 +45,25 @@ defmodule Rindle.Upload.TusPlug do
   Mounting against a storage adapter that does not advertise the `:tus_upload`
   capability raises `ArgumentError` at `init/1` — a deploy-time failure, never a
   silent downgrade.
+
+  ## Deployment constraint (S3 tus backing)
+
+  When the mounted profile's storage adapter is S3-backed, the sub-5-MiB tail
+  remainder of each PATCH is buffered on **node-local disk**, while the
+  authoritative cross-PATCH bookkeeping (offset, multipart upload id, committed
+  parts) lives in the **shared DB**. Because the tail buffer is node-local, the
+  S3 tus backing REQUIRES single-node or sticky-session routing: a resumed PATCH
+  MUST be routed to the **same node** that holds the in-progress tail buffer
+  (node-affinity).
+
+  A cross-node resume — where the DB shows a mid-multipart upload but the tail
+  file is absent on the node that received the PATCH — is detected by the S3
+  adapter and **fails loudly** with `{:error, :tus_tail_missing}` (surfaced as a
+  `5xx`) rather than silently re-slicing from a fresh empty tail, which would
+  corrupt the assembled object. Multi-node operators MUST pin tus PATCHes to a
+  single node (sticky sessions / node-affinity) or accept this loud failure on
+  misrouted resumes. This is a documented v1 constraint; shared-storage tail
+  persistence is deferred.
   """
 
   @behaviour Plug
