@@ -93,13 +93,18 @@ the bare-Plug / one-column / `:tus_upload`-atom decisions are not relitigated he
   4. tus sessions expire (`expires_at` → `Upload-Expires` + `410 Gone`) and `DELETE` terminates; the `UploadMaintenance`/`AbortIncompleteUploads` reaper branches on `resumable_protocol` (`"tus"` → abort the S3 multipart or remove the local tmp; `"gcs_native"` → existing session-URI cancel).
   5. A MinIO integration proof completes a ≥ 1 GiB tus upload with a mid-flight drop + resume, and asserts that after abandonment + reaper, `list_multipart_uploads` returns empty.
 
-**Plans**: 5 plans
+**Plans**: 10 plans (5 shipped + 5 gap-closure for the 3/5 verification gaps)
 
 - [x] 43-01-PLAN.md — Wave 0: declare upload_part_stream/5 + complete_part_stream/4 OPTIONAL callbacks + test scaffolding (2 NEW test files, 3 extended)
 - [x] 43-02-PLAN.md — S3 adapter: tail-buffer upload_part_stream/5 (ETag-from-headers), complete_part_stream/3, advertise :tus_upload
 - [x] 43-03-PLAN.md — Reaper: branch expire_session on resumable_protocol; tus -> abort S3 multipart (closes the orphaned-multipart leak)
 - [x] 43-04-PLAN.md — Local impl + TusPlug polymorphic dispatch; converge into UNCHANGED verify_completion/2 (D-08)
 - [x] 43-05-PLAN.md — MinIO >= 1 GiB drop+resume + list_multipart_uploads-empty zero-leak proof (+ CI checkpoint)
+- [ ] 43-06-PLAN.md — Gap closure: S3 adapter tus_tail_path/2 helper (CR-02 source) + cross-node loud-fail guard + single-node moduledoc (CR-04) [Wave 1]
+- [ ] 43-07-PLAN.md — Gap closure: Rindle.tmp/ sweeper recurses into tus/ to age out tus/*.tail & *.part regular files (CR-03) [Wave 1]
+- [ ] 43-08-PLAN.md — Gap closure: reaper routes remove_tus_tail through S3.tus_tail_path (CR-02 wiring) + Local-root abort (IN-03) + FSM-gated tus expiry (WR-01) + reusable abort helper [Wave 2]
+- [ ] 43-09-PLAN.md — Gap closure: tus DELETE aborts the backing multipart (CR-01) + honours update result (WR-02) + Plug single-node moduledoc (CR-04) [Wave 3]
+- [ ] 43-10-PLAN.md — Gap closure: MinIO proof — DELETE-then-list_multipart_uploads-empty + post-reap tail-gone (SC5/IN-04) [Wave 4]
 
 **UI hint**: no
 
@@ -145,7 +150,7 @@ without affecting the tus spine.
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 42. tus Protocol Edge (bare Plug) | v1.8 | 4/4 | Complete    | 2026-05-22 |
-| 43. S3 Multipart Backing + MinIO Proof | v1.8 | 5/5 | Complete   | 2026-05-23 |
+| 43. S3 Multipart Backing + MinIO Proof | v1.8 | 5/10 | Gap closure (verification 3/5 → 5 gap plans) | - |
 | 44. Auth Hardening, DX, Docs, Telemetry, CI Proof | v1.8 | 0/TBD | Not started | - |
 | 45. Browser → Mux Direct Creator Upload (droppable) | v1.8 | 0/TBD | Not started | - |
 
