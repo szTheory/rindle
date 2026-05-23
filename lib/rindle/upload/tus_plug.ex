@@ -415,16 +415,21 @@ defmodule Rindle.Upload.TusPlug do
       # (1) FIRST abort the backing store polymorphically (S3 multipart abort, or
       # Local tmp removal) via the shared PUBLIC helper, using the adapter + root
       # the Plug already holds in `opts` — no DB profile re-resolution on the hot
-      # DELETE path and no `if adapter == Local` branch (D-12). Best-effort: an
-      # abort error is logged but does not by itself fail the DELETE (the row still
-      # moves to aborted and the reaper compensates on the next cron).
-      abort_delete_backing(session, opts)
+      # DELETE path and no `if adapter == Local` branch (D-12). On a TRANSIENT
+      # abort failure (CR-01) the abort is NOT silently swallowed: the row carries
+      # a retryable `tus_abort_failed:<reason>` marker (folded into the aborted
+      # changeset below) so the reaper re-aborts the orphaned multipart on the
+      # next cron via `fetch_retryable_tus_abort_sessions/0`. A clean abort leaves
+      # `failure_reason: nil` so the reaper never re-selects a cleanly cancelled row.
+      abort_attrs = abort_delete_backing(session, opts)
 
       # (2) THEN persist the abort transition and honour the result (WR-02): a
       # failed update returns 5xx so the client is never falsely told 204 while the
-      # row remains re-PATCHable / mis-reaped.
+      # row remains re-PATCHable / mis-reaped. The DELETE still returns 204 on a
+      # successful update even when the backing abort failed (client-facing cancel
+      # semantics preserved); the cost-leak compensation is the reaper's job.
       session
-      |> MediaUploadSession.changeset(%{state: "aborted"})
+      |> MediaUploadSession.changeset(Map.put(abort_attrs, :state, "aborted"))
       |> Config.repo().update()
       |> case do
         {:ok, _aborted} ->
@@ -441,7 +446,16 @@ defmodule Rindle.Upload.TusPlug do
   # Dispatch the backing abort through the shared PUBLIC polymorphic helper with
   # the EXACT call shape the reaper uses (adapter/root from opts, upload_id from
   # the row). S3 (upload_id present) aborts the multipart; Local (upload_id nil)
-  # removes the tmp part/tail. Errors are best-effort logged, never raised.
+  # removes the tmp part/tail.
+  #
+  # Returns the failure_reason attrs to fold into the `aborted` changeset:
+  #   * `%{failure_reason: nil}` on a clean abort (the reaper never re-selects it)
+  #   * `%{failure_reason: "tus_abort_failed:<short_reason>"}` on a transient
+  #     failure (CR-01) — the EXACT marker prefix the reaper's
+  #     `like(failure_reason, "tus_abort_failed:%")` predicate matches byte-for-byte
+  #     so the orphaned multipart is re-aborted next cron. The abort error is
+  #     logged but never raised; the DELETE still returns 204.
+  @spec abort_delete_backing(MediaUploadSession.t(), keyword()) :: %{failure_reason: String.t() | nil}
   defp abort_delete_backing(session, opts) do
     case UploadMaintenance.abort_tus_backing(session,
            adapter: opts[:adapter],
@@ -449,7 +463,7 @@ defmodule Rindle.Upload.TusPlug do
            upload_id: session.multipart_upload_id
          ) do
       :ok ->
-        :ok
+        %{failure_reason: nil}
 
       {:error, reason} ->
         Logger.warning("rindle.tus.delete_backing_abort_failed",
@@ -458,9 +472,22 @@ defmodule Rindle.Upload.TusPlug do
           reason: inspect(reason)
         )
 
-        :ok
+        %{failure_reason: tus_abort_marker(reason)}
     end
   end
+
+  # Build the retryable marker the reaper keys on. The reason is normalised to a
+  # bounded, single-token string (no internal path, session_uri, or unbounded
+  # inspected term embedded — security invariant 14 / T-43-11-04): an atom reason
+  # is used verbatim; anything else collapses to `transport`. The result is
+  # truncated to a safe length and ALWAYS starts with exactly `tus_abort_failed:`.
+  @tus_abort_marker_prefix "tus_abort_failed:"
+  @tus_abort_marker_max_reason 64
+  defp tus_abort_marker(reason) when is_atom(reason) and not is_nil(reason) do
+    @tus_abort_marker_prefix <> (reason |> Atom.to_string() |> String.slice(0, @tus_abort_marker_max_reason))
+  end
+
+  defp tus_abort_marker(_reason), do: @tus_abort_marker_prefix <> "transport"
 
   defp require_offset_octet_stream(conn) do
     case get_req_header(conn, "content-type") do

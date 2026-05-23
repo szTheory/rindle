@@ -538,6 +538,51 @@ defmodule Rindle.Upload.TusPlugTest do
       assert conn.status == 404
       refute conn.status == 200
     end
+
+    # -------------------------------------------------------------------------
+    # CR-01 (Plug half): a DELETE whose backing abort fails transiently must
+    # persist a retryable `tus_abort_failed:%` marker on the row (so the Task-1
+    # reaper query re-aborts the orphaned multipart) while STILL returning 204 to
+    # the client (the cancel is accepted; the cost-leak compensation is the
+    # reaper's job). Pre-fix `abort_delete_backing/2` swallows the {:error,_} and
+    # returns :ok, so failure_reason stays nil and the orphan leaks forever (RED).
+    # -------------------------------------------------------------------------
+
+    test "DELETE persists the tus_abort_failed marker (and still returns 204) when the backing abort fails (CR-01 Plug half)",
+         %{mock_opts: opts} do
+      {token, session} = mock_create_s3(opts, 100)
+
+      expect(Rindle.StorageMock, :abort_multipart_upload, fn _key, _id, _opts ->
+        {:error, :transport}
+      end)
+
+      conn = conn(:delete, "/uploads/tus/" <> token) |> TusPlug.call(opts)
+
+      # Client-facing cancel semantics preserved — the reaper compensates.
+      assert conn.status == 204
+
+      updated = AdopterRepo.get!(MediaUploadSession, session.id)
+      assert updated.state == "aborted"
+      # The retryable marker the reaper's like(..., "tus_abort_failed:%") matches.
+      assert String.starts_with?(updated.failure_reason, "tus_abort_failed:")
+    end
+
+    test "DELETE leaves failure_reason nil on a clean abort (no marker => never re-selected by the reaper)",
+         %{mock_opts: opts} do
+      {token, session} = mock_create_s3(opts, 100)
+
+      expect(Rindle.StorageMock, :abort_multipart_upload, fn _key, _id, _opts ->
+        {:ok, %{}}
+      end)
+
+      conn = conn(:delete, "/uploads/tus/" <> token) |> TusPlug.call(opts)
+
+      assert conn.status == 204
+
+      updated = AdopterRepo.get!(MediaUploadSession, session.id)
+      assert updated.state == "aborted"
+      assert updated.failure_reason == nil
+    end
   end
 
   describe "Plan 04 — polymorphic adapter dispatch (TUS-06/08, RED until Plan 04)" do
