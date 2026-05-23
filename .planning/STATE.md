@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.8
 milestone_name: Resumable Browser Ingest
 status: executing
-last_updated: "2026-05-23T12:19:38.801Z"
+last_updated: "2026-05-23T12:23:37.144Z"
 last_activity: 2026-05-23
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 14
-  completed_plans: 10
+  completed_plans: 11
   percent: 25
 ---
 
@@ -29,7 +29,7 @@ requirements mapped). Next: plan Phase 42.
 ## Current Position
 
 Phase: 43 (s3-multipart-backing-minio-proof) — EXECUTING
-Plan: 2 of 10
+Plan: 3 of 10
 Status: Ready to execute
 Last activity: 2026-05-23
 
@@ -141,7 +141,7 @@ code-review debt is POLISH-01 (Phase 42) and POLISH-02 (Phase 44).
 
 ## Session Continuity
 
-Last session: 2026-05-23T12:17:44.660Z
+Last session: 2026-05-23T12:23:33.873Z
 phases (42–45), 20/20 requirements mapped at 100% coverage. ROADMAP.md,
 REQUIREMENTS.md traceability, and STATE.md updated.
 
@@ -161,9 +161,11 @@ into executable plans).
 |-------|------|----------|-------|
 | Phase 42 P01 | 10min | 4 tasks | 8 files |
 | Phase 43 P06 | 3min | 2 tasks | 2 files |
+| Phase 43 P07 | 4min | - tasks | - files |
 
 ## Decisions
 
 - [Phase ?]: tus foundation reuses the v1.7 resumable lane with one resumable_protocol discriminator column (D-10); :tus_upload advertised by Local only, no silent downgrade (D-09); initiate_tus_upload/2 makes no S3-multipart call for the Local sink (D-02)
 - [Phase 43]: tus_tail_path/2 delegates to private tail_path/2 (single Base.url_encode64 site preserved) so the reaper consumes the adapter's own canonical path computation (CR-02 source-of-truth)
 - [Phase 43]: cross-node S3 tus resume with an absent local tail fails loudly with {:error, :tus_tail_missing} (mid-multipart = non-empty upload_id AND committed parts); single-node/sticky-session constraint documented in S3 moduledoc (CR-04)
+- [Phase 43]: Rindle.tmp/ sweeper recurses into tus/ to age out individual regular files by per-file mtime (CR-03); deletion confined to <root>/tus/ regular files; report struct shape unchanged; whole-dir aging untouched for non-tus run dirs
