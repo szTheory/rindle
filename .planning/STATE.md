@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.8
 milestone_name: Resumable Browser Ingest
-status: executing
-last_updated: "2026-05-23T12:38:53.231Z"
+status: verifying
+last_updated: "2026-05-23T12:43:17.636Z"
 last_activity: 2026-05-23
 progress:
   total_phases: 4
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 14
-  completed_plans: 13
-  percent: 25
+  completed_plans: 14
+  percent: 50
 ---
 
 # Project State
@@ -28,12 +28,12 @@ requirements mapped). Next: plan Phase 42.
 
 ## Current Position
 
-Phase: 43 (s3-multipart-backing-minio-proof) — EXECUTING
-Plan: 5 of 10
-Status: Ready to execute
+Phase: 43 (s3-multipart-backing-minio-proof) — VERIFYING
+Plan: 10 of 10 (43-10 executed — all gap-closure plans shipped)
+Status: All 10 plans executed; awaiting Phase 43 re-verification of closed gaps (SC5/IN-04)
 Last activity: 2026-05-23
 
-Progress: [█████_______________] 25% (0/4 phases, 1/4 plans)
+Progress: [██████████__________] 50% (14/14 plans executed; Phase 43 in re-verification)
 
 ## Milestone Roadmap (v1.8)
 
@@ -164,6 +164,7 @@ into executable plans).
 | Phase 43 P07 | 4min | - tasks | - files |
 | Phase 43 P08 | 5min | 2 tasks | 2 files |
 | Phase 43 P09 | 4min | 2 tasks | 2 files |
+| Phase 43 P10 | 11min | 2 tasks | 1 file |
 
 ## Decisions
 
@@ -173,3 +174,4 @@ into executable plans).
 - [Phase 43]: Rindle.tmp/ sweeper recurses into tus/ to age out individual regular files by per-file mtime (CR-03); deletion confined to <root>/tus/ regular files; report struct shape unchanged; whole-dir aging untouched for non-tus run dirs
 - [Phase 43]: reaper tail removal routed through S3.tus_tail_path/2 with a threaded root (CR-02 source-of-truth); shared gated_expire/2 FSM-gates BOTH standard and tus expiry (WR-01); Local abort resolves the actual upload root (IN-03); PUBLIC abort_tus_backing(session, opts) arity-2 polymorphic abort exposed for the 43-09 DELETE path (CR-01)
 - [Phase 43]: tus DELETE aborts the backing store BEFORE the aborted transition via the shared PUBLIC abort_tus_backing/2 (adapter+root from opts, upload_id from the row) so an explicitly-cancelled S3 multipart never leaks (CR-01); the update result is matched and returns 5xx on failure so the client is never falsely told 204 (WR-02); single-node/sticky-session S3 tus constraint documented in the TusPlug moduledoc (CR-04 Plug half)
+- [Phase 43]: SC5/IN-04 closed with two MinIO @tag :minio integration cases — a tus DELETE on an S3-backed session asserts list_multipart_uploads is empty for the deleted key (CR-01, via the real TusPlug.call handler), and an abandoned session's on-disk tail file is asserted gone after a reap via S3.tus_tail_path/2 at the resolved opts[:root] || TempRunDir.root_dir() write-path root (CR-02 + CR-03); both stay CI-only and compile without MinIO
