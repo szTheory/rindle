@@ -2,388 +2,324 @@
 phase: 43-s3-multipart-backing-minio-proof
 reviewed: 2026-05-23T00:00:00Z
 depth: standard
-files_reviewed: 14
+files_reviewed: 4
 files_reviewed_list:
-  - lib/rindle/storage.ex
   - lib/rindle/storage/s3.ex
-  - lib/rindle/storage/local.ex
+  - lib/rindle/ops/sweep_orphaned_temp_files.ex
   - lib/rindle/ops/upload_maintenance.ex
   - lib/rindle/upload/tus_plug.ex
-  - config/test.exs
-  - test/support/s3_multipart_request_stub.ex
-  - test/rindle/storage/s3_tus_test.exs
-  - test/rindle/storage/storage_adapter_test.exs
-  - test/rindle/storage/local_tus_test.exs
-  - test/rindle/storage/s3_test.exs
-  - test/rindle/ops/upload_maintenance_test.exs
-  - test/rindle/upload/tus_plug_test.exs
-  - test/rindle/upload/tus_s3_integration_test.exs
 findings:
-  critical: 4
-  warning: 6
-  info: 4
-  total: 14
+  critical: 2
+  warning: 4
+  info: 3
+  total: 9
 status: issues_found
 ---
 
-# Phase 43: Code Review Report
+# Phase 43: Code Review Report (gap-closure re-review)
 
 **Reviewed:** 2026-05-23
 **Depth:** standard
-**Files Reviewed:** 14
+**Files Reviewed:** 4
 **Status:** issues_found
 
 ## Summary
 
-Phase 43 adds S3 multipart backing for tus resumable uploads: a behaviour contract
-(`upload_part_stream/5` + `complete_part_stream/4`), S3 + Local implementations, a
-storage-agnostic Plug dispatch, and a reaper branch that aborts orphaned S3
-multipart uploads. The slice/accumulate math in `S3.upload_part_stream` and the
-Local path are sound, and the offset/409 contract in the Plug is correct.
+This is a re-review verifying the four prior blockers (CR-01 DELETE never aborted
+the backing multipart; CR-02 tail-path encoding mismatch; CR-03 tmp sweeper only
+deleted directories; CR-04 cross-node resume corruption) and surfacing any NEW
+issues introduced by the gap fixes.
 
-However, the load-bearing **cost-leak mitigation — the stated headline of this
-phase — has multiple holes that defeat its own purpose.** The two cleanup paths
-the design relies on for residual S3 tail files and orphaned multipart uploads are
-both broken: (1) the reaper's tail-file removal computes the wrong path and never
-deletes the real file; (2) the generic `Rindle.tmp/` sweeper only deletes
-*directories*, so the `tus/*.tail` and `tus/*.part` files it is claimed to "sweep
-regardless" accumulate forever; and (3) a tus `DELETE` (Termination) sets the
-session to `aborted` but never aborts the S3 multipart upload, and **no reaper
-query ever picks up an aborted tus session** — so explicitly-cancelled S3-backed
-uploads leak their multipart upload permanently. There is also an undocumented
-node-local-disk assumption in the S3 tail buffer that silently corrupts a resume
-routed to a different node.
+Verification result, blocker by blocker:
 
-These are the exact cost/correctness leaks the phase exists to close. The MinIO
-integration test (`tus_s3_integration_test.exs`) only proves the *expired* reaper
-path on a single node, so it does not catch any of CR-01..CR-04.
+- **CR-02 (tail-path encoding) — RESOLVED.** `remove_tus_tail/2` now delegates to
+  the adapter's own canonical `S3.tus_tail_path/2`, which routes through the same
+  private `tail_path/2` + `tail_filename/1` (`Base.url_encode64(id) <> ".tail"`) the
+  write path uses. The encoding now matches on both sides, and the root threads
+  through consistently for S3 (both write and abort resolve `nil → TempRunDir`).
+- **CR-03 (directory-only sweeper) — RESOLVED for `tus/`.** `process_run_dir/4`
+  now special-cases `Path.basename(path) == "tus"` and recurses via
+  `sweep_tus_dir/4` to age out individual regular files. Symlinks/nested dirs are
+  correctly skipped (`type: :regular` guard).
+- **CR-01 (DELETE leaks multipart) — PARTIALLY RESOLVED → still a BLOCKER (CR-01
+  below).** The happy path is fixed: `handle_delete/2` aborts the backing FIRST,
+  then transitions. BUT the handler's own comment promises "the row still moves to
+  aborted and the reaper compensates on the next cron" — and **no reaper query ever
+  picks up an `aborted` tus session with `failure_reason: nil`**. So when the
+  DELETE-time abort fails transiently, the multipart upload is orphaned PERMANENTLY,
+  with no compensation. The cost leak the phase exists to close is still open on the
+  abort-failure branch.
+- **CR-04 (cross-node resume corruption) — PARTIALLY RESOLVED → still a BLOCKER
+  (CR-02 below).** A loud `:tus_tail_missing` guard was added, but it only fires
+  when `parts != []`. A cross-node resume during the FIRST 5 MiB of an upload (an
+  `upload_id` exists but no part has been committed yet, so `parts == []`) bypasses
+  the guard entirely and silently re-slices from an empty tail — the exact silent
+  data corruption CR-04 was raised to prevent.
+
+New issues introduced by the gap fixes are recorded as WR-01 (tail removed before
+the multipart abort — irreversible local-state loss on a recoverable error), WR-02
+(reaper Local-root resolution still ignores per-mount root — IN-03 only half
+fixed), WR-03 (FSM `aborted` is a terminal state, so the new shared `gated_expire`
+silently counts any future-routed aborted tus session as an error), and the sweeper
+metric-naming / `.patch`-residue observations.
+
+## Narrative Findings (AI reviewer)
 
 ## Critical Issues
 
-### CR-01: tus `DELETE` (Termination) leaks the S3 multipart upload permanently
+### CR-01: DELETE-time backing-abort failure permanently orphans the S3 multipart — the reaper does NOT compensate
 
-**File:** `lib/rindle/upload/tus_plug.ex:385-403`, `lib/rindle/ops/upload_maintenance.ex:135-175,692-698`
+**File:** `lib/rindle/upload/tus_plug.ex:412-463`, `lib/rindle/ops/upload_maintenance.ex:158-188`
 **Issue:**
-`handle_delete/2` transitions the session to `state: "aborted"` and returns 204,
-but performs NO backing-store cleanup (no `abort_multipart_upload`). The comment
-claims "the Rindle.tmp/ reaper sweeps the abandoned per-session backing files
-regardless," but that only addresses local temp files, not the *remote* S3
-multipart upload — which is the cost leak.
+`handle_delete/2` now aborts the backing before the state transition (good), but the
+abort is best-effort and swallowed:
 
-For the S3 multipart upload to ever be aborted, the session must be re-fetched by
-`UploadMaintenance.abort_incomplete_uploads/1`. Trace the query set:
-
-- `fetch_incomplete_timed_out_sessions/0` matches `state in ["signed","uploading"]`,
-  resuming-resumable, or initialized-multipart. An `"aborted"` tus session matches
-  none of these.
-- `fetch_retryable_abort_sessions/0` matches `state == "aborted"` **but only when**
-  `failure_reason LIKE "resumable_cancel_failed:%"`. A DELETEd tus session has
-  `failure_reason: nil`, so it does NOT match.
-
-Therefore a tus `DELETE` on an S3-backed upload **permanently orphans the S3
-multipart upload** — the precise cost leak TUS-09 exists to close. (`resumable_abort_session?/1`
-also returns `false` for `resumable_protocol: "tus"`, so even routing-wise it is
-excluded.)
-
-**Fix:** Abort the backing store inside `handle_delete/2` before/after the state
-transition, polymorphically, e.g.:
 ```elixir
-defp handle_delete(conn, opts) do
-  with {:ok, payload} <- verify_token(conn, opts),
-       {:ok, session} <- load_active_session(payload) do
-    # Abort the S3 multipart (or remove Local tmp) so DELETE does not leak.
-    _ = abort_backing(session, opts)
-
-    session
-    |> MediaUploadSession.changeset(%{state: "aborted"})
-    |> Config.repo().update()
-    # ... 204
-  end
-end
+# tus_plug.ex
+abort_delete_backing(session, opts)   # logs+returns :ok even on {:error, _}
+session
+|> MediaUploadSession.changeset(%{state: "aborted"})
+|> Config.repo().update()             # → 204 on success
 ```
-Reuse `Rindle.Ops.UploadMaintenance.abort_tus_backing/1` (extract it to a shared
-helper). Alternatively, make `fetch_abortable_sessions/0` also pick up
-`state == "aborted" and resumable_protocol == "tus" and multipart_upload_id not nil`
-so the reaper compensates. Add a regression test asserting `abort_multipart_upload`
-is invoked for a DELETEd tus session.
 
-### CR-02: reaper's `remove_tus_tail/1` computes the wrong path — S3 tail file is never deleted
+`abort_delete_backing/2` returns `:ok` even when `abort_tus_backing/2` returns
+`{:error, reason}` (tus_plug.ex:451-462). The handler comment (lines 419-420)
+justifies this with "the row still moves to aborted and the reaper compensates on
+the next cron." Trace the reaper's query set to confirm whether that compensation
+actually exists:
 
-**File:** `lib/rindle/ops/upload_maintenance.ex:516-520` vs `lib/rindle/storage/s3.ex:405-413`
+- `fetch_incomplete_timed_out_sessions/0` (upload_maintenance.ex:136-156) matches
+  `state in ["signed","uploading"]`, resuming-resumable, or initialized-multipart.
+  An `aborted` tus session matches NONE of these.
+- `fetch_retryable_abort_sessions/0` (upload_maintenance.ex:159-176) matches
+  `state == "aborted"` ONLY when `not is_nil(session_uri)` AND
+  `failure_reason LIKE "resumable_cancel_failed:%"`.
+
+A DELETEd tus session has `state: "aborted"` and `failure_reason: nil` (the DELETE
+changeset at tus_plug.ex:426-427 sets only `state`). It therefore matches neither
+query. The "compensation on the next cron" the comment relies on does not exist:
+when the DELETE-time `abort_multipart_upload` call fails for any transient reason
+(network blip, throttling, MinIO restart), the S3 multipart upload is orphaned
+**permanently** — the precise cost leak this phase exists to close.
+
+This is the same root defect as the prior CR-01 (no reaper query covers aborted tus
+sessions), now narrowed to the abort-failure branch instead of every DELETE.
+
+**Fix:** Make the DELETE durable against a failed abort. Either:
+1. Honour the abort result — if `abort_tus_backing/2` returns `{:error, _}`, persist
+   a retryable marker (e.g. `failure_reason: "tus_abort_failed:..."`) so a reaper
+   query can re-find it, AND extend `fetch_abortable_sessions/0` with a clause that
+   picks up `state == "aborted" and resumable_protocol == "tus" and
+   not is_nil(multipart_upload_id)`; or
+2. Do NOT move the row to `aborted` when the abort failed — leave it in its prior
+   (signed/uploading) state so the existing `fetch_incomplete_timed_out_sessions/0`
+   reaps it once `expires_at` passes, and return a 5xx so the client retries.
+
+Add a regression test that injects an `abort_multipart_upload` failure on DELETE and
+asserts the session is later re-found and re-aborted by `abort_incomplete_uploads/1`.
+
+### CR-02: cross-node resume during the first <5 MiB silently corrupts the object — the `tus_tail_missing` guard has a `parts == []` hole
+
+**File:** `lib/rindle/storage/s3.ex:274-299,157-181`
 **Issue:**
-The S3 adapter writes its tail buffer at a **base64-url-encoded** filename:
-```elixir
-# s3.ex
-defp tail_path(key, opts) do
-  base = Keyword.get(opts, :root) || Rindle.AV.TempRunDir.root_dir()
-  id = Keyword.get(opts, :session_id) || key
-  Path.join([base, "tus", tail_filename(id)])     # <base>/tus/<Base.url_encode64(id)>.tail
-end
-```
-But the reaper removes a **raw, unencoded** path:
-```elixir
-# upload_maintenance.ex
-defp remove_tus_tail(%MediaUploadSession{id: session_id}) do
-  tail_path = Path.join([Rindle.AV.TempRunDir.root_dir(), "tus", session_id <> ".tail"])
-  _ = File.rm(tail_path)   # never matches the real <Base.url_encode64(session_id)>.tail
-  :ok
-end
-```
-The reaper deletes `<root>/tus/<uuid>.tail`; the real file is
-`<root>/tus/<Base.url_encode64(uuid)>.tail`. They never match, so the tail buffer
-is never reaped here. Combined with CR-03 (the generic sweeper skips files), the S3
-tail file is leaked on every reaped session.
+The new cross-node guard only triggers on a mid-multipart resume that has ALREADY
+committed at least one part:
 
-**Fix:** Compute the path through the same encoding the adapter uses, or expose a
-public helper on `Rindle.Storage.S3` and call it:
 ```elixir
-# s3.ex
-def tus_tail_path(session_id, opts \\ []),
-  do: tail_path(session_id, Keyword.put_new(opts, :session_id, session_id))
+mid_multipart? =
+  is_binary(upload_id) and upload_id != "" and is_list(parts) and parts != []
 
-# upload_maintenance.ex
-defp remove_tus_tail(%MediaUploadSession{id: session_id}) do
-  _ = File.rm(Rindle.Storage.S3.tus_tail_path(session_id))
-  :ok
-end
+if mid_multipart? and not File.exists?(tail_path), do: {:error, :tus_tail_missing}, else: :ok
 ```
 
-### CR-03: the `Rindle.tmp/` sweeper only deletes directories — `tus/*.tail` and `tus/*.part` files leak forever
+The `parts != []` clause is deliberate (comment lines 282-284: avoid a false
+positive on a brand-new first write). But it leaves a real silent-corruption window
+whenever an upload's first chunk(s) total LESS than 5 MiB. Trace it:
 
-**File:** `lib/rindle/ops/sweep_orphaned_temp_files.ex:74-92` (depended on by `s3.ex:184`, `tus_plug.ex:392-394`, `upload_maintenance.ex:491-492,507-514`)
-**Issue:**
-Multiple sites in this phase justify "best-effort" cleanup with the claim that the
-`Rindle.tmp/` reaper "sweeps any residue." It does not. `process_run_dir/4` only
-acts on entries whose `lstat` reports `type: :directory`:
-```elixir
-case File.lstat(path) do
-  {:ok, %File.Stat{type: :directory, mtime: mtime}} -> ...   # only dirs are eligible
-  {:ok, _stat} -> acc                                        # FILES are ignored, never deleted
-  ...
-end
-```
-The S3 tail files and Local part files live at `<Rindle.tmp>/tus/<id>.tail` and
-`<Rindle.tmp>/tus/<id>.part`. The sweeper iterates the entries directly under
-`<Rindle.tmp>` and sees `tus` as a single directory. It will `rm_rf` the *entire*
-`tus/` directory only once its mtime crosses the age threshold — but `tus/`'s mtime
-is bumped every time any session writes a new tail/part file, so on any active
-system the `tus/` directory mtime is perpetually fresh and is never swept. The
-backing files inside therefore accumulate without bound. This invalidates the
-cleanup guarantee that S3 `complete_part_stream` (`s3.ex:184` best-effort `File.rm`
-only covers the happy path), the tus `DELETE` handler, and the reaper all rely on.
+1. Node A receives the first PATCH (3 MiB). `ensure_upload_id` initiates the
+   multipart → `upload_id` is now set and persisted. `append_to_tail` writes 3 MiB
+   to the node-local tail. `drain_tail_parts` sees 3 MiB < 5 MiB → returns
+   `parts: []`. Persisted state: `upload_id` set, `parts: []`, `offset: 3 MiB`. The
+   3 MiB tail lives ONLY on Node A's disk.
+2. The resume PATCH (next 3 MiB) is routed to Node B. The DB shows `upload_id` set,
+   `parts: []`, `offset: 3 MiB`, so the 409 offset gate passes.
+3. `guard_local_tail_present`: `parts == []` ⇒ `mid_multipart?` is `false` ⇒ guard
+   returns `:ok` — no loud failure. `append_to_tail` opens a FRESH empty tail on
+   Node B and appends the new 3 MiB. Node A's first 3 MiB is silently dropped.
+4. Offset is advanced to 6 MiB and persisted; completion later flushes a tail that
+   is missing the first 3 MiB. The assembled object is corrupted with no error.
 
-**Fix:** Either (a) sweep aged regular files under `Rindle.tmp/` (and recurse into
-`tus/`), or (b) make all backing-file cleanup explicit at end-of-life (CR-01 +
-CR-02) and stop relying on the sweeper for `tus/*` files. Recommend both: explicit
-cleanup as primary, plus extending the sweeper to age out individual files in
-`tus/` as a safety net. Add a test that creates an aged `tus/<id>.tail` file and
-asserts the sweeper removes it.
+This is exactly the silent re-slice-from-empty-tail corruption CR-04 was raised to
+prevent — just confined to the (very common) case where the first node had buffered
+less than one full part. The guard closes the leak only AFTER the first 5 MiB
+boundary is crossed.
 
-### CR-04: S3 tail buffer is node-local disk state but session state is shared — resume on another node corrupts the object
-
-**File:** `lib/rindle/storage/s3.ex:140-191,405-413`; `lib/rindle/upload/tus_plug.ex:264-270,317-325`
-**Issue:**
-The cross-PATCH multipart bookkeeping (`offset`, `multipart_upload_id`, `parts`) is
-persisted in the shared DB (`persist_offset/2`), but the **sub-5-MiB tail remainder
-is held only on local disk** at `<Rindle.tmp>/tus/<encoded_session_id>.tail`. There
-is no node-affinity guard and no documentation of a single-node assumption anywhere
-in the adapter, the Plug, or the moduledocs.
-
-In any multi-node deployment behind a load balancer, a resumed PATCH can land on a
-different BEAM node. That node reads the authoritative `offset`/`parts`/`upload_id`
-from the DB (so the 409 offset gate passes), then `append_to_tail/2` opens a fresh
-empty tail file and `drain_tail_parts` slices parts from the wrong byte boundary.
-The leftover bytes from the previous node's tail are silently lost, and the
-assembled object is corrupted — with no error surfaced to the client (HEAD reports
-the committed offset, completion succeeds, `verify_completion` only checks size via
-HEAD which can still match if byte counts coincidentally align, or fails opaquely
-otherwise).
-
-This is a silent data-integrity failure on the resume path, which is the entire
-point of tus. At minimum it must be guarded or documented; ideally the residual
-tail should be reconstructable from shared state.
-
-**Fix:** Pick one and make it explicit:
-- Document and enforce a single-node (sticky-session) deployment constraint for the
-  S3 tus backing, and fail loudly when a PATCH arrives with `parts`/`upload_id` in
-  the DB but no tail file present at the expected offset boundary (instead of
-  silently re-slicing from zero).
-- Or persist the residual tail bytes in shared storage (e.g. a dedicated S3 object
-  or DB blob) so any node can resume correctly.
-Add a test that simulates a resume with the tail file absent and asserts a loud
-error rather than a corrupted assembly.
+**Fix:** Strengthen the guard so the node-local tail is required whenever the DB
+state implies bytes were buffered on another node, not only after a part commits.
+A robust signal is "the persisted `offset` is greater than the bytes already
+committed as parts" (i.e. there is an expected non-empty tail). For example, treat a
+resume as mid-multipart when `is_binary(upload_id) and upload_id != "" and offset >
+committed_part_bytes` (where `committed_part_bytes = length(parts) * @s3_min_part_size`),
+and fail with `:tus_tail_missing` if the tail file is absent. A simpler conservative
+guard: when `upload_id` is set and `base_offset > 0`, require the tail file to exist.
+Add a unit test that simulates a resume with `upload_id` set, `parts: []`,
+`offset > 0`, and the tail file absent, asserting `{:error, :tus_tail_missing}`
+rather than a corrupted assembly.
 
 ## Warnings
 
-### WR-01: tus reaper bypasses the `UploadSessionFSM` gate that the standard path enforces
+### WR-01: `abort_tus_backing/2` deletes the node-local tail BEFORE aborting the multipart — recoverable error leaves unrecoverable local-state loss
 
-**File:** `lib/rindle/ops/upload_maintenance.ex:464-487` vs `lib/rindle/ops/upload_maintenance.ex:414-431`
-**Issue:**
-`expire_standard_session/2` deliberately gates the state change on
-`UploadSessionFSM.transition(session.state, "expired", ...)` and the comment
-(lines 414-417) states this exists "so any future expansion of the query set ... is
-caught at the invariant boundary instead of silently violating the FSM contract."
-`do_expire_tus_session/2` (and the resumable path) skip this gate and call
-`MediaUploadSession.changeset(session, %{state: "expired"})` directly. Today
-`signed → expired` is legal, but the tus path loses the same forward-compatibility
-guard the standard path is documented to provide, so a future query-set expansion
-could silently flip a tus session from a state the FSM forbids.
-
-**Fix:** Route `do_expire_tus_session/2` through the FSM gate as
-`expire_standard_session/2` does, or extract a shared gated-expire helper used by
-all three branches.
-
-### WR-02: `handle_delete/2` ignores the result of the session `update`
-
-**File:** `lib/rindle/upload/tus_plug.ex:388-390`
+**File:** `lib/rindle/ops/upload_maintenance.ex:523-548`
 **Issue:**
 ```elixir
-session
-|> MediaUploadSession.changeset(%{state: "aborted"})
-|> Config.repo().update()    # result discarded
+def abort_tus_backing(%MediaUploadSession{} = session, opts) when is_list(opts) do
+  ...
+  remove_tus_tail(session, root)        # (1) tail deleted unconditionally, first
+  case upload_id do
+    id when is_binary(id) and id != "" ->
+      adapter = Keyword.fetch!(opts, :adapter)
+      case adapter.abort_multipart_upload(...) do   # (2) may return {:error, _}
+        {:error, _reason} = err -> err
+        ...
 ```
-If the update fails (validation error, DB error, stale row), the client still
-receives `204` and believes the upload was terminated, while the row remains in its
-prior state. The session can then be re-PATCHed or mis-reaped. Other persist sites
-in this module (`persist_offset/2`, `sign_and_persist/4`) handle the `{:error, _}`
-branch; this one does not.
 
-**Fix:** Match on the update result and return a 5xx (or log) when it fails:
+The local tail buffer is removed first and unconditionally; only afterward is the
+remote multipart abort attempted. When the abort returns `{:error, _}` (the retry
+path both the reaper and — per CR-01 — the DELETE handler depend on), the tail file
+is already gone. The ordering pairs a recoverable remote failure with an
+irreversible local mutation, which is the wrong direction for a best-effort/retry
+sequence: the cheap always-safe-to-repeat step (tail `File.rm`) should run last, not
+first. If any retry or future reconciliation ever needs the residual tail after a
+failed remote abort, it is unavailable. (Today the reaper's expiry path retries the
+remote abort fine on the next cron, but the tail is already destroyed.)
+
+**Fix:** Abort the remote multipart FIRST; remove the local tail only after the
+remote abort succeeds (or is idempotently `:not_found`). On a remote `{:error, _}`,
+leave the tail in place and surface the error so the retry still has it.
+
+### WR-02: reaper's Local-backed cleanup resolves `Local.root([])`, ignoring the per-mount root the upload actually used (IN-03 only half fixed)
+
+**File:** `lib/rindle/ops/upload_maintenance.ex:571-579,497-500`
+**Issue:**
+`resolve_local_root/1` discards the session and returns `Rindle.Storage.Local.root([])`:
+
 ```elixir
-case session |> MediaUploadSession.changeset(%{state: "aborted"}) |> Config.repo().update() do
-  {:ok, _} -> conn |> put_tus_resumable() |> send_resp(204, "") |> halt()
-  {:error, _} -> tus_error(conn, 500, "")
+defp resolve_local_root(_session) do
+  Rindle.Storage.Local.root([])
 end
 ```
 
-### WR-03: partial-failure between `UploadPart` and tail-truncate can duplicate a part on retry
+`Local.root([])` resolves to the app-env `:root` (or the system tmp fallback), NOT
+the per-mount root an adopter may have passed to `TusPlug.init` (`forward ...,
+root: "/custom"`). The Local WRITE path uses the Plug's `opts[:root]`
+(`call_opts/2` threads `root: opts[:root]` = `Local.root(init_opts)`), and the
+DELETE path now correctly threads `opts[:root]` too — but the REAPER path
+(`abort_tus_backing/1` for the Local branch → `resolve_local_root/1`) still computes
+a root from empty opts. When an adopter mounts with a non-default `:root`, the
+reaper's `File.rm` of `tus_part_path(session.id, [root: Local.root([])])` targets the
+wrong directory and misses the file. The prior IN-03 asked to "resolve the Local
+root from the session's profile/adapter config"; this fix improved the DELETE path
+but the reaper path is unchanged. The new `tus/`-recursing sweeper (CR-03) is the
+only thing that eventually reaps these, so it is not a permanent leak, but the
+explicit end-of-life cleanup the design calls "primary" still misses.
 
-**File:** `lib/rindle/storage/s3.ex:261-288`
+**Fix:** Resolve the Local root from the same source the write path used. If the
+per-mount root is not recoverable from the session row, document that Local tus
+explicitly relies on the sweeper for part-file cleanup and drop the misleading
+explicit `File.rm`; otherwise thread the profile/mount root through so the explicit
+delete hits the real file.
+
+### WR-03: `gated_expire/2` routes through the FSM, but `aborted` is a terminal state — a future query-set expansion silently counts aborted tus sessions as errors, never expiring them
+
+**File:** `lib/rindle/ops/upload_maintenance.ex:424-438,455-472`, `lib/rindle/domain/upload_session_fsm.ex:6-17`
 **Issue:**
-In `drain_tail_parts/7`, a part is uploaded (`upload_one_part`) and only then is the
-tail truncated (`truncate_tail_head`). If `truncate_tail_head/2` fails (or the node
-crashes between the two), the part is already committed to S3 but the 5 MiB slice
-remains at the head of the tail file. `upload_part_stream/5` returns `{:error, _}`,
-so the Plug does not advance the offset; the tus client retries the same PATCH at
-the same offset (200, offset matches), `append_to_tail` re-appends, and
-`drain_tail_parts` re-slices and re-uploads the same byte range as a *new* part
-number — duplicating data in the assembled object.
+The prior-WR-01 fix correctly routes BOTH the standard and tus expiry branches
+through the shared `gated_expire/2`, which gates on
+`UploadSessionFSM.transition(session.state, "expired", ...)`. That is the right
+invariant boundary. But the FSM declares `"aborted" => []` (a terminal state with no
+outgoing transitions). The combined abortable query (`fetch_abortable_sessions/0`)
+unions `fetch_retryable_abort_sessions/0`, which selects `state == "aborted"` rows.
+Those are routed to `expire_resumable_session/2` today (not `gated_expire`), so they
+are safe NOW — but the documented purpose of the FSM gate (comment lines 419-423) is
+to catch FUTURE query-set expansions. If a future change ever routes an `aborted`
+tus session into `gated_expire` (e.g. a new "retryable aborted tus" query — exactly
+what CR-01's fix #1 proposes), the gate will reject `aborted → expired`, log
+`session_expiry_invalid_transition`, increment `:abort_errors`, and the session will
+be retried forever — never reaching `expired`, never cleaned up by `cleanup_orphans/1`
+(which selects `state == "expired"`). The gate converts a silent FSM violation into a
+silent infinite-retry. This interacts directly with the recommended CR-01 fix and
+must be reconciled.
 
-**Fix:** Make the slice idempotent: truncate the tail to a staging file first and
-upload from the staged slice, only committing the truncation after a confirmed
-`UploadPart`, and on retry detect/skip an already-uploaded byte range (e.g. by
-recording bytes-consumed alongside `parts`). At minimum, document the failure mode
-and add a test that injects a truncate failure and asserts no duplicate part.
+**Fix:** Decide the lifecycle for an aborted-but-backing-still-present tus session
+explicitly. Either add `"aborted" => ["expired"]` to the FSM (if expiring an aborted
+session is legitimate), or have the reaper clean up aborted tus sessions WITHOUT a
+state transition (abort the backing, then `repo.delete` the row, mirroring
+`cleanup_orphans/1`), so `gated_expire` is never asked to perform an illegal
+transition. Pair this decision with the CR-01 fix.
 
-### WR-04: `:next_part_number` is computed and returned but never persisted — dead/misleading bookkeeping
+### WR-04: `remove_tus_tail/2` is unconditionally invoked for Local-backed sessions, computing an S3-style base64url path that never exists for Local
 
-**File:** `lib/rindle/storage/s3.ex:154-159,397-399`; `lib/rindle/upload/tus_plug.ex:317-325`
+**File:** `lib/rindle/ops/upload_maintenance.ex:527-528,559-564`
 **Issue:**
-`upload_part_stream/5` puts `:next_part_number` into the returned state, and
-`next_part_number/1` prefers it. But `persist_offset/2` in the Plug only persists
-`last_known_offset`, `multipart_upload_id`, and `multipart_parts`; `prior_state/1`
-rebuilds state without `:next_part_number`. So across PATCHes the persisted-counter
-clause (`s3.ex:397`) is never reached — the value always falls through to
-`length(parts) + 1`. The persisted counter is dead code that implies a durability
-guarantee it does not have. It happens to be correct only because `length(parts)+1`
-coincides; if part accounting ever diverges from list length the two disagree
-silently.
+`abort_tus_backing/2` always calls `remove_tus_tail(session, root)` regardless of
+backing type, and `remove_tus_tail/2` computes `S3.tus_tail_path(session_id, ...)`
+(the base64url `.tail` path). For a Local-backed tus session there is no `.tail`
+file — Local writes a raw `<root>/tus/<session_id>.part` (see `Local.tus_part_path/2`).
+So for every Local DELETE/expiry, an extra `File.rm` runs against a non-existent
+base64url path. It is harmless (`File.rm` of a missing file is ignored, return
+swallowed), but it is dead/misleading work that couples the Local cleanup path to
+the S3 adapter's encoding and obscures intent. The actual Local part-file removal
+happens separately in the `_ ->` branch (line 545). A reader cannot tell from
+`abort_tus_backing/2` that the leading `remove_tus_tail` is a no-op for Local.
 
-**Fix:** Remove `:next_part_number` from the returned state and the
-persisted-counter clause, deriving the next number solely from `length(parts) + 1`;
-or actually persist it through `persist_offset/2`/`prior_state/1`. Do not keep a
-phantom counter.
-
-### WR-05: `upload_one_part/6` `with/else` cannot match a non-binary, non-nil ETag
-
-**File:** `lib/rindle/storage/s3.ex:376-393`
-**Issue:**
-```elixir
-with {:ok, response} <- request(...),
-     etag when is_binary(etag) <- etag_from_headers(response) do
-  {:ok, %{part_number: part_number, etag: etag}}
-else
-  nil -> {:error, :missing_etag}
-  {:error, reason} -> {:error, reason}
-end
-```
-`etag_from_headers/1` returns whatever `Map.get(headers_map, "etag")` yields. If a
-provider returns a list-valued or otherwise non-binary, non-nil ETag header, the
-guard fails but the value is neither `nil` nor `{:error, _}`, so no `else` clause
-matches and the `with` raises `WithClauseError` (a 500 crash rather than a tagged
-error). Robustness gap at an S3-provider boundary.
-
-**Fix:** Add a catch-all else clause: `other -> {:error, {:unexpected_etag, other}}`,
-and/or normalize header values to a binary in `etag_from_headers/1`.
-
-### WR-06: `normalize_parts/1` has no fallback clause and crashes on a malformed part entry
-
-**File:** `lib/rindle/storage/s3.ex:426-432`
-**Issue:**
-```elixir
-defp normalize_parts(parts) do
-  Enum.map(parts, fn
-    %{part_number: pn, etag: e} -> {pn, e}
-    %{"part_number" => pn, "etag" => e} -> {pn, e}
-    {pn, e} -> {pn, e}
-  end)
-end
-```
-The accumulated parts come from `multipart_parts` (a `:map` column) round-tripped
-through the DB and unwrapped by `decode_parts/1`. JSON serialization can return
-string keys/values that don't match either map shape (e.g. a part missing `etag`,
-or numeric `part_number` decoded as a string), producing a `FunctionClauseError`
-that crashes completion instead of returning a tagged error. The data crosses a
-serialization boundary (DB `:map`), so the input shape is not fully controlled.
-
-**Fix:** Add a fallback clause that returns/raises a tagged error
-(`other -> raise ... ` is still a crash; prefer surfacing `{:error, {:invalid_part, other}}`
-by validating before `complete_multipart_upload`), and assert the persisted/decoded
-part shape in a unit test.
+**Fix:** Only remove the S3 tail in the S3 (`upload_id` present) branch; in the
+Local branch remove only the `.part` file. Keep the tail removal scoped to the
+backing that actually creates a tail.
 
 ## Info
 
-### IN-01: `read_leading_part/1` can return `{:ok, ""}` and upload an empty part
+### IN-01: sweeper reuses `run_dirs_scanned` / `run_dirs_deleted` counters for individual tus FILES — misleading metrics
 
-**File:** `lib/rindle/storage/s3.ex:313-329,263-267`
-**Issue:** The `:eof -> {:ok, ""}` branch can, under a TOCTOU shrink between
-`File.stat` and the read, feed an empty body into `upload_one_part`, issuing a
-zero-byte `UploadPart`. Low likelihood (single-process tail writer), but the empty
-slice should be guarded rather than uploaded.
-**Fix:** Treat `{:ok, ""}` / `:eof` in `drain_tail_parts` as "no part this pass"
-and stop recursing.
+**File:** `lib/rindle/ops/sweep_orphaned_temp_files.ex:122-167`
+**Issue:** `sweep_tus_dir/4` increments `run_dirs_scanned` once for the `tus/`
+directory (line 123), and `delete_tus_file/3` increments BOTH `orphan_count` and
+`run_dirs_deleted` per aged FILE (line 162). The `run_dirs_deleted` field now
+conflates "run directories rm_rf'd" with "individual tus files removed," and the
+telemetry/`Logger.info` report (lines 45-63) emits the blended number. An operator
+reading `run_dirs_deleted: 7` cannot tell whether 7 run dirs or 7 tus files were
+reaped. Observability drift, not a correctness bug.
+**Fix:** Add dedicated `tus_files_scanned` / `tus_files_deleted` counters to the
+`report` type and telemetry, and stop overloading the run-dir fields for per-file
+accounting.
 
-### IN-02: `next_part_number/1` clause ordering relies on map-key precedence, not documented
+### IN-02: per-PATCH `.patch` temp files live directly under `<root>` (not under `tus/`), so the sweeper still cannot age them out
 
-**File:** `lib/rindle/storage/s3.ex:397-399`
-**Issue:** The three-clause function silently depends on `:next_part_number` taking
-precedence over `:parts`. With WR-04's dead persisted counter, this ordering is a
-latent footgun if both keys ever disagree.
-**Fix:** Collapse to a single derivation (see WR-04) and drop the multi-clause
-ambiguity.
+**File:** `lib/rindle/upload/tus_plug.ex:240-264,397-399`; `lib/rindle/ops/sweep_orphaned_temp_files.ex:89-116`
+**Issue:** `stream_append/4` writes `<root>/<session_id>.patch` (via `tus_tmp_dir/1`
+= `opts[:root] || TempRunDir.root_dir()`) — directly under the sweep root, NOT under
+`tus/`. `process_run_dir/4` only recurses into `tus/`; any other regular file
+directly under root hits the `{:ok, _stat} -> acc` clause and is never reaped. The
+`.patch` file is normally removed in `stream_append/4`'s `after` block, so this only
+matters if that `File.rm` is skipped (hard crash mid-PATCH). Lower likelihood than
+the `tus/` leak CR-03 closed, but the same class and uncovered by the sweeper. (Note
+`truncate_tail_head/2`'s `<...>.tail.rest` files live INSIDE `tus/` at s3.ex:402,
+which the sweeper DOES cover.)
+**Fix:** Place the per-PATCH temp file under `<root>/tus/` (so the new recursion
+covers it) or have the sweeper also age out aged regular files directly under the
+root.
 
-### IN-03: Local `abort_tus_backing/1` resolves the wrong root when removing the part file
+### IN-03: `read_leading_part/1` `:eof -> {:ok, ""}` can still feed an empty body to `upload_one_part` under a TOCTOU shrink
 
-**File:** `lib/rindle/ops/upload_maintenance.ex:510-514`
-**Issue:** `File.rm(Rindle.Storage.Local.tus_part_path(session.id, []))` passes empty
-opts, so the part path resolves against the *default/app-env* Local root rather than
-the root the upload actually used. In production with a configured app-env root this
-happens to align, but tests and any per-profile root override will miss the file.
-This mirrors the encoding mismatch class of CR-02.
-**Fix:** Resolve the Local root from the session's profile/adapter config (the same
-resolution `resolve_tus_adapter/1` performs) rather than `[]`.
-
-### IN-04: integration coverage does not exercise the broken cleanup paths
-
-**File:** `test/rindle/upload/tus_s3_integration_test.exs:189-208`
-**Issue:** The "zero multipart leak" assertion only covers a session expired via
-`expires_at` then reaped through `abort_incomplete_uploads/1` — the one path that
-works. It does not cover (a) tus `DELETE` (CR-01), (b) tail-file removal after
-reaping (CR-02/CR-03), or (c) a resume across nodes (CR-04). The test gives false
-confidence that the cost leak is closed.
-**Fix:** Add `:minio` cases for the DELETE-then-list-multipart-uploads path and for
-asserting the `tus/*.tail` file is gone after a reap, and a unit-level guard for the
-cross-node resume.
+**File:** `lib/rindle/storage/s3.ex:378-395,327-354`
+**Issue:** Unchanged from the prior IN-01. `drain_tail_parts/7` enters the slice
+branch on `File.stat` size `>= @s3_min_part_size`, then `read_leading_part/1` reads;
+if the file shrank between stat and read, the `:eof -> {:ok, ""}` branch yields an
+empty binary that `upload_one_part` would `UploadPart` as a zero-byte part. Very low
+likelihood (single-process tail writer), but the empty slice is uploaded rather than
+skipped.
+**Fix:** In `drain_tail_parts/7`, treat an empty/`:eof` read as "no part this pass"
+and stop recursing instead of issuing a zero-byte `UploadPart`.
 
 ---
 
