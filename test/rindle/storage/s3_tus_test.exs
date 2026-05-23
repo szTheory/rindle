@@ -171,4 +171,56 @@ defmodule Rindle.Storage.S3TusTest do
       refute String.contains?(path, id)
     end
   end
+
+  describe "cross-node resume guard (CR-04): missing tail fails loudly" do
+    # The sub-5-MiB tail remainder is node-local disk state while
+    # offset/upload_id/parts live in the shared DB. A resumed PATCH that lands on
+    # a different node reads authoritative parts/upload_id from the DB but has NO
+    # local tail to slice from. Re-slicing from a fresh empty tail would corrupt
+    # the assembled object, so the adapter must fail loudly instead.
+
+    test "mid-multipart resume with no local tail returns {:error, :tus_tail_missing}", %{
+      root: root
+    } do
+      key = "tus/#{System.unique_integer([:positive])}.bin"
+
+      # Mid-multipart state: a committed part already exists (so a tail boundary
+      # was sliced on the originating node) but the tail file is absent here.
+      state = %{
+        offset: @s3_min_part_size,
+        upload_id: "uid-existing",
+        parts: [%{part_number: 1, etag: "e1"}]
+      }
+
+      # No tail file was ever created under this root.
+      refute File.exists?(S3.tus_tail_path(key, root: root))
+
+      # A sub-5-MiB body so the slice path (live UploadPart) is never reached
+      # even if the guard were absent — the guard fires first, offline.
+      bytes = String.duplicate("x", 1024 * 1024)
+
+      assert {:error, :tus_tail_missing} = patch(key, bytes, @s3_min_part_size, state, root)
+    end
+
+    test "a FIRST PATCH (nil upload_id, [] parts) with no tail succeeds — no false positive", %{
+      root: root
+    } do
+      key = "tus/#{System.unique_integer([:positive])}.bin"
+
+      # Brand-new multipart legitimately has no tail and no committed parts yet.
+      refute File.exists?(S3.tus_tail_path(key, root: root))
+
+      # Sub-5-MiB body keeps it offline (no UploadPart issued).
+      bytes = String.duplicate("y", 1024 * 1024)
+
+      result = patch(key, bytes, 0, %{offset: 0, upload_id: nil, parts: []}, root)
+
+      # The fresh-upload path is NOT guarded: no committed parts means no tail is
+      # expected yet, so the guard must not false-positive on the happy path.
+      refute match?({:error, :tus_tail_missing}, result)
+      assert {:ok, state} = result
+      assert state.parts == []
+      assert state.offset == byte_size(bytes)
+    end
+  end
 end
