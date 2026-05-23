@@ -94,11 +94,13 @@ the bare-Plug / one-column / `:tus_upload`-atom decisions are not relitigated he
   5. A MinIO integration proof completes a ≥ 1 GiB tus upload with a mid-flight drop + resume, and asserts that after abandonment + reaper, `list_multipart_uploads` returns empty.
 
 **Plans**: 5 plans
-- [ ] 43-01-PLAN.md — Wave 0: declare upload_part_stream/5 + complete_part_stream/4 OPTIONAL callbacks + test scaffolding (2 NEW test files, 3 extended)
+
+- [x] 43-01-PLAN.md — Wave 0: declare upload_part_stream/5 + complete_part_stream/4 OPTIONAL callbacks + test scaffolding (2 NEW test files, 3 extended)
 - [ ] 43-02-PLAN.md — S3 adapter: tail-buffer upload_part_stream/5 (ETag-from-headers), complete_part_stream/3, advertise :tus_upload
 - [ ] 43-03-PLAN.md — Reaper: branch expire_session on resumable_protocol; tus -> abort S3 multipart (closes the orphaned-multipart leak)
 - [ ] 43-04-PLAN.md — Local impl + TusPlug polymorphic dispatch; converge into UNCHANGED verify_completion/2 (D-08)
 - [ ] 43-05-PLAN.md — MinIO >= 1 GiB drop+resume + list_multipart_uploads-empty zero-leak proof (+ CI checkpoint)
+
 **UI hint**: no
 
 ### Phase 44: Auth Hardening, DX, Docs, Telemetry, CI Proof
@@ -143,7 +145,7 @@ without affecting the tus spine.
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 42. tus Protocol Edge (bare Plug) | v1.8 | 4/4 | Complete    | 2026-05-22 |
-| 43. S3 Multipart Backing + MinIO Proof | v1.8 | 0/TBD | Not started | - |
+| 43. S3 Multipart Backing + MinIO Proof | v1.8 | 1/5 | In Progress|  |
 | 44. Auth Hardening, DX, Docs, Telemetry, CI Proof | v1.8 | 0/TBD | Not started | - |
 | 45. Browser → Mux Direct Creator Upload (droppable) | v1.8 | 0/TBD | Not started | - |
 
