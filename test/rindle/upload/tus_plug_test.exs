@@ -11,6 +11,7 @@ defmodule Rindle.Upload.TusPlugTest do
 
   import Plug.Test
   import Plug.Conn
+  import Mox
 
   alias Ecto.Adapters.SQL.Sandbox
   alias Rindle.Adopter.CanonicalApp.Repo, as: AdopterRepo
@@ -39,6 +40,17 @@ defmodule Rindle.Upload.TusPlugTest do
     use Rindle.Profile,
       storage: NoTusStorage,
       variants: [thumb: [mode: :crop, width: 100, height: 100]]
+  end
+
+  # Mox-backed profile to prove the PATCH/completion path dispatches through the
+  # behaviour (adapter.upload_part_stream/5 + adapter.complete_part_stream/4),
+  # not a hard-wired Local call. The mock advertises :tus_upload so init/1 passes.
+  defmodule MockTusProfile do
+    use Rindle.Profile,
+      storage: Rindle.StorageMock,
+      variants: [thumb: [mode: :crop, width: 100, height: 100]],
+      allow_mime: ["image/jpeg"],
+      max_bytes: 10_485_760
   end
 
   # Real router so `forward` strips the mount prefix into `script_name` and the
@@ -400,6 +412,89 @@ defmodule Rindle.Upload.TusPlugTest do
 
       assert conn.status == 404
       refute conn.status == 200
+    end
+  end
+
+  describe "Plan 04 — polymorphic adapter dispatch (TUS-06/08, RED until Plan 04)" do
+    # These specs prove TusPlug routes PATCH/completion through the storage
+    # behaviour rather than the hard-wired Local helpers. EXPECTED RED until
+    # Plan 04 replaces the Local.tus_part_path/Local.tus_complete calls with
+    # adapter.upload_part_stream/5 + adapter.complete_part_stream/4. Today the
+    # Plug never touches the adapter for PATCH bytes, so the Mox expectations go
+    # unsatisfied -> verify_on_exit! fails (RED).
+    setup :set_mox_from_context
+    setup :verify_on_exit!
+
+    setup %{root: root} do
+      # init/1 calls adapter.capabilities() through Capabilities.require_upload;
+      # stub it so the gate passes for the Mox adapter.
+      stub(Rindle.StorageMock, :capabilities, fn -> [:tus_upload, :head] end)
+
+      opts =
+        TusPlug.init(
+          profile: MockTusProfile,
+          secret_key_base: @secret_key_base,
+          max_size: @max_size,
+          root: root
+        )
+
+      {:ok, mock_opts: opts}
+    end
+
+    # POST through the plug (mock_opts) to mint a signed token, exactly like the
+    # create/2 helper does for the Local profile.
+    defp mock_create(opts, length \\ 10) do
+      conn =
+        conn(:post, "/uploads/tus")
+        |> put_req_header("upload-length", Integer.to_string(length))
+        |> put_req_header("upload-metadata", "filename Y2xpcC5qcGc=")
+        |> TusPlug.call(opts)
+
+      [location] = get_resp_header(conn, "location")
+      token = location |> String.split("/") |> List.last()
+      {:ok, payload} = Plug.Crypto.verify(@secret_key_base, @tus_url_salt, token)
+      {token, payload["session_id"]}
+    end
+
+    test "a PATCH dispatches to adapter.upload_part_stream/5 (no Local hard-wiring)", %{
+      mock_opts: opts
+    } do
+      {token, _sid} = mock_create(opts)
+
+      # The load-bearing expectation: the adapter callback is invoked with the
+      # session's upload_key, a drained temp file path, the base offset, the
+      # prior part-state map, and call opts.
+      expect(Rindle.StorageMock, :upload_part_stream, fn key, temp_path, base_offset, state, _opts ->
+        assert is_binary(key)
+        assert is_binary(temp_path)
+        assert base_offset == 0
+        assert is_map(state)
+        {:ok, %{offset: 10}}
+      end)
+
+      _conn = patch(opts, token, 0, "0123456789")
+    end
+
+    test "the final PATCH calls adapter.complete_part_stream/4 then converges into verify_completion",
+         %{mock_opts: opts} do
+      {token, _sid} = mock_create(opts)
+
+      stub(Rindle.StorageMock, :upload_part_stream, fn _key, _temp_path, base_offset, _state, _opts ->
+        {:ok, %{offset: base_offset + 10}}
+      end)
+
+      # The final PATCH (offset reaches Upload-Length) MUST call the symmetric
+      # completion callback polymorphically, not Local.tus_complete.
+      expect(Rindle.StorageMock, :complete_part_stream, fn key, _temp_path, state, _opts ->
+        assert is_binary(key)
+        assert is_map(state)
+        {:ok, %{upload_key: key}}
+      end)
+
+      # verify_completion/2 is the unchanged trust gate; head/2 backs it.
+      stub(Rindle.StorageMock, :head, fn _key, _opts -> {:ok, %{size: 10, content_type: nil}} end)
+
+      _conn = patch(opts, token, 0, "0123456789")
     end
   end
 
