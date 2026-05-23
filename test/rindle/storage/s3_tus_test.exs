@@ -222,5 +222,62 @@ defmodule Rindle.Storage.S3TusTest do
       assert state.parts == []
       assert state.offset == byte_size(bytes)
     end
+
+    test "pre-first-part resume (upload_id set, parts: [], offset > 0, tail absent) fails loudly",
+         %{root: root} do
+      key = "tus/#{System.unique_integer([:positive])}.bin"
+
+      # The CR-04 silent-corruption hole: a first PATCH under 5 MiB on the
+      # originating node set upload_id and buffered N MiB to the node-local tail
+      # but committed NO part (parts: []). The DB therefore shows upload_id set,
+      # parts: [], offset > 0 — but the buffered bytes live only on the other
+      # node's disk. committed_part_bytes = 0 * @s3_min_part_size == 0, and
+      # offset (3 MiB) > 0, so the strengthened guard must require the tail.
+      state = %{
+        offset: 3 * 1024 * 1024,
+        upload_id: "uid-existing",
+        parts: []
+      }
+
+      # No tail file was ever created under this root (cross-node misroute).
+      refute File.exists?(S3.tus_tail_path(key, root: root))
+
+      # A sub-5-MiB body so the slice path (live UploadPart) is never reached
+      # even if the guard were absent — the guard fires first, offline. Pre-fix
+      # the guard sees parts == [] -> :ok and silently appends to a fresh empty
+      # tail (corruption); post-fix it fails loudly.
+      bytes = String.duplicate("x", 1024 * 1024)
+
+      assert {:error, :tus_tail_missing} = patch(key, bytes, 3 * 1024 * 1024, state, root)
+    end
+
+    test "pre-first-part resume with the local tail present still succeeds (same-node, no regression)",
+         %{root: root} do
+      key = "tus/#{System.unique_integer([:positive])}.bin"
+
+      # Same pre-first-part state (upload_id set, parts: [], offset > 0) but this
+      # is a LEGITIMATE same-node resume: the originating node's tail buffer is
+      # present. The strengthened guard must NOT fire when the expected tail
+      # exists, so the happy same-node resume in the pre-first-part window works.
+      state = %{
+        offset: 3 * 1024 * 1024,
+        upload_id: "uid-existing",
+        parts: []
+      }
+
+      # Seed the node-local tail with >= 1 byte at the canonical adapter path.
+      tail_path = S3.tus_tail_path(key, root: root)
+      File.mkdir_p!(Path.dirname(tail_path))
+      File.write!(tail_path, String.duplicate("z", 3 * 1024 * 1024))
+      assert File.exists?(tail_path)
+
+      # Sub-5-MiB body keeps it offline (no UploadPart issued).
+      bytes = String.duplicate("w", 1024 * 1024)
+
+      result = patch(key, bytes, 3 * 1024 * 1024, state, root)
+
+      refute match?({:error, :tus_tail_missing}, result)
+      assert {:ok, _state} = result
+    end
   end
 end

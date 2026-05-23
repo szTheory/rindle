@@ -11,13 +11,18 @@ defmodule Rindle.Storage.S3 do
   backing REQUIRES single-node or sticky-session routing: a resumed PATCH must
   reach the same node that holds the in-progress tail buffer.
 
-  A cross-node resume — where the DB shows a mid-multipart upload (a non-empty
-  `upload_id` plus at least one committed part) but the expected tail file is
-  absent on this node — is detected and fails loudly with
+  A cross-node resume — where the DB implies buffered bytes (a non-empty
+  `upload_id` together with EITHER at least one committed part OR a persisted
+  `offset` greater than `length(parts) * @s3_min_part_size`) but the expected
+  tail file is absent on this node — is detected and fails loudly with
   `{:error, :tus_tail_missing}` rather than silently re-slicing from a fresh
-  empty tail (which would corrupt the assembled object). Multi-node operators
-  MUST pin tus PATCHes to a single node (sticky sessions) or accept this loud
-  failure on misrouted resumes.
+  empty tail (which would corrupt the assembled object). This covers the
+  pre-first-part window too: a first PATCH under 5 MiB buffers a node-local tail
+  without committing any part (`parts: []`, `offset > 0`), so a misrouted resume
+  in that window also fails loudly instead of dropping the buffered bytes. A
+  brand-new FIRST PATCH (`offset == 0`) is never falsely guarded. Multi-node
+  operators MUST pin tus PATCHes to a single node (sticky sessions) or accept
+  this loud failure on misrouted resumes.
   """
 
   @behaviour Rindle.Storage
@@ -156,7 +161,7 @@ defmodule Rindle.Storage.S3 do
   @impl true
   def upload_part_stream(key, temp_path, base_offset, state, opts) do
     with {:ok, bucket} <- bucket(opts),
-         :ok <- guard_local_tail_present(tail_path(key, opts), state),
+         :ok <- guard_local_tail_present(tail_path(key, opts), base_offset, state),
          {:ok, upload_id} <- ensure_upload_id(bucket, key, state, opts),
          {:ok, bytes_written} <- append_to_tail(tail_path(key, opts), temp_path),
          {:ok, parts, next_number} <-
@@ -273,23 +278,46 @@ defmodule Rindle.Storage.S3 do
 
   # Cross-node resume guard (CR-04, threat T-43-06-01). The sub-5-MiB tail
   # remainder is node-local disk state, while offset/upload_id/parts live in the
-  # shared DB. A mid-multipart resume is identified by BOTH a non-empty upload_id
-  # AND at least one already-committed part — meaning a prior node sliced and
-  # persisted a tail boundary. If that node's tail file is absent here, this
-  # PATCH was routed to a different node; re-slicing from a fresh empty tail
-  # would silently corrupt the assembled object, so fail loudly instead.
+  # shared DB. A resume is "mid-multipart" — and therefore REQUIRES the local
+  # tail — whenever the persisted DB state implies bytes were buffered on another
+  # node. There are two such signals, OR'd together:
   #
-  # A FIRST PATCH legitimately has no committed parts (and usually a nil
-  # upload_id), so the `parts != []` signal prevents a false positive on the
-  # happy first-write path — a brand-new multipart has no tail yet by design.
+  #   1. `parts != []` — at least one part was already committed, so the
+  #      originating node sliced and persisted a tail boundary.
+  #   2. `offset > committed_part_bytes` (where
+  #      `committed_part_bytes = length(parts) * @s3_min_part_size`) — the
+  #      persisted offset is ahead of what the committed parts account for, so a
+  #      sub-5-MiB tail remainder was buffered but not yet sliced into a part.
+  #
+  # Signal (2) closes the pre-first-part hole: a first PATCH under 5 MiB sets
+  # `upload_id` and buffers N MiB to the node-local tail but commits NO part
+  # (`parts: []`, `committed_part_bytes == 0`, `offset > 0`). The old guard saw
+  # `parts == []` -> not mid-multipart -> `:ok`, so a cross-node resume opened a
+  # fresh empty tail and silently dropped the first node's bytes, corrupting the
+  # assembled object. Now `offset > 0` requires the tail to exist.
+  #
+  # A brand-new FIRST PATCH is still NOT falsely guarded: it carries
+  # `offset == 0` (so `0 > 0` is false) and `parts == []`, leaving `:ok` for the
+  # happy first-write path — a fresh multipart has no tail yet by design. The
+  # already-covered committed-part case (offset exactly == committed_part_bytes
+  # at a freshly-sliced boundary) stays covered via the `parts != []` clause.
+  #
+  # If the resume is mid-multipart but the expected tail file is absent here, the
+  # PATCH was routed to a different node; re-slicing from a fresh empty tail would
+  # silently corrupt the assembled object, so fail loudly instead.
   #
   # The error surface is the bare `:tus_tail_missing` atom only: the absolute
   # tail path and session_uri are NOT included (threat T-43-06-02 — no
   # internal-path disclosure across the adapter boundary).
-  defp guard_local_tail_present(tail_path, state) do
+  defp guard_local_tail_present(tail_path, offset, state) do
     upload_id = Map.get(state, :upload_id)
     parts = Map.get(state, :parts, [])
-    mid_multipart? = is_binary(upload_id) and upload_id != "" and is_list(parts) and parts != []
+    offset = if is_integer(offset), do: offset, else: Map.get(state, :offset, 0)
+    committed_part_bytes = length(parts) * @s3_min_part_size
+
+    mid_multipart? =
+      is_binary(upload_id) and upload_id != "" and
+        (parts != [] or offset > committed_part_bytes)
 
     if mid_multipart? and not File.exists?(tail_path) do
       {:error, :tus_tail_missing}
