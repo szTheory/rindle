@@ -810,7 +810,9 @@ defmodule Rindle.Ops.UploadMaintenanceTest do
     # -------------------------------------------------------------------------
 
     test "deletes the adapter-written tail file at the SAME root the write path used" do
-      tmp_dir = Path.join(System.tmp_dir!(), "rindle-tus-cr02-#{System.unique_integer([:positive])}")
+      tmp_dir =
+        Path.join(System.tmp_dir!(), "rindle-tus-cr02-#{System.unique_integer([:positive])}")
+
       previous_tmp_dir = Application.get_env(:rindle, :tmp_dir)
       Application.put_env(:rindle, :tmp_dir, tmp_dir)
 
@@ -939,8 +941,10 @@ defmodule Rindle.Ops.UploadMaintenanceTest do
       {:ok, report} = UploadMaintenance.abort_incomplete_uploads([])
 
       assert report.sessions_aborted == 1
+
       refute File.exists?(part_path),
              "expected Local abort to remove the part file at the resolved upload root #{part_path}"
+
       refute File.exists?(tail_path)
     end
 
@@ -961,7 +965,11 @@ defmodule Rindle.Ops.UploadMaintenanceTest do
       on_exit(fn -> File.rm_rf(custom_root) end)
 
       asset = create_asset()
-      session = create_tus_session(asset, %{multipart_upload_id: "tus-helper-#{System.unique_integer([:positive])}"})
+
+      session =
+        create_tus_session(asset, %{
+          multipart_upload_id: "tus-helper-#{System.unique_integer([:positive])}"
+        })
 
       tail_path = Rindle.Storage.S3.tus_tail_path(session.id, root: custom_root)
       File.mkdir_p!(Path.dirname(tail_path))
@@ -986,7 +994,10 @@ defmodule Rindle.Ops.UploadMaintenanceTest do
 
     test "PUBLIC abort_tus_backing/2 removes the Local part + tail at the explicit root" do
       custom_root =
-        Path.join(System.tmp_dir!(), "rindle-tus-helper-local-#{System.unique_integer([:positive])}")
+        Path.join(
+          System.tmp_dir!(),
+          "rindle-tus-helper-local-#{System.unique_integer([:positive])}"
+        )
 
       on_exit(fn -> File.rm_rf(custom_root) end)
 
