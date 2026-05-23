@@ -93,7 +93,7 @@ the bare-Plug / one-column / `:tus_upload`-atom decisions are not relitigated he
   4. tus sessions expire (`expires_at` → `Upload-Expires` + `410 Gone`) and `DELETE` terminates; the `UploadMaintenance`/`AbortIncompleteUploads` reaper branches on `resumable_protocol` (`"tus"` → abort the S3 multipart or remove the local tmp; `"gcs_native"` → existing session-URI cancel).
   5. A MinIO integration proof completes a ≥ 1 GiB tus upload with a mid-flight drop + resume, and asserts that after abandonment + reaper, `list_multipart_uploads` returns empty.
 
-**Plans**: 10 plans (5 shipped + 5 gap-closure for the 3/5 verification gaps)
+**Plans**: 12 plans (5 shipped + 5 gap-closure; 2 further gap-closure for the re-verification 3/5 gaps CR-01 + CR-04)
 
 - [x] 43-01-PLAN.md — Wave 0: declare upload_part_stream/5 + complete_part_stream/4 OPTIONAL callbacks + test scaffolding (2 NEW test files, 3 extended)
 - [x] 43-02-PLAN.md — S3 adapter: tail-buffer upload_part_stream/5 (ETag-from-headers), complete_part_stream/3, advertise :tus_upload
@@ -105,6 +105,8 @@ the bare-Plug / one-column / `:tus_upload`-atom decisions are not relitigated he
 - [x] 43-08-PLAN.md — Gap closure: reaper routes remove_tus_tail through S3.tus_tail_path (CR-02 wiring) + Local-root abort (IN-03) + FSM-gated tus expiry (WR-01) + reusable abort helper [Wave 2]
 - [x] 43-09-PLAN.md — Gap closure: tus DELETE aborts the backing multipart (CR-01) + honours update result (WR-02) + Plug single-node moduledoc (CR-04) [Wave 3]
 - [x] 43-10-PLAN.md — Gap closure: MinIO proof — DELETE-then-list_multipart_uploads-empty + post-reap tail-gone (SC5/IN-04) [Wave 4]
+- [ ] 43-11-PLAN.md — Gap closure: DELETE-abort-failure becomes reaper-recoverable — tus_abort_failed marker + fetch_retryable_tus_abort_sessions re-abort + WR-03 FSM reconciliation (CR-01) [Wave 5]
+- [ ] 43-12-PLAN.md — Gap closure: strengthen cross-node tail guard to fire on offset > committed_part_bytes, closing the pre-first-part silent-corruption window (CR-04) [Wave 5]
 
 **UI hint**: no
 
