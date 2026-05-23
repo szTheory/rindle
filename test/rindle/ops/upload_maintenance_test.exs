@@ -1024,6 +1024,112 @@ defmodule Rindle.Ops.UploadMaintenanceTest do
     end
   end
 
+  describe "tus DELETE-time abort-failure recovery (CR-01 reaper half / WR-03)" do
+    # -------------------------------------------------------------------------
+    # CR-01 (reaper half): a tus DELETE whose backing abort failed transiently
+    # leaves the row in state="aborted" with a retryable `tus_abort_failed:%`
+    # marker (written by tus_plug.ex). The reaper MUST re-select such a row,
+    # re-invoke abort_multipart_upload, and on success settle it WITHOUT an
+    # FSM-forbidden aborted->expired transition (WR-03). Pre-fix the
+    # `fetch_retryable_tus_abort_sessions/0` query does not exist, so the row is
+    # never selected and the Mox expect goes unsatisfied -> RED.
+    # -------------------------------------------------------------------------
+
+    test "re-selects + re-aborts an aborted tus session carrying the tus_abort_failed marker, then settles it (WR-03: no FSM-forbidden transition)" do
+      asset = create_asset()
+
+      session =
+        create_tus_session(asset, %{
+          state: "aborted",
+          failure_reason: "tus_abort_failed:transport"
+        })
+
+      # The load-bearing CR-01 proof: the orphaned multipart is re-aborted with
+      # the session's upload_key + multipart_upload_id.
+      expect(Rindle.StorageMock, :abort_multipart_upload, fn key, upload_id, _opts ->
+        assert key == session.upload_key
+        assert upload_id == session.multipart_upload_id
+        {:ok, :aborted}
+      end)
+
+      {:ok, report} = UploadMaintenance.abort_incomplete_uploads([])
+
+      assert report.sessions_found == 1
+      assert report.sessions_aborted == 1
+      # WR-03: the settle path bypasses the FSM gate, so NO invalid-transition
+      # was attempted -> abort_errors stays 0.
+      assert report.abort_errors == 0
+      assert report.resumable_aborts == 1
+
+      updated = AdopterRepo.get!(MediaUploadSession, session.id)
+      assert updated.state == "expired"
+      assert updated.failure_reason == nil
+    end
+
+    test "treats a re-abort returning not_found as idempotent success and settles the row" do
+      asset = create_asset()
+
+      session =
+        create_tus_session(asset, %{
+          state: "aborted",
+          failure_reason: "tus_abort_failed:transport"
+        })
+
+      expect(Rindle.StorageMock, :abort_multipart_upload, fn _key, _upload_id, _opts ->
+        {:error, :not_found}
+      end)
+
+      {:ok, report} = UploadMaintenance.abort_incomplete_uploads([])
+
+      assert report.sessions_aborted == 1
+      assert report.abort_errors == 0
+
+      updated = AdopterRepo.get!(MediaUploadSession, session.id)
+      assert updated.state == "expired"
+      assert updated.failure_reason == nil
+    end
+
+    test "a re-abort that still fails keeps the row aborted with the marker intact (re-selectable next cron, no new permanent orphan)" do
+      asset = create_asset()
+
+      session =
+        create_tus_session(asset, %{
+          state: "aborted",
+          failure_reason: "tus_abort_failed:transport"
+        })
+
+      expect(Rindle.StorageMock, :abort_multipart_upload, fn _key, _upload_id, _opts ->
+        {:error, :transport}
+      end)
+
+      {:ok, report} = UploadMaintenance.abort_incomplete_uploads([])
+
+      assert report.sessions_aborted == 0
+      assert report.abort_errors == 1
+
+      updated = AdopterRepo.get!(MediaUploadSession, session.id)
+      # Still aborted, marker intact -> re-selectable on the next cron.
+      assert updated.state == "aborted"
+      assert updated.failure_reason == "tus_abort_failed:transport"
+    end
+
+    test "does NOT re-select a clean aborted tus session whose abort succeeded (failure_reason nil) — keys on the marker, not state==aborted" do
+      asset = create_asset()
+
+      _session =
+        create_tus_session(asset, %{
+          state: "aborted",
+          failure_reason: nil
+        })
+
+      # No Mox expect: a clean cancel must NEVER be re-aborted (no double-abort).
+      {:ok, report} = UploadMaintenance.abort_incomplete_uploads([])
+
+      assert report.sessions_found == 0
+      assert report.sessions_aborted == 0
+    end
+  end
+
   describe "telemetry emission boundary (Plan 05-01 / D-02)" do
     test "cleanup_orphans/1 does NOT emit [:rindle, :cleanup, :run] from service layer" do
       ref =

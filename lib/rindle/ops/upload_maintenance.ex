@@ -175,12 +175,42 @@ defmodule Rindle.Ops.UploadMaintenance do
     end
   end
 
+  # CR-01 (reaper half): re-select aborted tus sessions whose DELETE-time backing
+  # abort failed transiently. The tus DELETE handler stamps a retryable
+  # `tus_abort_failed:<reason>` marker on the row (instead of silently swallowing
+  # the abort error), leaving the row in state="aborted" with the orphaned S3
+  # multipart still live. This query makes that row re-discoverable so the next
+  # cron re-aborts the multipart — ZERO permanent orphan (mirrors the GCS
+  # `fetch_retryable_abort_sessions/0` marker pattern). The marker predicate must
+  # match byte-for-byte the string the Plug writes (`tus_abort_failed:`).
+  @spec fetch_retryable_tus_abort_sessions() ::
+          {:ok, [MediaUploadSession.t()]} | {:error, term()}
+  defp fetch_retryable_tus_abort_sessions do
+    repo = Config.repo()
+
+    query =
+      from(s in MediaUploadSession,
+        where: s.state == "aborted",
+        where: s.resumable_protocol == "tus",
+        where: not is_nil(s.multipart_upload_id),
+        where: like(s.failure_reason, "tus_abort_failed:%"),
+        select: s
+      )
+
+    try do
+      {:ok, repo.all(query)}
+    rescue
+      e -> {:error, e}
+    end
+  end
+
   @spec fetch_abortable_sessions() :: {:ok, [MediaUploadSession.t()]} | {:error, term()}
   defp fetch_abortable_sessions do
     with {:ok, timed_out_sessions} <- fetch_incomplete_timed_out_sessions(),
-         {:ok, retryable_sessions} <- fetch_retryable_abort_sessions() do
+         {:ok, retryable_sessions} <- fetch_retryable_abort_sessions(),
+         {:ok, retryable_tus_sessions} <- fetch_retryable_tus_abort_sessions() do
       sessions =
-        (timed_out_sessions ++ retryable_sessions)
+        (timed_out_sessions ++ retryable_sessions ++ retryable_tus_sessions)
         |> Enum.uniq_by(& &1.id)
 
       {:ok, sessions}
@@ -455,15 +485,79 @@ defmodule Rindle.Ops.UploadMaintenance do
   defp expire_tus_session(session, acc) do
     case abort_tus_backing(session) do
       :ok ->
-        # WR-01: gate the tus expiry persistence through the SAME FSM-gated
-        # helper the standard branch uses, so a future query-set expansion can
-        # never silently flip a tus session from an FSM-forbidden state.
-        gated_expire(session, acc)
+        settle_tus_abort_success(session, acc)
 
       {:error, reason} ->
         Logger.warning("rindle.upload_maintenance.tus_abort_failed",
           session_id: session.id,
           multipart_upload_id: session.multipart_upload_id,
+          reason: inspect(reason)
+        )
+
+        # CR-01: a DELETE-time-failure retry row stays state="aborted" with its
+        # `tus_abort_failed:%` marker intact so the NEXT cron re-selects it (still
+        # recoverable — never a new permanent orphan). The timeout-expiry path
+        # likewise leaves its row untouched on failure for the next cron.
+        Map.update!(acc, :abort_errors, &(&1 + 1))
+    end
+  end
+
+  # WR-03 reconciliation. The FSM declares `"aborted" => []` (terminal), so a tus
+  # session re-selected from the DELETE-time-failure retry query (already in
+  # state "aborted" with a `tus_abort_failed:%` marker) MUST NOT be routed back
+  # through `gated_expire/2` — that would attempt the FSM-forbidden
+  # `aborted -> expired`, log an invalid transition, increment `abort_errors`,
+  # and re-select the row forever (a silent infinite retry). On a successful (or
+  # idempotent `:not_found`) re-abort, settle such a row via a dedicated persist
+  # that mirrors `persist_resumable_abort_success/3` — clearing the marker and
+  # bypassing the FSM gate — exactly how the GCS retryable path settles `aborted`
+  # rows without an illegal transition. The timeout-expiry path (non-terminal
+  # state) keeps the FSM-gated `gated_expire/2` call (WR-01).
+  defp settle_tus_abort_success(
+         %MediaUploadSession{state: "aborted", failure_reason: failure_reason} = session,
+         acc
+       )
+       when is_binary(failure_reason) do
+    if String.starts_with?(failure_reason, "tus_abort_failed:") do
+      persist_tus_abort_retry_success(session, acc)
+    else
+      # Not a tus DELETE-failure retry marker (e.g. a GCS
+      # `resumable_cancel_failed:%` marker surfaced by the other query). Preserve
+      # the FSM-gated behavior so an FSM-forbidden aborted->expired is rejected
+      # (WR-01 invariant boundary), never silently settled.
+      gated_expire(session, acc)
+    end
+  end
+
+  defp settle_tus_abort_success(session, acc) do
+    # WR-01: gate the tus timeout-expiry persistence through the SAME FSM-gated
+    # helper the standard branch uses, so a future query-set expansion can never
+    # silently flip a tus session from an FSM-forbidden state.
+    gated_expire(session, acc)
+  end
+
+  # Mirrors `persist_resumable_abort_success/3`: settle a recovered aborted-tus
+  # row directly through the repo (NOT the FSM gate) to `state: "expired"` with
+  # the retryable marker cleared, so it is no longer re-selected by
+  # `fetch_retryable_tus_abort_sessions/0`.
+  defp persist_tus_abort_retry_success(session, acc) do
+    repo = Config.repo()
+    changeset = MediaUploadSession.changeset(session, %{state: "expired", failure_reason: nil})
+
+    case repo.update(changeset) do
+      {:ok, _updated} ->
+        Logger.info("rindle.upload_maintenance.tus_abort_retry_settled",
+          session_id: session.id,
+          previous_state: session.state
+        )
+
+        acc
+        |> Map.update!(:sessions_aborted, &(&1 + 1))
+        |> increment_abort_strategy(session)
+
+      {:error, reason} ->
+        Logger.warning("rindle.upload_maintenance.tus_abort_retry_persist_failed",
+          session_id: session.id,
           reason: inspect(reason)
         )
 
