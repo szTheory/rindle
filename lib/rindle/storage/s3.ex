@@ -163,6 +163,34 @@ defmodule Rindle.Storage.S3 do
   end
 
   @impl true
+  def complete_part_stream(key, _temp_path, state, opts) do
+    with {:ok, bucket} <- bucket(opts),
+         {:ok, upload_id} <- require_upload_id(Map.get(state, :upload_id)),
+         {:ok, parts} <-
+           flush_final_tail(
+             bucket,
+             key,
+             upload_id,
+             tail_path(key, opts),
+             Map.get(state, :parts, []),
+             next_part_number(state),
+             opts
+           ),
+         {:ok, %{body: body}} <-
+           request(
+             S3.complete_multipart_upload(bucket, key, upload_id, normalize_parts(parts)),
+             opts
+           ) do
+      # Best-effort tail cleanup; the Rindle.tmp/ reaper sweeps any residue.
+      File.rm(tail_path(key, opts))
+
+      {:ok, Map.merge(%{upload_id: upload_id, upload_key: key, bucket: bucket}, body)}
+    else
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  @impl true
   def head(key, opts) do
     with {:ok, bucket} <- bucket(opts) do
       handle_head_response(request(S3.head_object(bucket, key), opts))
@@ -185,7 +213,7 @@ defmodule Rindle.Storage.S3 do
   defp handle_head_response({:error, reason}), do: {:error, reason}
 
   @impl true
-  def capabilities, do: [:presigned_put, :head, :signed_url, :multipart_upload]
+  def capabilities, do: [:presigned_put, :head, :signed_url, :multipart_upload, :tus_upload]
 
   # --- tus tail-buffer internals (TUS-06) ---------------------------------
 
@@ -200,6 +228,9 @@ defmodule Rindle.Storage.S3 do
       {:error, reason} -> {:error, reason}
     end
   end
+
+  defp require_upload_id(id) when is_binary(id) and id != "", do: {:ok, id}
+  defp require_upload_id(_), do: {:error, :missing_upload_id}
 
   # Stream the per-PATCH temp file onto the tail buffer in bounded chunks.
   # Returns the number of bytes appended (== this PATCH's payload size). The
@@ -250,6 +281,28 @@ defmodule Rindle.Storage.S3 do
 
       {:error, :enoent} ->
         {:ok, parts, part_number}
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
+  # On completion, flush any remaining tail (any size — the LAST part has no
+  # 5 MiB floor) as the final part, then return the full ordered parts list.
+  defp flush_final_tail(bucket, key, upload_id, tail_path, parts, part_number, opts) do
+    case File.stat(tail_path) do
+      {:ok, %{size: size}} when size > 0 ->
+        with {:ok, body} <- File.read(tail_path),
+             {:ok, part} <-
+               upload_one_part(bucket, key, upload_id, part_number, body, opts) do
+          {:ok, parts ++ [part]}
+        end
+
+      {:ok, _stat} ->
+        {:ok, parts}
+
+      {:error, :enoent} ->
+        {:ok, parts}
 
       {:error, reason} ->
         {:error, reason}
