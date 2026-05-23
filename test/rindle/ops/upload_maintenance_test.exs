@@ -144,6 +144,24 @@ defmodule Rindle.Ops.UploadMaintenanceTest do
     )
   end
 
+  # A tus session is upload_strategy: "resumable" + resumable_protocol: "tus",
+  # backed by an S3 multipart upload (multipart_upload_id stamped between PATCHes)
+  # or Local (no upload_id). It sits in "signed" through PATCHes.
+  defp create_tus_session(asset, overrides) do
+    create_session(
+      asset,
+      Map.merge(
+        %{
+          state: "signed",
+          upload_strategy: "resumable",
+          resumable_protocol: "tus",
+          multipart_upload_id: "tus-upload-#{System.unique_integer([:positive])}"
+        },
+        overrides
+      )
+    )
+  end
+
   defp expired_at, do: DateTime.add(DateTime.utc_now(), -100, :second)
 
   # ---------------------------------------------------------------------------
@@ -657,6 +675,106 @@ defmodule Rindle.Ops.UploadMaintenanceTest do
       assert updated.state == "expired"
       assert updated.session_uri == nil
       assert updated.failure_reason == nil
+    end
+
+    # -------------------------------------------------------------------------
+    # TUS-09 reaper branch: tus sessions abort the S3 multipart upload, NOT the
+    # provider-direct resumable session URI. EXPECTED RED until Plan 03 adds the
+    # `tus_session?/1` branch to expire_session/2 — today a tus session matches
+    # resumable_abort_session?/1 and is mis-routed to cancel_resumable_upload via
+    # resolve_resumable_adapter (which requires the :resumable_upload_session cap
+    # S3/Local do NOT advertise) -> the S3 multipart is never aborted -> LEAK.
+    # -------------------------------------------------------------------------
+
+    test "aborts an expired tus session via abort_multipart_upload, not cancel_resumable_upload" do
+      asset = create_asset()
+      session = create_tus_session(asset, %{expires_at: expired_at()})
+
+      # The load-bearing assertion: tus sessions route to the multipart abort
+      # (S3 backing), NOT the GCS-native session cancel. cancel_resumable_upload
+      # must never be invoked for a tus session.
+      expect(Rindle.StorageMock, :abort_multipart_upload, fn key, upload_id, _opts ->
+        assert key == session.upload_key
+        assert upload_id == session.multipart_upload_id
+        {:ok, :aborted}
+      end)
+
+      {:ok, report} = UploadMaintenance.abort_incomplete_uploads([])
+
+      assert report.sessions_aborted == 1
+
+      updated = AdopterRepo.get!(MediaUploadSession, session.id)
+      assert updated.state == "expired"
+    end
+
+    test "treats a tus multipart abort returning not_found as idempotent expiry" do
+      asset = create_asset()
+      session = create_tus_session(asset, %{expires_at: expired_at()})
+
+      expect(Rindle.StorageMock, :abort_multipart_upload, fn _key, _upload_id, _opts ->
+        {:error, :not_found}
+      end)
+
+      {:ok, report} = UploadMaintenance.abort_incomplete_uploads([])
+
+      assert report.sessions_aborted == 1
+      assert report.abort_errors == 0
+
+      updated = AdopterRepo.get!(MediaUploadSession, session.id)
+      assert updated.state == "expired"
+    end
+
+    test "a gcs_native resumable session still routes through cancel_resumable_upload" do
+      asset = create_asset()
+
+      session =
+        create_resumable_session(asset, %{
+          state: "resuming",
+          resumable_protocol: "gcs_native",
+          expires_at: expired_at()
+        })
+
+      expect(Rindle.StorageMock, :capabilities, fn -> [:resumable_upload_session] end)
+
+      expect(Rindle.StorageMock, :cancel_resumable_upload, fn key, session_uri, _opts ->
+        assert key == session.upload_key
+        assert session_uri == session.session_uri
+        {:ok, %{cancelled: true}}
+      end)
+
+      {:ok, report} = UploadMaintenance.abort_incomplete_uploads([])
+
+      assert report.sessions_aborted == 1
+      assert report.resumable_aborts == 1
+
+      updated = AdopterRepo.get!(MediaUploadSession, session.id)
+      assert updated.state == "expired"
+      assert updated.session_uri == nil
+    end
+
+    test "a legacy nil-protocol resumable session keeps the existing cancel path unchanged" do
+      asset = create_asset()
+
+      session =
+        create_resumable_session(asset, %{
+          state: "resuming",
+          resumable_protocol: nil,
+          expires_at: expired_at()
+        })
+
+      expect(Rindle.StorageMock, :capabilities, fn -> [:resumable_upload_session] end)
+
+      expect(Rindle.StorageMock, :cancel_resumable_upload, fn _key, _session_uri, _opts ->
+        {:ok, %{cancelled: true}}
+      end)
+
+      {:ok, report} = UploadMaintenance.abort_incomplete_uploads([])
+
+      assert report.sessions_aborted == 1
+      assert report.resumable_aborts == 1
+
+      updated = AdopterRepo.get!(MediaUploadSession, session.id)
+      assert updated.state == "expired"
     end
 
     test "returns error tuple when repo raises" do

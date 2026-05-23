@@ -79,6 +79,19 @@ defmodule Rindle.Storage.StorageAdapterTest do
     assert {:verify_resumable_completion, 3} in optional_callbacks
   end
 
+  test "storage behaviour exposes tus part-streaming callbacks as optional :tus_upload contracts" do
+    callbacks = Rindle.Storage.behaviour_info(:callbacks)
+    optional_callbacks = Rindle.Storage.behaviour_info(:optional_callbacks)
+
+    assert {:upload_part_stream, 5} in callbacks
+    assert {:complete_part_stream, 4} in callbacks
+
+    # Both MUST be OPTIONAL so GCS (which never advertises :tus_upload) compiles
+    # without implementing them.
+    assert {:upload_part_stream, 5} in optional_callbacks
+    assert {:complete_part_stream, 4} in optional_callbacks
+  end
+
   test "known capabilities include shipped atoms and reserved resumable atoms" do
     known = Capabilities.known()
 
@@ -97,10 +110,19 @@ defmodule Rindle.Storage.StorageAdapterTest do
 
   test "capability lists are truthful for all adapters" do
     assert [:local, :presigned_put, :tus_upload] == Local.capabilities()
-    assert [:presigned_put, :head, :signed_url, :multipart_upload] == S3.capabilities()
+
+    # TUS-07: S3 advertises :tus_upload once Plan 02 lands upload_part_stream/5.
+    # EXPECTED RED until then (capability honesty, D-09 — advertise only what is
+    # implemented).
+    assert [:presigned_put, :head, :signed_url, :multipart_upload, :tus_upload] ==
+             S3.capabilities()
 
     assert [:signed_url, :head, :resumable_upload, :resumable_upload_session] ==
              GCS.capabilities()
+
+    # GCS keeps Topology A (provider-direct resumable) and must NOT advertise the
+    # server-mediated :tus_upload atom.
+    refute :tus_upload in GCS.capabilities()
 
     assert Enum.all?(Local.capabilities(), &(&1 in Capabilities.known()))
     assert Enum.all?(S3.capabilities(), &(&1 in Capabilities.known()))
