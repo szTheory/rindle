@@ -133,4 +133,42 @@ defmodule Rindle.Storage.S3TusTest do
                S3.complete_part_stream(key, nil, mid, root: root, bucket: "rindle-test")
     end
   end
+
+  describe "tus_tail_path/2 (CR-02): reaper-facing path matches the adapter-written tail" do
+    # The reaper needs the EXACT on-disk path the adapter wrote so it can delete
+    # the real tail. tus_tail_path/2 is the public source-of-truth that 43-08
+    # routes remove_tus_tail/1 through — ending the raw-UUID vs base64url mismatch.
+
+    test "returns the exact file the adapter wrote its tail to for a session", %{root: root} do
+      # patch/5 keys the tail on `key` (no explicit session_id), so the adapter
+      # writes to tail_path(key, root: root). The reaper-facing helper, given the
+      # same id, must compute that identical location.
+      key = "11111111-2222-3333-4444-555555555555"
+      bytes = String.duplicate("a", 1024 * 1024)
+
+      assert {:ok, _state} =
+               patch(key, bytes, 0, %{offset: 0, upload_id: "u-tp-1", parts: []}, root)
+
+      helper_path = S3.tus_tail_path(key, root: root)
+
+      # The adapter actually wrote a tail file at this exact path.
+      assert File.exists?(helper_path)
+
+      # And removing via the helper path reaches the real adapter-written tail.
+      assert :ok = File.rm(helper_path)
+      refute File.exists?(helper_path)
+    end
+
+    test "uses base64url(id) <> \".tail\" under <root>/tus, never the raw id", %{root: root} do
+      id = "aa/bb cc+dd"
+      path = S3.tus_tail_path(id, root: root)
+
+      expected_filename = Base.url_encode64(id, padding: false) <> ".tail"
+
+      assert Path.basename(path) == expected_filename
+      assert Path.dirname(path) == Path.join(root, "tus")
+      # The raw id (with traversal-prone characters) never appears in the path.
+      refute String.contains?(path, id)
+    end
+  end
 end
