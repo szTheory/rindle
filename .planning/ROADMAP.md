@@ -99,7 +99,7 @@ the bare-Plug / one-column / `:tus_upload`-atom decisions are not relitigated he
 - [x] 43-02-PLAN.md — S3 adapter: tail-buffer upload_part_stream/5 (ETag-from-headers), complete_part_stream/3, advertise :tus_upload
 - [x] 43-03-PLAN.md — Reaper: branch expire_session on resumable_protocol; tus -> abort S3 multipart (closes the orphaned-multipart leak)
 - [x] 43-04-PLAN.md — Local impl + TusPlug polymorphic dispatch; converge into UNCHANGED verify_completion/2 (D-08)
-- [ ] 43-05-PLAN.md — MinIO >= 1 GiB drop+resume + list_multipart_uploads-empty zero-leak proof (+ CI checkpoint)
+- [x] 43-05-PLAN.md — MinIO >= 1 GiB drop+resume + list_multipart_uploads-empty zero-leak proof (+ CI checkpoint)
 
 **UI hint**: no
 
@@ -145,7 +145,7 @@ without affecting the tus spine.
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 42. tus Protocol Edge (bare Plug) | v1.8 | 4/4 | Complete    | 2026-05-22 |
-| 43. S3 Multipart Backing + MinIO Proof | v1.8 | 4/5 | In Progress|  |
+| 43. S3 Multipart Backing + MinIO Proof | v1.8 | 5/5 | Complete   | 2026-05-23 |
 | 44. Auth Hardening, DX, Docs, Telemetry, CI Proof | v1.8 | 0/TBD | Not started | - |
 | 45. Browser → Mux Direct Creator Upload (droppable) | v1.8 | 0/TBD | Not started | - |
 
