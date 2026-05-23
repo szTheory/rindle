@@ -53,6 +53,23 @@ defmodule Rindle.Upload.TusPlugTest do
       max_bytes: 10_485_760
   end
 
+  # Probe repo for the WR-02 update-failure path: delegates reads to AdopterRepo
+  # (so load_active_session/1 still resolves the row) but forces the lifecycle
+  # `update/1` to return {:error, changeset}. Swapped in only for the WR-02 test
+  # so the DELETE handler exercises the {:error, _} update branch deterministically
+  # without depending on a contrived DB constraint violation.
+  defmodule DeleteFailRepo do
+    @inner Rindle.Adopter.CanonicalApp.Repo
+
+    def get(schema, id), do: @inner.get(schema, id)
+    def get(schema, id, opts), do: @inner.get(schema, id, opts)
+    def get!(schema, id), do: @inner.get!(schema, id)
+
+    def update(%Ecto.Changeset{} = changeset) do
+      {:error, %{changeset | valid?: false, action: :update}}
+    end
+  end
+
   # Real router so `forward` strips the mount prefix into `script_name` and the
   # token lands in `path_info` exactly as it will in an adopter's app.
   defmodule TusRouter do
@@ -387,13 +404,11 @@ defmodule Rindle.Upload.TusPlugTest do
   end
 
   describe "Plan 03 Task 2 — DELETE termination" do
-    test "DELETE with a valid token returns 204 and aborts the session", %{
-      root: root
-    } do
-      # Plan 04 made the Plug storage-agnostic (D-12): DELETE no longer hard-wires
-      # the Local part-file removal. The contract-meaningful effect is the session
-      # transition to "aborted" + 204; the abandoned backing file is swept by the
-      # Rindle.tmp/ reaper (proven leak-free in tus_s3_integration_test).
+    test "DELETE with a valid token returns 204, aborts the session AND removes the Local backing part (CR-01)",
+         %{root: root} do
+      # CR-01 (Plan 09): DELETE now ACTIVELY aborts the backing store before the
+      # state transition — for a Local-backed session that means the per-session
+      # tmp part file is removed by the DELETE itself, not left for the reaper.
       opts = opts_for(root)
       {token, sid} = create(opts, 100)
       assert patch(opts, token, 0, "0123456789").status == 204
@@ -405,12 +420,119 @@ defmodule Rindle.Upload.TusPlugTest do
       assert conn.status == 204
       assert get_resp_header(conn, "tus-resumable") == ["1.0.0"]
       assert AdopterRepo.get!(MediaUploadSession, sid).state == "aborted"
+      # The backing part file is gone — DELETE aborted the backing, not the reaper.
+      refute File.exists?(part_path)
     end
 
     test "DELETE with a tampered token returns 404, never 200", %{root: root} do
       opts = opts_for(root)
       {token, _sid} = create(opts, 100)
 
+      conn = conn(:delete, "/uploads/tus/" <> token <> "tamper") |> TusPlug.call(opts)
+
+      assert conn.status == 404
+      refute conn.status == 200
+    end
+  end
+
+  describe "Plan 09 — DELETE aborts the backing store BEFORE the transition (CR-01) + honours update (WR-02)" do
+    setup :set_mox_from_context
+    setup :verify_on_exit!
+
+    setup %{root: root} do
+      # init/1 probes adapter.capabilities() via Capabilities.require_upload; stub
+      # so the :tus_upload gate passes for the Mox adapter.
+      stub(Rindle.StorageMock, :capabilities, fn -> [:tus_upload, :head] end)
+
+      opts =
+        TusPlug.init(
+          profile: MockTusProfile,
+          secret_key_base: @secret_key_base,
+          max_size: @max_size,
+          root: root
+        )
+
+      {:ok, mock_opts: opts}
+    end
+
+    # Mint a signed token AND stamp a multipart_upload_id on the row so the
+    # DELETE path treats the session as S3-backed (upload_id present => the
+    # polymorphic abort routes to adapter.abort_multipart_upload/3).
+    defp mock_create_s3(opts, length) do
+      conn =
+        conn(:post, "/uploads/tus")
+        |> put_req_header("upload-length", Integer.to_string(length))
+        |> put_req_header("upload-metadata", "filename Y2xpcC5qcGc=")
+        |> TusPlug.call(opts)
+
+      [location] = get_resp_header(conn, "location")
+      token = location |> String.split("/") |> List.last()
+      {:ok, payload} = Plug.Crypto.verify(@secret_key_base, @tus_url_salt, token)
+      sid = payload["session_id"]
+
+      {:ok, session} =
+        AdopterRepo.get!(MediaUploadSession, sid)
+        |> MediaUploadSession.changeset(%{multipart_upload_id: "mpu-#{sid}"})
+        |> AdopterRepo.update()
+
+      {token, session}
+    end
+
+    test "DELETE on an S3-backed session aborts the multipart upload then returns 204 + aborted (CR-01 success path)",
+         %{mock_opts: opts} do
+      {token, session} = mock_create_s3(opts, 100)
+      upload_key = session.upload_key
+      upload_id = session.multipart_upload_id
+
+      # The load-bearing CR-01 assertion: DELETE invokes the backing abort with
+      # the session's upload_key + multipart upload id (idempotent {:ok,_}).
+      expect(Rindle.StorageMock, :abort_multipart_upload, fn key, id, _opts ->
+        assert key == upload_key
+        assert id == upload_id
+        {:ok, %{}}
+      end)
+
+      conn = conn(:delete, "/uploads/tus/" <> token) |> TusPlug.call(opts)
+
+      assert conn.status == 204
+      assert get_resp_header(conn, "tus-resumable") == ["1.0.0"]
+      assert AdopterRepo.get!(MediaUploadSession, session.id).state == "aborted"
+    end
+
+    test "DELETE returns 5xx (not 204) when the state update fails AND the backing abort already fired (WR-02 + CR-01 ordering)",
+         %{mock_opts: opts} do
+      {token, session} = mock_create_s3(opts, 100)
+      upload_key = session.upload_key
+
+      # Swap in a probe repo that forces the lifecycle update/1 to fail, so the
+      # DELETE handler exercises its {:error, _} update branch deterministically.
+      Application.put_env(:rindle, :repo, DeleteFailRepo)
+      on_exit(fn -> Application.put_env(:rindle, :repo, AdopterRepo) end)
+
+      # CR-01 ordering proof: even though the DB update will fail, the backing
+      # abort MUST already have fired — proving the abort precedes the update at
+      # runtime, not merely in source order. verify_on_exit! enforces this.
+      expect(Rindle.StorageMock, :abort_multipart_upload, fn key, _id, _opts ->
+        assert key == upload_key
+        {:ok, %{}}
+      end)
+
+      conn = conn(:delete, "/uploads/tus/" <> token) |> TusPlug.call(opts)
+
+      assert conn.status >= 500
+      refute conn.status == 204
+
+      # The row stays in its prior state — the client was NOT falsely told 204.
+      Application.put_env(:rindle, :repo, AdopterRepo)
+      assert AdopterRepo.get!(MediaUploadSession, session.id).state == "signed"
+    end
+
+    test "a tampered token returns 404 and NEVER invokes abort_multipart_upload (auth not weakened, CR-01 negative)",
+         %{mock_opts: opts} do
+      {token, _session} = mock_create_s3(opts, 100)
+
+      # No Mox expectation set: if the abort were invoked before token
+      # verification, Mox would raise on the unexpected call.
       conn = conn(:delete, "/uploads/tus/" <> token <> "tamper") |> TusPlug.call(opts)
 
       assert conn.status == 404
@@ -470,7 +592,11 @@ defmodule Rindle.Upload.TusPlugTest do
       # The load-bearing expectation: the adapter callback is invoked with the
       # session's upload_key, a drained temp file path, the base offset, the
       # prior part-state map, and call opts.
-      expect(Rindle.StorageMock, :upload_part_stream, fn key, temp_path, base_offset, state, _opts ->
+      expect(Rindle.StorageMock, :upload_part_stream, fn key,
+                                                         temp_path,
+                                                         base_offset,
+                                                         state,
+                                                         _opts ->
         assert is_binary(key)
         assert is_binary(temp_path)
         assert base_offset == 0
@@ -485,7 +611,11 @@ defmodule Rindle.Upload.TusPlugTest do
          %{mock_opts: opts} do
       {token, _sid} = mock_create(opts)
 
-      stub(Rindle.StorageMock, :upload_part_stream, fn _key, _temp_path, base_offset, _state, _opts ->
+      stub(Rindle.StorageMock, :upload_part_stream, fn _key,
+                                                       _temp_path,
+                                                       base_offset,
+                                                       _state,
+                                                       _opts ->
         {:ok, %{offset: base_offset + 10}}
       end)
 
