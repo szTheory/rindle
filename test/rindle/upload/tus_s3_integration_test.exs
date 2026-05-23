@@ -154,6 +154,13 @@ defmodule Rindle.Upload.TusS3IntegrationTest do
     persisted = repo().get!(MediaUploadSession, sid)
     assert is_binary(persisted.multipart_upload_id)
 
+    # The S3 tail-buffer sliced >= 1 multipart part out of the ~600 MiB PATCH and
+    # persisted them under the `"parts"` key (tus_plug encode_parts convention) —
+    # proving real UploadParts crossed the wire before the drop.
+    assert %{"parts" => persisted_parts} = persisted.multipart_parts
+    assert is_list(persisted_parts)
+    assert length(persisted_parts) >= 1
+
     # 3. Simulate drop: client re-HEADs for the authoritative offset.
     assert get_resp_header(head(opts, token), "upload-offset") == [
              Integer.to_string(@first_patch_bytes)
@@ -172,6 +179,12 @@ defmodule Rindle.Upload.TusS3IntegrationTest do
     asset = repo().get!(MediaAsset, session.asset_id)
     assert asset.state in ["validating", "ready"]
     assert asset.byte_size == @one_gib
+
+    # The convergence proof: the final PATCH drove the adapter's tus sink into the
+    # UNCHANGED Broker.verify_completion/2 lane (D-08), which enqueues PromoteAsset
+    # for the freshly-validated asset. `testing: :inline` runs the job; assert it
+    # was enqueued for THIS asset (not merely that some job exists).
+    assert_enqueued(worker: Rindle.Workers.PromoteAsset, args: %{asset_id: asset.id})
 
     # 6. A SECOND session, abandoned after one PATCH, then expired + reaped.
     {token2, sid2} = create(opts, @one_gib)
