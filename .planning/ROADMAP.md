@@ -52,7 +52,7 @@ the bare-Plug / one-column / `:tus_upload`-atom decisions are not relitigated he
 - Decimal phases (42.1, …): urgent insertions (none yet).
 
 - [x] **Phase 42: tus Protocol Edge (bare Plug)** - Mountable `Rindle.Upload.TusPlug` serving Core + Creation + Expiration + Termination over HMAC-signed URLs, proven end-to-end on Local tmp-append backing (completed 2026-05-22)
-- [ ] **Phase 43: S3 Multipart Backing + MinIO Proof** - `upload_part_stream/5` adapter callback flushing PATCH chunks to S3 `UploadPart`, with a MinIO ≥ 1 GiB drop-and-resume and reaper cleanup proof
+- [x] **Phase 43: S3 Multipart Backing + MinIO Proof** - `upload_part_stream/5` adapter callback flushing PATCH chunks to S3 `UploadPart`, with a MinIO ≥ 1 GiB drop-and-resume and reaper cleanup proof (completed 2026-05-23)
 - [ ] **Phase 44: Auth Hardening, DX, Docs, Telemetry, CI Proof** - Optional resume authorizer, tus error vocabulary, edge telemetry, doctor checks, the resumable-uploads guide, and a generated-app tus-js-client CI proof
 - [ ] **Phase 45: Browser → Mux Direct Creator Upload (sibling, droppable)** - Reserved `create_direct_upload/2` implemented, the `video.upload.asset_created` linker, a thin streaming entrypoint, and LiveView `:external`/UpChunk DX
 
@@ -152,7 +152,7 @@ without affecting the tus spine.
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 42. tus Protocol Edge (bare Plug) | v1.8 | 4/4 | Complete    | 2026-05-22 |
-| 43. S3 Multipart Backing + MinIO Proof | v1.8 | 12/12 | Complete   | 2026-05-23 |
+| 43. S3 Multipart Backing + MinIO Proof | v1.8 | 12/12 | Complete    | 2026-05-23 |
 | 44. Auth Hardening, DX, Docs, Telemetry, CI Proof | v1.8 | 0/TBD | Not started | - |
 | 45. Browser → Mux Direct Creator Upload (droppable) | v1.8 | 0/TBD | Not started | - |
 

@@ -73,13 +73,13 @@ resume-safe and converges into the one trusted `verify_completion/2` promote lan
   `PATCH` ≥ 5 MiB, buffering a sub-5 MiB final chunk under `Rindle.tmp/tus/` and
   flushing it as the final part on completion (the tusd S3-backend pattern).
 
-- [ ] **TUS-07**: Adapters advertise the new `:tus_upload` capability honestly —
+- [x] **TUS-07**: Adapters advertise the new `:tus_upload` capability honestly —
   only if they implement `upload_part_stream/5` (S3 + Local in v1; GCS does NOT,
   it keeps native Topology-A resumable). Mounting `TusPlug` against an adapter
   without `:tus_upload` raises at `init/1` (deploy-time failure; **no silent
   downgrade** to presigned/multipart/GCS).
 
-- [ ] **TUS-08**: tus completion (final `PATCH`, `offset == length`) calls
+- [x] **TUS-08**: tus completion (final `PATCH`, `offset == length`) calls
   `complete_multipart_upload/4` then converges into the existing
   `verify_completion/2` lane — head-based content re-sniff, size/type validation
   against the profile, `PromoteAsset` enqueued in the same `Ecto.Multi`. **Zero
@@ -199,8 +199,8 @@ Which phases cover which requirements. Phase numbering continues from v1.7
 | TUS-05 | Phase 42 — tus Protocol Edge (bare Plug) | Complete |
 | POLISH-01 | Phase 42 — tus Protocol Edge (bare Plug) | Complete |
 | TUS-06 | Phase 43 — S3 Multipart Backing + MinIO Proof | Complete |
-| TUS-07 | Phase 43 — S3 Multipart Backing + MinIO Proof | Pending |
-| TUS-08 | Phase 43 — S3 Multipart Backing + MinIO Proof | Pending |
+| TUS-07 | Phase 43 — S3 Multipart Backing + MinIO Proof | Complete |
+| TUS-08 | Phase 43 — S3 Multipart Backing + MinIO Proof | Complete |
 | TUS-09 | Phase 43 — S3 Multipart Backing + MinIO Proof | Complete |
 | TUS-10 | Phase 44 — Auth Hardening, DX, Docs, Telemetry, CI Proof | Pending |
 | TUS-11 | Phase 44 — Auth Hardening, DX, Docs, Telemetry, CI Proof | Pending |

@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.8
 milestone_name: Resumable Browser Ingest
-status: verifying
-last_updated: "2026-05-23T12:43:17.636Z"
+status: executing
+last_updated: "2026-05-23T14:37:20.620Z"
 last_activity: 2026-05-23
 progress:
   total_phases: 4
   completed_phases: 2
-  total_plans: 14
-  completed_plans: 14
+  total_plans: 16
+  completed_plans: 16
   percent: 50
 ---
 
@@ -20,20 +20,20 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-22)
 
 **Core value:** Media, made durable.
-**Current focus:** Phase 43 — s3-multipart-backing-minio-proof
+**Current focus:** Phase 44 — auth-hardening, dx, docs, telemetry, ci-proof (next)
 bare mountable Plug (Local + S3/MinIO backing), plus browser→Mux direct creator
 upload, so every browser ingest path converges into the one trusted
 `verify_completion/2` promote lane. Roadmap written (4 phases, 42–45, 20/20
-requirements mapped). Next: plan Phase 42.
+requirements mapped). Next: discuss/plan Phase 44.
 
 ## Current Position
 
-Phase: 43 (s3-multipart-backing-minio-proof) — VERIFYING
-Plan: 10 of 10 (43-10 executed — all gap-closure plans shipped)
-Status: All 10 plans executed; awaiting Phase 43 re-verification of closed gaps (SC5/IN-04)
-Last activity: 2026-05-23
+Phase: 44
+Plan: Not started
+Status: Phase 43 complete (12/12 plans; verified passed — 5/5 must-haves + live MinIO suite 3/3); Phase 44 not started
+Last activity: 2026-05-23 -- Phase 43 verified passed and marked complete
 
-Progress: [██████████__________] 50% (14/14 plans executed; Phase 43 in re-verification)
+Progress: [██████████__________] 50% (2/4 phases complete; Phase 43 S3-multipart-backing verified passed)
 
 ## Milestone Roadmap (v1.8)
 
@@ -165,6 +165,7 @@ into executable plans).
 | Phase 43 P08 | 5min | 2 tasks | 2 files |
 | Phase 43 P09 | 4min | 2 tasks | 2 files |
 | Phase 43 P10 | 11min | 2 tasks | 1 file |
+| Phase 43 P12 | 2min | 1 task | 2 files |
 
 ## Decisions
 
@@ -175,3 +176,5 @@ into executable plans).
 - [Phase 43]: reaper tail removal routed through S3.tus_tail_path/2 with a threaded root (CR-02 source-of-truth); shared gated_expire/2 FSM-gates BOTH standard and tus expiry (WR-01); Local abort resolves the actual upload root (IN-03); PUBLIC abort_tus_backing(session, opts) arity-2 polymorphic abort exposed for the 43-09 DELETE path (CR-01)
 - [Phase 43]: tus DELETE aborts the backing store BEFORE the aborted transition via the shared PUBLIC abort_tus_backing/2 (adapter+root from opts, upload_id from the row) so an explicitly-cancelled S3 multipart never leaks (CR-01); the update result is matched and returns 5xx on failure so the client is never falsely told 204 (WR-02); single-node/sticky-session S3 tus constraint documented in the TusPlug moduledoc (CR-04 Plug half)
 - [Phase 43]: SC5/IN-04 closed with two MinIO @tag :minio integration cases — a tus DELETE on an S3-backed session asserts list_multipart_uploads is empty for the deleted key (CR-01, via the real TusPlug.call handler), and an abandoned session's on-disk tail file is asserted gone after a reap via S3.tus_tail_path/2 at the resolved opts[:root] || TempRunDir.root_dir() write-path root (CR-02 + CR-03); both stay CI-only and compile without MinIO
+- [Phase 43]: CR-04 fully closed — guard_local_tail_present strengthened to fire on (parts != [] OR offset > committed_part_bytes) where committed_part_bytes = length(parts) * @s3_min_part_size, threading base_offset into the guard (43-12). Closes the pre-first-part window (sub-5-MiB first PATCH: upload_id set, parts: [], offset > 0) where a misrouted cross-node resume silently corrupted the object; brand-new FIRST PATCH (offset 0) and same-node tail-present resume stay {:ok}; bare :tus_tail_missing atom preserved
+- [Phase 43]: CR-01 abort-FAILURE branch closed (43-11) — a tus DELETE whose backing abort fails persists a retryable tus_abort_failed:<reason> marker (still returns 204) and fetch_retryable_tus_abort_sessions/0 re-selects state=aborted+tus+multipart_upload_id+tus_abort_failed:% rows so the reaper re-aborts the orphaned S3 multipart next cron (ZERO permanent orphan). WR-03 reconciled: settle_tus_abort_success/2 settles a recovered aborted-tus row via persist_tus_abort_retry_success/2 (direct repo update to expired, marker cleared) WITHOUT the FSM-forbidden aborted->expired gated_expire; the GCS resumable_cancel_failed:% marker and non-terminal timeout-expiry still route through the FSM gate (WR-01 preserved); false reaper-compensation comment in tus_plug.ex corrected

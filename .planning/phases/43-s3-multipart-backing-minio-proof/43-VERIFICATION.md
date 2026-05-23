@@ -1,7 +1,7 @@
 ---
 phase: 43-s3-multipart-backing-minio-proof
 verified: 2026-05-23T15:42:00Z
-status: human_needed
+status: passed
 score: 5/5
 overrides_applied: 0
 re_verification:
@@ -12,10 +12,15 @@ re_verification:
     - "CR-04 (pre-first-part guard hole): guard_local_tail_present/3 now fires when (parts != [] OR offset > committed_part_bytes); upload_part_stream/5 threads base_offset into the guard; the pre-first-part cross-node resume (upload_id set, parts: [], offset > 0, tail absent) now fails loudly with {:error, :tus_tail_missing}"
   gaps_remaining: []
   regressions: []
-human_verification:
-  - test: "Run the MinIO integration test suite against a live MinIO endpoint"
-    expected: "All three @moduletag :minio tests pass: (1) >= 1 GiB drop+resume completes to 'ready' asset with byte_size == 1 GiB and list_multipart_uploads returns empty after reaper; (2) tus DELETE on S3-backed session returns 204 and list_multipart_uploads returns empty for deleted key; (3) post-reap on-disk tail file is removed"
-    why_human: "MinIO is not available in this environment. Tests require a running MinIO endpoint at RINDLE_MINIO_URL with the RINDLE_MINIO_* env vars set. Tests are tagged @moduletag :minio and excluded from the default mix test run (mix test --include minio test/rindle/upload/tus_s3_integration_test.exs)."
+minio_live_run:
+  status: passed
+  run_by: "orchestrator (execute-phase) — local Docker MinIO provisioned to match CI (localhost:9000, minioadmin, bucket rindle-test)"
+  run_at: 2026-05-23T13:55:00Z
+  command: "mix test test/rindle/upload/tus_s3_integration_test.exs --include minio"
+  result: "3 tests, 0 failures — (1) >= 1 GiB drop+resume completes to 'ready' asset, byte_size == 1 GiB, list_multipart_uploads empty after reaper; (2) tus DELETE returns 204, list_multipart_uploads empty for the deleted key; (3) post-reap on-disk tail file removed"
+  notes:
+    - "Surfaced a pre-existing 43-10 test bug: the post-reap tail test PATCHed the full Upload-Length, which COMPLETED the upload and flushed/removed the tail (S3.complete_part_stream -> File.rm) BEFORE its own 'tail exists before reaping' assertion. Product behaviour was correct (completed uploads leave no tail; only abandoned ones do). Fixed in commit 5343e4f by declaring Upload-Length > patched bytes so the session stays incomplete (abandoned) and the reaper is what removes the tail."
+    - "Local run needed a temporary Ecto sandbox ownership_timeout bump (since reverted) because pushing >= 1 GiB through the pipeline on Docker Desktop exceeds the default 120s ownership window; CI (Linux) completes under 120s with defaults."
 ---
 
 # Phase 43: S3 Multipart Backing + MinIO Proof — Verification Report (Re-verification 3)
@@ -23,7 +28,7 @@ human_verification:
 **Phase Goal:** An S3-compatible adapter can serve tus by streaming each PATCH into an S3 multipart upload, completing through the existing verify lane, and abandoned tus sessions are reliably reaped — proven against MinIO with a >= 1 GiB drop-and-resume and a zero-leak abort assertion.
 
 **Verified:** 2026-05-23T15:42:00Z
-**Status:** human_needed
+**Status:** passed (5/5 automated truths + live MinIO suite 3/3)
 **Re-verification:** Yes — after gap-closure plans 43-11 (CR-01) + 43-12 (CR-04)
 **Requirements verified:** TUS-06, TUS-07, TUS-08, TUS-09
 
@@ -32,7 +37,7 @@ human_verification:
 ## Re-Verification Summary
 
 **Previous status:** gaps_found (3/5)
-**Current status:** human_needed (5/5 automated truths verified; 1 human verification item remains)
+**Current status:** passed (5/5 automated truths verified; live MinIO suite run 3/3 — see `minio_live_run` in frontmatter)
 
 **Gaps closed since prior verification:**
 
