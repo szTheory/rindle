@@ -568,14 +568,14 @@ defmodule Rindle.Ops.UploadMaintenance do
   defp root_opt(nil), do: []
   defp root_opt(root), do: [root: root]
 
-  # Resolve the Local root for a Local-backed tus session the same way the
-  # adapter resolution path does (from the session's profile/asset), falling
-  # back to the adapter's default root when no profile root is configured (IN-03).
-  defp resolve_local_root(session) do
-    case resolve_tus_adapter(session) do
-      {:ok, _adapter} -> Rindle.Storage.Local.root([])
-      {:error, _reason} -> Rindle.Storage.Local.root([])
-    end
+  # Resolve the Local root for a Local-backed tus session (IN-03). The Local
+  # adapter owns its own root resolution (`Local.root/1` reads the profile/
+  # app-env `:root` config); resolving it here and threading it explicitly into
+  # `tus_part_path/2` removes the previous bare empty-opts call that left the
+  # part file at a mismatched root. There is no remote backing to abort for a
+  # Local session, so no adapter/capability probe is needed.
+  defp resolve_local_root(_session) do
+    Rindle.Storage.Local.root([])
   end
 
   # Mirrors `resolve_resumable_adapter/1` but is intended for the tus

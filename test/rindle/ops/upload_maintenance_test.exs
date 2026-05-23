@@ -888,6 +888,131 @@ defmodule Rindle.Ops.UploadMaintenanceTest do
     end
   end
 
+  describe "tus backing abort root resolution + shared helper (IN-03/CR-01 regression)" do
+    # -------------------------------------------------------------------------
+    # IN-03: a Local-backed tus session (no multipart_upload_id) abort must
+    # resolve the part path against the upload's ACTUAL root, not the bare empty
+    # opts default. Pre-fix `abort_tus_backing/1`'s Local branch called
+    # `Local.tus_part_path(session.id, [])`, leaving the part file at a
+    # mismatched root un-removed when the upload root differs. After the fix the
+    # reaper resolves the Local root from the session's profile/adapter and the
+    # part file at THAT resolved root is removed.
+    # -------------------------------------------------------------------------
+
+    test "Local-backed tus abort removes the part file at the resolved upload root" do
+      custom_root =
+        Path.join(System.tmp_dir!(), "rindle-tus-in03-#{System.unique_integer([:positive])}")
+
+      previous_local_cfg = Application.get_env(:rindle, Rindle.Storage.Local)
+      Application.put_env(:rindle, Rindle.Storage.Local, root: custom_root)
+
+      on_exit(fn ->
+        case previous_local_cfg do
+          nil -> Application.delete_env(:rindle, Rindle.Storage.Local)
+          value -> Application.put_env(:rindle, Rindle.Storage.Local, value)
+        end
+
+        File.rm_rf(custom_root)
+      end)
+
+      asset = create_asset()
+
+      # Local-backed tus session: no multipart_upload_id, so the abort takes the
+      # Local part-removal branch.
+      session =
+        create_tus_session(asset, %{
+          expires_at: expired_at(),
+          multipart_upload_id: nil
+        })
+
+      # The resolved upload root is the profile/adapter-resolved Local root
+      # (the custom root configured above), NOT the bare-`[]` default.
+      resolved_root = Rindle.Storage.Local.root([])
+      part_path = Rindle.Storage.Local.tus_part_path(session.id, root: resolved_root)
+      tail_path = Rindle.Storage.S3.tus_tail_path(session.id, root: resolved_root)
+
+      File.mkdir_p!(Path.dirname(part_path))
+      File.write!(part_path, "part-bytes")
+      File.write!(tail_path, "tail-bytes")
+      assert File.exists?(part_path)
+
+      {:ok, report} = UploadMaintenance.abort_incomplete_uploads([])
+
+      assert report.sessions_aborted == 1
+      refute File.exists?(part_path),
+             "expected Local abort to remove the part file at the resolved upload root #{part_path}"
+      refute File.exists?(tail_path)
+    end
+
+    # -------------------------------------------------------------------------
+    # CR-01 (shared helper): the PUBLIC abort_tus_backing(session, opts) is the
+    # SAME polymorphic abort the tus DELETE path (43-09) will call with an
+    # explicit adapter+root it already holds — proving 43-09 needs no DB profile
+    # re-resolution. This exercises the EXACT call shape 43-09 invokes:
+    #   abort_tus_backing(session, adapter: ..., root: ..., upload_id: ...)
+    # Pre-fix there is no PUBLIC arity-2 helper (only the private arity-1 reaper
+    # form), so this call shape does not exist (RED).
+    # -------------------------------------------------------------------------
+
+    test "PUBLIC abort_tus_backing/2 performs the S3 multipart abort with explicit opts" do
+      custom_root =
+        Path.join(System.tmp_dir!(), "rindle-tus-helper-s3-#{System.unique_integer([:positive])}")
+
+      on_exit(fn -> File.rm_rf(custom_root) end)
+
+      asset = create_asset()
+      session = create_tus_session(asset, %{multipart_upload_id: "tus-helper-#{System.unique_integer([:positive])}"})
+
+      tail_path = Rindle.Storage.S3.tus_tail_path(session.id, root: custom_root)
+      File.mkdir_p!(Path.dirname(tail_path))
+      File.write!(tail_path, "tail-bytes")
+
+      expect(Rindle.StorageMock, :abort_multipart_upload, fn key, upload_id, _opts ->
+        assert key == session.upload_key
+        assert upload_id == session.multipart_upload_id
+        {:ok, :aborted}
+      end)
+
+      # The EXACT shape 43-09 invokes.
+      assert :ok =
+               UploadMaintenance.abort_tus_backing(session,
+                 adapter: Rindle.StorageMock,
+                 root: custom_root,
+                 upload_id: session.multipart_upload_id
+               )
+
+      refute File.exists?(tail_path)
+    end
+
+    test "PUBLIC abort_tus_backing/2 removes the Local part + tail at the explicit root" do
+      custom_root =
+        Path.join(System.tmp_dir!(), "rindle-tus-helper-local-#{System.unique_integer([:positive])}")
+
+      on_exit(fn -> File.rm_rf(custom_root) end)
+
+      asset = create_asset()
+      session = create_tus_session(asset, %{multipart_upload_id: nil})
+
+      part_path = Rindle.Storage.Local.tus_part_path(session.id, root: custom_root)
+      tail_path = Rindle.Storage.S3.tus_tail_path(session.id, root: custom_root)
+      File.mkdir_p!(Path.dirname(part_path))
+      File.write!(part_path, "part-bytes")
+      File.write!(tail_path, "tail-bytes")
+
+      # Local case: upload_id nil, no adapter call. The DELETE path can pass an
+      # explicit root it already holds, with no DB profile re-resolution.
+      assert :ok =
+               UploadMaintenance.abort_tus_backing(session,
+                 adapter: nil,
+                 root: custom_root,
+                 upload_id: nil
+               )
+
+      refute File.exists?(part_path)
+      refute File.exists?(tail_path)
+    end
+  end
+
   describe "telemetry emission boundary (Plan 05-01 / D-02)" do
     test "cleanup_orphans/1 does NOT emit [:rindle, :cleanup, :run] from service layer" do
       ref =
