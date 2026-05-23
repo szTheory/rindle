@@ -83,6 +83,73 @@ defmodule Rindle.Storage.S3Test do
 
   @tag :minio
   @tag skip: @minio_skip_reason
+  test "round-trips the upload_part_stream/complete_part_stream tus callbacks against MinIO" do
+    uri = URI.parse(@minio_url)
+    key = "tus-callback/#{System.unique_integer([:positive])}.bin"
+    session_id = "tus-callback-#{System.unique_integer([:positive])}"
+
+    # An isolated tail-buffer root so the server-mediated tail file for THIS test
+    # never collides with the global Rindle.tmp/ root or a sibling run.
+    root = Path.join(System.tmp_dir!(), "rindle-tus-callback-#{System.unique_integer([:positive])}")
+    on_exit(fn -> File.rm_rf(root) end)
+
+    opts = [
+      bucket: @minio_bucket,
+      content_type: "application/octet-stream",
+      session_id: session_id,
+      root: root,
+      aws_config: [
+        access_key_id: @minio_access_key,
+        secret_access_key: @minio_secret_key,
+        scheme: "http://",
+        host: uri.host,
+        port: uri.port,
+        region: @minio_region
+      ]
+    ]
+
+    assert_upload_capabilities!(S3.capabilities())
+    assert :tus_upload in S3.capabilities()
+
+    # First PATCH: a > 5 MiB chunk. The tail buffer drains exactly one full
+    # @multipart_min_part_size part and UploadParts it server-side; the leftover
+    # (< 5 MiB) stays buffered until completion.
+    head_chunk = String.duplicate("h", @multipart_min_part_size + 1_000_000)
+    head_temp = Path.join(root, "patch-1.bin")
+    File.mkdir_p!(root)
+    File.write!(head_temp, head_chunk)
+
+    assert {:ok, state1} = S3.upload_part_stream(key, head_temp, 0, %{}, opts)
+    assert is_binary(state1.upload_id) and state1.upload_id != ""
+    assert state1.offset == byte_size(head_chunk)
+    assert [%{part_number: 1, etag: etag1} | _] = state1.parts
+    assert is_binary(etag1) and etag1 != ""
+
+    # Second PATCH: a sub-5-MiB chunk. Below the floor, so NO new part is sliced
+    # here — it accumulates onto the buffered leftover for the final flush.
+    tail_chunk = String.duplicate("t", 1_000_000)
+    tail_temp = Path.join(root, "patch-2.bin")
+    File.write!(tail_temp, tail_chunk)
+
+    assert {:ok, state2} =
+             S3.upload_part_stream(key, tail_temp, byte_size(head_chunk), state1, opts)
+
+    assert state2.upload_id == state1.upload_id
+    assert state2.offset == byte_size(head_chunk) + byte_size(tail_chunk)
+
+    # complete_part_stream flushes the remaining buffered tail as the final part
+    # (no 5 MiB floor on the last part) and completes the multipart upload.
+    assert {:ok, %{upload_key: ^key}} = S3.complete_part_stream(key, nil, state2, opts)
+
+    # The assembled object's size equals every byte we streamed across both PATCHes.
+    assert {:ok, %{size: size}} = S3.head(key, opts)
+    assert size == byte_size(head_chunk) + byte_size(tail_chunk)
+
+    assert {:ok, _result} = S3.delete(key, opts)
+  end
+
+  @tag :minio
+  @tag skip: @minio_skip_reason
   test "round-trips presigned put, head, download, url, delete, and not_found against MinIO" do
     root =
       Path.join(System.tmp_dir!(), "rindle-s3-test-#{System.unique_integer([:positive])}")
