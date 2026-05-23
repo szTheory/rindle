@@ -68,7 +68,7 @@ resume-safe and converges into the one trusted `verify_completion/2` promote lan
 
 ### Storage Backing (S3 multipart-per-PATCH)
 
-- [ ] **TUS-06**: New OPTIONAL adapter callback `upload_part_stream/5` on
+- [x] **TUS-06**: New OPTIONAL adapter callback `upload_part_stream/5` on
   `Rindle.Storage`; the S3 adapter implements it as one S3 `UploadPart` per
   `PATCH` ≥ 5 MiB, buffering a sub-5 MiB final chunk under `Rindle.tmp/tus/` and
   flushing it as the final part on completion (the tusd S3-backend pattern).
@@ -85,7 +85,7 @@ resume-safe and converges into the one trusted `verify_completion/2` promote lan
   against the profile, `PromoteAsset` enqueued in the same `Ecto.Multi`. **Zero
   new completion vocabulary.**
 
-- [ ] **TUS-09**: tus sessions expire via `expires_at` → `Upload-Expires` header
+- [x] **TUS-09**: tus sessions expire via `expires_at` → `Upload-Expires` header
   + `410 Gone`; `DELETE` terminates. The existing
   `UploadMaintenance`/`AbortIncompleteUploads` reaper branches on
   `resumable_protocol`: `"tus"` → abort the S3 multipart (or remove the local
@@ -198,10 +198,10 @@ Which phases cover which requirements. Phase numbering continues from v1.7
 | TUS-04 | Phase 42 — tus Protocol Edge (bare Plug) | Complete |
 | TUS-05 | Phase 42 — tus Protocol Edge (bare Plug) | Complete |
 | POLISH-01 | Phase 42 — tus Protocol Edge (bare Plug) | Complete |
-| TUS-06 | Phase 43 — S3 Multipart Backing + MinIO Proof | Pending |
+| TUS-06 | Phase 43 — S3 Multipart Backing + MinIO Proof | Complete |
 | TUS-07 | Phase 43 — S3 Multipart Backing + MinIO Proof | Pending |
 | TUS-08 | Phase 43 — S3 Multipart Backing + MinIO Proof | Pending |
-| TUS-09 | Phase 43 — S3 Multipart Backing + MinIO Proof | Pending |
+| TUS-09 | Phase 43 — S3 Multipart Backing + MinIO Proof | Complete |
 | TUS-10 | Phase 44 — Auth Hardening, DX, Docs, Telemetry, CI Proof | Pending |
 | TUS-11 | Phase 44 — Auth Hardening, DX, Docs, Telemetry, CI Proof | Pending |
 | TUS-12 | Phase 44 — Auth Hardening, DX, Docs, Telemetry, CI Proof | Pending |
