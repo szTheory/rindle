@@ -93,6 +93,24 @@ with production confidence.
 
 Media, made durable.
 
+## Decision-Making Contract
+
+Default GSD posture for Rindle: research first, then decide by default. Do not
+escalate routine design or implementation choices.
+
+Escalate only when the choice has high blast radius:
+
+- semver-significant public API reshapes
+- destructive or irreversible operations
+- security or compliance boundary changes
+- material recurring cost surprises
+- milestone or scope reshapes
+- architectural commitments that are expensive to reverse
+
+When the choice is local, additive, reversible, or mainly ergonomic, pick the
+least-surprising option, record the rationale in project artifacts, and
+proceed.
+
 ## Requirements
 
 ### Validated
