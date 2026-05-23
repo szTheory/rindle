@@ -1,69 +1,157 @@
 ---
 phase: 43-s3-multipart-backing-minio-proof
-verified: 2026-05-23T00:00:00Z
+verified: 2026-05-23T12:00:00Z
 status: gaps_found
 score: 3/5
 overrides_applied: 0
+re_verification:
+  previous_status: gaps_found
+  previous_score: 3/5
+  gaps_closed:
+    - "remove_tus_tail/2 now delegates to S3.tus_tail_path/2 (base64url encoding corrected — CR-02 CLOSED)"
+    - "sweep_orphaned_temp_files.ex now recurses into tus/ and ages out individual regular files (CR-03 CLOSED)"
+  gaps_remaining:
+    - "CR-01: abort-failure path in handle_delete permanently orphans S3 multipart — reaper has no compensating query for aborted+failure_reason=nil tus sessions (STILL OPEN)"
+    - "CR-04: guard_local_tail_present fires only when parts != []; a cross-node resume in the pre-first-part window (upload_id set, parts=[]) bypasses the guard silently (STILL OPEN)"
+  regressions: []
 gaps:
-  - truth: "tus sessions expire AND DELETE terminates; the reaper branches on resumable_protocol (tus -> abort the S3 multipart or remove the local tmp; gcs_native -> existing session-URI cancel)"
+  - truth: "tus sessions expire AND DELETE terminates; the reaper branches on resumable_protocol — S3 multipart is aborted or remove-local-tmp, leaving zero orphaned multipart leak after abandonment + DELETE"
     status: failed
-    reason: "handle_delete/2 in tus_plug.ex sets state: aborted but never calls abort_multipart_upload or any backing-store cleanup. No reaper query ever re-selects an aborted tus session (fetch_incomplete_timed_out_sessions requires state in [signed, uploading] or resuming/initialized; fetch_retryable_abort_sessions requires failure_reason LIKE resumable_cancel_failed:% which is nil for a DELETEd session). The S3 multipart upload is permanently orphaned on the DELETE path — the precise cost leak TUS-09 exists to close."
+    reason: "CR-01 is only partially resolved. The happy-path DELETE now calls abort_tus_backing before the state transition (FIXED). But abort_delete_backing/2 (tus_plug.ex:445-463) swallows {:error, _} from abort_tus_backing/2 and returns :ok unconditionally — the session still moves to state 'aborted' with failure_reason: nil. No reaper query ever re-selects this session: fetch_incomplete_timed_out_sessions/0 requires state in ['signed','uploading'] (never 'aborted'); fetch_retryable_abort_sessions/0 requires failure_reason LIKE 'resumable_cancel_failed:%' which never matches nil. A transient abort failure at DELETE time permanently orphans the S3 multipart upload — the load-bearing cost-leak the phase exists to close."
     artifacts:
       - path: "lib/rindle/upload/tus_plug.ex"
-        issue: "handle_delete/2 at line 385-403 performs no backing-store abort. Comment at line 392-394 incorrectly claims Rindle.tmp/ reaper sweeps the abandonment; that claim only covers local temp files, not the remote S3 multipart upload."
+        issue: "abort_delete_backing/2 at lines 445-463: the {:error, reason} branch logs a warning and returns :ok. The comment at line 419-420 claims 'the row still moves to aborted and the reaper compensates on the next cron' — this is FALSE; no reaper query selects aborted tus sessions with failure_reason: nil."
       - path: "lib/rindle/ops/upload_maintenance.ex"
-        issue: "fetch_retryable_abort_sessions/0 at line 158-175 requires failure_reason LIKE resumable_cancel_failed:% — nil for DELETE-terminated sessions. fetch_incomplete_timed_out_sessions/0 at line 135-155 requires state in [signed, uploading] or specific resumable/multipart combos — never aborted. No query selects a tus session in state aborted with multipart_upload_id set."
-      - path: "test/rindle/upload/tus_plug_test.exs"
-        issue: "DELETE test at line 390-408 only asserts session state == aborted and conn.status == 204. It does NOT assert abort_multipart_upload is invoked. Integration test (tus_s3_integration_test.exs) covers only the timeout-expiry reaper path, not the DELETE path."
+        issue: "fetch_retryable_abort_sessions/0 at lines 159-176: requires state=='aborted' AND not is_nil(session_uri) AND like(failure_reason, 'resumable_cancel_failed:%'). A DELETE-terminated session has failure_reason: nil (changeset at tus_plug.ex:427 sets only {state: 'aborted'}). The LIKE condition never matches nil. fetch_incomplete_timed_out_sessions/0 at lines 136-156 requires state in ['signed','uploading']. Neither query selects an aborted tus session with failure_reason: nil."
     missing:
-      - "abort_tus_backing/1 (or equivalent) must be called inside handle_delete/2 before or alongside the state transition"
-      - "Alternatively: fetch_abortable_sessions/0 must be extended to also select (state == aborted AND resumable_protocol == tus AND multipart_upload_id NOT NULL) so the reaper compensates"
-      - "Regression test asserting abort_multipart_upload is invoked for a DELETEd S3-backed tus session"
+      - "Either: when abort_tus_backing/2 returns {:error, _}, do NOT move the row to 'aborted' — leave it in its prior state (signed/uploading) and return 5xx so the timeout reaper picks it up naturally once expires_at passes"
+      - "Or: persist a retryable failure_reason marker on abort failure (e.g. 'tus_abort_failed:...') AND extend fetch_retryable_abort_sessions/0 (or add a new query) to select (state=='aborted' AND resumable_protocol=='tus' AND not is_nil(multipart_upload_id)) so the reaper can re-abort on the next cron"
+      - "Regression test: inject an abort_multipart_upload failure on DELETE, assert the session is later re-found and re-aborted by abort_incomplete_uploads/1 (confirming no permanent orphan)"
+      - "Fix or remove the false comment at tus_plug.ex:419-420"
 
-  - truth: "S3 tail buffer written under Rindle.tmp/tus/<Base.url_encode64(session_id)>.tail is reliably removed by the reaper"
+  - truth: "A cross-node resume — where DB shows mid-multipart state but the tail file is absent on this node — fails loudly with {:error, :tus_tail_missing} rather than silently corrupting the assembled object"
     status: failed
-    reason: "remove_tus_tail/1 in upload_maintenance.ex constructs path as <root>/tus/<session_id>.tail (raw UUID). S3 adapter writes the tail at <root>/tus/<Base.url_encode64(session_id, padding: false)>.tail via tail_filename/1 in s3.ex. The paths never match. The reaper always attempts to remove a file that does not exist at that path; the actual tail file is never deleted by the reaper."
-    artifacts:
-      - path: "lib/rindle/ops/upload_maintenance.ex"
-        issue: "remove_tus_tail/1 at line 516-519: path = Path.join([root, tus, session_id <> .tail]) — raw unencoded UUID."
-      - path: "lib/rindle/storage/s3.ex"
-        issue: "tail_filename/1 at line 411-413: Base.url_encode64(id, padding: false) <> .tail — base64-url-encoded id. The two path computations are inconsistent."
-    missing:
-      - "remove_tus_tail/1 must apply Base.url_encode64 (matching tail_filename/1 in s3.ex), or delegate to a public S3.tus_tail_path/2 helper"
-      - "Unit test asserting that remove_tus_tail/1 deletes the file created by the S3 adapter"
-
-  - truth: "Rindle.tmp/ sweeper cleans up residual tus/*.tail and tus/*.part files"
-    status: failed
-    reason: "sweep_orphaned_temp_files.ex process_run_dir/4 at line 74-92 matches only {:ok, %File.Stat{type: :directory, mtime: mtime}} — the {:ok, _stat} arm at line 86 returns acc unchanged (files are silently skipped, never deleted). tus/*.tail and tus/*.part are regular files under Rindle.tmp/tus/. The tus/ directory itself is never swept because its mtime is refreshed on every write (any active system always has a fresh tus/ mtime). Residual tail/part files accumulate without bound."
-    artifacts:
-      - path: "lib/rindle/ops/sweep_orphaned_temp_files.ex"
-        issue: "process_run_dir/4 at line 74-92: only type: :directory entries are eligible for deletion. Regular files (type: :regular) fall into the {:ok, _stat} -> acc branch and are never removed."
-    missing:
-      - "Either recurse into tus/ and age-out individual regular files, or ensure explicit per-path cleanup in abort_tus_backing/1 and complete_part_stream/4 is reliable enough without the sweeper as backstop"
-      - "Test asserting the sweeper removes an aged tus/<id>.tail file"
-
-  - truth: "Sub-5 MiB S3 tail buffer node-local disk state is safe in multi-node deployments or is explicitly guarded"
-    status: failed
-    reason: "upload_part_stream/5 in s3.ex writes the tail remainder to local disk at <Rindle.tmp>/tus/<encoded_session_id>.tail. The offset/upload_id/parts cross-PATCH state is persisted in shared DB via persist_offset/2 in tus_plug.ex. There is no node-affinity guard, no detection of a missing tail file on resume, and no documentation of a single-node constraint anywhere in the adapter, plug, or moduledocs. A resumed PATCH routed to a different node opens a fresh empty tail file and re-slices from the wrong byte boundary, silently corrupting the assembled object without surfacing an error to the client."
+    reason: "CR-04 guard is partially implemented but has a pre-first-part hole. guard_local_tail_present/2 in s3.ex (lines 289-298) sets mid_multipart? to true only when BOTH upload_id is set AND parts != []. A first PATCH under 5 MiB writes bytes to the node-local tail and sets upload_id, but produces parts: [] (no part committed yet). If the next PATCH is routed to a different node: upload_id is set in DB, parts: [] — mid_multipart? is false — guard returns :ok — the fresh node opens an empty tail and appends from byte 0, silently dropping the first node's buffered bytes. The assembled object is corrupted with no error surfaced to the client."
     artifacts:
       - path: "lib/rindle/storage/s3.ex"
-        issue: "upload_part_stream/5 at line 140-163: tail_path keyed on node-local Rindle.tmp/; no guard when tail file is absent but DB offset/parts indicate a mid-multipart state."
-      - path: "lib/rindle/upload/tus_plug.ex"
-        issue: "prior_state/1 at line 264-270 rebuilds state from DB correctly but does not detect tail-file absence before delegating to upload_part_stream/5."
+        issue: "guard_local_tail_present/2 at lines 289-298: mid_multipart? = is_binary(upload_id) and upload_id != '' and is_list(parts) and parts != []. The parts != [] clause means any resume in the pre-first-part window (upload_id set, offset > 0, parts: []) bypasses the guard entirely. The comment at lines 282-284 acknowledges this is deliberate for the first-write path, but it does not distinguish 'fresh upload, no tail yet' from 'prior node buffered sub-5-MiB, tail expected but absent here'."
     missing:
-      - "Either: fail loudly when PATCH arrives with multipart_upload_id in DB but no tail file at the expected path (guard missing tail = cross-node resume), or persist tail bytes in shared storage"
-      - "Or: document and enforce sticky-session deployment constraint; add an explicit check in upload_part_stream/5 or the Plug that surfaces a loud error rather than a silent corruption"
-      - "Unit test simulating resume with tail file absent asserting a tagged error rather than corrupted assembly"
+      - "Strengthen the guard to fire whenever the DB implies bytes were buffered on another node, not only after a part commits. Signal: (upload_id set) AND (base_offset > 0) requires the tail to exist, OR use committed_part_bytes = length(parts) * @s3_min_part_size and fail when offset > committed_part_bytes and tail is absent"
+      - "Unit test: resume with upload_id set, parts: [], offset > 0, tail file absent — assert {:error, :tus_tail_missing}, not a silent {:ok, ...}"
+human_verification:
+  - test: "Run the MinIO integration test suite against a live MinIO endpoint"
+    expected: "All three @tag :minio tests pass: (1) >= 1 GiB drop+resume completes to 'ready' asset with byte_size == 1 GiB and list_multipart_uploads returns empty after reaper; (2) tus DELETE on S3-backed session returns 204 and list_multipart_uploads returns empty for deleted key; (3) post-reap on-disk tail file is removed"
+    why_human: "MinIO is not available in this environment. Tests require a running MinIO endpoint at RINDLE_MINIO_URL with the RINDLE_MINIO_* env vars set. Tests are tagged @moduletag :minio and excluded from the default mix test run."
 ---
 
-# Phase 43: S3 Multipart Backing + MinIO Proof — Verification Report
+# Phase 43: S3 Multipart Backing + MinIO Proof — Verification Report (Re-verification)
 
 **Phase Goal:** An S3-compatible adapter can serve tus by streaming each PATCH into an S3 multipart upload, completing through the existing verify lane, and abandoned tus sessions are reliably reaped — proven against MinIO with a >= 1 GiB drop-and-resume and a zero-leak abort assertion.
 
-**Verified:** 2026-05-23
+**Verified:** 2026-05-23T12:00:00Z
 **Status:** gaps_found
-**Re-verification:** No — initial verification
+**Re-verification:** Yes — gap-closure verification after plans 43-06..43-10
 **Requirements verified:** TUS-06, TUS-07, TUS-08, TUS-09
+
+---
+
+## Re-Verification Summary
+
+**Previous status:** gaps_found (3/5)
+**Current status:** gaps_found (3/5)
+
+**Gaps closed since prior verification:**
+- CR-02 (tail-file path encoding mismatch): CLOSED. `remove_tus_tail/2` now delegates to `S3.tus_tail_path/2` which routes through `tail_path/2` + `tail_filename/1` — the single base64url-encoding site. Read: `upload_maintenance.ex` lines 559-564 call `S3.tus_tail_path(session_id, root_opt(root))`. Confirmed.
+- CR-03 (sweeper skipped regular files): CLOSED. `process_run_dir/4` now special-cases `Path.basename(path) == "tus"` and routes to `sweep_tus_dir/4`, which iterates entries, checks `type: :regular`, and calls `delete_tus_file/3` on aged files. Confirmed in `sweep_orphaned_temp_files.ex` lines 89-116, 122-166.
+
+**Gaps still open:**
+- CR-01 (abort-failure path orphans S3 multipart permanently): CONFIRMED STILL OPEN by independent code reading
+- CR-04 (pre-first-part cross-node resume bypasses guard): CONFIRMED STILL OPEN by independent code reading
+
+The independent code re-review (43-REVIEW.md) claims about CR-01 and CR-04 are BOTH confirmed against the actual source. Details follow.
+
+---
+
+## Independent Code Verification of CR-01 and CR-04
+
+### CR-01 Claim Verification (abort-failure path)
+
+The review claims: `abort_delete_backing/2` swallows `{:error, _}` and returns `:ok`, so the row moves to `aborted` with `failure_reason: nil`, and no reaper query ever picks it up.
+
+**Code read at `lib/rindle/upload/tus_plug.ex:445-463`:**
+
+```elixir
+defp abort_delete_backing(session, opts) do
+  case UploadMaintenance.abort_tus_backing(session, ...) do
+    :ok -> :ok
+    {:error, reason} ->
+      Logger.warning(...)
+      :ok   # ← swallows the error, returns :ok
+  end
+end
+```
+
+The `handle_delete/2` at lines 426-428 then unconditionally applies `MediaUploadSession.changeset(%{state: "aborted"})` — only the `state` field is set. `failure_reason` is left nil.
+
+**Code read at `lib/rindle/ops/upload_maintenance.ex:159-176` (`fetch_retryable_abort_sessions/0`):**
+
+```elixir
+where: s.state == "aborted",
+where: s.upload_strategy == "resumable",
+where: not is_nil(s.session_uri),
+where: like(s.failure_reason, "resumable_cancel_failed:%"),
+```
+
+A DELETE-terminated session has `failure_reason: nil` and `session_uri` still set (it was persisted at POST time). The `LIKE` condition `like(nil, "resumable_cancel_failed:%")` evaluates to false in SQL. This query never selects a DELETE-terminated tus session.
+
+**Code read at `lib/rindle/ops/upload_maintenance.ex:136-156` (`fetch_incomplete_timed_out_sessions/0`):**
+
+```elixir
+where: s.state in ["signed", "uploading"] or
+  (s.state == "resuming" and s.upload_strategy == "resumable") or
+  (s.state == "initialized" and ...)
+```
+
+`state == "aborted"` matches none of these predicates.
+
+**Verdict: CR-01 claim is CONFIRMED. The reaper has no compensating query for aborted tus sessions with `failure_reason: nil`. A transient `abort_multipart_upload` failure at DELETE time permanently orphans the S3 multipart upload.**
+
+The comment at `tus_plug.ex:419-420` — "the row still moves to aborted and the reaper compensates on the next cron" — is demonstrably false.
+
+### CR-04 Claim Verification (pre-first-part window)
+
+The review claims: the guard fires only when `parts != []`, so a cross-node resume in the pre-first-part window (upload_id set, parts: []) bypasses it.
+
+**Code read at `lib/rindle/storage/s3.ex:289-298` (`guard_local_tail_present/2`):**
+
+```elixir
+defp guard_local_tail_present(tail_path, state) do
+  upload_id = Map.get(state, :upload_id)
+  parts = Map.get(state, :parts, [])
+  mid_multipart? = is_binary(upload_id) and upload_id != "" and is_list(parts) and parts != []
+
+  if mid_multipart? and not File.exists?(tail_path) do
+    {:error, :tus_tail_missing}
+  else
+    :ok
+  end
+end
+```
+
+When a first PATCH sends 3 MiB (sub-5 MiB):
+1. `ensure_upload_id` initiates the multipart → `upload_id` is set and persisted
+2. `append_to_tail` writes 3 MiB to the node-local tail
+3. `drain_tail_parts` sees 3 MiB < 5 MiB → returns `parts: []`, `part_number: 1`
+4. Persisted DB state: `upload_id` set, `parts: []`, `offset: 3 MiB`
+
+On a cross-node resume of the second PATCH:
+- State from DB: `%{upload_id: "uid", parts: [], offset: 3_145_728}`
+- `parts != []` is false → `mid_multipart?` is false → guard returns `:ok`
+- `append_to_tail` opens a FRESH empty tail on the new node
+- The first 3 MiB buffered on Node A is silently dropped
+- Object assembled at completion is missing the first 3 MiB
+
+**Verdict: CR-04 claim is CONFIRMED. The guard has a pre-first-part hole. Any upload whose first node buffered less than 5 MiB before a cross-node resume will produce a silently corrupted object.**
 
 ---
 
@@ -73,11 +161,11 @@ gaps:
 
 | # | Truth | Status | Evidence |
 |---|-------|--------|----------|
-| 1 | `upload_part_stream/5` on `Rindle.Storage`, implemented by S3 as one `UploadPart` per PATCH >= 5 MiB, buffering a sub-5-MiB final chunk under `Rindle.tmp/tus/` and flushing it as the final part on completion | VERIFIED | `lib/rindle/storage/s3.ex:140-191` implements the tail-buffer slice/accumulate pattern; `complete_part_stream/4` at line 166-191 flushes tail as final part then calls `complete_multipart_upload/4`. S3 capabilities include `:tus_upload` at line 216. |
-| 2 | Adapters advertise `:tus_upload` honestly (S3 + Local yes; GCS no); mounting `TusPlug` against an adapter without `:tus_upload` raises at `init/1` | VERIFIED | `lib/rindle/storage/s3.ex:216` — `:tus_upload` in capabilities. `lib/rindle/storage/local.ex:130` — `:tus_upload` in capabilities. GCS adapter does not include `:tus_upload` (grep returns no results). `lib/rindle/upload/tus_plug.ex:78-85` — `Capabilities.require_upload(adapter, :tus_upload)` raises `ArgumentError` at `init/1` when capability absent. |
-| 3 | tus completion calls `complete_multipart_upload/4` then converges into the existing `verify_completion/2` lane with zero new completion vocabulary | VERIFIED | `lib/rindle/upload/tus_plug.ex:351-368` — `complete_upload/3` calls `adapter.complete_part_stream/4` then `Broker.verify_completion/2` unchanged. `lib/rindle/storage/s3.ex:181` — `complete_part_stream/4` calls `S3.complete_multipart_upload/4`. |
-| 4 | tus sessions expire AND `DELETE` terminates; the reaper branches on `resumable_protocol` ("tus" -> abort the S3 multipart or remove the local tmp; "gcs_native" -> existing session-URI cancel) | FAILED (BLOCKER) | Timeout/expiry reaper path works: `expire_session/2` at line 386-404 branches on `tus_session?/1` first, routing to `expire_tus_session/2` which calls `abort_tus_backing/1` (S3 multipart abort). DELETE path is broken: `handle_delete/2` at line 385-403 sets `state: "aborted"` but performs no backing-store abort. No reaper query selects `state == "aborted"` tus sessions (CR-01). Additionally: `remove_tus_tail/1` constructs the wrong path (raw UUID vs base64url-encoded), so tail files are never deleted (CR-02). `sweep_orphaned_temp_files.ex` only sweeps directories, skipping `tus/*.tail` files entirely (CR-03). |
-| 5 | A MinIO integration proof completes a >= 1 GiB tus upload with a mid-flight drop + resume, and asserts that after abandonment + reaper, `list_multipart_uploads` returns empty | PARTIAL (BLOCKER) | `test/rindle/upload/tus_s3_integration_test.exs:139-209` — the test exists and covers: (a) >= 1 GiB synthetic upload with mid-flight drop + resume, (b) verify_completion convergence, (c) abandonment via timeout expiry + reaper + `list_multipart_uploads` empty assertion. However: the test is `@tag :minio` (excluded from default suite; CI-only); it covers only the timeout-expiry reaper path, NOT the DELETE termination path (CR-01). The "ZERO LEAK" claim holds only for the timeout path. Node-local tail state (CR-04) is also not covered. |
+| 1 | `upload_part_stream/5` on `Rindle.Storage` implemented by S3 as one `UploadPart` per PATCH >= 5 MiB, buffering a sub-5 MiB final chunk under `Rindle.tmp/tus/` and flushing it as the final part on completion | VERIFIED | `lib/rindle/storage/s3.ex:157-181` — tail-buffer accumulate/drain pattern; `complete_part_stream/4` at lines 184-209 flushes tail as final part then completes multipart. `:tus_upload` in capabilities at line 234. |
+| 2 | Adapters advertise `:tus_upload` honestly (S3 + Local yes; GCS no); mounting `TusPlug` against an adapter without `:tus_upload` raises at `init/1` | VERIFIED | `lib/rindle/storage/s3.ex:234` — `:tus_upload` in capabilities. `lib/rindle/upload/tus_plug.ex:100-108` — `Capabilities.require_upload(adapter, :tus_upload)` raises `ArgumentError` at `init/1`. GCS adapter verified not to include `:tus_upload`. |
+| 3 | tus completion (final PATCH, offset == length) calls `complete_multipart_upload/4` then converges into the existing `verify_completion/2` lane — zero new completion vocabulary | VERIFIED | `lib/rindle/upload/tus_plug.ex:373-390` — `complete_upload/3` calls `adapter.complete_part_stream/4` then `Broker.verify_completion/2`. `lib/rindle/storage/s3.ex:184-209` — `complete_part_stream/4` calls `S3.complete_multipart_upload`. |
+| 4 | tus sessions expire AND DELETE terminates; the reaper branches on resumable_protocol ("tus" -> abort S3 multipart or remove local tmp; "gcs_native" -> existing session-URI cancel); zero orphaned-multipart leak after abandonment + DELETE | FAILED (BLOCKER) | Timeout/expiry path: FIXED — `expire_tus_session/2` (upload_maintenance.ex:455-471) calls `abort_tus_backing/1` which aborts S3 multipart, then `gated_expire/2` transitions to "expired". DELETE path happy-path: FIXED — `handle_delete/2` (tus_plug.ex:412-439) calls `abort_delete_backing/2` before state transition. DELETE path abort-failure: STILL BROKEN (CR-01) — `abort_delete_backing/2` swallows `{:error, _}` and still moves the row to `aborted` with `failure_reason: nil`; no reaper query selects this session; S3 multipart permanently orphaned on transient abort failure. |
+| 5 | A MinIO integration proof completes a >= 1 GiB tus upload with a mid-flight drop + resume, and asserts that after abandonment + reaper, `list_multipart_uploads` returns empty | HUMAN NEEDED | `test/rindle/upload/tus_s3_integration_test.exs` exists with `@moduletag :minio`. Three test cases: (1) >= 1 GiB drop+resume + zero-leak after timeout-reap (line 148); (2) DELETE-then-list_multipart_uploads-empty (line 230); (3) post-reap tail-file removed (line 280). All correctly tagged `:minio`. CR-04 hole means test (1) could produce a corrupted object if the drop falls in the pre-5-MiB window on a multi-node cluster — but the test uses a single node, so it passes in CI even with the CR-04 hole present. MinIO not available in this environment. |
 
 **Score:** 3/5 truths verified
 
@@ -87,13 +175,11 @@ gaps:
 
 | Artifact | Expected | Status | Details |
 |----------|----------|--------|---------|
-| `lib/rindle/storage.ex` | `upload_part_stream/5` + `complete_part_stream/4` @callback decls, `@type tus_part_state`, `@optional_callbacks` entries | VERIFIED | Callbacks declared per plan; behaviour contract established |
-| `lib/rindle/storage/s3.ex` | `upload_part_stream/5` + `complete_part_stream/4` impls, `:tus_upload` capability, tail-buffer logic | VERIFIED | All implemented; tail-buffer encoding is correct (base64url). Note: `remove_tus_tail/1` in upload_maintenance.ex uses a different (unencoded) path — see CR-02 gap |
-| `lib/rindle/storage/local.ex` | `upload_part_stream/5` + `complete_part_stream/4` wrapping tus_append/tus_complete | VERIFIED | Confirmed in capabilities grep and plan 04 summary |
-| `lib/rindle/upload/tus_plug.ex` | Polymorphic adapter dispatch in handle_patch/complete_upload; multipart state persistence; DELETE termination | PARTIAL | PATCH and completion dispatch are correct. DELETE termination sets `state: "aborted"` but performs no backing-store abort (CR-01) |
-| `lib/rindle/ops/upload_maintenance.ex` | tus_session?/1, expire_tus_session/2, abort_tus_backing/1, resolve_tus_adapter/1 | PARTIAL | Timeout-expiry reaper path implemented correctly. DELETE path never selected. `remove_tus_tail/1` uses wrong path encoding (CR-02) |
-| `test/rindle/upload/tus_s3_integration_test.exs` | >= 1 GiB drop+resume + list_multipart_uploads-empty MinIO proof | PARTIAL | Test exists and covers timeout-expiry path. DELETE path, tail-file cleanup, and multi-node resume are not covered (IN-04) |
-| `lib/rindle/ops/sweep_orphaned_temp_files.ex` | Sweeps tus/*.tail and tus/*.part residual files | FAILED | `process_run_dir/4` only acts on `type: :directory` entries; regular files are silently skipped (CR-03) |
+| `lib/rindle/storage/s3.ex` | `upload_part_stream/5` + `complete_part_stream/4` + `:tus_upload` cap + tail-buffer logic + `tus_tail_path/2` public helper + cross-node guard + single-node moduledoc | VERIFIED | All present. `tus_tail_path/2` (lines 253-255) delegates to `tail_path/2` with `session_id` as both key and `:session_id` opt — single encoding site preserved. Guard at lines 289-298 exists but has CR-04 hole. Moduledoc at lines 1-21 documents the single-node constraint. |
+| `lib/rindle/upload/tus_plug.ex` | `handle_delete/2` calls backing abort BEFORE state transition; honours update result; single-node moduledoc | PARTIAL | `handle_delete/2` (lines 412-439) calls `abort_delete_backing/2` before changeset update (FIXED). `abort_delete_backing/2` (lines 445-463) swallows `{:error, _}` — abort-failure path still orphans (CR-01 OPEN). Update result honoured — `{:error, _changeset}` returns `tus_error(conn, 500, "")` (WR-02 FIXED). Moduledoc at lines 49-67 documents single-node constraint (FIXED). |
+| `lib/rindle/ops/upload_maintenance.ex` | FSM-gated tus expiry; encoding-correct `remove_tus_tail/2`; PUBLIC `abort_tus_backing/2`; reaper compensation for DELETE abort failures | PARTIAL | FSM-gated tus expiry via `gated_expire/2` (lines 424-438, FIXED). `remove_tus_tail/2` (lines 559-564) delegates to `S3.tus_tail_path/2` (CR-02 FIXED). `abort_tus_backing/2` is PUBLIC (lines 522-548). NO reaper query for (state==aborted, resumable_protocol==tus, failure_reason==nil) — CR-01 compensation missing. |
+| `lib/rindle/ops/sweep_orphaned_temp_files.ex` | Sweeps aged tus/*.tail and tus/*.part regular files | VERIFIED | `process_run_dir/4` (lines 89-116) special-cases `Path.basename(path) == "tus"` and routes to `sweep_tus_dir/4` (lines 122-133) which calls `age_tus_file/4` (lines 136-153) checking `type: :regular` and mtime. CR-03 CLOSED. |
+| `test/rindle/upload/tus_s3_integration_test.exs` | `@moduletag :minio`, >= 1 GiB drop+resume + zero-leak + DELETE zero-leak | VERIFIED (structure) | File exists; `@moduletag :minio` at line 31; three test cases present covering drop+resume (line 148), DELETE zero-leak (line 230), and tail-file cleanup (line 280). `list_multipart_uploads` assertions at lines 215 and 265. MinIO execution is a human verification item. |
 
 ---
 
@@ -101,12 +187,12 @@ gaps:
 
 | From | To | Via | Status | Details |
 |------|-----|-----|--------|---------|
-| `tus_plug.ex handle_patch/2` | `adapter.upload_part_stream/5` | drain PATCH to temp file then dispatch | VERIFIED | Line 248-255: polymorphic dispatch through `opts[:adapter].upload_part_stream/5` |
-| `tus_plug.ex complete_upload/3` | `Broker.verify_completion/2` | `adapter.complete_part_stream/4` then verify_completion | VERIFIED | Lines 351-368 |
-| `tus_plug.ex handle_delete/2` | `abort_tus_backing/1` or backing-store abort | Should call backing cleanup before state transition | NOT WIRED | handle_delete/2 at line 385-403 only does DB state update; no backing-store abort called (CR-01) |
-| `upload_maintenance.ex remove_tus_tail/1` | actual tail file written by s3.ex | `Path.join([root, "tus", session_id <> ".tail"])` | NOT WIRED | s3.ex writes `Base.url_encode64(session_id, padding: false) <> ".tail"`; remove_tus_tail uses raw session_id — paths never match (CR-02) |
-| `sweep_orphaned_temp_files.ex process_run_dir/4` | `tus/*.tail` and `tus/*.part` files | `File.rm_rf` on aged entries | NOT WIRED | Only directories are eligible; regular files fall to `{:ok, _stat} -> acc` (CR-03) |
-| `upload_maintenance.ex fetch_abortable_sessions/0` | aborted tus sessions with multipart_upload_id | Query selection | NOT WIRED | fetch_retryable_abort_sessions requires `failure_reason LIKE "resumable_cancel_failed:%"` — nil for DELETE-terminated sessions; fetch_incomplete_timed_out_sessions requires state in [signed, uploading] — never aborted (CR-01) |
+| `tus_plug.ex handle_delete/2` | `UploadMaintenance.abort_tus_backing/2` | Call before state changeset | WIRED | Lines 421, 446-450: `abort_delete_backing(session, opts)` called before `Config.repo().update()` at line 428. Ordering is correct. |
+| `abort_delete_backing/2` | abort failure → reaper compensation | `failure_reason` marker or leave in prior state | NOT WIRED | `{:error, reason}` branch (lines 454-461) logs and returns `:ok`; row moves to `state: "aborted"` with `failure_reason: nil`; no reaper query selects this state. Compensation does not exist. |
+| `upload_maintenance.ex remove_tus_tail/2` | `S3.tus_tail_path/2` | Delegate path computation | WIRED | Lines 560-561: `S3.tus_tail_path(session_id, root_opt(root))` — encoding-correct. CR-02 CLOSED. |
+| `sweep_orphaned_temp_files.ex process_run_dir/4` | `tus/*.tail` and `tus/*.part` files | Recurse into `tus/` and age out regular files | WIRED | Lines 97-99: `if Path.basename(path) == "tus" do sweep_tus_dir(path, ...)`. CR-03 CLOSED. |
+| `s3.ex guard_local_tail_present/2` | `{:error, :tus_tail_missing}` on cross-node resume | mid-multipart signal from `parts != []` | PARTIAL | Guard fires when `upload_id` set AND `parts != []` AND tail absent. Does NOT fire when `upload_id` set AND `parts == []` (pre-first-part window). CR-04 hole: first sub-5-MiB buffered bytes on Node A are silently dropped on Node B resume. |
+| `upload_maintenance.ex fetch_abortable_sessions/0` | aborted tus sessions with failed backing abort | Query selection | NOT WIRED | No query selects `(state == "aborted" AND resumable_protocol == "tus" AND not is_nil(multipart_upload_id))` with `failure_reason: nil`. The reaper's compensation path for the CR-01 abort-failure scenario does not exist. |
 
 ---
 
@@ -114,10 +200,10 @@ gaps:
 
 | Requirement | Source Plans | Description | Status | Evidence |
 |-------------|-------------|-------------|--------|----------|
-| TUS-06 | 43-01, 43-02, 43-04, 43-05 | `upload_part_stream/5` OPTIONAL callback; S3 one UploadPart per PATCH >= 5 MiB; sub-5-MiB tail buffer | SATISFIED | `s3.ex:140-191` implements correctly; `local.ex` implements wrapping existing helpers |
-| TUS-07 | 43-01, 43-02 | Adapters advertise `:tus_upload` honestly; TusPlug init/1 raises without capability | SATISFIED | S3 + Local advertise `:tus_upload`; GCS does not; `tus_plug.ex:78-85` raises at init/1 |
-| TUS-08 | 43-01, 43-04, 43-05 | Completion calls `complete_multipart_upload/4` then `verify_completion/2`; zero new completion vocabulary | SATISFIED | `tus_plug.ex:351-368` + `s3.ex:166-191` confirmed |
-| TUS-09 | 43-01, 43-03, 43-05 | tus sessions expire via expires_at; DELETE terminates; reaper branches on resumable_protocol | BLOCKED | Timeout-expiry reaper path works. DELETE path leaks S3 multipart permanently (CR-01). Tail file removal path mismatch (CR-02). Sweeper skips regular files (CR-03). Node-local tail state has no affinity guard (CR-04). |
+| TUS-06 | 43-01, 43-02, 43-06 | `upload_part_stream/5` OPTIONAL callback; S3 one UploadPart per PATCH >= 5 MiB; sub-5-MiB tail buffer; `tus_tail_path/2` public helper | SATISFIED | `s3.ex:157-181` implements tail-buffer accumulate/drain; `tus_tail_path/2` at lines 253-255 is public and encoding-correct |
+| TUS-07 | 43-01, 43-02 | Adapters advertise `:tus_upload` honestly; `TusPlug init/1` raises without capability | SATISFIED | S3 (line 234) + Local advertise `:tus_upload`; GCS does not; `tus_plug.ex:100-108` raises at `init/1` |
+| TUS-08 | 43-01, 43-04 | Completion calls `complete_multipart_upload/4` then `verify_completion/2`; zero new completion vocabulary | SATISFIED | `tus_plug.ex:373-390` + `s3.ex:184-209` confirmed |
+| TUS-09 | 43-01, 43-03, 43-05, 43-06..10 | tus sessions expire; DELETE terminates; reaper branches on resumable_protocol; MinIO zero-leak proof | BLOCKED | Timeout-expiry reaper path: FIXED and working. DELETE happy-path: FIXED. DELETE abort-failure path: permanently orphans (CR-01 OPEN). Cross-node resume pre-first-part: silently corrupts (CR-04 OPEN). MinIO proof: tests exist with correct structure but require human execution. |
 
 ---
 
@@ -125,38 +211,44 @@ gaps:
 
 | File | Line | Pattern | Severity | Impact |
 |------|------|---------|----------|--------|
-| `lib/rindle/upload/tus_plug.ex` | 385-403 | `handle_delete/2` sets state "aborted" with no backing-store abort; comment at 392-394 incorrectly claims reaper sweeps backing files | BLOCKER | S3 multipart upload permanently orphaned on DELETE path (CR-01) |
-| `lib/rindle/ops/upload_maintenance.ex` | 516-519 | `remove_tus_tail/1` constructs raw `session_id <> ".tail"` path; S3 adapter uses `Base.url_encode64(id, padding: false) <> ".tail"` | BLOCKER | Tail file is never deleted by the reaper (CR-02) |
-| `lib/rindle/ops/sweep_orphaned_temp_files.ex` | 74-92 | `process_run_dir/4` matches only `type: :directory`; `{:ok, _stat}` arm returns `acc` unchanged (regular files silently skipped) | BLOCKER | `tus/*.tail` and `tus/*.part` files accumulate without bound (CR-03) |
-| `lib/rindle/storage/s3.ex` | 140-191 | Sub-5-MiB tail buffer held on node-local disk; no node-affinity guard or missing-tail detection | BLOCKER | Silent data corruption on cross-node resume in multi-node deployment (CR-04) |
-| `test/rindle/upload/tus_plug_test.exs` | 390-408 | DELETE test does not assert `abort_multipart_upload` was invoked; comment at 396 incorrectly claims zero-leak proof in integration test | WARNING | False confidence that DELETE path is safe |
-| `test/rindle/upload/tus_s3_integration_test.exs` | 189-208 | Zero-leak assertion only covers timeout-expiry path; does not cover DELETE path, tail-file cleanup, or cross-node resume | WARNING | Integration test gives incomplete coverage of the cost-leak mitigation (IN-04) |
+| `lib/rindle/upload/tus_plug.ex` | 419-420 | Comment claims "the row still moves to aborted and the reaper compensates on the next cron" — false; no reaper query selects aborted+failure_reason:nil tus sessions | BLOCKER | False comment masks the unresolved CR-01 abort-failure path; creates false confidence in operators reading the code |
+| `lib/rindle/upload/tus_plug.ex` | 445-463 | `abort_delete_backing/2` swallows `{:error, _}` and returns `:ok` unconditionally; row transitions to `aborted` with `failure_reason: nil` | BLOCKER | Any transient `abort_multipart_upload` failure at DELETE time permanently orphans the S3 multipart — the cost leak TUS-09 exists to close |
+| `lib/rindle/ops/upload_maintenance.ex` | 158-176 | `fetch_retryable_abort_sessions/0` requires `like(failure_reason, "resumable_cancel_failed:%")`; nil never satisfies a LIKE predicate | BLOCKER | No reaper path re-selects a DELETE-terminated tus session whose abort failed; the orphaned multipart is never cleaned up |
+| `lib/rindle/storage/s3.ex` | 289-298 | `guard_local_tail_present/2`: `mid_multipart? = ... and parts != []`; first sub-5-MiB PATCH sets upload_id but produces parts:[] | BLOCKER | A cross-node resume in the pre-first-part window bypasses the guard; first node's buffered bytes silently dropped; assembled object corrupted |
+
+---
+
+### Human Verification Required
+
+#### 1. MinIO Integration Test Suite
+
+**Test:** Set up a MinIO endpoint with RINDLE_MINIO_URL, RINDLE_MINIO_ACCESS_KEY, RINDLE_MINIO_SECRET_KEY env vars. Run: `mix test test/rindle/upload/tus_s3_integration_test.exs --include minio`
+
+**Expected:**
+- Test 1 (line 148): A >= 1 GiB tus upload over S3 backing survives drop+resume, converges into `verify_completion/2` with correct byte_size, and `list_multipart_uploads` returns empty for the abandoned session after reaper runs
+- Test 2 (line 230): A tus DELETE on an S3-backed session (with a live committed part, not just upload_id) returns 204 and `list_multipart_uploads` returns empty for the deleted key
+- Test 3 (line 280): After reaping an abandoned tus session, the on-disk tail file is removed
+
+**Why human:** MinIO not available in this verification environment. Tests are tagged `@moduletag :minio` and excluded from the default `mix test` run. The test structure and assertions are correct, but actual execution against MinIO is required to confirm the happy path. Note: Test 2 directly exercises the CR-01 happy path (abort succeeds) but does not cover the abort-failure branch — that branch still has the open gap documented above.
 
 ---
 
 ### Gaps Summary
 
-Four blockers prevent phase goal achievement. All four were independently confirmed against the source code:
+Two blockers prevent full phase goal achievement. CR-02 and CR-03 from the prior verification have been successfully closed. CR-01 and CR-04 were partially resolved but both remain open in their narrowed forms as confirmed by independent code reading.
 
-**CR-01 — DELETE leaks S3 multipart permanently (defeats SC4 and TUS-09)**
+**CR-01 (abort-failure path permanently orphans S3 multipart — defeats the cost-leak goal)**
 
-`handle_delete/2` (`lib/rindle/upload/tus_plug.ex:385-403`) transitions the session to `state: "aborted"` and returns 204 but performs no backing-store cleanup. The reaper never re-selects this session: `fetch_incomplete_timed_out_sessions/0` requires `state in ["signed", "uploading"]` or specific resuming/initialized combos; `fetch_retryable_abort_sessions/0` requires `failure_reason LIKE "resumable_cancel_failed:%"` which is nil for a DELETE-terminated session. An S3-backed tus session terminated via DELETE permanently orphans its S3 multipart upload. This is the headline cost-leak (`T-43-cost-leak`) the phase exists to close, unresolved for the DELETE path.
+`handle_delete/2` (`lib/rindle/upload/tus_plug.ex:412-439`) now correctly calls `abort_delete_backing/2` before the state transition — the happy-path DELETE no longer leaks. However, `abort_delete_backing/2` (lines 445-463) swallows `{:error, _}` from `abort_tus_backing/2` and unconditionally returns `:ok`. The session then moves to `state: "aborted"` with `failure_reason: nil`. The reaper's `fetch_retryable_abort_sessions/0` (upload_maintenance.ex:159-176) requires `like(failure_reason, "resumable_cancel_failed:%")` — nil never satisfies this SQL LIKE. `fetch_incomplete_timed_out_sessions/0` requires `state in ["signed","uploading"]` — never "aborted". The false comment at line 419-420 ("the reaper compensates on the next cron") gives a false assurance that is provably untrue. On any transient failure (network blip, throttling, MinIO restart) of `abort_multipart_upload` at DELETE time, the S3 multipart upload is orphaned permanently.
 
-**CR-02 — `remove_tus_tail/1` path encoding mismatch (tail file never deleted)**
+**CR-04 (pre-first-part cross-node resume silently corrupts the object)**
 
-`remove_tus_tail/1` (`lib/rindle/ops/upload_maintenance.ex:516-519`) constructs `<root>/tus/<session_id>.tail` using the raw UUID. `tail_filename/1` (`lib/rindle/storage/s3.ex:411-413`) produces `Base.url_encode64(id, padding: false) <> ".tail"`. The paths never match. The reaper's tail-cleanup call is a no-op on every invocation.
+`guard_local_tail_present/2` (`lib/rindle/storage/s3.ex:289-298`) was added to detect cross-node resumes, but its `parts != []` condition leaves a real corruption window. On a first PATCH where the payload is < 5 MiB: `upload_id` is set and persisted, `parts: []` is persisted, the tail holds N MiB on Node A's disk. If the second PATCH is routed to Node B: the DB state shows `upload_id` set and `parts: []`, so `mid_multipart?` is false, the guard returns `:ok`, Node B opens a fresh empty tail, and Node A's bytes are permanently lost. The assembled object is corrupted with no error returned to the client. This is the exact silent corruption CR-04 was raised to prevent, confined to the (very common) sub-5-MiB first chunk case.
 
-**CR-03 — Sweeper skips regular files (unbounded accumulation of tus/*.tail and tus/*.part)**
-
-`process_run_dir/4` (`lib/rindle/ops/sweep_orphaned_temp_files.ex:74-92`) matches only `{:ok, %File.Stat{type: :directory, mtime: mtime}}`. The `{:ok, _stat}` arm returns `acc` unchanged — regular files are never deleted. The `tus/` directory mtime is refreshed on every write, so it is never swept on any active system. Multiple code sites justify "best-effort cleanup" by citing this sweeper as the safety net; that claim is false.
-
-**CR-04 — Node-local tail state has no affinity guard (silent corruption on multi-node resume)**
-
-`upload_part_stream/5` (`lib/rindle/storage/s3.ex:140-163`) writes the sub-5-MiB tail to local disk. Cross-PATCH state (offset, upload_id, parts) is in the shared DB. No guard exists for the case where a PATCH arrives with DB multipart state but no local tail file. A resumed PATCH routed to a different node re-slices from the wrong boundary, silently corrupting the assembled object with no error returned to the client. No documentation of a single-node constraint appears anywhere in the adapter, plug, or moduledocs.
-
-The MinIO integration test (`tus_s3_integration_test.exs:139-209`) covers the timeout-expiry reaper path on a single node, which passes. It does not exercise the DELETE termination path, tail-file removal, or cross-node resume. The automated test suite being green gives false confidence that the cost-leak mitigation is complete.
+Both open gaps are directly confirmed in source code, not inferred from the review document.
 
 ---
 
-_Verified: 2026-05-23_
+_Verified: 2026-05-23T12:00:00Z_
 _Verifier: Claude (gsd-verifier)_
+_Re-verification of prior gaps_found (3/5); CR-02 and CR-03 confirmed closed; CR-01 and CR-04 confirmed still open_
