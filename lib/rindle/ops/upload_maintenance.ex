@@ -9,6 +9,7 @@ defmodule Rindle.Ops.UploadMaintenance do
   alias Rindle.Domain.MediaUploadSession
   alias Rindle.Domain.UploadSessionFSM
   alias Rindle.Storage.Capabilities
+  alias Rindle.Storage.S3
 
   # ---------------------------------------------------------------------------
   # Types
@@ -412,9 +413,15 @@ defmodule Rindle.Ops.UploadMaintenance do
   defp tus_session?(_session), do: false
 
   defp expire_standard_session(session, acc) do
-    # Gate the persistence on the FSM so any future expansion of the query
-    # set (e.g. expiring `uploaded`/`verifying` rows) is caught at the
-    # invariant boundary instead of silently violating the FSM contract.
+    gated_expire(session, acc)
+  end
+
+  # Shared gated-expire helper used by BOTH the standard and tus expiry branches
+  # (WR-01). Gate the persistence on the FSM so any future expansion of the query
+  # set (e.g. expiring `uploaded`/`verifying` rows, or surfacing a tus session in
+  # an `aborted`/forbidden state via the retryable-abort query) is caught at the
+  # invariant boundary instead of silently violating the FSM contract.
+  defp gated_expire(session, acc) do
     case UploadSessionFSM.transition(session.state, "expired", %{session_id: session.id}) do
       :ok ->
         do_expire_session(session, acc)
@@ -448,37 +455,15 @@ defmodule Rindle.Ops.UploadMaintenance do
   defp expire_tus_session(session, acc) do
     case abort_tus_backing(session) do
       :ok ->
-        do_expire_tus_session(session, acc)
+        # WR-01: gate the tus expiry persistence through the SAME FSM-gated
+        # helper the standard branch uses, so a future query-set expansion can
+        # never silently flip a tus session from an FSM-forbidden state.
+        gated_expire(session, acc)
 
       {:error, reason} ->
         Logger.warning("rindle.upload_maintenance.tus_abort_failed",
           session_id: session.id,
           multipart_upload_id: session.multipart_upload_id,
-          reason: inspect(reason)
-        )
-
-        Map.update!(acc, :abort_errors, &(&1 + 1))
-    end
-  end
-
-  defp do_expire_tus_session(session, acc) do
-    repo = Config.repo()
-    changeset = MediaUploadSession.changeset(session, %{state: "expired"})
-
-    case repo.update(changeset) do
-      {:ok, _updated} ->
-        Logger.info("rindle.upload_maintenance.tus_session_expired",
-          session_id: session.id,
-          previous_state: session.state
-        )
-
-        acc
-        |> Map.update!(:sessions_aborted, &(&1 + 1))
-        |> increment_abort_strategy(session)
-
-      {:error, reason} ->
-        Logger.warning("rindle.upload_maintenance.tus_session_expiry_failed",
-          session_id: session.id,
           reason: inspect(reason)
         )
 
@@ -492,31 +477,105 @@ defmodule Rindle.Ops.UploadMaintenance do
   # `<Rindle.tmp>/tus/<session_id>.tail` is removed best-effort regardless.
   defp abort_tus_backing(%MediaUploadSession{multipart_upload_id: id} = session)
        when is_binary(id) and id != "" do
-    remove_tus_tail(session)
+    case resolve_tus_adapter(session) do
+      {:ok, adapter} ->
+        # The S3 tail buffer lives under the adapter's default tail root
+        # (`TempRunDir.root_dir()`); thread it explicitly so the delete path
+        # computes against the SAME root the write path used (CR-02).
+        abort_tus_backing(session, adapter: adapter, root: nil, upload_id: id)
 
-    with {:ok, adapter} <- resolve_tus_adapter(session) do
-      case adapter.abort_multipart_upload(session.upload_key, id, []) do
-        {:ok, _} -> :ok
-        # Idempotent: the multipart upload is already gone.
-        {:error, :not_found} -> :ok
-        {:error, _reason} = err -> err
-      end
+      {:error, _reason} = err ->
+        # Still best-effort remove the local tail even if the adapter cannot be
+        # resolved, then surface the error so the row is retried next cron.
+        remove_tus_tail(session, nil)
+        err
     end
   end
 
-  # Local-backed tus session (no multipart_upload_id): best-effort removal of
-  # the tmp part file and the tail buffer. The orphan reaper sweeps `Rindle.tmp`
-  # anyway, so failures here are non-fatal — always return `:ok`.
+  # Local-backed tus session (no multipart_upload_id): resolve the upload's
+  # ACTUAL Local root (IN-03) and remove the tmp part + tail at that root.
   defp abort_tus_backing(%MediaUploadSession{} = session) do
-    _ = File.rm(Rindle.Storage.Local.tus_part_path(session.id, []))
-    remove_tus_tail(session)
+    root = resolve_local_root(session)
+    abort_tus_backing(session, adapter: nil, root: root, upload_id: nil)
+  end
+
+  @doc """
+  Aborts the backing store for a tus upload session, polymorphically.
+
+  `opts` is a keyword list carrying:
+
+    * `:adapter` — the resolved storage adapter (S3-backed only)
+    * `:root` — the Local/tmp root the part/tail files live under (`nil`
+      falls back to the adapter's default tail root)
+    * `:upload_id` — the S3 multipart upload id (present => S3 multipart abort)
+
+  When an S3 multipart `:upload_id` is present, aborts the multipart upload via
+  the adapter (`{:error, :not_found}` is treated as idempotent success). The
+  per-session tail buffer (and, for the Local case, the tmp part file) at
+  `:root` is always best-effort removed.
+
+  This is the SAME polymorphic abort the reaper performs from a session-resolved
+  adapter/root, exposed as a PUBLIC reusable helper so the tus DELETE handler can
+  invoke it with an explicit adapter/root it already holds — avoiding a DB
+  profile re-resolution on the hot DELETE path.
+  """
+  @spec abort_tus_backing(MediaUploadSession.t(), keyword()) :: :ok | {:error, term()}
+  def abort_tus_backing(%MediaUploadSession{} = session, opts) when is_list(opts) do
+    root = Keyword.get(opts, :root)
+    upload_id = Keyword.get(opts, :upload_id)
+
+    # Best-effort remove the per-session tail buffer at the resolved root.
+    remove_tus_tail(session, root)
+
+    case upload_id do
+      id when is_binary(id) and id != "" ->
+        adapter = Keyword.fetch!(opts, :adapter)
+
+        case adapter.abort_multipart_upload(session.upload_key, id, []) do
+          {:ok, _} -> :ok
+          # Idempotent: the multipart upload is already gone.
+          {:error, :not_found} -> :ok
+          {:error, _reason} = err -> err
+        end
+
+      _ ->
+        # Local-backed (no multipart upload id): remove the tmp part file at the
+        # SAME resolved root the write path used (IN-03). The orphan reaper
+        # sweeps `Rindle.tmp` anyway, so failures here are non-fatal.
+        _ = File.rm(Rindle.Storage.Local.tus_part_path(session.id, root_opt(root)))
+        :ok
+    end
+  end
+
+  @doc """
+  Removes the per-session tus tail buffer at `root`.
+
+  Delegates the path computation to `Rindle.Storage.S3.tus_tail_path/2` — the
+  adapter's OWN canonical (base64url-encoded) tail-path source of truth (CR-02) —
+  threading `root` so the delete path computes against the SAME root the write
+  path used. When `root` is `nil` the adapter's default tail root
+  (`Rindle.AV.TempRunDir.root_dir()`) is used. Best-effort: always returns `:ok`.
+  """
+  @spec remove_tus_tail(MediaUploadSession.t(), Path.t() | nil) :: :ok
+  def remove_tus_tail(%MediaUploadSession{id: session_id}, root) do
+    tail_path = S3.tus_tail_path(session_id, root_opt(root))
+    _ = File.rm(tail_path)
     :ok
   end
 
-  defp remove_tus_tail(%MediaUploadSession{id: session_id}) do
-    tail_path = Path.join([Rindle.AV.TempRunDir.root_dir(), "tus", session_id <> ".tail"])
-    _ = File.rm(tail_path)
-    :ok
+  # Build a keyword opts list carrying `:root` only when it is non-nil so the
+  # adapter's own default-root resolution kicks in for the `nil` case.
+  defp root_opt(nil), do: []
+  defp root_opt(root), do: [root: root]
+
+  # Resolve the Local root for a Local-backed tus session the same way the
+  # adapter resolution path does (from the session's profile/asset), falling
+  # back to the adapter's default root when no profile root is configured (IN-03).
+  defp resolve_local_root(session) do
+    case resolve_tus_adapter(session) do
+      {:ok, _adapter} -> Rindle.Storage.Local.root([])
+      {:error, _reason} -> Rindle.Storage.Local.root([])
+    end
   end
 
   # Mirrors `resolve_resumable_adapter/1` but is intended for the tus
