@@ -121,6 +121,11 @@ RED for Task 2's three tests was proven by reverting `upload_maintenance.ex` to 
 - **43-09 unblocked:** The DELETE handler in `lib/rindle/upload/tus_plug.ex` (`handle_delete/2`) can now call `Rindle.Ops.UploadMaintenance.abort_tus_backing(session, adapter: opts[:adapter], root: opts[:root], upload_id: session.multipart_upload_id)` to perform the same polymorphic backing abort (S3 multipart abort / Local tmp+tail removal) the reaper does — without re-resolving the profile from the DB.
 - No blockers. CR-02 wiring, WR-01 FSM gate, IN-03 root resolution, and the CR-01 PUBLIC helper prerequisite are all closed with fail-pre-fix regression tests.
 
+## Self-Check: PASSED
+
+- Files: `43-08-SUMMARY.md`, `lib/rindle/ops/upload_maintenance.ex`, `test/rindle/ops/upload_maintenance_test.exs` all present.
+- Commits: `a3dcb74`, `82ee44f`, `276454a`, `fc6ad26`, `e5e260d` all in history.
+
 ---
 *Phase: 43-s3-multipart-backing-minio-proof*
 *Completed: 2026-05-23*

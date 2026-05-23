@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.8
 milestone_name: Resumable Browser Ingest
 status: executing
-last_updated: "2026-05-23T12:23:37.144Z"
+last_updated: "2026-05-23T12:32:40.196Z"
 last_activity: 2026-05-23
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 14
-  completed_plans: 11
+  completed_plans: 12
   percent: 25
 ---
 
@@ -29,7 +29,7 @@ requirements mapped). Next: plan Phase 42.
 ## Current Position
 
 Phase: 43 (s3-multipart-backing-minio-proof) — EXECUTING
-Plan: 3 of 10
+Plan: 4 of 10
 Status: Ready to execute
 Last activity: 2026-05-23
 
@@ -141,7 +141,7 @@ code-review debt is POLISH-01 (Phase 42) and POLISH-02 (Phase 44).
 
 ## Session Continuity
 
-Last session: 2026-05-23T12:23:33.873Z
+Last session: 2026-05-23T12:32:40.192Z
 phases (42–45), 20/20 requirements mapped at 100% coverage. ROADMAP.md,
 REQUIREMENTS.md traceability, and STATE.md updated.
 
@@ -162,6 +162,7 @@ into executable plans).
 | Phase 42 P01 | 10min | 4 tasks | 8 files |
 | Phase 43 P06 | 3min | 2 tasks | 2 files |
 | Phase 43 P07 | 4min | - tasks | - files |
+| Phase 43 P08 | 5min | 2 tasks | 2 files |
 
 ## Decisions
 
@@ -169,3 +170,4 @@ into executable plans).
 - [Phase 43]: tus_tail_path/2 delegates to private tail_path/2 (single Base.url_encode64 site preserved) so the reaper consumes the adapter's own canonical path computation (CR-02 source-of-truth)
 - [Phase 43]: cross-node S3 tus resume with an absent local tail fails loudly with {:error, :tus_tail_missing} (mid-multipart = non-empty upload_id AND committed parts); single-node/sticky-session constraint documented in S3 moduledoc (CR-04)
 - [Phase 43]: Rindle.tmp/ sweeper recurses into tus/ to age out individual regular files by per-file mtime (CR-03); deletion confined to <root>/tus/ regular files; report struct shape unchanged; whole-dir aging untouched for non-tus run dirs
+- [Phase 43]: reaper tail removal routed through S3.tus_tail_path/2 with a threaded root (CR-02 source-of-truth); shared gated_expire/2 FSM-gates BOTH standard and tus expiry (WR-01); Local abort resolves the actual upload root (IN-03); PUBLIC abort_tus_backing(session, opts) arity-2 polymorphic abort exposed for the 43-09 DELETE path (CR-01)
