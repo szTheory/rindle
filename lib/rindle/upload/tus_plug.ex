@@ -53,7 +53,7 @@ defmodule Rindle.Upload.TusPlug do
 
   alias Rindle.Config
   alias Rindle.Domain.MediaUploadSession
-  alias Rindle.Storage.{Capabilities, Local}
+  alias Rindle.Storage.Capabilities
   alias Rindle.Upload.Broker
 
   @tus_url_salt "rindle:tus:url"
@@ -199,35 +199,78 @@ defmodule Rindle.Upload.TusPlug do
          :ok <- require_offset_octet_stream(conn),
          {:ok, inbound_offset} <- parse_upload_offset(conn),
          :ok <- check_offset_match(inbound_offset, session.last_known_offset),
-         {:ok, new_offset} <- stream_append(conn, session, payload, opts) do
-      {:ok, advanced} = persist_offset(session, new_offset)
+         {:ok, part_state} <- stream_append(conn, session, payload, opts) do
+      new_offset = part_state.offset
+      {:ok, advanced} = persist_offset(session, part_state)
       maybe_complete(conn, advanced, new_offset, payload, opts)
     else
       {:error, reason} -> tus_error(conn, status_for(reason), "")
     end
   end
 
-  # Streams the request body in 1 MiB chunks straight to the tmp .part file —
-  # never buffers the whole body (D-07). Bounds total bytes by the per-PATCH
-  # ceiling (max_size) AND the declared Upload-Length → 413.
+  # Drains the PATCH body in 1 MiB chunks to a per-PATCH temp file (distinct from
+  # the .part/.tail backing files) — never buffers the whole body (D-07). Bounds
+  # total bytes by the per-PATCH ceiling (max_size) AND the declared Upload-Length
+  # → 413. Then dispatches the temp path POLYMORPHICALLY through the storage
+  # behaviour (`adapter.upload_part_stream/5`) — no `if adapter == Local` branch
+  # (D-12). The temp file holds exactly ONE PATCH worth of bytes and is removed
+  # after dispatch.
   defp stream_append(conn, session, payload, opts) do
-    part_path = Local.tus_part_path(session.id, root: opts[:root])
-    File.mkdir_p!(Path.dirname(part_path))
+    temp_path = Path.join([tus_tmp_dir(opts), session.id <> ".patch"])
+    File.mkdir_p!(Path.dirname(temp_path))
     ceiling = opts[:max_size]
     upload_length = payload["length"]
 
-    case File.open(part_path, [:append, :binary]) do
-      {:ok, file} ->
-        try do
-          drain(conn, file, session.last_known_offset, 0, ceiling, upload_length)
-        after
-          File.close(file)
-        end
+    drain_result =
+      case File.open(temp_path, [:write, :binary]) do
+        {:ok, file} ->
+          try do
+            drain(conn, file, session.last_known_offset, 0, ceiling, upload_length)
+          after
+            File.close(file)
+          end
 
-      {:error, reason} ->
-        {:error, reason}
+        {:error, reason} ->
+          {:error, reason}
+      end
+
+    try do
+      dispatch_part(drain_result, temp_path, session, opts)
+    after
+      File.rm(temp_path)
     end
   end
+
+  # Hands the drained temp file to the adapter's tus sink. The prior part-state
+  # (offset + S3's multipart_upload_id/parts; nil/[] for Local) is threaded back
+  # in as `state`; the adapter returns the updated `t:tus_part_state/0` to persist.
+  defp dispatch_part({:ok, _new_offset}, temp_path, session, opts) do
+    opts[:adapter].upload_part_stream(
+      session.upload_key,
+      temp_path,
+      session.last_known_offset,
+      prior_state(session),
+      call_opts(session, opts)
+    )
+  end
+
+  defp dispatch_part({:error, reason}, _temp_path, _session, _opts), do: {:error, reason}
+
+  # Rebuilds the prior `t:tus_part_state/0` from the persisted session row. The
+  # `multipart_parts` column is typed `:map` (Phase 7), so the accumulated S3
+  # parts list is stored wrapped under a `"parts"` key (same convention as the
+  # presigned-multipart flow, broker.ex) and unwrapped back into a bare list
+  # here. Local has no parts → `[]`.
+  defp prior_state(session) do
+    %{
+      offset: session.last_known_offset,
+      upload_id: session.multipart_upload_id,
+      parts: decode_parts(session.multipart_parts)
+    }
+  end
+
+  defp decode_parts(%{"parts" => parts}) when is_list(parts), do: parts
+  defp decode_parts(_), do: []
 
   defp drain(conn, file, base_offset, written, ceiling, upload_length) do
     case Plug.Conn.read_body(conn, length: @read_length, read_length: @read_length) do
@@ -264,11 +307,25 @@ defmodule Rindle.Upload.TusPlug do
     end
   end
 
-  defp persist_offset(session, new_offset) do
+  # Persist the authoritative offset AND the cross-PATCH multipart bookkeeping
+  # (S3's UploadId + accumulated parts). The `multipart_parts` column is `:map`
+  # NOT NULL (Phase 7), so the S3 parts list is wrapped under a `"parts"` key
+  # (matching the presigned-multipart convention in broker.ex) and an absent
+  # parts list (Local — no part semantics) persists as the column default `%{}`,
+  # never nil. `multipart_upload_id` is nullable; Local persists nil. Threaded
+  # back in as the prior `state` on the next PATCH.
+  defp persist_offset(session, part_state) do
     session
-    |> MediaUploadSession.changeset(%{last_known_offset: new_offset})
+    |> MediaUploadSession.changeset(%{
+      last_known_offset: part_state.offset,
+      multipart_upload_id: Map.get(part_state, :upload_id),
+      multipart_parts: encode_parts(Map.get(part_state, :parts))
+    })
     |> Config.repo().update()
   end
+
+  defp encode_parts(parts) when is_list(parts) and parts != [], do: %{"parts" => parts}
+  defp encode_parts(_), do: %{}
 
   defp maybe_complete(conn, session, new_offset, payload, opts) do
     if new_offset == payload["length"] do
@@ -283,12 +340,22 @@ defmodule Rindle.Upload.TusPlug do
     end
   end
 
-  # Completion: atomic-rename the tmp part into the final key, then converge into
-  # the UNCHANGED verify_completion/2 lane (D-08 — zero new completion vocabulary).
-  # The session is in "signed", so verify_completion's signed -> verifying edge is
-  # legal (never parked in "resuming" — Pitfall 7).
+  # Completion: finalize the upload POLYMORPHICALLY through the adapter's tus sink
+  # (`adapter.complete_part_stream/4`) — S3 flushes the tail + completes the
+  # multipart, Local atomic-renames its part file. NO `if adapter == Local`
+  # branch (D-12). Then converge into the UNCHANGED verify_completion/2 lane
+  # (D-08 — zero new completion vocabulary). The session is in "signed", so
+  # verify_completion's signed -> verifying edge is legal (never parked in
+  # "resuming" — Pitfall 7). `temp_path` is nil: the final PATCH's bytes were
+  # already appended during the matching upload_part_stream/5 call.
   defp complete_upload(conn, session, opts) do
-    with {:ok, _path} <- Local.tus_complete(session.id, session.upload_key, root: opts[:root]),
+    with {:ok, _result} <-
+           opts[:adapter].complete_part_stream(
+             session.upload_key,
+             nil,
+             prior_state(session),
+             call_opts(session, opts)
+           ),
          {:ok, %{session: _completed}} <- Broker.verify_completion(session.id, root: opts[:root]) do
       conn
       |> put_tus_resumable()
@@ -300,6 +367,19 @@ defmodule Rindle.Upload.TusPlug do
     end
   end
 
+  # Per-PATCH temp + adapter-call opts. The temp dir is under the storage root
+  # (Local renames within the same filesystem) or the sweepable Rindle.tmp/ root.
+  # `call_opts` thread the server-issued session_id (traversal-proof tmp keying)
+  # and root; the S3 adapter resolves bucket/aws_config via its own app-env
+  # fallback (Pitfall 4) so no creds are threaded through the Plug edge.
+  defp tus_tmp_dir(opts) do
+    opts[:root] || Rindle.AV.TempRunDir.root_dir()
+  end
+
+  defp call_opts(session, opts) do
+    [session_id: session.id, root: opts[:root]]
+  end
+
   # ── DELETE (Termination) ─────────────────────────────────────────────────────
 
   defp handle_delete(conn, opts) do
@@ -309,8 +389,9 @@ defmodule Rindle.Upload.TusPlug do
       |> MediaUploadSession.changeset(%{state: "aborted"})
       |> Config.repo().update()
 
-      # Best-effort tmp cleanup; the reaper sweeps Rindle.tmp/ regardless.
-      File.rm(Local.tus_part_path(session.id, root: opts[:root]))
+      # Backing-store cleanup is adapter-specific and best-effort; the Rindle.tmp/
+      # reaper sweeps the abandoned per-session backing files regardless. The Plug
+      # stays storage-agnostic (D-12) — no Local hard-wiring here.
 
       conn
       |> put_tus_resumable()

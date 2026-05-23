@@ -387,9 +387,13 @@ defmodule Rindle.Upload.TusPlugTest do
   end
 
   describe "Plan 03 Task 2 — DELETE termination" do
-    test "DELETE with a valid token returns 204, aborts the session, removes the tmp file", %{
+    test "DELETE with a valid token returns 204 and aborts the session", %{
       root: root
     } do
+      # Plan 04 made the Plug storage-agnostic (D-12): DELETE no longer hard-wires
+      # the Local part-file removal. The contract-meaningful effect is the session
+      # transition to "aborted" + 204; the abandoned backing file is swept by the
+      # Rindle.tmp/ reaper (proven leak-free in tus_s3_integration_test).
       opts = opts_for(root)
       {token, sid} = create(opts, 100)
       assert patch(opts, token, 0, "0123456789").status == 204
@@ -401,7 +405,6 @@ defmodule Rindle.Upload.TusPlugTest do
       assert conn.status == 204
       assert get_resp_header(conn, "tus-resumable") == ["1.0.0"]
       assert AdopterRepo.get!(MediaUploadSession, sid).state == "aborted"
-      refute File.exists?(part_path)
     end
 
     test "DELETE with a tampered token returns 404, never 200", %{root: root} do
@@ -459,7 +462,10 @@ defmodule Rindle.Upload.TusPlugTest do
     test "a PATCH dispatches to adapter.upload_part_stream/5 (no Local hard-wiring)", %{
       mock_opts: opts
     } do
-      {token, _sid} = mock_create(opts)
+      # Length 100 so a 10-byte PATCH advances to offset 10 < length and does NOT
+      # trigger completion — this spec isolates the PATCH dispatch from the
+      # completion dispatch (which is exercised separately below).
+      {token, _sid} = mock_create(opts, 100)
 
       # The load-bearing expectation: the adapter callback is invoked with the
       # session's upload_key, a drained temp file path, the base offset, the
