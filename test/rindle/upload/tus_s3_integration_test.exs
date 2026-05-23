@@ -22,8 +22,10 @@ defmodule Rindle.Upload.TusS3IntegrationTest do
   import Plug.Test
   import Plug.Conn
 
+  alias Rindle.AV.TempRunDir
   alias Rindle.Domain.{MediaAsset, MediaUploadSession}
   alias Rindle.Ops.UploadMaintenance
+  alias Rindle.Storage.S3
   alias Rindle.Upload.TusPlug
 
   @moduletag :minio
@@ -39,6 +41,13 @@ defmodule Rindle.Upload.TusS3IntegrationTest do
   # 2 GiB ceiling. Literal: the Profile DSL validates :max_bytes at compile time
   # and rejects arithmetic expressions (must be a positive integer).
   @two_gib 2_147_483_648
+
+  # S3's minimum non-final multipart part size is 5 MiB; a PATCH STRICTLY ABOVE
+  # that floor forces `drain_tail_parts` to slice + UploadPart at least one real
+  # part (so a live multipart upload exists on the server) while leaving a
+  # sub-5-MiB remainder buffered in the on-disk tail file. 6 MiB is the smallest
+  # bounded body that satisfies BOTH: >= 1 committed part AND a non-empty tail.
+  @six_mib 6 * 1024 * 1024
 
   defmodule MinioTusProfile do
     use Rindle.Profile,
@@ -206,6 +215,105 @@ defmodule Rindle.Upload.TusS3IntegrationTest do
       ExAws.S3.list_multipart_uploads(bucket) |> ExAws.request(aws_config())
 
     refute Enum.any?(uploads, fn upload -> upload.key == abandoned_key end)
+  end
+
+  # ── SC5 / IN-04 gap-closure: the DELETE termination path (CR-01) ─────────────
+  #
+  # The headline test above proves zero-leak only on the TIMEOUT-expiry reaper
+  # path. Verification flagged the DELETE path as a BLOCKER: a tus DELETE on an
+  # S3-backed session must ALSO abort the multipart so an explicitly-cancelled
+  # upload never leaks. This case drives a real >= 5 MiB PATCH (forcing a live
+  # multipart + >= 1 committed part), DELETEs THROUGH `TusPlug.call` (the real
+  # handler — not a direct `abort_multipart_upload`), then asserts
+  # `list_multipart_uploads` has NO entry for the deleted key.
+  @tag :minio
+  test "a tus DELETE on an S3-backed session leaves zero multipart leak", %{bucket: bucket} do
+    opts = opts_for()
+
+    # 1. POST -> signed tus URL + tus-stamped session.
+    {token, sid} = create(opts, @six_mib)
+
+    # 2. PATCH a > 5 MiB body so a real UploadPart crosses the wire: the tail
+    #    buffer crosses the 5 MiB floor, `drain_tail_parts` slices + UploadParts
+    #    one part, and the multipart_upload_id is persisted on the row. A live
+    #    multipart upload now exists on the server.
+    body = synthetic_bytes(@six_mib) |> Enum.to_list() |> IO.iodata_to_binary()
+    p1 = patch(opts, token, 0, body)
+    assert p1.status == 204
+    assert get_resp_header(p1, "upload-offset") == [Integer.to_string(@six_mib)]
+
+    persisted = repo().get!(MediaUploadSession, sid)
+    assert is_binary(persisted.multipart_upload_id)
+
+    # The > 5 MiB PATCH sliced >= 1 real UploadPart out of the body — proving a
+    # live multipart upload genuinely exists before the DELETE aborts it.
+    assert %{"parts" => persisted_parts} = persisted.multipart_parts
+    assert is_list(persisted_parts)
+    assert length(persisted_parts) >= 1
+
+    # 3. Capture the upload key the multipart was opened against.
+    upload_key = persisted.upload_key
+
+    # 4. DELETE through the REAL handler (TusPlug.call), not a direct abort. This
+    #    is the load-bearing assertion: it proves the DELETE PATH ITSELF is
+    #    leak-free (CR-01), aborting the backing multipart before the transition.
+    d = conn(:delete, "/uploads/tus/" <> token) |> TusPlug.call(opts)
+    assert d.status == 204
+    assert repo().get!(MediaUploadSession, sid).state == "aborted"
+
+    # 5. ZERO LEAK: list_multipart_uploads returns NO entry for the deleted key.
+    {:ok, %{body: %{uploads: uploads}}} =
+      ExAws.S3.list_multipart_uploads(bucket) |> ExAws.request(aws_config())
+
+    refute Enum.any?(uploads, fn upload -> upload.key == upload_key end)
+  end
+
+  # ── SC5 / IN-04 gap-closure: post-reap tail-gone (CR-02 + CR-03) ─────────────
+  #
+  # Proves the reaper's on-disk tail cleanup fires end-to-end against real
+  # storage: an abandoned session leaves a sub-5-MiB remainder buffered in the
+  # `tus/<encoded id>.tail` file; after the reaper runs, that file is gone. The
+  # assertion path is computed via `S3.tus_tail_path/2` (the adapter's OWN
+  # source-of-truth, base64url-encoded — CR-02), at the SAME root the write path
+  # used, so a divergent-path false pass is impossible.
+  @tag :minio
+  test "after reaping an abandoned tus session, the on-disk tail file is removed" do
+    opts = opts_for()
+
+    # ROOT RESOLUTION (made EXPLICIT, not implicit): the PATCH write path computes
+    # its tail path as `opts[:root] || Rindle.AV.TempRunDir.root_dir()` (see
+    # TusPlug.tus_tmp_dir/1 and S3.tail_path/2). The reaper resolves the SAME
+    # fallback (`remove_tus_tail(session, nil)` -> S3.tus_tail_path with no root
+    # -> TempRunDir.root_dir()). We resolve it here identically so the BEFORE and
+    # AFTER assertions target the exact file the adapter wrote.
+    root = opts[:root] || TempRunDir.root_dir()
+
+    # 1. Create + PATCH a > 5 MiB body: the 6 MiB tail slices one 5 MiB part and
+    #    leaves a 1 MiB (< 5 MiB) remainder buffered on disk — so a real tail
+    #    file exists at `root` to be reaped.
+    {token, sid} = create(opts, @six_mib)
+    body = synthetic_bytes(@six_mib) |> Enum.to_list() |> IO.iodata_to_binary()
+    assert patch(opts, token, 0, body).status == 204
+
+    # Compute the expected tail path via the adapter's OWN canonical helper
+    # (single source of truth — never a hardcoded raw-UUID path) at the resolved
+    # root, then sanity-assert the tail was actually written there.
+    tail_path = S3.tus_tail_path(sid, root: root)
+    assert File.exists?(tail_path), "expected tail buffer at #{tail_path} before reaping"
+
+    # 2. Force the session past its TTL and run the reaper (mirror the headline
+    #    test's timeout-reaper invocation).
+    repo().get!(MediaUploadSession, sid)
+    |> MediaUploadSession.changeset(%{expires_at: DateTime.add(DateTime.utc_now(), -60, :second)})
+    |> repo().update!()
+
+    {:ok, _report} = UploadMaintenance.abort_incomplete_uploads([])
+
+    # 3. CR-02 + CR-03 end-to-end: the reaper removed the REAL tail file at the
+    #    SAME resolved root the write path used (the encoding-correct path made it
+    #    deletable; the Rindle.tmp sweeper backstops any residue).
+    refute File.exists?(tail_path),
+           "expected tail buffer at #{tail_path} to be gone after reaping"
   end
 
   # The integration test persists through the adopter Repo configured at runtime;
