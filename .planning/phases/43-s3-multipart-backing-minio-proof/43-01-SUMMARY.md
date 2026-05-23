@@ -99,3 +99,8 @@ None that block the plan's goal. The five RED assertions are intentional Wave-0 
 ## TDD Gate Compliance
 
 This plan's `tdd="true"` tasks are the **RED authoring half** of a cross-plan cycle: Task 1 lands the contract (`feat` — the callbacks must exist for the tests to compile and reference), Tasks 2-3 write the failing specs (`test` commits). The matching GREEN `feat` commits live in Plans 02-05 by design (interface-first plan). No GREEN gate is expected within Plan 01.
+
+## Self-Check: PASSED
+
+- Files: `lib/rindle/storage.ex`, `test/rindle/storage/s3_tus_test.exs`, `test/rindle/upload/tus_s3_integration_test.exs`, `.planning/phases/43-s3-multipart-backing-minio-proof/43-01-SUMMARY.md` — all FOUND.
+- Commits: cbeeb1f, b36f418, 5e31fc9, 29f5e0a — all FOUND.
