@@ -1,6 +1,23 @@
 defmodule Rindle.Storage.S3 do
   @moduledoc """
   S3-compatible storage adapter powered by ExAws.
+
+  ## tus single-node constraint
+
+  The S3 tus backing (`upload_part_stream/5`) buffers each PATCH's sub-5-MiB
+  tail remainder on **node-local disk** under `Rindle.tmp/tus/`, while the
+  authoritative cross-PATCH bookkeeping (offset, `upload_id`, committed `parts`)
+  lives in the **shared DB**. Because the tail buffer is node-local, the S3 tus
+  backing REQUIRES single-node or sticky-session routing: a resumed PATCH must
+  reach the same node that holds the in-progress tail buffer.
+
+  A cross-node resume — where the DB shows a mid-multipart upload (a non-empty
+  `upload_id` plus at least one committed part) but the expected tail file is
+  absent on this node — is detected and fails loudly with
+  `{:error, :tus_tail_missing}` rather than silently re-slicing from a fresh
+  empty tail (which would corrupt the assembled object). Multi-node operators
+  MUST pin tus PATCHes to a single node (sticky sessions) or accept this loud
+  failure on misrouted resumes.
   """
 
   @behaviour Rindle.Storage
@@ -139,6 +156,7 @@ defmodule Rindle.Storage.S3 do
   @impl true
   def upload_part_stream(key, temp_path, base_offset, state, opts) do
     with {:ok, bucket} <- bucket(opts),
+         :ok <- guard_local_tail_present(tail_path(key, opts), state),
          {:ok, upload_id} <- ensure_upload_id(bucket, key, state, opts),
          {:ok, bytes_written} <- append_to_tail(tail_path(key, opts), temp_path),
          {:ok, parts, next_number} <-
@@ -252,6 +270,33 @@ defmodule Rindle.Storage.S3 do
 
   defp require_upload_id(id) when is_binary(id) and id != "", do: {:ok, id}
   defp require_upload_id(_), do: {:error, :missing_upload_id}
+
+  # Cross-node resume guard (CR-04, threat T-43-06-01). The sub-5-MiB tail
+  # remainder is node-local disk state, while offset/upload_id/parts live in the
+  # shared DB. A mid-multipart resume is identified by BOTH a non-empty upload_id
+  # AND at least one already-committed part — meaning a prior node sliced and
+  # persisted a tail boundary. If that node's tail file is absent here, this
+  # PATCH was routed to a different node; re-slicing from a fresh empty tail
+  # would silently corrupt the assembled object, so fail loudly instead.
+  #
+  # A FIRST PATCH legitimately has no committed parts (and usually a nil
+  # upload_id), so the `parts != []` signal prevents a false positive on the
+  # happy first-write path — a brand-new multipart has no tail yet by design.
+  #
+  # The error surface is the bare `:tus_tail_missing` atom only: the absolute
+  # tail path and session_uri are NOT included (threat T-43-06-02 — no
+  # internal-path disclosure across the adapter boundary).
+  defp guard_local_tail_present(tail_path, state) do
+    upload_id = Map.get(state, :upload_id)
+    parts = Map.get(state, :parts, [])
+    mid_multipart? = is_binary(upload_id) and upload_id != "" and is_list(parts) and parts != []
+
+    if mid_multipart? and not File.exists?(tail_path) do
+      {:error, :tus_tail_missing}
+    else
+      :ok
+    end
+  end
 
   # Stream the per-PATCH temp file onto the tail buffer in bounded chunks.
   # Returns the number of bytes appended (== this PATCH's payload size). The
