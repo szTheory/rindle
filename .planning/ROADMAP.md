@@ -105,7 +105,7 @@ the bare-Plug / one-column / `:tus_upload`-atom decisions are not relitigated he
 - [x] 43-08-PLAN.md — Gap closure: reaper routes remove_tus_tail through S3.tus_tail_path (CR-02 wiring) + Local-root abort (IN-03) + FSM-gated tus expiry (WR-01) + reusable abort helper [Wave 2]
 - [x] 43-09-PLAN.md — Gap closure: tus DELETE aborts the backing multipart (CR-01) + honours update result (WR-02) + Plug single-node moduledoc (CR-04) [Wave 3]
 - [x] 43-10-PLAN.md — Gap closure: MinIO proof — DELETE-then-list_multipart_uploads-empty + post-reap tail-gone (SC5/IN-04) [Wave 4]
-- [ ] 43-11-PLAN.md — Gap closure: DELETE-abort-failure becomes reaper-recoverable — tus_abort_failed marker + fetch_retryable_tus_abort_sessions re-abort + WR-03 FSM reconciliation (CR-01) [Wave 5]
+- [x] 43-11-PLAN.md — Gap closure: DELETE-abort-failure becomes reaper-recoverable — tus_abort_failed marker + fetch_retryable_tus_abort_sessions re-abort + WR-03 FSM reconciliation (CR-01) [Wave 5]
 - [x] 43-12-PLAN.md — Gap closure: strengthen cross-node tail guard to fire on offset > committed_part_bytes, closing the pre-first-part silent-corruption window (CR-04) [Wave 5]
 
 **UI hint**: no
@@ -152,7 +152,7 @@ without affecting the tus spine.
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 42. tus Protocol Edge (bare Plug) | v1.8 | 4/4 | Complete    | 2026-05-22 |
-| 43. S3 Multipart Backing + MinIO Proof | v1.8 | 10/10 | Complete   | 2026-05-23 |
+| 43. S3 Multipart Backing + MinIO Proof | v1.8 | 12/12 | Complete   | 2026-05-23 |
 | 44. Auth Hardening, DX, Docs, Telemetry, CI Proof | v1.8 | 0/TBD | Not started | - |
 | 45. Browser → Mux Direct Creator Upload (droppable) | v1.8 | 0/TBD | Not started | - |
 
