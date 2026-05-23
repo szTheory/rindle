@@ -217,6 +217,7 @@ defmodule Rindle.Ops.SweepOrphanedTempFilesTest do
       # tus/. The tus recursion must never touch it; the directory-mtime path does
       # not delete top-level regular files either.
       now = System.system_time(:second)
+      File.mkdir_p!(root_dir)
       outside = Path.join(root_dir, "loose-file.bin")
       File.write!(outside, "do-not-delete")
       File.touch!(outside, now - 5 * 3600)
