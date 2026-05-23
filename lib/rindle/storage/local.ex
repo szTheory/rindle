@@ -79,6 +79,53 @@ defmodule Rindle.Storage.Local do
     end
   end
 
+  # Read size when streaming the per-PATCH temp file onto the part buffer. Keeps
+  # the body off the heap — bytes flow temp_file -> part_file in bounded chunks,
+  # never accumulated in a single binary (T-43-09).
+  @part_copy_chunk 1024 * 1024
+
+  @impl true
+  def upload_part_stream(_key, temp_path, base_offset, _state, opts) do
+    session_id = Keyword.fetch!(opts, :session_id)
+
+    # Stream the per-PATCH temp file onto the per-session .part file in bounded
+    # chunks via the Phase-42 tus_append helper. Local has no part-number
+    # semantics (it is a single growing file), so `part_number`/`:upload_id`/
+    # `:parts` are meaningless here — the return is `%{offset: n}` with NO
+    # `:upload_id`/`:parts` keys (Pitfall 5; the optional-map @type accommodates
+    # this). The whole upload is never buffered in memory.
+    result =
+      temp_path
+      |> File.stream!([], @part_copy_chunk)
+      |> Enum.reduce_while({:ok, 0}, fn chunk, {:ok, written} ->
+        case tus_append(session_id, chunk, opts) do
+          :ok -> {:cont, {:ok, written + byte_size(chunk)}}
+          {:error, reason} -> {:halt, {:error, reason}}
+        end
+      end)
+
+    case result do
+      {:ok, bytes_written} -> {:ok, %{offset: base_offset + bytes_written}}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  @impl true
+  def complete_part_stream(key, _temp_path, _state, opts) do
+    session_id = Keyword.fetch!(opts, :session_id)
+
+    # Atomic same-filesystem rename of the per-session .part file onto the final
+    # key (wraps the Phase-42 tus_complete helper). The companion completion
+    # callback to `upload_part_stream/5`: the edge calls it once, polymorphically,
+    # with no `if adapter == Local` branch. `temp_path` is unused for Local —
+    # the final PATCH bytes were already appended during the matching
+    # `upload_part_stream/5` call.
+    case tus_complete(session_id, key, opts) do
+      {:ok, _path} -> {:ok, %{upload_key: key}}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
   @impl true
   def capabilities, do: [:local, :presigned_put, :tus_upload]
 
