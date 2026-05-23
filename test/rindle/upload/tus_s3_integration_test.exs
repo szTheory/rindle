@@ -288,10 +288,15 @@ defmodule Rindle.Upload.TusS3IntegrationTest do
     # AFTER assertions target the exact file the adapter wrote.
     root = opts[:root] || TempRunDir.root_dir()
 
-    # 1. Create + PATCH a > 5 MiB body: the 6 MiB tail slices one 5 MiB part and
-    #    leaves a 1 MiB (< 5 MiB) remainder buffered on disk — so a real tail
-    #    file exists at `root` to be reaped.
-    {token, sid} = create(opts, @six_mib)
+    # 1. Create a session whose declared Upload-Length EXCEEDS the bytes we PATCH,
+    #    then PATCH a 6 MiB body: drain slices one 5 MiB part and leaves a 1 MiB
+    #    (< 5 MiB) remainder buffered on disk — a real tail file at `root`. Because
+    #    offset (6 MiB) < length (12 MiB), the upload stays INCOMPLETE (abandoned):
+    #    a single PATCH that reached `length` would COMPLETE the upload, and
+    #    completion flushes the tail as the final part and removes it
+    #    (`S3.complete_part_stream/4` -> `File.rm`), which would defeat the
+    #    BEFORE-reap tail assertion. The reaper (step 2) is what must remove it.
+    {token, sid} = create(opts, 2 * @six_mib)
     body = synthetic_bytes(@six_mib) |> Enum.to_list() |> IO.iodata_to_binary()
     assert patch(opts, token, 0, body).status == 204
 
