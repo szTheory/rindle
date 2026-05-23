@@ -51,8 +51,11 @@ defmodule Rindle.Upload.TusPlug do
 
   import Plug.Conn
 
+  require Logger
+
   alias Rindle.Config
   alias Rindle.Domain.MediaUploadSession
+  alias Rindle.Ops.UploadMaintenance
   alias Rindle.Storage.Capabilities
   alias Rindle.Upload.Broker
 
@@ -382,23 +385,61 @@ defmodule Rindle.Upload.TusPlug do
 
   # ── DELETE (Termination) ─────────────────────────────────────────────────────
 
+  # Termination order is load-bearing (CR-01): the backing store is aborted
+  # BEFORE the state transition, so an explicitly-cancelled S3-backed upload never
+  # leaks its multipart upload — even if the subsequent DB update fails. The abort
+  # runs ONLY after token verification + session load succeed (auth order is
+  # unchanged; a tampered token never reaches the abort).
   defp handle_delete(conn, opts) do
     with {:ok, payload} <- verify_token(conn, opts),
          {:ok, session} <- load_active_session(payload) do
+      # (1) FIRST abort the backing store polymorphically (S3 multipart abort, or
+      # Local tmp removal) via the shared PUBLIC helper, using the adapter + root
+      # the Plug already holds in `opts` — no DB profile re-resolution on the hot
+      # DELETE path and no `if adapter == Local` branch (D-12). Best-effort: an
+      # abort error is logged but does not by itself fail the DELETE (the row still
+      # moves to aborted and the reaper compensates on the next cron).
+      abort_delete_backing(session, opts)
+
+      # (2) THEN persist the abort transition and honour the result (WR-02): a
+      # failed update returns 5xx so the client is never falsely told 204 while the
+      # row remains re-PATCHable / mis-reaped.
       session
       |> MediaUploadSession.changeset(%{state: "aborted"})
       |> Config.repo().update()
+      |> case do
+        {:ok, _aborted} ->
+          conn |> put_tus_resumable() |> send_resp(204, "") |> halt()
 
-      # Backing-store cleanup is adapter-specific and best-effort; the Rindle.tmp/
-      # reaper sweeps the abandoned per-session backing files regardless. The Plug
-      # stays storage-agnostic (D-12) — no Local hard-wiring here.
-
-      conn
-      |> put_tus_resumable()
-      |> send_resp(204, "")
-      |> halt()
+        {:error, _changeset} ->
+          tus_error(conn, 500, "")
+      end
     else
       {:error, reason} -> tus_error(conn, status_for(reason), "")
+    end
+  end
+
+  # Dispatch the backing abort through the shared PUBLIC polymorphic helper with
+  # the EXACT call shape the reaper uses (adapter/root from opts, upload_id from
+  # the row). S3 (upload_id present) aborts the multipart; Local (upload_id nil)
+  # removes the tmp part/tail. Errors are best-effort logged, never raised.
+  defp abort_delete_backing(session, opts) do
+    case UploadMaintenance.abort_tus_backing(session,
+           adapter: opts[:adapter],
+           root: opts[:root],
+           upload_id: session.multipart_upload_id
+         ) do
+      :ok ->
+        :ok
+
+      {:error, reason} ->
+        Logger.warning("rindle.tus.delete_backing_abort_failed",
+          session_id: session.id,
+          multipart_upload_id: session.multipart_upload_id,
+          reason: inspect(reason)
+        )
+
+        :ok
     end
   end
 
