@@ -215,6 +215,27 @@ defmodule Rindle.Storage.S3 do
   @impl true
   def capabilities, do: [:presigned_put, :head, :signed_url, :multipart_upload, :tus_upload]
 
+  @doc """
+  Canonical reaper-facing path of the on-disk tail buffer for a tus session.
+
+  Returns the EXACT file `upload_part_stream/5` writes its sub-5-MiB tail
+  remainder to for `session_id`, so cleanup code (the orphan reaper /
+  `Rindle.Ops.UploadMaintenance`) can delete the real file rather than guessing
+  at the encoding. The adapter owns the one canonical tail-path computation
+  here: the path is `Base.url_encode64(session_id, padding: false) <> ".tail"`
+  under the sweepable `Rindle.tmp/tus/` root — never the raw id (CR-02).
+
+  Pass `:root` to override the base dir (used by tests for per-test isolation).
+  Delegates to the private `tail_path/2`, threading `session_id` as both the
+  key and the `:session_id` opt so the encoding is identical regardless of how
+  the original PATCH was keyed. There is exactly one `Base.url_encode64` site
+  (`tail_filename/1`); this helper does not re-encode.
+  """
+  @spec tus_tail_path(binary(), keyword()) :: Path.t()
+  def tus_tail_path(session_id, opts \\ []) when is_binary(session_id) do
+    tail_path(session_id, Keyword.put_new(opts, :session_id, session_id))
+  end
+
   # --- tus tail-buffer internals (TUS-06) ---------------------------------
 
   # Lazily initiate the S3 multipart upload on the first PATCH; subsequent
