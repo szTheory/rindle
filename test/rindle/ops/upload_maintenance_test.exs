@@ -797,6 +797,97 @@ defmodule Rindle.Ops.UploadMaintenanceTest do
     end
   end
 
+  describe "tus reaper cleanup (CR-02/WR-01 regression)" do
+    # -------------------------------------------------------------------------
+    # CR-02: the reaper must delete the REAL adapter-written tail file. The S3
+    # PATCH lane writes the tail to `S3.tus_tail_path(session_id, root: ROOT)`
+    # (base64url-encoded under <root>/tus/), so the reaper must compute the SAME
+    # encoding at the SAME root. Pre-fix `remove_tus_tail/1` targeted the raw
+    # `<session_id>.tail` path under the default `TempRunDir.root_dir()`, which
+    # never matched the adapter-written file -> the tail leaked. This test pins
+    # an explicit ROOT through BOTH the write path and the reaper's delete path
+    # so write-path root == delete-path root is proven, not assumed.
+    # -------------------------------------------------------------------------
+
+    test "deletes the adapter-written tail file at the SAME root the write path used" do
+      tmp_dir = Path.join(System.tmp_dir!(), "rindle-tus-cr02-#{System.unique_integer([:positive])}")
+      previous_tmp_dir = Application.get_env(:rindle, :tmp_dir)
+      Application.put_env(:rindle, :tmp_dir, tmp_dir)
+
+      on_exit(fn ->
+        case previous_tmp_dir do
+          nil -> Application.delete_env(:rindle, :tmp_dir)
+          value -> Application.put_env(:rindle, :tmp_dir, value)
+        end
+
+        File.rm_rf(tmp_dir)
+      end)
+
+      asset = create_asset()
+      session = create_tus_session(asset, %{expires_at: expired_at()})
+
+      # The reaper resolves the S3 tail root from the adapter default, which is
+      # `Rindle.AV.TempRunDir.root_dir()` (now pinned to our per-test tmp_dir).
+      # Write the tail via the adapter's OWN canonical path computation at that
+      # SAME root so the write-path root is provably identical to the delete-path
+      # root the reaper computes.
+      root = Rindle.AV.TempRunDir.root_dir()
+      tail_path = Rindle.Storage.S3.tus_tail_path(session.id, root: root)
+      File.mkdir_p!(Path.dirname(tail_path))
+      File.write!(tail_path, "tail-bytes")
+      assert File.exists?(tail_path)
+
+      expect(Rindle.StorageMock, :abort_multipart_upload, fn _key, _upload_id, _opts ->
+        {:ok, :aborted}
+      end)
+
+      {:ok, report} = UploadMaintenance.abort_incomplete_uploads([])
+
+      assert report.sessions_aborted == 1
+      # The real adapter-written tail at the SAME root is gone after the reap.
+      refute File.exists?(tail_path),
+             "expected reaper to delete the adapter-written tail at #{tail_path} (write-path root == delete-path root)"
+    end
+
+    # -------------------------------------------------------------------------
+    # WR-01: tus expiry must be gated through `UploadSessionFSM.transition/3`
+    # exactly like the standard expiry path. Pre-fix `do_expire_tus_session/2`
+    # called `MediaUploadSession.changeset(.., %{state: "expired"})` directly,
+    # skipping the FSM invariant. A tus session surfaced in a state from which
+    # `expired` is FORBIDDEN (here `aborted`, surfaced by the retryable-abort
+    # query) must NOT be flipped — it must increment `abort_errors` instead.
+    # Pre-fix the ungated update silently violates the FSM contract (RED).
+    # -------------------------------------------------------------------------
+
+    test "gates tus expiry through the FSM and refuses an FSM-forbidden transition" do
+      asset = create_asset()
+
+      # `aborted` tus sessions with a resumable_cancel_failed failure_reason are
+      # surfaced by the retryable-abort query and route to the tus branch
+      # (tus_session?/1 is checked first). FSM: aborted -> expired is forbidden.
+      session =
+        create_tus_session(asset, %{
+          state: "aborted",
+          session_uri: "https://storage.example/upload/#{System.unique_integer([:positive])}",
+          failure_reason: "resumable_cancel_failed:transport"
+        })
+
+      expect(Rindle.StorageMock, :abort_multipart_upload, fn _key, _upload_id, _opts ->
+        {:ok, :aborted}
+      end)
+
+      {:ok, report} = UploadMaintenance.abort_incomplete_uploads([])
+
+      # The FSM gate rejected aborted -> expired: the row was NOT flipped and the
+      # rejection was counted as an abort error.
+      assert report.abort_errors >= 1
+      assert report.sessions_aborted == 0
+
+      updated = AdopterRepo.get!(MediaUploadSession, session.id)
+      assert updated.state == "aborted"
+    end
+  end
+
   describe "telemetry emission boundary (Plan 05-01 / D-02)" do
     test "cleanup_orphans/1 does NOT emit [:rindle, :cleanup, :run] from service layer" do
       ref =
