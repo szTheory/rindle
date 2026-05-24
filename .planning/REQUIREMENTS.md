@@ -95,24 +95,24 @@ resume-safe and converges into the one trusted `verify_completion/2` promote lan
 
 ### Auth, DX, Docs, Proof
 
-- [ ] **TUS-10**: Optional resume authorizer
+- [x] **TUS-10**: Optional resume authorizer
   (`config :rindle, :tus_resume_authorizer, MyApp.TusAuth`) re-validates the
   resuming request's identity against the captured creator identity; default is
   no-op (HMAC alone). Returns `:reject` → `401`. (The belt-and-suspenders answer
   to the tusd/Mux "same-user-resume" gap.)
 
-- [ ] **TUS-11**: tus errors surface through `Rindle.Error` with tagged reasons
+- [x] **TUS-11**: tus errors surface through `Rindle.Error` with tagged reasons
   — `:tus_session_not_found`, `:tus_session_expired`, `:tus_offset_conflict`,
   `:tus_size_exceeded`, `:tus_url_signature_invalid`,
   `{:upload_unsupported, :tus_upload}` — each with a fix-oriented `message/1`
   clause matching the existing AV/streaming pattern.
 
-- [ ] **TUS-12**: tus edge telemetry emits through the existing
+- [x] **TUS-12**: tus edge telemetry emits through the existing
   `[:rindle, :upload, :resumable, *]` namespace (`:start`, `:patch`, `:stop`)
   via `ResumableTelemetry`, preserving the forbidden-metadata-key allowlist (no
   `session_uri`/`upload_key`/`body` in metadata).
 
-- [ ] **TUS-13**: `mix rindle.doctor` reports tus capability/config mismatches
+- [x] **TUS-13**: `mix rindle.doctor` reports tus capability/config mismatches
   (a profile mounts `TusPlug` but its adapter lacks `:tus_upload`), mirroring the
   existing `--streaming` doctor checks.
 
@@ -128,27 +128,27 @@ resume-safe and converges into the one trusted `verify_completion/2` promote lan
 
 ### Browser → Mux Direct Creator Upload (sibling — droppable under budget)
 
-- [ ] **MUX-20**: The Mux adapter implements the reserved `create_direct_upload/2`
+- [x] **MUX-20**: The Mux adapter implements the reserved `create_direct_upload/2`
   callback — returns `%{upload_url, upload_id, provider_asset_id: nil}` (the
   asset id is unknown at create time) via `Mux.Video.Uploads.create/2` with a
   required `cors_origin`, `new_asset_settings.playback_policies`, and `passthrough`
   ≤ 255 chars — and advertises the `:direct_creator_upload` capability.
 
-- [ ] **MUX-21**: The `video.upload.asset_created` webhook branch is upgraded
+- [x] **MUX-21**: The `video.upload.asset_created` webhook branch is upgraded
   from a no-op stub into the upload→asset linker: it correlates the upload to its
   Rindle provider-asset row via Mux `passthrough` (stamped at create time),
   stamps `provider_asset_id`, transitions the FSM, and broadcasts the
   already-reserved `:provider_asset_created` PubSub event. One additive nullable
   correlation column is added (redacted in `Inspect`/telemetry).
 
-- [ ] **MUX-22**: Adopter requests a direct upload via a thin streaming-side
+- [x] **MUX-22**: Adopter requests a direct upload via a thin streaming-side
   entrypoint (`Rindle.Streaming.create_direct_upload/2`, capability-gated via the
   existing `Capabilities.supports?/2`) that creates a `"pending"`
   `media_provider_assets` row with `ingest_mode: "direct_creator_upload"`,
   stamps `passthrough`, and returns ONLY `%{upload_url, asset_id}` (the Rindle
   asset id) — never the raw Mux upload/asset id.
 
-- [ ] **MUX-23**: LiveView adopters wire a browser direct upload via an
+- [x] **MUX-23**: LiveView adopters wire a browser direct upload via an
   `:external`/UpChunk helper (`Rindle.LiveView.allow_direct_upload/4`) +
   `subscribe(:provider_asset, id)`; a `guides/streaming_providers.md` section + an
   end-to-end test (create upload → simulate `video.upload.asset_created` +
@@ -162,7 +162,7 @@ resume-safe and converges into the one trusted `verify_completion/2` promote lan
   waived with rationale. Folded into the foundation phase (natural locality —
   these touch Mux files that MUX-20..23 also touch).
 
-- [ ] **POLISH-02**: Phase 35 advisory code-review findings (6 Warning + 7 Info)
+- [x] **POLISH-02**: Phase 35 advisory code-review findings (6 Warning + 7 Info)
   are resolved via `/gsd-code-review 35 --fix`, or explicitly waived with
   rationale. Folded into the docs/CI phase.
 
@@ -188,7 +188,7 @@ prevent scope creep and "why didn't you include X" later.
 ## Traceability
 
 Which phases cover which requirements. Phase numbering continues from v1.7
-(last phase = 41); v1.8 spans Phases 42–45.
+(last phase = 41); v1.8 spans Phases 42–47.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
@@ -199,19 +199,19 @@ Which phases cover which requirements. Phase numbering continues from v1.7
 | TUS-05 | Phase 42 — tus Protocol Edge (bare Plug) | Complete |
 | POLISH-01 | Phase 42 — tus Protocol Edge (bare Plug) | Complete |
 | TUS-06 | Phase 43 — S3 Multipart Backing + MinIO Proof | Complete |
-| TUS-07 | Phase 43 — S3 Multipart Backing + MinIO Proof | Complete |
+| TUS-07 | Phase 47 — Audit Traceability Metadata Backfill | Pending |
 | TUS-08 | Phase 43 — S3 Multipart Backing + MinIO Proof | Complete |
 | TUS-09 | Phase 43 — S3 Multipart Backing + MinIO Proof | Complete |
-| TUS-10 | Phase 44 — Auth Hardening, DX, Docs, Telemetry, CI Proof | Pending |
-| TUS-11 | Phase 44 — Auth Hardening, DX, Docs, Telemetry, CI Proof | Pending |
-| TUS-12 | Phase 44 — Auth Hardening, DX, Docs, Telemetry, CI Proof | Pending |
-| TUS-13 | Phase 44 — Auth Hardening, DX, Docs, Telemetry, CI Proof | Pending |
-| TUS-14 | Phase 44 — Auth Hardening, DX, Docs, Telemetry, CI Proof | Pending |
-| POLISH-02 | Phase 44 — Auth Hardening, DX, Docs, Telemetry, CI Proof | Pending |
-| MUX-20 | Phase 45 — Browser → Mux Direct Creator Upload (droppable) | Pending |
-| MUX-21 | Phase 45 — Browser → Mux Direct Creator Upload (droppable) | Pending |
-| MUX-22 | Phase 45 — Browser → Mux Direct Creator Upload (droppable) | Pending |
-| MUX-23 | Phase 45 — Browser → Mux Direct Creator Upload (droppable) | Pending |
+| TUS-10 | Phase 44 — Auth Hardening, DX, Docs, Telemetry, CI Proof | Complete |
+| TUS-11 | Phase 44 — Auth Hardening, DX, Docs, Telemetry, CI Proof | Complete |
+| TUS-12 | Phase 44 — Auth Hardening, DX, Docs, Telemetry, CI Proof | Complete |
+| TUS-13 | Phase 44 — Auth Hardening, DX, Docs, Telemetry, CI Proof | Complete |
+| TUS-14 | Phase 46 — Generated-App tus Runtime Proof Recovery | Pending |
+| POLISH-02 | Phase 44 — Auth Hardening, DX, Docs, Telemetry, CI Proof | Complete |
+| MUX-20 | Phase 47 — Audit Traceability Metadata Backfill | Pending |
+| MUX-21 | Phase 47 — Audit Traceability Metadata Backfill | Pending |
+| MUX-22 | Phase 47 — Audit Traceability Metadata Backfill | Pending |
+| MUX-23 | Phase 47 — Audit Traceability Metadata Backfill | Pending |
 
 **Coverage:**
 
@@ -222,10 +222,12 @@ Which phases cover which requirements. Phase numbering continues from v1.7
 **Phase distribution:**
 
 - Phase 42 (tus Protocol Edge): TUS-01..05 + POLISH-01 (6)
-- Phase 43 (S3 Multipart Backing + MinIO Proof): TUS-06..09 (4)
-- Phase 44 (Auth, DX, Docs, Telemetry, CI Proof): TUS-10..14 + POLISH-02 (6)
-- Phase 45 (Browser → Mux Direct Creator Upload, droppable): MUX-20..23 (4)
+- Phase 43 (S3 Multipart Backing + MinIO Proof): TUS-06, TUS-08, TUS-09 (3)
+- Phase 44 (Auth, DX, Docs, Telemetry, CI Proof): TUS-10..13 + POLISH-02 (5)
+- Phase 45 (Browser → Mux Direct Creator Upload, droppable): no remaining traceability owners after audit drift was split into Phase 47 (0)
+- Phase 46 (Generated-App tus Runtime Proof Recovery): TUS-14 (1)
+- Phase 47 (Audit Traceability Metadata Backfill): TUS-07 + MUX-20..23 (5)
 
 ---
 *Requirements defined: 2026-05-22*
-*Last updated: 2026-05-22 — roadmap created; 100% coverage mapped across Phases 42–45.*
+*Last updated: 2026-05-24 — Milestone audit gaps split into Phase 46 (TUS-14 proof recovery) and Phase 47 (traceability metadata backfill for TUS-07 and MUX-20..23).*

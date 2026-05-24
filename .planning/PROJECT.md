@@ -95,8 +95,20 @@ Media, made durable.
 
 ## Decision-Making Contract
 
-Default GSD posture for Rindle: research first, then decide by default. Do not
-escalate routine design or implementation choices.
+Rindle uses a research-driven, decide-by-default posture. Do not escalate
+routine design or implementation choices.
+
+After research, agents should produce one coherent recommendation set and
+proceed without asking the maintainer to choose among routine local options.
+The default deliverable is: chosen path, rationale, notable risks, and
+rejected alternatives.
+
+Bias that research left: prefer ecosystem-aware, prior-art-informed, coherent
+one-shot recommendation sets by default so the maintainer does not need to
+reconstruct the trade study manually each phase.
+
+Do not escalate because multiple viable local options exist. Do not escalate
+because a choice is merely ergonomic, additive, local, or reversible.
 
 Escalate only when the choice has high blast radius:
 
@@ -110,6 +122,9 @@ Escalate only when the choice has high blast radius:
 When the choice is local, additive, reversible, or mainly ergonomic, pick the
 least-surprising option, record the rationale in project artifacts, and
 proceed.
+
+If escalation is required, still present a recommended path, why blast radius
+is high, and the rollback or containment implications.
 
 ## Requirements
 

@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.8
 milestone_name: Resumable Browser Ingest
 status: executing
-last_updated: "2026-05-24T10:17:20.685Z"
+last_updated: "2026-05-24T16:34:02.187Z"
 last_activity: 2026-05-24 -- Phase 44 execution started
 progress:
   total_phases: 4
-  completed_phases: 2
-  total_plans: 19
-  completed_plans: 16
-  percent: 50
+  completed_phases: 3
+  total_plans: 23
+  completed_plans: 22
+  percent: 75
 ---
 
 # Project State
@@ -21,19 +21,17 @@ See: .planning/PROJECT.md (updated 2026-05-22)
 
 **Core value:** Media, made durable.
 **Current focus:** Phase 44 — auth-hardening-dx-docs-telemetry-ci-proof
-bare mountable Plug (Local + S3/MinIO backing), plus browser→Mux direct creator
-upload, so every browser ingest path converges into the one trusted
-`verify_completion/2` promote lane. Roadmap written (4 phases, 42–45, 20/20
-requirements mapped). Next: discuss/plan Phase 44.
+generated-app tus package-consumer proof (`TUS-14`). Phase 45 is now verified
+passed; the milestone is blocked only on the live install-smoke tus flow.
 
 ## Current Position
 
 Phase: 44 (auth-hardening-dx-docs-telemetry-ci-proof) — EXECUTING
-Plan: 1 of 3
+Plan: 1 of 4
 Status: Executing Phase 44
 Last activity: 2026-05-24 -- Phase 44 execution started
 
-Progress: [██████████__________] 50% (2/4 phases complete; Phase 43 S3-multipart-backing verified passed)
+Progress: [███████████████_____] 75% (3/4 phases verified complete; Phase 44 has one remaining proof gap)
 
 ## Milestone Roadmap (v1.8)
 
@@ -44,10 +42,10 @@ milestone runs long.
 
 | Phase | Name | Requirements | Status |
 |-------|------|--------------|--------|
-| 42 | tus Protocol Edge (bare Plug) | TUS-01..05, POLISH-01 | Not started (ready to plan) |
-| 43 | S3 Multipart Backing + MinIO Proof | TUS-06..09 | Not started |
-| 44 | Auth Hardening, DX, Docs, Telemetry, CI Proof | TUS-10..14, POLISH-02 | Not started |
-| 45 | Browser → Mux Direct Creator Upload (droppable) | MUX-20..23 | Not started |
+| 42 | tus Protocol Edge (bare Plug) | TUS-01..05, POLISH-01 | Verified passed |
+| 43 | S3 Multipart Backing + MinIO Proof | TUS-06..09 | Verified passed |
+| 44 | Auth Hardening, DX, Docs, Telemetry, CI Proof | TUS-10..14, POLISH-02 | Audit gap (`TUS-14`) |
+| 45 | Browser → Mux Direct Creator Upload (droppable) | MUX-20..23 | Verified passed |
 
 Hex semver: cut `0.2.0` (additive only, still pre-1.0) at v1.8 close.
 
@@ -77,9 +75,10 @@ Hex semver: cut `0.2.0` (additive only, still pre-1.0) at v1.8 close.
 
 ## Blockers/Concerns
 
-- None blocking. The locked architecture (bare Plug, one `resumable_protocol`
-  column, `:tus_upload` atom, `upload_part_stream/5` callback) is authoritative in
-  `.planning/research/v1.8/` and is not to be relitigated during planning.
+- One blocker remains before milestone close: the generated-app tus
+  package-consumer proof (`bash scripts/install_smoke.sh tus`) still fails with
+  a socket-reset error during the live Node `tus-js-client` flow, so `TUS-14`
+  is not yet satisfied.
 
 - MEDIUM confidence on adopter *demand* for tus (no in-repo adopter ticket; case
   inferred from the v1.4 AV wedge). Architecture/scope confidence is HIGH. Phase
@@ -105,6 +104,16 @@ code-review debt is POLISH-01 (Phase 42) and POLISH-02 (Phase 44).
 
 ## Decision-Making Preference
 
+- Authoritative decision hierarchy:
+  1. `PROJECT.md` locked contract
+  2. `STATE.md` current operational truth
+  3. Phase `CONTEXT.md` files and locked research artifacts
+  4. Bootstrap prompts
+  5. Discussion logs and audit trails
+
+- When these sources differ, prefer the highest item in the hierarchy and
+  record the choice rather than reopening a settled local decision.
+
 - Downstream agents should front-load research, use subagents when helpful,
   prefer coherent one-shot recommendation sets, and decide by default rather
   than escalating routine design choices.
@@ -119,6 +128,9 @@ code-review debt is POLISH-01 (Phase 42) and POLISH-02 (Phase 44).
   ergonomics, and operator-friendly behaviour. When a choice is advisory
   rather than truly blocking, prefer telemetry/docs/metadata over expanding
   the returned error surface.
+
+- After research, the default output is one recommended path with rationale,
+  notable risks, and rejected alternatives, not a menu of equal options.
 
 - Escalate only for genuinely high-blast-radius decisions such as public
   semver reshapes, destructive or irreversible operations,
@@ -148,12 +160,12 @@ REQUIREMENTS.md traceability, and STATE.md updated.
 **Last Completed Milestone:** v1.7 (Phases 37-41) — archived 2026-05-08,
 tag `v1.7`.
 
-**Next Step:** `/gsd:plan-phase 42` (decompose Phase 42 — tus Protocol Edge —
-into executable plans).
+**Next Step:** Fix the remaining Phase 44 generated-app tus proof failure, then
+re-run `bash scripts/install_smoke.sh tus` and re-audit v1.8.
 
 ## Operator Next Steps
 
-- Plan Phase 42 with `/gsd:plan-phase 42`.
+- Fix the Phase 44 generated-app tus package-consumer proof and re-run the v1.8 audit.
 
 ## Performance Metrics
 

@@ -2,7 +2,7 @@
 
 ## Milestones
 
-- 🚧 **v1.8 Resumable Browser Ingest** — Phases 42–45 (in progress, started 2026-05-22)
+- 🚧 **v1.8 Resumable Browser Ingest** — Phases 42–47 (in progress, started 2026-05-22)
 - ✅ **v1.7 GCS Resumable Adapter** — Phases 37–41 (shipped 2026-05-08, see archive)
 - ✅ **v1.6 Provider Boundary + Mux** — Phases 33–36 (shipped 2026-05-07, see archive)
 - ✅ **v1.5 Adopter Hardening & Lifecycle Repair** — Phases 29–32 (shipped 2026-05-06, see archive)
@@ -53,8 +53,10 @@ the bare-Plug / one-column / `:tus_upload`-atom decisions are not relitigated he
 
 - [x] **Phase 42: tus Protocol Edge (bare Plug)** - Mountable `Rindle.Upload.TusPlug` serving Core + Creation + Expiration + Termination over HMAC-signed URLs, proven end-to-end on Local tmp-append backing (completed 2026-05-22)
 - [x] **Phase 43: S3 Multipart Backing + MinIO Proof** - `upload_part_stream/5` adapter callback flushing PATCH chunks to S3 `UploadPart`, with a MinIO ≥ 1 GiB drop-and-resume and reaper cleanup proof (completed 2026-05-23)
-- [ ] **Phase 44: Auth Hardening, DX, Docs, Telemetry, CI Proof** - Optional resume authorizer, tus error vocabulary, edge telemetry, doctor checks, the resumable-uploads guide, and a generated-app tus-js-client CI proof
-- [ ] **Phase 45: Browser → Mux Direct Creator Upload (sibling, droppable)** - Reserved `create_direct_upload/2` implemented, the `video.upload.asset_created` linker, a thin streaming entrypoint, and LiveView `:external`/UpChunk DX
+- [ ] **Phase 44: Auth Hardening, DX, Docs, Telemetry, CI Proof** - Optional resume authorizer, tus error vocabulary, edge telemetry, doctor checks, the resumable-uploads guide, and a generated-app tus-js-client CI proof (implementation complete 2026-05-24; milestone audit gap remains on TUS-14 package-consumer proof)
+- [x] **Phase 45: Browser → Mux Direct Creator Upload (sibling, droppable)** - Reserved `create_direct_upload/2` implemented, the `video.upload.asset_created` linker, a thin streaming entrypoint, and LiveView `:external`/UpChunk DX (completed 2026-05-24)
+- [ ] **Phase 46: Generated-App tus Runtime Proof Recovery** - Fix the generated-app package-consumer tus runtime failure, rerun the live Node/MinIO proof, and close the remaining `TUS-14` milestone blocker
+- [ ] **Phase 47: Audit Traceability Metadata Backfill** - Backfill missing `requirements-completed` summary metadata for Phase 43/45 artifacts so `TUS-07` and `MUX-20..23` become fully satisfied in the audit matrix
 
 ## Phase Details
 
@@ -143,22 +145,57 @@ Plans:
   4. A LiveView adopter wires a browser direct upload via an `:external`/UpChunk helper (`Rindle.LiveView.allow_direct_upload/4`) + `subscribe(:provider_asset, id)`, with a controller/JSON variant documented as the baseline.
   5. A `guides/streaming_providers.md` section plus an end-to-end test (create upload → simulate `video.upload.asset_created` + `video.asset.ready` → assert both PubSub events) cover the flow.
 
-**Plans**: TBD
+**Plans**: 3 plans
+- [ ] 45-01-PLAN.md — Mux direct-upload callback + passthrough correlation schema contract [Wave 1]
+- [ ] 45-02-PLAN.md — Streaming-owned direct-upload entrypoint + passthrough webhook linker [Wave 1]
+- [ ] 45-03-PLAN.md — MuxDirectUploadWeb preset + LiveView helper + guide/event-flow proof [Wave 1]
 **UI hint**: yes
+
+### Phase 46: Generated-App tus Runtime Proof Recovery
+
+**Goal**: Close the last blocking tus milestone gap by fixing the generated-app package-consumer runtime failure on `POST /uploads/tus`, proving the Node tus client survives one drop against real MinIO storage, and re-establishing `TUS-14` as satisfied under live verification.
+**Depends on**: Phase 44 (adopter-ready tus surface, guide, doctor checks, generated-app proof lane) and Phase 43 (S3/MinIO tus backing)
+**Requirements**: TUS-14
+**Success Criteria** (what must be TRUE):
+
+  1. The generated-app `tus` package-consumer proof no longer fails with `ECONNRESET` / `socket hang up` on the initial `POST /uploads/tus`; the root cause is fixed in the runtime, generated app harness, or environment wiring without weakening the locked tus contract.
+  2. `bash scripts/install_smoke.sh tus` completes end-to-end against the real Node/MinIO lane and records a `ready` `MediaAsset` with the expected `byte_size` and `content_type`.
+  3. Any proof harness, app-config, transport, or docs updates required to make the generated-app tus lane reproducible are captured in the relevant verification artifacts so the milestone audit has durable evidence.
+
+**Plans**: 0 plans
+**UI hint**: no
+
+### Phase 47: Audit Traceability Metadata Backfill
+
+**Goal**: Remove audit drift by backfilling missing `requirements-completed` metadata in shipped summaries, reconciling requirement-to-phase evidence, and restoring full three-source consistency for the remaining partial requirements.
+**Depends on**: Phase 43 (TUS-07 shipped and verified), Phase 45 (MUX-20..23 shipped and verified), and Phase 46 only insofar as the final re-audit should run after all closure work is complete
+**Requirements**: TUS-07, MUX-20, MUX-21, MUX-22, MUX-23
+**Success Criteria** (what must be TRUE):
+
+  1. Phase 43 summary metadata declares `TUS-07` in `requirements-completed`, matching the already-passed verification artifact.
+  2. Phase 45 summary artifacts gain explicit `requirements-completed` metadata covering `MUX-20..23`, matching their already-passed verification artifact.
+  3. `REQUIREMENTS.md`, summary frontmatter, and the next milestone audit agree on the final status of `TUS-07` and `MUX-20..23` with no remaining partials caused by metadata drift.
+
+**Plans**: 0 plans
+**UI hint**: no
 
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 42 → 43 → 44 → 45. Phase 45 (Mux direct upload)
-is independent of 42–44 and may be reordered or dropped under budget pressure
-without affecting the tus spine.
+Phases execute in numeric order: 42 → 43 → 44 → 45 → 46 → 47. Phase 45 (Mux
+direct upload) is independent of 42–44 and may be reordered or dropped under
+budget pressure without affecting the tus spine. Phase 46 closes the remaining
+generated-app tus runtime proof gap, and Phase 47 reconciles audit traceability
+metadata before re-audit.
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 42. tus Protocol Edge (bare Plug) | v1.8 | 4/4 | Complete    | 2026-05-22 |
 | 43. S3 Multipart Backing + MinIO Proof | v1.8 | 12/12 | Complete    | 2026-05-23 |
-| 44. Auth Hardening, DX, Docs, Telemetry, CI Proof | v1.8 | 0/TBD | Not started | - |
-| 45. Browser → Mux Direct Creator Upload (droppable) | v1.8 | 0/TBD | Not started | - |
+| 44. Auth Hardening, DX, Docs, Telemetry, CI Proof | v1.8 | 3/3 | Gaps found | 2026-05-24 |
+| 45. Browser → Mux Direct Creator Upload (droppable) | v1.8 | 3/3 | Complete | 2026-05-24 |
+| 46. Generated-App tus Runtime Proof Recovery | v1.8 | 0/0 | Not started | — |
+| 47. Audit Traceability Metadata Backfill | v1.8 | 0/0 | Not started | — |
 
 ## Carried Forward Candidates
 

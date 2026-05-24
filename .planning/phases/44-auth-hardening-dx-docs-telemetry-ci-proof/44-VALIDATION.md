@@ -1,10 +1,11 @@
 ---
 phase: 44
 slug: auth-hardening-dx-docs-telemetry-ci-proof
-status: draft
+status: validated
 nyquist_compliant: true
 wave_0_complete: true
 created: 2026-05-23
+validated: 2026-05-24
 ---
 
 # Phase 44 — Validation Strategy
@@ -21,6 +22,7 @@ created: 2026-05-23
 | **Config file** | `test/test_helper.exs` |
 | **Quick run command** | `mix test test/rindle/upload/tus_plug_test.exs test/rindle/error_test.exs test/rindle/ops/runtime_checks_test.exs` |
 | **Full suite command** | `mix test` |
+| **Generated-app tus proof** | `RINDLE_INSTALL_SMOKE_PROFILE=tus mix test test/install_smoke/generated_app_smoke_test.exs --include minio` or `bash scripts/install_smoke.sh tus` |
 | **Estimated runtime** | ~45-90 seconds for quick loop; install smoke is separate and slower |
 
 ---
@@ -36,14 +38,16 @@ created: 2026-05-23
 
 ## Per-Task Verification Map
 
+> Reconciled against the current tree on 2026-05-24. The earlier `44-VERIFICATION.md` gap on `TUS-14` is now superseded by the passing generated-app tus smoke artifact in `tmp/install_smoke_tus_last_run.json`.
+
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 44-01-01 | 01 | 1 | TUS-10 | V2/V4 | Resume authorizer accepts `:ok`, rejects with `401`, and signature failures never return `200` | unit | `mix test test/rindle/upload/tus_plug_test.exs` | ✅ | ⬜ pending |
-| 44-01-02 | 01 | 1 | POLISH-02 | V5 | Webhook raw-body fallback stays capped and trust-boundary review debt is either closed or explicitly waived | unit + review | `mix test test/rindle/delivery/webhook_plug_test.exs` | ✅ | ⬜ pending |
-| 44-02-01 | 02 | 2 | TUS-11 | V4/V5 | Locked tus reason atoms and fix-oriented `Rindle.Error.message/1` contract remain stable | unit | `mix test test/rindle/error_test.exs` | ✅ | ⬜ pending |
-| 44-02-02 | 02 | 2 | TUS-12 | V3/V6 | Resumable telemetry emits the existing namespace with allowlisted metadata only | unit + contract | `mix test test/rindle/upload/resumable_telemetry_test.exs test/rindle/contracts/telemetry_contract_test.exs --include contract` | ✅ | ⬜ pending |
-| 44-02-03 | 02 | 2 | TUS-13 | V4 | Doctor flags `:tus_profiles` capability/config drift without route introspection | unit | `mix test test/rindle/ops/runtime_checks_test.exs` | ✅ | ⬜ pending |
-| 44-03-01 | 03 | 3 | TUS-14 | V2/V3/V4 | Guide, generated-app helper, and package-consumer tus proof stay aligned for drop-and-resume | integration | `bash scripts/install_smoke.sh tus` | ✅ | ⬜ pending |
+| 44-01-01 | 01 | 1 | TUS-10 | V2/V4 | Resume authorizer accepts `:ok`, rejects with `401`, and signature failures never return `200` | unit | `mix test test/rindle/upload/tus_plug_test.exs` | ✅ | ✅ green |
+| 44-01-02 | 01 | 1 | POLISH-02 | V5 | Webhook raw-body fallback stays capped and trust-boundary review debt is either closed or explicitly waived | unit + review | `mix test test/rindle/delivery/webhook_plug_test.exs` | ✅ | ✅ green + manual-only |
+| 44-02-01 | 02 | 2 | TUS-11 | V4/V5 | Locked tus reason atoms and fix-oriented `Rindle.Error.message/1` contract remain stable | unit | `mix test test/rindle/error_test.exs` | ✅ | ✅ green |
+| 44-02-02 | 02 | 2 | TUS-12 | V3/V6 | Resumable telemetry emits the existing namespace with allowlisted metadata only | unit + contract | `mix test test/rindle/upload/resumable_telemetry_test.exs test/rindle/contracts/telemetry_contract_test.exs --include contract` | ✅ | ✅ green |
+| 44-02-03 | 02 | 2 | TUS-13 | V4 | Doctor flags `:tus_profiles` capability/config drift without route introspection | unit | `mix test test/rindle/ops/runtime_checks_test.exs` | ✅ | ✅ green |
+| 44-03-01 | 03 | 3 | TUS-14 | V2/V3/V4 | Guide, generated-app helper, and package-consumer tus proof stay aligned for drop-and-resume | integration | `bash scripts/install_smoke.sh tus` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -76,4 +80,25 @@ created: 2026-05-23
 - [x] Feedback latency < 90s for the quick loop
 - [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** validated 2026-05-24 (retroactive audit — all requirements covered; generated-app tus proof now green)
+
+---
+
+## Validation Audit 2026-05-24
+
+Retroactive State A audit reconciling the original draft contract against the current Phase 44 tree.
+
+| Metric | Count |
+|--------|-------|
+| Requirements audited | 6 (`TUS-10`, `TUS-11`, `TUS-12`, `TUS-13`, `TUS-14`, `POLISH-02`) |
+| Gaps found | 0 |
+| Resolved | 0 (coverage already present; document status was stale) |
+| Escalated | 0 |
+| Manual-only | 2 (`TUS-14` editorial docs drift review, `POLISH-02` advisory disposition review) |
+
+**Method:** Cross-referenced all four Phase 44 plan summaries plus the current filesystem, confirmed the mapped tests and assertions with grep, and ran the fast automated surface live:
+
+- `mix test test/rindle/upload/tus_plug_test.exs test/rindle/error_test.exs test/rindle/ops/runtime_checks_test.exs` → `75 tests, 0 failures`
+- `mix test test/rindle/delivery/webhook_plug_test.exs test/rindle/upload/resumable_telemetry_test.exs test/rindle/contracts/telemetry_contract_test.exs --include contract` → `33 tests, 0 failures`
+
+For `TUS-14`, the authoritative current evidence is the persisted generated-app proof artifact at `tmp/install_smoke_tus_last_run.json`, which records `failure_phase: "none"`, `previous_uploads: 1`, `byte_size: 210777744`, `content_type: "video/mp4"`, and `ready_variants: ["poster", "web_720p"]`. That supersedes the older failed attempt captured in `44-VERIFICATION.md`. No auditor gap-fill or new test generation was required.
