@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.8
 milestone_name: Resumable Browser Ingest
-status: verifying
-last_updated: "2026-05-23T20:50:51.522Z"
-last_activity: 2026-05-23
+status: executing
+last_updated: "2026-05-24T10:17:20.685Z"
+last_activity: 2026-05-24 -- Phase 44 execution started
 progress:
   total_phases: 4
   completed_phases: 2
-  total_plans: 16
+  total_plans: 19
   completed_plans: 16
   percent: 50
 ---
@@ -20,7 +20,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-22)
 
 **Core value:** Media, made durable.
-**Current focus:** Phase 44 — auth-hardening, dx, docs, telemetry, ci-proof (next)
+**Current focus:** Phase 44 — auth-hardening-dx-docs-telemetry-ci-proof
 bare mountable Plug (Local + S3/MinIO backing), plus browser→Mux direct creator
 upload, so every browser ingest path converges into the one trusted
 `verify_completion/2` promote lane. Roadmap written (4 phases, 42–45, 20/20
@@ -28,10 +28,10 @@ requirements mapped). Next: discuss/plan Phase 44.
 
 ## Current Position
 
-Phase: 44
-Plan: Not started
-Status: Phase 43 complete (12/12 plans; verified passed — 5/5 must-haves + live MinIO suite 3/3); Phase 44 not started
-Last activity: 2026-05-23
+Phase: 44 (auth-hardening-dx-docs-telemetry-ci-proof) — EXECUTING
+Plan: 1 of 3
+Status: Executing Phase 44
+Last activity: 2026-05-24 -- Phase 44 execution started
 
 Progress: [██████████__________] 50% (2/4 phases complete; Phase 43 S3-multipart-backing verified passed)
 

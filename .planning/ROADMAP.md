@@ -123,7 +123,11 @@ the bare-Plug / one-column / `:tus_upload`-atom decisions are not relitigated he
   4. `guides/resumable_uploads.md` documents endpoint config (`Plug.Parsers :pass` for `application/offset+octet-stream`; CORS expose-headers `Upload-Offset`/`Location`/`Upload-Length`/`Tus-Resumable`/`Upload-Expires`; tus-js-client / `@uppy/tus` config incl. `removeFingerprintOnSuccess: true` + `parallelUploads: 1`), the security checklist, and the no-silent-downgrade contract.
   5. A generated-app package-consumer CI proof lane mounts `TusPlug`, uploads a ≥ 200 MB MP4 with one simulated drop against MinIO via a Node tus-js-client, and asserts a `ready` `MediaAsset` with the expected `byte_size`/`content_type`; Phase 35 advisory code-review findings (6 Warning + 7 Info) are resolved via `/gsd-code-review 35 --fix` or explicitly waived with rationale (POLISH-02).
 
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 44-01-PLAN.md — Auth/error contract lock + WR-01 fallback body-cap fix [Wave 1]
+- [ ] 44-02-PLAN.md — Telemetry + doctor contract lock for tus namespace and `:tus_profiles` drift [Wave 1]
+- [ ] 44-03-PLAN.md — Canonical resumable guide + generated-app tus CI proof alignment [Wave 1]
 **UI hint**: no
 
 ### Phase 45: Browser → Mux Direct Creator Upload (sibling, droppable)
