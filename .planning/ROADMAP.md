@@ -95,6 +95,13 @@ Success criteria:
 4. Closing evidence makes the Phoenix tus support claim auditable without
    reading source history.
 
+**Plans:** 2 plans (planned 2026-05-25 by `/gsd-plan-phase 50`). Wave 1:
+`50-01`; Wave 2: `50-02`.
+
+Plans:
+- [ ] 50-01-PLAN.md — elevate the existing generated-app `:tus` lane into the canonical Phoenix / LiveView proof with machine-readable report fields and preserved drop-and-resume evidence
+- [ ] 50-02-PLAN.md — add fast parity and local helper tests that freeze guide/helper/proof-field alignment, then rerun the full built-artifact tus lane
+
 ## Phase Completion
 
 - [x] **Phase 48: Phoenix DX Contract + Truth Audit** - Truth-align active planning/docs and freeze the exact support claim. (completed 2026-05-25)
