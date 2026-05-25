@@ -2,6 +2,7 @@
 
 ## Milestones
 
+- 🚧 **v1.9 Phoenix Tus DX Completion** — Phases 48-50 (started 2026-05-25)
 - ✅ **v1.8 Resumable Browser Ingest** — Phases 42–47 (shipped 2026-05-25, see archive)
 - ✅ **v1.7 GCS Resumable Adapter** — Phases 37–41 (shipped 2026-05-08, see archive)
 - ✅ **v1.6 Provider Boundary + Mux** — Phases 33–36 (shipped 2026-05-07, see archive)
@@ -14,18 +15,87 @@
 
 ## Current Status
 
-No active milestone is open. `v1.8` is archived and complete. Start the next
-milestone with `$gsd-new-milestone`, which will create the next scoped
-`REQUIREMENTS.md` and expand the roadmap again.
+Milestone `v1.9 Phoenix Tus DX Completion` is now active. The wedge is narrow
+on purpose: Rindle already ships the bare tus edge, `Rindle.initiate_tus_upload/2`,
+the thin `Rindle.LiveView.allow_tus_upload/4` seam, and the headless tus proof.
+This milestone finishes the Phoenix adopter story by aligning truth,
+productizing the supported helper path, and proving it end to end.
 
-## Deferred to v1.9+
+## Milestone Goal
+
+Turn the shipped tus edge into an honest first-class Phoenix adopter story:
+reconcile planning/docs truth, lock the supported LiveView/server/client
+contract, and add proof that the documented Phoenix-facing path works as
+shipped.
+
+## Phase Plan
+
+**3 phases** | **7 requirements mapped** | All covered
+
+| # | Phase | Goal | Requirements | Success Criteria |
+|---|-------|------|--------------|------------------|
+| 48 | Phoenix DX Contract + Truth Audit | Freeze the exact Phoenix tus support claim and remove stale "fully deferred" language from active planning surfaces. | `PHX-01`, `TRUTH-01` | 4 |
+| 49 | LiveView Tus Productization | Turn the existing helper seam into a copy-pasteable Phoenix-facing integration contract with honest uploader and UI-state guidance. | `PHX-02`, `PHX-03`, `PHX-04` | 4 |
+| 50 | Phoenix Proof + Parity Closure | Prove the documented Phoenix path end to end and freeze it against future drift. | `PROOF-01`, `PROOF-02` | 4 |
+
+## Phase Details
+
+**Phase 48: Phoenix DX Contract + Truth Audit**
+Goal: freeze the exact Phoenix tus support claim and remove stale planning
+language that treats the current seam as wholly deferred.
+
+Success criteria:
+1. Active planning docs distinguish the shipped bare tus edge, the shipped thin
+   LiveView helper seam, and the still-deferred richer future abstractions.
+2. One canonical Phoenix-facing story is named explicitly instead of forcing
+   adopters to infer support boundaries from code history.
+3. Deferred lists stop carrying "LiveView tus uploader component" as shorthand
+   for the entire Phoenix story when only richer abstractions are actually
+   deferred.
+4. The milestone leaves a clear contract for what Phase 49 must productize.
+
+**Phase 49: LiveView Tus Productization**
+Goal: turn the existing helper seam into a copy-pasteable Phoenix-facing
+integration contract with an honest uploader and UI-state model.
+
+Success criteria:
+1. `allow_tus_upload/4` setup is documented as the supported server-side entry
+   point with required and optional options called out precisely.
+2. The supported `uploader: "RindleTus"` client flow is explicit about signed
+   URL reuse, resume discovery, and offset-safe tus behavior.
+3. The recommended UI state model distinguishes byte-upload progress from
+   server verification and readiness instead of conflating `100%` with done.
+4. The path still converges through the existing `consume_uploaded_entries/3`
+   and `verify_completion/2` boundary with no silent alternate lifecycle.
+
+**Phase 50: Phoenix Proof + Parity Closure**
+Goal: prove the documented Phoenix path end to end and freeze it against future
+drift.
+
+Success criteria:
+1. Package-consumer or generated-app proof exercises the documented Phoenix /
+   LiveView tus path, not only a headless tus client against the mounted plug.
+2. Docs parity checks fail when the guide, helper metadata, or proof harness
+   drift out of sync.
+3. Proof artifacts show the same honest state boundaries claimed in the guide.
+4. Closing evidence makes the Phoenix tus support claim auditable without
+   reading source history.
+
+## Phase Completion
+
+- [ ] **Phase 48: Phoenix DX Contract + Truth Audit** - Truth-align active planning/docs and freeze the exact support claim.
+- [ ] **Phase 49: LiveView Tus Productization** - Productize the supported helper path with copy-pasteable client/server guidance and honest UI semantics.
+- [ ] **Phase 50: Phoenix Proof + Parity Closure** - Add package-consumer proof and parity gates for the documented Phoenix path.
+
+## Deferred to v1.10+ / Later
 
 - tus Checksum / Concatenation
 - `Upload-Defer-Length`
 - IETF RUFH / tus 2.0
 - GCS-as-tus-backend / R2-native tus proxying
-- Rindle-owned tus JS client
-- LiveView tus uploader component
+- Rindle-owned standalone tus JS client package
+- Richer reusable uploader component abstractions beyond the supported helper path
+- First-class account erasure / `purge_owner`-style lifecycle API
 - Second streaming provider (Cloudflare/Bunny)
 - `cancel_direct_upload/1` (Mux)
 

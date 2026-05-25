@@ -3,25 +3,32 @@
 ## Current State
 
 Milestone `v1.8 Resumable Browser Ingest` shipped on `2026-05-25` (Phases
-42-47, 27 plans, 20/20 requirements validated). Rindle now ships a mountable
-bare tus 1.0 edge, Local and S3-backed resumable browser ingest that still
-converges into the existing `verify_completion/2` promote lane, browser→Mux
-direct creator upload, and the generated-app proof and traceability closure
-needed to treat browser-origin resumable ingest as part of the shipped public
-contract.
+42-47, 27 plans, 20/20 requirements validated). Milestone
+`v1.9 Phoenix Tus DX Completion` opened on `2026-05-25` and narrows the next
+step deliberately: Rindle already ships the headless tus edge plus a thin
+LiveView helper seam, so the remaining gap is turning that shipped capability
+into an honest, first-class Phoenix adopter story with aligned docs, support
+truth, and proof.
 
-No new milestone is open yet. The next milestone should be started with
-`$gsd-new-milestone`, which will define fresh requirements and roadmap scope.
+## Current Milestone: v1.9 Phoenix Tus DX Completion
 
-## Next Milestone Goals
+**Goal:** Turn the shipped tus edge into an honest first-class Phoenix adopter
+story by reconciling planning/docs truth, tightening the LiveView/server
+integration contract, and proving the supported path end to end.
 
-- Decide which v1.9 candidate to pull forward first from the deferred list:
-  LiveView tus uploader DX, second streaming provider, or protocol follow-on
-  work such as RUFH preparation.
-- Re-open roadmap scope only after a fresh milestone requirements pass; do not
-  carry `v1.8`'s deleted `REQUIREMENTS.md` forward manually.
-- Preserve the `v1.8` contract boundaries: no silent downgrade, one
-  `verify_completion/2` promote lane, and provider capabilities remain honest.
+**Target features:**
+- Truth-aligned docs and planning artifacts that distinguish the shipped bare
+  tus edge, the shipped thin `allow_tus_upload/4` helper seam, and any still-
+  deferred richer uploader abstractions.
+- A copy-pasteable Phoenix / LiveView tus integration contract that keeps the
+  existing `verify_completion/2` lane and makes the supported client uploader
+  and state model explicit.
+- Proof and parity coverage for the supported Phoenix-facing tus path, not only
+  the headless wire protocol proof.
+
+**Why now:** Provider and protocol breadth are now lower leverage than making
+the shipped tus surface feel complete, supportable, and truthful for Phoenix
+adopters.
 
 ## Recently Shipped Milestone
 
@@ -193,22 +200,22 @@ is high, and the rollback or containment implications.
   for image-only profiles — v1.7 (Phase 37) (GCS-01..04). Live-bucket proof is
   accepted CI automation via `gcs-soak` (`ci_verified`), not manual follow-up.
 
-### Active (v1.8 Resumable Browser Ingest)
+### Active (v1.9 Phoenix Tus DX Completion)
 
-In scope for `v1.8` (see `.planning/REQUIREMENTS.md` for the full list):
-- `TUS-*`: tus 1.0 protocol on a bare `Rindle.Upload.TusPlug` (Core + Creation
-  + Expiration + Termination), `upload_part_stream/5` adapter callback,
-  `:tus_upload` capability, HMAC-signed URLs, S3 multipart + Local backing,
-  reaper branch, DX/docs/doctor/telemetry, MinIO + tus-js-client CI proof. The
-  locked shape lives in `.planning/research/v1.8/TUS-RESEARCH.md`.
-- `MUX-20..23`: browser→Mux direct creator upload (sibling slice, droppable
-  under budget). Locked detail in `.planning/research/v1.8/MUX-DIRECT-UPLOAD-RESEARCH.md`.
-- `CR-*`: advisory Phase 34/35 code-review polish folded in as a hygiene
-  sub-stream.
+In scope for `v1.9` (see `.planning/REQUIREMENTS.md` for the full list):
+- `PHX-*`: Phoenix / LiveView tus DX completion that makes the supported server
+  setup, client uploader contract, and honest UI-state split explicit for
+  adopters.
+- `PROOF-*`: package-consumer and parity proof that exercises the supported
+  Phoenix-facing tus flow, not only the headless tus protocol edge.
+- `TRUTH-*`: planning/docs truth-alignment work so active project artifacts stop
+  treating the already-shipped thin LiveView tus seam as wholly deferred.
 
-Deferred to `v1.9+`: tus Checksum/Concatenation, IETF RUFH (tus 2.0),
-GCS-as-tus-backend, a Rindle-owned tus JS client, a LiveView tus uploader
-component, a second streaming provider.
+Deferred to `v1.10+` or out of scope for this milestone: tus Checksum /
+Concatenation / `Upload-Defer-Length`, IETF RUFH (tus 2.0), GCS-as-tus-
+backend, a Rindle-owned standalone tus JS client package, generic uploader UI
+kits beyond the supported helper path, first-class account erasure, a second
+streaming provider, and `cancel_direct_upload/1`.
 
 ### Out of Scope
 
@@ -245,10 +252,13 @@ AV-enabled lanes. Optional `mux` + `jose` deps preserve zero transitive cost
 for non-streaming adopters. The single-provider rule keeps the abstraction
 honest; v1.7+ adapters (GCS, second streaming provider) become contract tests.
 
-**Current milestone setup:** v1.8 closed. No new milestone is open yet.
-Candidate expansion work now lives in the v1.9+ deferred list: protocol
-follow-on work (Checksum / Concatenation / RUFH prep), a LiveView tus uploader
-component, a second streaming provider, and any further direct-upload DX polish.
+**Current milestone setup:** v1.9 is now open and intentionally narrower than a
+new protocol/provider milestone. The codebase already ships
+`Rindle.Upload.TusPlug`, `Rindle.initiate_tus_upload/2`,
+`Rindle.LiveView.allow_tus_upload/4`, the resumable uploads guide, and the
+headless generated-app tus proof. The remaining work is productization and
+truth: define exactly what Phoenix-facing support Rindle claims today, make the
+supported client/server flow copy-pasteable, and freeze that claim with proof.
 
 **Reference implementations:**
 - Rails Active Storage: attachment/blob ownership patterns, redirect-style
@@ -345,6 +355,8 @@ component, a second streaming provider, and any further direct-upload DX polish.
 | Provider-internal IDs (Mux `asset_id`, upload IDs, session URIs) redact to last-4-char tag in telemetry, logs, and `Inspect` output (security invariant 14) | Raw provider IDs leak across adopter boundaries in dashboards and traces; cross-cutting parity test enforces last-4 redaction at every emit site | Locked v1.6 |
 | Generated-app `mux-soak` lane is label-gated (`streaming` PR label), not on every PR; cassette lane runs every PR with zero secrets | Real-Mux quota + cost; fork-PR safety: secrets resolve to empty strings on forks via `pull_request` (NOT `pull_request_target`) trigger | ✓ Validated v1.6 (Phase 36) |
 | Phase 37 (browser→Mux direct creator upload) ships only if Phases 33-36 ship under budget | Single-provider rule keeps milestone scope honest; direct-creator-upload is small additive surface on already-built primitives — clean v1.7 deferral | ✓ Deferred to v1.7 (Phases 33-36 closed at budget without pulling forward) |
+| v1.9 is a Phoenix tus DX completion / truth-alignment milestone, not a new tus capability milestone | The repo already ships the headless tus edge, `Rindle.initiate_tus_upload/2`, and the thin `Rindle.LiveView.allow_tus_upload/4` seam; the remaining gap is coherent support truth, productized adopter guidance, and proof | Locked v1.9 |
+| The supported Phoenix tus path remains helper + documented client uploader over the existing `verify_completion/2` lane; richer Rindle-owned uploader abstractions stay optional future scope unless the current seam proves insufficient | This preserves the shipped headless contract, avoids overclaiming a component that does not exist yet, and keeps the milestone on the highest-leverage wedge | Locked v1.9 |
 
 ## Historical Snapshot
 
@@ -503,4 +515,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-22 — v1.8 Resumable Browser Ingest started. Locked scope: tus 1.0 protocol on a bare Plug (no tussle/Phoenix dep), browser→Mux direct creator upload sibling, Phase 34/35 code-review polish folded in. Cut Hex 0.2.0 at close. Research-backed shape in `.planning/research/v1.8/`.*
+*Last updated: 2026-05-25 — v1.9 Phoenix Tus DX Completion started. Scope narrowed to Phoenix-facing tus DX completion, truth alignment, and end-to-end proof on top of the already-shipped v1.8 tus and browser→Mux capabilities.*

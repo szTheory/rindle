@@ -1,0 +1,117 @@
+# Requirements: Rindle v1.9 — Phoenix Tus DX Completion
+
+**Defined:** 2026-05-25
+**Core Value:** Media, made durable.
+
+**Goal:** Turn the shipped tus edge into an honest first-class Phoenix adopter
+story. Do not relitigate `Rindle.Upload.TusPlug` or provider breadth; finish
+the Phoenix-facing DX, align support truth, and prove the documented path end
+to end.
+
+## Support Truth Gate
+
+- **Supported now:** bare `Rindle.Upload.TusPlug`, `Rindle.initiate_tus_upload/2`,
+  `Rindle.LiveView.allow_tus_upload/4`, `consume_uploaded_entries/3`, and a
+  documented `uploader: "RindleTus"` client pattern over the existing
+  `verify_completion/2` lane.
+- **Not yet claimed:** a Rindle-owned standalone tus JS client package, a broad
+  drag/drop uploader component library, multi-provider Phoenix abstractions, or
+  new tus protocol extensions.
+- **Truth requirement:** active project artifacts must describe the current
+  shipped seam honestly and defer only the richer future abstractions that do
+  not yet exist.
+
+## Proof Posture Gate
+
+- **Merge-blocking hermetic proof:** focused LiveView/helper tests and docs
+  parity checks covering the supported Phoenix tus contract.
+- **Merge-blocking package-consumer proof:** generated-app or equivalent proof
+  that exercises the documented Phoenix/LiveView tus path, not only a headless
+  tus client against the mounted plug.
+- **Advisory proof:** broader browser-library matrix expansion can wait until
+  after the supported Phoenix path is frozen and proven.
+
+## v1.9 Requirements
+
+### Phoenix Tus Contract
+
+- [ ] **PHX-01**: Adopter can identify the supported Phoenix tus path from one
+      canonical guide without inferring that the entire LiveView story is still
+      deferred.
+- [ ] **PHX-02**: Adopter can configure a LiveView upload with
+      `Rindle.LiveView.allow_tus_upload/4` using documented required options
+      (`path`, `secret_key_base`, optional `actor`) and keep completion through
+      `consume_uploaded_entries/3`.
+- [ ] **PHX-03**: Adopter can drop in a documented `uploader: "RindleTus"`
+      client uploader or hook that reuses the signed `upload_url`, performs
+      resume discovery, and reports byte progress without bypassing tus offset
+      semantics.
+- [ ] **PHX-04**: Adopter can render honest UI states that distinguish byte
+      transfer completion from server verification/readiness.
+
+### Proof And Truth Alignment
+
+- [ ] **PROOF-01**: Package-consumer or generated-app proof exercises the
+      documented Phoenix/LiveView tus path end to end, not only a headless tus
+      client against the mounted plug.
+- [ ] **PROOF-02**: Docs parity tests freeze the supported LiveView tus
+      contract so drift between guide, helper metadata, and proof harness fails
+      fast.
+- [ ] **TRUTH-01**: Active planning artifacts stop claiming the entire
+      LiveView tus path is deferred when the shipped helper already exists, and
+      instead defer only richer future abstractions explicitly.
+
+## v2 Requirements
+
+### tus Protocol Follow-ons
+
+- **TUS-15**: Browser client can supply checksum-backed chunk integrity for the
+  supported tus extension set.
+- **TUS-16**: Browser client can upload via concatenation / partial uploads
+  when adopter demand justifies the extra complexity.
+- **TUS-17**: Browser client can create uploads whose final size is unknown at
+  creation time via `Upload-Defer-Length`.
+- **TUS-18**: Rindle can offer an additive IETF RUFH / tus 2.0 surface without
+  rewriting the current session machinery.
+
+### Adjacent Lifecycle And Streaming Conveniences
+
+- **LIFE-01**: Adopter can erase all assets owned by a record through one
+  auditable lifecycle call.
+- **MUX-24**: Adopter can cancel a direct Mux creator upload through a
+  first-class public API.
+- **STREAM-10**: A second streaming provider proves the provider contract
+  without weakening capability honesty.
+
+## Out of Scope
+
+| Feature | Reason |
+|---------|--------|
+| New tus protocol extensions in v1.9 | The current gap is Phoenix-facing DX and support truth, not wire-protocol breadth. |
+| GCS-as-tus-backend / R2-native tus proxying | New backend breadth is lower leverage than making the shipped Local/S3 path feel complete. |
+| Rindle-owned standalone tus JS client package | Too broad for the current wedge; the documented uploader pattern is sufficient if it is honest and proven. |
+| Generic drag/drop uploader component library | This milestone closes the supported helper path, not a reusable UI kit. |
+| First-class account erasure | Still valuable, but lower priority than closing the Phoenix tus adoption gap. |
+| `cancel_direct_upload/1` | Narrow lifecycle convenience that can follow once the tus DX story is complete. |
+| Second streaming provider | Demand validation should come after the current adopter-facing DX gap is closed. |
+
+## Traceability
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| PHX-01 | Phase 48 | Pending |
+| TRUTH-01 | Phase 48 | Pending |
+| PHX-02 | Phase 49 | Pending |
+| PHX-03 | Phase 49 | Pending |
+| PHX-04 | Phase 49 | Pending |
+| PROOF-01 | Phase 50 | Pending |
+| PROOF-02 | Phase 50 | Pending |
+
+**Coverage:**
+- v1.9 requirements: 7 total
+- Mapped to phases: 7
+- Unmapped: 0
+
+---
+*Requirements defined: 2026-05-25*
+*Last updated: 2026-05-25 after milestone initialization*
