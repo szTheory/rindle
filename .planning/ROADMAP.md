@@ -54,6 +54,13 @@ Success criteria:
    deferred.
 4. The milestone leaves a clear contract for what Phase 49 must productize.
 
+**Plans:** 2 plans (planned 2026-05-25 by `/gsd-plan-phase 48`). Wave 1:
+`48-01`; Wave 2: `48-02`.
+
+Plans:
+- [ ] 48-01-PLAN.md — align active planning truth surfaces and keep the Phoenix story canonical in `guides/resumable_uploads.md` with thin `Rindle.LiveView` docs
+- [ ] 48-02-PLAN.md — add targeted v1.8 archive disclaimers and parity tests for active truth, guide-pointer ownership, and archive-banner presence
+
 **Phase 49: LiveView Tus Productization**
 Goal: turn the existing helper seam into a copy-pasteable Phoenix-facing
 integration contract with an honest uploader and UI-state model.
