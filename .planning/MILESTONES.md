@@ -1,5 +1,41 @@
 # Milestones
 
+## v1.9 Phoenix Tus DX Completion (Shipped: 2026-05-25)
+
+**Phases completed:** 5 phases (48-52), 10 plans
+**Timeline:** 1 day (2026-05-25 → 2026-05-25)
+**Requirements validated:** 7/7 (`PHX-01..04`, `PROOF-01..02`, `TRUTH-01`)
+
+**Key accomplishments:**
+
+- Truth-aligned the active planning and guide surface so the shipped Phoenix
+  tus seam is named explicitly instead of being obscured by stale deferred
+  wording.
+- Locked the supported `Rindle.LiveView.allow_tus_upload/4` helper contract,
+  canonical `uploader: "RindleTus"` client flow, and honest
+  `uploading` / `verifying` / `ready` / `error` state vocabulary.
+- Promoted the generated-app tus lane into a Phoenix / LiveView proof that
+  starts from the helper seam and still converges through
+  `consume_uploaded_entries/3` and `verify_completion/2`.
+- Added fast parity gates so guide, helper seam, and proof metadata drift fail
+  early instead of surfacing only in heavy proof runs or milestone audit.
+- Rebuilt the missing verification chain for Phases 48-50 and reconciled the
+  v1.9 audit, requirements, validation, roadmap, and state metadata for clean
+  closeout.
+
+**Known deferred items at close:** tus Checksum / Concatenation /
+`Upload-Defer-Length`, IETF RUFH / tus 2.0, GCS-as-tus-backend /
+R2-native tus proxying, a Rindle-owned standalone tus JS client package,
+richer reusable uploader component abstractions, first-class account erasure,
+a second streaming provider, and `cancel_direct_upload/1`.
+
+**Archive:**
+- `.planning/milestones/v1.9-ROADMAP.md`
+- `.planning/milestones/v1.9-REQUIREMENTS.md`
+- `.planning/milestones/v1.9-MILESTONE-AUDIT.md`
+
+---
+
 ## v1.7 GCS Resumable Adapter (Shipped: 2026-05-08)
 
 **Phases completed:** 5 phases (37-41), 17 plans

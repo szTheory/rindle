@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.9
-milestone_name: Phoenix Tus DX Completion
-status: ready_to_plan
-last_updated: 2026-05-25T18:55:17.417Z
-last_activity: 2026-05-25 -- Phase 51 execution started
+milestone: none
+milestone_name: none
+status: milestone_closed
+last_updated: 2026-05-25T20:30:00.000Z
+last_activity: 2026-05-25 -- v1.9 archived and tagged
 progress:
-  total_phases: 5
-  completed_phases: 3
-  total_plans: 8
-  completed_plans: 35
-  percent: 60
-stopped_at: Phase 51 complete (2/2) — ready to discuss Phase 52
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
+stopped_at: Waiting for next milestone definition
 ---
 
 # Project State
@@ -21,42 +21,40 @@ stopped_at: Phase 51 complete (2/2) — ready to discuss Phase 52
 See: .planning/PROJECT.md
 
 **Core value:** Media, made durable.
-**Current focus:** Phase 52 — traceability validation reconciliation
+**Current focus:** post-v1.9 shipped state; no active milestone is open.
 
 ## Current Position
 
-Phase: 52
-Plan: Not started
-Status: Ready to plan
+Phase: none
+Plan: none
+Status: Awaiting next milestone
 Last activity: 2026-05-25
 
-Progress: [██████████] 100%
+Progress: [--------------------] 0% (no active milestone)
 
 ## Current Milestone
 
-- Milestone: `v1.9 Phoenix Tus DX Completion`
-- Goal: finish and truth-align the Phoenix adopter story for the already-shipped
-  tus surface.
-
-- Why now: the biggest remaining gap is not protocol/provider breadth; it is
-  coherent Phoenix-facing DX and support truth around the tus capability that
-  already shipped in v1.8.
+- No active milestone. `v1.9` is archived and shipped.
+- Start the next milestone with `$gsd-new-milestone`.
 
 ## Recent Completion
 
-- Last completed milestone: `v1.8 Resumable Browser Ingest`
-- Scope: Phases 42-47, 27 plans, 20/20 requirements validated
-- Tag: `v1.8`
+- Last completed milestone: `v1.9 Phoenix Tus DX Completion`
+- Scope: Phases 48-52, 10 plans, 7/7 requirements validated
+- Tag: `v1.9`
 - Archive files:
+  - `.planning/milestones/v1.9-ROADMAP.md`
+  - `.planning/milestones/v1.9-REQUIREMENTS.md`
+  - `.planning/milestones/v1.9-MILESTONE-AUDIT.md`
   - `.planning/milestones/v1.8-ROADMAP.md`
   - `.planning/milestones/v1.8-REQUIREMENTS.md`
   - `.planning/milestones/v1.8-MILESTONE-AUDIT.md`
 
 ## Next Step
 
-- Phases 48-50 are complete.
-- Run the v1.9 milestone audit / closeout flow.
-- Keep using archived `v1.8` files as historical reference only.
+- Run `$gsd-new-milestone`.
+- Re-create `.planning/REQUIREMENTS.md` only through the new milestone flow.
+- Use archived `v1.9` files as historical reference, not as the active planning surface.
 
 ## Milestone-Boundary Assessment (2026-05-25)
 
@@ -80,16 +78,10 @@ Progress: [██████████] 100%
 
 ## Blockers/Concerns
 
-- No active blocker.
-- Main residual risk is future drift between the guide, helper seam, and
-  generated-app proof surface; Phase 50 added parity gates and machine-readable
-  proof fields to catch that drift early.
-
-- Supported-now boundary for this milestone: the shipped Phoenix path is the
-  bare tus edge plus `Rindle.LiveView.allow_tus_upload/4`, a documented
-  `uploader: "RindleTus"` client path, honest `uploading` / `verifying` /
-  `ready` / `error` semantics, and completion through
-  `consume_uploaded_entries/3` over `verify_completion/2`.
+- No active blocker. The repo is between milestones.
+- Main open product questions for v1.10+ are prioritization questions, not
+  close blockers: protocol follow-ons, lifecycle convenience APIs, richer
+  Phoenix abstractions, and second-provider demand.
 
 ## Deferred Items (to v1.9+ or out of scope)
 
@@ -108,13 +100,11 @@ Progress: [██████████] 100%
 
 ## Session Continuity
 
-Last session: 2026-05-25T14:02:21.922Z
-v1.9 is initialized. The project has fresh `PROJECT.md`, `REQUIREMENTS.md`, and
-`ROADMAP.md` artifacts that treat Phoenix tus DX completion and truth alignment
-as the current wedge.
+Last session: 2026-05-25T20:30:00.000Z
+v1.9 was archived, `REQUIREMENTS.md` was retired, and the project is waiting
+for the next milestone definition.
 
-**Last Completed Milestone:** v1.8 (Phases 42-47) — archived 2026-05-25,
-tag `v1.8`.
+**Last Completed Milestone:** v1.9 (Phases 48-52) — archived 2026-05-25,
+tag `v1.9`.
 
-**Next Step:** Run milestone closeout for v1.9, using Phase 50's green
-generated-app proof and parity gates as the final support-truth evidence.
+**Next Step:** Run `$gsd-new-milestone`.

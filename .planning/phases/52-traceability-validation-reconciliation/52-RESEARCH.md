@@ -217,17 +217,17 @@ rg -n 'requirements_verified: \[PHX-02, PHX-03, PHX-04\]|49-01-SUMMARY.md|49-02-
 | A1 | `gsd-sdk query roadmap.get-phase 48` only needs rerun if Phase 52 materially edits roadmap phase metadata. `[ASSUMED]` | Standard Stack | Low; planner might add one extra CLI check. |
 | A2 | Leaving `STATE.md` stale would confuse the next milestone-close command or operator. `[ASSUMED]` | State of the Art | Low; the file would still be inconsistent even if no automation reads it. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should Phase 52 also reconcile `51-VALIDATION.md` row statuses?**
-   - What we know: `51-VALIDATION.md` frontmatter is approved and compliant, but its per-task rows still show `⬜ pending` even though `51-01-SUMMARY.md` and `51-02-SUMMARY.md` both say complete. `[VERIFIED: .planning/phases/51-verification-artifact-closure/51-VALIDATION.md][VERIFIED: .planning/phases/51-verification-artifact-closure/51-01-SUMMARY.md][VERIFIED: .planning/phases/51-verification-artifact-closure/51-02-SUMMARY.md]`
-   - What's unclear: The audit only explicitly calls out Phase 49’s validation file, not Phase 51’s. `[VERIFIED: .planning/v1.9-MILESTONE-AUDIT.md]`
-   - Recommendation: Include `51-VALIDATION.md` in scope only if the planner wants one fully consistent closeout surface across all post-Phase-50 metadata. `[ASSUMED]`
+   - Resolution: No. Leave `51-VALIDATION.md` out of scope for Phase 52. `[RESOLVED]`
+   - Why: The active v1.9 audit explicitly calls out `49-VALIDATION.md` as the stale Nyquist artifact, while Phase 51’s roadmap goal and success criteria are about restoring missing `48/49/50-VERIFICATION.md` artifacts rather than closing its own validation rows. Expanding Phase 52 to normalize `51-VALIDATION.md` would widen the cleanup surface beyond the stated milestone blocker. `[VERIFIED: .planning/v1.9-MILESTONE-AUDIT.md][VERIFIED: .planning/ROADMAP.md]`
+   - Planning effect: Phase 52 will close `49-VALIDATION.md` and its own `52-VALIDATION.md`, but it will consume `51-VALIDATION.md` only as background evidence if needed. `[RESOLVED]`
 
 2. **Should `REQUIREMENTS.md` end Phase 52 at `Phase 51 / Complete` or stay `Phase 51 / Pending` until the refreshed audit lands?**
-   - What we know: It currently says `Phase 51 | Pending` for all seven requirements, while Phase 51 summaries and `48/49/50-VERIFICATION.md` now claim closure. `[VERIFIED: .planning/REQUIREMENTS.md][VERIFIED: .planning/phases/51-verification-artifact-closure/51-01-SUMMARY.md][VERIFIED: .planning/phases/51-verification-artifact-closure/51-02-SUMMARY.md]`
-   - What's unclear: The roadmap wording says to “reset shipped-but-orphaned requirements back to pending until closure is reverified,” which implies a transient pending state before the re-audit. `[VERIFIED: .planning/ROADMAP.md]`
-   - Recommendation: Make the audit refresh the deciding step and update `REQUIREMENTS.md` in the same commit so the file never disagrees with the final audit artifact. `[VERIFIED: .planning/phases/47-audit-traceability-metadata-backfill/47-02-PLAN.md]`
+   - Resolution: Neither. Use original-owner-plus-closure notation and a two-step status transition inside Phase 52. `[RESOLVED]`
+   - Why: The roadmap language about “reset ... back to pending until closure is reverified” is best honored by first moving rows to `Phase 48/49/50 -> Phase 52 (closure) | Pending`, then flipping those same rows to `Complete` in the same plan that refreshes `v1.9-MILESTONE-AUDIT.md` to passed state. This preserves the transient pending state without leaving `REQUIREMENTS.md` disagreeing with the final audit artifact. `[VERIFIED: .planning/ROADMAP.md][VERIFIED: .planning/phases/47-audit-traceability-metadata-backfill/47-02-PLAN.md][VERIFIED: .planning/milestones/v1.3-REQUIREMENTS.md]`
+   - Planning effect: Plan 01 prepares closure-owner rows in `Pending`; Plan 02 flips them to `Complete` only after the passed-state audit is written. `[RESOLVED]`
 
 ## Environment Availability
 
@@ -266,8 +266,8 @@ rg -n 'requirements_verified: \[PHX-02, PHX-03, PHX-04\]|49-01-SUMMARY.md|49-02-
 - **Phase gate:** refreshed `v1.9-MILESTONE-AUDIT.md` must agree with `REQUIREMENTS.md`, `ROADMAP.md`, and `STATE.md` before `/gsd-verify-work`. `[VERIFIED: .planning/phases/47-audit-traceability-metadata-backfill/47-VERIFICATION.md]`
 
 ### Wave 0 Gaps
-- [ ] Add a dedicated Phase 52 grep contract that names the final allowed status vocabulary across `REQUIREMENTS.md`, `ROADMAP.md`, `STATE.md`, `49-VALIDATION.md`, and `v1.9-MILESTONE-AUDIT.md`. `[ASSUMED]`
-- [ ] Decide whether `51-VALIDATION.md` is intentionally left partially unreconciled or is included in the cleanup scope. `[VERIFIED: .planning/phases/51-verification-artifact-closure/51-VALIDATION.md]`
+- [ ] Add a dedicated Phase 52 grep contract that names the final allowed status vocabulary across `REQUIREMENTS.md`, `ROADMAP.md`, `STATE.md`, `49-VALIDATION.md`, `52-VALIDATION.md`, and `v1.9-MILESTONE-AUDIT.md`. `[ASSUMED]`
+- [x] Keep `51-VALIDATION.md` out of scope; its row-status drift is non-blocking for the v1.9 audit because the active audit only calls out Phase 49 validation stale state. `[VERIFIED: .planning/v1.9-MILESTONE-AUDIT.md]`
 
 ## Security Domain
 

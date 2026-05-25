@@ -2,35 +2,45 @@
 
 ## Current State
 
-Milestone `v1.8 Resumable Browser Ingest` shipped on `2026-05-25` (Phases
-42-47, 27 plans, 20/20 requirements validated). Milestone
-`v1.9 Phoenix Tus DX Completion` opened on `2026-05-25` and narrows the next
-step deliberately: Rindle already ships the headless tus edge plus a thin
-LiveView helper seam, so the remaining gap is turning that shipped capability
-into an honest, first-class Phoenix adopter story with aligned docs, support
-truth, and proof.
+Milestone `v1.9 Phoenix Tus DX Completion` shipped on `2026-05-25` (Phases
+48-52, 10 plans, 7/7 requirements validated). Rindle now ships an explicit,
+truth-aligned Phoenix / LiveView tus adopter story on top of the previously
+shipped bare tus edge: the supported `Rindle.LiveView.allow_tus_upload/4`
+helper path, canonical `uploader: "RindleTus"` client flow, honest
+`uploading` / `verifying` / `ready` / `error` semantics, generated-app proof,
+and parity checks are all part of the documented public contract.
 
-## Current Milestone: v1.9 Phoenix Tus DX Completion
+No new milestone is open yet. Start the next milestone with
+`$gsd-new-milestone`, which will define fresh requirements and roadmap scope.
 
-**Goal:** Turn the shipped tus edge into an honest first-class Phoenix adopter
-story by reconciling planning/docs truth, tightening the LiveView/server
-integration contract, and proving the supported path end to end.
+## Next Milestone Goals
 
-**Target features:**
-- Truth-aligned docs and planning artifacts that distinguish the shipped bare
-  tus edge, the shipped thin `allow_tus_upload/4` helper seam, and any still-
-  deferred richer uploader abstractions.
-- A copy-pasteable Phoenix / LiveView tus integration contract that keeps the
-  existing `verify_completion/2` lane and makes the supported client uploader
-  and state model explicit.
-- Proof and parity coverage for the supported Phoenix-facing tus path, not only
-  the headless wire protocol proof.
-
-**Why now:** Provider and protocol breadth are now lower leverage than making
-the shipped tus surface feel complete, supportable, and truthful for Phoenix
-adopters.
+- Choose the next narrow wedge from the deferred queue instead of carrying
+  `v1.9` scope forward implicitly.
+- Prefer additive follow-on work that preserves the shipped Phoenix tus
+  contract: protocol extensions, lifecycle convenience APIs, or richer Phoenix
+  abstractions only when the next milestone explicitly selects them.
+- Keep the one trusted completion lane (`consume_uploaded_entries/3` into
+  `verify_completion/2`) and capability honesty intact while expanding scope.
 
 ## Recently Shipped Milestone
+
+<details>
+<summary>v1.9 Phoenix Tus DX Completion archive notes</summary>
+
+- Active planning/docs now describe the shipped Phoenix tus seam honestly
+  instead of treating the full LiveView path as deferred.
+- `Rindle.LiveView.allow_tus_upload/4` is now the documented supported
+  server-side entry point, and `uploader: "RindleTus"` is the canonical client
+  path.
+- The generated-app smoke lane now proves the documented Phoenix / LiveView
+  path end to end, and fast parity checks freeze guide/helper/proof drift.
+- Phases 48-50 now have explicit verification artifacts, and Phase 52
+  reconciled requirements, validation, roadmap, state, and audit truth for
+  clean archive.
+- Full artifacts live in `.planning/milestones/v1.9-*`.
+
+</details>
 
 <details>
 <summary>v1.8 Resumable Browser Ingest archive notes</summary>
@@ -214,7 +224,7 @@ To keep this posture durable across GSD workflows:
 
 ### Active (v1.9 Phoenix Tus DX Completion)
 
-In scope for `v1.9` (see `.planning/REQUIREMENTS.md` for the full list):
+Delivered in `v1.9` (see `.planning/milestones/v1.9-REQUIREMENTS.md`):
 - `PHX-*`: Phoenix / LiveView tus DX completion that makes the supported server
   setup, client uploader contract, and honest UI-state split explicit for
   adopters.
@@ -223,7 +233,7 @@ In scope for `v1.9` (see `.planning/REQUIREMENTS.md` for the full list):
 - `TRUTH-*`: planning/docs truth-alignment work so active project artifacts stop
   treating the already-shipped thin LiveView tus seam as wholly deferred.
 
-Deferred to `v1.10+` or out of scope for this milestone: tus Checksum /
+Deferred to `v1.10+` or out of scope after `v1.9`: tus Checksum /
 Concatenation / `Upload-Defer-Length`, IETF RUFH (tus 2.0), GCS-as-tus-
 backend, a Rindle-owned standalone tus JS client package, generic uploader UI
 kits beyond the supported helper path, first-class account erasure, a second
