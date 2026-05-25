@@ -2,7 +2,7 @@
 
 ## Milestones
 
-- 🚧 **v1.9 Phoenix Tus DX Completion** — Phases 48-50 (started 2026-05-25)
+- 🚧 **v1.9 Phoenix Tus DX Completion** — Phases 48-52 (started 2026-05-25)
 - ✅ **v1.8 Resumable Browser Ingest** — Phases 42–47 (shipped 2026-05-25, see archive)
 - ✅ **v1.7 GCS Resumable Adapter** — Phases 37–41 (shipped 2026-05-08, see archive)
 - ✅ **v1.6 Provider Boundary + Mux** — Phases 33–36 (shipped 2026-05-07, see archive)
@@ -30,13 +30,15 @@ shipped.
 
 ## Phase Plan
 
-**3 phases** | **7 requirements mapped** | All covered
+**5 phases** | **7 requirements mapped** | All covered
 
 | # | Phase | Goal | Requirements | Success Criteria |
 |---|-------|------|--------------|------------------|
 | 48 | Phoenix DX Contract + Truth Audit | Freeze the exact Phoenix tus support claim and remove stale "fully deferred" language from active planning surfaces. | `PHX-01`, `TRUTH-01` | 4 |
 | 49 | LiveView Tus Productization | 2/2 | Complete   | 2026-05-25 |
-| 50 | Phoenix Proof + Parity Closure | Prove the documented Phoenix path end to end and freeze it against future drift. | `PROOF-01`, `PROOF-02` | 4 |
+| 50 | Phoenix Proof + Parity Closure | 2/2 | Complete | 2026-05-25 |
+| 51 | Verification Artifact Closure | Rebuild the missing verification chain for shipped Phases 48-50 so audited requirements are no longer orphaned. | `PHX-01`, `TRUTH-01`, `PHX-02`, `PHX-03`, `PHX-04`, `PROOF-01`, `PROOF-02` | 4 |
+| 52 | Traceability And Validation Reconciliation | Bring traceability and Nyquist metadata back in sync with the shipped v1.9 evidence before re-audit. | None | 3 |
 
 ## Phase Details
 
@@ -95,18 +97,48 @@ Success criteria:
 4. Closing evidence makes the Phoenix tus support claim auditable without
    reading source history.
 
-**Plans:** 2 plans (planned 2026-05-25 by `/gsd-plan-phase 50`). Wave 1:
+**Plans:** 2/2 plans complete
 `50-01`; Wave 2: `50-02`.
 
 Plans:
-- [ ] 50-01-PLAN.md — elevate the existing generated-app `:tus` lane into the canonical Phoenix / LiveView proof with machine-readable report fields and preserved drop-and-resume evidence
-- [ ] 50-02-PLAN.md — add fast parity and local helper tests that freeze guide/helper/proof-field alignment, then rerun the full built-artifact tus lane
+- [x] 50-01-PLAN.md — elevate the existing generated-app `:tus` lane into the canonical Phoenix / LiveView proof with machine-readable report fields and preserved drop-and-resume evidence
+- [x] 50-02-PLAN.md — add fast parity and local helper tests that freeze guide/helper/proof-field alignment, then rerun the full built-artifact tus lane
+
+### Phase 51: Verification Artifact Closure
+Goal: rebuild the missing verification chain for already-shipped Phases 48-50 so
+the v1.9 audit can trace each scoped requirement through the normal closure
+artifacts.
+
+Success criteria:
+1. `48-VERIFICATION.md` exists and ties `PHX-01` and `TRUTH-01` to the shipped
+   Phase 48 evidence.
+2. `49-VERIFICATION.md` exists and ties `PHX-02`, `PHX-03`, and `PHX-04` to the
+   shipped Phase 49 evidence.
+3. `50-VERIFICATION.md` exists and ties `PROOF-01` and `PROOF-02` to the
+   shipped Phase 50 proof and parity evidence.
+4. Verification artifacts are explicit enough that a rerun milestone audit no
+   longer marks the v1.9 requirement set as orphaned.
+
+### Phase 52: Traceability And Validation Reconciliation
+Goal: reconcile planning metadata that still disagrees with the shipped v1.9
+evidence so the milestone can close cleanly after verification artifacts land.
+
+Success criteria:
+1. `.planning/REQUIREMENTS.md` traceability matches the gap-closure phase
+   ownership and resets shipped-but-orphaned requirements back to pending until
+   closure is reverified.
+2. `49-VALIDATION.md` reflects the actual completed phase state instead of the
+   stale draft/partial metadata noted by the audit.
+3. Roadmap and planning metadata tell one consistent closeout story before the
+   next milestone re-audit.
 
 ## Phase Completion
 
 - [x] **Phase 48: Phoenix DX Contract + Truth Audit** - Truth-align active planning/docs and freeze the exact support claim. (completed 2026-05-25)
 - [x] **Phase 49: LiveView Tus Productization** - Productize the supported helper path with copy-pasteable client/server guidance and honest UI semantics. (completed 2026-05-25)
-- [ ] **Phase 50: Phoenix Proof + Parity Closure** - Add package-consumer proof and parity gates for the documented Phoenix path.
+- [x] **Phase 50: Phoenix Proof + Parity Closure** - Add package-consumer proof and parity gates for the documented Phoenix path. (completed 2026-05-25)
+- [ ] **Phase 51: Verification Artifact Closure** - Generate the missing phase verification artifacts for shipped v1.9 work.
+- [ ] **Phase 52: Traceability And Validation Reconciliation** - Reconcile requirements and Nyquist metadata before re-audit.
 
 ## Deferred to v1.10+ / Later
 

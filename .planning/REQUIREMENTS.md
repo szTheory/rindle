@@ -35,18 +35,18 @@ to end.
 
 ### Phoenix Tus Contract
 
-- [x] **PHX-01**: Adopter can identify the supported Phoenix tus path from one
+- [ ] **PHX-01**: Adopter can identify the supported Phoenix tus path from one
       canonical guide without inferring that the entire LiveView story is still
       deferred.
-- [x] **PHX-02**: Adopter can configure a LiveView upload with
+- [ ] **PHX-02**: Adopter can configure a LiveView upload with
       `Rindle.LiveView.allow_tus_upload/4` using documented required options
       (`path`, `secret_key_base`, optional `actor`) and keep completion through
       `consume_uploaded_entries/3`.
-- [x] **PHX-03**: Adopter can drop in a documented `uploader: "RindleTus"`
+- [ ] **PHX-03**: Adopter can drop in a documented `uploader: "RindleTus"`
       client uploader or hook that reuses the signed `upload_url`, performs
       resume discovery, and reports byte progress without bypassing tus offset
       semantics.
-- [x] **PHX-04**: Adopter can render honest UI states that distinguish byte
+- [ ] **PHX-04**: Adopter can render honest UI states that distinguish byte
       transfer completion from server verification/readiness.
 
 ### Proof And Truth Alignment
@@ -57,7 +57,7 @@ to end.
 - [ ] **PROOF-02**: Docs parity tests freeze the supported LiveView tus
       contract so drift between guide, helper metadata, and proof harness fails
       fast.
-- [x] **TRUTH-01**: Active planning artifacts stop claiming the entire
+- [ ] **TRUTH-01**: Active planning artifacts stop claiming the entire
       LiveView tus path is deferred when the shipped helper already exists, and
       instead defer only richer future abstractions explicitly.
 
@@ -99,13 +99,13 @@ to end.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PHX-01 | Phase 48 | Complete (2026-05-25) |
-| TRUTH-01 | Phase 48 | Complete (2026-05-25) |
-| PHX-02 | Phase 49 | Complete |
-| PHX-03 | Phase 49 | Complete |
-| PHX-04 | Phase 49 | Complete |
-| PROOF-01 | Phase 50 | Pending |
-| PROOF-02 | Phase 50 | Pending |
+| PHX-01 | Phase 51 | Pending |
+| TRUTH-01 | Phase 51 | Pending |
+| PHX-02 | Phase 51 | Pending |
+| PHX-03 | Phase 51 | Pending |
+| PHX-04 | Phase 51 | Pending |
+| PROOF-01 | Phase 51 | Pending |
+| PROOF-02 | Phase 51 | Pending |
 
 **Coverage:**
 - v1.9 requirements: 7 total
@@ -114,4 +114,4 @@ to end.
 
 ---
 *Requirements defined: 2026-05-25*
-*Last updated: 2026-05-25 after Phase 48 truth-alignment execution*
+*Last updated: 2026-05-25 after v1.9 audit gap-closure phase planning*
