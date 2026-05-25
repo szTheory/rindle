@@ -35,7 +35,7 @@ shipped.
 | # | Phase | Goal | Requirements | Success Criteria |
 |---|-------|------|--------------|------------------|
 | 48 | Phoenix DX Contract + Truth Audit | Freeze the exact Phoenix tus support claim and remove stale "fully deferred" language from active planning surfaces. | `PHX-01`, `TRUTH-01` | 4 |
-| 49 | LiveView Tus Productization | Turn the existing helper seam into a copy-pasteable Phoenix-facing integration contract with honest uploader and UI-state guidance. | `PHX-02`, `PHX-03`, `PHX-04` | 4 |
+| 49 | LiveView Tus Productization | 2/2 | Complete   | 2026-05-25 |
 | 50 | Phoenix Proof + Parity Closure | Prove the documented Phoenix path end to end and freeze it against future drift. | `PROOF-01`, `PROOF-02` | 4 |
 
 ## Phase Details
@@ -75,12 +75,12 @@ Success criteria:
 4. The path still converges through the existing `consume_uploaded_entries/3`
    and `verify_completion/2` boundary with no silent alternate lifecycle.
 
-**Plans:** 2 plans (planned 2026-05-25 by `/gsd-plan-phase 49`). Wave 1:
+**Plans:** 2/2 plans complete
 `49-01`; Wave 2: `49-02`.
 
 Plans:
-- [ ] 49-01-PLAN.md — freeze the `allow_tus_upload/4` server-side contract in the canonical guide, keep `Rindle.LiveView` docs thin, and lock helper metadata plus optional actor behavior with unit tests
-- [ ] 49-02-PLAN.md — freeze the canonical `RindleTus` client snippet and honest `uploading`/`verifying`/`ready`/`error` vocabulary with explicit parity assertions
+- [x] 49-01-PLAN.md — freeze the `allow_tus_upload/4` server-side contract in the canonical guide, keep `Rindle.LiveView` docs thin, and lock helper metadata plus optional actor behavior with unit tests
+- [x] 49-02-PLAN.md — freeze the canonical `RindleTus` client snippet and honest `uploading`/`verifying`/`ready`/`error` vocabulary with explicit parity assertions
 
 ### Phase 50: Phoenix Proof + Parity Closure
 Goal: prove the documented Phoenix path end to end and freeze it against future
@@ -98,7 +98,7 @@ Success criteria:
 ## Phase Completion
 
 - [x] **Phase 48: Phoenix DX Contract + Truth Audit** - Truth-align active planning/docs and freeze the exact support claim. (completed 2026-05-25)
-- [ ] **Phase 49: LiveView Tus Productization** - Productize the supported helper path with copy-pasteable client/server guidance and honest UI semantics.
+- [x] **Phase 49: LiveView Tus Productization** - Productize the supported helper path with copy-pasteable client/server guidance and honest UI semantics. (completed 2026-05-25)
 - [ ] **Phase 50: Phoenix Proof + Parity Closure** - Add package-consumer proof and parity gates for the documented Phoenix path.
 
 ## Deferred to v1.10+ / Later

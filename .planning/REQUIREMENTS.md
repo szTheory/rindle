@@ -38,15 +38,15 @@ to end.
 - [x] **PHX-01**: Adopter can identify the supported Phoenix tus path from one
       canonical guide without inferring that the entire LiveView story is still
       deferred.
-- [ ] **PHX-02**: Adopter can configure a LiveView upload with
+- [x] **PHX-02**: Adopter can configure a LiveView upload with
       `Rindle.LiveView.allow_tus_upload/4` using documented required options
       (`path`, `secret_key_base`, optional `actor`) and keep completion through
       `consume_uploaded_entries/3`.
-- [ ] **PHX-03**: Adopter can drop in a documented `uploader: "RindleTus"`
+- [x] **PHX-03**: Adopter can drop in a documented `uploader: "RindleTus"`
       client uploader or hook that reuses the signed `upload_url`, performs
       resume discovery, and reports byte progress without bypassing tus offset
       semantics.
-- [ ] **PHX-04**: Adopter can render honest UI states that distinguish byte
+- [x] **PHX-04**: Adopter can render honest UI states that distinguish byte
       transfer completion from server verification/readiness.
 
 ### Proof And Truth Alignment
@@ -101,9 +101,9 @@ to end.
 |-------------|-------|--------|
 | PHX-01 | Phase 48 | Complete (2026-05-25) |
 | TRUTH-01 | Phase 48 | Complete (2026-05-25) |
-| PHX-02 | Phase 49 | Pending |
-| PHX-03 | Phase 49 | Pending |
-| PHX-04 | Phase 49 | Pending |
+| PHX-02 | Phase 49 | Complete |
+| PHX-03 | Phase 49 | Complete |
+| PHX-04 | Phase 49 | Complete |
 | PROOF-01 | Phase 50 | Pending |
 | PROOF-02 | Phase 50 | Pending |
 
