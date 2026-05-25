@@ -1,5 +1,5 @@
 ---
-status: passed
+status: complete
 phase: 43-s3-multipart-backing-minio-proof
 source: [43-VERIFICATION.md]
 started: 2026-05-23T13:44:32Z
@@ -8,7 +8,7 @@ updated: 2026-05-23T13:55:00Z
 
 ## Current Test
 
-[complete — all items passed against live MinIO]
+[testing complete]
 
 ## Tests
 
