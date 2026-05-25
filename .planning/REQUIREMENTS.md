@@ -116,7 +116,7 @@ resume-safe and converges into the one trusted `verify_completion/2` promote lan
   (a profile mounts `TusPlug` but its adapter lacks `:tus_upload`), mirroring the
   existing `--streaming` doctor checks.
 
-- [ ] **TUS-14**: A `guides/resumable_uploads.md` documents tus endpoint config
+- [x] **TUS-14**: A `guides/resumable_uploads.md` documents tus endpoint config
   (`Plug.Parsers :pass` for `application/offset+octet-stream`; CORS expose-headers
   `Upload-Offset`/`Location`/`Upload-Length`/`Tus-Resumable`/`Upload-Expires`;
   tus-js-client / `@uppy/tus` config incl. `removeFingerprintOnSuccess: true` +
@@ -206,7 +206,7 @@ Which phases cover which requirements. Phase numbering continues from v1.7
 | TUS-11 | Phase 44 — Auth Hardening, DX, Docs, Telemetry, CI Proof | Complete |
 | TUS-12 | Phase 44 — Auth Hardening, DX, Docs, Telemetry, CI Proof | Complete |
 | TUS-13 | Phase 44 — Auth Hardening, DX, Docs, Telemetry, CI Proof | Complete |
-| TUS-14 | Phase 46 — Generated-App tus Runtime Proof Recovery | Pending |
+| TUS-14 | Phase 46 — Generated-App tus Runtime Proof Recovery | Complete |
 | POLISH-02 | Phase 44 — Auth Hardening, DX, Docs, Telemetry, CI Proof | Complete |
 | MUX-20 | Phase 47 — Audit Traceability Metadata Backfill | Pending |
 | MUX-21 | Phase 47 — Audit Traceability Metadata Backfill | Pending |

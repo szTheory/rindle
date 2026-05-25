@@ -162,7 +162,10 @@ Plans:
   2. `bash scripts/install_smoke.sh tus` completes end-to-end against the real Node/MinIO lane and records a `ready` `MediaAsset` with the expected `byte_size` and `content_type`.
   3. Any proof harness, app-config, transport, or docs updates required to make the generated-app tus lane reproducible are captured in the relevant verification artifacts so the milestone audit has durable evidence.
 
-**Plans**: 0 plans
+**Plans**: 2 plans
+Plans:
+- [x] 46-01-PLAN.md — Rerun `bash scripts/install_smoke.sh tus` first, patch only the narrow install-smoke/runtime surface if red, and restore live `TUS-14` proof evidence [Wave 1]
+- [x] 46-02-PLAN.md — Reconcile the live rerun into Phase 46 verification/validation artifacts and explicitly supersede stale Phase 44 blocker evidence [Wave 2]
 **UI hint**: no
 
 ### Phase 47: Audit Traceability Metadata Backfill
@@ -194,7 +197,7 @@ metadata before re-audit.
 | 43. S3 Multipart Backing + MinIO Proof | v1.8 | 12/12 | Complete    | 2026-05-23 |
 | 44. Auth Hardening, DX, Docs, Telemetry, CI Proof | v1.8 | 3/3 | Gaps found | 2026-05-24 |
 | 45. Browser → Mux Direct Creator Upload (droppable) | v1.8 | 3/3 | Complete | 2026-05-24 |
-| 46. Generated-App tus Runtime Proof Recovery | v1.8 | 0/0 | Not started | — |
+| 46. Generated-App tus Runtime Proof Recovery | v1.8 | 2/2 | Complete    | 2026-05-25 |
 | 47. Audit Traceability Metadata Backfill | v1.8 | 0/0 | Not started | — |
 
 ## Carried Forward Candidates

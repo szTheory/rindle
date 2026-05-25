@@ -2,15 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.8
 milestone_name: Resumable Browser Ingest
-status: executing
-last_updated: "2026-05-24T16:34:02.187Z"
-last_activity: 2026-05-24 -- Phase 44 execution started
+status: ready_to_plan
+last_updated: 2026-05-25T04:29:02.628Z
+last_activity: 2026-05-25 -- Phase 46 execution started
 progress:
-  total_phases: 4
-  completed_phases: 3
-  total_plans: 23
-  completed_plans: 22
-  percent: 75
+  total_phases: 6
+  completed_phases: 4
+  total_plans: 25
+  completed_plans: 25
+  percent: 67
+stopped_at: Phase 46 complete (2/2) — ready to discuss Phase 47
 ---
 
 # Project State
@@ -20,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-22)
 
 **Core value:** Media, made durable.
-**Current focus:** Phase 44 — auth-hardening-dx-docs-telemetry-ci-proof
+**Current focus:** Phase 47 — audit traceability metadata backfill
 generated-app tus package-consumer proof (`TUS-14`). Phase 45 is now verified
 passed; the milestone is blocked only on the live install-smoke tus flow.
 
 ## Current Position
 
-Phase: 44 (auth-hardening-dx-docs-telemetry-ci-proof) — EXECUTING
-Plan: 1 of 4
-Status: Executing Phase 44
-Last activity: 2026-05-24 -- Phase 44 execution started
+Phase: 47
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-05-25
 
 Progress: [███████████████_____] 75% (3/4 phases verified complete; Phase 44 has one remaining proof gap)
 
