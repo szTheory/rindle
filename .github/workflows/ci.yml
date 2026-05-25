@@ -717,19 +717,37 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Detect live GCS secret availability
+        id: gcs-live-config
+        run: |
+          if [ -n "${GOOGLE_APPLICATION_CREDENTIALS_JSON}" ] && [ -n "${RINDLE_GCS_BUCKET}" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Skip live GCS soak when secrets are unavailable
+        if: steps.gcs-live-config.outputs.enabled != 'true'
+        run: |
+          echo "Skipping live GCS soak: GOOGLE_APPLICATION_CREDENTIALS_JSON and/or RINDLE_GCS_BUCKET are not configured."
+
       - name: Set up Elixir
+        if: steps.gcs-live-config.outputs.enabled == 'true'
         uses: erlef/setup-beam@v1
         with:
           elixir-version: "1.17"
           otp-version: "27"
 
       - name: Install libvips
+        if: steps.gcs-live-config.outputs.enabled == 'true'
         run: sudo apt-get update && sudo apt-get install -y libvips-dev
 
       - name: Install dependencies
+        if: steps.gcs-live-config.outputs.enabled == 'true'
         run: mix deps.get
 
       - name: Run GCS integration tests
+        if: steps.gcs-live-config.outputs.enabled == 'true'
         continue-on-error: true
         run: mix test --only gcs
 
@@ -769,16 +787,33 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Detect live GCS secret availability
+        id: gcs-live-config
+        run: |
+          if [ -n "${GOOGLE_APPLICATION_CREDENTIALS_JSON}" ] && [ -n "${RINDLE_GCS_BUCKET}" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Skip live package-consumer GCS proof when secrets are unavailable
+        if: steps.gcs-live-config.outputs.enabled != 'true'
+        run: |
+          echo "Skipping live package-consumer GCS proof: GOOGLE_APPLICATION_CREDENTIALS_JSON and/or RINDLE_GCS_BUCKET are not configured."
+
       - name: Set up Elixir
+        if: steps.gcs-live-config.outputs.enabled == 'true'
         uses: erlef/setup-beam@v1
         with:
           elixir-version: "1.17"
           otp-version: "27"
 
       - name: Install libvips
+        if: steps.gcs-live-config.outputs.enabled == 'true'
         run: sudo apt-get update && sudo apt-get install -y libvips-dev
 
       - name: Restore deps cache
+        if: steps.gcs-live-config.outputs.enabled == 'true'
         uses: actions/cache@v4
         with:
           path: deps
@@ -786,6 +821,7 @@ jobs:
           restore-keys: deps-${{ runner.os }}-1.17-27-
 
       - name: Restore build cache
+        if: steps.gcs-live-config.outputs.enabled == 'true'
         uses: actions/cache@v4
         with:
           path: _build
@@ -793,22 +829,25 @@ jobs:
           restore-keys: build-${{ runner.os }}-1.17-27-
 
       - name: Install dependencies
+        if: steps.gcs-live-config.outputs.enabled == 'true'
         run: mix deps.get
 
       - name: Authenticate for live GCS proof cleanup
+        if: steps.gcs-live-config.outputs.enabled == 'true'
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}
 
       - name: Set up gcloud for live GCS cleanup
+        if: steps.gcs-live-config.outputs.enabled == 'true'
         uses: google-github-actions/setup-gcloud@v2
 
       - name: Run live package-consumer GCS resumable proof without logging raw session_uri values
-        if: ${{ env.RINDLE_GCS_BUCKET != '' }}
+        if: steps.gcs-live-config.outputs.enabled == 'true'
         run: bash scripts/install_smoke.sh gcs
 
       - name: Always clean up live package-consumer GCS objects for this prefix
-        if: always()
+        if: ${{ always() && steps.gcs-live-config.outputs.enabled == 'true' }}
         run: |
           if [ -z "${RINDLE_GCS_BUCKET}" ] || [ ! -f "${RINDLE_INSTALL_SMOKE_GCS_CLEANUP_FILE}" ]; then
             exit 0
