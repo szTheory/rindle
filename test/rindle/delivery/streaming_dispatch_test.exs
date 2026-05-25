@@ -60,6 +60,22 @@ defmodule Rindle.Delivery.StreamingDispatchTest do
       ]
   end
 
+  defmodule DirectUploadStreamingProfile do
+    use Rindle.Profile,
+      storage: Rindle.StorageMock,
+      variants: [web: [kind: :video, preset: :web_720p]],
+      allow_mime: ["video/mp4"],
+      delivery: [
+        public: true,
+        streaming: [
+          provider: Rindle.Streaming.ProviderMock,
+          playback_policy: :signed,
+          ingest_mode: :direct_creator_upload,
+          source_variant: :web
+        ]
+      ]
+  end
+
   # CR-01 regression: profile with BOTH :streaming AND :authorizer configured.
   # Branch 5 must run the authorizer before calling the provider — otherwise
   # signed HLS URLs leak past the authorizer the profile declared.
@@ -441,6 +457,37 @@ defmodule Rindle.Delivery.StreamingDispatchTest do
       assert {:ok, %{kind: :hls}} = Rindle.Delivery.streaming_url(StreamingProfile, asset)
 
       refute_received {[:rindle, :delivery, :streaming, :config_drift], ^drift_ref, _, _}
+    end
+
+    test "direct_creator_upload rows still resolve signed playback once the provider row is ready" do
+      asset =
+        insert_asset!(%{
+          profile: inspect(DirectUploadStreamingProfile)
+        })
+
+      _row =
+        insert_provider_asset!(asset, DirectUploadStreamingProfile, %{
+          state: "ready",
+          playback_ids: ["pb-direct-1234"],
+          playback_policy: "signed",
+          ingest_mode: "direct_creator_upload"
+        })
+
+      expect(Rindle.Streaming.ProviderMock, :signed_playback_url, fn DirectUploadStreamingProfile,
+                                                                     "pb-direct-1234",
+                                                                     _opts ->
+        {:ok,
+         %{
+           url: "https://stream.example/pb-direct-1234.m3u8?token=ok",
+           kind: :hls,
+           mime: "application/vnd.apple.mpegurl"
+         }}
+      end)
+
+      assert {:ok, %{kind: :hls, url: url}} =
+               Rindle.Delivery.streaming_url(DirectUploadStreamingProfile, asset)
+
+      assert url =~ "pb-direct-1234"
     end
   end
 

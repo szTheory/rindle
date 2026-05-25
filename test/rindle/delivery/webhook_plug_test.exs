@@ -304,6 +304,26 @@ defmodule Rindle.Delivery.WebhookPlugTest do
 
       assert metadata.reason == :body_reader_missing
     end
+
+    test "missing body assign + oversized fallback body returns 500 and never accepts a partial payload",
+         _ctx do
+      oversized_body = String.duplicate("a", 1_048_577)
+
+      conn =
+        :post
+        |> PlugTest.conn("/", oversized_body)
+        |> Conn.put_req_header("content-type", "application/json")
+
+      conn = WebhookPlug.call(conn, init_opts([@secret]))
+
+      assert conn.status == 500
+      assert conn.resp_body == "server_misconfigured"
+
+      assert {:tele, [:rindle, :provider, :webhook, :rejected], _, metadata} =
+               last_telemetry([:rindle, :provider, :webhook, :rejected])
+
+      assert metadata.reason == :body_reader_missing
+    end
   end
 
   # ============================================================

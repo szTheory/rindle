@@ -49,6 +49,7 @@ defmodule Rindle.Domain.MediaUploadSession do
     field :state, :string, default: "initialized"
     field :upload_key, :string
     field :upload_strategy, :string, default: "presigned_put"
+    field :resumable_protocol, :string
     field :multipart_upload_id, :string
     field :multipart_parts, :map, default: %{}
     field :session_uri, :string
@@ -80,6 +81,7 @@ defmodule Rindle.Domain.MediaUploadSession do
       :state,
       :upload_key,
       :upload_strategy,
+      :resumable_protocol,
       :multipart_upload_id,
       :multipart_parts,
       :session_uri,

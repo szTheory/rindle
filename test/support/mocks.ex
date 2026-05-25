@@ -3,6 +3,7 @@ Mox.defmock(Rindle.ProcessorMock, for: Rindle.Processor)
 Mox.defmock(Rindle.AnalyzerMock, for: Rindle.Analyzer)
 Mox.defmock(Rindle.ScannerMock, for: Rindle.Scanner)
 Mox.defmock(Rindle.AuthorizerMock, for: Rindle.Authorizer)
+Mox.defmock(Rindle.TusResumeAuthorizerMock, for: Rindle.TusResumeAuthorizer)
 
 Mox.defmock(Rindle.Streaming.Provider.Mux.ClientMock,
   for: Rindle.Streaming.Provider.Mux.Client

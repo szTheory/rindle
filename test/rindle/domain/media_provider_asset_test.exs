@@ -16,7 +16,7 @@ defmodule Rindle.Domain.MediaProviderAssetTest do
 
       column_names = rows |> List.flatten() |> MapSet.new()
 
-      for col <- ~w(id asset_id profile provider_name provider_asset_id
+      for col <- ~w(id asset_id profile provider_name provider_asset_id mux_passthrough
                     playback_ids playback_policy ingest_mode state
                     last_event_id last_event_at last_sync_error
                     raw_provider_metadata inserted_at updated_at) do
@@ -37,6 +37,21 @@ defmodule Rindle.Domain.MediaProviderAssetTest do
       [[indexdef]] = rows
       assert indexdef =~ "WHERE"
       assert indexdef =~ "provider_asset_id IS NOT NULL"
+    end
+
+    test "partial-where unique index exists on (provider_name, mux_passthrough)" do
+      {:ok, %{rows: rows}} =
+        Rindle.Repo.query(
+          "SELECT indexdef FROM pg_indexes " <>
+            "WHERE tablename = 'media_provider_assets' " <>
+            "AND indexname = 'media_provider_assets_provider_name_mux_passthrough_index'",
+          []
+        )
+
+      assert length(rows) == 1
+      [[indexdef]] = rows
+      assert indexdef =~ "WHERE"
+      assert indexdef =~ "mux_passthrough IS NOT NULL"
     end
   end
 

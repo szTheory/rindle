@@ -178,6 +178,11 @@ The exact public event allowlist is:
 
 - `[:rindle, :upload, :start]`
 - `[:rindle, :upload, :stop]`
+- `[:rindle, :upload, :resumable, :start]`
+- `[:rindle, :upload, :resumable, :patch]`
+- `[:rindle, :upload, :resumable, :stop]`
+- `[:rindle, :upload, :resumable, :status]`
+- `[:rindle, :upload, :resumable, :cancel]`
 - `[:rindle, :asset, :state_change]`
 - `[:rindle, :variant, :state_change]`
 - `[:rindle, :delivery, :signed]`
@@ -200,6 +205,11 @@ measurement types requires a major version bump.
 | ---------------------------------------- | ---------------------------------------------- | ---------------------------------- |
 | `[:rindle, :upload, :start]`             | `Broker.initiate_session/2` (post-commit)      | `:profile`, `:adapter`             |
 | `[:rindle, :upload, :stop]`              | `Broker.verify_completion/2` (post-commit)     | `:profile`, `:adapter`             |
+| `[:rindle, :upload, :resumable, :start]` | Resumable/tus session initiated                | `:profile`, `:adapter`, `:state`, `:source`, `:protocol` |
+| `[:rindle, :upload, :resumable, :patch]` | Tus `PATCH` offset advanced                    | `:profile`, `:adapter`, `:state`, `:source`, `:outcome`, `:protocol` |
+| `[:rindle, :upload, :resumable, :stop]`  | Resumable/tus completion converged             | `:profile`, `:adapter`, `:outcome`, `:source`, `:protocol` |
+| `[:rindle, :upload, :resumable, :status]` | `Rindle.resumable_session_status/2` poll      | `:profile`, `:adapter`, `:state`, `:source`, `:outcome` |
+| `[:rindle, :upload, :resumable, :cancel]` | `Rindle.cancel_resumable_session/2`           | `:profile`, `:adapter`, `:outcome`, `:reason`, `:source` |
 | `[:rindle, :asset, :state_change]`       | Every `AssetFSM.transition/3` success          | `:profile`, `:adapter`, `:from`, `:to` |
 | `[:rindle, :variant, :state_change]`     | Every `VariantFSM.transition/3` success        | `:profile`, `:adapter`, `:from`, `:to` |
 | `[:rindle, :delivery, :signed]`          | `Delivery.url/3` success                       | `:profile`, `:adapter`, `:mode`    |

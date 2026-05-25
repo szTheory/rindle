@@ -17,6 +17,7 @@ This guide covers:
 - Adding `:mux` and `:jose` as optional deps
 - Creating your Mux signing key out-of-band
 - Configuring a profile via `Rindle.Profile.Presets.MuxWeb`
+- Configuring browser direct upload via `Rindle.Profile.Presets.MuxDirectUploadWeb`
 - Wiring the webhook plug end-to-end
 - Scheduling the sync coordinator cron worker
 - Local development with a webhook tunnel
@@ -130,6 +131,55 @@ are signed-playback by definition. Mux requires the source MP4 to be
 publicly fetchable for server-push ingest; Rindle generates a one-time
 signed source URL via `Rindle.Delivery.streaming_url/3` source-variant
 resolution and hands it to Mux's create-asset call.
+
+## 4.1 Browser Direct Upload to Mux
+
+Phase 45 adds the sibling preset `Rindle.Profile.Presets.MuxDirectUploadWeb`.
+It keeps the same Mux signed-playback posture but locks
+`ingest_mode: :direct_creator_upload` instead of `:server_push`.
+
+```elixir
+defmodule MyApp.DirectStreaming do
+  use Rindle.Profile.Presets.MuxDirectUploadWeb,
+    storage: Rindle.Storage.S3,
+    allow_mime: ["video/mp4", "video/quicktime", "video/webm"],
+    max_bytes: 524_288_000
+end
+```
+
+Controller/JSON is the baseline integration:
+
+```elixir
+def create(conn, %{"filename" => filename}) do
+  {:ok, %{upload_url: upload_url, asset_id: asset_id}} =
+    Rindle.Streaming.create_direct_upload(MyApp.DirectStreaming,
+      filename: filename,
+      cors_origin: "#{conn.scheme}://#{conn.host}"
+    )
+
+  json(conn, %{endpoint: upload_url, asset_id: asset_id})
+end
+```
+
+The browser must receive only the one-time `endpoint` and the durable
+Rindle `asset_id`. Never surface raw Mux ids in your JSON or templates.
+Each upload needs a fresh URL; do not reuse one after a failed or completed
+attempt.
+
+`Rindle.LiveView.allow_direct_upload/4` is the convenience wrapper over the
+same contract. It configures a LiveView `:external` upload and returns
+browser-safe metadata for an UpChunk-style client.
+
+Visible state copy is locked:
+
+- `Requesting upload URL...`
+- `Uploading to Mux...`
+- `Upload received. Linking provider asset...`
+- `Asset linked. Preparing playback...`
+
+Provider readiness is webhook-driven. A successful browser PUT does not mean
+the asset is playable yet; subscribe to `:provider_asset` / `:asset` PubSub
+events or poll the same state model until `:provider_asset_ready` arrives.
 
 ## 5. Wire the Webhook Plug
 

@@ -70,6 +70,9 @@ defmodule Rindle.Contracts.TelemetryContractTest do
   @public_events [
     [:rindle, :upload, :start],
     [:rindle, :upload, :stop],
+    [:rindle, :upload, :resumable, :start],
+    [:rindle, :upload, :resumable, :patch],
+    [:rindle, :upload, :resumable, :stop],
     [:rindle, :upload, :resumable, :status],
     [:rindle, :upload, :resumable, :cancel],
     [:rindle, :asset, :state_change],
@@ -97,8 +100,11 @@ defmodule Rindle.Contracts.TelemetryContractTest do
 
   describe "public event allowlist" do
     test "is exactly the documented public contract" do
-      assert length(@public_events) == 18
+      assert length(@public_events) == 21
 
+      assert [:rindle, :upload, :resumable, :start] in @public_events
+      assert [:rindle, :upload, :resumable, :patch] in @public_events
+      assert [:rindle, :upload, :resumable, :stop] in @public_events
       assert [:rindle, :upload, :resumable, :status] in @public_events
       assert [:rindle, :upload, :resumable, :cancel] in @public_events
 
@@ -251,12 +257,51 @@ defmodule Rindle.Contracts.TelemetryContractTest do
         %{duration_us: 42}
       )
 
+      ResumableTelemetry.emit_start(
+        "TestProfile",
+        Rindle.Storage.GCS,
+        session,
+        %{state: "signed", source: :broker, protocol: :tus},
+        %{}
+      )
+
+      ResumableTelemetry.emit_patch(
+        "TestProfile",
+        Rindle.Storage.GCS,
+        session,
+        %{state: "signed", source: :patch, outcome: :ok, protocol: :tus},
+        %{committed_bytes: 256, offset_delta: 128}
+      )
+
+      ResumableTelemetry.emit_stop(
+        "TestProfile",
+        Rindle.Storage.GCS,
+        session,
+        %{outcome: :ok, source: :verify_completion, protocol: :tus},
+        %{committed_bytes: 256}
+      )
+
+      assert_received {[:rindle, :upload, :resumable, :start], ^ref, start_measurements,
+                       start_metadata}
+
+      assert_received {[:rindle, :upload, :resumable, :patch], ^ref, patch_measurements,
+                       patch_metadata}
+
+      assert_received {[:rindle, :upload, :resumable, :stop], ^ref, stop_measurements,
+                       stop_metadata}
+
       assert_received {[:rindle, :upload, :resumable, :status], ^ref, status_measurements,
                        status_metadata}
 
       assert_received {[:rindle, :upload, :resumable, :cancel], ^ref, cancel_measurements,
                        cancel_metadata}
 
+      assert_required_metadata_keys(start_metadata)
+      assert_required_metadata_keys(patch_metadata)
+      assert_required_metadata_keys(stop_metadata)
+      assert_numeric_measurements(start_measurements)
+      assert_numeric_measurements(patch_measurements)
+      assert_numeric_measurements(stop_measurements)
       assert_required_metadata_keys(status_metadata)
       assert_required_metadata_keys(cancel_metadata)
       assert_numeric_measurements(status_measurements)

@@ -3,10 +3,72 @@ defmodule Rindle.Upload.ResumableTelemetry do
 
   alias Rindle.Domain.MediaUploadSession
 
+  @start_event [:rindle, :upload, :resumable, :start]
+  @patch_event [:rindle, :upload, :resumable, :patch]
+  @stop_event [:rindle, :upload, :resumable, :stop]
   @status_event [:rindle, :upload, :resumable, :status]
   @cancel_event [:rindle, :upload, :resumable, :cancel]
-  @allowed_metadata_keys [:state, :outcome, :reason, :source]
+  @allowed_metadata_keys [:state, :outcome, :reason, :source, :protocol]
   @forbidden_metadata_keys [:session_uri, :upload_key, :headers, :body, :session_id]
+
+  @spec emit_start(
+          term(),
+          term(),
+          MediaUploadSession.t() | nil,
+          map() | keyword(),
+          map() | keyword()
+        ) :: :ok
+  def emit_start(profile, adapter, session_or_nil, metadata_overrides, measurements_overrides) do
+    measurements =
+      measurements_overrides
+      |> normalize_map()
+      |> Map.take([:system_time])
+      |> Map.put_new(:system_time, System.system_time())
+
+    emit(@start_event, profile, adapter, session_or_nil, metadata_overrides, measurements)
+  end
+
+  @spec emit_patch(
+          term(),
+          term(),
+          MediaUploadSession.t() | nil,
+          map() | keyword(),
+          map() | keyword()
+        ) :: :ok
+  def emit_patch(profile, adapter, session_or_nil, metadata_overrides, measurements_overrides) do
+    measurements =
+      measurements_overrides
+      |> normalize_map()
+      |> Map.take([:committed_bytes, :offset_delta, :system_time])
+      |> Map.put_new(:system_time, System.system_time())
+      |> then(fn measurements ->
+        %{committed_bytes: Map.fetch!(measurements, :committed_bytes)}
+        |> Map.merge(Map.take(measurements, [:offset_delta, :system_time]))
+      end)
+
+    emit(@patch_event, profile, adapter, session_or_nil, metadata_overrides, measurements)
+  end
+
+  @spec emit_stop(
+          term(),
+          term(),
+          MediaUploadSession.t() | nil,
+          map() | keyword(),
+          map() | keyword()
+        ) :: :ok
+  def emit_stop(profile, adapter, session_or_nil, metadata_overrides, measurements_overrides) do
+    measurements =
+      measurements_overrides
+      |> normalize_map()
+      |> Map.take([:committed_bytes, :system_time])
+      |> Map.put_new(:system_time, System.system_time())
+      |> then(fn measurements ->
+        %{committed_bytes: Map.fetch!(measurements, :committed_bytes)}
+        |> Map.merge(Map.take(measurements, [:system_time]))
+      end)
+
+    emit(@stop_event, profile, adapter, session_or_nil, metadata_overrides, measurements)
+  end
 
   @spec emit_status(
           term(),

@@ -17,7 +17,7 @@ trap cleanup EXIT
 cd "$ROOT_DIR"
 
 case "$PROFILE" in
-  all|image|video|mux|gcs) ;;
+  all|image|video|tus|mux|gcs) ;;
   *)
     echo "unsupported install smoke profile: $PROFILE" >&2
     exit 1
@@ -45,6 +45,19 @@ export RINDLE_INSTALL_SMOKE_PACKAGE_ROOT="$PACKAGE_ROOT"
 
 if [ "$PROFILE" = "gcs" ]; then
   mix test test/install_smoke/generated_app_smoke_test.exs
+  status=$?
 else
   mix test test/install_smoke/generated_app_smoke_test.exs --include minio
+  status=$?
 fi
+
+if [ "$status" -ne 0 ] && [ "$PROFILE" = "tus" ]; then
+  hint_file="$ROOT_DIR/tmp/install_smoke_tus_last_run.json"
+
+  if [ -f "$hint_file" ]; then
+    echo "tus install-smoke artifacts:" >&2
+    cat "$hint_file" >&2
+  fi
+fi
+
+exit "$status"

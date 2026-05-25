@@ -144,6 +144,24 @@ defmodule Rindle.Ops.UploadMaintenanceTest do
     )
   end
 
+  # A tus session is upload_strategy: "resumable" + resumable_protocol: "tus",
+  # backed by an S3 multipart upload (multipart_upload_id stamped between PATCHes)
+  # or Local (no upload_id). It sits in "signed" through PATCHes.
+  defp create_tus_session(asset, overrides) do
+    create_session(
+      asset,
+      Map.merge(
+        %{
+          state: "signed",
+          upload_strategy: "resumable",
+          resumable_protocol: "tus",
+          multipart_upload_id: "tus-upload-#{System.unique_integer([:positive])}"
+        },
+        overrides
+      )
+    )
+  end
+
   defp expired_at, do: DateTime.add(DateTime.utc_now(), -100, :second)
 
   # ---------------------------------------------------------------------------
@@ -659,6 +677,106 @@ defmodule Rindle.Ops.UploadMaintenanceTest do
       assert updated.failure_reason == nil
     end
 
+    # -------------------------------------------------------------------------
+    # TUS-09 reaper branch: tus sessions abort the S3 multipart upload, NOT the
+    # provider-direct resumable session URI. EXPECTED RED until Plan 03 adds the
+    # `tus_session?/1` branch to expire_session/2 — today a tus session matches
+    # resumable_abort_session?/1 and is mis-routed to cancel_resumable_upload via
+    # resolve_resumable_adapter (which requires the :resumable_upload_session cap
+    # S3/Local do NOT advertise) -> the S3 multipart is never aborted -> LEAK.
+    # -------------------------------------------------------------------------
+
+    test "aborts an expired tus session via abort_multipart_upload, not cancel_resumable_upload" do
+      asset = create_asset()
+      session = create_tus_session(asset, %{expires_at: expired_at()})
+
+      # The load-bearing assertion: tus sessions route to the multipart abort
+      # (S3 backing), NOT the GCS-native session cancel. cancel_resumable_upload
+      # must never be invoked for a tus session.
+      expect(Rindle.StorageMock, :abort_multipart_upload, fn key, upload_id, _opts ->
+        assert key == session.upload_key
+        assert upload_id == session.multipart_upload_id
+        {:ok, :aborted}
+      end)
+
+      {:ok, report} = UploadMaintenance.abort_incomplete_uploads([])
+
+      assert report.sessions_aborted == 1
+
+      updated = AdopterRepo.get!(MediaUploadSession, session.id)
+      assert updated.state == "expired"
+    end
+
+    test "treats a tus multipart abort returning not_found as idempotent expiry" do
+      asset = create_asset()
+      session = create_tus_session(asset, %{expires_at: expired_at()})
+
+      expect(Rindle.StorageMock, :abort_multipart_upload, fn _key, _upload_id, _opts ->
+        {:error, :not_found}
+      end)
+
+      {:ok, report} = UploadMaintenance.abort_incomplete_uploads([])
+
+      assert report.sessions_aborted == 1
+      assert report.abort_errors == 0
+
+      updated = AdopterRepo.get!(MediaUploadSession, session.id)
+      assert updated.state == "expired"
+    end
+
+    test "a gcs_native resumable session still routes through cancel_resumable_upload" do
+      asset = create_asset()
+
+      session =
+        create_resumable_session(asset, %{
+          state: "resuming",
+          resumable_protocol: "gcs_native",
+          expires_at: expired_at()
+        })
+
+      expect(Rindle.StorageMock, :capabilities, fn -> [:resumable_upload_session] end)
+
+      expect(Rindle.StorageMock, :cancel_resumable_upload, fn key, session_uri, _opts ->
+        assert key == session.upload_key
+        assert session_uri == session.session_uri
+        {:ok, %{cancelled: true}}
+      end)
+
+      {:ok, report} = UploadMaintenance.abort_incomplete_uploads([])
+
+      assert report.sessions_aborted == 1
+      assert report.resumable_aborts == 1
+
+      updated = AdopterRepo.get!(MediaUploadSession, session.id)
+      assert updated.state == "expired"
+      assert updated.session_uri == nil
+    end
+
+    test "a legacy nil-protocol resumable session keeps the existing cancel path unchanged" do
+      asset = create_asset()
+
+      session =
+        create_resumable_session(asset, %{
+          state: "resuming",
+          resumable_protocol: nil,
+          expires_at: expired_at()
+        })
+
+      expect(Rindle.StorageMock, :capabilities, fn -> [:resumable_upload_session] end)
+
+      expect(Rindle.StorageMock, :cancel_resumable_upload, fn _key, _session_uri, _opts ->
+        {:ok, %{cancelled: true}}
+      end)
+
+      {:ok, report} = UploadMaintenance.abort_incomplete_uploads([])
+
+      assert report.sessions_aborted == 1
+      assert report.resumable_aborts == 1
+
+      updated = AdopterRepo.get!(MediaUploadSession, session.id)
+      assert updated.state == "expired"
+    end
+
     test "returns error tuple when repo raises" do
       # Simulate an error by calling with a bad repo — we just verify the shape
       # via the normal success path being {:ok, map}
@@ -676,6 +794,339 @@ defmodule Rindle.Ops.UploadMaintenanceTest do
       # A direct unit-style assertion: the FSM disallows `uploaded -> expired`.
       assert {:error, {:invalid_transition, "uploaded", "expired"}} =
                UploadSessionFSM.transition("uploaded", "expired", %{})
+    end
+  end
+
+  describe "tus reaper cleanup (CR-02/WR-01 regression)" do
+    # -------------------------------------------------------------------------
+    # CR-02: the reaper must delete the REAL adapter-written tail file. The S3
+    # PATCH lane writes the tail to `S3.tus_tail_path(session_id, root: ROOT)`
+    # (base64url-encoded under <root>/tus/), so the reaper must compute the SAME
+    # encoding at the SAME root. Pre-fix `remove_tus_tail/1` targeted the raw
+    # `<session_id>.tail` path under the default `TempRunDir.root_dir()`, which
+    # never matched the adapter-written file -> the tail leaked. This test pins
+    # an explicit ROOT through BOTH the write path and the reaper's delete path
+    # so write-path root == delete-path root is proven, not assumed.
+    # -------------------------------------------------------------------------
+
+    test "deletes the adapter-written tail file at the SAME root the write path used" do
+      tmp_dir =
+        Path.join(System.tmp_dir!(), "rindle-tus-cr02-#{System.unique_integer([:positive])}")
+
+      previous_tmp_dir = Application.get_env(:rindle, :tmp_dir)
+      Application.put_env(:rindle, :tmp_dir, tmp_dir)
+
+      on_exit(fn ->
+        case previous_tmp_dir do
+          nil -> Application.delete_env(:rindle, :tmp_dir)
+          value -> Application.put_env(:rindle, :tmp_dir, value)
+        end
+
+        File.rm_rf(tmp_dir)
+      end)
+
+      asset = create_asset()
+      session = create_tus_session(asset, %{expires_at: expired_at()})
+
+      # The reaper resolves the S3 tail root from the adapter default, which is
+      # `Rindle.AV.TempRunDir.root_dir()` (now pinned to our per-test tmp_dir).
+      # Write the tail via the adapter's OWN canonical path computation at that
+      # SAME root so the write-path root is provably identical to the delete-path
+      # root the reaper computes.
+      root = Rindle.AV.TempRunDir.root_dir()
+      tail_path = Rindle.Storage.S3.tus_tail_path(session.id, root: root)
+      File.mkdir_p!(Path.dirname(tail_path))
+      File.write!(tail_path, "tail-bytes")
+      assert File.exists?(tail_path)
+
+      expect(Rindle.StorageMock, :abort_multipart_upload, fn _key, _upload_id, _opts ->
+        {:ok, :aborted}
+      end)
+
+      {:ok, report} = UploadMaintenance.abort_incomplete_uploads([])
+
+      assert report.sessions_aborted == 1
+      # The real adapter-written tail at the SAME root is gone after the reap.
+      refute File.exists?(tail_path),
+             "expected reaper to delete the adapter-written tail at #{tail_path} (write-path root == delete-path root)"
+    end
+
+    # -------------------------------------------------------------------------
+    # WR-01: tus expiry must be gated through `UploadSessionFSM.transition/3`
+    # exactly like the standard expiry path. Pre-fix `do_expire_tus_session/2`
+    # called `MediaUploadSession.changeset(.., %{state: "expired"})` directly,
+    # skipping the FSM invariant. A tus session surfaced in a state from which
+    # `expired` is FORBIDDEN (here `aborted`, surfaced by the retryable-abort
+    # query) must NOT be flipped — it must increment `abort_errors` instead.
+    # Pre-fix the ungated update silently violates the FSM contract (RED).
+    # -------------------------------------------------------------------------
+
+    test "gates tus expiry through the FSM and refuses an FSM-forbidden transition" do
+      asset = create_asset()
+
+      # `aborted` tus sessions with a resumable_cancel_failed failure_reason are
+      # surfaced by the retryable-abort query and route to the tus branch
+      # (tus_session?/1 is checked first). FSM: aborted -> expired is forbidden.
+      session =
+        create_tus_session(asset, %{
+          state: "aborted",
+          session_uri: "https://storage.example/upload/#{System.unique_integer([:positive])}",
+          failure_reason: "resumable_cancel_failed:transport"
+        })
+
+      expect(Rindle.StorageMock, :abort_multipart_upload, fn _key, _upload_id, _opts ->
+        {:ok, :aborted}
+      end)
+
+      {:ok, report} = UploadMaintenance.abort_incomplete_uploads([])
+
+      # The FSM gate rejected aborted -> expired: the row was NOT flipped and the
+      # rejection was counted as an abort error.
+      assert report.abort_errors >= 1
+      assert report.sessions_aborted == 0
+
+      updated = AdopterRepo.get!(MediaUploadSession, session.id)
+      assert updated.state == "aborted"
+    end
+  end
+
+  describe "tus backing abort root resolution + shared helper (IN-03/CR-01 regression)" do
+    # -------------------------------------------------------------------------
+    # IN-03: a Local-backed tus session (no multipart_upload_id) abort must
+    # resolve the part path against the upload's ACTUAL root, not the bare empty
+    # opts default. Pre-fix `abort_tus_backing/1`'s Local branch called
+    # `Local.tus_part_path(session.id, [])`, leaving the part file at a
+    # mismatched root un-removed when the upload root differs. After the fix the
+    # reaper resolves the Local root from the session's profile/adapter and the
+    # part file at THAT resolved root is removed.
+    # -------------------------------------------------------------------------
+
+    test "Local-backed tus abort removes the part file at the resolved upload root" do
+      custom_root =
+        Path.join(System.tmp_dir!(), "rindle-tus-in03-#{System.unique_integer([:positive])}")
+
+      previous_local_cfg = Application.get_env(:rindle, Rindle.Storage.Local)
+      Application.put_env(:rindle, Rindle.Storage.Local, root: custom_root)
+
+      on_exit(fn ->
+        case previous_local_cfg do
+          nil -> Application.delete_env(:rindle, Rindle.Storage.Local)
+          value -> Application.put_env(:rindle, Rindle.Storage.Local, value)
+        end
+
+        File.rm_rf(custom_root)
+      end)
+
+      asset = create_asset()
+
+      # Local-backed tus session: no multipart_upload_id, so the abort takes the
+      # Local part-removal branch.
+      session =
+        create_tus_session(asset, %{
+          expires_at: expired_at(),
+          multipart_upload_id: nil
+        })
+
+      # The resolved upload root is the profile/adapter-resolved Local root
+      # (the custom root configured above), NOT the bare-`[]` default.
+      resolved_root = Rindle.Storage.Local.root([])
+      part_path = Rindle.Storage.Local.tus_part_path(session.id, root: resolved_root)
+      tail_path = Rindle.Storage.S3.tus_tail_path(session.id, root: resolved_root)
+
+      File.mkdir_p!(Path.dirname(part_path))
+      File.write!(part_path, "part-bytes")
+      File.write!(tail_path, "tail-bytes")
+      assert File.exists?(part_path)
+
+      {:ok, report} = UploadMaintenance.abort_incomplete_uploads([])
+
+      assert report.sessions_aborted == 1
+
+      refute File.exists?(part_path),
+             "expected Local abort to remove the part file at the resolved upload root #{part_path}"
+
+      refute File.exists?(tail_path)
+    end
+
+    # -------------------------------------------------------------------------
+    # CR-01 (shared helper): the PUBLIC abort_tus_backing(session, opts) is the
+    # SAME polymorphic abort the tus DELETE path (43-09) will call with an
+    # explicit adapter+root it already holds — proving 43-09 needs no DB profile
+    # re-resolution. This exercises the EXACT call shape 43-09 invokes:
+    #   abort_tus_backing(session, adapter: ..., root: ..., upload_id: ...)
+    # Pre-fix there is no PUBLIC arity-2 helper (only the private arity-1 reaper
+    # form), so this call shape does not exist (RED).
+    # -------------------------------------------------------------------------
+
+    test "PUBLIC abort_tus_backing/2 performs the S3 multipart abort with explicit opts" do
+      custom_root =
+        Path.join(System.tmp_dir!(), "rindle-tus-helper-s3-#{System.unique_integer([:positive])}")
+
+      on_exit(fn -> File.rm_rf(custom_root) end)
+
+      asset = create_asset()
+
+      session =
+        create_tus_session(asset, %{
+          multipart_upload_id: "tus-helper-#{System.unique_integer([:positive])}"
+        })
+
+      tail_path = Rindle.Storage.S3.tus_tail_path(session.id, root: custom_root)
+      File.mkdir_p!(Path.dirname(tail_path))
+      File.write!(tail_path, "tail-bytes")
+
+      expect(Rindle.StorageMock, :abort_multipart_upload, fn key, upload_id, _opts ->
+        assert key == session.upload_key
+        assert upload_id == session.multipart_upload_id
+        {:ok, :aborted}
+      end)
+
+      # The EXACT shape 43-09 invokes.
+      assert :ok =
+               UploadMaintenance.abort_tus_backing(session,
+                 adapter: Rindle.StorageMock,
+                 root: custom_root,
+                 upload_id: session.multipart_upload_id
+               )
+
+      refute File.exists?(tail_path)
+    end
+
+    test "PUBLIC abort_tus_backing/2 removes the Local part + tail at the explicit root" do
+      custom_root =
+        Path.join(
+          System.tmp_dir!(),
+          "rindle-tus-helper-local-#{System.unique_integer([:positive])}"
+        )
+
+      on_exit(fn -> File.rm_rf(custom_root) end)
+
+      asset = create_asset()
+      session = create_tus_session(asset, %{multipart_upload_id: nil})
+
+      part_path = Rindle.Storage.Local.tus_part_path(session.id, root: custom_root)
+      tail_path = Rindle.Storage.S3.tus_tail_path(session.id, root: custom_root)
+      File.mkdir_p!(Path.dirname(part_path))
+      File.write!(part_path, "part-bytes")
+      File.write!(tail_path, "tail-bytes")
+
+      # Local case: upload_id nil, no adapter call. The DELETE path can pass an
+      # explicit root it already holds, with no DB profile re-resolution.
+      assert :ok =
+               UploadMaintenance.abort_tus_backing(session,
+                 adapter: nil,
+                 root: custom_root,
+                 upload_id: nil
+               )
+
+      refute File.exists?(part_path)
+      refute File.exists?(tail_path)
+    end
+  end
+
+  describe "tus DELETE-time abort-failure recovery (CR-01 reaper half / WR-03)" do
+    # -------------------------------------------------------------------------
+    # CR-01 (reaper half): a tus DELETE whose backing abort failed transiently
+    # leaves the row in state="aborted" with a retryable `tus_abort_failed:%`
+    # marker (written by tus_plug.ex). The reaper MUST re-select such a row,
+    # re-invoke abort_multipart_upload, and on success settle it WITHOUT an
+    # FSM-forbidden aborted->expired transition (WR-03). Pre-fix the
+    # `fetch_retryable_tus_abort_sessions/0` query does not exist, so the row is
+    # never selected and the Mox expect goes unsatisfied -> RED.
+    # -------------------------------------------------------------------------
+
+    test "re-selects + re-aborts an aborted tus session carrying the tus_abort_failed marker, then settles it (WR-03: no FSM-forbidden transition)" do
+      asset = create_asset()
+
+      session =
+        create_tus_session(asset, %{
+          state: "aborted",
+          failure_reason: "tus_abort_failed:transport"
+        })
+
+      # The load-bearing CR-01 proof: the orphaned multipart is re-aborted with
+      # the session's upload_key + multipart_upload_id.
+      expect(Rindle.StorageMock, :abort_multipart_upload, fn key, upload_id, _opts ->
+        assert key == session.upload_key
+        assert upload_id == session.multipart_upload_id
+        {:ok, :aborted}
+      end)
+
+      {:ok, report} = UploadMaintenance.abort_incomplete_uploads([])
+
+      assert report.sessions_found == 1
+      assert report.sessions_aborted == 1
+      # WR-03: the settle path bypasses the FSM gate, so NO invalid-transition
+      # was attempted -> abort_errors stays 0.
+      assert report.abort_errors == 0
+      assert report.resumable_aborts == 1
+
+      updated = AdopterRepo.get!(MediaUploadSession, session.id)
+      assert updated.state == "expired"
+      assert updated.failure_reason == nil
+    end
+
+    test "treats a re-abort returning not_found as idempotent success and settles the row" do
+      asset = create_asset()
+
+      session =
+        create_tus_session(asset, %{
+          state: "aborted",
+          failure_reason: "tus_abort_failed:transport"
+        })
+
+      expect(Rindle.StorageMock, :abort_multipart_upload, fn _key, _upload_id, _opts ->
+        {:error, :not_found}
+      end)
+
+      {:ok, report} = UploadMaintenance.abort_incomplete_uploads([])
+
+      assert report.sessions_aborted == 1
+      assert report.abort_errors == 0
+
+      updated = AdopterRepo.get!(MediaUploadSession, session.id)
+      assert updated.state == "expired"
+      assert updated.failure_reason == nil
+    end
+
+    test "a re-abort that still fails keeps the row aborted with the marker intact (re-selectable next cron, no new permanent orphan)" do
+      asset = create_asset()
+
+      session =
+        create_tus_session(asset, %{
+          state: "aborted",
+          failure_reason: "tus_abort_failed:transport"
+        })
+
+      expect(Rindle.StorageMock, :abort_multipart_upload, fn _key, _upload_id, _opts ->
+        {:error, :transport}
+      end)
+
+      {:ok, report} = UploadMaintenance.abort_incomplete_uploads([])
+
+      assert report.sessions_aborted == 0
+      assert report.abort_errors == 1
+
+      updated = AdopterRepo.get!(MediaUploadSession, session.id)
+      # Still aborted, marker intact -> re-selectable on the next cron.
+      assert updated.state == "aborted"
+      assert updated.failure_reason == "tus_abort_failed:transport"
+    end
+
+    test "does NOT re-select a clean aborted tus session whose abort succeeded (failure_reason nil) — keys on the marker, not state==aborted" do
+      asset = create_asset()
+
+      _session =
+        create_tus_session(asset, %{
+          state: "aborted",
+          failure_reason: nil
+        })
+
+      # No Mox expect: a clean cancel must NEVER be re-aborted (no double-abort).
+      {:ok, report} = UploadMaintenance.abort_incomplete_uploads([])
+
+      assert report.sessions_found == 0
+      assert report.sessions_aborted == 0
     end
   end
 

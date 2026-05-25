@@ -57,7 +57,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     @type consume_result :: {:ok, term()} | {:postpone, term()}
     @type consume_func :: (Phoenix.LiveView.UploadEntry.t(), map() -> consume_result())
-    @type subscription_scope :: :variant | :asset | :upload_session
+    @type subscription_scope :: :variant | :asset | :provider_asset | :upload_session
 
     @doc """
     Configures an upload on the socket with Rindle's external upload signer.
@@ -91,6 +91,30 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     @doc """
+    Configures a LiveView external upload backed by
+    `Rindle.Streaming.create_direct_upload/2`.
+
+    Requires a `:cors_origin` option as either a binary origin string or a
+    1-arity function that receives the socket.
+    """
+    @spec allow_direct_upload(Phoenix.LiveView.Socket.t(), atom(), module(), keyword()) ::
+            Phoenix.LiveView.Socket.t()
+    def allow_direct_upload(socket, name, profile, opts \\ []) do
+      cors_origin = Keyword.get(opts, :cors_origin)
+
+      external_fn = fn entry, socket ->
+        do_allow_direct_upload(entry, socket, profile, cors_origin)
+      end
+
+      merged_opts =
+        opts
+        |> Keyword.delete(:cors_origin)
+        |> Keyword.merge(external: external_fn)
+
+      Upload.allow_upload(socket, name, merged_opts)
+    end
+
+    @doc """
     Subscribes the current process to a Rindle PubSub topic for a supported scope.
 
     Supported scopes are `:variant`, `:asset`, and `:upload_session`. The
@@ -99,6 +123,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     @spec subscribe(subscription_scope(), term()) :: String.t()
     def subscribe(:variant, id), do: subscribe_topic(topic_for(:variant, id))
     def subscribe(:asset, id), do: subscribe_topic(topic_for(:asset, id))
+    def subscribe(:provider_asset, id), do: subscribe_topic(topic_for(:provider_asset, id))
     def subscribe(:upload_session, id), do: subscribe_topic(topic_for(:upload_session, id))
 
     @doc """
@@ -118,6 +143,32 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         {:error, reason} ->
           log_upload_error("initiate", reason)
+          {:error, %{reason: "upload_unavailable", code: "upload_init_failed"}, socket}
+      end
+    end
+
+    defp do_allow_direct_upload(entry, socket, profile, cors_origin) do
+      case resolve_cors_origin(cors_origin, socket) do
+        {:ok, origin} ->
+          case Rindle.Streaming.create_direct_upload(profile,
+                 filename: entry.client_name,
+                 cors_origin: origin
+               ) do
+            {:ok, %{upload_url: upload_url, asset_id: asset_id}} ->
+              meta = %{
+                uploader: "UpChunk",
+                endpoint: upload_url,
+                asset_id: asset_id
+              }
+
+              {:ok, meta, socket}
+
+            {:error, reason} ->
+              log_upload_error("direct_upload", reason)
+              {:error, %{reason: "upload_unavailable", code: "upload_init_failed"}, socket}
+          end
+
+        :error ->
           {:error, %{reason: "upload_unavailable", code: "upload_init_failed"}, socket}
       end
     end
@@ -208,7 +259,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     defp topic_for(:variant, id), do: "rindle:variant:#{id}"
     defp topic_for(:asset, id), do: "rindle:asset:#{id}"
+    defp topic_for(:provider_asset, id), do: "rindle:provider_asset:#{id}"
     defp topic_for(:upload_session, id), do: "rindle:upload_session:#{id}"
+
+    defp resolve_cors_origin(fun, socket) when is_function(fun, 1), do: fetch_origin(fun.(socket))
+    defp resolve_cors_origin(origin, _socket), do: fetch_origin(origin)
+
+    defp fetch_origin(origin) when is_binary(origin) and origin != "", do: {:ok, origin}
+    defp fetch_origin(_), do: :error
 
     defp pubsub_server do
       Application.get_env(:rindle, :pubsub_server, Rindle.PubSub)

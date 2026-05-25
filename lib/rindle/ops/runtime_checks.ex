@@ -112,6 +112,13 @@ defmodule Rindle.Ops.RuntimeChecks do
         []
       end
 
+    tus_extra =
+      if tus_profiles(profiles) != [] do
+        [fn -> check_tus_capability(profiles) end]
+      else
+        []
+      end
+
     checks =
       ([
          fn -> check_delivery_support(profiles) end,
@@ -127,7 +134,7 @@ defmodule Rindle.Ops.RuntimeChecks do
          fn -> check_streaming_signing_key(profiles, env) end,
          fn -> check_streaming_webhook_secrets(profiles, env) end,
          fn -> check_streaming_smoke_ping(profiles, env, opts) end
-       ] ++ gcs_extra)
+       ] ++ gcs_extra ++ tus_extra)
       |> Enum.map(&run_check/1)
       |> Enum.sort_by(& &1.id)
 
@@ -256,6 +263,30 @@ defmodule Rindle.Ops.RuntimeChecks do
         :oban,
         "Default `Oban` config is missing required queues: #{Enum.map_join(missing, ", ", &Atom.to_string/1)}.",
         "Add the missing queues to `config :your_app, Oban, queues: [...]`. `rindle_media` is only required when your discovered profiles declare AV-capable variants."
+      )
+    end
+  end
+
+  defp check_tus_capability(profiles) do
+    mismatches =
+      Enum.filter(tus_profiles(profiles), fn profile ->
+        adapter = safely_storage_adapter(profile)
+        not is_atom(adapter) or not Rindle.Storage.Capabilities.supports?(adapter, :tus_upload)
+      end)
+
+    if mismatches == [] do
+      ok_result(
+        "doctor.tus_capability",
+        :profiles,
+        "Configured tus profiles advertise :tus_upload support.",
+        "Keep `config :rindle, :tus_profiles, [...]` aligned with profiles whose adapters support tus."
+      )
+    else
+      error_result(
+        "doctor.tus_capability",
+        :profiles,
+        "Tus is configured for #{Enum.map_join(mismatches, ", ", &inspect/1)}, but the storage adapter does not advertise :tus_upload.",
+        "Either mount TusPlug only for profiles backed by a :tus_upload-capable adapter, or remove the profile from `config :rindle, :tus_profiles, [...]`."
       )
     end
   end
@@ -971,6 +1002,16 @@ defmodule Rindle.Ops.RuntimeChecks do
   # Rindle.Capability.configured_gcs_profiles/1.
   defp gcs_profiles(profiles) do
     Rindle.Capability.configured_gcs_profiles(profiles)
+  end
+
+  defp tus_profiles(profiles) do
+    Rindle.Capability.configured_tus_profiles(profiles)
+  end
+
+  defp safely_storage_adapter(profile) do
+    if function_exported?(profile, :storage_adapter, 0), do: profile.storage_adapter(), else: nil
+  rescue
+    _ -> nil
   end
 
   defp resumable_gcs_profiles(profiles) do

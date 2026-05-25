@@ -52,6 +52,21 @@ defmodule Rindle.Config do
     Application.app_dir(:rindle, "priv/repo/migrations")
   end
 
+  @spec tus_resume_authorizer() :: module() | nil
+  def tus_resume_authorizer do
+    case Application.get_env(:rindle, :tus_resume_authorizer) do
+      module when is_atom(module) -> module
+      _ -> nil
+    end
+  end
+
+  @spec tus_profiles() :: [module()]
+  def tus_profiles do
+    Application.get_env(:rindle, :tus_profiles, [])
+    |> List.wrap()
+    |> Enum.filter(&profile_module?/1)
+  end
+
   defp profile_module?(module) when is_atom(module) do
     Code.ensure_loaded?(module) and
       function_exported?(module, :__rindle_profile__, 0) and

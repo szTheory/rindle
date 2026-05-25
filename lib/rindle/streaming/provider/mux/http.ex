@@ -1,8 +1,9 @@
 # Compiled only when {:mux, "~> 3.2"} is loaded.
 # Adopters who do not configure streaming pay zero transitive cost.
-if Code.ensure_loaded?(Assets) do
+if Code.ensure_loaded?(Mux.Video.Assets) do
   defmodule Rindle.Streaming.Provider.Mux.HTTP do
     alias Mux.Video.Assets
+    alias Mux.Video.Uploads
     @moduledoc false
 
     @behaviour Rindle.Streaming.Provider.Mux.Client
@@ -25,6 +26,16 @@ if Code.ensure_loaded?(Assets) do
       with {:ok, client} <- build_client() do
         case Assets.create(client, params) do
           {:ok, asset, _env} -> {:ok, asset}
+          {:error, msg, env} -> {:error, msg, env}
+        end
+      end
+    end
+
+    @impl true
+    def create_upload(params) when is_map(params) do
+      with {:ok, client} <- build_client() do
+        case Uploads.create(client, params) do
+          {:ok, upload, _env} -> {:ok, upload}
           {:error, msg, env} -> {:error, msg, env}
         end
       end

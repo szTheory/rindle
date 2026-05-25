@@ -323,6 +323,66 @@ defmodule Rindle.Error do
     |> String.trim()
   end
 
+  def message(%{reason: :tus_session_not_found}) do
+    """
+    The tus upload session could not be found.
+
+    To fix:
+      1. Confirm the client is resuming with the exact `Location` URL returned by the original tus `POST`.
+      2. If the upload was deleted or expired, create a fresh tus upload instead of retrying the old URL.
+      3. If you use `tus-js-client`, keep `removeFingerprintOnSuccess: true` enabled; modern `@uppy/tus` resumes and clears stale fingerprints automatically.
+    """
+    |> String.trim()
+  end
+
+  def message(%{reason: :tus_session_expired}) do
+    """
+    The tus upload session has expired.
+
+    To fix:
+      1. Start a new tus upload and discard the expired URL.
+      2. Keep client retries shorter than the server-side upload TTL.
+      3. If long pauses are expected, increase the upload-session TTL in your runtime config before retrying.
+    """
+    |> String.trim()
+  end
+
+  def message(%{reason: :tus_offset_conflict}) do
+    """
+    The tus client resumed from the wrong byte offset.
+
+    To fix:
+      1. Let the client issue `HEAD` and trust the returned `Upload-Offset` before resuming.
+      2. Avoid mutating or replaying old partial chunks manually.
+      3. If you are using tus-js-client or @uppy/tus, keep automatic resume enabled and do not override the offset flow.
+    """
+    |> String.trim()
+  end
+
+  def message(%{reason: :tus_size_exceeded}) do
+    """
+    The tus upload exceeded the declared or allowed size.
+
+    To fix:
+      1. Keep the client's `Upload-Length` aligned with the real file size.
+      2. Increase the server-side tus max size if this file should be accepted.
+      3. Start a fresh upload after correcting the file or size limit; the current URL cannot be repaired in place.
+    """
+    |> String.trim()
+  end
+
+  def message(%{reason: :tus_url_signature_invalid}) do
+    """
+    The tus upload URL signature is invalid.
+
+    To fix:
+      1. Treat the tus `Location` URL as opaque and reuse it byte-for-byte.
+      2. Do not trim, rebuild, or append client-side path segments to the signed URL.
+      3. If the URL was copied, cached, or mutated, start a new tus upload and use the fresh location.
+    """
+    |> String.trim()
+  end
+
   def message(%{action: action, reason: :not_found}) do
     "could not #{action}: not found"
   end

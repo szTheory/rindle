@@ -9,7 +9,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppSmokeAssertions do
     quote do
       defp assert_install_source!(report) do
         assert File.dir?(report.generated_app_root)
-        assert report.profile_mode in [:image, :video, :upgrade, :mux, :gcs]
+        assert report.profile_mode in [:image, :video, :tus, :upgrade, :mux, :gcs]
         assert report.install_mode in [:package, :network]
         assert report.install_source
 
@@ -24,6 +24,39 @@ defmodule Rindle.InstallSmoke.GeneratedAppSmokeAssertions do
         refute report.deps_rindle_present?
         assert report.compile_exit_code == 0
         assert report.boot_exit_code == 0
+      end
+
+      defp assert_tus_guide_parity! do
+        guide = File.read!("guides/resumable_uploads.md")
+
+        assert guide =~ "plug Plug.Parsers,"
+        assert guide =~ ~s(pass: ["application/offset+octet-stream", "*/*"])
+        assert guide =~ ~s("Upload-Offset")
+        assert guide =~ ~s("Location")
+        assert guide =~ ~s("Upload-Length")
+        assert guide =~ ~s("Tus-Resumable")
+        assert guide =~ ~s("Upload-Expires")
+        assert guide =~ "no-silent-downgrade"
+        assert guide =~ "raises at init time"
+        assert guide =~ "bearer credential"
+        assert guide =~ "config :rindle, :tus_resume_authorizer, MyApp.TusAuth"
+        assert guide =~ "@uppy/tus"
+        assert guide =~ "tus-js-client"
+        assert guide =~ "sticky-session or single-node"
+        assert Regex.scan(~r/removeFingerprintOnSuccess: true/, guide) |> length() == 2
+      end
+
+      defp tus_failure_details(report) do
+        """
+        tus smoke failed
+        workspace: #{report.generated_app_root}
+        report: #{report.tus_report_path}
+        debug_report: #{report.tus_debug_report_path}
+        phase: #{inspect(report.tus_failure_phase)}
+        mode: #{inspect(report.tus_failure_mode)}
+        endpoint: #{inspect(report.tus_failure_endpoint)}
+        summary: #{inspect(report.tus_failure_summary)}
+        """
       end
     end
   end
@@ -137,6 +170,42 @@ if GeneratedAppHelper.profile_enabled?(:video) do
       assert String.contains?(report.av_playback_storage_key, "web_720p")
       assert is_binary(report.av_delivery_path)
       assert String.contains?(report.av_delivery_path, report.av_playback_storage_key)
+    end
+  end
+end
+
+if GeneratedAppHelper.profile_enabled?(:tus) do
+  defmodule Rindle.InstallSmoke.GeneratedAppSmokeTusTest do
+    use ExUnit.Case, async: false
+    use Rindle.InstallSmoke.GeneratedAppSmokeAssertions
+    @moduletag :minio
+
+    setup_all do
+      report = GeneratedAppHelper.prove_package_install!(:tus)
+      on_exit(fn -> GeneratedAppHelper.cleanup(report) end)
+      {:ok, report: report}
+    end
+
+    test "generated Phoenix app installs the tus-enabled profile from the configured package source without repo-local fallback",
+         %{report: report} do
+      assert_install_source!(report)
+    end
+
+    test "generated Phoenix app proves a real-socket tus-js-client drop-and-resume flow against MinIO",
+         %{report: report} do
+      assert report.host_migration_ran?
+      assert report.migration_resolution == :application_app_dir
+      assert String.ends_with?(report.rindle_migration_path, "/priv/repo/migrations")
+      refute String.contains?(report.rindle_migration_path, "deps/rindle")
+      assert report.smoke_exit_code == 0, tus_failure_details(report)
+      assert report.lifecycle_proved?, tus_failure_details(report)
+      assert is_binary(report.tus_upload_url)
+      assert String.contains?(report.tus_upload_url, "/uploads/tus/")
+      assert report.tus_previous_uploads >= 1
+      assert report.tus_byte_size >= 200 * 1024 * 1024
+      assert report.tus_content_type == "video/mp4"
+      assert report.tus_ready_variants == ["poster", "web_720p"]
+      assert_tus_guide_parity!()
     end
   end
 end

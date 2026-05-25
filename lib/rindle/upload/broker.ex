@@ -6,7 +6,7 @@ defmodule Rindle.Upload.Broker do
   alias Rindle.Config
   alias Rindle.Domain.{AssetFSM, MediaAsset, MediaUploadSession, UploadSessionFSM}
   alias Rindle.Security.StorageKey
-  alias Rindle.Storage.Capabilities
+  alias Rindle.Storage.{Capabilities, Local}
   alias Rindle.Upload.ResumableTelemetry
   alias Rindle.Workers.PromoteAsset
 
@@ -63,6 +63,10 @@ defmodule Rindle.Upload.Broker do
              }
            }}
           | {:error, term()}
+
+  @typedoc "Tagged result of `initiate_tus_upload/2` — session stamped for the tus protocol lane."
+  @type initiate_tus_result ::
+          {:ok, %{session: MediaUploadSession.t()}} | {:error, term()}
 
   @typedoc "Tagged result of `resumable_session_status/2` — session plus remote committed bytes."
   @type resumable_status_result ::
@@ -161,6 +165,14 @@ defmodule Rindle.Upload.Broker do
            ) do
       emit_upload_start(profile_name, adapter, session.id)
 
+      ResumableTelemetry.emit_start(
+        profile_name,
+        adapter,
+        session,
+        %{state: session.state, source: :broker, protocol: :gcs_native},
+        %{}
+      )
+
       {:ok,
        %{
          session: session,
@@ -219,6 +231,62 @@ defmodule Rindle.Upload.Broker do
            expires_at: resumable.expires_at
          }
        }}
+    else
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  @doc """
+  Initiates a tus-protocol upload session through the broker-owned lifecycle.
+
+  Sibling to `initiate_resumable_session/2` but for the tus (Topology B,
+  server-mediated) protocol over a Local-backed sink. Unlike the GCS-native
+  resumable path, this does NOT call any adapter-side `initiate_*` (Local has no
+  multipart machinery, D-02); it only gates on the `:tus_upload` capability and
+  persists a session row stamped `resumable_protocol: "tus"`, reusing the
+  `"resumable"` strategy lane (D-10/D-11).
+
+  The session is persisted in `"signed"` so the completion edge
+  `signed -> verifying` stays legal (Pitfall 7). The signed tus URL itself is
+  minted and stored into `session_uri` by the `TusPlug` edge (Plan 02), which
+  owns `secret_key_base`; this broker entrypoint returns the unsigned session.
+  """
+  @spec initiate_tus_upload(module(), keyword()) :: initiate_tus_result()
+  def initiate_tus_upload(profile_module, opts \\ []) do
+    repo = Config.repo()
+    profile_name = profile_module_to_name(profile_module)
+    filename = Keyword.get(opts, :filename, "unknown")
+    extension = Path.extname(filename)
+    asset_id = Ecto.UUID.generate()
+    storage_key = StorageKey.generate(profile_name, asset_id, extension)
+    expires_in_seconds = Keyword.get(opts, :expires_in, 3600)
+    expires_at = DateTime.add(DateTime.utc_now(), expires_in_seconds, :second)
+    adapter = profile_module.storage_adapter()
+
+    with :ok <- Capabilities.require_upload(adapter, :tus_upload),
+         {:ok, session} <-
+           persist_tus_session(
+             repo,
+             %{
+               asset_id: asset_id,
+               profile_name: profile_name,
+               storage_key: storage_key,
+               filename: filename,
+               expires_at: expires_at
+             },
+             opts
+           ) do
+      emit_upload_start(profile_name, adapter, session.id)
+
+      ResumableTelemetry.emit_start(
+        profile_name,
+        adapter,
+        session,
+        %{state: session.state, source: :broker, protocol: :tus},
+        %{}
+      )
+
+      {:ok, %{session: session}}
     else
       {:error, reason} -> {:error, reason}
     end
@@ -477,6 +545,20 @@ defmodule Rindle.Upload.Broker do
           }
         )
 
+        if updated_session.upload_strategy == "resumable" do
+          ResumableTelemetry.emit_stop(
+            asset.profile,
+            profile_module.storage_adapter(),
+            updated_session,
+            %{
+              outcome: :ok,
+              source: :verify_completion,
+              protocol: resumable_protocol(updated_session)
+            },
+            %{committed_bytes: updated_asset.byte_size || updated_session.last_known_offset || 0}
+          )
+        end
+
         {:ok, %{session: updated_session, asset: updated_asset}}
 
       {:error, _name, reason, _changes} ->
@@ -639,6 +721,57 @@ defmodule Rindle.Upload.Broker do
     end
   end
 
+  defp persist_tus_session(repo, session_seed, opts) do
+    case create_upload_session(
+           repo,
+           session_seed.asset_id,
+           session_seed.profile_name,
+           session_seed.storage_key,
+           session_seed.filename,
+           session_seed.expires_at,
+           %{
+             # Stay in "signed" so the completion edge signed -> verifying is
+             # legal (Pitfall 7 / D-10). Never park a tus session in "resuming".
+             state: "signed",
+             # Reuse the resumable strategy lane (D-10).
+             upload_strategy: "resumable",
+             # The single new discriminator column (D-10/D-11).
+             resumable_protocol: "tus",
+             # last_known_offset IS the tus Upload-Offset.
+             last_known_offset: 0
+           }
+         ) do
+      {:ok, session} ->
+        {:ok, session}
+
+      {:error, reason} ->
+        compensate_failed_tus_persist(session_seed.asset_id, session_seed.storage_key, opts)
+        {:error, reason}
+    end
+  end
+
+  # Local-flavored compensation: there is no remote multipart to abort (D-02),
+  # so best-effort remove the tus tmp part file for this session and return :ok,
+  # logging on failure exactly like the resumable analog.
+  defp compensate_failed_tus_persist(asset_id, storage_key, opts) do
+    part_path = Local.tus_part_path(asset_id, opts)
+
+    case File.rm_rf(part_path) do
+      {:ok, _removed} ->
+        :ok
+
+      {:error, reason, _file} ->
+        require Logger
+
+        Logger.warning("rindle.upload.broker.tus_persist_compensation_failed",
+          upload_key: storage_key,
+          reason: inspect(reason)
+        )
+
+        :ok
+    end
+  end
+
   defp update_session(repo, session, attrs) do
     repo.transaction(fn ->
       {:ok, updated_session} =
@@ -747,6 +880,9 @@ defmodule Rindle.Upload.Broker do
   defp profile_module_to_name(module) do
     to_string(module)
   end
+
+  defp resumable_protocol(%MediaUploadSession{resumable_protocol: "tus"}), do: :tus
+  defp resumable_protocol(_session), do: :gcs_native
 
   defp profile_name_to_module(name) do
     {:ok, String.to_existing_atom(name)}

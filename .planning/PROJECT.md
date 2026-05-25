@@ -2,43 +2,42 @@
 
 ## Current State
 
-Milestone `v1.7 GCS Resumable Adapter` shipped on `2026-05-08` (Phases 37-41,
-17 plans, 18/18 requirements validated). Rindle now ships a real second
-storage adapter in `Rindle.Storage.GCS`, plus honest resumable-upload support
-across storage capabilities, broker lifecycle, maintenance, runtime status,
-doctor guidance, and package-consumer proof. Session URIs are now treated as
-bearer credentials throughout the public runtime surface and are redacted from
-inspection, telemetry, and operator output.
+Milestone `v1.8 Resumable Browser Ingest` shipped on `2026-05-25` (Phases
+42-47, 27 plans, 20/20 requirements validated). Rindle now ships a mountable
+bare tus 1.0 edge, Local and S3-backed resumable browser ingest that still
+converges into the existing `verify_completion/2` promote lane, browser→Mux
+direct creator upload, and the generated-app proof and traceability closure
+needed to treat browser-origin resumable ingest as part of the shipped public
+contract.
 
-This milestone closes the locked GCS candidate carried out of `v1.6`. The next
-milestone is open for definition via `/gsd-new-milestone`; the leading carried
-forward candidates are the locked `v1.8` tus protocol plan and the deferred
-browser→Mux direct creator upload slice (`MUX-20..23`).
+No new milestone is open yet. The next milestone should be started with
+`$gsd-new-milestone`, which will define fresh requirements and roadmap scope.
 
 ## Next Milestone Goals
 
-- **v1.8 — tus Resumable Upload Protocol**: mountable
-  `Rindle.Upload.TusPlug` macro on `tussle ~> 0.3.1`; HMAC-signed tus URLs;
-  S3 multipart `UploadPart` per-PATCH on the S3 path; Ecto-backed Tussle cache.
-- **v1.8+ — Browser → Mux direct creator upload**: pull forward `MUX-20..23`
-  on top of the existing provider and LiveView primitives.
-- **Future polish**: clean up advisory Phase 34/35 code-review findings that
-  were deferred because they did not block v1.7 shipment.
+- Decide which v1.9 candidate to pull forward first from the deferred list:
+  LiveView tus uploader DX, second streaming provider, or protocol follow-on
+  work such as RUFH preparation.
+- Re-open roadmap scope only after a fresh milestone requirements pass; do not
+  carry `v1.8`'s deleted `REQUIREMENTS.md` forward manually.
+- Preserve the `v1.8` contract boundaries: no silent downgrade, one
+  `verify_completion/2` promote lane, and provider capabilities remain honest.
 
 ## Recently Shipped Milestone
 
 <details>
-<summary>v1.7 GCS Resumable Adapter archive notes</summary>
+<summary>v1.8 Resumable Browser Ingest archive notes</summary>
 
-- `Rindle.Storage.GCS` now ships `store/3`, `download/3`, `delete/2`, `head/2`,
-  and `url/2` against real GCS with V4 signed URLs and CI-backed live-bucket
-  proof.
-- Resumable session persistence, the `"resuming"` FSM lane, redaction, and
-  telemetry are all first-class shipped surfaces.
-- Broker-owned resumable initiate/status/cancel entrypoints and maintenance
-  cancel/cleanup behavior are live and verified.
-- `guides/storage_gcs.md`, warning-capable `mix rindle.doctor`, and generated-app
-  GCS proof lanes complete the adopter-facing story.
+- `Rindle.Upload.TusPlug` now ships as a bare mountable Plug with HMAC-signed
+  tus create/read/write/delete semantics and no Phoenix dependency.
+- Local and S3 adapters now support honest `:tus_upload` capability-backed
+  resumable browser ingest, converging into the unchanged
+  `verify_completion/2` lane.
+- Reaper, abort, and cross-node safety hardening shipped with live MinIO proof
+  and generated-app install-smoke coverage.
+- Browser→Mux direct creator upload is now a shipped streaming surface, not a
+  carried-forward candidate.
+- Full artifacts live in `.planning/milestones/v1.8-*`.
 
 </details>
 
@@ -55,6 +54,39 @@ with production confidence.
 ## Core Value
 
 Media, made durable.
+
+## Decision-Making Contract
+
+Rindle uses a research-driven, decide-by-default posture. Do not escalate
+routine design or implementation choices.
+
+After research, agents should produce one coherent recommendation set and
+proceed without asking the maintainer to choose among routine local options.
+The default deliverable is: chosen path, rationale, notable risks, and
+rejected alternatives.
+
+Bias that research left: prefer ecosystem-aware, prior-art-informed, coherent
+one-shot recommendation sets by default so the maintainer does not need to
+reconstruct the trade study manually each phase.
+
+Do not escalate because multiple viable local options exist. Do not escalate
+because a choice is merely ergonomic, additive, local, or reversible.
+
+Escalate only when the choice has high blast radius:
+
+- semver-significant public API reshapes
+- destructive or irreversible operations
+- security or compliance boundary changes
+- material recurring cost surprises
+- milestone or scope reshapes
+- architectural commitments that are expensive to reverse
+
+When the choice is local, additive, reversible, or mainly ergonomic, pick the
+least-surprising option, record the rationale in project artifacts, and
+proceed.
+
+If escalation is required, still present a recommended path, why blast radius
+is high, and the rollback or containment implications.
 
 ## Requirements
 
@@ -161,18 +193,22 @@ Media, made durable.
   for image-only profiles — v1.7 (Phase 37) (GCS-01..04). Live-bucket proof is
   accepted CI automation via `gcs-soak` (`ci_verified`), not manual follow-up.
 
-### Candidate Next Requirements
+### Active (v1.8 Resumable Browser Ingest)
 
-`v1.7` is shipped. The next candidate requirements are:
-- `MUX-20..23`: browser→Mux direct creator upload — Phase 37 not pulled
-  forward in v1.6; clean additive surface on already-built primitives.
-- `RESUMABLE-01..14`: GCS resumable upload session FSM + capability promotion —
-  Phases 38–41 of v1.7 build on the foundation shipped in Phase 37.
-- `TUS-01..19`: tus protocol family on a mountable Plug — locked v1.8 plan in
-  `.planning/research/v1.6-CANDIDATE-TUS.md`
-- Code-review polish for Phases 34/35/36 — CR-01/02/03 (Phase 36 soak-lane
-  operational defects) + remaining advisory Warning/Info findings deferred
-  past v1.7.
+In scope for `v1.8` (see `.planning/REQUIREMENTS.md` for the full list):
+- `TUS-*`: tus 1.0 protocol on a bare `Rindle.Upload.TusPlug` (Core + Creation
+  + Expiration + Termination), `upload_part_stream/5` adapter callback,
+  `:tus_upload` capability, HMAC-signed URLs, S3 multipart + Local backing,
+  reaper branch, DX/docs/doctor/telemetry, MinIO + tus-js-client CI proof. The
+  locked shape lives in `.planning/research/v1.8/TUS-RESEARCH.md`.
+- `MUX-20..23`: browser→Mux direct creator upload (sibling slice, droppable
+  under budget). Locked detail in `.planning/research/v1.8/MUX-DIRECT-UPLOAD-RESEARCH.md`.
+- `CR-*`: advisory Phase 34/35 code-review polish folded in as a hygiene
+  sub-stream.
+
+Deferred to `v1.9+`: tus Checksum/Concatenation, IETF RUFH (tus 2.0),
+GCS-as-tus-backend, a Rindle-owned tus JS client, a LiveView tus uploader
+component, a second streaming provider.
 
 ### Out of Scope
 
@@ -209,10 +245,10 @@ AV-enabled lanes. Optional `mux` + `jose` deps preserve zero transitive cost
 for non-streaming adopters. The single-provider rule keeps the abstraction
 honest; v1.7+ adapters (GCS, second streaming provider) become contract tests.
 
-**Current milestone setup:** v1.7 closed. No new milestone is open yet.
-Candidate expansion work: tus protocol (locked v1.8 plan), browser→Mux direct
-creator upload (`MUX-20..23`), and advisory code-review polish that remains
-valuable but non-blocking.
+**Current milestone setup:** v1.8 closed. No new milestone is open yet.
+Candidate expansion work now lives in the v1.9+ deferred list: protocol
+follow-on work (Checksum / Concatenation / RUFH prep), a LiveView tus uploader
+component, a second streaming provider, and any further direct-upload DX polish.
 
 **Reference implementations:**
 - Rails Active Storage: attachment/blob ownership patterns, redirect-style
@@ -311,6 +347,25 @@ valuable but non-blocking.
 | Phase 37 (browser→Mux direct creator upload) ships only if Phases 33-36 ship under budget | Single-provider rule keeps milestone scope honest; direct-creator-upload is small additive surface on already-built primitives — clean v1.7 deferral | ✓ Deferred to v1.7 (Phases 33-36 closed at budget without pulling forward) |
 
 ## Historical Snapshot
+
+<details>
+<summary>v1.8 Resumable Browser Ingest (Phases 42–47) — SHIPPED 2026-05-25</summary>
+
+Milestone v1.8 turned browser-origin resumable ingest into a shipped Rindle
+contract. Delivered: a bare `Rindle.Upload.TusPlug`, honest `:tus_upload`
+capability negotiation, one-column `resumable_protocol` discrimination over the
+existing v1.7 resumable substrate, Local tmp-append and S3 multipart-per-PATCH
+backing, hard failure handling for abort/reaper/cross-node edge cases, a
+generated-app tus package-consumer proof, and browser→Mux direct creator upload
+with webhook correlation, streaming entrypoints, LiveView support, and docs.
+
+Full artifacts live in:
+
+- [.planning/milestones/v1.8-ROADMAP.md](.planning/milestones/v1.8-ROADMAP.md)
+- [.planning/milestones/v1.8-REQUIREMENTS.md](.planning/milestones/v1.8-REQUIREMENTS.md)
+- [.planning/milestones/v1.8-MILESTONE-AUDIT.md](.planning/milestones/v1.8-MILESTONE-AUDIT.md)
+
+</details>
 
 <details>
 <summary>v1.6 Provider Boundary + Mux (Phases 33–36) — SHIPPED 2026-05-07</summary>
@@ -448,4 +503,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-08 — v1.7 shipped. Provider-backed CI proofs now route to `ci_verified`, not `human_needed`; the milestone archive and audit treat `gcs-soak` and `package-consumer-gcs-live` as accepted automated closure evidence.*
+*Last updated: 2026-05-22 — v1.8 Resumable Browser Ingest started. Locked scope: tus 1.0 protocol on a bare Plug (no tussle/Phoenix dep), browser→Mux direct creator upload sibling, Phase 34/35 code-review polish folded in. Cut Hex 0.2.0 at close. Research-backed shape in `.planning/research/v1.8/`.*

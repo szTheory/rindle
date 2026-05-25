@@ -170,6 +170,82 @@ defmodule Rindle.Ops.SweepOrphanedTempFilesTest do
     refute File.exists?(worker_dir)
   end
 
+  describe "tus/ regular-file aging (CR-03 safety net)" do
+    test "removes an aged tus/<id>.tail file on a non-dry-run pass", %{root_dir: root_dir} do
+      tail = build_tus_file!(root_dir, "aged-session.tail", 5 * 3600)
+
+      report = SweepOrphanedTempFiles.sweep(threshold_sec: 4 * 3600, dry_run: false)
+
+      refute File.exists?(tail)
+      assert report.orphan_count >= 1
+      assert report.run_dirs_deleted >= 1
+      assert report.errors == 0
+    end
+
+    test "preserves a fresh tus/<id>.tail file (age threshold respected)", %{root_dir: root_dir} do
+      fresh = build_tus_file!(root_dir, "fresh-session.tail", 60)
+
+      report = SweepOrphanedTempFiles.sweep(threshold_sec: 4 * 3600, dry_run: false)
+
+      assert File.exists?(fresh)
+      assert report.errors == 0
+    end
+
+    test "ages out a tus/<id>.part file alongside .tail files", %{root_dir: root_dir} do
+      part = build_tus_file!(root_dir, "aged-session.part", 5 * 3600)
+
+      report = SweepOrphanedTempFiles.sweep(threshold_sec: 4 * 3600, dry_run: false)
+
+      refute File.exists?(part)
+      assert report.run_dirs_deleted >= 1
+    end
+
+    test "a dry-run pass over an aged tus/ file counts but does not delete", %{root_dir: root_dir} do
+      tail = build_tus_file!(root_dir, "aged-session.tail", 5 * 3600)
+
+      report = SweepOrphanedTempFiles.sweep(threshold_sec: 4 * 3600, dry_run: true)
+
+      assert File.exists?(tail)
+      assert report.orphan_count >= 1
+      assert report.run_dirs_deleted == 0
+    end
+
+    test "confines deletion to <root>/tus/ — aged files outside tus/ are untouched", %{
+      root_dir: root_dir
+    } do
+      # An aged regular file directly under <root> (a sibling of tus/), NOT inside
+      # tus/. The tus recursion must never touch it; the directory-mtime path does
+      # not delete top-level regular files either.
+      now = System.system_time(:second)
+      File.mkdir_p!(root_dir)
+      outside = Path.join(root_dir, "loose-file.bin")
+      File.write!(outside, "do-not-delete")
+      File.touch!(outside, now - 5 * 3600)
+
+      aged_tail = build_tus_file!(root_dir, "aged-session.tail", 5 * 3600)
+
+      report = SweepOrphanedTempFiles.sweep(threshold_sec: 4 * 3600, dry_run: false)
+
+      # The tus tail is reaped; the loose file outside tus/ survives.
+      refute File.exists?(aged_tail)
+      assert File.exists?(outside)
+      assert report.errors == 0
+    end
+  end
+
+  defp build_tus_file!(root_dir, filename, age_sec) do
+    tus_dir = Path.join(root_dir, "tus")
+    File.mkdir_p!(tus_dir)
+    path = Path.join(tus_dir, filename)
+    File.write!(path, "tail-or-part-bytes")
+    now = System.system_time(:second)
+    File.touch!(path, now - age_sec)
+    # Refresh the tus/ directory mtime so the WHOLE-directory aging path can never
+    # be what reaps the file (proving per-file recursion is what deletes it).
+    File.touch!(tus_dir, now)
+    path
+  end
+
   defp build_run_dir!(root_dir, name, age_sec) do
     run_dir = Path.join(root_dir, name)
     nested = Path.join(run_dir, "nested")

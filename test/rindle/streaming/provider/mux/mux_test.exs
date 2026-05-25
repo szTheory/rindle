@@ -48,8 +48,13 @@ defmodule Rindle.Streaming.Provider.MuxTest do
     File.read!("test/fixtures/mux/#{name}") |> Jason.decode!()
   end
 
-  test "capabilities/0 returns the closed v1.6 set (no :public_playback, no :direct_creator_upload)" do
-    assert Adapter.capabilities() == [:signed_playback, :webhook_ingest, :server_push_ingest]
+  test "capabilities/0 advertises the direct creator upload capability only after the adapter implements it" do
+    assert Adapter.capabilities() == [
+             :signed_playback,
+             :webhook_ingest,
+             :server_push_ingest,
+             :direct_creator_upload
+           ]
   end
 
   test "create_asset/3 sends PLURAL Mux keys and reshapes response with PLURAL playback_ids" do
@@ -119,6 +124,36 @@ defmodule Rindle.Streaming.Provider.MuxTest do
 
     assert {:error, :provider_sync_failed} =
              Adapter.create_asset(TestProfile, "https://signed.example/v.mp4")
+  end
+
+  test "create_direct_upload/2 sends the Mux upload-create request shape and returns provider_asset_id: nil" do
+    expect(ClientMock, :create_upload, fn params ->
+      assert params["cors_origin"] == "https://app.example"
+      assert params["new_asset_settings"]["playback_policies"] == ["signed"]
+      assert params["new_asset_settings"]["passthrough"] == "mux-pass-123"
+      {:ok, %{"id" => "upload-123", "url" => "https://mux.example/upload"}}
+    end)
+
+    assert {:ok,
+            %{
+              upload_url: "https://mux.example/upload",
+              upload_id: "upload-123",
+              provider_asset_id: nil
+            }} =
+             Adapter.create_direct_upload(TestProfile,
+               cors_origin: "https://app.example",
+               passthrough: "mux-pass-123",
+               playback_policy: :signed
+             )
+  end
+
+  test "create_direct_upload/2 maps 429 to :provider_quota_exceeded" do
+    expect(ClientMock, :create_upload, fn _params ->
+      {:error, "rate_limited", %{status: 429, headers: [{"retry-after", "30"}]}}
+    end)
+
+    assert {:error, :provider_quota_exceeded} =
+             Adapter.create_direct_upload(TestProfile, cors_origin: "https://app.example")
   end
 
   test "create_asset_with_retry_hint/3 surfaces Retry-After to the worker on 429" do
@@ -263,6 +298,71 @@ defmodule Rindle.Streaming.Provider.MuxTest do
                 state: "processing",
                 playback_ids: []
               }} = Adapter.verify_webhook(body, headers, [secret])
+    end
+  end
+
+  # ===========================================================
+  # WR-02 (POLISH-01/D-13) — case-insensitive signature header lookup
+  # ===========================================================
+
+  describe "WR-02: case-insensitive Mux-Signature header lookup (RFC 7230)" do
+    test "verify_webhook/3 resolves a mixed-case `Mux-Signature` header" do
+      secret = "test-webhook-secret"
+      body = File.read!("test/fixtures/mux/webhook_video_asset_ready.json")
+
+      # Title-case header — an edge proxy or adopter wrapper may emit any
+      # casing. Pre-WR-02 the hardcoded "mux-signature" lookup would miss this
+      # and reject a valid signature with {:error, :provider_webhook_invalid}.
+      headers = %{"Mux-Signature" => MuxWebhookFixtures.sign_header(body, secret)}
+
+      assert {:ok, %{type: :ready}} =
+               Adapter.verify_webhook(body, headers, [secret])
+    end
+
+    test "verify_webhook/3 resolves an upper-case `MUX-SIGNATURE` header" do
+      secret = "test-webhook-secret"
+      body = File.read!("test/fixtures/mux/webhook_video_asset_ready.json")
+
+      headers = %{"MUX-SIGNATURE" => MuxWebhookFixtures.sign_header(body, secret)}
+
+      assert {:ok, %{type: :ready}} =
+               Adapter.verify_webhook(body, headers, [secret])
+    end
+  end
+
+  # ===========================================================
+  # WR-05 (POLISH-01/D-13) — unknown Mux status -> nil + Logger.warning
+  # ===========================================================
+
+  describe "WR-05: normalize_state/1 allowlists known Mux statuses" do
+    test "get_asset/1 maps an unknown status to nil and logs a warning" do
+      import ExUnit.CaptureLog
+
+      expect(ClientMock, :get_asset, fn _id ->
+        {:ok, %{"id" => "asset-unknown-status", "status" => "transcoding", "playback_ids" => []}}
+      end)
+
+      {result, log} =
+        with_log(fn -> Adapter.get_asset("asset-unknown-status") end)
+
+      # Unknown status is treated as "ignore" (nil) rather than passed through
+      # to the FSM, where it would burn retries on an invalid transition.
+      assert {:ok, %{state: nil}} = result
+      assert log =~ "rindle.mux.unknown_status"
+    end
+
+    test "get_asset/1 passes through preparing|ready|errored statuses" do
+      for {mux_status, expected} <- [
+            {"preparing", "processing"},
+            {"ready", "ready"},
+            {"errored", "errored"}
+          ] do
+        expect(ClientMock, :get_asset, fn _id ->
+          {:ok, %{"id" => "asset-#{mux_status}", "status" => mux_status, "playback_ids" => []}}
+        end)
+
+        assert {:ok, %{state: ^expected}} = Adapter.get_asset("asset-#{mux_status}")
+      end
     end
   end
 end

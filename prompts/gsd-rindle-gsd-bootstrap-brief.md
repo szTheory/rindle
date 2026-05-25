@@ -61,6 +61,8 @@ These should be treated as defaults unless a later explicit decision overrides t
 8. **Telemetry:** telemetry naming and metadata policy are public contracts.
 9. **CI/release:** quality gates + docs contracts + release parity checks are required from early milestone stages.
 10. **Adopter truth:** at least one canonical host/adopter integration path is continuously verified.
+11. **Decision-making default:** downstream agents should produce one coherent recommendation set, decide by default after research, and escalate only for high-blast-radius choices.
+12. **Decision output contract:** after research, downstream agents should return exactly one recommended roadmap or plan direction by default, not a menu of equal options. Alternatives are for rationale only unless a high-blast-radius trigger requires escalation.
 
 ## Primary personas and jobs
 

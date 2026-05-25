@@ -35,3 +35,10 @@ config :rindle, Rindle.Adopter.CanonicalApp.Repo,
 config :logger, level: :warning
 
 config :oban, Oban, testing: :inline
+
+# Offline-deterministic S3 multipart request seam for the tus tail-buffer unit
+# specs (TUS-06). The stub fabricates well-formed responses for the three
+# multipart operations when no MinIO is configured, and delegates to the real
+# `ExAws.request/2` whenever `RINDLE_MINIO_*` is present (CI MinIO lane +
+# `@tag :minio` integration tests). Production resolves the `ExAws` default.
+config :rindle, Rindle.Storage.S3, request_module: Rindle.Support.S3MultipartRequestStub

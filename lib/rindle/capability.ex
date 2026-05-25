@@ -119,6 +119,18 @@ defmodule Rindle.Capability do
     end
   end
 
+  @doc """
+  Returns the configured subset of `profiles` expected to mount `TusPlug`.
+
+  Doctor uses this as the single source of truth for capability-only tus checks:
+  the library does not introspect Phoenix routers.
+  """
+  @spec configured_tus_profiles([module()]) :: [module()]
+  def configured_tus_profiles(profiles) do
+    configured = MapSet.new(Rindle.Config.tus_profiles())
+    Enum.filter(profiles, &MapSet.member?(configured, &1))
+  end
+
   # --- helpers ---
 
   defp profile_modules do
