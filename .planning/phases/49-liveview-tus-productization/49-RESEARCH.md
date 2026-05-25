@@ -366,17 +366,15 @@ Uploaders.RindleTus = function (entries, onViewError) {
 
 All claims in this research were verified or cited in this session — no user confirmation needed.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should Phase 49 add a dedicated parity test for the exact UI vocabulary?**
-   - What we know: The guide already says `Uploading…`, `Verifying…`, and `Ready`, but current parity coverage only checks for the broader seam and guide ownership. `[VERIFIED: guides/resumable_uploads.md] [VERIFIED: test/install_smoke/phoenix_tus_truth_parity_test.exs]`
-   - What's unclear: Whether existing tests are sufficient for PHX-04 or whether planners should add a new docs-parity assertion now instead of waiting for Phase 50. `[VERIFIED: test/install_smoke/phoenix_tus_truth_parity_test.exs]`
-   - Recommendation: Plan a small parity assertion in Phase 49 so PHX-04 is frozen before generated-app proof expands in Phase 50. `[VERIFIED: .planning/REQUIREMENTS.md]`
+   - Resolution: **Yes.** Phase 49 should add direct parity assertions for `uploading`, `verifying`, `ready`, and the `100%`-means-bytes-transferred wording now, because PHX-04 is owned by this phase and should not wait for the broader generated-app proof expansion in Phase 50. `[VERIFIED: .planning/REQUIREMENTS.md] [VERIFIED: guides/resumable_uploads.md] [VERIFIED: test/install_smoke/phoenix_tus_truth_parity_test.exs]`
+   - Planning impact: Keep PHX-04 in the Phase 49 parity-test scope and require explicit assertions in `test/install_smoke/phoenix_tus_truth_parity_test.exs`.
 
 2. **Should `allow_tus_upload/4` docs include a compact option table in moduledoc examples or only in the guide?**
-   - What we know: The helper docs already list required and optional options, and the guide owns the long-form setup. `[VERIFIED: lib/rindle/live_view.ex] [VERIFIED: guides/resumable_uploads.md]`
-   - What's unclear: The exact split between a short option list in ExDoc and a more explicit table in the guide. `[VERIFIED: lib/rindle/live_view.ex]`
-   - Recommendation: Keep the authoritative option table in the guide and leave only a short required/optional summary in `Rindle.LiveView`. `[VERIFIED: lib/rindle/live_view.ex] [VERIFIED: .planning/phases/49-liveview-tus-productization/49-CONTEXT.md]`
+   - Resolution: Keep the **authoritative option table in `guides/resumable_uploads.md`** and keep `Rindle.LiveView` to a short required/optional summary plus a pointer to the guide. That preserves one canonical setup narrative and avoids duplicating router/parser/CORS/client detail in ExDoc. `[VERIFIED: lib/rindle/live_view.ex] [VERIFIED: guides/resumable_uploads.md] [VERIFIED: .planning/phases/49-liveview-tus-productization/49-CONTEXT.md]`
+   - Planning impact: The guide owns the full option matrix; `lib/rindle/live_view.ex` stays thin and pointer-oriented.
 
 ## Validation Architecture
 
@@ -385,7 +383,7 @@ All claims in this research were verified or cited in this session — no user c
 |----------|-------|
 | Framework | ExUnit via Mix. `[VERIFIED: mix.exs] [VERIFIED: test/ directory]` |
 | Config file | `test/test_helper.exs`. `[VERIFIED: test/test_helper.exs]` |
-| Quick run command | `mix test test/rindle/live_view_test.exs test/install_smoke/phoenix_tus_truth_parity_test.exs` `[VERIFIED: test/rindle/live_view_test.exs] [VERIFIED: test/install_smoke/phoenix_tus_truth_parity_test.exs]` |
+| Quick run command | `mix test test/install_smoke/phoenix_tus_truth_parity_test.exs` `[VERIFIED: test/install_smoke/phoenix_tus_truth_parity_test.exs]` |
 | Full suite command | `mix test` `[VERIFIED: mix.exs]` |
 
 ### Phase Requirements → Test Map
@@ -396,7 +394,7 @@ All claims in this research were verified or cited in this session — no user c
 | PHX-04 | Guide and examples distinguish byte upload completion from verification/readiness. `[VERIFIED: guides/resumable_uploads.md]` | docs parity | `mix test test/install_smoke/phoenix_tus_truth_parity_test.exs` | ✅ |
 
 ### Sampling Rate
-- **Per task commit:** `mix test test/rindle/live_view_test.exs test/install_smoke/phoenix_tus_truth_parity_test.exs`
+- **Per task commit:** run the narrowest task-scoped command from the map above; default quick loop is `mix test test/install_smoke/phoenix_tus_truth_parity_test.exs`, and PHX-02 unit work uses `mix test test/rindle/live_view_test.exs`.
 - **Per wave merge:** `mix test`
 - **Phase gate:** Full suite green before `/gsd-verify-work`
 

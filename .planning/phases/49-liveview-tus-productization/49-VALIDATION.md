@@ -19,18 +19,18 @@ created: 2026-05-25
 |----------|-------|
 | **Framework** | ExUnit via Mix |
 | **Config file** | `test/test_helper.exs` |
-| **Quick run command** | `mix test test/rindle/live_view_test.exs test/install_smoke/phoenix_tus_truth_parity_test.exs` |
+| **Quick run command** | `mix test test/install_smoke/phoenix_tus_truth_parity_test.exs` |
 | **Full suite command** | `mix test` |
-| **Estimated runtime** | ~90 seconds |
+| **Estimated runtime** | ~20 seconds |
 
 ---
 
 ## Sampling Rate
 
-- **After every task commit:** Run `mix test test/rindle/live_view_test.exs test/install_smoke/phoenix_tus_truth_parity_test.exs`
+- **After every task commit:** Run the narrowest task-scoped command from the verification map. Default quick loop: `mix test test/install_smoke/phoenix_tus_truth_parity_test.exs`
 - **After every plan wave:** Run `mix test`
 - **Before `$gsd-verify-work`:** Full suite must be green
-- **Max feedback latency:** 90 seconds
+- **Max feedback latency:** 20 seconds
 
 ---
 
@@ -68,7 +68,7 @@ created: 2026-05-25
 - [ ] Sampling continuity: no 3 consecutive tasks without automated verify
 - [ ] Wave 0 covers all MISSING references
 - [ ] No watch-mode flags
-- [ ] Feedback latency < 90s
+- [ ] Feedback latency < 30s
 - [ ] `nyquist_compliant: true` set in frontmatter
 
 **Approval:** pending
