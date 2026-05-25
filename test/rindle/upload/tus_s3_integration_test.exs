@@ -176,7 +176,9 @@ defmodule Rindle.Upload.TusS3IntegrationTest do
            ]
 
     # 4. Resume PATCH from the offset through the final PATCH (offset == length).
-    rest = synthetic_bytes(@one_gib - @first_patch_bytes) |> Enum.to_list() |> IO.iodata_to_binary()
+    rest =
+      synthetic_bytes(@one_gib - @first_patch_bytes) |> Enum.to_list() |> IO.iodata_to_binary()
+
     p2 = patch(opts, token, @first_patch_bytes, rest)
     assert p2.status == 204
     assert get_resp_header(p2, "upload-offset") == [Integer.to_string(@one_gib)]

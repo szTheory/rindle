@@ -1,3 +1,12 @@
+---
+phase: 45-browser-mux-direct-creator-upload-sibling-droppable
+plan: 02
+subsystem: streaming / webhook
+tags: [mux, direct-upload, passthrough, webhook, pubsub]
+requirements-completed: [MUX-21, MUX-22]
+completed: 2026-05-24
+---
+
 # Plan 45-02 Summary
 
 ## Completed

@@ -96,7 +96,8 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
     alias Rindle.Streaming.Provider.Mux.Event
 
     @impl Rindle.Streaming.Provider
-    def capabilities, do: [:signed_playback, :webhook_ingest, :server_push_ingest]
+    def capabilities,
+      do: [:signed_playback, :webhook_ingest, :server_push_ingest, :direct_creator_upload]
 
     @doc """
     Server-push ingest entry point. Translates DSL `:playback_policy` (singular,
@@ -140,6 +141,32 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
 
         {:error, reason} ->
           {:error, reason}
+      end
+    end
+
+    @impl Rindle.Streaming.Provider
+    def create_direct_upload(profile, opts \\ [])
+        when is_atom(profile) and is_list(opts) do
+      with {:ok, cors_origin} <- fetch_required_opt(opts, :cors_origin) do
+        policy_atom = Keyword.get(opts, :playback_policy, :signed)
+        params = build_upload_params(policy_atom, cors_origin, opts)
+
+        case http_client().create_upload(params) do
+          {:ok, %{"id" => upload_id, "url" => upload_url}} ->
+            {:ok, %{upload_url: upload_url, upload_id: upload_id, provider_asset_id: nil}}
+
+          {:error, _msg, %{status: 429}} ->
+            {:error, :provider_quota_exceeded}
+
+          {:error, _msg, %{status: status}} when status in 500..599 ->
+            {:error, :provider_sync_failed}
+
+          {:error, _msg, %{status: status}} when status in 400..499 ->
+            {:error, :provider_sync_failed}
+
+          {:error, reason} ->
+            {:error, reason}
+        end
       end
     end
 
@@ -218,6 +245,24 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
         passthrough when is_binary(passthrough) -> Map.put(base, "passthrough", passthrough)
       end
     end
+
+    defp build_upload_params(policy_atom, cors_origin, opts) do
+      new_asset_settings =
+        %{
+          "playback_policies" => [Atom.to_string(policy_atom)]
+        }
+        |> maybe_put("passthrough", Keyword.get(opts, :passthrough))
+
+      %{
+        "cors_origin" => cors_origin,
+        "new_asset_settings" => new_asset_settings
+      }
+      |> maybe_put("timeout", Keyword.get(opts, :timeout))
+      |> maybe_put("test", Keyword.get(opts, :test))
+    end
+
+    defp maybe_put(map, _key, nil), do: map
+    defp maybe_put(map, key, value), do: Map.put(map, key, value)
 
     @impl Rindle.Streaming.Provider
     def get_asset(provider_asset_id) when is_binary(provider_asset_id) do
@@ -435,6 +480,13 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
     end
 
     defp retry_after_from(_), do: 60
+
+    defp fetch_required_opt(opts, key) do
+      case Keyword.get(opts, key) do
+        value when is_binary(value) and value != "" -> {:ok, value}
+        _ -> {:error, :provider_sync_failed}
+      end
+    end
 
     @doc false
     def http_client do

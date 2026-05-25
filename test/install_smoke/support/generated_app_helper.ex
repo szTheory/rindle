@@ -11,13 +11,13 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
   @host_migration_version "20260428170000"
   @legacy_rindle_migration_version 20_260_428_110_000
 
-  def profile_enabled?(profile_mode) when profile_mode in [:image, :video, :mux, :gcs] do
+  def profile_enabled?(profile_mode) when profile_mode in [:image, :video, :tus, :mux, :gcs] do
     selected_profiles()
     |> Enum.member?(profile_mode)
   end
 
   def prove_package_install!(profile_mode \\ :image)
-      when profile_mode in [:image, :video, :mux, :gcs] do
+      when profile_mode in [:image, :video, :tus, :mux, :gcs] do
     network_version = System.get_env("RINDLE_INSTALL_SMOKE_NETWORK_VERSION")
     install_mode = install_mode(network_version)
 
@@ -70,7 +70,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     boot_result = boot_app!(generated_app_root, app_module, shared_env)
 
     smoke_result =
-      run_cmd!(
+      run_cmd(
         generated_app_root,
         ["mix", "test", "test/rindle_install_smoke_test.exs"],
         shared_env
@@ -79,10 +79,19 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     deps_rindle_present? = File.exists?(Path.join(generated_app_root, "deps/rindle"))
     av_report_path = Path.join(generated_app_root, "tmp/install_smoke_av_report.json")
     av_report = if File.exists?(av_report_path), do: read_json!(av_report_path), else: %{}
+    tus_report_path = Path.join(generated_app_root, "tmp/install_smoke_tus_report.json")
+    tus_report = if File.exists?(tus_report_path), do: read_json!(tus_report_path), else: %{}
+
+    tus_debug_report_path =
+      Path.join(generated_app_root, "tmp/install_smoke_tus_debug_report.json")
+
+    tus_debug_report =
+      if File.exists?(tus_debug_report_path), do: read_json!(tus_debug_report_path), else: %{}
+
     gcs_report_path = Path.join(generated_app_root, "tmp/install_smoke_gcs_report.json")
     gcs_report = if File.exists?(gcs_report_path), do: read_json!(gcs_report_path), else: %{}
 
-    %{
+    report = %{
       workspace_root: workspace_root,
       generated_app_root: generated_app_root,
       package_root: package_root,
@@ -104,6 +113,19 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       av_delivery_path: av_report["delivery_path"],
       delivery_path: av_report["delivery_path"],
       streaming_url_kind: av_report["streaming_url_kind"],
+      tus_upload_url: tus_report["upload_url"],
+      tus_previous_uploads: tus_report["previous_uploads"],
+      tus_byte_size: tus_report["byte_size"],
+      tus_content_type: tus_report["content_type"],
+      tus_ready_variants: tus_report["ready_variants"] || [],
+      tus_report_path: tus_report_path,
+      tus_debug_report_path: tus_debug_report_path,
+      tus_report_data: tus_report,
+      tus_debug_report_data: tus_debug_report,
+      tus_failure_phase: tus_debug_report["failure_phase"] || tus_report["failure_phase"],
+      tus_failure_endpoint: tus_debug_report["endpoint"] || tus_report["endpoint"],
+      tus_failure_summary: tus_debug_report["failure_summary"] || tus_report["failure_summary"],
+      tus_failure_mode: tus_debug_report["failure_mode"] || tus_report["failure_mode"],
       doctor_command: gcs_report["doctor_command"],
       doctor_success?: gcs_report["doctor_success"] == true,
       gcs_live_enabled?: gcs_report["live_enabled"] == true,
@@ -116,6 +138,9 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       lifecycle_proved?:
         smoke_result.exit_code == 0 and String.contains?(smoke_result.output, "0 failures")
     }
+
+    maybe_write_tus_run_hint!(report)
+    report
   end
 
   def prove_upgrade_install! do
@@ -319,6 +344,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     patch_test_helper!(root, profile_mode)
     patch_runtime_config!(root, app_name, app_module, profile_mode)
     patch_application!(root, app_name, app_module, profile_mode)
+    patch_router!(root, app_name, app_module, profile_mode)
     write_profile!(root, app_name, app_module, profile_mode)
     write_host_migration!(root)
     write_migration_runner!(root, app_name, app_module)
@@ -429,6 +455,17 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       config :rindle, :repo, #{Macro.camelize(app_name)}.Repo
       """)
 
+    base_updated =
+      if profile_mode == :tus do
+        base_updated <>
+          """
+
+          config :rindle, :tus_profiles, [#{Macro.camelize(app_name)}.VideoProfile]
+          """
+      else
+        base_updated
+      end
+
     # Phase 36 D-21 / Pitfall 3: Mux config block is appended AFTER the
     # existing Oban + repo blocks. The `RINDLE_MUX_USE_REAL_API` conditional
     # is evaluated HOST-SIDE at patch time (NOT inside the generated app's
@@ -443,6 +480,31 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       end
 
     File.write!(path, final)
+  end
+
+  defp patch_router!(_root, _app_name, _app_module, profile_mode)
+       when profile_mode not in [:tus],
+       do: :ok
+
+  defp patch_router!(root, app_name, app_module, :tus) do
+    path = Path.join(root, "lib/#{app_name}_web/router.ex")
+
+    updated =
+      path
+      |> File.read!()
+      |> String.replace(
+        "scope \"/\", #{app_module}Web do",
+        """
+        forward "/uploads/tus", Rindle.Upload.TusPlug,
+          profile: #{app_module}.VideoProfile,
+          secret_key_base:
+            Application.compile_env!(:#{app_name}, #{app_module}Web.Endpoint)[:secret_key_base]
+
+        scope "/", #{app_module}Web do
+        """
+      )
+
+    File.write!(path, updated)
   end
 
   defp mux_config_block do
@@ -898,8 +960,10 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
         alias #{app_module}.Repo
         alias #{app_module}.RindleProfile
         alias #{app_module}.VideoProfile
+        alias #{app_module}Web.Endpoint
         alias Mix.Tasks.Rindle.{Doctor, RuntimeStatus}
         alias Rindle.Domain.MediaAsset
+        alias Rindle.Domain.MediaUploadSession
         alias Rindle.Domain.MediaVariant
         alias Rindle.Upload.Broker
         alias Rindle.Workers.{ProcessVariant, PromoteAsset}
@@ -973,7 +1037,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     File.mkdir_p!(Path.join(root, "tmp"))
     File.write!(Path.join(root, "tmp/generated-app.png"), @png_1x1)
 
-    if profile_mode in [:video, :mux] do
+    if profile_mode in [:video, :tus, :mux] do
       File.cp!(video_fixture_path(), Path.join(root, "tmp/generated-app-video.webm"))
     end
   end
@@ -1112,6 +1176,30 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     File.cwd!()
   end
 
+  defp maybe_write_tus_run_hint!(%{profile_mode: :tus} = report) do
+    hint_path = Path.join([repo_root(), "tmp", "install_smoke_tus_last_run.json"])
+    File.mkdir_p!(Path.dirname(hint_path))
+
+    File.write!(
+      hint_path,
+      Jason.encode!(%{
+        workspace_root: report.workspace_root,
+        generated_app_root: report.generated_app_root,
+        tus_report_path: report.tus_report_path,
+        tus_debug_report_path: report.tus_debug_report_path,
+        tus_report: report.tus_report_data,
+        tus_debug_report: report.tus_debug_report_data,
+        tus_failure_phase: report.tus_failure_phase,
+        tus_failure_mode: report.tus_failure_mode,
+        tus_failure_endpoint: report.tus_failure_endpoint,
+        tus_failure_summary: report.tus_failure_summary,
+        smoke_output: report.smoke_output
+      })
+    )
+  end
+
+  defp maybe_write_tus_run_hint!(_report), do: :ok
+
   defp oban_requirement do
     case Lock.read()[:oban] do
       {:hex, :oban, version, _checksum, _managers, _deps, _repo, _outer_checksum} ->
@@ -1151,9 +1239,10 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
 
   defp selected_profiles do
     case System.get_env("RINDLE_INSTALL_SMOKE_PROFILE", "all") do
-      "all" -> [:image, :video, :mux, :gcs]
+      "all" -> [:image, :video, :tus, :mux, :gcs]
       "image" -> [:image]
       "video" -> [:video]
+      "tus" -> [:tus]
       "mux" -> [:mux]
       "gcs" -> [:gcs]
       other -> raise "unsupported RINDLE_INSTALL_SMOKE_PROFILE: #{inspect(other)}"
@@ -1273,6 +1362,105 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
               delivery_path: URI.parse(signed_url).path
             })
           )
+        end
+    """
+  end
+
+  defp lifecycle_test_source(_app_module, :tus) do
+    """
+        test "generated app serves TusPlug over a real socket and proves drop-and-resume against MinIO" do
+          assert_install_smoke_marker!()
+          assert :tus_upload in VideoProfile.storage_adapter().capabilities()
+
+          Ecto.Adapters.SQL.Sandbox.mode(Repo, {:shared, self()})
+
+          port = 41_000 + rem(System.unique_integer([:positive]), 1000)
+          start_endpoint_server!(port)
+
+          fixture_path = Path.expand("../tmp/generated-app-tus-large.mp4", __DIR__)
+          build_large_mp4_fixture!(fixture_path)
+          assert File.stat!(fixture_path).size >= 200 * 1024 * 1024
+
+          install_tus_js_client!()
+
+          script_path = Path.expand("../tmp/install_smoke_tus_proof.cjs", __DIR__)
+          write_tus_node_script!(script_path)
+
+          proof =
+            run_tus_node_proof!(
+              script_path,
+              "http://127.0.0.1:\#{port}/uploads/tus",
+              fixture_path
+            )
+
+          assert proof["failure_phase"] in [nil, "none"]
+          assert proof["previous_uploads"] >= 1
+          assert String.contains?(proof["upload_url"], "/uploads/tus/")
+
+          session =
+            Repo.one!(
+              from upload in MediaUploadSession,
+                where: upload.resumable_protocol == "tus",
+                order_by: [desc: upload.inserted_at],
+                limit: 1
+            )
+
+          assert session.state == "completed"
+
+          asset = Repo.get!(MediaAsset, session.asset_id)
+          assert asset.state == "validating"
+          assert asset.content_type == "video/mp4"
+          assert asset.byte_size >= 200 * 1024 * 1024
+
+          assert_enqueued(worker: PromoteAsset, args: %{"asset_id" => asset.id})
+          assert :ok = perform_job(PromoteAsset, %{"asset_id" => asset.id})
+
+          promoted_asset = Repo.get!(MediaAsset, asset.id)
+          assert promoted_asset.kind == "video"
+          assert promoted_asset.has_video_track == true
+          assert promoted_asset.has_audio_track == true
+          assert promoted_asset.duration_ms > 0
+
+          variants =
+            Repo.all(
+              from variant in MediaVariant,
+                where: variant.asset_id == ^asset.id,
+                order_by: variant.name
+            )
+
+          assert Enum.map(variants, & &1.name) == ["poster", "web_720p"]
+
+          for variant <- variants do
+            assert :ok =
+                     perform_job(ProcessVariant, %{
+                       "asset_id" => asset.id,
+                       "variant_name" => variant.name
+                     })
+          end
+
+          ready_variants =
+            Repo.all(
+              from variant in MediaVariant,
+                where: variant.asset_id == ^asset.id,
+                order_by: variant.name
+            )
+
+          assert Enum.map(ready_variants, &{&1.name, &1.output_kind, &1.state}) == [
+                   {"poster", "image", "ready"},
+                   {"web_720p", "video", "ready"}
+                 ]
+
+          write_tus_report!(%{
+            upload_url: proof["upload_url"],
+            previous_uploads: proof["previous_uploads"],
+            byte_size: promoted_asset.byte_size,
+            content_type: promoted_asset.content_type,
+            ready_variants: Enum.map(ready_variants, & &1.name),
+            endpoint: proof["endpoint"],
+            failure_phase: proof["failure_phase"],
+            failure_mode: proof["failure_mode"],
+            failure_summary: proof["failure_summary"]
+          })
         end
     """
   end
@@ -1871,6 +2059,476 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
 
   defp profile_test_moduletag(:gcs), do: ""
   defp profile_test_moduletag(_other), do: "  @moduletag :minio\n"
+
+  defp profile_test_helpers(app_module, :tus) do
+    """
+        defp start_endpoint_server!(port) do
+          endpoint_config = Application.get_env(:#{Macro.underscore(app_module)}, Endpoint, [])
+
+          Application.put_env(
+            :#{Macro.underscore(app_module)},
+            Endpoint,
+            Keyword.merge(endpoint_config,
+              server: true,
+              http: [ip: {127, 0, 0, 1}, port: port]
+            )
+          )
+
+          if Process.whereis(Endpoint) do
+            case Supervisor.terminate_child(#{app_module}.Supervisor, Endpoint) do
+              :ok -> :ok
+              {:error, :not_found} -> :ok
+              {:error, :running} -> :ok
+              {:error, :restarting} -> :ok
+            end
+          end
+
+          case Supervisor.restart_child(#{app_module}.Supervisor, Endpoint) do
+            {:ok, _pid} -> :ok
+            {:ok, _pid, _info} -> :ok
+            {:error, :not_found} ->
+              {:ok, _pid} = Endpoint.start_link()
+              :ok
+            {:error, {:already_started, _pid}} -> :ok
+            {:error, :running} -> :ok
+          end
+
+          wait_for_port!(port)
+          wait_for_http_ready!(port)
+        end
+
+        defp wait_for_port!(port) do
+          result =
+            Enum.reduce_while(1..50, :error, fn _attempt, _acc ->
+              case :gen_tcp.connect({127, 0, 0, 1}, port, [:binary, active: false], 200) do
+                {:ok, socket} ->
+                  :gen_tcp.close(socket)
+                  {:halt, :ok}
+
+                {:error, _reason} ->
+                  Process.sleep(100)
+                  {:cont, :error}
+              end
+            end)
+
+          assert result == :ok, "endpoint did not start on port \#{port}"
+        end
+
+        defp wait_for_http_ready!(port) do
+          url = 'http://127.0.0.1:' ++ Integer.to_charlist(port) ++ '/'
+
+          result =
+            Enum.reduce_while(1..50, :error, fn _attempt, _acc ->
+              case :httpc.request(:get, {url, []}, [], []) do
+                {:ok, {{_, status, _}, _, _}} when status in 200..499 ->
+                  {:halt, :ok}
+
+                _other ->
+                  Process.sleep(100)
+                  {:cont, :error}
+              end
+            end)
+
+          assert result == :ok, "endpoint did not serve HTTP on port \#{port}"
+        end
+
+        defp build_large_mp4_fixture!(path) do
+          File.mkdir_p!(Path.dirname(path))
+
+          args = [
+            "-y",
+            "-f",
+            "lavfi",
+            "-i",
+            "testsrc=size=1280x720:rate=30:duration=20",
+            "-f",
+            "lavfi",
+            "-i",
+            "sine=frequency=880:sample_rate=48000:duration=20",
+            "-map",
+            "0:v:0",
+            "-map",
+            "1:a:0",
+            "-c:v",
+            "libx264",
+            "-preset",
+            "ultrafast",
+            "-x264-params",
+            "nal-hrd=cbr:force-cfr=1",
+            "-b:v",
+            "85M",
+            "-minrate",
+            "85M",
+            "-maxrate",
+            "85M",
+            "-bufsize",
+            "170M",
+            "-pix_fmt",
+            "yuv420p",
+            "-c:a",
+            "aac",
+            "-b:a",
+            "192k",
+            "-movflags",
+            "+faststart",
+            path
+          ]
+
+          {output, exit_code} = System.cmd("ffmpeg", args, stderr_to_stdout: true)
+          assert exit_code == 0, output
+          assert File.stat!(path).size >= 200 * 1024 * 1024
+        end
+
+        defp install_tus_js_client! do
+          if File.exists?("node_modules/tus-js-client/package.json") do
+            :ok
+          else
+            {output, exit_code} =
+              System.cmd(
+                "npm",
+                ["install", "--no-save", "tus-js-client@4.3.1"],
+                stderr_to_stdout: true
+              )
+
+            assert exit_code == 0, output
+          end
+        end
+
+        defp write_tus_node_script!(path) do
+          File.mkdir_p!(Path.dirname(path))
+
+          File.write!(
+            path,
+            ~S'''
+            const fs = require("fs")
+            const path = require("path")
+            const tus = require("tus-js-client")
+
+            const endpoint = process.argv[2]
+            const filePath = process.argv[3]
+            const debugReportPath = process.argv[5]
+            const file = fs.readFileSync(filePath)
+            const chunkSize = 16 * 1024 * 1024
+            const metadata = {
+              filename: path.basename(filePath),
+              filetype: "video/mp4",
+            }
+            const fingerprintValue = `rindle-phase44:${metadata.filename}:${file.length}`
+            const urlStoragePath = path.join(process.cwd(), "tmp", "install_smoke_tus_url_storage.json")
+
+            fs.mkdirSync(path.dirname(urlStoragePath), { recursive: true })
+
+            function writeDebugReport(report) {
+              if (!debugReportPath) return
+              fs.mkdirSync(path.dirname(debugReportPath), { recursive: true })
+              fs.writeFileSync(debugReportPath, JSON.stringify(report, null, 2))
+            }
+
+            function responseStatus(response) {
+              return response && typeof response.getStatus === "function" ? response.getStatus() : null
+            }
+
+            function responseBody(response) {
+              return response && typeof response.getBody === "function" ? response.getBody() : null
+            }
+
+            function requestSnapshot(request) {
+              if (!request) return null
+
+              return {
+                method: request._method || request.method || null,
+                url: request._url || request.url || null,
+                headers: request._headers || request.headers || null,
+                reused_socket:
+                  request._request
+                    ? request._request.reusedSocket === true
+                    : request.reused_socket ?? null,
+              }
+            }
+
+            function trackerFor(mode) {
+              return {
+                mode,
+                phases: [],
+                lastRequest: null,
+                createAccepted: false,
+                patchStarted: false,
+                chunkCompleted: false,
+              }
+            }
+
+            function baseOptions() {
+              return {
+                endpoint,
+                metadata,
+                chunkSize,
+                parallelUploads: 1,
+                retryDelays: null,
+                httpStack: new tus.DefaultHttpStack({ agent: false }),
+                removeFingerprintOnSuccess: true,
+                storeFingerprintForResuming: true,
+                fingerprint: () => Promise.resolve(fingerprintValue),
+                urlStorage: new tus.FileUrlStorage(urlStoragePath),
+              }
+            }
+
+            function trackedOptions(tracker) {
+              return {
+                ...baseOptions(),
+                onBeforeRequest: (request) => {
+                  const snapshot = requestSnapshot(request)
+                  tracker.lastRequest = snapshot
+
+                  tracker.phases.push({
+                    event: "request",
+                    method: snapshot && snapshot.method,
+                    url: snapshot && snapshot.url,
+                  })
+                },
+                onAfterResponse: (request, response) => {
+                  const method = request && request._method
+                  const phase =
+                    method === "POST"
+                      ? "create_upload"
+                      : method === "HEAD"
+                        ? "resume_lookup"
+                        : method === "PATCH"
+                          ? "resume_upload"
+                          : "unknown"
+
+                  if (method === "POST" && responseStatus(response) === 201) tracker.createAccepted = true
+                  if (method === "PATCH") tracker.patchStarted = true
+
+                  tracker.phases.push({
+                    event: "response",
+                    phase,
+                    method,
+                    status: responseStatus(response),
+                    body: responseBody(response),
+                  })
+                },
+              }
+            }
+
+            function failurePhase(tracker) {
+              if (tracker.mode === "resume") return "resume_upload"
+              if (!tracker.createAccepted) return "create_upload"
+              if (tracker.mode === "interrupt" && !tracker.chunkCompleted) return "interrupt_upload"
+              return "interrupt_upload"
+            }
+
+            function failureReport(error, tracker, extra = {}) {
+              const request = error && error.originalRequest ? error.originalRequest : tracker.lastRequest
+              const response = error && error.originalResponse
+              const cause = error && error.causingError
+              const phase = failurePhase(tracker)
+
+              return {
+                ok: false,
+                mode: tracker.mode,
+                endpoint,
+                failure_phase: phase,
+                failure_mode: tracker.mode,
+                failure_summary: `${phase} failed during ${tracker.mode}`,
+                error_name: error && error.name,
+                error_message: error && error.message,
+                response_code: responseStatus(response),
+                response_body: responseBody(response),
+                request: requestSnapshot(request),
+                cause:
+                  cause
+                    ? {
+                        message: cause.message || null,
+                        code: cause.code || null,
+                      }
+                    : null,
+                phases: tracker.phases,
+                ...extra,
+              }
+            }
+
+            async function interruptAfterFirstChunk() {
+              return new Promise((resolve, reject) => {
+                let interrupted = false
+                let upload = null
+                const tracker = trackerFor("interrupt")
+
+                upload = new tus.Upload(file, {
+                  ...trackedOptions(tracker),
+                  onChunkComplete: (_chunkSize, bytesAccepted) => {
+                    if (!interrupted && bytesAccepted > 0) {
+                      interrupted = true
+                      tracker.chunkCompleted = true
+                      upload.abort().then(resolve).catch(reject)
+                    }
+                  },
+                  onSuccess: () => {
+                    reject(new Error("upload completed before simulated drop"))
+                  },
+                  onError: (error) => {
+                    if (!interrupted) {
+                      reject(failureReport(error, tracker))
+                    }
+                  },
+                })
+
+                upload.start()
+              })
+            }
+
+            async function resumeUpload() {
+              const tracker = trackerFor("resume")
+              return new Promise(async (resolve, reject) => {
+                let previousUploads = []
+
+                const upload = new tus.Upload(file, {
+                  ...trackedOptions(tracker),
+                  onSuccess: () => {
+                    resolve({
+                      upload_url: upload.url,
+                      previous_uploads: previousUploads.length,
+                      endpoint,
+                      failure_phase: "none",
+                      failure_mode: "none",
+                      failure_summary: "none",
+                    })
+                  },
+                  onError: (error) => reject(failureReport(error, tracker, { previous_uploads: previousUploads.length })),
+                })
+
+                try {
+                  previousUploads = await upload.findPreviousUploads()
+                } catch (error) {
+                  reject(
+                    failureReport(error, tracker, {
+                      failure_phase: "resume_lookup",
+                      failure_summary: "resume_lookup failed before resumeFromPreviousUpload()",
+                    })
+                  )
+                  return
+                }
+
+                if (previousUploads.length === 0) {
+                  reject({
+                    ok: false,
+                    mode: tracker.mode,
+                    endpoint,
+                    failure_phase: "resume_lookup",
+                    failure_mode: tracker.mode,
+                    failure_summary: "resume_lookup found no stored uploads",
+                    error_name: "ResumeLookupError",
+                    error_message: "no previous tus upload was available to resume",
+                    phases: tracker.phases,
+                    previous_uploads: previousUploads.length,
+                  })
+                  return
+                }
+
+                upload.resumeFromPreviousUpload(previousUploads[0])
+                upload.start()
+              })
+            }
+
+            const mode = process.argv[4] || "all"
+
+            ;(async () => {
+              if (!tus.canStoreURLs) {
+                throw new Error("tus-js-client URL storage is unavailable in this Node environment")
+              }
+
+              if (mode === "interrupt") {
+                await interruptAfterFirstChunk()
+                process.stdout.write(JSON.stringify({ interrupted: true, endpoint }))
+                return
+              }
+
+              if (mode === "resume") {
+                const result = await resumeUpload()
+                process.stdout.write(JSON.stringify(result))
+                return
+              }
+
+              await interruptAfterFirstChunk()
+              await new Promise((resolve) => setTimeout(resolve, 250))
+              const result = await resumeUpload()
+              process.stdout.write(JSON.stringify(result))
+            })().catch((error) => {
+              writeDebugReport(error)
+              console.error(JSON.stringify(error, null, 2))
+              process.exit(1)
+            })
+            '''
+          )
+        end
+
+        defp run_tus_node_proof!(script_path, endpoint, fixture_path) do
+          debug_report_path = Path.expand("../tmp/install_smoke_tus_debug_report.json", __DIR__)
+
+          merge_tus_report!(%{
+            endpoint: endpoint,
+            report_path: Path.expand("../tmp/install_smoke_tus_report.json", __DIR__),
+            debug_report_path: debug_report_path
+          })
+
+          {interrupt_output, interrupt_exit_code} =
+            System.cmd(
+              "node",
+              [script_path, endpoint, fixture_path, "interrupt", debug_report_path],
+              stderr_to_stdout: true
+            )
+
+          assert interrupt_exit_code == 0,
+                 "tus interrupt phase failed for \#{endpoint}\\nreport: \#{debug_report_path}\\n\#{interrupt_output}"
+
+          merge_tus_debug_report!(%{interrupt_output: interrupt_output})
+
+          {output, exit_code} =
+            System.cmd("node", [script_path, endpoint, fixture_path, "resume", debug_report_path],
+              stderr_to_stdout: true
+            )
+
+          assert exit_code == 0,
+                 "tus resume phase failed for \#{endpoint}\\nreport: \#{debug_report_path}\\n\#{output}"
+
+          merge_tus_debug_report!(%{resume_output: output})
+          Jason.decode!(output)
+        end
+
+        defp read_tus_report! do
+          case File.read("tmp/install_smoke_tus_report.json") do
+            {:ok, body} -> Jason.decode!(body)
+            {:error, :enoent} -> %{}
+          end
+        end
+
+        defp write_tus_report!(attrs) do
+          File.mkdir_p!("tmp")
+          File.write!("tmp/install_smoke_tus_report.json", Jason.encode!(attrs))
+        end
+
+        defp merge_tus_report!(attrs) do
+          attrs = Map.merge(read_tus_report!(), attrs)
+          write_tus_report!(attrs)
+        end
+
+        defp read_tus_debug_report! do
+          case File.read("tmp/install_smoke_tus_debug_report.json") do
+            {:ok, body} -> Jason.decode!(body)
+            {:error, :enoent} -> %{}
+          end
+        end
+
+        defp write_tus_debug_report!(attrs) do
+          File.mkdir_p!("tmp")
+          File.write!("tmp/install_smoke_tus_debug_report.json", Jason.encode!(attrs))
+        end
+
+        defp merge_tus_debug_report!(attrs) do
+          attrs = Map.merge(read_tus_debug_report!(), attrs)
+          write_tus_debug_report!(attrs)
+        end
+    """
+  end
 
   defp profile_test_helpers(_app_module, :gcs) do
     """

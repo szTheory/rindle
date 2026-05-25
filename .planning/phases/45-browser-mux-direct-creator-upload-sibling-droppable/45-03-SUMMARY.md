@@ -1,3 +1,12 @@
+---
+phase: 45-browser-mux-direct-creator-upload-sibling-droppable
+plan: 03
+subsystem: liveview / docs
+tags: [mux, direct-upload, liveview, preset, guide]
+requirements-completed: [MUX-23]
+completed: 2026-05-24
+---
+
 # Plan 45-03 Summary
 
 ## Completed

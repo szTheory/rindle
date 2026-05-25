@@ -31,48 +31,71 @@ defmodule Rindle.Ops.RuntimeChecksTest do
       variants: [web: [kind: :video, preset: :web_720p]]
   end
 
+  defmodule NoTusStorage do
+    def capabilities, do: [:local, :head]
+  end
+
+  defmodule TusUnsupportedVideoProfile do
+    use Rindle.Profile.Presets.Web,
+      storage: NoTusStorage,
+      allow_mime: ["video/mp4"],
+      max_bytes: 10_000_000
+  end
+
   describe "run/2" do
     test "returns deterministic stable check ids" do
-      report =
-        run_runtime_checks(
-          probe: fn -> :ok end,
-          env: %{},
-          profiles: [ImageProfile, VideoProfile],
-          oban_config: [
-            repo: Rindle.Repo,
-            queues: [
-              rindle_promote: 1,
-              rindle_process: 1,
-              rindle_purge: 1,
-              rindle_maintenance: 1,
-              rindle_media: 1
+      previous = Application.get_env(:rindle, :tus_profiles)
+      Application.put_env(:rindle, :tus_profiles, [VideoProfile])
+
+      try do
+        report =
+          run_runtime_checks(
+            probe: fn -> :ok end,
+            env: %{},
+            profiles: [ImageProfile, VideoProfile],
+            oban_config: [
+              repo: Rindle.Repo,
+              queues: [
+                rindle_promote: 1,
+                rindle_process: 1,
+                rindle_purge: 1,
+                rindle_maintenance: 1,
+                rindle_media: 1
+              ]
+            ],
+            migration_statuses: [],
+            local_playback_route: [
+              base_url: "http://example.test/rindle/local",
+              secret_key_base: "secret"
             ]
-          ],
-          migration_statuses: [],
-          local_playback_route: [
-            base_url: "http://example.test/rindle/local",
-            secret_key_base: "secret"
-          ]
-        )
+          )
 
-      assert Enum.map(report.checks, & &1.id) == [
-               "doctor.delivery_support",
-               "doctor.ffmpeg_runtime",
-               "doctor.local_playback",
-               "doctor.migrations.pending",
-               "doctor.migrations.unresolved",
-               "doctor.oban_default_instance",
-               "doctor.oban_required_queues",
-               "doctor.profile_runtime_fit",
-               "doctor.resumable_session_schema",
-               "doctor.streaming_credentials",
-               "doctor.streaming_signing_key",
-               "doctor.streaming_smoke_ping",
-               "doctor.streaming_webhook_secrets"
-             ]
+        assert Enum.map(report.checks, & &1.id) == [
+                 "doctor.delivery_support",
+                 "doctor.ffmpeg_runtime",
+                 "doctor.local_playback",
+                 "doctor.migrations.pending",
+                 "doctor.migrations.unresolved",
+                 "doctor.oban_default_instance",
+                 "doctor.oban_required_queues",
+                 "doctor.profile_runtime_fit",
+                 "doctor.resumable_session_schema",
+                 "doctor.streaming_credentials",
+                 "doctor.streaming_signing_key",
+                 "doctor.streaming_smoke_ping",
+                 "doctor.streaming_webhook_secrets",
+                 "doctor.tus_capability"
+               ]
 
-      assert report.success?
-      assert report.failed == 0
+        assert report.success?
+        assert report.failed == 0
+      after
+        if previous do
+          Application.put_env(:rindle, :tus_profiles, previous)
+        else
+          Application.delete_env(:rindle, :tus_profiles)
+        end
+      end
     end
 
     test "does not require rindle_media for image-only profiles" do
@@ -268,6 +291,46 @@ defmodule Rindle.Ops.RuntimeChecksTest do
       assert check.summary =~ "last_known_offset must be NOT NULL DEFAULT 0"
       assert check.summary =~ "missing resumable expiry index"
       assert check.fix =~ "Re-run the packaged resumable migration"
+    end
+
+    test "flags tus profile capability drift when configured tus profile lacks :tus_upload" do
+      previous = Application.get_env(:rindle, :tus_profiles)
+      Application.put_env(:rindle, :tus_profiles, [TusUnsupportedVideoProfile])
+
+      try do
+        report =
+          run_runtime_checks(
+            probe: fn -> :ok end,
+            env: %{},
+            profiles: [TusUnsupportedVideoProfile],
+            oban_config: [
+              repo: Rindle.Repo,
+              queues: [
+                rindle_promote: 1,
+                rindle_process: 1,
+                rindle_purge: 1,
+                rindle_maintenance: 1,
+                rindle_media: 1
+              ]
+            ],
+            migration_statuses: [],
+            local_playback_route: [
+              base_url: "http://example.test/rindle/local",
+              secret_key_base: "secret"
+            ]
+          )
+
+        check = fetch_check(report, "doctor.tus_capability")
+        assert check.status == :error
+        assert check.summary =~ "TusUnsupportedVideoProfile"
+        assert check.fix =~ ":tus_profiles"
+      after
+        if previous do
+          Application.put_env(:rindle, :tus_profiles, previous)
+        else
+          Application.delete_env(:rindle, :tus_profiles)
+        end
+      end
     end
   end
 

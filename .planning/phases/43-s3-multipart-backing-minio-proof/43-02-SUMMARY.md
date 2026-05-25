@@ -34,6 +34,7 @@ decisions:
   - "complete_part_stream is arity 4 (key, temp_path, state, opts), NOT the arity 3 the 43-02 plan body's <interfaces> note stated — the actual storage.ex @optional_callbacks (complete_part_stream: 4) and the RED test S3.complete_part_stream(key, nil, mid, opts) both require /4 (Plan 01's locked contract)"
   - "Injectable ExAws request seam (request_module app-env, default ExAws) + a test-support stub so the un-tagged s3_tus_test slice path is deterministic offline (no MinIO); the stub delegates to real ExAws whenever RINDLE_MINIO_* is present"
   - "Tail file keyed on opts[:session_id] || key, Base.url_encode64'd, under opts[:root] || TempRunDir.root_dir()/tus/ — traversal-proof + per-test isolation via the :root override the unit tests pass"
+requirements-completed: [TUS-07]
 metrics:
   duration: ~20min
   completed: 2026-05-23

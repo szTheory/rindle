@@ -6,6 +6,8 @@ This document captures reusable engineering DNA from your recent Elixir OSS libr
 
 This is not a historical summary.
 It is a practical operating system for decisions.
+Its job is to collapse research into opinionated defaults, not to preserve
+option breadth.
 
 ## Reader + post-read action
 

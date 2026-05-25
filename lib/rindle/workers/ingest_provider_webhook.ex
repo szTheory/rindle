@@ -40,7 +40,7 @@ defmodule Rindle.Workers.IngestProviderWebhook do
   | `video.asset.errored` | `* -> errored` | `:provider_asset_errored` | `:processed` |
   | `video.asset.deleted` | `* -> deleted` | `:provider_asset_deleted` | `:processed` |
   | `video.asset.created` | `uploading -> processing` | none (Phase 37) | `:processed` kind: :deferred_to_phase_37 |
-  | `video.upload.asset_created` | none (last_event_at bump only) | none | `:ignored` kind: :deferred_to_phase_37 |
+  | `video.upload.asset_created` | `uploading -> processing` | `:provider_asset_created` | `:processed` |
   | other | none (last_event_at bump only) | none | `:ignored` kind: :unknown_event |
 
   ## Telemetry (D-26 + security invariant 14)
@@ -62,8 +62,6 @@ defmodule Rindle.Workers.IngestProviderWebhook do
       }}
 
   `provider_asset_id` is FORBIDDEN in the payload (security invariant 14).
-  `:provider_asset_created` is RESERVED for Phase 37 / MUX-23 — Phase 35
-  handles `video.asset.created` with FSM transition + no broadcast.
   """
 
   use Oban.Worker, queue: :rindle_provider, max_attempts: 5
@@ -111,18 +109,13 @@ defmodule Rindle.Workers.IngestProviderWebhook do
     provider_asset_id = get_in(args, ["event", "provider_asset_id"])
     event_type = args["event_type"]
 
-    case lookup_row(repo, provider_asset_id) do
-      nil when event_type == "video.upload.asset_created" ->
-        # Phase 37 forward-compat — no row matches by provider_asset_id yet.
-        # NOT a race-snooze: Phase 35 has no upload row to wait for.
-        emit(:ignored, args, %{
-          kind: :deferred_to_phase_37,
-          from_state: nil,
-          to_state: nil
-        })
+    row =
+      case lookup_row(repo, provider_asset_id) do
+        nil when event_type == "video.upload.asset_created" -> lookup_passthrough_row(repo, args)
+        other -> other
+      end
 
-        :ok
-
+    case row do
       nil ->
         handle_missing_row(job, args)
 
@@ -139,6 +132,16 @@ defmodule Rindle.Workers.IngestProviderWebhook do
 
   defp lookup_row(repo, provider_asset_id) when is_binary(provider_asset_id) do
     repo.get_by(MediaProviderAsset, provider_asset_id: provider_asset_id)
+  end
+
+  defp lookup_passthrough_row(repo, args) do
+    case get_in(args, ["event", "raw", "data", "passthrough"]) do
+      passthrough when is_binary(passthrough) ->
+        repo.get_by(MediaProviderAsset, provider_name: "mux", mux_passthrough: passthrough)
+
+      _ ->
+        nil
+    end
   end
 
   # Race-snooze (D-21): row not visible yet → exponential backoff up to 4 attempts.
@@ -220,7 +223,7 @@ defmodule Rindle.Workers.IngestProviderWebhook do
 
   defp dispatch(repo, row, %{"event_type" => "video.asset.created"} = args) do
     # FSM `:uploading -> :processing` (Mux says status: "preparing").
-    # NO broadcast — `:provider_asset_created` is reserved for Phase 37 (D-33).
+    # NO broadcast — upload linkage is announced by `video.upload.asset_created`.
     event = args["event"] || %{}
     occurred_at = parse_datetime(event["occurred_at"])
 
@@ -234,7 +237,7 @@ defmodule Rindle.Workers.IngestProviderWebhook do
         case row |> MediaProviderAsset.changeset(attrs) |> repo.update() do
           {:ok, _updated} ->
             emit(:processed, args, %{
-              kind: :deferred_to_phase_37,
+              kind: nil,
               from_state: row.state,
               to_state: "processing"
             })
@@ -263,22 +266,53 @@ defmodule Rindle.Workers.IngestProviderWebhook do
   end
 
   defp dispatch(repo, row, %{"event_type" => "video.upload.asset_created"} = args) do
-    # Phase 37 forward-compat — bump last_event_at; no FSM transition; no broadcast.
     event = args["event"] || %{}
     occurred_at = parse_datetime(event["occurred_at"])
+    raw = event["raw"] || %{}
+    provider_asset_id = event["provider_asset_id"]
 
-    case row |> MediaProviderAsset.changeset(%{last_event_at: occurred_at}) |> repo.update() do
-      {:ok, _} ->
-        emit(:ignored, args, %{
-          kind: :deferred_to_phase_37,
+    attrs = %{
+      provider_asset_id: provider_asset_id,
+      last_event_at: occurred_at,
+      raw_provider_metadata: Map.get(raw, "data") || %{}
+    }
+
+    cond do
+      row.state == "uploading" ->
+        transition_and_broadcast(
+          repo,
+          row,
+          Map.put(attrs, :state, "processing"),
+          "processing",
+          :provider_asset_created,
+          args
+        )
+
+      row.state in ["processing", "ready"] ->
+        case row |> MediaProviderAsset.changeset(attrs) |> repo.update() do
+          {:ok, updated} ->
+            maybe_broadcast_linked(updated, row, provider_asset_id)
+
+            emit(:processed, args, %{
+              kind: if(row.provider_asset_id == provider_asset_id, do: :duplicate, else: nil),
+              from_state: row.state,
+              to_state: row.state
+            })
+
+            :ok
+
+          {:error, _changeset} = err ->
+            err
+        end
+
+      true ->
+        emit(:exception, args, %{
+          kind: :invalid_transition,
           from_state: row.state,
-          to_state: row.state
+          to_state: "processing"
         })
 
-        :ok
-
-      {:error, _changeset} = err ->
-        err
+        {:cancel, {:error, {:invalid_transition, row.state, "processing"}}}
     end
   end
 
@@ -370,6 +404,14 @@ defmodule Rindle.Workers.IngestProviderWebhook do
     end
 
     :ok
+  end
+
+  defp maybe_broadcast_linked(updated, original, provider_asset_id) do
+    if is_binary(provider_asset_id) and provider_asset_id != original.provider_asset_id do
+      broadcast(updated, :provider_asset_created)
+    else
+      :ok
+    end
   end
 
   defp pubsub_server do

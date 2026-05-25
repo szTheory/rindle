@@ -234,8 +234,9 @@ defmodule Rindle.Delivery.WebhookPlug do
         # Fallback for the "Plug mounted before Plug.Parsers" case Stripe
         # documents (D-10). If THIS also yields empty, the adopter's
         # `endpoint.ex` is misconfigured (D-16).
-        case Plug.Conn.read_body(conn) do
+        case Plug.Conn.read_body(conn, length: 1_048_576) do
           {:ok, body, conn} when byte_size(body) > 0 -> {:ok, body, conn}
+          {:more, _partial, _conn} -> {:error, :body_missing}
           _ -> {:error, :body_missing}
         end
     end

@@ -48,8 +48,13 @@ defmodule Rindle.Streaming.Provider.MuxTest do
     File.read!("test/fixtures/mux/#{name}") |> Jason.decode!()
   end
 
-  test "capabilities/0 returns the closed v1.6 set (no :public_playback, no :direct_creator_upload)" do
-    assert Adapter.capabilities() == [:signed_playback, :webhook_ingest, :server_push_ingest]
+  test "capabilities/0 advertises the direct creator upload capability only after the adapter implements it" do
+    assert Adapter.capabilities() == [
+             :signed_playback,
+             :webhook_ingest,
+             :server_push_ingest,
+             :direct_creator_upload
+           ]
   end
 
   test "create_asset/3 sends PLURAL Mux keys and reshapes response with PLURAL playback_ids" do
@@ -119,6 +124,36 @@ defmodule Rindle.Streaming.Provider.MuxTest do
 
     assert {:error, :provider_sync_failed} =
              Adapter.create_asset(TestProfile, "https://signed.example/v.mp4")
+  end
+
+  test "create_direct_upload/2 sends the Mux upload-create request shape and returns provider_asset_id: nil" do
+    expect(ClientMock, :create_upload, fn params ->
+      assert params["cors_origin"] == "https://app.example"
+      assert params["new_asset_settings"]["playback_policies"] == ["signed"]
+      assert params["new_asset_settings"]["passthrough"] == "mux-pass-123"
+      {:ok, %{"id" => "upload-123", "url" => "https://mux.example/upload"}}
+    end)
+
+    assert {:ok,
+            %{
+              upload_url: "https://mux.example/upload",
+              upload_id: "upload-123",
+              provider_asset_id: nil
+            }} =
+             Adapter.create_direct_upload(TestProfile,
+               cors_origin: "https://app.example",
+               passthrough: "mux-pass-123",
+               playback_policy: :signed
+             )
+  end
+
+  test "create_direct_upload/2 maps 429 to :provider_quota_exceeded" do
+    expect(ClientMock, :create_upload, fn _params ->
+      {:error, "rate_limited", %{status: 429, headers: [{"retry-after", "30"}]}}
+    end)
+
+    assert {:error, :provider_quota_exceeded} =
+             Adapter.create_direct_upload(TestProfile, cors_origin: "https://app.example")
   end
 
   test "create_asset_with_retry_hint/3 surfaces Retry-After to the worker on 429" do

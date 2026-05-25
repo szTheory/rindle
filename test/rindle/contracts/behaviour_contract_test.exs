@@ -85,4 +85,21 @@ defmodule Rindle.Contracts.BehaviourContractTest do
     assert {:error, :unauthorized} =
              Rindle.AuthorizerMock.authorize(unauthorized_actor, action, subject)
   end
+
+  test "tus resume authorizer callback contract supports allow and reject responses" do
+    actor = %{id: "user-1"}
+    action = :resume
+    subject = %{token_actor: "user-1", method: :patch}
+
+    expect(Rindle.TusResumeAuthorizerMock, :authorize, fn ^actor, ^action, ^subject ->
+      :ok
+    end)
+
+    expect(Rindle.TusResumeAuthorizerMock, :authorize, fn %{id: "user-2"}, ^action, ^subject ->
+      :reject
+    end)
+
+    assert :ok = Rindle.TusResumeAuthorizerMock.authorize(actor, action, subject)
+    assert :reject = Rindle.TusResumeAuthorizerMock.authorize(%{id: "user-2"}, action, subject)
+  end
 end

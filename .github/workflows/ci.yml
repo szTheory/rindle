@@ -338,6 +338,16 @@ jobs:
           elixir-version: "1.17"
           otp-version: "27"
 
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Set up FFmpeg
+        uses: FedericoCarboni/setup-ffmpeg@v3
+        with:
+          ffmpeg-version: release
+
       - name: Install libvips
         run: sudo apt-get update && sudo apt-get install -y libvips-dev
 
@@ -387,6 +397,9 @@ jobs:
 
       - name: Run built-artifact AV package-consumer proof against MinIO
         run: bash scripts/install_smoke.sh video
+
+      - name: Run built-artifact tus package-consumer proof against MinIO
+        run: bash scripts/install_smoke.sh tus
 
       - name: Run built-artifact Mux-enabled package-consumer proof (cassette mode)
         run: bash scripts/install_smoke.sh mux

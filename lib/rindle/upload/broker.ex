@@ -165,6 +165,14 @@ defmodule Rindle.Upload.Broker do
            ) do
       emit_upload_start(profile_name, adapter, session.id)
 
+      ResumableTelemetry.emit_start(
+        profile_name,
+        adapter,
+        session,
+        %{state: session.state, source: :broker, protocol: :gcs_native},
+        %{}
+      )
+
       {:ok,
        %{
          session: session,
@@ -269,6 +277,14 @@ defmodule Rindle.Upload.Broker do
              opts
            ) do
       emit_upload_start(profile_name, adapter, session.id)
+
+      ResumableTelemetry.emit_start(
+        profile_name,
+        adapter,
+        session,
+        %{state: session.state, source: :broker, protocol: :tus},
+        %{}
+      )
 
       {:ok, %{session: session}}
     else
@@ -528,6 +544,20 @@ defmodule Rindle.Upload.Broker do
             asset_id: updated_asset.id
           }
         )
+
+        if updated_session.upload_strategy == "resumable" do
+          ResumableTelemetry.emit_stop(
+            asset.profile,
+            profile_module.storage_adapter(),
+            updated_session,
+            %{
+              outcome: :ok,
+              source: :verify_completion,
+              protocol: resumable_protocol(updated_session)
+            },
+            %{committed_bytes: updated_asset.byte_size || updated_session.last_known_offset || 0}
+          )
+        end
 
         {:ok, %{session: updated_session, asset: updated_asset}}
 
@@ -850,6 +880,9 @@ defmodule Rindle.Upload.Broker do
   defp profile_module_to_name(module) do
     to_string(module)
   end
+
+  defp resumable_protocol(%MediaUploadSession{resumable_protocol: "tus"}), do: :tus
+  defp resumable_protocol(_session), do: :gcs_native
 
   defp profile_name_to_module(name) do
     {:ok, String.to_existing_atom(name)}

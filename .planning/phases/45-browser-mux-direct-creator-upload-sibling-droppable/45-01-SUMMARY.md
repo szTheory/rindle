@@ -1,3 +1,12 @@
+---
+phase: 45-browser-mux-direct-creator-upload-sibling-droppable
+plan: 01
+subsystem: streaming / mux
+tags: [mux, direct-upload, passthrough, schema, capability]
+requirements-completed: [MUX-20]
+completed: 2026-05-24
+---
+
 # Plan 45-01 Summary
 
 ## Completed

@@ -252,7 +252,7 @@ defmodule Rindle.Workers.IngestProviderWebhookTest do
   # 5. video.asset.created dispatch — FSM transition, NO broadcast
   # ============================================================
 
-  test "video.asset.created: flips :uploading -> :processing, NO broadcast, telemetry kind: :deferred_to_phase_37",
+  test "video.asset.created: flips :uploading -> :processing, NO broadcast",
        ctx do
     row = insert_provider_row(ctx.asset, "uploading")
     PubSub.subscribe(Rindle.PubSub, "rindle:provider_asset:#{ctx.asset.id}")
@@ -269,7 +269,7 @@ defmodule Rindle.Workers.IngestProviderWebhookTest do
     assert {:tele, [:rindle, :provider, :webhook, :processed], _, metadata} =
              last_telemetry([:rindle, :provider, :webhook, :processed])
 
-    assert metadata.kind == :deferred_to_phase_37
+    assert metadata.kind == nil
     assert metadata.from_state == "uploading"
     assert metadata.to_state == "processing"
   end
@@ -278,43 +278,82 @@ defmodule Rindle.Workers.IngestProviderWebhookTest do
   # 6. video.upload.asset_created dispatch — row exists
   # ============================================================
 
-  test "video.upload.asset_created with matching row: bumps last_event_at, NO state change, NO broadcast",
+  test "video.upload.asset_created links by mux_passthrough, stamps provider_asset_id, moves to processing, and broadcasts :provider_asset_created",
        ctx do
-    row = insert_provider_row(ctx.asset, "uploading")
+    row =
+      insert_provider_row(ctx.asset, "uploading", %{
+        provider_asset_id: nil,
+        mux_passthrough: "mux-pass-#{System.unique_integer([:positive])}"
+      })
+
+    PubSub.subscribe(Rindle.PubSub, "rindle:provider_asset:#{ctx.asset.id}")
     PubSub.subscribe(Rindle.PubSub, "rindle:asset:#{ctx.asset.id}")
 
-    args = event_args(row.provider_asset_id, "video.upload.asset_created")
+    args =
+      event_args("mux-provider-asset-123", "video.upload.asset_created", %{
+        "raw" => %{
+          "data" => %{
+            "id" => "mux-upload-123",
+            "asset_id" => "mux-provider-asset-123",
+            "passthrough" => row.mux_passthrough
+          }
+        }
+      })
+
     assert :ok = perform_job(IngestProviderWebhook, args)
 
     updated = Repo.get!(MediaProviderAsset, row.id)
-    # No state transition.
-    assert updated.state == "uploading"
-    # last_event_at was set.
+    assert updated.state == "processing"
+    assert updated.provider_asset_id == "mux-provider-asset-123"
     assert updated.last_event_at
 
-    refute_receive {:rindle_event, _, _}, 100
+    assert_receive {:rindle_event, :provider_asset_created, payload1}
+    assert_receive {:rindle_event, :provider_asset_created, payload2}
 
-    assert {:tele, [:rindle, :provider, :webhook, :ignored], _, metadata} =
-             last_telemetry([:rindle, :provider, :webhook, :ignored])
+    for payload <- [payload1, payload2] do
+      assert payload.asset_id == ctx.asset.id
+      assert payload.state == "processing"
+      refute Map.has_key?(payload, :provider_asset_id)
+    end
 
-    assert metadata.kind == :deferred_to_phase_37
+    assert {:tele, [:rindle, :provider, :webhook, :processed], _, metadata} =
+             last_telemetry([:rindle, :provider, :webhook, :processed])
+
+    assert metadata.kind == nil
+    assert metadata.from_state == "uploading"
+    assert metadata.to_state == "processing"
   end
 
   # ============================================================
   # 7. video.upload.asset_created — no matching row (Phase 37 forward-compat)
   # ============================================================
 
-  test "video.upload.asset_created with no matching row: returns :ok (NOT race-snooze) + telemetry :ignored kind: :deferred_to_phase_37",
+  test "video.upload.asset_created with no matching row: uses the normal race-snooze path",
        _ctx do
     args =
-      event_args("missing-provider-asset-id-no-row", "video.upload.asset_created")
+      event_args("missing-provider-asset-id-no-row", "video.upload.asset_created", %{
+        "raw" => %{
+          "data" => %{
+            "id" => "mux-upload-404",
+            "asset_id" => "missing-provider-asset-id-no-row",
+            "passthrough" => "missing-passthrough"
+          }
+        }
+      })
 
-    assert :ok = perform_job(IngestProviderWebhook, args)
+    job = %Oban.Job{
+      args: args,
+      attempt: 1,
+      worker: "Rindle.Workers.IngestProviderWebhook",
+      queue: "rindle_provider"
+    }
+
+    assert {:snooze, 5} = IngestProviderWebhook.perform(job)
 
     assert {:tele, [:rindle, :provider, :webhook, :ignored], _, metadata} =
              last_telemetry([:rindle, :provider, :webhook, :ignored])
 
-    assert metadata.kind == :deferred_to_phase_37
+    assert metadata.kind == :race_snooze
   end
 
   # ============================================================

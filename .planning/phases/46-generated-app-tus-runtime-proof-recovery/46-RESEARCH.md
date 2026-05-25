@@ -303,17 +303,17 @@ bash scripts/install_smoke.sh tus
 | A3 | Some future red reruns could still fail before the first successful `POST` without touching lower-level tus logic. [ASSUMED] | Common Pitfalls | Low; this only changes debugging order, not the locked contract. |
 | A4 | Historical guidance may previously have mixed raw tus and Uppy options. [ASSUMED] | State of the Art | Low; the current planner only needs the current split. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Does the live rerun on this machine stay green right now?**
+1. **RESOLVED: Does the live rerun on this machine stay green right now?**
    What we know: The latest persisted artifact records `failure_phase: "none"`, `previous_uploads: 1`, `byte_size: 210777744`, and `content_type: "video/mp4"`. [VERIFIED: `tmp/install_smoke_tus_last_run.json` 2026-05-24]
    What's unclear: This research pass did not execute `bash scripts/install_smoke.sh tus`, so the current runtime state is still inferred from persisted evidence rather than freshly observed. [VERIFIED: worklog 2026-05-24]
-   Recommendation: Make the rerun the first executable plan step and branch the rest of the phase on that result. [VERIFIED: Phase 46 locked decision D-02 2026-05-24]
+   Resolution: Plan `46-01` makes the rerun the first executable task and treats its result as the authoritative branch selector for the rest of the phase. [VERIFIED: Phase 46 locked decision D-02 2026-05-24]
 
-2. **Should Phase 46 also normalize optional-dependency compile warnings in the generated package-consumer lane?**
+2. **RESOLVED: Should Phase 46 also normalize optional-dependency compile warnings in the generated package-consumer lane?**
    What we know: The latest saved smoke output still includes warnings about optional modules such as `JOSE.JWK`, `Mux.Base`, `Goth`, `Finch`, and `GcsSignedUrl`. [VERIFIED: `tmp/install_smoke_tus_last_run.json` 2026-05-24]
    What's unclear: The warnings do not block the saved green run, but they can still distract audits and hide signal if a future rerun is red. [VERIFIED: `tmp/install_smoke_tus_last_run.json` 2026-05-24]
-   Recommendation: Keep this as a secondary cleanup only if the rerun is already green and the phase still has budget; do not let it displace `TUS-14` recovery. [VERIFIED: narrow scope in `.planning/phases/46-generated-app-tus-runtime-proof-recovery/46-CONTEXT.md` 2026-05-24]
+   Resolution: Keep this out of the core Phase 46 success path. It is permitted only as secondary cleanup after a green rerun and must not displace `TUS-14` recovery or widen the phase scope. [VERIFIED: narrow scope in `.planning/phases/46-generated-app-tus-runtime-proof-recovery/46-CONTEXT.md` 2026-05-24]
 
 ## Environment Availability
 

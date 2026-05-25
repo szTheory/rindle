@@ -23,6 +23,9 @@ defmodule Rindle.Streaming.Provider.Mux.Client do
   @callback create_asset(params :: map()) ::
               {:ok, map()} | {:error, term()} | {:error, term(), term()}
 
+  @callback create_upload(params :: map()) ::
+              {:ok, map()} | {:error, term()} | {:error, term(), term()}
+
   @callback get_asset(provider_asset_id :: String.t()) ::
               {:ok, map()} | {:error, term()} | {:error, term(), term()}
 

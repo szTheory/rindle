@@ -98,6 +98,7 @@ defmodule Rindle.Upload.TusPlugTest do
     Sandbox.mode(AdopterRepo, {:shared, self()})
 
     previous_repo = Application.get_env(:rindle, :repo)
+    previous_tus_resume_authorizer = Application.get_env(:rindle, :tus_resume_authorizer)
     Application.put_env(:rindle, :repo, AdopterRepo)
 
     root = Path.join(System.tmp_dir!(), "rindle-tus-plug-#{System.unique_integer([:positive])}")
@@ -109,6 +110,11 @@ defmodule Rindle.Upload.TusPlugTest do
       case previous_repo do
         nil -> Application.delete_env(:rindle, :repo)
         value -> Application.put_env(:rindle, :repo, value)
+      end
+
+      case previous_tus_resume_authorizer do
+        nil -> Application.delete_env(:rindle, :tus_resume_authorizer)
+        value -> Application.put_env(:rindle, :tus_resume_authorizer, value)
       end
     end)
 
@@ -185,11 +191,28 @@ defmodule Rindle.Upload.TusPlugTest do
       assert opts[:secret_key_base] == @secret_key_base
       assert opts[:max_size] == @max_size
       assert opts[:root] == Path.expand(root)
+      assert opts[:resume_authorizer] == nil
     end
 
     test "a non-tus method returns 405" do
       conn = conn(:get, "/uploads/tus/anything") |> route()
       assert conn.status == 405
+    end
+
+    test "GET with Tus-Resumable is treated as forwarded HEAD for Phoenix endpoints", %{
+      root: root
+    } do
+      opts = opts_for(root)
+      {token, _session_id} = create(opts, 32)
+
+      conn =
+        conn(:get, "/uploads/tus/" <> token)
+        |> put_req_header("tus-resumable", "1.0.0")
+        |> TusPlug.call(opts)
+
+      assert conn.status == 204
+      assert get_resp_header(conn, "upload-offset") == ["0"]
+      assert get_resp_header(conn, "tus-resumable") == ["1.0.0"]
     end
   end
 
@@ -344,6 +367,53 @@ defmodule Rindle.Upload.TusPlugTest do
       assert session.session_uri == location
       assert inspect(session) =~ "[REDACTED]"
       refute inspect(session) =~ token
+    end
+  end
+
+  describe "Phase 44 — optional resume authorizer" do
+    setup :set_mox_from_context
+    setup :verify_on_exit!
+
+    setup do
+      Application.put_env(:rindle, :tus_resume_authorizer, Rindle.TusResumeAuthorizerMock)
+      :ok
+    end
+
+    test "HEAD rejects when the configured resume authorizer returns :reject", %{root: root} do
+      opts = opts_for(root)
+      {token, sid} = create(opts, 100)
+      session = AdopterRepo.get!(MediaUploadSession, sid)
+
+      expect(Rindle.TusResumeAuthorizerMock, :authorize, fn "anonymous", :resume, subject ->
+        assert subject.token_actor == "anonymous"
+        assert subject.session.id == session.id
+        assert subject.profile == TusProfile
+        assert subject.method == :head
+        :reject
+      end)
+
+      conn = head(opts, token)
+
+      assert conn.status == 401
+      refute conn.status == 200
+    end
+
+    test "PATCH allows the request when the configured resume authorizer returns :ok", %{
+      root: root
+    } do
+      opts = opts_for(root)
+      {token, sid} = create(opts, 100)
+
+      expect(Rindle.TusResumeAuthorizerMock, :authorize, fn "anonymous", :resume, subject ->
+        assert subject.session.id == sid
+        assert subject.method == :patch
+        :ok
+      end)
+
+      conn = patch(opts, token, 0, "0123456789")
+
+      assert conn.status == 204
+      assert AdopterRepo.get!(MediaUploadSession, sid).last_known_offset == 10
     end
   end
 
@@ -613,11 +683,11 @@ defmodule Rindle.Upload.TusPlugTest do
 
     # POST through the plug (mock_opts) to mint a signed token, exactly like the
     # create/2 helper does for the Local profile.
-    defp mock_create(opts, length \\ 10) do
+    defp mock_create(opts, length \\ 10, upload_metadata \\ "filename Y2xpcC5qcGc=") do
       conn =
         conn(:post, "/uploads/tus")
         |> put_req_header("upload-length", Integer.to_string(length))
-        |> put_req_header("upload-metadata", "filename Y2xpcC5qcGc=")
+        |> put_req_header("upload-metadata", upload_metadata)
         |> TusPlug.call(opts)
 
       [location] = get_resp_header(conn, "location")
@@ -632,8 +702,6 @@ defmodule Rindle.Upload.TusPlugTest do
       # Length 100 so a 10-byte PATCH advances to offset 10 < length and does NOT
       # trigger completion — this spec isolates the PATCH dispatch from the
       # completion dispatch (which is exercised separately below).
-      {token, _sid} = mock_create(opts, 100)
-
       # The load-bearing expectation: the adapter callback is invoked with the
       # session's upload_key, a drained temp file path, the base offset, the
       # prior part-state map, and call opts.
@@ -641,13 +709,17 @@ defmodule Rindle.Upload.TusPlugTest do
                                                          temp_path,
                                                          base_offset,
                                                          state,
-                                                         _opts ->
+                                                         call_opts ->
         assert is_binary(key)
         assert is_binary(temp_path)
         assert base_offset == 0
         assert is_map(state)
+        assert call_opts[:content_type] == "video/mp4"
         {:ok, %{offset: 10}}
       end)
+
+      {token, _sid} =
+        mock_create(opts, 100, "filename Y2xpcC5qcGc=,filetype dmlkZW8vbXA0")
 
       _conn = patch(opts, token, 0, "0123456789")
     end

@@ -8,11 +8,12 @@ defmodule Rindle.Domain.MediaProviderAsset do
 
   ## Security invariant 14
 
-  Provider-internal identifiers (`provider_asset_id`, raw provider metadata) are
-  treated as secrets at rest and in transit. The custom `Inspect` impl below
-  redacts `provider_asset_id` to a last-4-char tag (`"...abcd"`) and replaces
-  `raw_provider_metadata` with `%{redacted: true}` so telemetry, log lines, and
-  `inspect/2` output never leak provider-internal state.
+  Provider-internal identifiers (`provider_asset_id`, provider correlation
+  tokens, raw provider metadata) are treated as secrets at rest and in transit.
+  The custom `Inspect` impl below redacts identifiers to a last-4-char tag
+  (`"...abcd"`) and replaces `raw_provider_metadata` with `%{redacted: true}`
+  so telemetry, log lines, and `inspect/2` output never leak provider-internal
+  state.
 
   ## States
 
@@ -46,6 +47,7 @@ defmodule Rindle.Domain.MediaProviderAsset do
     field :profile, :string
     field :provider_name, :string
     field :provider_asset_id, :string
+    field :mux_passthrough, :string
     field :playback_ids, {:array, :string}, default: []
     field :playback_policy, :string
     field :ingest_mode, :string
@@ -65,6 +67,7 @@ defmodule Rindle.Domain.MediaProviderAsset do
     :profile,
     :provider_name,
     :provider_asset_id,
+    :mux_passthrough,
     :playback_ids,
     :playback_policy,
     :ingest_mode,
@@ -111,6 +114,9 @@ defmodule Rindle.Domain.MediaProviderAsset do
     |> unique_constraint([:provider_name, :provider_asset_id],
       name: :media_provider_assets_provider_name_provider_asset_id_index
     )
+    |> unique_constraint([:provider_name, :mux_passthrough],
+      name: :media_provider_assets_provider_name_mux_passthrough_index
+    )
     |> unique_constraint([:asset_id, :profile, :provider_name])
     |> foreign_key_constraint(:asset_id)
   end
@@ -121,6 +127,7 @@ defimpl Inspect, for: Rindle.Domain.MediaProviderAsset do
     redacted = %{
       asset
       | provider_asset_id: Rindle.Domain.MediaProviderAsset.redact_id(asset.provider_asset_id),
+        mux_passthrough: Rindle.Domain.MediaProviderAsset.redact_id(asset.mux_passthrough),
         raw_provider_metadata: %{redacted: true}
     }
 

@@ -58,6 +58,11 @@ vocabulary:
 - `:streaming_not_configured`
 - `:variant_processing_cancelled`
 - `:range_unparseable`
+- `:tus_session_not_found`
+- `:tus_session_expired`
+- `:tus_offset_conflict`
+- `:tus_size_exceeded`
+- `:tus_url_signature_invalid`
 
 The exact user-facing text for those reasons is owned by
 `Rindle.Error.message/1` and locked in `test/rindle/error_test.exs`. Treat this
@@ -73,6 +78,11 @@ guide as the recovery map, not a second wording authority.
 | `:streaming_not_configured` | A caller asked for streaming playback without a configured streaming provider. | Fall back to progressive delivery with `Rindle.Delivery.url/3`. |
 | `:variant_processing_cancelled` | An in-flight transcode was intentionally cancelled. | Verify whether `Rindle.cancel_processing/1` was invoked, then use `Rindle.requeue_variants/2` if the asset should resume work. |
 | `:range_unparseable` | A malformed HTTP `Range` header reached the local streaming surface. | Fix the caller/header generator or enable strict parsing if your app wants hard failures. |
+| `:tus_session_not_found` | The client retried a deleted, stale, or never-issued tus URL. | Start a fresh tus upload and ensure the client reuses the exact `Location` URL from the original tus `POST`. |
+| `:tus_session_expired` | The tus upload URL or session aged out before resume completed. | Start a new tus upload or increase the upload-session TTL if long pauses are expected. |
+| `:tus_offset_conflict` | The client resumed from a stale byte offset. | Re-`HEAD` for the authoritative `Upload-Offset` and let the tus client resume from the server-reported offset. |
+| `:tus_size_exceeded` | The client sent more bytes than declared or allowed. | Correct the file size or max-size config and restart the upload with a fresh tus URL. |
+| `:tus_url_signature_invalid` | The signed tus `Location` URL was mutated or tampered with. | Treat the tus URL as opaque and restart the upload if the client no longer has the exact original URL. |
 
 The common FFmpeg- and capability-related recovery path is still
 `mix rindle.doctor`, because it exercises the same runtime boundary that emits

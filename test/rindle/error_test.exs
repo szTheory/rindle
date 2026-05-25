@@ -11,10 +11,15 @@ defmodule Rindle.ErrorTest do
     :unsupported_codec,
     :streaming_not_configured,
     :variant_processing_cancelled,
-    :range_unparseable
+    :range_unparseable,
+    :tus_session_not_found,
+    :tus_session_expired,
+    :tus_offset_conflict,
+    :tus_size_exceeded,
+    :tus_url_signature_invalid
   ]
 
-  test "locks the eight public AV reason atoms" do
+  test "locks the public AV and tus reason atoms" do
     assert @av_public_reasons == [
              :processor_capability_missing,
              :ffmpeg_not_found,
@@ -23,7 +28,12 @@ defmodule Rindle.ErrorTest do
              :unsupported_codec,
              :streaming_not_configured,
              :variant_processing_cancelled,
-             :range_unparseable
+             :range_unparseable,
+             :tus_session_not_found,
+             :tus_session_expired,
+             :tus_offset_conflict,
+             :tus_size_exceeded,
+             :tus_url_signature_invalid
            ]
   end
 
@@ -90,6 +100,51 @@ defmodule Rindle.ErrorTest do
         The HTTP Range header could not be parsed.
 
         Rindle falls back to a `200 OK` full-body response for malformed ranges by default. Fix the caller's Range header or enable strict parsing if you need hard failures.
+        """),
+      tus_session_not_found:
+        exact("""
+        The tus upload session could not be found.
+
+        To fix:
+          1. Confirm the client is resuming with the exact `Location` URL returned by the original tus `POST`.
+          2. If the upload was deleted or expired, create a fresh tus upload instead of retrying the old URL.
+          3. If you use `tus-js-client`, keep `removeFingerprintOnSuccess: true` enabled; modern `@uppy/tus` resumes and clears stale fingerprints automatically.
+        """),
+      tus_session_expired:
+        exact("""
+        The tus upload session has expired.
+
+        To fix:
+          1. Start a new tus upload and discard the expired URL.
+          2. Keep client retries shorter than the server-side upload TTL.
+          3. If long pauses are expected, increase the upload-session TTL in your runtime config before retrying.
+        """),
+      tus_offset_conflict:
+        exact("""
+        The tus client resumed from the wrong byte offset.
+
+        To fix:
+          1. Let the client issue `HEAD` and trust the returned `Upload-Offset` before resuming.
+          2. Avoid mutating or replaying old partial chunks manually.
+          3. If you are using tus-js-client or @uppy/tus, keep automatic resume enabled and do not override the offset flow.
+        """),
+      tus_size_exceeded:
+        exact("""
+        The tus upload exceeded the declared or allowed size.
+
+        To fix:
+          1. Keep the client's `Upload-Length` aligned with the real file size.
+          2. Increase the server-side tus max size if this file should be accepted.
+          3. Start a fresh upload after correcting the file or size limit; the current URL cannot be repaired in place.
+        """),
+      tus_url_signature_invalid:
+        exact("""
+        The tus upload URL signature is invalid.
+
+        To fix:
+          1. Treat the tus `Location` URL as opaque and reuse it byte-for-byte.
+          2. Do not trim, rebuild, or append client-side path segments to the signed URL.
+          3. If the URL was copied, cached, or mutated, start a new tus upload and use the fresh location.
         """)
     }
 
@@ -312,6 +367,21 @@ defmodule Rindle.ErrorTest do
 
              Rindle falls back to a `200 OK` full-body response for malformed or multi-range requests by default. Fix the caller's Range header or enable strict parsing with:
                config :rindle, :strict_range_parsing, true
+             """)
+  end
+
+  test "renders exact message for tus_url_signature_invalid" do
+    error =
+      struct!(Rindle.Error, action: :resume_upload, reason: :tus_url_signature_invalid)
+
+    assert Rindle.Error.message(error) ==
+             exact("""
+             The tus upload URL signature is invalid.
+
+             To fix:
+               1. Treat the tus `Location` URL as opaque and reuse it byte-for-byte.
+               2. Do not trim, rebuild, or append client-side path segments to the signed URL.
+               3. If the URL was copied, cached, or mutated, start a new tus upload and use the fresh location.
              """)
   end
 
