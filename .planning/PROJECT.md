@@ -95,6 +95,18 @@ proceed.
 If escalation is required, still present a recommended path, why blast radius
 is high, and the rollback or containment implications.
 
+### Operational Enforcement
+
+To keep this posture durable across GSD workflows:
+
+- research, discuss, and planning outputs should return one recommended
+  direction by default, not a menu of equal options
+- alternatives are for rationale, rejected paths, or contingency planning only
+- local, additive, reversible, ergonomic, or wording-level choices should be
+  resolved by the agent and recorded in artifacts without user arbitration
+- phase artifacts should explicitly name the recommended boundary, deferred
+  boundary, and the high-blast-radius triggers that would justify escalation
+
 ## Requirements
 
 ### Validated

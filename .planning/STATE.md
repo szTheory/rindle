@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.9
 milestone_name: Phoenix Tus DX Completion
-status: Milestone initialized
-last_updated: "2026-05-25T06:58:28.374Z"
-last_activity: 2026-05-25
+status: Phase 48 complete
+last_updated: "2026-05-25T07:30:00Z"
+last_activity: 2026-05-25 -- Phase 48 execution completed
 progress:
   total_phases: 7
   completed_phases: 6
-  total_plans: 27
+  total_plans: 29
   completed_plans: 27
   percent: 86
 ---
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Media, made durable.
-**Current focus:** v1.9 Phoenix Tus DX Completion; Phase 48 not started.
+**Current focus:** Phase 49 — LiveView Tus Productization
 
 ## Current Position
 
-Phase: 48 - Phoenix DX Contract + Truth Audit
-Plan: —
-Status: Milestone initialized
-Last activity: 2026-05-25
+Phase: 48 (phoenix-dx-contract-truth-audit) — COMPLETE
+Plan: 2 of 2
+Status: Phase 48 complete
+Last activity: 2026-05-25 -- Phase 48 execution completed
 
 Progress: [--------------------] 0% (3 phases defined, none started)
 
@@ -53,8 +53,8 @@ Progress: [--------------------] 0% (3 phases defined, none started)
 
 ## Next Step
 
-- Run `$gsd-discuss-phase 48`.
-- Or run `$gsd-plan-phase 48` to plan directly from the new milestone artifacts.
+- Phase 48 is complete.
+- Move to Phase 49 implementation on top of the truth-aligned guide and helper seam.
 - Keep using archived `v1.8` files as historical reference only.
 
 ## Milestone-Boundary Assessment (2026-05-25)
@@ -83,6 +83,10 @@ Progress: [--------------------] 0% (3 phases defined, none started)
 - Main execution risk is support-truth drift: the code already ships a thin
   LiveView tus seam, but planning artifacts and deferred lists still overstate
   what remains unshipped.
+- Supported-now boundary for this milestone: the shipped Phoenix path is the
+  bare tus edge plus `Rindle.LiveView.allow_tus_upload/4`, a documented
+  `uploader: "RindleTus"` client path, and completion through
+  `consume_uploaded_entries/3` over `verify_completion/2`.
 
 ## Deferred Items (to v1.9+ or out of scope)
 
@@ -94,7 +98,7 @@ Progress: [--------------------] 0% (3 phases defined, none started)
 | tus | IETF RUFH / tus 2.0 (`104 Upload Resumption`) | deferred |
 | tus | GCS-as-tus-backend / R2-native tus proxying | out of scope |
 | tus | Rindle-owned standalone tus JS client package | out of scope |
-| tus | Richer reusable uploader component beyond the shipped helper seam | deferred |
+| tus | Richer reusable uploader component abstractions beyond the supported helper path | deferred |
 | lifecycle | `purge_owner`-style account erasure | deferred |
 | streaming | Second streaming provider (Cloudflare/Bunny) | deferred |
 | mux | `cancel_direct_upload/1` | deferred |
@@ -109,4 +113,4 @@ as the current wedge.
 **Last Completed Milestone:** v1.8 (Phases 42-47) — archived 2026-05-25,
 tag `v1.8`.
 
-**Next Step:** Run `$gsd-discuss-phase 48` or `$gsd-plan-phase 48`.
+**Next Step:** Execute Phase 49 on top of the Phase 48 guide-pointer and parity baseline.

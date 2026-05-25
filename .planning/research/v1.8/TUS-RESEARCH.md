@@ -621,6 +621,10 @@ existing dashboards do not break. All tus events route through
 (`resumable_telemetry.ex:9`) keeps `session_uri`/`upload_key`/`body` out by
 construction.
 
+> Historical v1.8 note: this file uses pre-v1.9 shorthand. For the current
+> support contract, see `.planning/PROJECT.md`, `.planning/REQUIREMENTS.md`,
+> `.planning/ROADMAP.md`, and `guides/resumable_uploads.md`.
+
 ### Anti-DX traps (locked out)
 - No silent downgrade. No tus URL in `inspect`. No server-side PATCH re-attempts
   (only client retries per protocol). No facade sugar.
@@ -660,9 +664,10 @@ smartphone-AV-resume case.
 Concatenation / parallel uploads; `Upload-Defer-Length`; IETF RUFH / tus 2.0
 (architect the Plug so a second protocol version is additive, §13);
 GCS-as-tus-backend (GCS keeps its native Topology-A resumable); R2-native tus
-proxying (point clients at R2 directly if they want it); a Rindle-owned tus JS
-client (use tus-js-client / Uppy); a LiveView tus uploader component (natural
-v1.9).
+proxying (point clients at R2 directly if they want it); a Rindle-owned
+standalone tus JS client package (use tus-js-client / Uppy); richer reusable
+uploader component abstractions beyond the supported helper path; and broader
+future Phoenix upload abstractions (natural v1.9).
 
 ### Phases (continue numbering from v1.7's last phase = 41)
 

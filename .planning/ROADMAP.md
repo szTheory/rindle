@@ -40,7 +40,7 @@ shipped.
 
 ## Phase Details
 
-**Phase 48: Phoenix DX Contract + Truth Audit**
+### Phase 48: Phoenix DX Contract + Truth Audit
 Goal: freeze the exact Phoenix tus support claim and remove stale planning
 language that treats the current seam as wholly deferred.
 
@@ -49,19 +49,19 @@ Success criteria:
    LiveView helper seam, and the still-deferred richer future abstractions.
 2. One canonical Phoenix-facing story is named explicitly instead of forcing
    adopters to infer support boundaries from code history.
-3. Deferred lists stop carrying "LiveView tus uploader component" as shorthand
-   for the entire Phoenix story when only richer abstractions are actually
-   deferred.
+3. Deferred lists name only the still-deferred richer reusable uploader
+   component abstractions, standalone tus JS package work, and broader future
+   Phoenix upload abstractions.
 4. The milestone leaves a clear contract for what Phase 49 must productize.
 
 **Plans:** 2 plans (planned 2026-05-25 by `/gsd-plan-phase 48`). Wave 1:
 `48-01`; Wave 2: `48-02`.
 
 Plans:
-- [ ] 48-01-PLAN.md — align active planning truth surfaces and keep the Phoenix story canonical in `guides/resumable_uploads.md` with thin `Rindle.LiveView` docs
-- [ ] 48-02-PLAN.md — add targeted v1.8 archive disclaimers and parity tests for active truth, guide-pointer ownership, and archive-banner presence
+- [x] 48-01-PLAN.md — align active planning truth surfaces and keep the Phoenix story canonical in `guides/resumable_uploads.md` with thin `Rindle.LiveView` docs
+- [x] 48-02-PLAN.md — add targeted v1.8 archive disclaimers and parity tests for active truth, guide-pointer ownership, and archive-banner presence
 
-**Phase 49: LiveView Tus Productization**
+### Phase 49: LiveView Tus Productization
 Goal: turn the existing helper seam into a copy-pasteable Phoenix-facing
 integration contract with an honest uploader and UI-state model.
 
@@ -75,7 +75,7 @@ Success criteria:
 4. The path still converges through the existing `consume_uploaded_entries/3`
    and `verify_completion/2` boundary with no silent alternate lifecycle.
 
-**Phase 50: Phoenix Proof + Parity Closure**
+### Phase 50: Phoenix Proof + Parity Closure
 Goal: prove the documented Phoenix path end to end and freeze it against future
 drift.
 
@@ -90,7 +90,7 @@ Success criteria:
 
 ## Phase Completion
 
-- [ ] **Phase 48: Phoenix DX Contract + Truth Audit** - Truth-align active planning/docs and freeze the exact support claim.
+- [x] **Phase 48: Phoenix DX Contract + Truth Audit** - Truth-align active planning/docs and freeze the exact support claim. (completed 2026-05-25)
 - [ ] **Phase 49: LiveView Tus Productization** - Productize the supported helper path with copy-pasteable client/server guidance and honest UI semantics.
 - [ ] **Phase 50: Phoenix Proof + Parity Closure** - Add package-consumer proof and parity gates for the documented Phoenix path.
 

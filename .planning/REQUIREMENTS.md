@@ -35,7 +35,7 @@ to end.
 
 ### Phoenix Tus Contract
 
-- [ ] **PHX-01**: Adopter can identify the supported Phoenix tus path from one
+- [x] **PHX-01**: Adopter can identify the supported Phoenix tus path from one
       canonical guide without inferring that the entire LiveView story is still
       deferred.
 - [ ] **PHX-02**: Adopter can configure a LiveView upload with
@@ -57,7 +57,7 @@ to end.
 - [ ] **PROOF-02**: Docs parity tests freeze the supported LiveView tus
       contract so drift between guide, helper metadata, and proof harness fails
       fast.
-- [ ] **TRUTH-01**: Active planning artifacts stop claiming the entire
+- [x] **TRUTH-01**: Active planning artifacts stop claiming the entire
       LiveView tus path is deferred when the shipped helper already exists, and
       instead defer only richer future abstractions explicitly.
 
@@ -99,8 +99,8 @@ to end.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PHX-01 | Phase 48 | Pending |
-| TRUTH-01 | Phase 48 | Pending |
+| PHX-01 | Phase 48 | Complete (2026-05-25) |
+| TRUTH-01 | Phase 48 | Complete (2026-05-25) |
 | PHX-02 | Phase 49 | Pending |
 | PHX-03 | Phase 49 | Pending |
 | PHX-04 | Phase 49 | Pending |
@@ -114,4 +114,4 @@ to end.
 
 ---
 *Requirements defined: 2026-05-25*
-*Last updated: 2026-05-25 after milestone initialization*
+*Last updated: 2026-05-25 after Phase 48 truth-alignment execution*

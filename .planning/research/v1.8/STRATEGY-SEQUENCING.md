@@ -1,5 +1,9 @@
 # v1.8 Strategy / Sequencing / Ecosystem-Fit — Locked Recommendation
 
+> Historical v1.8 note: this file uses pre-v1.9 shorthand. For the current
+> support contract, see `.planning/PROJECT.md`, `.planning/REQUIREMENTS.md`,
+> `.planning/ROADMAP.md`, and `guides/resumable_uploads.md`.
+
 **Project:** Rindle — "Media, made durable." (Hex `0.1.5`, internal milestone v1.7 shipped)
 **Author role:** Lead strategy researcher (cross-cutting synthesis)
 **Date:** 2026-05-22
@@ -15,7 +19,7 @@
 - **Milestone name:** `v1.8 — Resumable Browser Ingest`
 - **Goal sentence:** *Make unreliable-network, large-file, browser-origin uploads durable — ship the tus 1.0 protocol on a mountable Plug (Local + S3/MinIO backing) and pull forward browser→Mux direct creator upload, so every browser ingest path Rindle exposes is resume-safe and converges into the one trusted verify/promote lane.*
 - **Requirement families IN:** `TUS-01..19` (tus core, the spine), `MUX-20..23` (browser→Mux direct upload, the sibling DX win), `CR-*` Phase 34/35 advisory polish (hygiene sub-stream, not its own milestone).
-- **Defers to v1.9:** tus concatenation/checksum extensions, IETF RUFH (tus 2.0), R2-native/GCS-native tus, a Rindle-owned tus client, LiveView tus uploader component, second streaming provider.
+- **Defers to v1.9:** tus concatenation/checksum extensions, IETF RUFH (tus 2.0), R2-native/GCS-native tus, a Rindle-owned standalone tus JS client package, richer reusable uploader component abstractions beyond the supported helper path, broader future Phoenix upload abstractions, second streaming provider.
 - **Effort:** ~6 phases, ~15–18 working days. tus is the boundary-expanding majority (~13–15 days); Mux-direct is ~1 day additive; code-review polish is ~0.5–1 day folded into early/late phases.
 - **Hex semver:** publish this as **`0.2.0`** (minor, still pre-1.0; additive only, no breaks). The maintainer memory already plans 0.2.0 at the next milestone close — this is the right moment.
 
@@ -39,7 +43,7 @@ This is not a menu. It is one coherent set with one story: **"browser to durable
 
 **Anything else carried forward worth surfacing?** Two items, both correctly left OUT:
 1. **Second streaming provider** (Cloudflare/Bunny) — explicitly the *contract test* for v1.7+ but only valuable once a real adopter pulls. No demand signal. Defer.
-2. **LiveView tus uploader component** — natural follow-on, named in `v1.6-CANDIDATE-TUS.md §15` as v1.7+. Defer to v1.9; do not let it inflate v1.8.
+2. **Richer reusable uploader component abstractions beyond the supported helper path** — natural follow-on, named in `v1.6-CANDIDATE-TUS.md §15` as v1.7+. Defer to v1.9; do not let it inflate v1.8.
 
 ---
 

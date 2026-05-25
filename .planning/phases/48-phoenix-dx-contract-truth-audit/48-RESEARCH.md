@@ -311,12 +311,12 @@ Uploaders.RindleTus = function (entries, onViewError) {
 
 All claims in this research were verified or cited in this session. No user confirmation is required before planning. [VERIFIED: research session]
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Which exact archive files deserve disclaimers in Phase 48?**
+1. **Which exact archive files deserve disclaimers in Phase 48?** RESOLVED
    - What we know: The stale shorthand is present in `.planning/milestones/v1.8-ROADMAP.md`, `.planning/research/v1.8/STRATEGY-SEQUENCING.md`, and `.planning/research/v1.8/TUS-RESEARCH.md`. [VERIFIED: codebase grep]
    - What's unclear: Whether the planner wants to scope the disclaimer pass to only those three files or also add a cross-link in adjacent historical contexts that already mention the canonical guide without using the stale shorthand. [VERIFIED: .planning/phases/42-tus-protocol-edge-bare-plug/42-CONTEXT.md] [VERIFIED: .planning/phases/44-auth-hardening-dx-docs-telemetry-ci-proof/44-CONTEXT.md]
-   - Recommendation: Default to those three files only, because they are the grep-visible drift source and the phase explicitly prefers targeted archive handling. [VERIFIED: .planning/phases/48-phoenix-dx-contract-truth-audit/48-CONTEXT.md]
+   - Resolution: Scope the disclaimer pass to those three files only: `.planning/milestones/v1.8-ROADMAP.md`, `.planning/research/v1.8/STRATEGY-SEQUENCING.md`, and `.planning/research/v1.8/TUS-RESEARCH.md`. Do not add redirect banners to adjacent historical files unless execution uncovers a new grep-visible stale shorthand instance. [VERIFIED: .planning/phases/48-phoenix-dx-contract-truth-audit/48-CONTEXT.md]
 
 ## Validation Architecture
 
