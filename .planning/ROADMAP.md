@@ -75,6 +75,13 @@ Success criteria:
 4. The path still converges through the existing `consume_uploaded_entries/3`
    and `verify_completion/2` boundary with no silent alternate lifecycle.
 
+**Plans:** 2 plans (planned 2026-05-25 by `/gsd-plan-phase 49`). Wave 1:
+`49-01`; Wave 2: `49-02`.
+
+Plans:
+- [ ] 49-01-PLAN.md — freeze the `allow_tus_upload/4` server-side contract in the canonical guide, keep `Rindle.LiveView` docs thin, and lock helper metadata plus optional actor behavior with unit tests
+- [ ] 49-02-PLAN.md — freeze the canonical `RindleTus` client snippet and honest `uploading`/`verifying`/`ready`/`error` vocabulary with explicit parity assertions
+
 ### Phase 50: Phoenix Proof + Parity Closure
 Goal: prove the documented Phoenix path end to end and freeze it against future
 drift.
