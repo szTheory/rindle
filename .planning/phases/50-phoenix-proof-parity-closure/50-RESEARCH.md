@@ -329,13 +329,6 @@ upload.start()
 | A3 | A generated proof view should explicitly record or expose `uploading` -> `verifying` -> `ready` so the report can freeze honest progress semantics. | Common Pitfalls / Validation | Planner may need a different assertion strategy if a purely rendered-state approach is brittle. |
 | A4 | The combined flow `preflight_upload` -> real Node upload -> `render_upload`/`render_submit` is the best way to bridge LiveView state with the existing real transport proof. | Architecture Patterns / Open Questions | Planner may need a small spike if `render_upload` and the real upload interact differently than expected. |
 
-## Open Questions
-
-1. **How should the generated proof synchronize LiveView upload state with the real Node upload?**
-   - What we know: LiveViewTest can preflight external uploads and submit forms, and the current Node harness can perform the real resumable upload. `[VERIFIED: deps/phoenix_live_view/lib/phoenix_live_view/test/live_view_test.ex][VERIFIED: test/install_smoke/support/generated_app_helper.ex]`
-   - What's unclear: Whether the cleanest implementation is `render_upload(..., 100)` after the Node proof, or a thinner direct ack path through LiveViewTest internals. `[ASSUMED]`
-   - Recommendation: Plan a tiny spike inside `generated_app_helper.ex` first, but keep it within the existing `:tus` lane and do not add a new proof lane. `[VERIFIED: .planning/phases/50-phoenix-proof-parity-closure/50-CONTEXT.md][ASSUMED]`
-
 ## Environment Availability
 
 | Dependency | Required By | Available | Version | Fallback |
@@ -380,6 +373,45 @@ upload.start()
 - [ ] Add generated-app proof view/route wiring inside `test/install_smoke/support/generated_app_helper.ex` so the package-consumer lane can mount a real LiveView adopter path. `[VERIFIED: codebase grep][ASSUMED]`
 - [ ] Extend `install_smoke_tus_report.json` emission with Phoenix-facing contract fields and honest state evidence. `[VERIFIED: test/install_smoke/support/generated_app_helper.ex][ASSUMED]`
 - [ ] Extend `test/install_smoke/phoenix_tus_truth_parity_test.exs` so it freezes helper metadata keys and expected proof-report keys, not only guide wording. `[VERIFIED: test/install_smoke/phoenix_tus_truth_parity_test.exs][ASSUMED]`
+
+## Open Questions (RESOLVED)
+
+### How should the generated proof synchronize LiveView upload state with the real Node tus upload?
+
+**Resolution:** Use the generated Phoenix app's LiveView upload surface to
+obtain real external-upload metadata first, then hand that metadata to the
+existing Node `tus-js-client` proof harness, then submit back through LiveView
+to exercise the completion lane.
+
+**Chosen mechanism:**
+- Mount a tiny generated LiveView proof page that calls
+  `Rindle.LiveView.allow_tus_upload/4`.
+- In the generated app test, use `Phoenix.LiveViewTest.file_input/4` plus
+  `Phoenix.LiveViewTest.preflight_upload/1` to obtain the real
+  `uploader: "RindleTus"` metadata (`endpoint`, `upload_url`, `session_id`,
+  `asset_id`) emitted by `allow_tus_upload/4`.
+- Pass `entry.meta.endpoint` and `entry.meta.upload_url` into the existing Node
+  `tus-js-client` harness so the actual resumable upload still runs through the
+  real browser-style client and the mounted `TusPlug`.
+- After the Node proof completes, submit the LiveView form with
+  `Phoenix.LiveViewTest.render_submit/2` so the generated app executes
+  `consume_uploaded_entries/3` and reaches `verify_completion/2`.
+- Persist both the preflight metadata and the post-submit completion evidence
+  into the existing machine-readable tus report instead of creating a second
+  proof artifact.
+
+**Why this resolves the ambiguity:**
+- It proves the documented Phoenix seam starts at `allow_tus_upload/4`, not at
+  a fabricated raw tus URL.
+- It preserves the existing real Node `tus-js-client` / drop-and-resume proof
+  instead of replacing it with a repo-local fake uploader.
+- It gives one clean handoff point between LiveView and the Node harness:
+  `preflight_upload/1` supplies the canonical metadata, and
+  `render_submit/2` supplies the canonical completion lane.
+
+**Planning consequence:** Phase 50 does not need a prerequisite spike plan.
+The implementation should directly use `preflight_upload/1` ->
+Node `tus-js-client` upload -> `render_submit/2` as the canonical proof flow.
 
 ## Security Domain
 

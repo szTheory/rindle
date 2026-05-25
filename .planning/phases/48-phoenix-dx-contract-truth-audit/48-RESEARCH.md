@@ -325,18 +325,18 @@ All claims in this research were verified or cited in this session. No user conf
 |----------|-------|
 | Framework | ExUnit on Elixir `1.19.5`. [VERIFIED: test/ directory] [VERIFIED: `elixir --version` 2026-05-25] |
 | Config file | `test/test_helper.exs`; no standalone `pytest`/`jest`-style config in this stack. [VERIFIED: test/test_helper.exs] |
-| Quick run command | `mix test test/rindle/live_view_test.exs test/install_smoke/docs_parity_test.exs -x` [VERIFIED: file paths exist] |
+| Quick run command | `mix test test/rindle/live_view_test.exs test/install_smoke/docs_parity_test.exs` [VERIFIED: file paths exist] |
 | Full suite command | `mix test` [VERIFIED: Mix project] |
 
 ### Phase Requirements → Test Map
 | Req ID | Behavior | Test Type | Automated Command | File Exists? |
 |--------|----------|-----------|-------------------|-------------|
-| PHX-01 | Canonical guide and helper docs describe the shipped Phoenix path as supported now. [VERIFIED: .planning/REQUIREMENTS.md] | parity | `mix test test/install_smoke/docs_parity_test.exs -x` | ✅ existing file, but missing Phase 48-specific assertions. [VERIFIED: test/install_smoke/docs_parity_test.exs] |
-| TRUTH-01 | Active planning artifacts stop implying the whole LiveView path is deferred. [VERIFIED: .planning/REQUIREMENTS.md] | parity | `mix test test/install_smoke/docs_parity_test.exs -x` or a new dedicated truth-parity file | ❌ dedicated active-truth assertions do not exist yet. [VERIFIED: test/install_smoke/docs_parity_test.exs] [VERIFIED: codebase grep] |
+| PHX-01 | Canonical guide and helper docs describe the shipped Phoenix path as supported now. [VERIFIED: .planning/REQUIREMENTS.md] | parity | `mix test test/install_smoke/docs_parity_test.exs` | ✅ existing file, but missing Phase 48-specific assertions. [VERIFIED: test/install_smoke/docs_parity_test.exs] |
+| TRUTH-01 | Active planning artifacts stop implying the whole LiveView path is deferred. [VERIFIED: .planning/REQUIREMENTS.md] | parity | `mix test test/install_smoke/docs_parity_test.exs` or a new dedicated truth-parity file | ❌ dedicated active-truth assertions do not exist yet. [VERIFIED: test/install_smoke/docs_parity_test.exs] [VERIFIED: codebase grep] |
 
 ### Sampling Rate
-- **Per task commit:** `mix test test/rindle/live_view_test.exs test/install_smoke/docs_parity_test.exs -x` [VERIFIED: file paths exist]
-- **Per wave merge:** `mix test test/rindle/live_view_test.exs test/install_smoke/docs_parity_test.exs test/install_smoke/generated_app_smoke_test.exs -x` [VERIFIED: file paths exist]
+- **Per task commit:** `mix test test/rindle/live_view_test.exs test/install_smoke/docs_parity_test.exs` [VERIFIED: file paths exist]
+- **Per wave merge:** `mix test test/rindle/live_view_test.exs test/install_smoke/docs_parity_test.exs test/install_smoke/generated_app_smoke_test.exs` [VERIFIED: file paths exist]
 - **Phase gate:** `mix test` before `/gsd-verify-work` if Phase 48 adds or extends parity assertions. [VERIFIED: Mix project]
 
 ### Wave 0 Gaps

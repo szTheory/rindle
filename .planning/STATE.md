@@ -2,15 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.9
 milestone_name: Phoenix Tus DX Completion
-status: verifying
-last_updated: "2026-05-25T14:02:21.927Z"
-last_activity: 2026-05-25
+status: ready_to_plan
+last_updated: 2026-05-25T18:55:17.417Z
+last_activity: 2026-05-25 -- Phase 51 execution started
 progress:
-  total_phases: 3
-  completed_phases: 2
-  total_plans: 4
-  completed_plans: 4
-  percent: 67
+  total_phases: 5
+  completed_phases: 3
+  total_plans: 8
+  completed_plans: 35
+  percent: 60
+stopped_at: Phase 51 complete (2/2) — ready to discuss Phase 52
 ---
 
 # Project State
@@ -20,13 +21,13 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Media, made durable.
-**Current focus:** Phase 49 — liveview-tus-productization
+**Current focus:** Phase 52 — traceability validation reconciliation
 
 ## Current Position
 
-Phase: 49 (liveview-tus-productization) — EXECUTING
-Plan: 2 of 2
-Status: Phase complete — ready for verification
+Phase: 52
+Plan: Not started
+Status: Ready to plan
 Last activity: 2026-05-25
 
 Progress: [██████████] 100%
@@ -53,8 +54,8 @@ Progress: [██████████] 100%
 
 ## Next Step
 
-- Phase 48 is complete.
-- Move to Phase 49 implementation on top of the truth-aligned guide and helper seam.
+- Phases 48-50 are complete.
+- Run the v1.9 milestone audit / closeout flow.
 - Keep using archived `v1.8` files as historical reference only.
 
 ## Milestone-Boundary Assessment (2026-05-25)
@@ -80,13 +81,14 @@ Progress: [██████████] 100%
 ## Blockers/Concerns
 
 - No active blocker.
-- Main execution risk is support-truth drift: the code already ships a thin
-  LiveView tus seam, but planning artifacts and deferred lists still overstate
-  what remains unshipped.
+- Main residual risk is future drift between the guide, helper seam, and
+  generated-app proof surface; Phase 50 added parity gates and machine-readable
+  proof fields to catch that drift early.
 
 - Supported-now boundary for this milestone: the shipped Phoenix path is the
   bare tus edge plus `Rindle.LiveView.allow_tus_upload/4`, a documented
-  `uploader: "RindleTus"` client path, and completion through
+  `uploader: "RindleTus"` client path, honest `uploading` / `verifying` /
+  `ready` / `error` semantics, and completion through
   `consume_uploaded_entries/3` over `verify_completion/2`.
 
 ## Deferred Items (to v1.9+ or out of scope)
@@ -114,4 +116,5 @@ as the current wedge.
 **Last Completed Milestone:** v1.8 (Phases 42-47) — archived 2026-05-25,
 tag `v1.8`.
 
-**Next Step:** Execute Phase 49 on top of the Phase 48 guide-pointer and parity baseline.
+**Next Step:** Run milestone closeout for v1.9, using Phase 50's green
+generated-app proof and parity gates as the final support-truth evidence.

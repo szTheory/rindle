@@ -37,7 +37,7 @@ shipped.
 | 48 | Phoenix DX Contract + Truth Audit | Freeze the exact Phoenix tus support claim and remove stale "fully deferred" language from active planning surfaces. | `PHX-01`, `TRUTH-01` | 4 |
 | 49 | LiveView Tus Productization | 2/2 | Complete   | 2026-05-25 |
 | 50 | Phoenix Proof + Parity Closure | 2/2 | Complete | 2026-05-25 |
-| 51 | Verification Artifact Closure | Rebuild the missing verification chain for shipped Phases 48-50 so audited requirements are no longer orphaned. | `PHX-01`, `TRUTH-01`, `PHX-02`, `PHX-03`, `PHX-04`, `PROOF-01`, `PROOF-02` | 4 |
+| 51 | Verification Artifact Closure | 2/2 | Complete    | 2026-05-25 |
 | 52 | Traceability And Validation Reconciliation | Bring traceability and Nyquist metadata back in sync with the shipped v1.9 evidence before re-audit. | None | 3 |
 
 ## Phase Details
@@ -137,7 +137,7 @@ Success criteria:
 - [x] **Phase 48: Phoenix DX Contract + Truth Audit** - Truth-align active planning/docs and freeze the exact support claim. (completed 2026-05-25)
 - [x] **Phase 49: LiveView Tus Productization** - Productize the supported helper path with copy-pasteable client/server guidance and honest UI semantics. (completed 2026-05-25)
 - [x] **Phase 50: Phoenix Proof + Parity Closure** - Add package-consumer proof and parity gates for the documented Phoenix path. (completed 2026-05-25)
-- [ ] **Phase 51: Verification Artifact Closure** - Generate the missing phase verification artifacts for shipped v1.9 work.
+- [x] **Phase 51: Verification Artifact Closure** - Generate the missing phase verification artifacts for shipped v1.9 work. (completed 2026-05-25)
 - [ ] **Phase 52: Traceability And Validation Reconciliation** - Reconcile requirements and Nyquist metadata before re-audit.
 
 ## Deferred to v1.10+ / Later

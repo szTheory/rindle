@@ -1,6 +1,6 @@
 # v1.8 Strategy / Sequencing / Ecosystem-Fit — Locked Recommendation
 
-> Historical v1.8 note: this file uses pre-v1.9 shorthand. For the current
+> Historical v1.8 note: this file uses pre-v1.9 shorthand such as `LiveView tus uploader component`. For the current
 > support contract, see `.planning/PROJECT.md`, `.planning/REQUIREMENTS.md`,
 > `.planning/ROADMAP.md`, and `guides/resumable_uploads.md`.
 
