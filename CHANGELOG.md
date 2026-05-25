@@ -2,6 +2,61 @@
 
 0.1.0-0.1.3 were release-pipeline shakedown iterations; treat 0.1.4 as the first recommended pin.
 
+## [0.1.6](https://github.com/szTheory/rindle/compare/rindle-v0.1.5...rindle-v0.1.6) (2026-05-25)
+
+
+### Features
+
+* **42-01:** add additive resumable_protocol column, schema field, cast ([5771ece](https://github.com/szTheory/rindle/commit/5771ece975b7f6ef73adb4b56d8573cdb3f80d13))
+* **42-01:** add Broker.initiate_tus_upload/2 + Local tmp-append/rename helpers ([ef14dfa](https://github.com/szTheory/rindle/commit/ef14dfa45696542deb19b4e841145874d9be5c81))
+* **42-01:** register :tus_upload capability, advertise from Local only ([9118878](https://github.com/szTheory/rindle/commit/91188786d28c0092d90608ea1aefacbae5c80e3e))
+* **42-02:** TusPlug create/read half (init/OPTIONS/POST/HEAD + HMAC auth) ([5ff0549](https://github.com/szTheory/rindle/commit/5ff0549d2de5e2a3f761e601e416711fe0a61f04))
+* **42-03:** TusPlug write/complete/delete half (PATCH hot path + completion + DELETE) ([7ebfd19](https://github.com/szTheory/rindle/commit/7ebfd19e624af7d1ea539143b9f3bc2c1ff81f52))
+* **43-01:** declare upload_part_stream/5 + complete_part_stream/4 OPTIONAL callbacks ([cbeeb1f](https://github.com/szTheory/rindle/commit/cbeeb1f04c387fec3f84f04102dd49f43dc53ec8))
+* **43-02:** implement S3.upload_part_stream/5 tail-buffer + ETag-from-headers ([8b639d7](https://github.com/szTheory/rindle/commit/8b639d78bfe06410d90b831d392c187cbe116546))
+* **43-02:** S3.complete_part_stream/4 final-part flush + advertise :tus_upload ([43b4470](https://github.com/szTheory/rindle/commit/43b4470e020280c164b60dac9c59844931bec699))
+* **43-03:** branch reaper on resumable_protocol — abort tus S3 multipart (TUS-09) ([61df83c](https://github.com/szTheory/rindle/commit/61df83c52db463c420e47722c8f58e9b759d0a86))
+* **43-04:** dispatch TusPlug PATCH+completion through the adapter (TUS-06/08) ([56f30f7](https://github.com/szTheory/rindle/commit/56f30f702ca746eebccc2808818d697586d3dbee))
+* **43-04:** implement Local.upload_part_stream/5 + complete_part_stream/4 (TUS-06) ([d23b2b5](https://github.com/szTheory/rindle/commit/d23b2b561bf76d3ee65b9c714b10e27b66ca60e3))
+* **43-06:** expose public S3.tus_tail_path/2 (CR-02 source-of-truth) ([a274db4](https://github.com/szTheory/rindle/commit/a274db411fedc6dfb208a415681b58e150f6cc24))
+* **43-06:** loud-fail cross-node resume guard in upload_part_stream/5 (CR-04) ([a6f9804](https://github.com/szTheory/rindle/commit/a6f980441d9fe1f44e56a20b196416c8044b2124))
+* **43-07:** recurse into tus/ to age out individual regular files (CR-03) ([d2a1fd8](https://github.com/szTheory/rindle/commit/d2a1fd82c8818c6b7a9abf5c3ec9ca14afdc9bd5))
+* **43-08:** route tus tail removal through S3.tus_tail_path + FSM-gate tus expiry ([82ee44f](https://github.com/szTheory/rindle/commit/82ee44f81af28c461d544a8bc0c5582ec045f145))
+* **43-09:** tus DELETE aborts the backing store BEFORE the transition (CR-01) + honours update result (WR-02) ([7308f03](https://github.com/szTheory/rindle/commit/7308f03fb63ae4fd251dd5ec49354c4a61dd8f6d))
+* **43-11:** reaper re-aborts aborted tus sessions with tus_abort_failed marker (CR-01 reaper half + WR-03) ([6a4cd1c](https://github.com/szTheory/rindle/commit/6a4cd1c1537eff5bb66e686603c1983d9fbc9189))
+* **43-11:** tus DELETE persists tus_abort_failed marker on abort failure (CR-01 Plug half) + fix false comment ([9f3fe75](https://github.com/szTheory/rindle/commit/9f3fe75d05b9e40a3f3f2f3d51aecc671815e65b))
+* **43-12:** strengthen S3 tus cross-node tail guard (CR-04) ([90f70ea](https://github.com/szTheory/rindle/commit/90f70eaaa1a954833e48eff72a13a29be413e6ed))
+* **streaming:** ship direct upload and tus browser ingest polish ([f2d22f4](https://github.com/szTheory/rindle/commit/f2d22f45d5dacfbec0971652024dc9ecffc6ff64))
+
+
+### Bug Fixes
+
+* **42-04:** WR-02 case-insensitive sig header + WR-03 telemetry doc ([72b2fc6](https://github.com/szTheory/rindle/commit/72b2fc6455d384c3a124f985f0729dbca538e588))
+* **43:** post-reap tail test must leave upload incomplete so the tail persists for the reaper (pre-existing 43-10 bug surfaced by live MinIO run) ([5343e4f](https://github.com/szTheory/rindle/commit/5343e4fd7e035658bec6415cdfac3a2d88612e94))
+* **43:** revise gap-closure plans per checker feedback (3 blockers, 2 warnings) ([8a755e3](https://github.com/szTheory/rindle/commit/8a755e3e476a6f8b0e3428e87c2a8aa7a1435675))
+* bypass adopter tests and wait script failing release ([b4ef8f3](https://github.com/szTheory/rindle/commit/b4ef8f3b5f508cc62bbe8edd568afdb2772ca93c))
+* **ci:** allow credo strict to fail gracefully to unblock release ([69e06dc](https://github.com/szTheory/rindle/commit/69e06dcafecec2ed68e7b9f2e8f49bf88331e323))
+* **ci:** allow dialyzer to fail gracefully to unblock release ([81a7f01](https://github.com/szTheory/rindle/commit/81a7f01bd8923ded1e42b988fc7ceb4316a08cb9))
+* **ci:** allow doctor to fail gracefully to unblock release ([b28d23a](https://github.com/szTheory/rindle/commit/b28d23a7dc1849ecdf7f8eb997d9019b8a609de9))
+* **ci:** allow rindle.doctor to fail gracefully to unblock release ([87821ae](https://github.com/szTheory/rindle/commit/87821aec405b13adcd3da9de061589cae77d4e9a))
+* **ci:** bypass ci gating completely to unblock emergency hex release ([9c45193](https://github.com/szTheory/rindle/commit/9c451938c1647b7b73555e02926686c7b4d9324e))
+* **ci:** bypass test failures due to muontrap cgroup v2 permission bugs on ubuntu runners ([4d23e7f](https://github.com/szTheory/rindle/commit/4d23e7ff90d319201ebd3205e563cc5525472336))
+* **ci:** format files after struct replacements ([1026ee4](https://github.com/szTheory/rindle/commit/1026ee4861cbd578cce9f8a48f9cf350c789600c))
+* **ci:** pin to ubuntu-22.04 to fix muontrap cgroup v2 compatibility issues ([dd95108](https://github.com/szTheory/rindle/commit/dd95108e7782f44deaca23bebdf933f008a1b04d))
+* **ci:** remove invalid secrets context from job-level conditionals ([b867891](https://github.com/szTheory/rindle/commit/b8678911099056e395e0c654b7ef521537d32da8))
+* **release:** align package metadata test assertion with modified release preflight ([c6a13b0](https://github.com/szTheory/rindle/commit/c6a13b07fbb95132fea5fb50b2e8cc8906b38988))
+* **release:** bypass assert_version_match for emergency manual release ([49bfe36](https://github.com/szTheory/rindle/commit/49bfe36377c5d0ba38e44cd60bfb8ef48acd8f34))
+* **release:** bypass hex_release_exists check to unblock hex publish ([8af7e57](https://github.com/szTheory/rindle/commit/8af7e57c7886853ab44e7a88bf52b66988d52d61))
+* **release:** fix apt-get update for libvips in release workflow ([4c691c8](https://github.com/szTheory/rindle/commit/4c691c898610f2f2ad04043b8b1b1018feba15bf))
+* **release:** install phx_new archive in public_smoke.sh to unblock Public Verify job ([8fac653](https://github.com/szTheory/rindle/commit/8fac65360c6ef8990d4b86b94f91f02785681118))
+* **release:** pin release workflow to ubuntu-22.04 to fix muontrap in public verification ([a27f1bf](https://github.com/szTheory/rindle/commit/a27f1bfe426832ed7b3b2cf2551dc7ce0baf4d90))
+* **release:** remove -f from curl so 404 does not fail exit code ([c9c1d2a](https://github.com/szTheory/rindle/commit/c9c1d2aea7e74daa35807df656f3b31d075da29a))
+* **release:** remove warnings-as-errors from mix docs in preflight to unblock hex publish ([75e9c55](https://github.com/szTheory/rindle/commit/75e9c55d5b1140793b35a0d6912ff76fbc8d185e))
+* **release:** run mix docs in source root to prevent missing output ([5562cb9](https://github.com/szTheory/rindle/commit/5562cb933414f920baa9e87ed81adae2b24e50e7))
+* resolve Finch.Response compile error in runtime checks and bypass remaining flaky jobs ([ae4bb36](https://github.com/szTheory/rindle/commit/ae4bb36fcd9d4502b42c2fbec8f3954bc2964579))
+* resolve goth token compilation crash and bypass contract tests ([3671a89](https://github.com/szTheory/rindle/commit/3671a894e6ecff30baf10fc5edb3ba6861c2c9c3))
+* resolve remaining Finch.Response compile errors in runtime_checks ([daa1735](https://github.com/szTheory/rindle/commit/daa17356183d9c6ef580913b9e94b18314fb45ca))
+
 ## [0.1.5](https://github.com/szTheory/rindle/compare/rindle-v0.1.4...rindle-v0.1.5) (2026-05-07)
 
 
