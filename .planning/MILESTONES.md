@@ -1,5 +1,42 @@
 # Milestones
 
+## v1.10 Owner Account Erasure (Shipped: 2026-05-26)
+
+**Phases completed:** 3 phases (53-55), 6 plans, 16 tasks
+**Timeline:** 1 day (2026-05-26 → 2026-05-26)
+**Requirements validated:** 7/7 (`LIFE-01..04`, `PROOF-03..04`, `TRUTH-02`)
+
+**Key accomplishments:**
+
+- Turned account deletion into a supported lifecycle surface with
+  `Rindle.preview_owner_erasure/2` and `Rindle.erase_owner/2` instead of a
+  hand-rolled `detach/3` plus maintenance workaround.
+- Froze one stable public report vocabulary around
+  `attachments_to_detach`, `assets_to_purge`, and
+  `retained_shared_assets`, including explicit no-op and purge-enqueue
+  semantics.
+- Shipped a shared preview/execute planner that detaches owner attachment rows
+  transactionally and only enqueues async purge when assets become newly
+  orphaned.
+- Hardened the final destructive boundary so `PurgeStorage` re-checks live
+  attachments and skips deletion when a shared asset still has surviving use.
+- Closed hermetic proof, canonical adopter proof, docs parity, and planning
+  truth so the repo now tells one owner-erasure story end to end.
+
+**Known deferred items at close:** tus Checksum / Concatenation /
+`Upload-Defer-Length`, IETF RUFH / tus 2.0, GCS-as-tus-backend /
+R2-native tus proxying, a Rindle-owned standalone tus JS client package,
+richer reusable uploader component abstractions, a second streaming provider,
+`cancel_direct_upload/1`, admin or bulk owner-erasure orchestration, and
+force-delete semantics for still-shared assets.
+
+**Archive:**
+- `.planning/milestones/v1.10-ROADMAP.md`
+- `.planning/milestones/v1.10-REQUIREMENTS.md`
+- `.planning/milestones/v1.10-MILESTONE-AUDIT.md`
+
+---
+
 ## v1.9 Phoenix Tus DX Completion (Shipped: 2026-05-25)
 
 **Phases completed:** 5 phases (48-52), 10 plans

@@ -1,16 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.10
-milestone_name: owner-account-erasure
-status: executing
-last_updated: "2026-05-26T14:18:03.393Z"
-last_activity: 2026-05-26 -- Phase 55 execution started
+milestone: none
+milestone_name: none
+status: milestone_closed
+last_updated: 2026-05-26T15:30:00Z
+last_activity: 2026-05-26 -- v1.10 archived and tagged
 progress:
-  total_phases: 3
-  completed_phases: 2
-  total_plans: 6
-  completed_plans: 4
-  percent: 67
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
+stopped_at: Waiting for next milestone definition
 ---
 
 # Project State
@@ -20,53 +21,37 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Media, made durable.
-**Current focus:** Phase 55 — proof-adopter-guidance
+**Current focus:** post-v1.10 shipped state; no active milestone is open.
 
 ## Current Position
 
-Phase: 55 (proof-adopter-guidance) — EXECUTING
-Plan: 1 of 2
-Status: Executing Phase 55
-Last activity: 2026-05-26 -- Phase 55 execution started
+Phase: none
+Plan: none
+Status: Awaiting next milestone
+Last activity: 2026-05-26
 
-Progress: [#######-------------] 33% (1 of 3 phases complete)
+Progress: [--------------------] 0% (no active milestone)
 
 ## Current Milestone
 
-- Active milestone: `v1.10 Owner Account Erasure`
-- Goal: deliver one auditable owner/account erasure facade with dry-run/report,
-  execute semantics, orphan-only purge, and retained shared-asset behavior.
-
-- Shared-asset rule: detach the erased owner's rows, purge only newly orphaned
-  assets, and report retained shared assets explicitly.
-
-- Planned phases: 53-55
+- No active milestone. `v1.10` is archived and shipped.
+- Start the next milestone with `$gsd-new-milestone`.
 
 ## Next Step
 
-- Finish Phase 55 verification and completion artifacts.
-- Then run `$gsd-verify-work 55` or milestone wrap-up once summaries are written.
+- Run `$gsd-new-milestone`.
+- Re-create `.planning/REQUIREMENTS.md` only through the new milestone flow.
+- Use archived `v1.10` files as historical reference, not as the active planning surface.
 
 ## Recent Completion
 
-- Last completed milestone: `v1.9 Phoenix Tus DX Completion`
-- Scope: Phases 48-52, 10 plans, 7/7 requirements validated
-- Tag: `v1.9`
+- Last completed milestone: `v1.10 Owner Account Erasure`
+- Scope: Phases 53-55, 6 plans, 7/7 requirements validated
+- Tag: `v1.10`
 - Archive files:
-  - `.planning/milestones/v1.9-ROADMAP.md`
-  - `.planning/milestones/v1.9-REQUIREMENTS.md`
-  - `.planning/milestones/v1.9-MILESTONE-AUDIT.md`
-
-## Active Roadmap Snapshot
-
-- **Phase 53 — Owner Erasure Contract + Truth Gate:** lock the public API
-  boundary, dry-run/reporting vocabulary, shared-asset semantics, and non-goals.
-
-- **Phase 54 — Execute + Orphan-Safe Purge Wiring:** implement the public
-  execute lane and idempotent orphan-only purge behavior.
-
-- **Phase 55 — Proof + Adopter Guidance:** prove orphan purge vs retained shared
-  assets and teach owner erasure as the supported account-deletion surface.
+  - `.planning/milestones/v1.10-ROADMAP.md`
+  - `.planning/milestones/v1.10-REQUIREMENTS.md`
+  - `.planning/milestones/v1.10-MILESTONE-AUDIT.md`
 
 ## Accumulated Context
 
@@ -76,30 +61,28 @@ Progress: [#######-------------] 33% (1 of 3 phases complete)
 - The core adopter story is already real from shipped evidence: package-consumer
   install proof, canonical adopter lifecycle proof, image/AV processing,
   signed/private delivery, Mux streaming, browser→Mux direct creator upload,
-  GCS resumable, and tus-backed resumable browser ingest on Local/S3 all exist
-  in code, docs, and verification artifacts.
+  GCS resumable, tus-backed resumable browser ingest on Local/S3, and the
+  owner/account erasure lifecycle facade all exist in code, docs, and
+  verification artifacts.
 
-- The current milestone focus is closing proof and support truth around the
-  shipped owner/account erasure facade, not adding another backend or protocol
-  extension.
+- Remaining delta is mostly additive breadth and prioritization questions, not
+  foundational product truth gaps.
 
-- Phoenix tus DX completion is closed; richer Phoenix uploader abstractions
-  remain optional convenience scope, not the default next wedge.
+- Tus follow-ons, richer Phoenix abstractions, lifecycle breadth beyond the
+  shipped owner-erasure contract, and second-provider demand remain the main
+  next-milestone candidates.
 
-- Planning drift note: older ranking artifacts still predate the shipped v1.8
-  browser→Mux direct-upload truth and the v1.9 Phoenix tus proof closure. Use
-  `PROJECT.md`, this file, and `.planning/threads/2026-05-25-next-milestone-ordering.md`
-  as the current sequencing source of truth.
+- Planning drift note: older ranking artifacts still predate the shipped v1.10
+  owner-erasure closure. Use `PROJECT.md`, this file, and
+  `.planning/threads/2026-05-25-next-milestone-ordering.md` as the current
+  sequencing source of truth.
 
 ## Blockers/Concerns
 
-- No active blocker.
-- Main implementation risk: owner erasure spans slot-scoped attachment rows and
-  asset-scoped purge behavior, so the contract must preserve shared assets with
-  surviving attachments.
-
-- Main scope risk: admin UI, bulk orchestration, and force-delete semantics are
-  tempting extensions but intentionally deferred out of `v1.10`.
+- No active blocker. The repo is between milestones.
+- Main open product questions for `v1.11+` are prioritization questions, not
+  close blockers: tus breadth, lifecycle convenience breadth, richer Phoenix
+  abstractions, and second-provider demand.
 
 ## Deferred Items
 
@@ -119,10 +102,11 @@ Progress: [#######-------------] 33% (1 of 3 phases complete)
 
 ## Session Continuity
 
-Last session: 2026-05-26T13:54:14.976Z
-`v1.10` is now active with requirements and roadmap defined.
+Last session: 2026-05-26T15:30:00.000Z
+`v1.10` was archived, `REQUIREMENTS.md` was retired, and the project is
+waiting for the next milestone definition.
 
-**Current Milestone:** v1.10 (Phases 53-55) — owner/account erasure.
+**Last Completed Milestone:** v1.10 (Phases 53-55) — archived 2026-05-26,
+tag `v1.10`.
 
-**Recommended Next Step:** complete Phase 55 summaries, then verify and close
-the milestone around the supported owner/account erasure surface.
+**Next Step:** Run `$gsd-new-milestone`.

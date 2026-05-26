@@ -90,5 +90,38 @@ defmodule Rindle.AttachDetachTest do
     test "is idempotent", %{user: user} do
       assert :ok = Rindle.detach(user, "avatar")
     end
+
+    test "shared asset survives purge worker when another attachment is still live", %{
+      asset: asset,
+      user: user
+    } do
+      other_user = %User{id: Ecto.UUID.generate()}
+
+      {:ok, _} = Rindle.attach(asset, user, "avatar")
+      {:ok, _} = Rindle.attach(asset, other_user, "hero")
+
+      assert :ok = Rindle.detach(user, "avatar")
+
+      assert_enqueued worker: Rindle.Workers.PurgeStorage,
+                      args: %{"asset_id" => asset.id, "profile" => asset.profile}
+
+      assert :ok =
+               perform_job(Rindle.Workers.PurgeStorage, %{
+                 "asset_id" => asset.id,
+                 "profile" => asset.profile
+               })
+
+      assert Rindle.Repo.get(MediaAsset, asset.id),
+             "shared asset should survive when a surviving attachment exists"
+
+      assert [
+               %MediaAttachment{
+                 owner_id: other_owner_id,
+                 slot: "hero"
+               }
+             ] = Rindle.Repo.all(MediaAttachment)
+
+      assert other_owner_id == other_user.id
+    end
   end
 end

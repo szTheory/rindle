@@ -2,40 +2,43 @@
 
 ## Current State
 
-Milestone `v1.10 Owner Account Erasure` started on `2026-05-26`. It opens the
-next narrow lifecycle-core wedge after the shipped `v1.9` Phoenix tus truth
-closure: a first-class, auditable owner/account erasure surface that works
-with Rindle's existing attachment model, preserves shared assets that still
-have surviving attachments, and only purges storage when an asset becomes
-newly orphaned.
+Milestone `v1.10 Owner Account Erasure` shipped on `2026-05-26` (Phases 53-55,
+6 plans, 7/7 requirements validated). Rindle now ships a supported
+owner/account erasure lifecycle surface with preview/execute semantics,
+explicit reporting buckets, orphan-only purge behavior, retained shared-asset
+truth, and proof/docs parity that replaces the old detach-loop workaround
+story.
 
-The milestone intentionally stays inside Rindle's core mission. It does not
-add a new upload protocol, provider, admin UI, or compliance orchestration
-layer; it turns the existing "detach every slot and run orphan cleanup"
-workaround into an honest public lifecycle API with explicit dry-run/reporting,
-execution semantics, and proof.
+No active milestone is open yet. Start the next milestone with
+`$gsd-new-milestone`, which will define fresh requirements and roadmap scope.
 
-## Current Milestone: v1.10 Owner Account Erasure
+## Next Milestone Goals
 
-**Goal:** Give adopters one supported, auditable account-deletion lifecycle
-call that detaches all media owned by a record, reports what will happen, and
-purges only assets that become orphaned.
-
-**Target features:**
-- First-class dry-run/reporting surface for owner/account erasure.
-- First-class execute surface that detaches owner attachments and reuses the
-  existing async purge lane only for newly orphaned assets.
-- Explicit shared-asset semantics that retain storage-backed assets when other
-  live attachments still exist.
-- Docs and proof that replace the current hand-rolled detach-loop guidance with
-  a supported public contract.
-
-**Why now:** owner/account erasure is the highest-leverage remaining
-universally useful SaaS lifecycle job still missing from Rindle's public
-surface, and it fits the library's core durability promise better than further
-provider or protocol breadth.
+- Choose the next narrow wedge from the remaining deferred queue instead of
+  carrying `v1.10` scope forward implicitly.
+- Prefer additive follow-on work that preserves the shipped owner-erasure
+  contract: tus protocol follow-ons, lifecycle convenience breadth, or richer
+  Phoenix abstractions only when the next milestone explicitly selects them.
+- Keep the shared-asset safety rule and maintenance-vs-owner-erasure boundary
+  intact while expanding scope.
 
 ## Recently Shipped Milestone
+
+<details>
+<summary>v1.10 Owner Account Erasure archive notes</summary>
+
+- `Rindle.preview_owner_erasure/2` and `Rindle.erase_owner/2` now define the
+  supported account-deletion surface instead of hand-rolled `detach/3` loops.
+- The public report vocabulary is frozen around `attachments_to_detach`,
+  `assets_to_purge`, and `retained_shared_assets`, with explicit no-op and
+  purge-enqueue semantics.
+- `PurgeStorage` now re-checks live attachment truth at the destructive
+  boundary so shared assets survive stale purge work.
+- Hermetic proof, canonical adopter proof, docs parity, and planning truth now
+  agree on one owner-erasure story.
+- Full artifacts live in `.planning/milestones/v1.10-*`.
+
+</details>
 
 <details>
 <summary>v1.9 Phoenix Tus DX Completion archive notes</summary>

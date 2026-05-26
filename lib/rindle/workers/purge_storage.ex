@@ -3,7 +3,7 @@ defmodule Rindle.Workers.PurgeStorage do
   use Oban.Worker, queue: :rindle_purge, max_attempts: 3
 
   alias Rindle.Config
-  alias Rindle.Domain.{MediaAsset, MediaVariant}
+  alias Rindle.Domain.{MediaAsset, MediaAttachment, MediaVariant}
   import Ecto.Query
 
   @impl Oban.Worker
@@ -11,6 +11,18 @@ defmodule Rindle.Workers.PurgeStorage do
     repo = Config.repo()
     profile_module = String.to_existing_atom(profile_name)
 
+    if attachments_exist?(repo, asset_id) do
+      :ok
+    else
+      purge_asset(repo, profile_module, asset_id)
+    end
+  end
+
+  defp attachments_exist?(repo, asset_id) do
+    repo.exists?(from attachment in MediaAttachment, where: attachment.asset_id == ^asset_id)
+  end
+
+  defp purge_asset(repo, profile_module, asset_id) do
     # 1. Collect all storage keys to delete
     # We load variants before potentially deleting the asset from DB
     variant_keys =

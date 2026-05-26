@@ -4,6 +4,7 @@ defmodule Rindle do
   alias Rindle.Domain.MediaUploadSession
   alias Rindle.Domain.MediaVariant
   alias Rindle.Error
+  alias Rindle.Internal.OwnerErasure
   alias Rindle.Internal.VariantFailureLogger
   alias Rindle.Ops.LifecycleRepair
   alias Rindle.Ops.RuntimeStatus
@@ -20,12 +21,61 @@ defmodule Rindle do
   verification, asset modeling, attachment associations, variant/derivative
   generation, background processing, secure delivery, observability, and
   day-2 operations.
+
+  ## Owner/account erasure contract
+
+  The recommended `v1.10` owner/account erasure facade is
+  `Rindle.preview_owner_erasure/2` for dry-run planning and
+  `Rindle.erase_owner/2` for the execute lane. Preview and execute share the
+  same `owner_erasure_report()` vocabulary so adopters can audit what will be
+  detached now, what purge work is enqueued later, and which shared assets are
+  intentionally retained.
+
+  The stable report buckets are `attachments_to_detach`, `assets_to_purge`,
+  and `retained_shared_assets`.
+
+  Shared assets are retained whenever a surviving attachment remains.
+  Execute semantics stay honest: detach work happens transactionally first,
+  then purge-enqueued async cleanup handles newly orphaned assets later. This
+  facade contract does not promise inline storage deletion, admin UI, bulk
+  orchestration, or force-delete behavior for assets with surviving
+  attachments.
+
+  `detach/3` remains the slot-scoped attachment API, and
+  `mix rindle.cleanup_orphans` remains the maintenance-only upload-residue
+  cleanup lane rather than the owner/account erasure surface.
   """
 
   import Ecto.Query
 
   @typedoc "Tagged storage result shape: {:ok, result} | {:error, reason}"
   @type storage_result :: {:ok, term()} | {:error, term()}
+
+  @typedoc """
+  Count-plus-list reporting bucket used by `owner_erasure_report()`.
+  """
+  @type owner_erasure_bucket :: %{
+          count: non_neg_integer(),
+          entries: [map()]
+        }
+
+  @typedoc """
+  Stable public owner/account erasure report vocabulary shared by
+  `Rindle.preview_owner_erasure/2` and `Rindle.erase_owner/2`.
+
+  `attachments_to_detach` reports the owner attachment rows targeted by the
+  operation, `assets_to_purge` reports newly orphaned assets whose purge work
+  is enqueued, and `retained_shared_assets` reports assets retained because a
+  surviving attachment still exists.
+  """
+  @type owner_erasure_report :: %{
+          mode: :preview | :execute,
+          attachments_to_detach: owner_erasure_bucket(),
+          assets_to_purge: owner_erasure_bucket(),
+          retained_shared_assets: owner_erasure_bucket(),
+          purge_enqueued: non_neg_integer(),
+          purge_already_queued: non_neg_integer()
+        }
 
   @doc """
   Returns the current version of Rindle.
@@ -92,6 +142,28 @@ defmodule Rindle do
     Broker.initiate_resumable_session(profile, opts)
   end
 
+
+  @doc """
+  Plans owner/account erasure without changing DB or storage state.
+
+  Returns the same semantic report vocabulary as `erase_owner/2`, but with
+  `mode: :preview` and no purge work enqueued.
+  """
+  @spec preview_owner_erasure(struct(), keyword()) :: {:ok, owner_erasure_report()} | {:error, term()}
+  def preview_owner_erasure(owner, opts \\ []) do
+    OwnerErasure.preview(owner, opts)
+  end
+
+  @doc """
+  Erases an owner's Rindle-managed attachment rows and enqueues orphan-only purge work.
+
+  Execute semantics stay honest: attachment detach happens transactionally,
+  while storage deletion remains asynchronous through `PurgeStorage`.
+  """
+  @spec erase_owner(struct(), keyword()) :: {:ok, owner_erasure_report()} | {:error, term()}
+  def erase_owner(owner, opts \\ []) do
+    OwnerErasure.execute(owner, opts)
+  end
   @doc """
   Polls the broker-owned resumable upload session without changing completion trust.
   """

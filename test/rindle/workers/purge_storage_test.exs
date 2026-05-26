@@ -3,7 +3,7 @@ defmodule Rindle.Workers.PurgeStorageTest do
   use Oban.Testing, repo: Rindle.Repo
   import Mox
 
-  alias Rindle.Domain.{MediaAsset, MediaVariant}
+  alias Rindle.Domain.{MediaAsset, MediaAttachment, MediaVariant}
   alias Rindle.Workers.PurgeStorage
 
   setup :set_mox_from_context
@@ -49,5 +49,47 @@ defmodule Rindle.Workers.PurgeStorageTest do
 
     refute Rindle.Repo.get(MediaAsset, asset.id)
     refute Rindle.Repo.get(MediaVariant, variant.id)
+  end
+
+  test "skips delete when a surviving attachment still exists" do
+    asset =
+      %MediaAsset{}
+      |> MediaAsset.changeset(%{
+        state: "available",
+        profile: to_string(TestProfile),
+        storage_key: "assets/asset-2/original.jpg"
+      })
+      |> Rindle.Repo.insert!()
+
+    variant =
+      %MediaVariant{}
+      |> MediaVariant.changeset(%{
+        asset_id: asset.id,
+        name: "thumb",
+        state: "ready",
+        recipe_digest: "digest-2",
+        storage_key: "assets/asset-2/thumb.jpg"
+      })
+      |> Rindle.Repo.insert!()
+
+    %MediaAttachment{}
+    |> MediaAttachment.changeset(%{
+      asset_id: asset.id,
+      owner_type: "TestOwner",
+      owner_id: Ecto.UUID.generate(),
+      slot: "avatar"
+    })
+    |> Rindle.Repo.insert!()
+
+    expect(Rindle.StorageMock, :delete, 0, fn _key, _opts -> {:ok, :deleted} end)
+
+    assert :ok =
+             perform_job(PurgeStorage, %{
+               "asset_id" => asset.id,
+               "profile" => to_string(TestProfile)
+             })
+
+    assert Rindle.Repo.get(MediaAsset, asset.id)
+    assert Rindle.Repo.get(MediaVariant, variant.id)
   end
 end
