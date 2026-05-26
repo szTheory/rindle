@@ -40,6 +40,9 @@ shared-asset retention.
 - **Retained shared assets:** if an asset still has surviving attachments after
   the erased owner's rows are removed, Rindle retains the asset in storage and
   reports that retention explicitly.
+- **Maintenance boundary:** `mix rindle.cleanup_orphans` remains the
+  upload-residue maintenance lane and is not the supported owner/account
+  erasure API.
 - **Missing prerequisite behavior:** callers must provide an owner struct or
   equivalent owner identity resolvable by the existing attachment model; if no
   attachments exist, the operation reports a no-op instead of failing.

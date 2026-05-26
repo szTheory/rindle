@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.10
 milestone_name: owner-account-erasure
-status: roadmap_defined
-last_updated: 2026-05-26T00:00:00.000Z
-last_activity: 2026-05-26 -- milestone v1.10 initialized
+status: ready_to_plan
+last_updated: 2026-05-26T12:51:23.530Z
+last_activity: 2026-05-26 -- Phase 53 execution completed
 progress:
   total_phases: 3
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
-stopped_at: Ready for Phase 53 discussion and planning
+  completed_phases: 1
+  total_plans: 2
+  completed_plans: 39
+  percent: 33
+stopped_at: Phase 53 complete (2/2) — ready to discuss Phase 54
 ---
 
 # Project State
@@ -21,30 +21,32 @@ stopped_at: Ready for Phase 53 discussion and planning
 See: .planning/PROJECT.md
 
 **Core value:** Media, made durable.
-**Current focus:** v1.10 owner/account erasure contract, proof, and docs truth.
+**Current focus:** Phase 54 — execute + orphan safe purge wiring
 
 ## Current Position
 
-Phase: 53
-Plan: none
-Status: Milestone initialized
+Phase: 54
+Plan: Not started
+Status: Ready to plan
 Last activity: 2026-05-26
 
-Progress: [--------------------] 0% (phase 53 not started)
+Progress: [#######-------------] 33% (1 of 3 phases complete)
 
 ## Current Milestone
 
 - Active milestone: `v1.10 Owner Account Erasure`
 - Goal: deliver one auditable owner/account erasure facade with dry-run/report,
   execute semantics, orphan-only purge, and retained shared-asset behavior.
+
 - Shared-asset rule: detach the erased owner's rows, purge only newly orphaned
   assets, and report retained shared assets explicitly.
+
 - Planned phases: 53-55
 
 ## Next Step
 
-- Run `$gsd-discuss-phase 53` to clarify the contract and report shape.
-- Or run `$gsd-plan-phase 53` to go straight into implementation planning.
+- Run `$gsd-plan-phase 54` if the execute wiring still needs decomposition.
+- Or run `$gsd-execute-phase 54` when Phase 54 planning is already complete.
 
 ## Recent Completion
 
@@ -60,8 +62,10 @@ Progress: [--------------------] 0% (phase 53 not started)
 
 - **Phase 53 — Owner Erasure Contract + Truth Gate:** lock the public API
   boundary, dry-run/reporting vocabulary, shared-asset semantics, and non-goals.
+
 - **Phase 54 — Execute + Orphan-Safe Purge Wiring:** implement the public
   execute lane and idempotent orphan-only purge behavior.
+
 - **Phase 55 — Proof + Adopter Guidance:** prove orphan purge vs retained shared
   assets and replace hand-rolled account-deletion guidance.
 
@@ -69,16 +73,20 @@ Progress: [--------------------] 0% (phase 53 not started)
 
 - Rindle is roughly `93%` done for its stated mission and now sits in the
   `90-95%` near-done band.
+
 - The core adopter story is already real from shipped evidence: package-consumer
   install proof, canonical adopter lifecycle proof, image/AV processing,
   signed/private delivery, Mux streaming, browser→Mux direct creator upload,
   GCS resumable, and tus-backed resumable browser ingest on Local/S3 all exist
   in code, docs, and verification artifacts.
+
 - The highest-leverage remaining core gap is first-class owner/account erasure
   over Rindle's existing attachment + cleanup model, not another backend or
   protocol extension.
+
 - Phoenix tus DX completion is closed; richer Phoenix uploader abstractions
   remain optional convenience scope, not the default next wedge.
+
 - Planning drift note: older ranking artifacts still predate the shipped v1.8
   browser→Mux direct-upload truth and the v1.9 Phoenix tus proof closure. Use
   `PROJECT.md`, this file, and `.planning/threads/2026-05-25-next-milestone-ordering.md`
@@ -90,6 +98,7 @@ Progress: [--------------------] 0% (phase 53 not started)
 - Main implementation risk: owner erasure spans slot-scoped attachment rows and
   asset-scoped purge behavior, so the contract must preserve shared assets with
   surviving attachments.
+
 - Main scope risk: admin UI, bulk orchestration, and force-delete semantics are
   tempting extensions but intentionally deferred out of `v1.10`.
 

@@ -82,7 +82,7 @@ Status legend: ✅ Shipped · 🟡 Partial (achievable, no first-class surface) 
 | 29 | "Upgrade a pre-v1.4 image-only app safely." | Platform | ✅ | v1.5 | `guides/upgrading.md` + migration safety |
 | 30 | "Resumable uploads via the tus standard (tus-js-client)." | App dev | 🔲 | — | Backlog: `TUS-01..19`, locked plan `research/v1.6-CANDIDATE-TUS.md` |
 | 31 | "Let creators upload straight to Mux from the browser (no server ingest cost)." | App dev | 🔲 | — | Backlog: `MUX-20..23`, builds on shipped provider + LiveView primitives |
-| 32 | "Delete *all* media for a user on account deletion (GDPR erasure)." | App dev / Sec | 🟡 | — | Achievable: loop `detach/3` per slot → `mix rindle.cleanup_orphans`. No first-class `purge_owner/1`. |
+| 32 | "Delete *all* media for a user on account deletion (GDPR erasure)." | App dev / Sec | 🟡 | — | `v1.10` targets a first-class owner-erasure facade. Current workaround (`detach/3` loops + `mix rindle.cleanup_orphans`) exists but is not the recommended long-term support surface. |
 | 33 | "Serve images through on-the-fly signed transforms (arbitrary w/h/format)." | App dev | 🔲 | — | Not built. Named variants only. Design intent: "dynamic transforms opt-in, signed, bounded." |
 | 34 | "Strip EXIF/GPS from originals before serving (privacy)." | Sec | 🟡 | — | Variants drop metadata via `Image`; originals served as-is. No explicit privacy-strip control. |
 | 35 | "Enforce per-tenant storage quotas / billing limits." | Platform | ⛔ | — | App concern. Rindle exposes `byte_size`; quota/billing belongs to the host app. |

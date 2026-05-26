@@ -4,7 +4,11 @@
   "parallelization": true,
   "granularity": "fine",
   "features": {
-    "thinking_partner": true
+    "thinking_partner": true,
+    "global_learnings": true
+  },
+  "learnings": {
+    "max_inject": 8
   },
   "workflow": {
     "research": true,

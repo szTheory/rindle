@@ -30,7 +30,7 @@ shared assets unless they become newly orphaned.
 
 ## Phase Completion
 
-- [ ] **Phase 53: Owner Erasure Contract + Truth Gate** — Freeze the public
+- [x] **Phase 53: Owner Erasure Contract + Truth Gate** — Freeze the public (completed 2026-05-26)
   API boundary, report shape, shared-asset semantics, and non-goals for owner
   erasure. (`LIFE-01`, `TRUTH-02`)
 - [ ] **Phase 54: Execute + Orphan-Safe Purge Wiring** — Implement the public
@@ -46,13 +46,13 @@ shared assets unless they become newly orphaned.
 
 | # | Phase | Goal | Requirements | Success Criteria |
 |---|-------|------|--------------|------------------|
-| 53 | Owner Erasure Contract + Truth Gate | Lock the supported-now contract and reporting shape before any destructive API wiring lands. | LIFE-01, TRUTH-02 | 4 |
+| 53 | Owner Erasure Contract + Truth Gate | 2/2 | Complete    | 2026-05-26 |
 | 54 | Execute + Orphan-Safe Purge Wiring | Implement one public execute path that detaches owner rows, purges only orphaned assets, and remains idempotent. | LIFE-02, LIFE-03, LIFE-04 | 4 |
 | 55 | Proof + Adopter Guidance | Prove the shared-asset/orphan split and replace hand-rolled account-deletion guidance with the public facade. | PROOF-03, PROOF-04 | 4 |
 
 ### Phase Details
 
-**Phase 53: Owner Erasure Contract + Truth Gate**
+### Phase 53: Owner Erasure Contract + Truth Gate
 Goal: Lock the public API boundary, dry-run/reporting vocabulary, shared-asset
 retention policy, and docs truth before implementation work starts.
 Requirements: `LIFE-01`, `TRUTH-02`
@@ -66,10 +66,13 @@ Success criteria:
 4. Shared-asset behavior is locked to "retain if any surviving attachment
    remains" and carried forward into implementation and proof.
 
-**Phase 54: Execute + Orphan-Safe Purge Wiring**
+### Phase 54: Execute + Orphan-Safe Purge Wiring
 Goal: Implement the public execute lane and reuse the existing async purge path
 only when assets become newly orphaned after owner detachment.
 Requirements: `LIFE-02`, `LIFE-03`, `LIFE-04`
+Plans: 2 plans
+- [ ] `54-01-PLAN.md` — Shared owner-erasure planner plus public preview/execute facade
+- [ ] `54-02-PLAN.md` — Survivor-aware purge worker hardening and attach/detach regressions
 Success criteria:
 1. Adopters can execute owner/account erasure through one public facade call.
 2. The execute lane detaches all attachments for the target owner without
@@ -79,7 +82,7 @@ Success criteria:
 4. Re-running erasure for the same owner returns a stable no-op/report result
    and does not double-purge or raise on already-cleared state.
 
-**Phase 55: Proof + Adopter Guidance**
+### Phase 55: Proof + Adopter Guidance
 Goal: Freeze the supported owner-erasure contract with hermetic proof and
 adopter-facing guidance.
 Requirements: `PROOF-03`, `PROOF-04`

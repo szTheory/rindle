@@ -117,6 +117,43 @@ proceed.
 If escalation is required, still present a recommended path, why blast radius
 is high, and the rollback or containment implications.
 
+### Discuss-Phase Default
+
+Discuss-phase is not brainstorming by default.
+
+When clarifying a phase, agents should:
+
+- read active code, planning truth, prior context, relevant prompts, and recent
+  threads before asking anything
+- narrow options aggressively using ecosystem research, prior art, and repo
+  truth
+- return one cohesive recommendation set that is idiomatic for Elixir / Plug /
+  Ecto / Phoenix and coherent with Rindle's architecture and support posture
+- ask follow-up questions only when a high-blast-radius decision remains
+  genuinely unresolved after research
+
+The default discuss deliverable is not "possible options." It is:
+
+- the recommended boundary
+- the deferred boundary
+- the rationale and tradeoffs
+- the specific footguns being avoided
+- the rare escalation trigger, if one remains
+
+### Support-Truth Boundary
+
+Supported owner/account deletion in `v1.10` goes through the owner-erasure
+facade planned in Phases 53-55.
+
+- `detach/3` remains a slot-scoped attachment API
+- `cleanup_orphans` remains upload-session and staged-object maintenance
+- shared assets are retained unless removing the target owner's attachments
+  makes them newly orphaned
+
+Do not teach `detach/3` loops plus `cleanup_orphans` as the long-term
+recommended account-deletion surface. That workaround reflects current shipped
+repo truth before the facade exists; it is not the boundary being standardized.
+
 ### Operational Enforcement
 
 To keep this posture durable across GSD workflows:
@@ -128,6 +165,9 @@ To keep this posture durable across GSD workflows:
   resolved by the agent and recorded in artifacts without user arbitration
 - phase artifacts should explicitly name the recommended boundary, deferred
   boundary, and the high-blast-radius triggers that would justify escalation
+- discuss-phase should prefer assumptions/research mode, use prior-art-informed
+  comparisons where useful, and ask only the minimum number of maintainer
+  questions needed after narrowing
 
 ## Requirements
 
