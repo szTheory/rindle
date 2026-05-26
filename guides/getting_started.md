@@ -239,6 +239,11 @@ The proof matrix keeps this guide disciplined:
 - maintainer-only release orchestration stays in
   [`release_publish.md`](release_publish.md), not here
 
+For account deletion / owner erasure, keep this guide thin and jump to the
+canonical flow in [`user_flows.md`](user_flows.md). That guide is where the
+supported `Rindle.preview_owner_erasure/2` and `Rindle.erase_owner/2` story
+now lives.
+
 ## 6. What Happens After Verification
 
 After `Rindle.verify_completion/1` returns, Rindle enqueues background work in

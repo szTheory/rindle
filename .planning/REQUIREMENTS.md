@@ -55,7 +55,7 @@ shared-asset retention.
 
 ### Owner Erasure Contract
 
-- [ ] **LIFE-01**: Adopter can request a dry-run owner/account erasure report
+- [x] **LIFE-01**: Adopter can request a dry-run owner/account erasure report
       and receive explicit totals and lists for attachments to detach, assets
       eligible for purge, and assets that will be retained because another live
       attachment still exists.
@@ -71,12 +71,12 @@ shared-asset retention.
 
 ### Proof And Truth Alignment
 
-- [ ] **PROOF-03**: Hermetic lifecycle proof covers both orphan purge and
+- [x] **PROOF-03**: Hermetic lifecycle proof covers both orphan purge and
       retained shared-asset behavior for the owner-erasure contract.
-- [ ] **PROOF-04**: Adopter-facing proof or smoke coverage exercises the
+- [x] **PROOF-04**: Adopter-facing proof or smoke coverage exercises the
       recommended account-deletion flow against the public facade instead of
       direct `detach/3` loops.
-- [ ] **TRUTH-02**: Guides and active planning artifacts describe owner/account
+- [x] **TRUTH-02**: Guides and active planning artifacts describe owner/account
       erasure as the supported account-deletion surface and clearly defer admin
       UI, bulk orchestration, and force-delete-of-shared-assets policy.
 
@@ -117,13 +117,13 @@ shared-asset retention.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| LIFE-01 | Phase 53 | Pending |
-| TRUTH-02 | Phase 53 | Pending |
+| LIFE-01 | Phase 53 | Complete |
+| TRUTH-02 | Phase 55 | Complete |
 | LIFE-02 | Phase 54 | Complete |
 | LIFE-03 | Phase 54 | Complete |
 | LIFE-04 | Phase 54 | Complete |
-| PROOF-03 | Phase 55 | Pending |
-| PROOF-04 | Phase 55 | Pending |
+| PROOF-03 | Phase 55 | Complete |
+| PROOF-04 | Phase 55 | Complete |
 
 **Coverage:**
 - v1.10 requirements: 7 total
@@ -132,4 +132,4 @@ shared-asset retention.
 
 ---
 *Requirements defined: 2026-05-26*
-*Last updated: 2026-05-26 after initial milestone definition*
+*Last updated: 2026-05-26 after proof and guidance closure*

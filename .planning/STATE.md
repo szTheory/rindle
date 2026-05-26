@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.10
 milestone_name: owner-account-erasure
 status: executing
-last_updated: "2026-05-26T13:54:14.985Z"
-last_activity: 2026-05-26 -- Phase 54 execution started
+last_updated: "2026-05-26T14:18:03.393Z"
+last_activity: 2026-05-26 -- Phase 55 execution started
 progress:
   total_phases: 3
   completed_phases: 2
-  total_plans: 4
+  total_plans: 6
   completed_plans: 4
   percent: 67
 ---
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Media, made durable.
-**Current focus:** Phase 54 — execute-orphan-safe-purge-wiring
+**Current focus:** Phase 55 — proof-adopter-guidance
 
 ## Current Position
 
-Phase: 54 (execute-orphan-safe-purge-wiring) — EXECUTING
+Phase: 55 (proof-adopter-guidance) — EXECUTING
 Plan: 1 of 2
-Status: Executing Phase 54
-Last activity: 2026-05-26 -- Phase 54 execution started
+Status: Executing Phase 55
+Last activity: 2026-05-26 -- Phase 55 execution started
 
 Progress: [#######-------------] 33% (1 of 3 phases complete)
 
@@ -44,8 +44,8 @@ Progress: [#######-------------] 33% (1 of 3 phases complete)
 
 ## Next Step
 
-- Run `$gsd-plan-phase 54` if the execute wiring still needs decomposition.
-- Or run `$gsd-execute-phase 54` when Phase 54 planning is already complete.
+- Finish Phase 55 verification and completion artifacts.
+- Then run `$gsd-verify-work 55` or milestone wrap-up once summaries are written.
 
 ## Recent Completion
 
@@ -66,7 +66,7 @@ Progress: [#######-------------] 33% (1 of 3 phases complete)
   execute lane and idempotent orphan-only purge behavior.
 
 - **Phase 55 — Proof + Adopter Guidance:** prove orphan purge vs retained shared
-  assets and replace hand-rolled account-deletion guidance.
+  assets and teach owner erasure as the supported account-deletion surface.
 
 ## Accumulated Context
 
@@ -79,9 +79,9 @@ Progress: [#######-------------] 33% (1 of 3 phases complete)
   GCS resumable, and tus-backed resumable browser ingest on Local/S3 all exist
   in code, docs, and verification artifacts.
 
-- The highest-leverage remaining core gap is first-class owner/account erasure
-  over Rindle's existing attachment + cleanup model, not another backend or
-  protocol extension.
+- The current milestone focus is closing proof and support truth around the
+  shipped owner/account erasure facade, not adding another backend or protocol
+  extension.
 
 - Phoenix tus DX completion is closed; richer Phoenix uploader abstractions
   remain optional convenience scope, not the default next wedge.
@@ -124,5 +124,5 @@ Last session: 2026-05-26T13:54:14.976Z
 
 **Current Milestone:** v1.10 (Phases 53-55) — owner/account erasure.
 
-**Recommended Next Step:** discuss or plan Phase 53 first; do not jump straight
-to execution until the dry-run/report shape and shared-asset truth are locked.
+**Recommended Next Step:** complete Phase 55 summaries, then verify and close
+the milestone around the supported owner/account erasure surface.

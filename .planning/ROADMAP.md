@@ -38,7 +38,7 @@ shared assets unless they become newly orphaned.
   idempotent no-op behavior. (`LIFE-02`, `LIFE-03`, `LIFE-04`)
 - [ ] **Phase 55: Proof + Adopter Guidance** — Add hermetic/adopter proof and
   update guides to teach the supported account-deletion flow. (`PROOF-03`,
-  `PROOF-04`)
+  `PROOF-04`, `TRUTH-02`)
 
 ## Proposed Roadmap
 
@@ -48,7 +48,7 @@ shared assets unless they become newly orphaned.
 |---|-------|------|--------------|------------------|
 | 53 | Owner Erasure Contract + Truth Gate | 2/2 | Complete    | 2026-05-26 |
 | 54 | Execute + Orphan-Safe Purge Wiring | 2/2 | Complete   | 2026-05-26 |
-| 55 | Proof + Adopter Guidance | Prove the shared-asset/orphan split and replace hand-rolled account-deletion guidance with the public facade. | PROOF-03, PROOF-04 | 4 |
+| 55 | Proof + Adopter Guidance | Prove the shared-asset/orphan split and replace hand-rolled account-deletion guidance with the supported account-deletion surface. | PROOF-03, PROOF-04, TRUTH-02 | 4 |
 
 ### Phase Details
 
@@ -85,14 +85,14 @@ Success criteria:
 ### Phase 55: Proof + Adopter Guidance
 Goal: Freeze the supported owner-erasure contract with hermetic proof and
 adopter-facing guidance.
-Requirements: `PROOF-03`, `PROOF-04`
+Requirements: `PROOF-03`, `PROOF-04`, `TRUTH-02`
 Success criteria:
 1. Hermetic tests prove both orphan purge and retained-shared-asset behavior.
 2. Adopter-facing proof or smoke coverage exercises the public facade instead
    of direct detach loops.
 3. Guides describe dry-run/reporting, execute semantics, and retained-shared
    assets honestly.
-4. Requirements, roadmap, and state stay traceable to the proof-added surface.
+4. Requirements, roadmap, and state describe owner erasure as the supported account-deletion surface while `cleanup_orphans` stays maintenance-only.
 
 ## Deferred to v1.11+ / Later
 

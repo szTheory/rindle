@@ -10,6 +10,7 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
   @troubleshooting_path Path.expand("../../guides/troubleshooting.md", __DIR__)
   @release_path Path.expand("../../guides/release_publish.md", __DIR__)
   @running_path Path.expand("../../RUNNING.md", __DIR__)
+  @user_flows_path Path.expand("../../guides/user_flows.md", __DIR__)
 
   setup_all do
     {:ok,
@@ -19,7 +20,8 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
        upgrade: File.read!(@upgrade_path),
        troubleshooting: File.read!(@troubleshooting_path),
        release: File.read!(@release_path),
-       running: File.read!(@running_path)
+       running: File.read!(@running_path),
+       user_flows: File.read!(@user_flows_path)
      }}
   end
 
@@ -244,6 +246,58 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
     assert troubleshooting =~ "mix rindle.runtime_status"
     assert troubleshooting =~ "doctor validates setup and drift"
     assert troubleshooting =~ "runtime status reports degraded or stuck work"
+  end
+
+  test "user flows guide freezes the canonical owner-erasure support truth", %{user_flows: user_flows} do
+    normalized =
+      user_flows
+      |> String.replace(~r/\n>\s*/, " ")
+      |> String.downcase()
+
+    for snippet <- [
+          "preview_owner_erasure/2",
+          "erase_owner/2",
+          "attachments_to_detach",
+          "assets_to_purge",
+          "retained shared assets",
+          "rindle-managed",
+          "detach now, purge later",
+          "cleanup_orphans",
+          "maintenance-only",
+          "admin ui",
+          "bulk orchestration",
+          "force-delete"
+        ] do
+      assert normalized =~ snippet
+    end
+
+    refute user_flows =~
+             "Today you detach each of an owner's slots, then let `mix rindle.cleanup_orphans` purge the now-unattached assets."
+
+    refute Regex.match?(
+             ~r/Today you detach each of an owner's slots, then let `mix rindle\.cleanup_orphans` purge/is,
+             user_flows
+           )
+
+    refute user_flows =~ "being standardized for `v1.10`"
+    refute user_flows =~ "The full executable facade lands in later `v1.10` phase work"
+  end
+
+  test "getting-started and operations stay thin while pointing to the canonical owner-erasure flow", %{
+    guide: guide
+  } do
+    operations = File.read!(Path.expand("../../guides/operations.md", __DIR__))
+
+    assert guide =~ "[`user_flows.md`](user_flows.md)"
+    assert guide =~ "account deletion / owner erasure"
+
+    assert operations =~ "[`user_flows.md`](user_flows.md)"
+    assert operations =~ "supported account-deletion surface"
+    assert operations =~ "cleanup_orphans"
+    assert operations =~ "maintenance-only"
+
+    refute guide =~ "detach each of an owner"
+    refute operations =~ "detach each of an owner"
   end
 
   defp introductory_section(doc) do

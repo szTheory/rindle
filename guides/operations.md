@@ -28,6 +28,12 @@ Phoenix app in two lanes: image-only and AV-enabled. Keep the split disciplined:
 Use the Mix tasks below for day-2 runtime maintenance after the install proof
 has passed; do not treat this page as a second install guide.
 
+For owner/account erasure, do not improvise with maintenance tasks. The
+supported account-deletion surface is `Rindle.preview_owner_erasure/2` plus
+`Rindle.erase_owner/2` as documented in [`user_flows.md`](user_flows.md).
+`mix rindle.cleanup_orphans` remains maintenance-only for expired upload
+residue after `mix rindle.abort_incomplete_uploads`.
+
 ## Runtime Diagnostics
 
 Phase 31 keeps the operator split explicit:

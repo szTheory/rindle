@@ -238,9 +238,31 @@ case Rindle.attachment_for(current_user, "avatar") do
 end
 ```
 
-> **Account deletion (GDPR):** there's no single `purge_owner/1` call yet. Today you detach
-> each of an owner's slots, then let `mix rindle.cleanup_orphans` purge the now-unattached
-> assets. A first-class erasure surface is on the roadmap (see [Where Rindle is headed](#where-rindle-is-headed)).
+Need to delete an account without guessing which media survives? Use the
+owner/account erasure facade instead of teaching a detach loop:
+
+```elixir
+{:ok, preview} = Rindle.preview_owner_erasure(current_user)
+
+# preview.attachments_to_detach  -> Rindle-managed associations removed now
+# preview.assets_to_purge        -> newly orphaned assets queued for purge later
+# preview.retained_shared_assets -> shared assets kept because another attachment survives
+
+{:ok, report} = Rindle.erase_owner(current_user)
+```
+
+`Rindle.preview_owner_erasure/2` is the dry run and `Rindle.erase_owner/2` is
+the execute lane. The report keeps three semantic buckets stable:
+`attachments_to_detach`, `assets_to_purge`, and `retained_shared_assets`.
+
+Rindle only erases Rindle-managed associations for that owner. It does not
+delete your adopter-owned account row. Execute semantics stay honest: detach now, purge later.
+Newly orphaned assets are enqueued for async cleanup, while retained shared assets stay
+in storage whenever another live attachment survives.
+
+`mix rindle.cleanup_orphans` remains maintenance-only upload-residue cleanup,
+not the supported account-deletion API. Admin UI, bulk orchestration, and
+force-delete policy for still-shared assets remain deferred.
 
 ### Story 6: Friday, 5 p.m., something is stuck
 
@@ -293,8 +315,6 @@ flows and a couple of high-value conveniences:
   (tus-js-client), so Local and S3 can advertise resumable uploads too.
 - **Browser → Mux direct creator upload** — let creators upload straight to Mux from the
   browser, skipping server ingest cost, building on the streaming primitives already shipped.
-- **First-class per-owner erasure** — a single, auditable call for account-deletion cleanup.
-
 Deliberately *out of scope*, by design: being a full HLS/DASH streaming platform, DRM,
 AI/GPU processing, broad PDF/Office handling, an admin UI, or a CDN replacement. Rindle stays
 a focused library; those belong to other tools.
