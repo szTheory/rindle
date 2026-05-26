@@ -99,6 +99,8 @@ defmodule Rindle.ApiSurfaceBoundaryTest do
       assert function_exported?(Rindle, :verify_completion, 2)
       assert function_exported?(Rindle, :verify_upload, 2)
       assert function_exported?(Rindle, :complete_multipart_upload, 3)
+      assert function_exported?(Rindle, :preview_owner_erasure, 2)
+      assert function_exported?(Rindle, :erase_owner, 2)
       assert function_exported?(Rindle, :cancel_processing, 1)
       assert function_exported?(Rindle, :reprobe, 1)
       assert function_exported?(Rindle, :requeue_variants, 2)
@@ -109,6 +111,14 @@ defmodule Rindle.ApiSurfaceBoundaryTest do
     test "preferred verify_completion/2 is documented on the facade" do
       assert visible_function_doc?(Rindle, :verify_completion, 2),
              "Rindle.verify_completion/2 should be publicly documented"
+    end
+
+    test "owner-erasure facade entrypoints stay publicly documented" do
+      assert visible_function_doc?(Rindle, :preview_owner_erasure, 2),
+             "Rindle.preview_owner_erasure/2 should be publicly documented"
+
+      assert visible_function_doc?(Rindle, :erase_owner, 2),
+             "Rindle.erase_owner/2 should be publicly documented"
     end
 
     test "legacy verify_upload/2 stays documented with an explicit deprecation marker" do
@@ -145,6 +155,26 @@ defmodule Rindle.ApiSurfaceBoundaryTest do
     test "runtime_status/1 stays publicly documented on the facade" do
       assert visible_function_doc?(Rindle, :runtime_status, 1),
              "Rindle.runtime_status/1 should be publicly documented"
+    end
+
+    test "owner-erasure contract wording stays frozen in the facade moduledoc" do
+      moduledoc = normalize_whitespace(moduledoc!(Rindle))
+
+      for snippet <- [
+            "preview_owner_erasure/2",
+            "erase_owner/2",
+            "attachments_to_detach",
+            "assets_to_purge",
+            "retained_shared_assets",
+            "cleanup_orphans",
+            "maintenance-only",
+            "admin UI",
+            "bulk orchestration",
+            "force-delete"
+          ] do
+        assert moduledoc =~ snippet,
+               "Rindle moduledoc should mention #{inspect(snippet)}"
+      end
     end
   end
 
@@ -230,5 +260,20 @@ defmodule Rindle.ApiSurfaceBoundaryTest do
       docs ->
         docs
     end
+  end
+
+  defp moduledoc!(module) do
+    case fetch_docs!(module) do
+      {:docs_v1, _, _, _, %{"en" => doc}, _, _} when is_binary(doc) -> doc
+      {:docs_v1, _, _, _, {_, doc}, _, _} when is_binary(doc) -> doc
+      {:docs_v1, _, _, _, doc, _, _} when is_binary(doc) -> doc
+      other -> flunk("expected moduledoc for #{inspect(module)}, got #{inspect(other)}")
+    end
+  end
+
+  defp normalize_whitespace(text) do
+    text
+    |> String.replace(~r/\s+/, " ")
+    |> String.trim()
   end
 end

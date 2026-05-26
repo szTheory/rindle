@@ -289,6 +289,72 @@ defmodule Rindle.Adopter.CanonicalApp.LifecycleTest do
       assert Repo.get(MediaUploadSession, expired_session.id) == nil
     end
 
+    test "owner erasure uses the public preview and execute facade for account deletion" do
+      owner = %Owner{id: Ecto.UUID.generate()}
+      other_owner = %Owner{id: Ecto.UUID.generate()}
+      orphan_asset = insert_adopter_asset("adopter-owner-erasure/orphan.png")
+      shared_asset = insert_adopter_asset("adopter-owner-erasure/shared.png")
+
+      owner_orphan_attachment = insert_adopter_attachment(orphan_asset, owner, "avatar")
+      owner_shared_attachment = insert_adopter_attachment(shared_asset, owner, "hero")
+      surviving_attachment = insert_adopter_attachment(shared_asset, other_owner, "hero")
+
+      assert {:ok, preview_report} = Rindle.preview_owner_erasure(owner)
+      assert preview_report.mode == :preview
+      assert preview_report.purge_enqueued == 0
+      assert preview_report.purge_already_queued == 0
+
+      assert preview_report.attachments_to_detach.count == 2
+
+      assert Enum.sort_by(preview_report.attachments_to_detach.entries, & &1.slot) == [
+               %{asset_id: orphan_asset.id, attachment_id: owner_orphan_attachment.id, slot: "avatar"},
+               %{asset_id: shared_asset.id, attachment_id: owner_shared_attachment.id, slot: "hero"}
+             ]
+
+      assert preview_report.assets_to_purge == %{
+               count: 1,
+               entries: [%{asset_id: orphan_asset.id, profile: orphan_asset.profile}]
+             }
+
+      assert preview_report.retained_shared_assets == %{
+               count: 1,
+               entries: [
+                 %{
+                   asset_id: shared_asset.id,
+                   profile: shared_asset.profile,
+                   surviving_attachment_count: 1
+                 }
+               ]
+             }
+
+      assert {:ok, execute_report} = Rindle.erase_owner(owner)
+      assert execute_report.mode == :execute
+      assert execute_report.purge_enqueued == 1
+      assert execute_report.purge_already_queued == 0
+      refute Repo.get(MediaAttachment, owner_orphan_attachment.id)
+      refute Repo.get(MediaAttachment, owner_shared_attachment.id)
+      assert Repo.get(MediaAttachment, surviving_attachment.id)
+
+      assert_enqueued worker: PurgeStorage,
+                      args: %{"asset_id" => orphan_asset.id, "profile" => orphan_asset.profile}
+
+      assert :ok =
+               perform_job(PurgeStorage, %{
+                 "asset_id" => orphan_asset.id,
+                 "profile" => orphan_asset.profile
+               })
+
+      refute Repo.get(MediaAsset, orphan_asset.id)
+      assert Repo.get(MediaAsset, shared_asset.id)
+
+      assert {:ok, rerun_report} = Rindle.erase_owner(owner)
+      assert rerun_report.attachments_to_detach == %{count: 0, entries: []}
+      assert rerun_report.assets_to_purge == %{count: 0, entries: []}
+      assert rerun_report.retained_shared_assets == %{count: 0, entries: []}
+      assert rerun_report.purge_enqueued == 0
+      assert rerun_report.purge_already_queued == 0
+    end
+
     test "stock web preset round-trips realistic smartphone uploads end to end" do
       assert_upload_capabilities!(AdopterVideoProfile.storage_adapter().capabilities())
 
@@ -482,6 +548,27 @@ defmodule Rindle.Adopter.CanonicalApp.LifecycleTest do
     assert asset.height == fixture.height
 
     assert fixture_rotation(fixture.path) == fixture.rotation
+  end
+
+  defp insert_adopter_asset(storage_key) do
+    %MediaAsset{}
+    |> MediaAsset.changeset(%{
+      state: "available",
+      profile: to_string(AdopterProfile),
+      storage_key: storage_key
+    })
+    |> Repo.insert!()
+  end
+
+  defp insert_adopter_attachment(asset, owner, slot) do
+    %MediaAttachment{}
+    |> MediaAttachment.changeset(%{
+      asset_id: asset.id,
+      owner_type: to_string(owner.__struct__),
+      owner_id: owner.id,
+      slot: slot
+    })
+    |> Repo.insert!()
   end
 
   defp fixture_rotation(path) do
