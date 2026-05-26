@@ -33,7 +33,7 @@ shared assets unless they become newly orphaned.
 - [x] **Phase 53: Owner Erasure Contract + Truth Gate** — Freeze the public (completed 2026-05-26)
   API boundary, report shape, shared-asset semantics, and non-goals for owner
   erasure. (`LIFE-01`, `TRUTH-02`)
-- [ ] **Phase 54: Execute + Orphan-Safe Purge Wiring** — Implement the public
+- [x] **Phase 54: Execute + Orphan-Safe Purge Wiring** — Implement the public (completed 2026-05-26)
   execute lane, detach-all-owner semantics, retained-shared-asset handling, and
   idempotent no-op behavior. (`LIFE-02`, `LIFE-03`, `LIFE-04`)
 - [ ] **Phase 55: Proof + Adopter Guidance** — Add hermetic/adopter proof and
@@ -47,7 +47,7 @@ shared assets unless they become newly orphaned.
 | # | Phase | Goal | Requirements | Success Criteria |
 |---|-------|------|--------------|------------------|
 | 53 | Owner Erasure Contract + Truth Gate | 2/2 | Complete    | 2026-05-26 |
-| 54 | Execute + Orphan-Safe Purge Wiring | Implement one public execute path that detaches owner rows, purges only orphaned assets, and remains idempotent. | LIFE-02, LIFE-03, LIFE-04 | 4 |
+| 54 | Execute + Orphan-Safe Purge Wiring | 2/2 | Complete   | 2026-05-26 |
 | 55 | Proof + Adopter Guidance | Prove the shared-asset/orphan split and replace hand-rolled account-deletion guidance with the public facade. | PROOF-03, PROOF-04 | 4 |
 
 ### Phase Details

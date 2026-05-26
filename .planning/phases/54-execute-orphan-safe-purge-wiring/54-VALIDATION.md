@@ -30,7 +30,7 @@ created: 2026-05-26
 - **After every task commit:** Run the narrowest task-scoped Mix command from the verification map.
 - **After every plan wave:** Run `mix test test/rindle/owner_erasure_test.exs test/rindle/workers/purge_storage_test.exs test/rindle/attach_detach_test.exs`.
 - **Before `$gsd-verify-work`:** Run the full suite command and confirm idempotent rerun coverage stays green.
-- **Max feedback latency:** 90 seconds
+- **Max feedback latency:** 60 seconds
 
 ---
 
@@ -38,12 +38,12 @@ created: 2026-05-26
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 54-01-01 | 01 | 1 | LIFE-02 | T-54-01-01 | Preview and execute share one semantic owner-erasure plan/report shape rooted in live attachment rows. | unit | `mix test test/rindle/owner_erasure_test.exs --only preview_contract` | ❌ W0 | ⬜ pending |
-| 54-01-02 | 01 | 1 | LIFE-02, LIFE-04 | T-54-01-02 | `Rindle.erase_owner/2` detaches all owner rows transactionally, returns `{:ok, report}`, and reruns return a stable no-op report. | integration | `mix test test/rindle/owner_erasure_test.exs --only execute_contract` | ❌ W0 | ⬜ pending |
-| 54-02-01 | 02 | 1 | LIFE-03 | T-54-02-01 | Shared assets with surviving attachments are retained and reported instead of purged. | integration | `mix test test/rindle/owner_erasure_test.exs --only retained_shared_assets` | ❌ W0 | ⬜ pending |
-| 54-02-02 | 02 | 1 | LIFE-03, LIFE-04 | T-54-02-02 | Purge enqueue conflicts are treated as semantic skips/already-queued results, not hard failures. | unit | `mix test test/rindle/owner_erasure_test.exs --only purge_conflict` | ❌ W0 | ⬜ pending |
-| 54-03-01 | 03 | 2 | LIFE-03 | T-54-03-01 | `PurgeStorage` re-checks live attachments before deleting variants, source objects, or asset rows. | unit | `mix test test/rindle/workers/purge_storage_test.exs` | ✅ | ⬜ pending |
-| 54-03-02 | 03 | 2 | LIFE-02, LIFE-03 | T-54-03-02 | Existing `attach/4` and `detach/3` flows remain safe under the hardened worker boundary. | integration | `mix test test/rindle/attach_detach_test.exs test/rindle/upload/lifecycle_integration_test.exs` | ✅ | ⬜ pending |
+| 54-01-01 | 01 | 1 | LIFE-02, LIFE-03 | T-54-01 | Preview/execute contract tests freeze the semantic buckets, `mode`, and retained-shared-asset reporting before implementation turns green. | unit | `mix test test/rindle/owner_erasure_test.exs --seed 0` | ❌ W0 | ⬜ pending |
+| 54-01-02 | 01 | 1 | LIFE-02, LIFE-03, LIFE-04 | T-54-01, T-54-02, T-54-03, T-54-04 | The shared internal planner and execute path recompute from live rows, delete owner attachments transactionally, and treat active-state purge conflicts as semantic success. | service | `mix test test/rindle/owner_erasure_test.exs --seed 0` | ❌ W0 | ⬜ pending |
+| 54-01-03 | 01 | 1 | LIFE-02, LIFE-03, LIFE-04 | T-54-01, T-54-03, T-54-04 | Public `Rindle.preview_owner_erasure/2` and `Rindle.erase_owner/2` exports match the frozen contract and return semantic reports rather than internal transaction data. | unit | `mix test test/rindle/owner_erasure_test.exs test/rindle/api_surface_boundary_test.exs --seed 0` | ❌ W0 | ⬜ pending |
+| 54-02-01 | 02 | 1 | LIFE-03 | T-54-05 | Worker regressions prove the purge lane deletes genuinely orphaned assets and skips deletion when any surviving attachment still exists. | unit | `mix test test/rindle/workers/purge_storage_test.exs --seed 0` | ✅ | ⬜ pending |
+| 54-02-02 | 02 | 1 | LIFE-03 | T-54-05, T-54-08 | `PurgeStorage` performs a live attachment re-check before any destructive delete and leaves bytes plus DB rows intact on the survivor path. | unit | `mix test test/rindle/workers/purge_storage_test.exs --seed 0` | ✅ | ⬜ pending |
+| 54-02-03 | 02 | 1 | LIFE-02, LIFE-03 | T-54-08 | Existing `attach/4` and `detach/3` flows still enqueue purge work, and a shared asset survives when the hardened worker runs after one owner's detach/replace. | integration | `mix test test/rindle/attach_detach_test.exs test/rindle/workers/purge_storage_test.exs --seed 0` | ✅ | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -72,7 +72,7 @@ created: 2026-05-26
 - [ ] Sampling continuity: no 3 consecutive tasks without automated verify
 - [ ] Wave 0 covers all MISSING references
 - [ ] No watch-mode flags
-- [ ] Feedback latency < 90s
+- [ ] Feedback latency < 60s
 - [ ] `nyquist_compliant: true` set in frontmatter
 
 **Approval:** pending

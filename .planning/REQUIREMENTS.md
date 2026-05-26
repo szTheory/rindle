@@ -59,13 +59,13 @@ shared-asset retention.
       and receive explicit totals and lists for attachments to detach, assets
       eligible for purge, and assets that will be retained because another live
       attachment still exists.
-- [ ] **LIFE-02**: Adopter can execute owner/account erasure through one public
+- [x] **LIFE-02**: Adopter can execute owner/account erasure through one public
       facade call that detaches every attachment for that owner and reuses the
       existing async purge lane only for assets that become newly orphaned.
-- [ ] **LIFE-03**: If any target asset still has a surviving attachment after
+- [x] **LIFE-03**: If any target asset still has a surviving attachment after
       the owner's rows are removed, Rindle retains that asset in storage and
       reports the retention explicitly instead of deleting shared media.
-- [ ] **LIFE-04**: Re-running owner/account erasure for the same owner is
+- [x] **LIFE-04**: Re-running owner/account erasure for the same owner is
       idempotent and returns a stable no-op/report result rather than raising
       or double-purging already-cleared state.
 
@@ -119,9 +119,9 @@ shared-asset retention.
 |-------------|-------|--------|
 | LIFE-01 | Phase 53 | Pending |
 | TRUTH-02 | Phase 53 | Pending |
-| LIFE-02 | Phase 54 | Pending |
-| LIFE-03 | Phase 54 | Pending |
-| LIFE-04 | Phase 54 | Pending |
+| LIFE-02 | Phase 54 | Complete |
+| LIFE-03 | Phase 54 | Complete |
+| LIFE-04 | Phase 54 | Complete |
 | PROOF-03 | Phase 55 | Pending |
 | PROOF-04 | Phase 55 | Pending |
 

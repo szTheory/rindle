@@ -371,9 +371,9 @@ end
 |---|-------|---------|---------------|
 | None | No unverified assumptions remain; all recommendations above were grounded in current repo state or official docs. [VERIFIED: research audit] | — | — |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **No blocking research gaps remain for planning.**
+1. **RESOLVED: no blocking research gaps remain for planning.**
    - What we know: The phase boundary, shared-asset rule, transaction boundary, and proof split between Phase 54 and Phase 55 are all already locked. [VERIFIED: 54-CONTEXT.md] [VERIFIED: .planning/REQUIREMENTS.md]
    - What's unclear: Only local implementation details remain, such as whether `mode` is encoded as an atom or string and whether conflict reporting uses a separate `purge_already_queued` count. [VERIFIED: 54-CONTEXT.md]
    - Recommendation: Let the planner choose the smallest additive report shape that keeps the public vocabulary stable and the report auditable. [VERIFIED: 54-CONTEXT.md]
