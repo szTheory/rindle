@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: none
-milestone_name: none
-status: milestone_closed
-last_updated: 2026-05-25T20:30:00.000Z
-last_activity: 2026-05-25 -- v1.9 archived and tagged
+milestone: v1.10
+milestone_name: owner-account-erasure
+status: roadmap_defined
+last_updated: 2026-05-26T00:00:00.000Z
+last_activity: 2026-05-26 -- milestone v1.10 initialized
 progress:
-  total_phases: 0
+  total_phases: 3
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
   percent: 0
-stopped_at: Waiting for next milestone definition
+stopped_at: Ready for Phase 53 discussion and planning
 ---
 
 # Project State
@@ -21,21 +21,30 @@ stopped_at: Waiting for next milestone definition
 See: .planning/PROJECT.md
 
 **Core value:** Media, made durable.
-**Current focus:** post-v1.9 shipped state; no active milestone is open.
+**Current focus:** v1.10 owner/account erasure contract, proof, and docs truth.
 
 ## Current Position
 
-Phase: none
+Phase: 53
 Plan: none
-Status: Awaiting next milestone
-Last activity: 2026-05-25
+Status: Milestone initialized
+Last activity: 2026-05-26
 
-Progress: [--------------------] 0% (no active milestone)
+Progress: [--------------------] 0% (phase 53 not started)
 
 ## Current Milestone
 
-- No active milestone. `v1.9` is archived and shipped.
-- Start the next milestone with `$gsd-new-milestone`.
+- Active milestone: `v1.10 Owner Account Erasure`
+- Goal: deliver one auditable owner/account erasure facade with dry-run/report,
+  execute semantics, orphan-only purge, and retained shared-asset behavior.
+- Shared-asset rule: detach the erased owner's rows, purge only newly orphaned
+  assets, and report retained shared assets explicitly.
+- Planned phases: 53-55
+
+## Next Step
+
+- Run `$gsd-discuss-phase 53` to clarify the contract and report shape.
+- Or run `$gsd-plan-phase 53` to go straight into implementation planning.
 
 ## Recent Completion
 
@@ -46,65 +55,66 @@ Progress: [--------------------] 0% (no active milestone)
   - `.planning/milestones/v1.9-ROADMAP.md`
   - `.planning/milestones/v1.9-REQUIREMENTS.md`
   - `.planning/milestones/v1.9-MILESTONE-AUDIT.md`
-  - `.planning/milestones/v1.8-ROADMAP.md`
-  - `.planning/milestones/v1.8-REQUIREMENTS.md`
-  - `.planning/milestones/v1.8-MILESTONE-AUDIT.md`
 
-## Next Step
+## Active Roadmap Snapshot
 
-- Run `$gsd-new-milestone`.
-- Re-create `.planning/REQUIREMENTS.md` only through the new milestone flow.
-- Use archived `v1.9` files as historical reference, not as the active planning surface.
+- **Phase 53 — Owner Erasure Contract + Truth Gate:** lock the public API
+  boundary, dry-run/reporting vocabulary, shared-asset semantics, and non-goals.
+- **Phase 54 — Execute + Orphan-Safe Purge Wiring:** implement the public
+  execute lane and idempotent orphan-only purge behavior.
+- **Phase 55 — Proof + Adopter Guidance:** prove orphan purge vs retained shared
+  assets and replace hand-rolled account-deletion guidance.
 
-## Milestone-Boundary Assessment (2026-05-25)
+## Accumulated Context
 
-- Rindle is roughly `92%` done for its stated mission and now sits in the
+- Rindle is roughly `93%` done for its stated mission and now sits in the
   `90-95%` near-done band.
-
-- The core adopter story is real from shipped evidence: package-consumer install
-  proof, canonical adopter lifecycle proof, image/AV processing, signed/private
-  delivery, Mux streaming, GCS resumable, and tus-backed resumable browser
-  ingest on Local/S3 all exist in code, docs, and verification artifacts.
-
-- Remaining delta is mostly `IMPORTANT-BUT-NARROW`, not foundational. The
-  sharpest remaining gap is not another backend or protocol extension; it is
-  first-class Phoenix UX around the newly shipped tus surface.
-
-- Selected v1.9 wedge: Phoenix tus DX completion / truth alignment first;
-  lifecycle conveniences and protocol/provider breadth stay deferred.
-
-- Overbuild warning: after one more DX-focused milestone, new breadth work
-  starts moving onto the flat part of the value curve for this library's scope.
+- The core adopter story is already real from shipped evidence: package-consumer
+  install proof, canonical adopter lifecycle proof, image/AV processing,
+  signed/private delivery, Mux streaming, browser→Mux direct creator upload,
+  GCS resumable, and tus-backed resumable browser ingest on Local/S3 all exist
+  in code, docs, and verification artifacts.
+- The highest-leverage remaining core gap is first-class owner/account erasure
+  over Rindle's existing attachment + cleanup model, not another backend or
+  protocol extension.
+- Phoenix tus DX completion is closed; richer Phoenix uploader abstractions
+  remain optional convenience scope, not the default next wedge.
+- Planning drift note: older ranking artifacts still predate the shipped v1.8
+  browser→Mux direct-upload truth and the v1.9 Phoenix tus proof closure. Use
+  `PROJECT.md`, this file, and `.planning/threads/2026-05-25-next-milestone-ordering.md`
+  as the current sequencing source of truth.
 
 ## Blockers/Concerns
 
-- No active blocker. The repo is between milestones.
-- Main open product questions for v1.10+ are prioritization questions, not
-  close blockers: protocol follow-ons, lifecycle convenience APIs, richer
-  Phoenix abstractions, and second-provider demand.
+- No active blocker.
+- Main implementation risk: owner erasure spans slot-scoped attachment rows and
+  asset-scoped purge behavior, so the contract must preserve shared assets with
+  surviving attachments.
+- Main scope risk: admin UI, bulk orchestration, and force-delete semantics are
+  tempting extensions but intentionally deferred out of `v1.10`.
 
-## Deferred Items (to v1.9+ or out of scope)
+## Deferred Items
 
 | Category | Item | Status |
 |----------|------|--------|
-| tus | Checksum extension (per-chunk SHA-1, 460) | deferred v1.9+ |
-| tus | Concatenation / parallel partial uploads | deferred v1.9+ |
-| tus | `Upload-Defer-Length` (size unknown at create) | deferred v1.9+ |
+| tus | Checksum extension (per-chunk SHA-1, 460) | deferred v1.11+ |
+| tus | Concatenation / parallel partial uploads | deferred v1.11+ |
+| tus | `Upload-Defer-Length` (size unknown at create) | deferred v1.11+ |
 | tus | IETF RUFH / tus 2.0 (`104 Upload Resumption`) | deferred |
 | tus | GCS-as-tus-backend / R2-native tus proxying | out of scope |
 | tus | Rindle-owned standalone tus JS client package | out of scope |
 | tus | Richer reusable uploader component abstractions beyond the supported helper path | deferred |
-| lifecycle | `purge_owner`-style account erasure | deferred |
 | streaming | Second streaming provider (Cloudflare/Bunny) | deferred |
 | mux | `cancel_direct_upload/1` | deferred |
+| lifecycle | Admin or bulk owner-erasure orchestration | deferred |
+| lifecycle | Force-delete policy for assets with surviving attachments | deferred |
 
 ## Session Continuity
 
-Last session: 2026-05-25T20:30:00.000Z
-v1.9 was archived, `REQUIREMENTS.md` was retired, and the project is waiting
-for the next milestone definition.
+Last session: 2026-05-26T00:00:00.000Z
+`v1.10` is now active with requirements and roadmap defined.
 
-**Last Completed Milestone:** v1.9 (Phases 48-52) — archived 2026-05-25,
-tag `v1.9`.
+**Current Milestone:** v1.10 (Phases 53-55) — owner/account erasure.
 
-**Next Step:** Run `$gsd-new-milestone`.
+**Recommended Next Step:** discuss or plan Phase 53 first; do not jump straight
+to execution until the dry-run/report shape and shared-asset truth are locked.

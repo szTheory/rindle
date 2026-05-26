@@ -2,26 +2,38 @@
 
 ## Current State
 
-Milestone `v1.9 Phoenix Tus DX Completion` shipped on `2026-05-25` (Phases
-48-52, 10 plans, 7/7 requirements validated). Rindle now ships an explicit,
-truth-aligned Phoenix / LiveView tus adopter story on top of the previously
-shipped bare tus edge: the supported `Rindle.LiveView.allow_tus_upload/4`
-helper path, canonical `uploader: "RindleTus"` client flow, honest
-`uploading` / `verifying` / `ready` / `error` semantics, generated-app proof,
-and parity checks are all part of the documented public contract.
+Milestone `v1.10 Owner Account Erasure` started on `2026-05-26`. It opens the
+next narrow lifecycle-core wedge after the shipped `v1.9` Phoenix tus truth
+closure: a first-class, auditable owner/account erasure surface that works
+with Rindle's existing attachment model, preserves shared assets that still
+have surviving attachments, and only purges storage when an asset becomes
+newly orphaned.
 
-No new milestone is open yet. Start the next milestone with
-`$gsd-new-milestone`, which will define fresh requirements and roadmap scope.
+The milestone intentionally stays inside Rindle's core mission. It does not
+add a new upload protocol, provider, admin UI, or compliance orchestration
+layer; it turns the existing "detach every slot and run orphan cleanup"
+workaround into an honest public lifecycle API with explicit dry-run/reporting,
+execution semantics, and proof.
 
-## Next Milestone Goals
+## Current Milestone: v1.10 Owner Account Erasure
 
-- Choose the next narrow wedge from the deferred queue instead of carrying
-  `v1.9` scope forward implicitly.
-- Prefer additive follow-on work that preserves the shipped Phoenix tus
-  contract: protocol extensions, lifecycle convenience APIs, or richer Phoenix
-  abstractions only when the next milestone explicitly selects them.
-- Keep the one trusted completion lane (`consume_uploaded_entries/3` into
-  `verify_completion/2`) and capability honesty intact while expanding scope.
+**Goal:** Give adopters one supported, auditable account-deletion lifecycle
+call that detaches all media owned by a record, reports what will happen, and
+purges only assets that become orphaned.
+
+**Target features:**
+- First-class dry-run/reporting surface for owner/account erasure.
+- First-class execute surface that detaches owner attachments and reuses the
+  existing async purge lane only for newly orphaned assets.
+- Explicit shared-asset semantics that retain storage-backed assets when other
+  live attachments still exist.
+- Docs and proof that replace the current hand-rolled detach-loop guidance with
+  a supported public contract.
+
+**Why now:** owner/account erasure is the highest-leverage remaining
+universally useful SaaS lifecycle job still missing from Rindle's public
+surface, and it fits the library's core durability promise better than further
+provider or protocol breadth.
 
 ## Recently Shipped Milestone
 
@@ -222,22 +234,24 @@ To keep this posture durable across GSD workflows:
   for image-only profiles — v1.7 (Phase 37) (GCS-01..04). Live-bucket proof is
   accepted CI automation via `gcs-soak` (`ci_verified`), not manual follow-up.
 
-### Active (v1.9 Phoenix Tus DX Completion)
+### Active (v1.10 Owner Account Erasure)
 
-Delivered in `v1.9` (see `.planning/milestones/v1.9-REQUIREMENTS.md`):
-- `PHX-*`: Phoenix / LiveView tus DX completion that makes the supported server
-  setup, client uploader contract, and honest UI-state split explicit for
-  adopters.
-- `PROOF-*`: package-consumer and parity proof that exercises the supported
-  Phoenix-facing tus flow, not only the headless tus protocol edge.
-- `TRUTH-*`: planning/docs truth-alignment work so active project artifacts stop
-  treating the already-shipped thin LiveView tus seam as wholly deferred.
+In progress for `v1.10` (see `.planning/REQUIREMENTS.md`):
+- `LIFE-*`: owner/account erasure contract covering dry-run/reporting, execute
+  semantics, shared-asset retention, and idempotent lifecycle behavior.
+- `PROOF-*`: hermetic and adopter-facing proof that exercises orphan purge and
+  shared-asset retention through the public facade rather than hand-rolled
+  detach loops.
+- `TRUTH-*`: planning/docs truth-alignment so account deletion guidance names
+  the supported owner-erasure surface and clearly defers broader admin or bulk
+  compliance tooling.
 
-Deferred to `v1.10+` or out of scope after `v1.9`: tus Checksum /
+Deferred to `v1.11+` or out of scope after `v1.10`: tus Checksum /
 Concatenation / `Upload-Defer-Length`, IETF RUFH (tus 2.0), GCS-as-tus-
 backend, a Rindle-owned standalone tus JS client package, generic uploader UI
-kits beyond the supported helper path, first-class account erasure, a second
-streaming provider, and `cancel_direct_upload/1`.
+kits beyond the supported helper path, a second streaming provider,
+`cancel_direct_upload/1`, force-delete semantics for still-shared assets, and
+admin/bulk erasure orchestration.
 
 ### Out of Scope
 
@@ -274,13 +288,12 @@ AV-enabled lanes. Optional `mux` + `jose` deps preserve zero transitive cost
 for non-streaming adopters. The single-provider rule keeps the abstraction
 honest; v1.7+ adapters (GCS, second streaming provider) become contract tests.
 
-**Current milestone setup:** v1.9 is now open and intentionally narrower than a
-new protocol/provider milestone. The codebase already ships
-`Rindle.Upload.TusPlug`, `Rindle.initiate_tus_upload/2`,
-`Rindle.LiveView.allow_tus_upload/4`, the resumable uploads guide, and the
-headless generated-app tus proof. The remaining work is productization and
-truth: define exactly what Phoenix-facing support Rindle claims today, make the
-supported client/server flow copy-pasteable, and freeze that claim with proof.
+**Current milestone setup:** `v1.10` keeps the shipped Phoenix tus and
+browser→Mux truths intact while moving back to a core lifecycle job. The repo
+already proves owner-scoped attach/detach at slot granularity and orphan purge
+at asset granularity; the missing piece is a first-class facade that composes
+those primitives into one honest account-deletion contract without deleting
+shared assets that still belong to another live attachment.
 
 **Reference implementations:**
 - Rails Active Storage: attachment/blob ownership patterns, redirect-style
@@ -379,6 +392,8 @@ supported client/server flow copy-pasteable, and freeze that claim with proof.
 | Phase 37 (browser→Mux direct creator upload) ships only if Phases 33-36 ship under budget | Single-provider rule keeps milestone scope honest; direct-creator-upload is small additive surface on already-built primitives — clean v1.7 deferral | ✓ Deferred to v1.7 (Phases 33-36 closed at budget without pulling forward) |
 | v1.9 is a Phoenix tus DX completion / truth-alignment milestone, not a new tus capability milestone | The repo already ships the headless tus edge, `Rindle.initiate_tus_upload/2`, and the thin `Rindle.LiveView.allow_tus_upload/4` seam; the remaining gap is coherent support truth, productized adopter guidance, and proof | Locked v1.9 |
 | The supported Phoenix tus path remains helper + documented client uploader over the existing `verify_completion/2` lane; richer Rindle-owned uploader abstractions stay optional future scope unless the current seam proves insufficient | This preserves the shipped headless contract, avoids overclaiming a component that does not exist yet, and keeps the milestone on the highest-leverage wedge | Locked v1.9 |
+| Browser→Mux direct creator upload is shipped in v1.8 and should not be treated as a carried-forward candidate | Public streaming entrypoints, LiveView wrapper, provider support, tests, and adopter docs are already in the tree; remaining streaming follow-on work is narrower (`cancel_direct_upload/1`, second-provider demand) | ✓ Validated in v1.8 / v1.9 boundary assessment |
+| Owner/account erasure in v1.10 uses conservative shared-asset semantics: detach the erased owner's rows, purge only newly orphaned assets, and report retained shared assets explicitly | `attach` / `detach` are slot-scoped while purge is asset-scoped; deleting an asset that still has another live attachment would violate current repo truth and surprise adopters during account deletion | Locked v1.10 |
 
 ## Historical Snapshot
 
@@ -537,4 +552,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-25 — v1.9 Phoenix Tus DX Completion started. Scope narrowed to Phoenix-facing tus DX completion, truth alignment, and end-to-end proof on top of the already-shipped v1.8 tus and browser→Mux capabilities.*
+*Last updated: 2026-05-26 — v1.10 Owner Account Erasure started. Scope locked to dry-run/reporting, execute semantics, shared-asset retention, and proof for a first-class owner-erasure lifecycle API.*
