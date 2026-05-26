@@ -251,8 +251,6 @@ still-shared assets, or a broader compliance workflow surface.
 - A separate audit ledger or heavier truth-governance process for this wedge.
 - Admin UI, bulk erasure orchestration, and force-delete policy for still-shared
   assets.
-
-[If none: not applicable]
 </deferred>
 
 ---
