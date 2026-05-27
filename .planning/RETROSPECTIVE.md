@@ -31,7 +31,9 @@
 ### Patterns Established
 
 - **Proof lane as merge-blocking:** Highest-signal install-smoke and mix-task proofs run in a
-  dedicated `proof` job separate from advisory `quality` (dialyzer/credo/coveralls).
+  dedicated `proof` job separate from advisory static analysis in `quality`.
+- **Unit suite merge-blocking (post-v1.16):** `mix coveralls` in `quality` blocks merge;
+  Credo/Dialyzer remain advisory.
 - **Moduledoc contract tests:** `Code.fetch_docs/1` token asserts + stale-phrase refutes for
   TusPlug scope, complementing runtime OPTIONS tests in `tus_plug_test.exs`.
 

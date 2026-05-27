@@ -67,7 +67,7 @@ sticky sessions. Green PR CI does not guarantee full unit/Credo/Dialyzer pass.
 | Rank | Wedge | Type | Done enough |
 |------|-------|------|-------------|
 | 1 | Planning hygiene (optional) | IMPORTANT-BUT-NARROW | JTBD anchor v1.16; this assessment thread; no feature surface |
-| 2 | CI confidence tightening (optional) | IMPORTANT-BUT-NARROW | Promote `mix test`/Coveralls to merge-blocking — maintainer decision |
+| 2 | CI confidence tightening | IMPORTANT-BUT-NARROW | **Done 2026-05-27:** `mix coveralls` merge-blocking; Credo/Dialyzer still advisory |
 | 3 | Force-delete (LIFE-06) | IMPORTANT-BUT-NARROW | Opt-in `force:`; preview collateral damage; never default |
 | 4 | Second provider (STREAM-10) | IMPORTANT-BUT-NARROW | One adapter + doctor; explicit adopter demand only |
 | 5 | Jobs 33–34 polish | LONG-TAIL | Signed dynamic transforms / EXIF strip on explicit pull |

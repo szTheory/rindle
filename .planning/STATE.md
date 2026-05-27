@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: between-milestones
 milestone_name: null
 status: Awaiting next milestone
-last_updated: "2026-05-27T22:30:00Z"
-last_activity: 2026-05-27 — CI unit suite merge-blocking (mix coveralls)
+last_updated: "2026-05-27T23:00:00Z"
+last_activity: 2026-05-27 — Post-v1.16 assessment + CI hygiene complete
 progress:
   total_phases: 0
   completed_phases: 0
@@ -38,10 +38,15 @@ Last activity: 2026-05-27 — Milestone v1.16 archived
 
 ## Next Step
 
-**Default:** No feature milestone — wait for compliance pull (LIFE-06) or named adopter
-demand (STREAM-10). Optional: micro v1.17 hygiene (JTBD/CI only, no public API).
+**Default:** Demand-gated pause — no milestone work until a wedge is chosen.
 
-`/gsd-new-milestone` — only when a concrete wedge is chosen (not speculative breadth)
+**After context clear (start here):** `/gsd-progress` — re-read position, deferred backlog,
+and assessment thread without starting a milestone.
+
+**When ready to build:** `/gsd-new-milestone` with a concrete charter only:
+- `v1.17 Force-Delete` — LIFE-06 compliance pull
+- `v1.17 Second Streaming Provider` — STREAM-10 named adopter
+- Do not open a speculative feature milestone
 
 ## Accumulated Context
 
@@ -77,6 +82,7 @@ Last session: 2026-05-27
 
 ## Operator Next Steps
 
-- Review `.planning/threads/2026-05-27-post-v116-milestone-assessment.md` before chartering work
-- `/gsd-new-milestone` — only after choosing LIFE-06, STREAM-10, or optional hygiene wedge
-- `/gsd-progress` — review roadmap and deferred backlog
+1. **`/gsd-progress`** — situational re-entry (recommended after context clear)
+2. Read `.planning/threads/2026-05-27-post-v116-milestone-assessment.md` before any charter
+3. **`/gsd-new-milestone`** — only when LIFE-06 or STREAM-10 (or explicit issue) is chosen
+4. Patch/minor Hex releases need no milestone — use release workflow + `guides/release_publish.md`

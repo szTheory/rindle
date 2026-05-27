@@ -124,8 +124,8 @@ honesty shipped v1.15–v1.16. That is the signal to stop chasing new modalities
 ## Ranked gap analysis (highest leverage first)
 
 1. **Demand-gated pause (default).** No feature milestone unless compliance pull (LIFE-06) or
-   named adopter (STREAM-10). Optional micro hygiene: JTBD anchor refresh, CI unit-suite
-   blocking decision — no new public API.
+   named adopter (STREAM-10). Post-v1.16 hygiene complete (assessment thread, JTBD anchor,
+   `mix coveralls` merge-blocking).
 
 2. **Force-delete semantics** (LIFE-06, job 32 extension). Compliance pull only; conflicts
    with conservative shared-asset contract unless explicitly opt-in. Separate feature milestone.
