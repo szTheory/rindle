@@ -18,7 +18,11 @@ Milestone `v1.13 Cancel Direct Upload` shipped on `2026-05-27` (Phases 64–66,
 
 **Phase 67 complete (2026-05-27):** Batch owner-erasure public contract frozen on
 `Rindle` — types, boundary validation stubs, error vocabulary, and api_surface_boundary
-freeze. Functional preview/execute wiring lands in Phase 68.
+freeze.
+
+**Phase 68 complete (2026-05-27):** Batch preview/execute wired on `Rindle` with
+sequential per-owner `OwnerErasure` delegation, bucket aggregation, partial-failure
+reporting, and integration tests.
 
 **Next demand-driven wedges after v1.14:** force-delete for still-shared assets (separate
 milestone), second streaming provider (explicit demand only).
