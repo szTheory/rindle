@@ -1,28 +1,25 @@
 # Rindle
 
-## Current Milestone: v1.17 Adopter-Confidence Hygiene
+## Current Milestone: v1.17 Adopter-Confidence Hygiene (shipped 2026-05-27)
 
 **Goal:** Close residual planning-truth drift and record an explicit CI static-analysis
 policy so adopters and maintainers read one honest story — no new public API.
 
-**Target features:**
+**Validated in Phase 79:** CI-04 — Credo and Dialyzer remain advisory with documented
+rationale in `RUNNING.md` `### Static analysis policy (CI-04)`.
 
-- Fix stale phrases in post-v116 assessment and path-to-done threads (coveralls truth)
-- Verify JTBD-MAP anchor at v1.16 boundary; align PROJECT/STATE/ROADMAP to v1.17 charter
-- Record explicit Credo/Dialyzer merge-blocking vs advisory decision in RUNNING.md + ci.yml
-
-**Demand posture:** Maintainer-chosen micro milestone (Branch C). LIFE-06 and STREAM-10
-remain demand-gated for v1.18+. Canonical context:
+**Demand posture:** v1.17 complete. Default returns to demand-gated pause for v1.18+ unless
+LIFE-06 (compliance) or STREAM-10 (second provider) signal. Canonical context:
 [post-v116 assessment](threads/2026-05-27-post-v116-milestone-assessment.md),
 [path-to-done roadmap](threads/2026-05-27-path-to-done-roadmap.md).
 
 ## Current State
 
-Milestone `v1.16 CI Enforcement & Planning Hygiene` shipped on `2026-05-27`
-(Phases 75–77, 3/3 requirements validated). **Phase 78 complete (2026-05-27):**
-TRUTH-06 and PLAN-02 closed — post-v116 threads, JTBD anchor, and charter artifacts
-aligned. Phase 79 (CI-04) next. Rindle is roughly **94–96%** done for its stated
-mission (90–95% near-done band).
+Milestone `v1.17 Adopter-Confidence Hygiene` shipped on `2026-05-27`
+(Phases 78–79, 3/3 requirements validated). TRUTH-06, PLAN-02, and CI-04 closed —
+post-v116 threads, JTBD anchor, charter artifacts, and Credo/Dialyzer advisory policy
+recorded. Rindle is roughly **94–96%** done for its stated mission (90–95% near-done band).
+Default posture: demand-gated pause until LIFE-06 or STREAM-10 signal.
 
 **v1.16 shipped:** Merge-blocking `proof` CI job (CI-03) runs `docs_parity_test.exs` and
 `batch_owner_erasure_task_test.exs`; TusPlug moduledoc parity lock (TRUTH-05); planning
@@ -699,4 +696,4 @@ This document evolves at phase transitions and milestone boundaries.
    (`workflow.milestone_boundary.block_feature_milestone_without_signal`)
 
 ---
-*Last updated: 2026-05-27 — Phase 78 Assessment & Planning Truth complete*
+*Last updated: 2026-05-27 — Phase 79 CI Static-Analysis Policy Closure complete (v1.17 shipped)*

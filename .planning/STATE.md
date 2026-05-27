@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.17
 milestone_name: milestone
-status: Phase 79 complete
-last_updated: "2026-05-27T22:00:00.000Z"
-last_activity: 2026-05-27 -- Phase 79 CI Static-Analysis Policy Closure complete
+status: completed
+last_updated: "2026-05-27T21:29:56.585Z"
+last_activity: 2026-05-27
 progress:
   total_phases: 2
   completed_phases: 2
@@ -24,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-05-27)
 
 ## Current Position
 
-Phase: 79 — CI Static-Analysis Policy Closure (complete)
-Plan: 79-02 complete
+Phase: 79
+Plan: Not started
 Status: v1.17 Adopter-Confidence Hygiene complete (2026-05-27)
-Last activity: 2026-05-27 -- Phase 79 CI Static-Analysis Policy Closure complete
+Last activity: 2026-05-27
 
 ## Current Milestone
 

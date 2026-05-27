@@ -60,7 +60,7 @@
 3. Assessment thread "Open concerns" section reflects the recorded decision (not "deferred")
 4. No new public API or `lib/` changes required to satisfy CI-04
 
-**Plans:** 2/2 complete
+**Plans:** 2/2 plans complete
 
 - [x] 79-01: RUNNING.md CI-04 policy + ci.yml comment alignment
 - [x] 79-02: Thread closure + REQUIREMENTS/STATE/ROADMAP traceability + verification gate
