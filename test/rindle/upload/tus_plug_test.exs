@@ -223,8 +223,13 @@ defmodule Rindle.Upload.TusPlugTest do
       assert conn.status == 204
       assert get_resp_header(conn, "tus-version") == ["1.0.0"]
       assert get_resp_header(conn, "tus-resumable") == ["1.0.0"]
-      assert get_resp_header(conn, "tus-extension") == ["creation,expiration,termination"]
+
+      assert get_resp_header(conn, "tus-extension") == [
+               "creation,expiration,termination,checksum,creation-defer-length"
+             ]
+
       assert get_resp_header(conn, "tus-max-size") == ["1000000"]
+      assert get_resp_header(conn, "tus-checksum-algorithm") == ["sha1,sha256"]
     end
 
     test "POST creates a signed, tus-stamped session and returns 201 + Location" do
@@ -796,6 +801,114 @@ defmodule Rindle.Upload.TusPlugTest do
       assert File.stat!(final_path).size == total
       assert File.read!(final_path) == "0123456789abcdef"
       refute File.exists?(Local.tus_part_path(sid, root: root))
+    end
+  end
+
+  describe "Phase 57 — Checksum & Defer Length" do
+    test "POST with Upload-Defer-Length: 1 creates a session without length" do
+      conn =
+        conn(:post, "/uploads/tus")
+        |> put_req_header("upload-defer-length", "1")
+        |> put_req_header("upload-metadata", "filename Y2xpcC5qcGc=")
+        |> route()
+
+      assert conn.status == 201
+      [location] = get_resp_header(conn, "location")
+      token = location |> String.split("/") |> List.last()
+
+      {:ok, payload} = Plug.Crypto.verify(@secret_key_base, @tus_url_salt, token)
+      assert payload["length"] == "deferred"
+
+      session = AdopterRepo.get!(MediaUploadSession, payload["session_id"])
+      assert session.upload_length == nil
+    end
+
+    test "PATCH sets deferred length and proceeds", %{root: root} do
+      opts = opts_for(root)
+
+      conn =
+        conn(:post, "/uploads/tus")
+        |> put_req_header("upload-defer-length", "1")
+        |> put_req_header("upload-metadata", "filename Y2xpcC5qcGc=")
+        |> TusPlug.call(opts)
+
+      [location] = get_resp_header(conn, "location")
+      token = location |> String.split("/") |> List.last()
+
+      {:ok, payload} = Plug.Crypto.verify(@secret_key_base, @tus_url_salt, token)
+      sid = payload["session_id"]
+
+      p1 =
+        conn(:patch, "/uploads/tus/" <> token, "01234")
+        |> put_req_header("content-type", "application/offset+octet-stream")
+        |> put_req_header("upload-offset", "0")
+        |> put_req_header("upload-length", "10")
+        |> TusPlug.call(opts)
+
+      assert p1.status == 204
+      assert get_resp_header(p1, "upload-offset") == ["5"]
+
+      session = AdopterRepo.get!(MediaUploadSession, sid)
+      assert session.upload_length == 10
+    end
+
+    test "PATCH fails if deferred length is missing", %{root: root} do
+      opts = opts_for(root)
+
+      conn =
+        conn(:post, "/uploads/tus")
+        |> put_req_header("upload-defer-length", "1")
+        |> put_req_header("upload-metadata", "filename Y2xpcC5qcGc=")
+        |> TusPlug.call(opts)
+
+      [location] = get_resp_header(conn, "location")
+      token = location |> String.split("/") |> List.last()
+
+      p1 =
+        conn(:patch, "/uploads/tus/" <> token, "01234")
+        |> put_req_header("content-type", "application/offset+octet-stream")
+        |> put_req_header("upload-offset", "0")
+        |> TusPlug.call(opts)
+
+      assert p1.status == 400
+    end
+
+    test "PATCH verifies valid sha256 checksum", %{root: root} do
+      opts = opts_for(root)
+      {token, _sid} = create(opts, 10)
+
+      body = "0123456789"
+      hash = :crypto.hash(:sha256, body) |> Base.encode64()
+
+      p1 =
+        conn(:patch, "/uploads/tus/" <> token, body)
+        |> put_req_header("content-type", "application/offset+octet-stream")
+        |> put_req_header("upload-offset", "0")
+        |> put_req_header("upload-checksum", "sha256 #{hash}")
+        |> TusPlug.call(opts)
+
+      assert p1.status == 204
+      assert get_resp_header(p1, "upload-offset") == ["10"]
+    end
+
+    test "PATCH rejects invalid sha256 checksum with 460", %{root: root} do
+      opts = opts_for(root)
+      {token, sid} = create(opts, 10)
+
+      body = "0123456789"
+      hash = :crypto.hash(:sha256, "wrong data") |> Base.encode64()
+
+      p1 =
+        conn(:patch, "/uploads/tus/" <> token, body)
+        |> put_req_header("content-type", "application/offset+octet-stream")
+        |> put_req_header("upload-offset", "0")
+        |> put_req_header("upload-checksum", "sha256 #{hash}")
+        |> TusPlug.call(opts)
+
+      assert p1.status == 460
+      # Offset should not advance
+      session = AdopterRepo.get!(MediaUploadSession, sid)
+      assert session.last_known_offset == 0
     end
   end
 end

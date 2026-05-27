@@ -81,7 +81,7 @@ defmodule Rindle.Upload.TusPlug do
 
   @tus_url_salt "rindle:tus:url"
   @tus_version "1.0.0"
-  @tus_extensions "creation,expiration,termination"
+  @tus_extensions "creation,expiration,termination,checksum,creation-defer-length"
   @offset_content_type "application/offset+octet-stream"
   # Conservative adopter-overridable default (5 GiB). The only adopter-facing
   # size knob; the PATCH read-loop constants below stay fixed (D-07).
@@ -188,6 +188,7 @@ defmodule Rindle.Upload.TusPlug do
     |> put_resp_header("tus-resumable", @tus_version)
     |> put_resp_header("tus-extension", @tus_extensions)
     |> put_resp_header("tus-max-size", Integer.to_string(opts[:max_size]))
+    |> put_resp_header("tus-checksum-algorithm", "sha1,sha256")
     |> send_resp(204, "")
     |> halt()
   end
@@ -275,7 +276,7 @@ defmodule Rindle.Upload.TusPlug do
       conn
       |> put_tus_resumable()
       |> put_resp_header("upload-offset", Integer.to_string(session.last_known_offset))
-      |> maybe_put_upload_length(payload)
+      |> maybe_put_upload_length(effective_length(session, payload))
       |> put_resp_header("cache-control", "no-store")
       |> put_resp_header("upload-expires", http_date(session.expires_at))
       |> send_resp(204, "")
@@ -296,7 +297,10 @@ defmodule Rindle.Upload.TusPlug do
          :ok <- require_offset_octet_stream(conn),
          {:ok, inbound_offset} <- parse_upload_offset(conn),
          :ok <- check_offset_match(inbound_offset, session.last_known_offset),
-         {:ok, part_state} <- stream_append(conn, session, payload, opts) do
+         {:ok, session, effective_len} <- resolve_patch_length(conn, session, payload, opts),
+         {:ok, checksum_alg, expected_hash} <- parse_upload_checksum(conn),
+         {:ok, part_state} <-
+           stream_append(conn, session, payload, effective_len, checksum_alg, expected_hash, opts) do
       new_offset = part_state.offset
       {:ok, advanced} = persist_offset(session, part_state)
 
@@ -308,7 +312,7 @@ defmodule Rindle.Upload.TusPlug do
         %{committed_bytes: new_offset, offset_delta: new_offset - session.last_known_offset}
       )
 
-      maybe_complete(conn, advanced, new_offset, payload, opts)
+      maybe_complete(conn, advanced, new_offset, effective_len, payload, opts)
     else
       {:error, reason} -> tus_error(conn, status_for(reason), "")
     end
@@ -321,22 +325,44 @@ defmodule Rindle.Upload.TusPlug do
   # behaviour (`adapter.upload_part_stream/5`) — no `if adapter == Local` branch
   # (D-12). The temp file holds exactly ONE PATCH worth of bytes and is removed
   # after dispatch.
-  defp stream_append(conn, session, payload, opts) do
+  defp stream_append(conn, session, payload, effective_len, checksum_alg, expected_hash, opts) do
     temp_path = Path.join([tus_tmp_dir(opts), session.id <> ".patch"])
     File.mkdir_p!(Path.dirname(temp_path))
     ceiling = opts[:max_size]
-    upload_length = payload["length"]
+
+    hash_ctx =
+      case checksum_alg do
+        "sha1" -> :crypto.hash_init(:sha)
+        "sha256" -> :crypto.hash_init(:sha256)
+        _ -> nil
+      end
 
     drain_result =
       case File.open(temp_path, [:write, :binary]) do
         {:ok, file} ->
           try do
-            drain(conn, file, session.last_known_offset, 0, ceiling, upload_length)
+            drain(conn, file, session.last_known_offset, 0, ceiling, effective_len, hash_ctx)
           after
             File.close(file)
           end
 
         {:error, reason} ->
+          {:error, reason}
+      end
+
+    drain_result =
+      case {drain_result, expected_hash} do
+        {{:ok, new_offset, final_hash_ctx}, hash} when not is_nil(hash) ->
+          if :crypto.hash_final(final_hash_ctx) == hash do
+            {:ok, new_offset}
+          else
+            {:error, :checksum_mismatch}
+          end
+
+        {{:ok, new_offset, _}, _} ->
+          {:ok, new_offset}
+
+        {{:error, reason}, _} ->
           {:error, reason}
       end
 
@@ -379,15 +405,24 @@ defmodule Rindle.Upload.TusPlug do
   defp decode_parts(%{"parts" => parts}) when is_list(parts), do: parts
   defp decode_parts(_), do: []
 
-  defp drain(conn, file, base_offset, written, ceiling, upload_length) do
+  defp drain(conn, file, base_offset, written, ceiling, upload_length, hash_ctx) do
     case Plug.Conn.read_body(conn, length: @read_length, read_length: @read_length) do
       {:ok, chunk, _conn} ->
-        write_chunk(file, chunk, base_offset, written, ceiling, upload_length, :done)
+        write_chunk(file, chunk, base_offset, written, ceiling, upload_length, hash_ctx, :done)
 
       {:more, chunk, conn} ->
-        case write_chunk(file, chunk, base_offset, written, ceiling, upload_length, :more) do
-          {:cont, new_written} ->
-            drain(conn, file, base_offset, new_written, ceiling, upload_length)
+        case write_chunk(
+               file,
+               chunk,
+               base_offset,
+               written,
+               ceiling,
+               upload_length,
+               hash_ctx,
+               :more
+             ) do
+          {:cont, new_written, new_hash_ctx} ->
+            drain(conn, file, base_offset, new_written, ceiling, upload_length, new_hash_ctx)
 
           other ->
             other
@@ -398,7 +433,7 @@ defmodule Rindle.Upload.TusPlug do
     end
   end
 
-  defp write_chunk(file, chunk, base_offset, written, ceiling, upload_length, mode) do
+  defp write_chunk(file, chunk, base_offset, written, ceiling, upload_length, hash_ctx, mode) do
     new_written = written + byte_size(chunk)
 
     cond do
@@ -410,7 +445,13 @@ defmodule Rindle.Upload.TusPlug do
 
       true ->
         IO.binwrite(file, chunk)
-        if mode == :done, do: {:ok, base_offset + new_written}, else: {:cont, new_written}
+        new_hash_ctx = if hash_ctx, do: :crypto.hash_update(hash_ctx, chunk), else: nil
+
+        if mode == :done do
+          {:ok, base_offset + new_written, new_hash_ctx}
+        else
+          {:cont, new_written, new_hash_ctx}
+        end
     end
   end
 
@@ -434,8 +475,8 @@ defmodule Rindle.Upload.TusPlug do
   defp encode_parts(parts) when is_list(parts) and parts != [], do: %{"parts" => parts}
   defp encode_parts(_), do: %{}
 
-  defp maybe_complete(conn, session, new_offset, payload, opts) do
-    if new_offset == payload["length"] do
+  defp maybe_complete(conn, session, new_offset, effective_len, payload, opts) do
+    if new_offset == effective_len do
       complete_upload(conn, session, payload, opts)
     else
       conn
@@ -608,6 +649,63 @@ defmodule Rindle.Upload.TusPlug do
   defp check_offset_match(inbound, current) when inbound == current, do: :ok
   defp check_offset_match(_inbound, _current), do: {:error, :offset_mismatch}
 
+  defp resolve_patch_length(conn, session, %{"length" => "deferred"}, opts) do
+    if is_integer(session.upload_length) do
+      {:ok, session, session.upload_length}
+    else
+      case get_req_header(conn, "upload-length") do
+        [value] ->
+          case Integer.parse(value) do
+            {length, ""} when length >= 0 ->
+              case check_max_size(length, opts[:max_size]) do
+                :ok ->
+                  # persist the length
+                  {:ok, updated} =
+                    session
+                    |> MediaUploadSession.changeset(%{upload_length: length})
+                    |> Config.repo().update()
+
+                  {:ok, updated, length}
+
+                {:error, :too_large} ->
+                  {:error, :too_large}
+              end
+
+            _ ->
+              {:error, :invalid_length}
+          end
+
+        _ ->
+          # First PATCH must have Upload-Length
+          {:error, :invalid_length}
+      end
+    end
+  end
+
+  defp resolve_patch_length(_conn, session, %{"length" => length}, _opts)
+       when is_integer(length) do
+    {:ok, session, length}
+  end
+
+  defp parse_upload_checksum(conn) do
+    case get_req_header(conn, "upload-checksum") do
+      [value] ->
+        case String.split(value, " ", parts: 2) do
+          [alg, hash] when alg in ["sha1", "sha256"] ->
+            case Base.decode64(hash) do
+              {:ok, decoded} -> {:ok, alg, decoded}
+              :error -> {:error, :invalid_checksum}
+            end
+
+          _ ->
+            {:error, :invalid_checksum}
+        end
+
+      _ ->
+        {:ok, nil, nil}
+    end
+  end
+
   # ── Token extraction + verification ──────────────────────────────────────────
 
   # D-04: the signed token is the FINAL path segment, resolved from
@@ -655,6 +753,9 @@ defmodule Rindle.Upload.TusPlug do
   defp status_for(:offset_mismatch), do: 409
   defp status_for(:too_large), do: 413
   defp status_for(:invalid_offset), do: 400
+  defp status_for(:invalid_length), do: 400
+  defp status_for(:invalid_checksum), do: 400
+  defp status_for(:checksum_mismatch), do: 460
   defp status_for(_reason), do: 500
 
   defp tus_error(conn, status, body) do
@@ -666,19 +767,28 @@ defmodule Rindle.Upload.TusPlug do
 
   defp put_tus_resumable(conn), do: put_resp_header(conn, "tus-resumable", @tus_version)
 
-  defp maybe_put_upload_length(conn, %{"length" => length}) when is_integer(length) do
+  defp effective_length(%{upload_length: length}, %{"length" => "deferred"})
+       when is_integer(length), do: length
+
+  defp effective_length(_session, %{"length" => length}) when is_integer(length), do: length
+  defp effective_length(_session, _payload), do: nil
+
+  defp maybe_put_upload_length(conn, length) when is_integer(length) do
     put_resp_header(conn, "upload-length", Integer.to_string(length))
   end
 
-  defp maybe_put_upload_length(conn, _payload), do: conn
+  defp maybe_put_upload_length(conn, _length), do: conn
 
   defp parse_upload_length(conn) do
-    case get_req_header(conn, "upload-length") do
-      [value] ->
+    case {get_req_header(conn, "upload-length"), get_req_header(conn, "upload-defer-length")} do
+      {[value], _} ->
         case Integer.parse(value) do
           {length, ""} when length >= 0 -> {:ok, length}
           _ -> {:error, :invalid_length}
         end
+
+      {[], ["1"]} ->
+        {:ok, "deferred"}
 
       _ ->
         {:error, :invalid_length}
@@ -723,6 +833,7 @@ defmodule Rindle.Upload.TusPlug do
   defp maybe_put_opt(opts, _key, ""), do: opts
   defp maybe_put_opt(opts, key, value), do: Keyword.put(opts, key, value)
 
+  defp check_max_size("deferred", _max_size), do: :ok
   defp check_max_size(length, max_size) when length > max_size, do: {:error, :too_large}
   defp check_max_size(_length, _max_size), do: :ok
 
@@ -730,6 +841,7 @@ defmodule Rindle.Upload.TusPlug do
     String.trim_trailing(base_path, "/") <> "/" <> token
   end
 
+  defp normalize_length("deferred"), do: {:ok, "deferred"}
   defp normalize_length(length) when is_integer(length) and length >= 0, do: {:ok, length}
   defp normalize_length(_), do: {:error, :invalid_length}
 
