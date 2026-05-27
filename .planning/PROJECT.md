@@ -329,13 +329,15 @@ To keep this posture durable across GSD workflows:
   (TRUTH-05)
 - ✓ v1.15 Nyquist metadata closure and between-milestones STATE truth — v1.16 (Phase 77)
   (PLAN-01)
+- ✓ Post-v116 assessment and path-to-done threads match CI severity — v1.17 (Phase 78)
+  (TRUTH-06)
+- ✓ JTBD-MAP anchor and planning charter alignment — v1.17 (Phase 78) (PLAN-02)
+- ✓ Recorded Credo/Dialyzer advisory policy (CI-04) — v1.17 (Phase 79)
 
 ### Active
 
-- **TRUTH-06**: Post-v116 assessment and path-to-done threads match `ci.yml` / RUNNING.md
-  CI severity (coveralls merge-blocking; no unit-suite advisory drift)
-- **PLAN-02**: JTBD-MAP anchor verified at v1.16; PROJECT/STATE/ROADMAP reflect v1.17 charter
-- **CI-04**: Explicit recorded decision on Credo/Dialyzer severity; RUNNING.md + ci.yml aligned
+- **Demand-gated pause (default):** No feature milestone unless LIFE-06 compliance ticket
+  or STREAM-10 named adopter. Patch/minor Hex releases and issue-driven fixes only.
 
 Deferred to v1.18+ (demand-gated) or out of scope: force-delete (LIFE-06), second streaming provider (STREAM-10),
 IETF RUFH (tus 2.0), GCS-as-tus-backend, standalone tus JS client, uploader UI kits,
