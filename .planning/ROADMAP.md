@@ -27,7 +27,7 @@ create time.
 
 | Phase | Name | Goal | Requirements | Success criteria |
 |-------|------|------|--------------|------------------|
-| 64 | Cancel contract & persistence | Lock API, callback, upload_id storage, FSM edges | CANCEL-01, CANCEL-02, CANCEL-03 | 4 |
+| 64 | Cancel contract & persistence | 4/4 | Complete   | 2026-05-27 |
 | 65 | Mux cancel implementation | Ship adapter + `Streaming.cancel_direct_upload/1` | CANCEL-04 | 3 |
 | 66 | Proof & adopter guidance | Tests + guide note | PROOF-01, TRUTH-01 | 3 |
 
@@ -40,6 +40,7 @@ create time.
 **Requirements:** CANCEL-01, CANCEL-02, CANCEL-03
 
 **Success criteria:**
+
 1. Public `@spec` and error vocabulary for `cancel_direct_upload/1` are documented.
 2. Additive persistence for provider `upload_id` is specified (migration or metadata field).
 3. FSM allowlist includes a terminal cancel edge from `uploading` (and `pending` if applicable).
@@ -52,6 +53,7 @@ create time.
 **Requirements:** CANCEL-04
 
 **Success criteria:**
+
 1. Mux adapter implements optional `cancel_direct_upload/1` via `Mux.Video.Uploads.cancel/2`.
 2. `Rindle.Streaming.cancel_direct_upload/1` resolves profile, loads row, calls adapter, updates FSM.
 3. Idempotent cancel when Mux upload already cancelled or row already terminal.
@@ -63,6 +65,7 @@ create time.
 **Requirements:** PROOF-01, TRUTH-01
 
 **Success criteria:**
+
 1. Hermetic Mux ClientMock tests cover cancel + error normalization.
 2. Streaming integration test covers create → cancel → terminal state.
 3. `guides/streaming_providers.md` includes cancel section with Mux-only scope note.
