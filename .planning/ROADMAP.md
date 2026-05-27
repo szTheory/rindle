@@ -28,6 +28,7 @@
 **Requirements:** CI-01, CI-02
 
 **Success criteria:**
+
 1. `RUNNING.md` contains a lane severity matrix (blocking vs advisory vs secret-gated soak).
 2. `package-consumer` job no longer uses job-level `continue-on-error: true`.
 3. `adopter` job no longer uses job-level `continue-on-error: true` (if present).
@@ -42,6 +43,7 @@
 **Requirements:** PROOF-06
 
 **Success criteria:**
+
 1. Integration test drives `Mix.Tasks.Rindle.BatchOwnerErasure` through a mid-batch failure.
 2. Test asserts partial report printed before exit 1.
 3. Test asserts `batch_owner_failed` error message emitted.
@@ -56,6 +58,7 @@
 **Requirements:** VAL-01
 
 **Success criteria:**
+
 1. Phase 68 VALIDATION.md marked Nyquist-compliant or gap-filled.
 2. Phase 69 VALIDATION.md marked Nyquist-compliant or gap-filled.
 3. Phase 70 VALIDATION.md marked Nyquist-compliant or gap-filled.
@@ -70,6 +73,7 @@
 **Requirements:** TRUTH-04, AUDIT-01
 
 **Success criteria:**
+
 1. `guides/operations.md` lists all nine shipped mix tasks accurately.
 2. `Rindle.Upload.TusPlug` moduledoc scope matches implemented extensions.
 3. Milestone audit confirms 6/6 requirements validated.
