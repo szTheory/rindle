@@ -24,6 +24,7 @@ defmodule Rindle.ApiSurfaceBoundaryTest do
     Rindle.Processor.Image,
     Mix.Tasks.Rindle.AbortIncompleteUploads,
     Mix.Tasks.Rindle.BackfillMetadata,
+    Mix.Tasks.Rindle.BatchOwnerErasure,
     Mix.Tasks.Rindle.CleanupOrphans,
     Mix.Tasks.Rindle.RegenerateVariants,
     Mix.Tasks.Rindle.RuntimeStatus,
