@@ -1,4 +1,6 @@
 defmodule Rindle.Upload.TusPlug do
+  @tus_extensions "creation,expiration,termination,checksum,creation-defer-length,concatenation"
+
   @moduledoc """
   Bare, mountable [tus 1.0](https://tus.io/protocols/resumable-upload) protocol
   edge over the v1.7 resumable-session substrate.
@@ -23,7 +25,7 @@ defmodule Rindle.Upload.TusPlug do
   Implements tus **Core + Creation + Expiration + Termination + Checksum +
   Creation-Defer-Length + Concatenation** extensions. The advertised
   `Tus-Extension` header matches runtime:
-  `creation,expiration,termination,checksum,creation-defer-length,concatenation`.
+  `#{@tus_extensions}`.
 
   Backing is **local and S3** tus paths — both are shipped in this module.
 
@@ -84,7 +86,6 @@ defmodule Rindle.Upload.TusPlug do
 
   @tus_url_salt "rindle:tus:url"
   @tus_version "1.0.0"
-  @tus_extensions "creation,expiration,termination,checksum,creation-defer-length,concatenation"
   @offset_content_type "application/offset+octet-stream"
   # Conservative adopter-overridable default (5 GiB). The only adopter-facing
   # size knob; the PATCH read-loop constants below stay fixed (D-07).
