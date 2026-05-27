@@ -10,6 +10,7 @@ defmodule Rindle do
   alias Rindle.Ops.RuntimeStatus
   alias Rindle.Security.UploadValidation
   alias Rindle.Upload.Broker
+  alias Rindle.Upload.TusPlug
   alias Rindle.Workers.ProcessVariant
   alias Rindle.Workers.PromoteAsset
   alias Rindle.Workers.PurgeStorage
@@ -142,6 +143,18 @@ defmodule Rindle do
     Broker.initiate_resumable_session(profile, opts)
   end
 
+  @doc """
+  Initiates a tus upload resource through the broker and returns the signed
+  upload URL needed by browser tus clients.
+
+  Requires an explicit mounted tus `:path`, the adopter `:secret_key_base`, and
+  the file `:length` in bytes. The returned `upload_url` is a bearer credential
+  and should only be handed to the client that will upload the file.
+  """
+  @spec initiate_tus_upload(module(), keyword()) :: TusPlug.create_upload_result()
+  def initiate_tus_upload(profile, opts \\ []) do
+    TusPlug.create_upload(profile, opts)
+  end
 
   @doc """
   Plans owner/account erasure without changing DB or storage state.
@@ -149,7 +162,8 @@ defmodule Rindle do
   Returns the same semantic report vocabulary as `erase_owner/2`, but with
   `mode: :preview` and no purge work enqueued.
   """
-  @spec preview_owner_erasure(struct(), keyword()) :: {:ok, owner_erasure_report()} | {:error, term()}
+  @spec preview_owner_erasure(struct(), keyword()) ::
+          {:ok, owner_erasure_report()} | {:error, term()}
   def preview_owner_erasure(owner, opts \\ []) do
     OwnerErasure.preview(owner, opts)
   end
@@ -164,6 +178,7 @@ defmodule Rindle do
   def erase_owner(owner, opts \\ []) do
     OwnerErasure.execute(owner, opts)
   end
+
   @doc """
   Polls the broker-owned resumable upload session without changing completion trust.
   """

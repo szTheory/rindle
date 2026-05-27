@@ -6,6 +6,7 @@ defmodule Rindle.LiveViewTest do
 
   alias Phoenix.LiveView.{UploadConfig, UploadEntry}
   alias Rindle.Domain.{MediaAsset, MediaUploadSession}
+  alias Rindle.Storage.Local
 
   setup :set_mox_from_context
   setup :verify_on_exit!
@@ -17,6 +18,17 @@ defmodule Rindle.LiveViewTest do
       allow_mime: ["image/jpeg", "image/png"],
       max_bytes: 10_485_760
   end
+
+  defmodule TusProfile do
+    use Rindle.Profile,
+      storage: Local,
+      variants: [],
+      allow_mime: ["video/mp4"],
+      max_bytes: 524_288_000
+  end
+
+  @tus_secret_key_base "live-view-tus-test-secret-key-base-0123456789"
+  @tus_url_salt "rindle:tus:url"
 
   defp build_socket do
     %Phoenix.LiveView.Socket{
@@ -113,6 +125,124 @@ defmodule Rindle.LiveViewTest do
 
       assert {:error, %{reason: "upload_unavailable", code: "upload_sign_failed"},
               ^updated_socket} = external_fn.(entry, updated_socket)
+    end
+  end
+
+  describe "allow_tus_upload/4" do
+    test "configures upload with an external tus uploader on the socket" do
+      socket = build_socket()
+
+      updated_socket =
+        Rindle.LiveView.allow_tus_upload(socket, :video, TusProfile,
+          path: "/uploads/tus",
+          secret_key_base: @tus_secret_key_base,
+          accept: ~w(.mp4),
+          max_entries: 1
+        )
+
+      config = updated_socket.assigns.uploads[:video]
+      assert config.max_entries == 1
+      assert is_function(config.external, 2)
+    end
+
+    test "external helper returns broker-owned tus upload metadata" do
+      socket = build_socket()
+
+      updated_socket =
+        Rindle.LiveView.allow_tus_upload(socket, :video, TusProfile,
+          path: "/uploads/tus",
+          secret_key_base: @tus_secret_key_base,
+          actor: "user-123",
+          accept: ~w(.mp4),
+          max_entries: 1
+        )
+
+      external_fn = updated_socket.assigns.uploads[:video].external
+
+      entry = %UploadEntry{
+        client_name: "clip.mp4",
+        client_size: 2_048,
+        client_type: "video/mp4",
+        ref: "video-ref"
+      }
+
+      assert {:ok, meta, ^updated_socket} = external_fn.(entry, updated_socket)
+      assert meta.uploader == "RindleTus"
+      assert meta.endpoint == "/uploads/tus"
+      assert String.starts_with?(meta.upload_url, "/uploads/tus/")
+
+      session = Repo.get!(MediaUploadSession, meta.session_id)
+      assert session.state == "signed"
+      assert session.resumable_protocol == "tus"
+      assert session.session_uri == meta.upload_url
+      assert meta.asset_id == session.asset_id
+    end
+
+    test "accepts actor: fn socket -> ... end and resolves the actor from the socket" do
+      socket =
+        build_socket()
+        |> Map.update!(:assigns, &Map.put(&1, :current_user, %{id: "user-456"}))
+
+      updated_socket =
+        Rindle.LiveView.allow_tus_upload(socket, :video, TusProfile,
+          path: "/uploads/tus",
+          secret_key_base: @tus_secret_key_base,
+          actor: fn socket -> socket.assigns.current_user.id end,
+          accept: ~w(.mp4),
+          max_entries: 1
+        )
+
+      external_fn = updated_socket.assigns.uploads[:video].external
+
+      entry = %UploadEntry{
+        client_name: "clip.mp4",
+        client_size: 2_048,
+        client_type: "video/mp4",
+        ref: "video-ref"
+      }
+
+      assert {:ok, meta, ^updated_socket} = external_fn.(entry, updated_socket)
+
+      token = meta.upload_url |> String.split("/") |> List.last()
+      assert {:ok, payload} = Plug.Crypto.verify(@tus_secret_key_base, @tus_url_salt, token)
+      assert payload["actor"] == "user-456"
+    end
+
+    test "external helper returns a LiveView-compatible error tuple for invalid file size" do
+      socket = build_socket()
+
+      updated_socket =
+        Rindle.LiveView.allow_tus_upload(socket, :video, TusProfile,
+          path: "/uploads/tus",
+          secret_key_base: @tus_secret_key_base,
+          accept: ~w(.mp4),
+          max_entries: 1
+        )
+
+      external_fn = updated_socket.assigns.uploads[:video].external
+      entry = %UploadEntry{client_name: "clip.mp4", client_type: "video/mp4", ref: "video-ref"}
+
+      assert {:error, %{reason: "upload_unavailable", code: "upload_init_failed"},
+              ^updated_socket} = external_fn.(entry, updated_socket)
+    end
+  end
+
+  describe "Rindle.initiate_tus_upload/2" do
+    test "returns a signed tus upload URL plus the broker session" do
+      assert {:ok, %{session: session, upload_url: upload_url, expires_at: %DateTime{}}} =
+               Rindle.initiate_tus_upload(TusProfile,
+                 filename: "clip.mp4",
+                 length: 4_096,
+                 content_type: "video/mp4",
+                 path: "/uploads/tus",
+                 secret_key_base: @tus_secret_key_base,
+                 actor: "user-123"
+               )
+
+      assert session.state == "signed"
+      assert session.resumable_protocol == "tus"
+      assert session.session_uri == upload_url
+      assert String.starts_with?(upload_url, "/uploads/tus/")
     end
   end
 
@@ -266,6 +396,10 @@ defmodule Rindle.LiveViewTest do
 
     test "consume_uploaded_entries/3 is exported" do
       assert function_exported?(Rindle.LiveView, :consume_uploaded_entries, 3)
+    end
+
+    test "allow_tus_upload/4 is exported" do
+      assert function_exported?(Rindle.LiveView, :allow_tus_upload, 4)
     end
 
     test "subscribe/2 is exported" do

@@ -83,4 +83,5 @@ In auto mode, GSD should:
 1. read the brief as the idea document,
 2. run research/requirements/roadmap flow with minimal interactive prompts,
 3. treat escalation as an exception path reserved for high-blast-radius decisions,
-4. initialize `.planning/` artifacts for Rindle with the locked defaults in the brief.
+4. use research-first assumptions mode and one-shot recommendation sets by default,
+5. initialize `.planning/` artifacts for Rindle with the locked defaults in the brief.

@@ -45,6 +45,20 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         end
 
     The `:external` option is set automatically — you do not need to provide it.
+
+    For resumable browser uploads against a mounted `Rindle.Upload.TusPlug`,
+    use `allow_tus_upload/4` and keep `consume_uploaded_entries/3` as the
+    completion gate. For full Phoenix / LiveView router, parser, CORS, and
+    client-uploader setup, see `guides/resumable_uploads.md`:
+
+        socket =
+          Rindle.LiveView.allow_tus_upload(socket, :video, MyApp.VideoProfile,
+            path: "/uploads/tus",
+            secret_key_base:
+              Application.compile_env!(:my_app, MyAppWeb.Endpoint)[:secret_key_base],
+            accept: ~w(.mp4),
+            max_entries: 1
+          )
     """
 
     require Logger
@@ -115,6 +129,44 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     @doc """
+    Configures a LiveView external upload backed by Rindle's tus edge.
+
+    Requires:
+
+      * `:path` - the mounted tus route, such as `"/uploads/tus"`
+      * `:secret_key_base` - the same secret used to mount `Rindle.Upload.TusPlug`
+
+    Optional:
+
+      * `:actor` - either a binary or a 1-arity function receiving the socket.
+        When present, the value is embedded into the signed tus token so an
+        adopter-configured resume authorizer can enforce same-user resume.
+
+    For full Phoenix / LiveView router, parser, CORS, and client-uploader
+    setup, see `guides/resumable_uploads.md`.
+    """
+    @spec allow_tus_upload(Phoenix.LiveView.Socket.t(), atom(), module(), keyword()) ::
+            Phoenix.LiveView.Socket.t()
+    def allow_tus_upload(socket, name, profile, opts \\ []) do
+      path = Keyword.fetch!(opts, :path)
+      secret_key_base = Keyword.fetch!(opts, :secret_key_base)
+      actor = Keyword.get(opts, :actor)
+
+      external_fn = fn entry, socket ->
+        do_allow_tus_upload(entry, socket, profile, path, secret_key_base, actor)
+      end
+
+      merged_opts =
+        opts
+        |> Keyword.delete(:path)
+        |> Keyword.delete(:secret_key_base)
+        |> Keyword.delete(:actor)
+        |> Keyword.merge(external: external_fn)
+
+      Upload.allow_upload(socket, name, merged_opts)
+    end
+
+    @doc """
     Subscribes the current process to a Rindle PubSub topic for a supported scope.
 
     Supported scopes are `:variant`, `:asset`, and `:upload_session`. The
@@ -165,6 +217,38 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
             {:error, reason} ->
               log_upload_error("direct_upload", reason)
+              {:error, %{reason: "upload_unavailable", code: "upload_init_failed"}, socket}
+          end
+
+        :error ->
+          {:error, %{reason: "upload_unavailable", code: "upload_init_failed"}, socket}
+      end
+    end
+
+    defp do_allow_tus_upload(entry, socket, profile, path, secret_key_base, actor_opt) do
+      case resolve_actor(actor_opt, socket) do
+        {:ok, actor} ->
+          case Rindle.initiate_tus_upload(profile,
+                 filename: entry.client_name,
+                 length: entry.client_size,
+                 content_type: entry.client_type,
+                 path: path,
+                 secret_key_base: secret_key_base,
+                 actor: actor
+               ) do
+            {:ok, %{session: session, upload_url: upload_url}} ->
+              meta = %{
+                uploader: "RindleTus",
+                endpoint: path,
+                upload_url: upload_url,
+                session_id: session.id,
+                asset_id: session.asset_id
+              }
+
+              {:ok, meta, socket}
+
+            {:error, reason} ->
+              log_upload_error("tus_upload", reason)
               {:error, %{reason: "upload_unavailable", code: "upload_init_failed"}, socket}
           end
 
@@ -265,8 +349,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp resolve_cors_origin(fun, socket) when is_function(fun, 1), do: fetch_origin(fun.(socket))
     defp resolve_cors_origin(origin, _socket), do: fetch_origin(origin)
 
+    defp resolve_actor(nil, _socket), do: {:ok, "anonymous"}
+    defp resolve_actor(fun, socket) when is_function(fun, 1), do: fetch_actor(fun.(socket))
+    defp resolve_actor(actor, _socket), do: fetch_actor(actor)
+
     defp fetch_origin(origin) when is_binary(origin) and origin != "", do: {:ok, origin}
     defp fetch_origin(_), do: :error
+
+    defp fetch_actor(actor) when is_binary(actor) and actor != "", do: {:ok, actor}
+    defp fetch_actor(_), do: :error
 
     defp pubsub_server do
       Application.get_env(:rindle, :pubsub_server, Rindle.PubSub)

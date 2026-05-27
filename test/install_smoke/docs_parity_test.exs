@@ -248,7 +248,9 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
     assert troubleshooting =~ "runtime status reports degraded or stuck work"
   end
 
-  test "user flows guide freezes the canonical owner-erasure support truth", %{user_flows: user_flows} do
+  test "user flows guide freezes the canonical owner-erasure support truth", %{
+    user_flows: user_flows
+  } do
     normalized =
       user_flows
       |> String.replace(~r/\n>\s*/, " ")
@@ -283,9 +285,10 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
     refute user_flows =~ "The full executable facade lands in later `v1.10` phase work"
   end
 
-  test "getting-started and operations stay thin while pointing to the canonical owner-erasure flow", %{
-    guide: guide
-  } do
+  test "getting-started and operations stay thin while pointing to the canonical owner-erasure flow",
+       %{
+         guide: guide
+       } do
     operations = File.read!(Path.expand("../../guides/operations.md", __DIR__))
 
     assert guide =~ "[`user_flows.md`](user_flows.md)"

@@ -307,8 +307,16 @@ defmodule Rindle.Adopter.CanonicalApp.LifecycleTest do
       assert preview_report.attachments_to_detach.count == 2
 
       assert Enum.sort_by(preview_report.attachments_to_detach.entries, & &1.slot) == [
-               %{asset_id: orphan_asset.id, attachment_id: owner_orphan_attachment.id, slot: "avatar"},
-               %{asset_id: shared_asset.id, attachment_id: owner_shared_attachment.id, slot: "hero"}
+               %{
+                 asset_id: orphan_asset.id,
+                 attachment_id: owner_orphan_attachment.id,
+                 slot: "avatar"
+               },
+               %{
+                 asset_id: shared_asset.id,
+                 attachment_id: owner_shared_attachment.id,
+                 slot: "hero"
+               }
              ]
 
       assert preview_report.assets_to_purge == %{

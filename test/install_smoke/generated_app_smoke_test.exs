@@ -43,7 +43,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppSmokeAssertions do
         assert guide =~ "@uppy/tus"
         assert guide =~ "tus-js-client"
         assert guide =~ "sticky-session or single-node"
-        assert Regex.scan(~r/removeFingerprintOnSuccess: true/, guide) |> length() == 2
+        assert Regex.scan(~r/removeFingerprintOnSuccess: true/, guide) |> length() == 3
       end
 
       defp tus_failure_details(report) do
@@ -199,6 +199,23 @@ if GeneratedAppHelper.profile_enabled?(:tus) do
       refute String.contains?(report.rindle_migration_path, "deps/rindle")
       assert report.smoke_exit_code == 0, tus_failure_details(report)
       assert report.lifecycle_proved?, tus_failure_details(report)
+      assert report.phoenix_helper_uploader == "RindleTus"
+
+      assert report.phoenix_helper_endpoint == "/uploads/tus" or
+               String.contains?(report.phoenix_helper_endpoint || "", "/uploads/tus")
+
+      assert is_binary(report.phoenix_helper_upload_url)
+      assert String.contains?(report.phoenix_helper_upload_url, "/uploads/tus/")
+      assert is_binary(report.phoenix_helper_session_id)
+      assert is_binary(report.phoenix_helper_asset_id)
+      assert report.completion_surface == "consume_uploaded_entries->verify_completion"
+      assert report.phoenix_state_sequence == ["uploading", "verifying", "ready"]
+
+      assert if(report.tus_failure_phase in [nil, "none"],
+               do: is_nil(report.phoenix_error_state),
+               else: report.phoenix_error_state == "error"
+             )
+
       assert is_binary(report.tus_upload_url)
       assert String.contains?(report.tus_upload_url, "/uploads/tus/")
       assert report.tus_previous_uploads >= 1

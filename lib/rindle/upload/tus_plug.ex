@@ -90,6 +90,15 @@ defmodule Rindle.Upload.TusPlug do
   # PATCH cannot pin memory (D-07). Never adopter config.
   @read_length 1_048_576
 
+  @type create_upload_result ::
+          {:ok,
+           %{
+             session: MediaUploadSession.t(),
+             upload_url: String.t(),
+             expires_at: DateTime.t()
+           }}
+          | {:error, term()}
+
   @impl true
   def init(opts) do
     profile = Keyword.fetch!(opts, :profile)
@@ -142,6 +151,28 @@ defmodule Rindle.Upload.TusPlug do
 
   def call(conn, _opts), do: method_not_allowed(conn)
 
+  @doc false
+  @spec create_upload(module(), keyword()) :: create_upload_result()
+  def create_upload(profile, opts) when is_atom(profile) and is_list(opts) do
+    with path when is_binary(path) <- Keyword.fetch!(opts, :path),
+         secret_key_base when is_binary(secret_key_base) <- Keyword.fetch!(opts, :secret_key_base),
+         {:ok, length} <- normalize_length(Keyword.get(opts, :length)) do
+      actor = Keyword.get(opts, :actor, "anonymous")
+      content_type = Keyword.get(opts, :content_type)
+
+      create_upload_for_path(path, profile,
+        filename: Keyword.get(opts, :filename, "unknown"),
+        expires_in: Keyword.get(opts, :expires_in, 3600),
+        secret_key_base: secret_key_base,
+        actor: actor,
+        content_type: content_type,
+        length: length
+      )
+    else
+      _ -> {:error, :invalid_length}
+    end
+  end
+
   defp method_not_allowed(conn) do
     conn
     |> put_tus_resumable()
@@ -168,8 +199,15 @@ defmodule Rindle.Upload.TusPlug do
 
     with {:ok, length} <- parse_upload_length(conn),
          :ok <- check_max_size(length, opts[:max_size]),
-         {:ok, %{session: session}} <- Broker.initiate_tus_upload(opts[:profile]),
-         {:ok, location, session} <- sign_and_persist(conn, session, length, content_type, opts) do
+         {:ok, %{session: session, upload_url: location}} <-
+           create_upload_for_path(location_base(conn), opts[:profile],
+             filename: "unknown",
+             expires_in: 3600,
+             secret_key_base: opts[:secret_key_base],
+             actor: opts[:identity_fn].(conn),
+             content_type: content_type,
+             length: length
+           ) do
       conn
       |> put_tus_resumable()
       |> put_resp_header("location", location)
@@ -183,9 +221,24 @@ defmodule Rindle.Upload.TusPlug do
     end
   end
 
-  defp sign_and_persist(conn, session, length, content_type, opts) do
-    actor = opts[:identity_fn].(conn)
+  defp create_upload_for_path(base_path, profile, opts) do
+    filename = Keyword.get(opts, :filename, "unknown")
+    expires_in = Keyword.get(opts, :expires_in, 3600)
+    length = Keyword.get(opts, :length)
+    content_type = Keyword.get(opts, :content_type)
+    actor = Keyword.get(opts, :actor, "anonymous")
+    secret_key_base = Keyword.fetch!(opts, :secret_key_base)
 
+    with {:ok, %{session: session}} <-
+           Broker.initiate_tus_upload(profile, filename: filename, expires_in: expires_in),
+         {:ok, upload_url, signed_session} <-
+           sign_and_persist(base_path, session, length, content_type, secret_key_base, actor) do
+      {:ok,
+       %{session: signed_session, upload_url: upload_url, expires_at: signed_session.expires_at}}
+    end
+  end
+
+  defp sign_and_persist(base_path, session, length, content_type, secret_key_base, actor) do
     # Token payload is HMAC-signed and tamper-proof, so `length` rides inside it
     # rather than a new column (D-10 budget). HEAD/PATCH read it back on verify.
     payload = %{
@@ -197,8 +250,8 @@ defmodule Rindle.Upload.TusPlug do
 
     payload = maybe_put_content_type(payload, content_type)
 
-    token = Plug.Crypto.sign(opts[:secret_key_base], @tus_url_salt, payload)
-    location = location_base(conn) <> "/" <> token
+    token = Plug.Crypto.sign(secret_key_base, @tus_url_salt, payload)
+    location = join_upload_url(base_path, token)
 
     # Persist ONLY into session_uri so the redacting Inspect applies (invariant 14).
     session
@@ -672,6 +725,13 @@ defmodule Rindle.Upload.TusPlug do
 
   defp check_max_size(length, max_size) when length > max_size, do: {:error, :too_large}
   defp check_max_size(_length, _max_size), do: :ok
+
+  defp join_upload_url(base_path, token) when is_binary(base_path) and is_binary(token) do
+    String.trim_trailing(base_path, "/") <> "/" <> token
+  end
+
+  defp normalize_length(length) when is_integer(length) and length >= 0, do: {:ok, length}
+  defp normalize_length(_), do: {:error, :invalid_length}
 
   # The Location reflects the actual mount: `forward` populates `script_name`
   # with the consumed prefix segments, so the URL is correct regardless of where

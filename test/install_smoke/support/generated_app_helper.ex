@@ -118,6 +118,14 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       tus_byte_size: tus_report["byte_size"],
       tus_content_type: tus_report["content_type"],
       tus_ready_variants: tus_report["ready_variants"] || [],
+      phoenix_helper_uploader: tus_report["phoenix_helper_uploader"],
+      phoenix_helper_endpoint: tus_report["phoenix_helper_endpoint"],
+      phoenix_helper_upload_url: tus_report["phoenix_helper_upload_url"],
+      phoenix_helper_session_id: tus_report["phoenix_helper_session_id"],
+      phoenix_helper_asset_id: tus_report["phoenix_helper_asset_id"],
+      completion_surface: tus_report["completion_surface"],
+      phoenix_state_sequence: tus_report["phoenix_state_sequence"] || [],
+      phoenix_error_state: tus_report["phoenix_error_state"],
       tus_report_path: tus_report_path,
       tus_debug_report_path: tus_debug_report_path,
       tus_report_data: tus_report,
@@ -345,6 +353,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     patch_runtime_config!(root, app_name, app_module, profile_mode)
     patch_application!(root, app_name, app_module, profile_mode)
     patch_router!(root, app_name, app_module, profile_mode)
+    write_tus_live_view!(root, app_name, app_module, profile_mode)
     write_profile!(root, app_name, app_module, profile_mode)
     write_host_migration!(root)
     write_migration_runner!(root, app_name, app_module)
@@ -503,8 +512,101 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
         scope "/", #{app_module}Web do
         """
       )
+      |> String.replace(
+        ~S(get "/", PageController, :home),
+        ~S(live "/rindle-smoke/tus", RindleTusSmokeLive
+    get "/", PageController, :home)
+      )
 
     File.write!(path, updated)
+  end
+
+  defp write_tus_live_view!(_root, _app_name, _app_module, profile_mode)
+       when profile_mode != :tus,
+       do: :ok
+
+  defp write_tus_live_view!(root, app_name, app_module, :tus) do
+    path = Path.join(root, "lib/#{app_name}_web/live/rindle_tus_smoke_live.ex")
+    File.mkdir_p!(Path.dirname(path))
+
+    File.write!(
+      path,
+      """
+      defmodule #{app_module}Web.RindleTusSmokeLive do
+        use #{app_module}Web, :live_view
+        @secret_key_base Application.compile_env!(
+                           :#{app_name},
+                           #{app_module}Web.Endpoint
+                         )[:secret_key_base]
+
+        def mount(_params, _session, socket) do
+          {:ok,
+           socket
+           |> assign(:status, "idle")
+           |> assign(:error_message, nil)
+           |> assign(:uploaded_asset_ids, [])
+           |> Rindle.LiveView.allow_tus_upload(:video, #{app_module}.VideoProfile,
+             path: "/uploads/tus",
+             secret_key_base: @secret_key_base,
+             accept: ~w(.mp4),
+             max_entries: 1,
+             max_file_size: 524_288_000,
+             progress: &handle_video_progress/3
+           )}
+        end
+
+        def render(assigns) do
+          ~H\"\"\"
+          <div>
+            <p id="upload-state"><%= @status %></p>
+            <p :if={@error_message} id="upload-error"><%= @error_message %></p>
+            <.form for={%{}} id="tus-form" phx-submit="save">
+              <.live_file_input upload={@uploads.video} />
+              <button type="submit">Submit upload</button>
+            </.form>
+            <ul id="uploaded-asset-ids">
+              <li :for={asset_id <- @uploaded_asset_ids}><%= asset_id %></li>
+            </ul>
+          </div>
+          \"\"\"
+        end
+
+        def handle_event("save", _params, socket) do
+          socket =
+            socket
+            |> assign(:status, "verifying")
+            |> assign(:error_message, nil)
+
+          case Rindle.LiveView.consume_uploaded_entries(socket, :video, fn _entry, meta ->
+                 {:ok, meta.asset_id}
+               end) do
+            [{:error, {:rindle_verify_failed, reason}}] ->
+              {:noreply,
+               socket
+               |> assign(:status, "error")
+               |> assign(:error_message, inspect(reason))}
+
+            uploaded_asset_ids ->
+              {:noreply,
+               socket
+               |> assign(:status, "ready")
+               |> assign(:uploaded_asset_ids, uploaded_asset_ids)}
+          end
+        end
+
+        defp handle_video_progress(:video, entry, socket) do
+          next_status =
+            if entry.progress > 0 or entry.done? do
+              "uploading"
+            else
+              socket.assigns.status
+            end
+
+          {:noreply, assign(socket, :status, next_status)}
+        end
+      end
+      """
+    )
   end
 
   defp mux_config_block do
@@ -955,6 +1057,8 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
 
         import ExUnit.CaptureIO
         import Ecto.Query
+        import Phoenix.ConnTest
+        import Phoenix.LiveViewTest
       #{extra_imports}
         alias Oban.Job
         alias #{app_module}.Repo
@@ -971,6 +1075,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       #{profile_test_moduletag(profile_mode)}
 
         @png_1x1 #{inspect(@png_1x1, limit: :infinity)}
+        @endpoint #{app_module}Web.Endpoint
 
         setup do
           case :inets.start() do
@@ -1368,7 +1473,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
 
   defp lifecycle_test_source(_app_module, :tus) do
     """
-        test "generated app serves TusPlug over a real socket and proves drop-and-resume against MinIO" do
+        test "generated app serves the Phoenix helper path over a real socket and proves drop-and-resume against MinIO" do
           assert_install_smoke_marker!()
           assert :tus_upload in VideoProfile.storage_adapter().capabilities()
 
@@ -1386,28 +1491,84 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
           script_path = Path.expand("../tmp/install_smoke_tus_proof.cjs", __DIR__)
           write_tus_node_script!(script_path)
 
-          proof =
-            run_tus_node_proof!(
-              script_path,
-              "http://127.0.0.1:\#{port}/uploads/tus",
-              fixture_path
+          assert {:ok, view, _html} = live(build_conn(), "/rindle-smoke/tus")
+
+          upload =
+            file_input(view, "#tus-form", :video, [
+              %{
+                name: "generated-app-tus-large.mp4",
+                content: File.read!(fixture_path),
+                type: "video/mp4"
+              }
+            ])
+
+          assert {:ok, preflight} = preflight_upload(upload)
+          :ok =
+            Phoenix.LiveViewTest.UploadClient.allowed_ack(
+              upload,
+              preflight.ref,
+              preflight.config,
+              "generated-app-tus-large.mp4",
+              preflight.entries,
+              preflight.errors
             )
+
+          [entry] = preflight_entries(preflight)
+          meta = preflight_entry_meta!(entry)
+
+          phoenix_helper_uploader = preflight_value!(entry, :uploader)
+          phoenix_helper_endpoint = preflight_value!(meta, :endpoint)
+          phoenix_helper_upload_url = preflight_value!(meta, :upload_url)
+          phoenix_helper_session_id = preflight_value!(meta, :session_id)
+          phoenix_helper_asset_id = preflight_value!(meta, :asset_id)
+
+          merge_tus_report!(%{
+            phoenix_helper_uploader: phoenix_helper_uploader,
+            phoenix_helper_endpoint: phoenix_helper_endpoint,
+            phoenix_helper_upload_url: phoenix_helper_upload_url,
+            phoenix_helper_session_id: phoenix_helper_session_id,
+            phoenix_helper_asset_id: phoenix_helper_asset_id,
+            completion_surface: "consume_uploaded_entries->verify_completion",
+            phoenix_state_sequence: ["uploading"],
+            phoenix_error_state: nil
+          })
+
+          proof =
+            try do
+              proof =
+                run_tus_node_proof!(
+                  script_path,
+                  "http://127.0.0.1:\#{port}\#{phoenix_helper_endpoint}",
+                  "http://127.0.0.1:\#{port}\#{phoenix_helper_upload_url}",
+                  fixture_path
+                )
+
+              assert phoenix_helper_uploader == "RindleTus"
+              assert phoenix_helper_endpoint == "/uploads/tus"
+              assert String.contains?(phoenix_helper_upload_url, "/uploads/tus/")
+              assert render_upload(upload, "generated-app-tus-large.mp4", 100) =~ "uploading"
+              assert form(view, "#tus-form") |> render_submit() =~ "ready"
+              proof
+            rescue
+              error ->
+                merge_tus_report!(%{
+                  phoenix_state_sequence: ["uploading", "error"],
+                  phoenix_error_state: "error",
+                  failure_summary: Exception.message(error)
+                })
+
+                reraise(error, __STACKTRACE__)
+            end
 
           assert proof["failure_phase"] in [nil, "none"]
           assert proof["previous_uploads"] >= 1
           assert String.contains?(proof["upload_url"], "/uploads/tus/")
 
-          session =
-            Repo.one!(
-              from upload in MediaUploadSession,
-                where: upload.resumable_protocol == "tus",
-                order_by: [desc: upload.inserted_at],
-                limit: 1
-            )
-
+          session = Repo.get!(MediaUploadSession, phoenix_helper_session_id)
+          assert session.asset_id == phoenix_helper_asset_id
           assert session.state == "completed"
 
-          asset = Repo.get!(MediaAsset, session.asset_id)
+          asset = Repo.get!(MediaAsset, phoenix_helper_asset_id)
           assert asset.state == "validating"
           assert asset.content_type == "video/mp4"
           assert asset.byte_size >= 200 * 1024 * 1024
@@ -1459,7 +1620,15 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
             endpoint: proof["endpoint"],
             failure_phase: proof["failure_phase"],
             failure_mode: proof["failure_mode"],
-            failure_summary: proof["failure_summary"]
+            failure_summary: proof["failure_summary"],
+            phoenix_helper_uploader: phoenix_helper_uploader,
+            phoenix_helper_endpoint: phoenix_helper_endpoint,
+            phoenix_helper_upload_url: phoenix_helper_upload_url,
+            phoenix_helper_session_id: phoenix_helper_session_id,
+            phoenix_helper_asset_id: phoenix_helper_asset_id,
+            completion_surface: "consume_uploaded_entries->verify_completion",
+            phoenix_state_sequence: ["uploading", "verifying", "ready"],
+            phoenix_error_state: nil
           })
         end
     """
@@ -2205,8 +2374,9 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
             const tus = require("tus-js-client")
 
             const endpoint = process.argv[2]
-            const filePath = process.argv[3]
-            const debugReportPath = process.argv[5]
+            const uploadUrl = process.argv[3]
+            const filePath = process.argv[4]
+            const debugReportPath = process.argv[6]
             const file = fs.readFileSync(filePath)
             const chunkSize = 16 * 1024 * 1024
             const metadata = {
@@ -2260,6 +2430,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
             function baseOptions() {
               return {
                 endpoint,
+                uploadUrl,
                 metadata,
                 chunkSize,
                 parallelUploads: 1,
@@ -2312,6 +2483,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
 
             function failurePhase(tracker) {
               if (tracker.mode === "resume") return "resume_upload"
+              if (uploadUrl) return "interrupt_upload"
               if (!tracker.createAccepted) return "create_upload"
               if (tracker.mode === "interrupt" && !tracker.chunkCompleted) return "interrupt_upload"
               return "interrupt_upload"
@@ -2386,6 +2558,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
                   onSuccess: () => {
                     resolve({
                       upload_url: upload.url,
+                      seeded_upload_url: uploadUrl,
                       previous_uploads: previousUploads.length,
                       endpoint,
                       failure_phase: "none",
@@ -2429,7 +2602,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
               })
             }
 
-            const mode = process.argv[4] || "all"
+            const mode = process.argv[5] || "all"
 
             ;(async () => {
               if (!tus.canStoreURLs) {
@@ -2461,11 +2634,15 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
           )
         end
 
-        defp run_tus_node_proof!(script_path, endpoint, fixture_path) do
+        defp run_tus_node_proof!(script_path, endpoint, upload_url, fixture_path) do
           debug_report_path = Path.expand("../tmp/install_smoke_tus_debug_report.json", __DIR__)
+          url_storage_path = Path.expand("../tmp/install_smoke_tus_url_storage.json", __DIR__)
+
+          File.rm(url_storage_path)
 
           merge_tus_report!(%{
             endpoint: endpoint,
+            upload_url: upload_url,
             report_path: Path.expand("../tmp/install_smoke_tus_report.json", __DIR__),
             debug_report_path: debug_report_path
           })
@@ -2473,7 +2650,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
           {interrupt_output, interrupt_exit_code} =
             System.cmd(
               "node",
-              [script_path, endpoint, fixture_path, "interrupt", debug_report_path],
+              [script_path, endpoint, upload_url, fixture_path, "interrupt", debug_report_path],
               stderr_to_stdout: true
             )
 
@@ -2483,7 +2660,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
           merge_tus_debug_report!(%{interrupt_output: interrupt_output})
 
           {output, exit_code} =
-            System.cmd("node", [script_path, endpoint, fixture_path, "resume", debug_report_path],
+            System.cmd("node", [script_path, endpoint, upload_url, fixture_path, "resume", debug_report_path],
               stderr_to_stdout: true
             )
 
@@ -2526,6 +2703,23 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
         defp merge_tus_debug_report!(attrs) do
           attrs = Map.merge(read_tus_debug_report!(), attrs)
           write_tus_debug_report!(attrs)
+        end
+
+        defp preflight_entries(preflight) do
+          entries = Map.get(preflight, :entries) || Map.fetch!(preflight, "entries")
+
+          case entries do
+            list when is_list(list) -> list
+            map when is_map(map) -> Map.values(map)
+          end
+        end
+
+        defp preflight_entry_meta!(entry) do
+          Map.get(entry, :meta) || Map.get(entry, "meta") || entry
+        end
+
+        defp preflight_value!(map, key) do
+          Map.get(map, key) || Map.fetch!(map, Atom.to_string(key))
         end
     """
   end

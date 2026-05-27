@@ -120,6 +120,92 @@ if (previousUploads.length > 0) {
 upload.start()
 ```
 
+### LiveView helper
+
+If your upload form already lives in LiveView, Rindle supports the supported thin helper seam rather than a full uploader abstraction. `Rindle.LiveView.allow_tus_upload/4` precreates the tus resource server-side and hands the signed `upload_url` plus `session_id` / `asset_id` back through LiveView's `:external` upload metadata. The host app still owns the router mount, auth, `Plug.Parsers`, CORS, and sticky-session or single-node resume posture.
+
+Required helper options:
+
+- `:path` points at the mounted tus route.
+- `:secret_key_base` must match the secret used to mount `Rindle.Upload.TusPlug`.
+
+Optional helper option:
+
+- `:actor` may be a binary or a 1-arity function that receives the socket.
+
+```elixir
+def mount(_params, _session, socket) do
+  {:ok,
+   Rindle.LiveView.allow_tus_upload(socket, :video, MyApp.VideoProfile,
+     path: "/uploads/tus",
+     secret_key_base:
+       Application.compile_env!(:my_app, MyAppWeb.Endpoint)[:secret_key_base],
+     accept: ~w(.mp4),
+     max_entries: 1
+   )}
+end
+```
+
+Use a tiny client uploader keyed by `uploader: "RindleTus"`. Start from `uploadUrl: entry.meta.upload_url`, then let `findPreviousUploads()` and `resumeFromPreviousUpload(...)` preserve the server-owned tus offset truth instead of rebuilding resource URLs or inventing alternate resume semantics:
+
+```javascript
+import * as tus from "tus-js-client"
+
+let Uploaders = {}
+
+Uploaders.RindleTus = function (entries, onViewError) {
+  entries.forEach((entry) => {
+    let upload = new tus.Upload(entry.file, {
+      endpoint: entry.meta.endpoint,
+      uploadUrl: entry.meta.upload_url,
+      metadata: {
+        filename: entry.file.name,
+        filetype: entry.file.type
+      },
+      retryDelays: [0, 1000, 3000, 5000],
+      removeFingerprintOnSuccess: true,
+      onError: (error) => entry.error(error.message),
+      onProgress: (bytesUploaded, bytesTotal) => {
+        let pct = Math.floor((bytesUploaded / bytesTotal) * 100)
+        if (pct < 100) entry.progress(pct)
+      },
+      onSuccess: () => entry.progress(100)
+    })
+
+    onViewError(() => upload.abort())
+
+    upload.findPreviousUploads().then((previousUploads) => {
+      if (previousUploads.length > 0) {
+        upload.resumeFromPreviousUpload(previousUploads[0])
+      }
+
+      upload.start()
+    })
+  })
+}
+```
+
+Keep LiveView progress and server lifecycle states separate in your UI. Freeze the public state vocabulary as `uploading`, `verifying`, `ready`, and `error`, and say plainly that `100%` means bytes transferred, not asset readiness:
+
+- `uploading` / `Uploading...` while the client is sending bytes
+- `verifying` / `Verifying...` after the upload reaches `100%`
+- `ready` / `Ready` only after `consume_uploaded_entries/3` succeeds
+- `error` / `Error` if upload transport or server verification fails
+
+LiveView still finishes through `consume_uploaded_entries/3` and the existing
+`verify_completion/2` lane:
+
+```elixir
+def handle_event("save", _params, socket) do
+  uploaded =
+    Rindle.LiveView.consume_uploaded_entries(socket, :video, fn _entry, meta ->
+      {:ok, meta.asset_id}
+    end)
+
+  {:noreply, assign(socket, :uploaded_asset_ids, uploaded)}
+end
+```
+
 ### `@uppy/tus`
 
 ```javascript
@@ -129,10 +215,11 @@ uppy.use(Tus, {
 })
 ```
 
-`parallelUploads: 1` is the supported posture for the Rindle tus edge. The
-client should `HEAD` for `Upload-Offset` and let the library resume from the
-server-reported offset. For modern `@uppy/tus`, resume and fingerprint cleanup
-are automatic, so do not add `removeFingerprintOnSuccess`.
+`@uppy/tus` is a compatible non-canonical option for adopters who already use
+Uppy. `parallelUploads: 1` is the supported posture for the Rindle tus edge.
+The client should `HEAD` for `Upload-Offset` and let the library resume from
+the server-reported offset. For modern `@uppy/tus`, resume and fingerprint
+cleanup are automatic, so do not add `removeFingerprintOnSuccess`.
 
 ## 6. Optional Resume Authorization
 
