@@ -13,6 +13,8 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
   @user_flows_path Path.expand("../../guides/user_flows.md", __DIR__)
   @operations_path Path.expand("../../guides/operations.md", __DIR__)
 
+  @expected_tus_extensions "creation,expiration,termination,checksum,creation-defer-length,concatenation"
+
   @nine_mix_tasks [
     "mix rindle.abort_incomplete_uploads",
     "mix rindle.backfill_metadata",
@@ -268,6 +270,35 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
     end
   end
 
+  test "TusPlug moduledoc matches shipped tus scope" do
+    moduledoc =
+      Rindle.Upload.TusPlug
+      |> moduledoc!()
+      |> normalize_whitespace()
+
+    assert moduledoc =~ @expected_tus_extensions
+
+    for token <- String.split(@expected_tus_extensions, ",") do
+      assert moduledoc =~ token
+    end
+
+    assert moduledoc =~ "local"
+    assert moduledoc =~ "S3"
+    assert moduledoc =~ "PATCH"
+    assert moduledoc =~ "DELETE"
+    assert moduledoc =~ "implemented"
+    assert moduledoc =~ "no Phoenix"
+    assert moduledoc =~ "@behaviour Plug"
+    assert moduledoc =~ "sticky"
+    assert moduledoc =~ "node-affinity" or moduledoc =~ "node-local"
+    assert moduledoc =~ ":tus_tail_missing"
+
+    refute Regex.match?(~r/Local only/i, moduledoc)
+    refute moduledoc =~ "Phase 42"
+    refute Regex.match?(~r/PATCH\s*\|\s*—/, moduledoc)
+    refute Regex.match?(~r/DELETE\s*\|\s*—/, moduledoc)
+  end
+
   test "operations and troubleshooting guides teach the phase 31 diagnostics split" do
     operations = File.read!(Path.expand("../../guides/operations.md", __DIR__))
     troubleshooting = File.read!(@troubleshooting_path)
@@ -395,5 +426,33 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
       {index, _length} -> index
       :nomatch -> nil
     end
+  end
+
+  defp fetch_docs!(module) do
+    assert Code.ensure_loaded?(module),
+           "#{inspect(module)} must be loadable for docs parity checks"
+
+    case Code.fetch_docs(module) do
+      {:error, reason} ->
+        flunk("expected compiled docs for #{inspect(module)}, got #{inspect(reason)}")
+
+      docs ->
+        docs
+    end
+  end
+
+  defp moduledoc!(module) do
+    case fetch_docs!(module) do
+      {:docs_v1, _, _, _, %{"en" => doc}, _, _} when is_binary(doc) -> doc
+      {:docs_v1, _, _, _, {_, doc}, _, _} when is_binary(doc) -> doc
+      {:docs_v1, _, _, _, doc, _, _} when is_binary(doc) -> doc
+      other -> flunk("expected moduledoc for #{inspect(module)}, got #{inspect(other)}")
+    end
+  end
+
+  defp normalize_whitespace(text) do
+    text
+    |> String.replace(~r/\s+/, " ")
+    |> String.trim()
   end
 end
