@@ -2,15 +2,13 @@
 
 ## Current State
 
-Milestone `v1.10 Owner Account Erasure` shipped on `2026-05-26` (Phases 53-55,
-6 plans, 7/7 requirements validated). Rindle now ships a supported
-owner/account erasure lifecycle surface with preview/execute semantics,
-explicit reporting buckets, orphan-only purge behavior, retained shared-asset
-truth, and proof/docs parity that replaces the old detach-loop workaround
-story.
+Milestone `v1.11 Tus Protocol Completion` shipped on `2026-05-27` (Phases 57-59,
+6 plans, 6/6 requirements validated). Rindle now ships checksum,
+creation-defer-length, and concatenation proof closure with guide parity and
+generated-app install-smoke evidence wired to milestone audit truth.
 
-No active milestone is open yet. Start the next milestone with
-`$gsd-new-milestone`, which will define fresh requirements and roadmap scope.
+No active milestone is open now. Start the next milestone with
+`$gsd-new-milestone` to define fresh requirements and roadmap scope.
 
 ## Next Milestone Goals
 
@@ -277,11 +275,10 @@ To keep this posture durable across GSD workflows:
   for image-only profiles — v1.7 (Phase 37) (GCS-01..04). Live-bucket proof is
   accepted CI automation via `gcs-soak` (`ci_verified`), not manual follow-up.
 
-### Active (v1.11 Tus Protocol Completion)
+### Active
 
-In progress for `v1.11` (see `.planning/REQUIREMENTS.md`):
-- `TUS-*`: tus Checksum / Concatenation / `Upload-Defer-Length` to complete the
-  resumable upload surface.
+No active milestone is currently open. `v1.11` is complete with `TUS-01..04`,
+`PROOF-01`, and `TRUTH-01` closed.
 
 Deferred to later or out of scope after `v1.11`: IETF RUFH (tus 2.0), GCS-as-tus-
 backend, a Rindle-owned standalone tus JS client package, generic uploader UI
@@ -588,8 +585,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-26 — v1.10 Owner Account Erasure started. Scope locked to dry-run/reporting, execute semantics, shared-asset retention, and proof for a first-class owner-erasure lifecycle API.*
-state
-
----
-*Last updated: 2026-05-26 — v1.10 Owner Account Erasure started. Scope locked to dry-run/reporting, execute semantics, shared-asset retention, and proof for a first-class owner-erasure lifecycle API.*
+*Last updated: 2026-05-27 — v1.11 Tus Protocol Completion shipped. Checksum, creation-defer-length, and concatenation proof/guide parity closed with milestone audit evidence.*
