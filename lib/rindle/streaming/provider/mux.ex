@@ -308,6 +308,26 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
     end
 
     @impl Rindle.Streaming.Provider
+    def cancel_direct_upload(upload_id) when is_binary(upload_id) do
+      case http_client().cancel_upload(upload_id) do
+        :ok ->
+          :ok
+
+        {:error, _msg, %{status: 429}} ->
+          {:error, :provider_quota_exceeded}
+
+        {:error, _msg, %{status: status}} when status in 500..599 ->
+          {:error, :provider_sync_failed}
+
+        {:error, _msg, %{status: status}} when status in 400..499 ->
+          {:error, :provider_sync_failed}
+
+        {:error, reason} ->
+          {:error, reason}
+      end
+    end
+
+    @impl Rindle.Streaming.Provider
     def signed_playback_url(profile, playback_id, _opts \\ [])
         when is_atom(profile) and is_binary(playback_id) do
       with {:ok, key_id} <- fetch_required(:signing_key_id),
