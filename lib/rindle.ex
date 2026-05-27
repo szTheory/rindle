@@ -32,15 +32,20 @@ defmodule Rindle do
   detached now, what purge work is enqueued later, and which shared assets are
   intentionally retained.
 
+  For multi-owner orchestration, `Rindle.preview_batch_owner_erasure/2` and
+  `Rindle.erase_batch_owner_erasure/2` are the supported batch preview and
+  execute entrypoints. Batch reports use `owner_erasure_batch_report()` with
+  per-owner nested `owner_erasure_report()` entries.
+
   The stable report buckets are `attachments_to_detach`, `assets_to_purge`,
   and `retained_shared_assets`.
 
   Shared assets are retained whenever a surviving attachment remains.
   Execute semantics stay honest: detach work happens transactionally first,
   then purge-enqueued async cleanup handles newly orphaned assets later. This
-  facade contract does not promise inline storage deletion, admin UI, bulk
-  orchestration, or force-delete behavior for assets with surviving
-  attachments.
+  facade contract does not promise inline storage deletion, admin UI,
+  scheduler/cron erasure jobs, or force-delete behavior for assets with
+  surviving attachments.
 
   `detach/3` remains the slot-scoped attachment API, and
   `mix rindle.cleanup_orphans` remains the maintenance-only upload-residue
@@ -77,6 +82,43 @@ defmodule Rindle do
           purge_enqueued: non_neg_integer(),
           purge_already_queued: non_neg_integer()
         }
+
+  @typedoc """
+  Owner identity reference extracted from owner structs.
+  Matches the tuple `Rindle.Internal.OwnerErasure` derives internally.
+  """
+  @type owner_ref :: {owner_type :: String.t(), owner_id :: Ecto.UUID.t()}
+
+  @typedoc """
+  Per-owner entry in a batch erasure report.
+  """
+  @type owner_erasure_batch_entry :: %{
+          owner: owner_ref(),
+          report: owner_erasure_report()
+        }
+
+  @typedoc """
+  Aggregate batch erasure report with per-owner nested reports.
+  """
+  @type owner_erasure_batch_report :: %{
+          mode: :preview | :execute,
+          attachments_to_detach: owner_erasure_bucket(),
+          assets_to_purge: owner_erasure_bucket(),
+          retained_shared_assets: owner_erasure_bucket(),
+          owners: [owner_erasure_batch_entry()]
+        }
+
+  @typedoc "Detail map for batch size limit violations."
+  @type batch_too_large_detail :: %{
+          requested: non_neg_integer(),
+          max: pos_integer()
+        }
+
+  @type batch_owner_erasure_result ::
+          {:ok, owner_erasure_batch_report()}
+          | {:error, :empty_batch}
+          | {:error, {:batch_too_large, batch_too_large_detail()}}
+          | {:error, term()}
 
   @doc """
   Returns the current version of Rindle.
@@ -177,6 +219,34 @@ defmodule Rindle do
   @spec erase_owner(struct(), keyword()) :: {:ok, owner_erasure_report()} | {:error, term()}
   def erase_owner(owner, opts \\ []) do
     OwnerErasure.execute(owner, opts)
+  end
+
+  @doc """
+  Plans batch owner/account erasure without changing DB or storage state.
+
+  Returns `{:error, :not_implemented}` until the batch planner is wired in a
+  later phase. Empty batches and over-limit owner counts are rejected before
+  any planner work runs.
+  """
+  @spec preview_batch_owner_erasure([struct()], keyword()) :: batch_owner_erasure_result()
+  def preview_batch_owner_erasure(owners, opts \\ []) do
+    with :ok <- validate_batch_owners(owners, opts) do
+      {:error, :not_implemented}
+    end
+  end
+
+  @doc """
+  Erases multiple owners' Rindle-managed attachment rows and enqueues orphan-only purge work.
+
+  Returns `{:error, :not_implemented}` until the batch planner is wired in a
+  later phase. Empty batches and over-limit owner counts are rejected before
+  any planner work runs.
+  """
+  @spec erase_batch_owner_erasure([struct()], keyword()) :: batch_owner_erasure_result()
+  def erase_batch_owner_erasure(owners, opts \\ []) do
+    with :ok <- validate_batch_owners(owners, opts) do
+      {:error, :not_implemented}
+    end
   end
 
   @doc """
@@ -912,4 +982,27 @@ defmodule Rindle do
       upload
     end
   end
+
+  defp validate_batch_owners([], _opts), do: {:error, :empty_batch}
+
+  defp validate_batch_owners(owners, opts) when is_list(owners) do
+    max = resolve_max_batch_owners(opts)
+    requested = owners |> Enum.map(&owner_ref/1) |> Enum.uniq() |> length()
+
+    if requested > max do
+      {:error, {:batch_too_large, %{requested: requested, max: max}}}
+    else
+      :ok
+    end
+  end
+
+  defp resolve_max_batch_owners(opts) do
+    Keyword.get(
+      opts,
+      :max_owners,
+      Application.get_env(:rindle, :max_batch_erasure_owners, 100)
+    )
+  end
+
+  defp owner_ref(%{__struct__: module, id: id}), do: {to_string(module), id}
 end
