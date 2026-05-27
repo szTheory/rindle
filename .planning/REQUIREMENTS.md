@@ -19,7 +19,7 @@ Maintenance-only milestone. No new public feature surface.
 
 ### Operator Proof
 
-- [ ] **PROOF-06**: Mix task integration test drives `batch_owner_failed` partial report
+- [x] **PROOF-06**: Mix task integration test drives `batch_owner_failed` partial report
       printing and exit 1 when batch execute fails mid-run.
 
 ### Validation Closure
@@ -62,7 +62,7 @@ Deferred to v1.16+ (demand-gated):
 |-------------|-------|--------|
 | CI-01 | Phase 71 | Complete |
 | CI-02 | Phase 71 | Complete |
-| PROOF-06 | Phase 72 | Pending |
+| PROOF-06 | Phase 72 | Complete |
 | VAL-01 | Phase 73 | Pending |
 | TRUTH-04 | Phase 74 | Pending |
 | AUDIT-01 | Phase 74 | Pending |
