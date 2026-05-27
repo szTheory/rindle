@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-27)
 
 **Core value:** Media, made durable.
-**Current focus:** v1.16 — merge-blocking proof lanes (Phase 75)
+**Current focus:** Phase 75 — merge-blocking proof lanes (ready to execute)
 
 ## Current Position
 
-Phase: 77
-Plan: Not started
-Status: Phase 76 complete — TRUTH-05 satisfied
-Last activity: 2026-05-27
+Phase: 75 (merge-blocking-proof-lanes)
+Plan: 0 of 5
+Status: Planned — ready to execute
+Last activity: 2026-05-27 -- Phase 75 planning complete
 
 ## Current Milestone
 
@@ -38,7 +38,7 @@ Last activity: 2026-05-27
 
 ## Next Step
 
-`/gsd-execute-phase 75` — merge-blocking proof lanes (CI-03); see ROADMAP.md v1.16 queue
+`/gsd-execute-phase 75` — merge-blocking proof lanes (CI-03); 5 plans ready
 
 ## Accumulated Context
 
@@ -72,5 +72,5 @@ Last session: 2026-05-27T19:41:56.505Z
 
 ## Operator Next Steps
 
-- `/gsd-execute-phase 75` — merge-blocking proof lanes (CI-03)
-- Phase 76 complete — TusPlug moduledoc parity lock (TRUTH-05)
+- `/gsd-execute-phase 75` — execute merge-blocking proof lanes (5 plans)
+- Phase 76 complete — TRUTH-05 (TusPlug doc parity lock)
