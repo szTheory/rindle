@@ -27,7 +27,7 @@ thread (supersedes post-v114 assessment for default-next recommendations).
 | Breadth vs category | Matches Active Storage / Shrine / Spatie *lifecycle* expectations for Phoenix; lacks niche enterprise items only |
 | Docs / onboarding | 14 guides; README → getting_started; merge-blocking `docs_parity_test` |
 | Ops / support-truth | Nine `mix rindle.*` tasks; owner-erasure facade contract in `lib/rindle.ex` moduledoc |
-| Proof / CI | v1.16 merge-blocking `proof` job; package-consumer/adopter/integration blocking; default `mix test` still advisory via Coveralls |
+| Proof / CI | Merge-blocking: `proof` job, `package-consumer`, `adopter`, `integration`, `contract` AV hygiene, and `quality` — Run tests with coverage (`mix coveralls`; both matrix cells). Advisory in `quality`: Credo, Doctor, AV doctor, Dialyzer (`continue-on-error: true` in `.github/workflows/ci.yml`). See `RUNNING.md` `## CI lane severity`. |
 
 ## v1.15–v1.16 result (shipped)
 
@@ -60,13 +60,15 @@ The **maintenance / proof honesty** wedge from post-v114 assessment is **closed*
 | EXIF/GPS strip on originals (job 34) | Partial (variants drop metadata; originals as-is) |
 
 **Rough edges:** Streaming/tus need optional deps + webhook mount. TUS multi-node needs
-sticky sessions. Green PR CI does not guarantee full unit/Credo/Dialyzer pass.
+sticky sessions. Green PR CI blocks on the default unit suite (`mix coveralls` in `quality`) but
+Credo, Doctor, and Dialyzer remain advisory (`continue-on-error: true` in `.github/workflows/ci.yml`;
+`RUNNING.md` `## CI lane severity`). Contract ExUnit (`--only contract`) is also advisory.
 
 ## Ranked wedges (v1.17+ only when demanded)
 
 | Rank | Wedge | Type | Done enough |
 |------|-------|------|-------------|
-| 1 | Planning hygiene | IMPORTANT-BUT-NARROW | **Done 2026-05-27:** post-v116 thread, JTBD anchor v1.16; no feature surface |
+| 1 | Planning hygiene | IMPORTANT-BUT-NARROW | **In progress — v1.17 Phase 78:** thread CI truth + JTBD anchor refresh; no feature surface |
 | 2 | CI confidence tightening | IMPORTANT-BUT-NARROW | **Done 2026-05-27:** `mix coveralls` merge-blocking; Credo/Dialyzer still advisory |
 | 3 | Force-delete (LIFE-06) | IMPORTANT-BUT-NARROW | Opt-in `force:`; preview collateral damage; never default |
 | 4 | Second provider (STREAM-10) | IMPORTANT-BUT-NARROW | One adapter + doctor; explicit adopter demand only |
@@ -78,8 +80,9 @@ sticky sessions. Green PR CI does not guarantee full unit/Credo/Dialyzer pass.
 charter unless there is a concrete compliance ticket (LIFE-06) or a named adopter
 requesting a second provider (STREAM-10).
 
-**Optional micro milestone:** v1.17 Planning Truth & Adopter-Confidence — JTBD regen,
-optional CI unit-suite blocking — **no new public API**.
+**Active micro milestone (Branch C, 2026-05-27):** v1.17 Adopter-Confidence Hygiene —
+planning-truth closure (Phase 78) and explicit Credo/Dialyzer policy record (Phase 79 / CI-04).
+Default unit suite merge-blocking shipped in commit `0036760`. **No new public API.**
 
 **Conditional upgrade:** v1.17 Force-Delete Shared Assets (LIFE-06) — only if
 legal/compliance requires destroying blobs that still have surviving attachments from
