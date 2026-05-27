@@ -25,7 +25,7 @@ See: .planning/PROJECT.md (updated 2026-05-27)
 ## Current Position
 
 Phase: 80
-Plan: Not started
+Plan: Complete (80-01, 80-02)
 Status: v1.17 archive-ready — post-ship planning hygiene complete (2026-05-27)
 Last activity: 2026-05-27
 
