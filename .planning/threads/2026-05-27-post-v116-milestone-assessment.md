@@ -115,7 +115,9 @@ Merge-blocking lanes now include `proof`, `package-consumer`, `adopter`, `integr
 bypass CI on timeout/failure (`gate-ci-green` BYPASSED). See `RUNNING.md` and
 `.github/workflows/ci.yml`.
 
-**Decision deferred:** Credo / Dialyzer merge-blocking (static-analysis policy unchanged).
+**Recorded (CI-04, v1.17):** Credo and Dialyzer remain **advisory** — merge-blocking
+rejected for fork latency, signal value, and green-main honesty. See `RUNNING.md`
+`### Static analysis policy (CI-04)` and `.github/workflows/ci.yml` L97–99, L131–133.
 
 ### Planning hygiene
 
