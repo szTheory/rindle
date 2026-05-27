@@ -4,7 +4,7 @@ milestone: between-milestones
 milestone_name: null
 status: Awaiting next milestone
 last_updated: "2026-05-27T22:30:00Z"
-last_activity: 2026-05-27 — Post-v1.16 milestone assessment (demand-gated default)
+last_activity: 2026-05-27 — CI unit suite merge-blocking (mix coveralls)
 progress:
   total_phases: 0
   completed_phases: 0
@@ -49,6 +49,7 @@ demand (STREAM-10). Optional: micro v1.17 hygiene (JTBD/CI only, no public API).
 - v1.16 closed v1.15 audit gaps (proof CI lane, TusPlug doc lock, planning truth).
 - Maintenance/proof honesty wedge **complete** (v1.15–v1.16); post-v116 assessment is canonical.
 - JTBD-MAP anchor refreshed to v1.16 (2026-05-27).
+- Default `mix test` suite merge-blocking via `mix coveralls` in CI `quality` job (2026-05-27).
 
 - **Do not** bundle force-delete, admin UI, or second streaming provider without explicit demand.
 - **Do not** re-sequence tus, Mux surfaces, or owner-erasure semantics.

@@ -107,11 +107,12 @@ other owners.
 ### CI proof honesty (residual)
 
 Merge-blocking lanes now include `proof`, `package-consumer`, `adopter`, `integration`,
-`contract` (AV hygiene). **Advisory:** default `mix test` via Coveralls, Credo, Doctor,
-Dialyzer in `quality` job (`continue-on-error: true`). Release workflow can bypass CI on
-timeout/failure (`gate-ci-green` BYPASSED). See `RUNNING.md` and `.github/workflows/ci.yml`.
+`contract` (AV hygiene), and **`quality` — Run tests with coverage** (`mix coveralls`,
+2026-05-27). **Advisory:** Credo, Doctor, Dialyzer in `quality` job. Release workflow can
+bypass CI on timeout/failure (`gate-ci-green` BYPASSED). See `RUNNING.md` and
+`.github/workflows/ci.yml`.
 
-**Decision deferred:** Whether to promote unit suite / Credo / Dialyzer to merge-blocking.
+**Decision deferred:** Credo / Dialyzer merge-blocking (static-analysis policy unchanged).
 
 ### Planning hygiene
 
