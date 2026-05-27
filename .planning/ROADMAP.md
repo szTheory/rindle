@@ -29,7 +29,7 @@ create time.
 |-------|------|------|--------------|------------------|
 | 64 | Cancel contract & persistence | 4/4 | Complete    | 2026-05-27 |
 | 65 | Mux cancel implementation | 2/2 | Complete    | 2026-05-27 |
-| 66 | Proof & adopter guidance | Tests + guide note | PROOF-01, TRUTH-01 | 3 |
+| 66 | Proof & adopter guidance | 2/2 | Complete   | 2026-05-27 |
 
 **Coverage:** 6/6 requirements mapped ✓
 
