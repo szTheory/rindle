@@ -2,14 +2,19 @@
 
 ## Current Milestone
 
-Between milestones — **v1.15 Maintenance & Proof Honesty** shipped 2026-05-27.
+**v1.16 CI Enforcement & Planning Hygiene** shipped 2026-05-27 (Phases 75–77, 3/3 requirements).
 Next milestone TBD (demand-gated; see deferred items in ROADMAP).
 
 ## Current State
 
-Milestone `v1.15 Maintenance & Proof Honesty` shipped on `2026-05-27`
-(Phases 71–74, 6/6 requirements validated). Rindle is roughly **94–96%** done for its
+Milestone `v1.16 CI Enforcement & Planning Hygiene` shipped on `2026-05-27`
+(Phases 75–77, 3/3 requirements validated). Rindle is roughly **94–96%** done for its
 stated mission (90–95% near-done band).
+
+**v1.16 shipped:** Merge-blocking `proof` CI job (CI-03) runs `docs_parity_test.exs` and
+`batch_owner_erasure_task_test.exs`; TusPlug moduledoc parity lock (TRUTH-05); planning
+artifact cleanup (PLAN-01). Closes v1.15 audit CI-01/PROOF-06 integration depth and
+automated CI proof path flow gap.
 
 **v1.15 shipped:** CI lane severity matrix and merge-blocking package-consumer/adopter
 jobs; PROOF-06 mix `batch_owner_failed` integration test; VAL-01 Nyquist closure for
@@ -19,12 +24,7 @@ AUDIT-01 milestone audit ([v1.15-MILESTONE-AUDIT.md](milestones/v1.15-MILESTONE-
 **v1.14 shipped:** Batch owner erasure API, operator CLI, PROOF-05 matrix, TRUTH-03
 guide parity (Phases 67–70, 8/8 requirements).
 
-**Post-v1.15:** Maintenance wedge complete. **v1.16 in progress** (execute 77→76→75):
-Phase 76 (TRUTH-05) shipped TusPlug moduledoc `Code.fetch_docs/1` parity lock in
-`docs_parity_test.exs` with `@tus_extensions` interpolation. Phase 77 (PLAN-01) closed
-Nyquist metadata drift for phases 71–72, STATE position truth, and v1.15 audit ledger sync.
-**Conditional feature milestone:** force-delete for still-shared
-assets (LIFE-06, separate charter only).
+**Post-v1.16:** Maintenance and CI enforcement wedge complete.
 
 Do not reopen tus protocol, single-owner/batch erasure semantics, or Mux surfaces
 beyond v1.13. Keep shared-asset safety and maintenance-vs-owner-erasure boundaries
@@ -657,4 +657,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-27 — milestone v1.15 shipped*
+*Last updated: 2026-05-27 — milestone v1.16 shipped*

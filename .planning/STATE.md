@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.15
 milestone_name: milestone
 status: completed
-last_updated: "2026-05-27T19:55:53.939Z"
+last_updated: "2026-05-27T20:35:00Z"
 last_activity: 2026-05-27
 progress:
   total_phases: 7
-  completed_phases: 6
-  total_plans: 14
-  completed_plans: 14
-  percent: 86
+  completed_phases: 7
+  total_plans: 19
+  completed_plans: 19
+  percent: 100
 ---
 
 # Project State
@@ -20,25 +20,24 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-27)
 
 **Core value:** Media, made durable.
-**Current focus:** Phase 75 — merge-blocking proof lanes (ready to execute)
+**Current focus:** v1.16 complete — all gap-closure phases shipped
 
 ## Current Position
 
-Phase: 75 (merge-blocking-proof-lanes)
-Plan: 0 of 5
-Status: Planned — ready to execute
-Last activity: 2026-05-27 -- Phase 75 planning complete
+Phase: 75 (merge-blocking-proof-lanes) — **complete**
+Plan: 5 of 5
+Status: v1.16 CI Enforcement & Planning Hygiene complete (Phases 77→76→75)
+Last activity: 2026-05-27 — Phase 75 execution complete
 
 ## Current Milestone
 
-- **Between milestones**
+- **v1.16 CI Enforcement & Planning Hygiene** — complete (2026-05-27)
 - **Previous shipped:** v1.15 Maintenance & Proof Honesty (2026-05-27)
-- **Next queued:** v1.16 CI Enforcement & Planning Hygiene (Phases 75–77; execute 77→76→75)
 - **Assessment thread:** `.planning/threads/2026-05-27-post-v114-milestone-assessment.md`
 
 ## Next Step
 
-`/gsd-execute-phase 75` — merge-blocking proof lanes (CI-03); 5 plans ready
+`/gsd-complete-milestone` — archive v1.16 and prepare next milestone
 
 ## Accumulated Context
 
@@ -72,5 +71,5 @@ Last session: 2026-05-27T19:41:56.505Z
 
 ## Operator Next Steps
 
-- `/gsd-execute-phase 75` — execute merge-blocking proof lanes (5 plans)
-- Phase 76 complete — TRUTH-05 (TusPlug doc parity lock)
+- `/gsd-complete-milestone` — archive v1.16 milestone
+- `/gsd-progress` — review roadmap and requirement traceability
