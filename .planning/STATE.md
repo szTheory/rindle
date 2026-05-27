@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.17
 milestone_name: milestone
-status: executing
-last_updated: "2026-05-27T22:00:00.000Z"
-last_activity: 2026-05-27 -- Phase 80 post-ship planning hygiene complete
+status: planning
+last_updated: "2026-05-27T21:43:11.989Z"
+last_activity: 2026-05-27
 progress:
   total_phases: 3
   completed_phases: 3
@@ -25,7 +25,7 @@ See: .planning/PROJECT.md (updated 2026-05-27)
 ## Current Position
 
 Phase: 80
-Plan: Complete (80-01, 80-02)
+Plan: Not started
 Status: v1.17 archive-ready — post-ship planning hygiene complete (2026-05-27)
 Last activity: 2026-05-27
 

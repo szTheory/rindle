@@ -16,10 +16,10 @@ LIFE-06 (compliance) or STREAM-10 (second provider) signal. Canonical context:
 ## Current State
 
 Milestone `v1.17 Adopter-Confidence Hygiene` shipped on `2026-05-27`
-(Phases 78–79, 3/3 requirements validated). TRUTH-06, PLAN-02, and CI-04 closed —
-post-v116 threads, JTBD anchor, charter artifacts, and Credo/Dialyzer advisory policy
-recorded. Rindle is roughly **94–96%** done for its stated mission (90–95% near-done band).
-Default posture: demand-gated pause until LIFE-06 or STREAM-10 signal.
+(Phases 78–80, 3/3 requirements validated). Phase 80 closed post-ship planning hygiene
+(threads + charter alignment). TRUTH-06, PLAN-02, and CI-04 validated; demand-gated pause
+is the default Active posture. Rindle is roughly **94–96%** done for its stated mission.
+Ready for `/gsd-complete-milestone v1.17`.
 
 **v1.16 shipped:** Merge-blocking `proof` CI job (CI-03) runs `docs_parity_test.exs` and
 `batch_owner_erasure_task_test.exs`; TusPlug moduledoc parity lock (TRUTH-05); planning

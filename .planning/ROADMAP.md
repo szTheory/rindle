@@ -85,7 +85,7 @@
 4. STATE.md Current Position shows Phase 80 (or completed) with accurate Plan status — no stale "Plan: Not started" for Phase 79
 5. Grep audit: zero "Branch C (selected — active)" / "Active micro milestone" / "remains Phase 79" in thread files
 
-**Plans:** 2/2 complete
+**Plans:** 2/2 plans complete
 
 - [x] 80-01: Thread post-ship tense alignment (path-to-done + assessment)
 - [x] 80-02: PROJECT/STATE charter cleanup + verification gate
