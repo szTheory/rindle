@@ -91,9 +91,10 @@ jobs:
       - name: Check formatting
         run: mix format --check-formatted
 
-      # Phase 71 (CI proof honesty): Credo, Doctor, AV doctor, and Dialyzer stay advisory.
-      # Default unit suite (mix coveralls) is merge-blocking (post-v1.16 assessment).
-      # See RUNNING.md `## CI lane severity` for the full matrix.
+      # CI-04 (v1.17): Credo and Dialyzer remain advisory (continue-on-error).
+      # Doctor and AV doctor also advisory — not part of CI-04 decision record.
+      # Default unit suite (mix coveralls) is merge-blocking. See RUNNING.md
+      # `### Static analysis policy (CI-04)` and `## CI lane severity`.
       - name: Credo (strict)
         run: mix credo --strict
         continue-on-error: true
