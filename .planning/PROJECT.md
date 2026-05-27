@@ -28,6 +28,10 @@ reporting, and integration tests.
 with JSON owners-file input, dry-run default, text/json output, and integration tests
 (OPS-02).
 
+**Phase 70 complete (2026-05-27):** PROOF-05 gap-fill hermetic proof (shared batch
+fixtures, counting failing txn repo, partial-failure DB integration) and TRUTH-03
+adopter guidance (batch erasure docs + parity freeze).
+
 **Next demand-driven wedges after v1.14:** force-delete for still-shared assets (separate
 milestone), second streaming provider (explicit demand only).
 
@@ -627,4 +631,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-27 after Phase 67 bulk erasure policy contract.*
+*Last updated: 2026-05-27 after Phase 70 proof and adopter guidance (v1.14 complete).*

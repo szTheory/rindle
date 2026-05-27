@@ -37,11 +37,11 @@ hand-rolled loops — policy-first, reusing `OwnerErasure` internals.
 
 ### Proof & Support Truth
 
-- [ ] **PROOF-05**: Hermetic proof covers batch preview aggregation, per-owner isolation on
+- [x] **PROOF-05**: Hermetic proof covers batch preview aggregation, per-owner isolation on
       execute, partial failure handling, idempotent rerun, and retained shared-asset semantics
       unchanged from v1.10.
 
-- [ ] **TRUTH-03**: Guides and active planning artifacts document batch erasure as the supported
+- [x] **TRUTH-03**: Guides and active planning artifacts document batch erasure as the supported
       multi-owner orchestration surface and explicitly defer force-delete, admin UI, and scheduler
       workflows.
 
@@ -74,8 +74,8 @@ hand-rolled loops — policy-first, reusing `OwnerErasure` internals.
 | BULK-04 | Phase 68 | Complete |
 | BULK-05 | Phase 68 | Complete |
 | OPS-02 | Phase 69 | Complete |
-| PROOF-05 | Phase 70 | Pending |
-| TRUTH-03 | Phase 70 | Pending |
+| PROOF-05 | Phase 70 | Complete |
+| TRUTH-03 | Phase 70 | Complete |
 
 **Coverage:**
 
