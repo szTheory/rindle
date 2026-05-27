@@ -1,8 +1,8 @@
 ---
 phase: 77
 slug: planning-artifact-cleanup
-status: draft
-nyquist_compliant: false
+status: complete
+nyquist_compliant: true
 wave_0_complete: true
 created: 2026-05-27
 ---
@@ -38,14 +38,14 @@ created: 2026-05-27
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 77-01-01 | 01 | 1 | PLAN-01 | — | 71-02-02 criterion fixed | docs | `grep '≥ 6' .planning/phases/71-ci-proof-honesty/71-VALIDATION.md` | ✅ | ⬜ pending |
-| 77-01-02 | 01 | 1 | PLAN-01 | — | Phase 71 verify commands green | grep+unit | four-command block from 77-01-PLAN | ✅ | ⬜ pending |
-| 77-01-03 | 01 | 1 | PLAN-01 | — | 71-VALIDATION Nyquist complete | docs | `grep nyquist_compliant: true .planning/phases/71-ci-proof-honesty/71-VALIDATION.md` | ✅ | ⬜ pending |
-| 77-02-01 | 02 | 1 | PLAN-01 | — | 72-01-01 row green | docs | `! grep '72-01-01.*⬜ pending' .planning/phases/72-mix-batch-failure-proof/72-VALIDATION.md` | ✅ | ⬜ pending |
-| 77-02-02 | 02 | 1 | PLAN-01 | — | STATE position truth | docs | `! grep -q '^Plan: Not started' .planning/STATE.md` | ✅ | ⬜ pending |
-| 77-02-03 | 02 | 1 | PLAN-01 | — | Operator queue updated | docs | `! grep '/gsd-plan-phase 71' .planning/STATE.md` | ✅ | ⬜ pending |
-| 77-03-01 | 03 | 2 | PLAN-01 | — | Audit nyquist frontmatter synced | docs | `grep 'overall: complete' .planning/milestones/v1.15-MILESTONE-AUDIT.md` | ✅ | ⬜ pending |
-| 77-03-02 | 03 | 2 | PLAN-01 | — | VERIFICATION contract exists | docs | `test -f .planning/phases/77-planning-artifact-cleanup/77-VERIFICATION.md` | ✅ | ⬜ pending |
+| 77-01-01 | 01 | 1 | PLAN-01 | — | 71-02-02 criterion fixed | docs | `grep '≥ 6' .planning/phases/71-ci-proof-honesty/71-VALIDATION.md` | ✅ | ✅ green |
+| 77-01-02 | 01 | 1 | PLAN-01 | — | Phase 71 verify commands green | grep+unit | four-command block from 77-01-PLAN | ✅ | ✅ green |
+| 77-01-03 | 01 | 1 | PLAN-01 | — | 71-VALIDATION Nyquist complete | docs | `grep nyquist_compliant: true .planning/phases/71-ci-proof-honesty/71-VALIDATION.md` | ✅ | ✅ green |
+| 77-02-01 | 02 | 1 | PLAN-01 | — | 72-01-01 row green | docs | `! grep '72-01-01.*⬜ pending' .planning/phases/72-mix-batch-failure-proof/72-VALIDATION.md` | ✅ | ✅ green |
+| 77-02-02 | 02 | 1 | PLAN-01 | — | STATE position truth | docs | `! grep -q '^Plan: Not started' .planning/STATE.md` | ✅ | ✅ green |
+| 77-02-03 | 02 | 1 | PLAN-01 | — | Operator queue updated | docs | `! grep '/gsd-plan-phase 71' .planning/STATE.md` | ✅ | ✅ green |
+| 77-03-01 | 03 | 2 | PLAN-01 | — | Audit nyquist frontmatter synced | docs | `grep 'overall: complete' .planning/milestones/v1.15-MILESTONE-AUDIT.md` | ✅ | ✅ green |
+| 77-03-02 | 03 | 2 | PLAN-01 | — | VERIFICATION contract exists | docs | `test -f .planning/phases/77-planning-artifact-cleanup/77-VERIFICATION.md` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -68,11 +68,11 @@ All phase behaviors have automated verification (grep + optional mix test eviden
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 30s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 30s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-05-27

@@ -21,7 +21,7 @@ Gap-closure milestone from [v1.15 audit](milestones/v1.15-MILESTONE-AUDIT.md). N
 
 ### Planning Truth
 
-- [ ] **PLAN-01**: v1.15 Nyquist metadata closure (phases 71–72 VALIDATION rows) and
+- [x] **PLAN-01**: v1.15 Nyquist metadata closure (phases 71–72 VALIDATION rows) and
       `STATE.md` position block aligned to shipped / between-milestones truth.
 
 ## v1.15 Requirements (shipped)
@@ -82,7 +82,7 @@ Deferred to v1.16+ (demand-gated):
 |-------------|-------|--------|
 | CI-03 | Phase 75 | Pending |
 | TRUTH-05 | Phase 76 | Pending |
-| PLAN-01 | Phase 77 | Pending |
+| PLAN-01 | Phase 77 | Complete |
 | CI-01 | Phase 71 | Complete |
 | CI-02 | Phase 71 | Complete |
 | PROOF-06 | Phase 72 | Complete |
