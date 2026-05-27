@@ -1,8 +1,8 @@
 ---
 phase: 78
 slug: assessment-planning-truth
-status: draft
-nyquist_compliant: false
+status: complete
+nyquist_compliant: true
 wave_0_complete: true
 created: 2026-05-27
 ---
@@ -38,14 +38,14 @@ created: 2026-05-27
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 78-01-01 | 01 | 1 | TRUTH-06 | — | N/A | grep | `rg -i 'mix test still advisory|still advisory via Coveralls' .planning/threads/` | ✅ | ⬜ pending |
-| 78-01-02 | 01 | 1 | TRUTH-06 | — | N/A | grep | `rg 'does not guarantee full unit/Credo/Dialyzer pass' .planning/threads/` | ✅ | ⬜ pending |
-| 78-01-03 | 01 | 1 | TRUTH-06 | — | N/A | grep | `rg -i 'optional CI unit-suite blocking' .planning/threads/` | ✅ | ⬜ pending |
-| 78-01-04 | 01 | 1 | TRUTH-06 | — | N/A | grep | `rg '\.github/workflows/ci\.yml|RUNNING\.md' .planning/threads/2026-05-27-post-v116-milestone-assessment.md` | ✅ | ⬜ pending |
-| 78-02-01 | 02 | 2 | PLAN-02 | — | N/A | grep | `head -3 .planning/JTBD-MAP.md && git rev-parse --short HEAD` | ✅ | ⬜ pending |
-| 78-02-02 | 02 | 2 | PLAN-02 | — | N/A | grep | `git log 3dbf7ab..HEAD --oneline -- lib/ guides/ CHANGELOG.md mix.exs` | ✅ | ⬜ pending |
-| 78-02-03 | 02 | 2 | PLAN-02 | — | N/A | grep | `rg 'v1\.18\+' .planning/PROJECT.md .planning/STATE.md .planning/ROADMAP.md` | ✅ | ⬜ pending |
-| 78-02-04 | 02 | 2 | TRUTH-06, PLAN-02 | — | N/A | manual | Manual read checklist from 78-RESEARCH.md § Validation Architecture | ✅ | ⬜ pending |
+| 78-01-01 | 01 | 1 | TRUTH-06 | — | N/A | grep | `rg -i 'mix test still advisory|still advisory via Coveralls' .planning/threads/` | ✅ | ✅ green |
+| 78-01-02 | 01 | 1 | TRUTH-06 | — | N/A | grep | `rg 'does not guarantee full unit/Credo/Dialyzer pass' .planning/threads/` | ✅ | ✅ green |
+| 78-01-03 | 01 | 1 | TRUTH-06 | — | N/A | grep | `rg -i 'optional CI unit-suite blocking' .planning/threads/` | ✅ | ✅ green |
+| 78-01-04 | 01 | 1 | TRUTH-06 | — | N/A | grep | `rg '\.github/workflows/ci\.yml|RUNNING\.md' .planning/threads/2026-05-27-post-v116-milestone-assessment.md` | ✅ | ✅ green |
+| 78-02-01 | 02 | 2 | PLAN-02 | — | N/A | grep | `head -3 .planning/JTBD-MAP.md && git rev-parse --short HEAD` | ✅ | ✅ green |
+| 78-02-02 | 02 | 2 | PLAN-02 | — | N/A | grep | `git log 3dbf7ab..HEAD --oneline -- lib/ guides/ CHANGELOG.md mix.exs` | ✅ | ✅ green |
+| 78-02-03 | 02 | 2 | PLAN-02 | — | N/A | grep | `rg 'v1\.18\+' .planning/PROJECT.md .planning/STATE.md .planning/ROADMAP.md` | ✅ | ✅ green |
+| 78-02-04 | 02 | 2 | TRUTH-06, PLAN-02 | — | N/A | manual | Manual read checklist from 78-RESEARCH.md § Validation Architecture | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -69,11 +69,11 @@ Existing infrastructure covers all phase requirements. No test framework install
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 10s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 10s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** 2026-05-27 — Phase 78 execution complete

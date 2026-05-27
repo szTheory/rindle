@@ -1,6 +1,6 @@
 # Rindle — Jobs-To-Be-Done Map & Completeness Frontier
 
-> **Generated:** 2026-05-27 · **Against:** milestone v1.16 (shipped 2026-05-27) · **hex** 0.1.5 · **git** `97a7bed`
+> **Generated:** 2026-05-27 · **Against:** milestone v1.16 (shipped 2026-05-27) · **hex** 0.1.5 · **git** `716932e`
 
 Internal strategy artifact. Not published to HexDocs. Its job is to answer three questions
 the adopter-facing [`guides/user_flows.md`](../guides/user_flows.md) deliberately doesn't:
