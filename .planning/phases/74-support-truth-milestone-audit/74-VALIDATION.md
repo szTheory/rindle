@@ -1,8 +1,8 @@
 ---
 phase: 74
 slug: support-truth-milestone-audit
-status: draft
-nyquist_compliant: false
+status: complete
+nyquist_compliant: true
 wave_0_complete: true
 created: 2026-05-27
 ---
@@ -38,11 +38,11 @@ created: 2026-05-27
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 74-01-01 | 01 | 1 | TRUTH-04 | T-74-01-1 / — | N/A (docs) | unit | `mix test test/install_smoke/docs_parity_test.exs` | ✅ | ⬜ pending |
-| 74-01-02 | 01 | 1 | TRUTH-04 | T-74-01-2 / — | N/A (moduledoc) | compile | `mix compile --force` | ✅ | ⬜ pending |
-| 74-01-03 | 01 | 1 | TRUTH-04 | — | N/A | unit | `mix test test/install_smoke/docs_parity_test.exs` | ✅ | ⬜ pending |
-| 74-02-01 | 02 | 2 | AUDIT-01 | T-74-02-1 / — | N/A (planning) | grep | `test -f .planning/milestones/v1.15-MILESTONE-AUDIT.md` | ✅ | ⬜ pending |
-| 74-02-02 | 02 | 2 | AUDIT-01 | — | N/A | grep | `grep -q '\\[x\\] \\*\\*TRUTH-04\\*\\*' .planning/REQUIREMENTS.md` | ✅ | ⬜ pending |
+| 74-01-01 | 01 | 1 | TRUTH-04 | T-74-01-1 / — | N/A (docs) | unit | `mix test test/install_smoke/docs_parity_test.exs` | ✅ | ✅ green |
+| 74-01-02 | 01 | 1 | TRUTH-04 | T-74-01-2 / — | N/A (moduledoc) | compile | `mix compile --force` | ✅ | ✅ green |
+| 74-01-03 | 01 | 1 | TRUTH-04 | — | N/A | unit | `mix test test/install_smoke/docs_parity_test.exs` | ✅ | ✅ green |
+| 74-02-01 | 02 | 2 | AUDIT-01 | T-74-02-1 / — | N/A (planning) | grep | `test -f .planning/milestones/v1.15-MILESTONE-AUDIT.md` | ✅ | ✅ green |
+| 74-02-02 | 02 | 2 | AUDIT-01 | — | N/A | grep | `grep -q '\\[x\\] \\*\\*TRUTH-04\\*\\*' .planning/REQUIREMENTS.md` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -68,11 +68,11 @@ Existing infrastructure covers all phase requirements.
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 30s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 30s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-05-27
