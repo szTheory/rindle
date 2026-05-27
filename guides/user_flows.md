@@ -260,9 +260,39 @@ delete your adopter-owned account row. Execute semantics stay honest: detach now
 Newly orphaned assets are enqueued for async cleanup, while retained shared assets stay
 in storage whenever another live attachment survives.
 
+#### Batch owner erasure
+
+Need to erase several owners in one orchestrated pass? Use the batch facade:
+
+```elixir
+owners = [user_a, user_b]
+{:ok, preview} = Rindle.preview_batch_owner_erasure(owners)
+{:ok, report} = Rindle.erase_batch_owner_erasure(owners)
+```
+
+Operators can drive the same contract from the shell with
+`mix rindle.batch_owner_erasure --owners-file PATH`. Run
+`mix help rindle.batch_owner_erasure` for the full CLI contract.
+
+Batch semantics to keep in mind:
+
+- Each owner runs in its own transaction, sequentially — earlier owners may
+  commit before a later owner fails.
+- Duplicate owner refs in the input list are deduped; an optional `max_owners`
+  limit rejects over-large batches before any work starts.
+- On per-owner failure, `Rindle.erase_batch_owner_erasure/2` returns
+  `{:error, {:batch_owner_failed, detail}}` with `detail.partial_report`
+  listing only owners that completed successfully.
+- After fixing the failing owner, rerun the batch idempotently for the
+  remaining owners.
+- Shared assets use the same `retained_shared_assets` bucket as single-owner
+  erasure whenever another live attachment survives.
+
 `mix rindle.cleanup_orphans` remains maintenance-only upload-residue cleanup,
-not the supported account-deletion API. Admin UI, bulk orchestration, and
-force-delete policy for still-shared assets remain deferred.
+not the supported account-deletion API. Batch multi-owner erasure is supported
+via `Rindle.preview_batch_owner_erasure/2`, `Rindle.erase_batch_owner_erasure/2`,
+and `mix rindle.batch_owner_erasure`. Admin UI, force-delete policy for
+still-shared assets, and scheduler/cron erasure jobs remain deferred.
 
 ### Story 6: Friday, 5 p.m., something is stuck
 
