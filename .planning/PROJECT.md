@@ -20,6 +20,10 @@ stated mission (90–95% near-done band).
 `erase_batch_owner_erasure/2` on the public facade; `mix rindle.batch_owner_erasure`
 operator CLI; PROOF-05 hermetic proof matrix; TRUTH-03 guide/docs parity.
 
+**v1.15 progress:** Phase 73 complete (2026-05-27) — VAL-01 closed; phases 68–70
+planning archives restored under `.planning/milestones/v1.14-phases/` with
+Nyquist-compliant `*-VALIDATION.md` artifacts.
+
 **Post-v1.14 assessment (2026-05-27):** Last proactive T3 wedge (bulk orchestration)
 is closed. **Default v1.15 recommendation:** maintenance & proof honesty — no new
 public feature surface unless concrete compliance pull exists. **Conditional feature
