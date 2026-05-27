@@ -91,6 +91,9 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     gcs_report_path = Path.join(generated_app_root, "tmp/install_smoke_gcs_report.json")
     gcs_report = if File.exists?(gcs_report_path), do: read_json!(gcs_report_path), else: %{}
 
+    tus_extensions = normalize_tus_extensions(tus_report["extensions"])
+    tus_report_data = Map.put(tus_report, "extensions", tus_extensions)
+
     report = %{
       workspace_root: workspace_root,
       generated_app_root: generated_app_root,
@@ -113,27 +116,28 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       av_delivery_path: av_report["delivery_path"],
       delivery_path: av_report["delivery_path"],
       streaming_url_kind: av_report["streaming_url_kind"],
-      tus_upload_url: tus_report["upload_url"],
-      tus_previous_uploads: tus_report["previous_uploads"],
-      tus_byte_size: tus_report["byte_size"],
-      tus_content_type: tus_report["content_type"],
-      tus_ready_variants: tus_report["ready_variants"] || [],
-      phoenix_helper_uploader: tus_report["phoenix_helper_uploader"],
-      phoenix_helper_endpoint: tus_report["phoenix_helper_endpoint"],
-      phoenix_helper_upload_url: tus_report["phoenix_helper_upload_url"],
-      phoenix_helper_session_id: tus_report["phoenix_helper_session_id"],
-      phoenix_helper_asset_id: tus_report["phoenix_helper_asset_id"],
-      completion_surface: tus_report["completion_surface"],
-      phoenix_state_sequence: tus_report["phoenix_state_sequence"] || [],
-      phoenix_error_state: tus_report["phoenix_error_state"],
+      tus_upload_url: tus_report_data["upload_url"],
+      tus_previous_uploads: tus_report_data["previous_uploads"],
+      tus_byte_size: tus_report_data["byte_size"],
+      tus_content_type: tus_report_data["content_type"],
+      tus_ready_variants: tus_report_data["ready_variants"] || [],
+      phoenix_helper_uploader: tus_report_data["phoenix_helper_uploader"],
+      phoenix_helper_endpoint: tus_report_data["phoenix_helper_endpoint"],
+      phoenix_helper_upload_url: tus_report_data["phoenix_helper_upload_url"],
+      phoenix_helper_session_id: tus_report_data["phoenix_helper_session_id"],
+      phoenix_helper_asset_id: tus_report_data["phoenix_helper_asset_id"],
+      completion_surface: tus_report_data["completion_surface"],
+      phoenix_state_sequence: tus_report_data["phoenix_state_sequence"] || [],
+      phoenix_error_state: tus_report_data["phoenix_error_state"],
+      extensions: tus_extensions,
       tus_report_path: tus_report_path,
       tus_debug_report_path: tus_debug_report_path,
-      tus_report_data: tus_report,
+      tus_report_data: tus_report_data,
       tus_debug_report_data: tus_debug_report,
-      tus_failure_phase: tus_debug_report["failure_phase"] || tus_report["failure_phase"],
-      tus_failure_endpoint: tus_debug_report["endpoint"] || tus_report["endpoint"],
-      tus_failure_summary: tus_debug_report["failure_summary"] || tus_report["failure_summary"],
-      tus_failure_mode: tus_debug_report["failure_mode"] || tus_report["failure_mode"],
+      tus_failure_phase: tus_debug_report["failure_phase"] || tus_report_data["failure_phase"],
+      tus_failure_endpoint: tus_debug_report["endpoint"] || tus_report_data["endpoint"],
+      tus_failure_summary: tus_debug_report["failure_summary"] || tus_report_data["failure_summary"],
+      tus_failure_mode: tus_debug_report["failure_mode"] || tus_report_data["failure_mode"],
       doctor_command: gcs_report["doctor_command"],
       doctor_success?: gcs_report["doctor_success"] == true,
       gcs_live_enabled?: gcs_report["live_enabled"] == true,
@@ -149,6 +153,56 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
 
     maybe_write_tus_run_hint!(report)
     report
+  end
+
+  defp normalize_tus_extensions(raw_extensions) when is_map(raw_extensions) do
+    %{
+      "concatenation" =>
+        normalize_tus_extension(
+          Map.get(raw_extensions, "concatenation") || Map.get(raw_extensions, :concatenation),
+          %{"parallel_uploads" => nil, "status" => nil}
+        ),
+      "creation_defer_length" =>
+        normalize_tus_extension(
+          Map.get(raw_extensions, "creation_defer_length") ||
+            Map.get(raw_extensions, :creation_defer_length),
+          %{"used_upload_defer_length" => false, "status" => nil}
+        ),
+      "checksum" =>
+        normalize_tus_extension(
+          Map.get(raw_extensions, "checksum") || Map.get(raw_extensions, :checksum),
+          %{"algorithm" => nil, "status" => nil}
+        )
+    }
+  end
+
+  defp normalize_tus_extensions(_raw_extensions) do
+    %{
+      "concatenation" => normalize_tus_extension(nil, %{"parallel_uploads" => nil, "status" => nil}),
+      "creation_defer_length" =>
+        normalize_tus_extension(nil, %{"used_upload_defer_length" => false, "status" => nil}),
+      "checksum" => normalize_tus_extension(nil, %{"algorithm" => nil, "status" => nil})
+    }
+  end
+
+  defp normalize_tus_extension(raw_extension, defaults) when is_map(raw_extension) do
+    normalized =
+      Enum.into(raw_extension, %{}, fn
+        {key, value} when is_atom(key) -> {Atom.to_string(key), value}
+        {key, value} -> {key, value}
+      end)
+
+    proved = normalized["proved"] == true
+
+    defaults
+    |> Map.put("proved", false)
+    |> Map.merge(normalized)
+    |> Map.put("proved", proved)
+  end
+
+  defp normalize_tus_extension(_raw_extension, defaults) do
+    defaults
+    |> Map.put("proved", false)
   end
 
   def prove_upgrade_install! do
