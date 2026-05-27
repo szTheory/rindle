@@ -91,6 +91,9 @@ jobs:
       - name: Check formatting
         run: mix format --check-formatted
 
+      # Phase 71 (CI proof honesty): Credo, Doctor, AV doctor, Coveralls, and Dialyzer
+      # stay advisory (step-level continue-on-error) — intentional static-analysis policy.
+      # See RUNNING.md `## CI lane severity` for the full matrix.
       - name: Credo (strict)
         run: mix credo --strict
         continue-on-error: true
@@ -288,6 +291,8 @@ jobs:
       - name: Run AV hygiene gate
         run: bash scripts/assert_av_hygiene.sh
 
+      # Phase 71 (CI proof honesty): contract ExUnit suite is advisory; AV hygiene gate
+      # remains merge-blocking. See RUNNING.md `## CI lane severity` for the full matrix.
       - name: Run contract tests
         continue-on-error: true
         run: mix test --only contract
@@ -295,11 +300,8 @@ jobs:
   package-consumer:
     name: Package Consumer Proof Matrix + Release Preflight
     runs-on: ubuntu-22.04
-    continue-on-error: true
-    # Shift release readiness left into PR CI by reusing the same service-backed
-    # package-consumer lane for the shared release preflight. This keeps the
-    # fresh-adopter smoke proof from Phase 9, while also proving tarball
-    # metadata, generated docs, and the release-doc HTML wiring before tag time.
+    # Merge-blocking release-readiness lane: install-smoke matrix + release preflight.
+    # See RUNNING.md `## CI lane severity` for the full matrix.
     needs: quality
     env:
       MIX_ENV: test
@@ -424,13 +426,9 @@ jobs:
   adopter:
     name: Adopter
     runs-on: ubuntu-22.04
-    # Adopter lane (CI-08): proves the canonical adopter-facing media
-    # lifecycle works end-to-end against MinIO + PostgreSQL. Runs ONLY
-    # after quality, integration, and contract have all passed — this is
-    # the release-readiness signal (D-09 in 05-CONTEXT.md). Listing all
-    # three explicitly makes the dependency graph readable in the workflow
-    # visualization (integration already needs quality, but the redundancy
-    # is intentional documentation).
+    # Merge-blocking release-readiness lane: canonical adopter lifecycle + doc parity.
+    # Runs after quality, integration, and contract. See RUNNING.md
+    # `## CI lane severity` for the full matrix.
     needs: [quality, integration, contract]
     env:
       MIX_ENV: test
@@ -512,14 +510,12 @@ jobs:
           mc mb --ignore-existing local/rindle-test
 
       - name: Verify AV runtime with public doctor task
-        continue-on-error: true
         run: >
           mix rindle.doctor
           Rindle.Adopter.CanonicalApp.Profile
           Rindle.Adopter.CanonicalApp.VideoProfile
 
       - name: Run adopter tests
-        continue-on-error: true
         run: mix test --only adopter test/adopter/canonical_app/lifecycle_test.exs
 
       - name: Verify AV onboarding docs stay on the public facade path
@@ -588,6 +584,7 @@ jobs:
   # mitigation: (1) Elixir try/after inside lifecycle_test_source(_, :mux),
   # (2) the lane's normal-path delete on success, (3) `if: always()` step
   # invoking scripts/mux_soak_cleanup.sh as a belt-and-suspenders sweep.
+  # Phase 71 (CI proof honesty): see RUNNING.md `## CI lane severity` for the full matrix.
   mux-soak:
     name: Mux Soak (real API)
     runs-on: ubuntu-22.04
@@ -684,6 +681,7 @@ jobs:
   # GitHub Actions resolves `secrets.*` to empty strings on fork PRs with the
   # `pull_request` trigger (NOT `pull_request_target`), so the lane skips
   # cleanly without leaking secrets to fork code. Closes GCS-04.
+  # Phase 71 (CI proof honesty): see RUNNING.md `## CI lane severity` for the full matrix.
   gcs-soak:
     name: GCS Soak (real bucket)
     runs-on: ubuntu-22.04
@@ -746,11 +744,15 @@ jobs:
         if: steps.gcs-live-config.outputs.enabled == 'true'
         run: mix deps.get
 
+      # Phase 71 (CI proof honesty): optional provider proof when secrets present;
+      # test step stays advisory. See RUNNING.md `## CI lane severity` for the full matrix.
       - name: Run GCS integration tests
         if: steps.gcs-live-config.outputs.enabled == 'true'
         continue-on-error: true
         run: mix test --only gcs
 
+  # Phase 71 (CI proof honesty): secret-gated live GCS install-smoke; job-level
+  # continue-on-error when secrets missing. See RUNNING.md `## CI lane severity`.
   package-consumer-gcs-live:
     name: Package Consumer GCS Live Proof
     runs-on: ubuntu-22.04
