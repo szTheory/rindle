@@ -490,7 +490,8 @@ jobs:
   adopter:
     name: Adopter
     runs-on: ubuntu-22.04
-    # Merge-blocking release-readiness lane: canonical adopter lifecycle + doc parity.
+    # Merge-blocking release-readiness lane: canonical adopter lifecycle
+    # (lifecycle proof only; doc parity is merge-blocking in `proof` job).
     # Runs after quality, integration, and contract. See RUNNING.md
     # `## CI lane severity` for the full matrix.
     needs: [quality, integration, contract]
@@ -581,61 +582,6 @@ jobs:
 
       - name: Run adopter tests
         run: mix test --only adopter test/adopter/canonical_app/lifecycle_test.exs
-
-      - name: Verify AV onboarding docs stay on the public facade path
-        run: |
-          set -euo pipefail
-
-          search_fixed() {
-            local pattern=$1
-            local file=$2
-
-            if command -v rg >/dev/null 2>&1; then
-              rg -nF "$pattern" "$file" >/dev/null
-            else
-              grep -nF "$pattern" "$file" >/dev/null
-            fi
-          }
-
-          search_regex() {
-            local pattern=$1
-            local file=$2
-
-            if command -v rg >/dev/null 2>&1; then
-              rg -n "$pattern" "$file" >/dev/null
-            else
-              grep -nE "$pattern" "$file" >/dev/null
-            fi
-          }
-
-          for DOC in README.md guides/getting_started.md; do
-            if [ ! -f "$DOC" ]; then
-              echo "FAIL: onboarding doc missing: $DOC"
-              exit 1
-            fi
-
-            for REQUIRED in \
-              "mix rindle.doctor" \
-              "Rindle.Profile.Presets.Web" \
-              "Rindle.initiate_upload" \
-              "Rindle.verify_completion" \
-              "Rindle.attach" \
-              "Rindle.url" \
-              "Rindle.Profile.Presets.MuxWeb"
-            do
-              if ! search_fixed "$REQUIRED" "$DOC"; then
-                echo "FAIL: $DOC is missing required AV onboarding reference: $REQUIRED"
-                exit 1
-              fi
-            done
-
-            if search_regex "Broker\\.initiate_session|Broker\\.verify_completion|Rindle\\.Delivery\\.url" "$DOC"; then
-              echo "FAIL: $DOC still references stale non-facade onboarding calls"
-              exit 1
-            fi
-          done
-
-          echo "OK: README.md and guides/getting_started.md stay aligned to the public AV onboarding path"
 
   # Phase 36 (D-19, D-20, D-22, T-36-FORK-SECRETS, T-36-ASSET-LEAK):
   # Real-Mux soak proof. Sibling top-level job (NOT a step inside
