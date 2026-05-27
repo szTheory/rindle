@@ -21,4 +21,25 @@ defmodule Rindle.OwnerErasureBatchErrorTest do
     assert message =~ "max: 100"
     assert message =~ "max_owners"
   end
+
+  test "renders batch_owner_failed message with owner ref and completed count" do
+    owner_ref = {"Elixir.Rindle.OwnerErasureBatchBoundaryTest.User", Ecto.UUID.generate()}
+
+    message =
+      Error.message(%Error{
+        action: :erase_batch_owner_erasure,
+        reason: {
+          :batch_owner_failed,
+          %{
+            owner: owner_ref,
+            reason: :simulated,
+            partial_report: %{owners: [%{owner: owner_ref, report: %{}}]}
+          }
+        }
+      })
+
+    assert message =~ elem(owner_ref, 0)
+    assert message =~ "1 owner(s) completed"
+    assert message =~ "partial_report"
+  end
 end

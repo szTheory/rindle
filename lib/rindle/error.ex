@@ -339,6 +339,19 @@ defmodule Rindle.Error do
     |> String.trim()
   end
 
+  def message(%{reason: {:batch_owner_failed, %{owner: {owner_type, owner_id}, partial_report: partial}}}) do
+    completed = length(partial.owners)
+
+    """
+    Batch owner erasure stopped because owner #{owner_type}:#{owner_id} failed after #{completed} owner(s) completed successfully.
+
+    Completed owners remain committed. Inspect `partial_report` on the error reason for their reports, fix the failing owner, and rerun the batch for remaining owners.
+
+    For single-owner debugging, use preview_owner_erasure/2 or erase_owner/2.
+    """
+    |> String.trim()
+  end
+
   def message(%{
         reason:
           {:variant_processing_cancelled,
