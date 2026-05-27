@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.17
 milestone_name: milestone
 status: executing
-last_updated: "2026-05-27T21:40:57.930Z"
-last_activity: 2026-05-27 -- Phase 80 planning complete
+last_updated: "2026-05-27T22:00:00.000Z"
+last_activity: 2026-05-27 -- Phase 80 post-ship planning hygiene complete
 progress:
   total_phases: 3
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 6
-  completed_plans: 4
-  percent: 67
+  completed_plans: 6
+  percent: 100
 ---
 
 # Project State
@@ -20,18 +20,18 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-27)
 
 **Core value:** Media, made durable.
-**Current focus:** Phase 80 post-ship planning hygiene (v1.17 audit tech debt)
+**Current focus:** v1.17 milestone archive — demand-gated pause default
 
 ## Current Position
 
 Phase: 80
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-05-27 -- Phase 80 planning complete
+Plan: Complete (80-01, 80-02)
+Status: v1.17 archive-ready — post-ship planning hygiene complete (2026-05-27)
+Last activity: 2026-05-27
 
 ## Current Milestone
 
-**v1.17 Adopter-Confidence Hygiene** — Phases 78–79 shipped (3/3 requirements); Phase 80 post-audit hygiene in progress
+**v1.17 Adopter-Confidence Hygiene** — Phases 78–80 complete; ready for `/gsd-complete-milestone v1.17`
 
 - **Charter:** Branch C from path-to-done roadmap (maintainer choice; no public API)
 - **Previous shipped:** v1.16 CI Enforcement & Planning Hygiene (2026-05-27)
@@ -40,7 +40,7 @@ Last activity: 2026-05-27 -- Phase 80 planning complete
 
 ## Next Step
 
-**Plan Phase 80** — `/gsd-plan-phase 80` to close post-ship thread/charter drift; then `/gsd-complete-milestone v1.17`
+**Complete milestone v1.17** — `/gsd-complete-milestone v1.17` then demand-gated pause
 
 ## Accumulated Context
 
