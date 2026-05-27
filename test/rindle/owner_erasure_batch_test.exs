@@ -2,21 +2,11 @@ defmodule Rindle.OwnerErasureBatchTest do
   use Rindle.DataCase, async: false
   use Oban.Testing, repo: Rindle.Repo
   import Mox
+  import Rindle.Test.OwnerErasureBatchFixtures
 
-  alias Rindle.Domain.{MediaAsset, MediaAttachment}
+  alias Rindle.Domain.MediaAttachment
+  alias Rindle.Test.OwnerErasureBatchFixtures.User
   alias Rindle.Workers.PurgeStorage
-
-  defmodule TestProfile do
-    use Rindle.Profile,
-      storage: Rindle.StorageMock,
-      variants: [],
-      allow_mime: ["image/jpeg"],
-      max_bytes: 10_485_760
-  end
-
-  defmodule User do
-    defstruct [:id]
-  end
 
   setup :set_mox_from_context
   setup :verify_on_exit!
@@ -91,28 +81,4 @@ defmodule Rindle.OwnerErasureBatchTest do
     assert length(batch.owners) == 1
     assert batch.attachments_to_detach.count == 1
   end
-
-  defp insert_asset(storage_key) do
-    %MediaAsset{}
-    |> MediaAsset.changeset(%{
-      state: "available",
-      profile: to_string(TestProfile),
-      storage_key: storage_key
-    })
-    |> Repo.insert!()
-  end
-
-  defp insert_attachment(asset, owner, slot) do
-    %MediaAttachment{}
-    |> MediaAttachment.changeset(%{
-      asset_id: asset.id,
-      owner_type: owner_type(owner),
-      owner_id: owner.id,
-      slot: slot
-    })
-    |> Repo.insert!()
-  end
-
-  defp owner_ref(%{__struct__: module, id: id}), do: {to_string(module), id}
-  defp owner_type(%{__struct__: module}), do: to_string(module)
 end

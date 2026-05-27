@@ -1,23 +1,14 @@
 defmodule Rindle.BatchOwnerErasureTaskTest do
   use Rindle.DataCase, async: false
   import Mox
+  import Rindle.Test.OwnerErasureBatchFixtures
 
   alias Mix.Tasks.Rindle.BatchOwnerErasure, as: Task
-  alias Rindle.Domain.{MediaAsset, MediaAttachment}
+  alias Rindle.Domain.MediaAttachment
+  alias Rindle.Test.OwnerErasureBatchFixtures, as: Fixtures
+  alias Rindle.Test.OwnerErasureBatchFixtures.User
 
-  defmodule TestProfile do
-    use Rindle.Profile,
-      storage: Rindle.StorageMock,
-      variants: [],
-      allow_mime: ["image/jpeg"],
-      max_bytes: 10_485_760
-  end
-
-  defmodule User do
-    defstruct [:id]
-  end
-
-  @owner_type "Elixir.Rindle.BatchOwnerErasureTaskTest.User"
+  @owner_type "Elixir.#{inspect(Fixtures.user_module())}"
 
   setup :set_mox_from_context
   setup :verify_on_exit!
@@ -121,26 +112,5 @@ defmodule Rindle.BatchOwnerErasureTaskTest do
     on_exit(fn -> File.rm(path) end)
 
     path
-  end
-
-  defp insert_asset(storage_key) do
-    %MediaAsset{}
-    |> MediaAsset.changeset(%{
-      state: "available",
-      profile: to_string(TestProfile),
-      storage_key: storage_key
-    })
-    |> Repo.insert!()
-  end
-
-  defp insert_attachment(asset, owner, slot) do
-    %MediaAttachment{}
-    |> MediaAttachment.changeset(%{
-      asset_id: asset.id,
-      owner_type: @owner_type,
-      owner_id: owner.id,
-      slot: slot
-    })
-    |> Repo.insert!()
   end
 end
