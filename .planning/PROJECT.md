@@ -1,28 +1,26 @@
 # Rindle
 
-## Current Milestone
+## Current Milestone: v1.14 Bulk Owner-Erasure Orchestration
 
-**None active** — v1.13 shipped 2026-05-27. Start the next milestone with
-`/gsd-new-milestone` after assessment.
+**Goal:** Extend the shipped v1.10 single-owner erasure facade with batch preview/execute
+or operator mix task for GDPR/compliance scale — policy-first, no force-delete bundled.
+
+**Target features:**
+- Batch owner-erasure policy contract (limits, idempotency, aggregate report vocabulary)
+- Batch preview/execute API reusing `OwnerErasure` internals
+- Operator surface (`mix rindle.*` or public batch API)
+- Hermetic proof + docs parity (PROOF + TRUTH gates)
 
 ## Current State
 
 Milestone `v1.13 Cancel Direct Upload` shipped on `2026-05-27` (Phases 64–66,
-6/6 requirements validated). Adopters can abort an abandoned Mux direct creator
-upload via `Rindle.Streaming.cancel_direct_upload/1` using the `asset_id` from
-`create_direct_upload/2`. Create path persists `provider_upload_id`; FSM supports
-terminal cancel edges; Mux adapter calls `Mux.Video.Uploads.cancel/2` with
-idempotent 403/404 handling; proof and guide parity are frozen in CI.
+6/6 requirements validated). Rindle is roughly **95%** done for its stated mission.
 
-Prior milestone `v1.12 Adopter Truth & Maintenance Hygiene` shipped the same day.
-Rindle is roughly **95%** done for its stated mission (90–95% near-done band).
+**Next demand-driven wedges after v1.14:** force-delete for still-shared assets (separate
+milestone), second streaming provider (explicit demand only).
 
-**Next demand-driven wedges (v1.14+ only when pulled):** admin/bulk owner-erasure
-orchestration, force-delete for still-shared assets, second streaming provider.
-
-Do not reopen tus protocol, owner-erasure facade, or broader Mux surfaces beyond
-what v1.13 shipped. Keep shared-asset safety and maintenance-vs-owner-erasure
-boundaries intact.
+Do not reopen tus protocol, single-owner erasure semantics, or Mux surfaces beyond v1.13.
+Keep shared-asset safety and maintenance-vs-owner-erasure boundaries intact.
 
 ## Recently Shipped Milestone
 
@@ -292,12 +290,12 @@ To keep this posture durable across GSD workflows:
 
 ### Active
 
-_None — define requirements for the next milestone via `/gsd-new-milestone`._
+_Define requirements for v1.14 Bulk Owner-Erasure Orchestration — see `.planning/REQUIREMENTS.md`._
 
-Deferred to v1.14+ or out of scope: IETF RUFH (tus 2.0), GCS-as-tus-backend,
+Deferred to v1.15+ or out of scope: IETF RUFH (tus 2.0), GCS-as-tus-backend,
 a Rindle-owned standalone tus JS client package, generic uploader UI kits beyond
 the supported helper path, a second streaming provider, force-delete semantics
-for still-shared assets, and admin/bulk erasure orchestration.
+for still-shared assets (separate milestone from bulk orchestration).
 
 ### Out of Scope
 
@@ -334,10 +332,8 @@ AV-enabled lanes. Optional `mux` + `jose` deps preserve zero transitive cost
 for non-streaming adopters. The single-provider rule keeps the abstraction
 honest; v1.7+ adapters (GCS, second streaming provider) become contract tests.
 
-**Current milestone setup:** Core JTBD shipped through v1.11; v1.12 closed
-planning/support-truth drift; v1.13 closed the Mux direct-upload cancel control
-gap. Remaining gaps are bulk erasure orchestration and other demand-driven
-wedges — enter maintenance / demand-driven mode until concrete pull arrives.
+**Current milestone setup:** Core JTBD shipped through v1.13; v1.14 opens bulk
+owner-erasure orchestration (LIFE-05) as the highest-leverage remaining T3 wedge.
 
 **Reference implementations:**
 - Rails Active Storage: attachment/blob ownership patterns, redirect-style
@@ -442,6 +438,7 @@ wedges — enter maintenance / demand-driven mode until concrete pull arrives.
 | Contract-before-implementation for cancel | Freeze types, FSM, persistence, and error vocabulary in Phase 64 before Mux HTTP in Phase 65 | ✓ Good v1.13 |
 | FSM-first cancel orchestration | Conditional `update_all` to terminal state before provider HTTP reduces race windows | ✓ Good v1.13 |
 | Mux-only cancel in v1.13 | Second-provider cancel is a contract extension when explicit demand ships an adapter | Locked v1.13 |
+| v1.14 bulk erasure extends v1.10 facade | Batch orchestration reuses `OwnerErasure`; no force-delete or admin UI in scope | Locked v1.14 |
 
 ## Historical Snapshot
 
@@ -618,4 +615,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-27 after v1.13 milestone archive.*
+*Last updated: 2026-05-27 after v1.14 milestone start.*

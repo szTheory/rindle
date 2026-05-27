@@ -1,6 +1,6 @@
 # Rindle — Jobs-To-Be-Done Map & Completeness Frontier
 
-> **Generated:** 2026-05-27 · **Against:** milestone v1.11 (shipped 2026-05-27) · **hex** 0.1.5 · **git** `319d461`
+> **Generated:** 2026-05-27 · **Against:** milestone v1.13 (shipped 2026-05-27) · **hex** 0.1.5 · **git** `0e4d091`
 
 Internal strategy artifact. Not published to HexDocs. Its job is to answer three questions
 the adopter-facing [`guides/user_flows.md`](../guides/user_flows.md) deliberately doesn't:
@@ -83,6 +83,7 @@ Status legend: ✅ Shipped · 🟡 Partial (achievable, no first-class surface) 
 | 30 | "Resumable uploads via the tus standard (tus-js-client)." | App dev | ✅ | v1.8–v1.11 | `Rindle.Upload.TusPlug`, `initiate_tus_upload/2`, checksum/concat/defer-length (v1.11) |
 | 31 | "Let creators upload straight to Mux from the browser (no server ingest cost)." | App dev | ✅ | v1.8 | `Rindle.Streaming.create_direct_upload/2`, `Rindle.LiveView.allow_direct_upload/4` |
 | 32 | "Delete *all* media for a user on account deletion (GDPR erasure)." | App dev / Sec | ✅ | v1.10 | `Rindle.preview_owner_erasure/2`, `Rindle.erase_owner/2` (shared-asset semantics) |
+| 37 | "Abort an abandoned Mux direct upload before the browser finishes PUT." | App dev | ✅ | v1.13 | `Rindle.Streaming.cancel_direct_upload/1` (Mux-only) |
 | 33 | "Serve images through on-the-fly signed transforms (arbitrary w/h/format)." | App dev | 🔲 | — | Not built. Named variants only. Design intent: "dynamic transforms opt-in, signed, bounded." |
 | 34 | "Strip EXIF/GPS from originals before serving (privacy)." | Sec | 🟡 | — | Variants drop metadata via `Image`; originals served as-is. No explicit privacy-strip control. |
 | 35 | "Enforce per-tenant storage quotas / billing limits." | Platform | ⛔ | — | App concern. Rindle exposes `byte_size`; quota/billing belongs to the host app. |
@@ -100,7 +101,7 @@ stack and progressively less as you climb. **Rindle has fully cleared T0–T2.**
 | **T0 — Table stakes** | upload, store, deliver, attach, render | Mandatory; without it nothing works | ✅ Complete (v1.0) |
 | **T1 — Production-grade** | presigned direct upload, multipart, image variants, signed/private delivery, async processing, day-2 ops, telemetry | Very high — this is the gap most home-grown solutions fall into | ✅ Complete (v1.0–v1.1) |
 | **T2 — Breadth** | video/audio + poster/waveform, S3/GCS/Local, Mux streaming, tus + GCS resumable | High but for a *narrowing* slice of adopters | ✅ Complete (v1.8–v1.11) |
-| **T3 — Coverage / convenience** | cancel direct upload, 2nd streaming provider, admin erasure orchestration, signed dynamic transforms, richer uploader UI | Real, but each helps an increasingly small fraction | 🟡 Demand-driven backlog only |
+| **T3 — Coverage / convenience** | bulk erasure orchestration, 2nd streaming provider, force-delete policy, signed dynamic transforms, richer uploader UI | Real, but each helps an increasingly small fraction | 🟡 Demand-driven backlog only (cancel direct upload shipped v1.13) |
 | **T4 — Beyond the frontier** | HLS/DASH platform, DRM, AI/GPU, PDF/Office, admin UI, CDN replacement | **Negative** — scope creep, security surface, maintenance, mission drift | ⛔ Excluded by design |
 
 **The diminishing-returns line sits between T3 and T4.** The headline:
@@ -111,33 +112,31 @@ stack and progressively less as you climb. **Rindle has fully cleared T0–T2.**
 > audience than the last. T4 is excluded on purpose, and adding it would make the library
 > worse, not better.
 
-The **core T3 upload/lifecycle flows** (tus, browser→Mux direct upload, owner erasure) shipped
-in v1.8–v1.11. Marginal *new user flow* per unit of effort now drops sharply. Work shifts to
-**truth hygiene, maintenance, and demand-driven gaps** (`cancel_direct_upload/1`, orchestration)
-— not speculative breadth. That is the signal to stop chasing new modalities.
+The **core T3 upload/lifecycle flows** (tus, browser→Mux direct upload + cancel, owner erasure)
+shipped in v1.8–v1.13. Marginal *new user flow* per unit of effort now drops sharply. Work
+shifts to **demand-driven T3 gaps** (bulk erasure orchestration, force-delete policy) — not
+speculative breadth. That is the signal to stop chasing new modalities.
 
 ---
 
 ## Ranked gap analysis (highest leverage first)
 
-1. **Planning/support truth hygiene** (v1.12). JTBD, MILESTONES, and lib moduledocs must match
-   shipped v1.8–v1.11 reality so agents and adopters do not re-sequence completed work. Highest
-   leverage at ~93% done — prevents token waste and scope creep.
+1. **Admin/bulk owner-erasure orchestration** (job 32 extension, LIFE-05). Single-owner facade
+   shipped in v1.10; multi-owner batch preview/execute remains deferred. High blast radius —
+   policy first. **Active v1.14 milestone wedge.**
 
-2. **`cancel_direct_upload/1`** (Mux). The main named control gap on an otherwise shipped
-   browser→Mux path. Build only on concrete adopter demand; narrow provider-specific surface.
+2. **Force-delete semantics** for assets with surviving attachments. Compliance pull only;
+   conflicts with conservative shared-asset contract unless explicitly opt-in. Separate milestone.
 
-3. **Admin/bulk owner-erasure orchestration** (job 32 extension). Single-owner facade shipped;
-   multi-owner batch preview/execute remains deferred. High blast radius — policy first.
+3. **Second streaming provider** (Cloudflare/Bunny). Contract test for provider abstraction;
+   explicit adopter demand only.
 
-4. **Force-delete semantics** for assets with surviving attachments. Compliance pull only;
-   conflicts with conservative shared-asset contract unless explicitly opt-in.
-
-5. **Signed dynamic image transforms** (job 33) and **EXIF privacy stripping** (job 34).
+4. **Signed dynamic image transforms** (job 33) and **EXIF privacy stripping** (job 34).
    Build only on explicit adopter pull.
 
-*Verified against code on 2026-05-27:* tus + Mux direct + owner erasure — shipped in lib/tests/guides.
-`cancel_direct_upload` — zero lib/ matches (planning-only). Dynamic transforms — still not built.
+*Verified against code on 2026-05-27:* tus + Mux direct + cancel + owner erasure — shipped in
+lib/tests/guides. Bulk orchestration — deferred (moduledoc explicitly excludes). Dynamic
+transforms — still not built.
 
 ---
 
@@ -145,16 +144,22 @@ in v1.8–v1.11. Marginal *new user flow* per unit of effort now drops sharply. 
 
 | Priority | Milestone | Why now | Size |
 |---|---|---|---|
-| **Active** | v1.12 Adopter Truth & Maintenance Hygiene | Fix planning drift + stale moduledocs at ~93% done | ~4 phases |
-| **v1.13+** | `cancel_direct_upload/1` (if demanded) | Only named Mux control hole | small |
-| **then** | *Maintenance + demand-driven only* | No speculative tus 2.0, 2nd provider, or uploader kits | ongoing |
+| **Active** | v1.14 Bulk Owner-Erasure Orchestration | Highest-leverage remaining T3 wedge; extends shipped v1.10 facade | ~4 phases |
+| **v1.15+** | Force-delete shared assets (if demanded) | Compliance pull; separate policy milestone | medium |
+| **v1.15+** | Second streaming provider (if demanded) | Contract test; explicit demand only | large |
+| **then** | *Maintenance + long-tail polish only* | No speculative tus 2.0, uploader kits, or platform scope | ongoing |
 
-**Stop signal:** core JTBD for the stated mission is shipped. Do not add backends or providers
-speculatively. See `.planning/threads/2026-05-27-v112-milestone-assessment.md` for v1.13 ranking.
+**Stop signal:** core JTBD for the stated mission is shipped (~95%). See
+`.planning/threads/2026-05-27-post-v113-milestone-assessment.md` for v1.14 ranking.
 
 ---
 
 ## What changed since last generation
+
+- **2026-05-27 — v1.13 regeneration.** Anchor moved from v1.11 to v1.13 (`0e4d091`). Job 37
+  added (Mux direct-upload cancel). Gap rank updated: v1.12 hygiene and cancel shipped; bulk
+  erasure orchestration is #1 remaining wedge (v1.14 active). 37 jobs: 33 ✅ shipped, 2 🟡
+  partial, 0 🔲 core backlog, 2 ⛔ out-of-scope.
 
 - **2026-05-27 — v1.11 regeneration.** Anchor moved from v1.7 to v1.11 (`319d461`). Jobs 30–32
   moved 🔲/🟡 → ✅ (tus protocol, browser→Mux direct upload, owner erasure). T2 marked complete;
