@@ -159,7 +159,8 @@ defmodule Rindle.Upload.TusPlug do
   @spec create_upload(module(), keyword()) :: create_upload_result()
   def create_upload(profile, opts) when is_atom(profile) and is_list(opts) do
     with path when is_binary(path) <- Keyword.fetch!(opts, :path),
-         secret_key_base when is_binary(secret_key_base) <- Keyword.fetch!(opts, :secret_key_base),
+         secret_key_base when is_binary(secret_key_base) <-
+           Keyword.fetch!(opts, :secret_key_base),
          {:ok, length} <- normalize_length(Keyword.get(opts, :length)) do
       actor = Keyword.get(opts, :actor, "anonymous")
       content_type = Keyword.get(opts, :content_type)
@@ -873,7 +874,8 @@ defmodule Rindle.Upload.TusPlug do
   defp put_tus_resumable(conn), do: put_resp_header(conn, "tus-resumable", @tus_version)
 
   defp effective_length(%{upload_length: length}, %{"length" => "deferred"})
-       when is_integer(length), do: length
+       when is_integer(length),
+       do: length
 
   defp effective_length(_session, %{"length" => length}) when is_integer(length), do: length
   defp effective_length(_session, _payload), do: nil
