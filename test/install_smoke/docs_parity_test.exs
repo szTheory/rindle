@@ -267,11 +267,18 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
           "cleanup_orphans",
           "maintenance-only",
           "admin ui",
-          "bulk orchestration",
+          "preview_batch_owner_erasure",
+          "erase_batch_owner_erasure",
+          "batch owner erasure",
+          "batch_owner_erasure",
+          "batch_owner_failed",
+          "partial_report",
           "force-delete"
         ] do
       assert normalized =~ snippet
     end
+
+    refute normalized =~ "bulk orchestration"
 
     refute user_flows =~
              "Today you detach each of an owner's slots, then let `mix rindle.cleanup_orphans` purge the now-unattached assets."
@@ -285,6 +292,22 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
     refute user_flows =~ "The full executable facade lands in later `v1.10` phase work"
   end
 
+  test "user flows and operations document batch erasure without duplicating mix task contract", %{
+    user_flows: user_flows
+  } do
+    operations = File.read!(Path.expand("../../guides/operations.md", __DIR__))
+    normalized_flows = String.downcase(user_flows)
+    normalized_ops = String.downcase(operations)
+
+    assert normalized_flows =~ "preview_batch_owner_erasure"
+    assert normalized_flows =~ "batch_owner_erasure"
+    assert normalized_ops =~ "batch_owner_erasure"
+    assert normalized_ops =~ "user_flows.md"
+
+    refute normalized_ops =~ "--owners-file"
+    refute normalized_ops =~ "owner_type"
+  end
+
   test "getting-started and operations stay thin while pointing to the canonical owner-erasure flow",
        %{
          guide: guide
@@ -293,6 +316,8 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
 
     assert guide =~ "[`user_flows.md`](user_flows.md)"
     assert guide =~ "account deletion / owner erasure"
+    assert guide =~ "Batch owner erasure"
+    assert guide =~ "user_flows.md"
 
     assert operations =~ "[`user_flows.md`](user_flows.md)"
     assert operations =~ "supported account-deletion surface"
