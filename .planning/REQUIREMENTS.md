@@ -28,10 +28,10 @@
 
 ### Proof & support truth
 
-- [ ] **PROOF-01**: Hermetic Mux adapter tests and `Streaming` integration tests
+- [x] **PROOF-01**: Hermetic Mux adapter tests and `Streaming` integration tests
   cover happy-path cancel, idempotent re-cancel, and non-cancellable states.
 
-- [ ] **TRUTH-01**: `guides/streaming_providers.md` documents cancel semantics,
+- [x] **TRUTH-01**: `guides/streaming_providers.md` documents cancel semantics,
   when adopters should call cancel vs. request a fresh upload URL, and that
   provider-side cancel is Mux-only in v1.13.
 
@@ -59,5 +59,5 @@
 | CANCEL-02 | 64, 65 | Complete |
 | CANCEL-03 | 64 | Complete |
 | CANCEL-04 | 65 | Complete |
-| PROOF-01 | 66 | pending |
-| TRUTH-01 | 66 | pending |
+| PROOF-01 | 66 | Complete |
+| TRUTH-01 | 66 | Complete |
