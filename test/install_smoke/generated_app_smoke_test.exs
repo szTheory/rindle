@@ -42,6 +42,16 @@ defmodule Rindle.InstallSmoke.GeneratedAppSmokeAssertions do
         assert guide =~ "config :rindle, :tus_resume_authorizer, MyApp.TusAuth"
         assert guide =~ "@uppy/tus"
         assert guide =~ "tus-js-client"
+        assert guide =~
+                 "Supported tus extensions: creation, expiration, termination, checksum, creation-defer-length, concatenation."
+        assert guide =~ "checksum"
+        assert guide =~ "creation-defer-length"
+        assert guide =~ "concatenation"
+        assert guide =~ "parallelUploads"
+        assert guide =~ "uploadLengthDeferred"
+        assert guide =~ "parallelUploads: 2"
+        assert guide =~ "uploadLengthDeferred: true"
+        refute guide =~ "parallelUploads: 1 is the supported posture for the Rindle tus edge."
         assert guide =~ "sticky-session or single-node"
         assert Regex.scan(~r/removeFingerprintOnSuccess: true/, guide) |> length() == 3
       end

@@ -25,6 +25,16 @@ defmodule Rindle.InstallSmoke.PhoenixTusTruthParityTest do
     assert guide =~ "`100%` means bytes transferred"
     assert guide =~ "findPreviousUploads()"
     assert guide =~ "resumeFromPreviousUpload(previousUploads[0])"
+    assert guide =~
+             "Supported tus extensions: creation, expiration, termination, checksum, creation-defer-length, concatenation."
+    assert guide =~ "checksum"
+    assert guide =~ "creation-defer-length"
+    assert guide =~ "concatenation"
+    assert guide =~ "parallelUploads"
+    assert guide =~ "uploadLengthDeferred"
+    assert guide =~ "parallelUploads: 2"
+    assert guide =~ "uploadLengthDeferred: true"
+    refute guide =~ "parallelUploads: 1 is the supported posture for the Rindle tus edge."
 
     assert live_view =~ "guides/resumable_uploads.md"
     assert live_view =~ "allow_tus_upload/4"
