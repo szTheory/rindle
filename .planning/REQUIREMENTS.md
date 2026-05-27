@@ -18,16 +18,16 @@ hand-rolled loops — policy-first, reusing `OwnerErasure` internals.
 - [x] **BULK-02**: Batch preview enforces a configurable maximum owner count (default bounded)
       and returns a tagged error when the batch exceeds the limit.
 
-- [ ] **BULK-03**: Batch execute processes each owner through the existing single-owner
+- [x] **BULK-03**: Batch execute processes each owner through the existing single-owner
       erasure planner with transactional per-owner isolation — one owner failure does not
       roll back completed owners in the batch.
 
 ### Batch Implementation
 
-- [ ] **BULK-04**: Adopter can execute batch owner erasure through one public API call that
+- [x] **BULK-04**: Adopter can execute batch owner erasure through one public API call that
       reuses `Rindle.Internal.OwnerErasure` and preserves the v1.10 report vocabulary per owner.
 
-- [ ] **BULK-05**: Re-running batch erasure for the same owner set is idempotent and returns
+- [x] **BULK-05**: Re-running batch erasure for the same owner set is idempotent and returns
       stable no-op/report results for already-cleared owners.
 
 ### Operator Surface
@@ -70,9 +70,9 @@ hand-rolled loops — policy-first, reusing `OwnerErasure` internals.
 |-------------|-------|--------|
 | BULK-01 | Phase 67 | Complete |
 | BULK-02 | Phase 67 | Complete |
-| BULK-03 | Phase 68 | Pending |
-| BULK-04 | Phase 68 | Pending |
-| BULK-05 | Phase 68 | Pending |
+| BULK-03 | Phase 68 | Complete |
+| BULK-04 | Phase 68 | Complete |
+| BULK-05 | Phase 68 | Complete |
 | OPS-02 | Phase 69 | Pending |
 | PROOF-05 | Phase 70 | Pending |
 | TRUTH-03 | Phase 70 | Pending |
