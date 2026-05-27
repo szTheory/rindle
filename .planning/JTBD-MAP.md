@@ -1,6 +1,6 @@
 # Rindle — Jobs-To-Be-Done Map & Completeness Frontier
 
-> **Generated:** 2026-05-27 · **Against:** milestone v1.16 (shipped 2026-05-27) · **hex** 0.1.5 · **git** `3dbf7ab`
+> **Generated:** 2026-05-27 · **Against:** milestone v1.16 (shipped 2026-05-27) · **hex** 0.1.5 · **git** `97a7bed`
 
 Internal strategy artifact. Not published to HexDocs. Its job is to answer three questions
 the adopter-facing [`guides/user_flows.md`](../guides/user_flows.md) deliberately doesn't:
@@ -124,8 +124,8 @@ honesty shipped v1.15–v1.16. That is the signal to stop chasing new modalities
 ## Ranked gap analysis (highest leverage first)
 
 1. **Demand-gated pause (default).** No feature milestone unless compliance pull (LIFE-06) or
-   named adopter (STREAM-10). Post-v1.16 hygiene complete (assessment thread, JTBD anchor,
-   `mix coveralls` merge-blocking).
+   named adopter (STREAM-10). Post-v1.16 CI hygiene shipped (`mix coveralls` merge-blocking);
+   planning-truth closure complete v1.17 Phase 78 (assessment thread, JTBD anchor refresh).
 
 2. **Force-delete semantics** (LIFE-06, job 32 extension). Compliance pull only; conflicts
    with conservative shared-asset contract unless explicitly opt-in. Separate feature milestone.
@@ -163,6 +163,11 @@ path-to-done thread for multi-milestone sequence and terminal-state criteria.
 ---
 
 ## What changed since last generation
+
+- **2026-05-27 — v1.17 planning-only delta (Phase 78).** Anchor sha refreshed;
+  no new JTBD rows. Delta: coveralls merge-blocking (`0036760`), v1.17 milestone
+  charter, post-v116 thread TRUTH-06 closure. Gap rank #1 hygiene wording tracks
+  Phase 78 completion.
 
 - **2026-05-27 — Path-to-done roadmap assessment.** No new JTBD rows. Milestone
   prioritization table expanded with v1.17 branches A/B/C, v1.18+ sequencing, and
