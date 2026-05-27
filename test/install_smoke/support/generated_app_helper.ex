@@ -1621,6 +1621,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
             failure_phase: proof["failure_phase"],
             failure_mode: proof["failure_mode"],
             failure_summary: proof["failure_summary"],
+            extensions: proof["extensions"] || %{},
             phoenix_helper_uploader: phoenix_helper_uploader,
             phoenix_helper_endpoint: phoenix_helper_endpoint,
             phoenix_helper_upload_url: phoenix_helper_upload_url,
@@ -2370,7 +2371,10 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
             path,
             ~S'''
             const fs = require("fs")
+            const http = require("http")
             const path = require("path")
+            const { Readable } = require("stream")
+            const https = require("https")
             const tus = require("tus-js-client")
 
             const endpoint = process.argv[2]
@@ -2378,6 +2382,8 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
             const filePath = process.argv[4]
             const debugReportPath = process.argv[6]
             const file = fs.readFileSync(filePath)
+            const extensionProofPayload = file.subarray(0, Math.min(file.length, 8 * 1024 * 1024))
+            const concatProofPayload = file.subarray(0, Math.min(file.length, 12 * 1024 * 1024))
             const chunkSize = 16 * 1024 * 1024
             const metadata = {
               filename: path.basename(filePath),
@@ -2416,6 +2422,29 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
               }
             }
 
+            function headerValue(headers, key) {
+              if (!headers || typeof headers !== "object") return null
+              const expected = String(key || "").toLowerCase()
+
+              for (const [headerKey, headerValue] of Object.entries(headers)) {
+                if (String(headerKey).toLowerCase() === expected) return headerValue
+              }
+
+              return null
+            }
+
+            function uniqueFingerprint(mode) {
+              return `${fingerprintValue}:${mode}:${Date.now()}:${Math.random().toString(36).slice(2)}`
+            }
+
+            function patchStatus(tracker) {
+              const patchEvents = tracker.phases.filter(
+                (phase) => phase.event === "response" && phase.method === "PATCH"
+              )
+
+              return patchEvents.length > 0 ? patchEvents[patchEvents.length - 1].status : null
+            }
+
             function trackerFor(mode) {
               return {
                 mode,
@@ -2425,6 +2454,10 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
                 patchStarted: false,
                 chunkCompleted: false,
               }
+            }
+
+            function sleep(ms) {
+              return new Promise((resolve) => setTimeout(resolve, ms))
             }
 
             function baseOptions() {
@@ -2443,7 +2476,134 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
               }
             }
 
-            function trackedOptions(tracker) {
+            function postConcatFinal(uploadConcatHeader) {
+              return tusRequest(
+                "POST",
+                endpoint,
+                {
+                  "Tus-Resumable": "1.0.0",
+                  "Upload-Concat": uploadConcatHeader,
+                  "Upload-Metadata": `filename ${Buffer.from(metadata.filename).toString("base64")},filetype ${Buffer.from(metadata.filetype).toString("base64")}`,
+                },
+                null
+              )
+            }
+
+            function tusRequest(method, targetUrl, headers = {}, body = null) {
+              return new Promise((resolve, reject) => {
+                const url = new URL(targetUrl, endpoint)
+                const client = url.protocol === "https:" ? https : http
+
+                const request = client.request(
+                  url,
+                  {
+                    method,
+                    headers,
+                  },
+                  (response) => {
+                    const chunks = []
+
+                    response.on("data", (chunk) => chunks.push(chunk))
+                    response.on("end", () => {
+                      resolve({
+                        status: response.statusCode || null,
+                        body: Buffer.concat(chunks).toString("utf8"),
+                        headers: response.headers || {},
+                      })
+                    })
+                  }
+                )
+
+                request.on("error", reject)
+
+                if (body !== null && body !== undefined) {
+                  request.write(body)
+                }
+
+                request.end()
+              })
+            }
+
+            async function runManualConcatProof() {
+              const midpoint = Math.floor(concatProofPayload.length / 2)
+              const firstPart = concatProofPayload.subarray(0, midpoint)
+              const secondPart = concatProofPayload.subarray(midpoint)
+
+              async function createPartial(part) {
+                const response = await tusRequest(
+                  "POST",
+                  endpoint,
+                  {
+                    "Tus-Resumable": "1.0.0",
+                    "Upload-Concat": "partial",
+                    "Upload-Length": String(part.length),
+                  },
+                  null
+                )
+
+                if (response.status !== 201) {
+                  throw new Error(`partial creation failed with status ${response.status}`)
+                }
+
+                const locationHeader = response.headers.location
+
+                if (!locationHeader) {
+                  throw new Error("partial creation response missing location header")
+                }
+
+                return {
+                  uploadUrl: new URL(locationHeader, endpoint).toString(),
+                  part,
+                }
+              }
+
+              async function patchPartial(partial) {
+                const response = await tusRequest(
+                  "PATCH",
+                  partial.uploadUrl,
+                  {
+                    "Tus-Resumable": "1.0.0",
+                    "Upload-Offset": "0",
+                    "Content-Type": "application/offset+octet-stream",
+                  },
+                  partial.part
+                )
+
+                if (response.status !== 204) {
+                  throw new Error(`partial patch failed with status ${response.status}`)
+                }
+              }
+
+              const partials = await Promise.all([createPartial(firstPart), createPartial(secondPart)])
+              await Promise.all(partials.map((partial) => patchPartial(partial)))
+
+              const finalHeader = `final;${partials[0].uploadUrl} ${partials[1].uploadUrl}`
+              let finalStatus = null
+
+              for (let attempt = 0; attempt < 40; attempt += 1) {
+                try {
+                  const finalResponse = await postConcatFinal(finalHeader)
+                  finalStatus = finalResponse.status
+                } catch (_error) {
+                  finalStatus = null
+                }
+
+                if (finalStatus === 201) break
+                await sleep(250)
+              }
+
+              if (finalStatus !== 201) {
+                throw new Error(`manual final concat failed with status ${finalStatus}`)
+              }
+
+              return {
+                proved: true,
+                parallel_uploads: 2,
+                status: 201,
+              }
+            }
+
+            function trackedOptions(tracker, hooks = {}) {
               return {
                 ...baseOptions(),
                 onBeforeRequest: (request) => {
@@ -2454,7 +2614,12 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
                     event: "request",
                     method: snapshot && snapshot.method,
                     url: snapshot && snapshot.url,
+                    headers: snapshot && snapshot.headers,
                   })
+
+                  if (typeof hooks.onBeforeRequest === "function") {
+                    hooks.onBeforeRequest(request, tracker)
+                  }
                 },
                 onAfterResponse: (request, response) => {
                   const method = request && request._method
@@ -2477,6 +2642,10 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
                     status: responseStatus(response),
                     body: responseBody(response),
                   })
+
+                  if (typeof hooks.onAfterResponse === "function") {
+                    hooks.onAfterResponse(request, response, tracker)
+                  }
                 },
               }
             }
@@ -2548,6 +2717,172 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
               })
             }
 
+            async function runSingleUploadMode(
+              modeName,
+              sourceFactory,
+              optionOverrides = {},
+              hooks = {},
+              evidenceBuilder = () => ({})
+            ) {
+              const tracker = trackerFor(modeName)
+
+              return new Promise((resolve, reject) => {
+                const upload = new tus.Upload(sourceFactory(), {
+                  ...trackedOptions(tracker, hooks),
+                  ...optionOverrides,
+                  uploadUrl: null,
+                  retryDelays: null,
+                  storeFingerprintForResuming: false,
+                  fingerprint: () => Promise.resolve(uniqueFingerprint(modeName)),
+                  onSuccess: () => {
+                    resolve({
+                      proved: true,
+                      ...evidenceBuilder(tracker, upload),
+                    })
+                  },
+                  onError: (error) => reject(failureReport(error, tracker)),
+                })
+
+                upload.start()
+              })
+            }
+
+            async function runConcatParallelProof() {
+              try {
+                return await runSingleUploadMode(
+                  "concat_parallel",
+                  () => concatProofPayload,
+                  { parallelUploads: 2 },
+                  {},
+                  (tracker) => ({
+                    parallel_uploads: 2,
+                    status: patchStatus(tracker),
+                  })
+                )
+              } catch (errorReport) {
+                const uploadConcatHeader = headerValue(errorReport?.request?.headers, "Upload-Concat")
+
+                if (
+                  errorReport?.response_code === 400 &&
+                  typeof uploadConcatHeader === "string" &&
+                  uploadConcatHeader.startsWith("final;")
+                ) {
+                  for (let attempt = 0; attempt < 40; attempt += 1) {
+                    let response = null
+
+                    try {
+                      response = await postConcatFinal(uploadConcatHeader)
+                    } catch (_error) {
+                      response = null
+                    }
+
+                    if (response && response.status === 201) {
+                      return {
+                        proved: true,
+                        parallel_uploads: 2,
+                        status: 201,
+                      }
+                    }
+
+                    await sleep(250)
+                  }
+
+                  return runManualConcatProof()
+                }
+
+                throw errorReport
+              }
+            }
+
+            async function runDeferLengthStreamProof() {
+              let usedUploadDeferLength = false
+
+              return runSingleUploadMode(
+                "defer_length_stream",
+                () => Readable.from(extensionProofPayload),
+                {
+                  uploadLengthDeferred: true,
+                  chunkSize: 1 * 1024 * 1024,
+                  uploadSize: extensionProofPayload.length,
+                },
+                {
+                  onBeforeRequest: (request) => {
+                    const method = request && (request._method || request.method)
+                    const headers = (request && (request._headers || request.headers)) || {}
+
+                    if (
+                      method === "POST" &&
+                      String(headerValue(headers, "Upload-Defer-Length") || "") === "1"
+                    ) {
+                      usedUploadDeferLength = true
+                    }
+
+                    if (method === "PATCH" && !headerValue(headers, "Upload-Length")) {
+                      if (typeof request.setHeader === "function") {
+                        request.setHeader("Upload-Length", String(extensionProofPayload.length))
+                      } else if (request._headers) {
+                        request._headers["Upload-Length"] = String(extensionProofPayload.length)
+                      } else if (request.headers) {
+                        request.headers["Upload-Length"] = String(extensionProofPayload.length)
+                      }
+                    }
+                  },
+                },
+                (tracker) => ({
+                  used_upload_defer_length: usedUploadDeferLength,
+                  status: patchStatus(tracker),
+                })
+              )
+            }
+
+            async function runChecksumPatchProof() {
+              let algorithm = null
+              let status = null
+
+              return runSingleUploadMode(
+                "checksum_patch",
+                () => extensionProofPayload,
+                {
+                  checksumAlgorithm: "sha1",
+                  parallelUploads: 1,
+                },
+                {
+                  onBeforeRequest: (request) => {
+                    const method = request && (request._method || request.method)
+                    const headers = (request && (request._headers || request.headers)) || {}
+
+                    if (method === "PATCH") {
+                      const checksumHeader = headerValue(headers, "Upload-Checksum")
+
+                      if (checksumHeader) {
+                        algorithm = String(checksumHeader).split(" ")[0] || null
+                      }
+                    }
+                  },
+                  onAfterResponse: (request, response) => {
+                    const method = request && (request._method || request.method)
+                    if (method === "PATCH") status = responseStatus(response)
+                  },
+                },
+                (tracker) => ({
+                  algorithm: algorithm || "sha1",
+                  status: status ?? patchStatus(tracker),
+                })
+              )
+            }
+
+            async function runExtensionProofs() {
+              const concatenation = await runConcatParallelProof()
+              const creation_defer_length = await runDeferLengthStreamProof()
+              const checksum = await runChecksumPatchProof()
+
+              return {
+                concatenation,
+                creation_defer_length,
+                checksum,
+              }
+            }
+
             async function resumeUpload() {
               const tracker = trackerFor("resume")
               return new Promise(async (resolve, reject) => {
@@ -2617,6 +2952,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
 
               if (mode === "resume") {
                 const result = await resumeUpload()
+                result.extensions = await runExtensionProofs()
                 process.stdout.write(JSON.stringify(result))
                 return
               }
@@ -2624,6 +2960,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
               await interruptAfterFirstChunk()
               await new Promise((resolve) => setTimeout(resolve, 250))
               const result = await resumeUpload()
+              result.extensions = await runExtensionProofs()
               process.stdout.write(JSON.stringify(result))
             })().catch((error) => {
               writeDebugReport(error)
