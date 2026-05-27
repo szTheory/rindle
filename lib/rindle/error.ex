@@ -316,6 +316,29 @@ defmodule Rindle.Error do
     |> String.trim()
   end
 
+  def message(%{reason: :empty_batch}) do
+    """
+    Batch owner erasure requires at least one owner struct.
+
+    To fix:
+      1. Pass a non-empty list of owner structs (same shape as preview_owner_erasure/2).
+      2. For single-owner erasure, use Rindle.preview_owner_erasure/2 or Rindle.erase_owner/2 instead.
+    """
+    |> String.trim()
+  end
+
+  def message(%{reason: {:batch_too_large, %{requested: requested, max: max}}}) do
+    """
+    Batch owner erasure exceeds the configured owner limit (requested: #{requested}, max: #{max}).
+
+    To fix:
+      1. Split the batch into smaller chunks at or below the limit.
+      2. Pass max_owners: N in opts to raise the per-call limit when your ops policy allows it.
+      3. Optionally set config :rindle, :max_batch_erasure_owners for a host-app default.
+    """
+    |> String.trim()
+  end
+
   def message(%{
         reason:
           {:variant_processing_cancelled,
