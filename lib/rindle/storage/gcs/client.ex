@@ -156,6 +156,38 @@ defmodule Rindle.Storage.GCS.Client do
     exception -> {:error, exception}
   end
 
+  @spec compose(
+          bucket :: String.t(),
+          final_key :: String.t(),
+          source_keys :: [String.t()],
+          opts :: keyword()
+        ) ::
+          {:ok, %{key: String.t(), bucket: String.t(), response: term()}}
+          | {:error, term()}
+  def compose(bucket, final_key, source_keys, opts) do
+    with {:ok, auth_headers} <- authed_headers(opts) do
+      url = url_for(:metadata, bucket, final_key, opts) <> "/compose"
+
+      source_objects = Enum.map(source_keys, fn key -> %{"name" => key} end)
+      metadata = %{"sourceObjects" => source_objects}
+
+      headers = [{"content-type", "application/json"} | auth_headers]
+      req = Finch.build(:post, url, headers, Jason.encode!(metadata))
+
+      case finch_request(req, opts) do
+        {:ok, %{__struct__: Finch.Response, status: status, body: body}}
+        when status in 200..299 ->
+          {:ok, %{key: final_key, bucket: bucket, response: Jason.decode!(body)}}
+
+        {:ok, %{__struct__: Finch.Response, status: status, body: body}} ->
+          {:error, {:gcs_http_error, %{status: status, body: body}}}
+
+        {:error, exception} ->
+          {:error, exception}
+      end
+    end
+  end
+
   @spec delete(bucket :: String.t(), key :: String.t(), opts :: keyword()) ::
           {:ok, %{key: String.t()}} | {:error, :not_found | :goth_unconfigured | term()}
   def delete(bucket, key, opts) do

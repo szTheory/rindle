@@ -117,7 +117,7 @@ defmodule Rindle.Storage.StorageAdapterTest do
     assert [:presigned_put, :head, :signed_url, :multipart_upload, :tus_upload] ==
              S3.capabilities()
 
-    assert [:signed_url, :head, :resumable_upload, :resumable_upload_session] ==
+    assert [:signed_url, :head, :resumable_upload, :resumable_upload_session, :concatenate] ==
              GCS.capabilities()
 
     # GCS keeps Topology A (provider-direct resumable) and must NOT advertise the

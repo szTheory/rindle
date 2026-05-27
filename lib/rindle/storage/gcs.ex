@@ -110,6 +110,79 @@ defmodule Rindle.Storage.GCS do
     end
   end
 
+  @impl true
+  def concatenate(final_key, source_keys, opts) do
+    with {:ok, bucket} <- bucket(opts),
+         :ok <- ensure_goth_loaded() do
+      do_concatenate(bucket, final_key, source_keys, inject_credentials(opts))
+    end
+  end
+
+  defp do_concatenate(bucket, final_key, [], _opts) do
+    {:ok, %{key: final_key, bucket: bucket}}
+  end
+
+  defp do_concatenate(bucket, final_key, source_keys, opts) do
+    # GCS compose API limit is 32 sources per request.
+    # The first batch can be up to 32 items.
+    {first_batch, rest} = Enum.split(source_keys, 32)
+
+    compose_result =
+      if rest == [] do
+        Client.compose(bucket, final_key, first_batch, opts)
+      else
+        # Subsequent batches can only be 31 items max, because the accumulated
+        # temporary object will act as the 32nd source in the next compose call.
+        rest_batches = Enum.chunk_every(rest, 31)
+        fold_batches(bucket, final_key, first_batch, rest_batches, opts)
+      end
+
+    case compose_result do
+      {:ok, %{key: ^final_key}} ->
+        Enum.each(source_keys, fn key ->
+          Client.delete(bucket, key, opts)
+        end)
+
+        {:ok, %{key: final_key, bucket: bucket}}
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
+  defp fold_batches(bucket, final_key, first_batch, rest_batches, opts) do
+    tmp_base = "#{final_key}-tmp-#{Base.encode16(:crypto.strong_rand_bytes(4))}"
+    first_tmp = "#{tmp_base}-0"
+
+    case Client.compose(bucket, first_tmp, first_batch, opts) do
+      {:ok, _} ->
+        do_fold_batches(bucket, final_key, rest_batches, first_tmp, tmp_base, 1, opts)
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
+  defp do_fold_batches(bucket, final_key, [last_batch], prev_tmp, _tmp_base, _index, opts) do
+    result = Client.compose(bucket, final_key, [prev_tmp | last_batch], opts)
+    Client.delete(bucket, prev_tmp, opts)
+    result
+  end
+
+  defp do_fold_batches(bucket, final_key, [batch | rest], prev_tmp, tmp_base, index, opts) do
+    next_tmp = "#{tmp_base}-#{index}"
+
+    case Client.compose(bucket, next_tmp, [prev_tmp | batch], opts) do
+      {:ok, _} ->
+        Client.delete(bucket, prev_tmp, opts)
+        do_fold_batches(bucket, final_key, rest, next_tmp, tmp_base, index + 1, opts)
+
+      {:error, reason} ->
+        Client.delete(bucket, prev_tmp, opts)
+        {:error, reason}
+    end
+  end
+
   ## Unsupported callbacks (multipart/presigned PUT)
 
   @impl true
@@ -138,7 +211,7 @@ defmodule Rindle.Storage.GCS do
   end
 
   @impl true
-  def capabilities, do: [:signed_url, :head, :resumable_upload, :resumable_upload_session]
+  def capabilities, do: [:signed_url, :head, :resumable_upload, :resumable_upload_session, :concatenate]
 
   ## Helpers
 

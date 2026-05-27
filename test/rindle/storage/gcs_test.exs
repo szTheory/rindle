@@ -28,7 +28,7 @@ defmodule Rindle.Storage.GCSTest do
 
     test "capabilities/0 advertises the shipped resumable atoms once callbacks exist" do
       assert GCS.capabilities() ==
-               [:signed_url, :head, :resumable_upload, :resumable_upload_session]
+               [:signed_url, :head, :resumable_upload, :resumable_upload_session, :concatenate]
     end
 
     test "capabilities/0 remains truthful for broker resumable gates" do
