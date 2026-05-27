@@ -1253,6 +1253,9 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
   defp shared_env(db_name, profile_mode) do
     base_env = [
       {"MIX_ENV", "test"},
+      # Generated apps install Rindle as a dep and do not inherit config/test.exs;
+      # GitHub Actions runners cannot attach MuonTrap cgroups without extra caps.
+      {"RINDLE_AV_USE_CGROUPS", "false"},
       {"RINDLE_INSTALL_SMOKE_DB", db_name},
       {"PGUSER", env_or_default("PGUSER", System.get_env("USER") || "postgres")},
       {"PGPASSWORD", System.get_env("PGPASSWORD")},
