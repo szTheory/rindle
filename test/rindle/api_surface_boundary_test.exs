@@ -105,6 +105,8 @@ defmodule Rindle.ApiSurfaceBoundaryTest do
       assert function_exported?(Rindle, :complete_multipart_upload, 3)
       assert function_exported?(Rindle, :preview_owner_erasure, 2)
       assert function_exported?(Rindle, :erase_owner, 2)
+      assert function_exported?(Rindle, :preview_batch_owner_erasure, 2)
+      assert function_exported?(Rindle, :erase_batch_owner_erasure, 2)
       assert function_exported?(Rindle, :cancel_processing, 1)
       assert function_exported?(Rindle, :reprobe, 1)
       assert function_exported?(Rindle, :requeue_variants, 2)
@@ -123,6 +125,11 @@ defmodule Rindle.ApiSurfaceBoundaryTest do
 
       assert visible_function_doc?(Rindle, :erase_owner, 2),
              "Rindle.erase_owner/2 should be publicly documented"
+    end
+
+    test "batch owner-erasure facade entrypoints stay publicly documented" do
+      assert visible_function_doc?(Rindle, :preview_batch_owner_erasure, 2)
+      assert visible_function_doc?(Rindle, :erase_batch_owner_erasure, 2)
     end
 
     test "legacy verify_upload/2 stays documented with an explicit deprecation marker" do
@@ -167,13 +174,15 @@ defmodule Rindle.ApiSurfaceBoundaryTest do
       for snippet <- [
             "preview_owner_erasure/2",
             "erase_owner/2",
+            "preview_batch_owner_erasure/2",
+            "erase_batch_owner_erasure/2",
+            "batch",
             "attachments_to_detach",
             "assets_to_purge",
             "retained_shared_assets",
             "cleanup_orphans",
             "maintenance-only",
             "admin UI",
-            "bulk orchestration",
             "force-delete"
           ] do
         assert moduledoc =~ snippet,
