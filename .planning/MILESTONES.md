@@ -1,5 +1,29 @@
 # Milestones
 
+## v1.13 Cancel Direct Upload (Shipped: 2026-05-27)
+
+**Phases completed:** 3 phases (64–66), 8 plans
+**Requirements validated:** 6/6 (`CANCEL-01..04`, `PROOF-01`, `TRUTH-01`)
+**Timeline:** 1 day (2026-05-27 → 2026-05-27)
+**Git range:** `feat(64-01)` → `docs(phase-66)` (23 commits, ~761 LOC in `.ex`/`.exs`)
+
+**Key accomplishments:**
+
+- Shipped `Rindle.Streaming.cancel_direct_upload/1` — adopters abort abandoned Mux
+  direct creator uploads by `asset_id` from create time.
+- Additive `provider_upload_id` persistence with FSM terminal cancel edges and
+  security invariant 14 redaction on upload handles.
+- Mux adapter via `Mux.Video.Uploads.cancel/2` with HTTP 403/404 idempotency and
+  FSM-first orchestration before provider HTTP.
+- Hermetic PROOF-01 matrix (Bypass + ClientMock) and TRUTH-01 guide/docs parity.
+
+**Archive:**
+- `.planning/milestones/v1.13-ROADMAP.md`
+- `.planning/milestones/v1.13-REQUIREMENTS.md`
+- `.planning/milestones/v1.13-MILESTONE-AUDIT.md`
+
+---
+
 ## v1.12 Adopter Truth & Maintenance Hygiene (Shipped: 2026-05-27)
 
 **Phases completed:** 4 phases (60-63)
@@ -9,8 +33,10 @@
 
 - Regenerated JTBD-MAP with v1.11 anchor; moved tus, Mux direct upload, and owner
   erasure from backlog to shipped.
+
 - Appended v1.11 and v1.8 entries to MILESTONES ledger; fixed PROJECT Context and
   Support-Truth drift.
+
 - Removed stale Phase 37 deferral wording from public streaming moduledocs.
 - Extended API surface boundary test for GCS, Streaming, Provider, and TusPlug.
 - Applied patch/minor dependency hygiene with green unit and parity tests.
@@ -18,6 +44,7 @@
 **Assessment thread for v1.13+:** `.planning/threads/2026-05-27-post-v112-milestone-assessment.md`
 
 **Archive:**
+
 - `.planning/milestones/v1.12-ROADMAP.md`
 - `.planning/milestones/v1.12-REQUIREMENTS.md`
 - `.planning/milestones/v1.12-MILESTONE-AUDIT.md`
@@ -34,9 +61,11 @@
 
 - Shipped tus checksum, creation-defer-length, and concatenation extensions in
   `TusPlug` with Local/S3/GCS backing.
+
 - Closed guide parity and Phoenix truth parity gates for extension vocabulary.
 - Extended generated-app tus install-smoke lane with extension evidence in
   `tmp/install_smoke_tus_last_run.json`.
+
 - Polished `Rindle.LiveView.allow_tus_upload/4` helper seam and proof alignment.
 
 **Known deferred items at close:** IETF RUFH / tus 2.0, GCS-as-tus-backend,
@@ -44,6 +73,7 @@ standalone tus JS client, richer uploader abstractions, second streaming provide
 `cancel_direct_upload/1`, admin/bulk erasure orchestration, force-delete semantics.
 
 **Archive:**
+
 - `.planning/milestones/v1.11-MILESTONE-AUDIT.md`
 - `.planning/milestones/v1.11-REQUIREMENTS.md` (when archived at v1.12 close)
 - `.planning/milestones/v1.11-ROADMAP.md` (when archived at v1.12 close)
@@ -62,6 +92,7 @@ standalone tus JS client, richer uploader abstractions, second streaming provide
 - Generated-app tus/Mux proof lanes and MinIO-backed integration evidence.
 
 **Archive:**
+
 - `.planning/milestones/v1.8-ROADMAP.md`
 - `.planning/milestones/v1.8-REQUIREMENTS.md`
 - `.planning/milestones/v1.8-MILESTONE-AUDIT.md`
@@ -79,15 +110,19 @@ standalone tus JS client, richer uploader abstractions, second streaming provide
 - Turned account deletion into a supported lifecycle surface with
   `Rindle.preview_owner_erasure/2` and `Rindle.erase_owner/2` instead of a
   hand-rolled `detach/3` plus maintenance workaround.
+
 - Froze one stable public report vocabulary around
   `attachments_to_detach`, `assets_to_purge`, and
   `retained_shared_assets`, including explicit no-op and purge-enqueue
   semantics.
+
 - Shipped a shared preview/execute planner that detaches owner attachment rows
   transactionally and only enqueues async purge when assets become newly
   orphaned.
+
 - Hardened the final destructive boundary so `PurgeStorage` re-checks live
   attachments and skips deletion when a shared asset still has surviving use.
+
 - Closed hermetic proof, canonical adopter proof, docs parity, and planning
   truth so the repo now tells one owner-erasure story end to end.
 
@@ -99,6 +134,7 @@ richer reusable uploader component abstractions, a second streaming provider,
 force-delete semantics for still-shared assets.
 
 **Archive:**
+
 - `.planning/milestones/v1.10-ROADMAP.md`
 - `.planning/milestones/v1.10-REQUIREMENTS.md`
 - `.planning/milestones/v1.10-MILESTONE-AUDIT.md`
@@ -116,14 +152,18 @@ force-delete semantics for still-shared assets.
 - Truth-aligned the active planning and guide surface so the shipped Phoenix
   tus seam is named explicitly instead of being obscured by stale deferred
   wording.
+
 - Locked the supported `Rindle.LiveView.allow_tus_upload/4` helper contract,
   canonical `uploader: "RindleTus"` client flow, and honest
   `uploading` / `verifying` / `ready` / `error` state vocabulary.
+
 - Promoted the generated-app tus lane into a Phoenix / LiveView proof that
   starts from the helper seam and still converges through
   `consume_uploaded_entries/3` and `verify_completion/2`.
+
 - Added fast parity gates so guide, helper seam, and proof metadata drift fail
   early instead of surfacing only in heavy proof runs or milestone audit.
+
 - Rebuilt the missing verification chain for Phases 48-50 and reconciled the
   v1.9 audit, requirements, validation, roadmap, and state metadata for clean
   closeout.
@@ -135,6 +175,7 @@ richer reusable uploader component abstractions, first-class account erasure,
 a second streaming provider, and `cancel_direct_upload/1`.
 
 **Archive:**
+
 - `.planning/milestones/v1.9-ROADMAP.md`
 - `.planning/milestones/v1.9-REQUIREMENTS.md`
 - `.planning/milestones/v1.9-MILESTONE-AUDIT.md`
@@ -159,6 +200,7 @@ a second streaming provider, and `cancel_direct_upload/1`.
 **Known deferred items at close:** Browser → Mux direct creator upload (`MUX-20..23`) remains deferred to `v1.8+`; tus resumable protocol (`TUS-01..19`) remains the locked `v1.8` candidate; advisory Phase 34/35 code-review polish remains available for future cleanup.
 
 **Archive:**
+
 - `.planning/milestones/v1.7-ROADMAP.md`
 - `.planning/milestones/v1.7-REQUIREMENTS.md`
 - `.planning/milestones/v1.7-MILESTONE-AUDIT.md`
@@ -190,6 +232,7 @@ a second streaming provider, and `cancel_direct_upload/1`.
 **Known deferred items at close:** 5 Phase 36 UAT scenarios (CI-only by design — cassette PR run, mux-soak real-Mux, HexDocs publish wire, fork-secret boundary, generated-app cassette test); ~25 Warning + Info findings across Phases 34/35 routed to v1.7 polish via `/gsd-code-review --fix`. **Phase 36's 3 BLOCKER + 10 WARNING review findings (CR-01/02/03 + WR-01..WR-10) were resolved pre-close** in commits `8b291c1`–`c901124`; REVIEW.md `status: fixes_applied`. (See STATE.md `## Deferred Items`.)
 
 **Archive:**
+
 - `.planning/milestones/v1.6-ROADMAP.md`
 - `.planning/milestones/v1.6-REQUIREMENTS.md`
 

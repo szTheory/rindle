@@ -1,58 +1,54 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.13
-milestone_name: Cancel Direct Upload
-status: executing
-last_updated: "2026-05-27T16:11:15.432Z"
-last_activity: 2026-05-27
+milestone: none
+milestone_name: null
+status: Awaiting next milestone
+last_updated: "2026-05-27T16:30:00.000Z"
+last_activity: 2026-05-27 — Milestone v1.13 completed and archived
 progress:
-  total_phases: 3
-  completed_phases: 3
-  total_plans: 8
-  completed_plans: 8
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md
+See: .planning/PROJECT.md (updated 2026-05-27)
 
 **Core value:** Media, made durable.
-**Current focus:** Phase 66 — proof-adopter-guidance
+**Current focus:** Planning next milestone
 
 ## Current Position
 
-Phase: 66
-Plan: Not started
-Status: Executing Phase 66
-Last activity: 2026-05-27
-
-Progress: [░░░░░░░░░░] 0%
+Phase: —
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-05-27 — Milestone v1.13 completed and archived
 
 ## Current Milestone
 
-- **Active:** `v1.13 Cancel Direct Upload`
+- **Active:** none
+- **Last shipped:** `v1.13 Cancel Direct Upload` (2026-05-27)
 - **Prior shipped:** `v1.12 Adopter Truth & Maintenance Hygiene` (2026-05-27)
 - **Assessment thread:** `.planning/threads/2026-05-27-post-v112-milestone-assessment.md`
 
 ## Next Step
 
-**Phase 65: Mux cancel implementation** — Ship `Streaming.cancel_direct_upload/1`
-and Mux adapter wiring using the Phase 64 contract and persistence.
-
-`/gsd-plan-phase 65` or `/gsd-execute-phase 65`
+Start the next milestone with `/gsd-new-milestone` (questioning → research →
+requirements → roadmap).
 
 ## Accumulated Context
 
-- Rindle is roughly **94%** done for its stated mission (90-95% near-done band).
-- Core adopter story shipped through v1.11; v1.12 closed planning/support-truth drift.
-- **Do not** re-sequence tus, Mux direct upload create, or owner erasure in v1.13.
-- Mux SDK already exposes `Mux.Video.Uploads.cancel/2`; create path does not yet
-  persist `upload_id` on `media_provider_assets`.
-
-- FSM today: `uploading → processing | errored` only; cancel needs a terminal edge.
+- Rindle is roughly **95%** done for its stated mission (90–95% near-done band).
+- Core adopter story shipped through v1.11; v1.12 closed planning/support-truth
+  drift; v1.13 shipped Mux direct-upload cancel (`cancel_direct_upload/1`).
+- **Do not** re-sequence tus, Mux direct upload create/cancel, or owner erasure
+  without explicit new milestone scope.
+- Enter maintenance / demand-driven mode until concrete pull for v1.14+ wedges.
 
 ## Blockers/Concerns
 
@@ -72,4 +68,8 @@ and Mux adapter wiring using the Phase 64 contract and persistence.
 
 ## Session Continuity
 
-Last session: 2026-05-27T16:02:54.963Z
+Last session: 2026-05-27 — v1.13 milestone archive complete
+
+## Operator Next Steps
+
+- Start the next milestone with `/gsd-new-milestone`

@@ -1,30 +1,28 @@
 # Rindle
 
-## Current Milestone: v1.13 Cancel Direct Upload
+## Current Milestone
 
-**Goal:** Close the remaining Mux direct-upload control gap with a narrow,
-demand-validated `cancel_direct_upload/1` surface.
-
-**Target features:**
-- `Rindle.Streaming.cancel_direct_upload/1` public API (by `asset_id`)
-- Mux provider adapter via `Mux.Video.Uploads.cancel/2`
-- Persist provider `upload_id` at create for cancel correlation
-- Hermetic + integration tests and guide note on cancel semantics
+**None active** — v1.13 shipped 2026-05-27. Start the next milestone with
+`/gsd-new-milestone` after assessment.
 
 ## Current State
 
-Phase 65 complete (2026-05-27): Mux cancel shipped end-to-end —
-`Rindle.Streaming.cancel_direct_upload/1` with FSM-first orchestration, Mux
-adapter via `Uploads.cancel/2`, and hermetic tests. Phase 64 contract/persistence
-prerequisites remain unchanged.
+Milestone `v1.13 Cancel Direct Upload` shipped on `2026-05-27` (Phases 64–66,
+6/6 requirements validated). Adopters can abort an abandoned Mux direct creator
+upload via `Rindle.Streaming.cancel_direct_upload/1` using the `asset_id` from
+`create_direct_upload/2`. Create path persists `provider_upload_id`; FSM supports
+terminal cancel edges; Mux adapter calls `Mux.Video.Uploads.cancel/2` with
+idempotent 403/404 handling; proof and guide parity are frozen in CI.
 
-Milestone `v1.12 Adopter Truth & Maintenance Hygiene` shipped on `2026-05-27`
-(Phases 60-63, 6/6 requirements validated). v1.13 scopes the pre-ranked
-demand wedge from
-`.planning/threads/2026-05-27-post-v112-milestone-assessment.md`.
+Prior milestone `v1.12 Adopter Truth & Maintenance Hygiene` shipped the same day.
+Rindle is roughly **95%** done for its stated mission (90–95% near-done band).
+
+**Next demand-driven wedges (v1.14+ only when pulled):** admin/bulk owner-erasure
+orchestration, force-delete for still-shared assets, second streaming provider.
 
 Do not reopen tus protocol, owner-erasure facade, or broader Mux surfaces beyond
-cancel. Keep shared-asset safety and maintenance-vs-owner-erasure boundaries intact.
+what v1.13 shipped. Keep shared-asset safety and maintenance-vs-owner-erasure
+boundaries intact.
 
 ## Recently Shipped Milestone
 
@@ -280,9 +278,21 @@ To keep this posture durable across GSD workflows:
   for image-only profiles — v1.7 (Phase 37) (GCS-01..04). Live-bucket proof is
   accepted CI automation via `gcs-soak` (`ci_verified`), not manual follow-up.
 
+- ✓ `Rindle.Streaming.cancel_direct_upload/1` public API by `asset_id` with
+  idempotent re-cancel and frozen error vocabulary — v1.13 (Phases 64–65)
+  (CANCEL-01, CANCEL-02)
+- ✓ `create_direct_upload/2` persists provider `upload_id` with invariant-14
+  redaction — v1.13 (Phase 64) (CANCEL-03)
+- ✓ Mux adapter `cancel_direct_upload/1` via `Mux.Video.Uploads.cancel/2` and
+  terminal FSM transition — v1.13 (Phase 65) (CANCEL-04)
+- ✓ Hermetic cancel proof matrix and streaming integration coverage — v1.13
+  (Phase 66) (PROOF-01)
+- ✓ `guides/streaming_providers.md` cancel semantics and Mux-only scope — v1.13
+  (Phase 66) (TRUTH-01)
+
 ### Active
 
-**v1.13 Cancel Direct Upload** — `CANCEL-01..04`, `PROOF-01`, `TRUTH-01`.
+_None — define requirements for the next milestone via `/gsd-new-milestone`._
 
 Deferred to v1.14+ or out of scope: IETF RUFH (tus 2.0), GCS-as-tus-backend,
 a Rindle-owned standalone tus JS client package, generic uploader UI kits beyond
@@ -325,9 +335,9 @@ for non-streaming adopters. The single-provider rule keeps the abstraction
 honest; v1.7+ adapters (GCS, second streaming provider) become contract tests.
 
 **Current milestone setup:** Core JTBD shipped through v1.11; v1.12 closed
-planning/support-truth drift. v1.13 closes the named Mux direct-upload control
-hole (`cancel_direct_upload/1`). Remaining gaps after v1.13 are bulk erasure
-orchestration and other demand-driven wedges.
+planning/support-truth drift; v1.13 closed the Mux direct-upload cancel control
+gap. Remaining gaps are bulk erasure orchestration and other demand-driven
+wedges — enter maintenance / demand-driven mode until concrete pull arrives.
 
 **Reference implementations:**
 - Rails Active Storage: attachment/blob ownership patterns, redirect-style
@@ -429,8 +439,29 @@ orchestration and other demand-driven wedges.
 | Browser→Mux direct creator upload is shipped in v1.8 and should not be treated as a carried-forward candidate | Public streaming entrypoints, LiveView wrapper, provider support, tests, and adopter docs are already in the tree; remaining streaming follow-on work is narrower (`cancel_direct_upload/1`, second-provider demand) | ✓ Validated in v1.8 / v1.9 boundary assessment |
 | Owner/account erasure in v1.10 uses conservative shared-asset semantics: detach the erased owner's rows, purge only newly orphaned assets, and report retained shared assets explicitly | `attach` / `detach` are slot-scoped while purge is asset-scoped; deleting an asset that still has another live attachment would violate current repo truth and surprise adopters during account deletion | Locked v1.10 |
 | v1.12 is maintenance-only; v1.13+ is demand-driven | At ~93% mission coverage, highest leverage is planning/support-truth hygiene and avoiding speculative tus/platform breadth | Locked v1.12 |
+| Contract-before-implementation for cancel | Freeze types, FSM, persistence, and error vocabulary in Phase 64 before Mux HTTP in Phase 65 | ✓ Good v1.13 |
+| FSM-first cancel orchestration | Conditional `update_all` to terminal state before provider HTTP reduces race windows | ✓ Good v1.13 |
+| Mux-only cancel in v1.13 | Second-provider cancel is a contract extension when explicit demand ships an adapter | Locked v1.13 |
 
 ## Historical Snapshot
+
+<details>
+<summary>v1.13 Cancel Direct Upload (Phases 64–66) — SHIPPED 2026-05-27</summary>
+
+Milestone v1.13 closed the remaining Mux direct-upload control gap. Delivered:
+additive `provider_upload_id` persistence, FSM terminal cancel edges,
+`Rindle.Streaming.cancel_direct_upload/1`, Mux adapter via
+`Mux.Video.Uploads.cancel/2`, hermetic PROOF-01 matrix, and TRUTH-01 guide/docs
+parity with install-smoke enforcement.
+
+Full artifacts live in:
+
+- [.planning/milestones/v1.13-ROADMAP.md](.planning/milestones/v1.13-ROADMAP.md)
+- [.planning/milestones/v1.13-REQUIREMENTS.md](.planning/milestones/v1.13-REQUIREMENTS.md)
+- [.planning/milestones/v1.13-MILESTONE-AUDIT.md](.planning/milestones/v1.13-MILESTONE-AUDIT.md)
+
+</details>
+
 
 <details>
 <summary>v1.8 Resumable Browser Ingest (Phases 42–47) — SHIPPED 2026-05-25</summary>
@@ -587,4 +618,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-27 — Phase 65 Mux cancel implementation complete.*
+*Last updated: 2026-05-27 after v1.13 milestone archive.*

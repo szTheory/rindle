@@ -2,6 +2,74 @@
 
 ---
 
+## Milestone: v1.13 — Cancel Direct Upload
+
+**Shipped:** 2026-05-27
+**Phases:** 3 (64–66) | **Plans:** 8
+
+### What Was Built
+
+- Additive `provider_upload_id` column on `media_provider_assets` with partial
+  unique index and Inspect redaction (security invariant 14).
+- FSM terminal cancel edges from `pending`/`uploading` to `deleted`.
+- `create_direct_upload/2` persists provider upload handle without changing the
+  public return map.
+- Frozen `cancel_direct_upload/1` types, error vocabulary, and optional Provider
+  callback before implementation landed.
+- Mux Client/HTTP `Uploads.cancel/2` with 403/404 idempotency at the HTTP layer.
+- `Rindle.Streaming.cancel_direct_upload/1` with FSM-first conditional
+  `update_all` before provider HTTP.
+- PROOF-01 hermetic matrix (Bypass HTTP + ClientMock edge cases).
+- TRUTH-01 cancel section in `guides/streaming_providers.md` with install-smoke
+  docs parity test.
+
+### What Worked
+
+- **Contract-before-implementation (Phase 64):** Freezing types, FSM, persistence,
+  and errors before Mux HTTP reduced integration churn in Phase 65.
+- **FSM-first orchestration:** Conditional DB transition before provider cancel
+  HTTP gives a clear race story and testable intermediate states.
+- **Narrow milestone scope:** Three phases, six requirements, one provider —
+  shipped in a single day without scope creep into tus or second-provider work.
+- **Audit passed before close:** v1.13 milestone audit (`passed`, 6/6) gave
+  confidence to archive without gap-closure phases.
+
+### What Was Inefficient
+
+- **Nyquist partial on phases 64 and 66:** VALIDATION artifacts exist but are not
+  fully green; acceptable at close but would benefit from `/gsd-validate-phase`
+  if validation hygiene matters for future audits.
+- **Assessment thread lag:** Post-v1.12 assessment recommended *not* opening v1.13
+  proactively; demand materialized quickly — thread status should be updated when
+  scope changes.
+
+### Patterns Established
+
+- **Contract slice then adapter slice:** Public boundary + persistence + FSM in
+  one phase; provider HTTP + orchestration in the next; proof + docs in the third.
+- **HTTP-layer idempotency for Mux 403/404:** Treat already-cancelled uploads as
+  `:ok` at `Mux.HTTP` before adapter normalization.
+- **Install-smoke docs parity for streaming cancel:** Substring parity test locks
+  guide language to shipped API surface.
+
+### Key Lessons
+
+- A pre-ranked demand wedge (`cancel_direct_upload/1`) can ship as a tight
+  three-phase milestone when contract, implementation, and proof are sequenced
+  explicitly.
+- Mux-only scope in v1.13 keeps the Provider callback honest; defer
+  second-provider cancel until an adapter exists.
+- Cosmetic tech debt (`@typedoc` "ships Phase 65") is cheap to fix post-ship;
+  document in audit rather than blocking close.
+
+### Cost Observations
+
+- Timeline: 1 day (2026-05-27)
+- Git: ~23 commits, ~761 LOC in `.ex`/`.exs` for the cancel lane
+- Notable: Full milestone (3 phases, 8 plans) closed same day as v1.12 archive
+
+---
+
 ## Milestone: v1.2 — First Hex Publish
 
 **Shipped:** 2026-04-29
