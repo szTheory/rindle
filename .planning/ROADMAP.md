@@ -38,7 +38,9 @@
 3. JTBD-MAP anchor reflects v1.16 shipped boundary (verified, not assumed)
 4. PROJECT.md and STATE.md describe v1.17 charter and v1.18+ demand gates consistently
 
-**Plans:** TBD (`/gsd-plan-phase 78`)
+**Plans:** 2/2 complete
+- [x] 78-01: TRUTH-06 thread truth (assessment + path-to-done)
+- [x] 78-02: PLAN-02 JTBD anchor + charter alignment + verification closure
 
 ---
 

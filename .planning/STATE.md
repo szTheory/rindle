@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.17
 milestone_name: milestone
-status: executing
-last_updated: "2026-05-27T21:13:19.508Z"
-last_activity: 2026-05-27 -- Phase 78 planning complete
+status: Phase 78 complete
+last_updated: "2026-05-27T21:45:00.000Z"
+last_activity: 2026-05-27 — Phase 78 Assessment & Planning Truth complete
 progress:
   total_phases: 2
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 0
-  percent: 0
+  completed_plans: 2
+  percent: 50
 ---
 
 # Project State
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-27)
 
 **Core value:** Media, made durable.
-**Current focus:** v1.17 Adopter-Confidence Hygiene (planning truth + CI policy closure)
+**Current focus:** Phase 78 — assessment-planning-truth
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Ready to execute
-Last activity: 2026-05-27 -- Phase 78 planning complete
+Phase: 78 — Assessment & Planning Truth (complete)
+Plan: 78-02 complete
+Status: Phase 78 complete; Phase 79 next
+Last activity: 2026-05-27 — Phase 78 Assessment & Planning Truth complete
 
 ## Current Milestone
 
@@ -40,13 +40,7 @@ Last activity: 2026-05-27 -- Phase 78 planning complete
 
 ## Next Step
 
-**Phase 78: Assessment & Planning Truth** — fix post-v116 thread drift; verify JTBD anchor
-
-After context clear:
-
-`/gsd-discuss-phase 78` — gather context and clarify approach
-
-Also: `/gsd-plan-phase 78` — skip discussion, plan directly
+**Phase 79: CI Static-Analysis Policy Closure** — record Credo/Dialyzer severity decision (CI-04)
 
 ## Accumulated Context
 
