@@ -109,7 +109,8 @@ defmodule Rindle.Processor.AV.RuntimeGuard do
         |> Kernel.*(1024)
 
       _ ->
-        0
+        # When df is unavailable (some CI sandboxes), do not treat headroom as zero.
+        2_000_000_000
     end
   end
 

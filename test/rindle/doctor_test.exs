@@ -53,7 +53,6 @@ defmodule Rindle.DoctorTest do
               ],
               exit_on_failure?: false,
               probe: fn -> :ok end,
-              env: %{},
               oban_config: [
                 repo: Rindle.Repo,
                 queues: [
