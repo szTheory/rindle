@@ -1,7 +1,7 @@
 # Path-to-Done Roadmap (v1.17+ boundary)
 
 Date: 2026-05-27
-Status: active (canonical multi-milestone ordering)
+Status: canonical (v1.17 shipped 2026-05-27; multi-milestone ordering reference)
 Supersedes: none (extends post-v116 assessment with milestone sequence)
 
 ## Framing
@@ -31,7 +31,8 @@ Parallel inspection confirmed (code, not docs alone):
 **Doc drift note (resolved 2026-05-27, Phase 78):** Post-v116 assessment stale phrases
 at § Done estimate L30, § Rough edges L63, and § Optional micro L81 corrected. Source
 of truth: `.github/workflows/ci.yml` and `RUNNING.md` `## CI lane severity`. Credo/Dialyzer
-merge-blocking **decision** remains Phase 79 (CI-04).
+advisory policy **recorded** in Phase 79 (CI-04, 2026-05-27); see `RUNNING.md`
+`### Static analysis policy (CI-04)`.
 
 ## Mission-complete definition
 
@@ -48,10 +49,10 @@ Long-tail polish (TRANS-01, PRIV-01) is **not required** for mission complete.
 
 ## Multi-milestone sequence
 
-### Milestone v1.17 (current): Adopter-Confidence Hygiene — Branch C
+### Milestone v1.17 (shipped 2026-05-27): Adopter-Confidence Hygiene — Branch C
 
-- **Status:** Active (2026-05-27; maintainer choice)
-- **Work:** Phase 78 planning truth (TRUTH-06, PLAN-02) + Phase 79 CI-04 policy decision
+- **Status:** Shipped (Phases 78–79 complete; 3/3 requirements)
+- **Work:** Phase 78 planning truth (TRUTH-06, PLAN-02) + Phase 79 CI-04 policy record
 - **Phases:** ROADMAP 78–79 only; Branch A/B phase numbers below are hypothetical alternatives
 - **Done enough:** Threads + JTBD anchor current; Credo/Dialyzer decision recorded (Phase 79)
 - **Do NOT:** Add public API or speculative feature work
@@ -108,7 +109,7 @@ Long-tail polish (TRANS-01, PRIV-01) is **not required** for mission complete.
 - CI: `:mux` install-smoke only; need second profile mode + optional soak lane
 - Cancel: Mux-only in v1.13; provider-agnostic cancel deferred to STREAM-10
 
-#### Branch C: `v1.17 Adopter-Confidence Hygiene` (selected — active)
+#### Branch C: `v1.17 Adopter-Confidence Hygiene` (selected — shipped 2026-05-27)
 
 **Trigger:** Maintainer choice 2026-05-27; no public API
 
@@ -179,8 +180,8 @@ Reuse in LIFE-06 and STREAM-10 milestones:
 
 **Finish the last important wedges on demand — mostly stop proactive feature work.**
 
-Default maintainer action: **complete v1.17 Branch C (Phases 78–79)**, then return to
-demand-gated pause unless compliance ticket (LIFE-06) or named adopter (STREAM-10) arrives.
+Default maintainer action: **v1.17 Branch C shipped (Phases 78–79, 2026-05-27)** — demand-gated
+pause active unless compliance ticket (LIFE-06) or named adopter (STREAM-10) arrives.
 
 ## Evidence pointers
 
