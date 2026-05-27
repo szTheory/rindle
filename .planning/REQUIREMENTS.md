@@ -1,10 +1,30 @@
 # Requirements: Rindle
 
 **Defined:** 2026-05-27
-**Milestone:** v1.15 Maintenance & Proof Honesty
+**Milestone:** v1.16 CI Enforcement & Planning Hygiene (gap closure)
 **Core Value:** Media, made durable.
 
-## v1.15 Requirements
+## v1.16 Requirements
+
+Gap-closure milestone from [v1.15 audit](milestones/v1.15-MILESTONE-AUDIT.md). No new public feature surface. Execute phases **77 → 76 → 75**.
+
+### CI Proof Enforcement
+
+- [ ] **CI-03**: Dedicated merge-blocking `proof` CI job runs `docs_parity_test.exs` and
+      `batch_owner_erasure_task_test.exs`; adopter partial doc grep removed; `RUNNING.md`
+      matrix updated.
+
+### Support Truth
+
+- [ ] **TRUTH-05**: `docs_parity_test.exs` locks TusPlug moduledoc scope via `Code.fetch_docs/1`
+      contract test; `@moduledoc` interpolates `@tus_extensions` (single source of truth).
+
+### Planning Truth
+
+- [ ] **PLAN-01**: v1.15 Nyquist metadata closure (phases 71–72 VALIDATION rows) and
+      `STATE.md` position block aligned to shipped / between-milestones truth.
+
+## v1.15 Requirements (shipped)
 
 Maintenance-only milestone. No new public feature surface.
 
@@ -60,6 +80,9 @@ Deferred to v1.16+ (demand-gated):
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
+| CI-03 | Phase 75 | Pending |
+| TRUTH-05 | Phase 76 | Pending |
+| PLAN-01 | Phase 77 | Pending |
 | CI-01 | Phase 71 | Complete |
 | CI-02 | Phase 71 | Complete |
 | PROOF-06 | Phase 72 | Complete |
@@ -69,10 +92,11 @@ Deferred to v1.16+ (demand-gated):
 
 **Coverage:**
 
-- v1.15 requirements: 6 total
-- Mapped to phases: 6
+- v1.16 requirements: 3 total
+- Mapped to phases: 3
 - Unmapped: 0 ✓
+- v1.15 requirements: 6 total (all complete)
 
 ---
 *Requirements defined: 2026-05-27*
-*Last updated: 2026-05-27 after milestone v1.15 roadmap creation*
+*Last updated: 2026-05-27 after v1.16 gap closure phases (75–77)*

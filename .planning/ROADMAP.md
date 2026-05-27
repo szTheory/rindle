@@ -2,6 +2,7 @@
 
 ## Milestones
 
+- **v1.16 CI Enforcement & Planning Hygiene** — Phases 75–77 (gap closure from [v1.15 audit](milestones/v1.15-MILESTONE-AUDIT.md); **execute order: 77 → 76 → 75**)
 - ✅ **v1.15 Maintenance & Proof Honesty** — Phases 71–74 (shipped 2026-05-27, [audit](milestones/v1.15-MILESTONE-AUDIT.md))
 - ✅ **v1.14 Bulk Owner-Erasure Orchestration** — Phases 67–70 (shipped 2026-05-27, [archive](milestones/v1.14-ROADMAP.md))
 - ✅ **v1.13 Cancel Direct Upload** — Phases 64–66 (shipped 2026-05-27, [archive](milestones/v1.13-ROADMAP.md))
@@ -20,6 +21,64 @@
 - ✅ **v1.0 MVP** — Phases 1–5 (shipped 2026-04-xx, [archive](milestones/v1.0-ROADMAP.md))
 
 ## Phases
+
+### Phase 75: Merge-Blocking Proof Lanes
+
+**Goal:** Close the v1.15 automated CI proof path gap with a dedicated merge-blocking `proof` job.
+
+**Requirements:** CI-03
+
+**Gap Closure:** Closes CI-01 integration depth, PROOF-06 integration depth, and "Automated CI proof path" flow gap from v1.15 audit.
+
+**Execute after:** Phases 76–77 (TusPlug parity lock and planning truth should land first).
+
+**Success criteria:**
+
+1. New `proof` job in `ci.yml` runs `docs_parity_test.exs` and `batch_owner_erasure_task_test.exs` merge-blocking (`needs: quality`, Postgres, Elixir 1.17/OTP 27).
+2. Adopter partial doc grep superseded by full docs parity suite (grep block removed; adopter stays lifecycle-only).
+3. `RUNNING.md` CI lane severity matrix documents `proof` as merge-blocking; adopter row no longer claims doc parity.
+4. Post-merge checklist mentions branch protection should require `Proof` alongside `package-consumer` and `adopter`.
+5. `quality` coveralls/dialyzer/credo remain advisory (Phase 71 policy preserved).
+
+---
+
+### Phase 76: TusPlug Doc Parity Lock
+
+**Goal:** Automate TusPlug moduledoc scope regression lock in `docs_parity_test.exs`.
+
+**Requirements:** TRUTH-05
+
+**Gap Closure:** Closes TRUTH-04 integration depth (moduledoc verified manually only).
+
+**Execute after:** Phase 77; **before** Phase 75 (proof job should include the new parity test).
+
+**Success criteria:**
+
+1. `@tus_extensions` interpolated in `@moduledoc` (single source of truth with OPTIONS header).
+2. `docs_parity_test.exs` uses `Code.fetch_docs/1` contract test (token asserts + stale-phrase refutes).
+3. `mix test test/install_smoke/docs_parity_test.exs` green with new TusPlug test.
+4. Runtime OPTIONS truth remains in `tus_plug_test.exs` (no duplication).
+
+---
+
+### Phase 77: Planning Artifact Cleanup
+
+**Goal:** Close v1.15 post-ship planning truth drift (Nyquist metadata + STATE position block).
+
+**Requirements:** PLAN-01
+
+**Gap Closure:** Closes tech-debt items in phases 71, 72, and STATE.md from v1.15 audit.
+
+**Execute first** (docs-only; zero `ci.yml` conflict).
+
+**Success criteria:**
+
+1. `71-VALIDATION.md` — all task rows ✅ green, sign-off complete, `nyquist_compliant: true`.
+2. `72-VALIDATION.md` — `72-01-01` row ✅ green (evidence from `72-VERIFICATION.md`).
+3. `.planning/STATE.md` position block reflects shipped v1.15 / between milestones (no `Plan: Not started`).
+4. Optional: v1.15 audit tech-debt section updated to reflect closure.
+
+---
 
 ### Phase 71: CI Proof Honesty
 
@@ -99,3 +158,4 @@
 
 ---
 *Roadmap created: 2026-05-27 — milestone v1.15*
+*Gap closure phases added: 2026-05-27 — milestone v1.16 (from v1.15 audit)*
