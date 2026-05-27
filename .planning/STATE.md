@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.14
-milestone_name: Bulk Owner-Erasure Orchestration
-status: complete
-last_updated: "2026-05-27T18:00:00.000Z"
+milestone: v1.15
+milestone_name: Maintenance & Proof Honesty
+status: ready_to_build
+last_updated: "2026-05-27T21:00:00.000Z"
 last_activity: 2026-05-27
 progress:
   total_phases: 4
-  completed_phases: 4
-  total_plans: 8
-  completed_plans: 8
-  percent: 100
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -20,31 +20,32 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-27)
 
 **Core value:** Media, made durable.
-**Current focus:** Planning next milestone (`/gsd-new-milestone`)
+**Current focus:** Milestone v1.15 — Maintenance & Proof Honesty
 
 ## Current Position
 
-Phase: —
+Phase: 71 (not started)
 Plan: —
-Status: Milestone v1.14 complete
-Last activity: 2026-05-27
+Status: Ready to build
+Last activity: 2026-05-27 — Milestone v1.15 roadmap created
 
 ## Current Milestone
 
-- **Last shipped:** `v1.14 Bulk Owner-Erasure Orchestration` (2026-05-27)
-- **Previous:** `v1.13 Cancel Direct Upload` (2026-05-27)
-- **Assessment thread:** `.planning/threads/2026-05-27-post-v113-milestone-assessment.md`
+- **Active:** `v1.15 Maintenance & Proof Honesty`
+- **Previous shipped:** `v1.14 Bulk Owner-Erasure Orchestration` (2026-05-27)
+- **Assessment thread:** `.planning/threads/2026-05-27-post-v114-milestone-assessment.md`
 
 ## Next Step
 
-`/gsd-new-milestone` — define v1.15+ scope (questioning → research → requirements → roadmap)
+`/gsd-discuss-phase 71` or `/gsd-plan-phase 71` — CI proof honesty
 
 ## Accumulated Context
 
-- Rindle is roughly **96%** done for its stated mission (90–95% near-done band).
-- v1.14 shipped batch owner-erasure orchestration on top of v1.10 single-owner facade.
+- Rindle is roughly **94–96%** done for its stated mission (90–95% near-done band).
+- v1.15 is maintenance-only — no new public feature surface.
+- JTBD-MAP regen and post-v114 assessment completed pre-milestone.
 
-- **Do not** bundle force-delete, admin UI, or second streaming provider without explicit milestone scope.
+- **Do not** bundle force-delete, admin UI, or second streaming provider into v1.15.
 - **Do not** re-sequence tus, Mux surfaces, or owner-erasure semantics.
 
 ## Blockers/Concerns
@@ -55,8 +56,7 @@ Last activity: 2026-05-27
 
 | Category | Item | Status |
 |----------|------|--------|
-| lifecycle | Force-delete policy for assets with surviving attachments | deferred (v1.15+ demand) |
-| lifecycle | Mix `batch_owner_failed` E2E integration test | deferred (non-blocking tech debt) |
+| lifecycle | Force-delete policy (LIFE-06) | deferred (v1.16+ demand) |
 | streaming | Second provider (Cloudflare/Bunny) | deferred |
 | tus | IETF RUFH / tus 2.0 | deferred |
 | tus | GCS-as-tus-backend / R2-native tus proxying | out of scope |
@@ -67,8 +67,8 @@ Last activity: 2026-05-27
 
 ## Session Continuity
 
-Last session: 2026-05-27 (milestone v1.14 archive)
+Last session: 2026-05-27 (milestone v1.15 charter)
 
 ## Operator Next Steps
 
-- `/gsd-new-milestone` — start next milestone planning
+- `/gsd-plan-phase 71` — CI proof honesty

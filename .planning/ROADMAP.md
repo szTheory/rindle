@@ -2,6 +2,7 @@
 
 ## Milestones
 
+- **v1.15 Maintenance & Proof Honesty** — Phases 71–74 (in progress)
 - ✅ **v1.14 Bulk Owner-Erasure Orchestration** — Phases 67–70 (shipped 2026-05-27, [archive](milestones/v1.14-ROADMAP.md))
 - ✅ **v1.13 Cancel Direct Upload** — Phases 64–66 (shipped 2026-05-27, [archive](milestones/v1.13-ROADMAP.md))
 - ✅ **v1.12 Adopter Truth & Maintenance Hygiene** — Phases 60–63 (shipped 2026-05-27, [archive](milestones/v1.12-ROADMAP.md))
@@ -20,32 +21,65 @@
 
 ## Phases
 
-<details>
-<summary>✅ v1.14 Bulk Owner-Erasure Orchestration (Phases 67–70) — SHIPPED 2026-05-27</summary>
+### Phase 71: CI Proof Honesty
 
-- [x] Phase 67: Bulk erasure policy & contract (2/2 plans) — completed 2026-05-27
-- [x] Phase 68: Batch erasure implementation (2/2 plans) — completed 2026-05-27
-- [x] Phase 69: Operator mix task (2/2 plans) — completed 2026-05-27
-- [x] Phase 70: Proof & adopter guidance (2/2 plans) — completed 2026-05-27
+**Goal:** Document CI lane severity and make highest-signal proof lanes merge-blocking.
 
-Full phase details: [.planning/milestones/v1.14-ROADMAP.md](milestones/v1.14-ROADMAP.md)
+**Requirements:** CI-01, CI-02
 
-</details>
+**Success criteria:**
+1. `RUNNING.md` contains a lane severity matrix (blocking vs advisory vs secret-gated soak).
+2. `package-consumer` job no longer uses job-level `continue-on-error: true`.
+3. `adopter` job no longer uses job-level `continue-on-error: true` (if present).
+4. Workflow comments explain why optional soak lanes remain non-blocking.
 
-<details>
-<summary>✅ v1.13 Cancel Direct Upload (Phases 64–66) — SHIPPED 2026-05-27</summary>
+---
 
-- [x] Phase 64: Cancel contract & persistence (4/4 plans) — completed 2026-05-27
-- [x] Phase 65: Mux cancel implementation (2/2 plans) — completed 2026-05-27
-- [x] Phase 66: Proof & adopter guidance (2/2 plans) — completed 2026-05-27
+### Phase 72: Mix Batch Failure Proof
 
-Full phase details: [.planning/milestones/v1.13-ROADMAP.md](milestones/v1.13-ROADMAP.md)
+**Goal:** Close the v1.14 operator proof gap for partial batch failure via mix task.
 
-</details>
+**Requirements:** PROOF-06
 
-## Deferred to v1.15+ / Later
+**Success criteria:**
+1. Integration test drives `Mix.Tasks.Rindle.BatchOwnerErasure` through a mid-batch failure.
+2. Test asserts partial report printed before exit 1.
+3. Test asserts `batch_owner_failed` error message emitted.
+4. `mix test test/rindle/batch_owner_erasure_task_test.exs` passes.
 
-- Force-delete semantics for still-shared assets
+---
+
+### Phase 73: Nyquist Validation Closure
+
+**Goal:** Bring phases 68–70 validation artifacts to Nyquist-compliant state.
+
+**Requirements:** VAL-01
+
+**Success criteria:**
+1. Phase 68 VALIDATION.md marked Nyquist-compliant or gap-filled.
+2. Phase 69 VALIDATION.md marked Nyquist-compliant or gap-filled.
+3. Phase 70 VALIDATION.md marked Nyquist-compliant or gap-filled.
+4. No open discovery-only Nyquist gaps remain for v1.14 erasure phases.
+
+---
+
+### Phase 74: Support Truth & Milestone Audit
+
+**Goal:** Fix doc drift and close milestone with audit.
+
+**Requirements:** TRUTH-04, AUDIT-01
+
+**Success criteria:**
+1. `guides/operations.md` lists all nine shipped mix tasks accurately.
+2. `Rindle.Upload.TusPlug` moduledoc scope matches implemented extensions.
+3. Milestone audit confirms 6/6 requirements validated.
+4. Planning truth (PROJECT, STATE, JTBD-MAP) aligned post-ship.
+
+---
+
+## Deferred to v1.16+ / Later
+
+- Force-delete semantics for still-shared assets (LIFE-06)
 - Second streaming provider (Cloudflare/Bunny)
 - IETF RUFH / tus 2.0
 - GCS-as-tus-backend / R2-native tus proxying
@@ -58,9 +92,6 @@ Full phase details: [.planning/milestones/v1.13-ROADMAP.md](milestones/v1.13-ROA
 - [.planning/milestones/v1.14-ROADMAP.md](milestones/v1.14-ROADMAP.md)
 - [.planning/milestones/v1.14-REQUIREMENTS.md](milestones/v1.14-REQUIREMENTS.md)
 - [.planning/milestones/v1.14-MILESTONE-AUDIT.md](milestones/v1.14-MILESTONE-AUDIT.md)
-- [.planning/milestones/v1.13-ROADMAP.md](milestones/v1.13-ROADMAP.md)
-- [.planning/milestones/v1.13-REQUIREMENTS.md](milestones/v1.13-REQUIREMENTS.md)
-- [.planning/milestones/v1.13-MILESTONE-AUDIT.md](milestones/v1.13-MILESTONE-AUDIT.md)
-- [.planning/milestones/v1.12-ROADMAP.md](milestones/v1.12-ROADMAP.md)
-- [.planning/milestones/v1.12-REQUIREMENTS.md](milestones/v1.12-REQUIREMENTS.md)
-- [.planning/milestones/v1.12-MILESTONE-AUDIT.md](milestones/v1.12-MILESTONE-AUDIT.md)
+
+---
+*Roadmap created: 2026-05-27 — milestone v1.15*

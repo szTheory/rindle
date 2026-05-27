@@ -1,6 +1,6 @@
 # Rindle — Jobs-To-Be-Done Map & Completeness Frontier
 
-> **Generated:** 2026-05-27 · **Against:** milestone v1.13 (shipped 2026-05-27) · **hex** 0.1.5 · **git** `0e4d091`
+> **Generated:** 2026-05-27 · **Against:** milestone v1.14 (shipped 2026-05-27) · **hex** 0.1.5 · **git** `5bd685c`
 
 Internal strategy artifact. Not published to HexDocs. Its job is to answer three questions
 the adopter-facing [`guides/user_flows.md`](../guides/user_flows.md) deliberately doesn't:
@@ -83,6 +83,7 @@ Status legend: ✅ Shipped · 🟡 Partial (achievable, no first-class surface) 
 | 30 | "Resumable uploads via the tus standard (tus-js-client)." | App dev | ✅ | v1.8–v1.11 | `Rindle.Upload.TusPlug`, `initiate_tus_upload/2`, checksum/concat/defer-length (v1.11) |
 | 31 | "Let creators upload straight to Mux from the browser (no server ingest cost)." | App dev | ✅ | v1.8 | `Rindle.Streaming.create_direct_upload/2`, `Rindle.LiveView.allow_direct_upload/4` |
 | 32 | "Delete *all* media for a user on account deletion (GDPR erasure)." | App dev / Sec | ✅ | v1.10 | `Rindle.preview_owner_erasure/2`, `Rindle.erase_owner/2` (shared-asset semantics) |
+| 38 | "Erase many owners in one orchestrated batch (GDPR/compliance scale)." | App dev / Sec / Operator | ✅ | v1.14 | `Rindle.preview_batch_owner_erasure/2`, `erase_batch_owner_erasure/2`, `mix rindle.batch_owner_erasure` |
 | 37 | "Abort an abandoned Mux direct upload before the browser finishes PUT." | App dev | ✅ | v1.13 | `Rindle.Streaming.cancel_direct_upload/1` (Mux-only) |
 | 33 | "Serve images through on-the-fly signed transforms (arbitrary w/h/format)." | App dev | 🔲 | — | Not built. Named variants only. Design intent: "dynamic transforms opt-in, signed, bounded." |
 | 34 | "Strip EXIF/GPS from originals before serving (privacy)." | Sec | 🟡 | — | Variants drop metadata via `Image`; originals served as-is. No explicit privacy-strip control. |
@@ -101,7 +102,7 @@ stack and progressively less as you climb. **Rindle has fully cleared T0–T2.**
 | **T0 — Table stakes** | upload, store, deliver, attach, render | Mandatory; without it nothing works | ✅ Complete (v1.0) |
 | **T1 — Production-grade** | presigned direct upload, multipart, image variants, signed/private delivery, async processing, day-2 ops, telemetry | Very high — this is the gap most home-grown solutions fall into | ✅ Complete (v1.0–v1.1) |
 | **T2 — Breadth** | video/audio + poster/waveform, S3/GCS/Local, Mux streaming, tus + GCS resumable | High but for a *narrowing* slice of adopters | ✅ Complete (v1.8–v1.11) |
-| **T3 — Coverage / convenience** | bulk erasure orchestration, 2nd streaming provider, force-delete policy, signed dynamic transforms, richer uploader UI | Real, but each helps an increasingly small fraction | 🟡 Demand-driven backlog only (cancel direct upload shipped v1.13) |
+| **T3 — Coverage / convenience** | force-delete policy, 2nd streaming provider, signed dynamic transforms, richer uploader UI | Real, but each helps an increasingly small fraction | 🟡 Demand-driven backlog only (bulk erasure shipped v1.14) |
 | **T4 — Beyond the frontier** | HLS/DASH platform, DRM, AI/GPU, PDF/Office, admin UI, CDN replacement | **Negative** — scope creep, security surface, maintenance, mission drift | ⛔ Excluded by design |
 
 **The diminishing-returns line sits between T3 and T4.** The headline:
@@ -112,31 +113,31 @@ stack and progressively less as you climb. **Rindle has fully cleared T0–T2.**
 > audience than the last. T4 is excluded on purpose, and adding it would make the library
 > worse, not better.
 
-The **core T3 upload/lifecycle flows** (tus, browser→Mux direct upload + cancel, owner erasure)
-shipped in v1.8–v1.13. Marginal *new user flow* per unit of effort now drops sharply. Work
-shifts to **demand-driven T3 gaps** (bulk erasure orchestration, force-delete policy) — not
-speculative breadth. That is the signal to stop chasing new modalities.
+The **core T3 upload/lifecycle flows** (tus, browser→Mux direct upload + cancel, owner erasure,
+batch erasure orchestration) shipped in v1.8–v1.14. Marginal *new user flow* per unit of effort
+now drops sharply. Work shifts to **demand-driven T3 gaps** (maintenance/proof honesty default,
+force-delete policy if compliance-demanded) — not speculative breadth. That is the signal to
+stop chasing new modalities.
 
 ---
 
 ## Ranked gap analysis (highest leverage first)
 
-1. **Admin/bulk owner-erasure orchestration** (job 32 extension, LIFE-05). Single-owner facade
-   shipped in v1.10; multi-owner batch preview/execute remains deferred. High blast radius —
-   policy first. **Active v1.14 milestone wedge.**
+1. **Maintenance / proof honesty** (default v1.15). JTBD regen, `batch_owner_failed` mix E2E,
+   optional Nyquist on phases 68–70, CI lane severity decision. No new public feature surface.
 
-2. **Force-delete semantics** for assets with surviving attachments. Compliance pull only;
-   conflicts with conservative shared-asset contract unless explicitly opt-in. Separate milestone.
+2. **Force-delete semantics** (LIFE-06, job 32 extension). Compliance pull only; conflicts
+   with conservative shared-asset contract unless explicitly opt-in. Separate feature milestone.
 
-3. **Second streaming provider** (Cloudflare/Bunny). Contract test for provider abstraction;
-   explicit adopter demand only.
+3. **Second streaming provider** (STREAM-10, Cloudflare/Bunny). Contract test for provider
+   abstraction; explicit adopter demand only.
 
 4. **Signed dynamic image transforms** (job 33) and **EXIF privacy stripping** (job 34).
    Build only on explicit adopter pull.
 
-*Verified against code on 2026-05-27:* tus + Mux direct + cancel + owner erasure — shipped in
-lib/tests/guides. Bulk orchestration — deferred (moduledoc explicitly excludes). Dynamic
-transforms — still not built.
+*Verified against code on 2026-05-27:* tus + Mux direct + cancel + owner + batch erasure —
+shipped in lib/tests/guides. Force-delete — not built (`OwnerErasure.execute/2` has no
+force-purge path). Dynamic transforms — still not built.
 
 ---
 
@@ -144,17 +145,22 @@ transforms — still not built.
 
 | Priority | Milestone | Why now | Size |
 |---|---|---|---|
-| **Active** | v1.14 Bulk Owner-Erasure Orchestration | Highest-leverage remaining T3 wedge; extends shipped v1.10 facade | ~4 phases |
-| **v1.15+** | Force-delete shared assets (if demanded) | Compliance pull; separate policy milestone | medium |
+| **Default** | v1.15 Maintenance & Proof Honesty | At ~96% mission coverage; trust infrastructure beats new surface | small |
+| **Conditional** | v1.15 Force-Delete Shared Assets (LIFE-06) | Compliance pull only; separate high-blast-radius charter | medium |
 | **v1.15+** | Second streaming provider (if demanded) | Contract test; explicit demand only | large |
-| **then** | *Maintenance + long-tail polish only* | No speculative tus 2.0, uploader kits, or platform scope | ongoing |
+| **then** | *Long-tail polish only* | No speculative tus 2.0, uploader kits, or platform scope | ongoing |
 
-**Stop signal:** core JTBD for the stated mission is shipped (~95%). See
-`.planning/threads/2026-05-27-post-v113-milestone-assessment.md` for v1.14 ranking.
+**Stop signal:** core JTBD for the stated mission is shipped (~94–96%). See
+`.planning/threads/2026-05-27-post-v114-milestone-assessment.md` for v1.15 ranking.
 
 ---
 
 ## What changed since last generation
+
+- **2026-05-27 — v1.14 regeneration (post-ship assessment).** Anchor moved from v1.13 to v1.14
+  (`5bd685c`). Job 38 added (batch owner erasure). Bulk orchestration gap closed (shipped v1.14).
+  Gap rank updated: maintenance is #1 default wedge; force-delete #2 conditional; bulk no longer
+  active. 38 jobs: 34 ✅ shipped, 1 🟡 partial, 1 🔲 backlog, 2 ⛔ out-of-scope.
 
 - **2026-05-27 — v1.13 regeneration.** Anchor moved from v1.11 to v1.13 (`0e4d091`). Job 37
   added (Mux direct-upload cancel). Gap rank updated: v1.12 hygiene and cancel shipped; bulk

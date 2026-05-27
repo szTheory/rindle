@@ -1,21 +1,29 @@
 # Rindle
 
-## Current Milestone
+## Current Milestone: v1.15 Maintenance & Proof Honesty
 
-_Planning next milestone — run `/gsd-new-milestone` to define v1.15+ scope._
+**Goal:** Close v1.14 proof and CI honesty gaps without new public feature surface.
+
+**Target features:**
+- CI lane severity documented; package-consumer and adopter merge-blocking
+- Mix `batch_owner_failed` partial-failure E2E test
+- Nyquist validation closure for phases 68–70
+- Support-truth doc drift fixes (operations.md, TusPlug moduledoc)
 
 ## Current State
 
 Milestone `v1.14 Bulk Owner-Erasure Orchestration` shipped on `2026-05-27`
-(Phases 67–70, 8/8 requirements validated). Rindle is roughly **96%** done for its
-stated mission.
+(Phases 67–70, 8/8 requirements validated). Rindle is roughly **94–96%** done for its
+stated mission (90–95% near-done band).
 
 **v1.14 shipped:** Batch `preview_batch_owner_erasure/2` and
 `erase_batch_owner_erasure/2` on the public facade; `mix rindle.batch_owner_erasure`
 operator CLI; PROOF-05 hermetic proof matrix; TRUTH-03 guide/docs parity.
 
-**Next demand-driven wedges:** force-delete for still-shared assets (separate
-milestone), second streaming provider (explicit demand only).
+**Post-v1.14 assessment (2026-05-27):** Last proactive T3 wedge (bulk orchestration)
+is closed. **Default v1.15 recommendation:** maintenance & proof honesty — no new
+public feature surface unless concrete compliance pull exists. **Conditional feature
+milestone:** force-delete for still-shared assets (LIFE-06, separate charter only).
 
 Do not reopen tus protocol, single-owner/batch erasure semantics, or Mux surfaces
 beyond v1.13. Keep shared-asset safety and maintenance-vs-owner-erasure boundaries
@@ -297,12 +305,11 @@ To keep this posture durable across GSD workflows:
 
 ### Active
 
-_Define requirements for the next milestone via `/gsd-new-milestone`._
+_v1.15 Maintenance & Proof Honesty — see `.planning/REQUIREMENTS.md`._
 
-Deferred to v1.15+ or out of scope: IETF RUFH (tus 2.0), GCS-as-tus-backend,
-a Rindle-owned standalone tus JS client package, generic uploader UI kits beyond
-the supported helper path, a second streaming provider, force-delete semantics
-for still-shared assets (separate milestone from bulk orchestration).
+Deferred to v1.16+ or out of scope: force-delete (LIFE-06), second streaming provider,
+IETF RUFH (tus 2.0), GCS-as-tus-backend, standalone tus JS client, uploader UI kits,
+signed dynamic transforms, EXIF privacy stripping.
 
 ### Out of Scope
 
@@ -339,8 +346,9 @@ AV-enabled lanes. Optional `mux` + `jose` deps preserve zero transitive cost
 for non-streaming adopters. The single-provider rule keeps the abstraction
 honest; v1.7+ adapters (GCS, second streaming provider) become contract tests.
 
-**Current milestone setup:** Core JTBD shipped through v1.14; highest-leverage
-remaining T3 wedge is force-delete for still-shared assets (separate milestone).
+**Current milestone setup:** v1.15 maintenance & proof honesty — trust infrastructure
+after v1.14 closed the last proactive T3 wedge. Force-delete (LIFE-06) and second
+streaming provider remain demand-gated for v1.16+.
 
 **Reference implementations:**
 - Rails Active Storage: attachment/blob ownership patterns, redirect-style
@@ -639,4 +647,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-27 after v1.14 milestone archive*
+*Last updated: 2026-05-27 — milestone v1.15 started*

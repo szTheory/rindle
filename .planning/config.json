@@ -36,6 +36,12 @@
       "assessment_thread": true,
       "regenerate_jtbd_on_ship": true,
       "prefer_repo_inspection": true
+    },
+    "milestone_next_step": {
+      "adopter_lens": true,
+      "parallel_repo_research": true,
+      "retain_threads_and_retrospective": true,
+      "prompts_dir": "prompts/"
     }
   }
 }
