@@ -81,9 +81,7 @@ jobs:
         run: mix deps.get
 
       - name: Install FFmpeg
-        uses: FedericoCarboni/setup-ffmpeg@v3
-        with:
-          ffmpeg-version: release
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
 
       - name: Compile (warnings as errors)
         run: mix compile --warnings-as-errors
@@ -192,9 +190,7 @@ jobs:
         run: mix deps.get
 
       - name: Install FFmpeg
-        uses: FedericoCarboni/setup-ffmpeg@v3
-        with:
-          ffmpeg-version: release
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
 
       - name: Start MinIO
         run: |
@@ -410,9 +406,7 @@ jobs:
           node-version: "20"
 
       - name: Set up FFmpeg
-        uses: FedericoCarboni/setup-ffmpeg@v3
-        with:
-          ffmpeg-version: release
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
 
       - name: Install libvips
         run: sudo apt-get update && sudo apt-get install -y libvips-dev

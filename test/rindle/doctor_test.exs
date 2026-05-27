@@ -1,7 +1,7 @@
 defmodule Rindle.DoctorTest do
   alias Mix.Tasks.Rindle.Doctor
   alias Rindle.Storage.GCS.SigningKeyFixture
-  use ExUnit.Case
+  use ExUnit.Case, async: false
 
   import ExUnit.CaptureIO
 

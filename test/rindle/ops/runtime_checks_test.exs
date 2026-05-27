@@ -1,5 +1,5 @@
 defmodule Rindle.Ops.RuntimeChecksTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
 
   alias Rindle.Ops.RuntimeChecks
   alias Rindle.Storage.Local
