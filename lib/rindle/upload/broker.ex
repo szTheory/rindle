@@ -237,6 +237,62 @@ defmodule Rindle.Upload.Broker do
   end
 
   @doc """
+  Concatenates multiple complete partial tus sessions into a single final session.
+  """
+  @spec concatenate_tus_sessions(module(), [map()], keyword()) :: session_only_result()
+  def concatenate_tus_sessions(profile_module, payloads, opts \\ []) do
+    repo = Config.repo()
+
+    repo.transaction(fn ->
+      sessions_with_length =
+        Enum.map(payloads, fn payload ->
+          session = repo.get(MediaUploadSession, payload["session_id"]) || repo.rollback(:not_found)
+          {session, payload["length"]}
+        end)
+
+      Enum.each(sessions_with_length, fn {session, length} ->
+        unless match?(%{"is_partial" => true}, session.multipart_parts) do
+          repo.rollback(:not_partial)
+        end
+
+        if session.last_known_offset != length or length == nil do
+          repo.rollback(:incomplete_partial)
+        end
+      end)
+
+      total_length = Enum.reduce(sessions_with_length, 0, fn {_, len}, acc -> len + acc end)
+      source_keys = Enum.map(sessions_with_length, fn {s, _} -> s.upload_key end)
+
+      {:ok, %{session: final_session}} =
+        initiate_tus_upload(profile_module, length: total_length)
+
+      {:ok, final_session} =
+        final_session
+        |> MediaUploadSession.changeset(%{upload_length: total_length})
+        |> repo.update()
+
+      adapter = profile_module.storage_adapter()
+
+      # Call Storage.concatenate
+      case adapter.concatenate(final_session.upload_key, source_keys, opts) do
+        {:ok, _result} ->
+          # Immediately mark final session as complete
+          case verify_completion(final_session.id, opts) do
+            {:ok, %{session: completed_session}} -> completed_session
+            {:error, reason} -> repo.rollback(reason)
+          end
+
+        {:error, reason} ->
+          repo.rollback(reason)
+      end
+    end)
+    |> case do
+      {:ok, final_session} -> {:ok, %{session: final_session}}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  @doc """
   Initiates a tus-protocol upload session through the broker-owned lifecycle.
 
   Sibling to `initiate_resumable_session/2` but for the tus (Topology B,

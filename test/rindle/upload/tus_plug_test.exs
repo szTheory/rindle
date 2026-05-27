@@ -225,7 +225,7 @@ defmodule Rindle.Upload.TusPlugTest do
       assert get_resp_header(conn, "tus-resumable") == ["1.0.0"]
 
       assert get_resp_header(conn, "tus-extension") == [
-               "creation,expiration,termination,checksum,creation-defer-length"
+               "creation,expiration,termination,checksum,creation-defer-length,concatenation"
              ]
 
       assert get_resp_header(conn, "tus-max-size") == ["1000000"]
@@ -909,6 +909,100 @@ defmodule Rindle.Upload.TusPlugTest do
       # Offset should not advance
       session = AdopterRepo.get!(MediaUploadSession, sid)
       assert session.last_known_offset == 0
+    end
+  end
+
+  describe "Phase 58 - Concatenation" do
+    test "POST with Upload-Concat: partial creates session with is_partial: true", %{root: root} do
+      opts = opts_for(root)
+      
+      conn =
+        conn(:post, "/uploads/tus")
+        |> put_req_header("upload-concat", "partial")
+        |> put_req_header("upload-length", "10")
+        |> put_req_header("upload-metadata", "filename Y2xpcC5qcGc=")
+        |> TusPlug.call(opts)
+
+      assert conn.status == 201
+      [location] = get_resp_header(conn, "location")
+      token = location |> String.split("/") |> List.last()
+
+      {:ok, payload} = Plug.Crypto.verify(@secret_key_base, @tus_url_salt, token)
+      sid = payload["session_id"]
+      
+      session = AdopterRepo.get!(MediaUploadSession, sid)
+      assert session.multipart_parts["is_partial"] == true
+    end
+
+    test "POST with Upload-Concat: final successfully concatenates partial uploads", %{root: root} do
+      opts = opts_for(root)
+
+      # Create partial 1
+      p1 = conn(:post, "/uploads/tus")
+           |> put_req_header("upload-concat", "partial")
+           |> put_req_header("upload-length", "4")
+           |> TusPlug.call(opts)
+      [l1] = get_resp_header(p1, "location")
+      t1 = l1 |> String.split("/") |> List.last()
+      patch(opts, t1, 0, "1234")
+
+      # Create partial 2
+      p2 = conn(:post, "/uploads/tus")
+           |> put_req_header("upload-concat", "partial")
+           |> put_req_header("upload-length", "4")
+           |> TusPlug.call(opts)
+      [l2] = get_resp_header(p2, "location")
+      t2 = l2 |> String.split("/") |> List.last()
+      patch(opts, t2, 0, "5678")
+
+      # Final concat
+      final = conn(:post, "/uploads/tus")
+              |> put_req_header("upload-concat", "final;#{l1} #{l2}")
+              |> TusPlug.call(opts)
+
+      assert final.status == 201
+      [location] = get_resp_header(final, "location")
+      token = location |> String.split("/") |> List.last()
+
+      {:ok, payload} = Plug.Crypto.verify(@secret_key_base, @tus_url_salt, token)
+      sid = payload["session_id"]
+
+      session = AdopterRepo.get!(MediaUploadSession, sid)
+      assert session.upload_length == 8
+      assert session.state == "completed"
+
+      asset = AdopterRepo.get!(MediaAsset, session.asset_id)
+      assert asset.byte_size == 8
+
+      final_path = Local.path_for(session.upload_key, root: root)
+      assert File.read!(final_path) == "12345678"
+    end
+
+    test "POST with Upload-Concat: final fails if a partial is incomplete", %{root: root} do
+      opts = opts_for(root)
+
+      # Create incomplete partial
+      p1 = conn(:post, "/uploads/tus")
+           |> put_req_header("upload-concat", "partial")
+           |> put_req_header("upload-length", "4")
+           |> TusPlug.call(opts)
+      [l1] = get_resp_header(p1, "location")
+
+      final = conn(:post, "/uploads/tus")
+              |> put_req_header("upload-concat", "final;#{l1}")
+              |> TusPlug.call(opts)
+
+      assert final.status == 400
+    end
+    
+    test "POST with Upload-Concat: final fails with invalid URL", %{root: root} do
+      opts = opts_for(root)
+
+      final = conn(:post, "/uploads/tus")
+              |> put_req_header("upload-concat", "final;http://example.com/invalid_token")
+              |> TusPlug.call(opts)
+
+      assert final.status == 400
     end
   end
 end

@@ -81,7 +81,7 @@ defmodule Rindle.Upload.TusPlug do
 
   @tus_url_salt "rindle:tus:url"
   @tus_version "1.0.0"
-  @tus_extensions "creation,expiration,termination,checksum,creation-defer-length"
+  @tus_extensions "creation,expiration,termination,checksum,creation-defer-length,concatenation"
   @offset_content_type "application/offset+octet-stream"
   # Conservative adopter-overridable default (5 GiB). The only adopter-facing
   # size knob; the PATCH read-loop constants below stay fixed (D-07).
@@ -197,28 +197,92 @@ defmodule Rindle.Upload.TusPlug do
 
   defp handle_post(conn, opts) do
     content_type = upload_metadata_content_type(conn)
+    concat_header = get_req_header(conn, "upload-concat") |> List.first()
 
-    with {:ok, length} <- parse_upload_length(conn),
-         :ok <- check_max_size(length, opts[:max_size]),
-         {:ok, %{session: session, upload_url: location}} <-
-           create_upload_for_path(location_base(conn), opts[:profile],
-             filename: "unknown",
-             expires_in: 3600,
-             secret_key_base: opts[:secret_key_base],
-             actor: opts[:identity_fn].(conn),
-             content_type: content_type,
-             length: length
+    cond do
+      concat_header && String.starts_with?(concat_header, "final;") ->
+        handle_concat_final(conn, concat_header, opts)
+
+      true ->
+        is_partial = concat_header == "partial"
+
+        with {:ok, length} <- parse_upload_length(conn),
+             :ok <- check_max_size(length, opts[:max_size]),
+             {:ok, %{session: session, upload_url: location}} <-
+               create_upload_for_path(location_base(conn), opts[:profile],
+                 filename: "unknown",
+                 expires_in: 3600,
+                 secret_key_base: opts[:secret_key_base],
+                 actor: opts[:identity_fn].(conn),
+                 content_type: content_type,
+                 length: length,
+                 is_partial: is_partial
+               ) do
+          conn
+          |> put_tus_resumable()
+          |> put_resp_header("location", location)
+          |> put_resp_header("upload-expires", http_date(session.expires_at))
+          |> send_resp(201, "")
+          |> halt()
+        else
+          {:error, :invalid_length} -> tus_error(conn, 400, "invalid Upload-Length")
+          {:error, :too_large} -> tus_error(conn, 413, "Upload-Length exceeds Tus-Max-Size")
+          {:error, _reason} -> tus_error(conn, 400, "upload creation failed")
+        end
+    end
+  end
+
+  defp handle_concat_final(conn, concat_header, opts) do
+    "final;" <> urls_string = concat_header
+    urls = String.split(urls_string, " ", trim: true)
+
+    with {:ok, tokens} <- extract_tokens_from_urls(urls),
+         {:ok, payloads} <- verify_tokens_for_concat(tokens, opts),
+         {:ok, %{session: final_session}} <-
+           Broker.concatenate_tus_sessions(opts[:profile], payloads, opts),
+         # No Upload-Length header allowed/parsed for final. The length is the sum of partials.
+         {:ok, upload_url, signed_session} <-
+           sign_and_persist(
+             location_base(conn),
+             final_session,
+             final_session.upload_length,
+             upload_metadata_content_type(conn),
+             opts[:secret_key_base],
+             opts[:identity_fn].(conn),
+             false
            ) do
       conn
       |> put_tus_resumable()
-      |> put_resp_header("location", location)
-      |> put_resp_header("upload-expires", http_date(session.expires_at))
+      |> put_resp_header("location", upload_url)
+      |> put_resp_header("upload-expires", http_date(signed_session.expires_at))
       |> send_resp(201, "")
       |> halt()
     else
-      {:error, :invalid_length} -> tus_error(conn, 400, "invalid Upload-Length")
-      {:error, :too_large} -> tus_error(conn, 413, "Upload-Length exceeds Tus-Max-Size")
-      {:error, _reason} -> tus_error(conn, 400, "upload creation failed")
+      _ -> tus_error(conn, 400, "invalid concatenation request")
+    end
+  end
+
+  defp extract_tokens_from_urls(urls) do
+    tokens =
+      Enum.map(urls, fn url ->
+        url |> String.split("/") |> List.last()
+      end)
+
+    if Enum.all?(tokens, &(&1 != nil and &1 != "")), do: {:ok, tokens}, else: {:error, :invalid_urls}
+  end
+
+  defp verify_tokens_for_concat(tokens, opts) do
+    Enum.reduce_while(tokens, {:ok, []}, fn token, {:ok, acc} ->
+      with {:ok, payload} <- Plug.Crypto.verify(opts[:secret_key_base], @tus_url_salt, token),
+           {:ok, payload} <- check_not_expired(payload) do
+        {:cont, {:ok, [payload | acc]}}
+      else
+        _ -> {:halt, {:error, :invalid_token}}
+      end
+    end)
+    |> case do
+      {:ok, reversed_payloads} -> {:ok, Enum.reverse(reversed_payloads)}
+      error -> error
     end
   end
 
@@ -229,17 +293,18 @@ defmodule Rindle.Upload.TusPlug do
     content_type = Keyword.get(opts, :content_type)
     actor = Keyword.get(opts, :actor, "anonymous")
     secret_key_base = Keyword.fetch!(opts, :secret_key_base)
+    is_partial = Keyword.get(opts, :is_partial, false)
 
     with {:ok, %{session: session}} <-
            Broker.initiate_tus_upload(profile, filename: filename, expires_in: expires_in),
          {:ok, upload_url, signed_session} <-
-           sign_and_persist(base_path, session, length, content_type, secret_key_base, actor) do
+           sign_and_persist(base_path, session, length, content_type, secret_key_base, actor, is_partial) do
       {:ok,
        %{session: signed_session, upload_url: upload_url, expires_at: signed_session.expires_at}}
     end
   end
 
-  defp sign_and_persist(base_path, session, length, content_type, secret_key_base, actor) do
+  defp sign_and_persist(base_path, session, length, content_type, secret_key_base, actor, is_partial) do
     # Token payload is HMAC-signed and tamper-proof, so `length` rides inside it
     # rather than a new column (D-10 budget). HEAD/PATCH read it back on verify.
     payload = %{
@@ -254,12 +319,21 @@ defmodule Rindle.Upload.TusPlug do
     token = Plug.Crypto.sign(secret_key_base, @tus_url_salt, payload)
     location = join_upload_url(base_path, token)
 
-    # Persist ONLY into session_uri so the redacting Inspect applies (invariant 14).
-    session
-    |> MediaUploadSession.changeset(%{
+    attrs = %{
       session_uri: location,
       session_uri_expires_at: session.expires_at
-    })
+    }
+
+    attrs =
+      if is_partial do
+        Map.put(attrs, :multipart_parts, %{"is_partial" => true})
+      else
+        attrs
+      end
+
+    # Persist ONLY into session_uri so the redacting Inspect applies (invariant 14).
+    session
+    |> MediaUploadSession.changeset(attrs)
     |> Config.repo().update()
     |> case do
       {:ok, updated} -> {:ok, location, updated}
@@ -463,11 +537,20 @@ defmodule Rindle.Upload.TusPlug do
   # never nil. `multipart_upload_id` is nullable; Local persists nil. Threaded
   # back in as the prior `state` on the next PATCH.
   defp persist_offset(session, part_state) do
+    new_parts = encode_parts(Map.get(part_state, :parts))
+
+    merged_parts =
+      if new_parts do
+        Map.merge(session.multipart_parts || %{}, new_parts)
+      else
+        session.multipart_parts
+      end
+
     session
     |> MediaUploadSession.changeset(%{
       last_known_offset: part_state.offset,
       multipart_upload_id: Map.get(part_state, :upload_id),
-      multipart_parts: encode_parts(Map.get(part_state, :parts))
+      multipart_parts: merged_parts
     })
     |> Config.repo().update()
   end
