@@ -5,6 +5,7 @@ defmodule Rindle.BatchOwnerErasureTaskTest do
 
   alias Mix.Tasks.Rindle.BatchOwnerErasure, as: Task
   alias Rindle.Domain.MediaAttachment
+  alias Rindle.Test.CountingFailingTxnRepo
   alias Rindle.Test.OwnerErasureBatchFixtures, as: Fixtures
   alias Rindle.Test.OwnerErasureBatchFixtures.User
 
@@ -79,6 +80,41 @@ defmodule Rindle.BatchOwnerErasureTaskTest do
 
     assert_received {:mix_shell, :error, [msg]}
     assert msg =~ "owner"
+  end
+
+  describe "PROOF-06: partial failure" do
+    test "execute prints partial report then batch_owner_failed error and exits 1" do
+      owner1 = %User{id: Ecto.UUID.generate()}
+      owner2 = %User{id: Ecto.UUID.generate()}
+      asset1 = insert_asset("assets/task-partial-1/original.jpg")
+      asset2 = insert_asset("assets/task-partial-2/original.jpg")
+      _attachment1 = insert_attachment(asset1, owner1, "avatar")
+      _attachment2 = insert_attachment(asset2, owner2, "banner")
+      path = write_owners_file!([owner1, owner2])
+
+      CountingFailingTxnRepo.with_counting_repo(2, fn ->
+        assert catch_exit(Task.run(["--owners-file", path, "--execute"])) == {:shutdown, 1}
+
+        assert_received {:mix_shell, :info, ["Batch owner erasure report:"]}
+        assert_received {:mix_shell, :info, [owners_line]}
+        assert owners_line =~ "owners:"
+        assert owners_line =~ "1"
+        refute owners_line =~ "[DRY RUN]"
+
+        assert_received {:mix_shell, :info, [detach_line]}
+        assert detach_line =~ "attachments_to_detach"
+
+        owner_line = "  - #{@owner_type}:#{owner1.id}"
+        assert_received {:mix_shell, :info, [^owner_line]}
+
+        assert_received {:mix_shell, :error, [error_msg]}
+        assert error_msg =~ "Batch owner erasure stopped because owner"
+        assert error_msg =~ "#{@owner_type}:#{owner2.id}"
+        assert error_msg =~ "1 owner(s) completed successfully"
+        assert error_msg =~ "partial_report"
+        assert error_msg =~ "Completed owners remain committed"
+      end)
+    end
   end
 
   test "unknown owner_type module exits 1" do
