@@ -127,6 +127,32 @@ defmodule Rindle.Storage.Local do
   end
 
   @impl true
+  def concatenate(final_key, source_keys, opts) do
+    final_path = path_for(final_key, opts)
+
+    with :ok <- File.mkdir_p(Path.dirname(final_path)),
+         {:ok, out_file} <- File.open(final_path, [:write, :binary]) do
+      try do
+        Enum.each(source_keys, fn src_key ->
+          src_path = path_for(src_key, opts)
+
+          src_path
+          |> File.stream!([], @part_copy_chunk)
+          |> Enum.each(&IO.binwrite(out_file, &1))
+        end)
+      after
+        File.close(out_file)
+      end
+
+      Enum.each(source_keys, fn src_key ->
+        File.rm(path_for(src_key, opts))
+      end)
+
+      {:ok, %{key: final_key}}
+    end
+  end
+
+  @impl true
   def capabilities, do: [:local, :presigned_put, :tus_upload]
 
   @doc """

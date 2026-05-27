@@ -214,6 +214,77 @@ defmodule Rindle.Storage.S3 do
   end
 
   @impl true
+  def concatenate(final_key, source_keys, opts) do
+    with {:ok, bucket} <- bucket(opts),
+         {:ok, %{body: %{upload_id: upload_id}}} <-
+           request(
+             S3.initiate_multipart_upload(bucket, final_key, object_opts(opts)),
+             opts
+           ) do
+      result =
+        source_keys
+        |> Enum.with_index(1)
+        |> Enum.reduce_while({:ok, []}, fn {src_key, part_num}, {:ok, parts} ->
+          with {:ok, %{size: size}} <- head(src_key, opts),
+               range = if(size == 0, do: 0..0, else: 0..(size - 1)),
+               {:ok, response} <-
+                 request(
+                   S3.upload_part_copy(
+                     bucket,
+                     final_key,
+                     bucket,
+                     src_key,
+                     upload_id,
+                     part_num,
+                     range
+                   ),
+                   opts
+                 ),
+               etag when is_binary(etag) <- etag_from_copy_response(response) do
+            {:cont, {:ok, parts ++ [%{part_number: part_num, etag: etag}]}}
+          else
+            nil -> {:halt, {:error, :missing_etag}}
+            {:error, reason} -> {:halt, {:error, reason}}
+          end
+        end)
+
+      case result do
+        {:ok, parts} ->
+          with {:ok, %{body: _}} <-
+                 request(
+                   S3.complete_multipart_upload(
+                     bucket,
+                     final_key,
+                     upload_id,
+                     normalize_parts(parts)
+                   ),
+                   opts
+                 ) do
+            Enum.each(source_keys, fn src_key ->
+              request(S3.delete_object(bucket, src_key), opts)
+            end)
+
+            {:ok, %{key: final_key, bucket: bucket, upload_id: upload_id}}
+          else
+            {:error, reason} ->
+              request(S3.abort_multipart_upload(bucket, final_key, upload_id), opts)
+              {:error, reason}
+          end
+
+        {:error, reason} ->
+          request(S3.abort_multipart_upload(bucket, final_key, upload_id), opts)
+          {:error, reason}
+      end
+    else
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  defp etag_from_copy_response(%{body: %{etag: etag}}), do: etag
+  defp etag_from_copy_response(%{headers: headers}), do: headers |> Enum.into(%{}, fn {k, v} -> {String.downcase(k), v} end) |> Map.get("etag")
+  defp etag_from_copy_response(_), do: nil
+
+  @impl true
   def head(key, opts) do
     with {:ok, bucket} <- bucket(opts) do
       handle_head_response(request(S3.head_object(bucket, key), opts))

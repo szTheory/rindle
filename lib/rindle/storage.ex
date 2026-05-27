@@ -361,6 +361,17 @@ defmodule Rindle.Storage do
             ) :: {:ok, map()} | {:error, term()}
 
   @doc """
+  Combines multiple uploaded chunks into a single final object.
+
+  Required for the tus `Concatenation` extension.
+  """
+  @callback concatenate(
+              final_key :: String.t(),
+              source_keys :: [String.t()],
+              opts :: keyword()
+            ) :: {:ok, map()} | {:error, term()}
+
+  @doc """
   Returns the adapter's supported capability atoms.
 
   Values must come from `t:capability/0`.
@@ -372,5 +383,6 @@ defmodule Rindle.Storage do
                       cancel_resumable_upload: 3,
                       verify_resumable_completion: 3,
                       upload_part_stream: 5,
-                      complete_part_stream: 4
+                      complete_part_stream: 4,
+                      concatenate: 3
 end

@@ -194,6 +194,54 @@ defmodule Rindle.Storage.S3Test do
     assert {:error, :not_found} = S3.head(key, opts)
   end
 
+  @tag :minio
+  @tag skip: @minio_skip_reason
+  test "concatenate/3 correctly merges chunks via UploadPartCopy and deletes sources" do
+    uri = URI.parse(@minio_url)
+    key = "concatenate/#{System.unique_integer([:positive])}-final.bin"
+    src1_key = "concatenate/#{System.unique_integer([:positive])}-src1.bin"
+    src2_key = "concatenate/#{System.unique_integer([:positive])}-src2.bin"
+
+    opts = [
+      bucket: @minio_bucket,
+      aws_config: [
+        access_key_id: @minio_access_key,
+        secret_access_key: @minio_secret_key,
+        scheme: "http://",
+        host: uri.host,
+        port: uri.port,
+        region: @minio_region
+      ]
+    ]
+
+    root =
+      Path.join(System.tmp_dir!(), "rindle-s3-test-concat-#{System.unique_integer([:positive])}")
+
+    File.mkdir_p!(root)
+
+    path1 = Path.join(root, "src1.bin")
+    path2 = Path.join(root, "src2.bin")
+
+    # MinIO requires S3 multipart parts to be at least 5 MiB for UploadPartCopy too
+    File.write!(path1, String.duplicate("a", @multipart_min_part_size))
+    File.write!(path2, "hello world")
+
+    assert {:ok, _} = S3.store(src1_key, path1, opts)
+    assert {:ok, _} = S3.store(src2_key, path2, opts)
+
+    assert {:ok, %{key: ^key}} = S3.concatenate(key, [src1_key, src2_key], opts)
+
+    assert {:ok, %{size: size}} = S3.head(key, opts)
+    assert size == @multipart_min_part_size + 11
+
+    # verify sources are deleted
+    assert {:error, :not_found} = S3.head(src1_key, opts)
+    assert {:error, :not_found} = S3.head(src2_key, opts)
+    
+    assert {:ok, _result} = S3.delete(key, opts)
+    File.rm_rf!(root)
+  end
+
   defp put_part_to_presigned_url(presigned_url, body) do
     request = {String.to_charlist(presigned_url), [], ~c"application/octet-stream", body}
 
