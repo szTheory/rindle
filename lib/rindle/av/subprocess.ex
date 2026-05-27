@@ -9,13 +9,25 @@ defmodule Rindle.AV.Subprocess do
   Runs a command wrapped in MuonTrap with configured cgroups and 4-cap limits.
   """
   def run(cmd, args, opts \\ []) do
+    opts = Keyword.put_new(opts, :use_cgroups, default_use_cgroups?())
     muon_opts = build_opts(opts)
     modified_args = build_args(cmd, args, opts)
     MuonTrap.cmd(cmd, modified_args, muon_opts)
   end
 
+  defp default_use_cgroups? do
+    env = System.get_env("RINDLE_AV_USE_CGROUPS")
+
+    cond do
+      env in ["0", "false", "FALSE"] -> false
+      env in ["1", "true", "TRUE"] -> true
+      true -> Application.get_env(:rindle, __MODULE__, [])[:use_cgroups] != false
+    end
+  end
+
   @doc false
   def build_opts(opts) do
+    opts = Keyword.put_new(opts, :use_cgroups, default_use_cgroups?())
     timeout = Keyword.get(opts, :timeout, Keyword.get(opts, :max_wall_ms, 600_000))
     base = [into: "", stderr_to_stdout: true, timeout: timeout]
 

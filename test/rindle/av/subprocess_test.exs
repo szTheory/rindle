@@ -63,14 +63,19 @@ defmodule Rindle.AV.SubprocessTest do
   end
 
   describe "build_opts/1" do
-    test "configures timeout and cgroups" do
-      opts = Subprocess.build_opts(timeout: 5000)
+    test "configures timeout and cgroups when explicitly enabled on Linux" do
+      opts = Subprocess.build_opts(timeout: 5000, use_cgroups: true)
       assert opts[:timeout] == 5000
 
       if :os.type() == {:unix, :linux} do
         assert opts[:cgroup_base] == "rindle_av"
         assert is_list(opts[:cgroup_controllers])
       end
+    end
+
+    test "omits cgroups in test env by default" do
+      opts = Subprocess.build_opts([])
+      refute Keyword.has_key?(opts, :cgroup_base)
     end
   end
 end

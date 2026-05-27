@@ -212,11 +212,11 @@ defmodule Rindle.InstallSmoke.PackageMetadataTest do
     assert workflow =~ "guides/release_publish.md"
   end
 
-  test "release workflow documents the four-job topology near the top", %{
+  test "release workflow documents the dispatch publish topology near the top", %{
     release_workflow: workflow
   } do
     [top | _] = String.split(workflow, "jobs:", parts: 2)
-    assert top =~ "release-please / recovery-validation"
+    assert top =~ "Release Please opens/updates the release PR only"
     assert top =~ "gate-ci-green"
     assert top =~ "publish runs preflight"
     assert top =~ "public_verify"
