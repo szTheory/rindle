@@ -38,6 +38,8 @@
 ### Key Lessons
 
 - Gap-closure milestones should execute planning truth before CI wiring to reduce merge conflicts.
+- Post-milestone assessment thread required at every boundary; see
+  `.planning/threads/2026-05-27-post-v116-milestone-assessment.md` (canonical post-v1.16).
 - Between-milestones STATE posture needs explicit reset at archive — not only at phase close.
 
 ### Cost Observations

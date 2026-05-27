@@ -166,6 +166,13 @@ Discussion + subagent research (2026-05-27) locked all four gray areas with one 
 
 </deferred>
 
+## Graduated learnings (milestone boundary)
+
+- **Post-ship assessment thread** is required at every milestone boundary (not only gap-closure
+  milestones). Canonical post-v1.16:
+  `.planning/threads/2026-05-27-post-v116-milestone-assessment.md`. Enforced via
+  `workflow.milestone_next_step.require_post_ship_assessment` in `.planning/config.json`.
+
 ---
 
 *Phase: 77-planning-artifact-cleanup*

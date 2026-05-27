@@ -35,13 +35,17 @@
     "milestone_boundary": {
       "assessment_thread": true,
       "regenerate_jtbd_on_ship": true,
-      "prefer_repo_inspection": true
+      "prefer_repo_inspection": true,
+      "block_feature_milestone_without_signal": true
     },
     "milestone_next_step": {
       "adopter_lens": true,
       "parallel_repo_research": true,
       "retain_threads_and_retrospective": true,
-      "prompts_dir": "prompts/"
+      "prompts_dir": "prompts/",
+      "demand_gated_default": true,
+      "require_post_ship_assessment": true,
+      "assessment_supersedes_prior_thread": true
     }
   }
 }

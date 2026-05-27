@@ -2,8 +2,11 @@
 
 ## Current Milestone
 
-**Between milestones** — v1.16 shipped 2026-05-27 (Phases 75–77, 3/3 requirements).
-Next milestone TBD (demand-gated; see deferred items in ROADMAP). Start with `/gsd-new-milestone`.
+**Between milestones (demand-gated pause)** — v1.16 shipped 2026-05-27 (Phases 75–77,
+3/3 requirements). **No feature milestone by default.** Open `/gsd-new-milestone` only after
+a concrete wedge is chosen: LIFE-06 (compliance pull), STREAM-10 (named adopter), or
+optional hygiene (no public API). Canonical assessment:
+[post-v116 thread](threads/2026-05-27-post-v116-milestone-assessment.md).
 
 ## Current State
 
@@ -24,7 +27,8 @@ AUDIT-01 milestone audit ([v1.15-MILESTONE-AUDIT.md](milestones/v1.15-MILESTONE-
 **v1.14 shipped:** Batch owner erasure API, operator CLI, PROOF-05 matrix, TRUTH-03
 guide parity (Phases 67–70, 8/8 requirements).
 
-**Post-v1.16:** Maintenance and CI enforcement wedge complete.
+**Post-v1.16:** Maintenance and CI enforcement wedge complete. Default posture: patch/minor
+releases and issue-driven work only until demand signal (see post-v116 assessment).
 
 Do not reopen tus protocol, single-owner/batch erasure semantics, or Mux surfaces
 beyond v1.13. Keep shared-asset safety and maintenance-vs-owner-erasure boundaries
@@ -363,8 +367,12 @@ for non-streaming adopters. The single-provider rule keeps the abstraction
 honest; v1.7+ adapters (GCS, second streaming provider) become contract tests.
 
 **Current milestone setup:** v1.16 closed the v1.15 audit gap-closure wedge (merge-blocking
-proof lane, TusPlug doc parity lock, planning truth hygiene). Rindle is in a between-milestones
-posture at ~94–96% mission coverage. Force-delete (LIFE-06) and second streaming provider
+proof lane, TusPlug doc parity lock, planning truth hygiene). Maintenance/proof honesty is
+complete through v1.16. Rindle is in a between-milestones posture at ~94–96% mission coverage.
+**Default next:** no feature milestone without demand signal (compliance ticket for LIFE-06
+or named adopter for STREAM-10). See
+`.planning/threads/2026-05-27-post-v116-milestone-assessment.md`. Optional micro v1.17
+hygiene (JTBD/CI only) has no new public API. Force-delete and second streaming provider
 remain demand-gated for v1.17+.
 
 **Reference implementations:**
@@ -676,6 +684,8 @@ This document evolves at phase transitions and milestone boundaries.
 2. Core Value check; still the right priority?
 3. Audit Out of Scope; reasons still valid?
 4. Update Context with current state
+5. Write post-ship assessment thread; feature milestones require issue/compliance signal
+   (`workflow.milestone_boundary.block_feature_milestone_without_signal`)
 
 ---
 *Last updated: 2026-05-27 after v1.16 milestone archived*

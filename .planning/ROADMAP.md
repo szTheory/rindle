@@ -45,10 +45,16 @@ Audit: [.planning/milestones/v1.15-MILESTONE-AUDIT.md](milestones/v1.15-MILESTON
 
 </details>
 
+## Between milestones (demand-gated)
+
+No active phases. **Default:** no feature milestone until compliance pull (LIFE-06) or named
+adopter (STREAM-10). Assessment:
+[post-v116](threads/2026-05-27-post-v116-milestone-assessment.md).
+
 ## Deferred to v1.17+ / Later
 
-- Force-delete semantics for still-shared assets (LIFE-06)
-- Second streaming provider (Cloudflare/Bunny)
+- Force-delete semantics for still-shared assets (LIFE-06) — compliance pull only
+- Second streaming provider (Cloudflare/Bunny) — explicit adopter demand only
 - IETF RUFH / tus 2.0
 - GCS-as-tus-backend / R2-native tus proxying
 - Rindle-owned standalone tus JS client package
@@ -65,4 +71,4 @@ Audit: [.planning/milestones/v1.15-MILESTONE-AUDIT.md](milestones/v1.15-MILESTON
 - [.planning/milestones/v1.14-MILESTONE-AUDIT.md](milestones/v1.14-MILESTONE-AUDIT.md)
 
 ---
-*Last updated: 2026-05-27 — milestone v1.16 shipped*
+*Last updated: 2026-05-27 — v1.16 shipped; demand-gated pause (post-v116 assessment)*

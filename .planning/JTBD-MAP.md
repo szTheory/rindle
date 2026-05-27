@@ -1,6 +1,6 @@
 # Rindle — Jobs-To-Be-Done Map & Completeness Frontier
 
-> **Generated:** 2026-05-27 · **Against:** milestone v1.15 (shipped 2026-05-27) · **hex** 0.1.5 · **git** `6ed57cf`
+> **Generated:** 2026-05-27 · **Against:** milestone v1.16 (shipped 2026-05-27) · **hex** 0.1.5 · **git** `3dbf7ab`
 
 Internal strategy artifact. Not published to HexDocs. Its job is to answer three questions
 the adopter-facing [`guides/user_flows.md`](../guides/user_flows.md) deliberately doesn't:
@@ -115,16 +115,17 @@ stack and progressively less as you climb. **Rindle has fully cleared T0–T2.**
 
 The **core T3 upload/lifecycle flows** (tus, browser→Mux direct upload + cancel, owner erasure,
 batch erasure orchestration) shipped in v1.8–v1.14. Marginal *new user flow* per unit of effort
-now drops sharply. Work shifts to **demand-driven T3 gaps** (maintenance/proof honesty default,
-force-delete policy if compliance-demanded) — not speculative breadth. That is the signal to
-stop chasing new modalities.
+now drops sharply. Work shifts to **demand-driven T3 gaps** (force-delete if compliance-demanded,
+second provider or polish only on explicit pull) — not speculative breadth. Maintenance/proof
+honesty shipped v1.15–v1.16. That is the signal to stop chasing new modalities.
 
 ---
 
 ## Ranked gap analysis (highest leverage first)
 
-1. **Maintenance / proof honesty** (default v1.15). JTBD regen, `batch_owner_failed` mix E2E,
-   optional Nyquist on phases 68–70, CI lane severity decision. No new public feature surface.
+1. **Demand-gated pause (default).** No feature milestone unless compliance pull (LIFE-06) or
+   named adopter (STREAM-10). Optional micro hygiene: JTBD anchor refresh, CI unit-suite
+   blocking decision — no new public API.
 
 2. **Force-delete semantics** (LIFE-06, job 32 extension). Compliance pull only; conflicts
    with conservative shared-asset contract unless explicitly opt-in. Separate feature milestone.
@@ -135,9 +136,9 @@ stop chasing new modalities.
 4. **Signed dynamic image transforms** (job 33) and **EXIF privacy stripping** (job 34).
    Build only on explicit adopter pull.
 
-*Verified against code on 2026-05-27:* tus + Mux direct + cancel + owner + batch erasure —
-shipped in lib/tests/guides. Force-delete — not built (`OwnerErasure.execute/2` has no
-force-purge path). Dynamic transforms — still not built.
+*Verified against code on 2026-05-27:* tus + Mux direct + cancel + owner + batch erasure +
+maintenance/proof (v1.15–v1.16) shipped in lib/tests/guides/CI. Force-delete — not built
+(`OwnerErasure.execute/2` has no force-purge path). Dynamic transforms — still not built.
 
 ---
 
@@ -145,17 +146,23 @@ force-purge path). Dynamic transforms — still not built.
 
 | Priority | Milestone | Why now | Size |
 |---|---|---|---|
-| **Default** | v1.15 Maintenance & Proof Honesty | At ~96% mission coverage; trust infrastructure beats new surface | small |
-| **Conditional** | v1.15 Force-Delete Shared Assets (LIFE-06) | Compliance pull only; separate high-blast-radius charter | medium |
-| **v1.15+** | Second streaming provider (if demanded) | Contract test; explicit demand only | large |
+| **Default** | No feature milestone | ~94–96% mission coverage; maintenance wedge complete v1.15–v1.16 | — |
+| **Optional** | v1.17 Planning Truth & Adopter-Confidence | JTBD/CI hygiene only; no public API | small |
+| **Conditional** | v1.17 Force-Delete Shared Assets (LIFE-06) | Compliance pull only; separate high-blast-radius charter | medium |
+| **v1.17+** | Second streaming provider (if demanded) | Contract test; explicit demand only | large |
 | **then** | *Long-tail polish only* | No speculative tus 2.0, uploader kits, or platform scope | ongoing |
 
 **Stop signal:** core JTBD for the stated mission is shipped (~94–96%). See
-`.planning/threads/2026-05-27-post-v114-milestone-assessment.md` for v1.15 ranking.
+`.planning/threads/2026-05-27-post-v116-milestone-assessment.md` for canonical ranking.
 
 ---
 
 ## What changed since last generation
+
+- **2026-05-27 — v1.16 post-ship assessment.** Anchor moved from v1.15 to v1.16
+  (`3dbf7ab`). No new JTBD rows — v1.16 was CI/docs/planning hygiene only. Gap #1
+  updated: maintenance/proof honesty shipped; default next is demand-gated pause.
+  Canonical assessment: `.planning/threads/2026-05-27-post-v116-milestone-assessment.md`.
 
 - **2026-05-27 — v1.15 maintenance (post-ship).** Anchor moved from v1.14 to v1.15
   (`6ed57cf`). No new JTBD rows — maintenance milestone only: CI proof honesty,
