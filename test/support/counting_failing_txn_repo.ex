@@ -21,22 +21,18 @@ defmodule Rindle.Test.CountingFailingTxnRepo do
   end
 
   def transaction(fun) when is_function(fun, 0) do
-    case next_count() do
-      n when n == fail_after() ->
-        {:error, :plan, fail_reason(), %{}}
-
-      _ ->
-        Rindle.Repo.transaction(fun)
+    if next_count() == fail_after() do
+      {:error, :plan, fail_reason(), %{}}
+    else
+      Rindle.Repo.transaction(fun)
     end
   end
 
   def transaction(multi) do
-    case next_count() do
-      n when n == fail_after() ->
-        {:error, :plan, fail_reason(), %{}}
-
-      _ ->
-        Rindle.Repo.transaction(multi)
+    if next_count() == fail_after() do
+      {:error, :plan, fail_reason(), %{}}
+    else
+      Rindle.Repo.transaction(multi)
     end
   end
 
