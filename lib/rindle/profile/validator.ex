@@ -72,7 +72,7 @@ defmodule Rindle.Profile.Validator do
     ingest_mode: [
       type: {:in, [:server_push, :direct_creator_upload]},
       required: true,
-      doc: "Ingest path. `:direct_creator_upload` is reserved for Phase 37."
+      doc: "Ingest path. `:direct_creator_upload` uses browser→Mux direct upload (v1.8+)."
     ],
     source_variant: [
       type: :atom,

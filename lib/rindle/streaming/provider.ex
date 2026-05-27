@@ -52,7 +52,7 @@ defmodule Rindle.Streaming.Provider do
   `:upload_id` is OPTIONAL and populated only by adapter typed branches that
   carry both an upload id and a provider asset id (e.g. Mux's
   `video.upload.asset_created` — see D-29 / D-30, added in Phase 35 as
-  forward-compat for Phase 37 / direct-creator-upload).
+  forward-compat for direct-creator-upload, shipped in v1.8).
   """
   @type provider_event :: %{
           required(:type) => atom(),
@@ -114,8 +114,11 @@ defmodule Rindle.Streaming.Provider do
               {:ok, provider_event()} | {:error, term()}
 
   @doc """
-  OPTIONAL: Mint a direct-creator upload URL the browser can PUT to. Reserved
-  for Phase 37 / v1.7; no v1.6 adapter implements this callback.
+  OPTIONAL: Mint a direct-creator upload URL the browser can PUT to.
+
+  Implemented by `Rindle.Streaming.Provider.Mux` when the profile advertises
+  `:direct_creator_upload`. Adopters typically call `Rindle.Streaming.create_direct_upload/2`
+  or `Rindle.LiveView.allow_direct_upload/4` instead of invoking the callback directly.
   """
   @callback create_direct_upload(profile :: module(), opts :: keyword()) ::
               {:ok,

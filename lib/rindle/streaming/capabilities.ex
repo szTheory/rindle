@@ -4,9 +4,8 @@ defmodule Rindle.Streaming.Capabilities do
   @typedoc """
   Known streaming capability atoms.
 
-  `:direct_creator_upload` is reserved — Phase 33 ships the vocabulary entry,
-  but no v1.6 adapter advertises this capability. Phase 37 / v1.7 is the
-  earliest landing for direct-creator-upload support.
+  `:direct_creator_upload` is advertised by the Mux reference adapter when the
+  profile enables browser→provider direct upload (shipped v1.8).
   """
   @type capability ::
           :signed_playback

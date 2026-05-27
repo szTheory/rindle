@@ -61,7 +61,7 @@ defmodule Rindle.Storage.GCS.Signer do
       raise ArgumentError,
             "Rindle.Storage.GCS :signing_key must be either a decoded service-account JSON " <>
               "map (preferred) or a bare PEM string (in which case `client_email:` must also " <>
-              "be configured). File-path loading is not supported in Phase 37 — decode your " <>
+              "be configured). File-path loading is not supported — decode your " <>
               "service-account JSON at boot via " <>
               "`Jason.decode!(File.read!(\"path/to/key.json\"))` and pass the resulting map. " <>
               "Got: #{inspect(pem)}"

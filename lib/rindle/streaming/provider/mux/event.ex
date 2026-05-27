@@ -19,7 +19,7 @@ defmodule Rindle.Streaming.Provider.Mux.Event do
   the asset-scoped events: `data.id` is the UPLOAD identifier (NOT the
   asset id) and `data.asset_id` is the asset id. Without the typed branch
   below, the generic clause would mis-attribute `data.id` to
-  `provider_asset_id` — silent data corruption when Phase 37 enables direct
+  `provider_asset_id` — silent data corruption when direct-creator-upload links
   creator uploads. Phase 35 lands the typed branch as forward-compat; the
   Phase 35 worker no-ops on `:upload_asset_created` (D-27).
   """

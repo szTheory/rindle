@@ -390,7 +390,7 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
     # 200 OK and dropped (`:drop`).
     #
     # Phase 35 dispatches: `video.asset.{ready,errored,deleted,created}` and
-    # `video.upload.asset_created` (forward-compat for Phase 37; worker no-ops).
+    # `video.upload.asset_created` (direct-creator-upload linker, shipped v1.8).
     # Everything else drops — Mux ships event types Rindle does not act on
     # (master files, tracks, static renditions, live-stream, etc.). Returning
     # 200 OK ensures Mux does not retry; the verified-but-dropped events surface

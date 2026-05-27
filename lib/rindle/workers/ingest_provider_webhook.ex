@@ -39,7 +39,7 @@ defmodule Rindle.Workers.IngestProviderWebhook do
   | `video.asset.ready` | `* -> ready` | `:provider_asset_ready` | `:processed` |
   | `video.asset.errored` | `* -> errored` | `:provider_asset_errored` | `:processed` |
   | `video.asset.deleted` | `* -> deleted` | `:provider_asset_deleted` | `:processed` |
-  | `video.asset.created` | `uploading -> processing` | none (Phase 37) | `:processed` kind: :deferred_to_phase_37 |
+  | `video.asset.created` | `uploading -> processing` | none | `:processed` kind: :lifecycle_no_broadcast |
   | `video.upload.asset_created` | `uploading -> processing` | `:provider_asset_created` | `:processed` |
   | other | none (last_event_at bump only) | none | `:ignored` kind: :unknown_event |
 
