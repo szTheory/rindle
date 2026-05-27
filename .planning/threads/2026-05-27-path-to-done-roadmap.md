@@ -59,7 +59,7 @@ Long-tail polish (TRANS-01, PRIV-01) is **not required** for mission complete.
 
 ### Milestone 0: Demand-gated pause — DEFAULT (after v1.17)
 
-- **Status:** Upcoming (default after Branch C ships)
+- **Status:** Active (formalized 2026-05-27 via `/gsd-new-milestone`)
 - **Work:** Patch/minor Hex releases; issue-driven fixes only
 - **Prereq:** v1.17 Branch C complete
 - **Done enough:** Assessment + path-to-done threads current; no blocking CI gaps
