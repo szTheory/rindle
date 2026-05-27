@@ -37,9 +37,9 @@ Last activity: 2026-05-27
 
 ## Next Step
 
-`/gsd-discuss-phase 68` — gather context for batch erasure implementation
+`/gsd-plan-phase 68` — plan batch erasure implementation (context gathered)
 
-Also: `/gsd-plan-phase 68` — skip discussion, plan directly
+Also: `/gsd-plan-phase 68 --skip-research` — plan without research
 
 ## Accumulated Context
 
