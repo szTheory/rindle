@@ -1,8 +1,20 @@
 {
   "mode": "yolo",
   "commit_docs": true,
-  "parallelization": true,
+  "parallelization": false,
   "granularity": "fine",
+  "model_profile": "inherit",
+  "resolve_model_ids": "omit",
+  "model_overrides": {
+    "gsd-planner": "auto",
+    "gsd-phase-researcher": "auto",
+    "gsd-project-researcher": "auto",
+    "gsd-roadmapper": "auto",
+    "gsd-plan-checker": "auto",
+    "gsd-executor": "composer-2.5",
+    "gsd-debugger": "composer-2.5",
+    "gsd-verifier": "composer-2.5"
+  },
   "features": {
     "thinking_partner": true,
     "global_learnings": true
@@ -14,12 +26,16 @@
     "research": true,
     "plan_check": true,
     "verifier": true,
-    "auto_advance": true,
+    "auto_advance": false,
     "research_before_questions": true,
     "discuss_mode": "assumptions",
     "skip_discuss": true,
     "max_discuss_passes": 1,
-    "_auto_chain_active": false
-  },
-  "model_profile": "quality"
+    "_auto_chain_active": false,
+    "milestone_boundary": {
+      "assessment_thread": true,
+      "regenerate_jtbd_on_ship": true,
+      "prefer_repo_inspection": true
+    }
+  }
 }

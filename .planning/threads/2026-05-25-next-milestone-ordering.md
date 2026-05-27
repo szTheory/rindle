@@ -1,7 +1,7 @@
 # Next Milestone Ordering After v1.9
 
 Date: 2026-05-25
-Status: open
+Status: superseded (see `.planning/threads/2026-05-27-v112-milestone-assessment.md`)
 
 ## Why this thread exists
 

@@ -1,15 +1,15 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.12
-milestone_name: milestone
-status: Phase 59 closed; v1.11 shipped
-last_updated: "2026-05-27T14:09:14.837Z"
+milestone_name: Adopter Truth & Maintenance Hygiene
+status: v1.12 shipped
+last_updated: "2026-05-27"
 last_activity: 2026-05-27
 progress:
-  total_phases: 18
-  completed_phases: 18
-  total_plans: 50
-  completed_plans: 50
+  total_phases: 4
+  completed_phases: 4
+  total_plans: 4
+  completed_plans: 4
   percent: 100
 ---
 
@@ -20,79 +20,58 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Media, made durable.
-**Current focus:** v1.12 milestone planning
+**Current focus:** Maintenance / demand-driven v1.13+ planning
 
 ## Current Position
 
-Phase: 59
-Plan: Not started
-Status: Phase 59 closed; v1.11 shipped
-Last activity: 2026-05-27
+Phase: —
+Plan: —
+Status: v1.12 shipped
+Last activity: 2026-05-27 — Milestone v1.12 closed
 
 Progress: [██████████] 100%
 
 ## Current Milestone
 
-- Last shipped milestone: `v1.11 Tus Protocol Completion`
-- Goals delivered: Checksum, Concatenation, Upload-Defer-Length, and truth/proof closure.
+- **Last shipped:** `v1.12 Adopter Truth & Maintenance Hygiene` (2026-05-27)
+- **Prior:** `v1.11 Tus Protocol Completion` (2026-05-27)
+- **v1.13 handoff:** `.planning/threads/2026-05-27-v112-milestone-assessment.md`
 
 ## Next Step
 
-- Define and start the v1.12 milestone phases.
+Run `$gsd-milestone-next-step` when ready to pick v1.13+ scope (default: demand-driven only).
 
 ## Recent Completion
 
-- Last completed milestone: `v1.11 Tus Protocol Completion`
-- Scope: Phases 57-59, 6 plans, 6/6 requirements validated
-- Audit files:
-  - `.planning/milestones/v1.11-MILESTONE-AUDIT.md`
-  - `.planning/phases/59-e2e-proof-truth-closure/59-01-SUMMARY.md`
-  - `.planning/phases/59-e2e-proof-truth-closure/59-02-SUMMARY.md`
+- **v1.12** — Phases 60-63, 6/6 requirements (`TRUTH-01..03`, `SURF-01`, `OPS-01`, `PROOF-01`)
+- Audit: `.planning/milestones/v1.12-MILESTONE-AUDIT.md`
+- Retro learnings: phases 57-59 `*-LEARNINGS.md`
 
 ## Accumulated Context
 
-- Rindle is roughly `93%` done for its stated mission and now sits in the
-  `90-95%` near-done band.
-
-- The core adopter story is already real from shipped evidence: package-consumer
-  install proof, canonical adopter lifecycle proof, image/AV processing,
-  signed/private delivery, Mux streaming, browser->Mux direct creator upload,
-  GCS resumable, tus-backed resumable browser ingest on Local/S3, and the
-  owner/account erasure lifecycle facade all exist in code, docs, and
-  verification artifacts.
-
-- The library is entering a diminishing returns phase. The core `tus` protocol
-  edge is now closed and remaining work is mostly maintenance and future-scope
-  wedges.
-
-- Planning drift note: older ranking artifacts still predate the shipped v1.10
-  owner-erasure closure. Use `PROJECT.md`, this file, and
-  `.planning/threads/2026-05-27-v111-assessment.md` as the current
-  sequencing source of truth.
+- Rindle is roughly **93%** done for its stated mission (90-95% near-done band).
+- Core adopter story shipped through v1.11; v1.12 fixed planning/support-truth drift.
+- **Do not** re-sequence tus, Mux direct upload, or owner erasure as default next work.
+- Top v1.13 candidate if demanded: `cancel_direct_upload/1`.
 
 ## Blockers/Concerns
 
-- No active blocker. `v1.11` is shipped and the project is ready to scope `v1.12`.
+- None.
 
 ## Deferred Items
 
 | Category | Item | Status |
 |----------|------|--------|
-| tus | IETF RUFH / tus 2.0 (`104 Upload Resumption`) | deferred |
+| tus | IETF RUFH / tus 2.0 | deferred |
 | tus | GCS-as-tus-backend / R2-native tus proxying | out of scope |
 | tus | Rindle-owned standalone tus JS client package | out of scope |
-| tus | Richer reusable uploader component abstractions beyond the supported helper path | deferred |
-| streaming | Second streaming provider (Cloudflare/Bunny) | deferred |
-| mux | `cancel_direct_upload/1` | deferred |
+| tus | Richer reusable uploader abstractions | deferred |
+| streaming | Second provider (Cloudflare/Bunny) | deferred |
+| mux | `cancel_direct_upload/1` | deferred (v1.13+ if demanded) |
 | lifecycle | Admin or bulk owner-erasure orchestration | deferred |
 | lifecycle | Force-delete policy for assets with surviving attachments | deferred |
 
 ## Session Continuity
 
-Last session: 2026-05-27T13:58:04Z
-Phase 59 closed with green proof commands, parity gates, and milestone audit
-evidence pointers recorded in `tmp/install_smoke_tus_last_run.json`.
-
-**Last Completed Milestone:** v1.11 (Phases 57-59) — shipped 2026-05-27.
-
-**Next Step:** Run `$gsd-new-milestone` for v1.12.
+Last session: 2026-05-27 — v1.12 milestone implemented and audited.
+Proof: parity + tus_plug tests green; install-smoke artifact from v1.11 lane retained in `tmp/install_smoke_tus_last_run.json`.

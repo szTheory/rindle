@@ -1,6 +1,6 @@
 # Rindle — Jobs-To-Be-Done Map & Completeness Frontier
 
-> **Generated:** 2026-05-22 · **Against:** milestone v1.7 (shipped 2026-05-08) · **hex** 0.1.5 · **git** `a27f1bf`
+> **Generated:** 2026-05-27 · **Against:** milestone v1.11 (shipped 2026-05-27) · **hex** 0.1.5 · **git** `319d461`
 
 Internal strategy artifact. Not published to HexDocs. Its job is to answer three questions
 the adopter-facing [`guides/user_flows.md`](../guides/user_flows.md) deliberately doesn't:
@@ -80,9 +80,9 @@ Status legend: ✅ Shipped · 🟡 Partial (achievable, no first-class surface) 
 | 27 | "Clean up orphans, regenerate stale variants, reconcile storage, expire dead uploads." | Operator | ✅ | v1.0 | `mix rindle.{cleanup_orphans,regenerate_variants,verify_storage,abort_incomplete_uploads}` |
 | 28 | "Build dashboards on a stable telemetry contract." | Operator | ✅ | v1.0 | frozen `[:rindle, …]` events (see `guides/background_processing.md`) |
 | 29 | "Upgrade a pre-v1.4 image-only app safely." | Platform | ✅ | v1.5 | `guides/upgrading.md` + migration safety |
-| 30 | "Resumable uploads via the tus standard (tus-js-client)." | App dev | 🔲 | — | Backlog: `TUS-01..19`, locked plan `research/v1.6-CANDIDATE-TUS.md` |
-| 31 | "Let creators upload straight to Mux from the browser (no server ingest cost)." | App dev | 🔲 | — | Backlog: `MUX-20..23`, builds on shipped provider + LiveView primitives |
-| 32 | "Delete *all* media for a user on account deletion (GDPR erasure)." | App dev / Sec | 🟡 | — | `v1.10` targets a first-class owner-erasure facade. Current workaround (`detach/3` loops + `mix rindle.cleanup_orphans`) exists but is not the recommended long-term support surface. |
+| 30 | "Resumable uploads via the tus standard (tus-js-client)." | App dev | ✅ | v1.8–v1.11 | `Rindle.Upload.TusPlug`, `initiate_tus_upload/2`, checksum/concat/defer-length (v1.11) |
+| 31 | "Let creators upload straight to Mux from the browser (no server ingest cost)." | App dev | ✅ | v1.8 | `Rindle.Streaming.create_direct_upload/2`, `Rindle.LiveView.allow_direct_upload/4` |
+| 32 | "Delete *all* media for a user on account deletion (GDPR erasure)." | App dev / Sec | ✅ | v1.10 | `Rindle.preview_owner_erasure/2`, `Rindle.erase_owner/2` (shared-asset semantics) |
 | 33 | "Serve images through on-the-fly signed transforms (arbitrary w/h/format)." | App dev | 🔲 | — | Not built. Named variants only. Design intent: "dynamic transforms opt-in, signed, bounded." |
 | 34 | "Strip EXIF/GPS from originals before serving (privacy)." | Sec | 🟡 | — | Variants drop metadata via `Image`; originals served as-is. No explicit privacy-strip control. |
 | 35 | "Enforce per-tenant storage quotas / billing limits." | Platform | ⛔ | — | App concern. Rindle exposes `byte_size`; quota/billing belongs to the host app. |
@@ -99,8 +99,8 @@ stack and progressively less as you climb. **Rindle has fully cleared T0–T2.**
 |---|---|---|---|
 | **T0 — Table stakes** | upload, store, deliver, attach, render | Mandatory; without it nothing works | ✅ Complete (v1.0) |
 | **T1 — Production-grade** | presigned direct upload, multipart, image variants, signed/private delivery, async processing, day-2 ops, telemetry | Very high — this is the gap most home-grown solutions fall into | ✅ Complete (v1.0–v1.1) |
-| **T2 — Breadth** | video/audio + poster/waveform, S3/GCS/Local, Mux streaming, resumable uploads | High but for a *narrowing* slice of adopters | ✅ Complete except tus (GCS resumable shipped v1.7) |
-| **T3 — Coverage / convenience** | tus protocol, browser→provider direct upload, 2nd streaming provider, more processors, GDPR `purge_owner`, signed dynamic transforms | Real, but each helps an increasingly small fraction | 🟡 Mostly backlog |
+| **T2 — Breadth** | video/audio + poster/waveform, S3/GCS/Local, Mux streaming, tus + GCS resumable | High but for a *narrowing* slice of adopters | ✅ Complete (v1.8–v1.11) |
+| **T3 — Coverage / convenience** | cancel direct upload, 2nd streaming provider, admin erasure orchestration, signed dynamic transforms, richer uploader UI | Real, but each helps an increasingly small fraction | 🟡 Demand-driven backlog only |
 | **T4 — Beyond the frontier** | HLS/DASH platform, DRM, AI/GPU, PDF/Office, admin UI, CDN replacement | **Negative** — scope creep, security surface, maintenance, mission drift | ⛔ Excluded by design |
 
 **The diminishing-returns line sits between T3 and T4.** The headline:
@@ -111,44 +111,33 @@ stack and progressively less as you climb. **Rindle has fully cleared T0–T2.**
 > audience than the last. T4 is excluded on purpose, and adding it would make the library
 > worse, not better.
 
-After the **top two T3 items** (tus, browser→Mux direct upload), the marginal *new user flow*
-per unit of effort drops sharply. Work then shifts from "new JTBD" to **depth/ergonomics on
-existing JTBD** — better LiveView components, more presets, perf, docs. Valuable refinement,
-but no longer frontier expansion. That is the signal to stop chasing breadth.
+The **core T3 upload/lifecycle flows** (tus, browser→Mux direct upload, owner erasure) shipped
+in v1.8–v1.11. Marginal *new user flow* per unit of effort now drops sharply. Work shifts to
+**truth hygiene, maintenance, and demand-driven gaps** (`cancel_direct_upload/1`, orchestration)
+— not speculative breadth. That is the signal to stop chasing new modalities.
 
 ---
 
 ## Ranked gap analysis (highest leverage first)
 
-1. **Discoverability / onboarding — the biggest *real* gap, and it isn't a feature.**
-   Seven milestones of capability are spread across 12 reference guides with no "here's the
-   whole territory by job" map. New adopters (and the maintainer) can't see what's available.
-   *Closed by* `guides/user_flows.md` (this generation). Highest leverage because it unlocks
-   value already built.
+1. **Planning/support truth hygiene** (v1.12). JTBD, MILESTONES, and lib moduledocs must match
+   shipped v1.8–v1.11 reality so agents and adopters do not re-sequence completed work. Highest
+   leverage at ~93% done — prevents token waste and scope creep.
 
-2. **tus resumable upload protocol** (job 30). The one widely-expected *upload modality* still
-   missing; tus-js-client is the de-facto browser standard for resumable uploads. Locked plan
-   exists (`research/v1.6-CANDIDATE-TUS.md`, ~13–15d, 6/10 confidence). Closes the last
-   "expected upload flow" hole and lets Local + S3 advertise `:resumable_upload`.
+2. **`cancel_direct_upload/1`** (Mux). The main named control gap on an otherwise shipped
+   browser→Mux path. Build only on concrete adopter demand; narrow provider-specific surface.
 
-3. **Browser → Mux direct creator upload** (job 31). ~1 day, LOW risk, builds entirely on
-   shipped provider + LiveView primitives (the `video.upload.asset_created` webhook branch
-   already landed in v1.6 Phase 35). High value for any video SaaS (removes server ingest
-   cost). Best effort-to-value ratio on the board.
+3. **Admin/bulk owner-erasure orchestration** (job 32 extension). Single-owner facade shipped;
+   multi-owner batch preview/execute remains deferred. High blast radius — policy first.
 
-4. **GDPR per-owner erasure convenience** (job 32). Currently 🟡 — adopters can loop
-   `detach/3` then `cleanup_orphans`, but account-deletion is a near-universal SaaS job and
-   deserves a first-class, auditable `purge_owner/1`-style surface. Small, high-trust win.
+4. **Force-delete semantics** for assets with surviving attachments. Compliance pull only;
+   conflicts with conservative shared-asset contract unless explicitly opt-in.
 
 5. **Signed dynamic image transforms** (job 33) and **EXIF privacy stripping** (job 34).
-   Both real but lower-demand and partially covered by intent/side-effects. Build only on
-   explicit adopter pull; the design already reserves the "opt-in, signed, bounded" posture.
+   Build only on explicit adopter pull.
 
-*Verified against code on 2026-05-22:* dynamic transforms — zero `transform` references in
-`lib/` (confirmed not built). GDPR bulk erasure — no `detach_all`/`purge_owner` (confirmed
-partial). Quotas — only `provider_quota_exceeded` + ffmpeg cgroup (confirmed app-concern).
-EXIF — `Rindle.AV.MetadataSanitizer` + ffprobe sanitize exist for AV *security*, but no
-image-original privacy strip (confirmed partial). CDN — covered in `secure_delivery.md`.
+*Verified against code on 2026-05-27:* tus + Mux direct + owner erasure — shipped in lib/tests/guides.
+`cancel_direct_upload` — zero lib/ matches (planning-only). Dynamic transforms — still not built.
 
 ---
 
@@ -156,19 +145,22 @@ image-original privacy strip (confirmed partial). CDN — covered in `secure_del
 
 | Priority | Milestone | Why now | Size |
 |---|---|---|---|
-| **Next** | Onboarding/discoverability (this doc set) | Unlocks value already built; lowest cost | done in this generation |
-| **v1.8** | tus resumable upload protocol | Last expected upload modality; locked plan ready | ~13–15d |
-| **v1.8+** | Browser → Mux direct creator upload | Best value/effort; rides shipped primitives | ~1d |
-| **v1.8+** | GDPR `purge_owner` + code-review polish | Small high-trust wins; clears advisory findings | ~2–3d |
-| **then** | *Depth, not breadth* | Past here, prefer ergonomics/perf/docs over new media types or backends unless adopter demand appears | ongoing |
+| **Active** | v1.12 Adopter Truth & Maintenance Hygiene | Fix planning drift + stale moduledocs at ~93% done | ~4 phases |
+| **v1.13+** | `cancel_direct_upload/1` (if demanded) | Only named Mux control hole | small |
+| **then** | *Maintenance + demand-driven only* | No speculative tus 2.0, 2nd provider, or uploader kits | ongoing |
 
-**Stop signal:** once tus + Mux-direct ship, do not add a 3rd storage backend or 2nd streaming
-provider speculatively. Those are *parity* work (contract tests), not new JTBD, and sit on the
-flat part of the value curve. Let real adopter demand pull them.
+**Stop signal:** core JTBD for the stated mission is shipped. Do not add backends or providers
+speculatively. See `.planning/threads/2026-05-27-v112-milestone-assessment.md` for v1.13 ranking.
 
 ---
 
 ## What changed since last generation
+
+- **2026-05-27 — v1.11 regeneration.** Anchor moved from v1.7 to v1.11 (`319d461`). Jobs 30–32
+  moved 🔲/🟡 → ✅ (tus protocol, browser→Mux direct upload, owner erasure). T2 marked complete;
+  T3 reframed as demand-driven only. Gap rank replaced tus/Mux/erasure build items with v1.12
+  hygiene + `cancel_direct_upload/1` deferral. 36 jobs: 32 ✅ shipped, 2 🟡 partial, 0 🔲 core
+  backlog, 2 ⛔ out-of-scope.
 
 - **2026-05-22 — Initial generation.** Baseline captured against v1.7 (`a27f1bf`, hex 0.1.5).
   36 jobs inventoried: 29 ✅ shipped, 2 🟡 partial, 3 🔲 backlog, 2 ⛔ out-of-scope. Frontier:

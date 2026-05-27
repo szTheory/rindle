@@ -136,3 +136,21 @@ support burden makes it the obvious next move.
 
 **Apply when:** Ranking the next 3-5 wedges, deciding whether to start another
 milestone, or evaluating whether the project is near done.
+
+## Parity Triple-Lock (proof surfaces)
+
+**Diagnoses:** Guide claims, fast parity tests, and install-smoke proof drifting
+apart after a protocol or DX milestone ships.
+
+**Recommends:** For user-visible tus/streaming vocabulary, change all three together:
+
+| Layer | Role |
+|-------|------|
+| Guide | Adopter-facing contract |
+| Parity test | Fast CI drift gate (`phoenix_tus_truth_parity_test.exs`) |
+| Install smoke | Package-consumer end-to-end proof |
+
+Graduated from Phase 59 learnings (v1.11 tus protocol completion).
+
+**Apply when:** Closing proof phases for protocol extensions, LiveView helpers, or
+any milestone that advertises extension tokens in guides.

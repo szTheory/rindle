@@ -1,5 +1,73 @@
 # Milestones
 
+## v1.12 Adopter Truth & Maintenance Hygiene (Shipped: 2026-05-27)
+
+**Phases completed:** 4 phases (60-63)
+**Requirements validated:** 6/6 (`TRUTH-01..03`, `SURF-01`, `OPS-01`, `PROOF-01`)
+
+**Key accomplishments:**
+
+- Regenerated JTBD-MAP with v1.11 anchor; moved tus, Mux direct upload, and owner
+  erasure from backlog to shipped.
+- Appended v1.11 and v1.8 entries to MILESTONES ledger; fixed PROJECT Context and
+  Support-Truth drift.
+- Removed stale Phase 37 deferral wording from public streaming moduledocs.
+- Extended API surface boundary test for GCS, Streaming, Provider, and TusPlug.
+- Applied patch/minor dependency hygiene with green unit and parity tests.
+
+**Assessment thread for v1.13+:** `.planning/threads/2026-05-27-v112-milestone-assessment.md`
+
+**Archive:**
+- `.planning/milestones/v1.12-ROADMAP.md`
+- `.planning/milestones/v1.12-REQUIREMENTS.md`
+- `.planning/milestones/v1.12-MILESTONE-AUDIT.md`
+
+---
+
+## v1.11 Tus Protocol Completion (Shipped: 2026-05-27)
+
+**Phases completed:** 4 phases (56-59), 6 plans
+**Timeline:** 2026-05-27
+**Requirements validated:** 6/6 (`TUS-01..04`, `PROOF-01`, `TRUTH-01`)
+
+**Key accomplishments:**
+
+- Shipped tus checksum, creation-defer-length, and concatenation extensions in
+  `TusPlug` with Local/S3/GCS backing.
+- Closed guide parity and Phoenix truth parity gates for extension vocabulary.
+- Extended generated-app tus install-smoke lane with extension evidence in
+  `tmp/install_smoke_tus_last_run.json`.
+- Polished `Rindle.LiveView.allow_tus_upload/4` helper seam and proof alignment.
+
+**Known deferred items at close:** IETF RUFH / tus 2.0, GCS-as-tus-backend,
+standalone tus JS client, richer uploader abstractions, second streaming provider,
+`cancel_direct_upload/1`, admin/bulk erasure orchestration, force-delete semantics.
+
+**Archive:**
+- `.planning/milestones/v1.11-MILESTONE-AUDIT.md`
+- `.planning/milestones/v1.11-REQUIREMENTS.md` (when archived at v1.12 close)
+- `.planning/milestones/v1.11-ROADMAP.md` (when archived at v1.12 close)
+
+---
+
+## v1.8 Resumable Browser Ingest (Shipped: 2026-05-25)
+
+**Phases completed:** 6 phases (42-47)
+**Requirements validated:** tus plug, capability negotiation, browser→Mux direct upload
+
+**Key accomplishments:**
+
+- Shipped `Rindle.Upload.TusPlug` and honest `:tus_upload` capability on Local/S3.
+- Browser→Mux direct creator upload with LiveView wrapper and webhook correlation.
+- Generated-app tus/Mux proof lanes and MinIO-backed integration evidence.
+
+**Archive:**
+- `.planning/milestones/v1.8-ROADMAP.md`
+- `.planning/milestones/v1.8-REQUIREMENTS.md`
+- `.planning/milestones/v1.8-MILESTONE-AUDIT.md`
+
+---
+
 ## v1.10 Owner Account Erasure (Shipped: 2026-05-26)
 
 **Phases completed:** 3 phases (53-55), 6 plans, 16 tasks

@@ -2,23 +2,21 @@
 
 ## Current State
 
-Milestone `v1.11 Tus Protocol Completion` shipped on `2026-05-27` (Phases 57-59,
-6 plans, 6/6 requirements validated). Rindle now ships checksum,
-creation-defer-length, and concatenation proof closure with guide parity and
-generated-app install-smoke evidence wired to milestone audit truth.
+Milestone `v1.12 Adopter Truth & Maintenance Hygiene` shipped on `2026-05-27`
+(Phases 60-63, 6/6 requirements validated). Planning truth, JTBD frontier,
+support-truth moduledocs, API surface boundaries, and dependency hygiene now
+match shipped v1.11 reality.
 
-No active milestone is open now. Start the next milestone with
-`$gsd-new-milestone` to define fresh requirements and roadmap scope.
+No active milestone is open. Use `$gsd-milestone-next-step` or
+`$gsd-new-milestone` for demand-driven v1.13+ scope. See
+`.planning/threads/2026-05-27-v112-milestone-assessment.md` for ranked wedges.
 
-## Next Milestone Goals
+## Next Milestone Goals (v1.13+, after v1.12)
 
-- Choose the next narrow wedge from the remaining deferred queue instead of
-  carrying `v1.10` scope forward implicitly.
-- Prefer additive follow-on work that preserves the shipped owner-erasure
-  contract: tus protocol follow-ons, lifecycle convenience breadth, or richer
-  Phoenix abstractions only when the next milestone explicitly selects them.
-- Keep the shared-asset safety rule and maintenance-vs-owner-erasure boundary
-  intact while expanding scope.
+- Prefer demand-driven wedges (`cancel_direct_upload/1`) over speculative breadth.
+- Do not reopen tus protocol, owner-erasure facade, or Mux direct-upload surfaces
+  unless concrete adopter bugs appear.
+- Keep shared-asset safety and maintenance-vs-owner-erasure boundaries intact.
 
 ## Recently Shipped Milestone
 
@@ -143,17 +141,16 @@ The default discuss deliverable is not "possible options." It is:
 
 ### Support-Truth Boundary
 
-Supported owner/account deletion in `v1.10` goes through the owner-erasure
-facade planned in Phases 53-55.
+Supported owner/account deletion goes through the owner-erasure facade shipped in
+`v1.10` (`Rindle.preview_owner_erasure/2`, `Rindle.erase_owner/2`).
 
 - `detach/3` remains a slot-scoped attachment API
 - `cleanup_orphans` remains upload-session and staged-object maintenance
 - shared assets are retained unless removing the target owner's attachments
   makes them newly orphaned
 
-Do not teach `detach/3` loops plus `cleanup_orphans` as the long-term
-recommended account-deletion surface. That workaround reflects current shipped
-repo truth before the facade exists; it is not the boundary being standardized.
+Do not teach `detach/3` loops plus `cleanup_orphans` as the recommended
+account-deletion surface. Use the owner-erasure facade for supported flows.
 
 ### Operational Enforcement
 
@@ -277,10 +274,9 @@ To keep this posture durable across GSD workflows:
 
 ### Active
 
-No active milestone is currently open. `v1.11` is complete with `TUS-01..04`,
-`PROOF-01`, and `TRUTH-01` closed.
+No active milestone. `v1.12` closed with `TRUTH-01..03`, `SURF-01`, `OPS-01`, `PROOF-01`.
 
-Deferred to later or out of scope after `v1.11`: IETF RUFH (tus 2.0), GCS-as-tus-
+Deferred to v1.13+ or out of scope: IETF RUFH (tus 2.0), GCS-as-tus-
 backend, a Rindle-owned standalone tus JS client package, generic uploader UI
 kits beyond the supported helper path, a second streaming provider,
 `cancel_direct_upload/1`, force-delete semantics for still-shared assets, and
@@ -321,12 +317,11 @@ AV-enabled lanes. Optional `mux` + `jose` deps preserve zero transitive cost
 for non-streaming adopters. The single-provider rule keeps the abstraction
 honest; v1.7+ adapters (GCS, second streaming provider) become contract tests.
 
-**Current milestone setup:** `v1.10` keeps the shipped Phoenix tus and
-browser→Mux truths intact while moving back to a core lifecycle job. The repo
-already proves owner-scoped attach/detach at slot granularity and orphan purge
-at asset granularity; the missing piece is a first-class facade that composes
-those primitives into one honest account-deletion contract without deleting
-shared assets that still belong to another live attachment.
+**Current milestone setup:** Core JTBD for the stated mission is shipped through
+v1.11 (tus protocol completion, Phoenix tus DX, browser→Mux direct upload,
+owner erasure facade, Mux streaming, AV wedge, Hex publish path). `v1.12` is
+maintenance and support-truth hygiene only. Remaining gaps are demand-driven
+(`cancel_direct_upload/1`, bulk erasure orchestration) or explicitly out of scope.
 
 **Reference implementations:**
 - Rails Active Storage: attachment/blob ownership patterns, redirect-style
@@ -427,6 +422,7 @@ shared assets that still belong to another live attachment.
 | The supported Phoenix tus path remains helper + documented client uploader over the existing `verify_completion/2` lane; richer Rindle-owned uploader abstractions stay optional future scope unless the current seam proves insufficient | This preserves the shipped headless contract, avoids overclaiming a component that does not exist yet, and keeps the milestone on the highest-leverage wedge | Locked v1.9 |
 | Browser→Mux direct creator upload is shipped in v1.8 and should not be treated as a carried-forward candidate | Public streaming entrypoints, LiveView wrapper, provider support, tests, and adopter docs are already in the tree; remaining streaming follow-on work is narrower (`cancel_direct_upload/1`, second-provider demand) | ✓ Validated in v1.8 / v1.9 boundary assessment |
 | Owner/account erasure in v1.10 uses conservative shared-asset semantics: detach the erased owner's rows, purge only newly orphaned assets, and report retained shared assets explicitly | `attach` / `detach` are slot-scoped while purge is asset-scoped; deleting an asset that still has another live attachment would violate current repo truth and surprise adopters during account deletion | Locked v1.10 |
+| v1.12 is maintenance-only; v1.13+ is demand-driven | At ~93% mission coverage, highest leverage is planning/support-truth hygiene and avoiding speculative tus/platform breadth | Locked v1.12 |
 
 ## Historical Snapshot
 
@@ -585,4 +581,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-27 — v1.11 Tus Protocol Completion shipped. Checksum, creation-defer-length, and concatenation proof/guide parity closed with milestone audit evidence.*
+*Last updated: 2026-05-27 — v1.12 Adopter Truth & Maintenance Hygiene shipped. Planning truth, JTBD, support-truth moduledocs, and API surface boundaries aligned with v1.11 shipped reality.*
