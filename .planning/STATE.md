@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.13
 milestone_name: Cancel Direct Upload
 status: Defining requirements
-last_updated: "2026-05-27"
-last_activity: 2026-05-27
+last_updated: "2026-05-27T15:23:13.118Z"
+last_activity: 2026-05-27 — Milestone v1.13 started
 progress:
   total_phases: 3
   completed_phases: 0
@@ -51,6 +51,7 @@ callback, upload_id persistence, and FSM edges before implementation.
 - **Do not** re-sequence tus, Mux direct upload create, or owner erasure in v1.13.
 - Mux SDK already exposes `Mux.Video.Uploads.cancel/2`; create path does not yet
   persist `upload_id` on `media_provider_assets`.
+
 - FSM today: `uploading → processing | errored` only; cancel needs a terminal edge.
 
 ## Blockers/Concerns
@@ -71,4 +72,4 @@ callback, upload_id persistence, and FSM edges before implementation.
 
 ## Session Continuity
 
-Last session: 2026-05-27 — v1.13 milestone initialized from post-v1.12 assessment wedge #1.
+Last session: 2026-05-27T15:23:13.115Z
