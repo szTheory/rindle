@@ -338,7 +338,7 @@ To keep this posture durable across GSD workflows:
 - **PLAN-02**: JTBD-MAP anchor verified at v1.16; PROJECT/STATE/ROADMAP reflect v1.17 charter
 - **CI-04**: Explicit recorded decision on Credo/Dialyzer severity; RUNNING.md + ci.yml aligned
 
-Deferred to v1.17+ or out of scope: force-delete (LIFE-06), second streaming provider,
+Deferred to v1.18+ (demand-gated) or out of scope: force-delete (LIFE-06), second streaming provider (STREAM-10),
 IETF RUFH (tus 2.0), GCS-as-tus-backend, standalone tus JS client, uploader UI kits,
 signed dynamic transforms, EXIF privacy stripping.
 
