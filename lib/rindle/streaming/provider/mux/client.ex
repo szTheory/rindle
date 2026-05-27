@@ -31,4 +31,7 @@ defmodule Rindle.Streaming.Provider.Mux.Client do
 
   @callback delete_asset(provider_asset_id :: String.t()) ::
               :ok | {:error, term()} | {:error, term(), term()}
+
+  @callback cancel_upload(upload_id :: String.t()) ::
+              :ok | {:error, term()} | {:error, term(), term()}
 end

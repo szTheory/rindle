@@ -64,6 +64,22 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
       end
     end
 
+    @impl true
+    def cancel_upload(upload_id) when is_binary(upload_id) do
+      with {:ok, client} <- build_client() do
+        case Uploads.cancel(client, upload_id) do
+          {:ok, _body, _env} ->
+            :ok
+
+          {:error, _msg, %{status: status}} when status in [403, 404] ->
+            :ok
+
+          {:error, msg, env} ->
+            {:error, msg, env}
+        end
+      end
+    end
+
     defp build_client do
       cfg = Application.get_env(:rindle, Rindle.Streaming.Provider.Mux, [])
 
