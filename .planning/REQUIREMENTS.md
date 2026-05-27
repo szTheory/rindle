@@ -10,11 +10,11 @@ Maintenance-only milestone. No new public feature surface.
 
 ### CI Proof Honesty
 
-- [ ] **CI-01**: Maintainer can read a CI lane severity matrix (merge-blocking vs advisory)
+- [x] **CI-01**: Maintainer can read a CI lane severity matrix (merge-blocking vs advisory)
       in `RUNNING.md` covering quality, integration, contract, package-consumer, adopter,
       and optional soak lanes.
 
-- [ ] **CI-02**: `package-consumer` and `adopter` workflow jobs fail the workflow on failure
+- [x] **CI-02**: `package-consumer` and `adopter` workflow jobs fail the workflow on failure
       (remove job-level `continue-on-error: true`).
 
 ### Operator Proof
@@ -60,14 +60,15 @@ Deferred to v1.16+ (demand-gated):
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CI-01 | Phase 71 | Pending |
-| CI-02 | Phase 71 | Pending |
+| CI-01 | Phase 71 | Complete |
+| CI-02 | Phase 71 | Complete |
 | PROOF-06 | Phase 72 | Pending |
 | VAL-01 | Phase 73 | Pending |
 | TRUTH-04 | Phase 74 | Pending |
 | AUDIT-01 | Phase 74 | Pending |
 
 **Coverage:**
+
 - v1.15 requirements: 6 total
 - Mapped to phases: 6
 - Unmapped: 0 ✓
