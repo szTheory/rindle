@@ -38,7 +38,7 @@ created: 2026-05-27
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 72-01-01 | 01 | 1 | PROOF-06 | T-72-01 / — | Partial report before error; exit 1 | integration | `mix test test/rindle/batch_owner_erasure_task_test.exs` | ✅ | ⬜ pending |
+| 72-01-01 | 01 | 1 | PROOF-06 | T-72-01 / — | Partial report before error; exit 1 | integration | `mix test test/rindle/batch_owner_erasure_task_test.exs` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -70,3 +70,9 @@ All phase behaviors have automated verification.
 - [x] `nyquist_compliant: true` set in frontmatter
 
 **Approval:** approved 2026-05-27
+
+## Validation Audit
+
+| Date | Action | Result |
+|------|--------|--------|
+| 2026-05-27 | Phase 77 Per-Task row reconciliation | 72-01-01 green; mix test re-run |
