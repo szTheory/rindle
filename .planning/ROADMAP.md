@@ -27,6 +27,7 @@
 **Requirements:** BULK-01, BULK-02
 
 **Success criteria:**
+
 1. Aggregate batch report type and per-owner report nesting are frozen in public `@spec`s.
 2. Batch size limit, error vocabulary, and explicit non-goals (no force-delete, no admin UI) are documented.
 3. Contract artifacts pass api_surface_boundary expectations for new public types.
@@ -38,6 +39,7 @@
 **Requirements:** BULK-03, BULK-04, BULK-05
 
 **Success criteria:**
+
 1. Batch preview returns aggregate + per-owner reports matching v1.10 vocabulary.
 2. Batch execute detaches and enqueues purge per owner without cross-owner transaction coupling.
 3. Partial failure returns per-owner results; idempotent rerun is stable for cleared owners.
@@ -49,6 +51,7 @@
 **Requirements:** OPS-02
 
 **Success criteria:**
+
 1. `mix rindle.*` task accepts owner identity input with dry-run default.
 2. Task `@moduledoc` defines exit codes, input format, and links to operations guide.
 3. Execute mode requires explicit flag (no accidental destructive default).
@@ -60,6 +63,7 @@
 **Requirements:** PROOF-05, TRUTH-03
 
 **Success criteria:**
+
 1. Hermetic proof matrix covers batch preview, execute, partial failure, idempotent rerun, shared assets.
 2. `guides/operations.md` or `guides/user_flows.md` documents batch erasure lane.
 3. Docs parity test freezes batch erasure vocabulary and deferrals (force-delete, admin UI).
