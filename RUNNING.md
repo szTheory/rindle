@@ -35,6 +35,26 @@ settings live outside the repo.
 | `gcs-soak` | secret-gated soak | `needs: quality`; repo + secrets | Test step advisory; skips when secrets empty |
 | `package-consumer-gcs-live` | secret-gated soak | `needs: quality`; repo + secrets | Job-level `continue-on-error`; live GCS install-smoke when secrets present |
 
+### Static analysis policy (CI-04)
+
+**Decision (v1.17):** Credo (strict) and Dialyzer remain **advisory** in the `quality`
+job. Wiring uses step-level `continue-on-error: true` in
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) (Credo L97–99, Dialyzer L131–133).
+Making either tool merge-blocking is explicitly rejected for this milestone.
+
+**Rationale:**
+
+- **Signal value:** Static analysis catches style and typespec drift; failures remain
+  visible in CI logs for maintainers without blocking adopter-critical merge lanes.
+- **Fork latency:** Dialyzer PLT build is slow; merge-blocking would raise contributor
+  and fork PR cost disproportionate to adopter impact.
+- **Green-main honesty:** Adopter-critical lanes are already merge-blocking (`mix coveralls`,
+  `proof`, `package-consumer`, `adopter`, `integration`, contract AV hygiene). Static
+  analysis is maintainer hygiene, not adopter contract.
+
+Doctor and AV doctor steps remain advisory without a separate CI-04 decision record
+(CI-04 names Credo and Dialyzer only). See matrix rows above.
+
 ### Release train
 
 [`.github/workflows/release.yml`](.github/workflows/release.yml) `gate-ci-green` waits for
