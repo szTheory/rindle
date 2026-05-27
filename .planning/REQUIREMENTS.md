@@ -16,7 +16,7 @@ Gap-closure milestone from [v1.15 audit](milestones/v1.15-MILESTONE-AUDIT.md). N
 
 ### Support Truth
 
-- [ ] **TRUTH-05**: `docs_parity_test.exs` locks TusPlug moduledoc scope via `Code.fetch_docs/1`
+- [x] **TRUTH-05**: `docs_parity_test.exs` locks TusPlug moduledoc scope via `Code.fetch_docs/1`
       contract test; `@moduledoc` interpolates `@tus_extensions` (single source of truth).
 
 ### Planning Truth
@@ -81,7 +81,7 @@ Deferred to v1.16+ (demand-gated):
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | CI-03 | Phase 75 | Pending |
-| TRUTH-05 | Phase 76 | Pending |
+| TRUTH-05 | Phase 76 | Complete |
 | PLAN-01 | Phase 77 | Complete |
 | CI-01 | Phase 71 | Complete |
 | CI-02 | Phase 71 | Complete |
