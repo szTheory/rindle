@@ -2,7 +2,7 @@
 
 ## Milestones
 
-- **v1.16 CI Enforcement & Planning Hygiene** — Phases 75–77 (gap closure from [v1.15 audit](milestones/v1.15-MILESTONE-AUDIT.md); **execute order: 77 → 76 → 75**)
+- ✅ **v1.16 CI Enforcement & Planning Hygiene** — Phases 75–77 (shipped 2026-05-27, [archive](milestones/v1.16-ROADMAP.md))
 - ✅ **v1.15 Maintenance & Proof Honesty** — Phases 71–74 (shipped 2026-05-27, [audit](milestones/v1.15-MILESTONE-AUDIT.md))
 - ✅ **v1.14 Bulk Owner-Erasure Orchestration** — Phases 67–70 (shipped 2026-05-27, [archive](milestones/v1.14-ROADMAP.md))
 - ✅ **v1.13 Cancel Direct Upload** — Phases 64–66 (shipped 2026-05-27, [archive](milestones/v1.13-ROADMAP.md))
@@ -22,125 +22,30 @@
 
 ## Phases
 
-### Phase 75: Merge-Blocking Proof Lanes
+<details>
+<summary>✅ v1.16 CI Enforcement & Planning Hygiene (Phases 75–77) — SHIPPED 2026-05-27</summary>
 
-**Goal:** Close the v1.15 automated CI proof path gap with a dedicated merge-blocking `proof` job.
+- [x] Phase 77: Planning Artifact Cleanup (3/3 plans) — completed 2026-05-27
+- [x] Phase 76: TusPlug Doc Parity Lock (2/2 plans) — completed 2026-05-27
+- [x] Phase 75: Merge-Blocking Proof Lanes (5/5 plans) — completed 2026-05-27
 
-**Requirements:** CI-03
+Full phase details: [.planning/milestones/v1.16-ROADMAP.md](milestones/v1.16-ROADMAP.md)
 
-**Gap Closure:** Closes CI-01 integration depth, PROOF-06 integration depth, and "Automated CI proof path" flow gap from v1.15 audit.
+</details>
 
-**Execute after:** Phases 76–77 (TusPlug parity lock and planning truth should land first).
+<details>
+<summary>✅ v1.15 Maintenance & Proof Honesty (Phases 71–74) — SHIPPED 2026-05-27</summary>
 
-**Success criteria:**
+- [x] Phase 71: CI Proof Honesty (2/2 plans) — completed 2026-05-27
+- [x] Phase 72: Mix Batch Failure Proof (1/1 plan) — completed 2026-05-27
+- [x] Phase 73: Nyquist Validation Closure (4/4 plans) — completed 2026-05-27
+- [x] Phase 74: Support Truth & Milestone Audit (2/2 plans) — completed 2026-05-27
 
-1. New `proof` job in `ci.yml` runs `docs_parity_test.exs` and `batch_owner_erasure_task_test.exs` merge-blocking (`needs: quality`, Postgres, Elixir 1.17/OTP 27).
-2. Adopter partial doc grep superseded by full docs parity suite (grep block removed; adopter stays lifecycle-only).
-3. `RUNNING.md` CI lane severity matrix documents `proof` as merge-blocking; adopter row no longer claims doc parity.
-4. Post-merge checklist mentions branch protection should require `Proof` alongside `package-consumer` and `adopter`.
-5. `quality` coveralls/dialyzer/credo remain advisory (Phase 71 policy preserved).
+Audit: [.planning/milestones/v1.15-MILESTONE-AUDIT.md](milestones/v1.15-MILESTONE-AUDIT.md)
 
----
+</details>
 
-### Phase 76: TusPlug Doc Parity Lock
-
-**Goal:** Automate TusPlug moduledoc scope regression lock in `docs_parity_test.exs`.
-
-**Requirements:** TRUTH-05
-
-**Gap Closure:** Closes TRUTH-04 integration depth (moduledoc verified manually only).
-
-**Execute after:** Phase 77; **before** Phase 75 (proof job should include the new parity test).
-
-**Success criteria:**
-
-1. `@tus_extensions` interpolated in `@moduledoc` (single source of truth with OPTIONS header).
-2. `docs_parity_test.exs` uses `Code.fetch_docs/1` contract test (token asserts + stale-phrase refutes).
-3. `mix test test/install_smoke/docs_parity_test.exs` green with new TusPlug test.
-4. Runtime OPTIONS truth remains in `tus_plug_test.exs` (no duplication).
-
----
-
-### Phase 77: Planning Artifact Cleanup
-
-**Goal:** Close v1.15 post-ship planning truth drift (Nyquist metadata + STATE position block).
-
-**Requirements:** PLAN-01
-
-**Gap Closure:** Closes tech-debt items in phases 71, 72, and STATE.md from v1.15 audit.
-
-**Execute first** (docs-only; zero `ci.yml` conflict).
-
-**Success criteria:**
-
-1. `71-VALIDATION.md` — all task rows ✅ green, sign-off complete, `nyquist_compliant: true`.
-2. `72-VALIDATION.md` — `72-01-01` row ✅ green (evidence from `72-VERIFICATION.md`).
-3. `.planning/STATE.md` position block reflects shipped v1.15 / between milestones (no `Plan: Not started`).
-4. Optional: v1.15 audit tech-debt section updated to reflect closure.
-
----
-
-### Phase 71: CI Proof Honesty
-
-**Goal:** Document CI lane severity and make highest-signal proof lanes merge-blocking.
-
-**Requirements:** CI-01, CI-02
-
-**Success criteria:**
-
-1. `RUNNING.md` contains a lane severity matrix (blocking vs advisory vs secret-gated soak).
-2. `package-consumer` job no longer uses job-level `continue-on-error: true`.
-3. `adopter` job no longer uses job-level `continue-on-error: true` (if present).
-4. Workflow comments explain why optional soak lanes remain non-blocking.
-
----
-
-### Phase 72: Mix Batch Failure Proof
-
-**Goal:** Close the v1.14 operator proof gap for partial batch failure via mix task.
-
-**Requirements:** PROOF-06
-
-**Success criteria:**
-
-1. Integration test drives `Mix.Tasks.Rindle.BatchOwnerErasure` through a mid-batch failure.
-2. Test asserts partial report printed before exit 1.
-3. Test asserts `batch_owner_failed` error message emitted.
-4. `mix test test/rindle/batch_owner_erasure_task_test.exs` passes.
-
----
-
-### Phase 73: Nyquist Validation Closure
-
-**Goal:** Bring phases 68–70 validation artifacts to Nyquist-compliant state.
-
-**Requirements:** VAL-01
-
-**Success criteria:**
-
-1. Phase 68 VALIDATION.md marked Nyquist-compliant or gap-filled.
-2. Phase 69 VALIDATION.md marked Nyquist-compliant or gap-filled.
-3. Phase 70 VALIDATION.md marked Nyquist-compliant or gap-filled.
-4. No open discovery-only Nyquist gaps remain for v1.14 erasure phases.
-
----
-
-### Phase 74: Support Truth & Milestone Audit
-
-**Goal:** Fix doc drift and close milestone with audit.
-
-**Requirements:** TRUTH-04, AUDIT-01
-
-**Success criteria:**
-
-1. `guides/operations.md` lists all nine shipped mix tasks accurately.
-2. `Rindle.Upload.TusPlug` moduledoc scope matches implemented extensions.
-3. Milestone audit confirms 6/6 requirements validated.
-4. Planning truth (PROJECT, STATE, JTBD-MAP) aligned post-ship.
-
----
-
-## Deferred to v1.16+ / Later
+## Deferred to v1.17+ / Later
 
 - Force-delete semantics for still-shared assets (LIFE-06)
 - Second streaming provider (Cloudflare/Bunny)
@@ -152,10 +57,12 @@
 
 ## Archive
 
+- [.planning/milestones/v1.16-ROADMAP.md](milestones/v1.16-ROADMAP.md)
+- [.planning/milestones/v1.16-REQUIREMENTS.md](milestones/v1.16-REQUIREMENTS.md)
+- [.planning/milestones/v1.15-MILESTONE-AUDIT.md](milestones/v1.15-MILESTONE-AUDIT.md)
 - [.planning/milestones/v1.14-ROADMAP.md](milestones/v1.14-ROADMAP.md)
 - [.planning/milestones/v1.14-REQUIREMENTS.md](milestones/v1.14-REQUIREMENTS.md)
 - [.planning/milestones/v1.14-MILESTONE-AUDIT.md](milestones/v1.14-MILESTONE-AUDIT.md)
 
 ---
-*Roadmap created: 2026-05-27 — milestone v1.15*
-*Gap closure phases added: 2026-05-27 — milestone v1.16 (from v1.15 audit)*
+*Last updated: 2026-05-27 — milestone v1.16 shipped*

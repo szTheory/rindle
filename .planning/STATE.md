@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.15
-milestone_name: milestone
-status: completed
-last_updated: "2026-05-27T20:35:00Z"
-last_activity: 2026-05-27
+milestone: between-milestones
+milestone_name: null
+status: Awaiting next milestone
+last_updated: "2026-05-27T21:00:00Z"
+last_activity: 2026-05-27 — Milestone v1.16 archived
 progress:
-  total_phases: 7
-  completed_phases: 7
-  total_plans: 19
-  completed_plans: 19
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -20,32 +20,32 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-27)
 
 **Core value:** Media, made durable.
-**Current focus:** v1.16 complete — all gap-closure phases shipped
+**Current focus:** Planning next milestone (v1.16 archived)
 
 ## Current Position
 
-Phase: 75 (merge-blocking-proof-lanes) — **complete**
-Plan: 5 of 5
-Status: v1.16 CI Enforcement & Planning Hygiene complete (Phases 77→76→75)
-Last activity: 2026-05-27 — Phase 75 execution complete
+Phase: —
+Plan: —
+Status: Between milestones — v1.16 archived 2026-05-27
+Last activity: 2026-05-27 — Milestone v1.16 archived
 
 ## Current Milestone
 
-- **v1.16 CI Enforcement & Planning Hygiene** — complete (2026-05-27)
+- **v1.16 CI Enforcement & Planning Hygiene** — archived (2026-05-27)
 - **Previous shipped:** v1.15 Maintenance & Proof Honesty (2026-05-27)
 - **Assessment thread:** `.planning/threads/2026-05-27-post-v114-milestone-assessment.md`
 
 ## Next Step
 
-`/gsd-complete-milestone` — archive v1.16 and prepare next milestone
+`/gsd-new-milestone` — define requirements and roadmap for the next wedge
 
 ## Accumulated Context
 
 - Rindle is roughly **94–96%** done for its stated mission (90–95% near-done band).
-- v1.15 is maintenance-only — no new public feature surface.
-- JTBD-MAP regen and post-v114 assessment completed pre-milestone.
+- v1.16 closed v1.15 audit gaps (proof CI lane, TusPlug doc lock, planning truth).
+- JTBD-MAP regen and post-v114 assessment completed pre-v1.15.
 
-- **Do not** bundle force-delete, admin UI, or second streaming provider into v1.15.
+- **Do not** bundle force-delete, admin UI, or second streaming provider without explicit demand.
 - **Do not** re-sequence tus, Mux surfaces, or owner-erasure semantics.
 
 ## Blockers/Concerns
@@ -56,7 +56,7 @@ Last activity: 2026-05-27 — Phase 75 execution complete
 
 | Category | Item | Status |
 |----------|------|--------|
-| lifecycle | Force-delete policy (LIFE-06) | deferred (v1.16+ demand) |
+| lifecycle | Force-delete policy (LIFE-06) | deferred (v1.17+ demand) |
 | streaming | Second provider (Cloudflare/Bunny) | deferred |
 | tus | IETF RUFH / tus 2.0 | deferred |
 | tus | GCS-as-tus-backend / R2-native tus proxying | out of scope |
@@ -67,9 +67,9 @@ Last activity: 2026-05-27 — Phase 75 execution complete
 
 ## Session Continuity
 
-Last session: 2026-05-27T19:41:56.505Z
+Last session: 2026-05-27
 
 ## Operator Next Steps
 
-- `/gsd-complete-milestone` — archive v1.16 milestone
-- `/gsd-progress` — review roadmap and requirement traceability
+- `/gsd-new-milestone` — start next milestone (questioning → requirements → roadmap)
+- `/gsd-progress` — review roadmap and deferred backlog

@@ -2,8 +2,8 @@
 
 ## Current Milestone
 
-**v1.16 CI Enforcement & Planning Hygiene** shipped 2026-05-27 (Phases 75–77, 3/3 requirements).
-Next milestone TBD (demand-gated; see deferred items in ROADMAP).
+**Between milestones** — v1.16 shipped 2026-05-27 (Phases 75–77, 3/3 requirements).
+Next milestone TBD (demand-gated; see deferred items in ROADMAP). Start with `/gsd-new-milestone`.
 
 ## Current State
 
@@ -312,12 +312,18 @@ To keep this posture durable across GSD workflows:
 - ✓ Nine-task operations index and TusPlug moduledoc truth — v1.15 (Phase 74)
   (TRUTH-04)
 - ✓ v1.15 milestone audit and planning truth alignment — v1.15 (Phase 74) (AUDIT-01)
+- ✓ Merge-blocking `proof` CI job for docs parity and batch-owner-erasure mix proof — v1.16
+  (Phase 75) (CI-03)
+- ✓ TusPlug moduledoc scope locked via `Code.fetch_docs/1` contract test — v1.16 (Phase 76)
+  (TRUTH-05)
+- ✓ v1.15 Nyquist metadata closure and between-milestones STATE truth — v1.16 (Phase 77)
+  (PLAN-01)
 
 ### Active
 
-_None — v1.15 shipped 2026-05-27. Next milestone demand-gated._
+_None — v1.16 shipped 2026-05-27. Next milestone demand-gated._
 
-Deferred to v1.16+ or out of scope: force-delete (LIFE-06), second streaming provider,
+Deferred to v1.17+ or out of scope: force-delete (LIFE-06), second streaming provider,
 IETF RUFH (tus 2.0), GCS-as-tus-backend, standalone tus JS client, uploader UI kits,
 signed dynamic transforms, EXIF privacy stripping.
 
@@ -356,9 +362,10 @@ AV-enabled lanes. Optional `mux` + `jose` deps preserve zero transitive cost
 for non-streaming adopters. The single-provider rule keeps the abstraction
 honest; v1.7+ adapters (GCS, second streaming provider) become contract tests.
 
-**Current milestone setup:** v1.15 maintenance & proof honesty — trust infrastructure
-after v1.14 closed the last proactive T3 wedge. Force-delete (LIFE-06) and second
-streaming provider remain demand-gated for v1.16+.
+**Current milestone setup:** v1.16 closed the v1.15 audit gap-closure wedge (merge-blocking
+proof lane, TusPlug doc parity lock, planning truth hygiene). Rindle is in a between-milestones
+posture at ~94–96% mission coverage. Force-delete (LIFE-06) and second streaming provider
+remain demand-gated for v1.17+.
 
 **Reference implementations:**
 - Rails Active Storage: attachment/blob ownership patterns, redirect-style
@@ -466,6 +473,20 @@ streaming provider remain demand-gated for v1.16+.
 | v1.14 bulk erasure extends v1.10 facade | Batch orchestration reuses `OwnerErasure`; no force-delete or admin UI in scope | ✓ Good v1.14 |
 
 ## Historical Snapshot
+
+<details>
+<summary>v1.16 CI Enforcement & Planning Hygiene (Phases 75–77) — SHIPPED 2026-05-27</summary>
+
+Gap-closure milestone from the v1.15 audit. Delivered: merge-blocking `proof` CI job,
+TusPlug `@moduledoc` / `docs_parity_test` contract lock, and Nyquist/STATE planning truth
+cleanup. No new public feature surface.
+
+Full artifacts live in:
+
+- [.planning/milestones/v1.16-ROADMAP.md](.planning/milestones/v1.16-ROADMAP.md)
+- [.planning/milestones/v1.16-REQUIREMENTS.md](.planning/milestones/v1.16-REQUIREMENTS.md)
+
+</details>
 
 <details>
 <summary>v1.14 Bulk Owner-Erasure Orchestration (Phases 67–70) — SHIPPED 2026-05-27</summary>
@@ -657,4 +678,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-27 — milestone v1.16 shipped*
+*Last updated: 2026-05-27 after v1.16 milestone archived*

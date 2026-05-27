@@ -1,5 +1,32 @@
 # Milestones
 
+## v1.16 CI Enforcement & Planning Hygiene (Shipped: 2026-05-27)
+
+**Phases completed:** 3 phases (75–77), 10 plans
+**Requirements validated:** 3/3 (`CI-03`, `TRUTH-05`, `PLAN-01`)
+**Timeline:** 1 day (2026-05-27 → 2026-05-27)
+**Git range:** `feat(76-01)` → `feat(75-02)` (10 commits, ~1,056 LOC in `.ex`/`.exs`)
+
+**Key accomplishments:**
+
+- Merge-blocking `proof` CI job runs `docs_parity_test.exs` and
+  `batch_owner_erasure_task_test.exs`; closes v1.15 audit CI-01/PROOF-06 integration depth.
+- Adopter lane is lifecycle-only; redundant partial doc grep removed; `RUNNING.md` matrix
+  documents Proof as merge-blocking.
+- TusPlug `@moduledoc` interpolates `@tus_extensions`; `docs_parity_test` locks scope via
+  `Code.fetch_docs/1` (TRUTH-05).
+- Nyquist metadata closure for phases 71–72 and between-milestones STATE truth (PLAN-01).
+
+**Note:** No v1.16 milestone audit file; v1.15 audit gap-closure validated via phase
+verification artifacts.
+
+**Archive:**
+
+- `.planning/milestones/v1.16-ROADMAP.md`
+- `.planning/milestones/v1.16-REQUIREMENTS.md`
+
+---
+
 ## v1.14 Bulk Owner-Erasure Orchestration (Shipped: 2026-05-27)
 
 **Phases completed:** 4 phases (67–70), 8 plans
@@ -12,12 +39,16 @@
 - Shipped batch `preview_batch_owner_erasure/2` and `erase_batch_owner_erasure/2` on
   the public `Rindle` facade — multi-owner GDPR/compliance orchestration without
   hand-rolled per-owner loops.
+
 - Froze batch contract types, boundary validation, error vocabulary, and
   `api_surface_boundary` freeze before implementation landed.
+
 - Sequential per-owner `OwnerErasure` delegation with bucket aggregation, partial-failure
   reporting, and idempotent rerun for already-cleared owners.
+
 - Operator surface via `mix rindle.batch_owner_erasure` (JSON owners file, dry-run default,
   explicit `--execute`).
+
 - PROOF-05 hermetic gap-fill (shared fixtures, counting failing txn repo, partial-failure
   DB proofs) and TRUTH-03 guide/docs parity for batch erasure.
 
@@ -43,13 +74,17 @@ mix `batch_owner_failed` E2E test, Nyquist validation on phases 68–70 (discove
 
 - Shipped `Rindle.Streaming.cancel_direct_upload/1` — adopters abort abandoned Mux
   direct creator uploads by `asset_id` from create time.
+
 - Additive `provider_upload_id` persistence with FSM terminal cancel edges and
   security invariant 14 redaction on upload handles.
+
 - Mux adapter via `Mux.Video.Uploads.cancel/2` with HTTP 403/404 idempotency and
   FSM-first orchestration before provider HTTP.
+
 - Hermetic PROOF-01 matrix (Bypass + ClientMock) and TRUTH-01 guide/docs parity.
 
 **Archive:**
+
 - `.planning/milestones/v1.13-ROADMAP.md`
 - `.planning/milestones/v1.13-REQUIREMENTS.md`
 - `.planning/milestones/v1.13-MILESTONE-AUDIT.md`

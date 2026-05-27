@@ -2,6 +2,51 @@
 
 ---
 
+## Milestone: v1.16 — CI Enforcement & Planning Hygiene
+
+**Shipped:** 2026-05-27
+**Phases:** 3 (75–77) | **Plans:** 10
+
+### What Was Built
+
+- Merge-blocking `proof` CI job (`docs_parity_test.exs`, `batch_owner_erasure_task_test.exs`).
+- Adopter lane narrowed to lifecycle-only; redundant partial doc grep removed.
+- TusPlug `@moduledoc` interpolates `@tus_extensions`; `Code.fetch_docs/1` contract lock.
+- Nyquist closure for phases 71–72 VALIDATION artifacts and between-milestones STATE truth.
+
+### What Worked
+
+- **Gap-closure sequencing (77 → 76 → 75):** Docs-only planning cleanup landed first,
+  avoiding `ci.yml` conflicts; proof job included the new TusPlug parity test.
+- **Audit-driven scope:** v1.16 requirements mapped 1:1 to v1.15 audit integration-depth gaps.
+- **No public API surface:** Maintenance wedge stayed honest — CI, docs parity, planning truth only.
+
+### What Was Inefficient
+
+- **No v1.16 milestone audit file:** Close relied on phase VERIFICATION artifacts and v1.15
+  audit ledger updates rather than a dedicated `v1.16-MILESTONE-AUDIT.md`.
+- **ROADMAP phase bloat:** v1.15 phases (71–74) remained expanded in ROADMAP until v1.16 close;
+  both milestones collapsed together at archive time.
+
+### Patterns Established
+
+- **Proof lane as merge-blocking:** Highest-signal install-smoke and mix-task proofs run in a
+  dedicated `proof` job separate from advisory `quality` (dialyzer/credo/coveralls).
+- **Moduledoc contract tests:** `Code.fetch_docs/1` token asserts + stale-phrase refutes for
+  TusPlug scope, complementing runtime OPTIONS tests in `tus_plug_test.exs`.
+
+### Key Lessons
+
+- Gap-closure milestones should execute planning truth before CI wiring to reduce merge conflicts.
+- Between-milestones STATE posture needs explicit reset at archive — not only at phase close.
+
+### Cost Observations
+
+- Timeline: 1 day (2026-05-27)
+- Git range: ~10 commits, 19 files, ~1,056 LOC delta in milestone commits
+
+---
+
 ## Milestone: v1.14 — Bulk Owner-Erasure Orchestration
 
 **Shipped:** 2026-05-27
@@ -246,15 +291,15 @@
 
 ## Cross-Milestone Trends
 
-| Trend | v1.1 | v1.2 | v1.5 | v1.6 |
-|-------|------|------|------|------|
-| Cleanup phases needed | 0 | 2 (Phases 13, 14) | 0 | 0 |
-| Audit status at close | passed | tech_debt (closed) | passed | acknowledged-and-defer (5 UAT routed to human; 3 advisory BLOCKERs to v1.7) |
-| Plans per phase (avg) | 3.0 | 2.2 | 3.5 | 3.75 |
-| Phase count | 4 | 5 | 4 | 4 |
-| Files changed | — | 60 | — | 144 |
-| Timeline (days) | — | 5 | 2 | ~1 (~22h) |
-| Optional phase deferred | — | — | — | Phase 37 (deferred to v1.7) |
+| Trend | v1.1 | v1.2 | v1.5 | v1.6 | v1.16 |
+|-------|------|------|------|------|-------|
+| Cleanup phases needed | 0 | 2 (Phases 13, 14) | 0 | 0 | 1 (Phase 77) |
+| Audit status at close | passed | tech_debt (closed) | passed | acknowledged-and-defer | no dedicated audit (gap-closure) |
+| Plans per phase (avg) | 3.0 | 2.2 | 3.5 | 3.75 | 3.3 |
+| Phase count | 4 | 5 | 4 | 4 | 3 |
+| Files changed | — | 60 | — | 144 | 19 |
+| Timeline (days) | — | 5 | 2 | ~1 (~22h) | 1 |
+| Optional phase deferred | — | — | — | Phase 37 (deferred to v1.7) | — |
 
 **Recurring observation:** Each milestone has ended with some planning artifact debt (stale STATE.md references, incomplete VALIDATION files, metadata inconsistencies, REQUIREMENTS.md checkboxes not flipped). The debt accumulates faster than it is addressed during execution. A milestone-close checklist that explicitly audits these before declaring done would reduce closure phase count.
 
