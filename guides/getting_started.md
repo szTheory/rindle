@@ -242,7 +242,8 @@ The proof matrix keeps this guide disciplined:
 For account deletion / owner erasure, keep this guide thin and jump to the
 canonical flow in [`user_flows.md`](user_flows.md). That guide is where the
 supported `Rindle.preview_owner_erasure/2` and `Rindle.erase_owner/2` story
-now lives.
+now lives. For batch (multi-owner) erasure, see the **Batch owner erasure**
+subsection in [`user_flows.md`](user_flows.md).
 
 ## 6. What Happens After Verification
 
