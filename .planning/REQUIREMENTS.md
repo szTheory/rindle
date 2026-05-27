@@ -22,7 +22,7 @@
   on the provider row (redacted per security invariant 14 in logs, telemetry,
   and `inspect/2`).
 
-- [ ] **CANCEL-04**: Optional `cancel_direct_upload/1` callback on
+- [x] **CANCEL-04**: Optional `cancel_direct_upload/1` callback on
   `Rindle.Streaming.Provider`; Mux adapter calls `Mux.Video.Uploads.cancel/2`
   and transitions the provider row to a terminal cancelled/deleted state.
 
@@ -58,6 +58,6 @@
 | CANCEL-01 | 64, 65 | Complete |
 | CANCEL-02 | 64, 65 | Complete |
 | CANCEL-03 | 64 | Complete |
-| CANCEL-04 | 65 | pending |
+| CANCEL-04 | 65 | Complete |
 | PROOF-01 | 66 | pending |
 | TRUTH-01 | 66 | pending |

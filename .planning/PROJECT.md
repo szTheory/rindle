@@ -13,10 +13,10 @@ demand-validated `cancel_direct_upload/1` surface.
 
 ## Current State
 
-Phase 64 complete (2026-05-27): cancel contract frozen — `provider_upload_id`
-persistence, FSM `pending`/`uploading` → `deleted` edges, public types/errors,
-and provider callback declared. `cancel_direct_upload/1` implementation ships in
-Phase 65.
+Phase 65 complete (2026-05-27): Mux cancel shipped end-to-end —
+`Rindle.Streaming.cancel_direct_upload/1` with FSM-first orchestration, Mux
+adapter via `Uploads.cancel/2`, and hermetic tests. Phase 64 contract/persistence
+prerequisites remain unchanged.
 
 Milestone `v1.12 Adopter Truth & Maintenance Hygiene` shipped on `2026-05-27`
 (Phases 60-63, 6/6 requirements validated). v1.13 scopes the pre-ranked
@@ -587,4 +587,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-27 — Milestone v1.13 Cancel Direct Upload started (Phases 64+).*
+*Last updated: 2026-05-27 — Phase 65 Mux cancel implementation complete.*
