@@ -228,11 +228,32 @@ defmodule Mix.Tasks.Rindle.BatchOwnerErasure do
     end
   end
 
-  defp print_report(report, "json", _dry_run?) do
-    Mix.shell().info(Jason.encode!(report, pretty: true))
-  end
-
   defp print_report(report, "text", dry_run?) do
     Enum.each(format_text_report(report, dry_run?), fn line -> Mix.shell().info(line) end)
+  end
+
+  defp print_report(report, "json", _dry_run?) do
+    output =
+      report
+      |> json_encode_report()
+      |> Jason.encode!(pretty: true)
+
+    Mix.shell().info(output)
+  end
+
+  defp json_encode_report(report) do
+    %{
+      mode: report.mode,
+      attachments_to_detach: report.attachments_to_detach,
+      assets_to_purge: report.assets_to_purge,
+      retained_shared_assets: report.retained_shared_assets,
+      owners:
+        Enum.map(report.owners, fn %{owner: {owner_type, owner_id}, report: owner_report} ->
+          %{
+            owner: %{owner_type: owner_type, owner_id: owner_id},
+            report: owner_report
+          }
+        end)
+    }
   end
 end
