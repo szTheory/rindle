@@ -28,9 +28,10 @@ Parallel inspection confirmed (code, not docs alone):
 | CI proof honesty | **Maintenance wedge closed** | `mix coveralls` merge-blocking; Credo/Dialyzer advisory (`ci.yml`); `proof` job merge-blocking |
 | Batch erasure force opt-in | **Not propagated** | `run_batch_owner_erasure/3` hardcodes `[]` per-owner opts (`lib/rindle.ex:1007`) |
 
-**Doc drift note:** post-v116 assessment has 3 stale phrases around unit-test blocking
-status (§ Done estimate L30, § Rough edges L63, § Optional micro L81). `ci.yml` is
-source of truth — coveralls is merge-blocking.
+**Doc drift note (resolved 2026-05-27, Phase 78):** Post-v116 assessment stale phrases
+at § Done estimate L30, § Rough edges L63, and § Optional micro L81 corrected. Source
+of truth: `.github/workflows/ci.yml` and `RUNNING.md` `## CI lane severity`. Credo/Dialyzer
+merge-blocking **decision** remains Phase 79 (CI-04).
 
 ## Mission-complete definition
 
@@ -47,15 +48,23 @@ Long-tail polish (TRANS-01, PRIV-01) is **not required** for mission complete.
 
 ## Multi-milestone sequence
 
-### Milestone 0 (current): Demand-gated pause — DEFAULT
+### Milestone v1.17 (current): Adopter-Confidence Hygiene — Branch C
 
-- **Status:** Active (post-v1.16)
+- **Status:** Active (2026-05-27; maintainer choice)
+- **Work:** Phase 78 planning truth (TRUTH-06, PLAN-02) + Phase 79 CI-04 policy decision
+- **Phases:** ROADMAP 78–79 only; Branch A/B phase numbers below are hypothetical alternatives
+- **Done enough:** Threads + JTBD anchor current; Credo/Dialyzer decision recorded (Phase 79)
+- **Do NOT:** Add public API or speculative feature work
+
+### Milestone 0: Demand-gated pause — DEFAULT (after v1.17)
+
+- **Status:** Upcoming (default after Branch C ships)
 - **Work:** Patch/minor Hex releases; issue-driven fixes only
-- **Prereq:** None
+- **Prereq:** v1.17 Branch C complete
 - **Done enough:** Assessment + path-to-done threads current; no blocking CI gaps
 - **Do NOT:** Open speculative feature milestone
 
-### Milestone v1.17 (conditional — pick ONE branch at `/gsd-new-milestone`)
+### Milestone v1.17 branches (Branch C selected 2026-05-27; A/B demand-gated)
 
 #### Branch A: `v1.17 Force-Delete Shared Assets` (LIFE-06)
 
@@ -99,15 +108,15 @@ Long-tail polish (TRANS-01, PRIV-01) is **not required** for mission complete.
 - CI: `:mux` install-smoke only; need second profile mode + optional soak lane
 - Cancel: Mux-only in v1.13; provider-agnostic cancel deferred to STREAM-10
 
-#### Branch C: `v1.17 Adopter-Confidence Hygiene` (optional micro)
+#### Branch C: `v1.17 Adopter-Confidence Hygiene` (selected — active)
 
-**Trigger:** Maintainer choice; no public API
+**Trigger:** Maintainer choice 2026-05-27; no public API
 
-- JTBD anchor refresh (already at v1.16)
-- Fix stale phrases in post-v116 assessment thread
-- Residual CI policy decision: Credo/Dialyzer merge-blocking (currently deferred)
-- **Done enough:** Updated threads + RUNNING.md truth; no new `lib/` surface
-- **Size:** 1–2 phases max
+- **Phase 78:** Fix stale CI phrases in post-v116 assessment; JTBD anchor refresh; PROJECT/STATE alignment (TRUTH-06, PLAN-02)
+- **Phase 79:** Record explicit Credo/Dialyzer severity decision in RUNNING.md + ci.yml comments (CI-04)
+- Default unit suite merge-blocking shipped commit `0036760` — not in scope for Phase 78/79
+- **Done enough:** Updated threads + JTBD anchor + CI policy record; no new `lib/` surface
+- **Size:** 2 phases (ROADMAP 78–79)
 
 **If both LIFE-06 and STREAM-10 signals exist:** sequence **LIFE-06 first** (compliance blast
 radius; extends existing facade; second provider is greenfield adapter work).
@@ -149,8 +158,8 @@ Pause (now) → LIFE-06 (if legal) → STREAM-10 (if adopter) → TRANS/PRIV (if
 
 | REQ-ID | Milestone branch | Job # | Status |
 |--------|------------------|-------|--------|
-| LIFE-06 | v1.17 Branch A | 32 extension | deferred (demand-gated) |
-| STREAM-10 | v1.17 Branch B | — | deferred (demand-gated) |
+| LIFE-06 | v1.18+ (Branch A alternative) | 32 extension | deferred (demand-gated) |
+| STREAM-10 | v1.18+ (Branch B alternative) | — | deferred (demand-gated) |
 | TRANS-01 | v1.19+ | 33 | deferred (long-tail) |
 | PRIV-01 | v1.19+ | 34 | deferred (long-tail) |
 
@@ -170,8 +179,8 @@ Reuse in LIFE-06 and STREAM-10 milestones:
 
 **Finish the last important wedges on demand — mostly stop proactive feature work.**
 
-Default maintainer action: **stay in pause**. Open v1.17 only with compliance ticket (LIFE-06)
-or named adopter (STREAM-10).
+Default maintainer action: **complete v1.17 Branch C (Phases 78–79)**, then return to
+demand-gated pause unless compliance ticket (LIFE-06) or named adopter (STREAM-10) arrives.
 
 ## Evidence pointers
 
