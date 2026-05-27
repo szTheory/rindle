@@ -11,6 +11,41 @@ runtime contract is small and explicit:
 is the canonical deep onboarding guide. This file is the shared install/runtime
 matrix both of those entrypoints link to.
 
+## CI lane severity
+
+This section is maintainer-facing. [`.github/workflows/ci.yml`](.github/workflows/ci.yml)
+is the source of truth for job wiring; GitHub branch protection and required-check
+settings live outside the repo.
+
+| Job / step | Severity | When it runs | Notes |
+|------------|----------|--------------|-------|
+| `quality` — Compile, Check formatting | merge-blocking | Every PR/push; Elixir 1.15/OTP 26 and 1.17/OTP 27 matrix | Both matrix cells must pass |
+| `quality` — Credo (strict) | advisory | Same job | Step-level `continue-on-error` |
+| `quality` — Doctor (full, raise) | advisory | Same job | Step-level `continue-on-error` |
+| `quality` — Verify AV runtime with public doctor task | advisory | Same job | Step-level `continue-on-error` |
+| `quality` — Run tests with coverage | advisory | Same job | Step-level `continue-on-error` |
+| `quality` — Dialyzer | advisory | Same job | Step-level `continue-on-error` |
+| `integration` | merge-blocking | `needs: quality` | Lifecycle + MinIO adapter tests |
+| `contract` — Run AV hygiene gate | merge-blocking | `needs: quality` | `scripts/assert_av_hygiene.sh` |
+| `contract` — Run contract tests | advisory | Same job | Step-level `continue-on-error`; job still required in graph |
+| `package-consumer` | merge-blocking | `needs: quality` | Install-smoke matrix + release preflight |
+| `adopter` | merge-blocking | `needs: [quality, integration, contract]` | Canonical lifecycle + doc parity |
+| `mux-soak` | secret-gated soak | Label `streaming` on PR; `needs: quality` | Blocking when the job runs (no `continue-on-error`) |
+| `gcs-soak` | secret-gated soak | `needs: quality`; repo + secrets | Test step advisory; skips when secrets empty |
+| `package-consumer-gcs-live` | secret-gated soak | `needs: quality`; repo + secrets | Job-level `continue-on-error`; live GCS install-smoke when secrets present |
+
+### Release train
+
+[`.github/workflows/release.yml`](.github/workflows/release.yml) `gate-ci-green` waits for
+`ci.yml` on the release SHA. When the latest run conclusion is not `success`, or the wait
+times out, the step logs `(BYPASSED)` and publish continues anyway. Tightening that bypass
+is out of scope for v1.15.
+
+### Post-merge checklist
+
+After merging CI proof honesty changes, verify GitHub branch protection required checks
+include `package-consumer` and `adopter` if green-main honesty should hold in practice.
+
 ## Verify The Runtime
 
 Run this in the adopter app after `mix deps.get` and after installing FFmpeg:
