@@ -1,33 +1,26 @@
 # Rindle
 
-## Current Milestone: v1.15 Maintenance & Proof Honesty
+## Current Milestone
 
-**Goal:** Close v1.14 proof and CI honesty gaps without new public feature surface.
-
-**Target features:**
-- CI lane severity documented; package-consumer and adopter merge-blocking
-- Mix `batch_owner_failed` partial-failure E2E test
-- Nyquist validation closure for phases 68–70
-- Support-truth doc drift fixes (operations.md, TusPlug moduledoc)
+Between milestones — **v1.15 Maintenance & Proof Honesty** shipped 2026-05-27.
+Next milestone TBD (demand-gated; see deferred items in ROADMAP).
 
 ## Current State
 
-Milestone `v1.14 Bulk Owner-Erasure Orchestration` shipped on `2026-05-27`
-(Phases 67–70, 8/8 requirements validated). Rindle is roughly **94–96%** done for its
+Milestone `v1.15 Maintenance & Proof Honesty` shipped on `2026-05-27`
+(Phases 71–74, 6/6 requirements validated). Rindle is roughly **94–96%** done for its
 stated mission (90–95% near-done band).
 
-**v1.14 shipped:** Batch `preview_batch_owner_erasure/2` and
-`erase_batch_owner_erasure/2` on the public facade; `mix rindle.batch_owner_erasure`
-operator CLI; PROOF-05 hermetic proof matrix; TRUTH-03 guide/docs parity.
+**v1.15 shipped:** CI lane severity matrix and merge-blocking package-consumer/adopter
+jobs; PROOF-06 mix `batch_owner_failed` integration test; VAL-01 Nyquist closure for
+phases 68–70; TRUTH-04 nine-task operations index and TusPlug moduledoc truth;
+AUDIT-01 milestone audit ([v1.15-MILESTONE-AUDIT.md](milestones/v1.15-MILESTONE-AUDIT.md)).
 
-**v1.15 progress:** Phase 73 complete (2026-05-27) — VAL-01 closed; phases 68–70
-planning archives restored under `.planning/milestones/v1.14-phases/` with
-Nyquist-compliant `*-VALIDATION.md` artifacts.
+**v1.14 shipped:** Batch owner erasure API, operator CLI, PROOF-05 matrix, TRUTH-03
+guide parity (Phases 67–70, 8/8 requirements).
 
-**Post-v1.14 assessment (2026-05-27):** Last proactive T3 wedge (bulk orchestration)
-is closed. **Default v1.15 recommendation:** maintenance & proof honesty — no new
-public feature surface unless concrete compliance pull exists. **Conditional feature
-milestone:** force-delete for still-shared assets (LIFE-06, separate charter only).
+**Post-v1.15:** Maintenance wedge complete. **Conditional feature milestone:**
+force-delete for still-shared assets (LIFE-06, separate charter only).
 
 Do not reopen tus protocol, single-owner/batch erasure semantics, or Mux surfaces
 beyond v1.13. Keep shared-asset safety and maintenance-vs-owner-erasure boundaries
@@ -306,10 +299,19 @@ To keep this posture durable across GSD workflows:
   documented CLI contract — v1.14 (Phase 69) (OPS-02)
 - ✓ PROOF-05 hermetic batch erasure matrix and TRUTH-03 guide/docs parity — v1.14
   (Phase 70) (PROOF-05, TRUTH-03)
+- ✓ CI lane severity matrix and merge-blocking package-consumer/adopter jobs — v1.15
+  (Phase 71) (CI-01, CI-02)
+- ✓ Mix `batch_owner_failed` partial-failure integration proof — v1.15 (Phase 72)
+  (PROOF-06)
+- ✓ Nyquist-compliant validation artifacts for v1.14 erasure phases 68–70 — v1.15
+  (Phase 73) (VAL-01)
+- ✓ Nine-task operations index and TusPlug moduledoc truth — v1.15 (Phase 74)
+  (TRUTH-04)
+- ✓ v1.15 milestone audit and planning truth alignment — v1.15 (Phase 74) (AUDIT-01)
 
 ### Active
 
-_v1.15 Maintenance & Proof Honesty — see `.planning/REQUIREMENTS.md`._
+_None — v1.15 shipped 2026-05-27. Next milestone demand-gated._
 
 Deferred to v1.16+ or out of scope: force-delete (LIFE-06), second streaming provider,
 IETF RUFH (tus 2.0), GCS-as-tus-backend, standalone tus JS client, uploader UI kits,
@@ -651,4 +653,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-27 — milestone v1.15 started*
+*Last updated: 2026-05-27 — milestone v1.15 shipped*

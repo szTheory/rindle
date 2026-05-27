@@ -29,12 +29,12 @@ Maintenance-only milestone. No new public feature surface.
 
 ### Support Truth
 
-- [ ] **TRUTH-04**: `guides/operations.md` reflects all shipped mix tasks; `TusPlug`
+- [x] **TRUTH-04**: `guides/operations.md` reflects all shipped mix tasks; `TusPlug`
       moduledoc scope section matches implemented tus extensions.
 
 ### Milestone Audit
 
-- [ ] **AUDIT-01**: Milestone audit confirms 100% requirement coverage and no planning drift.
+- [x] **AUDIT-01**: Milestone audit confirms 100% requirement coverage and no planning drift.
 
 ## Future Requirements
 
@@ -64,8 +64,8 @@ Deferred to v1.16+ (demand-gated):
 | CI-02 | Phase 71 | Complete |
 | PROOF-06 | Phase 72 | Complete |
 | VAL-01 | Phase 73 | Complete |
-| TRUTH-04 | Phase 74 | Pending |
-| AUDIT-01 | Phase 74 | Pending |
+| TRUTH-04 | Phase 74 | Complete |
+| AUDIT-01 | Phase 74 | Complete |
 
 **Coverage:**
 

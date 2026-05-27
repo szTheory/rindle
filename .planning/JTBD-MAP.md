@@ -1,6 +1,6 @@
 # Rindle — Jobs-To-Be-Done Map & Completeness Frontier
 
-> **Generated:** 2026-05-27 · **Against:** milestone v1.14 (shipped 2026-05-27) · **hex** 0.1.5 · **git** `5bd685c`
+> **Generated:** 2026-05-27 · **Against:** milestone v1.15 (shipped 2026-05-27) · **hex** 0.1.5 · **git** `6ed57cf`
 
 Internal strategy artifact. Not published to HexDocs. Its job is to answer three questions
 the adopter-facing [`guides/user_flows.md`](../guides/user_flows.md) deliberately doesn't:
@@ -156,6 +156,12 @@ force-purge path). Dynamic transforms — still not built.
 ---
 
 ## What changed since last generation
+
+- **2026-05-27 — v1.15 maintenance (post-ship).** Anchor moved from v1.14 to v1.15
+  (`6ed57cf`). No new JTBD rows — maintenance milestone only: CI proof honesty,
+  mix batch failure proof, Nyquist validation closure, operations/TusPlug doc truth.
+  Job count unchanged (38 jobs). Frontier unchanged: feature-complete band; next work
+  demand-gated (force-delete, second provider, tus 2.0 deferred).
 
 - **2026-05-27 — v1.14 regeneration (post-ship assessment).** Anchor moved from v1.13 to v1.14
   (`5bd685c`). Job 38 added (batch owner erasure). Bulk orchestration gap closed (shipped v1.14).
