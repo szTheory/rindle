@@ -7,8 +7,8 @@ defmodule Rindle.Domain.ProviderAssetFSM do
   # `errored → processing` is the re-ingest re-entry edge; Phase 34
   # MuxIngestVariant retry path depends on this edge.
   @allowed_transitions %{
-    "pending" => ["uploading", "errored"],
-    "uploading" => ["processing", "errored"],
+    "pending" => ["uploading", "errored", "deleted"],
+    "uploading" => ["processing", "errored", "deleted"],
     "processing" => ["ready", "errored"],
     "ready" => ["errored", "deleted"],
     "errored" => ["deleted", "processing"],
