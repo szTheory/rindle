@@ -1,7 +1,7 @@
 defmodule Rindle.Streaming.CancelDirectUploadContractTest do
   use ExUnit.Case, async: true
 
-  test "exports cancel_direct_upload types but defers implementation to Phase 65" do
+  test "exports cancel_direct_upload/1 implementation and types" do
     {:docs_v1, _, _, _, _, _, entries} = Code.fetch_docs(Rindle.Streaming)
 
     assert Enum.any?(entries, fn
@@ -14,7 +14,7 @@ defmodule Rindle.Streaming.CancelDirectUploadContractTest do
              _ -> false
            end)
 
-    refute function_exported?(Rindle.Streaming, :cancel_direct_upload, 1)
+    assert function_exported?(Rindle.Streaming, :cancel_direct_upload, 1)
   end
 
   test "Streaming.Provider behaviour declares optional cancel_direct_upload callback" do
