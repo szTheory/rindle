@@ -1,5 +1,5 @@
 defmodule Rindle.AV.FfprobeTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
   alias Rindle.AV.Ffprobe
 
   @moduletag :tmp_dir

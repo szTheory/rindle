@@ -1,5 +1,5 @@
 defmodule Rindle.Processor.WaveformTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
 
   alias Rindle.Processor.AV
 

@@ -80,6 +80,7 @@ if GeneratedAppHelper.profile_enabled?(:gcs) do
   defmodule Rindle.InstallSmoke.GeneratedAppSmokeGCSTest do
     use ExUnit.Case, async: false
     use Rindle.InstallSmoke.GeneratedAppSmokeAssertions
+    @moduletag :minio
 
     setup_all do
       report = GeneratedAppHelper.prove_package_install!(:gcs)

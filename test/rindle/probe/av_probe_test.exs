@@ -1,5 +1,5 @@
 defmodule Rindle.Probe.AVProbeTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
 
   alias Rindle.Probe.AVProbe
 

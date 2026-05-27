@@ -1,5 +1,5 @@
 defmodule Rindle.Processor.FfmpegTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
   alias Rindle.Processor.Ffmpeg
 
   @moduletag :tmp_dir
