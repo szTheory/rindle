@@ -81,7 +81,9 @@ jobs:
         run: mix deps.get
 
       - name: Install FFmpeg
-        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+        uses: FedericoCarboni/setup-ffmpeg@v3
+        with:
+          ffmpeg-version: release
 
       - name: Compile (warnings as errors)
         run: mix compile --warnings-as-errors
@@ -190,7 +192,9 @@ jobs:
         run: mix deps.get
 
       - name: Install FFmpeg
-        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+        uses: FedericoCarboni/setup-ffmpeg@v3
+        with:
+          ffmpeg-version: release
 
       - name: Start MinIO
         run: |
@@ -406,7 +410,9 @@ jobs:
           node-version: "20"
 
       - name: Set up FFmpeg
-        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+        uses: FedericoCarboni/setup-ffmpeg@v3
+        with:
+          ffmpeg-version: release
 
       - name: Install libvips
         run: sudo apt-get update && sudo apt-get install -y libvips-dev
@@ -531,6 +537,11 @@ jobs:
 
       - name: Install libvips
         run: sudo apt-get update && sudo apt-get install -y libvips-dev
+
+      - name: Install FFmpeg
+        uses: FedericoCarboni/setup-ffmpeg@v3
+        with:
+          ffmpeg-version: release
 
       - name: Restore deps cache
         uses: actions/cache@v4
