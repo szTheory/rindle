@@ -242,10 +242,19 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
           "secret-gated soak",
           "package-consumer",
           "adopter",
+          "`proof`",
+          "docs_parity_test.exs",
+          "batch_owner_erasure_task_test.exs",
           ".github/workflows/ci.yml"
         ] do
       assert running =~ snippet
     end
+  end
+
+  test "running guide documents proof job as merge-blocking", %{running: running} do
+    assert running =~ "`proof`"
+    assert running =~ "merge-blocking"
+    refute running =~ "Canonical lifecycle + doc parity"
   end
 
   test "troubleshooting guide is part of the public AV docs surface", %{
