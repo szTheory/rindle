@@ -19,8 +19,10 @@ remain demand-gated for v1.18+. Canonical context:
 ## Current State
 
 Milestone `v1.16 CI Enforcement & Planning Hygiene` shipped on `2026-05-27`
-(Phases 75–77, 3/3 requirements validated). Rindle is roughly **94–96%** done for its
-stated mission (90–95% near-done band).
+(Phases 75–77, 3/3 requirements validated). **Phase 78 complete (2026-05-27):**
+TRUTH-06 and PLAN-02 closed — post-v116 threads, JTBD anchor, and charter artifacts
+aligned. Phase 79 (CI-04) next. Rindle is roughly **94–96%** done for its stated
+mission (90–95% near-done band).
 
 **v1.16 shipped:** Merge-blocking `proof` CI job (CI-03) runs `docs_parity_test.exs` and
 `batch_owner_erasure_task_test.exs`; TusPlug moduledoc parity lock (TRUTH-05); planning
@@ -697,4 +699,4 @@ This document evolves at phase transitions and milestone boundaries.
    (`workflow.milestone_boundary.block_feature_milestone_without_signal`)
 
 ---
-*Last updated: 2026-05-27 — milestone v1.17 Adopter-Confidence Hygiene started*
+*Last updated: 2026-05-27 — Phase 78 Assessment & Planning Truth complete*
