@@ -19,8 +19,10 @@ AUDIT-01 milestone audit ([v1.15-MILESTONE-AUDIT.md](milestones/v1.15-MILESTONE-
 **v1.14 shipped:** Batch owner erasure API, operator CLI, PROOF-05 matrix, TRUTH-03
 guide parity (Phases 67–70, 8/8 requirements).
 
-**Post-v1.15:** Maintenance wedge complete. **Conditional feature milestone:**
-force-delete for still-shared assets (LIFE-06, separate charter only).
+**Post-v1.15:** Maintenance wedge complete. Phase 77 planning-artifact cleanup
+(PLAN-01) closed Nyquist metadata drift for phases 71–72, STATE position truth, and
+v1.15 audit ledger sync. **Conditional feature milestone:** force-delete for still-shared
+assets (LIFE-06, separate charter only).
 
 Do not reopen tus protocol, single-owner/batch erasure semantics, or Mux surfaces
 beyond v1.13. Keep shared-asset safety and maintenance-vs-owner-erasure boundaries
