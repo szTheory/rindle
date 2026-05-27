@@ -23,6 +23,7 @@ This guide covers:
 - Local development with a webhook tunnel
 - Webhook secret rotation workflow
 - Running `mix rindle.doctor --streaming` smoke checks
+- Cancelling an abandoned browser direct upload (client abort + server cancel)
 - Operator runbook for stuck provider assets
 - A performance note on high-throughput JWT signing
 
@@ -165,6 +166,51 @@ The browser must receive only the one-time `endpoint` and the durable
 Rindle `asset_id`. Never surface raw Mux ids in your JSON or templates.
 Each upload needs a fresh URL; do not reuse one after a failed or completed
 attempt.
+
+#### Cancel an abandoned direct upload
+
+Browser direct uploads involve two layers of cancellation:
+
+1. **Client abort** — call `upload.abort()` on your UpChunk (or equivalent) instance
+   to stop in-flight bytes.
+2. **Server cancel** — call `Rindle.Streaming.cancel_direct_upload/1` with the
+   Rindle `asset_id` from `create_direct_upload/2` to mark the provider row
+   `deleted` and invalidate the Mux upload URL.
+
+| Situation | Recommended action |
+|-----------|-------------------|
+| Upload still in progress; same user session | `upload.abort()` then `cancel_direct_upload/1` |
+| Upload failed or tab closed; may retry later | `cancel_direct_upload/1` then `create_direct_upload/2` for a fresh URL |
+| Upload completed successfully | Do not cancel — wait for webhook linking |
+
+**Cancellable provider states:** `pending`, `uploading`. Calling cancel on an
+already-cancelled row returns `:ok` (idempotent).
+
+**Return shapes:**
+
+| Result | Meaning |
+|--------|---------|
+| `:ok` | Row is `deleted`; safe to hide uploader UI |
+| `{:error, :not_found}` | No direct-upload row for this `asset_id` |
+| `{:error, :provider_sync_failed}` | Row is locally `deleted`; Mux cancel failed — hide uploader; retry is safe |
+| `{:error, :provider_quota_exceeded}` | Rate limited; row locally `deleted` |
+| `{:error, {:not_cancellable, detail}}` | Row in terminal state (`processing`, `ready`, etc.) |
+
+**Scope (v1.13):** Provider-side upload cancel is **Mux direct creator upload
+only**. Server-push ingest, tus/resumable uploads, and `cancel_processing/1`
+are out of scope. Cancelling does not purge local `MediaAsset` rows or enqueue
+LiveView hooks — adopters call `cancel_direct_upload/1` explicitly.
+
+Example:
+
+```elixir
+case Rindle.Streaming.cancel_direct_upload(asset_id) do
+  :ok -> :ok
+  {:error, :provider_sync_failed} -> :ok  # locally cancelled; hide UI
+  {:error, {:not_cancellable, _}} -> :already_terminal
+  other -> other
+end
+```
 
 `Rindle.LiveView.allow_direct_upload/4` is the convenience wrapper over the
 same contract. It configures a LiveView `:external` upload and returns
@@ -345,6 +391,11 @@ The report enumerates `media_provider_assets` rows in (`processing`,
 `uploading`) state older than the threshold, with `provider_asset_id`
 redacted to last-4 chars per security invariant 14. From there you can
 manually re-fetch from Mux or cancel.
+
+**Provider upload cancel vs Oban job cancel:** To abandon an in-flight browser
+direct upload from application code, use `Rindle.Streaming.cancel_direct_upload/1`
+— see [§4.1 Cancel an abandoned direct upload](#cancel-an-abandoned-direct-upload).
+The Oban snippet below cancels **webhook processing jobs**, not Mux upload URLs.
 
 To cancel stuck `IngestProviderWebhook` jobs in Oban:
 
