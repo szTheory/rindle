@@ -1,5 +1,5 @@
 defmodule Rindle.OwnerErasureBatchBoundaryTest do
-  use ExUnit.Case, async: true
+  use Rindle.DataCase, async: false
 
   defmodule User do
     defstruct [:id]
@@ -27,8 +27,8 @@ defmodule Rindle.OwnerErasureBatchBoundaryTest do
     owner = %User{id: Ecto.UUID.generate()}
     owners = List.duplicate(owner, 101)
 
-    assert {:error, :not_implemented} =
-             Rindle.preview_batch_owner_erasure(owners)
+    assert {:ok, report} = Rindle.preview_batch_owner_erasure(owners)
+    assert length(report.owners) == 1
   end
 
   test "max_owners opt overrides default" do
@@ -41,13 +41,17 @@ defmodule Rindle.OwnerErasureBatchBoundaryTest do
              Rindle.preview_batch_owner_erasure(owners, max_owners: 2)
   end
 
-  test "in-limit batch returns not_implemented stub" do
+  test "in-limit batch returns ok report" do
     owner = %User{id: Ecto.UUID.generate()}
 
-    assert {:error, :not_implemented} =
-             Rindle.preview_batch_owner_erasure([owner])
+    assert {:ok, report} = Rindle.preview_batch_owner_erasure([owner])
+    assert report.mode == :preview
+    assert is_map(report.attachments_to_detach)
+    assert length(report.owners) == 1
 
-    assert {:error, :not_implemented} =
-             Rindle.erase_batch_owner_erasure([owner])
+    assert {:ok, execute_report} = Rindle.erase_batch_owner_erasure([owner])
+    assert execute_report.mode == :execute
+    assert is_map(execute_report.attachments_to_detach)
+    assert length(execute_report.owners) == 1
   end
 end

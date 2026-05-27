@@ -114,6 +114,13 @@ defmodule Rindle do
           max: pos_integer()
         }
 
+  @typedoc "Detail map when batch processing stops after a per-owner failure."
+  @type batch_owner_failed_detail :: %{
+          owner: owner_ref(),
+          reason: term(),
+          partial_report: owner_erasure_batch_report()
+        }
+
   @type batch_owner_erasure_result ::
           {:ok, owner_erasure_batch_report()}
           | {:error, :empty_batch}
@@ -224,28 +231,36 @@ defmodule Rindle do
   @doc """
   Plans batch owner/account erasure without changing DB or storage state.
 
-  Returns `{:error, :not_implemented}` until the batch planner is wired in a
-  later phase. Empty batches and over-limit owner counts are rejected before
-  any planner work runs.
+  Processes each deduped owner sequentially via `OwnerErasure.preview/2` in its
+  own read-only planner pass. Empty batches and over-limit owner counts are
+  rejected before any planner work runs.
+
+  On per-owner failure after earlier owners succeeded, returns
+  `{:error, {:batch_owner_failed, detail}}` with `partial_report` containing only
+  completed owners.
   """
   @spec preview_batch_owner_erasure([struct()], keyword()) :: batch_owner_erasure_result()
   def preview_batch_owner_erasure(owners, opts \\ []) do
     with :ok <- validate_batch_owners(owners, opts) do
-      {:error, :not_implemented}
+      run_batch_owner_erasure(owners, :preview, &OwnerErasure.preview/2)
     end
   end
 
   @doc """
   Erases multiple owners' Rindle-managed attachment rows and enqueues orphan-only purge work.
 
-  Returns `{:error, :not_implemented}` until the batch planner is wired in a
-  later phase. Empty batches and over-limit owner counts are rejected before
-  any planner work runs.
+  Processes each deduped owner sequentially via `OwnerErasure.execute/2`, one
+  transaction per owner. Empty batches and over-limit owner counts are rejected
+  before any planner work runs.
+
+  On per-owner failure after earlier owners succeeded, returns
+  `{:error, {:batch_owner_failed, detail}}` with `partial_report` containing only
+  completed owners; earlier owners remain committed.
   """
   @spec erase_batch_owner_erasure([struct()], keyword()) :: batch_owner_erasure_result()
   def erase_batch_owner_erasure(owners, opts \\ []) do
     with :ok <- validate_batch_owners(owners, opts) do
-      {:error, :not_implemented}
+      run_batch_owner_erasure(owners, :execute, &OwnerErasure.execute/2)
     end
   end
 
@@ -981,6 +996,56 @@ defmodule Rindle do
     else
       upload
     end
+  end
+
+  defp dedupe_batch_owners(owners), do: Enum.uniq_by(owners, &owner_ref/1)
+
+  defp run_batch_owner_erasure(owners, mode, runner) do
+    owners
+    |> dedupe_batch_owners()
+    |> Enum.reduce_while({:ok, []}, fn owner, {:ok, acc} ->
+      case runner.(owner, []) do
+        {:ok, report} ->
+          {:cont, {:ok, [%{owner: owner_ref(owner), report: report} | acc]}}
+
+        {:error, reason} ->
+          partial_entries = Enum.reverse(acc)
+
+          {:halt,
+           {:error,
+            {:batch_owner_failed,
+             %{
+               owner: owner_ref(owner),
+               reason: reason,
+               partial_report: build_batch_report(mode, partial_entries)
+             }}}}
+      end
+    end)
+    |> case do
+      {:ok, entries} -> {:ok, build_batch_report(mode, Enum.reverse(entries))}
+      error -> error
+    end
+  end
+
+  defp build_batch_report(mode, entries) do
+    reports = Enum.map(entries, & &1.report)
+
+    %{
+      mode: mode,
+      attachments_to_detach: aggregate_bucket(reports, :attachments_to_detach),
+      assets_to_purge: aggregate_bucket(reports, :assets_to_purge),
+      retained_shared_assets: aggregate_bucket(reports, :retained_shared_assets),
+      owners: entries
+    }
+  end
+
+  defp aggregate_bucket(reports, key) do
+    buckets = Enum.map(reports, &Map.fetch!(&1, key))
+
+    %{
+      count: Enum.sum(Enum.map(buckets, & &1.count)),
+      entries: Enum.flat_map(buckets, & &1.entries)
+    }
   end
 
   defp validate_batch_owners([], _opts), do: {:error, :empty_batch}
