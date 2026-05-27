@@ -11,6 +11,19 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
   @release_path Path.expand("../../guides/release_publish.md", __DIR__)
   @running_path Path.expand("../../RUNNING.md", __DIR__)
   @user_flows_path Path.expand("../../guides/user_flows.md", __DIR__)
+  @operations_path Path.expand("../../guides/operations.md", __DIR__)
+
+  @nine_mix_tasks [
+    "mix rindle.abort_incomplete_uploads",
+    "mix rindle.backfill_metadata",
+    "mix rindle.batch_owner_erasure",
+    "mix rindle.cleanup_orphans",
+    "mix rindle.doctor",
+    "mix rindle.regenerate_variants",
+    "mix rindle.runtime_status",
+    "mix rindle.sweep_orphaned_temp_files",
+    "mix rindle.verify_storage"
+  ]
 
   setup_all do
     {:ok,
@@ -242,6 +255,17 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
     assert troubleshooting =~ "test/rindle/error_test.exs"
     assert troubleshooting =~ "`:ffmpeg_not_found`"
     assert troubleshooting =~ "`:range_unparseable`"
+  end
+
+  test "operations guide lists all nine shipped mix tasks" do
+    operations = File.read!(@operations_path)
+
+    assert operations =~ "nine Mix tasks"
+    refute operations =~ "six Mix tasks"
+
+    for task <- @nine_mix_tasks do
+      assert operations =~ task, "expected #{task} in operations.md"
+    end
   end
 
   test "operations and troubleshooting guides teach the phase 31 diagnostics split" do
