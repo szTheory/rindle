@@ -32,7 +32,7 @@ hand-rolled loops — policy-first, reusing `OwnerErasure` internals.
 
 ### Operator Surface
 
-- [ ] **OPS-02**: Operator can run batch owner-erasure preview or execute from a `mix rindle.*`
+- [x] **OPS-02**: Operator can run batch owner-erasure preview or execute from a `mix rindle.*`
       task with documented CLI contract (owner identity input format, dry-run default, exit codes).
 
 ### Proof & Support Truth
@@ -73,7 +73,7 @@ hand-rolled loops — policy-first, reusing `OwnerErasure` internals.
 | BULK-03 | Phase 68 | Complete |
 | BULK-04 | Phase 68 | Complete |
 | BULK-05 | Phase 68 | Complete |
-| OPS-02 | Phase 69 | Pending |
+| OPS-02 | Phase 69 | Complete |
 | PROOF-05 | Phase 70 | Pending |
 | TRUTH-03 | Phase 70 | Pending |
 

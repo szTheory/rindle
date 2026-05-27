@@ -24,6 +24,10 @@ freeze.
 sequential per-owner `OwnerErasure` delegation, bucket aggregation, partial-failure
 reporting, and integration tests.
 
+**Phase 69 complete (2026-05-27):** `mix rindle.batch_owner_erasure` operator CLI
+with JSON owners-file input, dry-run default, text/json output, and integration tests
+(OPS-02).
+
 **Next demand-driven wedges after v1.14:** force-delete for still-shared assets (separate
 milestone), second streaming provider (explicit demand only).
 
