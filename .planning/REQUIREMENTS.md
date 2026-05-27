@@ -10,7 +10,7 @@ Gap-closure milestone from [v1.15 audit](milestones/v1.15-MILESTONE-AUDIT.md). N
 
 ### CI Proof Enforcement
 
-- [ ] **CI-03**: Dedicated merge-blocking `proof` CI job runs `docs_parity_test.exs` and
+- [x] **CI-03**: Dedicated merge-blocking `proof` CI job runs `docs_parity_test.exs` and
       `batch_owner_erasure_task_test.exs`; adopter partial doc grep removed; `RUNNING.md`
       matrix updated.
 
@@ -80,7 +80,7 @@ Deferred to v1.16+ (demand-gated):
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CI-03 | Phase 75 | Pending |
+| CI-03 | Phase 75 | Complete |
 | TRUTH-05 | Phase 76 | Complete |
 | PLAN-01 | Phase 77 | Complete |
 | CI-01 | Phase 71 | Complete |
