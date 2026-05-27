@@ -27,7 +27,7 @@ create time.
 
 | Phase | Name | Goal | Requirements | Success criteria |
 |-------|------|------|--------------|------------------|
-| 64 | Cancel contract & persistence | 4/4 | Complete   | 2026-05-27 |
+| 64 | Cancel contract & persistence | 4/4 | Complete    | 2026-05-27 |
 | 65 | Mux cancel implementation | Ship adapter + `Streaming.cancel_direct_upload/1` | CANCEL-04 | 3 |
 | 66 | Proof & adopter guidance | Tests + guide note | PROOF-01, TRUTH-01 | 3 |
 

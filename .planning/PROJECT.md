@@ -13,6 +13,11 @@ demand-validated `cancel_direct_upload/1` surface.
 
 ## Current State
 
+Phase 64 complete (2026-05-27): cancel contract frozen — `provider_upload_id`
+persistence, FSM `pending`/`uploading` → `deleted` edges, public types/errors,
+and provider callback declared. `cancel_direct_upload/1` implementation ships in
+Phase 65.
+
 Milestone `v1.12 Adopter Truth & Maintenance Hygiene` shipped on `2026-05-27`
 (Phases 60-63, 6/6 requirements validated). v1.13 scopes the pre-ranked
 demand wedge from

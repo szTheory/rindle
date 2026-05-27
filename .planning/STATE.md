@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.13
 milestone_name: Cancel Direct Upload
 status: executing
-last_updated: "2026-05-27T15:28:40.677Z"
-last_activity: 2026-05-27 -- Phase 64 planning complete
+last_updated: "2026-05-27T15:32:02.125Z"
+last_activity: 2026-05-27
 progress:
   total_phases: 3
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 4
-  completed_plans: 0
-  percent: 0
+  completed_plans: 4
+  percent: 33
 ---
 
 # Project State
@@ -24,10 +24,10 @@ See: .planning/PROJECT.md
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
+Phase: 65
+Plan: Not started
 Status: Ready to execute
-Last activity: 2026-05-27 -- Phase 64 planning complete
+Last activity: 2026-05-27
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -39,10 +39,10 @@ Progress: [░░░░░░░░░░] 0%
 
 ## Next Step
 
-**Phase 64: Cancel contract & persistence** — Lock public API shape, provider
-callback, upload_id persistence, and FSM edges before implementation.
+**Phase 65: Mux cancel implementation** — Ship `Streaming.cancel_direct_upload/1`
+and Mux adapter wiring using the Phase 64 contract and persistence.
 
-`/gsd-discuss-phase 64` or `/gsd-plan-phase 64`
+`/gsd-plan-phase 65` or `/gsd-execute-phase 65`
 
 ## Accumulated Context
 
