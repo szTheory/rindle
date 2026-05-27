@@ -11,11 +11,13 @@ hand-rolled loops — policy-first, reusing `OwnerErasure` internals.
 
 ### Bulk Erasure Policy & Contract
 
-- [ ] **BULK-01**: Operator can preview erasure for a bounded batch of owners and receive
+- [x] **BULK-01**: Operator can preview erasure for a bounded batch of owners and receive
       an aggregate report with per-owner `owner_erasure_report()` entries plus batch totals
       for attachments to detach, assets to purge, and retained shared assets.
-- [ ] **BULK-02**: Batch preview enforces a configurable maximum owner count (default bounded)
+
+- [x] **BULK-02**: Batch preview enforces a configurable maximum owner count (default bounded)
       and returns a tagged error when the batch exceeds the limit.
+
 - [ ] **BULK-03**: Batch execute processes each owner through the existing single-owner
       erasure planner with transactional per-owner isolation — one owner failure does not
       roll back completed owners in the batch.
@@ -24,6 +26,7 @@ hand-rolled loops — policy-first, reusing `OwnerErasure` internals.
 
 - [ ] **BULK-04**: Adopter can execute batch owner erasure through one public API call that
       reuses `Rindle.Internal.OwnerErasure` and preserves the v1.10 report vocabulary per owner.
+
 - [ ] **BULK-05**: Re-running batch erasure for the same owner set is idempotent and returns
       stable no-op/report results for already-cleared owners.
 
@@ -37,6 +40,7 @@ hand-rolled loops — policy-first, reusing `OwnerErasure` internals.
 - [ ] **PROOF-05**: Hermetic proof covers batch preview aggregation, per-owner isolation on
       execute, partial failure handling, idempotent rerun, and retained shared-asset semantics
       unchanged from v1.10.
+
 - [ ] **TRUTH-03**: Guides and active planning artifacts document batch erasure as the supported
       multi-owner orchestration surface and explicitly defer force-delete, admin UI, and scheduler
       workflows.
@@ -45,6 +49,7 @@ hand-rolled loops — policy-first, reusing `OwnerErasure` internals.
 
 - **LIFE-06**: Force-delete policy for assets with surviving attachments (explicit opt-in
   destructive policy — separate milestone).
+
 - **STREAM-10**: Second streaming provider as contract test (explicit demand only).
 - **TRANS-01**: Signed dynamic image transforms (job 33 — explicit adopter pull).
 - **PRIV-01**: EXIF privacy stripping on originals (job 34 — explicit adopter pull).
@@ -63,8 +68,8 @@ hand-rolled loops — policy-first, reusing `OwnerErasure` internals.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| BULK-01 | Phase 67 | Pending |
-| BULK-02 | Phase 67 | Pending |
+| BULK-01 | Phase 67 | Complete |
+| BULK-02 | Phase 67 | Complete |
 | BULK-03 | Phase 68 | Pending |
 | BULK-04 | Phase 68 | Pending |
 | BULK-05 | Phase 68 | Pending |
@@ -73,6 +78,7 @@ hand-rolled loops — policy-first, reusing `OwnerErasure` internals.
 | TRUTH-03 | Phase 70 | Pending |
 
 **Coverage:**
+
 - v1.14 requirements: 8 total
 - Mapped to phases: 8
 - Unmapped: 0 ✓

@@ -16,6 +16,10 @@ or operator mix task for GDPR/compliance scale — policy-first, no force-delete
 Milestone `v1.13 Cancel Direct Upload` shipped on `2026-05-27` (Phases 64–66,
 6/6 requirements validated). Rindle is roughly **95%** done for its stated mission.
 
+**Phase 67 complete (2026-05-27):** Batch owner-erasure public contract frozen on
+`Rindle` — types, boundary validation stubs, error vocabulary, and api_surface_boundary
+freeze. Functional preview/execute wiring lands in Phase 68.
+
 **Next demand-driven wedges after v1.14:** force-delete for still-shared assets (separate
 milestone), second streaming provider (explicit demand only).
 
@@ -615,4 +619,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-27 after v1.14 milestone start.*
+*Last updated: 2026-05-27 after Phase 67 bulk erasure policy contract.*
