@@ -27,6 +27,9 @@
 - Implement `Upload-Defer-Length` logic to allow initial creation without a defined length.
 - Add unit tests for the plug extensions.
 
+**Plans:** 1 plans
+- [ ] 57-01-PLAN.md — Implement Checksum and Defer-Length extensions
+
 ### Phase 58: Tus Concatenation
 - Implement the `Concatenation` extension (partial uploads and final assembly).
 - Update the underlying storage adapters if necessary to support chunk assembly.
