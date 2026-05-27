@@ -1,5 +1,37 @@
 # Milestones
 
+## v1.14 Bulk Owner-Erasure Orchestration (Shipped: 2026-05-27)
+
+**Phases completed:** 4 phases (67–70), 8 plans
+**Requirements validated:** 8/8 (`BULK-01..05`, `OPS-02`, `PROOF-05`, `TRUTH-03`)
+**Timeline:** 1 day (2026-05-27 → 2026-05-27)
+**Git range:** `feat(67-01)` → `docs(phase-70)` (42 commits, ~1,045 LOC in `.ex`/`.exs`)
+
+**Key accomplishments:**
+
+- Shipped batch `preview_batch_owner_erasure/2` and `erase_batch_owner_erasure/2` on
+  the public `Rindle` facade — multi-owner GDPR/compliance orchestration without
+  hand-rolled per-owner loops.
+- Froze batch contract types, boundary validation, error vocabulary, and
+  `api_surface_boundary` freeze before implementation landed.
+- Sequential per-owner `OwnerErasure` delegation with bucket aggregation, partial-failure
+  reporting, and idempotent rerun for already-cleared owners.
+- Operator surface via `mix rindle.batch_owner_erasure` (JSON owners file, dry-run default,
+  explicit `--execute`).
+- PROOF-05 hermetic gap-fill (shared fixtures, counting failing txn repo, partial-failure
+  DB proofs) and TRUTH-03 guide/docs parity for batch erasure.
+
+**Known deferred items at close:** force-delete for still-shared assets (v1.15+),
+mix `batch_owner_failed` E2E test, Nyquist validation on phases 68–70 (discovery only).
+
+**Archive:**
+
+- `.planning/milestones/v1.14-ROADMAP.md`
+- `.planning/milestones/v1.14-REQUIREMENTS.md`
+- `.planning/milestones/v1.14-MILESTONE-AUDIT.md`
+
+---
+
 ## v1.13 Cancel Direct Upload (Shipped: 2026-05-27)
 
 **Phases completed:** 3 phases (64–66), 8 plans

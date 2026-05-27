@@ -2,7 +2,7 @@
 
 ## Milestones
 
-- 🚧 **v1.14 Bulk Owner-Erasure Orchestration** — Phases 67–70 (in progress)
+- ✅ **v1.14 Bulk Owner-Erasure Orchestration** — Phases 67–70 (shipped 2026-05-27, [archive](milestones/v1.14-ROADMAP.md))
 - ✅ **v1.13 Cancel Direct Upload** — Phases 64–66 (shipped 2026-05-27, [archive](milestones/v1.13-ROADMAP.md))
 - ✅ **v1.12 Adopter Truth & Maintenance Hygiene** — Phases 60–63 (shipped 2026-05-27, [archive](milestones/v1.12-ROADMAP.md))
 - ✅ **v1.11 Tus Protocol Completion** — Phases 56–59 (shipped 2026-05-27, [archive](milestones/v1.11-ROADMAP.md))
@@ -20,55 +20,17 @@
 
 ## Phases
 
-### Phase 67: Bulk erasure policy & contract
+<details>
+<summary>✅ v1.14 Bulk Owner-Erasure Orchestration (Phases 67–70) — SHIPPED 2026-05-27</summary>
 
-**Goal:** Freeze the batch erasure boundary before implementation lands.
-**Depends on:** Phase 66 (v1.13)
-**Requirements:** BULK-01, BULK-02
+- [x] Phase 67: Bulk erasure policy & contract (2/2 plans) — completed 2026-05-27
+- [x] Phase 68: Batch erasure implementation (2/2 plans) — completed 2026-05-27
+- [x] Phase 69: Operator mix task (2/2 plans) — completed 2026-05-27
+- [x] Phase 70: Proof & adopter guidance (2/2 plans) — completed 2026-05-27
 
-**Success criteria:**
+Full phase details: [.planning/milestones/v1.14-ROADMAP.md](milestones/v1.14-ROADMAP.md)
 
-1. Aggregate batch report type and per-owner report nesting are frozen in public `@spec`s.
-2. Batch size limit, error vocabulary, and explicit non-goals (no force-delete, no admin UI) are documented.
-3. Contract artifacts pass api_surface_boundary expectations for new public types.
-
-### Phase 68: Batch erasure implementation
-
-**Goal:** Implement batch preview/execute reusing `OwnerErasure` with per-owner isolation.
-**Depends on:** Phase 67
-**Requirements:** BULK-03, BULK-04, BULK-05
-
-**Success criteria:**
-
-1. Batch preview returns aggregate + per-owner reports matching v1.10 vocabulary.
-2. Batch execute detaches and enqueues purge per owner without cross-owner transaction coupling.
-3. Partial failure returns per-owner results; idempotent rerun is stable for cleared owners.
-
-### Phase 69: Operator mix task
-
-**Goal:** Ship documented operator surface for batch erasure preview/execute.
-**Depends on:** Phase 68
-**Requirements:** OPS-02
-
-**Success criteria:**
-
-1. `mix rindle.*` task accepts owner identity input with dry-run default.
-2. Task `@moduledoc` defines exit codes, input format, and links to operations guide.
-3. Execute mode requires explicit flag (no accidental destructive default).
-
-### Phase 70: Proof & adopter guidance
-
-**Goal:** Prove batch erasure behavior and document adopter/operator expectations.
-**Depends on:** Phase 69
-**Requirements:** PROOF-05, TRUTH-03
-
-**Success criteria:**
-
-1. Hermetic proof matrix covers batch preview, execute, partial failure, idempotent rerun, shared assets.
-2. `guides/operations.md` or `guides/user_flows.md` documents batch erasure lane.
-3. Docs parity test freezes batch erasure vocabulary and deferrals (force-delete, admin UI).
-
----
+</details>
 
 <details>
 <summary>✅ v1.13 Cancel Direct Upload (Phases 64–66) — SHIPPED 2026-05-27</summary>
@@ -93,6 +55,9 @@ Full phase details: [.planning/milestones/v1.13-ROADMAP.md](milestones/v1.13-ROA
 
 ## Archive
 
+- [.planning/milestones/v1.14-ROADMAP.md](milestones/v1.14-ROADMAP.md)
+- [.planning/milestones/v1.14-REQUIREMENTS.md](milestones/v1.14-REQUIREMENTS.md)
+- [.planning/milestones/v1.14-MILESTONE-AUDIT.md](milestones/v1.14-MILESTONE-AUDIT.md)
 - [.planning/milestones/v1.13-ROADMAP.md](milestones/v1.13-ROADMAP.md)
 - [.planning/milestones/v1.13-REQUIREMENTS.md](milestones/v1.13-REQUIREMENTS.md)
 - [.planning/milestones/v1.13-MILESTONE-AUDIT.md](milestones/v1.13-MILESTONE-AUDIT.md)

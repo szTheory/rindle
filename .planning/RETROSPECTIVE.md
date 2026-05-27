@@ -2,6 +2,59 @@
 
 ---
 
+## Milestone: v1.14 — Bulk Owner-Erasure Orchestration
+
+**Shipped:** 2026-05-27
+**Phases:** 4 (67–70) | **Plans:** 8
+
+### What Was Built
+
+- Batch owner-erasure public contract on `Rindle` (types, boundary validation, error vocabulary).
+- `preview_batch_owner_erasure/2` and `erase_batch_owner_erasure/2` with sequential per-owner
+  `OwnerErasure` delegation, bucket aggregation, and partial-failure reports.
+- `mix rindle.batch_owner_erasure` operator CLI (JSON owners file, dry-run default, `--execute`).
+- PROOF-05 gap-fill: shared batch fixtures, `CountingFailingTxnRepo`, partial-failure DB proofs.
+- TRUTH-03: batch erasure documented in `guides/user_flows.md` with install-smoke docs parity.
+
+### What Worked
+
+- **Contract-before-implementation (Phase 67):** Types and boundary stubs landed before
+  planner wiring, matching the v1.10/v1.13 pattern.
+- **Reuse v1.10 planner:** Batch orchestration stayed thin — no force-delete or admin UI creep.
+- **Four-phase sequencing:** Contract → implementation → operator → proof/docs closed the wedge
+  in one day with audit passed before close.
+- **Shared test fixtures:** `OwnerErasureBatchFixtures` unified batch, proof, and task tests.
+
+### What Was Inefficient
+
+- **Nyquist partial on phases 68–70:** VALIDATION artifacts exist but are not fully green;
+  discovery-only at close.
+- **Operator partial-failure E2E gap:** `batch_owner_failed` path implemented but not driven
+  by mix-task integration test (non-blocking per audit).
+
+### Patterns Established
+
+- **Batch wraps single-owner facade:** Public batch API delegates to `OwnerErasure` per owner
+  with transactional isolation and aggregate reporting.
+- **Operator thin wrapper:** Mix task calls batch facade only; CLI schema in `@moduledoc`.
+- **Counting failing txn repo for DB proofs:** Closes partial-failure integration gaps without
+  production code changes.
+
+### Key Lessons
+
+- A pre-ranked lifecycle wedge (bulk orchestration) ships cleanly as a four-phase milestone
+  when contract, implementation, operator, and proof are sequenced explicitly.
+- Defer force-delete and admin UI to keep blast radius bounded; batch orchestration is
+  orthogonal to destructive shared-asset policy.
+
+### Cost Observations
+
+- Timeline: 1 day (2026-05-27)
+- Git: ~42 commits, ~1,045 LOC in `.ex`/`.exs` for the batch erasure lane
+- Notable: v1.14 closed same day as v1.13; second lifecycle wedge in one session
+
+---
+
 ## Milestone: v1.13 — Cancel Direct Upload
 
 **Shipped:** 2026-05-27

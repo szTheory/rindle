@@ -1,42 +1,25 @@
 # Rindle
 
-## Current Milestone: v1.14 Bulk Owner-Erasure Orchestration
+## Current Milestone
 
-**Goal:** Extend the shipped v1.10 single-owner erasure facade with batch preview/execute
-or operator mix task for GDPR/compliance scale — policy-first, no force-delete bundled.
-
-**Target features:**
-- Batch owner-erasure policy contract (limits, idempotency, aggregate report vocabulary)
-- Batch preview/execute API reusing `OwnerErasure` internals
-- Operator surface (`mix rindle.*` or public batch API)
-- Hermetic proof + docs parity (PROOF + TRUTH gates)
+_Planning next milestone — run `/gsd-new-milestone` to define v1.15+ scope._
 
 ## Current State
 
-Milestone `v1.13 Cancel Direct Upload` shipped on `2026-05-27` (Phases 64–66,
-6/6 requirements validated). Rindle is roughly **95%** done for its stated mission.
+Milestone `v1.14 Bulk Owner-Erasure Orchestration` shipped on `2026-05-27`
+(Phases 67–70, 8/8 requirements validated). Rindle is roughly **96%** done for its
+stated mission.
 
-**Phase 67 complete (2026-05-27):** Batch owner-erasure public contract frozen on
-`Rindle` — types, boundary validation stubs, error vocabulary, and api_surface_boundary
-freeze.
+**v1.14 shipped:** Batch `preview_batch_owner_erasure/2` and
+`erase_batch_owner_erasure/2` on the public facade; `mix rindle.batch_owner_erasure`
+operator CLI; PROOF-05 hermetic proof matrix; TRUTH-03 guide/docs parity.
 
-**Phase 68 complete (2026-05-27):** Batch preview/execute wired on `Rindle` with
-sequential per-owner `OwnerErasure` delegation, bucket aggregation, partial-failure
-reporting, and integration tests.
-
-**Phase 69 complete (2026-05-27):** `mix rindle.batch_owner_erasure` operator CLI
-with JSON owners-file input, dry-run default, text/json output, and integration tests
-(OPS-02).
-
-**Phase 70 complete (2026-05-27):** PROOF-05 gap-fill hermetic proof (shared batch
-fixtures, counting failing txn repo, partial-failure DB integration) and TRUTH-03
-adopter guidance (batch erasure docs + parity freeze).
-
-**Next demand-driven wedges after v1.14:** force-delete for still-shared assets (separate
+**Next demand-driven wedges:** force-delete for still-shared assets (separate
 milestone), second streaming provider (explicit demand only).
 
-Do not reopen tus protocol, single-owner erasure semantics, or Mux surfaces beyond v1.13.
-Keep shared-asset safety and maintenance-vs-owner-erasure boundaries intact.
+Do not reopen tus protocol, single-owner/batch erasure semantics, or Mux surfaces
+beyond v1.13. Keep shared-asset safety and maintenance-vs-owner-erasure boundaries
+intact.
 
 ## Recently Shipped Milestone
 
@@ -303,10 +286,18 @@ To keep this posture durable across GSD workflows:
   (Phase 66) (PROOF-01)
 - ✓ `guides/streaming_providers.md` cancel semantics and Mux-only scope — v1.13
   (Phase 66) (TRUTH-01)
+- ✓ Batch owner-erasure policy contract with aggregate report vocabulary and
+  configurable owner-count limit — v1.14 (Phase 67) (BULK-01, BULK-02)
+- ✓ Batch preview/execute API reusing `OwnerErasure` with per-owner isolation and
+  idempotent rerun — v1.14 (Phase 68) (BULK-03..05)
+- ✓ `mix rindle.batch_owner_erasure` operator surface with dry-run default and
+  documented CLI contract — v1.14 (Phase 69) (OPS-02)
+- ✓ PROOF-05 hermetic batch erasure matrix and TRUTH-03 guide/docs parity — v1.14
+  (Phase 70) (PROOF-05, TRUTH-03)
 
 ### Active
 
-_Define requirements for v1.14 Bulk Owner-Erasure Orchestration — see `.planning/REQUIREMENTS.md`._
+_Define requirements for the next milestone via `/gsd-new-milestone`._
 
 Deferred to v1.15+ or out of scope: IETF RUFH (tus 2.0), GCS-as-tus-backend,
 a Rindle-owned standalone tus JS client package, generic uploader UI kits beyond
@@ -348,8 +339,8 @@ AV-enabled lanes. Optional `mux` + `jose` deps preserve zero transitive cost
 for non-streaming adopters. The single-provider rule keeps the abstraction
 honest; v1.7+ adapters (GCS, second streaming provider) become contract tests.
 
-**Current milestone setup:** Core JTBD shipped through v1.13; v1.14 opens bulk
-owner-erasure orchestration (LIFE-05) as the highest-leverage remaining T3 wedge.
+**Current milestone setup:** Core JTBD shipped through v1.14; highest-leverage
+remaining T3 wedge is force-delete for still-shared assets (separate milestone).
 
 **Reference implementations:**
 - Rails Active Storage: attachment/blob ownership patterns, redirect-style
@@ -454,9 +445,26 @@ owner-erasure orchestration (LIFE-05) as the highest-leverage remaining T3 wedge
 | Contract-before-implementation for cancel | Freeze types, FSM, persistence, and error vocabulary in Phase 64 before Mux HTTP in Phase 65 | ✓ Good v1.13 |
 | FSM-first cancel orchestration | Conditional `update_all` to terminal state before provider HTTP reduces race windows | ✓ Good v1.13 |
 | Mux-only cancel in v1.13 | Second-provider cancel is a contract extension when explicit demand ships an adapter | Locked v1.13 |
-| v1.14 bulk erasure extends v1.10 facade | Batch orchestration reuses `OwnerErasure`; no force-delete or admin UI in scope | Locked v1.14 |
+| v1.14 bulk erasure extends v1.10 facade | Batch orchestration reuses `OwnerErasure`; no force-delete or admin UI in scope | ✓ Good v1.14 |
 
 ## Historical Snapshot
+
+<details>
+<summary>v1.14 Bulk Owner-Erasure Orchestration (Phases 67–70) — SHIPPED 2026-05-27</summary>
+
+Milestone v1.14 extended v1.10 single-owner erasure with batch orchestration.
+Delivered: batch contract types and boundary validation,
+`preview_batch_owner_erasure/2` / `erase_batch_owner_erasure/2`,
+`mix rindle.batch_owner_erasure`, PROOF-05 hermetic proof matrix, and TRUTH-03
+guide/docs parity.
+
+Full artifacts live in:
+
+- [.planning/milestones/v1.14-ROADMAP.md](.planning/milestones/v1.14-ROADMAP.md)
+- [.planning/milestones/v1.14-REQUIREMENTS.md](.planning/milestones/v1.14-REQUIREMENTS.md)
+- [.planning/milestones/v1.14-MILESTONE-AUDIT.md](.planning/milestones/v1.14-MILESTONE-AUDIT.md)
+
+</details>
 
 <details>
 <summary>v1.13 Cancel Direct Upload (Phases 64–66) — SHIPPED 2026-05-27</summary>
@@ -631,4 +639,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-27 after Phase 70 proof and adopter guidance (v1.14 complete).*
+*Last updated: 2026-05-27 after v1.14 milestone archive*
