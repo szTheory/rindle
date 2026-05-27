@@ -1,6 +1,6 @@
 # Operations
 
-Rindle ships six Mix tasks for Day-2 operational maintenance. Each task
+Rindle ships nine Mix tasks for Day-2 operational maintenance. Each task
 has a detailed `@moduledoc` describing its arguments, options, exit codes,
 and expected output — that `@moduledoc` is the canonical reference. This
 guide is a cross-link directory: it tells you which task to reach for in
@@ -94,6 +94,18 @@ Use this quick map before reaching for a task or API:
 | AV transcoding left abandoned temp run directories behind | `sweep` | `mix rindle.sweep_orphaned_temp_files` |
 
 ## Task Reference
+
+| Mix task | Module |
+| -------- | ------ |
+| `mix rindle.abort_incomplete_uploads` | `Mix.Tasks.Rindle.AbortIncompleteUploads` |
+| `mix rindle.backfill_metadata` | `Mix.Tasks.Rindle.BackfillMetadata` |
+| `mix rindle.batch_owner_erasure` | `Mix.Tasks.Rindle.BatchOwnerErasure` |
+| `mix rindle.cleanup_orphans` | `Mix.Tasks.Rindle.CleanupOrphans` |
+| `mix rindle.doctor` | `Mix.Tasks.Rindle.Doctor` |
+| `mix rindle.regenerate_variants` | `Mix.Tasks.Rindle.RegenerateVariants` |
+| `mix rindle.runtime_status` | `Mix.Tasks.Rindle.RuntimeStatus` |
+| `mix rindle.sweep_orphaned_temp_files` | `Mix.Tasks.Rindle.SweepOrphanedTempFiles` |
+| `mix rindle.verify_storage` | `Mix.Tasks.Rindle.VerifyStorage` |
 
 ### `mix rindle.cleanup_orphans`
 
@@ -222,6 +234,30 @@ or assets that were promoted before analysis ran).
 
 Typically run as a one-shot operation after a schema migration or analyzer
 upgrade — not on a recurring schedule.
+
+### `mix rindle.doctor`
+
+Validates host environment and optional profile/streaming prerequisites.
+
+- **Module:** `Mix.Tasks.Rindle.Doctor`
+- **One-line:** checks `ffmpeg`, profile modules, and related install prerequisites.
+- **Pointer:** `mix help rindle.doctor` / `@moduledoc` for the full contract.
+
+### `mix rindle.runtime_status`
+
+Bounded read-only report of degraded or stuck assets, variants, and upload sessions.
+
+- **Module:** `Mix.Tasks.Rindle.RuntimeStatus`
+- **One-line:** operator text/JSON wrapper over `Rindle.runtime_status/1`.
+- **Pointer:** `mix help rindle.runtime_status` / `@moduledoc`.
+
+### `mix rindle.batch_owner_erasure`
+
+Operator shell for batch owner erasure preview/execute.
+
+- **Module:** `Mix.Tasks.Rindle.BatchOwnerErasure`
+- **One-line:** thin CLI over `Rindle.preview_batch_owner_erasure/2` and `Rindle.erase_batch_owner_erasure/2`.
+- **Pointer:** [`user_flows.md`](user_flows.md) batch subsection + `mix help rindle.batch_owner_erasure`.
 
 ## Recommended Schedule
 
