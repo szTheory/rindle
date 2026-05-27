@@ -5,7 +5,8 @@ defmodule Rindle.InstallSmoke.PhoenixTusTruthParityTest do
   @live_view_path Path.expand("../../lib/rindle/live_view.ex", __DIR__)
   @generated_helper_path Path.expand("support/generated_app_helper.ex", __DIR__)
   @project_path Path.expand("../../.planning/PROJECT.md", __DIR__)
-  @requirements_path Path.expand("../../.planning/REQUIREMENTS.md", __DIR__)
+  # Between milestones there is no root REQUIREMENTS.md; latest shipped charter lives in milestones/.
+  @requirements_path Path.expand("../../.planning/milestones/v1.16-REQUIREMENTS.md", __DIR__)
   @roadmap_path Path.expand("../../.planning/ROADMAP.md", __DIR__)
   @state_path Path.expand("../../.planning/STATE.md", __DIR__)
   @v18_roadmap_path Path.expand("../../.planning/milestones/v1.8-ROADMAP.md", __DIR__)

@@ -91,8 +91,8 @@ jobs:
       - name: Check formatting
         run: mix format --check-formatted
 
-      # Phase 71 (CI proof honesty): Credo, Doctor, AV doctor, Coveralls, and Dialyzer
-      # stay advisory (step-level continue-on-error) — intentional static-analysis policy.
+      # Phase 71 (CI proof honesty): Credo, Doctor, AV doctor, and Dialyzer stay advisory.
+      # Default unit suite (mix coveralls) is merge-blocking (post-v1.16 assessment).
       # See RUNNING.md `## CI lane severity` for the full matrix.
       - name: Credo (strict)
         run: mix credo --strict
@@ -111,7 +111,6 @@ jobs:
 
       - name: Run tests with coverage
         run: mix coveralls
-        continue-on-error: true
 
       - name: Restore PLT cache
         uses: actions/cache@v4

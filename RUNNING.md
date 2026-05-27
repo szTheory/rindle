@@ -23,7 +23,7 @@ settings live outside the repo.
 | `quality` — Credo (strict) | advisory | Same job | Step-level `continue-on-error` |
 | `quality` — Doctor (full, raise) | advisory | Same job | Step-level `continue-on-error` |
 | `quality` — Verify AV runtime with public doctor task | advisory | Same job | Step-level `continue-on-error` |
-| `quality` — Run tests with coverage | advisory | Same job | Step-level `continue-on-error` |
+| `quality` — Run tests with coverage | merge-blocking | Same job | Default `mix test` suite via Coveralls; both matrix cells must pass |
 | `quality` — Dialyzer | advisory | Same job | Step-level `continue-on-error` |
 | `integration` | merge-blocking | `needs: quality` | Lifecycle + MinIO adapter tests |
 | `contract` — Run AV hygiene gate | merge-blocking | `needs: quality` | `scripts/assert_av_hygiene.sh` |
