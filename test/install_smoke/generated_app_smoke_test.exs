@@ -42,8 +42,10 @@ defmodule Rindle.InstallSmoke.GeneratedAppSmokeAssertions do
         assert guide =~ "config :rindle, :tus_resume_authorizer, MyApp.TusAuth"
         assert guide =~ "@uppy/tus"
         assert guide =~ "tus-js-client"
+
         assert guide =~
                  "Supported tus extensions: creation, expiration, termination, checksum, creation-defer-length, concatenation."
+
         assert guide =~ "checksum"
         assert guide =~ "creation-defer-length"
         assert guide =~ "concatenation"
@@ -234,7 +236,9 @@ if GeneratedAppHelper.profile_enabled?(:tus) do
       assert report.tus_ready_variants == ["poster", "web_720p"]
 
       assert is_map(report.extensions), tus_failure_details(report)
-      assert report.tus_report_data["extensions"] == report.extensions, tus_failure_details(report)
+
+      assert report.tus_report_data["extensions"] == report.extensions,
+             tus_failure_details(report)
 
       extensions = report.extensions
       concatenation = extensions["concatenation"] || %{}

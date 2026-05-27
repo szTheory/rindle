@@ -272,7 +272,9 @@ defmodule Rindle.Upload.TusPlug do
         url |> String.split("/") |> List.last()
       end)
 
-    if Enum.all?(tokens, &(&1 != nil and &1 != "")), do: {:ok, tokens}, else: {:error, :invalid_urls}
+    if Enum.all?(tokens, &(&1 != nil and &1 != "")),
+      do: {:ok, tokens},
+      else: {:error, :invalid_urls}
   end
 
   defp verify_tokens_for_concat(tokens, opts) do
@@ -302,13 +304,29 @@ defmodule Rindle.Upload.TusPlug do
     with {:ok, %{session: session}} <-
            Broker.initiate_tus_upload(profile, filename: filename, expires_in: expires_in),
          {:ok, upload_url, signed_session} <-
-           sign_and_persist(base_path, session, length, content_type, secret_key_base, actor, is_partial) do
+           sign_and_persist(
+             base_path,
+             session,
+             length,
+             content_type,
+             secret_key_base,
+             actor,
+             is_partial
+           ) do
       {:ok,
        %{session: signed_session, upload_url: upload_url, expires_at: signed_session.expires_at}}
     end
   end
 
-  defp sign_and_persist(base_path, session, length, content_type, secret_key_base, actor, is_partial) do
+  defp sign_and_persist(
+         base_path,
+         session,
+         length,
+         content_type,
+         secret_key_base,
+         actor,
+         is_partial
+       ) do
     # Token payload is HMAC-signed and tamper-proof, so `length` rides inside it
     # rather than a new column (D-10 budget). HEAD/PATCH read it back on verify.
     payload = %{

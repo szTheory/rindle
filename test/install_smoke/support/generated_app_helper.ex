@@ -136,7 +136,8 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       tus_debug_report_data: tus_debug_report,
       tus_failure_phase: tus_debug_report["failure_phase"] || tus_report_data["failure_phase"],
       tus_failure_endpoint: tus_debug_report["endpoint"] || tus_report_data["endpoint"],
-      tus_failure_summary: tus_debug_report["failure_summary"] || tus_report_data["failure_summary"],
+      tus_failure_summary:
+        tus_debug_report["failure_summary"] || tus_report_data["failure_summary"],
       tus_failure_mode: tus_debug_report["failure_mode"] || tus_report_data["failure_mode"],
       doctor_command: gcs_report["doctor_command"],
       doctor_success?: gcs_report["doctor_success"] == true,
@@ -178,7 +179,8 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
 
   defp normalize_tus_extensions(_raw_extensions) do
     %{
-      "concatenation" => normalize_tus_extension(nil, %{"parallel_uploads" => nil, "status" => nil}),
+      "concatenation" =>
+        normalize_tus_extension(nil, %{"parallel_uploads" => nil, "status" => nil}),
       "creation_defer_length" =>
         normalize_tus_extension(nil, %{"used_upload_defer_length" => false, "status" => nil}),
       "checksum" => normalize_tus_extension(nil, %{"algorithm" => nil, "status" => nil})

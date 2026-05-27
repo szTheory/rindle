@@ -211,7 +211,8 @@ defmodule Rindle.Storage.GCS do
   end
 
   @impl true
-  def capabilities, do: [:signed_url, :head, :resumable_upload, :resumable_upload_session, :concatenate]
+  def capabilities,
+    do: [:signed_url, :head, :resumable_upload, :resumable_upload_session, :concatenate]
 
   ## Helpers
 

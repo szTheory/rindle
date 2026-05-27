@@ -915,7 +915,7 @@ defmodule Rindle.Upload.TusPlugTest do
   describe "Phase 58 - Concatenation" do
     test "POST with Upload-Concat: partial creates session with is_partial: true", %{root: root} do
       opts = opts_for(root)
-      
+
       conn =
         conn(:post, "/uploads/tus")
         |> put_req_header("upload-concat", "partial")
@@ -929,7 +929,7 @@ defmodule Rindle.Upload.TusPlugTest do
 
       {:ok, payload} = Plug.Crypto.verify(@secret_key_base, @tus_url_salt, token)
       sid = payload["session_id"]
-      
+
       session = AdopterRepo.get!(MediaUploadSession, sid)
       assert session.multipart_parts["is_partial"] == true
     end
@@ -938,27 +938,32 @@ defmodule Rindle.Upload.TusPlugTest do
       opts = opts_for(root)
 
       # Create partial 1
-      p1 = conn(:post, "/uploads/tus")
-           |> put_req_header("upload-concat", "partial")
-           |> put_req_header("upload-length", "4")
-           |> TusPlug.call(opts)
+      p1 =
+        conn(:post, "/uploads/tus")
+        |> put_req_header("upload-concat", "partial")
+        |> put_req_header("upload-length", "4")
+        |> TusPlug.call(opts)
+
       [l1] = get_resp_header(p1, "location")
       t1 = l1 |> String.split("/") |> List.last()
       patch(opts, t1, 0, "1234")
 
       # Create partial 2
-      p2 = conn(:post, "/uploads/tus")
-           |> put_req_header("upload-concat", "partial")
-           |> put_req_header("upload-length", "4")
-           |> TusPlug.call(opts)
+      p2 =
+        conn(:post, "/uploads/tus")
+        |> put_req_header("upload-concat", "partial")
+        |> put_req_header("upload-length", "4")
+        |> TusPlug.call(opts)
+
       [l2] = get_resp_header(p2, "location")
       t2 = l2 |> String.split("/") |> List.last()
       patch(opts, t2, 0, "5678")
 
       # Final concat
-      final = conn(:post, "/uploads/tus")
-              |> put_req_header("upload-concat", "final;#{l1} #{l2}")
-              |> TusPlug.call(opts)
+      final =
+        conn(:post, "/uploads/tus")
+        |> put_req_header("upload-concat", "final;#{l1} #{l2}")
+        |> TusPlug.call(opts)
 
       assert final.status == 201
       [location] = get_resp_header(final, "location")
@@ -982,25 +987,29 @@ defmodule Rindle.Upload.TusPlugTest do
       opts = opts_for(root)
 
       # Create incomplete partial
-      p1 = conn(:post, "/uploads/tus")
-           |> put_req_header("upload-concat", "partial")
-           |> put_req_header("upload-length", "4")
-           |> TusPlug.call(opts)
+      p1 =
+        conn(:post, "/uploads/tus")
+        |> put_req_header("upload-concat", "partial")
+        |> put_req_header("upload-length", "4")
+        |> TusPlug.call(opts)
+
       [l1] = get_resp_header(p1, "location")
 
-      final = conn(:post, "/uploads/tus")
-              |> put_req_header("upload-concat", "final;#{l1}")
-              |> TusPlug.call(opts)
+      final =
+        conn(:post, "/uploads/tus")
+        |> put_req_header("upload-concat", "final;#{l1}")
+        |> TusPlug.call(opts)
 
       assert final.status == 400
     end
-    
+
     test "POST with Upload-Concat: final fails with invalid URL", %{root: root} do
       opts = opts_for(root)
 
-      final = conn(:post, "/uploads/tus")
-              |> put_req_header("upload-concat", "final;http://example.com/invalid_token")
-              |> TusPlug.call(opts)
+      final =
+        conn(:post, "/uploads/tus")
+        |> put_req_header("upload-concat", "final;http://example.com/invalid_token")
+        |> TusPlug.call(opts)
 
       assert final.status == 400
     end

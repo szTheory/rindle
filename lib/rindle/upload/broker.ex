@@ -246,7 +246,9 @@ defmodule Rindle.Upload.Broker do
     repo.transaction(fn ->
       sessions_with_length =
         Enum.map(payloads, fn payload ->
-          session = repo.get(MediaUploadSession, payload["session_id"]) || repo.rollback(:not_found)
+          session =
+            repo.get(MediaUploadSession, payload["session_id"]) || repo.rollback(:not_found)
+
           {session, payload["length"]}
         end)
 

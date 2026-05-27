@@ -339,7 +339,9 @@ defmodule Rindle.Error do
     |> String.trim()
   end
 
-  def message(%{reason: {:batch_owner_failed, %{owner: {owner_type, owner_id}, partial_report: partial}}}) do
+  def message(%{
+        reason: {:batch_owner_failed, %{owner: {owner_type, owner_id}, partial_report: partial}}
+      }) do
     completed = length(partial.owners)
 
     """

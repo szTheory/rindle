@@ -281,7 +281,10 @@ defmodule Rindle.Storage.S3 do
   end
 
   defp etag_from_copy_response(%{body: %{etag: etag}}), do: etag
-  defp etag_from_copy_response(%{headers: headers}), do: headers |> Enum.into(%{}, fn {k, v} -> {String.downcase(k), v} end) |> Map.get("etag")
+
+  defp etag_from_copy_response(%{headers: headers}),
+    do: headers |> Enum.into(%{}, fn {k, v} -> {String.downcase(k), v} end) |> Map.get("etag")
+
   defp etag_from_copy_response(_), do: nil
 
   @impl true

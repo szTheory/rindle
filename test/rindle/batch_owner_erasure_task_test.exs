@@ -142,7 +142,9 @@ defmodule Rindle.BatchOwnerErasureTaskTest do
   end
 
   defp write_owners_file_content!(entries) do
-    path = Path.join(System.tmp_dir!(), "rindle-owners-#{System.unique_integer([:positive])}.json")
+    path =
+      Path.join(System.tmp_dir!(), "rindle-owners-#{System.unique_integer([:positive])}.json")
+
     File.write!(path, Jason.encode!(entries))
 
     on_exit(fn -> File.rm(path) end)

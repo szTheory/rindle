@@ -81,7 +81,10 @@ defmodule Mix.Tasks.Rindle.BatchOwnerErasure do
       )
 
     unless owners_file = Keyword.get(opts, :owners_file) do
-      Mix.shell().error("--owners-file PATH is required. See `mix help rindle.batch_owner_erasure`.")
+      Mix.shell().error(
+        "--owners-file PATH is required. See `mix help rindle.batch_owner_erasure`."
+      )
+
       exit({:shutdown, 1})
     end
 
@@ -95,7 +98,9 @@ defmodule Mix.Tasks.Rindle.BatchOwnerErasure do
       |> parse_owners_entries()
 
     runner =
-      if dry_run?, do: &Rindle.preview_batch_owner_erasure/2, else: &Rindle.erase_batch_owner_erasure/2
+      if dry_run?,
+        do: &Rindle.preview_batch_owner_erasure/2,
+        else: &Rindle.erase_batch_owner_erasure/2
 
     case runner.(owners, batch_opts) do
       {:ok, report} ->

@@ -10,7 +10,9 @@ defmodule Rindle.Storage.LocalTest do
     %{root: root, opts: [root: root]}
   end
 
-  test "concatenate/3 combines multiple source files into final file and deletes sources", %{opts: opts} do
+  test "concatenate/3 combines multiple source files into final file and deletes sources", %{
+    opts: opts
+  } do
     src1 = "src1.txt"
     src2 = "src2.txt"
     final = "final.txt"

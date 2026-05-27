@@ -370,9 +370,10 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
     refute user_flows =~ "The full executable facade lands in later `v1.10` phase work"
   end
 
-  test "user flows and operations document batch erasure without duplicating mix task contract", %{
-    user_flows: user_flows
-  } do
+  test "user flows and operations document batch erasure without duplicating mix task contract",
+       %{
+         user_flows: user_flows
+       } do
     operations = File.read!(Path.expand("../../guides/operations.md", __DIR__))
     normalized_flows = String.downcase(user_flows)
     normalized_ops = String.downcase(operations)

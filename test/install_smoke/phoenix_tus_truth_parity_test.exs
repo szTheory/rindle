@@ -26,8 +26,10 @@ defmodule Rindle.InstallSmoke.PhoenixTusTruthParityTest do
     assert guide =~ "`100%` means bytes transferred"
     assert guide =~ "findPreviousUploads()"
     assert guide =~ "resumeFromPreviousUpload(previousUploads[0])"
+
     assert guide =~
              "Supported tus extensions: creation, expiration, termination, checksum, creation-defer-length, concatenation."
+
     assert guide =~ "checksum"
     assert guide =~ "creation-defer-length"
     assert guide =~ "concatenation"

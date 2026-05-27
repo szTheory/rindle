@@ -237,7 +237,7 @@ defmodule Rindle.Storage.S3Test do
     # verify sources are deleted
     assert {:error, :not_found} = S3.head(src1_key, opts)
     assert {:error, :not_found} = S3.head(src2_key, opts)
-    
+
     assert {:ok, _result} = S3.delete(key, opts)
     File.rm_rf!(root)
   end
