@@ -18,7 +18,7 @@
 
 **Active Milestone:** v1.11 Tus Protocol Completion
 
-### Phase 56: LiveView Tus helper polish
+### ✅ Phase 56: LiveView Tus helper polish
 - Wrap up uncommitted `Rindle.LiveView.allow_tus_upload` local edits.
 - Ensure tests and `generated_app_smoke_test.exs` pass with the helper updates.
 
