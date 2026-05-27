@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.17
 milestone_name: milestone
-status: executing
-last_updated: "2026-05-27T21:28:07.313Z"
-last_activity: 2026-05-27 -- Phase 79 planning complete
+status: Phase 79 complete
+last_updated: "2026-05-27T22:00:00.000Z"
+last_activity: 2026-05-27 -- Phase 79 CI Static-Analysis Policy Closure complete
 progress:
   total_phases: 2
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 4
-  completed_plans: 2
-  percent: 50
+  completed_plans: 4
+  percent: 100
 ---
 
 # Project State
@@ -20,18 +20,18 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-27)
 
 **Core value:** Media, made durable.
-**Current focus:** Phase 78 — assessment-planning-truth
+**Current focus:** v1.17 complete — demand-gated pause for v1.18+
 
 ## Current Position
 
-Phase: 79
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-05-27 -- Phase 79 planning complete
+Phase: 79 — CI Static-Analysis Policy Closure (complete)
+Plan: 79-02 complete
+Status: v1.17 Adopter-Confidence Hygiene complete (2026-05-27)
+Last activity: 2026-05-27 -- Phase 79 CI Static-Analysis Policy Closure complete
 
 ## Current Milestone
 
-**v1.17 Adopter-Confidence Hygiene** — Phases 78–79 (3 requirements, 0/2 phases complete)
+**v1.17 Adopter-Confidence Hygiene** — Phases 78–79 (3/3 requirements, 2/2 phases complete)
 
 - **Charter:** Branch C from path-to-done roadmap (maintainer choice; no public API)
 - **Previous shipped:** v1.16 CI Enforcement & Planning Hygiene (2026-05-27)
@@ -40,13 +40,13 @@ Last activity: 2026-05-27 -- Phase 79 planning complete
 
 ## Next Step
 
-**Phase 79: CI Static-Analysis Policy Closure** — record Credo/Dialyzer severity decision (CI-04)
+**v1.18+ demand-gated pause** — resume on LIFE-06 (compliance) or STREAM-10 (second provider) signal; run milestone audit if desired
 
 ## Accumulated Context
 
 - Rindle is roughly **94–96%** done for its stated mission (90–95% near-done band).
 - v1.16 closed v1.15 audit gaps (proof CI lane, TusPlug doc lock, planning truth).
-- v1.17 closes residual assessment drift and deferred Credo/Dialyzer policy decision.
+- v1.17 closes residual assessment drift and records Credo/Dialyzer advisory policy (CI-04).
 - LIFE-06 and STREAM-10 remain demand-gated for v1.18+.
 - Default `mix coveralls` is merge-blocking per `ci.yml` (source of truth).
 

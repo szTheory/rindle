@@ -2,7 +2,7 @@
 
 ## Milestones
 
-- **v1.17 Adopter-Confidence Hygiene** — Phases 78–79 (in progress)
+- **v1.17 Adopter-Confidence Hygiene** — Phases 78–79 (shipped 2026-05-27)
 - ✅ **v1.16 CI Enforcement & Planning Hygiene** — Phases 75–77 (shipped 2026-05-27, [archive](milestones/v1.16-ROADMAP.md))
 - ✅ **v1.15 Maintenance & Proof Honesty** — Phases 71–74 (shipped 2026-05-27, [audit](milestones/v1.15-MILESTONE-AUDIT.md))
 - ✅ **v1.14 Bulk Owner-Erasure Orchestration** — Phases 67–70 (shipped 2026-05-27, [archive](milestones/v1.14-ROADMAP.md))
@@ -60,7 +60,10 @@
 3. Assessment thread "Open concerns" section reflects the recorded decision (not "deferred")
 4. No new public API or `lib/` changes required to satisfy CI-04
 
-**Plans:** 2 plans (79-01, 79-02)
+**Plans:** 2/2 complete
+
+- [x] 79-01: RUNNING.md CI-04 policy + ci.yml comment alignment
+- [x] 79-02: Thread closure + REQUIREMENTS/STATE/ROADMAP traceability + verification gate
 
 ---
 
@@ -107,4 +110,4 @@ Audit: [.planning/milestones/v1.15-MILESTONE-AUDIT.md](milestones/v1.15-MILESTON
 - [.planning/milestones/v1.14-MILESTONE-AUDIT.md](milestones/v1.14-MILESTONE-AUDIT.md)
 
 ---
-*Last updated: 2026-05-27 — v1.17 Adopter-Confidence Hygiene (Phases 78–79)*
+*Last updated: 2026-05-27 — v1.17 Adopter-Confidence Hygiene shipped (Phases 78–79)*
