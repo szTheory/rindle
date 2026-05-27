@@ -1,8 +1,8 @@
 ---
 phase: 73
 slug: nyquist-validation-closure
-status: draft
-nyquist_compliant: false
+status: complete
+nyquist_compliant: true
 wave_0_complete: true
 created: 2026-05-27
 ---
@@ -38,11 +38,11 @@ created: 2026-05-27
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 73-01-01 | 01 | 1 | VAL-01 | — | Phase 68 archive restored | docs | `test -d .planning/milestones/v1.14-phases/68-batch-erasure-implementation` | ✅ | ⬜ pending |
-| 73-01-02 | 01 | 1 | VAL-01 | — | 68-VALIDATION Nyquist complete | docs | `grep nyquist_compliant: true .../68-VALIDATION.md` | ✅ | ⬜ pending |
-| 73-02-01 | 02 | 2 | VAL-01 | — | Phase 69 archive + VALIDATION complete | docs | `grep nyquist_compliant: true .../69-VALIDATION.md` | ✅ | ⬜ pending |
-| 73-03-01 | 03 | 3 | VAL-01 | — | Phase 70 archive + VALIDATION complete | docs | `grep nyquist_compliant: true .../70-VALIDATION.md` | ✅ | ⬜ pending |
-| 73-04-01 | 04 | 4 | VAL-01 | — | REQUIREMENTS + audit table closed | docs | `grep '\[x\] Phase 73' .planning/REQUIREMENTS.md` | ✅ | ⬜ pending |
+| 73-01-01 | 01 | 1 | VAL-01 | — | Phase 68 archive restored | docs | `test -d .planning/milestones/v1.14-phases/68-batch-erasure-implementation` | ✅ | ✅ green |
+| 73-01-02 | 01 | 1 | VAL-01 | — | 68-VALIDATION Nyquist complete | docs | `grep nyquist_compliant: true .../68-VALIDATION.md` | ✅ | ✅ green |
+| 73-02-01 | 02 | 2 | VAL-01 | — | Phase 69 archive + VALIDATION complete | docs | `grep nyquist_compliant: true .../69-VALIDATION.md` | ✅ | ✅ green |
+| 73-03-01 | 03 | 3 | VAL-01 | — | Phase 70 archive + VALIDATION complete | docs | `grep nyquist_compliant: true .../70-VALIDATION.md` | ✅ | ✅ green |
+| 73-04-01 | 04 | 4 | VAL-01 | — | REQUIREMENTS + audit table closed | docs | `grep '\[x\] \*\*VAL-01\*\*' .planning/REQUIREMENTS.md` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -62,11 +62,11 @@ All phase behaviors have automated verification (grep + mix test probes).
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 30s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 30s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-05-27

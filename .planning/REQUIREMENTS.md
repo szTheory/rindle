@@ -24,7 +24,7 @@ Maintenance-only milestone. No new public feature surface.
 
 ### Validation Closure
 
-- [ ] **VAL-01**: Phases 68–70 validation artifacts reach Nyquist-compliant state via
+- [x] **VAL-01**: Phases 68–70 validation artifacts reach Nyquist-compliant state via
       `/gsd-validate-phase` or equivalent gap-fill.
 
 ### Support Truth
@@ -63,7 +63,7 @@ Deferred to v1.16+ (demand-gated):
 | CI-01 | Phase 71 | Complete |
 | CI-02 | Phase 71 | Complete |
 | PROOF-06 | Phase 72 | Complete |
-| VAL-01 | Phase 73 | Pending |
+| VAL-01 | Phase 73 | Complete |
 | TRUTH-04 | Phase 74 | Pending |
 | AUDIT-01 | Phase 74 | Pending |
 
