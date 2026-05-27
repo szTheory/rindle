@@ -69,7 +69,7 @@ Each task was committed atomically:
 3. **Task 3: Add PROOF-05 shared-asset batch scenarios** - `f334ae4` (test)
 4. **Task 4: Add PROOF-05 partial-failure and first-owner failure scenarios** - `3469f25` (test)
 
-**Plan metadata:** pending (docs commit)
+**Plan metadata:** `0af959b` (docs)
 
 ## Files Created/Modified
 
