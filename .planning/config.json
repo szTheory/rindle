@@ -45,7 +45,8 @@
       "prompts_dir": "prompts/",
       "demand_gated_default": true,
       "require_post_ship_assessment": true,
-      "assessment_supersedes_prior_thread": true
+      "assessment_supersedes_prior_thread": true,
+      "path_to_done_thread": true
     }
   }
 }

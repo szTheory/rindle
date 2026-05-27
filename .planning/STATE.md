@@ -1,12 +1,12 @@
 ---
 gsd_state_version: 1.0
-milestone: between-milestones
-milestone_name: null
-status: Awaiting next milestone
-last_updated: "2026-05-27T23:00:00Z"
-last_activity: 2026-05-27 — Post-v1.16 assessment + CI hygiene complete
+milestone: v1.17
+milestone_name: Adopter-Confidence Hygiene
+status: Defining requirements
+last_updated: "2026-05-27T00:00:00Z"
+last_activity: 2026-05-27 — Milestone v1.17 started
 progress:
-  total_phases: 0
+  total_phases: 2
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -20,43 +20,43 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-27)
 
 **Core value:** Media, made durable.
-**Current focus:** Demand-gated — no feature milestone by default (v1.16 archived)
+**Current focus:** v1.17 Adopter-Confidence Hygiene (planning truth + CI policy closure)
 
 ## Current Position
 
-Phase: —
+Phase: Not started (defining requirements)
 Plan: —
-Status: Between milestones — v1.16 archived 2026-05-27
-Last activity: 2026-05-27 — Milestone v1.16 archived
+Status: Defining requirements
+Last activity: 2026-05-27 — Milestone v1.17 started
 
 ## Current Milestone
 
-- **v1.16 CI Enforcement & Planning Hygiene** — archived (2026-05-27)
-- **Previous shipped:** v1.15 Maintenance & Proof Honesty (2026-05-27)
+**v1.17 Adopter-Confidence Hygiene** — Phases 78–79 (3 requirements, 0/2 phases complete)
+
+- **Charter:** Branch C from path-to-done roadmap (maintainer choice; no public API)
+- **Previous shipped:** v1.16 CI Enforcement & Planning Hygiene (2026-05-27)
 - **Assessment thread:** `.planning/threads/2026-05-27-post-v116-milestone-assessment.md`
-  (supersedes post-v114)
+- **Path-to-done:** `.planning/threads/2026-05-27-path-to-done-roadmap.md`
 
 ## Next Step
 
-**Default:** Demand-gated pause — no milestone work until a wedge is chosen.
+**Phase 78: Assessment & Planning Truth** — fix post-v116 thread drift; verify JTBD anchor
 
-**After context clear (start here):** `/gsd-progress` — re-read position, deferred backlog,
-and assessment thread without starting a milestone.
+After context clear:
 
-**When ready to build:** `/gsd-new-milestone` with a concrete charter only:
-- `v1.17 Force-Delete` — LIFE-06 compliance pull
-- `v1.17 Second Streaming Provider` — STREAM-10 named adopter
-- Do not open a speculative feature milestone
+`/gsd-discuss-phase 78` — gather context and clarify approach
+
+Also: `/gsd-plan-phase 78` — skip discussion, plan directly
 
 ## Accumulated Context
 
 - Rindle is roughly **94–96%** done for its stated mission (90–95% near-done band).
 - v1.16 closed v1.15 audit gaps (proof CI lane, TusPlug doc lock, planning truth).
-- Maintenance/proof honesty wedge **complete** (v1.15–v1.16); post-v116 assessment is canonical.
-- JTBD-MAP anchor refreshed to v1.16 (2026-05-27).
-- Default `mix test` suite merge-blocking via `mix coveralls` in CI `quality` job (2026-05-27).
+- v1.17 closes residual assessment drift and deferred Credo/Dialyzer policy decision.
+- LIFE-06 and STREAM-10 remain demand-gated for v1.18+.
+- Default `mix coveralls` is merge-blocking per `ci.yml` (source of truth).
 
-- **Do not** bundle force-delete, admin UI, or second streaming provider without explicit demand.
+- **Do not** add force-delete, second provider, or new public API in v1.17.
 - **Do not** re-sequence tus, Mux surfaces, or owner-erasure semantics.
 
 ## Blockers/Concerns
@@ -67,7 +67,7 @@ and assessment thread without starting a milestone.
 
 | Category | Item | Status |
 |----------|------|--------|
-| lifecycle | Force-delete policy (LIFE-06) | deferred (v1.17+ demand) |
+| lifecycle | Force-delete policy (LIFE-06) | deferred (v1.18+ demand) |
 | streaming | Second provider (Cloudflare/Bunny) | deferred |
 | tus | IETF RUFH / tus 2.0 | deferred |
 | tus | GCS-as-tus-backend / R2-native tus proxying | out of scope |
@@ -79,10 +79,3 @@ and assessment thread without starting a milestone.
 ## Session Continuity
 
 Last session: 2026-05-27
-
-## Operator Next Steps
-
-1. **`/gsd-progress`** — situational re-entry (recommended after context clear)
-2. Read `.planning/threads/2026-05-27-post-v116-milestone-assessment.md` before any charter
-3. **`/gsd-new-milestone`** — only when LIFE-06 or STREAM-10 (or explicit issue) is chosen
-4. Patch/minor Hex releases need no milestone — use release workflow + `guides/release_publish.md`

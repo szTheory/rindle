@@ -44,6 +44,28 @@
   `.planning/threads/2026-05-27-post-v116-milestone-assessment.md` (canonical post-v1.16).
 - Between-milestones STATE posture needs explicit reset at archive — not only at phase close.
 
+### Path-to-Done Assessment (2026-05-27)
+
+Post-v1.16 milestone-boundary assessment produced canonical multi-milestone ordering:
+
+- **Done estimate:** ~94–96%; T0–T2 complete; T3 demand-driven only
+- **Default next:** demand-gated pause — no speculative feature milestone
+- **Conditional v1.17:** LIFE-06 (compliance) or STREAM-10 (named adopter); LIFE-06 first if both
+- **Terminal state:** mission complete → maintenance mode when T3 gaps shipped-on-demand or deferred
+
+**Graduation candidates** (reuse in future milestones):
+
+1. Contract-before-implementation (freeze types/vocab before execute path)
+2. Gap-closure sequencing (planning truth before CI wiring)
+3. Moduledoc `Code.fetch_docs/1` contract tests as support-truth lock
+4. Demand-gated milestone boundary (`block_feature_milestone_without_signal`)
+5. Proof lane separation (merge-blocking proofs vs advisory static analysis)
+
+**Artifact:** `.planning/threads/2026-05-27-path-to-done-roadmap.md`
+
+**Repo verification:** LIFE-06 not built (`OwnerErasure` opts ignored; shared assets retained);
+STREAM-10 not built (Mux-only adapter); batch erasure does not propagate force opt-in.
+
 ### Cost Observations
 
 - Timeline: 1 day (2026-05-27)

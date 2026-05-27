@@ -2,6 +2,7 @@
 
 ## Milestones
 
+- **v1.17 Adopter-Confidence Hygiene** — Phases 78–79 (in progress)
 - ✅ **v1.16 CI Enforcement & Planning Hygiene** — Phases 75–77 (shipped 2026-05-27, [archive](milestones/v1.16-ROADMAP.md))
 - ✅ **v1.15 Maintenance & Proof Honesty** — Phases 71–74 (shipped 2026-05-27, [audit](milestones/v1.15-MILESTONE-AUDIT.md))
 - ✅ **v1.14 Bulk Owner-Erasure Orchestration** — Phases 67–70 (shipped 2026-05-27, [archive](milestones/v1.14-ROADMAP.md))
@@ -21,6 +22,44 @@
 - ✅ **v1.0 MVP** — Phases 1–5 (shipped 2026-04-xx, [archive](milestones/v1.0-ROADMAP.md))
 
 ## Phases
+
+### Phase 78: Assessment & Planning Truth
+
+**Goal:** Adopters and maintainers read one honest CI/planning story with no stale assessment drift.
+
+**Depends on:** v1.16 shipped
+
+**Requirements:** TRUTH-06, PLAN-02
+
+**Success criteria:**
+
+1. Post-v116 assessment thread has zero phrases contradicting `ci.yml` on coveralls/proof severity
+2. Path-to-done roadmap cross-references match assessment thread after edits
+3. JTBD-MAP anchor reflects v1.16 shipped boundary (verified, not assumed)
+4. PROJECT.md and STATE.md describe v1.17 charter and v1.18+ demand gates consistently
+
+**Plans:** TBD (`/gsd-plan-phase 78`)
+
+---
+
+### Phase 79: CI Static-Analysis Policy Closure
+
+**Goal:** Close the deferred Credo/Dialyzer severity decision with documented rationale.
+
+**Depends on:** Phase 78
+
+**Requirements:** CI-04
+
+**Success criteria:**
+
+1. RUNNING.md records explicit Credo and Dialyzer severity (merge-blocking or advisory)
+2. `ci.yml` comments match RUNNING.md; no matrix row contradicts live wiring
+3. Assessment thread "Open concerns" section reflects the recorded decision (not "deferred")
+4. No new public API or `lib/` changes required to satisfy CI-04
+
+**Plans:** TBD (`/gsd-plan-phase 79`)
+
+---
 
 <details>
 <summary>✅ v1.16 CI Enforcement & Planning Hygiene (Phases 75–77) — SHIPPED 2026-05-27</summary>
@@ -45,13 +84,7 @@ Audit: [.planning/milestones/v1.15-MILESTONE-AUDIT.md](milestones/v1.15-MILESTON
 
 </details>
 
-## Between milestones (demand-gated)
-
-No active phases. **Default:** no feature milestone until compliance pull (LIFE-06) or named
-adopter (STREAM-10). Assessment:
-[post-v116](threads/2026-05-27-post-v116-milestone-assessment.md).
-
-## Deferred to v1.17+ / Later
+## Deferred to v1.18+ / Later
 
 - Force-delete semantics for still-shared assets (LIFE-06) — compliance pull only
 - Second streaming provider (Cloudflare/Bunny) — explicit adopter demand only
@@ -71,4 +104,4 @@ adopter (STREAM-10). Assessment:
 - [.planning/milestones/v1.14-MILESTONE-AUDIT.md](milestones/v1.14-MILESTONE-AUDIT.md)
 
 ---
-*Last updated: 2026-05-27 — v1.16 shipped; demand-gated pause (post-v116 assessment)*
+*Last updated: 2026-05-27 — v1.17 Adopter-Confidence Hygiene (Phases 78–79)*

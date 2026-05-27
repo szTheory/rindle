@@ -1,12 +1,20 @@
 # Rindle
 
-## Current Milestone
+## Current Milestone: v1.17 Adopter-Confidence Hygiene
 
-**Between milestones (demand-gated pause)** — v1.16 shipped 2026-05-27 (Phases 75–77,
-3/3 requirements). **No feature milestone by default.** Open `/gsd-new-milestone` only after
-a concrete wedge is chosen: LIFE-06 (compliance pull), STREAM-10 (named adopter), or
-optional hygiene (no public API). Canonical assessment:
-[post-v116 thread](threads/2026-05-27-post-v116-milestone-assessment.md).
+**Goal:** Close residual planning-truth drift and record an explicit CI static-analysis
+policy so adopters and maintainers read one honest story — no new public API.
+
+**Target features:**
+
+- Fix stale phrases in post-v116 assessment and path-to-done threads (coveralls truth)
+- Verify JTBD-MAP anchor at v1.16 boundary; align PROJECT/STATE/ROADMAP to v1.17 charter
+- Record explicit Credo/Dialyzer merge-blocking vs advisory decision in RUNNING.md + ci.yml
+
+**Demand posture:** Maintainer-chosen micro milestone (Branch C). LIFE-06 and STREAM-10
+remain demand-gated for v1.18+. Canonical context:
+[post-v116 assessment](threads/2026-05-27-post-v116-milestone-assessment.md),
+[path-to-done roadmap](threads/2026-05-27-path-to-done-roadmap.md).
 
 ## Current State
 
@@ -325,7 +333,10 @@ To keep this posture durable across GSD workflows:
 
 ### Active
 
-_None — v1.16 shipped 2026-05-27. Next milestone demand-gated._
+- **TRUTH-06**: Post-v116 assessment and path-to-done threads match `ci.yml` / RUNNING.md
+  CI severity (coveralls merge-blocking; no unit-suite advisory drift)
+- **PLAN-02**: JTBD-MAP anchor verified at v1.16; PROJECT/STATE/ROADMAP reflect v1.17 charter
+- **CI-04**: Explicit recorded decision on Credo/Dialyzer severity; RUNNING.md + ci.yml aligned
 
 Deferred to v1.17+ or out of scope: force-delete (LIFE-06), second streaming provider,
 IETF RUFH (tus 2.0), GCS-as-tus-backend, standalone tus JS client, uploader UI kits,
@@ -366,14 +377,11 @@ AV-enabled lanes. Optional `mux` + `jose` deps preserve zero transitive cost
 for non-streaming adopters. The single-provider rule keeps the abstraction
 honest; v1.7+ adapters (GCS, second streaming provider) become contract tests.
 
-**Current milestone setup:** v1.16 closed the v1.15 audit gap-closure wedge (merge-blocking
-proof lane, TusPlug doc parity lock, planning truth hygiene). Maintenance/proof honesty is
-complete through v1.16. Rindle is in a between-milestones posture at ~94–96% mission coverage.
-**Default next:** no feature milestone without demand signal (compliance ticket for LIFE-06
-or named adopter for STREAM-10). See
-`.planning/threads/2026-05-27-post-v116-milestone-assessment.md`. Optional micro v1.17
-hygiene (JTBD/CI only) has no new public API. Force-delete and second streaming provider
-remain demand-gated for v1.17+.
+**Current milestone setup:** v1.17 is the optional adopter-confidence hygiene micro milestone
+(no new `lib/` surface). v1.16 closed proof-lane and TusPlug doc parity gaps. Mission coverage
+~94–96%. After v1.17, default returns to demand-gated pause unless LIFE-06 (compliance) or
+STREAM-10 (named adopter) signals arrive. See
+`.planning/threads/2026-05-27-post-v116-milestone-assessment.md`.
 
 **Reference implementations:**
 - Rails Active Storage: attachment/blob ownership patterns, redirect-style
@@ -479,6 +487,7 @@ remain demand-gated for v1.17+.
 | FSM-first cancel orchestration | Conditional `update_all` to terminal state before provider HTTP reduces race windows | ✓ Good v1.13 |
 | Mux-only cancel in v1.13 | Second-provider cancel is a contract extension when explicit demand ships an adapter | Locked v1.13 |
 | v1.14 bulk erasure extends v1.10 facade | Batch orchestration reuses `OwnerErasure`; no force-delete or admin UI in scope | ✓ Good v1.14 |
+| Mission-complete default = demand-gated pause post-v1.16 | ~94–96% mission coverage; T0–T2 complete; T3 gaps (LIFE-06, STREAM-10) demand-gated only; path-to-done roadmap defines terminal state | Locked 2026-05-27 |
 
 ## Historical Snapshot
 
@@ -688,4 +697,4 @@ This document evolves at phase transitions and milestone boundaries.
    (`workflow.milestone_boundary.block_feature_milestone_without_signal`)
 
 ---
-*Last updated: 2026-05-27 after v1.16 milestone archived*
+*Last updated: 2026-05-27 — milestone v1.17 Adopter-Confidence Hygiene started*

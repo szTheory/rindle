@@ -147,17 +147,27 @@ maintenance/proof (v1.15–v1.16) shipped in lib/tests/guides/CI. Force-delete �
 | Priority | Milestone | Why now | Size |
 |---|---|---|---|
 | **Default** | No feature milestone | ~94–96% mission coverage; maintenance wedge complete v1.15–v1.16 | — |
-| **Optional** | v1.17 Planning Truth & Adopter-Confidence | JTBD/CI hygiene only; no public API | small |
-| **Conditional** | v1.17 Force-Delete Shared Assets (LIFE-06) | Compliance pull only; separate high-blast-radius charter | medium |
-| **v1.17+** | Second streaming provider (if demanded) | Contract test; explicit demand only | large |
-| **then** | *Long-tail polish only* | No speculative tus 2.0, uploader kits, or platform scope | ongoing |
+| **Conditional A** | v1.17 Force-Delete Shared Assets (LIFE-06) | Compliance pull only; separate high-blast-radius charter | medium (~3 phases) |
+| **Conditional B** | v1.17 Second Streaming Provider (STREAM-10) | Contract test; explicit adopter demand only | large (~3–4 phases) |
+| **Optional C** | v1.17 Adopter-Confidence Hygiene | JTBD/CI hygiene only; no public API | small (1–2 phases) |
+| **v1.18+** | Whichever of A/B was not v1.17 | Second demand signal | same as above |
+| **v1.19+** | Privacy & Delivery Polish (TRANS-01, PRIV-01) | Explicit product pull only | medium |
+| **then** | *Long-tail / maintenance* | No speculative tus 2.0, uploader kits, or platform scope | ongoing |
+
+**Canonical ordering:** `.planning/threads/2026-05-27-path-to-done-roadmap.md`
 
 **Stop signal:** core JTBD for the stated mission is shipped (~94–96%). See
-`.planning/threads/2026-05-27-post-v116-milestone-assessment.md` for canonical ranking.
+`.planning/threads/2026-05-27-post-v116-milestone-assessment.md` for adopter coverage;
+path-to-done thread for multi-milestone sequence and terminal-state criteria.
 
 ---
 
 ## What changed since last generation
+
+- **2026-05-27 — Path-to-done roadmap assessment.** No new JTBD rows. Milestone
+  prioritization table expanded with v1.17 branches A/B/C, v1.18+ sequencing, and
+  terminal-state pointer. Canonical ordering:
+  `.planning/threads/2026-05-27-path-to-done-roadmap.md`.
 
 - **2026-05-27 — v1.16 post-ship assessment.** Anchor moved from v1.15 to v1.16
   (`3dbf7ab`). No new JTBD rows — v1.16 was CI/docs/planning hygiene only. Gap #1
