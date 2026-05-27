@@ -15,7 +15,7 @@
 - Extended API surface boundary test for GCS, Streaming, Provider, and TusPlug.
 - Applied patch/minor dependency hygiene with green unit and parity tests.
 
-**Assessment thread for v1.13+:** `.planning/threads/2026-05-27-v112-milestone-assessment.md`
+**Assessment thread for v1.13+:** `.planning/threads/2026-05-27-post-v112-milestone-assessment.md`
 
 **Archive:**
 - `.planning/milestones/v1.12-ROADMAP.md`

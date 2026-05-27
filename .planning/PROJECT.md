@@ -1,22 +1,25 @@
 # Rindle
 
+## Current Milestone: v1.13 Cancel Direct Upload
+
+**Goal:** Close the remaining Mux direct-upload control gap with a narrow,
+demand-validated `cancel_direct_upload/1` surface.
+
+**Target features:**
+- `Rindle.Streaming.cancel_direct_upload/1` public API (by `asset_id`)
+- Mux provider adapter via `Mux.Video.Uploads.cancel/2`
+- Persist provider `upload_id` at create for cancel correlation
+- Hermetic + integration tests and guide note on cancel semantics
+
 ## Current State
 
 Milestone `v1.12 Adopter Truth & Maintenance Hygiene` shipped on `2026-05-27`
-(Phases 60-63, 6/6 requirements validated). Planning truth, JTBD frontier,
-support-truth moduledocs, API surface boundaries, and dependency hygiene now
-match shipped v1.11 reality.
+(Phases 60-63, 6/6 requirements validated). v1.13 scopes the pre-ranked
+demand wedge from
+`.planning/threads/2026-05-27-post-v112-milestone-assessment.md`.
 
-No active milestone is open. Use `$gsd-milestone-next-step` or
-`$gsd-new-milestone` for demand-driven v1.13+ scope. See
-`.planning/threads/2026-05-27-v112-milestone-assessment.md` for ranked wedges.
-
-## Next Milestone Goals (v1.13+, after v1.12)
-
-- Prefer demand-driven wedges (`cancel_direct_upload/1`) over speculative breadth.
-- Do not reopen tus protocol, owner-erasure facade, or Mux direct-upload surfaces
-  unless concrete adopter bugs appear.
-- Keep shared-asset safety and maintenance-vs-owner-erasure boundaries intact.
+Do not reopen tus protocol, owner-erasure facade, or broader Mux surfaces beyond
+cancel. Keep shared-asset safety and maintenance-vs-owner-erasure boundaries intact.
 
 ## Recently Shipped Milestone
 
@@ -274,13 +277,12 @@ To keep this posture durable across GSD workflows:
 
 ### Active
 
-No active milestone. `v1.12` closed with `TRUTH-01..03`, `SURF-01`, `OPS-01`, `PROOF-01`.
+**v1.13 Cancel Direct Upload** — `CANCEL-01..04`, `PROOF-01`, `TRUTH-01`.
 
-Deferred to v1.13+ or out of scope: IETF RUFH (tus 2.0), GCS-as-tus-
-backend, a Rindle-owned standalone tus JS client package, generic uploader UI
-kits beyond the supported helper path, a second streaming provider,
-`cancel_direct_upload/1`, force-delete semantics for still-shared assets, and
-admin/bulk erasure orchestration.
+Deferred to v1.14+ or out of scope: IETF RUFH (tus 2.0), GCS-as-tus-backend,
+a Rindle-owned standalone tus JS client package, generic uploader UI kits beyond
+the supported helper path, a second streaming provider, force-delete semantics
+for still-shared assets, and admin/bulk erasure orchestration.
 
 ### Out of Scope
 
@@ -317,11 +319,10 @@ AV-enabled lanes. Optional `mux` + `jose` deps preserve zero transitive cost
 for non-streaming adopters. The single-provider rule keeps the abstraction
 honest; v1.7+ adapters (GCS, second streaming provider) become contract tests.
 
-**Current milestone setup:** Core JTBD for the stated mission is shipped through
-v1.11 (tus protocol completion, Phoenix tus DX, browser→Mux direct upload,
-owner erasure facade, Mux streaming, AV wedge, Hex publish path). `v1.12` is
-maintenance and support-truth hygiene only. Remaining gaps are demand-driven
-(`cancel_direct_upload/1`, bulk erasure orchestration) or explicitly out of scope.
+**Current milestone setup:** Core JTBD shipped through v1.11; v1.12 closed
+planning/support-truth drift. v1.13 closes the named Mux direct-upload control
+hole (`cancel_direct_upload/1`). Remaining gaps after v1.13 are bulk erasure
+orchestration and other demand-driven wedges.
 
 **Reference implementations:**
 - Rails Active Storage: attachment/blob ownership patterns, redirect-style
@@ -581,4 +582,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-27 — v1.12 Adopter Truth & Maintenance Hygiene shipped. Planning truth, JTBD, support-truth moduledocs, and API surface boundaries aligned with v1.11 shipped reality.*
+*Last updated: 2026-05-27 — Milestone v1.13 Cancel Direct Upload started (Phases 64+).*
