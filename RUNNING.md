@@ -28,8 +28,9 @@ settings live outside the repo.
 | `integration` | merge-blocking | `needs: quality` | Lifecycle + MinIO adapter tests |
 | `contract` — Run AV hygiene gate | merge-blocking | `needs: quality` | `scripts/assert_av_hygiene.sh` |
 | `contract` — Run contract tests | advisory | Same job | Step-level `continue-on-error`; job still required in graph |
+| `proof` | merge-blocking | `needs: quality` | `docs_parity_test.exs` + `batch_owner_erasure_task_test.exs`; Postgres only; Elixir 1.17/OTP 27 |
 | `package-consumer` | merge-blocking | `needs: quality` | Install-smoke matrix + release preflight |
-| `adopter` | merge-blocking | `needs: [quality, integration, contract]` | Canonical lifecycle + doc parity |
+| `adopter` | merge-blocking | `needs: [quality, integration, contract]` | Canonical adopter lifecycle only (doc parity in `proof` job) |
 | `mux-soak` | secret-gated soak | Label `streaming` on PR; `needs: quality` | Blocking when the job runs (no `continue-on-error`) |
 | `gcs-soak` | secret-gated soak | `needs: quality`; repo + secrets | Test step advisory; skips when secrets empty |
 | `package-consumer-gcs-live` | secret-gated soak | `needs: quality`; repo + secrets | Job-level `continue-on-error`; live GCS install-smoke when secrets present |
@@ -44,7 +45,7 @@ is out of scope for v1.15.
 ### Post-merge checklist
 
 After merging CI proof honesty changes, verify GitHub branch protection required checks
-include `package-consumer` and `adopter` if green-main honesty should hold in practice.
+include `Proof`, `package-consumer`, and `adopter` if green-main honesty should hold in practice.
 
 ## Verify The Runtime
 
