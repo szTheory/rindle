@@ -4,6 +4,16 @@ defmodule Rindle.Streaming do
 
   Phase 45 adds browser-to-provider direct upload creation here so the public
   contract stays separate from the storage broker lifecycle.
+
+  ## Direct upload cancel (v1.13)
+
+  `cancel_direct_upload/1` accepts only the Rindle `asset_id` returned from
+  `create_direct_upload/2`. Success is bare `:ok` (including idempotent re-cancel
+  when the row is already `deleted` or the provider upload is already terminal).
+
+  Orchestration is FSM-first: a conditional update from `pending` or `uploading`
+  to `deleted` runs before any best-effort provider cancel (Phase 65 implements
+  the body). Provider handles never cross the public boundary.
   """
 
   alias Ecto.Multi
@@ -12,6 +22,25 @@ defmodule Rindle.Streaming do
 
   @type direct_upload_result ::
           {:ok, %{upload_url: String.t(), asset_id: Ecto.UUID.t()}} | {:error, term()}
+
+  @typedoc """
+  Result of `cancel_direct_upload/1` (implementation ships Phase 65).
+
+  Success is bare `:ok` (idempotent re-cancel included). Provider handles never
+  appear on this boundary.
+  """
+  @type cancel_direct_upload_result ::
+          :ok
+          | {:error, :not_found}
+          | {:error, :streaming_not_configured}
+          | {:error, :provider_sync_failed}
+          | {:error, :provider_quota_exceeded}
+          | {:error, {:not_cancellable, not_cancellable_detail()}}
+
+  @type not_cancellable_detail ::
+          %{reason: :state, state: String.t()}
+          | %{reason: :ingest_mode, ingest_mode: String.t()}
+          | %{reason: :missing_upload_id}
 
   @doc """
   Mint a browser-safe direct upload for a streaming-enabled profile.
@@ -66,9 +95,12 @@ defmodule Rindle.Streaming do
           ]
 
           case streaming.provider.create_direct_upload(profile, adapter_opts) do
-            {:ok, %{upload_url: upload_url}} ->
+            {:ok, %{upload_url: upload_url, upload_id: upload_id}} ->
               case provider_asset
-                   |> MediaProviderAsset.changeset(%{state: "uploading"})
+                   |> MediaProviderAsset.changeset(%{
+                     state: "uploading",
+                     provider_upload_id: upload_id
+                   })
                    |> repo.update() do
                 {:ok, _updated} ->
                   {:ok, %{upload_url: upload_url, asset_id: asset.id}}

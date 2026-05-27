@@ -95,6 +95,8 @@ defmodule Rindle.Streaming.CreateDirectUploadTest do
       )
 
     assert provider_row.state == "uploading"
+    assert provider_row.provider_upload_id == "mux-upload-id-123"
+    refute inspect(provider_row) =~ "mux-upload-id-123"
     assert provider_row.playback_policy == "signed"
     assert provider_row.ingest_mode == "direct_creator_upload"
     assert is_binary(provider_row.mux_passthrough)
