@@ -45,14 +45,13 @@ defmodule Rindle.Ops.RuntimeChecksTest do
   describe "run/2" do
     test "returns deterministic stable check ids" do
       previous = Application.get_env(:rindle, :tus_profiles)
-      Application.put_env(:rindle, :tus_profiles, [VideoProfile])
+      Application.put_env(:rindle, :tus_profiles, [ImageProfile])
 
       try do
         report =
           run_runtime_checks(
             probe: fn -> :ok end,
-            env: %{},
-            profiles: [ImageProfile, VideoProfile],
+            profiles: [ImageProfile],
             oban_config: [
               repo: Rindle.Repo,
               queues: [

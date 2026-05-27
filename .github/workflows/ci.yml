@@ -109,7 +109,7 @@ jobs:
           Rindle.Adopter.CanonicalApp.VideoProfile
 
       - name: Run tests with coverage
-        run: mix coveralls --max-cases 1
+        run: mix coveralls
 
       - name: Restore PLT cache
         uses: actions/cache@v4
