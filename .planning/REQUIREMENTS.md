@@ -10,14 +10,14 @@ Micro milestone (Branch C). No new public API. Execute phases **78 → 79**.
 
 ### Support Truth
 
-- [ ] **TRUTH-06**: Post-v116 assessment and path-to-done threads accurately describe CI
+- [x] **TRUTH-06**: Post-v116 assessment and path-to-done threads accurately describe CI
   severity — `mix coveralls` merge-blocking, `proof` merge-blocking — with no stale
   "unit tests advisory" or contradictory rough-edge claims; `ci.yml` is cited as source
   of truth.
 
 ### Planning Truth
 
-- [ ] **PLAN-02**: JTBD-MAP anchor verified at v1.16 shipped boundary; PROJECT.md, STATE.md,
+- [x] **PLAN-02**: JTBD-MAP anchor verified at v1.16 shipped boundary; PROJECT.md, STATE.md,
   and ROADMAP.md reflect v1.17 charter and demand-gated posture for LIFE-06 / STREAM-10.
 
 ### CI Policy
@@ -51,8 +51,8 @@ Deferred to v1.18+ (demand-gated):
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| TRUTH-06 | Phase 78 | Pending |
-| PLAN-02 | Phase 78 | Pending |
+| TRUTH-06 | Phase 78 | Complete |
+| PLAN-02 | Phase 78 | Complete |
 | CI-04 | Phase 79 | Pending |
 
 **Coverage:**

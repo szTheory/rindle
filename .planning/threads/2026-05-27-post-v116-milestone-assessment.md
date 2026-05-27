@@ -68,7 +68,7 @@ Credo, Doctor, and Dialyzer remain advisory (`continue-on-error: true` in `.gith
 
 | Rank | Wedge | Type | Done enough |
 |------|-------|------|-------------|
-| 1 | Planning hygiene | IMPORTANT-BUT-NARROW | **In progress — v1.17 Phase 78:** thread CI truth + JTBD anchor refresh; no feature surface |
+| 1 | Planning hygiene | IMPORTANT-BUT-NARROW | **Done 2026-05-27:** post-v116 thread TRUTH-06 closure, JTBD anchor v1.16 refresh; no feature surface |
 | 2 | CI confidence tightening | IMPORTANT-BUT-NARROW | **Done 2026-05-27:** `mix coveralls` merge-blocking; Credo/Dialyzer still advisory |
 | 3 | Force-delete (LIFE-06) | IMPORTANT-BUT-NARROW | Opt-in `force:`; preview collateral damage; never default |
 | 4 | Second provider (STREAM-10) | IMPORTANT-BUT-NARROW | One adapter + doctor; explicit adopter demand only |
