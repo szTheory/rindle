@@ -60,7 +60,7 @@
 3. Assessment thread "Open concerns" section reflects the recorded decision (not "deferred")
 4. No new public API or `lib/` changes required to satisfy CI-04
 
-**Plans:** TBD (`/gsd-plan-phase 79`)
+**Plans:** 2 plans (79-01, 79-02)
 
 ---
 
