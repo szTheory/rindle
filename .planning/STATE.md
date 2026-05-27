@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.11
-milestone_name: Tus Protocol Completion
-status: Wrapping up local tus edits
-last_updated: "2026-05-27T06:47:37.071Z"
-last_activity: 2026-05-27
+milestone: v1.12
+milestone_name: milestone
+status: ready
+last_updated: "2026-05-27T13:58:04Z"
+last_activity: 2026-05-27 -- Closed Phase 59 and shipped v1.11 Tus Protocol Completion
 progress:
   total_phases: 3
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  completed_phases: 3
+  total_plans: 6
+  completed_plans: 6
+  percent: 100
 ---
 
 # Project State
@@ -20,35 +20,34 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Media, made durable.
-**Current focus:** v1.11 Tus Protocol Completion
+**Current focus:** v1.12 milestone planning
 
 ## Current Position
 
-Phase: planning
-Plan: none
-Status: Wrapping up local tus edits
-Last activity: 2026-05-27
+Phase: 59 (e2e-proof-truth-closure) — COMPLETED
+Plan: 2 of 2
+Status: Phase 59 closed; v1.11 shipped
+Last activity: 2026-05-27 -- Closed Phase 59 and shipped v1.11 Tus Protocol Completion
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [██████████] 100%
 
 ## Current Milestone
 
-- Active milestone: `v1.11 Tus Protocol Completion`
-- Goals: Checksum, Concatenation, and Upload-Defer-Length.
+- Last shipped milestone: `v1.11 Tus Protocol Completion`
+- Goals delivered: Checksum, Concatenation, Upload-Defer-Length, and truth/proof closure.
 
 ## Next Step
 
-- Define phases for the new milestone.
+- Define and start the v1.12 milestone phases.
 
 ## Recent Completion
 
-- Last completed milestone: `v1.10 Owner Account Erasure`
-- Scope: Phases 53-55, 6 plans, 7/7 requirements validated
-- Tag: `v1.10`
-- Archive files:
-  - `.planning/milestones/v1.10-ROADMAP.md`
-  - `.planning/milestones/v1.10-REQUIREMENTS.md`
-  - `.planning/milestones/v1.10-MILESTONE-AUDIT.md`
+- Last completed milestone: `v1.11 Tus Protocol Completion`
+- Scope: Phases 57-59, 6 plans, 6/6 requirements validated
+- Audit files:
+  - `.planning/milestones/v1.11-MILESTONE-AUDIT.md`
+  - `.planning/phases/59-e2e-proof-truth-closure/59-01-SUMMARY.md`
+  - `.planning/phases/59-e2e-proof-truth-closure/59-02-SUMMARY.md`
 
 ## Accumulated Context
 
@@ -57,13 +56,14 @@ Progress: [░░░░░░░░░░] 0%
 
 - The core adopter story is already real from shipped evidence: package-consumer
   install proof, canonical adopter lifecycle proof, image/AV processing,
-  signed/private delivery, Mux streaming, browser→Mux direct creator upload,
+  signed/private delivery, Mux streaming, browser->Mux direct creator upload,
   GCS resumable, tus-backed resumable browser ingest on Local/S3, and the
   owner/account erasure lifecycle facade all exist in code, docs, and
   verification artifacts.
 
-- The library is entering a diminishing returns phase. Remaining work focuses on
-  edge cases, such as the `tus` follow-ons currently in the working tree.
+- The library is entering a diminishing returns phase. The core `tus` protocol
+  edge is now closed and remaining work is mostly maintenance and future-scope
+  wedges.
 
 - Planning drift note: older ranking artifacts still predate the shipped v1.10
   owner-erasure closure. Use `PROJECT.md`, this file, and
@@ -72,15 +72,12 @@ Progress: [░░░░░░░░░░] 0%
 
 ## Blockers/Concerns
 
-- No active blocker. The repo is preparing the `v1.11` milestone.
+- No active blocker. `v1.11` is shipped and the project is ready to scope `v1.12`.
 
 ## Deferred Items
 
 | Category | Item | Status |
 |----------|------|--------|
-| tus | Checksum extension (per-chunk SHA-1, 460) | deferred v1.11+ |
-| tus | Concatenation / parallel partial uploads | deferred v1.11+ |
-| tus | `Upload-Defer-Length` (size unknown at create) | deferred v1.11+ |
 | tus | IETF RUFH / tus 2.0 (`104 Upload Resumption`) | deferred |
 | tus | GCS-as-tus-backend / R2-native tus proxying | out of scope |
 | tus | Rindle-owned standalone tus JS client package | out of scope |
@@ -92,11 +89,10 @@ Progress: [░░░░░░░░░░] 0%
 
 ## Session Continuity
 
-Last session: 2026-05-27T06:47:36.839Z
-`v1.10` was archived, `REQUIREMENTS.md` was retired, and the project is
-waiting for the next milestone definition.
+Last session: 2026-05-27T13:58:04Z
+Phase 59 closed with green proof commands, parity gates, and milestone audit
+evidence pointers recorded in `tmp/install_smoke_tus_last_run.json`.
 
-**Last Completed Milestone:** v1.10 (Phases 53-55) — archived 2026-05-26,
-tag `v1.10`.
+**Last Completed Milestone:** v1.11 (Phases 57-59) — shipped 2026-05-27.
 
-**Next Step:** Run `$gsd-new-milestone`.
+**Next Step:** Run `$gsd-new-milestone` for v1.12.

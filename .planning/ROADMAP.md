@@ -2,6 +2,7 @@
 
 ## Milestones
 
+- ✅ **v1.11 Tus Protocol Completion** — Phases 56–59 (shipped 2026-05-27, see archive)
 - ✅ **v1.10 Owner Account Erasure** — Phases 53–55 (shipped 2026-05-26, see archive)
 - ✅ **v1.9 Phoenix Tus DX Completion** — Phases 48–52 (shipped 2026-05-25, see archive)
 - ✅ **v1.8 Resumable Browser Ingest** — Phases 42–47 (shipped 2026-05-25, see archive)
@@ -16,29 +17,39 @@
 
 ## Current Status
 
-**Active Milestone:** v1.11 Tus Protocol Completion
+**Active Milestone:** v1.12 Planning
+**v1.11 Tus Protocol Completion:** closed and shipped on 2026-05-27.
 
 ### ✅ Phase 56: LiveView Tus helper polish
 - Wrap up uncommitted `Rindle.LiveView.allow_tus_upload` local edits.
 - Ensure tests and `generated_app_smoke_test.exs` pass with the helper updates.
 
-### Phase 57: Tus Checksum & Defer-Length
+### ✅ Phase 57: Tus Checksum & Defer-Length
 - Implement `Upload-Checksum` extension logic in `TusPlug`.
 - Implement `Upload-Defer-Length` logic to allow initial creation without a defined length.
 - Add unit tests for the plug extensions.
 
 **Plans:** 1 plans
-- [ ] 57-01-PLAN.md — Implement Checksum and Defer-Length extensions
+- [x] 57-01-PLAN.md — Implement Checksum and Defer-Length extensions
 
-### Phase 58: Tus Concatenation
+### ✅ Phase 58: Tus Concatenation
 - Implement the `Concatenation` extension (partial uploads and final assembly).
 - Update the underlying storage adapters if necessary to support chunk assembly.
 - Unit tests for concatenation logic.
 
-### Phase 59: E2E Proof & Truth Closure
+**Plans:** 3 plans
+- [x] 58-01-PLAN.md — Introduce storage concatenation behaviour and Local/S3 support
+- [x] 58-02-PLAN.md — Implement GCS concatenation via compose API
+- [x] 58-03-PLAN.md — Implement TusPlug concatenation header processing and DB persistence
+
+### ✅ Phase 59: E2E Proof & Truth Closure
 - Add end-to-end MinIO or node-based `tus-js-client` proofs for the new extensions.
 - Update `guides/resumable_uploads.md` to reflect full protocol support.
 - Complete audit and close milestone.
+
+**Plans:** 2 plans
+- [x] 59-01-PLAN.md — Extend generated-app tus proof harness and enforce extension evidence
+- [x] 59-02-PLAN.md — Lock docs truth/parity and close v1.11 with evidence-backed audit
 
 ## Deferred to v1.12+ / Later
 
@@ -56,6 +67,7 @@
 - [.planning/milestones/v1.10-ROADMAP.md](milestones/v1.10-ROADMAP.md)
 - [.planning/milestones/v1.10-REQUIREMENTS.md](milestones/v1.10-REQUIREMENTS.md)
 - [.planning/milestones/v1.10-MILESTONE-AUDIT.md](milestones/v1.10-MILESTONE-AUDIT.md)
+- [.planning/milestones/v1.11-MILESTONE-AUDIT.md](milestones/v1.11-MILESTONE-AUDIT.md)
 - [.planning/milestones/v1.9-ROADMAP.md](milestones/v1.9-ROADMAP.md)
 - [.planning/milestones/v1.9-REQUIREMENTS.md](milestones/v1.9-REQUIREMENTS.md)
 - [.planning/milestones/v1.9-MILESTONE-AUDIT.md](milestones/v1.9-MILESTONE-AUDIT.md)
