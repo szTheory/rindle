@@ -222,6 +222,29 @@ if GeneratedAppHelper.profile_enabled?(:tus) do
       assert report.tus_byte_size >= 200 * 1024 * 1024
       assert report.tus_content_type == "video/mp4"
       assert report.tus_ready_variants == ["poster", "web_720p"]
+
+      assert is_map(report.extensions), tus_failure_details(report)
+      assert report.tus_report_data["extensions"] == report.extensions, tus_failure_details(report)
+
+      extensions = report.extensions
+      concatenation = extensions["concatenation"] || %{}
+      creation_defer_length = extensions["creation_defer_length"] || %{}
+      checksum = extensions["checksum"] || %{}
+
+      assert concatenation["proved"] == true, tus_failure_details(report)
+      assert concatenation["parallel_uploads"] == 2, tus_failure_details(report)
+      assert concatenation["status"] in [201, 204], tus_failure_details(report)
+
+      assert creation_defer_length["proved"] == true, tus_failure_details(report)
+
+      assert creation_defer_length["used_upload_defer_length"] == true,
+             tus_failure_details(report)
+
+      assert creation_defer_length["status"] == 204, tus_failure_details(report)
+
+      assert checksum["proved"] == true, tus_failure_details(report)
+      assert checksum["algorithm"] in ["sha1", "sha256"], tus_failure_details(report)
+      assert checksum["status"] == 204, tus_failure_details(report)
       assert_tus_guide_parity!()
     end
   end
