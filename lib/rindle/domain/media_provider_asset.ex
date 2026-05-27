@@ -48,6 +48,7 @@ defmodule Rindle.Domain.MediaProviderAsset do
     field :provider_name, :string
     field :provider_asset_id, :string
     field :mux_passthrough, :string
+    field :provider_upload_id, :string
     field :playback_ids, {:array, :string}, default: []
     field :playback_policy, :string
     field :ingest_mode, :string
@@ -68,6 +69,7 @@ defmodule Rindle.Domain.MediaProviderAsset do
     :provider_name,
     :provider_asset_id,
     :mux_passthrough,
+    :provider_upload_id,
     :playback_ids,
     :playback_policy,
     :ingest_mode,
@@ -117,6 +119,9 @@ defmodule Rindle.Domain.MediaProviderAsset do
     |> unique_constraint([:provider_name, :mux_passthrough],
       name: :media_provider_assets_provider_name_mux_passthrough_index
     )
+    |> unique_constraint([:provider_name, :provider_upload_id],
+      name: :media_provider_assets_provider_name_provider_upload_id_index
+    )
     |> unique_constraint([:asset_id, :profile, :provider_name])
     |> foreign_key_constraint(:asset_id)
   end
@@ -128,6 +133,7 @@ defimpl Inspect, for: Rindle.Domain.MediaProviderAsset do
       asset
       | provider_asset_id: Rindle.Domain.MediaProviderAsset.redact_id(asset.provider_asset_id),
         mux_passthrough: Rindle.Domain.MediaProviderAsset.redact_id(asset.mux_passthrough),
+        provider_upload_id: Rindle.Domain.MediaProviderAsset.redact_id(asset.provider_upload_id),
         raw_provider_metadata: %{redacted: true}
     }
 

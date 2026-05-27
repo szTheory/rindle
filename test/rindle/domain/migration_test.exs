@@ -131,4 +131,31 @@ defmodule Rindle.Domain.MigrationTest do
              end)
     end
   end
+
+  describe "add_provider_upload_id_to_media_provider_assets migration (Phase 64)" do
+    test "media_provider_assets has provider_upload_id column" do
+      {:ok, %{rows: rows}} =
+        Repo.query("""
+        SELECT column_name FROM information_schema.columns
+        WHERE table_schema = 'public' AND table_name = 'media_provider_assets'
+          AND column_name = 'provider_upload_id'
+        """)
+
+      assert length(rows) == 1
+    end
+
+    test "media_provider_assets has partial unique index on provider_upload_id" do
+      {:ok, %{rows: rows}} =
+        Repo.query("""
+        SELECT indexdef FROM pg_indexes
+        WHERE schemaname = 'public'
+          AND tablename = 'media_provider_assets'
+          AND indexname = 'media_provider_assets_provider_name_provider_upload_id_index'
+        """)
+
+      assert length(rows) == 1
+      [[indexdef]] = rows
+      assert indexdef =~ "provider_upload_id IS NOT NULL"
+    end
+  end
 end
