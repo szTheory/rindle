@@ -219,6 +219,20 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
     end
   end
 
+  test "running guide publishes the CI lane severity matrix", %{running: running} do
+    for snippet <- [
+          "## CI lane severity",
+          "merge-blocking",
+          "advisory",
+          "secret-gated soak",
+          "package-consumer",
+          "adopter",
+          ".github/workflows/ci.yml"
+        ] do
+      assert running =~ snippet
+    end
+  end
+
   test "troubleshooting guide is part of the public AV docs surface", %{
     troubleshooting: troubleshooting
   } do
