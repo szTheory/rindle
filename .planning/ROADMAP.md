@@ -16,14 +16,29 @@
 
 ## Current Status
 
-No active milestone is open. `v1.10` is archived and complete. Start the next
-milestone with `$gsd-new-milestone`, which will create the next scoped
-`REQUIREMENTS.md` and expand the roadmap again.
+**Active Milestone:** v1.11 Tus Protocol Completion
 
-## Deferred to v1.11+ / Later
+### Phase 56: LiveView Tus helper polish
+- Wrap up uncommitted `Rindle.LiveView.allow_tus_upload` local edits.
+- Ensure tests and `generated_app_smoke_test.exs` pass with the helper updates.
 
-- tus Checksum / Concatenation
-- `Upload-Defer-Length`
+### Phase 57: Tus Checksum & Defer-Length
+- Implement `Upload-Checksum` extension logic in `TusPlug`.
+- Implement `Upload-Defer-Length` logic to allow initial creation without a defined length.
+- Add unit tests for the plug extensions.
+
+### Phase 58: Tus Concatenation
+- Implement the `Concatenation` extension (partial uploads and final assembly).
+- Update the underlying storage adapters if necessary to support chunk assembly.
+- Unit tests for concatenation logic.
+
+### Phase 59: E2E Proof & Truth Closure
+- Add end-to-end MinIO or node-based `tus-js-client` proofs for the new extensions.
+- Update `guides/resumable_uploads.md` to reflect full protocol support.
+- Complete audit and close milestone.
+
+## Deferred to v1.12+ / Later
+
 - IETF RUFH / tus 2.0
 - GCS-as-tus-backend / R2-native tus proxying
 - Rindle-owned standalone tus JS client package

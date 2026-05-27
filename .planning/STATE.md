@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: none
-milestone_name: none
-status: milestone_closed
-last_updated: 2026-05-26T15:30:00Z
-last_activity: 2026-05-26 -- v1.10 archived and tagged
+milestone: v1.11
+milestone_name: Tus Protocol Completion
+status: planning
+last_updated: 2026-05-27T10:00:00Z
+last_activity: 2026-05-27 -- v1.11 assessment completed
 progress:
   total_phases: 0
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
   percent: 0
-stopped_at: Waiting for next milestone definition
+stopped_at: Waiting for phase definition
 ---
 
 # Project State
@@ -21,27 +21,25 @@ stopped_at: Waiting for next milestone definition
 See: .planning/PROJECT.md
 
 **Core value:** Media, made durable.
-**Current focus:** post-v1.10 shipped state; no active milestone is open.
+**Current focus:** v1.11 Tus Protocol Completion
 
 ## Current Position
 
-Phase: none
+Phase: planning
 Plan: none
-Status: Awaiting next milestone
-Last activity: 2026-05-26
+Status: Wrapping up local tus edits
+Last activity: 2026-05-27
 
-Progress: [--------------------] 0% (no active milestone)
+Progress: [--------------------] 0%
 
 ## Current Milestone
 
-- No active milestone. `v1.10` is archived and shipped.
-- Start the next milestone with `$gsd-new-milestone`.
+- Active milestone: `v1.11 Tus Protocol Completion`
+- Goals: Checksum, Concatenation, and Upload-Defer-Length.
 
 ## Next Step
 
-- Run `$gsd-new-milestone`.
-- Re-create `.planning/REQUIREMENTS.md` only through the new milestone flow.
-- Use archived `v1.10` files as historical reference, not as the active planning surface.
+- Define phases for the new milestone.
 
 ## Recent Completion
 
@@ -65,24 +63,17 @@ Progress: [--------------------] 0% (no active milestone)
   owner/account erasure lifecycle facade all exist in code, docs, and
   verification artifacts.
 
-- Remaining delta is mostly additive breadth and prioritization questions, not
-  foundational product truth gaps.
-
-- Tus follow-ons, richer Phoenix abstractions, lifecycle breadth beyond the
-  shipped owner-erasure contract, and second-provider demand remain the main
-  next-milestone candidates.
+- The library is entering a diminishing returns phase. Remaining work focuses on
+  edge cases, such as the `tus` follow-ons currently in the working tree.
 
 - Planning drift note: older ranking artifacts still predate the shipped v1.10
   owner-erasure closure. Use `PROJECT.md`, this file, and
-  `.planning/threads/2026-05-25-next-milestone-ordering.md` as the current
+  `.planning/threads/2026-05-27-v111-assessment.md` as the current
   sequencing source of truth.
 
 ## Blockers/Concerns
 
-- No active blocker. The repo is between milestones.
-- Main open product questions for `v1.11+` are prioritization questions, not
-  close blockers: tus breadth, lifecycle convenience breadth, richer Phoenix
-  abstractions, and second-provider demand.
+- No active blocker. The repo is preparing the `v1.11` milestone.
 
 ## Deferred Items
 

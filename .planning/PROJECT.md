@@ -277,20 +277,13 @@ To keep this posture durable across GSD workflows:
   for image-only profiles — v1.7 (Phase 37) (GCS-01..04). Live-bucket proof is
   accepted CI automation via `gcs-soak` (`ci_verified`), not manual follow-up.
 
-### Active (v1.10 Owner Account Erasure)
+### Active (v1.11 Tus Protocol Completion)
 
-In progress for `v1.10` (see `.planning/REQUIREMENTS.md`):
-- `LIFE-*`: owner/account erasure contract covering dry-run/reporting, execute
-  semantics, shared-asset retention, and idempotent lifecycle behavior.
-- `PROOF-*`: hermetic and adopter-facing proof that exercises orphan purge and
-  shared-asset retention through the public facade rather than hand-rolled
-  detach loops.
-- `TRUTH-*`: planning/docs truth-alignment so account deletion guidance names
-  the supported owner-erasure surface and clearly defers broader admin or bulk
-  compliance tooling.
+In progress for `v1.11` (see `.planning/REQUIREMENTS.md`):
+- `TUS-*`: tus Checksum / Concatenation / `Upload-Defer-Length` to complete the
+  resumable upload surface.
 
-Deferred to `v1.11+` or out of scope after `v1.10`: tus Checksum /
-Concatenation / `Upload-Defer-Length`, IETF RUFH (tus 2.0), GCS-as-tus-
+Deferred to later or out of scope after `v1.11`: IETF RUFH (tus 2.0), GCS-as-tus-
 backend, a Rindle-owned standalone tus JS client package, generic uploader UI
 kits beyond the supported helper path, a second streaming provider,
 `cancel_direct_upload/1`, force-delete semantics for still-shared assets, and
@@ -593,6 +586,10 @@ This document evolves at phase transitions and milestone boundaries.
 2. Core Value check; still the right priority?
 3. Audit Out of Scope; reasons still valid?
 4. Update Context with current state
+
+---
+*Last updated: 2026-05-26 — v1.10 Owner Account Erasure started. Scope locked to dry-run/reporting, execute semantics, shared-asset retention, and proof for a first-class owner-erasure lifecycle API.*
+state
 
 ---
 *Last updated: 2026-05-26 — v1.10 Owner Account Erasure started. Scope locked to dry-run/reporting, execute semantics, shared-asset retention, and proof for a first-class owner-erasure lifecycle API.*
