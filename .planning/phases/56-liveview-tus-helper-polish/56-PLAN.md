@@ -9,7 +9,7 @@
 1. **[Complete]** Implement `Rindle.LiveView.allow_tus_upload/4`.
 2. **[Complete]** Implement `Rindle.initiate_tus_upload/2` and `TusPlug.create_upload/2`.
 3. **[Complete]** Validate integration with `generated_app_smoke_test.exs`.
-4. **[Pending]** Commit the Phase 56 changes.
+4. **[Complete]** Commit the Phase 56 changes.
 
 ## Verification
 - Run `mix test test/install_smoke/generated_app_smoke_test.exs test/rindle/live_view_test.exs` to ensure stability before committing.
