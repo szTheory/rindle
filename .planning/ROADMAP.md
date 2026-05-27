@@ -2,7 +2,7 @@
 
 ## Milestones
 
-- **v1.17 Adopter-Confidence Hygiene** — Phases 78–79 (shipped 2026-05-27)
+- **v1.17 Adopter-Confidence Hygiene** — Phases 78–79 (shipped 2026-05-27); Phase 80 post-audit hygiene (in progress)
 - ✅ **v1.16 CI Enforcement & Planning Hygiene** — Phases 75–77 (shipped 2026-05-27, [archive](milestones/v1.16-ROADMAP.md))
 - ✅ **v1.15 Maintenance & Proof Honesty** — Phases 71–74 (shipped 2026-05-27, [audit](milestones/v1.15-MILESTONE-AUDIT.md))
 - ✅ **v1.14 Bulk Owner-Erasure Orchestration** — Phases 67–70 (shipped 2026-05-27, [archive](milestones/v1.14-ROADMAP.md))
@@ -67,6 +67,31 @@
 
 ---
 
+### Phase 80: Post-Ship Planning Hygiene
+
+**Goal:** Align planning threads and charter artifacts with v1.17 shipped reality so maintainers read one honest post-ship story before milestone archive.
+
+**Depends on:** Phase 79 (v1.17 audit complete)
+
+**Requirements:** None (tech-debt closure from [v1.17 audit](milestones/v1.17-MILESTONE-AUDIT.md))
+
+**Gap Closure:** Closes post-ship narrative drift flagged in audit `tech_debt.planning-hygiene`
+
+**Success criteria:**
+
+1. Path-to-done thread uses past/shipped tense for Branch C and v1.17; no "remains Phase 79" or "active/current" labels for completed work
+2. Assessment thread "Active micro milestone" section reflects v1.17 shipped (not in-flight)
+3. PROJECT.md moves TRUTH-06, PLAN-02, CI-04 from Active to Validated; Active section reflects demand-gated pause
+4. STATE.md Current Position shows Phase 80 (or completed) with accurate Plan status — no stale "Plan: Not started" for Phase 79
+5. Grep audit: zero "Branch C (selected — active)" / "Active micro milestone" / "remains Phase 79" in thread files
+
+**Plans:** 0/2 plans complete
+
+- [ ] 80-01: Thread post-ship tense alignment (path-to-done + assessment)
+- [ ] 80-02: PROJECT/STATE charter cleanup + verification gate
+
+---
+
 <details>
 <summary>✅ v1.16 CI Enforcement & Planning Hygiene (Phases 75–77) — SHIPPED 2026-05-27</summary>
 
@@ -110,4 +135,4 @@ Audit: [.planning/milestones/v1.15-MILESTONE-AUDIT.md](milestones/v1.15-MILESTON
 - [.planning/milestones/v1.14-MILESTONE-AUDIT.md](milestones/v1.14-MILESTONE-AUDIT.md)
 
 ---
-*Last updated: 2026-05-27 — v1.17 Adopter-Confidence Hygiene shipped (Phases 78–79)*
+*Last updated: 2026-05-27 — Phase 80 post-ship planning hygiene added (v1.17 audit tech debt)*
