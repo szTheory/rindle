@@ -22,7 +22,7 @@ Micro milestone (Branch C). No new public API. Execute phases **78 → 79**.
 
 ### CI Policy
 
-- [ ] **CI-04**: Maintainer records an explicit decision on Credo and Dialyzer severity
+- [x] **CI-04**: Maintainer records an explicit decision on Credo and Dialyzer severity
   (merge-blocking vs advisory); `RUNNING.md` CI matrix and `ci.yml` comments match that
   decision with rationale (fork latency, signal value, or green-main honesty).
 
@@ -53,7 +53,7 @@ Deferred to v1.18+ (demand-gated):
 |-------------|-------|--------|
 | TRUTH-06 | Phase 78 | Complete |
 | PLAN-02 | Phase 78 | Complete |
-| CI-04 | Phase 79 | Pending |
+| CI-04 | Phase 79 | Complete |
 
 **Coverage:**
 
@@ -63,4 +63,4 @@ Deferred to v1.18+ (demand-gated):
 
 ---
 *Requirements defined: 2026-05-27*
-*Last updated: 2026-05-27 after milestone v1.17 roadmap*
+*Last updated: 2026-05-27 after Phase 79 CI-04 closure*
