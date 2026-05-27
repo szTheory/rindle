@@ -338,13 +338,11 @@ instead of a folder of glue code:
 ## Where Rindle is headed
 
 Rindle already covers the full core lifecycle for images, video, and audio across S3-family,
-GCS, and local storage. The near-term additions are about closing the last expected *upload*
-flows and a couple of high-value conveniences:
+GCS, and local storage — including **tus resumable uploads** (Local and S3) and **browser →
+Mux direct creator upload** (shipped v1.8–v1.11). Remaining work is demand-gated: compliance
+force-delete for shared assets, a second streaming provider when a named adopter appears, and
+long-tail polish (signed dynamic transforms, EXIF stripping on originals).
 
-- **tus resumable uploads** — first-class support for the de-facto browser standard
-  (tus-js-client), so Local and S3 can advertise resumable uploads too.
-- **Browser → Mux direct creator upload** — let creators upload straight to Mux from the
-  browser, skipping server ingest cost, building on the streaming primitives already shipped.
 Deliberately *out of scope*, by design: being a full HLS/DASH streaming platform, DRM,
 AI/GPU processing, broad PDF/Office handling, an admin UI, or a CDN replacement. Rindle stays
 a focused library; those belong to other tools.

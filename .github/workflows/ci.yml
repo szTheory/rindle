@@ -464,6 +464,9 @@ jobs:
       - name: Run built-artifact AV package-consumer proof against MinIO
         run: bash scripts/install_smoke.sh video
 
+      - name: Run built-artifact image-only package-consumer proof against MinIO
+        run: bash scripts/install_smoke.sh image
+
       - name: Run built-artifact tus package-consumer proof against MinIO
         run: bash scripts/install_smoke.sh tus
 

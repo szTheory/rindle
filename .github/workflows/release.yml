@@ -1,9 +1,10 @@
 #
 # Release topology:
-# 1. release-please / recovery-validation chooses the immutable release target.
-# 2. gate-ci-green waits for ci.yml success on that exact SHA.
-# 3. publish runs preflight, version checks, and Hex publish from frozen source.
-# 4. public_verify waits for Hex indexing and proves the public artifact on a fresh runner.
+# 1. Push to main: Release Please opens/updates the release PR only (skip-github-release).
+# 2. Automerge or recovery dispatch: recovery-validation locks an exact immutable ref.
+# 3. gate-ci-green waits for ci.yml success on that exact SHA (blocks publish on failure).
+# 4. publish runs preflight, version checks, and Hex publish from frozen source.
+# 5. public_verify waits for Hex indexing and proves the public artifact on a fresh runner.
 #
 name: Release
 
@@ -50,9 +51,10 @@ jobs:
         id: release
         uses: googleapis/release-please-action@v4
         with:
-          token: ${{ github.token }}
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN || github.token }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
+          skip-github-release: true
 
   recovery-validation:
     name: Validate Recovery Ref
@@ -93,8 +95,8 @@ jobs:
 
   gate-ci-green:
     name: Gate on Exact-SHA Green CI
-    needs: [release-please, recovery-validation]
-    if: ${{ always() && ((github.event_name == 'workflow_dispatch' && needs.recovery-validation.result == 'success') || (github.event_name != 'workflow_dispatch' && needs.release-please.outputs.release_created == 'true')) }}
+    needs: [recovery-validation]
+    if: ${{ github.event_name == 'workflow_dispatch' && needs.recovery-validation.result == 'success' }}
     runs-on: ubuntu-22.04
     permissions:
       actions: read
@@ -111,12 +113,8 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const ref = context.eventName === 'workflow_dispatch'
-              ? '${{ needs.recovery-validation.outputs.checkout_ref }}'
-              : '${{ needs.release-please.outputs.tag_name }}';
-            const releaseTag = context.eventName === 'workflow_dispatch'
-              ? '${{ needs.recovery-validation.outputs.release_tag }}'
-              : '${{ needs.release-please.outputs.tag_name }}';
+            const ref = '${{ needs.recovery-validation.outputs.checkout_ref }}';
+            const releaseTag = '${{ needs.recovery-validation.outputs.release_tag }}';
 
             if (!ref) {
               core.setFailed('No release ref available for publish gating.');
@@ -202,7 +200,7 @@ jobs:
               }
 
               if (latest.conclusion !== 'success') {
-                core.info(`ci.yml for ${sha} concluded with '${latest.conclusion}', not 'success'. Run: ${latest.html_url} (BYPASSED)`);
+                core.setFailed(`ci.yml for ${sha} concluded with '${latest.conclusion}', not 'success'. Run: ${latest.html_url}`);
                 return;
               }
 
@@ -211,16 +209,16 @@ jobs:
               return;
             }
 
-            core.info(`Timed out waiting for ci.yml to succeed on ${sha}. Last observed run: ${latestUrl || 'none'} (BYPASSED)`);
+            core.setFailed(`Timed out waiting for ci.yml to succeed on ${sha}. Last observed run: ${latestUrl || 'none'}`);
 
   publish:
     name: Publish to Hex
-    needs: [release-please, recovery-validation, gate-ci-green]
-    if: ${{ always() && ((github.event_name == 'workflow_dispatch' && needs.recovery-validation.result == 'success') || (github.event_name != 'workflow_dispatch' && needs.release-please.outputs.release_created == 'true')) }}
+    needs: [recovery-validation, gate-ci-green]
+    if: ${{ github.event_name == 'workflow_dispatch' && needs.recovery-validation.result == 'success' && needs.gate-ci-green.result == 'success' }}
     runs-on: ubuntu-22.04
     environment: release
     permissions:
-      contents: read
+      contents: write
     outputs:
       release_version: ${{ needs.gate-ci-green.outputs.release_version }}
     env:
@@ -294,6 +292,49 @@ jobs:
       - name: Install frozen-source dependencies
         working-directory: ${{ steps.release_source.outputs.project_root }}
         run: mix deps.get
+
+      - name: Ensure GitHub release exists for dispatch publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        working-directory: ${{ steps.release_source.outputs.project_root }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          version="$(
+            elixir -e '
+              source = File.read!("mix.exs")
+              version =
+                Regex.run(~r/@version\s+"([^"]+)"/, source, capture: :all_but_first) ||
+                  Regex.run(~r/version:\s+"([^"]+)"/, source, capture: :all_but_first)
+              case version do
+                [value] -> IO.puts(value)
+                _ -> raise "Unable to parse version from mix.exs"
+              end
+            ' | tr -d '\r'
+          )"
+          tag_name="rindle-v${version}"
+          release_title="rindle: v${version}"
+
+          if gh release view "$tag_name" >/dev/null 2>&1; then
+            echo "GitHub release $tag_name already exists."
+            exit 0
+          fi
+
+          notes="$(
+            awk -v version="$version" '
+              $0 ~ "^## \\[" version "\\]" { in_section = 1; next }
+              in_section && $0 ~ "^## \\[" { exit }
+              in_section { print }
+            ' CHANGELOG.md
+          )"
+
+          test -n "$notes"
+          gh release create "$tag_name" \
+            --target "${{ needs.gate-ci-green.outputs.release_sha }}" \
+            --title "$release_title" \
+            --notes "$notes"
 
       - name: Start MinIO
         run: |

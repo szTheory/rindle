@@ -1,0 +1,144 @@
+name: Release Please Auto Merge
+
+on:
+  workflow_run:
+    workflows:
+      - CI
+    types:
+      - completed
+
+concurrency:
+  group: release-please-automerge-main
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: write
+
+jobs:
+  automerge:
+    name: Auto-merge eligible Release Please PR
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' }}
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Find eligible Release Please PR
+        id: candidate
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN || github.token }}
+          GH_REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          prs_json="$(
+            gh pr list \
+              --state open \
+              --base main \
+              --author app/github-actions \
+              --json number,title,headRefName,baseRefName,isDraft,mergeable,files,url,labels
+          )"
+
+          eligible_json="$(
+            jq '
+              [
+                .[]
+                | select(.headRefName == "release-please--branches--main--components--rindle")
+                | select(.baseRefName == "main")
+                | select(.isDraft == false)
+                | select([.labels[].name] | index("do-not-merge") | not)
+                | select(.title | test("^chore\\(main\\): release rindle [0-9]+\\.[0-9]+\\.[0-9]+$"))
+              ]
+            ' <<< "$prs_json"
+          )"
+
+          count="$(jq 'length' <<< "$eligible_json")"
+
+          if [[ "$count" == "0" ]]; then
+            echo "No eligible Release Please PR found."
+            echo "found=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [[ "$count" != "1" ]]; then
+            echo "Expected exactly one eligible Release Please PR, found $count."
+            jq -r '.[].url' <<< "$eligible_json"
+            exit 1
+          fi
+
+          mergeable="$(jq -r '.[0].mergeable' <<< "$eligible_json")"
+          if [[ "$mergeable" != "MERGEABLE" ]]; then
+            echo "Release Please PR is not currently mergeable: $mergeable"
+            exit 1
+          fi
+
+          actual_files="$(jq -r '.[0].files[].path' <<< "$eligible_json" | sort | paste -sd ',' -)"
+          expected_files=".release-please-manifest.json,CHANGELOG.md,mix.exs"
+
+          if [[ "$actual_files" != "$expected_files" ]]; then
+            echo "Release Please PR changed unexpected files."
+            echo "Expected: $expected_files"
+            echo "Actual:   $actual_files"
+            exit 1
+          fi
+
+          number="$(jq -r '.[0].number' <<< "$eligible_json")"
+          url="$(jq -r '.[0].url' <<< "$eligible_json")"
+
+          echo "Eligible Release Please PR: $url"
+          {
+            echo "found=true"
+            echo "number=$number"
+            echo "url=$url"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Squash-merge Release Please PR
+        id: merge
+        if: ${{ steps.candidate.outputs.found == 'true' }}
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN || github.token }}
+          GH_REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ steps.candidate.outputs.number }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          gh pr merge "$PR_NUMBER" --squash --delete-branch
+
+          for attempt in $(seq 1 30); do
+            merge_sha="$(
+              gh pr view "$PR_NUMBER" \
+                --json state,mergeCommit \
+                --jq 'select(.state == "MERGED") | .mergeCommit.oid // ""'
+            )"
+
+            if [[ -n "$merge_sha" ]]; then
+              echo "Merged Release Please PR #$PR_NUMBER at $merge_sha"
+              echo "merge_sha=$merge_sha" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+
+            echo "Waiting for merge commit for Release Please PR #$PR_NUMBER, attempt $attempt."
+            sleep 2
+          done
+
+          echo "Timed out waiting for merged Release Please PR #$PR_NUMBER to expose mergeCommit."
+          exit 1
+
+      - name: Dispatch trusted release workflow for exact merge ref
+        if: ${{ steps.candidate.outputs.found == 'true' }}
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN || github.token }}
+          GH_REPO: ${{ github.repository }}
+          MERGE_SHA: ${{ steps.merge.outputs.merge_sha }}
+          PR_NUMBER: ${{ steps.candidate.outputs.number }}
+          SOURCE_CI_RUN_ID: ${{ github.event.workflow_run.id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          gh workflow run release.yml \
+            --ref main \
+            --field recovery_reason="Automated Release Please PR #$PR_NUMBER merge after green main CI run $SOURCE_CI_RUN_ID" \
+            --field recovery_ref="$MERGE_SHA"

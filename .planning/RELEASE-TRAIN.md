@@ -1,0 +1,69 @@
+# Rindle Release Train
+
+Rindle is on a sustaining release train after the v1.17 mission-complete boundary.
+
+The default operating mode is not "find the next milestone." The default is: keep `main`
+green, keep release truth coherent, and let patch-eligible merged changes ride the
+maintained automated release lane. When future feature work is justified, use the milestone
+PR lane in `.planning/DEVELOPMENT-TRAIN.md`.
+
+## Current Baseline
+
+- Latest released version: `0.1.5` (Hex.pm, 2026-05-09)
+- Catch-up release pending: local `main` includes v1.8–v1.17 capabilities not yet on Hex
+- GSD posture: `demand-gated-pause` (formalized 2026-05-27)
+- Release automation: Release Please + exact-ref dispatch publish (see `.github/workflows/release.yml`)
+
+Update this section after each successful Hex publish with run ID, version, and public-smoke proof.
+
+## Normal Train Rules
+
+- `demand-gated-pause` remains the default GSD milestone state.
+- Patch-eligible merged changes flow to the next release through Release Please on `main`.
+- The train is ready to move only when `main` is green and
+  `./scripts/maintainer/repo_hygiene_check.sh` passes without `BLOCK`.
+- If `main` is green and release truth is coherent, the default stance is **silence on the
+  wire**: no milestone churn, no release drama, no invented work.
+- `workflow_dispatch` is exact-ref only for release automation or recovery and must replay an
+  exact immutable ref; it does not create new release intent.
+- Push-triggered Release Please manages release PRs only (`skip-github-release: true`); the
+  exact-ref dispatch publish lane owns GitHub release/tag creation and Hex publish.
+- Eligible Release Please PRs auto-merge only after green `main` CI and only through the
+  guarded Release Please branch/title/file allowlist in `release-please-automerge.yml`.
+
+## Patch-Eligible Change Classes
+
+- Bug fixes on shipped behavior
+- Docs or support-truth corrections that narrow drift without widening claims
+- Release-hygiene, CI-drift, or maintainer-runbook hardening
+- Narrow hardening on already-supported surfaces that does not expand the public API contract
+
+## Work That Requires A New Milestone
+
+- Force-delete shared assets (LIFE-06) — compliance/legal ticket required
+- Second streaming provider (STREAM-10) — named adopter + provider choice required
+- Signed dynamic transforms (TRANS-01) or EXIF privacy stripping (PRIV-01) — explicit product pull
+- Any semver-significant public API reshape or new support claim
+
+Feature milestones run on `milestone/vNEXT-short-slug` branches and merge through one PR to
+`main` after GSD verification, milestone audit, and green PR CI. Do not create manual release
+branches for feature milestones; after merge, Release Please owns the normal release PR.
+
+## Next Cut Condition
+
+Cut the next release when there is at least one merged patch-eligible change on `main`, the
+latest `main` CI is green (merge-blocking jobs: Quality, Integration, Proof, Package Consumer,
+Adopter), the repo hygiene gate reports no `BLOCK`, and release truth is coherent across
+`mix.exs`, `.release-please-manifest.json`, and `CHANGELOG.md`.
+
+## Merge-Blocking CI Jobs
+
+Required for a releasable `main` (see `RUNNING.md` and `.github/workflows/ci.yml`):
+
+- Quality (coveralls merge-blocking)
+- Integration
+- Proof
+- Package Consumer Proof Matrix + Release Preflight
+- Adopter
+
+Optional/soak lanes (mux-soak, gcs-soak) are not merge-blocking.
