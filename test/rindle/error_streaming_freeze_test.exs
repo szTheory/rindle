@@ -9,6 +9,8 @@ defmodule Rindle.ErrorStreamingFreezeTest do
     :streaming_provider_requires_asset_struct
   ]
 
+  @cancel_reasons [:not_cancellable]
+
   test "locks the five public streaming reason atoms" do
     assert @public_streaming_reasons == [
              :provider_asset_not_ready,
@@ -72,6 +74,45 @@ defmodule Rindle.ErrorStreamingFreezeTest do
 
     for {reason, expected} <- expected_messages do
       error = struct!(Rindle.Error, action: :test_contract, reason: reason)
+      assert Rindle.Error.message(error) == expected
+    end
+  end
+
+  test "locks :not_cancellable as a frozen cancel reason atom" do
+    assert @cancel_reasons == [:not_cancellable]
+  end
+
+  test "renders exact messages for :not_cancellable tagged forms" do
+    expected_messages = %{
+      {:not_cancellable, %{reason: :state, state: "processing"}} =>
+        exact("""
+        Direct upload cancel is not allowed while the provider row is in state "processing".
+
+        To fix:
+          1. Check the asset's provider row state — only `pending` and `uploading` are cancellable.
+          2. If ingest already advanced to processing or ready, wait for completion or use provider-dashboard retirement instead of cancel.
+          3. Re-run `Rindle.Streaming.cancel_direct_upload/1` only after confirming the row is still in a cancellable state.
+        """),
+      {:not_cancellable, %{reason: :ingest_mode, ingest_mode: "server_push"}} =>
+        exact("""
+        Direct upload cancel applies only to `direct_creator_upload` ingest (current ingest_mode: "server_push").
+
+        To fix:
+          1. Confirm the profile uses `ingest_mode: :direct_creator_upload` in its streaming delivery config.
+          2. For server-push ingest, use the provider dashboard or asset retirement path instead of direct-upload cancel.
+        """),
+      {:not_cancellable, %{reason: :missing_upload_id}} =>
+        exact("""
+        This direct upload row has no persisted provider upload handle (pre-v1.13 rows are not backfilled).
+
+        To fix:
+          1. Create a new direct upload via `Rindle.Streaming.create_direct_upload/2` if you still need browser upload.
+          2. For legacy rows, cancel via the provider dashboard and detach locally if the asset should be retired.
+        """)
+    }
+
+    for {reason, expected} <- expected_messages do
+      error = struct!(Rindle.Error, action: :cancel_direct_upload, reason: reason)
       assert Rindle.Error.message(error) == expected
     end
   end

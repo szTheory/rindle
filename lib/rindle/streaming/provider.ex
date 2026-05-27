@@ -129,5 +129,12 @@ defmodule Rindle.Streaming.Provider do
                }}
               | {:error, term()}
 
-  @optional_callbacks [create_direct_upload: 2]
+  @doc """
+  OPTIONAL: Cancel a direct-creator upload by provider upload id.
+
+  Called only from `Rindle.Streaming.cancel_direct_upload/1` after FSM transition.
+  """
+  @callback cancel_direct_upload(upload_id :: String.t()) :: :ok | {:error, term()}
+
+  @optional_callbacks [create_direct_upload: 2, cancel_direct_upload: 1]
 end

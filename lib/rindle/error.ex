@@ -282,6 +282,40 @@ defmodule Rindle.Error do
     |> String.trim()
   end
 
+  def message(%{reason: {:not_cancellable, %{reason: :state, state: state}}}) do
+    """
+    Direct upload cancel is not allowed while the provider row is in state #{inspect(state)}.
+
+    To fix:
+      1. Check the asset's provider row state — only `pending` and `uploading` are cancellable.
+      2. If ingest already advanced to processing or ready, wait for completion or use provider-dashboard retirement instead of cancel.
+      3. Re-run `Rindle.Streaming.cancel_direct_upload/1` only after confirming the row is still in a cancellable state.
+    """
+    |> String.trim()
+  end
+
+  def message(%{reason: {:not_cancellable, %{reason: :ingest_mode, ingest_mode: mode}}}) do
+    """
+    Direct upload cancel applies only to `direct_creator_upload` ingest (current ingest_mode: #{inspect(mode)}).
+
+    To fix:
+      1. Confirm the profile uses `ingest_mode: :direct_creator_upload` in its streaming delivery config.
+      2. For server-push ingest, use the provider dashboard or asset retirement path instead of direct-upload cancel.
+    """
+    |> String.trim()
+  end
+
+  def message(%{reason: {:not_cancellable, %{reason: :missing_upload_id}}}) do
+    """
+    This direct upload row has no persisted provider upload handle (pre-v1.13 rows are not backfilled).
+
+    To fix:
+      1. Create a new direct upload via `Rindle.Streaming.create_direct_upload/2` if you still need browser upload.
+      2. For legacy rows, cancel via the provider dashboard and detach locally if the asset should be retired.
+    """
+    |> String.trim()
+  end
+
   def message(%{
         reason:
           {:variant_processing_cancelled,
