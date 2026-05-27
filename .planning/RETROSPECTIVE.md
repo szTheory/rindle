@@ -2,6 +2,48 @@
 
 ---
 
+## Milestone: v1.17 — Adopter-Confidence Hygiene
+
+**Shipped:** 2026-05-27
+**Phases:** 3 (78–80) | **Plans:** 6
+
+### What Was Built
+
+- Honest CI severity story in post-v116 assessment and path-to-done threads (TRUTH-06).
+- JTBD-MAP anchor refresh and charter alignment across PROJECT/STATE/ROADMAP (PLAN-02).
+- CI-04 static-analysis policy recorded in RUNNING.md; Credo/Dialyzer remain advisory.
+- Post-ship planning hygiene: thread tense alignment and charter grep verification gate (Phase 80).
+
+### What Worked
+
+- **Micro milestone discipline:** No `lib/` changes; hygiene-only scope stayed honest.
+- **Audit → Phase 80 closure:** v1.17 audit `tech_debt.planning-hygiene` items resolved before archive.
+- **Policy record before wiring debate:** CI-04 decision documented in RUNNING.md with ci.yml comment cross-reference.
+
+### What Was Inefficient
+
+- **milestone.complete CLI mismatch:** ROADMAP lacked v1.17 milestone marker for automated archival; manual archive required.
+- **Phase 80 as separate phase:** Post-ship tense drift could have been bundled into Phase 79 closure, but separation kept verification gates clean.
+
+### Patterns Established
+
+- **Thread CI claims cite ci.yml + RUNNING.md:** Forbidden-phrase grep gates for TRUTH-06 and CI-04 closure.
+- **Post-ship tense audit:** Grep verification for "active/current" labels after milestone ship before archive.
+- **Demand-gated default:** v1.18+ requires LIFE-06 or STREAM-10 signal; patch/minor only otherwise.
+
+### Key Lessons
+
+- Planning-truth milestones benefit from a dedicated post-ship hygiene phase when audit flags narrative drift.
+- CI policy decisions belong in RUNNING.md with ci.yml comments — not only in threads.
+- Between-milestones STATE must reset explicitly at archive, not only at last phase close.
+
+### Cost Observations
+
+- Timeline: 1 day (2026-05-27)
+- Git range: ~15 commits, docs/planning only (no runtime code changes)
+
+---
+
 ## Milestone: v1.16 — CI Enforcement & Planning Hygiene
 
 **Shipped:** 2026-05-27

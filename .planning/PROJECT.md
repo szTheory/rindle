@@ -1,25 +1,23 @@
 # Rindle
 
-## Current Milestone: v1.17 Adopter-Confidence Hygiene (shipped 2026-05-27)
+## Current Milestone: Demand-gated pause (v1.18+)
 
-**Goal:** Close residual planning-truth drift and record an explicit CI static-analysis
-policy so adopters and maintainers read one honest story — no new public API.
+**Posture:** No feature milestone unless LIFE-06 (compliance ticket) or STREAM-10 (named
+adopter) signals arrive. Patch/minor Hex releases and issue-driven fixes only.
 
-**Validated in Phase 79:** CI-04 — Credo and Dialyzer remain advisory with documented
-rationale in `RUNNING.md` `### Static analysis policy (CI-04)`.
+**Last shipped:** v1.17 Adopter-Confidence Hygiene (2026-05-27) — planning-truth hygiene and
+CI-04 static-analysis policy record; no new public API.
 
-**Demand posture:** v1.17 complete. Default returns to demand-gated pause for v1.18+ unless
-LIFE-06 (compliance) or STREAM-10 (second provider) signal. Canonical context:
+**Canonical context:**
 [post-v116 assessment](threads/2026-05-27-post-v116-milestone-assessment.md),
 [path-to-done roadmap](threads/2026-05-27-path-to-done-roadmap.md).
 
 ## Current State
 
-Milestone `v1.17 Adopter-Confidence Hygiene` shipped on `2026-05-27`
-(Phases 78–80, 3/3 requirements validated). Phase 80 closed post-ship planning hygiene
-(threads + charter alignment). TRUTH-06, PLAN-02, and CI-04 validated; demand-gated pause
-is the default Active posture. Rindle is roughly **94–96%** done for its stated mission.
-Ready for `/gsd-complete-milestone v1.17`.
+Milestone `v1.17 Adopter-Confidence Hygiene` archived on `2026-05-27`
+(Phases 78–80, 3/3 requirements validated). TRUTH-06, PLAN-02, and CI-04 validated;
+demand-gated pause is the default Active posture. Rindle is roughly **94–96%** done for its
+stated mission. Next milestone starts with `/gsd-new-milestone` when demand signal arrives.
 
 **v1.16 shipped:** Merge-blocking `proof` CI job (CI-03) runs `docs_parity_test.exs` and
 `batch_owner_erasure_task_test.exs`; TusPlug moduledoc parity lock (TRUTH-05); planning
@@ -378,11 +376,10 @@ AV-enabled lanes. Optional `mux` + `jose` deps preserve zero transitive cost
 for non-streaming adopters. The single-provider rule keeps the abstraction
 honest; v1.7+ adapters (GCS, second streaming provider) become contract tests.
 
-**Current milestone setup:** v1.17 is the optional adopter-confidence hygiene micro milestone
-(no new `lib/` surface). v1.16 closed proof-lane and TusPlug doc parity gaps. Mission coverage
-~94–96%. After v1.17, default returns to demand-gated pause unless LIFE-06 (compliance) or
-STREAM-10 (named adopter) signals arrive. See
-`.planning/threads/2026-05-27-post-v116-milestone-assessment.md`.
+**Between milestones:** v1.17 archived (planning-truth hygiene + CI-04 policy record). v1.16
+closed proof-lane and TusPlug doc parity gaps. Mission coverage ~94–96%. Default is
+demand-gated pause unless LIFE-06 (compliance) or STREAM-10 (named adopter) signals arrive.
+See `.planning/threads/2026-05-27-post-v116-milestone-assessment.md`.
 
 **Reference implementations:**
 - Rails Active Storage: attachment/blob ownership patterns, redirect-style
@@ -698,4 +695,4 @@ This document evolves at phase transitions and milestone boundaries.
    (`workflow.milestone_boundary.block_feature_milestone_without_signal`)
 
 ---
-*Last updated: 2026-05-27 — Phase 79 CI Static-Analysis Policy Closure complete (v1.17 shipped)*
+*Last updated: 2026-05-27 after v1.17 milestone archive*

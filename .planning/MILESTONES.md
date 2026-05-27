@@ -1,5 +1,30 @@
 # Milestones
 
+## v1.17 Adopter-Confidence Hygiene (Shipped: 2026-05-27)
+
+**Phases completed:** 3 phases (78–80), 6 plans
+**Requirements validated:** 3/3 (`TRUTH-06`, `PLAN-02`, `CI-04`)
+**Timeline:** 1 day (2026-05-27 → 2026-05-27)
+**Git range:** Phase 78–80 planning commits (~15 commits, docs/planning only)
+
+**Key accomplishments:**
+
+- Post-v116 assessment and path-to-done threads match CI severity — `mix coveralls` and
+  `proof` merge-blocking; Credo/Dialyzer advisory (TRUTH-06).
+- JTBD-MAP anchor verified at v1.16 shipped boundary; charter artifacts aligned with v1.18+
+  demand gates (PLAN-02).
+- CI-04 recorded: Credo and Dialyzer remain advisory with documented rationale in
+  `RUNNING.md` `### Static analysis policy (CI-04)`.
+- Phase 80 closed post-ship narrative drift in threads and charter frontmatter before archive.
+
+**Archive:**
+
+- `.planning/milestones/v1.17-ROADMAP.md`
+- `.planning/milestones/v1.17-REQUIREMENTS.md`
+- `.planning/milestones/v1.17-MILESTONE-AUDIT.md`
+
+---
+
 ## v1.16 CI Enforcement & Planning Hygiene (Shipped: 2026-05-27)
 
 **Phases completed:** 3 phases (75–77), 10 plans
