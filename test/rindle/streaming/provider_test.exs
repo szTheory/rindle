@@ -13,10 +13,13 @@ defmodule Rindle.Streaming.ProviderTest do
     {:verify_webhook, 3}
   ]
 
-  @expected_optional_callbacks [{:create_direct_upload, 2}]
+  @expected_optional_callbacks [
+    {:create_direct_upload, 2},
+    {:cancel_direct_upload, 1}
+  ]
 
   describe "behaviour_info(:callbacks) (D-04 lock)" do
-    test "declares the locked 6 required + 1 optional callbacks (7 total)" do
+    test "declares the locked 6 required + 2 optional callbacks (8 total)" do
       callbacks = Provider.behaviour_info(:callbacks)
 
       expected_all =
@@ -25,7 +28,7 @@ defmodule Rindle.Streaming.ProviderTest do
       assert Enum.sort(callbacks) == expected_all
     end
 
-    test "declares exactly [{:create_direct_upload, 2}] as optional (D-04)" do
+    test "declares create_direct_upload/2 and cancel_direct_upload/1 as optional (D-04)" do
       assert Provider.behaviour_info(:optional_callbacks) == @expected_optional_callbacks
     end
 
