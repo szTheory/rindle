@@ -1,7 +1,7 @@
 # Post-v1.16 Milestone Assessment (v1.17+ boundary)
 
 Date: 2026-05-27
-Status: active (canonical assessment for between-milestones)
+Status: canonical (v1.17 shipped 2026-05-27; between-milestones assessment)
 
 ## Framing
 
@@ -80,9 +80,10 @@ Credo, Doctor, and Dialyzer remain advisory (`continue-on-error: true` in `.gith
 charter unless there is a concrete compliance ticket (LIFE-06) or a named adopter
 requesting a second provider (STREAM-10).
 
-**Active micro milestone (Branch C, 2026-05-27):** v1.17 Adopter-Confidence Hygiene —
+**Shipped micro milestone (Branch C, 2026-05-27):** v1.17 Adopter-Confidence Hygiene —
 planning-truth closure (Phase 78) and explicit Credo/Dialyzer policy record (Phase 79 / CI-04).
-Default unit suite merge-blocking shipped in commit `0036760`. **No new public API.**
+Phases 78–79 complete; all requirements satisfied. Default unit suite merge-blocking shipped
+in commit `0036760`. **No new public API.**
 
 **Conditional upgrade:** v1.17 Force-Delete Shared Assets (LIFE-06) — only if
 legal/compliance requires destroying blobs that still have surviving attachments from
