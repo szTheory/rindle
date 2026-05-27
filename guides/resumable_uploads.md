@@ -5,6 +5,8 @@ covers the adopter-owned wiring: endpoint mount, client configuration,
 capability checks, and the constraints you must keep in mind when resuming
 uploads against Local or S3-backed storage.
 
+Supported tus extensions: creation, expiration, termination, checksum, creation-defer-length, concatenation.
+
 This guide covers:
 
 - When to use tus instead of presigned PUT or GCS-native resumable upload
@@ -108,7 +110,8 @@ const upload = new tus.Upload(file, {
     filetype: file.type
   },
   retryDelays: [0, 1000, 3000, 5000],
-  parallelUploads: 1,
+  parallelUploads: 2,
+  uploadLengthDeferred: true,
   removeFingerprintOnSuccess: true
 })
 
@@ -211,15 +214,18 @@ end
 ```javascript
 uppy.use(Tus, {
   endpoint: "/uploads/tus",
-  parallelUploads: 1
+  parallelUploads: 2,
+  uploadLengthDeferred: true
 })
 ```
 
 `@uppy/tus` is a compatible non-canonical option for adopters who already use
-Uppy. `parallelUploads: 1` is the supported posture for the Rindle tus edge.
-The client should `HEAD` for `Upload-Offset` and let the library resume from
-the server-reported offset. For modern `@uppy/tus`, resume and fingerprint
-cleanup are automatic, so do not add `removeFingerprintOnSuccess`.
+Uppy. Use `parallelUploads: 2` (or higher) to activate concatenation and keep
+`uploadLengthDeferred: true` for unknown-length uploads that negotiate
+`creation-defer-length`. The client should `HEAD` for `Upload-Offset` and let
+the library resume from the server-reported offset. For modern `@uppy/tus`,
+resume and fingerprint cleanup are automatic, so do not add
+`removeFingerprintOnSuccess`.
 
 ## 6. Optional Resume Authorization
 
