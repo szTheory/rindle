@@ -57,6 +57,21 @@ Audit: [.planning/milestones/v1.15-MILESTONE-AUDIT.md](milestones/v1.15-MILESTON
 
 </details>
 
+## Between Milestones — Demand-Gated Pause (active)
+
+**Formalized:** 2026-05-27 | **Status:** No feature phases
+
+Maintainer mode: patch/minor Hex releases and issue-driven fixes only. Feature work resumes
+when `/gsd-new-milestone` opens a charter with:
+
+- **LIFE-06** — compliance/legal ticket for force-delete shared assets, or
+- **STREAM-10** — named adopter for second streaming provider
+
+See `.planning/REQUIREMENTS.md` and
+[post-v116 assessment](threads/2026-05-27-post-v116-milestone-assessment.md).
+
+**Do not** run `/gsd-plan-phase` until a feature milestone with phases exists.
+
 ## Deferred to v1.18+ / Later
 
 - Force-delete semantics for still-shared assets (LIFE-06) — compliance pull only
@@ -80,4 +95,4 @@ Audit: [.planning/milestones/v1.15-MILESTONE-AUDIT.md](milestones/v1.15-MILESTON
 - [.planning/milestones/v1.14-MILESTONE-AUDIT.md](milestones/v1.14-MILESTONE-AUDIT.md)
 
 ---
-*Last updated: 2026-05-27 — v1.17 milestone archived*
+*Last updated: 2026-05-27 — demand-gated pause formalized (no feature phases)*

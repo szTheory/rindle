@@ -1,9 +1,16 @@
 # Rindle
 
-## Current Milestone: Demand-gated pause (v1.18+)
+## Current Milestone: Demand-gated pause
 
-**Posture:** No feature milestone unless LIFE-06 (compliance ticket) or STREAM-10 (named
-adopter) signals arrive. Patch/minor Hex releases and issue-driven fixes only.
+**Formalized:** 2026-05-27 (via `/gsd-new-milestone` — no feature charter)
+
+**Goal:** Maintain Rindle in production-ready maintenance mode until a concrete demand
+signal arrives. No feature phases, no new public API, no speculative platform work.
+
+**Posture:**
+- Patch/minor Hex releases and issue-driven fixes only
+- No feature milestone unless **LIFE-06** (compliance ticket) or **STREAM-10** (named adopter)
+- Re-run `/gsd-new-milestone` with option 2 or 3 when a signal is recorded
 
 **Last shipped:** v1.17 Adopter-Confidence Hygiene (2026-05-27) — planning-truth hygiene and
 CI-04 static-analysis policy record; no new public API.
@@ -15,9 +22,9 @@ CI-04 static-analysis policy record; no new public API.
 ## Current State
 
 Milestone `v1.17 Adopter-Confidence Hygiene` archived on `2026-05-27`
-(Phases 78–80, 3/3 requirements validated). TRUTH-06, PLAN-02, and CI-04 validated;
-demand-gated pause is the default Active posture. Rindle is roughly **94–96%** done for its
-stated mission. Next milestone starts with `/gsd-new-milestone` when demand signal arrives.
+(Phases 78–80, 3/3 requirements validated). Demand-gated pause formalized the same day.
+Rindle is roughly **94–96%** done for its stated mission. Feature work resumes only on
+LIFE-06 or STREAM-10 signal (or explicit maintainer override documented in milestone charter).
 
 **v1.16 shipped:** Merge-blocking `proof` CI job (CI-03) runs `docs_parity_test.exs` and
 `batch_owner_erasure_task_test.exs`; TusPlug moduledoc parity lock (TRUTH-05); planning
@@ -334,10 +341,18 @@ To keep this posture durable across GSD workflows:
 
 ### Active
 
-- **Demand-gated pause (default):** No feature milestone unless LIFE-06 compliance ticket
-  or STREAM-10 named adopter. Patch/minor Hex releases and issue-driven fixes only.
+- **Demand-gated pause (formalized 2026-05-27):** No feature phases. Patch/minor Hex
+  releases and issue-driven fixes only. See `.planning/REQUIREMENTS.md` for demand gates.
 
-Deferred to v1.18+ (demand-gated) or out of scope: force-delete (LIFE-06), second streaming provider (STREAM-10),
+**Demand-gated for v1.18+ feature milestone:**
+
+- **LIFE-06** — force-delete for still-shared assets (compliance/legal ticket required)
+- **STREAM-10** — second streaming provider (named adopter + provider choice required)
+
+Deferred long-tail (explicit product pull only): TRANS-01 (signed dynamic transforms),
+PRIV-01 (EXIF strip on originals).
+
+Out of scope or deferred: force-delete without charter, second provider speculatively,
 IETF RUFH (tus 2.0), GCS-as-tus-backend, standalone tus JS client, uploader UI kits,
 signed dynamic transforms, EXIF privacy stripping.
 
@@ -376,9 +391,10 @@ AV-enabled lanes. Optional `mux` + `jose` deps preserve zero transitive cost
 for non-streaming adopters. The single-provider rule keeps the abstraction
 honest; v1.7+ adapters (GCS, second streaming provider) become contract tests.
 
-**Between milestones:** v1.17 archived (planning-truth hygiene + CI-04 policy record). v1.16
-closed proof-lane and TusPlug doc parity gaps. Mission coverage ~94–96%. Default is
-demand-gated pause unless LIFE-06 (compliance) or STREAM-10 (named adopter) signals arrive.
+**Between milestones:** Demand-gated pause formalized 2026-05-27 after v1.17 archive.
+v1.16 closed proof-lane and TusPlug doc parity gaps. Mission coverage ~94–96%. Feature
+milestones require LIFE-06 or STREAM-10 signal per `config.json`
+`workflow.milestone_boundary.block_feature_milestone_without_signal`.
 See `.planning/threads/2026-05-27-post-v116-milestone-assessment.md`.
 
 **Reference implementations:**
@@ -695,4 +711,4 @@ This document evolves at phase transitions and milestone boundaries.
    (`workflow.milestone_boundary.block_feature_milestone_without_signal`)
 
 ---
-*Last updated: 2026-05-27 after v1.17 milestone archive*
+*Last updated: 2026-05-27 after demand-gated pause formalized (no feature milestone)*
