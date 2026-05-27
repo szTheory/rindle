@@ -1,9 +1,9 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.17
-milestone_name: Adopter-Confidence Hygiene
+milestone_name: milestone
 status: Defining requirements
-last_updated: "2026-05-27T00:00:00Z"
+last_updated: "2026-05-27T21:07:40.410Z"
 last_activity: 2026-05-27 — Milestone v1.17 started
 progress:
   total_phases: 2
@@ -78,4 +78,4 @@ Also: `/gsd-plan-phase 78` — skip discussion, plan directly
 
 ## Session Continuity
 
-Last session: 2026-05-27
+Last session: 2026-05-27T21:07:40.408Z
