@@ -113,9 +113,9 @@ Long-tail polish (TRANS-01, PRIV-01) is **not required** for mission complete.
 **Trigger:** Maintainer choice 2026-05-27; no public API
 
 - **Phase 78:** Fix stale CI phrases in post-v116 assessment; JTBD anchor refresh; PROJECT/STATE alignment (TRUTH-06, PLAN-02)
-- **Phase 79:** Record explicit Credo/Dialyzer severity decision in RUNNING.md + ci.yml comments (CI-04)
+- **Phase 79:** Recorded explicit Credo/Dialyzer severity decision in RUNNING.md + ci.yml comments (CI-04)
 - Default unit suite merge-blocking shipped commit `0036760` — not in scope for Phase 78/79
-- **Done enough:** Updated threads + JTBD anchor + CI policy record; no new `lib/` surface
+- **Done enough:** Updated threads + JTBD anchor + CI policy recorded; no new `lib/` surface
 - **Size:** 2 phases (ROADMAP 78–79)
 
 **If both LIFE-06 and STREAM-10 signals exist:** sequence **LIFE-06 first** (compliance blast
