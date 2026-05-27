@@ -78,6 +78,20 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
             {:error, msg, env}
         end
       end
+    rescue
+      exception in Mux.Exception ->
+        status =
+          case exception.response do
+            {:ok, %{status: status}} -> status
+            %{status: status} -> status
+            _ -> nil
+          end
+
+        if status in [403, 404] do
+          :ok
+        else
+          reraise exception, __STACKTRACE__
+        end
     end
 
     defp build_client do
@@ -85,7 +99,13 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
 
       with {:ok, token_id} <- fetch_required(cfg, :token_id),
            {:ok, token_secret} <- fetch_required(cfg, :token_secret) do
-        {:ok, Mux.Base.new(token_id, token_secret)}
+        client_opts =
+          case Keyword.get(cfg, :base_url) do
+            url when is_binary(url) -> [base_url: url]
+            _ -> []
+          end
+
+        {:ok, Mux.Base.new(token_id, token_secret, client_opts)}
       end
     end
 
