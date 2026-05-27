@@ -5,6 +5,7 @@ defmodule Rindle.OwnerErasureBatchProofTest do
   import Rindle.Test.OwnerErasureBatchFixtures
 
   alias Rindle.Domain.{MediaAsset, MediaAttachment}
+  alias Rindle.Test.CountingFailingTxnRepo
   alias Rindle.Test.OwnerErasureBatchFixtures.User
 
   setup :set_mox_from_context
@@ -63,6 +64,44 @@ defmodule Rindle.OwnerErasureBatchProofTest do
       assert Enum.any?(batch.retained_shared_assets.entries, fn entry ->
                entry.asset_id == shared_asset.id and entry.surviving_attachment_count >= 1
              end)
+    end
+  end
+
+  describe "PROOF-05: partial failure" do
+    test "second owner fails after first owner commits" do
+      owner1 = %User{id: Ecto.UUID.generate()}
+      owner2 = %User{id: Ecto.UUID.generate()}
+      asset1 = insert_asset("assets/batch-proof-partial-1/original.jpg")
+      asset2 = insert_asset("assets/batch-proof-partial-2/original.jpg")
+      attachment1 = insert_attachment(asset1, owner1, "avatar")
+      attachment2 = insert_attachment(asset2, owner2, "banner")
+
+      CountingFailingTxnRepo.with_counting_repo(2, fn ->
+        assert {:error, {:batch_owner_failed, detail}} =
+                 Rindle.erase_batch_owner_erasure([owner1, owner2])
+
+        assert length(detail.partial_report.owners) == 1
+        refute Repo.get(MediaAttachment, attachment1.id)
+        assert Repo.get(MediaAttachment, attachment2.id)
+      end)
+    end
+
+    test "first owner failure returns empty partial report" do
+      owner1 = %User{id: Ecto.UUID.generate()}
+      owner2 = %User{id: Ecto.UUID.generate()}
+      asset1 = insert_asset("assets/batch-proof-first-fail-1/original.jpg")
+      asset2 = insert_asset("assets/batch-proof-first-fail-2/original.jpg")
+      attachment1 = insert_attachment(asset1, owner1, "avatar")
+      attachment2 = insert_attachment(asset2, owner2, "banner")
+
+      CountingFailingTxnRepo.with_counting_repo(1, fn ->
+        assert {:error, {:batch_owner_failed, detail}} =
+                 Rindle.erase_batch_owner_erasure([owner1, owner2])
+
+        assert detail.partial_report.owners == []
+        assert Repo.get(MediaAttachment, attachment1.id)
+        assert Repo.get(MediaAttachment, attachment2.id)
+      end)
     end
   end
 end
