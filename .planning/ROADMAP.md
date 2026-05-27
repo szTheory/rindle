@@ -21,33 +21,40 @@
 **v1.11 Tus Protocol Completion:** closed and shipped on 2026-05-27.
 
 ### ✅ Phase 56: LiveView Tus helper polish
+
 - Wrap up uncommitted `Rindle.LiveView.allow_tus_upload` local edits.
 - Ensure tests and `generated_app_smoke_test.exs` pass with the helper updates.
 
 ### ✅ Phase 57: Tus Checksum & Defer-Length
+
 - Implement `Upload-Checksum` extension logic in `TusPlug`.
 - Implement `Upload-Defer-Length` logic to allow initial creation without a defined length.
 - Add unit tests for the plug extensions.
 
 **Plans:** 1 plans
+
 - [x] 57-01-PLAN.md — Implement Checksum and Defer-Length extensions
 
 ### ✅ Phase 58: Tus Concatenation
+
 - Implement the `Concatenation` extension (partial uploads and final assembly).
 - Update the underlying storage adapters if necessary to support chunk assembly.
 - Unit tests for concatenation logic.
 
 **Plans:** 3 plans
+
 - [x] 58-01-PLAN.md — Introduce storage concatenation behaviour and Local/S3 support
 - [x] 58-02-PLAN.md — Implement GCS concatenation via compose API
 - [x] 58-03-PLAN.md — Implement TusPlug concatenation header processing and DB persistence
 
 ### ✅ Phase 59: E2E Proof & Truth Closure
+
 - Add end-to-end MinIO or node-based `tus-js-client` proofs for the new extensions.
 - Update `guides/resumable_uploads.md` to reflect full protocol support.
 - Complete audit and close milestone.
 
 **Plans:** 2 plans
+
 - [x] 59-01-PLAN.md — Extend generated-app tus proof harness and enforce extension evidence
 - [x] 59-02-PLAN.md — Lock docs truth/parity and close v1.11 with evidence-backed audit
 

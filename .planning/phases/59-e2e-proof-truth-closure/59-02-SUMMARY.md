@@ -19,7 +19,7 @@ and milestone closeout artifacts for `v1.11`.
 |---|---|---|---|
 | 59-02-01 | `6569908` | `docs(59-02): align tus guide with full extension support` | `guides/resumable_uploads.md` |
 | 59-02-02 | `2d6e5f3` | `test(59-02): freeze literal tus extension parity vocabulary` | `test/install_smoke/phoenix_tus_truth_parity_test.exs`, `test/install_smoke/generated_app_smoke_test.exs` |
-| 59-02-03 | `pending` | `docs(59-02): close v1.11 audit with evidence-backed planning truth` | `.planning/milestones/v1.11-MILESTONE-AUDIT.md`, `.planning/ROADMAP.md`, `.planning/STATE.md`, `59-02-SUMMARY.md` |
+| 59-02-03 | `ced16dc` | `docs(59-02): close v1.11 with evidence-backed audit truth` | `.planning/milestones/v1.11-MILESTONE-AUDIT.md`, `.planning/ROADMAP.md`, `.planning/STATE.md`, `59-02-SUMMARY.md` |
 
 ## Verification
 

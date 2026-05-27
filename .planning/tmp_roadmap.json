@@ -1,0 +1,54 @@
+{
+  "milestones": [
+    {
+      "heading": "Deferred to v1.12+ / Later",
+      "version": "v1.12"
+    }
+  ],
+  "phases": [
+    {
+      "number": "57",
+      "name": "Tus Checksum & Defer-Length",
+      "goal": null,
+      "depends_on": null,
+      "plan_count": 1,
+      "summary_count": 1,
+      "has_context": true,
+      "has_research": true,
+      "disk_status": "complete",
+      "roadmap_complete": false
+    },
+    {
+      "number": "58",
+      "name": "Tus Concatenation",
+      "goal": null,
+      "depends_on": null,
+      "plan_count": 0,
+      "summary_count": 0,
+      "has_context": false,
+      "has_research": false,
+      "disk_status": "no_directory",
+      "roadmap_complete": false
+    },
+    {
+      "number": "59",
+      "name": "E2E Proof & Truth Closure",
+      "goal": null,
+      "depends_on": null,
+      "plan_count": 0,
+      "summary_count": 0,
+      "has_context": false,
+      "has_research": false,
+      "disk_status": "no_directory",
+      "roadmap_complete": false
+    }
+  ],
+  "phase_count": 3,
+  "completed_phases": 1,
+  "total_plans": 1,
+  "total_summaries": 1,
+  "progress_percent": 100,
+  "current_phase": null,
+  "next_phase": "58",
+  "missing_phase_details": null
+}
