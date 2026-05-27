@@ -18,19 +18,22 @@ defmodule Rindle.Upload.TusPlug do
         to: Rindle.Upload.TusPlug,
         init_opts: [profile: MyApp.VideoProfile, secret_key_base: secret]
 
-  ## Scope (Phase 42)
+  ## Scope
 
-  Implements the tus **Core + Creation + Expiration + Termination** extensions
-  ONLY, proven against `Rindle.Storage.Local` tmp-append backing. The advertised
-  `Tus-Extension` set is exactly `creation,expiration,termination`.
+  Implements tus **Core + Creation + Expiration + Termination + Checksum +
+  Creation-Defer-Length + Concatenation** extensions. The advertised
+  `Tus-Extension` header matches runtime:
+  `creation,expiration,termination,checksum,creation-defer-length,concatenation`.
+
+  Backing is **local and S3** tus paths — both are shipped in this module.
 
   | Method | Status | Notes |
   |--------|--------|-------|
   | `OPTIONS` | 204 | advertises `Tus-Version`/`Tus-Resumable`/`Tus-Extension`/`Tus-Max-Size` |
   | `POST` | 201 | Creation — `Upload-Length` + opaque `Upload-Metadata` → signed `Location` |
   | `HEAD` | 204 | authoritative `Upload-Offset` + `Cache-Control: no-store` |
-  | `PATCH` | — | resumable write (Plan 03) |
-  | `DELETE` | — | Termination (Plan 03) |
+  | `PATCH` | implemented | resumable write |
+  | `DELETE` | implemented | Termination |
   | other | 405 | not a tus method |
 
   ## Security
