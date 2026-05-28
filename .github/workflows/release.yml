@@ -522,3 +522,53 @@ jobs:
           HEX_API_KEY: ""
           VERSION: ${{ needs.publish.outputs.release_version }}
         run: bash scripts/public_smoke.sh "$VERSION"
+
+  update-release-train-baseline:
+    name: Update RELEASE-TRAIN Baseline
+    needs: [gate-ci-green, publish, public_verify]
+    if: ${{ needs.publish.result == 'success' && needs.public_verify.result == 'success' }}
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Set up Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: "1.17"
+          otp-version: "27"
+
+      - name: Install Hex
+        run: mix local.hex --force
+
+      - name: Update RELEASE-TRAIN baseline ledger
+        env:
+          VERSION: ${{ needs.publish.outputs.release_version }}
+          RELEASE_WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          CI_GATE_URL: ${{ needs.gate-ci-green.outputs.ci_run_url }}
+          PUBLIC_VERIFY_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: bash scripts/maintainer/update_release_train_baseline.sh "$VERSION"
+
+      - name: Commit and push baseline update
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN || github.token }}
+          VERSION: ${{ needs.publish.outputs.release_version }}
+        run: |
+          set -euo pipefail
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if git diff --quiet -- .planning/RELEASE-TRAIN.md; then
+            echo "RELEASE-TRAIN.md already up to date."
+            exit 0
+          fi
+
+          git add .planning/RELEASE-TRAIN.md
+          git commit -m "chore(release): record ${VERSION} baseline in RELEASE-TRAIN.md [skip ci]"
+          git push origin HEAD:main

@@ -1,0 +1,46 @@
+name: Branch Protection Apply
+
+# Owner-controlled re-assertion of merge-blocking CI on main.
+# Requires BRANCH_PROTECTION_PAT (fine-grained PAT with Administration: read and write).
+
+on:
+  schedule:
+    - cron: "17 7 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  reassert-protection:
+    name: Re-assert branch protection on main
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Check for BRANCH_PROTECTION_PAT secret
+        id: check-pat
+        env:
+          PAT_SET: ${{ secrets.BRANCH_PROTECTION_PAT != '' }}
+        run: |
+          if [ "$PAT_SET" = "true" ]; then
+            echo "pat_present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "pat_present=false" >> "$GITHUB_OUTPUT"
+            {
+              echo "## Branch Protection Apply — Skipped"
+              echo ""
+              echo "BRANCH_PROTECTION_PAT secret not set."
+              echo "Add a fine-grained PAT with Administration read/write for this repo."
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Checkout
+        if: steps.check-pat.outputs.pat_present == 'true'
+        uses: actions/checkout@v4
+
+      - name: Re-assert branch protection
+        if: steps.check-pat.outputs.pat_present == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.BRANCH_PROTECTION_PAT }}
+          GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: bash scripts/setup_branch_protection.sh main

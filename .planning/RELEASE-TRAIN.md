@@ -10,11 +10,40 @@ PR lane in `.planning/DEVELOPMENT-TRAIN.md`.
 ## Current Baseline
 
 - Latest released version: `0.1.5` (Hex.pm, 2026-05-09)
-- Catch-up release pending: local `main` includes v1.8–v1.17 capabilities not yet on Hex
+- Catch-up release: `0.1.6` merged to `main`; Hex publish follows green CI + dispatch publish
 - GSD posture: `demand-gated-pause` (formalized 2026-05-27)
 - Release automation: Release Please + exact-ref dispatch publish (see `.github/workflows/release.yml`)
 
 Update this section after each successful Hex publish with run ID, version, and public-smoke proof.
+The `update-release-train-baseline` job in `.github/workflows/release.yml` commits this block
+automatically after `public_verify` succeeds.
+
+## Automated Release Loop
+
+```text
+green main CI
+  → Release Please opens/updates release PR
+  → release-please-automerge.yml squash-merges when eligible
+  → release.yml workflow_dispatch on exact merge SHA
+  → gate-ci-green (ci.yml must succeed on that SHA)
+  → publish (Hex + GitHub release)
+  → public_verify (Hex index + scripts/public_smoke.sh)
+  → update-release-train-baseline commit to main [skip ci]
+```
+
+Branch protection is re-asserted by `.github/workflows/branch-protection-apply.yml` when
+`BRANCH_PROTECTION_PAT` is configured (see below).
+
+## Repository Secrets
+
+| Secret | Required | Role |
+|--------|----------|------|
+| `HEX_API_KEY` | Yes (release environment) | Hex.pm publish in `release.yml` |
+| `RELEASE_PLEASE_TOKEN` | Optional | Automerge, baseline push, and dispatch if `GITHUB_TOKEN` recursion blocks |
+| `BRANCH_PROTECTION_PAT` | Optional | Fine-grained PAT with **Administration: read/write** for `branch-protection-apply.yml` |
+
+Without `BRANCH_PROTECTION_PAT`, run `bash scripts/setup_branch_protection.sh main` locally once
+with an admin-capable `gh auth` session.
 
 ## Normal Train Rules
 
@@ -22,8 +51,8 @@ Update this section after each successful Hex publish with run ID, version, and 
 - Patch-eligible merged changes flow to the next release through Release Please on `main`.
 - The train is ready to move only when `main` is green and
   `./scripts/maintainer/repo_hygiene_check.sh` passes without `BLOCK`.
-- If `main` is green and release truth is coherent, the default stance is **silence on the
-  wire**: no milestone churn, no release drama, no invented work.
+- If `main` is green and release truth is coherent, the default stance is **silence on the wire**:
+  no milestone churn, no release drama, no invented work.
 - `workflow_dispatch` is exact-ref only for release automation or recovery and must replay an
   exact immutable ref; it does not create new release intent.
 - Push-triggered Release Please manages release PRs only (`skip-github-release: true`); the
@@ -60,10 +89,14 @@ Adopter), the repo hygiene gate reports no `BLOCK`, and release truth is coheren
 
 Required for a releasable `main` (see `RUNNING.md` and `.github/workflows/ci.yml`):
 
-- Quality (coveralls merge-blocking)
+- Quality (1.15, 26) and Quality (1.17, 27)
 - Integration
+- Contract
 - Proof
 - Package Consumer Proof Matrix + Release Preflight
 - Adopter
 
 Optional/soak lanes (mux-soak, gcs-soak) are not merge-blocking.
+
+When `BRANCH_PROTECTION_PAT` is set, `branch-protection-apply.yml` enforces these contexts on
+`main` (see `bash scripts/setup_branch_protection.sh --print-expected`).

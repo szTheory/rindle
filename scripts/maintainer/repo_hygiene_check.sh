@@ -81,7 +81,23 @@ changelog_version() {
 }
 
 release_train_baseline_version() {
-  sed -nE 's/^- Latest released version: `([0-9]+\.[0-9]+\.[0-9]+)`/\1/p' .planning/RELEASE-TRAIN.md | head -n 1
+  sed -nE 's/^- Latest released version: `([0-9]+\.[0-9]+\.[0-9]+)`.*/\1/p' .planning/RELEASE-TRAIN.md | head -n 1
+}
+
+version_gt() {
+  local left="$1"
+  local right="$2"
+  local winner
+  winner="$(printf '%s\n%s\n' "$right" "$left" | sort -V | tail -n 1)"
+  [[ "$winner" == "$left" && "$left" != "$right" ]]
+}
+
+hex_latest_version() {
+  if ! command -v mix >/dev/null 2>&1; then
+    return 1
+  fi
+
+  mix hex.info rindle 2>/dev/null | sed -nE 's/^.*Version: ([0-9]+\.[0-9]+\.[0-9]+).*/\1/p' | head -n 1
 }
 
 release_train_has_required_lines() {
@@ -137,10 +153,32 @@ repo_owned_checks() {
     record_result "BLOCK" "ci gate" "release workflow still contains CI bypass paths"
   fi
 
-  if [[ -n "$baseline_ver" ]]; then
-    record_result "PASS" "hex baseline" "RELEASE-TRAIN baseline documents $baseline_ver (update after publish)"
-  else
+  if [[ -z "$baseline_ver" ]]; then
     record_result "WARN" "hex baseline" "RELEASE-TRAIN baseline version line missing"
+  elif [[ "$mix_ver" == "$baseline_ver" ]]; then
+    record_result "PASS" "hex baseline" "RELEASE-TRAIN baseline matches mix.exs ($baseline_ver)"
+  elif version_gt "$baseline_ver" "$mix_ver"; then
+    record_result "BLOCK" "hex baseline" "RELEASE-TRAIN baseline ($baseline_ver) is ahead of mix.exs ($mix_ver)"
+  elif version_gt "$mix_ver" "$baseline_ver"; then
+    hex_ver="$(hex_latest_version || true)"
+    if [[ -n "$hex_ver" ]] && ! version_gt "$mix_ver" "$hex_ver"; then
+      record_result "BLOCK" "hex baseline" "Hex.pm ($hex_ver) matches mix.exs but RELEASE-TRAIN baseline is still $baseline_ver"
+    else
+      record_result "PASS" "hex baseline" "mix.exs ($mix_ver) ahead of baseline ($baseline_ver) until publish completes"
+    fi
+  else
+    record_result "PASS" "hex baseline" "RELEASE-TRAIN baseline documents $baseline_ver"
+  fi
+
+  if [[ "$MODE" == "ci" ]]; then
+    hex_ver="$(hex_latest_version || true)"
+    if [[ -n "$hex_ver" && -n "$baseline_ver" && "$hex_ver" != "$baseline_ver" ]]; then
+      record_result "WARN" "hex.pm index" "Hex.pm latest ($hex_ver) differs from RELEASE-TRAIN baseline ($baseline_ver)"
+    elif [[ -n "$hex_ver" && -n "$baseline_ver" ]]; then
+      record_result "PASS" "hex.pm index" "Hex.pm latest matches RELEASE-TRAIN baseline ($baseline_ver)"
+    else
+      record_result "WARN" "hex.pm index" "could not read Hex.pm latest version for comparison"
+    fi
   fi
 }
 

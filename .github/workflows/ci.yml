@@ -462,6 +462,9 @@ jobs:
           MIX_ENV: dev
         run: bash scripts/release_preflight.sh
 
+      - name: Repo hygiene gate (release train)
+        run: bash scripts/maintainer/repo_hygiene_check.sh --ci
+
       - name: Run built-artifact AV package-consumer proof against MinIO
         run: bash scripts/install_smoke.sh video
 
