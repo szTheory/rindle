@@ -55,17 +55,24 @@ Phase 29 keeps two outside-in package-consumer truths aligned:
 Those are maintainer proof lanes, but they intentionally exercise the same
 public docs snippets and facade calls adopters use in a real host app.
 
+Before background jobs run, install the host tools your profiles need:
+
+1. **Image variants:** install **libvips** on the host (`libvips-dev` on
+   Debian/Ubuntu, `vips` via Homebrew on macOS). Image-only adopters need
+   libvips only.
+2. **AV variants:** also install `FFmpeg >= 6.0` for the target platform.
+
 The first AV onboarding path is explicit:
 
 1. `mix deps.get`
-2. install `FFmpeg >= 6.0` for the target platform
+2. install libvips and `FFmpeg >= 6.0` for the target platform
 3. define one `kind: :video` variant plus `poster`
 4. run `mix rindle.doctor`
 5. then let the stock facade lifecycle process the upload
 
-Use [`../RUNNING.md`](../RUNNING.md) for the per-platform FFmpeg install
-surface: macOS/Homebrew, Ubuntu or Debian/apt, Alpine/apk, Fly.io Dockerfile,
-Heroku Aptfile, Render Dockerfile, and GitHub Actions via
+Use [`../RUNNING.md`](../RUNNING.md) for the per-platform libvips and FFmpeg
+install surface: macOS/Homebrew, Ubuntu or Debian/apt, Alpine/apk, Fly.io
+Dockerfile, Heroku Aptfile, Render Dockerfile, and GitHub Actions via
 `FedericoCarboni/setup-ffmpeg`.
 
 ## 2. Configure Adopter-Owned Runtime Boundaries

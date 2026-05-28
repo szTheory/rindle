@@ -170,6 +170,7 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
     for doc <- [readme, guide] do
       assert doc =~ "mix deps.get"
       assert doc =~ "mix rindle.doctor"
+      assert doc =~ "libvips"
       assert doc =~ "Rindle.Profile.Presets.Web"
       assert doc =~ "kind: :video"
       assert doc =~ "preset: :web_720p"
@@ -216,6 +217,17 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
     end
 
     assert_in_order!(upgrade, Enum.map(steps, & &1.checkpoint))
+  end
+
+  test "running guide publishes the durable libvips install matrix", %{running: running} do
+    for snippet <- [
+          "libvips",
+          "libvips-dev",
+          "brew install vips",
+          "Image runtime (libvips)"
+        ] do
+      assert running =~ snippet
+    end
   end
 
   test "running guide publishes the durable FFmpeg install matrix", %{running: running} do

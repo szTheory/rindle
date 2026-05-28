@@ -242,7 +242,7 @@ defmodule Rindle do
   @spec preview_batch_owner_erasure([struct()], keyword()) :: batch_owner_erasure_result()
   def preview_batch_owner_erasure(owners, opts \\ []) do
     with :ok <- validate_batch_owners(owners, opts) do
-      run_batch_owner_erasure(owners, :preview, &OwnerErasure.preview/2)
+      run_batch_owner_erasure(owners, :preview, &OwnerErasure.preview/2, opts)
     end
   end
 
@@ -260,7 +260,7 @@ defmodule Rindle do
   @spec erase_batch_owner_erasure([struct()], keyword()) :: batch_owner_erasure_result()
   def erase_batch_owner_erasure(owners, opts \\ []) do
     with :ok <- validate_batch_owners(owners, opts) do
-      run_batch_owner_erasure(owners, :execute, &OwnerErasure.execute/2)
+      run_batch_owner_erasure(owners, :execute, &OwnerErasure.execute/2, opts)
     end
   end
 
@@ -1000,11 +1000,17 @@ defmodule Rindle do
 
   defp dedupe_batch_owners(owners), do: Enum.uniq_by(owners, &owner_ref/1)
 
-  defp run_batch_owner_erasure(owners, mode, runner) do
+  @doc false
+  @spec per_owner_erasure_opts(keyword()) :: keyword()
+  def per_owner_erasure_opts(opts) when is_list(opts), do: Keyword.drop(opts, [:max_owners])
+
+  defp run_batch_owner_erasure(owners, mode, runner, opts) do
+    per_owner_opts = per_owner_erasure_opts(opts)
+
     owners
     |> dedupe_batch_owners()
     |> Enum.reduce_while({:ok, []}, fn owner, {:ok, acc} ->
-      case runner.(owner, []) do
+      case runner.(owner, per_owner_opts) do
         {:ok, report} ->
           {:cont, {:ok, [%{owner: owner_ref(owner), report: report} | acc]}}
 

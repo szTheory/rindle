@@ -54,6 +54,10 @@ For AV profiles, install `FFmpeg >= 6.0` before you touch background jobs, then
 run `mix rindle.doctor`. The per-platform install/runtime matrix lives in
 [`RUNNING.md`](RUNNING.md).
 
+For image variants, install **libvips** on the host before background image
+processing jobs run (`libvips-dev` on Debian/Ubuntu, `vips` via Homebrew on
+macOS). See [`RUNNING.md`](RUNNING.md) for the install matrix.
+
 ## Runtime Ownership
 
 Rindle persists through your adopter-owned Repo. Configure that explicitly:

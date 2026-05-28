@@ -1,6 +1,26 @@
-# Running Rindle AV Profiles
+# Running Rindle Image and AV Profiles
 
-Use this guide when your adopter app enables video or audio processing. The AV
+Use this guide for host-runtime dependencies before Rindle background jobs process
+variants. Image processing uses libvips (via Vix). AV processing uses FFmpeg.
+
+## Image runtime (libvips)
+
+Image-only adopters need libvips on the host before `ProcessVariant` jobs run:
+
+1. install libvips for the target platform
+2. run `mix rindle.doctor`
+3. only then start background jobs that generate image variants
+
+| Platform | Install |
+|----------|---------|
+| macOS (Homebrew) | `brew install vips` |
+| Ubuntu / Debian (apt) | `sudo apt-get update && sudo apt-get install -y libvips-dev` |
+| Alpine (apk) | `apk add --no-cache vips-dev` |
+| GitHub Actions | `sudo apt-get install -y libvips-dev` (same as CI `quality` job) |
+
+## AV runtime (FFmpeg)
+
+Use this section when your adopter app enables video or audio processing. The AV
 runtime contract is small and explicit:
 
 1. install `FFmpeg >= 6.0` for the target platform

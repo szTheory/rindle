@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: demand-gated-pause
 milestone_name: Demand-gated pause
 status: between-milestones
-last_updated: "2026-05-28T12:00:00.000Z"
+last_updated: "2026-05-28T14:00:00.000Z"
 last_activity: 2026-05-28
 progress:
   total_phases: 0
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-05-27)
 Phase: Not started (no feature phases)
 Plan: —
 Status: Demand-gated pause — formalized 2026-05-27
-Last activity: 2026-05-28 — maintenance reassessment (user_flows tus row, doc parity lock; pause reaffirmed)
+Last activity: 2026-05-28 — LIFE-06 prep (batch opts fix), libvips docs, RP tag fix pending
 
 ## Current Milestone
 
@@ -35,6 +35,7 @@ Last activity: 2026-05-28 — maintenance reassessment (user_flows tus row, doc 
 
 - **Last shipped:** v1.17 Adopter-Confidence Hygiene (Phases 78–80, 2026-05-27)
 - **Assessment thread:** `.planning/threads/2026-05-27-post-v117-milestone-assessment.md`
+- **LIFE-06 prep:** `.planning/threads/LIFE-06-prep.md` (no charter until compliance ticket)
 - **Path-to-done:** `.planning/threads/2026-05-27-path-to-done-roadmap.md`
 - **Requirements:** `.planning/REQUIREMENTS.md` (pause posture + demand gates)
 
@@ -56,7 +57,7 @@ Last activity: 2026-05-28 — maintenance reassessment (user_flows tus row, doc 
 - Default `mix coveralls` is merge-blocking per `ci.yml` (source of truth).
 
 - **Closed (2026-05-28):** user_flows roadmap + Find-your-job tus row; PR `install_smoke.sh image` already merge-blocking.
-- **Open (pre-LIFE-06):** `run_batch_owner_erasure/3` hardcodes `[]` opts per owner — fix when compliance milestone starts.
+- **Closed (2026-05-28):** batch erasure opts propagation (`run_batch_owner_erasure/3` forwards per-owner opts).
 
 - **Do not** reopen tus protocol, Mux surfaces, or owner-erasure semantics without demand signal.
 - **Do not** add force-delete, second provider, or new public API without compliance/adopter charter.
@@ -80,4 +81,4 @@ Last activity: 2026-05-28 — maintenance reassessment (user_flows tus row, doc 
 
 ## Session Continuity
 
-Last session: 2026-05-28T12:00:00.000Z
+Last session: 2026-05-28T14:00:00.000Z
