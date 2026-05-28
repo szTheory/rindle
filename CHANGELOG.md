@@ -2,6 +2,13 @@
 
 0.1.0-0.1.3 were release-pipeline shakedown iterations; treat 0.1.4 as the first recommended pin.
 
+## [0.1.9](https://github.com/szTheory/rindle/compare/rindle-v0.1.8...rindle-v0.1.9) (2026-05-28)
+
+
+### Bug Fixes
+
+* **ci:** drop secrets from gcs-soak job if (invalid workflow) ([30b3cf0](https://github.com/szTheory/rindle/commit/30b3cf0a7e3c2443284b36b5707ce95e96c43d2d))
+
 ## [0.1.8](https://github.com/szTheory/rindle/compare/rindle-v0.1.7...rindle-v0.1.8) (2026-05-28)
 
 
