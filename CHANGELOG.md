@@ -2,6 +2,16 @@
 
 0.1.0-0.1.3 were release-pipeline shakedown iterations; treat 0.1.4 as the first recommended pin.
 
+## [0.1.8](https://github.com/szTheory/rindle/compare/rindle-v0.1.7...rindle-v0.1.8) (2026-05-28)
+
+
+### Bug Fixes
+
+* **ci:** disable AV cgroups in quality job to stop waveform epipe flakes ([6960c2c](https://github.com/szTheory/rindle/commit/6960c2c46b31396636d8efdbdadc4127145d7f2e))
+* **ci:** remove duplicate RINDLE_AV_USE_CGROUPS env key in quality job ([03066a0](https://github.com/szTheory/rindle/commit/03066a0e122cc57f65d7952d36c01062f1743fe1))
+* **erasure:** forward batch owner opts; document libvips runtime ([525e760](https://github.com/szTheory/rindle/commit/525e760c9f90930b86b33d2b038c031d2b17f5fc))
+* **test:** isolate signed_url_ttl env and stabilize waveform ffmpeg fixtures ([ae212c7](https://github.com/szTheory/rindle/commit/ae212c76e80a8f66054e6ec642798b747f09cc41))
+
 ## [0.1.7](https://github.com/szTheory/rindle/compare/rindle-v0.1.6...rindle-v0.1.7) (2026-05-28)
 
 
