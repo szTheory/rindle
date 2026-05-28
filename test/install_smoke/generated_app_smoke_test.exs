@@ -288,7 +288,7 @@ if GeneratedAppHelper.profile_enabled?(:mux) do
       assert report.migration_resolution == :application_app_dir
       assert String.ends_with?(report.rindle_migration_path, "/priv/repo/migrations")
       refute String.contains?(report.rindle_migration_path, "deps/rindle")
-      assert report.smoke_exit_code == 0
+      assert report.smoke_exit_code == 0, report.smoke_output
       assert report.lifecycle_proved?
       assert report.av_ready_variants == ["poster", "web_720p"]
       assert is_binary(report.av_playback_storage_key)

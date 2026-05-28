@@ -465,6 +465,12 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
                 {:gcs_signed_url, "~> 0.4.6"},
           """
 
+        :mux ->
+          """
+                {:mux, "~> 3.2"},
+                {:jose, "~> 1.11"},
+          """
+
         _ ->
           ""
       end

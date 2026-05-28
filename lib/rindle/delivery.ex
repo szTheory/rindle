@@ -245,7 +245,7 @@ defmodule Rindle.Delivery do
     provider_name = derive_provider_name(streaming_config.provider)
     asset_id = asset_id_of(asset)
 
-    case Rindle.Repo.get_by(MediaProviderAsset,
+    case Rindle.Config.repo().get_by(MediaProviderAsset,
            asset_id: asset_id,
            profile: to_string(profile),
            provider_name: provider_name
