@@ -37,7 +37,8 @@ Scan for the row that sounds like your sentence, then jump to the story or guide
 | Upload straight to storage, bytes never touching your server | `Rindle.initiate_upload/2` → `Rindle.Upload.Broker.sign_url/2` → `Rindle.verify_completion/2` | [Avatar in five calls](#story-1-avatar-in-five-calls) |
 | Take an upload server-side, simply | `Rindle.upload/3` | [Getting Started](getting_started.html) |
 | Upload a multi-GB file in parts | `Rindle.initiate_multipart_upload/2` + `sign_multipart_part/3` + `complete_multipart_upload/3` | [The 4 GB upload from a moving train](#story-3-the-4-gb-upload-from-a-moving-train) |
-| Let a phone resume after the signal drops | `Rindle.initiate_resumable_session/2` + `resumable_session_status/2` | [Storage (GCS)](storage_gcs.html) |
+| Let a phone resume after the signal drops (GCS resumable) | `Rindle.initiate_resumable_session/2` + `resumable_session_status/2` | [Storage (GCS)](storage_gcs.html) |
+| Resume a browser tus upload after disconnect (S3 / Local) | `Rindle.initiate_tus_upload/2`, `Rindle.Upload.TusPlug`, `Rindle.LiveView.allow_tus_upload/4` | [Resumable Uploads](resumable_uploads.html) |
 | Attach an asset to one of your schemas | `Rindle.attach/4` | [Avatar in five calls](#story-1-avatar-in-five-calls) |
 | Replace media and auto-clean the old file | `Rindle.attach/4` (idempotent replace) | [Replace, detach, forget](#story-5-replace-detach-forget) |
 | Detach + purge when a record is deleted | `Rindle.detach/3` | [Replace, detach, forget](#story-5-replace-detach-forget) |

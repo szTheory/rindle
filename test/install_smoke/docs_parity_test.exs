@@ -370,6 +370,19 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
     refute user_flows =~ "The full executable facade lands in later `v1.10` phase work"
   end
 
+  test "user flows roadmap does not regress tus or mux to near-term", %{user_flows: user_flows} do
+    normalized = String.downcase(user_flows)
+
+    assert normalized =~ "initiate_tus_upload"
+    assert normalized =~ "shipped v1.8"
+    assert normalized =~ "resumable uploads"
+
+    refute Regex.match?(~r/near-term.{0,80}tus/u, normalized)
+    refute Regex.match?(~r/tus.{0,80}near-term/u, normalized)
+    refute Regex.match?(~r/near-term.{0,80}mux/u, normalized)
+    refute Regex.match?(~r/browser.{0,40}mux.{0,80}near-term/u, normalized)
+  end
+
   test "user flows and operations document batch erasure without duplicating mix task contract",
        %{
          user_flows: user_flows
