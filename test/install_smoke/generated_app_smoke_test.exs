@@ -19,9 +19,13 @@ defmodule Rindle.InstallSmoke.GeneratedAppSmokeAssertions do
         else
           assert report.network_mode?
           assert String.starts_with?(report.install_source, "hex:")
+          assert report.deps_rindle_present?
         end
 
-        refute report.deps_rindle_present?
+        if report.install_mode == :package do
+          refute report.deps_rindle_present?
+        end
+
         assert report.compile_exit_code == 0
         assert report.boot_exit_code == 0
       end

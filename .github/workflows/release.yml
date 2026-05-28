@@ -417,6 +417,7 @@ jobs:
       contents: read
     env:
       MIX_ENV: dev
+      RINDLE_AV_USE_CGROUPS: "false"
       PGUSER: postgres
       PGPASSWORD: postgres
       PGHOST: localhost
@@ -451,6 +452,11 @@ jobs:
         with:
           elixir-version: "1.17"
           otp-version: "27"
+
+      - name: Set up FFmpeg
+        uses: FedericoCarboni/setup-ffmpeg@v3
+        with:
+          ffmpeg-version: release
 
       - name: Install Hex and Rebar
         run: |
