@@ -1,5 +1,5 @@
 defmodule Rindle.Storage.GCS.SignerTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
 
   alias Rindle.Storage.GCS.Signer
   alias Rindle.Storage.GCS.SigningKeyFixture

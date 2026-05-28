@@ -136,32 +136,47 @@ defmodule Rindle.Profile.ProfileTest do
     assert digest_before != digest_after
   end
 
-  test "delivery policy defaults to private delivery with config ttl" do
-    module =
-      compile_profile("""
-      storage: Rindle.StorageMock,
-      variants: [thumb: [mode: :fit, width: 320]],
-      allow_mime: ["image/jpeg"],
-      allow_extensions: [".jpg"],
-      delivery: []
-      """)
+  describe "delivery policy" do
+    setup do
+      original = Application.get_env(:rindle, :signed_url_ttl_seconds)
+      Application.put_env(:rindle, :signed_url_ttl_seconds, 900)
 
-    assert %{public: false, signed_url_ttl_seconds: 900, authorizer: nil} =
-             module.delivery_policy()
-  end
+      on_exit(fn ->
+        if original,
+          do: Application.put_env(:rindle, :signed_url_ttl_seconds, original),
+          else: Application.delete_env(:rindle, :signed_url_ttl_seconds)
+      end)
 
-  test "delivery policy accepts explicit public opt-in and authorizer" do
-    module =
-      compile_profile("""
-      storage: Rindle.StorageMock,
-      variants: [thumb: [mode: :fit, width: 320]],
-      allow_mime: ["image/jpeg"],
-      allow_extensions: [".jpg"],
-      delivery: [public: true, signed_url_ttl_seconds: 120, authorizer: Rindle.AuthorizerMock]
-      """)
+      :ok
+    end
 
-    assert %{public: true, signed_url_ttl_seconds: 120, authorizer: Rindle.AuthorizerMock} =
-             module.delivery_policy()
+    test "defaults to private delivery with config ttl" do
+      module =
+        compile_profile("""
+        storage: Rindle.StorageMock,
+        variants: [thumb: [mode: :fit, width: 320]],
+        allow_mime: ["image/jpeg"],
+        allow_extensions: [".jpg"],
+        delivery: []
+        """)
+
+      assert %{public: false, signed_url_ttl_seconds: 900, authorizer: nil} =
+               module.delivery_policy()
+    end
+
+    test "accepts explicit public opt-in and authorizer" do
+      module =
+        compile_profile("""
+        storage: Rindle.StorageMock,
+        variants: [thumb: [mode: :fit, width: 320]],
+        allow_mime: ["image/jpeg"],
+        allow_extensions: [".jpg"],
+        delivery: [public: true, signed_url_ttl_seconds: 120, authorizer: Rindle.AuthorizerMock]
+        """)
+
+      assert %{public: true, signed_url_ttl_seconds: 120, authorizer: Rindle.AuthorizerMock} =
+               module.delivery_policy()
+    end
   end
 
   test "unknown delivery options raise at compile time" do

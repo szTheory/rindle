@@ -56,7 +56,7 @@ defmodule Rindle.Processor.WaveformTest do
   end
 
   defp build_audio_fixture!(path) do
-    args = [
+    run_ffmpeg!([
       "-y",
       "-f",
       "lavfi",
@@ -65,13 +65,11 @@ defmodule Rindle.Processor.WaveformTest do
       "-c:a",
       "pcm_s16le",
       path
-    ]
-
-    {_output, 0} = System.cmd("ffmpeg", args, stderr_to_stdout: true)
+    ])
   end
 
   defp build_video_fixture!(path) do
-    args = [
+    run_ffmpeg!([
       "-y",
       "-f",
       "lavfi",
@@ -92,13 +90,11 @@ defmodule Rindle.Processor.WaveformTest do
       "-c:a",
       "aac",
       path
-    ]
-
-    {_output, 0} = System.cmd("ffmpeg", args, stderr_to_stdout: true)
+    ])
   end
 
   defp build_silent_video_fixture!(path) do
-    args = [
+    run_ffmpeg!([
       "-y",
       "-f",
       "lavfi",
@@ -109,9 +105,22 @@ defmodule Rindle.Processor.WaveformTest do
       "-pix_fmt",
       "yuv420p",
       path
-    ]
+    ])
+  end
 
-    {_output, 0} = System.cmd("ffmpeg", args, stderr_to_stdout: true)
+  defp run_ffmpeg!(args) do
+    case Rindle.AV.Subprocess.run("ffmpeg", args, timeout: 30_000) do
+      {_, 0} ->
+        :ok
+
+      {output, _status} ->
+        Process.sleep(100)
+
+        case Rindle.AV.Subprocess.run("ffmpeg", args, timeout: 30_000) do
+          {_, 0} -> :ok
+          {retry_output, status} -> flunk("ffmpeg failed (#{status}): #{retry_output || output}")
+        end
+    end
   end
 
   defp read_json(path) do
