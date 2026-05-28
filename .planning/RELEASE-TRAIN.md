@@ -19,6 +19,17 @@ PR lane in `.planning/DEVELOPMENT-TRAIN.md`.
 
 Update this section after each successful Hex publish with run ID, version, and public-smoke proof.
 
+## Verification Log (maintainer)
+
+| Date | Check | Result | Evidence |
+|------|-------|--------|----------|
+| 2026-05-28 | Catch-up 0.1.6 publish + public smoke | Pass | [run 26552727276](https://github.com/szTheory/rindle/actions/runs/26552727276) — Publish + Public Verify success |
+| 2026-05-28 | Baseline job on first 0.1.6 publish | Fail then manual fix | Same run — `Update RELEASE-TRAIN Baseline` failed; ledger synced in `43cfe62` |
+| 2026-05-28 | Release Please automerge | Pass | [26552711873](https://github.com/szTheory/rindle/actions/runs/26552711873), [26553751051](https://github.com/szTheory/rindle/actions/runs/26553751051) |
+| 2026-05-28 | Branch Protection Apply (cron) | Pass | [26564029665](https://github.com/szTheory/rindle/actions/runs/26564029665) |
+| 2026-05-28 | PATs configured | Pass | `RELEASE_PLEASE_TOKEN`, `BRANCH_PROTECTION_PAT` set in repo secrets |
+| _pending_ | Automated baseline on next publish | — | After doc maintenance merge; expect baseline PR admin-merge without hand-editing this file |
+
 ## Automated Release Loop
 
 ```text

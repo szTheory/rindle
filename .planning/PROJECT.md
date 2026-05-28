@@ -16,8 +16,9 @@ signal arrives. No feature phases, no new public API, no speculative platform wo
 CI-04 static-analysis policy record; no new public API.
 
 **Canonical context:**
-[post-v116 assessment](threads/2026-05-27-post-v116-milestone-assessment.md),
-[path-to-done roadmap](threads/2026-05-27-path-to-done-roadmap.md).
+[post-v117 assessment](threads/2026-05-27-post-v117-milestone-assessment.md) (reaffirmed 2026-05-28),
+[path-to-done roadmap](threads/2026-05-27-path-to-done-roadmap.md),
+[release train](RELEASE-TRAIN.md).
 
 ## Current State
 
@@ -39,8 +40,9 @@ AUDIT-01 milestone audit ([v1.15-MILESTONE-AUDIT.md](milestones/v1.15-MILESTONE-
 **v1.14 shipped:** Batch owner erasure API, operator CLI, PROOF-05 matrix, TRUTH-03
 guide parity (Phases 67–70, 8/8 requirements).
 
-**Post-v1.16:** Maintenance and CI enforcement wedge complete. Default posture: patch/minor
-releases and issue-driven work only until demand signal (see post-v116 assessment).
+**Post-v1.17 (2026-05-28):** Adopter doc hygiene closed (user_flows tus row, roadmap parity lock).
+Release train operational at Hex `0.1.6`; next publish validates automated baseline ledger.
+Default posture: demand-gated pause until LIFE-06 or STREAM-10 signal.
 
 Do not reopen tus protocol, single-owner/batch erasure semantics, or Mux surfaces
 beyond v1.13. Keep shared-asset safety and maintenance-vs-owner-erasure boundaries
@@ -392,10 +394,15 @@ for non-streaming adopters. The single-provider rule keeps the abstraction
 honest; v1.7+ adapters (GCS, second streaming provider) become contract tests.
 
 **Between milestones:** Demand-gated pause formalized 2026-05-27 after v1.17 archive.
-v1.16 closed proof-lane and TusPlug doc parity gaps. Mission coverage ~94–96%. Feature
-milestones require LIFE-06 or STREAM-10 signal per `config.json`
+Post-v117 assessment (repo-verified) reaffirms pause as default — no feature milestone
+until LIFE-06 or STREAM-10 signal. Mission coverage ~94–96%. Feature milestones require
+LIFE-06 or STREAM-10 signal per `config.json`
 `workflow.milestone_boundary.block_feature_milestone_without_signal`.
-See `.planning/threads/2026-05-27-post-v116-milestone-assessment.md`.
+See `.planning/threads/2026-05-27-post-v117-milestone-assessment.md`.
+
+**Support-truth note:** Adopter-facing roadmap prose in `guides/user_flows.md` must not
+claim tus or browser→Mux direct upload as future work — both shipped v1.8–v1.11. Refresh
+that section on next docs maintenance pass.
 
 **Reference implementations:**
 - Rails Active Storage: attachment/blob ownership patterns, redirect-style
@@ -711,4 +718,4 @@ This document evolves at phase transitions and milestone boundaries.
    (`workflow.milestone_boundary.block_feature_milestone_without_signal`)
 
 ---
-*Last updated: 2026-05-27 after demand-gated pause formalized (no feature milestone)*
+*Last updated: 2026-05-27 after post-v117 milestone assessment (pause reaffirmed)*

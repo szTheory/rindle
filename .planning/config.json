@@ -46,7 +46,10 @@
       "demand_gated_default": true,
       "require_post_ship_assessment": true,
       "assessment_supersedes_prior_thread": true,
-      "path_to_done_thread": true
+      "path_to_done_thread": true,
+      "no_auto_new_milestone": true,
+      "verify_install_smoke_claims": true,
+      "flag_user_flows_roadmap_drift": true
     }
   }
 }
