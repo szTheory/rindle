@@ -1,5 +1,9 @@
 # Rindle
 
+[![CI](https://github.com/szTheory/rindle/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/szTheory/rindle/actions/workflows/ci.yml)
+[![Hex.pm](https://img.shields.io/hexpm/v/rindle.svg)](https://hex.pm/packages/rindle)
+[![Docs](https://img.shields.io/badge/hexdocs-latest-blue.svg)](https://hexdocs.pm/rindle)
+
 **Media, made durable.**
 
 Phoenix/Ecto-native media lifecycle library. Rindle owns the durable work that
@@ -10,13 +14,12 @@ The first-tier adopter concepts are `Rindle` and `Rindle.Profile`: define a
 profile once, then use the facade for upload lifecycle, attachments, and
 delivery.
 
-`README.md` is the narrow quickstart. [`guides/getting_started.md`](guides/getting_started.md)
-is the canonical deep adopter guide for the same first-run path. Phase 29
-proves that path from a generated package-consumer Phoenix app in two
-outside-in lanes from installed artifacts: image-only and AV-enabled.
-Existing adopters upgrading from the pre-v1.4 image-only shape should use
-[`guides/upgrading.md`](guides/upgrading.md) instead of stretching the
-greenfield quickstart into an upgrade runbook.
+This file is the narrow quickstart. [Getting Started](getting_started.html)
+is the canonical deep adopter guide for the same first-run path. That path is
+validated in CI from generated Phoenix apps (image-only and AV-enabled install
+smoke) before each Hex publish. Existing adopters upgrading from the pre-0.1.4
+image-only shape should use [Upgrading](upgrading.html) instead of stretching
+the greenfield quickstart into an upgrade runbook.
 
 ## Install
 
@@ -44,19 +47,17 @@ end
 
 Run `mix deps.get`.
 
-The package-consumer proof posture is intentionally narrow in this README:
-maintainers prove the installed artifact from a generated app, while adopters
-follow the same public setup contract described here. The built-artifact lane
-proves image-only and AV-enabled installs before publish; the published-artifact
-companion repeats the same generated-app posture against the released package.
+Each release is exercised from a generated Phoenix app in CI before it ships
+to Hex. Adopters follow the same public setup contract described here and in
+[Getting Started](getting_started.html).
 
 For AV profiles, install `FFmpeg >= 6.0` before you touch background jobs, then
 run `mix rindle.doctor`. The per-platform install/runtime matrix lives in
-[`RUNNING.md`](RUNNING.md).
+[Running](running.html).
 
 For image variants, install **libvips** on the host before background image
 processing jobs run (`libvips-dev` on Debian/Ubuntu, `vips` via Homebrew on
-macOS). See [`RUNNING.md`](RUNNING.md) for the install matrix.
+macOS). See [Running](running.html) for the install matrix.
 
 ## Runtime Ownership
 
@@ -82,9 +83,7 @@ config :my_app, Oban,
 
 ## Migrations
 
-Run your host app migrations and the packaged Rindle migrations explicitly. The
-consumer smoke lane proves this `Application.app_dir/2` path from a generated
-Phoenix app:
+Run your host app migrations and the packaged Rindle migrations explicitly:
 
 ```elixir
 rindle_path = Application.app_dir(:rindle, "priv/repo/migrations")
@@ -98,31 +97,23 @@ host_path = Path.join([File.cwd!(), "priv", "repo", "migrations"])
   end)
 ```
 
-Rindle does not ship a public `mix rindle.*` install task for this in v1.1.
-The public path is the docs snippet above; the repo-private automation lives in
-the install smoke harness.
+Rindle does not ship a public `mix rindle.*` install task for migrations. The
+public path is the docs snippet above.
 
 ## First Run: AV Quickstart
 
 The locked onboarding path is:
 
 1. `mix deps.get`
-2. install `FFmpeg >= 6.0` from [`RUNNING.md`](RUNNING.md)
+2. install `FFmpeg >= 6.0` from [Running](running.html)
 3. declare one `kind: :video` variant plus the stock poster
 4. run `mix rindle.doctor`
 5. follow the normal facade-first upload lifecycle
 
-Phase 29 locks that onboarding contract to the package-consumer proof matrix:
-- image-only generated-app proof from the installed artifact
-- AV-enabled generated-app proof from the installed artifact
-
-The deep guide explains where built-artifact proof ends and published-artifact
-proof begins without turning this quickstart into a release runbook.
-
 The canonical deep guide expands the same path in
-[`guides/getting_started.md`](guides/getting_started.md). The stock onboarding
-story is `Rindle.Profile.Presets.Web`: `web_720p` video output plus `poster`
-image output. The equivalent explicit profile looks like this:
+[Getting Started](getting_started.html). The stock onboarding story is
+`Rindle.Profile.Presets.Web`: `web_720p` video output plus `poster` image
+output. The equivalent explicit profile looks like this:
 
 ```elixir
 defmodule MyApp.VideoProfile do
@@ -169,9 +160,7 @@ and not the default onboarding story.
 ```
 
 That keeps the first-run story on the facade while leaving
-`Rindle.Upload.Broker.sign_url/1` as an advanced transport step. The same
-public path is proven by the built-artifact install smoke and the canonical
-adopter lifecycle test.
+`Rindle.Upload.Broker.sign_url/1` as an advanced transport step.
 
 ## After First Run: Querying Attachments and Variants
 
@@ -256,7 +245,7 @@ defmodule MyApp.Streaming do
 end
 ```
 
-End-to-end onboarding — signing keys, webhook plug, cron, local tunnel, secret rotation, and `mix rindle.doctor --streaming` — lives in [`guides/streaming_providers.md`](guides/streaming_providers.md).
+End-to-end onboarding — signing keys, webhook plug, cron, local tunnel, secret rotation, and `mix rindle.doctor --streaming` — lives in [Streaming Providers](streaming_providers.html).
 
 ## Storage with GCS (optional)
 
@@ -264,33 +253,16 @@ GCS resumable upload is a shipped advanced path, not the canonical first-run
 story. If you need `Rindle.Storage.GCS`, adopter-owned `MyApp.Goth` and
 `MyApp.Finch` supervision, bucket CORS, and resumable session hygiene, validate
 the runtime with `mix rindle.doctor` and use
-[`guides/storage_gcs.md`](guides/storage_gcs.md).
+[Storage (GCS)](storage_gcs.html).
 
 ## Next Reads
 
-- [`guides/upgrading.md`](guides/upgrading.md): canonical existing-adopter
-  upgrade runbook for the pre-v1.4 to current path
-- [`guides/getting_started.md`](guides/getting_started.md): canonical deep
-  adopter guide for the full AV onboarding path, Repo ownership, Oban
-  ownership, migrations, profile setup, and the same presigned PUT lifecycle
-- [`RUNNING.md`](RUNNING.md): FFmpeg install/runtime matrix for macOS,
-  Ubuntu/Debian, Alpine, Fly.io, Heroku, Render, and GitHub Actions
-- [`guides/background_processing.md`](guides/background_processing.md): default
-  Oban ownership and queue details
-- [`guides/storage_capabilities.md`](guides/storage_capabilities.md): capability
-  boundaries, including multipart as an advanced path
-
-## GSD Hygiene
-
-For local GSD cleanup, run `mix gsd.clean`. It removes known transient outputs,
-prunes stale worktree metadata, and reports any remaining `.planning/` dirt
-without deleting tracked planning artifacts.
-
-Use the GSD workflows for the tracked planning lifecycle:
-
-- `$gsd-complete-milestone` when a milestone is actually done
-- `$gsd-cleanup` to archive completed milestone phase directories
-- `$gsd-pr-branch` to prepare a review branch without `.planning/` commits
+- [User Flows](user_flows.html): map your job to the right guide (start here when evaluating)
+- [Upgrading](upgrading.html): existing-adopter upgrade runbook (pre-0.1.4 image-only → current)
+- [Getting Started](getting_started.html): deep greenfield guide — Repo, Oban, migrations, profiles
+- [Running](running.html): libvips and FFmpeg install matrix (macOS, Linux, Fly, Heroku, Render, CI)
+- [Background Processing](background_processing.html): Oban queues and worker behavior
+- [Storage Capabilities](storage_capabilities.html): adapter capability boundaries
 
 ## Documentation conventions
 

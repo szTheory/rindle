@@ -52,25 +52,21 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
       assert doc =~ "Rindle.url"
     end
 
-    assert readme =~ "guides/getting_started.md"
+    assert readme =~ "getting_started.html"
     assert readme =~ "canonical deep adopter guide"
-    assert guide =~ "[`README.md`](../README.md)"
+    assert guide =~ "[README](readme.html)"
   end
 
-  test "README and getting-started guide lock docs to the package-consumer proof matrix", %{
+  test "README and getting-started describe CI-validated install smoke posture", %{
     readme: readme,
     guide: guide
   } do
-    assert readme =~ "generated package-consumer Phoenix app"
-    assert readme =~ "image-only"
-    assert readme =~ "AV-enabled"
-    assert readme =~ "installed artifact"
+    assert readme =~ "generated Phoenix app"
+    assert readme =~ "Hex publish"
 
     for snippet <- [
-          "package-consumer proof matrix",
-          "generated app",
-          "built-artifact proof",
-          "published-artifact proof",
+          "install smoke",
+          "generated Phoenix app",
           "image-only",
           "AV-enabled",
           "signed delivery"
@@ -79,7 +75,7 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
     end
   end
 
-  test "README and getting-started guide teach Phase 19 convenience helpers and bangs", %{
+  test "README and getting-started guide teach convenience helpers and bangs", %{
     readme: readme,
     guide: guide
   } do
@@ -95,7 +91,7 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
       assert doc =~ "Rindle.url!"
       assert doc =~ "Rindle.variant_url!"
 
-      # Boundary contract surfaced (Phase 17 D-01 allowlist)
+      # Boundary contract surfaced via Rindle.Error
       assert doc =~ "Rindle.Error"
     end
   end
@@ -155,7 +151,7 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
     for doc <- [readme, guide] do
       assert doc =~ "Storage with GCS (optional)"
       assert doc =~ "mix rindle.doctor"
-      assert doc =~ "storage_gcs.md"
+      assert doc =~ "storage_gcs.html"
       assert Regex.match?(~r/GCS resumable upload is ((a shipped|an) )?advanced path/i, doc)
 
       refute Regex.match?(~r/GCS resumable upload is the canonical first-run/i, doc)
@@ -176,7 +172,7 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
       assert doc =~ "preset: :web_720p"
       assert doc =~ "preset: :video_poster_scene"
       assert doc =~ "FFmpeg >= 6.0"
-      assert doc =~ "RUNNING.md"
+      assert doc =~ "running.html"
     end
   end
 
@@ -184,9 +180,12 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
     readme: readme,
     guide: guide
   } do
-    assert readme =~ "release runbook"
-    assert guide =~ "maintainer-only release orchestration stays in"
-    assert guide =~ "[`release_publish.md`](release_publish.md)"
+    assert readme =~ "upgrade runbook"
+    assert guide =~ "Maintainer-only release"
+    assert guide =~ "orchestration lives in"
+    assert guide =~ "[Release Publish](release_publish.html)"
+
+    refute readme =~ "GSD Hygiene"
 
     for doc <- [readme, guide] do
       refute doc =~ "mix hex.user whoami"
@@ -200,11 +199,11 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
     upgrade: upgrade,
     release: release
   } do
-    assert readme =~ "guides/upgrading.md"
-    assert guide =~ "[`upgrading.md`](upgrading.md)"
-    assert release =~ "[`upgrading.md`](upgrading.md)"
-    assert upgrade =~ "[`getting_started.md`](getting_started.md)"
-    assert upgrade =~ "pre-v1.4"
+    assert readme =~ "upgrading.html"
+    assert guide =~ "[Upgrading](upgrading.html)"
+    assert release =~ "[Upgrading](upgrading.html)"
+    assert upgrade =~ "[Getting Started](getting_started.html)"
+    assert upgrade =~ "pre-0.1.4"
     assert String.downcase(upgrade) =~ "existing adopters"
   end
 
@@ -246,15 +245,17 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
     end
   end
 
-  test "running guide publishes the CI lane severity matrix", %{running: running} do
+  test "running guide publishes the maintainer CI lane severity matrix", %{running: running} do
     for snippet <- [
-          "## CI lane severity",
+          "Maintainer: CI lane severity",
+          "Adopters can skip this section",
           "merge-blocking",
           "advisory",
           "secret-gated soak",
           "package-consumer",
           "adopter",
           "`proof`",
+          "repo_hygiene_check.sh",
           "docs_parity_test.exs",
           "batch_owner_erasure_task_test.exs",
           ".github/workflows/ci.yml"
@@ -275,7 +276,7 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
     assert troubleshooting =~ "mix rindle.doctor"
     assert troubleshooting =~ "mix rindle.runtime_status"
     assert troubleshooting =~ "Rindle.Error.message/1"
-    assert troubleshooting =~ "test/rindle/error_test.exs"
+    refute troubleshooting =~ "test/rindle/error_test.exs"
     assert troubleshooting =~ "`:ffmpeg_not_found`"
     assert troubleshooting =~ "`:range_unparseable`"
   end
@@ -320,7 +321,7 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
     refute Regex.match?(~r/DELETE\s*\|\s*—/, moduledoc)
   end
 
-  test "operations and troubleshooting guides teach the phase 31 diagnostics split" do
+  test "operations and troubleshooting guides teach the doctor vs runtime_status split" do
     operations = File.read!(Path.expand("../../guides/operations.md", __DIR__))
     troubleshooting = File.read!(@troubleshooting_path)
 
@@ -386,7 +387,7 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
     normalized = String.downcase(user_flows)
 
     assert normalized =~ "initiate_tus_upload"
-    assert normalized =~ "shipped v1.8"
+    assert normalized =~ "shipped since 0.1.8"
     assert normalized =~ "resumable uploads"
 
     refute Regex.match?(~r/near-term.{0,80}tus/u, normalized)
@@ -406,7 +407,7 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
     assert normalized_flows =~ "preview_batch_owner_erasure"
     assert normalized_flows =~ "batch_owner_erasure"
     assert normalized_ops =~ "batch_owner_erasure"
-    assert normalized_ops =~ "user_flows.md"
+    assert normalized_ops =~ "user_flows.html"
 
     refute normalized_ops =~ "--owners-file"
     refute normalized_ops =~ "owner_type"
@@ -418,12 +419,12 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
        } do
     operations = File.read!(Path.expand("../../guides/operations.md", __DIR__))
 
-    assert guide =~ "[`user_flows.md`](user_flows.md)"
+    assert guide =~ "[User Flows](user_flows.html)"
     assert guide =~ "account deletion / owner erasure"
     assert guide =~ "Batch owner erasure"
-    assert guide =~ "user_flows.md"
+    assert guide =~ "user_flows.html"
 
-    assert operations =~ "[`user_flows.md`](user_flows.md)"
+    assert operations =~ "[User Flows](user_flows.html)"
     assert operations =~ "supported account-deletion surface"
     assert operations =~ "cleanup_orphans"
     assert operations =~ "maintenance-only"

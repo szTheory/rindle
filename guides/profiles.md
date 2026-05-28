@@ -54,7 +54,7 @@ queryable, regeneratable, and individually addressable.
 
 ## A Real-World Profile
 
-Here is the canonical adopter profile from `test/adopter/canonical_app/profile.ex`:
+Here is a typical image profile:
 
 ```elixir
 defmodule MyApp.MediaProfile do
@@ -131,8 +131,8 @@ advertised capabilities match the flows your profile requires. For example:
   `{:error, {:delivery_unsupported, :signed_url}}`.
 - Multipart direct-upload flows require `:multipart_upload`, or multipart
   entrypoints fail with `{:error, {:upload_unsupported, :multipart_upload}}`.
-- Reserved future resumable flows are additive and unsupported in v1.1; they
-  are not hidden behind the existing direct-upload API surface.
+- Resumable flows (GCS sessions, tus) require the adapter to advertise the
+  matching capability; Rindle does not silently downgrade unsupported paths.
 
 ## Adapter Configuration
 

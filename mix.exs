@@ -125,8 +125,8 @@ defmodule Rindle.MixProject do
       extras: [
         "README.md",
         "RUNNING.md",
-        "guides/getting_started.md",
         "guides/user_flows.md",
+        "guides/getting_started.md",
         "guides/upgrading.md",
         "guides/core_concepts.md",
         "guides/storage_capabilities.md",
@@ -137,11 +137,12 @@ defmodule Rindle.MixProject do
         "guides/streaming_providers.md",
         "guides/background_processing.md",
         "guides/operations.md",
-        "guides/release_publish.md",
-        "guides/troubleshooting.md"
+        "guides/troubleshooting.md",
+        "guides/release_publish.md"
       ],
       groups_for_extras: [
-        Guides: ~r/guides\/.*/
+        Guides: ~r/guides\/(?!release_publish).*\.md$/,
+        Maintainer: ~r/guides\/release_publish\.md$/
       ],
       groups_for_modules: [
         Facade: [

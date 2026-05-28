@@ -267,3 +267,10 @@ Rindle does not degrade from tus to presigned PUT or multipart automatically.
 If the adapter lacks `:tus_upload`, `TusPlug.init/1` raises. If `mix rindle.doctor`
 sees a configured tus profile without that capability, it reports the mismatch
 explicitly.
+
+## Related guides
+
+- [Storage Capabilities](storage_capabilities.html) — adapter capability matrix and tus honesty
+- [Storage (GCS)](storage_gcs.html) — GCS resumable uploads (separate from tus)
+- [User Flows](user_flows.html) — find-your-job map for upload paths
+- [Getting Started](getting_started.html) — canonical presigned PUT first run

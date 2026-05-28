@@ -7,34 +7,21 @@ guide is a cross-link directory: it tells you which task to reach for in
 which situation, and which underlying `@moduledoc` block to read for the
 full command-line contract.
 
-This page is intentionally a thin index, per Phase 5 decision D-18.
-Re-authoring the task documentation here would create drift between the
-guide and the `@moduledoc` block. Click through to the module docs for
-the authoritative reference.
+This page is intentionally a thin index. Re-authoring the task documentation
+here would create drift between the guide and the `@moduledoc` block. Click
+through to the module docs for the authoritative reference.
 
-## Package-Consumer Proof Matrix
-
-Phase 29 proves the public install posture from a generated package-consumer
-Phoenix app in two lanes: image-only and AV-enabled. Keep the split disciplined:
-
-- [`README.md`](../README.md) stays the narrow adopter quickstart.
-- [`getting_started.md`](getting_started.md) is the canonical deep guide for
-  the installed-artifact lifecycle, explicit migrations, `mix rindle.doctor`,
-  and the image-only plus AV package-consumer matrix.
-- [`release_publish.md`](release_publish.md) holds maintainer-only commands for
-  `bash scripts/release_preflight.sh` and `bash scripts/public_smoke.sh VERSION`
-  when proving a published artifact.
-
-Use the Mix tasks below for day-2 runtime maintenance after the install proof
-has passed; do not treat this page as a second install guide.
+For greenfield setup, start with [README](readme.html) and
+[Getting Started](getting_started.html). For maintainer-only Hex publish steps,
+see [Release Publish](release_publish.html).
 
 For owner/account erasure, do not improvise with maintenance tasks. The
 supported account-deletion surface is `Rindle.preview_owner_erasure/2` plus
-`Rindle.erase_owner/2` as documented in [`user_flows.md`](user_flows.md).
+`Rindle.erase_owner/2` as documented in [User Flows](user_flows.html).
 Multi-owner orchestration uses `Rindle.preview_batch_owner_erasure/2` and
 `Rindle.erase_batch_owner_erasure/2`; operators can run
 `mix rindle.batch_owner_erasure` for the shell entry point. See the
-[**Batch owner erasure**](user_flows.md) subsection in [`user_flows.md`](user_flows.md)
+[**Batch owner erasure**](user_flows.html) subsection in [User Flows](user_flows.html)
 for the canonical narrative, and `mix help rindle.batch_owner_erasure` for the
 full CLI contract.
 `mix rindle.cleanup_orphans` remains maintenance-only for expired upload
@@ -42,7 +29,7 @@ residue after `mix rindle.abort_incomplete_uploads`.
 
 ## Runtime Diagnostics
 
-Phase 31 keeps the operator split explicit:
+The operator diagnostics split is explicit:
 
 - `mix rindle.doctor` validates setup and drift. It checks prerequisite runtime
   and ownership conditions before you guess.
@@ -62,7 +49,7 @@ when the upgraded state looks wrong, then the matching repair verb.
 
 ## Supported Repair Verbs
 
-Phase 30 freezes five operator verbs. Use the verb that matches the failure
+Five operator verbs cover the supported repair surface. Use the verb that matches the failure
 mode instead of improvising with direct row mutation:
 
 - `reprobe` — `Rindle.reprobe/1` refreshes probe-derived asset fields for one
@@ -153,7 +140,7 @@ Use this when a single asset needs repair after a transient failure,
 intentional cancellation, or a corrected one-off issue.
 
 This is also the canonical repair lane for one interrupted upgraded asset after
-the pre-v1.4 to current migration path.
+the pre-0.1.4 to current migration path.
 
 ### `mix rindle.sweep_orphaned_temp_files`
 
@@ -257,7 +244,7 @@ Operator shell for batch owner erasure preview/execute.
 
 - **Module:** `Mix.Tasks.Rindle.BatchOwnerErasure`
 - **One-line:** thin CLI over `Rindle.preview_batch_owner_erasure/2` and `Rindle.erase_batch_owner_erasure/2`.
-- **Pointer:** [`user_flows.md`](user_flows.md) batch subsection + `mix help rindle.batch_owner_erasure`.
+- **Pointer:** [User Flows](user_flows.html) batch subsection + `mix help rindle.batch_owner_erasure`.
 
 ## Recommended Schedule
 
@@ -310,7 +297,7 @@ def handle_event([:rindle, :cleanup, :run], measurements, meta, _) do
 end
 ```
 
-Phase 31 adds a narrow additive diagnostics family:
+Repair and runtime diagnostics emit a narrow additive telemetry family:
 
 - `[:rindle, :repair, :start]`
 - `[:rindle, :repair, :stop]`
@@ -326,7 +313,7 @@ to `check`, `status`, and `component`.
 ## Release Publishing
 
 Maintainer-only first-publish steps live in
-[`guides/release_publish.md`](release_publish.html). Keep release
+[Release Publish](release_publish.html). Keep release
 versioning, Hex owner/auth checks, and package-metadata review there so
 adopter onboarding docs stay focused on installation and runtime use.
 

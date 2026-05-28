@@ -5,7 +5,7 @@ can tell which upload and delivery flows are expected to work before wiring a
 profile to a backend. Unsupported flows fail with tagged tuples instead of
 falling back silently.
 
-This guide is the canonical capability reference for v1.1. Other guides link
+This guide is the canonical capability reference. Other guides link
 here instead of repeating provider matrices inline.
 
 ## Shipped Capability Vocabulary
@@ -50,7 +50,7 @@ downgrade, or silently swap in another flow.
 
 ## Provider Matrix
 
-The table below describes the current v1.1 posture for adapters and common
+The table below describes the current shipped posture for adapters and common
 provider choices.
 
 | Backend / provider | Runtime seam | Expected capabilities today | Proof posture | Notes |
@@ -58,10 +58,10 @@ provider choices.
 | Local filesystem | `Rindle.Storage.Local` | `[:local, :presigned_put]` | Automated in the default test suite | Presigned PUT is a local-development parity shim, not a remote-object-store claim. `Rindle.Storage.Local` does not advertise `:resumable_upload` or `:resumable_upload_session`. |
 | MinIO | `Rindle.Storage.S3` | `[:presigned_put, :head, :signed_url, :multipart_upload]` | Automated in default CI and local integration lanes | This is the always-on real S3-compatible proof for direct PUT, multipart upload, metadata verification, and signed delivery URL generation. `Rindle.Storage.S3` does not advertise the resumable capability family. |
 | Generic S3-compatible provider | `Rindle.Storage.S3` | `[:presigned_put, :head, :signed_url, :multipart_upload]` | Expected by contract; not proven against every vendor in default CI | Rindle uses the shipped S3 adapter seam. Provider-specific behavior beyond that seam should be validated in adopter-owned environments. |
-| Cloudflare R2 | `Rindle.Storage.S3` | `[:presigned_put, :head, :signed_url, :multipart_upload]` when the provider honors the shipped S3-compatible operations | Documented compatibility target; adopters validate vendor behavior in their own environments | Phase 8 does not add a bespoke R2 adapter. The repo only claims the current shipped S3-style operations it can exercise through the existing adapter seam, with MinIO as the automated proof lane. |
-| Google Cloud Storage | `Rindle.Storage.GCS` | `[:head, :signed_url, :resumable_upload, :resumable_upload_session]` | Live GCS proof exists in the GCS test lanes; adopters still own bucket and browser wiring | `Rindle.Storage.GCS` is the shipped adapter that honestly advertises the resumable capability family. See [`storage_gcs.md`](storage_gcs.md) for runtime wiring, CORS, and session hygiene. |
+| Cloudflare R2 | `Rindle.Storage.S3` | `[:presigned_put, :head, :signed_url, :multipart_upload]` when the provider honors the shipped S3-compatible operations | Documented compatibility target; adopters validate vendor behavior in their own environments | Uses the shipped S3 adapter seam (no separate R2 adapter). MinIO is the automated CI proof lane. |
+| Google Cloud Storage | `Rindle.Storage.GCS` | `[:head, :signed_url, :resumable_upload, :resumable_upload_session]` | Live GCS proof exists in the GCS test lanes; adopters still own bucket and browser wiring | `Rindle.Storage.GCS` is the shipped adapter that honestly advertises the resumable capability family. See [Storage (GCS)](storage_gcs.html) for runtime wiring, CORS, and session hygiene. |
 
-## Proof Boundaries
+## Capability boundaries
 
 Rindle separates "documented contract" from "what the repo proves by default":
 
@@ -75,7 +75,7 @@ Rindle separates "documented contract" from "what the repo proves by default":
   but adopters should still validate vendor-specific behavior in their own
   environments before rollout.
 
-That distinction matters: Phase 8 improves auditability, not marketing claims.
+That distinction improves auditability, not marketing claims.
 This guide does not imply provider-specific live R2 proof in CI.
 
 ## Adapter Honesty
@@ -93,7 +93,7 @@ Rindle does not silently downgrade resumable requests into presigned PUT.
 ## Cloudflare R2 Boundary
 
 Cloudflare R2 is documented here as an S3-compatible provider path through the
-existing `Rindle.Storage.S3` adapter. In v1.1, the supported Rindle contract is:
+existing `Rindle.Storage.S3` adapter. The supported Rindle contract is:
 
 - Direct upload via presigned PUT.
 - Metadata verification via `head/2`.

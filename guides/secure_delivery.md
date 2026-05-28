@@ -141,7 +141,7 @@ falling back to an unsigned URL. This is intentional — the failure mode
 should be loud, not silent.
 
 Cloudflare R2, when used through the shipped `Rindle.Storage.S3` adapter seam,
-belongs to the same delivery contract. Phase 8 documents it as an adopter-owned
+belongs to the same delivery contract. Adopter-owned
 compatibility target through the shipped S3 seam, but it does not claim
 provider-specific live R2 proof in CI and does not add a bespoke R2 adapter.
 
