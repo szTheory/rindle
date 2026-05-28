@@ -36,7 +36,6 @@ jobs:
       PGHOST: localhost
       PGPORT: "5432"
       RINDLE_AV_USE_CGROUPS: "false"
-      RINDLE_AV_USE_CGROUPS: "false"
 
     services:
       postgres:
