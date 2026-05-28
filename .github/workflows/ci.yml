@@ -10,6 +10,7 @@ on:
     # a label to an existing PR will not fire the workflow without it. The
     # other three are defaults but must be enumerated once `types:` is set.
     types: [opened, synchronize, reopened, labeled]
+  workflow_dispatch:
 
 env:
   MIX_ENV: test
