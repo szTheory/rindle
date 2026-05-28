@@ -560,9 +560,9 @@ jobs:
           PUBLIC_VERIFY_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: bash scripts/maintainer/update_release_train_baseline.sh "$VERSION"
 
-      - name: Commit and push baseline update
+      - name: Commit and merge baseline update
         env:
-          GH_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN || github.token }}
+          GH_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN || secrets.BRANCH_PROTECTION_PAT || github.token }}
           VERSION: ${{ needs.publish.outputs.release_version }}
         run: |
           set -euo pipefail
@@ -575,6 +575,19 @@ jobs:
             exit 0
           fi
 
+          branch="chore/release-train-baseline-${VERSION}"
+
+          git checkout -b "$branch"
           git add .planning/RELEASE-TRAIN.md
           git commit -m "chore(release): record ${VERSION} baseline in RELEASE-TRAIN.md [skip ci]"
-          git push origin HEAD:main
+          git push -u origin "$branch"
+
+          pr_url="$(
+            gh pr create \
+              --base main \
+              --head "$branch" \
+              --title "chore(release): record ${VERSION} baseline in RELEASE-TRAIN.md" \
+              --body "Automated RELEASE-TRAIN.md baseline update after public_verify for ${VERSION}."
+          )"
+
+          gh pr merge "$pr_url" --squash --delete-branch --admin
