@@ -414,7 +414,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     write_host_migration!(root)
     write_migration_runner!(root, app_name, app_module)
     write_legacy_upgrade_preparer!(root, app_module)
-    write_smoke_test!(root, app_module, profile_mode)
+    write_smoke_test!(root, app_module, profile_mode, network_version)
     write_fixture!(root, profile_mode)
   end
 
@@ -1103,12 +1103,23 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     )
   end
 
-  defp write_smoke_test!(root, app_module, profile_mode) do
+  defp write_smoke_test!(root, app_module, profile_mode, network_version) do
     path = Path.join(root, "test/rindle_install_smoke_test.exs")
     lifecycle_test = lifecycle_test_source(app_module, profile_mode)
     upgrade_test = upgrade_test_source(app_module)
     extra_imports = mux_test_imports(profile_mode)
     profile_helpers = profile_test_helpers(app_module, profile_mode)
+
+    deps_rindle_assertion =
+      if network_version do
+        """
+              assert File.exists?(Path.join(File.cwd!(), "deps/rindle"))
+        """
+      else
+        """
+              refute File.exists?(Path.join(File.cwd!(), "deps/rindle"))
+        """
+      end
 
     File.write!(
       path,
@@ -1152,7 +1163,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
           assert Application.fetch_env!(:rindle, :repo) == Repo
           assert Application.fetch_env!(:#{Macro.underscore(app_module)}, Oban)[:repo] == Repo
           assert File.dir?(Application.app_dir(:rindle, "priv/repo/migrations"))
-          refute File.exists?(Path.join(File.cwd!(), "deps/rindle"))
+      #{deps_rindle_assertion}
         end
 
       #{lifecycle_test}
