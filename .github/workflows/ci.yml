@@ -697,13 +697,13 @@ jobs:
         run: bash scripts/mux_soak_cleanup.sh
 
   # GCS Soak job — secret-gated proof lane against a real Google Cloud Storage
-  # bucket. Skipped entirely when GCS secrets are absent (see job-level if).
-  # Test step is advisory when secrets are present.
+  # bucket. Job runs on upstream repo only; steps skip when secrets are absent
+  # (secrets cannot be referenced in job-level if). Test step is advisory.
   gcs-soak:
     name: GCS Soak (real bucket)
     runs-on: ubuntu-22.04
     needs: quality
-    if: ${{ github.repository == 'szTheory/rindle' && secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON != '' && secrets.RINDLE_GCS_BUCKET != '' }}
+    if: ${{ github.repository == 'szTheory/rindle' }}
     env:
       MIX_ENV: test
       GOOGLE_APPLICATION_CREDENTIALS_JSON: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}
