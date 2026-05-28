@@ -124,9 +124,9 @@ Repo-verified refresh after maintenance + release-train work:
 
 - **Default unchanged:** demand-gated pause; no v1.18 feature milestone.
 - **Wedge #4 (doc/proof hygiene):** closed for user_flows roadmap + PR image smoke.
-- **Release train:** Hex `0.1.6` live; automerge + branch-protection cron green; baseline
-  job failed on first publish run then fixed (`43cfe62`); next publish must prove
-  automated baseline PR merge (see `.planning/RELEASE-TRAIN.md` verification log).
+- **Release train:** Hex `0.1.7` live (2026-05-28); automated baseline job verified
+  ([run 26578423402](https://github.com/szTheory/rindle/actions/runs/26578423402)). Release
+  Please blocked on tag/PR #12 mismatch — recovery dispatch used for 0.1.7.
 - **LIFE-06 / STREAM-10:** still not built; still demand-gated only.
 
 ## Verdict
