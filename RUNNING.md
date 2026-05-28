@@ -27,15 +27,15 @@ runtime contract is small and explicit:
 2. run `mix rindle.doctor`
 3. only then start background jobs that process AV variants
 
-`README.md` stays the narrow quickstart. [`guides/getting_started.md`](guides/getting_started.md)
+[README](readme.html) stays the narrow quickstart. [Getting Started](getting_started.html)
 is the canonical deep onboarding guide. This file is the shared install/runtime
 matrix both of those entrypoints link to.
 
-## CI lane severity
+## Maintainer: CI lane severity
 
-This section is maintainer-facing. [`.github/workflows/ci.yml`](.github/workflows/ci.yml)
-is the source of truth for job wiring; GitHub branch protection and required-check
-settings live outside the repo.
+> Adopters can skip this section. It documents how this repository gates merges and releases.
+
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) is the source of truth for job wiring; GitHub branch protection and required-check settings live outside the repo.
 
 | Job / step | Severity | When it runs | Notes |
 |------------|----------|--------------|-------|
@@ -49,18 +49,19 @@ settings live outside the repo.
 | `contract` — Run AV hygiene gate | merge-blocking | `needs: quality` | `scripts/assert_av_hygiene.sh` |
 | `contract` — Run contract tests | advisory | Same job | Step-level `continue-on-error`; job still required in graph |
 | `proof` | merge-blocking | `needs: quality` | `docs_parity_test.exs` + `batch_owner_erasure_task_test.exs`; Postgres only; Elixir 1.17/OTP 27 |
+| `package-consumer` — repo hygiene gate | merge-blocking | Same job | `scripts/maintainer/repo_hygiene_check.sh --ci` |
 | `package-consumer` | merge-blocking | `needs: quality` | Install-smoke matrix + release preflight |
 | `adopter` | merge-blocking | `needs: [quality, integration, contract]` | Canonical adopter lifecycle only (doc parity in `proof` job) |
-| `mux-soak` | secret-gated soak | Label `streaming` on PR; `needs: quality` | Blocking when the job runs (no `continue-on-error`) |
-| `gcs-soak` | secret-gated soak | `needs: quality`; repo + secrets | Test step advisory; skips when secrets empty |
+| `mux-soak` | secret-gated soak | Label `streaming` on PR; `needs: quality` | Not in branch protection required checks; fails closed when secrets absent |
+| `gcs-soak` | secret-gated soak | `needs: quality`; repo + secrets | Skipped when secrets absent; test step advisory when it runs |
 | `package-consumer-gcs-live` | secret-gated soak | `needs: quality`; repo + secrets | Job-level `continue-on-error`; live GCS install-smoke when secrets present |
 
 ### Static analysis policy (CI-04)
 
-**Decision (v1.17):** Credo (strict) and Dialyzer remain **advisory** in the `quality`
+**Decision:** Credo (strict) and Dialyzer remain **advisory** in the `quality`
 job. Wiring uses step-level `continue-on-error: true` in
-[`.github/workflows/ci.yml`](.github/workflows/ci.yml) (Credo L97–99, Dialyzer L131–133).
-Making either tool merge-blocking is explicitly rejected for this milestone.
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml).
+Making either tool merge-blocking is explicitly rejected for the current release train.
 
 **Rationale:**
 
@@ -78,14 +79,12 @@ Doctor and AV doctor steps remain advisory without a separate CI-04 decision rec
 ### Release train
 
 [`.github/workflows/release.yml`](.github/workflows/release.yml) `gate-ci-green` waits for
-`ci.yml` on the release SHA. When the latest run conclusion is not `success`, or the wait
-times out, the step logs `(BYPASSED)` and publish continues anyway. Tightening that bypass
-is out of scope for v1.15.
+`ci.yml` on the release SHA to finish with conclusion `success`. When the latest run is
+not green, or the wait times out, publish **fails closed** — there is no bypass path.
 
-### Post-merge checklist
-
-After merging CI proof honesty changes, verify GitHub branch protection required checks
-include `Proof`, `package-consumer`, and `adopter` if green-main honesty should hold in practice.
+Branch protection required checks (enforced via `scripts/setup_branch_protection.sh`) include
+Quality (both matrix cells), Integration, Contract, Proof, Package Consumer Proof Matrix +
+Release Preflight, and Adopter.
 
 ## Verify The Runtime
 
@@ -183,5 +182,5 @@ variants: [
 ]
 ```
 
-That is the same public posture taught in `README.md` and
-`guides/getting_started.md`.
+That is the same public posture taught in [README](readme.html) and
+[Getting Started](getting_started.html).

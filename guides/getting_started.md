@@ -9,14 +9,11 @@ profile once, then stay on the facade for the common upload, attach, and
 delivery path.
 
 This is the canonical deep adopter guide for the same first-run path shown in
-[`README.md`](../README.md). The lifecycle calls below are the same public path
-the repo proves in `test/adopter/canonical_app/lifecycle_test.exs` and the
-Phase 29 package-consumer proof matrix. That matrix exercises a generated
-Phoenix app from installed artifacts in two lanes: image-only and AV-enabled.
-The built-artifact proof runs before publish, and the published-artifact proof
-reuses the same generated-app posture against the released Hex package.
-If you are upgrading an existing adopter from the pre-v1.4 image-only shape,
-stop here and use the dedicated runbook in [`upgrading.md`](upgrading.md).
+[README](readme.html). The lifecycle calls below match what CI validates from
+generated Phoenix apps (image-only and AV-enabled install smoke) before each
+Hex publish. If you are upgrading an existing adopter from the pre-0.1.4
+image-only shape, stop here and use the dedicated runbook in
+[Upgrading](upgrading.html).
 
 ## 1. Add Dependencies
 
@@ -44,16 +41,13 @@ end
 
 Run `mix deps.get`.
 
-Phase 29 keeps two outside-in package-consumer truths aligned:
+CI exercises two install postures from generated apps before publish:
 
-1. image-only adopters can install Rindle into a generated app and complete
-   upload, processing, and signed delivery from the installed artifact
-2. AV-enabled adopters can install Rindle into a generated app and prove probe,
-   transcode, poster generation, local playback-ready output, and signed
-   delivery from the installed artifact
+1. **Image-only** — upload, processing, and signed delivery from the installed artifact
+2. **AV-enabled** — probe, transcode, poster generation, playback-ready output, and signed delivery
 
-Those are maintainer proof lanes, but they intentionally exercise the same
-public docs snippets and facade calls adopters use in a real host app.
+Those smoke lanes use the same public docs snippets and facade calls adopters
+use in a real host app.
 
 Before background jobs run, install the host tools your profiles need:
 
@@ -70,9 +64,9 @@ The first AV onboarding path is explicit:
 4. run `mix rindle.doctor`
 5. then let the stock facade lifecycle process the upload
 
-Use [`../RUNNING.md`](../RUNNING.md) for the per-platform libvips and FFmpeg
-install surface: macOS/Homebrew, Ubuntu or Debian/apt, Alpine/apk, Fly.io
-Dockerfile, Heroku Aptfile, Render Dockerfile, and GitHub Actions via
+Use [Running](running.html) for the per-platform libvips and FFmpeg install
+surface: macOS/Homebrew, Ubuntu or Debian/apt, Alpine/apk, Fly.io Dockerfile,
+Heroku Aptfile, Render Dockerfile, and GitHub Actions via
 `FedericoCarboni/setup-ffmpeg`.
 
 ## 2. Configure Adopter-Owned Runtime Boundaries
@@ -111,14 +105,13 @@ children = [
 ]
 ```
 
-Named-instance or custom `:oban_name` routing is not the v1.1 contract. The
-shipped path is the default `Oban` module.
+The shipped path is the default `Oban` module. Named-instance or custom
+`:oban_name` routing is not part of the public contract.
 
 ## 3. Run Host-App And Rindle Migrations Explicitly
 
 Your app owns its own migrations, and Rindle ships a second migration path
-inside the package. The package-consumer generated-app proof proves the explicit
-`Application.app_dir(:rindle, "priv/repo/migrations")` handoff below:
+inside the package:
 
 ```elixir
 Application.ensure_all_started(:rindle)
@@ -139,17 +132,16 @@ end
   end)
 ```
 
-Rindle does not add a public `mix rindle.*` install task in Phase 29. The
-public install path is this docs snippet; the repo-private helper that automates
-it exists only inside the package-consumer smoke harness.
+Rindle does not ship a public `mix rindle.*` install task for migrations. The
+public install path is this docs snippet.
 
 If your app uses binary IDs globally, keep your Repo migration defaults aligned
 with your host app conventions before running the shared path.
 
 ## 4. Define The Canonical AV Profile
 
-Phase 29 locks the public AV story to the stock `web_720p` plus `poster`
-surface. `Rindle.Profile.Presets.Web` is the canonical helper, and its explicit
+The public AV onboarding story is the stock `web_720p` plus `poster` surface.
+`Rindle.Profile.Presets.Web` is the canonical helper, and its explicit
 equivalent looks like this:
 
 ```elixir
@@ -189,9 +181,8 @@ jobs or chase variant failures.
 
 ## 5. First-Run Upload Lifecycle
 
-The first-run path is presigned PUT. It is the narrowest direct-upload contract
-Rindle proves from the built artifact, the published artifact, and the
-source-of-truth adopter test:
+The first-run path is presigned PUT — the narrowest direct-upload contract
+Rindle documents and validates in CI:
 
 ```elixir
 {:ok, session} =
@@ -212,8 +203,7 @@ source-of-truth adopter test:
   Rindle.url(MyApp.VideoProfile, asset.storage_key)
 ```
 
-The parity gate for this guide and `README.md` asserts the canonical lifecycle
-calls above: `Rindle.initiate_upload`, `Rindle.verify_completion`,
+The canonical lifecycle calls are `Rindle.initiate_upload`, `Rindle.verify_completion`,
 `Rindle.attach`, and `Rindle.url`.
 
 `Rindle.Upload.Broker.sign_url/1` stays available for the presign transport
@@ -221,9 +211,8 @@ step, but it is reference material rather than the first concept adopters
 should learn.
 
 Multipart upload is available, but it belongs in the advanced lane after the
-presigned PUT path is working. See
-[`storage_capabilities.md`](storage_capabilities.md) for the capability contract
-and proof boundaries.
+presigned PUT path is working. See [Storage Capabilities](storage_capabilities.html)
+for the capability contract.
 
 If you prefer a proxied/server-side upload, the same adopter-owned Repo
 contract applies:
@@ -237,20 +226,10 @@ contract applies:
   })
 ```
 
-The proof matrix keeps this guide disciplined:
-
-- built-artifact proof validates the generated app before publish
-- published-artifact proof re-runs the same generated-app posture against a
-  released Hex version
-- existing-adopter upgrade procedure lives in [`upgrading.md`](upgrading.md)
-- maintainer-only release orchestration stays in
-  [`release_publish.md`](release_publish.md), not here
-
 For account deletion / owner erasure, keep this guide thin and jump to the
-canonical flow in [`user_flows.md`](user_flows.md). That guide is where the
-supported `Rindle.preview_owner_erasure/2` and `Rindle.erase_owner/2` story
-now lives. For batch (multi-owner) erasure, see the **Batch owner erasure**
-subsection in [`user_flows.md`](user_flows.md).
+canonical flow in [User Flows](user_flows.html). For batch (multi-owner) erasure,
+see the **Batch owner erasure** subsection there. Maintainer-only release
+orchestration lives in [Release Publish](release_publish.html), not here.
 
 ## 6. What Happens After Verification
 
@@ -262,7 +241,7 @@ Oban:
 2. Internal variant-processing jobs run for each declared variant.
 3. Variants move to `ready` when processing completes.
 
-See [`background_processing.md`](background_processing.md) for queue ownership,
+See [Background Processing](background_processing.html) for queue ownership,
 worker details, retry posture, and telemetry.
 
 ## 7. Attach To Your Domain Record
@@ -387,23 +366,23 @@ defmodule MyApp.Streaming do
 end
 ```
 
-End-to-end onboarding — signing keys, webhook plug, cron, local tunnel, secret rotation, and `mix rindle.doctor --streaming` — lives in [`streaming_providers.md`](streaming_providers.md).
+End-to-end onboarding — signing keys, webhook plug, cron, local tunnel, secret rotation, and `mix rindle.doctor --streaming` — lives in [Streaming Providers](streaming_providers.html).
 
 ## 11. Storage with GCS (optional)
 
 GCS resumable upload is an advanced path after the canonical presigned PUT
 first run is already healthy. If your profile uses `Rindle.Storage.GCS`, wire
 adopter-owned `MyApp.Goth`, `MyApp.Finch`, bucket CORS, and the signing key,
-then run `mix rindle.doctor` and follow [`storage_gcs.md`](storage_gcs.md).
+then run `mix rindle.doctor` and follow [Storage (GCS)](storage_gcs.html).
 
 ## Next Reads
 
-- [`../README.md`](../README.md): quickstart version of this path
-- [`../RUNNING.md`](../RUNNING.md): FFmpeg install/runtime matrix for the
-  supported adopter and CI platforms
-- [`background_processing.md`](background_processing.md): default Oban ownership
-  and worker behavior
-- [`storage_capabilities.md`](storage_capabilities.md): presigned PUT vs.
-  multipart capability boundaries
-- [`secure_delivery.md`](secure_delivery.md): signed delivery contract
-- [`operations.md`](operations.md): day-2 maintenance tasks
+- [README](readme.html): quickstart version of this path
+- [User Flows](user_flows.html): map your job to the right guide
+- [Core Concepts](core_concepts.html): asset FSM and domain model
+- [Running](running.html): libvips and FFmpeg install matrix
+- [Background Processing](background_processing.html): Oban ownership and workers
+- [Storage Capabilities](storage_capabilities.html): presigned PUT vs. multipart boundaries
+- [Secure Delivery](secure_delivery.html): signed delivery contract
+- [Operations](operations.html): day-2 maintenance tasks
+- [Troubleshooting](troubleshooting.html): recovery when something looks wrong

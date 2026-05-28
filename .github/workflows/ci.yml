@@ -360,6 +360,9 @@ jobs:
       - name: Run docs parity tests
         run: mix test test/install_smoke/docs_parity_test.exs
 
+      - name: Run adopter docs link hygiene gate
+        run: bash scripts/maintainer/check_docs_links.sh
+
       - name: Run batch owner erasure task proof
         run: mix test test/rindle/batch_owner_erasure_task_test.exs
 
@@ -694,13 +697,8 @@ jobs:
         run: bash scripts/mux_soak_cleanup.sh
 
   # GCS Soak job — secret-gated proof lane against a real Google Cloud Storage
-  # bucket. Mirrors the mux-soak structural template above (lines 566-653) but
-  # gates on secret presence (`secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON != ''`)
-  # rather than PR label, per locked decision D-10 + RESEARCH Q7. Fork-PR safe:
-  # GitHub Actions resolves `secrets.*` to empty strings on fork PRs with the
-  # `pull_request` trigger (NOT `pull_request_target`), so the lane skips
-  # cleanly without leaking secrets to fork code. Closes GCS-04.
-  # Phase 71 (CI proof honesty): see RUNNING.md `## CI lane severity` for the full matrix.
+  # bucket. Job runs on upstream repo only; steps skip when secrets are absent
+  # (secrets cannot be referenced in job-level if). Test step is advisory.
   gcs-soak:
     name: GCS Soak (real bucket)
     runs-on: ubuntu-22.04
@@ -770,8 +768,8 @@ jobs:
         continue-on-error: true
         run: mix test --only gcs
 
-  # Phase 71 (CI proof honesty): secret-gated live GCS install-smoke; job-level
-  # continue-on-error when secrets missing. See RUNNING.md `## CI lane severity`.
+  # Secret-gated live GCS install-smoke; job-level continue-on-error.
+  # See RUNNING.md `## Maintainer: CI lane severity` for the full matrix.
   package-consumer-gcs-live:
     name: Package Consumer GCS Live Proof
     runs-on: ubuntu-22.04

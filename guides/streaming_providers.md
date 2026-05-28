@@ -1,6 +1,6 @@
 # Streaming Providers
 
-Rindle ships a single optional streaming provider for v1.6: **Mux**. This
+Rindle ships a single optional streaming provider: **Mux**. This
 guide walks you through enabling signed HLS streaming end-to-end —
 dependencies, signing-key creation, profile configuration, webhook plug
 wiring, scheduled sync, local development, secret rotation, the
@@ -28,7 +28,7 @@ This guide covers:
 - A performance note on high-throughput JWT signing
 
 For the canonical AV-progressive-download path that does NOT require a
-streaming provider, see [Secure Delivery](secure_delivery.md).
+streaming provider, see [Secure Delivery](secure_delivery.html).
 
 ## 1. Why a Streaming Provider?
 
@@ -43,7 +43,7 @@ which sets it for you) — the same `Rindle.Delivery.streaming_url/3` call
 resolves the playback URL via the provider instead of via signed storage.
 For Mux, that means signed HLS playback URLs with adaptive bitrate, captions,
 and global delivery; the source media still lives in your storage adapter
-(Phase 33's "your bucket, our streaming" posture).
+(your bucket, Mux streaming).
 
 ## 2. Add Mux to Your Dependencies
 
@@ -62,7 +62,7 @@ end
 Both deps are `optional: true` so adopters who never opt a profile into
 streaming pay zero transitive runtime cost.
 
-Configure the runtime block (matches the Phase 34 D-29 layout exactly):
+Configure the runtime block:
 
 ```elixir
 # config/runtime.exs
@@ -135,7 +135,7 @@ resolution and hands it to Mux's create-asset call.
 
 ## 4.1 Browser Direct Upload to Mux
 
-Phase 45 adds the sibling preset `Rindle.Profile.Presets.MuxDirectUploadWeb`.
+The sibling preset `Rindle.Profile.Presets.MuxDirectUploadWeb` covers browser direct upload.
 It keeps the same Mux signed-playback posture but locks
 `ingest_mode: :direct_creator_upload` instead of `:server_push`.
 
@@ -196,7 +196,7 @@ already-cancelled row returns `:ok` (idempotent).
 | `{:error, :provider_quota_exceeded}` | Rate limited; row locally `deleted` |
 | `{:error, {:not_cancellable, detail}}` | Row in terminal state (`processing`, `ready`, etc.) |
 
-**Scope (v1.13):** Provider-side upload cancel is **Mux direct creator upload
+**Scope:** Provider-side upload cancel is **Mux direct creator upload
 only**. Server-push ingest, tus/resumable uploads, and `cancel_processing/1`
 are out of scope. Cancelling does not purge local `MediaAsset` rows or enqueue
 LiveView hooks — adopters call `cancel_direct_upload/1` explicitly.

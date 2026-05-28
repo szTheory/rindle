@@ -26,12 +26,12 @@ For upgrade troubleshooting, keep the same order: explicit migrations,
 that matches the actual state.
 
 If the failing profile uses `Rindle.Storage.GCS`, keep the same order and then
-use [`storage_gcs.md`](storage_gcs.md) for the bucket, CORS, `session_uri`, and
+use [Storage (GCS)](storage_gcs.html) for the bucket, CORS, `session_uri`, and
 resumable-upload operator runbook instead of rebuilding that flow from logs.
 
 ## Supported Recovery Verbs
 
-Phase 30 makes the recovery lanes explicit:
+Five supported recovery verbs cover the common repair lanes:
 
 - `reprobe` — `Rindle.reprobe/1` for probe-derived field drift on one asset
 - `requeue` — `Rindle.requeue_variants/2` for failed or cancelled variants on
@@ -47,7 +47,7 @@ these verbs applies, prefer it over direct DB row mutation.
 
 ## AV Error Contract
 
-Rindle v1.4 freezes eight AV-facing error reasons as a public operator
+Rindle documents these AV-facing error reasons as a public operator
 vocabulary:
 
 - `:processor_capability_missing`
@@ -65,8 +65,7 @@ vocabulary:
 - `:tus_url_signature_invalid`
 
 The exact user-facing text for those reasons is owned by
-`Rindle.Error.message/1` and locked in `test/rindle/error_test.exs`. Treat this
-guide as the recovery map, not a second wording authority.
+`Rindle.Error.message/1`. Treat this guide as the recovery map, not a second wording authority.
 
 | Reason | What it usually means | First operator move |
 | ------ | --------------------- | ------------------- |
@@ -128,7 +127,7 @@ this string.
 
 The `quarantined` → `deleted` transition is allowed; `quarantined` →
 `available` is **not** allowed by the FSM. This is one of the narrow cases
-where the supported Phase 30 verbs do not apply and a documented manual update
+where the supported repair verbs do not apply and a documented manual update
 is still required.
 
 ## Failed Variants
@@ -346,11 +345,9 @@ the canonical references are:
 - The lifecycle/state tables in the core concepts guide for transition rules
 - `Rindle.Upload.Broker`, `Rindle.Delivery`, `Rindle` (the public
   facade module) for the public API contracts
-- `Rindle.Error.message/1` and `test/rindle/error_test.exs` for the locked AV
-  error text and remediation wording
+- `Rindle.Error.message/1` for user-facing error text and remediation wording
 - The Mix task `@moduledoc` blocks for command-line behavior
-- The telemetry contract test (`test/rindle/contracts/telemetry_contract_test.exs`)
-  for the locked event surface
+- [Background Processing](background_processing.html) for the locked telemetry event surface
 
 When in doubt, **the FSM is the source of truth.** If the FSM forbids
 a transition, that is by design — work with the FSM (queue → process →

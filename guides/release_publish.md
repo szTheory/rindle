@@ -12,7 +12,7 @@ This maintainer runbook documents the workflow that shipped Rindle to Hex.pm on
 2026-04-29. `0.1.0` through `0.1.3` were pipeline shakedown iterations during
 that first publish window. Treat `0.1.4` as the first recommended pin.
 When a release needs existing-adopter guidance, summarize the change here and
-deep-link to [`upgrading.md`](upgrading.md) instead of duplicating the full
+deep-link to [Upgrading](upgrading.html) instead of duplicating the full
 procedure in the release runbook.
 
 ## First Public Release History

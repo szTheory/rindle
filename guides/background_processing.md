@@ -19,8 +19,7 @@ This guide covers:
 
 **Rindle ships Oban workers but does not start or supervise Oban itself.**
 Adopters own the Oban supervision tree, queue topology, reliability
-settings, and the **default Oban Repo** that backs those jobs. In Phase 6,
-Rindle enqueues through the default `Oban` module path, so your app is
+settings, and the **default Oban Repo** that backs those jobs. Rindle enqueues through the default `Oban` module path, so your app is
 responsible for running Oban against the same repo you configured with
 `config :rindle, :repo, MyApp.Repo`. This avoids hidden runtime ownership and
 lets adopters tune queue concurrency to their host environment.
@@ -28,10 +27,8 @@ lets adopters tune queue concurrency to their host environment.
 In plain terms: adopters own Oban supervision, adopters own queue config, and
 adopters own the default Oban Repo.
 
-Phase 6 does **not** add named-instance support. If your app uses a
-named-instance or custom `:oban_name`, treat that as out of scope for the
-current release: the delivered contract is compatibility with the default
-`Oban` path only.
+The shipped path is the default `Oban` module. Named-instance or custom
+`:oban_name` routing is not part of the public contract.
 
 Add Oban to your application:
 
@@ -75,8 +72,7 @@ children = [
 
 That supervisor setup is the contract Rindle proves today: adopters own Oban
 startup, adopters own queue config, and Rindle relies on the default `Oban`
-instance being available for enqueueing. Named-instance routing via
-`:oban_name` is intentionally deferred from this phase.
+instance being available for enqueueing.
 
 ## Worker Modules
 
@@ -162,14 +158,12 @@ purge).
 
 ## Telemetry Surface (Public Contract)
 
-Rindle emits telemetry events at the locked event-family boundaries
-defined in Phase 3 and extended by the AV ship gate in Phase 28. The runtime
-source of truth is `@public_events` in
-`test/rindle/contracts/telemetry_contract_test.exs`; this guide explains the
-operator-facing meaning of that allowlist without creating a second registry.
+Rindle emits telemetry events at the locked public event-family boundaries.
+The allowlist below is the operator-facing registry; changing event names,
+metadata keys, or measurement types requires a major version bump.
 
 AV processing follows one public triplet naming convention:
-`:start / :stop / :exception`. For Rindle v1.4 that triplet is
+`:start / :stop / :exception`. The transcode triplet is
 `[:rindle, :media, :transcode, :start]`,
 `[:rindle, :media, :transcode, :stop]`, and
 `[:rindle, :media, :transcode, :exception]`.
@@ -229,7 +223,7 @@ All measurements are numeric (counts, byte sizes, durations in microseconds,
 or `system_time`). All metadata maps include `:profile` and `:adapter`
 where applicable so dashboards can group by either.
 
-Phase 31 keeps diagnostics boring on purpose: doctor validates setup and drift,
+Diagnostics stay boring on purpose: doctor validates setup and drift,
 runtime status reports degraded or stuck work, and repair verbs perform change.
 There is no separate dashboard contract and no auto-remediation family in this
 telemetry layer.

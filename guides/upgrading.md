@@ -1,14 +1,14 @@
 # Upgrading Existing Adopters
 
-Use this runbook when your app already ships Rindle from the pre-v1.4
+Use this runbook when your app already ships Rindle from the pre-0.1.4
 image-only shape and you need to move onto the current AV-aware runtime
-contract. Fresh installs should stay on [`README.md`](../README.md) and the
-greenfield deep guide in [`getting_started.md`](getting_started.md).
+contract. Fresh installs should stay on [README](readme.html) and
+[Getting Started](getting_started.html).
 
-The generated package-consumer upgrade proof exercises the same public path this
-guide teaches: explicit host plus packaged migrations, `mix rindle.doctor`,
-optional `mix rindle.runtime_status`, then the repair verb that matches the
-observed state.
+CI validates this upgrade path from a generated Phoenix app before each Hex
+publish. Follow the checkpoints in order: explicit host plus packaged migrations,
+`mix rindle.doctor`, optional `mix rindle.runtime_status`, then the repair verb
+that matches the observed state.
 
 ## 1. Confirm Runtime Ownership And AV Prerequisites
 
@@ -28,7 +28,7 @@ mix deps.get
 ```
 
 If you only need the greenfield setup details again, return to
-[`getting_started.md`](getting_started.md). This guide assumes the app already
+[Getting Started](getting_started.html). This guide assumes the app already
 owns its Repo, Oban config, and storage configuration.
 
 ## 2. Run Explicit Host And Packaged Migrations
@@ -81,8 +81,8 @@ mix rindle.runtime_status --format json
 `mix rindle.runtime_status` is optional in the happy path. Use it when you need
 to confirm whether the problem is failed asset-scoped work,
 `stale`/`missing` drift, or broader runtime residue. Deep diagnostics and error
-maps stay in [`operations.md`](operations.md) and
-[`troubleshooting.md`](troubleshooting.md).
+maps stay in [Operations](operations.html) and
+[Troubleshooting](troubleshooting.html).
 
 ## 5. Repair One Upgraded Asset Through The Public Facade
 
@@ -113,6 +113,6 @@ after recipe, preset, or storage drift.
 
 ## Next Reads
 
-- [`operations.md`](operations.md) for the day-2 verb map and task boundaries
-- [`troubleshooting.md`](troubleshooting.md) for error-state recovery guidance
-- [`getting_started.md`](getting_started.md) for the greenfield install path
+- [Operations](operations.html) for the day-2 verb map and task boundaries
+- [Troubleshooting](troubleshooting.html) for error-state recovery guidance
+- [Getting Started](getting_started.html) for the greenfield install path

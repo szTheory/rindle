@@ -109,7 +109,7 @@ defmodule Rindle.InstallSmoke.ReleaseDocsParityTest do
   } do
     for doc <- [readme, getting_started] do
       assert doc =~ "Storage with GCS (optional)"
-      assert doc =~ "storage_gcs.md"
+      assert doc =~ "storage_gcs.html"
       assert doc =~ "mix rindle.doctor"
       refute Regex.match?(~r/GCS resumable upload is the canonical first-run/i, doc)
     end
@@ -307,29 +307,33 @@ defmodule Rindle.InstallSmoke.ReleaseDocsParityTest do
          running: running
        } do
     for doc <- [readme, getting_started] do
-      assert doc =~ "RUNNING.md"
+      assert doc =~ "running.html"
       refute doc =~ "Release Please"
       refute doc =~ "HEX_API_KEY"
     end
 
-    assert running =~ "setup-ffmpeg"
+    assert running =~ "FedericoCarboni/setup-ffmpeg"
     refute running =~ "Release Please"
   end
 
-  test "operations guide stays a thin index while cross-linking the package-consumer proof surface",
+  test "operations guide stays a thin adopter index and maintainer proof lives in RUNNING",
        %{
-         operations: operations
+         operations: operations,
+         running: running
        } do
     for snippet <- [
-          "Package-Consumer Proof Matrix",
-          "image-only",
-          "AV-enabled",
+          "nine Mix tasks",
+          "cross-link directory",
           "mix rindle.doctor",
-          "bash scripts/release_preflight.sh",
-          ~s(bash scripts/public_smoke.sh VERSION),
-          "Use the Mix tasks below for day-2 runtime maintenance"
+          "release_publish.html"
         ] do
       assert operations =~ snippet
     end
+
+    refute operations =~ "Package-Consumer Proof Matrix"
+    refute operations =~ "bash scripts/release_preflight.sh"
+
+    assert running =~ "Package Consumer Proof Matrix"
+    assert running =~ "package-consumer"
   end
 end

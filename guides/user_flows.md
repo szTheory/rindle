@@ -340,7 +340,7 @@ instead of a folder of glue code:
 
 Rindle already covers the full core lifecycle for images, video, and audio across S3-family,
 GCS, and local storage — including **tus resumable uploads** (Local and S3) and **browser →
-Mux direct creator upload** (shipped v1.8–v1.11). Remaining work is demand-gated: compliance
+Mux direct creator upload** (shipped since 0.1.8). Remaining work is demand-gated: compliance
 force-delete for shared assets, a second streaming provider when a named adopter appears, and
 long-tail polish (signed dynamic transforms, EXIF stripping on originals).
 

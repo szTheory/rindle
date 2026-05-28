@@ -206,3 +206,10 @@ The state machines also enforce key safety properties:
 All five are normalized Ecto tables with indexed `state` columns, so admin
 LiveViews, dashboards, and cleanup jobs can query lifecycle state directly
 without scanning JSON columns.
+
+## Related guides
+
+- [User Flows](user_flows.html) — job-oriented map of the lifecycle
+- [Getting Started](getting_started.html) — facade-first onboarding
+- [Background Processing](background_processing.html) — Oban workers and state transitions
+- [Operations](operations.html) — day-2 repair verbs

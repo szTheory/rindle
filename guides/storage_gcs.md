@@ -289,6 +289,6 @@ solve after rollout.
 
 ## 11. Related Guides
 
-- [`storage_capabilities.md`](storage_capabilities.md) for the adapter-honest capability matrix
-- [`troubleshooting.md`](troubleshooting.md) for the broader recovery and diagnostics guide
-- [`getting_started.md`](getting_started.md) for the canonical first-run path that stays on presigned PUT
+- [Storage Capabilities](storage_capabilities.html) for the adapter-honest capability matrix
+- [Troubleshooting](troubleshooting.html) for the broader recovery and diagnostics guide
+- [Getting Started](getting_started.html) for the canonical first-run path that stays on presigned PUT
