@@ -1,7 +1,7 @@
 defmodule Rindle.MixProject do
   use Mix.Project
 
-  @version "0.1.6"
+  @version "0.1.7"
   @source_url "https://github.com/szTheory/rindle"
 
   def project do

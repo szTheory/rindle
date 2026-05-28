@@ -2,6 +2,13 @@
 
 0.1.0-0.1.3 were release-pipeline shakedown iterations; treat 0.1.4 as the first recommended pin.
 
+## [0.1.7](https://github.com/szTheory/rindle/compare/rindle-v0.1.6...rindle-v0.1.7) (2026-05-28)
+
+
+### Bug Fixes
+
+* **docs:** add tus to user_flows Find your job table and lock roadmap parity tests
+
 ## [0.1.6](https://github.com/szTheory/rindle/compare/rindle-v0.1.5...rindle-v0.1.6) (2026-05-28)
 
 
