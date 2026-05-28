@@ -158,7 +158,7 @@ defmodule Rindle.ErrorTest do
     troubleshooting = File.read!(@troubleshooting_path)
 
     assert troubleshooting =~ "Rindle.Error.message/1"
-    assert troubleshooting =~ "test/rindle/error_test.exs"
+    refute troubleshooting =~ "test/rindle/error_test.exs"
 
     for reason <- @av_public_reasons do
       assert troubleshooting =~ "`#{inspect(reason)}`"
