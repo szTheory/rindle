@@ -5,6 +5,10 @@ defmodule AdoptionDemo.Application do
 
   @impl true
   def start(_type, _args) do
+    if Mix.env() == :test do
+      :ok = AdoptionDemo.MuxCassette.configure!()
+    end
+
     children = [
       AdoptionDemoWeb.Telemetry,
       AdoptionDemo.Repo,

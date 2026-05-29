@@ -44,13 +44,16 @@ defmodule AdoptionDemo.MixProject do
       {:phoenix_live_reload, "~> 1.2", only: :dev},
       {:phoenix_live_view, "~> 1.1.0"},
       {:lazy_html, ">= 0.1.0", only: :test},
+      {:mox, "~> 1.0", only: :test},
       {:telemetry_metrics, "~> 1.0"},
       {:telemetry_poller, "~> 1.0"},
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.2.0"},
       {:bandit, "~> 1.5"},
       {:oban, "~> 2.21"},
-      {:hackney, "~> 1.20"}
+      {:hackney, "~> 1.20"},
+      {:mux, "~> 3.2"},
+      {:jose, "~> 1.11"}
     ]
   end
 

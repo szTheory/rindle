@@ -1,12 +1,12 @@
 # Adoption Evidence Lab — sustaining charter
 
-Date: 2026-05-28
+Date: 2026-05-28 (Cohort deepening: 2026-05-29)
 Status: shipped (sustaining; no public API)
 Scope: repo-local maintainer adoption signal — **not** a feature milestone
 
 ## Goal
 
-Runnable demo host + browser E2E + proof matrix so adoption friction surfaces as
+Runnable **Cohort** demo host + browser E2E + proof matrix so adoption friction surfaces as
 failing tests or matrix gaps instead of tribal knowledge. Complements existing
 ephemeral `GeneratedAppHelper` install smoke and merge-blocking `package-consumer` CI.
 
@@ -20,14 +20,18 @@ ephemeral `GeneratedAppHelper` install smoke and merge-blocking `package-consume
 
 | user_flows row | Demo surface | Playwright spec | CI severity |
 |----------------|--------------|-----------------|-------------|
-| Presigned PUT avatar | `/upload` image tab | `e2e/image-upload.spec.ts` | merge-blocking |
-| Tus resume (S3) | `/upload` tus tab | `e2e/tus-resume.spec.ts` | merge-blocking |
-| Attach / replace / detach | `/media/:id` | `e2e/replace-detach.spec.ts` | merge-blocking |
-| AV video + variants | `/upload` video tab | `e2e/video-upload.spec.ts` | merge-blocking |
-| Operator doctor / runtime_status | `/ops` | `e2e/ops-surfaces.spec.ts` | merge-blocking |
-| Owner erasure | `/account/delete` | `e2e/owner-erasure.spec.ts` | merge-blocking |
-| GCS resumable | — | — | secret-gated (install smoke only) |
-| Mux streaming | — | — | cassette / secret-gated |
+| Presigned PUT avatar | `/upload` image tab | `e2e/image-upload.spec.js` | merge-blocking |
+| Tus resume (S3) | `/upload` tus tab | `e2e/tus-resume.spec.js` | merge-blocking |
+| Multipart upload | `/upload` multipart tab | `e2e/multipart-upload.spec.js` | merge-blocking |
+| LiveView server upload | `/upload` liveview tab | `e2e/liveview-upload.spec.js` | merge-blocking |
+| Attach / replace / detach | `/members/:id` | `e2e/replace-detach.spec.js` | merge-blocking |
+| picture_tag / video_tag | `/members/:id`, `/lessons/:id` | `e2e/rendering.spec.js` | merge-blocking |
+| AV video + variants | `/upload` video tab | `e2e/video-upload.spec.js` | merge-blocking |
+| Mux streaming (cassette) | `/upload` mux tab | `e2e/mux-streaming.spec.js` | merge-blocking |
+| Operator doctor / runtime_status | `/ops` | `e2e/ops-surfaces.spec.js` | merge-blocking |
+| Batch owner erasure preview | `/ops` | `e2e/batch-erasure.spec.js` | merge-blocking |
+| Owner erasure | `/account/:id/delete` | `e2e/owner-erasure.spec.js` | merge-blocking |
+| GCS resumable | — | `e2e/gcs-resumable.spec.js` (skip) | secret-gated (`package-consumer-gcs-live`) |
 
 ## Existing lanes (unchanged)
 
@@ -37,6 +41,7 @@ ephemeral `GeneratedAppHelper` install smoke and merge-blocking `package-consume
 
 ## Success
 
-- `cd examples/adoption_demo && mix ecto.setup && mix phx.server` → browser journeys in <10 min
+- `cd examples/adoption_demo && mix setup && mix phx.server` → Cohort dashboard in <10 min
+- 12 Playwright specs merge-blocking in `adoption-demo-e2e`
 - Playwright CI artifacts on failure
 - `examples/adoption_demo/docs/adoption-proof-matrix.md` is drift-checked

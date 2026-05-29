@@ -1,19 +1,32 @@
 const { test, expect } = require("@playwright/test");
 const { waitForLiveSocket } = require("./support/liveview");
+const { MEMBERS, memberId } = require("./support/cohort");
 
-test("owner erasure preview and execute surfaces structured output", async ({ page }) => {
+test("owner erasure preview shows retained shared assets for Alex", async ({ page }) => {
   await page.goto("/");
   await waitForLiveSocket(page);
 
-  const opsRow = page.locator("#demo-users li").filter({ hasText: "Ops Operator" });
-  await expect(opsRow).toBeVisible();
-  const userId = (await opsRow.getAttribute("id")).replace("user-", "");
+  const alexId = await memberId(page, MEMBERS.alex);
+  await page.goto(`/account/${alexId}/delete`);
+  await waitForLiveSocket(page);
 
-  await page.goto(`/account/${userId}/delete`);
+  await page.getByTestId("preview-erasure-button").click();
+  const preview = page.getByTestId("erasure-preview");
+  await expect(preview).toBeVisible();
+  await expect(preview).toContainText("retained_shared_assets");
+});
 
-  await page.locator("#preview-erasure-button").click();
-  await expect(page.locator("#erasure-preview")).toBeVisible();
+test("owner erasure execute on ops operator", async ({ page }) => {
+  await page.goto("/");
+  await waitForLiveSocket(page);
 
-  await page.locator("#execute-erasure-button").click();
-  await expect(page.locator("#erasure-result")).toBeVisible();
+  const opsId = await memberId(page, MEMBERS.ops);
+  await page.goto(`/account/${opsId}/delete`);
+  await waitForLiveSocket(page);
+
+  await page.getByTestId("preview-erasure-button").click();
+  await expect(page.getByTestId("erasure-preview")).toBeVisible();
+
+  await page.getByTestId("execute-erasure-button").click();
+  await expect(page.getByTestId("erasure-result")).toBeVisible();
 });

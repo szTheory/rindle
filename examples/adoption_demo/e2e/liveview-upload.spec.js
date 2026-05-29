@@ -3,21 +3,19 @@ const path = require("node:path");
 const { waitForLiveSocket } = require("./support/liveview");
 const { MEMBERS, memberRow } = require("./support/cohort");
 
-test("presigned PUT avatar upload attaches and shows ready", async ({ page }) => {
+test("LiveView server upload attaches image to a new post", async ({ page }) => {
   await page.goto("/");
   await waitForLiveSocket(page);
 
   const jordanRow = await memberRow(page, MEMBERS.jordan);
-  await expect(jordanRow).toBeVisible();
-
   await jordanRow.getByTestId("member-upload-link").click();
-  await expect(page.getByTestId("upload-member-name")).toContainText("Jordan");
+  await page.getByTestId("upload-tab-liveview").click();
 
   const fixture = path.join(__dirname, "..", "priv", "fixtures", "avatar.png");
-  await page.getByTestId("image-file-input").setInputFiles(fixture);
+  await page.getByTestId("liveview-file-input").setInputFiles(fixture);
+  await page.getByTestId("liveview-submit").click();
 
-  await expect(page.getByTestId("image-upload-status")).toContainText("ready", {
+  await expect(page.getByTestId("liveview-upload-status")).toContainText("ready", {
     timeout: 60_000,
   });
-  await expect(page.getByTestId("image-upload-asset-id")).toBeVisible();
 });

@@ -16,3 +16,12 @@ defmodule AdoptionDemo.VideoProfile do
     allow_mime: ["video/mp4", "video/quicktime", "video/webm"],
     max_bytes: 524_288_000
 end
+
+defmodule AdoptionDemo.MuxProfile do
+  @moduledoc false
+
+  use Rindle.Profile.Presets.MuxWeb,
+    storage: Rindle.Storage.S3,
+    allow_mime: ["video/mp4", "video/quicktime", "video/webm"],
+    max_bytes: 524_288_000
+end

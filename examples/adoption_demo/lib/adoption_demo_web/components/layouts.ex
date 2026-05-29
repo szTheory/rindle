@@ -36,7 +36,7 @@ defmodule AdoptionDemoWeb.Layouts do
       <div class="flex-1">
         <a href="/" class="flex w-fit items-center gap-2">
           <img src={~p"/images/logo.svg"} width="28" alt="" />
-          <span class="text-sm font-semibold">Rindle adoption demo</span>
+          <span class="text-sm font-semibold">Cohort · Rindle demo</span>
         </a>
       </div>
       <nav class="flex gap-4 text-sm">

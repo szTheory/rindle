@@ -1,29 +1,21 @@
 const { test, expect } = require("@playwright/test");
 const path = require("node:path");
 const { waitForLiveSocket } = require("./support/liveview");
+const { MEMBERS, memberRow } = require("./support/cohort");
 
 test("replace and detach avatar controls update status", async ({ page }) => {
   await page.goto("/");
   await waitForLiveSocket(page);
 
-  const aliceRow = page.locator("#demo-users li").filter({ hasText: "Alice Acme" });
-  await aliceRow.getByRole("link", { name: "upload" }).click();
-  await expect(page.locator("#upload-user-name")).toContainText("Alice");
+  const alexRow = await memberRow(page, MEMBERS.alex);
+  await alexRow.getByTestId("member-avatar-link").click();
+  await expect(page.getByTestId("member-profile-title")).toContainText("Alex");
 
-  const fixture = path.join(__dirname, "..", "priv", "fixtures", "avatar.png");
-  await page.locator("#image-file-input").setInputFiles(fixture);
-  await expect(page.locator("#image-upload-status")).toContainText("ready", {
+  await page.getByTestId("replace-avatar-button").click();
+  await expect(page.getByTestId("replace-status")).toContainText("replaced:", {
     timeout: 60_000,
   });
 
-  await page.goto("/");
-  await aliceRow.getByRole("link", { name: "attached" }).click();
-
-  await page.locator("#replace-avatar-button").click();
-  await expect(page.locator("#replace-status")).toContainText("replaced:", {
-    timeout: 60_000,
-  });
-
-  await page.locator("#detach-avatar-button").click();
-  await expect(page.locator("#replace-status")).toContainText("detached");
+  await page.getByTestId("detach-avatar-button").click();
+  await expect(page.getByTestId("replace-status")).toContainText("detached");
 });
