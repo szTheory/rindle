@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: demand-gated-pause
 milestone_name: Demand-gated pause
 status: between-milestones
-last_updated: "2026-05-28T14:00:00.000Z"
-last_activity: 2026-05-28
+last_updated: "2026-05-29T01:00:00.000Z"
+last_activity: 2026-05-29
 progress:
   total_phases: 0
   completed_phases: 0
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-05-27)
 Phase: Not started (no feature phases)
 Plan: —
 Status: Demand-gated pause — formalized 2026-05-27
-Last activity: 2026-05-28 — LIFE-06 prep (batch opts fix), libvips docs, RP tag fix pending
+Last activity: 2026-05-29 — Adoption Evidence E2E Lab shipped (6/6 Playwright, merge-blocking CI)
 
 ## Current Milestone
 
@@ -58,6 +58,7 @@ Last activity: 2026-05-28 — LIFE-06 prep (batch opts fix), libvips docs, RP ta
 
 - **Closed (2026-05-28):** user_flows roadmap + Find-your-job tus row; PR `install_smoke.sh image` already merge-blocking.
 - **Closed (2026-05-28):** batch erasure opts propagation (`run_batch_owner_erasure/3` forwards per-owner opts).
+- **Closed (2026-05-29):** Adoption Evidence E2E Lab — `examples/adoption_demo/` Playwright host, proof matrix drift gate, merge-blocking `adoption-demo-e2e` CI job (6/6 specs).
 
 - **Do not** reopen tus protocol, Mux surfaces, or owner-erasure semantics without demand signal.
 - **Do not** add force-delete, second provider, or new public API without compliance/adopter charter.
@@ -81,4 +82,5 @@ Last activity: 2026-05-28 — LIFE-06 prep (batch opts fix), libvips docs, RP ta
 
 ## Session Continuity
 
-Last session: 2026-05-28T14:00:00.000Z
+Last session: 2026-05-29T01:00:00.000Z
+Stopped at: Adoption Evidence E2E Lab committed; demand-gated pause continues

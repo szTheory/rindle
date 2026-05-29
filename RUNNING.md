@@ -48,9 +48,10 @@ matrix both of those entrypoints link to.
 | `integration` | merge-blocking | `needs: quality` | Lifecycle + MinIO adapter tests |
 | `contract` — Run AV hygiene gate | merge-blocking | `needs: quality` | `scripts/assert_av_hygiene.sh` |
 | `contract` — Run contract tests | advisory | Same job | Step-level `continue-on-error`; job still required in graph |
-| `proof` | merge-blocking | `needs: quality` | `docs_parity_test.exs` + `batch_owner_erasure_task_test.exs`; Postgres only; Elixir 1.17/OTP 27 |
+| `proof` | merge-blocking | `needs: quality` | `docs_parity_test.exs`, adoption proof matrix drift gate, `batch_owner_erasure_task_test.exs`; Postgres only; Elixir 1.17/OTP 27 |
 | `package-consumer` — repo hygiene gate | merge-blocking | Same job | `scripts/maintainer/repo_hygiene_check.sh --ci` |
 | `package-consumer` | merge-blocking | `needs: quality` | Install-smoke matrix + release preflight |
+| `adoption-demo-e2e` | merge-blocking | `needs: quality`; repo `szTheory/rindle` only | Playwright browser proof for `examples/adoption_demo` (image, tus, stretch journeys) |
 | `adopter` | merge-blocking | `needs: [quality, integration, contract]` | Canonical adopter lifecycle only (doc parity in `proof` job) |
 | `mux-soak` | secret-gated soak | Label `streaming` on PR; `needs: quality` | Not in branch protection required checks; fails closed when secrets absent |
 | `gcs-soak` | secret-gated soak | `needs: quality`; repo + secrets | Skipped when secrets absent; test step advisory when it runs |

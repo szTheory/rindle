@@ -107,6 +107,27 @@ ensure_bucket() {
   if [ -n "$MINIO_RESET_BUCKET" ]; then
     "$MC_BIN" rm --recursive --force "local/$MINIO_BUCKET" >/dev/null 2>&1 || true
   fi
+
+  ensure_bucket_cors
+}
+
+ensure_bucket_cors() {
+  local cors_file
+  cors_file="$(mktemp "${TMPDIR:-/tmp}/rindle-minio-cors.XXXXXX.json")"
+
+  cat >"$cors_file" <<'EOF'
+[
+  {
+    "AllowedOrigin": ["*"],
+    "AllowedMethod": ["GET", "PUT", "POST", "HEAD", "DELETE", "PATCH", "OPTIONS"],
+    "AllowedHeader": ["*"],
+    "ExposeHeader": ["ETag", "x-amz-request-id", "x-amz-version-id"]
+  }
+]
+EOF
+
+  "$MC_BIN" cors set "local/$MINIO_BUCKET" "$cors_file" >/dev/null 2>&1 || true
+  rm -f "$cors_file"
 }
 
 start_embedded_minio() {
@@ -133,6 +154,7 @@ start_embedded_minio() {
 
   MINIO_ROOT_USER="$MINIO_ACCESS_KEY" \
     MINIO_ROOT_PASSWORD="$MINIO_SECRET_KEY" \
+    MINIO_API_CORS_ALLOW_ORIGIN='*' \
     "$MINIO_BIN" server "$data_dir" --address "${MINIO_HOST}:${MINIO_PORT}" \
     >"$log_file" 2>&1 &
 
