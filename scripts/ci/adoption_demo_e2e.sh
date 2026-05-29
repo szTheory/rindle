@@ -35,9 +35,10 @@ mix ecto.drop --quiet || true
 mix ecto.create
 mix ecto.migrate
 mix rindle.migrate
-mix run priv/repo/seeds.exs
+PHX_SERVER= mix run priv/repo/seeds.exs
 
 npm ci
 npm run vendor:js
 npx playwright install --with-deps chromium
+export ADOPTION_DEMO_PRESEEDED=1
 npm run e2e

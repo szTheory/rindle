@@ -38,5 +38,8 @@ module.exports = async () => {
   ensureDatabase();
   runMix(["ecto.migrate", "--quiet"], { PHX_SERVER: "1" });
   runMix(["rindle.migrate"], { PHX_SERVER: "1" });
-  runMix(["run", "priv/repo/seeds.exs"], { PHX_SERVER: "1" });
+
+  if (process.env.ADOPTION_DEMO_PRESEEDED !== "1") {
+    runMix(["run", "priv/repo/seeds.exs"], { PHX_SERVER: "" });
+  }
 };
