@@ -43,6 +43,11 @@ Thumbs.db
 # Claude Code runtime (worktrees, scheduled-task locks, etc.)
 .claude/
 
+# Codex: commit project skills only (see .cursor/rules/GSD.md)
+.codex/*
+!.codex/skills/
+!.codex/skills/**
+
 # Test scratch directories
 /tmp/
 
