@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Adoption demo Playwright lane — advisory CI wrapper.
+# Adoption demo Playwright lane — merge-blocking CI wrapper.
 set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -35,7 +35,7 @@ mix ecto.drop --quiet || true
 mix ecto.create
 mix ecto.migrate
 mix rindle.migrate
-mix run --no-start priv/repo/seeds.exs
+mix run priv/repo/seeds.exs
 
 npm ci
 npm run vendor:js
