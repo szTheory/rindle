@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: demand-gated-pause
 milestone_name: Demand-gated pause
 status: between-milestones
-last_updated: "2026-05-30T13:15:00.000Z"
+last_updated: "2026-05-30T13:50:00.000Z"
 last_activity: 2026-05-30
 progress:
   total_phases: 0
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-05-27)
 Phase: Not started (no feature phases)
 Plan: —
 Status: Demand-gated pause — formalized 2026-05-27
-Last activity: 2026-05-30 — 0.1.10 merged (#19); Hex publish retry after GH release token fix
+Last activity: 2026-05-30 — v0.1.10 shipped to Hex (#19); automerge + release PAT fixes on main
 
 ## Current Milestone
 
@@ -82,5 +82,5 @@ Last activity: 2026-05-30 — 0.1.10 merged (#19); Hex publish retry after GH re
 
 ## Session Continuity
 
-Last session: 2026-05-30T13:15:00.000Z
-Stopped at: 0.1.10 merged; publish retry after release.yml PAT fix; automerge author filter fixed
+Last session: 2026-05-30T13:50:00.000Z
+Stopped at: v0.1.10 live on Hex; release train idle
