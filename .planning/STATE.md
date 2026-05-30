@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-05-27)
 Phase: Not started (no feature phases)
 Plan: —
 Status: Demand-gated pause — formalized 2026-05-27
-Last activity: 2026-05-30 — 0.1.10 release merged (#19); Hex publish dispatch in flight
+Last activity: 2026-05-30 — 0.1.10 merged (#19); Hex publish retry after GH release token fix
 
 ## Current Milestone
 
@@ -83,4 +83,4 @@ Last activity: 2026-05-30 — 0.1.10 release merged (#19); Hex publish dispatch 
 ## Session Continuity
 
 Last session: 2026-05-30T13:15:00.000Z
-Stopped at: 0.1.10 merged (#19); release publish dispatched; automerge author filter fixed
+Stopped at: 0.1.10 merged; publish retry after release.yml PAT fix; automerge author filter fixed
