@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: demand-gated-pause
 milestone_name: Demand-gated pause
 status: between-milestones
-last_updated: "2026-05-29T21:52:00.000Z"
-last_activity: 2026-05-29
+last_updated: "2026-05-30T13:15:00.000Z"
+last_activity: 2026-05-30
 progress:
   total_phases: 0
   completed_phases: 0
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-05-27)
 Phase: Not started (no feature phases)
 Plan: —
 Status: Demand-gated pause — formalized 2026-05-27
-Last activity: 2026-05-29 — Cohort adoption demo deepened (12 Playwright specs + Docker preview); PR pending
+Last activity: 2026-05-30 — 0.1.10 release merged (#19); Hex publish dispatch in flight
 
 ## Current Milestone
 
@@ -82,5 +82,5 @@ Last activity: 2026-05-29 — Cohort adoption demo deepened (12 Playwright specs
 
 ## Session Continuity
 
-Last session: 2026-05-29T21:52:00.000Z
-Stopped at: Cohort deepening verified (12/12 E2E, Docker preview); opening PR
+Last session: 2026-05-30T13:15:00.000Z
+Stopped at: 0.1.10 merged (#19); release publish dispatched; automerge author filter fixed

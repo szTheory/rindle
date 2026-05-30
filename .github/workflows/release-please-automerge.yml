@@ -36,7 +36,6 @@ jobs:
             gh pr list \
               --state open \
               --base main \
-              --author app/github-actions \
               --json number,title,headRefName,baseRefName,isDraft,mergeable,files,url,labels
           )"
 
