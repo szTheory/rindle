@@ -1,52 +1,88 @@
-# Script for populating the adoption demo database.
+# Script for populating the Cohort adoption demo database.
 #
 #     mix run priv/repo/seeds.exs
 #
-alias AdoptionDemo.{Accounts, Media, RindleProfile}
-alias Rindle.Upload.Broker
+alias AdoptionDemo.{Accounts, Cohort, Media, SeedSupport}
 
-ensure_inets = fn ->
-  case :inets.start() do
-    :ok -> :ok
-    {:error, {:already_started, :inets}} -> :ok
-  end
-end
+:ok = SeedSupport.ensure_inets()
 
-put_bytes = fn url, body ->
-  request = {String.to_charlist(url), [], ~c"image/png", body}
-
-  case :httpc.request(:put, request, [], []) do
-    {:ok, {{_version, status, _reason}, _headers, _body}} when status in 200..299 ->
-      :ok
-
-    other ->
-      {:error, other}
-  end
-end
-
-:ok = ensure_inets.()
-
-for {email, name} <- [
-      {"alice@acme.test", "Alice Acme"},
-      {"bob@globex.test", "Bob Globex"},
-      {"ops@acme.test", "Ops Operator"}
+for {email, name, role} <- [
+      {"maya@cohort.test", "Maya Rivera", "instructor"},
+      {"alex@cohort.test", "Alex Kim", "student"},
+      {"jordan@cohort.test", "Jordan Lee", "student"},
+      {"ops@cohort.test", "Ops Operator", "operator"}
     ] do
-  Accounts.seed_user!(%{email: email, name: name})
+  Accounts.seed_member!(%{email: email, name: name, role: role})
 end
 
-alice = Accounts.list_users() |> Enum.find(&(&1.email == "alice@acme.test"))
-avatar_path = Path.join(:code.priv_dir(:adoption_demo), "fixtures/avatar.png")
+maya = Accounts.get_member_by_email!("maya@cohort.test")
+alex = Accounts.get_member_by_email!("alex@cohort.test")
+jordan = Accounts.get_member_by_email!("jordan@cohort.test")
 
-if alice && File.exists?(avatar_path) do
-  png = File.read!(avatar_path)
+course =
+  Cohort.seed_course!(%{
+    title: "Intro to Elixir",
+    slug: "intro-elixir",
+    instructor_id: maya.id
+  })
 
-  with {:ok, session} <- Broker.initiate_session(RindleProfile, filename: "avatar.png"),
-       {:ok, %{presigned: presigned}} <- Broker.sign_url(session.id),
-       :ok <- put_bytes.(presigned.url, png),
-       {:ok, %{asset: asset}} <- Broker.verify_completion(session.id) do
-    Media.attach!(alice, asset.id, :avatar)
-    IO.puts("Seeded avatar for #{alice.email}")
-  else
-    error -> IO.warn("Could not seed avatar: #{inspect(error)}")
+lesson_intro =
+  Cohort.seed_lesson!(%{
+    title: "Pattern matching basics",
+    position: 1,
+    course_id: course.id
+  })
+
+lesson_shared =
+  Cohort.seed_lesson!(%{
+    title: "Processes and messages",
+    position: 2,
+    course_id: course.id
+  })
+
+avatar_path = SeedSupport.fixture_path("avatar.png")
+
+if File.exists?(avatar_path) do
+  unless Media.attachment_for(maya, :avatar) do
+    maya_avatar = SeedSupport.upload_image!("maya-avatar.png", File.read!(avatar_path))
+    Media.attach!(maya, maya_avatar.id, :avatar)
+  end
+
+  unless Media.attachment_for(alex, :avatar) do
+    alex_avatar = SeedSupport.upload_image!("alex-avatar.png", File.read!(avatar_path))
+    Media.attach!(alex, alex_avatar.id, :avatar)
+    Media.attach!(jordan, alex_avatar.id, :avatar)
+    IO.puts("Seeded shared avatar asset for Alex and Jordan")
   end
 end
+
+video_path = SeedSupport.fixture_path("demo-video.webm")
+
+if File.exists?(video_path) and is_nil(Media.attachment_for(lesson_intro, :video)) do
+  lesson_video = SeedSupport.upload_video!("intro-lesson.webm", File.read!(video_path))
+  Media.attach!(lesson_intro, lesson_video.id, :video)
+  Media.attach!(lesson_shared, lesson_video.id, :video)
+  IO.puts("Seeded shared lesson video on two lessons")
+end
+
+post =
+  Cohort.seed_post!(%{
+    title: "Study group this week",
+    body: "Who is joining the Thursday review session?",
+    member_id: alex.id
+  })
+
+if File.exists?(avatar_path) and is_nil(Media.attachment_for(post, :image)) do
+  post_image = SeedSupport.upload_image!("study-group.png", File.read!(avatar_path))
+  Media.attach!(post, post_image.id, :image)
+  IO.puts("Seeded community post image")
+end
+
+IO.puts("""
+Cohort demo seeded:
+  - Maya (instructor) + Alex (student) avatars
+  - Shared lesson video across two lessons (erasure collateral)
+  - Alex community post with image
+  - Jordan (student) without avatar — fresh upload target
+  - Ops operator for batch erasure demos
+""")

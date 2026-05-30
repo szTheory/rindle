@@ -30,6 +30,8 @@ config :adoption_demo, AdoptionDemoWeb.Endpoint,
 
 config :adoption_demo, Oban, testing: :inline
 
+config :rindle, :mux, enabled: true
+
 config :logger, level: :warning
 
 config :phoenix, :plug_init_mode, :runtime

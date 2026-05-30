@@ -1,0 +1,92 @@
+name: cohort-demo
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: adoption_demo_dev
+    volumes:
+      - cohort-demo-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d adoption_demo_dev"]
+      interval: 2s
+      timeout: 5s
+      retries: 15
+
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+      MINIO_API_CORS_ALLOW_ORIGIN: "*"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - cohort-demo-minio:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/ready"]
+      interval: 2s
+      timeout: 5s
+      retries: 15
+
+  minio-init:
+    image: minio/mc:latest
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: /bin/sh
+    command:
+      - -c
+      - |
+        set -e
+        mc alias set local http://minio:9000 minioadmin minioadmin
+        mc mb --ignore-existing local/rindle-test
+        cat > /tmp/cors.json <<'EOF'
+        [
+          {
+            "AllowedOrigin": ["*"],
+            "AllowedMethod": ["GET", "PUT", "POST", "HEAD", "DELETE", "PATCH", "OPTIONS"],
+            "AllowedHeader": ["*"],
+            "ExposeHeader": ["ETag", "x-amz-request-id", "x-amz-version-id"]
+          }
+        ]
+        EOF
+        mc cors set local/rindle-test /tmp/cors.json || true
+    restart: "no"
+
+  cohort-demo:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.cohort-demo
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+    ports:
+      - "4102:4102"
+    environment:
+      MIX_ENV: prod
+      COHORT_DEMO_DOCKER: "1"
+      PHX_SERVER: "true"
+      PORT: "4102"
+      PHX_HOST: localhost
+      DATABASE_URL: ecto://postgres:postgres@postgres:5432/adoption_demo_dev
+      SECRET_KEY_BASE: cohort-demo-docker-preview-only-not-for-production-use-0123456789abcdef0123456789abcdef
+      RINDLE_MINIO_URL: http://host.docker.internal:9000
+      RINDLE_MINIO_ACCESS_KEY: minioadmin
+      RINDLE_MINIO_SECRET_KEY: minioadmin
+      RINDLE_MINIO_BUCKET: rindle-test
+      RINDLE_MINIO_REGION: us-east-1
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+volumes:
+  cohort-demo-postgres:
+  cohort-demo-minio:

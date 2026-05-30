@@ -505,7 +505,7 @@ jobs:
   adoption-demo-e2e:
     name: Adoption Demo E2E
     runs-on: ubuntu-22.04
-    # Merge-blocking browser proof for examples/adoption_demo (6/6 Playwright specs green locally).
+    # Merge-blocking browser proof for examples/adoption_demo (12/12 Playwright specs; gcs-resumable skipped).
     needs: quality
     if: github.repository == 'szTheory/rindle'
     env:
@@ -975,6 +975,10 @@ jobs:
       - name: Run live package-consumer GCS resumable proof without logging raw session_uri values
         if: steps.gcs-live-config.outputs.enabled == 'true'
         run: bash scripts/install_smoke.sh gcs
+
+      - name: Adoption demo GCS live companion (documented lane; install_smoke is canonical)
+        if: steps.gcs-live-config.outputs.enabled == 'true'
+        run: bash scripts/ci/adoption_demo_gcs_live.sh
 
       - name: Always clean up live package-consumer GCS objects for this prefix
         if: ${{ always() && steps.gcs-live-config.outputs.enabled == 'true' }}

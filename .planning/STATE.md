@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: demand-gated-pause
 milestone_name: Demand-gated pause
 status: between-milestones
-last_updated: "2026-05-29T01:00:00.000Z"
+last_updated: "2026-05-29T21:52:00.000Z"
 last_activity: 2026-05-29
 progress:
   total_phases: 0
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-05-27)
 Phase: Not started (no feature phases)
 Plan: —
 Status: Demand-gated pause — formalized 2026-05-27
-Last activity: 2026-05-29 — Adoption Evidence E2E Lab shipped (6/6 Playwright, merge-blocking CI)
+Last activity: 2026-05-29 — Cohort adoption demo deepened (12 Playwright specs + Docker preview); PR pending
 
 ## Current Milestone
 
@@ -58,7 +58,7 @@ Last activity: 2026-05-29 — Adoption Evidence E2E Lab shipped (6/6 Playwright,
 
 - **Closed (2026-05-28):** user_flows roadmap + Find-your-job tus row; PR `install_smoke.sh image` already merge-blocking.
 - **Closed (2026-05-28):** batch erasure opts propagation (`run_batch_owner_erasure/3` forwards per-owner opts).
-- **Closed (2026-05-29):** Adoption Evidence E2E Lab — `examples/adoption_demo/` Playwright host, proof matrix drift gate, merge-blocking `adoption-demo-e2e` CI job (6/6 specs).
+- **Closed (2026-05-29):** Adoption Evidence E2E Lab — Cohort persona (members, lessons, posts), 12 Playwright specs (11 merge-blocking + GCS skip), proof matrix drift gate, optional Docker preview (`scripts/demo/up.sh`).
 
 - **Do not** reopen tus protocol, Mux surfaces, or owner-erasure semantics without demand signal.
 - **Do not** add force-delete, second provider, or new public API without compliance/adopter charter.
@@ -82,5 +82,5 @@ Last activity: 2026-05-29 — Adoption Evidence E2E Lab shipped (6/6 Playwright,
 
 ## Session Continuity
 
-Last session: 2026-05-29T01:00:00.000Z
-Stopped at: Adoption Evidence E2E Lab committed; demand-gated pause continues
+Last session: 2026-05-29T21:52:00.000Z
+Stopped at: Cohort deepening verified (12/12 E2E, Docker preview); opening PR

@@ -1,10 +1,44 @@
-# Adoption demo — browser E2E lab
+# Cohort — Rindle adoption demo
 
-Minimal Phoenix host for **human-realistic** Rindle adoption proof. Complements ephemeral
-`install_smoke.sh` generated apps and in-repo `canonical_app` tests — it is **not** a second
-product or public API surface.
+Course-and-community SaaS browser host for **human-realistic** Rindle adoption proof. Complements
+ephemeral `install_smoke.sh` generated apps and in-repo `canonical_app` tests — it is **not** a
+second product or public API surface.
 
-## Prerequisites
+## Quick try (Docker)
+
+**Preview only** — spin up Postgres, MinIO, and the Cohort UI without installing Elixir, FFmpeg,
+or libvips on your machine. First build may take a few minutes.
+
+From the **repository root** (requires Docker Desktop or Docker Engine + Compose):
+
+```bash
+./scripts/demo/up.sh
+# → http://localhost:4102
+```
+
+Stop and remove containers:
+
+```bash
+./scripts/demo/down.sh
+```
+
+Wipe database and object storage (fresh seeds on next start):
+
+```bash
+./scripts/demo/reset.sh
+```
+
+Equivalent compose command:
+
+```bash
+docker compose -f docker/compose.cohort-demo.yml up --build
+```
+
+## Hack on it (native)
+
+For hot-reload development and Playwright E2E, use the native path.
+
+### Prerequisites
 
 - Elixir 1.17+, OTP 27
 - PostgreSQL (local or via `PGUSER` / `PGPASSWORD` / `PGHOST` / `PGPORT`)
@@ -12,19 +46,19 @@ product or public API surface.
 - FFmpeg ≥ 6.0 and libvips (same as main Rindle dev setup)
 - Node 20+ (Playwright only)
 
-## Quick start
+### Quick start
 
 From the **repository root**:
 
 ```bash
 bash scripts/ensure_minio.sh
 cd examples/adoption_demo
-mix setup          # deps, vendor JS, ecto + rindle migrations, seeds
+mix setup          # deps, vendor JS, ecto + rindle migrations, Cohort seeds
 mix phx.server     # http://localhost:4102
 ```
 
-Open the dashboard, pick a seeded user, and exercise `/upload` (presigned PUT + tus tabs),
-`/media/:id`, `/ops`, and `/account/:user_id/delete`.
+Open the Cohort dashboard — members (Maya, Alex, Jordan, Ops), lessons, community posts, upload
+lab tabs (presigned PUT, tus, multipart, LiveView, AV, Mux cassette), and ops surfaces.
 
 ## Dependency on Rindle
 
@@ -47,7 +81,8 @@ npm run e2e
 ```
 
 Playwright starts the Phoenix server in `MIX_ENV=test` on port **4102** (override with
-`ADOPTION_DEMO_BROWSER_PORT`).
+`ADOPTION_DEMO_BROWSER_PORT`). CI uses `scripts/ci/adoption_demo_e2e.sh` with
+`ADOPTION_DEMO_PRESEEDED=1`.
 
 ## Proof matrix
 

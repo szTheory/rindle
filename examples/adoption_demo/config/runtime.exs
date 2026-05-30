@@ -20,10 +20,18 @@ if System.get_env("PHX_SERVER") do
   config :adoption_demo, AdoptionDemoWeb.Endpoint, server: true
 end
 
-config :adoption_demo, AdoptionDemoWeb.Endpoint,
-  http: [port: String.to_integer(System.get_env("PORT") || "4102")]
+port = String.to_integer(System.get_env("PORT") || "4102")
 
-if config_env() in [:dev, :test] do
+config :adoption_demo, AdoptionDemoWeb.Endpoint, http: [port: port]
+
+if System.get_env("COHORT_DEMO_DOCKER") == "1" do
+  config :adoption_demo, AdoptionDemoWeb.Endpoint,
+    http: [ip: {0, 0, 0, 0, 0, 0, 0, 0}, port: port],
+    check_origin: false,
+    server: true
+end
+
+if config_env() in [:dev, :test] or System.get_env("COHORT_DEMO_DOCKER") == "1" do
   minio_url = System.get_env("RINDLE_MINIO_URL", "http://localhost:9000")
   bucket = System.get_env("RINDLE_MINIO_BUCKET", "rindle-test")
   access_key = System.get_env("RINDLE_MINIO_ACCESS_KEY", "minioadmin")

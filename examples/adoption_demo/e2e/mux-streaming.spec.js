@@ -3,20 +3,19 @@ const path = require("node:path");
 const { waitForLiveSocket } = require("./support/liveview");
 const { MEMBERS, memberRow } = require("./support/cohort");
 
-test("browser video file upload reaches ready state", async ({ page }) => {
+test("mux cassette upload surfaces streaming URL", async ({ page }) => {
   await page.goto("/");
   await waitForLiveSocket(page);
 
   const jordanRow = await memberRow(page, MEMBERS.jordan);
   await jordanRow.getByTestId("member-upload-link").click();
-  await page.getByTestId("upload-tab-video").click();
-
-  await expect(page.getByTestId("video-upload-panel")).toBeVisible();
+  await page.getByTestId("upload-tab-mux").click();
 
   const fixture = path.join(__dirname, "..", "priv", "fixtures", "demo-video.webm");
-  await page.getByTestId("video-file-input").setInputFiles(fixture);
+  await page.getByTestId("mux-file-input").setInputFiles(fixture);
 
-  await expect(page.getByTestId("video-upload-status")).toContainText("ready", {
+  await expect(page.getByTestId("mux-upload-status")).toContainText("ready", {
     timeout: 180_000,
   });
+  await expect(page.getByTestId("mux-streaming-url")).toBeVisible();
 });

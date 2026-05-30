@@ -19,9 +19,12 @@ defmodule AdoptionDemoWeb.Router do
     pipe_through :browser
 
     live "/", DashboardLive, :index
+    live "/members/:id", MemberLive, :show
+    live "/lessons/:id", LessonLive, :show
+    live "/posts/:id", PostLive, :show
     live "/upload", UploadLive, :index
     live "/media/:id", MediaLive, :show
     live "/ops", OpsLive, :index
-    live "/account/:user_id/delete", AccountLive, :delete
+    live "/account/:member_id/delete", AccountLive, :delete
   end
 end

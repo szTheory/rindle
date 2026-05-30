@@ -1,14 +1,16 @@
 defmodule AdoptionDemoWeb.DashboardLive do
   use AdoptionDemoWeb, :live_view
 
-  alias AdoptionDemo.{Accounts, Media}
+  alias AdoptionDemo.{Accounts, Cohort, Media}
 
   @impl true
   def mount(_params, _session, socket) do
     {:ok,
      assign(socket,
-       page_title: "Adoption demo",
-       users: Accounts.list_users(),
+       page_title: "Cohort",
+       members: Accounts.list_members(),
+       courses: Cohort.list_courses(),
+       posts: Cohort.list_posts(),
        assets: Media.list_assets()
      )}
   end
@@ -17,28 +19,55 @@ defmodule AdoptionDemoWeb.DashboardLive do
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} page_title={@page_title}>
-      <h1 class="text-2xl font-semibold">Rindle adoption demo</h1>
+      <h1 class="text-2xl font-semibold" data-testid="cohort-dashboard-title">Cohort</h1>
       <p class="text-sm opacity-80">
-        Minimal SaaS-shaped host for browser E2E and manual journey checks. Storage: MinIO via
-        <code>Rindle.Storage.S3</code>.
+        Course-and-community SaaS demo for Rindle adoption proof. Storage:
+        <code>Rindle.Storage.S3</code> on MinIO.
       </p>
 
-      <section id="demo-users">
-        <h2 class="text-lg font-semibold mt-6">Seeded users</h2>
+      <section id="demo-members" data-testid="demo-members">
+        <h2 class="text-lg font-semibold mt-6">Members</h2>
         <ul class="list-disc pl-5 space-y-2">
-          <li :for={user <- @users} id={"user-#{user.id}"}>
-            <strong>{user.name}</strong> ({user.email})
-            — avatar: <%= if attachment = Media.attachment_for(user, :avatar) do %>
-              <.link navigate={~p"/media/#{attachment.asset_id}"}>attached</.link>
+          <li :for={member <- @members} id={"member-#{member.id}"} data-testid={"member-row-#{member.email}"}>
+            <strong>{member.name}</strong> ({member.email}, {member.role})
+            — avatar: <%= if Media.attachment_for(member, :avatar) do %>
+              <.link navigate={~p"/members/#{member.id}"} data-testid="member-avatar-link">attached</.link>
             <% else %>
-              <span id={"user-#{user.id}-no-avatar"}>none</span>
+              <span data-testid="member-no-avatar">none</span>
             <% end %>
-            · <.link navigate={~p"/upload?user_id=#{user.id}"}>upload</.link>
+            · <.link navigate={~p"/upload?member_id=#{member.id}"} data-testid="member-upload-link">upload</.link>
+            · <.link navigate={~p"/account/#{member.id}/delete"} data-testid="member-delete-link">delete</.link>
           </li>
         </ul>
       </section>
 
-      <section id="demo-assets">
+      <section id="demo-courses" data-testid="demo-courses">
+        <h2 class="text-lg font-semibold mt-6">Courses</h2>
+        <ul class="list-disc pl-5 space-y-2">
+          <li :for={course <- @courses}>
+            <strong>{course.title}</strong>
+            <ul class="list-disc pl-5">
+              <li :for={lesson <- course.lessons}>
+                <.link navigate={~p"/lessons/#{lesson.id}"} data-testid={"lesson-link-#{lesson.id}"}>
+                  {lesson.title}
+                </.link>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </section>
+
+      <section id="demo-posts" data-testid="demo-posts">
+        <h2 class="text-lg font-semibold mt-6">Community posts</h2>
+        <ul class="list-disc pl-5 space-y-2">
+          <li :for={post <- @posts}>
+            <.link navigate={~p"/posts/#{post.id}"} data-testid={"post-link-#{post.id}"}>{post.title}</.link>
+            — by {post.member.name}
+          </li>
+        </ul>
+      </section>
+
+      <section id="demo-assets" data-testid="demo-assets">
         <h2 class="text-lg font-semibold mt-6">Recent assets</h2>
         <ul class="list-disc pl-5">
           <li :for={asset <- @assets}>
@@ -49,8 +78,8 @@ defmodule AdoptionDemoWeb.DashboardLive do
       </section>
 
       <nav class="flex gap-4 mt-8 text-sm">
-        <.link navigate={~p"/upload"} class="underline">Upload lab</.link>
-        <.link navigate={~p"/ops"} class="underline">Ops surfaces</.link>
+        <.link navigate={~p"/upload"} class="underline" data-testid="nav-upload">Upload lab</.link>
+        <.link navigate={~p"/ops"} class="underline" data-testid="nav-ops">Ops surfaces</.link>
       </nav>
     </Layouts.app>
     """

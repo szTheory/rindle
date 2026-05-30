@@ -1,0 +1,11 @@
+.git
+.github
+**/_build
+**/deps
+**/node_modules
+examples/adoption_demo/test-results
+examples/adoption_demo/playwright-report
+.cursor
+.planning
+*.md
+!examples/adoption_demo/README.md

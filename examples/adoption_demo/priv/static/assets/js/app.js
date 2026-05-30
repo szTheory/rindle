@@ -32,50 +32,92 @@
     });
   };
 
-  const PresignedPut = {
-    mounted() {
-      this.pendingFile = null;
+  const MULTIPART_PART_SIZE = 5 * 1024 * 1024;
 
-      this.handleEvent("presigned", ({ url, session_id, content_type }) => {
-        const file =
-          this.pendingFile || (this.el.files && this.el.files[0]);
+  function putPresigned(url, body, contentType) {
+    return fetch(url, {
+      method: "PUT",
+      body,
+      headers: {
+        "Content-Type": contentType || "application/octet-stream",
+      },
+    }).then((response) => {
+      if (!response.ok) {
+        throw new Error(`presigned PUT failed with ${response.status}`);
+      }
 
-        if (!file) {
-          this.pushEvent("upload_failed", { message: "no file selected" });
-          return;
-        }
+      const etag = response.headers.get("etag");
+      return etag ? etag.replaceAll('"', "") : null;
+    });
+  }
 
-        fetch(url, {
-          method: "PUT",
-          body: file,
-          headers: {
-            "Content-Type": content_type || file.type || "application/octet-stream",
-          },
-        })
-          .then((response) => {
-            if (!response.ok) {
-              throw new Error(`presigned PUT failed with ${response.status}`);
-            }
+  function makePresignedHook(presignedEvent, verifyEvent, presignEvent) {
+    return {
+      mounted() {
+        this.pendingFile = null;
 
-            this.pendingFile = null;
-            this.pushEvent("verify", { session_id });
-          })
-          .catch((error) => {
-            console.error("PresignedPut failed", error);
-            this.pushEvent("upload_failed", { message: error.message });
+        this.handleEvent(presignedEvent, ({ url, session_id, content_type }) => {
+          const file = this.pendingFile || (this.el.files && this.el.files[0]);
+
+          if (!file) {
+            this.pushEvent("upload_failed", { message: "no file selected" });
+            return;
+          }
+
+          putPresigned(url, file, content_type || file.type)
+            .then(() => {
+              this.pendingFile = null;
+              this.pushEvent(verifyEvent, { session_id });
+            })
+            .catch((error) => {
+              console.error(`${presignEvent} failed`, error);
+              this.pushEvent("upload_failed", { message: error.message });
+            });
+        });
+
+        this.el.addEventListener("change", () => {
+          const file = this.el.files && this.el.files[0];
+          if (!file) return;
+
+          this.pendingFile = file;
+          this.pushEvent(presignEvent, {
+            filename: file.name,
+            content_type: file.type || "application/octet-stream",
           });
+        });
+      },
+    };
+  }
+
+  const PresignedPut = makePresignedHook("presigned", "verify", "presign");
+  const PresignedVideoPut = makePresignedHook("presigned_video", "verify_video", "presign_video");
+  const PresignedMuxPut = makePresignedHook("presigned_mux", "verify_mux", "presign_mux");
+
+  const MultipartUpload = {
+    mounted() {
+      this.handleEvent("multipart_parts", async ({ session_id, parts }) => {
+        try {
+          const part1 = new Uint8Array(MULTIPART_PART_SIZE);
+          part1.fill(97);
+          const part2 = new Uint8Array([0x89, 0x50, 0x4e, 0x47]);
+
+          const bodies = [part1, part2];
+          const etags = [];
+
+          for (let i = 0; i < parts.length; i++) {
+            const etag = await putPresigned(parts[i].url, bodies[i], "application/octet-stream");
+            etags.push({ part_number: parts[i].part_number, etag });
+          }
+
+          this.pushEvent("multipart_complete", { session_id, etags });
+        } catch (error) {
+          console.error("MultipartUpload failed", error);
+          this.pushEvent("upload_failed", { message: error.message });
+        }
       });
 
-      this.el.addEventListener("change", () => {
-        const file = this.el.files && this.el.files[0];
-        if (!file) return;
-
-        this.pendingFile = file;
-
-        this.pushEvent("presign", {
-          filename: file.name,
-          content_type: file.type || "image/png",
-        });
+      this.el.addEventListener("click", () => {
+        this.pushEvent("multipart_start", { filename: "multipart-demo.bin" });
       });
     },
   };
@@ -87,7 +129,7 @@
   const liveSocket = new LiveView.LiveSocket("/live", Phoenix.Socket, {
     longPollFallbackMs: 2500,
     params: { _csrf_token: csrfToken },
-    hooks: { PresignedPut },
+    hooks: { PresignedPut, PresignedVideoPut, PresignedMuxPut, MultipartUpload },
     uploaders: Uploaders,
   });
 

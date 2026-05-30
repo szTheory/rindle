@@ -3,8 +3,8 @@
 This matrix answers: **what is proven, where, and against what realism?**
 
 Rindle splits adoption proof into **ephemeral package-consumer** lanes (merge-blocking), an
-**in-repo adopter** lane, and this **persistent browser host** (merge-blocking CI for all
-demo Playwright specs).
+**in-repo adopter** lane, and this **persistent Cohort browser host** (merge-blocking CI for
+all MinIO Playwright specs).
 
 | Realism | Meaning here |
 |---------|----------------|
@@ -15,34 +15,46 @@ demo Playwright specs).
 
 | Layer | What | CI severity |
 |-------|------|-------------|
-| **A — Package consumer** | Generated Phoenix apps from Hex tarball; ExUnit lifecycle per profile | Merge-blocking (`package-consumer`) |
+| **A — Package consumer** | Generated Phoenix apps from Hex tarball; `priv/install_smoke/migrate.exs` + boot | Merge-blocking (`package-consumer`) |
 | **B — Canonical adopter** | In-repo host wiring + smartphone fixtures | Merge-blocking (`adopter`) |
-| **C — Adoption demo** | Checked-in host + Playwright browser journeys | Merge-blocking (`adoption-demo-e2e`) |
+| **C — Adoption demo (Cohort)** | Checked-in host + Playwright browser journeys | Merge-blocking (`adoption-demo-e2e`) |
 
 ## Concern matrix
 
 | Concern | Realism | Proof | Where | CI severity |
 |---------|---------|-------|-------|-------------|
+| Install / bootstrap | N/A | Generated app compile + host/Rindle migrations + boot | `generated_app_smoke_test.exs` (`host_migration_ran?`), `install_smoke.sh image` | Merge-blocking (`package-consumer`) |
 | Image presigned PUT lifecycle | MinIO | initiate → sign → browser PUT → verify → attach | `e2e/image-upload.spec.js`, `install_smoke.sh image` | Demo + install-smoke: blocking |
 | Tus resumable upload | MinIO | LiveView tus helper + TusPlug | `e2e/tus-resume.spec.js`, `install_smoke.sh tus` | Demo + install-smoke: blocking |
-| Video AV processing | MinIO + FFmpeg | web preset variants + delivery | `e2e/video-upload.spec.js`, `install_smoke.sh video` | Demo + install-smoke: blocking |
+| Multipart upload | MinIO | Client multipart hook + complete | `e2e/multipart-upload.spec.js`, `canonical_app/lifecycle_test.exs` | Demo + adopter: blocking |
+| LiveView server upload | MinIO | `allow_upload` + consume to post image | `e2e/liveview-upload.spec.js` | Demo: blocking |
+| Video AV processing (browser) | MinIO + FFmpeg | Browser file pick → presigned PUT → variants | `e2e/video-upload.spec.js`, `install_smoke.sh video` | Demo + install-smoke: blocking |
+| `picture_tag` / `video_tag` rendering | MinIO | Seeded Cohort member + lesson pages | `e2e/rendering.spec.js` | Demo: blocking |
 | Replace / detach attachment | MinIO | attach replacement, detach slot | `e2e/replace-detach.spec.js`, `canonical_app/lifecycle_test.exs` | Demo + adopter: blocking |
 | Operator doctor + runtime status | Host env | Mix task output on `/ops` | `e2e/ops-surfaces.spec.js`, `mix rindle.doctor` in install-smoke | Demo: blocking |
-| Owner erasure preview + execute | MinIO | preview/execute on `/account/:id/delete` | `e2e/owner-erasure.spec.js`, `canonical_app/lifecycle_test.exs` | Demo + adopter: blocking |
-| Docs / install parity | N/A | README + guides match generated smoke | `docs_parity_test.exs`, `check_docs_links.sh` | Merge-blocking (`proof`) |
-| Mux streaming browser path | Cassette / live | Generated app smoke only | `install_smoke.sh mux` | Structural blocking; live secret-gated |
-| GCS resumable browser path | Live | Generated app structural + optional live | `install_smoke.sh gcs`, `package-consumer-gcs-live` | Structural blocking; live secret-gated |
+| Batch owner erasure preview | MinIO | Ops UI batch preview | `e2e/batch-erasure.spec.js`, `mix rindle.batch_owner_erasure` | Demo + proof: blocking |
+| Owner erasure preview + execute | MinIO | preview `retained_shared_assets` + ops execute | `e2e/owner-erasure.spec.js`, `canonical_app/lifecycle_test.exs` | Demo + adopter: blocking |
+| Mux streaming browser path | Cassette | MuxWeb upload tab + provider sync attempt | `e2e/mux-streaming.spec.js`, `install_smoke.sh mux` | Demo (cassette) + install-smoke: blocking |
+| GCS resumable browser path | Live | Generated app + optional demo placeholder | `e2e/gcs-resumable.spec.js` (skip), `install_smoke.sh gcs`, `scripts/ci/adoption_demo_gcs_live.sh`, `package-consumer-gcs-live` | Live secret-gated |
+| Docs / install parity | N/A | README + guides match generated smoke | `docs_parity_test.exs`, `check_adoption_proof_matrix.sh` | Merge-blocking (`proof`) |
+| Local click-around preview | MinIO | Docker compose — Postgres + MinIO + seeded Cohort UI | `docker/compose.cohort-demo.yml`, `scripts/demo/up.sh` | Optional / not CI-blocking |
 
 ## Drift gate
 
 `scripts/maintainer/check_adoption_proof_matrix.sh` (run in `proof` job) asserts this file
 mentions the core proof lanes and E2E spec filenames so gaps stay visible in review.
 
-## Try the demo locally
+## Try the Cohort demo locally
+
+**Docker (preview):** from repo root, `./scripts/demo/up.sh` → http://localhost:4102
+
+**Native (hack / E2E):**
 
 ```bash
 bash scripts/ensure_minio.sh
 cd examples/adoption_demo && mix setup && mix phx.server
 ```
+
+Open http://localhost:4102 — dashboard shows members, lessons, posts, and upload lab tabs.
 
 See [`README.md`](../README.md) and [`guides/user_flows.md`](../../../guides/user_flows.md).

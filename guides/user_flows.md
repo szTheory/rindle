@@ -7,9 +7,10 @@ you're trying to do rather than by the module that does it.
 If you've just arrived, read [Getting Started](getting_started.html) first to wire up the
 basics, then come back here to see the breadth. If you're evaluating Rindle, start here.
 
-**Try the demo:** Maintainers can run a persistent browser host at
-[`examples/adoption_demo/`](../examples/adoption_demo/) (`mix setup && mix phx.server`, then
-`npm run e2e`). See [`examples/adoption_demo/docs/adoption-proof-matrix.md`](../examples/adoption_demo/docs/adoption-proof-matrix.md)
+**Try the Cohort demo:** From the repo root, `./scripts/demo/up.sh` (Docker preview) or
+[`examples/adoption_demo/`](../examples/adoption_demo/) native setup (`mix setup && mix phx.server`,
+then `npm run e2e` for maintainers). The dashboard seeds members, lessons, posts, and shared-media
+erasure stories. See [`examples/adoption_demo/docs/adoption-proof-matrix.md`](../examples/adoption_demo/docs/adoption-proof-matrix.md)
 for what each lane proves.
 
 ## The mental model in one paragraph
