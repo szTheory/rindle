@@ -2,6 +2,20 @@
 
 0.1.0-0.1.3 were release-pipeline shakedown iterations; treat 0.1.4 as the first recommended pin.
 
+## [0.1.10](https://github.com/szTheory/rindle/compare/rindle-v0.1.9...rindle-v0.1.10) (2026-05-30)
+
+
+### Features
+
+* **examples:** add adoption evidence E2E lab with merge-blocking CI ([71fd30e](https://github.com/szTheory/rindle/commit/71fd30e6e405b96a532f8e3f4902de278fd6506b))
+* **examples:** deepen Cohort adoption demo to 12 Playwright specs + Docker preview ([#20](https://github.com/szTheory/rindle/issues/20)) ([4ffcdf6](https://github.com/szTheory/rindle/commit/4ffcdf62f17e37a331e9d58cfbcfb60139bb2a7f))
+
+
+### Bug Fixes
+
+* **ci:** avoid duplicate adoption demo seed + port conflict ([fa33719](https://github.com/szTheory/rindle/commit/fa33719c709a4f3f25a61161420e739d9806d57e))
+* **ci:** start application before adoption demo seeds ([ca6671f](https://github.com/szTheory/rindle/commit/ca6671f2c16d6395d5c9e7606e403847b35ac96c))
+
 ## [0.1.9](https://github.com/szTheory/rindle/compare/rindle-v0.1.8...rindle-v0.1.9) (2026-05-28)
 
 
