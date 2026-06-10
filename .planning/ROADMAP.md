@@ -50,7 +50,7 @@ self-contained HTML brand book in `brandbook/`, and public-surface integration
   **Goal:** tokens.json/tokens.css (raw + semantic + states + dark mode + focus) with a
   passing WCAG AA contrast gate, rendered live by a professional self-contained
   single-page `brandbook/index.html` within a 1.5 MB budget.
-- [ ] Phase 85: Repo Surface Integration (0/2 plans) — BRAND-08 — *separable*
+- [x] Phase 85: Repo Surface Integration (2/2 plans) — BRAND-08 — completed 2026-06-10
   **Goal:** ex_doc logo/favicon, README header lockup (light/dark), regenerable 1280×640
   GitHub social preview; `mix docs` + proof lanes green; zero `lib/` changes.
 

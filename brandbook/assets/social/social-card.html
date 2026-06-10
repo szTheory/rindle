@@ -1,0 +1,58 @@
+<!doctype html>
+<!-- Source for github-social-preview.png (1280x640). Regenerate:
+     cd brandbook/src && node render.mjs ../assets/social/social-card.html ../assets/social/github-social-preview.png 1280 640 -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<style>
+  @font-face {
+    font-family: 'Space Grotesk';
+    src: url('../../fonts/SpaceGrotesk-var.woff2') format('woff2-variations');
+    font-weight: 300 700;
+  }
+  @font-face {
+    font-family: 'Atkinson Hyperlegible';
+    src: url('../../fonts/AtkinsonHyperlegible-Regular.woff2') format('woff2');
+  }
+  * { margin: 0; box-sizing: border-box; }
+  body {
+    width: 1280px; height: 640px;
+    background: var(--rindle-warm-shell);
+    font-family: 'Atkinson Hyperlegible', sans-serif;
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 0 110px;
+    position: relative; overflow: hidden;
+  }
+  .logo { height: 150px; align-self: flex-start; }
+  h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700; font-size: 58px;
+    color: var(--rindle-ink);
+    margin-top: 48px;
+  }
+  p { font-size: 26px; color: var(--rindle-slate); margin-top: 14px; max-width: 30ch; }
+  .rail {
+    position: absolute; left: 110px; bottom: 64px;
+    display: flex; align-items: center; gap: 0;
+    font-family: 'Space Grotesk', sans-serif; font-size: 19px; font-weight: 600;
+  }
+  .stop { display: flex; align-items: center; gap: 9px; color: var(--rindle-deep-current); }
+  .stop::before { content: ''; width: 11px; height: 11px; border-radius: 50%; background: var(--rindle-deep-current); }
+  .stop.green { color: var(--rindle-deep-current); }
+  .stop.green::before { background: var(--rindle-rindle-green); }
+  .link { width: 54px; height: 2.5px; background: var(--rindle-border-strong); margin: 0 14px; opacity: 0.55; }
+</style>
+</head>
+<body>
+  <img class="logo" src="../logo/rindle-logo.svg" alt="">
+  <h1>Media, made durable.</h1>
+  <p>Phoenix-native media lifecycle — from upload to ready asset.</p>
+  <div class="rail">
+    <span class="stop">Upload</span><span class="link"></span>
+    <span class="stop">Validate</span><span class="link"></span>
+    <span class="stop">Process</span><span class="link"></span>
+    <span class="stop green">Ready</span>
+  </div>
+</body>
+</html>

@@ -153,6 +153,9 @@ const favicon = `<?xml version="1.0" encoding="UTF-8"?>
 `;
 writeFileSync(join(outDir, 'favicon.svg'), favicon);
 
+// ExDoc sidebar logo: the sidebar is dark in BOTH ExDoc themes (0.40 layout),
+// so mix.exs points logo: at rindle-mark-dark.svg - no separate asset needed.
+
 // social avatar source: mark (dark scheme) centered on a Deep Current surface.
 // The filled square is the avatar SURFACE, not a container on the mark.
 const avatarMark = renderParts(e1.markParts, SCHEMES.dark);

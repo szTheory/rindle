@@ -1,3 +1,10 @@
+<p>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/szTheory/rindle/main/brandbook/assets/logo/rindle-logo-dark.svg">
+    <img src="https://raw.githubusercontent.com/szTheory/rindle/main/brandbook/assets/logo/rindle-logo.svg" alt="rindle" height="84">
+  </picture>
+</p>
+
 # Rindle
 
 [![CI](https://github.com/szTheory/rindle/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/szTheory/rindle/actions/workflows/ci.yml)

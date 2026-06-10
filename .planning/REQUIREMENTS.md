@@ -63,7 +63,7 @@ No feature phases. These document maintainer obligations during maintenance mode
 
 ### Integration (separable)
 
-- [ ] **BRAND-08**: Logo/favicon wired into ex_doc config in `mix.exs`, README header
+- [x] **BRAND-08**: Logo/favicon wired into ex_doc config in `mix.exs`, README header
   lockup (light/dark aware), and a regenerable 1280×640 GitHub social preview — with
   `mix docs` and existing proof lanes green and zero `lib/` changes.
 
@@ -126,7 +126,7 @@ No feature phases during demand-gated pause. Brand-track phases 81–85 are non-
 | BRAND-05 | Phase 84 | Satisfied (2026-06-10 tokens, 38/38 WCAG) |
 | BRAND-06 | Phase 84 | Satisfied (2026-06-10 brand book) |
 | BRAND-07 | Phase 84 | Satisfied (2026-06-10 budget gates) |
-| BRAND-08 | Phase 85 | Pending (separable) |
+| BRAND-08 | Phase 85 | Satisfied (2026-06-10 README/HexDocs/social) |
 | LIFE-06-* | v1.18+ (on signal) | Deferred |
 | STREAM-10-* | v1.18+ (on signal) | Deferred |
 | TRANS-01 | — | Deferred |

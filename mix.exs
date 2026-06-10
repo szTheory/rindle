@@ -122,6 +122,8 @@ defmodule Rindle.MixProject do
     [
       main: "Rindle",
       source_url: @source_url,
+      logo: "brandbook/assets/logo/rindle-mark-dark.svg",
+      favicon: "brandbook/assets/logo/favicon.svg",
       extras: [
         "README.md",
         "RUNNING.md",
