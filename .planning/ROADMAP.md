@@ -46,7 +46,7 @@ self-contained HTML brand book in `brandbook/`, and public-surface integration
 - [x] Phase 83: Logo System Refinement (2/2 plans) — BRAND-04 — completed 2026-06-10
   **Goal:** Winner refined into the full system — lockups (primary/mono/dark/subtitle),
   icon-only mark, favicon set, social avatar — 16px-legible, constraint-checked.
-- [ ] Phase 84: Design Tokens & HTML Brand Book (0/3 plans) — BRAND-05, BRAND-06, BRAND-07
+- [x] Phase 84: Design Tokens & HTML Brand Book (3/3 plans) — BRAND-05, BRAND-06, BRAND-07 — completed 2026-06-10
   **Goal:** tokens.json/tokens.css (raw + semantic + states + dark mode + focus) with a
   passing WCAG AA contrast gate, rendered live by a professional self-contained
   single-page `brandbook/index.html` within a 1.5 MB budget.

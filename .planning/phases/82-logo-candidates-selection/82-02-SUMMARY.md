@@ -8,7 +8,7 @@ one_liner: "Checkpoint complete in two rounds: user selected direction E (Conflu
 
 # 82-02 Summary
 
-Comparison sheet (`sheet.html` + committed `sheet.png` evidence) presented all five
+Comparison sheet (`sheet.html` + committed `sheet.jpg` evidence) presented all five
 directions with size ladder (true 16px in mock tab), four-background gauntlet, mono test,
 subtitle variant, and dark README mock.
 

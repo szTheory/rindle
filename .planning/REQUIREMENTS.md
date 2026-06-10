@@ -50,14 +50,14 @@ No feature phases. These document maintainer obligations during maintenance mode
 
 ### Tokens & Brand Book
 
-- [ ] **BRAND-05**: `brandbook/tokens/tokens.json` + `tokens.css` define raw values,
+- [x] **BRAND-05**: `brandbook/tokens/tokens.json` + `tokens.css` define raw values,
   semantic roles, interaction states, dark-mode set, and focus spec; WCAG AA contrast
   is programmatically verified with a passing run.
-- [ ] **BRAND-06**: A professional, self-contained, build-free static HTML brand book in
+- [x] **BRAND-06**: A professional, self-contained, build-free static HTML brand book in
   `brandbook/` covers brand DNA, logo usage/misuse, color, typography, iconography,
   imagery, voice/microcopy, marketing copy bank, component examples, and do/don'ts,
   embedding the committed SVGs and tokens.
-- [ ] **BRAND-07**: Repo hygiene holds — everything self-contained under `brandbook/`,
+- [x] **BRAND-07**: Repo hygiene holds — everything self-contained under `brandbook/`,
   SVG/text-first, raster only where a surface requires it, total ≤ 1.5 MB, no
   build-system dependencies — enforced by a check script.
 
@@ -123,9 +123,9 @@ No feature phases during demand-gated pause. Brand-track phases 81–85 are non-
 | BRAND-02 | Phase 81 | Satisfied (2026-06-10 direction lock) |
 | BRAND-03 | Phase 82 | Satisfied (2026-06-10 user selection: E e1) |
 | BRAND-04 | Phase 83 | Satisfied (2026-06-10 logo system) |
-| BRAND-05 | Phase 84 | Pending |
-| BRAND-06 | Phase 84 | Pending |
-| BRAND-07 | Phase 84 | Pending |
+| BRAND-05 | Phase 84 | Satisfied (2026-06-10 tokens, 38/38 WCAG) |
+| BRAND-06 | Phase 84 | Satisfied (2026-06-10 brand book) |
+| BRAND-07 | Phase 84 | Satisfied (2026-06-10 budget gates) |
 | BRAND-08 | Phase 85 | Pending (separable) |
 | LIFE-06-* | v1.18+ (on signal) | Deferred |
 | STREAM-10-* | v1.18+ (on signal) | Deferred |

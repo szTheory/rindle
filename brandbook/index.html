@@ -1,0 +1,537 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rindle Brand Book</title>
+<link rel="icon" href="assets/logo/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="tokens/tokens.css">
+<link rel="stylesheet" href="brand.css">
+</head>
+<body>
+
+<nav class="toc" aria-label="Sections">
+  <img class="mark" src="assets/logo/rindle-mark.svg" alt="">
+  <a href="#essence">01 · Essence</a>
+  <a href="#logo">02 · Logo</a>
+  <a href="#color">03 · Color</a>
+  <a href="#typography">04 · Typography</a>
+  <a href="#voice">05 · Voice &amp; writing</a>
+  <a href="#microcopy">06 · UX microcopy</a>
+  <a href="#components">07 · Components &amp; layout</a>
+  <a href="#imagery">08 · Imagery, icons, motion</a>
+  <a href="#applications">09 · Applications &amp; copy bank</a>
+  <a href="#dodont">10 · Do / Don't</a>
+</nav>
+
+<main>
+
+<!-- ============================================================ 00 cover -->
+<section class="cover">
+  <p class="kicker">Brand book · b1.0 · generated from tokens/tokens.json</p>
+  <p><img src="assets/logo/rindle-logo.svg" alt="rindle" style="height:108px"></p>
+  <h1 style="margin-top:24px">Media, made durable.</h1>
+  <p class="lede">Rindle is a Phoenix/Ecto-native media lifecycle library for turning uploads into
+  durable, secure, observable media assets. This book is the canonical brand system: every color,
+  type style, and component on this page is rendered live from the committed design tokens —
+  if it looks right here, it is right in the tokens.</p>
+</section>
+
+<!-- ============================================================ 01 essence -->
+<section id="essence">
+  <p class="kicker">01</p>
+  <h2>Essence</h2>
+
+  <h3>Positioning</h3>
+  <p>Rindle is a Phoenix-native media lifecycle library for turning uploads into durable, secure,
+  observable media assets. It manages everything after upload: staged objects, validation, analysis,
+  attachments, variants, derivatives, previews, background processing, signed delivery, cleanup,
+  regeneration, and operational visibility.</p>
+
+  <h3>Brand promise</h3>
+  <p><strong>Rindle makes media boringly reliable in production.</strong> Not flashy. Not magical.
+  Not a SaaS wrapper. Rindle is the dependable layer that helps Phoenix teams ship media features
+  without losing control of state, storage, security, or background jobs.</p>
+
+  <h3>The brand idea: a protected current</h3>
+  <p>A <em>rindle</em> is a small runnel or watercourse. Media enters as raw bytes. Rindle carries it
+  through validation, processing, storage, delivery, and maintenance. The system is calm, strict,
+  visible, and hard to derail. Use the metaphor subtly — Rindle guides media through a safe path
+  from upload to ready asset. Never make it look like a water company.</p>
+
+  <h3>Strategic pillars</h3>
+  <table>
+    <tr><th>Pillar</th><th>Message</th></tr>
+    <tr><td><strong>Durable, not disposable</strong></td><td>Upload is the beginning, not the lifecycle. Assets, attachments, variants, sessions, and processing runs are first-class records.</td></tr>
+    <tr><td><strong>Production-first</strong></td><td>Day-2 operations are part of the product: retries, stale variants, cleanup, missing objects, storage costs, queue visibility.</td></tr>
+    <tr><td><strong>Secure by default</strong></td><td>Strict defaults. Explicit escape hatches. Unknown files, dynamic transforms, and blind presigned URLs are treated as risks.</td></tr>
+    <tr><td><strong>Phoenix-native</strong></td><td>Built for Ecto, Phoenix, LiveView, Oban, and Telemetry — not merely adapted to them.</td></tr>
+    <tr><td><strong>Calm developer experience</strong></td><td>Clear APIs. Visible state. No hidden magic.</td></tr>
+  </table>
+
+  <h3>Personality</h3>
+  <table>
+    <tr><th>Axis</th><th>Rindle feels like</th><th>Rindle never feels like</th></tr>
+    <tr><td>Technical</td><td>Precise, explicit, inspectable</td><td class="dim">Clever, magical, opaque</td></tr>
+    <tr><td>Emotional</td><td>Calm, capable, grounded</td><td class="dim">Loud, hype-driven, frantic</td></tr>
+    <tr><td>OSS posture</td><td>Peer-to-peer, practical, generous</td><td class="dim">Corporate, salesy, inflated</td></tr>
+    <tr><td>Security</td><td>Strict, thoughtful, composed</td><td class="dim">Fearmongering, paranoid</td></tr>
+    <tr><td>Design</td><td>Warm technical minimalism</td><td class="dim">Cold enterprise dashboard</td></tr>
+    <tr><td>Writing</td><td>Clear, direct, confident</td><td class="dim">Cute, vague, slogan-heavy</td></tr>
+  </table>
+
+  <p><strong>Adjectives:</strong> reliable, clear, quiet, durable, native, secure, observable, composable.<br>
+  <strong>Anti-adjectives:</strong> magical, cloudy, slick, loud, playful-for-playful's-sake, enterprise-bland.</p>
+
+  <h3>Naming</h3>
+  <p>Use <strong>Rindle</strong> in prose. Use <code>rindle</code> only for the package, CLI commands,
+  repo names, config keys, and code. Never <code>RINDLE</code>, never "Rindle Media Manager Pro",
+  never "the Rindle Cloud". Use media-lifecycle vocabulary (asset, attachment, variant, recipe,
+  pipeline, session, delivery, cleanup); avoid identity/auth-protocol vocabulary.</p>
+</section>
+
+<!-- ============================================================ 02 logo -->
+<section id="logo">
+  <p class="kicker">02</p>
+  <h2>Logo</h2>
+
+  <p>The mark is a <strong>confluence</strong>: three tributaries — uploads, formats, sources — merge
+  into one durable current that runs on beneath the name. The mark and the logotype interlock; the
+  current passes below the baseline of <code>ri</code> and stops under the <code>i</code>. The top
+  tributary carries Rindle Green; everything else is Deep Current. Letters are outlined from
+  Space Grotesk Medium — no font dependency in any committed SVG.</p>
+
+  <div class="logo-grid">
+    <figure><div class="logo-tile on-shell"><img src="assets/logo/rindle-logo.svg" alt="Primary lockup"></div><figcaption>Primary lockup — <code>rindle-logo.svg</code></figcaption></figure>
+    <figure><div class="logo-tile on-ink"><img src="assets/logo/rindle-logo-dark.svg" alt="Dark lockup"></div><figcaption>Dark surfaces — <code>rindle-logo-dark.svg</code></figcaption></figure>
+    <figure><div class="logo-tile on-shell"><img src="assets/logo/rindle-logo-mono.svg" alt="Mono lockup" style="color:var(--rindle-ink)"></div><figcaption>Monochrome (currentColor) — <code>rindle-logo-mono.svg</code></figcaption></figure>
+    <figure><div class="logo-tile on-shell"><img src="assets/logo/rindle-logo-subtitle.svg" alt="Subtitle lockup"></div><figcaption>With subtitle — the <em>only</em> variant carrying the tagline</figcaption></figure>
+    <figure><div class="logo-tile on-shell"><img src="assets/logo/rindle-mark.svg" alt="Mark"></div><figcaption>Icon-only mark — <code>rindle-mark.svg</code></figcaption></figure>
+    <figure><div class="logo-tile on-deep"><img src="assets/logo/social-avatar.svg" alt="Avatar" style="max-height:84px;border-radius:14px"></div><figcaption>Social avatar — <code>avatar-512.png</code></figcaption></figure>
+  </div>
+
+  <h3>Construction rules</h3>
+  <ul>
+    <li><strong>Clearspace:</strong> keep a margin of half the mark's height on all sides. Exception by design: the current's under-run already interlocks with the type — never add other elements inside the clearspace.</li>
+    <li><strong>Minimum sizes:</strong> full lockup 96px wide; icon-only mark 24px; below that, use the favicon cut (two tributaries, heavier strokes — <code>favicon.svg</code>).</li>
+    <li><strong>Tagline:</strong> only <code>rindle-logo-subtitle.svg</code> carries "Media, made durable." The primary lockup never does.</li>
+    <li><strong>Color:</strong> green tributary + deep current on light; porcelain + green on dark; one-color mono anywhere those fail.</li>
+  </ul>
+
+  <h3>Misuse</h3>
+  <div class="dodont">
+    <div class="do"><h4>Do</h4><ul>
+      <li>Use the committed SVGs as-is; regenerate via <code>brandbook/src/logo.mjs</code></li>
+      <li>Let the current break the baseline — that boundary-break is the identity</li>
+      <li>Use the mono variant when color can't be guaranteed</li>
+    </ul></div>
+    <div class="dont"><h4>Don't</h4><ul>
+      <li>Put the mark in a box, badge, circle, or container of any kind</li>
+      <li>Separate the mark from the type with extra gap, or recolor strokes</li>
+      <li>Add taglines, gradients, shadows, or outlines</li>
+      <li>Use cloud-upload arrows, camera shutters, padlocks, database cylinders, AI sparkles, or purple potion motifs anywhere near the brand</li>
+    </ul></div>
+  </div>
+</section>
+
+<!-- ============================================================ 03 color -->
+<section id="color">
+  <p class="kicker">03</p>
+  <h2>Color</h2>
+
+  <p>Warm, technical, secure, alive. The signature is green-teal, but the system is mostly ink,
+  shell, and calm surfaces. Every pair below is enforced by <code>brandbook/src/contrast.mjs</code>
+  (WCAG 2.1 AA; ratios shown are measured, not aspirational — 38/38 pairs pass).</p>
+
+  <h3>Core palette</h3>
+  <div class="swatches">
+    <div class="swatch"><div class="chip" style="background:var(--rindle-ink)"></div><div class="meta"><div class="name">Ink</div><div class="hex">#101417</div><div class="ratio">16.82:1 on Warm Shell</div></div></div>
+    <div class="swatch"><div class="chip" style="background:var(--rindle-deep-current)"></div><div class="meta"><div class="name">Deep Current</div><div class="hex">#123A35</div><div class="ratio">11.34:1 on Warm Shell</div></div></div>
+    <div class="swatch"><div class="chip" style="background:var(--rindle-rindle-green)"></div><div class="meta"><div class="name">Rindle Green</div><div class="hex">#32D08C</div><div class="ratio">9.29:1 on Ink · accent-only on light</div></div></div>
+    <div class="swatch"><div class="chip" style="background:var(--rindle-rind-lime)"></div><div class="meta"><div class="name">Rind Lime</div><div class="hex">#CFEF6A</div><div class="ratio">14.29:1 on Ink · accent-only on light</div></div></div>
+    <div class="swatch"><div class="chip" style="background:var(--rindle-warm-shell)"></div><div class="meta"><div class="name">Warm Shell</div><div class="hex">#F7F4EA</div><div class="ratio">main surface</div></div></div>
+    <div class="swatch"><div class="chip" style="background:var(--rindle-porcelain)"></div><div class="meta"><div class="name">Porcelain</div><div class="hex">#FBFEFC</div><div class="ratio">cards, raised surfaces</div></div></div>
+    <div class="swatch"><div class="chip" style="background:var(--rindle-mist)"></div><div class="meta"><div class="name">Mist</div><div class="hex">#E3EAE5</div><div class="ratio">sunken surfaces, dividers</div></div></div>
+    <div class="swatch"><div class="chip" style="background:var(--rindle-slate)"></div><div class="meta"><div class="name">Slate</div><div class="hex">#52605A</div><div class="ratio">6.00:1 — secondary text</div></div></div>
+    <div class="swatch"><div class="chip" style="background:var(--rindle-border)"></div><div class="meta"><div class="name">Border</div><div class="hex">#D9E0DA</div><div class="ratio">decorative separators only</div></div></div>
+    <div class="swatch"><div class="chip" style="background:var(--rindle-border-strong)"></div><div class="meta"><div class="name">Border Strong</div><div class="hex">#75847B</div><div class="ratio">3.87:1 — input/control boundaries</div></div></div>
+  </div>
+
+  <h3>Status colors</h3>
+  <p>Status colors always travel with a label or icon — never color alone. Each has a chip tint
+  verified against its own text.</p>
+  <div class="frame">
+    <div class="frame-row">
+      <span class="chip ready">Ready</span>
+      <span class="chip processing">Processing</span>
+      <span class="chip warning">Stale</span>
+      <span class="chip danger">Failed</span>
+      <span class="chip quarantine">Quarantined</span>
+      <span class="chip info">Info</span>
+    </div>
+    <figcaption>Live chips — text on tint, every pair ≥ 4.5:1. Processing (#6D5DD3) passes on Warm Shell at 4.59:1 with 0.09 margin: frozen, never lighten.</figcaption>
+  </div>
+
+  <h3>Rules that are enforced, not suggested</h3>
+  <ul>
+    <li><strong>Rindle Green and Rind Lime are accent-only on light surfaces</strong> (measured 1.81:1 / 1.18:1). They are text-capable only on Ink and dark surfaces.</li>
+    <li><strong>Focus rings:</strong> Deep Current on light (11.34:1), Rindle Green on dark (9.38:1). Green-on-light fails the 3:1 non-text requirement — the seed's original rule was corrected by measurement.</li>
+    <li><strong>Inputs and controls use Border Strong</strong> (3.87:1). Plain Border is for decorative separators only — it fails WCAG 1.4.11 for meaningful boundaries.</li>
+    <li>Slides/projectors: rely on Ink-on-Shell or Shell-on-Deep-Current; never on the Shell-vs-Porcelain distinction.</li>
+  </ul>
+
+  <h3>Dark mode</h3>
+  <p>Dark is a first-class token set, not an inversion. The region below runs on
+  <code>[data-theme="dark"]</code> from the same stylesheet:</p>
+  <div class="frame dark" data-theme="dark" style="background:var(--rindle-surface)">
+    <div style="color:var(--rindle-text)">
+      <strong style="font-family:var(--rindle-font-display);font-size:18px">Dark surfaces</strong>
+      <p style="color:var(--rindle-text-secondary);font-size:14px;margin:6px 0 14px">Secondary text 8.69:1 · brand/accent = Rindle Green 9.38:1 · focus ring = Rindle Green</p>
+      <div class="frame-row">
+        <button class="btn primary" style="background:var(--rindle-brand);color:var(--rindle-ink)">Read the docs</button>
+        <span class="chip ready" style="color:var(--rindle-status-ready);background:transparent;border:1px solid var(--rindle-border-strong)">Ready</span>
+        <span class="chip processing" style="color:var(--rindle-status-processing);background:transparent;border:1px solid var(--rindle-border-strong)">Processing</span>
+        <span class="chip danger" style="color:var(--rindle-status-danger);background:transparent;border:1px solid var(--rindle-border-strong)">Failed</span>
+        <code style="color:var(--rindle-accent)">variant: :thumb</code>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ 04 typography -->
+<section id="typography">
+  <p class="kicker">04</p>
+  <h2>Typography</h2>
+
+  <p>Three open-source faces, each with one job. All are licensed under the SIL Open Font License
+  and committed to the repo (<code>brandbook/fonts/</code> with license texts).</p>
+
+  <table>
+    <tr><th>Role</th><th>Typeface</th><th>Why</th></tr>
+    <tr><td>Display / headings</td><td style="font-family:var(--rindle-font-display);font-weight:600">Space Grotesk</td><td class="dim">Technical, distinctive, warm — geometric without feeling corporate. For impact, never paragraphs.</td></tr>
+    <tr><td>Body / UI / docs</td><td style="font-family:var(--rindle-font-sans)">Atkinson Hyperlegible</td><td class="dim">Designed by the Braille Institute for maximum legibility — accessibility as a brand feature, on-brand for "durable".</td></tr>
+    <tr><td>Code / IDs / metrics</td><td style="font-family:var(--rindle-font-mono)">JetBrains Mono</td><td class="dim">Developer-native code legibility.</td></tr>
+  </table>
+
+  <h3>Scale</h3>
+  <div class="frame">
+    <div style="font-family:var(--rindle-font-display);font-size:var(--rindle-text-hero-size);line-height:var(--rindle-text-hero-line);font-weight:var(--rindle-text-hero-weight)">Media, made durable.</div>
+    <div style="font-family:var(--rindle-font-display);font-size:var(--rindle-text-h1-size);font-weight:var(--rindle-text-h1-weight);margin-top:18px">H1 — The media lifecycle for Phoenix</div>
+    <div style="font-family:var(--rindle-font-display);font-size:var(--rindle-text-h2-size);font-weight:var(--rindle-text-h2-weight);margin-top:14px">H2 — Variants are records</div>
+    <div style="font-family:var(--rindle-font-display);font-size:var(--rindle-text-h3-size);font-weight:var(--rindle-text-h3-weight);margin-top:12px">H3 — Processing is idempotent</div>
+    <p style="margin-top:12px">Body 17/1.6 — Rindle stores variants as records, not hidden filenames, so failed and stale outputs are visible. Direct uploads are sessions; nothing is attached until completion is verified.</p>
+    <p style="font-size:var(--rindle-text-small-size);line-height:var(--rindle-text-small-line);color:var(--rindle-text-secondary)">Small 14/1.45 — metadata, captions, table text.</p>
+    <code>code 14/1.55 — Rindle.Profile, recipe_digest, mix rindle.cleanup_orphans</code>
+  </div>
+
+  <ul>
+    <li>Sentence case for headings and UI labels; all-caps only for tiny labels.</li>
+    <li>Docs prose measure: 68–78ch.</li>
+    <li>Mono for code, object keys, checksums, event names, telemetry paths, recipe digests.</li>
+  </ul>
+</section>
+
+<!-- ============================================================ 05 voice -->
+<section id="voice">
+  <p class="kicker">05</p>
+  <h2>Voice &amp; writing</h2>
+
+  <p><strong>Voice formula:</strong> clear technical explanation + production empathy + calm confidence.
+  Rindle writes like an experienced Phoenix maintainer explaining hard-won production lessons to
+  another developer.</p>
+
+  <div class="voice-pair">
+    <div>
+      <blockquote>Rindle stores variants as records, not hidden filenames, so failed and stale outputs are visible.</blockquote>
+      <figcaption>Explains state. Names the mechanism.</figcaption>
+    </div>
+    <div>
+      <blockquote class="bad">Rindle magically handles all your media!</blockquote>
+      <figcaption>Magic is an anti-word.</figcaption>
+    </div>
+  </div>
+  <div class="voice-pair">
+    <div>
+      <blockquote>This variant is stale because its recipe changed. Regenerate it to update the stored output.</blockquote>
+      <figcaption>What happened, why, what to do next.</figcaption>
+    </div>
+    <div>
+      <blockquote class="bad">Never worry about uploads again.</blockquote>
+      <figcaption>Overpromise. Rindle is a library, not a media company.</figcaption>
+    </div>
+  </div>
+
+  <h3>Writing principles</h3>
+  <ol>
+    <li><strong>Explain state.</strong> Users should always know what happened, what is happening, and what to do next.</li>
+    <li><strong>Name the footgun.</strong> Don't hide risks; explain them calmly.</li>
+    <li><strong>Verbs over abstractions.</strong> "Regenerate stale variants", not "perform maintenance".</li>
+    <li><strong>Concrete examples.</strong> Avatars, product photos, private documents, galleries.</li>
+    <li><strong>Never overpromise.</strong></li>
+  </ol>
+
+  <h3>Docs tone</h3>
+  <p>Practical, copy-pasteable, production-aware, honest about tradeoffs, structured around real
+  Phoenix workflows. Guides follow: what you'll build → when to use this → install/configure →
+  define the profile → attach or upload → render or deliver → process in the background →
+  failure modes → production notes → full example.</p>
+
+  <h3>Slogans (use sparingly)</h3>
+  <p class="dim">Upload is the beginning, not the lifecycle. · Variants are records. · Recipes are
+  versioned. · Processing is idempotent. · Storage I/O is not a database transaction. · Missing
+  media should be visible. · Strict defaults, explicit escape hatches.</p>
+</section>
+
+<!-- ============================================================ 06 microcopy -->
+<section id="microcopy">
+  <p class="kicker">06</p>
+  <h2>UX microcopy</h2>
+
+  <h3>Buttons — direct action labels</h3>
+  <div class="frame">
+    <div class="frame-row">
+      <button class="btn primary">Attach asset</button>
+      <button class="btn primary">Regenerate stale variants</button>
+      <button class="btn secondary">Verify storage</button>
+      <button class="btn secondary">Copy signed URL</button>
+      <button class="btn danger-outline">Purge asset</button>
+      <button class="btn" disabled>Release from quarantine</button>
+    </div>
+    <figcaption>Never: Go, Submit, Process, Fix, Continue, Manage.</figcaption>
+  </div>
+
+  <h3>Status vocabulary</h3>
+  <table>
+    <tr><th>Surface</th><th>States</th></tr>
+    <tr><td>Asset</td><td><code>Staged · Validating · Analyzing · Promoting · Available · Processing · Ready · Degraded · Quarantined · Rejected · Detached · Purging · Deleted</code></td></tr>
+    <tr><td>Variant</td><td><code>Planned · Queued · Processing · Ready · Stale · Missing · Failed · Purging · Purged</code></td></tr>
+    <tr><td>Upload session</td><td><code>Initialized · Signed · Uploading · Uploaded · Verifying · Completed · Aborted · Expired · Failed</code></td></tr>
+  </table>
+
+  <h3>Empty states</h3>
+  <table>
+    <tr><td><strong>No assets</strong></td><td class="dim">No media assets yet. Upload a file or attach an existing asset to start building this collection.</td></tr>
+    <tr><td><strong>No variants</strong></td><td class="dim">No variants have been generated. Define named variants in this profile, then enqueue processing.</td></tr>
+    <tr><td><strong>No failed runs</strong></td><td class="dim">No failed processing runs. Recent jobs completed without recorded errors.</td></tr>
+    <tr><td><strong>No orphans</strong></td><td class="dim">No orphaned objects found. Expired staged uploads and detached files are currently clean.</td></tr>
+  </table>
+
+  <h3>Error messages — state + cause + next action</h3>
+  <table>
+    <tr><td><strong>MIME mismatch</strong></td><td class="dim">This file says it is image/jpeg, but its contents look like image/png. Upload a valid file or allow this type in the profile.</td></tr>
+    <tr><td><strong>Too large</strong></td><td class="dim">This file is larger than the Avatar profile allows. Maximum size: 8 MB.</td></tr>
+    <tr><td><strong>Variant stale</strong></td><td class="dim">This variant was generated from an older recipe. Regenerate it to match the current profile.</td></tr>
+    <tr><td><strong>Missing object</strong></td><td class="dim">Rindle has a record for this object, but storage did not return the file. Verify storage or regenerate the variant.</td></tr>
+    <tr><td><strong>Quarantined</strong></td><td class="dim">This asset is quarantined and cannot be delivered until it is reviewed or released.</td></tr>
+  </table>
+
+  <h3>Confirmation modals — precise, non-alarmist</h3>
+  <div class="frame" style="max-width:520px">
+    <h3 style="margin-top:0">Purge this asset?</h3>
+    <p style="font-size:15px">The asset record will be marked for deletion and Rindle will enqueue storage
+    cleanup. This action may remove the original file and generated variants.</p>
+    <div class="frame-row"><button class="btn secondary">Cancel</button><button class="btn danger-outline">Purge asset</button></div>
+  </div>
+
+  <p><strong>Toasts:</strong> <span class="dim">Variant regeneration queued. · Expired upload sessions
+  cleaned up. · Asset attached. · Asset detached; purge has been queued. · Signed URL copied.</span></p>
+</section>
+
+<!-- ============================================================ 07 components -->
+<section id="components">
+  <p class="kicker">07</p>
+  <h2>Components &amp; layout</h2>
+
+  <p>Rindle UI feels like a <strong>calm operations console plus polished developer docs</strong>.
+  Generous whitespace around concepts; dense structured tables for operational views; borders over
+  shadows; status chips everywhere state matters.</p>
+
+  <h3>Shape language</h3>
+  <table>
+    <tr><th>Element</th><th>Radius token</th><th>Value</th></tr>
+    <tr><td>Small controls</td><td><code>--rindle-radius-control-sm</code></td><td>8px</td></tr>
+    <tr><td>Inputs / buttons</td><td><code>--rindle-radius-control</code></td><td>10px</td></tr>
+    <tr><td>Cards</td><td><code>--rindle-radius-card</code></td><td>14px</td></tr>
+    <tr><td>Feature panels</td><td><code>--rindle-radius-panel</code></td><td>20px</td></tr>
+    <tr><td>Pills / chips</td><td><code>--rindle-radius-pill</code></td><td>999px</td></tr>
+  </table>
+
+  <h3>Inputs</h3>
+  <div class="frame">
+    <div class="frame-row">
+      <input class="input" placeholder="Search assets…" aria-label="Search assets">
+      <input class="input" value="avatar-7f3a9c.webp" aria-label="Filename">
+      <button class="btn primary">Start upload</button>
+    </div>
+    <figcaption>Border Strong boundaries (3.87:1); Deep Current focus ring; error states pair icon + message, never a red border alone.</figcaption>
+  </div>
+
+  <h3>Asset card</h3>
+  <div class="card">
+    <h4>avatar-7f3a9c.webp <span class="chip ready">Ready</span></h4>
+    <dl class="kv">
+      <dt>profile</dt><dd>Avatar</dd>
+      <dt>storage</dt><dd>s3://prod-media/a7/f3…</dd>
+      <dt>digest</dt><dd><code>rcp_9d41e2</code></dd>
+      <dt>size</dt><dd>184 KB · image/webp</dd>
+    </dl>
+  </div>
+  <figcaption>Porcelain surface, subtle border, status chip top-right, mono for keys and IDs, truncated digests with copy action.</figcaption>
+
+  <h3>Lifecycle rail — signature pattern</h3>
+  <div class="frame">
+    <div class="rail">
+      <span class="stop done">Upload</span><span class="link"></span>
+      <span class="stop done">Validate</span><span class="link"></span>
+      <span class="stop done">Analyze</span><span class="link"></span>
+      <span class="stop done">Promote</span><span class="link"></span>
+      <span class="stop now">Process</span><span class="link"></span>
+      <span class="stop">Ready</span>
+    </div>
+    <figcaption>The lifecycle rail, the variant matrix, the asset card, the processing timeline, and the recipe diff are Rindle's recognizable interface patterns.</figcaption>
+  </div>
+
+  <h3>Code blocks</h3>
+  <pre class="code"><span class="c"># A profile is the contract for one kind of media</span>
+defmodule MyApp.Media.Avatar <span class="k">do</span>
+  <span class="k">use</span> Rindle.Profile
+
+  accepts <span class="s">:image</span>,
+    content_types: ~w(image/jpeg image/png image/webp),
+    max_bytes: 8 * 1024 * 1024
+
+  variants <span class="k">do</span>
+    image <span class="s">:thumb</span>,   width: 160, height: 160, fit: <span class="s">:cover</span>, format: <span class="s">:webp</span>
+    image <span class="s">:profile</span>, width: 512, height: 512, fit: <span class="s">:cover</span>, format: <span class="s">:webp</span>
+  <span class="k">end</span>
+<span class="k">end</span></pre>
+  <figcaption>Code BG surface, restrained highlighting (no rainbow themes), copy button on hover and keyboard focus.</figcaption>
+
+  <h3>Tables</h3>
+  <ul>
+    <li>Sticky header for long tables; status chip in the first visible columns.</li>
+    <li>Monospace IDs, truncated, with a copy action.</li>
+    <li>Human-readable time with the exact timestamp on hover.</li>
+    <li>Bulk actions appear only after selection.</li>
+  </ul>
+</section>
+
+<!-- ============================================================ 08 imagery -->
+<section id="imagery">
+  <p class="kicker">08</p>
+  <h2>Imagery, iconography &amp; motion</h2>
+
+  <h3>Acceptable imagery</h3>
+  <p>Mostly abstract, technical: layer diagrams, branching variant maps, state machines, processing
+  timelines, storage topology, cropped UI screenshots, code + output compositions, subtle channel /
+  current lines. Warm neutral backgrounds, thin lines, rounded containers, small accents of Rindle
+  Green or Rind Lime, clear labels.</p>
+  <p><strong>Never:</strong> stock photos of photographers, people staring at laptops, upload-cloud
+  illustrations, AI-generated glossy 3D blobs, literal rivers and waterfalls, hacker imagery,
+  corporate blue dashboards, camera-brand identity.</p>
+
+  <h3>Diagram rules</h3>
+  <ul>
+    <li>Every diagram teaches one lifecycle idea; every state is labeled.</li>
+    <li>Solid lines for required/eager work; dashed lines for async/lazy work.</li>
+    <li>Muted colors for inactive states; semantic colors only with labels.</li>
+    <li>Arrows sparingly and consistently.</li>
+  </ul>
+
+  <h3>Iconography</h3>
+  <p>Rounded line icons on a 24px grid: 2px stroke, rounded caps and joins, minimal fill, optical
+  balance over strict geometry, legible at 16/20/24px. Icon needs: asset, attachment, variant,
+  pipeline, processor, storage, signed URL, quarantine, retry, regenerate, cleanup, stale, missing,
+  ready. Status icons always pair with labels. <em>(Drawing the set is deliberately out of b1.0
+  scope — this grid spec governs it when it happens.)</em></p>
+
+  <h3>Motion</h3>
+  <p>Materialization, not entertainment. Durations are tokens:
+  press <code>120ms</code> · popover <code>160ms</code> · toast <code>200ms</code> ·
+  lifecycle transition <code>300ms</code> · diagram <code>600ms</code>, easing
+  <code>cubic-bezier(0.2, 0, 0, 1)</code>. Respect <code>prefers-reduced-motion</code>; no bouncing;
+  status changes are never playful; async processing shows real state, not fake progress.</p>
+</section>
+
+<!-- ============================================================ 09 applications -->
+<section id="applications">
+  <p class="kicker">09</p>
+  <h2>Applications &amp; copy bank</h2>
+
+  <h3>Surfaces</h3>
+  <table>
+    <tr><th>Surface</th><th>Treatment</th></tr>
+    <tr><td>GitHub README</td><td class="dim">Dark/light header lockup via <code>&lt;picture&gt;</code>, then: "Media, made durable." + the one-paragraph description + a compact profile example within the first screen.</td></tr>
+    <tr><td>HexDocs</td><td class="dim"><code>rindle-mark.svg</code> as ex_doc logo, <code>favicon.ico/svg</code> as favicon.</td></tr>
+    <tr><td>Social preview</td><td class="dim">Warm Shell background, Deep Current lockup, one line: "Media, made durable." Small lifecycle strip. No busy screenshots, no unreadable code.</td></tr>
+    <tr><td>Hex/GitHub avatar</td><td class="dim"><code>avatar-512.png</code> — mark on Deep Current.</td></tr>
+    <tr><td>Conference slides</td><td class="dim">Ink on Warm Shell or Shell on Deep Current; lockup in a corner at clearspace; never rely on Shell-vs-Porcelain contrast on projectors.</td></tr>
+  </table>
+
+  <h3>Copy bank — ready to paste</h3>
+  <table>
+    <tr><td><strong>One-liner</strong></td><td class="dim">Rindle is a Phoenix/Ecto-native media lifecycle library for turning uploads into durable, secure, observable media assets.</td></tr>
+    <tr><td><strong>GitHub repo description</strong></td><td class="dim">Media, made durable. Phoenix/Ecto-native media lifecycle: uploads, attachments, variants, previews, background processing, secure delivery, and day-2 operations.</td></tr>
+    <tr><td><strong>Hex package description</strong></td><td class="dim">Phoenix-native media lifecycle library — staged uploads, validation, attachments, versioned variant recipes, Oban processing, signed delivery, cleanup, and operational visibility.</td></tr>
+    <tr><td><strong>Hero lines</strong></td><td class="dim">Media, made durable. · The media lifecycle for Phoenix. · Uploads are only the beginning. · From upload to ready.</td></tr>
+    <tr><td><strong>CTAs</strong></td><td class="dim">Read the docs · View on GitHub · Install Rindle</td></tr>
+  </table>
+
+  <h3>Proof points (product proof, not hype)</h3>
+  <ul>
+    <li>Variants are queryable records; recipes are versioned so stale outputs are visible.</li>
+    <li>Direct uploads are sessions, verified before attachment — not blind presigned URLs.</li>
+    <li>Storage cleanup is explicit and idempotent; processing failures are visible.</li>
+    <li>Strict validation, generated storage keys, signed delivery, scanner hooks.</li>
+    <li>Regenerate stale variants, retry failed runs, verify storage, find orphans before they become a bill.</li>
+  </ul>
+</section>
+
+<!-- ============================================================ 10 do/don't -->
+<section id="dodont">
+  <p class="kicker">10</p>
+  <h2>Do / Don't</h2>
+
+  <div class="dodont">
+    <div class="do"><h4>Do</h4><ul>
+      <li>Use Rindle as a calm infrastructure brand</li>
+      <li>Use lifecycle diagrams and real state names</li>
+      <li>Use strict, practical security language</li>
+      <li>Use warm technical colors and readable type</li>
+      <li>Show code examples early; show admin/operations value</li>
+      <li>Explain failure modes</li>
+    </ul></div>
+    <div class="dont"><h4>Don't</h4><ul>
+      <li>Make it look like a photo app or a cloud-storage SaaS</li>
+      <li>Overuse water imagery, locks, or shields</li>
+      <li>Use AI-sparkle imagery as the brand</li>
+      <li>Say "magic" or "never worry again"; hide tradeoffs</li>
+      <li>Use color as the only status indicator</li>
+      <li>Use generic purple Elixir branding</li>
+    </ul></div>
+  </div>
+
+  <h3>LLM context capsule</h3>
+  <p class="dim" style="font-size:14px">Rindle is an open-source Phoenix/Ecto-native media lifecycle
+  library. Not just file upload: upload sessions, staged objects, validation, analysis, assets,
+  attachments, variants/derivatives/previews, background processing, secure delivery, telemetry,
+  cleanup, regeneration, day-2 operations. Brand essence: "Media, made durable." Personality: calm,
+  precise, production-aware, secure-by-default, OSS-native, warm technical minimalism. Logo:
+  confluence mark — three tributaries merging into one current that interlocks with the lowercase
+  <code>rindle</code> wordmark (Space Grotesk, outlined); no containers, no subtitle on the main
+  lockup. Palette: Ink #101417, Deep Current #123A35, Rindle Green #32D08C (accent-only on light),
+  Rind Lime #CFEF6A, Warm Shell #F7F4EA, Porcelain #FBFEFC, Slate #52605A; Border Strong #75847B
+  for inputs; focus = Deep Current on light / Rindle Green on dark. Type: Space Grotesk display,
+  Atkinson Hyperlegible body, JetBrains Mono code. Voice: developer-to-developer, explain state,
+  name the footgun, never overpromise. Avoid: hype, magic, cloud-upload clichés, camera/photo
+  identity, auth/identity vocabulary, AI-sparkle branding, purple Elixir motifs, containers around
+  the mark, color-only status.</p>
+
+  <p class="dim" style="margin-top:48px;font-size:12.5px">Rindle brand book b1.0 · 2026 ·
+  regenerate assets with <code>brandbook/src/*.mjs</code> · tokens are the source of truth ·
+  fonts: SIL OFL (license texts in <code>brandbook/fonts/</code>)</p>
+</section>
+
+</main>
+</body>
+</html>
