@@ -28,12 +28,12 @@ No feature phases. These document maintainer obligations during maintenance mode
 
 ### Brand Audit
 
-- [ ] **BRAND-01**: Maintainer pressure-tests `prompts/rindle-brand-book.md` with
+- [x] **BRAND-01**: Maintainer pressure-tests `prompts/rindle-brand-book.md` with
   KEEP/TIGHTEN/REWORK/ADD/REMOVE verdicts across ten lenses (distinctiveness, dev
   credibility, Elixir ecosystem fit, graphic design quality, UI/UX buildout,
   accessibility, voice/microcopy, marketing, artifact readiness, naming/legal posture);
   every major seed section receives a verdict with rationale.
-- [ ] **BRAND-02**: One locked brand direction exists — final palette, type stack, voice
+- [x] **BRAND-02**: One locked brand direction exists — final palette, type stack, voice
   posture, and the adoption-demo placeholder-logo conflict resolved — with every seed
   revision justified by a named audit-lens failure.
 
@@ -119,8 +119,8 @@ No feature phases during demand-gated pause. Brand-track phases 81–85 are non-
 | PAUSE-01 | — | Satisfied (maintenance mode) |
 | PAUSE-02 | — | Satisfied (threads canonical) |
 | PAUSE-03 | — | Satisfied (2026-05-27 formalization) |
-| BRAND-01 | Phase 81 | Pending |
-| BRAND-02 | Phase 81 | Pending |
+| BRAND-01 | Phase 81 | Satisfied (2026-06-10 audit) |
+| BRAND-02 | Phase 81 | Satisfied (2026-06-10 direction lock) |
 | BRAND-03 | Phase 82 | Pending |
 | BRAND-04 | Phase 83 | Pending |
 | BRAND-05 | Phase 84 | Pending |

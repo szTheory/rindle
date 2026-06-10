@@ -35,10 +35,10 @@ and build the committed brand system: user-selected logo system, verified design
 self-contained HTML brand book in `brandbook/`, and public-surface integration
 (README / HexDocs / social preview).
 
-- [ ] Phase 81: Brand Audit & Direction Lock (0/2 plans) — BRAND-01, BRAND-02
+- [x] Phase 81: Brand Audit & Direction Lock (2/2 plans) — BRAND-01, BRAND-02 — completed 2026-06-10
   **Goal:** Seed pressure-tested into one locked direction (ten-lens
   KEEP/TIGHTEN/REWORK/ADD/REMOVE audit; placeholder-logo conflict resolved; name risk
-  flagged human-review-only).
+  flagged human-review-only). Audit: `.planning/research/b1.0-brand-audit.md`.
 - [ ] Phase 82: Logo Candidates & User Selection (0/2 plans) — BRAND-03 — **CHECKPOINT**
   **Goal:** User picks the logo direction from 5 genuinely distinct committed SVG
   candidates (≥2 integrated typemarks; no containers; tight type; no subtitle on main
