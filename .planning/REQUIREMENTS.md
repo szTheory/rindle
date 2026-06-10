@@ -1,12 +1,8 @@
 # Requirements: Rindle
 
-**Defined:** 2026-05-27 (b1.0 brand track added 2026-06-10)
-**Milestone:** b1.0 Brand Foundations (brand track — feature pause remains active)
+**Defined:** 2026-05-27
+**Milestone:** Demand-gated pause (no feature charter; b1.0 brand track shipped 2026-06-10)
 **Core Value:** Media, made durable.
-
-> b1.0 is a non-feature brand-track milestone. Zero public API, zero `lib/` changes.
-> The demand-gated pause for feature work (PAUSE-01..03) remains active; v1.18+ remains
-> reserved for LIFE-06/STREAM-10.
 
 ## Pause Posture Requirements
 
@@ -24,48 +20,10 @@ No feature phases. These document maintainer obligations during maintenance mode
   with no active **feature** phases until LIFE-06 or STREAM-10 signal (brand-track
   phases 81–85 are non-feature).
 
-## b1.0 Brand Track Requirements
+## Shipped Non-Feature Tracks
 
-### Brand Audit
-
-- [x] **BRAND-01**: Maintainer pressure-tests `prompts/rindle-brand-book.md` with
-  KEEP/TIGHTEN/REWORK/ADD/REMOVE verdicts across ten lenses (distinctiveness, dev
-  credibility, Elixir ecosystem fit, graphic design quality, UI/UX buildout,
-  accessibility, voice/microcopy, marketing, artifact readiness, naming/legal posture);
-  every major seed section receives a verdict with rationale.
-- [x] **BRAND-02**: One locked brand direction exists — final palette, type stack, voice
-  posture, and the adoption-demo placeholder-logo conflict resolved — with every seed
-  revision justified by a named audit-lens failure.
-
-### Logo System
-
-- [x] **BRAND-03**: User selects the logo direction from 4–6 committed, genuinely distinct
-  SVG candidates (≥2 integrated custom typemarks; no background containers; tight
-  logotype; no subtitle on main lockups) presented via a visual sheet at an
-  execute-phase checkpoint; selection recorded as a decision.
-- [x] **BRAND-04**: Winning direction is refined into a full system — primary lockup,
-  icon-only mark, monochrome, dark/light treatments, favicon, social avatar,
-  with-subtitle variant — all valid standalone SVGs honoring the hard constraints,
-  icon legible at 16px.
-
-### Tokens & Brand Book
-
-- [x] **BRAND-05**: `brandbook/tokens/tokens.json` + `tokens.css` define raw values,
-  semantic roles, interaction states, dark-mode set, and focus spec; WCAG AA contrast
-  is programmatically verified with a passing run.
-- [x] **BRAND-06**: A professional, self-contained, build-free static HTML brand book in
-  `brandbook/` covers brand DNA, logo usage/misuse, color, typography, iconography,
-  imagery, voice/microcopy, marketing copy bank, component examples, and do/don'ts,
-  embedding the committed SVGs and tokens.
-- [x] **BRAND-07**: Repo hygiene holds — everything self-contained under `brandbook/`,
-  SVG/text-first, raster only where a surface requires it, total ≤ 1.5 MB, no
-  build-system dependencies — enforced by a check script.
-
-### Integration (separable)
-
-- [x] **BRAND-08**: Logo/favicon wired into ex_doc config in `mix.exs`, README header
-  lockup (light/dark aware), and a regenerable 1280×640 GitHub social preview — with
-  `mix docs` and existing proof lanes green and zero `lib/` changes.
+- **b1.0 Brand Foundations** (2026-06-10): BRAND-01..08 validated 8/8 — archived at
+  `.planning/milestones/b1.0-REQUIREMENTS.md` ([audit](milestones/b1.0-MILESTONE-AUDIT.md)).
 
 ## Future Requirements (demand-gated)
 
@@ -112,21 +70,13 @@ Open only via `/gsd-new-milestone` with documented signal:
 
 ## Traceability
 
-No feature phases during demand-gated pause. Brand-track phases 81–85 are non-feature.
+No feature phases during demand-gated pause. (b1.0 brand-track rows archived.)
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | PAUSE-01 | — | Satisfied (maintenance mode) |
 | PAUSE-02 | — | Satisfied (threads canonical) |
 | PAUSE-03 | — | Satisfied (2026-05-27 formalization) |
-| BRAND-01 | Phase 81 | Satisfied (2026-06-10 audit) |
-| BRAND-02 | Phase 81 | Satisfied (2026-06-10 direction lock) |
-| BRAND-03 | Phase 82 | Satisfied (2026-06-10 user selection: E e1) |
-| BRAND-04 | Phase 83 | Satisfied (2026-06-10 logo system) |
-| BRAND-05 | Phase 84 | Satisfied (2026-06-10 tokens, 38/38 WCAG) |
-| BRAND-06 | Phase 84 | Satisfied (2026-06-10 brand book) |
-| BRAND-07 | Phase 84 | Satisfied (2026-06-10 budget gates) |
-| BRAND-08 | Phase 85 | Satisfied (2026-06-10 README/HexDocs/social) |
 | LIFE-06-* | v1.18+ (on signal) | Deferred |
 | STREAM-10-* | v1.18+ (on signal) | Deferred |
 | TRANS-01 | — | Deferred |
@@ -134,10 +84,10 @@ No feature phases during demand-gated pause. Brand-track phases 81–85 are non-
 
 **Coverage:**
 - Pause requirements: 3 total (documentation/posture)
-- Brand-track requirements: 8 total, 8 mapped to phases 81–85, 0 unmapped
+- Brand-track requirements: 8/8 validated and archived (b1.0)
 - Feature requirements: 0 active phases
 - Unmapped feature reqs: N/A until demand signal
 
 ---
 *Requirements defined: 2026-05-27*
-*Last updated: 2026-06-10 — b1.0 Brand Foundations charter (non-feature brand track)*
+*Last updated: 2026-06-10 — b1.0 Brand Foundations shipped and archived; pause posture resumes*

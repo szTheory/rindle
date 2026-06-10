@@ -1,15 +1,12 @@
 # Rindle
 
-## Current Milestone: b1.0 Brand Foundations (brand track)
+## Current Milestone: Demand-gated pause
 
-**Opened:** 2026-06-10 — non-feature brand track, phases 81–85
-
-**Goal:** Pressure-test the AI-generated brand book seed (`prompts/rindle-brand-book.md`)
-and ship the committed Rindle brand system: user-selected logo system, WCAG-verified
-design tokens, a self-contained HTML brand book in `brandbook/`, and README/HexDocs/social
-integration. Zero public API, zero `lib/` changes.
-
-**Active requirements:** BRAND-01..08 (see `.planning/REQUIREMENTS.md`).
+**Last shipped:** b1.0 Brand Foundations (2026-06-10) — non-feature brand track,
+phases 81–85, BRAND-01..08 validated 8/8. Committed brand system in `brandbook/`:
+user-selected Confluence logo, WCAG-verified design tokens, self-contained HTML brand
+book, README/HexDocs/social integration. Zero public API, zero `lib/` changes.
+Archive: `.planning/milestones/b1.0-*`.
 
 ## Feature Posture: Demand-gated pause (remains active)
 
