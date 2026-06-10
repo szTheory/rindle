@@ -199,34 +199,55 @@ export function outflowE(word) {
 //    interlock instead of sitting apart (boundary-break, no container).
 // ---------------------------------------------------------------------------
 
-export function confluence(word) {
+export function confluence(word, opts = {}) {
+  const {
+    exitAccent = false, // the merged current takes Rindle Green
+    topAccent = !opts.exitAccent, // default: top tributary carries the green
+    bead = null, // {x, y} - carried asset riding the merged current
+    runEnd = 140, // where the under-run stops (140 = under the i)
+    river = false, // river-junction tributaries instead of parallel currents
+    exitSw = 10.5,
+  } = opts;
+
   const sw = 6.5;
-  const inTop = 'M 0 -59 C 14 -59 28 -54 39 -46.5';
-  const inMid = 'M 6 -43.5 C 17 -43.5 28 -43.5 39 -43.5';
-  const inBot = 'M 0 -28 C 14 -28 28 -33 39 -40.5';
+  const inTop = river
+    ? 'M 5 -64 C 16 -60 27 -54 37 -47.5'
+    : 'M 0 -59 C 14 -59 28 -54 39 -46.5';
+  const inMid = river
+    ? 'M 0 -43.5 C 13 -43.5 26 -43.5 39 -43.5'
+    : 'M 6 -43.5 C 17 -43.5 28 -43.5 39 -43.5';
+  const inBot = river
+    ? 'M 9 -19 C 18 -24 28 -32 37 -39.5'
+    : 'M 0 -28 C 14 -28 28 -33 39 -40.5';
   // merged current: heavier, sweeps down past the baseline and runs clear
-  // beneath the first letters of the wordmark, ending under the i
+  // beneath the first letters of the wordmark
   const exit =
     'M 40 -43.5 ' +
     'C 53 -43 60 -36 63.5 -26 ' +
     'C 67.5 -14 74 -2 87 3.5 ' +
     'C 98 8 110 9.5 122 9.5 ' +
-    'L 140 9.5';
+    `L ${runEnd} 9.5`;
 
   const markW = 64;
   const wordX = markW + 14; // tighter than MARK_GAP: the exit interlocks
   const parts = [
-    { d: inTop, stroke: true, sw, role: 'accent' },
+    { d: inTop, stroke: true, sw, role: topAccent ? 'accent' : undefined },
     { d: inMid, stroke: true, sw },
     { d: inBot, stroke: true, sw },
-    { d: exit, stroke: true, sw: 10.5 },
+    { d: exit, stroke: true, sw: exitSw, role: exitAccent ? 'accent' : undefined },
     { d: word.d, fill: true, dx: wordX },
   ];
+  if (bead) parts.push({ d: dot(bead.x, bead.y, 4.6), fill: true, role: 'accent' });
   const markParts = [
-    { d: inTop, stroke: true, sw, role: 'accent' },
+    { d: inTop, stroke: true, sw, role: topAccent ? 'accent' : undefined },
     { d: inMid, stroke: true, sw },
     { d: inBot, stroke: true, sw },
-    { d: 'M 37 -43.5 C 51 -43 59 -36 63 -26 C 67 -15 71 -8 79 -4', stroke: true, sw: 10.5 },
+    {
+      d: 'M 40 -43.5 C 53 -43 60 -36 63.5 -26 C 67.5 -15 71.5 -8 79.5 -4',
+      stroke: true,
+      sw: exitSw,
+      role: exitAccent ? 'accent' : undefined,
+    },
   ];
   return {
     id: 'e',
