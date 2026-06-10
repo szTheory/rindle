@@ -53,3 +53,6 @@ Thumbs.db
 
 # Mix lock (library — check in mix.lock)
 # /mix.lock
+
+# brand pipeline deps (brandbook/src)
+brandbook/src/node_modules/
