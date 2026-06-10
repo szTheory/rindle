@@ -131,7 +131,7 @@ td.dim, .dim { color: var(--rindle-text-secondary); }
   overflow: hidden;
   background: var(--rindle-surface-raised);
 }
-.swatch .chip { height: 64px; }
+.swatch .fill { display: block; height: 64px; }
 .swatch .meta { padding: 8px 12px; font-size: 12.5px; }
 .swatch .meta .name { font-weight: 700; }
 .swatch .meta .hex { font-family: var(--rindle-font-mono); color: var(--rindle-text-secondary); font-size: 11.5px; }
