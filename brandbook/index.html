@@ -28,7 +28,7 @@
 
 <!-- ============================================================ 00 cover -->
 <section class="cover">
-  <p class="kicker">Brand book · b1.0 · generated from tokens/tokens.json</p>
+  <p class="kicker">Brand book · v1.0 · generated from tokens/tokens.json</p>
   <p><img src="assets/logo/rindle-logo.svg" alt="rindle" style="height:108px"></p>
   <h1 style="margin-top:24px">Media, made durable.</h1>
   <p class="lede">Rindle is a Phoenix/Ecto-native media lifecycle library for turning uploads into
@@ -175,7 +175,7 @@
   <h3>Rules that are enforced, not suggested</h3>
   <ul>
     <li><strong>Rindle Green and Rind Lime are accent-only on light surfaces</strong> (measured 1.81:1 / 1.18:1). They are text-capable only on Ink and dark surfaces.</li>
-    <li><strong>Focus rings:</strong> Deep Current on light (11.34:1), Rindle Green on dark (9.38:1). Green-on-light fails the 3:1 non-text requirement — the seed's original rule was corrected by measurement.</li>
+    <li><strong>Focus rings:</strong> Deep Current on light (11.34:1), Rindle Green on dark (9.38:1). Green-on-light fails the 3:1 non-text requirement and is never used as a focus ring there.</li>
     <li><strong>Inputs and controls use Border Strong</strong> (3.87:1). Plain Border is for decorative separators only — it fails WCAG 1.4.11 for meaningful boundaries.</li>
     <li>Slides/projectors: rely on Ink-on-Shell or Shell-on-Deep-Current; never on the Shell-vs-Porcelain distinction.</li>
   </ul>
@@ -442,8 +442,8 @@ defmodule MyApp.Media.Avatar <span class="k">do</span>
   <p>Rounded line icons on a 24px grid: 2px stroke, rounded caps and joins, minimal fill, optical
   balance over strict geometry, legible at 16/20/24px. Icon needs: asset, attachment, variant,
   pipeline, processor, storage, signed URL, quarantine, retry, regenerate, cleanup, stale, missing,
-  ready. Status icons always pair with labels. <em>(Drawing the set is deliberately out of b1.0
-  scope — this grid spec governs it when it happens.)</em></p>
+  ready. Status icons always pair with labels. <em>(An icon set is intentionally not yet
+  drawn; this grid spec governs it when it is.)</em></p>
 
   <h3>Motion</h3>
   <p>Materialization, not entertainment. Durations are tokens:
@@ -527,7 +527,7 @@ defmodule MyApp.Media.Avatar <span class="k">do</span>
   identity, auth/identity vocabulary, AI-sparkle branding, purple Elixir motifs, containers around
   the mark, color-only status.</p>
 
-  <p class="dim" style="margin-top:48px;font-size:12.5px">Rindle brand book b1.0 · 2026 ·
+  <p class="dim" style="margin-top:48px;font-size:12.5px">Rindle brand book v1.0 · 2026 ·
   regenerate assets with <code>brandbook/src/*.mjs</code> · tokens are the source of truth ·
   fonts: SIL OFL (license texts in <code>brandbook/fonts/</code>)</p>
 </section>
