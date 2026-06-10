@@ -1,6 +1,17 @@
 # Rindle
 
-## Current Milestone: Demand-gated pause
+## Current Milestone: b1.0 Brand Foundations (brand track)
+
+**Opened:** 2026-06-10 — non-feature brand track, phases 81–85
+
+**Goal:** Pressure-test the AI-generated brand book seed (`prompts/rindle-brand-book.md`)
+and ship the committed Rindle brand system: user-selected logo system, WCAG-verified
+design tokens, a self-contained HTML brand book in `brandbook/`, and README/HexDocs/social
+integration. Zero public API, zero `lib/` changes.
+
+**Active requirements:** BRAND-01..08 (see `.planning/REQUIREMENTS.md`).
+
+## Feature Posture: Demand-gated pause (remains active)
 
 **Formalized:** 2026-05-27 (via `/gsd-new-milestone` — no feature charter)
 
@@ -11,6 +22,7 @@ signal arrives. No feature phases, no new public API, no speculative platform wo
 - Patch/minor Hex releases and issue-driven fixes only
 - No feature milestone unless **LIFE-06** (compliance ticket) or **STREAM-10** (named adopter)
 - Re-run `/gsd-new-milestone` with option 2 or 3 when a signal is recorded
+- Brand/docs/marketing work (b1.0) is not feature work and runs without violating the pause
 
 **Last shipped:** v1.17 Adopter-Confidence Hygiene (2026-05-27) — planning-truth hygiene and
 CI-04 static-analysis policy record; no new public API.

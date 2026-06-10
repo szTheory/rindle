@@ -2,6 +2,7 @@
 
 ## Milestones
 
+- 🚧 **b1.0 Brand Foundations** — Phases 81–85 (brand track, non-feature; opened 2026-06-10)
 - ✅ **v1.17 Adopter-Confidence Hygiene** — Phases 78–80 (shipped 2026-05-27, [archive](milestones/v1.17-ROADMAP.md), [audit](milestones/v1.17-MILESTONE-AUDIT.md))
 - ✅ **v1.16 CI Enforcement & Planning Hygiene** — Phases 75–77 (shipped 2026-05-27, [archive](milestones/v1.16-ROADMAP.md))
 - ✅ **v1.15 Maintenance & Proof Honesty** — Phases 71–74 (shipped 2026-05-27, [audit](milestones/v1.15-MILESTONE-AUDIT.md))
@@ -22,6 +23,36 @@
 - ✅ **v1.0 MVP** — Phases 1–5 (shipped 2026-04-xx, [archive](milestones/v1.0-ROADMAP.md))
 
 ## Phases
+
+### 🚧 b1.0 Brand Foundations (Phases 81–85) — ACTIVE
+
+> b1.0 is a non-feature brand-track milestone. Zero public API, zero `lib/` changes. The
+> demand-gated pause for feature work (PAUSE-01..03) remains active; v1.18+ remains
+> reserved for LIFE-06/STREAM-10.
+
+**Goal:** Pressure-test the AI-generated brand book seed (`prompts/rindle-brand-book.md`)
+and build the committed brand system: user-selected logo system, verified design tokens,
+self-contained HTML brand book in `brandbook/`, and public-surface integration
+(README / HexDocs / social preview).
+
+- [ ] Phase 81: Brand Audit & Direction Lock (0/2 plans) — BRAND-01, BRAND-02
+  **Goal:** Seed pressure-tested into one locked direction (ten-lens
+  KEEP/TIGHTEN/REWORK/ADD/REMOVE audit; placeholder-logo conflict resolved; name risk
+  flagged human-review-only).
+- [ ] Phase 82: Logo Candidates & User Selection (0/2 plans) — BRAND-03 — **CHECKPOINT**
+  **Goal:** User picks the logo direction from 5 genuinely distinct committed SVG
+  candidates (≥2 integrated typemarks; no containers; tight type; no subtitle on main
+  lockups) presented via a visual contact sheet.
+- [ ] Phase 83: Logo System Refinement (0/2 plans) — BRAND-04
+  **Goal:** Winner refined into the full system — lockups (primary/mono/dark/subtitle),
+  icon-only mark, favicon set, social avatar — 16px-legible, constraint-checked.
+- [ ] Phase 84: Design Tokens & HTML Brand Book (0/3 plans) — BRAND-05, BRAND-06, BRAND-07
+  **Goal:** tokens.json/tokens.css (raw + semantic + states + dark mode + focus) with a
+  passing WCAG AA contrast gate, rendered live by a professional self-contained
+  single-page `brandbook/index.html` within a 1.5 MB budget.
+- [ ] Phase 85: Repo Surface Integration (0/2 plans) — BRAND-08 — *separable*
+  **Goal:** ex_doc logo/favicon, README header lockup (light/dark), regenerable 1280×640
+  GitHub social preview; `mix docs` + proof lanes green; zero `lib/` changes.
 
 <details>
 <summary>✅ v1.17 Adopter-Confidence Hygiene (Phases 78–80) — SHIPPED 2026-05-27</summary>
@@ -57,12 +88,12 @@ Audit: [.planning/milestones/v1.15-MILESTONE-AUDIT.md](milestones/v1.15-MILESTON
 
 </details>
 
-## Between Milestones — Demand-Gated Pause (active)
+## Demand-Gated Pause — Feature Work (active)
 
-**Formalized:** 2026-05-27 | **Status:** No feature phases
+**Formalized:** 2026-05-27 | **Status:** No feature phases (brand-track phases 81–85 run concurrently)
 
-Maintainer mode: patch/minor Hex releases and issue-driven fixes only. Feature work resumes
-when `/gsd-new-milestone` opens a charter with:
+Maintainer mode for feature work: patch/minor Hex releases and issue-driven fixes only.
+Feature work resumes when `/gsd-new-milestone` opens a charter with:
 
 - **LIFE-06** — compliance/legal ticket for force-delete shared assets, or
 - **STREAM-10** — named adopter for second streaming provider
@@ -70,7 +101,8 @@ when `/gsd-new-milestone` opens a charter with:
 See `.planning/REQUIREMENTS.md` and
 [post-v116 assessment](threads/2026-05-27-post-v116-milestone-assessment.md).
 
-**Do not** run `/gsd-plan-phase` until a feature milestone with phases exists.
+**Do not** run `/gsd-plan-phase` for feature work until a feature milestone exists —
+**brand-track phases 81–85 (b1.0) are the sanctioned exception**.
 
 ## Deferred to v1.18+ / Later
 
@@ -95,4 +127,4 @@ See `.planning/REQUIREMENTS.md` and
 - [.planning/milestones/v1.14-MILESTONE-AUDIT.md](milestones/v1.14-MILESTONE-AUDIT.md)
 
 ---
-*Last updated: 2026-05-27 — demand-gated pause formalized (no feature phases)*
+*Last updated: 2026-06-10 — b1.0 Brand Foundations opened (brand track, phases 81–85); feature pause unchanged*
