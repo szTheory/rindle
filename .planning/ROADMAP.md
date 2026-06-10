@@ -39,11 +39,11 @@ self-contained HTML brand book in `brandbook/`, and public-surface integration
   **Goal:** Seed pressure-tested into one locked direction (ten-lens
   KEEP/TIGHTEN/REWORK/ADD/REMOVE audit; placeholder-logo conflict resolved; name risk
   flagged human-review-only). Audit: `.planning/research/b1.0-brand-audit.md`.
-- [ ] Phase 82: Logo Candidates & User Selection (0/2 plans) — BRAND-03 — **CHECKPOINT**
+- [x] Phase 82: Logo Candidates & User Selection (2/2 plans) — BRAND-03 — completed 2026-06-10 (user pick: E Confluence, execution e1)
   **Goal:** User picks the logo direction from 5 genuinely distinct committed SVG
   candidates (≥2 integrated typemarks; no containers; tight type; no subtitle on main
   lockups) presented via a visual contact sheet.
-- [ ] Phase 83: Logo System Refinement (0/2 plans) — BRAND-04
+- [x] Phase 83: Logo System Refinement (2/2 plans) — BRAND-04 — completed 2026-06-10
   **Goal:** Winner refined into the full system — lockups (primary/mono/dark/subtitle),
   icon-only mark, favicon set, social avatar — 16px-legible, constraint-checked.
 - [ ] Phase 84: Design Tokens & HTML Brand Book (0/3 plans) — BRAND-05, BRAND-06, BRAND-07

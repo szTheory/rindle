@@ -39,11 +39,11 @@ No feature phases. These document maintainer obligations during maintenance mode
 
 ### Logo System
 
-- [ ] **BRAND-03**: User selects the logo direction from 4–6 committed, genuinely distinct
+- [x] **BRAND-03**: User selects the logo direction from 4–6 committed, genuinely distinct
   SVG candidates (≥2 integrated custom typemarks; no background containers; tight
   logotype; no subtitle on main lockups) presented via a visual sheet at an
   execute-phase checkpoint; selection recorded as a decision.
-- [ ] **BRAND-04**: Winning direction is refined into a full system — primary lockup,
+- [x] **BRAND-04**: Winning direction is refined into a full system — primary lockup,
   icon-only mark, monochrome, dark/light treatments, favicon, social avatar,
   with-subtitle variant — all valid standalone SVGs honoring the hard constraints,
   icon legible at 16px.
@@ -121,8 +121,8 @@ No feature phases during demand-gated pause. Brand-track phases 81–85 are non-
 | PAUSE-03 | — | Satisfied (2026-05-27 formalization) |
 | BRAND-01 | Phase 81 | Satisfied (2026-06-10 audit) |
 | BRAND-02 | Phase 81 | Satisfied (2026-06-10 direction lock) |
-| BRAND-03 | Phase 82 | Pending |
-| BRAND-04 | Phase 83 | Pending |
+| BRAND-03 | Phase 82 | Satisfied (2026-06-10 user selection: E e1) |
+| BRAND-04 | Phase 83 | Satisfied (2026-06-10 logo system) |
 | BRAND-05 | Phase 84 | Pending |
 | BRAND-06 | Phase 84 | Pending |
 | BRAND-07 | Phase 84 | Pending |
