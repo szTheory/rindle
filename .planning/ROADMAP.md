@@ -101,7 +101,7 @@ UI-principles decisions that downstream v1.18 phases must follow.
 **Plans:** 3 plans
 
 Plans:
-- [ ] 86-01-PLAN.md — Lock mountable console architecture and task-first IA.
+- [x] 86-01-PLAN.md — Lock mountable console architecture and task-first IA.
 - [ ] 86-02-PLAN.md — Lock console CSS architecture and operational motion.
 - [ ] 86-03-PLAN.md — Lock Docker demo DX and link UI principles from `AGENTS.md`.
 
