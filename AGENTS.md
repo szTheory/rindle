@@ -49,6 +49,8 @@ If subagents still bill API models, fall back to manual picker only (remove `mod
 
 **Automated coding agents:** honor the constraints in this file; keep edits focused, run the checks **RUNNING.md** names for your change, and update **`.planning/PROJECT.md`** when you intentionally change product scope or shipped claims.
 
+For UI/admin-console work, follow [guides/ui_principles.md](guides/ui_principles.md) before changing console, Cohort, E2E, or visual-polish surfaces.
+
 Agents should default to the repo's **green-main release train** posture:
 
 - keep `main` green on merge-blocking CI jobs (Quality/coveralls, Integration, Proof, Package Consumer, Adopter)
