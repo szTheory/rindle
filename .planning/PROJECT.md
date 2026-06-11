@@ -1,6 +1,18 @@
 # Rindle
 
-## Current Milestone: Demand-gated pause
+## Current Milestone: v1.18 Admin Console & Adoption Lab (charter 2026-06-10)
+
+**Maintainer-pull feature milestone** — explicit, recorded override of the PAUSE-03
+v1.18+ reservation (LIFE-06/STREAM-10 stay demand-gated, now v1.19+). Phases 86–93,
+19 requirements, ships as hex **0.3.0** (brand work releases first as 0.2.0).
+
+Scope: mountable Rindle-branded admin console in the `rindle` package
+(Oban-Web/LiveDashboard-style, self-contained assets, light/dark/system theming from
+brand tokens); Cohort demo evolution (own brand, audio + document media, full
+lifecycle-state seeds, mounts the console); deterministic console E2E + screenshot-driven
+polish loop; Docker DX (port-conflict-free compose, layer caching, launch URL map);
+durable UI-principles doc linked from AGENTS.md. This deliberately reverses the prior
+"admin UI out of scope" decision (JTBD T4) — TRUTH-07 closes docs/facade parity.
 
 **Last shipped:** b1.0 Brand Foundations (2026-06-10) — non-feature brand track,
 phases 81–85, BRAND-01..08 validated 8/8. Committed brand system in `brandbook/`:
@@ -8,7 +20,7 @@ user-selected Confluence logo, WCAG-verified design tokens, self-contained HTML 
 book, README/HexDocs/social integration. Zero public API, zero `lib/` changes.
 Archive: `.planning/milestones/b1.0-*`.
 
-## Feature Posture: Demand-gated pause (remains active)
+## Feature Posture: Demand-gated pause (superseded for v1.18 duration)
 
 **Formalized:** 2026-05-27 (via `/gsd-new-milestone` — no feature charter)
 
@@ -20,6 +32,11 @@ signal arrives. No feature phases, no new public API, no speculative platform wo
 - No feature milestone unless **LIFE-06** (compliance ticket) or **STREAM-10** (named adopter)
 - Re-run `/gsd-new-milestone` with option 2 or 3 when a signal is recorded
 - Brand/docs/marketing work (b1.0) is not feature work and runs without violating the pause
+
+**Override (2026-06-10):** v1.18 Admin Console & Adoption Lab opened as a self-directed
+maintainer-pull feature milestone — recorded in the PAUSE-03 amendment
+(`.planning/REQUIREMENTS.md`). The demand gates above shift to v1.19+ and the pause
+posture resumes after v1.18 ships unless a new charter exists.
 
 **Last shipped:** v1.17 Adopter-Confidence Hygiene (2026-05-27) — planning-truth hygiene and
 CI-04 static-analysis policy record; no new public API.
@@ -352,10 +369,16 @@ To keep this posture durable across GSD workflows:
 
 ### Active
 
-- **Demand-gated pause (formalized 2026-05-27):** No feature phases. Patch/minor Hex
-  releases and issue-driven fixes only. See `.planning/REQUIREMENTS.md` for demand gates.
+- **v1.18 Admin Console & Adoption Lab (charter 2026-06-10):** ADMIN-01..06 (mountable
+  console: router macro + host auth, self-contained assets, read surfaces, ops actions,
+  pubsub live updates, optional-dep safety), DS-01..03 (token-generated design system,
+  light/dark/system theme picker, contrast gate), DEMO-01..03 (Cohort own brand, full
+  media-type + state coverage, mounts console), E2E-01..02 (deterministic console specs,
+  screenshot polish loop), DX-01..03 (port-conflict-free compose, layer caching, launch
+  URL map), PRIN-01 (UI principles doc in AGENTS.md), TRUTH-07 (scope-reversal docs
+  parity). Full text: `.planning/REQUIREMENTS.md`.
 
-**Demand-gated for v1.18+ feature milestone:**
+**Demand-gated for v1.19+ feature milestone:**
 
 - **LIFE-06** — force-delete for still-shared assets (compliance/legal ticket required)
 - **STREAM-10** — second streaming provider (named adopter + provider choice required)
@@ -388,8 +411,9 @@ signed dynamic transforms, EXIF privacy stripping.
   adapters follow once host-app/runtime boundaries are solid
 - PDF preview adapter in v1.1 — still out-of-scope until sandboxing posture is
   documented
-- Admin LiveView UI in v1.1 — operator workflows remain code/telemetry/task
-  driven for now
+- ~~Admin LiveView UI in v1.1 — operator workflows remain code/telemetry/task
+  driven for now~~ — **reversed 2026-06-10**: v1.18 ships a mountable admin console
+  (D-v1.18-01); console actions reuse existing facade capabilities only
 
 ## Context
 
@@ -517,7 +541,12 @@ that section on next docs maintenance pass.
 | FSM-first cancel orchestration | Conditional `update_all` to terminal state before provider HTTP reduces race windows | ✓ Good v1.13 |
 | Mux-only cancel in v1.13 | Second-provider cancel is a contract extension when explicit demand ships an adapter | Locked v1.13 |
 | v1.14 bulk erasure extends v1.10 facade | Batch orchestration reuses `OwnerErasure`; no force-delete or admin UI in scope | ✓ Good v1.14 |
-| Mission-complete default = demand-gated pause post-v1.16 | ~94–96% mission coverage; T0–T2 complete; T3 gaps (LIFE-06, STREAM-10) demand-gated only; path-to-done roadmap defines terminal state | Locked 2026-05-27 |
+| Mission-complete default = demand-gated pause post-v1.16 | ~94–96% mission coverage; T0–T2 complete; T3 gaps (LIFE-06, STREAM-10) demand-gated only; path-to-done roadmap defines terminal state | Locked 2026-05-27 (overridden for v1.18 by maintainer pull, 2026-06-10) |
+| D-v1.18-01: Admin console ships in the `rindle` package, mountable Oban-Web/LiveDashboard-style (router macro, optional `phoenix_live_view`, self-contained precompiled assets, no host Tailwind dependency) | Adopter DX lives in the library, not the demo; `Code.ensure_loaded?(Phoenix.LiveView)` gating and host-repo `Rindle.Config.repo()` patterns already exist; separate package adds a second release train for a 0.x project | Locked v1.18 charter |
+| D-v1.18-02: Brand work releases as 0.2.0 now; v1.18 ships as hex 0.3.0 | Clean separation — no weeks-stale release PR held open for the console | Locked v1.18 charter |
+| D-v1.18-03: Cohort stays the demo domain, extended with audio + document media and full lifecycle-state seeds | Familiar domain that naturally needs every media type; 12 E2E specs + seeds already built on it; no churn for its own sake | Locked v1.18 charter |
+| Console CSS = BEM + custom properties generated from `brandbook/tokens/tokens.json`; Cohort keeps Tailwind/daisyUI | Shipped library UI must be host-independent (no Tailwind build assumption); brandbook vanilla-CSS momentum carries; demo momentum is Tailwind | Locked v1.18 charter |
+
 
 ## Historical Snapshot
 

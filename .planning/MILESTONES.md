@@ -1,5 +1,30 @@
 # Milestones
 
+## v1.18 Admin Console & Adoption Lab (In progress: charter 2026-06-10)
+
+**Phases:** 8 phases (86–93), plans TBD per phase
+**Requirements:** 19 (`ADMIN-01..06`, `DS-01..03`, `DEMO-01..03`, `E2E-01..02`, `DX-01..03`, `PRIN-01`, `TRUTH-07`)
+**Hex target:** 0.3.0 (after the 0.2.0 brand release)
+**Track:** Feature milestone via recorded maintainer-pull override of the demand-gated
+pause (PAUSE-03 amendment); LIFE-06/STREAM-10 remain demand-gated → v1.19+
+
+**Charter scope:**
+
+- Mountable, Rindle-branded admin console shipped in the `rindle` package
+  (Oban-Web/LiveDashboard-style: router macro, host-auth hook, self-contained assets,
+  light/dark/system theming from brand tokens) — reverses the JTBD T4 "admin UI"
+  exclusion as a deliberate scope change (D-v1.18-01).
+- Cohort demo evolution: own lightweight brand (rendered options checkpoint), audio +
+  document media types, seeds expressing every lifecycle state, mounts the console.
+- Deterministic console Playwright E2E lane + all-screens screenshot polish loop.
+- Docker DX: port-conflict-free compose, layer-cache fix, launch URL map.
+- Durable UI-principles doc linked from `AGENTS.md`; truth closure for the scope reversal.
+
+**Process:** Each phase runs full GSD (discuss → research → plan → execute → verify)
+with a maintainer go/no-go gate between phases.
+
+---
+
 ## b1.0 Brand Foundations (Shipped: 2026-06-10)
 
 **Phases completed:** 5 phases (81–85), 11 plans
