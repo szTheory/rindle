@@ -98,7 +98,12 @@ UI-principles decisions that downstream v1.18 phases must follow.
    `brandbook/tokens/tokens.json`; Cohort keeps Tailwind/daisyUI momentum.
 6. UI-principles document is linked from `AGENTS.md`.
 
-**Plans:** 0 plans created
+**Plans:** 3 plans
+
+Plans:
+- [ ] 86-01-PLAN.md — Lock mountable console architecture and task-first IA.
+- [ ] 86-02-PLAN.md — Lock console CSS architecture and operational motion.
+- [ ] 86-03-PLAN.md — Lock Docker demo DX and link UI principles from `AGENTS.md`.
 
 ---
 
