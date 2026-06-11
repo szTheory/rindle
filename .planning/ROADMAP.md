@@ -48,7 +48,7 @@ maintainer go/no-go gate between phases.
   tradeoffs); CSS architecture lock (BEM + custom properties generated from
   `brandbook/tokens/tokens.json` for the console; Cohort keeps Tailwind/daisyUI momentum).
   Output includes the UI-principles doc linked from `AGENTS.md` (PRIN-01).
-- [ ] **Phase 87: Docker & Demo DX** (early — every later UI phase iterates faster) —
+- [x] **Phase 87: Docker & Demo DX** (early — every later UI phase iterates faster) — (completed 2026-06-11)
   project namespacing, env-driven ports + conflict guidance, layer-cache fix
   (deps before source COPY), dev style-change path without rebuilds, launch URL map,
   reader-empathetic docs. (DX-01..03)
@@ -123,7 +123,7 @@ Plans:
 4. Dev iteration path supports style/template changes without rebuilding deps.
 5. Launch flow prints a copy-pasteable URL map for app, admin console, and MinIO console.
 
-**Plans:** 3 plans
+**Plans:** 3/3 plans complete
 
 Plans:
 
