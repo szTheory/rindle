@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: Admin Console & Adoption Lab
-status: phase-86-discuss-pending
-last_updated: "2026-06-10T22:00:00.000Z"
-last_activity: 2026-06-10
+status: v1.18 charter recorded 2026-06-10 (maintainer-pull override of demand-gated pause)
+last_updated: "2026-06-11T15:15:14.548Z"
+last_activity: 2026-06-10 — milestone recorded (phases 86–93, 19 requirements mapped)
 progress:
-  total_phases: 8
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  total_phases: 23
+  completed_phases: 3
+  total_plans: 6
+  completed_plans: 9
+  percent: 13
 ---
 
 # Project State
@@ -37,8 +37,10 @@ Last activity: 2026-06-10 — milestone recorded (phases 86–93, 19 requirement
 - **Charter decisions:** D-v1.18-01 console in `rindle` package, mountable
   Oban-Web/LiveDashboard-style, self-contained assets; D-v1.18-02 hex 0.3.0 after 0.2.0;
   D-v1.18-03 keep Cohort, extend (audio + documents + full state-space seeds).
+
 - **Scope reversal recorded:** JTBD T4 "admin UI" exclusion and the `lib/rindle.ex`
   facade "no admin UI" promise are deliberately reversed; TRUTH-07 closes docs parity.
+
 - **Pause override:** PAUSE-03 amended; LIFE-06/STREAM-10 stay demand-gated → v1.19+.
 - **Roadmap:** `.planning/ROADMAP.md` phases 86–93
 - **Requirements:** `.planning/REQUIREMENTS.md` (ADMIN-01..06, DS-01..03, DEMO-01..03,
@@ -50,6 +52,7 @@ Last activity: 2026-06-10 — milestone recorded (phases 86–93, 19 requirement
 research → plan → execute → verify. Cost checkpoint offered before each heavy execute.
 
 **Manual brand follow-ups (one-time, carried over):**
+
 1. GitHub repo Settings → Social preview → upload `brandbook/assets/social/github-social-preview.png`
 2. Optional: set `brandbook/assets/logo/avatar-512.png` as repo/org avatar
 3. HexDocs logo/favicon go live with the next Hex publish (0.2.0 release PR)
@@ -99,6 +102,6 @@ research → plan → execute → verify. Cost checkpoint offered before each he
 
 ## Session Continuity
 
-Last session: 2026-06-10T22:00:00.000Z
-Stopped at: v1.18 milestone recorded; Phase 86 discuss is the next action
+Last session: 2026-06-11T15:15:14.543Z
+Stopped at: Phase 86 context gathered (assumptions mode)
 (release-please 0.2.0 PR from brand feat: commits expected on origin — merge to release brand)
