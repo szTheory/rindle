@@ -365,17 +365,15 @@ scripts/maintainer/check_adoption_proof_matrix.sh
 | A2 | The plan should not build a custom port-conflict scanner or process killer; docs/env guidance is enough. | Don't Hand-Roll | Planner might under-address a hidden maintainer expectation for active detection. |
 | A3 | Wrapper-output testing may require a no-start/print path or helper extraction because current `up.sh` immediately execs compose. | Common Pitfalls | Planner might choose a brittle test that starts containers when only output verification is needed. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Should `down.sh` and `reset.sh` print or validate `COMPOSE_PROJECT_NAME`?**
+1. **RESOLVED: `down.sh` and `reset.sh` keep the same compose project/file semantics and do not need URL-map output.**
    - What we know: they must target the same compose file and project namespace as `up.sh`. [VERIFIED: `87-CONTEXT.md`]
-   - What's unclear: whether user-facing output for stop/reset is desired. [ASSUMED]
-   - Recommendation: keep them quiet pass-throughs unless adding a tiny shared compose-file helper improves consistency without changing behavior. [ASSUMED]
+   - Resolution: Plan 87-01 keeps `scripts/demo/up.sh` as the only URL-map surface and verifies `down.sh` / `reset.sh` with shell syntax and ShellCheck only. Stop/reset continue to use the same compose file and `COMPOSE_PROJECT_NAME` behavior inherited from Docker Compose; no printed URL map, validation banner, or altered reset/down behavior is required. [VERIFIED: `87-01-PLAN.md`]
 
-2. **Should full Docker startup be required in the plan?**
+2. **RESOLVED: full Docker startup remains optional/manual; static-first checks are the required planning and execution gate.**
    - What we know: static compose/script checks are required; heavier startup is optional where practical. [VERIFIED: `87-CONTEXT.md`]
-   - What's unclear: runtime cost tolerance during execution. [ASSUMED]
-   - Recommendation: make full startup a final optional/manual verification after static gates, not a prerequisite for every task. [ASSUMED]
+   - Resolution: Plans 87-01 through 87-03 require deterministic checks for rendered Compose config, wrapper syntax/lint and `--print-urls` output, Dockerfile line ordering, README/proof-matrix assertions, and `scripts/maintainer/check_adoption_proof_matrix.sh`. Full Docker startup is documented as an optional manual smoke after those gates, not a prerequisite for task completion. [VERIFIED: `87-01-PLAN.md`; VERIFIED: `87-02-PLAN.md`; VERIFIED: `87-03-PLAN.md`]
 
 ## Environment Availability
 
@@ -410,7 +408,7 @@ scripts/maintainer/check_adoption_proof_matrix.sh
 | DX-01 | Port conflict guidance is documented. | docs/static | `rg -F 'COHORT_DEMO_PORT' examples/adoption_demo/README.md examples/adoption_demo/docs/adoption-proof-matrix.md` and `scripts/maintainer/check_adoption_proof_matrix.sh`. | yes |
 | DX-02 | `mix deps.get` runs after dependency manifests but before full source copy. | static Dockerfile | Use an `awk` or small script assertion on line ordering in `docker/Dockerfile.cohort-demo`. | yes |
 | DX-02 | Style/template edits do not rebuild deps. | optional Docker smoke | Build once, touch a non-dependency source/template file, rebuild, and inspect output for cached dependency layer if execution budget permits. | yes |
-| DX-03 | Launch prints `app`, `admin console`, and `MinIO console` URLs from env ports. | shell output | Prefer a no-start print/helper test; otherwise use a controlled wrapper test that does not start containers. [ASSUMED] | current file exists; test helper absent |
+| DX-03 | Launch prints `app`, `admin console`, and `MinIO console` URLs from env ports. | shell output | `COHORT_DEMO_PORT=4212 COHORT_MINIO_CONSOLE_PORT=9201 scripts/demo/up.sh --print-urls` with exact label and URL assertions. [VERIFIED: `87-01-PLAN.md`] | yes |
 
 ### Sampling Rate
 
@@ -418,10 +416,10 @@ scripts/maintainer/check_adoption_proof_matrix.sh
 - **Per wave merge:** `scripts/maintainer/check_adoption_proof_matrix.sh` plus rendered compose assertions. [ASSUMED]
 - **Phase gate:** Static gates green; optional full Docker startup if practical. [VERIFIED: `87-CONTEXT.md`]
 
-### Wave 0 Gaps
+### Wave 0 Gaps (RESOLVED BY PLANS)
 
-- [ ] Add a deterministic wrapper URL-output check if `up.sh` remains an immediate `exec docker compose ... up --build`. [ASSUMED]
-- [ ] Add a Dockerfile line-order assertion if planner wants more than review for DX-02. [ASSUMED]
+- [x] Deterministic wrapper URL-output check covered by Plan 87-01 Task 2 through `scripts/demo/up.sh --print-urls`. [VERIFIED: `87-01-PLAN.md`]
+- [x] Dockerfile line-order assertion covered by Plan 87-02 Task 1 through source-order checks around dependency manifests, `mix deps.get`, `COPY . /app`, `mix assets.vendor`, and `mix compile`. [VERIFIED: `87-02-PLAN.md`]
 
 ## Security Domain
 
