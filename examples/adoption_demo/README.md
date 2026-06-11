@@ -13,8 +13,35 @@ From the **repository root** (requires Docker Desktop or Docker Engine + Compose
 
 ```bash
 ./scripts/demo/up.sh
-# → http://localhost:4102
 ```
+
+The launch output prints each copy-paste URL on its own line:
+
+- `app` - `http://localhost:4102`
+- `admin console` - `http://localhost:4102/admin/rindle`
+- `MinIO console` - `http://localhost:9001`
+
+The defaults are `COHORT_DEMO_PORT=4102`, `COHORT_MINIO_PORT=9000`, and
+`COHORT_MINIO_CONSOLE_PORT=9001`. Published host ports are loopback-bound; internal
+container ports stay stable at app `4102`, MinIO API `9000`, and MinIO console `9001`.
+
+If a default port is busy, rerun with the matching override:
+
+```bash
+COHORT_DEMO_PORT=4212 ./scripts/demo/up.sh
+COHORT_MINIO_PORT=9200 ./scripts/demo/up.sh
+COHORT_MINIO_CONSOLE_PORT=9201 ./scripts/demo/up.sh
+```
+
+Use `COMPOSE_PROJECT_NAME` to run a sibling stack with separate containers, networks, and
+volumes:
+
+```bash
+COMPOSE_PROJECT_NAME=rindle-cohort-alt COHORT_DEMO_PORT=4212 COHORT_MINIO_PORT=9200 COHORT_MINIO_CONSOLE_PORT=9201 ./scripts/demo/up.sh
+```
+
+After the Dockerfile cache fix, routine source, style, and template edits should reuse the
+Hex dependency layer instead of fetching dependencies again.
 
 Stop and remove containers:
 
@@ -26,12 +53,6 @@ Wipe database and object storage (fresh seeds on next start):
 
 ```bash
 ./scripts/demo/reset.sh
-```
-
-Equivalent compose command:
-
-```bash
-docker compose -f docker/compose.cohort-demo.yml up --build
 ```
 
 ## Hack on it (native)
