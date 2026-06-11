@@ -158,7 +158,21 @@ console implementation will use.
 5. Mechanical WCAG AA contrast gate covers console token pairs.
 6. Maintainer reviews rendered gallery before later console phases rely on it.
 
-**Plans:** 0 plans created
+**Plans:** 3 plans created
+
+Plans:
+
+**Wave 1**
+
+- [ ] 88-01-PLAN.md — Generate `rindle-admin` CSS and console contrast gates.
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 88-02-PLAN.md — Generate component gallery and screenshot/theme harness.
+
+**Wave 3** *(blocked on Waves 1–2 completion)*
+
+- [ ] 88-03-PLAN.md — Document design-system operation and run maintainer gallery review.
 
 ---
 
