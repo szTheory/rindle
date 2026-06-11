@@ -17,7 +17,7 @@ coverage, deterministic E2E, and Docker DX fixes.
 
 - [ ] **ADMIN-01**: Host app mounts the console via a router macro with a host-supplied
   auth pipeline + `on_mount` hook; safe-by-default (refuses unauthenticated mount outside dev).
-- [ ] **ADMIN-02**: Console ships fully self-contained precompiled assets (CSS/JS) — zero
+- [x] **ADMIN-02**: Console ships fully self-contained precompiled assets (CSS/JS) — zero
   host asset-pipeline or Tailwind dependency; assets served by the library.
 - [ ] **ADMIN-03**: Read surfaces — task-oriented home, assets list filterable by FSM state,
   asset detail (state timeline, variants, attachments), upload sessions, variant/job
@@ -148,7 +148,7 @@ v1.18 Admin Console & Adoption Lab (phases 86–93; b1.0 brand-track rows archiv
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | ADMIN-01 | Phase 89 | Planned |
-| ADMIN-02 | Phase 88–89 | Planned |
+| ADMIN-02 | Phase 88–89 | Complete |
 | ADMIN-03 | Phase 89 | Planned |
 | ADMIN-04 | Phase 90 | Planned |
 | ADMIN-05 | Phase 89 | Planned |
@@ -175,7 +175,7 @@ v1.18 Admin Console & Adoption Lab (phases 86–93; b1.0 brand-track rows archiv
 | PRIV-01 | — | Deferred |
 
 **Coverage:**
-- v1.18 requirements: 19 total, 19 mapped to phases 86–93, 0 satisfied (charter stage)
+- v1.18 requirements: 19 total, 19 mapped to phases 86–93, 7 satisfied
 - Pause requirements: 3 total (PAUSE-03 amended for the override)
 - Brand-track requirements: 8/8 validated and archived (b1.0)
 - Unmapped active reqs: 0

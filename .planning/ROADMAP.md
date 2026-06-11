@@ -52,11 +52,12 @@ maintainer go/no-go gate between phases.
   project namespacing, env-driven ports + conflict guidance, layer-cache fix
   (deps before source COPY), dev style-change path without rebuilds, launch URL map,
   reader-empathetic docs. (DX-01..03)
-- [ ] **Phase 88: Admin Design System & UI Kit** — token-generated `rindle-admin` CSS
+- [x] **Phase 88: Admin Design System & UI Kit** — token-generated `rindle-admin` CSS
   (BEM), light/dark/system theme picker, core components (nav shell, tables,
   lifecycle-state chips, buttons, confirm dialog, drawer, toasts, empty states,
   skeletons), component-gallery screenshot harness, WCAG contrast gate.
-  **Checkpoint: maintainer reviews rendered gallery.** (DS-01..03, ADMIN-02 groundwork)
+  **Checkpoint: maintainer reviewed rendered gallery; requested anchor-navigation fix is
+  implemented and regression-covered.** (completed 2026-06-11; DS-01..03, ADMIN-02 groundwork)
 - [ ] **Phase 89: Console Read Surfaces** — router macro + host-auth `on_mount` +
   asset-serving plug (safe by default); home, assets list/detail, upload sessions,
   variant/job activity, doctor + runtime status; pubsub live updates;
@@ -158,7 +159,7 @@ console implementation will use.
 5. Mechanical WCAG AA contrast gate covers console token pairs.
 6. Maintainer reviews rendered gallery before later console phases rely on it.
 
-**Plans:** 3 plans created
+**Plans:** 3/3 plans complete
 
 Plans:
 
@@ -172,7 +173,7 @@ Plans:
 
 **Wave 3** *(blocked on Waves 1–2 completion)*
 
-- [ ] 88-03-PLAN.md — Document design-system operation and run maintainer gallery review.
+- [x] 88-03-PLAN.md — Document design-system operation and run maintainer gallery review.
 
 ---
 
