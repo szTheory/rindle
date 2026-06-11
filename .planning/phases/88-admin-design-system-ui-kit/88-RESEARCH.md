@@ -413,17 +413,15 @@ await page.locator('.rindle-admin-status-chip--danger').screenshot({
 | A4 | Component contrast gaps may appear even when token pairs pass. | Common Pitfalls | Medium risk; planner should require explicit console component contrast pairs. |
 | A5 | Unguarded LiveView aliases can break non-LiveView adopters. | Common Pitfalls | Medium risk; planner should include no-LiveView compile checks when Elixir modules are added. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Should gallery screenshots be committed or generated on demand?**
+1. **Should gallery screenshots be committed or generated on demand?** RESOLVED: Generate screenshots on demand under `brandbook/admin-gallery/screenshots/`; ignore screenshot PNGs by default unless the maintainer intentionally changes the commit policy.
    - What we know: Maintainer review of rendered gallery is required. [VERIFIED: `88-CONTEXT.md`]
-   - What's unclear: Whether screenshot PNGs should live in git or be generated as review artifacts. [ASSUMED]
-   - Recommendation: Plan deterministic generation and let the maintainer decide whether final screenshots are committed during review. [ASSUMED]
+   - Resolution: Plan deterministic generation, keep `brandbook/admin-gallery/.gitignore` excluding `screenshots/*.png`, and allow a maintainer policy change if review screenshots should later be committed. [RESOLVED]
 
-2. **Exact output path for generated admin CSS before Phase 89 packaging**
+2. **Exact output path for generated admin CSS before Phase 89 packaging** RESOLVED: Keep the generated Phase 88 admin CSS at `brandbook/tokens/rindle-admin.css`; Phase 89 owns moving or serving packaged assets from `priv/static/rindle_admin`.
    - What we know: Phase 89 serves assets from `:rindle` static assets; Phase 88 should not implement serving. [VERIFIED: `guides/admin_console_architecture.md`, `88-CONTEXT.md`]
-   - What's unclear: Whether Phase 88 should place final CSS directly under `priv/static/rindle_admin` or under `brandbook/tokens/` until Phase 89. [ASSUMED]
-   - Recommendation: Keep Phase 88 under `brandbook/` unless the planner adds package-file checks proving the path is harmless before serving exists. [ASSUMED]
+   - Resolution: Phase 88 writes `brandbook/tokens/rindle-admin.css` as the generated design-system artifact and does not create `priv/static/rindle_admin`; Phase 89 handles `priv/static/rindle_admin` packaging and serving work. [RESOLVED]
 
 ## Environment Availability
 
