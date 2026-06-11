@@ -147,6 +147,12 @@
   --rindle-status-danger: #F09090;
   --rindle-status-quarantine: #BDAED6;
   --rindle-status-info: #85AAF5;
+  --rindle-status-ready-surface: #161E23;
+  --rindle-status-processing-surface: #161E23;
+  --rindle-status-warning-surface: #161E23;
+  --rindle-status-danger-surface: #161E23;
+  --rindle-status-quarantine-surface: #161E23;
+  --rindle-status-info-surface: #161E23;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -171,6 +177,12 @@
     --rindle-status-danger: #F09090;
     --rindle-status-quarantine: #BDAED6;
     --rindle-status-info: #85AAF5;
+    --rindle-status-ready-surface: #161E23;
+    --rindle-status-processing-surface: #161E23;
+    --rindle-status-warning-surface: #161E23;
+    --rindle-status-danger-surface: #161E23;
+    --rindle-status-quarantine-surface: #161E23;
+    --rindle-status-info-surface: #161E23;
   }
 }
 

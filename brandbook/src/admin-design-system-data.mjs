@@ -76,10 +76,10 @@ export const CONSOLE_CONTRAST_PAIRS = [
 
   ...STATUS_STATES.map((state) => ({
     fg: `status-${state}`,
-    bg: 'surface-raised',
+    bg: `status-${state}-surface`,
     theme: 'dark',
     min: 4.5,
-    context: `status chips ${state} dark foreground/background`,
+    context: `status chips ${state} foreground on dark surface`,
   })),
 
   { fg: 'text', bg: 'surface-raised', theme: 'light', min: 4.5, context: 'toasts text on surface-raised' },

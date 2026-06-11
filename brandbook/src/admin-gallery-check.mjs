@@ -94,6 +94,48 @@ const assertHashTarget = async (page, id) => {
   assert(targetState.currentHref === `#${id}`, `expected current nav href #${id}, got ${targetState.currentHref}`);
 };
 
+const luminance = ([r, g, b]) => {
+  const [rr, gg, bb] = [r, g, b].map((value) => {
+    const channel = value / 255;
+    return channel <= 0.04045 ? channel / 12.92 : Math.pow((channel + 0.055) / 1.055, 2.4);
+  });
+  return 0.2126 * rr + 0.7152 * gg + 0.0722 * bb;
+};
+
+const contrastRatio = (a, b) => {
+  const [l1, l2] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+  return (l1 + 0.05) / (l2 + 0.05);
+};
+
+const parseRgb = (value) => {
+  const match = value.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+  if (!match) throw new Error(`could not parse computed color: ${value}`);
+  return match.slice(1, 4).map(Number);
+};
+
+const assertDarkStatusChipContrast = async (page) => {
+  const chips = await page.locator('.rindle-admin-status-chip').evaluateAll((elements) => {
+    return elements.map((chip) => {
+      const styles = getComputedStyle(chip);
+      return {
+        state: chip.getAttribute('data-rindle-admin-state') || chip.textContent.trim(),
+        color: styles.color,
+        backgroundColor: styles.backgroundColor,
+      };
+    });
+  });
+  const failures = chips
+    .map((chip) => ({
+      state: chip.state,
+      ratio: contrastRatio(parseRgb(chip.color), parseRgb(chip.backgroundColor)),
+    }))
+    .filter(({ ratio }) => ratio < 4.5);
+  assert(
+    failures.length === 0,
+    `dark status chip contrast failures: ${failures.map(({ state, ratio }) => `${state} ${ratio.toFixed(2)}:1`).join(', ')}`,
+  );
+};
+
 const selectTheme = async (page, theme) => {
   await page.locator(`[data-rindle-admin-theme="${theme}"]`).click();
   const current = await page.evaluate(() => document.documentElement.getAttribute('data-theme'));
@@ -154,6 +196,7 @@ try {
   await elementScreenshot(page, '[data-rindle-admin-component="confirm-dialog"]', 'confirm-dialog-light.png');
 
   await selectTheme(page, 'dark');
+  await assertDarkStatusChipContrast(page);
   await screenshot(page, 'gallery-dark-desktop.png');
   await elementScreenshot(page, '[data-rindle-admin-component="status-chips"]', 'status-chips-dark.png');
 

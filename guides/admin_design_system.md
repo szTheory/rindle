@@ -103,6 +103,8 @@ Theme behavior is `data-theme="light|dark|auto"` plus
 - `data-theme="light"` uses light semantic tokens.
 - `data-theme="dark"` uses dark semantic tokens.
 - `data-theme="auto"` follows `prefers-color-scheme`.
+- Status-chip foreground and surface tokens are semantic in both light and dark;
+  contrast gates must check the same `status-*-surface` backgrounds the CSS uses.
 
 Do not add a parallel theme convention. The theme picker is a first-class
 `rindle-admin` component, not a host Tailwind or daisyUI concern.
