@@ -73,7 +73,14 @@ Default posture: demand-gated pause until LIFE-06 or STREAM-10 signal.
 **v1.18 Phase 86 complete (2026-06-11):** Research & Architecture Lock validated PRIN-01
 and produced locked guides for admin console architecture, task-first IA, CSS, motion,
 Docker demo DX, and UI principles linked from `AGENTS.md`. No console implementation
-shipped yet; Phases 87–93 remain active.
+shipped yet.
+
+**v1.18 Phase 87 complete (2026-06-11):** Docker & Demo DX validated DX-01..03:
+the Cohort Docker preview now uses env-driven loopback host ports with
+`COMPOSE_PROJECT_NAME` namespacing, cache-friendly Dockerfile dependency ordering,
+deterministic launch URL output, and matching quick-try/proof-matrix docs. Full Docker
+startup remains an optional manual smoke; static gates are the validated proof path.
+Phases 88–93 remain active.
 
 Do not reopen tus protocol, single-owner/batch erasure semantics, or Mux surfaces
 beyond v1.13. Keep shared-asset safety and maintenance-vs-owner-erasure boundaries
@@ -382,7 +389,8 @@ To keep this posture durable across GSD workflows:
   light/dark/system theme picker, contrast gate), DEMO-01..03 (Cohort own brand, full
   media-type + state coverage, mounts console), E2E-01..02 (deterministic console specs,
   screenshot polish loop), DX-01..03 (port-conflict-free compose, layer caching, launch
-  URL map), TRUTH-07 (scope-reversal docs parity). PRIN-01 is validated in Phase 86.
+  URL map), TRUTH-07 (scope-reversal docs parity). PRIN-01 is validated in Phase 86;
+  DX-01..03 are validated in Phase 87.
   Full text: `.planning/REQUIREMENTS.md`.
 
 **Demand-gated for v1.19+ feature milestone:**
@@ -763,4 +771,4 @@ This document evolves at phase transitions and milestone boundaries.
    (`workflow.milestone_boundary.block_feature_milestone_without_signal`)
 
 ---
-*Last updated: 2026-06-11 after Phase 86 Research & Architecture Lock completion*
+*Last updated: 2026-06-11 after Phase 87 Docker & Demo DX completion*
