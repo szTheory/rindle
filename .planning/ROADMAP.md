@@ -75,6 +75,184 @@ maintainer go/no-go gate between phases.
   (`lib/rindle.ex` "no admin UI" line), README/HexDocs, traceability closure,
   MILESTONE-AUDIT. (TRUTH-07)
 
+### Phase 86: Research & Architecture Lock
+
+**Goal:** Lock the architecture, information architecture, animation, Docker DX, CSS, and
+UI-principles decisions that downstream v1.18 phases must follow.
+
+**Depends on:** v1.18 charter recorded; b1.0 brand assets and tokens available.
+
+**Requirements:** PRIN-01
+
+**Success criteria:**
+
+1. LiveDashboard/Oban Web packaging decisions are recorded for router macro, asset serving,
+   CSP, CSS isolation, and optional-dependency matrix.
+2. Console information architecture is mapped from persona/JTBD lenses, with gov.uk/GDS
+   research translated into maintainer-facing Rindle surfaces.
+3. Motion principles are tied to brand `motion` tokens and remain restrained for an
+   operational console.
+4. Docker multi-project DX decisions cover `COMPOSE_PROJECT_NAME`, env-driven ports, and
+   traefik tradeoffs.
+5. CSS architecture is locked: console uses BEM + generated custom properties from
+   `brandbook/tokens/tokens.json`; Cohort keeps Tailwind/daisyUI momentum.
+6. UI-principles document is linked from `AGENTS.md`.
+
+**Plans:** 0 plans created
+
+---
+
+### Phase 87: Docker & Demo DX
+
+**Goal:** Make the demo stack fast and conflict-free before the UI-heavy phases iterate on it.
+
+**Depends on:** Phase 86
+
+**Requirements:** DX-01, DX-02, DX-03
+
+**Success criteria:**
+
+1. Compose stack can run alongside sibling projects via namespacing and env-driven ports.
+2. Port conflict guidance is documented with sane defaults.
+3. Dockerfile layer cache fetches deps before source COPY.
+4. Dev iteration path supports style/template changes without rebuilding deps.
+5. Launch flow prints a copy-pasteable URL map for app, admin console, and MinIO console.
+
+**Plans:** 0 plans created
+
+---
+
+### Phase 88: Admin Design System & UI Kit
+
+**Goal:** Ship the token-generated `rindle-admin` design system and component kit that the
+console implementation will use.
+
+**Depends on:** Phase 86 and Phase 87
+
+**Requirements:** DS-01, DS-02, DS-03, ADMIN-02 groundwork
+
+**Success criteria:**
+
+1. `rindle-admin` CSS is generated from `brandbook/tokens/tokens.json` using BEM and CSS
+   custom properties.
+2. Light/dark/system theme picker is implemented as a first-class component.
+3. Core components exist for nav shell, tables, lifecycle-state chips, buttons, confirm
+   dialog, drawer, toasts, empty states, and skeletons.
+4. Component-gallery screenshot harness exists for maintainer review.
+5. Mechanical WCAG AA contrast gate covers console token pairs.
+6. Maintainer reviews rendered gallery before later console phases rely on it.
+
+**Plans:** 0 plans created
+
+---
+
+### Phase 89: Console Read Surfaces
+
+**Goal:** Ship the mountable console read experience with safe host integration, self-contained
+assets, live updates, and isolated admin queries.
+
+**Depends on:** Phase 88
+
+**Requirements:** ADMIN-01, ADMIN-02, ADMIN-03, ADMIN-05, ADMIN-06
+
+**Success criteria:**
+
+1. Host app mounts the console via router macro with host auth pipeline and `on_mount` hook.
+2. Console asset-serving plug is safe by default and self-contained.
+3. Home, assets list/detail, upload sessions, variant/job activity, doctor, and runtime status
+   read surfaces are available.
+4. PubSub live updates use existing `:asset`, `:variant`, and `:upload_session` topics.
+5. Queries remain isolated in `Rindle.Admin.Queries`, not added to the public facade.
+6. Optional-dependency CI matrix proves `phoenix_live_view` compiles away cleanly when absent.
+
+**Plans:** 0 plans created
+
+---
+
+### Phase 90: Console Ops Actions
+
+**Goal:** Add operational console actions for existing lifecycle capabilities without adding new
+lifecycle semantics.
+
+**Depends on:** Phase 89
+
+**Requirements:** ADMIN-04
+
+**Success criteria:**
+
+1. Owner erasure preview/execute and batch erasure are exposed with deliberate destructive UX.
+2. Typed confirmation and collateral preview are required for destructive actions.
+3. Variant regeneration, quarantine review, and lifecycle repair reuse existing facade
+   capabilities.
+4. Console actions do not introduce new lifecycle semantics beyond recorded v1.18 scope.
+
+**Plans:** 0 plans created
+
+---
+
+### Phase 91: Cohort Demo Evolution
+
+**Goal:** Evolve Cohort into the adoption lab that proves the console across branded demo
+surfaces, media types, and lifecycle states.
+
+**Depends on:** Phase 90
+
+**Requirements:** DEMO-01, DEMO-02, DEMO-03
+
+**Success criteria:**
+
+1. Cohort gets a lightweight brand distinct from Rindle after a rendered options checkpoint.
+2. Demo covers audio and document media profiles.
+3. Seeds express every asset, variant, and upload-session lifecycle state, including degraded,
+   quarantined, failed, stale, and expired.
+4. Cohort mounts the admin console.
+5. Click-around walkthrough is documented.
+
+**Plans:** 0 plans created
+
+---
+
+### Phase 92: E2E & Screenshot-Driven Polish Loop
+
+**Goal:** Make console behavior and polish deterministic through merge-blocking Playwright and
+all-screens screenshot iteration.
+
+**Depends on:** Phase 91
+
+**Requirements:** E2E-01, E2E-02
+
+**Success criteria:**
+
+1. Deterministic Playwright specs cover happy paths, main error cases, boundary conditions,
+   theme switching, and destructive flows.
+2. Console E2E lane is merge-blocking.
+3. Automated screenshot capture covers all screens in light and dark mode.
+4. Screenshot analyze-to-fix polish passes are run until visual regressions are resolved.
+
+**Plans:** 0 plans created
+
+---
+
+### Phase 93: Truth, Docs & Milestone Audit
+
+**Goal:** Close v1.18 with truthful docs, public-surface parity, traceability closure, and a
+milestone audit.
+
+**Depends on:** Phase 92
+
+**Requirements:** TRUTH-07
+
+**Success criteria:**
+
+1. `guides/admin_console.md` documents the console accurately.
+2. `user_flows` and `JTBD-MAP` reflect the T4 admin UI reversal.
+3. `lib/rindle.ex` no longer claims there is no admin UI.
+4. README and HexDocs describe the shipped console truthfully.
+5. Requirements traceability is closed.
+6. v1.18 milestone audit is written.
+
+**Plans:** 0 plans created
+
 <details>
 <summary>✅ b1.0 Brand Foundations (Phases 81–85) — SHIPPED 2026-06-10</summary>
 
