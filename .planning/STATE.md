@@ -18,7 +18,7 @@ stopped_at: Phase 87 complete (3/3) — ready to discuss Phase 88
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-06-10)
+See: .planning/PROJECT.md (updated 2026-06-11)
 
 **Core value:** Media, made durable.
 **Current focus:** Phase 88 — admin design system & ui kit
@@ -49,8 +49,9 @@ Last activity: 2026-06-11
 
 ## Next Step
 
-**Phase 87 plan** — use the captured Docker & Demo DX context, then research → plan →
-execute → verify. Cost checkpoint offered before each heavy execute.
+**Phase 88 discuss/plan** — start the admin design system & UI kit phase. Use the
+validated Phase 86 architecture/design locks and Phase 87 Docker preview contract as
+upstream context.
 
 **Manual brand follow-ups (one-time, carried over):**
 
