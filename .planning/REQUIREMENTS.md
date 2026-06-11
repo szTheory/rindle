@@ -58,7 +58,7 @@ coverage, deterministic E2E, and Docker DX fixes.
 
 - [x] **DX-01**: Compose stack is port-conflict-free alongside sibling projects
   (project namespacing + env-driven ports with sane defaults and conflict guidance).
-- [ ] **DX-02**: Dockerfile layer caching fixed (deps fetched before source COPY) and a
+- [x] **DX-02**: Dockerfile layer caching fixed (deps fetched before source COPY) and a
   dev iteration path where style/template changes don't rebuild deps.
 - [x] **DX-03**: Launch prints a copy-pasteable URL map (app, admin console, MinIO console).
 
