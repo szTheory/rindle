@@ -50,6 +50,7 @@
       "no_auto_new_milestone": true,
       "verify_install_smoke_claims": true,
       "flag_user_flows_roadmap_drift": true
-    }
+    },
+    "use_worktrees": false
   }
 }
