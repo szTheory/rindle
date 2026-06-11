@@ -70,6 +70,11 @@ guide parity (Phases 67–70, 8/8 requirements).
 Release train operational at Hex `0.1.6`; next publish validates automated baseline ledger.
 Default posture: demand-gated pause until LIFE-06 or STREAM-10 signal.
 
+**v1.18 Phase 86 complete (2026-06-11):** Research & Architecture Lock validated PRIN-01
+and produced locked guides for admin console architecture, task-first IA, CSS, motion,
+Docker demo DX, and UI principles linked from `AGENTS.md`. No console implementation
+shipped yet; Phases 87–93 remain active.
+
 Do not reopen tus protocol, single-owner/batch erasure semantics, or Mux surfaces
 beyond v1.13. Keep shared-asset safety and maintenance-vs-owner-erasure boundaries
 intact.
@@ -366,6 +371,8 @@ To keep this posture durable across GSD workflows:
   (TRUTH-06)
 - ✓ JTBD-MAP anchor and planning charter alignment — v1.17 (Phase 78) (PLAN-02)
 - ✓ Recorded Credo/Dialyzer advisory policy (CI-04) — v1.17 (Phase 79)
+- ✓ Durable UI-principles guidance linked from `AGENTS.md`, with admin console
+  architecture, IA, CSS, motion, and Docker DX locks — v1.18 (Phase 86) (PRIN-01)
 
 ### Active
 
@@ -375,8 +382,8 @@ To keep this posture durable across GSD workflows:
   light/dark/system theme picker, contrast gate), DEMO-01..03 (Cohort own brand, full
   media-type + state coverage, mounts console), E2E-01..02 (deterministic console specs,
   screenshot polish loop), DX-01..03 (port-conflict-free compose, layer caching, launch
-  URL map), PRIN-01 (UI principles doc in AGENTS.md), TRUTH-07 (scope-reversal docs
-  parity). Full text: `.planning/REQUIREMENTS.md`.
+  URL map), TRUTH-07 (scope-reversal docs parity). PRIN-01 is validated in Phase 86.
+  Full text: `.planning/REQUIREMENTS.md`.
 
 **Demand-gated for v1.19+ feature milestone:**
 
@@ -756,4 +763,4 @@ This document evolves at phase transitions and milestone boundaries.
    (`workflow.milestone_boundary.block_feature_milestone_without_signal`)
 
 ---
-*Last updated: 2026-05-27 after post-v117 milestone assessment (pause reaffirmed)*
+*Last updated: 2026-06-11 after Phase 86 Research & Architecture Lock completion*

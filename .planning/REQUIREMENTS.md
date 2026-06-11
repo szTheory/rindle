@@ -164,7 +164,7 @@ v1.18 Admin Console & Adoption Lab (phases 86–93; b1.0 brand-track rows archiv
 | DX-01 | Phase 87 | Planned |
 | DX-02 | Phase 87 | Planned |
 | DX-03 | Phase 87 | Planned |
-| PRIN-01 | Phase 86 | Planned |
+| PRIN-01 | Phase 86 | Satisfied |
 | TRUTH-07 | Phase 93 | Planned |
 | PAUSE-01 | — | Satisfied (maintenance mode, pre-v1.18) |
 | PAUSE-02 | — | Satisfied (threads canonical) |
