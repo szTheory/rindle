@@ -32,11 +32,11 @@ coverage, deterministic E2E, and Docker DX fixes.
 
 ### Design System (DS)
 
-- [ ] **DS-01**: `rindle-admin` design system generated from `brandbook/tokens/tokens.json`
+- [x] **DS-01**: `rindle-admin` design system generated from `brandbook/tokens/tokens.json`
   (BEM + CSS custom properties); components rolled into the system, no one-off styles.
 - [ ] **DS-02**: Light/dark/system theme picker as a first-class component
   (`data-theme` + `prefers-color-scheme`).
-- [ ] **DS-03**: Mechanical WCAG AA contrast gate over console token pairs
+- [x] **DS-03**: Mechanical WCAG AA contrast gate over console token pairs
   (reuse `brandbook/src/contrast.mjs` pattern).
 
 ### Demo / Adoption Evidence (DEMO)
@@ -153,9 +153,9 @@ v1.18 Admin Console & Adoption Lab (phases 86–93; b1.0 brand-track rows archiv
 | ADMIN-04 | Phase 90 | Planned |
 | ADMIN-05 | Phase 89 | Planned |
 | ADMIN-06 | Phase 89 | Planned |
-| DS-01 | Phase 88 | Planned |
+| DS-01 | Phase 88 | Complete |
 | DS-02 | Phase 88 | Planned |
-| DS-03 | Phase 88 | Planned |
+| DS-03 | Phase 88 | Complete |
 | DEMO-01 | Phase 91 | Planned |
 | DEMO-02 | Phase 91 | Planned |
 | DEMO-03 | Phase 91 | Planned |

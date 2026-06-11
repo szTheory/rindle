@@ -164,7 +164,7 @@ Plans:
 
 **Wave 1**
 
-- [ ] 88-01-PLAN.md — Generate `rindle-admin` CSS and console contrast gates.
+- [x] 88-01-PLAN.md — Generate `rindle-admin` CSS and console contrast gates.
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
