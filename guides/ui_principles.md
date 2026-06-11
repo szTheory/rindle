@@ -70,8 +70,9 @@ guide before changing console, Cohort, E2E, or visual-polish surfaces.
 - Admin reads stay in `Rindle.Admin.Queries`; do not add convenience reads to the public
   `Rindle` facade.
 - Owner erasure and batch erasure require collateral preview and typed confirmation.
-- Variant regeneration, quarantine review, and lifecycle repair must reuse existing
-  facade/ops capabilities.
+- Variant regeneration and lifecycle repair must reuse existing facade/ops capabilities.
+- Quarantine review is read-only triage unless a later phase records a supported public
+  capability; do not add un-quarantine row mutation from the console.
 - Do not hide dangerous state behind color, animation, or collapsed-only UI.
 - Receipts must show what changed and what did not change.
 

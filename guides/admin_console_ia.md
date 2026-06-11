@@ -57,8 +57,12 @@ The console keeps the existing operations split:
 
 Read surfaces map to `Rindle.Admin.Queries` or existing read models such as
 `Rindle.Ops.RuntimeStatus`. Action surfaces map to existing facade/ops capabilities such
-as owner erasure, batch erasure, variant regeneration, quarantine review, and lifecycle
-repair.
+as owner erasure, batch erasure, variant regeneration, and lifecycle repair.
+
+Quarantine review is a triage surface over existing quarantined asset state. It may link
+to supported deletion or erasure paths where appropriate, but it must not add an
+un-quarantine write path or direct row mutation. Current un-quarantine remains a manual
+audited exception.
 
 Do not put destructive buttons on status summaries. Status screens may link to the
 relevant action flow, but the action itself starts on `Actions` with context and
@@ -136,7 +140,7 @@ Content:
 - owner erasure preview and execute
 - batch erasure preview and execute
 - variant regeneration
-- quarantine review
+- quarantine review as read-only triage plus supported deletion/erasure escalation
 - lifecycle repair
 - receipts after completion
 

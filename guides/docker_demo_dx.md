@@ -31,13 +31,13 @@ may keep a sane default, but environment override must be the documented path.
 
 ## Host Port Contract
 
-Host ports are environment-driven:
+Host ports are environment-driven and loopback-bound for developer previews:
 
-| Service | Env var | Default | Internal port |
+| Service | Env var | Compose binding | Internal port |
 | --- | --- | --- | --- |
-| Cohort app | `COHORT_DEMO_PORT` | `4102` | `4102` |
-| MinIO API | `COHORT_MINIO_PORT` | `9000` | `9000` |
-| MinIO console | `COHORT_MINIO_CONSOLE_PORT` | `9001` | `9001` |
+| Cohort app | `COHORT_DEMO_PORT` default `4102` | `127.0.0.1:${COHORT_DEMO_PORT:-4102}:4102` | `4102` |
+| MinIO API | `COHORT_MINIO_PORT` default `9000` | `127.0.0.1:${COHORT_MINIO_PORT:-9000}:9000` | `9000` |
+| MinIO console | `COHORT_MINIO_CONSOLE_PORT` default `9001` | `127.0.0.1:${COHORT_MINIO_CONSOLE_PORT:-9001}:9001` | `9001` |
 
 Internal Phoenix remains:
 
@@ -47,7 +47,8 @@ PHX_HOST=localhost
 ```
 
 The current fixed-port baseline to replace is `"4102:4102"`, `"9000:9000"`, and
-`"9001:9001"`.
+`"9001:9001"`. Do not publish MinIO with bare `${PORT}:9000` or `${PORT}:9001`
+bindings.
 
 ## Launch URL Map
 
@@ -84,8 +85,9 @@ names.
 
 ## Exposure Boundary
 
-The MinIO console is local-only developer tooling. Do not present the Docker preview as a
-production deployment path, and do not document public MinIO console exposure.
+The MinIO console is local-only developer tooling. Bind the MinIO API and MinIO console to
+`127.0.0.1`, not all host interfaces. Do not present the Docker preview as a production
+deployment path, and do not document public MinIO console exposure.
 
 The app URL can use localhost; published production topology is outside this phase.
 
