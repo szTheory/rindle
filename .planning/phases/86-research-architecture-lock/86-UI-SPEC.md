@@ -1,7 +1,8 @@
 ---
 phase: 86
 slug: research-architecture-lock
-status: draft
+status: approved
+reviewed_at: 2026-06-11T11:33:59-04:00
 shadcn_initialized: false
 preset: none
 created: 2026-06-11
@@ -125,6 +126,13 @@ Source: `86-CONTEXT.md` D-86-19, D-86-20; `REQUIREMENTS.md` ADMIN-04.
 
 Phase 86 must lock these interaction rules for phases 87-93:
 
+Visual hierarchy contract:
+
+- The primary screen focal point is the Home/Status operational summary: readiness, blocked work, and next required action.
+- The secondary anchor is the task-first navigation for Assets, Upload Sessions, Variants/Jobs, Runtime/Doctor, and Actions.
+- The primary action is `Lock architecture`; supporting validation details stay visually quieter than the operational summary.
+- Do not introduce decorative analytics cards, oversized hero treatments, or animation-led focal points.
+
 | Area | Contract |
 |------|----------|
 | Navigation | Use task-first IA: Home/Status, Assets, Upload Sessions, Variants/Jobs, Runtime/Doctor, Actions. Do not create decorative analytics dashboard sprawl. |
@@ -158,11 +166,11 @@ Source: codebase scout; `86-CONTEXT.md` D-86-03, D-86-11, D-86-15.
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
+- [x] Dimension 1 Copywriting: PASS
+- [x] Dimension 2 Visuals: PASS
+- [x] Dimension 3 Color: PASS
+- [x] Dimension 4 Typography: PASS
+- [x] Dimension 5 Spacing: PASS
+- [x] Dimension 6 Registry Safety: PASS
 
-**Approval:** pending
+**Approval:** approved 2026-06-11
