@@ -168,7 +168,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 88-02-PLAN.md — Generate component gallery and screenshot/theme harness.
+- [x] 88-02-PLAN.md — Generate component gallery and screenshot/theme harness.
 
 **Wave 3** *(blocked on Waves 1–2 completion)*
 
