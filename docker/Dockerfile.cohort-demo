@@ -13,7 +13,8 @@ RUN apt-get update \
 
 WORKDIR /app
 
-COPY . /app
+COPY mix.exs mix.lock /app/
+COPY examples/adoption_demo/mix.exs examples/adoption_demo/mix.lock /app/examples/adoption_demo/
 
 WORKDIR /app/examples/adoption_demo
 
@@ -21,8 +22,11 @@ ENV MIX_ENV=prod
 
 RUN mix local.hex --force \
   && mix local.rebar --force \
-  && mix deps.get \
-  && mix assets.vendor \
+  && mix deps.get
+
+COPY . /app
+
+RUN mix assets.vendor \
   && mix compile
 
 COPY docker/cohort-demo-entrypoint.sh /entrypoint.sh
