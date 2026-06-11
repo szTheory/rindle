@@ -495,22 +495,16 @@ services:
 | A3 | Specific BEM class names such as `.rindle-admin-shell` and `.rindle-admin-status-chip--ready` are acceptable naming recommendations. | Pattern 5 / Code Examples | Phase 88 may rename classes, but must preserve BEM and token-generated CSS. |
 | A4 | Warning signs for future implementation are inferred from the locked constraints. | Common Pitfalls | Planner should convert them into checks rather than treating them as existing defects. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Exact doc filenames**
-   - What we know: Phase 86 must produce durable locked research/ADR docs and PRIN-01 linked from `AGENTS.md`. [VERIFIED: `.planning/phases/86-research-architecture-lock/86-CONTEXT.md`]
-   - What's unclear: The maintainer did not prescribe exact filenames. [VERIFIED: `.planning/phases/86-research-architecture-lock/86-CONTEXT.md`]
-   - Recommendation: Use the `guides/*.md` filenames recommended here; this is local and reversible. [ASSUMED]
+   - Resolution: Use the recommended `guides/*.md` filenames in this research output for Phase 86 plans. The maintainer locked durable research/ADR docs and PRIN-01 linkage, not exact filenames; this is a local documentation layout decision and does not affect public API shape, security/auth semantics, destructive operations, dependency footprint, or milestone scope. [VERIFIED: `.planning/phases/86-research-architecture-lock/86-CONTEXT.md`; ASSUMED]
 
 2. **Safe mount option name**
-   - What we know: Unsafe unauthenticated production mounting must be refused by default. [VERIFIED: `.planning/phases/86-research-architecture-lock/86-CONTEXT.md`]
-   - What's unclear: The exact escape-hatch option name is not locked. [VERIFIED: `.planning/phases/86-research-architecture-lock/86-CONTEXT.md`]
-   - Recommendation: Document the policy in Phase 86; let Phase 89 pick a narrow option such as `allow_unsafe_mount?: true` only for dev/test examples. [ASSUMED]
+   - Resolution: Phase 86 locks the safe-mount policy, not the exact escape-hatch option name. The architecture doc and plans must say unsafe unauthenticated production mounting is refused by default and that any dev/test-only escape hatch remains a narrow implementation-phase public API decision for Phase 89. Do not lock an exact option name in Phase 86 because the name affects auth/security/public API shape. [VERIFIED: `.planning/phases/86-research-architecture-lock/86-CONTEXT.md`; ASSUMED]
 
 3. **Whether to include console architecture docs in HexDocs extras immediately**
-   - What we know: `mix.exs` currently packages `guides` and explicitly lists extras. [VERIFIED: `mix.exs`]
-   - What's unclear: Phase 86 may create internal guidance before the console exists, while Phase 93 closes public truth. [VERIFIED: `.planning/ROADMAP.md`]
-   - Recommendation: Create docs in `guides/` now but defer public README/facade truth claims to Phase 93. [ASSUMED]
+   - Resolution: Create the Phase 86 architecture docs in `guides/` now because `guides/` is already a packaged documentation home, but do not change public README/facade truth claims in this phase. Phase 93 remains responsible for public truth/docs parity after the console exists. [VERIFIED: `mix.exs`; VERIFIED: `.planning/ROADMAP.md`; ASSUMED]
 
 ## Environment Availability
 
