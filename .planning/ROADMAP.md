@@ -129,7 +129,7 @@ Plans:
 
 **Wave 1**
 
-- [ ] 87-01-PLAN.md - Env-driven compose ports and launch URL map.
+- [x] 87-01-PLAN.md - Env-driven compose ports and launch URL map.
 - [ ] 87-02-PLAN.md - Dockerfile dependency-cache ordering.
 
 **Wave 2** *(blocked on Wave 1 completion)*
