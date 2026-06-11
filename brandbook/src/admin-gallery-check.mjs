@@ -158,6 +158,23 @@ const assertSecondaryButtonBorderColor = async (page) => {
   );
 };
 
+const assertGalleryHelperBorders = async (page) => {
+  const failures = [];
+  for (const selector of ['.rindle-admin-gallery__panel', '.rindle-admin-gallery__input']) {
+    const border = await page.locator(selector).first().evaluate((element) => {
+      const styles = getComputedStyle(element);
+      return {
+        width: styles.borderTopWidth,
+        style: styles.borderTopStyle,
+      };
+    });
+    if (border.width === '0px' || border.style === 'none') {
+      failures.push(`${selector} ${border.width} ${border.style}`);
+    }
+  }
+  assert(failures.length === 0, `gallery helper borders are not rendered: ${failures.join(', ')}`);
+};
+
 const selectTheme = async (page, theme) => {
   await page.locator(`[data-rindle-admin-theme="${theme}"]`).click();
   const current = await page.evaluate(() => document.documentElement.getAttribute('data-theme'));
@@ -214,6 +231,7 @@ try {
 
   await selectTheme(page, 'light');
   await assertSecondaryButtonBorderColor(page);
+  await assertGalleryHelperBorders(page);
   await screenshot(page, 'gallery-light-desktop.png');
   await elementScreenshot(page, '[data-rindle-admin-component="theme-picker"]', 'theme-picker-light.png');
   await elementScreenshot(page, '[data-rindle-admin-component="confirm-dialog"]', 'confirm-dialog-light.png');

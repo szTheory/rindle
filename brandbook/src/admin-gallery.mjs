@@ -209,7 +209,7 @@ code {
 
 .rindle-admin-gallery__panel {
   padding: var(--rindle-space-5);
-  border: var(--rindle-border-subtle);
+  border: var(--rindle-border-rule-subtle);
   border-radius: var(--rindle-radius-card);
   background: var(--rindle-surface-raised);
 }
@@ -250,7 +250,7 @@ code {
 .rindle-admin-gallery__input {
   min-height: var(--rindle-admin-target-min);
   padding: var(--rindle-space-2) var(--rindle-space-3);
-  border: var(--rindle-border-strong);
+  border: var(--rindle-border-rule-strong);
   border-radius: var(--rindle-radius-control);
   background: var(--rindle-surface-raised);
   color: var(--rindle-text);
