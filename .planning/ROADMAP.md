@@ -134,7 +134,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 87-03-PLAN.md - Docker quick-try and proof-matrix docs.
+- [x] 87-03-PLAN.md - Docker quick-try and proof-matrix docs.
 
 ---
 
