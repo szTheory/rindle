@@ -40,7 +40,7 @@ Oban-Web/LiveDashboard-style with self-contained assets; D-v1.18-02 hex 0.3.0 af
 Each phase runs full GSD: discuss → research → plan → execute → verify, with a
 maintainer go/no-go gate between phases.
 
-- [ ] **Phase 86: Research & Architecture Lock** — parallel subagent research → locked ADRs:
+- [x] **Phase 86: Research & Architecture Lock** — parallel subagent research → locked ADRs: (completed 2026-06-11)
   LiveDashboard/Oban Web packaging (router macro, asset serving, CSP, CSS isolation,
   optional-dep matrix); gov.uk/GDS information architecture → persona/JTBD-driven console
   IA map; emilkowal.ski animation principles → restrained motion spec tied to brand
@@ -98,7 +98,7 @@ UI-principles decisions that downstream v1.18 phases must follow.
    `brandbook/tokens/tokens.json`; Cohort keeps Tailwind/daisyUI momentum.
 6. UI-principles document is linked from `AGENTS.md`.
 
-**Plans:** 3 plans
+**Plans:** 3/3 plans complete
 
 Plans:
 - [x] 86-01-PLAN.md — Lock mountable console architecture and task-first IA.

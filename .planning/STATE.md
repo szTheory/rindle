@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: Admin Console & Adoption Lab
-status: verifying
-last_updated: "2026-06-11T16:31:45.038Z"
+status: ready_to_plan
+last_updated: 2026-06-11T16:43:27.107Z
 last_activity: 2026-06-11
 progress:
   total_phases: 23
@@ -11,6 +11,7 @@ progress:
   total_plans: 9
   completed_plans: 12
   percent: 17
+stopped_at: Phase 86 complete (3/3) — ready to discuss Phase 87
 ---
 
 # Project State
@@ -20,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-10)
 
 **Core value:** Media, made durable.
-**Current focus:** Phase 86 — Research & Architecture Lock
+**Current focus:** Phase 87 — docker & demo dx
 console, Cohort demo evolution, deterministic E2E, Docker DX
 
 ## Current Position
 
-Phase: 86 (Research & Architecture Lock) — EXECUTING
-Plan: 3 of 3
-Status: Phase complete — ready for verification
+Phase: 87
+Plan: Not started
+Status: Ready to plan
 Last activity: 2026-06-11
 
 ## Current Milestone

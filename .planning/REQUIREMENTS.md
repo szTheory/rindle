@@ -64,7 +64,7 @@ coverage, deterministic E2E, and Docker DX fixes.
 
 ### Principles & Truth (PRIN / TRUTH)
 
-- [ ] **PRIN-01**: Durable UI-principles doc (design-system values, audit checklist,
+- [x] **PRIN-01**: Durable UI-principles doc (design-system values, audit checklist,
   deterministic-E2E rules) linked from `AGENTS.md` so future UI work never regresses.
 - [ ] **TRUTH-07**: Docs/facade parity for the scope reversal — `lib/rindle.ex` facade
   contract, `guides/`, JTBD-MAP T4 row, and README updated truthfully.
