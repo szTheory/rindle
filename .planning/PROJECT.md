@@ -80,7 +80,12 @@ the Cohort Docker preview now uses env-driven loopback host ports with
 `COMPOSE_PROJECT_NAME` namespacing, cache-friendly Dockerfile dependency ordering,
 deterministic launch URL output, and matching quick-try/proof-matrix docs. Full Docker
 startup remains an optional manual smoke; static gates are the validated proof path.
-Phases 88–93 remain active.
+
+**v1.18 Phase 88 complete (2026-06-11):** Admin Design System & UI Kit validated
+DS-01..03 and ADMIN-02 groundwork: token-generated `rindle-admin` CSS,
+console-specific contrast gates, deterministic static gallery, screenshot/hash
+navigation checks, and the durable admin design-system operating guide are in place.
+Production serving/package inclusion remains Phase 89 scope. Phases 89–93 remain active.
 
 Do not reopen tus protocol, single-owner/batch erasure semantics, or Mux surfaces
 beyond v1.13. Keep shared-asset safety and maintenance-vs-owner-erasure boundaries
@@ -771,4 +776,4 @@ This document evolves at phase transitions and milestone boundaries.
    (`workflow.milestone_boundary.block_feature_milestone_without_signal`)
 
 ---
-*Last updated: 2026-06-11 after Phase 87 Docker & Demo DX completion*
+*Last updated: 2026-06-11 after Phase 88 Admin Design System & UI Kit completion*
