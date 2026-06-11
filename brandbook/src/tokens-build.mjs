@@ -32,7 +32,7 @@ for (const [k, v] of Object.entries(T.spacing)) css += `  --rindle-space-${k}: $
 css += '\n  /* radii */\n';
 for (const [k, v] of Object.entries(T.radius)) css += `  --rindle-radius-${k}: ${v};\n`;
 css += '\n  /* borders, shadow, focus, motion */\n';
-for (const [k, v] of Object.entries(T.border)) if (typeof v === 'string') css += `  --rindle-border-${k}: ${deref(v)};\n`;
+for (const [k, v] of Object.entries(T.border)) if (typeof v === 'string') css += `  --rindle-border-rule-${k}: ${deref(v)};\n`;
 css += `  --rindle-shadow-card: ${T.shadow.card};\n`;
 css += `  --rindle-focus-width: ${T.focus.width};\n  --rindle-focus-offset: ${T.focus.offset};\n`;
 for (const [k, v] of Object.entries(T.motion)) {

@@ -112,8 +112,8 @@
   --rindle-radius-pill: 999px;
 
   /* borders, shadow, focus, motion */
-  --rindle-border-subtle: 1px solid #D9E0DA;
-  --rindle-border-strong: 1px solid #75847B;
+  --rindle-border-rule-subtle: 1px solid #D9E0DA;
+  --rindle-border-rule-strong: 1px solid #75847B;
   --rindle-shadow-card: 0 1px 2px rgba(16, 20, 23, 0.06), 0 8px 24px rgba(16, 20, 23, 0.06);
   --rindle-focus-width: 2px;
   --rindle-focus-offset: 2px;

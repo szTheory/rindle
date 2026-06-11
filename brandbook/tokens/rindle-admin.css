@@ -112,8 +112,8 @@
   --rindle-radius-pill: 999px;
 
   /* borders, shadow, focus, motion */
-  --rindle-border-subtle: 1px solid #D9E0DA;
-  --rindle-border-strong: 1px solid #75847B;
+  --rindle-border-rule-subtle: 1px solid #D9E0DA;
+  --rindle-border-rule-strong: 1px solid #75847B;
   --rindle-shadow-card: 0 1px 2px rgba(16, 20, 23, 0.06), 0 8px 24px rgba(16, 20, 23, 0.06);
   --rindle-focus-width: 2px;
   --rindle-focus-offset: 2px;
@@ -213,7 +213,7 @@
   min-width: 0;
   padding: var(--rindle-space-5);
   background: var(--rindle-surface-raised);
-  border-right: var(--rindle-border-subtle);
+  border-right: var(--rindle-border-rule-subtle);
 }
 
 .rindle-admin-nav__brand {
@@ -254,7 +254,7 @@
   width: 100%;
   border-collapse: collapse;
   background: var(--rindle-surface-raised);
-  border: var(--rindle-border-subtle);
+  border: var(--rindle-border-rule-subtle);
   border-radius: var(--rindle-radius-card);
   overflow: hidden;
   font-size: var(--rindle-text-small-size);
@@ -269,7 +269,7 @@
 
 .rindle-admin-table__row {
   min-height: var(--rindle-admin-target-min);
-  border-top: var(--rindle-border-subtle);
+  border-top: var(--rindle-border-rule-subtle);
   color: var(--rindle-text);
 }
 
@@ -411,7 +411,7 @@
   align-items: center;
   gap: var(--rindle-space-1);
   padding: var(--rindle-space-1);
-  border: var(--rindle-border-subtle);
+  border: var(--rindle-border-rule-subtle);
   border-radius: var(--rindle-radius-control);
   background: var(--rindle-surface-raised);
 }
@@ -435,7 +435,7 @@
 .rindle-admin-confirm-dialog {
   max-width: 560px;
   padding: var(--rindle-space-5);
-  border: var(--rindle-border-strong);
+  border: var(--rindle-border-rule-strong);
   border-radius: var(--rindle-radius-card);
   background: var(--rindle-surface-raised);
   color: var(--rindle-text);
@@ -456,7 +456,7 @@
   width: min(100%, 520px);
   min-height: 100%;
   padding: var(--rindle-space-5);
-  border-left: var(--rindle-border-strong);
+  border-left: var(--rindle-border-rule-strong);
   background: var(--rindle-surface-raised);
   color: var(--rindle-text);
   box-shadow: var(--rindle-shadow-card);
@@ -470,7 +470,7 @@
   gap: var(--rindle-space-3);
   align-items: center;
   padding: var(--rindle-space-3) var(--rindle-space-4);
-  border: var(--rindle-border-subtle);
+  border: var(--rindle-border-rule-subtle);
   border-left: 4px solid var(--rindle-status-info);
   border-radius: var(--rindle-radius-control);
   background: var(--rindle-surface-raised);
@@ -486,7 +486,7 @@
 
 .rindle-admin-empty-state {
   padding: var(--rindle-space-6);
-  border: var(--rindle-border-subtle);
+  border: var(--rindle-border-rule-subtle);
   border-radius: var(--rindle-radius-card);
   background: var(--rindle-surface-raised);
   color: var(--rindle-text);
@@ -505,7 +505,7 @@
   border-radius: var(--rindle-radius-control-sm);
   background: linear-gradient(90deg, var(--rindle-surface-sunken), var(--rindle-surface-raised), var(--rindle-surface-sunken));
   background-size: 200% 100%;
-  border: var(--rindle-border-subtle);
+  border: var(--rindle-border-rule-subtle);
   transition: opacity var(--rindle-motion-transition) var(--rindle-motion-easing);
 }
 
@@ -527,7 +527,7 @@
 
   .rindle-admin-nav {
     border-right: 0;
-    border-bottom: var(--rindle-border-subtle);
+    border-bottom: var(--rindle-border-rule-subtle);
   }
 }
 

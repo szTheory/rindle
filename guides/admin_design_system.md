@@ -105,6 +105,8 @@ Theme behavior is `data-theme="light|dark|auto"` plus
 - `data-theme="auto"` follows `prefers-color-scheme`.
 - Status-chip foreground and surface tokens are semantic in both light and dark;
   contrast gates must check the same `status-*-surface` backgrounds the CSS uses.
+- Border color tokens (`border-subtle`, `border-strong`) stay color-only; border
+  shorthand tokens use the `border-rule-*` namespace.
 
 Do not add a parallel theme convention. The theme picker is a first-class
 `rindle-admin` component, not a host Tailwind or daisyUI concern.

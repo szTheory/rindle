@@ -107,10 +107,15 @@ const contrastRatio = (a, b) => {
   return (l1 + 0.05) / (l2 + 0.05);
 };
 
-const parseRgb = (value) => {
-  const match = value.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)/);
-  if (!match) throw new Error(`could not parse computed color: ${value}`);
-  return match.slice(1, 4).map(Number);
+const parseColor = (value) => {
+  const color = value.trim();
+  const hex = color.match(/^#([0-9a-f]{6})$/i);
+  if (hex) {
+    return [0, 2, 4].map((offset) => parseInt(hex[1].slice(offset, offset + 2), 16));
+  }
+  const rgb = color.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+  if (rgb) return rgb.slice(1, 4).map(Number);
+  throw new Error(`could not parse computed color: ${value}`);
 };
 
 const assertDarkStatusChipContrast = async (page) => {
@@ -127,12 +132,29 @@ const assertDarkStatusChipContrast = async (page) => {
   const failures = chips
     .map((chip) => ({
       state: chip.state,
-      ratio: contrastRatio(parseRgb(chip.color), parseRgb(chip.backgroundColor)),
+      ratio: contrastRatio(parseColor(chip.color), parseColor(chip.backgroundColor)),
     }))
     .filter(({ ratio }) => ratio < 4.5);
   assert(
     failures.length === 0,
     `dark status chip contrast failures: ${failures.map(({ state, ratio }) => `${state} ${ratio.toFixed(2)}:1`).join(', ')}`,
+  );
+};
+
+const assertSecondaryButtonBorderColor = async (page) => {
+  const borderState = await page.locator('.rindle-admin-button--secondary').first().evaluate((button) => {
+    const rootStyles = getComputedStyle(document.documentElement);
+    const buttonStyles = getComputedStyle(button);
+    return {
+      expected: rootStyles.getPropertyValue('--rindle-border-strong').trim(),
+      actual: buttonStyles.borderTopColor,
+    };
+  });
+  const expected = parseColor(borderState.expected);
+  const actual = parseColor(borderState.actual);
+  assert(
+    expected.every((value, index) => value === actual[index]),
+    `expected secondary button border ${borderState.expected}, got ${borderState.actual}`,
   );
 };
 
@@ -191,6 +213,7 @@ try {
   assert(await confirmAction.isEnabled(), 'confirm action must enable after owner confirmation matches');
 
   await selectTheme(page, 'light');
+  await assertSecondaryButtonBorderColor(page);
   await screenshot(page, 'gallery-light-desktop.png');
   await elementScreenshot(page, '[data-rindle-admin-component="theme-picker"]', 'theme-picker-light.png');
   await elementScreenshot(page, '[data-rindle-admin-component="confirm-dialog"]', 'confirm-dialog-light.png');

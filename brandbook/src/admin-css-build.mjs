@@ -64,7 +64,7 @@ for (const [k, v] of Object.entries(T.spacing)) css += `  --rindle-space-${k}: $
 css += '\n  /* radii */\n';
 for (const [k, v] of Object.entries(T.radius)) css += `  --rindle-radius-${k}: ${v};\n`;
 css += '\n  /* borders, shadow, focus, motion */\n';
-for (const [k, v] of Object.entries(T.border)) if (typeof v === 'string') css += `  --rindle-border-${k}: ${deref(v)};\n`;
+for (const [k, v] of Object.entries(T.border)) if (typeof v === 'string') css += `  --rindle-border-rule-${k}: ${deref(v)};\n`;
 css += `  --rindle-shadow-card: ${T.shadow.card};\n`;
 css += `  --rindle-focus-width: ${T.focus.width};\n`;
 css += `  --rindle-focus-offset: ${T.focus.offset};\n`;
@@ -114,7 +114,7 @@ css += `  }
   min-width: 0;
   padding: var(--rindle-space-5);
   background: var(--rindle-surface-raised);
-  border-right: var(--rindle-border-subtle);
+  border-right: var(--rindle-border-rule-subtle);
 }
 
 .rindle-admin-nav__brand {
@@ -155,7 +155,7 @@ css += `  }
   width: 100%;
   border-collapse: collapse;
   background: var(--rindle-surface-raised);
-  border: var(--rindle-border-subtle);
+  border: var(--rindle-border-rule-subtle);
   border-radius: var(--rindle-radius-card);
   overflow: hidden;
   font-size: var(--rindle-text-small-size);
@@ -170,7 +170,7 @@ css += `  }
 
 .rindle-admin-table__row {
   min-height: var(--rindle-admin-target-min);
-  border-top: var(--rindle-border-subtle);
+  border-top: var(--rindle-border-rule-subtle);
   color: var(--rindle-text);
 }
 
@@ -293,7 +293,7 @@ css += `
   align-items: center;
   gap: var(--rindle-space-1);
   padding: var(--rindle-space-1);
-  border: var(--rindle-border-subtle);
+  border: var(--rindle-border-rule-subtle);
   border-radius: var(--rindle-radius-control);
   background: var(--rindle-surface-raised);
 }
@@ -317,7 +317,7 @@ css += `
 .rindle-admin-confirm-dialog {
   max-width: 560px;
   padding: var(--rindle-space-5);
-  border: var(--rindle-border-strong);
+  border: var(--rindle-border-rule-strong);
   border-radius: var(--rindle-radius-card);
   background: var(--rindle-surface-raised);
   color: var(--rindle-text);
@@ -338,7 +338,7 @@ css += `
   width: min(100%, 520px);
   min-height: 100%;
   padding: var(--rindle-space-5);
-  border-left: var(--rindle-border-strong);
+  border-left: var(--rindle-border-rule-strong);
   background: var(--rindle-surface-raised);
   color: var(--rindle-text);
   box-shadow: var(--rindle-shadow-card);
@@ -352,7 +352,7 @@ css += `
   gap: var(--rindle-space-3);
   align-items: center;
   padding: var(--rindle-space-3) var(--rindle-space-4);
-  border: var(--rindle-border-subtle);
+  border: var(--rindle-border-rule-subtle);
   border-left: 4px solid var(--rindle-status-info);
   border-radius: var(--rindle-radius-control);
   background: var(--rindle-surface-raised);
@@ -368,7 +368,7 @@ css += `
 
 .rindle-admin-empty-state {
   padding: var(--rindle-space-6);
-  border: var(--rindle-border-subtle);
+  border: var(--rindle-border-rule-subtle);
   border-radius: var(--rindle-radius-card);
   background: var(--rindle-surface-raised);
   color: var(--rindle-text);
@@ -387,7 +387,7 @@ css += `
   border-radius: var(--rindle-radius-control-sm);
   background: linear-gradient(90deg, var(--rindle-surface-sunken), var(--rindle-surface-raised), var(--rindle-surface-sunken));
   background-size: 200% 100%;
-  border: var(--rindle-border-subtle);
+  border: var(--rindle-border-rule-subtle);
   transition: opacity var(--rindle-motion-transition) var(--rindle-motion-easing);
 }
 
@@ -409,7 +409,7 @@ css += `
 
   .rindle-admin-nav {
     border-right: 0;
-    border-bottom: var(--rindle-border-subtle);
+    border-bottom: var(--rindle-border-rule-subtle);
   }
 }
 
