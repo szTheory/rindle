@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="en" data-theme="auto">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rindle Admin Component Gallery</title>
+<link rel="stylesheet" href="../tokens/rindle-admin.css">
+<style>
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--rindle-surface);
+  color: var(--rindle-text);
+}
+
+code {
+  font-family: var(--rindle-font-mono);
+  font-size: var(--rindle-text-code-size);
+}
+
+.rindle-admin-gallery__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--rindle-space-5);
+  margin-bottom: var(--rindle-space-6);
+}
+
+.rindle-admin-gallery__eyebrow {
+  margin: 0 0 var(--rindle-space-2);
+  color: var(--rindle-text-secondary);
+  font-family: var(--rindle-font-mono);
+  font-size: 12px;
+}
+
+.rindle-admin-gallery__title {
+  margin: 0;
+  font-family: var(--rindle-font-display);
+  font-size: var(--rindle-text-h2-size);
+  line-height: var(--rindle-text-h2-line);
+}
+
+.rindle-admin-gallery__lede {
+  max-width: 72ch;
+  margin: var(--rindle-space-2) 0 0;
+  color: var(--rindle-text-secondary);
+}
+
+.rindle-admin-gallery__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+  gap: var(--rindle-space-5);
+  align-items: start;
+}
+
+.rindle-admin-gallery__section {
+  display: grid;
+  gap: var(--rindle-space-4);
+  margin-bottom: var(--rindle-space-5);
+}
+
+.rindle-admin-gallery__panel {
+  padding: var(--rindle-space-5);
+  border: var(--rindle-border-subtle);
+  border-radius: var(--rindle-radius-card);
+  background: var(--rindle-surface-raised);
+}
+
+.rindle-admin-gallery__panel h2,
+.rindle-admin-gallery__panel h3 {
+  margin: 0 0 var(--rindle-space-3);
+  font-family: var(--rindle-font-display);
+  line-height: var(--rindle-text-h3-line);
+}
+
+.rindle-admin-gallery__panel p {
+  margin: 0 0 var(--rindle-space-3);
+  color: var(--rindle-text-secondary);
+}
+
+.rindle-admin-gallery__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--rindle-space-3);
+  align-items: center;
+}
+
+.rindle-admin-gallery__stack {
+  display: grid;
+  gap: var(--rindle-space-3);
+}
+
+.rindle-admin-gallery__field {
+  display: grid;
+  gap: var(--rindle-space-2);
+}
+
+.rindle-admin-gallery__field label {
+  font-weight: 600;
+}
+
+.rindle-admin-gallery__input {
+  min-height: var(--rindle-admin-target-min);
+  padding: var(--rindle-space-2) var(--rindle-space-3);
+  border: var(--rindle-border-strong);
+  border-radius: var(--rindle-radius-control);
+  background: var(--rindle-surface-raised);
+  color: var(--rindle-text);
+  font: inherit;
+}
+
+.rindle-admin-gallery__input:focus-visible {
+  outline: var(--rindle-focus-width) solid var(--rindle-focus-ring);
+  outline-offset: var(--rindle-focus-offset);
+}
+
+.rindle-admin-gallery__receipt {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--rindle-space-2) var(--rindle-space-4);
+  margin: 0;
+  font-size: var(--rindle-text-small-size);
+}
+
+.rindle-admin-gallery__receipt dt {
+  color: var(--rindle-text-secondary);
+  font-family: var(--rindle-font-mono);
+}
+
+.rindle-admin-gallery__receipt dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+.rindle-admin-gallery__toast-region {
+  display: grid;
+  gap: var(--rindle-space-3);
+}
+
+.rindle-admin-gallery__skeleton-list {
+  display: grid;
+  gap: var(--rindle-space-2);
+}
+
+.rindle-admin-gallery__skeleton-list .rindle-admin-skeleton:nth-child(2) {
+  width: 82%;
+}
+
+.rindle-admin-gallery__skeleton-list .rindle-admin-skeleton:nth-child(3) {
+  width: 64%;
+}
+
+@media (max-width: 980px) {
+  .rindle-admin-gallery__header,
+  .rindle-admin-gallery__grid {
+    grid-template-columns: 1fr;
+    display: grid;
+  }
+}
+</style>
+</head>
+<body>
+<div class="rindle-admin-shell" data-rindle-admin-root data-rindle-admin-component="shell">
+  <nav class="rindle-admin-nav" aria-label="Rindle Admin surfaces" data-rindle-admin-component="nav">
+    <p class="rindle-admin-nav__brand">Rindle Admin</p>
+    <ul class="rindle-admin-nav__list">
+
+          <li>
+            <a class="rindle-admin-nav__item" href="#home-status" aria-current="page">
+              <span aria-hidden="true">01</span>
+              <span>Home/Status</span>
+            </a>
+          </li>
+          <li>
+            <a class="rindle-admin-nav__item" href="#assets">
+              <span aria-hidden="true">02</span>
+              <span>Assets</span>
+            </a>
+          </li>
+          <li>
+            <a class="rindle-admin-nav__item" href="#upload-sessions">
+              <span aria-hidden="true">03</span>
+              <span>Upload Sessions</span>
+            </a>
+          </li>
+          <li>
+            <a class="rindle-admin-nav__item" href="#variants-jobs">
+              <span aria-hidden="true">04</span>
+              <span>Variants/Jobs</span>
+            </a>
+          </li>
+          <li>
+            <a class="rindle-admin-nav__item" href="#runtime-doctor">
+              <span aria-hidden="true">05</span>
+              <span>Runtime/Doctor</span>
+            </a>
+          </li>
+          <li>
+            <a class="rindle-admin-nav__item" href="#actions">
+              <span aria-hidden="true">06</span>
+              <span>Actions</span>
+            </a>
+          </li>
+    </ul>
+  </nav>
+
+  <main class="rindle-admin-shell__main">
+    <header class="rindle-admin-gallery__header">
+      <div>
+        <p class="rindle-admin-gallery__eyebrow">Generated component gallery</p>
+        <h1 class="rindle-admin-gallery__title">Rindle Admin</h1>
+        <p class="rindle-admin-gallery__lede">Task-first component fixtures for lifecycle operations, rendered with only the generated rindle-admin CSS layer.</p>
+      </div>
+      <div class="rindle-admin-theme-picker" data-rindle-admin-component="theme-picker" role="group" aria-label="Theme">
+        <button class="rindle-admin-theme-picker__option" type="button" data-rindle-admin-theme="light" aria-pressed="false">Light</button><button class="rindle-admin-theme-picker__option" type="button" data-rindle-admin-theme="dark" aria-pressed="false">Dark</button><button class="rindle-admin-theme-picker__option" type="button" data-rindle-admin-theme="auto" aria-pressed="true">Auto</button>
+      </div>
+    </header>
+
+    <div class="rindle-admin-gallery__grid">
+      <div>
+        <section class="rindle-admin-gallery__section" aria-labelledby="table-heading">
+          <div class="rindle-admin-gallery__panel" data-rindle-admin-component="table">
+            <h2 id="table-heading">Lifecycle table</h2>
+            <p>Rows carry state, surface, and action context without relying on color alone.</p>
+            <table class="rindle-admin-table">
+              <thead class="rindle-admin-table__head">
+                <tr>
+                  <th class="rindle-admin-table__cell" scope="col">Record</th>
+                  <th class="rindle-admin-table__cell" scope="col">Signal</th>
+                  <th class="rindle-admin-table__cell" scope="col">State</th>
+                  <th class="rindle-admin-table__cell" scope="col">Surface</th>
+                  <th class="rindle-admin-table__cell" scope="col">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+
+              <tr class="rindle-admin-table__row" tabindex="0" data-rindle-admin-state="ready">
+                <td class="rindle-admin-table__cell"><code>asset:img-2048</code></td>
+                <td class="rindle-admin-table__cell">Ready original and thumbnails</td>
+                <td class="rindle-admin-table__cell">
+                  <span class="rindle-admin-status-chip rindle-admin-status-chip--ready" data-rindle-admin-state="ready">Ready</span>
+                </td>
+                <td class="rindle-admin-table__cell">Assets</td>
+                <td class="rindle-admin-table__cell"><button class="rindle-admin-button rindle-admin-button--quiet" type="button">Inspect</button></td>
+              </tr>
+              <tr class="rindle-admin-table__row" tabindex="0" data-rindle-admin-state="processing">
+                <td class="rindle-admin-table__cell"><code>session:upl-719</code></td>
+                <td class="rindle-admin-table__cell">Tus upload still receiving chunks</td>
+                <td class="rindle-admin-table__cell">
+                  <span class="rindle-admin-status-chip rindle-admin-status-chip--processing" data-rindle-admin-state="processing">Processing</span>
+                </td>
+                <td class="rindle-admin-table__cell">Upload Sessions</td>
+                <td class="rindle-admin-table__cell"><button class="rindle-admin-button rindle-admin-button--quiet" type="button">Review</button></td>
+              </tr>
+              <tr class="rindle-admin-table__row" tabindex="0" data-rindle-admin-state="warning">
+                <td class="rindle-admin-table__cell"><code>variant:hero-webp</code></td>
+                <td class="rindle-admin-table__cell">Recipe changed; output is stale</td>
+                <td class="rindle-admin-table__cell">
+                  <span class="rindle-admin-status-chip rindle-admin-status-chip--warning" data-rindle-admin-state="warning">Warning</span>
+                </td>
+                <td class="rindle-admin-table__cell">Variants/Jobs</td>
+                <td class="rindle-admin-table__cell"><button class="rindle-admin-button rindle-admin-button--quiet" type="button">Preview</button></td>
+              </tr>
+              <tr class="rindle-admin-table__row" tabindex="0" data-rindle-admin-state="quarantine">
+                <td class="rindle-admin-table__cell"><code>asset:doc-088</code></td>
+                <td class="rindle-admin-table__cell">Analyzer rejected unsafe content</td>
+                <td class="rindle-admin-table__cell">
+                  <span class="rindle-admin-status-chip rindle-admin-status-chip--quarantine" data-rindle-admin-state="quarantine">Quarantine</span>
+                </td>
+                <td class="rindle-admin-table__cell">Assets</td>
+                <td class="rindle-admin-table__cell"><button class="rindle-admin-button rindle-admin-button--quiet" type="button">Inspect</button></td>
+              </tr>
+              <tr class="rindle-admin-table__row" tabindex="0" data-rindle-admin-state="danger">
+                <td class="rindle-admin-table__cell"><code>job:oban-442</code></td>
+                <td class="rindle-admin-table__cell">Processor failed after retry budget</td>
+                <td class="rindle-admin-table__cell">
+                  <span class="rindle-admin-status-chip rindle-admin-status-chip--danger" data-rindle-admin-state="danger">Danger</span>
+                </td>
+                <td class="rindle-admin-table__cell">Variants/Jobs</td>
+                <td class="rindle-admin-table__cell"><button class="rindle-admin-button rindle-admin-button--quiet" type="button">Repair</button></td>
+              </tr>
+              <tr class="rindle-admin-table__row" tabindex="0" data-rindle-admin-state="info">
+                <td class="rindle-admin-table__cell"><code>doctor:runtime</code></td>
+                <td class="rindle-admin-table__cell">Provider credentials visible to doctor</td>
+                <td class="rindle-admin-table__cell">
+                  <span class="rindle-admin-status-chip rindle-admin-status-chip--info" data-rindle-admin-state="info">Info</span>
+                </td>
+                <td class="rindle-admin-table__cell">Runtime/Doctor</td>
+                <td class="rindle-admin-table__cell"><button class="rindle-admin-button rindle-admin-button--quiet" type="button">Review</button></td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="rindle-admin-gallery__section" aria-labelledby="status-heading">
+          <div class="rindle-admin-gallery__panel" data-rindle-admin-component="status-chips">
+            <h2 id="status-heading">Status chips</h2>
+            <p>Ready, processing, warning, danger, quarantine, and info examples include visible labels plus non-color marks.</p>
+            <div class="rindle-admin-gallery__row">
+
+          <span class="rindle-admin-status-chip rindle-admin-status-chip--ready" data-rindle-admin-state="ready">
+            Ready
+          </span>
+          <span class="rindle-admin-status-chip rindle-admin-status-chip--processing" data-rindle-admin-state="processing">
+            Processing
+          </span>
+          <span class="rindle-admin-status-chip rindle-admin-status-chip--warning" data-rindle-admin-state="warning">
+            Warning
+          </span>
+          <span class="rindle-admin-status-chip rindle-admin-status-chip--danger" data-rindle-admin-state="danger">
+            Danger
+          </span>
+          <span class="rindle-admin-status-chip rindle-admin-status-chip--quarantine" data-rindle-admin-state="quarantine">
+            Quarantine
+          </span>
+          <span class="rindle-admin-status-chip rindle-admin-status-chip--info" data-rindle-admin-state="info">
+            Info
+          </span>
+            </div>
+          </div>
+        </section>
+
+        <section class="rindle-admin-gallery__section" aria-labelledby="buttons-heading">
+          <div class="rindle-admin-gallery__panel" data-rindle-admin-component="buttons" data-rindle-admin-state="focus">
+            <h2 id="buttons-heading">Buttons</h2>
+            <div class="rindle-admin-gallery__row">
+              <button class="rindle-admin-button rindle-admin-button--primary" type="button">Review component gallery</button>
+              <button class="rindle-admin-button rindle-admin-button--secondary" type="button">Inspect asset</button>
+              <button class="rindle-admin-button rindle-admin-button--quiet" type="button">Filter sessions</button>
+              <button class="rindle-admin-button rindle-admin-button--destructive" type="button">Erase owner</button>
+              <button class="rindle-admin-button rindle-admin-button--secondary" type="button" disabled data-rindle-admin-state="loading">Loading</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="rindle-admin-gallery__section" aria-labelledby="confirm-heading">
+          <div class="rindle-admin-confirm-dialog" data-rindle-admin-component="confirm-dialog" tabindex="-1">
+            <h2 class="rindle-admin-confirm-dialog__title" id="confirm-heading">Owner erasure preview</h2>
+            <p>Owner erasure: Type the owner identifier to confirm after reviewing affected assets.</p>
+            <dl class="rindle-admin-gallery__receipt">
+              <dt>Expected value</dt><dd><code>owner:cohort-demo-42</code></dd>
+              <dt>Affected assets</dt><dd>12 detached, 3 retained shared assets</dd>
+              <dt>Queued work</dt><dd>2 purge jobs after confirmation</dd>
+            </dl>
+            <div class="rindle-admin-gallery__field">
+              <label for="owner-confirmation">Owner identifier</label>
+              <input class="rindle-admin-gallery__input" id="owner-confirmation" name="owner-confirmation" autocomplete="off" data-rindle-admin-confirm-input>
+            </div>
+            <div class="rindle-admin-gallery__row">
+              <button class="rindle-admin-button rindle-admin-button--destructive" type="button" data-rindle-admin-confirm-action disabled>Confirm erasure</button>
+              <button class="rindle-admin-button rindle-admin-button--secondary" type="button">Cancel</button>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <aside class="rindle-admin-gallery__stack" aria-label="Supporting component states">
+        <section class="rindle-admin-drawer" data-rindle-admin-component="drawer" tabindex="-1">
+          <h2>Asset detail drawer</h2>
+          <p>Drawer context stays close to the invoking lifecycle row.</p>
+          <dl class="rindle-admin-gallery__receipt">
+            <dt>Asset</dt><dd><code>asset:doc-088</code></dd>
+            <dt>State</dt><dd><span class="rindle-admin-status-chip rindle-admin-status-chip--quarantine" data-rindle-admin-state="quarantine">Quarantine</span></dd>
+            <dt>Next step</dt><dd>Review collateral before Actions</dd>
+          </dl>
+        </section>
+
+        <section class="rindle-admin-gallery__panel" data-rindle-admin-component="toasts">
+          <h2>Toasts</h2>
+          <div class="rindle-admin-gallery__toast-region">
+            <div class="rindle-admin-toast rindle-admin-toast--success" data-rindle-admin-state="ready" tabindex="0"><span aria-hidden="true">✓</span><span>Variant regeneration queued for <code>hero-webp</code>.</span><button class="rindle-admin-button rindle-admin-button--quiet" type="button">Dismiss</button></div>
+            <div class="rindle-admin-toast rindle-admin-toast--warning" data-rindle-admin-state="warning" tabindex="0"><span aria-hidden="true">!</span><span>Upload residue is expired; review cleanup guidance.</span><button class="rindle-admin-button rindle-admin-button--quiet" type="button">Dismiss</button></div>
+            <div class="rindle-admin-toast rindle-admin-toast--danger" data-rindle-admin-state="danger" tabindex="0"><span aria-hidden="true">!</span><span>Repair failed. Runtime/Doctor has the missing source artifact.</span><button class="rindle-admin-button rindle-admin-button--quiet" type="button">Dismiss</button></div>
+          </div>
+        </section>
+
+        <section class="rindle-admin-empty-state" data-rindle-admin-component="empty-state" data-rindle-admin-state="empty">
+          <h2 class="rindle-admin-empty-state__title">No assets match this state</h2>
+          <p>Adjust the lifecycle filter or check Runtime/Doctor for setup issues before running actions.</p>
+          <button class="rindle-admin-button rindle-admin-button--secondary" type="button">Review Runtime/Doctor</button>
+        </section>
+
+        <section class="rindle-admin-gallery__panel" data-rindle-admin-component="skeletons" data-rindle-admin-state="loading">
+          <h2>Loading skeletons</h2>
+          <p>Stable rows reserve space while real pending work resolves.</p>
+          <div class="rindle-admin-gallery__skeleton-list">
+            <div class="rindle-admin-skeleton" aria-hidden="true"></div>
+            <div class="rindle-admin-skeleton" aria-hidden="true"></div>
+            <div class="rindle-admin-skeleton" aria-hidden="true"></div>
+          </div>
+        </section>
+      </aside>
+    </div>
+  </main>
+</div>
+
+<script>
+(() => {
+  const root = document.documentElement;
+  const allowedThemes = new Set(['light', 'dark', 'auto']);
+  const controls = Array.from(document.querySelectorAll('[data-rindle-admin-theme]'));
+  const setTheme = (theme) => {
+    if (!allowedThemes.has(theme)) return;
+    root.setAttribute('data-theme', theme);
+    controls.forEach((control) => {
+      control.setAttribute('aria-pressed', String(control.dataset.rindleAdminTheme === theme));
+    });
+  };
+
+  controls.forEach((control) => {
+    control.addEventListener('click', () => setTheme(control.dataset.rindleAdminTheme));
+  });
+
+  const expectedOwner = 'owner:cohort-demo-42';
+  const input = document.querySelector('[data-rindle-admin-confirm-input]');
+  const action = document.querySelector('[data-rindle-admin-confirm-action]');
+  input.addEventListener('input', () => {
+    action.disabled = input.value !== expectedOwner;
+  });
+})();
+</script>
+</body>
+</html>
