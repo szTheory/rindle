@@ -77,13 +77,13 @@ css += `}
 
 [data-theme="dark"] {
 `;
-css += emitVariables(T.color.semantic.dark);
+css += emitVariables(T.color.semantic['dark']);
 css += `}
 
 @media (prefers-color-scheme: dark) {
   [data-theme="auto"] {
 `;
-css += emitVariables(T.color.semantic.dark, '    ');
+css += emitVariables(T.color.semantic['dark'], '    ');
 css += `  }
 }
 

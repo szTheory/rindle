@@ -37,6 +37,14 @@ const requiredComponents = [
   'empty-state',
   'skeletons',
 ];
+const requiredSectionIds = [
+  'home-status',
+  'assets',
+  'upload-sessions',
+  'variants-jobs',
+  'runtime-doctor',
+  'actions',
+];
 const forbiddenClassParts = [
   'btn',
   'card',
@@ -65,6 +73,25 @@ const assertVisible = async (page, selector) => {
   const locator = page.locator(selector);
   assert(await locator.count() > 0, `missing selector: ${selector}`);
   assert(await locator.first().isVisible(), `selector not visible: ${selector}`);
+};
+
+const assertHashTarget = async (page, id) => {
+  await page.waitForFunction((targetId) => window.location.hash === `#${targetId}`, id);
+  await assertVisible(page, `#${id}`);
+  const targetState = await page.locator(`#${id}`).evaluate((element) => {
+    const rect = element.getBoundingClientRect();
+    return {
+      top: rect.top,
+      bottom: rect.bottom,
+      viewportHeight: window.innerHeight,
+      scrollY: window.scrollY,
+      currentHref: document.querySelector('.rindle-admin-nav__item[aria-current="page"]')?.getAttribute('href'),
+    };
+  });
+  assert(targetState.scrollY > 0, `expected #${id} navigation to move the scroll position`);
+  assert(targetState.top < targetState.viewportHeight - 80, `expected #${id} target to enter the viewport, got ${targetState.top}`);
+  assert(targetState.bottom > 0, `expected #${id} target to be visible`);
+  assert(targetState.currentHref === `#${id}`, `expected current nav href #${id}, got ${targetState.currentHref}`);
 };
 
 const selectTheme = async (page, theme) => {
@@ -103,6 +130,10 @@ try {
   for (const component of requiredComponents) {
     await assertVisible(page, `[data-rindle-admin-component="${component}"]`);
   }
+  for (const id of requiredSectionIds) {
+    await assertVisible(page, `#${id}`);
+    assert(await page.locator(`.rindle-admin-nav__item[href="#${id}"]`).count() === 1, `missing nav link for #${id}`);
+  }
 
   const leakedClasses = await page.evaluate((forbidden) => {
     return Array.from(document.querySelectorAll('[class]'))
@@ -136,6 +167,23 @@ try {
   await screenshot(page, 'gallery-light-mobile.png');
 
   await page.close();
+
+  const deepLinkPage = await browser.newPage({
+    deviceScaleFactor: 2,
+    viewport: { width: 1480, height: 900 },
+  });
+  await deepLinkPage.goto(`${pathToFileURL(galleryPath).href}#assets`);
+  await assertHashTarget(deepLinkPage, 'assets');
+  await deepLinkPage.close();
+
+  const navClickPage = await browser.newPage({
+    deviceScaleFactor: 2,
+    viewport: { width: 1480, height: 900 },
+  });
+  await navClickPage.goto(pathToFileURL(galleryPath).href);
+  await navClickPage.locator('.rindle-admin-nav__item[href="#actions"]').click();
+  await assertHashTarget(navClickPage, 'actions');
+  await navClickPage.close();
 } finally {
   await browser.close();
 }

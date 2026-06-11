@@ -103,9 +103,11 @@ const statusChips = (states = STATUS_STATES) => states.map((state) => `
             ${escapeHtml(statusLabels[state])}
           </span>`).join('');
 
+const surfaceSlug = (surface) => surface.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
 const navItems = SURFACES.map((surface, index) => `
           <li>
-            <a class="rindle-admin-nav__item" href="#${surface.toLowerCase().replace(/[^a-z0-9]+/g, '-')}"${index === 0 ? ' aria-current="page"' : ''}>
+            <a class="rindle-admin-nav__item" href="#${surfaceSlug(surface)}"${index === 0 ? ' aria-current="page"' : ''}>
               <span aria-hidden="true">${String(index + 1).padStart(2, '0')}</span>
               <span>${escapeHtml(surface)}</span>
             </a>
@@ -194,6 +196,15 @@ code {
   display: grid;
   gap: var(--rindle-space-4);
   margin-bottom: var(--rindle-space-5);
+  scroll-margin-block-start: var(--rindle-space-5);
+}
+
+.rindle-admin-gallery__section:target > .rindle-admin-gallery__panel,
+.rindle-admin-gallery__section:target > .rindle-admin-confirm-dialog,
+.rindle-admin-gallery__section:target > .rindle-admin-drawer,
+.rindle-admin-gallery__section:target > .rindle-admin-empty-state {
+  outline: var(--rindle-focus-width) solid var(--rindle-focus-ring);
+  outline-offset: var(--rindle-focus-offset);
 }
 
 .rindle-admin-gallery__panel {
@@ -319,7 +330,7 @@ ${navItems}
 
     <div class="rindle-admin-gallery__grid">
       <div>
-        <section class="rindle-admin-gallery__section" aria-labelledby="table-heading">
+        <section class="rindle-admin-gallery__section" id="home-status" aria-labelledby="table-heading" data-rindle-admin-surface="Home/Status">
           <div class="rindle-admin-gallery__panel" data-rindle-admin-component="table">
             <h2 id="table-heading">Lifecycle table</h2>
             <p>Rows carry state, surface, and action context without relying on color alone.</p>
@@ -340,7 +351,7 @@ ${tableMarkup}
           </div>
         </section>
 
-        <section class="rindle-admin-gallery__section" aria-labelledby="status-heading">
+        <section class="rindle-admin-gallery__section" id="assets" aria-labelledby="status-heading" data-rindle-admin-surface="Assets">
           <div class="rindle-admin-gallery__panel" data-rindle-admin-component="status-chips">
             <h2 id="status-heading">Status chips</h2>
             <p>Ready, processing, warning, danger, quarantine, and info examples include visible labels plus non-color marks.</p>
@@ -350,7 +361,7 @@ ${statusChips()}
           </div>
         </section>
 
-        <section class="rindle-admin-gallery__section" aria-labelledby="buttons-heading">
+        <section class="rindle-admin-gallery__section" id="upload-sessions" aria-labelledby="buttons-heading" data-rindle-admin-surface="Upload Sessions">
           <div class="rindle-admin-gallery__panel" data-rindle-admin-component="buttons" data-rindle-admin-state="focus">
             <h2 id="buttons-heading">Buttons</h2>
             <div class="rindle-admin-gallery__row">
@@ -363,7 +374,7 @@ ${statusChips()}
           </div>
         </section>
 
-        <section class="rindle-admin-gallery__section" aria-labelledby="confirm-heading">
+        <section class="rindle-admin-gallery__section" id="actions" aria-labelledby="confirm-heading" data-rindle-admin-surface="Actions">
           <div class="rindle-admin-confirm-dialog" data-rindle-admin-component="confirm-dialog" tabindex="-1">
             <h2 class="rindle-admin-confirm-dialog__title" id="confirm-heading">Owner erasure preview</h2>
             <p>Owner erasure: Type the owner identifier to confirm after reviewing affected assets.</p>
@@ -385,14 +396,16 @@ ${statusChips()}
       </div>
 
       <aside class="rindle-admin-gallery__stack" aria-label="Supporting component states">
-        <section class="rindle-admin-drawer" data-rindle-admin-component="drawer" tabindex="-1">
-          <h2>Asset detail drawer</h2>
-          <p>Drawer context stays close to the invoking lifecycle row.</p>
-          <dl class="rindle-admin-gallery__receipt">
-            <dt>Asset</dt><dd><code>asset:doc-088</code></dd>
-            <dt>State</dt><dd><span class="rindle-admin-status-chip rindle-admin-status-chip--quarantine" data-rindle-admin-state="quarantine">Quarantine</span></dd>
-            <dt>Next step</dt><dd>Review collateral before Actions</dd>
-          </dl>
+        <section class="rindle-admin-gallery__section" id="variants-jobs" data-rindle-admin-surface="Variants/Jobs">
+          <div class="rindle-admin-drawer" data-rindle-admin-component="drawer" tabindex="-1">
+            <h2>Asset detail drawer</h2>
+            <p>Drawer context stays close to the invoking lifecycle row.</p>
+            <dl class="rindle-admin-gallery__receipt">
+              <dt>Asset</dt><dd><code>asset:doc-088</code></dd>
+              <dt>State</dt><dd><span class="rindle-admin-status-chip rindle-admin-status-chip--quarantine" data-rindle-admin-state="quarantine">Quarantine</span></dd>
+              <dt>Next step</dt><dd>Review collateral before Actions</dd>
+            </dl>
+          </div>
         </section>
 
         <section class="rindle-admin-gallery__panel" data-rindle-admin-component="toasts">
@@ -404,10 +417,12 @@ ${statusChips()}
           </div>
         </section>
 
-        <section class="rindle-admin-empty-state" data-rindle-admin-component="empty-state" data-rindle-admin-state="empty">
-          <h2 class="rindle-admin-empty-state__title">No assets match this state</h2>
-          <p>Adjust the lifecycle filter or check Runtime/Doctor for setup issues before running actions.</p>
-          <button class="rindle-admin-button rindle-admin-button--secondary" type="button">Review Runtime/Doctor</button>
+        <section class="rindle-admin-gallery__section" id="runtime-doctor" data-rindle-admin-surface="Runtime/Doctor">
+          <div class="rindle-admin-empty-state" data-rindle-admin-component="empty-state" data-rindle-admin-state="empty">
+            <h2 class="rindle-admin-empty-state__title">No assets match this state</h2>
+            <p>Adjust the lifecycle filter or check Runtime/Doctor for setup issues before running actions.</p>
+            <button class="rindle-admin-button rindle-admin-button--secondary" type="button">Review Runtime/Doctor</button>
+          </div>
         </section>
 
         <section class="rindle-admin-gallery__panel" data-rindle-admin-component="skeletons" data-rindle-admin-state="loading">
@@ -440,6 +455,20 @@ ${statusChips()}
   controls.forEach((control) => {
     control.addEventListener('click', () => setTheme(control.dataset.rindleAdminTheme));
   });
+
+  const navLinks = Array.from(document.querySelectorAll('.rindle-admin-nav__item[href^="#"]'));
+  const setCurrentSurface = () => {
+    const hash = window.location.hash || '#home-status';
+    navLinks.forEach((link) => {
+      if (link.getAttribute('href') === hash) {
+        link.setAttribute('aria-current', 'page');
+      } else {
+        link.removeAttribute('aria-current');
+      }
+    });
+  };
+  window.addEventListener('hashchange', setCurrentSurface);
+  setCurrentSurface();
 
   const expectedOwner = 'owner:cohort-demo-42';
   const input = document.querySelector('[data-rindle-admin-confirm-input]');
@@ -474,8 +503,10 @@ const requiredSnippets = [
   'owner:cohort-demo-42',
   "const allowedThemes = new Set(['light', 'dark', 'auto'])",
   "root.setAttribute('data-theme', theme)",
+  "window.addEventListener('hashchange', setCurrentSurface)",
   ...THEMES.map((theme) => `data-rindle-admin-theme="${theme}"`),
   ...SURFACES,
+  ...SURFACES.map((surface) => `id="${surfaceSlug(surface)}"`),
   ...requiredGalleryComponents.map((component) => `data-rindle-admin-component="${component}"`),
   ...['ready', 'processing', 'warning', 'danger', 'quarantine', 'info', 'empty', 'loading', 'focus'].map((state) => `data-rindle-admin-state="${state}"`),
 ];
