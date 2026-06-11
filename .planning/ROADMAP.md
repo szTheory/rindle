@@ -123,7 +123,12 @@ Plans:
 4. Dev iteration path supports style/template changes without rebuilding deps.
 5. Launch flow prints a copy-pasteable URL map for app, admin console, and MinIO console.
 
-**Plans:** 0 plans created
+**Plans:** 3 plans
+
+Plans:
+- [ ] 87-01-PLAN.md - Env-driven compose ports and launch URL map.
+- [ ] 87-02-PLAN.md - Dockerfile dependency-cache ordering.
+- [ ] 87-03-PLAN.md - Docker quick-try and proof-matrix docs.
 
 ---
 
