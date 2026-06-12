@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: Admin Console & Adoption Lab
 status: executing
-last_updated: "2026-06-12T18:53:44.939Z"
-last_activity: 2026-06-12 -- Phase 90 planning complete
+last_updated: "2026-06-12T21:15:00.000Z"
+last_activity: 2026-06-12 -- Phase 90 executed and verified
 progress:
   total_phases: 23
-  completed_phases: 7
+  completed_phases: 9
   total_plans: 24
-  completed_plans: 25
-  percent: 30
+  completed_plans: 29
+  percent: 39
 ---
 
 # Project State
@@ -20,15 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-11)
 
 **Core value:** Media, made durable.
-**Current focus:** Phase 90 — console ops actions
-console, Cohort demo evolution, deterministic E2E, Docker DX
+**Current focus:** Phase 91 — ...
 
 ## Current Position
 
-Phase: 90
+Phase: 91
 Plan: Not started
-Status: Ready to execute
-Last activity: 2026-06-12 -- Phase 90 planning complete
+Status: Ready for research
+Last activity: 2026-06-12 -- Phase 90 executed and verified
 
 ## Current Milestone
 
@@ -48,16 +47,8 @@ Last activity: 2026-06-12 -- Phase 90 planning complete
 
 ## Next Step
 
-**Phase 89 verification** — all seven Phase 89 plans are complete. Run
-`$gsd-verify-work` for `.planning/phases/89-console-read-surfaces/` to validate
-the mountable console read surfaces, live updates, package assets, and ADMIN-06
-optional dependency proof as one phase.
-
-**Manual brand follow-ups (one-time, carried over):**
-
-1. GitHub repo Settings → Social preview → upload `brandbook/assets/social/github-social-preview.png`
-2. Optional: set `brandbook/assets/logo/avatar-512.png` as repo/org avatar
-3. HexDocs logo/favicon go live with the next Hex publish (0.2.0 release PR)
+**Phase 90 human verification** — Phase 90 execution is complete and automated verification passed. The next step is human verification:
+1. Execute an owner erasure flow in the browser.
 
 ## Accumulated Context
 
@@ -114,45 +105,39 @@ optional dependency proof as one phase.
 
 - 88-01 kept `rindle-admin` as vanilla generated CSS with no runtime UI dependency or host
   asset-pipeline dependency.
-
 - 88-01 checks skeleton contrast through visible border boundaries rather than low-emphasis
   fill gradients.
-
 - 88-02 kept the gallery as static generated HTML that links only
   `../tokens/rindle-admin.css`.
-
 - 88-02 kept review screenshots ignored by default through
   `brandbook/admin-gallery/.gitignore`.
-
 - 88-03 kept Phase 88 assets under `brandbook/` and documented that Phase 89 owns
   `priv/static/rindle_admin` serving.
-
 - 88-03 resolved the gallery review issue by making each surface nav item target a
   generated section id instead of adding runtime routing.
-
 - 89-01 requires Rindle Admin production mounts to provide non-empty `:on_mount` or explicit `auth_guarded?: true`.
-
 - 89-01 keeps `allow_unauthenticated?: true` as a dev/test-only escape hatch and rejects it in production.
-
 - 89-01 keeps Phoenix/LiveView and `Plug.Static` references behind the top-level optional dependency guard.
-- [Phase 89]: 89-02 keeps generated admin CSS byte-identical to brandbook/tokens/rindle-admin.css and treats brandbook generators as source of truth.
-- [Phase 89]: 89-02 packages only priv/static/rindle_admin, preserving the explicit priv/repo/migrations package boundary instead of broadening to all priv.
-- [Phase 89]: 89-02 uses a self-contained JavaScript theme controller scoped to data-rindle-admin-root with an exact light/dark/auto allowlist.
-- [Phase 89]: 89-03 keeps admin read composition in Rindle.Admin.Queries with exactly seven /1 query functions plus actions_directory/0.
-- [Phase 89]: 89-03 returns UI-facing redaction copy instead of shortened provider IDs where provider identifiers would otherwise be exposed.
-- [Phase 89]: 89-03 keeps actions_directory/0 read-only and disabled for Phase 90-owned operation flows.
-- [Phase 89]: 89-04 keeps the first read surfaces guarded behind optional Phoenix dependencies while proving real LiveView behavior in tests.
-- [Phase 89]: 89-04 uses exact packaged static asset routes so /assets/:id detail pages do not conflict with /assets/rindle-admin.css style URLs.
-- [Phase 89]: 89-04 adds lazy_html only as a test dependency because Phoenix.LiveViewTest 1.1 requires it for DOM parsing.
-- [Phase 89]: 89-05 keeps Variants/Jobs query-backed and renders active processing as status/count context while classified problem rows appear in findings.
-- [Phase 89]: 89-05 keeps Actions strictly read-only until Phase 90 by rendering disabled metadata only and defining no mutation handle_event callbacks.
-- [Phase 89]: 89-05 keeps Runtime/Doctor deterministic in LiveView tests by using explicit no-op probe and empty Oban queue config.
-- [Phase 89]: 89-06 reuses Rindle.PubSub and existing upload_session/asset topics instead of adding a console-specific realtime channel.
-- [Phase 89]: 89-06 keeps upload-session broadcasts redaction-safe with an explicit payload allowlist.
-- [Phase 89]: 89-06 keeps console LiveViews payload-agnostic by re-querying Rindle.Admin.Queries after PubSub invalidation.
-- [Phase 89]: 89-07 verifies Rindle.Admin.Router.rindle_admin/2 with macro_exported?/3 because the public router surface is a macro, not a function.
-- [Phase 89]: 89-07 adds ADMIN-06 Optional Dependencies as a dedicated CI matrix job and required branch-protection check name.
-- [Phase 89]: 89-07 keeps phoenix_live_view optional and adds no runtime UI framework dependency.
+- 89-02 keeps generated admin CSS byte-identical to brandbook/tokens/rindle-admin.css and treats brandbook generators as source of truth.
+- 89-02 packages only priv/static/rindle_admin, preserving the explicit priv/repo/migrations package boundary instead of broadening to all priv.
+- 89-02 uses a self-contained JavaScript theme controller scoped to data-rindle-admin-root with an exact light/dark/auto allowlist.
+- 89-03 keeps admin read composition in Rindle.Admin.Queries with exactly seven /1 query functions plus actions_directory/0.
+- 89-03 returns UI-facing redaction copy instead of shortened provider IDs where provider identifiers would otherwise be exposed.
+- 89-03 keeps actions_directory/0 read-only and disabled for Phase 90-owned operation flows.
+- 89-04 keeps the first read surfaces guarded behind optional Phoenix dependencies while proving real LiveView behavior in tests.
+- 89-04 uses exact packaged static asset routes so /assets/:id detail pages do not conflict with /assets/rindle-admin.css style URLs.
+- 89-04 adds lazy_html only as a test dependency because Phoenix.LiveViewTest 1.1 requires it for DOM parsing.
+- 89-05 keeps Variants/Jobs query-backed and renders active processing as status/count context while classified problem rows appear in findings.
+- 89-05 keeps Actions strictly read-only until Phase 90 by rendering disabled metadata only and defining no mutation handle_event callbacks.
+- 89-05 keeps Runtime/Doctor deterministic in LiveView tests by using explicit no-op probe and empty Oban queue config.
+- 89-06 reuses Rindle.PubSub and existing upload_session/asset topics instead of adding a console-specific realtime channel.
+- 89-06 keeps upload-session broadcasts redaction-safe with an explicit payload allowlist.
+- 89-06 keeps console LiveViews payload-agnostic by re-querying Rindle.Admin.Queries after PubSub invalidation.
+- 89-07 verifies Rindle.Admin.Router.rindle_admin/2 with macro_exported?/3 because the public router surface is a macro, not a function.
+- 89-07 adds ADMIN-06 Optional Dependencies as a dedicated CI matrix job and required branch-protection check name.
+- 89-07 keeps phoenix_live_view optional and adds no runtime UI framework dependency.
+- 90-01 implemented owner erasure and batch erasure within ActionsLive via targeted panels and strict confirmation typing.
+- 90-02 implemented non-destructive operations: Variant Regeneration, Lifecycle Repair, and Quarantine Review triage within the Actions hub.
 
 ## Blockers/Concerns
 
@@ -173,9 +158,9 @@ optional dependency proof as one phase.
 
 ## Session Continuity
 
-Last session: 2026-06-12T18:08:10.767Z
-Stopped at: Phase 90 context gathered (assumptions mode)
-Resume file: .planning/phases/90-console-ops-actions/90-CONTEXT.md
+Last session: 2026-06-12T21:15:00.000Z
+Stopped at: Phase 90 executed and verified
+Resume file: None
 
 ## Performance Metrics
 
@@ -190,10 +175,12 @@ Resume file: .planning/phases/90-console-ops-actions/90-CONTEXT.md
 | Phase 88 P01 | 7 min | 2 tasks | 4 files |
 | Phase 88 P02 | 6 min | 2 tasks | 4 files |
 | Phase 88 P03 | 12 min | 2 tasks | 6 files |
-| Phase 89-console-read-surfaces P01 | 6 min | 2 tasks | 3 files |
-| Phase 89-console-read-surfaces P02 | 5 min | 2 tasks | 8 files |
-| Phase 89-console-read-surfaces P03 | 7 min | 2 tasks | 3 files |
-| Phase 89-console-read-surfaces P04 | 16 min | 2 tasks | 9 files |
-| Phase 89-console-read-surfaces P05 | 8 min | 2 tasks | 5 files |
-| Phase 89-console-read-surfaces P06 | 9 min | 2 tasks | 5 files |
-| Phase 89-console-read-surfaces P07 | 7 min | 2 tasks | 4 files |
+| Phase 89 P01 | 6 min | 2 tasks | 3 files |
+| Phase 89 P02 | 5 min | 2 tasks | 8 files |
+| Phase 89 P03 | 7 min | 2 tasks | 3 files |
+| Phase 89 P04 | 16 min | 2 tasks | 9 files |
+| Phase 89 P05 | 8 min | 2 tasks | 5 files |
+| Phase 89 P06 | 9 min | 2 tasks | 5 files |
+| Phase 89 P07 | 7 min | 2 tasks | 4 files |
+| Phase 90 P01 | 10 min | 3 tasks | 3 files |
+| Phase 90 P02 | 15 min | 3 tasks | 3 files |
