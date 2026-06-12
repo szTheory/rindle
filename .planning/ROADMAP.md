@@ -223,7 +223,7 @@ Plans:
 
 **Wave 6** *(blocked on Wave 5 completion)*
 
-- [ ] 89-07-PLAN.md — Add optional LiveView compile-away CI proof.
+- [x] 89-07-PLAN.md — Add optional LiveView compile-away CI proof.
 
 ---
 

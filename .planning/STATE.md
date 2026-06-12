@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: Admin Console & Adoption Lab
-status: executing
-last_updated: "2026-06-12T15:58:57.321Z"
+status: verifying
+last_updated: "2026-06-12T16:06:59.412Z"
 last_activity: 2026-06-12
 progress:
   total_phases: 23
-  completed_phases: 6
+  completed_phases: 7
   total_plans: 22
-  completed_plans: 24
-  percent: 26
+  completed_plans: 25
+  percent: 30
 ---
 
 # Project State
@@ -27,7 +27,7 @@ console, Cohort demo evolution, deterministic E2E, Docker DX
 
 Phase: 89 (console-read-surfaces) — EXECUTING
 Plan: 7 of 7
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-06-12
 
 ## Current Milestone
@@ -48,10 +48,10 @@ Last activity: 2026-06-12
 
 ## Next Step
 
-**Phase 89 planning** — context has been gathered in
-`.planning/phases/89-console-read-surfaces/89-CONTEXT.md`. Run
-`$gsd-plan-phase 89` to create the executable plans for the mountable console
-read surfaces.
+**Phase 89 verification** — all seven Phase 89 plans are complete. Run
+`$gsd-verify-work` for `.planning/phases/89-console-read-surfaces/` to validate
+the mountable console read surfaces, live updates, package assets, and ADMIN-06
+optional dependency proof as one phase.
 
 **Manual brand follow-ups (one-time, carried over):**
 
@@ -150,6 +150,9 @@ read surfaces.
 - [Phase 89]: 89-06 reuses Rindle.PubSub and existing upload_session/asset topics instead of adding a console-specific realtime channel.
 - [Phase 89]: 89-06 keeps upload-session broadcasts redaction-safe with an explicit payload allowlist.
 - [Phase 89]: 89-06 keeps console LiveViews payload-agnostic by re-querying Rindle.Admin.Queries after PubSub invalidation.
+- [Phase 89]: 89-07 verifies Rindle.Admin.Router.rindle_admin/2 with macro_exported?/3 because the public router surface is a macro, not a function.
+- [Phase 89]: 89-07 adds ADMIN-06 Optional Dependencies as a dedicated CI matrix job and required branch-protection check name.
+- [Phase 89]: 89-07 keeps phoenix_live_view optional and adds no runtime UI framework dependency.
 
 ## Blockers/Concerns
 
@@ -170,8 +173,8 @@ read surfaces.
 
 ## Session Continuity
 
-Last session: 2026-06-12T15:58:57.315Z
-Stopped at: Completed 89-06-PLAN.md
+Last session: 2026-06-12T16:06:59.406Z
+Stopped at: Completed 89-07-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -193,3 +196,4 @@ Resume file: None
 | Phase 89-console-read-surfaces P04 | 16 min | 2 tasks | 9 files |
 | Phase 89-console-read-surfaces P05 | 8 min | 2 tasks | 5 files |
 | Phase 89-console-read-surfaces P06 | 9 min | 2 tasks | 5 files |
+| Phase 89-console-read-surfaces P07 | 7 min | 2 tasks | 4 files |
