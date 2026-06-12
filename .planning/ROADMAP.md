@@ -58,7 +58,7 @@ maintainer go/no-go gate between phases.
   skeletons), component-gallery screenshot harness, WCAG contrast gate.
   **Checkpoint: maintainer reviewed rendered gallery; requested anchor-navigation fix is
   implemented and regression-covered.** (completed 2026-06-11; DS-01..03, ADMIN-02 groundwork)
-- [ ] **Phase 89: Console Read Surfaces** — router macro + host-auth `on_mount` +
+- [x] **Phase 89: Console Read Surfaces** — router macro + host-auth `on_mount` + (completed 2026-06-12)
   asset-serving plug (safe by default); home, assets list/detail, upload sessions,
   variant/job activity, doctor + runtime status; pubsub live updates;
   `Rindle.Admin.Queries` isolation; optional-dep CI matrix. (ADMIN-01..03, 05, 06)
@@ -196,7 +196,7 @@ assets, live updates, and isolated admin queries.
 5. Queries remain isolated in `Rindle.Admin.Queries`, not added to the public facade.
 6. Optional-dependency CI matrix proves `phoenix_live_view` compiles away cleanly when absent.
 
-**Plans:** 7 plans created
+**Plans:** 7/7 plans complete
 
 Plans:
 
