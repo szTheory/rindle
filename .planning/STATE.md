@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: Admin Console & Adoption Lab
 status: executing
-last_updated: "2026-06-12T15:47:02.041Z"
+last_updated: "2026-06-12T15:58:57.321Z"
 last_activity: 2026-06-12
 progress:
   total_phases: 23
   completed_phases: 6
   total_plans: 22
-  completed_plans: 23
+  completed_plans: 24
   percent: 26
 ---
 
@@ -26,7 +26,7 @@ console, Cohort demo evolution, deterministic E2E, Docker DX
 ## Current Position
 
 Phase: 89 (console-read-surfaces) — EXECUTING
-Plan: 6 of 7
+Plan: 7 of 7
 Status: Ready to execute
 Last activity: 2026-06-12
 
@@ -147,6 +147,9 @@ read surfaces.
 - [Phase 89]: 89-05 keeps Variants/Jobs query-backed and renders active processing as status/count context while classified problem rows appear in findings.
 - [Phase 89]: 89-05 keeps Actions strictly read-only until Phase 90 by rendering disabled metadata only and defining no mutation handle_event callbacks.
 - [Phase 89]: 89-05 keeps Runtime/Doctor deterministic in LiveView tests by using explicit no-op probe and empty Oban queue config.
+- [Phase 89]: 89-06 reuses Rindle.PubSub and existing upload_session/asset topics instead of adding a console-specific realtime channel.
+- [Phase 89]: 89-06 keeps upload-session broadcasts redaction-safe with an explicit payload allowlist.
+- [Phase 89]: 89-06 keeps console LiveViews payload-agnostic by re-querying Rindle.Admin.Queries after PubSub invalidation.
 
 ## Blockers/Concerns
 
@@ -167,8 +170,8 @@ read surfaces.
 
 ## Session Continuity
 
-Last session: 2026-06-12T15:47:02.035Z
-Stopped at: Completed 89-05-PLAN.md
+Last session: 2026-06-12T15:58:57.315Z
+Stopped at: Completed 89-06-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -189,3 +192,4 @@ Resume file: None
 | Phase 89-console-read-surfaces P03 | 7 min | 2 tasks | 3 files |
 | Phase 89-console-read-surfaces P04 | 16 min | 2 tasks | 9 files |
 | Phase 89-console-read-surfaces P05 | 8 min | 2 tasks | 5 files |
+| Phase 89-console-read-surfaces P06 | 9 min | 2 tasks | 5 files |

@@ -219,7 +219,7 @@ Plans:
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
-- [ ] 89-06-PLAN.md — Add upload-session PubSub broadcasts and invalidation proof.
+- [x] 89-06-PLAN.md — Add upload-session PubSub broadcasts and invalidation proof.
 
 **Wave 6** *(blocked on Wave 5 completion)*
 
