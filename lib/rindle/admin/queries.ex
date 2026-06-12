@@ -190,8 +190,14 @@ defmodule Rindle.Admin.Queries do
      %{
        generated_at: DateTime.utc_now(),
        actions: [
-         action(:owner_erasure, "Owner erasure", "Preview and erase one owner's attachments."),
-         action(:batch_erasure, "Batch erasure", "Preview and erase multiple owners."),
+         action(:owner_erasure, "Owner erasure", "Preview and erase one owner's attachments.",
+           enabled?: true,
+           read_only?: false
+         ),
+         action(:batch_erasure, "Batch erasure", "Preview and erase multiple owners.",
+           enabled?: true,
+           read_only?: false
+         ),
          action(
            :variant_regeneration,
            "Variant regeneration",
@@ -207,14 +213,14 @@ defmodule Rindle.Admin.Queries do
      }}
   end
 
-  defp action(id, label, summary) do
+  defp action(id, label, summary, opts \\ []) do
     %{
       id: id,
       label: label,
       summary: summary,
-      enabled?: false,
+      enabled?: Keyword.get(opts, :enabled?, false),
       phase: 90,
-      read_only?: true
+      read_only?: Keyword.get(opts, :read_only?, true)
     }
   end
 

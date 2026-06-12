@@ -248,7 +248,7 @@ defmodule Rindle.Admin.QueriesTest do
     refute encoded =~ "Mix.Tasks.Rindle.Doctor"
   end
 
-  test "actions_directory/0 returns read-only Phase 90 operation metadata with no executable callbacks" do
+  test "actions_directory/0 returns phase 90 operation metadata" do
     assert {:ok, model} = Queries.actions_directory()
 
     assert Enum.map(model.actions, & &1.id) == [
@@ -261,7 +261,15 @@ defmodule Rindle.Admin.QueriesTest do
 
     for action <- model.actions do
       assert action.phase == 90
-      assert action.enabled? == false
+      
+      if action.id in [:owner_erasure, :batch_erasure] do
+        assert action.enabled? == true
+        assert action.read_only? == false
+      else
+        assert action.enabled? == false
+        assert action.read_only? == true
+      end
+
       refute Map.has_key?(action, :mfa)
       refute Map.has_key?(action, :callback)
       refute Map.has_key?(action, :function)
