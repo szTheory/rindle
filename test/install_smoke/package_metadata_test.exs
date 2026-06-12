@@ -15,6 +15,10 @@ defmodule Rindle.InstallSmoke.PackageMetadataTest do
     "README.md",
     "CHANGELOG.md",
     "LICENSE",
+    "priv/static/rindle_admin/rindle-admin.css",
+    "priv/static/rindle_admin/rindle-admin.js",
+    "priv/static/rindle_admin/logo.svg",
+    "priv/static/rindle_admin/favicon.svg",
     "guides/getting_started.md",
     "guides/release_publish.md"
   ]
