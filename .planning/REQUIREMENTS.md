@@ -19,13 +19,13 @@ coverage, deterministic E2E, and Docker DX fixes.
   auth pipeline + `on_mount` hook; safe-by-default (refuses unauthenticated mount outside dev).
 - [x] **ADMIN-02**: Console ships fully self-contained precompiled assets (CSS/JS) — zero
   host asset-pipeline or Tailwind dependency; assets served by the library.
-- [ ] **ADMIN-03**: Read surfaces — task-oriented home, assets list filterable by FSM state,
+- [x] **ADMIN-03**: Read surfaces — task-oriented home, assets list filterable by FSM state,
   asset detail (state timeline, variants, attachments), upload sessions, variant/job
   activity, doctor + runtime status.
 - [ ] **ADMIN-04**: Ops actions — owner erasure preview/execute and batch erasure with
   deliberate destructive-action UX (typed confirmation, collateral preview), variant
   regeneration, quarantine review, lifecycle repair.
-- [ ] **ADMIN-05**: Live updates via existing pubsub topics (`:asset`, `:variant`,
+- [x] **ADMIN-05**: Live updates via existing pubsub topics (`:asset`, `:variant`,
   `:upload_session`); queries isolated in `Rindle.Admin.Queries`, not the public facade.
 - [x] **ADMIN-06**: `phoenix_live_view` stays optional — console compiles away cleanly
   when absent (extends the `Code.ensure_loaded?` gating pattern); optional-dep matrix in CI.

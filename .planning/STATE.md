@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: Admin Console & Adoption Lab
 status: executing
-last_updated: "2026-06-12T15:04:02.834Z"
+last_updated: "2026-06-12T15:13:17.596Z"
 last_activity: 2026-06-12
 progress:
   total_phases: 23
   completed_phases: 6
   total_plans: 22
-  completed_plans: 20
+  completed_plans: 21
   percent: 26
 ---
 
@@ -26,7 +26,7 @@ console, Cohort demo evolution, deterministic E2E, Docker DX
 ## Current Position
 
 Phase: 89 (console-read-surfaces) — EXECUTING
-Plan: 3 of 7
+Plan: 4 of 7
 Status: Ready to execute
 Last activity: 2026-06-12
 
@@ -138,6 +138,9 @@ read surfaces.
 - [Phase 89]: 89-02 keeps generated admin CSS byte-identical to brandbook/tokens/rindle-admin.css and treats brandbook generators as source of truth.
 - [Phase 89]: 89-02 packages only priv/static/rindle_admin, preserving the explicit priv/repo/migrations package boundary instead of broadening to all priv.
 - [Phase 89]: 89-02 uses a self-contained JavaScript theme controller scoped to data-rindle-admin-root with an exact light/dark/auto allowlist.
+- [Phase 89]: 89-03 keeps admin read composition in Rindle.Admin.Queries with exactly seven /1 query functions plus actions_directory/0.
+- [Phase 89]: 89-03 returns UI-facing redaction copy instead of shortened provider IDs where provider identifiers would otherwise be exposed.
+- [Phase 89]: 89-03 keeps actions_directory/0 read-only and disabled for Phase 90-owned operation flows.
 
 ## Blockers/Concerns
 
@@ -158,8 +161,8 @@ read surfaces.
 
 ## Session Continuity
 
-Last session: 2026-06-12T15:04:02.827Z
-Stopped at: Completed 89-02-PLAN.md
+Last session: 2026-06-12T15:13:17.590Z
+Stopped at: Completed 89-03-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -177,3 +180,4 @@ Resume file: None
 | Phase 88 P03 | 12 min | 2 tasks | 6 files |
 | Phase 89-console-read-surfaces P01 | 6 min | 2 tasks | 3 files |
 | Phase 89-console-read-surfaces P02 | 5 min | 2 tasks | 8 files |
+| Phase 89-console-read-surfaces P03 | 7 min | 2 tasks | 3 files |
