@@ -14,6 +14,7 @@ defmodule Rindle.Upload.TusPlugTest do
   import Mox
 
   alias Ecto.Adapters.SQL.Sandbox
+  alias Phoenix.PubSub
   alias Rindle.Adopter.CanonicalApp.Repo, as: AdopterRepo
   alias Rindle.Domain.{MediaAsset, MediaUploadSession}
   alias Rindle.Storage.Local
@@ -457,6 +458,8 @@ defmodule Rindle.Upload.TusPlugTest do
     } do
       opts = opts_for(root)
       {token, sid} = create(opts, 100)
+      session = AdopterRepo.get!(MediaUploadSession, sid)
+      subscribe_upload_session_topics(session)
       part_path = Local.tus_part_path(sid, root: root)
 
       conn = patch(opts, token, 0, "0123456789")
@@ -465,7 +468,9 @@ defmodule Rindle.Upload.TusPlugTest do
       assert get_resp_header(conn, "upload-offset") == ["10"]
       assert get_resp_header(conn, "tus-resumable") == ["1.0.0"]
       assert File.stat!(part_path).size == 10
-      assert AdopterRepo.get!(MediaUploadSession, sid).last_known_offset == 10
+      updated_session = AdopterRepo.get!(MediaUploadSession, sid)
+      assert updated_session.last_known_offset == 10
+      assert_upload_session_broadcasts(:upload_session_uploading, updated_session, offset: 10)
     end
 
     test "PATCH that would exceed the declared Upload-Length returns 413", %{root: root} do
@@ -486,7 +491,11 @@ defmodule Rindle.Upload.TusPlugTest do
       # tmp part file is removed by the DELETE itself, not left for the reaper.
       opts = opts_for(root)
       {token, sid} = create(opts, 100)
+      session = AdopterRepo.get!(MediaUploadSession, sid)
+      subscribe_upload_session_topics(session)
       assert patch(opts, token, 0, "0123456789").status == 204
+      uploading_session = AdopterRepo.get!(MediaUploadSession, sid)
+      assert_upload_session_broadcasts(:upload_session_uploading, uploading_session, offset: 10)
       part_path = Local.tus_part_path(sid, root: root)
       assert File.exists?(part_path)
 
@@ -494,9 +503,11 @@ defmodule Rindle.Upload.TusPlugTest do
 
       assert conn.status == 204
       assert get_resp_header(conn, "tus-resumable") == ["1.0.0"]
-      assert AdopterRepo.get!(MediaUploadSession, sid).state == "aborted"
+      updated_session = AdopterRepo.get!(MediaUploadSession, sid)
+      assert updated_session.state == "aborted"
       # The backing part file is gone — DELETE aborted the backing, not the reaper.
       refute File.exists?(part_path)
+      assert_upload_session_broadcasts(:upload_session_cancelled, updated_session)
     end
 
     test "DELETE with a tampered token returns 404, never 200", %{root: root} do
@@ -731,7 +742,9 @@ defmodule Rindle.Upload.TusPlugTest do
 
     test "the final PATCH calls adapter.complete_part_stream/4 then converges into verify_completion",
          %{mock_opts: opts} do
-      {token, _sid} = mock_create(opts)
+      {token, sid} = mock_create(opts)
+      session = AdopterRepo.get!(MediaUploadSession, sid)
+      subscribe_upload_session_topics(session)
 
       stub(Rindle.StorageMock, :upload_part_stream, fn _key,
                                                        _temp_path,
@@ -752,7 +765,18 @@ defmodule Rindle.Upload.TusPlugTest do
       # verify_completion/2 is the unchanged trust gate; head/2 backs it.
       stub(Rindle.StorageMock, :head, fn _key, _opts -> {:ok, %{size: 10, content_type: nil}} end)
 
-      _conn = patch(opts, token, 0, "0123456789")
+      conn = patch(opts, token, 0, "0123456789")
+      assert conn.status == 204
+
+      completed_session = AdopterRepo.get!(MediaUploadSession, sid)
+      assert completed_session.state == "completed"
+
+      assert_upload_session_broadcasts(:upload_session_uploading, completed_session,
+        offset: 10,
+        state: "signed"
+      )
+
+      assert_upload_session_broadcasts(:upload_session_completed, completed_session)
     end
   end
 
@@ -1012,6 +1036,32 @@ defmodule Rindle.Upload.TusPlugTest do
         |> TusPlug.call(opts)
 
       assert final.status == 400
+    end
+  end
+
+  defp subscribe_upload_session_topics(session) do
+    PubSub.subscribe(Rindle.PubSub, "rindle:upload_session:#{session.id}")
+    PubSub.subscribe(Rindle.PubSub, "rindle:asset:#{session.asset_id}")
+  end
+
+  defp assert_upload_session_broadcasts(event_type, session, extra \\ []) do
+    expected_state = Keyword.get(extra, :state, session.state)
+
+    for _ <- 1..2 do
+      assert_receive {:rindle_event, ^event_type, payload}
+      assert payload.session_id == session.id
+      assert payload.asset_id == session.asset_id
+      assert payload.state == expected_state
+      assert payload.upload_strategy == session.upload_strategy
+      assert payload.resumable_protocol == session.resumable_protocol
+      refute Map.has_key?(payload, :session_uri)
+      refute Map.has_key?(payload, :provider_asset_id)
+      refute Map.has_key?(payload, :authorization)
+      refute Map.has_key?(payload, :token)
+
+      if Keyword.has_key?(extra, :offset) do
+        assert payload.offset == Keyword.fetch!(extra, :offset)
+      end
     end
   end
 end

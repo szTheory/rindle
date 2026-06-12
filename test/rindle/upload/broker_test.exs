@@ -12,6 +12,7 @@ defmodule Rindle.Upload.BrokerTest do
   import Mox
 
   alias Ecto.Adapters.SQL.Sandbox
+  alias Phoenix.PubSub
 
   setup :set_mox_from_context
   setup :verify_on_exit!
@@ -180,6 +181,7 @@ defmodule Rindle.Upload.BrokerTest do
   describe "sign_url/1" do
     test "transitions session to signed and returns presigned URL" do
       {:ok, session} = Broker.initiate_session(TestProfile, filename: "test.jpg")
+      subscribe_upload_session_topics(session)
 
       expect(Rindle.StorageMock, :presigned_put, fn key, _expires_in, _opts ->
         assert key == session.upload_key
@@ -197,6 +199,7 @@ defmodule Rindle.Upload.BrokerTest do
 
       assert updated_session.state == "signed"
       assert presigned.url == "https://example.com/upload"
+      assert_upload_session_broadcasts(:upload_session_signed, updated_session)
     end
 
     test "fails if session is in invalid state" do
@@ -222,6 +225,7 @@ defmodule Rindle.Upload.BrokerTest do
       end)
 
       {:ok, %{session: session}} = Broker.sign_url(session.id)
+      subscribe_upload_session_topics(session)
 
       # Mock head check success
       expect(Rindle.StorageMock, :head, fn key, _opts ->
@@ -244,6 +248,7 @@ defmodule Rindle.Upload.BrokerTest do
       assert updated_asset.state == "validating"
       assert updated_asset.byte_size == 1234
       assert updated_asset.content_type == "image/jpeg"
+      assert_upload_session_broadcasts(:upload_session_completed, updated_session)
     end
 
     test "returns error if profile is unknown" do
@@ -384,6 +389,8 @@ defmodule Rindle.Upload.BrokerTest do
       {:ok, %{session: session}} =
         Broker.initiate_multipart_session(TestProfile, filename: "multipart.jpg")
 
+      subscribe_upload_session_topics(session)
+
       expect(Rindle.StorageMock, :capabilities, fn ->
         [:presigned_put, :head, :signed_url, :multipart_upload]
       end)
@@ -405,6 +412,7 @@ defmodule Rindle.Upload.BrokerTest do
 
       assert updated_session.state == "signed"
       assert presigned.url == "https://example.com/part-3"
+      assert_upload_session_broadcasts(:upload_session_signed, updated_session)
     end
 
     test "complete_multipart_upload/3 persists the manifest, completes remotely, and reuses verification" do
@@ -429,6 +437,7 @@ defmodule Rindle.Upload.BrokerTest do
       end)
 
       {:ok, %{session: signed_session}} = Broker.sign_multipart_part(session.id, 1)
+      subscribe_upload_session_topics(signed_session)
 
       expect(Rindle.StorageMock, :complete_multipart_upload, fn key, upload_id, parts, _opts ->
         assert key == signed_session.upload_key
@@ -466,6 +475,7 @@ defmodule Rindle.Upload.BrokerTest do
 
       assert completed_session.state == "completed"
       assert asset.state == "validating"
+      assert_upload_session_broadcasts(:upload_session_completed, completed_session)
     end
 
     test "multipart on an unsupported adapter fails with a tagged capability error" do
@@ -605,6 +615,8 @@ defmodule Rindle.Upload.BrokerTest do
       {:ok, %{session: session}} =
         Broker.initiate_resumable_session(TestProfile, filename: "resumable.jpg")
 
+      subscribe_upload_session_topics(session)
+
       expect(Rindle.StorageMock, :capabilities, fn ->
         [:presigned_put, :head, :signed_url, :resumable_upload, :resumable_upload_session]
       end)
@@ -633,6 +645,7 @@ defmodule Rindle.Upload.BrokerTest do
       assert persisted.state == "signed"
       assert persisted.last_known_offset == 2048
       assert persisted.region_hint == "us-central1"
+      assert_upload_session_broadcasts(:upload_session_uploading, updated_session, offset: 2048)
     end
 
     test "cancel_resumable_session/2 uses the adapter callback and persists aborted state" do
@@ -654,6 +667,8 @@ defmodule Rindle.Upload.BrokerTest do
       {:ok, %{session: session}} =
         Broker.initiate_resumable_session(TestProfile, filename: "resumable.jpg")
 
+      subscribe_upload_session_topics(session)
+
       expect(Rindle.StorageMock, :capabilities, fn ->
         [:presigned_put, :head, :signed_url, :resumable_upload, :resumable_upload_session]
       end)
@@ -667,6 +682,7 @@ defmodule Rindle.Upload.BrokerTest do
       assert {:ok, %{session: cancelled_session}} = Broker.cancel_resumable_session(session.id)
       assert cancelled_session.state == "aborted"
       assert AdopterRepo.get!(MediaUploadSession, session.id).state == "aborted"
+      assert_upload_session_broadcasts(:upload_session_cancelled, cancelled_session)
     end
 
     test "unsupported status and cancel calls return tagged resumable capability errors" do
@@ -933,5 +949,39 @@ defmodule Rindle.Upload.BrokerTest do
   defp backdate_session_expiry!(session_id) do
     from(s in MediaUploadSession, where: s.id == ^session_id)
     |> AdopterRepo.update_all(set: [expires_at: DateTime.add(DateTime.utc_now(), -60, :second)])
+  end
+
+  defp subscribe_upload_session_topics(session) do
+    PubSub.subscribe(Rindle.PubSub, "rindle:upload_session:#{session.id}")
+    PubSub.subscribe(Rindle.PubSub, "rindle:asset:#{session.asset_id}")
+  end
+
+  defp assert_upload_session_broadcasts(event_type, session, extra \\ []) do
+    expected_topics =
+      MapSet.new(["rindle:upload_session:#{session.id}", "rindle:asset:#{session.asset_id}"])
+
+    messages =
+      for _ <- 1..2 do
+        assert_receive {:rindle_event, ^event_type, payload}
+        payload
+      end
+
+    for payload <- messages do
+      assert payload.session_id == session.id
+      assert payload.asset_id == session.asset_id
+      assert payload.state == session.state
+      assert payload.upload_strategy == session.upload_strategy
+      assert payload.resumable_protocol == session.resumable_protocol
+      refute Map.has_key?(payload, :session_uri)
+      refute Map.has_key?(payload, :provider_asset_id)
+      refute Map.has_key?(payload, :authorization)
+      refute Map.has_key?(payload, :token)
+
+      if Keyword.has_key?(extra, :offset) do
+        assert payload.offset == Keyword.fetch!(extra, :offset)
+      end
+    end
+
+    assert MapSet.size(expected_topics) == 2
   end
 end
