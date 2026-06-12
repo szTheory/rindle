@@ -16,6 +16,7 @@ defmodule Rindle.ApiSurfaceBoundaryTest do
     Rindle.Streaming.Provider,
     Rindle.Upload.TusPlug,
     Rindle.LiveView,
+    Rindle.Admin.Router,
     Rindle.HTML,
     Rindle.Authorizer,
     Rindle.Analyzer,
