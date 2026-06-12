@@ -81,6 +81,15 @@ mix phx.server     # http://localhost:4102
 Open the Cohort dashboard — members (Maya, Alex, Jordan, Ops), lessons, community posts, upload
 lab tabs (presigned PUT, tus, multipart, LiveView, AV, Mux cassette), and ops surfaces.
 
+## Admin Console Walkthrough
+
+After seeding the database (`mix run priv/repo/seeds.exs`) and starting the server, developers can visit `http://localhost:4000/admin`.
+
+Here is what you can click around to see:
+- The **Assets** list showing various lifecycle states (e.g. `quarantined`, `degraded`).
+- The specific **Audio** and **Document** profiles.
+- The **Upload Sessions** representing failures or stale uploads.
+
 ## Dependency on Rindle
 
 Local dev uses a path dependency (`../..`). CI and tarball smoke use a built Hex package:
