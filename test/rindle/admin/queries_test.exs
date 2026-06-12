@@ -2,7 +2,10 @@ defmodule Rindle.Admin.QueriesTest do
   use Rindle.DataCase, async: false
   use Oban.Testing, repo: Rindle.Repo
 
+  import Mox
+
   alias Rindle.Admin.Queries
+
   alias Rindle.Domain.{
     MediaAsset,
     MediaAttachment,
@@ -11,6 +14,9 @@ defmodule Rindle.Admin.QueriesTest do
     MediaUploadSession,
     MediaVariant
   }
+
+  setup :set_mox_from_context
+  setup :verify_on_exit!
 
   defmodule AdminImageProfile do
     use Rindle.Profile,
@@ -29,6 +35,8 @@ defmodule Rindle.Admin.QueriesTest do
   end
 
   test "home_status/1 returns runtime, doctor, counts, generated timestamp, and recommendations" do
+    stub(Rindle.StorageMock, :capabilities, fn -> [:signed_url] end)
+
     asset = insert_asset(%{state: "ready", profile: to_string(AdminImageProfile)})
     _variant = insert_variant(asset, %{state: "failed", updated_at: age_ago(600)})
 
@@ -104,6 +112,7 @@ defmodule Rindle.Admin.QueriesTest do
     assert session_id == session.id
     assert [%{id: run_id}] = model.processing_runs
     assert run_id == run.id
+
     assert [%{id: provider_id, provider_asset_id: "Provider identifier redacted"}] =
              model.provider_assets
 
@@ -162,6 +171,8 @@ defmodule Rindle.Admin.QueriesTest do
   end
 
   test "runtime_doctor/1 returns doctor and runtime status without shelling out to Mix tasks" do
+    stub(Rindle.StorageMock, :capabilities, fn -> [:signed_url] end)
+
     assert {:ok, model} =
              Queries.runtime_doctor(
                profiles: [AdminImageProfile],
