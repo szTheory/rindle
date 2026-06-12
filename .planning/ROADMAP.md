@@ -206,7 +206,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 89-02-PLAN.md — Package and prove self-contained admin assets.
+- [x] 89-02-PLAN.md — Package and prove self-contained admin assets.
 - [ ] 89-03-PLAN.md — Build isolated admin read query boundary.
 
 **Wave 3** *(blocked on Wave 2 completion)*
