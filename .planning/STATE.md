@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: Admin Console & Adoption Lab
-status: executing
-last_updated: "2026-06-12T21:40:37.340Z"
+status: verifying
+last_updated: "2026-06-12T21:42:27.887Z"
 last_activity: 2026-06-12
 progress:
   total_phases: 23
-  completed_phases: 8
+  completed_phases: 9
   total_plans: 27
-  completed_plans: 29
-  percent: 35
+  completed_plans: 30
+  percent: 39
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-06-11)
 
 Phase: 91
 Plan: 3 of 03
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-06-12
 
 ## Current Milestone
@@ -146,6 +146,7 @@ Last activity: 2026-06-12
 - 90-01 implemented owner erasure and batch erasure within ActionsLive via targeted panels and strict confirmation typing.
 - 90-02 implemented non-destructive operations: Variant Regeneration, Lifecycle Repair, and Quarantine Review triage within the Actions hub.
 - 91-01 selected logo_opt2.svg as the official Cohort brand logo.
+- 91-03-01 Mounted the Rindle Admin Console at `/admin` in the Cohort demo using `allow_unauthenticated?: true`.
 
 ## Blockers/Concerns
 
@@ -166,7 +167,7 @@ Last activity: 2026-06-12
 
 ## Session Continuity
 
-Last session: 2026-06-12T21:40:37.335Z
+Last session: 2026-06-12T21:42:27.881Z
 Stopped at: Phase 90 executed and verified
 Resume file: None
 
@@ -193,3 +194,5 @@ Resume file: None
 | Phase 90 P01 | 10 min | 3 tasks | 3 files |
 | Phase 90 P02 | 15 min | 3 tasks | 3 files |
 | Phase 91 P01 | 2 min | 3 tasks | 4 files |
+| Phase 91 P02 | 5 min | 2 tasks | 3 files |
+| Phase 91 P03 | 5 min | 2 tasks | 2 files |
