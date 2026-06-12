@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: Admin Console & Adoption Lab
 status: executing
-last_updated: "2026-06-12T15:32:50.743Z"
+last_updated: "2026-06-12T15:47:02.041Z"
 last_activity: 2026-06-12
 progress:
   total_phases: 23
   completed_phases: 6
   total_plans: 22
-  completed_plans: 22
+  completed_plans: 23
   percent: 26
 ---
 
@@ -26,7 +26,7 @@ console, Cohort demo evolution, deterministic E2E, Docker DX
 ## Current Position
 
 Phase: 89 (console-read-surfaces) — EXECUTING
-Plan: 5 of 7
+Plan: 6 of 7
 Status: Ready to execute
 Last activity: 2026-06-12
 
@@ -144,6 +144,9 @@ read surfaces.
 - [Phase 89]: 89-04 keeps the first read surfaces guarded behind optional Phoenix dependencies while proving real LiveView behavior in tests.
 - [Phase 89]: 89-04 uses exact packaged static asset routes so /assets/:id detail pages do not conflict with /assets/rindle-admin.css style URLs.
 - [Phase 89]: 89-04 adds lazy_html only as a test dependency because Phoenix.LiveViewTest 1.1 requires it for DOM parsing.
+- [Phase 89]: 89-05 keeps Variants/Jobs query-backed and renders active processing as status/count context while classified problem rows appear in findings.
+- [Phase 89]: 89-05 keeps Actions strictly read-only until Phase 90 by rendering disabled metadata only and defining no mutation handle_event callbacks.
+- [Phase 89]: 89-05 keeps Runtime/Doctor deterministic in LiveView tests by using explicit no-op probe and empty Oban queue config.
 
 ## Blockers/Concerns
 
@@ -164,8 +167,8 @@ read surfaces.
 
 ## Session Continuity
 
-Last session: 2026-06-12T15:32:50.737Z
-Stopped at: Completed 89-04-PLAN.md
+Last session: 2026-06-12T15:47:02.035Z
+Stopped at: Completed 89-05-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -185,3 +188,4 @@ Resume file: None
 | Phase 89-console-read-surfaces P02 | 5 min | 2 tasks | 8 files |
 | Phase 89-console-read-surfaces P03 | 7 min | 2 tasks | 3 files |
 | Phase 89-console-read-surfaces P04 | 16 min | 2 tasks | 9 files |
+| Phase 89-console-read-surfaces P05 | 8 min | 2 tasks | 5 files |

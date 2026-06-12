@@ -215,7 +215,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 89-05-PLAN.md — Complete Variants/Jobs, Runtime/Doctor, and Actions read surfaces.
+- [x] 89-05-PLAN.md — Complete Variants/Jobs, Runtime/Doctor, and Actions read surfaces.
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
