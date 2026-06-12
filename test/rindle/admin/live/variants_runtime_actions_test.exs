@@ -91,7 +91,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       {:ok, _view, html} =
         Phoenix.LiveViewTest.live(
           conn,
-          "/admin/rindle/variants-jobs?state=failed&profile=#{URI.encode_www_form(to_string(ImageProfile))}&provider_stuck=true"
+          "/admin/rindle/variants-jobs?profile=#{URI.encode_www_form(to_string(ImageProfile))}&provider_stuck=true"
         )
 
       assert_shell(html, "variants-jobs")
@@ -109,7 +109,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ "Provider identifier redacted"
       refute html =~ @raw_provider_id
 
-      for variant <- seeded.variants do
+      for variant <- seeded.finding_variants do
         assert html =~ variant.id
       end
     end
@@ -232,7 +232,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       processing_asset =
         insert_asset(%{profile: to_string(ImageProfile), filename: "processing.png"})
 
-      variants = [
+      finding_variants = [
         insert_variant(failed_asset, %{
           state: "failed",
           error_reason: "processor failed",
@@ -241,9 +241,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         insert_variant(cancelled_asset, %{state: "cancelled", updated_at: age_ago(600)}),
         insert_variant(stale_asset, %{state: "stale", updated_at: age_ago(600)}),
         insert_variant(missing_asset, %{state: "missing", updated_at: age_ago(600)}),
-        insert_variant(queued_asset, %{state: "queued", updated_at: age_ago(601)}),
-        insert_variant(processing_asset, %{state: "processing", updated_at: age_ago(60)})
+        insert_variant(queued_asset, %{state: "queued", updated_at: age_ago(601)})
       ]
+
+      _processing =
+        insert_variant(processing_asset, %{state: "processing", updated_at: age_ago(60)})
 
       _active_job =
         ProcessVariant.new(%{
@@ -259,7 +261,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           updated_at: age_ago(8_000)
         })
 
-      %{variants: variants}
+      %{finding_variants: finding_variants}
     end
 
     defp insert_asset(attrs) do

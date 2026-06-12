@@ -132,6 +132,7 @@ if Code.ensure_loaded?(Phoenix.Component) do
         <h2 class="rindle-admin-empty-state__title">Rindle Admin could not load this surface</h2>
         <p>Rindle Admin could not load this surface. Review the runtime checks, then retry after the missing source is available.</p>
         <p>Failed surface: {@surface}</p>
+        <a class="rindle-admin-button rindle-admin-button--secondary rindle-admin-target-min" href=".">Retry load</a>
       </section>
       """
     end
