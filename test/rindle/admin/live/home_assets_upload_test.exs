@@ -57,6 +57,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         rindle_admin("/rindle", auth_guarded?: true)
       end
+
+      scope "/ops" do
+        pipe_through(:browser)
+
+        rindle_admin("/media", auth_guarded?: true, as: :rindle_media)
+      end
     end
 
     defmodule Endpoint do
@@ -120,6 +126,19 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       for surface <- @surfaces do
         assert html =~ surface
       end
+    end
+
+    test "shell links stay inside custom host mount paths", %{conn: conn} do
+      {:ok, _view, html} = Phoenix.LiveViewTest.live(conn, "/ops/media")
+
+      assert_shell(html, "home-status")
+      assert html =~ ~s(href="/ops/media")
+      assert html =~ ~s(href="/ops/media/assets")
+      assert html =~ ~s(href="/ops/media/upload-sessions")
+      assert html =~ ~s(href="/ops/media/variants-jobs")
+      assert html =~ ~s(href="/ops/media/runtime-doctor")
+      assert html =~ ~s(href="/ops/media/actions")
+      refute html =~ ~s(href="/admin/rindle)
     end
 
     test "Assets lists filters, rows, and detail context", %{conn: conn} do

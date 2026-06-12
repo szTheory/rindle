@@ -65,7 +65,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) and Code.ensure_loaded?(Phoenix.Router)
 
       {:ok, config} = __validate_rindle_admin_mount_opts__(expanded_opts, env)
 
-      session = %{
+      session_config = %{
         "rindle_admin" => %{
           "home_path" => config.home_path,
           "live_socket_path" => config.live_socket_path,
@@ -77,10 +77,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) and Code.ensure_loaded?(Phoenix.Router)
       quote bind_quoted: [
               path: path,
               config: Macro.escape(config),
-              session: Macro.escape(session),
+              session_config: Macro.escape(session_config),
               static_asset_files: @static_asset_files
             ] do
         import Phoenix.LiveView.Router, only: [live: 3, live: 4, live_session: 3]
+
+        scoped_base_path = Phoenix.Router.scoped_path(__MODULE__, path)
+        session = put_in(session_config, ["rindle_admin", "base_path"], scoped_base_path)
 
         for file <- static_asset_files do
           get(Path.join(path, "/assets/#{file}"), Rindle.Admin.Router.StaticAssetsPlug, file)

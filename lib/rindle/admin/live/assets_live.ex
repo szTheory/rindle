@@ -6,20 +6,23 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     import Rindle.Admin.Components
 
-    alias Phoenix.PubSub
     alias Rindle.Admin.Queries
+    alias Rindle.Admin.Live.Support
 
     @impl true
-    def mount(_params, _session, socket) do
+    def mount(_params, session, socket) do
       {:ok,
-       assign(socket,
+       socket
+       |> Support.assign_admin_context(session)
+       |> assign(
          page_title: "Rindle Admin - Assets",
          live_status: "Waiting for lifecycle events",
          filters: %{},
          model: nil,
          detail: nil,
          error?: false
-       )}
+       )
+       |> tap(&Support.subscribe_admin_lifecycle/1)}
     end
 
     @impl true
@@ -51,7 +54,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     @impl true
     def render(%{detail: %{asset: _asset}} = assigns) do
       ~H"""
-      <.shell active="assets" title="Assets" live_status={@live_status}>
+      <.shell active="assets" base_path={@admin_base_path} title="Assets" live_status={@live_status}>
         <section data-rindle-admin-row="asset">
           <h2>State context</h2>
           <.status_chip state={@detail.asset.state} label={@detail.asset.state} />
@@ -94,7 +97,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     def render(assigns) do
       ~H"""
-      <.shell active="assets" title="Assets" live_status={@live_status}>
+      <.shell active="assets" base_path={@admin_base_path} title="Assets" live_status={@live_status}>
         <.filters filters={[{"state", @filters["state"]}, {"profile", @filters["profile"]}, {"kind", @filters["kind"]}]} />
 
         <%= if @error? do %>
@@ -121,7 +124,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   <td class="rindle-admin-table__cell">{asset.profile}</td>
                   <td class="rindle-admin-table__cell">{asset.kind}</td>
                   <td class="rindle-admin-table__cell">
-                    <a class="rindle-admin-button rindle-admin-button--secondary rindle-admin-target-min" href={"/admin/rindle/assets/#{asset.id}"}>
+                    <a class="rindle-admin-button rindle-admin-button--secondary rindle-admin-target-min" href={admin_path(@admin_base_path, "assets/#{asset.id}")}>
                       Inspect asset
                     </a>
                   </td>
@@ -177,15 +180,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     defp subscribe_detail(socket, detail) do
-      if connected?(socket) do
-        subscribe("rindle:asset:#{detail.asset.id}")
+      Support.subscribe(socket, "rindle:asset:#{detail.asset.id}")
 
-        Enum.each(detail.variants, &subscribe("rindle:variant:#{&1.id}"))
-        Enum.each(detail.upload_sessions, &subscribe("rindle:upload_session:#{&1.id}"))
-      end
+      Enum.each(detail.variants, &Support.subscribe(socket, "rindle:variant:#{&1.id}"))
+
+      Enum.each(
+        detail.upload_sessions,
+        &Support.subscribe(socket, "rindle:upload_session:#{&1.id}")
+      )
     end
-
-    defp subscribe(topic), do: PubSub.subscribe(Rindle.PubSub, topic)
 
     defp take_filters(params, keys) do
       params

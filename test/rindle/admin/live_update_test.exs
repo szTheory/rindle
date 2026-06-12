@@ -111,6 +111,48 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       refute refreshed =~ @forged_provider_asset_id
     end
 
+    test "Assets detail listens on the configured PubSub server", %{conn: conn} do
+      with_configured_pubsub(fn configured_pubsub ->
+        asset = insert_asset(%{state: "processing", filename: "configured-pubsub.png"})
+
+        {:ok, view, html} = Phoenix.LiveViewTest.live(conn, "/admin/rindle/assets/#{asset.id}")
+
+        assert html =~ "processing"
+
+        update_asset_state!(asset.id, "ready")
+
+        PubSub.broadcast(
+          configured_pubsub,
+          "rindle:asset:#{asset.id}",
+          {:rindle_event, :asset_ready, %{asset_id: asset.id, session_uri: @forged_session_uri}}
+        )
+
+        refreshed = Phoenix.LiveViewTest.render(view)
+        assert refreshed =~ "Updated just now"
+        assert refreshed =~ "ready"
+        refute refreshed =~ @forged_session_uri
+      end)
+    end
+
+    test "Home/Status refreshes from the admin lifecycle invalidation topic", %{conn: conn} do
+      with_configured_pubsub(fn configured_pubsub ->
+        {:ok, view, html} = Phoenix.LiveViewTest.live(conn, "/admin/rindle")
+
+        assert html =~ "Waiting for lifecycle events"
+        refute html =~ "Updated just now"
+
+        PubSub.broadcast(
+          configured_pubsub,
+          "rindle:admin:lifecycle",
+          {:rindle_event, :upload_session_completed, %{session_uri: @forged_session_uri}}
+        )
+
+        refreshed = Phoenix.LiveViewTest.render(view)
+        assert refreshed =~ "Updated just now"
+        refute refreshed =~ @forged_session_uri
+      end)
+    end
+
     test "Upload Sessions detail re-queries and never renders forged session_uri", %{conn: conn} do
       asset = insert_asset(%{})
 
@@ -276,6 +318,24 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         nil -> start_supervised!({Phoenix.PubSub, name: Rindle.PubSub})
         _pid -> :ok
       end
+    end
+
+    defp with_configured_pubsub(fun) do
+      pubsub_name = :"#{__MODULE__}.ConfiguredPubSub#{System.unique_integer([:positive])}"
+      start_supervised!({Phoenix.PubSub, name: pubsub_name})
+
+      original = Application.get_env(:rindle, :pubsub_server)
+      Application.put_env(:rindle, :pubsub_server, pubsub_name)
+
+      on_exit(fn ->
+        if original do
+          Application.put_env(:rindle, :pubsub_server, original)
+        else
+          Application.delete_env(:rindle, :pubsub_server)
+        end
+      end)
+
+      fun.(pubsub_name)
     end
   end
 end

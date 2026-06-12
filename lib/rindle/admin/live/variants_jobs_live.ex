@@ -6,19 +6,22 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     import Rindle.Admin.Components
 
-    alias Phoenix.PubSub
     alias Rindle.Admin.Queries
+    alias Rindle.Admin.Live.Support
 
     @impl true
-    def mount(_params, _session, socket) do
+    def mount(_params, session, socket) do
       {:ok,
-       assign(socket,
+       socket
+       |> Support.assign_admin_context(session)
+       |> assign(
          page_title: "Rindle Admin - Variants/Jobs",
          live_status: "Waiting for lifecycle events",
          filters: %{},
          model: %{rows: [], findings: [], recommendations: [], counts: %{}},
          error?: false
-       )}
+       )
+       |> tap(&Support.subscribe_admin_lifecycle/1)}
     end
 
     @impl true
@@ -39,10 +42,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     @impl true
     def render(assigns) do
       ~H"""
-      <.shell active="variants-jobs" title="Variants/Jobs" live_status={@live_status}>
+      <.shell active="variants-jobs" base_path={@admin_base_path} title="Variants/Jobs" live_status={@live_status}>
         <section>
           <h2>Variant state</h2>
-          <a class="rindle-admin-button rindle-admin-button--secondary rindle-admin-target-min" href="/admin/rindle/variants-jobs">
+          <a class="rindle-admin-button rindle-admin-button--secondary rindle-admin-target-min" href={admin_path(@admin_base_path, "variants-jobs")}>
             Refresh status
           </a>
           <.filters filters={[
@@ -102,7 +105,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                       <a
                         :if={sample_asset_id(finding)}
                         class="rindle-admin-button rindle-admin-button--secondary rindle-admin-target-min"
-                        href={"/admin/rindle/assets/#{sample_asset_id(finding)}"}
+                        href={admin_path(@admin_base_path, "assets/#{sample_asset_id(finding)}")}
                       >
                         View details
                       </a>
@@ -151,18 +154,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     defp subscribe_visible(socket, model) do
-      if connected?(socket) do
-        model.findings
-        |> Enum.flat_map(& &1.samples)
-        |> Enum.each(fn sample ->
-          subscribe_if(sample_value(sample, :asset_id), "rindle:asset:")
-          subscribe_if(sample_value(sample, :variant_id), "rindle:variant:")
-        end)
-      end
+      model.findings
+      |> Enum.flat_map(& &1.samples)
+      |> Enum.each(fn sample ->
+        subscribe_if(socket, sample_value(sample, :asset_id), "rindle:asset:")
+        subscribe_if(socket, sample_value(sample, :variant_id), "rindle:variant:")
+      end)
     end
 
-    defp subscribe_if(nil, _prefix), do: :ok
-    defp subscribe_if(value, prefix), do: PubSub.subscribe(Rindle.PubSub, prefix <> value)
+    defp subscribe_if(_socket, nil, _prefix), do: :ok
+    defp subscribe_if(socket, value, prefix), do: Support.subscribe(socket, prefix <> value)
 
     defp normalize_query_filters(filters) do
       filters

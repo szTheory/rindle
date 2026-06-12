@@ -995,7 +995,7 @@ defmodule Rindle.Upload.TusPlug do
       |> Map.merge(Map.take(extra, [:offset]))
 
     topics =
-      ["rindle:upload_session:#{session.id}"]
+      ["rindle:admin:lifecycle", "rindle:upload_session:#{session.id}"]
       |> maybe_append_asset_topic(session.asset_id)
 
     Enum.each(topics, fn topic ->

@@ -7,13 +7,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     import Rindle.Admin.Components
 
     alias Rindle.Admin.Queries
+    alias Rindle.Admin.Live.Support
 
     @impl true
-    def mount(_params, _session, socket) do
+    def mount(_params, session, socket) do
       {:ok,
        socket
+       |> Support.assign_admin_context(session)
        |> assign(:page_title, "Rindle Admin - Home/Status")
        |> assign(:live_status, "Waiting for lifecycle events")
+       |> tap(&Support.subscribe_admin_lifecycle/1)
        |> refresh()}
     end
 
@@ -25,7 +28,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     @impl true
     def render(assigns) do
       ~H"""
-      <.shell active="home-status" title="Home/Status" live_status={@live_status}>
+      <.shell active="home-status" base_path={@admin_base_path} title="Home/Status" live_status={@live_status}>
         <section>
           <h2>Runtime summary</h2>
           <.status_chip state="info" label="Runtime summary" />
@@ -50,7 +53,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           <ul>
             <li :for={recommendation <- recommendations(@model)}>{inspect(recommendation)}</li>
           </ul>
-          <a class="rindle-admin-button rindle-admin-button--primary rindle-admin-target-min" href="/admin/rindle/assets">
+          <a class="rindle-admin-button rindle-admin-button--primary rindle-admin-target-min" href={admin_path(@admin_base_path, "assets")}>
             Inspect assets
           </a>
         </section>

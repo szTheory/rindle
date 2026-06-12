@@ -88,6 +88,35 @@ defmodule Rindle.Admin.QueriesTest do
     assert {:error, {:unknown_filters, [:surprise]}} = Queries.assets(%{surprise: true})
   end
 
+  test "assets/1 cursor follows inserted_at and id ordering" do
+    newer_time = ~N[2026-01-02 00:00:00]
+    older_time = ~N[2026-01-01 00:00:00]
+
+    newer =
+      insert_asset(%{state: "ready", profile: to_string(AdminImageProfile), kind: "image"})
+      |> set_inserted_at!(MediaAsset, newer_time)
+
+    older =
+      insert_asset(%{state: "ready", profile: to_string(AdminImageProfile), kind: "image"})
+      |> set_inserted_at!(MediaAsset, older_time)
+
+    assert {:ok, first_page} = Queries.assets(state: "ready", limit: 1)
+    assert [%{id: first_id, inserted_at: first_inserted_at}] = first_page.rows
+    assert first_id == newer.id
+
+    assert {:ok, second_page} =
+             Queries.assets(
+               state: "ready",
+               limit: 1,
+               cursor: %{inserted_at: first_inserted_at, id: first_id}
+             )
+
+    assert [%{id: second_id}] = second_page.rows
+    assert second_id == older.id
+
+    assert {:error, {:invalid_cursor, _}} = Queries.assets(state: "ready", cursor: newer.id)
+  end
+
   test "asset_detail/1 returns one asset with attachments, variants, upload sessions, processing runs, and provider summaries" do
     asset = insert_asset(%{state: "ready"})
     attachment = insert_attachment(asset, %{slot: "hero"})
@@ -153,6 +182,37 @@ defmodule Rindle.Admin.QueriesTest do
 
     assert {:error, {:unknown_filters, [:session_uri]}} =
              Queries.upload_sessions(%{session_uri: raw_uri})
+  end
+
+  test "upload_sessions/1 cursor follows inserted_at and id ordering" do
+    asset = insert_asset(%{profile: to_string(AdminImageProfile)})
+    newer_time = ~N[2026-01-02 00:00:00]
+    older_time = ~N[2026-01-01 00:00:00]
+
+    newer =
+      insert_upload_session(asset, %{state: "signed", upload_strategy: "resumable"})
+      |> set_inserted_at!(MediaUploadSession, newer_time)
+
+    older =
+      insert_upload_session(asset, %{state: "signed", upload_strategy: "resumable"})
+      |> set_inserted_at!(MediaUploadSession, older_time)
+
+    assert {:ok, first_page} = Queries.upload_sessions(state: "signed", limit: 1)
+    assert [%{id: first_id, inserted_at: first_inserted_at}] = first_page.rows
+    assert first_id == newer.id
+
+    assert {:ok, second_page} =
+             Queries.upload_sessions(
+               state: "signed",
+               limit: 1,
+               cursor: %{inserted_at: first_inserted_at, id: first_id}
+             )
+
+    assert [%{id: second_id}] = second_page.rows
+    assert second_id == older.id
+
+    assert {:error, {:invalid_cursor, _}} =
+             Queries.upload_sessions(state: "signed", cursor: newer.id)
   end
 
   test "variants_jobs/1 composes RuntimeStatus findings without executing repair" do
@@ -343,5 +403,12 @@ defmodule Rindle.Admin.QueriesTest do
     |> Rindle.Repo.update_all(set: [updated_at: updated_at])
 
     :ok
+  end
+
+  defp set_inserted_at!(record, schema, %NaiveDateTime{} = inserted_at) do
+    from(row in schema, where: row.id == ^record.id)
+    |> Rindle.Repo.update_all(set: [inserted_at: inserted_at, updated_at: inserted_at])
+
+    Rindle.Repo.get!(schema, record.id)
   end
 end

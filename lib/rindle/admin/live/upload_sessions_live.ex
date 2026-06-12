@@ -6,20 +6,23 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     import Rindle.Admin.Components
 
-    alias Phoenix.PubSub
     alias Rindle.Admin.Queries
+    alias Rindle.Admin.Live.Support
 
     @impl true
-    def mount(_params, _session, socket) do
+    def mount(_params, session, socket) do
       {:ok,
-       assign(socket,
+       socket
+       |> Support.assign_admin_context(session)
+       |> assign(
          page_title: "Rindle Admin - Upload Sessions",
          live_status: "Waiting for lifecycle events",
          filters: %{},
          model: nil,
          detail: nil,
          error?: false
-       )}
+       )
+       |> tap(&Support.subscribe_admin_lifecycle/1)}
     end
 
     @impl true
@@ -53,7 +56,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assigns = assign(assigns, :session, session)
 
       ~H"""
-      <.shell active="upload-sessions" title="Upload Sessions" live_status={@live_status}>
+      <.shell active="upload-sessions" base_path={@admin_base_path} title="Upload Sessions" live_status={@live_status}>
         <section data-rindle-admin-row="upload-session">
           <h2>Strategy/protocol</h2>
           <.status_chip state={@session.state} label={@session.state} />
@@ -82,7 +85,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         <section>
           <h2>Asset link</h2>
-          <a class="rindle-admin-button rindle-admin-button--secondary rindle-admin-target-min" href={"/admin/rindle/assets/#{@session.asset_id}"}>
+          <a class="rindle-admin-button rindle-admin-button--secondary rindle-admin-target-min" href={admin_path(@admin_base_path, "assets/#{@session.asset_id}")}>
             Inspect asset
           </a>
         </section>
@@ -97,7 +100,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     def render(assigns) do
       ~H"""
-      <.shell active="upload-sessions" title="Upload Sessions" live_status={@live_status}>
+      <.shell active="upload-sessions" base_path={@admin_base_path} title="Upload Sessions" live_status={@live_status}>
         <.filters filters={[{"state", @filters["state"]}, {"strategy", @filters["strategy"]}, {"profile", @filters["profile"]}]} />
 
         <%= if @error? do %>
@@ -123,7 +126,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   <td class="rindle-admin-table__cell">{session.upload_strategy}</td>
                   <td class="rindle-admin-table__cell"><.redacted_value value={session.session_uri} /></td>
                   <td class="rindle-admin-table__cell">
-                    <a class="rindle-admin-button rindle-admin-button--secondary rindle-admin-target-min" href={"/admin/rindle/upload-sessions/#{session.id}"}>
+                    <a class="rindle-admin-button rindle-admin-button--secondary rindle-admin-target-min" href={admin_path(@admin_base_path, "upload-sessions/#{session.id}")}>
                       Review session
                     </a>
                   </td>
@@ -155,10 +158,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     defp subscribe_detail(socket, %{upload_session: session}) do
-      if connected?(socket) do
-        PubSub.subscribe(Rindle.PubSub, "rindle:upload_session:#{session.id}")
-        PubSub.subscribe(Rindle.PubSub, "rindle:asset:#{session.asset_id}")
-      end
+      Support.subscribe(socket, "rindle:upload_session:#{session.id}")
+      Support.subscribe(socket, "rindle:asset:#{session.asset_id}")
     end
 
     defp take_filters(params, keys) do

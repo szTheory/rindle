@@ -5,21 +5,22 @@ if Code.ensure_loaded?(Phoenix.Component) do
     use Phoenix.Component
 
     @surfaces [
-      %{name: "Home/Status", slug: "home-status", path: "/admin/rindle"},
-      %{name: "Assets", slug: "assets", path: "/admin/rindle/assets"},
-      %{name: "Upload Sessions", slug: "upload-sessions", path: "/admin/rindle/upload-sessions"},
-      %{name: "Variants/Jobs", slug: "variants-jobs", path: "/admin/rindle/variants-jobs"},
-      %{name: "Runtime/Doctor", slug: "runtime-doctor", path: "/admin/rindle/runtime-doctor"},
-      %{name: "Actions", slug: "actions", path: "/admin/rindle/actions"}
+      %{name: "Home/Status", slug: "home-status", suffix: ""},
+      %{name: "Assets", slug: "assets", suffix: "assets"},
+      %{name: "Upload Sessions", slug: "upload-sessions", suffix: "upload-sessions"},
+      %{name: "Variants/Jobs", slug: "variants-jobs", suffix: "variants-jobs"},
+      %{name: "Runtime/Doctor", slug: "runtime-doctor", suffix: "runtime-doctor"},
+      %{name: "Actions", slug: "actions", suffix: "actions"}
     ]
 
     attr(:active, :string, required: true)
+    attr(:base_path, :string, default: "/admin/rindle")
     attr(:title, :string, required: true)
     attr(:live_status, :string, default: "Waiting for lifecycle events")
     slot(:inner_block, required: true)
 
     def shell(assigns) do
-      assigns = assign(assigns, :surfaces, @surfaces)
+      assigns = assign(assigns, :surfaces, surface_links(assigns.base_path))
 
       ~H"""
       <div class="rindle-admin-shell" data-rindle-admin-root data-rindle-admin-surface={@active} data-theme="auto">
@@ -178,12 +179,34 @@ if Code.ensure_loaded?(Phoenix.Component) do
     def format_value(value) when is_binary(value), do: value
     def format_value(value), do: to_string(value)
 
+    def admin_path(base_path, suffix \\ "")
+
+    def admin_path(base_path, suffix) when suffix in [nil, ""] do
+      normalize_base_path(base_path)
+    end
+
+    def admin_path(base_path, suffix) when is_binary(suffix) do
+      Path.join(normalize_base_path(base_path), suffix)
+    end
+
     defp labelize(value) do
       value
       |> to_string()
       |> String.replace("_", " ")
       |> String.capitalize()
     end
+
+    defp surface_links(base_path) do
+      Enum.map(@surfaces, fn surface ->
+        Map.put(surface, :path, admin_path(base_path, surface.suffix))
+      end)
+    end
+
+    defp normalize_base_path(path) when is_binary(path) and path != "" do
+      if String.starts_with?(path, "/"), do: path, else: "/" <> path
+    end
+
+    defp normalize_base_path(_path), do: "/admin/rindle"
 
     defp status_class(state) when state in ["ready", "available", "completed", "succeeded"],
       do: "ready"

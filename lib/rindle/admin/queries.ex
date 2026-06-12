@@ -228,11 +228,13 @@ defmodule Rindle.Admin.Queries do
     normalized = normalize_filter_keys(opts, allowed_keys)
 
     with :ok <- validate_filter_keys(normalized, allowed_keys),
-         {:ok, limit} <- normalize_limit(Map.get(normalized, :limit)) do
+         {:ok, limit} <- normalize_limit(Map.get(normalized, :limit)),
+         {:ok, cursor} <- normalize_cursor(Map.get(normalized, :cursor)) do
       {:ok,
        allowed_keys
        |> Map.new(fn key -> {key, Map.get(normalized, key)} end)
-       |> Map.put(:limit, limit)}
+       |> Map.put(:limit, limit)
+       |> Map.put(:cursor, cursor)}
     end
   end
 
@@ -260,6 +262,53 @@ defmodule Rindle.Admin.Queries do
   defp normalize_limit(limit) when is_integer(limit) and limit > 0, do: {:ok, limit}
   defp normalize_limit(limit), do: {:error, {:invalid_limit, limit}}
 
+  defp normalize_cursor(nil), do: {:ok, nil}
+
+  defp normalize_cursor(%{inserted_at: inserted_at, id: id}) do
+    normalize_cursor_values(inserted_at, id)
+  end
+
+  defp normalize_cursor(%{"inserted_at" => inserted_at, "id" => id}) do
+    normalize_cursor_values(inserted_at, id)
+  end
+
+  defp normalize_cursor({inserted_at, id}) do
+    normalize_cursor_values(inserted_at, id)
+  end
+
+  defp normalize_cursor(cursor), do: {:error, {:invalid_cursor, cursor}}
+
+  defp normalize_cursor_values(inserted_at, id) do
+    with {:ok, normalized_inserted_at} <- normalize_cursor_inserted_at(inserted_at),
+         {:ok, normalized_id} <- Ecto.UUID.cast(id) do
+      {:ok, %{inserted_at: normalized_inserted_at, id: normalized_id}}
+    else
+      :error -> {:error, {:invalid_cursor, %{inserted_at: inserted_at, id: id}}}
+      {:error, _reason} -> {:error, {:invalid_cursor, %{inserted_at: inserted_at, id: id}}}
+    end
+  end
+
+  defp normalize_cursor_inserted_at(%NaiveDateTime{} = inserted_at), do: {:ok, inserted_at}
+
+  defp normalize_cursor_inserted_at(%DateTime{} = inserted_at) do
+    {:ok, DateTime.to_naive(inserted_at)}
+  end
+
+  defp normalize_cursor_inserted_at(inserted_at) when is_binary(inserted_at) do
+    case NaiveDateTime.from_iso8601(inserted_at) do
+      {:ok, naive} ->
+        {:ok, naive}
+
+      {:error, _reason} ->
+        with {:ok, datetime, _offset} <- DateTime.from_iso8601(inserted_at) do
+          {:ok, DateTime.to_naive(datetime)}
+        end
+    end
+  end
+
+  defp normalize_cursor_inserted_at(inserted_at),
+    do: {:error, {:invalid_inserted_at, inserted_at}}
+
   defp public_filters(filters) do
     filters
     |> Map.reject(fn {_key, value} -> is_nil(value) end)
@@ -272,7 +321,12 @@ defmodule Rindle.Admin.Queries do
   end
 
   defp maybe_cursor(query, nil), do: query
-  defp maybe_cursor(query, cursor), do: from(a in query, where: a.id < ^cursor)
+
+  defp maybe_cursor(query, %{inserted_at: inserted_at, id: id}) do
+    from(a in query,
+      where: a.inserted_at < ^inserted_at or (a.inserted_at == ^inserted_at and a.id < ^id)
+    )
+  end
 
   defp maybe_filter_upload_state(query, nil), do: query
 
@@ -293,7 +347,12 @@ defmodule Rindle.Admin.Queries do
   end
 
   defp maybe_cursor_upload(query, nil), do: query
-  defp maybe_cursor_upload(query, cursor), do: from([s, _a] in query, where: s.id < ^cursor)
+
+  defp maybe_cursor_upload(query, %{inserted_at: inserted_at, id: id}) do
+    from([s, _a] in query,
+      where: s.inserted_at < ^inserted_at or (s.inserted_at == ^inserted_at and s.id < ^id)
+    )
+  end
 
   defp maybe_filter_finding_class(findings, nil), do: findings
 

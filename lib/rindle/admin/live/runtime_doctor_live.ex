@@ -7,17 +7,20 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     import Rindle.Admin.Components
 
     alias Rindle.Admin.Queries
+    alias Rindle.Admin.Live.Support
 
     @impl true
-    def mount(_params, _session, socket) do
+    def mount(_params, session, socket) do
       {:ok,
        socket
+       |> Support.assign_admin_context(session)
        |> assign(
          page_title: "Rindle Admin - Runtime/Doctor",
          live_status: "Waiting for lifecycle events",
          model: empty_model(),
          error?: false
        )
+       |> tap(&Support.subscribe_admin_lifecycle/1)
        |> load()}
     end
 
@@ -29,10 +32,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     @impl true
     def render(assigns) do
       ~H"""
-      <.shell active="runtime-doctor" title="Runtime/Doctor" live_status={@live_status}>
+      <.shell active="runtime-doctor" base_path={@admin_base_path} title="Runtime/Doctor" live_status={@live_status}>
         <section>
           <h2>Runtime status</h2>
-          <a class="rindle-admin-button rindle-admin-button--secondary rindle-admin-target-min" href="/admin/rindle/runtime-doctor">
+          <a class="rindle-admin-button rindle-admin-button--secondary rindle-admin-target-min" href={admin_path(@admin_base_path, "runtime-doctor")}>
             Refresh status
           </a>
           <.metadata_list items={[
@@ -91,10 +94,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 <span>{finding.count}</span>
               </li>
             </ul>
-            <a class="rindle-admin-button rindle-admin-button--secondary rindle-admin-target-min" href="/admin/rindle/variants-jobs">
+            <a class="rindle-admin-button rindle-admin-button--secondary rindle-admin-target-min" href={admin_path(@admin_base_path, "variants-jobs")}>
               Variants/Jobs
             </a>
-            <a class="rindle-admin-button rindle-admin-button--secondary rindle-admin-target-min" href="/admin/rindle/actions">
+            <a class="rindle-admin-button rindle-admin-button--secondary rindle-admin-target-min" href={admin_path(@admin_base_path, "actions")}>
               Actions
             </a>
           </section>
