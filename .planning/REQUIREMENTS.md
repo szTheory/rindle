@@ -22,7 +22,7 @@ coverage, deterministic E2E, and Docker DX fixes.
 - [x] **ADMIN-03**: Read surfaces — task-oriented home, assets list filterable by FSM state,
   asset detail (state timeline, variants, attachments), upload sessions, variant/job
   activity, doctor + runtime status.
-- [ ] **ADMIN-04**: Ops actions — owner erasure preview/execute and batch erasure with
+- [x] **ADMIN-04**: Ops actions — owner erasure preview/execute and batch erasure with
   deliberate destructive-action UX (typed confirmation, collateral preview), variant
   regeneration, quarantine review, lifecycle repair.
 - [x] **ADMIN-05**: Live updates via existing pubsub topics (`:asset`, `:variant`,
