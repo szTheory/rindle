@@ -202,7 +202,7 @@ Plans:
 
 **Wave 1**
 
-- [ ] 89-01-PLAN.md — Mount router macro and safe host-auth boundary.
+- [x] 89-01-PLAN.md — Mount router macro and safe host-auth boundary.
 
 **Wave 2** *(blocked on Wave 1 completion)*
 

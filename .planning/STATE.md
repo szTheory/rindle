@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: Admin Console & Adoption Lab
 status: executing
-last_updated: "2026-06-12T14:40:22.499Z"
-last_activity: 2026-06-12 -- Phase 89 planning complete
+last_updated: "2026-06-12T14:53:30.031Z"
+last_activity: 2026-06-12
 progress:
   total_phases: 23
   completed_phases: 6
   total_plans: 22
-  completed_plans: 18
+  completed_plans: 19
   percent: 26
 ---
 
@@ -20,15 +20,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-11)
 
 **Core value:** Media, made durable.
-**Current focus:** Phase 89 — console read surfaces
+**Current focus:** Phase 89 — console-read-surfaces
 console, Cohort demo evolution, deterministic E2E, Docker DX
 
 ## Current Position
 
-Phase: 89
-Plan: Not started
+Phase: 89 (console-read-surfaces) — EXECUTING
+Plan: 2 of 7
 Status: Ready to execute
-Last activity: 2026-06-12 -- Phase 89 planning complete
+Last activity: 2026-06-12
 
 ## Current Milestone
 
@@ -130,6 +130,12 @@ read surfaces.
 - 88-03 resolved the gallery review issue by making each surface nav item target a
   generated section id instead of adding runtime routing.
 
+- 89-01 requires Rindle Admin production mounts to provide non-empty `:on_mount` or explicit `auth_guarded?: true`.
+
+- 89-01 keeps `allow_unauthenticated?: true` as a dev/test-only escape hatch and rejects it in production.
+
+- 89-01 keeps Phoenix/LiveView and `Plug.Static` references behind the top-level optional dependency guard.
+
 ## Blockers/Concerns
 
 - None.
@@ -149,9 +155,9 @@ read surfaces.
 
 ## Session Continuity
 
-Last session: 2026-06-12T02:32:16.400Z
-Stopped at: Phase 89 UI-SPEC approved
-Resume file: .planning/phases/89-console-read-surfaces/89-UI-SPEC.md
+Last session: 2026-06-12T14:53:30.025Z
+Stopped at: Completed 89-01-PLAN.md
+Resume file: None
 
 ## Performance Metrics
 
@@ -166,3 +172,4 @@ Resume file: .planning/phases/89-console-read-surfaces/89-UI-SPEC.md
 | Phase 88 P01 | 7 min | 2 tasks | 4 files |
 | Phase 88 P02 | 6 min | 2 tasks | 4 files |
 | Phase 88 P03 | 12 min | 2 tasks | 6 files |
+| Phase 89-console-read-surfaces P01 | 6 min | 2 tasks | 3 files |

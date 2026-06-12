@@ -15,7 +15,7 @@ coverage, deterministic E2E, and Docker DX fixes.
 
 ### Admin Console (ADMIN)
 
-- [ ] **ADMIN-01**: Host app mounts the console via a router macro with a host-supplied
+- [x] **ADMIN-01**: Host app mounts the console via a router macro with a host-supplied
   auth pipeline + `on_mount` hook; safe-by-default (refuses unauthenticated mount outside dev).
 - [x] **ADMIN-02**: Console ships fully self-contained precompiled assets (CSS/JS) — zero
   host asset-pipeline or Tailwind dependency; assets served by the library.
@@ -27,7 +27,7 @@ coverage, deterministic E2E, and Docker DX fixes.
   regeneration, quarantine review, lifecycle repair.
 - [ ] **ADMIN-05**: Live updates via existing pubsub topics (`:asset`, `:variant`,
   `:upload_session`); queries isolated in `Rindle.Admin.Queries`, not the public facade.
-- [ ] **ADMIN-06**: `phoenix_live_view` stays optional — console compiles away cleanly
+- [x] **ADMIN-06**: `phoenix_live_view` stays optional — console compiles away cleanly
   when absent (extends the `Code.ensure_loaded?` gating pattern); optional-dep matrix in CI.
 
 ### Design System (DS)
@@ -147,12 +147,12 @@ v1.18 Admin Console & Adoption Lab (phases 86–93; b1.0 brand-track rows archiv
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ADMIN-01 | Phase 89 | Planned |
+| ADMIN-01 | Phase 89 | Complete |
 | ADMIN-02 | Phase 88–89 | Complete |
 | ADMIN-03 | Phase 89 | Planned |
 | ADMIN-04 | Phase 90 | Planned |
 | ADMIN-05 | Phase 89 | Planned |
-| ADMIN-06 | Phase 89 | Planned |
+| ADMIN-06 | Phase 89 | Complete |
 | DS-01 | Phase 88 | Complete |
 | DS-02 | Phase 88 | Complete |
 | DS-03 | Phase 88 | Complete |
