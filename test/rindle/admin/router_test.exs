@@ -172,18 +172,17 @@ defmodule Rindle.Admin.RouterTest do
         assert_route(routes, "/admin/rindle/actions", Rindle.Admin.Live.ActionsLive, :index)
       end
 
-      test "D-89-05 expands a namespaced Plug.Static asset route with an exact allowlist" do
-        static_route =
-          GuardedHostRouter
-          |> Phoenix.Router.routes()
-          |> Enum.find(&(&1.plug == Plug.Static))
+      test "D-89-05 expands exact namespaced static asset routes" do
+        routes = Phoenix.Router.routes(GuardedHostRouter)
 
-        assert static_route, "expected a Plug.Static route for Rindle Admin assets"
-        assert static_route.path == "/admin/rindle/assets"
-
-        opts = static_route.plug_opts
-        assert opts[:from] == {:rindle, "priv/static/rindle_admin"}
-        assert opts[:only] == ~w(rindle-admin.css rindle-admin.js logo.svg favicon.svg)
+        for file <- ~w(rindle-admin.css rindle-admin.js logo.svg favicon.svg) do
+          assert Enum.any?(routes, fn route ->
+                   route.path == "/admin/rindle/assets/#{file}" and
+                     route.plug == Rindle.Admin.Router.StaticAssetsPlug and
+                     route.plug_opts == file
+                 end),
+                 "expected static route for #{file}"
+        end
       end
 
       test "D-89-02 accepts auth_guarded? acknowledgement during route expansion" do

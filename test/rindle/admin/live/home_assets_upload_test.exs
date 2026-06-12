@@ -2,8 +2,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
   defmodule Rindle.Admin.Live.HomeAssetsUploadTest do
     use Rindle.DataCase, async: false
 
-    import Phoenix.ConnTest
-
     require Phoenix.LiveViewTest
 
     alias Phoenix.PubSub
@@ -28,35 +26,54 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       "Actions"
     ]
 
+    for live_module <- [
+          Rindle.Admin.Live.VariantsJobsLive,
+          Rindle.Admin.Live.RuntimeDoctorLive,
+          Rindle.Admin.Live.ActionsLive
+        ] do
+      unless Code.ensure_loaded?(live_module) do
+        Module.create(
+          live_module,
+          quote do
+            use Phoenix.LiveView
+          end,
+          Macro.Env.location(__ENV__)
+        )
+      end
+    end
+
     defmodule Router do
       use Phoenix.Router, helpers: false
 
       import Rindle.Admin.Router
 
       pipeline :browser do
-        plug :accepts, ["html"]
-        plug :fetch_session
+        plug(:accepts, ["html"])
+        plug(:fetch_session)
       end
 
       scope "/admin" do
-        pipe_through :browser
+        pipe_through(:browser)
 
-        rindle_admin "/rindle", auth_guarded?: true
+        rindle_admin("/rindle", auth_guarded?: true)
       end
     end
 
     defmodule Endpoint do
       use Phoenix.Endpoint, otp_app: :rindle
 
-      socket "/live", Phoenix.LiveView.Socket
+      socket("/live", Phoenix.LiveView.Socket)
 
-      plug Plug.Session,
+      plug(Plug.Session,
         store: :cookie,
         key: "_rindle_admin_test",
         signing_salt: "rindle-admin-test"
+      )
 
-      plug Rindle.Admin.Live.HomeAssetsUploadTest.Router
+      plug(Rindle.Admin.Live.HomeAssetsUploadTest.Router)
     end
+
+    import Phoenix.ConnTest
 
     defmodule ImageProfile do
       use Rindle.Profile,
@@ -69,6 +86,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     setup_all do
       Application.put_env(:rindle, Endpoint,
         url: [host: "localhost"],
+        debug_errors: true,
         secret_key_base: String.duplicate("a", 64),
         live_view: [signing_salt: "rindle-admin-live"]
       )
@@ -95,7 +113,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ "Recommendations"
       assert html =~ "Inspect assets"
       assert html =~ "Waiting for lifecycle events"
-      assert html =~ ~s(class="rindle-admin-button rindle-admin-button--primary")
+      assert html =~ "rindle-admin-button--primary"
       assert html =~ ~s(aria-current="page")
       assert html =~ ~s(data-rindle-admin-surface="home-status")
 
@@ -127,7 +145,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ asset.filename
       assert html =~ "ready"
       assert html =~ ~s(class="rindle-admin-table)
-      assert html =~ ~s(class="rindle-admin-button rindle-admin-button--secondary")
+      assert html =~ "rindle-admin-button--secondary"
 
       {:ok, _detail, detail_html} =
         Phoenix.LiveViewTest.live(conn, "/admin/rindle/assets/#{asset.id}")

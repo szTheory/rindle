@@ -22,6 +22,31 @@ if Code.ensure_loaded?(Phoenix.LiveView) and Code.ensure_loaded?(Phoenix.Router)
 
     @static_asset_files ~w(rindle-admin.css rindle-admin.js logo.svg favicon.svg)
 
+    defmodule StaticAssetsPlug do
+      @moduledoc false
+
+      import Plug.Conn
+
+      @content_types %{
+        "rindle-admin.css" => "text/css",
+        "rindle-admin.js" => "application/javascript",
+        "logo.svg" => "image/svg+xml",
+        "favicon.svg" => "image/svg+xml"
+      }
+
+      def init(file), do: file
+
+      def call(conn, file) when is_binary(file) and is_map_key(@content_types, file) do
+        path = Path.join([:code.priv_dir(:rindle), "static", "rindle_admin", file])
+
+        conn
+        |> put_resp_content_type(Map.fetch!(@content_types, file))
+        |> send_file(200, path)
+      end
+
+      def call(conn, _file), do: send_resp(conn, 404, "not found")
+    end
+
     @doc """
     Mounts Rindle Admin routes at `path`.
 
@@ -57,11 +82,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) and Code.ensure_loaded?(Phoenix.Router)
             ] do
         import Phoenix.LiveView.Router, only: [live: 3, live: 4, live_session: 3]
 
-        forward(Path.join(path, "/assets"), Plug.Static,
-          at: "/",
-          from: {:rindle, "priv/static/rindle_admin"},
-          only: static_asset_files
-        )
+        for file <- static_asset_files do
+          get(Path.join(path, "/assets/#{file}"), Rindle.Admin.Router.StaticAssetsPlug, file)
+        end
+
+        get(Path.join(path, "/assets/tokens.json"), Rindle.Admin.Router.StaticAssetsPlug, :deny)
 
         live_session config.as, on_mount: config.on_mount, session: session do
           live(path, Rindle.Admin.Live.HomeLive, :index)
