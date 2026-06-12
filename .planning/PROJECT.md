@@ -92,8 +92,12 @@ mounts host-authenticated read surfaces, `priv/static/rindle_admin` assets ship
 self-contained, `Rindle.Admin.Queries` isolates read models, six query-backed
 LiveViews render through the shared shell, upload-session lifecycle events
 invalidate through configured PubSub, and the optional LiveView compile-away
-proof is present locally and in CI. Phases 90–93 remain active, with Phase 90
-owning executable console operations.
+proof is present locally and in CI.
+
+**v1.18 Phase 91 complete (2026-06-12):** Cohort Demo Evolution validated
+DEMO-01..03: Cohort's own lightweight brand, audio + document profiles, seeds
+expressing every lifecycle state, mounts the console, and click-around walkthrough.
+Phases 92–93 remain active.
 
 Do not reopen tus protocol, single-owner/batch erasure semantics, or Mux surfaces
 beyond v1.13. Keep shared-asset safety and maintenance-vs-owner-erasure boundaries
@@ -403,7 +407,7 @@ To keep this posture durable across GSD workflows:
   media-type + state coverage, mounts console), E2E-01..02 (deterministic console specs,
   screenshot polish loop), DX-01..03 (port-conflict-free compose, layer caching, launch
   URL map), TRUTH-07 (scope-reversal docs parity). PRIN-01 is validated in Phase 86;
-  DX-01..03 are validated in Phase 87.
+  DX-01..03 are validated in Phase 87; DEMO-01..03 are validated in Phase 91.
   Full text: `.planning/REQUIREMENTS.md`.
 
 **Demand-gated for v1.19+ feature milestone:**
@@ -784,4 +788,4 @@ This document evolves at phase transitions and milestone boundaries.
    (`workflow.milestone_boundary.block_feature_milestone_without_signal`)
 
 ---
-*Last updated: 2026-06-12 after Phase 89 Console Read Surfaces completion*
+*Last updated: 2026-06-12 after Phase 91 Cohort Demo Evolution completion*
