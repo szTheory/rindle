@@ -51,9 +51,9 @@ Declared values (must be multiples of 4):
 
 Exceptions:
 
-- `12px` may be used only via `--rindle-space-3` for dense table cells, chip padding, compact nav rows, or detail metadata rows where `8px` is too tight and `16px` is too loose.
-- Interactive targets must be at least `44px` high/wide for nav items, filter controls, buttons, table row actions, theme controls, drawer/dialog controls, and toast dismiss controls.
-- Focus rings use `2px` width and `2px` offset from brand tokens.
+- None. Dense table cells, chip padding, compact nav rows, and detail metadata rows must choose `8px` or `16px`.
+- Focus offset uses `4px`. Focus ring width is a border token, not a spacing value.
+- Minimum interactive target size is an accessibility requirement outside the spacing scale; nav items, filter controls, buttons, table row actions, theme controls, drawer/dialog controls, and toast dismiss controls must meet it without adding new spacing tokens.
 
 Source: `brandbook/tokens/tokens.json`; `guides/ui_principles.md`; `guides/rindle_admin_css.md`; `88-UI-SPEC.md`.
 
@@ -116,7 +116,7 @@ Source: `brandbook/tokens/tokens.json`; `guides/rindle_admin_css.md`; `guides/ad
 Copywriting contract:
 
 - Surface titles must be exactly `Home/Status`, `Assets`, `Upload Sessions`, `Variants/Jobs`, `Runtime/Doctor`, and `Actions`.
-- Use direct operator verbs: `Inspect`, `Filter`, `Review`, `Open`, `Refresh`, `Retry`, `Copy`, and `View`.
+- Use noun-qualified operator action labels: `Inspect asset`, `Filter results`, `Review session`, `Open detail`, `Refresh status`, `Retry load`, `Copy ID`, and `View details`.
 - Empty states must name the missing data and the next useful diagnostic action.
 - Error states must name the failed surface or missing source and point the operator to `Runtime/Doctor` or retry.
 - Live-update copy must be factual and restrained: `Updated just now`, `Waiting for lifecycle events`, or `Refresh failed; retry`.
@@ -147,7 +147,7 @@ Visual hierarchy contract:
 | Runtime/Doctor | Present doctor checks and runtime status as read-only diagnostics, with failed or missing prerequisites named plainly. |
 | Actions | Phase 89 Actions is a read-only directory of future operations. It may explain owner erasure, batch erasure, regeneration, quarantine review, and lifecycle repair, but all execution controls remain absent or disabled until Phase 90. |
 | Filters | Filters must be keyboard reachable, preserve selected state visibly, and update result counts without changing the overall layout footprint. |
-| Detail navigation | Asset/session/variant detail must be reachable from list rows and row actions. Row actions use explicit labels such as `Inspect` or `Review`. |
+| Detail navigation | Asset/session/variant detail must be reachable from list rows and row actions. Row actions use explicit labels such as `Inspect asset`, `Review session`, or `View details`. |
 | Live updates | Subscribe only to visible relevant topics (`:asset`, `:variant`, `:upload_session`) and refresh through `Rindle.Admin.Queries`. Show unobtrusive update status; do not animate delayed failure/destructive state. |
 | Theme | Theme picker writes `data-theme="light\|dark\|auto"`; `auto` follows `prefers-color-scheme`. Both light and dark states must preserve chip, table, focus, empty, and error readability. |
 | Status chips | Include visible label plus icon or equivalent non-color mark; use `ready`, `processing`, `warning`, `danger`, `quarantine`, and `info` token pairs. |
