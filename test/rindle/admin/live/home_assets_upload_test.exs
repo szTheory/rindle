@@ -4,6 +4,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     require Phoenix.LiveViewTest
 
+    import Mox
+
     alias Phoenix.PubSub
 
     alias Rindle.Domain.{
@@ -102,9 +104,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     setup do
+      set_mox_global()
+      stub(Rindle.StorageMock, :capabilities, fn -> [:signed_url] end)
       ensure_pubsub_started!()
       {:ok, conn: Phoenix.ConnTest.build_conn()}
     end
+
+    setup :verify_on_exit!
 
     test "shell and Home/Status render the locked surfaces and status summaries", %{conn: conn} do
       insert_asset(%{state: "ready", profile: to_string(ImageProfile)})
@@ -283,9 +289,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       {:ok, _view, html} = Phoenix.LiveViewTest.live(conn, "/admin/rindle/assets?state=missing")
 
       assert html =~ ~s(data-rindle-admin-empty-state)
-      assert html =~ ~s(data-rindle-admin-error-state)
+      refute html =~ ~s(data-rindle-admin-error-state)
       assert html =~ "No records match this view"
-      assert html =~ "Rindle Admin could not load this surface"
+      refute html =~ "Rindle Admin could not load this surface"
     end
 
     defp assert_shell(html, surface) do

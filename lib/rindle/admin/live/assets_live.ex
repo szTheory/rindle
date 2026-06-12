@@ -105,7 +105,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         <% else %>
           <%= if Enum.empty?(@model.rows) do %>
             <.empty_state />
-            <.error_state surface="Assets" />
           <% else %>
             <table class="rindle-admin-table">
               <thead class="rindle-admin-table__head">

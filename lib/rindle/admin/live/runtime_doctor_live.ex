@@ -9,6 +9,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     alias Rindle.Admin.Queries
     alias Rindle.Admin.Live.Support
 
+    @runtime_opts [limit: 25, provider_stuck: true]
+
     @impl true
     def mount(_params, session, socket) do
       {:ok,
@@ -107,14 +109,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     defp load(socket) do
-      case Queries.runtime_doctor(
-             runtime_opts: [limit: 25, provider_stuck: true],
-             doctor_opts: [
-               profiles: [],
-               probe: fn -> :ok end,
-               oban_config: [repo: Rindle.Repo, queues: []]
-             ]
-           ) do
+      case Queries.runtime_doctor(runtime_opts: @runtime_opts) do
         {:ok, model} ->
           assign(socket, model: model, error?: false)
 

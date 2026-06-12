@@ -70,7 +70,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         <% else %>
           <%= if Enum.empty?(@model.findings) do %>
             <.empty_state />
-            <.error_state surface="Variants/Jobs" />
           <% else %>
             <section>
               <h2>Variant/job buckets</h2>

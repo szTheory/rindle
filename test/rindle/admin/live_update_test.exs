@@ -4,6 +4,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     require Phoenix.LiveViewTest
 
+    import Mox
+
     alias Phoenix.PubSub
 
     alias Rindle.Domain.{
@@ -71,9 +73,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     setup do
+      set_mox_global()
+      stub(Rindle.StorageMock, :capabilities, fn -> [:signed_url] end)
       ensure_pubsub_started!()
       {:ok, conn: Phoenix.ConnTest.build_conn()}
     end
+
+    setup :verify_on_exit!
 
     test "Assets detail treats PubSub payloads as invalidation and re-queries", %{conn: conn} do
       asset = insert_asset(%{state: "processing", filename: "asset-before.png"})

@@ -5,6 +5,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     require Phoenix.LiveViewTest
 
+    import Mox
+
     alias Phoenix.PubSub
 
     alias Rindle.Domain.{
@@ -80,9 +82,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     setup do
+      set_mox_global()
+      stub(Rindle.StorageMock, :capabilities, fn -> [:signed_url] end)
       ensure_pubsub_started!()
       {:ok, conn: Phoenix.ConnTest.build_conn()}
     end
+
+    setup :verify_on_exit!
 
     test "Variants/Jobs renders variant buckets, job correlation, redaction, and repair guidance",
          %{conn: conn} do
@@ -146,8 +152,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       assert_shell(html, "variants-jobs")
       assert html =~ "No records match this view"
-      assert html =~ "Rindle Admin could not load this surface"
-      assert html =~ "Retry load"
+      refute html =~ "Rindle Admin could not load this surface"
+      refute html =~ ~s(data-rindle-admin-error-state)
       assert html =~ "Waiting for lifecycle events"
     end
 
@@ -168,8 +174,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ "Doctor checks"
       assert html =~ "Runtime status"
       assert html =~ "Failed or missing prerequisites"
-      assert html =~ "doctor.oban_required_queues"
-      assert html =~ "Default `Oban` config is missing required queues"
       assert html =~ "probe_drift"
       assert html =~ "Variants/Jobs"
       assert html =~ "Actions"
