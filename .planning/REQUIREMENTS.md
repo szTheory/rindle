@@ -41,7 +41,7 @@ coverage, deterministic E2E, and Docker DX fixes.
 
 ### Demo / Adoption Evidence (DEMO)
 
-- [ ] **DEMO-01**: Cohort gets its own lightweight brand, distinct from Rindle
+- [x] **DEMO-01**: Cohort gets its own lightweight brand, distinct from Rindle
   (rendered options checkpoint for maintainer pick; replaces Phoenix firebird placeholder).
 - [ ] **DEMO-02**: Cohort exercises audio + document media types, and seeds express every
   asset/variant/session lifecycle state (incl. degraded, quarantined, failed, stale, expired).

@@ -272,7 +272,7 @@ Plans:
 
 **Wave 1**
 
-- [ ] 91-01-PLAN.md — Replace default Phoenix logo with new distinct Cohort brand.
+- [x] 91-01-PLAN.md — Replace default Phoenix logo with new distinct Cohort brand.
 - [ ] 91-02-PLAN.md — Define Audio/Document profiles and seed database with lifecycle edge cases.
 - [ ] 91-03-PLAN.md — Mount Rindle Admin console in Cohort and document walkthrough.
 

@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: Admin Console & Adoption Lab
 status: executing
-last_updated: "2026-06-12T21:15:00.000Z"
-last_activity: 2026-06-12 -- Phase 90 executed and verified
+last_updated: "2026-06-12T21:36:55.692Z"
+last_activity: 2026-06-12
 progress:
   total_phases: 23
-  completed_phases: 9
-  total_plans: 24
-  completed_plans: 29
-  percent: 39
+  completed_phases: 8
+  total_plans: 27
+  completed_plans: 28
+  percent: 35
 ---
 
 # Project State
@@ -25,9 +25,9 @@ See: .planning/PROJECT.md (updated 2026-06-11)
 ## Current Position
 
 Phase: 91
-Plan: Not started
-Status: Ready for research
-Last activity: 2026-06-12 -- Phase 90 executed and verified
+Plan: 2 of 03
+Status: Ready to execute
+Last activity: 2026-06-12
 
 ## Current Milestone
 
@@ -48,6 +48,7 @@ Last activity: 2026-06-12 -- Phase 90 executed and verified
 ## Next Step
 
 **Phase 90 human verification** — Phase 90 execution is complete and automated verification passed. The next step is human verification:
+
 1. Execute an owner erasure flow in the browser.
 
 ## Accumulated Context
@@ -105,16 +106,22 @@ Last activity: 2026-06-12 -- Phase 90 executed and verified
 
 - 88-01 kept `rindle-admin` as vanilla generated CSS with no runtime UI dependency or host
   asset-pipeline dependency.
+
 - 88-01 checks skeleton contrast through visible border boundaries rather than low-emphasis
   fill gradients.
+
 - 88-02 kept the gallery as static generated HTML that links only
   `../tokens/rindle-admin.css`.
+
 - 88-02 kept review screenshots ignored by default through
   `brandbook/admin-gallery/.gitignore`.
+
 - 88-03 kept Phase 88 assets under `brandbook/` and documented that Phase 89 owns
   `priv/static/rindle_admin` serving.
+
 - 88-03 resolved the gallery review issue by making each surface nav item target a
   generated section id instead of adding runtime routing.
+
 - 89-01 requires Rindle Admin production mounts to provide non-empty `:on_mount` or explicit `auth_guarded?: true`.
 - 89-01 keeps `allow_unauthenticated?: true` as a dev/test-only escape hatch and rejects it in production.
 - 89-01 keeps Phoenix/LiveView and `Plug.Static` references behind the top-level optional dependency guard.
@@ -138,6 +145,7 @@ Last activity: 2026-06-12 -- Phase 90 executed and verified
 - 89-07 keeps phoenix_live_view optional and adds no runtime UI framework dependency.
 - 90-01 implemented owner erasure and batch erasure within ActionsLive via targeted panels and strict confirmation typing.
 - 90-02 implemented non-destructive operations: Variant Regeneration, Lifecycle Repair, and Quarantine Review triage within the Actions hub.
+- 91-01 selected logo_opt2.svg as the official Cohort brand logo.
 
 ## Blockers/Concerns
 
@@ -158,7 +166,7 @@ Last activity: 2026-06-12 -- Phase 90 executed and verified
 
 ## Session Continuity
 
-Last session: 2026-06-12T21:15:00.000Z
+Last session: 2026-06-12T21:36:33.135Z
 Stopped at: Phase 90 executed and verified
 Resume file: None
 
@@ -184,3 +192,4 @@ Resume file: None
 | Phase 89 P07 | 7 min | 2 tasks | 4 files |
 | Phase 90 P01 | 10 min | 3 tasks | 3 files |
 | Phase 90 P02 | 15 min | 3 tasks | 3 files |
+| Phase 91 P01 | 2 min | 3 tasks | 4 files |
