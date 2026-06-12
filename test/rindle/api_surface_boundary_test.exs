@@ -41,6 +41,7 @@ defmodule Rindle.ApiSurfaceBoundaryTest do
 
   @helper_hidden_modules [
     Rindle.Config,
+    Rindle.Admin.Queries,
     Rindle.Internal.VariantFailureLogger,
     Rindle.Repo,
     Rindle.Security.Filename,
@@ -168,6 +169,24 @@ defmodule Rindle.ApiSurfaceBoundaryTest do
     test "runtime_status/1 stays publicly documented on the facade" do
       assert visible_function_doc?(Rindle, :runtime_status, 1),
              "Rindle.runtime_status/1 should be publicly documented"
+    end
+
+    test "admin read helpers stay out of the public Rindle facade" do
+      forbidden = [
+        :admin_assets,
+        :admin_asset,
+        :admin_upload_sessions,
+        :admin_variants_jobs,
+        :admin_runtime_status,
+        :admin_doctor
+      ]
+
+      exported = Rindle.__info__(:functions) |> Enum.map(&elem(&1, 0))
+
+      for name <- forbidden do
+        refute name in exported,
+               "Rindle.#{name}/... must not be added; use Rindle.Admin.Queries"
+      end
     end
 
     test "owner-erasure contract wording stays frozen in the facade moduledoc" do
