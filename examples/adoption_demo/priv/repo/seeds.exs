@@ -86,3 +86,120 @@ Cohort demo seeded:
   - Jordan (student) without avatar — fresh upload target
   - Ops operator for batch erasure demos
 """)
+
+# --- Edge Cases Seeding ---
+IO.puts("\nSeeding MediaAsset lifecycle states...")
+
+alias Rindle.Domain.{MediaAsset, MediaVariant, MediaUploadSession}
+alias AdoptionDemo.Repo
+
+# Timestamps for naive_datetime fields
+now_naive = NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
+# Timestamps for utc_datetime_usec fields
+now_utc = DateTime.utc_now() |> DateTime.truncate(:microsecond)
+
+asset_states = [
+  "staged",
+  "validating",
+  "analyzing",
+  "promoting",
+  "available",
+  "processing",
+  "transcoding",
+  "ready",
+  "degraded",
+  "quarantined",
+  "deleted"
+]
+
+variant_states = [
+  "planned",
+  "queued",
+  "processing",
+  "ready",
+  "stale",
+  "missing",
+  "failed",
+  "cancelled",
+  "purged"
+]
+
+upload_session_states = [
+  "initialized",
+  "signed",
+  "resuming",
+  "uploading",
+  "uploaded",
+  "verifying",
+  "completed",
+  "aborted",
+  "expired",
+  "failed"
+]
+
+seed_assets =
+  for {state, idx} <- Enum.with_index(asset_states) do
+    kind = if rem(idx, 2) == 0, do: "audio", else: "image"
+    
+    {profile, content_type} =
+      if kind == "audio" do
+        {"AdoptionDemo.AudioProfile", "audio/mpeg"}
+      else
+        {"AdoptionDemo.DocumentProfile", "application/pdf"}
+      end
+    
+    # We prefix keys with seed- so they are easily recognizable, and append timestamp so subsequent runs don't violate constraints
+    ts = System.system_time(:millisecond)
+    
+    Repo.insert!(%MediaAsset{
+      state: state,
+      storage_key: "seed/#{kind}/#{state}_#{ts}_#{idx}",
+      profile: profile,
+      kind: kind,
+      content_type: content_type,
+      filename: "asset_#{state}.ext",
+      byte_size: 1024,
+      inserted_at: now_naive,
+      updated_at: now_naive
+    })
+  end
+
+IO.puts("Seeding MediaVariant lifecycle states...")
+
+for {state, idx} <- Enum.with_index(variant_states) do
+  asset = Enum.at(seed_assets, rem(idx, length(seed_assets)))
+  output_kind = if asset.kind == "audio", do: "audio", else: "image"
+  ts = System.system_time(:millisecond)
+  
+  Repo.insert!(%MediaVariant{
+    asset_id: asset.id,
+    name: "variant_#{state}",
+    state: state,
+    recipe_digest: "digest_#{state}_#{ts}",
+    storage_key: "seed/#{output_kind}/variant_#{state}_#{ts}_#{idx}",
+    output_kind: output_kind,
+    content_type: "application/octet-stream",
+    byte_size: 512,
+    inserted_at: now_naive,
+    updated_at: now_naive
+  })
+end
+
+IO.puts("Seeding MediaUploadSession lifecycle states...")
+
+for {state, idx} <- Enum.with_index(upload_session_states) do
+  asset = Enum.at(seed_assets, rem(idx, length(seed_assets)))
+  ts = System.system_time(:millisecond)
+  
+  Repo.insert!(%MediaUploadSession{
+    asset_id: asset.id,
+    state: state,
+    upload_key: "seed/upload_#{state}_#{ts}_#{idx}",
+    upload_strategy: "presigned_put",
+    expires_at: DateTime.add(now_utc, 3600, :second),
+    inserted_at: now_naive,
+    updated_at: now_naive
+  })
+end
+
+IO.puts("Finished seeding lifecycle edge cases.")
