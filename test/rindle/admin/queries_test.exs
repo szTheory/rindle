@@ -262,12 +262,17 @@ defmodule Rindle.Admin.QueriesTest do
     for action <- model.actions do
       assert action.phase == 90
       
-      if action.id in [:owner_erasure, :batch_erasure] do
+      if action.id in [:owner_erasure, :batch_erasure, :variant_regeneration, :lifecycle_repair] do
         assert action.enabled? == true
         assert action.read_only? == false
       else
-        assert action.enabled? == false
-        assert action.read_only? == true
+        if action.id in [:quarantine_review] do
+          assert action.enabled? == true
+          assert action.read_only? == true
+        else
+          assert action.enabled? == false
+          assert action.read_only? == true
+        end
       end
 
       refute Map.has_key?(action, :mfa)

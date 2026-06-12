@@ -123,7 +123,64 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     end
 
+    @impl true
+    def handle_event("change_lifecycle_repair", _params, %{assigns: %{action_state: :input}} = socket) do
+      {:noreply, socket}
+    end
+
+    def handle_event("change_lifecycle_repair", _params, socket) do
+      {:noreply, assign(socket, action_state: :input, action_data: %{})}
+    end
+
+    @impl true
+    def handle_event("execute_lifecycle_repair", %{"asset_id" => id, "repair_action" => action}, socket) do
+      case action do
+        "reprobe" ->
+          case Rindle.reprobe(id) do
+            {:ok, report} ->
+              {:noreply, assign(socket, action_state: :receipt, action_data: %{action: "reprobe", success: true, report: report})}
+            {:error, _} ->
+              {:noreply, assign(socket, action_state: :receipt, action_data: %{action: "reprobe", success: false, error: "Reprobe failed"})}
+          end
+        "requeue" ->
+          case Rindle.requeue_variants(id) do
+            {:ok, report} ->
+              {:noreply, assign(socket, action_state: :receipt, action_data: %{action: "requeue", success: true, report: report})}
+            {:error, _} ->
+              {:noreply, assign(socket, action_state: :receipt, action_data: %{action: "requeue", success: false, error: "Requeue failed"})}
+          end
+      end
+    end
+
+    @impl true
+    def handle_event("change_variant_regeneration", _params, %{assigns: %{action_state: :input}} = socket) do
+      {:noreply, socket}
+    end
+
+    def handle_event("change_variant_regeneration", _params, socket) do
+      {:noreply, assign(socket, action_state: :input, action_data: %{})}
+    end
+
+    @impl true
+    def handle_event("execute_variant_regeneration", %{"profile" => p, "variant_name" => v, "confirm" => "true"}, socket) do
+      opts = %{}
+      opts = if p != "", do: Map.put(opts, :profile, p), else: opts
+      opts = if v != "", do: Map.put(opts, :variant_name, v), else: opts
+
+      case Rindle.Ops.VariantMaintenance.regenerate_variants(opts) do
+        {:ok, report} ->
+          {:noreply, assign(socket, action_state: :receipt, action_data: %{report: report})}
+        {:error, _} ->
+          {:noreply, socket |> put_flash(:error, "Regeneration failed")}
+      end
+    end
+
+    def handle_event("execute_variant_regeneration", _params, socket) do
+      {:noreply, socket |> put_flash(:error, "You must confirm this action")}
+    end
+
     defp parse_batch_owners(text) do
+
       text
       |> String.split("\n", trim: true)
       |> Enum.map(&String.trim/1)
@@ -197,7 +254,58 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       """
     end
 
+    defp render_action_panel(assigns, %{id: :lifecycle_repair} = selected_action) do
+      assigns = assign(assigns, :action, selected_action)
+      ~H"""
+      <div>
+        <h3>{@action.label}</h3>
+        <p>{@action.summary}</p>
+        <%= if not @action.enabled? do %>
+          <.status_chip state="info" label="coming soon" />
+        <% else %>
+          <%= render_lifecycle_repair_state(assigns) %>
+        <% end %>
+      </div>
+      """
+    end
+
+    defp render_action_panel(assigns, %{id: :variant_regeneration} = selected_action) do
+      assigns = assign(assigns, :action, selected_action)
+      ~H"""
+      <div>
+        <h3>{@action.label}</h3>
+        <p>{@action.summary}</p>
+        <%= if not @action.enabled? do %>
+          <.status_chip state="info" label="coming soon" />
+        <% else %>
+          <%= render_variant_regeneration_state(assigns) %>
+        <% end %>
+      </div>
+      """
+    end
+
+    defp render_action_panel(assigns, %{id: :quarantine_review} = selected_action) do
+      assigns = assign(assigns, :action, selected_action)
+      ~H"""
+      <div>
+        <h3>{@action.label}</h3>
+        <p>{@action.summary}</p>
+        <%= if not @action.enabled? do %>
+          <.status_chip state="info" label="coming soon" />
+        <% else %>
+          <div data-rindle-admin-panel="quarantine_review" class="rindle-admin-quarantine-panel">
+            <p><strong>Read-Only Triage</strong></p>
+            <p>Rindle Admin does not release assets from quarantine. They are permanently blocked from delivery.</p>
+            <p>To view quarantined assets, filter the Asset List by <code>state=quarantined</code>.</p>
+            <p>Removal requires standard owner erasure via the Owner Erasure panel.</p>
+          </div>
+        <% end %>
+      </div>
+      """
+    end
+
     defp render_action_panel(assigns, selected_action) do
+
       assigns = assign(assigns, :action, selected_action)
       ~H"""
       <div>
@@ -324,7 +432,75 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       """
     end
 
+    defp render_lifecycle_repair_state(%{action_state: :input} = assigns) do
+      ~H"""
+      <div data-rindle-admin-state="input">
+        <form phx-submit="execute_lifecycle_repair" phx-change="change_lifecycle_repair">
+          <div>
+            <label>Asset ID</label>
+            <input type="text" name="asset_id" required />
+          </div>
+          <div>
+            <label>Action</label>
+            <select name="repair_action" required>
+              <option value="reprobe">Reprobe</option>
+              <option value="requeue">Requeue Variants</option>
+            </select>
+          </div>
+          <button type="submit">Execute Repair</button>
+        </form>
+      </div>
+      """
+    end
+
+    defp render_lifecycle_repair_state(%{action_state: :receipt} = assigns) do
+      ~H"""
+      <div data-rindle-admin-state="receipt" data-rindle-admin-receipt="lifecycle_repair">
+        <h4>Lifecycle Repair Complete</h4>
+        <p>Action taken: {@action_data.action}</p>
+        <p>Success: {if @action_data.success, do: "Yes", else: "No"}</p>
+      </div>
+      """
+    end
+
+    defp render_variant_regeneration_state(%{action_state: :input} = assigns) do
+      ~H"""
+      <div data-rindle-admin-state="input">
+        <form phx-submit="execute_variant_regeneration" phx-change="change_variant_regeneration">
+          <div>
+            <label>Profile (optional)</label>
+            <input type="text" name="profile" />
+          </div>
+          <div>
+            <label>Variant Name (optional)</label>
+            <input type="text" name="variant_name" />
+          </div>
+          <div>
+            <label>
+              <input type="checkbox" name="confirm" value="true" required />
+              Confirm broad regeneration
+            </label>
+          </div>
+          <button type="submit">Regenerate Variants</button>
+        </form>
+      </div>
+      """
+    end
+
+    defp render_variant_regeneration_state(%{action_state: :receipt} = assigns) do
+      ~H"""
+      <div data-rindle-admin-state="receipt" data-rindle-admin-receipt="variant_regeneration">
+        <h4>Variant Regeneration Enqueued</h4>
+        <p>Work continues asynchronously via Oban.</p>
+        <p>Enqueued: {@action_data.report.enqueued}</p>
+        <p>Skipped: {@action_data.report.skipped}</p>
+        <p>Errors: {@action_data.report.errors}</p>
+      </div>
+      """
+    end
+
     defp load(socket) do
+
       {:ok, model} = Queries.actions_directory()
       assign(socket, model: model, error?: false)
     end

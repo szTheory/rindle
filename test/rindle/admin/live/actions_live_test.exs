@@ -35,6 +35,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     @endpoint Rindle.Admin.Live.ActionsLiveTest.Endpoint
 
+    defmodule AdminImageProfile do
+      use Rindle.Profile,
+        storage: Rindle.StorageMock,
+        variants: [thumb: [mode: :fit, width: 64, height: 64]],
+        allow_mime: ["image/png"],
+        max_bytes: 10_485_760
+    end
+
     setup_all do
       Application.put_env(:rindle, @endpoint,
         url: [host: "localhost"],
@@ -177,6 +185,84 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       |> render_submit()
 
       assert has_element?(view, "[data-rindle-admin-receipt=\"batch_erasure\"]")
+    end
+
+    test "lifecycle repair workflow: reprobe and requeue", %{conn: conn} do
+      asset = Rindle.Repo.insert!(%Rindle.Domain.MediaAsset{
+        id: Ecto.UUID.generate(),
+        state: "available",
+        profile: to_string(AdminImageProfile),
+        storage_key: "assets/sample.bin",
+        content_type: "image/png",
+        byte_size: 123
+      })
+
+      {:ok, view, _html} = live(conn, "/admin/rindle/actions")
+
+      view
+      |> element("button", "Lifecycle repair")
+      |> render_click()
+
+      assert has_element?(view, "[data-rindle-admin-state=\"input\"]")
+
+      # Reprobe
+      view
+      |> form("form[phx-submit=\"execute_lifecycle_repair\"]", %{
+        "asset_id" => asset.id,
+        "repair_action" => "reprobe"
+      })
+      |> render_submit()
+
+      assert has_element?(view, "[data-rindle-admin-receipt=\"lifecycle_repair\"]")
+      assert render(view) =~ "Action taken: reprobe"
+
+      view
+      |> element("button", "Lifecycle repair")
+      |> render_click()
+
+      # Requeue
+      view
+      |> form("form[phx-submit=\"execute_lifecycle_repair\"]", %{
+        "asset_id" => asset.id,
+        "repair_action" => "requeue"
+      })
+      |> render_submit()
+
+      assert has_element?(view, "[data-rindle-admin-receipt=\"lifecycle_repair\"]")
+      assert render(view) =~ "Action taken: requeue"
+    end
+
+    test "variant regeneration workflow", %{conn: conn} do
+      {:ok, view, _html} = live(conn, "/admin/rindle/actions")
+
+      view
+      |> element("button", "Variant regeneration")
+      |> render_click()
+
+      assert has_element?(view, "[data-rindle-admin-state=\"input\"]")
+
+      view
+      |> form("form[phx-submit=\"execute_variant_regeneration\"]", %{
+        "profile" => "Elixir.AdminImageProfile",
+        "variant_name" => "thumb",
+        "confirm" => "true"
+      })
+      |> render_submit()
+
+      assert has_element?(view, "[data-rindle-admin-receipt=\"variant_regeneration\"]")
+      assert render(view) =~ "Enqueued"
+    end
+
+    test "quarantine review triage renders read-only instructional panel", %{conn: conn} do
+      {:ok, view, _html} = live(conn, "/admin/rindle/actions")
+
+      view
+      |> element("button", "Quarantine review")
+      |> render_click()
+
+      assert has_element?(view, "[data-rindle-admin-panel=\"quarantine_review\"]")
+      assert render(view) =~ "permanently blocked from delivery"
+      assert render(view) =~ "state=quarantined"
     end
   end
 end

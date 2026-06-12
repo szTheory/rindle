@@ -201,14 +201,21 @@ defmodule Rindle.Admin.Queries do
          action(
            :variant_regeneration,
            "Variant regeneration",
-           "Regenerate stale or missing derivatives."
+           "Regenerate stale or missing derivatives.",
+           enabled?: true,
+           read_only?: false
          ),
          action(
            :quarantine_review,
            "Quarantine review",
-           "Review quarantined assets and route to supported deletion or erasure paths."
+           "Review quarantined assets and route to supported deletion or erasure paths.",
+           enabled?: true,
+           read_only?: true
          ),
-         action(:lifecycle_repair, "Lifecycle repair", "Repair lifecycle drift after diagnosis.")
+         action(:lifecycle_repair, "Lifecycle repair", "Repair lifecycle drift after diagnosis.",
+           enabled?: true,
+           read_only?: false
+         )
        ]
      }}
   end
