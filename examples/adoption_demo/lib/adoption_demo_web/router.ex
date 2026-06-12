@@ -1,5 +1,6 @@
 defmodule AdoptionDemoWeb.Router do
   use AdoptionDemoWeb, :router
+  import Rindle.Admin.Router
 
   pipeline :browser do
     plug :accepts, ["html"]
@@ -26,5 +27,11 @@ defmodule AdoptionDemoWeb.Router do
     live "/media/:id", MediaLive, :show
     live "/ops", OpsLive, :index
     live "/account/:member_id/delete", AccountLive, :delete
+  end
+
+  scope "/admin" do
+    pipe_through :browser
+
+    rindle_admin "/", allow_unauthenticated?: true
   end
 end
