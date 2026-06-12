@@ -25,3 +25,23 @@ defmodule AdoptionDemo.MuxProfile do
     allow_mime: ["video/mp4", "video/quicktime", "video/webm"],
     max_bytes: 524_288_000
 end
+
+defmodule AdoptionDemo.AudioProfile do
+  @moduledoc false
+
+  use Rindle.Profile,
+    storage: Rindle.Storage.S3,
+    variants: [],
+    allow_mime: ["audio/mpeg", "audio/ogg", "audio/wav"],
+    max_bytes: 52_428_800
+end
+
+defmodule AdoptionDemo.DocumentProfile do
+  @moduledoc false
+
+  use Rindle.Profile,
+    storage: Rindle.Storage.S3,
+    variants: [],
+    allow_mime: ["application/pdf", "text/plain"],
+    max_bytes: 20_971_520
+end
