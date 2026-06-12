@@ -65,7 +65,7 @@ maintainer go/no-go gate between phases.
 - [ ] **Phase 90: Console Ops Actions** — erasure preview/execute + batch with
   destructive-action UX (typed confirmation, collateral preview), variant regeneration,
   quarantine review, lifecycle repair. (ADMIN-04)
-- [ ] **Phase 91: Cohort Demo Evolution** — Cohort's own lightweight brand
+- [x] **Phase 91: Cohort Demo Evolution** — Cohort's own lightweight brand (completed 2026-06-12)
   (**rendered options checkpoint**), audio + document profiles, seeds expressing every
   lifecycle state, mounts the console, click-around walkthrough. (DEMO-01..03)
 - [ ] **Phase 92: E2E & Screenshot-Driven Polish Loop** — deterministic console Playwright
@@ -266,7 +266,7 @@ surfaces, media types, and lifecycle states.
 4. Cohort mounts the admin console.
 5. Click-around walkthrough is documented.
 
-**Plans:** 3 plans created
+**Plans:** 3/3 plans complete
 
 Plans:
 
