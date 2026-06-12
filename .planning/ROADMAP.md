@@ -196,7 +196,34 @@ assets, live updates, and isolated admin queries.
 5. Queries remain isolated in `Rindle.Admin.Queries`, not added to the public facade.
 6. Optional-dependency CI matrix proves `phoenix_live_view` compiles away cleanly when absent.
 
-**Plans:** 0 plans created
+**Plans:** 7 plans created
+
+Plans:
+
+**Wave 1**
+
+- [ ] 89-01-PLAN.md — Mount router macro and safe host-auth boundary.
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 89-02-PLAN.md — Package and prove self-contained admin assets.
+- [ ] 89-03-PLAN.md — Build isolated admin read query boundary.
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 89-04-PLAN.md — Implement shell, Home/Status, Assets, and Upload Sessions.
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 89-05-PLAN.md — Complete Variants/Jobs, Runtime/Doctor, and Actions read surfaces.
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [ ] 89-06-PLAN.md — Add upload-session PubSub broadcasts and invalidation proof.
+
+**Wave 6** *(blocked on Wave 5 completion)*
+
+- [ ] 89-07-PLAN.md — Add optional LiveView compile-away CI proof.
 
 ---
 
