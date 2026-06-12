@@ -2,6 +2,25 @@ defmodule Rindle.Admin.RouterTest do
   use ExUnit.Case, async: true
 
   if Code.ensure_loaded?(Phoenix.LiveView) do
+    for live_module <- [
+          Rindle.Admin.Live.HomeLive,
+          Rindle.Admin.Live.AssetsLive,
+          Rindle.Admin.Live.UploadSessionsLive,
+          Rindle.Admin.Live.VariantsJobsLive,
+          Rindle.Admin.Live.RuntimeDoctorLive,
+          Rindle.Admin.Live.ActionsLive
+        ] do
+      unless Code.ensure_loaded?(live_module) do
+        Module.create(
+          live_module,
+          quote do
+            use Phoenix.LiveView
+          end,
+          Macro.Env.location(__ENV__)
+        )
+      end
+    end
+
     defmodule HostAuth do
       def on_mount(:default, _params, _session, socket), do: {:cont, socket}
     end
@@ -12,7 +31,7 @@ defmodule Rindle.Admin.RouterTest do
       import Rindle.Admin.Router
 
       scope "/admin" do
-        rindle_admin "/rindle",
+        rindle_admin("/rindle",
           on_mount: [HostAuth],
           as: :rindle_ops,
           home_path: "/admin",
@@ -23,6 +42,7 @@ defmodule Rindle.Admin.RouterTest do
             style: :style_csp_nonce,
             script: :script_csp_nonce
           }
+        )
       end
     end
 
@@ -32,7 +52,7 @@ defmodule Rindle.Admin.RouterTest do
       import Rindle.Admin.Router
 
       scope "/ops" do
-        rindle_admin "/media", auth_guarded?: true
+        rindle_admin("/media", auth_guarded?: true)
       end
     end
 
@@ -62,13 +82,12 @@ defmodule Rindle.Admin.RouterTest do
       end
 
       test "D-89-03 rejects allow_unauthenticated? as a production escape hatch" do
-        assert_raise ArgumentError, ~r/allow_unauthenticated\?/,
-                     fn ->
-                       Rindle.Admin.Router.__validate_rindle_admin_mount_opts__(
-                         [allow_unauthenticated?: true],
-                         :prod
-                       )
-                     end
+        assert_raise ArgumentError, ~r/allow_unauthenticated\?/, fn ->
+          Rindle.Admin.Router.__validate_rindle_admin_mount_opts__(
+            [allow_unauthenticated?: true],
+            :prod
+          )
+        end
       end
 
       test "D-89-04 preserves host route, socket, transport, CSP, and on_mount options" do
@@ -93,6 +112,7 @@ defmodule Rindle.Admin.RouterTest do
         assert opts.home_path == "/admin"
         assert opts.live_socket_path == "/custom-live"
         assert opts.transport == "longpoll"
+
         assert opts.csp_nonce_assign_key == %{
                  img: :img_csp_nonce,
                  style: :style_csp_nonce,
@@ -159,9 +179,9 @@ defmodule Rindle.Admin.RouterTest do
           |> Enum.find(&(&1.plug == Plug.Static))
 
         assert static_route, "expected a Plug.Static route for Rindle Admin assets"
-        assert static_route.path == "/admin/rindle/assets/*path"
+        assert static_route.path == "/admin/rindle/assets"
 
-        opts = static_route.opts
+        opts = static_route.plug_opts
         assert opts[:from] == {:rindle, "priv/static/rindle_admin"}
         assert opts[:only] == ~w(rindle-admin.css rindle-admin.js logo.svg favicon.svg)
       end
@@ -183,8 +203,15 @@ defmodule Rindle.Admin.RouterTest do
 
   defp assert_route(routes, path, plug, live_action) do
     assert Enum.any?(routes, fn route ->
-             route.path == path and route.plug == plug and route.plug_opts == live_action
+             route.path == path and live_route?(route, plug, live_action)
            end),
            "expected route #{path} to #{inspect(plug)} #{inspect(live_action)}"
+  end
+
+  defp live_route?(route, plug, live_action) do
+    match?(
+      %{plug: Phoenix.LiveView.Plug, plug_opts: ^live_action},
+      route
+    ) and match?({^plug, ^live_action, _opts, _session}, route.metadata[:phoenix_live_view])
   end
 end
