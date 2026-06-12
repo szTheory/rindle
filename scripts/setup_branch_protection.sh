@@ -17,6 +17,8 @@ REPO="${OWNER}/${REPO_NAME}"
 REQUIRED_CHECKS=(
   "Quality (1.15, 26)"
   "Quality (1.17, 27)"
+  "ADMIN-06 Optional Dependencies (1.15, 26)"
+  "ADMIN-06 Optional Dependencies (1.17, 27)"
   "Integration"
   "Contract"
   "Proof"
@@ -29,6 +31,8 @@ print_expected_text() {
 Expected required status checks:
   - Quality (1.15, 26)
   - Quality (1.17, 27)
+  - ADMIN-06 Optional Dependencies (1.15, 26)
+  - ADMIN-06 Optional Dependencies (1.17, 27)
   - Integration
   - Contract
   - Proof

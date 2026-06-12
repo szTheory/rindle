@@ -45,14 +45,15 @@ matrix both of those entrypoints link to.
 | `quality` — Verify AV runtime with public doctor task | advisory | Same job | Step-level `continue-on-error` |
 | `quality` — Run tests with coverage | merge-blocking | Same job | Default `mix test` suite via Coveralls; both matrix cells must pass |
 | `quality` — Dialyzer | advisory | Same job | Step-level `continue-on-error` |
-| `integration` | merge-blocking | `needs: quality` | Lifecycle + MinIO adapter tests |
-| `contract` — Run AV hygiene gate | merge-blocking | `needs: quality` | `scripts/assert_av_hygiene.sh` |
+| `optional-dependencies` | merge-blocking | Every PR/push; Elixir 1.15/OTP 26 and 1.17/OTP 27 matrix | ADMIN-06 proof: `mix deps.get --no-optional-deps` and `mix compile --no-optional-deps --warnings-as-errors` |
+| `integration` | merge-blocking | `needs: [quality, optional-dependencies]` | Lifecycle + MinIO adapter tests |
+| `contract` — Run AV hygiene gate | merge-blocking | `needs: [quality, optional-dependencies]` | `scripts/assert_av_hygiene.sh` |
 | `contract` — Run contract tests | advisory | Same job | Step-level `continue-on-error`; job still required in graph |
-| `proof` | merge-blocking | `needs: quality` | `docs_parity_test.exs`, adoption proof matrix drift gate, `batch_owner_erasure_task_test.exs`; Postgres only; Elixir 1.17/OTP 27 |
+| `proof` | merge-blocking | `needs: [quality, optional-dependencies]` | `docs_parity_test.exs`, adoption proof matrix drift gate, `batch_owner_erasure_task_test.exs`; Postgres only; Elixir 1.17/OTP 27 |
 | `package-consumer` — repo hygiene gate | merge-blocking | Same job | `scripts/maintainer/repo_hygiene_check.sh --ci` |
-| `package-consumer` | merge-blocking | `needs: quality` | Install-smoke matrix + release preflight |
-| `adoption-demo-e2e` | merge-blocking | `needs: quality`; repo `szTheory/rindle` only | Playwright browser proof for `examples/adoption_demo` (image, tus, stretch journeys) |
-| `adopter` | merge-blocking | `needs: [quality, integration, contract]` | Canonical adopter lifecycle only (doc parity in `proof` job) |
+| `package-consumer` | merge-blocking | `needs: [quality, optional-dependencies]` | Install-smoke matrix + release preflight |
+| `adoption-demo-e2e` | merge-blocking | `needs: [quality, optional-dependencies]`; repo `szTheory/rindle` only | Playwright browser proof for `examples/adoption_demo` (image, tus, stretch journeys) |
+| `adopter` | merge-blocking | `needs: [quality, optional-dependencies, integration, contract]` | Canonical adopter lifecycle only (doc parity in `proof` job) |
 | `mux-soak` | secret-gated soak | Label `streaming` on PR; `needs: quality` | Not in branch protection required checks; fails closed when secrets absent |
 | `gcs-soak` | secret-gated soak | `needs: quality`; repo + secrets | Skipped when secrets absent; test step advisory when it runs |
 | `package-consumer-gcs-live` | secret-gated soak | `needs: quality`; repo + secrets | Job-level `continue-on-error`; live GCS install-smoke when secrets present |
@@ -84,8 +85,8 @@ Doctor and AV doctor steps remain advisory without a separate CI-04 decision rec
 not green, or the wait times out, publish **fails closed** — there is no bypass path.
 
 Branch protection required checks (enforced via `scripts/setup_branch_protection.sh`) include
-Quality (both matrix cells), Integration, Contract, Proof, Package Consumer Proof Matrix +
-Release Preflight, and Adopter.
+Quality (both matrix cells), ADMIN-06 Optional Dependencies (both matrix cells), Integration,
+Contract, Proof, Package Consumer Proof Matrix + Release Preflight, and Adopter.
 
 ## Verify The Runtime
 

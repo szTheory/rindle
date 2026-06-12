@@ -135,10 +135,57 @@ jobs:
         continue-on-error: true
         run: mix dialyzer --format github
 
+  optional-dependencies:
+    name: ADMIN-06 Optional Dependencies
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - elixir: "1.15"
+            otp: "26"
+          - elixir: "1.17"
+            otp: "27"
+    env:
+      MIX_ENV: test
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: ${{ matrix.elixir }}
+          otp-version: ${{ matrix.otp }}
+
+      - name: Restore deps cache
+        uses: actions/cache@v4
+        with:
+          path: deps
+          key: deps-no-optional-${{ runner.os }}-${{ matrix.elixir }}-${{ matrix.otp }}-${{ hashFiles('**/mix.lock') }}
+          restore-keys: deps-no-optional-${{ runner.os }}-${{ matrix.elixir }}-${{ matrix.otp }}-
+
+      - name: Restore build cache
+        uses: actions/cache@v4
+        with:
+          path: _build
+          key: build-no-optional-${{ runner.os }}-${{ matrix.elixir }}-${{ matrix.otp }}-${{ hashFiles('**/mix.lock') }}
+          restore-keys: build-no-optional-${{ runner.os }}-${{ matrix.elixir }}-${{ matrix.otp }}-
+
+      - name: Install libvips
+        run: sudo apt-get update && sudo apt-get install -y libvips-dev
+
+      - name: Install dependencies without optional packages
+        run: MIX_ENV=test mix deps.get --no-optional-deps
+
+      - name: Compile without optional dependencies
+        run: MIX_ENV=test mix compile --no-optional-deps --warnings-as-errors
+
   integration:
     name: Integration
     runs-on: ubuntu-22.04
-    needs: quality
+    needs: [quality, optional-dependencies]
     env:
       MIX_ENV: test
       PGUSER: postgres
@@ -237,7 +284,7 @@ jobs:
     # with `needs: <matrixed_job>` blocks until every matrix variant
     # completes successfully. See:
     # https://docs.github.com/actions/using-jobs/using-jobs-in-a-workflow#defining-prerequisite-jobs
-    needs: quality
+    needs: [quality, optional-dependencies]
     env:
       MIX_ENV: test
       PGUSER: postgres
@@ -304,7 +351,7 @@ jobs:
     runs-on: ubuntu-22.04
     # Phase 75 (CI-03): merge-blocking docs parity + operator proof tests.
     # See RUNNING.md `## CI lane severity` for the full matrix.
-    needs: quality
+    needs: [quality, optional-dependencies]
     env:
       MIX_ENV: test
       PGUSER: postgres
@@ -374,7 +421,7 @@ jobs:
     runs-on: ubuntu-22.04
     # Merge-blocking release-readiness lane: install-smoke matrix + release preflight.
     # See RUNNING.md `## CI lane severity` for the full matrix.
-    needs: quality
+    needs: [quality, optional-dependencies]
     env:
       MIX_ENV: test
       RINDLE_AV_USE_CGROUPS: "false"
@@ -506,7 +553,7 @@ jobs:
     name: Adoption Demo E2E
     runs-on: ubuntu-22.04
     # Merge-blocking browser proof for examples/adoption_demo (12/12 Playwright specs; gcs-resumable skipped).
-    needs: quality
+    needs: [quality, optional-dependencies]
     if: github.repository == 'szTheory/rindle'
     env:
       MIX_ENV: test
@@ -617,7 +664,7 @@ jobs:
     # (lifecycle proof only; doc parity is merge-blocking in `proof` job).
     # Runs after quality, integration, and contract. See RUNNING.md
     # `## CI lane severity` for the full matrix.
-    needs: [quality, integration, contract]
+    needs: [quality, optional-dependencies, integration, contract]
     env:
       MIX_ENV: test
       RINDLE_AV_USE_CGROUPS: "false"
