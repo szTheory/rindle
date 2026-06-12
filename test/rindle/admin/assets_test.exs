@@ -5,24 +5,7 @@ defmodule Rindle.Admin.AssetsTest do
   import Plug.Test
 
   if Code.ensure_loaded?(Phoenix.LiveView) do
-    for live_module <- [
-          Rindle.Admin.Live.HomeLive,
-          Rindle.Admin.Live.AssetsLive,
-          Rindle.Admin.Live.UploadSessionsLive,
-          Rindle.Admin.Live.VariantsJobsLive,
-          Rindle.Admin.Live.RuntimeDoctorLive,
-          Rindle.Admin.Live.ActionsLive
-        ] do
-      unless Code.ensure_loaded?(live_module) do
-        Module.create(
-          live_module,
-          quote do
-            use Phoenix.LiveView
-          end,
-          Macro.Env.location(__ENV__)
-        )
-      end
-    end
+    Rindle.Admin.LiveStubSupport.ensure_placeholder_modules!()
 
     defmodule HostRouter do
       use Phoenix.Router, helpers: false
