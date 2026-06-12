@@ -211,7 +211,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 89-04-PLAN.md — Implement shell, Home/Status, Assets, and Upload Sessions.
+- [x] 89-04-PLAN.md — Implement shell, Home/Status, Assets, and Upload Sessions.
 
 **Wave 4** *(blocked on Wave 3 completion)*
 

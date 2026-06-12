@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: Admin Console & Adoption Lab
 status: executing
-last_updated: "2026-06-12T15:13:17.596Z"
+last_updated: "2026-06-12T15:32:50.743Z"
 last_activity: 2026-06-12
 progress:
   total_phases: 23
   completed_phases: 6
   total_plans: 22
-  completed_plans: 21
+  completed_plans: 22
   percent: 26
 ---
 
@@ -26,7 +26,7 @@ console, Cohort demo evolution, deterministic E2E, Docker DX
 ## Current Position
 
 Phase: 89 (console-read-surfaces) — EXECUTING
-Plan: 4 of 7
+Plan: 5 of 7
 Status: Ready to execute
 Last activity: 2026-06-12
 
@@ -141,6 +141,9 @@ read surfaces.
 - [Phase 89]: 89-03 keeps admin read composition in Rindle.Admin.Queries with exactly seven /1 query functions plus actions_directory/0.
 - [Phase 89]: 89-03 returns UI-facing redaction copy instead of shortened provider IDs where provider identifiers would otherwise be exposed.
 - [Phase 89]: 89-03 keeps actions_directory/0 read-only and disabled for Phase 90-owned operation flows.
+- [Phase 89]: 89-04 keeps the first read surfaces guarded behind optional Phoenix dependencies while proving real LiveView behavior in tests.
+- [Phase 89]: 89-04 uses exact packaged static asset routes so /assets/:id detail pages do not conflict with /assets/rindle-admin.css style URLs.
+- [Phase 89]: 89-04 adds lazy_html only as a test dependency because Phoenix.LiveViewTest 1.1 requires it for DOM parsing.
 
 ## Blockers/Concerns
 
@@ -161,8 +164,8 @@ read surfaces.
 
 ## Session Continuity
 
-Last session: 2026-06-12T15:13:17.590Z
-Stopped at: Completed 89-03-PLAN.md
+Last session: 2026-06-12T15:32:50.737Z
+Stopped at: Completed 89-04-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -181,3 +184,4 @@ Resume file: None
 | Phase 89-console-read-surfaces P01 | 6 min | 2 tasks | 3 files |
 | Phase 89-console-read-surfaces P02 | 5 min | 2 tasks | 8 files |
 | Phase 89-console-read-surfaces P03 | 7 min | 2 tasks | 3 files |
+| Phase 89-console-read-surfaces P04 | 16 min | 2 tasks | 9 files |
