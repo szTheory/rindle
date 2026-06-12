@@ -9,6 +9,7 @@ defmodule Rindle.Upload.Broker do
   alias Rindle.Storage.{Capabilities, Local}
   alias Rindle.Upload.ResumableTelemetry
   alias Rindle.Workers.PromoteAsset
+  alias Phoenix.PubSub
 
   @default_multipart_part_size 8 * 1024 * 1024
 
@@ -123,6 +124,7 @@ defmodule Rindle.Upload.Broker do
          ) do
       {:ok, session} ->
         emit_upload_start(profile_name, profile_module.storage_adapter(), session.id)
+        broadcast_upload_session(session, :upload_session_initialized)
 
         {:ok, session}
 
@@ -173,6 +175,8 @@ defmodule Rindle.Upload.Broker do
         %{}
       )
 
+      broadcast_upload_session(session, :upload_session_initialized)
+
       {:ok,
        %{
          session: session,
@@ -221,6 +225,7 @@ defmodule Rindle.Upload.Broker do
              opts
            ) do
       emit_upload_start(profile_name, adapter, session.id)
+      broadcast_upload_session(session, :upload_session_signed)
 
       {:ok,
        %{
@@ -344,6 +349,8 @@ defmodule Rindle.Upload.Broker do
         %{}
       )
 
+      broadcast_upload_session(session, :upload_session_signed)
+
       {:ok, %{session: session}}
     else
       {:error, reason} -> {:error, reason}
@@ -386,6 +393,14 @@ defmodule Rindle.Upload.Broker do
 
         %{session: updated_session, presigned: presigned}
       end)
+      |> case do
+        {:ok, %{session: updated_session} = result} ->
+          broadcast_upload_session(updated_session, :upload_session_signed)
+          {:ok, result}
+
+        error ->
+          error
+      end
     else
       nil -> {:error, :not_found}
       {:error, reason} -> {:error, reason}
@@ -415,6 +430,7 @@ defmodule Rindle.Upload.Broker do
              opts
            ),
          {:ok, updated_session} <- ensure_session_marked_signed(repo, session) do
+      broadcast_upload_session(updated_session, :upload_session_signed)
       {:ok, %{session: updated_session, presigned: presigned}}
     else
       nil -> {:error, :not_found}
@@ -482,6 +498,10 @@ defmodule Rindle.Upload.Broker do
                offset_delta: status.committed_bytes - (session.last_known_offset || 0)
              }
            ) do
+      broadcast_upload_session(updated_session, :upload_session_uploading, %{
+        offset: status.committed_bytes
+      })
+
       {:ok,
        %{session: updated_session, committed_bytes: status.committed_bytes, state: status.state}}
     else
@@ -516,6 +536,7 @@ defmodule Rindle.Upload.Broker do
              %{outcome: :ok, source: Keyword.get(opts, :source, :user)},
              %{duration_us: System.monotonic_time(:microsecond) - started_at}
            ) do
+      broadcast_upload_session(updated_session, :upload_session_cancelled)
       {:ok, %{session: updated_session}}
     else
       nil -> {:error, :not_found}
@@ -616,6 +637,8 @@ defmodule Rindle.Upload.Broker do
             %{committed_bytes: updated_asset.byte_size || updated_session.last_known_offset || 0}
           )
         end
+
+        broadcast_upload_session(updated_session, :upload_session_completed)
 
         {:ok, %{session: updated_session, asset: updated_asset}}
 
@@ -933,6 +956,46 @@ defmodule Rindle.Upload.Broker do
         session_id: session_id
       }
     )
+  end
+
+  defp broadcast_upload_session(%MediaUploadSession{} = session, event_type, extra \\ %{}) do
+    ensure_pubsub_started()
+
+    payload =
+      %{
+        session_id: session.id,
+        asset_id: session.asset_id,
+        state: session.state,
+        upload_strategy: session.upload_strategy,
+        resumable_protocol: session.resumable_protocol
+      }
+      |> Map.merge(Map.take(extra, [:offset]))
+
+    topics =
+      ["rindle:upload_session:#{session.id}"]
+      |> maybe_append_asset_topic(session.asset_id)
+
+    Enum.each(topics, fn topic ->
+      :ok = PubSub.broadcast(pubsub_server(), topic, {:rindle_event, event_type, payload})
+    end)
+
+    :ok
+  end
+
+  defp maybe_append_asset_topic(topics, asset_id) when is_binary(asset_id),
+    do: topics ++ ["rindle:asset:#{asset_id}"]
+
+  defp maybe_append_asset_topic(topics, _asset_id), do: topics
+
+  defp ensure_pubsub_started do
+    case Process.whereis(pubsub_server()) do
+      nil -> :ok
+      _pid -> :ok
+    end
+  end
+
+  defp pubsub_server do
+    Application.get_env(:rindle, :pubsub_server, Rindle.PubSub)
   end
 
   defp profile_module_to_name(module) do

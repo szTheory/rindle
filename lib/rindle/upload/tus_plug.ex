@@ -78,6 +78,7 @@ defmodule Rindle.Upload.TusPlug do
 
   require Logger
 
+  alias Phoenix.PubSub
   alias Rindle.Config
   alias Rindle.Domain.MediaUploadSession
   alias Rindle.Ops.UploadMaintenance
@@ -242,9 +243,9 @@ defmodule Rindle.Upload.TusPlug do
     urls = String.split(urls_string, " ", trim: true)
 
     with {:ok, tokens} <- extract_tokens_from_urls(urls),
-         {:ok, payloads} <- verify_tokens_for_concat(tokens, opts),
+         {:ok, claims_list} <- verify_tokens_for_concat(tokens, opts),
          {:ok, %{session: final_session}} <-
-           Broker.concatenate_tus_sessions(opts[:profile], payloads, opts),
+           Broker.concatenate_tus_sessions(opts[:profile], claims_list, opts),
          # No Upload-Length header allowed/parsed for final. The length is the sum of partials.
          {:ok, upload_url, signed_session} <-
            sign_and_persist(
@@ -280,15 +281,15 @@ defmodule Rindle.Upload.TusPlug do
 
   defp verify_tokens_for_concat(tokens, opts) do
     Enum.reduce_while(tokens, {:ok, []}, fn token, {:ok, acc} ->
-      with {:ok, payload} <- Plug.Crypto.verify(opts[:secret_key_base], @tus_url_salt, token),
-           {:ok, payload} <- check_not_expired(payload) do
-        {:cont, {:ok, [payload | acc]}}
+      with {:ok, claims} <- Plug.Crypto.verify(opts[:secret_key_base], @tus_url_salt, token),
+           {:ok, claims} <- check_not_expired(claims) do
+        {:cont, {:ok, [claims | acc]}}
       else
         _ -> {:halt, {:error, :invalid_token}}
       end
     end)
     |> case do
-      {:ok, reversed_payloads} -> {:ok, Enum.reverse(reversed_payloads)}
+      {:ok, reversed_claims} -> {:ok, Enum.reverse(reversed_claims)}
       error -> error
     end
   end
@@ -328,18 +329,18 @@ defmodule Rindle.Upload.TusPlug do
          actor,
          is_partial
        ) do
-    # Token payload is HMAC-signed and tamper-proof, so `length` rides inside it
+    # Token claims are HMAC-signed and tamper-proof, so `length` rides inside it
     # rather than a new column (D-10 budget). HEAD/PATCH read it back on verify.
-    payload = %{
+    claims = %{
       "session_id" => session.id,
       "actor" => actor,
       "exp" => DateTime.to_unix(session.expires_at),
       "length" => length
     }
 
-    payload = maybe_put_content_type(payload, content_type)
+    claims = maybe_put_content_type(claims, content_type)
 
-    token = Plug.Crypto.sign(secret_key_base, @tus_url_salt, payload)
+    token = Plug.Crypto.sign(secret_key_base, @tus_url_salt, claims)
     location = join_upload_url(base_path, token)
 
     attrs = %{
@@ -367,13 +368,13 @@ defmodule Rindle.Upload.TusPlug do
   # ── HEAD (authoritative offset) ──────────────────────────────────────────────
 
   defp handle_head(conn, opts) do
-    with {:ok, payload} <- verify_token(conn, opts),
-         {:ok, session} <- load_active_session(payload),
-         :ok <- authorize_resume(conn, payload, session, :head, opts) do
+    with {:ok, claims} <- verify_token(conn, opts),
+         {:ok, session} <- load_active_session(claims),
+         :ok <- authorize_resume(conn, claims, session, :head, opts) do
       conn
       |> put_tus_resumable()
       |> put_resp_header("upload-offset", Integer.to_string(session.last_known_offset))
-      |> maybe_put_upload_length(effective_length(session, payload))
+      |> maybe_put_upload_length(effective_length(session, claims))
       |> put_resp_header("cache-control", "no-store")
       |> put_resp_header("upload-expires", http_date(session.expires_at))
       |> send_resp(204, "")
@@ -388,18 +389,19 @@ defmodule Rindle.Upload.TusPlug do
   defp handle_patch(conn, opts) do
     # Order is strict: token → session → 415 (Content-Type) → 409 (offset) all
     # gate BEFORE any body is read (the 409 contract spine; never drain on mismatch).
-    with {:ok, payload} <- verify_token(conn, opts),
-         {:ok, session} <- load_active_session(payload),
-         :ok <- authorize_resume(conn, payload, session, :patch, opts),
+    with {:ok, claims} <- verify_token(conn, opts),
+         {:ok, session} <- load_active_session(claims),
+         :ok <- authorize_resume(conn, claims, session, :patch, opts),
          :ok <- require_offset_octet_stream(conn),
          {:ok, inbound_offset} <- parse_upload_offset(conn),
          :ok <- check_offset_match(inbound_offset, session.last_known_offset),
-         {:ok, session, effective_len} <- resolve_patch_length(conn, session, payload, opts),
+         {:ok, session, effective_len} <- resolve_patch_length(conn, session, claims, opts),
          {:ok, checksum_alg, expected_hash} <- parse_upload_checksum(conn),
          {:ok, part_state} <-
-           stream_append(conn, session, payload, effective_len, checksum_alg, expected_hash, opts) do
+           stream_append(conn, session, claims, effective_len, checksum_alg, expected_hash, opts) do
       new_offset = part_state.offset
       {:ok, advanced} = persist_offset(session, part_state)
+      broadcast_upload_session(advanced, :upload_session_uploading, %{offset: new_offset})
 
       ResumableTelemetry.emit_patch(
         to_string(opts[:profile]),
@@ -409,7 +411,7 @@ defmodule Rindle.Upload.TusPlug do
         %{committed_bytes: new_offset, offset_delta: new_offset - session.last_known_offset}
       )
 
-      maybe_complete(conn, advanced, new_offset, effective_len, payload, opts)
+      maybe_complete(conn, advanced, new_offset, effective_len, claims, opts)
     else
       {:error, reason} -> tus_error(conn, status_for(reason), "")
     end
@@ -649,9 +651,9 @@ defmodule Rindle.Upload.TusPlug do
   # runs ONLY after token verification + session load succeed (auth order is
   # unchanged; a tampered token never reaches the abort).
   defp handle_delete(conn, opts) do
-    with {:ok, payload} <- verify_token(conn, opts),
-         {:ok, session} <- load_active_session(payload),
-         :ok <- authorize_resume(conn, payload, session, :delete, opts) do
+    with {:ok, claims} <- verify_token(conn, opts),
+         {:ok, session} <- load_active_session(claims),
+         :ok <- authorize_resume(conn, claims, session, :delete, opts) do
       # (1) FIRST abort the backing store polymorphically (S3 multipart abort, or
       # Local tmp removal) via the shared PUBLIC helper, using the adapter + root
       # the Plug already holds in `opts` — no DB profile re-resolution on the hot
@@ -672,7 +674,8 @@ defmodule Rindle.Upload.TusPlug do
       |> MediaUploadSession.changeset(Map.put(abort_attrs, :state, "aborted"))
       |> Config.repo().update()
       |> case do
-        {:ok, _aborted} ->
+        {:ok, aborted} ->
+          broadcast_upload_session(aborted, :upload_session_cancelled)
           conn |> put_tus_resumable() |> send_resp(204, "") |> halt()
 
         {:error, _changeset} ->
@@ -821,8 +824,8 @@ defmodule Rindle.Upload.TusPlug do
 
   defp verify_token(conn, opts) do
     with token when is_binary(token) <- extract_token(conn),
-         {:ok, payload} <- Plug.Crypto.verify(opts[:secret_key_base], @tus_url_salt, token) do
-      check_not_expired(payload)
+         {:ok, claims} <- Plug.Crypto.verify(opts[:secret_key_base], @tus_url_salt, token) do
+      check_not_expired(claims)
     else
       nil -> {:error, :invalid_token}
       {:error, :expired} -> {:error, :expired_token}
@@ -830,11 +833,11 @@ defmodule Rindle.Upload.TusPlug do
     end
   end
 
-  defp check_not_expired(%{"exp" => exp} = payload) when is_integer(exp) do
-    if exp >= System.system_time(:second), do: {:ok, payload}, else: {:error, :expired_token}
+  defp check_not_expired(%{"exp" => exp} = claims) when is_integer(exp) do
+    if exp >= System.system_time(:second), do: {:ok, claims}, else: {:error, :expired_token}
   end
 
-  defp check_not_expired(_payload), do: {:error, :invalid_token}
+  defp check_not_expired(_claims), do: {:error, :invalid_token}
 
   defp load_active_session(%{"session_id" => session_id}) do
     case Config.repo().get(MediaUploadSession, session_id) do
@@ -980,7 +983,38 @@ defmodule Rindle.Upload.TusPlug do
     conn.assigns[:rindle_actor] || conn.assigns[:actor_subject] || "anonymous"
   end
 
-  defp authorize_resume(conn, payload, session, method, opts) do
+  defp broadcast_upload_session(%MediaUploadSession{} = session, event_type, extra \\ %{}) do
+    payload =
+      %{
+        session_id: session.id,
+        asset_id: session.asset_id,
+        state: session.state,
+        upload_strategy: session.upload_strategy,
+        resumable_protocol: session.resumable_protocol
+      }
+      |> Map.merge(Map.take(extra, [:offset]))
+
+    topics =
+      ["rindle:upload_session:#{session.id}"]
+      |> maybe_append_asset_topic(session.asset_id)
+
+    Enum.each(topics, fn topic ->
+      :ok = PubSub.broadcast(pubsub_server(), topic, {:rindle_event, event_type, payload})
+    end)
+
+    :ok
+  end
+
+  defp maybe_append_asset_topic(topics, asset_id) when is_binary(asset_id),
+    do: topics ++ ["rindle:asset:#{asset_id}"]
+
+  defp maybe_append_asset_topic(topics, _asset_id), do: topics
+
+  defp pubsub_server do
+    Application.get_env(:rindle, :pubsub_server, Rindle.PubSub)
+  end
+
+  defp authorize_resume(conn, claims, session, method, opts) do
     case opts[:resume_authorizer] do
       nil ->
         :ok
@@ -989,7 +1023,7 @@ defmodule Rindle.Upload.TusPlug do
         actor = opts[:identity_fn].(conn)
 
         case authorizer.authorize(actor, :resume, %{
-               token_actor: Map.get(payload, "actor"),
+               token_actor: Map.get(claims, "actor"),
                session: session,
                profile: opts[:profile],
                method: method
