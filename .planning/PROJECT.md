@@ -85,7 +85,15 @@ startup remains an optional manual smoke; static gates are the validated proof p
 DS-01..03 and ADMIN-02 groundwork: token-generated `rindle-admin` CSS,
 console-specific contrast gates, deterministic static gallery, screenshot/hash
 navigation checks, and the durable admin design-system operating guide are in place.
-Production serving/package inclusion remains Phase 89 scope. Phases 89–93 remain active.
+
+**v1.18 Phase 89 complete (2026-06-12):** Console Read Surfaces validated
+ADMIN-01..03, ADMIN-05, and ADMIN-06: `Rindle.Admin.Router.rindle_admin/2`
+mounts host-authenticated read surfaces, `priv/static/rindle_admin` assets ship
+self-contained, `Rindle.Admin.Queries` isolates read models, six query-backed
+LiveViews render through the shared shell, upload-session lifecycle events
+invalidate through configured PubSub, and the optional LiveView compile-away
+proof is present locally and in CI. Phases 90–93 remain active, with Phase 90
+owning executable console operations.
 
 Do not reopen tus protocol, single-owner/batch erasure semantics, or Mux surfaces
 beyond v1.13. Keep shared-asset safety and maintenance-vs-owner-erasure boundaries
@@ -776,4 +784,4 @@ This document evolves at phase transitions and milestone boundaries.
    (`workflow.milestone_boundary.block_feature_milestone_without_signal`)
 
 ---
-*Last updated: 2026-06-11 after Phase 88 Admin Design System & UI Kit completion*
+*Last updated: 2026-06-12 after Phase 89 Console Read Surfaces completion*
