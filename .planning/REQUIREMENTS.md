@@ -149,23 +149,23 @@ v1.18 Admin Console & Adoption Lab (phases 86–93; b1.0 brand-track rows archiv
 |-------------|-------|--------|
 | ADMIN-01 | Phase 89 | Complete |
 | ADMIN-02 | Phase 88–89 | Complete |
-| ADMIN-03 | Phase 89 | Planned |
-| ADMIN-04 | Phase 90 | Planned |
-| ADMIN-05 | Phase 89 | Planned |
+| ADMIN-03 | Phase 89 | Complete |
+| ADMIN-04 | Phase 90 | Complete |
+| ADMIN-05 | Phase 89 | Complete |
 | ADMIN-06 | Phase 89 | Complete |
 | DS-01 | Phase 88 | Complete |
 | DS-02 | Phase 88 | Complete |
 | DS-03 | Phase 88 | Complete |
-| DEMO-01 | Phase 91 | Planned |
-| DEMO-02 | Phase 91 | Planned |
-| DEMO-03 | Phase 91 | Planned |
-| E2E-01 | Phase 92 | Planned |
+| DEMO-01 | Phase 91 | Complete |
+| DEMO-02 | Phase 91 | Complete |
+| DEMO-03 | Phase 91 | Complete |
+| E2E-01 | Phase 92 | Complete |
 | E2E-02 | Phase 92 | Complete |
-| DX-01 | Phase 87 | Planned |
-| DX-02 | Phase 87 | Planned |
-| DX-03 | Phase 87 | Planned |
+| DX-01 | Phase 87 | Complete |
+| DX-02 | Phase 87 | Complete |
+| DX-03 | Phase 87 | Complete |
 | PRIN-01 | Phase 86 | Satisfied |
-| TRUTH-07 | Phase 93 | Planned |
+| TRUTH-07 | Phase 93 | Complete |
 | PAUSE-01 | — | Satisfied (maintenance mode, pre-v1.18) |
 | PAUSE-02 | — | Satisfied (threads canonical) |
 | PAUSE-03 | — | Satisfied; amended 2026-06-10 (maintainer-pull override for v1.18) |
@@ -175,11 +175,11 @@ v1.18 Admin Console & Adoption Lab (phases 86–93; b1.0 brand-track rows archiv
 | PRIV-01 | — | Deferred |
 
 **Coverage:**
-- v1.18 requirements: 19 total, 19 mapped to phases 86–93, 8 satisfied
+- v1.18 requirements: 19 total, 19 mapped to phases 86–93, 19 satisfied (all Complete/Satisfied at v1.18 close)
 - Pause requirements: 3 total (PAUSE-03 amended for the override)
 - Brand-track requirements: 8/8 validated and archived (b1.0)
 - Unmapped active reqs: 0
 
 ---
 *Requirements defined: 2026-05-27*
-*Last updated: 2026-06-10 — v1.18 Admin Console & Adoption Lab charter recorded (maintainer-pull override); LIFE-06/STREAM-10 shift to v1.19+*
+*Last updated: 2026-06-13 — Phase 93 closed v1.18 traceability: ADMIN-03/04/05, DEMO-01/02/03, E2E-01, DX-01/02/03, and TRUTH-07 flipped to Complete; coverage now 19/19. LIFE-06/STREAM-10 remain Deferred (v1.19+).*
