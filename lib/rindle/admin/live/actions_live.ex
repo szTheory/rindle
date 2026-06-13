@@ -21,6 +21,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
          error?: false,
          active_action_id: :owner_erasure,
          action_state: :input,
+         action_error: nil,
          action_data: %{}
        )
        |> load()}
@@ -35,6 +36,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
        |> assign(
          active_action_id: id,
          action_state: :input,
+         action_error: nil,
          action_data: %{}
        )}
     end
@@ -45,6 +47,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           _params,
           %{assigns: %{action_state: :input}} = socket
         ) do
+      {:noreply, socket}
+    end
+
+    def handle_event(
+          "change_owner_erasure",
+          %{"owner_type" => type, "owner_id" => id},
+          %{assigns: %{action_data: %{type: current_type, id: current_id}}} = socket
+        )
+        when type == current_type and id == current_id do
       {:noreply, socket}
     end
 
@@ -61,6 +72,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           {:noreply,
            assign(socket,
              action_state: :preview,
+             action_error: nil,
              action_data: %{type: type, id: id, report: report}
            )}
 
@@ -82,6 +94,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             {:noreply,
              assign(socket,
                action_state: :receipt,
+               action_error: nil,
                action_data: %{report: report, type: type, id: id}
              )}
 
@@ -89,7 +102,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             {:noreply, socket |> put_flash(:error, "Execution failed")}
         end
       else
-        {:noreply, socket |> put_flash(:error, "Confirmation does not match.")}
+        {:noreply, assign(socket, action_error: "Confirmation does not match.")}
       end
     end
 
@@ -102,8 +115,17 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       {:noreply, socket}
     end
 
+    def handle_event(
+          "change_batch_erasure",
+          %{"owners" => owners_text},
+          %{assigns: %{action_data: %{owners_text: current_owners_text}}} = socket
+        )
+        when owners_text == current_owners_text do
+      {:noreply, socket}
+    end
+
     def handle_event("change_batch_erasure", _params, socket) do
-      {:noreply, assign(socket, action_state: :input, action_data: %{})}
+      {:noreply, assign(socket, action_state: :input, action_error: nil, action_data: %{})}
     end
 
     @impl true
@@ -115,6 +137,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           {:noreply,
            assign(socket,
              action_state: :preview,
+             action_error: nil,
              action_data: %{owners_text: owners_text, report: report, count: length(owners)}
            )}
 
@@ -133,13 +156,19 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         case Rindle.erase_batch_owner_erasure(owners) do
           {:ok, report} ->
-            {:noreply, assign(socket, action_state: :receipt, action_data: %{report: report})}
+            {:noreply,
+             assign(socket,
+               action_state: :receipt,
+               action_error: nil,
+               action_data: %{report: report}
+             )}
 
           {:error,
            {:batch_owner_failed, %{owner: failed, reason: reason, partial_report: partial_report}}} ->
             {:noreply,
              assign(socket,
                action_state: :partial_receipt,
+               action_error: nil,
                action_data: %{
                  report: partial_report,
                  failed_owner: inspect(failed),
@@ -151,7 +180,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             {:noreply, socket |> put_flash(:error, "Batch execution failed entirely")}
         end
       else
-        {:noreply, socket |> put_flash(:error, "Confirmation does not match.")}
+        {:noreply, assign(socket, action_error: "Confirmation does not match.")}
       end
     end
 
@@ -165,7 +194,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     def handle_event("change_lifecycle_repair", _params, socket) do
-      {:noreply, assign(socket, action_state: :input, action_data: %{})}
+      {:noreply, assign(socket, action_state: :input, action_error: nil, action_data: %{})}
     end
 
     @impl true
@@ -181,6 +210,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               {:noreply,
                assign(socket,
                  action_state: :receipt,
+                 action_error: nil,
                  action_data: %{action: "reprobe", success: true, report: report}
                )}
 
@@ -188,6 +218,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               {:noreply,
                assign(socket,
                  action_state: :receipt,
+                 action_error: nil,
                  action_data: %{action: "reprobe", success: false, error: "Reprobe failed"}
                )}
           end
@@ -198,6 +229,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               {:noreply,
                assign(socket,
                  action_state: :receipt,
+                 action_error: nil,
                  action_data: %{action: "requeue", success: true, report: report}
                )}
 
@@ -205,6 +237,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               {:noreply,
                assign(socket,
                  action_state: :receipt,
+                 action_error: nil,
                  action_data: %{action: "requeue", success: false, error: "Requeue failed"}
                )}
           end
@@ -221,7 +254,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     def handle_event("change_variant_regeneration", _params, socket) do
-      {:noreply, assign(socket, action_state: :input, action_data: %{})}
+      {:noreply, assign(socket, action_state: :input, action_error: nil, action_data: %{})}
     end
 
     @impl true
@@ -236,7 +269,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       case Rindle.Ops.VariantMaintenance.regenerate_variants(opts) do
         {:ok, report} ->
-          {:noreply, assign(socket, action_state: :receipt, action_data: %{report: report})}
+          {:noreply,
+           assign(socket,
+             action_state: :receipt,
+             action_error: nil,
+             action_data: %{report: report}
+           )}
 
         {:error, _} ->
           {:noreply, socket |> put_flash(:error, "Regeneration failed")}
@@ -244,7 +282,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     def handle_event("execute_variant_regeneration", _params, socket) do
-      {:noreply, socket |> put_flash(:error, "You must confirm this action")}
+      {:noreply, assign(socket, action_error: "You must confirm this action")}
     end
 
     defp parse_batch_owners(text) do
@@ -428,6 +466,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             <label>Type <pre>ERASE {@action_data.type}:{@action_data.id}</pre> to confirm</label>
             <input type="text" name="confirmation" data-rindle-admin-confirm-input data-rindle-admin-input="confirmation" required />
           </div>
+          <%= if @action_error do %>
+            <p class="rindle-admin-toast rindle-admin-toast--danger" data-rindle-admin-action-error>{@action_error}</p>
+          <% end %>
           <button type="submit" data-rindle-admin-submit="execute_owner_erasure">Erase owner</button>
         </form>
       </div>
@@ -475,6 +516,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             <label>Type <pre>ERASE {@action_data.count} OWNERS</pre> to confirm</label>
             <input type="text" name="confirmation" data-rindle-admin-confirm-input data-rindle-admin-input="confirmation" required />
           </div>
+          <%= if @action_error do %>
+            <p class="rindle-admin-toast rindle-admin-toast--danger" data-rindle-admin-action-error>{@action_error}</p>
+          <% end %>
           <button type="submit" data-rindle-admin-submit="execute_batch_erasure">Erase owners</button>
         </form>
       </div>
@@ -555,6 +599,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               Confirm broad regeneration
             </label>
           </div>
+          <%= if @action_error do %>
+            <p class="rindle-admin-toast rindle-admin-toast--danger" data-rindle-admin-action-error>{@action_error}</p>
+          <% end %>
           <button type="submit" data-rindle-admin-submit="execute_variant_regeneration">Regenerate Variants</button>
         </form>
       </div>
