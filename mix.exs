@@ -90,6 +90,13 @@ defmodule Rindle.MixProject do
       # `optional: false` — mix's `:only` calculation requires consistency
       # across all paths reaching hackney. See `.planning/phases/37-gcs-adapter-foundation/37-01-PLAN.md` Task 1.
       {:hackney, "~> 1.20", optional: true},
+      # Root-declared optional so `mix compile --no-optional-deps` prunes it
+      # consistently on every Mix version (Elixir 1.15/1.17 don't transitively
+      # prune deps-of-optional-deps the way 1.19 does). httpoison only reaches us
+      # via the optional `gcs_signed_url`; without this, ADMIN-06's no-optional
+      # compile tried to build httpoison while its (pruned) hackney includes were
+      # absent. Pairs with the hackney declaration above.
+      {:httpoison, "~> 2.0", optional: true},
 
       # Observability
       {:telemetry, "~> 1.2"},
