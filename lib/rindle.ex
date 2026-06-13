@@ -43,9 +43,15 @@ defmodule Rindle do
   Shared assets are retained whenever a surviving attachment remains.
   Execute semantics stay honest: detach work happens transactionally first,
   then purge-enqueued async cleanup handles newly orphaned assets later. This
-  facade contract does not promise inline storage deletion, admin UI,
+  facade contract does not promise inline storage deletion,
   scheduler/cron erasure jobs, or force-delete behavior for assets with
   surviving attachments.
+
+  Rindle now ships a mountable admin console, mounted from your router via
+  `Rindle.Admin.Router.rindle_admin/2`. The console is host-authenticated and
+  separate from this facade; see `guides/admin_console.md` for the adopter
+  setup. Admin read composition lives in `Rindle.Admin.Queries`, which is
+  internal and is not promoted onto this `Rindle` facade.
 
   `detach/3` remains the slot-scoped attachment API, and
   `mix rindle.cleanup_orphans` remains the maintenance-only upload-residue
