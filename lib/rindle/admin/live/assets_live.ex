@@ -123,7 +123,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   <td class="rindle-admin-table__cell">{asset.profile}</td>
                   <td class="rindle-admin-table__cell">{asset.kind}</td>
                   <td class="rindle-admin-table__cell">
-                    <a class="rindle-admin-button rindle-admin-button--secondary rindle-admin-target-min" href={admin_path(@admin_base_path, "assets/#{asset.id}")}>
+                    <a
+                      class="rindle-admin-button rindle-admin-button--secondary rindle-admin-target-min"
+                      href={admin_path(@admin_base_path, "assets/#{asset.id}")}
+                      data-rindle-admin-detail-link="asset"
+                    >
                       Inspect asset
                     </a>
                   </td>

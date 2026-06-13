@@ -66,8 +66,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ "Batch erasure"
 
       # Default action panel is rendered
+      assert html =~ ~s(data-rindle-admin-action="owner_erasure")
+      assert html =~ ~s(data-rindle-admin-action="batch_erasure")
+      assert html =~ ~s(data-rindle-admin-action="lifecycle_repair")
+      assert html =~ ~s(data-rindle-admin-action="variant_regeneration")
+      assert html =~ ~s(data-rindle-admin-action="quarantine_review")
+      assert has_element?(view, "[data-rindle-admin-action-panel=\"owner_erasure\"]")
       assert has_element?(view, "h3", "Owner erasure")
       assert has_element?(view, "[data-rindle-admin-state=\"input\"]")
+      assert has_element?(view, "[data-rindle-admin-form=\"owner_erasure_preview\"]")
+      assert has_element?(view, "[data-rindle-admin-input=\"owner_type\"]")
+      assert has_element?(view, "[data-rindle-admin-input=\"owner_id\"]")
+      assert has_element?(view, "[data-rindle-admin-submit=\"preview_owner_erasure\"]")
 
       # Can select another action
       view
@@ -75,6 +85,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       |> render_click()
 
       assert has_element?(view, "h3", "Batch erasure")
+      assert has_element?(view, "[data-rindle-admin-action-panel=\"batch_erasure\"]")
+      assert has_element?(view, "[data-rindle-admin-form=\"batch_erasure_preview\"]")
+      assert has_element?(view, "[data-rindle-admin-input=\"batch_owners\"]")
+      assert has_element?(view, "[data-rindle-admin-submit=\"preview_batch_erasure\"]")
     end
 
     test "owner erasure workflow: preview, reset, validation, execute", %{conn: conn} do
@@ -96,6 +110,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       # Now in preview state
       assert has_element?(view, "[data-rindle-admin-state=\"preview\"]")
+      assert has_element?(view, "[data-rindle-admin-form=\"owner_erasure_execute\"]")
+      assert has_element?(view, "[data-rindle-admin-preview=\"owner_erasure\"]")
+      assert has_element?(view, "[data-rindle-admin-input=\"confirmation\"]")
+      assert has_element?(view, "[data-rindle-admin-submit=\"execute_owner_erasure\"]")
       assert render(view) =~ "Type <pre>ERASE Elixir.String:#{owner_id}</pre> to confirm"
 
       # 2. Reset on input change
@@ -163,6 +181,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       |> render_submit()
 
       assert has_element?(view, "[data-rindle-admin-state=\"preview\"]")
+      assert has_element?(view, "[data-rindle-admin-preview=\"batch_erasure\"]")
+      assert has_element?(view, "[data-rindle-admin-form=\"batch_erasure_execute\"]")
+      assert has_element?(view, "[data-rindle-admin-submit=\"execute_batch_erasure\"]")
       assert render(view) =~ "Type <pre>ERASE 2 OWNERS</pre> to confirm"
 
       # 2. Validation Failure
@@ -188,14 +209,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     test "lifecycle repair workflow: reprobe and requeue", %{conn: conn} do
-      asset = Rindle.Repo.insert!(%Rindle.Domain.MediaAsset{
-        id: Ecto.UUID.generate(),
-        state: "available",
-        profile: to_string(AdminImageProfile),
-        storage_key: "assets/sample.bin",
-        content_type: "image/png",
-        byte_size: 123
-      })
+      asset =
+        Rindle.Repo.insert!(%Rindle.Domain.MediaAsset{
+          id: Ecto.UUID.generate(),
+          state: "available",
+          profile: to_string(AdminImageProfile),
+          storage_key: "assets/sample.bin",
+          content_type: "image/png",
+          byte_size: 123
+        })
 
       {:ok, view, _html} = live(conn, "/admin/rindle/actions")
 
@@ -204,6 +226,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       |> render_click()
 
       assert has_element?(view, "[data-rindle-admin-state=\"input\"]")
+      assert has_element?(view, "[data-rindle-admin-form=\"lifecycle_repair\"]")
+      assert has_element?(view, "[data-rindle-admin-input=\"asset_id\"]")
+      assert has_element?(view, "[data-rindle-admin-input=\"repair_action\"]")
+      assert has_element?(view, "[data-rindle-admin-submit=\"execute_lifecycle_repair\"]")
 
       # Reprobe
       view
@@ -240,6 +266,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       |> render_click()
 
       assert has_element?(view, "[data-rindle-admin-state=\"input\"]")
+      assert has_element?(view, "[data-rindle-admin-form=\"variant_regeneration\"]")
+      assert has_element?(view, "[data-rindle-admin-input=\"profile\"]")
+      assert has_element?(view, "[data-rindle-admin-input=\"variant_name\"]")
+      assert has_element?(view, "[data-rindle-admin-input=\"confirm\"]")
+      assert has_element?(view, "[data-rindle-admin-submit=\"execute_variant_regeneration\"]")
 
       view
       |> form("form[phx-submit=\"execute_variant_regeneration\"]", %{

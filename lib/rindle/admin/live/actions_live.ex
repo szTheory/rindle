@@ -40,7 +40,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     @impl true
-    def handle_event("change_owner_erasure", _params, %{assigns: %{action_state: :input}} = socket) do
+    def handle_event(
+          "change_owner_erasure",
+          _params,
+          %{assigns: %{action_state: :input}} = socket
+        ) do
       {:noreply, socket}
     end
 
@@ -54,7 +58,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       case Rindle.preview_owner_erasure(owner) do
         {:ok, report} ->
-          {:noreply, assign(socket, action_state: :preview, action_data: %{type: type, id: id, report: report})}
+          {:noreply,
+           assign(socket,
+             action_state: :preview,
+             action_data: %{type: type, id: id, report: report}
+           )}
+
         {:error, _} ->
           {:noreply, socket |> put_flash(:error, "Failed to preview erasure")}
       end
@@ -67,9 +76,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       if confirmation == expected do
         owner = %{__struct__: String.to_atom(type), id: id}
+
         case Rindle.erase_owner(owner) do
           {:ok, report} ->
-            {:noreply, assign(socket, action_state: :receipt, action_data: %{report: report, type: type, id: id})}
+            {:noreply,
+             assign(socket,
+               action_state: :receipt,
+               action_data: %{report: report, type: type, id: id}
+             )}
+
           {:error, _} ->
             {:noreply, socket |> put_flash(:error, "Execution failed")}
         end
@@ -79,7 +94,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     @impl true
-    def handle_event("change_batch_erasure", _params, %{assigns: %{action_state: :input}} = socket) do
+    def handle_event(
+          "change_batch_erasure",
+          _params,
+          %{assigns: %{action_state: :input}} = socket
+        ) do
       {:noreply, socket}
     end
 
@@ -93,7 +112,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       case Rindle.preview_batch_owner_erasure(owners) do
         {:ok, report} ->
-          {:noreply, assign(socket, action_state: :preview, action_data: %{owners_text: owners_text, report: report, count: length(owners)})}
+          {:noreply,
+           assign(socket,
+             action_state: :preview,
+             action_data: %{owners_text: owners_text, report: report, count: length(owners)}
+           )}
+
         {:error, _} ->
           {:noreply, socket |> put_flash(:error, "Failed to preview batch erasure")}
       end
@@ -106,15 +130,23 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       if confirmation == expected do
         owners = parse_batch_owners(owners_text)
+
         case Rindle.erase_batch_owner_erasure(owners) do
           {:ok, report} ->
             {:noreply, assign(socket, action_state: :receipt, action_data: %{report: report})}
-          {:error, {:batch_owner_failed, %{owner: failed, reason: reason, partial_report: partial_report}}} ->
-            {:noreply, assign(socket, action_state: :partial_receipt, action_data: %{
-              report: partial_report,
-              failed_owner: inspect(failed),
-              reason: inspect(reason)
-            })}
+
+          {:error,
+           {:batch_owner_failed, %{owner: failed, reason: reason, partial_report: partial_report}}} ->
+            {:noreply,
+             assign(socket,
+               action_state: :partial_receipt,
+               action_data: %{
+                 report: partial_report,
+                 failed_owner: inspect(failed),
+                 reason: inspect(reason)
+               }
+             )}
+
           {:error, _} ->
             {:noreply, socket |> put_flash(:error, "Batch execution failed entirely")}
         end
@@ -124,7 +156,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     @impl true
-    def handle_event("change_lifecycle_repair", _params, %{assigns: %{action_state: :input}} = socket) do
+    def handle_event(
+          "change_lifecycle_repair",
+          _params,
+          %{assigns: %{action_state: :input}} = socket
+        ) do
       {:noreply, socket}
     end
 
@@ -133,27 +169,54 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     @impl true
-    def handle_event("execute_lifecycle_repair", %{"asset_id" => id, "repair_action" => action}, socket) do
+    def handle_event(
+          "execute_lifecycle_repair",
+          %{"asset_id" => id, "repair_action" => action},
+          socket
+        ) do
       case action do
         "reprobe" ->
           case Rindle.reprobe(id) do
             {:ok, report} ->
-              {:noreply, assign(socket, action_state: :receipt, action_data: %{action: "reprobe", success: true, report: report})}
+              {:noreply,
+               assign(socket,
+                 action_state: :receipt,
+                 action_data: %{action: "reprobe", success: true, report: report}
+               )}
+
             {:error, _} ->
-              {:noreply, assign(socket, action_state: :receipt, action_data: %{action: "reprobe", success: false, error: "Reprobe failed"})}
+              {:noreply,
+               assign(socket,
+                 action_state: :receipt,
+                 action_data: %{action: "reprobe", success: false, error: "Reprobe failed"}
+               )}
           end
+
         "requeue" ->
           case Rindle.requeue_variants(id) do
             {:ok, report} ->
-              {:noreply, assign(socket, action_state: :receipt, action_data: %{action: "requeue", success: true, report: report})}
+              {:noreply,
+               assign(socket,
+                 action_state: :receipt,
+                 action_data: %{action: "requeue", success: true, report: report}
+               )}
+
             {:error, _} ->
-              {:noreply, assign(socket, action_state: :receipt, action_data: %{action: "requeue", success: false, error: "Requeue failed"})}
+              {:noreply,
+               assign(socket,
+                 action_state: :receipt,
+                 action_data: %{action: "requeue", success: false, error: "Requeue failed"}
+               )}
           end
       end
     end
 
     @impl true
-    def handle_event("change_variant_regeneration", _params, %{assigns: %{action_state: :input}} = socket) do
+    def handle_event(
+          "change_variant_regeneration",
+          _params,
+          %{assigns: %{action_state: :input}} = socket
+        ) do
       {:noreply, socket}
     end
 
@@ -162,7 +225,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     @impl true
-    def handle_event("execute_variant_regeneration", %{"profile" => p, "variant_name" => v, "confirm" => "true"}, socket) do
+    def handle_event(
+          "execute_variant_regeneration",
+          %{"profile" => p, "variant_name" => v, "confirm" => "true"},
+          socket
+        ) do
       opts = %{}
       opts = if p != "", do: Map.put(opts, :profile, p), else: opts
       opts = if v != "", do: Map.put(opts, :variant_name, v), else: opts
@@ -170,6 +237,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       case Rindle.Ops.VariantMaintenance.regenerate_variants(opts) do
         {:ok, report} ->
           {:noreply, assign(socket, action_state: :receipt, action_data: %{report: report})}
+
         {:error, _} ->
           {:noreply, socket |> put_flash(:error, "Regeneration failed")}
       end
@@ -180,7 +248,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     defp parse_batch_owners(text) do
-
       text
       |> String.split("\n", trim: true)
       |> Enum.map(&String.trim/1)
@@ -203,6 +270,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               class={["rindle-admin-actions-tab", if(@active_action_id == action.id, do: "active", else: "")]}
               phx-click="select_action"
               phx-value-id={action.id}
+              data-rindle-admin-action={action.id}
             >
               {action.label}
             </button>
@@ -212,7 +280,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         <%= if @error? do %>
           <.error_state surface="Actions" />
         <% else %>
-          <div class="rindle-admin-action-panel">
+          <div class="rindle-admin-action-panel" data-rindle-admin-action-panel={@active_action_id}>
             <%= render_action_panel(assigns, current_action(assigns)) %>
           </div>
         <% end %>
@@ -221,11 +289,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     defp current_action(assigns) do
-      Enum.find(assigns.model.actions, &(&1.id == assigns.active_action_id)) || List.first(assigns.model.actions)
+      Enum.find(assigns.model.actions, &(&1.id == assigns.active_action_id)) ||
+        List.first(assigns.model.actions)
     end
 
     defp render_action_panel(assigns, %{id: :owner_erasure} = selected_action) do
       assigns = assign(assigns, :action, selected_action)
+
       ~H"""
       <div>
         <h3>{@action.label}</h3>
@@ -241,6 +311,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     defp render_action_panel(assigns, %{id: :batch_erasure} = selected_action) do
       assigns = assign(assigns, :action, selected_action)
+
       ~H"""
       <div>
         <h3>{@action.label}</h3>
@@ -256,6 +327,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     defp render_action_panel(assigns, %{id: :lifecycle_repair} = selected_action) do
       assigns = assign(assigns, :action, selected_action)
+
       ~H"""
       <div>
         <h3>{@action.label}</h3>
@@ -271,6 +343,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     defp render_action_panel(assigns, %{id: :variant_regeneration} = selected_action) do
       assigns = assign(assigns, :action, selected_action)
+
       ~H"""
       <div>
         <h3>{@action.label}</h3>
@@ -286,6 +359,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     defp render_action_panel(assigns, %{id: :quarantine_review} = selected_action) do
       assigns = assign(assigns, :action, selected_action)
+
       ~H"""
       <div>
         <h3>{@action.label}</h3>
@@ -305,8 +379,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     defp render_action_panel(assigns, selected_action) do
-
       assigns = assign(assigns, :action, selected_action)
+
       ~H"""
       <div>
         <h3>{@action.label}</h3>
@@ -319,16 +393,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp render_owner_erasure_state(%{action_state: :input} = assigns) do
       ~H"""
       <div data-rindle-admin-state="input">
-        <form phx-submit="preview_owner_erasure" phx-change="change_owner_erasure">
+        <form phx-submit="preview_owner_erasure" phx-change="change_owner_erasure" data-rindle-admin-form="owner_erasure_preview">
           <div>
             <label>Owner Type</label>
-            <input type="text" name="owner_type" required />
+            <input type="text" name="owner_type" data-rindle-admin-input="owner_type" required />
           </div>
           <div>
             <label>Owner ID</label>
-            <input type="text" name="owner_id" required />
+            <input type="text" name="owner_id" data-rindle-admin-input="owner_id" required />
           </div>
-          <button type="submit">Preview owner erasure</button>
+          <button type="submit" data-rindle-admin-submit="preview_owner_erasure">Preview owner erasure</button>
         </form>
       </div>
       """
@@ -337,24 +411,24 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp render_owner_erasure_state(%{action_state: :preview} = assigns) do
       ~H"""
       <div data-rindle-admin-state="preview">
-        <form phx-change="change_owner_erasure" phx-submit="execute_owner_erasure">
+        <form phx-change="change_owner_erasure" phx-submit="execute_owner_erasure" data-rindle-admin-form="owner_erasure_execute">
           <div>
             <label>Owner Type</label>
-            <input type="text" name="owner_type" value={@action_data.type} required />
+            <input type="text" name="owner_type" value={@action_data.type} data-rindle-admin-input="owner_type" required />
           </div>
           <div>
             <label>Owner ID</label>
-            <input type="text" name="owner_id" value={@action_data.id} required />
+            <input type="text" name="owner_id" value={@action_data.id} data-rindle-admin-input="owner_id" required />
           </div>
-          <div>
+          <div data-rindle-admin-preview="owner_erasure">
             <h4>Preview Report</h4>
             <p>Attachments to detach: {@action_data.report.attachments_to_detach.count}</p>
           </div>
           <div>
             <label>Type <pre>ERASE {@action_data.type}:{@action_data.id}</pre> to confirm</label>
-            <input type="text" name="confirmation" data-rindle-admin-confirm-input required />
+            <input type="text" name="confirmation" data-rindle-admin-confirm-input data-rindle-admin-input="confirmation" required />
           </div>
-          <button type="submit">Erase owner</button>
+          <button type="submit" data-rindle-admin-submit="execute_owner_erasure">Erase owner</button>
         </form>
       </div>
       """
@@ -373,12 +447,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp render_batch_erasure_state(%{action_state: :input} = assigns) do
       ~H"""
       <div data-rindle-admin-state="input">
-        <form phx-submit="preview_batch_erasure" phx-change="change_batch_erasure">
+        <form phx-submit="preview_batch_erasure" phx-change="change_batch_erasure" data-rindle-admin-form="batch_erasure_preview">
           <div>
             <label>Owners (one per line as Module:id)</label>
-            <textarea name="owners" rows="5" required></textarea>
+            <textarea name="owners" rows="5" data-rindle-admin-input="batch_owners" required></textarea>
           </div>
-          <button type="submit">Preview batch erasure</button>
+          <button type="submit" data-rindle-admin-submit="preview_batch_erasure">Preview batch erasure</button>
         </form>
       </div>
       """
@@ -387,21 +461,21 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp render_batch_erasure_state(%{action_state: :preview} = assigns) do
       ~H"""
       <div data-rindle-admin-state="preview">
-        <form phx-change="change_batch_erasure" phx-submit="execute_batch_erasure">
+        <form phx-change="change_batch_erasure" phx-submit="execute_batch_erasure" data-rindle-admin-form="batch_erasure_execute">
           <div>
             <label>Owners</label>
-            <textarea name="owners" rows="5" required>{@action_data.owners_text}</textarea>
+            <textarea name="owners" rows="5" data-rindle-admin-input="batch_owners" required>{@action_data.owners_text}</textarea>
           </div>
-          <div>
+          <div data-rindle-admin-preview="batch_erasure">
             <h4>Preview Report</h4>
             <p>Owners to process: {@action_data.count}</p>
             <p>Attachments to detach: {@action_data.report.attachments_to_detach.count}</p>
           </div>
           <div>
             <label>Type <pre>ERASE {@action_data.count} OWNERS</pre> to confirm</label>
-            <input type="text" name="confirmation" data-rindle-admin-confirm-input required />
+            <input type="text" name="confirmation" data-rindle-admin-confirm-input data-rindle-admin-input="confirmation" required />
           </div>
-          <button type="submit">Erase owners</button>
+          <button type="submit" data-rindle-admin-submit="execute_batch_erasure">Erase owners</button>
         </form>
       </div>
       """
@@ -435,19 +509,19 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp render_lifecycle_repair_state(%{action_state: :input} = assigns) do
       ~H"""
       <div data-rindle-admin-state="input">
-        <form phx-submit="execute_lifecycle_repair" phx-change="change_lifecycle_repair">
+        <form phx-submit="execute_lifecycle_repair" phx-change="change_lifecycle_repair" data-rindle-admin-form="lifecycle_repair">
           <div>
             <label>Asset ID</label>
-            <input type="text" name="asset_id" required />
+            <input type="text" name="asset_id" data-rindle-admin-input="asset_id" required />
           </div>
           <div>
             <label>Action</label>
-            <select name="repair_action" required>
+            <select name="repair_action" data-rindle-admin-input="repair_action" required>
               <option value="reprobe">Reprobe</option>
               <option value="requeue">Requeue Variants</option>
             </select>
           </div>
-          <button type="submit">Execute Repair</button>
+          <button type="submit" data-rindle-admin-submit="execute_lifecycle_repair">Execute Repair</button>
         </form>
       </div>
       """
@@ -466,22 +540,22 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp render_variant_regeneration_state(%{action_state: :input} = assigns) do
       ~H"""
       <div data-rindle-admin-state="input">
-        <form phx-submit="execute_variant_regeneration" phx-change="change_variant_regeneration">
+        <form phx-submit="execute_variant_regeneration" phx-change="change_variant_regeneration" data-rindle-admin-form="variant_regeneration">
           <div>
             <label>Profile (optional)</label>
-            <input type="text" name="profile" />
+            <input type="text" name="profile" data-rindle-admin-input="profile" />
           </div>
           <div>
             <label>Variant Name (optional)</label>
-            <input type="text" name="variant_name" />
+            <input type="text" name="variant_name" data-rindle-admin-input="variant_name" />
           </div>
           <div>
             <label>
-              <input type="checkbox" name="confirm" value="true" required />
+              <input type="checkbox" name="confirm" value="true" data-rindle-admin-input="confirm" required />
               Confirm broad regeneration
             </label>
           </div>
-          <button type="submit">Regenerate Variants</button>
+          <button type="submit" data-rindle-admin-submit="execute_variant_regeneration">Regenerate Variants</button>
         </form>
       </div>
       """
@@ -500,7 +574,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     defp load(socket) do
-
       {:ok, model} = Queries.actions_directory()
       assign(socket, model: model, error?: false)
     end

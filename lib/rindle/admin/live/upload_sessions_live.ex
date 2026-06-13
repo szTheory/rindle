@@ -85,7 +85,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         <section>
           <h2>Asset link</h2>
-          <a class="rindle-admin-button rindle-admin-button--secondary rindle-admin-target-min" href={admin_path(@admin_base_path, "assets/#{@session.asset_id}")}>
+          <a
+            class="rindle-admin-button rindle-admin-button--secondary rindle-admin-target-min"
+            href={admin_path(@admin_base_path, "assets/#{@session.asset_id}")}
+            data-rindle-admin-detail-link="asset"
+          >
             Inspect asset
           </a>
         </section>
@@ -126,7 +130,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   <td class="rindle-admin-table__cell">{session.upload_strategy}</td>
                   <td class="rindle-admin-table__cell"><.redacted_value value={session.session_uri} /></td>
                   <td class="rindle-admin-table__cell">
-                    <a class="rindle-admin-button rindle-admin-button--secondary rindle-admin-target-min" href={admin_path(@admin_base_path, "upload-sessions/#{session.id}")}>
+                    <a
+                      class="rindle-admin-button rindle-admin-button--secondary rindle-admin-target-min"
+                      href={admin_path(@admin_base_path, "upload-sessions/#{session.id}")}
+                      data-rindle-admin-detail-link="upload-session"
+                    >
                       Review session
                     </a>
                   </td>

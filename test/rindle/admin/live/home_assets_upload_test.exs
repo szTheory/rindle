@@ -166,6 +166,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ ~s(data-rindle-admin-filter="profile")
       assert html =~ ~s(data-rindle-admin-filter="kind")
       assert html =~ ~s(data-rindle-admin-row="asset")
+      assert html =~ ~s(data-rindle-admin-detail-link="asset")
       assert html =~ "Inspect asset"
       assert html =~ asset.filename
       assert html =~ "ready"
@@ -230,6 +231,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ ~s(data-rindle-admin-filter="strategy")
       assert html =~ ~s(data-rindle-admin-filter="profile")
       assert html =~ ~s(data-rindle-admin-row="upload-session")
+      assert html =~ ~s(data-rindle-admin-detail-link="upload-session")
       assert html =~ "Review session"
       assert html =~ "Redacted by Rindle Admin"
       refute html =~ @secret_payload
@@ -241,6 +243,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert detail_html =~ "Strategy/protocol"
       assert detail_html =~ "Expiration"
       assert detail_html =~ "Failure reason"
+      assert detail_html =~ ~s(data-rindle-admin-detail-link="asset")
       assert detail_html =~ "Cleanup guidance"
       assert detail_html =~ "checksum mismatch"
       assert detail_html =~ "Redacted by Rindle Admin"
