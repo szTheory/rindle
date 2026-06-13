@@ -18,8 +18,10 @@ Start with the read-only surfaces first:
 
 In short: doctor validates setup and drift, runtime status reports degraded or stuck work, and repair verbs perform change.
 
-The contract intentionally has no dashboard and no auto-remediation layer in
-this release.
+Rindle ships a mountable admin console (see
+[Admin Console](admin_console.html)) for read and operational surfaces, but the
+contract still has no auto-remediation layer: the console runs the same operator
+verbs by hand, it never self-heals.
 
 For upgrade troubleshooting, keep the same order: explicit migrations,
 `mix rindle.doctor`, optional `mix rindle.runtime_status`, then the repair verb

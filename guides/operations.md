@@ -40,8 +40,12 @@ The operator diagnostics split is explicit:
 
 In short: doctor validates setup and drift, runtime status reports degraded or stuck work, and repair verbs perform change.
 
-The current contract intentionally has no dashboard and no auto-remediation.
-Primary operator surfaces remain `Rindle` plus `mix`.
+Rindle now ships a mountable admin console (see
+[Admin Console](admin_console.html)) that surfaces read and operational views
+over your media lifecycle. The contract still has no auto-remediation: the
+console executes the same operator verbs documented below, it never acts on its
+own. Primary operator surfaces remain `Rindle`, `mix`, and the mountable
+console.
 
 For existing-adopter upgrades, keep the sequencing strict: explicit migrations
 first, `mix rindle.doctor` second, optional `mix rindle.runtime_status` only
