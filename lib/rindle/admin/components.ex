@@ -3,6 +3,7 @@ if Code.ensure_loaded?(Phoenix.Component) do
     @moduledoc false
 
     use Phoenix.Component
+    alias Phoenix.LiveView.JS
 
     @surfaces [
       %{name: "Home/Status", slug: "home-status", suffix: ""},
@@ -24,6 +25,7 @@ if Code.ensure_loaded?(Phoenix.Component) do
 
       ~H"""
       <div class="rindle-admin-shell" data-rindle-admin-root data-rindle-admin-surface={@active} data-theme="auto">
+        <link rel="stylesheet" href={admin_path(@base_path, "assets/rindle-admin.css")} />
         <nav class="rindle-admin-nav" aria-label="Rindle Admin surfaces" data-rindle-admin-component="nav">
           <p class="rindle-admin-nav__brand">Rindle Admin</p>
           <ul class="rindle-admin-nav__list">
@@ -48,6 +50,8 @@ if Code.ensure_loaded?(Phoenix.Component) do
           </header>
           {render_slot(@inner_block)}
         </main>
+        <script defer type="text/javascript" src={admin_path(@base_path, "assets/rindle-admin.js")}>
+        </script>
       </div>
       """
     end
@@ -55,9 +59,9 @@ if Code.ensure_loaded?(Phoenix.Component) do
     def theme_picker(assigns) do
       ~H"""
       <div class="rindle-admin-theme-picker" data-rindle-admin-component="theme-picker" role="group" aria-label="Theme">
-        <button class="rindle-admin-theme-picker__option rindle-admin-target-min" type="button" data-rindle-admin-theme="light" aria-pressed="false">Light</button>
-        <button class="rindle-admin-theme-picker__option rindle-admin-target-min" type="button" data-rindle-admin-theme="dark" aria-pressed="false">Dark</button>
-        <button class="rindle-admin-theme-picker__option rindle-admin-target-min" type="button" data-rindle-admin-theme="auto" aria-pressed="true">Auto</button>
+        <button class="rindle-admin-theme-picker__option rindle-admin-target-min" type="button" data-rindle-admin-theme="light" aria-pressed="false" phx-click={select_theme("light")}>Light</button>
+        <button class="rindle-admin-theme-picker__option rindle-admin-target-min" type="button" data-rindle-admin-theme="dark" aria-pressed="false" phx-click={select_theme("dark")}>Dark</button>
+        <button class="rindle-admin-theme-picker__option rindle-admin-target-min" type="button" data-rindle-admin-theme="auto" aria-pressed="true" phx-click={select_theme("auto")}>Auto</button>
       </div>
       """
     end
@@ -200,6 +204,12 @@ if Code.ensure_loaded?(Phoenix.Component) do
       Enum.map(@surfaces, fn surface ->
         Map.put(surface, :path, admin_path(base_path, surface.suffix))
       end)
+    end
+
+    defp select_theme(theme) when theme in ["light", "dark", "auto"] do
+      JS.set_attribute({"data-theme", theme}, to: "[data-rindle-admin-root]")
+      |> JS.set_attribute({"aria-pressed", "false"}, to: "[data-rindle-admin-theme]")
+      |> JS.set_attribute({"aria-pressed", "true"}, to: ~s([data-rindle-admin-theme="#{theme}"]))
     end
 
     defp normalize_base_path(path) when is_binary(path) and path != "" do
