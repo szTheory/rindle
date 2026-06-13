@@ -87,8 +87,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     @impl true
-    def handle_event("execute_owner_erasure", %{"confirmation" => confirmation}, socket) do
-      %{type: type, id: id, report: _report} = socket.assigns.action_data
+    def handle_event(
+          "execute_owner_erasure",
+          %{"confirmation" => confirmation},
+          %{
+            assigns: %{
+              action_state: :preview,
+              action_data: %{type: type, id: id, report: _report}
+            }
+          } = socket
+        ) do
       expected = "ERASE #{type}:#{id}"
 
       if confirmation == expected do
@@ -102,6 +110,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       else
         {:noreply, assign(socket, action_error: "Confirmation does not match.")}
       end
+    end
+
+    def handle_event("execute_owner_erasure", _params, socket) do
+      {:noreply,
+       assign(socket,
+         action_state: :input,
+         action_error: "Preview this action before executing.",
+         action_data: %{}
+       )}
     end
 
     @impl true
@@ -146,8 +163,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     @impl true
-    def handle_event("execute_batch_erasure", %{"confirmation" => confirmation}, socket) do
-      %{owners_text: owners_text, count: count} = socket.assigns.action_data
+    def handle_event(
+          "execute_batch_erasure",
+          %{"confirmation" => confirmation},
+          %{
+            assigns: %{
+              action_state: :preview,
+              action_data: %{owners_text: owners_text, count: count}
+            }
+          } = socket
+        ) do
       expected = "ERASE #{count} OWNERS"
 
       if confirmation == expected do
@@ -161,6 +186,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       else
         {:noreply, assign(socket, action_error: "Confirmation does not match.")}
       end
+    end
+
+    def handle_event("execute_batch_erasure", _params, socket) do
+      {:noreply,
+       assign(socket,
+         action_state: :input,
+         action_error: "Preview this action before executing.",
+         action_data: %{}
+       )}
     end
 
     @impl true
@@ -224,6 +258,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         _ ->
           {:noreply, assign(socket, action_error: "Unsupported lifecycle repair action.")}
       end
+    end
+
+    def handle_event("execute_lifecycle_repair", _params, socket) do
+      {:noreply, assign(socket, action_error: "Asset ID and repair action are required.")}
     end
 
     @impl true

@@ -268,6 +268,28 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       render_hook(view, "select_action", %{"id" => "not_a_real_action"})
       assert has_element?(view, "[data-rindle-admin-action-error]", "Unknown admin action.")
 
+      render_hook(view, "execute_owner_erasure", %{
+        "confirmation" => "ERASE Elixir.String:missing"
+      })
+
+      assert has_element?(
+               view,
+               "[data-rindle-admin-action-error]",
+               "Preview this action before executing."
+             )
+
+      view
+      |> element("button", "Batch erasure")
+      |> render_click()
+
+      render_hook(view, "execute_batch_erasure", %{"confirmation" => "ERASE 1 OWNERS"})
+
+      assert has_element?(
+               view,
+               "[data-rindle-admin-action-error]",
+               "Preview this action before executing."
+             )
+
       view
       |> element("button", "Lifecycle repair")
       |> render_click()
@@ -281,6 +303,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                view,
                "[data-rindle-admin-action-error]",
                "Unsupported lifecycle repair action."
+             )
+
+      render_hook(view, "execute_lifecycle_repair", %{"asset_id" => Ecto.UUID.generate()})
+
+      assert has_element?(
+               view,
+               "[data-rindle-admin-action-error]",
+               "Asset ID and repair action are required."
              )
     end
 
