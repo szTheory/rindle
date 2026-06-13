@@ -295,7 +295,26 @@ all-screens screenshot iteration.
 3. Automated screenshot capture covers all screens in light and dark mode.
 4. Screenshot analyze-to-fix polish passes are run until visual regressions are resolved.
 
-**Plans:** 0 plans created
+**Plans:** 5 plans
+
+Plans:
+
+**Wave 1**
+
+- [ ] 92-01-PLAN.md — Create admin E2E helper and stable selector foundation.
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 92-02-PLAN.md — Add admin surface, boundary, detail, redaction, and theme specs.
+- [ ] 92-03-PLAN.md — Add destructive and non-destructive admin action specs.
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 92-04-PLAN.md — Add live all-screen screenshots and run screenshot polish iteration.
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 92-05-PLAN.md — Wire specs into proof matrix, drift gate, docs, and CI lane truth.
 
 ---
 
