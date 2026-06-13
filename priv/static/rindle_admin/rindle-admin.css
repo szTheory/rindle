@@ -407,6 +407,112 @@
   border-color: var(--rindle-status-danger);
 }
 
+.rindle-admin-actions-directory,
+.rindle-admin-action-panel,
+[data-rindle-admin-action-panel] {
+  min-width: 0;
+}
+
+.rindle-admin-actions-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--rindle-space-2);
+  margin-bottom: var(--rindle-space-6);
+  max-width: 100%;
+}
+
+.rindle-admin-actions-tab {
+  min-height: var(--rindle-admin-target-min);
+  max-width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--rindle-space-2) var(--rindle-space-3);
+  border: 1px solid var(--rindle-border-strong);
+  border-radius: var(--rindle-radius-control);
+  background: var(--rindle-surface-raised);
+  color: var(--rindle-text);
+  font: inherit;
+  font-size: var(--rindle-text-small-size);
+  line-height: var(--rindle-text-small-line);
+  overflow-wrap: anywhere;
+  text-align: center;
+  white-space: normal;
+  cursor: pointer;
+}
+
+.rindle-admin-actions-tab:hover,
+.rindle-admin-actions-tab.active {
+  background: var(--rindle-surface-sunken);
+  border-color: var(--rindle-brand);
+}
+
+[data-rindle-admin-form] {
+  max-width: 720px;
+  display: grid;
+  gap: var(--rindle-space-4);
+}
+
+[data-rindle-admin-form] label {
+  display: grid;
+  gap: var(--rindle-space-2);
+  max-width: 100%;
+  color: var(--rindle-text);
+}
+
+[data-rindle-admin-input] {
+  min-height: var(--rindle-admin-target-min);
+  width: 100%;
+  max-width: 100%;
+  padding: var(--rindle-space-2) var(--rindle-space-3);
+  border: 1px solid var(--rindle-border-strong);
+  border-radius: var(--rindle-radius-control-sm);
+  background: var(--rindle-surface-raised);
+  color: var(--rindle-text);
+  font: inherit;
+  overflow-wrap: anywhere;
+}
+
+textarea[data-rindle-admin-input] {
+  min-height: calc(var(--rindle-admin-target-min) * 2);
+  resize: vertical;
+}
+
+[data-rindle-admin-confirm-input] {
+  font-family: var(--rindle-font-mono);
+}
+
+[data-rindle-admin-form] pre {
+  margin: var(--rindle-space-2) 0;
+  max-width: 100%;
+  font-family: var(--rindle-font-mono);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+[data-rindle-admin-submit] {
+  min-height: var(--rindle-admin-target-min);
+  max-width: 100%;
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--rindle-space-2);
+  padding: var(--rindle-space-2) var(--rindle-space-4);
+  border: 1px solid transparent;
+  border-radius: var(--rindle-radius-control);
+  background: var(--rindle-brand);
+  color: var(--rindle-text-on-brand);
+  font: inherit;
+  font-size: var(--rindle-text-small-size);
+  line-height: var(--rindle-text-small-line);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+  text-align: center;
+  white-space: normal;
+  cursor: pointer;
+}
+
 .rindle-admin-theme-picker {
   min-height: var(--rindle-admin-target-min);
   display: inline-flex;
@@ -514,7 +620,10 @@
 .rindle-admin-button:focus-visible,
 .rindle-admin-nav__item:focus-visible,
 .rindle-admin-table__row:focus-within,
+.rindle-admin-actions-tab:focus-visible,
 .rindle-admin-theme-picker__option:focus-visible,
+[data-rindle-admin-input]:focus-visible,
+[data-rindle-admin-submit]:focus-visible,
 .rindle-admin-confirm-dialog:focus-visible,
 .rindle-admin-drawer:focus-visible,
 .rindle-admin-toast:focus-visible {
@@ -531,11 +640,25 @@
     border-right: 0;
     border-bottom: var(--rindle-border-rule-subtle);
   }
+
+  .rindle-admin-shell__main {
+    padding: var(--rindle-space-4);
+  }
+
+  .rindle-admin-actions-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .rindle-admin-actions-tab {
+    width: 100%;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .rindle-admin-shell,
   .rindle-admin-nav__item,
+  .rindle-admin-actions-tab,
   .rindle-admin-button,
   .rindle-admin-confirm-dialog,
   .rindle-admin-drawer,

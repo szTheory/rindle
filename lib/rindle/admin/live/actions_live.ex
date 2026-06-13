@@ -315,7 +315,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       <.shell active="actions" base_path={@admin_base_path} title="Actions" live_status={@live_status}>
         <section class="rindle-admin-actions-directory">
           <h2>Actions Directory</h2>
-          <div class="rindle-admin-actions-tabs" style="display: flex; gap: 1rem; margin-bottom: 2rem;">
+          <div class="rindle-admin-actions-tabs">
             <button
               :for={action <- @model.actions}
               class={["rindle-admin-actions-tab", if(@active_action_id == action.id, do: "active", else: "")]}
