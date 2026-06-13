@@ -1,0 +1,57 @@
+# syntax=docker/dockerfile:1
+#
+# Reusable Phoenix demo Dockerfile with fast-rebuild layer caching.
+# Rename to Dockerfile.<app> and replace the __TOKENS__ (see TEMPLATE.md).
+#
+# Layering contract (do not reorder): copy manifests + config, fetch AND compile
+# deps in a cached layer, THEN copy source. Your .dockerignore MUST exclude
+# **/deps and **/_build so the source copy can't clobber compiled artifacts —
+# that is what keeps "edit a template" from recompiling the whole dep graph.
+
+# Pin to YOUR project's Elixir/OTP toolchain (keep it in sync with .tool-versions
+# / what developers run, not a stale default). Example for Elixir 1.19 / OTP 28:
+FROM hexpm/elixir:1.19.5-erlang-28.5.0.2-debian-bookworm-20260610-slim
+
+# System build deps. Trim to what your lib actually needs (ffmpeg/libvips are
+# media-specific; postgresql-client is handy for entrypoint readiness checks).
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends \
+    build-essential \
+    ca-certificates \
+    curl \
+    git \
+    postgresql-client \
+  && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+ENV MIX_ENV=prod
+
+# --- dependency layer (cached until mix.exs / mix.lock / config change) -------
+# Single-app layout: the demo IS the build context root.
+# Monorepo/path-dep layout (like Rindle's examples/adoption_demo): also COPY the
+# parent lib's mix.exs + config here, and set the build context to the repo root.
+COPY mix.exs mix.lock /app/
+COPY config /app/config
+
+# Only download caches are mounted; /root/.mix (installed Hex/Rebar archives)
+# MUST persist into the image so later layers' `mix` can resolve deps.
+RUN --mount=type=cache,target=/root/.hex \
+    --mount=type=cache,target=/root/.cache/rebar3 \
+    mix local.hex --force \
+  && mix local.rebar --force \
+  && mix deps.get \
+  && mix deps.compile
+
+# --- application layer (busts on source/style edits; deps stay compiled) ------
+COPY . /app
+
+RUN mix assets.deploy \
+  && mix compile
+
+COPY __DEMO_ENTRYPOINT__ /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+EXPOSE __APP_PORT__
+
+ENTRYPOINT ["/entrypoint.sh"]

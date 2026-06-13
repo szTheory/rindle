@@ -1,0 +1,28 @@
+# Opt-in Traefik overlay. Rename to compose.<app>.traefik.yml and replace tokens.
+# Activated when the wrapper appends it with `-f` (see scripts/up.sh). Attaches the
+# app to the shared external `proxy` network and registers a Host router so it's
+# reachable at http://<app>.localhost with no port juggling. The app's loopback
+# port stays published, so a stopped proxy never locks you out.
+#
+# Coexistence contract (multiple sibling demos, one Traefik):
+#   - join the same external `proxy` network
+#   - keep router/service names UNIQUE per project (here: __APP__)
+#   - rely on the proxy's exposedbydefault=false
+# Do NOT route object storage (MinIO/S3) through Traefik: presigned URLs embed
+# host.docker.internal:<port>, which the browser reaches via the published port.
+
+services:
+  app:
+    networks:
+      - default
+      - proxy
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: "proxy"
+      traefik.http.routers.__APP__.rule: "Host(`${__APP_ENV___TRAEFIK_HOST:-__APP__.localhost}`)"
+      traefik.http.routers.__APP__.entrypoints: "web"
+      traefik.http.services.__APP__.loadbalancer.server.port: "__APP_PORT__"
+
+networks:
+  proxy:
+    external: true

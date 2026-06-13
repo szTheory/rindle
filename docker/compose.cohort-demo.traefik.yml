@@ -1,0 +1,33 @@
+# Opt-in Traefik overlay for the Cohort demo.
+#
+# Activated by `COHORT_USE_TRAEFIK=1 ./scripts/demo/up.sh`, which appends this
+# file with `-f` on top of compose.cohort-demo.yml. It attaches the app to the
+# shared external `proxy` network (the same one your dev-proxy Traefik watches)
+# and registers a Host-based router, so the app is reachable at
+# http://${COHORT_TRAEFIK_HOST:-cohort.localhost} with no port juggling.
+#
+# Coexistence contract for sibling lib demos sharing one Traefik:
+#   - join the same external `proxy` network
+#   - keep router/service names UNIQUE per project (here: "cohort")
+#   - rely on the proxy's `exposedbydefault=false` — only labelled services route
+#
+# The app's loopback host port (from compose.cohort-demo.yml) stays published, so
+# a stopped/absent proxy never locks you out. MinIO is intentionally NOT routed
+# through Traefik: presigned upload/download URLs embed host.docker.internal:<port>,
+# which the browser reaches via the published host port, not the proxy.
+
+services:
+  cohort-demo:
+    networks:
+      - default
+      - proxy
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: "proxy"
+      traefik.http.routers.cohort.rule: "Host(`${COHORT_TRAEFIK_HOST:-cohort.localhost}`)"
+      traefik.http.routers.cohort.entrypoints: "web"
+      traefik.http.services.cohort.loadbalancer.server.port: "4102"
+
+networks:
+  proxy:
+    external: true

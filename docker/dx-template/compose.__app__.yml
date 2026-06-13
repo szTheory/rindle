@@ -1,0 +1,68 @@
+# Reusable demo compose (app + Postgres + MinIO), loopback-bound, env-overridable.
+# Rename to compose.<app>.yml and replace the __TOKENS__ (see TEMPLATE.md).
+#
+# All host ports bind to 127.0.0.1 and default via env so `up.sh` can auto-bump
+# them off anything already listening. The chosen MinIO port flows into the
+# presigned-URL host (host.docker.internal:<port>) so browser uploads keep working.
+
+name: __APP__
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: __APP___dev
+    volumes:
+      - __APP__-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d __APP___dev"]
+      interval: 2s
+      timeout: 5s
+      retries: 15
+
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+      MINIO_API_CORS_ALLOW_ORIGIN: "*"
+    ports:
+      - "127.0.0.1:${__APP_ENV___MINIO_PORT:-__MINIO_PORT__}:9000"
+      - "127.0.0.1:${__APP_ENV___MINIO_CONSOLE_PORT:-__MINIO_CONSOLE_PORT__}:9001"
+    volumes:
+      - __APP__-minio:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/ready"]
+      interval: 2s
+      timeout: 5s
+      retries: 15
+
+  app:
+    build:
+      context: .
+      dockerfile: __DOCKERFILE__
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:${__APP_ENV___PORT:-__APP_PORT__}:__APP_PORT__"
+    environment:
+      MIX_ENV: prod
+      PHX_SERVER: "true"
+      PORT: "__APP_PORT__"
+      PHX_HOST: localhost
+      DATABASE_URL: ecto://postgres:postgres@postgres:5432/__APP___dev
+      SECRET_KEY_BASE: preview-only-not-for-production-0123456789abcdef0123456789abcdef
+      # Presigned URLs must point at a host the BROWSER can reach -> the published port.
+      S3_ENDPOINT_URL: "http://host.docker.internal:${__APP_ENV___MINIO_PORT:-__MINIO_PORT__}"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+volumes:
+  __APP__-postgres:
+  __APP__-minio:

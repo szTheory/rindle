@@ -72,13 +72,24 @@ services:
     ports:
       - "127.0.0.1:${COHORT_DEMO_PORT:-4102}:4102"
     environment:
-      MIX_ENV: prod
+      # Built as a dev/preview env (not prod) so the unauthenticated admin console
+      # mount is permitted — this is a loopback preview, never a deployment. See the
+      # Dockerfile header and the demo router for the prod-correct adopter pattern.
+      MIX_ENV: dev
       COHORT_DEMO_DOCKER: "1"
       PHX_SERVER: "true"
       PORT: "4102"
       PHX_HOST: localhost
-      DATABASE_URL: ecto://postgres:postgres@postgres:5432/adoption_demo_dev
-      SECRET_KEY_BASE: cohort-demo-docker-preview-only-not-for-production-use-0123456789abcdef0123456789abcdef
+      # Host-published ports, surfaced inline on the launchpad access panel so the
+      # auto-bumped values are always shown correctly.
+      COHORT_DEMO_PORT: "${COHORT_DEMO_PORT:-4102}"
+      COHORT_MINIO_PORT: "${COHORT_MINIO_PORT:-9000}"
+      COHORT_MINIO_CONSOLE_PORT: "${COHORT_MINIO_CONSOLE_PORT:-9001}"
+      # dev.exs reads PG* for the Repo; point them at the postgres service.
+      PGHOST: postgres
+      PGPORT: "5432"
+      PGUSER: postgres
+      PGPASSWORD: postgres
       RINDLE_MINIO_URL: "http://host.docker.internal:${COHORT_MINIO_PORT:-9000}"
       RINDLE_MINIO_ACCESS_KEY: minioadmin
       RINDLE_MINIO_SECRET_KEY: minioadmin

@@ -1,4 +1,7 @@
-FROM hexpm/elixir:1.17.3-erlang-27.1.1-debian-bookworm-20251117-slim
+# syntax=docker/dockerfile:1
+# Match the project's dev toolchain (Elixir 1.19 / OTP 28). A stale pin (1.17.x)
+# only "worked" for prod builds because dev config uses 1.19-era regex syntax.
+FROM hexpm/elixir:1.19.5-erlang-28.5.0.2-debian-bookworm-20260610-slim
 
 RUN apt-get update \
   && apt-get install -y --no-install-recommends \
@@ -13,17 +16,42 @@ RUN apt-get update \
 
 WORKDIR /app
 
+# The Cohort demo is a LOCAL PREVIEW, not a deployment. It mounts the Rindle admin
+# console with `allow_unauthenticated?: true` for frictionless click-around — a flag
+# the library sanctions for "examples, CI fixtures, and local previews" and refuses
+# in :prod by design. So the preview is built as a dev/preview env, not prod. Real
+# adopters auth-guard the console (on_mount / auth_guarded?: true) in their own prod
+# build — see examples/adoption_demo/lib/adoption_demo_web/router.ex for the contrast.
+ENV MIX_ENV=dev
+
+# --- dependency layer ---------------------------------------------------------
+# Cached until mix.exs / mix.lock / config change. We copy ONLY the manifests and
+# compile-time config (not lib/), then fetch AND compile hex deps. Because
+# .dockerignore excludes **/deps and **/_build, the later `COPY . /app` cannot
+# clobber these compiled artifacts — so editing demo templates/CSS rebuilds only
+# the app, never the hex dependency graph. (`rindle` is a path dep with no lib/
+# yet at this layer, so it compiles to a no-op here and is recompiled below once
+# its source is present.) BuildKit cache mounts keep the Hex/Rebar download
+# caches warm across lockfile bumps.
 COPY mix.exs mix.lock /app/
+COPY config /app/config
 COPY examples/adoption_demo/mix.exs examples/adoption_demo/mix.lock /app/examples/adoption_demo/
+COPY examples/adoption_demo/config /app/examples/adoption_demo/config
 
 WORKDIR /app/examples/adoption_demo
 
-ENV MIX_ENV=prod
-
-RUN mix local.hex --force \
+# Only the download caches are mounted. /root/.mix (the installed Hex/Rebar
+# archives) must persist into the image so later layers' `mix` can resolve deps.
+RUN --mount=type=cache,target=/root/.hex \
+    --mount=type=cache,target=/root/.cache/rebar3 \
+    mix local.hex --force \
   && mix local.rebar --force \
-  && mix deps.get
+  && mix deps.get \
+  && mix deps.compile
 
+# --- application layer --------------------------------------------------------
+# Busts on any source/style edit, but the compiled deps above are reused, so this
+# step only vendors assets and compiles the demo app (+ the rindle path dep).
 COPY . /app
 
 RUN mix assets.vendor \
