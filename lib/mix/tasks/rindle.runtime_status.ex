@@ -116,7 +116,7 @@ defmodule Mix.Tasks.Rindle.RuntimeStatus do
           "  #{finding.class}: #{finding.count} (oldest_age_seconds=#{finding.oldest_age_seconds})"
         ] ++
           Enum.map(finding.samples, fn sample ->
-            "    - #{sample.variant_name || sample.asset_id}: #{sample.reason}"
+            "    - #{Map.get(sample, :variant_name) || Map.get(sample, :asset_id)}: #{sample.reason}"
           end)
       end)
   end

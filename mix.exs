@@ -32,7 +32,8 @@ defmodule Rindle.MixProject do
         coveralls: :test,
         "coveralls.detail": :test,
         "coveralls.html": :test,
-        "coveralls.json": :test
+        "coveralls.json": :test,
+        precommit: :test
       ]
     ]
   end
@@ -249,6 +250,7 @@ defmodule Rindle.MixProject do
   defp aliases do
     [
       "gsd.clean": ["cmd bash scripts/gsd_cleanup.sh"],
+      precommit: ["test"],
       setup: ["deps.get", "ecto.setup"],
       "ecto.setup": ["ecto.create", "ecto.migrate"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],

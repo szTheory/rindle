@@ -74,10 +74,7 @@ defmodule AdoptionDemoWeb.OpsLive do
 
   @impl true
   def handle_event("run_runtime_status", _params, socket) do
-    output =
-      capture_io(fn ->
-        Mix.Task.run("rindle.runtime_status", [])
-      end)
+    output = runtime_status_output()
 
     {:noreply, assign(socket, :runtime_output, output)}
   end
@@ -94,7 +91,15 @@ defmodule AdoptionDemoWeb.OpsLive do
     {:noreply, assign(socket, :batch_result, result)}
   end
 
-  defp capture_io(fun) do
-    ExUnit.CaptureIO.capture_io(fun)
+  defp runtime_status_output do
+    case Rindle.runtime_status([]) do
+      {:ok, report} ->
+        report
+        |> Mix.Tasks.Rindle.RuntimeStatus.format_text_report()
+        |> Enum.join("\n")
+
+      {:error, reason} ->
+        "Rindle.RuntimeStatus failed: #{inspect(reason)}"
+    end
   end
 end

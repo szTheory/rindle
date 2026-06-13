@@ -552,7 +552,9 @@ jobs:
   adoption-demo-e2e:
     name: Adoption Demo E2E
     runs-on: ubuntu-22.04
-    # Merge-blocking browser proof for examples/adoption_demo (12/12 Playwright specs; gcs-resumable skipped).
+    # Merge-blocking browser proof for examples/adoption_demo, including admin
+    # console behavior, theme, actions, and screenshot specs. The gcs-resumable
+    # spec remains skipped when live GCS is absent.
     needs: [quality, optional-dependencies]
     if: github.repository == 'szTheory/rindle'
     env:
