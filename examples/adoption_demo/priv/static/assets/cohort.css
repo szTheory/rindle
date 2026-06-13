@@ -35,7 +35,8 @@
   --ck-brand: #059669;
   --ck-brand-strong: #047857; /* text-weight emerald on light (AA) */
   --ck-accent: #10b981;
-  --ck-btn-bg: #047857; /* filled-button ground: white text hits AA (4.9:1) */
+  --ck-btn-bg: #047857; /* filled-button ground: white text hits AA (4.9:1) in both themes */
+  --ck-btn-bg-hover: #035c44;
   --ck-on-brand: #ffffff;
 
   /* light theme */
@@ -94,8 +95,6 @@
     --ck-brand: #10b981;
     --ck-brand-strong: #34d399;
     --ck-accent: #34d399;
-    --ck-btn-bg: #34d399; /* bright emerald + dark ink reads vivid on dark */
-    --ck-on-brand: #06231b;
     --ck-bg: #0b1411;
     --ck-bg-glow: rgba(16, 185, 129, 0.1);
     --ck-surface: #111d18;
@@ -286,7 +285,7 @@
   --_bd: transparent;
 }
 .ck-btn--primary:hover {
-  --_bg: color-mix(in srgb, var(--ck-btn-bg) 90%, var(--ck-on-brand));
+  --_bg: var(--ck-btn-bg-hover);
 }
 .ck-btn__arrow {
   transition: transform 0.18s ease;
@@ -532,13 +531,34 @@
 }
 .ck-cast li {
   display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
-  padding: 0.5rem 0.85rem;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0.9rem;
   background: var(--ck-surface);
   border: 1px solid var(--ck-border);
   border-radius: var(--ck-radius-sm);
   font-size: 0.9rem;
+}
+.ck-cast__icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 8px;
+  background: var(--ck-tint);
+  color: var(--ck-brand-strong);
+  border: 1px solid var(--ck-tint-border);
+}
+.ck-cast__icon svg {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+.ck-cast__text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.05rem;
+  min-width: 0;
 }
 .ck-cast strong {
   font-weight: 700;

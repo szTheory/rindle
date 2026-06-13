@@ -62,12 +62,24 @@ defmodule AdoptionDemoWeb.LaunchpadLive do
     }
   ]
 
+  @cast [
+    %{name: "Maya Rivera", role: "instructor · has an avatar", persona: :instructor},
+    %{name: "Alex Kim", role: "student · avatar shared with Jordan", persona: :student},
+    %{name: "Jordan Lee", role: "student · fresh upload target", persona: :student},
+    %{name: "Ops", role: "operator · batch erasure", persona: :operator}
+  ]
+
   @impl true
   def mount(_params, _session, socket) do
     # Explicit title so the home tab reads "Rindle adoption demo · Cohort"
     # instead of doubling the default + suffix.
     {:ok,
-     assign(socket, page_title: "Rindle adoption demo", access: access_info(), tasks: @tasks)}
+     assign(socket,
+       page_title: "Rindle adoption demo",
+       access: access_info(),
+       tasks: @tasks,
+       cast: @cast
+     )}
   end
 
   @impl true
@@ -128,16 +140,68 @@ defmodule AdoptionDemoWeb.LaunchpadLive do
             <span class="ck-section__hint">Open any member from the app.</span>
           </div>
           <ul class="ck-cast">
-            <li><strong>Maya Rivera</strong><span>instructor · has an avatar</span></li>
-            <li><strong>Alex Kim</strong><span>student · avatar shared with Jordan</span></li>
-            <li><strong>Jordan Lee</strong><span>student · fresh upload target</span></li>
-            <li><strong>Ops</strong><span>operator · batch erasure</span></li>
+            <li :for={m <- @cast}>
+              <span class="ck-cast__icon">{cast_icon(%{persona: m.persona})}</span>
+              <span class="ck-cast__text">
+                <strong>{m.name}</strong><span>{m.role}</span>
+              </span>
+            </li>
           </ul>
         </section>
 
         <.cohort_footer />
       </main>
     </div>
+    """
+  end
+
+  # --- persona icons for the seeded cast ------------------------------------
+  defp cast_icon(%{persona: :instructor} = assigns) do
+    ~H"""
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M22 10 12 5 2 10l10 5 10-5Z" /><path d="M6 12v4c0 1.5 2.7 3 6 3s6-1.5 6-3v-4" />
+    </svg>
+    """
+  end
+
+  defp cast_icon(%{persona: :student} = assigns) do
+    ~H"""
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M12 7c-2-1.3-5-1.5-8-1v12c3-.5 6-.3 8 1 2-1.3 5-1.5 8-1V6c-3-.5-6-.3-8 1Z" />
+      <path d="M12 7v12" />
+    </svg>
+    """
+  end
+
+  defp cast_icon(%{persona: :operator} = assigns) do
+    ~H"""
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.3 2.3-2-2 2.3-2.3Z" />
+    </svg>
     """
   end
 
