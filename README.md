@@ -262,9 +262,20 @@ story. If you need `Rindle.Storage.GCS`, adopter-owned `MyApp.Goth` and
 the runtime with `mix rindle.doctor` and use
 [Storage (GCS)](storage_gcs.html).
 
+## Admin Console (optional)
+
+Rindle ships a mountable, host-authenticated admin console in the package —
+`Rindle.Admin.Router.rindle_admin/2`. Mount it from an authenticated router
+scope (LiveDashboard / Oban Web style) for an operator view of assets, upload
+sessions, variants/jobs, runtime health, and guarded owner-erasure / repair
+actions. It needs the optional `phoenix_live_view` dependency, the host owns
+auth, and production refuses unguarded mounts. See
+[Admin Console](admin_console.html).
+
 ## Next Reads
 
 - [User Flows](user_flows.html): map your job to the right guide (start here when evaluating)
+- [Admin Console](admin_console.html): mount the optional host-authenticated operator console
 - [Upgrading](upgrading.html): existing-adopter upgrade runbook (pre-0.1.4 image-only → current)
 - [Getting Started](getting_started.html): deep greenfield guide — Repo, Oban, migrations, profiles
 - [Running](running.html): libvips and FFmpeg install matrix (macOS, Linux, Fly, Heroku, Render, CI)

@@ -136,6 +136,7 @@ defmodule Rindle.MixProject do
         "guides/storage_capabilities.md",
         "guides/storage_gcs.md",
         "guides/profiles.md",
+        "guides/admin_console.md",
         "guides/secure_delivery.md",
         "guides/resumable_uploads.md",
         "guides/streaming_providers.md",
@@ -165,6 +166,9 @@ defmodule Rindle.MixProject do
         "Optional Integrations": [
           Rindle.LiveView,
           Rindle.HTML
+        ],
+        "Admin Console": [
+          Rindle.Admin.Router
         ],
         "Extension Points": [
           Rindle.Authorizer,
