@@ -114,6 +114,21 @@ Playwright starts the Phoenix server in `MIX_ENV=test` on port **4102** (overrid
 `ADOPTION_DEMO_BROWSER_PORT`). CI uses `scripts/ci/adoption_demo_e2e.sh` with
 `ADOPTION_DEMO_PRESEEDED=1`.
 
+Target admin console behavior specs locally:
+
+```bash
+npx playwright test e2e/admin-console.spec.js e2e/admin-theme.spec.js e2e/admin-actions.spec.js
+```
+
+Capture the live admin screenshot matrix locally:
+
+```bash
+npx playwright test e2e/admin-screenshots.spec.js
+```
+
+Screenshots are written under the ignored
+`examples/adoption_demo/test-results/admin-screenshots/` path.
+
 ## Proof matrix
 
 See [`docs/adoption-proof-matrix.md`](docs/adoption-proof-matrix.md) for what each lane proves
