@@ -153,6 +153,7 @@ css += `  }
 
 .rindle-admin-table {
   width: 100%;
+  table-layout: fixed;
   border-collapse: collapse;
   background: var(--rindle-surface-raised);
   border: var(--rindle-border-rule-subtle);
@@ -183,6 +184,7 @@ css += `  }
   padding: var(--rindle-space-3) var(--rindle-space-4);
   text-align: left;
   vertical-align: middle;
+  overflow-wrap: anywhere;
 }
 
 .rindle-admin-status-chip {
