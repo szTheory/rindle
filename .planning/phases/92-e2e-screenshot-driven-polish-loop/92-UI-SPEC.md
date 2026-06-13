@@ -1,10 +1,11 @@
 ---
 phase: 92
 slug: e2e-screenshot-driven-polish-loop
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-06-13
+reviewed_at: 2026-06-13T01:19:17Z
 ---
 
 # Phase 92 - UI Design Contract
@@ -104,6 +105,7 @@ Screenshot filenames and labels should use the surface slug, not decorative pros
 | Surface / State | Required Contract |
 |-----------------|-------------------|
 | Shell | Every route shows `[data-rindle-admin-root]`, `[data-rindle-admin-surface]`, nav, page header, live indicator, and theme picker. |
+| Visual hierarchy | Primary focal point is the page header plus status/action summary; secondary focus is current nav state, then table/detail content, then chips/metadata and utility controls. |
 | Theme picker | Playwright toggles `[data-rindle-admin-theme="light"]`, `[data-rindle-admin-theme="dark"]`, and `[data-rindle-admin-theme="auto"]`; selected option sets `aria-pressed="true"` and the root `data-theme`. |
 | Navigation | Every nav item remains at least 44px tall, exposes the current surface with `aria-current="page"`, and uses task names already shipped in `SURFACES`. |
 | Tables | Rows use stable `data-rindle-admin-row` selectors; row hover/focus cannot resize rows or hide chips. |
@@ -129,11 +131,11 @@ No registry vetting required because Phase 92 uses the existing vanilla CSS desi
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
+- [x] Dimension 1 Copywriting: PASS
+- [x] Dimension 2 Visuals: PASS
+- [x] Dimension 3 Color: PASS
+- [x] Dimension 4 Typography: PASS
+- [x] Dimension 5 Spacing: PASS
+- [x] Dimension 6 Registry Safety: PASS
 
-**Approval:** pending
+**Approval:** approved 2026-06-13
