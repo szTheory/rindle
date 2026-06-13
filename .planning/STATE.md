@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: Admin Console & Adoption Lab
 status: executing
-last_updated: "2026-06-13T06:36:20.154Z"
+last_updated: "2026-06-13T06:40:41.397Z"
 last_activity: 2026-06-13
 progress:
   total_phases: 23
   completed_phases: 10
   total_plans: 36
-  completed_plans: 37
+  completed_plans: 38
   percent: 43
 ---
 
@@ -25,7 +25,7 @@ See: .planning/PROJECT.md (updated 2026-06-13)
 ## Current Position
 
 Phase: 93 (truth-docs-milestone-audit) — EXECUTING
-Plan: 3 of 4
+Plan: 4 of 4
 Status: Ready to execute
 Last activity: 2026-06-13
 
@@ -157,6 +157,7 @@ Last activity: 2026-06-13
 - [Phase 92]: Plan 05 leaves unrelated pre-existing full-repo formatting drift untouched.
 - [Phase 93]: 93-01 affirmed the mountable console across the facade moduledoc and operator guides while preserving force-delete + cron erasure deferrals and the no-auto-remediation truth (TRUTH-07 docs parity, F1-F5).
 - [Phase 93]: 93-02 reversed the JTBD T4 admin-UI exclusion as a charter-recorded scope change (new shipped job 39 citing rindle_admin/2; anchor → v1.18/0.3.0) and closed v1.18 traceability to 19/19 with TRUTH-07 Complete; deferred rows untouched.
+- [Phase 93]: 93-03 authored guides/admin_console.md (host-auth + production refusal rule, 8 pages, actions, optional-dep) and wired it into mix.exs extras (Guides group) + README, closing the affirmative half of TRUTH-07 — Rindle.Admin.Queries kept out of public-API framing and module groups (T-93-04); production refuses unguarded mounts (T-93-03)
 
 ## Blockers/Concerns
 
@@ -177,8 +178,8 @@ Last activity: 2026-06-13
 
 ## Session Continuity
 
-Last session: 2026-06-13T06:35:31.041Z
-Stopped at: Completed 93-01-PLAN.md
+Last session: 2026-06-13T06:40:41.386Z
+Stopped at: Completed 93-03-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -212,3 +213,4 @@ Resume file: None
 | Phase 92 P05 | 8min | 2 tasks | 7 files |
 | Phase 93 P01 | 2min | 3 tasks | 4 files |
 | Phase 93 P02 | 6min | 2 tasks | 2 files |
+| Phase 93 P03 | 4min | 2 tasks | 3 files |
