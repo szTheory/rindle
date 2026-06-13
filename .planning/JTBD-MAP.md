@@ -1,6 +1,6 @@
 # Rindle — Jobs-To-Be-Done Map & Completeness Frontier
 
-> **Generated:** 2026-05-27 · **Against:** milestone v1.16 (shipped 2026-05-27) · **hex** 0.1.5 · **git** `fbd09de`
+> **Generated:** 2026-06-13 · **Against:** milestone v1.18 (in progress) · **hex** 0.3.0 · **git** `4cf2cdd`
 
 Internal strategy artifact. Not published to HexDocs. Its job is to answer three questions
 the adopter-facing [`guides/user_flows.md`](../guides/user_flows.md) deliberately doesn't:
@@ -85,10 +85,11 @@ Status legend: ✅ Shipped · 🟡 Partial (achievable, no first-class surface) 
 | 32 | "Delete *all* media for a user on account deletion (GDPR erasure)." | App dev / Sec | ✅ | v1.10 | `Rindle.preview_owner_erasure/2`, `Rindle.erase_owner/2` (shared-asset semantics) |
 | 38 | "Erase many owners in one orchestrated batch (GDPR/compliance scale)." | App dev / Sec / Operator | ✅ | v1.14 | `Rindle.preview_batch_owner_erasure/2`, `erase_batch_owner_erasure/2`, `mix rindle.batch_owner_erasure` |
 | 37 | "Abort an abandoned Mux direct upload before the browser finishes PUT." | App dev | ✅ | v1.13 | `Rindle.Streaming.cancel_direct_upload/1` (Mux-only) |
+| 39 | "Mount a Rindle-branded admin console to watch/repair media without building my own dashboard." | Operator | ✅ | v1.18 | `Rindle.Admin.Router.rindle_admin/2` (mountable, host-authenticated, self-contained assets). **Charter-recorded scope reversal** (2026-06-10 maintainer pull), not a T4 capitulation — actions reuse existing facade capabilities only; other T4 items stay excluded. |
 | 33 | "Serve images through on-the-fly signed transforms (arbitrary w/h/format)." | App dev | 🔲 | — | Not built. Named variants only. Design intent: "dynamic transforms opt-in, signed, bounded." |
 | 34 | "Strip EXIF/GPS from originals before serving (privacy)." | Sec | 🟡 | — | Variants drop metadata via `Image`; originals served as-is. No explicit privacy-strip control. |
 | 35 | "Enforce per-tenant storage quotas / billing limits." | Platform | ⛔ | — | App concern. Rindle exposes `byte_size`; quota/billing belongs to the host app. |
-| 36 | "Full HLS/DASH platform, DRM, AI/GPU processing, PDF/Office, admin UI, CDN replacement." | — | ⛔ | — | Explicit non-goals (`.planning/PROJECT.md`). Building these *reduces* the library's value. |
+| 36 | "Full HLS/DASH platform, DRM, AI/GPU processing, PDF/Office, CDN replacement." | — | ⛔ | — | Explicit non-goals (`.planning/PROJECT.md`). Building these *reduces* the library's value. (Admin UI was *removed* from this list 2026-06-10 — see job 39.) |
 
 ---
 
@@ -103,7 +104,7 @@ stack and progressively less as you climb. **Rindle has fully cleared T0–T2.**
 | **T1 — Production-grade** | presigned direct upload, multipart, image variants, signed/private delivery, async processing, day-2 ops, telemetry | Very high — this is the gap most home-grown solutions fall into | ✅ Complete (v1.0–v1.1) |
 | **T2 — Breadth** | video/audio + poster/waveform, S3/GCS/Local, Mux streaming, tus + GCS resumable | High but for a *narrowing* slice of adopters | ✅ Complete (v1.8–v1.11) |
 | **T3 — Coverage / convenience** | force-delete policy, 2nd streaming provider, signed dynamic transforms, richer uploader UI | Real, but each helps an increasingly small fraction | 🟡 Demand-driven backlog only (bulk erasure shipped v1.14) |
-| **T4 — Beyond the frontier** | HLS/DASH platform, DRM, AI/GPU, PDF/Office, admin UI, CDN replacement | **Negative** — scope creep, security surface, maintenance, mission drift | ⛔ Excluded by design |
+| **T4 — Beyond the frontier** | HLS/DASH platform, DRM, AI/GPU, PDF/Office, CDN replacement | **Negative** — scope creep, security surface, maintenance, mission drift | ⛔ Excluded by design |
 
 **The diminishing-returns line sits between T3 and T4.** The headline:
 
@@ -112,6 +113,11 @@ stack and progressively less as you climb. **Rindle has fully cleared T0–T2.**
 > is shipped. What remains in T3 is genuine but increasingly niche; each item serves a smaller
 > audience than the last. T4 is excluded on purpose, and adding it would make the library
 > worse, not better.
+
+**Scope reversal (2026-06-10):** A mountable admin console (job 39) was pulled *out* of T4 and
+shipped in v1.18 as a deliberate, charter-recorded maintainer-pull decision — it surfaces existing
+operator capabilities, adds no new lifecycle semantics, and does not loosen the line for the other
+T4 items (HLS/DASH, DRM, AI/GPU, PDF/Office, CDN), which stay ⛔ excluded by design.
 
 The **core T3 upload/lifecycle flows** (tus, browser→Mux direct upload + cancel, owner erasure,
 batch erasure orchestration) shipped in v1.8–v1.14. Marginal *new user flow* per unit of effort
@@ -163,6 +169,15 @@ path-to-done thread for multi-milestone sequence and terminal-state criteria.
 ---
 
 ## What changed since last generation
+
+- **2026-06-13 — v1.18 admin-UI scope reversal (Phase 93).** Anchor moved from v1.16 to v1.18
+  (`4cf2cdd`), hex 0.3.0. "Admin UI" was *removed* from the two T4 exclusion points (job row 36
+  non-goals list and the T4 frontier capability list) and a new shipped row **job 39** added:
+  a mountable, host-authenticated Rindle admin console (`Rindle.Admin.Router.rindle_admin/2`),
+  ✅ shipped v1.18. This is a deliberate, charter-recorded maintainer-pull scope change
+  (ROADMAP charter 2026-06-10), NOT a T4 capitulation — the remaining T4 items (HLS/DASH, DRM,
+  AI/GPU, PDF/Office, CDN replacement) stay excluded by design, and console actions reuse existing
+  facade capabilities only. Closes the JTBD-MAP portion of TRUTH-07.
 
 - **2026-05-27 — v1.17 planning-only delta (Phase 78).** Anchor sha refreshed;
   no new JTBD rows. Delta: coveralls merge-blocking (`0036760`), v1.17 milestone
