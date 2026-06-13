@@ -102,7 +102,19 @@ expressing every lifecycle state, mounts the console, and click-around walkthrou
 validated E2E-01..02: deterministic `/admin/rindle` Playwright helper and
 admin console/theme/actions specs, live 22-PNG light/dark/mobile screenshot
 matrix, screenshot polish fixes, proof-matrix drift gate, adoption demo README
-truth, and merge-blocking `adoption-demo-e2e` wiring. Phase 93 remains active.
+truth, and merge-blocking `adoption-demo-e2e` wiring.
+
+**v1.18 Phase 93 complete (2026-06-13):** Truth, Docs & Milestone Audit validated
+TRUTH-07: corrected every surface that falsely denied the shipped admin console
+(facade `@moduledoc`, operations/troubleshooting/user_flows guides), authored
+`guides/admin_console.md` + HexDocs extras wiring + README link, reversed the JTBD
+T4 "admin UI" exclusion, closed REQUIREMENTS traceability (19/19), and CI-locked the
+corrected wording via `docs_parity_test.exs`. **v1.18 milestone close status:
+`tech_debt`** — all requirements satisfied and the full suite is green (1151 tests,
+0 failures), but HUMAN-UAT sign-off remains open for phases 90/91/92 (logo rendering,
+admin console lifecycle display, screenshot-review matrix). See
+[v1.18-MILESTONE-AUDIT.md](milestones/v1.18-MILESTONE-AUDIT.md). This is the last
+phase of v1.18; the milestone is not yet `shipped` pending maintainer UAT sign-off.
 
 Do not reopen tus protocol, single-owner/batch erasure semantics, or Mux surfaces
 beyond v1.13. Keep shared-asset safety and maintenance-vs-owner-erasure boundaries
@@ -793,4 +805,4 @@ This document evolves at phase transitions and milestone boundaries.
    (`workflow.milestone_boundary.block_feature_milestone_without_signal`)
 
 ---
-*Last updated: 2026-06-12 after Phase 91 Cohort Demo Evolution completion*
+*Last updated: 2026-06-13 after Phase 93 Truth, Docs & Milestone Audit completion (v1.18 final phase; milestone held at tech_debt pending HUMAN-UAT sign-off)*
