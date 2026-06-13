@@ -186,8 +186,12 @@ defmodule Rindle.MixProject do
         Operations: [
           Mix.Tasks.Rindle.AbortIncompleteUploads,
           Mix.Tasks.Rindle.BackfillMetadata,
+          Mix.Tasks.Rindle.BatchOwnerErasure,
           Mix.Tasks.Rindle.CleanupOrphans,
+          Mix.Tasks.Rindle.Doctor,
           Mix.Tasks.Rindle.RegenerateVariants,
+          Mix.Tasks.Rindle.RuntimeStatus,
+          Mix.Tasks.Rindle.SweepOrphanedTempFiles,
           Mix.Tasks.Rindle.VerifyStorage,
           Rindle.Workers.AbortIncompleteUploads,
           Rindle.Workers.CleanupOrphans

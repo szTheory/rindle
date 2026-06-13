@@ -110,8 +110,12 @@ this string.
 **Recovery options:**
 
 1. **Confirm + delete** (most common): The user uploaded something we
-   should not host. Run a deletion through `Rindle.delete/3` (which
-   transitions to `deleted` and enqueues `PurgeStorage`).
+   should not host. Detach it from its owner with `Rindle.detach/2`, which
+   transactionally removes the attachment row and enqueues `PurgeStorage`.
+   Once no attachments remain for the asset, `PurgeStorage` deletes the
+   underlying storage objects and removes the asset row. (`Rindle.delete/3`
+   is a low-level storage-key delete used internally by the purge worker —
+   not an asset-lifecycle call.)
 2. **False positive — un-quarantine manually**: There is no public API
    for this because it should be rare and audited. Manual DB update remains
    the exception path here:

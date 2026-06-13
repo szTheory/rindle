@@ -340,8 +340,9 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
     # scope-reversed claim Plan 01 removed (Pitfall 5 / T-93-05).
     assert operations =~ "no auto-remediation"
 
-    assert operations =~ ~r/admin[_ ]console/i,
-           "operations.md must mention the mountable admin console (TRUTH-07)"
+    assert operations =~ ~r/mountable admin console/i,
+           "operations.md must affirm the mountable admin console in prose (TRUTH-07) — " <>
+             "a bare admin_console.html link substring must not satisfy this lock"
 
     refute operations =~ "intentionally has no dashboard",
            "operations.md must not deny a dashboard now that the console ships"
