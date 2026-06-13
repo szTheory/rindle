@@ -97,7 +97,12 @@ proof is present locally and in CI.
 **v1.18 Phase 91 complete (2026-06-12):** Cohort Demo Evolution validated
 DEMO-01..03: Cohort's own lightweight brand, audio + document profiles, seeds
 expressing every lifecycle state, mounts the console, and click-around walkthrough.
-Phases 92–93 remain active.
+
+**v1.18 Phase 92 complete (2026-06-13):** E2E & Screenshot-Driven Polish Loop
+validated E2E-01..02: deterministic `/admin/rindle` Playwright helper and
+admin console/theme/actions specs, live 22-PNG light/dark/mobile screenshot
+matrix, screenshot polish fixes, proof-matrix drift gate, adoption demo README
+truth, and merge-blocking `adoption-demo-e2e` wiring. Phase 93 remains active.
 
 Do not reopen tus protocol, single-owner/batch erasure semantics, or Mux surfaces
 beyond v1.13. Keep shared-asset safety and maintenance-vs-owner-erasure boundaries
