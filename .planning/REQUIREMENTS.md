@@ -51,7 +51,7 @@ coverage, deterministic E2E, and Docker DX fixes.
 
 - [x] **E2E-01**: Deterministic Playwright specs for the console (happy paths, main error
   cases, boundary conditions, theme switching, destructive flows) in a merge-blocking CI lane.
-- [ ] **E2E-02**: Automated all-screens × light/dark screenshot capture feeding
+- [x] **E2E-02**: Automated all-screens × light/dark screenshot capture feeding
   analyze→fix polish iteration passes.
 
 ### Docker DX (DX)
@@ -160,7 +160,7 @@ v1.18 Admin Console & Adoption Lab (phases 86–93; b1.0 brand-track rows archiv
 | DEMO-02 | Phase 91 | Planned |
 | DEMO-03 | Phase 91 | Planned |
 | E2E-01 | Phase 92 | Planned |
-| E2E-02 | Phase 92 | Planned |
+| E2E-02 | Phase 92 | Complete |
 | DX-01 | Phase 87 | Planned |
 | DX-02 | Phase 87 | Planned |
 | DX-03 | Phase 87 | Planned |
@@ -175,7 +175,7 @@ v1.18 Admin Console & Adoption Lab (phases 86–93; b1.0 brand-track rows archiv
 | PRIV-01 | — | Deferred |
 
 **Coverage:**
-- v1.18 requirements: 19 total, 19 mapped to phases 86–93, 7 satisfied
+- v1.18 requirements: 19 total, 19 mapped to phases 86–93, 8 satisfied
 - Pause requirements: 3 total (PAUSE-03 amended for the override)
 - Brand-track requirements: 8/8 validated and archived (b1.0)
 - Unmapped active reqs: 0

@@ -306,11 +306,11 @@ Plans:
 **Wave 2** *(blocked on Wave 1 completion)*
 
 - [x] 92-02-PLAN.md — Add admin surface, boundary, detail, redaction, and theme specs.
-- [ ] 92-03-PLAN.md — Add destructive and non-destructive admin action specs.
+- [x] 92-03-PLAN.md — Add destructive and non-destructive admin action specs.
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 92-04-PLAN.md — Add live all-screen screenshots and run screenshot polish iteration.
+- [x] 92-04-PLAN.md — Add live all-screen screenshots and run screenshot polish iteration.
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
