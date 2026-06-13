@@ -298,8 +298,10 @@ Batch semantics to keep in mind:
 `mix rindle.cleanup_orphans` remains maintenance-only upload-residue cleanup,
 not the supported account-deletion API. Batch multi-owner erasure is supported
 via `Rindle.preview_batch_owner_erasure/2`, `Rindle.erase_batch_owner_erasure/2`,
-and `mix rindle.batch_owner_erasure`. Admin UI, force-delete policy for
-still-shared assets, and scheduler/cron erasure jobs remain deferred.
+and `mix rindle.batch_owner_erasure`. The lifecycle can now also be reviewed and
+operated from a mountable admin console (see [Admin Console](admin_console.html)).
+Force-delete policy for still-shared assets and scheduler/cron erasure jobs
+remain deferred.
 
 ### Story 6: Friday, 5 p.m., something is stuck
 
@@ -351,5 +353,5 @@ force-delete for shared assets, a second streaming provider when a named adopter
 long-tail polish (signed dynamic transforms, EXIF stripping on originals).
 
 Deliberately *out of scope*, by design: being a full HLS/DASH streaming platform, DRM,
-AI/GPU processing, broad PDF/Office handling, an admin UI, or a CDN replacement. Rindle stays
+AI/GPU processing, broad PDF/Office handling, or a CDN replacement. Rindle stays
 a focused library; those belong to other tools.
