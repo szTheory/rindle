@@ -10,6 +10,24 @@ defmodule Rindle.MixProject do
       version: @version,
       elixir: "~> 1.15",
       elixirc_paths: elixirc_paths(Mix.env()),
+      # Optional-dependency modules (and the Mux-gated worker) are legitimately
+      # absent under `mix compile --no-optional-deps`. Elixir 1.19 auto-suppresses
+      # these via the `optional: true` deps, but 1.15/1.17 do not — so the ADMIN-06
+      # no-optional `--warnings-as-errors` gate fails there without this list.
+      elixirc_options: [
+        no_warn_undefined: [
+          Bandit,
+          CAStore,
+          Finch,
+          Goth,
+          GcsSignedUrl,
+          GcsSignedUrl.Client,
+          JOSE.JWK,
+          Mux.Base,
+          Mux.Video.Assets,
+          Rindle.Workers.MuxIngestVariant
+        ]
+      ],
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
       deps: deps(),
