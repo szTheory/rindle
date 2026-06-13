@@ -261,7 +261,7 @@ defmodule Rindle.Admin.QueriesTest do
 
     for action <- model.actions do
       assert action.phase == 90
-      
+
       if action.id in [:owner_erasure, :batch_erasure, :variant_regeneration, :lifecycle_repair] do
         assert action.enabled? == true
         assert action.read_only? == false

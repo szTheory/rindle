@@ -209,7 +209,9 @@ defmodule Rindle.Brandbook.AdminDesignSystemValidationTest do
     assert matches == []
 
     assert read!("mix.exs") =~ "priv/static/rindle_admin"
-    assert read!("priv/static/rindle_admin/rindle-admin.css") == read!("brandbook/tokens/rindle-admin.css")
+
+    assert read!("priv/static/rindle_admin/rindle-admin.css") ==
+             read!("brandbook/tokens/rindle-admin.css")
   end
 
   defp run_node(script) do

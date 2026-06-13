@@ -441,10 +441,12 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
            "guides/admin_console.md must exist (created by Plan 03)"
 
     admin_guide = File.read!(@admin_console_path)
+
     assert admin_guide =~ "rindle_admin",
            "admin_console.md must document the rindle_admin router macro"
 
     mix_exs = File.read!(@mix_exs_path)
+
     assert mix_exs =~ "guides/admin_console.md",
            "mix.exs must wire admin_console.md into docs extras"
 

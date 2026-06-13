@@ -221,7 +221,7 @@ defmodule Rindle.Admin.Queries do
      }}
   end
 
-  defp action(id, label, summary, opts \\ []) do
+  defp action(id, label, summary, opts) do
     %{
       id: id,
       label: label,

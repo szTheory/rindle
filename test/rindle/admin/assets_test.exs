@@ -56,7 +56,9 @@ defmodule Rindle.Admin.AssetsTest do
       |> maybe_send_not_found()
     end
 
-    defp maybe_send_not_found(%Plug.Conn{state: :unset} = conn), do: send_resp(conn, 404, "not found")
+    defp maybe_send_not_found(%Plug.Conn{state: :unset} = conn),
+      do: send_resp(conn, 404, "not found")
+
     defp maybe_send_not_found(conn), do: conn
   else
     test "skips static asset route proof when LiveView is not loaded" do
