@@ -19,6 +19,15 @@ require_substring() {
   fi
 }
 
+require_file() {
+  local rel_path="$1"
+  local label="$2"
+  if [[ ! -f "${repo_root}/examples/adoption_demo/${rel_path}" ]]; then
+    echo "check_adoption_proof_matrix: missing ${label} (${rel_path})" >&2
+    exit 1
+  fi
+}
+
 require_substring "adoption-demo-e2e" "CI job id"
 require_substring "generated_app_smoke_test.exs" "install bootstrap lane"
 require_substring "install_smoke.sh image" "image install smoke"
@@ -44,6 +53,10 @@ require_substring "e2e/admin-console.spec.js" "admin console Playwright spec"
 require_substring "e2e/admin-theme.spec.js" "admin theme Playwright spec"
 require_substring "e2e/admin-actions.spec.js" "admin actions Playwright spec"
 require_substring "e2e/admin-screenshots.spec.js" "admin screenshots Playwright spec"
+require_file "e2e/admin-console.spec.js" "admin console Playwright spec"
+require_file "e2e/admin-theme.spec.js" "admin theme Playwright spec"
+require_file "e2e/admin-actions.spec.js" "admin actions Playwright spec"
+require_file "e2e/admin-screenshots.spec.js" "admin screenshots Playwright spec"
 require_substring "test-results/admin-screenshots" "admin screenshot output path"
 require_substring "check_adoption_proof_matrix.sh" "drift gate script self-reference"
 require_substring "MinIO" "MinIO realism label"

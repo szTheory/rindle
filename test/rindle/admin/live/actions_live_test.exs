@@ -159,6 +159,40 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert render(view) =~ "Owner Erasure Complete"
     end
 
+    test "owner erasure rejects unsupported owner types without creating atoms", %{conn: conn} do
+      {:ok, view, _html} = live(conn, "/admin/rindle/actions")
+
+      unique_type = "Elixir.Rindle.Admin.UnknownOwner#{System.unique_integer([:positive])}"
+
+      view
+      |> form("form[phx-submit=\"preview_owner_erasure\"]", %{
+        "owner_type" => unique_type,
+        "owner_id" => Ecto.UUID.generate()
+      })
+      |> render_submit()
+
+      assert has_element?(view, "[data-rindle-admin-action-error]", "Unsupported owner type.")
+      assert has_element?(view, "[data-rindle-admin-state=\"input\"]")
+
+      assert_raise ArgumentError, fn ->
+        String.to_existing_atom(unique_type)
+      end
+    end
+
+    test "owner erasure accepts loaded module aliases without Elixir prefix", %{conn: conn} do
+      {:ok, view, _html} = live(conn, "/admin/rindle/actions")
+
+      view
+      |> form("form[phx-submit=\"preview_owner_erasure\"]", %{
+        "owner_type" => "String",
+        "owner_id" => Ecto.UUID.generate()
+      })
+      |> render_submit()
+
+      assert has_element?(view, "[data-rindle-admin-preview=\"owner_erasure\"]")
+      assert has_element?(view, "[data-rindle-admin-state=\"preview\"]")
+    end
+
     test "batch erasure workflow: preview, reset, validation, partial execution", %{conn: conn} do
       {:ok, view, _html} = live(conn, "/admin/rindle/actions")
 
@@ -206,6 +240,48 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       |> render_submit()
 
       assert has_element?(view, "[data-rindle-admin-receipt=\"batch_erasure\"]")
+    end
+
+    test "batch erasure rejects malformed owner lines without crashing", %{conn: conn} do
+      {:ok, view, _html} = live(conn, "/admin/rindle/actions")
+
+      view
+      |> element("button", "Batch erasure")
+      |> render_click()
+
+      view
+      |> form("form[phx-submit=\"preview_batch_erasure\"]", %{"owners" => "not-a-valid-owner"})
+      |> render_submit()
+
+      assert has_element?(
+               view,
+               "[data-rindle-admin-action-error]",
+               "Owners must be formatted as Module:id, one per line."
+             )
+
+      assert has_element?(view, "[data-rindle-admin-state=\"input\"]")
+    end
+
+    test "tampered action events and lifecycle actions render validation errors", %{conn: conn} do
+      {:ok, view, _html} = live(conn, "/admin/rindle/actions")
+
+      render_hook(view, "select_action", %{"id" => "not_a_real_action"})
+      assert has_element?(view, "[data-rindle-admin-action-error]", "Unknown admin action.")
+
+      view
+      |> element("button", "Lifecycle repair")
+      |> render_click()
+
+      render_hook(view, "execute_lifecycle_repair", %{
+        "asset_id" => Ecto.UUID.generate(),
+        "repair_action" => "explode"
+      })
+
+      assert has_element?(
+               view,
+               "[data-rindle-admin-action-error]",
+               "Unsupported lifecycle repair action."
+             )
     end
 
     test "lifecycle repair workflow: reprobe and requeue", %{conn: conn} do

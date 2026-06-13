@@ -29,16 +29,20 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     @impl true
     def handle_event("select_action", %{"id" => id_str}, socket) do
-      id = String.to_existing_atom(id_str)
+      case find_action(socket.assigns.model.actions, id_str) do
+        %{id: id} ->
+          {:noreply,
+           socket
+           |> assign(
+             active_action_id: id,
+             action_state: :input,
+             action_error: nil,
+             action_data: %{}
+           )}
 
-      {:noreply,
-       socket
-       |> assign(
-         active_action_id: id,
-         action_state: :input,
-         action_error: nil,
-         action_data: %{}
-       )}
+        nil ->
+          {:noreply, assign(socket, action_error: "Unknown admin action.")}
+      end
     end
 
     @impl true
@@ -47,7 +51,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           _params,
           %{assigns: %{action_state: :input}} = socket
         ) do
-      {:noreply, socket}
+      {:noreply, assign(socket, action_error: nil)}
     end
 
     def handle_event(
@@ -60,24 +64,25 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     def handle_event("change_owner_erasure", _params, socket) do
-      {:noreply, assign(socket, action_state: :input, action_data: %{})}
+      {:noreply, assign(socket, action_state: :input, action_error: nil, action_data: %{})}
     end
 
     @impl true
     def handle_event("preview_owner_erasure", %{"owner_type" => type, "owner_id" => id}, socket) do
-      owner = %{__struct__: String.to_atom(type), id: id}
-
-      case Rindle.preview_owner_erasure(owner) do
-        {:ok, report} ->
-          {:noreply,
-           assign(socket,
-             action_state: :preview,
-             action_error: nil,
-             action_data: %{type: type, id: id, report: report}
-           )}
+      with {:ok, owner} <- parse_owner(type, id),
+           {:ok, report} <- Rindle.preview_owner_erasure(owner) do
+        {:noreply,
+         assign(socket,
+           action_state: :preview,
+           action_error: nil,
+           action_data: %{type: type, id: id, report: report}
+         )}
+      else
+        {:error, message} when is_binary(message) ->
+          {:noreply, assign(socket, action_error: message)}
 
         {:error, _} ->
-          {:noreply, socket |> put_flash(:error, "Failed to preview erasure")}
+          {:noreply, assign(socket, action_error: "Failed to preview erasure")}
       end
     end
 
@@ -87,19 +92,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       expected = "ERASE #{type}:#{id}"
 
       if confirmation == expected do
-        owner = %{__struct__: String.to_atom(type), id: id}
+        case parse_owner(type, id) do
+          {:ok, owner} ->
+            execute_owner_erasure(socket, owner, type, id)
 
-        case Rindle.erase_owner(owner) do
-          {:ok, report} ->
-            {:noreply,
-             assign(socket,
-               action_state: :receipt,
-               action_error: nil,
-               action_data: %{report: report, type: type, id: id}
-             )}
-
-          {:error, _} ->
-            {:noreply, socket |> put_flash(:error, "Execution failed")}
+          {:error, message} ->
+            {:noreply, assign(socket, action_error: message)}
         end
       else
         {:noreply, assign(socket, action_error: "Confirmation does not match.")}
@@ -112,7 +110,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           _params,
           %{assigns: %{action_state: :input}} = socket
         ) do
-      {:noreply, socket}
+      {:noreply, assign(socket, action_error: nil)}
     end
 
     def handle_event(
@@ -130,19 +128,20 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     @impl true
     def handle_event("preview_batch_erasure", %{"owners" => owners_text}, socket) do
-      owners = parse_batch_owners(owners_text)
-
-      case Rindle.preview_batch_owner_erasure(owners) do
-        {:ok, report} ->
-          {:noreply,
-           assign(socket,
-             action_state: :preview,
-             action_error: nil,
-             action_data: %{owners_text: owners_text, report: report, count: length(owners)}
-           )}
+      with {:ok, owners} <- parse_batch_owners(owners_text),
+           {:ok, report} <- Rindle.preview_batch_owner_erasure(owners) do
+        {:noreply,
+         assign(socket,
+           action_state: :preview,
+           action_error: nil,
+           action_data: %{owners_text: owners_text, report: report, count: length(owners)}
+         )}
+      else
+        {:error, message} when is_binary(message) ->
+          {:noreply, assign(socket, action_error: message)}
 
         {:error, _} ->
-          {:noreply, socket |> put_flash(:error, "Failed to preview batch erasure")}
+          {:noreply, assign(socket, action_error: "Failed to preview batch erasure")}
       end
     end
 
@@ -152,32 +151,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       expected = "ERASE #{count} OWNERS"
 
       if confirmation == expected do
-        owners = parse_batch_owners(owners_text)
+        case parse_batch_owners(owners_text) do
+          {:ok, owners} ->
+            execute_batch_erasure(socket, owners)
 
-        case Rindle.erase_batch_owner_erasure(owners) do
-          {:ok, report} ->
-            {:noreply,
-             assign(socket,
-               action_state: :receipt,
-               action_error: nil,
-               action_data: %{report: report}
-             )}
-
-          {:error,
-           {:batch_owner_failed, %{owner: failed, reason: reason, partial_report: partial_report}}} ->
-            {:noreply,
-             assign(socket,
-               action_state: :partial_receipt,
-               action_error: nil,
-               action_data: %{
-                 report: partial_report,
-                 failed_owner: inspect(failed),
-                 reason: inspect(reason)
-               }
-             )}
-
-          {:error, _} ->
-            {:noreply, socket |> put_flash(:error, "Batch execution failed entirely")}
+          {:error, message} ->
+            {:noreply, assign(socket, action_error: message)}
         end
       else
         {:noreply, assign(socket, action_error: "Confirmation does not match.")}
@@ -241,6 +220,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                  action_data: %{action: "requeue", success: false, error: "Requeue failed"}
                )}
           end
+
+        _ ->
+          {:noreply, assign(socket, action_error: "Unsupported lifecycle repair action.")}
       end
     end
 
@@ -290,15 +272,126 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       {:noreply, assign(socket, action_error: "You must confirm this action")}
     end
 
+    defp execute_owner_erasure(socket, owner, type, id) do
+      case Rindle.erase_owner(owner) do
+        {:ok, report} ->
+          {:noreply,
+           assign(socket,
+             action_state: :receipt,
+             action_error: nil,
+             action_data: %{type: type, id: id, report: report}
+           )}
+
+        {:error, _} ->
+          {:noreply, assign(socket, action_error: "Execution failed")}
+      end
+    end
+
+    defp execute_batch_erasure(socket, owners) do
+      case Rindle.erase_batch_owner_erasure(owners) do
+        {:ok, report} ->
+          {:noreply,
+           assign(socket,
+             action_state: :receipt,
+             action_error: nil,
+             action_data: %{report: report}
+           )}
+
+        {:error,
+         {:batch_owner_failed, %{owner: failed, reason: reason, partial_report: partial_report}}} ->
+          {:noreply,
+           assign(socket,
+             action_state: :partial_receipt,
+             action_error: nil,
+             action_data: %{
+               report: partial_report,
+               failed_owner: inspect(failed),
+               reason: inspect(reason)
+             }
+           )}
+
+        {:error, _} ->
+          {:noreply, assign(socket, action_error: "Batch execution failed entirely")}
+      end
+    end
+
     defp parse_batch_owners(text) do
-      text
-      |> String.split("\n", trim: true)
-      |> Enum.map(&String.trim/1)
-      |> Enum.reject(&(&1 == ""))
-      |> Enum.map(fn line ->
-        [type, id] = String.split(line, ":", parts: 2)
-        %{__struct__: String.to_atom(type), id: id}
+      owners =
+        text
+        |> String.split("\n", trim: true)
+        |> Enum.map(&String.trim/1)
+        |> Enum.reject(&(&1 == ""))
+
+      case owners do
+        [] -> {:error, "Enter at least one owner."}
+        _ -> parse_batch_owner_lines(owners)
+      end
+    end
+
+    defp parse_batch_owner_lines(lines) do
+      lines
+      |> Enum.reduce_while({:ok, []}, fn line, {:ok, owners} ->
+        case String.split(line, ":", parts: 2) do
+          [type, id] when type != "" and id != "" ->
+            case parse_owner(type, id) do
+              {:ok, owner} -> {:cont, {:ok, [owner | owners]}}
+              {:error, message} -> {:halt, {:error, message}}
+            end
+
+          _ ->
+            {:halt, {:error, "Owners must be formatted as Module:id, one per line."}}
+        end
       end)
+      |> case do
+        {:ok, owners} -> {:ok, Enum.reverse(owners)}
+        {:error, _} = error -> error
+      end
+    end
+
+    defp parse_owner(type, id) when is_binary(type) and is_binary(id) do
+      type = String.trim(type)
+      id = String.trim(id)
+
+      with {:ok, module} <- resolve_owner_module(type),
+           true <- id != "" do
+        {:ok, %{__struct__: module, id: id}}
+      else
+        false -> {:error, "Owner ID is required."}
+        {:error, _} -> {:error, "Unsupported owner type."}
+      end
+    end
+
+    defp resolve_owner_module(type) do
+      type
+      |> owner_module_candidates()
+      |> Enum.find_value(fn candidate ->
+        case existing_loaded_module(candidate) do
+          {:ok, module} -> module
+          :error -> nil
+        end
+      end)
+      |> case do
+        nil -> {:error, :unsupported_owner_type}
+        module -> {:ok, module}
+      end
+    end
+
+    defp owner_module_candidates(""), do: []
+
+    defp owner_module_candidates("Elixir." <> _ = type), do: [type]
+
+    defp owner_module_candidates(type), do: [type, "Elixir." <> type]
+
+    defp existing_loaded_module(candidate) do
+      module = String.to_existing_atom(candidate)
+
+      if Code.ensure_loaded?(module) do
+        {:ok, module}
+      else
+        :error
+      end
+    rescue
+      ArgumentError -> :error
     end
 
     defp run_lifecycle_action(fun) do
@@ -342,6 +435,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp current_action(assigns) do
       Enum.find(assigns.model.actions, &(&1.id == assigns.active_action_id)) ||
         List.first(assigns.model.actions)
+    end
+
+    defp find_action(actions, id_str) do
+      Enum.find(actions, &(Atom.to_string(&1.id) == id_str))
     end
 
     defp render_action_panel(assigns, %{id: :owner_erasure} = selected_action) do
@@ -453,6 +550,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             <label>Owner ID</label>
             <input type="text" name="owner_id" data-rindle-admin-input="owner_id" required />
           </div>
+          <%= if @action_error do %>
+            <p class="rindle-admin-toast rindle-admin-toast--danger" data-rindle-admin-action-error>{@action_error}</p>
+          <% end %>
           <button type="submit" data-rindle-admin-submit="preview_owner_erasure">Preview owner erasure</button>
         </form>
       </div>
@@ -506,6 +606,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             <label>Owners (one per line as Module:id)</label>
             <textarea name="owners" rows="5" data-rindle-admin-input="batch_owners" required></textarea>
           </div>
+          <%= if @action_error do %>
+            <p class="rindle-admin-toast rindle-admin-toast--danger" data-rindle-admin-action-error>{@action_error}</p>
+          <% end %>
           <button type="submit" data-rindle-admin-submit="preview_batch_erasure">Preview batch erasure</button>
         </form>
       </div>
@@ -578,6 +681,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <option value="requeue">Requeue Variants</option>
             </select>
           </div>
+          <%= if @action_error do %>
+            <p class="rindle-admin-toast rindle-admin-toast--danger" data-rindle-admin-action-error>{@action_error}</p>
+          <% end %>
           <button type="submit" data-rindle-admin-submit="execute_lifecycle_repair">Execute Repair</button>
         </form>
       </div>

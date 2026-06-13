@@ -83,7 +83,7 @@ lab tabs (presigned PUT, tus, multipart, LiveView, AV, Mux cassette), and ops su
 
 ## Admin Console Walkthrough
 
-After seeding the database (`mix run priv/repo/seeds.exs`) and starting the server, developers can visit `http://localhost:4000/admin`.
+After seeding the database (`mix run priv/repo/seeds.exs`) and starting the server, developers can visit `http://localhost:4102/admin/rindle` when using the default adoption demo browser port.
 
 Here is what you can click around to see:
 - The **Assets** list showing various lifecycle states (e.g. `quarantined`, `degraded`).
