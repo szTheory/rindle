@@ -3,7 +3,7 @@ const { waitForLiveSocket } = require("./support/liveview");
 const { MEMBERS, memberId } = require("./support/cohort");
 
 test("owner erasure preview shows retained shared assets for Alex", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/dashboard");
   await waitForLiveSocket(page);
 
   const alexId = await memberId(page, MEMBERS.alex);
@@ -17,7 +17,7 @@ test("owner erasure preview shows retained shared assets for Alex", async ({ pag
 });
 
 test("owner erasure execute on ops operator", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/dashboard");
   await waitForLiveSocket(page);
 
   const opsId = await memberId(page, MEMBERS.ops);

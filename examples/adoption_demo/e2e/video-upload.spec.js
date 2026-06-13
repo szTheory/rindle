@@ -4,7 +4,7 @@ const { waitForLiveSocket } = require("./support/liveview");
 const { MEMBERS, memberRow } = require("./support/cohort");
 
 test("browser video file upload reaches ready state", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/dashboard");
   await waitForLiveSocket(page);
 
   const jordanRow = await memberRow(page, MEMBERS.jordan);

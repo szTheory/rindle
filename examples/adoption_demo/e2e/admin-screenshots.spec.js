@@ -110,7 +110,7 @@ async function visitScreenshotCase(page, screenshotCase, ownerId) {
 }
 
 test("captures admin-screenshots light and dark matrix", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/dashboard");
   await waitForLiveSocket(page);
   const alexId = await memberId(page, MEMBERS.alex);
 

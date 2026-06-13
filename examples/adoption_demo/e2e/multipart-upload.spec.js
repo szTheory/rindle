@@ -3,7 +3,7 @@ const { waitForLiveSocket } = require("./support/liveview");
 const { MEMBERS, memberRow } = require("./support/cohort");
 
 test("multipart upload completes via client hook", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/dashboard");
   await waitForLiveSocket(page);
 
   const jordanRow = await memberRow(page, MEMBERS.jordan);

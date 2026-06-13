@@ -4,7 +4,7 @@ const { waitForLiveSocket } = require("./support/liveview");
 const { MEMBERS, memberRow } = require("./support/cohort");
 
 test("presigned PUT avatar upload attaches and shows ready", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/dashboard");
   await waitForLiveSocket(page);
 
   const jordanRow = await memberRow(page, MEMBERS.jordan);

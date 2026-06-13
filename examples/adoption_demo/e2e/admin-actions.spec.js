@@ -69,7 +69,7 @@ async function expectActionsShell(page) {
 }
 
 test("owner erasure blocks wrong confirmation and receipts generated execution", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/dashboard");
   const alexId = await memberId(page, MEMBERS.alex);
 
   await visitAdmin(page, "actions");

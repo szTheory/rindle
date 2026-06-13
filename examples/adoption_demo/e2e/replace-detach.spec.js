@@ -4,7 +4,7 @@ const { waitForLiveSocket } = require("./support/liveview");
 const { MEMBERS, memberRow } = require("./support/cohort");
 
 test("replace and detach avatar controls update status", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/dashboard");
   await waitForLiveSocket(page);
 
   const alexRow = await memberRow(page, MEMBERS.alex);
