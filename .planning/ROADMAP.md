@@ -2,7 +2,7 @@
 
 ## Milestones
 
-- 🔄 **v1.18 Admin Console & Adoption Lab** — Phases 86–93 (in progress, charter 2026-06-10; ships as hex 0.3.0)
+- 🔄 **v1.18 Admin Console & Adoption Lab** — Phases 86–93 (tech_debt: 19/19 reqs + 8/8 phases verified, HUMAN-UAT for 90/91/92 pending; charter 2026-06-10; ships as hex 0.3.0; [audit](milestones/v1.18-MILESTONE-AUDIT.md))
 - ✅ **b1.0 Brand Foundations** — Phases 81–85 (brand track, non-feature; shipped 2026-06-10, [archive](milestones/b1.0-ROADMAP.md), [audit](milestones/b1.0-MILESTONE-AUDIT.md))
 - ✅ **v1.17 Adopter-Confidence Hygiene** — Phases 78–80 (shipped 2026-05-27, [archive](milestones/v1.17-ROADMAP.md), [audit](milestones/v1.17-MILESTONE-AUDIT.md))
 - ✅ **v1.16 CI Enforcement & Planning Hygiene** — Phases 75–77 (shipped 2026-05-27, [archive](milestones/v1.16-ROADMAP.md))
@@ -62,7 +62,7 @@ maintainer go/no-go gate between phases.
   asset-serving plug (safe by default); home, assets list/detail, upload sessions,
   variant/job activity, doctor + runtime status; pubsub live updates;
   `Rindle.Admin.Queries` isolation; optional-dep CI matrix. (ADMIN-01..03, 05, 06)
-- [ ] **Phase 90: Console Ops Actions** — erasure preview/execute + batch with
+- [x] **Phase 90: Console Ops Actions** — erasure preview/execute + batch with (completed 2026-06-13; HUMAN-UAT pending)
   destructive-action UX (typed confirmation, collateral preview), variant regeneration,
   quarantine review, lifecycle repair. (ADMIN-04)
 - [x] **Phase 91: Cohort Demo Evolution** — Cohort's own lightweight brand (completed 2026-06-12)
@@ -71,7 +71,7 @@ maintainer go/no-go gate between phases.
 - [x] **Phase 92: E2E & Screenshot-Driven Polish Loop** — deterministic console Playwright (completed 2026-06-13)
   specs (happy/error/boundary/theme/destructive) in a merge-blocking lane; all-screens ×
   light/dark capture → analyze → fix polish passes. (E2E-01..02)
-- [ ] **Phase 93: Truth, Docs & Milestone Audit** — `guides/admin_console.md`,
+- [x] **Phase 93: Truth, Docs & Milestone Audit** — `guides/admin_console.md`, (completed 2026-06-13)
   user_flows + JTBD-MAP updates (T4 reversal), facade moduledoc truth fix
   (`lib/rindle.ex` "no admin UI" line), README/HexDocs, traceability closure,
   MILESTONE-AUDIT. (TRUTH-07)
@@ -244,7 +244,16 @@ lifecycle semantics.
    capabilities.
 4. Console actions do not introduce new lifecycle semantics beyond recorded v1.18 scope.
 
-**Plans:** 0 plans created
+**Plans:** 2/2 plans complete
+
+Plans:
+
+**Wave 1**
+
+- [x] 90-01-PLAN.md — Owner erasure and batch erasure with typed-confirmation destructive UX.
+- [x] 90-02-PLAN.md — Variant regeneration, lifecycle repair, and quarantine-review triage.
+
+**Status:** Verified 8/8 must-haves; HUMAN-UAT pending (destructive-action UX review).
 
 ---
 
@@ -336,13 +345,15 @@ milestone audit.
 5. Requirements traceability is closed.
 6. v1.18 milestone audit is written.
 
-**Plans:** 4 plans created
+**Plans:** 4/4 plans complete
 
 Plans:
 - [x] 93-01-PLAN.md — Fix facade moduledoc + operations/troubleshooting/user_flows admin-UI denials (F1–F5).
 - [x] 93-02-PLAN.md — Reverse JTBD-MAP T4 admin-UI exclusion (idempotent anchor) + close REQUIREMENTS traceability.
 - [x] 93-03-PLAN.md — Author guides/admin_console.md, wire into mix.exs extras, add README mention.
-- [ ] 93-04-PLAN.md — Parity-test lock (Nyquist) + regenerate v1.18 milestone audit + UAT-status checkpoint.
+- [x] 93-04-PLAN.md — Parity-test lock (Nyquist) + regenerate v1.18 milestone audit + UAT-status checkpoint.
+
+**Audit:** [.planning/milestones/v1.18-MILESTONE-AUDIT.md](milestones/v1.18-MILESTONE-AUDIT.md) — status `tech_debt` (19/19 reqs + 8/8 phases verified; HUMAN-UAT for phases 90/91/92 pending before `shipped`).
 
 <details>
 <summary>✅ b1.0 Brand Foundations (Phases 81–85) — SHIPPED 2026-06-10</summary>

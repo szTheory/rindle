@@ -1,9 +1,9 @@
 ---
 phase: 93
 slug: truth-docs-milestone-audit
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: approved
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-06-13
 ---
 
@@ -79,6 +79,6 @@ Existing pattern: `test/install_smoke/docs_parity_test.exs` already uses `Code.f
 - [ ] Wave 0 covers all MISSING references (parity test extension + guide creation)
 - [ ] No watch-mode flags
 - [ ] Feedback latency < 30s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved — parity assertions green (24 tests, 0 failures) as of 93-04 Task 1.

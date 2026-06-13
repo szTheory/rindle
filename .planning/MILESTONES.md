@@ -1,12 +1,19 @@
 # Milestones
 
-## v1.18 Admin Console & Adoption Lab (In progress: charter 2026-06-10)
+## v1.18 Admin Console & Adoption Lab (Tech debt — UAT pending: charter 2026-06-10)
 
-**Phases:** 8 phases (86–93), plans TBD per phase
-**Requirements:** 19 (`ADMIN-01..06`, `DS-01..03`, `DEMO-01..03`, `E2E-01..02`, `DX-01..03`, `PRIN-01`, `TRUTH-07`)
+**Phases:** 8 phases (86–93)
+**Requirements:** 19/19 satisfied (`ADMIN-01..06`, `DS-01..03`, `DEMO-01..03`, `E2E-01..02`, `DX-01..03`, `PRIN-01`, `TRUTH-07`)
 **Hex target:** 0.3.0 (after the 0.2.0 brand release)
 **Track:** Feature milestone via recorded maintainer-pull override of the demand-gated
 pause (PAUSE-03 amendment); LIFE-06/STREAM-10 remain demand-gated → v1.19+
+**Audit:** [.planning/milestones/v1.18-MILESTONE-AUDIT.md](milestones/v1.18-MILESTONE-AUDIT.md) — status `tech_debt` (2026-06-13)
+
+**Close status (2026-06-13):** All 8 phases verified and all 19 requirements satisfied
+mechanically (Nyquist coverage complete). Held at `tech_debt` — **not shipped** — pending
+maintainer HUMAN-UAT sign-off for: Phase 90 destructive-action UX review, Phase 91 logo
+rendering + admin console lifecycle display, and Phase 92 screenshot-review matrix. Re-audit
+and advance to `shipped` once those follow-ups are signed off.
 
 **Charter scope:**
 
