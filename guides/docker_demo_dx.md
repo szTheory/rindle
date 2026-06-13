@@ -1,118 +1,176 @@
-# Docker Demo DX
+# Running the Cohort demo in Docker
 
-## TL;DR
+**Who this is for:** you want to see Rindle working — uploads, transcoding, the admin
+console — without installing Elixir, FFmpeg, and libvips on your machine, and **without it
+fighting the other dockerized apps you already run**.
 
-- Use `COMPOSE_PROJECT_NAME` for project namespacing.
-- Replace fixed host ports with env-driven defaults:
-  `COHORT_DEMO_PORT=4102`, `COHORT_MINIO_PORT=9000`, and
-  `COHORT_MINIO_CONSOLE_PORT=9001`.
-- Keep internal Phoenix `PORT=4102` and `PHX_HOST=localhost`.
-- Preserve the simple `scripts/demo/up.sh` wrapper.
-- Fix Dockerfile cache ordering by copying dependency files before the full source tree.
-- Do not add Traefik in Phase 87 unless a later recorded requirement needs multi-host
-  routing.
+## Game plan (30 seconds)
 
-Phase 86 locks the Docker/Cohort demo DX contract only. Phase 87 implements it.
-
-## Compose Namespacing
-
-`COMPOSE_PROJECT_NAME` is the project namespacing mechanism for the Cohort demo stack.
-Phase 87 should allow maintainers to run sibling demos without container, network, or
-volume name collisions.
-
-Recommended usage:
-
-```sh
-COMPOSE_PROJECT_NAME=rindle-cohort ./scripts/demo/up.sh
+```bash
+./scripts/demo/up.sh        # build + start everything, prints your URLs
+# ... poke around ...
+./scripts/demo/down.sh      # stop
+./scripts/demo/reset.sh     # stop + wipe db/storage (fresh seeds next start)
 ```
 
-The current top-level `name: cohort-demo` is a baseline, not the final contract. Phase 87
-may keep a sane default, but environment override must be the documented path.
+- **Ports never collide.** `up.sh` auto-picks free loopback ports, so it coexists with a
+  native MinIO, sibling lib demos, or anything else already bound. You don't manage ports.
+- **It prints the exact URLs** to copy-paste after launch (app, admin console, MinIO).
+- **Rebuilds are fast.** Editing templates/CSS recompiles only the app, not the whole
+  dependency graph.
+- **Optional pretty hostnames** via your shared Traefik: `COHORT_USE_TRAEFIK=1 ./scripts/demo/up.sh`
+  → `http://cohort.localhost`.
 
-## Host Port Contract
+That's the whole thing. The rest of this guide is for when you want to understand *why*, or
+something doesn't come up.
 
-Host ports are environment-driven and loopback-bound for developer previews:
+---
 
-| Service | Env var | Compose binding | Internal port |
-| --- | --- | --- | --- |
-| Cohort app | `COHORT_DEMO_PORT` default `4102` | `127.0.0.1:${COHORT_DEMO_PORT:-4102}:4102` | `4102` |
-| MinIO API | `COHORT_MINIO_PORT` default `9000` | `127.0.0.1:${COHORT_MINIO_PORT:-9000}:9000` | `9000` |
-| MinIO console | `COHORT_MINIO_CONSOLE_PORT` default `9001` | `127.0.0.1:${COHORT_MINIO_CONSOLE_PORT:-9001}:9001` | `9001` |
+## Quick start
 
-Internal Phoenix remains:
+From the **repository root** (requires Docker Desktop or Docker Engine + Compose):
 
-```sh
-PORT=4102
-PHX_HOST=localhost
+```bash
+./scripts/demo/up.sh
 ```
 
-The current fixed-port baseline to replace is `"4102:4102"`, `"9000:9000"`, and
-`"9001:9001"`. Do not publish MinIO with bare `${PORT}:9000` or `${PORT}:9001`
-bindings.
+First build takes a few minutes (it installs FFmpeg/libvips and compiles deps once);
+subsequent starts are fast. When it's ready, the launch output prints a copy-paste URL map:
 
-## Launch URL Map
+```
+app
+http://localhost:4102
+admin console
+http://localhost:4102/admin/rindle
+MinIO console
+http://localhost:9001
+```
 
-Phase 87 launch output should print a copy-pasteable URL map:
+If a default port was busy, the printed numbers reflect the **actual** ports chosen — trust
+the output, not the defaults.
 
-| Label | URL |
-| --- | --- |
-| `app` | `http://localhost:${COHORT_DEMO_PORT:-4102}` |
-| `admin console` | `http://localhost:${COHORT_DEMO_PORT:-4102}/admin/rindle` |
-| `MinIO console` | `http://localhost:${COHORT_MINIO_CONSOLE_PORT:-9001}` |
+---
 
-The labels are locked as `app`, `admin console`, and `MinIO console`.
+## Port conflicts & coexistence
 
-## Dockerfile Cache Ordering
+You run several batteries-included lib demos at once. Here's how the demo stays out of their
+way, from most to least automatic.
 
-The current Dockerfile copies the full repo before `mix deps.get`, which invalidates the
-dependency cache for routine source or style changes.
+### 1. Automatic free-port selection (default — nothing to do)
 
-Phase 87 should copy dependency files first:
+`up.sh` checks each loopback port and rolls forward to the next free one:
 
-1. `mix.exs`
-2. `mix.lock`
-3. `examples/adoption_demo/mix.exs`
-4. `examples/adoption_demo/mix.lock`
+| Service | Preferred | Picks next free if busy |
+| --- | --- | --- |
+| Cohort app | `4102` | `4103`, `4104`, … |
+| MinIO API | `9000` | `9001`, … |
+| MinIO console | `9001` | `9002`, … |
 
-Then run `mix deps.get` before app source copy. After dependencies are cached, copy the
-rest of the source and run the app build steps.
+The chosen MinIO API port flows into both the published port *and* the presigned upload URLs
+the browser uses, so uploads keep working at whatever port was picked. The printed URL map is
+always correct.
 
-## Wrapper Contract
+### 2. Pin a port yourself
 
-Preserve the simple `scripts/demo/up.sh` entry point. It should remain the maintainer's
-copy-paste command for the Docker preview, even if it learns to print URLs or pass project
-names.
+Set any of these and `up.sh` uses your value verbatim (no auto-bump):
 
-## Exposure Boundary
+```bash
+COHORT_DEMO_PORT=4212 COHORT_MINIO_PORT=9200 COHORT_MINIO_CONSOLE_PORT=9201 ./scripts/demo/up.sh
+```
 
-The MinIO console is local-only developer tooling. Bind the MinIO API and MinIO console to
-`127.0.0.1`, not all host interfaces. Do not present the Docker preview as a production
-deployment path, and do not document public MinIO console exposure.
+### 3. Run a second, fully separate stack
 
-The app URL can use localhost; published production topology is outside this phase.
+`COMPOSE_PROJECT_NAME` gives you isolated containers, networks, and volumes:
 
-## Traefik Decision
+```bash
+COMPOSE_PROJECT_NAME=rindle-cohort-alt ./scripts/demo/up.sh
+```
 
-Reject Traefik for Phase 87. Traefik can help when a real multi-host routing requirement
-exists, but this phase needs local port-conflict avoidance, cache-friendly builds, and a
-URL map. Adding Traefik now would add another service, labels, ports, and failure modes
-without a recorded need.
+### 4. Pretty hostnames via shared Traefik (opt-in)
 
-If a later recorded requirement needs multi-host routing, reopen the reverse-proxy decision
-with that requirement in hand.
+If you run a shared Traefik dev proxy on the external `proxy` network (label-routing,
+`exposedbydefault=false`, a `web` entrypoint on `:80`), opt in:
 
-## Recovery And Footguns
+```bash
+COHORT_USE_TRAEFIK=1 ./scripts/demo/up.sh          # → http://cohort.localhost
+COHORT_USE_TRAEFIK=1 COHORT_TRAEFIK_HOST=demo.localhost ./scripts/demo/up.sh
+```
 
-- If port `4102` is busy, set `COHORT_DEMO_PORT` instead of editing the compose file.
-- If port `9000` or `9001` is busy, set `COHORT_MINIO_PORT` or
-  `COHORT_MINIO_CONSOLE_PORT`.
-- If stale containers collide, change `COMPOSE_PROJECT_NAME` or run the matching compose
-  down command for the old project.
-- If dependency installs rerun on every source edit after Phase 87, the Dockerfile ordering
-  regressed.
+This attaches the app to the `proxy` network and registers a `Host(...)` router. The app's
+loopback port stays published too, so a stopped proxy never locks you out. If the `proxy`
+network isn't present, `up.sh` warns and falls back to fixed ports instead of failing.
 
-## Downstream Constraints
+**Coexistence contract** (so sibling demos don't fight one proxy): each demo joins the same
+external `proxy` network, keeps its Traefik **router/service names unique**, and relies on
+`exposedbydefault=false` so only labelled services route. MinIO is deliberately *not* proxied
+— presigned URLs embed `host.docker.internal:<port>`, which the browser reaches via the
+published host port, not the proxy.
 
-- Phase 87 updates compose ports and URL-map output.
-- Phase 87 fixes Dockerfile layer cache ordering.
-- Later UI/E2E phases rely on this preview being fast and conflict-free.
+---
+
+## When it doesn't come up
+
+**Symptom: the page won't load and `docker ps` shows the app container exited (code 255).**
+
+This is almost always a **dependency port collision** at startup: the bundled MinIO or
+Postgres couldn't bind its port, its healthcheck never passed, and the app — which waits for
+them — exited before Phoenix started. The classic case is a **native MinIO already holding
+`:9000`**.
+
+Diagnose and fix:
+
+```bash
+docker compose -f docker/compose.cohort-demo.yml logs        # read the failing service
+lsof -nP -iTCP@127.0.0.1 -sTCP:LISTEN | grep -E '4102|9000|9001'   # what's holding the port
+./scripts/demo/down.sh && ./scripts/demo/up.sh               # restart — auto-port-pick handles it
+```
+
+With automatic free-port selection, a fresh `up.sh` sidesteps the native-MinIO-on-9000
+collision on its own. If you'd pinned a port to something busy, unpin it or choose a free one.
+
+**Other recovery:**
+
+- Stale containers from an old run colliding → `./scripts/demo/down.sh` (add `-v` via
+  `reset.sh` to also wipe volumes), or use a fresh `COMPOSE_PROJECT_NAME`.
+- Dependencies re-downloading/recompiling on every small edit → the Dockerfile layer order
+  regressed (see below).
+
+---
+
+## Why rebuilds are fast (Dockerfile layering)
+
+`docker/Dockerfile.cohort-demo` copies only `mix.exs`/`mix.lock` + `config/` first, then runs
+`mix deps.get && mix deps.compile` in a **cached layer**, and only afterward copies the full
+source. Because `.dockerignore` excludes `deps/` and `_build/`, copying the source can't clobber
+those compiled artifacts. Net effect:
+
+- Edit a template or stylesheet → only `mix compile` (app) re-runs. Hex deps are **not**
+  re-downloaded or recompiled.
+- Bump `mix.lock` → the dependency layer rebuilds (BuildKit cache mounts keep the Hex/Rebar
+  download caches warm so it's still quick).
+- Change the `rindle` library itself → `rindle` recompiles (expected — it's the lib under test).
+
+`up.sh` exports `DOCKER_BUILDKIT=1` so the cache mounts engage.
+
+---
+
+## Security boundary
+
+This is a **local preview**, not a deployment path. All ports bind to `127.0.0.1` (loopback),
+the MinIO console is dev-only tooling, and the secret/credentials in the compose file are
+throwaway placeholders. Don't expose any of it publicly.
+
+---
+
+## Reuse this setup in another lib
+
+The same pattern (auto free ports, URL map, opt-in Traefik, cached Dockerfile) is packaged as
+a copy-pasteable template at [`docker/dx-template/`](../docker/dx-template/TEMPLATE.md) — see
+its `TEMPLATE.md` for the rename checklist and the shared-Traefik contract.
+
+---
+
+## Native path (hot reload, Playwright E2E)
+
+For hot-reload development, skip Docker and run natively — see
+[`examples/adoption_demo/README.md`](../examples/adoption_demo/README.md).
