@@ -314,7 +314,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 92-05-PLAN.md — Wire specs into proof matrix, drift gate, docs, and CI lane truth.
+- [x] 92-05-PLAN.md — Wire specs into proof matrix, drift gate, docs, and CI lane truth.
 
 ---
 

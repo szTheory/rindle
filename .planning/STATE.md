@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: Admin Console & Adoption Lab
-status: executing
-last_updated: "2026-06-13T03:12:39.762Z"
+status: verifying
+last_updated: "2026-06-13T03:24:38.042Z"
 last_activity: 2026-06-13
 progress:
   total_phases: 23
-  completed_phases: 9
+  completed_phases: 10
   total_plans: 32
-  completed_plans: 34
-  percent: 39
+  completed_plans: 35
+  percent: 43
 ---
 
 # Project State
@@ -24,9 +24,9 @@ See: .planning/PROJECT.md (updated 2026-06-11)
 
 ## Current Position
 
-Phase: 92 (e2e-screenshot-driven-polish-loop) — EXECUTING
+Phase: 92 (e2e-screenshot-driven-polish-loop) — VERIFYING
 Plan: 5 of 5
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-06-13
 
 ## Current Milestone
@@ -154,6 +154,9 @@ Last activity: 2026-06-13
 - [Phase 92]: Plan 02 fixes generated admin table wrapping at the brandbook generator source and syncs packaged CSS. — This keeps screenshot overflow fixes aligned across design-system and packaged assets.
 - [Phase 92]: Plan 04 keeps live admin screenshot artifacts under ignored Playwright test-results and asserts the exact 22-file PNG contract. — This gives E2E-02 objective coverage beyond visual review.
 - [Phase 92]: Plan 04 fixes screenshot polish in the admin CSS generator and keeps brandbook/priv CSS byte-identical. — This preserves the source-of-truth CSS invariant while resolving mobile Actions polish.
+- [Phase 92]: Plan 05 keeps admin screenshot proof inside the existing adoption-demo-e2e job instead of adding a new GitHub Actions job.
+- [Phase 92]: Plan 05 defines mix precommit as the local default ExUnit gate because no pre-existing precommit task existed.
+- [Phase 92]: Plan 05 leaves unrelated pre-existing full-repo formatting drift untouched.
 
 ## Blockers/Concerns
 
@@ -174,8 +177,8 @@ Last activity: 2026-06-13
 
 ## Session Continuity
 
-Last session: 2026-06-13T03:12:39.758Z
-Stopped at: Completed 92-04-PLAN.md
+Last session: 2026-06-13T03:24:37.808Z
+Stopped at: Completed 92-05-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -206,3 +209,4 @@ Resume file: None
 | Phase 92 P01 | 5 min | 2 tasks | 6 files |
 | Phase 92 P02 | 70 min | 2 tasks | 10 files |
 | Phase 92 P04 | 25 min | 2 tasks | 5 files |
+| Phase 92 P05 | 8min | 2 tasks | 7 files |
