@@ -33,6 +33,7 @@ Thumbs.db
 .gsd-archive-*/
 .planning/.gsd-archive-latest
 .planning/GSD1-RECOVERY.md
+.planning/tmp_*.json
 /init.json
 /progress.txt
 /recent.txt
