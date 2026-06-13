@@ -301,7 +301,7 @@ Plans:
 
 **Wave 1**
 
-- [ ] 92-01-PLAN.md — Create admin E2E helper and stable selector foundation.
+- [x] 92-01-PLAN.md — Create admin E2E helper and stable selector foundation.
 
 **Wave 2** *(blocked on Wave 1 completion)*
 

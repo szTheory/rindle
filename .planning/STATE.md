@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: Admin Console & Adoption Lab
 status: executing
-last_updated: "2026-06-13T02:00:19.033Z"
-last_activity: 2026-06-13 -- Phase 92 planning complete
+last_updated: "2026-06-13T02:10:44.900Z"
+last_activity: 2026-06-13
 progress:
   total_phases: 23
   completed_phases: 9
   total_plans: 32
-  completed_plans: 30
+  completed_plans: 31
   percent: 39
 ---
 
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-11)
 
 **Core value:** Media, made durable.
-**Current focus:** Phase 92 — e2e & screenshot driven polish loop
+**Current focus:** Phase 92 — e2e-screenshot-driven-polish-loop
 
 ## Current Position
 
-Phase: 92
-Plan: Not started
+Phase: 92 (e2e-screenshot-driven-polish-loop) — EXECUTING
+Plan: 2 of 5
 Status: Ready to execute
-Last activity: 2026-06-13 -- Phase 92 planning complete
+Last activity: 2026-06-13
 
 ## Current Milestone
 
@@ -147,6 +147,8 @@ Last activity: 2026-06-13 -- Phase 92 planning complete
 - 90-02 implemented non-destructive operations: Variant Regeneration, Lifecycle Repair, and Quarantine Review triage within the Actions hub.
 - 91-01 selected logo_opt2.svg as the official Cohort brand logo.
 - 91-03-01 Mounted the Rindle Admin Console at `/admin` in the Cohort demo using `allow_unauthenticated?: true`.
+- [Phase 92]: Use a shared CommonJS admin helper in the existing adoption_demo Playwright harness. — Keeps Phase 92 browser specs inside the existing CI-backed demo harness and avoids a standalone test app.
+- [Phase 92]: Expose only semantic data-rindle-admin-* selectors in shipped admin LiveView source. — Preserves the package selector contract from D-92-04 and avoids generic data-testid attributes in admin source.
 
 ## Blockers/Concerns
 
@@ -167,9 +169,9 @@ Last activity: 2026-06-13 -- Phase 92 planning complete
 
 ## Session Continuity
 
-Last session: 2026-06-13T01:17:51.701Z
-Stopped at: Phase 92 UI-SPEC approved
-Resume file: .planning/phases/92-e2e-screenshot-driven-polish-loop/92-UI-SPEC.md
+Last session: 2026-06-13T02:10:44.894Z
+Stopped at: Completed 92-01-PLAN.md
+Resume file: None
 
 ## Performance Metrics
 
@@ -196,3 +198,4 @@ Resume file: .planning/phases/92-e2e-screenshot-driven-polish-loop/92-UI-SPEC.md
 | Phase 91 P01 | 2 min | 3 tasks | 4 files |
 | Phase 91 P02 | 5 min | 2 tasks | 3 files |
 | Phase 91 P03 | 5 min | 2 tasks | 2 files |
+| Phase 92 P01 | 5 min | 2 tasks | 6 files |

@@ -49,7 +49,7 @@ coverage, deterministic E2E, and Docker DX fixes.
 
 ### E2E / Shift-Left (E2E)
 
-- [ ] **E2E-01**: Deterministic Playwright specs for the console (happy paths, main error
+- [x] **E2E-01**: Deterministic Playwright specs for the console (happy paths, main error
   cases, boundary conditions, theme switching, destructive flows) in a merge-blocking CI lane.
 - [ ] **E2E-02**: Automated all-screens × light/dark screenshot capture feeding
   analyze→fix polish iteration passes.
