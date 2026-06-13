@@ -31,7 +31,7 @@ created: 2026-06-13
 
 - **After every task commit:** Run the targeted Playwright or ExUnit command named in the task.
 - **After every plan wave:** Run `bash scripts/maintainer/check_adoption_proof_matrix.sh` plus the relevant admin Playwright specs.
-- **Before `$gsd-verify-work`:** `bash scripts/ci/adoption_demo_e2e.sh` must pass.
+- **Before `$gsd-verify-work`:** `bash scripts/ci/adoption_demo_e2e.sh` and `mix precommit` must pass.
 - **Max feedback latency:** Targeted specs should give feedback in under 120 seconds; the full lane is acceptable only at plan/phase gates.
 
 ---
@@ -49,7 +49,7 @@ created: 2026-06-13
 | 92-04-01 | 92-04 | 3 | E2E-02 | T-92-14, T-92-16, T-92-18 | Live Phoenix admin screenshot matrix captures light/dark desktop screens plus mobile shell/actions artifacts. | <code>cd examples/adoption_demo && npx playwright test e2e/admin-screenshots.spec.js</code><br><code>test -f examples/adoption_demo/test-results/admin-screenshots/light/home-status.png && test -f examples/adoption_demo/test-results/admin-screenshots/dark/actions-owner-preview.png && test -f examples/adoption_demo/test-results/admin-screenshots/mobile/light/actions.png</code> | 22 expected PNGs exist under ignored `examples/adoption_demo/test-results/admin-screenshots/`. |
 | 92-04-02 | 92-04 | 3 | E2E-02 | T-92-15, T-92-17, T-92-18 | Screenshot analyze-to-fix loop preserves generated CSS parity and records fix/no-regression evidence. | <code>node brandbook/src/admin-css-build.mjs</code><br><code>cmp -s brandbook/tokens/rindle-admin.css priv/static/rindle_admin/rindle-admin.css</code><br><code>MIX_ENV=test mix test test/brandbook/admin_design_system_validation_test.exs test/rindle/admin/live/actions_live_test.exs</code><br><code>cd examples/adoption_demo && npx playwright test e2e/admin-screenshots.spec.js</code> | `92-04-SUMMARY.md` lists fixes or the exact no-regression sentence required by the plan. |
 | 92-05-01 | 92-05 | 4 | E2E-01, E2E-02 | T-92-19, T-92-23 | Proof matrix, drift gate, and README name all admin behavior and screenshot specs plus screenshot output path. | <code>bash scripts/maintainer/check_adoption_proof_matrix.sh</code><br><code>rg -n "e2e/admin-console.spec.js&#124;e2e/admin-theme.spec.js&#124;e2e/admin-actions.spec.js&#124;e2e/admin-screenshots.spec.js&#124;test-results/admin-screenshots" examples/adoption_demo/docs/adoption-proof-matrix.md scripts/maintainer/check_adoption_proof_matrix.sh examples/adoption_demo/README.md</code> | Matrix, drift gate, and README contain all four new spec filenames and `test-results/admin-screenshots`. |
-| 92-05-02 | 92-05 | 4 | E2E-01, E2E-02 | T-92-20, T-92-21, T-92-22 | Existing merge-blocking `adoption-demo-e2e` lane remains the browser proof for behavior and screenshots. | <code>bash scripts/maintainer/check_adoption_proof_matrix.sh</code><br><code>bash scripts/ci/adoption_demo_e2e.sh</code> | `.github/workflows/ci.yml` keeps `adoption-demo-e2e`, required dependencies, artifact upload, and no stale `12/12 Playwright specs` wording. |
+| 92-05-02 | 92-05 | 4 | E2E-01, E2E-02 | T-92-20, T-92-21, T-92-22 | Existing merge-blocking `adoption-demo-e2e` lane remains the browser proof for behavior and screenshots. | <code>bash scripts/maintainer/check_adoption_proof_matrix.sh</code><br><code>bash scripts/ci/adoption_demo_e2e.sh</code><br><code>mix precommit</code> | `.github/workflows/ci.yml` keeps `adoption-demo-e2e`, required dependencies, artifact upload, no stale `12/12 Playwright specs` wording, and final `mix precommit` coverage. |
 
 ---
 
@@ -81,7 +81,7 @@ created: 2026-06-13
 | Wave 1 | 92-01 | Node helper export/path check; focused admin LiveView tests; no `data-testid` under `lib/rindle/admin`. |
 | Wave 2 | 92-02, 92-03 | Targeted `admin-console`, `admin-theme`, and `admin-actions` Playwright specs; grep gates for no `data-testid`, no sleeps, and no media-only theme proof. |
 | Wave 3 | 92-04 | `admin-screenshots` Playwright spec; 22 PNG artifact checks; CSS generator; brandbook/priv CSS parity; targeted design/admin tests. |
-| Wave 4 | 92-05 | Proof matrix drift gate; source checks for all spec filenames; full `bash scripts/ci/adoption_demo_e2e.sh` packaged browser lane. |
+| Wave 4 | 92-05 | Proof matrix drift gate; source checks for all spec filenames; full `bash scripts/ci/adoption_demo_e2e.sh` packaged browser lane; final `mix precommit`. |
 
 ---
 
