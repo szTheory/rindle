@@ -34,7 +34,7 @@ async function expectAdminShell(page, surface) {
   const root = adminRoot(page);
   await expect(root).toBeVisible();
   await expect(root).toHaveAttribute("data-rindle-admin-surface", surface);
-  await expect(page.locator(`[data-rindle-admin-surface="${surface}"]`)).toBeVisible();
+  await expect(page.locator(`[data-rindle-admin-root][data-rindle-admin-surface="${surface}"]`)).toBeVisible();
   await expect(page.locator("[data-rindle-admin-component=\"nav\"]")).toBeVisible();
   await expect(page.locator("[data-rindle-admin-page-header]")).toBeVisible();
   await expect(page.locator("[data-rindle-admin-live-indicator]")).toBeVisible();

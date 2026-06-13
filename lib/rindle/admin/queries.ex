@@ -76,21 +76,20 @@ defmodule Rindle.Admin.Queries do
 
   @spec asset_detail(Ecto.UUID.t()) :: {:ok, map()} | {:error, term()}
   def asset_detail(asset_id) when is_binary(asset_id) do
-    case Config.repo().get(MediaAsset, asset_id) do
-      nil ->
-        {:error, :not_found}
-
-      asset ->
-        {:ok,
-         %{
-           generated_at: DateTime.utc_now(),
-           asset: asset_row(asset),
-           attachments: attachment_rows(asset.id),
-           variants: variant_rows(asset.id),
-           upload_sessions: upload_session_rows(asset.id),
-           processing_runs: processing_run_rows(asset.id),
-           provider_assets: provider_asset_rows(asset.id)
-         }}
+    with {:ok, asset_id} <- Ecto.UUID.cast(asset_id),
+         %MediaAsset{} = asset <- Config.repo().get(MediaAsset, asset_id) do
+      {:ok,
+       %{
+         generated_at: DateTime.utc_now(),
+         asset: asset_row(asset),
+         attachments: attachment_rows(asset.id),
+         variants: variant_rows(asset.id),
+         upload_sessions: upload_session_rows(asset.id),
+         processing_runs: processing_run_rows(asset.id),
+         provider_assets: provider_asset_rows(asset.id)
+       }}
+    else
+      _error -> {:error, :not_found}
     end
   end
 
@@ -124,25 +123,27 @@ defmodule Rindle.Admin.Queries do
 
   @spec upload_session_detail(Ecto.UUID.t()) :: {:ok, map()} | {:error, term()}
   def upload_session_detail(session_id) when is_binary(session_id) do
-    query =
-      from(s in MediaUploadSession,
-        join: a in MediaAsset,
-        on: a.id == s.asset_id,
-        where: s.id == ^session_id,
-        select: {s, a.profile}
-      )
-
-    case Config.repo().one(query) do
+    with {:ok, session_id} <- Ecto.UUID.cast(session_id),
+         query =
+           from(s in MediaUploadSession,
+             join: a in MediaAsset,
+             on: a.id == s.asset_id,
+             where: s.id == ^session_id,
+             select: {s, a.profile}
+           ),
+         {session, profile} <- Config.repo().one(query) do
+      {:ok,
+       %{
+         generated_at: DateTime.utc_now(),
+         upload_session: upload_session_row(session, profile),
+         asset: asset_detail_row(session.asset_id)
+       }}
+    else
       nil ->
         {:error, :not_found}
 
-      {session, profile} ->
-        {:ok,
-         %{
-           generated_at: DateTime.utc_now(),
-           upload_session: upload_session_row(session, profile),
-           asset: asset_detail_row(session.asset_id)
-         }}
+      :error ->
+        {:error, :not_found}
     end
   end
 

@@ -64,9 +64,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             {"Session ID", @session.id},
             {"Asset ID", @session.asset_id},
             {"Strategy", @session.upload_strategy},
-            {"Protocol", @session.resumable_protocol || "standard"},
-            {"Session URI", @session.session_uri || "Redacted by Rindle Admin"}
+            {"Protocol", @session.resumable_protocol || "standard"}
           ]} />
+          <p>
+            <span>Session URI</span>
+            <.redacted_value value={@session.session_uri} />
+          </p>
         </section>
 
         <section>
