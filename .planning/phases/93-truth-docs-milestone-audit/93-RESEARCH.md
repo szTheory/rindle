@@ -432,7 +432,7 @@ planning docs instead:
 | A2 | Milestone status at close is likely `tech_debt` not `shipped`, because phases 90–93 are `status: human_needed` (HUMAN-UAT pending). | Milestone Audit | Medium — if maintainer signs UAT during this phase, status can be `shipped`. Verify UAT sign-off state at plan time. |
 | A3 | Whether to add a `Rindle.Admin.Router` "Admin Console" group to `groups_for_modules` is optional polish, not required by TRUTH-07. | README + HexDocs | Low. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Milestone close status (`shipped` vs `tech_debt`).**
    - Known: phases 90/91/92 verified all must-haves but are `status: human_needed`; `91-HUMAN-UAT.md` and `92-HUMAN-UAT.md` exist.
