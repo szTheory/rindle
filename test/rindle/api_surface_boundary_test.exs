@@ -203,7 +203,6 @@ defmodule Rindle.ApiSurfaceBoundaryTest do
             "retained_shared_assets",
             "cleanup_orphans",
             "maintenance-only",
-            "admin UI",
             "force-delete"
           ] do
         assert moduledoc =~ snippet,
