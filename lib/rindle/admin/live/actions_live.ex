@@ -205,7 +205,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         ) do
       case action do
         "reprobe" ->
-          case Rindle.reprobe(id) do
+          case run_lifecycle_action(fn -> Rindle.reprobe(id) end) do
             {:ok, report} ->
               {:noreply,
                assign(socket,
@@ -224,7 +224,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           end
 
         "requeue" ->
-          case Rindle.requeue_variants(id) do
+          case run_lifecycle_action(fn -> Rindle.requeue_variants(id) end) do
             {:ok, report} ->
               {:noreply,
                assign(socket,
@@ -250,7 +250,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           _params,
           %{assigns: %{action_state: :input}} = socket
         ) do
-      {:noreply, socket}
+      {:noreply, assign(socket, action_error: nil)}
     end
 
     def handle_event("change_variant_regeneration", _params, socket) do
@@ -277,7 +277,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
            )}
 
         {:error, _} ->
-          {:noreply, socket |> put_flash(:error, "Regeneration failed")}
+          {:noreply,
+           assign(socket,
+             action_state: :receipt,
+             action_error: nil,
+             action_data: %{report: %{enqueued: 0, skipped: 0, errors: 1}}
+           )}
       end
     end
 
@@ -294,6 +299,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         [type, id] = String.split(line, ":", parts: 2)
         %{__struct__: String.to_atom(type), id: id}
       end)
+    end
+
+    defp run_lifecycle_action(fun) do
+      fun.()
+    rescue
+      exception -> {:error, {exception.__struct__, Exception.message(exception)}}
+    catch
+      kind, reason -> {:error, {kind, reason}}
     end
 
     @impl true
@@ -584,7 +597,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp render_variant_regeneration_state(%{action_state: :input} = assigns) do
       ~H"""
       <div data-rindle-admin-state="input">
-        <form phx-submit="execute_variant_regeneration" phx-change="change_variant_regeneration" data-rindle-admin-form="variant_regeneration">
+        <form phx-submit="execute_variant_regeneration" data-rindle-admin-form="variant_regeneration">
           <div>
             <label>Profile (optional)</label>
             <input type="text" name="profile" data-rindle-admin-input="profile" />
@@ -595,7 +608,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           </div>
           <div>
             <label>
-              <input type="checkbox" name="confirm" value="true" data-rindle-admin-input="confirm" required />
+              <input type="checkbox" name="confirm" value="true" data-rindle-admin-input="confirm" />
               Confirm broad regeneration
             </label>
           </div>
