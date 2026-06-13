@@ -20,7 +20,8 @@ defmodule AdoptionDemoWeb.Router do
   scope "/", AdoptionDemoWeb do
     pipe_through(:browser)
 
-    live("/", DashboardLive, :index)
+    live("/", LaunchpadLive, :index)
+    live("/dashboard", DashboardLive, :index)
     live("/members/:id", MemberLive, :show)
     live("/lessons/:id", LessonLive, :show)
     live("/posts/:id", PostLive, :show)
@@ -33,6 +34,19 @@ defmodule AdoptionDemoWeb.Router do
   scope "/admin" do
     pipe_through(:browser)
 
+    # PREVIEW ONLY. `allow_unauthenticated?: true` is the library's sanctioned
+    # escape hatch for examples and local previews; it is refused in :prod, which
+    # is why this demo is built as a dev/preview env (see docker/Dockerfile.cohort-demo).
+    #
+    # In a real production app you auth-guard the console instead, e.g.:
+    #
+    #     scope "/admin", MyAppWeb do
+    #       pipe_through [:browser, :require_admin]
+    #       rindle_admin "/rindle", on_mount: [MyAppWeb.AdminLiveAuth]
+    #     end
+    #
+    # (or assert the surrounding pipeline already enforces auth via
+    # `auth_guarded?: true`). Never ship `allow_unauthenticated?: true`.
     rindle_admin("/rindle", allow_unauthenticated?: true)
   end
 end

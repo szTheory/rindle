@@ -122,6 +122,33 @@
     },
   };
 
+  // Copy-to-clipboard for the launchpad access panel (URLs / credentials).
+  const Copy = {
+    mounted() {
+      this.el.addEventListener("click", async () => {
+        const text = this.el.dataset.copy || "";
+        try {
+          await navigator.clipboard.writeText(text);
+        } catch (_e) {
+          const ta = document.createElement("textarea");
+          ta.value = text;
+          document.body.appendChild(ta);
+          ta.select();
+          try {
+            document.execCommand("copy");
+          } finally {
+            ta.remove();
+          }
+        }
+        this.el.dataset.copied = "true";
+        clearTimeout(this._copiedTimer);
+        this._copiedTimer = setTimeout(() => {
+          delete this.el.dataset.copied;
+        }, 1200);
+      });
+    },
+  };
+
   const csrfToken = document
     .querySelector("meta[name='csrf-token']")
     .getAttribute("content");
@@ -129,7 +156,7 @@
   const liveSocket = new LiveView.LiveSocket("/live", Phoenix.Socket, {
     longPollFallbackMs: 2500,
     params: { _csrf_token: csrfToken },
-    hooks: { PresignedPut, PresignedVideoPut, PresignedMuxPut, MultipartUpload },
+    hooks: { PresignedPut, PresignedVideoPut, PresignedMuxPut, MultipartUpload, Copy },
     uploaders: Uploaders,
   });
 

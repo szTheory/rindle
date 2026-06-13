@@ -4,14 +4,20 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content={get_csrf_token()} />
-    <.live_title default="AdoptionDemo" suffix=" · Phoenix Framework" phx-no-format>{assigns[:page_title]}</.live_title>
+    <.live_title default="Cohort · Rindle demo" suffix=" · Cohort" phx-no-format>{assigns[:page_title]}</.live_title>
     <link phx-track-static rel="stylesheet" href={~p"/assets/css/app.css"} />
     <link phx-track-static rel="stylesheet" href={~p"/assets/default.css"} />
+    <link phx-track-static rel="stylesheet" href={~p"/assets/cohort.css"} />
     <script defer phx-track-static type="text/javascript" src={~p"/assets/vendor/tus.min.js"}>
     </script>
     <script defer phx-track-static type="text/javascript" src={~p"/assets/vendor/phoenix.min.js"}>
     </script>
-    <script defer phx-track-static type="text/javascript" src={~p"/assets/vendor/phoenix_live_view.min.js"}>
+    <script
+      defer
+      phx-track-static
+      type="text/javascript"
+      src={~p"/assets/vendor/phoenix_live_view.min.js"}
+    >
     </script>
     <script defer phx-track-static type="text/javascript" src={~p"/assets/js/app.js"}>
     </script>

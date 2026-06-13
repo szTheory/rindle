@@ -5,6 +5,8 @@ defmodule AdoptionDemoWeb.Layouts do
   """
   use AdoptionDemoWeb, :html
 
+  import AdoptionDemoWeb.CohortComponents, only: [cohort_nav: 1, cohort_footer: 1]
+
   # Embed all files in layouts/* within this module.
   # The default root.html.heex file contains the HTML
   # skeleton of your application, namely HTML headers
@@ -27,28 +29,18 @@ defmodule AdoptionDemoWeb.Layouts do
   """
   attr :flash, :map, required: true, doc: "the map of flash messages"
   attr :page_title, :string, default: "Adoption demo"
+  attr :nav, :atom, default: nil, doc: "active nav section (:app, :upload, :ops)"
 
   slot :inner_block, required: true
 
   def app(assigns) do
     ~H"""
-    <header class="navbar px-4 sm:px-6 lg:px-8 border-b">
-      <div class="flex-1">
-        <a href="/" class="flex w-fit items-center gap-2">
-          <img src={~p"/images/logo.svg"} width="28" alt="" />
-          <span class="text-sm font-semibold">Cohort · Rindle demo</span>
-        </a>
-      </div>
-      <nav class="flex gap-4 text-sm">
-        <.link navigate={~p"/"}>Dashboard</.link>
-        <.link navigate={~p"/upload"}>Upload</.link>
-        <.link navigate={~p"/ops"}>Ops</.link>
-      </nav>
-    </header>
+    <.cohort_nav active={@nav} />
 
     <main class="px-4 py-8 sm:px-6 lg:px-8">
       <div class="mx-auto max-w-3xl space-y-4">
         {render_slot(@inner_block)}
+        <.cohort_footer />
       </div>
     </main>
 

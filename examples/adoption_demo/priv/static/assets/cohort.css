@@ -1,0 +1,579 @@
+/* ==========================================================================
+   Cohort design system
+   A small, self-contained system for the Cohort adoption-demo launchpad.
+   Editorial "field guide / control room" aesthetic in Cohort's emerald brand.
+   Hand-authored, vendored (no build step). Scoped under .ck-* so it never
+   collides with the daisyUI styles the inner app pages still use.
+   ========================================================================== */
+
+/* ---- fonts (vendored, offline) ------------------------------------------ */
+@font-face {
+  font-family: "Atkinson Hyperlegible";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/assets/fonts/AtkinsonHyperlegible-Regular.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Atkinson Hyperlegible";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/assets/fonts/AtkinsonHyperlegible-Bold.woff2") format("woff2");
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/assets/fonts/JetBrainsMono-Regular.woff2") format("woff2");
+}
+
+/* ---- tokens ------------------------------------------------------------- */
+:root {
+  /* brand (from the Cohort mortarboard logo) */
+  --ck-brand: #059669;
+  --ck-brand-strong: #047857; /* text-weight emerald on light (AA) */
+  --ck-accent: #10b981;
+  --ck-btn-bg: #047857; /* filled-button ground: white text hits AA (4.9:1) */
+  --ck-on-brand: #ffffff;
+
+  /* light theme */
+  --ck-bg: #f7f8f6;
+  --ck-bg-glow: rgba(5, 150, 105, 0.07);
+  --ck-surface: #ffffff;
+  --ck-surface-2: #fbfcfb;
+  --ck-ink: #0f1b17;
+  --ck-muted: #586b63;
+  --ck-faint: #8a9a92;
+  --ck-border: #e4e9e5;
+  --ck-border-strong: #d3dad5;
+  --ck-tint: #ecfdf5; /* emerald-50 panel wash */
+  --ck-tint-border: #c4ebd9;
+  --ck-link: var(--ck-brand-strong);
+  --ck-focus: #047857;
+  --ck-code-bg: #f0f3f1;
+  --ck-code-ink: #0f1b17;
+  --ck-shadow-sm: 0 1px 2px rgba(15, 27, 23, 0.05);
+  --ck-shadow-md: 0 6px 20px -10px rgba(15, 27, 23, 0.22);
+  --ck-shadow-lg: 0 18px 40px -22px rgba(15, 27, 23, 0.32);
+
+  /* state colors (mirror the admin lifecycle palette) */
+  --ck-ready: #047857;
+  --ck-processing: #b45309;
+  --ck-quarantine: #b91c1c;
+  --ck-info: #1d4ed8;
+
+  /* type */
+  --ck-font-sans: "Atkinson Hyperlegible", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --ck-font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --ck-step--1: 0.8125rem;
+  --ck-step-0: 1rem;
+  --ck-step-1: 1.1875rem;
+  --ck-step-2: 1.4rem;
+  --ck-step-3: 1.85rem;
+  --ck-step-hero: clamp(2.25rem, 1.4rem + 3.4vw, 3.4rem);
+
+  /* space */
+  --ck-1: 0.25rem;
+  --ck-2: 0.5rem;
+  --ck-3: 0.75rem;
+  --ck-4: 1rem;
+  --ck-5: 1.5rem;
+  --ck-6: 2rem;
+  --ck-7: 3rem;
+  --ck-8: 4rem;
+
+  --ck-radius: 14px;
+  --ck-radius-sm: 9px;
+  --ck-maxw: 64rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ck-brand: #10b981;
+    --ck-brand-strong: #34d399;
+    --ck-accent: #34d399;
+    --ck-btn-bg: #34d399; /* bright emerald + dark ink reads vivid on dark */
+    --ck-on-brand: #06231b;
+    --ck-bg: #0b1411;
+    --ck-bg-glow: rgba(16, 185, 129, 0.1);
+    --ck-surface: #111d18;
+    --ck-surface-2: #0f1a15;
+    --ck-ink: #ecf3ef;
+    --ck-muted: #9db1a8;
+    --ck-faint: #6f857b;
+    --ck-border: #1f2e27;
+    --ck-border-strong: #2a3c34;
+    --ck-tint: rgba(16, 185, 129, 0.09);
+    --ck-tint-border: rgba(16, 185, 129, 0.28);
+    --ck-link: #34d399;
+    --ck-focus: #34d399;
+    --ck-code-bg: #0c1713;
+    --ck-code-ink: #d7e6df;
+    --ck-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --ck-shadow-md: 0 8px 24px -12px rgba(0, 0, 0, 0.6);
+    --ck-shadow-lg: 0 22px 48px -24px rgba(0, 0, 0, 0.7);
+    --ck-ready: #34d399;
+    --ck-processing: #fbbf24;
+    --ck-quarantine: #f87171;
+    --ck-info: #60a5fa;
+  }
+}
+
+/* ---- page shell --------------------------------------------------------- */
+.ck {
+  font-family: var(--ck-font-sans);
+  color: var(--ck-ink);
+  background:
+    radial-gradient(60rem 32rem at 78% -8%, var(--ck-bg-glow), transparent 60%),
+    var(--ck-bg);
+  min-height: 100dvh;
+  font-size: var(--ck-step-0);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+.ck *,
+.ck *::before,
+.ck *::after {
+  box-sizing: border-box;
+}
+.ck__wrap {
+  max-width: var(--ck-maxw);
+  margin: 0 auto;
+  padding: clamp(1.25rem, 1rem + 2vw, 3rem) clamp(1rem, 0.5rem + 2vw, 2rem) var(--ck-8);
+}
+.ck a {
+  color: var(--ck-link);
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+}
+.ck :focus-visible {
+  outline: 2px solid var(--ck-focus);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* ---- header / nav ------------------------------------------------------- */
+.ck-nav {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: var(--ck-4);
+  padding: 0.7rem clamp(1rem, 0.5rem + 2vw, 2rem);
+  background: color-mix(in srgb, var(--ck-bg) 82%, transparent);
+  backdrop-filter: saturate(1.4) blur(10px);
+  border-bottom: 1px solid var(--ck-border);
+}
+.ck-nav__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--ck-ink);
+  text-decoration: none;
+}
+.ck-nav__brand img {
+  width: 26px;
+  height: 26px;
+  display: block;
+}
+.ck-nav__demo {
+  color: var(--ck-faint);
+  font-weight: 400;
+}
+.ck-nav__spacer {
+  flex: 1;
+}
+.ck-nav__links {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.5rem, 0.2rem + 1vw, 1.25rem);
+  font-size: var(--ck-step--1);
+}
+.ck-nav__links a {
+  color: var(--ck-muted);
+  text-decoration: none;
+  padding: 0.35rem 0.1rem;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+.ck-nav__links a:hover {
+  color: var(--ck-ink);
+}
+.ck-nav__links a[aria-current="page"] {
+  color: var(--ck-ink);
+  border-bottom-color: var(--ck-brand);
+}
+
+/* ---- hero --------------------------------------------------------------- */
+.ck-hero {
+  padding: clamp(1.5rem, 1rem + 3vw, 3.5rem) 0 var(--ck-6);
+}
+.ck-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: var(--ck-step--1);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ck-brand-strong);
+  font-weight: 700;
+}
+.ck-eyebrow::before {
+  content: "";
+  width: 1.75rem;
+  height: 2px;
+  background: var(--ck-brand);
+  display: inline-block;
+}
+.ck-hero__title {
+  font-size: var(--ck-step-hero);
+  line-height: 1.04;
+  letter-spacing: -0.025em;
+  margin: var(--ck-4) 0 var(--ck-3);
+  font-weight: 700;
+  max-width: 18ch;
+}
+.ck-hero__lede {
+  font-size: var(--ck-step-1);
+  color: var(--ck-muted);
+  max-width: 60ch;
+  margin: 0 0 var(--ck-5);
+}
+.ck-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ck-3);
+  align-items: center;
+}
+
+/* ---- buttons ------------------------------------------------------------ */
+.ck-btn {
+  --_bg: var(--ck-surface);
+  --_fg: var(--ck-ink);
+  --_bd: var(--ck-border-strong);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.05rem;
+  font: inherit;
+  font-weight: 700;
+  font-size: var(--ck-step-0);
+  color: var(--_fg);
+  background: var(--_bg);
+  border: 1px solid var(--_bd);
+  border-radius: 999px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+.ck-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--ck-shadow-md);
+}
+.ck-btn:active {
+  transform: translateY(0);
+}
+.ck-btn--primary {
+  --_bg: var(--ck-btn-bg);
+  --_fg: var(--ck-on-brand);
+  --_bd: transparent;
+}
+.ck-btn--primary:hover {
+  --_bg: color-mix(in srgb, var(--ck-btn-bg) 90%, var(--ck-on-brand));
+}
+.ck-btn__arrow {
+  transition: transform 0.18s ease;
+}
+.ck-btn:hover .ck-btn__arrow {
+  transform: translateX(3px);
+}
+
+/* ---- section heading ---------------------------------------------------- */
+.ck-section {
+  margin-top: var(--ck-7);
+}
+.ck-section__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--ck-4);
+  margin-bottom: var(--ck-4);
+}
+.ck-section__title {
+  font-size: var(--ck-step-2);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+.ck-section__hint {
+  color: var(--ck-faint);
+  font-size: var(--ck-step--1);
+}
+
+/* ---- access panel ("before you start") --------------------------------- */
+.ck-panel {
+  position: relative;
+  background: var(--ck-tint);
+  border: 1px solid var(--ck-tint-border);
+  border-radius: var(--ck-radius);
+  padding: var(--ck-5);
+  overflow: hidden;
+}
+.ck-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: linear-gradient(var(--ck-brand), var(--ck-accent));
+}
+.ck-panel__title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: var(--ck-step-0);
+  font-weight: 700;
+  margin: 0 0 var(--ck-4);
+}
+.ck-cred-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: var(--ck-3) var(--ck-5);
+}
+.ck-cred {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+.ck-cred__label {
+  font-size: var(--ck-step--1);
+  color: var(--ck-muted);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.ck-cred__row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+}
+.ck-cred__value {
+  font-family: var(--ck-font-mono);
+  font-size: 0.875rem;
+  color: var(--ck-code-ink);
+  background: var(--ck-code-bg);
+  border: 1px solid var(--ck-border);
+  border-radius: var(--ck-radius-sm);
+  padding: 0.28rem 0.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+.ck-cred__value--link {
+  color: var(--ck-link);
+  text-decoration: none;
+}
+.ck-cred__value--link:hover {
+  text-decoration: underline;
+}
+.ck-copy {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  border: 1px solid var(--ck-border-strong);
+  border-radius: var(--ck-radius-sm);
+  background: var(--ck-surface);
+  color: var(--ck-muted);
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+.ck-copy:hover {
+  color: var(--ck-brand-strong);
+  border-color: var(--ck-brand);
+}
+.ck-copy[data-copied="true"] {
+  color: #fff;
+  background: var(--ck-brand);
+  border-color: transparent;
+}
+.ck-copy svg {
+  width: 0.95rem;
+  height: 0.95rem;
+}
+.ck-copy__check {
+  display: none;
+}
+.ck-copy[data-copied="true"] .ck-copy__check {
+  display: block;
+}
+.ck-copy[data-copied="true"] .ck-copy__icon {
+  display: none;
+}
+
+/* ---- task card grid ----------------------------------------------------- */
+.ck-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(16.5rem, 1fr));
+  gap: var(--ck-4);
+}
+.ck-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding: var(--ck-5);
+  background: var(--ck-surface);
+  border: 1px solid var(--ck-border);
+  border-radius: var(--ck-radius);
+  text-decoration: none;
+  color: inherit;
+  box-shadow: var(--ck-shadow-sm);
+  transition: transform 0.15s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  isolation: isolate;
+}
+.ck-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--ck-brand);
+  box-shadow: var(--ck-shadow-lg);
+}
+.ck-card__icon {
+  display: grid;
+  place-items: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 11px;
+  background: var(--ck-tint);
+  color: var(--ck-brand-strong);
+  border: 1px solid var(--ck-tint-border);
+}
+.ck-card__icon svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+.ck-card__title {
+  font-size: var(--ck-step-1);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  margin: 0.15rem 0 0;
+}
+.ck-card__desc {
+  color: var(--ck-muted);
+  font-size: 0.95rem;
+  margin: 0;
+  flex: 1;
+}
+.ck-card__foot {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.35rem;
+  font-size: var(--ck-step--1);
+  font-weight: 700;
+  color: var(--ck-brand-strong);
+}
+.ck-card__path {
+  font-family: var(--ck-font-mono);
+  font-size: 0.78rem;
+  font-weight: 400;
+  color: var(--ck-faint);
+}
+.ck-card__arrow {
+  margin-left: auto;
+  color: var(--ck-brand);
+  transition: transform 0.18s ease;
+}
+.ck-card:hover .ck-card__arrow {
+  transform: translateX(4px);
+}
+
+/* ---- badges & cast ------------------------------------------------------ */
+.ck-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  padding: 0.12rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  color: var(--ck-muted);
+}
+.ck-badge::before {
+  content: "";
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: currentColor;
+}
+.ck-badge--ready { color: var(--ck-ready); }
+.ck-badge--processing { color: var(--ck-processing); }
+.ck-badge--quarantine { color: var(--ck-quarantine); }
+.ck-badge--info { color: var(--ck-info); }
+
+.ck-cast {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ck-3);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.ck-cast li {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.5rem 0.85rem;
+  background: var(--ck-surface);
+  border: 1px solid var(--ck-border);
+  border-radius: var(--ck-radius-sm);
+  font-size: 0.9rem;
+}
+.ck-cast strong {
+  font-weight: 700;
+}
+.ck-cast span {
+  color: var(--ck-faint);
+  font-size: var(--ck-step--1);
+}
+
+/* ---- footer ------------------------------------------------------------- */
+.ck-footer {
+  margin-top: var(--ck-8);
+  padding-top: var(--ck-5);
+  border-top: 1px solid var(--ck-border);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ck-3);
+  color: var(--ck-faint);
+  font-size: var(--ck-step--1);
+}
+.ck-footer a {
+  color: var(--ck-muted);
+}
+
+/* ---- motion: staggered page-load reveal --------------------------------- */
+@media (prefers-reduced-motion: no-preference) {
+  .ck-reveal {
+    opacity: 0;
+    transform: translateY(10px);
+    animation: ck-rise 0.55s cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+  }
+  .ck-reveal[style*="--d"] { animation-delay: var(--d); }
+  @keyframes ck-rise {
+    to { opacity: 1; transform: none; }
+  }
+}
