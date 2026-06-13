@@ -305,7 +305,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 92-02-PLAN.md — Add admin surface, boundary, detail, redaction, and theme specs.
+- [x] 92-02-PLAN.md — Add admin surface, boundary, detail, redaction, and theme specs.
 - [ ] 92-03-PLAN.md — Add destructive and non-destructive admin action specs.
 
 **Wave 3** *(blocked on Wave 2 completion)*

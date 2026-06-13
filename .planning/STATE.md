@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: Admin Console & Adoption Lab
 status: executing
-last_updated: "2026-06-13T02:10:44.900Z"
+last_updated: "2026-06-13T02:41:55.105Z"
 last_activity: 2026-06-13
 progress:
   total_phases: 23
   completed_phases: 9
   total_plans: 32
-  completed_plans: 31
+  completed_plans: 32
   percent: 39
 ---
 
@@ -25,7 +25,7 @@ See: .planning/PROJECT.md (updated 2026-06-11)
 ## Current Position
 
 Phase: 92 (e2e-screenshot-driven-polish-loop) — EXECUTING
-Plan: 2 of 5
+Plan: 3 of 5
 Status: Ready to execute
 Last activity: 2026-06-13
 
@@ -149,6 +149,9 @@ Last activity: 2026-06-13
 - 91-03-01 Mounted the Rindle Admin Console at `/admin` in the Cohort demo using `allow_unauthenticated?: true`.
 - [Phase 92]: Use a shared CommonJS admin helper in the existing adoption_demo Playwright harness. — Keeps Phase 92 browser specs inside the existing CI-backed demo harness and avoids a standalone test app.
 - [Phase 92]: Expose only semantic data-rindle-admin-* selectors in shipped admin LiveView source. — Preserves the package selector contract from D-92-04 and avoids generic data-testid attributes in admin source.
+- [Phase 92]: Plan 02 kept admin browser coverage on the /admin/rindle route contract and reused the shared adoption demo Playwright helper. — This preserves the selector and routing contract from Plan 92-01.
+- [Phase 92]: Plan 02 uses LiveView JS commands for deterministic admin theme picker state instead of media emulation. — Theme tests now exercise app-level controls for light, dark, and auto.
+- [Phase 92]: Plan 02 fixes generated admin table wrapping at the brandbook generator source and syncs packaged CSS. — This keeps screenshot overflow fixes aligned across design-system and packaged assets.
 
 ## Blockers/Concerns
 
@@ -169,8 +172,8 @@ Last activity: 2026-06-13
 
 ## Session Continuity
 
-Last session: 2026-06-13T02:10:44.894Z
-Stopped at: Completed 92-01-PLAN.md
+Last session: 2026-06-13T02:41:55.101Z
+Stopped at: Completed 92-02-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -199,3 +202,4 @@ Resume file: None
 | Phase 91 P02 | 5 min | 2 tasks | 3 files |
 | Phase 91 P03 | 5 min | 2 tasks | 2 files |
 | Phase 92 P01 | 5 min | 2 tasks | 6 files |
+| Phase 92 P02 | 70 min | 2 tasks | 10 files |
