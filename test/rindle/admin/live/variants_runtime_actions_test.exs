@@ -181,27 +181,30 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ "Waiting for lifecycle events"
     end
 
-    test "Actions renders the Phase 90 read-only operation directory", %{conn: conn} do
+    test "Actions renders the Phase 90 operation directory and active panels", %{conn: conn} do
       {:ok, _view, html} = Phoenix.LiveViewTest.live(conn, "/admin/rindle/actions")
 
       assert_shell(html, "actions")
       assert html =~ "Actions"
-      assert html =~ "owner erasure"
-      assert html =~ "batch erasure"
-      assert html =~ "variant regeneration"
-      assert html =~ "quarantine review"
-      assert html =~ "lifecycle repair"
-      assert html =~ "Phase 90"
-      assert html =~ "enabled?"
-      assert html =~ "false"
-      assert html =~ "read-only"
+      assert html =~ "Owner erasure"
+      assert html =~ "Batch erasure"
+      assert html =~ "Variant regeneration"
+      assert html =~ "Quarantine review"
+      assert html =~ "Lifecycle repair"
+      assert html =~ "Actions Directory"
+      assert html =~ "Preview and erase one owner"
+      assert html =~ "Preview owner erasure"
       assert html =~ "Waiting for lifecycle events"
 
-      refute html =~ ~r/<button[^>]*type="submit"/
-      refute html =~ ~r/<form[^>]*method="post"/
-      refute html =~ ~r/phx-click="(erase|repair|regenerate|quarantine)/
-      refute html =~ "erase_owner"
-      refute html =~ "batch_owner_erasure"
+      assert html =~ ~s(data-rindle-admin-action="owner_erasure")
+      assert html =~ ~s(data-rindle-admin-action="batch_erasure")
+      assert html =~ ~s(data-rindle-admin-action="variant_regeneration")
+      assert html =~ ~s(data-rindle-admin-action="quarantine_review")
+      assert html =~ ~s(data-rindle-admin-action="lifecycle_repair")
+      assert html =~ ~s(data-rindle-admin-action-panel="owner_erasure")
+      assert html =~ ~s(data-rindle-admin-form="owner_erasure_preview")
+      assert html =~ ~s(data-rindle-admin-submit="preview_owner_erasure")
+
       refute html =~ "LifecycleRepair"
       refute html =~ "VariantMaintenance"
     end
