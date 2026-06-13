@@ -12,6 +12,8 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
   @running_path Path.expand("../../RUNNING.md", __DIR__)
   @user_flows_path Path.expand("../../guides/user_flows.md", __DIR__)
   @operations_path Path.expand("../../guides/operations.md", __DIR__)
+  @admin_console_path Path.expand("../../guides/admin_console.md", __DIR__)
+  @mix_exs_path Path.expand("../../mix.exs", __DIR__)
 
   @expected_tus_extensions "creation,expiration,termination,checksum,creation-defer-length,concatenation"
 
@@ -330,13 +332,29 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
     assert operations =~ "doctor validates setup and drift"
     assert operations =~ "runtime status reports degraded or stuck work"
     assert operations =~ "repair verbs perform change"
-    assert operations =~ "no dashboard"
+
+    # TRUTH-07: the facade now ships a mountable admin console, so operations.md
+    # must affirm the console (not deny a dashboard) while retaining the honest
+    # "no auto-remediation" contract. The old dashboard-denial assertion was
+    # reworked — re-asserting the bare denial phrase would relock the
+    # scope-reversed claim Plan 01 removed (Pitfall 5 / T-93-05).
     assert operations =~ "no auto-remediation"
+
+    assert operations =~ ~r/admin[_ ]console/i,
+           "operations.md must mention the mountable admin console (TRUTH-07)"
+
+    refute operations =~ "intentionally has no dashboard",
+           "operations.md must not deny a dashboard now that the console ships"
 
     assert troubleshooting =~ "mix rindle.doctor"
     assert troubleshooting =~ "mix rindle.runtime_status"
     assert troubleshooting =~ "doctor validates setup and drift"
     assert troubleshooting =~ "runtime status reports degraded or stuck work"
+
+    assert troubleshooting =~ "no auto-remediation"
+
+    refute troubleshooting =~ "intentionally has no dashboard",
+           "troubleshooting.md must not deny a dashboard now that the console ships"
   end
 
   test "user flows guide freezes the canonical owner-erasure support truth", %{
@@ -357,7 +375,11 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
           "detach now, purge later",
           "cleanup_orphans",
           "maintenance-only",
-          "admin ui",
+          # TRUTH-07: user_flows now affirms the mountable admin console instead
+          # of denying "an admin UI". The old required `"admin ui"` snippet was
+          # replaced with the truthful "admin console" token (asserted below);
+          # leaving it here would relock the scope-reversed denial (T-93-05).
+          "admin console",
           "preview_batch_owner_erasure",
           "erase_batch_owner_erasure",
           "batch owner erasure",
@@ -381,6 +403,53 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
 
     refute user_flows =~ "being standardized for `v1.10`"
     refute user_flows =~ "The full executable facade lands in later `v1.10` phase work"
+
+    # TRUTH-07: the JTBD admin-UI exclusion is reversed. user_flows must not
+    # carry the old denial phrasings now that the mountable console ships.
+    refute Regex.match?(~r/\ban admin UI\b/i, user_flows),
+           "user_flows.md must not deny an admin UI (scope reversed in v1.18)"
+
+    refute user_flows =~ "Admin UI, force-delete",
+           "user_flows.md must not list the admin UI among deferred work"
+  end
+
+  test "admin console truth is locked across facade, guide, extras, and README", %{
+    readme: readme
+  } do
+    # (1) Facade moduledoc: affirm the mountable console, deny no admin UI.
+    facade_moduledoc =
+      Rindle
+      |> moduledoc!()
+      |> normalize_whitespace()
+
+    assert facade_moduledoc =~ "rindle_admin",
+           "Rindle facade moduledoc must reference the rindle_admin router macro (TRUTH-07)"
+
+    assert facade_moduledoc =~ "admin console",
+           "Rindle facade moduledoc must affirm the mountable admin console (TRUTH-07)"
+
+    refute Regex.match?(~r/no admin ui/i, facade_moduledoc),
+           "Rindle facade moduledoc must not deny an admin UI (scope reversed in v1.18)"
+
+    # Retain the deferred owner-erasure truths the facade still promises.
+    assert facade_moduledoc =~ "force-delete"
+    assert facade_moduledoc =~ "scheduler/cron erasure"
+
+    # (2) admin_console guide exists, is in extras, and names the router macro.
+    assert File.exists?(@admin_console_path),
+           "guides/admin_console.md must exist (created by Plan 03)"
+
+    admin_guide = File.read!(@admin_console_path)
+    assert admin_guide =~ "rindle_admin",
+           "admin_console.md must document the rindle_admin router macro"
+
+    mix_exs = File.read!(@mix_exs_path)
+    assert mix_exs =~ "guides/admin_console.md",
+           "mix.exs must wire admin_console.md into docs extras"
+
+    # (3) README links the rendered guide.
+    assert readme =~ "admin_console.html",
+           "README must link the admin console guide (admin_console.html)"
   end
 
   test "user flows roadmap does not regress tus or mux to near-term", %{user_flows: user_flows} do
