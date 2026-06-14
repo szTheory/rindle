@@ -222,32 +222,34 @@ Open only via `/gsd-new-milestone` with documented signal:
 
 ## Traceability
 
-### v1.19 Design-System Stress-Test (phases 94+ — filled by roadmapper)
+### v1.19 Design-System Stress-Test (phases 94–102)
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PIPE-01 | TBD | Pending |
-| PIPE-02 | TBD | Pending |
-| UPLIFT-01 | TBD | Pending |
-| UPLIFT-02 | TBD | Pending |
-| UPLIFT-03 | TBD | Pending |
-| UPLIFT-04 | TBD | Pending |
-| UPLIFT-05 | TBD | Pending |
-| UPLIFT-06 | TBD | Pending |
-| UPLIFT-07 | TBD | Pending |
-| UPLIFT-08 | TBD | Pending |
-| COHORT-01 | TBD | Pending |
-| COHORT-02 | TBD | Pending |
-| COHORT-03 | TBD | Pending |
-| COHORT-04 | TBD | Pending |
-| COHORT-05 | TBD | Pending |
-| COHORT-06 | TBD | Pending |
-| VIS-01 | TBD | Pending |
-| VIS-02 | TBD | Pending |
-| VIS-03 | TBD | Pending |
-| VIS-04 | TBD | Pending |
+| PIPE-01 | Phase 94 | Pending |
+| PIPE-02 | Phase 94 | Pending |
+| UPLIFT-01 | Phase 95 | Pending |
+| UPLIFT-02 | Phase 97 | Pending |
+| UPLIFT-03 | Phase 98 | Pending |
+| UPLIFT-04 | Phase 98 | Pending |
+| UPLIFT-05 | Phase 98 | Pending |
+| UPLIFT-06 | Phase 98 | Pending |
+| UPLIFT-07 | Phase 98 | Pending |
+| UPLIFT-08 | Phase 98 | Pending |
+| COHORT-01 | Phase 99 | Pending |
+| COHORT-02 | Phase 100 | Pending |
+| COHORT-03 | Phase 99 | Pending |
+| COHORT-04 | Phase 99 | Pending |
+| COHORT-05 | Phase 101 | Pending |
+| COHORT-06 | Phase 96 | Pending |
+| VIS-01 | Phase 102 | Pending |
+| VIS-02 | Phase 102 | Pending |
+| VIS-03 | Phase 102 | Pending |
+| VIS-04 | Phase 102 | Pending |
 
-**Coverage:** v1.19 requirements: 20 total, 0 mapped (roadmapper pending).
+**Coverage:** v1.19 requirements: 20 total, **20 mapped** to phases 94–102 (100%). VIS-01 has
+groundwork in Phase 94 (generalizing `admin-polish.js`) but is *owned* by Phase 102 where it
+becomes the single merge-blocking gate.
 
 ### v1.18 Admin Console & Adoption Lab (phases 86–93; tech_debt)
 
@@ -281,6 +283,7 @@ Open only via `/gsd-new-milestone` with documented signal:
 
 ---
 *Requirements defined: 2026-05-27*
-*Last updated: 2026-06-14 — v1.19 Design-System Stress-Test charter (SEED-002): PIPE-01/02,
-UPLIFT-01..08, COHORT-01..06, VIS-01..04 (20 reqs) added as active; v1.18 reqs demoted to
+*Last updated: 2026-06-14 — v1.19 Design-System Stress-Test traceability filled by roadmapper:
+PIPE→94, UPLIFT-01→95, UPLIFT-02→97, UPLIFT-03..08→98, COHORT-06→96, COHORT-01/03/04→99,
+COHORT-02→100, COHORT-05→101, VIS-01..04→102 (20/20 mapped, 100%). v1.18 reqs demoted to
 tech_debt (HUMAN-UAT pending, archival reset away). LIFE-06/STREAM-10 shifted to v1.20+.*
