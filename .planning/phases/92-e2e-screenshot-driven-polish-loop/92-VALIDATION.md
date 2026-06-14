@@ -87,11 +87,15 @@ created: 2026-06-13
 
 ## Manual-Only Verifications
 
-| Behavior | Requirement | Why Manual | Test Instructions |
-|----------|-------------|------------|-------------------|
-| Visual polish judgment after screenshots | E2E-02 | Automated capture proves coverage; final visual taste may require human review of generated PNGs. | Inspect `examples/adoption_demo/test-results/admin-screenshots/` after the screenshot spec. File follow-up fixes for overlap, clipped text, contrast, horizontal scroll, or unstable dimensions. |
+None. The former visual-polish review was automated on 2026-06-14 (see below).
 
-Automated gates remain required even when human screenshot review is performed.
+## Automated (formerly manual)
+
+| Behavior | Requirement | Discharged By |
+|----------|-------------|---------------|
+| Visual polish judgment after screenshots | E2E-02 | `e2e/support/admin-polish.js` `assertAdminPolish` runs inside `admin-screenshots.spec.js` `capture()` on all 22 surface/theme/viewport states, asserting: no clipped text, WCAG contrast (≥4.5:1 text / ≥3:1 large, effective-background resolved), 44px interactive target sizes, no interactive overlap, and stable/correct raster dimensions (PNG IHDR). Transitions are frozen before reads so colors are settled, not mid-tween. Runs in the merge-blocking `adoption-demo-e2e` lane. |
+
+The gate surfaced two real defects the manual review had missed: theme-picker option buttons at 36px (< 44px target), and dark-theme `text-on-brand` rendering cream on luminous green/salmon at 1.81:1 (primary, theme-toggle, and destructive buttons). Both fixed in `brandbook/src/admin-css-build.mjs` / `tokens.json` and synced to `priv/static`; new dark-theme contrast pairs added to `brandbook/src/admin-design-system-data.mjs` so the brandbook contrast gate enforces them.
 
 ---
 

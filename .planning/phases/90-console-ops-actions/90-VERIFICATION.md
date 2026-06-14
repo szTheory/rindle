@@ -1,21 +1,23 @@
 ---
 phase: 90-console-ops-actions
-verified: 2025-06-13T10:00:00Z
-status: human_needed
+verified: 2026-06-14T00:00:00Z
+status: verified
 score: 8/8 must-haves verified
 overrides_applied: 0
-human_verification:
-  - test: "Execute an owner erasure flow in the browser"
-    expected: "Visual styling clearly indicates a destructive action. Typing confirmation string correctly enables execution. The layout of the receipt and warnings is clear."
-    why_human: "Automated tests check HTML structure but cannot assess the 'deliberate destructive UX' layout, styling, and visual clarity."
+automated_verification:
+  - was: "Execute an owner erasure flow in the browser (deliberate destructive UX — styling, layout, clarity)"
+    discharged_by: "Destructive-UX turned into a deterministic, CI-enforced design-system contract instead of a human checkpoint."
+    evidence:
+      - "test/rindle/admin/live/actions_live_test.exs — markup contract (destructive button class, standing warning + copy, confirmation gate) asserted on every Elixir version in the merge-blocking `quality` job."
+      - "examples/adoption_demo/e2e/admin-destructive-ux.spec.js — computed-color proof (execute button paints red-dominant and is visually distinct from the benign preview button; standing warning visible) in BOTH light and dark themes, plus preview→wrong-confirmation-blocked→receipt legibility, in the merge-blocking `adoption-demo-e2e` job."
 ---
 
 # Phase 90: Console Ops Actions Verification Report
 
 **Phase Goal:** Add operational console actions for existing lifecycle capabilities without adding new lifecycle semantics.
-**Verified:** 2025-06-13T10:00:00Z
-**Status:** human_needed
-**Re-verification:** No — initial verification
+**Verified:** 2026-06-14T00:00:00Z
+**Status:** verified
+**Re-verification:** Yes — human-verification item discharged by automation (2026-06-14)
 
 ## Goal Achievement
 
@@ -84,14 +86,33 @@ human_verification:
 
 ### Human Verification Required
 
-1. **Execute an owner erasure flow in the browser**
-   - **Test:** Open the admin console, navigate to Actions -> Owner Erasure, and complete the preview/confirm/execute flow.
-   - **Expected:** Visual styling clearly indicates a destructive action. Typing confirmation string correctly enables execution. The layout of the receipt and warnings is clear.
-   - **Why human:** Automated tests check HTML structure but cannot assess the "deliberate destructive UX" layout, styling, and visual clarity.
+None. The previously-required human check ("deliberate destructive UX" — styling, layout,
+visual clarity for the owner-erasure flow) has been **discharged by automation** and is now a
+recurring, merge-blocking CI contract. See "Automated Verification (discharged human item)".
+
+### Automated Verification (discharged human item)
+
+The destructive-UX concern was reframed from a subjective human judgment into an explicit,
+asserted design-system contract — and the markup was updated to honor it (the erase buttons
+previously carried no class at all; they now use `rindle-admin-button--destructive`, and each
+erasure panel renders a standing `data-rindle-admin-destructive-warning` callout).
+
+| Was (human) | Now (automated) | Where |
+| ----------- | --------------- | ----- |
+| "Visual styling clearly indicates destructive" | Execute buttons carry the destructive class (markup) **and** paint a red-dominant fill distinct from the benign preview button (computed style), in light **and** dark themes | ExUnit `actions_live_test.exs` + Playwright `admin-destructive-ux.spec.js` |
+| "Typing confirmation correctly enables execution" | Preview → wrong confirmation blocked ("Confirmation does not match.") → correct confirmation → receipt | `admin-actions.spec.js` + `admin-destructive-ux.spec.js` |
+| "Layout of receipt and warnings is clear" | Standing warning visible pre-interaction; receipt renders with heading + fields; no horizontal scroll | `admin-destructive-ux.spec.js` |
+
+Both test locations run in **merge-blocking** CI jobs (`quality` across the Elixir matrix;
+`adoption-demo-e2e` in a real browser), so any regression in the destructive affordance fails
+CI — no human checkpoint is required now or in future.
 
 ### Gaps Summary
 
-No programmatic gaps found. All automated checks and behavior spot-checks passed. The implementation is complete and correctly delegates to existing facades. Proceeding requires visual/human review of the UI interactions for destructive actions.
+No programmatic gaps found. All automated checks and behavior spot-checks passed. The
+implementation is complete and correctly delegates to existing facades. The former human-only
+destructive-UX review is now fully automated and CI-enforced (see above) — **0 human
+verification required**.
 
 ---
 

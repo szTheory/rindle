@@ -52,7 +52,9 @@ matrix both of those entrypoints link to.
 | `proof` | merge-blocking | `needs: [quality, optional-dependencies]` | `docs_parity_test.exs`, adoption proof matrix drift gate, `batch_owner_erasure_task_test.exs`; Postgres only; Elixir 1.17/OTP 27 |
 | `package-consumer` — repo hygiene gate | merge-blocking | Same job | `scripts/maintainer/repo_hygiene_check.sh --ci` |
 | `package-consumer` | merge-blocking | `needs: [quality, optional-dependencies]` | Install-smoke matrix + release preflight |
-| `adoption-demo-e2e` | merge-blocking | `needs: [quality, optional-dependencies]`; repo `szTheory/rindle` only | Playwright browser proof for `examples/adoption_demo` (image, tus, stretch journeys) |
+| `adoption-demo-unit` | merge-blocking | `needs: [quality, optional-dependencies]`; Postgres only | Fast ExUnit proof for `examples/adoption_demo`: brand mark/wordmark, admin-console mount, lifecycle-state display, README walkthrough parity (storage-free, direct-insert seeds) |
+| `adoption-demo-e2e` | merge-blocking | `needs: [quality, optional-dependencies]`; repo `szTheory/rindle` only | Playwright browser proof for `examples/adoption_demo` (image, tus, stretch journeys, admin lifecycle render, homepage cold-start smoke) |
+| `cohort-demo-smoke` | merge-blocking | `needs: [quality, optional-dependencies]`; repo `szTheory/rindle` only | Docker-compose cold-start gate (`scripts/ci/cohort_demo_smoke.sh`): builds the demo image, boots the full stack, asserts homepage + admin console serve 200 with seeded data — the boot path human UAT used to cover |
 | `adopter` | merge-blocking | `needs: [quality, optional-dependencies, integration, contract]` | Canonical adopter lifecycle only (doc parity in `proof` job) |
 | `mux-soak` | secret-gated soak | Label `streaming` on PR; `needs: quality` | Not in branch protection required checks; fails closed when secrets absent |
 | `gcs-soak` | secret-gated soak | `needs: quality`; repo + secrets | Skipped when secrets absent; test step advisory when it runs |
@@ -86,7 +88,8 @@ not green, or the wait times out, publish **fails closed** — there is no bypas
 
 Branch protection required checks (enforced via `scripts/setup_branch_protection.sh`) include
 Quality (both matrix cells), ADMIN-06 Optional Dependencies (both matrix cells), Integration,
-Contract, Proof, Package Consumer Proof Matrix + Release Preflight, and Adopter.
+Contract, Proof, Package Consumer Proof Matrix + Release Preflight, Adopter, Adoption Demo Unit,
+Adoption Demo E2E, and Cohort Demo Smoke.
 
 ## Verify The Runtime
 

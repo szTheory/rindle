@@ -549,6 +549,97 @@ jobs:
           HEX_API_KEY: dryrun-placeholder
         run: mix hex.publish --dry-run --yes
 
+  adoption-demo-unit:
+    name: Adoption Demo Unit
+    runs-on: ubuntu-22.04
+    # Fast, merge-blocking ExUnit lane for examples/adoption_demo: brand mark +
+    # wordmark, admin-console mount, lifecycle-state display, and README
+    # walkthrough parity (Phase 91 UAT, automated). Storage-free — rows are
+    # direct-inserted, so no MinIO/FFmpeg/libvips is needed. Postgres only.
+    # Complements the heavier browser proof in the `Adoption Demo E2E` lane.
+    needs: [quality, optional-dependencies]
+    env:
+      MIX_ENV: test
+      RINDLE_AV_USE_CGROUPS: "false"
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGHOST: localhost
+      PGPORT: "5432"
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: rindle_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: "1.17"
+          otp-version: "27"
+
+      # The admin console HomeLive runs a runtime doctor on mount that probes
+      # ffmpeg (Rindle.AV.Probe.check_ffmpeg!/1 -> System.cmd("ffmpeg", ...)). An
+      # absent binary raises :enoent and 500s the page, so the demo (an AV media
+      # library) requires ffmpeg present. Use apt (reliable) rather than the
+      # johnvansickle download action used elsewhere.
+      - name: Install FFmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
+      - name: Restore deps cache
+        uses: actions/cache@v4
+        with:
+          path: deps
+          key: deps-${{ runner.os }}-1.17-27-${{ hashFiles('**/mix.lock') }}
+          restore-keys: deps-${{ runner.os }}-1.17-27-
+
+      - name: Restore build cache
+        uses: actions/cache@v4
+        with:
+          path: _build
+          key: build-${{ runner.os }}-1.17-27-${{ hashFiles('**/mix.lock') }}
+          restore-keys: build-${{ runner.os }}-1.17-27-
+
+      - name: Run adoption demo ExUnit suite
+        working-directory: examples/adoption_demo
+        run: |
+          mix deps.get
+          mix ecto.create --quiet
+          mix ecto.migrate --quiet
+          mix rindle.migrate
+          mix test
+
+  cohort-demo-smoke:
+    name: Cohort Demo Smoke
+    runs-on: ubuntu-22.04
+    # Merge-blocking cold-start gate for the Docker-compose demo path
+    # (scripts/demo/up.sh -> docker/compose.cohort-demo.yml). This is the boot
+    # path that broke twice across phases (prod-auth-guard compile failure, stale
+    # Elixir pin) and was previously only human-verified. Builds the demo image,
+    # boots the full stack, and asserts the homepage + admin console serve 200
+    # with seeded data. See scripts/ci/cohort_demo_smoke.sh.
+    needs: [quality, optional-dependencies]
+    if: github.repository == 'szTheory/rindle'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run cohort demo cold-start smoke
+        run: bash scripts/ci/cohort_demo_smoke.sh
+
   adoption-demo-e2e:
     name: Adoption Demo E2E
     runs-on: ubuntu-22.04

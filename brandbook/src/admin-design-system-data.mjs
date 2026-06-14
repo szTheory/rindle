@@ -60,6 +60,13 @@ export const CONSOLE_CONTRAST_PAIRS = [
   { fg: 'text-secondary', bg: 'surface-sunken', theme: 'light', min: 4.5, context: 'buttons disabled text' },
   { fg: 'border-strong', bg: 'surface-raised', theme: 'light', min: 3, context: 'buttons secondary border non-text' },
 
+  // Dark theme flips brand/danger to luminous fills (rindle-green, dark-danger); the
+  // on-brand foreground must be ink, not warm-shell, to stay legible. These pairs
+  // enforce that — the gap that let cream-on-green (1.81:1) ship unflagged.
+  { fg: 'text-on-brand', bg: 'brand', theme: 'dark', min: 4.5, context: 'buttons primary text (dark)' },
+  { fg: 'text-on-brand', bg: 'brand-hover', theme: 'dark', min: 4.5, context: 'buttons primary hover text (dark)' },
+  { fg: 'text-on-brand', bg: 'status-danger', theme: 'dark', min: 4.5, context: 'buttons destructive text (dark)' },
+
   { fg: 'text', bg: 'surface-raised', theme: 'light', min: 4.5, context: 'table text on surface-raised' },
   { fg: 'text-secondary', bg: 'surface-raised', theme: 'light', min: 4.5, context: 'table secondary text on surface-raised' },
 

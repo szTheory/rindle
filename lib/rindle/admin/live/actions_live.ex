@@ -489,6 +489,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         <%= if not @action.enabled? do %>
           <.status_chip state="info" label="coming soon" />
         <% else %>
+          <.destructive_warning />
           <%= render_owner_erasure_state(assigns) %>
         <% end %>
       </div>
@@ -505,6 +506,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         <%= if not @action.enabled? do %>
           <.status_chip state="info" label="coming soon" />
         <% else %>
+          <.destructive_warning />
           <%= render_batch_erasure_state(assigns) %>
         <% end %>
       </div>
@@ -576,6 +578,21 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       """
     end
 
+    # Standing destructive affordance rendered on every erasure panel, independent of the
+    # transient confirmation-error toast. Makes "this is destructive" a deterministic,
+    # design-system-enforced contract (asserted in tests) rather than a subjective judgment.
+    defp destructive_warning(assigns) do
+      ~H"""
+      <p
+        class="rindle-admin-toast rindle-admin-toast--danger"
+        data-rindle-admin-destructive-warning
+        role="alert"
+      >
+        This permanently erases owner data and enqueues purge of the associated assets. This action cannot be undone.
+      </p>
+      """
+    end
+
     defp render_owner_erasure_state(%{action_state: :input} = assigns) do
       ~H"""
       <div data-rindle-admin-state="input">
@@ -591,7 +608,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           <%= if @action_error do %>
             <p class="rindle-admin-toast rindle-admin-toast--danger" data-rindle-admin-action-error>{@action_error}</p>
           <% end %>
-          <button type="submit" data-rindle-admin-submit="preview_owner_erasure">Preview owner erasure</button>
+          <button type="submit" class="rindle-admin-button rindle-admin-button--secondary rindle-admin-target-min" data-rindle-admin-submit="preview_owner_erasure">Preview owner erasure</button>
         </form>
       </div>
       """
@@ -620,7 +637,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           <%= if @action_error do %>
             <p class="rindle-admin-toast rindle-admin-toast--danger" data-rindle-admin-action-error>{@action_error}</p>
           <% end %>
-          <button type="submit" data-rindle-admin-submit="execute_owner_erasure">Erase owner</button>
+          <button type="submit" class="rindle-admin-button rindle-admin-button--destructive rindle-admin-target-min" data-rindle-admin-submit="execute_owner_erasure">Erase owner</button>
         </form>
       </div>
       """
@@ -647,7 +664,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           <%= if @action_error do %>
             <p class="rindle-admin-toast rindle-admin-toast--danger" data-rindle-admin-action-error>{@action_error}</p>
           <% end %>
-          <button type="submit" data-rindle-admin-submit="preview_batch_erasure">Preview batch erasure</button>
+          <button type="submit" class="rindle-admin-button rindle-admin-button--secondary rindle-admin-target-min" data-rindle-admin-submit="preview_batch_erasure">Preview batch erasure</button>
         </form>
       </div>
       """
@@ -673,7 +690,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           <%= if @action_error do %>
             <p class="rindle-admin-toast rindle-admin-toast--danger" data-rindle-admin-action-error>{@action_error}</p>
           <% end %>
-          <button type="submit" data-rindle-admin-submit="execute_batch_erasure">Erase owners</button>
+          <button type="submit" class="rindle-admin-button rindle-admin-button--destructive rindle-admin-target-min" data-rindle-admin-submit="execute_batch_erasure">Erase owners</button>
         </form>
       </div>
       """
@@ -722,7 +739,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           <%= if @action_error do %>
             <p class="rindle-admin-toast rindle-admin-toast--danger" data-rindle-admin-action-error>{@action_error}</p>
           <% end %>
-          <button type="submit" data-rindle-admin-submit="execute_lifecycle_repair">Execute Repair</button>
+          <button type="submit" class="rindle-admin-button rindle-admin-button--secondary rindle-admin-target-min" data-rindle-admin-submit="execute_lifecycle_repair">Execute Repair</button>
         </form>
       </div>
       """
@@ -759,7 +776,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           <%= if @action_error do %>
             <p class="rindle-admin-toast rindle-admin-toast--danger" data-rindle-admin-action-error>{@action_error}</p>
           <% end %>
-          <button type="submit" data-rindle-admin-submit="execute_variant_regeneration">Regenerate Variants</button>
+          <button type="submit" class="rindle-admin-button rindle-admin-button--secondary rindle-admin-target-min" data-rindle-admin-submit="execute_variant_regeneration">Regenerate Variants</button>
         </form>
       </div>
       """

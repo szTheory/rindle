@@ -1,7 +1,8 @@
 ---
 phase: 91-cohort-demo-evolution
 verified: 2026-06-12T21:50:18Z
-status: human_needed
+status: verified
+human_uat_discharged: 2026-06-14T18:43:06Z
 score: 6/6 must-haves verified
 overrides_applied: 0
 re_verification:
@@ -12,20 +13,25 @@ re_verification:
     - "[verification_derivation] Plan 02 must_haves.truths are implementation-focused"
   gaps_remaining: []
   regressions: []
-human_verification:
+# The two formerly-human checkpoints are discharged: human-verified in
+# 91-HUMAN-UAT.md (both pass) AND automated 2026-06-14 (see 91-UAT.md), so they
+# no longer require a human and no longer carry verification debt.
+human_verification_discharged:
   - test: "Logo Rendering"
-    expected: "A distinct new logo (not the Phoenix firebird) renders correctly in the top left header, and text says 'Cohort · Rindle demo'."
-    why_human: "Programmatic tools cannot visually confirm rendering aesthetics in the browser."
+    resolved_by:
+      - "91-HUMAN-UAT.md (pass)"
+      - "examples/adoption_demo/test/adoption_demo_web/brand_test.exs (merge-blocking: Adoption Demo Unit)"
   - test: "Admin Console Lifecycle Display"
-    expected: "Edge cases like `quarantined`, `degraded` assets, and failed upload sessions display gracefully in the admin UI without causing 500 errors."
-    why_human: "Verifying visual rendering of edge case data states in the LiveView application."
+    resolved_by:
+      - "91-HUMAN-UAT.md (pass)"
+      - "examples/adoption_demo/test/adoption_demo_web/admin_lifecycle_display_test.exs + e2e/admin-console.spec.js (merge-blocking)"
 ---
 
 # Phase 91: Cohort Demo Evolution Verification Report
 
 **Phase Goal:** Evolve Cohort into the adoption lab that proves the console across branded demo surfaces, media types, and lifecycle states.
 **Verified:** 2026-06-12T21:50:18Z
-**Status:** human_needed
+**Status:** verified (human UAT discharged + automated 2026-06-14)
 **Re-verification:** Yes — after gap closure
 
 ## Goal Achievement
@@ -88,21 +94,31 @@ human_verification:
 |------|------|---------|----------|--------|
 | All | - | No anti-patterns found | - | None |
 
-### Human Verification Required
+### Human Verification — Discharged (Automated 2026-06-14)
 
-1. **Logo Rendering**
-   - **Test:** Start the server (`mix phx.server`) and visit `http://localhost:4000/`.
-   - **Expected:** A distinct new logo (not the Phoenix firebird) renders correctly in the top left header, and text says 'Cohort · Rindle demo'.
-   - **Why human:** Programmatic tools cannot visually confirm rendering aesthetics in the browser.
+Both checkpoints were originally human-verified in `91-HUMAN-UAT.md` (both pass) and
+have since been converted to automated, merge-blocking gates (see `91-UAT.md`), so
+they no longer require a human:
 
-2. **Admin Console Lifecycle Display**
-   - **Test:** Visit `http://localhost:4000/admin/assets` and click around.
-   - **Expected:** Edge cases like `quarantined`, `degraded` assets, and failed upload sessions display gracefully in the admin UI without causing 500 errors.
-   - **Why human:** Verifying visual rendering of edge case data states in the LiveView application.
+1. **Logo Rendering** — ✓ discharged
+   - **Was:** start the server and visually confirm the new mark + "Cohort · Rindle demo".
+   - **Now:** `test/adoption_demo_web/brand_test.exs` asserts the `/images/logo.svg`
+     mark (emerald mortarboard, not the Phoenix firebird), the wordmark, and the
+     page-title default. Merge-blocking `Adoption Demo Unit` CI lane.
+
+2. **Admin Console Lifecycle Display** — ✓ discharged
+   - **Was:** visit the admin assets surface and confirm edge-case states render
+     without 500s.
+   - **Now:** `test/adoption_demo_web/admin_lifecycle_display_test.exs` (quarantined/
+     degraded assets + failed/expired sessions render, no error state) plus the
+     full-stack assertion in `e2e/admin-console.spec.js`. Merge-blocking
+     `Adoption Demo Unit` + `Adoption Demo E2E` lanes.
 
 ### Gaps Summary
 
-No technical gaps found. All automated checks passed. Human verification is required to confirm visual appearance and UI flow.
+No technical gaps found. All automated checks passed. The two items that previously
+required human verification are now automated and merge-blocking — no human
+verification debt remains for this phase.
 
 ---
 

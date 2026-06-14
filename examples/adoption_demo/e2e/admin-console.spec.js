@@ -39,6 +39,23 @@ test("admin console top-level surfaces render the shell and seeded rows", async 
   await expect(page.getByText("Doctor checks")).toBeVisible();
 });
 
+test("seeded lifecycle edge states render gracefully across surfaces", async ({ page }) => {
+  // Phase 91 deliverable: quarantined/degraded assets and failed/expired upload
+  // sessions must display without 500s. Full-stack complement to the ExUnit
+  // admin_lifecycle_display_test — proves the seeded edge states reach the browser.
+  await visitAdmin(page, "assets");
+  await expectAdminShell(page, "assets");
+  await expect(page.getByText("quarantined").first()).toBeVisible();
+  await expect(page.getByText("degraded").first()).toBeVisible();
+  await expect(page.locator("[data-rindle-admin-error-state]")).toHaveCount(0);
+
+  await visitAdmin(page, "upload-sessions");
+  await expectAdminShell(page, "upload-sessions");
+  await expect(page.getByText("failed").first()).toBeVisible();
+  await expect(page.getByText("expired").first()).toBeVisible();
+  await expect(page.locator("[data-rindle-admin-error-state]")).toHaveCount(0);
+});
+
 test("asset and upload-session detail pages render redacted detail sections", async ({ page }) => {
   await visitAdmin(page, "assets");
   const assetHref = await firstAdminDetailHref(page, "asset");
