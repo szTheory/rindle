@@ -83,9 +83,11 @@ jobs:
         run: mix deps.get
 
       - name: Install FFmpeg
-        uses: FedericoCarboni/setup-ffmpeg@v3
-        with:
-          ffmpeg-version: release
+        # Reliable static ffmpeg >= 6, replacing FedericoCarboni/setup-ffmpeg@v3
+        # which intermittently failed ("Failed to get latest johnvansickle ffmpeg
+        # release") and blocked merges. apt only ships 4.4 — below the >= 6.0 gate
+        # in lib/rindle/av/probe.ex. See scripts/ci/install_ffmpeg.sh.
+        run: bash scripts/ci/install_ffmpeg.sh
 
       - name: Compile (warnings as errors)
         run: mix compile --warnings-as-errors
@@ -241,9 +243,11 @@ jobs:
         run: mix deps.get
 
       - name: Install FFmpeg
-        uses: FedericoCarboni/setup-ffmpeg@v3
-        with:
-          ffmpeg-version: release
+        # Reliable static ffmpeg >= 6, replacing FedericoCarboni/setup-ffmpeg@v3
+        # which intermittently failed ("Failed to get latest johnvansickle ffmpeg
+        # release") and blocked merges. apt only ships 4.4 — below the >= 6.0 gate
+        # in lib/rindle/av/probe.ex. See scripts/ci/install_ffmpeg.sh.
+        run: bash scripts/ci/install_ffmpeg.sh
 
       - name: Start MinIO
         run: |
@@ -466,9 +470,11 @@ jobs:
           node-version: "20"
 
       - name: Set up FFmpeg
-        uses: FedericoCarboni/setup-ffmpeg@v3
-        with:
-          ffmpeg-version: release
+        # Reliable static ffmpeg >= 6, replacing FedericoCarboni/setup-ffmpeg@v3
+        # which intermittently failed ("Failed to get latest johnvansickle ffmpeg
+        # release") and blocked merges. apt only ships 4.4 — below the >= 6.0 gate
+        # in lib/rindle/av/probe.ex. See scripts/ci/install_ffmpeg.sh.
+        run: bash scripts/ci/install_ffmpeg.sh
 
       - name: Install libvips
         run: sudo apt-get update && sudo apt-get install -y libvips-dev
@@ -800,9 +806,11 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y libvips-dev
 
       - name: Install FFmpeg
-        uses: FedericoCarboni/setup-ffmpeg@v3
-        with:
-          ffmpeg-version: release
+        # Reliable static ffmpeg >= 6, replacing FedericoCarboni/setup-ffmpeg@v3
+        # which intermittently failed ("Failed to get latest johnvansickle ffmpeg
+        # release") and blocked merges. apt only ships 4.4 — below the >= 6.0 gate
+        # in lib/rindle/av/probe.ex. See scripts/ci/install_ffmpeg.sh.
+        run: bash scripts/ci/install_ffmpeg.sh
 
       - name: Restore deps cache
         uses: actions/cache@v4
