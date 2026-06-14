@@ -68,7 +68,7 @@ maintainer go/no-go gate between phases.
 - [x] **Phase 91: Cohort Demo Evolution** — Cohort's own lightweight brand (completed 2026-06-12)
   (**rendered options checkpoint**), audio + document profiles, seeds expressing every
   lifecycle state, mounts the console, click-around walkthrough. (DEMO-01..03)
-- [x] **Phase 92: E2E & Screenshot-Driven Polish Loop** — deterministic console Playwright (completed 2026-06-13)
+- [x] **Phase 92: E2E & Screenshot-Driven Polish Loop** — deterministic console Playwright (completed 2026-06-13; UAT complete 2026-06-14 — screenshot visual-polish review automated into the merge-blocking CI lane via `admin-polish.js`; 0 human UAT)
   specs (happy/error/boundary/theme/destructive) in a merge-blocking lane; all-screens ×
   light/dark capture → analyze → fix polish passes. (E2E-01..02)
 - [x] **Phase 93: Truth, Docs & Milestone Audit** — `guides/admin_console.md`, (completed 2026-06-13)
