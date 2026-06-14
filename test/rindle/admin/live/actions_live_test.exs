@@ -91,6 +91,78 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert has_element?(view, "[data-rindle-admin-submit=\"preview_batch_erasure\"]")
     end
 
+    # Destructive-UX contract. These assertions discharge the human-verification item from
+    # 90-VERIFICATION.md ("visual styling clearly indicates a destructive action") by turning
+    # it into a deterministic, design-system-enforced contract. The computed-color proof (that
+    # these classes actually paint red, in light + dark) lives in the adoption_demo Playwright
+    # spec admin-destructive-ux.spec.js; here we guard the markup contract on every Elixir
+    # version in the merge-blocking quality job.
+    test "owner erasure panel renders the standing destructive-UX contract", %{conn: conn} do
+      {:ok, view, _html} = live(conn, "/admin/rindle/actions")
+
+      # Standing destructive warning is present before any interaction (input state).
+      assert has_element?(view, "[data-rindle-admin-destructive-warning]")
+      assert render(view) =~ "This action cannot be undone."
+
+      # Preview (non-destructive) button carries the secondary design-system class.
+      assert has_element?(
+               view,
+               "[data-rindle-admin-submit=\"preview_owner_erasure\"].rindle-admin-button--secondary"
+             )
+
+      owner_id = Ecto.UUID.generate()
+
+      view
+      |> form("form[phx-submit=\"preview_owner_erasure\"]", %{
+        "owner_type" => "Elixir.String",
+        "owner_id" => owner_id
+      })
+      |> render_submit()
+
+      # The execute button carries the destructive design-system class.
+      assert has_element?(
+               view,
+               "[data-rindle-admin-submit=\"execute_owner_erasure\"].rindle-admin-button--destructive"
+             )
+
+      # Confirmation gate and standing warning persist in the preview/confirm state.
+      assert has_element?(view, "[data-rindle-admin-confirm-input]")
+      assert render(view) =~ "Type <pre>ERASE Elixir.String:#{owner_id}</pre> to confirm"
+      assert has_element?(view, "[data-rindle-admin-destructive-warning]")
+    end
+
+    test "batch erasure panel renders the standing destructive-UX contract", %{conn: conn} do
+      {:ok, view, _html} = live(conn, "/admin/rindle/actions")
+
+      view
+      |> element("button", "Batch erasure")
+      |> render_click()
+
+      assert has_element?(view, "[data-rindle-admin-destructive-warning]")
+      assert render(view) =~ "This action cannot be undone."
+
+      assert has_element?(
+               view,
+               "[data-rindle-admin-submit=\"preview_batch_erasure\"].rindle-admin-button--secondary"
+             )
+
+      owners_text =
+        "Elixir.String:#{Ecto.UUID.generate()}\nElixir.String:#{Ecto.UUID.generate()}"
+
+      view
+      |> form("form[phx-submit=\"preview_batch_erasure\"]", %{"owners" => owners_text})
+      |> render_submit()
+
+      assert has_element?(
+               view,
+               "[data-rindle-admin-submit=\"execute_batch_erasure\"].rindle-admin-button--destructive"
+             )
+
+      assert has_element?(view, "[data-rindle-admin-confirm-input]")
+      assert render(view) =~ "Type <pre>ERASE 2 OWNERS</pre> to confirm"
+      assert has_element?(view, "[data-rindle-admin-destructive-warning]")
+    end
+
     test "owner erasure workflow: preview, reset, validation, execute", %{conn: conn} do
       {:ok, view, _html} = live(conn, "/admin/rindle/actions")
 
