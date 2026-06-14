@@ -27,7 +27,10 @@ cd "${repo_root}"
 export DOCKER_BUILDKIT=1
 export COMPOSE_DOCKER_CLI_BUILD=1
 
-compose=(docker compose -f docker/compose.cohort-demo.yml)
+# The CI override points the app at MinIO by service name (minio:9000) so the
+# stack boots identically on Linux CI runners and Docker Desktop — the base
+# compose's host.docker.internal path is Mac/Windows-only. See the override file.
+compose=(docker compose -f docker/compose.cohort-demo.yml -f docker/compose.cohort-demo.ci.yml)
 app_port="${COHORT_DEMO_PORT:-4102}"
 base="http://localhost:${app_port}"
 

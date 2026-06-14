@@ -591,6 +591,14 @@ jobs:
           elixir-version: "1.17"
           otp-version: "27"
 
+      # The admin console HomeLive runs a runtime doctor on mount that probes
+      # ffmpeg (Rindle.AV.Probe.check_ffmpeg!/1 -> System.cmd("ffmpeg", ...)). An
+      # absent binary raises :enoent and 500s the page, so the demo (an AV media
+      # library) requires ffmpeg present. Use apt (reliable) rather than the
+      # johnvansickle download action used elsewhere.
+      - name: Install FFmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
       - name: Restore deps cache
         uses: actions/cache@v4
         with:
