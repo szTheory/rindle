@@ -1,16 +1,99 @@
 # Requirements: Rindle
 
-**Defined:** 2026-05-27 (v1.18 charter added 2026-06-10)
-**Milestone:** v1.18 Admin Console & Adoption Lab (maintainer-pull override of pause; hex 0.3.0)
+**Defined:** 2026-05-27 (v1.19 charter added 2026-06-14)
+**Milestone:** v1.19 Design-System Stress-Test (SEED-002; maintainer-pull quality milestone; hex 0.3.x)
 **Core Value:** Media, made durable.
 
-## v1.18 Admin Console & Adoption Lab (active)
+> ⚠️ **v1.19 opens over an un-closed v1.18.** v1.18 Admin Console & Adoption Lab is held at
+> `status: tech_debt` pending maintainer HUMAN-UAT sign-off (Phases 90/91/92); its archive
+> commit was reset away on `main`, so its requirements remain inline below (demoted, not
+> archived) rather than in `.planning/milestones/v1.18-REQUIREMENTS.md`. Recorded maintainer
+> decision (2026-06-14). Close via `/gsd-complete-milestone v1.18` once UAT is signed off.
+
+## v1.19 Design-System Stress-Test (active)
+
+**Charter (2026-06-14):** Maintainer-pull quality milestone (SEED-002). Elevate the whole
+design system to an award-winning bar — fractally and without regressions — across the
+admin/operator console **and** the Cohort example app's inner pages, in service of real user
+flows. Two intertwined tracks (admin DS uplift + Cohort restyle) on a hardened token→CSS
+pipeline, proven by a deterministic merge-blocking visual gate. LIFE-06/STREAM-10 stay
+demand-gated and shift to v1.20+. Research: `.planning/research/v1.19/SUMMARY.md`.
+
+### Foundation & Token Pipeline (PIPE)
+
+- [ ] **PIPE-01**: Token→CSS pipeline is gated in CI — a `brandbook-tokens` job regenerates
+  `rindle-admin.css` + `cohort.css` from `tokens.json` via the `.mjs` scripts, runs the WCAG
+  contrast gate, and fails on any uncommitted diff. Generated CSS is never hand-edited; this
+  is the idempotency / no-regression anchor that lands before any visual work.
+- [ ] **PIPE-02**: Token system extended in `tokens.json` + the `.mjs` generators with the
+  categories the uplift needs: motion presets (durations/easings), a true dark **elevation /
+  shadow ladder** (semantic, not color-inversion), responsive **fluid type + space scales**
+  with named breakpoints, and semantic dark-mode status surfaces — all flowing to both
+  `rindle-admin` (BEM) and `cohort` (own DS), kept coherent but separate.
+
+### Admin / Operator DS Uplift (UPLIFT)
+
+- [ ] **UPLIFT-01**: Every admin component is on-brand and excellent across the full
+  interaction-state matrix (default / hover / **focus-visible** / active / disabled / loading /
+  empty / error / skeleton) in **light, dark, and system** — audited against tokens, with the
+  `active` vs `focus-visible` distinction explicit and no one-off styles.
+- [ ] **UPLIFT-02**: Meta-components refined as cohesive units — toolbars, **sortable / sticky-
+  header / bulk-select data tables**, filter bars, action panels, detail drill-downs,
+  confirm/destructive panels, drawers, toasts — consistent rhythm, alignment, and density.
+- [ ] **UPLIFT-03**: Per-page composition pass over each console surface — visual hierarchy,
+  spacing scale, and on-brand assembly of components into pages.
+- [ ] **UPLIFT-04**: Motion pass — purposeful, performant, **reduced-motion-aware** animation
+  tied to brand motion tokens, sub-300ms, and **LiveView-coordinated** (`JS.transition` via
+  `phx-mounted`/`phx-remove`; `transform`/`opacity` only; no `transition:all` on patched nodes).
+- [ ] **UPLIFT-05**: Mobile-first responsive — every console surface is correct and usable at
+  all breakpoints.
+- [ ] **UPLIFT-06**: Accessibility audit — keyboard navigation, focus order + visible focus,
+  ARIA semantics on custom components (menus, dialogs, tables, toasts), no keyboard traps in
+  drawers/dialogs, and WCAG AA contrast in **both** themes.
+- [ ] **UPLIFT-07**: gov.uk/GDS-style information architecture — task-first triage home,
+  least-surprise navigation and labels, progressive disclosure, serving onboarding /
+  intermediate / advanced operators across happy / error / boundary paths.
+- [ ] **UPLIFT-08**: Microcopy on-brand in the **operator/SRE voice** (terse, diagnostic, GDS
+  rules: say what happened + how to fix; no please/oops/sorry/jargon), tied to each surface's
+  JTBD/persona.
+
+### Cohort Example Inner-Page Restyle (COHORT)
+
+- [ ] **COHORT-01**: `/dashboard` restyled onto the Cohort DS (`cohort.css` + `cohort_components.ex`).
+- [ ] **COHORT-02**: `/upload` (all tabs) restyled onto the Cohort DS.
+- [ ] **COHORT-03**: `/ops` restyled onto the Cohort DS.
+- [ ] **COHORT-04**: member / lesson / post / media / account pages restyled and consistent.
+- [ ] **COHORT-05**: daisyUI/Tailwind scaffold retired from the inner pages — migrated
+  **class-by-class, not element-by-element**, preserving every `id` / `data-testid` / `phx-hook`
+  so behavior e2e stays green; the `default.css` `<link>` removed only once grep is clean.
+- [ ] **COHORT-06**: Cohort gains a dark `[data-theme]` contract **and** a
+  `prefers-reduced-motion` block (net-new — `cohort.css` has neither today), with the new
+  contrast pairs added to the WCAG gate and all color literals replaced by tokens.
+
+### Proof & No-Regression (VIS)
+
+- [ ] **VIS-01**: Deterministic computed-style assertions (the `admin-polish.js` pattern) remain
+  the **single merge-blocking** visual gate, extended to cover all admin + Cohort inner pages
+  across light/dark in the `adoption-demo-e2e` lane.
+- [ ] **VIS-02**: Uplift is idempotent / forward-only — each pass converges (double-run
+  empty-diff check) with zero functional or visual regression to existing flows; every page
+  migration is gated on its behavior e2e specs.
+- [ ] **VIS-03** *(differentiator)*: Optional pixel-baseline screenshots (`toHaveScreenshot()`)
+  may augment the gate **only** if CI-generated, motion-frozen, and font-stable — never a flaky
+  merge blocker.
+- [ ] **VIS-04** *(differentiator)*: Living component gallery (admin + Cohort) as an audit
+  reference surface, kept in sync with the generated CSS and screenshotted by the visual lane.
+
+## v1.18 Admin Console & Adoption Lab (tech_debt — HUMAN-UAT pending; not yet archived)
+
+**Status:** All 19 requirements + 8 phases verified; milestone held at `tech_debt` awaiting
+maintainer HUMAN-UAT sign-off on Phases 90/91/92. Retained inline (archival reset away on
+`main`). Audit: `.planning/milestones/v1.18-MILESTONE-AUDIT.md`.
 
 **Charter (2026-06-10):** Maintainer-pull feature milestone, explicitly overriding the
-PAUSE-03 reservation of v1.18+ for LIFE-06/STREAM-10. Those two gates remain demand-only
-and move to v1.19+. This milestone reverses the prior "admin UI out of scope" decision
-(JTBD T4) as a recorded scope change: a mountable, Rindle-branded admin console ships in
-the `rindle` package, proven through the Cohort demo with full lifecycle-state seed
+PAUSE-03 reservation of v1.18+ for LIFE-06/STREAM-10. This milestone reversed the prior
+"admin UI out of scope" decision (JTBD T4): a mountable, Rindle-branded admin console ships
+in the `rindle` package, proven through the Cohort demo with full lifecycle-state seed
 coverage, deterministic E2E, and Docker DX fixes.
 
 ### Admin Console (ADMIN)
@@ -69,7 +152,7 @@ coverage, deterministic E2E, and Docker DX fixes.
 - [x] **TRUTH-07**: Docs/facade parity for the scope reversal — `lib/rindle.ex` facade
   contract, `guides/`, JTBD-MAP T4 row, and README updated truthfully.
 
-## Pause Posture Requirements (superseded for v1.18 duration)
+## Pause Posture Requirements (superseded for v1.18/v1.19 duration)
 
 These documented maintainer obligations during maintenance mode (2026-05-27 → 2026-06-10).
 
@@ -85,8 +168,8 @@ These documented maintainer obligations during maintenance mode (2026-05-27 → 
   with no active **feature** phases until LIFE-06 or STREAM-10 signal (brand-track
   phases 81–85 are non-feature).
   *Amended 2026-06-10: maintainer-pull override recorded — v1.18 opens as a self-directed
-  feature milestone (Admin Console & Adoption Lab). LIFE-06/STREAM-10 stay demand-gated
-  and shift to v1.19+. Pause posture resumes after v1.18 unless a new charter exists.*
+  feature milestone. Extended 2026-06-14: v1.19 Design-System Stress-Test is a maintainer-pull
+  quality milestone (SEED-002). LIFE-06/STREAM-10 stay demand-gated and shift to v1.20+.*
 
 ## Shipped Non-Feature Tracks
 
@@ -97,7 +180,7 @@ These documented maintainer obligations during maintenance mode (2026-05-27 → 
 
 Open only via `/gsd-new-milestone` with documented signal:
 
-*(v1.19+ — shifted from v1.18 by the 2026-06-10 maintainer-pull override.)*
+*(v1.20+ — shifted from v1.18 by the 2026-06-10 override, and past v1.19 which is non-feature DS work.)*
 
 ### Lifecycle (LIFE-06)
 
@@ -126,24 +209,47 @@ Open only via `/gsd-new-milestone` with documented signal:
 
 | Feature | Reason |
 |---------|--------|
+| Metrics / time-series / charting dashboard (Grafana-style) | Scope creep; Rindle surfaces lifecycle **state**, not time-series — anti-feature for an operator console (v1.19 research) |
+| Dark mode by color-inversion | Must be semantic tokens + a real elevation ladder (PIPE-02); inversion is an anti-pattern |
+| Color-only status indication | Status must pair color with label/icon (a11y + UPLIFT-01); color-only is an anti-feature |
+| Animate-everything / decorative motion | Motion is purposeful + reduced-motion-aware only (UPLIFT-04); gratuitous motion hurts operators |
+| New console lifecycle semantics or write paths beyond v1.18 surface | v1.19 is DS quality only; no reopening tus / owner-erasure / provider surfaces |
+| Adopting Tailwind or a JS animation lib in the `rindle` package | Self-contained assets + generated BEM stay the constraint (ADMIN-02 / DS-01) |
 | Website / domain / hosted landing page | b1.0 is repo-artifact only |
-| Trademark/legal clearance for "Rindle" | Human-review item only (BRAND-01 flags it; no legal work in milestone) |
-| Force-delete (LIFE-06) | Demand-gated; requires compliance charter (v1.19+) |
-| Second streaming provider (STREAM-10) | Demand-gated; requires named adopter (v1.19+) |
-| IETF RUFH / tus 2.0 | Long-tail |
-| GCS-as-tus-backend | Adopter-request only |
-| Standalone tus JS client package | Out of scope |
+| Force-delete (LIFE-06) / Second streaming provider (STREAM-10) | Demand-gated; require charter (v1.20+) |
+| IETF RUFH / tus 2.0 · GCS-as-tus-backend · Standalone tus JS client | Long-tail / adopter-request only |
 | Platform scope (DRM, HLS platform, CDN replacement) | Not a lifecycle library |
-| Console write paths beyond existing facade capabilities | v1.18 console surfaces existing operations only; no new lifecycle semantics |
-| Console i18n / multi-tenancy / RBAC beyond host auth hook | Host-app concerns; ADMIN-01 delegates auth wholesale |
-
-*Removed from this table 2026-06-10:* "admin UI" (now scoped, ADMIN-01..06) and
-"`examples/adoption_demo` re-theming" (now scoped, DEMO-01) — v1.18 charter; "feature
-milestone without signal" row superseded by the recorded PAUSE-03 override.
 
 ## Traceability
 
-v1.18 Admin Console & Adoption Lab (phases 86–93; b1.0 brand-track rows archived).
+### v1.19 Design-System Stress-Test (phases 94+ — filled by roadmapper)
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| PIPE-01 | TBD | Pending |
+| PIPE-02 | TBD | Pending |
+| UPLIFT-01 | TBD | Pending |
+| UPLIFT-02 | TBD | Pending |
+| UPLIFT-03 | TBD | Pending |
+| UPLIFT-04 | TBD | Pending |
+| UPLIFT-05 | TBD | Pending |
+| UPLIFT-06 | TBD | Pending |
+| UPLIFT-07 | TBD | Pending |
+| UPLIFT-08 | TBD | Pending |
+| COHORT-01 | TBD | Pending |
+| COHORT-02 | TBD | Pending |
+| COHORT-03 | TBD | Pending |
+| COHORT-04 | TBD | Pending |
+| COHORT-05 | TBD | Pending |
+| COHORT-06 | TBD | Pending |
+| VIS-01 | TBD | Pending |
+| VIS-02 | TBD | Pending |
+| VIS-03 | TBD | Pending |
+| VIS-04 | TBD | Pending |
+
+**Coverage:** v1.19 requirements: 20 total, 0 mapped (roadmapper pending).
+
+### v1.18 Admin Console & Adoption Lab (phases 86–93; tech_debt)
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
@@ -166,20 +272,15 @@ v1.18 Admin Console & Adoption Lab (phases 86–93; b1.0 brand-track rows archiv
 | DX-03 | Phase 87 | Complete |
 | PRIN-01 | Phase 86 | Satisfied |
 | TRUTH-07 | Phase 93 | Complete |
-| PAUSE-01 | — | Satisfied (maintenance mode, pre-v1.18) |
-| PAUSE-02 | — | Satisfied (threads canonical) |
-| PAUSE-03 | — | Satisfied; amended 2026-06-10 (maintainer-pull override for v1.18) |
-| LIFE-06-* | v1.19+ (on signal) | Deferred |
-| STREAM-10-* | v1.19+ (on signal) | Deferred |
-| TRANS-01 | — | Deferred |
-| PRIV-01 | — | Deferred |
+| PAUSE-01/02/03 | — | Satisfied (PAUSE-03 amended/extended) |
+| LIFE-06-* / STREAM-10-* | v1.20+ (on signal) | Deferred |
+| TRANS-01 / PRIV-01 | — | Deferred |
 
-**Coverage:**
-- v1.18 requirements: 19 total, 19 mapped to phases 86–93, 19 satisfied (all Complete/Satisfied at v1.18 close)
-- Pause requirements: 3 total (PAUSE-03 amended for the override)
-- Brand-track requirements: 8/8 validated and archived (b1.0)
-- Unmapped active reqs: 0
+**Coverage:** v1.18 requirements: 19 total, 19 mapped to phases 86–93, all Complete/Satisfied
+(milestone held at `tech_debt` pending HUMAN-UAT).
 
 ---
 *Requirements defined: 2026-05-27*
-*Last updated: 2026-06-13 — Phase 93 closed v1.18 traceability: ADMIN-03/04/05, DEMO-01/02/03, E2E-01, DX-01/02/03, and TRUTH-07 flipped to Complete; coverage now 19/19. LIFE-06/STREAM-10 remain Deferred (v1.19+).*
+*Last updated: 2026-06-14 — v1.19 Design-System Stress-Test charter (SEED-002): PIPE-01/02,
+UPLIFT-01..08, COHORT-01..06, VIS-01..04 (20 reqs) added as active; v1.18 reqs demoted to
+tech_debt (HUMAN-UAT pending, archival reset away). LIFE-06/STREAM-10 shifted to v1.20+.*
