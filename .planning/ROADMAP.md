@@ -62,7 +62,7 @@ maintainer go/no-go gate between phases.
   asset-serving plug (safe by default); home, assets list/detail, upload sessions,
   variant/job activity, doctor + runtime status; pubsub live updates;
   `Rindle.Admin.Queries` isolation; optional-dep CI matrix. (ADMIN-01..03, 05, 06)
-- [x] **Phase 90: Console Ops Actions** — erasure preview/execute + batch with (completed 2026-06-13; HUMAN-UAT pending)
+- [x] **Phase 90: Console Ops Actions** — erasure preview/execute + batch with (completed 2026-06-13; UAT complete 2026-06-14 — destructive-UX gate automated into merge-blocking CI)
   destructive-action UX (typed confirmation, collateral preview), variant regeneration,
   quarantine review, lifecycle repair. (ADMIN-04)
 - [x] **Phase 91: Cohort Demo Evolution** — Cohort's own lightweight brand (completed 2026-06-12)
