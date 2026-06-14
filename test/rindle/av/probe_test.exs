@@ -19,6 +19,24 @@ defmodule Rindle.AV.ProbeTest do
       assert :ok = Probe.check_ffmpeg!(mock_runner)
     end
 
+    test "returns :ok for git-tag (n-prefixed) version strings from official/BtbN builds" do
+      mock_runner = fn "ffmpeg", ["-version"] ->
+        {"ffmpeg version n7.1-latest Copyright (c) 2000-2024 the FFmpeg developers\n", 0}
+      end
+
+      assert :ok = Probe.check_ffmpeg!(mock_runner)
+    end
+
+    test "raises for an n-prefixed version below 6.0" do
+      mock_runner = fn "ffmpeg", ["-version"] ->
+        {"ffmpeg version n5.1.2-static Copyright (c) 2000-2022 the FFmpeg developers\n", 0}
+      end
+
+      assert_raise RuntimeError, ~r/Rindle requires FFmpeg >= 6.0, found: 5.1/, fn ->
+        Probe.check_ffmpeg!(mock_runner)
+      end
+    end
+
     test "raises when ffmpeg is < 6.0" do
       mock_runner = fn "ffmpeg", ["-version"] ->
         {"ffmpeg version 5.1.2 Copyright (c) 2000-2022 the FFmpeg developers\n", 0}
