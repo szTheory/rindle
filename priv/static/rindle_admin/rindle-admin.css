@@ -132,7 +132,7 @@
   --rindle-surface-sunken: #101417;
   --rindle-text: #F1F7F3;
   --rindle-text-secondary: #A3B5AC;
-  --rindle-text-on-brand: #F7F4EA;
+  --rindle-text-on-brand: #101417;
   --rindle-brand: #32D08C;
   --rindle-brand-hover: #4FD79C;
   --rindle-brand-active: #32D08C;
@@ -162,7 +162,7 @@
     --rindle-surface-sunken: #101417;
     --rindle-text: #F1F7F3;
     --rindle-text-secondary: #A3B5AC;
-    --rindle-text-on-brand: #F7F4EA;
+    --rindle-text-on-brand: #101417;
     --rindle-brand: #32D08C;
     --rindle-brand-hover: #4FD79C;
     --rindle-brand-active: #32D08C;
@@ -533,14 +533,14 @@ textarea[data-rindle-admin-input] {
   display: inline-flex;
   align-items: center;
   gap: var(--rindle-space-1);
-  padding: var(--rindle-space-1);
+  padding: 0 var(--rindle-space-1);
   border: var(--rindle-border-rule-subtle);
   border-radius: var(--rindle-radius-control);
   background: var(--rindle-surface-raised);
 }
 
 .rindle-admin-theme-picker__option {
-  min-height: 36px;
+  min-height: var(--rindle-admin-target-min);
   padding: var(--rindle-space-1) var(--rindle-space-3);
   border: 0;
   border-radius: var(--rindle-radius-control-sm);

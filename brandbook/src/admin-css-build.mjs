@@ -395,19 +395,34 @@ textarea[data-rindle-admin-input] {
   cursor: pointer;
 }
 
+/* Destructive submit buttons must read as dangerous. The base [data-rindle-admin-submit]
+   rule above paints every submit button brand-colored at equal specificity to
+   .rindle-admin-button--destructive (and wins on source order), so the destructive intent
+   needs this higher-specificity override to actually paint red. */
+[data-rindle-admin-submit].rindle-admin-button--destructive {
+  background: var(--rindle-status-danger);
+  color: var(--rindle-text-on-brand);
+}
+
+[data-rindle-admin-submit].rindle-admin-button--destructive:hover {
+  background: var(--rindle-status-danger-surface);
+  color: var(--rindle-status-danger);
+  border-color: var(--rindle-status-danger);
+}
+
 .rindle-admin-theme-picker {
   min-height: var(--rindle-admin-target-min);
   display: inline-flex;
   align-items: center;
   gap: var(--rindle-space-1);
-  padding: var(--rindle-space-1);
+  padding: 0 var(--rindle-space-1);
   border: var(--rindle-border-rule-subtle);
   border-radius: var(--rindle-radius-control);
   background: var(--rindle-surface-raised);
 }
 
 .rindle-admin-theme-picker__option {
-  min-height: 36px;
+  min-height: var(--rindle-admin-target-min);
   padding: var(--rindle-space-1) var(--rindle-space-3);
   border: 0;
   border-radius: var(--rindle-radius-control-sm);

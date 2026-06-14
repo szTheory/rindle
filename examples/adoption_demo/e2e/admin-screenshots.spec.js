@@ -3,12 +3,14 @@ const path = require("node:path");
 const { test, expect } = require("@playwright/test");
 const {
   visitAdmin,
+  adminRoot,
   expectAdminShell,
   selectAdminTheme,
   firstAdminDetailHref,
   expectNoAdminRawSecrets,
   expectNoHorizontalScroll,
 } = require("./support/admin");
+const { assertAdminPolish } = require("./support/admin-polish");
 const { waitForLiveSocket } = require("./support/liveview");
 const { MEMBERS, memberId } = require("./support/cohort");
 
@@ -68,6 +70,13 @@ async function capture(page, theme, relativePath) {
   await selectAdminTheme(page, theme);
   await expectNoAdminRawSecrets(page);
   await expectNoHorizontalScroll(page);
+
+  // Deterministic visual-polish gate: replaces the former human screenshot review by
+  // asserting clipped text, contrast, target sizes, overlap, and stable dimensions on
+  // the exact rendered state of every capture (all 22 surface/theme/viewport states).
+  const surface = await adminRoot(page).getAttribute("data-rindle-admin-surface");
+  const viewport = relativePath.startsWith("mobile/") ? "mobile" : "desktop";
+  await assertAdminPolish(page, { viewport, surface });
 
   const outputPath = path.join(screenshotsDir, relativePath);
   fs.mkdirSync(path.dirname(outputPath), { recursive: true });
