@@ -1,10 +1,11 @@
 ---
 phase: 94
 slug: foundation-token-pipeline-ci-gate-new-token-categories
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-06-14
+reviewed_at: 2026-06-14
 ---
 
 # Phase 94 — UI Design Contract
@@ -39,7 +40,7 @@ shadcn gate: **not applicable** — not a React/Next/Vite project; `components.j
 
 ## Spacing Scale
 
-Existing 8-step scale is **unchanged and authoritative** (multiples of 4, source `tokens.json` `spacing`):
+Existing 8-step scale is **unchanged and authoritative** (multiples of 4, source `tokens.json` `spacing`). This is the frozen Phase-88 8-step ladder — no new fixed steps this phase, so the `space-3`=12px step (a valid 4pt-grid multiple) is inherited and intentional, not an exception:
 
 | Token | Value | Usage |
 |-------|-------|-------|
@@ -82,7 +83,7 @@ vocabulary. Anchored on the single existing admin breakpoint (760px) so the curr
 
 ## Typography
 
-Existing fixed scale is **authoritative for body/UI text** (source `tokens.json` `typography.scale`):
+Existing fixed scale is **authoritative for body/UI text** (source `tokens.json` `typography.scale`). This is the inherited Phase-88 brand scale, frozen — **no new size steps this phase** (the new work is purely additive `clamp()` fluidity on existing display sizes per D-94-09); the raw size/weight counts reflect the established brand families, not new ad-hoc styling:
 
 | Role | Size | Weight | Line Height | Family |
 |------|------|--------|-------------|--------|
