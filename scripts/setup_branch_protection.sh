@@ -24,6 +24,9 @@ REQUIRED_CHECKS=(
   "Proof"
   "Package Consumer Proof Matrix + Release Preflight"
   "Adopter"
+  "Adoption Demo Unit"
+  "Adoption Demo E2E"
+  "Cohort Demo Smoke"
 )
 
 print_expected_text() {
@@ -38,6 +41,9 @@ Expected required status checks:
   - Proof
   - Package Consumer Proof Matrix + Release Preflight
   - Adopter
+  - Adoption Demo Unit
+  - Adoption Demo E2E
+  - Cohort Demo Smoke
 
 Expected non-context branch protection fields:
   - required_status_checks.strict: true
