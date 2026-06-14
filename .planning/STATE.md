@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.19
 milestone_name: Design-System Stress-Test
 status: planning
-last_updated: "2026-06-14T22:40:00.000Z"
-last_activity: 2026-06-14
+last_updated: "2026-06-14T22:47:20.719Z"
+last_activity: 2026-06-14 — v1.19 roadmap written (phases 94–102, 20/20 reqs mapped)
 progress:
-  total_phases: 9
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  total_phases: 32
+  completed_phases: 11
+  total_plans: 36
+  completed_plans: 39
+  percent: 34
 ---
 
 # Project State
@@ -40,12 +40,15 @@ inner pages, in service of real user flows.
   Track B (Cohort restyle: `.ck-*` component layer + net-new dark/reduced-motion contract →
   page-by-page migration → daisyUI retirement). Parallel after the Phase 94 foundation;
   re-converge in Phase 102.
+
 - **Near-zero new deps:** extend `tokens.json → .mjs → rindle-admin.css` (admin) + hand-authored
   `cohort.css`/`CohortComponents` (demo). No Tailwind in `rindle`, no JS animation lib, no SaaS
   visual-regression, no Storybook.
+
 - **Proof (resolved):** the deterministic `admin-polish.js` computed-style gate (generalized over
   admin + Cohort) is the **single merge-blocking** visual gate; golden-PNG pixel baselines are
   optional / non-blocking only.
+
 - **Roadmap:** `.planning/ROADMAP.md` phases 94–102
 - **Requirements:** `.planning/REQUIREMENTS.md` (PIPE-01/02, UPLIFT-01..08, COHORT-01..06,
   VIS-01..04 — 20 reqs)
@@ -73,17 +76,22 @@ container-query token shape and the differentiated dark-status-surface model.
   component layer + dark/reduced-motion → 99 small-7 page migrations → 100 /upload migration →
   101 daisyUI retirement) → re-converge (102 matrix + idempotency + audit). Level 1→2→3 is a hard
   intra-track dependency; pages compose only from finished primitives.
+
 - **The one structural prerequisite:** the `.mjs` token→CSS pipeline is **not gated in CI today**
   (`grep brandbook ci.yml` → nothing). Phase 94's `brandbook-tokens` job is the anchor.
+
 - **Two design systems stay separate but coherent:** `rindle-admin` (`.rindle-admin-*` BEM,
   generated, host-Tailwind-independent) and `cohort.css` (`.ck-*`, hand-authored, emerald brand)
   share vocabulary but **never** a stylesheet, token file, or build step. Generated
   `rindle-admin.css` is never hand-edited (generator is the only writer).
+
 - **Migration discipline:** class-by-class, never element-by-element; preserve every
   `id`/`data-testid`/`phx-hook` as a frozen behavior contract; run behavior e2e per page; delete
   `default.css` only once grep is clean (Phase 101).
+
 - **Cohort net-new work:** `cohort.css` has **no** dark `[data-theme]` contract and **no**
   `prefers-reduced-motion` block today — both authored in Phase 96.
+
 - **Anti-features (hard no):** metrics/charting dashboard, dark-by-inversion, color-only status,
   animate-everything, generating `cohort.css` from `tokens.json`, adding Tailwind/JS-anim-lib to
   `rindle`, golden-PNG as a merge blocker.
@@ -94,15 +102,18 @@ container-query token shape and the differentiated dark-status-surface model.
   91 logo+lifecycle display, 92 screenshot-review matrix). Audit status: `tech_debt` until signed
   off; archival commit was reset away on `main`, so v1.18 reqs/roadmap remain inline (demoted, not
   archived). Close via `/gsd-complete-milestone v1.18`.
+
 - **v1.18 surfaces are the substrate v1.19 polishes:** token-generated `rindle-admin` CSS,
   mountable console (`Rindle.Admin.Router.rindle_admin/2`), `Rindle.Admin.Queries`, deterministic
   `adoption-demo-e2e` Playwright lane (`admin-polish.js` + 22-PNG matrix), Cohort demo with full
   lifecycle-state seeds + audio/document profiles.
+
 - **b1.0 brand system** in `brandbook/` (Confluence e1 logo, tokens with WCAG gate, HTML brand
   book) is the token source of truth for `rindle-admin`.
 
 - **Do not** reopen tus protocol, Mux surfaces, owner-erasure semantics, or any console lifecycle
   / write path beyond the v1.18 surface — v1.19 is DS quality only.
+
 - **Do not** add force-delete (LIFE-06) or a second provider (STREAM-10) — demand-gated, v1.20+.
 - Default `mix coveralls` and `adoption-demo-e2e` are merge-blocking per `ci.yml` (source of truth).
 
@@ -111,8 +122,10 @@ container-query token shape and the differentiated dark-status-surface model.
 - v1.19 proof strategy: deterministic computed-style `admin-polish.js` gate is the SINGLE
   merge-blocking visual gate (generalized over admin + Cohort); golden-PNG `toHaveScreenshot()`
   baselines stay optional / non-blocking (never merge-blocking until proven CI-stable).
+
 - v1.19 keeps the two design systems separate (no shared stylesheet/token file/build step);
   coherence enforced by shared vocabulary + parallel gallery/contrast gate, not a shared file.
+
 - v1.19 collapses the research's Cohort B1+B2 (Level-1 + Level-2 `.ck-*` layers) into a single
   Phase 96 anchored on COHORT-06, keeping a clean 1:1 requirement→phase mapping; the small-7 page
   migrations (Phase 99) and `/upload` (Phase 100) compose those finished primitives.
@@ -122,19 +135,24 @@ container-query token shape and the differentiated dark-status-surface model.
 
 - 88: `rindle-admin` is vanilla generated CSS, no runtime UI dep / host asset-pipeline dep; gallery
   is static generated HTML linking only `../tokens/rindle-admin.css`; review screenshots gitignored.
+
 - 89: production mounts require non-empty `:on_mount` or explicit `auth_guarded?: true`; packaged
   static assets are byte-identical to `brandbook/tokens/rindle-admin.css` (brandbook generators are
   source of truth); admin read composition lives in `Rindle.Admin.Queries` (7 `/1` query fns +
   `actions_directory/0`), not the public facade; `phoenix_live_view` optional, compile-away proven
   in a dedicated CI matrix job.
+
 - 90: owner/batch erasure + non-destructive ops (variant regen, lifecycle repair, quarantine
   triage) implemented within `ActionsLive` with strict typed confirmation.
+
 - 91: Cohort logo = `logo_opt2.svg`; console mounted at `/admin` via `allow_unauthenticated?: true`
   (demo only).
+
 - 92: shared CommonJS admin helper inside the existing `adoption_demo` Playwright harness; only
   semantic `data-rindle-admin-*` selectors in shipped admin source; live screenshot artifacts under
   ignored Playwright `test-results` with an exact 22-file PNG contract; screenshot polish fixed at
   the brandbook generator source (CSS kept byte-identical across brandbook/priv).
+
 - 93: TRUTH-07 docs parity CI-locked in `docs_parity_test.exs`; JTBD T4 admin-UI exclusion reversed
   (shipped job 39 cites `rindle_admin/2`); v1.18 traceability closed 19/19; milestone audit recorded
   at `status: tech_debt` pending HUMAN-UAT.
@@ -162,9 +180,9 @@ container-query token shape and the differentiated dark-status-surface model.
 
 ## Session Continuity
 
-Last session: 2026-06-14T22:40:00.000Z
-Stopped at: v1.19 roadmap created (phases 94–102); STATE + REQUIREMENTS traceability updated
-Resume file: None — next is `/gsd:plan-phase 94`
+Last session: 2026-06-14T22:47:20.714Z
+Stopped at: Phase 94 context gathered (assumptions mode)
+Resume file: .planning/phases/94-foundation-token-pipeline-ci-gate-new-token-categories/94-CONTEXT.md
 
 ## Performance Metrics
 
