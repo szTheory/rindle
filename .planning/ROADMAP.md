@@ -2,7 +2,7 @@
 
 ## Milestones
 
-- 🔄 **v1.18 Admin Console & Adoption Lab** — Phases 86–93 (tech_debt: 19/19 reqs + 8/8 phases verified, HUMAN-UAT for 90/91/92 pending; charter 2026-06-10; ships as hex 0.3.0; [audit](milestones/v1.18-MILESTONE-AUDIT.md))
+- 🔄 **v1.18 Admin Console & Adoption Lab** — Phases 86–93 (tech_debt: 19/19 reqs + 8/8 phases verified, HUMAN-UAT for 92 pending; charter 2026-06-10; ships as hex 0.3.0; [audit](milestones/v1.18-MILESTONE-AUDIT.md))
 - ✅ **b1.0 Brand Foundations** — Phases 81–85 (brand track, non-feature; shipped 2026-06-10, [archive](milestones/b1.0-ROADMAP.md), [audit](milestones/b1.0-MILESTONE-AUDIT.md))
 - ✅ **v1.17 Adopter-Confidence Hygiene** — Phases 78–80 (shipped 2026-05-27, [archive](milestones/v1.17-ROADMAP.md), [audit](milestones/v1.17-MILESTONE-AUDIT.md))
 - ✅ **v1.16 CI Enforcement & Planning Hygiene** — Phases 75–77 (shipped 2026-05-27, [archive](milestones/v1.16-ROADMAP.md))
@@ -353,7 +353,7 @@ Plans:
 - [x] 93-03-PLAN.md — Author guides/admin_console.md, wire into mix.exs extras, add README mention.
 - [x] 93-04-PLAN.md — Parity-test lock (Nyquist) + regenerate v1.18 milestone audit + UAT-status checkpoint.
 
-**Audit:** [.planning/milestones/v1.18-MILESTONE-AUDIT.md](milestones/v1.18-MILESTONE-AUDIT.md) — status `tech_debt` (19/19 reqs + 8/8 phases verified; HUMAN-UAT for phases 90/91/92 pending before `shipped`).
+**Audit:** [.planning/milestones/v1.18-MILESTONE-AUDIT.md](milestones/v1.18-MILESTONE-AUDIT.md) — status `tech_debt` (19/19 reqs + 8/8 phases verified; HUMAN-UAT for phase 92 pending before `shipped`).
 
 <details>
 <summary>✅ b1.0 Brand Foundations (Phases 81–85) — SHIPPED 2026-06-10</summary>
