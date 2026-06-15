@@ -39,6 +39,16 @@
   --rindle-dark-danger: #F09090;
   --rindle-dark-quarantine: #BDAED6;
   --rindle-dark-info: #85AAF5;
+  --rindle-dark-ready-surface: #16241E;
+  --rindle-dark-processing-surface: #1C1E2B;
+  --rindle-dark-warning-surface: #241F16;
+  --rindle-dark-danger-surface: #2A1A1A;
+  --rindle-dark-quarantine-surface: #211C2B;
+  --rindle-dark-info-surface: #161D2B;
+  --rindle-elevation-0: #0E1316;
+  --rindle-elevation-1: #161E23;
+  --rindle-elevation-2: #1E282E;
+  --rindle-elevation-3: #27343B;
 
   /* semantic roles (light) */
   --rindle-surface: #F7F4EA;
@@ -111,10 +121,34 @@
   --rindle-radius-panel: 20px;
   --rindle-radius-pill: 999px;
 
+  /* fluid display type (clamp on hero/h1/h2/h3 only) */
+  --rindle-text-hero-fluid: clamp(40px, 28px + 3.4vw, 64px);
+  --rindle-text-h1-fluid: clamp(32px, 24px + 2.2vw, 44px);
+  --rindle-text-h2-fluid: clamp(24px, 20px + 1.4vw, 30px);
+  --rindle-text-h3-fluid: clamp(20px, 18px + 0.7vw, 22px);
+
+  /* fluid space */
+  --rindle-space-fluid-gutter: clamp(16px, 12px + 1.25vw, 32px);
+  --rindle-space-fluid-section: clamp(32px, 24px + 2.5vw, 64px);
+
+  /* named breakpoints */
+  --rindle-bp-sm: 480px;
+  --rindle-bp-md: 760px;
+  --rindle-bp-lg: 1024px;
+  --rindle-bp-xl: 1280px;
+
+  /* dark elevation ladder (semantic surface-lightness tint, not inversion) */
+  --rindle-elevation-0: #0E1316;
+  --rindle-elevation-1: #161E23;
+  --rindle-elevation-2: #1E282E;
+  --rindle-elevation-3: #27343B;
+
   /* borders, shadow, focus, motion */
   --rindle-border-rule-subtle: 1px solid #D9E0DA;
   --rindle-border-rule-strong: 1px solid #75847B;
   --rindle-shadow-card: 0 1px 2px rgba(16, 20, 23, 0.06), 0 8px 24px rgba(16, 20, 23, 0.06);
+  --rindle-shadow-raised: 0 1px 2px rgba(16, 20, 23, 0.06);
+  --rindle-shadow-overlay: 0 18px 40px -22px rgba(16, 20, 23, 0.32);
   --rindle-focus-width: 2px;
   --rindle-focus-offset: 2px;
   --rindle-motion-press: 120ms;
@@ -123,6 +157,9 @@
   --rindle-motion-transition: 300ms;
   --rindle-motion-diagram: 600ms;
   --rindle-motion-easing: cubic-bezier(0.2, 0, 0, 1);
+  --rindle-motion-easing-standard: cubic-bezier(0.2, 0, 0, 1);
+  --rindle-motion-easing-decelerate: cubic-bezier(0, 0, 0, 1);
+  --rindle-motion-easing-accelerate: cubic-bezier(0.3, 0, 1, 1);
   --rindle-admin-target-min: 44px;
 }
 
@@ -147,12 +184,12 @@
   --rindle-status-danger: #F09090;
   --rindle-status-quarantine: #BDAED6;
   --rindle-status-info: #85AAF5;
-  --rindle-status-ready-surface: #161E23;
-  --rindle-status-processing-surface: #161E23;
-  --rindle-status-warning-surface: #161E23;
-  --rindle-status-danger-surface: #161E23;
-  --rindle-status-quarantine-surface: #161E23;
-  --rindle-status-info-surface: #161E23;
+  --rindle-status-ready-surface: #16241E;
+  --rindle-status-processing-surface: #1C1E2B;
+  --rindle-status-warning-surface: #241F16;
+  --rindle-status-danger-surface: #2A1A1A;
+  --rindle-status-quarantine-surface: #211C2B;
+  --rindle-status-info-surface: #161D2B;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -177,12 +214,12 @@
     --rindle-status-danger: #F09090;
     --rindle-status-quarantine: #BDAED6;
     --rindle-status-info: #85AAF5;
-    --rindle-status-ready-surface: #161E23;
-    --rindle-status-processing-surface: #161E23;
-    --rindle-status-warning-surface: #161E23;
-    --rindle-status-danger-surface: #161E23;
-    --rindle-status-quarantine-surface: #161E23;
-    --rindle-status-info-surface: #161E23;
+    --rindle-status-ready-surface: #16241E;
+    --rindle-status-processing-surface: #1C1E2B;
+    --rindle-status-warning-surface: #241F16;
+    --rindle-status-danger-surface: #2A1A1A;
+    --rindle-status-quarantine-surface: #211C2B;
+    --rindle-status-info-surface: #161D2B;
   }
 }
 
@@ -201,12 +238,15 @@
   font-family: var(--rindle-font-sans);
   font-size: var(--rindle-text-body-size);
   line-height: var(--rindle-text-body-line);
-  transition: background-color var(--rindle-motion-transition) var(--rindle-motion-easing), color var(--rindle-motion-transition) var(--rindle-motion-easing);
+  padding-inline: var(--rindle-space-fluid-gutter);
+  transition: background-color var(--rindle-motion-transition) var(--rindle-motion-easing-standard), color var(--rindle-motion-transition) var(--rindle-motion-easing-standard);
 }
 
 .rindle-admin-shell__main {
   min-width: 0;
+  max-width: var(--rindle-bp-xl);
   padding: var(--rindle-space-6);
+  margin-block: var(--rindle-space-fluid-section);
 }
 
 .rindle-admin-nav {
@@ -214,12 +254,17 @@
   padding: var(--rindle-space-5);
   background: var(--rindle-surface-raised);
   border-right: var(--rindle-border-rule-subtle);
+  box-shadow: var(--rindle-shadow-raised);
+}
+
+[data-theme="dark"] .rindle-admin-nav {
+  background: var(--rindle-elevation-1);
 }
 
 .rindle-admin-nav__brand {
   margin: 0 0 var(--rindle-space-5);
   font-family: var(--rindle-font-display);
-  font-size: var(--rindle-text-h3-size);
+  font-size: var(--rindle-text-h3-fluid);
   line-height: var(--rindle-text-h3-line);
   font-weight: var(--rindle-text-h3-weight);
 }
@@ -562,9 +607,13 @@ textarea[data-rindle-admin-input] {
   border-radius: var(--rindle-radius-card);
   background: var(--rindle-surface-raised);
   color: var(--rindle-text);
-  box-shadow: var(--rindle-shadow-card);
+  box-shadow: var(--rindle-shadow-overlay);
   transform-origin: top center;
-  transition: opacity var(--rindle-motion-popover) var(--rindle-motion-easing), transform var(--rindle-motion-popover) var(--rindle-motion-easing);
+  transition: opacity var(--rindle-motion-popover) var(--rindle-motion-easing-decelerate), transform var(--rindle-motion-popover) var(--rindle-motion-easing-decelerate);
+}
+
+[data-theme="dark"] .rindle-admin-confirm-dialog {
+  background: var(--rindle-elevation-3);
 }
 
 .rindle-admin-confirm-dialog__title {
@@ -582,8 +631,12 @@ textarea[data-rindle-admin-input] {
   border-left: var(--rindle-border-rule-strong);
   background: var(--rindle-surface-raised);
   color: var(--rindle-text);
-  box-shadow: var(--rindle-shadow-card);
-  transition: transform var(--rindle-motion-popover) var(--rindle-motion-easing), opacity var(--rindle-motion-popover) var(--rindle-motion-easing);
+  box-shadow: var(--rindle-shadow-overlay);
+  transition: transform var(--rindle-motion-popover) var(--rindle-motion-easing-decelerate), opacity var(--rindle-motion-popover) var(--rindle-motion-easing-decelerate);
+}
+
+[data-theme="dark"] .rindle-admin-drawer {
+  background: var(--rindle-elevation-3);
 }
 
 .rindle-admin-toast {
@@ -598,8 +651,12 @@ textarea[data-rindle-admin-input] {
   border-radius: var(--rindle-radius-control);
   background: var(--rindle-surface-raised);
   color: var(--rindle-text);
-  box-shadow: var(--rindle-shadow-card);
-  transition: opacity var(--rindle-motion-toast) var(--rindle-motion-easing), transform var(--rindle-motion-toast) var(--rindle-motion-easing);
+  box-shadow: var(--rindle-shadow-overlay);
+  transition: opacity var(--rindle-motion-toast) var(--rindle-motion-easing-accelerate), transform var(--rindle-motion-toast) var(--rindle-motion-easing-accelerate);
+}
+
+[data-theme="dark"] .rindle-admin-toast {
+  background: var(--rindle-elevation-2);
 }
 
 .rindle-admin-toast--success { border-left-color: var(--rindle-status-ready); }
@@ -632,6 +689,29 @@ textarea[data-rindle-admin-input] {
   transition: opacity var(--rindle-motion-transition) var(--rindle-motion-easing);
 }
 
+/* Fluid display headings: clamp() interpolates between bp-sm and the fixed max
+   so large viewports stay byte-identical to the existing fixed scale (D-94-09). */
+.rindle-admin-heading--hero {
+  font-family: var(--rindle-font-display);
+  font-size: var(--rindle-text-hero-fluid);
+  line-height: var(--rindle-text-hero-line);
+  font-weight: var(--rindle-text-hero-weight);
+}
+
+.rindle-admin-heading--h1 {
+  font-family: var(--rindle-font-display);
+  font-size: var(--rindle-text-h1-fluid);
+  line-height: var(--rindle-text-h1-line);
+  font-weight: var(--rindle-text-h1-weight);
+}
+
+.rindle-admin-heading--h2 {
+  font-family: var(--rindle-font-display);
+  font-size: var(--rindle-text-h2-fluid);
+  line-height: var(--rindle-text-h2-line);
+  font-weight: var(--rindle-text-h2-weight);
+}
+
 .rindle-admin-button:focus-visible,
 .rindle-admin-nav__item:focus-visible,
 .rindle-admin-table__row:focus-within,
@@ -646,6 +726,8 @@ textarea[data-rindle-admin-input] {
   outline-offset: var(--rindle-focus-offset);
 }
 
+/* collapse point anchored on --rindle-bp-md (760px); literal because CSS media
+   conditions cannot read custom properties */
 @media (max-width: 760px) {
   .rindle-admin-shell {
     grid-template-columns: 1fr;
