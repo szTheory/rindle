@@ -27,6 +27,7 @@ REQUIRED_CHECKS=(
   "Adoption Demo Unit"
   "Adoption Demo E2E"
   "Cohort Demo Smoke"
+  "brandbook-tokens"
 )
 
 print_expected_text() {
@@ -44,6 +45,7 @@ Expected required status checks:
   - Adoption Demo Unit
   - Adoption Demo E2E
   - Cohort Demo Smoke
+  - brandbook-tokens
 
 Expected non-context branch protection fields:
   - required_status_checks.strict: true

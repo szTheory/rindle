@@ -1142,7 +1142,7 @@ jobs:
           done < "${RINDLE_INSTALL_SMOKE_GCS_CLEANUP_FILE}"
 
   brandbook-tokens:
-    name: Brandbook Tokens (PIPE-01 drift gate)
+    name: brandbook-tokens
     runs-on: ubuntu-22.04
     # Merge-blocking token->CSS pipeline gate (PIPE-01). Regenerates every
     # committed generated artifact from brandbook/tokens/tokens.json via the .mjs
