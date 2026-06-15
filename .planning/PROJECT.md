@@ -136,6 +136,15 @@ admin console lifecycle display, screenshot-review matrix). See
 [v1.18-MILESTONE-AUDIT.md](milestones/v1.18-MILESTONE-AUDIT.md). This is the last
 phase of v1.18; the milestone is not yet `shipped` pending maintainer UAT sign-off.
 
+**v1.19 Phase 94 complete (2026-06-15):** Foundation — Token Pipeline CI Gate
+& New Token Categories validated PIPE-01, PIPE-02, and VIS-01 groundwork. The
+`brandbook-tokens` job now gates the generated-token pipeline (regen →
+contrast → gallery → shipped CSS sync → empty diff), branch protection requires
+that check, PR #23 shows it passing, and the admin generator emits the new
+motion, elevation/shadow, fluid type/space, breakpoint, and semantic dark
+status-surface categories. Phase 95 is ready to discuss/plan the Track A
+admin Level-1 component audit on top of this hardened foundation.
+
 Do not reopen tus protocol, single-owner/batch erasure semantics, or Mux surfaces
 beyond v1.13. Keep shared-asset safety and maintenance-vs-owner-erasure boundaries
 intact.
@@ -825,4 +834,4 @@ This document evolves at phase transitions and milestone boundaries.
    (`workflow.milestone_boundary.block_feature_milestone_without_signal`)
 
 ---
-*Last updated: 2026-06-14 — v1.19 Design-System Stress-Test charter recorded (SEED-002; phases 94+; admin/operator DS fractal audit + Cohort inner-page restyle; hex 0.3.x target). Opens over un-closed v1.18 (tech_debt, HUMAN-UAT pending) by recorded maintainer decision.*
+*Last updated: 2026-06-15 — Phase 94 foundation completed and verified; `brandbook-tokens` is merge-blocking in CI and branch protection. v1.19 Design-System Stress-Test remains active over un-closed v1.18 (tech_debt, HUMAN-UAT pending) by recorded maintainer decision.*
