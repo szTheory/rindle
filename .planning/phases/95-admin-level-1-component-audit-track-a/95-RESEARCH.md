@@ -305,12 +305,12 @@ async function assertAdminPolish(
 |---|-------|---------|---------------|
 | — | No `[ASSUMED]` claims are used; claims are codebase-verified, command-verified, registry-verified, or cited from official docs. | All | — |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should the ExUnit brandbook validation be made runnable without remembering integration flags?**
-   - What we know: the file is tagged `:integration`, and the direct command excluded all four tests under current defaults. [VERIFIED: command output]
-   - What's unclear: whether maintainers prefer changing the command, tag configuration, or relying on Node gates plus CI. [VERIFIED: command output]
-   - Recommendation: planner should include the Node gates as authoritative Phase 95 checks and optionally add a Wave 0 task to document or adjust the ExUnit invocation. [VERIFIED: command output]
+   - Resolution: keep the existing `@moduletag :integration` behavior and make the explicit invocation part of the Phase 95 validation contract. Plans use `mix test --include integration test/brandbook/admin_design_system_validation_test.exs` whenever the ExUnit wrapper is required. [VERIFIED: command output]
+   - Execution guard: Plan 03's final acceptance rejects the no-op path by requiring nonzero tests executed, not `0 tests, 0 failures`. [VERIFIED: command output]
+   - Feedback split: Node gates remain the fast iteration checks; the tagged ExUnit command is the final integration wrapper proof. [VERIFIED: command output]
 
 ## Environment Availability
 
