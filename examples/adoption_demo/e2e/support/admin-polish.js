@@ -13,7 +13,12 @@
 // brandbook/src/admin-gallery-check.mjs, matching the repo convention of per-script
 // copies (see contrast.mjs / admin-contrast.mjs) rather than cross-package imports.
 
-const ROOT = "[data-rindle-admin-root]";
+// Default surface targeting for the admin console. Callers (e.g. a future Cohort
+// spec in Phase 102) may override `root` / `interactiveSelectors` via assertAdminPolish
+// options to run this SAME gate over another surface (e.g. `[data-ck-root]` / `.ck-*`).
+// The root is ALWAYS explicit (passed or defaulted) — there is no auto-detection
+// (D-94-07: a page mounting both surfaces would match both roots and weaken the gate).
+const DEFAULT_ROOT = "[data-rindle-admin-root]";
 const MIN_TARGET_PX = 44; // mirrors brandbook/src/admin-design-system-data.mjs MIN_TARGET_PX
 const SUBPIXEL_TOLERANCE = 0.5; // rect-rounding slack for target sizes
 const CLIP_TOLERANCE = 1; // px slack for scrollWidth > clientWidth
@@ -25,7 +30,7 @@ const CONTRAST_SLACK = 0.05; // float slack on the WCAG ratio comparison
 const OVERLAP_ENFORCED = false;
 
 // Union of interactive-control selectors (all confirmed present in the admin shell).
-const INTERACTIVE_SELECTORS = [
+const DEFAULT_INTERACTIVE_SELECTORS = [
   "[data-rindle-admin-submit]",
   "[data-rindle-admin-input]",
   '[data-rindle-admin-theme="light"]',
@@ -88,7 +93,7 @@ function contrastRatio(a, b) {
 // or text-overflow:ellipsis), excluding elements that intentionally wrap or scroll
 // (white-space:pre-wrap, overflow-wrap:anywhere, overflow:auto/scroll) and the
 // table-layout:fixed table element (which clips its border-radius, not text).
-async function assertNoClippedText(page) {
+async function assertNoClippedText(page, root = DEFAULT_ROOT) {
   return page.evaluate(
     ({ ROOT, CLIP_TOLERANCE }) => {
       const root = document.querySelector(ROOT);
@@ -148,7 +153,7 @@ async function assertNoClippedText(page) {
       }
       return out;
     },
-    { ROOT, CLIP_TOLERANCE }
+    { ROOT: root, CLIP_TOLERANCE }
   );
 }
 
@@ -159,7 +164,7 @@ async function assertNoClippedText(page) {
 // of computed color vs the *effective* background, resolved by climbing ancestors and
 // alpha-compositing layered/transparent backgrounds until an opaque fill is found.
 // Gradient-backed text (no reachable opaque solid) is skipped-with-note, not failed.
-async function assertReadableContrast(page) {
+async function assertReadableContrast(page, root = DEFAULT_ROOT) {
   const samples = await page.evaluate(
     ({ ROOT }) => {
       const root = document.querySelector(ROOT);
@@ -247,7 +252,7 @@ async function assertReadableContrast(page) {
       }
       return out;
     },
-    { ROOT }
+    { ROOT: root }
   );
 
   const failures = [];
@@ -268,8 +273,8 @@ async function assertReadableContrast(page) {
 // ---------------------------------------------------------------------------
 // Check 3 — target sizes (44px interactive controls)
 // ---------------------------------------------------------------------------
-async function assertTargetSizes(page) {
-  return page.locator(INTERACTIVE_SELECTORS.join(",")).evaluateAll(
+async function assertTargetSizes(page, interactiveSelectors = DEFAULT_INTERACTIVE_SELECTORS) {
+  return page.locator(interactiveSelectors.join(",")).evaluateAll(
     (els, { MIN, TOL }) => {
       const out = [];
       for (const el of els) {
@@ -296,8 +301,8 @@ async function assertTargetSizes(page) {
 // ---------------------------------------------------------------------------
 // Check 4 — no interactive overlap (noisiest; warn-then-tighten)
 // ---------------------------------------------------------------------------
-async function assertNoInteractiveOverlap(page) {
-  return page.locator(INTERACTIVE_SELECTORS.join(",")).evaluateAll(
+async function assertNoInteractiveOverlap(page, interactiveSelectors = DEFAULT_INTERACTIVE_SELECTORS) {
+  return page.locator(interactiveSelectors.join(",")).evaluateAll(
     (els, { TOL }) => {
       const visible = (el) => {
         const s = getComputedStyle(el);
@@ -380,7 +385,15 @@ async function assertStableDimensions(page) {
 // ---------------------------------------------------------------------------
 // Orchestrator
 // ---------------------------------------------------------------------------
-async function assertAdminPolish(page, { viewport, surface } = {}) {
+async function assertAdminPolish(
+  page,
+  {
+    viewport,
+    surface,
+    root = DEFAULT_ROOT,
+    interactiveSelectors = DEFAULT_INTERACTIVE_SELECTORS,
+  } = {}
+) {
   await freezeMotion(page); // settle transitions before any computed-style read
 
   const violations = [];
@@ -396,10 +409,10 @@ async function assertAdminPolish(page, { viewport, surface } = {}) {
     }
   };
 
-  await run("noClippedText", "clipped-text", () => assertNoClippedText(page));
-  await run("readableContrast", "contrast", () => assertReadableContrast(page));
-  await run("targetSizes", "target-size", () => assertTargetSizes(page));
-  await run("noInteractiveOverlap", "overlap", () => assertNoInteractiveOverlap(page), {
+  await run("noClippedText", "clipped-text", () => assertNoClippedText(page, root));
+  await run("readableContrast", "contrast", () => assertReadableContrast(page, root));
+  await run("targetSizes", "target-size", () => assertTargetSizes(page, interactiveSelectors));
+  await run("noInteractiveOverlap", "overlap", () => assertNoInteractiveOverlap(page, interactiveSelectors), {
     warnOnly: !OVERLAP_ENFORCED,
   });
   await run("stableDimensions", "stable-dimensions", () => assertStableDimensions(page));
