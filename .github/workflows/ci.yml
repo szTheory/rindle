@@ -1140,3 +1140,67 @@ jobs:
               gcloud storage rm "gs://${RINDLE_GCS_BUCKET}/${upload_key}" || true
             fi
           done < "${RINDLE_INSTALL_SMOKE_GCS_CLEANUP_FILE}"
+
+  brandbook-tokens:
+    name: Brandbook Tokens (PIPE-01 drift gate)
+    runs-on: ubuntu-22.04
+    # Merge-blocking token->CSS pipeline gate (PIPE-01). Regenerates every
+    # committed generated artifact from brandbook/tokens/tokens.json via the .mjs
+    # generators, runs the WCAG contrast gate + the gallery browser proof, syncs
+    # the shipped priv/ CSS copy via sync-admin-css.mjs, then fails on ANY git
+    # diff. The git diff --exit-code over the regenerated tree is both the drift
+    # gate and the idempotency anchor (a single deterministic regen suffices).
+    # Covers BOTH committed CSS copies (brandbook/tokens/rindle-admin.css +
+    # priv/static/rindle_admin/rindle-admin.css) plus tokens.css and the gallery
+    # index.html, so the shipped package artifact cannot drift silently. Pure
+    # Node/Playwright — no Elixir/Postgres/MinIO/ffmpeg, no secrets. Scope fence:
+    # gates rindle-admin.css only; cohort.css (hand-authored, Phase 96) is out.
+    needs: [quality, optional-dependencies]
+    if: github.repository == 'szTheory/rindle'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install adoption_demo node deps (playwright resolution anchor)
+        working-directory: examples/adoption_demo
+        run: npm ci
+
+      - name: Install Playwright chromium
+        working-directory: examples/adoption_demo
+        run: npx playwright install --with-deps chromium
+
+      - name: Regenerate tokens CSS
+        run: node brandbook/src/tokens-build.mjs
+
+      - name: Regenerate admin CSS
+        run: node brandbook/src/admin-css-build.mjs
+
+      - name: Run WCAG contrast gate
+        run: node brandbook/src/admin-contrast.mjs
+
+      - name: Run admin gallery browser proof
+        run: node brandbook/src/admin-gallery-check.mjs
+
+      - name: Sync shipped priv/ CSS copy
+        run: node brandbook/src/sync-admin-css.mjs
+
+      - name: Fail on generated-artifact drift
+        run: |
+          if ! git diff --exit-code; then
+            echo "::error::Generated CSS is out of sync with tokens.json. Run the brandbook generators and commit the result."
+            exit 1
+          fi
+
+      - name: Upload admin gallery report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: brandbook-tokens-gallery-report
+          path: |
+            brandbook/admin-gallery/screenshots/
+          if-no-files-found: ignore
