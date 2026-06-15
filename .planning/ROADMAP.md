@@ -210,7 +210,13 @@ matrix in light, dark, and system — the settled Level-1 foundation pages will 
 3. The component gallery and `CONSOLE_CONTRAST_PAIRS` are extended to cover the new states; the
    contrast gate passes in both themes with no one-off styles.
 
-**Plans:** TBD
+**Plans:** 3 plans
+
+Plans:
+- [ ] 95-01-PLAN.md — Normalize the Level-1 matrix and generated CSS/contrast contract.
+- [ ] 95-02-PLAN.md — Render the gallery matrix and browser/polish assertions.
+- [ ] 95-03-PLAN.md — Validate the integration wrapper and sync the shipped CSS final gate.
+
 **UI hint:** yes
 
 ---
@@ -654,7 +660,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 94. Foundation — Token Pipeline CI Gate & New Categories | 5/5 | Complete    | 2026-06-15 |
-| 95. Admin Level-1 Component Audit [A] | 0/? | Not started | - |
+| 95. Admin Level-1 Component Audit [A] | 0/3 | Not started | - |
 | 96. Cohort Component Layer + Dark/Reduced-Motion [B] | 0/? | Not started | - |
 | 97. Admin Level-2 Meta-Components [A] | 0/? | Not started | - |
 | 98. Admin Level-3 Pages + Motion/Mobile/A11y/IA/Microcopy [A] | 0/? | Not started | - |
