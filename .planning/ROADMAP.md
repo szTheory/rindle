@@ -653,7 +653,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 94. Foundation — Token Pipeline CI Gate & New Categories | 1/4 | In Progress|  |
+| 94. Foundation — Token Pipeline CI Gate & New Categories | 2/4 | In Progress|  |
 | 95. Admin Level-1 Component Audit [A] | 0/? | Not started | - |
 | 96. Cohort Component Layer + Dark/Reduced-Motion [B] | 0/? | Not started | - |
 | 97. Admin Level-2 Meta-Components [A] | 0/? | Not started | - |

@@ -72,7 +72,7 @@ demand-gated and shift to v1.20+. Research: `.planning/research/v1.19/SUMMARY.md
 
 ### Proof & No-Regression (VIS)
 
-- [ ] **VIS-01**: Deterministic computed-style assertions (the `admin-polish.js` pattern) remain
+- [x] **VIS-01**: Deterministic computed-style assertions (the `admin-polish.js` pattern) remain
   the **single merge-blocking** visual gate, extended to cover all admin + Cohort inner pages
   across light/dark in the `adoption-demo-e2e` lane.
 - [ ] **VIS-02**: Uplift is idempotent / forward-only — each pass converges (double-run
@@ -242,7 +242,7 @@ Open only via `/gsd-new-milestone` with documented signal:
 | COHORT-04 | Phase 99 | Pending |
 | COHORT-05 | Phase 101 | Pending |
 | COHORT-06 | Phase 96 | Pending |
-| VIS-01 | Phase 102 | Pending |
+| VIS-01 | Phase 102 | Complete |
 | VIS-02 | Phase 102 | Pending |
 | VIS-03 | Phase 102 | Pending |
 | VIS-04 | Phase 102 | Pending |
