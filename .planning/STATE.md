@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.19
 milestone_name: Design-System Stress-Test
 status: verifying
-last_updated: "2026-06-15T03:08:26.242Z"
+last_updated: "2026-06-15T20:22:23.240Z"
 last_activity: 2026-06-15
 progress:
   total_phases: 32
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-06-14)
 
 Phase: 94 (foundation-token-pipeline-ci-gate-new-token-categories) — EXECUTING
 Plan: 4 of 4
-Status: Phase complete — ready for verification
+Status: Verification gap found — local `brandbook-tokens` gate passes, but branch protection does not require it yet
 Last activity: 2026-06-15
 
 ## Current Milestone
@@ -60,14 +60,12 @@ inner pages, in service of real user flows.
 
 ## Next Step
 
-**Plan Phase 94 — Foundation.** Phase 94 is the idempotency / no-regression anchor and **blocks
-everything**: add a `brandbook-tokens` CI job (regen + WCAG contrast + gallery-check +
-`git diff --exit-code`) closing the un-gated-pipeline gap; add the new token categories (motion
-presets, dark elevation/shadow ladder, fluid type/space + breakpoints, semantic dark status
-surfaces) to `tokens.json` + the `.mjs` generators for both `rindle-admin` and `cohort`; and
-generalize `admin-polish.js` to target any root (VIS-01 groundwork). Run `/gsd:plan-phase 94`.
-Research flags it for deeper `/gsd:ui-phase` judging on the fluid type/space (`clamp()`) +
-container-query token shape and the differentiated dark-status-surface model.
+**Execute Phase 94 gap plan 05.** The local `brandbook-tokens` gate is green
+(`tokens-build` -> `admin-css-build` -> `admin-contrast` -> `admin-gallery-check` ->
+`sync-admin-css` -> `git diff --exit-code`), but GitHub branch protection for `main` does not
+currently require the `brandbook-tokens` check. Run `/gsd-execute-phase 94 --gaps-only` for
+`94-05-PLAN.md`, push/update the phase branch, apply branch protection, rerun CI, then re-run
+`/gsd-verify-work 94`.
 
 ## Accumulated Context
 
