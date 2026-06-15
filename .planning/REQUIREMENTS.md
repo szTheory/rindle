@@ -21,7 +21,7 @@ demand-gated and shift to v1.20+. Research: `.planning/research/v1.19/SUMMARY.md
 
 ### Foundation & Token Pipeline (PIPE)
 
-- [ ] **PIPE-01**: Token→CSS pipeline is gated in CI — a `brandbook-tokens` job regenerates
+- [x] **PIPE-01**: Token→CSS pipeline is gated in CI — a `brandbook-tokens` job regenerates
   `rindle-admin.css` + `cohort.css` from `tokens.json` via the `.mjs` scripts, runs the WCAG
   contrast gate, and fails on any uncommitted diff. Generated CSS is never hand-edited; this
   is the idempotency / no-regression anchor that lands before any visual work.
@@ -226,7 +226,7 @@ Open only via `/gsd-new-milestone` with documented signal:
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PIPE-01 | Phase 94 | Pending |
+| PIPE-01 | Phase 94 | Complete |
 | PIPE-02 | Phase 94 | Pending |
 | UPLIFT-01 | Phase 95 | Pending |
 | UPLIFT-02 | Phase 97 | Pending |
