@@ -72,7 +72,7 @@ animate-everything, generating `cohort.css` from `tokens.json`.
 Each phase runs full GSD: research → plan → execute → verify, with a maintainer go/no-go gate
 between phases (`auto_advance: false`).
 
-- [ ] **Phase 94: Foundation — Token Pipeline CI Gate & New Token Categories** — close the
+- [x] **Phase 94: Foundation — Token Pipeline CI Gate & New Token Categories** (completed 2026-06-15) — close the
   un-gated-pipeline gap (NEW `brandbook-tokens` CI job: regen + contrast + gallery-check +
   `git diff --exit-code`), add the token categories the uplift needs (motion presets, dark
   elevation/shadow ladder, fluid type/space + breakpoints, semantic dark status surfaces), and
@@ -188,7 +188,7 @@ needs, so all later visual work is idempotent and drift-proof. Blocks everything
 4. The `admin-polish.js` computed-style gate is generalized to target any root selector
    (`.rindle-admin-*` or `.ck-*`), ready to run over both surfaces.
 
-**Plans:** TBD
+**Plans:** 5/5 plans complete
 **UI hint:** yes
 
 ---
@@ -653,7 +653,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 94. Foundation — Token Pipeline CI Gate & New Categories | 5/5 | Complete   | 2026-06-15 |
+| 94. Foundation — Token Pipeline CI Gate & New Categories | 5/5 | Complete    | 2026-06-15 |
 | 95. Admin Level-1 Component Audit [A] | 0/? | Not started | - |
 | 96. Cohort Component Layer + Dark/Reduced-Motion [B] | 0/? | Not started | - |
 | 97. Admin Level-2 Meta-Components [A] | 0/? | Not started | - |

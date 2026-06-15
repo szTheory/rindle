@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v1.19
 milestone_name: Design-System Stress-Test
-status: verifying
-last_updated: "2026-06-15T20:36:38.115Z"
+status: ready_to_plan
+last_updated: 2026-06-15T20:41:49.342Z
 last_activity: 2026-06-15
 progress:
   total_phases: 32
@@ -11,6 +11,7 @@ progress:
   total_plans: 41
   completed_plans: 44
   percent: 38
+stopped_at: Phase 94 complete (5/5) — ready to discuss Phase 95
 ---
 
 # Project State
@@ -20,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-14)
 
 **Core value:** Media, made durable.
-**Current focus:** Phase 94 — foundation-token-pipeline-ci-gate-new-token-categories
+**Current focus:** Phase 95 — admin level 1 component audit [track a]
 
 ## Current Position
 
-Phase: 94 (foundation-token-pipeline-ci-gate-new-token-categories) — VERIFYING
-Plan: 5 of 5
-Status: Gap closure executed — branch protection now requires `brandbook-tokens`; re-verification pending
+Phase: 95
+Plan: Not started
+Status: Ready to plan
 Last activity: 2026-06-15
 
 ## Current Milestone
@@ -60,9 +61,9 @@ inner pages, in service of real user flows.
 
 ## Next Step
 
-**Re-run Phase 94 verification.** Gap plan 05 is complete: branch protection for `main`
-requires `brandbook-tokens`, and PR #23 shows the `brandbook-tokens` check passing on the pushed
-phase branch. Run `/gsd-verify-work 94` to move `94-VERIFICATION.md` from `gaps_found` to complete.
+**Discuss Phase 95.** Phase 94 is verified and complete; the next phase is Track A's
+admin Level-1 component audit. Start with `/gsd-discuss-phase 95` so the component/state matrix
+is grounded before planning.
 
 ## Accumulated Context
 
@@ -72,8 +73,8 @@ phase branch. Run `/gsd-verify-work 94` to move `94-VERIFICATION.md` from `gaps_
   101 daisyUI retirement) → re-converge (102 matrix + idempotency + audit). Level 1→2→3 is a hard
   intra-track dependency; pages compose only from finished primitives.
 
-- **The one structural prerequisite:** the `.mjs` token→CSS pipeline is **not gated in CI today**
-  (`grep brandbook ci.yml` → nothing). Phase 94's `brandbook-tokens` job is the anchor.
+- **The structural prerequisite is closed:** Phase 94's `brandbook-tokens` job gates the
+  `.mjs` token→CSS pipeline, and branch protection now requires that check.
 
 - **Two design systems stay separate but coherent:** `rindle-admin` (`.rindle-admin-*` BEM,
   generated, host-Tailwind-independent) and `cohort.css` (`.ck-*`, hand-authored, emerald brand)

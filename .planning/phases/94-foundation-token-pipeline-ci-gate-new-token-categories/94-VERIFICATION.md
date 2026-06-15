@@ -1,42 +1,46 @@
 ---
 phase: 94-foundation-token-pipeline-ci-gate-new-token-categories
-verified: 2026-06-15T20:21:17Z
-status: gaps_found
-score: 4/4 automated truths verified; 1 merge-blocking protection gap
+verified: 2026-06-15T20:39:56Z
+status: passed
+verification_mode: automated
+manual_uat: not_required
+score: 4/4 automated truths verified; BP-94-01 branch-protection gap resolved
 overrides_applied: 0
 re_verification:
-  previous_status: human_needed
-  previous_score: 4/4 must-haves verified
-gaps:
+  previous_status: verification_gap_recorded
+  previous_score: 4/4 automated truths verified; 1 merge-blocking protection gap
+gaps: []
+resolved_gaps:
   - id: BP-94-01
     truth: "brandbook-tokens is merge-blocking on protected PRs"
-    status: failed
+    status: resolved
     severity: major
-    reason: "GitHub branch protection for main does not currently require the brandbook-tokens check"
+    evidence: "main branch protection requires brandbook-tokens; PR #23 shows brandbook-tokens passing"
 ---
 
 # Phase 94: Foundation — Token Pipeline CI Gate & New Token Categories Verification Report
 
 **Phase Goal:** The token→CSS pipeline is gated in CI and carries the new token categories the uplift needs, so all later visual work is idempotent and drift-proof. Blocks everything.
-**Verified:** 2026-06-15T20:21:17Z
-**Status:** gaps_found (all 4 automated truths VERIFIED; branch-protection does not yet make `brandbook-tokens` a required PR check)
-**Re-verification:** Yes — prior status was `human_needed`
+**Verified:** 2026-06-15T20:39:56Z
+**Status:** passed (all 4 automated truths VERIFIED; `brandbook-tokens` is now required by branch protection and passing on PR #23)
+**Re-verification:** Yes — prior status recorded a verification gap
 
-## Re-verification Update — 2026-06-15T20:21:17Z
+## Re-verification Update — 2026-06-15T20:39:56Z
 
-The automation-first gate was re-run locally in CI order:
+The original automation-first gate was re-run locally in CI order:
 
 `npm ci` in `examples/adoption_demo` → `npx playwright install chromium` → `node brandbook/src/tokens-build.mjs` → `node brandbook/src/admin-css-build.mjs` → `node brandbook/src/admin-contrast.mjs` → `node brandbook/src/admin-gallery-check.mjs` → `node brandbook/src/sync-admin-css.mjs` → `git diff --exit-code`
 
 Result: PASS. `admin-contrast.mjs` reported 44/44 pairs passing, `admin-gallery-check.mjs` wrote 7 screenshots and passed, `sync-admin-css.mjs` wrote a 23846-byte priv copy, and `git diff --exit-code` was clean.
 
-Live GitHub evidence changed the remaining item from "human needed" to a concrete gap:
+Gap closure Plan 05 then resolved the remaining release-train protection layer:
 
-- `gh pr list --head ci/replace-flaky-ffmpeg-action` shows open PR #23 at remote head `ef06bf8`, which is 22 commits behind local HEAD `8263a0c`; the PR check rollup therefore cannot verify the phase-94 `brandbook-tokens` job yet.
-- `gh run list --branch ci/replace-flaky-ffmpeg-action` shows the latest remote CI run `27513634070` succeeded on `ef06bf8`; this run predates phase 94 and has no `brandbook-tokens` job.
-- `gh api repos/szTheory/rindle/branches/main/protection/required_status_checks` returns `strict: true` and required contexts for Quality, Integration, Contract, Proof, Package Consumer, Adopter, Optional Dependencies, Adoption Demo Unit/E2E, and Cohort Demo Smoke. It does **not** include `brandbook-tokens`.
+- `scripts/setup_branch_protection.sh --print-expected-json | jq -e '.required_status_checks.contexts | index("brandbook-tokens")'` returned `12`.
+- `gh api repos/szTheory/rindle/branches/main/protection/required_status_checks --jq '.contexts | index("brandbook-tokens")'` returned `12`.
+- `gh pr checks 23 --watch=false | rg '^brandbook-tokens'` returned `brandbook-tokens pass 43s` for run `27574464166`, job `81519519377`.
+- `.github/workflows/ci.yml` now uses `name: brandbook-tokens`, so the literal required context is satisfiable by the Actions check.
 
-Conclusion: no manual UAT file is required for phase 94. The code-level and local machine evidence is complete, but the release-train protection layer still needs a branch-protection update before the phase can honestly claim a merge-blocking `brandbook-tokens` gate.
+Conclusion: no manual UAT file is required for phase 94. Code-level evidence, branch-protection state, and PR check-rollup evidence are all automated and complete.
 
 ## Goal Achievement
 
@@ -49,7 +53,7 @@ Conclusion: no manual UAT file is required for phase 94. The code-level and loca
 | 3 | Re-running the generators with unchanged source produces a **byte-identical, empty-diff** artifact (idempotency anchor) | ✓ VERIFIED | Live run: `tokens-build` + `admin-css-build` + `sync-admin-css` then `git diff --exit-code` over the four artifacts → **EMPTY DIFF**. priv copy `diff -q` IDENTICAL. Negative test: appending a byte to `rindle-admin.css` makes `git diff --exit-code` exit non-zero (gate detects drift), then restored. |
 | 4 | The `admin-polish.js` computed-style gate is generalized to target any root selector, ready to run over both surfaces (VIS-01 groundwork) | ✓ VERIFIED | `assertAdminPolish(page, { ..., root = DEFAULT_ROOT, interactiveSelectors = DEFAULT_INTERACTIVE_SELECTORS })`; all 4 sub-assertions thread the param; **no auto-detection** (grep=0, D-94-07 honored); `admin-screenshots.spec.js` byte-unchanged vs HEAD; `node --check` passes. |
 
-**Score:** 4/4 truths verified
+**Score:** 4/4 truths verified; BP-94-01 resolved
 
 ### ROADMAP `cohort.css` note
 
@@ -66,7 +70,7 @@ ROADMAP SC #1/#2 mention "(+ Cohort assets)" / "flowing to both `rindle-admin` a
 
 | Artifact | Expected | Status | Details |
 |----------|----------|--------|---------|
-| `.github/workflows/ci.yml` (brandbook-tokens job) | Standalone gate job | ✓ VERIFIED | Exists L1144, needs satisfiable, correct step order, locked message verbatim, tree-wide diff |
+| `.github/workflows/ci.yml` (brandbook-tokens job) | Standalone gate job | ✓ VERIFIED | Exists L1144, `name: brandbook-tokens`, needs satisfiable, correct step order, locked message verbatim, tree-wide diff |
 | `brandbook/src/sync-admin-css.mjs` | Single CSS-mirror | ✓ VERIFIED | readFileSync(source) → writeFileSync(priv copy); produces byte-identical priv copy |
 | `brandbook/tokens/tokens.json` | Four new categories | ✓ VERIFIED | elevation/space_fluid/breakpoint objects + easings + 6 distinct dark status surfaces |
 | `brandbook/src/admin-css-build.mjs` | Emit loops + parity | ✓ VERIFIED | New vars emitted; requiredTokenUses/requiredMotionUses/exact() enforce emitted-AND-used |
@@ -81,6 +85,7 @@ ROADMAP SC #1/#2 mention "(+ Cohort assets)" / "flowing to both `rindle-admin` a
 | sync-admin-css.mjs | priv/.../rindle-admin.css | readFileSync + writeFileSync | ✓ WIRED | L32-33; live sync produced identical priv copy |
 | brandbook-tokens job | `git diff --exit-code` | generators+sync run before diff | ✓ WIRED | Step order confirmed; negative test fails on drift |
 | brandbook-tokens job | quality + optional-dependencies | needs: [...] | ✓ WIRED | Both dependency jobs exist in ci.yml |
+| branch protection | brandbook-tokens job | required context exactly matches Actions check name | ✓ WIRED | required contexts index `12`; PR #23 `brandbook-tokens` check passes |
 | tokens.json new objects | rindle-admin.css vars | emit loops + parity | ✓ WIRED | All categories emitted AND used (parity arrays) |
 | dark status-surface hexes | admin-contrast.mjs WCAG gate | CONSOLE_CONTRAST_PAIRS | ✓ WIRED | Contrast gate 44/44, exit 0 |
 
@@ -96,12 +101,14 @@ ROADMAP SC #1/#2 mention "(+ Cohort assets)" / "flowing to both `rindle-admin` a
 | Harness syntax valid | `node --check admin-polish.js` | SYNTAX OK | ✓ PASS |
 | YAML parses | `yaml.safe_load(ci.yml)` | parses, needs satisfiable | ✓ PASS |
 | Phase commits exist | `git cat-file` x7 | all 7 present | ✓ PASS |
+| Branch protection requires brandbook-tokens | `gh api repos/szTheory/rindle/branches/main/protection/required_status_checks --jq '.contexts | index("brandbook-tokens")'` | `12` | ✓ PASS |
+| PR rollup has passing brandbook-tokens check | `gh pr checks 23 --watch=false | rg '^brandbook-tokens'` | `brandbook-tokens pass 43s` | ✓ PASS |
 
 ### Requirements Coverage
 
 | Requirement | Source Plan | Description | Status | Evidence |
 |-------------|-------------|-------------|--------|----------|
-| PIPE-01 | 94-01, 94-04 | Token→CSS pipeline gated in CI; regen + WCAG + fails on diff; no hand-edits | ⚠ CODE SATISFIED; PROTECTION GAP | brandbook-tokens job + admin-contrast.mjs gate + tree-wide git diff; live empty-diff + drift-detection verified. GitHub branch protection does not yet require `brandbook-tokens`, so the job is not proven merge-blocking on PRs. |
+| PIPE-01 | 94-01, 94-04, 94-05 | Token→CSS pipeline gated in CI; regen + WCAG + fails on diff; no hand-edits | ✓ SATISFIED | brandbook-tokens job + admin-contrast.mjs gate + tree-wide git diff; live empty-diff + drift-detection verified; branch protection now requires `brandbook-tokens`; PR #23 shows the check passing. |
 | PIPE-02 | 94-03 | tokens.json + generators extended with 4 new categories flowing to rindle-admin | ✓ SATISFIED | 4 categories in source + emitted to CSS + parity-enforced; cohort.css deferred to Phase 96 (documented) |
 | VIS-01 (groundwork) | 94-02, 94-03 | Parameterized admin-polish harness seam for the merge-blocking visual gate | ✓ SATISFIED | Harness parameterized over root/interactiveSelectors, no auto-detect, admin spec unchanged. Full VIS-01 → Phase 102. |
 
@@ -122,32 +129,29 @@ ROADMAP SC #1/#2 mention "(+ Cohort assets)" / "flowing to both `rindle-admin` a
 
 The CI `git diff` provides equivalent (in fact broader) coverage than the dormant ExUnit assertion. **Note (informational, not a gap):** the 94-01/94-03 SUMMARYs cite "ExUnit two-copy byte-equality stays green" as evidence — accurate only under `--include integration` locally, misleading as a CI-gate claim. The actual CI guarantee comes from the `.mjs` + `git diff` path, which is correctly wired.
 
-### Verification Gaps
+### Resolved Verification Gaps
 
-#### BP-94-01: `brandbook-tokens` is not required by branch protection
+#### BP-94-01: `brandbook-tokens` is required by branch protection
 
 **Truth:** `brandbook-tokens` is merge-blocking on protected PRs.
-**Status:** failed.
+**Status:** resolved.
 **Severity:** major.
-**Evidence:** `gh api repos/szTheory/rindle/branches/main/protection/required_status_checks` returns required contexts that omit `brandbook-tokens`. The open PR #23 is also still at remote head `ef06bf8`, 22 commits behind local HEAD `8263a0c`, so the live PR has not run the phase-94 job.
-**Root cause:** Phase 94 added the workflow job in `.github/workflows/ci.yml`, but the repository branch-protection required-status list has not been updated to require the new job. The phase commits are also still local-only relative to `origin/ci/replace-flaky-ffmpeg-action`.
-**Fix plan:** `94-05-PLAN.md` updates `scripts/setup_branch_protection.sh` and `RUNNING.md`, then uses the existing branch-protection apply path to require `brandbook-tokens`.
-**Missing:**
-- Push the phase-94 branch state or open/update the PR so GitHub Actions creates the `brandbook-tokens` check context.
-- Update main branch protection to require `brandbook-tokens`.
-- Re-run CI and confirm PR #23 or its replacement shows `brandbook-tokens` passing and required.
+**Evidence:** `gh api repos/szTheory/rindle/branches/main/protection/required_status_checks --jq '.contexts | index("brandbook-tokens")'` returns `12`, and `gh pr checks 23 --watch=false | rg '^brandbook-tokens'` returns `brandbook-tokens pass 43s`.
+**Fix delivered:** `94-05-PLAN.md` added `brandbook-tokens` to `scripts/setup_branch_protection.sh` and `RUNNING.md`, aligned the Actions job display name to the required context, pushed the phase branch, and applied branch protection through the existing owner-controlled script.
 
 ### Gaps Summary
 
-One blocking release-train protection gap remains. All four code-level ROADMAP truths are verified directly against the codebase with live command evidence: the gate exists and is correctly wired (step order, needs, locked message, tree-wide diff), the four new token categories are present in source AND emitted AND parity-enforced as used, the pipeline is idempotent (empty diff) and drift-detecting, and the admin-polish harness is parameterized without auto-detection while the admin spec is byte-unchanged.
+No open verification gaps remain. All four code-level ROADMAP truths are verified directly against the codebase with live command evidence: the gate exists and is correctly wired (step order, needs, locked message, tree-wide diff), the four new token categories are present in source AND emitted AND parity-enforced as used, the pipeline is idempotent (empty diff) and drift-detecting, and the admin-polish harness is parameterized without auto-detection while the admin spec is byte-unchanged.
+
+The release-train protection layer is now verified too: branch protection requires `brandbook-tokens`, and PR #23 shows the matching Actions check passing on the pushed phase branch.
 
 The `cohort.css` portion of the ROADMAP wording and full VIS-01 delivery are deliberately and explicitly deferred to Phases 96/102 respectively — documented scope fences, not omissions.
 
 The integration-tag caveat is a real documentation-accuracy nuance but does NOT weaken any Phase 94 gate, because the merge-blocking `brandbook-tokens` job is pure-Node and enforces drift + contrast independently of the dormant ExUnit test.
 
-Status is `gaps_found` because current branch protection does not require `brandbook-tokens`. This is not a product-code gap, but it blocks the phase claim that the new token pipeline gate is merge-blocking.
+Status is `passed`: no manual UAT is required for Phase 94.
 
 ---
 
-_Verified: 2026-06-15T20:21:17Z_
+_Verified: 2026-06-15T20:39:56Z_
 _Verifier: Codex (gsd-verify-work)_
