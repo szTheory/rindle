@@ -25,7 +25,7 @@ demand-gated and shift to v1.20+. Research: `.planning/research/v1.19/SUMMARY.md
   `rindle-admin.css` + `cohort.css` from `tokens.json` via the `.mjs` scripts, runs the WCAG
   contrast gate, and fails on any uncommitted diff. Generated CSS is never hand-edited; this
   is the idempotency / no-regression anchor that lands before any visual work.
-- [ ] **PIPE-02**: Token system extended in `tokens.json` + the `.mjs` generators with the
+- [x] **PIPE-02**: Token system extended in `tokens.json` + the `.mjs` generators with the
   categories the uplift needs: motion presets (durations/easings), a true dark **elevation /
   shadow ladder** (semantic, not color-inversion), responsive **fluid type + space scales**
   with named breakpoints, and semantic dark-mode status surfaces — all flowing to both
@@ -227,7 +227,7 @@ Open only via `/gsd-new-milestone` with documented signal:
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | PIPE-01 | Phase 94 | Complete |
-| PIPE-02 | Phase 94 | Pending |
+| PIPE-02 | Phase 94 | Complete |
 | UPLIFT-01 | Phase 95 | Pending |
 | UPLIFT-02 | Phase 97 | Pending |
 | UPLIFT-03 | Phase 98 | Pending |
