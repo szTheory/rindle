@@ -78,34 +78,43 @@ between phases (`auto_advance: false`).
   elevation/shadow ladder, fluid type/space + breakpoints, semantic dark status surfaces), and
   generalize the `admin-polish.js` computed-style gate to target any root. **Blocks everything.**
   (PIPE-01, PIPE-02, VIS-01 groundwork)
+
 - [ ] **Phase 95 [Track A]: Admin Level-1 Component Audit** — every `rindle-admin-*` component ×
   full state matrix (default/hover/focus-visible/active/disabled/loading/empty/error/skeleton)
   × light/dark/auto/mobile; token-backed `:focus-visible`; extend gallery + contrast pairs.
   (UPLIFT-01)
+
 - [ ] **Phase 96 [Track B]: Cohort Component Layer + Dark / Reduced-Motion Contract** — build the
   `.ck-*` Level-1 + Level-2 primitives (table/stat/form/tabs/detail/toolbar) + `CohortComponents`
+
   + a `/styleguide` gallery route; **author the net-new dark `[data-theme]` contract and
   `prefers-reduced-motion` block in `cohort.css`** (neither exists today), replace all color
   literals with tokens, extend the WCAG gate to both themes. (COHORT-06)
+
 - [ ] **Phase 97 [Track A]: Admin Level-2 Meta-Components** — toolbars, sortable/sticky-header/
   bulk-select data tables, filter bars, action panels, detail drill-downs, confirm/destructive
   panels, drawers, toasts as cohesive units; rhythm / alignment / density / overlap gates.
   (UPLIFT-02)
+
 - [ ] **Phase 98 [Track A]: Admin Level-3 Page Composition + Motion / Mobile / A11y / IA /
   Microcopy** — assemble every console surface from primitives only; purposeful reduced-motion-
   aware sub-300ms LiveView-coordinated motion; mobile-first at all breakpoints; keyboard / focus
   / ARIA / WCAG-AA-both-themes a11y; gov.uk/GDS task-first IA; operator-voice microcopy per
   surface JTBD. (UPLIFT-03, UPLIFT-04, UPLIFT-05, UPLIFT-06, UPLIFT-07, UPLIFT-08)
+
 - [ ] **Phase 99 [Track B]: Cohort Page Migrations (the small 7)** — `/dashboard`, `/ops`,
   member, lesson, post, media, account → `.ck-*`, class-by-class, preserving every
   `id`/`data-testid`/`phx-hook`; each page's behavior e2e specs stay green. (COHORT-01,
   COHORT-03, COHORT-04)
+
 - [ ] **Phase 100 [Track B]: Cohort `/upload` Migration (all tabs)** — isolated (484 lines,
   tab-structured, heaviest `PresignedPut`/`MultipartUpload`/`Copy` hooks); migrate class-by-class
   preserving the frozen behavior contract; upload behavior specs green. (COHORT-02)
+
 - [ ] **Phase 101 [Track B]: daisyUI Retirement** — grep the demo clean of daisyUI/utility classes
   → remove the `default.css` `<link>` → delete `default.css` → polish pass confirms no page
   regressed to unstyled. Gated on Phases 96/99/100 complete. (COHORT-05)
+
 - [ ] **Phase 102: Re-Converge — Visual Matrix, Idempotency Gate & Milestone Audit** —
   `cohort-screenshots.spec.js` merged into the matrix; `admin-polish.js` flipped warn→fail as
   the single merge-blocking gate over admin + Cohort across light/dark/mobile; idempotency
@@ -123,6 +132,7 @@ Ships as hex **0.3.0** (brand work releases separately as 0.2.0 first).
 **Locked decisions:** D-v1.18-01 console ships in the `rindle` package, mountable
 Oban-Web/LiveDashboard-style with self-contained assets; D-v1.18-02 hex 0.3.0 after the
 0.2.0 brand release; D-v1.18-03 Cohort stays the demo domain, extended (audio + documents
+
 + full state-space seeds) — no E2E churn for its own sake.
 
 Each phase runs full GSD: discuss → research → plan → execute → verify, with a
@@ -136,29 +146,36 @@ maintainer go/no-go gate between phases.
   tradeoffs); CSS architecture lock (BEM + custom properties generated from
   `brandbook/tokens/tokens.json` for the console; Cohort keeps Tailwind/daisyUI momentum).
   Output includes the UI-principles doc linked from `AGENTS.md` (PRIN-01).
+
 - [x] **Phase 87: Docker & Demo DX** (early — every later UI phase iterates faster) — (completed 2026-06-11)
   project namespacing, env-driven ports + conflict guidance, layer-cache fix
   (deps before source COPY), dev style-change path without rebuilds, launch URL map,
   reader-empathetic docs. (DX-01..03)
+
 - [x] **Phase 88: Admin Design System & UI Kit** — token-generated `rindle-admin` CSS
   (BEM), light/dark/system theme picker, core components (nav shell, tables,
   lifecycle-state chips, buttons, confirm dialog, drawer, toasts, empty states,
   skeletons), component-gallery screenshot harness, WCAG contrast gate.
   **Checkpoint: maintainer reviewed rendered gallery; requested anchor-navigation fix is
   implemented and regression-covered.** (completed 2026-06-11; DS-01..03, ADMIN-02 groundwork)
+
 - [x] **Phase 89: Console Read Surfaces** — router macro + host-auth `on_mount` + (completed 2026-06-12)
   asset-serving plug (safe by default); home, assets list/detail, upload sessions,
   variant/job activity, doctor + runtime status; pubsub live updates;
   `Rindle.Admin.Queries` isolation; optional-dep CI matrix. (ADMIN-01..03, 05, 06)
+
 - [x] **Phase 90: Console Ops Actions** — erasure preview/execute + batch with (completed 2026-06-13; UAT complete 2026-06-14 — destructive-UX gate automated into merge-blocking CI)
   destructive-action UX (typed confirmation, collateral preview), variant regeneration,
   quarantine review, lifecycle repair. (ADMIN-04)
+
 - [x] **Phase 91: Cohort Demo Evolution** — Cohort's own lightweight brand (completed 2026-06-12)
   (**rendered options checkpoint**), audio + document profiles, seeds expressing every
   lifecycle state, mounts the console, click-around walkthrough. (DEMO-01..03)
+
 - [x] **Phase 92: E2E & Screenshot-Driven Polish Loop** — deterministic console Playwright (completed 2026-06-13; UAT complete 2026-06-14 — screenshot visual-polish review automated into the merge-blocking CI lane via `admin-polish.js`; 0 human UAT)
   specs (happy/error/boundary/theme/destructive) in a merge-blocking lane; all-screens ×
   light/dark capture → analyze → fix polish passes. (E2E-01..02)
+
 - [x] **Phase 93: Truth, Docs & Milestone Audit** — `guides/admin_console.md`, (completed 2026-06-13)
   user_flows + JTBD-MAP updates (T4 reversal), facade moduledoc truth fix
   (`lib/rindle.ex` "no admin UI" line), README/HexDocs, traceability closure,
@@ -176,15 +193,19 @@ needs, so all later visual work is idempotent and drift-proof. Blocks everything
 **Requirements:** PIPE-01, PIPE-02, VIS-01 (groundwork)
 
 **Success Criteria** (what must be TRUE):
+
 1. A `brandbook-tokens` CI job regenerates `rindle-admin.css` (+ Cohort assets) from
    `tokens.json` via the `.mjs` scripts, runs the WCAG contrast gate, and **fails the build on
    any uncommitted diff** — generated CSS can no longer drift from source.
+
 2. `tokens.json` + the `.mjs` generators emit the new categories — motion presets
    (durations/easings), a semantic dark **elevation/shadow ladder** (not color-inversion),
    fluid type + space scales with named breakpoints, and semantic dark status surfaces — flowing
    to both `rindle-admin` (BEM) and `cohort` (own DS), coherent but separate.
+
 3. Re-running the generators with unchanged source produces a **byte-identical, empty-diff**
    artifact (idempotency anchor verified).
+
 4. The `admin-polish.js` computed-style gate is generalized to target any root selector
    (`.rindle-admin-*` or `.ck-*`), ready to run over both surfaces.
 
@@ -203,18 +224,29 @@ matrix in light, dark, and system — the settled Level-1 foundation pages will 
 **Requirements:** UPLIFT-01
 
 **Success Criteria** (what must be TRUE):
+
 1. Every `rindle-admin-*` component renders correctly across default / hover / focus-visible /
    active / disabled / loading / empty / error / skeleton states in light, dark, and auto.
+
 2. The `active` vs `focus-visible` distinction is explicit, with token-backed `:focus-visible`
    on every interactive selector (never bare `outline:none`).
+
 3. The component gallery and `CONSOLE_CONTRAST_PAIRS` are extended to cover the new states; the
    contrast gate passes in both themes with no one-off styles.
 
 **Plans:** 3 plans
 
 Plans:
+**Wave 1**
+
 - [ ] 95-01-PLAN.md — Normalize the Level-1 matrix and generated CSS/contrast contract.
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 95-02-PLAN.md — Render the gallery matrix and browser/polish assertions.
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 95-03-PLAN.md — Validate the integration wrapper and sync the shipped CSS final gate.
 
 **UI hint:** yes
@@ -231,10 +263,13 @@ reduced-motion contract, so its inner pages can migrate onto finished primitives
 **Requirements:** COHORT-06
 
 **Success Criteria** (what must be TRUE):
+
 1. `.ck-*` Level-1 + Level-2 primitives (table, stat tile, form, tabs, detail block, toolbar)
    exist in `cohort.css` + `CohortComponents`, rendered in a `/styleguide` gallery route.
+
 2. `cohort.css` gains a dark `[data-theme]` contract **and** a `prefers-reduced-motion` block
    (both net-new — neither exists today), with semantic elevation, not color-inversion.
+
 3. All color literals in the Cohort DS are replaced by `--ck-*` tokens (grep-clean), and the new
    light + dark contrast pairs pass the WCAG gate.
 
@@ -252,11 +287,14 @@ reduced-motion contract, so its inner pages can migrate onto finished primitives
 **Requirements:** UPLIFT-02
 
 **Success Criteria** (what must be TRUE):
+
 1. Toolbars, sortable / sticky-header / bulk-select data tables, filter bars, action panels,
    detail drill-downs, confirm/destructive panels, drawers, and toasts are refined as composed
    units built only from Level-1 primitives.
+
 2. Rhythm, alignment, and density are consistent across meta-components, verified by
    rhythm/overlap/no-horizontal-scroll gates in `admin-polish.js`.
+
 3. Each meta-component appears in the gallery as a unit for visual-cohesion review.
 
 **Plans:** TBD
@@ -274,14 +312,18 @@ responsive, accessible, task-first, and on-voice — serving real operator JTBDs
 **Requirements:** UPLIFT-03, UPLIFT-04, UPLIFT-05, UPLIFT-06, UPLIFT-07, UPLIFT-08
 
 **Success Criteria** (what must be TRUE):
+
 1. Every admin surface is composed from Level-1/2 primitives only (no page-local one-offs),
    with on-brand visual hierarchy and spacing.
+
 2. Motion is purposeful, reduced-motion-aware, sub-300ms, GPU-only (`transform`/`opacity`), and
    LiveView-coordinated (`JS.transition` via `phx-mounted`/`phx-remove`; no `transition:all` on
    patched nodes).
+
 3. Every surface is correct and usable mobile-first at all breakpoints.
 4. Keyboard navigation, focus order + visible focus, ARIA semantics on custom components, no
    keyboard traps in drawers/dialogs, and WCAG AA contrast hold in **both** themes.
+
 5. IA is gov.uk/GDS task-first (triage home, progressive disclosure, least-surprise labels), and
    microcopy is in the terse operator/SRE voice tied to each surface's JTBD/persona.
 
@@ -299,10 +341,13 @@ responsive, accessible, task-first, and on-voice — serving real operator JTBDs
 **Requirements:** COHORT-01, COHORT-03, COHORT-04
 
 **Success Criteria** (what must be TRUE):
+
 1. `/dashboard`, `/ops`, and the member / lesson / post / media / account pages are restyled
    onto `cohort.css` + `CohortComponents` and are visually consistent.
+
 2. Migration is class-by-class (not element-by-element), preserving every `id` / `data-testid` /
    `phx-hook` as a frozen contract.
+
 3. Each migrated page's existing behavior e2e specs stay green, and a Cohort screenshot/polish
    case is added per page.
 
@@ -321,9 +366,11 @@ hook-dense upload flows.
 **Requirements:** COHORT-02
 
 **Success Criteria** (what must be TRUE):
+
 1. `/upload` and all its tabs render on the `.ck-*` DS, migrated class-by-class.
 2. Every `id` / `data-testid` / `phx-hook` (incl. `PresignedPut`, `MultipartUpload`, `Copy`) is
    preserved; the upload behavior e2e specs stay green across tabs.
+
 3. A light/dark screenshot + polish case covers the upload surface.
 
 **Plans:** TBD
@@ -340,9 +387,11 @@ hook-dense upload flows.
 **Requirements:** COHORT-05
 
 **Success Criteria** (what must be TRUE):
+
 1. A grep for daisyUI/utility classes across the demo inner pages is clean.
 2. The `default.css` `<link>` is removed from `root.html.heex` and `default.css` is deleted —
    only after the grep is clean.
+
 3. A final screenshot/polish pass confirms no page regressed to unstyled and all behavior e2e
    specs stay green.
 
@@ -361,14 +410,18 @@ light/dark/mobile, idempotency is proven, and the milestone is audited.
 **Requirements:** VIS-01, VIS-02, VIS-03, VIS-04
 
 **Success Criteria** (what must be TRUE):
+
 1. `cohort-screenshots.spec.js` is merged into the matrix and the generalized `admin-polish.js`
    computed-style gate runs over all admin + Cohort inner pages across light/dark in the
    `adoption-demo-e2e` lane as the **single merge-blocking** visual gate (flipped warn→fail).
+
 2. A double-run idempotency check produces an empty diff with zero functional or visual
    regression to existing flows; every page migration is gated on its behavior e2e specs.
+
 3. The full light/dark/mobile matrix is green for admin + Cohort; optional pixel baselines
    (`toHaveScreenshot()`) and the living component gallery exist only as **non-blocking**
    assistive/audit signals (CI-generated, motion-frozen, font-stable).
+
 4. Milestone audit, requirements traceability (20/20), and docs parity are closed.
 
 **Plans:** TBD
@@ -389,19 +442,25 @@ UI-principles decisions that downstream v1.18 phases must follow.
 
 1. LiveDashboard/Oban Web packaging decisions are recorded for router macro, asset serving,
    CSP, CSS isolation, and optional-dependency matrix.
+
 2. Console information architecture is mapped from persona/JTBD lenses, with gov.uk/GDS
    research translated into maintainer-facing Rindle surfaces.
+
 3. Motion principles are tied to brand `motion` tokens and remain restrained for an
    operational console.
+
 4. Docker multi-project DX decisions cover `COMPOSE_PROJECT_NAME`, env-driven ports, and
    traefik tradeoffs.
+
 5. CSS architecture is locked: console uses BEM + generated custom properties from
    `brandbook/tokens/tokens.json`; Cohort keeps Tailwind/daisyUI momentum.
+
 6. UI-principles document is linked from `AGENTS.md`.
 
 **Plans:** 3/3 plans complete
 
 Plans:
+
 - [x] 86-01-PLAN.md — Lock mountable console architecture and task-first IA.
 - [x] 86-02-PLAN.md — Lock console CSS architecture and operational motion.
 - [x] 86-03-PLAN.md — Lock Docker demo DX and link UI principles from `AGENTS.md`.
@@ -452,9 +511,11 @@ console implementation will use.
 
 1. `rindle-admin` CSS is generated from `brandbook/tokens/tokens.json` using BEM and CSS
    custom properties.
+
 2. Light/dark/system theme picker is implemented as a first-class component.
 3. Core components exist for nav shell, tables, lifecycle-state chips, buttons, confirm
    dialog, drawer, toasts, empty states, and skeletons.
+
 4. Component-gallery screenshot harness exists for maintainer review.
 5. Mechanical WCAG AA contrast gate covers console token pairs.
 6. Maintainer reviews rendered gallery before later console phases rely on it.
@@ -492,6 +553,7 @@ assets, live updates, and isolated admin queries.
 2. Console asset-serving plug is safe by default and self-contained.
 3. Home, assets list/detail, upload sessions, variant/job activity, doctor, and runtime status
    read surfaces are available.
+
 4. PubSub live updates use existing `:asset`, `:variant`, and `:upload_session` topics.
 5. Queries remain isolated in `Rindle.Admin.Queries`, not added to the public facade.
 6. Optional-dependency CI matrix proves `phoenix_live_view` compiles away cleanly when absent.
@@ -542,6 +604,7 @@ lifecycle semantics.
 2. Typed confirmation and collateral preview are required for destructive actions.
 3. Variant regeneration, quarantine review, and lifecycle repair reuse existing facade
    capabilities.
+
 4. Console actions do not introduce new lifecycle semantics beyond recorded v1.18 scope.
 
 **Plans:** 2/2 plans complete
@@ -572,6 +635,7 @@ surfaces, media types, and lifecycle states.
 2. Demo covers audio and document media profiles.
 3. Seeds express every asset, variant, and upload-session lifecycle state, including degraded,
    quarantined, failed, stale, and expired.
+
 4. Cohort mounts the admin console.
 5. Click-around walkthrough is documented.
 
@@ -600,6 +664,7 @@ all-screens screenshot iteration.
 
 1. Deterministic Playwright specs cover happy paths, main error cases, boundary conditions,
    theme switching, and destructive flows.
+
 2. Console E2E lane is merge-blocking.
 3. Automated screenshot capture covers all screens in light and dark mode.
 4. Screenshot analyze-to-fix polish passes are run until visual regressions are resolved.
@@ -648,6 +713,7 @@ milestone audit.
 **Plans:** 4/4 plans complete
 
 Plans:
+
 - [x] 93-01-PLAN.md — Fix facade moduledoc + operations/troubleshooting/user_flows admin-UI denials (F1–F5).
 - [x] 93-02-PLAN.md — Reverse JTBD-MAP T4 admin-UI exclusion (idempotent anchor) + close REQUIREMENTS traceability.
 - [x] 93-03-PLAN.md — Author guides/admin_console.md, wire into mix.exs extras, add README mention.
