@@ -12,7 +12,8 @@ defmodule Rindle.Brandbook.AdminDesignSystemValidationTest do
     "brandbook/src/admin-gallery.mjs",
     "brandbook/src/admin-gallery-check.mjs",
     "brandbook/admin-gallery/index.html",
-    "brandbook/tokens/rindle-admin.css"
+    "brandbook/tokens/rindle-admin.css",
+    "examples/adoption_demo/e2e/support/admin-polish.js"
   ]
 
   @screenshots [
@@ -22,7 +23,10 @@ defmodule Rindle.Brandbook.AdminDesignSystemValidationTest do
     "gallery-light-mobile.png",
     "status-chips-dark.png",
     "theme-picker-light.png",
-    "confirm-dialog-light.png"
+    "confirm-dialog-light.png",
+    "form-controls-light.png",
+    "error-state-dark.png",
+    "loading-state-auto.png"
   ]
 
   test "DS-01 generated admin CSS is reproducible and token-backed" do
@@ -49,6 +53,13 @@ defmodule Rindle.Brandbook.AdminDesignSystemValidationTest do
           ".rindle-admin-button--secondary",
           ".rindle-admin-button--quiet",
           ".rindle-admin-button--destructive",
+          "[data-rindle-admin-input]",
+          "[data-rindle-admin-confirm-input]",
+          "[data-rindle-admin-empty-state]",
+          "[data-rindle-admin-error-state]",
+          "[data-rindle-admin-loading-state]",
+          ".rindle-admin-button:focus-visible",
+          ".rindle-admin-nav__item[aria-current=\"page\"]",
           ".rindle-admin-confirm-dialog",
           ".rindle-admin-drawer",
           ".rindle-admin-toast",
@@ -87,6 +98,7 @@ defmodule Rindle.Brandbook.AdminDesignSystemValidationTest do
 
     for context <- [
           "buttons",
+          "form controls",
           "table",
           "focus",
           "status chips",
@@ -94,6 +106,8 @@ defmodule Rindle.Brandbook.AdminDesignSystemValidationTest do
           "confirm dialog",
           "drawer",
           "empty state",
+          "error state",
+          "loading state",
           "skeleton",
           "borders"
         ] do
@@ -102,7 +116,7 @@ defmodule Rindle.Brandbook.AdminDesignSystemValidationTest do
 
     admin_output = run_node("brandbook/src/admin-contrast.mjs")
     assert admin_output =~ "status chips processing"
-    assert admin_output =~ "admin contrast: 44/44 pairs pass"
+    assert admin_output =~ "admin contrast: 58/58 pairs pass"
 
     base_output = run_node("brandbook/src/contrast.mjs")
     assert base_output =~ "47/47 pairs pass"
@@ -110,7 +124,7 @@ defmodule Rindle.Brandbook.AdminDesignSystemValidationTest do
 
   test "DS-02 gallery harness proves themes, screenshots, and surface anchors" do
     output = run_node("brandbook/src/admin-gallery-check.mjs")
-    assert output =~ "admin gallery check passed - 7 screenshots written"
+    assert output =~ "admin gallery check passed - 10 screenshots written"
 
     html = read!("brandbook/admin-gallery/index.html")
     assert html =~ "data-theme=\"auto\""
@@ -125,16 +139,33 @@ defmodule Rindle.Brandbook.AdminDesignSystemValidationTest do
           "shell",
           "nav",
           "table",
-          "status-chips",
-          "buttons",
+          "status-chip",
+          "button",
           "theme-picker",
+          "form-controls",
           "confirm-dialog",
           "drawer",
-          "toasts",
+          "toast",
           "empty-state",
-          "skeletons"
+          "error-state",
+          "loading-state",
+          "skeleton"
         ] do
       assert html =~ "data-rindle-admin-component=\"#{component}\""
+    end
+
+    for state <- [
+          "default",
+          "hover",
+          "focus-visible",
+          "active",
+          "disabled",
+          "loading",
+          "empty",
+          "error",
+          "skeleton"
+        ] do
+      assert html =~ "data-rindle-admin-state=\"#{state}\""
     end
 
     for {surface, id} <- [
@@ -168,8 +199,8 @@ defmodule Rindle.Brandbook.AdminDesignSystemValidationTest do
     for command <- [
           "node brandbook/src/admin-css-build.mjs",
           "node brandbook/src/admin-contrast.mjs",
-          "node brandbook/src/admin-gallery.mjs",
           "node brandbook/src/admin-gallery-check.mjs",
+          "node brandbook/src/sync-admin-css.mjs",
           "node brandbook/src/contrast.mjs"
         ] do
       assert guide =~ command
@@ -179,6 +210,8 @@ defmodule Rindle.Brandbook.AdminDesignSystemValidationTest do
           "brandbook/tokens/rindle-admin.css",
           "brandbook/admin-gallery/index.html",
           "brandbook/admin-gallery/screenshots/",
+          "form-controls",
+          "focus-visible",
           "data-theme=\"light|dark|auto\"",
           "prefers-color-scheme",
           "Package Boundary",
