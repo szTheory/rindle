@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 
 import {
   COMPONENTS,
+  LEVEL_1_STATES,
   STATUS_STATES,
   SURFACES,
   THEMES,
@@ -35,12 +36,31 @@ const requiredComponents = [
   'status-chip',
   'button',
   'theme-picker',
+  'form-controls',
   'confirm-dialog',
   'drawer',
   'toast',
   'empty-state',
+  'error-state',
+  'loading-state',
   'skeleton',
 ];
+export const LEVEL_1_COMPONENT_STATE_MATRIX = {
+  shell: ['default'],
+  nav: ['default', 'hover', 'focus-visible', 'active'],
+  table: ['default', 'hover', 'focus-visible', 'empty', 'loading', 'skeleton'],
+  'status-chip': ['default', 'error'],
+  button: ['default', 'hover', 'focus-visible', 'active', 'disabled', 'loading'],
+  'theme-picker': ['default', 'hover', 'focus-visible', 'active'],
+  'form-controls': ['default', 'hover', 'focus-visible', 'disabled', 'error'],
+  'confirm-dialog': ['default', 'focus-visible', 'disabled', 'error'],
+  drawer: ['default'],
+  toast: ['default', 'error'],
+  'empty-state': ['empty'],
+  'error-state': ['error'],
+  'loading-state': ['loading'],
+  skeleton: ['skeleton'],
+};
 
 const exact = (actual, expected, label) => {
   const a = JSON.stringify(actual);
@@ -52,6 +72,7 @@ exact(THEMES, requiredThemes, 'THEMES');
 exact(SURFACES, requiredSurfaces, 'SURFACES');
 exact(STATUS_STATES, requiredStates, 'STATUS_STATES');
 exact(COMPONENTS, requiredComponents, 'COMPONENTS');
+exact(LEVEL_1_STATES, ['default', 'hover', 'focus-visible', 'active', 'disabled', 'loading', 'empty', 'error', 'skeleton'], 'LEVEL_1_STATES');
 
 if (!existsSync(adminCssPath)) {
   throw new Error(`missing generated admin CSS: ${adminCssPath}`);
@@ -99,7 +120,7 @@ const statusLabels = {
 };
 
 const statusChips = (states = STATUS_STATES) => states.map((state) => `
-          <span class="rindle-admin-status-chip rindle-admin-status-chip--${state}" data-rindle-admin-state="${state}">
+          <span class="rindle-admin-status-chip rindle-admin-status-chip--${state}" data-rindle-admin-component="status-chip" data-rindle-admin-state="${state === 'danger' ? 'error' : 'default'}" data-rindle-admin-status="${state}">
             ${escapeHtml(statusLabels[state])}
           </span>`).join('');
 
@@ -107,7 +128,7 @@ const surfaceSlug = (surface) => surface.toLowerCase().replace(/[^a-z0-9]+/g, '-
 
 const navItems = SURFACES.map((surface, index) => `
           <li>
-            <a class="rindle-admin-nav__item" href="#${surfaceSlug(surface)}"${index === 0 ? ' aria-current="page"' : ''}>
+            <a class="rindle-admin-nav__item" href="#${surfaceSlug(surface)}" data-rindle-admin-nav-item data-rindle-admin-component="nav" data-rindle-admin-state="${['active', 'hover', 'focus-visible', 'default', 'default', 'default'][index] || 'default'}"${index === 0 ? ' aria-current="page"' : ''}>
               <span aria-hidden="true">${String(index + 1).padStart(2, '0')}</span>
               <span>${escapeHtml(surface)}</span>
             </a>
@@ -123,14 +144,14 @@ const tableRows = [
 ];
 
 const tableMarkup = tableRows.map(([id, summary, state, surface, action]) => `
-              <tr class="rindle-admin-table__row" tabindex="0" data-rindle-admin-state="${state}">
+              <tr class="rindle-admin-table__row" tabindex="0" data-rindle-admin-component="table" data-rindle-admin-state="${state === 'processing' ? 'loading' : state === 'warning' ? 'hover' : state === 'danger' ? 'focus-visible' : 'default'}" data-rindle-admin-status="${state}">
                 <td class="rindle-admin-table__cell"><code>${escapeHtml(id)}</code></td>
                 <td class="rindle-admin-table__cell">${escapeHtml(summary)}</td>
                 <td class="rindle-admin-table__cell">
-                  <span class="rindle-admin-status-chip rindle-admin-status-chip--${state}" data-rindle-admin-state="${state}">${escapeHtml(statusLabels[state])}</span>
+                  <span class="rindle-admin-status-chip rindle-admin-status-chip--${state}" data-rindle-admin-component="status-chip" data-rindle-admin-state="${state === 'danger' ? 'error' : 'default'}" data-rindle-admin-status="${state}">${escapeHtml(statusLabels[state])}</span>
                 </td>
                 <td class="rindle-admin-table__cell">${escapeHtml(surface)}</td>
-                <td class="rindle-admin-table__cell"><button class="rindle-admin-button rindle-admin-button--quiet" type="button">${escapeHtml(action)}</button></td>
+                <td class="rindle-admin-table__cell"><button class="rindle-admin-button rindle-admin-button--quiet" type="button" data-rindle-admin-component="button" data-rindle-admin-state="default" data-rindle-admin-detail-link>${escapeHtml(action)}</button></td>
               </tr>`).join('');
 
 const html = `<!doctype html>
@@ -308,8 +329,8 @@ code {
 </style>
 </head>
 <body>
-<div class="rindle-admin-shell" data-rindle-admin-root data-rindle-admin-component="shell">
-  <nav class="rindle-admin-nav" aria-label="Rindle Admin surfaces" data-rindle-admin-component="nav">
+<div class="rindle-admin-shell" data-rindle-admin-root data-rindle-admin-component="shell" data-rindle-admin-state="default">
+  <nav class="rindle-admin-nav" aria-label="Rindle Admin surfaces" data-rindle-admin-component="nav" data-rindle-admin-state="default">
     <p class="rindle-admin-nav__brand">Rindle Admin</p>
     <ul class="rindle-admin-nav__list">
 ${navItems}
@@ -323,15 +344,16 @@ ${navItems}
         <h1 class="rindle-admin-gallery__title">Rindle Admin</h1>
         <p class="rindle-admin-gallery__lede">Task-first component fixtures for lifecycle operations, rendered with only the generated rindle-admin CSS layer.</p>
       </div>
-      <div class="rindle-admin-theme-picker" data-rindle-admin-component="theme-picker" role="group" aria-label="Theme">
-        ${THEMES.map((theme) => `<button class="rindle-admin-theme-picker__option" type="button" data-rindle-admin-theme="${theme}" aria-pressed="${theme === 'auto' ? 'true' : 'false'}">${theme[0].toUpperCase()}${theme.slice(1)}</button>`).join('')}
+      <div class="rindle-admin-theme-picker" role="group" aria-label="Theme">
+        ${THEMES.map((theme, index) => `<button class="rindle-admin-theme-picker__option" type="button" data-rindle-admin-component="theme-picker" data-rindle-admin-state="${['default', 'hover', 'active'][index]}" data-rindle-admin-theme="${theme}" aria-pressed="${theme === 'auto' ? 'true' : 'false'}">${theme[0].toUpperCase()}${theme.slice(1)}</button>`).join('')}
+        <button class="rindle-admin-theme-picker__option" type="button" data-rindle-admin-component="theme-picker" data-rindle-admin-state="focus-visible" data-rindle-admin-theme="focus" aria-pressed="false">Focus</button>
       </div>
     </header>
 
     <div class="rindle-admin-gallery__grid">
       <div>
         <section class="rindle-admin-gallery__section" id="home-status" aria-labelledby="table-heading" data-rindle-admin-surface="Home/Status">
-          <div class="rindle-admin-gallery__panel" data-rindle-admin-component="table">
+          <div class="rindle-admin-gallery__panel" data-rindle-admin-component="table" data-rindle-admin-state="default">
             <h2 id="table-heading">Lifecycle table</h2>
             <p>Rows carry state, surface, and action context without relying on color alone.</p>
             <table class="rindle-admin-table">
@@ -346,13 +368,19 @@ ${navItems}
               </thead>
               <tbody>
 ${tableMarkup}
+                <tr class="rindle-admin-table__row" tabindex="0" data-rindle-admin-component="table" data-rindle-admin-state="empty">
+                  <td class="rindle-admin-table__cell" colspan="5">No rows match the current lifecycle filter.</td>
+                </tr>
+                <tr class="rindle-admin-table__row" tabindex="0" data-rindle-admin-component="table" data-rindle-admin-state="skeleton">
+                  <td class="rindle-admin-table__cell" colspan="5"><div class="rindle-admin-skeleton" aria-hidden="true"></div></td>
+                </tr>
               </tbody>
             </table>
           </div>
         </section>
 
         <section class="rindle-admin-gallery__section" id="assets" aria-labelledby="status-heading" data-rindle-admin-surface="Assets">
-          <div class="rindle-admin-gallery__panel" data-rindle-admin-component="status-chips">
+          <div class="rindle-admin-gallery__panel">
             <h2 id="status-heading">Status chips</h2>
             <p>Ready, processing, warning, danger, quarantine, and info examples include visible labels plus non-color marks.</p>
             <div class="rindle-admin-gallery__row">
@@ -362,20 +390,21 @@ ${statusChips()}
         </section>
 
         <section class="rindle-admin-gallery__section" id="upload-sessions" aria-labelledby="buttons-heading" data-rindle-admin-surface="Upload Sessions">
-          <div class="rindle-admin-gallery__panel" data-rindle-admin-component="buttons" data-rindle-admin-state="focus">
+          <div class="rindle-admin-gallery__panel">
             <h2 id="buttons-heading">Buttons</h2>
             <div class="rindle-admin-gallery__row">
-              <button class="rindle-admin-button rindle-admin-button--primary" type="button">Review component gallery</button>
-              <button class="rindle-admin-button rindle-admin-button--secondary" type="button">Inspect asset</button>
-              <button class="rindle-admin-button rindle-admin-button--quiet" type="button">Filter sessions</button>
-              <button class="rindle-admin-button rindle-admin-button--destructive" type="button">Erase owner</button>
-              <button class="rindle-admin-button rindle-admin-button--secondary" type="button" disabled data-rindle-admin-state="loading">Loading</button>
+              <button class="rindle-admin-button rindle-admin-button--primary" type="button" data-rindle-admin-component="button" data-rindle-admin-state="default">Review component gallery</button>
+              <button class="rindle-admin-button rindle-admin-button--secondary" type="button" data-rindle-admin-component="button" data-rindle-admin-state="hover">Inspect asset</button>
+              <button class="rindle-admin-button rindle-admin-button--quiet" type="button" data-rindle-admin-component="button" data-rindle-admin-state="focus-visible">Filter sessions</button>
+              <button class="rindle-admin-button rindle-admin-button--destructive" type="button" data-rindle-admin-component="button" data-rindle-admin-state="active">Erase owner</button>
+              <button class="rindle-admin-button rindle-admin-button--secondary" type="button" data-rindle-admin-component="button" data-rindle-admin-state="disabled" disabled>Disabled</button>
+              <button class="rindle-admin-button rindle-admin-button--secondary" type="button" data-rindle-admin-component="button" data-rindle-admin-state="loading" aria-busy="true">Loading</button>
             </div>
           </div>
         </section>
 
         <section class="rindle-admin-gallery__section" id="actions" aria-labelledby="confirm-heading" data-rindle-admin-surface="Actions">
-          <div class="rindle-admin-confirm-dialog" data-rindle-admin-component="confirm-dialog" tabindex="-1">
+          <div class="rindle-admin-confirm-dialog" data-rindle-admin-component="confirm-dialog" data-rindle-admin-state="default" tabindex="-1">
             <h2 class="rindle-admin-confirm-dialog__title" id="confirm-heading">Owner erasure preview</h2>
             <p>Owner erasure: Type the owner identifier to confirm after reviewing affected assets.</p>
             <dl class="rindle-admin-gallery__receipt">
@@ -385,11 +414,23 @@ ${statusChips()}
             </dl>
             <div class="rindle-admin-gallery__field">
               <label for="owner-confirmation">Owner identifier</label>
-              <input class="rindle-admin-gallery__input" id="owner-confirmation" name="owner-confirmation" autocomplete="off" data-rindle-admin-confirm-input>
+              <input class="rindle-admin-gallery__input" id="owner-confirmation" name="owner-confirmation" autocomplete="off" data-rindle-admin-component="form-controls" data-rindle-admin-state="default" data-rindle-admin-confirm-input>
             </div>
             <div class="rindle-admin-gallery__row">
-              <button class="rindle-admin-button rindle-admin-button--destructive" type="button" data-rindle-admin-confirm-action disabled>Confirm erasure</button>
-              <button class="rindle-admin-button rindle-admin-button--secondary" type="button">Cancel</button>
+              <button class="rindle-admin-button rindle-admin-button--destructive" type="button" data-rindle-admin-component="confirm-dialog" data-rindle-admin-state="disabled" data-rindle-admin-confirm-action disabled>Confirm erasure</button>
+              <button class="rindle-admin-button rindle-admin-button--secondary" type="button" data-rindle-admin-component="confirm-dialog" data-rindle-admin-state="focus-visible">Cancel</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="rindle-admin-gallery__section" id="form-controls" aria-labelledby="form-controls-heading" data-rindle-admin-surface="Actions">
+          <div class="rindle-admin-gallery__panel" data-rindle-admin-component="form-controls" data-rindle-admin-state="default">
+            <h2 id="form-controls-heading">Form controls</h2>
+            <div class="rindle-admin-gallery__stack">
+              <input data-rindle-admin-component="form-controls" data-rindle-admin-state="hover" data-rindle-admin-input value="asset:img-2048" aria-label="Hovered asset id">
+              <textarea data-rindle-admin-component="form-controls" data-rindle-admin-state="focus-visible" data-rindle-admin-input aria-label="Focused note">Review component gallery</textarea>
+              <select data-rindle-admin-component="form-controls" data-rindle-admin-state="disabled" data-rindle-admin-input aria-label="Disabled lifecycle filter" disabled><option>Processing</option></select>
+              <label class="rindle-admin-gallery__row"><input data-rindle-admin-component="form-controls" data-rindle-admin-state="error" data-rindle-admin-input type="checkbox" aria-invalid="true"> Runtime/Doctor source missing</label>
             </div>
           </div>
         </section>
@@ -397,7 +438,7 @@ ${statusChips()}
 
       <aside class="rindle-admin-gallery__stack" aria-label="Supporting component states">
         <section class="rindle-admin-gallery__section" id="variants-jobs" data-rindle-admin-surface="Variants/Jobs">
-          <div class="rindle-admin-drawer" data-rindle-admin-component="drawer" tabindex="-1">
+          <div class="rindle-admin-drawer" data-rindle-admin-component="drawer" data-rindle-admin-state="default" tabindex="-1">
             <h2>Asset detail drawer</h2>
             <p>Drawer context stays close to the invoking lifecycle row.</p>
             <dl class="rindle-admin-gallery__receipt">
@@ -408,12 +449,12 @@ ${statusChips()}
           </div>
         </section>
 
-        <section class="rindle-admin-gallery__panel" data-rindle-admin-component="toasts">
+        <section class="rindle-admin-gallery__panel">
           <h2>Toasts</h2>
           <div class="rindle-admin-gallery__toast-region">
-            <div class="rindle-admin-toast rindle-admin-toast--success" data-rindle-admin-state="ready" tabindex="0"><span aria-hidden="true">✓</span><span>Variant regeneration queued for <code>hero-webp</code>.</span><button class="rindle-admin-button rindle-admin-button--quiet" type="button">Dismiss</button></div>
-            <div class="rindle-admin-toast rindle-admin-toast--warning" data-rindle-admin-state="warning" tabindex="0"><span aria-hidden="true">!</span><span>Upload residue is expired; review cleanup guidance.</span><button class="rindle-admin-button rindle-admin-button--quiet" type="button">Dismiss</button></div>
-            <div class="rindle-admin-toast rindle-admin-toast--danger" data-rindle-admin-state="danger" tabindex="0"><span aria-hidden="true">!</span><span>Repair failed. Runtime/Doctor has the missing source artifact.</span><button class="rindle-admin-button rindle-admin-button--quiet" type="button">Dismiss</button></div>
+            <div class="rindle-admin-toast rindle-admin-toast--success" data-rindle-admin-component="toast" data-rindle-admin-state="default" tabindex="0"><span aria-hidden="true">✓</span><span>Variant regeneration queued for <code>hero-webp</code>.</span><button class="rindle-admin-button rindle-admin-button--quiet" type="button">Dismiss</button></div>
+            <div class="rindle-admin-toast rindle-admin-toast--warning" data-rindle-admin-component="toast" data-rindle-admin-state="default" tabindex="0"><span aria-hidden="true">!</span><span>Upload residue is expired; review cleanup guidance.</span><button class="rindle-admin-button rindle-admin-button--quiet" type="button">Dismiss</button></div>
+            <div class="rindle-admin-toast rindle-admin-toast--danger" data-rindle-admin-component="toast" data-rindle-admin-state="error" tabindex="0"><span aria-hidden="true">!</span><span>Repair failed. Runtime/Doctor has the missing source artifact.</span><button class="rindle-admin-button rindle-admin-button--quiet" type="button">Dismiss</button></div>
           </div>
         </section>
 
@@ -425,11 +466,24 @@ ${statusChips()}
           </div>
         </section>
 
-        <section class="rindle-admin-gallery__panel" data-rindle-admin-component="skeletons" data-rindle-admin-state="loading">
+        <section class="rindle-admin-gallery__panel" data-rindle-admin-component="error-state" data-rindle-admin-state="error" data-rindle-admin-error-state>
+          <h2>Error state</h2>
+          <p>Rindle Admin could not load this surface. Retry load or check Runtime/Doctor for the missing source artifact.</p>
+          <div class="rindle-admin-confirm-dialog" data-rindle-admin-component="confirm-dialog" data-rindle-admin-state="error" tabindex="-1">
+            <p>Source artifact missing for preview.</p>
+          </div>
+        </section>
+
+        <section class="rindle-admin-gallery__panel" data-rindle-admin-component="loading-state" data-rindle-admin-state="loading" data-rindle-admin-loading-state>
+          <h2>Loading state</h2>
+          <p>Loading lifecycle rows.</p>
+        </section>
+
+        <section class="rindle-admin-gallery__panel" data-rindle-admin-component="skeleton" data-rindle-admin-state="skeleton">
           <h2>Loading skeletons</h2>
           <p>Stable rows reserve space while real pending work resolves.</p>
           <div class="rindle-admin-gallery__skeleton-list">
-            <div class="rindle-admin-skeleton" aria-hidden="true"></div>
+            <div class="rindle-admin-skeleton" data-rindle-admin-component="skeleton" data-rindle-admin-state="skeleton" aria-hidden="true"></div>
             <div class="rindle-admin-skeleton" aria-hidden="true"></div>
             <div class="rindle-admin-skeleton" aria-hidden="true"></div>
           </div>
@@ -486,14 +540,17 @@ const requiredGalleryComponents = [
   'shell',
   'nav',
   'table',
-  'status-chips',
-  'buttons',
+  'status-chip',
+  'button',
   'theme-picker',
+  'form-controls',
   'confirm-dialog',
   'drawer',
-  'toasts',
+  'toast',
   'empty-state',
-  'skeletons',
+  'error-state',
+  'loading-state',
+  'skeleton',
 ];
 const requiredSnippets = [
   '<link rel="stylesheet" href="../tokens/rindle-admin.css">',
@@ -508,7 +565,11 @@ const requiredSnippets = [
   ...SURFACES,
   ...SURFACES.map((surface) => `id="${surfaceSlug(surface)}"`),
   ...requiredGalleryComponents.map((component) => `data-rindle-admin-component="${component}"`),
-  ...['ready', 'processing', 'warning', 'danger', 'quarantine', 'info', 'empty', 'loading', 'focus'].map((state) => `data-rindle-admin-state="${state}"`),
+  ...LEVEL_1_STATES.map((state) => `data-rindle-admin-state="${state}"`),
+  'data-rindle-admin-component="button" data-rindle-admin-state="disabled"',
+  'data-rindle-admin-component="form-controls" data-rindle-admin-state="focus-visible"',
+  'data-rindle-admin-error-state',
+  'Rindle Admin could not load this surface. Retry load or check Runtime/Doctor for the missing source artifact.',
 ];
 const missingSnippets = requiredSnippets.filter((needle) => !html.includes(needle));
 if (missingSnippets.length) {
