@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 
 import {
   COMPONENTS,
+  LEVEL_1_STATES,
   MIN_TARGET_PX,
   MOTION_TOKENS,
   STATUS_STATES,
@@ -35,7 +36,8 @@ const exact = (actual, expected, label) => {
 exact(THEMES, ['light', 'dark', 'auto'], 'THEMES');
 exact(SURFACES, ['Home/Status', 'Assets', 'Upload Sessions', 'Variants/Jobs', 'Runtime/Doctor', 'Actions'], 'SURFACES');
 exact(STATUS_STATES, ['ready', 'processing', 'warning', 'danger', 'quarantine', 'info'], 'STATUS_STATES');
-exact(COMPONENTS, ['shell', 'nav', 'table', 'status-chip', 'button', 'theme-picker', 'confirm-dialog', 'drawer', 'toast', 'empty-state', 'skeleton'], 'COMPONENTS');
+exact(COMPONENTS, ['shell', 'nav', 'table', 'status-chip', 'button', 'theme-picker', 'form-controls', 'confirm-dialog', 'drawer', 'toast', 'empty-state', 'error-state', 'loading-state', 'skeleton'], 'COMPONENTS');
+exact(LEVEL_1_STATES, ['default', 'hover', 'focus-visible', 'active', 'disabled', 'loading', 'empty', 'error', 'skeleton'], 'LEVEL_1_STATES');
 exact(MOTION_TOKENS, ['press', 'popover', 'toast', 'transition', 'easing', 'easing-standard', 'easing-decelerate', 'easing-accelerate'], 'MOTION_TOKENS');
 if (MIN_TARGET_PX !== 44) throw new Error('MIN_TARGET_PX must be 44');
 

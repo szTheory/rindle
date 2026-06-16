@@ -34,10 +34,25 @@ export const COMPONENTS = [
   'status-chip',
   'button',
   'theme-picker',
+  'form-controls',
   'confirm-dialog',
   'drawer',
   'toast',
   'empty-state',
+  'error-state',
+  'loading-state',
+  'skeleton',
+];
+
+export const LEVEL_1_STATES = [
+  'default',
+  'hover',
+  'focus-visible',
+  'active',
+  'disabled',
+  'loading',
+  'empty',
+  'error',
   'skeleton',
 ];
 
