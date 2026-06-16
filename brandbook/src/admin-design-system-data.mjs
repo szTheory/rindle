@@ -85,8 +85,15 @@ export const CONSOLE_CONTRAST_PAIRS = [
   { fg: 'text-on-brand', bg: 'brand-hover', theme: 'dark', min: 4.5, context: 'buttons primary hover text (dark)' },
   { fg: 'text-on-brand', bg: 'status-danger', theme: 'dark', min: 4.5, context: 'buttons destructive text (dark)' },
 
+  { fg: 'text', bg: 'surface-raised', theme: 'light', min: 4.5, context: 'form controls text' },
+  { fg: 'border-strong', bg: 'surface-raised', theme: 'light', min: 3, context: 'form controls border non-text' },
+  { fg: 'text', bg: 'surface-raised', theme: 'dark', min: 4.5, context: 'form controls text (dark)' },
+  { fg: 'border-strong', bg: 'surface-raised', theme: 'dark', min: 3, context: 'form controls border non-text (dark)' },
+
   { fg: 'text', bg: 'surface-raised', theme: 'light', min: 4.5, context: 'table text on surface-raised' },
   { fg: 'text-secondary', bg: 'surface-raised', theme: 'light', min: 4.5, context: 'table secondary text on surface-raised' },
+  { fg: 'text', bg: 'surface-raised', theme: 'dark', min: 4.5, context: 'table dark text on surface-raised' },
+  { fg: 'text-secondary', bg: 'surface-raised', theme: 'dark', min: 4.5, context: 'table dark secondary text on surface-raised' },
 
   { fg: 'focus-ring', bg: 'surface', theme: 'light', min: 3, context: 'focus ring on surface non-text' },
   { fg: 'focus-ring', bg: 'dark-bg', theme: 'dark', min: 3, context: 'focus ring on dark-bg non-text' },
@@ -119,6 +126,15 @@ export const CONSOLE_CONTRAST_PAIRS = [
   { fg: 'text', bg: 'surface-raised', theme: 'dark', min: 4.5, context: 'drawer text on dark surface-raised' },
   { fg: 'text', bg: 'surface-raised', theme: 'light', min: 4.5, context: 'empty state text on surface-raised' },
   { fg: 'text-secondary', bg: 'surface-raised', theme: 'light', min: 4.5, context: 'empty state secondary text on surface-raised' },
+  { fg: 'text', bg: 'surface-raised', theme: 'dark', min: 4.5, context: 'empty state dark text on surface-raised' },
+  { fg: 'text-secondary', bg: 'surface-raised', theme: 'dark', min: 4.5, context: 'empty state dark secondary text on surface-raised' },
+
+  { fg: 'text', bg: 'status-danger-surface', theme: 'light', min: 4.5, context: 'error state text' },
+  { fg: 'status-danger', bg: 'status-danger-surface', theme: 'light', min: 3, context: 'error state danger marker non-text' },
+  { fg: 'text', bg: 'status-danger-surface', theme: 'dark', min: 4.5, context: 'error state text (dark)' },
+  { fg: 'status-danger', bg: 'status-danger-surface', theme: 'dark', min: 3, context: 'error state danger marker non-text (dark)' },
+  { fg: 'text-secondary', bg: 'surface-raised', theme: 'light', min: 4.5, context: 'loading state text' },
+  { fg: 'text-secondary', bg: 'surface-raised', theme: 'dark', min: 4.5, context: 'loading state text (dark)' },
 
   { fg: 'border-strong', bg: 'surface-raised', theme: 'light', min: 3, context: 'skeleton non-text boundary' },
   { fg: 'border-strong', bg: 'surface-raised', theme: 'dark', min: 3, context: 'skeleton dark non-text boundary' },

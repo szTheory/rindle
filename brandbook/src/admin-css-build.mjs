@@ -200,6 +200,12 @@ css += `  }
   background: var(--rindle-surface-sunken);
 }
 
+.rindle-admin-table__row[aria-busy="true"],
+.rindle-admin-table__row[data-rindle-admin-state="loading"] {
+  color: var(--rindle-text-secondary);
+  background: var(--rindle-surface-raised);
+}
+
 .rindle-admin-table__cell {
   padding: var(--rindle-space-3) var(--rindle-space-4);
   text-align: left;
@@ -375,6 +381,27 @@ css += `
   overflow-wrap: anywhere;
 }
 
+[data-rindle-admin-input]:hover,
+[data-rindle-admin-confirm-input]:hover {
+  border-color: var(--rindle-brand);
+}
+
+[data-rindle-admin-input][aria-invalid="true"],
+[data-rindle-admin-confirm-input][aria-invalid="true"] {
+  border-color: var(--rindle-status-danger);
+  background: var(--rindle-status-danger-surface);
+}
+
+[data-rindle-admin-input]:disabled,
+[data-rindle-admin-input][aria-disabled="true"],
+[data-rindle-admin-confirm-input]:disabled,
+[data-rindle-admin-confirm-input][aria-disabled="true"] {
+  background: var(--rindle-surface-sunken);
+  border-color: var(--rindle-border-subtle);
+  color: var(--rindle-text-secondary);
+  cursor: not-allowed;
+}
+
 textarea[data-rindle-admin-input] {
   min-height: calc(var(--rindle-admin-target-min) * 2);
   resize: vertical;
@@ -430,6 +457,23 @@ textarea[data-rindle-admin-input] {
   border-color: var(--rindle-status-danger);
 }
 
+[data-rindle-admin-submit][aria-busy="true"],
+.rindle-admin-button[aria-busy="true"],
+.rindle-admin-button--loading {
+  color: var(--rindle-text-secondary);
+  cursor: progress;
+  transform: none;
+}
+
+[data-rindle-admin-submit]:disabled,
+[data-rindle-admin-submit][aria-disabled="true"] {
+  background: var(--rindle-surface-sunken);
+  border-color: var(--rindle-border-subtle);
+  color: var(--rindle-text-secondary);
+  cursor: not-allowed;
+  transform: none;
+}
+
 .rindle-admin-theme-picker {
   min-height: var(--rindle-admin-target-min);
   display: inline-flex;
@@ -455,6 +499,17 @@ textarea[data-rindle-admin-input] {
 .rindle-admin-theme-picker__option[aria-pressed="true"] {
   background: var(--rindle-brand);
   color: var(--rindle-text-on-brand);
+}
+
+.rindle-admin-theme-picker__option:hover {
+  background: var(--rindle-surface-sunken);
+  color: var(--rindle-text);
+}
+
+.rindle-admin-theme-picker__option:disabled,
+.rindle-admin-theme-picker__option[aria-disabled="true"] {
+  color: var(--rindle-text-secondary);
+  cursor: not-allowed;
 }
 
 .rindle-admin-confirm-dialog {
@@ -529,6 +584,36 @@ textarea[data-rindle-admin-input] {
   color: var(--rindle-text);
 }
 
+[data-rindle-admin-empty-state] {
+  border-style: dashed;
+}
+
+[data-rindle-admin-error-state] {
+  padding: var(--rindle-space-6);
+  border: 1px solid var(--rindle-status-danger);
+  border-radius: var(--rindle-radius-card);
+  background: var(--rindle-status-danger-surface);
+  color: var(--rindle-text);
+}
+
+[data-rindle-admin-error-state]::before {
+  content: "";
+  display: inline-block;
+  width: 0.75em;
+  height: 0.75em;
+  margin-inline-end: var(--rindle-space-2);
+  border-radius: var(--rindle-radius-pill);
+  background: var(--rindle-status-danger);
+}
+
+[data-rindle-admin-loading-state] {
+  min-height: var(--rindle-admin-target-min);
+  display: flex;
+  align-items: center;
+  gap: var(--rindle-space-2);
+  color: var(--rindle-text-secondary);
+}
+
 .rindle-admin-empty-state__title {
   margin: 0 0 var(--rindle-space-2);
   font-family: var(--rindle-font-display);
@@ -575,7 +660,10 @@ textarea[data-rindle-admin-input] {
 .rindle-admin-actions-tab:focus-visible,
 .rindle-admin-theme-picker__option:focus-visible,
 [data-rindle-admin-input]:focus-visible,
+[data-rindle-admin-confirm-input]:focus-visible,
 [data-rindle-admin-submit]:focus-visible,
+[data-rindle-admin-action]:focus-visible,
+[data-rindle-admin-detail-link]:focus-visible,
 .rindle-admin-confirm-dialog:focus-visible,
 .rindle-admin-drawer:focus-visible,
 .rindle-admin-toast:focus-visible {
@@ -637,16 +725,34 @@ const requiredSelectors = [
   '.rindle-admin-status-chip',
   '.rindle-admin-button',
   '.rindle-admin-theme-picker',
+  '[data-rindle-admin-input]',
+  '[data-rindle-admin-confirm-input]',
   '.rindle-admin-confirm-dialog',
   '.rindle-admin-drawer',
   '.rindle-admin-toast',
   '.rindle-admin-empty-state',
+  '[data-rindle-admin-empty-state]',
+  '[data-rindle-admin-error-state]',
+  '[data-rindle-admin-loading-state]',
   '.rindle-admin-skeleton',
   ...STATUS_STATES.map((state) => `.rindle-admin-status-chip--${state}`),
   '.rindle-admin-button--primary',
   '.rindle-admin-button--secondary',
   '.rindle-admin-button--quiet',
   '.rindle-admin-button--destructive',
+  '.rindle-admin-button:focus-visible',
+  '.rindle-admin-nav__item:focus-visible',
+  '.rindle-admin-table__row:focus-within',
+  '.rindle-admin-actions-tab:focus-visible',
+  '.rindle-admin-theme-picker__option:focus-visible',
+  '[data-rindle-admin-input]:focus-visible',
+  '[data-rindle-admin-confirm-input]:focus-visible',
+  '[data-rindle-admin-submit]:focus-visible',
+  '[data-rindle-admin-action]:focus-visible',
+  '[data-rindle-admin-detail-link]:focus-visible',
+  '.rindle-admin-nav__item[aria-current="page"]',
+  '.rindle-admin-theme-picker__option[aria-pressed="true"]',
+  '[data-rindle-admin-submit][aria-busy="true"]',
 ];
 const requiredScopes = [':root', '[data-theme="dark"]', '[data-theme="auto"]', 'prefers-color-scheme: dark'];
 const requiredMotionUses = MOTION_TOKENS.map((token) => `var(--rindle-motion-${token})`);
@@ -667,6 +773,10 @@ for (const token of requiredTokenUses) if (!written.includes(token)) missing.pus
 if (!written.includes('prefers-reduced-motion')) missing.push('prefers-reduced-motion');
 if (missing.length) {
   console.error('admin css parity FAIL, missing:', missing.join(', '));
+  process.exit(1);
+}
+if (/outline\s*:\s*none\b/.test(written.replace(/\/\*[\s\S]*?\*\//g, ''))) {
+  console.error('admin css parity FAIL, bare outline:none is forbidden');
   process.exit(1);
 }
 

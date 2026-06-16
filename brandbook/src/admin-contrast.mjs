@@ -41,7 +41,7 @@ const ratio = (a, b) => {
 let failures = 0;
 const rows = [];
 const contexts = CONSOLE_CONTRAST_PAIRS.map((p) => p.context).join(' ');
-for (const requiredContext of ['buttons', 'table', 'focus', 'status chips processing', 'toasts', 'confirm dialog', 'drawer', 'empty state', 'skeleton', 'borders']) {
+for (const requiredContext of ['buttons', 'form controls', 'table', 'focus', 'status chips processing', 'toasts', 'confirm dialog', 'drawer', 'empty state', 'error state', 'loading state', 'skeleton', 'borders']) {
   if (!contexts.includes(requiredContext)) {
     rows.push(`FAIL      ?? >= coverage  ${requiredContext}  (missing console contrast context)`);
     failures++;
