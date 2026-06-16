@@ -239,7 +239,7 @@ matrix in light, dark, and system — the settled Level-1 foundation pages will 
 Plans:
 **Wave 1**
 
-- [ ] 95-01-PLAN.md — Normalize the Level-1 matrix and generated CSS/contrast contract.
+- [x] 95-01-PLAN.md — Normalize the Level-1 matrix and generated CSS/contrast contract.
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -726,7 +726,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 94. Foundation — Token Pipeline CI Gate & New Categories | 5/5 | Complete    | 2026-06-15 |
-| 95. Admin Level-1 Component Audit [A] | 0/3 | Not started | - |
+| 95. Admin Level-1 Component Audit [A] | 1/3 | In Progress|  |
 | 96. Cohort Component Layer + Dark/Reduced-Motion [B] | 0/? | Not started | - |
 | 97. Admin Level-2 Meta-Components [A] | 0/? | Not started | - |
 | 98. Admin Level-3 Pages + Motion/Mobile/A11y/IA/Microcopy [A] | 0/? | Not started | - |
