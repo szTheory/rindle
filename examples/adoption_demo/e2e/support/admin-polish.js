@@ -299,7 +299,78 @@ async function assertTargetSizes(page, interactiveSelectors = DEFAULT_INTERACTIV
 }
 
 // ---------------------------------------------------------------------------
-// Check 4 — no interactive overlap (noisiest; warn-then-tighten)
+// Check 4 — token-backed focus-visible and no bare outline removal
+// ---------------------------------------------------------------------------
+async function assertFocusVisibleTokens(page, interactiveSelectors = DEFAULT_INTERACTIVE_SELECTORS) {
+  const offenders = await page.evaluate(() => {
+    const out = [];
+    for (const sheet of Array.from(document.styleSheets)) {
+      let rules = [];
+      try {
+        rules = Array.from(sheet.cssRules || []);
+      } catch (_error) {
+        continue;
+      }
+      for (const rule of rules) {
+        const cssText = rule.cssText || "";
+        if (/outline\s*:\s*none\b/i.test(cssText.replace(/\/\*[\s\S]*?\*\//g, ""))) {
+          out.push(`outline-none-rule: ${cssText.slice(0, 120)}`);
+        }
+      }
+    }
+    return out;
+  });
+
+  for (const selector of interactiveSelectors) {
+    const locator = page.locator(selector);
+    const count = await locator.count();
+    for (let index = 0; index < count; index++) {
+      const item = locator.nth(index);
+      if (!(await item.isVisible().catch(() => false))) continue;
+      if (await item.isDisabled().catch(() => false)) continue;
+      await item.evaluate((element) => element.focus({ focusVisible: true })).catch(() => {});
+      const state = await item.evaluate((element) => {
+        if (document.activeElement !== element && !element.matches(":focus-within")) return null;
+        const styles = getComputedStyle(element);
+        const root = getComputedStyle(document.documentElement);
+        return {
+          tag: element.tagName.toLowerCase(),
+          selector:
+            element.getAttribute("data-rindle-admin-theme") ||
+            element.getAttribute("data-rindle-admin-action") ||
+            element.getAttribute("data-rindle-admin-detail-link") ||
+            element.getAttribute("data-rindle-admin-input") ||
+            element.className ||
+            element.id ||
+            element.tagName.toLowerCase(),
+          outlineWidth: styles.outlineWidth,
+          outlineColor: styles.outlineColor,
+          outlineOffset: styles.outlineOffset,
+          expectedWidth: root.getPropertyValue("--rindle-focus-width").trim(),
+          expectedColor: root.getPropertyValue("--rindle-focus-ring").trim(),
+          expectedOffset: root.getPropertyValue("--rindle-focus-offset").trim(),
+        };
+      });
+      if (!state) continue;
+      if (state.outlineWidth !== state.expectedWidth) {
+        offenders.push(`${selector} ${state.selector} outlineWidth ${state.outlineWidth} != ${state.expectedWidth}`);
+      }
+      if (state.outlineOffset !== state.expectedOffset) {
+        offenders.push(`${selector} ${state.selector} outlineOffset ${state.outlineOffset} != ${state.expectedOffset}`);
+      }
+      const actual = parseColor(state.outlineColor);
+      const expected = parseColor(state.expectedColor);
+      if (actual.some((value, channel) => Math.abs(value - expected[channel]) > 1)) {
+        offenders.push(`${selector} ${state.selector} outlineColor ${state.outlineColor} != ${state.expectedColor}`);
+      }
+    }
+  }
+
+  return offenders;
+}
+
+// ---------------------------------------------------------------------------
+// Check 5 — no interactive overlap (noisiest; warn-then-tighten)
 // ---------------------------------------------------------------------------
 async function assertNoInteractiveOverlap(page, interactiveSelectors = DEFAULT_INTERACTIVE_SELECTORS) {
   return page.locator(interactiveSelectors.join(",")).evaluateAll(
@@ -348,7 +419,7 @@ async function assertNoInteractiveOverlap(page, interactiveSelectors = DEFAULT_I
 }
 
 // ---------------------------------------------------------------------------
-// Check 5 — stable / correctly-sized rasterization
+// Check 6 — stable / correctly-sized rasterization
 // ---------------------------------------------------------------------------
 // Decode PNG IHDR (pure Node, no dependency): after the 8-byte signature there is a
 // 4-byte length, the "IHDR" tag, then width and height as big-endian uint32.
@@ -412,6 +483,7 @@ async function assertAdminPolish(
   await run("noClippedText", "clipped-text", () => assertNoClippedText(page, root));
   await run("readableContrast", "contrast", () => assertReadableContrast(page, root));
   await run("targetSizes", "target-size", () => assertTargetSizes(page, interactiveSelectors));
+  await run("focusVisibleTokens", "focus-visible", () => assertFocusVisibleTokens(page, interactiveSelectors));
   await run("noInteractiveOverlap", "overlap", () => assertNoInteractiveOverlap(page, interactiveSelectors), {
     warnOnly: !OVERLAP_ENFORCED,
   });
@@ -439,6 +511,7 @@ module.exports = {
   assertNoClippedText,
   assertReadableContrast,
   assertTargetSizes,
+  assertFocusVisibleTokens,
   assertNoInteractiveOverlap,
   assertStableDimensions,
   luminance,

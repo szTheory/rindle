@@ -2,7 +2,7 @@
 // Run: node brandbook/src/admin-gallery-check.mjs
 
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, rmSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -24,19 +24,23 @@ const runNode = (script) => {
 runNode('brandbook/src/admin-css-build.mjs');
 runNode('brandbook/src/admin-gallery.mjs');
 
-const requiredComponents = [
-  'shell',
-  'nav',
-  'table',
-  'status-chips',
-  'buttons',
-  'theme-picker',
-  'confirm-dialog',
-  'drawer',
-  'toasts',
-  'empty-state',
-  'skeletons',
-];
+const requiredComponentStateMatrix = {
+  shell: ['default'],
+  nav: ['default', 'hover', 'focus-visible', 'active'],
+  table: ['default', 'hover', 'focus-visible', 'empty', 'loading', 'skeleton'],
+  'status-chip': ['default', 'error'],
+  button: ['default', 'hover', 'focus-visible', 'active', 'disabled', 'loading'],
+  'theme-picker': ['default', 'hover', 'focus-visible', 'active'],
+  'form-controls': ['default', 'hover', 'focus-visible', 'disabled', 'error'],
+  'confirm-dialog': ['default', 'focus-visible', 'disabled', 'error'],
+  drawer: ['default'],
+  toast: ['default', 'error'],
+  'empty-state': ['empty'],
+  'error-state': ['error'],
+  'loading-state': ['loading'],
+  skeleton: ['skeleton'],
+};
+const requiredGlobalStates = ['default', 'hover', 'focus-visible', 'active', 'disabled', 'loading', 'empty', 'error', 'skeleton'];
 const requiredSectionIds = [
   'home-status',
   'assets',
@@ -63,6 +67,9 @@ const expectedScreenshots = [
   'status-chips-dark.png',
   'theme-picker-light.png',
   'confirm-dialog-light.png',
+  'form-controls-light.png',
+  'error-state-dark.png',
+  'loading-state-auto.png',
 ];
 
 const assert = (condition, message) => {
@@ -73,6 +80,97 @@ const assertVisible = async (page, selector) => {
   const locator = page.locator(selector);
   assert(await locator.count() > 0, `missing selector: ${selector}`);
   assert(await locator.first().isVisible(), `selector not visible: ${selector}`);
+};
+
+const assertComponentStateMatrix = async (page) => {
+  for (const [component, states] of Object.entries(requiredComponentStateMatrix)) {
+    for (const state of states) {
+      await assertVisible(page, `[data-rindle-admin-component="${component}"][data-rindle-admin-state="${state}"]`);
+    }
+  }
+  for (const state of requiredGlobalStates) {
+    await assertVisible(page, `[data-rindle-admin-state="${state}"]`);
+  }
+};
+
+const assertNoBareOutlineNone = () => {
+  const css = readFileSync(join(repoRoot, 'brandbook', 'tokens', 'rindle-admin.css'), 'utf8');
+  const html = readFileSync(galleryPath, 'utf8');
+  const stripCssComments = (text) => text.replace(/\/\*[\s\S]*?\*\//g, '');
+  assert(!/outline\s*:\s*none\b/.test(stripCssComments(css)), 'generated admin CSS contains bare outline:none');
+  assert(!/outline\s*:\s*none\b/.test(stripCssComments(html)), 'generated gallery HTML contains bare outline:none');
+};
+
+const sameColor = (a, b) => {
+  const aa = parseColor(a);
+  const bb = parseColor(b);
+  return aa.every((value, index) => Math.abs(value - bb[index]) <= 1);
+};
+
+const assertFocusVisibleTokens = async (page) => {
+  const selectors = [
+    '.rindle-admin-button',
+    '[data-rindle-admin-nav-item]',
+    '[data-rindle-admin-theme]',
+    '[data-rindle-admin-input]',
+    '[data-rindle-admin-confirm-input]',
+    '.rindle-admin-table__row',
+  ];
+  const failures = [];
+  for (const selector of selectors) {
+    const locator = page.locator(selector).first();
+    await locator.evaluate((element) => element.focus({ focusVisible: true }));
+    const state = await locator.evaluate((element) => {
+      const styles = getComputedStyle(element);
+      const rootStyles = getComputedStyle(document.documentElement);
+      return {
+        selector: element.matches('[data-rindle-admin-theme]') ? '[data-rindle-admin-theme]' : element.tagName.toLowerCase(),
+        outlineWidth: styles.outlineWidth,
+        outlineColor: styles.outlineColor,
+        outlineOffset: styles.outlineOffset,
+        expectedWidth: rootStyles.getPropertyValue('--rindle-focus-width').trim(),
+        expectedColor: rootStyles.getPropertyValue('--rindle-focus-ring').trim(),
+        expectedOffset: rootStyles.getPropertyValue('--rindle-focus-offset').trim(),
+      };
+    });
+    if (state.outlineWidth !== state.expectedWidth) failures.push(`${selector} outlineWidth ${state.outlineWidth} != ${state.expectedWidth}`);
+    if (state.outlineOffset !== state.expectedOffset) failures.push(`${selector} outlineOffset ${state.outlineOffset} != ${state.expectedOffset}`);
+    if (!sameColor(state.outlineColor, state.expectedColor)) failures.push(`${selector} outlineColor ${state.outlineColor} != ${state.expectedColor}`);
+  }
+  assert(failures.length === 0, `focus-visible token failures: ${failures.join('; ')}`);
+};
+
+const assertActiveDistinctFromFocus = async (page) => {
+  const navState = await page.evaluate(() => {
+    const current = document.querySelector('.rindle-admin-nav__item[aria-current="page"]');
+    const other = document.querySelector('.rindle-admin-nav__item:not([aria-current="page"])');
+    const theme = document.querySelector('[data-rindle-admin-theme][aria-pressed="true"]');
+    const root = getComputedStyle(document.documentElement);
+    return {
+      currentBg: getComputedStyle(current).backgroundColor,
+      otherBg: getComputedStyle(other).backgroundColor,
+      currentOutline: getComputedStyle(current).outlineStyle,
+      themeBg: getComputedStyle(theme).backgroundColor,
+      themeOutline: getComputedStyle(theme).outlineStyle,
+      brand: root.getPropertyValue('--rindle-brand').trim(),
+    };
+  });
+  assert(navState.currentBg !== navState.otherBg, 'current nav item background must differ from non-current nav item');
+  assert(navState.currentOutline === 'none', `current nav active state must not rely on outline, got ${navState.currentOutline}`);
+  assert(sameColor(navState.themeBg, navState.brand), `pressed theme option background ${navState.themeBg} must match brand ${navState.brand}`);
+  assert(navState.themeOutline === 'none', `pressed theme active state must not rely on outline, got ${navState.themeOutline}`);
+};
+
+const assertDisabledAndLoadingAffordances = async (page) => {
+  const disabled = await page.locator('[data-rindle-admin-component="button"][data-rindle-admin-state="disabled"]').evaluate((button) => ({
+    disabled: button.disabled,
+    ariaDisabled: button.getAttribute('aria-disabled'),
+    cursor: getComputedStyle(button).cursor,
+  }));
+  assert(disabled.disabled || disabled.ariaDisabled === 'true', 'disabled button fixture must be disabled or aria-disabled');
+  assert(disabled.cursor === 'not-allowed', `disabled button cursor must be not-allowed, got ${disabled.cursor}`);
+  await assertVisible(page, '[data-rindle-admin-component="button"][data-rindle-admin-state="loading"]');
+  await assertVisible(page, '[data-rindle-admin-component="loading-state"][data-rindle-admin-state="loading"]');
 };
 
 const assertHashTarget = async (page, id) => {
@@ -190,7 +288,7 @@ const screenshot = async (page, name, options = {}) => {
 };
 
 const elementScreenshot = async (page, selector, name) => {
-  await page.locator(selector).screenshot({
+  await page.locator(selector).first().screenshot({
     path: join(screenshotsDir, name),
     animations: 'disabled',
   });
@@ -208,9 +306,8 @@ try {
   });
   await page.goto(pathToFileURL(galleryPath).href);
 
-  for (const component of requiredComponents) {
-    await assertVisible(page, `[data-rindle-admin-component="${component}"]`);
-  }
+  assertNoBareOutlineNone();
+  await assertComponentStateMatrix(page);
   for (const id of requiredSectionIds) {
     await assertVisible(page, `#${id}`);
     assert(await page.locator(`.rindle-admin-nav__item[href="#${id}"]`).count() === 1, `missing nav link for #${id}`);
@@ -232,18 +329,24 @@ try {
   await selectTheme(page, 'light');
   await assertSecondaryButtonBorderColor(page);
   await assertGalleryHelperBorders(page);
+  await assertFocusVisibleTokens(page);
+  await assertActiveDistinctFromFocus(page);
+  await assertDisabledAndLoadingAffordances(page);
   await screenshot(page, 'gallery-light-desktop.png');
   await elementScreenshot(page, '[data-rindle-admin-component="theme-picker"]', 'theme-picker-light.png');
   await elementScreenshot(page, '[data-rindle-admin-component="confirm-dialog"]', 'confirm-dialog-light.png');
+  await elementScreenshot(page, '[data-rindle-admin-component="form-controls"]', 'form-controls-light.png');
 
   await selectTheme(page, 'dark');
   await assertDarkStatusChipContrast(page);
   await screenshot(page, 'gallery-dark-desktop.png');
-  await elementScreenshot(page, '[data-rindle-admin-component="status-chips"]', 'status-chips-dark.png');
+  await elementScreenshot(page, '[data-rindle-admin-component="status-chip"]', 'status-chips-dark.png');
+  await elementScreenshot(page, '[data-rindle-admin-component="error-state"]', 'error-state-dark.png');
 
   await page.emulateMedia({ colorScheme: 'dark' });
   await selectTheme(page, 'auto');
   await screenshot(page, 'gallery-auto-desktop.png');
+  await elementScreenshot(page, '[data-rindle-admin-component="loading-state"]', 'loading-state-auto.png');
 
   await page.setViewportSize({ width: 390, height: 900 });
   await page.emulateMedia({ colorScheme: 'light' });
