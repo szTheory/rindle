@@ -243,11 +243,11 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 95-02-PLAN.md — Render the gallery matrix and browser/polish assertions.
+- [x] 95-02-PLAN.md — Render the gallery matrix and browser/polish assertions.
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 95-03-PLAN.md — Validate the integration wrapper and sync the shipped CSS final gate.
+- [x] 95-03-PLAN.md — Validate the integration wrapper and sync the shipped CSS final gate.
 
 **UI hint:** yes
 
@@ -726,7 +726,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 94. Foundation — Token Pipeline CI Gate & New Categories | 5/5 | Complete    | 2026-06-15 |
-| 95. Admin Level-1 Component Audit [A] | 1/3 | In Progress|  |
+| 95. Admin Level-1 Component Audit [A] | 3/3 | Complete   | 2026-06-16 |
 | 96. Cohort Component Layer + Dark/Reduced-Motion [B] | 0/? | Not started | - |
 | 97. Admin Level-2 Meta-Components [A] | 0/? | Not started | - |
 | 98. Admin Level-3 Pages + Motion/Mobile/A11y/IA/Microcopy [A] | 0/? | Not started | - |
