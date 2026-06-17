@@ -86,6 +86,21 @@ function contrastRatio(a, b) {
   return (l1 + 0.05) / (l2 + 0.05);
 }
 
+// Ported verbatim from brandbook/src/admin-gallery-check.mjs:208-217 (the comment above
+// already lists `parseColor` among the ported WCAG utilities — it was referenced by
+// assertFocusVisibleTokens but never actually defined here, so that check threw a
+// ReferenceError the moment a focused control reached the outline-color comparison).
+function parseColor(value) {
+  const color = value.trim();
+  const hex = color.match(/^#([0-9a-f]{6})$/i);
+  if (hex) {
+    return [0, 2, 4].map((offset) => parseInt(hex[1].slice(offset, offset + 2), 16));
+  }
+  const rgb = color.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+  if (rgb) return rgb.slice(1, 4).map(Number);
+  throw new Error(`could not parse computed color: ${value}`);
+}
+
 // ---------------------------------------------------------------------------
 // Check 1 — clipped text
 // ---------------------------------------------------------------------------
@@ -358,9 +373,19 @@ async function assertFocusVisibleTokens(page, interactiveSelectors = DEFAULT_INT
       if (state.outlineOffset !== state.expectedOffset) {
         offenders.push(`${selector} ${state.selector} outlineOffset ${state.outlineOffset} != ${state.expectedOffset}`);
       }
-      const actual = parseColor(state.outlineColor);
-      const expected = parseColor(state.expectedColor);
-      if (actual.some((value, channel) => Math.abs(value - expected[channel]) > 1)) {
+      // Report an unparseable/missing outline color (e.g. a root that does not define the
+      // expected focus-ring token) as an offender rather than throwing — matching the
+      // offender-collecting contract of the width/offset checks above, so a single bad value
+      // surfaces as a reviewable mismatch instead of aborting the whole gate run.
+      let colorMismatch = false;
+      try {
+        const actual = parseColor(state.outlineColor);
+        const expected = parseColor(state.expectedColor);
+        colorMismatch = actual.some((value, channel) => Math.abs(value - expected[channel]) > 1);
+      } catch (_error) {
+        colorMismatch = true;
+      }
+      if (colorMismatch) {
         offenders.push(`${selector} ${state.selector} outlineColor ${state.outlineColor} != ${state.expectedColor}`);
       }
     }
