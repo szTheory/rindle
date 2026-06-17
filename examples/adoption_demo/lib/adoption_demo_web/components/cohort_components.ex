@@ -213,6 +213,180 @@ defmodule AdoptionDemoWeb.CohortComponents do
     """
   end
 
+  @doc """
+  Level-1 data table (D-96-15). Uses the `core_components` `:col`/`:rows` model
+  extended with per-column `sort_key`/`num`. Sort state is SERVER-owned: pass
+  `sort_by`/`sort_dir` (the current LiveView assigns) and a `sort_event`; the
+  sortable header is a real `<button>` carrying `aria-sort`. Numeric columns get
+  `tabular-nums` for alignment. Renders an empty state and a loading skeleton.
+  """
+  attr :rows, :list, default: [], doc: "the row data (a list of maps/structs)"
+  attr :row_id, :any, default: nil, doc: "optional fn(row) -> dom id"
+  attr :sort_by, :string, default: nil, doc: "server-owned: the active sort_key"
+  attr :sort_dir, :string, default: "asc", values: ~w(asc desc)
+  attr :sort_event, :string, default: nil, doc: "phx-click event emitted by sort headers"
+  attr :loading, :boolean, default: false
+  attr :skeleton_rows, :integer, default: 3
+  attr :empty_title, :string, default: "Nothing here yet"
+  attr :empty_body, :string, default: "No records match this view. Adjust filters or seed demo data."
+  attr :rest, :global
+
+  slot :col, required: true do
+    attr :label, :string, required: true
+    attr :sort_key, :string
+    attr :num, :boolean
+  end
+
+  slot :empty, doc: "optional custom empty-state content"
+
+  def ck_table(assigns) do
+    ~H"""
+    <div class="ck-table-wrap" {@rest}>
+      <table class="ck-table">
+        <thead class="ck-table__head">
+          <tr>
+            <th
+              :for={col <- @col}
+              scope="col"
+              class={["ck-table__cell", "ck-table__cell--head", col[:num] && "ck-table__num"]}
+              aria-sort={ck_aria_sort(col[:sort_key], @sort_by, @sort_dir)}
+            >
+              <button
+                :if={col[:sort_key] && @sort_event}
+                type="button"
+                class="ck-table__sort"
+                phx-click={@sort_event}
+                phx-value-key={col[:sort_key]}
+              >
+                {col[:label]}
+                <span class="ck-table__sort-mark" aria-hidden="true">
+                  {ck_table_sort_glyph(col[:sort_key], @sort_by, @sort_dir)}
+                </span>
+              </button>
+              <span :if={!(col[:sort_key] && @sort_event)}>{col[:label]}</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody :if={!@loading && @rows != []} class="ck-table__body">
+          <tr
+            :for={row <- @rows}
+            id={@row_id && @row_id.(row)}
+            class="ck-table__row"
+          >
+            <td
+              :for={col <- @col}
+              class={["ck-table__cell", col[:num] && "ck-table__num"]}
+            >
+              {render_slot(col, row)}
+            </td>
+          </tr>
+        </tbody>
+        <tbody :if={@loading} class="ck-table__body" aria-hidden="true">
+          <tr :for={_n <- 1..@skeleton_rows} class="ck-table__row ck-table__row--skeleton">
+            <td :for={_col <- @col} class="ck-table__cell">
+              <span class="ck-skeleton ck-skeleton--line"></span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div :if={!@loading && @rows == []} class="ck-table__empty">
+        {render_slot(@empty)}
+        <div :if={@empty == []} class="ck-empty">
+          <p class="ck-empty__title">{@empty_title}</p>
+          <p class="ck-empty__body">{@empty_body}</p>
+        </div>
+      </div>
+    </div>
+    """
+  end
+
+  defp ck_aria_sort(nil, _sort_by, _dir), do: nil
+  defp ck_aria_sort(key, key, "asc"), do: "ascending"
+  defp ck_aria_sort(key, key, "desc"), do: "descending"
+  defp ck_aria_sort(_key, _sort_by, _dir), do: "none"
+
+  defp ck_table_sort_glyph(key, key, "asc"), do: "↑"
+  defp ck_table_sort_glyph(key, key, "desc"), do: "↓"
+  defp ck_table_sort_glyph(_key, _sort_by, _dir), do: "↕"
+
+  @doc """
+  Stat tile (D-96-22). `value` renders with `tabular-nums`; an empty/nil value
+  renders an em dash. Optional `delta` and a `status` accent. A loading skeleton
+  replaces the value while `loading`.
+  """
+  attr :label, :string, required: true
+  attr :value, :string, default: nil
+  attr :delta, :string, default: nil
+  attr :delta_dir, :string, default: "neutral", values: ~w(up down neutral)
+  attr :status, :string, default: nil, values: [nil | ~w(ready processing quarantine info)]
+  attr :loading, :boolean, default: false
+  attr :rest, :global
+
+  def ck_stat(assigns) do
+    ~H"""
+    <div class={["ck-stat", @status && "ck-stat--#{@status}"]} {@rest}>
+      <span class="ck-stat__label">{@label}</span>
+      <span :if={@loading} class="ck-skeleton ck-skeleton--value" aria-hidden="true"></span>
+      <span :if={!@loading} class="ck-stat__value">{@value || "—"}</span>
+      <span :if={@delta && !@loading} class={["ck-stat__delta", "ck-stat__delta--#{@delta_dir}"]}>
+        <span aria-hidden="true">{ck_delta_glyph(@delta_dir)}</span>
+        {@delta}
+      </span>
+    </div>
+    """
+  end
+
+  defp ck_delta_glyph("up"), do: "▲"
+  defp ck_delta_glyph("down"), do: "▼"
+  defp ck_delta_glyph(_), do: "•"
+
+  @doc """
+  Detail block (D-96-22): a real `<dl>` of term/description rows. Each `:item`
+  slot carries a `term`. Supports an empty state.
+  """
+  attr :empty_title, :string, default: "Nothing here yet"
+  attr :rest, :global
+
+  slot :item, doc: "one term/description row" do
+    attr :term, :string, required: true
+  end
+
+  def ck_detail(assigns) do
+    ~H"""
+    <dl class="ck-detail" {@rest}>
+      <div :for={item <- @item} class="ck-detail__row">
+        <dt class="ck-detail__term">{item.term}</dt>
+        <dd class="ck-detail__desc">{render_slot(item)}</dd>
+      </div>
+      <div :if={@item == []} class="ck-detail__empty ck-empty">
+        <p class="ck-empty__title">{@empty_title}</p>
+      </div>
+    </dl>
+    """
+  end
+
+  @doc """
+  Toolbar (D-96-22): a `role="group"` row of controls. Default content goes in
+  the inner block (filters, title); an `:actions` slot is pinned to the trailing
+  edge for buttons. Wraps on narrow viewports.
+  """
+  attr :label, :string, default: "Toolbar", doc: "accessible group label"
+  attr :rest, :global
+
+  slot :inner_block
+  slot :actions
+
+  def ck_toolbar(assigns) do
+    ~H"""
+    <div class="ck-toolbar" role="group" aria-label={@label} {@rest}>
+      <div :if={@inner_block != []} class="ck-toolbar__group">{render_slot(@inner_block)}</div>
+      <div :if={@actions != []} class="ck-toolbar__group ck-toolbar__group--actions">
+        {render_slot(@actions)}
+      </div>
+    </div>
+    """
+  end
+
   # --- inline icon set (no external sprite dependency) ----------------------
   attr :name, :atom, required: true
 
