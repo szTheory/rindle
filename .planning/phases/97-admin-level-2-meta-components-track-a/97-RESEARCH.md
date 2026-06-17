@@ -446,13 +446,14 @@ was read directly, not from external sources.)
 | A4 | `OVERLAP_ENFORCED` flip is global; per-surface scoping via `POLISH_EXEMPTIONS` | Must-Answer 3 | Verified in code — low risk |
 | A5 | Number of new element screenshots (affects the pinned `10`→M count) | Must-Answer 4,6 | Whatever the gallery plan decides, must update the literal + `@screenshots`/`expectedScreenshots` together |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **How many gallery element-screenshots should the meta units add?**
    - Known: each meta must be *visible* per theme; the checker already captures full-page light/dark/auto.
    - Unclear: whether per-unit element screenshots are required (they were for Level-1 components).
    - Recommendation: add one element screenshot per meta-component (8 new) for parity with Level-1, bump
      `10`→`18` in both the JS `expectedScreenshots`/`@screenshots` and the Elixir pinned literal. Decide in 97-02.
+   - **RESOLVED:** 8 new element screenshots (10→18). Implemented in 97-02 (JS lists) and sealed in 97-04 (ExUnit pinned literal `18 screenshots written`); `58/58` contrast pairs kept unchanged.
 
 2. **Should `assertConsistentRhythm` also assert *density consistency* (one rhythm step per unit), or only
    on-grid-ness?** D-97-09 mentions "density must be consistent within a unit."
@@ -460,6 +461,7 @@ was read directly, not from external sources.)
      as satisfied by token-backed gaps. A stricter "single dominant gap per unit" rule risks false
      positives (title cluster gap ≠ action cluster gap is legitimate). Keep stricter density as a
      discretion-scoped stretch, not a hard gate, unless a warm-up run shows it is clean.
+   - **RESOLVED:** on-grid-ness only (allowed set `{4,8,16,24,32,48,64}` ∪ `{12,44}`, ±0.5px). Implemented in 97-03's `assertConsistentRhythm`; strict single-dominant-gap density left as discretion-scoped stretch, not a hard gate.
 
 ## Environment Availability
 
