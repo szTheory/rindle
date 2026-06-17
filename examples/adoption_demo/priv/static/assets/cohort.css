@@ -435,7 +435,7 @@
 }
 .ck-cred__value {
   font-family: var(--ck-font-mono);
-  font-size: 0.875rem;
+  font-size: var(--ck-step--1);
   color: var(--ck-code-ink);
   background: var(--ck-code-bg);
   border: 1px solid var(--ck-border);
@@ -471,7 +471,7 @@
   border-color: var(--ck-brand);
 }
 .ck-copy[data-copied="true"] {
-  color: #fff;
+  color: var(--ck-on-brand);
   background: var(--ck-brand);
   border-color: transparent;
 }
@@ -537,7 +537,7 @@
 }
 .ck-card__desc {
   color: var(--ck-muted);
-  font-size: 0.95rem;
+  font-size: var(--ck-step-0);
   margin: 0;
   flex: 1;
 }
@@ -552,7 +552,7 @@
 }
 .ck-card__path {
   font-family: var(--ck-font-mono);
-  font-size: 0.78rem;
+  font-size: var(--ck-step--1);
   font-weight: 400;
   color: var(--ck-faint);
 }
@@ -570,7 +570,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
-  font-size: 0.72rem;
+  font-size: var(--ck-step--1);
   font-weight: 700;
   letter-spacing: 0.03em;
   text-transform: uppercase;
@@ -665,5 +665,25 @@
   .ck-reveal[style*="--d"] { animation-delay: var(--d); }
   @keyframes ck-rise {
     to { opacity: 1; transform: none; }
+  }
+}
+
+/* ---- motion: reduced-motion contract (D-96-13) -------------------------- */
+/* Net-new reduce block. Scoped to .ck * so it covers every present/future
+   primitive without touching daisyUI chrome. Uses .001ms (NOT 0) so
+   transitionend/animationend still fire and LiveView JS does not hang.
+   Color/border/state changes are intentionally KEPT (they convey state, not
+   decoration). This is the ONLY !important site in the file. */
+@media (prefers-reduced-motion: reduce) {
+  .ck *,
+  .ck *::before,
+  .ck *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+  }
+  .ck-reveal {
+    opacity: 1;
+    transform: none;
   }
 }
