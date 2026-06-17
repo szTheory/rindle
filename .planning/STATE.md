@@ -3,15 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.19
 milestone_name: Design-System Stress-Test
 status: completed
-stopped_at: Phase 95 complete
-last_updated: "2026-06-16T02:39:58.745Z"
+last_updated: "2026-06-17T17:30:01.984Z"
 last_activity: 2026-06-16 -- Phase 95 marked complete
 progress:
-  total_phases: 15
+  total_phases: 32
   completed_phases: 13
   total_plans: 44
   completed_plans: 47
-  percent: 87
+  percent: 41
 ---
 
 # Project State
@@ -181,9 +180,9 @@ is grounded before planning.
 
 ## Session Continuity
 
-Last session: 2026-06-15T21:40:50.478Z
-Stopped at: Phase 95 context gathered (assumptions mode)
-Resume file: .planning/phases/95-admin-level-1-component-audit-track-a/95-CONTEXT.md
+Last session: 2026-06-17T17:30:01.980Z
+Stopped at: Phase 96 context gathered (assumptions mode)
+Resume file: .planning/phases/96-cohort-component-layer-dark-reduced-motion-contract-track-b/96-CONTEXT.md
 
 ## Performance Metrics
 
