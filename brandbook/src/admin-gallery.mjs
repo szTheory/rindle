@@ -568,7 +568,7 @@ ${metaNavItems}
       </div>
       <div class="rindle-admin-theme-picker" role="group" aria-label="Theme">
         ${THEMES.map((theme, index) => `<button class="rindle-admin-theme-picker__option" type="button" data-rindle-admin-component="theme-picker" data-rindle-admin-state="${['default', 'hover', 'active'][index]}" data-rindle-admin-theme="${theme}" aria-pressed="${theme === 'auto' ? 'true' : 'false'}">${theme[0].toUpperCase()}${theme.slice(1)}</button>`).join('')}
-        <button class="rindle-admin-theme-picker__option" type="button" data-rindle-admin-component="theme-picker" data-rindle-admin-state="focus-visible" data-rindle-admin-theme="focus" aria-pressed="false">Focus</button>
+        <button class="rindle-admin-theme-picker__option" type="button" data-rindle-admin-component="theme-picker" data-rindle-admin-state="focus-visible" data-rindle-admin-theme-demo aria-label="Focus-visible state demonstration (not a theme toggle)">Focus</button>
       </div>
     </header>
 
