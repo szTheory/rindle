@@ -743,6 +743,9 @@ jobs:
           mc alias set local http://localhost:9000 minioadmin minioadmin
           mc mb --ignore-existing local/rindle-test
 
+      - name: Cohort contrast + literal gate
+        run: node brandbook/src/cohort-contrast.mjs
+
       - name: Run adoption demo Playwright suite
         run: bash scripts/ci/adoption_demo_e2e.sh
 
