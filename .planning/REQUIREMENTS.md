@@ -66,7 +66,7 @@ demand-gated and shift to v1.20+. Research: `.planning/research/v1.19/SUMMARY.md
 - [ ] **COHORT-05**: daisyUI/Tailwind scaffold retired from the inner pages — migrated
   **class-by-class, not element-by-element**, preserving every `id` / `data-testid` / `phx-hook`
   so behavior e2e stays green; the `default.css` `<link>` removed only once grep is clean.
-- [ ] **COHORT-06**: Cohort gains a dark `[data-theme]` contract **and** a
+- [x] **COHORT-06**: Cohort gains a dark `[data-theme]` contract **and** a
   `prefers-reduced-motion` block (net-new — `cohort.css` has neither today), with the new
   contrast pairs added to the WCAG gate and all color literals replaced by tokens.
 
@@ -241,7 +241,7 @@ Open only via `/gsd-new-milestone` with documented signal:
 | COHORT-03 | Phase 99 | Pending |
 | COHORT-04 | Phase 99 | Pending |
 | COHORT-05 | Phase 101 | Pending |
-| COHORT-06 | Phase 96 | Pending |
+| COHORT-06 | Phase 96 | Complete |
 | VIS-01 | Phase 102 | Complete |
 | VIS-02 | Phase 102 | Pending |
 | VIS-03 | Phase 102 | Pending |

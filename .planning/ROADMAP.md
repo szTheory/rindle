@@ -279,7 +279,7 @@ Plans:
 
 **Wave 1**
 
-- [ ] 96-01-PLAN.md — Author the dark `[data-theme]` contract, surface/shadow-ink ladder, `color-scheme`, and the net-new reduced-motion block in `cohort.css`; remove rule-body literals.
+- [x] 96-01-PLAN.md — Author the dark `[data-theme]` contract, surface/shadow-ink ladder, `color-scheme`, and the net-new reduced-motion block in `cohort.css`; remove rule-body literals.
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -747,7 +747,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 94. Foundation — Token Pipeline CI Gate & New Categories | 5/5 | Complete    | 2026-06-15 |
 | 95. Admin Level-1 Component Audit [A] | 3/3 | Complete   | 2026-06-16 |
-| 96. Cohort Component Layer + Dark/Reduced-Motion [B] | 0/5 | Not started | - |
+| 96. Cohort Component Layer + Dark/Reduced-Motion [B] | 1/5 | In Progress|  |
 | 97. Admin Level-2 Meta-Components [A] | 0/? | Not started | - |
 | 98. Admin Level-3 Pages + Motion/Mobile/A11y/IA/Microcopy [A] | 0/? | Not started | - |
 | 99. Cohort Page Migrations (small 7) [B] | 0/? | Not started | - |
