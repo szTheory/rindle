@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.19
 milestone_name: Design-System Stress-Test
-status: executing
-last_updated: "2026-06-17T19:07:57.432Z"
+status: verifying
+last_updated: "2026-06-17T19:20:05.611Z"
 last_activity: 2026-06-17
 progress:
   total_phases: 32
-  completed_phases: 13
+  completed_phases: 14
   total_plans: 49
-  completed_plans: 51
-  percent: 41
+  completed_plans: 52
+  percent: 44
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-06-14)
 
 Phase: 96 (cohort-component-layer-dark-reduced-motion-contract-track-b) — EXECUTING
 Plan: 5 of 5
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-06-17
 
 ## Current Milestone
@@ -162,6 +162,8 @@ is grounded before planning.
 - [Phase 96]: Plan 02 — the six Level-1 .ck-* primitives shipped as CohortComponents function components + .ck-scoped CSS: ck_table (real <button> sort header carrying aria-sort on the <th>, server-owned sort_by/sort_dir/sort_event, badge reuse, empty + loading-skeleton), ck_stat (tabular-nums + em-dash empty + status accent + skeleton), ck_detail (real <dl><dt><dd>), ck_toolbar (role=group + trailing :actions slot); ck_field/ck_input/ck_select integrate Phoenix.HTML.FormField with aria-describedby + aria-invalid and a non-color warning-icon error (D-96-15); ck_tabs is full WAI-ARIA APG (roving tabindex, server-owned select via phx-click) backed by a net-new keyboard-only phx-hook=Tabs in app.js (D-96-17). Every interactive control has a token-backed :focus-visible (no bare outline:none) and a 44px min target.
 - [Phase ?]: Phase 96 Plan 04: RESOLVED (Option A) the light --ck-faint on --ck-bg contradiction — decorative/non-text role (WCAG 1.4.3/1.4.11 exempt) floor set to its measured 2.7; locked --ck-* color values unchanged (D-96-23); dark twin stays 3.0 (4.74:1). cohort-contrast.mjs gate exits 0 (28/28). [Rule 1] fixed a theme-blind coverage loop and a no-op self-comparison parity check (now byte-equal asserts the explicit dark block vs the prefers-color-scheme :root:not([data-theme]) duplicate). Wired into adoption-demo-e2e before Playwright.
 - [Phase ?]: Phase 96 Plan 03: /styleguide reachable :browser LiveView on .ck shell with data-ck-root + data-theme seam (D-96-05, not body); theme/sort/tab SERVER state (enum-guarded, no client storage, D-96-07/15/16); 10 data-ck-section groups (6 L1 + 4 L2) full state sets on stable data-ck-state markers separate from .ck-* (D-96-16) + real seeded fiction with never-populated/filtered empty copy (D-96-22). [Rule 1] split disabled field into member_disabled to_form to avoid duplicate FormField DOM id. Composes only Plan 02 primitives.
+- [Phase ?]: 96-05: cohort-styleguide.spec.js drives /styleguide in the D-96-21 order and reuses assertAdminPolish in warn mode over [data-ck-root]
+- [Phase ?]: 96-05: ported the missing parseColor into admin-polish.js + made the outline-color check offender-safe (pre-existing ReferenceError surfaced by running the gate over a focusable surface; non-special-casing, admin unchanged)
 
 ## Blockers/Concerns
 
@@ -184,8 +186,8 @@ is grounded before planning.
 
 ## Session Continuity
 
-Last session: 2026-06-17T19:07:35.020Z
-Stopped at: Completed 96-01-PLAN.md
+Last session: 2026-06-17T19:20:05.607Z
+Stopped at: Completed 96-05-PLAN.md (phase 96 ready for verification)
 Resume file: None
 
 ## Performance Metrics
@@ -230,3 +232,4 @@ Resume file: None
 | Phase 96 P02 | 4min | 2 tasks | 3 files |
 | Phase 96 P04 | 14 min | 2 tasks tasks | 3 files files |
 | Phase 96 P03 | 5min | 2 tasks | 2 files |
+| Phase 96 P05 | 22min | 1 tasks | 3 files |
