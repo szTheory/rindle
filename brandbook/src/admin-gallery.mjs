@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url';
 import {
   COMPONENTS,
   LEVEL_1_STATES,
+  META_COMPONENTS,
   STATUS_STATES,
   SURFACES,
   THEMES,
@@ -73,6 +74,7 @@ exact(SURFACES, requiredSurfaces, 'SURFACES');
 exact(STATUS_STATES, requiredStates, 'STATUS_STATES');
 exact(COMPONENTS, requiredComponents, 'COMPONENTS');
 exact(LEVEL_1_STATES, ['default', 'hover', 'focus-visible', 'active', 'disabled', 'loading', 'empty', 'error', 'skeleton'], 'LEVEL_1_STATES');
+exact(META_COMPONENTS, ['toolbar', 'data-table', 'filter-bar', 'action-panel', 'detail-drilldown', 'confirm-panel', 'drawer', 'toast-stack'], 'META_COMPONENTS');
 
 if (!existsSync(adminCssPath)) {
   throw new Error(`missing generated admin CSS: ${adminCssPath}`);
@@ -153,6 +155,225 @@ const tableMarkup = tableRows.map(([id, summary, state, surface, action]) => `
                 <td class="rindle-admin-table__cell">${escapeHtml(surface)}</td>
                 <td class="rindle-admin-table__cell"><button class="rindle-admin-button rindle-admin-button--quiet" type="button" data-rindle-admin-component="button" data-rindle-admin-state="default" data-rindle-admin-detail-link>${escapeHtml(action)}</button></td>
               </tr>`).join('');
+
+// ---------------------------------------------------------------------------
+// Level-2 meta-component cohesion panels (UPLIFT-02 / D-97-06).
+// Each unit renders as ONE labeled <section> whose root carries
+// data-rindle-admin-meta="{slug}", composed ONLY of Level-1 rindle-admin-*
+// parts that each still carry their data-rindle-admin-component marker
+// (dual-marker convention). All fixture copy is in the terse operator/SRE
+// voice from 97-UI-SPEC §"Copywriting Contract". No client JS toggling.
+// ---------------------------------------------------------------------------
+
+const metaToolbar = `
+        <section class="rindle-admin-gallery__section" id="meta-toolbar" aria-labelledby="meta-toolbar-heading">
+          <h3 id="meta-toolbar-heading" class="rindle-admin-gallery__eyebrow">Meta-component · toolbar</h3>
+          <div class="rindle-admin-toolbar" data-rindle-admin-meta="toolbar">
+            <div class="rindle-admin-toolbar__cluster">
+              <p class="rindle-admin-toolbar__title">Assets</p>
+              <span class="rindle-admin-status-chip rindle-admin-status-chip--info" data-rindle-admin-component="status-chip" data-rindle-admin-state="default" data-rindle-admin-status="info">128 total</span>
+            </div>
+            <div class="rindle-admin-toolbar__cluster">
+              <input class="rindle-admin-gallery__input" type="search" data-rindle-admin-component="form-controls" data-rindle-admin-state="default" data-rindle-admin-input aria-label="Filter assets">
+              <button class="rindle-admin-button rindle-admin-button--secondary" type="button" data-rindle-admin-component="button" data-rindle-admin-state="default">Import</button>
+              <button class="rindle-admin-button rindle-admin-button--primary" type="button" data-rindle-admin-component="button" data-rindle-admin-state="default">New asset</button>
+            </div>
+          </div>
+        </section>`;
+
+const metaDataTable = `
+        <section class="rindle-admin-gallery__section" id="meta-data-table" aria-labelledby="meta-data-table-heading">
+          <h3 id="meta-data-table-heading" class="rindle-admin-gallery__eyebrow">Meta-component · data-table</h3>
+          <div class="rindle-admin-data-table" data-rindle-admin-meta="data-table">
+            <div class="rindle-admin-bulk-bar" role="toolbar" aria-label="Bulk actions">
+              <span class="rindle-admin-bulk-bar__count">3 selected</span>
+              <div class="rindle-admin-bulk-bar__actions">
+                <button class="rindle-admin-button rindle-admin-button--secondary" type="button" data-rindle-admin-component="button" data-rindle-admin-state="default" data-rindle-admin-action>Requeue</button>
+                <button class="rindle-admin-button rindle-admin-button--destructive" type="button" data-rindle-admin-component="button" data-rindle-admin-state="default" data-rindle-admin-action>3 selected — Erase</button>
+              </div>
+            </div>
+            <div class="rindle-admin-table--sticky" data-rindle-admin-scroll-region tabindex="0" role="region" aria-label="Asset rows">
+              <table class="rindle-admin-table">
+                <thead class="rindle-admin-table__head">
+                  <tr>
+                    <th class="rindle-admin-table__cell" scope="col"><input type="checkbox" data-rindle-admin-component="form-controls" data-rindle-admin-state="default" data-rindle-admin-input aria-label="Select all rows" checked></th>
+                    <th class="rindle-admin-table__cell" scope="col" aria-sort="ascending"><span class="rindle-admin-table__sort">Record</span></th>
+                    <th class="rindle-admin-table__cell" scope="col" aria-sort="none"><span class="rindle-admin-table__sort">Signal</span></th>
+                    <th class="rindle-admin-table__cell" scope="col">State</th>
+                    <th class="rindle-admin-table__cell" scope="col">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr class="rindle-admin-table__row" tabindex="0" data-rindle-admin-component="table" data-rindle-admin-state="default" data-rindle-admin-selected>
+                    <td class="rindle-admin-table__cell"><input type="checkbox" data-rindle-admin-component="form-controls" data-rindle-admin-state="default" data-rindle-admin-input aria-label="Select asset:img-2048" checked></td>
+                    <td class="rindle-admin-table__cell"><code>asset:img-2048</code></td>
+                    <td class="rindle-admin-table__cell">Ready original and thumbnails</td>
+                    <td class="rindle-admin-table__cell"><span class="rindle-admin-status-chip rindle-admin-status-chip--ready" data-rindle-admin-component="status-chip" data-rindle-admin-state="default" data-rindle-admin-status="ready">Ready</span></td>
+                    <td class="rindle-admin-table__cell"><button class="rindle-admin-button rindle-admin-button--quiet" type="button" data-rindle-admin-component="button" data-rindle-admin-state="default" data-rindle-admin-detail-link>Inspect</button></td>
+                  </tr>
+                  <tr class="rindle-admin-table__row" tabindex="0" data-rindle-admin-component="table" data-rindle-admin-state="default" data-rindle-admin-selected>
+                    <td class="rindle-admin-table__cell"><input type="checkbox" data-rindle-admin-component="form-controls" data-rindle-admin-state="default" data-rindle-admin-input aria-label="Select job:oban-442" checked></td>
+                    <td class="rindle-admin-table__cell"><code>job:oban-442</code></td>
+                    <td class="rindle-admin-table__cell">Processor failed after retry budget</td>
+                    <td class="rindle-admin-table__cell"><span class="rindle-admin-status-chip rindle-admin-status-chip--danger" data-rindle-admin-component="status-chip" data-rindle-admin-state="error" data-rindle-admin-status="danger">Danger</span></td>
+                    <td class="rindle-admin-table__cell"><button class="rindle-admin-button rindle-admin-button--quiet" type="button" data-rindle-admin-component="button" data-rindle-admin-state="default" data-rindle-admin-detail-link>Repair</button></td>
+                  </tr>
+                  <tr class="rindle-admin-table__row" tabindex="0" data-rindle-admin-component="table" data-rindle-admin-state="default" data-rindle-admin-selected>
+                    <td class="rindle-admin-table__cell"><input type="checkbox" data-rindle-admin-component="form-controls" data-rindle-admin-state="default" data-rindle-admin-input aria-label="Select variant:hero-webp" checked></td>
+                    <td class="rindle-admin-table__cell"><code>variant:hero-webp</code></td>
+                    <td class="rindle-admin-table__cell">Recipe changed; output is stale</td>
+                    <td class="rindle-admin-table__cell"><span class="rindle-admin-status-chip rindle-admin-status-chip--warning" data-rindle-admin-component="status-chip" data-rindle-admin-state="default" data-rindle-admin-status="warning">Warning</span></td>
+                    <td class="rindle-admin-table__cell"><button class="rindle-admin-button rindle-admin-button--quiet" type="button" data-rindle-admin-component="button" data-rindle-admin-state="default" data-rindle-admin-detail-link>Preview</button></td>
+                  </tr>
+                  <tr class="rindle-admin-table__row" tabindex="0" data-rindle-admin-component="table" data-rindle-admin-state="default">
+                    <td class="rindle-admin-table__cell"><input type="checkbox" data-rindle-admin-component="form-controls" data-rindle-admin-state="default" data-rindle-admin-input aria-label="Select session:upl-719"></td>
+                    <td class="rindle-admin-table__cell"><code>session:upl-719</code></td>
+                    <td class="rindle-admin-table__cell">Tus upload still receiving chunks</td>
+                    <td class="rindle-admin-table__cell"><span class="rindle-admin-status-chip rindle-admin-status-chip--processing" data-rindle-admin-component="status-chip" data-rindle-admin-state="default" data-rindle-admin-status="processing">Processing</span></td>
+                    <td class="rindle-admin-table__cell"><button class="rindle-admin-button rindle-admin-button--quiet" type="button" data-rindle-admin-component="button" data-rindle-admin-state="default" data-rindle-admin-detail-link>Review</button></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>`;
+
+const metaFilterBar = `
+        <section class="rindle-admin-gallery__section" id="meta-filter-bar" aria-labelledby="meta-filter-bar-heading">
+          <h3 id="meta-filter-bar-heading" class="rindle-admin-gallery__eyebrow">Meta-component · filter-bar</h3>
+          <div class="rindle-admin-filter-bar" data-rindle-admin-meta="filter-bar">
+            <div class="rindle-admin-filter-bar__field">
+              <label for="meta-filter-state">State</label>
+              <select id="meta-filter-state" data-rindle-admin-component="form-controls" data-rindle-admin-state="default" data-rindle-admin-input><option>Quarantine</option></select>
+            </div>
+            <div class="rindle-admin-filter-bar__field">
+              <label for="meta-filter-surface">Surface</label>
+              <select id="meta-filter-surface" data-rindle-admin-component="form-controls" data-rindle-admin-state="default" data-rindle-admin-input><option>Assets</option></select>
+            </div>
+            <div class="rindle-admin-filter-bar__chips">
+              <span class="rindle-admin-status-chip rindle-admin-status-chip--quarantine" data-rindle-admin-component="status-chip" data-rindle-admin-state="default" data-rindle-admin-status="quarantine">Quarantine</span>
+            </div>
+            <div class="rindle-admin-filter-bar__actions">
+              <button class="rindle-admin-button rindle-admin-button--quiet" type="button" data-rindle-admin-component="button" data-rindle-admin-state="default">Clear</button>
+              <button class="rindle-admin-button rindle-admin-button--primary" type="button" data-rindle-admin-component="button" data-rindle-admin-state="default">Apply</button>
+            </div>
+          </div>
+          <p class="rindle-admin-gallery__lede">No assets match these filters — widen the state or check Runtime/Doctor.</p>
+        </section>`;
+
+const metaActionPanel = `
+        <section class="rindle-admin-gallery__section" id="meta-action-panel" aria-labelledby="meta-action-panel-heading">
+          <h3 id="meta-action-panel-heading" class="rindle-admin-gallery__eyebrow">Meta-component · action-panel</h3>
+          <div class="rindle-admin-action-panel" data-rindle-admin-meta="action-panel">
+            <div class="rindle-admin-action-panel__group">
+              <button class="rindle-admin-button rindle-admin-button--primary" type="button" data-rindle-admin-component="button" data-rindle-admin-state="default" data-rindle-admin-action>Regenerate variants</button>
+              <button class="rindle-admin-button rindle-admin-button--secondary" type="button" data-rindle-admin-component="button" data-rindle-admin-state="default" data-rindle-admin-action>Requeue jobs</button>
+            </div>
+            <div class="rindle-admin-action-panel__group">
+              <button class="rindle-admin-button rindle-admin-button--secondary" type="button" data-rindle-admin-component="button" data-rindle-admin-state="default" data-rindle-admin-action>Run cleanup</button>
+              <button class="rindle-admin-button rindle-admin-button--destructive" type="button" data-rindle-admin-component="button" data-rindle-admin-state="default" data-rindle-admin-action>Erase owner</button>
+            </div>
+          </div>
+        </section>`;
+
+const metaDetailDrilldown = `
+        <section class="rindle-admin-gallery__section" id="meta-detail-drilldown" aria-labelledby="meta-detail-drilldown-heading">
+          <h3 id="meta-detail-drilldown-heading" class="rindle-admin-gallery__eyebrow">Meta-component · detail-drilldown</h3>
+          <div class="rindle-admin-detail-drilldown" data-rindle-admin-meta="detail-drilldown">
+            <div class="rindle-admin-toolbar__cluster">
+              <p class="rindle-admin-toolbar__title">asset:doc-088</p>
+              <span class="rindle-admin-status-chip rindle-admin-status-chip--quarantine" data-rindle-admin-component="status-chip" data-rindle-admin-state="default" data-rindle-admin-status="quarantine">Quarantine</span>
+              <a class="rindle-admin-button rindle-admin-button--quiet" href="#meta-detail-drilldown" data-rindle-admin-component="button" data-rindle-admin-state="default" data-rindle-admin-detail-link>Back to list</a>
+            </div>
+            <div class="rindle-admin-detail-drilldown__row">
+              <span class="rindle-admin-detail-drilldown__key">Owner</span>
+              <span><code>owner:cohort-demo-42</code></span>
+            </div>
+            <div class="rindle-admin-detail-drilldown__row">
+              <span class="rindle-admin-detail-drilldown__key">Reason</span>
+              <span>Analyzer rejected unsafe content</span>
+            </div>
+            <div class="rindle-admin-detail-drilldown__row">
+              <span class="rindle-admin-detail-drilldown__key">Next step</span>
+              <span>Review collateral before Actions</span>
+            </div>
+          </div>
+        </section>`;
+
+const metaConfirmPanel = `
+        <section class="rindle-admin-gallery__section" id="meta-confirm-panel" aria-labelledby="meta-confirm-panel-heading">
+          <h3 id="meta-confirm-panel-heading" class="rindle-admin-gallery__eyebrow">Meta-component · confirm-panel</h3>
+          <div class="rindle-admin-confirm-panel" data-rindle-admin-meta="confirm-panel">
+            <div class="rindle-admin-confirm-dialog" data-rindle-admin-component="confirm-dialog" data-rindle-admin-state="default" tabindex="-1">
+              <h2 class="rindle-admin-confirm-dialog__title">Owner erasure preview</h2>
+              <p>Owner erasure: Type the owner identifier to confirm after reviewing affected assets.</p>
+              <dl class="rindle-admin-gallery__receipt">
+                <dt>Affected assets</dt><dd>12 detached, 3 retained shared assets</dd>
+                <dt>Queued work</dt><dd>2 purge jobs after confirmation</dd>
+              </dl>
+            </div>
+            <div class="rindle-admin-gallery__field">
+              <label for="meta-owner-confirmation">Owner identifier</label>
+              <input class="rindle-admin-gallery__input" id="meta-owner-confirmation" name="meta-owner-confirmation" autocomplete="off" data-rindle-admin-component="form-controls" data-rindle-admin-state="default">
+            </div>
+            <div class="rindle-admin-confirm-panel__actions">
+              <button class="rindle-admin-button rindle-admin-button--destructive" type="button" data-rindle-admin-component="confirm-dialog" data-rindle-admin-state="disabled" disabled>Confirm erasure</button>
+              <button class="rindle-admin-button rindle-admin-button--secondary" type="button" data-rindle-admin-component="confirm-dialog" data-rindle-admin-state="default">Cancel</button>
+            </div>
+          </div>
+        </section>`;
+
+const metaDrawer = `
+        <section class="rindle-admin-gallery__section" id="meta-drawer" aria-labelledby="meta-drawer-heading">
+          <h3 id="meta-drawer-heading" class="rindle-admin-gallery__eyebrow">Meta-component · drawer</h3>
+          <div class="rindle-admin-drawer" data-rindle-admin-meta="drawer" tabindex="-1">
+            <div class="rindle-admin-drawer-panel">
+              <div class="rindle-admin-drawer-panel__header">
+                <h2>Asset detail</h2>
+                <button class="rindle-admin-button rindle-admin-button--quiet" type="button" data-rindle-admin-component="button" data-rindle-admin-state="default">Close</button>
+              </div>
+              <dl class="rindle-admin-gallery__receipt">
+                <dt>Asset</dt><dd><code>asset:doc-088</code></dd>
+                <dt>State</dt><dd><span class="rindle-admin-status-chip rindle-admin-status-chip--quarantine" data-rindle-admin-component="status-chip" data-rindle-admin-state="default" data-rindle-admin-status="quarantine">Quarantine</span></dd>
+              </dl>
+              <div class="rindle-admin-drawer-panel__footer">
+                <button class="rindle-admin-button rindle-admin-button--secondary" type="button" data-rindle-admin-component="button" data-rindle-admin-state="default">Inspect</button>
+                <button class="rindle-admin-button rindle-admin-button--primary" type="button" data-rindle-admin-component="button" data-rindle-admin-state="default">Move to Actions</button>
+              </div>
+            </div>
+          </div>
+        </section>`;
+
+const metaToastStack = `
+        <section class="rindle-admin-gallery__section" id="meta-toast-stack" aria-labelledby="meta-toast-stack-heading">
+          <h3 id="meta-toast-stack-heading" class="rindle-admin-gallery__eyebrow">Meta-component · toast-stack</h3>
+          <div class="rindle-admin-toast-stack" data-rindle-admin-meta="toast-stack">
+            <div class="rindle-admin-toast rindle-admin-toast--success" data-rindle-admin-component="toast" data-rindle-admin-state="default" tabindex="0"><span aria-hidden="true">✓</span><span>Variant regeneration queued for <code>hero-webp</code>.</span><button class="rindle-admin-button rindle-admin-button--quiet" type="button" data-rindle-admin-component="button" data-rindle-admin-state="default">Dismiss</button></div>
+            <div class="rindle-admin-toast rindle-admin-toast--warning" data-rindle-admin-component="toast" data-rindle-admin-state="default" tabindex="0"><span aria-hidden="true">!</span><span>Upload residue is expired; review cleanup guidance.</span><button class="rindle-admin-button rindle-admin-button--quiet" type="button" data-rindle-admin-component="button" data-rindle-admin-state="default">Dismiss</button></div>
+            <div class="rindle-admin-toast rindle-admin-toast--danger" data-rindle-admin-component="toast" data-rindle-admin-state="error" tabindex="0"><span aria-hidden="true">!</span><span>Repair failed. Runtime/Doctor has the missing source artifact.</span><button class="rindle-admin-button rindle-admin-button--quiet" type="button" data-rindle-admin-component="button" data-rindle-admin-state="default">Dismiss</button></div>
+          </div>
+        </section>`;
+
+const metaPanels = `${metaToolbar}${metaDataTable}${metaFilterBar}${metaActionPanel}${metaDetailDrilldown}${metaConfirmPanel}${metaDrawer}${metaToastStack}`;
+
+const metaSectionIds = [
+  'meta-toolbar',
+  'meta-data-table',
+  'meta-filter-bar',
+  'meta-action-panel',
+  'meta-detail-drilldown',
+  'meta-confirm-panel',
+  'meta-drawer',
+  'meta-toast-stack',
+];
+
+const metaNavItems = metaSectionIds.map((id, index) => `
+          <li>
+            <a class="rindle-admin-nav__item" href="#${id}" data-rindle-admin-nav-item data-rindle-admin-component="nav" data-rindle-admin-state="default">
+              <span aria-hidden="true">M${String(index + 1).padStart(2, '0')}</span>
+              <span>${escapeHtml(id.replace('meta-', '').replace(/-/g, ' '))}</span>
+            </a>
+          </li>`).join('');
 
 const html = `<!doctype html>
 <html lang="en" data-theme="auto">
@@ -334,6 +555,7 @@ code {
     <p class="rindle-admin-nav__brand">Rindle Admin</p>
     <ul class="rindle-admin-nav__list">
 ${navItems}
+${metaNavItems}
     </ul>
   </nav>
 
@@ -490,6 +712,17 @@ ${statusChips()}
         </section>
       </aside>
     </div>
+
+    <section class="rindle-admin-gallery__section" id="meta-components" aria-labelledby="meta-components-heading">
+      <header>
+        <p class="rindle-admin-gallery__eyebrow">Level-2 meta-components</p>
+        <h2 id="meta-components-heading" class="rindle-admin-gallery__title">Cohesion units</h2>
+        <p class="rindle-admin-gallery__lede">Each unit is one labeled cohesion panel composed only of Level-1 rindle-admin parts, rendered across light, dark, and auto themes.</p>
+      </header>
+      <div class="rindle-admin-gallery__stack">
+${metaPanels}
+      </div>
+    </section>
   </main>
 </div>
 
@@ -570,6 +803,13 @@ const requiredSnippets = [
   'data-rindle-admin-component="form-controls" data-rindle-admin-state="focus-visible"',
   'data-rindle-admin-error-state',
   'Rindle Admin could not load this surface. Retry load or check Runtime/Doctor for the missing source artifact.',
+  // Level-2 meta-component cohesion markers (D-97-06) + data-table static state.
+  ...META_COMPONENTS.map((slug) => `data-rindle-admin-meta="${slug}"`),
+  ...metaSectionIds.map((id) => `id="${id}"`),
+  'aria-sort=',
+  'aria-sort="ascending"',
+  'data-rindle-admin-selected',
+  'data-rindle-admin-scroll-region',
 ];
 const missingSnippets = requiredSnippets.filter((needle) => !html.includes(needle));
 if (missingSnippets.length) {
