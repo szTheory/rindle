@@ -99,7 +99,7 @@ defmodule AdoptionDemoWeb.StyleguideLive do
                 class={["ck-btn", @theme == "light" && "ck-btn--primary"]}
                 phx-click="set_theme"
                 phx-value-theme="light"
-                aria-pressed={@theme == "light"}
+                aria-pressed={to_string(@theme == "light")}
                 data-ck-theme="light"
               >
                 Light
@@ -109,7 +109,7 @@ defmodule AdoptionDemoWeb.StyleguideLive do
                 class={["ck-btn", @theme == "dark" && "ck-btn--primary"]}
                 phx-click="set_theme"
                 phx-value-theme="dark"
-                aria-pressed={@theme == "dark"}
+                aria-pressed={to_string(@theme == "dark")}
                 data-ck-theme="dark"
               >
                 Dark
