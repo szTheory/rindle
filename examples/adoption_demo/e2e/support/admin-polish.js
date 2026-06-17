@@ -492,12 +492,23 @@ async function assertStableDimensions(page) {
 // valid. Allowed set is `{4,8,16,24,32,48,64}` (the declared spacing multiples) plus
 // the two documented exceptions `{12,44}` (the table-cell padding step and the target
 // minimum). RETURNS offenders `"{slug} {tag} {prop}={px}px off-grid"`; never throws.
+//
+// Only elements the design system actually styles are measured: an element is inspected
+// when it carries a `rindle-admin-*` class. Native form-control internals (an `<option>`
+// padded by the user-agent stylesheet, a checkbox `<input>`'s UA margin) and bare
+// typographic elements (`<p>`/`<h2>` relying on the user-agent's em-based margins) carry
+// box metrics the generated CSS never sets — including them would surface the browser's
+// defaults, not off-grid token spacing (Pitfall 1: offenders all at UA-default values mean
+// the walk is too wide, not that the CSS is off-grid).
 async function assertConsistentRhythm(page, root = DEFAULT_ROOT) {
   return page.evaluate(
     ({ ROOT, ALLOWED, EXEMPT_PX, TOL }) => {
       const onGrid = (px) =>
         EXEMPT_PX.some((v) => Math.abs(px - v) <= TOL) ||
         ALLOWED.some((v) => Math.abs(px - v) <= TOL);
+      const styled = (el) =>
+        typeof el.className === "string" &&
+        el.className.split(/\s+/).some((c) => c.startsWith("rindle-admin-"));
       const PROPS = [
         "rowGap",
         "columnGap",
@@ -512,6 +523,7 @@ async function assertConsistentRhythm(page, root = DEFAULT_ROOT) {
       for (const unit of document.querySelectorAll(`${ROOT} [data-rindle-admin-meta]`)) {
         const slug = unit.getAttribute("data-rindle-admin-meta") || "?";
         for (const el of [unit, ...unit.querySelectorAll("*")]) {
+          if (!styled(el)) continue; // measure only design-system-owned box metrics
           const s = getComputedStyle(el);
           for (const prop of PROPS) {
             const px = parseFloat(s[prop]);
