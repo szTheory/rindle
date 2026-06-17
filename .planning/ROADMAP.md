@@ -91,7 +91,7 @@ between phases (`auto_advance: false`).
   `prefers-reduced-motion` block in `cohort.css`** (neither exists today), replace all color
   literals with tokens, extend the WCAG gate to both themes. (COHORT-06)
 
-- [ ] **Phase 97 [Track A]: Admin Level-2 Meta-Components** — toolbars, sortable/sticky-header/
+- [x] **Phase 97 [Track A]: Admin Level-2 Meta-Components** — toolbars, sortable/sticky-header/ (completed 2026-06-17)
   bulk-select data tables, filter bars, action panels, detail drill-downs, confirm/destructive
   panels, drawers, toasts as cohesive units; rhythm / alignment / density / overlap gates.
   (UPLIFT-02)
@@ -317,7 +317,7 @@ Plans:
 
 3. Each meta-component appears in the gallery as a unit for visual-cohesion review.
 
-**Plans:** 4 plans
+**Plans:** 4/4 plans complete
 - [x] 97-01-PLAN.md — META_COMPONENTS inventory + generated Level-2 composition CSS (sortable/sticky/bulk-select static state) + requiredMetaSelectors self-check
 - [x] 97-02-PLAN.md — gallery meta-component cohesion panels (data-rindle-admin-meta) + assertMetaUnits + no-leakage scan + per-unit screenshots
 - [x] 97-03-PLAN.md — assertConsistentRhythm + assertNoHorizontalScroll (offender-returning), run over gallery meta units; overlap warn-only
@@ -752,7 +752,7 @@ Plans:
 | 94. Foundation — Token Pipeline CI Gate & New Categories | 5/5 | Complete    | 2026-06-15 |
 | 95. Admin Level-1 Component Audit [A] | 3/3 | Complete   | 2026-06-16 |
 | 96. Cohort Component Layer + Dark/Reduced-Motion [B] | 5/5 | Complete    | 2026-06-17 |
-| 97. Admin Level-2 Meta-Components [A] | 4/4 | Complete   | 2026-06-17 |
+| 97. Admin Level-2 Meta-Components [A] | 4/4 | Complete    | 2026-06-17 |
 | 98. Admin Level-3 Pages + Motion/Mobile/A11y/IA/Microcopy [A] | 0/? | Not started | - |
 | 99. Cohort Page Migrations (small 7) [B] | 0/? | Not started | - |
 | 100. Cohort /upload Migration [B] | 0/? | Not started | - |
