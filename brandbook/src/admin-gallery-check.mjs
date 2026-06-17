@@ -7,6 +7,8 @@ import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
+import { META_COMPONENTS } from './admin-design-system-data.mjs';
+
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(here, '..', '..');
 const galleryPath = join(repoRoot, 'brandbook', 'admin-gallery', 'index.html');
@@ -70,6 +72,15 @@ const expectedScreenshots = [
   'form-controls-light.png',
   'error-state-dark.png',
   'loading-state-auto.png',
+  // Level-2 meta-component element screenshots (one per META_COMPONENTS unit, 10 -> 18).
+  'meta-toolbar-light.png',
+  'meta-data-table-light.png',
+  'meta-filter-bar-light.png',
+  'meta-action-panel-light.png',
+  'meta-detail-drilldown-light.png',
+  'meta-confirm-panel-light.png',
+  'meta-drawer-light.png',
+  'meta-toast-stack-light.png',
 ];
 
 const assert = (condition, message) => {
@@ -91,6 +102,21 @@ const assertComponentStateMatrix = async (page) => {
   for (const state of requiredGlobalStates) {
     await assertVisible(page, `[data-rindle-admin-state="${state}"]`);
   }
+};
+
+const assertMetaUnits = async (page) => {
+  for (const slug of META_COMPONENTS) {
+    await assertVisible(page, `[data-rindle-admin-meta="${slug}"]`);
+  }
+};
+
+const assertMetaNoLeakage = async (page) => {
+  const unknown = await page.evaluate(() => {
+    return Array.from(document.querySelectorAll('[data-rindle-admin-meta] [class]'))
+      .flatMap((element) => Array.from(element.classList))
+      .filter((className) => !className.startsWith('rindle-admin-'));
+  });
+  assert(unknown.length === 0, `meta units leak non-rindle classes: ${unknown.join(', ')}`);
 };
 
 const assertNoBareOutlineNone = () => {
@@ -308,6 +334,8 @@ try {
 
   assertNoBareOutlineNone();
   await assertComponentStateMatrix(page);
+  await assertMetaUnits(page);
+  await assertMetaNoLeakage(page);
   for (const id of requiredSectionIds) {
     await assertVisible(page, `#${id}`);
     assert(await page.locator(`.rindle-admin-nav__item[href="#${id}"]`).count() === 1, `missing nav link for #${id}`);
@@ -327,6 +355,7 @@ try {
   assert(await confirmAction.isEnabled(), 'confirm action must enable after owner confirmation matches');
 
   await selectTheme(page, 'light');
+  await assertMetaUnits(page);
   await assertSecondaryButtonBorderColor(page);
   await assertGalleryHelperBorders(page);
   await assertFocusVisibleTokens(page);
@@ -336,8 +365,13 @@ try {
   await elementScreenshot(page, '[data-rindle-admin-component="theme-picker"]', 'theme-picker-light.png');
   await elementScreenshot(page, '[data-rindle-admin-component="confirm-dialog"]', 'confirm-dialog-light.png');
   await elementScreenshot(page, '[data-rindle-admin-component="form-controls"]', 'form-controls-light.png');
+  // One element screenshot per Level-2 meta-component unit (10 -> 18).
+  for (const slug of META_COMPONENTS) {
+    await elementScreenshot(page, `[data-rindle-admin-meta="${slug}"]`, `meta-${slug}-light.png`);
+  }
 
   await selectTheme(page, 'dark');
+  await assertMetaUnits(page);
   await assertDarkStatusChipContrast(page);
   await screenshot(page, 'gallery-dark-desktop.png');
   await elementScreenshot(page, '[data-rindle-admin-component="status-chip"]', 'status-chips-dark.png');
@@ -345,6 +379,7 @@ try {
 
   await page.emulateMedia({ colorScheme: 'dark' });
   await selectTheme(page, 'auto');
+  await assertMetaUnits(page);
   await screenshot(page, 'gallery-auto-desktop.png');
   await elementScreenshot(page, '[data-rindle-admin-component="loading-state"]', 'loading-state-auto.png');
 
