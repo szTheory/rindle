@@ -1,10 +1,11 @@
 ---
 phase: 96
 slug: cohort-component-layer-dark-reduced-motion-contract-track-b
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-06-17
+reviewed_at: 2026-06-17
 ---
 
 # Phase 96 — UI Design Contract
