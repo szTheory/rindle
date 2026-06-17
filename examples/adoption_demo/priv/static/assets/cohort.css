@@ -829,6 +829,117 @@
   min-height: 44px;
 }
 
+/* ---- form set (.ck-field / .ck-input / .ck-select, D-96-15) ------------- */
+.ck-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ck-2);
+}
+.ck-label {
+  font-size: var(--ck-step--1);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--ck-ink);
+}
+.ck-input,
+.ck-select {
+  min-height: 44px;
+  width: 100%;
+  padding: var(--ck-2) var(--ck-3);
+  font: inherit;
+  font-size: var(--ck-step-0);
+  color: var(--ck-ink);
+  background: var(--ck-surface);
+  border: 1px solid var(--ck-border-strong);
+  border-radius: var(--ck-radius-sm);
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.ck-select {
+  cursor: pointer;
+}
+.ck-input:hover,
+.ck-select:hover {
+  border-color: var(--ck-brand);
+}
+.ck-input[aria-invalid="true"],
+.ck-select[aria-invalid="true"] {
+  border-color: var(--ck-quarantine);
+}
+.ck-input:disabled,
+.ck-input[aria-disabled="true"],
+.ck-select:disabled,
+.ck-select[aria-disabled="true"] {
+  background: var(--ck-surface-2);
+  color: var(--ck-muted);
+  border-color: var(--ck-border);
+  cursor: not-allowed;
+}
+.ck-help {
+  margin: 0;
+  font-size: var(--ck-step--1);
+  color: var(--ck-muted);
+}
+.ck-error {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ck-1);
+  margin: 0;
+  font-size: var(--ck-step--1);
+  font-weight: 700;
+  color: var(--ck-quarantine);
+}
+.ck-error .ck-icon {
+  flex: none;
+  margin-top: 0.1em;
+}
+
+/* ---- tabs (.ck-tabs, WAI-ARIA APG, D-96-17) ----------------------------- */
+.ck-tabs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ck-4);
+}
+.ck-tabs__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ck-1);
+  border-bottom: 1px solid var(--ck-border);
+}
+.ck-tabs__tab {
+  min-height: 44px;
+  padding: var(--ck-2) var(--ck-4);
+  font: inherit;
+  font-size: var(--ck-step-0);
+  font-weight: 400;
+  color: var(--ck-muted);
+  background: none;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+.ck-tabs__tab:hover {
+  color: var(--ck-ink);
+  background: var(--ck-surface-2);
+}
+.ck-tabs__tab[aria-selected="true"] {
+  /* non-color cue: underline + weight, in addition to color (D-96-17) */
+  color: var(--ck-ink);
+  font-weight: 700;
+  border-bottom-color: var(--ck-brand);
+}
+.ck-tabs__tab[aria-disabled="true"],
+.ck-tabs__tab:disabled {
+  color: var(--ck-faint);
+  cursor: not-allowed;
+}
+.ck-tabs__panel:focus-visible {
+  outline: 2px solid var(--ck-focus);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
 .ck-cast {
   display: flex;
   flex-wrap: wrap;

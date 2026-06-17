@@ -387,7 +387,212 @@ defmodule AdoptionDemoWeb.CohortComponents do
     """
   end
 
+  @doc """
+  Form field wrapper (D-96-15). Derives `id`/`name`/`errors` from a
+  `Phoenix.HTML.FormField`, renders a `.ck-label`, the control (an `:inner_block`
+  control such as `ck_input`/`ck_select`, or a raw control), optional `.ck-help`,
+  and a conditional non-color `.ck-error` (warning icon + message). Wires
+  `aria-describedby` (help + error ids) on the nested control via `field_meta/2`.
+  """
+  attr :field, Phoenix.HTML.FormField, required: true
+  attr :label, :string, required: true
+  attr :help, :string, default: nil
+  attr :rest, :global
+
+  slot :inner_block, required: true
+
+  def ck_field(assigns) do
+    errors = if Phoenix.Component.used_input?(assigns.field), do: assigns.field.errors, else: []
+
+    assigns =
+      assigns
+      |> assign(:errors, Enum.map(errors, &translate_ck_error/1))
+      |> assign(:help_id, "#{assigns.field.id}-help")
+      |> assign(:error_id, "#{assigns.field.id}-error")
+
+    ~H"""
+    <div class="ck-field" {@rest}>
+      <label class="ck-label" for={@field.id}>{@label}</label>
+      {render_slot(@inner_block)}
+      <p :if={@help} class="ck-help" id={@help_id}>{@help}</p>
+      <p :if={@errors != []} class="ck-error" id={@error_id} role="alert">
+        {ck_icon(%{name: :warning})}
+        <span>{Enum.join(@errors, " ")}</span>
+      </p>
+    </div>
+    """
+  end
+
+  @doc """
+  Text input bound to a `Phoenix.HTML.FormField` (D-96-15). Wires
+  `aria-describedby` (help + error) and `aria-invalid` from the field errors;
+  supports `disabled` (→ `aria-disabled` + sunken styling). Render inside
+  `ck_field` so the label/help/error ids line up.
+  """
+  attr :field, Phoenix.HTML.FormField, required: true
+  attr :type, :string, default: "text"
+  attr :disabled, :boolean, default: false
+  attr :rest, :global, include: ~w(placeholder inputmode autocomplete min max step)
+
+  def ck_input(assigns) do
+    assigns = assign(assigns, :meta, field_meta(assigns.field, assigns.disabled))
+
+    ~H"""
+    <input
+      type={@type}
+      id={@field.id}
+      name={@field.name}
+      value={Phoenix.HTML.Form.normalize_value(@type, @field.value)}
+      class="ck-input"
+      disabled={@disabled}
+      aria-disabled={@disabled && "true"}
+      aria-invalid={@meta.invalid}
+      aria-describedby={@meta.describedby}
+      {@rest}
+    />
+    """
+  end
+
+  @doc """
+  Select bound to a `Phoenix.HTML.FormField` (D-96-15). Same aria wiring as
+  `ck_input`. Pass `options` in the `Phoenix.HTML.Form.options_for_select/2`
+  shape; render inside `ck_field`.
+  """
+  attr :field, Phoenix.HTML.FormField, required: true
+  attr :options, :list, default: []
+  attr :prompt, :string, default: nil
+  attr :disabled, :boolean, default: false
+  attr :rest, :global
+
+  def ck_select(assigns) do
+    assigns = assign(assigns, :meta, field_meta(assigns.field, assigns.disabled))
+
+    ~H"""
+    <select
+      id={@field.id}
+      name={@field.name}
+      class="ck-select"
+      disabled={@disabled}
+      aria-disabled={@disabled && "true"}
+      aria-invalid={@meta.invalid}
+      aria-describedby={@meta.describedby}
+      {@rest}
+    >
+      <option :if={@prompt} value="">{@prompt}</option>
+      {Phoenix.HTML.Form.options_for_select(@options, @field.value)}
+    </select>
+    """
+  end
+
+  # Shared aria contract for the form controls (D-96-15): aria-invalid from the
+  # field errors, aria-describedby pointing at the help + error element ids.
+  defp field_meta(%Phoenix.HTML.FormField{} = field, _disabled) do
+    invalid? = Phoenix.Component.used_input?(field) and field.errors != []
+
+    %{
+      invalid: invalid? && "true",
+      describedby: "#{field.id}-help #{field.id}-error"
+    }
+  end
+
+  defp translate_ck_error({msg, opts}) do
+    Enum.reduce(opts, msg, fn {key, value}, acc ->
+      String.replace(acc, "%{#{key}}", fn _ -> to_string(value) end)
+    end)
+  end
+
+  defp translate_ck_error(msg) when is_binary(msg), do: msg
+
+  @doc """
+  WAI-ARIA APG tabs (D-96-17). Renders the full `role=tablist/tab/tabpanel`
+  structure with `aria-selected`, `aria-controls`, roving `tabindex` (0 on the
+  selected tab, -1 on others), the selected cue as `aria-selected` + underline +
+  weight (non-color). Click is server-owned via `phx-click`; KEYBOARD
+  (Arrow/Home/End) is owned by the `phx-hook="Tabs"` handler in app.js. Pass the
+  server-owned `selected` tab id and a `select_event`.
+  """
+  attr :id, :string, required: true, doc: "stable id; tab/panel ids derive from it"
+  attr :selected, :string, required: true, doc: "server-owned: the selected tab id"
+  attr :select_event, :string, default: nil, doc: "phx-click event emitted on tab click"
+  attr :label, :string, default: "Tabs", doc: "accessible tablist label"
+  attr :rest, :global
+
+  slot :tab, required: true do
+    attr :id, :string, required: true
+    attr :label, :string, required: true
+    attr :disabled?, :boolean
+  end
+
+  def ck_tabs(assigns) do
+    ~H"""
+    <div class="ck-tabs" {@rest}>
+      <div
+        class="ck-tabs__list"
+        role="tablist"
+        aria-label={@label}
+        id={"#{@id}-tablist"}
+        phx-hook="Tabs"
+      >
+        <button
+          :for={tab <- @tab}
+          type="button"
+          role="tab"
+          class={["ck-tabs__tab", "ck-tab"]}
+          id={"#{@id}-tab-#{tab.id}"}
+          aria-controls={"#{@id}-panel-#{tab.id}"}
+          aria-selected={(@selected == tab.id && "true") || "false"}
+          aria-disabled={tab[:disabled?] && "true"}
+          tabindex={(@selected == tab.id && "0") || "-1"}
+          disabled={tab[:disabled?]}
+          phx-click={@select_event}
+          phx-value-tab={tab.id}
+        >
+          {tab.label}
+        </button>
+      </div>
+      <div
+        :for={tab <- @tab}
+        role="tabpanel"
+        class="ck-tabs__panel"
+        id={"#{@id}-panel-#{tab.id}"}
+        aria-labelledby={"#{@id}-tab-#{tab.id}"}
+        tabindex="0"
+        hidden={@selected != tab.id}
+      >
+        {render_slot(tab)}
+      </div>
+    </div>
+    """
+  end
+
   # --- inline icon set (no external sprite dependency) ----------------------
+
+  # General-purpose icons used by the L1 primitives (currentColor stroke so the
+  # color is inherited from the surrounding state, never color-only on its own).
+  attr :name, :atom, required: true
+
+  defp ck_icon(%{name: :warning} = assigns) do
+    ~H"""
+    <svg
+      class="ck-icon"
+      viewBox="0 0 24 24"
+      width="16"
+      height="16"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M10.3 3.7 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.7a2 2 0 0 0-3.4 0Z" />
+      <path d="M12 9v4" /><path d="M12 17h.01" />
+    </svg>
+    """
+  end
+
+  defp ck_icon(assigns), do: ck_icon(%{assigns | name: :warning})
+
   attr :name, :atom, required: true
 
   defp task_icon(%{name: :upload} = assigns) do
