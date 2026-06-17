@@ -84,7 +84,7 @@ between phases (`auto_advance: false`).
   × light/dark/auto/mobile; token-backed `:focus-visible`; extend gallery + contrast pairs.
   (UPLIFT-01)
 
-- [ ] **Phase 96 [Track B]: Cohort Component Layer + Dark / Reduced-Motion Contract** — build the
+- [x] **Phase 96 [Track B]: Cohort Component Layer + Dark / Reduced-Motion Contract** — build the (completed 2026-06-17)
   `.ck-*` Level-1 + Level-2 primitives (table/stat/form/tabs/detail/toolbar) + `CohortComponents`
 
   + a `/styleguide` gallery route; **author the net-new dark `[data-theme]` contract and
@@ -273,7 +273,7 @@ reduced-motion contract, so its inner pages can migrate onto finished primitives
 3. All color literals in the Cohort DS are replaced by `--ck-*` tokens (grep-clean), and the new
    light + dark contrast pairs pass the WCAG gate.
 
-**Plans:** 5 plans
+**Plans:** 5/5 plans complete
 
 Plans:
 
@@ -747,7 +747,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 94. Foundation — Token Pipeline CI Gate & New Categories | 5/5 | Complete    | 2026-06-15 |
 | 95. Admin Level-1 Component Audit [A] | 3/3 | Complete   | 2026-06-16 |
-| 96. Cohort Component Layer + Dark/Reduced-Motion [B] | 5/5 | Complete   | 2026-06-17 |
+| 96. Cohort Component Layer + Dark/Reduced-Motion [B] | 5/5 | Complete    | 2026-06-17 |
 | 97. Admin Level-2 Meta-Components [A] | 0/? | Not started | - |
 | 98. Admin Level-3 Pages + Motion/Mobile/A11y/IA/Microcopy [A] | 0/? | Not started | - |
 | 99. Cohort Page Migrations (small 7) [B] | 0/? | Not started | - |
