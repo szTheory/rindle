@@ -15,6 +15,13 @@ const galleryPath = join(repoRoot, 'brandbook', 'admin-gallery', 'index.html');
 const screenshotsDir = join(repoRoot, 'brandbook', 'admin-gallery', 'screenshots');
 const adoptionRequire = createRequire(join(repoRoot, 'examples', 'adoption_demo', 'package.json'));
 const { chromium } = adoptionRequire('playwright');
+// The two Level-2 cohesion checks live in the adoption_demo CommonJS polish module;
+// load them through the SAME createRequire used for playwright (the gallery meta units
+// are the surface where [data-rindle-admin-meta] actually exists, so this is the real
+// proof that intra-unit rhythm is on-grid and no unit root overflows horizontally).
+const { assertConsistentRhythm, assertNoHorizontalScroll } = adoptionRequire(
+  join(repoRoot, 'examples', 'adoption_demo', 'e2e', 'support', 'admin-polish.js'),
+);
 
 const runNode = (script) => {
   execFileSync(process.execPath, [join(repoRoot, script)], {
@@ -108,6 +115,19 @@ const assertMetaUnits = async (page) => {
   for (const slug of META_COMPONENTS) {
     await assertVisible(page, `[data-rindle-admin-meta="${slug}"]`);
   }
+};
+
+const assertMetaCohesion = async (page) => {
+  // Guard against a vacuous pass: confirm the polish checks have real meta units to
+  // walk under the gallery root before trusting a zero-offender result.
+  const unitCount = await page.locator('[data-rindle-admin-root] [data-rindle-admin-meta]').count();
+  assert(unitCount === META_COMPONENTS.length, `expected ${META_COMPONENTS.length} meta units under the gallery root, found ${unitCount}`);
+
+  const rhythmOffenders = await assertConsistentRhythm(page);
+  assert(rhythmOffenders.length === 0, `off-grid intra-unit spacing: ${rhythmOffenders.join('; ')}`);
+
+  const scrollOffenders = await assertNoHorizontalScroll(page);
+  assert(scrollOffenders.length === 0, `meta unit horizontal overflow: ${scrollOffenders.join('; ')}`);
 };
 
 const assertMetaNoLeakage = async (page) => {
@@ -356,6 +376,7 @@ try {
 
   await selectTheme(page, 'light');
   await assertMetaUnits(page);
+  await assertMetaCohesion(page);
   await assertSecondaryButtonBorderColor(page);
   await assertGalleryHelperBorders(page);
   await assertFocusVisibleTokens(page);
