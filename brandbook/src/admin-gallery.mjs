@@ -681,7 +681,7 @@ ${statusChips()}
         </section>
 
         <section class="rindle-admin-gallery__section" id="runtime-doctor" data-rindle-admin-surface="Runtime/Doctor">
-          <div class="rindle-admin-empty-state" data-rindle-admin-component="empty-state" data-rindle-admin-state="empty">
+          <div class="rindle-admin-empty-state" data-rindle-admin-component="empty-state" data-rindle-admin-state="empty" data-rindle-admin-empty-state>
             <h2 class="rindle-admin-empty-state__title">No assets match this state</h2>
             <p>Adjust the lifecycle filter or check Runtime/Doctor for setup issues before running actions.</p>
             <button class="rindle-admin-button rindle-admin-button--secondary" type="button">Review Runtime/Doctor</button>
