@@ -288,7 +288,7 @@ Plans:
 
 **Wave 3** *(blocked on 96-02)*
 
-- [ ] 96-03-PLAN.md — Build `StyleguideLive` + `/styleguide` route with the `data-ck-root` seam, server theme toggle, and seeded gallery.
+- [x] 96-03-PLAN.md — Build `StyleguideLive` + `/styleguide` route with the `data-ck-root` seam, server theme toggle, and seeded gallery.
 
 **Wave 4** *(blocked on 96-03 + 96-04)*
 
@@ -747,7 +747,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 94. Foundation — Token Pipeline CI Gate & New Categories | 5/5 | Complete    | 2026-06-15 |
 | 95. Admin Level-1 Component Audit [A] | 3/3 | Complete   | 2026-06-16 |
-| 96. Cohort Component Layer + Dark/Reduced-Motion [B] | 3/5 | In Progress|  |
+| 96. Cohort Component Layer + Dark/Reduced-Motion [B] | 4/5 | In Progress|  |
 | 97. Admin Level-2 Meta-Components [A] | 0/? | Not started | - |
 | 98. Admin Level-3 Pages + Motion/Mobile/A11y/IA/Microcopy [A] | 0/? | Not started | - |
 | 99. Cohort Page Migrations (small 7) [B] | 0/? | Not started | - |
