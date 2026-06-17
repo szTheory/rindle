@@ -167,8 +167,15 @@ in both themes. Minimum new pairs the gate must assert:
 | `--ck-on-brand` on `--ck-btn-bg` | light + dark | 4.5 |
 | `--ck-brand-strong` on `--ck-tint` | light + dark | 4.5 (large/icon) |
 | each status text on its own surface (`ready`/`processing`/`quarantine`/`info`) | light + dark | 4.5 |
-| `--ck-faint` on `--ck-bg` (table secondary text) | light + dark | 4.5 |
+| `--ck-muted` on `--ck-surface` (table secondary / readable secondary text) | light + dark | 4.5 |
+| `--ck-faint` on `--ck-bg` (**decorative / non-body only** — card paths, nav demo label, footer) | light + dark | 3.0 (large/UI) |
 | `--ck-ink` on `--ck-surface-2` (stat tile / nested) | light + dark | 4.5 |
+
+> **Contrast correction (Phase 96 research, 2026-06-17):** `--ck-faint` (`#8a9a92` light, 2.95:1
+> on white) does **not** clear AA body and is hereby a **decorative/non-text role asserted at 3:1**
+> only. Any **readable** table/stat **secondary text uses `--ck-muted`** (`#586b63`, 5.68:1 light /
+> `#9db1a8` dark — both pass 4.5). No `--ck-*` color *values* change; only the role assignment and
+> the gate's pair list. See D-96-23.
 
 ---
 

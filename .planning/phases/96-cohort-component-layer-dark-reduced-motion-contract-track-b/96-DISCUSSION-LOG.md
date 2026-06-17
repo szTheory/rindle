@@ -49,5 +49,35 @@ including the two Likely forks (CI lane placement; theme-toggle + `emulateMedia`
 
 ## External Research
 
-None performed — codebase analysis was sufficient; all seams have working in-repo admin analogs
-and the phase introduces no new dependencies.
+**Round 1 (initial assumptions):** None — codebase analysis was sufficient; all seams have working
+in-repo admin analogs and the phase introduces no new dependencies.
+
+**Round 2 (maintainer-requested deep research, 2026-06-17):** Four parallel expert-lens
+general-purpose subagents researched the locked decisions for pros/cons/tradeoffs, idiomatic
+Elixir/Phoenix patterns, lessons from successful design systems/libs, DX/UX, and accessibility,
+reading `prompts/`, `.planning/research/v1.19/*`, the live `brandbook/`, and `guides/`:
+
+- **CSS architecture** → D-96-11 (`[data-theme]` + `:root:not([data-theme])` media fallback +
+  `color-scheme`; reject `light-dark()`/`@layer`), D-96-12 (`--ck-shadow-ink`/`--ck-glow-ink` base
+  channels; elevation-by-lightness), D-96-13 (`.ck *` reduced-motion at `.001ms`). Lessons: GitHub
+  Primer, Material 3 dark elevation, Open Props/Tailwind v4 channel tokens, GDS reduced-motion.
+- **Phoenix API & gallery DX** → D-96-14..17. Lessons: core_components `:col`/`FormField` (base),
+  petal `Field` god-component (anti-pattern), salad_ui Tailwind/`tw_merge` (reject) + its JS-hook
+  tabs (only complete APG keyboard pattern), primer_live `aria-describedby` (the gap to close),
+  phoenix_storybook pulls `mdex` Rust NIF + Tailwind profile (reject; borrow IA only).
+- **Proof harness & CI** → D-96-18 (parity check = hand-authored `git diff` equivalent), D-96-19
+  (coverage loop + component-existence), D-96-20 (brace-depth scanner over stylelint — stylelint
+  can't selector-scope hex; misses rgb/rgba), D-96-21 (emulateMedia-after-goto + reduced-motion
+  probe before freezeMotion; Playwright issue #31328). Posture-coherent with single deterministic
+  merge-blocking gate, optional pixel baselines.
+- **Creative direction / a11y / UX** → D-96-22 (interaction matrix, `<dl>` detail, seed gallery
+  with real Cohort fiction), and the escalated **D-96-23 contrast correction**. Validated dark
+  palette as premium. WCAG 2.2 + WAI-ARIA APG (Tabs/Table `aria-sort`/Toolbar) + GOV.UK/Polaris
+  microcopy cited.
+
+### Escalated decision (maintainer-approved)
+- **`--ck-faint` light-mode contrast failure.** Independently verified: `#8a9a92` = 2.95:1 on
+  white, 2.77:1 on `--ck-bg` — fails the AA-4.5 body pair the approved UI-SPEC (line 170) asserted
+  for table secondary text. Presented three resolutions; maintainer chose **demote `--ck-faint` to
+  decorative (3:1), route readable secondary text to `--ck-muted` (5.68:1)** — no `--ck-*` color
+  values change. UI-SPEC contrast table + D-96-23 updated accordingly.

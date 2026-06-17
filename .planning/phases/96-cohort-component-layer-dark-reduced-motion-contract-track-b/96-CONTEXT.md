@@ -102,6 +102,110 @@ token file, or build step (D-94-05/06).
   `cohort.css` finds color literals **only** inside `:root` / `[data-theme]` token-definition
   blocks.
 
+### Research-Derived Decisions (2026-06-17 — four parallel expert-lens subagents; all coherent with D-96-01..10)
+
+**CSS architecture / dark / motion / token discipline**
+
+- **D-96-11:** Theme contract shape — author `:root, [data-theme="light"]` (light set) +
+  `[data-theme="dark"]` (dark set); media fallback is
+  `@media (prefers-color-scheme: dark) { :root:not([data-theme]) { …dark } }` (NOT
+  `[data-theme="auto"]`). Set `color-scheme: light|dark` per theme so native `<select>`,
+  scrollbars, and inputs theme correctly. One controlled, comment-bannered duplication of the dark
+  token block is acceptable (the contrast data module + D-96-18 parity check catch divergence).
+  Specificity is clean by construction — no `!important` outside the reduced-motion block. Rejected:
+  `light-dark()` (hides the greppable `[data-theme="dark"]` selector gate 2 needs), Tailwind/daisyUI
+  class theming (no Tailwind in this layer), `@layer` (no override problem to solve; admin doesn't
+  use it either — keep flat source order with section banners).
+- **D-96-12:** Elevation = lightness, shadow = derived. Surface ladder
+  `--ck-bg → --ck-surface-2 → --ck-surface → --ck-surface-overlay` (add the overlay step) is the
+  primary separator. Shadows/glows reference per-theme **base channel tokens** `--ck-shadow-ink` /
+  `--ck-glow-ink` in bare-channel form (`15 27 23`), so `--ck-shadow-*` / `--ck-bg-glow` formulas
+  are written **once** and only the ink flips per theme via `rgb(var(--ck-shadow-ink) / <alpha>)`.
+  In dark, shadows go "barely there" by changing the ink, not re-baking rgba.
+- **D-96-13:** Reduced-motion block —
+  `@media (prefers-reduced-motion: reduce) { .ck *, .ck *::before, .ck *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important } .ck-reveal { opacity:1; transform:none } }`.
+  Scoped to `.ck *` (auto-covers every present/future primitive; never touches daisyUI chrome).
+  Use `.001ms` not `0` so `transitionend`/`animationend` still fire (LiveView JS won't hang).
+  Color/border state changes are KEPT (they convey state). This is the only legitimate `!important`
+  site in the file. Keep the existing `prefers-reduced-motion: no-preference` reveal block as-is
+  (complementary).
+
+**Phoenix component API & gallery DX**
+
+- **D-96-14:** API shape — one flat function component per primitive; `attr … values:` enums for
+  variants/states; `:rest, :global` on every primitive; named slots only for genuine user content
+  (`:col`, `:row`, `:actions`). Mirrors Phoenix `core_components` (least surprise). Avoid the
+  petal `Field` god-component and salad_ui's React-structural ports / `tw_merge` dep.
+- **D-96-15:** Table & form patterns — `.ck-table` uses the `core_components` `:col`/`:rows` model
+  extended with per-column `sort_key`/`num`; **sort state is server-owned** (LiveView), the sort
+  header is a real `<button>` carrying `aria-sort` (net-new in this repo). `.ck-input` **integrates
+  `Phoenix.HTML.FormField`** (so `/styleguide` demos real semantics via `to_form` and Phases 99/100
+  drop it into a real `<.form>` unchanged) and wires `aria-describedby` + `aria-invalid` (the gap
+  core_components leaves; borrow primer_live's contract). Error = warning icon + message, never
+  color-only.
+- **D-96-16:** Hand-rolled `StyleguideLive`, **no phoenix_storybook** (validated: it pulls `mdex`
+  Rust NIF + a parallel Tailwind/esbuild profile + a `.psb-sandbox` wrapper that muddies the
+  real-markup the computed-style gate needs; it's Tailwind-centric — wrong fit). Borrow its
+  information architecture only (Level-1/Level-2 tree; one variation-group per state). Theme toggle =
+  server `assign(:theme)` + `phx-click` setting `data-theme` on the per-LiveView `.ck` shell
+  (deterministic for e2e; no `localStorage` race). Emit stable `data-ck-section` / `data-ck-state`
+  test markers **separate** from the BEM styling classes (don't assert on styling classes).
+- **D-96-17:** Tabs accessibility — full WAI-ARIA APG tabs pattern (`role=tablist/tab/tabpanel`,
+  `aria-selected`, `aria-controls`, roving `tabindex`, Arrow/Home/End). Click handled by
+  `Phoenix.LiveView.JS`; keyboard handled by **one new `phx-hook="Tabs"`** added alongside the
+  existing `Copy` hook (no JS framework, no dep). Selected tab = `aria-selected` + underline +
+  weight (non-color cue).
+
+**Proof harness & CI (harden the locked D-96-01/02/03/06/07/08)**
+
+- **D-96-18:** Contrast data-module **parity check** — the hand-authored-file equivalent of the
+  generated lane's `git diff --exit-code`. `cohort-contrast.mjs` asserts every `--ck-*` value in
+  `COHORT_CONTRAST_PAIRS` **byte-equals** the value scanned from the matching `:root`/`[data-theme]`
+  block in `cohort.css`; drift = hard fail. Gives single-source-of-truth without a CSS-parser dep.
+- **D-96-19:** **Coverage loop** — mirror `admin-contrast.mjs`'s required-context loop: hard-code
+  the required `{context × theme}` matrix from the UI-SPEC contrast table and fail on a *missing*
+  pair, not only a failing one (kills the D-94-08 "self-check green while artifact omits it" trap).
+  Add an analogous **component-existence** assertion (each of the 6 L1 + 4 L2 primitives is visible
+  at `/styleguide` AND its required selector substring-exists in `cohort.css`) for gate 1.
+- **D-96-20:** Literal gate = **hand-rolled brace-depth scanner**, not stylelint (confirmed
+  stylelint cannot express "hex allowed only inside `:root`/`[data-theme]`" without a custom plugin,
+  and `color-no-hex` misses `rgb()/rgba()`). ~30 lines of Node: strip comments, classify each
+  top-level block by selector, allow literals only in the token-sink blocks (`:root`,
+  `[data-theme=…]`, and the nested `:root` inside the `prefers-color-scheme` media block), allow
+  `currentColor`/`transparent`/`color-mix`, fail on any hex/`rgb`/`rgba`/`hsl` elsewhere. Reuses the
+  D-96-18 block extractor. Mirrors the in-repo `assertNoBareOutlineNone` pattern.
+- **D-96-21:** Proof split & ordering — token-pair contrast + literal scan run as standalone fast
+  `node` steps in the `adoption-demo-e2e` lane **before** the browser run; rendered contrast =
+  `assertReadableContrast` over `[data-ck-root]` inside Playwright (catches cascade bugs). Spec
+  order: `emulateMedia(reduce)` → **reduced-motion computed probe** (assert `.ck-reveal` →
+  `opacity:1`/`transform:none`/`animation-name:none`) **before `freezeMotion` is injected** (freeze
+  masks gate 3) → `emulateMedia(no-preference)` → toggle-light → polish → toggle-dark → polish →
+  `emulateMedia(colorScheme:dark)` auto-fallback probe. Call `emulateMedia` only **after**
+  `goto`/`waitForLiveSocket` (Playwright drops it across nav — issue #31328; Chromium-only suite
+  makes this low-risk).
+
+**Creative direction / UX (within locked UI-SPEC intent)**
+
+- **D-96-22:** Interaction-state matrix (both themes, all 6 primitives): `:focus-visible` ring only
+  (never `:focus`); hover changes background/border only — table rows = bg only, **no layout shift**;
+  `:active` = `translateY(1px)` distinct from focus; disabled = `aria-disabled` + sunken
+  `--ck-surface-2` + `--ck-muted` + `cursor:not-allowed` + `transform:none`; selected/current =
+  `aria-selected`/`aria-current` + a non-color mark. Mirrors the admin interaction vocabulary in
+  Cohort's own stylesheet (shared vocabulary, never a shared file). Numbers use `tabular-nums`;
+  detail block is a real `<dl><dt><dd>`. **Seed the `/styleguide` gallery with real Cohort fiction**
+  (a lesson-video row going `processing`, a quarantined upload, an empty member list) — it is the
+  VIS-04 audit reference and the dev-trust signal, not lorem. Add a second empty-state copy variant
+  ("never-populated" vs "filtered") for Phases 99/100. The dark palette is validated as premium
+  (near-black not true-black, off-white ink not `#fff`, lightened accents, elevation-by-lightness) —
+  no dark-value changes.
+- **D-96-23:** **Contrast correction (escalated + maintainer-approved).** `--ck-faint` (`#8a9a92`
+  light) is 2.95:1 on white / 2.77:1 on `--ck-bg` — it fails AA body and is hereby a
+  **decorative/non-text role asserted at 3:1 only**. Any **readable** table/stat **secondary text
+  uses `--ck-muted`** (`#586b63` light = 5.68:1 / `#9db1a8` dark — both pass 4.5). **No `--ck-*`
+  color values change in `cohort.css`** — only the role assignment and the gate's pair list. The
+  approved `96-UI-SPEC.md` contrast table was updated to match (the `--ck-faint` 4.5 body pair →
+  `--ck-muted` 4.5 body pair + `--ck-faint` 3:1 decorative pair).
+
 ### Claude's Discretion
 
 Per the maintainer's `minimal_decisive` calibration: exact new file names
