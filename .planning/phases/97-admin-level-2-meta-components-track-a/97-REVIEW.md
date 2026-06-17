@@ -1,200 +1,150 @@
 ---
 phase: 97-admin-level-2-meta-components-track-a
-reviewed: 2026-06-17T22:05:00Z
+reviewed: 2026-06-17T00:00:00Z
 depth: standard
-files_reviewed: 7
+files_reviewed: 9
 files_reviewed_list:
-  - brandbook/src/admin-design-system-data.mjs
-  - brandbook/src/admin-css-build.mjs
-  - brandbook/src/admin-gallery.mjs
-  - brandbook/src/admin-gallery-check.mjs
   - brandbook/admin-gallery/index.html
+  - brandbook/src/admin-css-build.mjs
+  - brandbook/src/admin-design-system-data.mjs
+  - brandbook/src/admin-gallery-check.mjs
+  - brandbook/src/admin-gallery.mjs
+  - brandbook/tokens/rindle-admin.css
   - examples/adoption_demo/e2e/support/admin-polish.js
+  - priv/static/rindle_admin/rindle-admin.css
   - test/brandbook/admin_design_system_validation_test.exs
 findings:
-  critical: 0
+  critical: 1
   warning: 4
-  info: 4
+  info: 3
   total: 8
 status: issues_found
 ---
 
 # Phase 97: Code Review Report
 
-**Reviewed:** 2026-06-17T22:05:00Z
+**Reviewed:** 2026-06-17
 **Depth:** standard
-**Files Reviewed:** 7
+**Files Reviewed:** 9
 **Status:** issues_found
 
 ## Summary
 
-Phase 97 adds a Level-2 meta-component inventory, token-backed composition CSS for
-8 composed units, gallery cohesion panels, two new offender-returning polish
-sub-assertions (`assertConsistentRhythm`, `assertNoHorizontalScroll`), and the
-phase-seal (overlap enforcement + priv CSS sync + pinned-literal bump). The
-generated CSS, the parity/`exact()` guards, the fail-closed `requiredMetaSelectors`
-self-check, and the `assertMetaCohesion` vacuous-pass count guard are all sound and
-correctly fail-closed. No correctness bug produces a wrong rendered result and no
-security issue exists (no network, auth, file-access, or injection surface; HTML is
-generated from a fixed fixture set with `escapeHtml` on dynamic substrings).
+Phase 97 adds eight Level-2 "meta-component" cohesion units (toolbar, data-table, filter-bar, action-panel, detail-drilldown, confirm-panel, drawer, toast-stack) to the generated Rindle Admin gallery, plus the supporting CSS, build/parity self-checks, the static gallery generator, and two new e2e polish checks (`assertConsistentRhythm`, `assertNoHorizontalScroll`). The build/parity and Elixir validation tests are thorough about *selector presence* and *spacing rhythm*, but two new accessibility/correctness defects slip through precisely because the gates do not cover them:
 
-The findings below concern **mechanical-coverage gaps where guards advertise more
-than they actually prove** — exactly the "vacuous / dead-guard" class this review
-was asked to scrutinize. None block the seal (the gallery-side checks do real work),
-but several summary claims overstate the coverage the merge-blocking lane gets, and
-one new surface introduces an ungated contrast pair.
+1. The new sortable-header glyph paints with `--rindle-accent` (rindle-green #32D08C). On light surfaces that is ~1.96:1 against `surface-raised` — the project's own tokens.json explicitly documents "Rindle green on light fails at 1.81 - never use it there." The contrast gate misses it because the glyph is `::after` generated content, not a child text node. This is the BLOCKER.
+2. The new data-table selection checkboxes carry `data-rindle-admin-input`, which the generated CSS styles with `width:100%; min-height:44px; border; radius; background` — applied unconditionally to `<input type="checkbox">`, producing a stretched/mis-rendered control. The target-size gate passes *because of* the bug rather than catching it.
 
-## Warnings
+Several quality issues around dead styling contracts and copied-fixture drift are also noted. `brandbook/tokens/rindle-admin.css` and `priv/static/rindle_admin/rindle-admin.css` are byte-identical (verified), satisfying ADMIN-02.
 
-### WR-01: Per-unit no-horizontal-scroll opt-out is dead code for the only unit it targets
+## Critical Issues
 
-**File:** `examples/adoption_demo/e2e/support/admin-polish.js:554-569` (with `brandbook/src/admin-gallery.mjs:187,195`)
-**Issue:** `assertNoHorizontalScroll` skips a meta unit when
-`unit.closest("[data-rindle-admin-scroll-region]")` is truthy — i.e. when the unit
-root is itself **inside** a scroll region. But in the generated markup the
-`data-rindle-admin-scroll-region` marker is a **descendant** of the
-`data-rindle-admin-meta="data-table"` root (the inner `.rindle-admin-table--sticky`
-div, gallery line 195), not an ancestor. `closest()` walks self-and-ancestors, so it
-never matches for the data-table meta root. The opt-out branch is unreachable for the
-exact unit it was written to exempt. The data-table unit passes only incidentally —
-its `display:grid` root does not inflate `scrollWidth` because the inner
-`overflow:auto` region clips its own overflow — not because the marker opted it out.
-The 97-02/97-03 summaries assert "the sticky data-table correctly opted out via its
-`data-rindle-admin-scroll-region` marker," which is not what the code does. If a
-future change made the sticky region a wrapper *around* the meta root (or moved the
-marker up), the opt-out still would not fire as documented, and a legitimately
-internally-scrolling unit could be flagged.
-**Fix:** Either move the skip to test the unit's own subtree
-(`unit.querySelector("[data-rindle-admin-scroll-region]")` → skip, or measure
-overflow on the non-scroll-region children), or move the marker onto the meta-unit
-root so `closest()` matches as intended. Example (subtree-aware skip):
-```js
-for (const unit of document.querySelectorAll(`${ROOT} [data-rindle-admin-meta]`)) {
-  // a unit that owns an internal scroll region manages its own horizontal extent
-  if (unit.matches("[data-rindle-admin-scroll-region]") ||
-      unit.querySelector("[data-rindle-admin-scroll-region]")) continue;
-  ...
+### CR-01: Active sort-direction glyph is unreadable on light surfaces (rindle-green ~1.96:1)
+
+**File:** `brandbook/tokens/rindle-admin.css:725-733` (generator source `brandbook/src/admin-css-build.mjs:725-733`)
+**Issue:**
+The new sortable-header treatment paints the direction glyph with `--rindle-accent`:
+
+```css
+.rindle-admin-table__head th[aria-sort="ascending"] .rindle-admin-table__sort::after {
+  content: "\2191";
+  color: var(--rindle-accent);   /* #32D08C rindle-green */
+}
+.rindle-admin-table__head th[aria-sort="descending"] .rindle-admin-table__sort::after {
+  content: "\2193";
+  color: var(--rindle-accent);
 }
 ```
 
-### WR-02: Both new "hard" cohesion checks are vacuous no-ops in the merge-blocking e2e lane
+On light themes `--rindle-accent` resolves to rindle-green (#32D08C) and the glyph sits on `--rindle-surface-raised` (porcelain #FBFEFC). Measured contrast is **~1.96:1** — below the 3:1 non-text minimum and far below 4.5:1 for text. `brandbook/tokens/tokens.json` documents this exact failure: *"rindle-green ... accent/large-graphic-only on light surfaces (measured 1.81 ... vs 4.5 required for text)"* and *"Rindle green on light fails at 1.81 - never use it there."* The `meta-data-table-light.png` artifact is captured in light theme, so the shipped output contains this defect.
 
-**File:** `examples/adoption_demo/e2e/support/admin-polish.js:599-600`
-**Issue:** `assertConsistentRhythm` and `assertNoHorizontalScroll` both iterate
-`document.querySelectorAll("${ROOT} [data-rindle-admin-meta]")`. The live
-`adoption_demo` / LiveView surfaces emit **zero** `[data-rindle-admin-meta]`
-elements (`lib/rindle/admin/components.ex` only has `data-rindle-admin-metadata-list`,
-which is a different attribute that does not match the `[data-rindle-admin-meta]`
-selector). So in the `adoption-demo-e2e` lane — the only lane where
-`assertAdminPolish` runs — both checks always return `[]` and silently pass. Their
-sole real exercise is `brandbook/src/admin-gallery-check.mjs` (which does add a count
-guard). Wiring them into `assertAdminPolish` as "hard checks" (97-03 SUMMARY) gives a
-false impression that the merge-blocking lane enforces intra-unit rhythm and per-unit
-overflow; it does not. This is a sibling of the classic vacuous-pass: an empty
-collection makes an offender-returning check pass with no coverage, and there is no
-count guard on the `assertAdminPolish` side to detect it.
-**Fix:** Either (a) document the wiring explicitly as a forward-seam no-op in the code
-(a comment in `assertAdminPolish` next to the two `run(...)` calls, mirroring the
-SUMMARY rationale), or (b) add a lightweight guard so a surface that *does* declare
-meta units but exposes none at runtime fails loudly rather than passing vacuously —
-e.g. only run the two checks when `surface` opts into a `expectsMetaUnits` flag and
-assert `count > 0` in that case.
+It is unguarded: `assertReadableContrast` (admin-polish.js) and `assertDarkStatusChipContrast` (admin-gallery-check.mjs) detect text via child `TEXT_NODE`s (`hasOwnText`); `::after` generated content is never a child node, so the active sort glyph is never sampled. The inline comment claiming the treatment is "never color-only" is only partly true (the ↑/↓ vs ↕ glyph shape does change), but the *color contrast itself* still violates the design system's own rule.
 
-### WR-03: New meta surfaces introduce an ungated `text` on `surface-sunken` contrast pair
+**Fix:** Use a token legible on light surfaces for the active glyph; the shape change already carries the active/inactive signal, so rindle-green is unnecessary:
 
-**File:** `brandbook/src/admin-css-build.mjs:755-770` and `:206-209`
-**Issue:** `.rindle-admin-bulk-bar` and `[data-rindle-admin-selected]` paint
-`color: var(--rindle-text)` (primary text) on `background: var(--rindle-surface-sunken)`.
-`CONSOLE_CONTRAST_PAIRS` covers `text-secondary`/`surface-sunken` (disabled text) but
-**not** `text`/`surface-sunken` in either light or dark. The static contrast gate
-(`admin-contrast.mjs`, asserted at `58/58`) is the authority in the e2e lane; the
-runtime `assertReadableContrast` is NOT invoked by `admin-gallery-check.mjs` (only the
-rhythm + h-scroll checks are imported), so this new pair is unverified by any gate.
-The values happen to pass AA today (light: `ink` on `mist`; dark: `dark-text` on
-`ink`), so this is not a live failure — but it is a real hole in the "every
-text/background pair is gated" guarantee the contrast system exists to provide, opened
-by this phase without a corresponding pair.
-**Fix:** Add the missing pairs to `CONSOLE_CONTRAST_PAIRS` and bump the asserted count
-(this is the documented intent of the gate — a new on-surface text role must come with
-its pair):
-```js
-{ fg: 'text', bg: 'surface-sunken', theme: 'light', min: 4.5, context: 'bulk bar / selected row text on sunken' },
-{ fg: 'text', bg: 'surface-sunken', theme: 'dark',  min: 4.5, context: 'bulk bar / selected row text on sunken (dark)' },
+```css
+.rindle-admin-table__head th[aria-sort="ascending"] .rindle-admin-table__sort::after,
+.rindle-admin-table__head th[aria-sort="descending"] .rindle-admin-table__sort::after {
+  color: var(--rindle-text); /* legible on both light surface-raised and dark elevation-1 */
+}
 ```
-(and update the `58/58` literal in `admin-contrast.mjs` and the ExUnit assertion at
-`test/brandbook/admin_design_system_validation_test.exs:127`).
 
-### WR-04: `assertMetaNoLeakage` proves "rindle-admin- prefix", not "Level-1-only composition"
+Also extend `assertReadableContrast` to sample `::before`/`::after` color via `getComputedStyle(el, '::after')` so this class of defect is gated, not just patched once.
 
-**File:** `brandbook/src/admin-gallery-check.mjs:133-140` (with `brandbook/src/admin-gallery.mjs:177,310,315,317`)
-**Issue:** The 97-02 SUMMARY calls this the "mechanical 'composed only of Level-1
-selectors' proof (D-97-07)." But the predicate only asserts each class under
-`[data-rindle-admin-meta]` `startsWith("rindle-admin-")`. The meta panels legitimately
-contain **gallery-only** helper classes — `rindle-admin-gallery__input`,
-`rindle-admin-gallery__receipt`, `rindle-admin-gallery__field` (e.g. gallery lines 177,
-310, 315, 317) — which are presentational helpers defined in the gallery's inline
-`<style>`, not Level-1 design-system primitives. They satisfy the `rindle-admin-`
-prefix and pass the scan. So the check cannot detect a meta panel that smuggles in
-non-primitive (but `rindle-admin-`-prefixed) styling, which is the exact leakage class
-it claims to forbid. The guard is weaker than its stated contract.
-**Fix:** Tighten the allowlist to the actual Level-1 surface (component roots + their
-BEM parts) rather than a bare prefix, e.g. derive an allowed-class set from
-`COMPONENTS`/`requiredSelectors` and assert every meta-subtree class is either a known
-primitive class/modifier or an explicitly allowlisted gallery-chrome class — and fail
-on anything else. At minimum, exclude `rindle-admin-gallery__*` from the "passing"
-set and assert it is absent inside `[data-rindle-admin-meta]` subtrees if the contract
-is truly "Level-1 primitives only."
+## Warnings
+
+### WR-01: Data-table selection checkboxes inherit full text-input box styling (`width:100%`, 44px min-height, border, radius, surface fill)
+
+**File:** `brandbook/src/admin-gallery.mjs:199,208,215,222,229` (data-table fixture) → styled by `brandbook/tokens/rindle-admin.css:373-405`
+**Issue:**
+Every selection checkbox in the new data-table unit carries `data-rindle-admin-input`:
+
+```html
+<input type="checkbox" data-rindle-admin-component="form-controls" data-rindle-admin-state="default" data-rindle-admin-input aria-label="Select all rows" checked>
+```
+
+The `[data-rindle-admin-input]` rule sets `min-height:44px; width:100%; padding; border:1px solid; border-radius; background:surface-raised`, with no `appearance`/checkbox special-casing (confirmed: no `type="checkbox"`/`appearance`/`accent-color` rules in the generated CSS). Applied to a native checkbox this stretches it toward full cell width / 44px height and paints a bordered, rounded, surface-filled box around the control — a rendering defect for the selection column. `assertTargetSizes` is fooled into *passing* because the inflated box reports ≥44px; the rhythm check skips it (the checkbox has no `rindle-admin-*` class). Five such checkboxes are introduced by this phase (a single pre-existing one lives at `admin-gallery.mjs:655`).
+
+**Fix:** Drop `data-rindle-admin-input` from checkbox/radio inputs, or scope the box styling to text-like controls and add a checkbox branch:
+
+```css
+[data-rindle-admin-input]:where(:not([type="checkbox"]):not([type="radio"])) { /* existing box styles */ }
+input[type="checkbox"][data-rindle-admin-input] { width: auto; min-height: auto; accent-color: var(--rindle-brand); }
+```
+
+### WR-02: Empty-state dashed-border contract is declared and tested but never rendered
+
+**File:** `brandbook/tokens/rindle-admin.css:589-591`; fixture `brandbook/src/admin-gallery.mjs:684`
+**Issue:**
+The CSS declares `[data-rindle-admin-empty-state] { border-style: dashed; }`, the build self-check requires the `[data-rindle-admin-empty-state]` selector (`admin-css-build.mjs:989`), and the Elixir test asserts it (`admin_design_system_validation_test.exs:66`). But no element ever sets the `data-rindle-admin-empty-state` attribute — the empty-state div uses only `class="rindle-admin-empty-state"` + `data-rindle-admin-component="empty-state"` (grep for the attribute in HTML and generator returns nothing). The empty-state always renders solid-bordered; the dashed affordance is dead CSS, and the parity/test gates give false confidence because they only assert the selector exists *in the CSS string*, never that markup exercises it.
+
+**Fix:** Add `data-rindle-admin-empty-state` to the empty-state fixture div in `admin-gallery.mjs` (and regenerate `index.html`), or remove the unused rule plus its parity/test assertions.
+
+### WR-03: Theme picker "Focus" control is a dead, unpressable button that mislabels its own state
+
+**File:** `brandbook/src/admin-gallery.mjs:571` / `brandbook/admin-gallery/index.html:278`
+**Issue:**
+A fourth theme-picker button is emitted with `data-rindle-admin-theme="focus"` to showcase focus-visible. It is wired into the same click handler as the real theme buttons (`controls.forEach(... setTheme(control.dataset.rindleAdminTheme))`). Clicking it calls `setTheme('focus')`, which the `allowedThemes` guard rejects and returns early — so the button is interactive (cursor:pointer, 44px target, matched by `[data-rindle-admin-theme]`) yet does nothing, and permanently advertises `aria-pressed="false"`. A keyboard/AT user reaches a control announcing a theme that can never be pressed.
+
+**Fix:** Make the demonstration control non-interactive for theme switching — give it `disabled` and exclude it from the live picker, or use a distinct attribute not bound to the click handler / not matched by `[data-rindle-admin-theme]`.
+
+### WR-04: Confirm-input enable logic dereferences `querySelector` results with no null guard
+
+**File:** `brandbook/src/admin-gallery.mjs:761-765` / `brandbook/admin-gallery/index.html:713-717`
+**Issue:**
+```js
+const input = document.querySelector('[data-rindle-admin-confirm-input]');
+const action = document.querySelector('[data-rindle-admin-confirm-action]');
+input.addEventListener('input', () => { action.disabled = input.value !== expectedOwner; });
+```
+Both results are dereferenced unguarded. Both nodes exist today (the Actions confirm-dialog supplies them; the new meta confirm-panel intentionally omits them). But this couples the gallery's entire inline script to one fixture: any future restructure that removes/reorders the confirm-input (or gives the meta panel the input attribute first in DOM order without the matching action) makes `input` or `action` `null`, and `addEventListener`/`.disabled` throws — breaking *all* subsequent gallery JS (theme switch, nav current-state). `admin-gallery-check.mjs` depends on `confirmAction.isDisabled()` toggling, so a regression would surface as a confusing downstream failure.
+
+**Fix:**
+```js
+if (input && action) {
+  input.addEventListener('input', () => { action.disabled = input.value !== expectedOwner; });
+}
+```
 
 ## Info
 
-### IN-01: `assertConsistentRhythm` allowed∪exempt set spans the entire spacing scale
+### IN-01: Large fixture duplication between generator and committed HTML
 
-**File:** `examples/adoption_demo/e2e/support/admin-polish.js:539`
-**Issue:** `ALLOWED = [4,8,16,24,32,48,64]` ∪ `EXEMPT_PX = [12,44]` exactly equals the
-declared spacing scale `{4,8,12,16,24,32,48,64}` plus the 44px target. So **every**
-`--rindle-space-*` token value is accepted; the check can only ever catch a literal
-non-token pixel value. That is the intended job, but the framing of `{12,44}` as
-narrow "documented exceptions" understates that 12px (`--rindle-space-3`, used
-pervasively in the meta CSS) is a first-class grid step, not an exception. Consider
-folding 12 into the allowed set and reserving EXEMPT for genuinely off-scale values
-(44) so the comment matches reality.
-**Fix:** Move `12` into `ALLOWED`; keep only `44` (and any true off-scale value) in
-`EXEMPT_PX`, updating the doc comment accordingly.
+**File:** `brandbook/src/admin-gallery.mjs:168-355` vs `brandbook/admin-gallery/index.html:503-675`
+**Issue:** Each meta panel exists twice — a template literal in the generator and verbatim in committed `index.html`. `assert_generated_clean` pins them, so drift is *caught*, but every fixture edit is a two-file change and reviewers must diff both. Inherent to the commit-the-artifact pattern; flagged for awareness.
 
-### IN-02: Static `th[aria-sort]` advertises `cursor: pointer` with no sort behavior
+### IN-02: `data-table` hard-codes "3 selected" against exactly 3 selected rows (magic literal)
 
-**File:** `brandbook/src/admin-css-build.mjs:705-707`
-**Issue:** Sortable headers set `cursor: pointer`, but the data-table is explicitly
-static (no client JS, D-97-03) — clicking a header does nothing. A pointer cursor on a
-non-interactive element is a mild affordance/a11y mismatch (suggests interactivity that
-is absent). Acceptable for a gallery fixture, but worth a note if these primitives are
-later lifted into live LiveView where the cursor would imply a working sort.
-**Fix:** Either gate `cursor: pointer` behind a `[data-rindle-admin-sortable]` opt-in
-that the live (JS-backed) usage sets, or document the static intent in the CSS comment.
+**File:** `brandbook/src/admin-gallery.mjs:189,192,207,214,221`
+**Issue:** The bulk-bar count (`3 selected`, `3 selected — Erase`) is a literal duplicated in two strings that must be hand-synced with the number of `checked` / `data-rindle-admin-selected` rows. Acceptable for a JS-free fixture, but a future row add/remove will silently desync the visible count from the selection state.
 
-### IN-03: Stale "warn mode" comment above an enforced constant
+### IN-03: Polish-gate `OVERLAP_ENFORCED = true` comment contradicts the code
 
-**File:** `examples/adoption_demo/e2e/support/admin-polish.js:28-30`
-**Issue:** The comment still reads "Ship it in warn mode for one green CI cycle, then
-flip to a hard failure…" directly above `const OVERLAP_ENFORCED = true;`. The flip
-already happened in 97-04; the comment now describes a past state and reads as if the
-constant should be `false`.
-**Fix:** Update the comment to record that the warn cycle completed and overlap is now
-enforced (D-97-11), so the next reader does not "fix" it back to `false`.
-
-### IN-04: Unanchored magic-number breakpoint in gallery inline CSS
-
-**File:** `brandbook/src/admin-gallery.mjs:543`
-**Issue:** `@media (max-width: 980px)` in the gallery's inline `<style>` is a bare
-literal with no token basis or explanatory comment, unlike the generated CSS's
-`@media (max-width: 760px)` which carries a "literal because CSS media conditions
-cannot read custom properties" note anchored on `--rindle-bp-md`. 980px matches no
-declared breakpoint (`sm 480 / md 760 / lg 1024 / xl 1280`).
-**Fix:** Anchor on a declared breakpoint (e.g. `lg` 1024px) or add a comment
-explaining why 980px is the gallery's two-column collapse point.
+**File:** `examples/adoption_demo/e2e/support/admin-polish.js:29-30`
+**Issue:** The comment says "Ship it in warn mode for one green CI cycle, then flip to a hard failure ..." but the constant is already `true` (hard-fail). The stale comment misleads a maintainer into thinking overlap is still warn-only. Update it to reflect that overlap is now enforcing.
 
 ---
 
-_Reviewed: 2026-06-17T22:05:00Z_
+_Reviewed: 2026-06-17_
 _Reviewer: Claude (gsd-code-reviewer)_
 _Depth: standard_
