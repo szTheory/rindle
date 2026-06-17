@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.19
 milestone_name: Design-System Stress-Test
 status: executing
-last_updated: "2026-06-17T21:21:33.556Z"
+last_updated: "2026-06-17T21:29:03.481Z"
 last_activity: 2026-06-17
 progress:
   total_phases: 32
   completed_phases: 14
   total_plans: 53
-  completed_plans: 54
+  completed_plans: 55
   percent: 44
 ---
 
@@ -25,7 +25,7 @@ See: .planning/PROJECT.md (updated 2026-06-14)
 ## Current Position
 
 Phase: 97 (admin-level-2-meta-components-track-a) — EXECUTING
-Plan: 3 of 4
+Plan: 4 of 4
 Status: Ready to execute
 Last activity: 2026-06-17
 
@@ -166,6 +166,7 @@ is grounded before planning.
 - [Phase ?]: 96-05: ported the missing parseColor into admin-polish.js + made the outline-color check offender-safe (pre-existing ReferenceError surfaced by running the gate over a focusable surface; non-special-casing, admin unchanged)
 - [Phase 97]: Plan 02 (UPLIFT-02) — all 8 META_COMPONENTS render as labeled `data-rindle-admin-meta` cohesion panels in the brandbook admin gallery (full-width "Cohesion units" region after the Level-1 grid + meta nav links M01..M08 + new exact() parity guard; Level-1 literals byte-unchanged). data-table shows STATIC sorted/selected/sticky/bulk state via fixture markup only (no client JS): th[aria-sort="ascending|none"] + .rindle-admin-table__sort glyph spans, three [data-rindle-admin-selected] rows + header select-all checkbox, .rindle-admin-table--sticky, role=toolbar .rindle-admin-bulk-bar in active state; sticky internal viewport opts into the no-h-scroll skip via explicit data-rindle-admin-scroll-region (D-94-07, never auto-detected). requiredSnippets extended with the 8 meta markers + meta section ids + aria-sort + selected + scroll-region. admin-gallery-check.mjs gains assertMetaUnits (loops META_COMPONENTS, asserts visible; re-run after each selectTheme light/dark/auto for per-theme proof) + assertMetaNoLeakage (every class under [data-rindle-admin-meta] must startsWith('rindle-admin-'), D-97-07) + 8 meta element screenshots (expectedScreenshots 10->18; existing 10 unchanged, terminal "18 screenshots written"). **ExUnit @screenshots / "18 screenshots" pinned literal is bumped in 97-04 BY DESIGN** (not here); priv sync drift gate also remains 97-04. This plan touches no CSS (no drift).
 - [Phase 97]: Plan 01 (UPLIFT-02) — added META_COMPONENTS inventory of record (8 slugs: toolbar, data-table, filter-bar, action-panel, detail-drilldown, confirm-panel, drawer, toast-stack) beside COMPONENTS (Level-1 literals byte-unchanged, new exact() parity line). admin-css-build.mjs emits token-backed Level-2 composition CSS for all 8 units; data-table state is static/no-JS: th[aria-sort] visible ::after direction glyph (active column tinted --rindle-accent, direction-by-glyph not color), .rindle-admin-table--sticky position:sticky head inside an explicit overflow:auto scroll region, [data-rindle-admin-selected] selected surface + contextual .rindle-admin-bulk-bar. New fail-closed requiredMetaSelectors self-check (12 selectors). Contrast 58/58, 0 outline:none, 0 btn/card/dark class substrings. Drawer meta root named .rindle-admin-drawer-panel to avoid collision with the Level-1 .rindle-admin-drawer primitive. **priv sync + drift gate deferred to 97-04 BY DESIGN** (plan success criteria + files_modified excludes priv/): the ADMIN-02 `priv==brandbook` byte-equality test in admin_design_system_validation_test.exs is RED until 97-04 runs sync-admin-css.mjs — logged in phase deferred-items.md.
+- [Phase 97]: Plan 03 (UPLIFT-02 SC2) — added two offender-returning sub-assertions to admin-polish.js: assertConsistentRhythm (walks [data-rindle-admin-meta] subtrees; checks rowGap/columnGap/top-bottom margin/four padding sides vs the 4px grid {4,8,16,24,32,48,64} ∪ documented exceptions {12,44}; 0px valid; ±SUBPIXEL_TOLERANCE; excludes sizing/line-height) and assertNoHorizontalScroll (per-meta-unit-root scrollWidth>clientWidth+CLIP_TOLERANCE, skips [data-rindle-admin-scroll-region] opt-in, D-94-07). Both wired into assertAdminPolish as HARD (non-warnOnly) checks feeding violations + exported; OVERLAP_ENFORCED stays false (97-04 flips it after a green cycle, D-97-11). admin-gallery-check.mjs loads both via the SAME adoptionRequire(createRequire over examples/adoption_demo) used for playwright and runs assertMetaCohesion (vacuous-pass guard: asserts META_COMPONENTS.length units under the gallery root, then zero-offender asserts on both checks) under the light theme. **[Rule 1] the rhythm walk is scoped to rindle-admin-*-classed elements**: the first real-data run surfaced 20 UA-stylesheet false positives (option 1-2px padding, checkbox 3px margin, bare p/h2 17px/21.165px em-margins) the generated CSS never sets — Pitfall 1's documented warning sign. Gallery check passes — 18 screenshots, zero rhythm + zero no-h-scroll offenders (sticky data-table excepted via its data-rindle-admin-scroll-region marker). This plan touches no CSS (no drift). The ExUnit 18-screenshot literal bump + priv sync drift gate + OVERLAP_ENFORCED flip all remain 97-04 by design.
 
 ## Blockers/Concerns
 
@@ -188,7 +189,7 @@ is grounded before planning.
 
 ## Session Continuity
 
-Last session: 2026-06-17T21:21:33.551Z
+Last session: 2026-06-17T21:28:57.667Z
 Stopped at: Completed 96-05-PLAN.md (phase 96 ready for verification)
 Resume file: None
 
@@ -237,3 +238,4 @@ Resume file: None
 | Phase 96 P05 | 22min | 1 tasks | 3 files |
 | Phase 97 P01 | 5min | 2 tasks | 3 files |
 | Phase 97 P02 | 4min | 2 tasks | 3 files |
+| Phase 97 P03 | 6min | 2 tasks | 2 files |
