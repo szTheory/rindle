@@ -284,7 +284,7 @@ Plans:
 **Wave 2** *(blocked on Wave 1 completion)*
 
 - [x] 96-02-PLAN.md — Add the six Level-1 `.ck-*` primitives (table/stat/form/tabs/detail/toolbar) + the `Tabs` WAI-ARIA hook.
-- [ ] 96-04-PLAN.md — Author `cohort-contrast.mjs` + `cohort-design-system-data.mjs` (parity/coverage/literal scan) and wire the `adoption-demo-e2e` node gate.
+- [x] 96-04-PLAN.md — Author `cohort-contrast.mjs` + `cohort-design-system-data.mjs` (parity/coverage/literal scan) and wire the `adoption-demo-e2e` node gate.
 
 **Wave 3** *(blocked on 96-02)*
 
@@ -747,7 +747,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 94. Foundation — Token Pipeline CI Gate & New Categories | 5/5 | Complete    | 2026-06-15 |
 | 95. Admin Level-1 Component Audit [A] | 3/3 | Complete   | 2026-06-16 |
-| 96. Cohort Component Layer + Dark/Reduced-Motion [B] | 2/5 | In Progress|  |
+| 96. Cohort Component Layer + Dark/Reduced-Motion [B] | 3/5 | In Progress|  |
 | 97. Admin Level-2 Meta-Components [A] | 0/? | Not started | - |
 | 98. Admin Level-3 Pages + Motion/Mobile/A11y/IA/Microcopy [A] | 0/? | Not started | - |
 | 99. Cohort Page Migrations (small 7) [B] | 0/? | Not started | - |
