@@ -37,7 +37,7 @@ demand-gated and shift to v1.20+. Research: `.planning/research/v1.19/SUMMARY.md
   interaction-state matrix (default / hover / **focus-visible** / active / disabled / loading /
   empty / error / skeleton) in **light, dark, and system** — audited against tokens, with the
   `active` vs `focus-visible` distinction explicit and no one-off styles.
-- [ ] **UPLIFT-02**: Meta-components refined as cohesive units — toolbars, **sortable / sticky-
+- [x] **UPLIFT-02**: Meta-components refined as cohesive units — toolbars, **sortable / sticky-
   header / bulk-select data tables**, filter bars, action panels, detail drill-downs,
   confirm/destructive panels, drawers, toasts — consistent rhythm, alignment, and density.
 - [ ] **UPLIFT-03**: Per-page composition pass over each console surface — visual hierarchy,
@@ -229,7 +229,7 @@ Open only via `/gsd-new-milestone` with documented signal:
 | PIPE-01 | Phase 94 | Complete |
 | PIPE-02 | Phase 94 | Complete |
 | UPLIFT-01 | Phase 95 | Pending |
-| UPLIFT-02 | Phase 97 | Pending |
+| UPLIFT-02 | Phase 97 | Complete |
 | UPLIFT-03 | Phase 98 | Pending |
 | UPLIFT-04 | Phase 98 | Pending |
 | UPLIFT-05 | Phase 98 | Pending |

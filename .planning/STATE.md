@@ -2,16 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.19
 milestone_name: Design-System Stress-Test
-status: ready_to_plan
-last_updated: 2026-06-17T19:30:14.878Z
+status: executing
+last_updated: "2026-06-17T21:14:45.848Z"
 last_activity: 2026-06-17
 progress:
   total_phases: 32
   completed_phases: 14
-  total_plans: 49
-  completed_plans: 52
+  total_plans: 53
+  completed_plans: 53
   percent: 44
-stopped_at: Phase 96 complete (5/5) — ready to discuss Phase 97
 ---
 
 # Project State
@@ -21,13 +20,13 @@ stopped_at: Phase 96 complete (5/5) — ready to discuss Phase 97
 See: .planning/PROJECT.md (updated 2026-06-14)
 
 **Core value:** Media, made durable.
-**Current focus:** Phase 97 — admin level 2 meta components [track a]
+**Current focus:** Phase 97 — admin-level-2-meta-components-track-a
 
 ## Current Position
 
-Phase: 97
-Plan: Not started
-Status: Ready to plan
+Phase: 97 (admin-level-2-meta-components-track-a) — EXECUTING
+Plan: 2 of 4
+Status: Ready to execute
 Last activity: 2026-06-17
 
 ## Current Milestone
@@ -165,6 +164,7 @@ is grounded before planning.
 - [Phase ?]: Phase 96 Plan 03: /styleguide reachable :browser LiveView on .ck shell with data-ck-root + data-theme seam (D-96-05, not body); theme/sort/tab SERVER state (enum-guarded, no client storage, D-96-07/15/16); 10 data-ck-section groups (6 L1 + 4 L2) full state sets on stable data-ck-state markers separate from .ck-* (D-96-16) + real seeded fiction with never-populated/filtered empty copy (D-96-22). [Rule 1] split disabled field into member_disabled to_form to avoid duplicate FormField DOM id. Composes only Plan 02 primitives.
 - [Phase ?]: 96-05: cohort-styleguide.spec.js drives /styleguide in the D-96-21 order and reuses assertAdminPolish in warn mode over [data-ck-root]
 - [Phase ?]: 96-05: ported the missing parseColor into admin-polish.js + made the outline-color check offender-safe (pre-existing ReferenceError surfaced by running the gate over a focusable surface; non-special-casing, admin unchanged)
+- [Phase 97]: Plan 01 (UPLIFT-02) — added META_COMPONENTS inventory of record (8 slugs: toolbar, data-table, filter-bar, action-panel, detail-drilldown, confirm-panel, drawer, toast-stack) beside COMPONENTS (Level-1 literals byte-unchanged, new exact() parity line). admin-css-build.mjs emits token-backed Level-2 composition CSS for all 8 units; data-table state is static/no-JS: th[aria-sort] visible ::after direction glyph (active column tinted --rindle-accent, direction-by-glyph not color), .rindle-admin-table--sticky position:sticky head inside an explicit overflow:auto scroll region, [data-rindle-admin-selected] selected surface + contextual .rindle-admin-bulk-bar. New fail-closed requiredMetaSelectors self-check (12 selectors). Contrast 58/58, 0 outline:none, 0 btn/card/dark class substrings. Drawer meta root named .rindle-admin-drawer-panel to avoid collision with the Level-1 .rindle-admin-drawer primitive. **priv sync + drift gate deferred to 97-04 BY DESIGN** (plan success criteria + files_modified excludes priv/): the ADMIN-02 `priv==brandbook` byte-equality test in admin_design_system_validation_test.exs is RED until 97-04 runs sync-admin-css.mjs — logged in phase deferred-items.md.
 
 ## Blockers/Concerns
 
@@ -187,7 +187,7 @@ is grounded before planning.
 
 ## Session Continuity
 
-Last session: 2026-06-17T19:20:05.607Z
+Last session: 2026-06-17T21:14:45.842Z
 Stopped at: Completed 96-05-PLAN.md (phase 96 ready for verification)
 Resume file: None
 
@@ -234,3 +234,4 @@ Resume file: None
 | Phase 96 P04 | 14 min | 2 tasks tasks | 3 files files |
 | Phase 96 P03 | 5min | 2 tasks | 2 files |
 | Phase 96 P05 | 22min | 1 tasks | 3 files |
+| Phase 97 P01 | 5min | 2 tasks | 3 files |
