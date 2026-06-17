@@ -29,8 +29,21 @@
   src: url("/assets/fonts/JetBrainsMono-Regular.woff2") format("woff2");
 }
 
-/* ---- tokens ------------------------------------------------------------- */
-:root {
+/* ---- tokens -------------------------------------------------------------- */
+/* Theme contract (D-96-11): the light set is the default `:root` AND the
+   explicit `[data-theme="light"]` attribute; `[data-theme="dark"]` is the
+   switchable dark set; `@media (prefers-color-scheme: dark)` is the auto
+   fallback only (the dark block below, scoped to :root:not([data-theme])).
+   `color-scheme` is set per theme so native controls/scrollbars match.
+   Elevation = lightness (D-96-12): the surface ladder
+   --ck-bg -> --ck-surface-2 -> --ck-surface -> --ck-surface-overlay is the
+   primary separator; shadows/glows derive from one per-theme ink channel
+   token (--ck-shadow-ink / --ck-glow-ink), so the --ck-shadow-* / --ck-bg-glow
+   formulas are written once and only the ink flips per theme. */
+:root,
+[data-theme="light"] {
+  color-scheme: light;
+
   /* brand (from the Cohort mortarboard logo) */
   --ck-brand: #059669;
   --ck-brand-strong: #047857; /* text-weight emerald on light (AA) */
@@ -41,9 +54,9 @@
 
   /* light theme */
   --ck-bg: #f7f8f6;
-  --ck-bg-glow: rgba(5, 150, 105, 0.07);
   --ck-surface: #ffffff;
   --ck-surface-2: #fbfcfb;
+  --ck-surface-overlay: #f4faf7; /* elevation step above --ck-surface (faint tint, lightness ladder) */
   --ck-ink: #0f1b17;
   --ck-muted: #586b63;
   --ck-faint: #8a9a92;
@@ -55,9 +68,14 @@
   --ck-focus: #047857;
   --ck-code-bg: #f0f3f1;
   --ck-code-ink: #0f1b17;
-  --ck-shadow-sm: 0 1px 2px rgba(15, 27, 23, 0.05);
-  --ck-shadow-md: 0 6px 20px -10px rgba(15, 27, 23, 0.22);
-  --ck-shadow-lg: 0 18px 40px -22px rgba(15, 27, 23, 0.32);
+
+  /* shadow / glow ink (bare channels) — shadows derive from these per theme */
+  --ck-shadow-ink: 15 27 23;
+  --ck-glow-ink: 5 150 105;
+  --ck-bg-glow: rgb(var(--ck-glow-ink) / 0.07);
+  --ck-shadow-sm: 0 1px 2px rgb(var(--ck-shadow-ink) / 0.05);
+  --ck-shadow-md: 0 6px 20px -10px rgb(var(--ck-shadow-ink) / 0.22);
+  --ck-shadow-lg: 0 18px 40px -22px rgb(var(--ck-shadow-ink) / 0.32);
 
   /* state colors (mirror the admin lifecycle palette) */
   --ck-ready: #047857;
@@ -90,15 +108,62 @@
   --ck-maxw: 64rem;
 }
 
+/* Dark token set — explicit, switchable attribute contract (D-96-11).
+   Dark is semantic elevation, not color-inversion: surfaces step LIGHTER with
+   elevation (--ck-bg -> --ck-surface-2 -> --ck-surface -> --ck-surface-overlay)
+   and shadows go "barely there" by flipping --ck-shadow-ink to pure black at
+   low alpha, NOT by re-baking the light drop-shadows. */
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --ck-brand: #10b981;
+  --ck-brand-strong: #34d399;
+  --ck-accent: #34d399;
+  --ck-bg: #0b1411;
+  --ck-surface: #111d18;
+  --ck-surface-2: #0f1a15;
+  --ck-surface-overlay: #16261f; /* elevation step LIGHTER than --ck-surface (lightness ladder) */
+  --ck-ink: #ecf3ef;
+  --ck-muted: #9db1a8;
+  --ck-faint: #6f857b;
+  --ck-border: #1f2e27;
+  --ck-border-strong: #2a3c34;
+  --ck-tint: rgba(16, 185, 129, 0.09);
+  --ck-tint-border: rgba(16, 185, 129, 0.28);
+  --ck-link: #34d399;
+  --ck-focus: #34d399;
+  --ck-code-bg: #0c1713;
+  --ck-code-ink: #d7e6df;
+
+  --ck-shadow-ink: 0 0 0;
+  --ck-glow-ink: 16 185 129;
+  --ck-bg-glow: rgb(var(--ck-glow-ink) / 0.1);
+  --ck-shadow-sm: 0 1px 2px rgb(var(--ck-shadow-ink) / 0.4);
+  --ck-shadow-md: 0 8px 24px -12px rgb(var(--ck-shadow-ink) / 0.6);
+  --ck-shadow-lg: 0 22px 48px -24px rgb(var(--ck-shadow-ink) / 0.7);
+
+  --ck-ready: #34d399;
+  --ck-processing: #fbbf24;
+  --ck-quarantine: #f87171;
+  --ck-info: #60a5fa;
+}
+
+/* Controlled dark-token duplication (parity-checked by cohort-contrast.mjs,
+   D-96-18). This is the AUTO FALLBACK only — it applies the dark set when the
+   OS prefers dark AND the page has set no explicit [data-theme]. The values
+   below MUST stay byte-equal to [data-theme="dark"] above; the contrast
+   data-module parity check fails the build on drift. */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme]) {
+    color-scheme: dark;
+
     --ck-brand: #10b981;
     --ck-brand-strong: #34d399;
     --ck-accent: #34d399;
     --ck-bg: #0b1411;
-    --ck-bg-glow: rgba(16, 185, 129, 0.1);
     --ck-surface: #111d18;
     --ck-surface-2: #0f1a15;
+    --ck-surface-overlay: #16261f;
     --ck-ink: #ecf3ef;
     --ck-muted: #9db1a8;
     --ck-faint: #6f857b;
@@ -110,9 +175,14 @@
     --ck-focus: #34d399;
     --ck-code-bg: #0c1713;
     --ck-code-ink: #d7e6df;
-    --ck-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
-    --ck-shadow-md: 0 8px 24px -12px rgba(0, 0, 0, 0.6);
-    --ck-shadow-lg: 0 22px 48px -24px rgba(0, 0, 0, 0.7);
+
+    --ck-shadow-ink: 0 0 0;
+    --ck-glow-ink: 16 185 129;
+    --ck-bg-glow: rgb(var(--ck-glow-ink) / 0.1);
+    --ck-shadow-sm: 0 1px 2px rgb(var(--ck-shadow-ink) / 0.4);
+    --ck-shadow-md: 0 8px 24px -12px rgb(var(--ck-shadow-ink) / 0.6);
+    --ck-shadow-lg: 0 22px 48px -24px rgb(var(--ck-shadow-ink) / 0.7);
+
     --ck-ready: #34d399;
     --ck-processing: #fbbf24;
     --ck-quarantine: #f87171;
