@@ -479,6 +479,84 @@ async function assertStableDimensions(page) {
 }
 
 // ---------------------------------------------------------------------------
+// Check 7 — consistent intra-unit rhythm (4px grid ∪ {12,44})
+// ---------------------------------------------------------------------------
+// Walks ONLY descendants of `[data-rindle-admin-meta]` units (the intra-unit
+// requirement — scoping to meta subtrees dramatically cuts noise) and asserts the
+// rhythm-bearing box properties resolve to the design system's spacing grid. Only
+// `rowGap`/`columnGap`/top-bottom `margin`/the four `padding` sides are checked;
+// sizing (`height`/`width`/`min-height`) and `line-height` are intentionally
+// excluded because they legitimately carry off-grid values (the 28px chip min-height,
+// the 44px target minimum, fluid widths, line-box metrics). Horizontal margins are
+// excluded too (`margin: 0 auto` centering resolves to arbitrary px). `0px` is always
+// valid. Allowed set is `{4,8,16,24,32,48,64}` (the declared spacing multiples) plus
+// the two documented exceptions `{12,44}` (the table-cell padding step and the target
+// minimum). RETURNS offenders `"{slug} {tag} {prop}={px}px off-grid"`; never throws.
+async function assertConsistentRhythm(page, root = DEFAULT_ROOT) {
+  return page.evaluate(
+    ({ ROOT, ALLOWED, EXEMPT_PX, TOL }) => {
+      const onGrid = (px) =>
+        EXEMPT_PX.some((v) => Math.abs(px - v) <= TOL) ||
+        ALLOWED.some((v) => Math.abs(px - v) <= TOL);
+      const PROPS = [
+        "rowGap",
+        "columnGap",
+        "marginTop",
+        "marginBottom",
+        "paddingTop",
+        "paddingBottom",
+        "paddingLeft",
+        "paddingRight",
+      ];
+      const out = [];
+      for (const unit of document.querySelectorAll(`${ROOT} [data-rindle-admin-meta]`)) {
+        const slug = unit.getAttribute("data-rindle-admin-meta") || "?";
+        for (const el of [unit, ...unit.querySelectorAll("*")]) {
+          const s = getComputedStyle(el);
+          for (const prop of PROPS) {
+            const px = parseFloat(s[prop]);
+            if (!Number.isFinite(px) || px === 0) continue; // 0px / unset always valid
+            if (!onGrid(px)) {
+              out.push(`${slug} ${el.tagName.toLowerCase()} ${prop}=${px}px off-grid`);
+            }
+          }
+        }
+      }
+      return out;
+    },
+    { ROOT: root, ALLOWED: [4, 8, 16, 24, 32, 48, 64], EXEMPT_PX: [12, 44], TOL: SUBPIXEL_TOLERANCE }
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Check 8 — no horizontal overflow per meta-unit root
+// ---------------------------------------------------------------------------
+// The PER-UNIT counterpart to the page-level no-horizontal-scroll helper in
+// support/admin.js (which asserts the document + admin root only — do NOT duplicate
+// it here). This iterates each `[data-rindle-admin-meta]` unit root and flags one
+// whose `scrollWidth` exceeds its `clientWidth` (a unit that overflows its own box).
+// A unit that legitimately owns an internal scroll region (the sticky data table)
+// opts out via the explicit `[data-rindle-admin-scroll-region]` marker — D-94-07:
+// explicit opt-in, never auto-detected. RETURNS offenders `"{slug} x(sw>cw)"`;
+// never throws.
+async function assertNoHorizontalScroll(page, root = DEFAULT_ROOT) {
+  return page.evaluate(
+    ({ ROOT, CLIP_TOLERANCE }) => {
+      const out = [];
+      for (const unit of document.querySelectorAll(`${ROOT} [data-rindle-admin-meta]`)) {
+        if (unit.closest("[data-rindle-admin-scroll-region]")) continue; // explicit opt-in
+        const slug = unit.getAttribute("data-rindle-admin-meta") || "?";
+        if (unit.scrollWidth > unit.clientWidth + CLIP_TOLERANCE) {
+          out.push(`${slug} x(${unit.scrollWidth}>${unit.clientWidth})`);
+        }
+      }
+      return out;
+    },
+    { ROOT: root, CLIP_TOLERANCE }
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Orchestrator
 // ---------------------------------------------------------------------------
 async function assertAdminPolish(
@@ -506,6 +584,8 @@ async function assertAdminPolish(
   };
 
   await run("noClippedText", "clipped-text", () => assertNoClippedText(page, root));
+  await run("consistentRhythm", "rhythm", () => assertConsistentRhythm(page, root));
+  await run("noHorizontalScroll", "h-scroll", () => assertNoHorizontalScroll(page, root));
   await run("readableContrast", "contrast", () => assertReadableContrast(page, root));
   await run("targetSizes", "target-size", () => assertTargetSizes(page, interactiveSelectors));
   await run("focusVisibleTokens", "focus-visible", () => assertFocusVisibleTokens(page, interactiveSelectors));
@@ -534,6 +614,8 @@ module.exports = {
   assertAdminPolish,
   freezeMotion,
   assertNoClippedText,
+  assertConsistentRhythm,
+  assertNoHorizontalScroll,
   assertReadableContrast,
   assertTargetSizes,
   assertFocusVisibleTokens,
