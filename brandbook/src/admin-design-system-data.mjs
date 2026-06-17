@@ -44,6 +44,21 @@ export const COMPONENTS = [
   'skeleton',
 ];
 
+// Level-2 meta-component inventory of record (UPLIFT-02). Composed units, each built
+// exclusively from the Level-1 COMPONENTS above + tokens — never a new primitive (D-97-01/02).
+// Order is authoritative (97-UI-SPEC §"Level-2 Meta-Component Inventory"). Do NOT extend
+// COMPONENTS with these slugs; they live in their own parallel inventory (D-97-04).
+export const META_COMPONENTS = [
+  'toolbar',
+  'data-table',
+  'filter-bar',
+  'action-panel',
+  'detail-drilldown',
+  'confirm-panel',
+  'drawer',
+  'toast-stack',
+];
+
 export const LEVEL_1_STATES = [
   'default',
   'hover',

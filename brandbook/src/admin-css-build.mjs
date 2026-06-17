@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url';
 import {
   COMPONENTS,
   LEVEL_1_STATES,
+  META_COMPONENTS,
   MIN_TARGET_PX,
   MOTION_TOKENS,
   STATUS_STATES,
@@ -38,6 +39,7 @@ exact(SURFACES, ['Home/Status', 'Assets', 'Upload Sessions', 'Variants/Jobs', 'R
 exact(STATUS_STATES, ['ready', 'processing', 'warning', 'danger', 'quarantine', 'info'], 'STATUS_STATES');
 exact(COMPONENTS, ['shell', 'nav', 'table', 'status-chip', 'button', 'theme-picker', 'form-controls', 'confirm-dialog', 'drawer', 'toast', 'empty-state', 'error-state', 'loading-state', 'skeleton'], 'COMPONENTS');
 exact(LEVEL_1_STATES, ['default', 'hover', 'focus-visible', 'active', 'disabled', 'loading', 'empty', 'error', 'skeleton'], 'LEVEL_1_STATES');
+exact(META_COMPONENTS, ['toolbar', 'data-table', 'filter-bar', 'action-panel', 'detail-drilldown', 'confirm-panel', 'drawer', 'toast-stack'], 'META_COMPONENTS');
 exact(MOTION_TOKENS, ['press', 'popover', 'toast', 'transition', 'easing', 'easing-standard', 'easing-decelerate', 'easing-accelerate'], 'MOTION_TOKENS');
 if (MIN_TARGET_PX !== 44) throw new Error('MIN_TARGET_PX must be 44');
 
