@@ -701,7 +701,10 @@ textarea[data-rindle-admin-input] {
 }
 
 /* Sortable header: aria-sort drives a token-backed, VISIBLE direction glyph
-   (never color-only). The active column tints the glyph with --rindle-accent. */
+   (never color-only). The active column uses --rindle-text so the glyph stays
+   legible on both light surface-raised and dark elevation-1; the ↑/↓ vs ↕
+   shape change carries the active/inactive signal (rindle-green fails contrast
+   on light surfaces — see tokens.json). */
 .rindle-admin-table__head th[aria-sort] {
   cursor: pointer;
 }
@@ -724,12 +727,12 @@ textarea[data-rindle-admin-input] {
 
 .rindle-admin-table__head th[aria-sort="ascending"] .rindle-admin-table__sort::after {
   content: "\\2191"; /* upwards arrow */
-  color: var(--rindle-accent);
+  color: var(--rindle-text);
 }
 
 .rindle-admin-table__head th[aria-sort="descending"] .rindle-admin-table__sort::after {
   content: "\\2193"; /* downwards arrow */
-  color: var(--rindle-accent);
+  color: var(--rindle-text);
 }
 
 /* Sticky header: head row pins to the top of an explicit internal scroll region
