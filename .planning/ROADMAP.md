@@ -317,7 +317,11 @@ Plans:
 
 3. Each meta-component appears in the gallery as a unit for visual-cohesion review.
 
-**Plans:** TBD
+**Plans:** 4 plans
+- [ ] 97-01-PLAN.md — META_COMPONENTS inventory + generated Level-2 composition CSS (sortable/sticky/bulk-select static state) + requiredMetaSelectors self-check
+- [ ] 97-02-PLAN.md — gallery meta-component cohesion panels (data-rindle-admin-meta) + assertMetaUnits + no-leakage scan + per-unit screenshots
+- [ ] 97-03-PLAN.md — assertConsistentRhythm + assertNoHorizontalScroll (offender-returning), run over gallery meta units; overlap warn-only
+- [ ] 97-04-PLAN.md — flip OVERLAP_ENFORCED + sync shipped CSS + bump pinned literals (18 screenshots / 58/58) + full gate
 **UI hint:** yes
 
 ---
