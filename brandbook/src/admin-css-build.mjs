@@ -370,7 +370,10 @@ css += `
   color: var(--rindle-text);
 }
 
-[data-rindle-admin-input] {
+/* Text-like controls only: the box treatment (full-width, padded, bordered,
+   surface-filled) is wrong for native checkbox/radio toggles, which are excluded
+   here and handled by the dedicated rule below (WR-01). */
+[data-rindle-admin-input]:where(:not([type="checkbox"]):not([type="radio"])) {
   min-height: var(--rindle-admin-target-min);
   width: 100%;
   max-width: 100%;
@@ -381,6 +384,15 @@ css += `
   color: var(--rindle-text);
   font: inherit;
   overflow-wrap: anywhere;
+}
+
+/* Native checkbox/radio selection controls keep their intrinsic box size and
+   adopt the brand accent rather than the stretched text-input treatment. */
+input[type="checkbox"][data-rindle-admin-input],
+input[type="radio"][data-rindle-admin-input] {
+  width: auto;
+  min-height: auto;
+  accent-color: var(--rindle-brand);
 }
 
 [data-rindle-admin-input]:hover,
