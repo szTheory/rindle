@@ -26,7 +26,15 @@ defmodule Rindle.Brandbook.AdminDesignSystemValidationTest do
     "confirm-dialog-light.png",
     "form-controls-light.png",
     "error-state-dark.png",
-    "loading-state-auto.png"
+    "loading-state-auto.png",
+    "meta-toolbar-light.png",
+    "meta-data-table-light.png",
+    "meta-filter-bar-light.png",
+    "meta-action-panel-light.png",
+    "meta-detail-drilldown-light.png",
+    "meta-confirm-panel-light.png",
+    "meta-drawer-light.png",
+    "meta-toast-stack-light.png"
   ]
 
   test "DS-01 generated admin CSS is reproducible and token-backed" do
@@ -124,7 +132,7 @@ defmodule Rindle.Brandbook.AdminDesignSystemValidationTest do
 
   test "DS-02 gallery harness proves themes, screenshots, and surface anchors" do
     output = run_node("brandbook/src/admin-gallery-check.mjs")
-    assert output =~ "admin gallery check passed - 10 screenshots written"
+    assert output =~ "admin gallery check passed - 18 screenshots written"
 
     html = read!("brandbook/admin-gallery/index.html")
     assert html =~ "data-theme=\"auto\""

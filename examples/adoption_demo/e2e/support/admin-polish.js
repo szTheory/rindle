@@ -27,7 +27,7 @@ const CONTRAST_SLACK = 0.05; // float slack on the WCAG ratio comparison
 
 // Overlap is the noisiest check. Ship it in warn mode for one green CI cycle, then
 // flip to a hard failure once the matrix confirms zero spurious warnings.
-const OVERLAP_ENFORCED = false;
+const OVERLAP_ENFORCED = true;
 
 // Union of interactive-control selectors (all confirmed present in the admin shell).
 const DEFAULT_INTERACTIVE_SELECTORS = [
