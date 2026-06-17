@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.19
 milestone_name: Design-System Stress-Test
 status: executing
-last_updated: "2026-06-17T18:36:14.102Z"
+last_updated: "2026-06-17T18:46:10.302Z"
 last_activity: 2026-06-17
 progress:
   total_phases: 32
   completed_phases: 13
   total_plans: 49
-  completed_plans: 48
+  completed_plans: 49
   percent: 41
 ---
 
@@ -25,7 +25,7 @@ See: .planning/PROJECT.md (updated 2026-06-14)
 ## Current Position
 
 Phase: 96 (cohort-component-layer-dark-reduced-motion-contract-track-b) — EXECUTING
-Plan: 2 of 5
+Plan: 3 of 5
 Status: Ready to execute
 Last activity: 2026-06-17
 
@@ -159,6 +159,7 @@ is grounded before planning.
 - [Phase ?]: Phase 94 Plan 03: four new token categories wired into tokens.json + admin generators via the 3-touchpoint pattern (source object -> emit loop -> parity registration). diagram kept out of MOTION_TOKENS (only the 3 new easings join, each consumed by a rule); elevation hexes placed in color.raw so both deref and WCAG resolve() find them; differentiated dark status surfaces are a tokens.json value change with no .map() edit. admin-contrast 44/44, base 47/47, both CSS copies byte-identical.
 - [Phase ?]: Phase 94 Plan 04: standalone merge-blocking brandbook-tokens CI job lands (PIPE-01) — regen -> WCAG contrast -> gallery proof -> sync-admin-css -> tree-wide git diff --exit-code; closes the un-gated token->CSS pipeline gap. Surfaced + fixed stale committed tokens.css (Plan 03 ran admin-css-build but not the base tokens-build); the gate now lands on an empty-diff tree.
 - [Phase 96]: Plan 01 — cohort.css gains the net-new dark [data-theme] contract (D-96-11 shape: `:root, [data-theme="light"]` + `[data-theme="dark"]` + `@media (prefers-color-scheme: dark) { :root:not([data-theme]) }` auto fallback), per-theme `color-scheme`, the `--ck-surface-overlay` lightness ladder step, per-theme bare-channel `--ck-shadow-ink`/`--ck-glow-ink` feeding one shared `rgb(var(--ink) / <alpha>)` shadow/glow formula (D-96-12), and the file's only `!important` site: a `prefers-reduced-motion: reduce` block using `.001ms` not `0` (D-96-13). All rule-body color/font literals removed (`#fff`→`--ck-on-brand`, usage-site rem→nearest `--ck-step-*`); literals now live only in token blocks. No `--ck-*` palette value changed (D-96-23). Overlay values: light `#f4faf7`, dark `#16261f`. Note: default-env `mix compile --warnings-as-errors` fails on pre-existing test-only Mox warnings (logged to phase deferred-items.md); no-template-breakage verified via `MIX_ENV=test`.
+- [Phase 96]: Plan 02 — the six Level-1 .ck-* primitives shipped as CohortComponents function components + .ck-scoped CSS: ck_table (real <button> sort header carrying aria-sort on the <th>, server-owned sort_by/sort_dir/sort_event, badge reuse, empty + loading-skeleton), ck_stat (tabular-nums + em-dash empty + status accent + skeleton), ck_detail (real <dl><dt><dd>), ck_toolbar (role=group + trailing :actions slot); ck_field/ck_input/ck_select integrate Phoenix.HTML.FormField with aria-describedby + aria-invalid and a non-color warning-icon error (D-96-15); ck_tabs is full WAI-ARIA APG (roving tabindex, server-owned select via phx-click) backed by a net-new keyboard-only phx-hook=Tabs in app.js (D-96-17). Every interactive control has a token-backed :focus-visible (no bare outline:none) and a 44px min target.
 
 ## Blockers/Concerns
 
@@ -181,7 +182,7 @@ is grounded before planning.
 
 ## Session Continuity
 
-Last session: 2026-06-17T18:36:14.094Z
+Last session: 2026-06-17T18:44:18.449Z
 Stopped at: Completed 96-01-PLAN.md
 Resume file: None
 
@@ -224,3 +225,4 @@ Resume file: None
 | Phase 94 P04 | 4min | 1 tasks | 2 files |
 | Phase 94 P05 | 6min | 2 tasks | 3 files |
 | Phase 96 P01 | 3min | 2 tasks | 1 files |
+| Phase 96 P02 | 4min | 2 tasks | 3 files |
