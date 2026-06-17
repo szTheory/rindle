@@ -712,9 +712,11 @@ code {
   const expectedOwner = 'owner:cohort-demo-42';
   const input = document.querySelector('[data-rindle-admin-confirm-input]');
   const action = document.querySelector('[data-rindle-admin-confirm-action]');
-  input.addEventListener('input', () => {
-    action.disabled = input.value !== expectedOwner;
-  });
+  if (input && action) {
+    input.addEventListener('input', () => {
+      action.disabled = input.value !== expectedOwner;
+    });
+  }
 })();
 </script>
 </body>
