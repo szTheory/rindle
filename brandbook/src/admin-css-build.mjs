@@ -656,6 +656,259 @@ textarea[data-rindle-admin-input] {
   font-weight: var(--rindle-text-h2-weight);
 }
 
+/* ============================================================================
+   Level-2 meta-components (UPLIFT-02 / D-97-01..03)
+   Composed units built ONLY from Level-1 rindle-admin primitives + tokens.
+   No new color literal, no off-grid spacing: every gap/margin/padding resolves
+   to a --rindle-space-* token. Data-table sort/sticky/bulk-select state is driven
+   entirely by attributes + BEM modifiers + fixture markup — never client JS.
+   ============================================================================ */
+
+/* Toolbar: left title cluster + right action cluster on the 4px grid. */
+.rindle-admin-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--rindle-space-4);
+  padding: var(--rindle-space-3) var(--rindle-space-4);
+  background: var(--rindle-surface-raised);
+  border: var(--rindle-border-rule-subtle);
+  border-radius: var(--rindle-radius-control);
+}
+
+.rindle-admin-toolbar__cluster {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--rindle-space-2);
+  min-width: 0;
+}
+
+.rindle-admin-toolbar__title {
+  margin: 0;
+  font-family: var(--rindle-font-display);
+  font-size: var(--rindle-text-h3-size);
+  line-height: var(--rindle-text-h3-line);
+  font-weight: var(--rindle-text-h3-weight);
+}
+
+/* Data table: composes .rindle-admin-table + sortable / sticky / bulk-select state. */
+.rindle-admin-data-table {
+  display: grid;
+  gap: var(--rindle-space-3);
+  min-width: 0;
+}
+
+/* Sortable header: aria-sort drives a token-backed, VISIBLE direction glyph
+   (never color-only). The active column tints the glyph with --rindle-accent. */
+.rindle-admin-table__head th[aria-sort] {
+  cursor: pointer;
+}
+
+.rindle-admin-table__head th[aria-sort] .rindle-admin-table__sort {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--rindle-space-1);
+}
+
+.rindle-admin-table__head th[aria-sort] .rindle-admin-table__sort::after {
+  content: "\\2195"; /* up-down arrow: sortable but unsorted */
+  color: var(--rindle-text-secondary);
+}
+
+.rindle-admin-table__head th[aria-sort="none"] .rindle-admin-table__sort::after {
+  content: "\\2195";
+  color: var(--rindle-text-secondary);
+}
+
+.rindle-admin-table__head th[aria-sort="ascending"] .rindle-admin-table__sort::after {
+  content: "\\2191"; /* upwards arrow */
+  color: var(--rindle-accent);
+}
+
+.rindle-admin-table__head th[aria-sort="descending"] .rindle-admin-table__sort::after {
+  content: "\\2193"; /* downwards arrow */
+  color: var(--rindle-accent);
+}
+
+/* Sticky header: head row pins to the top of an explicit internal scroll region
+   (the only opted-in no-h-scroll exception, marked data-rindle-admin-scroll-region). */
+.rindle-admin-table--sticky {
+  display: block;
+  max-height: calc(var(--rindle-admin-target-min) * 8);
+  overflow: auto;
+}
+
+.rindle-admin-table--sticky .rindle-admin-table__head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--rindle-surface-raised);
+}
+
+[data-theme="dark"] .rindle-admin-table--sticky .rindle-admin-table__head {
+  background: var(--rindle-elevation-1);
+}
+
+/* Bulk-select: per-row selected surface + contextual bulk-action bar. */
+.rindle-admin-table__row[data-rindle-admin-selected],
+[data-rindle-admin-selected] {
+  background: var(--rindle-surface-sunken);
+}
+
+.rindle-admin-bulk-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--rindle-space-3);
+  padding: var(--rindle-space-2) var(--rindle-space-4);
+  background: var(--rindle-surface-sunken);
+  border: var(--rindle-border-rule-subtle);
+  border-radius: var(--rindle-radius-control);
+  color: var(--rindle-text);
+}
+
+.rindle-admin-bulk-bar__count {
+  font-weight: 600;
+}
+
+.rindle-admin-bulk-bar__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--rindle-space-2);
+  margin-inline-start: auto;
+}
+
+/* Filter bar: inline filter controls + apply/clear + active-filter chips. */
+.rindle-admin-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--rindle-space-3);
+  padding: var(--rindle-space-3) var(--rindle-space-4);
+  background: var(--rindle-surface-raised);
+  border: var(--rindle-border-rule-subtle);
+  border-radius: var(--rindle-radius-control);
+}
+
+.rindle-admin-filter-bar__field {
+  display: grid;
+  gap: var(--rindle-space-1);
+  min-width: 0;
+}
+
+.rindle-admin-filter-bar__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--rindle-space-2);
+  margin-inline-start: auto;
+}
+
+.rindle-admin-filter-bar__chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--rindle-space-2);
+}
+
+/* Action panel: grouped primary + secondary + destructive on consistent rhythm. */
+.rindle-admin-action-panel {
+  display: grid;
+  gap: var(--rindle-space-4);
+  padding: var(--rindle-space-5);
+  background: var(--rindle-surface-raised);
+  border: var(--rindle-border-rule-subtle);
+  border-radius: var(--rindle-radius-panel);
+}
+
+.rindle-admin-action-panel__group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--rindle-space-2);
+}
+
+/* Detail drill-down: master summary -> key/value rows on consistent rhythm. */
+.rindle-admin-detail-drilldown {
+  display: grid;
+  gap: var(--rindle-space-4);
+  padding: var(--rindle-space-5);
+  background: var(--rindle-surface-raised);
+  border: var(--rindle-border-rule-subtle);
+  border-radius: var(--rindle-radius-panel);
+}
+
+.rindle-admin-detail-drilldown__row {
+  display: grid;
+  grid-template-columns: minmax(120px, 0.4fr) minmax(0, 1fr);
+  gap: var(--rindle-space-4);
+  padding-block: var(--rindle-space-2);
+  border-top: var(--rindle-border-rule-subtle);
+}
+
+.rindle-admin-detail-drilldown__key {
+  color: var(--rindle-text-secondary);
+  font-weight: 600;
+}
+
+/* Confirm / destructive panel: preview + typed confirmation. Composes the
+   Level-1 confirm-dialog + destructive button + confirm-input primitives. */
+.rindle-admin-confirm-panel {
+  display: grid;
+  gap: var(--rindle-space-4);
+  max-width: 560px;
+  padding: var(--rindle-space-5);
+  background: var(--rindle-surface-raised);
+  border: var(--rindle-border-rule-strong);
+  border-radius: var(--rindle-radius-panel);
+  color: var(--rindle-text);
+  box-shadow: var(--rindle-shadow-overlay);
+}
+
+[data-theme="dark"] .rindle-admin-confirm-panel {
+  background: var(--rindle-elevation-3);
+}
+
+.rindle-admin-confirm-panel__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--rindle-space-2);
+}
+
+/* Drawer panel: header + body + action footer on grid (composes .rindle-admin-drawer). */
+.rindle-admin-drawer-panel {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: var(--rindle-space-4);
+  min-height: 100%;
+}
+
+.rindle-admin-drawer-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--rindle-space-3);
+}
+
+.rindle-admin-drawer-panel__footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--rindle-space-2);
+  padding-top: var(--rindle-space-3);
+  border-top: var(--rindle-border-rule-subtle);
+}
+
+/* Toast stack: vertically stacked real-state toasts with consistent inter-toast gap. */
+.rindle-admin-toast-stack {
+  display: grid;
+  gap: var(--rindle-space-3);
+  width: min(100%, 420px);
+}
+
 .rindle-admin-button:focus-visible,
 .rindle-admin-nav__item:focus-visible,
 .rindle-admin-table__row:focus-within,
@@ -756,6 +1009,23 @@ const requiredSelectors = [
   '.rindle-admin-theme-picker__option[aria-pressed="true"]',
   '[data-rindle-admin-submit][aria-busy="true"]',
 ];
+// Level-2 meta-component parity (UPLIFT-02). Every composed unit must emit a root
+// selector + the static (no-JS) sort/sticky/bulk-select state hooks. Absentees are
+// pushed into `missing` below so the build fails closed (D-97-03/D-97-08).
+const requiredMetaSelectors = [
+  '.rindle-admin-toolbar',
+  '.rindle-admin-data-table',
+  '.rindle-admin-filter-bar',
+  '.rindle-admin-action-panel',
+  '.rindle-admin-detail-drilldown',
+  '.rindle-admin-confirm-panel',
+  '.rindle-admin-drawer-panel',
+  '.rindle-admin-toast-stack',
+  '.rindle-admin-table--sticky',
+  '[aria-sort]',
+  '[data-rindle-admin-selected]',
+  '.rindle-admin-bulk-bar',
+];
 const requiredScopes = [':root', '[data-theme="dark"]', '[data-theme="auto"]', 'prefers-color-scheme: dark'];
 const requiredMotionUses = MOTION_TOKENS.map((token) => `var(--rindle-motion-${token})`);
 const requiredTokenUses = [
@@ -769,6 +1039,7 @@ const requiredTokenUses = [
 ];
 const missing = [];
 for (const selector of requiredSelectors) if (!written.includes(selector)) missing.push(selector);
+for (const selector of requiredMetaSelectors) if (!written.includes(selector)) missing.push(selector);
 for (const scope of requiredScopes) if (!written.includes(scope)) missing.push(scope);
 for (const motion of requiredMotionUses) if (!written.includes(motion)) missing.push(motion);
 for (const token of requiredTokenUses) if (!written.includes(token)) missing.push(token);
@@ -782,4 +1053,4 @@ if (/outline\s*:\s*none\b/.test(written.replace(/\/\*[\s\S]*?\*\//g, ''))) {
   process.exit(1);
 }
 
-console.log(`rindle-admin.css written - ${requiredSelectors.length} selectors, ${requiredScopes.length} theme scopes, parity OK`);
+console.log(`rindle-admin.css written - ${requiredSelectors.length} selectors, ${requiredMetaSelectors.length} meta selectors, ${requiredScopes.length} theme scopes, parity OK`);
