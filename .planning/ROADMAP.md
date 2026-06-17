@@ -321,7 +321,7 @@ Plans:
 - [x] 97-01-PLAN.md — META_COMPONENTS inventory + generated Level-2 composition CSS (sortable/sticky/bulk-select static state) + requiredMetaSelectors self-check
 - [x] 97-02-PLAN.md — gallery meta-component cohesion panels (data-rindle-admin-meta) + assertMetaUnits + no-leakage scan + per-unit screenshots
 - [x] 97-03-PLAN.md — assertConsistentRhythm + assertNoHorizontalScroll (offender-returning), run over gallery meta units; overlap warn-only
-- [ ] 97-04-PLAN.md — flip OVERLAP_ENFORCED + sync shipped CSS + bump pinned literals (18 screenshots / 58/58) + full gate
+- [x] 97-04-PLAN.md — flip OVERLAP_ENFORCED + sync shipped CSS + bump pinned literals (18 screenshots / 58/58) + full gate
 **UI hint:** yes
 
 ---
@@ -752,7 +752,7 @@ Plans:
 | 94. Foundation — Token Pipeline CI Gate & New Categories | 5/5 | Complete    | 2026-06-15 |
 | 95. Admin Level-1 Component Audit [A] | 3/3 | Complete   | 2026-06-16 |
 | 96. Cohort Component Layer + Dark/Reduced-Motion [B] | 5/5 | Complete    | 2026-06-17 |
-| 97. Admin Level-2 Meta-Components [A] | 3/4 | In Progress|  |
+| 97. Admin Level-2 Meta-Components [A] | 4/4 | Complete   | 2026-06-17 |
 | 98. Admin Level-3 Pages + Motion/Mobile/A11y/IA/Microcopy [A] | 0/? | Not started | - |
 | 99. Cohort Page Migrations (small 7) [B] | 0/? | Not started | - |
 | 100. Cohort /upload Migration [B] | 0/? | Not started | - |
