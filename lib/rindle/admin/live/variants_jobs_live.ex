@@ -43,37 +43,37 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     def render(assigns) do
       ~H"""
       <.shell active="variants-jobs" base_path={@admin_base_path} title="Variants/Jobs" live_status={@live_status}>
-        <section>
-          <h2>Variant state</h2>
-          <a class="rindle-admin-button rindle-admin-button--secondary rindle-admin-target-min" href={admin_path(@admin_base_path, "variants-jobs")}>
-            Refresh status
-          </a>
-          <.filters filters={[
-            {"state", @filters["state"]},
-            {"profile", @filters["profile"]},
-            {"class", @filters["class"]},
-            {"provider_stuck", @filters["provider_stuck"]}
-          ]} />
-          <.metadata_list items={[
-            {"Total", count_value(@model, :total)},
-            {"failed", count_value(@model, "failed")},
-            {"cancelled", count_value(@model, "cancelled")},
-            {"stale", count_value(@model, "stale")},
-            {"missing", count_value(@model, "missing")},
-            {"queued", count_value(@model, "queued")},
-            {"processing", count_value(@model, "processing")}
-          ]} />
-        </section>
-
-        <%= if @error? do %>
-          <.error_state surface="Variants/Jobs" />
-        <% else %>
-          <%= if Enum.empty?(@model.findings) do %>
-            <.empty_state />
-          <% else %>
+        <.page state={list_state(assigns)} error_surface="Variants/Jobs">
+          <:summary>
+            <section>
+              <h2>Variant state</h2>
+              <a class="rindle-admin-button rindle-admin-button--secondary rindle-admin-target-min" href={admin_path(@admin_base_path, "variants-jobs")}>
+                Refresh status
+              </a>
+              <.metadata_list items={[
+                {"Total", count_value(@model, :total)},
+                {"failed", count_value(@model, "failed")},
+                {"cancelled", count_value(@model, "cancelled")},
+                {"stale", count_value(@model, "stale")},
+                {"missing", count_value(@model, "missing")},
+                {"queued", count_value(@model, "queued")},
+                {"processing", count_value(@model, "processing")}
+              ]} />
+            </section>
+          </:summary>
+          <:filters>
+            <.filters filters={[
+              {"state", @filters["state"]},
+              {"profile", @filters["profile"]},
+              {"class", @filters["class"]},
+              {"provider_stuck", @filters["provider_stuck"]}
+            ]} />
+          </:filters>
+          <:work>
             <section>
               <h2>Variant/job buckets</h2>
               <table class="rindle-admin-table">
+                <caption class="rindle-admin-visually-hidden">Variant and job buckets</caption>
                 <thead class="rindle-admin-table__head">
                   <tr>
                     <th class="rindle-admin-table__cell" scope="col">Bucket</th>
@@ -84,11 +84,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 </thead>
                 <tbody>
                   <tr :for={finding <- @model.findings} class="rindle-admin-table__row" data-rindle-admin-row="variant-finding">
-                    <td class="rindle-admin-table__cell">
+                    <td class="rindle-admin-table__cell" scope="row" data-label="Bucket">
                       <.status_chip state={bucket_state(finding)} label={bucket_label(finding)} />
                     </td>
-                    <td class="rindle-admin-table__cell">{finding.count}</td>
-                    <td class="rindle-admin-table__cell">
+                    <td class="rindle-admin-table__cell" data-label="Count">{finding.count}</td>
+                    <td class="rindle-admin-table__cell" data-label="Samples">
                       <ul>
                         <li :for={sample <- finding.samples}>
                           <code>{sample_value(sample, :variant_id) || sample_value(sample, :asset_id)}</code>
@@ -100,7 +100,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                         </li>
                       </ul>
                     </td>
-                    <td class="rindle-admin-table__cell">
+                    <td class="rindle-admin-table__cell" data-label="Action">
                       <a
                         :if={sample_asset_id(finding)}
                         class="rindle-admin-button rindle-admin-button--secondary rindle-admin-target-min"
@@ -113,24 +113,28 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 </tbody>
               </table>
             </section>
-          <% end %>
-        <% end %>
 
-        <section>
-          <h2>Repair recommendation</h2>
-          <p>Recommended repair lane text is diagnostic only on this surface; no repair is executed here.</p>
-          <p>Provider identifier redacted</p>
-          <ul>
-            <li :for={recommendation <- @model.recommendations}>
-              <strong>{format_class(recommendation.class)}</strong>
-              <span>{recommendation.summary}</span>
-              <code>{recommendation.surface}</code>
-            </li>
-          </ul>
-        </section>
+            <section>
+              <h2>Repair recommendation</h2>
+              <p>Recommended repair lane text is diagnostic only on this surface; no repair is executed here.</p>
+              <p>Provider identifier redacted</p>
+              <ul>
+                <li :for={recommendation <- @model.recommendations}>
+                  <strong>{format_class(recommendation.class)}</strong>
+                  <span>{recommendation.summary}</span>
+                  <code>{recommendation.surface}</code>
+                </li>
+              </ul>
+            </section>
+          </:work>
+        </.page>
       </.shell>
       """
     end
+
+    defp list_state(%{error?: true}), do: :error
+    defp list_state(%{model: %{findings: []}}), do: :empty
+    defp list_state(_assigns), do: :ok
 
     defp load(socket) do
       opts =
