@@ -389,7 +389,8 @@ Plans:
 **Plans:** 5 plans
 
 Plans:
-- [ ] 99-01-PLAN.md — Wave-0 enablers: `ck_page/1` scaffold + token-only `.ck-output` rule + shared `cohort-pages.spec.js` polish harness + ExUnit frozen-contract/daisyUI-retirement module
+
+- [x] 99-01-PLAN.md — Wave-0 enablers: `ck_page/1` scaffold + token-only `.ck-output` rule + shared `cohort-pages.spec.js` polish harness + ExUnit frozen-contract/daisyUI-retirement module
 - [ ] 99-02-PLAN.md — `/dashboard` migration (COHORT-01); load-bearing member-row contract
 - [ ] 99-03-PLAN.md — `/ops` + `/account` migration (COHORT-03/04); `.ck-btn` + `.ck-output` `<pre>` panels
 - [ ] 99-04-PLAN.md — member + lesson migration (COHORT-04); picture/video tags + variant lists
@@ -773,7 +774,7 @@ Plans:
 | 96. Cohort Component Layer + Dark/Reduced-Motion [B] | 5/5 | Complete    | 2026-06-17 |
 | 97. Admin Level-2 Meta-Components [A] | 4/4 | Complete    | 2026-06-17 |
 | 98. Admin Level-3 Pages + Motion/Mobile/A11y/IA/Microcopy [A] | 5/5 | Complete    | 2026-06-18 |
-| 99. Cohort Page Migrations (small 7) [B] | 0/? | Not started | - |
+| 99. Cohort Page Migrations (small 7) [B] | 1/5 | In Progress|  |
 | 100. Cohort /upload Migration [B] | 0/? | Not started | - |
 | 101. daisyUI Retirement [B] | 0/? | Not started | - |
 | 102. Re-Converge — Visual Matrix, Idempotency & Audit | 0/? | Not started | - |

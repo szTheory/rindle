@@ -2,18 +2,19 @@
 gsd_state_version: 1.0
 milestone: v1.19
 milestone_name: Design-System Stress-Test
-current_phase: 98
-status: verifying
-stopped_at: Phase 98 context gathered (assumptions mode + deep research; D-98-01..16 locked)
-last_updated: "2026-06-18T07:37:16.767Z"
+current_phase: 99
+current_phase_name: cohort-page-migrations-the-small-7-track-b
+status: executing
+stopped_at: Completed 99-01-PLAN.md
+last_updated: "2026-06-18T15:00:40.427Z"
 last_activity: 2026-06-18
-last_activity_desc: Phase 98 complete
+last_activity_desc: Phase 99 execution started
 progress:
-  total_phases: 18
+  total_phases: 19
   completed_phases: 16
-  total_plans: 58
-  completed_plans: 61
-  percent: 89
+  total_plans: 63
+  completed_plans: 62
+  percent: 84
 ---
 
 # Project State
@@ -23,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-14)
 
 **Core value:** Media, made durable.
-**Current focus:** Phase 98 — admin-level-3-page-composition-motion-mobile-a11y-ia-microco
+**Current focus:** Phase 99 — cohort-page-migrations-the-small-7-track-b
 
 ## Current Position
 
-Phase: 98
-Plan: Not started
-Status: Phase complete — ready for verification
-Last activity: 2026-06-18 — Phase 98 complete
+Phase: 99 (cohort-page-migrations-the-small-7-track-b) — EXECUTING
+Plan: 2 of 5
+Status: Ready to execute
+Last activity: 2026-06-18 — Phase 99 execution started
 
 ## Current Milestone
 
@@ -179,6 +180,8 @@ is grounded before planning.
 - [Phase ?]: 98-03: Actions verb-bucket REALLY distributed (handlers+forms removed) — regenerate->Processing via confirm_dialog/1, reconcile->Doctor, quarantine->asset detail; Maintenance keeps only owner/batch erasure; owner-erasure confirm rewired to confirm_dialog/1 (inert off @action_state==:preview)
 - [Phase ?]: 98-03: Overview = GDS triage home off home_status/1 (no query change) — needs-attention deep-links to already-parsed filters (no new routes), health chips, recent activity, vanity totals last, affirmative all-clear; inspect/1 removed; §F off-voice strings replaced
 - [Phase ?]: 98-04: phase seal — both merge-gate homes now executable over real surfaces. ExUnit 4->24 brandbook clauses (static §A/§B/§D/§E/§F + contrast 58/58 + drift + ADMIN-02 byte-equality); five non-inferable computed-style Playwright backstops in admin-polish.js (two-pane band @~900px, stacked-card ::before attr @759/761, reduced-motion 0s read UN-FROZEN, dialog inert reset-on-reconnect, focus-visible-vs-pointer); toHaveLength 22->24 lockstep (N=2). No warn->fail flip / no Cohort generalization (Phase 102 boundary held). visually-hidden carryover authored through the generator. Live adoption-demo-e2e lane CI-delegated (local Postgres saturated); maintainer approved.
+- [Phase ?]: 99-01: ck_page/1 scaffold authored existing-but-UNUSED (Cohort analog of Phase 98 page/1); the .ck/data-ck-root/server-data-theme/.ck__wrap/.ck-hero shell centralized in one component so the 7 page migrations do not drift 7 copies (D-96-05/07/09)
+- [Phase ?]: 99-01: one token-only .ck-output rule added to hand-authored cohort.css for ops/account <pre> panels (mirrors .ck-cred__value tokens; padding via --ck-3/--ck-4 to stay literal-free); cohort-pages.spec.js shares assertCohortPagePolish (assertAdminPolish reused UNCHANGED, warn mode, Pitfall-5 guard) + ExUnit module shares frozen-contract + page-body-scoped daisyUI-retirement helpers; both green vs /styleguide
 
 ## Blockers/Concerns
 
@@ -204,8 +207,8 @@ is grounded before planning.
 
 ## Session Continuity
 
-Last session: 2026-06-18T06:52:41.847Z
-Stopped at: Phase 98 context gathered (assumptions mode + deep research; D-98-01..16 locked)
+Last session: 2026-06-18T15:00:40.420Z
+Stopped at: Completed 99-01-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -260,3 +263,4 @@ Resume file: None
 | Phase 98 P02b | 8min | 2 tasks | 6 files |
 | Phase 98 P03 | 16min | 3 tasks | 12 files |
 | Phase 98 PP04 | 15min | 3 tasks | 8 files |
+| Phase 99 P01 | 3 min | 2 tasks | 4 files |
