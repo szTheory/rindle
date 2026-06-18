@@ -393,4 +393,96 @@ defmodule AdoptionDemoWeb.CohortMigrationContractTest do
 
     assert_daisyui_retired(html)
   end
+
+  # --- Plan 100-01: /upload per-tab frozen-contract + daisyUI-retirement ------
+  # /upload is the heaviest Cohort inner page (6 tabs, 4 phx-hook flows, 2 forms).
+  # load_member!(nil) falls back to the first seeded member, so ?tab=X renders
+  # with no id. Each tab renders only its own `:if`-gated panel, so we assert the
+  # always-present contract (member line + all 6 tab links) plus the active tab's
+  # panel selectors per tab, then daisyUI-retirement. The `:if`-only selectors
+  # (tus-upload-error / image-upload-asset-id / mux-streaming-url) render only
+  # after a handler fires — they are the behavior specs' backstop, NOT asserted
+  # statically. The a11y shape (routed links, not a tablist) is pinned once.
+  test "/upload preserves its frozen contract and retires daisyUI across all tabs", %{conn: conn} do
+    for tab <- ~w(image tus video multipart liveview mux) do
+      html = render_route(conn, ~p"/upload?tab=#{tab}")
+
+      # always-present (every tab): the member line + all 6 tab links + .ck shell
+      assert_frozen_contract(html, [
+        ~s(data-testid="upload-member-name"),
+        ~s(id="upload-member-name"),
+        ~s(data-testid="upload-tab-image"),
+        ~s(data-testid="upload-tab-tus"),
+        ~s(data-testid="upload-tab-video"),
+        ~s(data-testid="upload-tab-multipart"),
+        ~s(data-testid="upload-tab-liveview"),
+        ~s(data-testid="upload-tab-mux")
+      ])
+
+      # active-panel selectors per tab (only the :if-rendered panel is in the DOM)
+      assert_frozen_contract(html, panel_contract(tab))
+
+      # routed-tab a11y shape: links carry aria-current, NOT a role=tablist/tab
+      assert html =~ ~s(aria-current="page"),
+             "expected the active routed tab to carry aria-current=\"page\""
+
+      refute html =~ ~s(role="tablist"),
+             "the routed tab strip must be navigation links, not a role=tablist"
+
+      refute html =~ ~s(role="tab"),
+             "the routed tab strip must be navigation links, not role=tab"
+
+      assert_daisyui_retired(html)
+    end
+  end
+
+  defp panel_contract("image"),
+    do: [
+      ~s(id="image-upload-panel"),
+      ~s(data-testid="image-upload-status"),
+      ~s(id="image-file-input"),
+      ~s(phx-hook="PresignedPut")
+    ]
+
+  defp panel_contract("tus"),
+    do: [
+      ~s(id="tus-upload-panel"),
+      ~s(data-testid="tus-upload-status"),
+      ~s(id="tus-form"),
+      ~s(phx-submit="save_tus"),
+      ~s(id="tus-submit")
+    ]
+
+  defp panel_contract("video"),
+    do: [
+      ~s(id="video-upload-panel"),
+      ~s(data-testid="video-upload-status"),
+      ~s(id="video-file-input"),
+      ~s(phx-hook="PresignedVideoPut")
+    ]
+
+  defp panel_contract("multipart"),
+    do: [
+      ~s(id="multipart-upload-panel"),
+      ~s(data-testid="multipart-upload-status"),
+      ~s(id="multipart-upload-button"),
+      ~s(phx-hook="MultipartUpload")
+    ]
+
+  defp panel_contract("liveview"),
+    do: [
+      ~s(id="liveview-upload-panel"),
+      ~s(data-testid="liveview-upload-status"),
+      ~s(id="liveview-form"),
+      ~s(phx-submit="save_liveview"),
+      ~s(id="liveview-submit")
+    ]
+
+  defp panel_contract("mux"),
+    do: [
+      ~s(id="mux-upload-panel"),
+      ~s(data-testid="mux-upload-status"),
+      ~s(id="mux-file-input"),
+      ~s(phx-hook="PresignedMuxPut")
+    ]
 end
