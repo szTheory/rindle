@@ -2,9 +2,11 @@
 phase: 98-admin-level-3-page-composition-motion-mobile-a11y-ia-microco
 reviewed: 2026-06-18T00:00:00Z
 depth: standard
-files_reviewed: 10
+files_reviewed: 13
 files_reviewed_list:
+  - brandbook/admin-gallery/index.html
   - brandbook/src/admin-css-build.mjs
+  - brandbook/tokens/rindle-admin.css
   - lib/rindle/admin/components.ex
   - lib/rindle/admin/live/actions_live.ex
   - lib/rindle/admin/live/assets_live.ex
@@ -14,161 +16,217 @@ files_reviewed_list:
   - lib/rindle/admin/live/variants_jobs_live.ex
   - lib/rindle/admin/queries.ex
   - lib/rindle/admin/router.ex
+  - priv/static/rindle_admin/rindle-admin.css
 findings:
-  critical: 3
-  warning: 6
+  critical: 0
+  warning: 4
   info: 4
-  total: 13
+  total: 8
 status: issues_found
 ---
 
 # Phase 98: Code Review Report
 
-**Reviewed:** 2026-06-18
+**Reviewed:** 2026-06-18T00:00:00Z
 **Depth:** standard
-**Files Reviewed:** 10
+**Files Reviewed:** 13
 **Status:** issues_found
 
 ## Summary
 
-Phase 98 builds the Level-3 admin page composition layer (scaffold, motion, mobile, a11y, IA, microcopy) on top of an in-package Phoenix LiveView admin console plus the brandbook generated-CSS build script. The router/queries auth and redaction parity hold up well: `variant_run_detail/1`, `asset_detail/1`, and `upload_session_detail/1` all funnel through the same redacted row builders (`redacted_session_uri/1`, `redacted_provider_id/1`), the `:show` routes cast every id through `Ecto.UUID.cast/1` before any query, and the static-asset plug fails closed on the `tokens.json` `:deny` sentinel.
+Phase 98 layers Level-3 page composition, motion, responsive behavior, and an
+overlay/focus contract onto the mountable Rindle Admin console. The generated CSS
+regenerates byte-identical from `admin-css-build.mjs` (no generator drift), the two
+CSS artifacts are identical, the gallery is self-consistent, and `mix compile
+--warnings-as-errors` passes clean.
 
-However, this phase ships three correctness BLOCKERs that defeat its own headline goals:
+The central new abstraction — the `modal`/`confirm_dialog` overlay primitive with
+its documented `show_modal`/`hide_modal` focus contract (push_focus → focus_first →
+pop_focus, plus server-assign-driven `inert`/`aria-hidden`) — is implemented
+correctly in `variants_jobs_live.ex` but is **bypassed** in `actions_live.ex`, the
+one surface that hosts the most consequential flow (GDPR owner/batch erasure). That
+is the most material finding. The remaining issues are a latent structural
+inconsistency in the Doctor error model, two cosmetic label/state mismatches on the
+Overview health chips, and a stray window-keydown listener on a permanently-mounted
+hidden dialog.
 
-1. **The "Needs attention" problems-first IA never fires** — the whole point of D-98-10 — because it reads count buckets with string keys against an atom-keyed counts map.
-2. **The modal/confirm-dialog focus contract inerts itself** — `@dialog_open` sets `inert` on `<main>`, but every modal is rendered *inside* `<main>`, so the dialog and its destructive-confirmation inputs become non-interactive the instant they open. This blocks owner erasure, batch erasure, and variant regeneration.
-3. **The overlay primitive has no CSS at all** — `.rindle-admin-overlay` / `.rindle-admin-overlay__backdrop` are referenced by the components but never emitted by the generator, so dialogs render inline with no positioning, no backdrop, and no z-index.
+No critical (data-loss / security / guaranteed-crash) defects were found. The
+erasure flow is gated server-side by a typed confirmation string regardless of the
+focus issue, and the router keeps its production auth fail-closed validation intact.
 
-Together, finding 2 + 3 mean the entire shared modal grammar (the central D-98-11 deliverable) is non-functional, and finding 1 means the home surface silently hides every actionable problem.
-
-## Critical Issues
-
-### CR-01: "Needs attention" task-list and all variant/asset count chips read string keys against an atom-keyed counts map (problems-first IA silently dead)
-
-**File:** `lib/rindle/admin/live/home_live.ex:107-147`, `lib/rindle/admin/live/variants_jobs_live.ex:140-148, 335`
-**Issue:** `Rindle.Ops.RuntimeStatus` builds every state-count map via `count_map/1`, which does `String.to_atom(state)` (`lib/rindle/ops/runtime_status.ex:609-613`). The counts map therefore has **atom** keys (`:failed`, `:quarantined`, `:expired`, ...) plus the atom `:total`. But the new code reads them with **string** keys:
-
-- `home_live.ex` `needs_attention/2` reads `count_value(model, [:counts, :variants, "failed"])`, `"stale"`, `count_value(model, [:counts, :assets, "quarantined"])`, `count_value(model, [:counts, :upload_sessions, "expired"])`, and `count_value(model, [:counts, :provider_assets, "orphaned"])` (`orphan_count/1`).
-- `variants_jobs_live.ex` summary `metadata_list` reads `count_value(@model, "failed")`, `"cancelled"`, `"stale"`, `"missing"`, `"queued"`, `"processing"`.
-
-`get_in(model, [:counts, :variants, "failed"])` and `Map.get(counts, "failed", 0)` never match `:failed`, so `problem/3` always receives the `nil`/`0` fallback and returns `nil`. The result: **the Needs-attention list is permanently empty** ("Nothing needs attention" renders even when assets are quarantined / runs are failing), and the Processing summary counters always read 0. This defeats the D-98-10 problems-first IA — the central goal of this phase's home surface.
-
-(Note: `:total` is read with the atom `:total` and works; that's why the totals block looks fine and masks the bug.)
-
-**Fix:** Read the buckets with atom keys (the counts map is atom-keyed):
-```elixir
-# home_live.ex
-problem(count_value(model, [:counts, :variants, :failed]), "failed processing runs", ...)
-problem(count_value(model, [:counts, :assets, :quarantined]), "quarantined assets", ...)
-problem(count_value(model, [:counts, :upload_sessions, :expired]), "expired upload sessions", ...)
-# orphan_count/1
-count_value(model, [:counts, :provider_assets, :orphaned]) + ...
-
-# variants_jobs_live.ex
-{"failed", count_value(@model, :failed)},
-{"cancelled", count_value(@model, :cancelled)}, ...
-```
-Add a test asserting a quarantined asset / failed run produces a non-empty `data-rindle-admin-needs-attention` list, since the symptom is a silent empty state. (Also confirm the variant DB enum actually has `:stale`/`:missing` states — those are finding-class names, not `MediaVariant.state` values, so they may need to come from `counts`-derived findings rather than `counts` directly.)
-
-### CR-02: `@dialog_open` inerts `<main>`, but every modal/confirm dialog is rendered inside `<main>` — opening a dialog disables the dialog itself
-
-**File:** `lib/rindle/admin/components.ex:70-84` (shell `inert`), `lib/rindle/admin/live/variants_jobs_live.ex:121,150-174`, `lib/rindle/admin/live/actions_live.ex:333,452-485,514-538`
-**Issue:** `shell/1` applies `inert={@dialog_open}` and `aria-hidden` to `<main>` (and `<nav>`). The documented contract (D-98-11) is that the modal sits *outside* the inerted region so focus can move into it. But all three dialog call-sites render the dialog **inside** the `<main>` content:
-
-- `variants_jobs_live.ex`: the `<.confirm_dialog id="regenerate-variants">` is inside the `<:summary>` slot of `<.page>`, which renders inside `<main>`. When `confirm_regenerate` opens it, `dialog_open=true` inerts `<main>` → the dialog (a descendant of `<main>`) and its "Regenerate variants" / "Cancel" buttons become inert and unclickable.
-- `actions_live.ex`: `dialog_open={@action_state == :preview}` and the owner-erasure `<.confirm_dialog>` (lines 459-482) is rendered inside the `:work` slot → inside `<main>`. Opening it inerts the confirmation `<input name="confirmation">` and the "Erase owner" submit, so the typed-confirmation gate can never be satisfied.
-
-`inert` disables the element **and all descendants**, so a modal nested under the inerted `<main>` is non-interactive precisely when shown. The shared modal grammar is the headline D-98-11 deliverable and it is non-functional for all three flows (owner erasure, batch erasure path via CR-03, variant regeneration).
-
-**Fix:** Render the dialog outside the inerted `<main>`/`<nav>` (e.g. as a sibling in `shell/1`, or hoist the overlay to the shell root via a slot), or stop inerting the subtree that contains the live modal. The simplest structural fix is to give `shell/1` a dedicated `:overlay` slot rendered as a sibling of `<main>` and move each surface's `confirm_dialog` into it.
-
-### CR-03: `actions_live` sets `dialog_open` true during batch-erasure preview, but batch preview renders an inline form (no modal) — the entire confirmation form is inerted with no overlay to host it
-
-**File:** `lib/rindle/admin/live/actions_live.ex:333,514-538`
-**Issue:** The shell receives `dialog_open={@action_state == :preview}` — true for *both* owner and batch erasure previews. Owner erasure preview renders a `confirm_dialog` (still broken per CR-02), but **batch erasure preview (`render_batch_erasure_state(%{action_state: :preview})`) renders a plain inline `<form>`**, not a modal/overlay. So when batch preview is active:
-- `<main>` is inerted and `aria-hidden="true"`.
-- The batch confirmation form (`name="confirmation"`, "Erase owners" submit) lives inside that inerted `<main>`.
-- There is no overlay element outside `<main>` to receive focus.
-
-Result: batch erasure can never be confirmed (the form is inert), and the whole surface is announced as `aria-hidden` to assistive tech with no dialog to compensate. This is both a functional dead-end and an a11y regression.
-
-**Fix:** Either route batch preview through the same `confirm_dialog` primitive (and fix CR-02 so dialogs live outside `<main>`), or stop setting `dialog_open` for the inline batch-preview state. Do not drive `inert` from a state that has no corresponding modal.
+## Narrative Findings (AI reviewer)
 
 ## Warnings
 
-### WR-01: Overlay/backdrop CSS is never generated — dialogs have no positioning, backdrop, or z-index
+### WR-01: Erasure confirm dialogs bypass the documented focus contract
 
-**File:** `brandbook/src/admin-css-build.mjs` (whole generator), referenced by `lib/rindle/admin/components.ex:288-322,340-376`
-**Issue:** `modal/1` and `confirm_dialog/1` emit `class="rindle-admin-overlay"` and `class="rindle-admin-overlay__backdrop"`, but the generator emits **no** `.rindle-admin-overlay` or `.rindle-admin-overlay__backdrop` rule (`grep` confirms 0 occurrences in the generated CSS and in the generator's `requiredSelectors`). The only visibility control is the inline `style={unless @show, do: "display: none;"}`. When shown, the overlay has no `position: fixed`, no centering, no dimmed backdrop, and no `z-index`, so the dialog renders inline in document flow underneath/within the page rather than as a true modal. Combined with CR-02 this makes the modal grammar visually broken as well as non-interactive.
+**File:** `lib/rindle/admin/live/actions_live.ex:429-481`, `502-521` (and `lib/rindle/admin/components.ex:256-422`)
+**Issue:** The owner- and batch-erasure `confirm_dialog`s are shown purely from the
+server assign — `render_action_overlay/2` renders them with `show={true}` once
+`action_state == :preview`, and the trigger is the plain `preview_owner_erasure` /
+`preview_batch_erasure` form submit. Neither `show_modal/2` nor any
+`JS.push_focus()` / `JS.focus_first` is ever chained on the open path, and the
+`:on_cancel` is a bare `JS.push("change_owner_erasure")` with no `hide_modal`. The
+`confirm_dialog` moduledoc (components.ex:256-289) explicitly documents that the
+primitive exists *because* it stashes the trigger, moves focus into the
+`focus_wrap`, and returns focus on close.
 
-**Fix:** Author `.rindle-admin-overlay` (fixed, full-viewport, flex-centered, high z-index) and `.rindle-admin-overlay__backdrop` (absolute inset-0, semi-opaque surface) in the Phase-98 section of `admin-css-build.mjs`, and add both to `requiredSelectors` so the parity self-check fails closed if they go missing again.
+Consequences in the erasure flow specifically:
+- On open, focus is never moved into the `role="alertdialog"` — keyboard and
+  screen-reader users land on a modal with focus stranded in the (now `inert`)
+  `<main>` behind it. `focus_wrap` only traps Tab *after* focus is inside, so the
+  trap never engages.
+- ESC / backdrop click invoke `hide_modal(@on_cancel, @id)` which calls
+  `JS.pop_focus()`, but `push_focus()` was never called, so focus return is a
+  no-op — focus is left wherever it happened to be.
 
-### WR-02: `.rindle-admin-target-min` is used as a class on ~30 elements but only exists as a custom property — the class is a silent no-op
+`variants_jobs_live.ex:133` correctly chains `show_modal("regenerate-variants") |>
+JS.push("open_regenerate")` and its cancel/confirm buttons chain `hide_modal(...)`.
+The actions surface should follow the same pattern.
 
-**File:** `brandbook/src/admin-css-build.mjs:89` (only `--rindle-admin-target-min` is emitted), referenced as a class in `components.ex:45,112-114,169,203` and every LiveView button/link (e.g. `assets_live.ex:133`, `home_live.ex:48`, `actions_live.ex:446`)
-**Issue:** The markup applies `class="... rindle-admin-target-min"` expecting a 44px hit-area, but the generator only defines the custom property `--rindle-admin-target-min: 44px;` — there is no `.rindle-admin-target-min { min-height: ... }` rule. Most carriers (`.rindle-admin-button`, `.rindle-admin-theme-picker__option`) already set `min-height` independently, so the visible result is usually fine, but the **skip link** (`components.ex:45`, `.rindle-admin-skip-link` has no min-height of its own) and any future bare element relying on this class will fail the 44px touch-target requirement that this phase is supposed to guarantee.
+**Fix:** Chain the focus commands onto the preview triggers and the cancel path, e.g.:
+```elixir
+# on the preview submit button, in addition to phx-submit="preview_owner_erasure",
+# open the overlay with focus management once the server flips to :preview:
+phx-click={show_modal("owner-erasure-confirm")}
+# and route the dialog's on_cancel through hide_modal so the trigger is restored:
+on_cancel={hide_modal(JS.push("change_owner_erasure"), "owner-erasure-confirm")}
+```
+Because visibility is server-assign driven (`show={true}` in `:preview`), issue
+`JS.push_focus()` + `JS.focus_first(to: "#...-content")` from the preview-submit
+click and route cancel/ESC through `hide_modal/2` so the trigger is stashed and
+restored symmetrically with the variants surface.
 
-**Fix:** Emit a real utility rule and assert it in `requiredSelectors`:
-```css
-.rindle-admin-target-min { min-height: var(--rindle-admin-target-min); min-width: var(--rindle-admin-target-min); }
+### WR-02: `empty_model/0` omits `runtime_checks`, inconsistent with `runtime_findings/1`
+
+**File:** `lib/rindle/admin/live/runtime_doctor_live.ex:138-149` (vs. `157-162`)
+**Issue:** `runtime_findings/1` reads `runtime_status.runtime_checks.findings`
+(line 161), but `empty_model/0`'s `runtime_status` map defines only `assets`,
+`variants`, `upload_sessions`, and `provider_assets` — no `runtime_checks` key. The
+real `RuntimeStatus.runtime_status/1` report *does* include `runtime_checks`
+(confirmed in `lib/rindle/ops/runtime_status.ex:51`), so the fallback model is
+structurally narrower than the contract its own render function consumes.
+
+This does not crash today only by accident of sequencing: at mount `empty_model` is
+assigned and then `load()` runs synchronously, replacing it with either the real
+model (`error?: false`) or `empty_model` paired with `error?: true` (which routes
+`page` to the `:error` branch and never renders the `:work` slot). If any future
+caller renders the `:work` slot while `model == empty_model()` and `error? == false`
+— e.g. a refactor that defers `load()`, or an added intermediate `:loading` model —
+`runtime_findings/1` raises `KeyError: key :runtime_checks not found`. The fallback
+shape should not silently diverge from the shape `render/1` requires.
+
+**Fix:** Add the missing key so the fallback is a true subset of the real report:
+```elixir
+runtime_status: %{
+  runtime_checks: %{counts: %{}, findings: []},
+  assets: %{counts: %{}},
+  variants: %{counts: %{}, findings: []},
+  upload_sessions: %{counts: %{}, findings: []},
+  provider_assets: %{counts: %{}, findings: []}
+}
 ```
 
-### WR-03: `runtime_doctor_live` `empty_model/0` omits `runtime_checks`, so `runtime_findings/1` would crash if ever rendered on the error/empty model
+### WR-03: Permanently-mounted hidden dialog leaves a global ESC listener attached
 
-**File:** `lib/rindle/admin/live/runtime_doctor_live.ex:138-149,157-162`
-**Issue:** `runtime_findings/1` evaluates `runtime_status.runtime_checks.findings`, but `empty_model/0`'s `runtime_status` map has no `:runtime_checks` key. Today this is not triggerable because `empty_model` is only assigned when `error?: true`, and `<.page state={:error}>` renders `error_state` instead of the `:work` slot that calls `runtime_findings/1`. It is a latent KeyError landmine: any future change that renders `:work` with the empty model (e.g. a loading state, or removing the error short-circuit) will crash with `key :runtime_checks not found`.
+**File:** `lib/rindle/admin/components.ex:299-308`, `351-360`; `lib/rindle/admin/live/variants_jobs_live.ex:227-253`
+**Issue:** `modal/1` and `confirm_dialog/1` put `phx-window-keydown={hide_modal(...)}`
++ `phx-key="escape"` on the outer overlay element, which is hidden via
+`style="display: none;"` when `@show` is false rather than removed from the DOM.
+`phx-window-keydown` binds to `window`, so the listener fires regardless of the
+element's display. In `variants_jobs_live.ex` the `regenerate-variants`
+`confirm_dialog` is rendered unconditionally (`show={@dialog_open}`), so when the
+dialog is closed, pressing Escape anywhere on the page (e.g. while typing in a
+filter field) still fires `hide_modal(...) |> JS.push("close_regenerate")`. The
+effect is benign today (`close_regenerate` just re-asserts `dialog_open: false`, and
+`pop_focus` with nothing stashed is a no-op), but it is a latent surprise: the page
+swallows Escape globally and round-trips a spurious server event on every Escape
+press. `actions_live.ex` is unaffected because its dialogs are only rendered in the
+`:preview` state.
 
-**Fix:** Add `runtime_checks: %{counts: %{}, findings: []}` to `empty_model/0`'s `runtime_status` so the shape matches `Rindle.Ops.RuntimeStatus` output.
+**Fix:** Gate the keydown binding on visibility, or only mount the dialog element
+when open. Either render the overlay element conditionally (`:if={@show}`) so the
+window listener exists only while open, or scope Escape handling to the
+focus-trapped dialog container (focus is inside it once WR-01 is honored) instead of
+a global `phx-window-keydown`.
 
-### WR-04: `confirm_regenerate` swallows the real error and fabricates a fake receipt (`errors: 1`)
+### WR-04: Health chip label/state can contradict each other on Overview
 
-**File:** `lib/rindle/admin/live/variants_jobs_live.ex:44-55`
-**Issue:** On `{:error, _}` from `regenerate_variants/1`, the handler synthesizes `%{enqueued: 0, skipped: 0, errors: 1}` and then renders "Variant regeneration queued. ... Errors: 1" with `live_status: "Variant regeneration queued."`. The operator is told the regeneration was *queued* and shown a fabricated count of exactly 1 error regardless of the actual failure (which could be a total refusal affecting hundreds of variants). This is misleading operational reporting for a maintenance action.
+**File:** `lib/rindle/admin/live/home_live.ex:188`, `205-209`
+**Issue:** `storage_state/1` returns `"warning"` when `doctor.failed > 0`, but
+`storage_label/1` is a constant that always returns `"Storage reachable"`. Likewise
+`lifecycle_label/1` always returns `"Lifecycle events flowing"` even when
+`lifecycle_state/1` resolves to `"info"` (no variants and no upload sessions, i.e.
+nothing is flowing). The result is a chip that renders a warning/neutral color with
+copy asserting the opposite ("Storage reachable" beside a warning chip; "Lifecycle
+events flowing" beside an info chip when nothing is flowing). On the operator's
+problems-first Overview this is actively misleading rather than merely cosmetic.
 
-**Fix:** On error, set an error banner / `action_error`-style assign and a truthful `live_status` ("Variant regeneration failed."), and do not present a fake success-shaped receipt. Surface the real reason (redacted as needed).
+**Fix:** Make each label a function of the same signal that drives its state, e.g.:
+```elixir
+defp storage_label(model) do
+  if (get_in(model, [:doctor, :failed]) || 0) > 0,
+    do: "Storage checks failing",
+    else: "Storage reachable"
+end
 
-### WR-05: `dialog_open` is not reset to false on `handle_params`/navigation, so a stale-open modal can persist across detail navigation
-
-**File:** `lib/rindle/admin/live/variants_jobs_live.ex:57-69`
-**Issue:** `handle_params` (both `:show` and index clauses) reassigns `filters`/`detail`/loads data but never resets `dialog_open`. If the regenerate dialog is open (`dialog_open: true`) and the user follows a deep link or filter `live_patch`, `handle_params` fires without clearing `dialog_open`, leaving `<main>` inert (CR-02) on the freshly navigated page with no visible dialog. The detail render clause (`render(%{detail: %{run: _run}})`) doesn't even pass `dialog_open` to the shell, so the index→detail transition can strand inert state inconsistently.
-
-**Fix:** Reset `dialog_open: false` in `handle_params` (both clauses), and pass `dialog_open` consistently to `shell/1` in every render clause.
-
-### WR-06: Home "Recent activity" / "Recent lifecycle activity" actually renders diagnostic recommendations, not lifecycle events
-
-**File:** `lib/rindle/admin/live/home_live.ex:66-76,149-161`
-**Issue:** The section is headed "Recent activity" with the empty copy "No recent lifecycle activity recorded," but `recent_activity/1` maps over `model.recommendations` (Doctor/diagnostic recommendations), humanizing `recommendation.class` as the "title". Recommendations are not a time-ordered activity feed; `Enum.take(5)` takes the first five recommendations in whatever order `build_recommendations` produced, not the most recent lifecycle events. The microcopy promises a lifecycle activity log this phase emphasizes (§F) but renders something semantically different, which will mislead operators triaging "what just happened."
-
-**Fix:** Either rename the section to reflect that it shows current diagnostic recommendations, or back it with an actual recent-events source ordered by timestamp. At minimum align the heading/empty copy with what is rendered.
+defp lifecycle_label(model) do
+  case lifecycle_state(model) do
+    "ready" -> "Lifecycle events flowing"
+    _ -> "No lifecycle events yet"
+  end
+end
+```
 
 ## Info
 
-### IN-01: `finding_label/1` second clause is unreachable dead code
+### IN-01: Confirmation prompt echoes untrimmed owner type/id
+
+**File:** `lib/rindle/admin/live/actions_live.ex:72-88`, `101`, `446`
+**Issue:** `preview_owner_erasure` stores the raw (untrimmed) `type`/`id` form
+values into `action_data`, and both the displayed confirmation prompt (`ERASE
+{@action_data.type}:{@action_data.id}`) and the `expected` string in
+`execute_owner_erasure` (`"ERASE #{type}:#{id}"`) use those raw values, so they stay
+in sync and the gate still works. But `parse_owner/2` trims before resolving the
+module, so an operator who enters `" User "` is asked to type a confirmation string
+with embedded leading/trailing spaces (`ERASE  User : 42 `), which is awkward and
+easy to mistype. Trim `type`/`id` before storing them in `action_data` so the
+displayed/expected confirmation string is the canonical (trimmed) form.
+
+### IN-02: `finding_label/1` has no fallback clause
 
 **File:** `lib/rindle/admin/live/runtime_doctor_live.ex:164-165`
-**Issue:** `finding_label(%{class: class})` matches first; all findings produced by `RuntimeStatus` carry `:class`, so `finding_label(%{state: state})` is never reached.
-**Fix:** Remove the dead clause, or document why a class-less finding shape is expected.
+**Issue:** `finding_label/1` pattern-matches only `%{class: class}` and
+`%{state: state}`. A finding map carrying neither key would raise
+`FunctionClauseError` during render. In practice `summarize_findings` always emits a
+`:class`, so this is low-risk, but a defensive trailing clause (`defp
+finding_label(_), do: "finding"`) would make render robust to upstream shape changes.
 
-### IN-02: Duplicate `@impl true` annotations on multi-clause `handle_event`
+### IN-03: `home_live` health chips repeat the same `doctor.failed` signal
 
-**File:** `lib/rindle/admin/live/actions_live.ex:31,49,71,90,125,147,166` (and similar)
-**Issue:** `@impl true` is repeated before several `handle_event` clauses of the same callback; only the first is needed and the compiler warns on redundant `@impl`. Cosmetic but produces warning noise.
-**Fix:** Keep a single `@impl true` before the first clause of each callback group.
+**File:** `lib/rindle/admin/live/home_live.ex:190-209`
+**Issue:** Both `doctor_state/1` and `storage_state/1` derive entirely from
+`doctor.failed > 0`, so the "Doctor checks" and "Storage" chips are perfectly
+correlated and never disagree — the storage chip carries no independent
+information. This is a modeling smell on the problems-first dashboard (two chips
+implying two signals where there is one). If storage reachability has a distinct
+Doctor check id, key the storage chip off that specific check rather than the
+aggregate failure count.
 
-### IN-03: `error_state/1` reuses `.rindle-admin-empty-state` class with an error data-attr
+### IN-04: Duplicated visually-hidden recipe in generated CSS
 
-**File:** `lib/rindle/admin/components.ex:197-206`
-**Issue:** `error_state/1` renders `class="rindle-admin-empty-state"` while carrying `data-rindle-admin-error-state`. The visual error styling lives only on the `[data-rindle-admin-error-state]` attribute selector, so the element simultaneously matches the empty-state class rule and the error attribute rule. It works due to attribute-selector specificity, but mixing the empty-state class onto the error component is confusing and fragile if the empty-state rule changes.
-**Fix:** Use a dedicated `.rindle-admin-error-state` class (or no class, relying solely on the attribute) so the two states don't share a class name.
-
-### IN-04: `format_value/1` renders arbitrary terms via `to_string/1`, which will raise for non-`String.Chars` values
-
-**File:** `lib/rindle/admin/components.ex:472-476`
-**Issue:** The catch-all `def format_value(value), do: to_string(value)` will raise `Protocol.UnprotocolError`/`ArgumentError` for maps, lists, tuples, or PIDs. Current callers feed scalars (ids, states, integers, datetimes), so it's safe today, but `metadata_list`/`detail_table` are generic and a future caller passing a map (e.g. `playback_ids`) would crash the render.
-**Fix:** Add a defensive clause for non-`String.Chars` terms: `def format_value(value), do: inspect(value)` as the final fallback (or guard the generic table inputs).
+**File:** `brandbook/src/admin-css-build.mjs:1087-1095` and `1170-1179`
+**Issue:** The `.rindle-admin-visually-hidden` utility and the stacked-table
+`thead` hide block emit the identical clip / clip-path / 1px recipe twice. The
+generator comment at 1082-1086 acknowledges this ("authored once here so any
+element can opt into accessible-but-invisible"), yet the `thead` rule re-inlines the
+same declarations instead of reusing the utility. Not a correctness defect, but a
+maintenance hazard: a future change to the visually-hidden recipe must be made in
+two places or the table-hide will silently drift. Factor the shared declarations
+into one emitter so both consumers stay in lockstep.
 
 ---
 
-_Reviewed: 2026-06-18_
+_Reviewed: 2026-06-18T00:00:00Z_
 _Reviewer: Claude (gsd-code-reviewer)_
 _Depth: standard_
