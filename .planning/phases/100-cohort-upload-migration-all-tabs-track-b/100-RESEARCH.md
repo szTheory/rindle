@@ -403,13 +403,15 @@ end
 | A3 | Using `.ck-output` (scroll, `white-space: pre`) for the long `mux-streaming-url` is acceptable (no wrapping) | Mux-URL caveat | LOW — CONTEXT explicitly permits scroll; wrapping would need a new rule (out of the one-rule budget). Confirm visually in the mux polish case. |
 | A4 | `load_member!(nil)` lets every `?tab=X` polish/contract route render without a seeded member id | harness plan | LOW — VERIFIED at `upload_live.ex:469` (`Accounts.list_members() |> List.first()`). The lane seeds members, so the fallback resolves. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Dark-case mechanism (the only real open decision).** See Pitfall F / A1.
    - What we know: `ck_page` always emits explicit `data-theme`; the dark `@media` fallback does NOT apply under an explicit `[data-theme]` (verified). So `emulateMedia({colorScheme:"dark"})` alone won't prove `/upload` in dark.
    - Recommendation: drive the dark case via a validated server `?theme=dark` assign (option 1) so the surface is actually proven in dark. Resolve in planning. (All three options are within scope; option 1 is the faithful COHORT-02 read.)
+   - **RESOLVED:** option 1 (server-driven `?theme=dark`, enum-validated `~w(light dark)`, default light) — implemented in 100-01 Task 2 (the `handle_params` `?theme` read) and proven by 100-02 Task 1's dark image-tab polish case (asserts `[data-ck-root][data-theme="dark"]`, with an `emulateMedia` negative guard).
 
 2. **`@retired_daisyui_classes` extension scope.** The existing list misses `tabs`, `text-red-600`, the standalone `tab ` token, and `break-all`. Recommendation: add exactly those (+ optionally `flex flex-wrap`) before the `/upload` contract test, so the daisyUI-retirement gate is complete for this page (Pitfall E). Low risk; mechanical.
+   - **RESOLVED:** add `tabs`, `text-red-600`, `~s( tab )` (the standalone `tab ` token), and `break-all` — implemented in 100-01 Task 1, before the `/upload` per-tab retirement assertion.
 
 ## Environment Availability
 
