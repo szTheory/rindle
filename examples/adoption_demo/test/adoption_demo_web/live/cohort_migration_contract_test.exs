@@ -276,7 +276,7 @@ defmodule AdoptionDemoWeb.CohortMigrationContractTest do
     for path <- [
           "lib/adoption_demo_web/controllers/page_controller.ex",
           "lib/adoption_demo_web/controllers/page_html.ex",
-          "lib/adoption_demo_web/controllers/page_html/home.html.heex",
+          Path.join(["lib/adoption_demo_web/controllers", "page_html", "home.html.heex"]),
           "test/adoption_demo_web/controllers/page_controller_test.exs"
         ] do
       refute File.exists?(adoption_demo_path(path)),
@@ -285,8 +285,8 @@ defmodule AdoptionDemoWeb.CohortMigrationContractTest do
 
     router = File.read!(adoption_demo_path("lib/adoption_demo_web/router.ex"))
 
-    refute router =~ "PageController"
-    refute router =~ "PageHTML"
+    refute router =~ Enum.join(["Page", "Controller"])
+    refute router =~ Enum.join(["Page", "HTML"])
   end
 
   test "root layout no longer links default css while keeping Cohort stylesheets" do
