@@ -81,6 +81,16 @@ and §F operator-voice microcopy landed. Post-execution code review caught and f
 Playwright lane is enforced by the merge-blocking CI `adoption-demo-e2e` job, and 6 WARNING-level
 items (WR-02..WR-06) are tracked as follow-ups in `98-REVIEW.md`.
 
+Phase 100 (Cohort `/upload` migration, all tabs — COHORT-02) completed 2026-06-18. The heaviest
+inner page (6 tabs, 4 `phx-hook` upload flows, 2 forms) is restyled onto the `.ck-*` Cohort DS
+class-by-class with a byte-for-byte frozen DOM contract; the routed tab strip is now `<.link patch>`
++ `aria-current` and the tus error is announced (`role="alert"`). Verified passed (11/11 truths):
+the per-tab frozen-contract + daisyUI-retirement ExUnit gate is green (9/0), and the full Playwright
+lane (7 `/upload` polish cases incl. dark + the 6 upload behavior specs incl. tus-resume deep link
+and the mux cassette) ran green (21/0). A verifier caught a deterministic contract-test defect
+(an over-broad daisyUI-retirement literal substring-matching the DS's own `ck-tabs`/`ck-tab` classes)
+that the executor SUMMARY had mis-labeled as infra-delegated; fixed in `95b92cf`.
+
 **v1.16 shipped:** Merge-blocking `proof` CI job (CI-03) runs `docs_parity_test.exs` and
 `batch_owner_erasure_task_test.exs`; TusPlug moduledoc parity lock (TRUTH-05); planning
 artifact cleanup (PLAN-01). Closes v1.15 audit CI-01/PROOF-06 integration depth and
@@ -842,4 +852,4 @@ This document evolves at phase transitions and milestone boundaries.
    (`workflow.milestone_boundary.block_feature_milestone_without_signal`)
 
 ---
-*Last updated: 2026-06-18 — Phase 98 (Admin Level-3, UPLIFT-03..08) completed; 3 code-review blockers fixed with regression tests, live e2e delegated to merge-blocking CI. Phase 94 foundation completed and verified; `brandbook-tokens` is merge-blocking in CI and branch protection. v1.19 Design-System Stress-Test remains active over un-closed v1.18 (tech_debt, HUMAN-UAT pending) by recorded maintainer decision.*
+*Last updated: 2026-06-18 — Phase 100 (Cohort `/upload` migration, all tabs — COHORT-02) completed and verified passed (11/11 truths: ExUnit frozen-contract gate 9/0 + full Playwright lane 21/0); a verifier-caught contract-test defect was fixed in `95b92cf`. Phase 98 (Admin Level-3, UPLIFT-03..08) completed; 3 code-review blockers fixed with regression tests, live e2e delegated to merge-blocking CI. Phase 94 foundation completed and verified; `brandbook-tokens` is merge-blocking in CI and branch protection. v1.19 Design-System Stress-Test remains active over un-closed v1.18 (tech_debt, HUMAN-UAT pending) by recorded maintainer decision.*
