@@ -106,6 +106,13 @@ defmodule AdoptionDemoWeb.CohortMigrationContractTest do
     :ok
   end
 
+  defp occurrence_count(html, literal) do
+    html
+    |> String.split(literal)
+    |> length()
+    |> Kernel.-(1)
+  end
+
   # --- Wave-0 smoke test ----------------------------------------------------
   # Proves the shared helpers compile and run against /styleguide — which already
   # renders the .ck shell (data-ck-root) + .ck-* primitives and carries no
@@ -119,6 +126,22 @@ defmodule AdoptionDemoWeb.CohortMigrationContractTest do
     ])
 
     assert_daisyui_retired(html)
+  end
+
+  # --- Plan 101-02: layout wrapper retirement contract ----------------------
+  test "Layouts.app renders bare Cohort chrome without Tailwind width or padding wrapper", %{
+    conn: conn
+  } do
+    html = render_route(conn, ~p"/dashboard")
+
+    assert occurrence_count(html, ~s(<nav class="ck-nav")) == 1
+    assert occurrence_count(html, "<main>") == 1
+    assert occurrence_count(html, ~s(<footer class="ck-footer")) == 1
+    assert occurrence_count(html, ~s(id="flash-group")) == 1
+
+    refute html =~ ~s(<main class="px-4 py-8)
+    refute html =~ ~s(class="mx-auto max-w-3xl)
+    refute html =~ "space-y-4"
   end
 
   # --- Plan 101-01: flash retirement contract ------------------------------
