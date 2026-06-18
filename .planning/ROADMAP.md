@@ -386,7 +386,15 @@ Plans:
 3. Each migrated page's existing behavior e2e specs stay green, and a Cohort screenshot/polish
    case is added per page.
 
-**Plans:** TBD
+**Plans:** 5 plans
+
+Plans:
+- [ ] 99-01-PLAN.md — Wave-0 enablers: `ck_page/1` scaffold + token-only `.ck-output` rule + shared `cohort-pages.spec.js` polish harness + ExUnit frozen-contract/daisyUI-retirement module
+- [ ] 99-02-PLAN.md — `/dashboard` migration (COHORT-01); load-bearing member-row contract
+- [ ] 99-03-PLAN.md — `/ops` + `/account` migration (COHORT-03/04); `.ck-btn` + `.ck-output` `<pre>` panels
+- [ ] 99-04-PLAN.md — member + lesson migration (COHORT-04); picture/video tags + variant lists
+- [ ] 99-05-PLAN.md — post + media migration (COHORT-04); media `<dl>` restyle-in-place + variant list
+
 **UI hint:** yes
 
 ---

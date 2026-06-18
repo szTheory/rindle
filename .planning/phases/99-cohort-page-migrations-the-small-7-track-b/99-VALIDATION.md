@@ -1,8 +1,8 @@
 ---
 phase: 99
 slug: cohort-page-migrations-the-small-7-track-b
-status: draft
-nyquist_compliant: false
+status: planned
+nyquist_compliant: true
 wave_0_complete: false
 created: 2026-06-18
 ---
