@@ -453,6 +453,22 @@
 .ck-cred__value--link:hover {
   text-decoration: underline;
 }
+
+/* ---- code / debug-output panel ----------------------------------------- */
+/* Token-only surface for the ops/account `<pre>` inspect-output panels
+   (D-96-09/20). Mirrors the `.ck-cred__value` code-surface token set; every
+   value is a `var(--ck-*)` — no hex/rgb/named-color or raw measure literal. */
+.ck-output {
+  font-family: var(--ck-font-mono);
+  font-size: var(--ck-step--1);
+  color: var(--ck-code-ink);
+  background: var(--ck-code-bg);
+  border: 1px solid var(--ck-border);
+  border-radius: var(--ck-radius-sm);
+  padding: var(--ck-3) var(--ck-4);
+  overflow-x: auto;
+  white-space: pre;
+}
 .ck-copy {
   flex: none;
   display: inline-grid;

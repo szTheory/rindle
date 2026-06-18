@@ -58,6 +58,38 @@ defmodule AdoptionDemoWeb.CohortComponents do
     """
   end
 
+  @doc """
+  Page scaffold — the Cohort analog of Phase 98's `page/1` (D-98-01). Renders the
+  per-page `.ck` shell that all migrated inner pages share: the `.ck` div carrying
+  `data-ck-root` (the polish-gate / theme root — on this div, NEVER on `<body>`,
+  D-96-05) and a SERVER-owned `data-theme` (default `"light"`, D-96-07/16), the
+  `.ck__wrap` content column, and a canonical `.ck-hero` header (required `:title`,
+  optional `:eyebrow`/`:lede`). The page body goes in `:inner_block`. Page chrome
+  (`cohort_nav`/`cohort_footer`) stays in `Layouts.app` — NOT here. Uses only HEEx
+  `{...}` interpolation (auto-escaped); introduces no `raw/1`.
+  """
+  attr :title, :string, required: true
+  attr :eyebrow, :string, default: nil
+  attr :lede, :string, default: nil
+  attr :theme, :string, default: "light", values: ~w(light dark)
+  attr :rest, :global
+  slot :inner_block, required: true
+
+  def ck_page(assigns) do
+    ~H"""
+    <div class="ck" data-ck-root data-theme={@theme} {@rest}>
+      <div class="ck__wrap">
+        <header class="ck-hero">
+          <span :if={@eyebrow} class="ck-eyebrow">{@eyebrow}</span>
+          <h1 class="ck-hero__title">{@title}</h1>
+          <p :if={@lede} class="ck-hero__lede">{@lede}</p>
+        </header>
+        {render_slot(@inner_block)}
+      </div>
+    </div>
+    """
+  end
+
   @doc "A primary or quiet pill button. Renders an `<a>` when `:href` is given."
   attr :href, :string, default: nil
   attr :variant, :string, default: "quiet", values: ~w(primary quiet)
