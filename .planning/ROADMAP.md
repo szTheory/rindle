@@ -418,8 +418,14 @@ hook-dense upload flows.
 3. A light/dark screenshot + polish case covers the upload surface.
 
 **Plans:** 2 plans
+**Wave 1**
+
 - [ ] 100-01-PLAN.md — Migrate upload_live.ex onto ck_page/1 + .ck-* (class-by-class, frozen contract); the one aria-current CSS rule; validated ?theme read; extend @retired_daisyui_classes + the per-tab ExUnit frozen-contract/retirement test
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 100-02-PLAN.md — 6 per-tab + 1 dark /upload polish cases in cohort-pages.spec.js; confirm the 6 behavior specs + full lane stay green
+
 **UI hint:** yes
 
 ---
