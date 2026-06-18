@@ -295,9 +295,11 @@ defmodule AdoptionDemoWeb.CohortMigrationContractTest do
     assert root =~ ~s(~p"/assets/css/app.css")
     assert root =~ ~s(~p"/assets/cohort.css")
     refute root =~ "default.css"
+  end
 
-    assert File.exists?(adoption_demo_path("priv/static/assets/default.css")),
-           "default.css must remain committed until the final destructive plan"
+  test "default css asset is deleted and stays deleted" do
+    refute File.exists?(adoption_demo_path("priv/static/assets/default.css")),
+           "default.css must stay deleted after the final destructive retirement plan"
   end
 
   # --- Plan 02: /dashboard frozen-contract + daisyUI-retirement -------------
