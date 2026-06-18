@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.19
 milestone_name: Design-System Stress-Test
 status: executing
-stopped_at: Completed 101-01-PLAN.md
-last_updated: "2026-06-18T20:07:48Z"
-last_activity: 2026-06-18 -- Phase 101 Plan 01 completed
+stopped_at: Completed 101-02-PLAN.md
+last_updated: "2026-06-18T20:21:10.679Z"
+last_activity: 2026-06-18 -- Phase 101 Plan 02 completed
 progress:
   total_phases: 17
   completed_phases: 15
   total_plans: 63
-  completed_plans: 60
+  completed_plans: 61
   percent: 88
 ---
 
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-06-14)
 ## Current Position
 
 Phase: 101 (daisyui-retirement-track-b) — EXECUTING
-Plan: 2 of 4
-Status: Executing Phase 101
-Last activity: 2026-06-18 -- Phase 101 Plan 01 completed
+Plan: 3 of 4
+Status: Ready to execute
+Last activity: 2026-06-18 -- Phase 101 Plan 02 completed
 
 ## Current Milestone
 
@@ -61,9 +61,9 @@ inner pages, in service of real user flows.
 
 ## Next Step
 
-**Execute Phase 101 Plan 02.** Plan 01 retired the shared flash/alert surface from daisyUI and
-Heroicon CSS-mask dependencies. Continue with the layout/dead generator cleanup before the
-`default.css` link and asset deletion plans.
+**Execute Phase 101 Plan 03.** Plan 02 removed the shared Tailwind layout wrapper and deleted the
+dead generator landing scaffold. Continue with the next daisyUI retirement gate before the final
+`default.css` link and asset deletion plan.
 
 ## Accumulated Context
 
@@ -186,6 +186,7 @@ Heroicon CSS-mask dependencies. Continue with the layout/dead generator cleanup 
 - [Phase ?]: 100-01: /upload migrated onto ck_page/1 + .ck-* across all 6 tabs; routed tab links + aria-current (no role=tablist/ck_tabs); tab_class/2 deleted; tus error = .ck-error+icon+role=alert; validated ?theme=dark enum-gated read enables Plan 02; one new token-only CSS rule; per-tab contract test (DB lane CI-delegated)
 - [Phase ?]: 100-02: /upload proven at runtime — 6 per-tab + 1 dark polish case in cohort-pages.spec.js reusing assertCohortPagePolish UNCHANGED (D-96-06); dark drives server ?theme=dark not media emulation; 6 behavior specs incl tus-resume ?tab=tus ran GREEN LOCALLY (supersedes Plan-01 CI-delegation); contrast 28/28; COHORT-02 SC1/SC2/SC3 closed
 - [Phase 101]: Plan 01 — shared Phoenix flash/error paths now render Cohort `.ck-flash`/`.ck-alert` markup with inline currentColor SVGs, split polite/assertive ARIA semantics, keyed `lv:clear-flash` dismissal, and `.ck-btn` button defaults. The only new CSS primitive is token-backed `.ck-flash`/`.ck-alert` using local `--_accent` mapped to existing `--ck-info` / `--ck-quarantine`; no token values, `tokens.json`, admin CSS, package deps, or build steps changed.
+- [Phase 101]: Plan 02 — `Layouts.app/1` is now a bare app shell (nav, main slot, footer, flash) and routed page dimensions stay owned by each page's `ck_page/1` / `.ck__wrap`; dead Phoenix generator landing files (`PageController`, `PageHTML`, `home.html.heex`) and the obsolete controller test were deleted rather than migrated or scan-excluded.
 
 ## Blockers/Concerns
 
@@ -211,9 +212,9 @@ Heroicon CSS-mask dependencies. Continue with the layout/dead generator cleanup 
 
 ## Session Continuity
 
-Last session: 2026-06-18T18:03:12.598Z
-Stopped at: Completed 101-01-PLAN.md
-Resume file: .planning/phases/101-daisyui-retirement-track-b/101-02-PLAN.md
+Last session: 2026-06-18T20:21:10.674Z
+Stopped at: Completed 101-02-PLAN.md
+Resume file: None
 
 ## Performance Metrics
 
@@ -275,3 +276,4 @@ Resume file: .planning/phases/101-daisyui-retirement-track-b/101-02-PLAN.md
 | Phase 100 P01 | 8 min | 3 tasks | 3 files |
 | Phase Phase 100 PP02 | 12min | 2 tasks tasks | 1 files files |
 | Phase 101 P01 | 7 min | 3 tasks | 3 files |
+| Phase 101 P02 | 6 min | 2 tasks | 7 files |
