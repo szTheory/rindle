@@ -30,6 +30,9 @@ const CONTRAST_SLACK = 0.05; // float slack on the WCAG ratio comparison
 const OVERLAP_ENFORCED = true;
 
 // Union of interactive-control selectors (all confirmed present in the admin shell).
+// Phase 98 added the disclosure button, the sort-th control, and the stacked-row tap
+// target so assertFocusVisibleTokens / assertTargetSizes / assertFocusVisibleVsPointer
+// cover the Level-3 controls too.
 const DEFAULT_INTERACTIVE_SELECTORS = [
   "[data-rindle-admin-submit]",
   "[data-rindle-admin-input]",
@@ -40,6 +43,9 @@ const DEFAULT_INTERACTIVE_SELECTORS = [
   ".rindle-admin-actions-tab",
   "[data-rindle-admin-detail-link]",
   "[data-rindle-admin-action]",
+  ".rindle-admin-nav__disclosure",
+  ".rindle-admin-table__sort",
+  ".rindle-admin-table__row",
 ];
 
 // Per-surface, per-check opt-out. SHIP EMPTY — an allowlist that starts populated
@@ -568,6 +574,284 @@ async function assertNoHorizontalScroll(page, root = DEFAULT_ROOT) {
   );
 }
 
+// ===========================================================================
+// Phase 98 — the five NON-INFERABLE computed-style backstops (D-98-05/06).
+// Each is offender-returning (never throws); admin-root-only against DEFAULT_ROOT /
+// DEFAULT_INTERACTIVE_SELECTORS. No Cohort generalization, no warn->fail flip (Phase 102).
+// The viewport/media-dependent backstops (TwoPaneBand, StackedCard, ReducedMotion) mutate
+// global page state and are driven by a dedicated test in admin-screenshots.spec.js rather
+// than the per-capture assertAdminPolish runner; the per-state-safe backstops (DialogInert,
+// FocusVisible) register in the runner and ride existing captures.
+// ===========================================================================
+
+// ---------------------------------------------------------------------------
+// Backstop 1 — two-pane track count + 760-1023px band (§A<->§C, D-98-15, checker note 2)
+// ---------------------------------------------------------------------------
+// At >=1024px the two-pane region's computed grid-template-columns resolves to TWO
+// tracks; below 1024 it is ONE. Inside the 760-1023 band (safe literal ~900px) the shell
+// is the sidebar layout, :work is a single column, and there is NO side :aside (detail is
+// reached via :show routes). RETURNS offenders; never throws. Caller sets the viewport.
+async function assertTwoPaneBand(page, root = DEFAULT_ROOT) {
+  return page.evaluate(
+    ({ ROOT }) => {
+      const out = [];
+      const shell = document.querySelector(ROOT);
+      if (!shell) return [`no admin root (${ROOT})`];
+      const width = window.innerWidth;
+      const trackCount = (el) => {
+        const cols = getComputedStyle(el).gridTemplateColumns.trim();
+        if (!cols || cols === "none") return 0;
+        return cols.split(/\s+/).filter(Boolean).length;
+      };
+
+      // Two-pane region (only present on a surface that passes :aside). If absent on this
+      // surface that is fine — band reconciliation is asserted on the shell sidebar below.
+      const panes = document.querySelector(".rindle-admin-page--two-pane .rindle-admin-page__panes");
+      if (panes) {
+        const tracks = trackCount(panes);
+        if (width >= 1024 && tracks !== 2) {
+          out.push(`two-pane panes resolved ${tracks} tracks at ${width}px (expected 2 at >=1024)`);
+        }
+        if (width < 1024 && tracks > 1) {
+          out.push(`two-pane panes resolved ${tracks} tracks at ${width}px (expected 1 below 1024)`);
+        }
+      }
+
+      // 760-1023 band reconciliation: shell sidebar present (two-track shell grid), single
+      // -column work, NO side aside painted.
+      if (width >= 760 && width < 1024) {
+        const shellTracks = trackCount(shell);
+        if (shellTracks !== 2) {
+          out.push(`shell resolved ${shellTracks} tracks at ${width}px (expected 2-track sidebar in 760-1023 band)`);
+        }
+        const aside = document.querySelector(`${ROOT} .rindle-admin-page__aside`);
+        if (aside && getComputedStyle(aside).display !== "none" && aside.getBoundingClientRect().width > 0) {
+          out.push(`side :aside is painted at ${width}px (band expects detail via :show routes, no side aside)`);
+        }
+        const work = document.querySelector(`${ROOT} .rindle-admin-page__work`);
+        if (work && trackCount(work) > 1) {
+          out.push(`:work is multi-column at ${width}px (band expects single-column work)`);
+        }
+      }
+      return out;
+    },
+    { ROOT: root }
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Backstop 2 — stacked label:value cards (§C), td::before attr() resolution
+// ---------------------------------------------------------------------------
+// At <760 (use 759) the data table/tr/td compute display:block and each td::before
+// `content` resolves to its data-label; at >=760 (use 761) they are table/table-row/
+// table-cell with empty ::before. The 1023/1025 shell stop is covered by assertTwoPaneBand.
+// Also asserts NO column (State/Job) is display:none at any tested viewport. Caller sets
+// the viewport BEFORE calling so the @media query has settled. RETURNS offenders.
+async function assertStackedCard(page, root = DEFAULT_ROOT) {
+  return page.evaluate(
+    ({ ROOT }) => {
+      const out = [];
+      const width = window.innerWidth;
+      const stacked = width < 760;
+      const table = document.querySelector(`${ROOT} table.rindle-admin-table:not(.rindle-admin-table--sticky)`);
+      if (!table) return out; // surface without a non-sticky data table — nothing to assert
+
+      const row = table.querySelector("tbody tr");
+      const cell = row && row.querySelector("td[data-label]");
+      const expect = (el, label, want) => {
+        if (!el) return;
+        const got = getComputedStyle(el).display;
+        if (got !== want) out.push(`${label} display=${got} at ${width}px (expected ${want})`);
+      };
+
+      if (stacked) {
+        expect(table, "table", "block");
+        expect(row, "tr", "block");
+        expect(cell, "td", "block");
+        if (cell) {
+          const before = getComputedStyle(cell, "::before").content;
+          const label = cell.getAttribute("data-label");
+          // content resolves attr(data-label) -> the quoted label string.
+          if (!before || before === "none" || !before.includes(label)) {
+            out.push(`td::before="${before}" did not resolve data-label="${label}" at ${width}px`);
+          }
+        }
+      } else {
+        expect(table, "table", "table");
+        expect(row, "tr", "table-row");
+        expect(cell, "td", "table-cell");
+        if (cell) {
+          const before = getComputedStyle(cell, "::before").content;
+          if (before && before !== "none" && before !== '""' && before !== "normal") {
+            out.push(`td::before="${before}" should be empty at ${width}px (real table)`);
+          }
+        }
+      }
+
+      // No priority-column hiding: every header/cell must remain laid out (never display:none).
+      for (const el of table.querySelectorAll("th, td")) {
+        if (getComputedStyle(el).display === "none") {
+          out.push(`cell "${(el.textContent || "").trim().slice(0, 20)}" is display:none at ${width}px (no column hiding)`);
+        }
+      }
+      return out;
+    },
+    { ROOT: root }
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Backstop 3 — reduced-motion (§B), read UN-FROZEN (Pitfall 6)
+// ---------------------------------------------------------------------------
+// Under prefers-reduced-motion:reduce every animated catalog selector computes
+// transitionDuration "0s"; under no-preference it equals the token duration. CRITICAL:
+// this read MUST run un-frozen — freezeMotion injects transition:none and would pass it
+// vacuously. The caller applies emulateMedia and must NOT have injected the freeze style
+// (or must remove it). RETURNS offenders. `mode` is "reduce" | "no-preference".
+const REDUCED_MOTION_SELECTORS = [
+  ".rindle-admin-toast",
+  ".rindle-admin-confirm-dialog",
+  ".rindle-admin-skeleton",
+  ".rindle-admin-theme-picker__option",
+];
+async function assertReducedMotion(page, mode, root = DEFAULT_ROOT) {
+  return page.evaluate(
+    ({ ROOT, MODE, SELECTORS }) => {
+      const out = [];
+      // Guard against a leftover freeze style making the read vacuous (Pitfall 6).
+      if (document.getElementById("__admin_polish_freeze__")) {
+        return ["reduced-motion read ran with freezeMotion active (vacuous) — remove the freeze style first"];
+      }
+      const scope = document.querySelector(ROOT) || document;
+      for (const selector of SELECTORS) {
+        const el = scope.querySelector(selector) || document.querySelector(selector);
+        if (!el) continue;
+        const dur = getComputedStyle(el).transitionDuration;
+        const zero = /^0s(,\s*0s)*$/.test(dur.trim());
+        if (MODE === "reduce" && !zero) {
+          out.push(`${selector} transitionDuration=${dur} under reduce (expected 0s)`);
+        }
+        if (MODE === "no-preference" && zero) {
+          out.push(`${selector} transitionDuration=${dur} under no-preference (expected token duration, not 0s)`);
+        }
+      }
+      return out;
+    },
+    { ROOT: root, MODE: mode, SELECTORS: REDUCED_MOTION_SELECTORS }
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Backstop 4 — dialog inert / aria-hidden reset-on-close + survives reconnect (§D, D-98-11)
+// ---------------------------------------------------------------------------
+// With a confirm dialog OPEN: main+nav carry inert AND aria-hidden; the dialog has
+// role dialog|alertdialog + aria-modal + aria-labelledby. This reads the CURRENTLY-open
+// dialog state. The reset-on-close and reconnect-safety are asserted by the caller closing
+// the dialog / reloading and re-invoking with `expectOpen=false`. RETURNS offenders.
+async function assertDialogInert(page, { expectOpen, root = DEFAULT_ROOT } = {}) {
+  return page.evaluate(
+    ({ ROOT, EXPECT_OPEN }) => {
+      const out = [];
+      const main = document.querySelector(".rindle-admin-shell__main");
+      const nav = document.querySelector('[data-rindle-admin-component="nav"]');
+      const landmarkInert = (el, name) => {
+        if (!el) {
+          out.push(`missing landmark ${name}`);
+          return;
+        }
+        const inert = el.hasAttribute("inert");
+        const hidden = el.getAttribute("aria-hidden") === "true";
+        if (EXPECT_OPEN) {
+          if (!inert) out.push(`${name} not inert while dialog open`);
+          if (!hidden) out.push(`${name} not aria-hidden while dialog open`);
+        } else {
+          // The critical landmine: after close / on reconnect, main must NOT be left inert.
+          if (inert) out.push(`${name} left inert while dialog CLOSED (reconnect landmine)`);
+          if (hidden) out.push(`${name} left aria-hidden while dialog CLOSED`);
+        }
+      };
+      landmarkInert(main, "main");
+      landmarkInert(nav, "nav");
+
+      if (EXPECT_OPEN) {
+        const dialog = document.querySelector("[data-rindle-admin-dialog]");
+        if (!dialog) {
+          out.push("no open [data-rindle-admin-dialog] found while dialog expected open");
+        } else {
+          const role = dialog.getAttribute("role");
+          if (role !== "dialog" && role !== "alertdialog") {
+            out.push(`dialog role="${role}" (expected dialog|alertdialog)`);
+          }
+          if (dialog.getAttribute("aria-modal") !== "true") out.push("dialog missing aria-modal=true");
+          if (!dialog.getAttribute("aria-labelledby")) out.push("dialog missing aria-labelledby");
+        }
+      }
+      return out;
+    },
+    { ROOT: root, EXPECT_OPEN: !!expectOpen }
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Backstop 5 — :focus-visible (keyboard) vs pointer focus differentiation (§D)
+// ---------------------------------------------------------------------------
+// Keyboard :focus-visible yields outline 2px solid var(--rindle-focus-ring) + 2px offset
+// with the ring color matching per data-theme; a pointer (mouse) focus yields NO ring.
+// Drives the FIRST visible+enabled control of each selector. RETURNS offenders.
+async function assertFocusVisibleVsPointer(page, interactiveSelectors = DEFAULT_INTERACTIVE_SELECTORS) {
+  const offenders = [];
+  for (const selector of interactiveSelectors) {
+    const locator = page.locator(selector);
+    if ((await locator.count()) === 0) continue;
+    const item = locator.first();
+    if (!(await item.isVisible().catch(() => false))) continue;
+    if (await item.isDisabled().catch(() => false)) continue;
+
+    // Keyboard focus -> :focus-visible should paint the ring.
+    const kb = await item.evaluate((el) => {
+      el.focus({ focusVisible: true });
+      const s = getComputedStyle(el);
+      const root = getComputedStyle(document.documentElement);
+      return {
+        width: s.outlineWidth,
+        style: s.outlineStyle,
+        expectedWidth: root.getPropertyValue("--rindle-focus-width").trim(),
+        expectedOffset: root.getPropertyValue("--rindle-focus-offset").trim(),
+        offset: s.outlineOffset,
+        matchesFV: el.matches(":focus-visible"),
+      };
+    });
+    if (kb.matchesFV) {
+      if (kb.width !== kb.expectedWidth) {
+        offenders.push(`${selector} keyboard outlineWidth=${kb.width} != ${kb.expectedWidth}`);
+      }
+      if (kb.offset !== kb.expectedOffset) {
+        offenders.push(`${selector} keyboard outlineOffset=${kb.offset} != ${kb.expectedOffset}`);
+      }
+      if (kb.style === "none") {
+        offenders.push(`${selector} keyboard focus painted no outline (:focus-visible expected ring)`);
+      }
+    }
+
+    // Pointer focus -> NO :focus-visible ring. Blur, then mouse-click to focus.
+    await item.evaluate((el) => el.blur());
+    await item.click({ trial: false }).catch(() => {});
+    const ptr = await item.evaluate((el) => {
+      const focused = document.activeElement === el;
+      const s = getComputedStyle(el);
+      return { focused, matchesFV: el.matches(":focus-visible"), width: s.outlineWidth, style: s.outlineStyle };
+    });
+    if (ptr.focused && ptr.matchesFV) {
+      // A pointer-focused control that still reports :focus-visible (and a real ring) is the
+      // negative defect this backstop exists to catch.
+      if (ptr.style !== "none" && ptr.width !== "0px") {
+        offenders.push(`${selector} pointer focus painted a ring (outline ${ptr.width} ${ptr.style}; expected none)`);
+      }
+    }
+  }
+  return offenders;
+}
+
 // ---------------------------------------------------------------------------
 // Orchestrator
 // ---------------------------------------------------------------------------
@@ -606,6 +890,18 @@ async function assertAdminPolish(
   });
   await run("stableDimensions", "stable-dimensions", () => assertStableDimensions(page));
 
+  // Phase 98 backstop 4 (dialog inert reset): rides EVERY capture as a read-only DOM check.
+  // It auto-detects whether a dialog is currently open and asserts the inert/aria-hidden
+  // contract for that state — so the dozens of regular (closed) captures continuously prove
+  // the reconnect-landmine invariant that main is NEVER left inert, and the owner-preview
+  // capture proves the open-state inert + role/aria-modal/aria-labelledby contract.
+  const dialogOpen = await page.evaluate(
+    () => !!document.querySelector("[data-rindle-admin-dialog]")
+  );
+  await run("dialogInert", "dialog-inert", () =>
+    assertDialogInert(page, { expectOpen: dialogOpen, root })
+  );
+
   if (warnings.length) {
     // eslint-disable-next-line no-console
     console.warn(
@@ -633,6 +929,15 @@ module.exports = {
   assertFocusVisibleTokens,
   assertNoInteractiveOverlap,
   assertStableDimensions,
+  // Phase 98 computed-style backstops (D-98-05/06).
+  assertTwoPaneBand,
+  assertStackedCard,
+  assertReducedMotion,
+  assertDialogInert,
+  assertFocusVisibleVsPointer,
+  DEFAULT_ROOT,
+  DEFAULT_INTERACTIVE_SELECTORS,
+  REDUCED_MOTION_SELECTORS,
   luminance,
   contrastRatio,
   pngSize,
