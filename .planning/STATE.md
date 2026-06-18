@@ -185,7 +185,7 @@ is grounded before planning.
   until signed off. v1.19 proceeds in parallel by recorded maintainer decision.
 
 - adoption-demo-e2e lane stays RED on a pre-existing assertFocusVisibleTokens host-cascade defect (adoption_demo daisyUI .menu{outline:}/3px beats the shipped rindle 2px #123A35 focus token; host-app CSS layering, not the scoped rindle-admin CSS). Deferred per maintainer Option A to a dedicated follow-up plan/phase; logged in 97 deferred-items.md. NOT masked with POLISH_EXEMPTIONS.
-- 98-02b filed P1 CSS defect: missing .rindle-admin-visually-hidden utility (captions render visibly at >=760px until P1 adds it). See deferred-items.md.
+- ~~98-02b filed P1 CSS defect: missing .rindle-admin-visually-hidden utility (captions render visibly at >=760px until P1 adds it).~~ RESOLVED in 98-04 (commit b637710): utility authored through the full brandbook pipeline (regen → contrast 58/58 → gallery-check → sync), byte-identical priv copy, added to requiredSelectors + asserted by a new ExUnit §D clause.
 
 ## Deferred Items
 
