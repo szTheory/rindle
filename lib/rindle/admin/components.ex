@@ -173,11 +173,14 @@ if Code.ensure_loaded?(Phoenix.Component) do
       """
     end
 
+    # §F microcopy: the generic heading stays ONLY as the filtered-no-match
+    # fallback (surfaces pass their own per-surface healthy headings where they
+    # have one). Body states cause + next action (R3).
     attr(:heading, :string, default: "No records match this view")
 
     attr(:body, :string,
       default:
-        "Adjust the filters or review Runtime/Doctor to confirm Rindle is receiving lifecycle events."
+        "Adjust the filters or review Doctor to confirm Rindle is receiving lifecycle events."
     )
 
     def empty_state(assigns) do
@@ -194,10 +197,10 @@ if Code.ensure_loaded?(Phoenix.Component) do
     def error_state(assigns) do
       ~H"""
       <section class="rindle-admin-empty-state" data-rindle-admin-error-state data-rindle-admin-state="error" role="alert">
-        <h2 class="rindle-admin-empty-state__title">Rindle Admin could not load this surface</h2>
-        <p>Rindle Admin could not load this surface. Review the runtime checks, then retry after the missing source is available.</p>
+        <h2 class="rindle-admin-empty-state__title">This surface could not load.</h2>
+        <p>Review the runtime checks, then retry after the source is available.</p>
         <p>Failed surface: {@surface}</p>
-        <a class="rindle-admin-button rindle-admin-button--secondary rindle-admin-target-min" href=".">Retry load</a>
+        <a class="rindle-admin-button rindle-admin-button--secondary rindle-admin-target-min" href=".">Retry</a>
       </section>
       """
     end

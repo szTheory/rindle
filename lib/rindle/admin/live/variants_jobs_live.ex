@@ -229,7 +229,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
             <section>
               <h2>Repair recommendation</h2>
-              <p>Recommended repair lane text is diagnostic only on this surface; no repair is executed here.</p>
+              <p>This is a diagnostic recommendation. No repair runs on this surface.</p>
               <p>Provider identifier redacted</p>
               <ul>
                 <li :for={recommendation <- @model.recommendations}>
