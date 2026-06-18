@@ -4,13 +4,13 @@ milestone: v1.19
 milestone_name: Design-System Stress-Test
 status: executing
 stopped_at: Phase 98 context gathered (assumptions mode + deep research; D-98-01..16 locked)
-last_updated: "2026-06-18T05:51:57.244Z"
+last_updated: "2026-06-18T06:04:11.364Z"
 last_activity: 2026-06-18
 progress:
   total_phases: 17
   completed_phases: 12
   total_plans: 52
-  completed_plans: 49
+  completed_plans: 50
   percent: 71
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-06-14)
 ## Current Position
 
 Phase: 98 (admin-level-3-page-composition-motion-mobile-a11y-ia-microco) — EXECUTING
-Plan: 3 of 5
+Plan: 4 of 5
 Status: Ready to execute
 Last activity: 2026-06-18
 
@@ -171,13 +171,16 @@ is grounded before planning.
 - [Phase ?]: 97-04: phase seal — OVERLAP_ENFORCED flipped true (D-97-11) after a documented green warn cycle; priv rindle-admin.css synced byte-identical via sync-admin-css.mjs (ADMIN-02 drift gate resolved, cmp -s exit 0, empty drift); ExUnit literal moved atomically 10->18 screenshots + @screenshots extended by the 8 meta names, contrast kept 58/58; full gate green (4 tests 0 failures). Maintainer Option A: the warn-only lane's separate pre-existing assertFocusVisibleTokens host-cascade defect (adoption_demo daisyUI .menu{outline:none}/3px beats the shipped 2px #123A35 token) is deferred to a dedicated follow-up + logged in deferred-items.md, NOT masked with POLISH_EXEMPTIONS; adoption-demo-e2e lane stays red until that fix lands.
 - [Phase ?]: 98-01: page/1 Level-3 scaffold authored existing-but-UNUSED (D-98-01)
 - [Phase ?]: 98-01: ALL Phase-98 generated CSS landed in admin-css-build.mjs (scaffold §A, two-pane @1024-only, mobile-first two-stop responsive §C, stacked-table td::before, motion catalog §B GPU-only opacity/transform, :focus-visible+skip-link §D); first var(--rindle-shadow-card) consumer + extended fail-closed guards; byte-identical priv sync, deterministic, contrast 58/58; [Rule 1] theme-picker motion dropped background-color/color (gallery-check pressed-bg snapshot was mid-tween)
+- [Phase ?]: 98-02b: row-header cell kept as <td scope=row> (not <th>) so it participates in the P1 §C stacked-card td-only flip
+- [Phase ?]: 98-02b: six surfaces migrated onto page/1, one atomic commit per surface; P3-owned IA/route/confirm/microcopy held out by scope guards
 
 ## Blockers/Concerns
 
 - v1.18 milestone-close gated on HUMAN-UAT sign-off for phases 90/91/92. Audit status: tech_debt
   until signed off. v1.19 proceeds in parallel by recorded maintainer decision.
 
-- adoption-demo-e2e lane stays RED on a pre-existing assertFocusVisibleTokens host-cascade defect (adoption_demo daisyUI .menu{outline:none}/3px beats the shipped rindle 2px #123A35 focus token; host-app CSS layering, not the scoped rindle-admin CSS). Deferred per maintainer Option A to a dedicated follow-up plan/phase; logged in 97 deferred-items.md. NOT masked with POLISH_EXEMPTIONS.
+- adoption-demo-e2e lane stays RED on a pre-existing assertFocusVisibleTokens host-cascade defect (adoption_demo daisyUI .menu{outline:}/3px beats the shipped rindle 2px #123A35 focus token; host-app CSS layering, not the scoped rindle-admin CSS). Deferred per maintainer Option A to a dedicated follow-up plan/phase; logged in 97 deferred-items.md. NOT masked with POLISH_EXEMPTIONS.
+- 98-02b filed P1 CSS defect: missing .rindle-admin-visually-hidden utility (captions render visibly at >=760px until P1 adds it). See deferred-items.md.
 
 ## Deferred Items
 
@@ -195,7 +198,7 @@ is grounded before planning.
 
 ## Session Continuity
 
-Last session: 2026-06-18T05:51:48.695Z
+Last session: 2026-06-18T06:03:26.860Z
 Stopped at: Phase 98 context gathered (assumptions mode + deep research; D-98-01..16 locked)
 Resume file: None
 
@@ -248,3 +251,4 @@ Resume file: None
 | Phase 97 P04 | 5min | 2 tasks | 3 files |
 | Phase 98 P01 | 14min | 2 tasks | 5 files |
 | Phase 98 P02a | 9min | 2 tasks | 1 files |
+| Phase 98 P02b | 8min | 2 tasks | 6 files |
