@@ -108,15 +108,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     def render(assigns) do
       ~H"""
       <.shell active="upload-sessions" base_path={@admin_base_path} title="Upload Sessions" live_status={@live_status}>
-        <.filters filters={[{"state", @filters["state"]}, {"strategy", @filters["strategy"]}, {"profile", @filters["profile"]}]} />
-
-        <%= if @error? do %>
-          <.error_state surface="Upload Sessions" />
-        <% else %>
-          <%= if Enum.empty?(@model.rows) do %>
-            <.empty_state />
-          <% else %>
+        <.page state={list_state(assigns)} error_surface="Upload Sessions">
+          <:filters>
+            <.filters filters={[{"state", @filters["state"]}, {"strategy", @filters["strategy"]}, {"profile", @filters["profile"]}]} />
+          </:filters>
+          <:work>
             <table class="rindle-admin-table">
+              <caption class="rindle-admin-visually-hidden">Upload sessions</caption>
               <thead class="rindle-admin-table__head">
                 <tr>
                   <th class="rindle-admin-table__cell" scope="col">Session</th>
@@ -128,11 +126,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               </thead>
               <tbody>
                 <tr :for={session <- @model.rows} class="rindle-admin-table__row" data-rindle-admin-row="upload-session">
-                  <td class="rindle-admin-table__cell"><code>{session.id}</code></td>
-                  <td class="rindle-admin-table__cell"><.status_chip state={session.state} label={session.state} /></td>
-                  <td class="rindle-admin-table__cell">{session.upload_strategy}</td>
-                  <td class="rindle-admin-table__cell"><.redacted_value value={session.session_uri} /></td>
-                  <td class="rindle-admin-table__cell">
+                  <td class="rindle-admin-table__cell" scope="row" data-label="Session"><code>{session.id}</code></td>
+                  <td class="rindle-admin-table__cell" data-label="State"><.status_chip state={session.state} label={session.state} /></td>
+                  <td class="rindle-admin-table__cell" data-label="Strategy">{session.upload_strategy}</td>
+                  <td class="rindle-admin-table__cell" data-label="Session URI"><.redacted_value value={session.session_uri} /></td>
+                  <td class="rindle-admin-table__cell" data-label="Action">
                     <a
                       class="rindle-admin-button rindle-admin-button--secondary rindle-admin-target-min"
                       href={admin_path(@admin_base_path, "upload-sessions/#{session.id}")}
@@ -144,11 +142,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 </tr>
               </tbody>
             </table>
-          <% end %>
-        <% end %>
+          </:work>
+        </.page>
       </.shell>
       """
     end
+
+    defp list_state(%{error?: true}), do: :error
+    defp list_state(%{model: %{rows: []}}), do: :empty
+    defp list_state(_assigns), do: :ok
 
     defp load_list(socket) do
       case Queries.upload_sessions(socket.assigns.filters) do
