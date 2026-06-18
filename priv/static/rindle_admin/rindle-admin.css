@@ -1065,9 +1065,168 @@ textarea[data-rindle-admin-input] {
   width: min(100%, 420px);
 }
 
+/* ============================================================================
+   Phase 98 — Level-3 page composition + motion + responsive + a11y (D-98-12..15)
+   ALL of the following is generated CSS authored ONLY here. Mobile-first: the
+   single-column scaffold is the base; the two-pane / sidebar layouts are layered
+   in NEVER-CONFLATED min-width blocks below (760 = shell sidebar ONLY,
+   1024 = :aside two-pane ONLY). No selector uses the all-properties shorthand;
+   only transform/opacity animate (GPU-only, §B).
+   ============================================================================ */
+
+/* §A scaffold root: page rhythm. Section gap = fluid-section; card gap =
+   space-5; intra-card = space-4/-3. NO grid/measure here at base — single column
+   is the mobile-first default; the two-pane grid lives in the 1024 block. */
+.rindle-admin-page {
+  display: grid;
+  gap: var(--rindle-space-fluid-section);
+  padding-inline: var(--rindle-space-fluid-gutter);
+  padding-block: var(--rindle-space-6);
+}
+
+.rindle-admin-page__summary {
+  display: grid;
+  gap: var(--rindle-space-4);
+}
+
+.rindle-admin-page__filters {
+  display: grid;
+  gap: var(--rindle-space-3);
+}
+
+/* Two-pane panes container: single column by default (mobile-first); flips to a
+   two-track grid ONLY inside @media (min-width:1024px) below (D-98-15). */
+.rindle-admin-page__panes {
+  display: grid;
+  gap: var(--rindle-space-5);
+}
+
+.rindle-admin-page__work {
+  display: grid;
+  gap: var(--rindle-space-4);
+  min-width: 0;
+}
+
+.rindle-admin-page__aside {
+  display: grid;
+  gap: var(--rindle-space-3);
+  min-width: 0;
+}
+
+.rindle-admin-page__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--rindle-space-3);
+  padding-top: var(--rindle-space-4);
+  border-top: var(--rindle-border-rule-subtle);
+}
+
+/* §A hierarchy (token-only, assertable): 1st-order :summary is the raised
+   triage surface — the FIRST consumer of --rindle-shadow-card (D-98-13 guard-1):
+   surface-raised + radius-panel (20) + shadow-card. */
+.rindle-admin-page__summary {
+  background: var(--rindle-surface-raised);
+  border-radius: var(--rindle-radius-panel);
+  box-shadow: var(--rindle-shadow-card);
+  padding: var(--rindle-space-5);
+}
+
+/* 2nd-order :work table = base surface + radius-card (14). */
+.rindle-admin-page__work .rindle-admin-table {
+  background: var(--rindle-surface);
+  border-radius: var(--rindle-radius-card);
+}
+
+/* Text-region measure cap (~68-78ch); tables are full-width (exempt). */
+.rindle-admin-page__summary > :not(.rindle-admin-table),
+.rindle-admin-page__aside > :not(.rindle-admin-table) {
+  max-width: 74ch;
+}
+
+/* §C nav disclosure button (mobile top-bar toggle). 44px hit-area target. */
+.rindle-admin-nav__disclosure {
+  min-height: var(--rindle-admin-target-min);
+  min-width: var(--rindle-admin-target-min);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: var(--rindle-space-2);
+  padding: var(--rindle-space-2) var(--rindle-space-3);
+  border: 1px solid transparent;
+  border-radius: var(--rindle-radius-control-sm);
+  background: transparent;
+  color: var(--rindle-text);
+  cursor: pointer;
+  transition: background-color var(--rindle-motion-press) var(--rindle-motion-easing), color var(--rindle-motion-press) var(--rindle-motion-easing);
+}
+
+/* §D skip link: visually hidden until focused, then anchored top-left. */
+.rindle-admin-skip-link {
+  position: absolute;
+  left: var(--rindle-space-3);
+  top: -100%;
+  z-index: 10;
+  padding: var(--rindle-space-2) var(--rindle-space-4);
+  background: var(--rindle-surface-raised);
+  color: var(--rindle-text);
+  border-radius: var(--rindle-radius-control-sm);
+  box-shadow: var(--rindle-shadow-overlay);
+  text-decoration: none;
+  transition: top var(--rindle-motion-press) var(--rindle-motion-easing-decelerate);
+}
+
+.rindle-admin-skip-link:focus,
+.rindle-admin-skip-link:focus-visible {
+  top: var(--rindle-space-3);
+}
+
+/* §D dialog permanent border: a programmatically-focused dialog container may not
+   trigger :focus-visible, so it always carries a visible boundary (RESEARCH). */
+.rindle-admin-confirm-dialog,
+.rindle-admin-drawer {
+  border: 1px solid var(--rindle-focus-ring);
+}
+
+/* §B motion catalog. Only opacity/transform animate (GPU-only); exact properties
+   enumerated, never the all-properties shorthand. Reduced-motion collapse below. */
+
+/* Popover / menu / theme-picker open-close: opacity + transform ONLY (GPU-only,
+   §B) — NEVER background-color/color (those tween the pressed-state surface and
+   make the computed background non-deterministic mid-animation). popover 160ms. */
+.rindle-admin-theme-picker__option {
+  transition: opacity var(--rindle-motion-popover) var(--rindle-motion-easing-decelerate), transform var(--rindle-motion-popover) var(--rindle-motion-easing-decelerate);
+}
+
+/* Toast / alert enter-exit: opacity + transform translateY, toast 200ms. */
+.rindle-admin-toast {
+  transition: opacity var(--rindle-motion-toast) var(--rindle-motion-easing-decelerate), transform var(--rindle-motion-toast) var(--rindle-motion-easing-decelerate);
+}
+
+/* Drawer / dialog / inspector open-close: opacity + transform, transition 300ms. */
+.rindle-admin-confirm-dialog,
+.rindle-admin-drawer {
+  transition: opacity var(--rindle-motion-transition) var(--rindle-motion-easing-decelerate), transform var(--rindle-motion-transition) var(--rindle-motion-easing-decelerate);
+}
+
+/* Status-chip state change: CONTENT opacity cross-fade only (press 120ms) — NO
+   color tween, NO pulse (§B). */
+.rindle-admin-status-chip {
+  transition: opacity var(--rindle-motion-press) var(--rindle-motion-easing-standard);
+}
+
+/* Skeleton -> content swap: opacity cross-fade, transition 300ms. Skeleton is
+   STATIC (no shimmer loop). */
+.rindle-admin-skeleton {
+  transition: opacity var(--rindle-motion-transition) var(--rindle-motion-easing-standard);
+}
+
 .rindle-admin-button:focus-visible,
 .rindle-admin-nav__item:focus-visible,
+.rindle-admin-nav__disclosure:focus-visible,
+.rindle-admin-skip-link:focus-visible,
 .rindle-admin-table__row:focus-within,
+.rindle-admin-table__sort:focus-visible,
 .rindle-admin-actions-tab:focus-visible,
 .rindle-admin-theme-picker__option:focus-visible,
 [data-rindle-admin-input]:focus-visible,
@@ -1082,9 +1241,115 @@ textarea[data-rindle-admin-input] {
   outline-offset: var(--rindle-focus-offset);
 }
 
-/* collapse point anchored on --rindle-bp-md (760px); literal because CSS media
-   conditions cannot read custom properties */
-@media (max-width: 760px) {
+/* ----------------------------------------------------------------------------
+   §C mobile-first responsive (D-98-14). Base (0-479) is the single-column / stacked
+   layout authored OUTSIDE any media query (the .rindle-admin-* rules above + the
+   stacked-table base below). Each min-width stop layers ONE concern; the 760 and
+   1024 blocks are NEVER conflated (D-98-15). Breakpoint pixels are literals because
+   CSS media conditions cannot read custom properties; they mirror tokens.json
+   breakpoint sm480/md760/lg1024/xl1280.
+   ---------------------------------------------------------------------------- */
+
+/* base/<760 STACKED data tables: gov.uk "label: value" cards, no markup fork, no
+   priority-column hiding. The <td data-label> markup rides the P2b surface
+   migration (D-98-08); this rule consumes it. EXCEPTION: .rindle-admin-table--sticky
+   keeps horizontal scroll for wide numeric matrices at all widths. */
+.rindle-admin-table:not(.rindle-admin-table--sticky),
+.rindle-admin-table:not(.rindle-admin-table--sticky) tbody,
+.rindle-admin-table:not(.rindle-admin-table--sticky) tr,
+.rindle-admin-table:not(.rindle-admin-table--sticky) td {
+  display: block;
+}
+
+.rindle-admin-table:not(.rindle-admin-table--sticky) thead {
+  /* visually-hidden: each cell self-labels via ::before below */
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.rindle-admin-table:not(.rindle-admin-table--sticky) tr {
+  margin-block-end: var(--rindle-space-3);
+  border: var(--rindle-border-rule-subtle);
+  border-radius: var(--rindle-radius-card);
+  padding: var(--rindle-space-3) var(--rindle-space-4);
+}
+
+.rindle-admin-table:not(.rindle-admin-table--sticky) td::before {
+  content: attr(data-label);
+  display: block;
+  font-weight: 600;
+  color: var(--rindle-text-secondary);
+}
+
+.rindle-admin-table--sticky {
+  overflow-x: auto;
+}
+
+@media (min-width: 480px) {
+  /* sm: filter fields 2-up */
+  .rindle-admin-page__filters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* 760 = shell sidebar switch ONLY (D-98-15). The shell becomes the two-track
+   sidebar grid here; data tables revert to real <table> rows. */
+@media (min-width: 760px) {
+  .rindle-admin-shell {
+    grid-template-columns: minmax(220px, 260px) minmax(0, 1fr);
+  }
+
+  .rindle-admin-nav__disclosure {
+    display: none;
+  }
+
+  /* real <table> at md+ : undo the stacked-card flip */
+  .rindle-admin-table:not(.rindle-admin-table--sticky) {
+    display: table;
+  }
+
+  .rindle-admin-table:not(.rindle-admin-table--sticky) thead {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip: auto;
+    clip-path: none;
+    white-space: normal;
+    display: table-header-group;
+  }
+
+  .rindle-admin-table:not(.rindle-admin-table--sticky) tbody {
+    display: table-row-group;
+  }
+
+  .rindle-admin-table:not(.rindle-admin-table--sticky) tr {
+    display: table-row;
+    margin-block-end: 0;
+    border: 0;
+    border-top: var(--rindle-border-rule-subtle);
+    border-radius: 0;
+    padding: 0;
+  }
+
+  .rindle-admin-table:not(.rindle-admin-table--sticky) td {
+    display: table-cell;
+  }
+
+  .rindle-admin-table:not(.rindle-admin-table--sticky) td::before {
+    content: "";
+    display: none;
+  }
+}
+
+/* sub-760 the shell is single-column and the nav becomes a sticky top bar with
+   a disclosure button (literal breakpoint mirrors --rindle-bp-md). */
+@media (max-width: 759.98px) {
   .rindle-admin-shell {
     grid-template-columns: 1fr;
   }
@@ -1092,6 +1357,10 @@ textarea[data-rindle-admin-input] {
   .rindle-admin-nav {
     border-right: 0;
     border-bottom: var(--rindle-border-rule-subtle);
+  }
+
+  .rindle-admin-nav__disclosure {
+    display: inline-flex;
   }
 
   .rindle-admin-shell__main {
@@ -1108,11 +1377,30 @@ textarea[data-rindle-admin-input] {
   }
 }
 
+/* 1024 = :aside two-pane ONLY (D-98-15). The scaffold :work + :aside region
+   becomes a two-track grid here and ONLY here; single track below 1024. */
+@media (min-width: 1024px) {
+  .rindle-admin-page--two-pane .rindle-admin-page__panes {
+    grid-template-columns: minmax(0, 1fr) minmax(320px, 380px);
+  }
+}
+
+@media (min-width: 1280px) {
+  /* xl: main honors the max-width cap (token-backed). */
+  .rindle-admin-shell__main {
+    max-width: var(--rindle-bp-xl);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .rindle-admin-shell,
   .rindle-admin-nav__item,
+  .rindle-admin-nav__disclosure,
+  .rindle-admin-skip-link,
   .rindle-admin-actions-tab,
   .rindle-admin-button,
+  .rindle-admin-theme-picker__option,
+  .rindle-admin-status-chip,
   .rindle-admin-confirm-dialog,
   .rindle-admin-drawer,
   .rindle-admin-toast,
