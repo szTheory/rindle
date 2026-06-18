@@ -361,7 +361,7 @@ Plans:
 - [x] 98-02a-PLAN.md — §D primitive a11y fixes (theme_picker server aria-pressed, live_indicator role, skip-link/main, assertive region, error_state) + modal/confirm_dialog overlay (focus_wrap, server-assign-driven inert)
 - [x] 98-02b-PLAN.md — migrate all six surfaces onto page/1 (one atomic commit each) with caption/thead/scope/scope=row + data-label stacked-card markup; PubSub re-render preserved, no streams
 - [x] 98-03-PLAN.md — IA + routing + microcopy: nav relabel/reorder, GDS triage Overview, deep-links, new variants-jobs/:id :show route + redaction-parity run-detail, Actions distribution, §F copy
-- [ ] 98-04-PLAN.md — gate close-out: ExUnit unconditional §A/§B/§D/§E/§F + five Playwright computed-style backstops, bump toHaveLength in lockstep, reconcile 760–1023px band, seal (autonomous:false)
+- [x] 98-04-PLAN.md — gate close-out: ExUnit unconditional §A/§B/§D/§E/§F + five Playwright computed-style backstops, bump toHaveLength in lockstep, reconcile 760–1023px band, seal (autonomous:false)
 
 **UI hint:** yes
 
@@ -764,7 +764,7 @@ Plans:
 | 95. Admin Level-1 Component Audit [A] | 3/3 | Complete   | 2026-06-16 |
 | 96. Cohort Component Layer + Dark/Reduced-Motion [B] | 5/5 | Complete    | 2026-06-17 |
 | 97. Admin Level-2 Meta-Components [A] | 4/4 | Complete    | 2026-06-17 |
-| 98. Admin Level-3 Pages + Motion/Mobile/A11y/IA/Microcopy [A] | 4/5 | In Progress|  |
+| 98. Admin Level-3 Pages + Motion/Mobile/A11y/IA/Microcopy [A] | 5/5 | Complete   | 2026-06-18 |
 | 99. Cohort Page Migrations (small 7) [B] | 0/? | Not started | - |
 | 100. Cohort /upload Migration [B] | 0/? | Not started | - |
 | 101. daisyUI Retirement [B] | 0/? | Not started | - |
