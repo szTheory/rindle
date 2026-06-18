@@ -185,7 +185,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
          else: "info"
     end
 
-    defp lifecycle_label(_model), do: "Lifecycle events flowing"
+    defp lifecycle_label(model) do
+      case lifecycle_state(model) do
+        "ready" -> "Lifecycle events flowing"
+        _ -> "No lifecycle events yet"
+      end
+    end
 
     defp doctor_state(model) do
       if (get_in(model, [:doctor, :failed]) || 0) > 0, do: "failed", else: "ready"
@@ -206,6 +211,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       if (get_in(model, [:doctor, :failed]) || 0) > 0, do: "warning", else: "ready"
     end
 
-    defp storage_label(_model), do: "Storage reachable"
+    defp storage_label(model) do
+      if (get_in(model, [:doctor, :failed]) || 0) > 0,
+        do: "Storage checks failing",
+        else: "Storage reachable"
+    end
   end
 end
