@@ -1,10 +1,11 @@
 ---
 phase: 98
 slug: admin-level-3-page-composition-motion-mobile-a11y-ia-microco
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-06-17
+reviewed_at: 2026-06-17
 ---
 
 # Phase 98 — UI Design Contract
@@ -514,17 +515,21 @@ quarantine."
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS — §F voice rubric, frozen lexicon, off-voice replacements
-- [ ] Dimension 2 Visuals: PASS — §A composition/hierarchy, §B motion catalog
-- [ ] Dimension 3 Color: PASS — 60/30/10, accent-never-text-on-light, contrast_pairs both themes
-- [ ] Dimension 4 Typography: PASS — 3 display headings + body/small/code, measure cap
-- [ ] Dimension 5 Spacing: PASS — 8-step scale + fluid tokens, 44px targets
-- [ ] Dimension 6 Registry Safety: PASS — not applicable (no external registry)
-- [ ] UPLIFT-03 Page Composition: PASS
-- [ ] UPLIFT-04 Motion: PASS
-- [ ] UPLIFT-05 Responsive: PASS
-- [ ] UPLIFT-06 Accessibility: PASS
-- [ ] UPLIFT-07 Information Architecture: PASS
-- [ ] UPLIFT-08 Microcopy: PASS
+- [x] Dimension 1 Copywriting: PASS — §F voice rubric, frozen lexicon, off-voice replacements
+- [x] Dimension 2 Visuals: PASS — §A composition/hierarchy, §B motion catalog
+- [x] Dimension 3 Color: PASS — 60/30/10, accent-never-text-on-light, contrast_pairs both themes
+- [x] Dimension 4 Typography: PASS — 3 display headings + body/small/code, measure cap
+- [x] Dimension 5 Spacing: PASS — 8-step scale + fluid tokens, 44px targets
+- [x] Dimension 6 Registry Safety: PASS — not applicable (no external registry)
+- [x] UPLIFT-03 Page Composition: PASS
+- [x] UPLIFT-04 Motion: PASS
+- [x] UPLIFT-05 Responsive: PASS
+- [x] UPLIFT-06 Accessibility: PASS
+- [x] UPLIFT-07 Information Architecture: PASS
+- [x] UPLIFT-08 Microcopy: PASS
 
-**Approval:** pending
+**Approval:** approved 2026-06-17 (gsd-ui-checker — 6/6 dimensions, all UPLIFT-03..08 covered with assertable merge-gate checks)
+
+**Non-blocking checker notes (carry into planning):**
+1. Type scale exposes 5 distinct sizes (44/30/22/17/14) vs the generic 4-size guideline — accepted: these are the locked `tokens.json` brand scale, well-separated, with small+code sharing 14px and only 2 weight families.
+2. Reconcile the two-pane breakpoint between §A (`:work + :aside` collapses below lg/1024) and §C (structural shell switch at md/760, inspector side-docks at lg) — confirm the 760–1023px band (single-column work + dedicated detail route, no side `:aside`) is wired identically in both the scaffold CSS and the responsive media-query layer.
