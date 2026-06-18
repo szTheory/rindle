@@ -102,7 +102,7 @@ between phases (`auto_advance: false`).
   / ARIA / WCAG-AA-both-themes a11y; gov.uk/GDS task-first IA; operator-voice microcopy per
   surface JTBD. (UPLIFT-03, UPLIFT-04, UPLIFT-05, UPLIFT-06, UPLIFT-07, UPLIFT-08)
 
-- [ ] **Phase 99 [Track B]: Cohort Page Migrations (the small 7)** — `/dashboard`, `/ops`,
+- [x] **Phase 99 [Track B]: Cohort Page Migrations (the small 7)** — `/dashboard`, `/ops`, (completed 2026-06-18)
   member, lesson, post, media, account → `.ck-*`, class-by-class, preserving every
   `id`/`data-testid`/`phx-hook`; each page's behavior e2e specs stay green. (COHORT-01,
   COHORT-03, COHORT-04)
@@ -386,7 +386,7 @@ Plans:
 3. Each migrated page's existing behavior e2e specs stay green, and a Cohort screenshot/polish
    case is added per page.
 
-**Plans:** 5 plans
+**Plans:** 5/5 plans complete
 
 Plans:
 
@@ -774,7 +774,7 @@ Plans:
 | 96. Cohort Component Layer + Dark/Reduced-Motion [B] | 5/5 | Complete    | 2026-06-17 |
 | 97. Admin Level-2 Meta-Components [A] | 4/4 | Complete    | 2026-06-17 |
 | 98. Admin Level-3 Pages + Motion/Mobile/A11y/IA/Microcopy [A] | 5/5 | Complete    | 2026-06-18 |
-| 99. Cohort Page Migrations (small 7) [B] | 5/5 | Complete   | 2026-06-18 |
+| 99. Cohort Page Migrations (small 7) [B] | 5/5 | Complete    | 2026-06-18 |
 | 100. Cohort /upload Migration [B] | 0/? | Not started | - |
 | 101. daisyUI Retirement [B] | 0/? | Not started | - |
 | 102. Re-Converge — Visual Matrix, Idempotency & Audit | 0/? | Not started | - |
