@@ -35,6 +35,13 @@ if Code.ensure_loaded?(Phoenix.Component) do
     # re-renders the correct state — `main` is NEVER left inert.
     attr(:dialog_open, :boolean, default: false)
     slot(:inner_block, required: true)
+    # CR-02 overlay focus contract (D-98-11): `inert`/`aria-hidden` are applied to
+    # `main`+`nav` when a dialog is open, so the live modal MUST be a SIBLING of
+    # those regions, never a descendant — otherwise `inert` disables the dialog and
+    # its destructive-confirmation inputs the instant it opens. Surfaces render their
+    # `confirm_dialog`/`modal` into this `:overlay` slot, which is emitted OUTSIDE
+    # the inerted subtree (after `<main>`), so focus can move into the dialog.
+    slot(:overlay)
 
     def shell(assigns) do
       assigns = assign(assigns, :surfaces, surface_links(assigns.base_path))
@@ -82,6 +89,12 @@ if Code.ensure_loaded?(Phoenix.Component) do
           </header>
           {render_slot(@inner_block)}
         </main>
+        <%!-- CR-02: overlay host rendered as a SIBLING of (and AFTER) the inerted
+              `<main>`/`<nav>`. The live dialog lives here so it is NEVER a descendant
+              of the inerted subtree — focus can move into it when `@dialog_open`. --%>
+        <div :if={@overlay != []} data-rindle-admin-overlay-host>
+          {render_slot(@overlay)}
+        </div>
         <%!-- Persistent ASSERTIVE live region (D-98-07): present at mount, empty
               until an async run-failure / action-error banner is announced into
               it. The POLITE region is `live_indicator`. --%>

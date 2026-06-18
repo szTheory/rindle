@@ -151,31 +151,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 {"processing", count_value(@model, :processing)}
               ]} />
             </section>
-            <.confirm_dialog
-              id="regenerate-variants"
-              show={@dialog_open}
-              on_cancel={JS.push("close_regenerate")}
-            >
-              <:title>Regenerate stale variants?</:title>
-              Rindle will enqueue jobs for variants whose recipe digest no longer matches the current profile.
-              <:actions>
-                <button
-                  type="button"
-                  class="rindle-admin-button rindle-admin-button--secondary rindle-admin-target-min"
-                  phx-click={hide_modal("regenerate-variants") |> JS.push("close_regenerate")}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  class="rindle-admin-button rindle-admin-button--primary rindle-admin-target-min"
-                  phx-click={hide_modal("regenerate-variants") |> JS.push("confirm_regenerate")}
-                  data-rindle-admin-submit="confirm_regenerate"
-                >
-                  Regenerate variants
-                </button>
-              </:actions>
-            </.confirm_dialog>
           </:summary>
           <:filters>
             <.filters filters={[
@@ -245,6 +220,37 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             </section>
           </:work>
         </.page>
+        <%!-- CR-02: the regenerate confirm_dialog renders into the shell `:overlay`
+              slot — a SIBLING of the inerted `<main>`, never a descendant — so when
+              `@dialog_open` inerts `<main>` the dialog and its buttons stay
+              interactive. --%>
+        <:overlay>
+          <.confirm_dialog
+            id="regenerate-variants"
+            show={@dialog_open}
+            on_cancel={JS.push("close_regenerate")}
+          >
+            <:title>Regenerate stale variants?</:title>
+            Rindle will enqueue jobs for variants whose recipe digest no longer matches the current profile.
+            <:actions>
+              <button
+                type="button"
+                class="rindle-admin-button rindle-admin-button--secondary rindle-admin-target-min"
+                phx-click={hide_modal("regenerate-variants") |> JS.push("close_regenerate")}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                class="rindle-admin-button rindle-admin-button--primary rindle-admin-target-min"
+                phx-click={hide_modal("regenerate-variants") |> JS.push("confirm_regenerate")}
+                data-rindle-admin-submit="confirm_regenerate"
+              >
+                Regenerate variants
+              </button>
+            </:actions>
+          </.confirm_dialog>
+        </:overlay>
       </.shell>
       """
     end

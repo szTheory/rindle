@@ -173,6 +173,29 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert Phoenix.LiveViewTest.render(view) =~ "Variant regeneration queued."
     end
 
+    # CR-02 regression: opening the regenerate dialog sets `dialog_open=true`, which
+    # inerts `<main>` (inert + aria-hidden). The dialog MUST be a sibling of (and
+    # rendered after) `<main>` — via the shell `:overlay` slot — not a descendant of
+    # it, or `inert` would disable the dialog and its buttons the instant it opens.
+    # Fails against the prior markup (dialog nested in the `:summary` slot inside main).
+    test "open regenerate dialog renders OUTSIDE the inerted <main> (CR-02 regression)", %{
+      conn: conn
+    } do
+      {:ok, view, _html} = Phoenix.LiveViewTest.live(conn, "/admin/rindle/variants-jobs")
+
+      # Open the dialog so dialog_open=true and <main> becomes inert.
+      html = Phoenix.LiveViewTest.render_hook(view, "open_regenerate", %{})
+
+      # <main> carries inert/aria-hidden while the dialog is open.
+      assert_main_inerted(html)
+
+      # The dialog + its confirm button must live in the overlay host that is a
+      # SIBLING of <main> (i.e. after </main>), never inside the inerted subtree.
+      assert_outside_inert_main(html, ~s(data-rindle-admin-overlay-host))
+      assert_outside_inert_main(html, ~s(data-rindle-admin-submit="confirm_regenerate"))
+      assert_outside_inert_main(html, ~s(id="regenerate-variants-content"))
+    end
+
     test "Variants/Jobs refreshes visible variant rows through queries after PubSub events", %{
       conn: conn
     } do
@@ -264,6 +287,30 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       refute html =~ "LifecycleRepair"
       refute html =~ "VariantMaintenance"
+    end
+
+    # CR-02 helpers: the inerted <main> is the destructive-focus boundary. A live
+    # dialog must NOT be a descendant of it (inert disables descendants), so we assert
+    # the dialog markers appear AFTER the </main> close tag — i.e. in the sibling
+    # overlay host — and that <main> actually carries inert/aria-hidden when open.
+    defp assert_main_inerted(html) do
+      main_open = Regex.run(~r/<main[^>]*>/, html)
+      assert main_open, "expected a <main> element in the rendered shell"
+      assert hd(main_open) =~ "inert", "expected <main> to carry inert while a dialog is open"
+      assert hd(main_open) =~ ~s(aria-hidden="true"),
+             "expected <main> to carry aria-hidden=\"true\" while a dialog is open"
+    end
+
+    defp assert_outside_inert_main(html, marker) do
+      main_close = :binary.match(html, "</main>")
+      assert main_close != :nomatch, "expected a </main> close tag"
+      {main_close_at, _} = main_close
+      marker_at = :binary.match(html, marker)
+      assert marker_at != :nomatch, "expected marker #{inspect(marker)} in the rendered html"
+      {marker_pos, _} = marker_at
+
+      assert marker_pos > main_close_at,
+             "#{inspect(marker)} must render AFTER </main> (sibling overlay), not inside the inerted <main>"
     end
 
     defp assert_shell(html, surface) do
