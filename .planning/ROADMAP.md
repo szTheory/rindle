@@ -111,7 +111,7 @@ between phases (`auto_advance: false`).
   tab-structured, heaviest `PresignedPut`/`MultipartUpload`/`Copy` hooks); migrate class-by-class
   preserving the frozen behavior contract; upload behavior specs green. (COHORT-02)
 
-- [ ] **Phase 101 [Track B]: daisyUI Retirement** — grep the demo clean of daisyUI/utility classes
+- [x] **Phase 101 [Track B]: daisyUI Retirement** — grep the demo clean of daisyUI/utility classes (completed 2026-06-18)
   → remove the `default.css` `<link>` → delete `default.css` → polish pass confirms no page
   regressed to unstyled. Gated on Phases 96/99/100 complete. (COHORT-05)
 
@@ -447,7 +447,7 @@ hook-dense upload flows.
 3. A final screenshot/polish pass confirms no page regressed to unstyled and all behavior e2e
    specs stay green.
 
-**Plans:** TBD
+**Plans:** 4/4 plans complete
 **UI hint:** yes
 
 ---
