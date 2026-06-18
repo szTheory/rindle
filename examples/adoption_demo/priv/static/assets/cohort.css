@@ -909,6 +909,82 @@
   margin-top: 0.1em;
 }
 
+/* ---- flash / alert notifications (D-101-04) ----------------------------- */
+.ck-flash {
+  position: fixed;
+  inset-block-start: var(--ck-5);
+  inset-inline-end: var(--ck-4);
+  z-index: 50;
+  width: min(24rem, calc(100vw - (var(--ck-4) * 2)));
+  display: flex;
+  flex-direction: column;
+  gap: var(--ck-2);
+  pointer-events: none;
+}
+.ck-alert {
+  --_accent: var(--ck-info);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: flex-start;
+  gap: var(--ck-3);
+  padding: var(--ck-4);
+  color: var(--ck-ink);
+  background: var(--ck-surface);
+  border: 1px solid var(--ck-border);
+  border-left: 3px solid var(--_accent);
+  border-radius: var(--ck-radius);
+  box-shadow: var(--ck-shadow-lg);
+  pointer-events: auto;
+}
+.ck-alert--info {
+  --_accent: var(--ck-info);
+}
+.ck-alert--error {
+  --_accent: var(--ck-quarantine);
+}
+.ck-alert__icon {
+  flex: none;
+  margin-top: var(--ck-1);
+  color: var(--_accent);
+}
+.ck-alert__body {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ck-1);
+}
+.ck-alert__title {
+  margin: 0;
+  font-size: var(--ck-step-1);
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--ck-ink);
+}
+.ck-alert__msg {
+  margin: 0;
+  font-size: var(--ck-step-0);
+  color: var(--ck-ink);
+  overflow-wrap: anywhere;
+}
+.ck-alert__dismiss {
+  display: inline-grid;
+  place-items: center;
+  min-width: 44px;
+  min-height: 44px;
+  margin: calc(var(--ck-2) * -1);
+  padding: 0;
+  color: var(--ck-muted);
+  background: transparent;
+  border: 0;
+  border-radius: var(--ck-radius-sm);
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+.ck-alert__dismiss:hover {
+  color: var(--ck-ink);
+  background: var(--ck-surface-2);
+}
+
 /* ---- tabs (.ck-tabs, WAI-ARIA APG, D-96-17) ----------------------------- */
 .ck-tabs {
   display: flex;
