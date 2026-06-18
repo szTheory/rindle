@@ -10,33 +10,42 @@ defmodule AdoptionDemoWeb.CohortMigrationContractTest do
     * `assert_frozen_contract/2` — renders a route, asserts every preserved DOM
       selector (`id=`/`data-testid=`/`phx-click=`/`phx-submit=`) still appears in
       the HTML, asserts the new `.ck` shell is present (`data-ck-root`), and
-      refutes any `raw(` token leaked into the page body (HEEx auto-escape, T-99-01-02).
+      refutes any `raw(` token leaked into the rendered route HTML (HEEx auto-escape,
+      T-99-01-02 / T-101-01).
 
     * `assert_daisyui_retired/1` — refutes the known daisyUI/Tailwind utility
-      classes inside the PAGE BODY (the `[data-ck-root]` subtree), proving the
-      class-by-class swap is complete. The scan is scoped to the page body — NOT
-      the shared `Layouts.app` `<main>`/`cohort_nav`/`cohort_footer`, which keep
-      daisyUI until Phase 101 — by slicing the rendered HTML to the `data-ck-root`
-      subtree. The retired-class list lives only as data here, never echoed in
-      page-renderable prose.
+      classes from the full composed route render, including shared `Layouts.app`
+      chrome and flash. Phase 101 promoted the scan from the old `[data-ck-root]`
+      body slice so shared scaffold regressions cannot hide outside the page shell.
+      The retired-class list lives only as data here, never echoed in page-renderable
+      prose.
   """
   use AdoptionDemoWeb.ConnCase, async: true
 
   import Phoenix.LiveViewTest
 
-  # The daisyUI/Tailwind utility classes a migrated page body must NOT contain
-  # after the Cohort swap (Pitfall 6). Kept as DATA — never echoed in a comment a
+  # The daisyUI/Tailwind utility classes a migrated route must NOT contain after
+  # the Cohort swap (Pitfall 6). Kept as DATA — never echoed in a comment a
   # rendered page could contain. Each entry is a literal substring scanned for in
-  # the page body. `Layouts.app`'s own `space-y-4` wrapper is excluded by scoping
-  # the scan to the `[data-ck-root]` subtree (page body), per D-96-06 / Phase 101.
+  # the full composed render; class-boundary literals prevent false failures on
+  # Cohort classes such as `.ck-btn`, `.ck-tab`, and `.ck-tabs`.
   @retired_daisyui_classes [
     ~s(class="btn"),
+    ~s(class="px-4 py-8),
+    ~s(class="mx-auto max-w-3xl),
+    ~s(class="toast),
+    ~s(class="alert),
     "text-2xl",
     "text-lg",
     "bg-gray-",
     "list-disc",
     "opacity-80",
     "space-y-",
+    "mx-auto max-w-3xl",
+    "toast-top",
+    "toast-end",
+    "alert-info",
+    "alert-error",
     "font-mono text-sm",
     # daisyUI tab classes are anchored to the class-attribute leading position
     # (`class="tabs tabs-boxed"`, `class="tab px-3 ..."`) so they can't substring-match
@@ -54,19 +63,6 @@ defmodule AdoptionDemoWeb.CohortMigrationContractTest do
   def render_route(conn, route) do
     {:ok, view, _html} = live(conn, route)
     render(view)
-  end
-
-  @doc """
-  Slice the rendered HTML to the page-body subtree rooted at the migrated page's
-  `.ck` shell (the element carrying `data-ck-root`). Scans/refutations scope to
-  this slice so the shared `Layouts.app` chrome (which keeps daisyUI until Phase
-  101) never produces a false positive (D-96-06).
-  """
-  def page_body(html) do
-    case String.split(html, "data-ck-root", parts: 2) do
-      [_before, after_root] -> after_root
-      [_only] -> html
-    end
   end
 
   @doc """
@@ -91,19 +87,22 @@ defmodule AdoptionDemoWeb.CohortMigrationContractTest do
   end
 
   @doc """
-  Assert every retired daisyUI/Tailwind utility class is absent from the PAGE
-  BODY (`page_body/1` subtree). The shared `Layouts.app` chrome is out of scope
-  (Phase 101).
+  Assert every retired daisyUI/Tailwind utility class is absent from the full
+  composed route HTML, including shared layout chrome and flash.
   """
   def assert_daisyui_retired(html) do
-    body = page_body(html)
-
     for klass <- @retired_daisyui_classes do
-      refute String.contains?(body, klass),
-             "expected the retired daisyUI utility #{inspect(klass)} to be absent from the migrated page body"
+      refute String.contains?(html, klass),
+             "expected the retired daisyUI utility #{inspect(klass)} to be absent from the full composed render"
     end
 
     :ok
+  end
+
+  defp adoption_demo_path(path) do
+    [__DIR__, "../../..", path]
+    |> Path.join()
+    |> Path.expand()
   end
 
   defp occurrence_count(html, literal) do
@@ -236,6 +235,58 @@ defmodule AdoptionDemoWeb.CohortMigrationContractTest do
 
     refute source =~ "raw(",
            "CoreComponents must keep escaped HEEx interpolation and avoid raw/1"
+  end
+
+  test "Phase 101 source and deleted generator files stay retired" do
+    source_files = [
+      adoption_demo_path("lib/adoption_demo_web/components/core_components.ex"),
+      adoption_demo_path("lib/adoption_demo_web/components/layouts.ex"),
+      adoption_demo_path("lib/adoption_demo_web/components/layouts/root.html.heex")
+    ]
+
+    for path <- source_files do
+      source = File.read!(path)
+
+      for literal <- [
+            ~s(class="toast),
+            "toast-top",
+            "toast-end",
+            ~s(class="alert),
+            "alert-info",
+            "alert-error",
+            "hero-information-circle",
+            "hero-exclamation-circle",
+            "hero-x-mark",
+            "btn-primary",
+            "btn-soft",
+            ~s(class="px-4 py-8),
+            "mx-auto max-w-3xl",
+            "space-y-4"
+          ] do
+        refute source =~ literal,
+               "expected #{inspect(literal)} to stay retired from #{Path.relative_to_cwd(path)}"
+      end
+    end
+
+    root = File.read!(adoption_demo_path("lib/adoption_demo_web/components/layouts/root.html.heex"))
+
+    assert root =~ ~s(~p"/assets/css/app.css")
+    assert root =~ ~s(~p"/assets/cohort.css")
+
+    for path <- [
+          "lib/adoption_demo_web/controllers/page_controller.ex",
+          "lib/adoption_demo_web/controllers/page_html.ex",
+          "lib/adoption_demo_web/controllers/page_html/home.html.heex",
+          "test/adoption_demo_web/controllers/page_controller_test.exs"
+        ] do
+      refute File.exists?(adoption_demo_path(path)),
+             "expected deleted Phoenix generator artifact #{path} to stay absent"
+    end
+
+    router = File.read!(adoption_demo_path("lib/adoption_demo_web/router.ex"))
+
+    refute router =~ "PageController"
+    refute router =~ "PageHTML"
   end
 
   # --- Plan 02: /dashboard frozen-contract + daisyUI-retirement -------------
