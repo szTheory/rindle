@@ -233,6 +233,174 @@ if Code.ensure_loaded?(Phoenix.Component) do
     end
 
     @doc false
+    # Shared overlay primitive (D-98-11, UI-SPEC §D overlay focus contract). The
+    # ONE modal/dialog grammar the six admin surfaces compose for confirm /
+    # destructive flows — it REPLACES the inline confirm panels in actions_live.ex
+    # (no trap, no ESC, no return-focus). P2a ships ONLY the primitive; surfaces
+    # adopt it in P3.
+    #
+    # Focus contract:
+    #   * `Phoenix.Component.focus_wrap` traps Tab/Shift-Tab (NOT a hand-rolled
+    #     keydown trap).
+    #   * Open command (`show_modal/2`): `JS.push_focus()` stashes the trigger,
+    #     the dialog is shown via `JS.transition` held for the 300ms token
+    #     duration, then `JS.focus_first` moves focus into the trap. Reduced-motion
+    #     users wait the same 300ms but see no animation (CSS collapses duration —
+    #     acceptable, RESEARCH A2).
+    #   * Close command (`hide_modal/2`): `JS.pop_focus()` returns focus to the
+    #     stashed trigger; the dialog is hidden after the transition.
+    #   * ESC closes via `phx-window-keydown` + `phx-key="escape"`.
+    #
+    # CRITICAL inert/aria-hidden (D-98-11 landmine): `inert` AND `aria-hidden` on
+    # `main`+`nav` are SERVER-ASSIGN-DRIVEN via `shell/1`'s `@dialog_open` assign —
+    # NOT toggled solely by client JS — so a LiveView dead-render/reconnect
+    # re-renders the correct state and `main` is NEVER left inert. The caller's
+    # open/close phx events flip `dialog_open`; `show_modal/2`/`hide_modal/2`
+    # chain onto that for the focus/visibility progressive enhancement.
+    #
+    # `modal/1` renders `role="dialog"`; `confirm_dialog/1` renders
+    # `role="alertdialog"` (destructive/confirm). Both carry `aria-modal="true"`
+    # and `aria-labelledby`->the title element id. The dialog container keeps a
+    # permanent visible border (.rindle-admin-confirm-dialog, CSS authored in P1)
+    # because a programmatically-focused container may not trigger :focus-visible.
+    attr(:id, :string, required: true)
+    attr(:show, :boolean, default: false)
+
+    attr(:on_cancel, JS,
+      default: %JS{},
+      doc: "extra JS chained on close — typically the phx event that flips dialog_open=false"
+    )
+
+    slot(:title, required: true)
+    slot(:inner_block, required: true)
+    slot(:actions)
+
+    def modal(assigns) do
+      ~H"""
+      <div
+        id={@id}
+        class="rindle-admin-overlay"
+        data-rindle-admin-overlay
+        style={unless @show, do: "display: none;"}
+        phx-window-keydown={hide_modal(@on_cancel, @id)}
+        phx-key="escape"
+      >
+        <div
+          class="rindle-admin-overlay__backdrop"
+          data-rindle-admin-overlay-backdrop
+          aria-hidden="true"
+          phx-click={hide_modal(@on_cancel, @id)}
+        >
+        </div>
+        <.focus_wrap
+          id={"#{@id}-content"}
+          class="rindle-admin-confirm-dialog"
+          data-rindle-admin-dialog
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={"#{@id}-title"}
+          tabindex="-1"
+        >
+          <h2 id={"#{@id}-title"} class="rindle-admin-confirm-dialog__title" data-rindle-admin-dialog-title>
+            {render_slot(@title)}
+          </h2>
+          <div class="rindle-admin-confirm-dialog__body" data-rindle-admin-dialog-body>
+            {render_slot(@inner_block)}
+          </div>
+          <div :if={@actions != []} class="rindle-admin-confirm-dialog__actions" data-rindle-admin-dialog-actions>
+            {render_slot(@actions)}
+          </div>
+        </.focus_wrap>
+      </div>
+      """
+    end
+
+    @doc false
+    # Destructive/confirming overlay (role="alertdialog"). Same focus contract as
+    # modal/1. Body/heading copy follows UI-SPEC §F ("{Verb} this {noun}?", plain
+    # consequence sentence, no "!") — but per-surface confirm strings are wired in
+    # P3 via the slots; the primitive ships slots, not hard-coded surface copy.
+    attr(:id, :string, required: true)
+    attr(:show, :boolean, default: false)
+    attr(:on_cancel, JS, default: %JS{})
+    slot(:title, required: true)
+    slot(:inner_block, required: true)
+    slot(:actions)
+
+    def confirm_dialog(assigns) do
+      ~H"""
+      <div
+        id={@id}
+        class="rindle-admin-overlay"
+        data-rindle-admin-overlay
+        style={unless @show, do: "display: none;"}
+        phx-window-keydown={hide_modal(@on_cancel, @id)}
+        phx-key="escape"
+      >
+        <div
+          class="rindle-admin-overlay__backdrop"
+          data-rindle-admin-overlay-backdrop
+          aria-hidden="true"
+          phx-click={hide_modal(@on_cancel, @id)}
+        >
+        </div>
+        <.focus_wrap
+          id={"#{@id}-content"}
+          class="rindle-admin-confirm-dialog"
+          data-rindle-admin-dialog
+          role="alertdialog"
+          aria-modal="true"
+          aria-labelledby={"#{@id}-title"}
+          tabindex="-1"
+        >
+          <h2 id={"#{@id}-title"} class="rindle-admin-confirm-dialog__title" data-rindle-admin-dialog-title>
+            {render_slot(@title)}
+          </h2>
+          <div class="rindle-admin-confirm-dialog__body" data-rindle-admin-dialog-body>
+            {render_slot(@inner_block)}
+          </div>
+          <div :if={@actions != []} class="rindle-admin-confirm-dialog__actions" data-rindle-admin-dialog-actions>
+            {render_slot(@actions)}
+          </div>
+        </.focus_wrap>
+      </div>
+      """
+    end
+
+    @doc false
+    # Open command (D-98-11). Caller chains the server phx event that flips
+    # `dialog_open=true` (assign-driven inert is the source of truth); this helper
+    # adds the focus/visibility progressive enhancement: stash the trigger via the
+    # framework focus stack, show the overlay over the 300ms token duration, then
+    # move focus into the trap with `JS.focus_first`.
+    def show_modal(js \\ %JS{}, id) when is_binary(id) do
+      js
+      |> JS.push_focus()
+      |> JS.show(
+        to: "##{id}",
+        time: 300,
+        transition:
+          {"transition-all transform ease-out duration-300", "opacity-0", "opacity-100"}
+      )
+      |> JS.focus_first(to: "##{id}-content")
+    end
+
+    @doc false
+    # Close command (D-98-11): hide the overlay, return focus to the stashed
+    # trigger via the framework focus stack, and chain the caller's `on_cancel`
+    # (the server event that flips `dialog_open=false`, restoring main+nav).
+    def hide_modal(js \\ %JS{}, id) when is_binary(id) do
+      js
+      |> JS.hide(
+        to: "##{id}",
+        time: 300,
+        transition:
+          {"transition-all transform ease-in duration-300", "opacity-100", "opacity-0"}
+      )
+      |> JS.pop_focus()
+    end
+
+    @doc false
     # Level-3 page composition scaffold (D-98-01, UI-SPEC §A). The single page
     # grammar that makes all six admin surfaces one system and structurally
     # forbids page-local styling: NO grid/measure is declared here — every layout
