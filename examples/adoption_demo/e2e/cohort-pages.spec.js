@@ -165,3 +165,33 @@ test("/media renders on the Cohort DS (polish, warn mode)", async ({ page }) => 
     surface: "media-cohort",
   });
 });
+
+// Wave-2 / Phase 100 Plan 02 (COHORT-02 SC1/SC3): /upload migrated onto ck_page/1
+// across all 6 tabs (Plan 01). Prove every tab via the deterministic ?tab= URL —
+// load_member!(nil) falls back to the first seeded member, so no id is needed.
+// Reuses the shared warn-mode helper UNCHANGED (root-visibility guarded, Pitfall D);
+// admin-polish.js is NOT edited (D-96-06).
+for (const tab of ["image", "tus", "video", "multipart", "liveview", "mux"]) {
+  test(`/upload?tab=${tab} renders on the Cohort DS (polish, warn mode)`, async ({ page }) => {
+    await assertCohortPagePolish(page, {
+      route: `/upload?tab=${tab}`,
+      surface: `upload-${tab}-cohort`,
+    });
+  });
+}
+
+// +1 dark case on the image tab (COHORT-02 SC3 — a light AND dark polish case
+// covers the upload surface). Pitfall F (the one CONTEXT-mechanism correction):
+// Playwright's colorScheme media emulation ALONE will NOT flip the theme — ck_page
+// emits an explicit data-theme that is authoritative over the @media fallback. Drive
+// the dark case via the SERVER ?theme=dark assign (the enum-gated read Plan 01 added
+// to upload_live.ex). After the polish assertion, additionally assert the surface
+// actually rendered dark so the dark path is real, not vacuous.
+test("/upload?tab=image renders on the Cohort DS in dark (polish, warn mode)", async ({ page }) => {
+  await assertCohortPagePolish(page, {
+    route: "/upload?tab=image&theme=dark",
+    surface: "upload-image-dark-cohort",
+  });
+
+  await expect(page.locator("[data-ck-root]")).toHaveAttribute("data-theme", "dark");
+});
