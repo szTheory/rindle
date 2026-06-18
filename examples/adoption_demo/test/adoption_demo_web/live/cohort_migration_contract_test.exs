@@ -128,6 +128,14 @@ defmodule AdoptionDemoWeb.CohortMigrationContractTest do
     assert_daisyui_retired(html)
   end
 
+  test "assert_daisyui_retired scans the full composed render" do
+    html = ~s(<main class="px-4 py-8"><div data-ck-root class="ck">clean body</div></main>)
+
+    assert_raise ExUnit.AssertionError, ~r/retired daisyUI utility/, fn ->
+      assert_daisyui_retired(html)
+    end
+  end
+
   # --- Plan 101-02: layout wrapper retirement contract ----------------------
   test "Layouts.app renders bare Cohort chrome without Tailwind width or padding wrapper", %{
     conn: conn
