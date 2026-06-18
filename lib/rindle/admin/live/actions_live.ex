@@ -444,28 +444,29 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     def render(assigns) do
       ~H"""
       <.shell active="actions" base_path={@admin_base_path} title="Actions" live_status={@live_status}>
-        <section class="rindle-admin-actions-directory">
-          <h2>Actions Directory</h2>
-          <div class="rindle-admin-actions-tabs">
-            <button
-              :for={action <- @model.actions}
-              class={["rindle-admin-actions-tab", if(@active_action_id == action.id, do: "active", else: "")]}
-              phx-click="select_action"
-              phx-value-id={action.id}
-              data-rindle-admin-action={action.id}
-            >
-              {action.label}
-            </button>
-          </div>
-        </section>
-
-        <%= if @error? do %>
-          <.error_state surface="Actions" />
-        <% else %>
-          <div class="rindle-admin-action-panel" data-rindle-admin-action-panel={@active_action_id}>
-            <%= render_action_panel(assigns, current_action(assigns)) %>
-          </div>
-        <% end %>
+        <.page state={if(@error?, do: :error, else: :ok)} error_surface="Actions">
+          <:summary>
+            <section class="rindle-admin-actions-directory">
+              <h2>Actions Directory</h2>
+              <div class="rindle-admin-actions-tabs">
+                <button
+                  :for={action <- @model.actions}
+                  class={["rindle-admin-actions-tab", if(@active_action_id == action.id, do: "active", else: "")]}
+                  phx-click="select_action"
+                  phx-value-id={action.id}
+                  data-rindle-admin-action={action.id}
+                >
+                  {action.label}
+                </button>
+              </div>
+            </section>
+          </:summary>
+          <:work>
+            <div class="rindle-admin-action-panel" data-rindle-admin-action-panel={@active_action_id}>
+              <%= render_action_panel(assigns, current_action(assigns)) %>
+            </div>
+          </:work>
+        </.page>
       </.shell>
       """
     end
