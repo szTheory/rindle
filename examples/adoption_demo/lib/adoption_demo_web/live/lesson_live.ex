@@ -1,6 +1,8 @@
 defmodule AdoptionDemoWeb.LessonLive do
   use AdoptionDemoWeb, :live_view
 
+  import AdoptionDemoWeb.CohortComponents
+
   alias AdoptionDemo.{Cohort, Media, VideoProfile}
 
   @impl true
@@ -22,6 +24,7 @@ defmodule AdoptionDemoWeb.LessonLive do
     {:ok,
      assign(socket,
        page_title: lesson.title,
+       theme: "light",
        lesson: lesson,
        asset: asset,
        variants: variants,
@@ -33,39 +36,45 @@ defmodule AdoptionDemoWeb.LessonLive do
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} page_title={@page_title}>
-      <h1 class="text-2xl font-semibold" data-testid="lesson-title">{@lesson.title}</h1>
-      <p class="text-sm opacity-80">Course: {@lesson.course.title}</p>
+      <.ck_page title="Lesson" theme={@theme}>
+        <h1 class="ck-hero__title" data-testid="lesson-title">{@lesson.title}</h1>
+        <p class="ck-hero__lede">Course: {@lesson.course.title}</p>
 
-      <section id="lesson-video" class="mt-6" data-testid="lesson-video-section">
-        <h2 class="text-lg font-semibold">Lesson video</h2>
-        <%= if @asset do %>
-          <div id="lesson-video-tag" data-testid="lesson-video-tag">
-            {Rindle.HTML.video_tag(VideoProfile, @asset,
-              variants: [{:web_720p, nil}],
-              poster: :poster,
-              controls: true,
-              class: "max-w-xl"
-            )}
+        <section id="lesson-video" class="ck-section" data-testid="lesson-video-section">
+          <div class="ck-section__head">
+            <h2 class="ck-section__title">Lesson video</h2>
           </div>
-          <p id="lesson-asset-state" class="text-sm mt-2" data-testid="lesson-asset-state">
-            Asset {@asset.id} — {@asset.state}
-          </p>
-          <p :if={@streaming_url} id="lesson-streaming-url" class="text-xs break-all mt-2" data-testid="lesson-streaming-url">
-            Streaming: {@streaming_url}
-          </p>
-        <% else %>
-          <p data-testid="lesson-no-video">No lesson video attached.</p>
-        <% end %>
-      </section>
+          <%= if @asset do %>
+            <div id="lesson-video-tag" data-testid="lesson-video-tag">
+              {Rindle.HTML.video_tag(VideoProfile, @asset,
+                variants: [{:web_720p, nil}],
+                poster: :poster,
+                controls: true,
+                class: "max-w-xl"
+              )}
+            </div>
+            <p id="lesson-asset-state" data-testid="lesson-asset-state">
+              Asset {@asset.id} — {@asset.state}
+            </p>
+            <p :if={@streaming_url} id="lesson-streaming-url" class="ck-output" data-testid="lesson-streaming-url">
+              Streaming: {@streaming_url}
+            </p>
+          <% else %>
+            <p data-testid="lesson-no-video">No lesson video attached.</p>
+          <% end %>
+        </section>
 
-      <section id="lesson-variants" class="mt-6" data-testid="lesson-variants">
-        <h2 class="text-lg font-semibold">Variants</h2>
-        <ul class="list-disc pl-5">
-          <li :for={variant <- @variants} id={"variant-#{variant.name}"} data-testid={"variant-#{variant.name}"}>
-            {variant.name} — {variant.state}
-          </li>
-        </ul>
-      </section>
+        <section id="lesson-variants" class="ck-section" data-testid="lesson-variants">
+          <div class="ck-section__head">
+            <h2 class="ck-section__title">Variants</h2>
+          </div>
+          <ul>
+            <li :for={variant <- @variants} id={"variant-#{variant.name}"} data-testid={"variant-#{variant.name}"}>
+              {variant.name} — {variant.state}
+            </li>
+          </ul>
+        </section>
+      </.ck_page>
     </Layouts.app>
     """
   end
