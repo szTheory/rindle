@@ -67,7 +67,7 @@ demand-gated and shift to v1.20+. Research: `.planning/research/v1.19/SUMMARY.md
 
 ### Cohort Example Inner-Page Restyle (COHORT)
 
-- [ ] **COHORT-01**: `/dashboard` restyled onto the Cohort DS (`cohort.css` + `cohort_components.ex`).
+- [x] **COHORT-01**: `/dashboard` restyled onto the Cohort DS (`cohort.css` + `cohort_components.ex`).
 - [ ] **COHORT-02**: `/upload` (all tabs) restyled onto the Cohort DS.
 - [ ] **COHORT-03**: `/ops` restyled onto the Cohort DS.
 - [ ] **COHORT-04**: member / lesson / post / media / account pages restyled and consistent.
@@ -263,7 +263,7 @@ Open only via `/gsd-new-milestone` with documented signal:
 | UPLIFT-06 | Phase 98 | Complete |
 | UPLIFT-07 | Phase 98 | Complete |
 | UPLIFT-08 | Phase 98 | Complete |
-| COHORT-01 | Phase 99 | Pending |
+| COHORT-01 | Phase 99 | Complete |
 | COHORT-02 | Phase 100 | Pending |
 | COHORT-03 | Phase 99 | Pending |
 | COHORT-04 | Phase 99 | Pending |
