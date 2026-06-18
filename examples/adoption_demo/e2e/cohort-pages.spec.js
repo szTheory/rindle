@@ -97,3 +97,35 @@ test("/account erasure renders on the Cohort DS (polish, warn mode)", async ({ p
     surface: "account-cohort",
   });
 });
+
+// Wave-4 (Plan 04): /members/:id migrated onto ck_page/1 (avatar + replace/detach,
+// picture_tag wrapper). Derive a seeded member id the same way the owner-erasure /
+// account spec does — visit /dashboard, read alex's row id via support/cohort's
+// memberId — then run the shared warn-mode polish helper against the resolved route.
+test("/members renders on the Cohort DS (polish, warn mode)", async ({ page }) => {
+  await page.goto("/dashboard");
+  await waitForLiveSocket(page);
+  const id = await memberId(page, MEMBERS.alex);
+
+  await assertCohortPagePolish(page, {
+    route: `/members/${id}`,
+    surface: "member-cohort",
+  });
+});
+
+// Wave-4 (Plan 04): /lessons/:id migrated onto ck_page/1 (video + variant list).
+// Navigate via the seeded lesson link the way rendering.spec.js does (the lesson
+// id is not exposed on /dashboard as an attribute we can read directly), then run
+// the shared warn-mode polish helper against the resolved URL.
+test("/lessons renders on the Cohort DS (polish, warn mode)", async ({ page }) => {
+  await page.goto("/dashboard");
+  await waitForLiveSocket(page);
+
+  await page.getByRole("link", { name: "Pattern matching basics" }).first().click();
+  await waitForLiveSocket(page);
+
+  await assertCohortPagePolish(page, {
+    route: page.url(),
+    surface: "lesson-cohort",
+  });
+});

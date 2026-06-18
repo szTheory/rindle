@@ -237,4 +237,67 @@ defmodule AdoptionDemoWeb.CohortMigrationContractTest do
 
     assert_daisyui_retired(html)
   end
+
+  # --- Plan 04: /members/:id frozen-contract + daisyUI-retirement ------------
+  # Seeds a member WITHOUT an avatar attached. The static ExUnit lane cannot boot
+  # the storage subsystem (MinIO) needed to `Media.attach!` an avatar asset, so
+  # the avatar branch (member-picture-tag / member-avatar-state) is exercised at
+  # runtime by rendering.spec.js (CI-delegated) and grep-verified in source by the
+  # per-page acceptance. This test pins the ALWAYS-PRESENT static contract (title,
+  # both sections, replace-status, both replace/detach phx-click buttons) PLUS the
+  # empty-branch member-no-avatar selector + the .ck shell, then daisyUI-retirement.
+  test "/members preserves its frozen contract and retires daisyUI", %{conn: conn} do
+    AdoptionDemo.Accounts.seed_member!(%{
+      email: "member-page@cohort.test",
+      name: "Member Page",
+      role: "student"
+    })
+
+    member = AdoptionDemo.Accounts.get_member_by_email!("member-page@cohort.test")
+
+    html = render_route(conn, ~p"/members/#{member.id}")
+
+    assert_frozen_contract(html, [
+      ~s(data-testid="member-profile-title"),
+      ~s(data-testid="member-avatar-section"),
+      ~s(data-testid="member-no-avatar"),
+      ~s(data-testid="replace-detach-section"),
+      ~s(data-testid="replace-status"),
+      ~s(data-testid="replace-avatar-button"),
+      ~s(data-testid="detach-avatar-button"),
+      ~s(phx-click="replace_avatar"),
+      ~s(phx-click="detach_avatar")
+    ])
+
+    assert_daisyui_retired(html)
+  end
+
+  # --- Plan 04: /lessons/:id frozen-contract + daisyUI-retirement ------------
+  # Seeds a course + lesson WITHOUT a video attached (same MinIO constraint as the
+  # member test). The video/variant branch (lesson-video-tag, lesson-asset-state,
+  # variant-#{name}) is exercised at runtime by rendering.spec.js (CI-delegated)
+  # and grep-verified in source. This test pins the ALWAYS-PRESENT static contract
+  # (title, video section, variants section) PLUS the empty-branch lesson-no-video
+  # selector + the .ck shell, then daisyUI-retirement.
+  test "/lessons preserves its frozen contract and retires daisyUI", %{conn: conn} do
+    course = AdoptionDemo.Cohort.seed_course!(%{title: "Cohort Lesson Course", slug: "lesson-course"})
+
+    lesson =
+      AdoptionDemo.Cohort.seed_lesson!(%{
+        title: "Lesson page contract",
+        position: 1,
+        course_id: course.id
+      })
+
+    html = render_route(conn, ~p"/lessons/#{lesson.id}")
+
+    assert_frozen_contract(html, [
+      ~s(data-testid="lesson-title"),
+      ~s(data-testid="lesson-video-section"),
+      ~s(data-testid="lesson-no-video"),
+      ~s(data-testid="lesson-variants")
+    ])
+
+    assert_daisyui_retired(html)
+  end
 end
