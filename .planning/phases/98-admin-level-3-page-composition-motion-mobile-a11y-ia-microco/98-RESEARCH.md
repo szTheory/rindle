@@ -261,17 +261,16 @@ Per D-98-06, new e2e states must be added explicitly and the literal bumped (as 
 - Motion is purposeful + reduced-motion-aware only; no animate-everything.
 - No new console lifecycle semantics / write paths beyond v1.18 surface — v1.19 is DS quality only.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Exact net-new Playwright state count for the `toHaveLength` bump.**
+> Both questions are resolved in substance and bound into the executable plans (see resolutions below); no open blockers remain for planning or execution.
+
+1. **Exact net-new Playwright state count for the `toHaveLength` bump.** — RESOLVED (delegated to planner per D-98-06; P4 Task 2 counts distinct net-new states and bumps `expectedScreenshots` + `toHaveLength(N)` in lockstep, with an explicit "if N=0, document why" branch).
    - What we know: D-98-06 enumerates the new sub-assertions; the literal must be bumped deliberately.
    - What's unclear: whether each new assertion needs a NEW screenshot state or rides existing surface/theme/viewport captures.
    - Recommendation: planner counts the distinct net-new viewport/theme/interaction states in P4 and bumps `expectedScreenshots` + `toHaveLength(N)` in lockstep; many checks (focus-visible, dialog-open) can ride existing captures rather than adding states.
 
-2. **inert reset-on-reconnect mechanism: server-owned assign vs reconnect hook.**
-   - What we know: the inert state must survive a dead-render (D-98-11 critical).
-   - What's unclear: whether the maintainer prefers server-assign-driven inert (simplest, re-render restores) or a JS reconnect hook.
-   - Recommendation: prefer server-assign-driven (open/close is already a LiveView event; render inert from assign) so reconnect re-renders correct state with no extra JS. Playwright proves it.
+2. **inert reset-on-reconnect mechanism: server-owned assign vs reconnect hook.** — RESOLVED (server-assign-driven: open/close is already a LiveView event; inert is rendered from assign so a reconnect re-render restores correct state with no extra JS. Bound into P2a Task 2; Playwright proves the reset-on-reconnect in P4).
 
 ## Environment Availability
 
