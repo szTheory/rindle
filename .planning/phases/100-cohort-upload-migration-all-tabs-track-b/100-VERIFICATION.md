@@ -20,7 +20,7 @@ e2e_verification:
     :9000; Mux via recorded cassette. Closes the prior human_verification item with
     runtime evidence (shift-left: 0 human verification).
 re_verification:
-  previous_status: gaps_found
+  previous_status: "gaps_found"
   previous_score: 5/7
   gaps_closed:
     - "The per-tab /upload frozen-contract + daisyUI-retirement ExUnit test passes (the static proof that the contract survived and daisyUI is retired across all 6 tabs)"
