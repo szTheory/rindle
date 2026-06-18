@@ -135,6 +135,30 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     end
 
+    # CR-01 regression: the problems-first "Needs attention" task-list reads count
+    # buckets from `RuntimeStatus.count_map/1`, which is ATOM-keyed. The original
+    # code read them with STRING keys (`"failed"`, `"quarantined"`, ...), so every
+    # problem silently resolved to 0/nil and the list was permanently empty
+    # ("Nothing needs attention" even with real problems). This asserts that a
+    # quarantined asset + failed variant produce a NON-EMPTY needs-attention list.
+    # Fails against the string-key code (renders the all-clear empty state instead).
+    test "Needs attention populates from atom-keyed counts (CR-01 regression)", %{conn: conn} do
+      quarantined = insert_asset(%{state: "quarantined", profile: to_string(ImageProfile)})
+      _quarantine_variant = insert_variant(quarantined, %{name: "thumb", state: "failed"})
+
+      {:ok, _view, html} = Phoenix.LiveViewTest.live(conn, "/admin/rindle")
+
+      # The actionable task-list is rendered (NOT the all-clear empty state).
+      assert html =~ ~s(data-rindle-admin-needs-attention)
+      refute html =~ ~s(data-rindle-admin-all-clear)
+
+      # Real, non-zero problem entries surface with their counts + deep links.
+      assert html =~ "quarantined assets"
+      assert html =~ "failed processing runs"
+      assert html =~ ~s(href="/admin/rindle/assets?state=quarantined")
+      assert html =~ ~s(href="/admin/rindle/variants-jobs?state=failed")
+    end
+
     test "shell links stay inside custom host mount paths", %{conn: conn} do
       {:ok, _view, html} = Phoenix.LiveViewTest.live(conn, "/ops/media")
 

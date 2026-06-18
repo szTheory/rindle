@@ -137,14 +137,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <p :if={@regenerate_receipt} data-rindle-admin-receipt="variant_regeneration">
                 Variant regeneration queued. Enqueued: {@regenerate_receipt.enqueued} · Skipped: {@regenerate_receipt.skipped} · Errors: {@regenerate_receipt.errors}
               </p>
+              <%!-- CR-01: counts come from `RuntimeStatus.count_map/1`, which is
+                    ATOM-keyed (`String.to_atom(state)`). Reading with string keys
+                    (the prior bug) always returned the 0 fallback — read with atoms
+                    so the Processing summary counters reflect real bucket counts. --%>
               <.metadata_list items={[
                 {"Total", count_value(@model, :total)},
-                {"failed", count_value(@model, "failed")},
-                {"cancelled", count_value(@model, "cancelled")},
-                {"stale", count_value(@model, "stale")},
-                {"missing", count_value(@model, "missing")},
-                {"queued", count_value(@model, "queued")},
-                {"processing", count_value(@model, "processing")}
+                {"failed", count_value(@model, :failed)},
+                {"cancelled", count_value(@model, :cancelled)},
+                {"stale", count_value(@model, :stale)},
+                {"missing", count_value(@model, :missing)},
+                {"queued", count_value(@model, :queued)},
+                {"processing", count_value(@model, :processing)}
               ]} />
             </section>
             <.confirm_dialog

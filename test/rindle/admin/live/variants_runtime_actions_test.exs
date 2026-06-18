@@ -121,6 +121,40 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     end
 
+    # CR-01 regression: the Processing summary counters read variant-state buckets
+    # from `RuntimeStatus.count_map/1`, which is ATOM-keyed. The original code read
+    # them with STRING keys (`count_value(@model, "failed")`, ...) so every counter
+    # except the atom-keyed `:total` always rendered 0. This asserts the per-state
+    # counters reflect REAL counts. Fails against the string-key code (failed counter
+    # reads 0 despite three failed variants).
+    test "Processing summary counters reflect real atom-keyed counts (CR-01 regression)", %{
+      conn: conn
+    } do
+      asset = insert_asset(%{profile: to_string(ImageProfile)})
+      _f1 = insert_variant(asset, %{name: "thumb", state: "failed", error_reason: "boom"})
+
+      asset2 = insert_asset(%{profile: to_string(ImageProfile), filename: "two.png"})
+      _f2 = insert_variant(asset2, %{name: "thumb", state: "failed", error_reason: "boom"})
+
+      asset3 = insert_asset(%{profile: to_string(ImageProfile), filename: "three.png"})
+      _f3 = insert_variant(asset3, %{name: "thumb", state: "failed", error_reason: "boom"})
+
+      {:ok, _view, html} = Phoenix.LiveViewTest.live(conn, "/admin/rindle/variants-jobs")
+
+      # The "failed" counter in the summary metadata list must read the real
+      # bucket count (3), not the 0 fallback the string-key bug produced. The
+      # metadata_list renders each row as `<dt>failed</dt> <dd>3</dd>` — assert the
+      # failed dt is immediately followed by a dd of 3 (and NOT 0).
+      failed_dt_dd =
+        Regex.run(
+          ~r{<dt>\s*failed\s*</dt>\s*<dd>\s*(\d+)\s*</dd>},
+          html
+        )
+
+      assert failed_dt_dd, "expected a 'failed' counter row in the Processing summary"
+      assert List.last(failed_dt_dd) == "3"
+    end
+
     test "Processing hosts the distributed Regenerate variants confirm dialog (UI-SPEC §E)", %{
       conn: conn
     } do
