@@ -35,75 +35,77 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     def render(assigns) do
       ~H"""
       <.shell active="runtime-doctor" base_path={@admin_base_path} title="Runtime/Doctor" live_status={@live_status}>
-        <section>
-          <h2>Runtime status</h2>
-          <a class="rindle-admin-button rindle-admin-button--secondary rindle-admin-target-min" href={admin_path(@admin_base_path, "runtime-doctor")}>
-            Refresh status
-          </a>
-          <.metadata_list items={[
-            {"Generated at", @model.generated_at},
-            {"Assets", count_value(@model, [:runtime_status, :assets, :counts, :total])},
-            {"Variants", count_value(@model, [:runtime_status, :variants, :counts, :total])},
-            {"Upload sessions", count_value(@model, [:runtime_status, :upload_sessions, :counts, :total])},
-            {"Provider assets", count_value(@model, [:runtime_status, :provider_assets, :counts, :total])}
-          ]} />
-        </section>
+        <.page state={if(@error?, do: :error, else: :ok)} error_surface="Runtime/Doctor">
+          <:summary>
+            <section>
+              <h2>Runtime status</h2>
+              <a class="rindle-admin-button rindle-admin-button--secondary rindle-admin-target-min" href={admin_path(@admin_base_path, "runtime-doctor")}>
+                Refresh status
+              </a>
+              <.metadata_list items={[
+                {"Generated at", @model.generated_at},
+                {"Assets", count_value(@model, [:runtime_status, :assets, :counts, :total])},
+                {"Variants", count_value(@model, [:runtime_status, :variants, :counts, :total])},
+                {"Upload sessions", count_value(@model, [:runtime_status, :upload_sessions, :counts, :total])},
+                {"Provider assets", count_value(@model, [:runtime_status, :provider_assets, :counts, :total])}
+              ]} />
+            </section>
+          </:summary>
+          <:work>
+            <section>
+              <h2>Doctor checks</h2>
+              <table class="rindle-admin-table">
+                <caption class="rindle-admin-visually-hidden">Runtime/Doctor checks</caption>
+                <thead class="rindle-admin-table__head">
+                  <tr>
+                    <th class="rindle-admin-table__cell" scope="col">Check</th>
+                    <th class="rindle-admin-table__cell" scope="col">Status</th>
+                    <th class="rindle-admin-table__cell" scope="col">Summary</th>
+                    <th class="rindle-admin-table__cell" scope="col">Fix</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr :for={check <- @model.doctor.checks} class="rindle-admin-table__row" data-rindle-admin-row="doctor-check">
+                    <td class="rindle-admin-table__cell" scope="row" data-label="Check"><code>{check.id}</code></td>
+                    <td class="rindle-admin-table__cell" data-label="Status"><.status_chip state={to_string(check.status)} label={to_string(check.status)} /></td>
+                    <td class="rindle-admin-table__cell" data-label="Summary">{check.summary}</td>
+                    <td class="rindle-admin-table__cell" data-label="Fix">{check.fix}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </section>
 
-        <%= if @error? do %>
-          <.error_state surface="Runtime/Doctor" />
-        <% else %>
-          <section>
-            <h2>Doctor checks</h2>
-            <table class="rindle-admin-table">
-              <thead class="rindle-admin-table__head">
-                <tr>
-                  <th class="rindle-admin-table__cell" scope="col">Check</th>
-                  <th class="rindle-admin-table__cell" scope="col">Status</th>
-                  <th class="rindle-admin-table__cell" scope="col">Summary</th>
-                  <th class="rindle-admin-table__cell" scope="col">Fix</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr :for={check <- @model.doctor.checks} class="rindle-admin-table__row" data-rindle-admin-row="doctor-check">
-                  <td class="rindle-admin-table__cell"><code>{check.id}</code></td>
-                  <td class="rindle-admin-table__cell"><.status_chip state={to_string(check.status)} label={to_string(check.status)} /></td>
-                  <td class="rindle-admin-table__cell">{check.summary}</td>
-                  <td class="rindle-admin-table__cell">{check.fix}</td>
-                </tr>
-              </tbody>
-            </table>
-          </section>
+            <section>
+              <h2>Failed or missing prerequisites</h2>
+              <%= if failed_checks(@model) == [] do %>
+                <p>No failed prerequisites were reported by Runtime/Doctor.</p>
+              <% else %>
+                <ul>
+                  <li :for={check <- failed_checks(@model)}>
+                    <strong>{check.id}</strong>
+                    <span>{check.summary}</span>
+                  </li>
+                </ul>
+              <% end %>
+            </section>
 
-          <section>
-            <h2>Failed or missing prerequisites</h2>
-            <%= if failed_checks(@model) == [] do %>
-              <p>No failed prerequisites were reported by Runtime/Doctor.</p>
-            <% else %>
+            <section>
+              <h2>Runtime findings</h2>
               <ul>
-                <li :for={check <- failed_checks(@model)}>
-                  <strong>{check.id}</strong>
-                  <span>{check.summary}</span>
+                <li :for={finding <- runtime_findings(@model)}>
+                  <strong>{finding_label(finding)}</strong>
+                  <span>{finding.count}</span>
                 </li>
               </ul>
-            <% end %>
-          </section>
-
-          <section>
-            <h2>Runtime findings</h2>
-            <ul>
-              <li :for={finding <- runtime_findings(@model)}>
-                <strong>{finding_label(finding)}</strong>
-                <span>{finding.count}</span>
-              </li>
-            </ul>
-            <a class="rindle-admin-button rindle-admin-button--secondary rindle-admin-target-min" href={admin_path(@admin_base_path, "variants-jobs")}>
-              Variants/Jobs
-            </a>
-            <a class="rindle-admin-button rindle-admin-button--secondary rindle-admin-target-min" href={admin_path(@admin_base_path, "actions")}>
-              Actions
-            </a>
-          </section>
-        <% end %>
+              <a class="rindle-admin-button rindle-admin-button--secondary rindle-admin-target-min" href={admin_path(@admin_base_path, "variants-jobs")}>
+                Variants/Jobs
+              </a>
+              <a class="rindle-admin-button rindle-admin-button--secondary rindle-admin-target-min" href={admin_path(@admin_base_path, "actions")}>
+                Actions
+              </a>
+            </section>
+          </:work>
+        </.page>
       </.shell>
       """
     end
