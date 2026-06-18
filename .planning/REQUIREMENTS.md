@@ -40,14 +40,14 @@ demand-gated and shift to v1.20+. Research: `.planning/research/v1.19/SUMMARY.md
 - [x] **UPLIFT-02**: Meta-components refined as cohesive units — toolbars, **sortable / sticky-
   header / bulk-select data tables**, filter bars, action panels, detail drill-downs,
   confirm/destructive panels, drawers, toasts — consistent rhythm, alignment, and density.
-- [ ] **UPLIFT-03**: Per-page composition pass over each console surface — visual hierarchy,
+- [x] **UPLIFT-03**: Per-page composition pass over each console surface — visual hierarchy,
   spacing scale, and on-brand assembly of components into pages.
-- [ ] **UPLIFT-04**: Motion pass — purposeful, performant, **reduced-motion-aware** animation
+- [x] **UPLIFT-04**: Motion pass — purposeful, performant, **reduced-motion-aware** animation
   tied to brand motion tokens, sub-300ms, and **LiveView-coordinated** (`JS.transition` via
   `phx-mounted`/`phx-remove`; `transform`/`opacity` only; no `transition:all` on patched nodes).
-- [ ] **UPLIFT-05**: Mobile-first responsive — every console surface is correct and usable at
+- [x] **UPLIFT-05**: Mobile-first responsive — every console surface is correct and usable at
   all breakpoints.
-- [ ] **UPLIFT-06**: Accessibility audit — keyboard navigation, focus order + visible focus,
+- [x] **UPLIFT-06**: Accessibility audit — keyboard navigation, focus order + visible focus,
   ARIA semantics on custom components (menus, dialogs, tables, toasts), no keyboard traps in
   drawers/dialogs, and WCAG AA contrast in **both** themes.
 - [ ] **UPLIFT-07**: gov.uk/GDS-style information architecture — task-first triage home,
@@ -230,10 +230,10 @@ Open only via `/gsd-new-milestone` with documented signal:
 | PIPE-02 | Phase 94 | Complete |
 | UPLIFT-01 | Phase 95 | Pending |
 | UPLIFT-02 | Phase 97 | Complete |
-| UPLIFT-03 | Phase 98 | Pending |
-| UPLIFT-04 | Phase 98 | Pending |
-| UPLIFT-05 | Phase 98 | Pending |
-| UPLIFT-06 | Phase 98 | Pending |
+| UPLIFT-03 | Phase 98 | Complete |
+| UPLIFT-04 | Phase 98 | Complete |
+| UPLIFT-05 | Phase 98 | Complete |
+| UPLIFT-06 | Phase 98 | Complete |
 | UPLIFT-07 | Phase 98 | Pending |
 | UPLIFT-08 | Phase 98 | Pending |
 | COHORT-01 | Phase 99 | Pending |
