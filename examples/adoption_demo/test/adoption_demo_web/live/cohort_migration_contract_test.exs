@@ -289,6 +289,17 @@ defmodule AdoptionDemoWeb.CohortMigrationContractTest do
     refute router =~ "PageHTML"
   end
 
+  test "root layout no longer links default css while keeping Cohort stylesheets" do
+    root = File.read!(adoption_demo_path("lib/adoption_demo_web/components/layouts/root.html.heex"))
+
+    assert root =~ ~s(~p"/assets/css/app.css")
+    assert root =~ ~s(~p"/assets/cohort.css")
+    refute root =~ "default.css"
+
+    assert File.exists?(adoption_demo_path("priv/static/assets/default.css")),
+           "default.css must remain committed until the final destructive plan"
+  end
+
   # --- Plan 02: /dashboard frozen-contract + daisyUI-retirement -------------
   # Seeds a member + course/lesson + post so the LOAD-BEARING member-row contract
   # (id="member-#{id}" + data-testid="member-row-#{email}") and the lesson/post
