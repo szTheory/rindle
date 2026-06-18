@@ -98,15 +98,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     def render(assigns) do
       ~H"""
       <.shell active="assets" base_path={@admin_base_path} title="Assets" live_status={@live_status}>
-        <.filters filters={[{"state", @filters["state"]}, {"profile", @filters["profile"]}, {"kind", @filters["kind"]}]} />
-
-        <%= if @error? do %>
-          <.error_state surface="Assets" />
-        <% else %>
-          <%= if Enum.empty?(@model.rows) do %>
-            <.empty_state />
-          <% else %>
+        <.page state={list_state(assigns)} error_surface="Assets">
+          <:filters>
+            <.filters filters={[{"state", @filters["state"]}, {"profile", @filters["profile"]}, {"kind", @filters["kind"]}]} />
+          </:filters>
+          <:work>
             <table class="rindle-admin-table">
+              <caption class="rindle-admin-visually-hidden">Media assets</caption>
               <thead class="rindle-admin-table__head">
                 <tr>
                   <th class="rindle-admin-table__cell" scope="col">Asset</th>
@@ -118,11 +116,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               </thead>
               <tbody>
                 <tr :for={asset <- @model.rows} class="rindle-admin-table__row" data-rindle-admin-row="asset">
-                  <td class="rindle-admin-table__cell"><code>{asset.filename || asset.id}</code></td>
-                  <td class="rindle-admin-table__cell"><.status_chip state={asset.state} label={asset.state} /></td>
-                  <td class="rindle-admin-table__cell">{asset.profile}</td>
-                  <td class="rindle-admin-table__cell">{asset.kind}</td>
-                  <td class="rindle-admin-table__cell">
+                  <td class="rindle-admin-table__cell" scope="row" data-label="Asset"><code>{asset.filename || asset.id}</code></td>
+                  <td class="rindle-admin-table__cell" data-label="State"><.status_chip state={asset.state} label={asset.state} /></td>
+                  <td class="rindle-admin-table__cell" data-label="Profile">{asset.profile}</td>
+                  <td class="rindle-admin-table__cell" data-label="Kind">{asset.kind}</td>
+                  <td class="rindle-admin-table__cell" data-label="Action">
                     <a
                       class="rindle-admin-button rindle-admin-button--secondary rindle-admin-target-min"
                       href={admin_path(@admin_base_path, "assets/#{asset.id}")}
@@ -134,11 +132,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 </tr>
               </tbody>
             </table>
-          <% end %>
-        <% end %>
+          </:work>
+        </.page>
       </.shell>
       """
     end
+
+    defp list_state(%{error?: true}), do: :error
+    defp list_state(%{model: %{rows: []}}), do: :empty
+    defp list_state(_assigns), do: :ok
 
     attr(:rows, :list, required: true)
     attr(:columns, :list, required: true)
