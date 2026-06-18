@@ -939,8 +939,9 @@
   color: var(--ck-ink);
   background: var(--ck-surface-2);
 }
-.ck-tabs__tab[aria-selected="true"] {
-  /* non-color cue: underline + weight, in addition to color (D-96-17) */
+.ck-tabs__tab[aria-selected="true"],
+.ck-tabs__tab[aria-current="page"] {
+  /* non-color cue: underline + weight, in addition to color (D-96-17/22) */
   color: var(--ck-ink);
   font-weight: 700;
   border-bottom-color: var(--ck-brand);

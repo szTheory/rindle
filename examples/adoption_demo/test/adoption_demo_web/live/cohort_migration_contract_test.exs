@@ -37,7 +37,11 @@ defmodule AdoptionDemoWeb.CohortMigrationContractTest do
     "list-disc",
     "opacity-80",
     "space-y-",
-    "font-mono text-sm"
+    "font-mono text-sm",
+    "tabs",
+    "text-red-600",
+    ~s( tab ),
+    "break-all"
   ]
 
   @doc """
