@@ -147,6 +147,49 @@ defmodule Rindle.Admin.Queries do
     end
   end
 
+  @doc """
+  Loads one processing run's diagnostic detail for the dedicated
+  `variants-jobs/:id` `:show` route (D-98-09).
+
+  The `:id` is resolved as a processing-run id first; when no run carries that
+  id it is resolved as an asset id and the asset's most recent processing run is
+  returned (the finding rows on the index carry asset ids, not run ids). Both
+  paths return ONE run's `error_reason`/attempt/worker with the SAME redaction
+  discipline as `asset_detail/1`/`upload_session_detail/1` — no field is exposed
+  beyond what those `:show` routes already expose. A non-UUID, unknown, or
+  run-less id maps to `{:error, :not_found}` (mirrors `asset_detail/1`).
+  """
+  @spec variant_run_detail(Ecto.UUID.t()) :: {:ok, map()} | {:error, term()}
+  def variant_run_detail(id) when is_binary(id) do
+    with {:ok, id} <- Ecto.UUID.cast(id),
+         %MediaProcessingRun{} = run <- resolve_processing_run(id) do
+      {:ok,
+       %{
+         generated_at: DateTime.utc_now(),
+         run: processing_run_row(run),
+         asset: asset_detail_row(run.asset_id)
+       }}
+    else
+      _error -> {:error, :not_found}
+    end
+  end
+
+  defp resolve_processing_run(id) do
+    case Config.repo().get(MediaProcessingRun, id) do
+      %MediaProcessingRun{} = run -> run
+      nil -> latest_processing_run_for_asset(id)
+    end
+  end
+
+  defp latest_processing_run_for_asset(asset_id) do
+    from(r in MediaProcessingRun,
+      where: r.asset_id == ^asset_id,
+      order_by: [desc: r.inserted_at, desc: r.id],
+      limit: 1
+    )
+    |> Config.repo().one()
+  end
+
   @spec variants_jobs(keyword() | map()) :: {:ok, map()} | {:error, term()}
   def variants_jobs(opts) do
     with {:ok, filters} <- normalize_filters(opts, @variants_jobs_filter_keys),
@@ -504,20 +547,23 @@ defmodule Rindle.Admin.Queries do
       order_by: [desc: r.inserted_at, desc: r.id]
     )
     |> Config.repo().all()
-    |> Enum.map(fn run ->
-      %{
-        id: run.id,
-        variant_name: run.variant_name,
-        worker: run.worker,
-        state: run.state,
-        attempt: run.attempt,
-        started_at: run.started_at,
-        finished_at: run.finished_at,
-        error_reason: run.error_reason,
-        inserted_at: run.inserted_at,
-        updated_at: run.updated_at
-      }
-    end)
+    |> Enum.map(&processing_run_row/1)
+  end
+
+  defp processing_run_row(%MediaProcessingRun{} = run) do
+    %{
+      id: run.id,
+      asset_id: run.asset_id,
+      variant_name: run.variant_name,
+      worker: run.worker,
+      state: run.state,
+      attempt: run.attempt,
+      started_at: run.started_at,
+      finished_at: run.finished_at,
+      error_reason: run.error_reason,
+      inserted_at: run.inserted_at,
+      updated_at: run.updated_at
+    }
   end
 
   defp provider_asset_rows(asset_id) do

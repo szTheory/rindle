@@ -19,27 +19,74 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
          live_status: "Waiting for lifecycle events",
          filters: %{},
          model: %{rows: [], findings: [], recommendations: [], counts: %{}},
+         detail: nil,
          error?: false
        )
        |> tap(&Support.subscribe_admin_lifecycle/1)}
     end
 
     @impl true
+    def handle_params(%{"id" => id}, _uri, socket) do
+      {:noreply, load_detail(socket, id)}
+    end
+
     def handle_params(params, _uri, socket) do
       filters = take_filters(params, ~w(state profile class older_than provider_stuck))
 
       {:noreply,
        socket
-       |> assign(filters: filters)
+       |> assign(filters: filters, detail: nil)
        |> load()}
     end
 
     @impl true
+    def handle_info(
+          {:rindle_event, _event_type, _payload},
+          %{assigns: %{detail: %{run: run}}} = socket
+        ) do
+      {:noreply, socket |> assign(:live_status, "Updated just now") |> load_detail(run.id)}
+    end
+
     def handle_info({:rindle_event, _event_type, _payload}, socket) do
       {:noreply, socket |> assign(:live_status, "Updated just now") |> load()}
     end
 
     @impl true
+    def render(%{detail: %{run: _run}} = assigns) do
+      ~H"""
+      <.shell active="variants-jobs" base_path={@admin_base_path} title="Variants/Jobs" live_status={@live_status}>
+        <section data-rindle-admin-row="processing-run">
+          <h2>Processing run</h2>
+          <.status_chip state={@detail.run.state} label={@detail.run.state} />
+          <.metadata_list items={[
+            {"Run ID", @detail.run.id},
+            {"Variant", @detail.run.variant_name},
+            {"Worker", @detail.run.worker},
+            {"Attempt", @detail.run.attempt},
+            {"Started at", @detail.run.started_at},
+            {"Finished at", @detail.run.finished_at}
+          ]} />
+        </section>
+
+        <section>
+          <h2>Error reason</h2>
+          <p>{@detail.run.error_reason || "No error reason recorded"}</p>
+        </section>
+
+        <section :if={@detail.asset}>
+          <h2>Asset link</h2>
+          <a
+            class="rindle-admin-button rindle-admin-button--secondary rindle-admin-target-min"
+            href={admin_path(@admin_base_path, "assets/#{@detail.asset.id}")}
+            data-rindle-admin-detail-link="asset"
+          >
+            Inspect asset
+          </a>
+        </section>
+      </.shell>
+      """
+    end
+
     def render(assigns) do
       ~H"""
       <.shell active="variants-jobs" base_path={@admin_base_path} title="Variants/Jobs" live_status={@live_status}>
@@ -104,7 +151,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                       <a
                         :if={sample_asset_id(finding)}
                         class="rindle-admin-button rindle-admin-button--secondary rindle-admin-target-min"
-                        href={admin_path(@admin_base_path, "assets/#{sample_asset_id(finding)}")}
+                        href={admin_path(@admin_base_path, "variants-jobs/#{sample_asset_id(finding)}")}
+                        data-rindle-admin-detail-link="processing-run"
                       >
                         View details
                       </a>
@@ -135,6 +183,23 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp list_state(%{error?: true}), do: :error
     defp list_state(%{model: %{findings: []}}), do: :empty
     defp list_state(_assigns), do: :ok
+
+    defp load_detail(socket, id) do
+      case Queries.variant_run_detail(id) do
+        {:ok, detail} ->
+          subscribe_detail(socket, detail)
+          assign(socket, detail: detail, error?: false)
+
+        {:error, reason} ->
+          assign(socket, detail: nil, error?: true, error_reason: reason)
+      end
+    end
+
+    defp subscribe_detail(socket, %{asset: %{id: asset_id}}) when is_binary(asset_id) do
+      Support.subscribe(socket, "rindle:asset:#{asset_id}")
+    end
+
+    defp subscribe_detail(_socket, _detail), do: :ok
 
     defp load(socket) do
       opts =
