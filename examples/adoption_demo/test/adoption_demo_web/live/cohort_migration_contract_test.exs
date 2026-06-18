@@ -38,9 +38,12 @@ defmodule AdoptionDemoWeb.CohortMigrationContractTest do
     "opacity-80",
     "space-y-",
     "font-mono text-sm",
-    "tabs",
+    # daisyUI tab classes are anchored to the class-attribute leading position
+    # (`class="tabs tabs-boxed"`, `class="tab px-3 ..."`) so they can't substring-match
+    # the Cohort DS's own `class="ck-tabs__..."`/`class="ck-tab..."` nor the prose word "tab".
+    ~s(class="tabs ),
     "text-red-600",
-    ~s( tab ),
+    ~s(class="tab ),
     "break-all"
   ]
 
