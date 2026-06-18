@@ -91,6 +91,15 @@ and the mux cassette) ran green (21/0). A verifier caught a deterministic contra
 (an over-broad daisyUI-retirement literal substring-matching the DS's own `ck-tabs`/`ck-tab` classes)
 that the executor SUMMARY had mis-labeled as infra-delegated; fixed in `95b92cf`.
 
+Phase 101 (Track B daisyUI retirement — COHORT-05) completed and verified passed 2026-06-18
+(19/19 truths). Shared flash/error markup moved to token-backed `.ck-flash` / `.ck-alert`
+surfaces with inline SVG icons, `Layouts.app/1` is now a bare Cohort shell, dead Phoenix generator
+landing files are deleted, full composed route renders are the retirement scan surface, the root no
+longer links `default.css`, and the committed `default.css` scaffold asset is gone. Final gates:
+adoption-demo ExUnit 33/0, Cohort contrast 28/28, Cohort page Playwright 15/15, and root `mix test`
+1158/0. Full `adoption_demo_e2e.sh` remains red on an admin strict-locator issue outside Phase 101
+scope and is tracked in Phase 101 deferred items.
+
 **v1.16 shipped:** Merge-blocking `proof` CI job (CI-03) runs `docs_parity_test.exs` and
 `batch_owner_erasure_task_test.exs`; TusPlug moduledoc parity lock (TRUTH-05); planning
 artifact cleanup (PLAN-01). Closes v1.15 audit CI-01/PROOF-06 integration depth and
@@ -852,4 +861,4 @@ This document evolves at phase transitions and milestone boundaries.
    (`workflow.milestone_boundary.block_feature_milestone_without_signal`)
 
 ---
-*Last updated: 2026-06-18 — Phase 100 (Cohort `/upload` migration, all tabs — COHORT-02) completed and verified passed (11/11 truths: ExUnit frozen-contract gate 9/0 + full Playwright lane 21/0); a verifier-caught contract-test defect was fixed in `95b92cf`. Phase 98 (Admin Level-3, UPLIFT-03..08) completed; 3 code-review blockers fixed with regression tests, live e2e delegated to merge-blocking CI. Phase 94 foundation completed and verified; `brandbook-tokens` is merge-blocking in CI and branch protection. v1.19 Design-System Stress-Test remains active over un-closed v1.18 (tech_debt, HUMAN-UAT pending) by recorded maintainer decision.*
+*Last updated: 2026-06-18 — Phase 101 (Track B daisyUI retirement — COHORT-05) completed and verified passed (19/19 truths: full composed render/source/file ExUnit ratchet, `default.css` link+asset removed, Cohort Playwright 15/15, root `mix test` 1158/0). Full `adoption_demo_e2e.sh` remains red on an admin strict-locator issue outside Phase 101 scope and tracked in Phase 101 deferred items. Phase 100 (Cohort `/upload` migration, all tabs — COHORT-02) completed and verified passed. Phase 98 (Admin Level-3, UPLIFT-03..08) completed; 3 code-review blockers fixed with regression tests. Phase 94 foundation completed and verified; `brandbook-tokens` is merge-blocking in CI and branch protection. v1.19 Design-System Stress-Test remains active over un-closed v1.18 (tech_debt, HUMAN-UAT pending) by recorded maintainer decision.*
