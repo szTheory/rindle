@@ -140,6 +140,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         generated_at: nil,
         doctor: %{checks: [], failed: 0, success?: false, total: 0},
         runtime_status: %{
+          runtime_checks: %{counts: %{}, findings: []},
           assets: %{counts: %{}},
           variants: %{counts: %{}, findings: []},
           upload_sessions: %{counts: %{}, findings: []},
