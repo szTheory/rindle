@@ -1,6 +1,8 @@
 defmodule AdoptionDemoWeb.MemberLive do
   use AdoptionDemoWeb, :live_view
 
+  import AdoptionDemoWeb.CohortComponents
+
   alias AdoptionDemo.{Accounts, Media, RindleProfile}
 
   @impl true
@@ -12,6 +14,7 @@ defmodule AdoptionDemoWeb.MemberLive do
     {:ok,
      assign(socket,
        page_title: member.name,
+       theme: "light",
        member: member,
        attachment: attachment,
        asset: asset,
@@ -23,37 +26,45 @@ defmodule AdoptionDemoWeb.MemberLive do
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} page_title={@page_title}>
-      <h1 class="text-2xl font-semibold" data-testid="member-profile-title">{@member.name}</h1>
-      <p class="text-sm">{@member.email} · {@member.role}</p>
+      <.ck_page title="Member" theme={@theme}>
+        <h1 class="ck-hero__title" data-testid="member-profile-title">{@member.name}</h1>
+        <p class="ck-hero__lede">{@member.email} · {@member.role}</p>
 
-      <section id="member-avatar" class="mt-6" data-testid="member-avatar-section">
-        <h2 class="text-lg font-semibold">Avatar</h2>
-        <%= if @asset do %>
-          <div id="member-picture-tag" data-testid="member-picture-tag">
-            {Rindle.HTML.picture_tag(RindleProfile, @asset,
-              variants: [{:thumb, nil}],
-              alt: "#{@member.name} avatar",
-              class: "max-w-xs border"
-            )}
+        <section id="member-avatar" class="ck-section" data-testid="member-avatar-section">
+          <div class="ck-section__head">
+            <h2 class="ck-section__title">Avatar</h2>
           </div>
-          <p id="member-avatar-state" class="text-sm mt-2" data-testid="member-avatar-state">
-            Asset {@asset.id} — {@asset.state}
-          </p>
-        <% else %>
-          <p id="member-no-avatar" data-testid="member-no-avatar">No avatar attached.</p>
-        <% end %>
-      </section>
+          <%= if @asset do %>
+            <div id="member-picture-tag" data-testid="member-picture-tag">
+              {Rindle.HTML.picture_tag(RindleProfile, @asset,
+                variants: [{:thumb, nil}],
+                alt: "#{@member.name} avatar",
+                class: "max-w-xs border"
+              )}
+            </div>
+            <p id="member-avatar-state" data-testid="member-avatar-state">
+              Asset {@asset.id} — {@asset.state}
+            </p>
+          <% else %>
+            <p id="member-no-avatar" data-testid="member-no-avatar">No avatar attached.</p>
+          <% end %>
+        </section>
 
-      <section id="replace-detach" class="mt-8 space-y-3" data-testid="replace-detach-section">
-        <h2 class="text-lg font-semibold">Replace / detach</h2>
-        <p id="replace-status" class="font-mono text-sm" data-testid="replace-status">{@replace_status}</p>
-        <button id="replace-avatar-button" phx-click="replace_avatar" class="btn" data-testid="replace-avatar-button">
-          Replace avatar
-        </button>
-        <button id="detach-avatar-button" phx-click="detach_avatar" class="btn" data-testid="detach-avatar-button">
-          Detach avatar
-        </button>
-      </section>
+        <section id="replace-detach" class="ck-section" data-testid="replace-detach-section">
+          <div class="ck-section__head">
+            <h2 class="ck-section__title">Replace / detach</h2>
+          </div>
+          <p id="replace-status" class="ck-output" data-testid="replace-status">{@replace_status}</p>
+          <div class="ck-toolbar">
+            <button id="replace-avatar-button" phx-click="replace_avatar" class="ck-btn ck-btn--primary" data-testid="replace-avatar-button">
+              Replace avatar
+            </button>
+            <button id="detach-avatar-button" phx-click="detach_avatar" class="ck-btn" data-testid="detach-avatar-button">
+              Detach avatar
+            </button>
+          </div>
+        </section>
+      </.ck_page>
     </Layouts.app>
     """
   end
