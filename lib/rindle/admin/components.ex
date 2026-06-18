@@ -303,8 +303,8 @@ if Code.ensure_loaded?(Phoenix.Component) do
         class="rindle-admin-overlay"
         data-rindle-admin-overlay
         style={unless @show, do: "display: none;"}
-        phx-window-keydown={hide_modal(@on_cancel, @id)}
-        phx-key="escape"
+        phx-window-keydown={if @show, do: hide_modal(@on_cancel, @id)}
+        phx-key={if @show, do: "escape"}
       >
         <div
           class="rindle-admin-overlay__backdrop"
@@ -355,8 +355,8 @@ if Code.ensure_loaded?(Phoenix.Component) do
         class="rindle-admin-overlay"
         data-rindle-admin-overlay
         style={unless @show, do: "display: none;"}
-        phx-window-keydown={hide_modal(@on_cancel, @id)}
-        phx-key="escape"
+        phx-window-keydown={if @show, do: hide_modal(@on_cancel, @id)}
+        phx-key={if @show, do: "escape"}
       >
         <div
           class="rindle-admin-overlay__backdrop"
