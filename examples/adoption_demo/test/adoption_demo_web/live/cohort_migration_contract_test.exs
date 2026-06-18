@@ -168,4 +168,73 @@ defmodule AdoptionDemoWeb.CohortMigrationContractTest do
 
     assert_daisyui_retired(html)
   end
+
+  # --- Plan 03: /ops frozen-contract + daisyUI-retirement -------------------
+  # Seeds two students so the batch-member spans render against real rows. The
+  # always-present selectors (the four phx-click buttons, the batch section, the
+  # member spans) are asserted statically here; the `<pre :if=...>` output panels
+  # (doctor-output/runtime-status-output/batch-preview/batch-result) only render
+  # after their handler fires and touch the erasure/storage subsystem, so they
+  # are exercised by the ops-surfaces / batch-erasure behavior specs (the runtime
+  # backstop), NOT force-clicked here. We still assert their ids/testids survive
+  # in source via the per-page acceptance greps; this test pins the static body
+  # contract + every phx-click handler + the .ck shell.
+  test "/ops preserves its frozen contract and retires daisyUI", %{conn: conn} do
+    AdoptionDemo.Accounts.seed_member!(%{
+      email: "ops-batch-a@cohort.test",
+      name: "Batch A",
+      role: "student"
+    })
+
+    AdoptionDemo.Accounts.seed_member!(%{
+      email: "ops-batch-b@cohort.test",
+      name: "Batch B",
+      role: "student"
+    })
+
+    html = render_route(conn, ~p"/ops")
+
+    assert_frozen_contract(html, [
+      ~s(data-testid="run-doctor-button"),
+      ~s(data-testid="run-runtime-status-button"),
+      ~s(data-testid="batch-erasure-section"),
+      ~s(data-testid="preview-batch-button"),
+      ~s(data-testid="execute-batch-button"),
+      ~s(id="batch-erasure"),
+      ~s(phx-click="run_doctor"),
+      ~s(phx-click="run_runtime_status"),
+      ~s(phx-click="preview_batch"),
+      ~s(phx-click="execute_batch")
+    ])
+
+    assert_daisyui_retired(html)
+  end
+
+  # --- Plan 03: /account erasure frozen-contract + daisyUI-retirement --------
+  # Seeds a member and renders /account/:id/delete. The always-present selectors
+  # (erasure-member-name + the two phx-click buttons) are asserted statically;
+  # the `<pre :if=...>` erasure-preview/erasure-result panels render only after a
+  # handler fires and touch the erasure subsystem, so they are exercised by the
+  # owner-erasure behavior spec (runtime backstop), not force-clicked here.
+  test "/account erasure preserves its frozen contract and retires daisyUI", %{conn: conn} do
+    AdoptionDemo.Accounts.seed_member!(%{
+      email: "erasure-target@cohort.test",
+      name: "Erasure Target",
+      role: "student"
+    })
+
+    member = AdoptionDemo.Accounts.get_member_by_email!("erasure-target@cohort.test")
+
+    html = render_route(conn, ~p"/account/#{member.id}/delete")
+
+    assert_frozen_contract(html, [
+      ~s(data-testid="erasure-member-name"),
+      ~s(data-testid="preview-erasure-button"),
+      ~s(data-testid="execute-erasure-button"),
+      ~s(phx-click="preview"),
+      ~s(phx-click="execute")
+    ])
+
+    assert_daisyui_retired(html)
+  end
 end

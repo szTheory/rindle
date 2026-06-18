@@ -18,6 +18,7 @@
 const { test, expect } = require("@playwright/test");
 const { assertAdminPolish } = require("./support/admin-polish");
 const { waitForLiveSocket } = require("./support/liveview");
+const { MEMBERS, memberId } = require("./support/cohort");
 
 // D-96-06: the FIXED interactive-selector list the polish gate measures over the
 // Cohort root for the migrated pages.
@@ -74,4 +75,25 @@ test("cohort-pages harness loads and runs (Wave-0 smoke over /styleguide)", asyn
 // warn-mode helper — root-visibility guarded, no harness logic duplicated.
 test("/dashboard renders on the Cohort DS (polish, warn mode)", async ({ page }) => {
   await assertCohortPagePolish(page, { route: "/dashboard", surface: "dashboard-cohort" });
+});
+
+// Wave-3 (Plan 03): /ops migrated onto ck_page/1 (.ck-btn buttons + .ck-output
+// panels). Reuses the shared warn-mode helper — no harness logic duplicated.
+test("/ops renders on the Cohort DS (polish, warn mode)", async ({ page }) => {
+  await assertCohortPagePolish(page, { route: "/ops", surface: "ops-cohort" });
+});
+
+// Wave-3 (Plan 03): /account/:id/delete erasure migrated onto ck_page/1. The
+// route needs a seeded member id, derived the same way the owner-erasure spec
+// does — visit /dashboard, read the member row id via support/cohort's memberId
+// helper — then run the shared polish helper against the resolved route.
+test("/account erasure renders on the Cohort DS (polish, warn mode)", async ({ page }) => {
+  await page.goto("/dashboard");
+  await waitForLiveSocket(page);
+  const id = await memberId(page, MEMBERS.alex);
+
+  await assertCohortPagePolish(page, {
+    route: `/account/${id}/delete`,
+    surface: "account-cohort",
+  });
 });
