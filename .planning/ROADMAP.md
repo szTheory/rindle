@@ -424,7 +424,7 @@ hook-dense upload flows.
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 100-02-PLAN.md — 6 per-tab + 1 dark /upload polish cases in cohort-pages.spec.js; confirm the 6 behavior specs + full lane stay green
+- [x] 100-02-PLAN.md — 6 per-tab + 1 dark /upload polish cases in cohort-pages.spec.js; confirm the 6 behavior specs + full lane stay green
 
 **UI hint:** yes
 
@@ -783,7 +783,7 @@ Plans:
 | 97. Admin Level-2 Meta-Components [A] | 4/4 | Complete    | 2026-06-17 |
 | 98. Admin Level-3 Pages + Motion/Mobile/A11y/IA/Microcopy [A] | 5/5 | Complete    | 2026-06-18 |
 | 99. Cohort Page Migrations (small 7) [B] | 5/5 | Complete    | 2026-06-18 |
-| 100. Cohort /upload Migration [B] | 1/2 | In Progress|  |
+| 100. Cohort /upload Migration [B] | 2/2 | Complete   | 2026-06-18 |
 | 101. daisyUI Retirement [B] | 0/? | Not started | - |
 | 102. Re-Converge — Visual Matrix, Idempotency & Audit | 0/? | Not started | - |
 
