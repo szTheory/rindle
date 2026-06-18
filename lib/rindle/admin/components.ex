@@ -177,6 +177,67 @@ if Code.ensure_loaded?(Phoenix.Component) do
       """
     end
 
+    @doc false
+    # Level-3 page composition scaffold (D-98-01, UI-SPEC §A). The single page
+    # grammar that makes all six admin surfaces one system and structurally
+    # forbids page-local styling: NO grid/measure is declared here — every layout
+    # rule lives in the generated CSS (`.rindle-admin-page*` selectors authored in
+    # brandbook/src/admin-css-build.mjs, D-98-12). Slots render in canonical DOM
+    # order; `:work` is required (compile-time error if omitted). `:state` drives
+    # the existing empty/error/loading primitives so surfaces never re-implement
+    # them. The scaffold root carries a `data-rindle-admin-*` seam so both the
+    # gallery-check and Playwright homes can target it. Ends this plan
+    # existing-but-UNUSED (no surface is migrated onto it yet).
+    attr(:state, :atom, default: :ok)
+    attr(:error_surface, :string, default: "surface")
+    slot(:summary)
+    slot(:filters)
+    slot(:work, required: true)
+    slot(:aside)
+    slot(:actions)
+
+    def page(assigns) do
+      ~H"""
+      <div
+        class={"rindle-admin-page" <> if(@aside != [], do: " rindle-admin-page--two-pane", else: "")}
+        data-rindle-admin-root
+        data-rindle-admin-page
+        data-rindle-admin-state={@state}
+      >
+        <div :if={@summary != []} class="rindle-admin-page__summary" data-rindle-admin-page-summary>
+          {render_slot(@summary)}
+        </div>
+
+        <div :if={@filters != []} class="rindle-admin-page__filters" data-rindle-admin-page-filters>
+          {render_slot(@filters)}
+        </div>
+
+        <div class="rindle-admin-page__panes" data-rindle-admin-page-panes>
+          <div class="rindle-admin-page__work" data-rindle-admin-page-work>
+            <%= case @state do %>
+              <% :empty -> %>
+                <.empty_state />
+              <% :error -> %>
+                <.error_state surface={@error_surface} />
+              <% :loading -> %>
+                <.loading_skeleton />
+              <% _ -> %>
+                {render_slot(@work)}
+            <% end %>
+          </div>
+
+          <aside :if={@aside != []} class="rindle-admin-page__aside" data-rindle-admin-page-aside>
+            {render_slot(@aside)}
+          </aside>
+        </div>
+
+        <footer :if={@actions != []} class="rindle-admin-page__actions" data-rindle-admin-page-actions>
+          {render_slot(@actions)}
+        </footer>
+      </div>
+      """
+    end
+
     def format_value(nil), do: "not set"
     def format_value(%DateTime{} = value), do: DateTime.to_iso8601(value)
     def format_value(%NaiveDateTime{} = value), do: NaiveDateTime.to_iso8601(value)
