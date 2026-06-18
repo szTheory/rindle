@@ -25,6 +25,7 @@ demand-gated and shift to v1.20+. Research: `.planning/research/v1.19/SUMMARY.md
   `rindle-admin.css` + `cohort.css` from `tokens.json` via the `.mjs` scripts, runs the WCAG
   contrast gate, and fails on any uncommitted diff. Generated CSS is never hand-edited; this
   is the idempotency / no-regression anchor that lands before any visual work.
+
 - [x] **PIPE-02**: Token system extended in `tokens.json` + the `.mjs` generators with the
   categories the uplift needs: motion presets (durations/easings), a true dark **elevation /
   shadow ladder** (semantic, not color-inversion), responsive **fluid type + space scales**
@@ -37,23 +38,30 @@ demand-gated and shift to v1.20+. Research: `.planning/research/v1.19/SUMMARY.md
   interaction-state matrix (default / hover / **focus-visible** / active / disabled / loading /
   empty / error / skeleton) in **light, dark, and system** — audited against tokens, with the
   `active` vs `focus-visible` distinction explicit and no one-off styles.
+
 - [x] **UPLIFT-02**: Meta-components refined as cohesive units — toolbars, **sortable / sticky-
   header / bulk-select data tables**, filter bars, action panels, detail drill-downs,
   confirm/destructive panels, drawers, toasts — consistent rhythm, alignment, and density.
+
 - [x] **UPLIFT-03**: Per-page composition pass over each console surface — visual hierarchy,
   spacing scale, and on-brand assembly of components into pages.
+
 - [x] **UPLIFT-04**: Motion pass — purposeful, performant, **reduced-motion-aware** animation
   tied to brand motion tokens, sub-300ms, and **LiveView-coordinated** (`JS.transition` via
   `phx-mounted`/`phx-remove`; `transform`/`opacity` only; no `transition:all` on patched nodes).
+
 - [x] **UPLIFT-05**: Mobile-first responsive — every console surface is correct and usable at
   all breakpoints.
+
 - [x] **UPLIFT-06**: Accessibility audit — keyboard navigation, focus order + visible focus,
   ARIA semantics on custom components (menus, dialogs, tables, toasts), no keyboard traps in
   drawers/dialogs, and WCAG AA contrast in **both** themes.
-- [ ] **UPLIFT-07**: gov.uk/GDS-style information architecture — task-first triage home,
+
+- [x] **UPLIFT-07**: gov.uk/GDS-style information architecture — task-first triage home,
   least-surprise navigation and labels, progressive disclosure, serving onboarding /
   intermediate / advanced operators across happy / error / boundary paths.
-- [ ] **UPLIFT-08**: Microcopy on-brand in the **operator/SRE voice** (terse, diagnostic, GDS
+
+- [x] **UPLIFT-08**: Microcopy on-brand in the **operator/SRE voice** (terse, diagnostic, GDS
   rules: say what happened + how to fix; no please/oops/sorry/jargon), tied to each surface's
   JTBD/persona.
 
@@ -66,6 +74,7 @@ demand-gated and shift to v1.20+. Research: `.planning/research/v1.19/SUMMARY.md
 - [ ] **COHORT-05**: daisyUI/Tailwind scaffold retired from the inner pages — migrated
   **class-by-class, not element-by-element**, preserving every `id` / `data-testid` / `phx-hook`
   so behavior e2e stays green; the `default.css` `<link>` removed only once grep is clean.
+
 - [x] **COHORT-06**: Cohort gains a dark `[data-theme]` contract **and** a
   `prefers-reduced-motion` block (net-new — `cohort.css` has neither today), with the new
   contrast pairs added to the WCAG gate and all color literals replaced by tokens.
@@ -75,12 +84,15 @@ demand-gated and shift to v1.20+. Research: `.planning/research/v1.19/SUMMARY.md
 - [x] **VIS-01**: Deterministic computed-style assertions (the `admin-polish.js` pattern) remain
   the **single merge-blocking** visual gate, extended to cover all admin + Cohort inner pages
   across light/dark in the `adoption-demo-e2e` lane.
+
 - [ ] **VIS-02**: Uplift is idempotent / forward-only — each pass converges (double-run
   empty-diff check) with zero functional or visual regression to existing flows; every page
   migration is gated on its behavior e2e specs.
+
 - [ ] **VIS-03** *(differentiator)*: Optional pixel-baseline screenshots (`toHaveScreenshot()`)
   may augment the gate **only** if CI-generated, motion-frozen, and font-stable — never a flaky
   merge blocker.
+
 - [ ] **VIS-04** *(differentiator)*: Living component gallery (admin + Cohort) as an audit
   reference surface, kept in sync with the generated CSS and screenshotted by the visual lane.
 
@@ -100,16 +112,21 @@ coverage, deterministic E2E, and Docker DX fixes.
 
 - [x] **ADMIN-01**: Host app mounts the console via a router macro with a host-supplied
   auth pipeline + `on_mount` hook; safe-by-default (refuses unauthenticated mount outside dev).
+
 - [x] **ADMIN-02**: Console ships fully self-contained precompiled assets (CSS/JS) — zero
   host asset-pipeline or Tailwind dependency; assets served by the library.
+
 - [x] **ADMIN-03**: Read surfaces — task-oriented home, assets list filterable by FSM state,
   asset detail (state timeline, variants, attachments), upload sessions, variant/job
   activity, doctor + runtime status.
+
 - [x] **ADMIN-04**: Ops actions — owner erasure preview/execute and batch erasure with
   deliberate destructive-action UX (typed confirmation, collateral preview), variant
   regeneration, quarantine review, lifecycle repair.
+
 - [x] **ADMIN-05**: Live updates via existing pubsub topics (`:asset`, `:variant`,
   `:upload_session`); queries isolated in `Rindle.Admin.Queries`, not the public facade.
+
 - [x] **ADMIN-06**: `phoenix_live_view` stays optional — console compiles away cleanly
   when absent (extends the `Code.ensure_loaded?` gating pattern); optional-dep matrix in CI.
 
@@ -117,8 +134,10 @@ coverage, deterministic E2E, and Docker DX fixes.
 
 - [x] **DS-01**: `rindle-admin` design system generated from `brandbook/tokens/tokens.json`
   (BEM + CSS custom properties); components rolled into the system, no one-off styles.
+
 - [x] **DS-02**: Light/dark/system theme picker as a first-class component
   (`data-theme` + `prefers-color-scheme`).
+
 - [x] **DS-03**: Mechanical WCAG AA contrast gate over console token pairs
   (reuse `brandbook/src/contrast.mjs` pattern).
 
@@ -126,14 +145,17 @@ coverage, deterministic E2E, and Docker DX fixes.
 
 - [x] **DEMO-01**: Cohort gets its own lightweight brand, distinct from Rindle
   (rendered options checkpoint for maintainer pick; replaces Phoenix firebird placeholder).
+
 - [x] **DEMO-02**: Cohort exercises audio + document media types, and seeds express every
   asset/variant/session lifecycle state (incl. degraded, quarantined, failed, stale, expired).
+
 - [x] **DEMO-03**: Cohort mounts the admin console; click-around walkthrough documented.
 
 ### E2E / Shift-Left (E2E)
 
 - [x] **E2E-01**: Deterministic Playwright specs for the console (happy paths, main error
   cases, boundary conditions, theme switching, destructive flows) in a merge-blocking CI lane.
+
 - [x] **E2E-02**: Automated all-screens × light/dark screenshot capture feeding
   analyze→fix polish iteration passes.
 
@@ -141,14 +163,17 @@ coverage, deterministic E2E, and Docker DX fixes.
 
 - [x] **DX-01**: Compose stack is port-conflict-free alongside sibling projects
   (project namespacing + env-driven ports with sane defaults and conflict guidance).
+
 - [x] **DX-02**: Dockerfile layer caching fixed (deps fetched before source COPY) and a
   dev iteration path where style/template changes don't rebuild deps.
+
 - [x] **DX-03**: Launch prints a copy-pasteable URL map (app, admin console, MinIO console).
 
 ### Principles & Truth (PRIN / TRUTH)
 
 - [x] **PRIN-01**: Durable UI-principles doc (design-system values, audit checklist,
   deterministic-E2E rules) linked from `AGENTS.md` so future UI work never regresses.
+
 - [x] **TRUTH-07**: Docs/facade parity for the scope reversal — `lib/rindle.ex` facade
   contract, `guides/`, JTBD-MAP T4 row, and README updated truthfully.
 
@@ -162,8 +187,10 @@ These documented maintainer obligations during maintenance mode (2026-05-27 → 
   opening a feature milestone or new public API surface.
   *Brand/docs/marketing work is not feature work and does not violate this posture
   (b1.0 charter, 2026-06-10).*
+
 - [x] **PAUSE-02**: Assessment and path-to-done threads remain canonical references for
   done-% and wedge ranking (`.planning/threads/2026-05-27-*`).
+
 - [x] **PAUSE-03**: `PROJECT.md`, `STATE.md`, and `ROADMAP.md` reflect demand-gated pause
   with no active **feature** phases until LIFE-06 or STREAM-10 signal (brand-track
   phases 81–85 are non-feature).
@@ -234,8 +261,8 @@ Open only via `/gsd-new-milestone` with documented signal:
 | UPLIFT-04 | Phase 98 | Complete |
 | UPLIFT-05 | Phase 98 | Complete |
 | UPLIFT-06 | Phase 98 | Complete |
-| UPLIFT-07 | Phase 98 | Pending |
-| UPLIFT-08 | Phase 98 | Pending |
+| UPLIFT-07 | Phase 98 | Complete |
+| UPLIFT-08 | Phase 98 | Complete |
 | COHORT-01 | Phase 99 | Pending |
 | COHORT-02 | Phase 100 | Pending |
 | COHORT-03 | Phase 99 | Pending |

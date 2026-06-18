@@ -2,16 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.19
 milestone_name: Design-System Stress-Test
+current_phase: 98
+current_phase_name: admin-level-3-page-composition-motion-mobile-a11y-ia-microco
 status: executing
 stopped_at: Phase 98 context gathered (assumptions mode + deep research; D-98-01..16 locked)
-last_updated: "2026-06-18T06:04:11.364Z"
+last_updated: "2026-06-18T06:29:31.023Z"
 last_activity: 2026-06-18
 progress:
-  total_phases: 17
-  completed_phases: 12
-  total_plans: 52
-  completed_plans: 50
-  percent: 71
+  total_phases: 18
+  completed_phases: 15
+  total_plans: 58
+  completed_plans: 60
+  percent: 83
 ---
 
 # Project State
@@ -26,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-06-14)
 ## Current Position
 
 Phase: 98 (admin-level-3-page-composition-motion-mobile-a11y-ia-microco) — EXECUTING
-Plan: 4 of 5
+Plan: 5 of 5
 Status: Ready to execute
 Last activity: 2026-06-18
 
@@ -173,6 +175,9 @@ is grounded before planning.
 - [Phase ?]: 98-01: ALL Phase-98 generated CSS landed in admin-css-build.mjs (scaffold §A, two-pane @1024-only, mobile-first two-stop responsive §C, stacked-table td::before, motion catalog §B GPU-only opacity/transform, :focus-visible+skip-link §D); first var(--rindle-shadow-card) consumer + extended fail-closed guards; byte-identical priv sync, deterministic, contrast 58/58; [Rule 1] theme-picker motion dropped background-color/color (gallery-check pressed-bg snapshot was mid-tween)
 - [Phase ?]: 98-02b: row-header cell kept as <td scope=row> (not <th>) so it participates in the P1 §C stacked-card td-only flip
 - [Phase ?]: 98-02b: six surfaces migrated onto page/1, one atomic commit per surface; P3-owned IA/route/confirm/microcopy held out by scope guards
+- [Phase ?]: 98-03: variant_run_detail/1 resolves :id as run-id then asset-id fallback (latest run) for index deep-links, redaction parity = asset_detail/1; variants-jobs/:id :show added inside the existing live_session (auth macro byte-unchanged)
+- [Phase ?]: 98-03: Actions verb-bucket REALLY distributed (handlers+forms removed) — regenerate->Processing via confirm_dialog/1, reconcile->Doctor, quarantine->asset detail; Maintenance keeps only owner/batch erasure; owner-erasure confirm rewired to confirm_dialog/1 (inert off @action_state==:preview)
+- [Phase ?]: 98-03: Overview = GDS triage home off home_status/1 (no query change) — needs-attention deep-links to already-parsed filters (no new routes), health chips, recent activity, vanity totals last, affirmative all-clear; inspect/1 removed; §F off-voice strings replaced
 
 ## Blockers/Concerns
 
@@ -198,7 +203,7 @@ is grounded before planning.
 
 ## Session Continuity
 
-Last session: 2026-06-18T06:03:26.860Z
+Last session: 2026-06-18T06:28:28.374Z
 Stopped at: Phase 98 context gathered (assumptions mode + deep research; D-98-01..16 locked)
 Resume file: None
 
@@ -252,3 +257,4 @@ Resume file: None
 | Phase 98 P01 | 14min | 2 tasks | 5 files |
 | Phase 98 P02a | 9min | 2 tasks | 1 files |
 | Phase 98 P02b | 8min | 2 tasks | 6 files |
+| Phase 98 P03 | 16min | 3 tasks | 12 files |
