@@ -113,4 +113,59 @@ defmodule AdoptionDemoWeb.CohortMigrationContractTest do
 
     assert_daisyui_retired(html)
   end
+
+  # --- Plan 02: /dashboard frozen-contract + daisyUI-retirement -------------
+  # Seeds a member + course/lesson + post so the LOAD-BEARING member-row contract
+  # (id="member-#{id}" + data-testid="member-row-#{email}") and the lesson/post
+  # link testids are exercised against real rows — support/cohort.js and 5+ upload
+  # specs navigate via these (RESEARCH Runtime State Inventory).
+  test "/dashboard preserves its frozen contract and retires daisyUI", %{conn: conn} do
+    AdoptionDemo.Accounts.seed_member!(%{
+      email: "maya@cohort.test",
+      name: "Maya",
+      role: "student"
+    })
+
+    # Re-fetch so we hold the PERSISTED row id (seed_member! uses
+    # on_conflict: :nothing, which can return an unpersisted struct).
+    member = AdoptionDemo.Accounts.get_member_by_email!("maya@cohort.test")
+
+    course = AdoptionDemo.Cohort.seed_course!(%{title: "Intro to Elixir", slug: "intro-elixir"})
+
+    lesson =
+      AdoptionDemo.Cohort.seed_lesson!(%{
+        title: "Pattern matching basics",
+        position: 1,
+        course_id: course.id
+      })
+
+    post =
+      AdoptionDemo.Cohort.seed_post!(%{
+        title: "Study group this week",
+        body: "Anyone in?",
+        member_id: member.id
+      })
+
+    html = render_route(conn, ~p"/dashboard")
+
+    assert_frozen_contract(html, [
+      ~s(data-testid="cohort-dashboard-title"),
+      ~s(id="demo-members"),
+      ~s(data-testid="demo-members"),
+      ~s(data-testid="demo-courses"),
+      ~s(data-testid="demo-posts"),
+      ~s(data-testid="demo-assets"),
+      ~s(id="member-#{member.id}"),
+      ~s(data-testid="member-row-#{member.email}"),
+      ~s(data-testid="member-no-avatar"),
+      ~s(data-testid="member-upload-link"),
+      ~s(data-testid="member-delete-link"),
+      ~s(data-testid="lesson-link-#{lesson.id}"),
+      ~s(data-testid="post-link-#{post.id}"),
+      ~s(data-testid="nav-upload"),
+      ~s(data-testid="nav-ops")
+    ])
+
+    assert_daisyui_retired(html)
+  end
 end

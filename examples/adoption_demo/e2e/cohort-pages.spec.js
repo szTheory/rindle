@@ -69,3 +69,9 @@ test("cohort-pages harness loads and runs (Wave-0 smoke over /styleguide)", asyn
   expect(typeof assertCohortPagePolish).toBe("function");
   await assertCohortPagePolish(page, { route: "/styleguide", surface: "styleguide-smoke" });
 });
+
+// Wave-2 (Plan 02): /dashboard migrated onto ck_page/1. Reuses the shared
+// warn-mode helper — root-visibility guarded, no harness logic duplicated.
+test("/dashboard renders on the Cohort DS (polish, warn mode)", async ({ page }) => {
+  await assertCohortPagePolish(page, { route: "/dashboard", surface: "dashboard-cohort" });
+});
