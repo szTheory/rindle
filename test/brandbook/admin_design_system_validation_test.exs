@@ -107,6 +107,12 @@ defmodule Rindle.Brandbook.AdminDesignSystemValidationTest do
           ".rindle-admin-button:focus-visible",
           ".rindle-admin-nav__item[aria-current=\"page\"]",
           ".rindle-admin-confirm-dialog",
+          # WR-01: the overlay primitive's positioning + backdrop must be generated,
+          # or modal/1 + confirm_dialog/1 render with no fixed positioning, no scrim,
+          # and no z-index. The generator's requiredSelectors guards this fail-closed;
+          # this clause is the ExUnit backstop.
+          ".rindle-admin-overlay",
+          ".rindle-admin-overlay__backdrop",
           ".rindle-admin-drawer",
           ".rindle-admin-toast",
           ".rindle-admin-empty-state",

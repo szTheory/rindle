@@ -1040,11 +1040,43 @@ textarea[data-rindle-admin-input] {
   top: var(--rindle-space-3);
 }
 
+/* §D modal overlay (WR-01): the full-viewport positioning + centering host for
+   modal/1 and confirm_dialog/1. The dialog card (.rindle-admin-confirm-dialog) is
+   centered inside it; the dimmed scrim is .rindle-admin-overlay__backdrop. Fixed +
+   high z-index so it floats above the (inerted) shell. Only opacity animates
+   (GPU-only, §B). Visibility is server-assign driven (the inline display:none when
+   not shown); this rule supplies the positioning/backdrop the components reference. */
+.rindle-admin-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--rindle-space-5);
+  transition: opacity var(--rindle-motion-popover) var(--rindle-motion-easing-decelerate);
+}
+
+/* §D dimmed scrim behind the dialog card. Absolute inset-0 inside the fixed
+   overlay; semi-opaque so the inerted shell reads as backgrounded. Sits below the
+   dialog card (which is a later sibling in normal flow + raised). */
+.rindle-admin-overlay__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(16, 20, 23, 0.56);
+}
+
 /* §D dialog permanent border: a programmatically-focused dialog container may not
    trigger :focus-visible, so it always carries a visible boundary (RESEARCH). */
 .rindle-admin-confirm-dialog,
 .rindle-admin-drawer {
   border: 1px solid var(--rindle-focus-ring);
+}
+
+/* §D the dialog card must layer above the absolute backdrop within the overlay. */
+.rindle-admin-overlay .rindle-admin-confirm-dialog {
+  position: relative;
+  z-index: 1;
 }
 
 /* §D general visually-hidden utility (D-98-08). The migrated data tables each carry a
@@ -1301,6 +1333,11 @@ const requiredSelectors = [
   '[data-rindle-admin-input]',
   '[data-rindle-admin-confirm-input]',
   '.rindle-admin-confirm-dialog',
+  // WR-01: the overlay primitive's positioning + backdrop. modal/1 and
+  // confirm_dialog/1 emit these classes; without these rules dialogs render
+  // inline with no fixed positioning, no scrim, and no z-index. Fail closed.
+  '.rindle-admin-overlay',
+  '.rindle-admin-overlay__backdrop',
   '.rindle-admin-drawer',
   '.rindle-admin-toast',
   '.rindle-admin-empty-state',
