@@ -73,6 +73,14 @@ Milestone `v1.17 Adopter-Confidence Hygiene` archived on `2026-05-27`
 Rindle is roughly **94–96%** done for its stated mission. Feature work resumes only on
 LIFE-06 or STREAM-10 signal (or explicit maintainer override documented in milestone charter).
 
+**v1.19 in progress:** Phase 98 (Admin Level-3 page composition + motion / mobile / a11y / IA /
+microcopy — UPLIFT-03..08) completed 2026-06-18. All six admin surfaces compose from the `page/1`
+scaffold; shared `modal`/`confirm_dialog` overlay primitive, problems-first GDS triage Overview,
+and §F operator-voice microcopy landed. Post-execution code review caught and fixed 3 blockers
+(atom/string count-key mismatch; `inert` wrapping the live dialog) with regression tests; the live
+Playwright lane is enforced by the merge-blocking CI `adoption-demo-e2e` job, and 6 WARNING-level
+items (WR-02..WR-06) are tracked as follow-ups in `98-REVIEW.md`.
+
 **v1.16 shipped:** Merge-blocking `proof` CI job (CI-03) runs `docs_parity_test.exs` and
 `batch_owner_erasure_task_test.exs`; TusPlug moduledoc parity lock (TRUTH-05); planning
 artifact cleanup (PLAN-01). Closes v1.15 audit CI-01/PROOF-06 integration depth and
@@ -834,4 +842,4 @@ This document evolves at phase transitions and milestone boundaries.
    (`workflow.milestone_boundary.block_feature_milestone_without_signal`)
 
 ---
-*Last updated: 2026-06-15 — Phase 94 foundation completed and verified; `brandbook-tokens` is merge-blocking in CI and branch protection. v1.19 Design-System Stress-Test remains active over un-closed v1.18 (tech_debt, HUMAN-UAT pending) by recorded maintainer decision.*
+*Last updated: 2026-06-18 — Phase 98 (Admin Level-3, UPLIFT-03..08) completed; 3 code-review blockers fixed with regression tests, live e2e delegated to merge-blocking CI. Phase 94 foundation completed and verified; `brandbook-tokens` is merge-blocking in CI and branch protection. v1.19 Design-System Stress-Test remains active over un-closed v1.18 (tech_debt, HUMAN-UAT pending) by recorded maintainer decision.*
