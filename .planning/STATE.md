@@ -4,13 +4,13 @@ milestone: v1.19
 milestone_name: Design-System Stress-Test
 status: executing
 stopped_at: Completed 99-01-PLAN.md
-last_updated: "2026-06-18T15:11:00.174Z"
+last_updated: "2026-06-18T15:19:22.002Z"
 last_activity: 2026-06-18
 progress:
   total_phases: 17
   completed_phases: 13
   total_plans: 57
-  completed_plans: 54
+  completed_plans: 55
   percent: 76
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-06-14)
 ## Current Position
 
 Phase: 99 (cohort-page-migrations-the-small-7-track-b) — EXECUTING
-Plan: 3 of 5
+Plan: 4 of 5
 Status: Ready to execute
 Last activity: 2026-06-18
 
@@ -179,6 +179,8 @@ is grounded before planning.
 - [Phase ?]: 98-04: phase seal — both merge-gate homes now executable over real surfaces. ExUnit 4->24 brandbook clauses (static §A/§B/§D/§E/§F + contrast 58/58 + drift + ADMIN-02 byte-equality); five non-inferable computed-style Playwright backstops in admin-polish.js (two-pane band @~900px, stacked-card ::before attr @759/761, reduced-motion 0s read UN-FROZEN, dialog inert reset-on-reconnect, focus-visible-vs-pointer); toHaveLength 22->24 lockstep (N=2). No warn->fail flip / no Cohort generalization (Phase 102 boundary held). visually-hidden carryover authored through the generator. Live adoption-demo-e2e lane CI-delegated (local Postgres saturated); maintainer approved.
 - [Phase ?]: 99-01: ck_page/1 scaffold authored existing-but-UNUSED (Cohort analog of Phase 98 page/1); the .ck/data-ck-root/server-data-theme/.ck__wrap/.ck-hero shell centralized in one component so the 7 page migrations do not drift 7 copies (D-96-05/07/09)
 - [Phase ?]: 99-01: one token-only .ck-output rule added to hand-authored cohort.css for ops/account <pre> panels (mirrors .ck-cred__value tokens; padding via --ck-3/--ck-4 to stay literal-free); cohort-pages.spec.js shares assertCohortPagePolish (assertAdminPolish reused UNCHANGED, warn mode, Pitfall-5 guard) + ExUnit module shares frozen-contract + page-body-scoped daisyUI-retirement helpers; both green vs /styleguide
+- [Phase ?]: 99-03: /ops + /account migrated onto ck_page/1; phx-click buttons keep their element with bare .ck-btn (Pitfall 4, no ck_button/1); <pre> panels swap to P01 .ck-output
+- [Phase ?]: 99-03: ExUnit /ops + /account contract tests assert always-present static contract + every phx-click handler; <pre :if> panels are the ops/batch/owner-erasure behavior-spec backstop (CI-delegated)
 
 ## Blockers/Concerns
 
@@ -204,7 +206,7 @@ is grounded before planning.
 
 ## Session Continuity
 
-Last session: 2026-06-18T15:10:47.124Z
+Last session: 2026-06-18T15:18:50.710Z
 Stopped at: Completed 99-01-PLAN.md
 Resume file: None
 
@@ -262,3 +264,4 @@ Resume file: None
 | Phase 98 PP04 | 15min | 3 tasks | 8 files |
 | Phase 99 P01 | 3 min | 2 tasks | 4 files |
 | Phase 99 P02 | 4 | 2 tasks | 3 files |
+| Phase 99 P03 | 5 | 3 tasks | 4 files |

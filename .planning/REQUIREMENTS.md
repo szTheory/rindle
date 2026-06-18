@@ -69,8 +69,8 @@ demand-gated and shift to v1.20+. Research: `.planning/research/v1.19/SUMMARY.md
 
 - [x] **COHORT-01**: `/dashboard` restyled onto the Cohort DS (`cohort.css` + `cohort_components.ex`).
 - [ ] **COHORT-02**: `/upload` (all tabs) restyled onto the Cohort DS.
-- [ ] **COHORT-03**: `/ops` restyled onto the Cohort DS.
-- [ ] **COHORT-04**: member / lesson / post / media / account pages restyled and consistent.
+- [x] **COHORT-03**: `/ops` restyled onto the Cohort DS.
+- [x] **COHORT-04**: member / lesson / post / media / account pages restyled and consistent.
 - [ ] **COHORT-05**: daisyUI/Tailwind scaffold retired from the inner pages — migrated
   **class-by-class, not element-by-element**, preserving every `id` / `data-testid` / `phx-hook`
   so behavior e2e stays green; the `default.css` `<link>` removed only once grep is clean.
@@ -265,8 +265,8 @@ Open only via `/gsd-new-milestone` with documented signal:
 | UPLIFT-08 | Phase 98 | Complete |
 | COHORT-01 | Phase 99 | Complete |
 | COHORT-02 | Phase 100 | Pending |
-| COHORT-03 | Phase 99 | Pending |
-| COHORT-04 | Phase 99 | Pending |
+| COHORT-03 | Phase 99 | Complete |
+| COHORT-04 | Phase 99 | Complete |
 | COHORT-05 | Phase 101 | Pending |
 | COHORT-06 | Phase 96 | Complete |
 | VIS-01 | Phase 102 | Complete |
