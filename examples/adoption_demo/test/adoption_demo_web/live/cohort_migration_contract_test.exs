@@ -280,7 +280,8 @@ defmodule AdoptionDemoWeb.CohortMigrationContractTest do
   # (title, video section, variants section) PLUS the empty-branch lesson-no-video
   # selector + the .ck shell, then daisyUI-retirement.
   test "/lessons preserves its frozen contract and retires daisyUI", %{conn: conn} do
-    course = AdoptionDemo.Cohort.seed_course!(%{title: "Cohort Lesson Course", slug: "lesson-course"})
+    course =
+      AdoptionDemo.Cohort.seed_course!(%{title: "Cohort Lesson Course", slug: "lesson-course"})
 
     lesson =
       AdoptionDemo.Cohort.seed_lesson!(%{
@@ -296,6 +297,93 @@ defmodule AdoptionDemoWeb.CohortMigrationContractTest do
       ~s(data-testid="lesson-video-section"),
       ~s(data-testid="lesson-no-video"),
       ~s(data-testid="lesson-variants")
+    ])
+
+    assert_daisyui_retired(html)
+  end
+
+  # --- Plan 05: /posts/:id frozen-contract + daisyUI-retirement --------------
+  # Seeds a member + post WITHOUT an image attached, so the post-no-image branch
+  # renders (the image branch requires Media.attach! → the storage subsystem /
+  # MinIO, not bootable in the static ExUnit lane — the member/lesson precedent).
+  # This test pins the ALWAYS-PRESENT static contract (post-title, the image
+  # section) PLUS the empty-branch post-no-image selector + the .ck shell, then
+  # daisyUI-retirement. The post-picture-tag image branch is grep-verified in
+  # source (per-page acceptance) and runtime-exercised by rendering.spec.js.
+  test "/posts preserves its frozen contract and retires daisyUI", %{conn: conn} do
+    AdoptionDemo.Accounts.seed_member!(%{
+      email: "post-author@cohort.test",
+      name: "Post Author",
+      role: "student"
+    })
+
+    member = AdoptionDemo.Accounts.get_member_by_email!("post-author@cohort.test")
+
+    post =
+      AdoptionDemo.Cohort.seed_post!(%{
+        title: "Cohort post page contract",
+        body: "Body text survives the class-by-class restyle.",
+        member_id: member.id
+      })
+
+    html = render_route(conn, ~p"/posts/#{post.id}")
+
+    assert_frozen_contract(html, [
+      ~s(data-testid="post-title"),
+      ~s(data-testid="post-image-section"),
+      ~s(data-testid="post-no-image")
+    ])
+
+    assert_daisyui_retired(html)
+  end
+
+  # --- Plan 05: /media/:id frozen-contract + daisyUI-retirement --------------
+  # The HIGHEST-RISK swap in the phase: the hand-built <dl><dt><dd> whose <dd>s
+  # carry media-id/media-state/media-delivery-url MUST be restyled in place, NOT
+  # replaced by ck_detail/1 (which generates its own <dd> and would drop those
+  # ids — Pitfall 2). We insert a MediaAsset and one MediaVariant directly (both
+  # plain Repo rows — no MinIO needed) so all three <dd> ids/testids AND a real
+  # variant-#{name} <li> render. Asserts the three <dd> ids/testids survive (each
+  # as id= and data-testid=), the variant id, the variants section, the alex link
+  # + its text, the .ck shell, then daisyUI-retirement.
+  test "/media preserves its frozen contract and retires daisyUI", %{conn: conn} do
+    now = NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
+
+    asset =
+      AdoptionDemo.Repo.insert!(%Rindle.Domain.MediaAsset{
+        state: "ready",
+        storage_key: "seed/test/media_page_contract",
+        profile: "AdoptionDemo.RindleProfile",
+        kind: "image",
+        content_type: "image/png",
+        filename: "media_page.png",
+        byte_size: 1024,
+        inserted_at: now,
+        updated_at: now
+      })
+
+    AdoptionDemo.Repo.insert!(%Rindle.Domain.MediaVariant{
+      asset_id: asset.id,
+      name: "thumb",
+      state: "ready",
+      output_kind: "image",
+      inserted_at: now,
+      updated_at: now
+    })
+
+    html = render_route(conn, ~p"/media/#{asset.id}")
+
+    assert_frozen_contract(html, [
+      ~s(id="media-id"),
+      ~s(data-testid="media-id"),
+      ~s(id="media-state"),
+      ~s(data-testid="media-state"),
+      ~s(id="media-delivery-url"),
+      ~s(data-testid="media-delivery-url"),
+      ~s(data-testid="media-variants"),
+      ~s(id="variant-thumb"),
+      ~s(data-testid="media-alex-profile-link"),
+      "Open Alex profile for replace/detach"
     ])
 
     assert_daisyui_retired(html)

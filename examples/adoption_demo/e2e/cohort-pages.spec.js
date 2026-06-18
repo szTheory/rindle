@@ -129,3 +129,39 @@ test("/lessons renders on the Cohort DS (polish, warn mode)", async ({ page }) =
     surface: "lesson-cohort",
   });
 });
+
+// Wave-5 (Plan 05): /posts/:id migrated onto ck_page/1 (title + body + picture_tag
+// image section). Navigate via the seeded "Study group this week" post link the
+// way rendering.spec.js navigates the lesson link (the post id is not exposed on
+// /dashboard as a directly-readable attribute), then run the shared warn-mode
+// polish helper against the resolved URL.
+test("/posts renders on the Cohort DS (polish, warn mode)", async ({ page }) => {
+  await page.goto("/dashboard");
+  await waitForLiveSocket(page);
+
+  await page.getByRole("link", { name: "Study group this week" }).first().click();
+  await waitForLiveSocket(page);
+
+  await assertCohortPagePolish(page, {
+    route: page.url(),
+    surface: "post-cohort",
+  });
+});
+
+// Wave-5 (Plan 05): /media/:id migrated onto ck_page/1 (the <dl> restyled IN
+// PLACE — media-id/media-state/media-delivery-url <dd>s — plus the variant list
+// + alex link). The asset link text on /dashboard is the asset id (a UUID), so
+// click the first link inside the seeded "Recent assets" (demo-assets) section,
+// then run the shared warn-mode polish helper against the resolved URL.
+test("/media renders on the Cohort DS (polish, warn mode)", async ({ page }) => {
+  await page.goto("/dashboard");
+  await waitForLiveSocket(page);
+
+  await page.getByTestId("demo-assets").getByRole("link").first().click();
+  await waitForLiveSocket(page);
+
+  await assertCohortPagePolish(page, {
+    route: page.url(),
+    surface: "media-cohort",
+  });
+});
