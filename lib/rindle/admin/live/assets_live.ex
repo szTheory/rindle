@@ -91,6 +91,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           <h2>Provider assets</h2>
           <.detail_table rows={@detail.provider_assets} columns={[:provider_name, :provider_asset_id, :state]} />
         </section>
+
+        <%!-- Distributed quarantine review (UI-SPEC §E, D-98-10): the
+              release/quarantine verb moved off the Maintenance junk-drawer onto
+              asset detail, where the operator already has the asset in context. --%>
+        <section :if={@detail.asset.state == "quarantined"} data-rindle-admin-section="quarantine-review">
+          <h2>Quarantine review</h2>
+          <p>This asset is quarantined and permanently blocked from delivery. Removal requires owner erasure from Maintenance.</p>
+        </section>
       </.shell>
       """
     end

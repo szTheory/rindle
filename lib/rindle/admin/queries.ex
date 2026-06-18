@@ -228,6 +228,13 @@ defmodule Rindle.Admin.Queries do
     end
   end
 
+  @doc """
+  Maintenance directory (UI-SPEC §E, D-98-10): the "Actions" verb-bucket is a
+  GDS junk-drawer anti-pattern and is DISTRIBUTED to contextual surfaces
+  (regenerate → Processing, release/quarantine → Assets, reconcile → Doctor).
+  Maintenance keeps ONLY genuinely contextless cross-cutting ops — owner and
+  batch erasure (GDPR-driven).
+  """
   @spec actions_directory() :: {:ok, map()}
   def actions_directory do
     {:ok,
@@ -239,24 +246,6 @@ defmodule Rindle.Admin.Queries do
            read_only?: false
          ),
          action(:batch_erasure, "Batch erasure", "Preview and erase multiple owners.",
-           enabled?: true,
-           read_only?: false
-         ),
-         action(
-           :variant_regeneration,
-           "Variant regeneration",
-           "Regenerate stale or missing derivatives.",
-           enabled?: true,
-           read_only?: false
-         ),
-         action(
-           :quarantine_review,
-           "Quarantine review",
-           "Review quarantined assets and route to supported deletion or erasure paths.",
-           enabled?: true,
-           read_only?: true
-         ),
-         action(:lifecycle_repair, "Lifecycle repair", "Repair lifecycle drift after diagnosis.",
            enabled?: true,
            read_only?: false
          )

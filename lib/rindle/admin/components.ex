@@ -5,13 +5,18 @@ if Code.ensure_loaded?(Phoenix.Component) do
     use Phoenix.Component
     alias Phoenix.LiveView.JS
 
+    # Task-first nav labels/order (UI-SPEC §E, D-98-03): relabel for task-scent,
+    # drop slashes, problems-first ordering. Slugs/suffixes are FROZEN behavior
+    # contracts (route suffixes + aria-current keys the surfaces pass via
+    # `active=`); only the human `name` changes. The relabel drops every legacy
+    # slashed/verb-bucket name in favor of the six task-first labels below.
     @surfaces [
-      %{name: "Home/Status", slug: "home-status", suffix: ""},
+      %{name: "Overview", slug: "home-status", suffix: ""},
       %{name: "Assets", slug: "assets", suffix: "assets"},
-      %{name: "Upload Sessions", slug: "upload-sessions", suffix: "upload-sessions"},
-      %{name: "Variants/Jobs", slug: "variants-jobs", suffix: "variants-jobs"},
-      %{name: "Runtime/Doctor", slug: "runtime-doctor", suffix: "runtime-doctor"},
-      %{name: "Actions", slug: "actions", suffix: "actions"}
+      %{name: "Upload sessions", slug: "upload-sessions", suffix: "upload-sessions"},
+      %{name: "Processing", slug: "variants-jobs", suffix: "variants-jobs"},
+      %{name: "Doctor", slug: "runtime-doctor", suffix: "runtime-doctor"},
+      %{name: "Maintenance", slug: "actions", suffix: "actions"}
     ]
 
     attr(:active, :string, required: true)

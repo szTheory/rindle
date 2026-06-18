@@ -6,6 +6,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     import Rindle.Admin.Components
 
+    alias Phoenix.LiveView.JS
     alias Rindle.Admin.Queries
     alias Rindle.Admin.Live.Support
 
@@ -20,9 +21,37 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
          filters: %{},
          model: %{rows: [], findings: [], recommendations: [], counts: %{}},
          detail: nil,
+         dialog_open: false,
+         regenerate_receipt: nil,
          error?: false
        )
        |> tap(&Support.subscribe_admin_lifecycle/1)}
+    end
+
+    # Distributed "Regenerate variants" action (UI-SPEC §E, D-98-10/11): the
+    # regenerate verb moved off the Maintenance junk-drawer onto Processing and
+    # confirms through the shared confirm_dialog/1 primitive. `dialog_open` is the
+    # server-assign source of truth for the shell inert/aria-hidden contract.
+    @impl true
+    def handle_event("open_regenerate", _params, socket) do
+      {:noreply, assign(socket, dialog_open: true, regenerate_receipt: nil)}
+    end
+
+    def handle_event("close_regenerate", _params, socket) do
+      {:noreply, assign(socket, dialog_open: false)}
+    end
+
+    def handle_event("confirm_regenerate", _params, socket) do
+      receipt =
+        case Rindle.Ops.VariantMaintenance.regenerate_variants(%{}) do
+          {:ok, report} -> report
+          {:error, _} -> %{enqueued: 0, skipped: 0, errors: 1}
+        end
+
+      {:noreply,
+       socket
+       |> assign(dialog_open: false, regenerate_receipt: receipt, live_status: "Variant regeneration queued.")
+       |> load()}
     end
 
     @impl true
@@ -89,7 +118,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     def render(assigns) do
       ~H"""
-      <.shell active="variants-jobs" base_path={@admin_base_path} title="Variants/Jobs" live_status={@live_status}>
+      <.shell active="variants-jobs" base_path={@admin_base_path} title="Variants/Jobs" live_status={@live_status} dialog_open={@dialog_open}>
         <.page state={list_state(assigns)} error_surface="Variants/Jobs">
           <:summary>
             <section>
@@ -97,6 +126,17 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <a class="rindle-admin-button rindle-admin-button--secondary rindle-admin-target-min" href={admin_path(@admin_base_path, "variants-jobs")}>
                 Refresh status
               </a>
+              <button
+                type="button"
+                class="rindle-admin-button rindle-admin-button--primary rindle-admin-target-min"
+                data-rindle-admin-action="variant_regeneration"
+                phx-click={show_modal("regenerate-variants") |> JS.push("open_regenerate")}
+              >
+                Regenerate variants
+              </button>
+              <p :if={@regenerate_receipt} data-rindle-admin-receipt="variant_regeneration">
+                Variant regeneration queued. Enqueued: {@regenerate_receipt.enqueued} · Skipped: {@regenerate_receipt.skipped} · Errors: {@regenerate_receipt.errors}
+              </p>
               <.metadata_list items={[
                 {"Total", count_value(@model, :total)},
                 {"failed", count_value(@model, "failed")},
@@ -107,6 +147,31 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 {"processing", count_value(@model, "processing")}
               ]} />
             </section>
+            <.confirm_dialog
+              id="regenerate-variants"
+              show={@dialog_open}
+              on_cancel={JS.push("close_regenerate")}
+            >
+              <:title>Regenerate stale variants?</:title>
+              Rindle will enqueue jobs for variants whose recipe digest no longer matches the current profile.
+              <:actions>
+                <button
+                  type="button"
+                  class="rindle-admin-button rindle-admin-button--secondary rindle-admin-target-min"
+                  phx-click={hide_modal("regenerate-variants") |> JS.push("close_regenerate")}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  class="rindle-admin-button rindle-admin-button--primary rindle-admin-target-min"
+                  phx-click={hide_modal("regenerate-variants") |> JS.push("confirm_regenerate")}
+                  data-rindle-admin-submit="confirm_regenerate"
+                >
+                  Regenerate variants
+                </button>
+              </:actions>
+            </.confirm_dialog>
           </:summary>
           <:filters>
             <.filters filters={[

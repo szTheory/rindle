@@ -19,13 +19,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     @endpoint __MODULE__.Endpoint
     @raw_provider_id "provider-secret-variant-id"
+    # Task-first nav labels (UI-SPEC §E, D-98-03): relabeled for task-scent.
     @surfaces [
-      "Home/Status",
+      "Overview",
       "Assets",
-      "Upload Sessions",
-      "Variants/Jobs",
-      "Runtime/Doctor",
-      "Actions"
+      "Upload sessions",
+      "Processing",
+      "Doctor",
+      "Maintenance"
     ]
 
     defmodule Router do
@@ -120,6 +121,24 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     end
 
+    test "Processing hosts the distributed Regenerate variants confirm dialog (UI-SPEC §E)", %{
+      conn: conn
+    } do
+      {:ok, view, html} = Phoenix.LiveViewTest.live(conn, "/admin/rindle/variants-jobs")
+
+      # The regenerate verb was distributed off Maintenance onto Processing and
+      # confirms through the shared confirm_dialog/1 primitive (D-98-10/11).
+      assert html =~ ~s(data-rindle-admin-action="variant_regeneration")
+      assert html =~ "Regenerate variants"
+      assert html =~ "Regenerate stale variants?"
+      assert Phoenix.LiveViewTest.has_element?(view, "[data-rindle-admin-dialog][role=\"alertdialog\"]")
+      assert Phoenix.LiveViewTest.has_element?(view, "[data-rindle-admin-submit=\"confirm_regenerate\"]")
+
+      Phoenix.LiveViewTest.render_hook(view, "confirm_regenerate", %{})
+      assert Phoenix.LiveViewTest.has_element?(view, "[data-rindle-admin-receipt=\"variant_regeneration\"]")
+      assert Phoenix.LiveViewTest.render(view) =~ "Variant regeneration queued."
+    end
+
     test "Variants/Jobs refreshes visible variant rows through queries after PubSub events", %{
       conn: conn
     } do
@@ -175,22 +194,22 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ "Runtime status"
       assert html =~ "Failed or missing prerequisites"
       assert html =~ "probe_drift"
-      assert html =~ "Variants/Jobs"
-      assert html =~ "Actions"
+      assert html =~ "Processing"
+      assert html =~ "Maintenance"
+      assert html =~ "Reconcile"
+      assert html =~ "Verify storage"
       assert html =~ "Refresh status"
       assert html =~ "Waiting for lifecycle events"
     end
 
-    test "Actions renders the Phase 90 operation directory and active panels", %{conn: conn} do
+    test "Maintenance keeps only contextless cross-cutting ops (erasure)", %{conn: conn} do
       {:ok, _view, html} = Phoenix.LiveViewTest.live(conn, "/admin/rindle/actions")
 
       assert_shell(html, "actions")
-      assert html =~ "Actions"
+      assert html =~ "Maintenance"
+      # Contextless cross-cutting ops stay on Maintenance (UI-SPEC §E).
       assert html =~ "Owner erasure"
       assert html =~ "Batch erasure"
-      assert html =~ "Variant regeneration"
-      assert html =~ "Quarantine review"
-      assert html =~ "Lifecycle repair"
       assert html =~ "Actions Directory"
       assert html =~ "Preview and erase one owner"
       assert html =~ "Preview owner erasure"
@@ -198,12 +217,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       assert html =~ ~s(data-rindle-admin-action="owner_erasure")
       assert html =~ ~s(data-rindle-admin-action="batch_erasure")
-      assert html =~ ~s(data-rindle-admin-action="variant_regeneration")
-      assert html =~ ~s(data-rindle-admin-action="quarantine_review")
-      assert html =~ ~s(data-rindle-admin-action="lifecycle_repair")
       assert html =~ ~s(data-rindle-admin-action-panel="owner_erasure")
       assert html =~ ~s(data-rindle-admin-form="owner_erasure_preview")
       assert html =~ ~s(data-rindle-admin-submit="preview_owner_erasure")
+
+      # The verb-bucket actions were DISTRIBUTED to their contextual surfaces
+      # (regenerate → Processing, quarantine → Assets, reconcile → Doctor); they
+      # no longer live in the Maintenance directory (D-98-10).
+      refute html =~ ~s(data-rindle-admin-action="variant_regeneration")
+      refute html =~ ~s(data-rindle-admin-action="quarantine_review")
+      refute html =~ ~s(data-rindle-admin-action="lifecycle_repair")
 
       refute html =~ "LifecycleRepair"
       refute html =~ "VariantMaintenance"

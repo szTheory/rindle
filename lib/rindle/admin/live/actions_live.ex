@@ -6,6 +6,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     import Rindle.Admin.Components
 
+    alias Phoenix.LiveView.JS
     alias Rindle.Admin.Queries
     alias Rindle.Admin.Live.Support
 
@@ -197,118 +198,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
        )}
     end
 
-    @impl true
-    def handle_event(
-          "change_lifecycle_repair",
-          _params,
-          %{assigns: %{action_state: :input}} = socket
-        ) do
-      {:noreply, socket}
-    end
-
-    def handle_event("change_lifecycle_repair", _params, socket) do
-      {:noreply, assign(socket, action_state: :input, action_error: nil, action_data: %{})}
-    end
-
-    @impl true
-    def handle_event(
-          "execute_lifecycle_repair",
-          %{"asset_id" => id, "repair_action" => action},
-          socket
-        ) do
-      case action do
-        "reprobe" ->
-          case run_lifecycle_action(fn -> Rindle.reprobe(id) end) do
-            {:ok, report} ->
-              {:noreply,
-               assign(socket,
-                 action_state: :receipt,
-                 action_error: nil,
-                 action_data: %{action: "reprobe", success: true, report: report}
-               )}
-
-            {:error, _} ->
-              {:noreply,
-               assign(socket,
-                 action_state: :receipt,
-                 action_error: nil,
-                 action_data: %{action: "reprobe", success: false, error: "Reprobe failed"}
-               )}
-          end
-
-        "requeue" ->
-          case run_lifecycle_action(fn -> Rindle.requeue_variants(id) end) do
-            {:ok, report} ->
-              {:noreply,
-               assign(socket,
-                 action_state: :receipt,
-                 action_error: nil,
-                 action_data: %{action: "requeue", success: true, report: report}
-               )}
-
-            {:error, _} ->
-              {:noreply,
-               assign(socket,
-                 action_state: :receipt,
-                 action_error: nil,
-                 action_data: %{action: "requeue", success: false, error: "Requeue failed"}
-               )}
-          end
-
-        _ ->
-          {:noreply, assign(socket, action_error: "Unsupported lifecycle repair action.")}
-      end
-    end
-
-    def handle_event("execute_lifecycle_repair", _params, socket) do
-      {:noreply, assign(socket, action_error: "Asset ID and repair action are required.")}
-    end
-
-    @impl true
-    def handle_event(
-          "change_variant_regeneration",
-          _params,
-          %{assigns: %{action_state: :input}} = socket
-        ) do
-      {:noreply, assign(socket, action_error: nil)}
-    end
-
-    def handle_event("change_variant_regeneration", _params, socket) do
-      {:noreply, assign(socket, action_state: :input, action_error: nil, action_data: %{})}
-    end
-
-    @impl true
-    def handle_event(
-          "execute_variant_regeneration",
-          %{"profile" => p, "variant_name" => v, "confirm" => "true"},
-          socket
-        ) do
-      opts = %{}
-      opts = if p != "", do: Map.put(opts, :profile, p), else: opts
-      opts = if v != "", do: Map.put(opts, :variant_name, v), else: opts
-
-      case Rindle.Ops.VariantMaintenance.regenerate_variants(opts) do
-        {:ok, report} ->
-          {:noreply,
-           assign(socket,
-             action_state: :receipt,
-             action_error: nil,
-             action_data: %{report: report}
-           )}
-
-        {:error, _} ->
-          {:noreply,
-           assign(socket,
-             action_state: :receipt,
-             action_error: nil,
-             action_data: %{report: %{enqueued: 0, skipped: 0, errors: 1}}
-           )}
-      end
-    end
-
-    def handle_event("execute_variant_regeneration", _params, socket) do
-      {:noreply, assign(socket, action_error: "You must confirm this action")}
-    end
+    # NOTE (UI-SPEC §E, D-98-10): the lifecycle-repair (reconcile) and
+    # variant-regeneration verbs were DISTRIBUTED off this Maintenance
+    # junk-drawer to their contextual surfaces — regenerate now confirms through
+    # confirm_dialog/1 on Processing (variants_jobs_live.ex), reconcile/verify
+    # storage lives on Doctor (runtime_doctor_live.ex). Their handlers/forms were
+    # removed here; Maintenance keeps only the contextless GDPR-driven erasure ops.
 
     defp execute_owner_erasure(socket, owner, type, id) do
       case Rindle.erase_owner(owner) do
@@ -432,18 +327,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       ArgumentError -> :error
     end
 
-    defp run_lifecycle_action(fun) do
-      fun.()
-    rescue
-      exception -> {:error, {exception.__struct__, Exception.message(exception)}}
-    catch
-      kind, reason -> {:error, {kind, reason}}
-    end
-
     @impl true
     def render(assigns) do
       ~H"""
-      <.shell active="actions" base_path={@admin_base_path} title="Actions" live_status={@live_status}>
+      <.shell active="actions" base_path={@admin_base_path} title="Maintenance" live_status={@live_status} dialog_open={@action_state == :preview}>
         <.page state={if(@error?, do: :error, else: :ok)} error_surface="Actions">
           <:summary>
             <section class="rindle-admin-actions-directory">
@@ -514,59 +401,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       """
     end
 
-    defp render_action_panel(assigns, %{id: :lifecycle_repair} = selected_action) do
-      assigns = assign(assigns, :action, selected_action)
-
-      ~H"""
-      <div>
-        <h3>{@action.label}</h3>
-        <p>{@action.summary}</p>
-        <%= if not @action.enabled? do %>
-          <.status_chip state="info" label="coming soon" />
-        <% else %>
-          <%= render_lifecycle_repair_state(assigns) %>
-        <% end %>
-      </div>
-      """
-    end
-
-    defp render_action_panel(assigns, %{id: :variant_regeneration} = selected_action) do
-      assigns = assign(assigns, :action, selected_action)
-
-      ~H"""
-      <div>
-        <h3>{@action.label}</h3>
-        <p>{@action.summary}</p>
-        <%= if not @action.enabled? do %>
-          <.status_chip state="info" label="coming soon" />
-        <% else %>
-          <%= render_variant_regeneration_state(assigns) %>
-        <% end %>
-      </div>
-      """
-    end
-
-    defp render_action_panel(assigns, %{id: :quarantine_review} = selected_action) do
-      assigns = assign(assigns, :action, selected_action)
-
-      ~H"""
-      <div>
-        <h3>{@action.label}</h3>
-        <p>{@action.summary}</p>
-        <%= if not @action.enabled? do %>
-          <.status_chip state="info" label="coming soon" />
-        <% else %>
-          <div data-rindle-admin-panel="quarantine_review" class="rindle-admin-quarantine-panel">
-            <p><strong>Read-Only Triage</strong></p>
-            <p>Rindle Admin does not release assets from quarantine. They are permanently blocked from delivery.</p>
-            <p>To view quarantined assets, filter the Asset List by <code>state=quarantined</code>.</p>
-            <p>Removal requires standard owner erasure via the Owner Erasure panel.</p>
-          </div>
-        <% end %>
-      </div>
-      """
-    end
-
     defp render_action_panel(assigns, selected_action) do
       assigns = assign(assigns, :action, selected_action)
 
@@ -618,28 +452,34 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp render_owner_erasure_state(%{action_state: :preview} = assigns) do
       ~H"""
       <div data-rindle-admin-state="preview">
-        <form phx-change="change_owner_erasure" phx-submit="execute_owner_erasure" data-rindle-admin-form="owner_erasure_execute">
-          <div>
-            <label>Owner Type</label>
-            <input type="text" name="owner_type" value={@action_data.type} data-rindle-admin-input="owner_type" required />
-          </div>
-          <div>
-            <label>Owner ID</label>
-            <input type="text" name="owner_id" value={@action_data.id} data-rindle-admin-input="owner_id" required />
-          </div>
-          <div data-rindle-admin-preview="owner_erasure">
-            <h4>Preview Report</h4>
-            <p>Attachments to detach: {@action_data.report.attachments_to_detach.count}</p>
-          </div>
-          <div>
-            <label>Type <pre>ERASE {@action_data.type}:{@action_data.id}</pre> to confirm</label>
-            <input type="text" name="confirmation" data-rindle-admin-confirm-input data-rindle-admin-input="confirmation" required />
-          </div>
-          <%= if @action_error do %>
-            <p class="rindle-admin-toast rindle-admin-toast--danger" data-rindle-admin-action-error>{@action_error}</p>
-          <% end %>
-          <button type="submit" class="rindle-admin-button rindle-admin-button--destructive rindle-admin-target-min" data-rindle-admin-submit="execute_owner_erasure">Erase owner</button>
-        </form>
+        <div data-rindle-admin-preview="owner_erasure">
+          <h4>Preview Report</h4>
+          <p>Attachments to detach: {@action_data.report.attachments_to_detach.count}</p>
+        </div>
+        <.confirm_dialog id="owner-erasure-confirm" show={true} on_cancel={JS.push("change_owner_erasure")}>
+          <:title>Erase this owner?</:title>
+          <form phx-change="change_owner_erasure" phx-submit="execute_owner_erasure" data-rindle-admin-form="owner_erasure_execute">
+            <p>
+              This permanently erases owner data and enqueues purge of the associated assets. This action cannot be undone.
+            </p>
+            <div>
+              <label>Owner Type</label>
+              <input type="text" name="owner_type" value={@action_data.type} data-rindle-admin-input="owner_type" required />
+            </div>
+            <div>
+              <label>Owner ID</label>
+              <input type="text" name="owner_id" value={@action_data.id} data-rindle-admin-input="owner_id" required />
+            </div>
+            <div>
+              <label>Type <pre>ERASE {@action_data.type}:{@action_data.id}</pre> to confirm</label>
+              <input type="text" name="confirmation" data-rindle-admin-confirm-input data-rindle-admin-input="confirmation" required />
+            </div>
+            <%= if @action_error do %>
+              <p class="rindle-admin-toast rindle-admin-toast--danger" data-rindle-admin-action-error>{@action_error}</p>
+            <% end %>
+            <button type="submit" class="rindle-admin-button rindle-admin-button--destructive rindle-admin-target-min" data-rindle-admin-submit="execute_owner_erasure">Erase owner</button>
+          </form>
+        </.confirm_dialog>
       </div>
       """
     end
@@ -718,79 +558,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           <pre>{@action_data.failed_owner}</pre>
           <p>Reason: {@action_data.reason}</p>
         </div>
-      </div>
-      """
-    end
-
-    defp render_lifecycle_repair_state(%{action_state: :input} = assigns) do
-      ~H"""
-      <div data-rindle-admin-state="input">
-        <form phx-submit="execute_lifecycle_repair" phx-change="change_lifecycle_repair" data-rindle-admin-form="lifecycle_repair">
-          <div>
-            <label>Asset ID</label>
-            <input type="text" name="asset_id" data-rindle-admin-input="asset_id" required />
-          </div>
-          <div>
-            <label>Action</label>
-            <select name="repair_action" data-rindle-admin-input="repair_action" required>
-              <option value="reprobe">Reprobe</option>
-              <option value="requeue">Requeue Variants</option>
-            </select>
-          </div>
-          <%= if @action_error do %>
-            <p class="rindle-admin-toast rindle-admin-toast--danger" data-rindle-admin-action-error>{@action_error}</p>
-          <% end %>
-          <button type="submit" class="rindle-admin-button rindle-admin-button--secondary rindle-admin-target-min" data-rindle-admin-submit="execute_lifecycle_repair">Execute Repair</button>
-        </form>
-      </div>
-      """
-    end
-
-    defp render_lifecycle_repair_state(%{action_state: :receipt} = assigns) do
-      ~H"""
-      <div data-rindle-admin-state="receipt" data-rindle-admin-receipt="lifecycle_repair">
-        <h4>Lifecycle Repair Complete</h4>
-        <p>Action taken: {@action_data.action}</p>
-        <p>Success: {if @action_data.success, do: "Yes", else: "No"}</p>
-      </div>
-      """
-    end
-
-    defp render_variant_regeneration_state(%{action_state: :input} = assigns) do
-      ~H"""
-      <div data-rindle-admin-state="input">
-        <form phx-submit="execute_variant_regeneration" data-rindle-admin-form="variant_regeneration">
-          <div>
-            <label>Profile (optional)</label>
-            <input type="text" name="profile" data-rindle-admin-input="profile" />
-          </div>
-          <div>
-            <label>Variant Name (optional)</label>
-            <input type="text" name="variant_name" data-rindle-admin-input="variant_name" />
-          </div>
-          <div>
-            <label>
-              <input type="checkbox" name="confirm" value="true" data-rindle-admin-input="confirm" />
-              Confirm broad regeneration
-            </label>
-          </div>
-          <%= if @action_error do %>
-            <p class="rindle-admin-toast rindle-admin-toast--danger" data-rindle-admin-action-error>{@action_error}</p>
-          <% end %>
-          <button type="submit" class="rindle-admin-button rindle-admin-button--secondary rindle-admin-target-min" data-rindle-admin-submit="execute_variant_regeneration">Regenerate Variants</button>
-        </form>
-      </div>
-      """
-    end
-
-    defp render_variant_regeneration_state(%{action_state: :receipt} = assigns) do
-      ~H"""
-      <div data-rindle-admin-state="receipt" data-rindle-admin-receipt="variant_regeneration">
-        <h4>Variant Regeneration Enqueued</h4>
-        <p>Work continues asynchronously via Oban.</p>
-        <p>Enqueued: {@action_data.report.enqueued}</p>
-        <p>Skipped: {@action_data.report.skipped}</p>
-        <p>Errors: {@action_data.report.errors}</p>
       </div>
       """
     end

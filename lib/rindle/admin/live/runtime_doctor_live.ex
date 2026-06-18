@@ -98,10 +98,25 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 </li>
               </ul>
               <a class="rindle-admin-button rindle-admin-button--secondary rindle-admin-target-min" href={admin_path(@admin_base_path, "variants-jobs")}>
-                Variants/Jobs
+                Processing
               </a>
               <a class="rindle-admin-button rindle-admin-button--secondary rindle-admin-target-min" href={admin_path(@admin_base_path, "actions")}>
-                Actions
+                Maintenance
+              </a>
+            </section>
+
+            <%!-- Distributed reconcile action (UI-SPEC §E, D-98-10): the
+                  reconcile/verify-storage verb moved off the Maintenance
+                  junk-drawer onto Doctor, where the operator diagnoses. --%>
+            <section data-rindle-admin-section="reconcile">
+              <h2>Reconcile</h2>
+              <p>Run a fresh Doctor pass to reconcile storage reachability and recorded runtime state.</p>
+              <a
+                class="rindle-admin-button rindle-admin-button--primary rindle-admin-target-min"
+                href={admin_path(@admin_base_path, "runtime-doctor")}
+                data-rindle-admin-action="verify_storage"
+              >
+                Verify storage
               </a>
             </section>
           </:work>
