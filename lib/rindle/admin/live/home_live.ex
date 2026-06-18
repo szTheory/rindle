@@ -31,34 +31,39 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     def render(assigns) do
       ~H"""
       <.shell active="home-status" base_path={@admin_base_path} title="Home/Status" live_status={@live_status}>
-        <section>
-          <h2>Runtime summary</h2>
-          <.status_chip state="info" label="Runtime summary" />
-          <.metadata_list items={[
-            {"Assets", count_value(@model, [:counts, :assets, :total])},
-            {"Upload sessions", count_value(@model, [:counts, :upload_sessions, :total])},
-            {"Variants/jobs", count_value(@model, [:counts, :variants, :total])}
-          ]} />
-        </section>
+        <.page state={if(@error?, do: :error, else: :ok)} error_surface="Home/Status">
+          <:summary>
+            <section>
+              <h2>Runtime summary</h2>
+              <.status_chip state="info" label="Runtime summary" />
+              <.metadata_list items={[
+                {"Assets", count_value(@model, [:counts, :assets, :total])},
+                {"Upload sessions", count_value(@model, [:counts, :upload_sessions, :total])},
+                {"Variants/jobs", count_value(@model, [:counts, :variants, :total])}
+              ]} />
+            </section>
 
-        <section>
-          <h2>Doctor summary</h2>
-          <.metadata_list items={[
-            {"Total checks", get_in(@model, [:doctor, :total]) || 0},
-            {"Passed", get_in(@model, [:doctor, :passed]) || 0},
-            {"Failed", get_in(@model, [:doctor, :failed]) || 0}
-          ]} />
-        </section>
-
-        <section>
-          <h2>Recommendations</h2>
-          <ul>
-            <li :for={recommendation <- recommendations(@model)}>{inspect(recommendation)}</li>
-          </ul>
-          <a class="rindle-admin-button rindle-admin-button--primary rindle-admin-target-min" href={admin_path(@admin_base_path, "assets")}>
-            Inspect assets
-          </a>
-        </section>
+            <section>
+              <h2>Doctor summary</h2>
+              <.metadata_list items={[
+                {"Total checks", get_in(@model, [:doctor, :total]) || 0},
+                {"Passed", get_in(@model, [:doctor, :passed]) || 0},
+                {"Failed", get_in(@model, [:doctor, :failed]) || 0}
+              ]} />
+            </section>
+          </:summary>
+          <:work>
+            <section>
+              <h2>Recommendations</h2>
+              <ul>
+                <li :for={recommendation <- recommendations(@model)}>{inspect(recommendation)}</li>
+              </ul>
+              <a class="rindle-admin-button rindle-admin-button--primary rindle-admin-target-min" href={admin_path(@admin_base_path, "assets")}>
+                Inspect assets
+              </a>
+            </section>
+          </:work>
+        </.page>
       </.shell>
       """
     end
