@@ -36,13 +36,14 @@ Declared values (must be multiples of 4):
 | Token | Value | Usage |
 |-------|-------|-------|
 | xs | `--ck-1` / 4px | Icon gaps, inline icon/body spacing |
-| sm | `--ck-2` / 8px | Compact control padding, tight alert rows |
-| compact | `--ck-3` / 12px | Existing Cohort compact gaps and alert interior spacing |
-| md | `--ck-4` / 16px | Default alert padding, default element gaps |
+| sm | `--ck-2` / 8px | Compact control padding, tight alert rows, compact alert interior spacing |
+| md | `--ck-4` / 16px | Default alert padding, default element gaps, default alert interior spacing |
 | lg | `--ck-5` / 24px | Section padding, alert body rhythm where needed |
 | xl | `--ck-6` / 32px | Layout gaps only when matching existing Cohort rhythm |
 | 2xl | `--ck-7` / 48px | Major section breaks; no new use expected in Phase 101 |
 | 3xl | `--ck-8` / 64px | Page-level/footer rhythm; no new alert use |
+
+Legacy token guard: `--ck-3` exists in the Cohort stylesheet from earlier phases, but it is not part of the Phase 101 declared spacing scale and must not be used for new alert or layout padding.
 
 Exceptions: `44px` minimum interactive target for `.ck-alert__dismiss`; `3px` left accent border for `.ck-alert`; `2px` focus outline plus `2px` offset; `1px` borders; existing radius tokens `--ck-radius` and `--ck-radius-sm`. These are not layout spacing and must not become ad hoc margins/padding.
 
