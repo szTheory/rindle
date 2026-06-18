@@ -4,7 +4,7 @@ milestone: v1.19
 milestone_name: Design-System Stress-Test
 status: verifying
 stopped_at: Completed 101-04-PLAN.md
-last_updated: "2026-06-18T20:43:48.991Z"
+last_updated: "2026-06-18T20:44:16.483Z"
 last_activity: 2026-06-18
 progress:
   total_phases: 17
@@ -188,6 +188,7 @@ destructive deletion plan.
 - [Phase 101]: Plan 01 — shared Phoenix flash/error paths now render Cohort `.ck-flash`/`.ck-alert` markup with inline currentColor SVGs, split polite/assertive ARIA semantics, keyed `lv:clear-flash` dismissal, and `.ck-btn` button defaults. The only new CSS primitive is token-backed `.ck-flash`/`.ck-alert` using local `--_accent` mapped to existing `--ck-info` / `--ck-quarantine`; no token values, `tokens.json`, admin CSS, package deps, or build steps changed.
 - [Phase 101]: Plan 02 — `Layouts.app/1` is now a bare app shell (nav, main slot, footer, flash) and routed page dimensions stay owned by each page's `ck_page/1` / `.ck__wrap`; dead Phoenix generator landing files (`PageController`, `PageHTML`, `home.html.heex`) and the obsolete controller test were deleted rather than migrated or scan-excluded.
 - [Phase 101]: Plan 03 — full composed Cohort route renders are now the daisyUI retirement scan surface; root no longer links `default.css` while the asset remains for Plan 04's final destructive deletion.
+- [Phase 101]: Delete default.css as the final destructive step after the Plan 03 render/source gate was green. — Preserves teardown ordering and keeps the irreversible file deletion behind the deterministic Cohort contract.
 
 ## Blockers/Concerns
 
@@ -196,6 +197,7 @@ destructive deletion plan.
 
 - adoption-demo-e2e lane stays RED on a pre-existing assertFocusVisibleTokens host-cascade defect (adoption_demo daisyUI .menu{outline:}/3px beats the shipped rindle 2px #123A35 focus token; host-app CSS layering, not the scoped rindle-admin CSS). Deferred per maintainer Option A to a dedicated follow-up plan/phase; logged in 97 deferred-items.md. NOT masked with POLISH_EXEMPTIONS.
 - ~~98-02b filed P1 CSS defect: missing .rindle-admin-visually-hidden utility (captions render visibly at >=760px until P1 adds it).~~ RESOLVED in 98-04 (commit b637710): utility authored through the full brandbook pipeline (regen → contrast 58/58 → gallery-check → sync), byte-identical priv copy, added to requiredSelectors + asserted by a new ExUnit §D clause.
+- Full adoption_demo_e2e.sh remains red on admin-console strict-locator failures unrelated to Phase 101; see deferred-items.md.
 
 ## Deferred Items
 
