@@ -121,6 +121,92 @@ defmodule AdoptionDemoWeb.CohortMigrationContractTest do
     assert_daisyui_retired(html)
   end
 
+  # --- Plan 101-01: flash retirement contract ------------------------------
+  # These render-component assertions pin the shared flash surface before the
+  # destructive default.css teardown. They intentionally target exact retired
+  # flash/icon/button scaffold literals so Cohort classes such as .ck-btn and
+  # .ck-tabs cannot false-fail.
+  test "flash renders Cohort info status without daisyUI or Heroicon classes" do
+    html =
+      render_component(&AdoptionDemoWeb.CoreComponents.flash/1, %{
+        id: "flash-info",
+        kind: :info,
+        flash: %{"info" => "Upload complete"}
+      })
+
+    assert html =~ ~s(id="flash-info")
+    assert html =~ ~s(class="ck ck-flash")
+    assert html =~ "ck-alert ck-alert--info"
+    assert html =~ ~s(role="status")
+    assert html =~ ~s(aria-live="polite")
+    assert html =~ "<svg"
+    assert html =~ ~s(aria-hidden="true")
+    assert html =~ ~s(aria-label="Close notification")
+    assert html =~ ~s(phx-click="lv:clear-flash")
+    assert html =~ ~s(phx-value-key="info")
+    assert html =~ "Upload complete"
+
+    refute html =~ ~s(class="toast)
+    refute html =~ "toast-top"
+    refute html =~ "alert-info"
+    refute html =~ "hero-information-circle"
+    refute html =~ "hero-x-mark"
+  end
+
+  test "flash renders Cohort error alert semantics without daisyUI or Heroicon classes" do
+    html =
+      render_component(&AdoptionDemoWeb.CoreComponents.flash/1, %{
+        id: "flash-error",
+        kind: :error,
+        flash: %{"error" => "Upload failed - resume from the last chunk"}
+      })
+
+    assert html =~ ~s(id="flash-error")
+    assert html =~ ~s(class="ck ck-flash")
+    assert html =~ "ck-alert ck-alert--error"
+    assert html =~ ~s(role="alert")
+    assert html =~ ~s(aria-live="assertive")
+    assert html =~ "<svg"
+    assert html =~ ~s(aria-hidden="true")
+    assert html =~ ~s(aria-label="Close notification")
+    assert html =~ ~s(phx-click="lv:clear-flash")
+    assert html =~ ~s(phx-value-key="error")
+    assert html =~ "Upload failed - resume from the last chunk"
+
+    refute html =~ ~s(class="toast)
+    refute html =~ "toast-top"
+    refute html =~ "alert-error"
+    refute html =~ "hero-exclamation-circle"
+    refute html =~ "hero-x-mark"
+  end
+
+  test "CoreComponents source has retired flash and button scaffold literals" do
+    source =
+      __DIR__
+      |> Path.join("../../../lib/adoption_demo_web/components/core_components.ex")
+      |> Path.expand()
+      |> File.read!()
+
+    for literal <- [
+          ~s(class="toast),
+          "toast-top",
+          ~s(class="alert),
+          "alert-info",
+          "alert-error",
+          "hero-information-circle",
+          "hero-exclamation-circle",
+          "hero-x-mark",
+          "btn-primary",
+          "btn-soft"
+        ] do
+      refute source =~ literal,
+             "expected #{inspect(literal)} to be retired from CoreComponents source"
+    end
+
+    refute source =~ "raw(",
+           "CoreComponents must keep escaped HEEx interpolation and avoid raw/1"
+  end
+
   # --- Plan 02: /dashboard frozen-contract + daisyUI-retirement -------------
   # Seeds a member + course/lesson + post so the LOAD-BEARING member-row contract
   # (id="member-#{id}" + data-testid="member-row-#{email}") and the lesson/post
