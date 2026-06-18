@@ -351,7 +351,14 @@ responsive, accessible, task-first, and on-voice — serving real operator JTBDs
 5. IA is gov.uk/GDS task-first (triage home, progressive disclosure, least-surprise labels), and
    microcopy is in the terse operator/SRE voice tied to each surface's JTBD/persona.
 
-**Plans:** TBD
+**Plans:** 5 plans
+
+Plans:
+- [ ] 98-01-PLAN.md — page/1 scaffold + all generated-CSS (two-pane §A, motion §B, mobile-first §C, focus-visible §D) authored in admin-css-build.mjs, byte-synced, drift-gated (page/1 unused)
+- [ ] 98-02a-PLAN.md — §D primitive a11y fixes (theme_picker server aria-pressed, live_indicator role, skip-link/main, assertive region, error_state) + modal/confirm_dialog overlay (focus_wrap, server-assign-driven inert)
+- [ ] 98-02b-PLAN.md — migrate all six surfaces onto page/1 (one atomic commit each) with caption/thead/scope/scope=row + data-label stacked-card markup; PubSub re-render preserved, no streams
+- [ ] 98-03-PLAN.md — IA + routing + microcopy: nav relabel/reorder, GDS triage Overview, deep-links, new variants-jobs/:id :show route + redaction-parity run-detail, Actions distribution, §F copy
+- [ ] 98-04-PLAN.md — gate close-out: ExUnit unconditional §A/§B/§D/§E/§F + five Playwright computed-style backstops, bump toHaveLength in lockstep, reconcile 760–1023px band, seal (autonomous:false)
 **UI hint:** yes
 
 ---
