@@ -365,6 +365,71 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
              )
     end
 
+    # CR-03 regression: batch-erasure preview sets dialog_open (action_state ==
+    # :preview), which inerts <main>. Previously the batch confirmation was a plain
+    # inline <form> rendered inside <main>, so it was inerted with no overlay to host
+    # it — the confirmation gate could never be satisfied and the surface was
+    # announced aria-hidden with no dialog. The form must now render through the
+    # shared confirm_dialog primitive in the shell :overlay slot (sibling of <main>).
+    # Fails against the prior inline-form markup (form nested inside the inerted main).
+    test "batch erasure preview confirmation stays interactive outside inert <main> (CR-03 regression)",
+         %{conn: conn} do
+      {:ok, view, _html} = live(conn, "/admin/rindle/actions")
+
+      view
+      |> element("button", "Batch erasure")
+      |> render_click()
+
+      owners_text =
+        "Elixir.String:#{Ecto.UUID.generate()}\nElixir.String:#{Ecto.UUID.generate()}"
+
+      html =
+        view
+        |> form("form[phx-submit=\"preview_batch_erasure\"]", %{"owners" => owners_text})
+        |> render_submit()
+
+      # In preview, <main> is inerted (dialog_open true).
+      assert_main_inerted(html)
+
+      # The batch confirmation form + its execute submit + the typed-confirmation
+      # gate must render AFTER </main> (in the sibling overlay host), not inside the
+      # inerted subtree — otherwise the confirmation can never be satisfied.
+      assert_outside_inert_main(html, ~s(data-rindle-admin-form="batch_erasure_execute"))
+      assert_outside_inert_main(html, ~s(data-rindle-admin-submit="execute_batch_erasure"))
+      assert_outside_inert_main(html, ~s(data-rindle-admin-confirm-input))
+
+      # And the batch erasure remains confirmable end-to-end.
+      view
+      |> form("form[phx-submit=\"execute_batch_erasure\"]", %{
+        "owners" => owners_text,
+        "confirmation" => "ERASE 2 OWNERS"
+      })
+      |> render_submit()
+
+      assert has_element?(view, "[data-rindle-admin-receipt=\"batch_erasure\"]")
+    end
+
+    defp assert_main_inerted(html) do
+      main_open = Regex.run(~r/<main[^>]*>/, html)
+      assert main_open, "expected a <main> element in the rendered shell"
+      assert hd(main_open) =~ "inert", "expected <main> to carry inert while a dialog is open"
+
+      assert hd(main_open) =~ ~s(aria-hidden="true"),
+             "expected <main> to carry aria-hidden=\"true\" while a dialog is open"
+    end
+
+    defp assert_outside_inert_main(html, marker) do
+      main_close = :binary.match(html, "</main>")
+      assert main_close != :nomatch, "expected a </main> close tag"
+      {main_close_at, _} = main_close
+      marker_at = :binary.match(html, marker)
+      assert marker_at != :nomatch, "expected marker #{inspect(marker)} in the rendered html"
+      {marker_pos, _} = marker_at
+
+      assert marker_pos > main_close_at,
+             "#{inspect(marker)} must render AFTER </main> (sibling overlay), not inside the inerted <main>"
+    end
+
     # Distributed verbs (UI-SPEC §E, D-98-10): the regenerate / reconcile /
     # release-quarantine workflows moved off this Maintenance junk-drawer to their
     # contextual surfaces. Their behavior is exercised on those surfaces:

@@ -354,6 +354,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             </div>
           </:work>
         </.page>
+        <%!-- CR-02/CR-03: the destructive-confirmation dialog renders into the shell
+              `:overlay` slot — a SIBLING of the inerted `<main>` — so when the
+              `:preview` state inerts `<main>` the confirmation form (and its typed
+              confirmation gate) stays interactive. Both owner AND batch erasure go
+              through the same confirm_dialog primitive, so `dialog_open` is never
+              driven from a state with no overlay to host it. --%>
+        <:overlay>
+          <%= render_action_overlay(assigns, current_action(assigns)) %>
+        </:overlay>
       </.shell>
       """
     end
@@ -413,6 +422,68 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       """
     end
 
+    # CR-02/CR-03: destructive-confirmation dialogs rendered into the shell `:overlay`
+    # slot (sibling of the inerted `<main>`). Only the active erasure action in the
+    # `:preview` state renders a dialog; every other state renders nothing so the
+    # overlay host stays empty (and `<main>` is never inerted without a live dialog).
+    defp render_action_overlay(%{action_state: :preview} = assigns, %{id: :owner_erasure}) do
+      ~H"""
+      <.confirm_dialog id="owner-erasure-confirm" show={true} on_cancel={JS.push("change_owner_erasure")}>
+        <:title>Erase this owner?</:title>
+        <form phx-change="change_owner_erasure" phx-submit="execute_owner_erasure" data-rindle-admin-form="owner_erasure_execute">
+          <p>
+            This permanently erases owner data and enqueues purge of the associated assets. This action cannot be undone.
+          </p>
+          <div>
+            <label>Owner Type</label>
+            <input type="text" name="owner_type" value={@action_data.type} data-rindle-admin-input="owner_type" required />
+          </div>
+          <div>
+            <label>Owner ID</label>
+            <input type="text" name="owner_id" value={@action_data.id} data-rindle-admin-input="owner_id" required />
+          </div>
+          <div>
+            <label>Type <pre>ERASE {@action_data.type}:{@action_data.id}</pre> to confirm</label>
+            <input type="text" name="confirmation" data-rindle-admin-confirm-input data-rindle-admin-input="confirmation" required />
+          </div>
+          <%= if @action_error do %>
+            <p class="rindle-admin-toast rindle-admin-toast--danger" data-rindle-admin-action-error>{@action_error}</p>
+          <% end %>
+          <button type="submit" class="rindle-admin-button rindle-admin-button--destructive rindle-admin-target-min" data-rindle-admin-submit="execute_owner_erasure">Erase owner</button>
+        </form>
+      </.confirm_dialog>
+      """
+    end
+
+    defp render_action_overlay(%{action_state: :preview} = assigns, %{id: :batch_erasure}) do
+      ~H"""
+      <.confirm_dialog id="batch-erasure-confirm" show={true} on_cancel={JS.push("change_batch_erasure")}>
+        <:title>Erase these owners?</:title>
+        <form phx-change="change_batch_erasure" phx-submit="execute_batch_erasure" data-rindle-admin-form="batch_erasure_execute">
+          <p>
+            This permanently erases owner data and enqueues purge of the associated assets. This action cannot be undone.
+          </p>
+          <div>
+            <label>Owners</label>
+            <textarea name="owners" rows="5" data-rindle-admin-input="batch_owners" required>{@action_data.owners_text}</textarea>
+          </div>
+          <div>
+            <label>Type <pre>ERASE {@action_data.count} OWNERS</pre> to confirm</label>
+            <input type="text" name="confirmation" data-rindle-admin-confirm-input data-rindle-admin-input="confirmation" required />
+          </div>
+          <%= if @action_error do %>
+            <p class="rindle-admin-toast rindle-admin-toast--danger" data-rindle-admin-action-error>{@action_error}</p>
+          <% end %>
+          <button type="submit" class="rindle-admin-button rindle-admin-button--destructive rindle-admin-target-min" data-rindle-admin-submit="execute_batch_erasure">Erase owners</button>
+        </form>
+      </.confirm_dialog>
+      """
+    end
+
+    defp render_action_overlay(assigns, _action) do
+      ~H""
+    end
+
     # Standing destructive affordance rendered on every erasure panel, independent of the
     # transient confirmation-error toast. Makes "this is destructive" a deterministic,
     # design-system-enforced contract (asserted in tests) rather than a subjective judgment.
@@ -456,30 +527,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           <h4>Preview Report</h4>
           <p>Attachments to detach: {@action_data.report.attachments_to_detach.count}</p>
         </div>
-        <.confirm_dialog id="owner-erasure-confirm" show={true} on_cancel={JS.push("change_owner_erasure")}>
-          <:title>Erase this owner?</:title>
-          <form phx-change="change_owner_erasure" phx-submit="execute_owner_erasure" data-rindle-admin-form="owner_erasure_execute">
-            <p>
-              This permanently erases owner data and enqueues purge of the associated assets. This action cannot be undone.
-            </p>
-            <div>
-              <label>Owner Type</label>
-              <input type="text" name="owner_type" value={@action_data.type} data-rindle-admin-input="owner_type" required />
-            </div>
-            <div>
-              <label>Owner ID</label>
-              <input type="text" name="owner_id" value={@action_data.id} data-rindle-admin-input="owner_id" required />
-            </div>
-            <div>
-              <label>Type <pre>ERASE {@action_data.type}:{@action_data.id}</pre> to confirm</label>
-              <input type="text" name="confirmation" data-rindle-admin-confirm-input data-rindle-admin-input="confirmation" required />
-            </div>
-            <%= if @action_error do %>
-              <p class="rindle-admin-toast rindle-admin-toast--danger" data-rindle-admin-action-error>{@action_error}</p>
-            <% end %>
-            <button type="submit" class="rindle-admin-button rindle-admin-button--destructive rindle-admin-target-min" data-rindle-admin-submit="execute_owner_erasure">Erase owner</button>
-          </form>
-        </.confirm_dialog>
+        <%!-- CR-02: the confirmation form lives in the shell `:overlay` slot
+              (render_action_overlay/2), NOT here — rendering it inside `:work` would
+              nest it under the inerted `<main>` and disable the confirmation gate. --%>
       </div>
       """
     end
@@ -514,25 +564,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp render_batch_erasure_state(%{action_state: :preview} = assigns) do
       ~H"""
       <div data-rindle-admin-state="preview">
-        <form phx-change="change_batch_erasure" phx-submit="execute_batch_erasure" data-rindle-admin-form="batch_erasure_execute">
-          <div>
-            <label>Owners</label>
-            <textarea name="owners" rows="5" data-rindle-admin-input="batch_owners" required>{@action_data.owners_text}</textarea>
-          </div>
-          <div data-rindle-admin-preview="batch_erasure">
-            <h4>Preview Report</h4>
-            <p>Owners to process: {@action_data.count}</p>
-            <p>Attachments to detach: {@action_data.report.attachments_to_detach.count}</p>
-          </div>
-          <div>
-            <label>Type <pre>ERASE {@action_data.count} OWNERS</pre> to confirm</label>
-            <input type="text" name="confirmation" data-rindle-admin-confirm-input data-rindle-admin-input="confirmation" required />
-          </div>
-          <%= if @action_error do %>
-            <p class="rindle-admin-toast rindle-admin-toast--danger" data-rindle-admin-action-error>{@action_error}</p>
-          <% end %>
-          <button type="submit" class="rindle-admin-button rindle-admin-button--destructive rindle-admin-target-min" data-rindle-admin-submit="execute_batch_erasure">Erase owners</button>
-        </form>
+        <div data-rindle-admin-preview="batch_erasure">
+          <h4>Preview Report</h4>
+          <p>Owners to process: {@action_data.count}</p>
+          <p>Attachments to detach: {@action_data.report.attachments_to_detach.count}</p>
+        </div>
+        <%!-- CR-03: batch-erasure confirmation now routes through the shared
+              confirm_dialog primitive in the shell `:overlay` slot
+              (render_action_overlay/2). Previously this was a plain inline `<form>`
+              with no overlay, so when `dialog_open` (action_state == :preview) inerted
+              `<main>` the batch confirmation form was disabled with nothing to host it. --%>
       </div>
       """
     end
