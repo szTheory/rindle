@@ -96,7 +96,7 @@ between phases (`auto_advance: false`).
   panels, drawers, toasts as cohesive units; rhythm / alignment / density / overlap gates.
   (UPLIFT-02)
 
-- [ ] **Phase 98 [Track A]: Admin Level-3 Page Composition + Motion / Mobile / A11y / IA /
+- [x] **Phase 98 [Track A]: Admin Level-3 Page Composition + Motion / Mobile / A11y / IA / (completed 2026-06-18)
   Microcopy** — assemble every console surface from primitives only; purposeful reduced-motion-
   aware sub-300ms LiveView-coordinated motion; mobile-first at all breakpoints; keyboard / focus
   / ARIA / WCAG-AA-both-themes a11y; gov.uk/GDS task-first IA; operator-voice microcopy per
@@ -353,7 +353,7 @@ responsive, accessible, task-first, and on-voice — serving real operator JTBDs
 5. IA is gov.uk/GDS task-first (triage home, progressive disclosure, least-surprise labels), and
    microcopy is in the terse operator/SRE voice tied to each surface's JTBD/persona.
 
-**Plans:** 5 plans
+**Plans:** 5/5 plans complete
 
 Plans:
 
@@ -764,7 +764,7 @@ Plans:
 | 95. Admin Level-1 Component Audit [A] | 3/3 | Complete   | 2026-06-16 |
 | 96. Cohort Component Layer + Dark/Reduced-Motion [B] | 5/5 | Complete    | 2026-06-17 |
 | 97. Admin Level-2 Meta-Components [A] | 4/4 | Complete    | 2026-06-17 |
-| 98. Admin Level-3 Pages + Motion/Mobile/A11y/IA/Microcopy [A] | 5/5 | Complete   | 2026-06-18 |
+| 98. Admin Level-3 Pages + Motion/Mobile/A11y/IA/Microcopy [A] | 5/5 | Complete    | 2026-06-18 |
 | 99. Cohort Page Migrations (small 7) [B] | 0/? | Not started | - |
 | 100. Cohort /upload Migration [B] | 0/? | Not started | - |
 | 101. daisyUI Retirement [B] | 0/? | Not started | - |
