@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.19
 milestone_name: Design-System Stress-Test
-status: executing
+status: verifying
 stopped_at: Completed 99-04-PLAN.md
-last_updated: "2026-06-18T15:28:46.038Z"
+last_updated: "2026-06-18T15:41:02.990Z"
 last_activity: 2026-06-18
 progress:
   total_phases: 17
-  completed_phases: 13
+  completed_phases: 14
   total_plans: 57
-  completed_plans: 56
-  percent: 76
+  completed_plans: 57
+  percent: 82
 ---
 
 # Project State
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-06-14)
 
 Phase: 99 (cohort-page-migrations-the-small-7-track-b) — EXECUTING
 Plan: 5 of 5
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-06-18
 
 ## Current Milestone
@@ -182,6 +182,7 @@ is grounded before planning.
 - [Phase ?]: 99-03: /ops + /account migrated onto ck_page/1; phx-click buttons keep their element with bare .ck-btn (Pitfall 4, no ck_button/1); <pre> panels swap to P01 .ck-output
 - [Phase ?]: 99-03: ExUnit /ops + /account contract tests assert always-present static contract + every phx-click handler; <pre :if> panels are the ops/batch/owner-erasure behavior-spec backstop (CI-delegated)
 - [Phase ?]: 99-04: /members + /lessons onto ck_page/1; contextual ck_page title + named testid h1 in inner_block (mirrors P2); picture_tag/video_tag wrappers + variant <ul>/<li> kept byte-for-byte (NOT ck_table); replace/detach bare .ck-btn (Pitfall 4); replace-status + lesson-streaming-url reuse .ck-output; no new CSS
+- [Phase ?]: 99-05: /posts + /media onto ck_page/1 closes COHORT-04 (all 5 small-7 pages). Media <dl> RESTYLED IN PLACE with .ck-detail (NOT ck_detail/1, Pitfall 2) so media-id/media-state/media-delivery-url <dd> ids/testids survive; delivery <dd> reuses .ck-output; variant <ul>/<li> kept (NOT ck_table); alex link plain .ck-btn <.link>; ExUnit /media seeds a real MediaVariant so variant-thumb renders
 
 ## Blockers/Concerns
 
@@ -207,7 +208,7 @@ is grounded before planning.
 
 ## Session Continuity
 
-Last session: 2026-06-18T15:28:15.992Z
+Last session: 2026-06-18T15:40:39.366Z
 Stopped at: Completed 99-04-PLAN.md
 Resume file: None
 
@@ -267,3 +268,4 @@ Resume file: None
 | Phase 99 P02 | 4 | 2 tasks | 3 files |
 | Phase 99 P03 | 5 | 3 tasks | 4 files |
 | Phase 99 P04 | 6 | 3 tasks | 4 files |
+| Phase 99 P05 | 9 min | 3 tasks | 4 files |

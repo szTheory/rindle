@@ -394,7 +394,7 @@ Plans:
 - [x] 99-02-PLAN.md — `/dashboard` migration (COHORT-01); load-bearing member-row contract
 - [x] 99-03-PLAN.md — `/ops` + `/account` migration (COHORT-03/04); `.ck-btn` + `.ck-output` `<pre>` panels
 - [x] 99-04-PLAN.md — member + lesson migration (COHORT-04); picture/video tags + variant lists
-- [ ] 99-05-PLAN.md — post + media migration (COHORT-04); media `<dl>` restyle-in-place + variant list
+- [x] 99-05-PLAN.md — post + media migration (COHORT-04); media `<dl>` restyle-in-place + variant list
 
 **UI hint:** yes
 
@@ -774,7 +774,7 @@ Plans:
 | 96. Cohort Component Layer + Dark/Reduced-Motion [B] | 5/5 | Complete    | 2026-06-17 |
 | 97. Admin Level-2 Meta-Components [A] | 4/4 | Complete    | 2026-06-17 |
 | 98. Admin Level-3 Pages + Motion/Mobile/A11y/IA/Microcopy [A] | 5/5 | Complete    | 2026-06-18 |
-| 99. Cohort Page Migrations (small 7) [B] | 4/5 | In Progress|  |
+| 99. Cohort Page Migrations (small 7) [B] | 5/5 | Complete   | 2026-06-18 |
 | 100. Cohort /upload Migration [B] | 0/? | Not started | - |
 | 101. daisyUI Retirement [B] | 0/? | Not started | - |
 | 102. Re-Converge — Visual Matrix, Idempotency & Audit | 0/? | Not started | - |
