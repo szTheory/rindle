@@ -1047,6 +1047,21 @@ textarea[data-rindle-admin-input] {
   border: 1px solid var(--rindle-focus-ring);
 }
 
+/* §D general visually-hidden utility (D-98-08). The migrated data tables each carry a
+   <caption class="rindle-admin-visually-hidden"> naming the surface for AT users; the
+   caption must be announced but never painted at >=760 where the real <table> returns.
+   Same clip/clip-path recipe as the stacked <thead> hide below — authored once here so
+   any element (not just <thead>) can opt into accessible-but-invisible. */
+.rindle-admin-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 /* §B motion catalog. Only opacity/transform animate (GPU-only); exact properties
    enumerated, never the all-properties shorthand. Reduced-motion collapse below. */
 
@@ -1319,6 +1334,7 @@ const requiredSelectors = [
   '.rindle-admin-page--two-pane',
   '.rindle-admin-nav__disclosure',
   '.rindle-admin-skip-link',
+  '.rindle-admin-visually-hidden',
   'content: attr(data-label)',
 ];
 // Level-2 meta-component parity (UPLIFT-02). Every composed unit must emit a root
