@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.19
 milestone_name: Design-System Stress-Test
 status: executing
-stopped_at: Completed 99-01-PLAN.md
-last_updated: "2026-06-18T15:19:22.002Z"
+stopped_at: Completed 99-04-PLAN.md
+last_updated: "2026-06-18T15:28:46.038Z"
 last_activity: 2026-06-18
 progress:
   total_phases: 17
   completed_phases: 13
   total_plans: 57
-  completed_plans: 55
+  completed_plans: 56
   percent: 76
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-06-14)
 ## Current Position
 
 Phase: 99 (cohort-page-migrations-the-small-7-track-b) — EXECUTING
-Plan: 4 of 5
+Plan: 5 of 5
 Status: Ready to execute
 Last activity: 2026-06-18
 
@@ -181,6 +181,7 @@ is grounded before planning.
 - [Phase ?]: 99-01: one token-only .ck-output rule added to hand-authored cohort.css for ops/account <pre> panels (mirrors .ck-cred__value tokens; padding via --ck-3/--ck-4 to stay literal-free); cohort-pages.spec.js shares assertCohortPagePolish (assertAdminPolish reused UNCHANGED, warn mode, Pitfall-5 guard) + ExUnit module shares frozen-contract + page-body-scoped daisyUI-retirement helpers; both green vs /styleguide
 - [Phase ?]: 99-03: /ops + /account migrated onto ck_page/1; phx-click buttons keep their element with bare .ck-btn (Pitfall 4, no ck_button/1); <pre> panels swap to P01 .ck-output
 - [Phase ?]: 99-03: ExUnit /ops + /account contract tests assert always-present static contract + every phx-click handler; <pre :if> panels are the ops/batch/owner-erasure behavior-spec backstop (CI-delegated)
+- [Phase ?]: 99-04: /members + /lessons onto ck_page/1; contextual ck_page title + named testid h1 in inner_block (mirrors P2); picture_tag/video_tag wrappers + variant <ul>/<li> kept byte-for-byte (NOT ck_table); replace/detach bare .ck-btn (Pitfall 4); replace-status + lesson-streaming-url reuse .ck-output; no new CSS
 
 ## Blockers/Concerns
 
@@ -206,8 +207,8 @@ is grounded before planning.
 
 ## Session Continuity
 
-Last session: 2026-06-18T15:18:50.710Z
-Stopped at: Completed 99-01-PLAN.md
+Last session: 2026-06-18T15:28:15.992Z
+Stopped at: Completed 99-04-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -265,3 +266,4 @@ Resume file: None
 | Phase 99 P01 | 3 min | 2 tasks | 4 files |
 | Phase 99 P02 | 4 | 2 tasks | 3 files |
 | Phase 99 P03 | 5 | 3 tasks | 4 files |
+| Phase 99 P04 | 6 | 3 tasks | 4 files |
