@@ -366,6 +366,7 @@ defmodule AdoptionDemoWeb.CohortMigrationContractTest do
       asset_id: asset.id,
       name: "thumb",
       state: "ready",
+      recipe_digest: "digest_thumb_contract",
       output_kind: "image",
       inserted_at: now,
       updated_at: now
