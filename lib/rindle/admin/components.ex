@@ -18,15 +18,35 @@ if Code.ensure_loaded?(Phoenix.Component) do
     attr(:base_path, :string, default: "/admin/rindle")
     attr(:title, :string, required: true)
     attr(:live_status, :string, default: "Waiting for lifecycle events")
+    # Server-owned theme (D-98-07): shell learns the current theme at mount
+    # (session value / LiveView connect param) and threads it down so
+    # `theme_picker` renders `aria-pressed` server-side and the root carries the
+    # correct `data-theme` even on a dead-render/reconnect. `JS.set_attribute`
+    # (select_theme/1) remains progressive enhancement ONLY.
+    attr(:theme, :string, default: "auto", values: ["light", "dark", "auto"])
+    # Server-assign-driven dialog state (D-98-11 critical landmine): when a modal
+    # is open, `main`+`nav` get `inert` AND `aria-hidden`. Rendering this off an
+    # assign (not solely client JS) means a LiveView reconnect/dead-render
+    # re-renders the correct state — `main` is NEVER left inert.
+    attr(:dialog_open, :boolean, default: false)
     slot(:inner_block, required: true)
 
     def shell(assigns) do
       assigns = assign(assigns, :surfaces, surface_links(assigns.base_path))
 
       ~H"""
-      <div class="rindle-admin-shell" data-rindle-admin-root data-rindle-admin-surface={@active} data-theme="auto">
+      <div class="rindle-admin-shell" data-rindle-admin-root data-rindle-admin-surface={@active} data-theme={@theme}>
         <link rel="stylesheet" href={admin_path(@base_path, "assets/rindle-admin.css")} />
-        <nav class="rindle-admin-nav" aria-label="Rindle Admin surfaces" data-rindle-admin-component="nav">
+        <a class="rindle-admin-skip-link rindle-admin-target-min" href="#rindle-admin-main" data-rindle-admin-skip-link>
+          Skip to main content
+        </a>
+        <nav
+          class="rindle-admin-nav"
+          aria-label="Rindle Admin surfaces"
+          data-rindle-admin-component="nav"
+          inert={@dialog_open}
+          aria-hidden={if @dialog_open, do: "true", else: nil}
+        >
           <p class="rindle-admin-nav__brand">Rindle Admin</p>
           <ul class="rindle-admin-nav__list">
             <li :for={surface <- @surfaces}>
@@ -40,9 +60,16 @@ if Code.ensure_loaded?(Phoenix.Component) do
               </a>
             </li>
           </ul>
-          <.theme_picker />
+          <.theme_picker theme={@theme} />
         </nav>
-        <main class="rindle-admin-shell__main" data-rindle-admin-surface={@active}>
+        <main
+          id="rindle-admin-main"
+          class="rindle-admin-shell__main"
+          data-rindle-admin-surface={@active}
+          tabindex="-1"
+          inert={@dialog_open}
+          aria-hidden={if @dialog_open, do: "true", else: nil}
+        >
           <header data-rindle-admin-page-header>
             <p>Rindle Admin</p>
             <h1>{@title}</h1>
@@ -50,27 +77,55 @@ if Code.ensure_loaded?(Phoenix.Component) do
           </header>
           {render_slot(@inner_block)}
         </main>
+        <%!-- Persistent ASSERTIVE live region (D-98-07): present at mount, empty
+              until an async run-failure / action-error banner is announced into
+              it. The POLITE region is `live_indicator`. --%>
+        <div
+          class="rindle-admin-alert-region"
+          role="alert"
+          aria-live="assertive"
+          aria-atomic="true"
+          data-rindle-admin-alert-region
+        >
+        </div>
         <script defer type="text/javascript" src={admin_path(@base_path, "assets/rindle-admin.js")}>
         </script>
       </div>
       """
     end
 
+    # Server-owned `aria-pressed` (D-98-07): the attribute is rendered from the
+    # `@theme` assign threaded from `shell/1` mount, so it is correct in
+    # server-rendered (dead) markup and survives reconnect. `select_theme/1`
+    # (`JS.set_attribute`) is progressive enhancement only — no longer the source
+    # of truth.
+    attr(:theme, :string, default: "auto", values: ["light", "dark", "auto"])
+
     def theme_picker(assigns) do
       ~H"""
       <div class="rindle-admin-theme-picker" data-rindle-admin-component="theme-picker" role="group" aria-label="Theme">
-        <button class="rindle-admin-theme-picker__option rindle-admin-target-min" type="button" data-rindle-admin-theme="light" aria-pressed="false" phx-click={select_theme("light")}>Light</button>
-        <button class="rindle-admin-theme-picker__option rindle-admin-target-min" type="button" data-rindle-admin-theme="dark" aria-pressed="false" phx-click={select_theme("dark")}>Dark</button>
-        <button class="rindle-admin-theme-picker__option rindle-admin-target-min" type="button" data-rindle-admin-theme="auto" aria-pressed="true" phx-click={select_theme("auto")}>Auto</button>
+        <button class="rindle-admin-theme-picker__option rindle-admin-target-min" type="button" data-rindle-admin-theme="light" aria-pressed={@theme == "light"} phx-click={select_theme("light")}>Light</button>
+        <button class="rindle-admin-theme-picker__option rindle-admin-target-min" type="button" data-rindle-admin-theme="dark" aria-pressed={@theme == "dark"} phx-click={select_theme("dark")}>Dark</button>
+        <button class="rindle-admin-theme-picker__option rindle-admin-target-min" type="button" data-rindle-admin-theme="auto" aria-pressed={@theme == "auto"} phx-click={select_theme("auto")}>Auto</button>
       </div>
       """
     end
 
     attr(:copy, :string, default: "Waiting for lifecycle events")
 
+    # POLITE live region (D-98-07): routine state flips ("Variant ready") are
+    # announced here. Dropped the dead `tabindex="0"` (non-interactive <p>) and
+    # added role=status + aria-live=polite + aria-atomic. Decorative span keeps
+    # aria-hidden.
     def live_indicator(assigns) do
       ~H"""
-      <p class="rindle-admin-toast rindle-admin-toast--info" data-rindle-admin-live-indicator tabindex="0">
+      <p
+        class="rindle-admin-toast rindle-admin-toast--info"
+        data-rindle-admin-live-indicator
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+      >
         <span aria-hidden="true">!</span>
         <span>{@copy}</span>
       </p>
@@ -133,7 +188,7 @@ if Code.ensure_loaded?(Phoenix.Component) do
 
     def error_state(assigns) do
       ~H"""
-      <section class="rindle-admin-empty-state" data-rindle-admin-error-state data-rindle-admin-state="error">
+      <section class="rindle-admin-empty-state" data-rindle-admin-error-state data-rindle-admin-state="error" role="alert">
         <h2 class="rindle-admin-empty-state__title">Rindle Admin could not load this surface</h2>
         <p>Rindle Admin could not load this surface. Review the runtime checks, then retry after the missing source is available.</p>
         <p>Failed surface: {@surface}</p>
