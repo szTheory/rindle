@@ -135,6 +135,13 @@ defmodule AdoptionDemoWeb.CohortMigrationContractTest do
     end
   end
 
+  test "CohortTheme.normalize/2 allowlists light and dark route values" do
+    assert AdoptionDemoWeb.CohortTheme.normalize("dark", "light") == "dark"
+    assert AdoptionDemoWeb.CohortTheme.normalize("light", "dark") == "light"
+    assert AdoptionDemoWeb.CohortTheme.normalize("sepia", "light") == "light"
+    assert AdoptionDemoWeb.CohortTheme.normalize(nil, "dark") == "dark"
+  end
+
   # --- Plan 101-02: layout wrapper retirement contract ----------------------
   test "Layouts.app renders bare Cohort chrome without Tailwind width or padding wrapper", %{
     conn: conn
