@@ -148,13 +148,13 @@ const tableRows = [
 
 const tableMarkup = tableRows.map(([id, summary, state, surface, action]) => `
               <tr class="rindle-admin-table__row" tabindex="0" data-rindle-admin-component="table" data-rindle-admin-state="${state === 'processing' ? 'loading' : state === 'warning' ? 'hover' : state === 'danger' ? 'focus-visible' : 'default'}" data-rindle-admin-status="${state}">
-                <td class="rindle-admin-table__cell"><code>${escapeHtml(id)}</code></td>
-                <td class="rindle-admin-table__cell">${escapeHtml(summary)}</td>
-                <td class="rindle-admin-table__cell">
+                <td class="rindle-admin-table__cell" data-label="Record"><code>${escapeHtml(id)}</code></td>
+                <td class="rindle-admin-table__cell" data-label="Signal">${escapeHtml(summary)}</td>
+                <td class="rindle-admin-table__cell" data-label="State">
                   <span class="rindle-admin-status-chip rindle-admin-status-chip--${state}" data-rindle-admin-component="status-chip" data-rindle-admin-state="${state === 'danger' ? 'error' : 'default'}" data-rindle-admin-status="${state}">${escapeHtml(statusLabels[state])}</span>
                 </td>
-                <td class="rindle-admin-table__cell">${escapeHtml(surface)}</td>
-                <td class="rindle-admin-table__cell"><button class="rindle-admin-button rindle-admin-button--quiet" type="button" data-rindle-admin-component="button" data-rindle-admin-state="default" data-rindle-admin-detail-link>${escapeHtml(action)}</button></td>
+                <td class="rindle-admin-table__cell" data-label="Surface">${escapeHtml(surface)}</td>
+                <td class="rindle-admin-table__cell" data-label="Action"><button class="rindle-admin-button rindle-admin-button--quiet" type="button" data-rindle-admin-component="button" data-rindle-admin-state="default" data-rindle-admin-detail-link>${escapeHtml(action)}</button></td>
               </tr>`).join('');
 
 // ---------------------------------------------------------------------------
@@ -598,10 +598,10 @@ ${metaNavItems}
               <tbody>
 ${tableMarkup}
                 <tr class="rindle-admin-table__row" tabindex="0" data-rindle-admin-component="table" data-rindle-admin-state="empty">
-                  <td class="rindle-admin-table__cell" colspan="5">No rows match the current lifecycle filter.</td>
+                  <td class="rindle-admin-table__cell" data-label="Status" colspan="5">No rows match the current lifecycle filter.</td>
                 </tr>
                 <tr class="rindle-admin-table__row" tabindex="0" data-rindle-admin-component="table" data-rindle-admin-state="skeleton">
-                  <td class="rindle-admin-table__cell" colspan="5"><div class="rindle-admin-skeleton" aria-hidden="true"></div></td>
+                  <td class="rindle-admin-table__cell" data-label="Status" colspan="5"><div class="rindle-admin-skeleton" aria-hidden="true"></div></td>
                 </tr>
               </tbody>
             </table>

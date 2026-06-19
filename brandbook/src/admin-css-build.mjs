@@ -1174,15 +1174,16 @@ textarea[data-rindle-admin-input] {
 /* base/<760 STACKED data tables: gov.uk "label: value" cards, no markup fork, no
    priority-column hiding. The <td data-label> markup rides the P2b surface
    migration (D-98-08); this rule consumes it. EXCEPTION: .rindle-admin-table--sticky
-   keeps horizontal scroll for wide numeric matrices at all widths. */
-.rindle-admin-table:not(.rindle-admin-table--sticky),
-.rindle-admin-table:not(.rindle-admin-table--sticky) tbody,
-.rindle-admin-table:not(.rindle-admin-table--sticky) tr,
-.rindle-admin-table:not(.rindle-admin-table--sticky) td {
+   is a wrapper modifier, so wrapped tables keep horizontal scroll for wide numeric
+   matrices at all widths. */
+.rindle-admin-table:not(.rindle-admin-table--sticky .rindle-admin-table),
+.rindle-admin-table:not(.rindle-admin-table--sticky .rindle-admin-table) tbody,
+.rindle-admin-table:not(.rindle-admin-table--sticky .rindle-admin-table) tr,
+.rindle-admin-table:not(.rindle-admin-table--sticky .rindle-admin-table) td {
   display: block;
 }
 
-.rindle-admin-table:not(.rindle-admin-table--sticky) thead {
+.rindle-admin-table:not(.rindle-admin-table--sticky .rindle-admin-table) thead {
   /* visually-hidden: each cell self-labels via ::before below */
   position: absolute;
   width: 1px;
@@ -1193,14 +1194,14 @@ textarea[data-rindle-admin-input] {
   white-space: nowrap;
 }
 
-.rindle-admin-table:not(.rindle-admin-table--sticky) tr {
+.rindle-admin-table:not(.rindle-admin-table--sticky .rindle-admin-table) tr {
   margin-block-end: var(--rindle-space-3);
   border: var(--rindle-border-rule-subtle);
   border-radius: var(--rindle-radius-card);
   padding: var(--rindle-space-3) var(--rindle-space-4);
 }
 
-.rindle-admin-table:not(.rindle-admin-table--sticky) td::before {
+.rindle-admin-table:not(.rindle-admin-table--sticky .rindle-admin-table) td::before {
   content: attr(data-label);
   display: block;
   font-weight: 600;
@@ -1209,6 +1210,22 @@ textarea[data-rindle-admin-input] {
 
 .rindle-admin-table--sticky {
   overflow-x: auto;
+}
+
+.rindle-admin-table--sticky .rindle-admin-table {
+  display: table;
+}
+
+.rindle-admin-table--sticky tbody {
+  display: table-row-group;
+}
+
+.rindle-admin-table--sticky tr {
+  display: table-row;
+}
+
+.rindle-admin-table--sticky td {
+  display: table-cell;
 }
 
 @media (min-width: 480px) {
@@ -1230,11 +1247,11 @@ textarea[data-rindle-admin-input] {
   }
 
   /* real <table> at md+ : undo the stacked-card flip */
-  .rindle-admin-table:not(.rindle-admin-table--sticky) {
+  .rindle-admin-table:not(.rindle-admin-table--sticky .rindle-admin-table) {
     display: table;
   }
 
-  .rindle-admin-table:not(.rindle-admin-table--sticky) thead {
+  .rindle-admin-table:not(.rindle-admin-table--sticky .rindle-admin-table) thead {
     position: static;
     width: auto;
     height: auto;
@@ -1245,11 +1262,11 @@ textarea[data-rindle-admin-input] {
     display: table-header-group;
   }
 
-  .rindle-admin-table:not(.rindle-admin-table--sticky) tbody {
+  .rindle-admin-table:not(.rindle-admin-table--sticky .rindle-admin-table) tbody {
     display: table-row-group;
   }
 
-  .rindle-admin-table:not(.rindle-admin-table--sticky) tr {
+  .rindle-admin-table:not(.rindle-admin-table--sticky .rindle-admin-table) tr {
     display: table-row;
     margin-block-end: 0;
     border: 0;
@@ -1258,11 +1275,11 @@ textarea[data-rindle-admin-input] {
     padding: 0;
   }
 
-  .rindle-admin-table:not(.rindle-admin-table--sticky) td {
+  .rindle-admin-table:not(.rindle-admin-table--sticky .rindle-admin-table) td {
     display: table-cell;
   }
 
-  .rindle-admin-table:not(.rindle-admin-table--sticky) td::before {
+  .rindle-admin-table:not(.rindle-admin-table--sticky .rindle-admin-table) td::before {
     content: "";
     display: none;
   }
@@ -1388,6 +1405,7 @@ const requiredSelectors = [
   '.rindle-admin-skip-link',
   '.rindle-admin-visually-hidden',
   'content: attr(data-label)',
+  '.rindle-admin-table--sticky .rindle-admin-table',
 ];
 // Level-2 meta-component parity (UPLIFT-02). Every composed unit must emit a root
 // selector + the static (no-JS) sort/sticky/bulk-select state hooks. Absentees are
