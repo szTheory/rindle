@@ -590,6 +590,39 @@ defmodule AdoptionDemoWeb.CohortMigrationContractTest do
     assert_daisyui_retired(html)
   end
 
+  test "/members renders route-backed dark theme and normalizes invalid theme", %{conn: conn} do
+    AdoptionDemo.Accounts.seed_member!(%{
+      email: "member-theme@cohort.test",
+      name: "Member Theme",
+      role: "student"
+    })
+
+    member = AdoptionDemo.Accounts.get_member_by_email!("member-theme@cohort.test")
+
+    for {route, theme} <- [
+          {~p"/members/#{member.id}?theme=dark", "dark"},
+          {~p"/members/#{member.id}?theme=sepia", "light"}
+        ] do
+      html = render_route(conn, route)
+
+      assert_ck_root_theme(html, theme)
+
+      assert_frozen_contract(html, [
+        ~s(data-testid="member-profile-title"),
+        ~s(data-testid="member-avatar-section"),
+        ~s(data-testid="member-no-avatar"),
+        ~s(data-testid="replace-detach-section"),
+        ~s(data-testid="replace-status"),
+        ~s(data-testid="replace-avatar-button"),
+        ~s(data-testid="detach-avatar-button"),
+        ~s(phx-click="replace_avatar"),
+        ~s(phx-click="detach_avatar")
+      ])
+
+      assert_daisyui_retired(html)
+    end
+  end
+
   # --- Plan 04: /lessons/:id frozen-contract + daisyUI-retirement ------------
   # Seeds a course + lesson WITHOUT a video attached (same MinIO constraint as the
   # member test). The video/variant branch (lesson-video-tag, lesson-asset-state,
@@ -618,6 +651,39 @@ defmodule AdoptionDemoWeb.CohortMigrationContractTest do
     ])
 
     assert_daisyui_retired(html)
+  end
+
+  test "/lessons renders route-backed dark theme and normalizes invalid theme", %{conn: conn} do
+    course =
+      AdoptionDemo.Cohort.seed_course!(%{
+        title: "Cohort Lesson Theme Course",
+        slug: "lesson-theme-course"
+      })
+
+    lesson =
+      AdoptionDemo.Cohort.seed_lesson!(%{
+        title: "Lesson theme contract",
+        position: 1,
+        course_id: course.id
+      })
+
+    for {route, theme} <- [
+          {~p"/lessons/#{lesson.id}?theme=dark", "dark"},
+          {~p"/lessons/#{lesson.id}?theme=sepia", "light"}
+        ] do
+      html = render_route(conn, route)
+
+      assert_ck_root_theme(html, theme)
+
+      assert_frozen_contract(html, [
+        ~s(data-testid="lesson-title"),
+        ~s(data-testid="lesson-video-section"),
+        ~s(data-testid="lesson-no-video"),
+        ~s(data-testid="lesson-variants")
+      ])
+
+      assert_daisyui_retired(html)
+    end
   end
 
   # --- Plan 05: /posts/:id frozen-contract + daisyUI-retirement --------------
