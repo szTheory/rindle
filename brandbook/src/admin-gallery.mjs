@@ -96,6 +96,7 @@ const cssRequired = [
   '.rindle-admin-skeleton',
   '[data-theme="dark"]',
   '[data-theme="auto"]',
+  '[data-theme="auto"] .rindle-admin-drawer',
   'prefers-color-scheme: dark',
   'prefers-reduced-motion',
 ];
@@ -572,6 +573,12 @@ ${metaNavItems}
       </div>
     </header>
 
+    <section class="rindle-admin-gallery__section" aria-labelledby="level-1-heading">
+      <p class="rindle-admin-gallery__eyebrow">Level-1 component inventory</p>
+      <h2 id="level-1-heading" class="rindle-admin-gallery__title">Primitive fixtures</h2>
+      <p class="rindle-admin-gallery__lede">Shell, navigation, table, status chip, button, theme picker, form controls, confirm dialog, drawer, toast, empty state, error state, loading state, and skeleton are represented below with their visible states.</p>
+    </section>
+
     <div class="rindle-admin-gallery__grid">
       <div>
         <section class="rindle-admin-gallery__section" id="home-status" aria-labelledby="table-heading" data-rindle-admin-surface="Home/Status">
@@ -792,6 +799,8 @@ const requiredSnippets = [
   'data-theme="auto"',
   'data-rindle-admin-root',
   'Rindle Admin',
+  'Level-1 component inventory',
+  'Primitive fixtures',
   'owner:cohort-demo-42',
   "const allowedThemes = new Set(['light', 'dark', 'auto'])",
   "root.setAttribute('data-theme', theme)",

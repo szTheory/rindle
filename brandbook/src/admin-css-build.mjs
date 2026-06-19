@@ -99,6 +99,21 @@ css += `}
 `;
 css += emitVariables(T.color.semantic['dark'], '    ');
 css += `  }
+
+  [data-theme="auto"] .rindle-admin-nav {
+    background: var(--rindle-elevation-1);
+  }
+
+  [data-theme="auto"] .rindle-admin-confirm-dialog,
+  [data-theme="auto"] .rindle-admin-drawer,
+  [data-theme="auto"] .rindle-admin-confirm-panel {
+    background: var(--rindle-elevation-3);
+  }
+
+  [data-theme="auto"] .rindle-admin-toast,
+  [data-theme="auto"] .rindle-admin-table--sticky .rindle-admin-table__head {
+    background: var(--rindle-elevation-2);
+  }
 }
 
 .rindle-admin-shell,
@@ -1392,6 +1407,14 @@ const requiredMetaSelectors = [
   '.rindle-admin-bulk-bar',
 ];
 const requiredScopes = [':root', '[data-theme="dark"]', '[data-theme="auto"]', 'prefers-color-scheme: dark'];
+const requiredAutoDarkSelectors = [
+  '[data-theme="auto"] .rindle-admin-nav',
+  '[data-theme="auto"] .rindle-admin-confirm-dialog',
+  '[data-theme="auto"] .rindle-admin-drawer',
+  '[data-theme="auto"] .rindle-admin-toast',
+  '[data-theme="auto"] .rindle-admin-table--sticky .rindle-admin-table__head',
+  '[data-theme="auto"] .rindle-admin-confirm-panel',
+];
 const requiredMotionUses = MOTION_TOKENS.map((token) => `var(--rindle-motion-${token})`);
 const requiredTokenUses = [
   'var(--rindle-surface)', 'var(--rindle-text)', 'var(--rindle-focus-width)', 'var(--rindle-focus-offset)', 'var(--rindle-focus-ring)',
@@ -1408,6 +1431,7 @@ const requiredTokenUses = [
 const missing = [];
 for (const selector of requiredSelectors) if (!written.includes(selector)) missing.push(selector);
 for (const selector of requiredMetaSelectors) if (!written.includes(selector)) missing.push(selector);
+for (const selector of requiredAutoDarkSelectors) if (!written.includes(selector)) missing.push(selector);
 for (const scope of requiredScopes) if (!written.includes(scope)) missing.push(scope);
 for (const motion of requiredMotionUses) if (!written.includes(motion)) missing.push(motion);
 for (const token of requiredTokenUses) if (!written.includes(token)) missing.push(token);

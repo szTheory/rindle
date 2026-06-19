@@ -221,6 +221,21 @@
     --rindle-status-quarantine-surface: #211C2B;
     --rindle-status-info-surface: #161D2B;
   }
+
+  [data-theme="auto"] .rindle-admin-nav {
+    background: var(--rindle-elevation-1);
+  }
+
+  [data-theme="auto"] .rindle-admin-confirm-dialog,
+  [data-theme="auto"] .rindle-admin-drawer,
+  [data-theme="auto"] .rindle-admin-confirm-panel {
+    background: var(--rindle-elevation-3);
+  }
+
+  [data-theme="auto"] .rindle-admin-toast,
+  [data-theme="auto"] .rindle-admin-table--sticky .rindle-admin-table__head {
+    background: var(--rindle-elevation-2);
+  }
 }
 
 .rindle-admin-shell,
