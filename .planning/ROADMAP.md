@@ -476,7 +476,17 @@ light/dark/mobile, idempotency is proven, and the milestone is audited.
 
 4. Milestone audit, requirements traceability (20/20), and docs parity are closed.
 
-**Plans:** TBD
+**Plans:** 5/6 plans complete
+
+Plans:
+
+- [x] 102-01-PLAN.md — Make admin root lookup strict-safe and preserve admin matrix/backstop invariants.
+- [x] 102-02-PLAN.md — Add explicit visual-gate surface contracts for focus and admin-only backstops.
+- [x] 102-03-PLAN.md — Add shared Cohort route theme normalization for dashboard, ops, and account erasure.
+- [x] 102-04-PLAN.md — Add rendered dark route state for member, lesson, post, and media detail pages.
+- [x] 102-05-PLAN.md — Promote Cohort page/styleguide visual proof to the hard-fail matrix.
+- [ ] 102-06-PLAN.md — Run the full no-regression, idempotency, traceability, and milestone audit close-out.
+
 **UI hint:** yes
 
 ---
@@ -785,7 +795,7 @@ Plans:
 | 99. Cohort Page Migrations (small 7) [B] | 5/5 | Complete    | 2026-06-18 |
 | 100. Cohort /upload Migration [B] | 2/2 | Complete    | 2026-06-18 |
 | 101. daisyUI Retirement [B] | 4/4 | Complete    | 2026-06-18 |
-| 102. Re-Converge — Visual Matrix, Idempotency & Audit | 4/6 | In Progress|  |
+| 102. Re-Converge — Visual Matrix, Idempotency & Audit | 5/6 | In Progress|  |
 
 <details>
 <summary>✅ b1.0 Brand Foundations (Phases 81–85) — SHIPPED 2026-06-10</summary>

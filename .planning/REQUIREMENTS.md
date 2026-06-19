@@ -89,11 +89,11 @@ demand-gated and shift to v1.20+. Research: `.planning/research/v1.19/SUMMARY.md
   empty-diff check) with zero functional or visual regression to existing flows; every page
   migration is gated on its behavior e2e specs.
 
-- [ ] **VIS-03** *(differentiator)*: Optional pixel-baseline screenshots (`toHaveScreenshot()`)
+- [x] **VIS-03** *(differentiator)*: Optional pixel-baseline screenshots (`toHaveScreenshot()`)
   may augment the gate **only** if CI-generated, motion-frozen, and font-stable — never a flaky
   merge blocker.
 
-- [ ] **VIS-04** *(differentiator)*: Living component gallery (admin + Cohort) as an audit
+- [x] **VIS-04** *(differentiator)*: Living component gallery (admin + Cohort) as an audit
   reference surface, kept in sync with the generated CSS and screenshotted by the visual lane.
 
 ## v1.18 Admin Console & Adoption Lab (tech_debt — HUMAN-UAT pending; not yet archived)
@@ -271,8 +271,8 @@ Open only via `/gsd-new-milestone` with documented signal:
 | COHORT-06 | Phase 96 | Complete |
 | VIS-01 | Phase 102 | Complete |
 | VIS-02 | Phase 102 | Complete |
-| VIS-03 | Phase 102 | Pending |
-| VIS-04 | Phase 102 | Pending |
+| VIS-03 | Phase 102 | Complete |
+| VIS-04 | Phase 102 | Complete |
 
 **Coverage:** v1.19 requirements: 20 total, **20 mapped** to phases 94–102 (100%). VIS-01 has
 groundwork in Phase 94 (generalizing `admin-polish.js`) but is *owned* by Phase 102 where it
