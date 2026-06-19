@@ -30,7 +30,7 @@
 <summary>✅ v1.19 Design-System Stress-Test (Phases 94-102) — SHIPPED 2026-06-19</summary>
 
 - [x] Phase 94: Foundation — Token Pipeline CI Gate & New Token Categories (5/5 plans) — completed 2026-06-15
-- [x] Phase 95: Admin Level-1 Component Audit (3/3 plans) — completed 2026-06-16
+- [x] Phase 95: Admin Level-1 Component Audit (5/5 plans) — completed 2026-06-16
 - [x] Phase 96: Cohort Component Layer + Dark / Reduced-Motion Contract (5/5 plans) — completed 2026-06-17
 - [x] Phase 97: Admin Level-2 Meta-Components (4/4 plans) — completed 2026-06-17
 - [x] Phase 98: Admin Level-3 Page Composition + Motion / Mobile / A11y / IA / Microcopy (5/5 plans) — completed 2026-06-18
@@ -401,7 +401,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 94. Foundation — Token Pipeline CI Gate & New Categories | 5/5 | Complete    | 2026-06-15 |
-| 95. Admin Level-1 Component Audit [A] | 3/3 | Complete   | 2026-06-16 |
+| 95. Admin Level-1 Component Audit [A] | 5/5 | Complete   | 2026-06-16 |
 | 96. Cohort Component Layer + Dark/Reduced-Motion [B] | 5/5 | Complete    | 2026-06-17 |
 | 97. Admin Level-2 Meta-Components [A] | 4/4 | Complete    | 2026-06-17 |
 | 98. Admin Level-3 Pages + Motion/Mobile/A11y/IA/Microcopy [A] | 5/5 | Complete    | 2026-06-18 |
