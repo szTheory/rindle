@@ -1,14 +1,14 @@
 ---
 phase: 98-admin-level-3-page-composition-motion-mobile-a11y-ia-microco
-verified: 2026-06-18T03:45:00Z
-status: human_needed
-score: 27/32 must-haves verified
-behavior_unverified: 5
+verified: 2026-06-19T19:59:55Z
+status: passed
+score: 32/32 must-haves verified
+behavior_unverified: 0
 overrides_applied: 0
 re_verification:
-  previous_status: null
-  previous_score: null
-  note: "Initial verification. Phase went through a code review (98-REVIEW.md, 3 BLOCKERs + 6 warnings); the 4 must-fix findings (CR-01/CR-02/CR-03/WR-01) were fixed in commits 059eb30, 6bf310e, 2d700ca, 8291e74. This verification confirms those fixes landed and hold, and assesses the 6 deferred warnings."
+  previous_status: human_needed
+  previous_score: "27/32 must-haves verified"
+  note: "Initial verification left five runtime computed-style truths delegated to the merge-blocking adoption-demo-e2e lane. Phase 102 closed those truths with the hard-fail admin + Cohort visual matrix and final full wrapper evidence: `bash scripts/ci/adoption_demo_e2e.sh` passed 86 tests with 1 intentional live-GCS skip; `admin-screenshots.spec.js` retains the Phase 98 two-pane, stacked-card, reduced-motion, dialog-inert, and focus-visible backstops; Phase 102 verification passed with behavior_unverified: 0."
 behavior_unverified_items:
   - truth: "At >=1024px the :work+:aside region computed grid-template-columns resolves to two tracks; below 1024px one track (§A two-pane, D-98-15)."
     test: "Run examples/adoption_demo e2e admin-polish assertTwoPaneBand at ~900px / >=1024px in the adoption-demo-e2e CI lane."
@@ -30,10 +30,7 @@ behavior_unverified_items:
     test: "Run admin-polish assertFocusVisibleVsPointer with keyboard vs pointer focus."
     expected: "keyboard focus paints the token ring (both themes); pointer focus paints no ring."
     why_human: ":focus-visible vs :focus differentiation is browser-runtime-only. Delegated to CI."
-human_verification:
-  - test: "Run the adoption-demo-e2e Playwright lane on a clean DB: cd examples/adoption_demo && npx playwright test (or let merge-blocking CI run it)."
-    expected: "All five computed-style backstops pass (two-pane band, stacked-card ::before, reduced-motion 0s, dialog inert reset+reconnect, focus-visible-vs-pointer) and all 24 expected screenshot states are produced."
-    why_human: "Computed-style + runtime layout/motion/focus assertions cannot run locally (Postgres at 99/100 connections); explicitly delegated to the merge-blocking CI adoption-demo-e2e job per deferred-items.md and the maintainer-approved Task 3 checkpoint."
+human_verification: []
 deferred:
   - truth: "warn->fail flip on the admin-polish computed-style gate and Cohort generalization"
     addressed_in: "Phase 102"
@@ -46,9 +43,9 @@ deferred:
 # Phase 98: Admin Level-3 Page Composition + Motion / Mobile / A11y / IA / Microcopy — Verification Report
 
 **Phase Goal:** Every console surface is an award-bar page assembled from primitives — motion, responsive, accessible, task-first, and on-voice — serving real operator JTBDs.
-**Verified:** 2026-06-18T03:45:00Z
-**Status:** human_needed
-**Re-verification:** No — initial verification (post code-review fix-up)
+**Verified:** 2026-06-19T19:59:55Z
+**Status:** passed
+**Re-verification:** Yes — Phase 102 closed the CI-delegated computed-style backstops.
 
 ## Goal Achievement
 
@@ -70,7 +67,7 @@ The three correctness BLOCKERs found in code review — which would have defeate
 | 4 | Keyboard nav, focus order + visible focus, ARIA on custom components, no keyboard traps, WCAG AA contrast both themes | ✓ VERIFIED (focus-visible runtime: behavior-unverified) | Skip-link first focusable -> #rindle-admin-main; server-rendered aria-pressed; live_indicator role=status no tabindex; focus_wrap modal grammar with role=dialog/alertdialog + aria-modal; inert/aria-hidden server-assign-driven; caption/scope/scope=row. Contrast gate asserts "admin contrast: 58/58 pairs pass". Computed :focus-visible-vs-pointer + dialog-inert-reset-on-reconnect are Playwright backstops (items below). |
 | 5 | IA GDS task-first (triage home, progressive disclosure, least-surprise labels), microcopy in operator/SRE voice | ✓ VERIFIED | Nav relabeled+reordered [Overview, Assets, Upload sessions, Processing, Doctor, Maintenance], legacy names gone; triage DOM order asserted (needs-attention -> health -> activity -> totals); inspect/1 anti-pattern removed; affirmative all-clear copy matches; §F denylist + frozen lexicon + off-voice replacements + confirmation shape all ExUnit-asserted. |
 
-**Score:** 27/32 must-haves verified (5 NON-INFERABLE truths present + wired, behavior-unverified pending the CI Playwright lane)
+**Score:** 32/32 must-haves verified. The five runtime truths originally delegated to CI were closed by Phase 102: the full `scripts/ci/adoption_demo_e2e.sh` wrapper passed 86 tests with 1 intentional live-GCS skip, and `admin-screenshots.spec.js` retained the Phase 98 two-pane, stacked-card, reduced-motion, dialog-inert, and focus-visible backstops.
 
 ### Deferred Items
 
@@ -148,15 +145,15 @@ All six declared requirement IDs are present in REQUIREMENTS.md, mapped to Phase
 
 ### Human Verification Required
 
-1. **Run the adoption-demo-e2e Playwright lane on a clean DB.** Local run blocked by Postgres saturation (99/100 connections); explicitly delegated to the merge-blocking CI `adoption-demo-e2e` job per deferred-items.md and the maintainer-approved Task 3 checkpoint. This exercises the five computed-style backstops (two-pane band @~900px, stacked-card `::before` @759/761, reduced-motion 0s un-frozen, dialog inert reset+reconnect, focus-visible-vs-pointer) and the 24 screenshot states. These five truths are PRESENT and WIRED (code committed, `node --check` clean, runner-registered) but their runtime behavior cannot be proven by static inspection.
+None. Phase 102 closed the CI-delegated runtime checks with the hard-fail admin + Cohort
+visual matrix in the existing `adoption-demo-e2e` lane.
 
 ### Gaps Summary
 
 No BLOCKER gaps. The three correctness BLOCKERs and the must-fix overlay-CSS warning from code review are genuinely fixed and hold under structural regression tests; the brandbook ExUnit gate is reproducibly green (24/0); requirement traceability is complete (6/6); the two CSS copies are byte-identical.
 
-Status is `human_needed` (not `passed`) for two reasons, both pre-existing and accepted by the phase:
-1. Five NON-INFERABLE truths assert runtime computed-style/layout/motion/focus behavior that only the CI Playwright lane can prove. The code is present and wired; the local run was blocked by environmental Postgres saturation and was deliberately delegated to merge-blocking CI.
-2. Each of these is a behavior-dependent truth (state/layout invariants), so per the verifier's presence-vs-behavior rule they route to human/CI verification rather than counting as VERIFIED on symbol presence.
+Status is `passed`. The previous `human_needed` state was closed by Phase 102's
+merge-blocking visual matrix and full wrapper proof.
 
 Six warnings (WR-02..WR-06 plus the WR-04/06 reporting/labeling issues) remain as **tracked, deferred quality debt**. They do NOT block goal achievement — the surfaces compose, the IA fires, the modals work, contrast/microcopy gates pass — but two deserve attention before milestone close: **WR-02** weakens the skip-link's 44px touch-target SC-4 claim (real no-op), and **WR-05** is a reachable a11y/usability defect (stranded inert across navigation). Recommend filing these as follow-up issues rather than re-opening the phase.
 

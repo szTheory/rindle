@@ -1,100 +1,8 @@
 # Requirements: Rindle
 
-**Defined:** 2026-05-27 (v1.19 charter added 2026-06-14)
-**Milestone:** v1.19 Design-System Stress-Test (SEED-002; maintainer-pull quality milestone; hex 0.3.x)
+**Defined:** 2026-05-27 (v1.19 archived 2026-06-19)
+**Milestone:** none active — v1.19 shipped; v1.18 remains tech_debt pending HUMAN-UAT
 **Core Value:** Media, made durable.
-
-> ⚠️ **v1.19 opens over an un-closed v1.18.** v1.18 Admin Console & Adoption Lab is held at
-> `status: tech_debt` pending maintainer HUMAN-UAT sign-off (Phases 90/91/92); its archive
-> commit was reset away on `main`, so its requirements remain inline below (demoted, not
-> archived) rather than in `.planning/milestones/v1.18-REQUIREMENTS.md`. Recorded maintainer
-> decision (2026-06-14). Close via `/gsd-complete-milestone v1.18` once UAT is signed off.
-
-## v1.19 Design-System Stress-Test (complete / audited)
-
-**Charter (2026-06-14):** Maintainer-pull quality milestone (SEED-002). Elevate the whole
-design system to an award-winning bar — fractally and without regressions — across the
-admin/operator console **and** the Cohort example app's inner pages, in service of real user
-flows. Two intertwined tracks (admin DS uplift + Cohort restyle) on a hardened token→CSS
-pipeline, proven by a deterministic merge-blocking visual gate. LIFE-06/STREAM-10 stay
-demand-gated and shift to v1.20+. Research: `.planning/research/v1.19/SUMMARY.md`.
-
-### Foundation & Token Pipeline (PIPE)
-
-- [x] **PIPE-01**: Token→CSS pipeline is gated in CI — a `brandbook-tokens` job regenerates
-  `rindle-admin.css` + `cohort.css` from `tokens.json` via the `.mjs` scripts, runs the WCAG
-  contrast gate, and fails on any uncommitted diff. Generated CSS is never hand-edited; this
-  is the idempotency / no-regression anchor that lands before any visual work.
-
-- [x] **PIPE-02**: Token system extended in `tokens.json` + the `.mjs` generators with the
-  categories the uplift needs: motion presets (durations/easings), a true dark **elevation /
-  shadow ladder** (semantic, not color-inversion), responsive **fluid type + space scales**
-  with named breakpoints, and semantic dark-mode status surfaces — all flowing to both
-  `rindle-admin` (BEM) and `cohort` (own DS), kept coherent but separate.
-
-### Admin / Operator DS Uplift (UPLIFT)
-
-- [x] **UPLIFT-01**: Every admin component is on-brand and excellent across the full
-  interaction-state matrix (default / hover / **focus-visible** / active / disabled / loading /
-  empty / error / skeleton) in **light, dark, and system** — audited against tokens, with the
-  `active` vs `focus-visible` distinction explicit and no one-off styles.
-
-- [x] **UPLIFT-02**: Meta-components refined as cohesive units — toolbars, **sortable / sticky-
-  header / bulk-select data tables**, filter bars, action panels, detail drill-downs,
-  confirm/destructive panels, drawers, toasts — consistent rhythm, alignment, and density.
-
-- [x] **UPLIFT-03**: Per-page composition pass over each console surface — visual hierarchy,
-  spacing scale, and on-brand assembly of components into pages.
-
-- [x] **UPLIFT-04**: Motion pass — purposeful, performant, **reduced-motion-aware** animation
-  tied to brand motion tokens, sub-300ms, and **LiveView-coordinated** (`JS.transition` via
-  `phx-mounted`/`phx-remove`; `transform`/`opacity` only; no `transition:all` on patched nodes).
-
-- [x] **UPLIFT-05**: Mobile-first responsive — every console surface is correct and usable at
-  all breakpoints.
-
-- [x] **UPLIFT-06**: Accessibility audit — keyboard navigation, focus order + visible focus,
-  ARIA semantics on custom components (menus, dialogs, tables, toasts), no keyboard traps in
-  drawers/dialogs, and WCAG AA contrast in **both** themes.
-
-- [x] **UPLIFT-07**: gov.uk/GDS-style information architecture — task-first triage home,
-  least-surprise navigation and labels, progressive disclosure, serving onboarding /
-  intermediate / advanced operators across happy / error / boundary paths.
-
-- [x] **UPLIFT-08**: Microcopy on-brand in the **operator/SRE voice** (terse, diagnostic, GDS
-  rules: say what happened + how to fix; no please/oops/sorry/jargon), tied to each surface's
-  JTBD/persona.
-
-### Cohort Example Inner-Page Restyle (COHORT)
-
-- [x] **COHORT-01**: `/dashboard` restyled onto the Cohort DS (`cohort.css` + `cohort_components.ex`).
-- [x] **COHORT-02**: `/upload` (all tabs) restyled onto the Cohort DS.
-- [x] **COHORT-03**: `/ops` restyled onto the Cohort DS.
-- [x] **COHORT-04**: member / lesson / post / media / account pages restyled and consistent.
-- [x] **COHORT-05**: daisyUI/Tailwind scaffold retired from the inner pages — migrated
-  **class-by-class, not element-by-element**, preserving every `id` / `data-testid` / `phx-hook`
-  so behavior e2e stays green; the `default.css` `<link>` removed only once grep is clean.
-
-- [x] **COHORT-06**: Cohort gains a dark `[data-theme]` contract **and** a
-  `prefers-reduced-motion` block (net-new — `cohort.css` has neither today), with the new
-  contrast pairs added to the WCAG gate and all color literals replaced by tokens.
-
-### Proof & No-Regression (VIS)
-
-- [x] **VIS-01**: Deterministic computed-style assertions (the `admin-polish.js` pattern) remain
-  the **single merge-blocking** visual gate, extended to cover all admin + Cohort inner pages
-  across light/dark in the `adoption-demo-e2e` lane.
-
-- [x] **VIS-02**: Uplift is idempotent / forward-only — each pass converges (double-run
-  empty-diff check) with zero functional or visual regression to existing flows; every page
-  migration is gated on its behavior e2e specs.
-
-- [x] **VIS-03** *(differentiator)*: Optional pixel-baseline screenshots (`toHaveScreenshot()`)
-  may augment the gate **only** if CI-generated, motion-frozen, and font-stable — never a flaky
-  merge blocker.
-
-- [x] **VIS-04** *(differentiator)*: Living component gallery (admin + Cohort) as an audit
-  reference surface, kept in sync with the generated CSS and screenshotted by the visual lane.
 
 ## v1.18 Admin Console & Adoption Lab (tech_debt — HUMAN-UAT pending; not yet archived)
 
@@ -249,35 +157,6 @@ Open only via `/gsd-new-milestone` with documented signal:
 
 ## Traceability
 
-### v1.19 Design-System Stress-Test (phases 94–102)
-
-| Requirement | Phase | Status |
-|-------------|-------|--------|
-| PIPE-01 | Phase 94 | Complete |
-| PIPE-02 | Phase 94 | Complete |
-| UPLIFT-01 | Phase 95 | Complete |
-| UPLIFT-02 | Phase 97 | Complete |
-| UPLIFT-03 | Phase 98 | Complete |
-| UPLIFT-04 | Phase 98 | Complete |
-| UPLIFT-05 | Phase 98 | Complete |
-| UPLIFT-06 | Phase 98 | Complete |
-| UPLIFT-07 | Phase 98 | Complete |
-| UPLIFT-08 | Phase 98 | Complete |
-| COHORT-01 | Phase 99 | Complete |
-| COHORT-02 | Phase 100 | Complete |
-| COHORT-03 | Phase 99 | Complete |
-| COHORT-04 | Phase 99 | Complete |
-| COHORT-05 | Phase 101 | Complete |
-| COHORT-06 | Phase 96 | Complete |
-| VIS-01 | Phase 102 | Complete |
-| VIS-02 | Phase 102 | Complete |
-| VIS-03 | Phase 102 | Complete |
-| VIS-04 | Phase 102 | Complete |
-
-**Coverage:** v1.19 requirements: 20 total, **20 mapped** to phases 94–102 (100%). VIS-01 has
-groundwork in Phase 94 (generalizing `admin-polish.js`) but is *owned* by Phase 102 where it
-becomes the single merge-blocking gate.
-
 ### v1.18 Admin Console & Adoption Lab (phases 86–93; tech_debt)
 
 | Requirement | Phase | Status |
@@ -310,9 +189,8 @@ becomes the single merge-blocking gate.
 
 ---
 *Requirements defined: 2026-05-27*
-*Last updated: 2026-06-19 — Phase 102 Plan 06 closed VIS-01..04 after `adoption_demo_e2e.sh`,
-adoption-demo `mix precommit`, the targeted Cohort contract, and two consecutive existing
-generated-asset/static idempotency runs passed. v1.19 traceability is 20/20 mapped and 20/20
-complete; stale UPLIFT-01 planning metadata was corrected from the Phase 95 summaries. v1.18 reqs
-remain demoted to tech_debt (HUMAN-UAT pending, archival reset away). LIFE-06/STREAM-10 shifted
-to v1.20+.*
+*Last updated: 2026-06-19 — v1.19 requirements were archived complete at
+`.planning/milestones/v1.19-REQUIREMENTS.md` after the full wrapper, adoption-demo precommit,
+targeted Cohort contract, and two-run idempotency proof passed. Live requirements retain v1.18
+tech_debt (HUMAN-UAT pending) plus demand-gated future work. LIFE-06/STREAM-10 remain shifted to
+v1.20+.*

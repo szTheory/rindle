@@ -1,212 +1,28 @@
 # Rindle
 
-## Current Milestone: v1.19 Design-System Stress-Test (audited complete 2026-06-19)
-
-**Maintainer-pull quality milestone** (SEED-002) — elevate the whole design system to an
-award-winning bar, fractally and without regressions, across the admin/operator console
-**and** the Cohort example app's inner pages, in service of real user flows. Phases 94+,
-continues numbering. Likely ships as hex **0.3.x** (UI polish of already-shipped 0.3.0
-surfaces; confirmed at release time). LIFE-06/STREAM-10 remain demand-gated (now v1.20+).
-
-Scope — two intertwined tracks:
-1. **Admin/operator DS audit & uplift** (primary) — fractal audit at every level:
-   individual components (color, type, spacing, shape, shadow, motion, and every
-   interaction state) → meta-components (toolbars, tables+filters, action panels, detail
-   drills) → page composition. On-brand and excellent in light, dark, and system; a11y
-   (WCAG AA, keyboard, focus, ARIA); gov.uk-style information architecture; mobile-first
-   responsive; on-brand microcopy tied to each surface's JTBD/persona; motion researched
-   from Emil Kowalski (purposeful, performant, reduced-motion-aware).
-2. **Cohort example inner-page restyle** — `/dashboard`, `/upload` (all tabs), `/ops`,
-   member/lesson/post/media/account onto `cohort.css` + `CohortComponents`, retiring the
-   daisyUI scaffold. Proof via an extended light/dark screenshot matrix and an
-   idempotent / no-regression discipline (each pass only moves quality forward).
-
-**Method:** per-decision subagent research + adversarial judging at each level of
-abstraction, synthesized into one-shot directions (executed inside each `/gsd:ui-phase`).
-
-> ⚠️ **Prior milestone is un-closed (recorded tech-debt).** v1.19 opens *over* **v1.18
-> Admin Console & Adoption Lab**, which is held at `status: tech_debt` pending maintainer
-> HUMAN-UAT sign-off on Phases 90/91/92 (destructive-action UX, logo rendering + console
-> lifecycle display, screenshot-review matrix). v1.18's archive commit was reset away on
-> `main`, so `.planning/milestones/` still lacks `v1.18-ROADMAP.md` / `v1.18-REQUIREMENTS.md`;
-> only `v1.18-MILESTONE-AUDIT.md` is present. This is a deliberate, maintainer-approved
-> scope move (2026-06-14), not an oversight — close v1.18 via `/gsd-complete-milestone v1.18`
-> once UAT is signed off.
-
-**Last shipped (feature):** v1.18 Admin Console & Adoption Lab — mountable Rindle-branded
-admin console in the `rindle` package, Cohort demo evolution, deterministic console E2E +
-screenshot polish loop, Docker DX, UI-principles doc. 19/19 reqs + 8/8 phases verified;
-held at `tech_debt` (HUMAN-UAT pending). Reversed the prior "admin UI out of scope"
-decision (JTBD T4). Before it: b1.0 Brand Foundations (2026-06-10) — `brandbook/` brand
-system, BRAND-01..08 validated 8/8, archived at `.planning/milestones/b1.0-*`.
-
-## Feature Posture: Demand-gated pause (superseded for v1.18 duration)
-
-**Formalized:** 2026-05-27 (via `/gsd-new-milestone` — no feature charter)
-
-**Goal:** Maintain Rindle in production-ready maintenance mode until a concrete demand
-signal arrives. No feature phases, no new public API, no speculative platform work.
-
-**Posture:**
-- Patch/minor Hex releases and issue-driven fixes only
-- No feature milestone unless **LIFE-06** (compliance ticket) or **STREAM-10** (named adopter)
-- Re-run `/gsd-new-milestone` with option 2 or 3 when a signal is recorded
-- Brand/docs/marketing work (b1.0) is not feature work and runs without violating the pause
-
-**Override (2026-06-10):** v1.18 Admin Console & Adoption Lab opened as a self-directed
-maintainer-pull feature milestone — recorded in the PAUSE-03 amendment
-(`.planning/REQUIREMENTS.md`). The demand gates above shift to v1.19+ and the pause
-posture resumes after v1.18 ships unless a new charter exists.
-
-**Last shipped:** v1.17 Adopter-Confidence Hygiene (2026-05-27) — planning-truth hygiene and
-CI-04 static-analysis policy record; no new public API.
-
-**Canonical context:**
-[post-v117 assessment](threads/2026-05-27-post-v117-milestone-assessment.md) (reaffirmed 2026-05-28),
-[path-to-done roadmap](threads/2026-05-27-path-to-done-roadmap.md),
-[release train](RELEASE-TRAIN.md).
-
 ## Current State
 
-Milestone `v1.19 Design-System Stress-Test` audited complete on `2026-06-19`
-(Phases 94–102, 20/20 requirements validated). The final Phase 102 proof closed the full
+**Last shipped:** v1.19 Design-System Stress-Test — shipped 2026-06-19 and archived at
+[.planning/milestones/v1.19-ROADMAP.md](milestones/v1.19-ROADMAP.md) with 20/20 requirements
+validated. The milestone hardened the token pipeline, elevated the admin/operator design system
+component-by-component through page composition, migrated Cohort inner pages onto `.ck-*`, retired
+the Cohort daisyUI/default.css scaffold, and closed a single deterministic merge-blocking visual
+gate across admin + Cohort.
+
+**Proof posture:** v1.19 audit passed. The final Phase 102 proof closed the full
 `adoption_demo_e2e.sh` wrapper, adoption-demo `mix precommit`, rendered Cohort route contracts,
 two-run generated-asset/static idempotency, VIS-01..VIS-04 traceability, and
-`v1.19-MILESTONE-AUDIT.md`. The generalized `admin-polish.js` computed-style gate is the single
-merge-blocking visual gate across admin and Cohort; pixel/gallery artifacts remain non-blocking
-audit/reference signals.
+`v1.19-MILESTONE-AUDIT.md`. Pixel/gallery artifacts remain non-blocking audit/reference signals.
 
-v1.18 remains the only unclosed prior milestone artifact: Admin Console & Adoption Lab is still
-held at `tech_debt` pending maintainer HUMAN-UAT sign-off for Phases 90/91/92. Feature work resumes
-only on LIFE-06 or STREAM-10 signal, or by explicit maintainer override documented in a new
-milestone charter.
+**Open planning debt:** v1.18 Admin Console & Adoption Lab remains a separate `tech_debt`
+milestone pending maintainer HUMAN-UAT sign-off for Phases 90/91/92. Close it with
+`/gsd-complete-milestone v1.18` once signed off.
 
-**v1.16 shipped:** Merge-blocking `proof` CI job (CI-03) runs `docs_parity_test.exs` and
-`batch_owner_erasure_task_test.exs`; TusPlug moduledoc parity lock (TRUTH-05); planning
-artifact cleanup (PLAN-01). Closes v1.15 audit CI-01/PROOF-06 integration depth and
-automated CI proof path flow gap.
+## Next Milestone Goals
 
-**v1.15 shipped:** CI lane severity matrix and merge-blocking package-consumer/adopter
-jobs; PROOF-06 mix `batch_owner_failed` integration test; VAL-01 Nyquist closure for
-phases 68–70; TRUTH-04 nine-task operations index and TusPlug moduledoc truth;
-AUDIT-01 milestone audit ([v1.15-MILESTONE-AUDIT.md](milestones/v1.15-MILESTONE-AUDIT.md)).
-
-**v1.14 shipped:** Batch owner erasure API, operator CLI, PROOF-05 matrix, TRUTH-03
-guide parity (Phases 67–70, 8/8 requirements).
-
-**Post-v1.17 (2026-05-28):** Adopter doc hygiene closed (user_flows tus row, roadmap parity lock).
-Release train operational at Hex `0.1.6`; next publish validates automated baseline ledger.
-Default posture: demand-gated pause until LIFE-06 or STREAM-10 signal.
-
-**v1.18 Phase 86 complete (2026-06-11):** Research & Architecture Lock validated PRIN-01
-and produced locked guides for admin console architecture, task-first IA, CSS, motion,
-Docker demo DX, and UI principles linked from `AGENTS.md`. No console implementation
-shipped yet.
-
-**v1.18 Phase 87 complete (2026-06-11):** Docker & Demo DX validated DX-01..03:
-the Cohort Docker preview now uses env-driven loopback host ports with
-`COMPOSE_PROJECT_NAME` namespacing, cache-friendly Dockerfile dependency ordering,
-deterministic launch URL output, and matching quick-try/proof-matrix docs. Full Docker
-startup remains an optional manual smoke; static gates are the validated proof path.
-
-**v1.18 Phase 88 complete (2026-06-11):** Admin Design System & UI Kit validated
-DS-01..03 and ADMIN-02 groundwork: token-generated `rindle-admin` CSS,
-console-specific contrast gates, deterministic static gallery, screenshot/hash
-navigation checks, and the durable admin design-system operating guide are in place.
-
-**v1.18 Phase 89 complete (2026-06-12):** Console Read Surfaces validated
-ADMIN-01..03, ADMIN-05, and ADMIN-06: `Rindle.Admin.Router.rindle_admin/2`
-mounts host-authenticated read surfaces, `priv/static/rindle_admin` assets ship
-self-contained, `Rindle.Admin.Queries` isolates read models, six query-backed
-LiveViews render through the shared shell, upload-session lifecycle events
-invalidate through configured PubSub, and the optional LiveView compile-away
-proof is present locally and in CI.
-
-**v1.18 Phase 91 complete (2026-06-12):** Cohort Demo Evolution validated
-DEMO-01..03: Cohort's own lightweight brand, audio + document profiles, seeds
-expressing every lifecycle state, mounts the console, and click-around walkthrough.
-
-**v1.18 Phase 92 complete (2026-06-13):** E2E & Screenshot-Driven Polish Loop
-validated E2E-01..02: deterministic `/admin/rindle` Playwright helper and
-admin console/theme/actions specs, live 22-PNG light/dark/mobile screenshot
-matrix, screenshot polish fixes, proof-matrix drift gate, adoption demo README
-truth, and merge-blocking `adoption-demo-e2e` wiring.
-
-**v1.18 Phase 93 complete (2026-06-13):** Truth, Docs & Milestone Audit validated
-TRUTH-07: corrected every surface that falsely denied the shipped admin console
-(facade `@moduledoc`, operations/troubleshooting/user_flows guides), authored
-`guides/admin_console.md` + HexDocs extras wiring + README link, reversed the JTBD
-T4 "admin UI" exclusion, closed REQUIREMENTS traceability (19/19), and CI-locked the
-corrected wording via `docs_parity_test.exs`. **v1.18 milestone close status:
-`tech_debt`** — all requirements satisfied and the full suite is green (1151 tests,
-0 failures), but HUMAN-UAT sign-off remains open for phases 90/91/92 (logo rendering,
-admin console lifecycle display, screenshot-review matrix). See
-[v1.18-MILESTONE-AUDIT.md](milestones/v1.18-MILESTONE-AUDIT.md). This is the last
-phase of v1.18; the milestone is not yet `shipped` pending maintainer UAT sign-off.
-
-**v1.19 Phase 94 complete (2026-06-15):** Foundation — Token Pipeline CI Gate
-& New Token Categories validated PIPE-01, PIPE-02, and VIS-01 groundwork. The
-`brandbook-tokens` job now gates the generated-token pipeline (regen →
-contrast → gallery → shipped CSS sync → empty diff), branch protection requires
-that check, PR #23 shows it passing, and the admin generator emits the new
-motion, elevation/shadow, fluid type/space, breakpoint, and semantic dark
-status-surface categories. Phase 95 is ready to discuss/plan the Track A
-admin Level-1 component audit on top of this hardened foundation.
-
-Do not reopen tus protocol, single-owner/batch erasure semantics, or Mux surfaces
-beyond v1.13. Keep shared-asset safety and maintenance-vs-owner-erasure boundaries
-intact.
-
-## Recently Shipped Milestone
-
-<details>
-<summary>v1.10 Owner Account Erasure archive notes</summary>
-
-- `Rindle.preview_owner_erasure/2` and `Rindle.erase_owner/2` now define the
-  supported account-deletion surface instead of hand-rolled `detach/3` loops.
-- The public report vocabulary is frozen around `attachments_to_detach`,
-  `assets_to_purge`, and `retained_shared_assets`, with explicit no-op and
-  purge-enqueue semantics.
-- `PurgeStorage` now re-checks live attachment truth at the destructive
-  boundary so shared assets survive stale purge work.
-- Hermetic proof, canonical adopter proof, docs parity, and planning truth now
-  agree on one owner-erasure story.
-- Full artifacts live in `.planning/milestones/v1.10-*`.
-
-</details>
-
-<details>
-<summary>v1.9 Phoenix Tus DX Completion archive notes</summary>
-
-- Active planning/docs now describe the shipped Phoenix tus seam honestly
-  instead of treating the full LiveView path as deferred.
-- `Rindle.LiveView.allow_tus_upload/4` is now the documented supported
-  server-side entry point, and `uploader: "RindleTus"` is the canonical client
-  path.
-- The generated-app smoke lane now proves the documented Phoenix / LiveView
-  path end to end, and fast parity checks freeze guide/helper/proof drift.
-- Phases 48-50 now have explicit verification artifacts, and Phase 52
-  reconciled requirements, validation, roadmap, state, and audit truth for
-  clean archive.
-- Full artifacts live in `.planning/milestones/v1.9-*`.
-
-</details>
-
-<details>
-<summary>v1.8 Resumable Browser Ingest archive notes</summary>
-
-- `Rindle.Upload.TusPlug` now ships as a bare mountable Plug with HMAC-signed
-  tus create/read/write/delete semantics and no Phoenix dependency.
-- Local and S3 adapters now support honest `:tus_upload` capability-backed
-  resumable browser ingest, converging into the unchanged
-  `verify_completion/2` lane.
-- Reaper, abort, and cross-node safety hardening shipped with live MinIO proof
-  and generated-app install-smoke coverage.
-- Browser→Mux direct creator upload is now a shipped streaming surface, not a
-  carried-forward candidate.
-- Full artifacts live in `.planning/milestones/v1.8-*`.
-
-</details>
+No active feature milestone is open. LIFE-06 and STREAM-10 remain demand-gated for v1.20+ unless
+a new maintainer override is explicitly chartered. Use `/gsd-new-milestone` to define fresh
+requirements before starting new work.
 
 ## What This Is
 
@@ -842,4 +658,4 @@ This document evolves at phase transitions and milestone boundaries.
    (`workflow.milestone_boundary.block_feature_milestone_without_signal`)
 
 ---
-*Last updated: 2026-06-19 — Phase 102 completed and verified passed, closing v1.19 Design-System Stress-Test with `v1.19-MILESTONE-AUDIT.md` status `passed`, 20/20 requirements complete, full `adoption_demo_e2e.sh` green (86 passed, 1 intentional live-GCS skip), adoption-demo `mix precommit` green, and two consecutive generated-asset/static idempotency runs ending in empty tracked diffs. v1.18 remains separate tech_debt pending HUMAN-UAT by recorded maintainer decision.*
+*Last updated: 2026-06-19 after v1.19 milestone archive*
