@@ -6,7 +6,7 @@ defmodule AdoptionDemoWeb.MediaLive do
   alias AdoptionDemo.{Accounts, Media, RindleProfile}
 
   @impl true
-  def mount(%{"id" => id}, _session, socket) do
+  def mount(%{"id" => id} = params, _session, socket) do
     asset = Media.get_asset!(id)
     variants = Media.variants_for(asset.id)
     {:ok, delivery} = Media.delivery_url(RindleProfile, asset.storage_key)
@@ -14,7 +14,7 @@ defmodule AdoptionDemoWeb.MediaLive do
     {:ok,
      assign(socket,
        page_title: "Media #{asset.id}",
-       theme: "light",
+       theme: AdoptionDemoWeb.CohortTheme.normalize(params["theme"], "light"),
        asset: asset,
        variants: variants,
        delivery_url: delivery,

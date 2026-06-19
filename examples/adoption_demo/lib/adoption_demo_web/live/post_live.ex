@@ -6,7 +6,7 @@ defmodule AdoptionDemoWeb.PostLive do
   alias AdoptionDemo.{Cohort, Media, RindleProfile}
 
   @impl true
-  def mount(%{"id" => id}, _session, socket) do
+  def mount(%{"id" => id} = params, _session, socket) do
     post = Cohort.get_post!(id)
     attachment = Media.attachment_for(post, :image)
     asset = Media.asset_for_attachment(attachment)
@@ -14,7 +14,7 @@ defmodule AdoptionDemoWeb.PostLive do
     {:ok,
      assign(socket,
        page_title: post.title,
-       theme: "light",
+       theme: AdoptionDemoWeb.CohortTheme.normalize(params["theme"], "light"),
        post: post,
        asset: asset
      )}
