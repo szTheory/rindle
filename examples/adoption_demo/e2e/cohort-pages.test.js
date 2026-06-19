@@ -22,3 +22,42 @@ test("assertCohortPagePolish hard-fails through the shared gate", () => {
   assert.match(source, /adminBackstops:\s*false/);
   assert.match(source, /module\.exports\s*=\s*\{\s*assertCohortPagePolish,\s*interactiveSelectors\s*\}/);
 });
+
+test("Cohort visual matrix declares locked route, theme, and viewport coverage", () => {
+  const source = readSpec();
+
+  assert.match(source, /const COHORT_VIEWPORTS\s*=\s*\[/);
+  assert.match(source, /name:\s*"desktop"/);
+  assert.match(source, /name:\s*"mobile"/);
+  assert.match(source, /const COHORT_VISUAL_MATRIX\s*=\s*\[/);
+  assert.match(source, /const COHORT_THEMES\s*=\s*\["light",\s*"dark"\]/);
+  assert.match(source, /for \(const routeCase of COHORT_VISUAL_MATRIX\)/);
+  assert.match(source, /for \(const theme of COHORT_THEMES\)/);
+  assert.match(source, /for \(const viewport of COHORT_VIEWPORTS\)/);
+  assert.match(source, /assertCohortRenderedTheme\(page,\s*theme/);
+
+  for (const surface of [
+    "styleguide",
+    "dashboard",
+    "ops",
+    "account-erasure",
+    "member",
+    "lesson",
+    "post",
+    "media",
+    "upload-image",
+    "upload-tus",
+    "upload-video",
+    "upload-multipart",
+    "upload-liveview",
+    "upload-mux",
+  ]) {
+    assert.match(source, new RegExp(`surface:\\s*"${surface}"`));
+  }
+
+  for (const tab of ["image", "tus", "video", "multipart", "liveview", "mux"]) {
+    assert.match(source, new RegExp(`tab:\\s*"${tab}"`));
+  }
+
+  assert.doesNotMatch(source, /colorScheme/);
+});
