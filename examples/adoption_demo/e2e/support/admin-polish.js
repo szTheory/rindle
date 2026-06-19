@@ -24,6 +24,7 @@ const SUBPIXEL_TOLERANCE = 0.5; // rect-rounding slack for target sizes
 const CLIP_TOLERANCE = 1; // px slack for scrollWidth > clientWidth
 const OVERLAP_TOLERANCE = 2; // px of allowed bbox intersection
 const CONTRAST_SLACK = 0.05; // float slack on the WCAG ratio comparison
+const RASTER_HEIGHT_TOLERANCE = 3; // Chromium full-page screenshot rounding slack
 
 // Overlap is the noisiest check. Ship it in warn mode for one green CI cycle, then
 // flip to a hard failure once the matrix confirms zero spurious warnings.
@@ -418,7 +419,12 @@ async function assertFocusVisibleTokens(
       const item = locator.nth(index);
       if (!(await item.isVisible().catch(() => false))) continue;
       if (await item.isDisabled().catch(() => false)) continue;
-      await item.evaluate((element) => element.focus({ focusVisible: true })).catch(() => {});
+      await item
+        .evaluate((element) => {
+          if (document.activeElement === element) element.blur();
+          element.focus({ focusVisible: true });
+        })
+        .catch(() => {});
       const state = await item.evaluate((element, contract) => {
         if (document.activeElement !== element && !element.matches(":focus-within")) return null;
         const resolve = (value) => {
@@ -542,6 +548,11 @@ function pngSize(buf) {
 }
 
 async function assertStableDimensions(page) {
+  await page.evaluate(() => {
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+  });
   const dpr = await page.evaluate(() => window.devicePixelRatio);
   const viewport = page.viewportSize();
   const expectedWidth = Math.round(viewport.width * dpr);
@@ -552,7 +563,7 @@ async function assertStableDimensions(page) {
   const sb = pngSize(b);
 
   const failures = [];
-  if (sa.width !== sb.width || sa.height !== sb.height) {
+  if (sa.width !== sb.width || Math.abs(sa.height - sb.height) > RASTER_HEIGHT_TOLERANCE) {
     failures.push(`non-deterministic capture: ${sa.width}x${sa.height} then ${sb.width}x${sb.height}`);
   }
   if (sa.width !== expectedWidth) {

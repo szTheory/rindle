@@ -191,6 +191,10 @@
 }
 
 /* ---- page shell --------------------------------------------------------- */
+body {
+  margin: 0;
+}
+
 .ck {
   font-family: var(--ck-font-sans);
   color: var(--ck-ink);
@@ -252,7 +256,7 @@
   display: block;
 }
 .ck-nav__demo {
-  color: var(--ck-faint);
+  color: var(--ck-muted);
   font-weight: 400;
 }
 .ck-nav__spacer {
@@ -357,6 +361,10 @@
 .ck-btn--primary:hover {
   --_bg: var(--ck-btn-bg-hover);
 }
+.ck-btn:focus-visible {
+  outline: 2px solid var(--ck-focus);
+  outline-offset: 2px;
+}
 .ck-btn__arrow {
   transition: transform 0.18s ease;
 }
@@ -382,7 +390,7 @@
   margin: 0;
 }
 .ck-section__hint {
-  color: var(--ck-faint);
+  color: var(--ck-muted);
   font-size: var(--ck-step--1);
 }
 
@@ -570,7 +578,7 @@
   font-family: var(--ck-font-mono);
   font-size: var(--ck-step--1);
   font-weight: 400;
-  color: var(--ck-faint);
+  color: var(--ck-muted);
 }
 .ck-card__arrow {
   margin-left: auto;
@@ -714,7 +722,7 @@
   color: var(--ck-ink);
 }
 .ck-table__sort-mark {
-  color: var(--ck-faint);
+  color: var(--ck-muted);
   font-size: var(--ck-step--1);
 }
 .ck-table__cell--head[aria-sort="ascending"] .ck-table__sort-mark,
@@ -1024,7 +1032,7 @@
 }
 .ck-tabs__tab[aria-disabled="true"],
 .ck-tabs__tab:disabled {
-  color: var(--ck-faint);
+  color: var(--ck-muted);
   cursor: not-allowed;
 }
 .ck-tabs__panel:focus-visible {
@@ -1076,7 +1084,7 @@
   font-weight: 700;
 }
 .ck-cast span {
-  color: var(--ck-faint);
+  color: var(--ck-muted);
   font-size: var(--ck-step--1);
 }
 
@@ -1090,7 +1098,7 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--ck-3);
-  color: var(--ck-faint);
+  color: var(--ck-muted);
   font-size: var(--ck-step--1);
 }
 .ck-footer a {
