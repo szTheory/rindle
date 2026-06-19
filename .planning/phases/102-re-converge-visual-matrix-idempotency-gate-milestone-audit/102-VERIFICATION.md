@@ -6,7 +6,7 @@ score: "4/4 must-haves verified"
 behavior_unverified: 0
 overrides_applied: 0
 re_verification:
-  previous_status: gaps_found
+  previous_result: "docs parity gap report"
   previous_score: "3/4"
   gaps_closed:
     - "Milestone audit, requirements traceability (20/20), and docs parity are closed."
