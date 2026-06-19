@@ -1440,6 +1440,14 @@ if (missing.length) {
   console.error('admin css parity FAIL, missing:', missing.join(', '));
   process.exit(1);
 }
+
+const explicitDarkDrawerElevation = /\[data-theme="dark"\]\s+\.rindle-admin-drawer\s*\{\s*background:\s*var\(--rindle-elevation-3\);\s*\}/.test(written);
+const autoDarkDrawerElevation = /@media\s+\(prefers-color-scheme:\s+dark\)\s*\{[\s\S]*\[data-theme="auto"\]\s+\.rindle-admin-drawer[\s\S]*background:\s*var\(--rindle-elevation-3\);[\s\S]*\n\}/.test(written);
+if (!explicitDarkDrawerElevation || !autoDarkDrawerElevation) {
+  console.error('admin css parity FAIL, dark and auto drawer elevation rules must both use --rindle-elevation-3');
+  process.exit(1);
+}
+
 if (/outline\s*:\s*none\b/.test(written.replace(/\/\*[\s\S]*?\*\//g, ''))) {
   console.error('admin css parity FAIL, bare outline:none is forbidden');
   process.exit(1);
