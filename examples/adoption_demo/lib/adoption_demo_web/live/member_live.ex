@@ -6,7 +6,7 @@ defmodule AdoptionDemoWeb.MemberLive do
   alias AdoptionDemo.{Accounts, Media, RindleProfile}
 
   @impl true
-  def mount(%{"id" => id}, _session, socket) do
+  def mount(%{"id" => id} = params, _session, socket) do
     member = Accounts.get_member!(id)
     attachment = Media.attachment_for(member, :avatar)
     asset = Media.asset_for_attachment(attachment)
@@ -14,7 +14,7 @@ defmodule AdoptionDemoWeb.MemberLive do
     {:ok,
      assign(socket,
        page_title: member.name,
-       theme: "light",
+       theme: AdoptionDemoWeb.CohortTheme.normalize(params["theme"], "light"),
        member: member,
        attachment: attachment,
        asset: asset,

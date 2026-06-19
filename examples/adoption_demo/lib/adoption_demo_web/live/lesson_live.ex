@@ -6,7 +6,7 @@ defmodule AdoptionDemoWeb.LessonLive do
   alias AdoptionDemo.{Cohort, Media, VideoProfile}
 
   @impl true
-  def mount(%{"id" => id}, _session, socket) do
+  def mount(%{"id" => id} = params, _session, socket) do
     lesson = Cohort.get_lesson!(id)
     attachment = Media.attachment_for(lesson, :video)
     asset = Media.asset_for_attachment(attachment)
@@ -24,7 +24,7 @@ defmodule AdoptionDemoWeb.LessonLive do
     {:ok,
      assign(socket,
        page_title: lesson.title,
-       theme: "light",
+       theme: AdoptionDemoWeb.CohortTheme.normalize(params["theme"], "light"),
        lesson: lesson,
        asset: asset,
        variants: variants,
