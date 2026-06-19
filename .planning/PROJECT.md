@@ -1,6 +1,6 @@
 # Rindle
 
-## Current Milestone: v1.19 Design-System Stress-Test (charter 2026-06-14)
+## Current Milestone: v1.19 Design-System Stress-Test (audited complete 2026-06-19)
 
 **Maintainer-pull quality milestone** (SEED-002) — elevate the whole design system to an
 award-winning bar, fractally and without regressions, across the admin/operator console
@@ -68,37 +68,18 @@ CI-04 static-analysis policy record; no new public API.
 
 ## Current State
 
-Milestone `v1.17 Adopter-Confidence Hygiene` archived on `2026-05-27`
-(Phases 78–80, 3/3 requirements validated). Demand-gated pause formalized the same day.
-Rindle is roughly **94–96%** done for its stated mission. Feature work resumes only on
-LIFE-06 or STREAM-10 signal (or explicit maintainer override documented in milestone charter).
+Milestone `v1.19 Design-System Stress-Test` audited complete on `2026-06-19`
+(Phases 94–102, 20/20 requirements validated). The final Phase 102 proof closed the full
+`adoption_demo_e2e.sh` wrapper, adoption-demo `mix precommit`, rendered Cohort route contracts,
+two-run generated-asset/static idempotency, VIS-01..VIS-04 traceability, and
+`v1.19-MILESTONE-AUDIT.md`. The generalized `admin-polish.js` computed-style gate is the single
+merge-blocking visual gate across admin and Cohort; pixel/gallery artifacts remain non-blocking
+audit/reference signals.
 
-**v1.19 in progress:** Phase 98 (Admin Level-3 page composition + motion / mobile / a11y / IA /
-microcopy — UPLIFT-03..08) completed 2026-06-18. All six admin surfaces compose from the `page/1`
-scaffold; shared `modal`/`confirm_dialog` overlay primitive, problems-first GDS triage Overview,
-and §F operator-voice microcopy landed. Post-execution code review caught and fixed 3 blockers
-(atom/string count-key mismatch; `inert` wrapping the live dialog) with regression tests; the live
-Playwright lane is enforced by the merge-blocking CI `adoption-demo-e2e` job, and 6 WARNING-level
-items (WR-02..WR-06) are tracked as follow-ups in `98-REVIEW.md`.
-
-Phase 100 (Cohort `/upload` migration, all tabs — COHORT-02) completed 2026-06-18. The heaviest
-inner page (6 tabs, 4 `phx-hook` upload flows, 2 forms) is restyled onto the `.ck-*` Cohort DS
-class-by-class with a byte-for-byte frozen DOM contract; the routed tab strip is now `<.link patch>`
-+ `aria-current` and the tus error is announced (`role="alert"`). Verified passed (11/11 truths):
-the per-tab frozen-contract + daisyUI-retirement ExUnit gate is green (9/0), and the full Playwright
-lane (7 `/upload` polish cases incl. dark + the 6 upload behavior specs incl. tus-resume deep link
-and the mux cassette) ran green (21/0). A verifier caught a deterministic contract-test defect
-(an over-broad daisyUI-retirement literal substring-matching the DS's own `ck-tabs`/`ck-tab` classes)
-that the executor SUMMARY had mis-labeled as infra-delegated; fixed in `95b92cf`.
-
-Phase 101 (Track B daisyUI retirement — COHORT-05) completed and verified passed 2026-06-18
-(19/19 truths). Shared flash/error markup moved to token-backed `.ck-flash` / `.ck-alert`
-surfaces with inline SVG icons, `Layouts.app/1` is now a bare Cohort shell, dead Phoenix generator
-landing files are deleted, full composed route renders are the retirement scan surface, the root no
-longer links `default.css`, and the committed `default.css` scaffold asset is gone. Final gates:
-adoption-demo ExUnit 33/0, Cohort contrast 28/28, Cohort page Playwright 15/15, and root `mix test`
-1158/0. Full `adoption_demo_e2e.sh` remains red on an admin strict-locator issue outside Phase 101
-scope and is tracked in Phase 101 deferred items.
+v1.18 remains the only unclosed prior milestone artifact: Admin Console & Adoption Lab is still
+held at `tech_debt` pending maintainer HUMAN-UAT sign-off for Phases 90/91/92. Feature work resumes
+only on LIFE-06 or STREAM-10 signal, or by explicit maintainer override documented in a new
+milestone charter.
 
 **v1.16 shipped:** Merge-blocking `proof` CI job (CI-03) runs `docs_parity_test.exs` and
 `batch_owner_erasure_task_test.exs`; TusPlug moduledoc parity lock (TRUTH-05); planning
@@ -861,4 +842,4 @@ This document evolves at phase transitions and milestone boundaries.
    (`workflow.milestone_boundary.block_feature_milestone_without_signal`)
 
 ---
-*Last updated: 2026-06-18 — Phase 101 (Track B daisyUI retirement — COHORT-05) completed and verified passed (19/19 truths: full composed render/source/file ExUnit ratchet, `default.css` link+asset removed, Cohort Playwright 15/15, root `mix test` 1158/0). Full `adoption_demo_e2e.sh` remains red on an admin strict-locator issue outside Phase 101 scope and tracked in Phase 101 deferred items. Phase 100 (Cohort `/upload` migration, all tabs — COHORT-02) completed and verified passed. Phase 98 (Admin Level-3, UPLIFT-03..08) completed; 3 code-review blockers fixed with regression tests. Phase 94 foundation completed and verified; `brandbook-tokens` is merge-blocking in CI and branch protection. v1.19 Design-System Stress-Test remains active over un-closed v1.18 (tech_debt, HUMAN-UAT pending) by recorded maintainer decision.*
+*Last updated: 2026-06-19 — Phase 102 completed and verified passed, closing v1.19 Design-System Stress-Test with `v1.19-MILESTONE-AUDIT.md` status `passed`, 20/20 requirements complete, full `adoption_demo_e2e.sh` green (86 passed, 1 intentional live-GCS skip), adoption-demo `mix precommit` green, and two consecutive generated-asset/static idempotency runs ending in empty tracked diffs. v1.18 remains separate tech_debt pending HUMAN-UAT by recorded maintainer decision.*
