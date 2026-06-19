@@ -66,6 +66,10 @@ inner pages, in service of real user flows.
 
 ## Accumulated Context
 
+### Pending Todos
+
+- [2026-06-19] Fix Docker demo startup warnings — `./scripts/demo/up.sh` logs missing Mox warnings from `AdoptionDemo.MuxCassette` and missing `inotify-tools` / `fs_inotify_bootstrap_error` for Phoenix live-reload inside the Cohort demo container.
+
 - **v1.19 build order (research-locked, repo-verified):** Foundation (94) → parallel Track A
   (95 admin L1 → 97 admin L2 → 98 admin L3+motion/mobile/a11y/IA/microcopy) + Track B (96 Cohort
   component layer + dark/reduced-motion → 99 small-7 page migrations → 100 /upload migration →
