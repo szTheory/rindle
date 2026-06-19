@@ -4,9 +4,12 @@ defmodule AdoptionDemoWeb.OpsLive do
   import AdoptionDemoWeb.CohortComponents
 
   alias AdoptionDemo.{Accounts, Media, RindleProfile}
+  alias AdoptionDemoWeb.CohortTheme
 
   @impl true
-  def mount(_params, _session, socket) do
+  def mount(params, _session, socket) do
+    theme = CohortTheme.normalize(params["theme"], "light")
+
     batch_members =
       Accounts.list_members()
       |> Enum.filter(&(&1.role == "student"))
@@ -15,7 +18,7 @@ defmodule AdoptionDemoWeb.OpsLive do
     {:ok,
      assign(socket,
        page_title: "Ops surfaces",
-       theme: "light",
+       theme: theme,
        doctor_output: nil,
        runtime_output: nil,
        batch_preview: nil,

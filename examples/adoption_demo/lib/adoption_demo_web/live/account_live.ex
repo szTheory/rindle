@@ -4,16 +4,18 @@ defmodule AdoptionDemoWeb.AccountLive do
   import AdoptionDemoWeb.CohortComponents
 
   alias AdoptionDemo.{Accounts, Media}
+  alias AdoptionDemoWeb.CohortTheme
 
   @impl true
   def mount(params, _session, socket) do
     id = params["member_id"] || params["user_id"]
     member = Accounts.get_member!(id)
+    theme = CohortTheme.normalize(params["theme"], "light")
 
     {:ok,
      assign(socket,
        page_title: "Account deletion",
-       theme: "light",
+       theme: theme,
        member: member,
        preview: nil,
        result: nil

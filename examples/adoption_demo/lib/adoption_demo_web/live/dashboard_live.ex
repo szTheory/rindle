@@ -4,13 +4,16 @@ defmodule AdoptionDemoWeb.DashboardLive do
   import AdoptionDemoWeb.CohortComponents
 
   alias AdoptionDemo.{Accounts, Cohort, Media}
+  alias AdoptionDemoWeb.CohortTheme
 
   @impl true
-  def mount(_params, _session, socket) do
+  def mount(params, _session, socket) do
+    theme = CohortTheme.normalize(params["theme"], "light")
+
     {:ok,
      assign(socket,
        page_title: "Dashboard",
-       theme: "light",
+       theme: theme,
        members: Accounts.list_members(),
        courses: Cohort.list_courses(),
        posts: Cohort.list_posts(),
