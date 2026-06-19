@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.19
 milestone_name: Design-System Stress-Test
 status: executing
-stopped_at: Completed 102-03-PLAN.md
-last_updated: "2026-06-19T15:44:02.316Z"
+stopped_at: Completed 102-04-PLAN.md
+last_updated: "2026-06-19T15:54:44.307Z"
 last_activity: 2026-06-19
 progress:
   total_phases: 17
   completed_phases: 16
   total_plans: 69
-  completed_plans: 66
+  completed_plans: 67
   percent: 94
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-06-14)
 ## Current Position
 
 Phase: 102 (re-converge-visual-matrix-idempotency-gate-milestone-audit) — EXECUTING
-Plan: 4 of 6
+Plan: 5 of 6
 Status: Ready to execute
 Last activity: 2026-06-19
 
@@ -195,6 +195,8 @@ and Track B through the visual matrix, idempotency gate, and milestone audit. St
 - [Phase ?]: Phase 102 Plan 02: Admin dialog-inert backstops default on only for the default admin root; Cohort callers can opt into admin backstops explicitly but do not inherit them.
 - [Phase 102]: Plan 03: Cohort route theme normalization uses a shared string-only allowlist helper; invalid values fall back before reaching data-theme.
 - [Phase 102]: Plan 03: Dashboard, ops, and account erasure dark coverage is proven via rendered ?theme=dark route state plus existing Cohort contract ratchets.
+- [Phase 102]: Member, lesson, post, and media route theme state reuses the Plan 03 shared normalizer instead of adding per-LiveView allowlists. — Keeps URL theme normalization string-only and consistent across Cohort route surfaces.
+- [Phase 102]: Detail dark-mode proof is rendered route state (?theme=dark) paired with existing frozen DOM and daisyUI-retirement ratchets, not media emulation. — D-102-06 requires explicit rendered Cohort theme proof for the hard-fail visual matrix.
 
 ## Blockers/Concerns
 
@@ -221,8 +223,8 @@ and Track B through the visual matrix, idempotency gate, and milestone audit. St
 
 ## Session Continuity
 
-Last session: 2026-06-19T15:43:30.371Z
-Stopped at: Completed 102-03-PLAN.md
+Last session: 2026-06-19T15:54:23.303Z
+Stopped at: Completed 102-04-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -291,3 +293,4 @@ Resume file: None
 | Phase 102 P01 | 6 min | 2 tasks | 3 files |
 | Phase 102 P02 | 7 min | 2 tasks | 2 files |
 | Phase 102 P03 | 7 min | 2 tasks | 5 files |
+| Phase 102 P04 | 5 min | 2 tasks | 5 files |
