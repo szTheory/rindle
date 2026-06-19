@@ -721,6 +721,40 @@ defmodule AdoptionDemoWeb.CohortMigrationContractTest do
     assert_daisyui_retired(html)
   end
 
+  test "/posts renders route-backed dark theme and normalizes invalid theme", %{conn: conn} do
+    AdoptionDemo.Accounts.seed_member!(%{
+      email: "post-theme-author@cohort.test",
+      name: "Post Theme Author",
+      role: "student"
+    })
+
+    member = AdoptionDemo.Accounts.get_member_by_email!("post-theme-author@cohort.test")
+
+    post =
+      AdoptionDemo.Cohort.seed_post!(%{
+        title: "Cohort post theme contract",
+        body: "Theme route state survives the detail render.",
+        member_id: member.id
+      })
+
+    for {route, theme} <- [
+          {~p"/posts/#{post.id}?theme=dark", "dark"},
+          {~p"/posts/#{post.id}?theme=sepia", "light"}
+        ] do
+      html = render_route(conn, route)
+
+      assert_ck_root_theme(html, theme)
+
+      assert_frozen_contract(html, [
+        ~s(data-testid="post-title"),
+        ~s(data-testid="post-image-section"),
+        ~s(data-testid="post-no-image")
+      ])
+
+      assert_daisyui_retired(html)
+    end
+  end
+
   # --- Plan 05: /media/:id frozen-contract + daisyUI-retirement --------------
   # The HIGHEST-RISK swap in the phase: the hand-built <dl><dt><dd> whose <dd>s
   # carry media-id/media-state/media-delivery-url MUST be restyled in place, NOT
@@ -772,6 +806,57 @@ defmodule AdoptionDemoWeb.CohortMigrationContractTest do
     ])
 
     assert_daisyui_retired(html)
+  end
+
+  test "/media renders route-backed dark theme and normalizes invalid theme", %{conn: conn} do
+    now = NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
+
+    asset =
+      AdoptionDemo.Repo.insert!(%Rindle.Domain.MediaAsset{
+        state: "ready",
+        storage_key: "seed/test/media_theme_contract",
+        profile: "AdoptionDemo.RindleProfile",
+        kind: "image",
+        content_type: "image/png",
+        filename: "media_theme.png",
+        byte_size: 1024,
+        inserted_at: now,
+        updated_at: now
+      })
+
+    AdoptionDemo.Repo.insert!(%Rindle.Domain.MediaVariant{
+      asset_id: asset.id,
+      name: "thumb",
+      state: "ready",
+      recipe_digest: "digest_thumb_theme_contract",
+      output_kind: "image",
+      inserted_at: now,
+      updated_at: now
+    })
+
+    for {route, theme} <- [
+          {~p"/media/#{asset.id}?theme=dark", "dark"},
+          {~p"/media/#{asset.id}?theme=sepia", "light"}
+        ] do
+      html = render_route(conn, route)
+
+      assert_ck_root_theme(html, theme)
+
+      assert_frozen_contract(html, [
+        ~s(id="media-id"),
+        ~s(data-testid="media-id"),
+        ~s(id="media-state"),
+        ~s(data-testid="media-state"),
+        ~s(id="media-delivery-url"),
+        ~s(data-testid="media-delivery-url"),
+        ~s(data-testid="media-variants"),
+        ~s(id="variant-thumb"),
+        ~s(data-testid="media-alex-profile-link"),
+        "Open Alex profile for replace/detach"
+      ])
+
+      assert_daisyui_retired(html)
+    end
   end
 
   # --- Plan 100-01: /upload per-tab frozen-contract + daisyUI-retirement ------
