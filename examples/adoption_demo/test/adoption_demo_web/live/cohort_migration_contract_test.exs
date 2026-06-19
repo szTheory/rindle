@@ -99,6 +99,11 @@ defmodule AdoptionDemoWeb.CohortMigrationContractTest do
     :ok
   end
 
+  defp assert_ck_root_theme(html, theme) do
+    assert Regex.match?(~r/<div class="ck"[^>]*data-ck-root[^>]*data-theme="#{theme}"/, html),
+           "expected the Cohort root to render data-theme=#{inspect(theme)}"
+  end
+
   defp adoption_demo_path(path) do
     [__DIR__, "../../..", path]
     |> Path.join()
@@ -364,6 +369,58 @@ defmodule AdoptionDemoWeb.CohortMigrationContractTest do
     assert_daisyui_retired(html)
   end
 
+  test "/dashboard renders route-backed dark theme and normalizes invalid theme", %{conn: conn} do
+    AdoptionDemo.Accounts.seed_member!(%{
+      email: "maya-theme@cohort.test",
+      name: "Maya Theme",
+      role: "student"
+    })
+
+    member = AdoptionDemo.Accounts.get_member_by_email!("maya-theme@cohort.test")
+
+    course = AdoptionDemo.Cohort.seed_course!(%{title: "Theme Course", slug: "theme-course"})
+
+    lesson =
+      AdoptionDemo.Cohort.seed_lesson!(%{
+        title: "Theme lesson",
+        position: 1,
+        course_id: course.id
+      })
+
+    post =
+      AdoptionDemo.Cohort.seed_post!(%{
+        title: "Theme study group",
+        body: "Dark route state works.",
+        member_id: member.id
+      })
+
+    for {route, theme} <- [{~p"/dashboard?theme=dark", "dark"}, {~p"/dashboard?theme=sepia", "light"}] do
+      html = render_route(conn, route)
+
+      assert_ck_root_theme(html, theme)
+
+      assert_frozen_contract(html, [
+        ~s(data-testid="cohort-dashboard-title"),
+        ~s(id="demo-members"),
+        ~s(data-testid="demo-members"),
+        ~s(data-testid="demo-courses"),
+        ~s(data-testid="demo-posts"),
+        ~s(data-testid="demo-assets"),
+        ~s(id="member-#{member.id}"),
+        ~s(data-testid="member-row-#{member.email}"),
+        ~s(data-testid="member-no-avatar"),
+        ~s(data-testid="member-upload-link"),
+        ~s(data-testid="member-delete-link"),
+        ~s(data-testid="lesson-link-#{lesson.id}"),
+        ~s(data-testid="post-link-#{post.id}"),
+        ~s(data-testid="nav-upload"),
+        ~s(data-testid="nav-ops")
+      ])
+
+      assert_daisyui_retired(html)
+    end
+  end
+
   # --- Plan 03: /ops frozen-contract + daisyUI-retirement -------------------
   # Seeds two students so the batch-member spans render against real rows. The
   # always-present selectors (the four phx-click buttons, the batch section, the
@@ -405,6 +462,41 @@ defmodule AdoptionDemoWeb.CohortMigrationContractTest do
     assert_daisyui_retired(html)
   end
 
+  test "/ops renders route-backed dark theme and normalizes invalid theme", %{conn: conn} do
+    AdoptionDemo.Accounts.seed_member!(%{
+      email: "ops-theme-a@cohort.test",
+      name: "Ops Theme A",
+      role: "student"
+    })
+
+    AdoptionDemo.Accounts.seed_member!(%{
+      email: "ops-theme-b@cohort.test",
+      name: "Ops Theme B",
+      role: "student"
+    })
+
+    for {route, theme} <- [{~p"/ops?theme=dark", "dark"}, {~p"/ops?theme=sepia", "light"}] do
+      html = render_route(conn, route)
+
+      assert_ck_root_theme(html, theme)
+
+      assert_frozen_contract(html, [
+        ~s(data-testid="run-doctor-button"),
+        ~s(data-testid="run-runtime-status-button"),
+        ~s(data-testid="batch-erasure-section"),
+        ~s(data-testid="preview-batch-button"),
+        ~s(data-testid="execute-batch-button"),
+        ~s(id="batch-erasure"),
+        ~s(phx-click="run_doctor"),
+        ~s(phx-click="run_runtime_status"),
+        ~s(phx-click="preview_batch"),
+        ~s(phx-click="execute_batch")
+      ])
+
+      assert_daisyui_retired(html)
+    end
+  end
+
   # --- Plan 03: /account erasure frozen-contract + daisyUI-retirement --------
   # Seeds a member and renders /account/:id/delete. The always-present selectors
   # (erasure-member-name + the two phx-click buttons) are asserted statically;
@@ -431,6 +523,37 @@ defmodule AdoptionDemoWeb.CohortMigrationContractTest do
     ])
 
     assert_daisyui_retired(html)
+  end
+
+  test "/account erasure renders route-backed dark theme and normalizes invalid theme", %{
+    conn: conn
+  } do
+    AdoptionDemo.Accounts.seed_member!(%{
+      email: "erasure-theme@cohort.test",
+      name: "Erasure Theme",
+      role: "student"
+    })
+
+    member = AdoptionDemo.Accounts.get_member_by_email!("erasure-theme@cohort.test")
+
+    for {route, theme} <- [
+          {~p"/account/#{member.id}/delete?theme=dark", "dark"},
+          {~p"/account/#{member.id}/delete?theme=sepia", "light"}
+        ] do
+      html = render_route(conn, route)
+
+      assert_ck_root_theme(html, theme)
+
+      assert_frozen_contract(html, [
+        ~s(data-testid="erasure-member-name"),
+        ~s(data-testid="preview-erasure-button"),
+        ~s(data-testid="execute-erasure-button"),
+        ~s(phx-click="preview"),
+        ~s(phx-click="execute")
+      ])
+
+      assert_daisyui_retired(html)
+    end
   end
 
   # --- Plan 04: /members/:id frozen-contract + daisyUI-retirement ------------
