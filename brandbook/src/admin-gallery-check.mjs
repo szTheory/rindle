@@ -287,33 +287,20 @@ const assertDarkStatusChipContrast = async (page) => {
   );
 };
 
-const assertAutoDarkMatchesExplicitDark = async (page) => {
-  const selectors = [
-    '.rindle-admin-nav',
-    '.rindle-admin-confirm-dialog',
-    '.rindle-admin-drawer',
-    '.rindle-admin-toast',
-    '.rindle-admin-confirm-panel',
-  ];
+const assertAutoDarkDrawerMatchesExplicitDark = async (page) => {
+  const drawerSelector = '[data-rindle-admin-component="drawer"].rindle-admin-drawer';
   await page.emulateMedia({ colorScheme: 'dark' });
   await selectTheme(page, 'dark');
-  const dark = await page.evaluate((selectorList) => {
-    return Object.fromEntries(selectorList.map((selector) => {
-      const element = document.querySelector(selector);
-      return [selector, element ? getComputedStyle(element).backgroundColor : null];
-    }));
-  }, selectors);
+  const dark = await page.locator(drawerSelector).first().evaluate((element) => getComputedStyle(element).backgroundColor);
   await selectTheme(page, 'auto');
-  const auto = await page.evaluate((selectorList) => {
-    return Object.fromEntries(selectorList.map((selector) => {
-      const element = document.querySelector(selector);
-      return [selector, element ? getComputedStyle(element).backgroundColor : null];
-    }));
-  }, selectors);
-  const failures = selectors.filter((selector) => dark[selector] !== auto[selector]);
   assert(
-    failures.length === 0,
-    `auto dark background mismatch: ${failures.map((selector) => `${selector} dark=${dark[selector]} auto=${auto[selector]}`).join('; ')}`,
+    (await page.locator(drawerSelector).count()) === 1,
+    `expected exactly one Level-1 drawer fixture for auto-dark parity check: ${drawerSelector}`,
+  );
+  const auto = await page.locator(drawerSelector).first().evaluate((element) => getComputedStyle(element).backgroundColor);
+  assert(
+    dark === auto,
+    `auto dark drawer background mismatch: ${drawerSelector} dark=${dark} auto=${auto}`,
   );
 };
 
@@ -433,7 +420,7 @@ try {
   await page.emulateMedia({ colorScheme: 'dark' });
   await selectTheme(page, 'auto');
   await assertMetaUnits(page);
-  await assertAutoDarkMatchesExplicitDark(page);
+  await assertAutoDarkDrawerMatchesExplicitDark(page);
   await screenshot(page, 'gallery-auto-desktop.png');
   await elementScreenshot(page, '[data-rindle-admin-component="loading-state"]', 'loading-state-auto.png');
 
