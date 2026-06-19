@@ -485,22 +485,19 @@ All claims in this research are verified from repository files, local command ou
 |---|-------|---------|---------------|
 | n/a | No assumed claims. | n/a | n/a |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Unified spec or extended Cohort spec?**  
    - What we know: Phase 102 allows either extending `cohort-pages.spec.js` or adding a thin unified visual matrix spec. [VERIFIED: .planning/phases/102-re-converge-visual-matrix-idempotency-gate-milestone-audit/102-CONTEXT.md:32]  
-   - What's unclear: The final file shape is discretionary. [VERIFIED: .planning/phases/102-re-converge-visual-matrix-idempotency-gate-milestone-audit/102-CONTEXT.md:44]  
-   - Recommendation: Use a thin shared matrix helper or spec only if it reduces duplication; do not fork polish logic. [VERIFIED: .planning/phases/102-re-converge-visual-matrix-idempotency-gate-milestone-audit/102-CONTEXT.md:32]
+   - RESOLVED: Extend the existing Cohort specs instead of adding a unified visual matrix spec. Plan 05 keeps `cohort-pages.spec.js` as the hard-fail route/theme/viewport matrix and `cohort-styleguide.spec.js` as the styleguide proof, both calling the shared `admin-polish.js` gate without forking polish logic. [VERIFIED: .planning/phases/102-re-converge-visual-matrix-idempotency-gate-milestone-audit/102-05-PLAN.md]
 
 2. **Route param versus in-page toggle for non-styleguide dark pages?**  
    - What we know: Upload already supports `?theme=dark`; most other pages mount light-only state. [VERIFIED: examples/adoption_demo/lib/adoption_demo_web/live/cohort/upload_live.ex:18] [VERIFIED: examples/adoption_demo/lib/adoption_demo_web/live/cohort/dashboard_live.ex:13]  
-   - What's unclear: Whether maintainers prefer a shared route helper or per-page local helpers. [VERIFIED: .planning/phases/102-re-converge-visual-matrix-idempotency-gate-milestone-audit/102-CONTEXT.md:44]  
-   - Recommendation: Add shared route-param normalization for migrated Cohort pages so URLs are deterministic and matrix cases are simple. [VERIFIED: .planning/phases/102-re-converge-visual-matrix-idempotency-gate-milestone-audit/102-CONTEXT.md:25]
+   - RESOLVED: Use route-param dark state with a shared `AdoptionDemoWeb.CohortTheme.normalize/2` helper. Plans 03 and 04 wire migrated Cohort pages to `?theme=dark`, normalize invalid values to light, and add contract tests that assert the rendered `[data-ck-root][data-theme="dark"]` state. [VERIFIED: .planning/phases/102-re-converge-visual-matrix-idempotency-gate-milestone-audit/102-03-PLAN.md] [VERIFIED: .planning/phases/102-re-converge-visual-matrix-idempotency-gate-milestone-audit/102-04-PLAN.md]
 
 3. **Optional screenshots?**  
    - What we know: Optional screenshots may be added only as non-blocking audit artifacts. [VERIFIED: .planning/phases/102-re-converge-visual-matrix-idempotency-gate-milestone-audit/102-CONTEXT.md:13]  
-   - What's unclear: Whether Phase 102 needs new artifacts beyond existing admin gallery and Cohort styleguide proof. [VERIFIED: brandbook/src/admin-gallery-check.mjs:1] [VERIFIED: examples/adoption_demo/e2e/cohort-styleguide.spec.js:1]  
-   - Recommendation: Defer new screenshot artifacts unless the milestone audit needs visual evidence after hard gates are green. [VERIFIED: .planning/ROADMAP.md:464]
+   - RESOLVED: Do not plan new required screenshot artifacts. Plans 05 and 06 preserve existing admin gallery/styleguide/matrix evidence as non-blocking audit signals and explicitly forbid pixel baselines or gallery screenshots from becoming the VIS-01 blocker. [VERIFIED: .planning/phases/102-re-converge-visual-matrix-idempotency-gate-milestone-audit/102-05-PLAN.md] [VERIFIED: .planning/phases/102-re-converge-visual-matrix-idempotency-gate-milestone-audit/102-06-PLAN.md]
 
 ## Environment Availability
 
