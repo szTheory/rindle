@@ -1,5 +1,5 @@
 ---
-status: gap-closure-in-progress
+status: complete
 phase: 95-admin-level-1-component-audit-track-a
 source: [.planning/phases/95-admin-level-1-component-audit-track-a/95-01-SUMMARY.md, .planning/phases/95-admin-level-1-component-audit-track-a/95-02-SUMMARY.md, .planning/phases/95-admin-level-1-component-audit-track-a/95-03-SUMMARY.md]
 started: 2026-06-19T20:26:31Z
@@ -14,7 +14,7 @@ updated: 2026-06-19T21:17:04Z
 
 ### 1. Level-1 Gallery Inventory
 expected: Open the admin component gallery. The visible gallery content shows the Level-1 admin surfaces through existing section labels and fixtures: shell, nav, lifecycle table, status chips, buttons, theme picker, form controls, confirm dialog, drawer, toasts, empty/error/loading states, and skeletons. Hidden marker parity is covered only by automated checks.
-result: resolved
+result: pass
 reported: "I am on file:///Users/jon/projects/rindle/brandbook/admin-gallery/index.html but I don't see a Level-1 inventory. The page shows Generated component gallery, Rindle Admin, lifecycle table, status chips, buttons, form controls, drawer, toasts, empty/error/loading states, loading skeletons, and Level-2 meta-components."
 severity: minor
 
@@ -40,15 +40,15 @@ result: pass
 
 ### 7. Drawer Auto Theme Background
 expected: When the operating system is in dark mode, the drawer background in Auto mode visually matches the drawer background in explicit Dark mode.
-result: issue
+result: pass
 reported: "The background color of the drawer changes between dark and auto modes. I am in dark mode on my OS, so Auto should stay the same as Dark."
 severity: cosmetic
 
 ## Summary
 
 total: 7
-passed: 5
-issues: 1
+passed: 7
+issues: 0
 pending: 0
 skipped: 0
 blocked: 0
@@ -88,3 +88,4 @@ blocked: 0
     - "Add auto-dark overrides for dark-only component elevation rules, at least .rindle-admin-drawer, and update the gallery/browser checker to compare explicit dark vs auto under dark color scheme."
   debug_session: "inline-diagnosis-2026-06-19"
   fix_plan: ".planning/phases/95-admin-level-1-component-audit-track-a/95-04-PLAN.md"
+  closure: "Resolved in 95-04 by generating the auto-dark .rindle-admin-drawer elevation override and adding a browser assertion that compares the Level-1 drawer background in explicit dark versus auto under dark color-scheme emulation."
