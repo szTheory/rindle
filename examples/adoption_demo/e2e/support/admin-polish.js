@@ -196,6 +196,7 @@ async function assertNoClippedText(page, root = DEFAULT_ROOT) {
 
       const out = [];
       for (const el of root.querySelectorAll("*")) {
+        if (el.closest(".rindle-admin-visually-hidden")) continue;
         const rect = el.getBoundingClientRect();
         if (rect.width === 0 || rect.height === 0) continue;
         if (el.tagName === "TABLE") continue;
@@ -847,6 +848,14 @@ async function assertDialogInert(page, { expectOpen, root = DEFAULT_ROOT } = {})
       const out = [];
       const main = document.querySelector(".rindle-admin-shell__main");
       const nav = document.querySelector('[data-rindle-admin-component="nav"]');
+      const visibleDialog = () => {
+        const dialog = document.querySelector("[data-rindle-admin-dialog]");
+        if (!dialog || dialog.hidden || dialog.closest("[hidden]")) return null;
+        const s = getComputedStyle(dialog);
+        if (s.display === "none" || s.visibility === "hidden") return null;
+        const rect = dialog.getBoundingClientRect();
+        return rect.width > 0 && rect.height > 0 ? dialog : null;
+      };
       const landmarkInert = (el, name) => {
         if (!el) {
           out.push(`missing landmark ${name}`);
@@ -867,7 +876,7 @@ async function assertDialogInert(page, { expectOpen, root = DEFAULT_ROOT } = {})
       landmarkInert(nav, "nav");
 
       if (EXPECT_OPEN) {
-        const dialog = document.querySelector("[data-rindle-admin-dialog]");
+        const dialog = visibleDialog();
         if (!dialog) {
           out.push("no open [data-rindle-admin-dialog] found while dialog expected open");
         } else {
@@ -955,10 +964,39 @@ async function assertFocusVisibleVsPointer(
     await item.evaluate((el) => el.blur());
     await item.click({ trial: false }).catch(() => {});
     const ptr = await item.evaluate((el) => {
+      const isTextEditable = (node) => {
+        if (node.isContentEditable) return true;
+        const tag = node.tagName.toLowerCase();
+        if (tag === "textarea") return true;
+        if (tag !== "input") return false;
+        const type = (node.getAttribute("type") || "text").toLowerCase();
+        return !new Set([
+          "button",
+          "checkbox",
+          "color",
+          "file",
+          "hidden",
+          "image",
+          "radio",
+          "range",
+          "reset",
+          "submit",
+        ]).has(type);
+      };
       const focused = document.activeElement === el;
       const s = getComputedStyle(el);
-      return { focused, matchesFV: el.matches(":focus-visible"), width: s.outlineWidth, style: s.outlineStyle };
+      return {
+        focused,
+        matchesFV: el.matches(":focus-visible"),
+        textEditable: isTextEditable(el),
+        width: s.outlineWidth,
+        style: s.outlineStyle,
+      };
     });
+    // Chromium intentionally matches :focus-visible for text-entry controls after a pointer
+    // click because users may immediately type. Keep their keyboard-token check above, but do
+    // not require pointer focus to suppress the ring for editable inputs/textareas.
+    if (ptr.textEditable) continue;
     if (ptr.focused && ptr.matchesFV) {
       // A pointer-focused control that still reports :focus-visible (and a real ring) is the
       // negative defect this backstop exists to catch.
@@ -1018,7 +1056,14 @@ async function assertAdminPolish(
     // Phase 98 backstop 4 (dialog inert reset): rides EVERY admin capture as a read-only DOM
     // check. It is admin-only: Cohort has no rindle-admin landmarks/dialog contract.
     const dialogOpen = await page.evaluate(
-      () => !!document.querySelector("[data-rindle-admin-dialog]")
+      () => {
+        const dialog = document.querySelector("[data-rindle-admin-dialog]");
+        if (!dialog || dialog.hidden || dialog.closest("[hidden]")) return false;
+        const s = getComputedStyle(dialog);
+        if (s.display === "none" || s.visibility === "hidden") return false;
+        const rect = dialog.getBoundingClientRect();
+        return rect.width > 0 && rect.height > 0;
+      }
     );
     await run("dialogInert", "dialog-inert", () =>
       assertDialogInert(page, { expectOpen: dialogOpen, root })

@@ -12,6 +12,8 @@ import { META_COMPONENTS } from './admin-design-system-data.mjs';
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(here, '..', '..');
 const galleryPath = join(repoRoot, 'brandbook', 'admin-gallery', 'index.html');
+// Gallery screenshots are non-blocking audit/reference artifacts; the hard gate is the
+// DOM/computed-style assertions in this script, not pixel diffs against these PNGs.
 const screenshotsDir = join(repoRoot, 'brandbook', 'admin-gallery', 'screenshots');
 const adoptionRequire = createRequire(join(repoRoot, 'examples', 'adoption_demo', 'package.json'));
 const { chromium } = adoptionRequire('playwright');

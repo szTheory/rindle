@@ -21,6 +21,8 @@ const {
 const { waitForLiveSocket } = require("./support/liveview");
 const { MEMBERS, memberId } = require("./support/cohort");
 
+// Screenshot PNGs are audit/reference artifacts. The blocking signal is the computed
+// polish/backstop assertions below; this spec does not introduce a pixel-diff oracle.
 const screenshotsDir = path.join(__dirname, "..", "test-results", "admin-screenshots");
 const desktopCases = [
   { suffix: "", surface: "home-status", name: "home-status" },
@@ -73,20 +75,28 @@ const expectedScreenshots = [
   "band/light/assets-760-1023.png",
   "stacked/light/assets-sub-760.png",
 ];
+const backstopScreenshots = ["band/light/assets-760-1023.png", "stacked/light/assets-sub-760.png"];
+const matrixScreenshots = expectedScreenshots.filter(
+  (relativePath) => !backstopScreenshots.includes(relativePath)
+);
 
 test.beforeAll(() => {
   fs.rmSync(screenshotsDir, { recursive: true, force: true });
   fs.mkdirSync(screenshotsDir, { recursive: true });
 });
 
-async function capture(page, theme, relativePath) {
-  await selectAdminTheme(page, theme);
+async function capture(page, theme, relativePath, { themeAlreadySelected = false } = {}) {
+  if (themeAlreadySelected) {
+    await expect(adminRoot(page)).toHaveAttribute("data-theme", theme);
+  } else {
+    await selectAdminTheme(page, theme);
+  }
   await expectNoAdminRawSecrets(page);
   await expectNoHorizontalScroll(page);
 
   // Deterministic visual-polish gate: replaces the former human screenshot review by
   // asserting clipped text, contrast, target sizes, overlap, and stable dimensions on
-  // the exact rendered state of every capture (all 22 surface/theme/viewport states).
+  // the exact rendered state of every capture. The PNG write that follows is evidence only.
   const surface = await adminRoot(page).getAttribute("data-rindle-admin-surface");
   const viewport = relativePath.startsWith("mobile/") ? "mobile" : "desktop";
   await assertAdminPolish(page, { viewport, surface });
@@ -117,18 +127,19 @@ async function prepareOwnerPreview(page, ownerId) {
   await expect(page.locator('[data-rindle-admin-preview="owner_erasure"]')).toBeVisible();
 }
 
-async function visitScreenshotCase(page, screenshotCase, ownerId) {
+async function visitScreenshotCase(page, screenshotCase, ownerId, theme) {
   await visitAdmin(page, screenshotCase.suffix);
 
   if (screenshotCase.detail) {
     await visitDetail(page, screenshotCase.detail);
   }
 
+  await expectAdminShell(page, screenshotCase.surface);
+  await selectAdminTheme(page, theme);
+
   if (screenshotCase.ownerPreview) {
     await prepareOwnerPreview(page, ownerId);
   }
-
-  await expectAdminShell(page, screenshotCase.surface);
 }
 
 test("captures admin-screenshots light and dark matrix", async ({ page }) => {
@@ -139,20 +150,20 @@ test("captures admin-screenshots light and dark matrix", async ({ page }) => {
   await page.setViewportSize({ width: 1480, height: 900 });
   for (const theme of themes) {
     for (const screenshotCase of desktopCases) {
-      await visitScreenshotCase(page, screenshotCase, alexId);
-      await capture(page, theme, `${theme}/${screenshotCase.name}.png`);
+      await visitScreenshotCase(page, screenshotCase, alexId, theme);
+      await capture(page, theme, `${theme}/${screenshotCase.name}.png`, { themeAlreadySelected: true });
     }
   }
 
   await page.setViewportSize({ width: 390, height: 900 });
   for (const theme of themes) {
     for (const screenshotCase of mobileCases) {
-      await visitScreenshotCase(page, screenshotCase, alexId);
-      await capture(page, theme, `mobile/${theme}/${screenshotCase.name}.png`);
+      await visitScreenshotCase(page, screenshotCase, alexId, theme);
+      await capture(page, theme, `mobile/${theme}/${screenshotCase.name}.png`, { themeAlreadySelected: true });
     }
   }
 
-  const missing = expectedScreenshots.filter(
+  const missing = matrixScreenshots.filter(
     (relativePath) => !fs.existsSync(path.join(screenshotsDir, relativePath))
   );
   expect(missing, `missing screenshots: ${missing.join(", ")}`).toEqual([]);
@@ -238,4 +249,9 @@ test("phase-98 computed-style backstops (band, stacked, reduced-motion, dialog, 
 
   // --- Backstop 5: focus-visible (keyboard) vs pointer differentiation ---
   fail("focus-visible-vs-pointer", await assertFocusVisibleVsPointer(page));
+
+  const missingBackstops = backstopScreenshots.filter(
+    (relativePath) => !fs.existsSync(path.join(screenshotsDir, relativePath))
+  );
+  expect(missingBackstops, `missing backstop screenshots: ${missingBackstops.join(", ")}`).toEqual([]);
 });

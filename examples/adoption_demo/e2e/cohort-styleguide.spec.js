@@ -4,14 +4,13 @@
 //   goto -> waitForLiveSocket
 //     -> emulateMedia(reduce) -> reduced-motion computed probe (BEFORE any freeze)
 //     -> emulateMedia(no-preference)
-//     -> toggle light -> assertAdminPolish  (warn/report mode this phase)
+//     -> toggle light -> assertAdminPolish  (hard-fail)
 //     -> toggle dark  -> assertAdminPolish
 //     -> emulateMedia(colorScheme: dark) -> auto-fallback probe (distinct from [data-theme]).
 //
 // Reuses the already-parameterized `assertAdminPolish` UNCHANGED (D-94-07 seam, D-96-06)
-// against `[data-ck-root]` / `.ck-*`; admin-polish.js is NOT modified. The polish gate runs
-// in WARN mode this phase (warn->fail is Phase 102) — this spec asserts the gate RAN and
-// reported, it does not hard-fail on offenders.
+// against `[data-ck-root]` / `.ck-*`. Phase 102 promotes this proof to a hard-fail gate:
+// polish and rendered-contrast offenders fail the spec instead of warning.
 //
 // Also satisfies UI-SPEC acceptance gate 1 (component-existence loop over the 6 L1 + 4 L2
 // primitives via their stable `data-ck-section` markers — never on `.ck-*` styling classes,
@@ -26,6 +25,7 @@ const { waitForLiveSocket } = require("./support/liveview");
 
 // D-96-06: the FIXED interactive-selector list the polish gate measures over the Cohort root.
 const interactiveSelectors = [".ck-btn", ".ck-tab", ".ck-input", ".ck-select", "[data-ck-theme]"];
+const COHORT_FOCUS_CONTRACT = { width: "2px", color: "--ck-focus", offset: "2px" };
 
 // D-96-19 / gate 1: the required component-existence matrix — 6 Level-1 + 4 Level-2 primitives,
 // each asserted via its stable `data-ck-section` test marker (not its styling class).
@@ -87,23 +87,9 @@ test("cohort /styleguide: reduced-motion probe, theme toggle + polish (light+dar
   await page.emulateMedia({ reducedMotion: "no-preference" });
 
   // -- Gate 6: polish harness over [data-ck-root] in BOTH themes via the toggle --------------
-  // assertAdminPolish reused UNCHANGED (D-96-06); WARN/report mode this phase (warn->fail is
-  // Phase 102). The contract here is that the gate RAN over [data-ck-root]/.ck-* and reported —
-  // it does NOT hard-fail on offenders this phase. A polish *violation* (the gate's own thrown
-  // aggregate error listing offenders) is therefore downgraded to a console warning by
-  // `reportPolish`. A genuine CRASH in the gate internals (a ReferenceError / TypeError — not an
-  // offender aggregate) is a harness defect and is re-thrown so it cannot hide silently.
-  const reportPolish = async (surface, error) => {
-    if (!error) return;
-    const isOffenderAggregate =
-      error instanceof Error &&
-      !(error instanceof ReferenceError) &&
-      !(error instanceof TypeError) &&
-      /Admin polish gate failed/.test(error.message);
-    if (!isOffenderAggregate) throw error;
-    // eslint-disable-next-line no-console
-    console.warn(`[cohort-styleguide] polish gate (${surface}) reported offenders:\n  ${error.message}`);
-  };
+  // assertAdminPolish hard-fails over the Cohort root in both explicit themes. The styleguide
+  // passes the same Cohort focus contract as the route matrix and opts out of admin-specific
+  // backstops; Cohort-specific motion/fallback/component checks remain in this spec below.
 
   // Light theme polish run (call kept inline so the D-96-06 reuse is greppable per-theme).
   await selectCohortTheme(page, "light");
@@ -112,7 +98,9 @@ test("cohort /styleguide: reduced-motion probe, theme toggle + polish (light+dar
     surface: "styleguide-light",
     root: "[data-ck-root]",
     interactiveSelectors,
-  }).catch((error) => reportPolish("styleguide-light", error));
+    focusContract: COHORT_FOCUS_CONTRACT,
+    adminBackstops: false,
+  });
 
   // Dark theme polish run.
   await selectCohortTheme(page, "dark");
@@ -121,20 +109,17 @@ test("cohort /styleguide: reduced-motion probe, theme toggle + polish (light+dar
     surface: "styleguide-dark",
     root: "[data-ck-root]",
     interactiveSelectors,
-  }).catch((error) => reportPolish("styleguide-dark", error));
+    focusContract: COHORT_FOCUS_CONTRACT,
+    adminBackstops: false,
+  });
 
   // Rendered-contrast assertion over the root in the (currently dark) toggle state — catches
-  // cascade bugs the token-pair node gate cannot see. Run as a report-mode probe this phase
-  // (consistent with the warn-mode polish gate): assert it RAN and surface any offenders.
+  // cascade bugs the token-pair node gate cannot see.
   const contrastOffenders = await assertReadableContrast(page, "[data-ck-root]");
-  if (contrastOffenders.length) {
-    // eslint-disable-next-line no-console
-    console.warn(
-      `[cohort-styleguide] rendered-contrast (dark) ${contrastOffenders.length} warning(s):\n  ` +
-        contrastOffenders.join("\n  ")
-    );
-  }
-  expect(Array.isArray(contrastOffenders)).toBe(true);
+  expect(
+    contrastOffenders,
+    `cohort styleguide rendered-contrast offenders:\n  ${contrastOffenders.join("\n  ")}`
+  ).toEqual([]);
 
   // -- colorScheme auto-fallback probe -------------------------------------------------------
   // Prove the `prefers-color-scheme: dark` MEDIA fallback path, distinct from the explicit
