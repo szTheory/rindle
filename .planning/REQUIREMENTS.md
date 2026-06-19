@@ -10,7 +10,7 @@
 > archived) rather than in `.planning/milestones/v1.18-REQUIREMENTS.md`. Recorded maintainer
 > decision (2026-06-14). Close via `/gsd-complete-milestone v1.18` once UAT is signed off.
 
-## v1.19 Design-System Stress-Test (active)
+## v1.19 Design-System Stress-Test (complete / audited)
 
 **Charter (2026-06-14):** Maintainer-pull quality milestone (SEED-002). Elevate the whole
 design system to an award-winning bar — fractally and without regressions — across the
@@ -34,7 +34,7 @@ demand-gated and shift to v1.20+. Research: `.planning/research/v1.19/SUMMARY.md
 
 ### Admin / Operator DS Uplift (UPLIFT)
 
-- [ ] **UPLIFT-01**: Every admin component is on-brand and excellent across the full
+- [x] **UPLIFT-01**: Every admin component is on-brand and excellent across the full
   interaction-state matrix (default / hover / **focus-visible** / active / disabled / loading /
   empty / error / skeleton) in **light, dark, and system** — audited against tokens, with the
   `active` vs `focus-visible` distinction explicit and no one-off styles.
@@ -255,7 +255,7 @@ Open only via `/gsd-new-milestone` with documented signal:
 |-------------|-------|--------|
 | PIPE-01 | Phase 94 | Complete |
 | PIPE-02 | Phase 94 | Complete |
-| UPLIFT-01 | Phase 95 | Pending |
+| UPLIFT-01 | Phase 95 | Complete |
 | UPLIFT-02 | Phase 97 | Complete |
 | UPLIFT-03 | Phase 98 | Complete |
 | UPLIFT-04 | Phase 98 | Complete |
@@ -310,7 +310,9 @@ becomes the single merge-blocking gate.
 
 ---
 *Requirements defined: 2026-05-27*
-*Last updated: 2026-06-14 — v1.19 Design-System Stress-Test traceability filled by roadmapper:
-PIPE→94, UPLIFT-01→95, UPLIFT-02→97, UPLIFT-03..08→98, COHORT-06→96, COHORT-01/03/04→99,
-COHORT-02→100, COHORT-05→101, VIS-01..04→102 (20/20 mapped, 100%). v1.18 reqs demoted to
-tech_debt (HUMAN-UAT pending, archival reset away). LIFE-06/STREAM-10 shifted to v1.20+.*
+*Last updated: 2026-06-19 — Phase 102 Plan 06 closed VIS-01..04 after `adoption_demo_e2e.sh`,
+adoption-demo `mix precommit`, the targeted Cohort contract, and two consecutive existing
+generated-asset/static idempotency runs passed. v1.19 traceability is 20/20 mapped and 20/20
+complete; stale UPLIFT-01 planning metadata was corrected from the Phase 95 summaries. v1.18 reqs
+remain demoted to tech_debt (HUMAN-UAT pending, archival reset away). LIFE-06/STREAM-10 shifted
+to v1.20+.*
