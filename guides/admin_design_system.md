@@ -61,7 +61,8 @@ Review screenshots are generated under:
 brandbook/admin-gallery/screenshots/
 ```
 
-The expected maintainer review set is:
+`node brandbook/src/admin-gallery-check.mjs` writes 18 screenshots. The expected
+maintainer review set is:
 
 - `brandbook/admin-gallery/screenshots/gallery-light-desktop.png`
 - `brandbook/admin-gallery/screenshots/gallery-dark-desktop.png`
@@ -73,6 +74,14 @@ The expected maintainer review set is:
 - `brandbook/admin-gallery/screenshots/form-controls-light.png`
 - `brandbook/admin-gallery/screenshots/error-state-dark.png`
 - `brandbook/admin-gallery/screenshots/loading-state-auto.png`
+- `brandbook/admin-gallery/screenshots/meta-toolbar-light.png`
+- `brandbook/admin-gallery/screenshots/meta-data-table-light.png`
+- `brandbook/admin-gallery/screenshots/meta-filter-bar-light.png`
+- `brandbook/admin-gallery/screenshots/meta-action-panel-light.png`
+- `brandbook/admin-gallery/screenshots/meta-detail-drilldown-light.png`
+- `brandbook/admin-gallery/screenshots/meta-confirm-panel-light.png`
+- `brandbook/admin-gallery/screenshots/meta-drawer-light.png`
+- `brandbook/admin-gallery/screenshots/meta-toast-stack-light.png`
 
 The screenshots are generated local review artifacts. They are hardcoded gallery
 fixtures, not production data, and should contain no real owner media, secrets,
