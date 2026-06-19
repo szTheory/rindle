@@ -338,6 +338,60 @@ const assertGalleryHelperBorders = async (page) => {
   assert(failures.length === 0, `gallery helper borders are not rendered: ${failures.join(', ')}`);
 };
 
+const assertMobileTableBehavior = async (page) => {
+  const stickySelector = '.rindle-admin-table--sticky .rindle-admin-table';
+  assert(
+    (await page.locator(stickySelector).count()) > 0,
+    `missing sticky table for mobile assertion: ${stickySelector}`,
+  );
+
+  const stickyDisplay = await page.locator(stickySelector).first().evaluate((table) => {
+    const tbody = table.querySelector('tbody');
+    const row = table.querySelector('tbody tr');
+    const cell = table.querySelector('tbody td');
+    return {
+      table: getComputedStyle(table).display,
+      tbody: tbody ? getComputedStyle(tbody).display : null,
+      tr: row ? getComputedStyle(row).display : null,
+      td: cell ? getComputedStyle(cell).display : null,
+    };
+  });
+  const expected = {
+    table: 'table',
+    tbody: 'table-row-group',
+    tr: 'table-row',
+    td: 'table-cell',
+  };
+  const displayFailures = Object.entries(expected)
+    .filter(([key, value]) => stickyDisplay[key] !== value)
+    .map(([key, value]) => `${key} ${stickyDisplay[key]} != ${value}`);
+  assert(
+    displayFailures.length === 0,
+    `mobile sticky table display failures: ${displayFailures.join('; ')}`,
+  );
+
+  const labelFailures = await page.evaluate(() => {
+    const cells = Array.from(document.querySelectorAll('td.rindle-admin-table__cell'))
+      .filter((cell) => !cell.closest('.rindle-admin-table--sticky'));
+    return {
+      count: cells.length,
+      failures: cells
+        .filter((cell) => !(cell.getAttribute('data-label') || '').trim())
+        .map((cell, index) => {
+          const row = cell.closest('tr');
+          const rowText = row ? row.textContent.trim().replace(/\s+/g, ' ') : '';
+          const cellText = cell.textContent.trim().replace(/\s+/g, ' ');
+          return `cell ${index + 1}: text="${cellText}" row="${rowText}"`;
+        }),
+    };
+  });
+  assert(labelFailures.count > 0, 'expected at least one non-sticky table cell for stacked-label assertion');
+  assert(
+    labelFailures.failures.length === 0,
+    `non-sticky stacked table cells missing data-label: ${labelFailures.failures.join('; ')}`,
+  );
+};
+
 const selectTheme = async (page, theme) => {
   await page.locator(`[data-rindle-admin-theme="${theme}"]`).click();
   const current = await page.evaluate(() => document.documentElement.getAttribute('data-theme'));
@@ -427,6 +481,7 @@ try {
   await page.setViewportSize({ width: 390, height: 900 });
   await page.emulateMedia({ colorScheme: 'light' });
   await selectTheme(page, 'light');
+  await assertMobileTableBehavior(page);
   await screenshot(page, 'gallery-light-mobile.png');
 
   await page.close();
