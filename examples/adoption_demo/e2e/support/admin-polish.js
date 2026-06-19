@@ -57,6 +57,10 @@ const DEFAULT_FOCUS_CONTRACT = Object.freeze({
   offset: "--rindle-focus-offset",
 });
 
+const DEFAULT_ADMIN_BACKSTOPS = Object.freeze({
+  dialogInert: true,
+});
+
 function normalizeFocusContract(focusContract, root = DEFAULT_ROOT) {
   const source = focusContract || {};
   const usesAdminDefaults =
@@ -72,6 +76,34 @@ function normalizeFocusContract(focusContract, root = DEFAULT_ROOT) {
         ? !!source.fallbackToDocumentElement
         : usesAdminDefaults && root === DEFAULT_ROOT,
   };
+}
+
+function normalizeAdminBackstops(adminBackstops, root = DEFAULT_ROOT) {
+  if (adminBackstops === undefined) {
+    return root === DEFAULT_ROOT ? { ...DEFAULT_ADMIN_BACKSTOPS } : {};
+  }
+  if (adminBackstops === true) return { ...DEFAULT_ADMIN_BACKSTOPS };
+  if (adminBackstops === false || adminBackstops === null) return {};
+  return {
+    dialogInert: !!adminBackstops.dialogInert,
+  };
+}
+
+function scopedInteractiveSelector(root, interactiveSelectors) {
+  return interactiveSelectors.map((selector) => `${root} ${selector}`).join(",");
+}
+
+function outlineScopeHints(root) {
+  const hints = new Set([root]);
+  if (/ck/.test(root)) {
+    hints.add(".ck");
+    hints.add("[data-ck-root]");
+  }
+  if (/rindle-admin/.test(root)) {
+    hints.add(".rindle-admin");
+    hints.add("[data-rindle-admin");
+  }
+  return Array.from(hints);
 }
 
 // Per-surface, per-check opt-out. SHIP EMPTY — an allowlist that starts populated
@@ -320,8 +352,12 @@ async function assertReadableContrast(page, root = DEFAULT_ROOT) {
 // ---------------------------------------------------------------------------
 // Check 3 — target sizes (44px interactive controls)
 // ---------------------------------------------------------------------------
-async function assertTargetSizes(page, interactiveSelectors = DEFAULT_INTERACTIVE_SELECTORS) {
-  return page.locator(interactiveSelectors.join(",")).evaluateAll(
+async function assertTargetSizes(
+  page,
+  interactiveSelectors = DEFAULT_INTERACTIVE_SELECTORS,
+  root = DEFAULT_ROOT
+) {
+  return page.locator(scopedInteractiveSelector(root, interactiveSelectors)).evaluateAll(
     (els, { MIN, TOL }) => {
       const out = [];
       for (const el of els) {
@@ -354,7 +390,7 @@ async function assertFocusVisibleTokens(
   focusContract = normalizeFocusContract()
 ) {
   const normalizedFocusContract = normalizeFocusContract(focusContract);
-  const offenders = await page.evaluate(() => {
+  const offenders = await page.evaluate(({ HINTS }) => {
     const out = [];
     for (const sheet of Array.from(document.styleSheets)) {
       let rules = [];
@@ -365,16 +401,18 @@ async function assertFocusVisibleTokens(
       }
       for (const rule of rules) {
         const cssText = rule.cssText || "";
+        const selectorText = rule.selectorText || cssText;
+        if (!HINTS.some((hint) => selectorText.includes(hint))) continue;
         if (/outline\s*:\s*none\b/i.test(cssText.replace(/\/\*[\s\S]*?\*\//g, ""))) {
           out.push(`outline-none-rule: ${cssText.slice(0, 120)}`);
         }
       }
     }
     return out;
-  });
+  }, { HINTS: outlineScopeHints(normalizedFocusContract.root) });
 
   for (const selector of interactiveSelectors) {
-    const locator = page.locator(selector);
+    const locator = page.locator(scopedInteractiveSelector(normalizedFocusContract.root, [selector]));
     const count = await locator.count();
     for (let index = 0; index < count; index++) {
       const item = locator.nth(index);
@@ -441,8 +479,12 @@ async function assertFocusVisibleTokens(
 // ---------------------------------------------------------------------------
 // Check 5 — no interactive overlap (noisiest; warn-then-tighten)
 // ---------------------------------------------------------------------------
-async function assertNoInteractiveOverlap(page, interactiveSelectors = DEFAULT_INTERACTIVE_SELECTORS) {
-  return page.locator(interactiveSelectors.join(",")).evaluateAll(
+async function assertNoInteractiveOverlap(
+  page,
+  interactiveSelectors = DEFAULT_INTERACTIVE_SELECTORS,
+  root = DEFAULT_ROOT
+) {
+  return page.locator(scopedInteractiveSelector(root, interactiveSelectors)).evaluateAll(
     (els, { TOL }) => {
       const visible = (el) => {
         const s = getComputedStyle(el);
@@ -615,7 +657,9 @@ async function assertNoHorizontalScroll(page, root = DEFAULT_ROOT) {
 // ===========================================================================
 // Phase 98 — the five NON-INFERABLE computed-style backstops (D-98-05/06).
 // Each is offender-returning (never throws); admin-root-only against DEFAULT_ROOT /
-// DEFAULT_INTERACTIVE_SELECTORS. No Cohort generalization, no warn->fail flip (Phase 102).
+// DEFAULT_INTERACTIVE_SELECTORS. `assertAdminPolish` runs only the dialog-inert backstop by
+// default, and only for admin callers; Cohort callers must explicitly opt into admin
+// backstops if they intentionally want those admin page/layout checks.
 // The viewport/media-dependent backstops (TwoPaneBand, StackedCard, ReducedMotion) mutate
 // global page state and are driven by a dedicated test in admin-screenshots.spec.js rather
 // than the per-capture assertAdminPolish runner; the per-state-safe backstops (DialogInert,
@@ -844,7 +888,7 @@ async function assertFocusVisibleVsPointer(
   const normalizedFocusContract = normalizeFocusContract(focusContract);
   const offenders = [];
   for (const selector of interactiveSelectors) {
-    const locator = page.locator(selector);
+    const locator = page.locator(scopedInteractiveSelector(normalizedFocusContract.root, [selector]));
     if ((await locator.count()) === 0) continue;
     const item = locator.first();
     if (!(await item.isVisible().catch(() => false))) continue;
@@ -926,10 +970,12 @@ async function assertAdminPolish(
     root = DEFAULT_ROOT,
     interactiveSelectors = DEFAULT_INTERACTIVE_SELECTORS,
     focusContract,
+    adminBackstops,
   } = {}
 ) {
   await freezeMotion(page); // settle transitions before any computed-style read
   const normalizedFocusContract = normalizeFocusContract(focusContract, root);
+  const enabledAdminBackstops = normalizeAdminBackstops(adminBackstops, root);
 
   const violations = [];
   const warnings = [];
@@ -948,26 +994,25 @@ async function assertAdminPolish(
   await run("consistentRhythm", "rhythm", () => assertConsistentRhythm(page, root));
   await run("noHorizontalScroll", "h-scroll", () => assertNoHorizontalScroll(page, root));
   await run("readableContrast", "contrast", () => assertReadableContrast(page, root));
-  await run("targetSizes", "target-size", () => assertTargetSizes(page, interactiveSelectors));
+  await run("targetSizes", "target-size", () => assertTargetSizes(page, interactiveSelectors, root));
   await run("focusVisibleTokens", "focus-visible", () =>
     assertFocusVisibleTokens(page, interactiveSelectors, normalizedFocusContract)
   );
-  await run("noInteractiveOverlap", "overlap", () => assertNoInteractiveOverlap(page, interactiveSelectors), {
+  await run("noInteractiveOverlap", "overlap", () => assertNoInteractiveOverlap(page, interactiveSelectors, root), {
     warnOnly: !OVERLAP_ENFORCED,
   });
   await run("stableDimensions", "stable-dimensions", () => assertStableDimensions(page));
 
-  // Phase 98 backstop 4 (dialog inert reset): rides EVERY capture as a read-only DOM check.
-  // It auto-detects whether a dialog is currently open and asserts the inert/aria-hidden
-  // contract for that state — so the dozens of regular (closed) captures continuously prove
-  // the reconnect-landmine invariant that main is NEVER left inert, and the owner-preview
-  // capture proves the open-state inert + role/aria-modal/aria-labelledby contract.
-  const dialogOpen = await page.evaluate(
-    () => !!document.querySelector("[data-rindle-admin-dialog]")
-  );
-  await run("dialogInert", "dialog-inert", () =>
-    assertDialogInert(page, { expectOpen: dialogOpen, root })
-  );
+  if (enabledAdminBackstops.dialogInert) {
+    // Phase 98 backstop 4 (dialog inert reset): rides EVERY admin capture as a read-only DOM
+    // check. It is admin-only: Cohort has no rindle-admin landmarks/dialog contract.
+    const dialogOpen = await page.evaluate(
+      () => !!document.querySelector("[data-rindle-admin-dialog]")
+    );
+    await run("dialogInert", "dialog-inert", () =>
+      assertDialogInert(page, { expectOpen: dialogOpen, root })
+    );
+  }
 
   if (warnings.length) {
     // eslint-disable-next-line no-console
@@ -1005,7 +1050,9 @@ module.exports = {
   DEFAULT_ROOT,
   DEFAULT_INTERACTIVE_SELECTORS,
   DEFAULT_FOCUS_CONTRACT,
+  DEFAULT_ADMIN_BACKSTOPS,
   normalizeFocusContract,
+  normalizeAdminBackstops,
   REDUCED_MOTION_SELECTORS,
   luminance,
   contrastRatio,

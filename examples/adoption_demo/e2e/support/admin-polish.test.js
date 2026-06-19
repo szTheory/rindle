@@ -2,8 +2,11 @@ const assert = require("node:assert/strict");
 const test = require("node:test");
 
 const {
+  DEFAULT_ROOT,
+  assertTargetSizes,
   assertFocusVisibleTokens,
   assertFocusVisibleVsPointer,
+  normalizeAdminBackstops,
 } = require("./admin-polish");
 
 function withFakeDom(callback) {
@@ -127,4 +130,27 @@ test("focus-visible-vs-pointer check honors explicit Cohort focus contract", asy
 
     assert.deepEqual(offenders, []);
   });
+});
+
+test("admin backstops default on only for the admin root", () => {
+  assert.deepEqual(normalizeAdminBackstops(undefined, DEFAULT_ROOT), { dialogInert: true });
+  assert.deepEqual(normalizeAdminBackstops(undefined, "[data-ck-root]"), {});
+  assert.deepEqual(normalizeAdminBackstops(true, "[data-ck-root]"), { dialogInert: true });
+  assert.deepEqual(normalizeAdminBackstops(false, DEFAULT_ROOT), {});
+});
+
+test("interactive checks scope selectors under the explicit root", async () => {
+  const seen = [];
+  const page = {
+    locator(selector) {
+      seen.push(selector);
+      return {
+        evaluateAll: async () => [],
+      };
+    },
+  };
+
+  await assertTargetSizes(page, [".ck-btn", ".ck-input"], "[data-ck-root]");
+
+  assert.deepEqual(seen, ["[data-ck-root] .ck-btn,[data-ck-root] .ck-input"]);
 });
