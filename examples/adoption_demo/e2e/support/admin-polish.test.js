@@ -79,7 +79,7 @@ function fakePage(focused) {
   const item = {
     isVisible: async () => true,
     isDisabled: async () => false,
-    evaluate: async (fn) => fn(focused),
+    evaluate: async (fn, arg) => fn(focused, arg),
     click: async () => {
       focused.focusVisible = false;
       global.document.activeElement = focused;

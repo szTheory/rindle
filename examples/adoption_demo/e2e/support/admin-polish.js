@@ -48,6 +48,32 @@ const DEFAULT_INTERACTIVE_SELECTORS = [
   ".rindle-admin-table__row",
 ];
 
+// Focus-ring contract for the selected surface. Admin callers use the existing
+// token-backed defaults. Cohort callers can pass literals/tokens such as:
+// `{ width: "2px", color: "--ck-focus", offset: "2px" }`.
+const DEFAULT_FOCUS_CONTRACT = Object.freeze({
+  width: "--rindle-focus-width",
+  color: "--rindle-focus-ring",
+  offset: "--rindle-focus-offset",
+});
+
+function normalizeFocusContract(focusContract, root = DEFAULT_ROOT) {
+  const source = focusContract || {};
+  const usesAdminDefaults =
+    source.width === undefined && source.color === undefined && source.offset === undefined;
+
+  return {
+    root: source.root || root,
+    width: source.width || DEFAULT_FOCUS_CONTRACT.width,
+    color: source.color || DEFAULT_FOCUS_CONTRACT.color,
+    offset: source.offset || DEFAULT_FOCUS_CONTRACT.offset,
+    fallbackToDocumentElement:
+      source.fallbackToDocumentElement !== undefined
+        ? !!source.fallbackToDocumentElement
+        : usesAdminDefaults && root === DEFAULT_ROOT,
+  };
+}
+
 // Per-surface, per-check opt-out. SHIP EMPTY — an allowlist that starts populated
 // hides exactly the defects this gate exists to catch. Each entry must carry a
 // justification comment and is a reviewable code change.
@@ -322,7 +348,12 @@ async function assertTargetSizes(page, interactiveSelectors = DEFAULT_INTERACTIV
 // ---------------------------------------------------------------------------
 // Check 4 — token-backed focus-visible and no bare outline removal
 // ---------------------------------------------------------------------------
-async function assertFocusVisibleTokens(page, interactiveSelectors = DEFAULT_INTERACTIVE_SELECTORS) {
+async function assertFocusVisibleTokens(
+  page,
+  interactiveSelectors = DEFAULT_INTERACTIVE_SELECTORS,
+  focusContract = normalizeFocusContract()
+) {
+  const normalizedFocusContract = normalizeFocusContract(focusContract);
   const offenders = await page.evaluate(() => {
     const out = [];
     for (const sheet of Array.from(document.styleSheets)) {
@@ -350,10 +381,17 @@ async function assertFocusVisibleTokens(page, interactiveSelectors = DEFAULT_INT
       if (!(await item.isVisible().catch(() => false))) continue;
       if (await item.isDisabled().catch(() => false)) continue;
       await item.evaluate((element) => element.focus({ focusVisible: true })).catch(() => {});
-      const state = await item.evaluate((element) => {
+      const state = await item.evaluate((element, contract) => {
         if (document.activeElement !== element && !element.matches(":focus-within")) return null;
+        const resolve = (value) => {
+          if (!value || !value.startsWith("--")) return value || "";
+          const rootEl = document.querySelector(contract.root);
+          const rootValue = rootEl ? getComputedStyle(rootEl).getPropertyValue(value).trim() : "";
+          if (rootValue) return rootValue;
+          if (!contract.fallbackToDocumentElement) return "";
+          return getComputedStyle(document.documentElement).getPropertyValue(value).trim();
+        };
         const styles = getComputedStyle(element);
-        const root = getComputedStyle(document.documentElement);
         return {
           tag: element.tagName.toLowerCase(),
           selector:
@@ -367,11 +405,11 @@ async function assertFocusVisibleTokens(page, interactiveSelectors = DEFAULT_INT
           outlineWidth: styles.outlineWidth,
           outlineColor: styles.outlineColor,
           outlineOffset: styles.outlineOffset,
-          expectedWidth: root.getPropertyValue("--rindle-focus-width").trim(),
-          expectedColor: root.getPropertyValue("--rindle-focus-ring").trim(),
-          expectedOffset: root.getPropertyValue("--rindle-focus-offset").trim(),
+          expectedWidth: resolve(contract.width),
+          expectedColor: resolve(contract.color),
+          expectedOffset: resolve(contract.offset),
         };
-      });
+      }, normalizedFocusContract);
       if (!state) continue;
       if (state.outlineWidth !== state.expectedWidth) {
         offenders.push(`${selector} ${state.selector} outlineWidth ${state.outlineWidth} != ${state.expectedWidth}`);
@@ -798,7 +836,12 @@ async function assertDialogInert(page, { expectOpen, root = DEFAULT_ROOT } = {})
 // Keyboard :focus-visible yields outline 2px solid var(--rindle-focus-ring) + 2px offset
 // with the ring color matching per data-theme; a pointer (mouse) focus yields NO ring.
 // Drives the FIRST visible+enabled control of each selector. RETURNS offenders.
-async function assertFocusVisibleVsPointer(page, interactiveSelectors = DEFAULT_INTERACTIVE_SELECTORS) {
+async function assertFocusVisibleVsPointer(
+  page,
+  interactiveSelectors = DEFAULT_INTERACTIVE_SELECTORS,
+  focusContract = normalizeFocusContract()
+) {
+  const normalizedFocusContract = normalizeFocusContract(focusContract);
   const offenders = [];
   for (const selector of interactiveSelectors) {
     const locator = page.locator(selector);
@@ -808,19 +851,28 @@ async function assertFocusVisibleVsPointer(page, interactiveSelectors = DEFAULT_
     if (await item.isDisabled().catch(() => false)) continue;
 
     // Keyboard focus -> :focus-visible should paint the ring.
-    const kb = await item.evaluate((el) => {
+    const kb = await item.evaluate((el, contract) => {
       el.focus({ focusVisible: true });
+      const resolve = (value) => {
+        if (!value || !value.startsWith("--")) return value || "";
+        const rootEl = document.querySelector(contract.root);
+        const rootValue = rootEl ? getComputedStyle(rootEl).getPropertyValue(value).trim() : "";
+        if (rootValue) return rootValue;
+        if (!contract.fallbackToDocumentElement) return "";
+        return getComputedStyle(document.documentElement).getPropertyValue(value).trim();
+      };
       const s = getComputedStyle(el);
-      const root = getComputedStyle(document.documentElement);
       return {
         width: s.outlineWidth,
         style: s.outlineStyle,
-        expectedWidth: root.getPropertyValue("--rindle-focus-width").trim(),
-        expectedOffset: root.getPropertyValue("--rindle-focus-offset").trim(),
+        color: s.outlineColor,
+        expectedWidth: resolve(contract.width),
+        expectedColor: resolve(contract.color),
+        expectedOffset: resolve(contract.offset),
         offset: s.outlineOffset,
         matchesFV: el.matches(":focus-visible"),
       };
-    });
+    }, normalizedFocusContract);
     if (kb.matchesFV) {
       if (kb.width !== kb.expectedWidth) {
         offenders.push(`${selector} keyboard outlineWidth=${kb.width} != ${kb.expectedWidth}`);
@@ -830,6 +882,17 @@ async function assertFocusVisibleVsPointer(page, interactiveSelectors = DEFAULT_
       }
       if (kb.style === "none") {
         offenders.push(`${selector} keyboard focus painted no outline (:focus-visible expected ring)`);
+      }
+      let colorMismatch = false;
+      try {
+        const actual = parseColor(kb.color);
+        const expected = parseColor(kb.expectedColor);
+        colorMismatch = actual.some((value, channel) => Math.abs(value - expected[channel]) > 1);
+      } catch (_error) {
+        colorMismatch = true;
+      }
+      if (colorMismatch) {
+        offenders.push(`${selector} keyboard outlineColor=${kb.color} != ${kb.expectedColor}`);
       }
     }
 
@@ -862,9 +925,11 @@ async function assertAdminPolish(
     surface,
     root = DEFAULT_ROOT,
     interactiveSelectors = DEFAULT_INTERACTIVE_SELECTORS,
+    focusContract,
   } = {}
 ) {
   await freezeMotion(page); // settle transitions before any computed-style read
+  const normalizedFocusContract = normalizeFocusContract(focusContract, root);
 
   const violations = [];
   const warnings = [];
@@ -884,7 +949,9 @@ async function assertAdminPolish(
   await run("noHorizontalScroll", "h-scroll", () => assertNoHorizontalScroll(page, root));
   await run("readableContrast", "contrast", () => assertReadableContrast(page, root));
   await run("targetSizes", "target-size", () => assertTargetSizes(page, interactiveSelectors));
-  await run("focusVisibleTokens", "focus-visible", () => assertFocusVisibleTokens(page, interactiveSelectors));
+  await run("focusVisibleTokens", "focus-visible", () =>
+    assertFocusVisibleTokens(page, interactiveSelectors, normalizedFocusContract)
+  );
   await run("noInteractiveOverlap", "overlap", () => assertNoInteractiveOverlap(page, interactiveSelectors), {
     warnOnly: !OVERLAP_ENFORCED,
   });
@@ -937,6 +1004,8 @@ module.exports = {
   assertFocusVisibleVsPointer,
   DEFAULT_ROOT,
   DEFAULT_INTERACTIVE_SELECTORS,
+  DEFAULT_FOCUS_CONTRACT,
+  normalizeFocusContract,
   REDUCED_MOTION_SELECTORS,
   luminance,
   contrastRatio,
