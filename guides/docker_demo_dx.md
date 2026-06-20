@@ -18,8 +18,9 @@ fighting the other dockerized apps you already run**.
 - **It prints the exact URLs** to copy-paste after launch (app, admin console, MinIO).
 - **Rebuilds are fast.** Editing templates/CSS recompiles only the app, not the whole
   dependency graph.
-- **Optional pretty hostnames** via your shared Traefik: `COHORT_USE_TRAEFIK=1 ./scripts/demo/up.sh`
-  → `http://cohort.localhost`.
+- **Pretty hostnames, automatically.** If you already run a shared Traefik dev proxy on the
+  `proxy` network, `up.sh` detects it and serves the demo at `http://cohort.localhost` — no
+  flag. `COHORT_USE_TRAEFIK=0 ./scripts/demo/up.sh` opts back out to pure loopback.
 
 That's the whole thing. The rest of this guide is for when you want to understand *why*, or
 something doesn't come up.
@@ -86,19 +87,24 @@ COHORT_DEMO_PORT=4212 COHORT_MINIO_PORT=9200 COHORT_MINIO_CONSOLE_PORT=9201 ./sc
 COMPOSE_PROJECT_NAME=rindle-cohort-alt ./scripts/demo/up.sh
 ```
 
-### 4. Pretty hostnames via shared Traefik (opt-in)
+### 4. Pretty hostnames via shared Traefik (automatic)
 
-If you run a shared Traefik dev proxy on the external `proxy` network (label-routing,
-`exposedbydefault=false`, a `web` entrypoint on `:80`), opt in:
+If you already run a shared Traefik dev proxy on the external `proxy` network (label-routing,
+`exposedbydefault=false`, a `web` entrypoint on `:80`), **`up.sh` detects it and routes through
+it automatically** — no flag needed:
 
 ```bash
-COHORT_USE_TRAEFIK=1 ./scripts/demo/up.sh          # → http://cohort.localhost
-COHORT_USE_TRAEFIK=1 COHORT_TRAEFIK_HOST=demo.localhost ./scripts/demo/up.sh
+./scripts/demo/up.sh                               # proxy present → http://cohort.localhost
+COHORT_TRAEFIK_HOST=demo.localhost ./scripts/demo/up.sh   # custom host
+COHORT_USE_TRAEFIK=0 ./scripts/demo/up.sh          # force pure loopback, ignore the proxy
+COHORT_USE_TRAEFIK=1 ./scripts/demo/up.sh          # force on (warns if proxy is absent)
 ```
 
-This attaches the app to the `proxy` network and registers a `Host(...)` router. The app's
-loopback port stays published too, so a stopped proxy never locks you out. If the `proxy`
-network isn't present, `up.sh` warns and falls back to fixed ports instead of failing.
+`COHORT_USE_TRAEFIK` is tri-state: **unset** = auto (on iff the `proxy` network exists),
+`1` = force on, `0` = force off. When Traefik is active the launch output lists both the
+`cohort.localhost` URL and the direct loopback URL. The app's loopback port stays published
+either way, so a stopped proxy never locks you out; if the `proxy` network isn't present, auto
+mode silently falls back to fixed ports (and `=1` warns).
 
 **Coexistence contract** (so sibling demos don't fight one proxy): each demo joins the same
 external `proxy` network, keeps its Traefik **router/service names unique**, and relies on
@@ -164,7 +170,7 @@ throwaway placeholders. Don't expose any of it publicly.
 
 ## Reuse this setup in another lib
 
-The same pattern (auto free ports, URL map, opt-in Traefik, cached Dockerfile) is packaged as
+The same pattern (auto free ports, URL map, auto-detected Traefik, cached Dockerfile) is packaged as
 a copy-pasteable template at [`docker/dx-template/`](../docker/dx-template/TEMPLATE.md) — see
 its `TEMPLATE.md` for the rename checklist and the shared-Traefik contract.
 
