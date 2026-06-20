@@ -64,6 +64,7 @@ jobs:
 
       - name: Restore deps cache
         uses: actions/cache@v4
+        id: deps-cache
         with:
           path: deps
           key: deps-${{ runner.os }}-${{ matrix.elixir }}-${{ matrix.otp }}-${{ hashFiles('**/mix.lock') }}
@@ -71,6 +72,7 @@ jobs:
 
       - name: Restore build cache
         uses: actions/cache@v4
+        id: build-cache
         with:
           path: _build
           key: build-${{ runner.os }}-${{ matrix.elixir }}-${{ matrix.otp }}-${{ hashFiles('**/mix.lock') }}
@@ -136,6 +138,22 @@ jobs:
       - name: Dialyzer
         continue-on-error: true
         run: mix dialyzer --format github
+
+      # OBS-01 (additive, observational): surface cache hit/miss in the run summary.
+      # cache-hit is 'true' only on an exact key hit; a restore-keys partial hit
+      # leaves it empty, hence `|| 'false'`. No gate/topology change.
+      - name: Summarize cache hit/miss
+        if: always()
+        run: |
+          {
+            echo "## Cache hit/miss — ${{ github.job }} (${{ matrix.elixir }}/${{ matrix.otp }})"
+            echo ""
+            echo "| Cache | Hit |"
+            echo "| --- | --- |"
+            echo "| deps  | ${{ steps.deps-cache.outputs.cache-hit || 'false' }} |"
+            echo "| build | ${{ steps.build-cache.outputs.cache-hit || 'false' }} |"
+            echo "| plt   | ${{ steps.plt-cache.outputs.cache-hit || 'false' }} |"
+          } >> "$GITHUB_STEP_SUMMARY"
 
   optional-dependencies:
     name: ADMIN-06 Optional Dependencies
@@ -227,6 +245,7 @@ jobs:
 
       - name: Restore deps cache
         uses: actions/cache@v4
+        id: deps-cache
         with:
           path: deps
           key: deps-${{ runner.os }}-1.17-27-${{ hashFiles('**/mix.lock') }}
@@ -234,10 +253,24 @@ jobs:
 
       - name: Restore build cache
         uses: actions/cache@v4
+        id: build-cache
         with:
           path: _build
           key: build-${{ runner.os }}-1.17-27-${{ hashFiles('**/mix.lock') }}
           restore-keys: build-${{ runner.os }}-1.17-27-
+
+      # OBS-01 (additive, observational): surface cache hit/miss in the run summary.
+      - name: Summarize cache hit/miss
+        if: always()
+        run: |
+          {
+            echo "## Cache hit/miss — ${{ github.job }}"
+            echo ""
+            echo "| Cache | Hit |"
+            echo "| --- | --- |"
+            echo "| deps  | ${{ steps.deps-cache.outputs.cache-hit || 'false' }} |"
+            echo "| build | ${{ steps.build-cache.outputs.cache-hit || 'false' }} |"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Install dependencies
         run: mix deps.get
@@ -481,6 +514,7 @@ jobs:
 
       - name: Restore deps cache
         uses: actions/cache@v4
+        id: deps-cache
         with:
           path: deps
           key: deps-${{ runner.os }}-1.17-27-${{ hashFiles('**/mix.lock') }}
@@ -488,10 +522,24 @@ jobs:
 
       - name: Restore build cache
         uses: actions/cache@v4
+        id: build-cache
         with:
           path: _build
           key: build-${{ runner.os }}-1.17-27-${{ hashFiles('**/mix.lock') }}
           restore-keys: build-${{ runner.os }}-1.17-27-
+
+      # OBS-01 (additive, observational): surface cache hit/miss in the run summary.
+      - name: Summarize cache hit/miss
+        if: always()
+        run: |
+          {
+            echo "## Cache hit/miss — ${{ github.job }}"
+            echo ""
+            echo "| Cache | Hit |"
+            echo "| --- | --- |"
+            echo "| deps  | ${{ steps.deps-cache.outputs.cache-hit || 'false' }} |"
+            echo "| build | ${{ steps.build-cache.outputs.cache-hit || 'false' }} |"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Install dependencies
         run: mix deps.get
