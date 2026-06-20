@@ -19,13 +19,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     @endpoint __MODULE__.Endpoint
     @raw_provider_id "provider-secret-variant-id"
+    # Task-first nav labels (UI-SPEC §E, D-98-03): relabeled for task-scent.
     @surfaces [
-      "Home/Status",
+      "Overview",
       "Assets",
-      "Upload Sessions",
-      "Variants/Jobs",
-      "Runtime/Doctor",
-      "Actions"
+      "Upload sessions",
+      "Processing",
+      "Doctor",
+      "Maintenance"
     ]
 
     defmodule Router do
@@ -120,6 +121,94 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     end
 
+    # CR-01 regression: the Processing summary counters read variant-state buckets
+    # from `RuntimeStatus.count_map/1`, which is ATOM-keyed. The original code read
+    # them with STRING keys (`count_value(@model, "failed")`, ...) so every counter
+    # except the atom-keyed `:total` always rendered 0. This asserts the per-state
+    # counters reflect REAL counts. Fails against the string-key code (failed counter
+    # reads 0 despite three failed variants).
+    test "Processing summary counters reflect real atom-keyed counts (CR-01 regression)", %{
+      conn: conn
+    } do
+      asset = insert_asset(%{profile: to_string(ImageProfile)})
+      _f1 = insert_variant(asset, %{name: "thumb", state: "failed", error_reason: "boom"})
+
+      asset2 = insert_asset(%{profile: to_string(ImageProfile), filename: "two.png"})
+      _f2 = insert_variant(asset2, %{name: "thumb", state: "failed", error_reason: "boom"})
+
+      asset3 = insert_asset(%{profile: to_string(ImageProfile), filename: "three.png"})
+      _f3 = insert_variant(asset3, %{name: "thumb", state: "failed", error_reason: "boom"})
+
+      {:ok, _view, html} = Phoenix.LiveViewTest.live(conn, "/admin/rindle/variants-jobs")
+
+      # The "failed" counter in the summary metadata list must read the real
+      # bucket count (3), not the 0 fallback the string-key bug produced. The
+      # metadata_list renders each row as `<dt>failed</dt> <dd>3</dd>` — assert the
+      # failed dt is immediately followed by a dd of 3 (and NOT 0).
+      failed_dt_dd =
+        Regex.run(
+          ~r{<dt>\s*failed\s*</dt>\s*<dd>\s*(\d+)\s*</dd>},
+          html
+        )
+
+      assert failed_dt_dd, "expected a 'failed' counter row in the Processing summary"
+      assert List.last(failed_dt_dd) == "3"
+    end
+
+    test "Processing hosts the distributed Regenerate variants confirm dialog (UI-SPEC §E)", %{
+      conn: conn
+    } do
+      {:ok, view, html} = Phoenix.LiveViewTest.live(conn, "/admin/rindle/variants-jobs")
+
+      # The regenerate verb was distributed off Maintenance onto Processing and
+      # confirms through the shared confirm_dialog/1 primitive (D-98-10/11).
+      assert html =~ ~s(data-rindle-admin-action="variant_regeneration")
+      assert html =~ "Regenerate variants"
+      assert html =~ "Regenerate stale variants?"
+
+      assert Phoenix.LiveViewTest.has_element?(
+               view,
+               "[data-rindle-admin-dialog][role=\"alertdialog\"]"
+             )
+
+      assert Phoenix.LiveViewTest.has_element?(
+               view,
+               "[data-rindle-admin-submit=\"confirm_regenerate\"]"
+             )
+
+      Phoenix.LiveViewTest.render_hook(view, "confirm_regenerate", %{})
+
+      assert Phoenix.LiveViewTest.has_element?(
+               view,
+               "[data-rindle-admin-receipt=\"variant_regeneration\"]"
+             )
+
+      assert Phoenix.LiveViewTest.render(view) =~ "Variant regeneration queued."
+    end
+
+    # CR-02 regression: opening the regenerate dialog sets `dialog_open=true`, which
+    # inerts `<main>` (inert + aria-hidden). The dialog MUST be a sibling of (and
+    # rendered after) `<main>` — via the shell `:overlay` slot — not a descendant of
+    # it, or `inert` would disable the dialog and its buttons the instant it opens.
+    # Fails against the prior markup (dialog nested in the `:summary` slot inside main).
+    test "open regenerate dialog renders OUTSIDE the inerted <main> (CR-02 regression)", %{
+      conn: conn
+    } do
+      {:ok, view, _html} = Phoenix.LiveViewTest.live(conn, "/admin/rindle/variants-jobs")
+
+      # Open the dialog so dialog_open=true and <main> becomes inert.
+      html = Phoenix.LiveViewTest.render_hook(view, "open_regenerate", %{})
+
+      # <main> carries inert/aria-hidden while the dialog is open.
+      assert_main_inerted(html)
+
+      # The dialog + its confirm button must live in the overlay host that is a
+      # SIBLING of <main> (i.e. after </main>), never inside the inerted subtree.
+      assert_outside_inert_main(html, ~s(data-rindle-admin-overlay-host))
+      assert_outside_inert_main(html, ~s(data-rindle-admin-submit="confirm_regenerate"))
+      assert_outside_inert_main(html, ~s(id="regenerate-variants-content"))
+    end
+
     test "Variants/Jobs refreshes visible variant rows through queries after PubSub events", %{
       conn: conn
     } do
@@ -175,22 +264,22 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ "Runtime status"
       assert html =~ "Failed or missing prerequisites"
       assert html =~ "probe_drift"
-      assert html =~ "Variants/Jobs"
-      assert html =~ "Actions"
+      assert html =~ "Processing"
+      assert html =~ "Maintenance"
+      assert html =~ "Reconcile"
+      assert html =~ "Verify storage"
       assert html =~ "Refresh status"
       assert html =~ "Waiting for lifecycle events"
     end
 
-    test "Actions renders the Phase 90 operation directory and active panels", %{conn: conn} do
+    test "Maintenance keeps only contextless cross-cutting ops (erasure)", %{conn: conn} do
       {:ok, _view, html} = Phoenix.LiveViewTest.live(conn, "/admin/rindle/actions")
 
       assert_shell(html, "actions")
-      assert html =~ "Actions"
+      assert html =~ "Maintenance"
+      # Contextless cross-cutting ops stay on Maintenance (UI-SPEC §E).
       assert html =~ "Owner erasure"
       assert html =~ "Batch erasure"
-      assert html =~ "Variant regeneration"
-      assert html =~ "Quarantine review"
-      assert html =~ "Lifecycle repair"
       assert html =~ "Actions Directory"
       assert html =~ "Preview and erase one owner"
       assert html =~ "Preview owner erasure"
@@ -198,15 +287,44 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       assert html =~ ~s(data-rindle-admin-action="owner_erasure")
       assert html =~ ~s(data-rindle-admin-action="batch_erasure")
-      assert html =~ ~s(data-rindle-admin-action="variant_regeneration")
-      assert html =~ ~s(data-rindle-admin-action="quarantine_review")
-      assert html =~ ~s(data-rindle-admin-action="lifecycle_repair")
       assert html =~ ~s(data-rindle-admin-action-panel="owner_erasure")
       assert html =~ ~s(data-rindle-admin-form="owner_erasure_preview")
       assert html =~ ~s(data-rindle-admin-submit="preview_owner_erasure")
 
+      # The verb-bucket actions were DISTRIBUTED to their contextual surfaces
+      # (regenerate → Processing, quarantine → Assets, reconcile → Doctor); they
+      # no longer live in the Maintenance directory (D-98-10).
+      refute html =~ ~s(data-rindle-admin-action="variant_regeneration")
+      refute html =~ ~s(data-rindle-admin-action="quarantine_review")
+      refute html =~ ~s(data-rindle-admin-action="lifecycle_repair")
+
       refute html =~ "LifecycleRepair"
       refute html =~ "VariantMaintenance"
+    end
+
+    # CR-02 helpers: the inerted <main> is the destructive-focus boundary. A live
+    # dialog must NOT be a descendant of it (inert disables descendants), so we assert
+    # the dialog markers appear AFTER the </main> close tag — i.e. in the sibling
+    # overlay host — and that <main> actually carries inert/aria-hidden when open.
+    defp assert_main_inerted(html) do
+      main_open = Regex.run(~r/<main[^>]*>/, html)
+      assert main_open, "expected a <main> element in the rendered shell"
+      assert hd(main_open) =~ "inert", "expected <main> to carry inert while a dialog is open"
+
+      assert hd(main_open) =~ ~s(aria-hidden="true"),
+             "expected <main> to carry aria-hidden=\"true\" while a dialog is open"
+    end
+
+    defp assert_outside_inert_main(html, marker) do
+      main_close = :binary.match(html, "</main>")
+      assert main_close != :nomatch, "expected a </main> close tag"
+      {main_close_at, _} = main_close
+      marker_at = :binary.match(html, marker)
+      assert marker_at != :nomatch, "expected marker #{inspect(marker)} in the rendered html"
+      {marker_pos, _} = marker_at
+
+      assert marker_pos > main_close_at,
+             "#{inspect(marker)} must render AFTER </main> (sibling overlay), not inside the inerted <main>"
     end
 
     defp assert_shell(html, surface) do

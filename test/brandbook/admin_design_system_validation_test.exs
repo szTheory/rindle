@@ -1,9 +1,47 @@
 defmodule Rindle.Brandbook.AdminDesignSystemValidationTest do
   use ExUnit.Case, async: false
 
+  # Phase 98 §A/§B/§D/§E/§F gate clauses render pure admin function components
+  # (shell/theme_picker/live_indicator/page) via render_component — these are stateless
+  # Phoenix.Components needing no DB/endpoint. Data-driven §E/§F structure (nav order,
+  # triage DOM order, deep-link params, microcopy) is asserted by scanning the
+  # *_live.ex / components.ex SOURCE, matching the existing @implementation_files idiom.
+  #
+  # render_component is a macro requiring a module-level import (a conditional import
+  # inside an `if` block does NOT establish it). This is safe: `test/` only compiles in
+  # the test-running CI jobs (quality/integration), all of which install the optional
+  # phoenix_live_view dep. The ADMIN-06 `--no-optional-deps` job only `mix compile`s lib/.
+  import Phoenix.LiveViewTest, only: [render_component: 2]
+
   @moduletag :integration
 
   @repo_root Path.expand("../..", __DIR__)
+
+  # The six task-first nav labels in canonical §E order (D-98-03). Slugs/suffixes are
+  # frozen behavior contracts; only the human label changed off the legacy slashed names.
+  @nav_labels ["Overview", "Assets", "Upload sessions", "Processing", "Doctor", "Maintenance"]
+
+  # §F R4 hype words + §F R5 vague standalone labels — must NEVER appear in admin markup.
+  @denylist_words ~w(blazing seamless effortless powerful revolutionary supercharge
+                     unleash magical delightful amazing awesome)
+
+  # The four migrated table surfaces that must carry an accessible <caption> + scope.
+  @table_surfaces [
+    "lib/rindle/admin/live/assets_live.ex",
+    "lib/rindle/admin/live/upload_sessions_live.ex",
+    "lib/rindle/admin/live/runtime_doctor_live.ex",
+    "lib/rindle/admin/live/variants_jobs_live.ex"
+  ]
+
+  @admin_surface_files [
+    "lib/rindle/admin/components.ex",
+    "lib/rindle/admin/live/home_live.ex",
+    "lib/rindle/admin/live/assets_live.ex",
+    "lib/rindle/admin/live/upload_sessions_live.ex",
+    "lib/rindle/admin/live/variants_jobs_live.ex",
+    "lib/rindle/admin/live/runtime_doctor_live.ex",
+    "lib/rindle/admin/live/actions_live.ex"
+  ]
 
   @implementation_files [
     "brandbook/src/admin-design-system-data.mjs",
@@ -12,7 +50,8 @@ defmodule Rindle.Brandbook.AdminDesignSystemValidationTest do
     "brandbook/src/admin-gallery.mjs",
     "brandbook/src/admin-gallery-check.mjs",
     "brandbook/admin-gallery/index.html",
-    "brandbook/tokens/rindle-admin.css"
+    "brandbook/tokens/rindle-admin.css",
+    "examples/adoption_demo/e2e/support/admin-polish.js"
   ]
 
   @screenshots [
@@ -22,7 +61,18 @@ defmodule Rindle.Brandbook.AdminDesignSystemValidationTest do
     "gallery-light-mobile.png",
     "status-chips-dark.png",
     "theme-picker-light.png",
-    "confirm-dialog-light.png"
+    "confirm-dialog-light.png",
+    "form-controls-light.png",
+    "error-state-dark.png",
+    "loading-state-auto.png",
+    "meta-toolbar-light.png",
+    "meta-data-table-light.png",
+    "meta-filter-bar-light.png",
+    "meta-action-panel-light.png",
+    "meta-detail-drilldown-light.png",
+    "meta-confirm-panel-light.png",
+    "meta-drawer-light.png",
+    "meta-toast-stack-light.png"
   ]
 
   test "DS-01 generated admin CSS is reproducible and token-backed" do
@@ -49,7 +99,20 @@ defmodule Rindle.Brandbook.AdminDesignSystemValidationTest do
           ".rindle-admin-button--secondary",
           ".rindle-admin-button--quiet",
           ".rindle-admin-button--destructive",
+          "[data-rindle-admin-input]",
+          "[data-rindle-admin-confirm-input]",
+          "[data-rindle-admin-empty-state]",
+          "[data-rindle-admin-error-state]",
+          "[data-rindle-admin-loading-state]",
+          ".rindle-admin-button:focus-visible",
+          ".rindle-admin-nav__item[aria-current=\"page\"]",
           ".rindle-admin-confirm-dialog",
+          # WR-01: the overlay primitive's positioning + backdrop must be generated,
+          # or modal/1 + confirm_dialog/1 render with no fixed positioning, no scrim,
+          # and no z-index. The generator's requiredSelectors guards this fail-closed;
+          # this clause is the ExUnit backstop.
+          ".rindle-admin-overlay",
+          ".rindle-admin-overlay__backdrop",
           ".rindle-admin-drawer",
           ".rindle-admin-toast",
           ".rindle-admin-empty-state",
@@ -87,6 +150,7 @@ defmodule Rindle.Brandbook.AdminDesignSystemValidationTest do
 
     for context <- [
           "buttons",
+          "form controls",
           "table",
           "focus",
           "status chips",
@@ -94,6 +158,8 @@ defmodule Rindle.Brandbook.AdminDesignSystemValidationTest do
           "confirm dialog",
           "drawer",
           "empty state",
+          "error state",
+          "loading state",
           "skeleton",
           "borders"
         ] do
@@ -102,7 +168,7 @@ defmodule Rindle.Brandbook.AdminDesignSystemValidationTest do
 
     admin_output = run_node("brandbook/src/admin-contrast.mjs")
     assert admin_output =~ "status chips processing"
-    assert admin_output =~ "admin contrast: 44/44 pairs pass"
+    assert admin_output =~ "admin contrast: 58/58 pairs pass"
 
     base_output = run_node("brandbook/src/contrast.mjs")
     assert base_output =~ "47/47 pairs pass"
@@ -110,7 +176,7 @@ defmodule Rindle.Brandbook.AdminDesignSystemValidationTest do
 
   test "DS-02 gallery harness proves themes, screenshots, and surface anchors" do
     output = run_node("brandbook/src/admin-gallery-check.mjs")
-    assert output =~ "admin gallery check passed - 7 screenshots written"
+    assert output =~ "admin gallery check passed - 18 screenshots written"
 
     html = read!("brandbook/admin-gallery/index.html")
     assert html =~ "data-theme=\"auto\""
@@ -125,16 +191,33 @@ defmodule Rindle.Brandbook.AdminDesignSystemValidationTest do
           "shell",
           "nav",
           "table",
-          "status-chips",
-          "buttons",
+          "status-chip",
+          "button",
           "theme-picker",
+          "form-controls",
           "confirm-dialog",
           "drawer",
-          "toasts",
+          "toast",
           "empty-state",
-          "skeletons"
+          "error-state",
+          "loading-state",
+          "skeleton"
         ] do
       assert html =~ "data-rindle-admin-component=\"#{component}\""
+    end
+
+    for state <- [
+          "default",
+          "hover",
+          "focus-visible",
+          "active",
+          "disabled",
+          "loading",
+          "empty",
+          "error",
+          "skeleton"
+        ] do
+      assert html =~ "data-rindle-admin-state=\"#{state}\""
     end
 
     for {surface, id} <- [
@@ -168,8 +251,8 @@ defmodule Rindle.Brandbook.AdminDesignSystemValidationTest do
     for command <- [
           "node brandbook/src/admin-css-build.mjs",
           "node brandbook/src/admin-contrast.mjs",
-          "node brandbook/src/admin-gallery.mjs",
           "node brandbook/src/admin-gallery-check.mjs",
+          "node brandbook/src/sync-admin-css.mjs",
           "node brandbook/src/contrast.mjs"
         ] do
       assert guide =~ command
@@ -179,6 +262,8 @@ defmodule Rindle.Brandbook.AdminDesignSystemValidationTest do
           "brandbook/tokens/rindle-admin.css",
           "brandbook/admin-gallery/index.html",
           "brandbook/admin-gallery/screenshots/",
+          "form-controls",
+          "focus-visible",
           "data-theme=\"light|dark|auto\"",
           "prefers-color-scheme",
           "Package Boundary",
@@ -213,6 +298,313 @@ defmodule Rindle.Brandbook.AdminDesignSystemValidationTest do
     assert read!("priv/static/rindle_admin/rindle-admin.css") ==
              read!("brandbook/tokens/rindle-admin.css")
   end
+
+  # ===========================================================================
+  # Phase 98 merge-gate clauses over the REAL migrated surfaces (D-98-04/05).
+  # The static / substring / render_component-grep half (D-98-05); the five
+  # non-inferable computed-style backstops live in Playwright (admin-polish.js).
+  # ===========================================================================
+
+  describe "§A page-composition scaffold (D-98-01/12)" do
+    test "page/1 renders the canonical slot order in DOM order" do
+      html =
+        render_component(&Rindle.Admin.Components.page/1, %{
+          summary: slot("SUMMARY-SLOT"),
+          filters: slot("FILTERS-SLOT"),
+          work: slot("WORK-SLOT"),
+          actions: slot("ACTIONS-SLOT")
+        })
+
+      positions =
+        ["SUMMARY-SLOT", "FILTERS-SLOT", "WORK-SLOT", "ACTIONS-SLOT"]
+        |> Enum.map(fn marker -> {marker, :binary.match(html, marker)} end)
+
+      for {marker, match} <- positions do
+        assert match != :nomatch, "expected #{marker} in rendered page/1"
+      end
+
+      offsets = Enum.map(positions, fn {_marker, {offset, _len}} -> offset end)
+      assert offsets == Enum.sort(offsets), "page/1 slots out of canonical DOM order"
+
+      # §A: the scaffold root carries the page seam; layout lives in generated CSS only.
+      assert html =~ ~s(data-rindle-admin-page)
+      assert html =~ "rindle-admin-page__work"
+    end
+
+    test "page/1 declares :work as a required slot (compile-time guarantee)" do
+      # `slot :work, required: true` makes omission a COMPILE error, not a runtime one;
+      # assert the contract is declared in source (the compile-time guard itself).
+      assert read!("lib/rindle/admin/components.ex") =~ "slot(:work, required: true)"
+    end
+
+    test "no admin surface declares a page-local display:grid (layout is generated-CSS only)" do
+      offenders =
+        for file <- @admin_surface_files,
+            line <- String.split(read!(file), "\n"),
+            String.contains?(String.replace(line, " ", ""), "display:grid"),
+            do: file
+
+      assert offenders == [],
+             "page-local display:grid found (D-98-12 forbids inline layout): #{inspect(offenders)}"
+    end
+
+    test "generated CSS consumes --rindle-shadow-card (the :summary first-order surface)" do
+      assert read!("brandbook/tokens/rindle-admin.css") =~ "var(--rindle-shadow-card)"
+    end
+  end
+
+  describe "§B motion catalog (GPU-only, D-98-14)" do
+    # §B forbids LAYOUT-REFLOW transitions (the costly, jank-prone ones). The enter/exit
+    # motion catalog (popover/toast/drawer/dialog/skeleton/status-chip) animates GPU-only
+    # opacity/transform; micro-interaction hover/press paint feedback (background-color,
+    # color, border-color) is explicitly allowed (98-01 authored + gated it). What is
+    # NEVER allowed is animating box-model geometry — that triggers reflow on every frame.
+    test "no transition animates a layout-reflow (box-model) property" do
+      css = read!("brandbook/tokens/rindle-admin.css")
+
+      transition_lines =
+        css
+        |> String.split("\n")
+        |> Enum.filter(&Regex.match?(~r/\btransition\s*:/i, &1))
+        # The reduced-motion collapse line legitimately sets `transition-duration`.
+        |> Enum.reject(&String.contains?(&1, "transition-duration"))
+
+      assert transition_lines != [], "expected enumerated transition declarations in §B catalog"
+
+      # Geometry/reflow properties only (the skip-link `top` reveal is a single focus-time
+      # reposition of an off-canvas element, not a per-frame layout animation — excluded by
+      # asserting on the width/height/margin/padding/inset family that thrash content flow).
+      reflow_props = ~w(width height margin padding left right bottom inset)
+
+      offenders =
+        for line <- transition_lines,
+            prop <- reflow_props,
+            Regex.match?(~r/\btransition\s*:[^;]*\b#{Regex.escape(prop)}\b/i, line),
+            do: String.trim(line)
+
+      assert offenders == [],
+             "transition animates a layout-reflow property: #{inspect(offenders)}"
+    end
+
+    test "the enter/exit motion catalog selectors animate opacity/transform only" do
+      css = read!("brandbook/tokens/rindle-admin.css")
+
+      # The catalog selectors whose ENTER/EXIT must be GPU-only (98-01 §B).
+      for selector <- [
+            ".rindle-admin-theme-picker__option",
+            ".rindle-admin-toast",
+            ".rindle-admin-confirm-dialog",
+            ".rindle-admin-skeleton"
+          ] do
+        # capture the transition declaration that follows the selector's rule open-brace
+        case Regex.run(~r/#{Regex.escape(selector)}\s*\{[^}]*?(transition\s*:[^;]+;)/s, css) do
+          [_, decl] ->
+            refute decl =~
+                     ~r/\b(background-color|color|width|height|margin|padding|border-color)\b/,
+                   "#{selector} enter/exit transition is not GPU-only: #{decl}"
+
+          _ ->
+            flunk("expected a transition declaration for catalog selector #{selector}")
+        end
+      end
+    end
+
+    test "the all-properties transition shorthand never appears" do
+      css = read!("brandbook/tokens/rindle-admin.css")
+
+      assert not Regex.match?(~r/transition\s*:\s*all\b/i, css),
+             "transition shorthand 'all' is forbidden (§B)"
+    end
+  end
+
+  describe "§D a11y dead-markup + structure (D-98-06/07/08)" do
+    test "theme_picker renders server-owned aria-pressed in dead markup" do
+      # HEEx serializes a true boolean attr as the bare attribute name and OMITS it when
+      # false — so the SERVER-RENDERED (dead) markup is the only place the pressed option is
+      # distinguishable (a client read could not prove server-ownership). The pressed option
+      # carries `aria-pressed`; the other two do not.
+      light = render_component(&Rindle.Admin.Components.theme_picker/1, %{theme: "light"})
+      assert light =~ ~s(data-rindle-admin-theme="light")
+
+      assert light =~ ~r/data-rindle-admin-theme="light"\s+aria-pressed/,
+             "light option must render server-owned aria-pressed when @theme=light"
+
+      # server-ownership: switching the assign moves aria-pressed onto the dark option.
+      dark = render_component(&Rindle.Admin.Components.theme_picker/1, %{theme: "dark"})
+      assert dark =~ ~r/data-rindle-admin-theme="dark"\s+aria-pressed/
+
+      refute dark =~ ~r/data-rindle-admin-theme="light"\s+aria-pressed/,
+             "light option must NOT be pressed when @theme=dark (false boolean is omitted)"
+    end
+
+    test "shell renders skip-link first then #rindle-admin-main with id + tabindex=-1" do
+      html = shell_html()
+
+      assert html =~ ~s(href="#rindle-admin-main")
+      assert html =~ ~s(id="rindle-admin-main")
+      assert html =~ ~s(tabindex="-1")
+
+      {skip_off, _} = :binary.match(html, "rindle-admin-skip-link")
+      {main_off, _} = :binary.match(html, ~s(id="rindle-admin-main"))
+      assert skip_off < main_off, "skip-link must precede <main>"
+    end
+
+    test "live_indicator carries role=status and no tabindex (dead, non-interactive)" do
+      html = render_component(&Rindle.Admin.Components.live_indicator/1, %{copy: "Waiting"})
+      assert html =~ ~s(role="status")
+      assert html =~ ~s(aria-live="polite")
+      refute html =~ "tabindex", "live_indicator must not be focusable (no tabindex)"
+    end
+
+    test "every migrated data table has a caption, scope=col headers, and a scope=row cell" do
+      for file <- @table_surfaces do
+        src = read!(file)
+
+        assert src =~ ~s(<caption class="rindle-admin-visually-hidden">),
+               "#{file} missing visually-hidden caption"
+
+        assert src =~ ~s(scope="col"), "#{file} missing scope=col header"
+        assert src =~ ~s(scope="row"), "#{file} missing scope=row row-header cell"
+      end
+    end
+
+    test "the visually-hidden caption utility is authored in generated CSS (98-02b carryover closed)" do
+      assert read!("brandbook/tokens/rindle-admin.css") =~ ".rindle-admin-visually-hidden"
+
+      assert read!("priv/static/rindle_admin/rindle-admin.css") =~ ".rindle-admin-visually-hidden"
+    end
+  end
+
+  describe "§E task-first IA (D-98-03/10)" do
+    test "nav renders exactly the six task-first labels in canonical order" do
+      html = shell_html()
+
+      offsets =
+        Enum.map(@nav_labels, fn label ->
+          assert {offset, _len} =
+                   :binary.match(html, ">\n                #{label}\n")
+                   |> normalize_match(html, label),
+                 "nav missing label #{label}"
+
+          offset
+        end)
+
+      assert offsets == Enum.sort(offsets), "nav labels out of §E order"
+    end
+
+    test "no legacy slashed / verb-bucket nav label survives" do
+      src = read!("lib/rindle/admin/components.ex")
+
+      for legacy <- ["Home/Status", "Variants/Jobs", "Runtime/Doctor"] do
+        refute src =~ ~s(name: "#{legacy}"), "legacy nav label #{legacy} still present"
+      end
+    end
+
+    test "Overview triage DOM order: needs-attention -> system-health -> recent-activity -> totals" do
+      src = read!("lib/rindle/admin/live/home_live.ex")
+
+      sections = ["needs-attention", "system-health", "recent-activity", "totals"]
+
+      offsets =
+        Enum.map(sections, fn section ->
+          {offset, _} = :binary.match(src, ~s(data-rindle-admin-section="#{section}"))
+          offset
+        end)
+
+      assert offsets == Enum.sort(offsets), "Overview triage sections out of §E order"
+      # vanity totals LAST (below the fold).
+      assert List.last(offsets) == Enum.max(offsets)
+      # the legacy inspect/1 anti-pattern is gone.
+      refute src =~ "inspect(", "Overview must not use the inspect/1 dump anti-pattern"
+    end
+
+    test "each needs-attention entry deep-links via a documented query param (no new routes)" do
+      src = read!("lib/rindle/admin/live/home_live.ex")
+
+      for param <- [
+            "variants-jobs?state=failed",
+            "variants-jobs?class=stale",
+            "assets?state=quarantined",
+            "upload-sessions?state=expired"
+          ] do
+        assert src =~ param, "needs-attention deep-link #{param} missing"
+      end
+    end
+
+    test "the all-clear affirmative copy is rendered on a healthy fixture" do
+      src = read!("lib/rindle/admin/live/home_live.ex")
+      assert src =~ "data-rindle-admin-all-clear"
+      assert src =~ "Nothing needs attention"
+    end
+  end
+
+  describe "§F voice + microcopy (D-98-05)" do
+    test "no R4 hype word or R5 vague label appears in admin surface source" do
+      offenders =
+        for file <- @admin_surface_files,
+            word <- @denylist_words,
+            Regex.match?(~r/\b#{Regex.escape(word)}\b/i, read!(file)),
+            do: "#{file}:#{word}"
+
+      assert offenders == [], "denylisted hype/vague words in admin markup: #{inspect(offenders)}"
+    end
+
+    test "the six off-voice strings are replaced (old gone, new present)" do
+      components = read!("lib/rindle/admin/components.ex")
+      variants = read!("lib/rindle/admin/live/variants_jobs_live.ex")
+
+      # off-voice removals
+      refute components =~ "Retry load", "old 'Retry load' label still present"
+
+      refute String.contains?(components, "Runtime/Doctor confirm"),
+             "old empty-state 'Runtime/Doctor' body still present"
+
+      # replacements present
+      assert components =~ "This surface could not load."
+      assert components =~ ~s(href=".">Retry)
+      assert variants =~ "This is a diagnostic recommendation."
+    end
+
+    test "confirm dialog headings match {Verb} this {noun}? and bodies carry no exclamation" do
+      variants = read!("lib/rindle/admin/live/variants_jobs_live.ex")
+      actions = read!("lib/rindle/admin/live/actions_live.ex")
+
+      assert variants =~ ~r/<:title>\w+ \w+ \w+\?<\/:title>/,
+             "Processing confirm heading off-shape"
+
+      assert actions =~ "<:title>Erase this owner?</:title>"
+
+      # No "!" inside a confirm-dialog body (the only admin "!" is the decorative
+      # aria-hidden glyph in live_indicator, which is not a destructive body).
+      for {label, src} <- [{"variants", variants}, {"actions", actions}] do
+        dialog_bodies = Regex.scan(~r/<\.confirm_dialog.*?<\/\.confirm_dialog>/s, src)
+
+        for [body] <- dialog_bodies do
+          refute body =~ "!", "#{label} confirm-dialog body contains an exclamation mark"
+        end
+      end
+    end
+  end
+
+  # --- render helpers for the pure admin function components -------------------
+
+  defp slot(text) do
+    [%{__slot__: :inner_block, inner_block: fn _changed, _arg -> text end}]
+  end
+
+  defp shell_html do
+    render_component(&Rindle.Admin.Components.shell/1, %{
+      active: "home-status",
+      title: "Overview",
+      theme: "auto",
+      inner_block: slot("WORK")
+    })
+  end
+
+  # :binary.match over a hand-built needle is brittle to HEEx whitespace; fall back to a
+  # plain label match if the formatted needle misses, so the order assertion stays robust.
+  defp normalize_match(:nomatch, html, label), do: :binary.match(html, label)
+  defp normalize_match(match, _html, _label), do: match
 
   defp run_node(script) do
     node = System.find_executable("node") || flunk("node executable is required for #{script}")

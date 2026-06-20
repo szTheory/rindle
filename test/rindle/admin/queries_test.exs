@@ -248,32 +248,21 @@ defmodule Rindle.Admin.QueriesTest do
     refute encoded =~ "Mix.Tasks.Rindle.Doctor"
   end
 
-  test "actions_directory/0 returns phase 90 operation metadata" do
+  test "actions_directory/0 keeps only contextless cross-cutting ops (UI-SPEC §E, D-98-10)" do
     assert {:ok, model} = Queries.actions_directory()
 
+    # The "Actions" verb-bucket is distributed to its contextual surfaces
+    # (regenerate → Processing, release/quarantine → Assets, reconcile → Doctor);
+    # Maintenance keeps ONLY the genuinely contextless GDPR-driven erasure ops.
     assert Enum.map(model.actions, & &1.id) == [
              :owner_erasure,
-             :batch_erasure,
-             :variant_regeneration,
-             :quarantine_review,
-             :lifecycle_repair
+             :batch_erasure
            ]
 
     for action <- model.actions do
       assert action.phase == 90
-
-      if action.id in [:owner_erasure, :batch_erasure, :variant_regeneration, :lifecycle_repair] do
-        assert action.enabled? == true
-        assert action.read_only? == false
-      else
-        if action.id in [:quarantine_review] do
-          assert action.enabled? == true
-          assert action.read_only? == true
-        else
-          assert action.enabled? == false
-          assert action.read_only? == true
-        end
-      end
+      assert action.enabled? == true
+      assert action.read_only? == false
 
       refute Map.has_key?(action, :mfa)
       refute Map.has_key?(action, :callback)

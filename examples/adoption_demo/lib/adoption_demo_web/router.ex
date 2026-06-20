@@ -21,6 +21,7 @@ defmodule AdoptionDemoWeb.Router do
     pipe_through(:browser)
 
     live("/", LaunchpadLive, :index)
+    live("/styleguide", StyleguideLive, :index)
     live("/dashboard", DashboardLive, :index)
     live("/members/:id", MemberLive, :show)
     live("/lessons/:id", LessonLive, :show)

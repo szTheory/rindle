@@ -149,6 +149,56 @@
     },
   };
 
+  // WAI-ARIA APG tabs keyboard handler (D-96-17). The hook owns KEYBOARD ONLY —
+  // ArrowLeft/ArrowRight move focus + roving tabindex across the tabs, Home/End
+  // jump to the first/last; selection (aria-selected, panel visibility) stays
+  // server-owned via phx-click. No JS framework, no new dep.
+  const Tabs = {
+    mounted() {
+      this.onKeydown = (event) => {
+        const tabs = Array.from(
+          this.el.querySelectorAll('[role="tab"]:not([disabled])'),
+        );
+        if (tabs.length === 0) return;
+
+        const current = document.activeElement;
+        const index = tabs.indexOf(current);
+        if (index === -1) return;
+
+        let next = null;
+        switch (event.key) {
+          case "ArrowRight":
+          case "ArrowDown":
+            next = tabs[(index + 1) % tabs.length];
+            break;
+          case "ArrowLeft":
+          case "ArrowUp":
+            next = tabs[(index - 1 + tabs.length) % tabs.length];
+            break;
+          case "Home":
+            next = tabs[0];
+            break;
+          case "End":
+            next = tabs[tabs.length - 1];
+            break;
+          default:
+            return;
+        }
+
+        event.preventDefault();
+        // Roving tabindex: only the focused tab is tabbable.
+        tabs.forEach((tab) => tab.setAttribute("tabindex", "-1"));
+        next.setAttribute("tabindex", "0");
+        next.focus();
+      };
+
+      this.el.addEventListener("keydown", this.onKeydown);
+    },
+    destroyed() {
+      this.el.removeEventListener("keydown", this.onKeydown);
+    },
+  };
+
   const csrfToken = document
     .querySelector("meta[name='csrf-token']")
     .getAttribute("content");
@@ -156,7 +206,7 @@
   const liveSocket = new LiveView.LiveSocket("/live", Phoenix.Socket, {
     longPollFallbackMs: 2500,
     params: { _csrf_token: csrfToken },
-    hooks: { PresignedPut, PresignedVideoPut, PresignedMuxPut, MultipartUpload, Copy },
+    hooks: { PresignedPut, PresignedVideoPut, PresignedMuxPut, MultipartUpload, Copy, Tabs },
     uploaders: Uploaders,
   });
 

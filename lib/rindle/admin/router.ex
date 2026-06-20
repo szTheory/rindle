@@ -104,6 +104,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) and Code.ensure_loaded?(Phoenix.Router)
           )
 
           live(Path.join(path, "/variants-jobs"), Rindle.Admin.Live.VariantsJobsLive, :index)
+          live(Path.join(path, "/variants-jobs/:id"), Rindle.Admin.Live.VariantsJobsLive, :show)
           live(Path.join(path, "/runtime-doctor"), Rindle.Admin.Live.RuntimeDoctorLive, :index)
           live(Path.join(path, "/actions"), Rindle.Admin.Live.ActionsLive, :index)
         end

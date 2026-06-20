@@ -12,9 +12,6 @@ const { MEMBERS, memberId } = require("./support/cohort");
 const ACTION_SELECTORS = {
   owner_erasure: '[data-rindle-admin-action="owner_erasure"]',
   batch_erasure: '[data-rindle-admin-action="batch_erasure"]',
-  lifecycle_repair: '[data-rindle-admin-action="lifecycle_repair"]',
-  variant_regeneration: '[data-rindle-admin-action="variant_regeneration"]',
-  quarantine_review: '[data-rindle-admin-action="quarantine_review"]',
 };
 
 const PREVIEW_SELECTORS = {
@@ -25,11 +22,10 @@ const PREVIEW_SELECTORS = {
 const RECEIPT_SELECTORS = {
   owner_erasure: '[data-rindle-admin-receipt="owner_erasure"]',
   batch_erasure: '[data-rindle-admin-receipt="batch_erasure"]',
-  lifecycle_repair: '[data-rindle-admin-receipt="lifecycle_repair"]',
   variant_regeneration: '[data-rindle-admin-receipt="variant_regeneration"]',
 };
 
-const QUARANTINE_PANEL_SELECTOR = '[data-rindle-admin-panel="quarantine_review"]';
+const QUARANTINE_PANEL_SELECTOR = '[data-rindle-admin-section="quarantine-review"]';
 
 function actionTab(page, action) {
   return page.locator(ACTION_SELECTORS[action]);
@@ -54,12 +50,6 @@ function actionInput(page, input) {
 
 function actionSubmit(page, submit) {
   return page.locator(`[data-rindle-admin-submit="${submit}"]`);
-}
-
-async function firstSeededAssetId(page) {
-  await visitAdmin(page, "assets");
-  const assetHref = await firstAdminDetailHref(page, "asset");
-  return assetHref.split("/").filter(Boolean).at(-1);
 }
 
 async function expectActionsShell(page) {
@@ -132,44 +122,38 @@ test("batch erasure blocks wrong confirmation and receipts generated owners", as
   await expectActionsShell(page);
 });
 
-test("lifecycle repair reprobes the first seeded asset", async ({ page }) => {
-  const assetId = await firstSeededAssetId(page);
+test("runtime doctor exposes the distributed reconcile action", async ({ page }) => {
+  await visitAdmin(page, "runtime-doctor");
+  await expectAdminShell(page, "runtime-doctor");
 
-  await visitAdmin(page, "actions");
-  await expectActionsShell(page);
-
-  await selectAction(page, "lifecycle_repair");
-  await actionInput(page, "asset_id").fill(assetId);
-  await actionInput(page, "repair_action").selectOption("reprobe");
-  await actionSubmit(page, "execute_lifecycle_repair").click();
-
-  const receipt = page.locator(RECEIPT_SELECTORS.lifecycle_repair);
-  await expect(receipt).toBeVisible();
-  await expect(receipt).toContainText("Action taken: reprobe");
+  const reconcileAction = page.locator('[data-rindle-admin-action="verify_storage"]');
+  await expect(reconcileAction).toBeVisible();
+  await expect(reconcileAction).toHaveAttribute("href", /\/admin\/rindle\/runtime-doctor$/);
   await expectNoAdminRawSecrets(page);
   await expectNoHorizontalScroll(page);
 });
 
-test("variant regeneration requires confirmation before receipt", async ({ page }) => {
-  await visitAdmin(page, "actions");
-  await expectActionsShell(page);
+test("variant regeneration confirms on the processing surface before receipt", async ({ page }) => {
+  await visitAdmin(page, "variants-jobs");
+  await expectAdminShell(page, "variants-jobs");
 
-  await selectAction(page, "variant_regeneration");
-  await actionSubmit(page, "execute_variant_regeneration").click();
-  await expect(page.getByText("You must confirm this action")).toBeVisible();
+  await expect(page.locator(RECEIPT_SELECTORS.variant_regeneration)).toHaveCount(0);
+  await page.locator('[data-rindle-admin-action="variant_regeneration"]').click();
+  await expect(page.locator('[data-rindle-admin-dialog][role="alertdialog"]')).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Regenerate stale variants?" })).toBeVisible();
 
-  await actionInput(page, "confirm").check();
-  await actionSubmit(page, "execute_variant_regeneration").click();
+  await page.locator('[data-rindle-admin-submit="confirm_regenerate"]').click();
   await expect(page.locator(RECEIPT_SELECTORS.variant_regeneration)).toBeVisible();
   await expectNoAdminRawSecrets(page);
   await expectNoHorizontalScroll(page);
 });
 
 test("quarantine review remains read-only triage", async ({ page }) => {
-  await visitAdmin(page, "actions");
-  await expectActionsShell(page);
+  await visitAdmin(page, "assets?state=quarantined");
+  const assetHref = await firstAdminDetailHref(page, "asset");
 
-  await selectAction(page, "quarantine_review");
+  await page.goto(assetHref);
+  await expectAdminShell(page, "assets");
   const panel = page.locator(QUARANTINE_PANEL_SELECTOR);
   await expect(panel).toBeVisible();
   await expect(panel.locator('button[type="submit"], input[type="submit"]')).toHaveCount(0);

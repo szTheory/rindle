@@ -1,8 +1,8 @@
 # Rindle Admin Design System
 
-This guide is the operating contract for the Phase 88 admin design-system kit.
-Future console phases should use it before regenerating assets, reviewing the
-gallery, or moving admin files toward packaged runtime serving.
+This guide is the operating contract for the generated Rindle Admin design
+system. Future console phases should use it before regenerating assets,
+reviewing the gallery, or changing packaged admin runtime assets.
 
 ## Source Of Truth
 
@@ -16,22 +16,36 @@ The generated admin CSS lives at:
 brandbook/tokens/rindle-admin.css
 ```
 
+The Hex-shipped package copy lives at:
+
+```sh
+priv/static/rindle_admin/rindle-admin.css
+```
+
+`priv/static/rindle_admin/rindle-admin.css` is synced by
+`brandbook/src/sync-admin-css.mjs` and must not be hand-edited. The brandbook
+copy is the canonical generator output; the shipped copy must be byte-identical
+after sync.
+
 Regenerate and verify the kit from the repository root:
 
 ```sh
 node brandbook/src/admin-css-build.mjs
 node brandbook/src/admin-contrast.mjs
-node brandbook/src/admin-gallery.mjs
 node brandbook/src/admin-gallery-check.mjs
+node brandbook/src/sync-admin-css.mjs
+cmp -s brandbook/tokens/rindle-admin.css priv/static/rindle_admin/rindle-admin.css
 node brandbook/src/contrast.mjs
+mix test --include integration test/brandbook/admin_design_system_validation_test.exs
 ```
 
 Use `node brandbook/src/admin-css-build.mjs` whenever token or component CSS
 inputs change. Use `node brandbook/src/admin-contrast.mjs` for the
 console-specific WCAG gate and `node brandbook/src/contrast.mjs` for the base
-brand token gate. Use `node brandbook/src/admin-gallery.mjs` to regenerate the
-static gallery HTML. Use `node brandbook/src/admin-gallery-check.mjs` to run the
-browser checks and screenshot capture.
+brand token gate. Use `node brandbook/src/admin-gallery-check.mjs` to regenerate
+the static gallery HTML, run browser checks, and capture screenshots. Use
+`node brandbook/src/sync-admin-css.mjs` after generator changes so the shipped
+package CSS stays byte-identical to the brandbook CSS.
 
 ## Gallery Review Artifacts
 
@@ -47,7 +61,8 @@ Review screenshots are generated under:
 brandbook/admin-gallery/screenshots/
 ```
 
-The expected maintainer review set is:
+`node brandbook/src/admin-gallery-check.mjs` writes 18 screenshots. The expected
+maintainer review set is:
 
 - `brandbook/admin-gallery/screenshots/gallery-light-desktop.png`
 - `brandbook/admin-gallery/screenshots/gallery-dark-desktop.png`
@@ -56,6 +71,17 @@ The expected maintainer review set is:
 - `brandbook/admin-gallery/screenshots/status-chips-dark.png`
 - `brandbook/admin-gallery/screenshots/theme-picker-light.png`
 - `brandbook/admin-gallery/screenshots/confirm-dialog-light.png`
+- `brandbook/admin-gallery/screenshots/form-controls-light.png`
+- `brandbook/admin-gallery/screenshots/error-state-dark.png`
+- `brandbook/admin-gallery/screenshots/loading-state-auto.png`
+- `brandbook/admin-gallery/screenshots/meta-toolbar-light.png`
+- `brandbook/admin-gallery/screenshots/meta-data-table-light.png`
+- `brandbook/admin-gallery/screenshots/meta-filter-bar-light.png`
+- `brandbook/admin-gallery/screenshots/meta-action-panel-light.png`
+- `brandbook/admin-gallery/screenshots/meta-detail-drilldown-light.png`
+- `brandbook/admin-gallery/screenshots/meta-confirm-panel-light.png`
+- `brandbook/admin-gallery/screenshots/meta-drawer-light.png`
+- `brandbook/admin-gallery/screenshots/meta-toast-stack-light.png`
 
 The screenshots are generated local review artifacts. They are hardcoded gallery
 fixtures, not production data, and should contain no real owner media, secrets,
@@ -75,25 +101,49 @@ Rindle Admin uses exactly six top-level surfaces:
 These names are the navigation contract for later console phases. Do not replace
 them with decorative dashboard categories.
 
-## Component Families
+## Level-1 Component Inventory
 
-The Phase 88 component kit covers these required component families:
+The Phase 95 Level-1 primitive inventory is exact and singular:
 
-- nav shell
-- tables
-- lifecycle-state chips
-- buttons
-- theme picker
-- confirm dialog
+- shell
+- nav
+- table
+- status-chip
+- button
+- theme-picker
+- form-controls
+- confirm-dialog
 - drawer
-- toasts
-- empty states
-- skeletons
+- toast
+- empty-state
+- error-state
+- loading-state
+- skeleton
+
+The Level-1 state vocabulary is exact:
+
+- default
+- hover
+- focus-visible
+- active
+- disabled
+- loading
+- empty
+- error
+- skeleton
 
 Components use generated `rindle-admin` vanilla CSS, inspectable BEM selectors,
 stable `data-rindle-admin-*` selectors, token-backed focus states, and
 operator-oriented copy. Status chips must include visible labels plus non-color
 marks and must not communicate state by color alone.
+
+Every applicable gallery fixture must carry same-element
+`data-rindle-admin-component` and `data-rindle-admin-state` markers so the
+browser checker can assert combined selectors such as
+`[data-rindle-admin-component="button"][data-rindle-admin-state="disabled"]`.
+Focus-visible states use `outline: var(--rindle-focus-width) solid
+var(--rindle-focus-ring)` plus `outline-offset: var(--rindle-focus-offset)`.
+Bare `outline:none` and `outline: none` removal is forbidden.
 
 ## Theme Contract
 
@@ -113,27 +163,16 @@ Do not add a parallel theme convention. The theme picker is a first-class
 
 ## Package Boundary
 
-Phase 88 keeps generated admin design-system assets under `brandbook/`. While
-assets stay under `brandbook/`, no `mix.exs` package file list change is
-required.
+Generated source assets stay under `brandbook/`; the shipped CSS copy is under
+`priv/static/rindle_admin`. The sync script is the only committed mirror path.
+The package must include the self-contained admin CSS while preserving the
+optional LiveView boundary and without making `phoenix_live_view` required for
+non-console adopters.
 
-Phase 89 owns serving assets from `priv/static/rindle_admin`. Any move into
-`priv/static/rindle_admin` must add a package-file assertion in the same phase
-so the Hex package includes the self-contained admin CSS and JavaScript files.
-
-Phase 88 does not implement:
-
-- `Rindle.Admin.Router.rindle_admin/2`
-- auth semantics
-- `Plug.Static`
-- CSP/socket options
-- `Rindle.Admin.Queries`
-- production console routes
-
-Those surfaces belong to later console phases. Phase 88 prepares generated CSS,
-component markup patterns, gallery fixtures, browser checks, screenshots, and
-contrast gates only. It must preserve the optional LiveView boundary and must
-not make `phoenix_live_view` required for non-console adopters.
+The generated design system does not own auth semantics, CSP/socket policy, or
+new public read/write APIs. Runtime console routes remain mounted through
+`Rindle.Admin.Router.rindle_admin/2`, and admin reads stay in
+`Rindle.Admin.Queries`.
 
 ## Dependency Boundary
 
@@ -155,16 +194,17 @@ boundary.
 
 ## Decision Coverage
 
-This guide records durable operating coverage for D-88-01, D-88-02, D-88-03,
-D-88-04, D-88-05, D-88-06, D-88-07, D-88-08, D-88-09, D-88-10, D-88-11,
-D-88-12, D-88-13, D-88-14, D-88-15, D-88-16, D-88-17, D-88-18, D-88-19, and
-ADMIN-02 groundwork.
+This guide records durable operating coverage for the Phase 88 generated kit,
+Phase 94 token pipeline, and Phase 95 Level-1 primitive audit: D-95-01 through
+D-95-09 plus ADMIN-02 package/dependency boundary groundwork.
 
 ## Review Checklist
 
-Before Phase 89 or Phase 90 relies on the kit, run the five commands above and
+Before later admin phases rely on the kit, run the command chain above and
 review the gallery plus screenshots. Confirm that light, dark, auto, mobile,
-status-chip, theme-picker, and confirm-dialog states match the Phase 88
-UI-SPEC: readable themes, no text overlap or clipping, visible focus states,
-status chips with labels plus non-color marks, and confirm-dialog collateral
-preview plus typed confirmation.
+status-chip, theme-picker, confirm-dialog, form-controls, error-state, and
+loading-state fixtures match the Phase 95 UI-SPEC: readable themes, no text
+overlap or clipping, visible focus-visible states, active/current states that do
+not rely on focus outlines, disabled/loading affordances, status chips with
+labels plus non-color marks, and confirm-dialog collateral preview plus typed
+confirmation.

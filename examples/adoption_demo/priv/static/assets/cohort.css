@@ -29,8 +29,21 @@
   src: url("/assets/fonts/JetBrainsMono-Regular.woff2") format("woff2");
 }
 
-/* ---- tokens ------------------------------------------------------------- */
-:root {
+/* ---- tokens -------------------------------------------------------------- */
+/* Theme contract (D-96-11): the light set is the default `:root` AND the
+   explicit `[data-theme="light"]` attribute; `[data-theme="dark"]` is the
+   switchable dark set; `@media (prefers-color-scheme: dark)` is the auto
+   fallback only (the dark block below, scoped to :root:not([data-theme])).
+   `color-scheme` is set per theme so native controls/scrollbars match.
+   Elevation = lightness (D-96-12): the surface ladder
+   --ck-bg -> --ck-surface-2 -> --ck-surface -> --ck-surface-overlay is the
+   primary separator; shadows/glows derive from one per-theme ink channel
+   token (--ck-shadow-ink / --ck-glow-ink), so the --ck-shadow-* / --ck-bg-glow
+   formulas are written once and only the ink flips per theme. */
+:root,
+[data-theme="light"] {
+  color-scheme: light;
+
   /* brand (from the Cohort mortarboard logo) */
   --ck-brand: #059669;
   --ck-brand-strong: #047857; /* text-weight emerald on light (AA) */
@@ -41,9 +54,9 @@
 
   /* light theme */
   --ck-bg: #f7f8f6;
-  --ck-bg-glow: rgba(5, 150, 105, 0.07);
   --ck-surface: #ffffff;
   --ck-surface-2: #fbfcfb;
+  --ck-surface-overlay: #f4faf7; /* elevation step above --ck-surface (faint tint, lightness ladder) */
   --ck-ink: #0f1b17;
   --ck-muted: #586b63;
   --ck-faint: #8a9a92;
@@ -55,9 +68,14 @@
   --ck-focus: #047857;
   --ck-code-bg: #f0f3f1;
   --ck-code-ink: #0f1b17;
-  --ck-shadow-sm: 0 1px 2px rgba(15, 27, 23, 0.05);
-  --ck-shadow-md: 0 6px 20px -10px rgba(15, 27, 23, 0.22);
-  --ck-shadow-lg: 0 18px 40px -22px rgba(15, 27, 23, 0.32);
+
+  /* shadow / glow ink (bare channels) — shadows derive from these per theme */
+  --ck-shadow-ink: 15 27 23;
+  --ck-glow-ink: 5 150 105;
+  --ck-bg-glow: rgb(var(--ck-glow-ink) / 0.07);
+  --ck-shadow-sm: 0 1px 2px rgb(var(--ck-shadow-ink) / 0.05);
+  --ck-shadow-md: 0 6px 20px -10px rgb(var(--ck-shadow-ink) / 0.22);
+  --ck-shadow-lg: 0 18px 40px -22px rgb(var(--ck-shadow-ink) / 0.32);
 
   /* state colors (mirror the admin lifecycle palette) */
   --ck-ready: #047857;
@@ -90,15 +108,62 @@
   --ck-maxw: 64rem;
 }
 
+/* Dark token set — explicit, switchable attribute contract (D-96-11).
+   Dark is semantic elevation, not color-inversion: surfaces step LIGHTER with
+   elevation (--ck-bg -> --ck-surface-2 -> --ck-surface -> --ck-surface-overlay)
+   and shadows go "barely there" by flipping --ck-shadow-ink to pure black at
+   low alpha, NOT by re-baking the light drop-shadows. */
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --ck-brand: #10b981;
+  --ck-brand-strong: #34d399;
+  --ck-accent: #34d399;
+  --ck-bg: #0b1411;
+  --ck-surface: #111d18;
+  --ck-surface-2: #0f1a15;
+  --ck-surface-overlay: #16261f; /* elevation step LIGHTER than --ck-surface (lightness ladder) */
+  --ck-ink: #ecf3ef;
+  --ck-muted: #9db1a8;
+  --ck-faint: #6f857b;
+  --ck-border: #1f2e27;
+  --ck-border-strong: #2a3c34;
+  --ck-tint: rgba(16, 185, 129, 0.09);
+  --ck-tint-border: rgba(16, 185, 129, 0.28);
+  --ck-link: #34d399;
+  --ck-focus: #34d399;
+  --ck-code-bg: #0c1713;
+  --ck-code-ink: #d7e6df;
+
+  --ck-shadow-ink: 0 0 0;
+  --ck-glow-ink: 16 185 129;
+  --ck-bg-glow: rgb(var(--ck-glow-ink) / 0.1);
+  --ck-shadow-sm: 0 1px 2px rgb(var(--ck-shadow-ink) / 0.4);
+  --ck-shadow-md: 0 8px 24px -12px rgb(var(--ck-shadow-ink) / 0.6);
+  --ck-shadow-lg: 0 22px 48px -24px rgb(var(--ck-shadow-ink) / 0.7);
+
+  --ck-ready: #34d399;
+  --ck-processing: #fbbf24;
+  --ck-quarantine: #f87171;
+  --ck-info: #60a5fa;
+}
+
+/* Controlled dark-token duplication (parity-checked by cohort-contrast.mjs,
+   D-96-18). This is the AUTO FALLBACK only — it applies the dark set when the
+   OS prefers dark AND the page has set no explicit [data-theme]. The values
+   below MUST stay byte-equal to [data-theme="dark"] above; the contrast
+   data-module parity check fails the build on drift. */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme]) {
+    color-scheme: dark;
+
     --ck-brand: #10b981;
     --ck-brand-strong: #34d399;
     --ck-accent: #34d399;
     --ck-bg: #0b1411;
-    --ck-bg-glow: rgba(16, 185, 129, 0.1);
     --ck-surface: #111d18;
     --ck-surface-2: #0f1a15;
+    --ck-surface-overlay: #16261f;
     --ck-ink: #ecf3ef;
     --ck-muted: #9db1a8;
     --ck-faint: #6f857b;
@@ -110,9 +175,14 @@
     --ck-focus: #34d399;
     --ck-code-bg: #0c1713;
     --ck-code-ink: #d7e6df;
-    --ck-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
-    --ck-shadow-md: 0 8px 24px -12px rgba(0, 0, 0, 0.6);
-    --ck-shadow-lg: 0 22px 48px -24px rgba(0, 0, 0, 0.7);
+
+    --ck-shadow-ink: 0 0 0;
+    --ck-glow-ink: 16 185 129;
+    --ck-bg-glow: rgb(var(--ck-glow-ink) / 0.1);
+    --ck-shadow-sm: 0 1px 2px rgb(var(--ck-shadow-ink) / 0.4);
+    --ck-shadow-md: 0 8px 24px -12px rgb(var(--ck-shadow-ink) / 0.6);
+    --ck-shadow-lg: 0 22px 48px -24px rgb(var(--ck-shadow-ink) / 0.7);
+
     --ck-ready: #34d399;
     --ck-processing: #fbbf24;
     --ck-quarantine: #f87171;
@@ -121,6 +191,10 @@
 }
 
 /* ---- page shell --------------------------------------------------------- */
+body {
+  margin: 0;
+}
+
 .ck {
   font-family: var(--ck-font-sans);
   color: var(--ck-ink);
@@ -147,6 +221,14 @@
   color: var(--ck-link);
   text-underline-offset: 3px;
   text-decoration-thickness: 1px;
+}
+.ck img,
+.ck video {
+  max-width: 100%;
+  height: auto;
+}
+.ck video {
+  display: block;
 }
 .ck :focus-visible {
   outline: 2px solid var(--ck-focus);
@@ -182,7 +264,7 @@
   display: block;
 }
 .ck-nav__demo {
-  color: var(--ck-faint);
+  color: var(--ck-muted);
   font-weight: 400;
 }
 .ck-nav__spacer {
@@ -287,6 +369,10 @@
 .ck-btn--primary:hover {
   --_bg: var(--ck-btn-bg-hover);
 }
+.ck-btn:focus-visible {
+  outline: 2px solid var(--ck-focus);
+  outline-offset: 2px;
+}
 .ck-btn__arrow {
   transition: transform 0.18s ease;
 }
@@ -312,7 +398,7 @@
   margin: 0;
 }
 .ck-section__hint {
-  color: var(--ck-faint);
+  color: var(--ck-muted);
   font-size: var(--ck-step--1);
 }
 
@@ -365,7 +451,7 @@
 }
 .ck-cred__value {
   font-family: var(--ck-font-mono);
-  font-size: 0.875rem;
+  font-size: var(--ck-step--1);
   color: var(--ck-code-ink);
   background: var(--ck-code-bg);
   border: 1px solid var(--ck-border);
@@ -382,6 +468,22 @@
 }
 .ck-cred__value--link:hover {
   text-decoration: underline;
+}
+
+/* ---- code / debug-output panel ----------------------------------------- */
+/* Token-only surface for the ops/account `<pre>` inspect-output panels
+   (D-96-09/20). Mirrors the `.ck-cred__value` code-surface token set; every
+   value is a `var(--ck-*)` — no hex/rgb/named-color or raw measure literal. */
+.ck-output {
+  font-family: var(--ck-font-mono);
+  font-size: var(--ck-step--1);
+  color: var(--ck-code-ink);
+  background: var(--ck-code-bg);
+  border: 1px solid var(--ck-border);
+  border-radius: var(--ck-radius-sm);
+  padding: var(--ck-3) var(--ck-4);
+  overflow-x: auto;
+  white-space: pre;
 }
 .ck-copy {
   flex: none;
@@ -401,7 +503,7 @@
   border-color: var(--ck-brand);
 }
 .ck-copy[data-copied="true"] {
-  color: #fff;
+  color: var(--ck-on-brand);
   background: var(--ck-brand);
   border-color: transparent;
 }
@@ -467,7 +569,7 @@
 }
 .ck-card__desc {
   color: var(--ck-muted);
-  font-size: 0.95rem;
+  font-size: var(--ck-step-0);
   margin: 0;
   flex: 1;
 }
@@ -482,9 +584,9 @@
 }
 .ck-card__path {
   font-family: var(--ck-font-mono);
-  font-size: 0.78rem;
+  font-size: var(--ck-step--1);
   font-weight: 400;
-  color: var(--ck-faint);
+  color: var(--ck-muted);
 }
 .ck-card__arrow {
   margin-left: auto;
@@ -500,7 +602,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
-  font-size: 0.72rem;
+  font-size: var(--ck-step--1);
   font-weight: 700;
   letter-spacing: 0.03em;
   text-transform: uppercase;
@@ -520,6 +622,432 @@
 .ck-badge--processing { color: var(--ck-processing); }
 .ck-badge--quarantine { color: var(--ck-quarantine); }
 .ck-badge--info { color: var(--ck-info); }
+
+/* ---- shared empty / skeleton states ------------------------------------- */
+.ck-empty {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ck-1);
+  align-items: center;
+  text-align: center;
+  padding: var(--ck-6) var(--ck-4);
+  color: var(--ck-muted);
+}
+.ck-empty__title {
+  font-weight: 700;
+  font-size: var(--ck-step-0);
+  color: var(--ck-ink);
+  margin: 0;
+}
+.ck-empty__body {
+  font-size: var(--ck-step--1);
+  color: var(--ck-muted);
+  margin: 0;
+  max-width: 40ch;
+}
+.ck-skeleton {
+  display: block;
+  border-radius: var(--ck-radius-sm);
+  background:
+    linear-gradient(
+      90deg,
+      var(--ck-surface-2) 0%,
+      var(--ck-border) 50%,
+      var(--ck-surface-2) 100%
+    );
+  background-size: 200% 100%;
+  animation: ck-shimmer 1.2s ease-in-out infinite;
+}
+.ck-skeleton--line {
+  height: 0.85em;
+  width: 100%;
+}
+.ck-skeleton--value {
+  height: 1.6rem;
+  width: 4ch;
+}
+@keyframes ck-shimmer {
+  to { background-position: -200% 0; }
+}
+
+/* ---- table (.ck-table, D-96-15) ----------------------------------------- */
+.ck-table-wrap {
+  border: 1px solid var(--ck-border);
+  border-radius: var(--ck-radius);
+  background: var(--ck-surface);
+  overflow: hidden;
+}
+.ck-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--ck-step-0);
+}
+.ck-table__cell {
+  padding: var(--ck-3) var(--ck-4);
+  text-align: left;
+  border-bottom: 1px solid var(--ck-border);
+  vertical-align: middle;
+}
+.ck-table__num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.ck-table__head .ck-table__cell--head {
+  background: var(--ck-surface-2);
+  color: var(--ck-muted);
+  font-size: var(--ck-step--1);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  padding: 0; /* the inner button owns the 44px target + padding */
+}
+.ck-table__head .ck-table__cell--head > span {
+  display: inline-block;
+  padding: var(--ck-3) var(--ck-4);
+}
+.ck-table__sort {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ck-1);
+  min-height: 44px;
+  width: 100%;
+  padding: var(--ck-3) var(--ck-4);
+  font: inherit;
+  font-weight: 700;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.ck-table__num .ck-table__sort {
+  justify-content: flex-end;
+}
+.ck-table__sort:hover {
+  background: var(--ck-tint);
+  color: var(--ck-ink);
+}
+.ck-table__sort-mark {
+  color: var(--ck-muted);
+  font-size: var(--ck-step--1);
+}
+.ck-table__cell--head[aria-sort="ascending"] .ck-table__sort-mark,
+.ck-table__cell--head[aria-sort="descending"] .ck-table__sort-mark {
+  color: var(--ck-brand-strong);
+}
+.ck-table__body .ck-table__row {
+  transition: background 0.12s ease;
+}
+.ck-table__body .ck-table__row:nth-child(even) {
+  background: var(--ck-surface-2);
+}
+.ck-table__body .ck-table__row:hover {
+  /* hover = background only, NO layout shift (D-96-22) */
+  background: var(--ck-tint);
+}
+.ck-table__body .ck-table__row:last-child .ck-table__cell {
+  border-bottom: 0;
+}
+.ck-table__row--skeleton .ck-table__cell {
+  padding: var(--ck-4);
+}
+.ck-table__empty {
+  border-top: 1px solid var(--ck-border);
+}
+
+/* ---- stat tile (.ck-stat) ----------------------------------------------- */
+.ck-stat {
+  --_accent: var(--ck-border-strong);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ck-1);
+  padding: var(--ck-4) var(--ck-5);
+  background: var(--ck-surface);
+  border: 1px solid var(--ck-border);
+  border-left: 3px solid var(--_accent);
+  border-radius: var(--ck-radius);
+  box-shadow: var(--ck-shadow-sm);
+}
+.ck-stat--ready { --_accent: var(--ck-ready); }
+.ck-stat--processing { --_accent: var(--ck-processing); }
+.ck-stat--quarantine { --_accent: var(--ck-quarantine); }
+.ck-stat--info { --_accent: var(--ck-info); }
+.ck-stat__label {
+  font-size: var(--ck-step--1);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--ck-muted);
+}
+.ck-stat__value {
+  font-size: var(--ck-step-3);
+  font-weight: 700;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  color: var(--ck-ink);
+}
+.ck-stat__delta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ck-1);
+  font-size: var(--ck-step--1);
+  font-weight: 700;
+  color: var(--ck-muted);
+}
+.ck-stat__delta--up { color: var(--ck-ready); }
+.ck-stat__delta--down { color: var(--ck-quarantine); }
+
+/* ---- detail block (.ck-detail) ------------------------------------------ */
+.ck-detail {
+  margin: 0;
+  display: grid;
+  gap: 0;
+  border: 1px solid var(--ck-border);
+  border-radius: var(--ck-radius);
+  background: var(--ck-surface);
+  overflow: hidden;
+}
+.ck-detail__row {
+  display: grid;
+  grid-template-columns: minmax(8rem, 14rem) 1fr;
+  gap: var(--ck-4);
+  padding: var(--ck-3) var(--ck-4);
+  border-bottom: 1px solid var(--ck-border);
+}
+.ck-detail__row:last-child {
+  border-bottom: 0;
+}
+.ck-detail__term {
+  margin: 0;
+  font-size: var(--ck-step--1);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--ck-muted);
+}
+.ck-detail__desc {
+  margin: 0;
+  color: var(--ck-ink);
+}
+@media (max-width: 36rem) {
+  .ck-detail__row {
+    grid-template-columns: 1fr;
+    gap: var(--ck-1);
+  }
+}
+
+/* ---- toolbar (.ck-toolbar) ---------------------------------------------- */
+.ck-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ck-3);
+  padding: var(--ck-3) var(--ck-4);
+  background: var(--ck-surface);
+  border: 1px solid var(--ck-border);
+  border-radius: var(--ck-radius);
+}
+.ck-toolbar__group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ck-2);
+}
+.ck-toolbar__group--actions {
+  margin-left: auto;
+}
+.ck-toolbar .ck-btn {
+  min-height: 44px;
+}
+
+/* ---- form set (.ck-field / .ck-input / .ck-select, D-96-15) ------------- */
+.ck-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ck-2);
+}
+.ck-label {
+  font-size: var(--ck-step--1);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--ck-ink);
+}
+.ck-input,
+.ck-select {
+  min-height: 44px;
+  width: 100%;
+  padding: var(--ck-2) var(--ck-3);
+  font: inherit;
+  font-size: var(--ck-step-0);
+  color: var(--ck-ink);
+  background: var(--ck-surface);
+  border: 1px solid var(--ck-border-strong);
+  border-radius: var(--ck-radius-sm);
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.ck-select {
+  cursor: pointer;
+}
+.ck-input:hover,
+.ck-select:hover {
+  border-color: var(--ck-brand);
+}
+.ck-input[aria-invalid="true"],
+.ck-select[aria-invalid="true"] {
+  border-color: var(--ck-quarantine);
+}
+.ck-input:disabled,
+.ck-input[aria-disabled="true"],
+.ck-select:disabled,
+.ck-select[aria-disabled="true"] {
+  background: var(--ck-surface-2);
+  color: var(--ck-muted);
+  border-color: var(--ck-border);
+  cursor: not-allowed;
+}
+.ck-help {
+  margin: 0;
+  font-size: var(--ck-step--1);
+  color: var(--ck-muted);
+}
+.ck-error {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ck-1);
+  margin: 0;
+  font-size: var(--ck-step--1);
+  font-weight: 700;
+  color: var(--ck-quarantine);
+}
+.ck-error .ck-icon {
+  flex: none;
+  margin-top: 0.1em;
+}
+
+/* ---- flash / alert notifications (D-101-04) ----------------------------- */
+.ck-flash {
+  position: fixed;
+  inset-block-start: var(--ck-5);
+  inset-inline-end: var(--ck-4);
+  z-index: 50;
+  width: min(24rem, calc(100vw - (var(--ck-4) * 2)));
+  display: flex;
+  flex-direction: column;
+  gap: var(--ck-2);
+  pointer-events: none;
+}
+.ck-alert {
+  --_accent: var(--ck-info);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: flex-start;
+  gap: var(--ck-3);
+  padding: var(--ck-4);
+  color: var(--ck-ink);
+  background: var(--ck-surface);
+  border: 1px solid var(--ck-border);
+  border-left: 3px solid var(--_accent);
+  border-radius: var(--ck-radius);
+  box-shadow: var(--ck-shadow-lg);
+  pointer-events: auto;
+}
+.ck-alert--info {
+  --_accent: var(--ck-info);
+}
+.ck-alert--error {
+  --_accent: var(--ck-quarantine);
+}
+.ck-alert__icon {
+  flex: none;
+  margin-top: var(--ck-1);
+  color: var(--_accent);
+}
+.ck-alert__body {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ck-1);
+}
+.ck-alert__title {
+  margin: 0;
+  font-size: var(--ck-step-1);
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--ck-ink);
+}
+.ck-alert__msg {
+  margin: 0;
+  font-size: var(--ck-step-0);
+  color: var(--ck-ink);
+  overflow-wrap: anywhere;
+}
+.ck-alert__dismiss {
+  display: inline-grid;
+  place-items: center;
+  min-width: 44px;
+  min-height: 44px;
+  margin: calc(var(--ck-2) * -1);
+  padding: 0;
+  color: var(--ck-muted);
+  background: transparent;
+  border: 0;
+  border-radius: var(--ck-radius-sm);
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+.ck-alert__dismiss:hover {
+  color: var(--ck-ink);
+  background: var(--ck-surface-2);
+}
+
+/* ---- tabs (.ck-tabs, WAI-ARIA APG, D-96-17) ----------------------------- */
+.ck-tabs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ck-4);
+}
+.ck-tabs__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ck-1);
+  border-bottom: 1px solid var(--ck-border);
+}
+.ck-tabs__tab {
+  min-height: 44px;
+  padding: var(--ck-2) var(--ck-4);
+  font: inherit;
+  font-size: var(--ck-step-0);
+  font-weight: 400;
+  color: var(--ck-muted);
+  background: none;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+.ck-tabs__tab:hover {
+  color: var(--ck-ink);
+  background: var(--ck-surface-2);
+}
+.ck-tabs__tab[aria-selected="true"],
+.ck-tabs__tab[aria-current="page"] {
+  /* non-color cue: underline + weight, in addition to color (D-96-17/22) */
+  color: var(--ck-ink);
+  font-weight: 700;
+  border-bottom-color: var(--ck-brand);
+}
+.ck-tabs__tab[aria-disabled="true"],
+.ck-tabs__tab:disabled {
+  color: var(--ck-muted);
+  cursor: not-allowed;
+}
+.ck-tabs__panel:focus-visible {
+  outline: 2px solid var(--ck-focus);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
 
 .ck-cast {
   display: flex;
@@ -564,7 +1092,7 @@
   font-weight: 700;
 }
 .ck-cast span {
-  color: var(--ck-faint);
+  color: var(--ck-muted);
   font-size: var(--ck-step--1);
 }
 
@@ -578,7 +1106,7 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--ck-3);
-  color: var(--ck-faint);
+  color: var(--ck-muted);
   font-size: var(--ck-step--1);
 }
 .ck-footer a {
@@ -595,5 +1123,25 @@
   .ck-reveal[style*="--d"] { animation-delay: var(--d); }
   @keyframes ck-rise {
     to { opacity: 1; transform: none; }
+  }
+}
+
+/* ---- motion: reduced-motion contract (D-96-13) -------------------------- */
+/* Net-new reduce block. Scoped to .ck * so it covers every present/future
+   primitive without touching daisyUI chrome. Uses .001ms (NOT 0) so
+   transitionend/animationend still fire and LiveView JS does not hang.
+   Color/border/state changes are intentionally KEPT (they convey state, not
+   decoration). This is the ONLY !important site in the file. */
+@media (prefers-reduced-motion: reduce) {
+  .ck *,
+  .ck *::before,
+  .ck *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+  }
+  .ck-reveal {
+    opacity: 1;
+    transform: none;
   }
 }

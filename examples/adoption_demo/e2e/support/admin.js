@@ -2,6 +2,7 @@ const { expect } = require("@playwright/test");
 const { waitForLiveSocket } = require("./liveview");
 
 const ADMIN_BASE = "/admin/rindle";
+const ADMIN_SHELL_ROOT_SELECTOR = ".rindle-admin-shell[data-rindle-admin-root]";
 const TOP_LEVEL_SURFACES = new Set([
   "home-status",
   "assets",
@@ -27,27 +28,27 @@ async function visitAdmin(page, suffix = "") {
 }
 
 function adminRoot(page) {
-  return page.locator("[data-rindle-admin-root]");
+  return page.locator(ADMIN_SHELL_ROOT_SELECTOR);
 }
 
 async function expectAdminShell(page, surface) {
   const root = adminRoot(page);
+  await expect(root).toHaveCount(1);
   await expect(root).toBeVisible();
   await expect(root).toHaveAttribute("data-rindle-admin-surface", surface);
-  await expect(page.locator(`[data-rindle-admin-root][data-rindle-admin-surface="${surface}"]`)).toBeVisible();
-  await expect(page.locator("[data-rindle-admin-component=\"nav\"]")).toBeVisible();
-  await expect(page.locator("[data-rindle-admin-page-header]")).toBeVisible();
-  await expect(page.locator("[data-rindle-admin-live-indicator]")).toBeVisible();
-  await expect(page.locator("[data-rindle-admin-theme=\"light\"]")).toBeVisible();
-  await expect(page.locator("[data-rindle-admin-theme=\"dark\"]")).toBeVisible();
-  await expect(page.locator("[data-rindle-admin-theme=\"auto\"]")).toBeVisible();
+  await expect(root.locator("[data-rindle-admin-component=\"nav\"]")).toBeVisible();
+  await expect(root.locator("[data-rindle-admin-page-header]")).toBeVisible();
+  await expect(root.locator("[data-rindle-admin-live-indicator]")).toBeVisible();
+  await expect(root.locator("[data-rindle-admin-theme=\"light\"]")).toBeVisible();
+  await expect(root.locator("[data-rindle-admin-theme=\"dark\"]")).toBeVisible();
+  await expect(root.locator("[data-rindle-admin-theme=\"auto\"]")).toBeVisible();
 
   for (const slug of TOP_LEVEL_SURFACES) {
-    await expect(page.locator(`[data-rindle-admin-nav-item="${slug}"]`)).toBeVisible();
+    await expect(root.locator(`[data-rindle-admin-nav-item="${slug}"]`)).toBeVisible();
   }
 
   if (TOP_LEVEL_SURFACES.has(surface)) {
-    await expect(page.locator(`[data-rindle-admin-nav-item="${surface}"]`)).toHaveAttribute(
+    await expect(root.locator(`[data-rindle-admin-nav-item="${surface}"]`)).toHaveAttribute(
       "aria-current",
       "page"
     );

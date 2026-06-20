@@ -19,13 +19,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     @endpoint __MODULE__.Endpoint
     @secret_payload "https://storage.example/raw-session-secret-token"
+    # Task-first nav labels (UI-SPEC §E, D-98-03): relabeled for task-scent.
     @surfaces [
-      "Home/Status",
+      "Overview",
       "Assets",
-      "Upload Sessions",
-      "Variants/Jobs",
-      "Runtime/Doctor",
-      "Actions"
+      "Upload sessions",
+      "Processing",
+      "Doctor",
+      "Maintenance"
     ]
 
     for live_module <- [
@@ -112,26 +113,50 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     setup :verify_on_exit!
 
-    test "shell and Home/Status render the locked surfaces and status summaries", %{conn: conn} do
+    test "shell and Overview render the task-first triage home", %{conn: conn} do
       insert_asset(%{state: "ready", profile: to_string(ImageProfile)})
 
       {:ok, _view, html} = Phoenix.LiveViewTest.live(conn, "/admin/rindle")
 
       assert_shell(html, "home-status")
       assert html =~ "Rindle Admin"
-      assert html =~ "Home/Status"
-      assert html =~ "Runtime summary"
-      assert html =~ "Doctor summary"
-      assert html =~ "Recommendations"
-      assert html =~ "Inspect assets"
+      # GDS triage home (UI-SPEC §E): task-first sections, no inspect/1 anti-pattern.
+      assert html =~ "Overview"
+      assert html =~ "Needs attention"
+      assert html =~ "System health"
+      assert html =~ "Recent activity"
+      assert html =~ "Totals"
       assert html =~ "Waiting for lifecycle events"
-      assert html =~ "rindle-admin-button--primary"
       assert html =~ ~s(aria-current="page")
       assert html =~ ~s(data-rindle-admin-surface="home-status")
 
       for surface <- @surfaces do
         assert html =~ surface
       end
+    end
+
+    # CR-01 regression: the problems-first "Needs attention" task-list reads count
+    # buckets from `RuntimeStatus.count_map/1`, which is ATOM-keyed. The original
+    # code read them with STRING keys (`"failed"`, `"quarantined"`, ...), so every
+    # problem silently resolved to 0/nil and the list was permanently empty
+    # ("Nothing needs attention" even with real problems). This asserts that a
+    # quarantined asset + failed variant produce a NON-EMPTY needs-attention list.
+    # Fails against the string-key code (renders the all-clear empty state instead).
+    test "Needs attention populates from atom-keyed counts (CR-01 regression)", %{conn: conn} do
+      quarantined = insert_asset(%{state: "quarantined", profile: to_string(ImageProfile)})
+      _quarantine_variant = insert_variant(quarantined, %{name: "thumb", state: "failed"})
+
+      {:ok, _view, html} = Phoenix.LiveViewTest.live(conn, "/admin/rindle")
+
+      # The actionable task-list is rendered (NOT the all-clear empty state).
+      assert html =~ ~s(data-rindle-admin-needs-attention)
+      refute html =~ ~s(data-rindle-admin-all-clear)
+
+      # Real, non-zero problem entries surface with their counts + deep links.
+      assert html =~ "quarantined assets"
+      assert html =~ "failed processing runs"
+      assert html =~ ~s(href="/admin/rindle/assets?state=quarantined")
+      assert html =~ ~s(href="/admin/rindle/variants-jobs?state=failed")
     end
 
     test "shell links stay inside custom host mount paths", %{conn: conn} do
@@ -184,6 +209,19 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert detail_html =~ "State context"
       assert detail_html =~ "Provider identifier redacted"
       refute detail_html =~ "provider-secret-asset-id"
+    end
+
+    test "Asset detail hosts the distributed quarantine review (UI-SPEC §E)", %{conn: conn} do
+      asset = insert_asset(%{state: "quarantined", profile: to_string(ImageProfile)})
+
+      {:ok, _detail, html} =
+        Phoenix.LiveViewTest.live(conn, "/admin/rindle/assets/#{asset.id}")
+
+      # The release/quarantine verb was distributed off Maintenance onto asset
+      # detail, where the operator already has the asset in context (D-98-10).
+      assert html =~ ~s(data-rindle-admin-section="quarantine-review")
+      assert html =~ "Quarantine review"
+      assert html =~ "permanently blocked from delivery"
     end
 
     test "Assets detail refreshes from queries after forged PubSub payloads", %{conn: conn} do

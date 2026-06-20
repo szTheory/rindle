@@ -36,7 +36,7 @@ test("admin console top-level surfaces render the shell and seeded rows", async 
 
   await visitAdmin(page, "runtime-doctor");
   await expect(page.locator('[data-rindle-admin-row="doctor-check"]').first()).toBeVisible();
-  await expect(page.getByText("Doctor checks")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Doctor checks" })).toBeVisible();
 });
 
 test("seeded lifecycle edge states render gracefully across surfaces", async ({ page }) => {
@@ -102,7 +102,8 @@ test("missing detail routes render stable error states", async ({ page }) => {
     await expectAdminShell(page, surface);
     await expect(page.locator("[data-rindle-admin-error-state]")).toBeVisible();
     await expect(page.locator("[data-rindle-admin-empty-state]")).toHaveCount(0);
-    await expect(page.getByText("Rindle Admin could not load this surface").first()).toBeVisible();
+    await expect(page.getByRole("heading", { name: "This surface could not load." })).toBeVisible();
+    await expect(page.getByText("Review the runtime checks")).toBeVisible();
     await expectNoAdminRawSecrets(page);
   }
 });

@@ -1,10 +1,12 @@
 defmodule AdoptionDemoWeb.MediaLive do
   use AdoptionDemoWeb, :live_view
 
+  import AdoptionDemoWeb.CohortComponents
+
   alias AdoptionDemo.{Accounts, Media, RindleProfile}
 
   @impl true
-  def mount(%{"id" => id}, _session, socket) do
+  def mount(%{"id" => id} = params, _session, socket) do
     asset = Media.get_asset!(id)
     variants = Media.variants_for(asset.id)
     {:ok, delivery} = Media.delivery_url(RindleProfile, asset.storage_key)
@@ -12,6 +14,7 @@ defmodule AdoptionDemoWeb.MediaLive do
     {:ok,
      assign(socket,
        page_title: "Media #{asset.id}",
+       theme: AdoptionDemoWeb.CohortTheme.normalize(params["theme"], "light"),
        asset: asset,
        variants: variants,
        delivery_url: delivery,
@@ -24,27 +27,49 @@ defmodule AdoptionDemoWeb.MediaLive do
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} page_title={@page_title}>
-      <h1 class="text-2xl font-semibold">Media detail</h1>
-      <dl class="text-sm space-y-1 mt-4">
-        <div><dt class="inline font-semibold">ID:</dt> <dd class="inline" id="media-id" data-testid="media-id">{@asset.id}</dd></div>
-        <div><dt class="inline font-semibold">State:</dt> <dd class="inline" id="media-state" data-testid="media-state">{@asset.state}</dd></div>
-        <div><dt class="inline font-semibold">Delivery:</dt> <dd class="inline break-all" id="media-delivery-url" data-testid="media-delivery-url">{@delivery_url}</dd></div>
-      </dl>
+      <.ck_page title="Media detail" theme={@theme}>
+        <dl class="ck-detail">
+          <div class="ck-detail__row">
+            <dt class="ck-detail__term">ID:</dt>
+            <dd class="ck-detail__desc" id="media-id" data-testid="media-id">{@asset.id}</dd>
+          </div>
+          <div class="ck-detail__row">
+            <dt class="ck-detail__term">State:</dt>
+            <dd class="ck-detail__desc" id="media-state" data-testid="media-state">{@asset.state}</dd>
+          </div>
+          <div class="ck-detail__row">
+            <dt class="ck-detail__term">Delivery:</dt>
+            <dd
+              class="ck-detail__desc ck-output"
+              id="media-delivery-url"
+              data-testid="media-delivery-url"
+            >
+              {@delivery_url}
+            </dd>
+          </div>
+        </dl>
 
-      <section id="media-variants" class="mt-6" data-testid="media-variants">
-        <h2 class="text-lg font-semibold">Variants</h2>
-        <ul class="list-disc pl-5">
-          <li :for={variant <- @variants} id={"variant-#{variant.name}"}>
-            {variant.name} — {variant.state}
-          </li>
-        </ul>
-      </section>
+        <section id="media-variants" class="ck-section" data-testid="media-variants">
+          <div class="ck-section__head">
+            <h2 class="ck-section__title">Variants</h2>
+          </div>
+          <ul>
+            <li :for={variant <- @variants} id={"variant-#{variant.name}"}>
+              {variant.name} — {variant.state}
+            </li>
+          </ul>
+        </section>
 
-      <section class="mt-8">
-        <.link navigate={~p"/members/#{alex_id(@members)}"} class="underline" data-testid="media-alex-profile-link">
-          Open Alex profile for replace/detach
-        </.link>
-      </section>
+        <section class="ck-section">
+          <.link
+            navigate={~p"/members/#{alex_id(@members)}"}
+            class="ck-btn"
+            data-testid="media-alex-profile-link"
+          >
+            Open Alex profile for replace/detach
+          </.link>
+        </section>
+      </.ck_page>
     </Layouts.app>
     """
   end

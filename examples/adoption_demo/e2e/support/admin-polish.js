@@ -24,12 +24,16 @@ const SUBPIXEL_TOLERANCE = 0.5; // rect-rounding slack for target sizes
 const CLIP_TOLERANCE = 1; // px slack for scrollWidth > clientWidth
 const OVERLAP_TOLERANCE = 2; // px of allowed bbox intersection
 const CONTRAST_SLACK = 0.05; // float slack on the WCAG ratio comparison
+const RASTER_HEIGHT_TOLERANCE = 3; // Chromium full-page screenshot rounding slack
 
 // Overlap is the noisiest check. Ship it in warn mode for one green CI cycle, then
 // flip to a hard failure once the matrix confirms zero spurious warnings.
-const OVERLAP_ENFORCED = false;
+const OVERLAP_ENFORCED = true;
 
 // Union of interactive-control selectors (all confirmed present in the admin shell).
+// Phase 98 added the disclosure button, the sort-th control, and the stacked-row tap
+// target so assertFocusVisibleTokens / assertTargetSizes / assertFocusVisibleVsPointer
+// cover the Level-3 controls too.
 const DEFAULT_INTERACTIVE_SELECTORS = [
   "[data-rindle-admin-submit]",
   "[data-rindle-admin-input]",
@@ -40,7 +44,68 @@ const DEFAULT_INTERACTIVE_SELECTORS = [
   ".rindle-admin-actions-tab",
   "[data-rindle-admin-detail-link]",
   "[data-rindle-admin-action]",
+  ".rindle-admin-nav__disclosure",
+  ".rindle-admin-table__sort",
+  ".rindle-admin-table__row",
 ];
+
+// Focus-ring contract for the selected surface. Admin callers use the existing
+// token-backed defaults. Cohort callers can pass literals/tokens such as:
+// `{ width: "2px", color: "--ck-focus", offset: "2px" }`.
+const DEFAULT_FOCUS_CONTRACT = Object.freeze({
+  width: "--rindle-focus-width",
+  color: "--rindle-focus-ring",
+  offset: "--rindle-focus-offset",
+});
+
+const DEFAULT_ADMIN_BACKSTOPS = Object.freeze({
+  dialogInert: true,
+});
+
+function normalizeFocusContract(focusContract, root = DEFAULT_ROOT) {
+  const source = focusContract || {};
+  const usesAdminDefaults =
+    source.width === undefined && source.color === undefined && source.offset === undefined;
+
+  return {
+    root: source.root || root,
+    width: source.width || DEFAULT_FOCUS_CONTRACT.width,
+    color: source.color || DEFAULT_FOCUS_CONTRACT.color,
+    offset: source.offset || DEFAULT_FOCUS_CONTRACT.offset,
+    fallbackToDocumentElement:
+      source.fallbackToDocumentElement !== undefined
+        ? !!source.fallbackToDocumentElement
+        : usesAdminDefaults && root === DEFAULT_ROOT,
+  };
+}
+
+function normalizeAdminBackstops(adminBackstops, root = DEFAULT_ROOT) {
+  if (adminBackstops === undefined) {
+    return root === DEFAULT_ROOT ? { ...DEFAULT_ADMIN_BACKSTOPS } : {};
+  }
+  if (adminBackstops === true) return { ...DEFAULT_ADMIN_BACKSTOPS };
+  if (adminBackstops === false || adminBackstops === null) return {};
+  return {
+    dialogInert: !!adminBackstops.dialogInert,
+  };
+}
+
+function scopedInteractiveSelector(root, interactiveSelectors) {
+  return interactiveSelectors.map((selector) => `${root} ${selector}`).join(",");
+}
+
+function outlineScopeHints(root) {
+  const hints = new Set([root]);
+  if (/ck/.test(root)) {
+    hints.add(".ck");
+    hints.add("[data-ck-root]");
+  }
+  if (/rindle-admin/.test(root)) {
+    hints.add(".rindle-admin");
+    hints.add("[data-rindle-admin");
+  }
+  return Array.from(hints);
+}
 
 // Per-surface, per-check opt-out. SHIP EMPTY — an allowlist that starts populated
 // hides exactly the defects this gate exists to catch. Each entry must carry a
@@ -86,6 +151,21 @@ function contrastRatio(a, b) {
   return (l1 + 0.05) / (l2 + 0.05);
 }
 
+// Ported verbatim from brandbook/src/admin-gallery-check.mjs:208-217 (the comment above
+// already lists `parseColor` among the ported WCAG utilities — it was referenced by
+// assertFocusVisibleTokens but never actually defined here, so that check threw a
+// ReferenceError the moment a focused control reached the outline-color comparison).
+function parseColor(value) {
+  const color = value.trim();
+  const hex = color.match(/^#([0-9a-f]{6})$/i);
+  if (hex) {
+    return [0, 2, 4].map((offset) => parseInt(hex[1].slice(offset, offset + 2), 16));
+  }
+  const rgb = color.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+  if (rgb) return rgb.slice(1, 4).map(Number);
+  throw new Error(`could not parse computed color: ${value}`);
+}
+
 // ---------------------------------------------------------------------------
 // Check 1 — clipped text
 // ---------------------------------------------------------------------------
@@ -116,6 +196,7 @@ async function assertNoClippedText(page, root = DEFAULT_ROOT) {
 
       const out = [];
       for (const el of root.querySelectorAll("*")) {
+        if (el.closest(".rindle-admin-visually-hidden")) continue;
         const rect = el.getBoundingClientRect();
         if (rect.width === 0 || rect.height === 0) continue;
         if (el.tagName === "TABLE") continue;
@@ -273,8 +354,12 @@ async function assertReadableContrast(page, root = DEFAULT_ROOT) {
 // ---------------------------------------------------------------------------
 // Check 3 — target sizes (44px interactive controls)
 // ---------------------------------------------------------------------------
-async function assertTargetSizes(page, interactiveSelectors = DEFAULT_INTERACTIVE_SELECTORS) {
-  return page.locator(interactiveSelectors.join(",")).evaluateAll(
+async function assertTargetSizes(
+  page,
+  interactiveSelectors = DEFAULT_INTERACTIVE_SELECTORS,
+  root = DEFAULT_ROOT
+) {
+  return page.locator(scopedInteractiveSelector(root, interactiveSelectors)).evaluateAll(
     (els, { MIN, TOL }) => {
       const out = [];
       for (const el of els) {
@@ -299,10 +384,114 @@ async function assertTargetSizes(page, interactiveSelectors = DEFAULT_INTERACTIV
 }
 
 // ---------------------------------------------------------------------------
-// Check 4 — no interactive overlap (noisiest; warn-then-tighten)
+// Check 4 — token-backed focus-visible and no bare outline removal
 // ---------------------------------------------------------------------------
-async function assertNoInteractiveOverlap(page, interactiveSelectors = DEFAULT_INTERACTIVE_SELECTORS) {
-  return page.locator(interactiveSelectors.join(",")).evaluateAll(
+async function assertFocusVisibleTokens(
+  page,
+  interactiveSelectors = DEFAULT_INTERACTIVE_SELECTORS,
+  focusContract = normalizeFocusContract()
+) {
+  const normalizedFocusContract = normalizeFocusContract(focusContract);
+  const offenders = await page.evaluate(({ HINTS }) => {
+    const out = [];
+    for (const sheet of Array.from(document.styleSheets)) {
+      let rules = [];
+      try {
+        rules = Array.from(sheet.cssRules || []);
+      } catch (_error) {
+        continue;
+      }
+      for (const rule of rules) {
+        const cssText = rule.cssText || "";
+        const selectorText = rule.selectorText || cssText;
+        if (!HINTS.some((hint) => selectorText.includes(hint))) continue;
+        if (/outline\s*:\s*none\b/i.test(cssText.replace(/\/\*[\s\S]*?\*\//g, ""))) {
+          out.push(`outline-none-rule: ${cssText.slice(0, 120)}`);
+        }
+      }
+    }
+    return out;
+  }, { HINTS: outlineScopeHints(normalizedFocusContract.root) });
+
+  for (const selector of interactiveSelectors) {
+    const locator = page.locator(scopedInteractiveSelector(normalizedFocusContract.root, [selector]));
+    const count = await locator.count();
+    for (let index = 0; index < count; index++) {
+      const item = locator.nth(index);
+      if (!(await item.isVisible().catch(() => false))) continue;
+      if (await item.isDisabled().catch(() => false)) continue;
+      await item
+        .evaluate((element) => {
+          if (document.activeElement === element) element.blur();
+          element.focus({ focusVisible: true });
+        })
+        .catch(() => {});
+      const state = await item.evaluate((element, contract) => {
+        if (document.activeElement !== element && !element.matches(":focus-within")) return null;
+        const resolve = (value) => {
+          if (!value || !value.startsWith("--")) return value || "";
+          const rootEl = document.querySelector(contract.root);
+          const rootValue = rootEl ? getComputedStyle(rootEl).getPropertyValue(value).trim() : "";
+          if (rootValue) return rootValue;
+          if (!contract.fallbackToDocumentElement) return "";
+          return getComputedStyle(document.documentElement).getPropertyValue(value).trim();
+        };
+        const styles = getComputedStyle(element);
+        return {
+          tag: element.tagName.toLowerCase(),
+          selector:
+            element.getAttribute("data-rindle-admin-theme") ||
+            element.getAttribute("data-rindle-admin-action") ||
+            element.getAttribute("data-rindle-admin-detail-link") ||
+            element.getAttribute("data-rindle-admin-input") ||
+            element.className ||
+            element.id ||
+            element.tagName.toLowerCase(),
+          outlineWidth: styles.outlineWidth,
+          outlineColor: styles.outlineColor,
+          outlineOffset: styles.outlineOffset,
+          expectedWidth: resolve(contract.width),
+          expectedColor: resolve(contract.color),
+          expectedOffset: resolve(contract.offset),
+        };
+      }, normalizedFocusContract);
+      if (!state) continue;
+      if (state.outlineWidth !== state.expectedWidth) {
+        offenders.push(`${selector} ${state.selector} outlineWidth ${state.outlineWidth} != ${state.expectedWidth}`);
+      }
+      if (state.outlineOffset !== state.expectedOffset) {
+        offenders.push(`${selector} ${state.selector} outlineOffset ${state.outlineOffset} != ${state.expectedOffset}`);
+      }
+      // Report an unparseable/missing outline color (e.g. a root that does not define the
+      // expected focus-ring token) as an offender rather than throwing — matching the
+      // offender-collecting contract of the width/offset checks above, so a single bad value
+      // surfaces as a reviewable mismatch instead of aborting the whole gate run.
+      let colorMismatch = false;
+      try {
+        const actual = parseColor(state.outlineColor);
+        const expected = parseColor(state.expectedColor);
+        colorMismatch = actual.some((value, channel) => Math.abs(value - expected[channel]) > 1);
+      } catch (_error) {
+        colorMismatch = true;
+      }
+      if (colorMismatch) {
+        offenders.push(`${selector} ${state.selector} outlineColor ${state.outlineColor} != ${state.expectedColor}`);
+      }
+    }
+  }
+
+  return offenders;
+}
+
+// ---------------------------------------------------------------------------
+// Check 5 — no interactive overlap (noisiest; warn-then-tighten)
+// ---------------------------------------------------------------------------
+async function assertNoInteractiveOverlap(
+  page,
+  interactiveSelectors = DEFAULT_INTERACTIVE_SELECTORS,
+  root = DEFAULT_ROOT
+) {
+  return page.locator(scopedInteractiveSelector(root, interactiveSelectors)).evaluateAll(
     (els, { TOL }) => {
       const visible = (el) => {
         const s = getComputedStyle(el);
@@ -348,7 +537,7 @@ async function assertNoInteractiveOverlap(page, interactiveSelectors = DEFAULT_I
 }
 
 // ---------------------------------------------------------------------------
-// Check 5 — stable / correctly-sized rasterization
+// Check 6 — stable / correctly-sized rasterization
 // ---------------------------------------------------------------------------
 // Decode PNG IHDR (pure Node, no dependency): after the 8-byte signature there is a
 // 4-byte length, the "IHDR" tag, then width and height as big-endian uint32.
@@ -360,6 +549,11 @@ function pngSize(buf) {
 }
 
 async function assertStableDimensions(page) {
+  await page.evaluate(() => {
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+  });
   const dpr = await page.evaluate(() => window.devicePixelRatio);
   const viewport = page.viewportSize();
   const expectedWidth = Math.round(viewport.width * dpr);
@@ -370,7 +564,7 @@ async function assertStableDimensions(page) {
   const sb = pngSize(b);
 
   const failures = [];
-  if (sa.width !== sb.width || sa.height !== sb.height) {
+  if (sa.width !== sb.width || Math.abs(sa.height - sb.height) > RASTER_HEIGHT_TOLERANCE) {
     failures.push(`non-deterministic capture: ${sa.width}x${sa.height} then ${sb.width}x${sb.height}`);
   }
   if (sa.width !== expectedWidth) {
@@ -383,6 +577,438 @@ async function assertStableDimensions(page) {
 }
 
 // ---------------------------------------------------------------------------
+// Check 7 — consistent intra-unit rhythm (4px grid ∪ {12,44})
+// ---------------------------------------------------------------------------
+// Walks ONLY descendants of `[data-rindle-admin-meta]` units (the intra-unit
+// requirement — scoping to meta subtrees dramatically cuts noise) and asserts the
+// rhythm-bearing box properties resolve to the design system's spacing grid. Only
+// `rowGap`/`columnGap`/top-bottom `margin`/the four `padding` sides are checked;
+// sizing (`height`/`width`/`min-height`) and `line-height` are intentionally
+// excluded because they legitimately carry off-grid values (the 28px chip min-height,
+// the 44px target minimum, fluid widths, line-box metrics). Horizontal margins are
+// excluded too (`margin: 0 auto` centering resolves to arbitrary px). `0px` is always
+// valid. Allowed set is `{4,8,16,24,32,48,64}` (the declared spacing multiples) plus
+// the two documented exceptions `{12,44}` (the table-cell padding step and the target
+// minimum). RETURNS offenders `"{slug} {tag} {prop}={px}px off-grid"`; never throws.
+//
+// Only elements the design system actually styles are measured: an element is inspected
+// when it carries a `rindle-admin-*` class. Native form-control internals (an `<option>`
+// padded by the user-agent stylesheet, a checkbox `<input>`'s UA margin) and bare
+// typographic elements (`<p>`/`<h2>` relying on the user-agent's em-based margins) carry
+// box metrics the generated CSS never sets — including them would surface the browser's
+// defaults, not off-grid token spacing (Pitfall 1: offenders all at UA-default values mean
+// the walk is too wide, not that the CSS is off-grid).
+async function assertConsistentRhythm(page, root = DEFAULT_ROOT) {
+  return page.evaluate(
+    ({ ROOT, ALLOWED, EXEMPT_PX, TOL }) => {
+      const onGrid = (px) =>
+        EXEMPT_PX.some((v) => Math.abs(px - v) <= TOL) ||
+        ALLOWED.some((v) => Math.abs(px - v) <= TOL);
+      const styled = (el) =>
+        typeof el.className === "string" &&
+        el.className.split(/\s+/).some((c) => c.startsWith("rindle-admin-"));
+      const PROPS = [
+        "rowGap",
+        "columnGap",
+        "marginTop",
+        "marginBottom",
+        "paddingTop",
+        "paddingBottom",
+        "paddingLeft",
+        "paddingRight",
+      ];
+      const out = [];
+      for (const unit of document.querySelectorAll(`${ROOT} [data-rindle-admin-meta]`)) {
+        const slug = unit.getAttribute("data-rindle-admin-meta") || "?";
+        for (const el of [unit, ...unit.querySelectorAll("*")]) {
+          if (!styled(el)) continue; // measure only design-system-owned box metrics
+          const s = getComputedStyle(el);
+          for (const prop of PROPS) {
+            const px = parseFloat(s[prop]);
+            if (!Number.isFinite(px) || px === 0) continue; // 0px / unset always valid
+            if (!onGrid(px)) {
+              out.push(`${slug} ${el.tagName.toLowerCase()} ${prop}=${px}px off-grid`);
+            }
+          }
+        }
+      }
+      return out;
+    },
+    { ROOT: root, ALLOWED: [4, 8, 16, 24, 32, 48, 64], EXEMPT_PX: [12, 44], TOL: SUBPIXEL_TOLERANCE }
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Check 8 — no horizontal overflow per meta-unit root
+// ---------------------------------------------------------------------------
+// The PER-UNIT counterpart to the page-level no-horizontal-scroll helper in
+// support/admin.js (which asserts the document + admin root only — do NOT duplicate
+// it here). This iterates each `[data-rindle-admin-meta]` unit root and flags one
+// whose `scrollWidth` exceeds its `clientWidth` (a unit that overflows its own box).
+// A unit that legitimately owns an internal scroll region (the sticky data table)
+// opts out via the explicit `[data-rindle-admin-scroll-region]` marker — D-94-07:
+// explicit opt-in, never auto-detected. RETURNS offenders `"{slug} x(sw>cw)"`;
+// never throws.
+async function assertNoHorizontalScroll(page, root = DEFAULT_ROOT) {
+  return page.evaluate(
+    ({ ROOT, CLIP_TOLERANCE }) => {
+      const out = [];
+      for (const unit of document.querySelectorAll(`${ROOT} [data-rindle-admin-meta]`)) {
+        if (unit.closest("[data-rindle-admin-scroll-region]")) continue; // explicit opt-in
+        const slug = unit.getAttribute("data-rindle-admin-meta") || "?";
+        if (unit.scrollWidth > unit.clientWidth + CLIP_TOLERANCE) {
+          out.push(`${slug} x(${unit.scrollWidth}>${unit.clientWidth})`);
+        }
+      }
+      return out;
+    },
+    { ROOT: root, CLIP_TOLERANCE }
+  );
+}
+
+// ===========================================================================
+// Phase 98 — the five NON-INFERABLE computed-style backstops (D-98-05/06).
+// Each is offender-returning (never throws); admin-root-only against DEFAULT_ROOT /
+// DEFAULT_INTERACTIVE_SELECTORS. `assertAdminPolish` runs only the dialog-inert backstop by
+// default, and only for admin callers; Cohort callers must explicitly opt into admin
+// backstops if they intentionally want those admin page/layout checks.
+// The viewport/media-dependent backstops (TwoPaneBand, StackedCard, ReducedMotion) mutate
+// global page state and are driven by a dedicated test in admin-screenshots.spec.js rather
+// than the per-capture assertAdminPolish runner; the per-state-safe backstops (DialogInert,
+// FocusVisible) register in the runner and ride existing captures.
+// ===========================================================================
+
+// ---------------------------------------------------------------------------
+// Backstop 1 — two-pane track count + 760-1023px band (§A<->§C, D-98-15, checker note 2)
+// ---------------------------------------------------------------------------
+// At >=1024px the two-pane region's computed grid-template-columns resolves to TWO
+// tracks; below 1024 it is ONE. Inside the 760-1023 band (safe literal ~900px) the shell
+// is the sidebar layout, :work is a single column, and there is NO side :aside (detail is
+// reached via :show routes). RETURNS offenders; never throws. Caller sets the viewport.
+async function assertTwoPaneBand(page, root = DEFAULT_ROOT) {
+  return page.evaluate(
+    ({ ROOT }) => {
+      const out = [];
+      const shell = document.querySelector(ROOT);
+      if (!shell) return [`no admin root (${ROOT})`];
+      const width = window.innerWidth;
+      const trackCount = (el) => {
+        const cols = getComputedStyle(el).gridTemplateColumns.trim();
+        if (!cols || cols === "none") return 0;
+        return cols.split(/\s+/).filter(Boolean).length;
+      };
+
+      // Two-pane region (only present on a surface that passes :aside). If absent on this
+      // surface that is fine — band reconciliation is asserted on the shell sidebar below.
+      const panes = document.querySelector(".rindle-admin-page--two-pane .rindle-admin-page__panes");
+      if (panes) {
+        const tracks = trackCount(panes);
+        if (width >= 1024 && tracks !== 2) {
+          out.push(`two-pane panes resolved ${tracks} tracks at ${width}px (expected 2 at >=1024)`);
+        }
+        if (width < 1024 && tracks > 1) {
+          out.push(`two-pane panes resolved ${tracks} tracks at ${width}px (expected 1 below 1024)`);
+        }
+      }
+
+      // 760-1023 band reconciliation: shell sidebar present (two-track shell grid), single
+      // -column work, NO side aside painted.
+      if (width >= 760 && width < 1024) {
+        const shellTracks = trackCount(shell);
+        if (shellTracks !== 2) {
+          out.push(`shell resolved ${shellTracks} tracks at ${width}px (expected 2-track sidebar in 760-1023 band)`);
+        }
+        const aside = document.querySelector(`${ROOT} .rindle-admin-page__aside`);
+        if (aside && getComputedStyle(aside).display !== "none" && aside.getBoundingClientRect().width > 0) {
+          out.push(`side :aside is painted at ${width}px (band expects detail via :show routes, no side aside)`);
+        }
+        const work = document.querySelector(`${ROOT} .rindle-admin-page__work`);
+        if (work && trackCount(work) > 1) {
+          out.push(`:work is multi-column at ${width}px (band expects single-column work)`);
+        }
+      }
+      return out;
+    },
+    { ROOT: root }
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Backstop 2 — stacked label:value cards (§C), td::before attr() resolution
+// ---------------------------------------------------------------------------
+// At <760 (use 759) the data table/tr/td compute display:block and each td::before
+// `content` resolves to its data-label; at >=760 (use 761) they are table/table-row/
+// table-cell with empty ::before. The 1023/1025 shell stop is covered by assertTwoPaneBand.
+// Also asserts NO column (State/Job) is display:none at any tested viewport. Caller sets
+// the viewport BEFORE calling so the @media query has settled. RETURNS offenders.
+async function assertStackedCard(page, root = DEFAULT_ROOT) {
+  return page.evaluate(
+    ({ ROOT }) => {
+      const out = [];
+      const width = window.innerWidth;
+      const stacked = width < 760;
+      const table = document.querySelector(`${ROOT} table.rindle-admin-table:not(.rindle-admin-table--sticky)`);
+      if (!table) return out; // surface without a non-sticky data table — nothing to assert
+
+      const row = table.querySelector("tbody tr");
+      const cell = row && row.querySelector("td[data-label]");
+      const expect = (el, label, want) => {
+        if (!el) return;
+        const got = getComputedStyle(el).display;
+        if (got !== want) out.push(`${label} display=${got} at ${width}px (expected ${want})`);
+      };
+
+      if (stacked) {
+        expect(table, "table", "block");
+        expect(row, "tr", "block");
+        expect(cell, "td", "block");
+        if (cell) {
+          const before = getComputedStyle(cell, "::before").content;
+          const label = cell.getAttribute("data-label");
+          // content resolves attr(data-label) -> the quoted label string.
+          if (!before || before === "none" || !before.includes(label)) {
+            out.push(`td::before="${before}" did not resolve data-label="${label}" at ${width}px`);
+          }
+        }
+      } else {
+        expect(table, "table", "table");
+        expect(row, "tr", "table-row");
+        expect(cell, "td", "table-cell");
+        if (cell) {
+          const before = getComputedStyle(cell, "::before").content;
+          if (before && before !== "none" && before !== '""' && before !== "normal") {
+            out.push(`td::before="${before}" should be empty at ${width}px (real table)`);
+          }
+        }
+      }
+
+      // No priority-column hiding: every header/cell must remain laid out (never display:none).
+      for (const el of table.querySelectorAll("th, td")) {
+        if (getComputedStyle(el).display === "none") {
+          out.push(`cell "${(el.textContent || "").trim().slice(0, 20)}" is display:none at ${width}px (no column hiding)`);
+        }
+      }
+      return out;
+    },
+    { ROOT: root }
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Backstop 3 — reduced-motion (§B), read UN-FROZEN (Pitfall 6)
+// ---------------------------------------------------------------------------
+// Under prefers-reduced-motion:reduce every animated catalog selector computes
+// transitionDuration "0s"; under no-preference it equals the token duration. CRITICAL:
+// this read MUST run un-frozen — freezeMotion injects transition:none and would pass it
+// vacuously. The caller applies emulateMedia and must NOT have injected the freeze style
+// (or must remove it). RETURNS offenders. `mode` is "reduce" | "no-preference".
+const REDUCED_MOTION_SELECTORS = [
+  ".rindle-admin-toast",
+  ".rindle-admin-confirm-dialog",
+  ".rindle-admin-skeleton",
+  ".rindle-admin-theme-picker__option",
+];
+async function assertReducedMotion(page, mode, root = DEFAULT_ROOT) {
+  return page.evaluate(
+    ({ ROOT, MODE, SELECTORS }) => {
+      const out = [];
+      // Guard against a leftover freeze style making the read vacuous (Pitfall 6).
+      if (document.getElementById("__admin_polish_freeze__")) {
+        return ["reduced-motion read ran with freezeMotion active (vacuous) — remove the freeze style first"];
+      }
+      const scope = document.querySelector(ROOT) || document;
+      for (const selector of SELECTORS) {
+        const el = scope.querySelector(selector) || document.querySelector(selector);
+        if (!el) continue;
+        const dur = getComputedStyle(el).transitionDuration;
+        const zero = /^0s(,\s*0s)*$/.test(dur.trim());
+        if (MODE === "reduce" && !zero) {
+          out.push(`${selector} transitionDuration=${dur} under reduce (expected 0s)`);
+        }
+        if (MODE === "no-preference" && zero) {
+          out.push(`${selector} transitionDuration=${dur} under no-preference (expected token duration, not 0s)`);
+        }
+      }
+      return out;
+    },
+    { ROOT: root, MODE: mode, SELECTORS: REDUCED_MOTION_SELECTORS }
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Backstop 4 — dialog inert / aria-hidden reset-on-close + survives reconnect (§D, D-98-11)
+// ---------------------------------------------------------------------------
+// With a confirm dialog OPEN: main+nav carry inert AND aria-hidden; the dialog has
+// role dialog|alertdialog + aria-modal + aria-labelledby. This reads the CURRENTLY-open
+// dialog state. The reset-on-close and reconnect-safety are asserted by the caller closing
+// the dialog / reloading and re-invoking with `expectOpen=false`. RETURNS offenders.
+async function assertDialogInert(page, { expectOpen, root = DEFAULT_ROOT } = {}) {
+  return page.evaluate(
+    ({ ROOT, EXPECT_OPEN }) => {
+      const out = [];
+      const main = document.querySelector(".rindle-admin-shell__main");
+      const nav = document.querySelector('[data-rindle-admin-component="nav"]');
+      const visibleDialog = () => {
+        const dialog = document.querySelector("[data-rindle-admin-dialog]");
+        if (!dialog || dialog.hidden || dialog.closest("[hidden]")) return null;
+        const s = getComputedStyle(dialog);
+        if (s.display === "none" || s.visibility === "hidden") return null;
+        const rect = dialog.getBoundingClientRect();
+        return rect.width > 0 && rect.height > 0 ? dialog : null;
+      };
+      const landmarkInert = (el, name) => {
+        if (!el) {
+          out.push(`missing landmark ${name}`);
+          return;
+        }
+        const inert = el.hasAttribute("inert");
+        const hidden = el.getAttribute("aria-hidden") === "true";
+        if (EXPECT_OPEN) {
+          if (!inert) out.push(`${name} not inert while dialog open`);
+          if (!hidden) out.push(`${name} not aria-hidden while dialog open`);
+        } else {
+          // The critical landmine: after close / on reconnect, main must NOT be left inert.
+          if (inert) out.push(`${name} left inert while dialog CLOSED (reconnect landmine)`);
+          if (hidden) out.push(`${name} left aria-hidden while dialog CLOSED`);
+        }
+      };
+      landmarkInert(main, "main");
+      landmarkInert(nav, "nav");
+
+      if (EXPECT_OPEN) {
+        const dialog = visibleDialog();
+        if (!dialog) {
+          out.push("no open [data-rindle-admin-dialog] found while dialog expected open");
+        } else {
+          const role = dialog.getAttribute("role");
+          if (role !== "dialog" && role !== "alertdialog") {
+            out.push(`dialog role="${role}" (expected dialog|alertdialog)`);
+          }
+          if (dialog.getAttribute("aria-modal") !== "true") out.push("dialog missing aria-modal=true");
+          if (!dialog.getAttribute("aria-labelledby")) out.push("dialog missing aria-labelledby");
+        }
+      }
+      return out;
+    },
+    { ROOT: root, EXPECT_OPEN: !!expectOpen }
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Backstop 5 — :focus-visible (keyboard) vs pointer focus differentiation (§D)
+// ---------------------------------------------------------------------------
+// Keyboard :focus-visible yields outline 2px solid var(--rindle-focus-ring) + 2px offset
+// with the ring color matching per data-theme; a pointer (mouse) focus yields NO ring.
+// Drives the FIRST visible+enabled control of each selector. RETURNS offenders.
+async function assertFocusVisibleVsPointer(
+  page,
+  interactiveSelectors = DEFAULT_INTERACTIVE_SELECTORS,
+  focusContract = normalizeFocusContract()
+) {
+  const normalizedFocusContract = normalizeFocusContract(focusContract);
+  const offenders = [];
+  for (const selector of interactiveSelectors) {
+    const locator = page.locator(scopedInteractiveSelector(normalizedFocusContract.root, [selector]));
+    if ((await locator.count()) === 0) continue;
+    const item = locator.first();
+    if (!(await item.isVisible().catch(() => false))) continue;
+    if (await item.isDisabled().catch(() => false)) continue;
+
+    // Keyboard focus -> :focus-visible should paint the ring.
+    const kb = await item.evaluate((el, contract) => {
+      el.focus({ focusVisible: true });
+      const resolve = (value) => {
+        if (!value || !value.startsWith("--")) return value || "";
+        const rootEl = document.querySelector(contract.root);
+        const rootValue = rootEl ? getComputedStyle(rootEl).getPropertyValue(value).trim() : "";
+        if (rootValue) return rootValue;
+        if (!contract.fallbackToDocumentElement) return "";
+        return getComputedStyle(document.documentElement).getPropertyValue(value).trim();
+      };
+      const s = getComputedStyle(el);
+      return {
+        width: s.outlineWidth,
+        style: s.outlineStyle,
+        color: s.outlineColor,
+        expectedWidth: resolve(contract.width),
+        expectedColor: resolve(contract.color),
+        expectedOffset: resolve(contract.offset),
+        offset: s.outlineOffset,
+        matchesFV: el.matches(":focus-visible"),
+      };
+    }, normalizedFocusContract);
+    if (kb.matchesFV) {
+      if (kb.width !== kb.expectedWidth) {
+        offenders.push(`${selector} keyboard outlineWidth=${kb.width} != ${kb.expectedWidth}`);
+      }
+      if (kb.offset !== kb.expectedOffset) {
+        offenders.push(`${selector} keyboard outlineOffset=${kb.offset} != ${kb.expectedOffset}`);
+      }
+      if (kb.style === "none") {
+        offenders.push(`${selector} keyboard focus painted no outline (:focus-visible expected ring)`);
+      }
+      let colorMismatch = false;
+      try {
+        const actual = parseColor(kb.color);
+        const expected = parseColor(kb.expectedColor);
+        colorMismatch = actual.some((value, channel) => Math.abs(value - expected[channel]) > 1);
+      } catch (_error) {
+        colorMismatch = true;
+      }
+      if (colorMismatch) {
+        offenders.push(`${selector} keyboard outlineColor=${kb.color} != ${kb.expectedColor}`);
+      }
+    }
+
+    // Pointer focus -> NO :focus-visible ring. Blur, then mouse-click to focus.
+    await item.evaluate((el) => el.blur());
+    await item.click({ trial: false }).catch(() => {});
+    const ptr = await item.evaluate((el) => {
+      const isTextEditable = (node) => {
+        if (node.isContentEditable) return true;
+        const tag = node.tagName.toLowerCase();
+        if (tag === "textarea") return true;
+        if (tag !== "input") return false;
+        const type = (node.getAttribute("type") || "text").toLowerCase();
+        return !new Set([
+          "button",
+          "checkbox",
+          "color",
+          "file",
+          "hidden",
+          "image",
+          "radio",
+          "range",
+          "reset",
+          "submit",
+        ]).has(type);
+      };
+      const focused = document.activeElement === el;
+      const s = getComputedStyle(el);
+      return {
+        focused,
+        matchesFV: el.matches(":focus-visible"),
+        textEditable: isTextEditable(el),
+        width: s.outlineWidth,
+        style: s.outlineStyle,
+      };
+    });
+    // Chromium intentionally matches :focus-visible for text-entry controls after a pointer
+    // click because users may immediately type. Keep their keyboard-token check above, but do
+    // not require pointer focus to suppress the ring for editable inputs/textareas.
+    if (ptr.textEditable) continue;
+    if (ptr.focused && ptr.matchesFV) {
+      // A pointer-focused control that still reports :focus-visible (and a real ring) is the
+      // negative defect this backstop exists to catch.
+      if (ptr.style !== "none" && ptr.width !== "0px") {
+        offenders.push(`${selector} pointer focus painted a ring (outline ${ptr.width} ${ptr.style}; expected none)`);
+      }
+    }
+  }
+  return offenders;
+}
+
+// ---------------------------------------------------------------------------
 // Orchestrator
 // ---------------------------------------------------------------------------
 async function assertAdminPolish(
@@ -392,9 +1018,13 @@ async function assertAdminPolish(
     surface,
     root = DEFAULT_ROOT,
     interactiveSelectors = DEFAULT_INTERACTIVE_SELECTORS,
+    focusContract,
+    adminBackstops,
   } = {}
 ) {
   await freezeMotion(page); // settle transitions before any computed-style read
+  const normalizedFocusContract = normalizeFocusContract(focusContract, root);
+  const enabledAdminBackstops = normalizeAdminBackstops(adminBackstops, root);
 
   const violations = [];
   const warnings = [];
@@ -410,12 +1040,35 @@ async function assertAdminPolish(
   };
 
   await run("noClippedText", "clipped-text", () => assertNoClippedText(page, root));
+  await run("consistentRhythm", "rhythm", () => assertConsistentRhythm(page, root));
+  await run("noHorizontalScroll", "h-scroll", () => assertNoHorizontalScroll(page, root));
   await run("readableContrast", "contrast", () => assertReadableContrast(page, root));
-  await run("targetSizes", "target-size", () => assertTargetSizes(page, interactiveSelectors));
-  await run("noInteractiveOverlap", "overlap", () => assertNoInteractiveOverlap(page, interactiveSelectors), {
+  await run("targetSizes", "target-size", () => assertTargetSizes(page, interactiveSelectors, root));
+  await run("focusVisibleTokens", "focus-visible", () =>
+    assertFocusVisibleTokens(page, interactiveSelectors, normalizedFocusContract)
+  );
+  await run("noInteractiveOverlap", "overlap", () => assertNoInteractiveOverlap(page, interactiveSelectors, root), {
     warnOnly: !OVERLAP_ENFORCED,
   });
   await run("stableDimensions", "stable-dimensions", () => assertStableDimensions(page));
+
+  if (enabledAdminBackstops.dialogInert) {
+    // Phase 98 backstop 4 (dialog inert reset): rides EVERY admin capture as a read-only DOM
+    // check. It is admin-only: Cohort has no rindle-admin landmarks/dialog contract.
+    const dialogOpen = await page.evaluate(
+      () => {
+        const dialog = document.querySelector("[data-rindle-admin-dialog]");
+        if (!dialog || dialog.hidden || dialog.closest("[hidden]")) return false;
+        const s = getComputedStyle(dialog);
+        if (s.display === "none" || s.visibility === "hidden") return false;
+        const rect = dialog.getBoundingClientRect();
+        return rect.width > 0 && rect.height > 0;
+      }
+    );
+    await run("dialogInert", "dialog-inert", () =>
+      assertDialogInert(page, { expectOpen: dialogOpen, root })
+    );
+  }
 
   if (warnings.length) {
     // eslint-disable-next-line no-console
@@ -437,10 +1090,26 @@ module.exports = {
   assertAdminPolish,
   freezeMotion,
   assertNoClippedText,
+  assertConsistentRhythm,
+  assertNoHorizontalScroll,
   assertReadableContrast,
   assertTargetSizes,
+  assertFocusVisibleTokens,
   assertNoInteractiveOverlap,
   assertStableDimensions,
+  // Phase 98 computed-style backstops (D-98-05/06).
+  assertTwoPaneBand,
+  assertStackedCard,
+  assertReducedMotion,
+  assertDialogInert,
+  assertFocusVisibleVsPointer,
+  DEFAULT_ROOT,
+  DEFAULT_INTERACTIVE_SELECTORS,
+  DEFAULT_FOCUS_CONTRACT,
+  DEFAULT_ADMIN_BACKSTOPS,
+  normalizeFocusContract,
+  normalizeAdminBackstops,
+  REDUCED_MOTION_SELECTORS,
   luminance,
   contrastRatio,
   pngSize,

@@ -1,6 +1,8 @@
 defmodule AdoptionDemoWeb.UploadLive do
   use AdoptionDemoWeb, :live_view
 
+  import AdoptionDemoWeb.CohortComponents
+
   alias AdoptionDemo.{Accounts, Cohort, Media, MuxProfile, RindleProfile, VideoProfile}
   alias Rindle.Upload.Broker
 
@@ -13,12 +15,14 @@ defmodule AdoptionDemoWeb.UploadLive do
     :ok = ensure_inets()
     member = load_member!(params["member_id"] || params["user_id"])
     tab = params["tab"] || "image"
+    theme = normalize_theme(params["theme"], "light")
 
     socket =
       socket
       |> assign(:page_title, "Upload lab")
       |> assign(:member, member)
       |> assign(:tab, tab)
+      |> assign(:theme, theme)
       |> assign(:image_status, "idle")
       |> assign(:tus_status, "idle")
       |> assign(:tus_error, nil)
@@ -38,102 +42,136 @@ defmodule AdoptionDemoWeb.UploadLive do
   def handle_params(params, _uri, socket) do
     tab = params["tab"] || socket.assigns.tab
     member = load_member!(params["member_id"] || params["user_id"] || socket.assigns.member.id)
+    theme = normalize_theme(params["theme"], socket.assigns.theme)
 
-    {:noreply, assign(socket, tab: tab, member: member)}
+    {:noreply, assign(socket, tab: tab, member: member, theme: theme)}
   end
 
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash} page_title={@page_title}>
-      <h1 class="text-2xl font-semibold">Upload lab</h1>
-      <p class="text-sm">
-        Member: <strong id="upload-member-name" data-testid="upload-member-name">{@member.name}</strong>
-      </p>
-
-      <div class="tabs tabs-boxed mt-4 flex flex-wrap gap-2">
-        <.tab_link member={@member} tab="image" current={@tab} label="Image presigned PUT" />
-        <.tab_link member={@member} tab="tus" current={@tab} label="Tus resume" />
-        <.tab_link member={@member} tab="video" current={@tab} label="Video AV" />
-        <.tab_link member={@member} tab="multipart" current={@tab} label="Multipart" />
-        <.tab_link member={@member} tab="liveview" current={@tab} label="LiveView upload" />
-        <.tab_link member={@member} tab="mux" current={@tab} label="Mux streaming" />
-      </div>
-
-      <div :if={@tab == "image"} id="image-upload-panel" class="mt-6 space-y-3" data-testid="image-upload-panel">
-        <p class="text-sm">Browser PUT to presigned URL, then attach as avatar.</p>
-        <p id="image-upload-status" class="font-mono text-sm" data-testid="image-upload-status">{@image_status}</p>
-        <input
-          id="image-file-input"
-          type="file"
-          accept="image/png,image/jpeg"
-          phx-hook="PresignedPut"
-          data-testid="image-file-input"
-        />
-        <p :if={@last_asset_id} id="image-upload-asset-id" data-testid="image-upload-asset-id">
-          Asset {@last_asset_id}
+    <Layouts.app flash={@flash} page_title={@page_title} nav={:upload}>
+      <.ck_page
+        eyebrow="Upload lab"
+        title="Every Rindle upload path, live."
+        lede="Six ingest flows against real MinIO — presigned PUT, tus resume, multipart, LiveView server upload, AV variants, and Mux streaming. Pick a tab to run one end to end; the data is seeded, the uploads are real."
+        theme={@theme}
+      >
+        <p class="ck-hero__lede">
+          Member: <strong id="upload-member-name" data-testid="upload-member-name">{@member.name}</strong>
         </p>
-      </div>
 
-      <div :if={@tab == "tus"} id="tus-upload-panel" class="mt-6 space-y-3" data-testid="tus-upload-panel">
-        <p class="text-sm">LiveView tus helper against MinIO.</p>
-        <p id="tus-upload-status" class="font-mono text-sm" data-testid="tus-upload-status">{@tus_status}</p>
-        <p :if={@tus_error} id="tus-upload-error" class="text-red-600 text-sm" data-testid="tus-upload-error">
-          {@tus_error}
-        </p>
-        <.form for={%{}} id="tus-form" phx-change="tus_changed" phx-submit="save_tus">
-          <.live_file_input upload={@uploads.video} data-testid="tus-file-input" />
-          <button type="submit" id="tus-submit" data-testid="tus-submit">Submit tus upload</button>
-        </.form>
-      </div>
+        <div class="ck-tabs__list" role="navigation" aria-label="Upload strategy">
+          <.tab_link member={@member} tab="image" current={@tab} label="Image (presigned PUT)" />
+          <.tab_link member={@member} tab="tus" current={@tab} label="Tus (resumable)" />
+          <.tab_link member={@member} tab="video" current={@tab} label="Video (AV variants)" />
+          <.tab_link member={@member} tab="multipart" current={@tab} label="Multipart" />
+          <.tab_link member={@member} tab="liveview" current={@tab} label="LiveView upload" />
+          <.tab_link member={@member} tab="mux" current={@tab} label="Mux streaming" />
+        </div>
 
-      <div :if={@tab == "video"} id="video-upload-panel" class="mt-6 space-y-3" data-testid="video-upload-panel">
-        <p class="text-sm">Browser file pick → presigned PUT → AV variants.</p>
-        <p id="video-upload-status" class="font-mono text-sm" data-testid="video-upload-status">{@video_status}</p>
-        <input
-          id="video-file-input"
-          type="file"
-          accept="video/webm,video/mp4"
-          phx-hook="PresignedVideoPut"
-          data-testid="video-file-input"
-        />
-      </div>
+        <div :if={@tab == "image"} id="image-upload-panel" data-testid="image-upload-panel">
+          <p class="ck-help">Browser PUT to presigned URL, then attach as avatar.</p>
+          <p id="image-upload-status" class="ck-output" data-testid="image-upload-status">{@image_status}</p>
+          <input
+            id="image-file-input"
+            type="file"
+            accept="image/png,image/jpeg"
+            phx-hook="PresignedPut"
+            class="ck-input"
+            data-testid="image-file-input"
+          />
+          <p :if={@last_asset_id} id="image-upload-asset-id" class="ck-help" data-testid="image-upload-asset-id">
+            Asset {@last_asset_id}
+          </p>
+        </div>
 
-      <div :if={@tab == "multipart"} id="multipart-upload-panel" class="mt-6 space-y-3" data-testid="multipart-upload-panel">
-        <p class="text-sm">Client-side multipart upload (5 MiB + tail part).</p>
-        <p id="multipart-upload-status" class="font-mono text-sm" data-testid="multipart-upload-status">
-          {@multipart_status}
-        </p>
-        <button id="multipart-upload-button" phx-hook="MultipartUpload" data-testid="multipart-upload-button" class="btn">
-          Run multipart upload
-        </button>
-      </div>
+        <div :if={@tab == "tus"} id="tus-upload-panel" data-testid="tus-upload-panel">
+          <p class="ck-help">LiveView tus helper against MinIO.</p>
+          <p id="tus-upload-status" class="ck-output" data-testid="tus-upload-status">{@tus_status}</p>
+          <p :if={@tus_error} id="tus-upload-error" class="ck-error" role="alert" data-testid="tus-upload-error">
+            <svg
+              class="ck-icon"
+              viewBox="0 0 24 24"
+              width="16"
+              height="16"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M10.3 3.7 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.7a2 2 0 0 0-3.4 0Z" />
+              <path d="M12 9v4" /><path d="M12 17h.01" />
+            </svg>
+            <span>{@tus_error}</span>
+          </p>
+          <.form for={%{}} id="tus-form" phx-change="tus_changed" phx-submit="save_tus">
+            <.live_file_input upload={@uploads.video} class="ck-input" data-testid="tus-file-input" />
+            <button type="submit" id="tus-submit" class="ck-btn ck-btn--primary" data-testid="tus-submit">
+              Submit tus upload
+            </button>
+          </.form>
+        </div>
 
-      <div :if={@tab == "liveview"} id="liveview-upload-panel" class="mt-6 space-y-3" data-testid="liveview-upload-panel">
-        <p class="text-sm">Phoenix LiveView upload to server, then attach to a community post.</p>
-        <p id="liveview-upload-status" class="font-mono text-sm" data-testid="liveview-upload-status">
-          {@liveview_status}
-        </p>
-        <.form for={%{}} id="liveview-form" phx-change="liveview_changed" phx-submit="save_liveview">
-          <.live_file_input upload={@uploads.post_image} data-testid="liveview-file-input" />
-          <button type="submit" id="liveview-submit" data-testid="liveview-submit">Attach to new post</button>
-        </.form>
-      </div>
+        <div :if={@tab == "video"} id="video-upload-panel" data-testid="video-upload-panel">
+          <p class="ck-help">Browser file pick → presigned PUT → AV variants.</p>
+          <p id="video-upload-status" class="ck-output" data-testid="video-upload-status">{@video_status}</p>
+          <input
+            id="video-file-input"
+            type="file"
+            accept="video/webm,video/mp4"
+            phx-hook="PresignedVideoPut"
+            class="ck-input"
+            data-testid="video-file-input"
+          />
+        </div>
 
-      <div :if={@tab == "mux"} id="mux-upload-panel" class="mt-6 space-y-3" data-testid="mux-upload-panel">
-        <p class="text-sm">MuxWeb profile with cassette HTTP client in test CI.</p>
-        <p id="mux-upload-status" class="font-mono text-sm" data-testid="mux-upload-status">{@mux_status}</p>
-        <input
-          id="mux-file-input"
-          type="file"
-          accept="video/webm,video/mp4"
-          phx-hook="PresignedMuxPut"
-          data-testid="mux-file-input"
-        />
-        <p :if={@mux_streaming_url} id="mux-streaming-url" class="text-xs break-all" data-testid="mux-streaming-url">
-          {@mux_streaming_url}
-        </p>
-      </div>
+        <div :if={@tab == "multipart"} id="multipart-upload-panel" data-testid="multipart-upload-panel">
+          <p class="ck-help">Client-side multipart upload (5 MiB + tail part).</p>
+          <p id="multipart-upload-status" class="ck-output" data-testid="multipart-upload-status">
+            {@multipart_status}
+          </p>
+          <button
+            id="multipart-upload-button"
+            phx-hook="MultipartUpload"
+            class="ck-btn ck-btn--primary"
+            data-testid="multipart-upload-button"
+          >
+            Run multipart upload
+          </button>
+        </div>
+
+        <div :if={@tab == "liveview"} id="liveview-upload-panel" data-testid="liveview-upload-panel">
+          <p class="ck-help">Phoenix LiveView upload to server, then attach to a community post.</p>
+          <p id="liveview-upload-status" class="ck-output" data-testid="liveview-upload-status">
+            {@liveview_status}
+          </p>
+          <.form for={%{}} id="liveview-form" phx-change="liveview_changed" phx-submit="save_liveview">
+            <.live_file_input upload={@uploads.post_image} class="ck-input" data-testid="liveview-file-input" />
+            <button type="submit" id="liveview-submit" class="ck-btn ck-btn--primary" data-testid="liveview-submit">
+              Attach to new post
+            </button>
+          </.form>
+        </div>
+
+        <div :if={@tab == "mux"} id="mux-upload-panel" data-testid="mux-upload-panel">
+          <p class="ck-help">MuxWeb profile with cassette HTTP client in test CI.</p>
+          <p id="mux-upload-status" class="ck-output" data-testid="mux-upload-status">{@mux_status}</p>
+          <input
+            id="mux-file-input"
+            type="file"
+            accept="video/webm,video/mp4"
+            phx-hook="PresignedMuxPut"
+            class="ck-input"
+            data-testid="mux-file-input"
+          />
+          <p :if={@mux_streaming_url} id="mux-streaming-url" class="ck-output" data-testid="mux-streaming-url">
+            {@mux_streaming_url}
+          </p>
+        </div>
+      </.ck_page>
     </Layouts.app>
     """
   end
@@ -147,7 +185,8 @@ defmodule AdoptionDemoWeb.UploadLive do
     ~H"""
     <.link
       patch={~p"/upload?member_id=#{@member.id}&tab=#{@tab}"}
-      class={tab_class(@current, @tab)}
+      class="ck-tabs__tab ck-tab"
+      aria-current={@current == @tab && "page"}
       data-testid={"upload-tab-#{@tab}"}
     >
       {@label}
@@ -470,10 +509,8 @@ defmodule AdoptionDemoWeb.UploadLive do
 
   defp load_member!(id), do: Accounts.get_member!(id)
 
-  defp tab_class(current, tab) do
-    base = "tab px-3 py-1 rounded border"
-    if current == tab, do: base <> " bg-gray-200", else: base
-  end
+  defp normalize_theme(theme, _default) when theme in ~w(light dark), do: theme
+  defp normalize_theme(_theme, default), do: default
 
   defp ensure_inets do
     case :inets.start() do

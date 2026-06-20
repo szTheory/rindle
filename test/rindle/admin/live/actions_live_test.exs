@@ -65,12 +65,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ "Owner erasure"
       assert html =~ "Batch erasure"
 
-      # Default action panel is rendered
+      # Default action panel is rendered. The verb-bucket actions were
+      # DISTRIBUTED to their contextual surfaces (UI-SPEC §E, D-98-10); only the
+      # contextless erasure ops remain on Maintenance.
       assert html =~ ~s(data-rindle-admin-action="owner_erasure")
       assert html =~ ~s(data-rindle-admin-action="batch_erasure")
-      assert html =~ ~s(data-rindle-admin-action="lifecycle_repair")
-      assert html =~ ~s(data-rindle-admin-action="variant_regeneration")
-      assert html =~ ~s(data-rindle-admin-action="quarantine_review")
+      refute html =~ ~s(data-rindle-admin-action="lifecycle_repair")
+      refute html =~ ~s(data-rindle-admin-action="variant_regeneration")
+      refute html =~ ~s(data-rindle-admin-action="quarantine_review")
       assert has_element?(view, "[data-rindle-admin-action-panel=\"owner_erasure\"]")
       assert has_element?(view, "h3", "Owner erasure")
       assert has_element?(view, "[data-rindle-admin-state=\"input\"]")
@@ -361,117 +363,78 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                "[data-rindle-admin-action-error]",
                "Preview this action before executing."
              )
-
-      view
-      |> element("button", "Lifecycle repair")
-      |> render_click()
-
-      render_hook(view, "execute_lifecycle_repair", %{
-        "asset_id" => Ecto.UUID.generate(),
-        "repair_action" => "explode"
-      })
-
-      assert has_element?(
-               view,
-               "[data-rindle-admin-action-error]",
-               "Unsupported lifecycle repair action."
-             )
-
-      render_hook(view, "execute_lifecycle_repair", %{"asset_id" => Ecto.UUID.generate()})
-
-      assert has_element?(
-               view,
-               "[data-rindle-admin-action-error]",
-               "Asset ID and repair action are required."
-             )
     end
 
-    test "lifecycle repair workflow: reprobe and requeue", %{conn: conn} do
-      asset =
-        Rindle.Repo.insert!(%Rindle.Domain.MediaAsset{
-          id: Ecto.UUID.generate(),
-          state: "available",
-          profile: to_string(AdminImageProfile),
-          storage_key: "assets/sample.bin",
-          content_type: "image/png",
-          byte_size: 123
-        })
-
+    # CR-03 regression: batch-erasure preview sets dialog_open (action_state ==
+    # :preview), which inerts <main>. Previously the batch confirmation was a plain
+    # inline <form> rendered inside <main>, so it was inerted with no overlay to host
+    # it — the confirmation gate could never be satisfied and the surface was
+    # announced aria-hidden with no dialog. The form must now render through the
+    # shared confirm_dialog primitive in the shell :overlay slot (sibling of <main>).
+    # Fails against the prior inline-form markup (form nested inside the inerted main).
+    test "batch erasure preview confirmation stays interactive outside inert <main> (CR-03 regression)",
+         %{conn: conn} do
       {:ok, view, _html} = live(conn, "/admin/rindle/actions")
 
       view
-      |> element("button", "Lifecycle repair")
+      |> element("button", "Batch erasure")
       |> render_click()
 
-      assert has_element?(view, "[data-rindle-admin-state=\"input\"]")
-      assert has_element?(view, "[data-rindle-admin-form=\"lifecycle_repair\"]")
-      assert has_element?(view, "[data-rindle-admin-input=\"asset_id\"]")
-      assert has_element?(view, "[data-rindle-admin-input=\"repair_action\"]")
-      assert has_element?(view, "[data-rindle-admin-submit=\"execute_lifecycle_repair\"]")
+      owners_text =
+        "Elixir.String:#{Ecto.UUID.generate()}\nElixir.String:#{Ecto.UUID.generate()}"
 
-      # Reprobe
+      html =
+        view
+        |> form("form[phx-submit=\"preview_batch_erasure\"]", %{"owners" => owners_text})
+        |> render_submit()
+
+      # In preview, <main> is inerted (dialog_open true).
+      assert_main_inerted(html)
+
+      # The batch confirmation form + its execute submit + the typed-confirmation
+      # gate must render AFTER </main> (in the sibling overlay host), not inside the
+      # inerted subtree — otherwise the confirmation can never be satisfied.
+      assert_outside_inert_main(html, ~s(data-rindle-admin-form="batch_erasure_execute"))
+      assert_outside_inert_main(html, ~s(data-rindle-admin-submit="execute_batch_erasure"))
+      assert_outside_inert_main(html, ~s(data-rindle-admin-confirm-input))
+
+      # And the batch erasure remains confirmable end-to-end.
       view
-      |> form("form[phx-submit=\"execute_lifecycle_repair\"]", %{
-        "asset_id" => asset.id,
-        "repair_action" => "reprobe"
+      |> form("form[phx-submit=\"execute_batch_erasure\"]", %{
+        "owners" => owners_text,
+        "confirmation" => "ERASE 2 OWNERS"
       })
       |> render_submit()
 
-      assert has_element?(view, "[data-rindle-admin-receipt=\"lifecycle_repair\"]")
-      assert render(view) =~ "Action taken: reprobe"
-
-      view
-      |> element("button", "Lifecycle repair")
-      |> render_click()
-
-      # Requeue
-      view
-      |> form("form[phx-submit=\"execute_lifecycle_repair\"]", %{
-        "asset_id" => asset.id,
-        "repair_action" => "requeue"
-      })
-      |> render_submit()
-
-      assert has_element?(view, "[data-rindle-admin-receipt=\"lifecycle_repair\"]")
-      assert render(view) =~ "Action taken: requeue"
+      assert has_element?(view, "[data-rindle-admin-receipt=\"batch_erasure\"]")
     end
 
-    test "variant regeneration workflow", %{conn: conn} do
-      {:ok, view, _html} = live(conn, "/admin/rindle/actions")
+    defp assert_main_inerted(html) do
+      main_open = Regex.run(~r/<main[^>]*>/, html)
+      assert main_open, "expected a <main> element in the rendered shell"
+      assert hd(main_open) =~ "inert", "expected <main> to carry inert while a dialog is open"
 
-      view
-      |> element("button", "Variant regeneration")
-      |> render_click()
-
-      assert has_element?(view, "[data-rindle-admin-state=\"input\"]")
-      assert has_element?(view, "[data-rindle-admin-form=\"variant_regeneration\"]")
-      assert has_element?(view, "[data-rindle-admin-input=\"profile\"]")
-      assert has_element?(view, "[data-rindle-admin-input=\"variant_name\"]")
-      assert has_element?(view, "[data-rindle-admin-input=\"confirm\"]")
-      assert has_element?(view, "[data-rindle-admin-submit=\"execute_variant_regeneration\"]")
-
-      view
-      |> form("form[phx-submit=\"execute_variant_regeneration\"]", %{
-        "profile" => "Elixir.AdminImageProfile",
-        "variant_name" => "thumb",
-        "confirm" => "true"
-      })
-      |> render_submit()
-
-      assert has_element?(view, "[data-rindle-admin-receipt=\"variant_regeneration\"]")
-      assert render(view) =~ "Enqueued"
+      assert hd(main_open) =~ ~s(aria-hidden="true"),
+             "expected <main> to carry aria-hidden=\"true\" while a dialog is open"
     end
 
-    test "quarantine review triage renders read-only instructional panel", %{conn: conn} do
-      {:ok, view, _html} = live(conn, "/admin/rindle/actions")
+    defp assert_outside_inert_main(html, marker) do
+      main_close = :binary.match(html, "</main>")
+      assert main_close != :nomatch, "expected a </main> close tag"
+      {main_close_at, _} = main_close
+      marker_at = :binary.match(html, marker)
+      assert marker_at != :nomatch, "expected marker #{inspect(marker)} in the rendered html"
+      {marker_pos, _} = marker_at
 
-      view
-      |> element("button", "Quarantine review")
-      |> render_click()
-
-      assert has_element?(view, "[data-rindle-admin-panel=\"quarantine_review\"]")
-      assert render(view) =~ "permanently blocked from delivery"
-      assert render(view) =~ "state=quarantined"
+      assert marker_pos > main_close_at,
+             "#{inspect(marker)} must render AFTER </main> (sibling overlay), not inside the inerted <main>"
     end
+
+    # Distributed verbs (UI-SPEC §E, D-98-10): the regenerate / reconcile /
+    # release-quarantine workflows moved off this Maintenance junk-drawer to their
+    # contextual surfaces. Their behavior is exercised on those surfaces:
+    #   * regenerate (confirm_dialog) → Processing — variants_runtime_actions_test
+    #   * reconcile / verify storage → Doctor — variants_runtime_actions_test
+    #   * quarantine review → asset detail — home_assets_upload_test
   end
 end

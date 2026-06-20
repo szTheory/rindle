@@ -1,16 +1,21 @@
 defmodule AdoptionDemoWeb.AccountLive do
   use AdoptionDemoWeb, :live_view
 
+  import AdoptionDemoWeb.CohortComponents
+
   alias AdoptionDemo.{Accounts, Media}
+  alias AdoptionDemoWeb.CohortTheme
 
   @impl true
   def mount(params, _session, socket) do
     id = params["member_id"] || params["user_id"]
     member = Accounts.get_member!(id)
+    theme = CohortTheme.normalize(params["theme"], "light")
 
     {:ok,
      assign(socket,
        page_title: "Account deletion",
+       theme: theme,
        member: member,
        preview: nil,
        result: nil
@@ -21,22 +26,33 @@ defmodule AdoptionDemoWeb.AccountLive do
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} page_title={@page_title}>
-      <h1 class="text-2xl font-semibold">Owner erasure demo</h1>
-      <p class="text-sm" data-testid="erasure-member-name">
-        Member: {@member.name} ({@member.email})
-      </p>
+      <.ck_page title="Owner erasure demo" theme={@theme}>
+        <p data-testid="erasure-member-name">
+          Member: {@member.name} ({@member.email})
+        </p>
 
-      <div class="flex gap-3 mt-4">
-        <button id="preview-erasure-button" phx-click="preview" class="btn" data-testid="preview-erasure-button">
-          Preview erasure
-        </button>
-        <button id="execute-erasure-button" phx-click="execute" class="btn" data-testid="execute-erasure-button">
-          Execute erasure
-        </button>
-      </div>
+        <div class="ck-toolbar">
+          <button
+            id="preview-erasure-button"
+            phx-click="preview"
+            class="ck-btn"
+            data-testid="preview-erasure-button"
+          >
+            Preview erasure
+          </button>
+          <button
+            id="execute-erasure-button"
+            phx-click="execute"
+            class="ck-btn ck-btn--primary"
+            data-testid="execute-erasure-button"
+          >
+            Execute erasure
+          </button>
+        </div>
 
-      <pre :if={@preview} id="erasure-preview" class="mt-6 p-3 bg-gray-100 text-xs" data-testid="erasure-preview">{inspect(@preview, pretty: true)}</pre>
-      <pre :if={@result} id="erasure-result" class="mt-6 p-3 bg-gray-100 text-xs" data-testid="erasure-result">{inspect(@result, pretty: true)}</pre>
+        <pre :if={@preview} id="erasure-preview" class="ck-output" data-testid="erasure-preview">{inspect(@preview, pretty: true)}</pre>
+        <pre :if={@result} id="erasure-result" class="ck-output" data-testid="erasure-result">{inspect(@result, pretty: true)}</pre>
+      </.ck_page>
     </Layouts.app>
     """
   end
