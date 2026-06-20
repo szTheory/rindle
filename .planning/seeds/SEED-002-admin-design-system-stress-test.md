@@ -1,8 +1,10 @@
 ---
 id: SEED-002
-status: open
+status: consumed
 planted: 2026-06-13
 planted_during: v1.18 close-out / repo-hygiene pass
+consumed: 2026-06-20
+consumed_by: "v1.19 Design-System Stress-Test (chartered 2026-06-14, shipped 2026-06-19; 20/20 requirements complete)"
 trigger_when: "Next `gsd new milestone` — the candidate feature milestone after v1.18. Surface when scope touches admin/operator UI quality, the Cohort example app styling, or design-system maturity."
 scope: Large
 ---

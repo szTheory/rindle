@@ -4,8 +4,8 @@ milestone: v1.19
 milestone_name: Design-System Stress-Test
 status: Awaiting next milestone
 stopped_at: Completed 95-05-PLAN.md
-last_updated: "2026-06-20T19:30:00.000Z"
-last_activity: 2026-06-20 — post-ship Cohort demo polish (#27 chrome/traefik/nav, #28 upload restyle + theme); #29 inner-page DS sweep in flight
+last_updated: "2026-06-20T21:00:00.000Z"
+last_activity: 2026-06-20 — closed v1.18 (tech_debt → shipped) after HUMAN-UAT sign-off; archived v1.18 roadmap+requirements. Earlier: post-ship Cohort demo polish #27/#28/#29 merged to main
 progress:
   total_phases: 9
   completed_phases: 9
@@ -77,14 +77,14 @@ inner pages, in service of real user flows.
     token-pair `cohort-contrast.mjs` gate (it caught `--ck-faint` used as real text) — verify both,
     and measure mobile under Linux Chromium (Atkinson renders wider than on macOS), before pushing.
 
-> ⚠️ **Opens over an un-closed v1.18.** v1.18 Admin Console & Adoption Lab is held at
-> `status: tech_debt` pending maintainer HUMAN-UAT sign-off (Phases 90/91/92). Deliberate,
-> recorded maintainer scope move (2026-06-14). Close via `/gsd-complete-milestone v1.18` once
-> UAT is signed off.
+> ✅ **v1.18 closed.** v1.18 Admin Console & Adoption Lab was advanced from `tech_debt` to
+> `shipped` on 2026-06-20 after maintainer HUMAN-UAT sign-off (Phases 90/91/92); roadmap +
+> requirements archived to `milestones/v1.18-*.md`. Tag `v1.18` left at `c58db9e` (pre-v1.19
+> lineage, intentionally not re-pointed). Both v1.18 and v1.19 now shipped & archived.
 
 ## Next Step
 
-**Start the next milestone only with a documented signal or maintainer override.** v1.19 is archived. v1.18 remains a separate HUMAN-UAT tech_debt milestone; close it via `/gsd-complete-milestone v1.18` once Phases 90/91/92 are signed off.
+**Start the next milestone only with a documented signal or maintainer override.** v1.18 and v1.19 are both shipped & archived — no active milestone, no open tech_debt. SEED-003 (CI/CD performance audit) is the planted v1.20 candidate; charter via `/gsd-new-milestone`.
 
 ## Accumulated Context
 
@@ -119,12 +119,12 @@ inner pages, in service of real user flows.
   animate-everything, generating `cohort.css` from `tokens.json`, adding Tailwind/JS-anim-lib to
   `rindle`, golden-PNG as a merge blocker.
 
-### Carried from v1.18 (tech_debt — HUMAN-UAT pending)
+### Carried from v1.18 (shipped 2026-06-20 — substrate for v1.19+)
 
-- v1.18 milestone-close gated on HUMAN-UAT sign-off for phases 90/91/92 (90 destructive-action UX,
-  91 logo+lifecycle display, 92 screenshot-review matrix). Audit status: `tech_debt` until signed
-  off; archival commit was reset away on `main`, so v1.18 reqs/roadmap remain inline (demoted, not
-  archived). Close via `/gsd-complete-milestone v1.18`.
+- v1.18 closed `shipped` 2026-06-20 after HUMAN-UAT sign-off on phases 90/91/92 (90
+  destructive-action UX, 91 logo+lifecycle display, 92 screenshot-review matrix). Roadmap +
+  requirements archived to `milestones/v1.18-ROADMAP.md` / `-REQUIREMENTS.md`; audit flipped to
+  `shipped`. Tag `v1.18` kept at `c58db9e` (pre-v1.19 lineage, not re-pointed to `main`).
 
 - **v1.18 surfaces are the substrate v1.19 polishes:** token-generated `rindle-admin` CSS,
   mountable console (`Rindle.Admin.Router.rindle_admin/2`), `Rindle.Admin.Queries`, deterministic
@@ -232,8 +232,9 @@ inner pages, in service of real user flows.
 
 ## Blockers/Concerns
 
-- v1.18 milestone-close gated on HUMAN-UAT sign-off for phases 90/91/92. Audit status: tech_debt
-  until signed off. v1.19 proceeds in parallel by recorded maintainer decision.
+- ~~v1.18 milestone-close gated on HUMAN-UAT sign-off for phases 90/91/92.~~ RESOLVED
+  2026-06-20: maintainer signed off all three; v1.18 advanced `tech_debt` → `shipped` and
+  archived. No remaining milestone-close blockers.
 
 - ~~98-02b filed P1 CSS defect: missing .rindle-admin-visually-hidden utility (captions render visibly at >=760px until P1 adds it).~~ RESOLVED in 98-04 (commit b637710): utility authored through the full brandbook pipeline (regen → contrast 58/58 → gallery-check → sync), byte-identical priv copy, added to requiredSelectors + asserted by a new ExUnit §D clause.
 - ~~adoption-demo-e2e red-gate concerns from Phases 97/101.~~ RESOLVED in 102-06: the full wrapper passed after stale admin E2E expectations were aligned with the shipped Phase 98 action distribution and current error copy.

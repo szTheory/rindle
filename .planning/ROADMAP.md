@@ -3,7 +3,7 @@
 ## Milestones
 
 - ✅ **v1.19 Design-System Stress-Test** — Phases 94-102 (shipped 2026-06-19, [archive](milestones/v1.19-ROADMAP.md), [audit](milestones/v1.19-MILESTONE-AUDIT.md))
-- ⏸️ **v1.18 Admin Console & Adoption Lab** — Phases 86–93 (tech_debt — HUMAN-UAT pending: 19/19 reqs + 8/8 phases verified, HUMAN-UAT for 90/91/92 not yet signed off; NOT shipped; charter 2026-06-10; ships as hex 0.3.0; [audit](milestones/v1.18-MILESTONE-AUDIT.md))
+- ✅ **v1.18 Admin Console & Adoption Lab** — Phases 86–93 (shipped 2026-06-20 after HUMAN-UAT sign-off; 19/19 reqs + 8/8 phases; charter 2026-06-10; hex 0.3.0; [archive](milestones/v1.18-ROADMAP.md), [requirements](milestones/v1.18-REQUIREMENTS.md), [audit](milestones/v1.18-MILESTONE-AUDIT.md))
 - ✅ **b1.0 Brand Foundations** — Phases 81–85 (brand track, non-feature; shipped 2026-06-10, [archive](milestones/b1.0-ROADMAP.md), [audit](milestones/b1.0-MILESTONE-AUDIT.md))
 - ✅ **v1.17 Adopter-Confidence Hygiene** — Phases 78–80 (shipped 2026-05-27, [archive](milestones/v1.17-ROADMAP.md), [audit](milestones/v1.17-MILESTONE-AUDIT.md))
 - ✅ **v1.16 CI Enforcement & Planning Hygiene** — Phases 75–77 (shipped 2026-05-27, [archive](milestones/v1.16-ROADMAP.md))
@@ -43,7 +43,10 @@ Archive: [milestones/v1.19-ROADMAP.md](milestones/v1.19-ROADMAP.md); audit: [mil
 
 </details>
 
-### 🔄 v1.18 Admin Console & Adoption Lab (Phases 86–93) — IN PROGRESS
+<details>
+<summary>✅ v1.18 Admin Console & Adoption Lab (Phases 86–93) — SHIPPED 2026-06-20 · full detail in <a href="milestones/v1.18-ROADMAP.md">archive</a></summary>
+
+### v1.18 Admin Console & Adoption Lab (Phases 86–93)
 
 **Charter (2026-06-10):** Maintainer-pull feature milestone — explicit, recorded override
 of the PAUSE-03 v1.18+ reservation (LIFE-06/STREAM-10 stay demand-gated, now v1.19+).
@@ -291,7 +294,7 @@ Plans:
 - [x] 90-01-PLAN.md — Owner erasure and batch erasure with typed-confirmation destructive UX.
 - [x] 90-02-PLAN.md — Variant regeneration, lifecycle repair, and quarantine-review triage.
 
-**Status:** Verified 8/8 must-haves; HUMAN-UAT pending (destructive-action UX review).
+**Status:** Complete — 8/8 must-haves verified; HUMAN-UAT (destructive-action UX) signed off 2026-06-20.
 
 ---
 
@@ -394,7 +397,9 @@ Plans:
 - [x] 93-03-PLAN.md — Author guides/admin_console.md, wire into mix.exs extras, add README mention.
 - [x] 93-04-PLAN.md — Parity-test lock (Nyquist) + regenerate v1.18 milestone audit + UAT-status checkpoint.
 
-**Audit:** [.planning/milestones/v1.18-MILESTONE-AUDIT.md](milestones/v1.18-MILESTONE-AUDIT.md) — status `tech_debt` (19/19 reqs + 8/8 phases verified; HUMAN-UAT for phase 92 pending before `shipped`).
+**Audit:** [.planning/milestones/v1.18-MILESTONE-AUDIT.md](milestones/v1.18-MILESTONE-AUDIT.md) — status `shipped` (19/19 reqs + 8/8 phases verified; HUMAN-UAT for phases 90/91/92 signed off 2026-06-20).
+
+</details>
 
 ## Progress
 
@@ -496,4 +501,4 @@ See [post-v116 assessment](threads/2026-05-27-post-v116-milestone-assessment.md)
 - [.planning/milestones/v1.14-MILESTONE-AUDIT.md](milestones/v1.14-MILESTONE-AUDIT.md)
 
 ---
-*Last updated: 2026-06-19 — v1.19 shipped and archived to milestones/v1.19-ROADMAP.md; v1.18 remains separate tech_debt pending HUMAN-UAT by recorded maintainer decision.*
+*Last updated: 2026-06-20 — v1.18 closed `shipped` after maintainer HUMAN-UAT sign-off (Phases 90/91/92); roadmap/requirements archived to milestones/v1.18-*.md. v1.19 shipped 2026-06-19. No active milestone — next is /gsd-new-milestone (v1.20 candidate: SEED-003 CI/CD perf).*

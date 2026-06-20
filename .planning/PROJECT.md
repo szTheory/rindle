@@ -14,9 +14,9 @@ gate across admin + Cohort.
 two-run generated-asset/static idempotency, VIS-01..VIS-04 traceability, and
 `v1.19-MILESTONE-AUDIT.md`. Pixel/gallery artifacts remain non-blocking audit/reference signals.
 
-**Open planning debt:** v1.18 Admin Console & Adoption Lab remains a separate `tech_debt`
-milestone pending maintainer HUMAN-UAT sign-off for Phases 90/91/92. Close it with
-`/gsd-complete-milestone v1.18` once signed off.
+**Open planning debt:** None. v1.18 Admin Console & Adoption Lab closed `shipped` 2026-06-20
+after maintainer HUMAN-UAT sign-off (Phases 90/91/92); archived to `milestones/v1.18-*.md`.
+Both v1.18 and v1.19 are shipped and archived — no active milestone.
 
 ## Next Milestone Goals
 
@@ -273,20 +273,15 @@ To keep this posture durable across GSD workflows:
 - ✓ Recorded Credo/Dialyzer advisory policy (CI-04) — v1.17 (Phase 79)
 - ✓ Durable UI-principles guidance linked from `AGENTS.md`, with admin console
   architecture, IA, CSS, motion, and Docker DX locks — v1.18 (Phase 86) (PRIN-01)
+- ✓ **v1.18 Admin Console & Adoption Lab** — shipped 2026-06-20 (HUMAN-UAT signed off):
+  mountable token-generated admin console (ADMIN-01..06, DS-01..03), Cohort adoption-lab
+  demo with full media-type + lifecycle-state coverage (DEMO-01..03), deterministic console
+  E2E + screenshot polish loop (E2E-01..02), port-conflict-free Docker DX (DX-01..03), and
+  scope-reversal docs parity (TRUTH-07). Archived: `milestones/v1.18-REQUIREMENTS.md`.
 
 ### Active
 
-- **v1.18 Admin Console & Adoption Lab (charter 2026-06-10):** ADMIN-01..06 (mountable
-  console: router macro + host auth, self-contained assets, read surfaces, ops actions,
-  pubsub live updates, optional-dep safety), DS-01..03 (token-generated design system,
-  light/dark/system theme picker, contrast gate), DEMO-01..03 (Cohort own brand, full
-  media-type + state coverage, mounts console), E2E-01..02 (deterministic console specs,
-  screenshot polish loop), DX-01..03 (port-conflict-free compose, layer caching, launch
-  URL map), TRUTH-07 (scope-reversal docs parity). PRIN-01 is validated in Phase 86;
-  DX-01..03 are validated in Phase 87; DEMO-01..03 are validated in Phase 91.
-  Full text: `.planning/REQUIREMENTS.md`.
-
-**Demand-gated for v1.19+ feature milestone:**
+**Demand-gated for v1.20+ feature milestone:**
 
 - **LIFE-06** — force-delete for still-shared assets (compliance/legal ticket required)
 - **STREAM-10** — second streaming provider (named adopter + provider choice required)
