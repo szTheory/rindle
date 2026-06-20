@@ -542,16 +542,16 @@ diff <(echo "$expected") <(echo "$live") || true
 | A4 | Reading branch protection needs only repo *admin read* (maintainer session), not the write PAT | Code Examples / Env Availability | LOW — verified the read succeeded live in this session; CI-side automation (if ever wanted) would need the PAT, but D-09 capture is a maintainer-local action. |
 | A5 | `mix run --no-start -e 'IO.puts(System.schedulers_online())'` works without DB/app boot | Code Examples | LOW — `--no-start` avoids the app supervisor; schedulers_online is a VM call. Verify in Wave 0. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Where to run the OBS-03 collector — local-only or also an advisory CI job?**
    - What we know: D-08 mandates a committed `scripts/ci/` script; D-11 says "captured before any restructuring." A maintainer running it locally and committing `103-BASELINE.md` satisfies both.
    - What's unclear: whether the planner also wants an *advisory* scheduled job that refreshes the baseline (not required for OBS-03).
-   - Recommendation: ship the script + a one-time committed `103-BASELINE.md` this phase; defer any scheduled refresh job (avoids new CI surface; keeps the phase additive).
+   - **RESOLVED:** ship the script + a one-time committed `103-BASELINE.md` this phase; defer any scheduled refresh job (avoids new CI surface; keeps the phase additive). Adopted by Plans 103-02 + 103-04.
 
 2. **Per-step timing granularity in the summary — all steps or long-poles only?**
    - What we know: OBS-01 says "per-step timing"; the aggregator's `steps[]` data covers every step for free.
-   - Recommendation: have the aggregator emit per-step timing for the three D-04 jobs (`quality`, `integration`, `package-consumer`) and per-job timing for all — full per-step for 16 jobs is noisy.
+   - **RESOLVED:** the `ci-observability` aggregator emits per-step timing for the three D-04 jobs (`quality`, `integration`, `package-consumer`) and per-job timing for all — full per-step for 16 jobs is noisy. Wired into Plan 103-03 Task 3.
 
 ## Environment Availability
 
