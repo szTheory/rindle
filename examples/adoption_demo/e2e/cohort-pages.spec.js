@@ -179,3 +179,27 @@ for (const routeCase of COHORT_VISUAL_MATRIX) {
     }
   }
 }
+
+// Chrome brand-typography continuity (post-0.3.0 gap closure — COHORT-02 re-audit).
+//
+// The shared nav (`cohort_nav`) and footer (`cohort_footer`) are rendered by
+// `Layouts.app` OUTSIDE the `.ck` / `[data-ck-root]` shell, so `assertAdminPolish`
+// — which measures strictly over `[data-ck-root]` (D-96-06) — structurally cannot
+// see them. That blind spot let the chrome ship in a system font on every inner
+// page while the polish gate passed. This chrome-scoped assertion closes it:
+// the nav brand mark and the footer must resolve the Cohort brand font
+// (`--ck-font-sans` → "Atkinson Hyperlegible") on an inner route, matching home.
+test("chrome (nav brand + footer) uses the Cohort brand font on inner pages", async ({ page }) => {
+  await page.goto("/upload?tab=image");
+  await waitForLiveSocket(page);
+
+  const brand = page.locator(".ck-nav__brand");
+  const footer = page.locator(".ck-footer");
+  await expect(brand).toBeVisible();
+  await expect(footer).toBeVisible();
+
+  for (const locator of [brand, footer]) {
+    const fontFamily = await locator.evaluate((el) => getComputedStyle(el).fontFamily);
+    expect(fontFamily).toContain("Atkinson Hyperlegible");
+  }
+});

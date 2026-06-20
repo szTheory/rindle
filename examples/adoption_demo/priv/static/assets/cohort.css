@@ -248,6 +248,13 @@ body {
   background: color-mix(in srgb, var(--ck-bg) 82%, transparent);
   backdrop-filter: saturate(1.4) blur(10px);
   border-bottom: 1px solid var(--ck-border);
+  /* Shared chrome is rendered by Layouts.app OUTSIDE the `.ck` shell, so it can't
+     inherit the brand typography `.ck` carries. Declare it here so the nav stays
+     branded on every inner page (/upload, /dashboard, /ops), matching the home
+     page where the nav happens to sit inside `.ck`. */
+  font-family: var(--ck-font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 .ck-nav__brand {
   display: inline-flex;
@@ -290,6 +297,20 @@ body {
 .ck-nav__links a[aria-current="page"] {
   color: var(--ck-ink);
   border-bottom-color: var(--ck-brand);
+}
+/* On narrow viewports the brand lockup + links sit right at the row's edge; with
+   the (wider) brand font now on the nav, freetype/Linux can render them ~3px past
+   a 390px viewport, forcing horizontal page overflow (caught by the mobile
+   stable-dimensions gate). Allow the nav and its links to wrap so no flex line can
+   ever exceed the viewport — keeps the full-page width == viewport on mobile. */
+@media (max-width: 36rem) {
+  .ck-nav {
+    flex-wrap: wrap;
+    row-gap: var(--ck-2);
+  }
+  .ck-nav__links {
+    flex-wrap: wrap;
+  }
 }
 
 /* ---- hero --------------------------------------------------------------- */
@@ -1108,6 +1129,10 @@ body {
   gap: var(--ck-3);
   color: var(--ck-muted);
   font-size: var(--ck-step--1);
+  /* Self-sufficient brand typography — see `.ck-nav` note (chrome lives outside `.ck`). */
+  font-family: var(--ck-font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 .ck-footer a {
   color: var(--ck-muted);

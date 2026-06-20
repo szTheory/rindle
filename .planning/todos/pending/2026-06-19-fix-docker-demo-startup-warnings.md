@@ -22,6 +22,8 @@ Running `./scripts/demo/up.sh` for the Docker Cohort demo boots successfully, ap
 
 The second warning is optional per Phoenix's own log text, but it degrades Docker DX. The Mox warnings may indicate the demo image/runtime is compiling code that expects a test/dev dependency that is not available in that environment.
 
+**Reconfirmed reproducing 2026-06-20** on a fresh `./scripts/demo/up.sh` run (post-0.3.0). Both warnings still emit verbatim: the five `Mox.* is undefined` compile warnings from `mux_cassette.ex`, and the `inotify-tools` is needed to run `file_system` error from live-reload. Still pending; no behavior regression (migrations apply, Phoenix serves).
+
 ## Solution
 
 TBD. Investigate whether the Docker demo should include Mox in the relevant Mix environment, guard `AdoptionDemo.MuxCassette` behind dependency availability, or avoid compiling that module for the demo runtime. Separately decide whether to install `inotify-tools` in `docker/Dockerfile.cohort-demo` for clean live-reload DX or document the warning as accepted noise.
