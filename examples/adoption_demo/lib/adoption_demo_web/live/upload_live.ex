@@ -15,7 +15,7 @@ defmodule AdoptionDemoWeb.UploadLive do
     :ok = ensure_inets()
     member = load_member!(params["member_id"] || params["user_id"])
     tab = params["tab"] || "image"
-    theme = normalize_theme(params["theme"], "light")
+    theme = normalize_theme(params["theme"], "auto")
 
     socket =
       socket
@@ -57,9 +57,34 @@ defmodule AdoptionDemoWeb.UploadLive do
         lede="Six ingest flows against real MinIO — presigned PUT, tus resume, multipart, LiveView server upload, AV variants, and Mux streaming. Pick a tab to run one end to end; the data is seeded, the uploads are real."
         theme={@theme}
       >
-        <p class="ck-hero__lede">
-          Member: <strong id="upload-member-name" data-testid="upload-member-name">{@member.name}</strong>
-        </p>
+        <div class="ck-toolbar" role="group" aria-label="Upload session">
+          <span class="ck-help">
+            Acting as
+            <strong id="upload-member-name" data-testid="upload-member-name">{@member.name}</strong>
+          </span>
+          <div class="ck-toolbar__group ck-toolbar__group--actions" role="group" aria-label="Theme">
+            <button
+              type="button"
+              class={["ck-btn", @theme == "light" && "ck-btn--primary"]}
+              phx-click="set_theme"
+              phx-value-theme="light"
+              aria-pressed={to_string(@theme == "light")}
+              data-ck-theme="light"
+            >
+              Light
+            </button>
+            <button
+              type="button"
+              class={["ck-btn", @theme == "dark" && "ck-btn--primary"]}
+              phx-click="set_theme"
+              phx-value-theme="dark"
+              aria-pressed={to_string(@theme == "dark")}
+              data-ck-theme="dark"
+            >
+              Dark
+            </button>
+          </div>
+        </div>
 
         <div class="ck-tabs__list" role="navigation" aria-label="Upload strategy">
           <.tab_link member={@member} tab="image" current={@tab} label="Image (presigned PUT)" />
@@ -70,26 +95,88 @@ defmodule AdoptionDemoWeb.UploadLive do
           <.tab_link member={@member} tab="mux" current={@tab} label="Mux streaming" />
         </div>
 
-        <div :if={@tab == "image"} id="image-upload-panel" data-testid="image-upload-panel">
-          <p class="ck-help">Browser PUT to presigned URL, then attach as avatar.</p>
-          <p id="image-upload-status" class="ck-output" data-testid="image-upload-status">{@image_status}</p>
-          <input
-            id="image-file-input"
-            type="file"
-            accept="image/png,image/jpeg"
-            phx-hook="PresignedPut"
-            class="ck-input"
-            data-testid="image-file-input"
-          />
-          <p :if={@last_asset_id} id="image-upload-asset-id" class="ck-help" data-testid="image-upload-asset-id">
-            Asset {@last_asset_id}
+        <div
+          :if={@tab == "image"}
+          id="image-upload-panel"
+          data-testid="image-upload-panel"
+          class={["ck-section ck-reveal", @image_status =~ "uploading" && "ck-dropzone--uploading"]}
+        >
+          <div class="ck-section__head">
+            <h2 class="ck-section__title">Image — presigned PUT</h2>
+            <span class="ck-section__hint">Bytes go straight to storage.</span>
+          </div>
+          <p class="ck-help">
+            The browser PUTs the file to a presigned URL, then Rindle verifies the object
+            landed and attaches it as an avatar — your server never buffers the upload.
+            This is the default path you'll ship.
           </p>
+          <.dropzone input_id="image-file-input" lead="Drop an image or browse" hint="PNG or JPEG">
+            <input
+              id="image-file-input"
+              type="file"
+              accept="image/png,image/jpeg"
+              phx-hook="PresignedPut"
+              class="ck-input ck-dropzone__input"
+              data-testid="image-file-input"
+            />
+            <span class="ck-dropzone__rail" aria-hidden="true"></span>
+          </.dropzone>
+          <.status_bar id="image-upload-status" testid="image-upload-status" status={@image_status} />
+          <div :if={@last_asset_id} class="ck-result ck-reveal">
+            <div class="ck-result__head"><.badge variant="ready" label="Attached" /></div>
+            <p
+              id="image-upload-asset-id"
+              class="ck-statusbar__note"
+              data-testid="image-upload-asset-id"
+            >
+              Asset {@last_asset_id}
+            </p>
+          </div>
         </div>
 
-        <div :if={@tab == "tus"} id="tus-upload-panel" data-testid="tus-upload-panel">
-          <p class="ck-help">LiveView tus helper against MinIO.</p>
-          <p id="tus-upload-status" class="ck-output" data-testid="tus-upload-status">{@tus_status}</p>
-          <p :if={@tus_error} id="tus-upload-error" class="ck-error" role="alert" data-testid="tus-upload-error">
+        <div
+          :if={@tab == "tus"}
+          id="tus-upload-panel"
+          data-testid="tus-upload-panel"
+          class="ck-section ck-reveal"
+        >
+          <div class="ck-section__head">
+            <h2 class="ck-section__title">Tus — resumable</h2>
+            <span class="ck-section__hint">Survives a dropped connection.</span>
+          </div>
+          <p class="ck-help">
+            A resumable tus session against MinIO — pause, lose Wi-Fi, resume. Proof that
+            large uploads don't have to restart from zero.
+          </p>
+          <.form for={%{}} id="tus-form" phx-change="tus_changed" phx-submit="save_tus">
+            <.dropzone
+              input_id="tus-file-input"
+              lead="Drop a video or browse"
+              hint="Resumable · WebM or MP4"
+            >
+              <.live_file_input
+                upload={@uploads.video}
+                class="ck-input ck-dropzone__input"
+                data-testid="tus-file-input"
+              />
+            </.dropzone>
+            <button
+              type="submit"
+              id="tus-submit"
+              class="ck-btn ck-btn--primary"
+              data-testid="tus-submit"
+            >
+              Complete tus upload
+            </button>
+          </.form>
+          <.status_bar id="tus-upload-status" testid="tus-upload-status" status={@tus_status} />
+          <p
+            :if={@tus_error}
+            id="tus-upload-error"
+            class="ck-error"
+            role="alert"
+            data-testid="tus-upload-error"
+          >
             <svg
               class="ck-icon"
               viewBox="0 0 24 24"
@@ -107,69 +194,158 @@ defmodule AdoptionDemoWeb.UploadLive do
             </svg>
             <span>{@tus_error}</span>
           </p>
-          <.form for={%{}} id="tus-form" phx-change="tus_changed" phx-submit="save_tus">
-            <.live_file_input upload={@uploads.video} class="ck-input" data-testid="tus-file-input" />
-            <button type="submit" id="tus-submit" class="ck-btn ck-btn--primary" data-testid="tus-submit">
-              Submit tus upload
-            </button>
-          </.form>
         </div>
 
-        <div :if={@tab == "video"} id="video-upload-panel" data-testid="video-upload-panel">
-          <p class="ck-help">Browser file pick → presigned PUT → AV variants.</p>
-          <p id="video-upload-status" class="ck-output" data-testid="video-upload-status">{@video_status}</p>
-          <input
-            id="video-file-input"
-            type="file"
-            accept="video/webm,video/mp4"
-            phx-hook="PresignedVideoPut"
-            class="ck-input"
-            data-testid="video-file-input"
+        <div
+          :if={@tab == "video"}
+          id="video-upload-panel"
+          data-testid="video-upload-panel"
+          class={["ck-section ck-reveal", @video_status =~ "uploading" && "ck-dropzone--uploading"]}
+        >
+          <div class="ck-section__head">
+            <h2 class="ck-section__title">Video — AV variants</h2>
+            <span class="ck-section__hint">Probe, transcode, poster.</span>
+          </div>
+          <p class="ck-help">
+            Upload a clip and watch Rindle derive AV variants — a rendition and an extracted
+            poster — as the asset moves Processing → Completed.
+          </p>
+          <.dropzone input_id="video-file-input" lead="Drop a video or browse" hint="WebM or MP4">
+            <input
+              id="video-file-input"
+              type="file"
+              accept="video/webm,video/mp4"
+              phx-hook="PresignedVideoPut"
+              class="ck-input ck-dropzone__input"
+              data-testid="video-file-input"
+            />
+            <span class="ck-dropzone__rail" aria-hidden="true"></span>
+          </.dropzone>
+          <.status_bar id="video-upload-status" testid="video-upload-status" status={@video_status} />
+        </div>
+
+        <div
+          :if={@tab == "multipart"}
+          id="multipart-upload-panel"
+          data-testid="multipart-upload-panel"
+          class="ck-section ck-reveal"
+        >
+          <div class="ck-section__head">
+            <h2 class="ck-section__title">Multipart — 5 MiB parts</h2>
+            <span class="ck-section__hint">Big files, in parts.</span>
+          </div>
+          <p class="ck-help">
+            A multipart upload staged as a 5 MiB part plus a tail part, each signed
+            independently and completed atomically — the mechanism behind multi-gigabyte ingest.
+          </p>
+          <div class="ck-dropzone ck-dropzone--synthetic">
+            <span class="ck-dropzone__icon" aria-hidden="true">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <path d="M7 10l5-5 5 5" /><path d="M12 5v12" />
+              </svg>
+            </span>
+            <span class="ck-dropzone__text">
+              <strong class="ck-dropzone__lead">Synthetic payload — no file needed</strong>
+              <span class="ck-dropzone__hint">5 MiB part + tail part</span>
+            </span>
+            <button
+              id="multipart-upload-button"
+              phx-hook="MultipartUpload"
+              class="ck-btn ck-btn--primary"
+              data-testid="multipart-upload-button"
+            >
+              Start multipart upload
+            </button>
+          </div>
+          <.status_bar
+            id="multipart-upload-status"
+            testid="multipart-upload-status"
+            status={@multipart_status}
           />
         </div>
 
-        <div :if={@tab == "multipart"} id="multipart-upload-panel" data-testid="multipart-upload-panel">
-          <p class="ck-help">Client-side multipart upload (5 MiB + tail part).</p>
-          <p id="multipart-upload-status" class="ck-output" data-testid="multipart-upload-status">
-            {@multipart_status}
-          </p>
-          <button
-            id="multipart-upload-button"
-            phx-hook="MultipartUpload"
-            class="ck-btn ck-btn--primary"
-            data-testid="multipart-upload-button"
-          >
-            Run multipart upload
-          </button>
-        </div>
-
-        <div :if={@tab == "liveview"} id="liveview-upload-panel" data-testid="liveview-upload-panel">
-          <p class="ck-help">Phoenix LiveView upload to server, then attach to a community post.</p>
-          <p id="liveview-upload-status" class="ck-output" data-testid="liveview-upload-status">
-            {@liveview_status}
+        <div
+          :if={@tab == "liveview"}
+          id="liveview-upload-panel"
+          data-testid="liveview-upload-panel"
+          class="ck-section ck-reveal"
+        >
+          <div class="ck-section__head">
+            <h2 class="ck-section__title">LiveView — server upload</h2>
+            <span class="ck-section__hint">Uploads inside a socket.</span>
+          </div>
+          <p class="ck-help">
+            A Phoenix LiveView upload with live progress over the socket, then attached to a
+            fresh community post — no REST endpoint required.
           </p>
           <.form for={%{}} id="liveview-form" phx-change="liveview_changed" phx-submit="save_liveview">
-            <.live_file_input upload={@uploads.post_image} class="ck-input" data-testid="liveview-file-input" />
-            <button type="submit" id="liveview-submit" class="ck-btn ck-btn--primary" data-testid="liveview-submit">
+            <.dropzone
+              input_id="liveview-file-input"
+              lead="Drop an image or browse"
+              hint="Server upload over the socket"
+            >
+              <.live_file_input
+                upload={@uploads.post_image}
+                class="ck-input ck-dropzone__input"
+                data-testid="liveview-file-input"
+              />
+            </.dropzone>
+            <button
+              type="submit"
+              id="liveview-submit"
+              class="ck-btn ck-btn--primary"
+              data-testid="liveview-submit"
+            >
               Attach to new post
             </button>
           </.form>
+          <.status_bar
+            id="liveview-upload-status"
+            testid="liveview-upload-status"
+            status={@liveview_status}
+          />
         </div>
 
-        <div :if={@tab == "mux"} id="mux-upload-panel" data-testid="mux-upload-panel">
-          <p class="ck-help">MuxWeb profile with cassette HTTP client in test CI.</p>
-          <p id="mux-upload-status" class="ck-output" data-testid="mux-upload-status">{@mux_status}</p>
-          <input
-            id="mux-file-input"
-            type="file"
-            accept="video/webm,video/mp4"
-            phx-hook="PresignedMuxPut"
-            class="ck-input"
-            data-testid="mux-file-input"
-          />
-          <p :if={@mux_streaming_url} id="mux-streaming-url" class="ck-output" data-testid="mux-streaming-url">
-            {@mux_streaming_url}
+        <div
+          :if={@tab == "mux"}
+          id="mux-upload-panel"
+          data-testid="mux-upload-panel"
+          class={["ck-section ck-reveal", @mux_status =~ "uploading" && "ck-dropzone--uploading"]}
+        >
+          <div class="ck-section__head">
+            <h2 class="ck-section__title">Mux — streaming</h2>
+            <span class="ck-section__hint">Hand off to a streaming provider.</span>
+          </div>
+          <p class="ck-help">
+            Ingest, then hand the asset to Mux and get back a playable streaming URL — the same
+            flow, a different provider profile (a cassette HTTP client stands in for Mux in CI).
           </p>
+          <.dropzone input_id="mux-file-input" lead="Drop a video or browse" hint="WebM or MP4">
+            <input
+              id="mux-file-input"
+              type="file"
+              accept="video/webm,video/mp4"
+              phx-hook="PresignedMuxPut"
+              class="ck-input ck-dropzone__input"
+              data-testid="mux-file-input"
+            />
+            <span class="ck-dropzone__rail" aria-hidden="true"></span>
+          </.dropzone>
+          <.status_bar id="mux-upload-status" testid="mux-upload-status" status={@mux_status} />
+          <div :if={@mux_streaming_url} class="ck-result ck-reveal">
+            <div class="ck-result__head"><.badge variant="ready" label="Streaming" /></div>
+            <p id="mux-streaming-url" class="ck-statusbar__token" data-testid="mux-streaming-url">
+              {@mux_streaming_url}
+            </p>
+          </div>
         </div>
       </.ck_page>
     </Layouts.app>
@@ -194,7 +370,14 @@ defmodule AdoptionDemoWeb.UploadLive do
     """
   end
 
+  # Server-owned theme toggle (mirrors styleguide_live; deterministic for e2e — no
+  # localStorage/flash). Pins light/dark for the session; the page otherwise follows
+  # the OS via `ck_page` "auto" (no `data-theme`).
   @impl true
+  def handle_event("set_theme", %{"theme" => theme}, socket) when theme in ~w(light dark) do
+    {:noreply, assign(socket, theme: theme)}
+  end
+
   def handle_event("presign", %{"filename" => filename} = params, socket) do
     content_type = Map.get(params, "content_type", "image/png")
     socket = assign(socket, :image_status, "presigning")
@@ -276,7 +459,9 @@ defmodule AdoptionDemoWeb.UploadLive do
   @impl true
   def handle_event("multipart_complete", %{"session_id" => session_id, "etags" => etags}, socket) do
     member = socket.assigns.member
-    parts = Enum.map(etags, fn %{"part_number" => n, "etag" => e} -> %{part_number: n, etag: e} end)
+
+    parts =
+      Enum.map(etags, fn %{"part_number" => n, "etag" => e} -> %{part_number: n, etag: e} end)
 
     with {:ok, %{asset: asset}} <- Rindle.complete_multipart_upload(session_id, parts),
          {:ok, _} <- safe_attach(member, asset.id) do
@@ -398,7 +583,8 @@ defmodule AdoptionDemoWeb.UploadLive do
     case Phoenix.LiveView.consume_uploaded_entries(socket, :post_image, fn %{path: path}, entry ->
            body = File.read!(path)
 
-           with {:ok, session} <- Broker.initiate_session(RindleProfile, filename: entry.client_name),
+           with {:ok, session} <-
+                  Broker.initiate_session(RindleProfile, filename: entry.client_name),
                 {:ok, %{presigned: presigned}} <- Broker.sign_url(session.id),
                 :ok <- put_bytes(presigned.url, body, entry.client_type || "image/png"),
                 {:ok, %{asset: asset}} <- Broker.verify_completion(session.id) do
@@ -487,12 +673,16 @@ defmodule AdoptionDemoWeb.UploadLive do
   end
 
   defp handle_tus_progress(:video, entry, socket) do
-    status = if entry.progress > 0 or entry.done?, do: "uploading", else: socket.assigns.tus_status
+    status =
+      if entry.progress > 0 or entry.done?, do: "uploading", else: socket.assigns.tus_status
+
     {:noreply, assign(socket, :tus_status, status)}
   end
 
   defp handle_liveview_progress(:post_image, entry, socket) do
-    status = if entry.progress > 0 or entry.done?, do: "uploading", else: socket.assigns.liveview_status
+    status =
+      if entry.progress > 0 or entry.done?, do: "uploading", else: socket.assigns.liveview_status
+
     {:noreply, assign(socket, :liveview_status, status)}
   end
 
@@ -505,7 +695,8 @@ defmodule AdoptionDemoWeb.UploadLive do
     end
   end
 
-  defp load_member!(nil), do: Accounts.list_members() |> List.first() || raise "no seeded members"
+  defp load_member!(nil),
+    do: Accounts.list_members() |> List.first() || raise("no seeded members")
 
   defp load_member!(id), do: Accounts.get_member!(id)
 

@@ -203,3 +203,47 @@ test("chrome (nav brand + footer) uses the Cohort brand font on inner pages", as
     expect(fontFamily).toContain("Atkinson Hyperlegible");
   }
 });
+
+// Upload-lab restyle (Cohort upload polish). Asserts the new branded controls on
+// /upload: the dropzone frame is present, the native file picker is reskinned via
+// `::file-selector-button` (so it never shows the raw OS control), and the status
+// row renders a lifecycle badge over a preserved machine-readable token node.
+test("upload tab renders a branded dropzone + status badge", async ({ page }) => {
+  await page.goto("/upload?tab=image");
+  await waitForLiveSocket(page);
+
+  await expect(page.locator(".ck-dropzone").first()).toBeVisible();
+
+  // the native file input's selector button is brand-filled, not the UA default
+  const btnBg = await page
+    .locator(".ck-input[type=file]")
+    .first()
+    .evaluate((el) => getComputedStyle(el, "::file-selector-button").backgroundColor);
+  expect(btnBg).not.toBe("rgba(0, 0, 0, 0)");
+  expect(btnBg).not.toBe("transparent");
+
+  // status row carries a stable machine state + a colour+label badge (never colour-only)
+  const status = page.getByTestId("image-upload-status");
+  await expect(status).toHaveAttribute("data-state", /idle|uploading|ready|error|info/);
+  await expect(status.locator(".ck-badge")).toBeVisible();
+  // the raw status token survives for the behavior specs
+  await expect(status).toContainText("idle");
+});
+
+// Server-owned theme toggle on /upload (mirrors the styleguide pattern). Default is
+// "auto" (no data-theme → follows the OS); clicking pins an explicit theme.
+test("upload theme toggle pins an explicit data-theme", async ({ page }) => {
+  await page.goto("/upload?tab=image");
+  await waitForLiveSocket(page);
+
+  const root = page.locator("[data-ck-root]");
+  const dark = page.locator('[data-ck-theme="dark"]');
+  await dark.click();
+  await expect(root).toHaveAttribute("data-theme", "dark");
+  await expect(dark).toHaveAttribute("aria-pressed", "true");
+
+  const light = page.locator('[data-ck-theme="light"]');
+  await light.click();
+  await expect(root).toHaveAttribute("data-theme", "light");
+  await expect(light).toHaveAttribute("aria-pressed", "true");
+});

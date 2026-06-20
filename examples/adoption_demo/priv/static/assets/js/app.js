@@ -199,6 +199,59 @@
     },
   };
 
+  // Dropzone: visual affordance ONLY around the (preserved) native file input —
+  // drag-over highlight, filename echo, and drop-to-populate. The upload itself
+  // stays owned by the presigned/tus/multipart hooks; dropping a file just sets the
+  // input's files and dispatches `change`, exactly as if the user had picked it. No
+  // new dep, no upload logic here.
+  const Dropzone = {
+    mounted() {
+      const input = this.el.querySelector('input[type="file"]');
+      const filename = this.el.querySelector(".ck-dropzone__filename");
+      const setDrag = (on) =>
+        this.el.classList.toggle("ck-dropzone--dragging", on);
+
+      this.onOver = (event) => {
+        event.preventDefault();
+        setDrag(true);
+      };
+      this.onLeave = (event) => {
+        if (event.relatedTarget && this.el.contains(event.relatedTarget)) return;
+        setDrag(false);
+      };
+      this.onDrop = (event) => {
+        setDrag(false);
+        const files = event.dataTransfer && event.dataTransfer.files;
+        if (input && files && files.length) {
+          event.preventDefault();
+          input.files = files;
+          input.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+      };
+      this.onChange = () => {
+        const file = input && input.files && input.files[0];
+        this.el.classList.toggle("ck-dropzone--selected", !!file);
+        if (filename) {
+          filename.textContent = file ? file.name : "No file selected";
+        }
+      };
+
+      this.el.addEventListener("dragover", this.onOver);
+      this.el.addEventListener("dragenter", this.onOver);
+      this.el.addEventListener("dragleave", this.onLeave);
+      this.el.addEventListener("drop", this.onDrop);
+      this._input = input;
+      if (input) input.addEventListener("change", this.onChange);
+    },
+    destroyed() {
+      this.el.removeEventListener("dragover", this.onOver);
+      this.el.removeEventListener("dragenter", this.onOver);
+      this.el.removeEventListener("dragleave", this.onLeave);
+      this.el.removeEventListener("drop", this.onDrop);
+      if (this._input) this._input.removeEventListener("change", this.onChange);
+    },
+  };
+
   const csrfToken = document
     .querySelector("meta[name='csrf-token']")
     .getAttribute("content");
@@ -206,7 +259,7 @@
   const liveSocket = new LiveView.LiveSocket("/live", Phoenix.Socket, {
     longPollFallbackMs: 2500,
     params: { _csrf_token: csrfToken },
-    hooks: { PresignedPut, PresignedVideoPut, PresignedMuxPut, MultipartUpload, Copy, Tabs },
+    hooks: { PresignedPut, PresignedVideoPut, PresignedMuxPut, MultipartUpload, Copy, Tabs, Dropzone },
     uploaders: Uploaders,
   });
 

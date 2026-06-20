@@ -946,6 +946,181 @@ body {
   margin-top: 0.1em;
 }
 
+/* ---- file input + dropzone (upload lab) --------------------------------- */
+/* Brand the native file picker so it never falls back to the raw OS control
+   ("Choose file" / "Choisir un fichier"). Mirrors `.ck-btn--primary` via tokens. */
+.ck-input[type="file"] {
+  display: flex;
+  align-items: center;
+  gap: var(--ck-3);
+  padding: var(--ck-2);
+  cursor: pointer;
+}
+.ck-input[type="file"]::file-selector-button {
+  font: inherit;
+  font-weight: 700;
+  padding: 0.45rem 0.9rem;
+  margin-right: var(--ck-3);
+  color: var(--ck-on-brand);
+  background: var(--ck-btn-bg);
+  border: 1px solid transparent;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.ck-input[type="file"]::file-selector-button:hover {
+  background: var(--ck-btn-bg-hover);
+}
+
+/* A <label> wrapping the (preserved) native <input type=file>. The label proxies
+   clicks to the input and native drag-drop already targets the input, so the whole
+   zone is interactive; a tiny `Dropzone` hook only toggles the drag class + echoes
+   the filename. The real <input> stays in the DOM (id/phx-hook/accept/testid intact)
+   and keeps `.ck-input` so the polish gate measures it. */
+.ck-dropzone {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--ck-4);
+  padding: var(--ck-5);
+  border: 1.5px dashed var(--ck-border-strong);
+  border-radius: var(--ck-radius);
+  background: var(--ck-surface-2);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.ck-dropzone:hover,
+.ck-dropzone:focus-within,
+.ck-dropzone--dragging {
+  border-color: var(--ck-brand);
+  background: var(--ck-tint);
+}
+.ck-dropzone--selected {
+  border-style: solid;
+}
+.ck-dropzone--disabled {
+  border-color: var(--ck-border);
+  color: var(--ck-muted);
+  cursor: not-allowed;
+}
+.ck-dropzone__icon {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: var(--ck-radius-sm);
+  background: var(--ck-tint);
+  border: 1px solid var(--ck-tint-border);
+  color: var(--ck-brand-strong);
+}
+.ck-dropzone__icon svg {
+  width: 22px;
+  height: 22px;
+}
+.ck-dropzone__text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ck-1);
+  min-width: 0;
+}
+.ck-dropzone__lead {
+  font-weight: 700;
+  color: var(--ck-ink);
+}
+.ck-dropzone__hint {
+  font-size: var(--ck-step--1);
+  color: var(--ck-muted);
+}
+.ck-dropzone__filename {
+  align-self: flex-start;
+  max-width: 100%;
+  font-family: var(--ck-font-mono);
+  font-size: var(--ck-step--1);
+  color: var(--ck-code-ink);
+  background: var(--ck-code-bg);
+  border: 1px solid var(--ck-border);
+  border-radius: var(--ck-radius-sm);
+  padding: 0.15rem 0.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* keep the real input present + measurable (.ck-input is a polish-gate selector) but
+   visually compact inside the zone */
+.ck-dropzone__input {
+  flex: 1 1 auto;
+  min-width: 0;
+  background: var(--ck-surface);
+}
+/* an honest indeterminate "in flight" rail (no fake percentage); animation lives in
+   the no-preference block below so reduced-motion users see a static track. */
+.ck-dropzone__rail {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  overflow: hidden;
+  background: var(--ck-border);
+  border-bottom-left-radius: var(--ck-radius);
+  border-bottom-right-radius: var(--ck-radius);
+}
+.ck-dropzone__rail::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 35%;
+  background: linear-gradient(90deg, var(--ck-brand), var(--ck-accent));
+  transform: translateX(-120%);
+}
+
+/* status row: a branded badge + a preserved machine-readable status token */
+.ck-statusbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--ck-2) var(--ck-3);
+  margin: 0;
+}
+.ck-statusbar__token {
+  font-family: var(--ck-font-mono);
+  font-size: var(--ck-step--1);
+  color: var(--ck-faint);
+}
+.ck-statusbar__note {
+  font-size: var(--ck-step--1);
+  color: var(--ck-muted);
+}
+
+/* result: a calm success surface for the attached asset / streaming url */
+.ck-result {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ck-3);
+  padding: var(--ck-5);
+  background: var(--ck-surface);
+  border: 1px solid var(--ck-border);
+  border-left: 3px solid var(--ck-ready);
+  border-radius: var(--ck-radius);
+  box-shadow: var(--ck-shadow-sm);
+}
+.ck-result__head {
+  display: flex;
+  align-items: center;
+  gap: var(--ck-3);
+}
+.ck-result__thumb {
+  flex: none;
+  width: 3rem;
+  height: 3rem;
+  object-fit: cover;
+  border-radius: var(--ck-radius-sm);
+  background: var(--ck-code-bg);
+  border: 1px solid var(--ck-border);
+}
+
 /* ---- flash / alert notifications (D-101-04) ----------------------------- */
 .ck-flash {
   position: fixed;
@@ -1148,6 +1323,14 @@ body {
   .ck-reveal[style*="--d"] { animation-delay: var(--d); }
   @keyframes ck-rise {
     to { opacity: 1; transform: none; }
+  }
+  /* indeterminate upload rail — honest "in flight", transform-only, GPU. */
+  .ck-dropzone--uploading .ck-dropzone__rail::after {
+    animation: ck-rail 1.1s linear infinite;
+  }
+  @keyframes ck-rail {
+    0% { transform: translateX(-120%); }
+    100% { transform: translateX(385%); }
   }
 }
 
