@@ -126,7 +126,7 @@ maintainer go/no-go gate between phases.
 
 ## Phase Details
 
-### v1.20 CI/CD Performance — Phase Details (Phases 103–107)
+### v1.20 CI/CD Performance (Phase Details) — Phases 103–107
 
 ---
 
