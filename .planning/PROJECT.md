@@ -16,13 +16,33 @@ two-run generated-asset/static idempotency, VIS-01..VIS-04 traceability, and
 
 **Open planning debt:** None. v1.18 Admin Console & Adoption Lab closed `shipped` 2026-06-20
 after maintainer HUMAN-UAT sign-off (Phases 90/91/92); archived to `milestones/v1.18-*.md`.
-Both v1.18 and v1.19 are shipped and archived — no active milestone.
+Both v1.18 and v1.19 are shipped and archived.
 
-## Next Milestone Goals
+**Active milestone:** v1.20 CI/CD Performance (chartered 2026-06-20 from SEED-003) — see
+**Current Milestone** below. Defining requirements; phases continue at 103.
 
-No active feature milestone is open. LIFE-06 and STREAM-10 remain demand-gated for v1.20+ unless
-a new maintainer override is explicitly chartered. Use `/gsd-new-milestone` to define fresh
-requirements before starting new work.
+## Current Milestone: v1.20 CI/CD Performance
+
+**Goal:** Cut PR CI feedback time and harden gate determinism/reliability — without dropping real
+quality signal — via a measure → classify → restructure pass shipped as stepwise PRs.
+
+**Target features:**
+- Baseline + CI observability (per-job timings, cache hit rate, slowest-tests/compile reporting)
+- Pipeline topology split: fast PR gate vs push-to-main vs nightly vs release/publish
+- Test-value classification (keep / optimize / move-to-nightly / quarantine / delete)
+- ExUnit concurrency: async-safety audit + partitioning where evidence supports
+- Caching correctness (deps / _build / PLT keys, restore breadth, stale-failure modes)
+- Matrix/trigger refinement (kill lint redundancy; scope the heavy Package-Consumer lane)
+- Determinism: faithful local reproduction of the exact CI Linux-Chromium gates
+- Security/supply-chain/release posture (permissions, action pinning, dry-run publish)
+- DX: a single local `mix ci` equivalent + readable job summaries + contributor docs
+
+**Key context:** Chartered from **SEED-003** (planted 2026-06-20), which embeds the maintainer's
+full locked 10-lens CI/CD performance-audit prompt as the authoritative, research-driven spec.
+Measured baseline: PR wall-clock ≈ 15–17 min, long pole = `Package Consumer Proof Matrix + Release
+Preflight` (~15m). This is a **non-feature / DX-infrastructure milestone** (no `lib/` public API
+changes), so `block_feature_milestone_without_signal` does not apply; SEED-003 is the documented
+signal. Phase numbering continues at **103**. LIFE-06 and STREAM-10 remain demand-gated.
 
 ## What This Is
 
@@ -659,4 +679,4 @@ This document evolves at phase transitions and milestone boundaries.
    (`workflow.milestone_boundary.block_feature_milestone_without_signal`)
 
 ---
-*Last updated: 2026-06-19 after v1.19 milestone archive*
+*Last updated: 2026-06-20 — chartered v1.20 CI/CD Performance (SEED-003)*

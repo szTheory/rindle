@@ -1,17 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.19
-milestone_name: Design-System Stress-Test
-status: Awaiting next milestone
-stopped_at: Completed 95-05-PLAN.md
-last_updated: "2026-06-20T21:00:00.000Z"
-last_activity: 2026-06-20 — closed v1.18 (tech_debt → shipped) after HUMAN-UAT sign-off; archived v1.18 roadmap+requirements. Earlier: post-ship Cohort demo polish #27/#28/#29 merged to main
+milestone: v1.20
+milestone_name: CI/CD Performance
+status: planning
+last_updated: "2026-06-20T21:02:14.469Z"
+last_activity: 2026-06-20
 progress:
-  total_phases: 9
-  completed_phases: 9
-  total_plans: 39
-  completed_plans: 39
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -25,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-06-19)
 
 ## Current Position
 
-Phase: Milestone v1.19 complete
+Phase: Not started (defining requirements)
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-06-19 — Phase 95 verifier gap closure completed
+Status: Defining requirements
+Last activity: 2026-06-20 — Milestone v1.20 started
 
 ## Recently Shipped Milestone
 
@@ -52,27 +51,34 @@ inner pages, in service of real user flows.
 
 - **Archive:** `.planning/milestones/v1.19-ROADMAP.md` and
   `.planning/milestones/v1.19-REQUIREMENTS.md`
+
 - **Requirements:** 20/20 archived complete (PIPE-01/02, UPLIFT-01..08, COHORT-01..06,
   VIS-01..04)
+
 - **Post-ship reconcile (2026-06-19):** a strict re-audit raised the "every phase needs its own
   `*-VERIFICATION.md`" bar and flagged Phase 95. Closed: `95-VERIFICATION.md` written → surfaced a
   real mobile sticky-table defect → fixed in 95-05 (`2960883`, 24 tests/0 failures); UPLIFT-01 now
   independently verified, milestone holds 20/20. Re-audit + resolution archived at
   `milestones/v1.19-MILESTONE-REAUDIT.md`; the `v1.19` tag (`ece7cbd`) is intentionally not moved.
+
 - **Post-ship demo polish (2026-06-20, demo/tooling-only — no Hex release, no re-tag).** Hands-on
   use of the live Cohort demo surfaced polish gaps beyond the v1.19 frozen scope, landed as
   standalone PRs on `main`:
+
   - **#27** — chrome (`.ck-nav`/`.ck-footer`) brand-font continuity on all inner pages (COHORT-02
     re-audit, gate blind-spot closed) + Traefik auto-default in `up.sh` + mobile nav wrap (fixed a
     3px Atkinson-on-Linux/freetype overflow the mobile `stable-dimensions` gate caught).
+
   - **#28** — `/upload` restyled onto the `.ck-*` DS (branded dropzone + `::file-selector-button`,
     lifecycle status badges, per-tab proof framing, result/error cards, `.ck-reveal` motion,
     brand-voice microcopy) + `ck_page` **theme tri-state** (`auto` default follows the OS like home;
     light/dark toggle pins it) across all inner pages. Frozen DOM contract preserved; token-only CSS;
     verified for mobile overflow + AA contrast under the CI Linux Chromium.
+
   - **In flight (#29):** the same DS polish sweep across the remaining inner pages
     (`/dashboard`, `/ops`, member/lesson/post/account/media) — raw lists → `.ck_table`, bare state
     → `.ck-badge`, output dumps → `.ck-result`, brand-voice labels, `.ck-empty`/`.ck-reveal`.
+
   - Lesson banked: the **runtime** `admin-polish.js` text-contrast check is stricter than the
     token-pair `cohort-contrast.mjs` gate (it caught `--ck-faint` used as real text) — verify both,
     and measure mobile under Linux Chromium (Atkinson renders wider than on macOS), before pushing.
