@@ -250,6 +250,41 @@ defmodule AdoptionDemoWeb.CohortComponents do
   end
 
   @doc """
+  Lifecycle-state badge — maps a media asset / variant / upload-session state string
+  to a `.ck-badge` variant so state is always shown as colour + label (never colour
+  alone). The raw state text is the label (the `.ck-badge` rule uppercases it).
+  """
+  attr :state, :any, required: true
+  attr :rest, :global
+
+  def state_badge(assigns) do
+    state = to_string(assigns.state)
+    assigns = assign(assigns, state: state, variant: state_variant(state))
+
+    ~H"""
+    <span class={["ck-badge", "ck-badge--#{@variant}"]} data-state={@state} {@rest}>{@state}</span>
+    """
+  end
+
+  defp state_variant(s)
+       when s in ~w(ready available completed attached signed),
+       do: "ready"
+
+  defp state_variant(s)
+       when s in ~w(queued processing promoting validating analyzing planned uploading verifying initialized staged),
+       do: "processing"
+
+  defp state_variant(s)
+       when s in ~w(stale degraded missing aborted expired),
+       do: "processing"
+
+  defp state_variant(s)
+       when s in ~w(quarantined rejected failed purging purged deleted detached),
+       do: "quarantine"
+
+  defp state_variant(_), do: "info"
+
+  @doc """
   Upload dropzone — a branded `<label>` wrapping a (caller-owned, frozen) native
   `<input type=file>` or `<.live_file_input>` passed in `:inner_block`. The label
   proxies clicks to the input and the `Dropzone` JS hook adds drag-over highlight,
@@ -362,6 +397,11 @@ defmodule AdoptionDemoWeb.CohortComponents do
   """
   attr :rows, :list, default: [], doc: "the row data (a list of maps/structs)"
   attr :row_id, :any, default: nil, doc: "optional fn(row) -> dom id"
+
+  attr :row_attrs, :any,
+    default: nil,
+    doc: "optional fn(row) -> map of extra <tr> attributes (e.g. data-testid)"
+
   attr :sort_by, :string, default: nil, doc: "server-owned: the active sort_key"
   attr :sort_dir, :string, default: "asc", values: ~w(asc desc)
   attr :sort_event, :string, default: nil, doc: "phx-click event emitted by sort headers"
@@ -415,6 +455,7 @@ defmodule AdoptionDemoWeb.CohortComponents do
             :for={row <- @rows}
             id={@row_id && @row_id.(row)}
             class="ck-table__row"
+            {(@row_attrs && @row_attrs.(row)) || %{}}
           >
             <td
               :for={col <- @col}
