@@ -152,7 +152,19 @@ restructuring decision is evidence-backed — with **zero gate-behavior and zero
 4. Gate behavior is provably unchanged: the same checks are required and the same PRs pass/fail as
    on the pre-phase baseline.
 
-**Plans:** TBD
+**Plans:** 4 (planned 2026-06-20)
+
+**Wave 1** *(no deps, parallel — disjoint files):*
+- 103-01 — OBS-02 test harness: test-only `junit_formatter` + ExUnit JUnit/coverage wiring (`mix.exs`, `test/test_helper.exs`).
+- 103-02 — OBS-03 read-only collectors: baseline (avg/p95/rerun) + live-vs-expected required-check diff (`scripts/ci/*.sh`).
+
+**Wave 2** *(blocked on Wave 1 — parallel, disjoint files):*
+- 103-03 *(needs 103-01)* — OBS-01 + OBS-02 instrumentation in `ci.yml`: cache `id:`s/hit-miss, per-job + per-step timing via job-scoped `ci-observability` aggregator, slowest/compile/schedulers/seed, JUnit+coverage upload.
+- 103-04 *(needs 103-02)* — OBS-03 capture: commit internal `103-BASELINE.md` + verbatim live required-check names (records `brandbook-tokens` drift) before any restructuring.
+
+**Cross-cutting constraints** (asserted across multiple plans): never rename `ci.yml`/`name: CI` (D-13);
+zero gate-behavior change — observability/aggregator job never added to required checks (D-14);
+`actions: read` job-scoped only, never workflow-level (D-03); no composite action this phase (D-12).
 
 **Research flag:** This phase must *produce* the missing data (runner vCPU/`schedulers_online`, real
 p95/rerun, per-step `package-consumer` timing, slowest tests) and read live GitHub
