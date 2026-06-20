@@ -4,8 +4,8 @@ milestone: v1.19
 milestone_name: Design-System Stress-Test
 status: Awaiting next milestone
 stopped_at: Completed 95-05-PLAN.md
-last_updated: "2026-06-19T22:05:00.000Z"
-last_activity: 2026-06-19 — v1.19 post-ship re-audit reconciled into archive (Phase 95 gap closed)
+last_updated: "2026-06-20T19:30:00.000Z"
+last_activity: 2026-06-20 — post-ship Cohort demo polish (#27 chrome/traefik/nav, #28 upload restyle + theme); #29 inner-page DS sweep in flight
 progress:
   total_phases: 9
   completed_phases: 9
@@ -59,6 +59,23 @@ inner pages, in service of real user flows.
   real mobile sticky-table defect → fixed in 95-05 (`2960883`, 24 tests/0 failures); UPLIFT-01 now
   independently verified, milestone holds 20/20. Re-audit + resolution archived at
   `milestones/v1.19-MILESTONE-REAUDIT.md`; the `v1.19` tag (`ece7cbd`) is intentionally not moved.
+- **Post-ship demo polish (2026-06-20, demo/tooling-only — no Hex release, no re-tag).** Hands-on
+  use of the live Cohort demo surfaced polish gaps beyond the v1.19 frozen scope, landed as
+  standalone PRs on `main`:
+  - **#27** — chrome (`.ck-nav`/`.ck-footer`) brand-font continuity on all inner pages (COHORT-02
+    re-audit, gate blind-spot closed) + Traefik auto-default in `up.sh` + mobile nav wrap (fixed a
+    3px Atkinson-on-Linux/freetype overflow the mobile `stable-dimensions` gate caught).
+  - **#28** — `/upload` restyled onto the `.ck-*` DS (branded dropzone + `::file-selector-button`,
+    lifecycle status badges, per-tab proof framing, result/error cards, `.ck-reveal` motion,
+    brand-voice microcopy) + `ck_page` **theme tri-state** (`auto` default follows the OS like home;
+    light/dark toggle pins it) across all inner pages. Frozen DOM contract preserved; token-only CSS;
+    verified for mobile overflow + AA contrast under the CI Linux Chromium.
+  - **In flight (#29):** the same DS polish sweep across the remaining inner pages
+    (`/dashboard`, `/ops`, member/lesson/post/account/media) — raw lists → `.ck_table`, bare state
+    → `.ck-badge`, output dumps → `.ck-result`, brand-voice labels, `.ck-empty`/`.ck-reveal`.
+  - Lesson banked: the **runtime** `admin-polish.js` text-contrast check is stricter than the
+    token-pair `cohort-contrast.mjs` gate (it caught `--ck-faint` used as real text) — verify both,
+    and measure mobile under Linux Chromium (Atkinson renders wider than on macOS), before pushing.
 
 > ⚠️ **Opens over an un-closed v1.18.** v1.18 Admin Console & Adoption Lab is held at
 > `status: tech_debt` pending maintainer HUMAN-UAT sign-off (Phases 90/91/92). Deliberate,
