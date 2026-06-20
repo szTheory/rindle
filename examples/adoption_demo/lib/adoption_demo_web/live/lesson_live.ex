@@ -24,7 +24,7 @@ defmodule AdoptionDemoWeb.LessonLive do
     {:ok,
      assign(socket,
        page_title: lesson.title,
-       theme: AdoptionDemoWeb.CohortTheme.normalize(params["theme"], "light"),
+       theme: AdoptionDemoWeb.CohortTheme.normalize(params["theme"], "auto"),
        lesson: lesson,
        asset: asset,
        variants: variants,

@@ -62,7 +62,11 @@ defmodule AdoptionDemoWeb.CohortComponents do
   Page scaffold — the Cohort analog of Phase 98's `page/1` (D-98-01). Renders the
   per-page `.ck` shell that all migrated inner pages share: the `.ck` div carrying
   `data-ck-root` (the polish-gate / theme root — on this div, NEVER on `<body>`,
-  D-96-05) and a SERVER-owned `data-theme` (default `"light"`, D-96-07/16), the
+  D-96-05) and a SERVER-owned `data-theme`. The theme is tri-state: `"light"`/`"dark"`
+  render an explicit `data-theme` (deterministic for e2e), while `"auto"` (the default)
+  OMITS the attribute so the page follows `prefers-color-scheme` like the home page —
+  keeping every Cohort surface consistent with the OS by default while still allowing a
+  pinned theme via `?theme=` or a toggle. `data-ck-root` is always present (gate root).
   `.ck__wrap` content column, and a canonical `.ck-hero` header (required `:title`,
   optional `:eyebrow`/`:lede`). The page body goes in `:inner_block`. Page chrome
   (`cohort_nav`/`cohort_footer`) stays in `Layouts.app` — NOT here. Uses only HEEx
@@ -71,13 +75,13 @@ defmodule AdoptionDemoWeb.CohortComponents do
   attr :title, :string, required: true
   attr :eyebrow, :string, default: nil
   attr :lede, :string, default: nil
-  attr :theme, :string, default: "light", values: ~w(light dark)
+  attr :theme, :string, default: "auto", values: ~w(auto light dark)
   attr :rest, :global
   slot :inner_block, required: true
 
   def ck_page(assigns) do
     ~H"""
-    <div class="ck" data-ck-root data-theme={@theme} {@rest}>
+    <div class="ck" data-ck-root data-theme={@theme != "auto" && @theme} {@rest}>
       <div class="ck__wrap">
         <header class="ck-hero">
           <span :if={@eyebrow} class="ck-eyebrow">{@eyebrow}</span>
@@ -246,6 +250,110 @@ defmodule AdoptionDemoWeb.CohortComponents do
   end
 
   @doc """
+  Upload dropzone — a branded `<label>` wrapping a (caller-owned, frozen) native
+  `<input type=file>` or `<.live_file_input>` passed in `:inner_block`. The label
+  proxies clicks to the input and the `Dropzone` JS hook adds drag-over highlight,
+  filename echo, and drop-to-populate. The hook owns presentation only; the upload
+  contract (id / phx-hook / accept / data-testid on the input) stays in the caller.
+  """
+  attr :input_id, :string, required: true, doc: "id stem for the dropzone label/hook"
+  attr :lead, :string, required: true
+  attr :hint, :string, required: true
+  slot :inner_block, required: true
+
+  def dropzone(assigns) do
+    ~H"""
+    <label id={"#{@input_id}-dropzone"} class="ck-dropzone" phx-hook="Dropzone">
+      <span class="ck-dropzone__icon" aria-hidden="true">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+          <path d="M7 10l5-5 5 5" /><path d="M12 5v12" />
+        </svg>
+      </span>
+      <span class="ck-dropzone__text">
+        <strong class="ck-dropzone__lead">{@lead}</strong>
+        <span class="ck-dropzone__hint">{@hint}</span>
+      </span>
+      {render_slot(@inner_block)}
+    </label>
+    """
+  end
+
+  @doc """
+  Upload status row — a lifecycle badge + an operator-voice note, wrapping the
+  caller's preserved status `id`/`data-testid` node. The raw status token is kept
+  verbatim in `.ck-statusbar__token` (the behavior e2e asserts its text) while the
+  badge conveys state by colour + icon-dot + label (never colour alone).
+  """
+  attr :id, :string, required: true
+  attr :testid, :string, required: true
+  attr :status, :string, required: true
+
+  def status_bar(assigns) do
+    assigns = assign(assigns, :meta, status_meta(assigns.status))
+
+    ~H"""
+    <p id={@id} data-testid={@testid} class="ck-statusbar" data-state={@meta.state}>
+      <.badge variant={@meta.badge} label={@meta.label} />
+      <span :if={@meta.note != ""} class="ck-statusbar__note">{@meta.note}</span>
+      <span class="ck-statusbar__token">{@status}</span>
+    </p>
+    """
+  end
+
+  # Maps the demo's raw status strings to the brandbook's upload-session vocabulary,
+  # a badge variant, and a "what happened" note. Presentation only — no flow change.
+  defp status_meta("ready"),
+    do: %{
+      state: "ready",
+      badge: "ready",
+      label: "Completed",
+      note: "Uploaded, verified, attached."
+    }
+
+  defp status_meta("uploading"),
+    do: %{
+      state: "uploading",
+      badge: "processing",
+      label: "Uploading",
+      note: "Transfer in flight to MinIO."
+    }
+
+  defp status_meta("presigning"),
+    do: %{state: "uploading", badge: "processing", label: "Signed", note: "Presigned URL issued."}
+
+  defp status_meta("initiating"),
+    do: %{
+      state: "uploading",
+      badge: "processing",
+      label: "Starting",
+      note: "Initiating multipart upload."
+    }
+
+  defp status_meta("verifying"),
+    do: %{
+      state: "uploading",
+      badge: "processing",
+      label: "Verifying",
+      note: "Confirming the object landed."
+    }
+
+  defp status_meta("idle"),
+    do: %{state: "idle", badge: "info", label: "Ready", note: "Pick a file to begin."}
+
+  defp status_meta("error" <> _),
+    do: %{state: "error", badge: "quarantine", label: "Failed", note: "See the detail below."}
+
+  defp status_meta(_), do: %{state: "info", badge: "info", label: "Status", note: ""}
+
+  @doc """
   Level-1 data table (D-96-15). Uses the `core_components` `:col`/`:rows` model
   extended with per-column `sort_key`/`num`. Sort state is SERVER-owned: pass
   `sort_by`/`sort_dir` (the current LiveView assigns) and a `sort_event`; the
@@ -260,7 +368,10 @@ defmodule AdoptionDemoWeb.CohortComponents do
   attr :loading, :boolean, default: false
   attr :skeleton_rows, :integer, default: 3
   attr :empty_title, :string, default: "Nothing here yet"
-  attr :empty_body, :string, default: "No records match this view. Adjust filters or seed demo data."
+
+  attr :empty_body, :string,
+    default: "No records match this view. Adjust filters or seed demo data."
+
   attr :rest, :global
 
   slot :col, required: true do

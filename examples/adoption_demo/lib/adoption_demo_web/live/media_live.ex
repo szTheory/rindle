@@ -14,7 +14,7 @@ defmodule AdoptionDemoWeb.MediaLive do
     {:ok,
      assign(socket,
        page_title: "Media #{asset.id}",
-       theme: AdoptionDemoWeb.CohortTheme.normalize(params["theme"], "light"),
+       theme: AdoptionDemoWeb.CohortTheme.normalize(params["theme"], "auto"),
        asset: asset,
        variants: variants,
        delivery_url: delivery,

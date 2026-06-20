@@ -8,7 +8,7 @@ defmodule AdoptionDemoWeb.DashboardLive do
 
   @impl true
   def mount(params, _session, socket) do
-    theme = CohortTheme.normalize(params["theme"], "light")
+    theme = CohortTheme.normalize(params["theme"], "auto")
 
     {:ok,
      assign(socket,
