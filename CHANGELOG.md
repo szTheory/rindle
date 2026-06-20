@@ -2,6 +2,92 @@
 
 0.1.0-0.1.3 were release-pipeline shakedown iterations; treat 0.1.4 as the first recommended pin.
 
+## [0.3.0](https://github.com/szTheory/rindle/compare/rindle-v0.1.10...rindle-v0.3.0) (2026-06-20)
+
+
+### Features
+
+* **87-01:** print Cohort demo launch URLs ([f7564c2](https://github.com/szTheory/rindle/commit/f7564c2038b8896a410c3f0a34cbb1f969095ce2))
+* **88-01:** add admin console contrast gate ([c079bb4](https://github.com/szTheory/rindle/commit/c079bb4b90b6f712bc5e1d2d2865de742fcf08de))
+* **88-01:** generate rindle admin css layer ([3654623](https://github.com/szTheory/rindle/commit/36546235a189c54c217eb9dc13cf29f46aa031d9))
+* **88-02:** add admin gallery screenshot check ([13a2d13](https://github.com/szTheory/rindle/commit/13a2d13605b8e17c8302e2f2f320a007742fedf0))
+* **88-02:** generate admin component gallery ([f460d52](https://github.com/szTheory/rindle/commit/f460d523d99d3ac6cd492a06a960a7bfeae16d54))
+* **89-01:** implement guarded admin router macro ([02f0118](https://github.com/szTheory/rindle/commit/02f0118838d63ada9c120a7a73fc04162b85c21f))
+* **89-02:** include admin assets in package metadata ([3e0f379](https://github.com/szTheory/rindle/commit/3e0f3794e43c09e80d309b5ebec7192c66237096))
+* **89-02:** package admin static assets ([f1d8842](https://github.com/szTheory/rindle/commit/f1d884262c181900c4c89f7a64c2255f2e5a0ce1))
+* **89-03:** implement admin read queries ([60a9523](https://github.com/szTheory/rindle/commit/60a9523541044649e35032b4b940863913568b41))
+* **89-04:** implement admin read LiveViews ([0d74283](https://github.com/szTheory/rindle/commit/0d74283f6d7f9025aac74d72c363655744b09992))
+* **89-05:** implement remaining admin read surfaces ([25ed172](https://github.com/szTheory/rindle/commit/25ed1729cda298d822d65c9873ced74e79239ba7))
+* **89-06:** broadcast upload session lifecycle events ([0b2167c](https://github.com/szTheory/rindle/commit/0b2167c1cf3da6ed3edb73f58cacdcce6fddcc45))
+* **90-02:** implement ops actions lifecycle repair, regeneration, quarantine ([7ad41b7](https://github.com/szTheory/rindle/commit/7ad41b79a9472dbb4d1e18732e4db26832908551))
+* **91-01:** apply selected logo ([5f5d80a](https://github.com/szTheory/rindle/commit/5f5d80a098da8d482c3000c043304ca8d26342a2))
+* **91-01:** generate logo options for Cohort demo ([97cae26](https://github.com/szTheory/rindle/commit/97cae2611689ce5816ec34f51b9e88d080e6623a))
+* **91-02:** add AudioProfile and DocumentProfile for adoption demo ([5f9e5a8](https://github.com/szTheory/rindle/commit/5f9e5a88f238016c02a701e0bc98efbe42046758))
+* **91-02:** seed edge case lifecycle states for demo ([9488806](https://github.com/szTheory/rindle/commit/9488806981fade2c5db70908a54b20c10225e55d))
+* **91-03:** mount Rindle Admin Console in Cohort demo ([15d1f1d](https://github.com/szTheory/rindle/commit/15d1f1d1e516a0953c3a972217e8da3d28c03374))
+* **92-01:** add stable admin browser selectors ([d05d5da](https://github.com/szTheory/rindle/commit/d05d5da898c0275142e9e73b95af99e5a8136c3e))
+* **92-01:** create shared admin Playwright helper ([364f076](https://github.com/szTheory/rindle/commit/364f0761dc8f25c59612ad02e5ed48e02001d802))
+* **92:** automate admin screenshot visual-polish gate into merge-blocking CI ([3190896](https://github.com/szTheory/rindle/commit/3190896c4470395a3fce24967ad4006d4af074a3))
+* **94-01:** add sync-admin-css.mjs single CSS-mirror mechanism ([c8eade6](https://github.com/szTheory/rindle/commit/c8eade6db80448d64be6c4e2d4f3f1bc22aaaddf))
+* **94-03:** add four new token categories to tokens.json + extend parity data ([a7f5b85](https://github.com/szTheory/rindle/commit/a7f5b8560f8a25ccc33d9da18ea25e0b422d9873))
+* **94-03:** emit new token categories from admin generator + parity registration ([50a4ee9](https://github.com/szTheory/rindle/commit/50a4ee9dcd4edc14b0c1c3bc5fa96eb9771b2681))
+* **94-04:** add merge-blocking brandbook-tokens CI gate (PIPE-01) ([2471fdd](https://github.com/szTheory/rindle/commit/2471fdd319e06334eb02c871a5b5890570f362bb))
+* **admin:** implement owner and batch erasure workflows [90-01] ([83d701d](https://github.com/szTheory/rindle/commit/83d701d044fd5686edc48dcffd2abd67ba1a3bdd))
+* **brandbook:** confluence refinement variants e1-e6 (82-02 checkpoint round 2) ([166bb44](https://github.com/szTheory/rindle/commit/166bb445372223f6b7c005ec612cc829809ebed0))
+* **brandbook:** design tokens + self-contained HTML brand book (Phase 84) ([828eed6](https://github.com/szTheory/rindle/commit/828eed6d91a15e5e4aba8b6643f83a75aecb4279))
+* **brandbook:** final logo system from locked Confluence e1 (Phase 83) ([5e9d36c](https://github.com/szTheory/rindle/commit/5e9d36c0937db46d9ac62515be94abe40c3df1eb))
+* **brandbook:** logo generation pipeline + five candidate directions (82-01) ([237f9e9](https://github.com/szTheory/rindle/commit/237f9e9fe211d7bc2423e13408879a3c3dab3cd9))
+* **brand:** wire brand onto adopter surfaces - README, HexDocs, social (Phase 85) ([c933588](https://github.com/szTheory/rindle/commit/c9335881092dfce1f31dc5a26757e02786803047))
+* **demo:** Docker DX — auto free ports, opt-in Traefik, cached Dockerfile, reusable template ([4afbafb](https://github.com/szTheory/rindle/commit/4afbafb399b5bcdf81ddd0f7be4fdf7c1e5b92ca))
+* **demo:** self-documenting launchpad homepage + Cohort design system ([01b4c0b](https://github.com/szTheory/rindle/commit/01b4c0b708b91e30dfc5ca2323e86eb8b8002dc9))
+* v1.19 Design-System Stress-Test — admin DS L1–L3 + Cohort restyle + daisyUI retirement ([#24](https://github.com/szTheory/rindle/issues/24)) ([b8c3b5d](https://github.com/szTheory/rindle/commit/b8c3b5df3594fb8f8e38db5edf85d849de4711d8))
+
+
+### Bug Fixes
+
+* **86:** revise architecture lock planning feedback ([f723c22](https://github.com/szTheory/rindle/commit/f723c22006381a9437e7422b7f502ca7d0b076d7))
+* **86:** strengthen plan verification assertions ([2badab9](https://github.com/szTheory/rindle/commit/2badab9d3edc2374cbd3eed3dadf9060220c170d))
+* **87-01:** make Cohort compose ports env-driven ([88beb6c](https://github.com/szTheory/rindle/commit/88beb6c399065b80d9c4852d24d810de5781f3e8))
+* **87-02:** cache Cohort Docker deps before source ([bd2bb2d](https://github.com/szTheory/rindle/commit/bd2bb2daba1fa3685ff25d13943a29486c6b8e22))
+* **87:** resolve docker demo planning validation ([72111fe](https://github.com/szTheory/rindle/commit/72111fe0ef08afb8f1a19fb1e16b5f94c8ccefef))
+* **88-03:** make admin gallery anchors navigable ([43169ce](https://github.com/szTheory/rindle/commit/43169cef2d8ab28c7037cf0eceae65a564611f1f))
+* **88:** align dark status chip contrast surfaces ([20938bd](https://github.com/szTheory/rindle/commit/20938bd497809e4c4cf3e2deef8d55bd34010524))
+* **88:** render gallery helper borders with rule tokens ([224de4e](https://github.com/szTheory/rindle/commit/224de4ed48714fd518838fafe82e2d8cf52df1ba))
+* **88:** revise plans based on checker feedback ([61429f6](https://github.com/szTheory/rindle/commit/61429f6c809c1af686cf39a5b082c60f4481970d))
+* **88:** separate border color and rule tokens ([3248eeb](https://github.com/szTheory/rindle/commit/3248eebfeb02d72b08291247f13d12399dab2e17))
+* **89:** resolve admin console review findings ([b1b98c0](https://github.com/szTheory/rindle/commit/b1b98c0b704ba85b10a9a141637c8608e2a99885))
+* **89:** use runtime defaults in admin diagnostics ([a22f96d](https://github.com/szTheory/rindle/commit/a22f96d7697bae1757ad2b6ed7dc5661f6a31ce1))
+* **91:** revise plans based on checker feedback ([e543fdc](https://github.com/szTheory/rindle/commit/e543fdc53f73e4571e51780de759919b5d73b4f5))
+* **92-02:** prevent admin table overflow ([c7b7767](https://github.com/szTheory/rindle/commit/c7b776715cff1813b34db1b55e3cbc47cb7d9ca5))
+* **92-04:** polish admin actions screenshots ([906a8fd](https://github.com/szTheory/rindle/commit/906a8fd2202f9626fddd21ce34e2f5ff7149964d))
+* **92-05:** keep adoption demo e2e lane current ([c816cbe](https://github.com/szTheory/rindle/commit/c816cbe637ba2932b0b7277fc1abd5bce6956a5f))
+* **92:** add precommit gate to final plan proof ([b239605](https://github.com/szTheory/rindle/commit/b23960567cb6ee01d7f07111927a8c4fba2efe2a))
+* **92:** address admin action review findings ([9a73a35](https://github.com/szTheory/rindle/commit/9a73a35a89b74ff2eeeac35c2e78b998bc5cf0db))
+* **92:** guard tampered admin execute events ([7ca7229](https://github.com/szTheory/rindle/commit/7ca72292c75471d2f5ce357d545db92e3576ca7d))
+* **92:** revise plans based on checker feedback ([5a19136](https://github.com/szTheory/rindle/commit/5a191362d38ed9d9cd470d70221dcc5954ca478e))
+* **93:** resolve code-review warnings (HexDocs group, parity lock, delete semantics) ([377a81d](https://github.com/szTheory/rindle/commit/377a81d81660f2c7dd3cf4f5b8ac2c1207cf763d))
+* **93:** unfreeze stale 'admin UI' moduledoc assertion in api surface boundary test ([b5fe039](https://github.com/szTheory/rindle/commit/b5fe03941b295cfb73c23a3ca2a06b090ded8551))
+* **94-01:** regenerate stale brand token baseline (text-on-brand drift) ([1a6c14d](https://github.com/szTheory/rindle/commit/1a6c14d55217f03f746232a151caef3a285cc7cc))
+* **94-04:** regenerate stale tokens.css from tokens.json (Plan 03 drift) ([de32fed](https://github.com/szTheory/rindle/commit/de32fedfe6d117844d174d6f787dccb8ba51832b))
+* **94-05:** require brandbook tokens protection context ([364d749](https://github.com/szTheory/rindle/commit/364d749b44f8484de0fbf2a8b0a420b7207bd7b2))
+* **admin:** drop unused default arg + format v1.18 test files for CI ([b5587c6](https://github.com/szTheory/rindle/commit/b5587c60b6b7bfd122ba9c3bc4f70f7d29f37649))
+* **av:** accept n-prefixed ffmpeg version strings from official/BtbN builds ([72890df](https://github.com/szTheory/rindle/commit/72890df2fd042ca3a48ea4fa66088034c16aa1b2))
+* **brandbook:** palette swatches collided with the status-chip class ([efbcb4f](https://github.com/szTheory/rindle/commit/efbcb4f2478c12c9b3f1eab4b67a35b2488c51f4))
+* **brandbook:** remove development-process language from the standalone guide ([59cafde](https://github.com/szTheory/rindle/commit/59cafde13ccf2076cf77a6f3ba015d40bb57215a))
+* **ci:** broaden Release Please automerge eligibility ([2e2103b](https://github.com/szTheory/rindle/commit/2e2103bdd96ca158b184a0d44a511887a900a144))
+* **ci:** make adoption-demo-unit + cohort-demo-smoke pass on Linux CI ([dc1d7fc](https://github.com/szTheory/rindle/commit/dc1d7fce8e5ddcff11503653477dce9fd62f7abb))
+* **demo:** legible primary button + seeded-cast persona icons ([ec0dca0](https://github.com/szTheory/rindle/commit/ec0dca07b4469dc0aaee037fe088a10a08ac0ee0))
+* **deps:** declare httpoison optional for cross-version no-optional-deps compile ([5d5ab2c](https://github.com/szTheory/rindle/commit/5d5ab2c0da683396efd463538b8f28fd0e1b0945))
+* **deps:** no_warn_undefined for optional modules so ADMIN-06 passes on 1.15/1.17 ([661e0a6](https://github.com/szTheory/rindle/commit/661e0a600bde10752d1ba33f7756669c2ceb42a9))
+* **release:** use PAT for GitHub release creation in publish job ([290a5ed](https://github.com/szTheory/rindle/commit/290a5ed5750698579bd5c4b0dcddb1981502fc32))
+* resolve post-merge conflicts from wave 1 ([1cbb7c9](https://github.com/szTheory/rindle/commit/1cbb7c9ec105b4fd7bc41afe810684d731cdd3af))
+* resolve post-merge conflicts from wave 3 ([0ad9162](https://github.com/szTheory/rindle/commit/0ad916277d6d482df51906318b70f500ee7316c9))
+
+
+### Miscellaneous Chores
+
+* release rindle as 0.3.0 ([9d912d8](https://github.com/szTheory/rindle/commit/9d912d80456d7f200d595a6bea9db348f1b45a45))
+
 ## [0.1.10](https://github.com/szTheory/rindle/compare/rindle-v0.1.9...rindle-v0.1.10) (2026-05-30)
 
 
