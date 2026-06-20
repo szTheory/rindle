@@ -248,6 +248,13 @@ body {
   background: color-mix(in srgb, var(--ck-bg) 82%, transparent);
   backdrop-filter: saturate(1.4) blur(10px);
   border-bottom: 1px solid var(--ck-border);
+  /* Shared chrome is rendered by Layouts.app OUTSIDE the `.ck` shell, so it can't
+     inherit the brand typography `.ck` carries. Declare it here so the nav stays
+     branded on every inner page (/upload, /dashboard, /ops), matching the home
+     page where the nav happens to sit inside `.ck`. */
+  font-family: var(--ck-font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 .ck-nav__brand {
   display: inline-flex;
@@ -1108,6 +1115,10 @@ body {
   gap: var(--ck-3);
   color: var(--ck-muted);
   font-size: var(--ck-step--1);
+  /* Self-sufficient brand typography — see `.ck-nav` note (chrome lives outside `.ck`). */
+  font-family: var(--ck-font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 .ck-footer a {
   color: var(--ck-muted);
