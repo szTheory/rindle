@@ -39,7 +39,7 @@ observability → cache/tooling → aggregate required check → lane split → 
 (release-train coupling via `release-please-automerge.yml` + `gate-ci-green`); the `CI Summary`
 aggregate must treat `skipped` as pass (fork-PR safety); never weaken the release full-verification gate.
 
-- [ ] **Phase 103: Observability / Baseline** — surface CI timing/cache/slowest-tests; capture the committed baseline + live required-check names before any change (no behavior change).
+- [x] **Phase 103: Observability / Baseline** — surface CI timing/cache/slowest-tests; capture the committed baseline + live required-check names before any change (no behavior change). (completed 2026-06-20)
 - [ ] **Phase 104: Cache & Tooling Hygiene** — composite setup action, correct cache keys, PLT restore/save split, lockfile drift gates, lint de-dup (single-workflow shape; low-risk).
 - [ ] **Phase 105: Aggregate Required Check + Branch-Protection Flip** — land `CI Summary` and make it the sole required check, in one isolated PR, before any lane rename.
 - [ ] **Phase 106: Trigger Split + Matrix/Lane Refinement** — fast PR lane + scoped package-consumer + nightly lane + concurrency groups (the headline 15→≤7min cut).
@@ -155,7 +155,7 @@ restructuring decision is evidence-backed — with **zero gate-behavior and zero
 4. Gate behavior is provably unchanged: the same checks are required and the same PRs pass/fail as
    on the pre-phase baseline.
 
-**Plans:** 4 (planned 2026-06-20)
+**Plans:** 4/4 plans complete
 
 **Wave 1** *(no deps, parallel — disjoint files):*
 
@@ -625,7 +625,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 103. Observability / Baseline | 4/4 | Complete   | 2026-06-20 |
+| 103. Observability / Baseline | 4/4 | Complete    | 2026-06-20 |
 | 104. Cache & Tooling Hygiene | 0/TBD | Not started | - |
 | 105. Aggregate Required Check + Branch-Protection Flip | 0/TBD | Not started | - |
 | 106. Trigger Split + Matrix/Lane Refinement | 0/TBD | Not started | - |
