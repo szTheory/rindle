@@ -124,6 +124,7 @@ defmodule Rindle.MixProject do
 
       # Dev/Test
       {:lazy_html, ">= 0.1.0", only: :test},
+      {:junit_formatter, "~> 3.4", only: :test},
       {:mox, "~> 1.2", only: :test},
       {:bypass, "~> 2.1", only: :test},
       {:ex_machina, "~> 2.7", only: :test},
