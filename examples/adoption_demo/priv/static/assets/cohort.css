@@ -298,6 +298,20 @@ body {
   color: var(--ck-ink);
   border-bottom-color: var(--ck-brand);
 }
+/* On narrow viewports the brand lockup + links sit right at the row's edge; with
+   the (wider) brand font now on the nav, freetype/Linux can render them ~3px past
+   a 390px viewport, forcing horizontal page overflow (caught by the mobile
+   stable-dimensions gate). Allow the nav and its links to wrap so no flex line can
+   ever exceed the viewport — keeps the full-page width == viewport on mobile. */
+@media (max-width: 36rem) {
+  .ck-nav {
+    flex-wrap: wrap;
+    row-gap: var(--ck-2);
+  }
+  .ck-nav__links {
+    flex-wrap: wrap;
+  }
+}
 
 /* ---- hero --------------------------------------------------------------- */
 .ck-hero {
