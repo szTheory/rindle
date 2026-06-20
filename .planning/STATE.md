@@ -2,15 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: CI/CD Performance
-status: planning
+current_phase: 103
+current_phase_name: observability-baseline
+status: executing
 stopped_at: Phase 103 context gathered (assumptions mode)
-last_updated: "2026-06-20T22:27:32.516Z"
-last_activity: 2026-06-20 — v1.20 roadmap created (Phases 103–107)
+last_updated: "2026-06-20T23:12:35.920Z"
+last_activity: 2026-06-20
+last_activity_desc: Phase 103 execution started
 progress:
   total_phases: 13
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 4
+  completed_plans: 1
   percent: 0
 ---
 
@@ -21,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-19)
 
 **Core value:** Media, made durable.
-**Current focus:** v1.20 CI/CD Performance — roadmap created (Phases 103–107); plan Phase 103 next
+**Current focus:** Phase 103 — observability-baseline
 
 ## Current Position
 
-Phase: 103 — Observability / Baseline (not started)
-Plan: —
-Status: Roadmap created (5 phases, 18/18 requirements mapped); ready to plan Phase 103
-Last activity: 2026-06-20 — v1.20 roadmap created (Phases 103–107)
+Phase: 103 (observability-baseline) — EXECUTING
+Plan: 2 of 4
+Status: Ready to execute
+Last activity: 2026-06-20 — Phase 103 execution started
 
 ### v1.20 roadmap (Phases 103–107) — load-bearing dependency order
 
@@ -292,7 +295,7 @@ required-check names before any topology change, and surface timing/cache/slowes
 
 ## Session Continuity
 
-Last session: 2026-06-20T22:27:32.512Z
+Last session: 2026-06-20T23:12:21.954Z
 Stopped at: Phase 103 context gathered (assumptions mode)
 Resume file: .planning/phases/103-observability-baseline/103-CONTEXT.md
 
@@ -366,6 +369,7 @@ Resume file: .planning/phases/103-observability-baseline/103-CONTEXT.md
 | Phase 102 P05 | 26 min | 3 tasks | 7 files |
 | Phase 102 P06 | 55 min | 3 tasks | 5 files |
 | Phase 95 P05 | 12min | 3 tasks | 7 files |
+| Phase 103 P01 | 2 min | 2 tasks | 3 files |
 
 ## Operator Next Steps
 

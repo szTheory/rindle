@@ -22,8 +22,10 @@ dropping real quality signal — via a measure → classify → restructure pass
 
 - [ ] **OBS-01**: CI surfaces per-job and per-step timing plus cache hit/miss in the run summary
   (`$GITHUB_STEP_SUMMARY`), with no change to gate behavior.
-- [ ] **OBS-02**: CI surfaces `mix test --slowest 20`, a compile-time profile, `System.schedulers_online()`,
+
+- [x] **OBS-02**: CI surfaces `mix test --slowest 20`, a compile-time profile, `System.schedulers_online()`,
   and the ExUnit seed; JUnit and coverage artifacts are uploaded for inspection.
+
 - [ ] **OBS-03**: A committed baseline table (per-job avg + p95 + rerun/flake rate) and the *actual*
   current branch-protection required-check names are captured before any restructuring begins.
 
@@ -32,13 +34,17 @@ dropping real quality signal — via a measure → classify → restructure pass
 - [ ] **CACHE-01**: A `.github/actions/setup-elixir` composite action (plus a shared MinIO setup
   step) is the single source of truth for environment setup and cache keys across the jobs that
   duplicate that block today.
+
 - [ ] **CACHE-02**: Cache keys include OS+arch, OTP, Elixir, `MIX_ENV`, the `mix.lock` hash, and a
   version buster; deps, `_build`, and PLT caches are kept separate and never restored across
   incompatible dimensions.
+
 - [ ] **CACHE-03**: The Dialyzer PLT uses an `actions/cache` restore/save split that persists the
   built PLT even when analysis fails, with the PLT key hashing `mix.exs`/`.dialyzer_ignore.exs`.
+
 - [ ] **CACHE-04**: `mix deps.get --check-locked` and `mix deps.unlock --check-unused` gate
   lockfile drift so a stale or unused lock cannot pass via broad restore keys.
+
 - [ ] **CACHE-05**: Version-invariant lint (`format --check-formatted`, Credo, doctor) runs once on
   the primary pair instead of redundantly on every matrix cell; `.tool-versions` lands and the stray
   `setup-ffmpeg` action in `release.yml` is aligned to the repo's ffmpeg install path.
@@ -47,6 +53,7 @@ dropping real quality signal — via a measure → classify → restructure pass
 
 - [ ] **GATE-01**: A single stable `CI Summary` aggregate job (`needs:` all jobs, `if: always()`,
   treating `skipped` as pass) becomes the sole signal that represents overall CI status.
+
 - [ ] **GATE-02**: `scripts/setup_branch_protection.sh` (and the nightly re-assert workflow) is
   updated in the same change so branch protection requires only `CI Summary`; the fork-PR
   "pending forever" trap is closed and the `CI` workflow name/filename (release-train coupling via
@@ -57,11 +64,14 @@ dropping real quality signal — via a measure → classify → restructure pass
 - [ ] **LANE-01**: A fast PR lane with a `concurrency` group that cancels stale in-progress PR runs
   targets a representative gate at roughly ≤7 minutes; main and release lanes serialize and never
   cancel.
+
 - [ ] **LANE-02**: The `package-consumer` long pole is scoped by trigger — one representative `image`
   install-smoke on PR; the full 5-profile matrix + `release_preflight` + `hex.publish --dry-run` run
   on `push:main`/nightly/release, with the release full-verification gate provably intact.
+
 - [ ] **LANE-03**: A nightly lane carries the broad OTP×Elixir compatibility matrix, `gcs-soak`,
   `package-consumer-gcs-live`, and an owned Dialyzer lane off the PR critical path.
+
 - [ ] **LANE-04**: A documented keep / optimize / move-to-nightly / quarantine / delete (buckets A–E)
   test-value classification backs every lane placement, and coverage is moved off the PR critical
   path. Any trust/speed tradeoff is labeled explicitly (in CONTRIBUTING and the PR).
@@ -71,12 +81,15 @@ dropping real quality signal — via a measure → classify → restructure pass
 - [ ] **HARD-01**: An ExUnit async-safety static guard lands before any conversion; verified-safe
   modules are converted to `async: true`, and `--partitions` (with DB-per-partition + merged
   coverage) is adopted only where PR-1 measurement and runner cores justify it.
+
 - [ ] **HARD-02**: All third-party actions are pinned to immutable SHAs, `dependabot.yml`
   (`github-actions` + `mix`) lands, `{:mix_audit, "~> 2.1"}` is added to the audit lane, and each job
   declares least-privilege `permissions:`.
+
 - [ ] **HARD-03**: A single local `mix ci` alias mirrors the merge-blocking checks; `CONTRIBUTING.md`
   documents the lanes, the required check, and the local command; the README badge points at the
   meaningful (`CI Summary`) check.
+
 - [ ] **HARD-04**: A faithful Linux-Chromium local repro lands (pinned Playwright container +
   `scripts/ci/e2e_local.sh` + exact `@playwright/test` and font pins), and the divergent token-pair
   vs runtime contrast thresholds are reconciled to one shared constant.
@@ -89,8 +102,10 @@ Deferred to v1.20.x / a later infra slice. Tracked, not in this roadmap.
 
 - **DEFER-01**: Dedicated flaky-quarantine lane with reproducible-seed logging — trigger: a test
   actually proves flaky in the new baseline.
+
 - **DEFER-02**: Self-hosted or larger GitHub runners — only if post-partition core-starvation is
   measured, not assumed.
+
 - **DEFER-03**: Property-based / exhaustive nightly test expansion.
 
 ## Out of Scope
@@ -116,7 +131,7 @@ Populated during roadmap creation.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | OBS-01 | Phase 103 | Pending |
-| OBS-02 | Phase 103 | Pending |
+| OBS-02 | Phase 103 | Complete |
 | OBS-03 | Phase 103 | Pending |
 | CACHE-01 | Phase 104 | Pending |
 | CACHE-02 | Phase 104 | Pending |
@@ -135,6 +150,7 @@ Populated during roadmap creation.
 | HARD-04 | Phase 107 | Pending |
 
 **Coverage:**
+
 - v1.20 requirements: 18 total
 - Mapped to phases: 18 ✓ (Phase 103: OBS-01..03; Phase 104: CACHE-01..05; Phase 105: GATE-01..02; Phase 106: LANE-01..04; Phase 107: HARD-01..04)
 - Unmapped: 0

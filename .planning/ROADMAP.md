@@ -144,21 +144,26 @@ restructuring decision is evidence-backed — with **zero gate-behavior and zero
 1. A baseline table (per-job avg + p95 + rerun/flake rate) **and** the *actual* live
    branch-protection required-check names are captured and committed **before any restructuring
    change is made** (OBS-03).
+
 2. A PR run summary (`$GITHUB_STEP_SUMMARY`) shows per-job and per-step timing plus cache hit/miss,
    with no change to which checks pass or fail (OBS-01).
+
 3. The run summary surfaces `mix test --slowest 20`, a `mix compile` time profile,
    `System.schedulers_online()` (runner cores), and the ExUnit seed; JUnit + coverage artifacts are
    uploaded for inspection (OBS-02).
+
 4. Gate behavior is provably unchanged: the same checks are required and the same PRs pass/fail as
    on the pre-phase baseline.
 
 **Plans:** 4 (planned 2026-06-20)
 
 **Wave 1** *(no deps, parallel — disjoint files):*
+
 - 103-01 — OBS-02 test harness: test-only `junit_formatter` + ExUnit JUnit/coverage wiring (`mix.exs`, `test/test_helper.exs`).
 - 103-02 — OBS-03 read-only collectors: baseline (avg/p95/rerun) + live-vs-expected required-check diff (`scripts/ci/*.sh`).
 
 **Wave 2** *(blocked on Wave 1 — parallel, disjoint files):*
+
 - 103-03 *(needs 103-01)* — OBS-01 + OBS-02 instrumentation in `ci.yml`: cache `id:`s/hit-miss, per-job + per-step timing via job-scoped `ci-observability` aggregator, slowest/compile/schedulers/seed, JUnit+coverage upload.
 - 103-04 *(needs 103-02)* — OBS-03 capture: commit internal `103-BASELINE.md` + verbatim live required-check names (records `brandbook-tokens` drift) before any restructuring.
 
@@ -177,7 +182,7 @@ Plans:
 
 **Wave 1** *(harness / Wave 0 — no deps; parallel)*
 
-- [ ] 103-01-PLAN.md — Add test-only `junit_formatter` + wire `test_helper.exs`; verify JUnit XML + coverage artifacts produced (OBS-02 foundation).
+- [x] 103-01-PLAN.md — Add test-only `junit_formatter` + wire `test_helper.exs`; verify JUnit XML + coverage artifacts produced (OBS-02 foundation).
 - [ ] 103-02-PLAN.md — Create the two read-only `scripts/ci/` collectors (baseline avg/p95/rerun + live-vs-expected required-check diff) (OBS-03 tooling).
 
 **Wave 2** *(blocked on Wave 1; parallel — disjoint files)*
@@ -202,13 +207,17 @@ and `mix.lock` resolved versions before pinning the new primary pair).
 1. A `.github/actions/setup-elixir` composite action (plus a shared MinIO setup step) is the single
    source of truth for environment setup and cache keys across the jobs that duplicate that block
    today (CACHE-01).
+
 2. Cache keys include OS+arch, OTP, Elixir, `MIX_ENV`, the `mix.lock` hash, and a version buster;
    deps, `_build`, and PLT caches are separate and never restored across incompatible dimensions
    (CACHE-02).
+
 3. The Dialyzer PLT uses an `actions/cache` restore/save split that persists the built PLT even when
    analysis fails, with the PLT key hashing `mix.exs`/`.dialyzer_ignore.exs` (CACHE-03).
+
 4. `mix deps.get --check-locked` and `mix deps.unlock --check-unused` fail the build on lockfile
    drift, so a stale or unused lock cannot pass via broad restore keys (CACHE-04).
+
 5. Version-invariant lint (`format --check-formatted`, Credo, doctor) runs once on the primary pair
    instead of on every matrix cell; `.tool-versions` lands and the stray `setup-ffmpeg` action in
    `release.yml` is aligned to the repo's ffmpeg install path (CACHE-05).
@@ -232,11 +241,14 @@ names. MUST precede Phase 106.
 
 1. A single stable `CI Summary` aggregate job (`needs:` all jobs, `if: always()`, treating `skipped`
    as pass) is the sole signal that represents overall CI status (GATE-01).
+
 2. `scripts/setup_branch_protection.sh` and the nightly re-assert workflow are updated in the **same
    change** so branch protection requires **only** `CI Summary`; confirmed via the script's expected
    list (GATE-02).
+
 3. The fork-PR "pending forever" trap is closed: PRs from forks (where repo-gated jobs skip) report
    `CI Summary` as success rather than hanging (GATE-01, GATE-02).
+
 4. The `CI` workflow file name and `name: CI` are preserved, keeping the release-train coupling
    (`release-please-automerge.yml` + `gate-ci-green`) intact (GATE-02).
 
@@ -260,15 +272,19 @@ Phase 103's per-step `package-consumer` timing + slowest-test evidence.
 1. A fast PR lane with a `concurrency` group that cancels stale in-progress PR runs targets a
    representative gate at roughly ≤7 minutes on a representative change; main and release lanes
    serialize and never cancel (LANE-01).
+
 2. The `package-consumer` long pole is scoped by trigger — one representative `image` install-smoke
    on PR; the full 5-profile matrix + `release_preflight` + `hex.publish --dry-run` on
    `push:main`/nightly/release — with the release full-verification gate provably still satisfied by
    a run that ran the full matrix (LANE-02).
+
 3. A nightly lane carries the broad OTP×Elixir compatibility matrix, `gcs-soak`,
    `package-consumer-gcs-live`, and an owned Dialyzer lane off the PR critical path (LANE-03).
+
 4. A documented keep / optimize / move-to-nightly / quarantine / delete (buckets A–E)
    classification backs every lane placement, coverage is moved off the PR critical path, and any
    trust/speed tradeoff is labeled explicitly in CONTRIBUTING and the PR (LANE-04).
+
 5. `ci.yml` keeps its file name and `name: CI` on `push:main`, and the release gate is not weakened.
 
 **Plans:** TBD
@@ -290,12 +306,15 @@ shape).
 1. An ExUnit async-safety static guard lands before any conversion; verified-safe modules are
    converted to `async: true`, and `--partitions` (with DB-per-partition + merged coverage) is
    adopted only where Phase 103 measurement and runner cores justify it (HARD-01).
+
 2. All third-party actions are pinned to immutable SHAs, `dependabot.yml` (`github-actions` + `mix`)
    lands, `{:mix_audit, "~> 2.1"}` is added to the audit lane, and each job declares least-privilege
    `permissions:` (HARD-02).
+
 3. A single local `mix ci` alias runs the same merge-blocking checks as the PR gate;
    `CONTRIBUTING.md` documents the lanes, the required check, and the local command; the README badge
    points at the meaningful (`CI Summary`) check (HARD-03).
+
 4. A faithful Linux-Chromium local repro lands (pinned Playwright container + `scripts/ci/e2e_local.sh`
    + exact `@playwright/test` and font pins), and the divergent token-pair vs runtime contrast
    thresholds are reconciled to one shared constant (HARD-04).
@@ -606,7 +625,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 103. Observability / Baseline | 0/4 | Not started | - |
+| 103. Observability / Baseline | 1/4 | In Progress|  |
 | 104. Cache & Tooling Hygiene | 0/TBD | Not started | - |
 | 105. Aggregate Required Check + Branch-Protection Flip | 0/TBD | Not started | - |
 | 106. Trigger Split + Matrix/Lane Refinement | 0/TBD | Not started | - |
