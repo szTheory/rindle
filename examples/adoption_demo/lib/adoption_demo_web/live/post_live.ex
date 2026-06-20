@@ -24,25 +24,33 @@ defmodule AdoptionDemoWeb.PostLive do
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} page_title={@page_title}>
-      <.ck_page title="Post" theme={@theme}>
-        <h1 class="ck-hero__title" data-testid="post-title">{@post.title}</h1>
-        <p class="ck-hero__lede">By {@post.member.name}</p>
-        <p>{@post.body}</p>
+      <.ck_page eyebrow="Community post" title={@post.title} theme={@theme}>
+        <p class="ck-hero__lede" data-testid="post-title">{@post.title} · by {@post.member.name}</p>
+        <p class="ck-help">{@post.body}</p>
 
-        <section id="post-image" class="ck-section" data-testid="post-image-section">
+        <section
+          id="post-image"
+          class="ck-section ck-reveal"
+          data-testid="post-image-section"
+          style="--d:.06s"
+        >
           <div class="ck-section__head">
             <h2 class="ck-section__title">Post image</h2>
+            <span class="ck-section__hint">A LiveView-uploaded image attached to this post.</span>
           </div>
           <%= if @asset do %>
             <div data-testid="post-picture-tag">
               {Rindle.HTML.picture_tag(RindleProfile, @asset,
                 variants: [{:thumb, nil}],
                 alt: @post.title,
-                class: "max-w-md border"
+                class: "ck-result__thumb"
               )}
             </div>
           <% else %>
-            <p data-testid="post-no-image">No image attached.</p>
+            <div data-testid="post-no-image" class="ck-empty">
+              <p class="ck-empty__title">No image attached</p>
+              <p class="ck-empty__body">Attach one from the upload lab's LiveView tab.</p>
+            </div>
           <% end %>
         </section>
       </.ck_page>

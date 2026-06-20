@@ -26,41 +26,70 @@ defmodule AdoptionDemoWeb.MemberLive do
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} page_title={@page_title}>
-      <.ck_page title="Member" theme={@theme}>
-        <h1 class="ck-hero__title" data-testid="member-profile-title">{@member.name}</h1>
-        <p class="ck-hero__lede">{@member.email} · {@member.role}</p>
+      <.ck_page eyebrow="Member" title={@member.name} theme={@theme}>
+        <p class="ck-hero__lede" data-testid="member-profile-title">
+          {@member.name} · {@member.email} · {@member.role}
+        </p>
 
-        <section id="member-avatar" class="ck-section" data-testid="member-avatar-section">
+        <section
+          id="member-avatar"
+          class="ck-section ck-reveal"
+          data-testid="member-avatar-section"
+          style="--d:.06s"
+        >
           <div class="ck-section__head">
             <h2 class="ck-section__title">Avatar</h2>
+            <span class="ck-section__hint">The attached image asset and its lifecycle state.</span>
           </div>
           <%= if @asset do %>
-            <div id="member-picture-tag" data-testid="member-picture-tag">
-              {Rindle.HTML.picture_tag(RindleProfile, @asset,
-                variants: [{:thumb, nil}],
-                alt: "#{@member.name} avatar",
-                class: "max-w-xs border"
-              )}
+            <div class="ck-result">
+              <div id="member-picture-tag" data-testid="member-picture-tag" class="ck-result__head">
+                {Rindle.HTML.picture_tag(RindleProfile, @asset,
+                  variants: [{:thumb, nil}],
+                  alt: "#{@member.name} avatar",
+                  class: "ck-result__thumb"
+                )}
+              </div>
+              <p id="member-avatar-state" data-testid="member-avatar-state" class="ck-statusbar">
+                <.state_badge state={@asset.state} />
+                <span class="ck-statusbar__token">Asset {@asset.id}</span>
+              </p>
             </div>
-            <p id="member-avatar-state" data-testid="member-avatar-state">
-              Asset {@asset.id} — {@asset.state}
-            </p>
           <% else %>
-            <p id="member-no-avatar" data-testid="member-no-avatar">No avatar attached.</p>
+            <div id="member-no-avatar" data-testid="member-no-avatar" class="ck-empty">
+              <p class="ck-empty__title">No avatar attached</p>
+              <p class="ck-empty__body">Upload one from the upload lab, or replace it below.</p>
+            </div>
           <% end %>
         </section>
 
-        <section id="replace-detach" class="ck-section" data-testid="replace-detach-section">
+        <section
+          id="replace-detach"
+          class="ck-section ck-reveal"
+          data-testid="replace-detach-section"
+          style="--d:.12s"
+        >
           <div class="ck-section__head">
             <h2 class="ck-section__title">Replace / detach</h2>
+            <span class="ck-section__hint">Swap the avatar with a fresh upload, or remove it.</span>
           </div>
           <p id="replace-status" class="ck-output" data-testid="replace-status">{@replace_status}</p>
-          <div class="ck-toolbar">
-            <button id="replace-avatar-button" phx-click="replace_avatar" class="ck-btn ck-btn--primary" data-testid="replace-avatar-button">
-              Replace avatar
+          <div class="ck-toolbar" role="group" aria-label="Avatar actions">
+            <button
+              id="replace-avatar-button"
+              phx-click="replace_avatar"
+              class="ck-btn ck-btn--primary"
+              data-testid="replace-avatar-button"
+            >
+              Upload new avatar
             </button>
-            <button id="detach-avatar-button" phx-click="detach_avatar" class="ck-btn" data-testid="detach-avatar-button">
-              Detach avatar
+            <button
+              id="detach-avatar-button"
+              phx-click="detach_avatar"
+              class="ck-btn"
+              data-testid="detach-avatar-button"
+            >
+              Remove avatar
             </button>
           </div>
         </section>
@@ -74,7 +103,8 @@ defmodule AdoptionDemoWeb.MemberLive do
     member = socket.assigns.member
     png = File.read!(fixture_path("avatar.png"))
 
-    with {:ok, session} <- Rindle.Upload.Broker.initiate_session(RindleProfile, filename: "replacement.png"),
+    with {:ok, session} <-
+           Rindle.Upload.Broker.initiate_session(RindleProfile, filename: "replacement.png"),
          {:ok, %{presigned: presigned}} <- Rindle.Upload.Broker.sign_url(session.id),
          :ok <- put_bytes(presigned.url, png),
          {:ok, %{asset: asset}} <- Rindle.Upload.Broker.verify_completion(session.id),

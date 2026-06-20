@@ -32,50 +32,76 @@ defmodule AdoptionDemoWeb.OpsLive do
     ~H"""
     <Layouts.app flash={@flash} page_title={@page_title}>
       <.ck_page
-        title="Operator surfaces"
-        lede="Doctor, runtime status, and batch owner erasure."
+        eyebrow="Operator surfaces"
+        title="Run Rindle's day-2 operations."
+        lede="The maintenance commands an operator reaches for — health checks, runtime status, and GDPR owner erasure — wired to this demo's real data."
         theme={@theme}
       >
-        <div class="ck-toolbar">
-          <button
-            id="run-doctor-button"
-            phx-click="run_doctor"
-            class="ck-btn ck-btn--primary"
-            data-testid="run-doctor-button"
-          >
-            Run doctor
-          </button>
-          <button
-            id="run-runtime-status-button"
-            phx-click="run_runtime_status"
-            class="ck-btn"
-            data-testid="run-runtime-status-button"
-          >
-            Run runtime status
-          </button>
-        </div>
+        <section class="ck-section ck-reveal" style="--d:.06s" aria-label="Diagnostics">
+          <div class="ck-section__head">
+            <h2 class="ck-section__title">Diagnostics</h2>
+            <span class="ck-section__hint">Inspect the install and the running system.</span>
+          </div>
+          <div class="ck-toolbar" role="group" aria-label="Diagnostic checks">
+            <button
+              id="run-doctor-button"
+              phx-click="run_doctor"
+              class="ck-btn ck-btn--primary"
+              data-testid="run-doctor-button"
+            >
+              Run health check
+            </button>
+            <button
+              id="run-runtime-status-button"
+              phx-click="run_runtime_status"
+              class="ck-btn"
+              data-testid="run-runtime-status-button"
+            >
+              Check runtime status
+            </button>
+          </div>
 
-        <pre :if={@doctor_output} id="doctor-output" class="ck-output" data-testid="doctor-output">{@doctor_output}</pre>
-        <pre :if={@runtime_output} id="runtime-status-output" class="ck-output" data-testid="runtime-status-output">{@runtime_output}</pre>
+          <div :if={@doctor_output} class="ck-detail__term">Doctor report</div>
+          <pre :if={@doctor_output} id="doctor-output" class="ck-output" data-testid="doctor-output">{@doctor_output}</pre>
+          <div :if={@runtime_output} class="ck-detail__term">Runtime status</div>
+          <pre
+            :if={@runtime_output}
+            id="runtime-status-output"
+            class="ck-output"
+            data-testid="runtime-status-output"
+          >{@runtime_output}</pre>
+        </section>
 
-        <section id="batch-erasure" class="ck-section" data-testid="batch-erasure-section">
+        <section
+          id="batch-erasure"
+          class="ck-section ck-reveal"
+          data-testid="batch-erasure-section"
+          style="--d:.12s"
+        >
           <div class="ck-section__head">
             <h2 class="ck-section__title">Batch owner erasure</h2>
+            <span class="ck-section__hint">
+              Right-to-be-forgotten across multiple owners at once.
+            </span>
           </div>
-          <p>
-            Preview + execute for seeded students:
-            <%= for member <- @batch_members do %>
-              <span data-testid={"batch-member-#{member.email}"}>{member.name}</span>
-            <% end %>
+          <p class="ck-help">
+            Audit, then erase, these seeded students:
+            <span
+              :for={member <- @batch_members}
+              class="ck-badge ck-badge--info"
+              data-testid={"batch-member-#{member.email}"}
+            >
+              {member.name}
+            </span>
           </p>
-          <div class="ck-toolbar">
+          <div class="ck-toolbar" role="group" aria-label="Batch erasure">
             <button
               id="preview-batch-button"
               phx-click="preview_batch"
               class="ck-btn"
               data-testid="preview-batch-button"
             >
-              Preview batch
+              Preview erasure
             </button>
             <button
               id="execute-batch-button"
@@ -83,10 +109,12 @@ defmodule AdoptionDemoWeb.OpsLive do
               class="ck-btn ck-btn--primary"
               data-testid="execute-batch-button"
             >
-              Execute batch
+              Erase members
             </button>
           </div>
+          <div :if={@batch_preview} class="ck-detail__term">Erasure preview</div>
           <pre :if={@batch_preview} id="batch-preview" class="ck-output" data-testid="batch-preview">{inspect(@batch_preview, pretty: true)}</pre>
+          <div :if={@batch_result} class="ck-detail__term">Erasure result</div>
           <pre :if={@batch_result} id="batch-result" class="ck-output" data-testid="batch-result">{inspect(@batch_result, pretty: true)}</pre>
         </section>
       </.ck_page>
