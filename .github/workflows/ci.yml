@@ -116,8 +116,51 @@ jobs:
           Rindle.Adopter.CanonicalApp.Profile
           Rindle.Adopter.CanonicalApp.VideoProfile
 
+      # OBS-02 (additive, observational): surface schedulers_online + a bounded
+      # mix compile --profile time dump in the run summary (fenced + tail-bounded
+      # to stay under the 1 MiB $GITHUB_STEP_SUMMARY cap).
+      - name: Surface compile profile + schedulers
+        if: always()
+        run: |
+          {
+            echo "## Build profile — ${{ github.job }} (${{ matrix.elixir }}/${{ matrix.otp }})"
+            echo ""
+            echo "- schedulers_online: $(mix run --no-start -e 'IO.puts(System.schedulers_online())')"
+            echo '```'
+            mix compile --profile time 2>&1 | tail -20 || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # The gating step STAYS `mix coveralls` (NOT replaced by coveralls.json).
+      # --slowest 20 is additive; tee captures the slowest-test lines + the
+      # ExUnit seed (`Randomized with seed N`) into the run summary (OBS-02 D-05).
       - name: Run tests with coverage
-        run: mix coveralls
+        run: |
+          set -o pipefail
+          mix coveralls --slowest 20 2>&1 | tee /tmp/test.out
+          {
+            echo "## Test timing — ${{ github.job }} (${{ matrix.elixir }}/${{ matrix.otp }})"
+            echo '```'
+            grep -E 'Randomized with seed|slowest|^\s+\* test ' /tmp/test.out | tail -30 || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # OBS-02 (additive sibling): generate coverage JSON for artifact upload.
+      # Does NOT replace the gating `mix coveralls` run above.
+      - name: Generate coverage JSON artifact
+        if: always()
+        run: mix coveralls.json
+
+      - name: Upload JUnit + coverage artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit-coverage-${{ github.job }}-${{ matrix.elixir || 'na' }}
+          path: |
+            _build/test/junit/rindle-junit.xml
+            cover/excoveralls.json
+          if-no-files-found: warn
+          retention-days: 14
 
       - name: Restore PLT cache
         uses: actions/cache@v4
@@ -307,10 +350,50 @@ jobs:
       - name: Install libvips
         run: sudo apt-get update && sudo apt-get install -y libvips-dev
 
+      # OBS-02 (additive, observational): schedulers_online + bounded compile profile.
+      - name: Surface compile profile + schedulers
+        if: always()
+        run: |
+          {
+            echo "## Build profile — ${{ github.job }}"
+            echo ""
+            echo "- schedulers_online: $(mix run --no-start -e 'IO.puts(System.schedulers_online())')"
+            echo '```'
+            mix compile --profile time 2>&1 | tail -20 || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # --slowest 20 is additive; tee captures the slowest-test lines + the ExUnit
+      # seed into the run summary (OBS-02 D-05). The gating test invocations are
+      # otherwise byte-unchanged (same files, same --include tags).
       - name: Run integration tests
         run: |
-          mix test test/rindle/upload/lifecycle_integration_test.exs --include integration
-          mix test test/rindle/storage/storage_adapter_test.exs --include minio
+          set -o pipefail
+          mix test test/rindle/upload/lifecycle_integration_test.exs --include integration --slowest 20 2>&1 | tee /tmp/test.out
+          mix test test/rindle/storage/storage_adapter_test.exs --include minio --slowest 20 2>&1 | tee -a /tmp/test.out
+          {
+            echo "## Test timing — ${{ github.job }}"
+            echo '```'
+            grep -E 'Randomized with seed|slowest|^\s+\* test ' /tmp/test.out | tail -30 || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # OBS-02 (additive): JUnit XML is emitted by test_helper.exs when CI is set
+      # (Plan 01); coverage JSON is generated as an additive sibling for upload.
+      - name: Generate coverage JSON artifact
+        if: always()
+        run: mix coveralls.json
+
+      - name: Upload JUnit + coverage artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit-coverage-${{ github.job }}-${{ matrix.elixir || 'na' }}
+          path: |
+            _build/test/junit/rindle-junit.xml
+            cover/excoveralls.json
+          if-no-files-found: warn
+          retention-days: 14
 
   contract:
     name: Contract
@@ -544,6 +627,23 @@ jobs:
       - name: Install dependencies
         run: mix deps.get
 
+      # OBS-02 (additive, observational): schedulers_online + bounded compile
+      # profile for the long-pole package-consumer job. This lane drives
+      # install-smoke / release-preflight scripts (not a direct ExUnit run), so
+      # the slowest-test/seed surfacing lives in quality/integration; the build
+      # profile + schedulers still characterize this job's runner.
+      - name: Surface compile profile + schedulers
+        if: always()
+        run: |
+          {
+            echo "## Build profile — ${{ github.job }}"
+            echo ""
+            echo "- schedulers_online: $(mix run --no-start -e 'IO.puts(System.schedulers_online())')"
+            echo '```'
+            mix compile --profile time 2>&1 | tail -20 || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Start MinIO for S3-compatible package-consumer proofs
         run: |
           docker run -d --name rindle-minio -p 9000:9000 -e MINIO_ROOT_USER=minioadmin -e MINIO_ROOT_PASSWORD=minioadmin minio/minio server /data --console-address ":9001"
@@ -602,6 +702,24 @@ jobs:
           MIX_ENV: dev
           HEX_API_KEY: dryrun-placeholder
         run: mix hex.publish --dry-run --yes
+
+      # OBS-02 (additive sibling): generate coverage JSON, then upload JUnit +
+      # coverage artifacts on every run (pass or fail). if-no-files-found: warn
+      # keeps the lane green if a given artifact is absent for this job.
+      - name: Generate coverage JSON artifact
+        if: always()
+        run: MIX_ENV=test mix coveralls.json
+
+      - name: Upload JUnit + coverage artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit-coverage-${{ github.job }}-${{ matrix.elixir || 'na' }}
+          path: |
+            _build/test/junit/rindle-junit.xml
+            cover/excoveralls.json
+          if-no-files-found: warn
+          retention-days: 14
 
   adoption-demo-unit:
     name: Adoption Demo Unit
