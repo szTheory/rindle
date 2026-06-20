@@ -115,30 +115,30 @@ Populated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| OBS-01 | — | Pending |
-| OBS-02 | — | Pending |
-| OBS-03 | — | Pending |
-| CACHE-01 | — | Pending |
-| CACHE-02 | — | Pending |
-| CACHE-03 | — | Pending |
-| CACHE-04 | — | Pending |
-| CACHE-05 | — | Pending |
-| GATE-01 | — | Pending |
-| GATE-02 | — | Pending |
-| LANE-01 | — | Pending |
-| LANE-02 | — | Pending |
-| LANE-03 | — | Pending |
-| LANE-04 | — | Pending |
-| HARD-01 | — | Pending |
-| HARD-02 | — | Pending |
-| HARD-03 | — | Pending |
-| HARD-04 | — | Pending |
+| OBS-01 | Phase 103 | Pending |
+| OBS-02 | Phase 103 | Pending |
+| OBS-03 | Phase 103 | Pending |
+| CACHE-01 | Phase 104 | Pending |
+| CACHE-02 | Phase 104 | Pending |
+| CACHE-03 | Phase 104 | Pending |
+| CACHE-04 | Phase 104 | Pending |
+| CACHE-05 | Phase 104 | Pending |
+| GATE-01 | Phase 105 | Pending |
+| GATE-02 | Phase 105 | Pending |
+| LANE-01 | Phase 106 | Pending |
+| LANE-02 | Phase 106 | Pending |
+| LANE-03 | Phase 106 | Pending |
+| LANE-04 | Phase 106 | Pending |
+| HARD-01 | Phase 107 | Pending |
+| HARD-02 | Phase 107 | Pending |
+| HARD-03 | Phase 107 | Pending |
+| HARD-04 | Phase 107 | Pending |
 
 **Coverage:**
 - v1.20 requirements: 18 total
-- Mapped to phases: 0 (pending roadmap)
-- Unmapped: 18 ⚠️ (resolved by roadmapper)
+- Mapped to phases: 18 ✓ (Phase 103: OBS-01..03; Phase 104: CACHE-01..05; Phase 105: GATE-01..02; Phase 106: LANE-01..04; Phase 107: HARD-01..04)
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-06-20*
-*Last updated: 2026-06-20 after initial definition (v1.20 CI/CD Performance)*
+*Last updated: 2026-06-20 — roadmap created; 18/18 requirements mapped to Phases 103–107 (v1.20 CI/CD Performance)*

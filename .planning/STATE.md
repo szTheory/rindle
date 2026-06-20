@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: CI/CD Performance
 status: planning
-last_updated: "2026-06-20T21:02:14.469Z"
+last_updated: "2026-06-20T22:30:00.000Z"
 last_activity: 2026-06-20
 progress:
-  total_phases: 0
+  total_phases: 5
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -20,14 +20,37 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-19)
 
 **Core value:** Media, made durable.
-**Current focus:** Planning next milestone / v1.18 HUMAN-UAT follow-up
+**Current focus:** v1.20 CI/CD Performance — roadmap created (Phases 103–107); plan Phase 103 next
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 103 — Observability / Baseline (not started)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-06-20 — Milestone v1.20 started
+Status: Roadmap created (5 phases, 18/18 requirements mapped); ready to plan Phase 103
+Last activity: 2026-06-20 — v1.20 roadmap created (Phases 103–107)
+
+### v1.20 roadmap (Phases 103–107) — load-bearing dependency order
+
+Chartered 2026-06-20 from SEED-003. **Non-feature / DX-infrastructure milestone — ZERO `lib/`
+public-API change.** Phase numbering continues from v1.19's Phase 102. The order is
+research-unanimous and must not be reversed: reversing the aggregate-check (105) and lane-split
+(106) steps forces a second branch-protection migration.
+
+- **Phase 103 — Observability / Baseline** (OBS-01..03): self-reporting CI + committed baseline +
+  live required-check names captured **before any change**; no gate-behavior change. Gates everything else.
+- **Phase 104 — Cache & Tooling Hygiene** (CACHE-01..05): composite setup action, correct cache
+  keys, PLT restore/save split, lockfile drift gates, lint de-dup. Single-workflow shape; low risk.
+- **Phase 105 — Aggregate Required Check + Branch-Protection Flip** (GATE-01..02): `CI Summary`
+  (`needs:` all, `if: always()`, skipped==pass) becomes the sole required check; script updated in
+  the same PR. Isolated; MUST precede any lane rename.
+- **Phase 106 — Trigger Split + Matrix/Lane Refinement** (LANE-01..04): fast PR lane + scoped
+  package-consumer + nightly lane + concurrency. The headline 15→≤7min cut.
+- **Phase 107 — Reliability, Security & DX Hardening** (HARD-01..04): async-safety/partitioning,
+  action SHA-pinning + supply-chain, `mix ci` + CONTRIBUTING, faithful Linux-Chromium repro.
+
+**Hard invariants (highest blast radius):** never rename `ci.yml`'s file or `name: CI`
+(release-train coupling via `release-please-automerge.yml` + `gate-ci-green`); `CI Summary` must
+treat `skipped` as pass (fork-PR safety); never weaken the release full-verification gate.
 
 ## Recently Shipped Milestone
 
@@ -90,7 +113,10 @@ inner pages, in service of real user flows.
 
 ## Next Step
 
-**Start the next milestone only with a documented signal or maintainer override.** v1.18 and v1.19 are both shipped & archived — no active milestone, no open tech_debt. SEED-003 (CI/CD performance audit) is the planted v1.20 candidate; charter via `/gsd-new-milestone`.
+**Plan Phase 103 (Observability / Baseline):** `/gsd-plan-phase 103`. It is the [BASELINE FIRST]
+gate — capture the committed per-job avg/p95/rerun baseline AND the live branch-protection
+required-check names before any topology change, and surface timing/cache/slowest-tests/cores in
+`$GITHUB_STEP_SUMMARY` with zero gate-behavior change.
 
 ## Accumulated Context
 

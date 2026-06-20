@@ -2,6 +2,7 @@
 
 ## Milestones
 
+- 🚧 **v1.20 CI/CD Performance** — Phases 103–107 (active, chartered 2026-06-20 from SEED-003; non-feature / DX-infra, ZERO `lib/` public-API change; 18 reqs)
 - ✅ **v1.19 Design-System Stress-Test** — Phases 94-102 (shipped 2026-06-19, [archive](milestones/v1.19-ROADMAP.md), [audit](milestones/v1.19-MILESTONE-AUDIT.md))
 - ✅ **v1.18 Admin Console & Adoption Lab** — Phases 86–93 (shipped 2026-06-20 after HUMAN-UAT sign-off; 19/19 reqs + 8/8 phases; charter 2026-06-10; hex 0.3.0; [archive](milestones/v1.18-ROADMAP.md), [requirements](milestones/v1.18-REQUIREMENTS.md), [audit](milestones/v1.18-MILESTONE-AUDIT.md))
 - ✅ **b1.0 Brand Foundations** — Phases 81–85 (brand track, non-feature; shipped 2026-06-10, [archive](milestones/b1.0-ROADMAP.md), [audit](milestones/b1.0-MILESTONE-AUDIT.md))
@@ -25,6 +26,24 @@
 - ✅ **v1.0 MVP** — Phases 1–5 (shipped 2026-04-xx, [archive](milestones/v1.0-ROADMAP.md))
 
 ## Phases
+
+### 🚧 v1.20 CI/CD Performance (Phases 103–107) — ACTIVE
+
+**Milestone goal:** Cut PR CI feedback time and harden gate determinism/reliability — without
+dropping real quality signal — via a measure → classify → restructure pass shipped as stepwise PRs.
+Non-feature / DX-infrastructure milestone: **ZERO `lib/` public-API change**. Chartered from
+SEED-003; the dependency order below is **load-bearing** (research-unanimous):
+observability → cache/tooling → aggregate required check → lane split → reliability/security/DX.
+
+**Hard invariants (carry into every phase):** never rename `ci.yml`'s file or `name: CI`
+(release-train coupling via `release-please-automerge.yml` + `gate-ci-green`); the `CI Summary`
+aggregate must treat `skipped` as pass (fork-PR safety); never weaken the release full-verification gate.
+
+- [ ] **Phase 103: Observability / Baseline** — surface CI timing/cache/slowest-tests; capture the committed baseline + live required-check names before any change (no behavior change).
+- [ ] **Phase 104: Cache & Tooling Hygiene** — composite setup action, correct cache keys, PLT restore/save split, lockfile drift gates, lint de-dup (single-workflow shape; low-risk).
+- [ ] **Phase 105: Aggregate Required Check + Branch-Protection Flip** — land `CI Summary` and make it the sole required check, in one isolated PR, before any lane rename.
+- [ ] **Phase 106: Trigger Split + Matrix/Lane Refinement** — fast PR lane + scoped package-consumer + nightly lane + concurrency groups (the headline 15→≤7min cut).
+- [ ] **Phase 107: Reliability, Security & DX Hardening** — async-safety guard/partitioning, action pinning + supply-chain, `mix ci` + CONTRIBUTING, faithful Linux-Chromium repro.
 
 <details>
 <summary>✅ v1.19 Design-System Stress-Test (Phases 94-102) — SHIPPED 2026-06-19</summary>
@@ -106,6 +125,162 @@ maintainer go/no-go gate between phases.
   MILESTONE-AUDIT. (TRUTH-07)
 
 ## Phase Details
+
+### v1.20 CI/CD Performance — Phase Details (Phases 103–107)
+
+---
+
+### Phase 103: Observability / Baseline
+
+**Goal:** Make the existing pipeline self-reporting and capture a committed baseline so every later
+restructuring decision is evidence-backed — with **zero gate-behavior and zero topology change**.
+
+**Depends on:** Nothing (first phase of v1.20; runs against the current 14-job `ci.yml` as-is).
+
+**Requirements:** OBS-01, OBS-02, OBS-03
+
+**Success criteria** (what must be TRUE):
+
+1. A baseline table (per-job avg + p95 + rerun/flake rate) **and** the *actual* live
+   branch-protection required-check names are captured and committed **before any restructuring
+   change is made** (OBS-03).
+2. A PR run summary (`$GITHUB_STEP_SUMMARY`) shows per-job and per-step timing plus cache hit/miss,
+   with no change to which checks pass or fail (OBS-01).
+3. The run summary surfaces `mix test --slowest 20`, a `mix compile` time profile,
+   `System.schedulers_online()` (runner cores), and the ExUnit seed; JUnit + coverage artifacts are
+   uploaded for inspection (OBS-02).
+4. Gate behavior is provably unchanged: the same checks are required and the same PRs pass/fail as
+   on the pre-phase baseline.
+
+**Plans:** TBD
+
+**Research flag:** This phase must *produce* the missing data (runner vCPU/`schedulers_online`, real
+p95/rerun, per-step `package-consumer` timing, slowest tests) and read live GitHub
+branch-protection required-check names — these are unknowns, not patterns. Required before the
+Phase 105 flip.
+
+---
+
+### Phase 104: Cache & Tooling Hygiene
+
+**Goal:** Remove low-risk waste and fix cache correctness while keeping the single-workflow shape —
+no required-check rename yet. This is the precondition for safely reshaping lanes later.
+
+**Depends on:** Phase 103 (baseline + slowest/timing evidence; confirms current stable Elixir minor
+and `mix.lock` resolved versions before pinning the new primary pair).
+
+**Requirements:** CACHE-01, CACHE-02, CACHE-03, CACHE-04, CACHE-05
+
+**Success criteria** (what must be TRUE):
+
+1. A `.github/actions/setup-elixir` composite action (plus a shared MinIO setup step) is the single
+   source of truth for environment setup and cache keys across the jobs that duplicate that block
+   today (CACHE-01).
+2. Cache keys include OS+arch, OTP, Elixir, `MIX_ENV`, the `mix.lock` hash, and a version buster;
+   deps, `_build`, and PLT caches are separate and never restored across incompatible dimensions
+   (CACHE-02).
+3. The Dialyzer PLT uses an `actions/cache` restore/save split that persists the built PLT even when
+   analysis fails, with the PLT key hashing `mix.exs`/`.dialyzer_ignore.exs` (CACHE-03).
+4. `mix deps.get --check-locked` and `mix deps.unlock --check-unused` fail the build on lockfile
+   drift, so a stale or unused lock cannot pass via broad restore keys (CACHE-04).
+5. Version-invariant lint (`format --check-formatted`, Credo, doctor) runs once on the primary pair
+   instead of on every matrix cell; `.tool-versions` lands and the stray `setup-ffmpeg` action in
+   `release.yml` is aligned to the repo's ffmpeg install path (CACHE-05).
+
+**Plans:** TBD
+
+---
+
+### Phase 105: Aggregate Required Check + Branch-Protection Flip
+
+**Goal:** Isolate the single highest-blast-radius migration — making one stable aggregate the sole
+required check — into one reviewable PR, landed **before** any matrix/lane rename so subsequent
+renames never touch branch protection again.
+
+**Depends on:** Phase 104 (single-workflow shape stable) and Phase 103's captured live required-check
+names. MUST precede Phase 106.
+
+**Requirements:** GATE-01, GATE-02
+
+**Success criteria** (what must be TRUE):
+
+1. A single stable `CI Summary` aggregate job (`needs:` all jobs, `if: always()`, treating `skipped`
+   as pass) is the sole signal that represents overall CI status (GATE-01).
+2. `scripts/setup_branch_protection.sh` and the nightly re-assert workflow are updated in the **same
+   change** so branch protection requires **only** `CI Summary`; confirmed via the script's expected
+   list (GATE-02).
+3. The fork-PR "pending forever" trap is closed: PRs from forks (where repo-gated jobs skip) report
+   `CI Summary` as success rather than hanging (GATE-01, GATE-02).
+4. The `CI` workflow file name and `name: CI` are preserved, keeping the release-train coupling
+   (`release-please-automerge.yml` + `gate-ci-green`) intact (GATE-02).
+
+**Plans:** TBD
+
+---
+
+### Phase 106: Trigger Split + Matrix/Lane Refinement
+
+**Goal:** Deliver the headline wall-clock win — now that only `CI Summary` is required, split work by
+trigger so the PR lane carries representative signal and release-readiness breadth moves to
+main/nightly/release.
+
+**Depends on:** Phase 105 (only `CI Summary` required, so lanes can be renamed/split freely) and
+Phase 103's per-step `package-consumer` timing + slowest-test evidence.
+
+**Requirements:** LANE-01, LANE-02, LANE-03, LANE-04
+
+**Success criteria** (what must be TRUE):
+
+1. A fast PR lane with a `concurrency` group that cancels stale in-progress PR runs targets a
+   representative gate at roughly ≤7 minutes on a representative change; main and release lanes
+   serialize and never cancel (LANE-01).
+2. The `package-consumer` long pole is scoped by trigger — one representative `image` install-smoke
+   on PR; the full 5-profile matrix + `release_preflight` + `hex.publish --dry-run` on
+   `push:main`/nightly/release — with the release full-verification gate provably still satisfied by
+   a run that ran the full matrix (LANE-02).
+3. A nightly lane carries the broad OTP×Elixir compatibility matrix, `gcs-soak`,
+   `package-consumer-gcs-live`, and an owned Dialyzer lane off the PR critical path (LANE-03).
+4. A documented keep / optimize / move-to-nightly / quarantine / delete (buckets A–E)
+   classification backs every lane placement, coverage is moved off the PR critical path, and any
+   trust/speed tradeoff is labeled explicitly in CONTRIBUTING and the PR (LANE-04).
+5. `ci.yml` keeps its file name and `name: CI` on `push:main`, and the release gate is not weakened.
+
+**Plans:** TBD
+
+---
+
+### Phase 107: Reliability, Security & DX Hardening
+
+**Goal:** Settle the pipeline — concurrency/async correctness, supply-chain posture, a faithful
+local repro, and the DX docs that describe the *settled* fast-PR check set.
+
+**Depends on:** Phase 106 (lane numbers settled; async-first before partitioning; DX docs the final
+shape).
+
+**Requirements:** HARD-01, HARD-02, HARD-03, HARD-04
+
+**Success criteria** (what must be TRUE):
+
+1. An ExUnit async-safety static guard lands before any conversion; verified-safe modules are
+   converted to `async: true`, and `--partitions` (with DB-per-partition + merged coverage) is
+   adopted only where Phase 103 measurement and runner cores justify it (HARD-01).
+2. All third-party actions are pinned to immutable SHAs, `dependabot.yml` (`github-actions` + `mix`)
+   lands, `{:mix_audit, "~> 2.1"}` is added to the audit lane, and each job declares least-privilege
+   `permissions:` (HARD-02).
+3. A single local `mix ci` alias runs the same merge-blocking checks as the PR gate;
+   `CONTRIBUTING.md` documents the lanes, the required check, and the local command; the README badge
+   points at the meaningful (`CI Summary`) check (HARD-03).
+4. A faithful Linux-Chromium local repro lands (pinned Playwright container + `scripts/ci/e2e_local.sh`
+   + exact `@playwright/test` and font pins), and the divergent token-pair vs runtime contrast
+   thresholds are reconciled to one shared constant (HARD-04).
+
+**Plans:** TBD
+
+**Research flag:** Which of the non-async test modules are *genuinely* unsafe vs conservatively
+marked requires reading `test/` + sandbox/Oban config; partitioning payoff is evidence-gated
+(Phase 103 cores + slowest-test data), not assumed.
+
+---
 
 ### Phase 86: Research & Architecture Lock
 
@@ -405,6 +580,11 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
+| 103. Observability / Baseline | 0/TBD | Not started | - |
+| 104. Cache & Tooling Hygiene | 0/TBD | Not started | - |
+| 105. Aggregate Required Check + Branch-Protection Flip | 0/TBD | Not started | - |
+| 106. Trigger Split + Matrix/Lane Refinement | 0/TBD | Not started | - |
+| 107. Reliability, Security & DX Hardening | 0/TBD | Not started | - |
 | 94. Foundation — Token Pipeline CI Gate & New Categories | 5/5 | Complete    | 2026-06-15 |
 | 95. Admin Level-1 Component Audit [A] | 5/5 | Complete   | 2026-06-16 |
 | 96. Cohort Component Layer + Dark/Reduced-Motion [B] | 5/5 | Complete    | 2026-06-17 |
@@ -501,4 +681,4 @@ See [post-v116 assessment](threads/2026-05-27-post-v116-milestone-assessment.md)
 - [.planning/milestones/v1.14-MILESTONE-AUDIT.md](milestones/v1.14-MILESTONE-AUDIT.md)
 
 ---
-*Last updated: 2026-06-20 — v1.18 closed `shipped` after maintainer HUMAN-UAT sign-off (Phases 90/91/92); roadmap/requirements archived to milestones/v1.18-*.md. v1.19 shipped 2026-06-19. No active milestone — next is /gsd-new-milestone (v1.20 candidate: SEED-003 CI/CD perf).*
+*Last updated: 2026-06-20 — chartered v1.20 CI/CD Performance (SEED-003): Phases 103–107, 18/18 requirements mapped. Non-feature / DX-infra milestone (ZERO `lib/` public-API change). Load-bearing dependency order: observability → cache → aggregate-check → lane-split → hardening. v1.18 and v1.19 shipped & archived.*
