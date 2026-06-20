@@ -50,10 +50,15 @@ echo "[collect-ci-baseline] window: last ${N} ci.yml runs on ${REPO}@${BRANCH}" 
 
 # 1. Recent runs. The listing returns the latest attempt per run; run_attempt /
 #    previous_attempt_url reveal which were reruns (Pitfall 2).
-runs_json="$(gh api --paginate \
+#    NOTE: `--paginate` with an inline `--jq` applies the filter (and the `.[:N]`
+#    slice) PER PAGE, emitting one JSON array per page — so `length` / the slice
+#    are wrong once results span >1 page (Pitfall 4). Use `--paginate --slurp` to
+#    get a single array-of-pages, then flatten + slice exactly once in a separate
+#    jq pass.
+runs_json="$(gh api --paginate --slurp \
   -H "Accept: application/vnd.github+json" \
   "repos/${REPO}/actions/workflows/ci.yml/runs?branch=${BRANCH}&per_page=100" \
-  --jq "[.workflow_runs[] | {id, head_sha, run_attempt, conclusion, previous_attempt_url}] | .[:${N}]")"
+  | jq "[.[].workflow_runs[] | {id, head_sha, run_attempt, conclusion, previous_attempt_url}] | .[:${N}]")"
 
 # 2. Rerun rate over the window (NO rerun_count field — derive from attempts).
 total="$(jq 'length' <<<"${runs_json}")"
