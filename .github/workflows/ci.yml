@@ -1373,3 +1373,85 @@ jobs:
           path: |
             brandbook/admin-gallery/screenshots/
           if-no-files-found: ignore
+
+  # OBS-01 aggregator (additive, ADVISORY only — D-14: never a required check).
+  # Reads authoritative native per-job durations once via the Actions jobs API,
+  # then from the SAME response emits per-step durations for the three D-04
+  # long-pole jobs (quality, integration, package-consumer). actions: read is
+  # declared at JOB level only (precedent: release.yml gate-ci-green) — the
+  # workflow default stays contents: read (D-03). if: always() + omitting the
+  # skip-prone secret/label-gated jobs (mux-soak, gcs-soak,
+  # package-consumer-gcs-live) keeps this green on forks/unlabeled PRs (Pitfall 4).
+  ci-observability:
+    name: CI Observability
+    runs-on: ubuntu-22.04
+    needs:
+      - quality
+      - optional-dependencies
+      - integration
+      - contract
+      - proof
+      - package-consumer
+      - adoption-demo-unit
+      - cohort-demo-smoke
+      - adoption-demo-e2e
+      - adopter
+      - brandbook-tokens
+    if: always()
+    permissions:
+      actions: read
+    steps:
+      - name: Summarize native per-job and per-step durations
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ github.run_id }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          # Single API read of this run's jobs (per-job objects carry a steps[]
+          # array with started_at/completed_at — no second call, no extra permission).
+          gh api --paginate \
+            -H "Accept: application/vnd.github+json" \
+            "repos/${REPO}/actions/runs/${RUN_ID}/jobs?per_page=100" \
+            > /tmp/ci-jobs.json
+
+          # Per-job native duration table (excludes this aggregator job).
+          {
+            echo "## CI per-job timing (native)"
+            echo ""
+            echo "| Job | Duration (s) | Conclusion |"
+            echo "| --- | ---: | --- |"
+            jq -r '.jobs[]
+                   | select(.name != "CI Observability")
+                   | [ .name,
+                       (if .started_at and .completed_at
+                        then ((.completed_at | fromdateiso8601) - (.started_at | fromdateiso8601))
+                        else 0 end),
+                       (.conclusion // "—") ]
+                   | "| \(.[0]) | \(.[1]) | \(.[2]) |"' /tmp/ci-jobs.json
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          # Per-STEP timing for the three D-04 long-pole jobs ONLY, from the SAME
+          # response (Q2 resolution: long-poles only, to keep the summary readable).
+          # Matrix variants carry a suffix (e.g. "Quality (1.15, 26)"), so match the
+          # display-name prefix rather than exact equality.
+          {
+            echo ""
+            echo "## CI per-step timing (D-04 long-pole jobs)"
+            echo ""
+            echo "| Job | Step | Duration (s) |"
+            echo "| --- | --- | ---: |"
+            jq -r '.jobs[]
+                   | select((.name | startswith("Quality"))
+                            or (.name | startswith("Integration"))
+                            or (.name | startswith("Package Consumer Proof Matrix")))
+                   | .name as $job
+                   | .steps[]
+                   | [ $job,
+                       .name,
+                       (if .started_at and .completed_at
+                        then ((.completed_at | fromdateiso8601) - (.started_at | fromdateiso8601))
+                        else 0 end) ]
+                   | "| \(.[0]) | \(.[1]) | \(.[2]) |"' /tmp/ci-jobs.json
+          } >> "$GITHUB_STEP_SUMMARY"
