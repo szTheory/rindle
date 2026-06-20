@@ -20,7 +20,7 @@ dropping real quality signal — via a measure → classify → restructure pass
 
 ### Observability & Baseline (OBS)
 
-- [ ] **OBS-01**: CI surfaces per-job and per-step timing plus cache hit/miss in the run summary
+- [x] **OBS-01**: CI surfaces per-job and per-step timing plus cache hit/miss in the run summary
   (`$GITHUB_STEP_SUMMARY`), with no change to gate behavior.
 
 - [x] **OBS-02**: CI surfaces `mix test --slowest 20`, a compile-time profile, `System.schedulers_online()`,
@@ -130,7 +130,7 @@ Populated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| OBS-01 | Phase 103 | Pending |
+| OBS-01 | Phase 103 | Complete |
 | OBS-02 | Phase 103 | Complete |
 | OBS-03 | Phase 103 | Complete |
 | CACHE-01 | Phase 104 | Pending |

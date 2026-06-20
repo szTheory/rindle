@@ -4,13 +4,13 @@ milestone: v1.20
 milestone_name: CI/CD Performance
 status: executing
 stopped_at: Phase 103 context gathered (assumptions mode)
-last_updated: "2026-06-20T23:16:55.952Z"
+last_updated: "2026-06-20T23:23:26.454Z"
 last_activity: 2026-06-20
 progress:
   total_phases: 13
   completed_phases: 0
   total_plans: 4
-  completed_plans: 2
+  completed_plans: 3
   percent: 0
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-06-19)
 ## Current Position
 
 Phase: 103 (observability-baseline) — EXECUTING
-Plan: 3 of 4
+Plan: 4 of 4
 Status: Ready to execute
 Last activity: 2026-06-20
 
@@ -266,6 +266,7 @@ required-check names before any topology change, and surface timing/cache/slowes
 - [Phase 102]: Plan 06: Full `bash scripts/ci/adoption_demo_e2e.sh` is green after stale admin E2E expectations were updated to Phase 98's distributed action contract; final wrapper result 86 passed, 1 intentional live-GCS skip.
 - [Phase 102]: Plan 06: Existing generated-asset/static idempotency proof ran twice consecutively and both runs ended with `git diff --exit-code` returning 0; no Cohort CSS generator was added and Cohort CSS stayed outside `tokens.json`.
 - [Phase 102]: Plan 06: v1.19 audit records 20/20 requirements mapped and complete, including stale UPLIFT-01 traceability corrected from Phase 95 summaries; VIS-01..VIS-04 are complete.
+- [Phase ?]: Phase 103 Plan 03: ci.yml instrumented additively/observationally — cache id:s + hit/miss tables, OBS-02 evidence, JUnit+coverage artifact upload, job-scoped ci-observability aggregator (per-job + per-step native timing from one jobs API read); name:CI/filename/workflow contents:read/run: gates unchanged; zero lib/ change; per-step jq matches display-name prefixes not job keys.
 
 ## Blockers/Concerns
 
@@ -292,7 +293,7 @@ required-check names before any topology change, and surface timing/cache/slowes
 
 ## Session Continuity
 
-Last session: 2026-06-20T23:16:39.507Z
+Last session: 2026-06-20T23:23:01.099Z
 Stopped at: Phase 103 context gathered (assumptions mode)
 Resume file: None
 
@@ -368,6 +369,7 @@ Resume file: None
 | Phase 95 P05 | 12min | 3 tasks | 7 files |
 | Phase 103 P01 | 2 min | 2 tasks | 3 files |
 | Phase 103 P02 | 4 min | 2 tasks | 2 files |
+| Phase 103 P03 | 9 min | 3 tasks | 1 files |
 
 ## Operator Next Steps
 
