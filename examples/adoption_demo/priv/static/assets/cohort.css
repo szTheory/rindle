@@ -1087,7 +1087,9 @@ body {
 .ck-statusbar__token {
   font-family: var(--ck-font-mono);
   font-size: var(--ck-step--1);
-  color: var(--ck-faint);
+  /* AA-readable secondary text (NOT --ck-faint, which is decorative-only at 2.77:1
+     and fails the runtime polish-gate's 4.5:1 text-contrast check). */
+  color: var(--ck-muted);
 }
 .ck-statusbar__note {
   font-size: var(--ck-step--1);
