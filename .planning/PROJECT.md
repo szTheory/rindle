@@ -1,24 +1,44 @@
 # Rindle
 
-## Current Milestone: v1.18 Admin Console & Adoption Lab (charter 2026-06-10)
+## Current Milestone: v1.19 Design-System Stress-Test (charter 2026-06-14)
 
-**Maintainer-pull feature milestone** — explicit, recorded override of the PAUSE-03
-v1.18+ reservation (LIFE-06/STREAM-10 stay demand-gated, now v1.19+). Phases 86–93,
-19 requirements, ships as hex **0.3.0** (brand work releases first as 0.2.0).
+**Maintainer-pull quality milestone** (SEED-002) — elevate the whole design system to an
+award-winning bar, fractally and without regressions, across the admin/operator console
+**and** the Cohort example app's inner pages, in service of real user flows. Phases 94+,
+continues numbering. Likely ships as hex **0.3.x** (UI polish of already-shipped 0.3.0
+surfaces; confirmed at release time). LIFE-06/STREAM-10 remain demand-gated (now v1.20+).
 
-Scope: mountable Rindle-branded admin console in the `rindle` package
-(Oban-Web/LiveDashboard-style, self-contained assets, light/dark/system theming from
-brand tokens); Cohort demo evolution (own brand, audio + document media, full
-lifecycle-state seeds, mounts the console); deterministic console E2E + screenshot-driven
-polish loop; Docker DX (port-conflict-free compose, layer caching, launch URL map);
-durable UI-principles doc linked from AGENTS.md. This deliberately reverses the prior
-"admin UI out of scope" decision (JTBD T4) — TRUTH-07 closes docs/facade parity.
+Scope — two intertwined tracks:
+1. **Admin/operator DS audit & uplift** (primary) — fractal audit at every level:
+   individual components (color, type, spacing, shape, shadow, motion, and every
+   interaction state) → meta-components (toolbars, tables+filters, action panels, detail
+   drills) → page composition. On-brand and excellent in light, dark, and system; a11y
+   (WCAG AA, keyboard, focus, ARIA); gov.uk-style information architecture; mobile-first
+   responsive; on-brand microcopy tied to each surface's JTBD/persona; motion researched
+   from Emil Kowalski (purposeful, performant, reduced-motion-aware).
+2. **Cohort example inner-page restyle** — `/dashboard`, `/upload` (all tabs), `/ops`,
+   member/lesson/post/media/account onto `cohort.css` + `CohortComponents`, retiring the
+   daisyUI scaffold. Proof via an extended light/dark screenshot matrix and an
+   idempotent / no-regression discipline (each pass only moves quality forward).
 
-**Last shipped:** b1.0 Brand Foundations (2026-06-10) — non-feature brand track,
-phases 81–85, BRAND-01..08 validated 8/8. Committed brand system in `brandbook/`:
-user-selected Confluence logo, WCAG-verified design tokens, self-contained HTML brand
-book, README/HexDocs/social integration. Zero public API, zero `lib/` changes.
-Archive: `.planning/milestones/b1.0-*`.
+**Method:** per-decision subagent research + adversarial judging at each level of
+abstraction, synthesized into one-shot directions (executed inside each `/gsd:ui-phase`).
+
+> ⚠️ **Prior milestone is un-closed (recorded tech-debt).** v1.19 opens *over* **v1.18
+> Admin Console & Adoption Lab**, which is held at `status: tech_debt` pending maintainer
+> HUMAN-UAT sign-off on Phases 90/91/92 (destructive-action UX, logo rendering + console
+> lifecycle display, screenshot-review matrix). v1.18's archive commit was reset away on
+> `main`, so `.planning/milestones/` still lacks `v1.18-ROADMAP.md` / `v1.18-REQUIREMENTS.md`;
+> only `v1.18-MILESTONE-AUDIT.md` is present. This is a deliberate, maintainer-approved
+> scope move (2026-06-14), not an oversight — close v1.18 via `/gsd-complete-milestone v1.18`
+> once UAT is signed off.
+
+**Last shipped (feature):** v1.18 Admin Console & Adoption Lab — mountable Rindle-branded
+admin console in the `rindle` package, Cohort demo evolution, deterministic console E2E +
+screenshot polish loop, Docker DX, UI-principles doc. 19/19 reqs + 8/8 phases verified;
+held at `tech_debt` (HUMAN-UAT pending). Reversed the prior "admin UI out of scope"
+decision (JTBD T4). Before it: b1.0 Brand Foundations (2026-06-10) — `brandbook/` brand
+system, BRAND-01..08 validated 8/8, archived at `.planning/milestones/b1.0-*`.
 
 ## Feature Posture: Demand-gated pause (superseded for v1.18 duration)
 
@@ -115,6 +135,15 @@ corrected wording via `docs_parity_test.exs`. **v1.18 milestone close status:
 admin console lifecycle display, screenshot-review matrix). See
 [v1.18-MILESTONE-AUDIT.md](milestones/v1.18-MILESTONE-AUDIT.md). This is the last
 phase of v1.18; the milestone is not yet `shipped` pending maintainer UAT sign-off.
+
+**v1.19 Phase 94 complete (2026-06-15):** Foundation — Token Pipeline CI Gate
+& New Token Categories validated PIPE-01, PIPE-02, and VIS-01 groundwork. The
+`brandbook-tokens` job now gates the generated-token pipeline (regen →
+contrast → gallery → shipped CSS sync → empty diff), branch protection requires
+that check, PR #23 shows it passing, and the admin generator emits the new
+motion, elevation/shadow, fluid type/space, breakpoint, and semantic dark
+status-surface categories. Phase 95 is ready to discuss/plan the Track A
+admin Level-1 component audit on top of this hardened foundation.
 
 Do not reopen tus protocol, single-owner/batch erasure semantics, or Mux surfaces
 beyond v1.13. Keep shared-asset safety and maintenance-vs-owner-erasure boundaries
@@ -805,4 +834,4 @@ This document evolves at phase transitions and milestone boundaries.
    (`workflow.milestone_boundary.block_feature_milestone_without_signal`)
 
 ---
-*Last updated: 2026-06-13 after Phase 93 Truth, Docs & Milestone Audit completion (v1.18 final phase; milestone held at tech_debt pending HUMAN-UAT sign-off)*
+*Last updated: 2026-06-15 — Phase 94 foundation completed and verified; `brandbook-tokens` is merge-blocking in CI and branch protection. v1.19 Design-System Stress-Test remains active over un-closed v1.18 (tech_debt, HUMAN-UAT pending) by recorded maintainer decision.*

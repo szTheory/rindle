@@ -102,10 +102,10 @@ defmodule Rindle.Brandbook.AdminDesignSystemValidationTest do
 
     admin_output = run_node("brandbook/src/admin-contrast.mjs")
     assert admin_output =~ "status chips processing"
-    assert admin_output =~ "admin contrast: 41/41 pairs pass"
+    assert admin_output =~ "admin contrast: 44/44 pairs pass"
 
     base_output = run_node("brandbook/src/contrast.mjs")
-    assert base_output =~ "38/38 pairs pass"
+    assert base_output =~ "47/47 pairs pass"
   end
 
   test "DS-02 gallery harness proves themes, screenshots, and surface anchors" do

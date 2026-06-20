@@ -47,6 +47,9 @@ export const MOTION_TOKENS = [
   'toast',
   'transition',
   'easing',
+  'easing-standard',
+  'easing-decelerate',
+  'easing-accelerate',
 ];
 
 export const MIN_TARGET_PX = 44;
@@ -106,4 +109,11 @@ export const CONSOLE_CONTRAST_PAIRS = [
   { fg: 'border-strong', bg: 'surface-raised', theme: 'dark', min: 3, context: 'skeleton dark non-text boundary' },
   { fg: 'border-strong', bg: 'surface', theme: 'light', min: 3, context: 'borders on surface non-text' },
   { fg: 'border-strong', bg: 'surface-raised', theme: 'dark', min: 3, context: 'borders on dark surface-raised non-text' },
+
+  // Dark elevation ladder: primary dark text must clear AA on every raised tint step
+  // (elevation-1/2/3). elevation-0 == dark-bg is the app base, already covered by the
+  // dark primary-text pair above. Raw hexes resolve directly via color.raw.
+  { fg: 'dark-text', bg: 'elevation-1', theme: 'dark', min: 4.5, context: 'elevation-1 raised panel dark text' },
+  { fg: 'dark-text', bg: 'elevation-2', theme: 'dark', min: 4.5, context: 'elevation-2 nested/hover surface dark text' },
+  { fg: 'dark-text', bg: 'elevation-3', theme: 'dark', min: 4.5, context: 'elevation-3 overlay/modal dark text' },
 ];

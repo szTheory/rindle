@@ -36,7 +36,7 @@ exact(THEMES, ['light', 'dark', 'auto'], 'THEMES');
 exact(SURFACES, ['Home/Status', 'Assets', 'Upload Sessions', 'Variants/Jobs', 'Runtime/Doctor', 'Actions'], 'SURFACES');
 exact(STATUS_STATES, ['ready', 'processing', 'warning', 'danger', 'quarantine', 'info'], 'STATUS_STATES');
 exact(COMPONENTS, ['shell', 'nav', 'table', 'status-chip', 'button', 'theme-picker', 'confirm-dialog', 'drawer', 'toast', 'empty-state', 'skeleton'], 'COMPONENTS');
-exact(MOTION_TOKENS, ['press', 'popover', 'toast', 'transition', 'easing'], 'MOTION_TOKENS');
+exact(MOTION_TOKENS, ['press', 'popover', 'toast', 'transition', 'easing', 'easing-standard', 'easing-decelerate', 'easing-accelerate'], 'MOTION_TOKENS');
 if (MIN_TARGET_PX !== 44) throw new Error('MIN_TARGET_PX must be 44');
 
 const emitVariables = (entries, indent = '  ') => {
@@ -63,9 +63,19 @@ css += '\n  /* spacing */\n';
 for (const [k, v] of Object.entries(T.spacing)) css += `  --rindle-space-${k}: ${v};\n`;
 css += '\n  /* radii */\n';
 for (const [k, v] of Object.entries(T.radius)) css += `  --rindle-radius-${k}: ${v};\n`;
+css += '\n  /* fluid display type (clamp on hero/h1/h2/h3 only) */\n';
+for (const [k, v] of Object.entries(T.typography.scale)) {
+  if (v.clamp) css += `  --rindle-text-${k}-fluid: ${v.clamp};\n`;
+}
+css += '\n  /* fluid space */\n';
+for (const [k, v] of Object.entries(T.space_fluid)) css += `  --rindle-space-fluid-${k}: ${v};\n`;
+css += '\n  /* named breakpoints */\n';
+for (const [k, v] of Object.entries(T.breakpoint)) css += `  --rindle-bp-${k}: ${v};\n`;
+css += '\n  /* dark elevation ladder (semantic surface-lightness tint, not inversion) */\n';
+for (const [k, v] of Object.entries(T.elevation)) css += `  --rindle-elevation-${k}: ${deref(v)};\n`;
 css += '\n  /* borders, shadow, focus, motion */\n';
 for (const [k, v] of Object.entries(T.border)) if (typeof v === 'string') css += `  --rindle-border-rule-${k}: ${deref(v)};\n`;
-css += `  --rindle-shadow-card: ${T.shadow.card};\n`;
+for (const [k, v] of Object.entries(T.shadow)) css += `  --rindle-shadow-${k}: ${v};\n`;
 css += `  --rindle-focus-width: ${T.focus.width};\n`;
 css += `  --rindle-focus-offset: ${T.focus.offset};\n`;
 for (const [k, v] of Object.entries(T.motion)) {
@@ -102,12 +112,15 @@ css += `  }
   font-family: var(--rindle-font-sans);
   font-size: var(--rindle-text-body-size);
   line-height: var(--rindle-text-body-line);
-  transition: background-color var(--rindle-motion-transition) var(--rindle-motion-easing), color var(--rindle-motion-transition) var(--rindle-motion-easing);
+  padding-inline: var(--rindle-space-fluid-gutter);
+  transition: background-color var(--rindle-motion-transition) var(--rindle-motion-easing-standard), color var(--rindle-motion-transition) var(--rindle-motion-easing-standard);
 }
 
 .rindle-admin-shell__main {
   min-width: 0;
+  max-width: var(--rindle-bp-xl);
   padding: var(--rindle-space-6);
+  margin-block: var(--rindle-space-fluid-section);
 }
 
 .rindle-admin-nav {
@@ -115,12 +128,17 @@ css += `  }
   padding: var(--rindle-space-5);
   background: var(--rindle-surface-raised);
   border-right: var(--rindle-border-rule-subtle);
+  box-shadow: var(--rindle-shadow-raised);
+}
+
+[data-theme="dark"] .rindle-admin-nav {
+  background: var(--rindle-elevation-1);
 }
 
 .rindle-admin-nav__brand {
   margin: 0 0 var(--rindle-space-5);
   font-family: var(--rindle-font-display);
-  font-size: var(--rindle-text-h3-size);
+  font-size: var(--rindle-text-h3-fluid);
   line-height: var(--rindle-text-h3-line);
   font-weight: var(--rindle-text-h3-weight);
 }
@@ -444,9 +462,13 @@ textarea[data-rindle-admin-input] {
   border-radius: var(--rindle-radius-card);
   background: var(--rindle-surface-raised);
   color: var(--rindle-text);
-  box-shadow: var(--rindle-shadow-card);
+  box-shadow: var(--rindle-shadow-overlay);
   transform-origin: top center;
-  transition: opacity var(--rindle-motion-popover) var(--rindle-motion-easing), transform var(--rindle-motion-popover) var(--rindle-motion-easing);
+  transition: opacity var(--rindle-motion-popover) var(--rindle-motion-easing-decelerate), transform var(--rindle-motion-popover) var(--rindle-motion-easing-decelerate);
+}
+
+[data-theme="dark"] .rindle-admin-confirm-dialog {
+  background: var(--rindle-elevation-3);
 }
 
 .rindle-admin-confirm-dialog__title {
@@ -464,8 +486,12 @@ textarea[data-rindle-admin-input] {
   border-left: var(--rindle-border-rule-strong);
   background: var(--rindle-surface-raised);
   color: var(--rindle-text);
-  box-shadow: var(--rindle-shadow-card);
-  transition: transform var(--rindle-motion-popover) var(--rindle-motion-easing), opacity var(--rindle-motion-popover) var(--rindle-motion-easing);
+  box-shadow: var(--rindle-shadow-overlay);
+  transition: transform var(--rindle-motion-popover) var(--rindle-motion-easing-decelerate), opacity var(--rindle-motion-popover) var(--rindle-motion-easing-decelerate);
+}
+
+[data-theme="dark"] .rindle-admin-drawer {
+  background: var(--rindle-elevation-3);
 }
 
 .rindle-admin-toast {
@@ -480,8 +506,12 @@ textarea[data-rindle-admin-input] {
   border-radius: var(--rindle-radius-control);
   background: var(--rindle-surface-raised);
   color: var(--rindle-text);
-  box-shadow: var(--rindle-shadow-card);
-  transition: opacity var(--rindle-motion-toast) var(--rindle-motion-easing), transform var(--rindle-motion-toast) var(--rindle-motion-easing);
+  box-shadow: var(--rindle-shadow-overlay);
+  transition: opacity var(--rindle-motion-toast) var(--rindle-motion-easing-accelerate), transform var(--rindle-motion-toast) var(--rindle-motion-easing-accelerate);
+}
+
+[data-theme="dark"] .rindle-admin-toast {
+  background: var(--rindle-elevation-2);
 }
 
 .rindle-admin-toast--success { border-left-color: var(--rindle-status-ready); }
@@ -514,6 +544,29 @@ textarea[data-rindle-admin-input] {
   transition: opacity var(--rindle-motion-transition) var(--rindle-motion-easing);
 }
 
+/* Fluid display headings: clamp() interpolates between bp-sm and the fixed max
+   so large viewports stay byte-identical to the existing fixed scale (D-94-09). */
+.rindle-admin-heading--hero {
+  font-family: var(--rindle-font-display);
+  font-size: var(--rindle-text-hero-fluid);
+  line-height: var(--rindle-text-hero-line);
+  font-weight: var(--rindle-text-hero-weight);
+}
+
+.rindle-admin-heading--h1 {
+  font-family: var(--rindle-font-display);
+  font-size: var(--rindle-text-h1-fluid);
+  line-height: var(--rindle-text-h1-line);
+  font-weight: var(--rindle-text-h1-weight);
+}
+
+.rindle-admin-heading--h2 {
+  font-family: var(--rindle-font-display);
+  font-size: var(--rindle-text-h2-fluid);
+  line-height: var(--rindle-text-h2-line);
+  font-weight: var(--rindle-text-h2-weight);
+}
+
 .rindle-admin-button:focus-visible,
 .rindle-admin-nav__item:focus-visible,
 .rindle-admin-table__row:focus-within,
@@ -528,6 +581,8 @@ textarea[data-rindle-admin-input] {
   outline-offset: var(--rindle-focus-offset);
 }
 
+/* collapse point anchored on --rindle-bp-md (760px); literal because CSS media
+   conditions cannot read custom properties */
 @media (max-width: 760px) {
   .rindle-admin-shell {
     grid-template-columns: 1fr;
@@ -593,7 +648,15 @@ const requiredSelectors = [
 ];
 const requiredScopes = [':root', '[data-theme="dark"]', '[data-theme="auto"]', 'prefers-color-scheme: dark'];
 const requiredMotionUses = MOTION_TOKENS.map((token) => `var(--rindle-motion-${token})`);
-const requiredTokenUses = ['var(--rindle-surface)', 'var(--rindle-text)', 'var(--rindle-focus-width)', 'var(--rindle-focus-offset)', 'var(--rindle-focus-ring)'];
+const requiredTokenUses = [
+  'var(--rindle-surface)', 'var(--rindle-text)', 'var(--rindle-focus-width)', 'var(--rindle-focus-offset)', 'var(--rindle-focus-ring)',
+  // new categories (D-94-08): emitted-AND-used or the self-check hard-fails
+  'var(--rindle-elevation-1)', 'var(--rindle-elevation-2)', 'var(--rindle-elevation-3)',
+  'var(--rindle-shadow-raised)', 'var(--rindle-shadow-overlay)',
+  'var(--rindle-text-hero-fluid)', 'var(--rindle-text-h1-fluid)', 'var(--rindle-text-h2-fluid)', 'var(--rindle-text-h3-fluid)',
+  'var(--rindle-space-fluid-gutter)', 'var(--rindle-space-fluid-section)',
+  'var(--rindle-bp-xl)',
+];
 const missing = [];
 for (const selector of requiredSelectors) if (!written.includes(selector)) missing.push(selector);
 for (const scope of requiredScopes) if (!written.includes(scope)) missing.push(scope);

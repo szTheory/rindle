@@ -13,7 +13,11 @@ defmodule Rindle.AV.Probe do
   end
 
   defp parse_and_check_version!(output) do
-    case Regex.run(~r/ffmpeg version (\d+\.\d+)/, output) do
+    # Accept an optional leading `n` on the version: official ffmpeg release
+    # builds (and BtbN's static builds) report their git tag, e.g.
+    # "ffmpeg version n7.1-..." or "ffmpeg version n6.0". Distro/johnvansickle
+    # builds report a bare "7.0.x". Both must parse.
+    case Regex.run(~r/ffmpeg version n?(\d+\.\d+)/, output) do
       [_, version] ->
         if Version.compare(version <> ".0", "6.0.0") == :lt do
           raise "Rindle requires FFmpeg >= 6.0, found: #{version}"
