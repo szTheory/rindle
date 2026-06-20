@@ -30,10 +30,12 @@ Thumbs.db
 # GSD tooling runtime artifacts
 .bg-shell/
 .recovery/
+.gsd/
 .gsd-archive-*/
 .planning/.gsd-archive-latest
 .planning/GSD1-RECOVERY.md
 .planning/tmp_*.json
+.planning/research/.cache/
 /init.json
 /progress.txt
 /recent.txt

@@ -165,11 +165,24 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ ~s(data-rindle-admin-action="variant_regeneration")
       assert html =~ "Regenerate variants"
       assert html =~ "Regenerate stale variants?"
-      assert Phoenix.LiveViewTest.has_element?(view, "[data-rindle-admin-dialog][role=\"alertdialog\"]")
-      assert Phoenix.LiveViewTest.has_element?(view, "[data-rindle-admin-submit=\"confirm_regenerate\"]")
+
+      assert Phoenix.LiveViewTest.has_element?(
+               view,
+               "[data-rindle-admin-dialog][role=\"alertdialog\"]"
+             )
+
+      assert Phoenix.LiveViewTest.has_element?(
+               view,
+               "[data-rindle-admin-submit=\"confirm_regenerate\"]"
+             )
 
       Phoenix.LiveViewTest.render_hook(view, "confirm_regenerate", %{})
-      assert Phoenix.LiveViewTest.has_element?(view, "[data-rindle-admin-receipt=\"variant_regeneration\"]")
+
+      assert Phoenix.LiveViewTest.has_element?(
+               view,
+               "[data-rindle-admin-receipt=\"variant_regeneration\"]"
+             )
+
       assert Phoenix.LiveViewTest.render(view) =~ "Variant regeneration queued."
     end
 
@@ -297,6 +310,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       main_open = Regex.run(~r/<main[^>]*>/, html)
       assert main_open, "expected a <main> element in the rendered shell"
       assert hd(main_open) =~ "inert", "expected <main> to carry inert while a dialog is open"
+
       assert hd(main_open) =~ ~s(aria-hidden="true"),
              "expected <main> to carry aria-hidden=\"true\" while a dialog is open"
     end

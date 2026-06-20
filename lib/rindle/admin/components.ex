@@ -400,8 +400,7 @@ if Code.ensure_loaded?(Phoenix.Component) do
       |> JS.show(
         to: "##{id}",
         time: 300,
-        transition:
-          {"transition-all transform ease-out duration-300", "opacity-0", "opacity-100"}
+        transition: {"transition-all transform ease-out duration-300", "opacity-0", "opacity-100"}
       )
       |> JS.focus_first(to: "##{id}-content")
     end
@@ -415,8 +414,7 @@ if Code.ensure_loaded?(Phoenix.Component) do
       |> JS.hide(
         to: "##{id}",
         time: 300,
-        transition:
-          {"transition-all transform ease-in duration-300", "opacity-100", "opacity-0"}
+        transition: {"transition-all transform ease-in duration-300", "opacity-100", "opacity-0"}
       )
       |> JS.pop_focus()
     end

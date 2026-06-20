@@ -344,7 +344,8 @@ defmodule Rindle.Brandbook.AdminDesignSystemValidationTest do
             String.contains?(String.replace(line, " ", ""), "display:grid"),
             do: file
 
-      assert offenders == [], "page-local display:grid found (D-98-12 forbids inline layout): #{inspect(offenders)}"
+      assert offenders == [],
+             "page-local display:grid found (D-98-12 forbids inline layout): #{inspect(offenders)}"
     end
 
     test "generated CSS consumes --rindle-shadow-card (the :summary first-order surface)" do
@@ -381,7 +382,8 @@ defmodule Rindle.Brandbook.AdminDesignSystemValidationTest do
             Regex.match?(~r/\btransition\s*:[^;]*\b#{Regex.escape(prop)}\b/i, line),
             do: String.trim(line)
 
-      assert offenders == [], "transition animates a layout-reflow property: #{inspect(offenders)}"
+      assert offenders == [],
+             "transition animates a layout-reflow property: #{inspect(offenders)}"
     end
 
     test "the enter/exit motion catalog selectors animate opacity/transform only" do
@@ -397,7 +399,8 @@ defmodule Rindle.Brandbook.AdminDesignSystemValidationTest do
         # capture the transition declaration that follows the selector's rule open-brace
         case Regex.run(~r/#{Regex.escape(selector)}\s*\{[^}]*?(transition\s*:[^;]+;)/s, css) do
           [_, decl] ->
-            refute decl =~ ~r/\b(background-color|color|width|height|margin|padding|border-color)\b/,
+            refute decl =~
+                     ~r/\b(background-color|color|width|height|margin|padding|border-color)\b/,
                    "#{selector} enter/exit transition is not GPU-only: #{decl}"
 
           _ ->
@@ -408,7 +411,9 @@ defmodule Rindle.Brandbook.AdminDesignSystemValidationTest do
 
     test "the all-properties transition shorthand never appears" do
       css = read!("brandbook/tokens/rindle-admin.css")
-      assert not Regex.match?(~r/transition\s*:\s*all\b/i, css), "transition shorthand 'all' is forbidden (§B)"
+
+      assert not Regex.match?(~r/transition\s*:\s*all\b/i, css),
+             "transition shorthand 'all' is forbidden (§B)"
     end
   end
 
@@ -420,12 +425,14 @@ defmodule Rindle.Brandbook.AdminDesignSystemValidationTest do
       # carries `aria-pressed`; the other two do not.
       light = render_component(&Rindle.Admin.Components.theme_picker/1, %{theme: "light"})
       assert light =~ ~s(data-rindle-admin-theme="light")
+
       assert light =~ ~r/data-rindle-admin-theme="light"\s+aria-pressed/,
              "light option must render server-owned aria-pressed when @theme=light"
 
       # server-ownership: switching the assign moves aria-pressed onto the dark option.
       dark = render_component(&Rindle.Admin.Components.theme_picker/1, %{theme: "dark"})
       assert dark =~ ~r/data-rindle-admin-theme="dark"\s+aria-pressed/
+
       refute dark =~ ~r/data-rindle-admin-theme="light"\s+aria-pressed/,
              "light option must NOT be pressed when @theme=dark (false boolean is omitted)"
     end
@@ -452,7 +459,10 @@ defmodule Rindle.Brandbook.AdminDesignSystemValidationTest do
     test "every migrated data table has a caption, scope=col headers, and a scope=row cell" do
       for file <- @table_surfaces do
         src = read!(file)
-        assert src =~ ~s(<caption class="rindle-admin-visually-hidden">), "#{file} missing visually-hidden caption"
+
+        assert src =~ ~s(<caption class="rindle-admin-visually-hidden">),
+               "#{file} missing visually-hidden caption"
+
         assert src =~ ~s(scope="col"), "#{file} missing scope=col header"
         assert src =~ ~s(scope="row"), "#{file} missing scope=row row-header cell"
       end
@@ -471,7 +481,9 @@ defmodule Rindle.Brandbook.AdminDesignSystemValidationTest do
 
       offsets =
         Enum.map(@nav_labels, fn label ->
-          assert {offset, _len} = :binary.match(html, ">\n                #{label}\n") |> normalize_match(html, label),
+          assert {offset, _len} =
+                   :binary.match(html, ">\n                #{label}\n")
+                   |> normalize_match(html, label),
                  "nav missing label #{label}"
 
           offset
@@ -509,7 +521,12 @@ defmodule Rindle.Brandbook.AdminDesignSystemValidationTest do
     test "each needs-attention entry deep-links via a documented query param (no new routes)" do
       src = read!("lib/rindle/admin/live/home_live.ex")
 
-      for param <- ["variants-jobs?state=failed", "variants-jobs?class=stale", "assets?state=quarantined", "upload-sessions?state=expired"] do
+      for param <- [
+            "variants-jobs?state=failed",
+            "variants-jobs?class=stale",
+            "assets?state=quarantined",
+            "upload-sessions?state=expired"
+          ] do
         assert src =~ param, "needs-attention deep-link #{param} missing"
       end
     end
@@ -538,6 +555,7 @@ defmodule Rindle.Brandbook.AdminDesignSystemValidationTest do
 
       # off-voice removals
       refute components =~ "Retry load", "old 'Retry load' label still present"
+
       refute String.contains?(components, "Runtime/Doctor confirm"),
              "old empty-state 'Runtime/Doctor' body still present"
 
@@ -551,7 +569,9 @@ defmodule Rindle.Brandbook.AdminDesignSystemValidationTest do
       variants = read!("lib/rindle/admin/live/variants_jobs_live.ex")
       actions = read!("lib/rindle/admin/live/actions_live.ex")
 
-      assert variants =~ ~r/<:title>\w+ \w+ \w+\?<\/:title>/, "Processing confirm heading off-shape"
+      assert variants =~ ~r/<:title>\w+ \w+ \w+\?<\/:title>/,
+             "Processing confirm heading off-shape"
+
       assert actions =~ "<:title>Erase this owner?</:title>"
 
       # No "!" inside a confirm-dialog body (the only admin "!" is the decorative

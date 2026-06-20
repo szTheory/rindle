@@ -50,7 +50,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       {:noreply,
        socket
-       |> assign(dialog_open: false, regenerate_receipt: receipt, live_status: "Variant regeneration queued.")
+       |> assign(
+         dialog_open: false,
+         regenerate_receipt: receipt,
+         live_status: "Variant regeneration queued."
+       )
        |> load()}
     end
 
