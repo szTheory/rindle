@@ -1,103 +1,144 @@
-# Requirements: Rindle
+# Requirements: Rindle — v1.20 CI/CD Performance
 
-**Defined:** 2026-05-27 (v1.19 archived 2026-06-19)
-**Milestone:** none active — v1.18 + v1.19 both shipped & archived; next is /gsd-new-milestone
+**Defined:** 2026-06-20
 **Core Value:** Media, made durable.
+**Milestone goal:** Cut PR CI feedback time and harden gate determinism/reliability — without
+dropping real quality signal — via a measure → classify → restructure pass shipped as stepwise PRs.
+**Source:** SEED-003 (authoritative 10-lens audit prompt) + `.planning/research/SUMMARY.md`.
 
-## v1.18 Admin Console & Adoption Lab — ✅ SHIPPED 2026-06-20 (archived)
+> **Posture:** Non-feature / DX-infrastructure milestone — ZERO `lib/` public-API change. The
+> "user" of these requirements is the contributor/maintainer; requirements are phrased as
+> observable, testable CI/DX capabilities (matching v1.16/v1.17 hygiene-milestone convention).
+> The dependency ordering below is **load-bearing** (research-unanimous): observability →
+> cache/tooling → aggregate required check → lane split → reliability/security/DX. Reversing the
+> required-check and lane-split steps forces a second branch-protection migration.
+>
+> Prior shipped milestones (v1.18, v1.19) are archived under `milestones/v1.18-REQUIREMENTS.md`
+> and `milestones/v1.19-REQUIREMENTS.md`.
 
-All 19 requirements (`ADMIN-01..06`, `DS-01..03`, `DEMO-01..03`, `E2E-01..02`, `DX-01..03`,
-`PRIN-01`, `TRUTH-07`) satisfied across phases 86–93; HUMAN-UAT for phases 90/91/92 signed off
-2026-06-20. Full requirement text + traceability archived to
-[`milestones/v1.18-REQUIREMENTS.md`](milestones/v1.18-REQUIREMENTS.md).
+## v1.20 Requirements
 
-## Pause Posture Requirements (superseded for v1.18/v1.19 duration)
+### Observability & Baseline (OBS)
 
-These documented maintainer obligations during maintenance mode (2026-05-27 → 2026-06-10).
+- [ ] **OBS-01**: CI surfaces per-job and per-step timing plus cache hit/miss in the run summary
+  (`$GITHUB_STEP_SUMMARY`), with no change to gate behavior.
+- [ ] **OBS-02**: CI surfaces `mix test --slowest 20`, a compile-time profile, `System.schedulers_online()`,
+  and the ExUnit seed; JUnit and coverage artifacts are uploaded for inspection.
+- [ ] **OBS-03**: A committed baseline table (per-job avg + p95 + rerun/flake rate) and the *actual*
+  current branch-protection required-check names are captured before any restructuring begins.
 
-### Maintenance
+### Cache & Tooling Hygiene (CACHE)
 
-- [x] **PAUSE-01**: Maintainer ships patch/minor Hex releases and issue-driven fixes without
-  opening a feature milestone or new public API surface.
-  *Brand/docs/marketing work is not feature work and does not violate this posture
-  (b1.0 charter, 2026-06-10).*
+- [ ] **CACHE-01**: A `.github/actions/setup-elixir` composite action (plus a shared MinIO setup
+  step) is the single source of truth for environment setup and cache keys across the jobs that
+  duplicate that block today.
+- [ ] **CACHE-02**: Cache keys include OS+arch, OTP, Elixir, `MIX_ENV`, the `mix.lock` hash, and a
+  version buster; deps, `_build`, and PLT caches are kept separate and never restored across
+  incompatible dimensions.
+- [ ] **CACHE-03**: The Dialyzer PLT uses an `actions/cache` restore/save split that persists the
+  built PLT even when analysis fails, with the PLT key hashing `mix.exs`/`.dialyzer_ignore.exs`.
+- [ ] **CACHE-04**: `mix deps.get --check-locked` and `mix deps.unlock --check-unused` gate
+  lockfile drift so a stale or unused lock cannot pass via broad restore keys.
+- [ ] **CACHE-05**: Version-invariant lint (`format --check-formatted`, Credo, doctor) runs once on
+  the primary pair instead of redundantly on every matrix cell; `.tool-versions` lands and the stray
+  `setup-ffmpeg` action in `release.yml` is aligned to the repo's ffmpeg install path.
 
-- [x] **PAUSE-02**: Assessment and path-to-done threads remain canonical references for
-  done-% and wedge ranking (`.planning/threads/2026-05-27-*`).
+### Required-Check Topology (GATE)
 
-- [x] **PAUSE-03**: `PROJECT.md`, `STATE.md`, and `ROADMAP.md` reflect demand-gated pause
-  with no active **feature** phases until LIFE-06 or STREAM-10 signal (brand-track
-  phases 81–85 are non-feature).
-  *Amended 2026-06-10: maintainer-pull override recorded — v1.18 opens as a self-directed
-  feature milestone. Extended 2026-06-14: v1.19 Design-System Stress-Test is a maintainer-pull
-  quality milestone (SEED-002). LIFE-06/STREAM-10 stay demand-gated and shift to v1.20+.*
+- [ ] **GATE-01**: A single stable `CI Summary` aggregate job (`needs:` all jobs, `if: always()`,
+  treating `skipped` as pass) becomes the sole signal that represents overall CI status.
+- [ ] **GATE-02**: `scripts/setup_branch_protection.sh` (and the nightly re-assert workflow) is
+  updated in the same change so branch protection requires only `CI Summary`; the fork-PR
+  "pending forever" trap is closed and the `CI` workflow name/filename (release-train coupling via
+  `release-please-automerge.yml` + `gate-ci-green`) is preserved.
 
-## Shipped Non-Feature Tracks
+### Lane Separation (LANE)
 
-- **b1.0 Brand Foundations** (2026-06-10): BRAND-01..08 validated 8/8 — archived at
-  `.planning/milestones/b1.0-REQUIREMENTS.md` ([audit](milestones/b1.0-MILESTONE-AUDIT.md)).
+- [ ] **LANE-01**: A fast PR lane with a `concurrency` group that cancels stale in-progress PR runs
+  targets a representative gate at roughly ≤7 minutes; main and release lanes serialize and never
+  cancel.
+- [ ] **LANE-02**: The `package-consumer` long pole is scoped by trigger — one representative `image`
+  install-smoke on PR; the full 5-profile matrix + `release_preflight` + `hex.publish --dry-run` run
+  on `push:main`/nightly/release, with the release full-verification gate provably intact.
+- [ ] **LANE-03**: A nightly lane carries the broad OTP×Elixir compatibility matrix, `gcs-soak`,
+  `package-consumer-gcs-live`, and an owned Dialyzer lane off the PR critical path.
+- [ ] **LANE-04**: A documented keep / optimize / move-to-nightly / quarantine / delete (buckets A–E)
+  test-value classification backs every lane placement, and coverage is moved off the PR critical
+  path. Any trust/speed tradeoff is labeled explicitly (in CONTRIBUTING and the PR).
 
-## Future Requirements (demand-gated)
+### Reliability, Security & DX Hardening (HARD)
 
-Open only via `/gsd-new-milestone` with documented signal:
+- [ ] **HARD-01**: An ExUnit async-safety static guard lands before any conversion; verified-safe
+  modules are converted to `async: true`, and `--partitions` (with DB-per-partition + merged
+  coverage) is adopted only where PR-1 measurement and runner cores justify it.
+- [ ] **HARD-02**: All third-party actions are pinned to immutable SHAs, `dependabot.yml`
+  (`github-actions` + `mix`) lands, `{:mix_audit, "~> 2.1"}` is added to the audit lane, and each job
+  declares least-privilege `permissions:`.
+- [ ] **HARD-03**: A single local `mix ci` alias mirrors the merge-blocking checks; `CONTRIBUTING.md`
+  documents the lanes, the required check, and the local command; the README badge points at the
+  meaningful (`CI Summary`) check.
+- [ ] **HARD-04**: A faithful Linux-Chromium local repro lands (pinned Playwright container +
+  `scripts/ci/e2e_local.sh` + exact `@playwright/test` and font pins), and the divergent token-pair
+  vs runtime contrast thresholds are reconciled to one shared constant.
 
-*(v1.20+ — shifted from v1.18 by the 2026-06-10 override, and past v1.19 which is non-feature DS work.)*
+## Future Requirements
 
-### Lifecycle (LIFE-06)
+Deferred to v1.20.x / a later infra slice. Tracked, not in this roadmap.
 
-- **LIFE-06-01**: Maintainer can preview collateral damage when force-deleting shared assets
-- **LIFE-06-02**: Maintainer can opt in to `force:` purge (never default) on owner erasure
-- **LIFE-06-03**: Batch erasure and operator CLI inherit force opt-in with proof + docs parity
+### Deferred (DEFER)
 
-**Trigger:** Concrete compliance/legal ticket recorded in milestone charter.
-
-### Streaming (STREAM-10)
-
-- **STREAM-10-01**: Second provider proves `Rindle.Streaming.Provider` contract gaps
-- **STREAM-10-02**: One adapter ships with `mix rindle.doctor --streaming` extension
-- **STREAM-10-03**: Hermetic proof + label-gated soak + guide parity
-
-**Trigger:** Named adopter + provider choice documented.
-
-### Long-tail polish
-
-- **TRANS-01**: Signed dynamic image transforms (job 33)
-- **PRIV-01**: EXIF/GPS strip on originals (job 34)
-
-**Trigger:** Explicit product pull only.
+- **DEFER-01**: Dedicated flaky-quarantine lane with reproducible-seed logging — trigger: a test
+  actually proves flaky in the new baseline.
+- **DEFER-02**: Self-hosted or larger GitHub runners — only if post-partition core-starvation is
+  measured, not assumed.
+- **DEFER-03**: Property-based / exhaustive nightly test expansion.
 
 ## Out of Scope
 
+Explicit exclusions (anti-features from research) — documented to prevent scope creep.
+
 | Feature | Reason |
 |---------|--------|
-| Metrics / time-series / charting dashboard (Grafana-style) | Scope creep; Rindle surfaces lifecycle **state**, not time-series — anti-feature for an operator console (v1.19 research) |
-| Dark mode by color-inversion | Must be semantic tokens + a real elevation ladder (PIPE-02); inversion is an anti-pattern |
-| Color-only status indication | Status must pair color with label/icon (a11y + UPLIFT-01); color-only is an anti-feature |
-| Animate-everything / decorative motion | Motion is purposeful + reduced-motion-aware only (UPLIFT-04); gratuitous motion hurts operators |
-| New console lifecycle semantics or write paths beyond v1.18 surface | v1.19 is DS quality only; no reopening tus / owner-erasure / provider surfaces |
-| Adopting Tailwind or a JS animation lib in the `rindle` package | Self-contained assets + generated BEM stay the constraint (ADMIN-02 / DS-01) |
-| Website / domain / hosted landing page | b1.0 is repo-artifact only |
-| Force-delete (LIFE-06) / Second streaming provider (STREAM-10) | Demand-gated; require charter (v1.20+) |
-| IETF RUFH / tus 2.0 · GCS-as-tus-backend · Standalone tus JS client | Long-tail / adopter-request only |
-| Platform scope (DRM, HLS platform, CDN replacement) | Not a lifecycle library |
+| Auto-retry flaky tests as the "fix" | Hides nondeterminism; the seed forbids it — fix or quarantine instead |
+| Deleting slow tests merely for being slow | Must classify (A–E) with evidence first; speed is not a deletion reason |
+| Moving correctness-critical tests to schedule-only to fake a green PR | Trades gate trust for cosmetic speed |
+| SaaS visual-regression gate (Percy/Chromatic) | Cost + external dependency; computed-style gate already covers it |
+| Making Credo/Dialyzer merge-blocking | Reverses locked decision CI-04 (they stay advisory) |
+| `pull_request_target` for fork secrets | Runs untrusted fork code with secrets; current fail-closed posture is correct |
+| OS×OTP×Elixir×adapter×partition matrix explosion / dynamic-matrix cleverness | Rube-Goldberg CI; keep YAML boring and idiomatic |
+| Presentation / metrics dashboards | Lowest north-star priority; observability lives in step summaries |
+| Any `lib/` public-API or behavior change | This is a DX/infra milestone; zero runtime surface change |
 
 ## Traceability
 
-### v1.18 Admin Console & Adoption Lab (phases 86–93) — ✅ shipped, archived
-
-Full 19-row traceability lives in
-[`milestones/v1.18-REQUIREMENTS.md`](milestones/v1.18-REQUIREMENTS.md). 19/19 Complete/Satisfied;
-HUMAN-UAT for phases 90/91/92 signed off 2026-06-20. Carried-forward deferrals remain live:
+Populated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PAUSE-01/02/03 | — | Satisfied (PAUSE-03 amended/extended) |
-| LIFE-06-* / STREAM-10-* | v1.20+ (on signal) | Deferred |
-| TRANS-01 / PRIV-01 | — | Deferred |
+| OBS-01 | — | Pending |
+| OBS-02 | — | Pending |
+| OBS-03 | — | Pending |
+| CACHE-01 | — | Pending |
+| CACHE-02 | — | Pending |
+| CACHE-03 | — | Pending |
+| CACHE-04 | — | Pending |
+| CACHE-05 | — | Pending |
+| GATE-01 | — | Pending |
+| GATE-02 | — | Pending |
+| LANE-01 | — | Pending |
+| LANE-02 | — | Pending |
+| LANE-03 | — | Pending |
+| LANE-04 | — | Pending |
+| HARD-01 | — | Pending |
+| HARD-02 | — | Pending |
+| HARD-03 | — | Pending |
+| HARD-04 | — | Pending |
+
+**Coverage:**
+- v1.20 requirements: 18 total
+- Mapped to phases: 0 (pending roadmap)
+- Unmapped: 18 ⚠️ (resolved by roadmapper)
 
 ---
-*Requirements defined: 2026-05-27*
-*Last updated: 2026-06-20 — v1.18 closed `shipped` after maintainer HUMAN-UAT sign-off
-(phases 90/91/92); requirements archived to `milestones/v1.18-REQUIREMENTS.md`. v1.19 archived
-2026-06-19. No active milestone — next milestone seeds a fresh requirements set. LIFE-06/STREAM-10
-remain shifted to v1.20+.*
+*Requirements defined: 2026-06-20*
+*Last updated: 2026-06-20 after initial definition (v1.20 CI/CD Performance)*
