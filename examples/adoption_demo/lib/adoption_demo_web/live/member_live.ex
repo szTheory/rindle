@@ -14,7 +14,7 @@ defmodule AdoptionDemoWeb.MemberLive do
     {:ok,
      assign(socket,
        page_title: member.name,
-       theme: AdoptionDemoWeb.CohortTheme.normalize(params["theme"], "light"),
+       theme: AdoptionDemoWeb.CohortTheme.normalize(params["theme"], "auto"),
        member: member,
        attachment: attachment,
        asset: asset,

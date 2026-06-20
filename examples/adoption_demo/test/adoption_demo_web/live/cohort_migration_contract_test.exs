@@ -99,6 +99,16 @@ defmodule AdoptionDemoWeb.CohortMigrationContractTest do
     :ok
   end
 
+  # "auto" (the default for an absent/invalid `?theme=`) makes `ck_page` OMIT
+  # `data-theme` so the page follows `prefers-color-scheme` like the home page.
+  defp assert_ck_root_theme(html, "auto") do
+    assert Regex.match?(~r/<div class="ck"[^>]*data-ck-root/, html),
+           "expected a Cohort root carrying data-ck-root"
+
+    refute Regex.match?(~r/<div class="ck"[^>]*data-ck-root[^>]*data-theme=/, html),
+           "expected the Cohort root to OMIT data-theme under auto (follows prefers-color-scheme)"
+  end
+
   defp assert_ck_root_theme(html, theme) do
     assert Regex.match?(~r/<div class="ck"[^>]*data-ck-root[^>]*data-theme="#{theme}"/, html),
            "expected the Cohort root to render data-theme=#{inspect(theme)}"
@@ -394,7 +404,7 @@ defmodule AdoptionDemoWeb.CohortMigrationContractTest do
         member_id: member.id
       })
 
-    for {route, theme} <- [{~p"/dashboard?theme=dark", "dark"}, {~p"/dashboard?theme=sepia", "light"}] do
+    for {route, theme} <- [{~p"/dashboard?theme=dark", "dark"}, {~p"/dashboard?theme=sepia", "auto"}] do
       html = render_route(conn, route)
 
       assert_ck_root_theme(html, theme)
@@ -475,7 +485,7 @@ defmodule AdoptionDemoWeb.CohortMigrationContractTest do
       role: "student"
     })
 
-    for {route, theme} <- [{~p"/ops?theme=dark", "dark"}, {~p"/ops?theme=sepia", "light"}] do
+    for {route, theme} <- [{~p"/ops?theme=dark", "dark"}, {~p"/ops?theme=sepia", "auto"}] do
       html = render_route(conn, route)
 
       assert_ck_root_theme(html, theme)
@@ -538,7 +548,7 @@ defmodule AdoptionDemoWeb.CohortMigrationContractTest do
 
     for {route, theme} <- [
           {~p"/account/#{member.id}/delete?theme=dark", "dark"},
-          {~p"/account/#{member.id}/delete?theme=sepia", "light"}
+          {~p"/account/#{member.id}/delete?theme=sepia", "auto"}
         ] do
       html = render_route(conn, route)
 
@@ -601,7 +611,7 @@ defmodule AdoptionDemoWeb.CohortMigrationContractTest do
 
     for {route, theme} <- [
           {~p"/members/#{member.id}?theme=dark", "dark"},
-          {~p"/members/#{member.id}?theme=sepia", "light"}
+          {~p"/members/#{member.id}?theme=sepia", "auto"}
         ] do
       html = render_route(conn, route)
 
@@ -669,7 +679,7 @@ defmodule AdoptionDemoWeb.CohortMigrationContractTest do
 
     for {route, theme} <- [
           {~p"/lessons/#{lesson.id}?theme=dark", "dark"},
-          {~p"/lessons/#{lesson.id}?theme=sepia", "light"}
+          {~p"/lessons/#{lesson.id}?theme=sepia", "auto"}
         ] do
       html = render_route(conn, route)
 
@@ -739,7 +749,7 @@ defmodule AdoptionDemoWeb.CohortMigrationContractTest do
 
     for {route, theme} <- [
           {~p"/posts/#{post.id}?theme=dark", "dark"},
-          {~p"/posts/#{post.id}?theme=sepia", "light"}
+          {~p"/posts/#{post.id}?theme=sepia", "auto"}
         ] do
       html = render_route(conn, route)
 
@@ -836,7 +846,7 @@ defmodule AdoptionDemoWeb.CohortMigrationContractTest do
 
     for {route, theme} <- [
           {~p"/media/#{asset.id}?theme=dark", "dark"},
-          {~p"/media/#{asset.id}?theme=sepia", "light"}
+          {~p"/media/#{asset.id}?theme=sepia", "auto"}
         ] do
       html = render_route(conn, route)
 

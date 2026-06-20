@@ -10,7 +10,7 @@ defmodule AdoptionDemoWeb.AccountLive do
   def mount(params, _session, socket) do
     id = params["member_id"] || params["user_id"]
     member = Accounts.get_member!(id)
-    theme = CohortTheme.normalize(params["theme"], "light")
+    theme = CohortTheme.normalize(params["theme"], "auto")
 
     {:ok,
      assign(socket,

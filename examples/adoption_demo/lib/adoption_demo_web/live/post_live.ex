@@ -14,7 +14,7 @@ defmodule AdoptionDemoWeb.PostLive do
     {:ok,
      assign(socket,
        page_title: post.title,
-       theme: AdoptionDemoWeb.CohortTheme.normalize(params["theme"], "light"),
+       theme: AdoptionDemoWeb.CohortTheme.normalize(params["theme"], "auto"),
        post: post,
        asset: asset
      )}
