@@ -3,10 +3,11 @@ gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: CI/CD Performance
 status: planning
-last_updated: "2026-06-20T22:30:00.000Z"
-last_activity: 2026-06-20
+stopped_at: Phase 103 context gathered (assumptions mode)
+last_updated: "2026-06-20T22:27:32.516Z"
+last_activity: 2026-06-20 — v1.20 roadmap created (Phases 103–107)
 progress:
-  total_phases: 5
+  total_phases: 13
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -38,13 +39,17 @@ research-unanimous and must not be reversed: reversing the aggregate-check (105)
 
 - **Phase 103 — Observability / Baseline** (OBS-01..03): self-reporting CI + committed baseline +
   live required-check names captured **before any change**; no gate-behavior change. Gates everything else.
+
 - **Phase 104 — Cache & Tooling Hygiene** (CACHE-01..05): composite setup action, correct cache
   keys, PLT restore/save split, lockfile drift gates, lint de-dup. Single-workflow shape; low risk.
+
 - **Phase 105 — Aggregate Required Check + Branch-Protection Flip** (GATE-01..02): `CI Summary`
   (`needs:` all, `if: always()`, skipped==pass) becomes the sole required check; script updated in
   the same PR. Isolated; MUST precede any lane rename.
+
 - **Phase 106 — Trigger Split + Matrix/Lane Refinement** (LANE-01..04): fast PR lane + scoped
   package-consumer + nightly lane + concurrency. The headline 15→≤7min cut.
+
 - **Phase 107 — Reliability, Security & DX Hardening** (HARD-01..04): async-safety/partitioning,
   action SHA-pinning + supply-chain, `mix ci` + CONTRIBUTING, faithful Linux-Chromium repro.
 
@@ -287,9 +292,9 @@ required-check names before any topology change, and surface timing/cache/slowes
 
 ## Session Continuity
 
-Last session: 2026-06-19T21:47:18.303Z
-Stopped at: Completed 95-05-PLAN.md
-Resume file: None
+Last session: 2026-06-20T22:27:32.512Z
+Stopped at: Phase 103 context gathered (assumptions mode)
+Resume file: .planning/phases/103-observability-baseline/103-CONTEXT.md
 
 ## Performance Metrics
 
