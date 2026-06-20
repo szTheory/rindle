@@ -107,6 +107,12 @@ Supported owner/account deletion goes through the owner-erasure facade shipped i
 Do not teach `detach/3` loops plus `cleanup_orphans` as the recommended
 account-deletion surface. Use the owner-erasure facade for supported flows.
 
+Supported Phoenix/LiveView resumable upload goes through the shipped tus seam:
+`Rindle.LiveView.allow_tus_upload/4` is the documented server-side entry point,
+`uploader: "RindleTus"` is the canonical client uploader, and completion
+converges on the unchanged `verify_completion/2` lane. Richer Rindle-owned
+uploader abstractions stay optional future scope (locked v1.9).
+
 ### Operational Enforcement
 
 To keep this posture durable across GSD workflows:
