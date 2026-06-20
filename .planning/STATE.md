@@ -92,6 +92,8 @@ inner pages, in service of real user flows.
 
 - [2026-06-19] Fix Docker demo startup warnings — `./scripts/demo/up.sh` logs missing Mox warnings from `AdoptionDemo.MuxCassette` and missing `inotify-tools` / `fs_inotify_bootstrap_error` for Phoenix live-reload inside the Cohort demo container.
 
+- [2026-06-20] **SEED-003 planted** — CI/CD pipeline performance + reliability audit (`.planning/seeds/SEED-003-ci-cd-performance-audit.md`). PR CI wall-clock ~15–17 min, long pole = `Package Consumer Proof Matrix + Release Preflight` (~15m). Embeds the maintainer's full audit prompt; surface at next `gsd new milestone` (v1.20 candidate) or sooner if CI time/flakiness drags velocity.
+
 - **v1.19 build order (research-locked, repo-verified):** Foundation (94) → parallel Track A
   (95 admin L1 → 97 admin L2 → 98 admin L3+motion/mobile/a11y/IA/microcopy) + Track B (96 Cohort
   component layer + dark/reduced-motion → 99 small-7 page migrations → 100 /upload migration →
