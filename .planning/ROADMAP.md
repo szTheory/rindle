@@ -159,6 +159,20 @@ p95/rerun, per-step `package-consumer` timing, slowest tests) and read live GitH
 branch-protection required-check names — these are unknowns, not patterns. Required before the
 Phase 105 flip.
 
+**Plans:** 4 plans
+
+Plans:
+
+**Wave 1** *(harness / Wave 0 — no deps; parallel)*
+
+- [ ] 103-01-PLAN.md — Add test-only `junit_formatter` + wire `test_helper.exs`; verify JUnit XML + coverage artifacts produced (OBS-02 foundation).
+- [ ] 103-02-PLAN.md — Create the two read-only `scripts/ci/` collectors (baseline avg/p95/rerun + live-vs-expected required-check diff) (OBS-03 tooling).
+
+**Wave 2** *(blocked on Wave 1; parallel — disjoint files)*
+
+- [ ] 103-03-PLAN.md — Instrument `ci.yml`: cache `id:`s + summary, OBS-02 evidence steps, JUnit/coverage upload, `ci-observability` aggregator (OBS-01, OBS-02). *(depends on 103-01)*
+- [ ] 103-04-PLAN.md — Run the collectors and commit internal `103-BASELINE.md` (timing baseline + live required-check names + drift) before any restructuring (OBS-03). *(depends on 103-02)*
+
 ---
 
 ### Phase 104: Cache & Tooling Hygiene
@@ -580,7 +594,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 103. Observability / Baseline | 0/TBD | Not started | - |
+| 103. Observability / Baseline | 0/4 | Not started | - |
 | 104. Cache & Tooling Hygiene | 0/TBD | Not started | - |
 | 105. Aggregate Required Check + Branch-Protection Flip | 0/TBD | Not started | - |
 | 106. Trigger Split + Matrix/Lane Refinement | 0/TBD | Not started | - |
