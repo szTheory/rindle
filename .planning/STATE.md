@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: CI/CD Performance
-status: executing
+status: verifying
 stopped_at: Phase 103 context gathered (assumptions mode)
-last_updated: "2026-06-20T23:23:26.454Z"
+last_updated: "2026-06-20T23:31:47.099Z"
 last_activity: 2026-06-20
 progress:
   total_phases: 13
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 4
-  completed_plans: 3
-  percent: 0
+  completed_plans: 4
+  percent: 8
 ---
 
 # Project State
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-06-19)
 
 Phase: 103 (observability-baseline) — EXECUTING
 Plan: 4 of 4
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-06-20
 
 ### v1.20 roadmap (Phases 103–107) — load-bearing dependency order
@@ -267,6 +267,7 @@ required-check names before any topology change, and surface timing/cache/slowes
 - [Phase 102]: Plan 06: Existing generated-asset/static idempotency proof ran twice consecutively and both runs ended with `git diff --exit-code` returning 0; no Cohort CSS generator was added and Cohort CSS stayed outside `tokens.json`.
 - [Phase 102]: Plan 06: v1.19 audit records 20/20 requirements mapped and complete, including stale UPLIFT-01 traceability corrected from Phase 95 summaries; VIS-01..VIS-04 are complete.
 - [Phase ?]: Phase 103 Plan 03: ci.yml instrumented additively/observationally — cache id:s + hit/miss tables, OBS-02 evidence, JUnit+coverage artifact upload, job-scoped ci-observability aggregator (per-job + per-step native timing from one jobs API read); name:CI/filename/workflow contents:read/run: gates unchanged; zero lib/ change; per-step jq matches display-name prefixes not job keys.
+- [Phase 103]: Plan 04: OBS-03 baseline (103-BASELINE.md) captured before restructuring — per-job avg/p95 + 8/50 rerun over last 50 main runs, verbatim 12 live required-check contexts, brandbook-tokens drift recorded NOT fixed (D-09/D-14); fixed --paginate per-page slice bug in collect_ci_baseline.sh; internal .planning/ only, zero lib/ change.
 
 ## Blockers/Concerns
 
@@ -293,7 +294,7 @@ required-check names before any topology change, and surface timing/cache/slowes
 
 ## Session Continuity
 
-Last session: 2026-06-20T23:23:01.099Z
+Last session: 2026-06-20T23:31:33.629Z
 Stopped at: Phase 103 context gathered (assumptions mode)
 Resume file: None
 
@@ -370,6 +371,7 @@ Resume file: None
 | Phase 103 P01 | 2 min | 2 tasks | 3 files |
 | Phase 103 P02 | 4 min | 2 tasks | 2 files |
 | Phase 103 P03 | 9 min | 3 tasks | 1 files |
+| Phase 103 P04 | 9 min | 2 tasks | 2 files |
 
 ## Operator Next Steps
 

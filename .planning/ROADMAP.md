@@ -188,7 +188,7 @@ Plans:
 **Wave 2** *(blocked on Wave 1; parallel — disjoint files)*
 
 - [x] 103-03-PLAN.md — Instrument `ci.yml`: cache `id:`s + summary, OBS-02 evidence steps, JUnit/coverage upload, `ci-observability` aggregator (OBS-01, OBS-02). *(depends on 103-01)*
-- [ ] 103-04-PLAN.md — Run the collectors and commit internal `103-BASELINE.md` (timing baseline + live required-check names + drift) before any restructuring (OBS-03). *(depends on 103-02)*
+- [x] 103-04-PLAN.md — Run the collectors and commit internal `103-BASELINE.md` (timing baseline + live required-check names + drift) before any restructuring (OBS-03). *(depends on 103-02)*
 
 ---
 
@@ -625,7 +625,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 103. Observability / Baseline | 3/4 | In Progress|  |
+| 103. Observability / Baseline | 4/4 | Complete   | 2026-06-20 |
 | 104. Cache & Tooling Hygiene | 0/TBD | Not started | - |
 | 105. Aggregate Required Check + Branch-Protection Flip | 0/TBD | Not started | - |
 | 106. Trigger Split + Matrix/Lane Refinement | 0/TBD | Not started | - |
