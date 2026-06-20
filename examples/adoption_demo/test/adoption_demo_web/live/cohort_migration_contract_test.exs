@@ -812,7 +812,7 @@ defmodule AdoptionDemoWeb.CohortMigrationContractTest do
       ~s(data-testid="media-variants"),
       ~s(id="variant-thumb"),
       ~s(data-testid="media-alex-profile-link"),
-      "Open Alex profile for replace/detach"
+      "Open Alex profile to replace or detach"
     ])
 
     assert_daisyui_retired(html)
@@ -862,7 +862,7 @@ defmodule AdoptionDemoWeb.CohortMigrationContractTest do
         ~s(data-testid="media-variants"),
         ~s(id="variant-thumb"),
         ~s(data-testid="media-alex-profile-link"),
-        "Open Alex profile for replace/detach"
+        "Open Alex profile to replace or detach"
       ])
 
       assert_daisyui_retired(html)

@@ -375,6 +375,12 @@ body {
   cursor: pointer;
   transition: transform 0.12s ease, box-shadow 0.15s ease, background 0.15s ease;
 }
+/* `ck_button` renders an <a class="ck-btn">; without this, the generic `.ck a`
+   link colour (specificity 0,1,1) would beat `.ck-btn` (0,1,0) and paint a primary
+   button green-on-green. Keep the button's own foreground for link-buttons. */
+.ck a.ck-btn {
+  color: var(--_fg);
+}
 .ck-btn:hover {
   transform: translateY(-1px);
   box-shadow: var(--ck-shadow-md);

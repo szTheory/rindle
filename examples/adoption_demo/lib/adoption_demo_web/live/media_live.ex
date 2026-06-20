@@ -27,18 +27,20 @@ defmodule AdoptionDemoWeb.MediaLive do
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} page_title={@page_title}>
-      <.ck_page title="Media detail" theme={@theme}>
-        <dl class="ck-detail">
+      <.ck_page eyebrow="Asset" title="Media detail" theme={@theme}>
+        <dl class="ck-detail ck-reveal" style="--d:.06s">
           <div class="ck-detail__row">
-            <dt class="ck-detail__term">ID:</dt>
+            <dt class="ck-detail__term">ID</dt>
             <dd class="ck-detail__desc" id="media-id" data-testid="media-id">{@asset.id}</dd>
           </div>
           <div class="ck-detail__row">
-            <dt class="ck-detail__term">State:</dt>
-            <dd class="ck-detail__desc" id="media-state" data-testid="media-state">{@asset.state}</dd>
+            <dt class="ck-detail__term">State</dt>
+            <dd class="ck-detail__desc" id="media-state" data-testid="media-state">
+              <.state_badge state={@asset.state} />
+            </dd>
           </div>
           <div class="ck-detail__row">
-            <dt class="ck-detail__term">Delivery:</dt>
+            <dt class="ck-detail__term">Delivery</dt>
             <dd
               class="ck-detail__desc ck-output"
               id="media-delivery-url"
@@ -49,26 +51,36 @@ defmodule AdoptionDemoWeb.MediaLive do
           </div>
         </dl>
 
-        <section id="media-variants" class="ck-section" data-testid="media-variants">
+        <section
+          id="media-variants"
+          class="ck-section ck-reveal"
+          data-testid="media-variants"
+          style="--d:.12s"
+        >
           <div class="ck-section__head">
             <h2 class="ck-section__title">Variants</h2>
+            <span class="ck-section__hint">Derived renditions and their lifecycle state.</span>
           </div>
-          <ul>
-            <li :for={variant <- @variants} id={"variant-#{variant.name}"}>
-              {variant.name} — {variant.state}
-            </li>
-          </ul>
+          <.ck_table
+            rows={@variants}
+            row_id={fn v -> "variant-#{v.name}" end}
+            empty_title="No variants yet"
+            empty_body="Variants appear here as processing completes."
+          >
+            <:col :let={v} label="Variant"><strong>{v.name}</strong></:col>
+            <:col :let={v} label="State"><.state_badge state={v.state} /></:col>
+          </.ck_table>
         </section>
 
-        <section class="ck-section">
+        <div class="ck-toolbar ck-reveal" role="group" aria-label="Actions" style="--d:.16s">
           <.link
             navigate={~p"/members/#{alex_id(@members)}"}
             class="ck-btn"
             data-testid="media-alex-profile-link"
           >
-            Open Alex profile for replace/detach
+            Open Alex profile to replace or detach
           </.link>
-        </section>
+        </div>
       </.ck_page>
     </Layouts.app>
     """

@@ -36,13 +36,22 @@ defmodule AdoptionDemoWeb.LessonLive do
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} page_title={@page_title}>
-      <.ck_page title="Lesson" theme={@theme}>
-        <h1 class="ck-hero__title" data-testid="lesson-title">{@lesson.title}</h1>
-        <p class="ck-hero__lede">Course: {@lesson.course.title}</p>
+      <.ck_page eyebrow="Lesson" title={@lesson.title} theme={@theme}>
+        <p class="ck-hero__lede" data-testid="lesson-title">
+          {@lesson.title} · {@lesson.course.title}
+        </p>
 
-        <section id="lesson-video" class="ck-section" data-testid="lesson-video-section">
+        <section
+          id="lesson-video"
+          class="ck-section ck-reveal"
+          data-testid="lesson-video-section"
+          style="--d:.06s"
+        >
           <div class="ck-section__head">
             <h2 class="ck-section__title">Lesson video</h2>
+            <span class="ck-section__hint">
+              The attached video asset, its state, and streaming URL.
+            </span>
           </div>
           <%= if @asset do %>
             <div id="lesson-video-tag" data-testid="lesson-video-tag">
@@ -50,29 +59,49 @@ defmodule AdoptionDemoWeb.LessonLive do
                 variants: [{:web_720p, nil}],
                 poster: :poster,
                 controls: true,
-                class: "max-w-xl"
+                class: "ck-result__thumb"
               )}
             </div>
-            <p id="lesson-asset-state" data-testid="lesson-asset-state">
-              Asset {@asset.id} — {@asset.state}
+            <p id="lesson-asset-state" data-testid="lesson-asset-state" class="ck-statusbar">
+              <.state_badge state={@asset.state} />
+              <span class="ck-statusbar__token">Asset {@asset.id}</span>
             </p>
-            <p :if={@streaming_url} id="lesson-streaming-url" class="ck-output" data-testid="lesson-streaming-url">
+            <p
+              :if={@streaming_url}
+              id="lesson-streaming-url"
+              class="ck-output"
+              data-testid="lesson-streaming-url"
+            >
               Streaming: {@streaming_url}
             </p>
           <% else %>
-            <p data-testid="lesson-no-video">No lesson video attached.</p>
+            <div data-testid="lesson-no-video" class="ck-empty">
+              <p class="ck-empty__title">No lesson video attached</p>
+              <p class="ck-empty__body">Attach one from the upload lab's video tab.</p>
+            </div>
           <% end %>
         </section>
 
-        <section id="lesson-variants" class="ck-section" data-testid="lesson-variants">
+        <section
+          id="lesson-variants"
+          class="ck-section ck-reveal"
+          data-testid="lesson-variants"
+          style="--d:.12s"
+        >
           <div class="ck-section__head">
             <h2 class="ck-section__title">Variants</h2>
+            <span class="ck-section__hint">Derived renditions and their lifecycle state.</span>
           </div>
-          <ul>
-            <li :for={variant <- @variants} id={"variant-#{variant.name}"} data-testid={"variant-#{variant.name}"}>
-              {variant.name} — {variant.state}
-            </li>
-          </ul>
+          <.ck_table
+            rows={@variants}
+            row_id={fn v -> "variant-#{v.name}" end}
+            row_attrs={fn v -> %{"data-testid" => "variant-#{v.name}"} end}
+            empty_title="No variants yet"
+            empty_body="Variants appear here as processing completes."
+          >
+            <:col :let={v} label="Variant"><strong>{v.name}</strong></:col>
+            <:col :let={v} label="State"><.state_badge state={v.state} /></:col>
+          </.ck_table>
         </section>
       </.ck_page>
     </Layouts.app>
