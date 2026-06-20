@@ -4,8 +4,8 @@ milestone: v1.19
 milestone_name: Design-System Stress-Test
 status: Awaiting next milestone
 stopped_at: Completed 95-05-PLAN.md
-last_updated: "2026-06-19T21:47:18.309Z"
-last_activity: 2026-06-19 — Phase 95 verifier gap closure completed
+last_updated: "2026-06-19T22:05:00.000Z"
+last_activity: 2026-06-19 — v1.19 post-ship re-audit reconciled into archive (Phase 95 gap closed)
 progress:
   total_phases: 9
   completed_phases: 9
@@ -54,6 +54,11 @@ inner pages, in service of real user flows.
   `.planning/milestones/v1.19-REQUIREMENTS.md`
 - **Requirements:** 20/20 archived complete (PIPE-01/02, UPLIFT-01..08, COHORT-01..06,
   VIS-01..04)
+- **Post-ship reconcile (2026-06-19):** a strict re-audit raised the "every phase needs its own
+  `*-VERIFICATION.md`" bar and flagged Phase 95. Closed: `95-VERIFICATION.md` written → surfaced a
+  real mobile sticky-table defect → fixed in 95-05 (`2960883`, 24 tests/0 failures); UPLIFT-01 now
+  independently verified, milestone holds 20/20. Re-audit + resolution archived at
+  `milestones/v1.19-MILESTONE-REAUDIT.md`; the `v1.19` tag (`ece7cbd`) is intentionally not moved.
 
 > ⚠️ **Opens over an un-closed v1.18.** v1.18 Admin Console & Adoption Lab is held at
 > `status: tech_debt` pending maintainer HUMAN-UAT sign-off (Phases 90/91/92). Deliberate,
