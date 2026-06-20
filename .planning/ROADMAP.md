@@ -183,7 +183,7 @@ Plans:
 **Wave 1** *(harness / Wave 0 — no deps; parallel)*
 
 - [x] 103-01-PLAN.md — Add test-only `junit_formatter` + wire `test_helper.exs`; verify JUnit XML + coverage artifacts produced (OBS-02 foundation).
-- [ ] 103-02-PLAN.md — Create the two read-only `scripts/ci/` collectors (baseline avg/p95/rerun + live-vs-expected required-check diff) (OBS-03 tooling).
+- [x] 103-02-PLAN.md — Create the two read-only `scripts/ci/` collectors (baseline avg/p95/rerun + live-vs-expected required-check diff) (OBS-03 tooling).
 
 **Wave 2** *(blocked on Wave 1; parallel — disjoint files)*
 
@@ -625,7 +625,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 103. Observability / Baseline | 1/4 | In Progress|  |
+| 103. Observability / Baseline | 2/4 | In Progress|  |
 | 104. Cache & Tooling Hygiene | 0/TBD | Not started | - |
 | 105. Aggregate Required Check + Branch-Protection Flip | 0/TBD | Not started | - |
 | 106. Trigger Split + Matrix/Lane Refinement | 0/TBD | Not started | - |

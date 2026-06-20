@@ -26,7 +26,7 @@ dropping real quality signal — via a measure → classify → restructure pass
 - [x] **OBS-02**: CI surfaces `mix test --slowest 20`, a compile-time profile, `System.schedulers_online()`,
   and the ExUnit seed; JUnit and coverage artifacts are uploaded for inspection.
 
-- [ ] **OBS-03**: A committed baseline table (per-job avg + p95 + rerun/flake rate) and the *actual*
+- [x] **OBS-03**: A committed baseline table (per-job avg + p95 + rerun/flake rate) and the *actual*
   current branch-protection required-check names are captured before any restructuring begins.
 
 ### Cache & Tooling Hygiene (CACHE)
@@ -132,7 +132,7 @@ Populated during roadmap creation.
 |-------------|-------|--------|
 | OBS-01 | Phase 103 | Pending |
 | OBS-02 | Phase 103 | Complete |
-| OBS-03 | Phase 103 | Pending |
+| OBS-03 | Phase 103 | Complete |
 | CACHE-01 | Phase 104 | Pending |
 | CACHE-02 | Phase 104 | Pending |
 | CACHE-03 | Phase 104 | Pending |
