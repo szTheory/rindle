@@ -869,6 +869,16 @@ defmodule AdoptionDemoWeb.CohortMigrationContractTest do
   # after a handler fires — they are the behavior specs' backstop, NOT asserted
   # statically. The a11y shape (routed links, not a tablist) is pinned once.
   test "/upload preserves its frozen contract and retires daisyUI across all tabs", %{conn: conn} do
+    # /upload's `load_member!(nil)` falls back to the first seeded member, so the
+    # test must seed one — async ConnCase + Ecto sandbox isolates each test's DB,
+    # so there is no globally-seeded member to fall back to (sibling tests above
+    # seed their own members the same way).
+    AdoptionDemo.Accounts.seed_member!(%{
+      email: "upload-member@cohort.test",
+      name: "Upload Member",
+      role: "student"
+    })
+
     for tab <- ~w(image tus video multipart liveview mux) do
       html = render_route(conn, ~p"/upload?tab=#{tab}")
 
