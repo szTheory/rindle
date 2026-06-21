@@ -222,7 +222,12 @@ and `mix.lock` resolved versions before pinning the new primary pair).
    instead of on every matrix cell; `.tool-versions` lands and the stray `setup-ffmpeg` action in
    `release.yml` is aligned to the repo's ffmpeg install path (CACHE-05).
 
-**Plans:** TBD
+**Plans:** 4 plans
+
+- [ ] 104-01-PLAN.md — Build setup-elixir + setup-minio composite actions + land .tool-versions (CACHE-01/02/05; wave 1)
+- [ ] 104-02-PLAN.md — Migrate quality onto setup-elixir + PLT restore/save split + lockfile gates + lint de-dup (CACHE-01/03/04/05; wave 2)
+- [ ] 104-03-PLAN.md — Adopt setup-elixir across literal-1.17/27 jobs + optional-dependencies (no-optional namespace) (CACHE-01/02; wave 3)
+- [ ] 104-04-PLAN.md — Adopt setup-minio across 5 ci.yml + 2 release.yml jobs + retire stray ffmpeg action (CACHE-01/05; wave 4)
 
 ---
 
