@@ -19,7 +19,10 @@ after maintainer HUMAN-UAT sign-off (Phases 90/91/92); archived to `milestones/v
 Both v1.18 and v1.19 are shipped and archived.
 
 **Active milestone:** v1.20 CI/CD Performance (chartered 2026-06-20 from SEED-003) — see
-**Current Milestone** below. Defining requirements; phases continue at 103.
+**Current Milestone** below. Phase 103 (Observability Baseline) and Phase 104 (Cache & Tooling
+Hygiene) complete; Phase 104 validated CACHE-01..05 (composite `setup-elixir`/`setup-minio` actions,
+correct cache keys, PLT restore/save split, lockfile-drift gates, lint de-dup) with zero `lib/`
+change. Next phase 105 (Aggregate Required Check + Branch-Protection Flip).
 
 ## Current Milestone: v1.20 CI/CD Performance
 
@@ -679,4 +682,4 @@ This document evolves at phase transitions and milestone boundaries.
    (`workflow.milestone_boundary.block_feature_milestone_without_signal`)
 
 ---
-*Last updated: 2026-06-20 — chartered v1.20 CI/CD Performance (SEED-003)*
+*Last updated: 2026-06-21 — Phase 104 (Cache & Tooling Hygiene) complete; v1.20 CI/CD Performance*
