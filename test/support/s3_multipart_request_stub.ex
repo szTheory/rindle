@@ -12,11 +12,25 @@ defmodule Rindle.Support.S3MultipartRequestStub do
   response HEADERS, mirroring real S3 — Pitfall 2) so the math is verifiable with
   zero network. 43-VALIDATION line 58 explicitly sanctions a "fake `request`".
 
-  When the `RINDLE_MINIO_*` environment is present (the CI MinIO lane and the
-  `@tag :minio` integration tests), this stub DELEGATES to the real
-  `ExAws.request/2` so the live UploadPart round-trip is genuinely exercised. It
-  only fabricates responses for the three multipart operations; every other
-  operation passes through to `ExAws` unchanged.
+  Delegation is keyed on the CALLER'S INTENT, not ambient env. A non-empty
+  `aws_config` (an explicit endpoint + credentials passed by the caller) means
+  "talk to a real S3/MinIO", so the operation is delegated to the genuine
+  `ExAws.request/2`. The untagged tail-buffer specs pass NO `aws_config` (it
+  resolves to `[]`), so their three multipart ops are fabricated and never touch
+  the network.
+
+  This intent-based check REPLACED an earlier ambient `RINDLE_MINIO_*`-env check,
+  which wrongly delegated the empty-config offline specs to real AWS whenever the
+  MinIO env happened to be set — they then resolved live credentials via EC2
+  instance-metadata (IMDS) and raised `Instance Meta Error: HTTP 404` in any CI job
+  that sets `RINDLE_MINIO_*` (Integration, Package Consumer), while the Quality job
+  (no MinIO env) passed. Genuine MinIO multipart coverage is preserved: `@tag
+  :minio` tests in `s3_test.exs` pass an explicit `aws_config:` (non-empty →
+  delegated to real ExAws), and `tus_s3_integration_test.exs` replaces this module
+  with real `ExAws` outright via `Application.put_env(:rindle, Rindle.Storage.S3,
+  bucket: ...)` in its `setup`.
+
+  Every non-multipart operation passes through to `ExAws` unchanged.
 
   Wired via `config :rindle, Rindle.Storage.S3, request_module: __MODULE__` in
   `config/test.exs`; production resolves `ExAws` (the default).
@@ -30,7 +44,11 @@ defmodule Rindle.Support.S3MultipartRequestStub do
   """
   def request(%Op{} = op, config) do
     cond do
-      minio_configured?() ->
+      # Explicit endpoint requested by the caller (non-empty aws_config) → run the
+      # genuine ExAws round-trip, so `@tag :minio` tests keep exercising real MinIO.
+      # The offline tail-buffer specs pass NO aws_config (config == []), so they
+      # never reach here and stay fully offline (no network, no IMDS).
+      config not in [nil, []] ->
         ExAws.request(op, config)
 
       initiate_multipart?(op) ->
@@ -76,16 +94,4 @@ defmodule Rindle.Support.S3MultipartRequestStub do
   end
 
   defp complete_multipart?(_), do: false
-
-  defp minio_configured? do
-    Enum.all?(
-      [
-        System.get_env("RINDLE_MINIO_URL"),
-        System.get_env("RINDLE_MINIO_ACCESS_KEY"),
-        System.get_env("RINDLE_MINIO_SECRET_KEY"),
-        System.get_env("RINDLE_MINIO_BUCKET")
-      ],
-      &(&1 not in [nil, ""])
-    )
-  end
 end

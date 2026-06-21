@@ -32,6 +32,25 @@ config :rindle, Rindle.Adopter.CanonicalApp.Repo,
   pool: Ecto.Adapters.SQL.Sandbox,
   pool_size: 2
 
+# Deterministic dummy ExAws credentials for the test env.
+#
+# Without static credentials, ExAws' default credential chain falls through to
+# `:instance_role` and resolves live AWS creds via EC2 instance-metadata (IMDS).
+# Any S3 adapter call made with an empty `aws_config: []` (notably the offline
+# TUS tail-buffer unit specs in s3_tus_test.exs, whose request_module stub
+# delegates to the real `ExAws.request/2` once the RINDLE_MINIO_* env is present)
+# would then hit IMDS and raise `Instance Meta Error: HTTP 404` in the CI jobs
+# that set RINDLE_MINIO_* (Integration, Package Consumer). Pinning static dummy
+# creds here makes the chain resolve offline in EVERY test job — IMDS is never
+# reached. The real MinIO integration tests (s3_test.exs) pass explicit per-call
+# `aws_config:` (access_key_id/secret_access_key/host/port), which ExAws merges
+# last and which therefore override these dummies — so live S3/MinIO coverage is
+# unaffected.
+config :ex_aws,
+  access_key_id: "test-access-key-id",
+  secret_access_key: "test-secret-access-key",
+  region: "us-east-1"
+
 config :logger, level: :warning
 
 config :oban, Oban, testing: :inline
