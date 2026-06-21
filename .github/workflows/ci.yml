@@ -78,6 +78,20 @@ jobs:
         # in lib/rindle/av/probe.ex. See scripts/ci/install_ffmpeg.sh.
         run: bash scripts/ci/install_ffmpeg.sh
 
+      # CACHE-04 (D-10): explicit deps fetch carrying --check-locked. Runs on
+      # BOTH matrix cells (no `if:` guard) so lock-vs-mix.exs drift is validated
+      # even on a full cache hit, closing the OTP26 stale-partial-hit gap.
+      - name: Install dependencies (lock-verified)
+        run: mix deps.get --check-locked
+
+      # CACHE-04 (D-11): --check-unused is guarded to matrix.otp == '27' — the
+      # lock's resolution OTP. Under OTP26 it false-positives because
+      # json_polyfill_dep/0 (mix.exs) adds {:json_polyfill, ...} for OTP < 27,
+      # which is absent from the OTP27-resolved mix.lock (exit 1).
+      - name: Check for unused deps
+        if: matrix.otp == '27'
+        run: mix deps.unlock --check-unused
+
       - name: Compile (warnings as errors)
         run: mix compile --warnings-as-errors
 
