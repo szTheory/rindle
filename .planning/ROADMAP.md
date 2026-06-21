@@ -260,7 +260,7 @@ names. MUST precede Phase 106.
 **Plans:** 1 plan
 
 Plans:
-- [ ] 105-01-PLAN.md — add the `CI Summary` aggregate job + collapse `setup_branch_protection.sh` to require only it (additive, no live mutation); document the post-merge human flip + verification (one isolated PR)
+- [x] 105-01-PLAN.md — add the `CI Summary` aggregate job + collapse `setup_branch_protection.sh` to require only it (additive, no live mutation); document the post-merge human flip + verification (one isolated PR)
 
 ---
 
@@ -635,7 +635,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 103. Observability / Baseline | 4/4 | Complete    | 2026-06-20 |
 | 104. Cache & Tooling Hygiene | 4/4 | Complete    | 2026-06-21 |
-| 105. Aggregate Required Check + Branch-Protection Flip | 0/TBD | Not started | - |
+| 105. Aggregate Required Check + Branch-Protection Flip | 1/1 | Complete   | 2026-06-21 |
 | 106. Trigger Split + Matrix/Lane Refinement | 0/TBD | Not started | - |
 | 107. Reliability, Security & DX Hardening | 0/TBD | Not started | - |
 | 94. Foundation — Token Pipeline CI Gate & New Categories | 5/5 | Complete    | 2026-06-15 |

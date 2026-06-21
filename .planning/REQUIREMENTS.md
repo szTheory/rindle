@@ -51,10 +51,10 @@ dropping real quality signal — via a measure → classify → restructure pass
 
 ### Required-Check Topology (GATE)
 
-- [ ] **GATE-01**: A single stable `CI Summary` aggregate job (`needs:` all jobs, `if: always()`,
+- [x] **GATE-01**: A single stable `CI Summary` aggregate job (`needs:` all jobs, `if: always()`,
   treating `skipped` as pass) becomes the sole signal that represents overall CI status.
 
-- [ ] **GATE-02**: `scripts/setup_branch_protection.sh` (and the nightly re-assert workflow) is
+- [x] **GATE-02**: `scripts/setup_branch_protection.sh` (and the nightly re-assert workflow) is
   updated in the same change so branch protection requires only `CI Summary`; the fork-PR
   "pending forever" trap is closed and the `CI` workflow name/filename (release-train coupling via
   `release-please-automerge.yml` + `gate-ci-green`) is preserved.
@@ -138,8 +138,8 @@ Populated during roadmap creation.
 | CACHE-03 | Phase 104 | Complete |
 | CACHE-04 | Phase 104 | Complete |
 | CACHE-05 | Phase 104 | Complete |
-| GATE-01 | Phase 105 | Pending |
-| GATE-02 | Phase 105 | Pending |
+| GATE-01 | Phase 105 | Complete |
+| GATE-02 | Phase 105 | Complete |
 | LANE-01 | Phase 106 | Pending |
 | LANE-02 | Phase 106 | Pending |
 | LANE-03 | Phase 106 | Pending |

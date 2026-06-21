@@ -2,19 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: CI/CD Performance
-current_phase: 105
-current_phase_name: Aggregate Required Check + Branch-Protection Flip
-status: executing
-stopped_at: Phase 105 context gathered
-last_updated: "2026-06-21T18:50:41.919Z"
+status: verifying
+stopped_at: Completed 105-01 Tasks 1-3; Task 4 deferred post-merge human flip
+last_updated: "2026-06-21T19:51:35.846Z"
 last_activity: 2026-06-21
-last_activity_desc: Phase 104 complete, transitioned to Phase 105
 progress:
   total_phases: 13
-  completed_phases: 2
-  total_plans: 8
-  completed_plans: 8
-  percent: 15
+  completed_phases: 3
+  total_plans: 9
+  completed_plans: 9
+  percent: 23
 ---
 
 # Project State
@@ -24,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-19)
 
 **Core value:** Media, made durable.
-**Current focus:** Phase 104 — cache-tooling-hygiene
+**Current focus:** Phase 105 — aggregate-required-check-branch-protection-flip
 
 ## Current Position
 
-Phase: 105 — Aggregate Required Check + Branch-Protection Flip
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-06-21 — Phase 104 complete, transitioned to Phase 105
+Phase: 105 (aggregate-required-check-branch-protection-flip) — EXECUTING
+Plan: 1 of 1
+Status: Phase complete — ready for verification
+Last activity: 2026-06-21
 
 ### v1.20 roadmap (Phases 103–107) — load-bearing dependency order
 
@@ -278,6 +275,7 @@ required-check names before any topology change, and surface timing/cache/slowes
 - [Phase ?]: 104-02: PLT split = restore/save with save-before-analysis (D-08), keyed on mix.exs+.dialyzer_ignore.exs (D-07); PLT prefix uses coarse matrix.otp/elixir since setup-elixir does not surface resolved versions at job scope
 - [Phase ?]: 104-03: setup-elixir adopted across the 7 literal-1.17/27 jobs + optional-dependencies (cache-prefix:no-optional, D-06) + package-consumer-gcs-live (secret-gate guard intact, D-03); install-deps:false everywhere preserves each job's existing deps.get
 - [Phase ?]: 104-03: gcs-soak composite adoption DECLINED (plan-optional) — no existing deps/_build cache + fully secret-gated; left byte-identical. Only remaining inline setup-beam: gcs-soak (declined) + mux-soak (MinIO trio = Plan 04)
+- [Phase ?]: [Phase 105]: Plan 01 — ci-summary aggregate job (name: CI Summary) is pure/network-free/zero-permission (D-02); needs: exactly the 11 gating jobs (mux/gcs-soak + package-consumer-gcs-live excluded, D-04); success+skipped pass, failure+cancelled fail (D-05); collect-all-then-exit (D-06). setup_branch_protection.sh collapsed to single CI Summary context (matches job name:, not id). Live branch-protection flip deferred to post-merge human checkpoint (Task 4, D-11).
 
 ## Blockers/Concerns
 
@@ -304,9 +302,9 @@ required-check names before any topology change, and surface timing/cache/slowes
 
 ## Session Continuity
 
-Last session: 2026-06-21T17:37:46.810Z
-Stopped at: Phase 105 context gathered
-Resume file: .planning/phases/105-aggregate-required-check-branch-protection-flip/105-CONTEXT.md
+Last session: 2026-06-21T19:51:27.093Z
+Stopped at: Completed 105-01 Tasks 1-3; Task 4 deferred post-merge human flip
+Resume file: None
 
 ## Performance Metrics
 
@@ -386,6 +384,7 @@ Resume file: .planning/phases/105-aggregate-required-check-branch-protection-fli
 | Phase 104 P02 | 4 min | 3 tasks | 1 files |
 | Phase 104 P03 | 4min | 2 tasks | 1 files |
 | Phase 104 P04 | 3min | 2 tasks | 2 files |
+| Phase 105 P01 | 8 min | 3 tasks | 3 files |
 
 ## Operator Next Steps
 
