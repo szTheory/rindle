@@ -733,5 +733,18 @@ See [post-v116 assessment](threads/2026-05-27-post-v116-milestone-assessment.md)
 - [.planning/milestones/v1.14-REQUIREMENTS.md](milestones/v1.14-REQUIREMENTS.md)
 - [.planning/milestones/v1.14-MILESTONE-AUDIT.md](milestones/v1.14-MILESTONE-AUDIT.md)
 
+## Backlog
+
+### Phase 999.1: v1.20 CI green-up — S3 cred test failures (BACKLOG)
+
+**Goal:** [Captured for future planning] Get the 64 accumulated v1.20 commits (phases 100–105, pushed to origin/main 2026-06-21 after never being CI-validated) back to green so the Phase-105 branch-protection flip can auto-fire.
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Known blocker: 4 real failures in `test/rindle/storage/s3_tus_test.exs` (untagged `use ExUnit.Case, async: true`) resolving REAL AWS creds via `ExAws.Config.AuthCache` → IMDS HTTP 404 in the `mix coveralls.json` default-suite step of the Integration + Package Consumer jobs (CI run 27916861643). `Quality` passes the SAME tests → env/config difference to chase (likely AWS_* env or ExAws config per job). Possibly more failures behind these. Fixed en route: json_polyfill/`--check-locked` lockfile bug (commit 0751fdb). Flip automation committed + inert on origin/main (commit ca70075); self-defers until CI Summary is green. After green: nightly `branch-protection-apply.yml` flips it (needs `Checks: read` on `BRANCH_PROTECTION_PAT` — manual) or one-off `setup_branch_protection.sh main`.
+
+Plans:
+- [ ] TBD (promote with /gsd-review-backlog when ready)
+
 ---
 *Last updated: 2026-06-20 — chartered v1.20 CI/CD Performance (SEED-003): Phases 103–107, 18/18 requirements mapped. Non-feature / DX-infra milestone (ZERO `lib/` public-API change). Load-bearing dependency order: observability → cache → aggregate-check → lane-split → hardening. v1.18 and v1.19 shipped & archived.*
