@@ -249,24 +249,19 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Elixir
-        uses: erlef/setup-beam@v1
+        # CACHE-01 / D-06: composite setup + deps/_build cache in the deliberately
+        # separate no-optional namespace (cache-prefix:no-optional ->
+        # deps-no-optional-v1-… / build-no-optional-v1-…), so this job's
+        # --no-optional-deps tree never shares a cache with the default jobs.
+        # install-deps:false keeps the job's special `mix deps.get --no-optional-deps`
+        # (the composite does not compile / does not run the flagged fetch).
+        uses: ./.github/actions/setup-elixir
         with:
           elixir-version: ${{ matrix.elixir }}
           otp-version: ${{ matrix.otp }}
-
-      - name: Restore deps cache
-        uses: actions/cache@v4
-        with:
-          path: deps
-          key: deps-no-optional-${{ runner.os }}-${{ matrix.elixir }}-${{ matrix.otp }}-${{ hashFiles('**/mix.lock') }}
-          restore-keys: deps-no-optional-${{ runner.os }}-${{ matrix.elixir }}-${{ matrix.otp }}-
-
-      - name: Restore build cache
-        uses: actions/cache@v4
-        with:
-          path: _build
-          key: build-no-optional-${{ runner.os }}-${{ matrix.elixir }}-${{ matrix.otp }}-${{ hashFiles('**/mix.lock') }}
-          restore-keys: build-no-optional-${{ runner.os }}-${{ matrix.elixir }}-${{ matrix.otp }}-
+          mix-env: test
+          cache-prefix: no-optional
+          install-deps: "false"
 
       - name: Install libvips
         run: sudo apt-get update && sudo apt-get install -y libvips-dev
@@ -1215,31 +1210,21 @@ jobs:
           echo "Skipping live package-consumer GCS proof: GOOGLE_APPLICATION_CREDENTIALS_JSON and/or RINDLE_GCS_BUCKET are not configured."
 
       - name: Set up Elixir
+        # CACHE-01 (D-03): composite setup + deps/_build cache, carrying the same
+        # secret-gated `enabled == 'true'` guard as the inline triplet it replaces
+        # so it never runs on a fork PR without GCS secrets. install-deps:false
+        # keeps this job's own enabled-gated `mix deps.get`.
         if: steps.gcs-live-config.outputs.enabled == 'true'
-        uses: erlef/setup-beam@v1
+        uses: ./.github/actions/setup-elixir
         with:
           elixir-version: "1.17"
           otp-version: "27"
+          mix-env: test
+          install-deps: "false"
 
       - name: Install libvips
         if: steps.gcs-live-config.outputs.enabled == 'true'
         run: sudo apt-get update && sudo apt-get install -y libvips-dev
-
-      - name: Restore deps cache
-        if: steps.gcs-live-config.outputs.enabled == 'true'
-        uses: actions/cache@v4
-        with:
-          path: deps
-          key: deps-${{ runner.os }}-1.17-27-${{ hashFiles('**/mix.lock') }}
-          restore-keys: deps-${{ runner.os }}-1.17-27-
-
-      - name: Restore build cache
-        if: steps.gcs-live-config.outputs.enabled == 'true'
-        uses: actions/cache@v4
-        with:
-          path: _build
-          key: build-${{ runner.os }}-1.17-27-${{ hashFiles('**/mix.lock') }}
-          restore-keys: build-${{ runner.os }}-1.17-27-
 
       - name: Install dependencies
         if: steps.gcs-live-config.outputs.enabled == 'true'
