@@ -15,37 +15,13 @@ REPO_NAME="${REPO_NAME:-rindle}"
 REPO="${OWNER}/${REPO_NAME}"
 
 REQUIRED_CHECKS=(
-  "Quality (1.15, 26)"
-  "Quality (1.17, 27)"
-  "ADMIN-06 Optional Dependencies (1.15, 26)"
-  "ADMIN-06 Optional Dependencies (1.17, 27)"
-  "Integration"
-  "Contract"
-  "Proof"
-  "Package Consumer Proof Matrix + Release Preflight"
-  "Adopter"
-  "Adoption Demo Unit"
-  "Adoption Demo E2E"
-  "Cohort Demo Smoke"
-  "brandbook-tokens"
+  "CI Summary"
 )
 
 print_expected_text() {
   cat <<'TEXT'
 Expected required status checks:
-  - Quality (1.15, 26)
-  - Quality (1.17, 27)
-  - ADMIN-06 Optional Dependencies (1.15, 26)
-  - ADMIN-06 Optional Dependencies (1.17, 27)
-  - Integration
-  - Contract
-  - Proof
-  - Package Consumer Proof Matrix + Release Preflight
-  - Adopter
-  - Adoption Demo Unit
-  - Adoption Demo E2E
-  - Cohort Demo Smoke
-  - brandbook-tokens
+  - CI Summary
 
 Expected non-context branch protection fields:
   - required_status_checks.strict: true
