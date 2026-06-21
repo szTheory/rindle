@@ -6,14 +6,14 @@ current_phase: 104
 current_phase_name: cache-tooling-hygiene
 status: executing
 stopped_at: Phase 104 context gathered (assumptions mode)
-last_updated: "2026-06-21T16:50:25.263Z"
+last_updated: "2026-06-21T16:58:49.022Z"
 last_activity: 2026-06-21
 last_activity_desc: Phase 104 execution started
 progress:
   total_phases: 13
   completed_phases: 1
   total_plans: 8
-  completed_plans: 6
+  completed_plans: 7
   percent: 8
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-06-19)
 ## Current Position
 
 Phase: 104 (cache-tooling-hygiene) — EXECUTING
-Plan: 3 of 4
+Plan: 4 of 4
 Status: Ready to execute
 Last activity: 2026-06-21 — Phase 104 execution started
 
@@ -276,6 +276,8 @@ required-check names before any topology change, and surface timing/cache/slowes
 - [Phase ?]: 104-01: .tool-versions landed (elixir 1.17.3-otp-27/erlang 27.2/nodejs 20.18.1) local-dev-only, NO setup-beam version-file wiring (D-13); patches PINNED-FOR-CONFIRMATION (asdf list-all blocked in sandbox) — confirm vs next CI setup-beam resolution. Side effect: file shadows local asdf node resolution.
 - [Phase ?]: 104-02: quality job migrated onto the setup-elixir composite (D-03 canary); composite called install-deps:false so quality owns its CACHE-04-gated deps.get
 - [Phase ?]: 104-02: PLT split = restore/save with save-before-analysis (D-08), keyed on mix.exs+.dialyzer_ignore.exs (D-07); PLT prefix uses coarse matrix.otp/elixir since setup-elixir does not surface resolved versions at job scope
+- [Phase ?]: 104-03: setup-elixir adopted across the 7 literal-1.17/27 jobs + optional-dependencies (cache-prefix:no-optional, D-06) + package-consumer-gcs-live (secret-gate guard intact, D-03); install-deps:false everywhere preserves each job's existing deps.get
+- [Phase ?]: 104-03: gcs-soak composite adoption DECLINED (plan-optional) — no existing deps/_build cache + fully secret-gated; left byte-identical. Only remaining inline setup-beam: gcs-soak (declined) + mux-soak (MinIO trio = Plan 04)
 
 ## Blockers/Concerns
 
@@ -302,7 +304,7 @@ required-check names before any topology change, and surface timing/cache/slowes
 
 ## Session Continuity
 
-Last session: 2026-06-21T16:49:54.247Z
+Last session: 2026-06-21T16:58:29.381Z
 Stopped at: Phase 104 context gathered (assumptions mode)
 Resume file: .planning/phases/104-cache-tooling-hygiene/104-CONTEXT.md
 
@@ -382,6 +384,7 @@ Resume file: .planning/phases/104-cache-tooling-hygiene/104-CONTEXT.md
 | Phase 103 P04 | 9 min | 2 tasks | 2 files |
 | Phase 104 P01 | 1 min | 3 tasks | 3 files |
 | Phase 104 P02 | 4 min | 3 tasks | 1 files |
+| Phase 104 P03 | 4min | 2 tasks | 1 files |
 
 ## Operator Next Steps
 

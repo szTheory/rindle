@@ -35,7 +35,7 @@ dropping real quality signal — via a measure → classify → restructure pass
   step) is the single source of truth for environment setup and cache keys across the jobs that
   duplicate that block today.
 
-- [ ] **CACHE-02**: Cache keys include OS+arch, OTP, Elixir, `MIX_ENV`, the `mix.lock` hash, and a
+- [x] **CACHE-02**: Cache keys include OS+arch, OTP, Elixir, `MIX_ENV`, the `mix.lock` hash, and a
   version buster; deps, `_build`, and PLT caches are kept separate and never restored across
   incompatible dimensions.
 
@@ -134,7 +134,7 @@ Populated during roadmap creation.
 | OBS-02 | Phase 103 | Complete |
 | OBS-03 | Phase 103 | Complete |
 | CACHE-01 | Phase 104 | Complete |
-| CACHE-02 | Phase 104 | Pending |
+| CACHE-02 | Phase 104 | Complete |
 | CACHE-03 | Phase 104 | Complete |
 | CACHE-04 | Phase 104 | Complete |
 | CACHE-05 | Phase 104 | Complete |
