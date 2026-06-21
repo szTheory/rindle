@@ -57,32 +57,19 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Elixir
-        uses: erlef/setup-beam@v1
+        id: setup
+        uses: ./.github/actions/setup-elixir
         with:
           elixir-version: ${{ matrix.elixir }}
           otp-version: ${{ matrix.otp }}
-
-      - name: Restore deps cache
-        uses: actions/cache@v4
-        id: deps-cache
-        with:
-          path: deps
-          key: deps-${{ runner.os }}-${{ matrix.elixir }}-${{ matrix.otp }}-${{ hashFiles('**/mix.lock') }}
-          restore-keys: deps-${{ runner.os }}-${{ matrix.elixir }}-${{ matrix.otp }}-
-
-      - name: Restore build cache
-        uses: actions/cache@v4
-        id: build-cache
-        with:
-          path: _build
-          key: build-${{ runner.os }}-${{ matrix.elixir }}-${{ matrix.otp }}-${{ hashFiles('**/mix.lock') }}
-          restore-keys: build-${{ runner.os }}-${{ matrix.elixir }}-${{ matrix.otp }}-
+          mix-env: test
+          # Quality runs its own deps.get carrying the CACHE-04 gate flags
+          # (--check-locked / --check-unused), so the composite must NOT also
+          # run an unflagged deps.get (D-10).
+          install-deps: "false"
 
       - name: Install libvips
         run: sudo apt-get update && sudo apt-get install -y libvips-dev
-
-      - name: Install dependencies
-        run: mix deps.get
 
       - name: Install FFmpeg
         # Reliable static ffmpeg >= 6, replacing FedericoCarboni/setup-ffmpeg@v3
@@ -193,9 +180,9 @@ jobs:
             echo ""
             echo "| Cache | Hit |"
             echo "| --- | --- |"
-            echo "| deps  | ${{ steps.deps-cache.outputs.cache-hit || 'false' }} |"
-            echo "| build | ${{ steps.build-cache.outputs.cache-hit || 'false' }} |"
-            echo "| plt   | ${{ steps.plt-cache.outputs.cache-hit || 'false' }} |"
+            echo "| deps  | ${{ steps.setup.outputs.deps-cache-hit || 'false' }} |"
+            echo "| build | ${{ steps.setup.outputs.build-cache-hit || 'false' }} |"
+            echo "| plt   | ${{ steps.plt_cache.outputs.cache-hit || 'false' }} |"
           } >> "$GITHUB_STEP_SUMMARY"
 
   optional-dependencies:
