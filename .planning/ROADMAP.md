@@ -227,7 +227,7 @@ and `mix.lock` resolved versions before pinning the new primary pair).
 - [x] 104-01-PLAN.md — Build setup-elixir + setup-minio composite actions + land .tool-versions (CACHE-01/02/05; wave 1)
 - [x] 104-02-PLAN.md — Migrate quality onto setup-elixir + PLT restore/save split + lockfile gates + lint de-dup (CACHE-01/03/04/05; wave 2)
 - [x] 104-03-PLAN.md — Adopt setup-elixir across literal-1.17/27 jobs + optional-dependencies (no-optional namespace) (CACHE-01/02; wave 3)
-- [ ] 104-04-PLAN.md — Adopt setup-minio across 5 ci.yml + 2 release.yml jobs + retire stray ffmpeg action (CACHE-01/05; wave 4)
+- [x] 104-04-PLAN.md — Adopt setup-minio across 5 ci.yml + 2 release.yml jobs + retire stray ffmpeg action (CACHE-01/05; wave 4)
 
 ---
 
@@ -631,7 +631,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 103. Observability / Baseline | 4/4 | Complete    | 2026-06-20 |
-| 104. Cache & Tooling Hygiene | 3/4 | In Progress|  |
+| 104. Cache & Tooling Hygiene | 4/4 | Complete   | 2026-06-21 |
 | 105. Aggregate Required Check + Branch-Protection Flip | 0/TBD | Not started | - |
 | 106. Trigger Split + Matrix/Lane Refinement | 0/TBD | Not started | - |
 | 107. Reliability, Security & DX Hardening | 0/TBD | Not started | - |
