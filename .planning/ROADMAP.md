@@ -257,7 +257,10 @@ names. MUST precede Phase 106.
 4. The `CI` workflow file name and `name: CI` are preserved, keeping the release-train coupling
    (`release-please-automerge.yml` + `gate-ci-green`) intact (GATE-02).
 
-**Plans:** TBD
+**Plans:** 1 plan
+
+Plans:
+- [ ] 105-01-PLAN.md — add the `CI Summary` aggregate job + collapse `setup_branch_protection.sh` to require only it (additive, no live mutation); document the post-merge human flip + verification (one isolated PR)
 
 ---
 
