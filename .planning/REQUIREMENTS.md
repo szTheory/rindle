@@ -31,7 +31,7 @@ dropping real quality signal — via a measure → classify → restructure pass
 
 ### Cache & Tooling Hygiene (CACHE)
 
-- [ ] **CACHE-01**: A `.github/actions/setup-elixir` composite action (plus a shared MinIO setup
+- [x] **CACHE-01**: A `.github/actions/setup-elixir` composite action (plus a shared MinIO setup
   step) is the single source of truth for environment setup and cache keys across the jobs that
   duplicate that block today.
 
@@ -39,13 +39,13 @@ dropping real quality signal — via a measure → classify → restructure pass
   version buster; deps, `_build`, and PLT caches are kept separate and never restored across
   incompatible dimensions.
 
-- [ ] **CACHE-03**: The Dialyzer PLT uses an `actions/cache` restore/save split that persists the
+- [x] **CACHE-03**: The Dialyzer PLT uses an `actions/cache` restore/save split that persists the
   built PLT even when analysis fails, with the PLT key hashing `mix.exs`/`.dialyzer_ignore.exs`.
 
-- [ ] **CACHE-04**: `mix deps.get --check-locked` and `mix deps.unlock --check-unused` gate
+- [x] **CACHE-04**: `mix deps.get --check-locked` and `mix deps.unlock --check-unused` gate
   lockfile drift so a stale or unused lock cannot pass via broad restore keys.
 
-- [ ] **CACHE-05**: Version-invariant lint (`format --check-formatted`, Credo, doctor) runs once on
+- [x] **CACHE-05**: Version-invariant lint (`format --check-formatted`, Credo, doctor) runs once on
   the primary pair instead of redundantly on every matrix cell; `.tool-versions` lands and the stray
   `setup-ffmpeg` action in `release.yml` is aligned to the repo's ffmpeg install path.
 
@@ -133,11 +133,11 @@ Populated during roadmap creation.
 | OBS-01 | Phase 103 | Complete |
 | OBS-02 | Phase 103 | Complete |
 | OBS-03 | Phase 103 | Complete |
-| CACHE-01 | Phase 104 | Pending |
+| CACHE-01 | Phase 104 | Complete |
 | CACHE-02 | Phase 104 | Pending |
-| CACHE-03 | Phase 104 | Pending |
-| CACHE-04 | Phase 104 | Pending |
-| CACHE-05 | Phase 104 | Pending |
+| CACHE-03 | Phase 104 | Complete |
+| CACHE-04 | Phase 104 | Complete |
+| CACHE-05 | Phase 104 | Complete |
 | GATE-01 | Phase 105 | Pending |
 | GATE-02 | Phase 105 | Pending |
 | LANE-01 | Phase 106 | Pending |

@@ -6,14 +6,14 @@ current_phase: 104
 current_phase_name: cache-tooling-hygiene
 status: executing
 stopped_at: Phase 104 context gathered (assumptions mode)
-last_updated: "2026-06-21T16:40:53.492Z"
+last_updated: "2026-06-21T16:50:25.263Z"
 last_activity: 2026-06-21
 last_activity_desc: Phase 104 execution started
 progress:
   total_phases: 13
   completed_phases: 1
   total_plans: 8
-  completed_plans: 5
+  completed_plans: 6
   percent: 8
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-06-19)
 ## Current Position
 
 Phase: 104 (cache-tooling-hygiene) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 Status: Ready to execute
 Last activity: 2026-06-21 — Phase 104 execution started
 
@@ -274,6 +274,8 @@ required-check names before any topology change, and surface timing/cache/slowes
 - [Phase ?]: 104-01: setup-elixir composite shipped (uses: ./.github/actions/setup-elixir) — inputs elixir-version/otp-version required, mix-env(test)/cache-prefix(default)/install-deps(true); outputs deps-cache-hit/build-cache-hit; CACHE-02 key carries OS+arch+resolved-OTP+resolved-Elixir+MIX_ENV+hashFiles('mix.lock')+v1; cache-prefix=no-optional yields deps-no-optional/build-no-optional (D-05/D-06); no compile step.
 - [Phase ?]: 104-01: setup-minio composite shipped — docker run minio/minio + health-ready wait + mc install + 'mc mb --ignore-existing local/rindle-test' byte-identical to ci.yml; lone input cors-allow-origin(default empty) gates -e MINIO_API_CORS_ALLOW_ORIGIN for adoption-demo-e2e; no job env/if-gate baked in (D-02).
 - [Phase ?]: 104-01: .tool-versions landed (elixir 1.17.3-otp-27/erlang 27.2/nodejs 20.18.1) local-dev-only, NO setup-beam version-file wiring (D-13); patches PINNED-FOR-CONFIRMATION (asdf list-all blocked in sandbox) — confirm vs next CI setup-beam resolution. Side effect: file shadows local asdf node resolution.
+- [Phase ?]: 104-02: quality job migrated onto the setup-elixir composite (D-03 canary); composite called install-deps:false so quality owns its CACHE-04-gated deps.get
+- [Phase ?]: 104-02: PLT split = restore/save with save-before-analysis (D-08), keyed on mix.exs+.dialyzer_ignore.exs (D-07); PLT prefix uses coarse matrix.otp/elixir since setup-elixir does not surface resolved versions at job scope
 
 ## Blockers/Concerns
 
@@ -300,7 +302,7 @@ required-check names before any topology change, and surface timing/cache/slowes
 
 ## Session Continuity
 
-Last session: 2026-06-21T16:40:18.868Z
+Last session: 2026-06-21T16:49:54.247Z
 Stopped at: Phase 104 context gathered (assumptions mode)
 Resume file: .planning/phases/104-cache-tooling-hygiene/104-CONTEXT.md
 
@@ -379,6 +381,7 @@ Resume file: .planning/phases/104-cache-tooling-hygiene/104-CONTEXT.md
 | Phase 103 P03 | 9 min | 3 tasks | 1 files |
 | Phase 103 P04 | 9 min | 2 tasks | 2 files |
 | Phase 104 P01 | 1 min | 3 tasks | 3 files |
+| Phase 104 P02 | 4 min | 3 tasks | 1 files |
 
 ## Operator Next Steps
 
