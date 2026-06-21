@@ -124,3 +124,7 @@ None. All three artifacts are complete and self-contained; they have no data sou
 | 1 | `131fae7` | feat | `.github/actions/setup-elixir/action.yml` |
 | 2 | `a1d96c7` | feat | `.github/actions/setup-minio/action.yml` |
 | 3 | `384f889` | chore | `.tool-versions` |
+
+## Self-Check: PASSED
+
+All 3 created files exist on disk; all 3 task commits (`131fae7`, `a1d96c7`, `384f889`) are present in git history.

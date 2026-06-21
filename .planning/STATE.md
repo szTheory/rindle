@@ -2,15 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: CI/CD Performance
+current_phase: 104
+current_phase_name: cache-tooling-hygiene
 status: executing
 stopped_at: Phase 104 context gathered (assumptions mode)
-last_updated: "2026-06-21T16:31:58.346Z"
-last_activity: 2026-06-21 -- Phase 104 planning complete
+last_updated: "2026-06-21T16:40:53.492Z"
+last_activity: 2026-06-21
+last_activity_desc: Phase 104 execution started
 progress:
   total_phases: 13
   completed_phases: 1
   total_plans: 8
-  completed_plans: 4
+  completed_plans: 5
   percent: 8
 ---
 
@@ -21,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-19)
 
 **Core value:** Media, made durable.
-**Current focus:** Phase 103 — observability-baseline
+**Current focus:** Phase 104 — cache-tooling-hygiene
 
 ## Current Position
 
-Phase: 104 — Cache & Tooling Hygiene
-Plan: Not started
+Phase: 104 (cache-tooling-hygiene) — EXECUTING
+Plan: 2 of 4
 Status: Ready to execute
-Last activity: 2026-06-21 -- Phase 104 planning complete
+Last activity: 2026-06-21 — Phase 104 execution started
 
 ### v1.20 roadmap (Phases 103–107) — load-bearing dependency order
 
@@ -268,6 +271,9 @@ required-check names before any topology change, and surface timing/cache/slowes
 - [Phase 102]: Plan 06: v1.19 audit records 20/20 requirements mapped and complete, including stale UPLIFT-01 traceability corrected from Phase 95 summaries; VIS-01..VIS-04 are complete.
 - [Phase ?]: Phase 103 Plan 03: ci.yml instrumented additively/observationally — cache id:s + hit/miss tables, OBS-02 evidence, JUnit+coverage artifact upload, job-scoped ci-observability aggregator (per-job + per-step native timing from one jobs API read); name:CI/filename/workflow contents:read/run: gates unchanged; zero lib/ change; per-step jq matches display-name prefixes not job keys.
 - [Phase 103]: Plan 04: OBS-03 baseline (103-BASELINE.md) captured before restructuring — per-job avg/p95 + 8/50 rerun over last 50 main runs, verbatim 12 live required-check contexts, brandbook-tokens drift recorded NOT fixed (D-09/D-14); fixed --paginate per-page slice bug in collect_ci_baseline.sh; internal .planning/ only, zero lib/ change.
+- [Phase ?]: 104-01: setup-elixir composite shipped (uses: ./.github/actions/setup-elixir) — inputs elixir-version/otp-version required, mix-env(test)/cache-prefix(default)/install-deps(true); outputs deps-cache-hit/build-cache-hit; CACHE-02 key carries OS+arch+resolved-OTP+resolved-Elixir+MIX_ENV+hashFiles('mix.lock')+v1; cache-prefix=no-optional yields deps-no-optional/build-no-optional (D-05/D-06); no compile step.
+- [Phase ?]: 104-01: setup-minio composite shipped — docker run minio/minio + health-ready wait + mc install + 'mc mb --ignore-existing local/rindle-test' byte-identical to ci.yml; lone input cors-allow-origin(default empty) gates -e MINIO_API_CORS_ALLOW_ORIGIN for adoption-demo-e2e; no job env/if-gate baked in (D-02).
+- [Phase ?]: 104-01: .tool-versions landed (elixir 1.17.3-otp-27/erlang 27.2/nodejs 20.18.1) local-dev-only, NO setup-beam version-file wiring (D-13); patches PINNED-FOR-CONFIRMATION (asdf list-all blocked in sandbox) — confirm vs next CI setup-beam resolution. Side effect: file shadows local asdf node resolution.
 
 ## Blockers/Concerns
 
@@ -294,7 +300,7 @@ required-check names before any topology change, and surface timing/cache/slowes
 
 ## Session Continuity
 
-Last session: 2026-06-21T16:00:26.113Z
+Last session: 2026-06-21T16:40:18.868Z
 Stopped at: Phase 104 context gathered (assumptions mode)
 Resume file: .planning/phases/104-cache-tooling-hygiene/104-CONTEXT.md
 
@@ -372,6 +378,7 @@ Resume file: .planning/phases/104-cache-tooling-hygiene/104-CONTEXT.md
 | Phase 103 P02 | 4 min | 2 tasks | 2 files |
 | Phase 103 P03 | 9 min | 3 tasks | 1 files |
 | Phase 103 P04 | 9 min | 2 tasks | 2 files |
+| Phase 104 P01 | 1 min | 3 tasks | 3 files |
 
 ## Operator Next Steps
 
