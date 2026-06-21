@@ -1,0 +1,99 @@
+name: setup-elixir
+description: >-
+  Single source of truth for Elixir/OTP environment setup and dependency caching
+  (CACHE-01). Installs the BEAM toolchain via erlef/setup-beam and restores the
+  deps and _build caches with resolved-version-aware keys (CACHE-02). Exposes the
+  deps/_build cache-hit values as outputs so the OBS-01 $GITHUB_STEP_SUMMARY
+  cache hit/miss table keeps working unchanged. Does NOT compile — job-specific
+  compile flags stay at the caller's job level (D-01).
+
+inputs:
+  elixir-version:
+    description: "Elixir version to install (e.g. '1.17'). Passed verbatim to erlef/setup-beam."
+    required: true
+  otp-version:
+    description: "Erlang/OTP version to install (e.g. '27'). Passed verbatim to erlef/setup-beam."
+    required: true
+  mix-env:
+    description: >-
+      MIX_ENV for this setup. Becomes the explicit MIX_ENV key segment so the
+      deps/_build cache lineage is never accidentally forked by an empty env (D-09).
+    required: false
+    default: "test"
+  cache-prefix:
+    description: >-
+      Cache namespace selector. The default keeps the canonical
+      'deps-v1-…' / 'build-v1-…' namespace; pass 'no-optional' from the
+      optional-dependencies job to get the deliberately-separate
+      'deps-no-optional-v1-…' / 'build-no-optional-v1-…' namespace (D-06).
+      Use 'default' (or leave unset) for every other caller.
+    required: false
+    default: "default"
+  install-deps:
+    description: >-
+      When 'true' (default) the composite runs `mix deps.get`. Callers that need a
+      job-specific fetch (e.g. `--no-optional-deps`, `--check-locked`) pass 'false'
+      and run their own deps.get after this action.
+    required: false
+    default: "true"
+
+outputs:
+  deps-cache-hit:
+    description: "'true' when the deps cache was restored on an exact key hit (for the OBS-01 summary)."
+    value: ${{ steps.deps_cache.outputs.cache-hit }}
+  build-cache-hit:
+    description: "'true' when the _build cache was restored on an exact key hit (for the OBS-01 summary)."
+    value: ${{ steps.build_cache.outputs.cache-hit }}
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Elixir/OTP
+      id: beam
+      uses: erlef/setup-beam@v1
+      with:
+        elixir-version: ${{ inputs.elixir-version }}
+        otp-version: ${{ inputs.otp-version }}
+
+    # cache-prefix selects the namespace: 'default' -> deps/build, otherwise
+    # deps-<prefix>/build-<prefix> (e.g. 'no-optional' -> deps-no-optional, D-06).
+    - name: Compute cache namespaces
+      id: ns
+      shell: bash
+      run: |
+        if [ "${{ inputs.cache-prefix }}" = "default" ] || [ -z "${{ inputs.cache-prefix }}" ]; then
+          echo "deps_ns=deps" >> "$GITHUB_OUTPUT"
+          echo "build_ns=build" >> "$GITHUB_OUTPUT"
+        else
+          echo "deps_ns=deps-${{ inputs.cache-prefix }}" >> "$GITHUB_OUTPUT"
+          echo "build_ns=build-${{ inputs.cache-prefix }}" >> "$GITHUB_OUTPUT"
+        fi
+
+    # CACHE-02 key schema: OS + arch + resolved (patch-level) OTP + resolved
+    # Elixir + MIX_ENV + repo-root mix.lock hash + v1 buster. restore-keys fall
+    # back across mix.lock hashes only — OTP/Elixir/MIX_ENV live in the prefix so
+    # a fallback can never poison the tree across incompatible toolchains (D-05).
+    - name: Restore deps cache
+      id: deps_cache
+      uses: actions/cache@v4
+      with:
+        path: deps
+        key: ${{ steps.ns.outputs.deps_ns }}-v1-${{ runner.os }}-${{ runner.arch }}-otp${{ steps.beam.outputs.otp-version }}-elixir${{ steps.beam.outputs.elixir-version }}-${{ inputs.mix-env }}-${{ hashFiles('mix.lock') }}
+        restore-keys: |
+          ${{ steps.ns.outputs.deps_ns }}-v1-${{ runner.os }}-${{ runner.arch }}-otp${{ steps.beam.outputs.otp-version }}-elixir${{ steps.beam.outputs.elixir-version }}-${{ inputs.mix-env }}-
+
+    - name: Restore build cache
+      id: build_cache
+      uses: actions/cache@v4
+      with:
+        path: _build
+        key: ${{ steps.ns.outputs.build_ns }}-v1-${{ runner.os }}-${{ runner.arch }}-otp${{ steps.beam.outputs.otp-version }}-elixir${{ steps.beam.outputs.elixir-version }}-${{ inputs.mix-env }}-${{ hashFiles('mix.lock') }}
+        restore-keys: |
+          ${{ steps.ns.outputs.build_ns }}-v1-${{ runner.os }}-${{ runner.arch }}-otp${{ steps.beam.outputs.otp-version }}-elixir${{ steps.beam.outputs.elixir-version }}-${{ inputs.mix-env }}-
+
+    - name: Install dependencies
+      if: ${{ inputs.install-deps == 'true' }}
+      shell: bash
+      env:
+        MIX_ENV: ${{ inputs.mix-env }}
+      run: mix deps.get
