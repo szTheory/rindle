@@ -1314,6 +1314,18 @@ jobs:
                    | "| \(.[0]) | \(.[1]) | \(.[2]) |"' /tmp/ci-jobs.json
           } >> "$GITHUB_STEP_SUMMARY"
 
+  ci-script-tests:
+    name: CI Script Tests
+    runs-on: ubuntu-22.04
+    # Unit tests for the CI gate scripts themselves (pure bash + jq, no project
+    # toolchain). Pins the CI Summary skip-as-pass logic (the fork "pending forever"
+    # fix) so it is merge-blocking. Gated transitively via ci-summary's needs:, not
+    # as its own required context — CI Summary stays the single required check.
+    steps:
+      - uses: actions/checkout@v4
+      - name: CI Summary gate logic
+        run: bash scripts/ci/test_ci_summary_gate.sh
+
   ci-summary:
     name: CI Summary
     runs-on: ubuntu-22.04
@@ -1329,39 +1341,19 @@ jobs:
       - adoption-demo-e2e
       - adopter
       - brandbook-tokens
+      - ci-script-tests
     if: always()
     # NO permissions: block — inherits the workflow default contents: read (D-02).
-    # This job makes NO network / `gh api` call: it is a pure evaluation of the
-    # `needs.*.result` context, so it can never false-red on a GitHub API hiccup
-    # (the 401-class flake recorded in 103-BASELINE.md) the way ci-observability can.
+    # The evaluation makes NO `gh api` call (only a checkout to fetch the script): it
+    # is a pure evaluation of the `needs.*.result` context, so it can never false-red
+    # on a GitHub API hiccup (the 401-class flake recorded in 103-BASELINE.md) the way
+    # ci-observability can.
     steps:
+      - uses: actions/checkout@v4
       - name: Evaluate gating job results
         env:
+          # Pure evaluation of needs.*.result (skip-as-pass, D-05/D-06). The logic
+          # lives in scripts/ci/eval_ci_summary.sh so it is unit-tested by
+          # scripts/ci/test_ci_summary_gate.sh — behavior here is unchanged.
           NEEDS_JSON: ${{ toJSON(needs) }}
-        run: |
-          set -euo pipefail
-          failed=0
-          {
-            echo "## CI Summary"
-            echo ""
-            echo "| Job | Result |"
-            echo "| --- | --- |"
-          } >> "$GITHUB_STEP_SUMMARY"
-          # Iterate every job in needs (drift-proof: auto-covers whatever is in
-          # needs:, so there is no per-lane env var to keep in sync — D-06).
-          while IFS=$'\t' read -r job result; do
-            echo "| ${job} | ${result} |" >> "$GITHUB_STEP_SUMMARY"
-            case "${result}" in
-              success|skipped) ;;                       # D-05: success + skipped → pass
-              *)                                         # failure | cancelled → fail
-                echo "Gating job '${job}': ${result}"
-                failed=1
-                ;;
-            esac
-          done < <(jq -r 'to_entries[] | "\(.key)\t\(.value.result)"' <<<"${NEEDS_JSON}")
-          # Collect-all-then-exit (D-06): every red lane is logged above before we fail.
-          if [ "${failed}" -ne 0 ]; then
-            echo "CI Summary: one or more gating jobs did not pass." >&2
-            exit 1
-          fi
-          echo "CI Summary: all gating jobs passed (success or intentional skip)."
+        run: bash scripts/ci/eval_ci_summary.sh
