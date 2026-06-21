@@ -30,6 +30,10 @@ jobs:
             otp: "26"
           - elixir: "1.17"
             otp: "27"
+            # CACHE-05 (D-12): version-invariant lint (format/credo/doctor) runs
+            # once on the newest home pair so the formatter enforces an
+            # up-to-date contributor's local output. Guarded via `if: matrix.lint`.
+            lint: true
     env:
       PGUSER: postgres
       PGPASSWORD: postgres
@@ -95,18 +99,28 @@ jobs:
       - name: Compile (warnings as errors)
         run: mix compile --warnings-as-errors
 
+      # CACHE-05 (D-12): version-invariant lint runs once on the lint cell
+      # (1.17/27, `lint: true`). The `lint-cell:` marker is grep-able in the run
+      # log so the SUMMARY can assert lint actually fired on 1.17/27 and is
+      # absent on 1.15/26 (a typo'd `if:` would otherwise skip silently).
       - name: Check formatting
-        run: mix format --check-formatted
+        if: ${{ matrix.lint }}
+        run: |
+          echo "lint-cell: format running"
+          mix format --check-formatted
 
       # CI-04 (v1.17): Credo and Dialyzer remain advisory (continue-on-error).
       # Doctor and AV doctor also advisory — not part of CI-04 decision record.
       # Default unit suite (mix coveralls) is merge-blocking. See RUNNING.md
       # `### Static analysis policy (CI-04)` and `## CI lane severity`.
+      # CACHE-05 (D-12): de-dup only — continue-on-error preserved exactly.
       - name: Credo (strict)
+        if: ${{ matrix.lint }}
         run: mix credo --strict
         continue-on-error: true
 
       - name: Doctor (full, raise)
+        if: ${{ matrix.lint }}
         run: MIX_ENV=test mix doctor --full --raise
         continue-on-error: true
 
@@ -163,21 +177,38 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
+      # CACHE-03 (D-07, D-08): PLT restore/save split. The key hashes
+      # mix.exs + .dialyzer_ignore.exs (NOT mix.lock) so the multi-minute PLT
+      # is not invalidated by every unrelated dep bump; the prefix carries
+      # OS+arch+OTP+Elixir+v1. The composite does not surface resolved
+      # OTP/Elixir versions at job scope, so the prefix falls back to the
+      # coarse matrix.otp/matrix.elixir values (documented in the SUMMARY).
       - name: Restore PLT cache
-        uses: actions/cache@v4
-        id: plt-cache
+        uses: actions/cache/restore@v4
+        id: plt_cache
         with:
           path: priv/plts
-          key: plt-${{ runner.os }}-${{ matrix.elixir }}-${{ matrix.otp }}-${{ hashFiles('**/mix.lock') }}
-          restore-keys: plt-${{ runner.os }}-${{ matrix.elixir }}-${{ matrix.otp }}-
+          key: plt-v1-${{ runner.os }}-${{ runner.arch }}-otp${{ matrix.otp }}-elixir${{ matrix.elixir }}-${{ hashFiles('mix.exs', '.dialyzer_ignore.exs') }}
+          restore-keys: |
+            plt-v1-${{ runner.os }}-${{ runner.arch }}-otp${{ matrix.otp }}-elixir${{ matrix.elixir }}-
 
       - name: Create PLT directory
-        if: steps.plt-cache.outputs.cache-hit != 'true'
+        if: steps.plt_cache.outputs.cache-hit != 'true'
         run: mkdir -p priv/plts
 
       - name: Build PLT
-        if: steps.plt-cache.outputs.cache-hit != 'true'
+        if: steps.plt_cache.outputs.cache-hit != 'true'
         run: mix dialyzer --plt
+
+      # CACHE-03 crux (D-08): save the built PLT BEFORE the advisory dialyzer
+      # analysis step so the PLT persists even though `mix dialyzer` below is
+      # continue-on-error. Guarded `cache-hit != 'true'` — NOT `if: always()`.
+      - name: Save PLT cache
+        if: steps.plt_cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: priv/plts
+          key: plt-v1-${{ runner.os }}-${{ runner.arch }}-otp${{ matrix.otp }}-elixir${{ matrix.elixir }}-${{ hashFiles('mix.exs', '.dialyzer_ignore.exs') }}
 
       - name: Dialyzer
         continue-on-error: true
