@@ -342,27 +342,8 @@ jobs:
         # in lib/rindle/av/probe.ex. See scripts/ci/install_ffmpeg.sh.
         run: bash scripts/ci/install_ffmpeg.sh
 
-      - name: Start MinIO
-        run: |
-          docker run -d --name rindle-minio -p 9000:9000 -e MINIO_ROOT_USER=minioadmin -e MINIO_ROOT_PASSWORD=minioadmin minio/minio server /data --console-address ":9001"
-          for _ in $(seq 1 30); do
-            if curl -fsS http://localhost:9000/minio/health/ready >/dev/null; then
-              exit 0
-            fi
-            sleep 2
-          done
-          exit 1
-
-      - name: Install MinIO client
-        run: |
-          curl -fsSL https://dl.min.io/client/mc/release/linux-amd64/mc -o mc
-          chmod +x mc
-          sudo mv mc /usr/local/bin/mc
-
-      - name: Create MinIO bucket
-        run: |
-          mc alias set local http://localhost:9000 minioadmin minioadmin
-          mc mb --ignore-existing local/rindle-test
+      - name: Set up MinIO
+        uses: ./.github/actions/setup-minio
 
       - name: Install libvips
         run: sudo apt-get update && sudo apt-get install -y libvips-dev
@@ -633,27 +614,8 @@ jobs:
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Start MinIO for S3-compatible package-consumer proofs
-        run: |
-          docker run -d --name rindle-minio -p 9000:9000 -e MINIO_ROOT_USER=minioadmin -e MINIO_ROOT_PASSWORD=minioadmin minio/minio server /data --console-address ":9001"
-          for _ in $(seq 1 30); do
-            if curl -fsS http://localhost:9000/minio/health/ready >/dev/null; then
-              exit 0
-            fi
-            sleep 2
-          done
-          exit 1
-
-      - name: Install MinIO client
-        run: |
-          curl -fsSL https://dl.min.io/client/mc/release/linux-amd64/mc -o mc
-          chmod +x mc
-          sudo mv mc /usr/local/bin/mc
-
-      - name: Create MinIO bucket for real S3-compatible smoke coverage
-        run: |
-          mc alias set local http://localhost:9000 minioadmin minioadmin
-          mc mb --ignore-existing local/rindle-test
+      - name: Set up MinIO for S3-compatible package-consumer proofs
+        uses: ./.github/actions/setup-minio
 
       - name: Run release preflight
         env:
@@ -858,27 +820,10 @@ jobs:
       - name: Install root dependencies
         run: mix deps.get
 
-      - name: Start MinIO for adoption demo
-        run: |
-          docker run -d --name rindle-minio -p 9000:9000 -e MINIO_ROOT_USER=minioadmin -e MINIO_ROOT_PASSWORD=minioadmin -e MINIO_API_CORS_ALLOW_ORIGIN='*' minio/minio server /data --console-address ":9001"
-          for _ in $(seq 1 30); do
-            if curl -fsS http://localhost:9000/minio/health/ready >/dev/null; then
-              exit 0
-            fi
-            sleep 2
-          done
-          exit 1
-
-      - name: Install MinIO client
-        run: |
-          curl -fsSL https://dl.min.io/client/mc/release/linux-amd64/mc -o mc
-          chmod +x mc
-          sudo mv mc /usr/local/bin/mc
-
-      - name: Create MinIO bucket
-        run: |
-          mc alias set local http://localhost:9000 minioadmin minioadmin
-          mc mb --ignore-existing local/rindle-test
+      - name: Set up MinIO for adoption demo
+        uses: ./.github/actions/setup-minio
+        with:
+          cors-allow-origin: "*"
 
       - name: Cohort contrast + literal gate
         run: node brandbook/src/cohort-contrast.mjs
@@ -959,27 +904,8 @@ jobs:
       - name: Install dependencies
         run: mix deps.get
 
-      - name: Start MinIO
-        run: |
-          docker run -d --name rindle-minio -p 9000:9000 -e MINIO_ROOT_USER=minioadmin -e MINIO_ROOT_PASSWORD=minioadmin minio/minio server /data --console-address ":9001"
-          for _ in $(seq 1 30); do
-            if curl -fsS http://localhost:9000/minio/health/ready >/dev/null; then
-              exit 0
-            fi
-            sleep 2
-          done
-          exit 1
-
-      - name: Install MinIO client
-        run: |
-          curl -fsSL https://dl.min.io/client/mc/release/linux-amd64/mc -o mc
-          chmod +x mc
-          sudo mv mc /usr/local/bin/mc
-
-      - name: Create MinIO bucket
-        run: |
-          mc alias set local http://localhost:9000 minioadmin minioadmin
-          mc mb --ignore-existing local/rindle-test
+      - name: Set up MinIO
+        uses: ./.github/actions/setup-minio
 
       - name: Run adopter tests
         run: mix test --only adopter test/adopter/canonical_app/lifecycle_test.exs
@@ -1056,27 +982,8 @@ jobs:
       - name: Install dependencies
         run: mix deps.get
 
-      - name: Start MinIO for soak proof
-        run: |
-          docker run -d --name rindle-minio -p 9000:9000 -e MINIO_ROOT_USER=minioadmin -e MINIO_ROOT_PASSWORD=minioadmin minio/minio server /data --console-address ":9001"
-          for _ in $(seq 1 30); do
-            if curl -fsS http://localhost:9000/minio/health/ready >/dev/null; then
-              exit 0
-            fi
-            sleep 2
-          done
-          exit 1
-
-      - name: Install MinIO client
-        run: |
-          curl -fsSL https://dl.min.io/client/mc/release/linux-amd64/mc -o mc
-          chmod +x mc
-          sudo mv mc /usr/local/bin/mc
-
-      - name: Create MinIO bucket
-        run: |
-          mc alias set local http://localhost:9000 minioadmin minioadmin
-          mc mb --ignore-existing local/rindle-test
+      - name: Set up MinIO for soak proof
+        uses: ./.github/actions/setup-minio
 
       - name: Run real-Mux soak proof
         run: bash scripts/install_smoke.sh mux
