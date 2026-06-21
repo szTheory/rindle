@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: CI/CD Performance
-current_phase: 104
-current_phase_name: cache-tooling-hygiene
+current_phase: 105
+current_phase_name: Aggregate Required Check + Branch-Protection Flip
 status: verifying
 stopped_at: Phase 104 context gathered (assumptions mode)
-last_updated: "2026-06-21T17:06:06.163Z"
+last_updated: "2026-06-21T17:18:00.750Z"
 last_activity: 2026-06-21
-last_activity_desc: Phase 104 execution started
+last_activity_desc: Phase 104 complete, transitioned to Phase 105
 progress:
   total_phases: 13
   completed_phases: 2
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-06-19)
 
 ## Current Position
 
-Phase: 104 (cache-tooling-hygiene) — EXECUTING
-Plan: 4 of 4
+Phase: 105 — Aggregate Required Check + Branch-Protection Flip
+Plan: Not started
 Status: Phase complete — ready for verification
-Last activity: 2026-06-21 — Phase 104 execution started
+Last activity: 2026-06-21 — Phase 104 complete, transitioned to Phase 105
 
 ### v1.20 roadmap (Phases 103–107) — load-bearing dependency order
 
