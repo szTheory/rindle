@@ -1,0 +1,43 @@
+name: setup-minio
+description: >-
+  Single source of truth for the MinIO bring-up trio (CACHE-01 / D-02): start the
+  minio/minio container with a health-ready wait, install the `mc` client, and
+  create the test bucket. Caller jobs keep their own MinIO connection env and any
+  secret/label `if:` gates — those are NOT baked into this composite (D-02).
+
+inputs:
+  cors-allow-origin:
+    description: >-
+      When non-empty, injects `-e MINIO_API_CORS_ALLOW_ORIGIN=<value>` into the
+      docker run so the adoption-demo-e2e caller can pass '*'. Left empty (default)
+      for the four callers that do not need CORS, reproducing today's behavior.
+    required: false
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - name: Start MinIO
+      shell: bash
+      run: |
+        docker run -d --name rindle-minio -p 9000:9000 -e MINIO_ROOT_USER=minioadmin -e MINIO_ROOT_PASSWORD=minioadmin ${{ inputs.cors-allow-origin != '' && format('-e MINIO_API_CORS_ALLOW_ORIGIN=''{0}''', inputs.cors-allow-origin) || '' }} minio/minio server /data --console-address ":9001"
+        for _ in $(seq 1 30); do
+          if curl -fsS http://localhost:9000/minio/health/ready >/dev/null; then
+            exit 0
+          fi
+          sleep 2
+        done
+        exit 1
+
+    - name: Install MinIO client
+      shell: bash
+      run: |
+        curl -fsSL https://dl.min.io/client/mc/release/linux-amd64/mc -o mc
+        chmod +x mc
+        sudo mv mc /usr/local/bin/mc
+
+    - name: Create MinIO bucket
+      shell: bash
+      run: |
+        mc alias set local http://localhost:9000 minioadmin minioadmin
+        mc mb --ignore-existing local/rindle-test
