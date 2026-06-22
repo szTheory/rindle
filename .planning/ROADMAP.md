@@ -351,7 +351,7 @@ Plans:
 
 **Wave 2** *(both depend on 107-02 for the `mix.exs` / `ci.yml` edits; 03 and 04 touch disjoint files — parallel)*
 
-- [ ] 107-03-PLAN.md — HARD-03: `mix ci` alias mirroring the PR merge-blocking set (skip-with-note MinIO) + fill CONTRIBUTING reserved section + clarify README badge → `CI Summary`. *(depends on 107-02 — shares `mix.exs`)*
+- [x] 107-03-PLAN.md — HARD-03: `mix ci` alias mirroring the PR merge-blocking set (skip-with-note MinIO) + fill CONTRIBUTING reserved section + clarify README badge → `CI Summary`. *(depends on 107-02 — shares `mix.exs`)*
 - [ ] 107-04-PLAN.md — HARD-04: pinned `playwright:v1.57.0-noble` container (CI lane + `scripts/ci/e2e_local.sh`) + exact `@playwright/test` 1.57.0 pin + shared `WCAG_AA_NORMAL = 4.5` contrast constant. *(depends on 107-02 — shares `ci.yml`)*
 
 **Research flag:** Which of the non-async test modules are *genuinely* unsafe vs conservatively
@@ -662,7 +662,7 @@ Plans:
 | 104. Cache & Tooling Hygiene | 4/4 | Complete    | 2026-06-21 |
 | 105. Aggregate Required Check + Branch-Protection Flip | 1/1 | Complete   | 2026-06-21 |
 | 106. Trigger Split + Matrix/Lane Refinement | 4/4 | Complete    | 2026-06-22 |
-| 107. Reliability, Security & DX Hardening | 2/4 | In Progress|  |
+| 107. Reliability, Security & DX Hardening | 3/4 | In Progress|  |
 | 94. Foundation — Token Pipeline CI Gate & New Categories | 5/5 | Complete    | 2026-06-15 |
 | 95. Admin Level-1 Component Audit [A] | 5/5 | Complete   | 2026-06-16 |
 | 96. Cohort Component Layer + Dark/Reduced-Motion [B] | 5/5 | Complete    | 2026-06-17 |

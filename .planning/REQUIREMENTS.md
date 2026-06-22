@@ -86,7 +86,7 @@ dropping real quality signal — via a measure → classify → restructure pass
   (`github-actions` + `mix`) lands, `{:mix_audit, "~> 2.1"}` is added to the audit lane, and each job
   declares least-privilege `permissions:`.
 
-- [ ] **HARD-03**: A single local `mix ci` alias mirrors the merge-blocking checks; `CONTRIBUTING.md`
+- [x] **HARD-03**: A single local `mix ci` alias mirrors the merge-blocking checks; `CONTRIBUTING.md`
   documents the lanes, the required check, and the local command; the README badge points at the
   meaningful (`CI Summary`) check.
 
@@ -146,7 +146,7 @@ Populated during roadmap creation.
 | LANE-04 | Phase 106 | Complete |
 | HARD-01 | Phase 107 | Complete |
 | HARD-02 | Phase 107 | Complete |
-| HARD-03 | Phase 107 | Pending |
+| HARD-03 | Phase 107 | Complete |
 | HARD-04 | Phase 107 | Pending |
 
 **Coverage:**
