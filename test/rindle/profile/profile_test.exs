@@ -1,5 +1,8 @@
+# async: false — this module calls `Application.put_env(:rindle, :signed_url_ttl_seconds, ...)`
+# which is read process-globally by lib/rindle/config.ex and shared with delivery_test;
+# concurrent execution would race on that app-env key (HARD-01 async-safety guard).
 defmodule Rindle.Profile.ProfileTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
 
   defmodule TestProfile do
     use Rindle.Profile,

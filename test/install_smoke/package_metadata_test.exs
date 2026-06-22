@@ -1,6 +1,15 @@
 defmodule Rindle.InstallSmoke.PackageMetadataTest do
   use ExUnit.Case, async: true
 
+  # async-safety: justified — the only File mutation is `File.rm_rf(cleanup_root)` in on_exit,
+  # where `cleanup_root` is a unique per-build tmp root returned by `build_package!()`. The
+  # static guard can't bridge the setup_all-return tuple, so the file_mutation primitive is
+  # allow-listed here. (HARD-01 async-safety guard)
+  @async_safety_allow [:file_mutation]
+  # Referenced so the compiler sees the attribute as used; the async-safety guard
+  # itself reads it from the source AST (Code.string_to_quoted!), not at runtime.
+  def __async_safety_allow__, do: @async_safety_allow
+
   @repo_root Path.expand("../..", __DIR__)
   @preflight_script Path.join(@repo_root, "scripts/release_preflight.sh")
   @install_smoke_script Path.join(@repo_root, "scripts/install_smoke.sh")

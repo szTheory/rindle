@@ -1,5 +1,8 @@
+# async: false — this module calls `Application.put_env(:rindle, Rindle.Streaming.Provider.Mux, ...)`
+# which is read process-globally by the Mux provider; concurrent execution would race on that
+# app-env key (HARD-01 async-safety guard).
 defmodule Rindle.Streaming.Provider.Mux.HttpCancelUploadTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
 
   alias Rindle.Streaming.Provider.Mux.HTTP
 

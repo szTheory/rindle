@@ -1,6 +1,15 @@
 defmodule Rindle.Storage.LocalTest do
   use ExUnit.Case, async: true
 
+  # async-safety: justified — every File.write! targets a path under a per-test-unique
+  # tmp root (`System.tmp_dir!()` + `System.unique_integer`), so no two tests share a path.
+  # The static guard can't bridge the `root`→`opts`→`Local.path_for/2` setup-return var, so
+  # the file_mutation primitive is allow-listed here. (HARD-01 async-safety guard)
+  @async_safety_allow [:file_mutation]
+  # Referenced so the compiler sees the attribute as used; the async-safety guard
+  # itself reads it from the source AST (Code.string_to_quoted!), not at runtime.
+  def __async_safety_allow__, do: @async_safety_allow
+
   alias Rindle.Storage.Local
 
   setup do
