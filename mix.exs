@@ -51,7 +51,11 @@ defmodule Rindle.MixProject do
         "coveralls.detail": :test,
         "coveralls.html": :test,
         "coveralls.json": :test,
-        precommit: :test
+        precommit: :test,
+        # HARD-03 (D-07): `mix ci` ends in the gating unit suite, which must run
+        # under MIX_ENV=test (same as `precommit`); otherwise the nested `test`
+        # task raises the "running in dev environment" guard.
+        ci: :test
       ]
     ]
   end
@@ -286,6 +290,32 @@ defmodule Rindle.MixProject do
     [
       "gsd.clean": ["cmd bash scripts/gsd_cleanup.sh"],
       precommit: ["test"],
+      # HARD-03 (D-07): `mix ci` reproduces the PR merge-blocking verdict locally.
+      # Ordered fast-static -> compile -> format -> brandbook drift gates -> the
+      # gating unit suite last. It mirrors ONLY the merge-blocking set surfaced by
+      # the `CI Summary` gate (ci.yml `quality` + `brandbook-tokens`); it does NOT
+      # include push:main/nightly-only lanes (package-consumer-full, adoption-demo
+      # -e2e, mux-soak, the broad OTP x Elixir matrix, Dialyzer).
+      #
+      # MinIO/integration legs are deliberately ABSENT: the final `test` task runs
+      # the default-tag suite, which test/test_helper.exs already excludes
+      # :integration/:minio/:contract/:adopter from — so `mix ci` runs on a fresh
+      # clone WITHOUT a running MinIO and never hard-fails for its absence
+      # (Pitfall 5). The full-parity storage command is documented in CONTRIBUTING.
+      # The Playwright browser gallery proof is omitted to keep `mix ci`
+      # Elixir-toolchain-only (covered by `brandbook-tokens` in CI +
+      # scripts/ci/e2e_local.sh locally).
+      ci: [
+        "deps.get --check-locked",
+        "deps.unlock --check-unused",
+        "compile --warnings-as-errors",
+        "format --check-formatted",
+        "cmd node brandbook/src/tokens-build.mjs",
+        "cmd node brandbook/src/admin-css-build.mjs",
+        "cmd node brandbook/src/admin-contrast.mjs",
+        "cmd node brandbook/src/sync-admin-css.mjs",
+        "test"
+      ],
       setup: ["deps.get", "ecto.setup"],
       "ecto.setup": ["ecto.create", "ecto.migrate"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
