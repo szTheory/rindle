@@ -1,7 +1,8 @@
 ---
 phase: 105-aggregate-required-check-branch-protection-flip
 verified: 2026-06-21T00:00:00Z
-status: human_needed
+reconciled: 2026-06-22T00:00:00Z
+status: passed
 score: 6/6 must-haves verified
 behavior_unverified: 0
 overrides_applied: 0
@@ -18,7 +19,7 @@ human_verification:
 
 **Phase Goal:** Isolate the single highest-blast-radius migration — making one stable aggregate the sole required check — into one reviewable PR, landed before any matrix/lane rename so subsequent renames never touch branch protection again.
 **Verified:** 2026-06-21
-**Status:** human_needed
+**Status:** passed (human-verification items resolved 2026-06-22 — see Reconciliation)
 **Re-verification:** No — initial verification
 
 ## Goal Achievement
@@ -101,7 +102,27 @@ Both declared requirement IDs accounted for. No orphaned requirements: REQUIREME
 
 No gaps. All automatable-scope must-haves are VERIFIED against the actual codebase — this is not a SUMMARY.md trust exercise: every claim was re-derived from the live files (`ci.yml`, `setup_branch_protection.sh`, `release.yml`, `release-please-automerge.yml`, `check_required_checks.sh`, `105-FLIP-RUNBOOK.md`) and re-run assertions. The only outstanding item is the live branch-protection flip, which is correctly architected as a deferred, blocking, post-merge human checkpoint (Task 4) and surfaced here as a human-verification item per the phase's two-scope acceptance design. Status is `human_needed` (not `passed`) solely because the human-verification section is non-empty; status is not `gaps_found` because nothing in the automatable scope failed.
 
+### Reconciliation — Human-Verification Items Resolved (2026-06-22)
+
+Both human-verification items are now satisfied; status advanced `human_needed` → `passed`.
+
+**1. Post-merge live branch-protection flip + read-back — DONE (live).**
+The accumulated v1.20 work was pushed to `origin/main`; after clearing two pre-existing
+CI failures (`json_polyfill`/`--check-locked` lockfile bug `0751fdb`; S3-IMDS test stub
+`6d2a385`), `CI Summary` ran green on `main` (HEAD `6d2a385`). The flip was then executed
+per `105-FLIP-RUNBOOK.md`: `bash scripts/setup_branch_protection.sh main` (the new
+pending-forever-trap guard passed — `CI Summary` check-run present on HEAD), and
+`bash scripts/ci/check_required_checks.sh main` showed live `.contexts[] == ["CI Summary"]`
+with an **EMPTY diff**. Live branch protection now requires exactly `CI Summary`.
+
+**2. Fork-PR skip-as-pass — RESOLVED via automation (no longer human-only).**
+The skip-as-pass gate logic was extracted to `scripts/ci/eval_ci_summary.sh` and pinned by
+`scripts/ci/test_ci_summary_gate.sh` (mock `toJSON(needs)`: repo-gated-skipped → exit 0;
+failure/cancelled → exit 1), run as the merge-blocking `ci-script-tests` job (commit
+`ca70075`). GitHub's own fork `if:` evaluation remains platform behavior, out of unit-test
+scope by design — but the regressable gate logic is now covered automatically.
+
 ---
 
-_Verified: 2026-06-21_
+_Verified: 2026-06-21 · Reconciled: 2026-06-22_
 _Verifier: Claude (gsd-verifier)_
