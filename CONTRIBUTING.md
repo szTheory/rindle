@@ -5,10 +5,78 @@ library; contributions follow the same production-aware, maintainer-to-maintaine
 posture as the rest of the project.
 
 This document focuses on **what CI runs on your PR versus after merge**, so you know
-which signal is fast-feedback and which is release-readiness breadth. The deeper local
-developer workflow — a single `mix ci` equivalent and faithful local reproduction of the
-CI Linux/Chromium gates — is being added in a follow-up (Phase 107, HARD-03); this file
-will gain those local commands then.
+which signal is fast-feedback and which is release-readiness breadth, and on the single
+local command — `mix ci` — that reproduces the PR verdict before you push.
+
+## Reproduce the PR gate locally: `mix ci`
+
+`mix ci` runs the same merge-blocking checks the PR gate runs, in a sensible local order:
+
+```sh
+mix ci
+```
+
+It executes, in order:
+
+1. `deps.get --check-locked` and `deps.unlock --check-unused` — lockfile drift gates
+2. `compile --warnings-as-errors`
+3. `format --check-formatted`
+4. the four brandbook token→CSS drift gates
+   (`brandbook/src/tokens-build.mjs`, `admin-css-build.mjs`, `admin-contrast.mjs`,
+   `sync-admin-css.mjs`)
+5. the gating unit suite (the default-tag ExUnit suite, run under `MIX_ENV=test`)
+
+**The sole required check is `CI Summary`.** GitHub branch protection requires exactly one
+context — the `CI Summary` job (job id `ci-summary`) — and nothing else. It is a pure
+evaluation of the gating jobs' `needs.*.result`, where **`skipped` counts as pass** so that
+fork PRs (where repo-gated lanes are skipped) are never wedged "pending forever". The
+individual matrix-leg / lane names are intentionally *not* required contexts; only
+`CI Summary` is. `mix ci` mirrors that gate's PR-side check set locally — green `mix ci`
+means the PR-side `CI Summary` inputs should be green too.
+
+`mix ci` mirrors **only** the merge-blocking PR set. It does **not** run the
+push:main / nightly / label-gated lanes (the full five-profile package-consumer matrix +
+release preflight + `hex.publish --dry-run`, the Playwright browser E2E, the Docker-compose
+cold-start smoke, the broad OTP×Elixir matrix, the Dialyzer lane, or the real-API GCS/Mux
+soak lanes).
+
+### Prerequisites
+
+- **Postgres** — the gating suite creates and migrates `rindle_test` (`mix ci` runs
+  `ecto.create --quiet` / `ecto.migrate --quiet` via the `test` alias).
+- **Node** — the four brandbook drift gates are pure Node `.mjs` generators
+  (no Playwright/browser needed for `mix ci`).
+
+`mix ci` runs on a fresh clone **without** a running MinIO: its final step runs the
+default-tag suite, which `test/test_helper.exs` excludes the `:integration`, `:minio`,
+`:contract`, and `:adopter` tags from. It does **not** hard-fail when MinIO is absent.
+
+### Full-parity storage legs (optional)
+
+To additionally reproduce the storage/integration legs that the PR `integration` lane runs
+against MinIO, start a local MinIO and run the tagged suite explicitly:
+
+```sh
+RINDLE_MINIO_URL=http://localhost:9000 \
+RINDLE_MINIO_ACCESS_KEY=minioadmin RINDLE_MINIO_SECRET_KEY=minioadmin \
+RINDLE_MINIO_BUCKET=rindle-test RINDLE_MINIO_REGION=us-east-1 \
+  mix test --include minio --include integration
+```
+
+This requires a local MinIO (see the project's MinIO local-test-run notes). It is **not**
+part of `mix ci` so the base command stays fast and runnable on a fresh clone.
+
+### Faithful browser repro (Playwright)
+
+The browser-dependent gates (the token→CSS gallery proof and the adoption-demo E2E) are
+covered in CI by the `brandbook-tokens` lane and the push:main `Adoption Demo E2E` lane.
+To reproduce the browser gates locally on the same pinned Playwright container CI uses, run:
+
+```sh
+bash scripts/ci/e2e_local.sh
+```
+
+This is intentionally omitted from `mix ci` to keep that command Elixir/Node-toolchain-only.
 
 ## CI: what runs on your PR vs after merge
 

@@ -11,6 +11,11 @@
 [![Hex.pm](https://img.shields.io/hexpm/v/rindle.svg)](https://hex.pm/packages/rindle)
 [![Docs](https://img.shields.io/badge/hexdocs-latest-blue.svg)](https://hexdocs.pm/rindle)
 
+<sub>The CI badge tracks the `ci.yml` workflow run on `main`; that run's verdict is the
+`CI Summary` gate — the sole required check for merge. GitHub has no native per-check
+badge, so the workflow-run badge is the meaningful signal. Reproduce that gate locally
+with `mix ci` (see [CONTRIBUTING](CONTRIBUTING.md)).</sub>
+
 **Media, made durable.**
 
 Phoenix/Ecto-native media lifecycle library. Rindle owns the durable work that
