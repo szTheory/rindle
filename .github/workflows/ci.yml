@@ -838,8 +838,17 @@ jobs:
     # Elixir pin) and was previously only human-verified. Builds the demo image,
     # boots the full stack, and asserts the homepage + admin console serve 200
     # with seeded data. See scripts/ci/cohort_demo_smoke.sh.
+    #
+    # LANE-01 (D-05): MOVED off the PR critical path to push:main. The existing
+    # repo gate is PRESERVED and COMPOSED with a push:main event gate (a
+    # `labeled` event still yields event_name == 'pull_request', so this skips on
+    # PR). This Docker-compose cold-start gave ZERO signal on fork PRs already
+    # (repo-gated), and its historical breaks are compile/pin failures that
+    # quality + optional-dependencies catch on PR independently; MTTD of a real
+    # cold-start regression = 1 merge. Removed from ci-summary.needs /
+    # ci-observability.needs (D-09 omit-from-needs). See 106-CONTEXT.md D-05.
     needs: [quality, optional-dependencies]
-    if: github.repository == 'szTheory/rindle'
+    if: github.repository == 'szTheory/rindle' && github.event_name != 'pull_request'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -850,11 +859,20 @@ jobs:
   adoption-demo-e2e:
     name: Adoption Demo E2E
     runs-on: ubuntu-22.04
-    # Merge-blocking browser proof for examples/adoption_demo, including admin
-    # console behavior, theme, actions, and screenshot specs. The gcs-resumable
-    # spec remains skipped when live GCS is absent.
+    # Browser proof for examples/adoption_demo, including admin console behavior,
+    # theme, actions, and screenshot specs. The gcs-resumable spec remains
+    # skipped when live GCS is absent.
+    #
+    # LANE-01 (D-04): MOVED off the PR critical path to push:main — the ~502s
+    # demo-e2e chain (~8.4 min) is what would push PR p95 over the ≤7-min budget.
+    # The existing repo gate is PRESERVED and COMPOSED with a push:main event
+    # gate (a `labeled` event still yields event_name == 'pull_request', so this
+    # skips on PR). Its PR-side proxy is `adoption-demo-unit` (browser-free
+    # admin-console mount + brand + lifecycle render), which STAYS on PR (D-02).
+    # MTTD of a real render regression = 1 merge. Removed from ci-summary.needs /
+    # ci-observability.needs (D-09 omit-from-needs). See 106-CONTEXT.md D-04.
     needs: [quality, optional-dependencies]
-    if: github.repository == 'szTheory/rindle'
+    if: github.repository == 'szTheory/rindle' && github.event_name != 'pull_request'
     env:
       MIX_ENV: test
       RINDLE_AV_USE_CGROUPS: "false"
@@ -1175,8 +1193,6 @@ jobs:
       - proof
       - package-consumer
       - adoption-demo-unit
-      - cohort-demo-smoke
-      - adoption-demo-e2e
       - adopter
       - brandbook-tokens
     if: always()
@@ -1271,8 +1287,6 @@ jobs:
       - proof
       - package-consumer
       - adoption-demo-unit
-      - cohort-demo-smoke
-      - adoption-demo-e2e
       - adopter
       - brandbook-tokens
       - ci-script-tests
