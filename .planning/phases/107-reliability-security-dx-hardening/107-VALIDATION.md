@@ -1,8 +1,8 @@
 ---
 phase: 107
 slug: reliability-security-dx-hardening
-status: draft
-nyquist_compliant: false
+status: approved
+nyquist_compliant: true
 wave_0_complete: false
 created: 2026-06-22
 ---
@@ -74,11 +74,12 @@ created: 2026-06-22
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 140s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies (8/8 tasks)
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references (guard test, `ci:` alias, dependabot.yml, contrast-constants.mjs, e2e_local.sh)
+- [x] No watch-mode flags
+- [x] Feedback latency < 140s
+- [x] `nyquist_compliant: true` set in frontmatter
+- [ ] `wave_0_complete` — flips true during execution once Wave 0 files land
 
-**Approval:** pending
+**Approval:** approved 2026-06-22 (plan-time; `wave_0_complete` reconciled at execute time)

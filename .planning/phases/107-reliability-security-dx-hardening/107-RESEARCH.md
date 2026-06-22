@@ -693,15 +693,17 @@ documented prerequisite for `e2e_local.sh`; absent it, the existing CI E2E lane 
 | A3 | Exact font package list is the container's internal set | HARD-04 fonts | LOW — the load-bearing guarantee ("same image both sides") is verified; the list is informational |
 | A4 | `mix ci` should skip MinIO legs by default | HARD-03 | LOW — discretion per CONTEXT; full-parity command documented either way |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Server/browser networking for `e2e_local.sh`** (container browser ↔ host `mix phx.server`).
    - What we know: `playwright.config.js` already parameterizes port + `REUSE_SERVER`.
    - What's unclear: host-network vs in-container Phoenix (the container would then need Elixir+PG).
    - Recommendation: run Phoenix on host, browser-in-container against `host.docker.internal:<port>`; the planner finalizes the exact networking flag.
+   - **RESOLVED:** adopted in Plan 107-04 Task 2 — Phoenix on host, browser-in-container against `host.docker.internal`.
 2. **Whether `mix deps.audit` should block or stay advisory.**
    - What we know: house default is advisory; `lattice_stripe` runs it advisory in `quality`.
    - Recommendation: advisory (`continue-on-error: true`) unless the user wants security findings to fail the gate. Note in the step.
+   - **RESOLVED:** adopted in Plan 107-02 Task 2 — advisory (`continue-on-error: true`), matching the family default.
 
 ## State of the Art
 
