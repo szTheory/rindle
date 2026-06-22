@@ -12,6 +12,22 @@ on:
     types: [opened, synchronize, reopened, labeled]
   workflow_dispatch:
 
+# LANE-01 / D-06: serialize runs per-workflow + per-ref so a new push to a PR
+# branch supersedes its own in-flight run, while every other branch (and the
+# push:main / release run) gets an independent serialization queue.
+#   - cancel-in-progress is TRUE only for pull_request events: a stale PR run is
+#     abandoned to save runner minutes and sharpen the PR signal.
+#   - For push:main and workflow_dispatch it evaluates FALSE, so those runs
+#     SERIALIZE and are NEVER cancelled. This is load-bearing for the release
+#     coupling: `release.yml gate-ci-green` keys off the push:main `ci.yml` run
+#     `conclusion`; cancelling a main run would destroy the full-matrix evidence
+#     that the Hex publish gate depends on (the D-06 footgun this avoids).
+# Reads only the trusted `github.event_name` context (no PR title/body/branch
+# string interpolated into a shell) — no injection surface added.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 env:
   MIX_ENV: test
 
