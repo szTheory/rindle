@@ -3,18 +3,18 @@ gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: CI/CD Performance
 current_phase: 107
-current_phase_name: Reliability, Security & DX Hardening
+current_phase_name: reliability-security-dx-hardening
 status: executing
-stopped_at: Phase 107 context gathered
-last_updated: "2026-06-22T18:23:04.214Z"
+stopped_at: Completed 107-01-PLAN.md
+last_updated: "2026-06-22T19:18:25.534Z"
 last_activity: 2026-06-22
-last_activity_desc: Phase 106 complete, transitioned to Phase 107
+last_activity_desc: Completed 107-01 (HARD-01 async-safety guard + 15 async:true conversions)
 progress:
   total_phases: 13
-  completed_phases: 4
-  total_plans: 13
-  completed_plans: 13
-  percent: 31
+  completed_phases: 12
+  total_plans: 47
+  completed_plans: 45
+  percent: 94
 ---
 
 # Project State
@@ -24,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-19)
 
 **Core value:** Media, made durable.
-**Current focus:** Phase 106 — trigger-split-matrix-lane-refinement
+**Current focus:** Phase 107 — reliability-security-dx-hardening
 
 ## Current Position
 
-Phase: 107 — Reliability, Security & DX Hardening
-Plan: Not started
+Phase: 107 (reliability-security-dx-hardening) — EXECUTING
+Plan: 2 of 4
 Status: Ready to execute
-Last activity: 2026-06-22 — Phase 106 complete, transitioned to Phase 107
+Last activity: 2026-06-22 — Phase 107 execution started
 
 ### v1.20 roadmap (Phases 103–107) — load-bearing dependency order
 
@@ -182,6 +182,20 @@ required-check names before any topology change, and surface timing/cache/slowes
 
 ## Decisions
 
+- 107-01 (HARD-01): Landed `test/async_safety_guard_test.exs` — an `async: true` AST meta-test
+  (glob `test/**/*_test.exs` → `Code.string_to_quoted!` → `Macro.prewalk`) that red-gates any
+  `async: true` module using an unsafe shared-state primitive (`Application/System.put_env`,
+  `set_mox_global`, fixed-name process, fixed-path `File` mutation, public/named ETS,
+  `:persistent_term.put`, `{:shared, _}` sandbox); fail-closed with `@async_safety_allow [...]`
+  escape hatch + transitive tmp-var dataflow tracking. Drove it GREEN by resolving its 4
+  pre-existing offenders (orchestrator-approved Option A): `profile_test` + `http_cancel_upload_test`
+  flipped to `async: false` (genuine `Application.put_env` races); `storage/local_test` +
+  `install_smoke/package_metadata_test` annotated with justified `@async_safety_allow [:file_mutation]`
+  (tmp-scoped writes the static tracker can't bridge). Detector logic NOT weakened. Converted the
+  15 RESEARCH-CLEAN modules to `async: true` (`owner_erasure_batch_opts` sibling pairing preserved).
+  `--partitions` DEFERRED (D-01). Full suite 1160 tests; the sole failure is a PRE-EXISTING,
+  out-of-scope docs-parity test from the parked docs-archive cleanup (deferred-items.md).
+
 - 106-04 (LANE-03/LANE-01): Stood up separate `.github/workflows/nightly.yml` (`name: Nightly`,
   cron 27 7 UTC, no PR/push trigger) — curated 6-cell OTP×Elixir compat matrix (straddles the
   json_polyfill_dep/0 OTP<27 branch), owned GATING Dialyzer (literal `otp27-elixir1.17` PLT-key
@@ -312,6 +326,7 @@ required-check names before any topology change, and surface timing/cache/slowes
 
 - ~~98-02b filed P1 CSS defect: missing .rindle-admin-visually-hidden utility (captions render visibly at >=760px until P1 adds it).~~ RESOLVED in 98-04 (commit b637710): utility authored through the full brandbook pipeline (regen → contrast 58/58 → gallery-check → sync), byte-identical priv copy, added to requiredSelectors + asserted by a new ExUnit §D clause.
 - ~~adoption-demo-e2e red-gate concerns from Phases 97/101.~~ RESOLVED in 102-06: the full wrapper passed after stale admin E2E expectations were aligned with the shipped Phase 98 action distribution and current error copy.
+- ~~107-01 HARD-01: async-safety guard implemented and working but reveals 4 pre-existing async:true modules using shared-state primitives (2 genuine Application.put_env races: profile_test, http_cancel_upload_test; 2 safe-but-unprovable File mutations: local_test, package_metadata_test) all OUT OF files_modified scope.~~ RESOLVED 2026-06-22 (orchestrator-approved Option A, commit e4e3186): the 2 genuine races flipped to async:false; the 2 safe modules annotated with justified `@async_safety_allow [:file_mutation]`. Guard logic NOT weakened. Guard is GREEN against the full tree; 15 CLEAN modules converted (a583040). Carry-forward (separate owner): `release_docs_parity_test.exs:319` fails PRE-EXISTING/unrelated from the parked docs-archive cleanup state — see 107 deferred-items.md.
 
 ## Deferred Items
 
@@ -329,7 +344,7 @@ required-check names before any topology change, and surface timing/cache/slowes
 
 ## Session Continuity
 
-Last session: 2026-06-22T17:45:55.247Z
+Last session: 2026-06-22T19:18:25.526Z
 Stopped at: Phase 107 context gathered
 Resume file: .planning/phases/107-reliability-security-dx-hardening/107-CONTEXT.md
 

@@ -346,7 +346,7 @@ Plans:
 
 **Wave 1** *(no deps, parallel — disjoint files: `test/` vs `.github/* + mix.exs deps`)*
 
-- [ ] 107-01-PLAN.md — HARD-01: async-safety AST meta-test guard (D-02, lands FIRST) → convert the 15 RESEARCH-CLEAN modules to `async: true`; `--partitions` DEFERRED (D-01).
+- [x] 107-01-PLAN.md — HARD-01: async-safety AST meta-test guard (D-02, lands FIRST) → convert the 15 RESEARCH-CLEAN modules to `async: true`; `--partitions` DEFERRED (D-01).
 - [ ] 107-02-PLAN.md — HARD-02: SHA-pin all `uses:` (11 resolved SHAs) + least-privilege `permissions:` audit + grouped weekly `dependabot.yml` + `{:mix_audit, "~> 2.1"}` advisory in `quality`.
 
 **Wave 2** *(both depend on 107-02 for the `mix.exs` / `ci.yml` edits; 03 and 04 touch disjoint files — parallel)*
@@ -662,7 +662,7 @@ Plans:
 | 104. Cache & Tooling Hygiene | 4/4 | Complete    | 2026-06-21 |
 | 105. Aggregate Required Check + Branch-Protection Flip | 1/1 | Complete   | 2026-06-21 |
 | 106. Trigger Split + Matrix/Lane Refinement | 4/4 | Complete    | 2026-06-22 |
-| 107. Reliability, Security & DX Hardening | 0/4 | Not started | - |
+| 107. Reliability, Security & DX Hardening | 1/4 | In Progress|  |
 | 94. Foundation — Token Pipeline CI Gate & New Categories | 5/5 | Complete    | 2026-06-15 |
 | 95. Admin Level-1 Component Audit [A] | 5/5 | Complete   | 2026-06-16 |
 | 96. Cohort Component Layer + Dark/Reduced-Motion [B] | 5/5 | Complete    | 2026-06-17 |
