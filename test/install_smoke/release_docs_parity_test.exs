@@ -333,7 +333,10 @@ defmodule Rindle.InstallSmoke.ReleaseDocsParityTest do
     refute operations =~ "Package-Consumer Proof Matrix"
     refute operations =~ "bash scripts/release_preflight.sh"
 
-    assert running =~ "Package Consumer Proof Matrix"
+    # Phase 106 (LANE-02) split the old "Package Consumer Proof Matrix" job into a lean
+    # PR `package-consumer` + the off-PR full 5-profile `package-consumer-full` proof matrix;
+    # RUNNING.md was realigned to that shipped naming in 5c30b7f.
+    assert running =~ "package-consumer-full"
     assert running =~ "package-consumer"
   end
 end
