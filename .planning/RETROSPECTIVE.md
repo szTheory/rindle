@@ -2,6 +2,58 @@
 
 ---
 
+## Milestone: v1.20 — CI/CD Performance
+
+**Shipped:** 2026-06-22
+**Phases:** 5 (103–107) | **Plans:** 17
+
+### What Was Built
+
+- Observability baseline (Phase 103): self-reporting CI (per-job/step timing, cache hit/miss, slowest tests, compile profile, schedulers, seed, JUnit/coverage) + committed `103-BASELINE.md` with live required-check names — zero gate-behavior change.
+- Cache & tooling hygiene (Phase 104): `setup-elixir`/`setup-minio` composites, correct multi-dimension cache keys, Dialyzer PLT restore/save split, lockfile-drift gates, lint de-dup, `.tool-versions`.
+- Aggregate required check (Phase 105): single `CI Summary` (`needs:` all, `if: always()`, `skipped`==pass) as the sole required check + the live branch-protection flip; fork-PR "pending forever" trap closed.
+- Trigger split + lanes (Phase 106): fast PR lane with stale-cancel concurrency, `package-consumer` split (lean PR `image` smoke + push-only 5-profile matrix), new `nightly.yml`, A–E lane-value classification — the headline 15→≤7min cut.
+- Reliability/security/DX (Phase 107): ExUnit async-safety AST guard + 15 conversions, SHA-pinned actions + Dependabot + `mix_audit` + least-privilege permissions, `mix ci` alias, faithful Linux-Chromium repro, shared `WCAG_AA_NORMAL=4.5`.
+
+### What Worked
+
+- **Load-bearing order honored:** observability → cache → aggregate-check → lane-split → hardening. Landing the aggregate required check *before* any lane rename meant exactly one branch-protection migration and zero rework.
+- **Baseline-first discipline:** capturing committed timing/p95/rerun + the verbatim live required-check contexts before touching topology made every later restructuring decision evidence-backed.
+- **Invariant guarding as code:** `name: CI`/filename byte-equality, `skipped`==pass, and the release full-verification gate were asserted by tests (`eval_ci_summary.sh` + parity tests), not just prose — so the release-train coupling never silently broke.
+- **Zero `lib/` change held:** the non-feature posture was verifiable (`git diff --stat … -- lib/` empty across the whole range).
+- **Burndown discipline:** the audit's `tech_debt` items (red local `mix ci`, missing Nyquist validations) were root-caused and closed before close rather than carried as debt.
+
+### What Was Inefficient
+
+- **`milestone.complete` CLI over-scoped:** because prior milestones' phase dirs were never archived off `.planning/phases/`, the CLI counted 28 phases / 94 plans / 161 tasks and pulled v1.18/v1.19 accomplishments into the v1.20 MILESTONES entry — required a full manual rewrite of the entry. Lesson: archive phase dirs at each close (or run `/gsd-cleanup`) so the next close's stats are scoped.
+- **Stale live ROADMAP checkboxes:** Phase 105 still showed `[ ]` in the live roadmap at close despite being complete — the per-phase roadmap checkbox wasn't updated at phase ship.
+- **Mis-attributed root cause in-flight:** the red `mix ci` was first blamed on the parked `.planning` archive-cleanup changeset; it was actually committed Phase-106 docs-parity staleness (retired job name). Cost an extra investigation cycle.
+- **Sparse `requirements-completed` SUMMARY frontmatter:** present on only 8/16 SUMMARYs; coverage still proven by VERIFICATION + REQUIREMENTS, but the weakest of the three provenance sources.
+
+### Patterns Established
+
+- **Aggregate-required-check-before-lane-rename:** decouple branch protection from lane names so future matrix/trigger changes never touch branch protection.
+- **Composite setup action as the single source of truth** for env + cache keys across duplicated job blocks.
+- **Async-safety AST meta-test gates `async: true`:** fail-closed static guard with a justified `@async_safety_allow` escape hatch, conversions only after the guard is green.
+- **`mix ci` mirrors the merge-blocking PR set** so contributors reproduce the gate verdict locally.
+- **Trigger-scoped long poles:** representative signal on PR; full breadth on push:main/nightly/release, with release readiness proven by the push:main run conclusion via `gate-ci-green`, not a PR check name.
+
+### Key Lessons
+
+- Archive phase directories at milestone close — otherwise the next `milestone.complete` mis-counts and mis-attributes accomplishments across milestones.
+- For CI restructures, capture a committed baseline *first*; the ordering of gate changes is load-bearing and reversing it forces a second branch-protection migration.
+- Encode release-coupling invariants as merge-blocking tests, not comments — byte-equality of `name:`/filename and `skipped`==pass are exactly the things a well-meaning rename breaks silently.
+- A red local `mix ci` after a docs/lane rename is usually a stale parity assertion, not the working tree — check the retired job/name first.
+
+### Cost Observations
+
+- Model mix: predominantly opus (planning/execution/verification orchestration); subagent-heavy phases (research, verification, integration check).
+- Sessions: multi-session over 2026-06-20 → 2026-06-22 (3 days, charter to ship).
+- Notable: a non-feature DX milestone still ran the full discuss→plan→execute→verify chain per phase; the load-bearing dependency order kept rework near zero (one branch-protection flip, no lane re-migration).
+
+---
+
+
 ## Milestone: v1.17 — Adopter-Confidence Hygiene
 
 **Shipped:** 2026-05-27

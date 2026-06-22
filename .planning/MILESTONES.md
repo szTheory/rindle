@@ -1,5 +1,38 @@
 # Milestones
 
+## v1.20 CI/CD Performance (Shipped: 2026-06-22)
+
+**Delivered:** Cut PR CI feedback time and hardened gate determinism/reliability without dropping real quality signal — a measure → classify → restructure pass shipped as stepwise PRs. Non-feature / DX-infrastructure milestone: **zero `lib/` public-API change**.
+
+**Phases completed:** 103–107 (5 phases, 17 plans, 18/18 requirements)
+
+**Key accomplishments:**
+
+- **Observability baseline (Phase 103, OBS-01..03):** made the pipeline self-reporting (per-job/per-step timing + cache hit/miss in `$GITHUB_STEP_SUMMARY`, `mix test --slowest`, compile profile, schedulers, seed, JUnit/coverage artifacts) and froze a committed `103-BASELINE.md` (per-job avg/p95 + 8/50 rerun over the last 50 `main` runs + the verbatim 12 live required-check contexts) before any restructuring — zero gate-behavior change.
+- **Cache & tooling hygiene (Phase 104, CACHE-01..05):** `.github/actions/setup-elixir` + `setup-minio` composites as the single source of truth for env/cache keys; correct cache-key dimensions (OS+arch+OTP+Elixir+MIX_ENV+`mix.lock`+buster); a Dialyzer PLT restore/save split that survives analysis failure; `--check-locked`/`--check-unused` lockfile-drift gates; version-invariant lint de-duped onto the primary pair; `.tool-versions` landed; the stray `setup-ffmpeg` action retired.
+- **Aggregate required check + branch-protection flip (Phase 105, GATE-01..02):** a single stable `CI Summary` aggregate (`needs:` all, `if: always()`, `skipped`==pass) became the sole required check, with `setup_branch_protection.sh` collapsed in the same change and the live flip executed — closing the fork-PR "pending forever" trap while preserving the `name: CI` release-train coupling.
+- **Trigger split + lane refinement (Phase 106, LANE-01..04):** the headline wall-clock cut — a fast PR lane with a stale-cancel `concurrency` group, the `package-consumer` long pole split into a lean PR `image` smoke + push-only `package-consumer-full` 5-profile matrix, a new `nightly.yml` carrying the OTP×Elixir compat matrix + owned gating Dialyzer + moved gcs-soak/gcs-live, and an A–E lane-value classification backing every placement.
+- **Reliability, security & DX hardening (Phase 107, HARD-01..04):** an AST-walking ExUnit async-safety meta-test that red-gates unsafe `async: true` modules (15 clean modules converted, 2 latent `put_env` races fixed); all third-party actions SHA-pinned + Dependabot + advisory `mix_audit` + least-privilege `permissions:`; a single `mix ci` alias mirroring the merge-blocking PR set + CONTRIBUTING/README; and a faithful pinned Linux-Chromium repro (`playwright:v1.57.0-noble` + `e2e_local.sh`) with one shared `WCAG_AA_NORMAL = 4.5` contrast constant.
+
+**Hard invariants preserved across every phase:** `ci.yml` filename + `name: CI` byte-unchanged (release-train coupling); `CI Summary` treats `skipped` as pass (fork-PR safety); the release full-verification gate never weakened (full 5-profile matrix on `push:main` → `gate-ci-green`).
+
+**Stats:**
+
+- 119 files changed; +14,538 / −791 in the v1.20 range (`.github/`, `scripts/ci/`, tests, docs)
+- **Zero `lib/` change** — the milestone's hard invariant held
+- 5 phases, 17 plans, 18 requirements
+- 3 days from charter to ship (2026-06-20 → 2026-06-22)
+
+**Git range:** `41fccf8` → `8131a19`
+
+**Known deferred items at close:** 2 (acknowledged, see STATE.md Deferred Items) — both stale v1.19 carry-overs outside v1.20 scope: a `95-VERIFICATION.md [gaps_found]` frontmatter flag (the gap itself was already closed in 95-05) and a 2026-06-19 docker-demo-warnings tooling todo. Intentional deferrals tracked in `milestones/v1.20-REQUIREMENTS.md`: `--partitions` (DEFER-02), flaky-quarantine lane (DEFER-01), property-based nightly expansion (DEFER-03).
+
+**Audit:** `.planning/milestones/v1.20-MILESTONE-AUDIT.md` — status `passed` (18/18 requirements, 5/5 phases, integration PASS, Nyquist 5/5).
+
+**Archive:** `.planning/milestones/v1.20-ROADMAP.md`, `.planning/milestones/v1.20-REQUIREMENTS.md`, `.planning/milestones/v1.20-MILESTONE-AUDIT.md`
+
+---
+
 ## v1.19 Design-System Stress-Test (Shipped: 2026-06-19)
 
 **Delivered:** Fractal admin/operator and Cohort design-system uplift with a hardened token pipeline, Cohort daisyUI retirement, and a deterministic merge-blocking visual gate.

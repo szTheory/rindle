@@ -3,11 +3,11 @@ gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: CI/CD Performance
 current_phase: 107
-status: verifying
+status: Awaiting next milestone
 stopped_at: Completed 107-04-PLAN.md
-last_updated: "2026-06-22T20:26:55.665Z"
+last_updated: "2026-06-22T21:30:42.595Z"
 last_activity: 2026-06-22
-last_activity_desc: Phase 107 complete
+last_activity_desc: Milestone v1.20 completed and archived
 progress:
   total_phases: 13
   completed_phases: 13
@@ -20,17 +20,18 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-06-19)
+See: .planning/PROJECT.md (updated 2026-06-22 after v1.20)
 
 **Core value:** Media, made durable.
-**Current focus:** Phase 107 — reliability-security-dx-hardening
+**Current focus:** Between milestones — v1.20 CI/CD Performance shipped & archived 2026-06-22.
+Next via `/gsd-new-milestone` (phase numbering continues at **108**).
 
 ## Current Position
 
-Phase: 107
-Plan: Not started
-Status: Phase complete — ready for verification
-Last activity: 2026-06-22 — Phase 107 complete
+Phase: Milestone v1.20 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-06-22 — Milestone v1.20 completed and archived
 
 ### v1.20 roadmap (Phases 103–107) — load-bearing dependency order
 
@@ -342,6 +343,16 @@ required-check names before any topology change, and surface timing/cache/slowes
 | polish | Signed dynamic image transforms (TRANS-01 / job 33) | deferred |
 | polish | EXIF privacy stripping (PRIV-01 / job 34) | deferred |
 | v1.19 | Pixel-baseline `toHaveScreenshot()` as merge-blocker | confirmed non-blocking audit/reference signal; no second merge-blocking visual lane |
+
+### Acknowledged at v1.20 milestone close (2026-06-22)
+
+Items surfaced by the open-artifact audit and acknowledged/deferred — both stale v1.19 carry-overs
+outside v1.20 scope (Phases 103–107):
+
+| Category | Item | Status |
+|----------|------|--------|
+| verification | `95-VERIFICATION.md` flagged `gaps_found` (Phase 95, v1.19) | stale frontmatter — the gap was already closed in 95-05 (mobile sticky-table fix, `2960883`); refresh status on a future v1.19 metadata pass or `/gsd-cleanup` |
+| tooling | `2026-06-19-fix-docker-demo-startup-warnings.md` todo | deferred — Cohort demo Docker startup warnings (missing Mox/inotify); not v1.20 scope |
 
 ## Session Continuity
 

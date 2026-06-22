@@ -2,62 +2,64 @@
 
 ## Current State
 
-**Last shipped:** v1.19 Design-System Stress-Test — shipped 2026-06-19 and archived at
-[.planning/milestones/v1.19-ROADMAP.md](milestones/v1.19-ROADMAP.md) with 20/20 requirements
-validated. The milestone hardened the token pipeline, elevated the admin/operator design system
-component-by-component through page composition, migrated Cohort inner pages onto `.ck-*`, retired
-the Cohort daisyUI/default.css scaffold, and closed a single deterministic merge-blocking visual
-gate across admin + Cohort.
+**Last shipped:** v1.20 CI/CD Performance — shipped 2026-06-22 and archived at
+[.planning/milestones/v1.20-ROADMAP.md](milestones/v1.20-ROADMAP.md) with 18/18 requirements
+validated across 5/5 verified phases (103–107) and **zero `lib/` public-API change**. A non-feature
+/ DX-infrastructure milestone that cut PR CI feedback time and hardened gate determinism via a
+measure → classify → restructure pass: an observability baseline (`103-BASELINE.md`), `setup-elixir`
+/ `setup-minio` composites with correct cache keys + a Dialyzer PLT restore/save split, a single
+`CI Summary` aggregate required check with the live branch-protection flip executed, a fast PR lane
++ `nightly.yml` split (the headline 15→≤7min cut), and reliability/security hardening (ExUnit
+async-safety AST guard, SHA-pinned Actions + Dependabot + `mix_audit`, a `mix ci` alias, and a
+faithful pinned Linux-Chromium repro). All three hard release-coupling invariants held throughout.
 
-**Proof posture:** v1.19 audit passed. The final Phase 102 proof closed the full
-`adoption_demo_e2e.sh` wrapper, adoption-demo `mix precommit`, rendered Cohort route contracts,
-two-run generated-asset/static idempotency, VIS-01..VIS-04 traceability, and
-`v1.19-MILESTONE-AUDIT.md`. Pixel/gallery artifacts remain non-blocking audit/reference signals.
+**Proof posture:** v1.20 audit `passed` (`milestones/v1.20-MILESTONE-AUDIT.md`): 18/18 requirements
+satisfied via 3-source cross-reference, integration PASS (all cross-phase wiring WIRED), and Nyquist
+5/5 compliant. Local `mix ci` green (1186 tests, 0 failures). Two stale v1.19 carry-over artifacts
+(`95-VERIFICATION.md` frontmatter; a docker-demo-warnings tooling todo) were acknowledged and
+deferred at close — both outside v1.20 scope.
 
-**Open planning debt:** None. v1.18 Admin Console & Adoption Lab closed `shipped` 2026-06-20
-after maintainer HUMAN-UAT sign-off (Phases 90/91/92); archived to `milestones/v1.18-*.md`.
-Both v1.18 and v1.19 are shipped and archived.
+**Prior milestone:** v1.19 Design-System Stress-Test — shipped 2026-06-19, 20/20 requirements
+validated (token-pipeline hardening, fractal admin/Cohort DS uplift, daisyUI retirement, single
+merge-blocking computed-style visual gate). Archived to `milestones/v1.19-*.md`. v1.18 Admin Console
+& Adoption Lab closed `shipped` 2026-06-20 after HUMAN-UAT sign-off; archived to `milestones/v1.18-*.md`.
 
-**Active milestone:** v1.20 CI/CD Performance (chartered 2026-06-20 from SEED-003) — see
-**Current Milestone** below. Phases 103 (Observability Baseline), 104 (Cache & Tooling Hygiene),
-105 (Aggregate Required Check + Branch-Protection Flip), and 106 (Trigger Split + Matrix/Lane
-Refinement) complete. Phase 106 validated LANE-01..04 with zero `lib/` change: a top-level `ci.yml`
-`concurrency` group (cancel stale PR runs, serialize/never-cancel push:main), the `package-consumer`
-long pole split into a lean PR `image` smoke + push-only `package-consumer-full` 5-profile matrix, a
-new `nightly.yml` (`name: Nightly`) carrying the OTP×Elixir compat matrix + owned gating Dialyzer +
-moved gcs-soak/gcs-live, and an A–E lane-value classification backing every placement — all while
-keeping `name: CI`/the ci.yml filename and the `CI Summary` release gate intact. Phase 107
-(Reliability, Security & DX Hardening) complete 2026-06-22 — the final phase: HARD-01 ExUnit
-async-safety AST static guard + 15 modules flipped to `async: true` (2 latent `put_env` races
-fixed to `async: false`, 2 documented escape hatches); HARD-02 all third-party Actions SHA-pinned
-+ Dependabot + advisory `mix deps.audit`; HARD-03 single `mix ci` alias mirroring the merge-blocking
-set + contributor docs; HARD-04 faithful Linux-Chromium `e2e_local.sh` repro, shared
-`WCAG_AA_NORMAL=4.5` contrast constant, Playwright pinned to `1.57.0`. All 4 plans verified 4/4
-(14/14 must-haves), zero `lib/` change. **v1.20 CI/CD Performance fully delivered (phases 103–107);
-ready for milestone close** via `/gsd-complete-milestone`.
+**Open planning debt:** None. v1.18, v1.19, and v1.20 are all shipped and archived.
 
-## Current Milestone: v1.20 CI/CD Performance
+**Active milestone:** None — between milestones. Feature milestones remain demand-gated
+(LIFE-06 / STREAM-10 signal required per `config.json`
+`workflow.milestone_boundary.block_feature_milestone_without_signal`); a non-feature/DX charter
+(like v1.20) needs a documented seed. Start the next cycle with `/gsd-new-milestone`. Phase
+numbering continues at **108**.
+
+## Between Milestones
+
+No active milestone. v1.20 CI/CD Performance shipped 2026-06-22 (see **Current State** above and
+the archive at `milestones/v1.20-ROADMAP.md`). Posture returns to the demand-gated pause: feature
+milestones require a LIFE-06 (compliance/legal) or STREAM-10 (named adopter) signal; a non-feature
+/ DX or quality charter (as v1.18, v1.19, and v1.20 were) needs a documented seed/maintainer pull.
+Start the next cycle with `/gsd-new-milestone`. Phase numbering continues at **108**.
+
+<details>
+<summary>v1.20 CI/CD Performance — shipped scope (collapsed)</summary>
 
 **Goal:** Cut PR CI feedback time and harden gate determinism/reliability — without dropping real
 quality signal — via a measure → classify → restructure pass shipped as stepwise PRs.
 
-**Target features:**
-- Baseline + CI observability (per-job timings, cache hit rate, slowest-tests/compile reporting)
-- Pipeline topology split: fast PR gate vs push-to-main vs nightly vs release/publish
-- Test-value classification (keep / optimize / move-to-nightly / quarantine / delete)
-- ExUnit concurrency: async-safety audit + partitioning where evidence supports
-- Caching correctness (deps / _build / PLT keys, restore breadth, stale-failure modes)
-- Matrix/trigger refinement (kill lint redundancy; scope the heavy Package-Consumer lane)
-- Determinism: faithful local reproduction of the exact CI Linux-Chromium gates
-- Security/supply-chain/release posture (permissions, action pinning, dry-run publish)
-- DX: a single local `mix ci` equivalent + readable job summaries + contributor docs
+**Delivered:** Baseline + CI observability; pipeline topology split (fast PR gate vs push:main vs
+nightly vs release); A–E test-value classification; ExUnit async-safety guard + conversions; caching
+correctness (deps/_build/PLT keys + restore/save split); matrix/trigger refinement scoping the heavy
+package-consumer lane; faithful local Linux-Chromium repro; supply-chain posture (SHA-pinned actions,
+Dependabot, `mix_audit`, least-privilege permissions); and a single local `mix ci` equivalent +
+readable job summaries + contributor docs.
 
-**Key context:** Chartered from **SEED-003** (planted 2026-06-20), which embeds the maintainer's
-full locked 10-lens CI/CD performance-audit prompt as the authoritative, research-driven spec.
-Measured baseline: PR wall-clock ≈ 15–17 min, long pole = `Package Consumer Proof Matrix + Release
-Preflight` (~15m). This is a **non-feature / DX-infrastructure milestone** (no `lib/` public API
-changes), so `block_feature_milestone_without_signal` does not apply; SEED-003 is the documented
-signal. Phase numbering continues at **103**. LIFE-06 and STREAM-10 remain demand-gated.
+**Key context:** Chartered from **SEED-003** (planted 2026-06-20) — the maintainer's locked 10-lens
+CI/CD performance-audit prompt as the authoritative, research-driven spec. Measured baseline: PR
+wall-clock ≈ 15–17 min, long pole = `Package Consumer Proof Matrix + Release Preflight` (~15m).
+Non-feature / DX-infrastructure milestone (no `lib/` public-API change), so
+`block_feature_milestone_without_signal` did not apply; SEED-003 was the documented signal.
+
+</details>
 
 ## What This Is
 
@@ -313,6 +315,19 @@ To keep this posture durable across GSD workflows:
   demo with full media-type + lifecycle-state coverage (DEMO-01..03), deterministic console
   E2E + screenshot polish loop (E2E-01..02), port-conflict-free Docker DX (DX-01..03), and
   scope-reversal docs parity (TRUTH-07). Archived: `milestones/v1.18-REQUIREMENTS.md`.
+- ✓ **v1.19 Design-System Stress-Test** — shipped 2026-06-19: token-pipeline CI gate +
+  new token categories (PIPE-01..02), fractal admin/operator DS uplift (UPLIFT-01..08),
+  Cohort `.ck-*` component layer + dark/reduced-motion + page migrations + daisyUI retirement
+  (COHORT-01..06), and a single merge-blocking computed-style visual matrix (VIS-01..04).
+  20/20 validated. Archived: `milestones/v1.19-REQUIREMENTS.md`.
+- ✓ **v1.20 CI/CD Performance** — shipped 2026-06-22 (non-feature / DX-infra, **zero `lib/`
+  change**): CI observability + committed baseline (OBS-01..03), cache & tooling hygiene via
+  `setup-elixir`/`setup-minio` composites + PLT restore/save split + lockfile-drift gates
+  (CACHE-01..05), single `CI Summary` aggregate required check + live branch-protection flip
+  (GATE-01..02), fast PR lane + nightly split + A–E lane classification (LANE-01..04), and
+  reliability/security/DX hardening — async-safety AST guard, SHA-pinned actions + Dependabot +
+  `mix_audit`, `mix ci` alias, faithful Linux-Chromium repro (HARD-01..04). 18/18 validated.
+  Archived: `milestones/v1.20-REQUIREMENTS.md`.
 
 ### Active
 
@@ -484,6 +499,12 @@ that section on next docs maintenance pass.
 | D-v1.18-02: Brand work releases as 0.2.0 now; v1.18 ships as hex 0.3.0 | Clean separation — no weeks-stale release PR held open for the console | Locked v1.18 charter |
 | D-v1.18-03: Cohort stays the demo domain, extended with audio + document media and full lifecycle-state seeds | Familiar domain that naturally needs every media type; 12 E2E specs + seeds already built on it; no churn for its own sake | Locked v1.18 charter |
 | Console CSS = BEM + custom properties generated from `brandbook/tokens/tokens.json`; Cohort keeps Tailwind/daisyUI | Shipped library UI must be host-independent (no Tailwind build assumption); brandbook vanilla-CSS momentum carries; demo momentum is Tailwind | Locked v1.18 charter |
+| v1.20 is a non-feature / DX-infrastructure milestone with **zero `lib/` public-API change** | CI wall-clock + gate reliability were the velocity bottleneck (~15–17 min PR lane); SEED-003's 10-lens audit is the documented signal, so the feature-pause block does not apply | ✓ Good v1.20 (invariant held: 0 `lib/` diff across the range) |
+| Load-bearing CI restructure order: observability → cache → aggregate required check → lane split → hardening | Research-unanimous; reversing the aggregate-check and lane-split steps would force a second branch-protection migration | ✓ Validated v1.20 (single branch-protection flip; no rework) |
+| One stable `CI Summary` aggregate as the sole required check (`needs:` all, `if: always()`, `skipped`==pass) before any lane rename | Decouples branch protection from lane names so future matrix/trigger changes never touch branch protection; closes the fork-PR "pending forever" trap | ✓ Good v1.20 (Phase 105; live flip executed) |
+| Never rename `ci.yml`/`name: CI`; never weaken the release full-verification gate | Release-train coupling (`release-please-automerge.yml` + `gate-ci-green`) reads the workflow name + full-matrix push:main run; renaming or weakening it would silently break publishing | ✓ Held v1.20 (byte-unchanged across all 5 phases) |
+| Scope the `package-consumer` long pole by trigger (lean `image` smoke on PR; full 5-profile matrix + preflight + dry-run on push:main/nightly/release) | The headline wall-clock cut; release readiness proven by the push:main run conclusion via `gate-ci-green`, not by a PR-gating check name | ✓ Good v1.20 (Phase 106; PR p95 under ≤7 min) |
+| ExUnit async conversion is gated behind an AST static-safety meta-test; `--partitions` deferred until measured core-starvation | Fail-closed guard prevents silent shared-state races; partitioning payoff is evidence-gated, not assumed (DEFER-02) | ✓ Good v1.20 (Phase 107; 15 modules converted, 2 latent races fixed) |
 
 
 ## Historical Snapshot
@@ -694,4 +715,4 @@ This document evolves at phase transitions and milestone boundaries.
    (`workflow.milestone_boundary.block_feature_milestone_without_signal`)
 
 ---
-*Last updated: 2026-06-22 — Phase 106 (Trigger Split + Matrix/Lane Refinement) complete; v1.20 CI/CD Performance*
+*Last updated: 2026-06-22 after v1.20 CI/CD Performance milestone — shipped & archived (Phases 103–107, 18/18 requirements, zero `lib/` change); between milestones, next via `/gsd-new-milestone`.*
