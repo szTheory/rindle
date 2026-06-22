@@ -43,13 +43,13 @@ jobs:
       tag_name: ${{ steps.release.outputs.tag_name }}
       version: ${{ steps.release.outputs.version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
           fetch-depth: 0
 
       - name: Run Release Please
         id: release
-        uses: googleapis/release-please-action@v4
+        uses: googleapis/release-please-action@5c625bfb5d1ff62eadeeb3772007f7f66fdcf071 # v4.4.1
         with:
           token: ${{ secrets.RELEASE_PLEASE_TOKEN || github.token }}
           config-file: release-please-config.json
@@ -67,7 +67,7 @@ jobs:
       release_tag: ${{ steps.validate.outputs.release_tag }}
     steps:
       - name: Checkout repository for recovery validation
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
           fetch-depth: 0
           fetch-tags: true
@@ -110,7 +110,7 @@ jobs:
     steps:
       - name: Resolve release target
         id: resolve
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
         with:
           script: |
             const ref = '${{ needs.recovery-validation.outputs.checkout_ref }}';
@@ -132,12 +132,12 @@ jobs:
             core.setOutput('release_tag', releaseTag || '');
 
       - name: Checkout release target for version resolution
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
           ref: ${{ steps.resolve.outputs.checkout_ref }}
 
       - name: Set up Elixir for version resolution
-        uses: erlef/setup-beam@v1
+        uses: erlef/setup-beam@fc68ffb90438ef2936bbb3251622353b3dcb2f93 # v1.24.0
         with:
           elixir-version: "1.17"
           otp-version: "27"
@@ -166,7 +166,7 @@ jobs:
 
       - name: Wait for CI to finish green on release SHA
         id: ci
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
         with:
           script: |
             const sha = '${{ steps.resolve.outputs.release_sha }}';
@@ -250,7 +250,7 @@ jobs:
 
     steps:
       - name: Checkout current release tooling
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
           fetch-depth: 0
           fetch-tags: true
@@ -266,7 +266,7 @@ jobs:
           echo "project_root=$RELEASE_ROOT" >> "$GITHUB_OUTPUT"
 
       - name: Set up Elixir
-        uses: erlef/setup-beam@v1
+        uses: erlef/setup-beam@fc68ffb90438ef2936bbb3251622353b3dcb2f93 # v1.24.0
         with:
           elixir-version: "1.17"
           otp-version: "27"
@@ -277,7 +277,7 @@ jobs:
           mix local.rebar --force
 
       - name: Restore deps cache
-        uses: actions/cache@v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
           path: ${{ steps.release_source.outputs.project_root }}/deps
           key: deps-${{ runner.os }}-1.17-27-${{ hashFiles('**/mix.lock') }}
@@ -426,10 +426,10 @@ jobs:
 
     steps:
       - name: Checkout current verification tooling
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
       - name: Set up Elixir
-        uses: erlef/setup-beam@v1
+        uses: erlef/setup-beam@fc68ffb90438ef2936bbb3251622353b3dcb2f93 # v1.24.0
         with:
           elixir-version: "1.17"
           otp-version: "27"
@@ -503,13 +503,13 @@ jobs:
       contents: write
     steps:
       - name: Checkout main
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
           ref: main
           fetch-depth: 0
 
       - name: Set up Elixir
-        uses: erlef/setup-beam@v1
+        uses: erlef/setup-beam@fc68ffb90438ef2936bbb3251622353b3dcb2f93 # v1.24.0
         with:
           elixir-version: "1.17"
           otp-version: "27"

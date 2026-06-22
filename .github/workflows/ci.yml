@@ -74,7 +74,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
       - name: Set up Elixir
         id: setup
@@ -193,7 +193,7 @@ jobs:
 
       - name: Upload JUnit + coverage artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: junit-coverage-${{ github.job }}-${{ matrix.elixir || 'na' }}
           path: |
@@ -242,7 +242,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
       - name: Set up Elixir
         # CACHE-01 / D-06: composite setup + deps/_build cache in the deliberately
@@ -301,7 +301,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
       - name: Set up Elixir
         id: setup
@@ -380,7 +380,7 @@ jobs:
 
       - name: Upload JUnit + coverage artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: junit-coverage-${{ github.job }}-${{ matrix.elixir || 'na' }}
           path: |
@@ -423,7 +423,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
       - name: Set up Elixir
         # CACHE-01 (D-03): composite setup + deps/_build cache. install-deps:false
@@ -481,7 +481,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
       - name: Set up Elixir
         # CACHE-01 (D-03): composite setup + deps/_build cache. install-deps:false
@@ -554,7 +554,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
       - name: Set up Elixir
         id: setup
@@ -569,7 +569,7 @@ jobs:
           install-deps: "false"
 
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: "20"
 
@@ -642,7 +642,7 @@ jobs:
 
       - name: Upload JUnit + coverage artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: junit-coverage-${{ github.job }}-${{ matrix.elixir || 'na' }}
           path: |
@@ -707,7 +707,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
       - name: Set up Elixir
         id: setup
@@ -720,7 +720,7 @@ jobs:
           install-deps: "false"
 
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: "20"
 
@@ -798,7 +798,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
       - name: Set up Elixir
         # CACHE-01 (D-03): composite setup + root deps/_build cache. install-deps:false
@@ -851,7 +851,7 @@ jobs:
     if: github.repository == 'szTheory/rindle' && github.event_name != 'pull_request'
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
       - name: Run cohort demo cold-start smoke
         run: bash scripts/ci/cohort_demo_smoke.sh
@@ -904,7 +904,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
       - name: Set up Elixir
         # CACHE-01 (D-03): composite setup + deps/_build cache. install-deps:false
@@ -917,7 +917,7 @@ jobs:
           install-deps: "false"
 
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: "20"
 
@@ -943,7 +943,7 @@ jobs:
 
       - name: Upload Playwright report on failure
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: adoption-demo-playwright-report
           path: |
@@ -989,7 +989,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
       - name: Set up Elixir
         # CACHE-01 (D-03): composite setup + deps/_build cache. install-deps:false
@@ -1078,10 +1078,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
       - name: Set up Elixir
-        uses: erlef/setup-beam@v1
+        uses: erlef/setup-beam@fc68ffb90438ef2936bbb3251622353b3dcb2f93 # v1.24.0
         with:
           elixir-version: "1.17"
           otp-version: "27"
@@ -1128,10 +1128,10 @@ jobs:
     if: github.repository == 'szTheory/rindle'
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: "20"
 
@@ -1167,7 +1167,7 @@ jobs:
 
       - name: Upload admin gallery report on failure
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: brandbook-tokens-gallery-report
           path: |
@@ -1262,7 +1262,7 @@ jobs:
     # fix) so it is merge-blocking. Gated transitively via ci-summary's needs:, not
     # as its own required context — CI Summary stays the single required check.
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
       - name: CI Summary gate logic
         run: bash scripts/ci/test_ci_summary_gate.sh
 
@@ -1297,7 +1297,7 @@ jobs:
     # on a GitHub API hiccup (the 401-class flake recorded in 103-BASELINE.md) the way
     # ci-observability can.
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
       - name: Evaluate gating job results
         env:
           # Pure evaluation of needs.*.result (skip-as-pass, D-05/D-06). The logic

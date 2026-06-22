@@ -50,7 +50,7 @@ runs:
   steps:
     - name: Set up Elixir/OTP
       id: beam
-      uses: erlef/setup-beam@v1
+      uses: erlef/setup-beam@fc68ffb90438ef2936bbb3251622353b3dcb2f93 # v1.24.0
       with:
         elixir-version: ${{ inputs.elixir-version }}
         otp-version: ${{ inputs.otp-version }}
@@ -75,7 +75,7 @@ runs:
     # a fallback can never poison the tree across incompatible toolchains (D-05).
     - name: Restore deps cache
       id: deps_cache
-      uses: actions/cache@v4
+      uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
       with:
         path: deps
         key: ${{ steps.ns.outputs.deps_ns }}-v1-${{ runner.os }}-${{ runner.arch }}-otp${{ steps.beam.outputs.otp-version }}-elixir${{ steps.beam.outputs.elixir-version }}-${{ inputs.mix-env }}-${{ hashFiles('mix.lock') }}
@@ -84,7 +84,7 @@ runs:
 
     - name: Restore build cache
       id: build_cache
-      uses: actions/cache@v4
+      uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
       with:
         path: _build
         key: ${{ steps.ns.outputs.build_ns }}-v1-${{ runner.os }}-${{ runner.arch }}-otp${{ steps.beam.outputs.otp-version }}-elixir${{ steps.beam.outputs.elixir-version }}-${{ inputs.mix-env }}-${{ hashFiles('mix.lock') }}

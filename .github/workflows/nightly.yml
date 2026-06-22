@@ -79,7 +79,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
       - name: Set up Elixir
         id: setup
@@ -156,7 +156,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
       - name: Set up Elixir
         id: setup
@@ -181,7 +181,7 @@ jobs:
       # the job comment); preserve the hashFiles('mix.exs', '.dialyzer_ignore.exs')
       # segment EXACTLY (the acceptance grep depends on it).
       - name: Restore PLT cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         id: plt_cache
         with:
           path: priv/plts
@@ -202,7 +202,7 @@ jobs:
       # `cache-hit != 'true'` — NOT `if: always()`.
       - name: Save PLT cache
         if: steps.plt_cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
           path: priv/plts
           key: plt-v1-${{ runner.os }}-${{ runner.arch }}-otp27-elixir1.17-${{ hashFiles('mix.exs', '.dialyzer_ignore.exs') }}
@@ -248,7 +248,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
       - name: Detect live GCS secret availability
         id: gcs-live-config
@@ -266,7 +266,7 @@ jobs:
 
       - name: Set up Elixir
         if: steps.gcs-live-config.outputs.enabled == 'true'
-        uses: erlef/setup-beam@v1
+        uses: erlef/setup-beam@fc68ffb90438ef2936bbb3251622353b3dcb2f93 # v1.24.0
         with:
           elixir-version: "1.17"
           otp-version: "27"
@@ -321,7 +321,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
       - name: Detect live GCS secret availability
         id: gcs-live-config
@@ -360,13 +360,13 @@ jobs:
 
       - name: Authenticate for live GCS proof cleanup
         if: steps.gcs-live-config.outputs.enabled == 'true'
-        uses: google-github-actions/auth@v2
+        uses: google-github-actions/auth@c200f3691d83b41bf9bbd8638997a462592937ed # v2.1.13
         with:
           credentials_json: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}
 
       - name: Set up gcloud for live GCS cleanup
         if: steps.gcs-live-config.outputs.enabled == 'true'
-        uses: google-github-actions/setup-gcloud@v2
+        uses: google-github-actions/setup-gcloud@e427ad8a34f8676edf47cf7d7925499adf3eb74f # v2.2.1
 
       - name: Run live package-consumer GCS resumable proof without logging raw session_uri values
         if: steps.gcs-live-config.outputs.enabled == 'true'
