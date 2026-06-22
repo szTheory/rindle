@@ -544,8 +544,14 @@ jobs:
   package-consumer:
     name: Package Consumer Proof Matrix + Release Preflight
     runs-on: ubuntu-22.04
-    # Merge-blocking release-readiness lane: install-smoke matrix + release preflight.
-    # See RUNNING.md `## CI lane severity` for the full matrix.
+    # LANE-02 (D-08/D-10): LEAN, PR-gating representative of the package-consumer
+    # long pole. Runs on ALL triggers (no event gate) and carries ONLY the single
+    # representative `image` install-smoke + the cheap structural version-alignment
+    # check. The 887s-p95 breadth (release_preflight + repo_hygiene + the
+    # video/tus/mux/gcs profiles + hex.publish --dry-run) moved to the
+    # `package-consumer-full` job below, which runs off-PR only. This lean job stays
+    # in CI Summary.needs (the PR critical-path gate). See RUNNING.md `## CI lane
+    # severity` and 106-CONTEXT.md D-08/D-10.
     needs: [quality, optional-dependencies]
     env:
       MIX_ENV: test
@@ -642,28 +648,11 @@ jobs:
       - name: Set up MinIO for S3-compatible package-consumer proofs
         uses: ./.github/actions/setup-minio
 
-      - name: Run release preflight
-        env:
-          MIX_ENV: dev
-        run: bash scripts/release_preflight.sh
-
-      - name: Repo hygiene gate (release train)
-        run: bash scripts/maintainer/repo_hygiene_check.sh --ci
-
-      - name: Run built-artifact AV package-consumer proof against MinIO
-        run: bash scripts/install_smoke.sh video
-
+      # LANE-02 (D-10): ONLY the representative `image` profile on the PR critical
+      # path. The other four profiles (video/tus/mux/gcs) + release_preflight +
+      # repo_hygiene + hex.publish --dry-run moved to package-consumer-full (off-PR).
       - name: Run built-artifact image-only package-consumer proof against MinIO
         run: bash scripts/install_smoke.sh image
-
-      - name: Run built-artifact tus package-consumer proof against MinIO
-        run: bash scripts/install_smoke.sh tus
-
-      - name: Run built-artifact Mux-enabled package-consumer proof (cassette mode)
-        run: bash scripts/install_smoke.sh mux
-
-      - name: Run built-artifact GCS package-consumer proof (structural only)
-        run: bash scripts/install_smoke.sh gcs
 
       - name: Verify version alignment (mocking tag)
         env:
@@ -672,12 +661,6 @@ jobs:
           MIX_VERSION=$(mix run --no-start -e 'IO.write(Mix.Project.config()[:version])')
           export GITHUB_REF_NAME="v${MIX_VERSION}"
           bash scripts/assert_version_match.sh
-
-      - name: Dry-run Hex publish
-        env:
-          MIX_ENV: dev
-          HEX_API_KEY: dryrun-placeholder
-        run: mix hex.publish --dry-run --yes
 
       # OBS-02 (additive sibling): generate coverage JSON, then upload JUnit +
       # coverage artifacts on every run (pass or fail). if-no-files-found: warn
@@ -696,6 +679,119 @@ jobs:
             cover/excoveralls.json
           if-no-files-found: warn
           retention-days: 14
+
+  package-consumer-full:
+    name: Package Consumer Full Matrix + Release Preflight
+    runs-on: ubuntu-22.04
+    # LANE-02 (D-08/D-10/D-11): the OFF-PR breadth half of the package-consumer
+    # split. Runs the full 5-profile install-smoke matrix (fail-fast: false →
+    # profiles run in parallel, so off-PR wall-clock ≈ slowest profile, not 5×
+    # serial) PLUS release_preflight + repo_hygiene + hex.publish --dry-run.
+    #
+    # `if: github.event_name != 'pull_request'` keeps this off the PR critical path
+    # (a `labeled` event still yields event_name == 'pull_request', so the full lane
+    # is correctly skipped on label too — see ci.yml `on.pull_request.types`).
+    #
+    # No failure-masking (no continue_on_error key) anywhere — job OR step: a failed
+    # leg MUST make the push:main run conclusion non-success so `release.yml
+    # gate-ci-green` blocks the Hex publish (D-08 masking-trap rule; D-11 release
+    # proof keys off run conclusion). This job is INTENTIONALLY ABSENT from
+    # ci-summary.needs /
+    # ci-observability.needs (D-09 omit-from-needs): the PR gate makes no claim about
+    # this conditionally-skipped lane, and release readiness is proven by the
+    # push:main run conclusion — not by CI Summary or any check name.
+    needs: [quality, optional-dependencies]
+    if: github.event_name != 'pull_request'
+    strategy:
+      fail-fast: false
+      matrix:
+        profile: [video, image, tus, mux, gcs]
+    env:
+      MIX_ENV: test
+      RINDLE_AV_USE_CGROUPS: "false"
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGHOST: localhost
+      PGPORT: "5432"
+      RINDLE_MINIO_URL: http://localhost:9000
+      RINDLE_MINIO_ACCESS_KEY: minioadmin
+      RINDLE_MINIO_SECRET_KEY: minioadmin
+      RINDLE_MINIO_BUCKET: rindle-test
+      RINDLE_MINIO_REGION: us-east-1
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: rindle_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Elixir
+        id: setup
+        # Reuse the setup-elixir composite (D-12 spirit: near-zero duplication).
+        uses: ./.github/actions/setup-elixir
+        with:
+          elixir-version: "1.17"
+          otp-version: "27"
+          mix-env: test
+          install-deps: "false"
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Set up FFmpeg
+        run: bash scripts/ci/install_ffmpeg.sh
+
+      - name: Install libvips
+        run: sudo apt-get update && sudo apt-get install -y libvips-dev
+
+      - name: Install dependencies
+        run: mix deps.get
+
+      - name: Set up MinIO for S3-compatible package-consumer proofs
+        # gcs is structural-only (no S3/MinIO traffic); skip MinIO setup on that leg
+        # to save runner-minutes (CONTEXT discretion).
+        if: matrix.profile != 'gcs'
+        uses: ./.github/actions/setup-minio
+
+      - name: Run release preflight
+        env:
+          MIX_ENV: dev
+        run: bash scripts/release_preflight.sh
+
+      - name: Repo hygiene gate (release train)
+        run: bash scripts/maintainer/repo_hygiene_check.sh --ci
+
+      - name: Run built-artifact package-consumer proof against MinIO
+        run: bash scripts/install_smoke.sh ${{ matrix.profile }}
+
+      - name: Verify version alignment (mocking tag)
+        env:
+          MIX_ENV: dev
+        run: |
+          MIX_VERSION=$(mix run --no-start -e 'IO.write(Mix.Project.config()[:version])')
+          export GITHUB_REF_NAME="v${MIX_VERSION}"
+          bash scripts/assert_version_match.sh
+
+      - name: Dry-run Hex publish
+        env:
+          MIX_ENV: dev
+          HEX_API_KEY: dryrun-placeholder
+        run: mix hex.publish --dry-run --yes
 
   adoption-demo-unit:
     name: Adoption Demo Unit
