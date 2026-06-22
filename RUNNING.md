@@ -66,7 +66,7 @@ matrix both of those entrypoints link to.
 | `contract` — Run AV hygiene gate | merge-blocking | `needs: [quality, optional-dependencies]` | `scripts/assert_av_hygiene.sh` |
 | `contract` — Run contract tests | advisory | Same job | Step-level `continue-on-error`; job still required in graph |
 | `proof` | merge-blocking | `needs: [quality, optional-dependencies]` | `docs_parity_test.exs`, adoption proof matrix drift gate, `batch_owner_erasure_task_test.exs`; Postgres only; Elixir 1.17/OTP 27 |
-| `package-consumer` — repo hygiene gate | merge-blocking | Same job | `scripts/maintainer/repo_hygiene_check.sh --ci` |
+| `package-consumer-full` — repo hygiene gate | off-critical-path | `push:main`/release (`if: github.event_name != 'pull_request'`) | `scripts/maintainer/repo_hygiene_check.sh --ci` — Phase 106: runs **only** inside `package-consumer-full`, so it is no longer on the PR lane (release/main gate, not merge-blocking on PRs) |
 | `package-consumer` (lean, PR) | merge-blocking | `needs: [quality, optional-dependencies]` | Phase 106: representative `image`-only install-smoke + version alignment; stays in `CI Summary.needs` |
 | `package-consumer-full` | off-critical-path | `push:main`/release (`if: github.event_name != 'pull_request'`) | Phase 106: full 5-profile matrix + release preflight + `hex.publish --dry-run`; **NOT** a required PR check (omitted from `CI Summary.needs`); release proof is the push:main run conclusion |
 | `adoption-demo-unit` | merge-blocking | `needs: [quality, optional-dependencies]`; Postgres only | Fast ExUnit proof for `examples/adoption_demo`: brand mark/wordmark, admin-console mount, lifecycle-state display, README walkthrough parity (storage-free, direct-insert seeds) |
@@ -75,8 +75,8 @@ matrix both of those entrypoints link to.
 | `brandbook-tokens` | merge-blocking | `needs: [quality, optional-dependencies]`; repo `szTheory/rindle` only | PIPE-01 drift gate: regenerates brandbook token CSS, admin CSS, gallery proof, and shipped priv/ CSS copy, then fails on any generated-artifact diff |
 | `adopter` | merge-blocking | `needs: [quality, optional-dependencies, integration, contract]` | Canonical adopter lifecycle only (doc parity in `proof` job) |
 | `mux-soak` | secret-gated soak (label-gated PR lane) | Label `streaming` on PR; `needs: quality` | Not in branch protection required checks; fails closed when secrets absent. Phase 106: **stays in `ci.yml`** as a label-gated PR lane (NOT moved to nightly) |
-| `gcs-soak` | secret-gated soak | `needs: quality`; repo + secrets | Skipped when secrets absent; test step advisory when it runs. Phase 106: **moves to `nightly.yml`** (advisory, off the PR critical path) |
-| `package-consumer-gcs-live` | secret-gated soak | `needs: quality`; repo + secrets | Job-level `continue-on-error`; live GCS install-smoke when secrets present. Phase 106: **moves to `nightly.yml`** and drops `continue-on-error` so it becomes a real nightly signal |
+| `gcs-soak` | nightly (gating) | `nightly.yml`: schedule 07:27 UTC / `workflow_dispatch`; no `needs:`; repo `szTheory/rindle` + secrets | Skipped when secrets absent. Phase 106: **moved to `nightly.yml`** and **gating** — `continue-on-error` dropped, so a live-GCS regression is real nightly red |
+| `package-consumer-gcs-live` | nightly (gating) | `nightly.yml`: schedule 07:27 UTC / `workflow_dispatch`; no `needs:`; repo `szTheory/rindle` + secrets | Live GCS install-smoke when secrets present (skipped otherwise). Phase 106: **moved to `nightly.yml`** and **gating** — `continue-on-error` dropped, so a live-GCS regression is real nightly red |
 
 ### Static analysis policy (CI-04)
 
@@ -104,10 +104,15 @@ Doctor and AV doctor steps remain advisory without a separate CI-04 decision rec
 `ci.yml` on the release SHA to finish with conclusion `success`. When the latest run is
 not green, or the wait times out, publish **fails closed** — there is no bypass path.
 
-Branch protection required checks (enforced via `scripts/setup_branch_protection.sh`) include
-Quality (both matrix cells), ADMIN-06 Optional Dependencies (both matrix cells), Integration,
-Contract, Proof, Package Consumer Proof Matrix + Release Preflight, Adopter, Adoption Demo Unit,
-Adoption Demo E2E, Cohort Demo Smoke, and brandbook-tokens.
+Branch protection enforces a **single** required status check, `CI Summary` (enforced via
+`scripts/setup_branch_protection.sh`, `REQUIRED_CHECKS=("CI Summary")`). None of the individual
+lanes are required contexts; they gate merges transitively through `CI Summary.needs`, which lists
+`quality`, `optional-dependencies`, `integration`, `contract`, `proof`, `package-consumer` (lean),
+`adoption-demo-unit`, `adopter`, `brandbook-tokens`, and `ci-script-tests`. As of Phase 106,
+`cohort-demo-smoke` and `adoption-demo-e2e` run **only on `push:main`** and are **NOT** in
+`CI Summary.needs` — their regressions are caught on main (and block release via the push:main run
+conclusion), not on the PR merge gate. `package-consumer-full` is likewise omitted from
+`CI Summary.needs` (it is `if: github.event_name != 'pull_request'`).
 
 ## Verify The Runtime
 
