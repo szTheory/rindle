@@ -43,7 +43,7 @@ aggregate must treat `skipped` as pass (fork-PR safety); never weaken the releas
 - [x] **Phase 104: Cache & Tooling Hygiene** — composite setup action, correct cache keys, PLT restore/save split, lockfile drift gates, lint de-dup (single-workflow shape; low-risk). (completed 2026-06-21)
 - [ ] **Phase 105: Aggregate Required Check + Branch-Protection Flip** — land `CI Summary` and make it the sole required check, in one isolated PR, before any lane rename.
 - [x] **Phase 106: Trigger Split + Matrix/Lane Refinement** — fast PR lane + scoped package-consumer + nightly lane + concurrency groups (the headline 15→≤7min cut). (completed 2026-06-22)
-- [ ] **Phase 107: Reliability, Security & DX Hardening** — async-safety guard/partitioning, action pinning + supply-chain, `mix ci` + CONTRIBUTING, faithful Linux-Chromium repro.
+- [x] **Phase 107: Reliability, Security & DX Hardening** — async-safety guard/partitioning, action pinning + supply-chain, `mix ci` + CONTRIBUTING, faithful Linux-Chromium repro. (completed 2026-06-22)
 
 <details>
 <summary>✅ v1.19 Design-System Stress-Test (Phases 94-102) — SHIPPED 2026-06-19</summary>
@@ -340,7 +340,7 @@ shape).
    + exact `@playwright/test` and font pins), and the divergent token-pair vs runtime contrast
    thresholds are reconciled to one shared constant (HARD-04).
 
-**Plans:** 4 plans
+**Plans:** 4/4 plans complete
 
 Plans:
 
@@ -662,7 +662,7 @@ Plans:
 | 104. Cache & Tooling Hygiene | 4/4 | Complete    | 2026-06-21 |
 | 105. Aggregate Required Check + Branch-Protection Flip | 1/1 | Complete   | 2026-06-21 |
 | 106. Trigger Split + Matrix/Lane Refinement | 4/4 | Complete    | 2026-06-22 |
-| 107. Reliability, Security & DX Hardening | 4/4 | Complete   | 2026-06-22 |
+| 107. Reliability, Security & DX Hardening | 4/4 | Complete    | 2026-06-22 |
 | 94. Foundation — Token Pipeline CI Gate & New Categories | 5/5 | Complete    | 2026-06-15 |
 | 95. Admin Level-1 Component Audit [A] | 5/5 | Complete   | 2026-06-16 |
 | 96. Cohort Component Layer + Dark/Reduced-Motion [B] | 5/5 | Complete    | 2026-06-17 |
