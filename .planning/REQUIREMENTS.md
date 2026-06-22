@@ -82,7 +82,7 @@ dropping real quality signal — via a measure → classify → restructure pass
   modules are converted to `async: true`, and `--partitions` (with DB-per-partition + merged
   coverage) is adopted only where PR-1 measurement and runner cores justify it.
 
-- [ ] **HARD-02**: All third-party actions are pinned to immutable SHAs, `dependabot.yml`
+- [x] **HARD-02**: All third-party actions are pinned to immutable SHAs, `dependabot.yml`
   (`github-actions` + `mix`) lands, `{:mix_audit, "~> 2.1"}` is added to the audit lane, and each job
   declares least-privilege `permissions:`.
 
@@ -145,7 +145,7 @@ Populated during roadmap creation.
 | LANE-03 | Phase 106 | Complete |
 | LANE-04 | Phase 106 | Complete |
 | HARD-01 | Phase 107 | Complete |
-| HARD-02 | Phase 107 | Pending |
+| HARD-02 | Phase 107 | Complete |
 | HARD-03 | Phase 107 | Pending |
 | HARD-04 | Phase 107 | Pending |
 
