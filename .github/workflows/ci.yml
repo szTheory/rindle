@@ -896,6 +896,12 @@ jobs:
       RINDLE_MINIO_BUCKET: rindle-test
       RINDLE_MINIO_REGION: us-east-1
       ADOPTION_DEMO_BROWSER_PORT: "4102"
+      # D-10/D-11: the pinned Playwright browser image. scripts/ci/e2e_local.sh
+      # reads PLAYWRIGHT_IMAGE (defaulting to this same tag), so CI and the local
+      # repro run the SAME mcr.microsoft.com/playwright:v1.57.0-noble container —
+      # the image tag IS the browser + font pin. Must match the exact
+      # @playwright/test 1.57.0 npm pin in examples/adoption_demo/package.json.
+      PLAYWRIGHT_IMAGE: mcr.microsoft.com/playwright:v1.57.0-noble
 
     services:
       postgres:
@@ -948,8 +954,14 @@ jobs:
       - name: Cohort contrast + literal gate
         run: node brandbook/src/cohort-contrast.mjs
 
-      - name: Run adoption demo Playwright suite
-        run: bash scripts/ci/adoption_demo_e2e.sh
+      - name: Run adoption demo Playwright suite (pinned container)
+        # D-10: the browser leg runs inside the SAME pinned image
+        # (mcr.microsoft.com/playwright:v1.57.0-noble) that scripts/ci/e2e_local.sh
+        # uses — faithful repro by construction (no "green in CI, red locally").
+        # The container tag IS the browser + font pin (D-11). Host-side Phoenix
+        # bring-up + browser-in-container against the host network live in the
+        # shared wrapper, so CI and local stay byte-identical.
+        run: bash scripts/ci/e2e_local.sh
 
       - name: Upload Playwright report on failure
         if: failure()
