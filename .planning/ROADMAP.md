@@ -260,6 +260,7 @@ names. MUST precede Phase 106.
 **Plans:** 1 plan
 
 Plans:
+
 - [x] 105-01-PLAN.md — add the `CI Summary` aggregate job + collapse `setup_branch_protection.sh` to require only it (additive, no live mutation); document the post-merge human flip + verification (one isolated PR)
 
 ---
@@ -296,10 +297,17 @@ Phase 103's per-step `package-consumer` timing + slowest-test evidence.
 5. `ci.yml` keeps its file name and `name: CI` on `push:main`, and the release gate is not weakened.
 
 **Plans:** 4 plans
+**Wave 1**
 
 - [ ] 106-01-PLAN.md — LANE-04: A–E lane-value classification doc + CONTRIBUTING trust/speed label + RUNNING.md note (no YAML)
 - [ ] 106-02-PLAN.md — LANE-01: top-level ci.yml concurrency group (cancel stale PR runs; serialize/never-cancel push:main)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 106-03-PLAN.md — LANE-02: split package-consumer into lean image-only PR job + off-PR package-consumer-full 5-profile matrix (omit-from-CI-Summary)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 106-04-PLAN.md — LANE-03: new nightly.yml (compat matrix + owned gating Dialyzer + moved gcs soak/live + summary + issue-on-failure); extract Dialyzer/GCS from ci.yml
 
 ---
@@ -749,6 +757,7 @@ See [post-v116 assessment](threads/2026-05-27-post-v116-milestone-assessment.md)
 Known blocker: 4 real failures in `test/rindle/storage/s3_tus_test.exs` (untagged `use ExUnit.Case, async: true`) resolving REAL AWS creds via `ExAws.Config.AuthCache` → IMDS HTTP 404 in the `mix coveralls.json` default-suite step of the Integration + Package Consumer jobs (CI run 27916861643). `Quality` passes the SAME tests → env/config difference to chase (likely AWS_* env or ExAws config per job). Possibly more failures behind these. Fixed en route: json_polyfill/`--check-locked` lockfile bug (commit 0751fdb). Flip automation committed + inert on origin/main (commit ca70075); self-defers until CI Summary is green. After green: nightly `branch-protection-apply.yml` flips it (needs `Checks: read` on `BRANCH_PROTECTION_PAT` — manual) or one-off `setup_branch_protection.sh main`.
 
 Plans:
+
 - [ ] TBD (promote with /gsd-review-backlog when ready)
 
 ---
