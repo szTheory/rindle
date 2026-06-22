@@ -72,7 +72,7 @@ dropping real quality signal — via a measure → classify → restructure pass
 - [ ] **LANE-03**: A nightly lane carries the broad OTP×Elixir compatibility matrix, `gcs-soak`,
   `package-consumer-gcs-live`, and an owned Dialyzer lane off the PR critical path.
 
-- [ ] **LANE-04**: A documented keep / optimize / move-to-nightly / quarantine / delete (buckets A–E)
+- [x] **LANE-04**: A documented keep / optimize / move-to-nightly / quarantine / delete (buckets A–E)
   test-value classification backs every lane placement, and coverage is moved off the PR critical
   path. Any trust/speed tradeoff is labeled explicitly (in CONTRIBUTING and the PR).
 
@@ -143,7 +143,7 @@ Populated during roadmap creation.
 | LANE-01 | Phase 106 | Pending |
 | LANE-02 | Phase 106 | Pending |
 | LANE-03 | Phase 106 | Pending |
-| LANE-04 | Phase 106 | Pending |
+| LANE-04 | Phase 106 | Complete |
 | HARD-01 | Phase 107 | Pending |
 | HARD-02 | Phase 107 | Pending |
 | HARD-03 | Phase 107 | Pending |

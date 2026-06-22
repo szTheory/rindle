@@ -299,7 +299,7 @@ Phase 103's per-step `package-consumer` timing + slowest-test evidence.
 **Plans:** 4 plans
 **Wave 1**
 
-- [ ] 106-01-PLAN.md — LANE-04: A–E lane-value classification doc + CONTRIBUTING trust/speed label + RUNNING.md note (no YAML)
+- [x] 106-01-PLAN.md — LANE-04: A–E lane-value classification doc + CONTRIBUTING trust/speed label + RUNNING.md note (no YAML)
 - [ ] 106-02-PLAN.md — LANE-01: top-level ci.yml concurrency group (cancel stale PR runs; serialize/never-cancel push:main)
 
 **Wave 2** *(blocked on Wave 1 completion)*
@@ -649,7 +649,7 @@ Plans:
 | 103. Observability / Baseline | 4/4 | Complete    | 2026-06-20 |
 | 104. Cache & Tooling Hygiene | 4/4 | Complete    | 2026-06-21 |
 | 105. Aggregate Required Check + Branch-Protection Flip | 1/1 | Complete   | 2026-06-21 |
-| 106. Trigger Split + Matrix/Lane Refinement | 0/TBD | Not started | - |
+| 106. Trigger Split + Matrix/Lane Refinement | 1/4 | In Progress|  |
 | 107. Reliability, Security & DX Hardening | 0/TBD | Not started | - |
 | 94. Foundation — Token Pipeline CI Gate & New Categories | 5/5 | Complete    | 2026-06-15 |
 | 95. Admin Level-1 Component Audit [A] | 5/5 | Complete   | 2026-06-16 |
