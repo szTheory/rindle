@@ -211,3 +211,278 @@ jobs:
       # ignore-file drift fails the nightly lane.
       - name: Dialyzer
         run: mix dialyzer --format github
+
+  # D-14: GCS Soak — moved verbatim from ci.yml into the nightly lane. Real
+  # bucket proof; runs on the upstream repo only (`if: github.repository ==`),
+  # steps skip when secrets are absent (secrets cannot be referenced in a
+  # job-level if). Unlike the old ci.yml home, the `mix test --only gcs` step is
+  # now GATING (continue-on-error dropped) so a live-GCS regression is real
+  # nightly red surfaced via Nightly Summary + nightly-failure-issue.
+  gcs-soak:
+    name: GCS Soak (real bucket)
+    runs-on: ubuntu-22.04
+    if: ${{ github.repository == 'szTheory/rindle' }}
+    env:
+      MIX_ENV: test
+      GOOGLE_APPLICATION_CREDENTIALS_JSON: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}
+      RINDLE_GCS_BUCKET: ${{ secrets.RINDLE_GCS_BUCKET }}
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGHOST: localhost
+      PGPORT: "5432"
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: rindle_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Detect live GCS secret availability
+        id: gcs-live-config
+        run: |
+          if [ -n "${GOOGLE_APPLICATION_CREDENTIALS_JSON}" ] && [ -n "${RINDLE_GCS_BUCKET}" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Skip live GCS soak when secrets are unavailable
+        if: steps.gcs-live-config.outputs.enabled != 'true'
+        run: |
+          echo "Skipping live GCS soak: GOOGLE_APPLICATION_CREDENTIALS_JSON and/or RINDLE_GCS_BUCKET are not configured."
+
+      - name: Set up Elixir
+        if: steps.gcs-live-config.outputs.enabled == 'true'
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: "1.17"
+          otp-version: "27"
+
+      - name: Install libvips
+        if: steps.gcs-live-config.outputs.enabled == 'true'
+        run: sudo apt-get update && sudo apt-get install -y libvips-dev
+
+      - name: Install dependencies
+        if: steps.gcs-live-config.outputs.enabled == 'true'
+        run: mix deps.get
+
+      # D-14: now GATING in nightly (continue-on-error dropped vs. the old ci.yml
+      # advisory home) so a real GCS regression is a real nightly red.
+      - name: Run GCS integration tests
+        if: steps.gcs-live-config.outputs.enabled == 'true'
+        run: mix test --only gcs
+
+  # D-14: Package Consumer GCS Live Proof — moved verbatim from ci.yml. The
+  # job-level `continue-on-error: true` is DROPPED on the move so a live-GCS
+  # install-smoke failure becomes real nightly signal (the 105 D-04 masking trap
+  # is retired here). Secret-gated + repo-restricted: forks never reach it.
+  package-consumer-gcs-live:
+    name: Package Consumer GCS Live Proof
+    runs-on: ubuntu-22.04
+    if: ${{ github.repository == 'szTheory/rindle' }}
+    env:
+      MIX_ENV: test
+      GOOGLE_APPLICATION_CREDENTIALS_JSON: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}
+      RINDLE_GCS_BUCKET: ${{ secrets.RINDLE_GCS_BUCKET }}
+      RINDLE_INSTALL_SMOKE_GCS_PREFIX: gcs-${{ github.run_id }}-${{ github.run_attempt }}
+      RINDLE_INSTALL_SMOKE_GCS_CLEANUP_FILE: .tmp/install-smoke-gcs-cleanup.txt
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGHOST: localhost
+      PGPORT: "5432"
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: rindle_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Detect live GCS secret availability
+        id: gcs-live-config
+        run: |
+          if [ -n "${GOOGLE_APPLICATION_CREDENTIALS_JSON}" ] && [ -n "${RINDLE_GCS_BUCKET}" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Skip live package-consumer GCS proof when secrets are unavailable
+        if: steps.gcs-live-config.outputs.enabled != 'true'
+        run: |
+          echo "Skipping live package-consumer GCS proof: GOOGLE_APPLICATION_CREDENTIALS_JSON and/or RINDLE_GCS_BUCKET are not configured."
+
+      - name: Set up Elixir
+        # CACHE-01 (D-03): composite setup + deps/_build cache, carrying the same
+        # secret-gated `enabled == 'true'` guard so it never runs on a fork PR
+        # without GCS secrets. install-deps:false keeps this job's own
+        # enabled-gated `mix deps.get`.
+        if: steps.gcs-live-config.outputs.enabled == 'true'
+        uses: ./.github/actions/setup-elixir
+        with:
+          elixir-version: "1.17"
+          otp-version: "27"
+          mix-env: test
+          install-deps: "false"
+
+      - name: Install libvips
+        if: steps.gcs-live-config.outputs.enabled == 'true'
+        run: sudo apt-get update && sudo apt-get install -y libvips-dev
+
+      - name: Install dependencies
+        if: steps.gcs-live-config.outputs.enabled == 'true'
+        run: mix deps.get
+
+      - name: Authenticate for live GCS proof cleanup
+        if: steps.gcs-live-config.outputs.enabled == 'true'
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}
+
+      - name: Set up gcloud for live GCS cleanup
+        if: steps.gcs-live-config.outputs.enabled == 'true'
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Run live package-consumer GCS resumable proof without logging raw session_uri values
+        if: steps.gcs-live-config.outputs.enabled == 'true'
+        run: bash scripts/install_smoke.sh gcs
+
+      - name: Adoption demo GCS live companion (documented lane; install_smoke is canonical)
+        if: steps.gcs-live-config.outputs.enabled == 'true'
+        run: bash scripts/ci/adoption_demo_gcs_live.sh
+
+      - name: Always clean up live package-consumer GCS objects for this prefix
+        if: ${{ always() && steps.gcs-live-config.outputs.enabled == 'true' }}
+        run: |
+          if [ -z "${RINDLE_GCS_BUCKET}" ] || [ ! -f "${RINDLE_INSTALL_SMOKE_GCS_CLEANUP_FILE}" ]; then
+            exit 0
+          fi
+
+          while IFS= read -r upload_key; do
+            if [ -n "${upload_key}" ]; then
+              gcloud storage rm "gs://${RINDLE_GCS_BUCKET}/${upload_key}" || true
+            fi
+          done < "${RINDLE_INSTALL_SMOKE_GCS_CLEANUP_FILE}"
+
+  # D-16: Nightly Summary — mirrors the ci.yml CI Summary / ci-observability
+  # bash-loop-over-needs.*.result + $GITHUB_STEP_SUMMARY table idiom for
+  # at-a-glance nightly status. Advisory only (never a required check).
+  # `if: always()` so it reports even when an upstream lane failed.
+  nightly-summary:
+    name: Nightly Summary
+    runs-on: ubuntu-22.04
+    needs:
+      - compat-matrix
+      - dialyzer
+      - gcs-soak
+      - package-consumer-gcs-live
+    if: always()
+    steps:
+      - name: Summarize nightly job results
+        env:
+          COMPAT_MATRIX: ${{ needs.compat-matrix.result }}
+          DIALYZER: ${{ needs.dialyzer.result }}
+          GCS_SOAK: ${{ needs.gcs-soak.result }}
+          GCS_LIVE: ${{ needs.package-consumer-gcs-live.result }}
+        run: |
+          {
+            echo "## Nightly Summary"
+            echo ""
+            echo "| Job | Result |"
+            echo "| --- | --- |"
+            echo "| Compat Matrix | ${COMPAT_MATRIX} |"
+            echo "| Dialyzer | ${DIALYZER} |"
+            echo "| GCS Soak | ${GCS_SOAK} |"
+            echo "| Package Consumer GCS Live | ${GCS_LIVE} |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # D-16: issue-on-failure — opens or updates a single tracking issue when a
+  # SCHEDULED nightly run fails (default GitHub scheduled-failure emails only
+  # reach the last committer — insufficient for the maintainer-as-consumer JTBD).
+  # `if: failure() && github.event_name == 'schedule'` so a manual
+  # workflow_dispatch debugging run never files an issue. Job-scoped
+  # `permissions: issues: write` and NOTHING else (D-16 least privilege): the
+  # top-level workflow default stays `contents: read`, so this job cannot push
+  # code or merge PRs. Inline `gh issue` find-open-else-create (zero new
+  # dependency, house bash idiom) — no third-party action (SHA-pinning is
+  # Phase 107). Issue body is composed from static text + trusted needs.*.result
+  # context only (no untrusted event field interpolated into the shell).
+  nightly-failure-issue:
+    name: Nightly Failure Issue
+    runs-on: ubuntu-22.04
+    needs:
+      - compat-matrix
+      - dialyzer
+      - gcs-soak
+      - package-consumer-gcs-live
+    if: failure() && github.event_name == 'schedule'
+    permissions:
+      issues: write
+    steps:
+      - name: Open or update the nightly-failure tracking issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          COMPAT_MATRIX: ${{ needs.compat-matrix.result }}
+          DIALYZER: ${{ needs.dialyzer.result }}
+          GCS_SOAK: ${{ needs.gcs-soak.result }}
+          GCS_LIVE: ${{ needs.package-consumer-gcs-live.result }}
+        run: |
+          set -euo pipefail
+
+          title="Nightly CI failure"
+          label="nightly-failure"
+
+          body="$(
+            printf '%s\n\n' "A scheduled nightly run failed: ${RUN_URL}"
+            printf '%s\n' "| Job | Result |"
+            printf '%s\n' "| --- | --- |"
+            printf '| Compat Matrix | %s |\n' "${COMPAT_MATRIX}"
+            printf '| Dialyzer | %s |\n' "${DIALYZER}"
+            printf '| GCS Soak | %s |\n' "${GCS_SOAK}"
+            printf '| Package Consumer GCS Live | %s |\n' "${GCS_LIVE}"
+          )"
+
+          existing="$(
+            gh issue list \
+              --state open \
+              --label "$label" \
+              --search "$title in:title" \
+              --json number \
+              --jq '.[0].number // ""'
+          )"
+
+          if [ -n "$existing" ]; then
+            echo "Commenting on existing nightly-failure issue #$existing"
+            gh issue comment "$existing" --body "$body"
+          else
+            echo "Creating a new nightly-failure tracking issue"
+            gh label create "$label" --color B60205 --description "Tracks scheduled nightly CI failures" 2>/dev/null || true
+            gh issue create --title "$title" --label "$label" --body "$body"
+          fi
