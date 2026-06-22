@@ -90,7 +90,7 @@ dropping real quality signal — via a measure → classify → restructure pass
   documents the lanes, the required check, and the local command; the README badge points at the
   meaningful (`CI Summary`) check.
 
-- [ ] **HARD-04**: A faithful Linux-Chromium local repro lands (pinned Playwright container +
+- [x] **HARD-04**: A faithful Linux-Chromium local repro lands (pinned Playwright container +
   `scripts/ci/e2e_local.sh` + exact `@playwright/test` and font pins), and the divergent token-pair
   vs runtime contrast thresholds are reconciled to one shared constant.
 
@@ -147,7 +147,7 @@ Populated during roadmap creation.
 | HARD-01 | Phase 107 | Complete |
 | HARD-02 | Phase 107 | Complete |
 | HARD-03 | Phase 107 | Complete |
-| HARD-04 | Phase 107 | Pending |
+| HARD-04 | Phase 107 | Complete |
 
 **Coverage:**
 
