@@ -35,7 +35,23 @@ matrix both of those entrypoints link to.
 
 > Adopters can skip this section. It documents how this repository gates merges and releases.
 
-[`.github/workflows/ci.yml`](.github/workflows/ci.yml) is the source of truth for job wiring; GitHub branch protection and required-check settings live outside the repo.
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) is the source of truth for job wiring; GitHub branch protection and required-check settings live outside the repo. The `name: CI` and `ci.yml` filename are **invariant** (release-train coupling) and are not renamed by the Phase-106 split.
+
+> **Phase 106 trigger split (forward reference).** Phase 106 splits CI work by *trigger*
+> so only representative signal stays on the PR critical path (≤7 min target):
+> - The `package-consumer` lane is split. A **lean representative `image`-only
+>   `package-consumer`** runs on PR (stays merge-blocking via `CI Summary`); a new
+>   **`package-consumer-full`** runs on `push:main`/release with the full 5-profile matrix
+>   + release preflight + `hex.publish --dry-run` and is **NOT** a required PR check.
+> - The broad OTP×Elixir **compat matrix**, **`gcs-soak`**, **`package-consumer-gcs-live`**,
+>   and an owned gating **Dialyzer** lane move to a separate **`nightly.yml`** (`name:
+>   Nightly`), advisory and never a required PR check.
+> - **`mux-soak` stays here** in `ci.yml` as a **label-gated PR lane** (not moved to
+>   nightly).
+>
+> The `name: CI` / `ci.yml` filename invariant and the merge-blocking PR lanes (`quality`,
+> `integration`, `contract`, `proof`, `adopter`) are unchanged. Full rationale:
+> [`106-LANE-CLASSIFICATION.md`](.planning/phases/106-trigger-split-matrix-lane-refinement/106-LANE-CLASSIFICATION.md).
 
 | Job / step | Severity | When it runs | Notes |
 |------------|----------|--------------|-------|
@@ -44,22 +60,23 @@ matrix both of those entrypoints link to.
 | `quality` — Doctor (full, raise) | advisory | Same job | Step-level `continue-on-error` |
 | `quality` — Verify AV runtime with public doctor task | advisory | Same job | Step-level `continue-on-error` |
 | `quality` — Run tests with coverage | merge-blocking | Same job | Default `mix test` suite via Coveralls; both matrix cells must pass |
-| `quality` — Dialyzer | advisory | Same job | Step-level `continue-on-error` |
+| `quality` — Dialyzer | advisory (until Phase 106) | Same job | Step-level `continue-on-error`. Phase 106 extracts this into an owned, **gating** `Dialyzer` job in `nightly.yml` (removed from PR runs) |
 | `optional-dependencies` | merge-blocking | Every PR/push; Elixir 1.15/OTP 26 and 1.17/OTP 27 matrix | ADMIN-06 proof: `mix deps.get --no-optional-deps` and `mix compile --no-optional-deps --warnings-as-errors` |
 | `integration` | merge-blocking | `needs: [quality, optional-dependencies]` | Lifecycle + MinIO adapter tests |
 | `contract` — Run AV hygiene gate | merge-blocking | `needs: [quality, optional-dependencies]` | `scripts/assert_av_hygiene.sh` |
 | `contract` — Run contract tests | advisory | Same job | Step-level `continue-on-error`; job still required in graph |
 | `proof` | merge-blocking | `needs: [quality, optional-dependencies]` | `docs_parity_test.exs`, adoption proof matrix drift gate, `batch_owner_erasure_task_test.exs`; Postgres only; Elixir 1.17/OTP 27 |
 | `package-consumer` — repo hygiene gate | merge-blocking | Same job | `scripts/maintainer/repo_hygiene_check.sh --ci` |
-| `package-consumer` | merge-blocking | `needs: [quality, optional-dependencies]` | Install-smoke matrix + release preflight |
+| `package-consumer` (lean, PR) | merge-blocking | `needs: [quality, optional-dependencies]` | Phase 106: representative `image`-only install-smoke + version alignment; stays in `CI Summary.needs` |
+| `package-consumer-full` | off-critical-path | `push:main`/release (`if: github.event_name != 'pull_request'`) | Phase 106: full 5-profile matrix + release preflight + `hex.publish --dry-run`; **NOT** a required PR check (omitted from `CI Summary.needs`); release proof is the push:main run conclusion |
 | `adoption-demo-unit` | merge-blocking | `needs: [quality, optional-dependencies]`; Postgres only | Fast ExUnit proof for `examples/adoption_demo`: brand mark/wordmark, admin-console mount, lifecycle-state display, README walkthrough parity (storage-free, direct-insert seeds) |
 | `adoption-demo-e2e` | merge-blocking | `needs: [quality, optional-dependencies]`; repo `szTheory/rindle` only | Playwright browser proof for `examples/adoption_demo` (image, tus, stretch journeys, admin lifecycle render, homepage cold-start smoke) |
 | `cohort-demo-smoke` | merge-blocking | `needs: [quality, optional-dependencies]`; repo `szTheory/rindle` only | Docker-compose cold-start gate (`scripts/ci/cohort_demo_smoke.sh`): builds the demo image, boots the full stack, asserts homepage + admin console serve 200 with seeded data — the boot path human UAT used to cover |
 | `brandbook-tokens` | merge-blocking | `needs: [quality, optional-dependencies]`; repo `szTheory/rindle` only | PIPE-01 drift gate: regenerates brandbook token CSS, admin CSS, gallery proof, and shipped priv/ CSS copy, then fails on any generated-artifact diff |
 | `adopter` | merge-blocking | `needs: [quality, optional-dependencies, integration, contract]` | Canonical adopter lifecycle only (doc parity in `proof` job) |
-| `mux-soak` | secret-gated soak | Label `streaming` on PR; `needs: quality` | Not in branch protection required checks; fails closed when secrets absent |
-| `gcs-soak` | secret-gated soak | `needs: quality`; repo + secrets | Skipped when secrets absent; test step advisory when it runs |
-| `package-consumer-gcs-live` | secret-gated soak | `needs: quality`; repo + secrets | Job-level `continue-on-error`; live GCS install-smoke when secrets present |
+| `mux-soak` | secret-gated soak (label-gated PR lane) | Label `streaming` on PR; `needs: quality` | Not in branch protection required checks; fails closed when secrets absent. Phase 106: **stays in `ci.yml`** as a label-gated PR lane (NOT moved to nightly) |
+| `gcs-soak` | secret-gated soak | `needs: quality`; repo + secrets | Skipped when secrets absent; test step advisory when it runs. Phase 106: **moves to `nightly.yml`** (advisory, off the PR critical path) |
+| `package-consumer-gcs-live` | secret-gated soak | `needs: quality`; repo + secrets | Job-level `continue-on-error`; live GCS install-smoke when secrets present. Phase 106: **moves to `nightly.yml`** and drops `continue-on-error` so it becomes a real nightly signal |
 
 ### Static analysis policy (CI-04)
 
