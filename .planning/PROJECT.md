@@ -26,8 +26,15 @@ Refinement) complete. Phase 106 validated LANE-01..04 with zero `lib/` change: a
 long pole split into a lean PR `image` smoke + push-only `package-consumer-full` 5-profile matrix, a
 new `nightly.yml` (`name: Nightly`) carrying the OTP×Elixir compat matrix + owned gating Dialyzer +
 moved gcs-soak/gcs-live, and an A–E lane-value classification backing every placement — all while
-keeping `name: CI`/the ci.yml filename and the `CI Summary` release gate intact. Next phase 107
-(Reliability, Security & DX Hardening).
+keeping `name: CI`/the ci.yml filename and the `CI Summary` release gate intact. Phase 107
+(Reliability, Security & DX Hardening) complete 2026-06-22 — the final phase: HARD-01 ExUnit
+async-safety AST static guard + 15 modules flipped to `async: true` (2 latent `put_env` races
+fixed to `async: false`, 2 documented escape hatches); HARD-02 all third-party Actions SHA-pinned
++ Dependabot + advisory `mix deps.audit`; HARD-03 single `mix ci` alias mirroring the merge-blocking
+set + contributor docs; HARD-04 faithful Linux-Chromium `e2e_local.sh` repro, shared
+`WCAG_AA_NORMAL=4.5` contrast constant, Playwright pinned to `1.57.0`. All 4 plans verified 4/4
+(14/14 must-haves), zero `lib/` change. **v1.20 CI/CD Performance fully delivered (phases 103–107);
+ready for milestone close** via `/gsd-complete-milestone`.
 
 ## Current Milestone: v1.20 CI/CD Performance
 
