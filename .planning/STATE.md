@@ -2,9 +2,11 @@
 gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: CI/CD Performance
+current_phase: 105
+current_phase_name: aggregate-required-check-branch-protection-flip
 status: verifying
-stopped_at: Completed 105-01 Tasks 1-3; Task 4 deferred post-merge human flip
-last_updated: "2026-06-21T19:51:35.846Z"
+stopped_at: Phase 106 context gathered
+last_updated: "2026-06-22T16:15:01.322Z"
 last_activity: 2026-06-21
 progress:
   total_phases: 13
@@ -302,9 +304,9 @@ required-check names before any topology change, and surface timing/cache/slowes
 
 ## Session Continuity
 
-Last session: 2026-06-21T19:51:27.093Z
-Stopped at: Completed 105-01 Tasks 1-3; Task 4 deferred post-merge human flip
-Resume file: None
+Last session: 2026-06-22T16:15:01.315Z
+Stopped at: Phase 106 context gathered
+Resume file: .planning/phases/106-trigger-split-matrix-lane-refinement/106-CONTEXT.md
 
 ## Performance Metrics
 
