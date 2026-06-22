@@ -1450,6 +1450,16 @@ jobs:
   ci-summary:
     name: CI Summary
     runs-on: ubuntu-22.04
+    # LANE-02 (D-09 omit-from-needs / D-11): this gate lists the LEAN `package-consumer`
+    # (the always-running PR representative) but INTENTIONALLY OMITS
+    # `package-consumer-full`. The full lane is `if: != pull_request`, so on a PR it is
+    # skipped; if it were in `needs:` the blanket skip-as-pass evaluation would emit a
+    # green-checkmark "lie" about a lane that never ran. By omitting it, the gate makes
+    # no claim about the full lane at all. Release readiness is proven separately: the
+    # push:main ci.yml run *conclusion* (where package-consumer-full is a first-class,
+    # non-failure-masked job) is what `release.yml gate-ci-green` reads — NOT this
+    # CI Summary check name. eval_ci_summary.sh and setup_branch_protection.sh stay
+    # byte-unchanged (only `CI Summary` is required; matrix-leg names are free, D-11).
     needs:
       - quality
       - optional-dependencies
