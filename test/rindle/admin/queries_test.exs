@@ -1,5 +1,5 @@
 defmodule Rindle.Admin.QueriesTest do
-  use Rindle.DataCase, async: false
+  use Rindle.DataCase, async: true
   use Oban.Testing, repo: Rindle.Repo
 
   import Mox

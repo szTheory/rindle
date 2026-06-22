@@ -1,5 +1,5 @@
 defmodule Rindle.OwnerErasureBatchBoundaryTest do
-  use Rindle.DataCase, async: false
+  use Rindle.DataCase, async: true
 
   defmodule User do
     defstruct [:id]

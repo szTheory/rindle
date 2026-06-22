@@ -1,5 +1,5 @@
 defmodule Rindle.Ops.VariantMaintenanceTest do
-  use Rindle.DataCase, async: false
+  use Rindle.DataCase, async: true
   use Oban.Testing, repo: Rindle.Repo
   import Mox
 

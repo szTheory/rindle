@@ -1,5 +1,5 @@
 defmodule Rindle.Domain.MigrationTest do
-  use Rindle.DataCase, async: false
+  use Rindle.DataCase, async: true
 
   alias Rindle.Repo
 

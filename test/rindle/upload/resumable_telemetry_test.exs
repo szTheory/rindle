@@ -1,5 +1,5 @@
 defmodule Rindle.Upload.ResumableTelemetryTest do
-  use ExUnit.Case, async: false
+  use ExUnit.Case, async: true
 
   alias Rindle.Domain.MediaUploadSession
   alias Rindle.Upload.ResumableTelemetry

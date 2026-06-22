@@ -1,5 +1,5 @@
 defmodule Rindle.RuntimeStatusTaskTest do
-  use Rindle.DataCase, async: false
+  use Rindle.DataCase, async: true
 
   alias Mix.Tasks.Rindle.RuntimeStatus, as: RuntimeStatusTask
   alias Rindle.Domain.{MediaAsset, MediaUploadSession, MediaVariant}

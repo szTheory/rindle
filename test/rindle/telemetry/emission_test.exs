@@ -7,7 +7,7 @@ defmodule Rindle.Telemetry.EmissionTest do
   emission proofs here, but do not re-stub broker/delivery/worker tests).
   """
 
-  use ExUnit.Case, async: false
+  use ExUnit.Case, async: true
 
   alias Rindle.Domain.AssetFSM
   alias Rindle.Domain.VariantFSM

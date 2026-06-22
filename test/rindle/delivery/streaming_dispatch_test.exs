@@ -18,7 +18,7 @@ defmodule Rindle.Delivery.StreamingDispatchTest do
     - [:rindle, :delivery, :streaming, :resolved] preserved verbatim on Branches 1, 6 (kind: :progressive)
     - Telemetry metadata key set unchanged: profile, adapter, mode, kind, mime
   """
-  use Rindle.DataCase, async: false
+  use Rindle.DataCase, async: true
 
   import Mox
   alias Rindle.Domain.MediaAsset
