@@ -1,3 +1,5 @@
+import { WCAG_AA_NORMAL } from './contrast-constants.mjs';
+
 export const THEMES = ['light', 'dark', 'auto'];
 
 export const SURFACES = [
@@ -85,30 +87,30 @@ export const MOTION_TOKENS = [
 export const MIN_TARGET_PX = 44;
 
 export const CONSOLE_CONTRAST_PAIRS = [
-  { fg: 'text-on-brand', bg: 'brand', theme: 'light', min: 4.5, context: 'buttons primary text' },
-  { fg: 'text-on-brand', bg: 'brand-hover', theme: 'light', min: 4.5, context: 'buttons primary hover text' },
-  { fg: 'text', bg: 'surface-raised', theme: 'light', min: 4.5, context: 'buttons secondary text' },
-  { fg: 'text', bg: 'surface', theme: 'light', min: 4.5, context: 'buttons quiet text' },
-  { fg: 'text-on-brand', bg: 'status-danger', theme: 'light', min: 4.5, context: 'buttons destructive text' },
-  { fg: 'text-secondary', bg: 'surface-sunken', theme: 'light', min: 4.5, context: 'buttons disabled text' },
+  { fg: 'text-on-brand', bg: 'brand', theme: 'light', min: WCAG_AA_NORMAL, context: 'buttons primary text' },
+  { fg: 'text-on-brand', bg: 'brand-hover', theme: 'light', min: WCAG_AA_NORMAL, context: 'buttons primary hover text' },
+  { fg: 'text', bg: 'surface-raised', theme: 'light', min: WCAG_AA_NORMAL, context: 'buttons secondary text' },
+  { fg: 'text', bg: 'surface', theme: 'light', min: WCAG_AA_NORMAL, context: 'buttons quiet text' },
+  { fg: 'text-on-brand', bg: 'status-danger', theme: 'light', min: WCAG_AA_NORMAL, context: 'buttons destructive text' },
+  { fg: 'text-secondary', bg: 'surface-sunken', theme: 'light', min: WCAG_AA_NORMAL, context: 'buttons disabled text' },
   { fg: 'border-strong', bg: 'surface-raised', theme: 'light', min: 3, context: 'buttons secondary border non-text' },
 
   // Dark theme flips brand/danger to luminous fills (rindle-green, dark-danger); the
   // on-brand foreground must be ink, not warm-shell, to stay legible. These pairs
   // enforce that — the gap that let cream-on-green (1.81:1) ship unflagged.
-  { fg: 'text-on-brand', bg: 'brand', theme: 'dark', min: 4.5, context: 'buttons primary text (dark)' },
-  { fg: 'text-on-brand', bg: 'brand-hover', theme: 'dark', min: 4.5, context: 'buttons primary hover text (dark)' },
-  { fg: 'text-on-brand', bg: 'status-danger', theme: 'dark', min: 4.5, context: 'buttons destructive text (dark)' },
+  { fg: 'text-on-brand', bg: 'brand', theme: 'dark', min: WCAG_AA_NORMAL, context: 'buttons primary text (dark)' },
+  { fg: 'text-on-brand', bg: 'brand-hover', theme: 'dark', min: WCAG_AA_NORMAL, context: 'buttons primary hover text (dark)' },
+  { fg: 'text-on-brand', bg: 'status-danger', theme: 'dark', min: WCAG_AA_NORMAL, context: 'buttons destructive text (dark)' },
 
-  { fg: 'text', bg: 'surface-raised', theme: 'light', min: 4.5, context: 'form controls text' },
+  { fg: 'text', bg: 'surface-raised', theme: 'light', min: WCAG_AA_NORMAL, context: 'form controls text' },
   { fg: 'border-strong', bg: 'surface-raised', theme: 'light', min: 3, context: 'form controls border non-text' },
-  { fg: 'text', bg: 'surface-raised', theme: 'dark', min: 4.5, context: 'form controls text (dark)' },
+  { fg: 'text', bg: 'surface-raised', theme: 'dark', min: WCAG_AA_NORMAL, context: 'form controls text (dark)' },
   { fg: 'border-strong', bg: 'surface-raised', theme: 'dark', min: 3, context: 'form controls border non-text (dark)' },
 
-  { fg: 'text', bg: 'surface-raised', theme: 'light', min: 4.5, context: 'table text on surface-raised' },
-  { fg: 'text-secondary', bg: 'surface-raised', theme: 'light', min: 4.5, context: 'table secondary text on surface-raised' },
-  { fg: 'text', bg: 'surface-raised', theme: 'dark', min: 4.5, context: 'table dark text on surface-raised' },
-  { fg: 'text-secondary', bg: 'surface-raised', theme: 'dark', min: 4.5, context: 'table dark secondary text on surface-raised' },
+  { fg: 'text', bg: 'surface-raised', theme: 'light', min: WCAG_AA_NORMAL, context: 'table text on surface-raised' },
+  { fg: 'text-secondary', bg: 'surface-raised', theme: 'light', min: WCAG_AA_NORMAL, context: 'table secondary text on surface-raised' },
+  { fg: 'text', bg: 'surface-raised', theme: 'dark', min: WCAG_AA_NORMAL, context: 'table dark text on surface-raised' },
+  { fg: 'text-secondary', bg: 'surface-raised', theme: 'dark', min: WCAG_AA_NORMAL, context: 'table dark secondary text on surface-raised' },
 
   { fg: 'focus-ring', bg: 'surface', theme: 'light', min: 3, context: 'focus ring on surface non-text' },
   { fg: 'focus-ring', bg: 'dark-bg', theme: 'dark', min: 3, context: 'focus ring on dark-bg non-text' },
@@ -117,7 +119,7 @@ export const CONSOLE_CONTRAST_PAIRS = [
     fg: `status-${state}`,
     bg: `status-${state}-surface`,
     theme: 'light',
-    min: 4.5,
+    min: WCAG_AA_NORMAL,
     context: `status chips ${state} foreground on light surface`,
   })),
 
@@ -125,31 +127,31 @@ export const CONSOLE_CONTRAST_PAIRS = [
     fg: `status-${state}`,
     bg: `status-${state}-surface`,
     theme: 'dark',
-    min: 4.5,
+    min: WCAG_AA_NORMAL,
     context: `status chips ${state} foreground on dark surface`,
   })),
 
-  { fg: 'text', bg: 'surface-raised', theme: 'light', min: 4.5, context: 'toasts text on surface-raised' },
+  { fg: 'text', bg: 'surface-raised', theme: 'light', min: WCAG_AA_NORMAL, context: 'toasts text on surface-raised' },
   { fg: 'status-ready', bg: 'surface-raised', theme: 'light', min: 3, context: 'toasts success marker non-text' },
   { fg: 'status-warning', bg: 'surface-raised', theme: 'light', min: 3, context: 'toasts warning marker non-text' },
   { fg: 'status-danger', bg: 'surface-raised', theme: 'light', min: 3, context: 'toasts danger marker non-text' },
   { fg: 'status-info', bg: 'surface-raised', theme: 'light', min: 3, context: 'toasts info marker non-text' },
 
-  { fg: 'text', bg: 'surface-raised', theme: 'light', min: 4.5, context: 'confirm dialog text on surface-raised' },
-  { fg: 'text', bg: 'surface-raised', theme: 'dark', min: 4.5, context: 'confirm dialog text on dark surface-raised' },
-  { fg: 'text', bg: 'surface-raised', theme: 'light', min: 4.5, context: 'drawer text on surface-raised' },
-  { fg: 'text', bg: 'surface-raised', theme: 'dark', min: 4.5, context: 'drawer text on dark surface-raised' },
-  { fg: 'text', bg: 'surface-raised', theme: 'light', min: 4.5, context: 'empty state text on surface-raised' },
-  { fg: 'text-secondary', bg: 'surface-raised', theme: 'light', min: 4.5, context: 'empty state secondary text on surface-raised' },
-  { fg: 'text', bg: 'surface-raised', theme: 'dark', min: 4.5, context: 'empty state dark text on surface-raised' },
-  { fg: 'text-secondary', bg: 'surface-raised', theme: 'dark', min: 4.5, context: 'empty state dark secondary text on surface-raised' },
+  { fg: 'text', bg: 'surface-raised', theme: 'light', min: WCAG_AA_NORMAL, context: 'confirm dialog text on surface-raised' },
+  { fg: 'text', bg: 'surface-raised', theme: 'dark', min: WCAG_AA_NORMAL, context: 'confirm dialog text on dark surface-raised' },
+  { fg: 'text', bg: 'surface-raised', theme: 'light', min: WCAG_AA_NORMAL, context: 'drawer text on surface-raised' },
+  { fg: 'text', bg: 'surface-raised', theme: 'dark', min: WCAG_AA_NORMAL, context: 'drawer text on dark surface-raised' },
+  { fg: 'text', bg: 'surface-raised', theme: 'light', min: WCAG_AA_NORMAL, context: 'empty state text on surface-raised' },
+  { fg: 'text-secondary', bg: 'surface-raised', theme: 'light', min: WCAG_AA_NORMAL, context: 'empty state secondary text on surface-raised' },
+  { fg: 'text', bg: 'surface-raised', theme: 'dark', min: WCAG_AA_NORMAL, context: 'empty state dark text on surface-raised' },
+  { fg: 'text-secondary', bg: 'surface-raised', theme: 'dark', min: WCAG_AA_NORMAL, context: 'empty state dark secondary text on surface-raised' },
 
-  { fg: 'text', bg: 'status-danger-surface', theme: 'light', min: 4.5, context: 'error state text' },
+  { fg: 'text', bg: 'status-danger-surface', theme: 'light', min: WCAG_AA_NORMAL, context: 'error state text' },
   { fg: 'status-danger', bg: 'status-danger-surface', theme: 'light', min: 3, context: 'error state danger marker non-text' },
-  { fg: 'text', bg: 'status-danger-surface', theme: 'dark', min: 4.5, context: 'error state text (dark)' },
+  { fg: 'text', bg: 'status-danger-surface', theme: 'dark', min: WCAG_AA_NORMAL, context: 'error state text (dark)' },
   { fg: 'status-danger', bg: 'status-danger-surface', theme: 'dark', min: 3, context: 'error state danger marker non-text (dark)' },
-  { fg: 'text-secondary', bg: 'surface-raised', theme: 'light', min: 4.5, context: 'loading state text' },
-  { fg: 'text-secondary', bg: 'surface-raised', theme: 'dark', min: 4.5, context: 'loading state text (dark)' },
+  { fg: 'text-secondary', bg: 'surface-raised', theme: 'light', min: WCAG_AA_NORMAL, context: 'loading state text' },
+  { fg: 'text-secondary', bg: 'surface-raised', theme: 'dark', min: WCAG_AA_NORMAL, context: 'loading state text (dark)' },
 
   { fg: 'border-strong', bg: 'surface-raised', theme: 'light', min: 3, context: 'skeleton non-text boundary' },
   { fg: 'border-strong', bg: 'surface-raised', theme: 'dark', min: 3, context: 'skeleton dark non-text boundary' },
@@ -159,7 +161,7 @@ export const CONSOLE_CONTRAST_PAIRS = [
   // Dark elevation ladder: primary dark text must clear AA on every raised tint step
   // (elevation-1/2/3). elevation-0 == dark-bg is the app base, already covered by the
   // dark primary-text pair above. Raw hexes resolve directly via color.raw.
-  { fg: 'dark-text', bg: 'elevation-1', theme: 'dark', min: 4.5, context: 'elevation-1 raised panel dark text' },
-  { fg: 'dark-text', bg: 'elevation-2', theme: 'dark', min: 4.5, context: 'elevation-2 nested/hover surface dark text' },
-  { fg: 'dark-text', bg: 'elevation-3', theme: 'dark', min: 4.5, context: 'elevation-3 overlay/modal dark text' },
+  { fg: 'dark-text', bg: 'elevation-1', theme: 'dark', min: WCAG_AA_NORMAL, context: 'elevation-1 raised panel dark text' },
+  { fg: 'dark-text', bg: 'elevation-2', theme: 'dark', min: WCAG_AA_NORMAL, context: 'elevation-2 nested/hover surface dark text' },
+  { fg: 'dark-text', bg: 'elevation-3', theme: 'dark', min: WCAG_AA_NORMAL, context: 'elevation-3 overlay/modal dark text' },
 ];

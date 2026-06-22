@@ -7,6 +7,7 @@ import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
+import { WCAG_AA_NORMAL } from './contrast-constants.mjs';
 import { META_COMPONENTS } from './admin-design-system-data.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -280,7 +281,7 @@ const assertDarkStatusChipContrast = async (page) => {
       state: chip.state,
       ratio: contrastRatio(parseColor(chip.color), parseColor(chip.backgroundColor)),
     }))
-    .filter(({ ratio }) => ratio < 4.5);
+    .filter(({ ratio }) => ratio < WCAG_AA_NORMAL);
   assert(
     failures.length === 0,
     `dark status chip contrast failures: ${failures.map(({ state, ratio }) => `${state} ${ratio.toFixed(2)}:1`).join(', ')}`,
