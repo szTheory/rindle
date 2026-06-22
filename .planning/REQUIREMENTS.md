@@ -69,7 +69,7 @@ dropping real quality signal — via a measure → classify → restructure pass
   install-smoke on PR; the full 5-profile matrix + `release_preflight` + `hex.publish --dry-run` run
   on `push:main`/nightly/release, with the release full-verification gate provably intact.
 
-- [ ] **LANE-03**: A nightly lane carries the broad OTP×Elixir compatibility matrix, `gcs-soak`,
+- [x] **LANE-03**: A nightly lane carries the broad OTP×Elixir compatibility matrix, `gcs-soak`,
   `package-consumer-gcs-live`, and an owned Dialyzer lane off the PR critical path.
 
 - [x] **LANE-04**: A documented keep / optimize / move-to-nightly / quarantine / delete (buckets A–E)
@@ -142,7 +142,7 @@ Populated during roadmap creation.
 | GATE-02 | Phase 105 | Complete |
 | LANE-01 | Phase 106 | Complete |
 | LANE-02 | Phase 106 | Complete |
-| LANE-03 | Phase 106 | Pending |
+| LANE-03 | Phase 106 | Complete |
 | LANE-04 | Phase 106 | Complete |
 | HARD-01 | Phase 107 | Pending |
 | HARD-02 | Phase 107 | Pending |

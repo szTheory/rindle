@@ -308,7 +308,7 @@ Phase 103's per-step `package-consumer` timing + slowest-test evidence.
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 106-04-PLAN.md — LANE-03: new nightly.yml (compat matrix + owned gating Dialyzer + moved gcs soak/live + summary + issue-on-failure); extract Dialyzer/GCS from ci.yml
+- [x] 106-04-PLAN.md — LANE-03: new nightly.yml (compat matrix + owned gating Dialyzer + moved gcs soak/live + summary + issue-on-failure); extract Dialyzer/GCS from ci.yml
 
 ---
 
@@ -649,7 +649,7 @@ Plans:
 | 103. Observability / Baseline | 4/4 | Complete    | 2026-06-20 |
 | 104. Cache & Tooling Hygiene | 4/4 | Complete    | 2026-06-21 |
 | 105. Aggregate Required Check + Branch-Protection Flip | 1/1 | Complete   | 2026-06-21 |
-| 106. Trigger Split + Matrix/Lane Refinement | 3/4 | In Progress|  |
+| 106. Trigger Split + Matrix/Lane Refinement | 4/4 | Complete   | 2026-06-22 |
 | 107. Reliability, Security & DX Hardening | 0/TBD | Not started | - |
 | 94. Foundation — Token Pipeline CI Gate & New Categories | 5/5 | Complete    | 2026-06-15 |
 | 95. Admin Level-1 Component Audit [A] | 5/5 | Complete   | 2026-06-16 |

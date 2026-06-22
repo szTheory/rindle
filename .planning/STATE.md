@@ -4,17 +4,17 @@ milestone: v1.20
 milestone_name: CI/CD Performance
 current_phase: 106
 current_phase_name: trigger-split-matrix-lane-refinement
-status: executing
+status: verifying
 stopped_at: Phase 106 context gathered
-last_updated: "2026-06-22T17:13:04.456Z"
+last_updated: "2026-06-22T17:21:13.125Z"
 last_activity: 2026-06-22
 last_activity_desc: Phase 106 execution started
 progress:
   total_phases: 13
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 13
-  completed_plans: 12
-  percent: 23
+  completed_plans: 13
+  percent: 31
 ---
 
 # Project State
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-06-19)
 
 Phase: 106 (trigger-split-matrix-lane-refinement) — EXECUTING
 Plan: 4 of 4
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-06-22 — Phase 106 execution started
 
 ### v1.20 roadmap (Phases 103–107) — load-bearing dependency order
@@ -182,6 +182,20 @@ required-check names before any topology change, and surface timing/cache/slowes
 
 ## Decisions
 
+- 106-04 (LANE-03/LANE-01): Stood up separate `.github/workflows/nightly.yml` (`name: Nightly`,
+  cron 27 7 UTC, no PR/push trigger) — curated 6-cell OTP×Elixir compat matrix (straddles the
+  json_polyfill_dep/0 OTP<27 branch), owned GATING Dialyzer (literal `otp27-elixir1.17` PLT-key
+  segment — never a bare matrix.* ref that would render empty and collapse PLT lineages, D-20),
+  moved gcs-soak + package-consumer-gcs-live (BOTH continue-on-error dropped → real nightly signal,
+  D-14), Nightly Summary + least-privilege `issues: write`-only nightly-failure-issue (schedule-only,
+  D-16). Separate file is structurally invisible to release-please-automerge workflow_run:[CI] /
+  gate-ci-green / branch-protection (D-12). Extracted Dialyzer + GCS lanes from ci.yml (mux-soak
+  kept as label-gated PR lane). Moved `adoption-demo-e2e` + `cohort-demo-smoke` to push:main (repo
+  gate preserved, composed with `event_name != 'pull_request'`) and out of ci-summary/observability
+  needs (D-04/D-05/D-09) — the ~502s demo chain off PR lands p95 under ≤7 min; adoption-demo-unit
+  stays PR-gating (D-02); D-03 guardrail intact (integration/adopter/contract/proof stay PR-gating).
+  `name: CI` + both filenames + eval_ci_summary.sh + setup_branch_protection.sh byte-unchanged.
+
 - 106-03 (LANE-02): Split the 887s-p95 `package-consumer` long pole — lean image-only
   install-smoke + version-alignment job (gating, all triggers, stays in CI Summary.needs) +
   new off-PR `package-consumer-full` 5-profile [video,image,tus,mux,gcs] matrix (fail-fast:false)
@@ -315,14 +329,15 @@ required-check names before any topology change, and surface timing/cache/slowes
 
 ## Session Continuity
 
-Last session: 2026-06-22T17:13:04.449Z
-Stopped at: Phase 106 context gathered
-Resume file: .planning/phases/106-trigger-split-matrix-lane-refinement/106-CONTEXT.md
+Last session: 2026-06-22T17:28:00.000Z
+Stopped at: Completed 106-04-PLAN.md (all 4 plans of phase 106 executed — ready for verification)
+Resume file: None
 
 ## Performance Metrics
 
 | Phase | Plan | Duration | Notes |
 |-------|------|----------|-------|
+| Phase 106 P04 | 14 min | 4 tasks | 2 files |
 | Phase 86 P01 | 10 min | 2 tasks | 2 files |
 | Phase 86 P02 | 2 min | 2 tasks | 2 files |
 | Phase 86 P03 | 2 min | 3 tasks | 3 files |
