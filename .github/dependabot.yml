@@ -1,0 +1,48 @@
+version: 2
+# HARD-02 (D-04): grouped, weekly, low-noise dependency updates for both the
+# GitHub Actions SHA pins (D-03) and the hex dep tree.
+#
+# commit-message.prefix MUST be a NON-release Conventional-Commits type
+# (ci / build / chore) so dependabot PRs never trigger a spurious release-please
+# minor (Pitfall 2). Groups bundle minor+patch into one reviewable PR; dependabot
+# still proposes MAJOR bumps as separate PRs (the reviewable path for an action
+# major bump deferred during the D-03 pin).
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "ci"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    groups:
+      actions:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+
+  - package-ecosystem: "mix"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "build"
+      include: "scope"
+    groups:
+      dev-dependencies:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"

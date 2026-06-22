@@ -156,6 +156,16 @@ jobs:
           Rindle.Adopter.CanonicalApp.Profile
           Rindle.Adopter.CanonicalApp.VideoProfile
 
+      # HARD-02 (D-05): mix_audit scans the transitive hex dep tree against the
+      # hex advisory DB. ADVISORY (continue-on-error) per the house default and
+      # 107-RESEARCH Open-Q2 — it is NOT a separate required check and does not
+      # gate the merge. Flip continue-on-error to false here if security findings
+      # should later block the gate.
+      - name: Audit dependencies (advisory)
+        if: ${{ matrix.lint }}
+        run: mix deps.audit
+        continue-on-error: true
+
       # OBS-02 (additive, observational): surface schedulers_online + a bounded
       # mix compile --profile time dump in the run summary (fenced + tail-bounded
       # to stay under the 1 MiB $GITHUB_STEP_SUMMARY cap).
