@@ -295,7 +295,12 @@ Phase 103's per-step `package-consumer` timing + slowest-test evidence.
 
 5. `ci.yml` keeps its file name and `name: CI` on `push:main`, and the release gate is not weakened.
 
-**Plans:** TBD
+**Plans:** 4 plans
+
+- [ ] 106-01-PLAN.md — LANE-04: A–E lane-value classification doc + CONTRIBUTING trust/speed label + RUNNING.md note (no YAML)
+- [ ] 106-02-PLAN.md — LANE-01: top-level ci.yml concurrency group (cancel stale PR runs; serialize/never-cancel push:main)
+- [ ] 106-03-PLAN.md — LANE-02: split package-consumer into lean image-only PR job + off-PR package-consumer-full 5-profile matrix (omit-from-CI-Summary)
+- [ ] 106-04-PLAN.md — LANE-03: new nightly.yml (compat matrix + owned gating Dialyzer + moved gcs soak/live + summary + issue-on-failure); extract Dialyzer/GCS from ci.yml
 
 ---
 
