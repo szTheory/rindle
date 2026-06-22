@@ -42,7 +42,7 @@ aggregate must treat `skipped` as pass (fork-PR safety); never weaken the releas
 - [x] **Phase 103: Observability / Baseline** — surface CI timing/cache/slowest-tests; capture the committed baseline + live required-check names before any change (no behavior change). (completed 2026-06-20)
 - [x] **Phase 104: Cache & Tooling Hygiene** — composite setup action, correct cache keys, PLT restore/save split, lockfile drift gates, lint de-dup (single-workflow shape; low-risk). (completed 2026-06-21)
 - [ ] **Phase 105: Aggregate Required Check + Branch-Protection Flip** — land `CI Summary` and make it the sole required check, in one isolated PR, before any lane rename.
-- [ ] **Phase 106: Trigger Split + Matrix/Lane Refinement** — fast PR lane + scoped package-consumer + nightly lane + concurrency groups (the headline 15→≤7min cut).
+- [x] **Phase 106: Trigger Split + Matrix/Lane Refinement** — fast PR lane + scoped package-consumer + nightly lane + concurrency groups (the headline 15→≤7min cut). (completed 2026-06-22)
 - [ ] **Phase 107: Reliability, Security & DX Hardening** — async-safety guard/partitioning, action pinning + supply-chain, `mix ci` + CONTRIBUTING, faithful Linux-Chromium repro.
 
 <details>
@@ -296,7 +296,7 @@ Phase 103's per-step `package-consumer` timing + slowest-test evidence.
 
 5. `ci.yml` keeps its file name and `name: CI` on `push:main`, and the release gate is not weakened.
 
-**Plans:** 4 plans
+**Plans:** 4/4 plans complete
 **Wave 1**
 
 - [x] 106-01-PLAN.md — LANE-04: A–E lane-value classification doc + CONTRIBUTING trust/speed label + RUNNING.md note (no YAML)
@@ -649,7 +649,7 @@ Plans:
 | 103. Observability / Baseline | 4/4 | Complete    | 2026-06-20 |
 | 104. Cache & Tooling Hygiene | 4/4 | Complete    | 2026-06-21 |
 | 105. Aggregate Required Check + Branch-Protection Flip | 1/1 | Complete   | 2026-06-21 |
-| 106. Trigger Split + Matrix/Lane Refinement | 4/4 | Complete   | 2026-06-22 |
+| 106. Trigger Split + Matrix/Lane Refinement | 4/4 | Complete    | 2026-06-22 |
 | 107. Reliability, Security & DX Hardening | 0/TBD | Not started | - |
 | 94. Foundation — Token Pipeline CI Gate & New Categories | 5/5 | Complete    | 2026-06-15 |
 | 95. Admin Level-1 Component Audit [A] | 5/5 | Complete   | 2026-06-16 |
