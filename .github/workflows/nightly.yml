@@ -1,0 +1,213 @@
+name: Nightly
+
+# LANE-03 nightly lane (separate file — D-12). A `schedule:` trigger on ci.yml
+# is DISQUALIFYING: scheduled runs are named `CI` on head_branch main, which
+# would fire release-please-automerge.yml's `on: workflow_run: workflows: [CI]`
+# + `head_branch == 'main'` listener (no SHA/event filter) on a cron tick →
+# it would `gh pr list` an eligible Release Please PR and auto-squash-merge it +
+# dispatch release.yml → an UNATTENDED clock-triggered release, violating the
+# "never weaken the release gate" invariant. A SEPARATE file with run name
+# `Nightly` and a distinct workflow_id is invisible to all three release
+# consumers (release-please-automerge workflow_run:[CI], release.yml
+# gate-ci-green workflow_id:'ci.yml', branch-protection required-check set) and
+# can NEVER become a PR required check (it has no PR-event trigger). Precedent:
+# branch-protection-apply.yml is already a standalone scheduled workflow.
+#
+# D-15: cron 27 7 (07:27 UTC) — off-the-hour avoids the documented top-of-hour
+# scheduled-run clustering/queue-drop; offset from branch-protection-apply.yml's
+# `:17` for clean log separation in the same low-traffic UTC window.
+on:
+  schedule:
+    - cron: '27 7 * * *'
+  workflow_dispatch:
+
+env:
+  MIX_ENV: test
+
+permissions:
+  contents: read
+
+jobs:
+  # D-13: broad OTP×Elixir compatibility on a CURATED ~6-cell diagonal (NOT a
+  # cartesian product — cartesian/dynamic-matrix is an explicit milestone
+  # anti-feature). fail-fast: false so one red cell never masks the others.
+  # The 1.15/25 and 1.15/26 cells deliberately straddle the mix.exs
+  # json_polyfill_dep/0 `otp_major < 27` branch (mix.exs:141-147): OTP<27 pulls
+  # {:json_polyfill, ...}, OTP>=27 does not — so both sides of the polyfill are
+  # exercised on the floor. 1.18/27 + 1.18/28 are the newest/newest drift
+  # early-warning. 1.17/27 is the PR ceiling/home cell.
+  compat-matrix:
+    name: Compat Matrix
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - elixir: "1.15"
+            otp: "26"
+          - elixir: "1.15"
+            otp: "25" # OTP < 27 → exercises the json_polyfill_dep/0 branch
+          - elixir: "1.16"
+            otp: "26"
+          - elixir: "1.17"
+            otp: "27" # PR ceiling / home cell
+          - elixir: "1.18"
+            otp: "27"
+          - elixir: "1.18"
+            otp: "28" # newest/newest drift early-warning
+    env:
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGHOST: localhost
+      PGPORT: "5432"
+      RINDLE_AV_USE_CGROUPS: "false"
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: rindle_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Elixir
+        id: setup
+        # Reuse the setup-elixir composite (D-12: near-zero duplication). The
+        # compat matrix spans toolchains the PR lane never installs, so the
+        # composite's resolved-version-aware deps/_build cache keys give each
+        # cell its own lineage (a cold first build per OTP/Elixir bump is fine
+        # nightly). install-deps:false so this job runs its own plain deps.get
+        # (no --check-locked: the json_polyfill conditional dep makes the
+        # OTP27-resolved mix.lock unverifiable on OTP<27 cells — same reasoning
+        # as ci.yml quality).
+        uses: ./.github/actions/setup-elixir
+        with:
+          elixir-version: ${{ matrix.elixir }}
+          otp-version: ${{ matrix.otp }}
+          mix-env: test
+          install-deps: "false"
+
+      - name: Install libvips
+        run: sudo apt-get update && sudo apt-get install -y libvips-dev
+
+      - name: Install FFmpeg
+        # Reliable static ffmpeg >= 6 (apt only ships 4.4, below the >= 6.0 gate
+        # in lib/rindle/av/probe.ex). See scripts/ci/install_ffmpeg.sh.
+        run: bash scripts/ci/install_ffmpeg.sh
+
+      - name: Install dependencies
+        run: mix deps.get
+
+      - name: Compile (warnings as errors)
+        run: mix compile --warnings-as-errors
+
+      - name: Run tests with coverage
+        run: mix coveralls
+
+  # D-17: owned, GATING Dialyzer (extracted from ci.yml `quality`'s advisory
+  # steps and removed from PR entirely). `mix dialyzer` runs WITHOUT
+  # continue-on-error here, so a real type-contract regression or
+  # .dialyzer_ignore.exs drift fails the nightly lane — retiring the rotting
+  # advisory ignore baseline. MTTD ≈ 24h is acceptable for a contract-confidence
+  # signal (the merge-blocking ExUnit suite still catches behavior on every PR).
+  #
+  # SINGLE-CELL job (1.17/27 home cell) — NOT a strategy.matrix. The PLT-key
+  # OTP/Elixir segment therefore uses the job's LITERAL cell values
+  # (`otp27-elixir1.17`), NEVER a bare `${{ matrix.otp }}` / `${{ matrix.elixir }}`
+  # reference: those render to empty strings in a non-matrix job and would
+  # collapse every PLT lineage into one poisoned key. The Phase-104 split keys on
+  # matrix.* only because `quality` IS a matrix job.
+  dialyzer:
+    name: Dialyzer
+    runs-on: ubuntu-22.04
+    env:
+      MIX_ENV: test
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGHOST: localhost
+      PGPORT: "5432"
+      RINDLE_AV_USE_CGROUPS: "false"
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: rindle_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Elixir
+        id: setup
+        uses: ./.github/actions/setup-elixir
+        with:
+          elixir-version: "1.17"
+          otp-version: "27"
+          mix-env: test
+          install-deps: "false"
+
+      - name: Install libvips
+        run: sudo apt-get update && sudo apt-get install -y libvips-dev
+
+      - name: Install dependencies
+        run: mix deps.get
+
+      # D-20: reuse the Phase-104 PLT restore/save SHAPE (restore → create-dir →
+      # build-plt → save-BEFORE-analysis). Key hashes mix.exs + .dialyzer_ignore.exs
+      # (NOT mix.lock) so the multi-minute PLT survives unrelated dep bumps and is
+      # invalidated by ignore-file drift (the anti-rot anchor). The OTP/Elixir
+      # segment is the LITERAL home cell `otp27-elixir1.17` (single-cell job — see
+      # the job comment); preserve the hashFiles('mix.exs', '.dialyzer_ignore.exs')
+      # segment EXACTLY (the acceptance grep depends on it).
+      - name: Restore PLT cache
+        uses: actions/cache/restore@v4
+        id: plt_cache
+        with:
+          path: priv/plts
+          key: plt-v1-${{ runner.os }}-${{ runner.arch }}-otp27-elixir1.17-${{ hashFiles('mix.exs', '.dialyzer_ignore.exs') }}
+          restore-keys: |
+            plt-v1-${{ runner.os }}-${{ runner.arch }}-otp27-elixir1.17-
+
+      - name: Create PLT directory
+        if: steps.plt_cache.outputs.cache-hit != 'true'
+        run: mkdir -p priv/plts
+
+      - name: Build PLT
+        if: steps.plt_cache.outputs.cache-hit != 'true'
+        run: mix dialyzer --plt
+
+      # Save the built PLT BEFORE the gating analysis below so the multi-minute
+      # PLT persists across runs even if `mix dialyzer` fails. Guarded
+      # `cache-hit != 'true'` — NOT `if: always()`.
+      - name: Save PLT cache
+        if: steps.plt_cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: priv/plts
+          key: plt-v1-${{ runner.os }}-${{ runner.arch }}-otp27-elixir1.17-${{ hashFiles('mix.exs', '.dialyzer_ignore.exs') }}
+
+      # D-17: GATING — NO continue-on-error. A type-contract regression or
+      # ignore-file drift fails the nightly lane.
+      - name: Dialyzer
+        run: mix dialyzer --format github
