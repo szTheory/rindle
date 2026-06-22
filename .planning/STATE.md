@@ -6,14 +6,14 @@ current_phase: 106
 current_phase_name: trigger-split-matrix-lane-refinement
 status: executing
 stopped_at: Phase 106 context gathered
-last_updated: "2026-06-22T17:07:32.839Z"
+last_updated: "2026-06-22T17:13:04.456Z"
 last_activity: 2026-06-22
 last_activity_desc: Phase 106 execution started
 progress:
   total_phases: 13
   completed_phases: 3
   total_plans: 13
-  completed_plans: 11
+  completed_plans: 12
   percent: 23
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-06-19)
 ## Current Position
 
 Phase: 106 (trigger-split-matrix-lane-refinement) — EXECUTING
-Plan: 3 of 4
+Plan: 4 of 4
 Status: Ready to execute
 Last activity: 2026-06-22 — Phase 106 execution started
 
@@ -182,6 +182,14 @@ required-check names before any topology change, and surface timing/cache/slowes
 
 ## Decisions
 
+- 106-03 (LANE-02): Split the 887s-p95 `package-consumer` long pole — lean image-only
+  install-smoke + version-alignment job (gating, all triggers, stays in CI Summary.needs) +
+  new off-PR `package-consumer-full` 5-profile [video,image,tus,mux,gcs] matrix (fail-fast:false)
+  carrying release_preflight + repo_hygiene + hex.publish --dry-run with NO failure-masking.
+  Full lane OMITTED from CI Summary.needs / ci-observability.needs (D-09 omit-from-needs);
+  release readiness proven by the push:main run conclusion via release.yml gate-ci-green (D-11),
+  not by any check name. eval_ci_summary.sh + setup_branch_protection.sh byte-unchanged.
+
 - v1.19 proof strategy: deterministic computed-style `admin-polish.js` gate is the SINGLE
   merge-blocking visual gate (generalized over admin + Cohort); golden-PNG `toHaveScreenshot()`
   baselines stay optional / non-blocking (never merge-blocking until proven CI-stable).
@@ -307,7 +315,7 @@ required-check names before any topology change, and surface timing/cache/slowes
 
 ## Session Continuity
 
-Last session: 2026-06-22T17:07:32.831Z
+Last session: 2026-06-22T17:13:04.449Z
 Stopped at: Phase 106 context gathered
 Resume file: .planning/phases/106-trigger-split-matrix-lane-refinement/106-CONTEXT.md
 
@@ -392,6 +400,7 @@ Resume file: .planning/phases/106-trigger-split-matrix-lane-refinement/106-CONTE
 | Phase 105 P01 | 8 min | 3 tasks | 3 files |
 | Phase 106 P01 | 2 min | 3 tasks | 3 files |
 | Phase 106 P02 | 3 min | 1 tasks | 1 files |
+| Phase 106 P03 | 8 min | 2 tasks | 1 files |
 
 ## Operator Next Steps
 

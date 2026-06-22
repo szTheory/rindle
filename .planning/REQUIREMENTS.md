@@ -65,7 +65,7 @@ dropping real quality signal — via a measure → classify → restructure pass
   targets a representative gate at roughly ≤7 minutes; main and release lanes serialize and never
   cancel.
 
-- [ ] **LANE-02**: The `package-consumer` long pole is scoped by trigger — one representative `image`
+- [x] **LANE-02**: The `package-consumer` long pole is scoped by trigger — one representative `image`
   install-smoke on PR; the full 5-profile matrix + `release_preflight` + `hex.publish --dry-run` run
   on `push:main`/nightly/release, with the release full-verification gate provably intact.
 
@@ -141,7 +141,7 @@ Populated during roadmap creation.
 | GATE-01 | Phase 105 | Complete |
 | GATE-02 | Phase 105 | Complete |
 | LANE-01 | Phase 106 | Complete |
-| LANE-02 | Phase 106 | Pending |
+| LANE-02 | Phase 106 | Complete |
 | LANE-03 | Phase 106 | Pending |
 | LANE-04 | Phase 106 | Complete |
 | HARD-01 | Phase 107 | Pending |

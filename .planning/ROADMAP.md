@@ -304,7 +304,7 @@ Phase 103's per-step `package-consumer` timing + slowest-test evidence.
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 106-03-PLAN.md — LANE-02: split package-consumer into lean image-only PR job + off-PR package-consumer-full 5-profile matrix (omit-from-CI-Summary)
+- [x] 106-03-PLAN.md — LANE-02: split package-consumer into lean image-only PR job + off-PR package-consumer-full 5-profile matrix (omit-from-CI-Summary)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -649,7 +649,7 @@ Plans:
 | 103. Observability / Baseline | 4/4 | Complete    | 2026-06-20 |
 | 104. Cache & Tooling Hygiene | 4/4 | Complete    | 2026-06-21 |
 | 105. Aggregate Required Check + Branch-Protection Flip | 1/1 | Complete   | 2026-06-21 |
-| 106. Trigger Split + Matrix/Lane Refinement | 2/4 | In Progress|  |
+| 106. Trigger Split + Matrix/Lane Refinement | 3/4 | In Progress|  |
 | 107. Reliability, Security & DX Hardening | 0/TBD | Not started | - |
 | 94. Foundation — Token Pipeline CI Gate & New Categories | 5/5 | Complete    | 2026-06-15 |
 | 95. Admin Level-1 Component Audit [A] | 5/5 | Complete   | 2026-06-16 |
