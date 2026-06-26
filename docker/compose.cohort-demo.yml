@@ -90,13 +90,16 @@ services:
       PGPORT: "5432"
       PGUSER: postgres
       PGPASSWORD: postgres
-      RINDLE_MINIO_URL: "http://host.docker.internal:${COHORT_MINIO_PORT:-9000}"
+      # Split-horizon S3 endpoints. Server-side ops talk to MinIO over the in-network
+      # compose service (always reachable from the app container, on Mac/Windows AND Linux CI).
+      RINDLE_MINIO_URL: "http://minio:9000"
+      # Browser-facing presigned URLs are signed for the host-published port, which the Mac/
+      # Windows host browser CAN resolve (host.docker.internal cannot be resolved off-container).
+      RINDLE_MINIO_PUBLIC_URL: "http://localhost:${COHORT_MINIO_PORT:-9000}"
       RINDLE_MINIO_ACCESS_KEY: minioadmin
       RINDLE_MINIO_SECRET_KEY: minioadmin
       RINDLE_MINIO_BUCKET: rindle-test
       RINDLE_MINIO_REGION: us-east-1
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
 
 volumes:
   cohort-demo-postgres:

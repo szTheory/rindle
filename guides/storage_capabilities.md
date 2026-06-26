@@ -119,3 +119,29 @@ That does not mean:
 - S3-compatible providers inherit resumable semantics through `Rindle.Storage.S3`
 - Rindle ships tus or a provider-agnostic resumable abstraction beyond the
   honest capability contract
+
+## Public (browser-facing) delivery endpoint (S3)
+
+By default `Rindle.Storage.S3` signs browser-facing presigned URLs (signed delivery
+GET, presigned PUT, presigned multipart upload-part) using the same `:ex_aws, :s3`
+endpoint it uses for server-side operations. When the endpoint the browser can reach
+differs from the cluster-internal endpoint — split-horizon DNS, a public/CDN/edge
+host, or a dev Docker setup where the server talks to `minio:9000` in-network but the
+browser must use a published `localhost:<port>` — set a `:public_endpoint` for the
+adapter:
+
+```elixir
+config :rindle, Rindle.Storage.S3,
+  bucket: "my-bucket",
+  public_endpoint: [scheme: "https://", host: "cdn.example.com", port: 443]
+```
+
+- Only `:scheme`, `:host`, and `:port` are read.
+- It applies **only** to presigned URL signing; server-side `store`/`download`/`head`/
+  multipart keep using the `:ex_aws, :s3` endpoint.
+- Because the S3 signature binds the `host` header (`SignedHeaders=host`), the
+  configured public host MUST be exactly the host the browser requests.
+- Leave it unset for identical pre-existing behaviour.
+
+The Cohort Docker demo wires this from `RINDLE_MINIO_PUBLIC_URL`; see
+`guides/docker_demo_dx.md` ("Split-horizon S3 endpoint").

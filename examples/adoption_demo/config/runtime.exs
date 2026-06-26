@@ -41,7 +41,23 @@ if config_env() in [:dev, :test] or System.get_env("COHORT_DEMO_DOCKER") == "1" 
   %URI{host: host, port: port, scheme: scheme} = URI.parse(minio_url)
 
   config :rindle, :repo, AdoptionDemo.Repo
-  config :rindle, Rindle.Storage.S3, bucket: bucket
+
+  # `RINDLE_MINIO_URL` (above) is the SERVER-SIDE endpoint. In Docker that is the in-network
+  # `minio:9000` service, which the host browser cannot reach. When `RINDLE_MINIO_PUBLIC_URL`
+  # is set, sign browser-facing presigned URLs for that (host-published) endpoint via the S3
+  # adapter's `:public_endpoint`. Native dev leaves it unset (server and browser are both on
+  # localhost), so behaviour is unchanged there.
+  s3_opts =
+    case System.get_env("RINDLE_MINIO_PUBLIC_URL") do
+      url when is_binary(url) and url != "" ->
+        %URI{host: p_host, port: p_port, scheme: p_scheme} = URI.parse(url)
+        [bucket: bucket, public_endpoint: [scheme: "#{p_scheme}://", host: p_host, port: p_port]]
+
+      _ ->
+        [bucket: bucket]
+    end
+
+  config :rindle, Rindle.Storage.S3, s3_opts
 
   config :ex_aws, :s3,
     scheme: "#{scheme}://",

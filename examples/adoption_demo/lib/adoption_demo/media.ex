@@ -96,7 +96,13 @@ defmodule AdoptionDemo.Media do
   end
 
   def asset_for_attachment(%{asset_id: asset_id}) when is_binary(asset_id) do
-    Repo.get(MediaAsset, asset_id)
+    # Preload :variants so Rindle.HTML.picture_tag can emit a <source> for each ready variant
+    # (e.g. the optimized `thumb`); without it `ready_variant/2` sees NotLoaded and the markup
+    # silently falls back to the original-asset <img> only.
+    case Repo.get(MediaAsset, asset_id) do
+      nil -> nil
+      asset -> Repo.preload(asset, :variants)
+    end
   end
 
   def asset_for_attachment(_), do: nil
