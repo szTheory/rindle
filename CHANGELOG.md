@@ -2,6 +2,47 @@
 
 0.1.0-0.1.3 were release-pipeline shakedown iterations; treat 0.1.4 as the first recommended pin.
 
+## [0.3.1](https://github.com/szTheory/rindle/compare/rindle-v0.3.0...rindle-v0.3.1) (2026-06-26)
+
+
+### Features
+
+* **103-01:** emit CI-only JUnit XML report from ExUnit ([6096944](https://github.com/szTheory/rindle/commit/6096944a6d1769e099cea2cd6f9c18968969abbd))
+* **103-02:** add read-only CI timing baseline collector (OBS-03) ([c9ad492](https://github.com/szTheory/rindle/commit/c9ad4920bd03e736691e8f2e10945573c74d494c))
+* **103-02:** add read-only live-vs-expected required-check diff (OBS-03) ([41cfa3a](https://github.com/szTheory/rindle/commit/41cfa3abd18eef271edc79accb198e342e8f32ff))
+* **103-03:** add cache id:s and cache hit/miss summary in D-04 jobs ([fec072d](https://github.com/szTheory/rindle/commit/fec072d792b8839ac337e11be15625aeb9697c04))
+* **103-03:** add ci-observability aggregator with job-scoped actions: read ([68ef610](https://github.com/szTheory/rindle/commit/68ef61015ff48d0bf4c07bf968bdc488c7e91288))
+* **103-03:** add OBS-02 evidence steps + JUnit/coverage artifact upload ([c056382](https://github.com/szTheory/rindle/commit/c05638292162e30e3ecc74b67838de5e1cb2215c))
+* **104-01:** add setup-elixir composite action with CACHE-02 key schema ([131fae7](https://github.com/szTheory/rindle/commit/131fae76435703c6a34bd33fd668018616f6e6bc))
+* **104-01:** add setup-minio composite action for the MinIO bring-up trio ([a1d96c7](https://github.com/szTheory/rindle/commit/a1d96c7364a3581f1dc7673789734524c5599382))
+* **104-02:** add CACHE-04 lockfile-drift gates to quality job ([7c680af](https://github.com/szTheory/rindle/commit/7c680af888f405b45957e48b84ea519c92b72ae5))
+* **104-02:** migrate quality job onto setup-elixir composite + repoint OBS-01 summary ([7de1d48](https://github.com/szTheory/rindle/commit/7de1d4829991344928f8decaf1e5b4c909cec0ac))
+* **104-02:** PLT restore/save split (CACHE-03) + lint de-dup (CACHE-05) ([ff99b3e](https://github.com/szTheory/rindle/commit/ff99b3e80f05cb21aa103c04a8dab41173e085a7))
+* **104-03:** adopt setup-elixir across the literal-1.17/27 jobs (D-03 step 2) ([ebd46f2](https://github.com/szTheory/rindle/commit/ebd46f2c3463c026d47681efbc462113407f0230))
+* **104-03:** adopt setup-elixir in optional-dependencies (no-optional ns) + gcs-live (D-06/D-03) ([b987d40](https://github.com/szTheory/rindle/commit/b987d40838269f36f78937dd904931612c46bbf6))
+* **105-01:** add CI Summary aggregate job to ci.yml (GATE-01) ([5290ea4](https://github.com/szTheory/rindle/commit/5290ea4c455c9268ab604a81adfd1086dcaaec94))
+* **105-01:** collapse required-check set to CI Summary (GATE-02) ([114a2b7](https://github.com/szTheory/rindle/commit/114a2b752567959248118d1648f9f23f4912cc11))
+* **105:** make branch-protection flip safe-by-construction + automate UAT ([ca70075](https://github.com/szTheory/rindle/commit/ca70075aae0267a08bc41539cf6910cd3b90697b))
+* **106-02:** add top-level concurrency group to ci.yml (LANE-01, D-06) ([59112f1](https://github.com/szTheory/rindle/commit/59112f179d026bc6c1ee28592a42a8570a88df9d))
+* **106-03:** split package-consumer into lean PR + full off-PR matrix (LANE-02, D-08/D-10) ([1b26982](https://github.com/szTheory/rindle/commit/1b26982170422ced740bd8ec36342e4506844998))
+* **106-04:** add nightly.yml — compat-matrix + owned gating Dialyzer ([37dd589](https://github.com/szTheory/rindle/commit/37dd589e54d65b1758daf1de1847fc966ebab8e0))
+* **106-04:** move adoption-demo-e2e + cohort-demo-smoke to push:main (LANE-01, D-04/D-05) ([dfb0c39](https://github.com/szTheory/rindle/commit/dfb0c39eb2c82967348699556366bb43ce2abbce))
+* **106-04:** move gcs-soak + gcs-live to nightly; add summary + failure-issue (D-14/D-16) ([845f0ef](https://github.com/szTheory/rindle/commit/845f0efadaa8465562b5e463e5f228f4af2fa5fd))
+* **107-03:** add mix ci alias mirroring the PR merge-blocking set (HARD-03/D-07) ([57dd99b](https://github.com/szTheory/rindle/commit/57dd99be2188166106b0288679811eb671a4ebf9))
+* **demo:** polish all inner Cohort pages onto the design system ([#29](https://github.com/szTheory/rindle/issues/29)) ([6980076](https://github.com/szTheory/rindle/commit/6980076765cc532eb6691c4bb349beafcea23c91))
+* **demo:** restyle the Cohort upload lab + theme consistency ([#28](https://github.com/szTheory/rindle/issues/28)) ([e9444cb](https://github.com/szTheory/rindle/commit/e9444cb88c9cfae2fb68b3d17a55b3f8fbcd4dfa))
+* **storage:** add S3 :public_endpoint for split-horizon presigned URLs ([#37](https://github.com/szTheory/rindle/issues/37)) ([88d0f24](https://github.com/szTheory/rindle/commit/88d0f241efd686b65507aff0a02eba8c3e1c0f97))
+
+
+### Bug Fixes
+
+* **103-04:** correct --paginate per-page slice in collect_ci_baseline.sh ([83f224b](https://github.com/szTheory/rindle/commit/83f224bbc74d0f80152d2b73836cfb6273610658))
+* **106:** cite D-03 PR guardrail in 106-04 (decision coverage) ([3a016a8](https://github.com/szTheory/rindle/commit/3a016a8458492e0d67731759b67d3fb4181cc727))
+* **ci:** guard --check-locked to OTP27 so Quality 1.15/26 passes ([0751fdb](https://github.com/szTheory/rindle/commit/0751fdb732f29ff4f5086a0b892e604607b8a793))
+* **demo:** chrome brand-font continuity + auto-detect Traefik + mobile nav wrap ([#27](https://github.com/szTheory/rindle/issues/27)) ([6149832](https://github.com/szTheory/rindle/commit/6149832b1a837bcc8c65e02dc2eb825d5d40a8b7))
+* **roadmap:** use canonical (Phase Details) heading so v1.20 phases resolve ([2c71208](https://github.com/szTheory/rindle/commit/2c71208a6e3fe3094df0c25fe3824c9fac53e107))
+* **test:** keep s3_tus offline by delegating the stub on caller intent (999.1) ([6d2a385](https://github.com/szTheory/rindle/commit/6d2a3854ee317a8989dd2af0371fc02ed5735e52))
+
 ## [0.3.0](https://github.com/szTheory/rindle/compare/rindle-v0.1.10...rindle-v0.3.0) (2026-06-20)
 
 
