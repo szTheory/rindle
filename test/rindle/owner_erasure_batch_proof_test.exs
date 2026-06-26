@@ -1,5 +1,10 @@
 defmodule Rindle.OwnerErasureBatchProofTest do
-  use Rindle.DataCase, async: true
+  # async: false — this suite uses Rindle.Test.CountingFailingTxnRepo.with_counting_repo/2, which
+  # swaps the GLOBAL `:rindle, :repo` (Application.put_env) and force-fails the Nth transaction.
+  # Run concurrently it pollutes any async test resolving Rindle.Config.repo() in that window
+  # (e.g. StreamingDispatchTest got force-failed transactions → intermittent `== ` failures).
+  # Its sibling batch_owner_erasure_task_test.exs is already async: false for the same reason.
+  use Rindle.DataCase, async: false
   use Oban.Testing, repo: Rindle.Repo
   import Mox
   import Rindle.Test.OwnerErasureBatchFixtures
