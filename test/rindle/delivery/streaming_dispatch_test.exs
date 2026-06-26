@@ -18,7 +18,12 @@ defmodule Rindle.Delivery.StreamingDispatchTest do
     - [:rindle, :delivery, :streaming, :resolved] preserved verbatim on Branches 1, 6 (kind: :progressive)
     - Telemetry metadata key set unchanged: profile, adapter, mode, kind, mime
   """
-  use Rindle.DataCase, async: true
+  # async: false — this suite is sensitive to global-state pollution from concurrently-running
+  # async tests (a test that swaps the global `:rindle, :repo` or force-fails a transaction in its
+  # window makes Branch 5/5b dispatch return the wrong value → intermittent `==` failures).
+  # Serializing these 17 tests is cheap and makes the dispatch matrix deterministic; the broader
+  # root-cause cleanup (eliminate the global mutations) is tracked separately.
+  use Rindle.DataCase, async: false
 
   import Mox
   alias Rindle.Domain.MediaAsset
