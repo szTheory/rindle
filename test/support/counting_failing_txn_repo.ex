@@ -40,6 +40,13 @@ defmodule Rindle.Test.CountingFailingTxnRepo do
   def one(queryable), do: Rindle.Repo.one(queryable)
   def get(schema, id), do: Rindle.Repo.get(schema, id)
   def get!(schema, id), do: Rindle.Repo.get!(schema, id)
+  # This double is installed globally via `Application.put_env(:rindle, :repo, ...)` for the
+  # duration of `with_counting_repo/2`, so any async test resolving `Rindle.Config.repo()` in
+  # that window dispatches through here. It must faithfully proxy every Repo call a live code
+  # path may make — `Rindle.Delivery.dispatch_streaming/4` calls `get_by/2`, so delegate it too
+  # (its absence surfaced as an intermittent UndefinedFunctionError in StreamingDispatchTest).
+  def get_by(schema, clauses), do: Rindle.Repo.get_by(schema, clauses)
+  def get_by(schema, clauses, opts), do: Rindle.Repo.get_by(schema, clauses, opts)
   def insert(changeset), do: Rindle.Repo.insert(changeset)
   def insert!(changeset), do: Rindle.Repo.insert!(changeset)
   def update(changeset), do: Rindle.Repo.update(changeset)

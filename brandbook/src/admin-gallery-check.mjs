@@ -165,6 +165,13 @@ const assertFocusVisibleTokens = async (page) => {
     '[data-rindle-admin-confirm-input]',
     '.rindle-admin-table__row',
   ];
+  // Enter keyboard modality before measuring. `:focus-visible` does not reliably match
+  // programmatic `.focus()` in headless Chromium unless the page has seen a keyboard
+  // interaction — and `focusVisible: true` honouring varies across Chromium builds. A real
+  // Tab press flips Chromium into keyboard-focus mode so the subsequent programmatic focuses
+  // deterministically match `:focus-visible` (fixes an intermittent "outline 0px" CI flake).
+  await page.keyboard.press('Tab');
+
   const failures = [];
   for (const selector of selectors) {
     const locator = page.locator(selector).first();
