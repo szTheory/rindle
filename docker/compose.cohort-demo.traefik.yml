@@ -13,8 +13,9 @@
 #
 # The app's loopback host port (from compose.cohort-demo.yml) stays published, so
 # a stopped/absent proxy never locks you out. MinIO is intentionally NOT routed
-# through Traefik: presigned upload/download URLs embed host.docker.internal:<port>,
-# which the browser reaches via the published host port, not the proxy.
+# through Traefik: browser-facing presigned upload/download URLs embed
+# localhost:<published-port> (RINDLE_MINIO_PUBLIC_URL), which the browser reaches via
+# the published host port directly, not the proxy.
 
 services:
   cohort-demo:

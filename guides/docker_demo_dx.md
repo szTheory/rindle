@@ -67,9 +67,9 @@ way, from most to least automatic.
 | MinIO API | `9000` | `9001`, … |
 | MinIO console | `9001` | `9002`, … |
 
-The chosen MinIO API port flows into both the published port *and* the presigned upload URLs
-the browser uses, so uploads keep working at whatever port was picked. The printed URL map is
-always correct.
+The chosen MinIO API port flows into both the published port *and* the browser-facing presigned
+URLs (signed for `localhost:<port>` — see "Split-horizon S3 endpoint" below), so uploads and
+image loads keep working at whatever port was picked. The printed URL map is always correct.
 
 ### 2. Pin a port yourself
 
@@ -109,8 +109,26 @@ mode silently falls back to fixed ports (and `=1` warns).
 **Coexistence contract** (so sibling demos don't fight one proxy): each demo joins the same
 external `proxy` network, keeps its Traefik **router/service names unique**, and relies on
 `exposedbydefault=false` so only labelled services route. MinIO is deliberately *not* proxied
-— presigned URLs embed `host.docker.internal:<port>`, which the browser reaches via the
-published host port, not the proxy.
+— browser-facing presigned URLs embed `localhost:<port>` (see below), which the browser reaches
+via the published host port directly, not the proxy.
+
+---
+
+## Split-horizon S3 endpoint (why images load on macOS)
+
+MinIO has two callers with different network views, so the demo gives it two endpoints:
+
+| Caller | Endpoint | Why |
+| --- | --- | --- |
+| App container (server-side store/probe/transcode) | `http://minio:9000` (`RINDLE_MINIO_URL`) | In-network compose DNS — always reachable from the app container on macOS, Windows, and Linux CI. |
+| Your browser (presigned image + upload URLs) | `http://localhost:<published-port>` (`RINDLE_MINIO_PUBLIC_URL`) | The host can resolve `localhost`; it **cannot** resolve `host.docker.internal` (Docker injects that alias into *containers*, not the host). |
+
+The app signs browser-facing presigned URLs for the public endpoint via the S3 adapter's
+`:public_endpoint` config (`config :rindle, Rindle.Storage.S3, public_endpoint: [...]`), wired in
+`config/runtime.exs` from `RINDLE_MINIO_PUBLIC_URL`. The S3 signature binds the `host` header, so
+the signed host must be exactly what the browser requests — which is why a single shared endpoint
+can't satisfy both sides, and why a broken image here means a presign-host mismatch, not a
+corrupt/quarantined asset.
 
 ---
 

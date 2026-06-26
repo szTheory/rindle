@@ -1,14 +1,10 @@
 # CI override for the Cohort demo cold-start smoke (scripts/ci/cohort_demo_smoke.sh).
 #
-# The base compose points the app at MinIO via `host.docker.internal:<port>` so
-# that browser-facing presigned URLs are reachable from the host on Docker Desktop
-# (Mac/Windows). On Linux CI runners `host.docker.internal` resolves to the docker
-# bridge gateway, but MinIO is published only on the host's 127.0.0.1 — so the app
-# container cannot reach it there and the entrypoint times out waiting for MinIO.
-#
-# The smoke only needs server-side reachability (boot + seed + read surfaces), not
-# browser-facing presigned uploads, so we point the app at the `minio` service on
-# the shared compose network. This works identically on Linux CI and Docker Desktop.
+# The base compose already points server-side ops at the in-network `minio:9000` service
+# (RINDLE_MINIO_URL) and only signs browser-facing presigned URLs for the host-published port
+# (RINDLE_MINIO_PUBLIC_URL). The smoke needs only server-side reachability (boot + seed + read
+# surfaces), not browser presigned uploads, so this override pins RINDLE_MINIO_URL explicitly
+# for clarity; it matches the base and works identically on Linux CI and Docker Desktop.
 name: cohort-demo
 
 services:

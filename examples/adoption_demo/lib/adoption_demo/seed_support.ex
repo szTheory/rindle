@@ -19,8 +19,8 @@ defmodule AdoptionDemo.SeedSupport do
 
   def upload_image!(filename, body) do
     with {:ok, session} <- Broker.initiate_session(RindleProfile, filename: filename),
-         {:ok, %{presigned: presigned}} <- Broker.sign_url(session.id),
-         :ok <- put_bytes(presigned.url, body, "image/png"),
+         {:ok, %{presigned: _presigned}} <- Broker.sign_url(session.id),
+         :ok <- store_bytes!(RindleProfile, session.upload_key, body, "image/png"),
          {:ok, %{asset: asset}} <- Broker.verify_completion(session.id) do
       drain_asset_jobs!(asset.id, RindleProfile)
       asset
@@ -33,8 +33,8 @@ defmodule AdoptionDemo.SeedSupport do
     alias AdoptionDemo.MuxProfile
 
     with {:ok, session} <- Rindle.initiate_upload(MuxProfile, filename: filename),
-         {:ok, %{presigned: presigned}} <- Broker.sign_url(session.id),
-         :ok <- put_bytes(presigned.url, body, "video/webm"),
+         {:ok, %{presigned: _presigned}} <- Broker.sign_url(session.id),
+         :ok <- store_bytes!(MuxProfile, session.upload_key, body, "video/webm"),
          {:ok, %{asset: asset}} <- Broker.verify_completion(session.id) do
       drain_asset_jobs!(asset.id, MuxProfile)
       asset
@@ -45,8 +45,8 @@ defmodule AdoptionDemo.SeedSupport do
 
   def upload_video!(filename, body) do
     with {:ok, session} <- Rindle.initiate_upload(VideoProfile, filename: filename),
-         {:ok, %{presigned: presigned}} <- Broker.sign_url(session.id),
-         :ok <- put_bytes(presigned.url, body, "video/webm"),
+         {:ok, %{presigned: _presigned}} <- Broker.sign_url(session.id),
+         :ok <- store_bytes!(VideoProfile, session.upload_key, body, "video/webm"),
          {:ok, %{asset: asset}} <- Broker.verify_completion(session.id) do
       drain_asset_jobs!(asset.id, VideoProfile)
       asset
@@ -112,12 +112,23 @@ defmodule AdoptionDemo.SeedSupport do
     end
   end
 
-  defp put_bytes(url, body, content_type) do
-    request = {String.to_charlist(url), [], String.to_charlist(content_type), body}
+  # Seeding runs SERVER-SIDE (inside the app container). It must NOT upload via the browser-facing
+  # presigned PUT URL: with the split-horizon S3 endpoint, that URL is signed for the public host
+  # (e.g. localhost:<published-port>) which the container cannot reach. Instead we write the bytes
+  # straight to the session's upload_key through the profile's storage adapter, which uses the
+  # server-side endpoint (e.g. minio:9000). `Broker.verify_completion/1` then HEADs the same key
+  # server-side and promotes the asset exactly as a real browser upload would.
+  defp store_bytes!(profile, upload_key, body, content_type) do
+    tmp = Path.join(System.tmp_dir!(), "seed-upload-#{System.unique_integer([:positive])}")
+    File.write!(tmp, body)
 
-    case :httpc.request(:put, request, [], []) do
-      {:ok, {{_version, status, _reason}, _headers, _body}} when status in 200..299 -> :ok
-      other -> {:error, other}
+    try do
+      case profile.storage_adapter().store(upload_key, tmp, content_type: content_type) do
+        {:ok, _meta} -> :ok
+        {:error, reason} -> {:error, reason}
+      end
+    after
+      File.rm(tmp)
     end
   end
 

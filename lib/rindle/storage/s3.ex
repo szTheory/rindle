@@ -23,6 +23,25 @@ defmodule Rindle.Storage.S3 do
   brand-new FIRST PATCH (`offset == 0`) is never falsely guarded. Multi-node
   operators MUST pin tus PATCHes to a single node (sticky sessions) or accept
   this loud failure on misrouted resumes.
+
+  ## Public (browser-facing) delivery endpoint
+
+  Browser-facing presigned URLs (`url/2`, `presigned_put/3`,
+  `presigned_upload_part/5`) are signed using the `:ex_aws, :s3` config by
+  default. When the cluster-internal S3 endpoint differs from the endpoint the
+  browser can reach — split-horizon DNS, a public/CDN/edge host, or a dev Docker
+  setup where the server talks to `minio:9000` in-network but the browser must use
+  a published `localhost:<port>` — configure a `:public_endpoint` for this adapter:
+
+      config :rindle, Rindle.Storage.S3,
+        bucket: "my-bucket",
+        public_endpoint: [scheme: "https://", host: "cdn.example.com", port: 443]
+
+  Only `:scheme`, `:host`, and `:port` are read, and they apply ONLY to presigned
+  URL signing — server-side `store`/`download`/`head`/multipart ops keep using the
+  `:ex_aws, :s3` endpoint. Because the S3 signature binds the `host` header
+  (`SignedHeaders=host`), the configured public host MUST be exactly the host the
+  browser requests. Leave it unset for identical pre-existing behaviour.
   """
 
   @behaviour Rindle.Storage
@@ -620,8 +639,29 @@ defmodule Rindle.Storage.S3 do
     Application.get_env(:rindle, __MODULE__, [])[:request_module] || ExAws
   end
 
+  # Config used to SIGN browser-facing presigned URLs (`url/2`, `presigned_put/3`,
+  # `presigned_upload_part/5`). Distinct from the server-side `request/2` path: when a
+  # `:public_endpoint` is configured for this adapter, its scheme/host/port are merged over the
+  # per-call `:aws_config`, so presigned URLs are signed for a browser-reachable endpoint while
+  # server-side store/download/head keep using the (possibly cluster-internal) `:ex_aws, :s3`
+  # endpoint. Because the S3 signature binds the `host` header, the public host must be the host
+  # the browser actually requests. Used for split-horizon setups: dev Docker (in-network
+  # `minio:9000` server-side vs. published `localhost:<port>` for the browser) and
+  # public/CDN/edge hosts in production.
   defp s3_config(opts) do
-    ExAws.Config.new(:s3, Keyword.get(opts, :aws_config, []))
+    ExAws.Config.new(:s3, presign_aws_config(opts))
+  end
+
+  defp presign_aws_config(opts) do
+    base = Keyword.get(opts, :aws_config, [])
+
+    case Application.get_env(:rindle, __MODULE__, [])[:public_endpoint] do
+      endpoint when is_list(endpoint) ->
+        Keyword.merge(base, Keyword.take(endpoint, [:scheme, :host, :port]))
+
+      _ ->
+        base
+    end
   end
 
   defp object_opts(opts) do
