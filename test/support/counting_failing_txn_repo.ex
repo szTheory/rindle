@@ -20,6 +20,9 @@ defmodule Rindle.Test.CountingFailingTxnRepo do
     end
   end
 
+  # The reason this double exists: deterministically fail the Nth transaction so batch/erasure
+  # code paths can be tested against a mid-run transaction failure. Everything else MUST behave
+  # exactly like the real repo.
   def transaction(fun) when is_function(fun, 0) do
     if next_count() == fail_after() do
       {:error, :plan, fail_reason(), %{}}
@@ -36,24 +39,38 @@ defmodule Rindle.Test.CountingFailingTxnRepo do
     end
   end
 
-  def all(queryable), do: Rindle.Repo.all(queryable)
-  def one(queryable), do: Rindle.Repo.one(queryable)
-  def get(schema, id), do: Rindle.Repo.get(schema, id)
-  def get!(schema, id), do: Rindle.Repo.get!(schema, id)
-  # This double is installed globally via `Application.put_env(:rindle, :repo, ...)` for the
-  # duration of `with_counting_repo/2`, so any async test resolving `Rindle.Config.repo()` in
-  # that window dispatches through here. It must faithfully proxy every Repo call a live code
-  # path may make — `Rindle.Delivery.dispatch_streaming/4` calls `get_by/2`, so delegate it too
-  # (its absence surfaced as an intermittent UndefinedFunctionError in StreamingDispatchTest).
-  def get_by(schema, clauses), do: Rindle.Repo.get_by(schema, clauses)
-  def get_by(schema, clauses, opts), do: Rindle.Repo.get_by(schema, clauses, opts)
-  def insert(changeset), do: Rindle.Repo.insert(changeset)
-  def insert!(changeset), do: Rindle.Repo.insert!(changeset)
-  def update(changeset), do: Rindle.Repo.update(changeset)
-  def update!(changeset), do: Rindle.Repo.update!(changeset)
-  def delete(struct), do: Rindle.Repo.delete(struct)
-  def delete!(struct), do: Rindle.Repo.delete!(struct)
-  def preload(struct_or_structs, preloads), do: Rindle.Repo.preload(struct_or_structs, preloads)
+  def transaction(fun, opts) when is_function(fun, 0) do
+    if next_count() == fail_after() do
+      {:error, :plan, fail_reason(), %{}}
+    else
+      Rindle.Repo.transaction(fun, opts)
+    end
+  end
+
+  def transaction(multi, opts) do
+    if next_count() == fail_after() do
+      {:error, :plan, fail_reason(), %{}}
+    else
+      Rindle.Repo.transaction(multi, opts)
+    end
+  end
+
+  # `with_counting_repo/2` installs this module as the GLOBAL `:rindle, :repo` for the duration
+  # of its callback, so any async test resolving `Rindle.Config.repo()` in that window dispatches
+  # through here. It must therefore proxy the ENTIRE Ecto.Repo surface, not a hand-maintained
+  # subset — a missing function surfaces as an intermittent
+  # `(UndefinedFunctionError) Rindle.Test.CountingFailingTxnRepo.<fn> is undefined` in whichever
+  # async test happens to run inside the window (get_by/2, exists?/1, config/0, … each bit us in
+  # turn). Generate a passthrough for every Rindle.Repo function except transaction/1,2 (overridden
+  # above), so completeness is guaranteed by construction rather than by audit.
+  for {fun, arity} <- Rindle.Repo.__info__(:functions),
+      {fun, arity} not in [transaction: 1, transaction: 2] do
+    args = Macro.generate_arguments(arity, __MODULE__)
+
+    def unquote(fun)(unquote_splicing(args)) do
+      apply(Rindle.Repo, unquote(fun), [unquote_splicing(args)])
+    end
+  end
 
   defp next_count do
     count = Process.get(@count_key, 0) + 1
