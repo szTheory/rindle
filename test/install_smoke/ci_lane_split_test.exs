@@ -31,7 +31,7 @@ defmodule Rindle.InstallSmoke.CiLaneSplitTest do
   @branch_protection_path Path.expand("../../scripts/setup_branch_protection.sh", __DIR__)
   @contributing_path Path.expand("../../CONTRIBUTING.md", __DIR__)
   @classification_path Path.expand(
-                         "../../.planning/phases/106-trigger-split-matrix-lane-refinement/106-LANE-CLASSIFICATION.md",
+                         "../../.planning/milestones/v1.20-phases/106-trigger-split-matrix-lane-refinement/106-LANE-CLASSIFICATION.md",
                          __DIR__
                        )
 

@@ -32,7 +32,7 @@ defmodule Rindle.InstallSmoke.CiObservabilityTest do
   @collect_baseline_path Path.expand("../../scripts/ci/collect_ci_baseline.sh", __DIR__)
   @check_required_path Path.expand("../../scripts/ci/check_required_checks.sh", __DIR__)
   @baseline_doc_path Path.expand(
-                       "../../.planning/phases/103-observability-baseline/103-BASELINE.md",
+                       "../../.planning/milestones/v1.20-phases/103-observability-baseline/103-BASELINE.md",
                        __DIR__
                      )
 
@@ -221,7 +221,7 @@ defmodule Rindle.InstallSmoke.CiObservabilityTest do
 
   test "OBS-03: the committed internal baseline doc 103-BASELINE.md exists" do
     assert File.exists?(@baseline_doc_path),
-           "103-BASELINE.md must be committed under .planning/phases/103-observability-baseline/ (OBS-03)"
+           "103-BASELINE.md must be committed under .planning/milestones/v1.20-phases/103-observability-baseline/ (OBS-03)"
   end
 
   # ------------------------------------------------------------------
