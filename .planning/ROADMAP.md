@@ -527,17 +527,7 @@ See [post-v116 assessment](threads/2026-05-27-post-v116-milestone-assessment.md)
 
 ## Backlog
 
-### Phase 999.1: v1.20 CI green-up — S3 cred test failures (BACKLOG)
-
-**Goal:** [Captured for future planning] Get the 64 accumulated v1.20 commits (phases 100–105, pushed to origin/main 2026-06-21 after never being CI-validated) back to green so the Phase-105 branch-protection flip can auto-fire.
-**Requirements:** TBD
-**Plans:** 0 plans
-
-Known blocker: 4 real failures in `test/rindle/storage/s3_tus_test.exs` (untagged `use ExUnit.Case, async: true`) resolving REAL AWS creds via `ExAws.Config.AuthCache` → IMDS HTTP 404 in the `mix coveralls.json` default-suite step of the Integration + Package Consumer jobs (CI run 27916861643). `Quality` passes the SAME tests → env/config difference to chase (likely AWS_* env or ExAws config per job). Possibly more failures behind these. Fixed en route: json_polyfill/`--check-locked` lockfile bug (commit 0751fdb). Flip automation committed + inert on origin/main (commit ca70075); self-defers until CI Summary is green. After green: nightly `branch-protection-apply.yml` flips it (needs `Checks: read` on `BRANCH_PROTECTION_PAT` — manual) or one-off `setup_branch_protection.sh main`.
-
-Plans:
-
-- [ ] TBD (promote with /gsd-review-backlog when ready)
+_(empty — no open backlog items)_
 
 ---
-*Last updated: 2026-06-22 — v1.20 CI/CD Performance SHIPPED & archived (Phases 103–107, 18/18 requirements, 5/5 phases, ZERO `lib/` change). Roadmap collapsed; phase details in [milestones/v1.20-ROADMAP.md](milestones/v1.20-ROADMAP.md). No active milestone — next via `/gsd-new-milestone`. v1.18 and v1.19 shipped & archived.*
+*Last updated: 2026-06-26 — backlog review: removed resolved item 999.1 (v1.20 CI green-up — CI green, 0.3.1 shipped, branch-protection flip already fired). Backlog now empty. v1.20 CI/CD Performance SHIPPED & archived (Phases 103–107, 18/18 requirements, 5/5 phases, ZERO `lib/` change); phase details in [milestones/v1.20-ROADMAP.md](milestones/v1.20-ROADMAP.md). No active milestone — next via `/gsd-new-milestone`. v1.18 and v1.19 shipped & archived.*

@@ -8,8 +8,14 @@ defmodule Rindle.InstallSmoke.CiObservabilityTest do
 
   ASSERTS CURRENT SHIPPED STATE. Every literal asserted below was grep-confirmed
   against the live files on disk (ci.yml, setup-elixir composite, test_helper.exs,
-  mix.exs, the two read-only baseline collectors, and the committed baseline doc) —
-  NOT a planned/SUMMARY-era layout.
+  mix.exs, and the two read-only baseline collectors) — NOT a planned/SUMMARY-era
+  layout.
+
+  Deliberately asserts SHIPPED artifacts ONLY (workflows, scripts, mix.exs,
+  test_helper.exs). It does NOT couple to internal `.planning/` doc paths: those
+  move when a milestone is archived (gsd-cleanup), which would break this suite
+  for a non-shipped reason. OBS-03's substance is locked via the baseline-script
+  assertions below.
 
   Scope note: the cache `id:`s that back the OBS-01 hit/miss summary live as
   `id: deps_cache` / `id: build_cache` (underscored) inside the setup-elixir
@@ -31,10 +37,6 @@ defmodule Rindle.InstallSmoke.CiObservabilityTest do
   @mix_exs_path Path.expand("../../mix.exs", __DIR__)
   @collect_baseline_path Path.expand("../../scripts/ci/collect_ci_baseline.sh", __DIR__)
   @check_required_path Path.expand("../../scripts/ci/check_required_checks.sh", __DIR__)
-  @baseline_doc_path Path.expand(
-                       "../../.planning/phases/103-observability-baseline/103-BASELINE.md",
-                       __DIR__
-                     )
 
   setup_all do
     {:ok,
@@ -217,11 +219,6 @@ defmodule Rindle.InstallSmoke.CiObservabilityTest do
 
     assert check_required =~ "print-expected",
            "check_required_checks.sh must reuse setup_branch_protection.sh `--print-expected` as the single source of truth (no re-encoded names, OBS-03)"
-  end
-
-  test "OBS-03: the committed internal baseline doc 103-BASELINE.md exists" do
-    assert File.exists?(@baseline_doc_path),
-           "103-BASELINE.md must be committed under .planning/phases/103-observability-baseline/ (OBS-03)"
   end
 
   # ------------------------------------------------------------------
