@@ -420,6 +420,12 @@ async function assertFocusVisibleTokens(
       const item = locator.nth(index);
       if (!(await item.isVisible().catch(() => false))) continue;
       if (await item.isDisabled().catch(() => false)) continue;
+      // Enter keyboard modality before measuring. `:focus-visible` does not reliably match
+      // programmatic `.focus()` in headless Chromium unless the page has seen a keyboard
+      // interaction (and `focusVisible: true` honouring varies across Chromium builds). A real
+      // Tab press flips Chromium into keyboard-focus mode so the subsequent programmatic focus
+      // deterministically paints the ring (fixes an intermittent "outline 0px != 2px" flake).
+      await page.keyboard.press("Tab").catch(() => {});
       await item
         .evaluate((element) => {
           if (document.activeElement === element) element.blur();
@@ -914,7 +920,11 @@ async function assertFocusVisibleVsPointer(
     if (!(await item.isVisible().catch(() => false))) continue;
     if (await item.isDisabled().catch(() => false)) continue;
 
-    // Keyboard focus -> :focus-visible should paint the ring.
+    // Keyboard focus -> :focus-visible should paint the ring. Enter keyboard modality first
+    // (real Tab press) so the programmatic focus below reliably matches :focus-visible in
+    // headless Chromium; the pointer branch further down re-establishes pointer modality via a
+    // real mouse click, so the negative (no-ring-on-pointer) check stays valid.
+    await page.keyboard.press("Tab").catch(() => {});
     const kb = await item.evaluate((el, contract) => {
       el.focus({ focusVisible: true });
       const resolve = (value) => {
