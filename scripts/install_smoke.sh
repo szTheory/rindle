@@ -24,6 +24,15 @@ case "$PROFILE" in
     ;;
 esac
 
+# The generated-app smoke runs `mix phx.new`, so the Phoenix generator archive must be
+# present. Callers like release_preflight.sh install it themselves, but this script is also
+# invoked directly (CI "Package Consumer Proof Matrix" job), so guard it here too — keeping
+# the script self-contained regardless of job ordering. Idempotent: only installs if missing.
+if ! mix phx.new --version >/dev/null 2>&1; then
+  echo "Installing Phoenix generator archive for install smoke..."
+  MIX_ENV=dev mix archive.install hex phx_new --force
+fi
+
 if [ -z "${RINDLE_INSTALL_SMOKE_PACKAGE_ROOT:-}" ]; then
   mix hex.build --unpack --output "$PACKAGE_ROOT"
 fi
