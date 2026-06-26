@@ -10,9 +10,15 @@ defmodule Rindle.InstallSmoke.CiLaneSplitTest do
   `uses:` + added job permissions, so NOTHING here asserts a mutable `@vX`
   action tag or any pre-107 detail — only the LANE topology facts (triggers,
   concurrency expression, the package-consumer lean/full split, the nightly
-  lane placement, the A–E classification doc, and the release-coupling
-  invariants) that are true on disk right now. Every literal asserted below was
-  grep-confirmed against the live files.
+  lane placement, and the release-coupling invariants) that are true on disk
+  right now. Every literal asserted below was grep-confirmed against the live
+  files.
+
+  Deliberately asserts SHIPPED artifacts ONLY (workflows, scripts, CONTRIBUTING).
+  It does NOT couple to internal `.planning/` doc paths: those move when a
+  milestone is archived (gsd-cleanup), which would break this suite for a
+  non-shipped reason. LANE-04's substance is locked via the CONTRIBUTING.md
+  trust/speed-label assertion below.
 
   Deliberately does NOT duplicate ci_cache_hygiene_test.exs: composite adoption
   counts, the cache-key schema, .tool-versions, ffmpeg, and the PLT
@@ -30,10 +36,6 @@ defmodule Rindle.InstallSmoke.CiLaneSplitTest do
                   )
   @branch_protection_path Path.expand("../../scripts/setup_branch_protection.sh", __DIR__)
   @contributing_path Path.expand("../../CONTRIBUTING.md", __DIR__)
-  @classification_path Path.expand(
-                         "../../.planning/milestones/v1.20-phases/106-trigger-split-matrix-lane-refinement/106-LANE-CLASSIFICATION.md",
-                         __DIR__
-                       )
 
   setup_all do
     {:ok,
@@ -43,8 +45,7 @@ defmodule Rindle.InstallSmoke.CiLaneSplitTest do
        release: File.read!(@release_path),
        automerge: File.read!(@automerge_path),
        branch_protection: File.read!(@branch_protection_path),
-       contributing: File.read!(@contributing_path),
-       classification: File.read!(@classification_path)
+       contributing: File.read!(@contributing_path)
      }}
   end
 
@@ -203,7 +204,9 @@ defmodule Rindle.InstallSmoke.CiLaneSplitTest do
   end
 
   # ------------------------------------------------------------------
-  # LANE-04: trust/speed label in CONTRIBUTING + the A–E classification doc.
+  # LANE-04: trust/speed label in CONTRIBUTING (shipped artifact). The internal
+  # A–E classification doc (106-LANE-CLASSIFICATION.md) is intentionally NOT
+  # asserted here — it is an archived planning artifact, not shipped code.
   # ------------------------------------------------------------------
   test "LANE-04: CONTRIBUTING.md carries the trust/speed label (on-PR vs after-merge/nightly, ≤7-min, image smoke)",
        %{contributing: contributing} do
@@ -216,26 +219,6 @@ defmodule Rindle.InstallSmoke.CiLaneSplitTest do
         ] do
       assert contributing =~ phrase,
              "CONTRIBUTING.md trust/speed label must contain #{inspect(phrase)} (LANE-04)"
-    end
-  end
-
-  test "LANE-04: the internal A–E classification doc exists and documents the buckets", %{
-    classification: classification
-  } do
-    assert classification =~ "LANE-04",
-           "106-LANE-CLASSIFICATION.md must be the LANE-04 classification record (LANE-04)"
-
-    # The doc places every ci.yml lane into exactly one of the five buckets;
-    # quarantine (D) and delete (E) are explicitly EMPTY (do-not-invent).
-    for bucket <- [
-          "Bucket A",
-          "Bucket B",
-          "Bucket C",
-          "Buckets D & E",
-          "EMPTY"
-        ] do
-      assert classification =~ bucket,
-             "106-LANE-CLASSIFICATION.md must document #{inspect(bucket)} (LANE-04)"
     end
   end
 
