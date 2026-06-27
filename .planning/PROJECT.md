@@ -26,19 +26,43 @@ merge-blocking computed-style visual gate). Archived to `milestones/v1.19-*.md`.
 
 **Open planning debt:** None. v1.18, v1.19, and v1.20 are all shipped and archived.
 
-**Active milestone:** None — between milestones. Feature milestones remain demand-gated
-(LIFE-06 / STREAM-10 signal required per `config.json`
-`workflow.milestone_boundary.block_feature_milestone_without_signal`); a non-feature/DX charter
-(like v1.20) needs a documented seed. Start the next cycle with `/gsd-new-milestone`. Phase
-numbering continues at **108**.
+**Active milestone:** **v1.21 CI/DX Reliability Tail** — chartered 2026-06-26 from **SEED-004**
+(the documented seed satisfies the non-feature/DX gate; feature milestones remain demand-gated on
+LIFE-06 / STREAM-10 per `config.json`). Companion to v1.20: closes the reliability tail SEED-003
+flagged but v1.20 did not fix. **Unlike v1.20, this milestone DOES touch `lib/`** — two small,
+adopter-invisible hardening patches (authorized 2026-06-26, see D-v1.21-01), so it ships as Hex
+patch **0.3.2** via release-please `fix:` commits. Phase numbering continues at **108**.
 
-## Between Milestones
+## Current Milestone: v1.21 CI/DX Reliability Tail
 
-No active milestone. v1.20 CI/CD Performance shipped 2026-06-22 (see **Current State** above and
-the archive at `milestones/v1.20-ROADMAP.md`). Posture returns to the demand-gated pause: feature
-milestones require a LIFE-06 (compliance/legal) or STREAM-10 (named adopter) signal; a non-feature
-/ DX or quality charter (as v1.18, v1.19, and v1.20 were) needs a documented seed/maintainer pull.
-Start the next cycle with `/gsd-new-milestone`. Phase numbering continues at **108**.
+**Goal:** Close the reliability tail v1.20 (SEED-003) left open — make the merge gate deterministic
+and trustworthy by killing the structural double-suite-run, fixing the underlying subprocess
+`:epipe` race, closing the PR↔main gate-coverage gap, and hardening the last latent async-isolation
+smell — so a green PR reliably means a green `main`.
+
+**Target features (requirement areas):**
+- **Single-run coverage** — one `mix coveralls.multiple --type local --type json` per lane instead
+  of running the whole ExUnit suite twice (gate run + JSON-artifact re-run). Halves test wall-clock
+  AND halves `:epipe` exposure; the `local` analyzer keeps identical merge-gate semantics.
+- **Subprocess `:epipe` hardening (`lib/`)** — absorb the upstream MuonTrap #98 broken-pipe exit in
+  `Rindle.AV.Subprocess.run/3` (~25 lines; adopter-invisible; security invariants 8–13 byte-equal).
+- **PR↔main gate-coverage gap** — add ONE lean deterministic `adoption-demo-e2e-smoke` PR job into
+  `CI Summary.needs` so the class that reached `main` on 2026-06-26 is caught pre-merge, keeping PR
+  p95 ≈7 min. Strict ordering: de-flake (coverage/epipe/async) BEFORE this lane gates PRs.
+- **Async-isolation hardening (`lib/`)** — make `Rindle.Config.repo/0` consult a `$callers`-aware
+  process-dictionary override before app-env, eliminating the global `Application.put_env(:rindle,
+  :repo, …)` in the counting-repo double; close the matching gap in the v1.20 async-safety guard.
+- **Regression locks + proof** — durable shipped-artifact meta-tests for the already-fixed
+  2026-06-26 cluster (phx.new self-install, `:focus-visible` Tab-modality, `.planning/`-path
+  hygiene) plus a deterministic `:epipe` repro; assert SHIPPED artifacts only, never `.planning/`.
+- **Truth fix** — security-invariant 13's "Rambo on macOS/Windows" clause is stale (the path is
+  MuonTrap-only; no Rambo in `mix.lock`); correct it.
+
+**Key context:** Non-feature/DX charter from **SEED-004**; two adopter-invisible `lib/` patches
+authorized (D-v1.21-01) → ships Hex **0.3.2**. Hard invariants carry over from v1.20: never rename
+`ci.yml` / `name: CI` (release-train coupling); `CI Summary` keeps `skipped`==pass (fork-PR safety);
+never weaken the release full-verification gate. Research locked in `.planning/research/v1.21-*.md`.
+Phases resume at **108**.
 
 <details>
 <summary>v1.20 CI/CD Performance — shipped scope (collapsed)</summary>
@@ -331,7 +355,11 @@ To keep this posture durable across GSD workflows:
 
 ### Active
 
-**Demand-gated for v1.20+ feature milestone:**
+**v1.21 CI/DX Reliability Tail (in flight — see `.planning/REQUIREMENTS.md`):** single-run coverage
+(COV), subprocess `:epipe` hardening (EPIPE, `lib/`), PR↔main gate-coverage gap (GATE), async
+isolation (ISO, `lib/`), regression locks + proof (LOCK/PROOF), truth fix (TRUTH).
+
+**Demand-gated for next feature milestone:**
 
 - **LIFE-06** — force-delete for still-shared assets (compliance/legal ticket required)
 - **STREAM-10** — second streaming provider (named adopter + provider choice required)
@@ -505,6 +533,8 @@ that section on next docs maintenance pass.
 | Never rename `ci.yml`/`name: CI`; never weaken the release full-verification gate | Release-train coupling (`release-please-automerge.yml` + `gate-ci-green`) reads the workflow name + full-matrix push:main run; renaming or weakening it would silently break publishing | ✓ Held v1.20 (byte-unchanged across all 5 phases) |
 | Scope the `package-consumer` long pole by trigger (lean `image` smoke on PR; full 5-profile matrix + preflight + dry-run on push:main/nightly/release) | The headline wall-clock cut; release readiness proven by the push:main run conclusion via `gate-ci-green`, not by a PR-gating check name | ✓ Good v1.20 (Phase 106; PR p95 under ≤7 min) |
 | ExUnit async conversion is gated behind an AST static-safety meta-test; `--partitions` deferred until measured core-starvation | Fail-closed guard prevents silent shared-state races; partitioning payoff is evidence-gated, not assumed (DEFER-02) | ✓ Good v1.20 (Phase 107; 15 modules converted, 2 latent races fixed) |
+| D-v1.21-01: v1.21 relaxes v1.20's zero-`lib/`-change invariant for two adopter-invisible hardening patches (`av/subprocess.ex` MuonTrap-#98 `:epipe` absorb; `config.ex` `$callers`-aware process-scoped repo override) | The correctness-true fixes for the recurring `:epipe` flake and the async-isolation root cause both live in production code; both are adopter-invisible (no public API / return-shape / error-vocab / security-invariant change), so they ship as a `fix:` patch (0.3.2) without escalation beyond this authorization | — Pending (authorized 2026-06-26 by maintainer) |
+| D-v1.21-02: keep `mix coveralls` (`local` analyzer) as the merge-gate; never derive the gate from `coveralls.json`'s exit code | ExCoveralls 0.18.5 source: `coveralls.json` does NOT call `ensure_minimum_coverage`, so gating on it would silently drop threshold enforcement; `coveralls.multiple --type local --type json` gives both from one run | — Pending |
 
 
 ## Historical Snapshot
@@ -715,4 +745,4 @@ This document evolves at phase transitions and milestone boundaries.
    (`workflow.milestone_boundary.block_feature_milestone_without_signal`)
 
 ---
-*Last updated: 2026-06-22 after v1.20 CI/CD Performance milestone — shipped & archived (Phases 103–107, 18/18 requirements, zero `lib/` change); between milestones, next via `/gsd-new-milestone`.*
+*Last updated: 2026-06-26 — chartered v1.21 CI/DX Reliability Tail (SEED-004 + the 2026-06-26 flake cluster); 5 research areas locked in `.planning/research/v1.21-*.md`; two adopter-invisible `lib/` patches authorized (D-v1.21-01) → ships Hex 0.3.2; phases resume at 108.*

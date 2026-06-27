@@ -1,19 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.20
-milestone_name: CI/CD Performance
-current_phase: 107
-status: Awaiting next milestone
-stopped_at: Completed 107-04-PLAN.md
-last_updated: "2026-06-22T21:30:42.595Z"
-last_activity: 2026-06-22
-last_activity_desc: Milestone v1.20 completed and archived
+milestone: v1.21
+milestone_name: CI/DX Reliability Tail
+status: planning
+last_updated: "2026-06-27T01:24:54.584Z"
+last_activity: 2026-06-27
 progress:
-  total_phases: 13
-  completed_phases: 13
-  total_plans: 47
-  completed_plans: 47
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -28,10 +25,10 @@ Next via `/gsd-new-milestone` (phase numbering continues at **108**).
 
 ## Current Position
 
-Phase: Milestone v1.20 complete
+Phase: Not started (defining requirements)
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-06-22 — Milestone v1.20 completed and archived
+Status: Defining requirements
+Last activity: 2026-06-27 — Milestone v1.21 started
 
 ### v1.20 roadmap (Phases 103–107) — load-bearing dependency order
 
