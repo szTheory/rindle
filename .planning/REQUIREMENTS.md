@@ -82,20 +82,36 @@ Populated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| COV-01..04 | TBD | Pending |
-| EPIPE-01..05 | TBD | Pending |
-| GATE-01..04 | TBD | Pending |
-| ISO-01..05 | TBD | Pending |
-| LOCK-01..05 | TBD | Pending |
-| TRUTH-01 | TBD | Pending |
+| COV-01 | Phase 108 — Coverage single-run | Pending |
+| COV-02 | Phase 108 — Coverage single-run | Pending |
+| COV-03 | Phase 108 — Coverage single-run | Pending |
+| COV-04 | Phase 108 — Coverage single-run | Pending |
+| EPIPE-01 | Phase 109 — Subprocess `:epipe` hardening | Pending |
+| EPIPE-02 | Phase 109 — Subprocess `:epipe` hardening | Pending |
+| EPIPE-03 | Phase 109 — Subprocess `:epipe` hardening | Pending |
+| EPIPE-04 | Phase 109 — Subprocess `:epipe` hardening | Pending |
+| EPIPE-05 | Phase 109 — Subprocess `:epipe` hardening | Pending |
+| TRUTH-01 | Phase 109 — Subprocess `:epipe` hardening | Pending |
+| ISO-01 | Phase 110 — Async-isolation hardening | Pending |
+| ISO-02 | Phase 110 — Async-isolation hardening | Pending |
+| ISO-03 | Phase 110 — Async-isolation hardening | Pending |
+| ISO-04 | Phase 110 — Async-isolation hardening | Pending |
+| ISO-05 | Phase 110 — Async-isolation hardening | Pending |
+| LOCK-01 | Phase 111 — Regression locks | Pending |
+| LOCK-02 | Phase 111 — Regression locks | Pending |
+| LOCK-03 | Phase 111 — Regression locks | Pending |
+| LOCK-04 | Phase 111 — Regression locks | Pending |
+| LOCK-05 | Phase 111 — Regression locks | Pending |
+| GATE-01 | Phase 112 — PR↔main gate shift-left | Pending |
+| GATE-02 | Phase 112 — PR↔main gate shift-left | Pending |
+| GATE-03 | Phase 112 — PR↔main gate shift-left | Pending |
+| GATE-04 | Phase 112 — PR↔main gate shift-left | Pending |
 
 **Coverage:**
 - v1 requirements: 24 total (COV 4, EPIPE 5, GATE 4, ISO 5, LOCK 5, TRUTH 1)
-- Mapped to phases: 0 (roadmap pending)
-- Unmapped: 24 ⚠️ (resolved by roadmap)
+- Mapped to phases: 24 ✓ (COV→108, EPIPE+TRUTH→109, ISO→110, LOCK→111, GATE→112)
+- Unmapped: 0 ✓ (every v1.21 requirement maps to exactly one phase)
 
 ---
 *Requirements defined: 2026-06-26*
-*Last updated: 2026-06-26 after v1.21 charter + 5-area research*
-</content>
-</invoke>
+*Last updated: 2026-06-26 — roadmap created (Phases 108–112); traceability filled, 24/24 requirements mapped (de-flake 108–110 → lock 111 → shift-left 112 LAST).*

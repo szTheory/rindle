@@ -2,6 +2,7 @@
 
 ## Milestones
 
+- 🚧 **v1.21 CI/DX Reliability Tail** — Phases 108–112 (in flight, chartered 2026-06-26 from SEED-004 + the 2026-06-26 flake cluster; non-feature/DX, ships Hex 0.3.2 via two adopter-invisible `lib/` `fix:` patches, D-v1.21-01; 24 reqs COV/EPIPE/GATE/ISO/LOCK/TRUTH)
 - ✅ **v1.20 CI/CD Performance** — Phases 103–107 (shipped 2026-06-22, non-feature / DX-infra, ZERO `lib/` change, 18/18 reqs; [archive](milestones/v1.20-ROADMAP.md), [requirements](milestones/v1.20-REQUIREMENTS.md), [audit](milestones/v1.20-MILESTONE-AUDIT.md))
 - ✅ **v1.19 Design-System Stress-Test** — Phases 94-102 (shipped 2026-06-19, [archive](milestones/v1.19-ROADMAP.md), [audit](milestones/v1.19-MILESTONE-AUDIT.md))
 - ✅ **v1.18 Admin Console & Adoption Lab** — Phases 86–93 (shipped 2026-06-20 after HUMAN-UAT sign-off; 19/19 reqs + 8/8 phases; charter 2026-06-10; hex 0.3.0; [archive](milestones/v1.18-ROADMAP.md), [requirements](milestones/v1.18-REQUIREMENTS.md), [audit](milestones/v1.18-MILESTONE-AUDIT.md))
@@ -26,6 +27,222 @@
 - ✅ **v1.0 MVP** — Phases 1–5 (shipped 2026-04-xx, [archive](milestones/v1.0-ROADMAP.md))
 
 ## Phases
+
+### v1.21 CI/DX Reliability Tail (Phases 108–112) — IN FLIGHT
+
+**Charter (2026-06-26):** SEED-004 + the 2026-06-26 flake cluster. Non-feature/DX milestone making
+the merge gate deterministic and trustworthy — kill the double-suite-run, fix the subprocess
+`:epipe` race, close the PR↔main gate-coverage gap, and harden the last async-isolation smell — so a
+green PR reliably means a green `main`. Ships Hex **0.3.2** via two adopter-invisible `lib/` `fix:`
+patches (D-v1.21-01: `av/subprocess.ex` EPIPE; `config.ex` ISO).
+
+**Load-bearing dependency order (must not be reversed):** de-flake first (108 Coverage single-run →
+109 Subprocess `:epipe` → 110 Async isolation) → lock it down (111 Regression locks) → shift-left
+LAST (112 PR↔main gate). The lean `adoption-demo-e2e-smoke` enters `CI Summary.needs` ONLY after the
+de-flake phases land AND N consecutive green push:main `adoption-demo-e2e` runs are observed —
+gating a still-live flake would import it into the required gate.
+
+**Hard invariants (every phase respects):** never rename `ci.yml` / `name: CI` (release-train
+coupling via `release-please-automerge.yml` + `gate-ci-green`); `CI Summary` keeps `skipped`==pass
+and stays the SOLE required check (`setup_branch_protection.sh` byte-unchanged); never weaken the
+release full-verification gate; security invariants 8–13 byte-equivalent at argv for the EPIPE phase.
+
+- [ ] **Phase 108: Coverage single-run** — one ExUnit suite execution per lane emits both the gate and the JSON artifact (COV-01..04)
+- [ ] **Phase 109: Subprocess `:epipe` hardening** — absorb MuonTrap #98 broken-pipe in `Subprocess.run/3` + correct the stale invariant-13 truth (EPIPE-01..05, TRUTH-01)
+- [ ] **Phase 110: Async-isolation hardening** — process-scoped repo override replaces the global swap; guard closes the cross-pool gap (ISO-01..05)
+- [ ] **Phase 111: Regression locks** — durable shipped-artifact meta-tests lock the 2026-06-26 cluster so it cannot regress (LOCK-01..05)
+- [ ] **Phase 112: PR↔main gate shift-left** — lean `adoption-demo-e2e-smoke` joins the PR gate AFTER de-flake + N green main runs (GATE-01..04)
+
+## Phase Details
+
+### Phase 108: Coverage single-run
+
+**Goal:** Every default-suite lane runs the ExUnit suite exactly once, emitting both the
+merge-blocking console gate and `cover/excoveralls.json` from that single run — halving test
+wall-clock and halving `:epipe` exposure on the PR critical path.
+
+**Depends on:** Nothing (first phase of the milestone; safe de-flake foundation, CI/mix-config only).
+
+**Requirements:** COV-01, COV-02, COV-03, COV-04
+
+**Success criteria:**
+
+1. Each default-suite lane (`quality`, `integration`, install-smoke/adoption) runs the ExUnit suite
+   exactly once per matrix cell via `mix coveralls.multiple --type local --type json --slowest 20`,
+   producing both the console gate and `cover/excoveralls.json` from that one run.
+
+2. The merge-blocking coverage gate still runs the `local` analyzer (`ensure_minimum_coverage`
+   exercised); the gate's pass/fail is never derived from `coveralls.json`'s exit code.
+
+3. The redundant standalone `Generate coverage JSON artifact` step is removed from all three lanes,
+   yet `cover/excoveralls.json` is still produced at the same path and uploaded
+   (`if-no-files-found: warn` preserved).
+
+4. A contributor reproduces the CI coverage step locally with one documented command and `mix ci`
+   reflects the single-run invocation (local↔CI parity).
+
+**Invariants:** zero `lib/` change; `ci.yml` / `name: CI` unrenamed; `CI Summary` untouched; release
+full-verification gate unchanged.
+
+**Plans:** TBD
+
+---
+
+### Phase 109: Subprocess `:epipe` hardening
+
+**Goal:** `Rindle.AV.Subprocess.run/3` never lets a broken-pipe transport exit (MuonTrap #98) kill
+its caller — making every AV invocation deterministic in tests AND in adopter Oban workers — and the
+stale security-invariant-13 prose is corrected to the actual MuonTrap-only path.
+
+**Depends on:** Phase 108 (de-flake foundation; with the redundant run removed, the remaining single
+run's broken-pipe race is the only `:epipe` source left to fix).
+
+**Requirements:** EPIPE-01, EPIPE-02, EPIPE-03, EPIPE-04, EPIPE-05, TRUTH-01
+
+**Success criteria:**
+
+1. `Subprocess.run/3` never propagates `:epipe` (or any broken-pipe transport exit) to its caller;
+   the caller still receives the real `{output, status}`.
+
+2. The exact contract is preserved (`{collectable, status | :timeout}`, `into: ""`,
+   `stderr_to_stdout: true`) and security invariants 8–13 are byte-equivalent at argv
+   (`build_args`/`build_opts` unchanged; no shell; `Ffmpeg`/`Ffprobe` call sites unchanged).
+
+3. A legitimate ffmpeg cap-hit early-exit (`-t`/`-fs`/`-timelimit`) is reported via its real exit
+   status and never surfaces `:epipe`.
+
+4. A deterministic `@tag :regression` repro fails unpatched and passes patched; the two
+   originally-flaking tests (`ffmpeg_test.exs:32`, `lifecycle_repair_test.exs:122`) pass unmodified;
+   the shim is forward-compatible with an upstream #98 resolution (degrades to a no-op, no leaked
+   monitors/processes; a code comment cites #98).
+
+5. PROJECT.md security-invariant 13's stale "Rambo on macOS/Windows dev" clause is corrected to
+   reflect the actual MuonTrap-only subprocess path (no Rambo in `mix.lock`).
+
+**Invariants:** authorized adopter-invisible `lib/rindle/av/subprocess.ex` touch (D-v1.21-01), ships
+`fix:` → 0.3.2; security invariants 8–13 byte-equivalent; no public API / error-vocab change.
+
+**Plans:** TBD
+
+---
+
+### Phase 110: Async-isolation hardening
+
+**Goal:** `Rindle.Config.repo/0` consults a `$callers`-aware process-dictionary override before the
+application env, eliminating the global `Application.put_env(:rindle, :repo, …)` in the counting-repo
+double — so the failing-txn double is process-scoped (like Sandbox/Mox) and can never pollute a
+concurrent async reader — and the v1.20 async-safety guard gains a rule that makes the footgun
+un-reintroducible.
+
+**Depends on:** Phase 109 (continues the de-flake group; all three de-flake phases must land before
+the gate shift-left in Phase 112).
+
+**Requirements:** ISO-01, ISO-02, ISO-03, ISO-04, ISO-05
+
+**Success criteria:**
+
+1. `Config.repo/0` consults a `$callers`-aware process-dictionary override (covering spawned Tasks /
+   inline Oban) before the application env; behavior is byte-unchanged when no override is set.
+
+2. Test-only `Config.put_repo_override/1` + `delete_repo_override/0` set/clear the per-process
+   override (process-dictionary only; no global state).
+
+3. `with_counting_repo/2` uses the process override and performs no `Application.put_env(:rindle,
+   :repo, …)`; defensive `async: false` demotions caused by the old global swap are reverted (e.g.
+   `StreamingDispatchTest` restored to `async: true`).
+
+4. The async-safety guard gains a `:global_repo_swap` rule flagging
+   `Application.put_env/delete_env(:rindle, :repo, …)` in any test module, with a message pointing at
+   `put_repo_override/1`.
+
+5. A concurrency regression test proves isolation: the counting double in process A force-fails its
+   transaction while an unrelated spawned process B reads `Config.repo() == Rindle.Repo` and its
+   transaction succeeds; the test fails on the old impl and passes on the new.
+
+**Invariants:** authorized adopter-invisible `lib/rindle/config.ex` touch (D-v1.21-01), default
+branch byte-unchanged, ships `fix:` → 0.3.2; adopter-first repo ownership preserved.
+
+**Plans:** TBD
+
+---
+
+### Phase 111: Regression locks
+
+**Goal:** The already-fixed 2026-06-26 cluster gets durable, merge-blocking, shipped-artifact-only
+locks so it cannot silently regress — asserting SHIPPED artifacts only, never `.planning/` paths.
+
+**Depends on:** Phase 110 (the flakes are dead — coverage single-run, `:epipe`, async isolation — so
+the locks ride a deterministic suite and assert closed state, not in-flight fixes).
+
+**Requirements:** LOCK-01, LOCK-02, LOCK-03, LOCK-04, LOCK-05
+
+**Success criteria:**
+
+1. A merge-blocking `quality` meta-test asserts `scripts/install_smoke.sh` keeps the `phx.new` probe
+   + self-install before the smoke proceeds.
+
+2. A `package-consumer` CI step purges the `phx.new` archive before the smoke so the cold-cache
+   self-install path is exercised on every PR.
+
+3. The keyboard-modality (`:focus-visible` Tab-first) helper is deduped into one shared exported
+   function consumed by both `examples/adoption_demo/e2e/support/admin-polish.js` and
+   `brandbook/src/admin-gallery-check.mjs`.
+
+4. A merge-blocking `quality` meta-test asserts the Tab-first modality is present at every
+   `focus({focusVisible:true})` site (post-dedupe, asserting the shared helper).
+
+5. A merge-blocking `quality` meta-test globbing `test/**/*.exs` fails if any test reads a
+   `.planning/` path (keeping the decoupled hygiene from regressing).
+
+**Invariants:** every lock rides the already-required `quality`/`package-consumer` lanes; no new
+required checks; asserts shipped artifacts only — never `.planning/`.
+
+**UI hint:** yes
+
+**Plans:** TBD
+
+---
+
+### Phase 112: PR↔main gate shift-left
+
+**Goal:** Close the PR↔main gate-coverage gap by adding ONE lean deterministic
+`adoption-demo-e2e-smoke` PR job to `CI Summary.needs`, so the render-regression class that reached
+`main` on 2026-06-26 is caught pre-merge — without giving back the v1.20 wall-clock win and only
+after the flakes are provably dead (LOAD-BEARING: this phase is LAST).
+
+**Depends on:** Phases 108, 109, 110 (de-flake must land first) AND N consecutive green push:main
+`adoption-demo-e2e` runs observed — the gate must not import a still-live flake. Builds on the
+Phase 111 locks.
+
+**Requirements:** GATE-01, GATE-02, GATE-03, GATE-04
+
+**Success criteria:**
+
+1. A lean, deterministic `adoption-demo-e2e-smoke` job runs on every PR (Chromium-only, MinIO-local,
+   no secrets, pinned Playwright container, deterministic specs only — excludes the screenshot spec)
+   and is part of `CI Summary.needs` and `ci-observability.needs`.
+
+2. PR p95 wall-clock stays ≤ ~7.5 min (the new lane runs as a parallel chain at/under the existing
+   image-smoke long pole); this is observed/guarded, not assumed.
+
+3. `cohort-demo-smoke`, `package-consumer-full`, and `mux-soak` stay off the PR gate with documented
+   rationale; `setup_branch_protection.sh` is byte-unchanged (`CI Summary` remains the sole required
+   check; no second required context).
+
+4. The lean lane enters `CI Summary.needs` ONLY after COV/EPIPE/ISO land and N consecutive green
+   push:main `adoption-demo-e2e` runs are observed (the gate must not import a still-live flake).
+
+**Invariants:** `ci.yml` / `name: CI` unrenamed; `CI Summary` stays the sole required check
+(`setup_branch_protection.sh` byte-unchanged); skip==pass preserved (lean lane always runs on PR →
+plain success/fail); release full-verification gate untouched; no `lib/` change.
+
+**UI hint:** yes
+
+**Plans:** TBD
+
+---
+
+## Phases (shipped — collapsed history)
 
 <details>
 <summary>✅ v1.20 CI/CD Performance (Phases 103–107) — SHIPPED 2026-06-22</summary>
@@ -425,6 +642,11 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
+| 108. Coverage single-run | 0/? | Not started | - |
+| 109. Subprocess `:epipe` hardening | 0/? | Not started | - |
+| 110. Async-isolation hardening | 0/? | Not started | - |
+| 111. Regression locks | 0/? | Not started | - |
+| 112. PR↔main gate shift-left | 0/? | Not started | - |
 | 103. Observability / Baseline | 4/4 | Complete    | 2026-06-20 |
 | 104. Cache & Tooling Hygiene | 4/4 | Complete    | 2026-06-21 |
 | 105. Aggregate Required Check + Branch-Protection Flip | 1/1 | Complete   | 2026-06-21 |
@@ -530,4 +752,4 @@ See [post-v116 assessment](threads/2026-05-27-post-v116-milestone-assessment.md)
 _(empty — no open backlog items)_
 
 ---
-*Last updated: 2026-06-26 — backlog review: removed resolved item 999.1 (v1.20 CI green-up — CI green, 0.3.1 shipped, branch-protection flip already fired). Backlog now empty. v1.20 CI/CD Performance SHIPPED & archived (Phases 103–107, 18/18 requirements, 5/5 phases, ZERO `lib/` change); phase details in [milestones/v1.20-ROADMAP.md](milestones/v1.20-ROADMAP.md). No active milestone — next via `/gsd-new-milestone`. v1.18 and v1.19 shipped & archived.*
+*Last updated: 2026-06-26 — chartered **v1.21 CI/DX Reliability Tail** (Phases 108–112, 24/24 requirements mapped: COV→108, EPIPE+TRUTH→109, ISO→110, LOCK→111, GATE→112); research-locked load-bearing order (de-flake 108–110 → lock 111 → shift-left 112 LAST). Ships Hex 0.3.2 via two adopter-invisible `lib/` `fix:` patches (D-v1.21-01). Prior: backlog review removed resolved item 999.1 (v1.20 CI green-up — CI green, 0.3.1 shipped, branch-protection flip already fired). Backlog now empty. v1.20 CI/CD Performance SHIPPED & archived (Phases 103–107, 18/18 requirements, 5/5 phases, ZERO `lib/` change); phase details in [milestones/v1.20-ROADMAP.md](milestones/v1.20-ROADMAP.md). No active milestone — next via `/gsd-new-milestone`. v1.18 and v1.19 shipped & archived.*

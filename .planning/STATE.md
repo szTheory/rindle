@@ -2,11 +2,11 @@
 gsd_state_version: 1.0
 milestone: v1.21
 milestone_name: CI/DX Reliability Tail
-status: planning
-last_updated: "2026-06-27T01:24:54.584Z"
+status: roadmapped
+last_updated: "2026-06-26T00:00:00.000Z"
 last_activity: 2026-06-27
 progress:
-  total_phases: 0
+  total_phases: 5
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -20,15 +20,52 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-22 after v1.20)
 
 **Core value:** Media, made durable.
-**Current focus:** Between milestones — v1.20 CI/CD Performance shipped & archived 2026-06-22.
-Next via `/gsd-new-milestone` (phase numbering continues at **108**).
+**Current focus:** v1.21 CI/DX Reliability Tail — roadmap created (Phases 108–112). De-flake (108 coverage single-run → 109 `:epipe` → 110 async isolation) → lock (111) → shift-left LAST (112 PR↔main gate). Next: `/gsd-plan-phase 108`.
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 108 — Coverage single-run (not started)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-06-27 — Milestone v1.21 started
+Status: Roadmapped — 5 phases (108–112), 24/24 requirements mapped
+Last activity: 2026-06-26 — v1.21 roadmap created (Phases 108–112)
+
+### v1.21 roadmap (Phases 108–112) — load-bearing dependency order
+
+Chartered 2026-06-26 from SEED-004 + the 2026-06-26 flake cluster. Non-feature/DX milestone; ships
+Hex **0.3.2** via two adopter-invisible `lib/` `fix:` patches (D-v1.21-01: `av/subprocess.ex` EPIPE;
+`config.ex` ISO). Phase numbering continues from v1.20's Phase 107. **The order is research-locked
+and MUST NOT be reversed** — the PR↔main gate shift-left (112) must be LAST: adding the lean
+`adoption-demo-e2e-smoke` lane to the merge gate before the flakes are dead would import the flake
+into the required gate.
+
+- **Phase 108 — Coverage single-run** (COV-01..04): one `mix coveralls.multiple --type local --type
+  json` per lane; delete the redundant second suite run. Halves wall-clock AND `:epipe` exposure;
+  `local` analyzer keeps identical gate semantics. CI/mix-config only; zero `lib/`. De-flake foundation.
+
+- **Phase 109 — Subprocess `:epipe` hardening + TRUTH** (EPIPE-01..05, TRUTH-01): absorb the MuonTrap
+  #98 broken-pipe exit in `Subprocess.run/3` (~25 lines; adopter-invisible `fix:`; security invariants
+  8–13 byte-equal at argv); correct the stale invariant-13 "Rambo" clause. Authorized `lib/` touch.
+
+- **Phase 110 — Async-isolation hardening** (ISO-01..05): `Config.repo/0` consults a `$callers`-aware
+  process-dictionary override before app-env; eliminate the global `put_env(:rindle, :repo)` in the
+  counting double; revert defensive `async: false` demotions; add a `:global_repo_swap` guard rule.
+  Authorized adopter-invisible `lib/config.ex` touch; default branch byte-unchanged.
+
+- **Phase 111 — Regression locks** (LOCK-01..05): durable merge-blocking shipped-artifact meta-tests
+  for the 2026-06-26 cluster (phx.new self-install + cold-path purge, `:focus-visible` Tab-first
+  dedupe + presence, `.planning/`-path hygiene). Rides existing `quality`/`package-consumer` lanes;
+  asserts SHIPPED artifacts ONLY, never `.planning/`.
+
+- **Phase 112 — PR↔main gate shift-left** (GATE-01..04): add ONE lean deterministic
+  `adoption-demo-e2e-smoke` PR job to `CI Summary.needs` (Chromium-only, MinIO-local, no secrets,
+  pinned Playwright, no screenshot spec). **LOAD-BEARING ORDERING: lands ONLY after 108/109/110 land
+  AND N consecutive green push:main `adoption-demo-e2e` runs are observed.** `setup_branch_protection.sh`
+  byte-unchanged; `CI Summary` stays the sole required check.
+
+**Hard invariants (highest blast radius):** never rename `ci.yml` / `name: CI` (release-train coupling
+via `release-please-automerge.yml` + `gate-ci-green`); `CI Summary` keeps `skipped`==pass and stays
+the sole required check; never weaken the release full-verification gate; security invariants 8–13
+byte-equivalent at argv for the EPIPE phase.
 
 ### v1.20 roadmap (Phases 103–107) — load-bearing dependency order
 
@@ -118,10 +155,12 @@ inner pages, in service of real user flows.
 
 ## Next Step
 
-**Plan Phase 103 (Observability / Baseline):** `/gsd-plan-phase 103`. It is the [BASELINE FIRST]
-gate — capture the committed per-job avg/p95/rerun baseline AND the live branch-protection
-required-check names before any topology change, and surface timing/cache/slowest-tests/cores in
-`$GITHUB_STEP_SUMMARY` with zero gate-behavior change.
+**Plan Phase 108 (Coverage single-run):** `/gsd-plan-phase 108`. It is the de-flake foundation —
+replace the gating-run + separate-JSON-run pair with a single `mix coveralls.multiple --type local
+--type json --slowest 20` in every default-suite lane, delete the three redundant `Generate coverage
+JSON artifact` steps, and document the single-run command for local↔CI parity. CI/mix-config only;
+zero `lib/` change; the `local` analyzer keeps the gate semantics byte-identical. The remaining four
+phases follow the research-locked order — de-flake (109, 110) → lock (111) → shift-left LAST (112).
 
 ## Accumulated Context
 
@@ -446,4 +485,4 @@ Resume file: None
 
 ## Operator Next Steps
 
-- Start the next milestone with /gsd-new-milestone
+- Plan the first v1.21 phase with `/gsd-plan-phase 108`
