@@ -115,6 +115,17 @@ jobs:
       - name: Run tests with coverage
         run: mix coveralls
 
+      # EPIPE-05 (D-12): advisory MuonTrap #98 :epipe cleanup canary. `--include
+      # canary` overrides the test_helper.exs default exclude for this one
+      # invocation; `continue-on-error: true` keeps it purely informational — a
+      # still-reproducing bug must NEVER red the lane, and the eventual loud
+      # failure when #98 is fixed surfaces via the Nightly Summary + a maintainer
+      # eyeball, not a gate. It probes the UNGUARDED MuonTrap.cmd/3 (probabilistic
+      # OS-race), so it is advisory-only and never on the PR merge gate.
+      - name: Subprocess :epipe cleanup canary (advisory)
+        continue-on-error: true
+        run: mix test test/rindle/av/subprocess_epipe_canary_test.exs --include canary
+
   # D-17: owned, GATING Dialyzer (extracted from ci.yml `quality`'s advisory
   # steps and removed from PR entirely). `mix dialyzer` runs WITHOUT
   # continue-on-error here, so a real type-contract regression or
