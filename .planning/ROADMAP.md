@@ -82,8 +82,9 @@ wall-clock and halving `:epipe` exposure on the PR critical path.
    `cover/excoveralls.json` is still produced at the same path on the `quality` lane and uploaded;
    the integration/adoption upload steps tolerate its absence (`if-no-files-found: warn` preserved).
 
-4. A contributor reproduces the CI coverage step locally with one documented command and `mix ci`
-   reflects the single-run invocation (local↔CI parity).
+4. A contributor reproduces the CI coverage step locally with one documented command (RUNNING.md),
+   with the gate alone still reproducible via `mix coveralls`; `mix ci`'s final merge-blocking `test`
+   task stays unchanged (local↔CI parity — dual-output is a CI-only concern).
 
 **Invariants:** zero `lib/` change; `ci.yml` / `name: CI` unrenamed; `CI Summary` untouched; release
 full-verification gate unchanged.
