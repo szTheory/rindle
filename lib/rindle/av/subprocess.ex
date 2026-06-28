@@ -3,6 +3,8 @@ defmodule Rindle.AV.Subprocess do
   MuonTrap execution wrapper + 4-cap enforcement.
   """
 
+  require Logger
+
   @cgroup_base "rindle_av"
 
   @doc """
@@ -12,7 +14,57 @@ defmodule Rindle.AV.Subprocess do
     opts = Keyword.put_new(opts, :use_cgroups, default_use_cgroups?())
     muon_opts = build_opts(opts)
     modified_args = build_args(cmd, args, opts)
-    MuonTrap.cmd(cmd, modified_args, muon_opts)
+    run_isolated(cmd, modified_args, muon_opts, 1, &MuonTrap.cmd/3)
+  end
+
+  # NOTE (EPIPE-07, MuonTrap #98): https://github.com/fhunleth/muontrap/issues/98 (OPEN as of
+  # 2026-06; reproduces in 1.7.0 / 1.8.0 / 2.0.0-rc.0). MuonTrap ACKs consumed stdout bytes by
+  # writing to its wrapper's stdin (port.ex report_bytes_handled/2 -> Port.command/2). When the
+  # child closes after the last chunk, that ACK write hits a dead reader and the port delivers an
+  # async {:EXIT, port, :epipe} to its OWNER. MuonTrap's `rescue ArgumentError` catches only the
+  # synchronous failure; this async exit kills the inline caller. We own the port in a throwaway
+  # trap_exit'd worker so the signal dies with the worker, and surface the real {output, status}.
+  # Removal condition: #98 fixed AND the :muontrap pin bumped to the fixed version. The live signal
+  # is test/rindle/av/subprocess_epipe_canary_test.exs — do NOT delete that canary without deleting
+  # this shim.
+  #
+  # `run_fun` is a test seam (default &MuonTrap.cmd/3); it lets the deterministic regression test
+  # drive the absorption path with no OS race. run/3 never passes it, so the public contract is
+  # byte-identical.
+  @doc false
+  def run_isolated(cmd, args, muon_opts, retries_left, run_fun) do
+    parent = self()
+    ref = make_ref()
+
+    {pid, mon} =
+      spawn_monitor(fn ->
+        Process.flag(:trap_exit, true)
+        result = run_fun.(cmd, args, muon_opts)
+        send(parent, {ref, result})
+        # Drain a possible late {:EXIT, port, :epipe} so it can't escape the worker.
+        receive do
+          {:EXIT, port, _reason} when is_port(port) -> :ok
+        after
+          0 -> :ok
+        end
+      end)
+
+    receive do
+      {^ref, result} ->
+        Process.demonitor(mon, [:flush])
+        result
+
+      {:DOWN, ^mon, :process, ^pid, :epipe} when retries_left > 0 ->
+        Logger.debug(
+          "Rindle.AV.Subprocess: absorbed a pre-reply MuonTrap #98 :epipe exit; retrying the AV call once " <>
+            "(see https://github.com/fhunleth/muontrap/issues/98)"
+        )
+
+        run_isolated(cmd, args, muon_opts, retries_left - 1, run_fun)
+
+      {:DOWN, ^mon, :process, ^pid, reason} ->
+        exit(reason)
+    end
   end
 
   defp default_use_cgroups? do
