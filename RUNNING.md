@@ -59,7 +59,7 @@ matrix both of those entrypoints link to.
 | `quality` — Credo (strict) | advisory | Same job | Step-level `continue-on-error` |
 | `quality` — Doctor (full, raise) | advisory | Same job | Step-level `continue-on-error` |
 | `quality` — Verify AV runtime with public doctor task | advisory | Same job | Step-level `continue-on-error` |
-| `quality` — Run tests with coverage | merge-blocking | Same job | Default `mix test` suite via Coveralls; both matrix cells must pass |
+| `quality` — Run tests with coverage | merge-blocking | Same job | Default `mix test` suite run **once** via `mix coveralls.multiple --type local --type json` (single run → console gate + `cover/excoveralls.json`); both matrix cells must pass |
 | `quality` — Dialyzer | advisory (until Phase 106) | Same job | Step-level `continue-on-error`. Phase 106 extracts this into an owned, **gating** `Dialyzer` job in `nightly.yml` (removed from PR runs) |
 | `optional-dependencies` | merge-blocking | Every PR/push; Elixir 1.15/OTP 26 and 1.17/OTP 27 matrix | ADMIN-06 proof: `mix deps.get --no-optional-deps` and `mix compile --no-optional-deps --warnings-as-errors` |
 | `integration` | merge-blocking | `needs: [quality, optional-dependencies]` | Lifecycle + MinIO adapter tests |
@@ -77,6 +77,23 @@ matrix both of those entrypoints link to.
 | `mux-soak` | secret-gated soak (label-gated PR lane) | Label `streaming` on PR; `needs: quality` | Not in branch protection required checks; fails closed when secrets absent. Phase 106: **stays in `ci.yml`** as a label-gated PR lane (NOT moved to nightly) |
 | `gcs-soak` | nightly (gating) | `nightly.yml`: schedule 07:27 UTC / `workflow_dispatch`; no `needs:`; repo `szTheory/rindle` + secrets | Skipped when secrets absent. Phase 106: **moved to `nightly.yml`** and **gating** — `continue-on-error` dropped, so a live-GCS regression is real nightly red |
 | `package-consumer-gcs-live` | nightly (gating) | `nightly.yml`: schedule 07:27 UTC / `workflow_dispatch`; no `needs:`; repo `szTheory/rindle` + secrets | Live GCS install-smoke when secrets present (skipped otherwise). Phase 106: **moved to `nightly.yml`** and **gating** — `continue-on-error` dropped, so a live-GCS regression is real nightly red |
+
+### Reproducing the coverage step locally (COV-04)
+
+The full CI coverage step — the `quality` — Run tests with coverage row above — is
+reproduced locally with a single command:
+
+```sh
+mix coveralls.multiple --type local --type json --slowest 20
+```
+
+One suite run emits both the console coverage gate and `cover/excoveralls.json`.
+`--type local` runs the same `local` analyzer / `ensure_minimum_coverage` as the
+gate; `--type json` is a side-artifact only and **never** decides pass/fail.
+
+To reproduce the merge-blocking **gate alone** (no JSON artifact), `mix coveralls`
+is unchanged — it runs the identical `local` analyzer and produces the same
+pass/fail verdict.
 
 ### Static analysis policy (CI-04)
 
