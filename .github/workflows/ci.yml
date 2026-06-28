@@ -645,6 +645,14 @@ jobs:
       - name: Set up MinIO for S3-compatible package-consumer proofs
         uses: ./.github/actions/setup-minio
 
+      # LOCK-02: purge the phx.new archive so the cold-runner self-install path in
+      # scripts/install_smoke.sh (the `--version` probe + `archive.install` self-heal)
+      # is genuinely exercised on every PR — not warm-cache theater. `|| true` keeps it
+      # a no-op when the archive is already absent (the cold-runner case); the point is
+      # to GUARANTEE the archive is gone before the smoke below.
+      - name: Purge phx.new archive to exercise the cold-runner self-install path
+        run: mix archive.uninstall phx_new --force || true
+
       # LANE-02 (D-10): ONLY the representative `image` profile on the PR critical
       # path. The other four profiles (video/tus/mux/gcs) + release_preflight +
       # repo_hygiene + hex.publish --dry-run moved to package-consumer-full (off-PR).
