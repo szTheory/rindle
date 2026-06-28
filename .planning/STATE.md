@@ -2,18 +2,19 @@
 gsd_state_version: 1.0
 milestone: v1.21
 milestone_name: CI/DX Reliability Tail
-current_phase: 108
-status: roadmapped
+current_phase: 109
+current_phase_name: "Subprocess `:epipe` hardening"
+status: executing
 stopped_at: Phase 108 context gathered
-last_updated: "2026-06-27T13:56:05.436Z"
-last_activity: 2026-06-26
-last_activity_desc: v1.21 roadmap created (Phases 108–112)
+last_updated: "2026-06-28T16:14:30.340Z"
+last_activity: 2026-06-28
+last_activity_desc: Phase 108 complete, transitioned to Phase 109
 progress:
   total_phases: 5
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  completed_phases: 1
+  total_plans: 1
+  completed_plans: 1
+  percent: 20
 ---
 
 # Project State
@@ -23,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-22 after v1.20)
 
 **Core value:** Media, made durable.
-**Current focus:** v1.21 CI/DX Reliability Tail — roadmap created (Phases 108–112). De-flake (108 coverage single-run → 109 `:epipe` → 110 async isolation) → lock (111) → shift-left LAST (112 PR↔main gate). Next: `/gsd-plan-phase 108`.
+**Current focus:** Phase 108 — coverage-single-run
 
 ## Current Position
 
-Phase: 108 — Coverage single-run (not started)
-Plan: —
-Status: Roadmapped — 5 phases (108–112), 24/24 requirements mapped
-Last activity: 2026-06-26 — v1.21 roadmap created (Phases 108–112)
+Phase: 109 — Subprocess `:epipe` hardening
+Plan: Not started
+Status: Executing Phase 108
+Last activity: 2026-06-28 — Phase 108 complete, transitioned to Phase 109
 
 ### v1.21 roadmap (Phases 108–112) — load-bearing dependency order
 

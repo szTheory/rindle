@@ -12,10 +12,10 @@ Requirements for this milestone. Each maps to exactly one roadmap phase.
 
 Source: `v1.21-COVERAGE-SINGLE-RUN.md`. CI/mix-config only; zero `lib/`.
 
-- [ ] **COV-01**: Each default-suite lane (`quality`, `integration`, install-smoke/adoption) runs the ExUnit suite **exactly once** per matrix cell. The `quality` lane emits both the console gate and `cover/excoveralls.json` from that one run (`mix coveralls.multiple --type local --type json --slowest 20`); the `integration` and install-smoke/adoption lanes **drop their redundant standalone coverage run** (decision 2b — no artifact consumer exists), leaving each with one suite execution.
-- [ ] **COV-02**: The merge-blocking coverage gate keeps running the **`local`** analyzer (`ensure_minimum_coverage` still exercised); gate pass/fail is **never** derived from `coveralls.json`'s exit code.
-- [ ] **COV-03**: The redundant standalone coverage run is removed from all three lanes (the `Generate coverage JSON artifact` step on `quality`; the standalone `mix coveralls.json` step on `integration`/adoption). `cover/excoveralls.json` is still produced at the same path on the `quality` lane and uploaded; integration/adoption upload steps tolerate its absence (`if-no-files-found: warn` preserved).
-- [ ] **COV-04**: A contributor reproduces the CI coverage step locally with one documented command (`mix coveralls.multiple --type local --type json --slowest 20`, in RUNNING.md); the gate alone stays reproducible via `mix coveralls`. `mix ci`'s final merge-blocking `test` task is **unchanged** (D-08 — dual-output is a CI-only concern), preserving local↔CI parity.
+- [x] **COV-01**: Each default-suite lane (`quality`, `integration`, install-smoke/adoption) runs the ExUnit suite **exactly once** per matrix cell. The `quality` lane emits both the console gate and `cover/excoveralls.json` from that one run (`mix coveralls.multiple --type local --type json --slowest 20`); the `integration` and install-smoke/adoption lanes **drop their redundant standalone coverage run** (decision 2b — no artifact consumer exists), leaving each with one suite execution.
+- [x] **COV-02**: The merge-blocking coverage gate keeps running the **`local`** analyzer (`ensure_minimum_coverage` still exercised); gate pass/fail is **never** derived from `coveralls.json`'s exit code.
+- [x] **COV-03**: The redundant standalone coverage run is removed from all three lanes (the `Generate coverage JSON artifact` step on `quality`; the standalone `mix coveralls.json` step on `integration`/adoption). `cover/excoveralls.json` is still produced at the same path on the `quality` lane and uploaded; integration/adoption upload steps tolerate its absence (`if-no-files-found: warn` preserved).
+- [x] **COV-04**: A contributor reproduces the CI coverage step locally with one documented command (`mix coveralls.multiple --type local --type json --slowest 20`, in RUNNING.md); the gate alone stays reproducible via `mix coveralls`. `mix ci`'s final merge-blocking `test` task is **unchanged** (D-08 — dual-output is a CI-only concern), preserving local↔CI parity.
 
 ### Subprocess `:epipe` hardening (EPIPE) — `lib/`
 
@@ -82,10 +82,10 @@ Populated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| COV-01 | Phase 108 — Coverage single-run | Pending |
-| COV-02 | Phase 108 — Coverage single-run | Pending |
-| COV-03 | Phase 108 — Coverage single-run | Pending |
-| COV-04 | Phase 108 — Coverage single-run | Pending |
+| COV-01 | Phase 108 — Coverage single-run | Complete |
+| COV-02 | Phase 108 — Coverage single-run | Complete |
+| COV-03 | Phase 108 — Coverage single-run | Complete |
+| COV-04 | Phase 108 — Coverage single-run | Complete |
 | EPIPE-01 | Phase 109 — Subprocess `:epipe` hardening | Pending |
 | EPIPE-02 | Phase 109 — Subprocess `:epipe` hardening | Pending |
 | EPIPE-03 | Phase 109 — Subprocess `:epipe` hardening | Pending |
@@ -108,6 +108,7 @@ Populated during roadmap creation.
 | GATE-04 | Phase 112 — PR↔main gate shift-left | Pending |
 
 **Coverage:**
+
 - v1 requirements: 24 total (COV 4, EPIPE 5, GATE 4, ISO 5, LOCK 5, TRUTH 1)
 - Mapped to phases: 24 ✓ (COV→108, EPIPE+TRUTH→109, ISO→110, LOCK→111, GATE→112)
 - Unmapped: 0 ✓ (every v1.21 requirement maps to exactly one phase)

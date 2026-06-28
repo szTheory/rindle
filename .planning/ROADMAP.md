@@ -47,7 +47,7 @@ coupling via `release-please-automerge.yml` + `gate-ci-green`); `CI Summary` kee
 and stays the SOLE required check (`setup_branch_protection.sh` byte-unchanged); never weaken the
 release full-verification gate; security invariants 8–13 byte-equivalent at argv for the EPIPE phase.
 
-- [ ] **Phase 108: Coverage single-run** — one ExUnit suite execution per lane; `quality` emits both the gate and the JSON artifact, integration/adoption drop their redundant coverage run (COV-01..04)
+- [x] **Phase 108: Coverage single-run** — one ExUnit suite execution per lane; `quality` emits both the gate and the JSON artifact, integration/adoption drop their redundant coverage run (COV-01..04) (completed 2026-06-28)
 - [ ] **Phase 109: Subprocess `:epipe` hardening** — absorb MuonTrap #98 broken-pipe in `Subprocess.run/3` + correct the stale invariant-13 truth (EPIPE-01..05, TRUTH-01)
 - [ ] **Phase 110: Async-isolation hardening** — process-scoped repo override replaces the global swap; guard closes the cross-pool gap (ISO-01..05)
 - [ ] **Phase 111: Regression locks** — durable shipped-artifact meta-tests lock the 2026-06-26 cluster so it cannot regress (LOCK-01..05)
@@ -89,9 +89,9 @@ wall-clock and halving `:epipe` exposure on the PR critical path.
 **Invariants:** zero `lib/` change; `ci.yml` / `name: CI` unrenamed; `CI Summary` untouched; release
 full-verification gate unchanged.
 
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
-- [ ] 108-01-PLAN.md — single-run coverage across all 3 default-suite lanes (ci.yml + mix.exs + RUNNING.md)
+- [x] 108-01-PLAN.md — single-run coverage across all 3 default-suite lanes (ci.yml + mix.exs + RUNNING.md)
 
 ---
 
@@ -649,7 +649,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 108. Coverage single-run | 0/? | Not started | - |
+| 108. Coverage single-run | 1/1 | Complete    | 2026-06-28 |
 | 109. Subprocess `:epipe` hardening | 0/? | Not started | - |
 | 110. Async-isolation hardening | 0/? | Not started | - |
 | 111. Regression locks | 0/? | Not started | - |
