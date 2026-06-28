@@ -1,6 +1,8 @@
 defmodule Rindle.Config do
   @moduledoc false
 
+  @repo_override_key {__MODULE__, :repo_override}
+
   @spec queue_name() :: atom()
   def queue_name do
     Application.fetch_env!(:rindle, :queue)
@@ -8,7 +10,9 @@ defmodule Rindle.Config do
 
   @spec repo() :: module()
   def repo do
-    Application.get_env(:rindle, :repo, Rindle.Repo)
+    with nil <- repo_override(self()) do
+      Application.get_env(:rindle, :repo, Rindle.Repo)
+    end
   end
 
   @spec signed_url_ttl_seconds() :: pos_integer()
@@ -65,6 +69,33 @@ defmodule Rindle.Config do
     Application.get_env(:rindle, :tus_profiles, [])
     |> List.wrap()
     |> Enum.filter(&profile_module?/1)
+  end
+
+  # Walk self() then the $callers chain (Task/async, Oban inline) so a repo override
+  # set in the test process is visible to processes it spawned. The walk runs only when
+  # an override is present; with no override the production path is a single Process.get
+  # returning nil then the unchanged Application.get_env fallback above.
+  defp repo_override(pid) do
+    case process_get(pid, @repo_override_key) do
+      nil -> caller_repo_override(pid)
+      mod -> mod
+    end
+  end
+
+  defp caller_repo_override(pid) do
+    pid
+    |> process_get(:"$callers")
+    |> List.wrap()
+    |> Enum.find_value(fn caller -> caller != pid && repo_override(caller) end)
+  end
+
+  defp process_get(pid, key) when pid == self(), do: Process.get(key)
+
+  defp process_get(pid, key) do
+    case Process.info(pid, :dictionary) do
+      {:dictionary, dict} -> Keyword.get(dict, key)
+      _ -> nil
+    end
   end
 
   defp profile_module?(module) when is_atom(module) do
