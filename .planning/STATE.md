@@ -4,11 +4,11 @@ milestone: v1.21
 milestone_name: CI/DX Reliability Tail
 current_phase: 111
 current_phase_name: regression-locks
-status: verifying
-stopped_at: Phase 111 context gathered
+status: phase_complete
+stopped_at: Phase 111 complete — verified 5/5 (LOCK-01..05)
 last_updated: "2026-06-28T21:08:05.911Z"
 last_activity: 2026-06-28
-last_activity_desc: Phase 111 execution started
+last_activity_desc: Phase 111 executed + verified (4 plans, 5/5 LOCK reqs)
 progress:
   total_phases: 5
   completed_phases: 4
