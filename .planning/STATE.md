@@ -5,8 +5,8 @@ milestone_name: CI/DX Reliability Tail
 current_phase: 109
 current_phase_name: "Subprocess `:epipe` hardening"
 status: executing
-stopped_at: Phase 108 context gathered
-last_updated: "2026-06-28T16:14:30.340Z"
+stopped_at: Phase 109 context gathered
+last_updated: "2026-06-28T16:28:30.879Z"
 last_activity: 2026-06-28
 last_activity_desc: Phase 108 complete, transitioned to Phase 109
 progress:
@@ -396,9 +396,9 @@ outside v1.20 scope (Phases 103–107):
 
 ## Session Continuity
 
-Last session: 2026-06-27T13:56:05.428Z
-Stopped at: Phase 108 context gathered
-Resume file: .planning/phases/108-coverage-single-run/108-CONTEXT.md
+Last session: 2026-06-28T16:28:30.871Z
+Stopped at: Phase 109 context gathered
+Resume file: .planning/phases/109-subprocess-epipe-hardening/109-CONTEXT.md
 
 ## Performance Metrics
 
