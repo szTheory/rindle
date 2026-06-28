@@ -4,17 +4,17 @@ milestone: v1.21
 milestone_name: CI/DX Reliability Tail
 current_phase: 112
 current_phase_name: pr-main-gate-shift-left
-status: executing
+status: verifying
 stopped_at: Phase 111 complete — verified 5/5 (LOCK-01..05)
-last_updated: "2026-06-28T22:05:20.607Z"
+last_updated: "2026-06-28T22:15:15.569Z"
 last_activity: 2026-06-28
 last_activity_desc: Phase 112 execution started
 progress:
   total_phases: 5
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 13
-  completed_plans: 12
-  percent: 80
+  completed_plans: 13
+  percent: 100
 ---
 
 # Project State
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-06-22 after v1.20)
 
 Phase: 112 (pr-main-gate-shift-left) — EXECUTING
 Plan: 2 of 2
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-06-28 — Phase 112 execution started
 
 ### v1.21 roadmap (Phases 108–112) — load-bearing dependency order
@@ -373,6 +373,7 @@ phases follow the research-locked order — de-flake (109, 110) → lock (111) �
 - [Phase ?]: 111-03 (LOCK-03): deduped the Tab-first :focus-visible workaround into ONE exported focusVisibly(page, locator) helper in admin-polish.js; routed all 3 former raw focus({focusVisible:true}) sites through it (2 local + gallery via existing adoptionRequire import). Helper always blurs-first-if-active (preserves site 1 semantics, idempotent); site 2's state-reading evaluate + matchesFV return intact (only Tab+focus prelude extracted). Post-dedupe call-form: admin-polish.js==1 (helper only), gallery==0 — the LOCK-04 precondition. Zero lib/ change, no test/ci literal touched.
 - [Phase ?]: LOCK-04: count the CODE call-form (regex built at runtime), not the bare focusVisible: true substring, so the lock is immune to explanatory-comment occurrences (admin-polish.js call-form == 1, gallery == 0); Test A indexes the call-form (not bare substring) since the bare token precedes the Tab press in a comment
 - [Phase ?]: 112-01 (GATE-01/02/03): lean adoption-demo-e2e-smoke ci.yml job (Chromium-only, MinIO-local, no secrets, pinned Playwright, NO if: gate -> every PR incl forks for skip==pass safety, 2-spec subset via ADOPTION_DEMO_E2E_SPECS, Cohort-contrast dropped, renamed failure artifact); ADOPTION_DEMO_E2E_SPECS threaded through e2e_local.sh (unset->full suite byte-equiv; set->listed specs, unquoted) + static assertion test (no docker). Placed AFTER adoption-demo-e2e (not before adoption-demo-unit). NOT yet in ci-summary/ci-observability needs (GATE-04 -> Plan 02, operator checkpoint). RUNNING.md lean-lane row + fixed stale merge-blocking drift on adoption-demo-e2e/cohort-demo-smoke. eval_ci_summary.sh/setup_branch_protection.sh/name:CI/filename byte-unchanged; zero lib/.
+- [Phase ?]: 112-02: adoption-demo-e2e-smoke gated TRANSITIVELY via CI Summary.needs (+ ci-observability.needs), never a second required branch-protection context; byte-frozen gate scripts unchanged (GATE-01/03/04)
 
 ## Blockers/Concerns
 
@@ -410,7 +411,7 @@ outside v1.20 scope (Phases 103–107):
 
 ## Session Continuity
 
-Last session: 2026-06-28T22:04:42.623Z
+Last session: 2026-06-28T22:14:58.895Z
 Stopped at: Phase 111 context gathered
 Resume file: .planning/phases/111-regression-locks/111-CONTEXT.md
 
@@ -511,6 +512,7 @@ Resume file: .planning/phases/111-regression-locks/111-CONTEXT.md
 | Phase 111 P03 | 6 min | 2 tasks | 2 files |
 | Phase 111 P04 | 8 min | 1 tasks | 1 files |
 | Phase 112 P01 | 4 min | 3 tasks tasks | 5 files files |
+| Phase 112 P02 | 2min | 3 tasks | 2 files |
 
 ## Operator Next Steps
 

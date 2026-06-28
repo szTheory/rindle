@@ -34,7 +34,7 @@ Source: `v1.21-PR-MAIN-GATE-GAP.md`. CI-only; zero `lib/`.
 - [x] **GATE-01**: A lean, deterministic **`adoption-demo-e2e-smoke`** job runs on **every PR** — Chromium-only, MinIO-local, **no secrets**, pinned Playwright container, deterministic specs only (excludes the screenshot spec) — and is part of `CI Summary.needs` (and `ci-observability.needs`).
 - [x] **GATE-02**: PR p95 wall-clock stays ≤ ~7.5 min (the new lane runs as a parallel chain at/under the existing image-smoke long pole); this is observed/guarded, not assumed.
 - [x] **GATE-03**: `cohort-demo-smoke`, `package-consumer-full`, and `mux-soak` stay **off** the PR gate with documented rationale; `setup_branch_protection.sh` is byte-unchanged (`CI Summary` remains the sole required check; no second required context).
-- [ ] **GATE-04**: The lean lane enters `CI Summary.needs` **only after** COV/EPIPE/ISO land and N consecutive green push:main `adoption-demo-e2e` runs are observed — the gate must not import a still-live flake (load-bearing ordering dependency).
+- [x] **GATE-04**: The lean lane enters `CI Summary.needs` **only after** COV/EPIPE/ISO land and N consecutive green push:main `adoption-demo-e2e` runs are observed — the gate must not import a still-live flake (load-bearing ordering dependency).
 
 ### Async-isolation hardening (ISO) — `lib/`
 
@@ -105,7 +105,7 @@ Populated during roadmap creation.
 | GATE-01 | Phase 112 — PR↔main gate shift-left | Complete |
 | GATE-02 | Phase 112 — PR↔main gate shift-left | Complete |
 | GATE-03 | Phase 112 — PR↔main gate shift-left | Complete |
-| GATE-04 | Phase 112 — PR↔main gate shift-left | Pending |
+| GATE-04 | Phase 112 — PR↔main gate shift-left | Complete |
 
 **Coverage:**
 
