@@ -456,7 +456,12 @@ that section on next docs maintenance pass.
 13. Temp files for transcoding live under a single sweepable root
     (`Rindle.tmp/`); orphans are reaped by a scheduled `Rindle.Ops` worker.
     No transcode is allowed without an enforceable parent-death subprocess
-    kill (MuonTrap on Linux; Rambo on macOS / Windows dev).
+    kill. MuonTrap is the sole subprocess runner on every platform
+    (`Rindle.AV.Subprocess.run/3` → `MuonTrap.cmd/3`); its POSIX port wrapper
+    kills the child when the BEAM dies on both Linux and macOS dev. cgroup
+    resource caps (memory / CPU) are Linux-only and gated on
+    `:os.type() == {:unix, :linux}`; on macOS the kill guarantee holds without
+    cgroup caps. There is no Rambo dependency.
 14. Raw provider identifiers (`provider_asset_id`, provider upload IDs,
     provider session URIs) are never exposed in adopter-facing paths,
     URLs, logs, telemetry metadata, or `inspect/2` output. Only the
@@ -500,7 +505,7 @@ that section on next docs maintenance pass.
 | Install proof should be package-consumer-first | A passing repo CI lane is not the same as a fresh Phoenix adopter succeeding from the published artifact | ✓ Validated in Phase 9 |
 | First public Hex publish should be scoped narrowly and exercised before broader API cleanup | The release path is the remaining trust gap and should become routine before new surface-area bets | ✓ Validated in Phases 10–14 |
 | Public API surface and convenience helpers locked before 1.0 | Adoption pressure grows after first publish; renames carry semver cost | ✓ Validated in Phases 17–19 |
-| Video / audio ships via system FFmpeg subprocess (FFmpex + MuonTrap), not Membrane / NIFs / bundled provider | Out-of-process subprocess crashes retry cleanly via Oban; NIFs that wrap libavcodec turn FFmpeg CVEs into BEAM crashes; Membrane is the right tool for streaming pipelines, wrong tool for one-shot file derivatives; every peer lib (Active Storage, Shrine, Spatie, CarrierWave, Django) shells out to FFmpeg | Locked v1.4 |
+| Video / audio ships via system FFmpeg subprocess (MuonTrap runner; argv built in-house, not FFmpex), not Membrane / NIFs / bundled provider | Out-of-process subprocess crashes retry cleanly via Oban; NIFs that wrap libavcodec turn FFmpeg CVEs into BEAM crashes; Membrane is the right tool for streaming pipelines, wrong tool for one-shot file derivatives; every peer lib (Active Storage, Shrine, Spatie, CarrierWave, Django) shells out to FFmpeg | Locked v1.4 |
 | Single `media_assets` + `:kind` discriminator (vs polymorphic / split tables) | Active Storage validates the single-table approach at scale; Elixir pattern matching shines on atom enums; operator queryability requires typed columns, not JSONB-only | Locked v1.4 |
 | Variants stay first-class DB rows with `:output_kind`; cross-kind derivatives (video → poster image, audio → waveform) are plain rows, no special cases | Day-2 ops queries (`WHERE state='failed' AND output_kind=:video`) stay SQL-native; Shrine's flat-derivatives JSON blob loses this | Locked v1.4 |
 | HLS / DASH / DRM / live streaming / dynamic per-request video transforms remain out of core scope | Streaming framework territory (Mux, Cloudflare Stream, Membrane); manifest ingest is an SSRF + RCE surface (CVE-2016-1897, CVE-2020-13904, multiple HackerOne reports) | Locked v1.4 |

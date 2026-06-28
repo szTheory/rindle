@@ -76,6 +76,22 @@ jobs:
       - name: Checkout
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
+      # TRUTH-01 (D-15/D-16): merge-blocking guard that the security-invariant-13
+      # / Key-Decisions docs-truth correction landed and never regresses. A CI
+      # grep step (NOT an ExUnit test reading .planning/) on purpose: Phase 111
+      # LOCK-05 adds a merge-blocking meta-test that fails if ANY test reads a
+      # .planning/ path, so a doc-assertion test would conflict — the grep guard
+      # enforces TRUTH-01 without introducing a .planning/-reading test. Asserts
+      # the corrected invariant-13 wording is present, 'FFmpex + MuonTrap' is
+      # absent from PROJECT.md, and 'Rambo' is absent from the invariant-13 region.
+      - name: TRUTH-01 docs-truth guard (PROJECT.md invariant 13)
+        run: |
+          set -euo pipefail
+          grep -q "MuonTrap is the sole subprocess runner on every platform" .planning/PROJECT.md
+          ! grep -q "FFmpex + MuonTrap" .planning/PROJECT.md
+          ! grep -A3 "parent-death subprocess" .planning/PROJECT.md | grep -q "Rambo on macOS"
+          echo "TRUTH-01-OK"
+
       - name: Set up Elixir
         id: setup
         uses: ./.github/actions/setup-elixir
