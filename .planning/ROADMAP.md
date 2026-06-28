@@ -184,7 +184,7 @@ Plans:
 
 - [x] 110-01-PLAN.md — Config.repo/0 $callers-aware process-dict override + put_repo_override/1 / delete_repo_override/0 setters (ISO-01, ISO-02)
 - [x] 110-02-PLAN.md — migrate with_counting_repo/2 + fail config to the process dict; revert 3 modules to async: true (ISO-03)
-- [ ] 110-03-PLAN.md — :global_repo_swap guard rule + all-modules scan path + allowlist the 9 legitimate swappers (ISO-04)
+- [x] 110-03-PLAN.md — :global_repo_swap guard rule + all-modules scan path + allowlist the 9 legitimate swappers (ISO-04)
 - [ ] 110-04-PLAN.md — ISO-05 concurrency isolation proof test (process A double vs unrelated process B reader)
 
 ---
@@ -667,7 +667,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 108. Coverage single-run | 1/1 | Complete    | 2026-06-28 |
 | 109. Subprocess `:epipe` hardening | 2/2 | Complete    | 2026-06-28 |
-| 110. Async-isolation hardening | 2/4 | In Progress|  |
+| 110. Async-isolation hardening | 3/4 | In Progress|  |
 | 111. Regression locks | 0/? | Not started | - |
 | 112. PR↔main gate shift-left | 0/? | Not started | - |
 | 103. Observability / Baseline | 4/4 | Complete    | 2026-06-20 |

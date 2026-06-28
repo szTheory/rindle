@@ -6,14 +6,14 @@ current_phase: 110
 current_phase_name: async-isolation-hardening
 status: executing
 stopped_at: Phase 110 context gathered
-last_updated: "2026-06-28T18:51:04.509Z"
+last_updated: "2026-06-28T18:59:24.427Z"
 last_activity: 2026-06-28
 last_activity_desc: Phase 110 execution started
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 7
-  completed_plans: 5
+  completed_plans: 6
   percent: 40
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-06-22 after v1.20)
 ## Current Position
 
 Phase: 110 (async-isolation-hardening) — EXECUTING
-Plan: 3 of 4
+Plan: 4 of 4
 Status: Ready to execute
 Last activity: 2026-06-28 — Phase 110 execution started
 
@@ -365,6 +365,7 @@ phases follow the research-locked order — de-flake (109, 110) → lock (111) �
 - [Phase ?]: 110-01 (ISO-01/ISO-02): Config.repo/0 resolves a $callers-aware process-dict override (@repo_override_key {Rindle.Config, :repo_override}) BEFORE Application.get_env(:rindle, :repo, Rindle.Repo); default branch byte-unchanged, walk runs only when an override present. put_repo_override/1 + delete_repo_override/0 are @doc false test-only process-dict setters (no Application.put_env/delete_env). Landed as fix: commits for Hex 0.3.2 patch (D-13/D-v1.21-01). config_test.exs green unchanged.
 - [Phase ?]: D-110-02: CountingFailingTxnRepo is process-scoped (repo via Config.put_repo_override/1, fail-config in process dict); no global :rindle,:repo swap remains (ISO-03)
 - [Phase ?]: D-110-02: re-promoted StreamingDispatchTest/OwnerErasureBatchProofTest/BatchOwnerErasureTaskTest to async: true; D-06 doubles' modules stay async: false
+- [Phase ?]: 110-03 (ISO-04): async-safety guard gains a :global_repo_swap rule + all-modules scan (parse_all_modules/1, async-flag-agnostic) flagging Application.put_env/delete_env(:rindle,:repo) anywhere in test/ (msg -> Config.put_repo_override/1); pins [:rindle,:repo|_] so :repo_probe_owner/:counting_failing_txn_repo NOT flagged (D-11). 9 swappers allowlisted (config_test keeps put_env D-10; lifecycle_integration allow in 2nd module); counting double NOT allowlisted. Negative probe RED then reverted; 3/0 green; test: commits.
 
 ## Blockers/Concerns
 
@@ -402,7 +403,7 @@ outside v1.20 scope (Phases 103–107):
 
 ## Session Continuity
 
-Last session: 2026-06-28T18:50:32.114Z
+Last session: 2026-06-28T18:58:10.307Z
 Stopped at: Phase 110 context gathered
 Resume file: .planning/phases/110-async-isolation-hardening/110-CONTEXT.md
 
@@ -496,6 +497,7 @@ Resume file: .planning/phases/110-async-isolation-hardening/110-CONTEXT.md
 | Phase 109 P02 | 7min | 3 tasks | 4 files |
 | Phase 110 P01 | 1 min | 2 tasks | 1 files |
 | Phase 110 P02 | 6 min | 2 tasks | 4 files |
+| Phase 110 P03 | 4 min | 2 tasks | 10 files |
 
 ## Operator Next Steps
 
