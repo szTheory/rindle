@@ -268,7 +268,17 @@ plain success/fail); release full-verification gate untouched; no `lib/` change.
 
 **UI hint:** yes
 
-**Plans:** TBD
+**Plans:** 2 plans
+
+Plans:
+
+**Wave 1**
+
+- [ ] 112-01-PLAN.md — lean `adoption-demo-e2e-smoke` job (no `if:` gate, NOT yet in needs) + `ADOPTION_DEMO_E2E_SPECS` spec-scoping through `e2e_local.sh` + assertion + RUNNING.md lean-row/drift-fix (GATE-01, GATE-02, GATE-03)
+
+**Wave 2** *(blocked on Wave 1 + the GATE-04 operator checkpoint)*
+
+- [ ] 112-02-PLAN.md — operator checkpoint (108/109/110 + 3 green push:main `Adoption Demo E2E` runs) → wire the smoke lane into `ci-summary.needs` + `ci-observability.needs` + byte-frozen-script diff guards + GATE shipped-artifact meta-test (GATE-01, GATE-03, GATE-04)
 
 ---
 
@@ -676,7 +686,7 @@ Plans:
 | 109. Subprocess `:epipe` hardening | 2/2 | Complete    | 2026-06-28 |
 | 110. Async-isolation hardening | 4/4 | Complete    | 2026-06-28 |
 | 111. Regression locks | 4/4 | Complete   | 2026-06-28 |
-| 112. PR↔main gate shift-left | 0/? | Not started | - |
+| 112. PR↔main gate shift-left | 0/2 | Not started | - |
 | 103. Observability / Baseline | 4/4 | Complete    | 2026-06-20 |
 | 104. Cache & Tooling Hygiene | 4/4 | Complete    | 2026-06-21 |
 | 105. Aggregate Required Check + Branch-Protection Flip | 1/1 | Complete   | 2026-06-21 |
