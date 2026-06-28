@@ -102,9 +102,18 @@ defmodule Rindle.Config do
   defp process_get(pid, key) when pid == self(), do: Process.get(key)
 
   defp process_get(pid, key) do
+    # The override key is a tuple ({Rindle.Config, :repo_override}), so the raw process
+    # dictionary cannot be read with Keyword.get/3 (its key must be an atom) — use a
+    # tuple-safe keyfind over the {key, value} pairs Process.info/2 returns.
     case Process.info(pid, :dictionary) do
-      {:dictionary, dict} -> Keyword.get(dict, key)
-      _ -> nil
+      {:dictionary, dict} ->
+        case List.keyfind(dict, key, 0) do
+          {^key, value} -> value
+          _ -> nil
+        end
+
+      _ ->
+        nil
     end
   end
 
