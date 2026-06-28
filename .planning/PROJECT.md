@@ -33,6 +33,15 @@ flagged but v1.20 did not fix. **Unlike v1.20, this milestone DOES touch `lib/`*
 adopter-invisible hardening patches (authorized 2026-06-26, see D-v1.21-01), so it ships as Hex
 patch **0.3.2** via release-please `fix:` commits. Phase numbering continues at **108**.
 
+**v1.21 progress:** Phase 110 (Async-isolation hardening) complete 2026-06-28 — 4/4 plans,
+verification `passed` (12/12 must-haves; ISO-01..05). `Rindle.Config.repo/0` now consults a
+`$callers`-aware process-dictionary override before app env (the milestone's authorized `lib/` touch,
+landed via `fix(110-*)` → bundles into the 0.3.2 patch), the `CountingFailingTxnRepo` double is
+process-scoped (no global `put_env(:rindle, :repo, …)`), three modules re-promoted to `async: true`,
+and the v1.20 async-safety guard gained a `:global_repo_swap` rule making the footgun
+un-reintroducible. Code review carried one advisory (WR-01: cyclic `$callers` unbounded recursion —
+low reachability, defense-in-depth hardening for a future patch). Next: Phase 111 (Regression locks).
+
 ## Current Milestone: v1.21 CI/DX Reliability Tail
 
 **Goal:** Close the reliability tail v1.20 (SEED-003) left open — make the merge gate deterministic
@@ -750,4 +759,4 @@ This document evolves at phase transitions and milestone boundaries.
    (`workflow.milestone_boundary.block_feature_milestone_without_signal`)
 
 ---
-*Last updated: 2026-06-26 — chartered v1.21 CI/DX Reliability Tail (SEED-004 + the 2026-06-26 flake cluster); 5 research areas locked in `.planning/research/v1.21-*.md`; two adopter-invisible `lib/` patches authorized (D-v1.21-01) → ships Hex 0.3.2; phases resume at 108.*
+*Last updated: 2026-06-28 — Phase 110 (Async-isolation hardening) complete: process-scoped repo override + async-safety `:global_repo_swap` guard; the first authorized v1.21 `lib/` touch landed via `fix:` (bundles into Hex 0.3.2). v1.21 chartered 2026-06-26 (SEED-004 + the 2026-06-26 flake cluster); 5 research areas locked in `.planning/research/v1.21-*.md`. Next: Phase 111 (Regression locks).*
