@@ -49,7 +49,8 @@ defmodule Rindle.AsyncSafetyGuardTest do
     :file_mutation,
     :public_ets,
     :persistent_term,
-    :shared_sandbox
+    :shared_sandbox,
+    :global_repo_swap
   ]
 
   setup_all do
@@ -61,7 +62,15 @@ defmodule Rindle.AsyncSafetyGuardTest do
       files
       |> Enum.flat_map(&parse_async_true_modules/1)
 
-    {:ok, files: files, modules: modules}
+    # ISO-04 (D-08): the :global_repo_swap rule scans EVERY module (the
+    # mutators/swappers are async: false), so it needs a separate all-modules list
+    # built without the async filter; the existing per-async:true `modules` above
+    # are untouched.
+    all_modules =
+      files
+      |> Enum.flat_map(&parse_all_modules/1)
+
+    {:ok, files: files, modules: modules, all_modules: all_modules}
   end
 
   test "the glob finds the test tree and at least the known async:true modules", %{
@@ -98,6 +107,29 @@ defmodule Rindle.AsyncSafetyGuardTest do
     assert offenders == [], failure_message(offenders)
   end
 
+  # ISO-04 (D-07/D-08/D-11): no test module — async:true OR async:false — may swap
+  # the globally-read `:rindle, :repo` library config via Application.put_env/delete_env.
+  # The footgun is un-reintroducible: a new global swap goes RED and points the author
+  # at the sanctioned process-local `Rindle.Config.put_repo_override/1`. The 9 legitimate
+  # adopter/probe-repo swappers opt out with `@async_safety_allow [:global_repo_swap]`.
+  test "no test module swaps the global :rindle, :repo config (regardless of async flag)", %{
+    all_modules: all_modules
+  } do
+    offenders =
+      all_modules
+      |> Enum.flat_map(fn mod ->
+        mod.body
+        |> collect_global_repo_swaps()
+        |> Enum.reject(fn {primitive, _line} -> primitive in mod.allow end)
+        |> Enum.map(fn {primitive, line} ->
+          %{file: mod.relpath, module: mod.module, line: line, primitive: primitive}
+        end)
+      end)
+      |> Enum.sort_by(&{&1.file, &1.line, &1.primitive})
+
+    assert offenders == [], global_repo_swap_failure_message(offenders)
+  end
+
   # ── parsing ────────────────────────────────────────────────────────────────
 
   # Returns a list of %{module, relpath, allow, body, tmp_vars} for each module in
@@ -118,6 +150,27 @@ defmodule Rindle.AsyncSafetyGuardTest do
         relpath: relpath,
         allow: collect_allowlist(body),
         tmp_vars: collect_tmp_vars(body),
+        body: body
+      }
+    end)
+  end
+
+  # ISO-04 (D-08): mirrors `parse_async_true_modules/1` MINUS the
+  # `Enum.filter(&async_true?/1)` line — returns every module in `path` (async:true
+  # OR async:false) as %{module, relpath, allow, body}, honoring the same
+  # `@async_safety_allow` allow-list. Used ONLY by the :global_repo_swap all-modules
+  # scan; `tmp_vars` is omitted because that classifier needs no path dataflow.
+  defp parse_all_modules(path) do
+    relpath = Path.relative_to(path, @test_root)
+    quoted = path |> File.read!() |> Code.string_to_quoted!()
+
+    quoted
+    |> collect_modules()
+    |> Enum.map(fn {name, body} ->
+      %{
+        module: name,
+        relpath: relpath,
+        allow: collect_allowlist(body),
         body: body
       }
     end)
@@ -244,6 +297,34 @@ defmodule Rindle.AsyncSafetyGuardTest do
 
     Enum.reverse(offenders)
   end
+
+  # ISO-04 (D-07): collects every :rindle/:repo global swap in a module body. Applies
+  # ONLY `classify_global_repo_swap/1` (a separate pass from `collect_offenders/2`, which
+  # owns the async:true-only primitives); never touches the existing classifiers.
+  defp collect_global_repo_swaps(body) do
+    {_ast, swaps} =
+      Macro.prewalk(body, [], fn node, acc ->
+        case classify_global_repo_swap(node) do
+          nil -> {node, acc}
+          {primitive, line} -> {node, [{primitive, line} | acc]}
+        end
+      end)
+
+    Enum.reverse(swaps)
+  end
+
+  # ISO-04 (D-07/D-11): matches `Application.put_env(:rindle, :repo, _)` /
+  # `Application.delete_env(:rindle, :repo)` (research §iv locked AST shape). The
+  # `[:rindle, :repo | _]` head pins the first two positional args to the app/key
+  # atoms, so `:rindle, :repo_probe_owner` and `:rindle, :counting_failing_txn_repo`
+  # (D-11) do NOT match.
+  defp classify_global_repo_swap(
+         {{:., meta, [{:__aliases__, _, [:Application]}, m]}, _, [:rindle, :repo | _]}
+       )
+       when m in [:put_env, :delete_env],
+       do: {:global_repo_swap, line(meta)}
+
+  defp classify_global_repo_swap(_node), do: nil
 
   # Returns {primitive_atom, line} when `node` matches an unsafe primitive, else nil.
 
@@ -425,6 +506,29 @@ defmodule Rindle.AsyncSafetyGuardTest do
     usage is genuinely process-local and async-safe, opt out with a justified \
     `@async_safety_allow [:#{(List.first(offenders) || %{primitive: :the_primitive}).primitive}]` \
     module attribute. Recognised primitive atoms: #{inspect(@primitive_names)}.
+    """
+  end
+
+  defp global_repo_swap_failure_message([]), do: "no :global_repo_swap offenders"
+
+  defp global_repo_swap_failure_message(offenders) do
+    lines =
+      Enum.map_join(offenders, "\n", fn o ->
+        "  - #{o.file}:#{o.line} (#{o.module}) swaps :rindle, :repo via Application.put_env/delete_env"
+      end)
+
+    """
+    Found #{length(offenders)} :global_repo_swap offender(s): test module(s) mutating the \
+    globally-read `:rindle, :repo` library config with `Application.put_env`/`delete_env`. \
+    This cross-pollutes any concurrent async reader of `Rindle.Config.repo/0` (ISO-04).
+
+    #{lines}
+
+    Use the process-local, async-safe setter `Rindle.Config.put_repo_override/1` (cleared \
+    via `Rindle.Config.delete_repo_override/0`) instead — it overrides the repo only for \
+    the current process and its `$callers`, never globally. If a module genuinely must swap \
+    the Application env to exercise the app-env resolution path itself (e.g. config_test), \
+    opt out with a justified `@async_safety_allow [:global_repo_swap]` module attribute.
     """
   end
 end
