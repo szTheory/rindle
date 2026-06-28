@@ -2,20 +2,18 @@ defmodule Rindle.Test.CountingFailingTxnRepo do
   @moduledoc false
 
   @count_key {__MODULE__, :transaction_count}
+  @config_key {__MODULE__, :fail_config}
 
   def with_counting_repo(fail_after, fun) when is_integer(fail_after) and is_function(fun, 0) do
-    previous_repo = Application.get_env(:rindle, :repo)
-    previous_cfg = Application.get_env(:rindle, :counting_failing_txn_repo)
-
-    Application.put_env(:rindle, :repo, __MODULE__)
-    Application.put_env(:rindle, :counting_failing_txn_repo, fail_after: fail_after)
+    Rindle.Config.put_repo_override(__MODULE__)
+    Process.put(@config_key, fail_after: fail_after)
     reset_count()
 
     try do
       fun.()
     after
-      restore_env(:repo, previous_repo)
-      restore_env(:counting_failing_txn_repo, previous_cfg)
+      Rindle.Config.delete_repo_override()
+      Process.delete(@config_key)
       reset_count()
     end
   end
@@ -55,14 +53,16 @@ defmodule Rindle.Test.CountingFailingTxnRepo do
     end
   end
 
-  # `with_counting_repo/2` installs this module as the GLOBAL `:rindle, :repo` for the duration
-  # of its callback, so any async test resolving `Rindle.Config.repo()` in that window dispatches
-  # through here. It must therefore proxy the ENTIRE Ecto.Repo surface, not a hand-maintained
+  # `with_counting_repo/2` installs this module as a PROCESS-LOCAL repo override (via
+  # `Rindle.Config.put_repo_override/1`, not a global `:rindle, :repo` swap) for the duration of its
+  # callback, so only the calling process (and its `$callers`-linked children) resolving
+  # `Rindle.Config.repo()` dispatches through here — a concurrent async reader in another process
+  # tree is unaffected. It must still proxy the ENTIRE Ecto.Repo surface, not a hand-maintained
   # subset — a missing function surfaces as an intermittent
-  # `(UndefinedFunctionError) Rindle.Test.CountingFailingTxnRepo.<fn> is undefined` in whichever
-  # async test happens to run inside the window (get_by/2, exists?/1, config/0, … each bit us in
-  # turn). Generate a passthrough for every Rindle.Repo function except transaction/1,2 (overridden
-  # above), so completeness is guaranteed by construction rather than by audit.
+  # `(UndefinedFunctionError) Rindle.Test.CountingFailingTxnRepo.<fn> is undefined` in any code that
+  # resolves the override (get_by/2, exists?/1, config/0, … each bit us in turn). Generate a
+  # passthrough for every Rindle.Repo function except transaction/1,2 (overridden above), so
+  # completeness is guaranteed by construction rather than by audit.
   for {fun, arity} <- Rindle.Repo.__info__(:functions),
       {fun, arity} not in [transaction: 1, transaction: 2] do
     args = Macro.generate_arguments(arity, __MODULE__)
@@ -81,15 +81,12 @@ defmodule Rindle.Test.CountingFailingTxnRepo do
   defp reset_count, do: Process.delete(@count_key)
 
   defp fail_after do
-    Application.get_env(:rindle, :counting_failing_txn_repo, [])
+    Process.get(@config_key, [])
     |> Keyword.get(:fail_after)
   end
 
   defp fail_reason do
-    Application.get_env(:rindle, :counting_failing_txn_repo, [])
+    Process.get(@config_key, [])
     |> Keyword.get(:fail_reason, :forced_batch_failure)
   end
-
-  defp restore_env(key, nil), do: Application.delete_env(:rindle, key)
-  defp restore_env(key, value), do: Application.put_env(:rindle, key, value)
 end
