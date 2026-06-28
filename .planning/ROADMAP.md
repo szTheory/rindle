@@ -132,7 +132,12 @@ run's broken-pipe race is the only `:epipe` source left to fix).
 **Plans:** 2 plans
 
 Plans:
+**Wave 1**
+
 - [ ] 109-01-PLAN.md — `run_isolated/5` `:epipe` absorption shim + `:canary` test-helper exclude + merge-blocking regression suite (EPIPE-01..05)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 109-02-PLAN.md — advisory behavioral canary + nightly wiring + TRUTH-01 PROJECT.md correction + merge-blocking CI grep guard (EPIPE-05, TRUTH-01)
 
 ---
