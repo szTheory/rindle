@@ -6,14 +6,14 @@ current_phase: 111
 current_phase_name: regression-locks
 status: executing
 stopped_at: Phase 111 context gathered
-last_updated: "2026-06-28T20:55:11.136Z"
+last_updated: "2026-06-28T20:58:04.227Z"
 last_activity: 2026-06-28
 last_activity_desc: Phase 111 execution started
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 11
-  completed_plans: 8
+  completed_plans: 9
   percent: 60
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-06-22 after v1.20)
 ## Current Position
 
 Phase: 111 (regression-locks) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 Status: Ready to execute
 Last activity: 2026-06-28 — Phase 111 execution started
 
@@ -369,6 +369,7 @@ phases follow the research-locked order — de-flake (109, 110) → lock (111) �
 - [Phase ?]: D-04-02: fixed Rindle.Config callers dict read (Keyword.get to List.keyfind) for the tuple override key; surfaced by ISO-05 proof; fix bundles into 0.3.2
 - [Phase ?]: D-04-01: ISO-05 reader B uses a bare spawn (no callers link), not Task.async, because with_counting_repo runs inline so process A is the test process
 - [Phase ?]: 111-01: LOCK-01 ships as sibling install_smoke_preflight_test.exs; order index uses bare 'mix archive.install hex phx_new' substring; LOCK-05 globs broader test/**/*.exs and assembles its .planning regex at runtime to avoid self-flagging
+- [Phase 111]: 111-02 (LOCK-02): added a 'mix archive.uninstall phx_new --force || true' step to the lean PR-gating package-consumer job, before the built-artifact image-only smoke, so install_smoke.sh's cold self-install path (:31 probe -> :33 archive.install) is exercised every PR (honest cold-path lock, not warm-cache theater). Off-PR package-consumer-full, name:CI, filename, and CI Summary needs untouched; zero lib/ change.
 
 ## Blockers/Concerns
 
@@ -406,7 +407,7 @@ outside v1.20 scope (Phases 103–107):
 
 ## Session Continuity
 
-Last session: 2026-06-28T20:54:57.865Z
+Last session: 2026-06-28T20:57:39.369Z
 Stopped at: Phase 111 context gathered
 Resume file: .planning/phases/111-regression-locks/111-CONTEXT.md
 
@@ -503,6 +504,7 @@ Resume file: .planning/phases/111-regression-locks/111-CONTEXT.md
 | Phase 110 P03 | 4 min | 2 tasks | 10 files |
 | Phase 110 P04 | 3min | 1 tasks | 2 files |
 | Phase 111 P01 | 1 | 2 tasks | 2 files |
+| Phase 111 P02 | 3 min | 1 tasks | 1 files |
 
 ## Operator Next Steps
 
