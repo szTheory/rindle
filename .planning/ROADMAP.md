@@ -129,7 +129,11 @@ run's broken-pipe race is the only `:epipe` source left to fix).
 **Invariants:** authorized adopter-invisible `lib/rindle/av/subprocess.ex` touch (D-v1.21-01), ships
 `fix:` → 0.3.2; security invariants 8–13 byte-equivalent; no public API / error-vocab change.
 
-**Plans:** TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 109-01-PLAN.md — `run_isolated/5` `:epipe` absorption shim + `:canary` test-helper exclude + merge-blocking regression suite (EPIPE-01..05)
+- [ ] 109-02-PLAN.md — advisory behavioral canary + nightly wiring + TRUTH-01 PROJECT.md correction + merge-blocking CI grep guard (EPIPE-05, TRUTH-01)
 
 ---
 
