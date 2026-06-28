@@ -995,6 +995,116 @@ jobs:
             examples/adoption_demo/test-results/
           if-no-files-found: ignore
 
+  adoption-demo-e2e-smoke:
+    name: Adoption Demo E2E Smoke
+    runs-on: ubuntu-22.04
+    # GATE-01/GATE-02 (Phase 112): the lean PR-side browser-render proxy. Closes
+    # the PR↔main gap that let the 2026-06-26 render-regression cluster reach
+    # `main` — without giving back the v1.20 wall-clock win. Clones the full
+    # `adoption-demo-e2e` job above but runs ONLY the deterministic 2-spec subset
+    # (smoke + admin-console; NO screenshot spec) via ADOPTION_DEMO_E2E_SPECS.
+    #
+    # NO `if:` GATE BY DESIGN: this lane runs on EVERY PR (including forks). A
+    # repo/event-gated lane would resolve to `skipped` on forks, and skip==pass
+    # would emit a green lie for the exact regression class this lane exists to
+    # catch (T-112-02). It uses NO secrets (MinIO-local literal creds only), so
+    # fork-PR exposure is nil (T-112-01).
+    #
+    # NOT YET WIRED into ci-summary.needs / ci-observability.needs — that is
+    # Plan 02 (GATE-04), gated behind the operator green-run checkpoint after
+    # N=3 green push:main `adoption-demo-e2e` runs (T-112-05, load-bearing order).
+    needs: [quality, optional-dependencies]
+    env:
+      MIX_ENV: test
+      RINDLE_AV_USE_CGROUPS: "false"
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGHOST: localhost
+      PGPORT: "5432"
+      RINDLE_MINIO_URL: http://localhost:9000
+      RINDLE_MINIO_ACCESS_KEY: minioadmin
+      RINDLE_MINIO_SECRET_KEY: minioadmin
+      RINDLE_MINIO_BUCKET: rindle-test
+      RINDLE_MINIO_REGION: us-east-1
+      ADOPTION_DEMO_BROWSER_PORT: "4102"
+      # D-10/D-11: the pinned Playwright browser image. scripts/ci/e2e_local.sh
+      # reads PLAYWRIGHT_IMAGE (defaulting to this same tag), so CI and the local
+      # repro run the SAME mcr.microsoft.com/playwright:v1.57.0-noble container —
+      # the image tag IS the browser + font pin. Must match the exact
+      # @playwright/test 1.57.0 npm pin in examples/adoption_demo/package.json.
+      PLAYWRIGHT_IMAGE: mcr.microsoft.com/playwright:v1.57.0-noble
+      # GATE-01: scope the lean lane to the deterministic browser-render subset.
+      # e2e_local.sh appends these as positional spec files; unset would run the
+      # full suite (which the push:main `adoption-demo-e2e` lane above does).
+      ADOPTION_DEMO_E2E_SPECS: "e2e/smoke.spec.js e2e/admin-console.spec.js"
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: rindle_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Set up Elixir
+        # CACHE-01 (D-03): composite setup + deps/_build cache. install-deps:false
+        # keeps this job's own `Install root dependencies` deps.get (no duplicate).
+        uses: ./.github/actions/setup-elixir
+        with:
+          elixir-version: "1.17"
+          otp-version: "27"
+          mix-env: test
+          install-deps: "false"
+
+      - name: Set up Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "20"
+
+      - name: Install FFmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
+      - name: Install libvips
+        run: sudo apt-get update && sudo apt-get install -y libvips-dev
+
+      - name: Install root dependencies
+        run: mix deps.get
+
+      - name: Set up MinIO for adoption demo
+        uses: ./.github/actions/setup-minio
+        with:
+          cors-allow-origin: "*"
+
+      - name: Run adoption demo Playwright suite (pinned container, smoke subset)
+        # D-10: the browser leg runs inside the SAME pinned image
+        # (mcr.microsoft.com/playwright:v1.57.0-noble) that scripts/ci/e2e_local.sh
+        # uses — faithful repro by construction. ADOPTION_DEMO_E2E_SPECS (set in
+        # env above) scopes the run to the deterministic 2-spec subset; the
+        # Cohort-contrast step is intentionally dropped (redundant with the
+        # brandbook-tokens PR gate; not a browser-render check).
+        run: bash scripts/ci/e2e_local.sh
+
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: adoption-demo-e2e-smoke-report
+          path: |
+            examples/adoption_demo/playwright-report/
+            examples/adoption_demo/test-results/
+          if-no-files-found: ignore
+
   adopter:
     name: Adopter
     runs-on: ubuntu-22.04
