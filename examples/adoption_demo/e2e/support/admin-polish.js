@@ -107,6 +107,30 @@ function outlineScopeHints(root) {
   return Array.from(hints);
 }
 
+// SINGLE source of truth for the `:focus-visible` keyboard-modality workaround.
+// `:focus-visible` does not reliably match a programmatic `.focus()` in headless
+// Chromium unless the page has seen a real keyboard interaction (and `focusVisible: true`
+// honouring varies across Chromium builds). A real Tab press flips Chromium into
+// keyboard-focus mode so the subsequent programmatic focus deterministically paints the
+// ring. This helper is the ONLY place in the repo that may call `.focus(...)` with the
+// `focusVisible` option — all former call sites (admin-polish.js x2, admin-gallery-check.mjs x1)
+// route through it,
+// so a future copy that forgets the Tab press cannot reintroduce the original flake (LOCK-03/04).
+//
+// The blur-first-if-active step is LOAD-BEARING (site 1 / assertFocusVisibleTokens relies on
+// re-focusing an already-focused element); making the helper always blur-first is idempotent
+// and safe for all three sites. The Tab-press `.catch(() => {})` swallow matches the existing
+// demo call sites (the gallery's bare press adopts the swallow, which is correct).
+async function focusVisibly(page, locator) {
+  await page.keyboard.press("Tab").catch(() => {});
+  await locator
+    .evaluate((element) => {
+      if (document.activeElement === element) element.blur();
+      element.focus({ focusVisible: true });
+    })
+    .catch(() => {});
+}
+
 // Per-surface, per-check opt-out. SHIP EMPTY — an allowlist that starts populated
 // hides exactly the defects this gate exists to catch. Each entry must carry a
 // justification comment and is a reviewable code change.
@@ -425,13 +449,7 @@ async function assertFocusVisibleTokens(
       // interaction (and `focusVisible: true` honouring varies across Chromium builds). A real
       // Tab press flips Chromium into keyboard-focus mode so the subsequent programmatic focus
       // deterministically paints the ring (fixes an intermittent "outline 0px != 2px" flake).
-      await page.keyboard.press("Tab").catch(() => {});
-      await item
-        .evaluate((element) => {
-          if (document.activeElement === element) element.blur();
-          element.focus({ focusVisible: true });
-        })
-        .catch(() => {});
+      await focusVisibly(page, item);
       const state = await item.evaluate((element, contract) => {
         if (document.activeElement !== element && !element.matches(":focus-within")) return null;
         const resolve = (value) => {
@@ -924,9 +942,8 @@ async function assertFocusVisibleVsPointer(
     // (real Tab press) so the programmatic focus below reliably matches :focus-visible in
     // headless Chromium; the pointer branch further down re-establishes pointer modality via a
     // real mouse click, so the negative (no-ring-on-pointer) check stays valid.
-    await page.keyboard.press("Tab").catch(() => {});
+    await focusVisibly(page, item);
     const kb = await item.evaluate((el, contract) => {
-      el.focus({ focusVisible: true });
       const resolve = (value) => {
         if (!value || !value.startsWith("--")) return value || "";
         const rootEl = document.querySelector(contract.root);
@@ -1105,6 +1122,7 @@ module.exports = {
   assertReadableContrast,
   assertTargetSizes,
   assertFocusVisibleTokens,
+  focusVisibly,
   assertNoInteractiveOverlap,
   assertStableDimensions,
   // Phase 98 computed-style backstops (D-98-05/06).
