@@ -12,9 +12,9 @@ Requirements for this milestone. Each maps to exactly one roadmap phase.
 
 Source: `v1.21-COVERAGE-SINGLE-RUN.md`. CI/mix-config only; zero `lib/`.
 
-- [ ] **COV-01**: Each default-suite lane (`quality`, `integration`, install-smoke/adoption) runs the ExUnit suite **exactly once** per matrix cell, emitting both the console gate and `cover/excoveralls.json` from that one run (`mix coveralls.multiple --type local --type json --slowest 20`).
+- [ ] **COV-01**: Each default-suite lane (`quality`, `integration`, install-smoke/adoption) runs the ExUnit suite **exactly once** per matrix cell. The `quality` lane emits both the console gate and `cover/excoveralls.json` from that one run (`mix coveralls.multiple --type local --type json --slowest 20`); the `integration` and install-smoke/adoption lanes **drop their redundant standalone coverage run** (decision 2b — no artifact consumer exists), leaving each with one suite execution.
 - [ ] **COV-02**: The merge-blocking coverage gate keeps running the **`local`** analyzer (`ensure_minimum_coverage` still exercised); gate pass/fail is **never** derived from `coveralls.json`'s exit code.
-- [ ] **COV-03**: The standalone `Generate coverage JSON artifact` step (the redundant second suite run) is removed from all three lanes; `cover/excoveralls.json` is still produced at the same path and uploaded (`if-no-files-found: warn` preserved).
+- [ ] **COV-03**: The redundant standalone coverage run is removed from all three lanes (the `Generate coverage JSON artifact` step on `quality`; the standalone `mix coveralls.json` step on `integration`/adoption). `cover/excoveralls.json` is still produced at the same path on the `quality` lane and uploaded; integration/adoption upload steps tolerate its absence (`if-no-files-found: warn` preserved).
 - [ ] **COV-04**: A contributor reproduces the CI coverage step locally with one documented command, and `mix ci` reflects the single-run invocation (local↔CI parity).
 
 ### Subprocess `:epipe` hardening (EPIPE) — `lib/`

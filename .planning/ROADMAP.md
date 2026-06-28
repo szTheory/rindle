@@ -47,7 +47,7 @@ coupling via `release-please-automerge.yml` + `gate-ci-green`); `CI Summary` kee
 and stays the SOLE required check (`setup_branch_protection.sh` byte-unchanged); never weaken the
 release full-verification gate; security invariants 8–13 byte-equivalent at argv for the EPIPE phase.
 
-- [ ] **Phase 108: Coverage single-run** — one ExUnit suite execution per lane emits both the gate and the JSON artifact (COV-01..04)
+- [ ] **Phase 108: Coverage single-run** — one ExUnit suite execution per lane; `quality` emits both the gate and the JSON artifact, integration/adoption drop their redundant coverage run (COV-01..04)
 - [ ] **Phase 109: Subprocess `:epipe` hardening** — absorb MuonTrap #98 broken-pipe in `Subprocess.run/3` + correct the stale invariant-13 truth (EPIPE-01..05, TRUTH-01)
 - [ ] **Phase 110: Async-isolation hardening** — process-scoped repo override replaces the global swap; guard closes the cross-pool gap (ISO-01..05)
 - [ ] **Phase 111: Regression locks** — durable shipped-artifact meta-tests lock the 2026-06-26 cluster so it cannot regress (LOCK-01..05)
@@ -68,15 +68,19 @@ wall-clock and halving `:epipe` exposure on the PR critical path.
 **Success criteria:**
 
 1. Each default-suite lane (`quality`, `integration`, install-smoke/adoption) runs the ExUnit suite
-   exactly once per matrix cell via `mix coveralls.multiple --type local --type json --slowest 20`,
-   producing both the console gate and `cover/excoveralls.json` from that one run.
+   exactly once per matrix cell. The `quality` lane's single run uses
+   `mix coveralls.multiple --type local --type json --slowest 20`, producing both the console gate
+   and `cover/excoveralls.json` from that one run; the `integration` and install-smoke/adoption lanes
+   drop their redundant standalone coverage run entirely (decision 2b — no artifact consumer exists),
+   leaving each with exactly one suite execution.
 
 2. The merge-blocking coverage gate still runs the `local` analyzer (`ensure_minimum_coverage`
    exercised); the gate's pass/fail is never derived from `coveralls.json`'s exit code.
 
-3. The redundant standalone `Generate coverage JSON artifact` step is removed from all three lanes,
-   yet `cover/excoveralls.json` is still produced at the same path and uploaded
-   (`if-no-files-found: warn` preserved).
+3. The redundant standalone coverage run is removed from all three lanes (the `Generate coverage JSON
+   artifact` step on `quality`, the standalone `mix coveralls.json` step on `integration`/adoption).
+   `cover/excoveralls.json` is still produced at the same path on the `quality` lane and uploaded;
+   the integration/adoption upload steps tolerate its absence (`if-no-files-found: warn` preserved).
 
 4. A contributor reproduces the CI coverage step locally with one documented command and `mix ci`
    reflects the single-run invocation (local↔CI parity).
