@@ -44,14 +44,17 @@ defmodule Rindle.InstallSmoke.CiCacheHygieneTest do
   end
 
   test "CACHE-01: ci.yml adopts both composites at the live adoption counts", %{ci: ci} do
-    # Live counts (grep-confirmed): setup-elixir ×10, setup-minio ×6 in ci.yml.
+    # Live counts (grep-confirmed): setup-elixir ×11, setup-minio ×7 in ci.yml.
+    # Both went +1 in Phase 112: the lean `adoption-demo-e2e-smoke` PR lane
+    # (clone of `adoption-demo-e2e`) adopts BOTH composites too — composite
+    # reuse is the desired hygiene, so the lock tracks the new live counts.
     # `==` exact so adding inline `erlef/setup-beam` / inline MinIO bring-up back
     # into a job (dropping a composite adoption) regresses this lock.
-    assert count(ci, "uses: ./.github/actions/setup-elixir") == 10,
-           "ci.yml must adopt the setup-elixir composite 10× (single source of truth, CACHE-01)"
+    assert count(ci, "uses: ./.github/actions/setup-elixir") == 11,
+           "ci.yml must adopt the setup-elixir composite 11× (single source of truth, CACHE-01)"
 
-    assert count(ci, "uses: ./.github/actions/setup-minio") == 6,
-           "ci.yml must adopt the setup-minio composite 6× (single source of truth, CACHE-01)"
+    assert count(ci, "uses: ./.github/actions/setup-minio") == 7,
+           "ci.yml must adopt the setup-minio composite 7× (single source of truth, CACHE-01)"
   end
 
   test "CACHE-01: release.yml adopts the setup-minio composite twice", %{release: release} do
