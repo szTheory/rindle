@@ -115,6 +115,55 @@ defmodule Rindle.InstallSmoke.CiLaneSplitTest do
   end
 
   # ------------------------------------------------------------------
+  # GATE-01 / GATE-04 (Phase 112): the lean `adoption-demo-e2e-smoke` PR-side
+  # browser-render proxy is wired into the merge gate transitively via
+  # `CI Summary`. These assert SHIPPED ci.yml topology ONLY (no `.planning/`
+  # path, no mutable `@vX` tag): the job exists, runs on EVERY PR (no repo/event
+  # `if:` gate, so it never skips-as-pass), carries the deterministic 2-spec
+  # subset (excluding the screenshot spec), and is present in BOTH
+  # `ci-summary.needs` and `ci-observability.needs`.
+  # ------------------------------------------------------------------
+  test "GATE-01: the adoption-demo-e2e-smoke job exists in ci.yml", %{ci: ci} do
+    assert ci =~ "\n  adoption-demo-e2e-smoke:\n",
+           "the lean PR `adoption-demo-e2e-smoke` browser-render proxy job must exist (GATE-01)"
+  end
+
+  test "GATE-01: the smoke job runs on EVERY PR (no repo/event if: gate) with the 2-spec subset, screenshot spec excluded",
+       %{ci: ci} do
+    smoke = adoption_demo_e2e_smoke_block(ci)
+
+    # No repo/event gate — a gated lane would resolve to `skipped` on forks and
+    # skip==pass would emit a green lie for the exact regression class this lane
+    # exists to catch (T-112-02, GATE-01).
+    refute smoke =~ "if: github.repository",
+           "the smoke job must have NO `if: github.repository` gate — it must run on every PR incl forks (skip==pass safety, GATE-01)"
+
+    refute smoke =~ "github.event_name != 'pull_request'",
+           "the smoke job must have NO event gate — it must never be skipped on a PR (skip==pass safety, GATE-01)"
+
+    assert smoke =~ ~s(ADOPTION_DEMO_E2E_SPECS:),
+           "the smoke job must set ADOPTION_DEMO_E2E_SPECS to scope the lean run (GATE-01)"
+
+    assert smoke =~ "e2e/smoke.spec.js e2e/admin-console.spec.js",
+           "ADOPTION_DEMO_E2E_SPECS must be the deterministic 2-spec subset smoke + admin-console (GATE-01)"
+
+    refute smoke =~ "admin-screenshots.spec.js",
+           "the smoke job must EXCLUDE the screenshot spec — it is not a browser-render regression check (GATE-01)"
+  end
+
+  test "GATE-01/GATE-04: the smoke lane is present in BOTH ci-summary.needs and ci-observability.needs",
+       %{ci: ci} do
+    summary_needs = ci_summary_needs_block(ci)
+    observability_needs = ci_observability_needs_block(ci)
+
+    assert summary_needs =~ "- adoption-demo-e2e-smoke\n",
+           "ci-summary.needs must include `adoption-demo-e2e-smoke` — the lane is merge-blocking transitively via CI Summary (GATE-01/GATE-04)"
+
+    assert observability_needs =~ "- adoption-demo-e2e-smoke\n",
+           "ci-observability.needs must include `adoption-demo-e2e-smoke` for timing parity with the gate (GATE-01/GATE-04)"
+  end
+
+  # ------------------------------------------------------------------
   # LANE-03: nightly.yml lane placement (invisible to release-please-automerge).
   # ------------------------------------------------------------------
   test "LANE-03: nightly.yml is a separate `name: Nightly` workflow with schedule + dispatch and NO pull_request/push triggers",
@@ -282,6 +331,22 @@ defmodule Rindle.InstallSmoke.CiLaneSplitTest do
     [_, after_needs] = String.split(after_key, "\n    needs:\n", parts: 2)
     [needs | _] = String.split(after_needs, "\n    if:", parts: 2)
     needs
+  end
+
+  # `ci-observability:` job — isolate its `needs:` list (up to the `if:` key).
+  defp ci_observability_needs_block(ci) do
+    [_, after_key] = String.split(ci, "\n  ci-observability:\n", parts: 2)
+    [_, after_needs] = String.split(after_key, "\n    needs:\n", parts: 2)
+    [needs | _] = String.split(after_needs, "\n    if:", parts: 2)
+    needs
+  end
+
+  # `adoption-demo-e2e-smoke:` job body, from its job key up to the next
+  # top-level (2-space-indented) job key (`adopter:`).
+  defp adoption_demo_e2e_smoke_block(ci) do
+    [_, after_key] = String.split(ci, "\n  adoption-demo-e2e-smoke:\n", parts: 2)
+    [block | _] = String.split(after_key, "\n  adopter:\n", parts: 2)
+    block
   end
 
   # nightly.yml `dialyzer:` job body, up to the next top-level job (`gcs-soak:`).
