@@ -1347,6 +1347,7 @@ jobs:
       - proof
       - package-consumer
       - adoption-demo-unit
+      - adoption-demo-e2e-smoke
       - adopter
       - brandbook-tokens
     if: always()
@@ -1441,6 +1442,7 @@ jobs:
       - proof
       - package-consumer
       - adoption-demo-unit
+      - adoption-demo-e2e-smoke
       - adopter
       - brandbook-tokens
       - ci-script-tests
