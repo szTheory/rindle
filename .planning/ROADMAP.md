@@ -228,7 +228,7 @@ Plans:
 
 - [x] 111-01-PLAN.md — LOCK-01 (install_smoke phx.new self-install guard meta-test) + LOCK-05 (`.planning/`-path hygiene meta-test) [wave 1]
 - [x] 111-02-PLAN.md — LOCK-02 (package-consumer cold-path phx.new archive purge step in ci.yml) [wave 1]
-- [ ] 111-03-PLAN.md — LOCK-03 (dedupe the Tab-first `focusVisibly` helper across admin-polish.js + gallery) [wave 1]
+- [x] 111-03-PLAN.md — LOCK-03 (dedupe the Tab-first `focusVisibly` helper across admin-polish.js + gallery) [wave 1]
 - [ ] 111-04-PLAN.md — LOCK-04 (post-dedupe focus-visible modality guard meta-test, count-based) [wave 2, depends on 111-03]
 
 ---
@@ -675,7 +675,7 @@ Plans:
 | 108. Coverage single-run | 1/1 | Complete    | 2026-06-28 |
 | 109. Subprocess `:epipe` hardening | 2/2 | Complete    | 2026-06-28 |
 | 110. Async-isolation hardening | 4/4 | Complete    | 2026-06-28 |
-| 111. Regression locks | 2/4 | In Progress|  |
+| 111. Regression locks | 3/4 | In Progress|  |
 | 112. PR↔main gate shift-left | 0/? | Not started | - |
 | 103. Observability / Baseline | 4/4 | Complete    | 2026-06-20 |
 | 104. Cache & Tooling Hygiene | 4/4 | Complete    | 2026-06-21 |
