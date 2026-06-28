@@ -88,7 +88,9 @@ wall-clock and halving `:epipe` exposure on the PR critical path.
 **Invariants:** zero `lib/` change; `ci.yml` / `name: CI` unrenamed; `CI Summary` untouched; release
 full-verification gate unchanged.
 
-**Plans:** TBD
+**Plans:** 1 plan
+
+- [ ] 108-01-PLAN.md — single-run coverage across all 3 default-suite lanes (ci.yml + mix.exs + RUNNING.md)
 
 ---
 
