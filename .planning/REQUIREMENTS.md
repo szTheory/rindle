@@ -58,7 +58,7 @@ Source: `v1.21-REGRESSION-LOCKS.md`. Asserts **shipped artifacts only**, never `
 
 ### Truth fix (TRUTH)
 
-- [ ] **TRUTH-01**: PROJECT.md security-invariant 13's "Rambo on macOS/Windows dev" clause is corrected to reflect the actual MuonTrap-only subprocess path (no Rambo in `mix.lock`).
+- [x] **TRUTH-01**: PROJECT.md security-invariant 13's "Rambo on macOS/Windows dev" clause is corrected to reflect the actual MuonTrap-only subprocess path (no Rambo in `mix.lock`).
 
 ## Future Requirements
 
@@ -91,7 +91,7 @@ Populated during roadmap creation.
 | EPIPE-03 | Phase 109 — Subprocess `:epipe` hardening | Complete |
 | EPIPE-04 | Phase 109 — Subprocess `:epipe` hardening | Complete |
 | EPIPE-05 | Phase 109 — Subprocess `:epipe` hardening | Complete |
-| TRUTH-01 | Phase 109 — Subprocess `:epipe` hardening | Pending |
+| TRUTH-01 | Phase 109 — Subprocess `:epipe` hardening | Complete |
 | ISO-01 | Phase 110 — Async-isolation hardening | Pending |
 | ISO-02 | Phase 110 — Async-isolation hardening | Pending |
 | ISO-03 | Phase 110 — Async-isolation hardening | Pending |

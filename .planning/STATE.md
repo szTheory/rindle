@@ -4,17 +4,17 @@ milestone: v1.21
 milestone_name: CI/DX Reliability Tail
 current_phase: 109
 current_phase_name: subprocess-epipe-hardening
-status: executing
-stopped_at: Phase 109 context gathered
-last_updated: "2026-06-28T17:08:50.940Z"
+status: verifying
+stopped_at: Completed 109-02-PLAN.md
+last_updated: "2026-06-28T17:16:11.253Z"
 last_activity: 2026-06-28
 last_activity_desc: Phase 109 execution started
 progress:
   total_phases: 5
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 3
-  completed_plans: 2
-  percent: 20
+  completed_plans: 3
+  percent: 40
 ---
 
 # Project State
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-06-22 after v1.20)
 
 Phase: 109 (subprocess-epipe-hardening) — EXECUTING
 Plan: 2 of 2
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-06-28 — Phase 109 execution started
 
 ### v1.21 roadmap (Phases 108–112) — load-bearing dependency order
@@ -360,6 +360,8 @@ phases follow the research-locked order — de-flake (109, 110) → lock (111) �
 - [Phase ?]: 107-02: SHA-pinned all third-party actions; dependabot grouped/weekly non-release prefixes; mix_audit advisory in quality lane
 - [Phase ?]: 107-03: mix ci alias mirrors the merge-blocking PR set; MinIO/Playwright legs documented in CONTRIBUTING not embedded; README badge reflects CI Summary, no custom endpoint
 - [Phase ?]: 109-01 (EPIPE-01..05): run/3 delegates to @doc false run_isolated/5 — a spawn_monitor + trap_exit'd throwaway worker owns the MuonTrap port; a late {:EXIT, port, :epipe} (#98) is drained (after 0) and dies with the worker, never reaching the caller. Parent MONITORS (never traps), caller :trap_exit untouched (D-02). Bounded SINGLE pre-reply retry via explicit retries_left + one Logger.debug citing #98 (D-05/D-07); other :DOWN -> exit(reason) (D-06). build_args/3 + build_opts/2 byte-unchanged (EPIPE-02/03). Merge-blocking regression suite: deterministic synthetic + pre-reply retry + 300-iter yes|head stress (use_cgroups:false). :canary excluded from BOTH test_helper.exs branches (D-12, load-bearing for Plan 02). Deviation: retry test pins Logger.put_module_level(Subprocess, :debug) so the D-07 breadcrumb is captured (Rule 1, test-only).
+- [Phase ?]: EPIPE-05 cleanup: advisory MuonTrap #98 canary probes UNGUARDED MuonTrap.cmd/3, routed nightly-only (--include canary, continue-on-error), excluded from PR gate
+- [Phase ?]: TRUTH-01: PROJECT.md invariant 13 + Key-Decisions row corrected to MuonTrap-only path; enforced by a merge-blocking ci.yml grep (not an ExUnit test) for Phase 111 LOCK-05 compatibility
 
 ## Blockers/Concerns
 
@@ -397,8 +399,8 @@ outside v1.20 scope (Phases 103–107):
 
 ## Session Continuity
 
-Last session: 2026-06-28T17:07:49.254Z
-Stopped at: Phase 109 context gathered
+Last session: 2026-06-28T17:16:11.245Z
+Stopped at: Completed 109-02-PLAN.md
 Resume file: .planning/phases/109-subprocess-epipe-hardening/109-CONTEXT.md
 
 ## Performance Metrics
@@ -488,6 +490,7 @@ Resume file: .planning/phases/109-subprocess-epipe-hardening/109-CONTEXT.md
 | Phase 107 P03 | 8min | 2 tasks | 3 files |
 | Phase 107 P04 | 5 min | 2 tasks | 8 files |
 | Phase 109 P01 | 3 min | 3 tasks | 3 files |
+| Phase 109 P02 | 7min | 3 tasks | 4 files |
 
 ## Operator Next Steps
 

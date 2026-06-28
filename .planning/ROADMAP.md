@@ -138,7 +138,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 109-02-PLAN.md — advisory behavioral canary + nightly wiring + TRUTH-01 PROJECT.md correction + merge-blocking CI grep guard (EPIPE-05, TRUTH-01)
+- [x] 109-02-PLAN.md — advisory behavioral canary + nightly wiring + TRUTH-01 PROJECT.md correction + merge-blocking CI grep guard (EPIPE-05, TRUTH-01)
 
 ---
 
@@ -659,7 +659,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 108. Coverage single-run | 1/1 | Complete    | 2026-06-28 |
-| 109. Subprocess `:epipe` hardening | 1/2 | In Progress|  |
+| 109. Subprocess `:epipe` hardening | 2/2 | Complete   | 2026-06-28 |
 | 110. Async-isolation hardening | 0/? | Not started | - |
 | 111. Regression locks | 0/? | Not started | - |
 | 112. PR↔main gate shift-left | 0/? | Not started | - |
