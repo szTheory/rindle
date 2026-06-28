@@ -5,8 +5,8 @@ milestone_name: CI/DX Reliability Tail
 current_phase: 111
 current_phase_name: Regression locks
 status: verifying
-stopped_at: Phase 110 context gathered
-last_updated: "2026-06-28T19:15:55.445Z"
+stopped_at: Phase 111 context gathered
+last_updated: "2026-06-28T19:25:11.325Z"
 last_activity: 2026-06-28
 last_activity_desc: Phase 110 complete, transitioned to Phase 111
 progress:
@@ -405,9 +405,9 @@ outside v1.20 scope (Phases 103–107):
 
 ## Session Continuity
 
-Last session: 2026-06-28T19:05:40.685Z
-Stopped at: Phase 110 context gathered
-Resume file: .planning/phases/110-async-isolation-hardening/110-CONTEXT.md
+Last session: 2026-06-28T19:25:11.316Z
+Stopped at: Phase 111 context gathered
+Resume file: .planning/phases/111-regression-locks/111-CONTEXT.md
 
 ## Performance Metrics
 
