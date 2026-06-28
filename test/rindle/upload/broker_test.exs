@@ -11,6 +11,10 @@ defmodule Rindle.Upload.BrokerTest do
   import Ecto.Query
   import Mox
 
+  # why: swaps :rindle, :repo to an adopter/probe repo to exercise Config.repo/0
+  # resolution — not the counting-double cross-pollution; see Phase 110 D-09.
+  @async_safety_allow [:global_repo_swap]
+
   alias Ecto.Adapters.SQL.Sandbox
   alias Phoenix.PubSub
 

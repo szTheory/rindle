@@ -1,6 +1,12 @@
 defmodule Rindle.Config.ConfigTest do
   use ExUnit.Case, async: false
 
+  # why: deliberately swaps :rindle, :repo via Application.put_env to exercise the
+  # Application-env resolution path of Config.repo/0 itself (D-10) — MUST keep put_env
+  # (an override would shadow the env and invert the test); not the counting-double
+  # cross-pollution. See Phase 110 D-09/D-10.
+  @async_safety_allow [:global_repo_swap]
+
   test "returns queue and ttl defaults from application config" do
     assert :rindle == Rindle.Config.queue_name()
     assert 900 == Rindle.Config.signed_url_ttl_seconds()
