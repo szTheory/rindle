@@ -3,17 +3,17 @@ gsd_state_version: 1.0
 milestone: v1.21
 milestone_name: CI/DX Reliability Tail
 current_phase: 109
-current_phase_name: "Subprocess `:epipe` hardening"
+current_phase_name: subprocess-epipe-hardening
 status: executing
 stopped_at: Phase 109 context gathered
-last_updated: "2026-06-28T16:56:24.252Z"
+last_updated: "2026-06-28T17:08:50.940Z"
 last_activity: 2026-06-28
-last_activity_desc: Phase 108 complete, transitioned to Phase 109
+last_activity_desc: Phase 109 execution started
 progress:
   total_phases: 5
   completed_phases: 1
-  total_plans: 1
-  completed_plans: 1
+  total_plans: 3
+  completed_plans: 2
   percent: 20
 ---
 
@@ -24,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-22 after v1.20)
 
 **Core value:** Media, made durable.
-**Current focus:** Phase 108 — coverage-single-run
+**Current focus:** Phase 109 — subprocess-epipe-hardening
 
 ## Current Position
 
-Phase: 109 — Subprocess `:epipe` hardening
-Plan: Not started
+Phase: 109 (subprocess-epipe-hardening) — EXECUTING
+Plan: 2 of 2
 Status: Ready to execute
-Last activity: 2026-06-28 — Phase 108 complete, transitioned to Phase 109
+Last activity: 2026-06-28 — Phase 109 execution started
 
 ### v1.21 roadmap (Phases 108–112) — load-bearing dependency order
 
@@ -359,6 +359,7 @@ phases follow the research-locked order — de-flake (109, 110) → lock (111) �
 - [Phase 106]: Plan 02 — ci.yml gains a top-level concurrency group keyed per-workflow+per-ref (`group: ${{ github.workflow }}-${{ github.ref }}`) with `cancel-in-progress: ${{ github.event_name == 'pull_request' }}`: stale PR runs cancel; push:main/workflow_dispatch serialize and are never cancelled (preserves the release-coupling full-matrix push:main run conclusion that `release.yml gate-ci-green` reads, D-06/LANE-01). `name: CI` + filename unchanged; no job-level concurrency; no continue-on-error added. Single-file YAML edit, zero lib/ change.
 - [Phase ?]: 107-02: SHA-pinned all third-party actions; dependabot grouped/weekly non-release prefixes; mix_audit advisory in quality lane
 - [Phase ?]: 107-03: mix ci alias mirrors the merge-blocking PR set; MinIO/Playwright legs documented in CONTRIBUTING not embedded; README badge reflects CI Summary, no custom endpoint
+- [Phase ?]: 109-01 (EPIPE-01..05): run/3 delegates to @doc false run_isolated/5 — a spawn_monitor + trap_exit'd throwaway worker owns the MuonTrap port; a late {:EXIT, port, :epipe} (#98) is drained (after 0) and dies with the worker, never reaching the caller. Parent MONITORS (never traps), caller :trap_exit untouched (D-02). Bounded SINGLE pre-reply retry via explicit retries_left + one Logger.debug citing #98 (D-05/D-07); other :DOWN -> exit(reason) (D-06). build_args/3 + build_opts/2 byte-unchanged (EPIPE-02/03). Merge-blocking regression suite: deterministic synthetic + pre-reply retry + 300-iter yes|head stress (use_cgroups:false). :canary excluded from BOTH test_helper.exs branches (D-12, load-bearing for Plan 02). Deviation: retry test pins Logger.put_module_level(Subprocess, :debug) so the D-07 breadcrumb is captured (Rule 1, test-only).
 
 ## Blockers/Concerns
 
@@ -396,7 +397,7 @@ outside v1.20 scope (Phases 103–107):
 
 ## Session Continuity
 
-Last session: 2026-06-28T16:28:30.871Z
+Last session: 2026-06-28T17:07:49.254Z
 Stopped at: Phase 109 context gathered
 Resume file: .planning/phases/109-subprocess-epipe-hardening/109-CONTEXT.md
 
@@ -486,6 +487,7 @@ Resume file: .planning/phases/109-subprocess-epipe-hardening/109-CONTEXT.md
 | Phase 107 P02 | 12m | 2 tasks | 8 files |
 | Phase 107 P03 | 8min | 2 tasks | 3 files |
 | Phase 107 P04 | 5 min | 2 tasks | 8 files |
+| Phase 109 P01 | 3 min | 3 tasks | 3 files |
 
 ## Operator Next Steps
 

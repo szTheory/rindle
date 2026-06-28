@@ -134,7 +134,7 @@ run's broken-pipe race is the only `:epipe` source left to fix).
 Plans:
 **Wave 1**
 
-- [ ] 109-01-PLAN.md — `run_isolated/5` `:epipe` absorption shim + `:canary` test-helper exclude + merge-blocking regression suite (EPIPE-01..05)
+- [x] 109-01-PLAN.md — `run_isolated/5` `:epipe` absorption shim + `:canary` test-helper exclude + merge-blocking regression suite (EPIPE-01..05)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -659,7 +659,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 108. Coverage single-run | 1/1 | Complete    | 2026-06-28 |
-| 109. Subprocess `:epipe` hardening | 0/? | Not started | - |
+| 109. Subprocess `:epipe` hardening | 1/2 | In Progress|  |
 | 110. Async-isolation hardening | 0/? | Not started | - |
 | 111. Regression locks | 0/? | Not started | - |
 | 112. PR↔main gate shift-left | 0/? | Not started | - |

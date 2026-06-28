@@ -21,11 +21,11 @@ Source: `v1.21-COVERAGE-SINGLE-RUN.md`. CI/mix-config only; zero `lib/`.
 
 Source: `v1.21-SUBPROCESS-EPIPE.md`. Root cause: upstream MuonTrap #98. Adopter-invisible; ships `fix:`.
 
-- [ ] **EPIPE-01**: `Rindle.AV.Subprocess.run/3` never propagates `:epipe` (or any broken-pipe transport exit) to its caller; the caller still receives the real `{output, status}`.
-- [ ] **EPIPE-02**: The fix preserves the exact contract (`{collectable, status | :timeout}`, `into: ""`, `stderr_to_stdout: true`) and keeps security invariants 8–13 byte-equivalent at argv (`build_args`/`build_opts` unchanged; no shell); `Ffmpeg`/`Ffprobe` call sites unchanged.
-- [ ] **EPIPE-03**: A legitimate ffmpeg cap-hit early-exit (`-t`/`-fs`/`-timelimit`) is reported via its real exit status and never surfaces `:epipe`.
-- [ ] **EPIPE-04**: A deterministic `@tag :regression` repro reproduces the pre-fix `:epipe` (fails unpatched, passes patched); the two originally-flaking tests (`ffmpeg_test.exs:32`, `lifecycle_repair_test.exs:122`) pass **unmodified** after the fix.
-- [ ] **EPIPE-05**: The fix is forward-compatible with an upstream MuonTrap #98 resolution (degrades to a no-op; no leaked monitors/processes); a code comment cites #98.
+- [x] **EPIPE-01**: `Rindle.AV.Subprocess.run/3` never propagates `:epipe` (or any broken-pipe transport exit) to its caller; the caller still receives the real `{output, status}`.
+- [x] **EPIPE-02**: The fix preserves the exact contract (`{collectable, status | :timeout}`, `into: ""`, `stderr_to_stdout: true`) and keeps security invariants 8–13 byte-equivalent at argv (`build_args`/`build_opts` unchanged; no shell); `Ffmpeg`/`Ffprobe` call sites unchanged.
+- [x] **EPIPE-03**: A legitimate ffmpeg cap-hit early-exit (`-t`/`-fs`/`-timelimit`) is reported via its real exit status and never surfaces `:epipe`.
+- [x] **EPIPE-04**: A deterministic `@tag :regression` repro reproduces the pre-fix `:epipe` (fails unpatched, passes patched); the two originally-flaking tests (`ffmpeg_test.exs:32`, `lifecycle_repair_test.exs:122`) pass **unmodified** after the fix.
+- [x] **EPIPE-05**: The fix is forward-compatible with an upstream MuonTrap #98 resolution (degrades to a no-op; no leaked monitors/processes); a code comment cites #98.
 
 ### PR↔main gate-coverage gap (GATE)
 
@@ -86,11 +86,11 @@ Populated during roadmap creation.
 | COV-02 | Phase 108 — Coverage single-run | Complete |
 | COV-03 | Phase 108 — Coverage single-run | Complete |
 | COV-04 | Phase 108 — Coverage single-run | Complete |
-| EPIPE-01 | Phase 109 — Subprocess `:epipe` hardening | Pending |
-| EPIPE-02 | Phase 109 — Subprocess `:epipe` hardening | Pending |
-| EPIPE-03 | Phase 109 — Subprocess `:epipe` hardening | Pending |
-| EPIPE-04 | Phase 109 — Subprocess `:epipe` hardening | Pending |
-| EPIPE-05 | Phase 109 — Subprocess `:epipe` hardening | Pending |
+| EPIPE-01 | Phase 109 — Subprocess `:epipe` hardening | Complete |
+| EPIPE-02 | Phase 109 — Subprocess `:epipe` hardening | Complete |
+| EPIPE-03 | Phase 109 — Subprocess `:epipe` hardening | Complete |
+| EPIPE-04 | Phase 109 — Subprocess `:epipe` hardening | Complete |
+| EPIPE-05 | Phase 109 — Subprocess `:epipe` hardening | Complete |
 | TRUTH-01 | Phase 109 — Subprocess `:epipe` hardening | Pending |
 | ISO-01 | Phase 110 — Async-isolation hardening | Pending |
 | ISO-02 | Phase 110 — Async-isolation hardening | Pending |
