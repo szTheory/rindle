@@ -69,11 +69,20 @@ done
 # --- Browser-in-container against the SAME pinned image as CI (D-10) ----------
 # --network=host: container localhost == host Phoenix server (no baseURL edit).
 # The demo's reuse-server knob keeps Playwright from spawning its own webServer.
+# ADOPTION_DEMO_E2E_SPECS (GATE-01): optional space-separated list of spec files to
+# scope the run. UNSET -> expands to empty -> byte-equivalent to the full-suite
+# invocation (`npx playwright test --config=playwright.config.js` with no positional
+# spec). SET (e.g. "e2e/smoke.spec.js e2e/admin-console.spec.js") -> Playwright runs
+# only those positional spec files. The var is left UNQUOTED in the playwright command
+# so word-splitting yields each spec path as a separate positional argument; quoting it
+# would collapse the two specs into one bogus path. The lean ci.yml smoke lane sets it;
+# the full adoption-demo-e2e lane leaves it unset (full suite, unchanged).
 docker run --rm --ipc=host --network=host \
   -v "${repo_root}:/work" -w /work/examples/adoption_demo \
   -e CI=1 \
   -e ADOPTION_DEMO_PRESEEDED=1 \
   -e ADOPTION_DEMO_REUSE_SERVER=1 \
   -e ADOPTION_DEMO_BROWSER_PORT="${demo_port}" \
+  -e ADOPTION_DEMO_E2E_SPECS="${ADOPTION_DEMO_E2E_SPECS:-}" \
   "${PLAYWRIGHT_IMAGE}" \
-  sh -c "npm ci && ADOPTION_DEMO_BROWSER_PORT=${demo_port} npx playwright test --config=playwright.config.js"
+  sh -c "npm ci && ADOPTION_DEMO_BROWSER_PORT=${demo_port} npx playwright test --config=playwright.config.js ${ADOPTION_DEMO_E2E_SPECS:-}"
