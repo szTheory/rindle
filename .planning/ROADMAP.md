@@ -178,7 +178,13 @@ the gate shift-left in Phase 112).
 **Invariants:** authorized adopter-invisible `lib/rindle/config.ex` touch (D-v1.21-01), default
 branch byte-unchanged, ships `fix:` → 0.3.2; adopter-first repo ownership preserved.
 
-**Plans:** TBD
+**Plans:** 4 plans
+
+Plans:
+- [ ] 110-01-PLAN.md — Config.repo/0 $callers-aware process-dict override + put_repo_override/1 / delete_repo_override/0 setters (ISO-01, ISO-02)
+- [ ] 110-02-PLAN.md — migrate with_counting_repo/2 + fail config to the process dict; revert 3 modules to async: true (ISO-03)
+- [ ] 110-03-PLAN.md — :global_repo_swap guard rule + all-modules scan path + allowlist the 9 legitimate swappers (ISO-04)
+- [ ] 110-04-PLAN.md — ISO-05 concurrency isolation proof test (process A double vs unrelated process B reader)
 
 ---
 
