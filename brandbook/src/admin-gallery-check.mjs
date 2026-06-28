@@ -22,7 +22,7 @@ const { chromium } = adoptionRequire('playwright');
 // load them through the SAME createRequire used for playwright (the gallery meta units
 // are the surface where [data-rindle-admin-meta] actually exists, so this is the real
 // proof that intra-unit rhythm is on-grid and no unit root overflows horizontally).
-const { assertConsistentRhythm, assertNoHorizontalScroll } = adoptionRequire(
+const { assertConsistentRhythm, assertNoHorizontalScroll, focusVisibly } = adoptionRequire(
   join(repoRoot, 'examples', 'adoption_demo', 'e2e', 'support', 'admin-polish.js'),
 );
 
@@ -165,17 +165,16 @@ const assertFocusVisibleTokens = async (page) => {
     '[data-rindle-admin-confirm-input]',
     '.rindle-admin-table__row',
   ];
-  // Enter keyboard modality before measuring. `:focus-visible` does not reliably match
-  // programmatic `.focus()` in headless Chromium unless the page has seen a keyboard
-  // interaction — and `focusVisible: true` honouring varies across Chromium builds. A real
-  // Tab press flips Chromium into keyboard-focus mode so the subsequent programmatic focuses
-  // deterministically match `:focus-visible` (fixes an intermittent "outline 0px" CI flake).
-  await page.keyboard.press('Tab');
-
+  // Enter keyboard modality and focus via the shared focusVisibly helper (imported from
+  // admin-polish.js above). `:focus-visible` does not reliably match programmatic `.focus()`
+  // in headless Chromium unless the page has seen a keyboard interaction — and `focusVisible`
+  // honouring varies across Chromium builds. focusVisibly presses a real Tab then focuses so
+  // the ring deterministically matches `:focus-visible` (fixes an intermittent "outline 0px"
+  // CI flake). Routing through the single helper removes the per-site modality copy (LOCK-03).
   const failures = [];
   for (const selector of selectors) {
     const locator = page.locator(selector).first();
-    await locator.evaluate((element) => element.focus({ focusVisible: true }));
+    await focusVisibly(page, locator);
     const state = await locator.evaluate((element) => {
       const styles = getComputedStyle(element);
       const rootStyles = getComputedStyle(document.documentElement);
