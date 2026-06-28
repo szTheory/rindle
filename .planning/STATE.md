@@ -4,17 +4,17 @@ milestone: v1.21
 milestone_name: CI/DX Reliability Tail
 current_phase: 110
 current_phase_name: async-isolation-hardening
-status: executing
+status: verifying
 stopped_at: Phase 110 context gathered
-last_updated: "2026-06-28T18:59:24.427Z"
+last_updated: "2026-06-28T19:06:11.278Z"
 last_activity: 2026-06-28
 last_activity_desc: Phase 110 execution started
 progress:
   total_phases: 5
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 7
-  completed_plans: 6
-  percent: 40
+  completed_plans: 7
+  percent: 60
 ---
 
 # Project State
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-06-22 after v1.20)
 
 Phase: 110 (async-isolation-hardening) — EXECUTING
 Plan: 4 of 4
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-06-28 — Phase 110 execution started
 
 ### v1.21 roadmap (Phases 108–112) — load-bearing dependency order
@@ -366,6 +366,8 @@ phases follow the research-locked order — de-flake (109, 110) → lock (111) �
 - [Phase ?]: D-110-02: CountingFailingTxnRepo is process-scoped (repo via Config.put_repo_override/1, fail-config in process dict); no global :rindle,:repo swap remains (ISO-03)
 - [Phase ?]: D-110-02: re-promoted StreamingDispatchTest/OwnerErasureBatchProofTest/BatchOwnerErasureTaskTest to async: true; D-06 doubles' modules stay async: false
 - [Phase ?]: 110-03 (ISO-04): async-safety guard gains a :global_repo_swap rule + all-modules scan (parse_all_modules/1, async-flag-agnostic) flagging Application.put_env/delete_env(:rindle,:repo) anywhere in test/ (msg -> Config.put_repo_override/1); pins [:rindle,:repo|_] so :repo_probe_owner/:counting_failing_txn_repo NOT flagged (D-11). 9 swappers allowlisted (config_test keeps put_env D-10; lifecycle_integration allow in 2nd module); counting double NOT allowlisted. Negative probe RED then reverted; 3/0 green; test: commits.
+- [Phase ?]: D-04-02: fixed Rindle.Config callers dict read (Keyword.get to List.keyfind) for the tuple override key; surfaced by ISO-05 proof; fix bundles into 0.3.2
+- [Phase ?]: D-04-01: ISO-05 reader B uses a bare spawn (no callers link), not Task.async, because with_counting_repo runs inline so process A is the test process
 
 ## Blockers/Concerns
 
@@ -403,7 +405,7 @@ outside v1.20 scope (Phases 103–107):
 
 ## Session Continuity
 
-Last session: 2026-06-28T18:58:10.307Z
+Last session: 2026-06-28T19:05:40.685Z
 Stopped at: Phase 110 context gathered
 Resume file: .planning/phases/110-async-isolation-hardening/110-CONTEXT.md
 
@@ -498,6 +500,7 @@ Resume file: .planning/phases/110-async-isolation-hardening/110-CONTEXT.md
 | Phase 110 P01 | 1 min | 2 tasks | 1 files |
 | Phase 110 P02 | 6 min | 2 tasks | 4 files |
 | Phase 110 P03 | 4 min | 2 tasks | 10 files |
+| Phase 110 P04 | 3min | 1 tasks | 2 files |
 
 ## Operator Next Steps
 

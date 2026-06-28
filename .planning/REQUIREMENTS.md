@@ -44,7 +44,7 @@ Source: `v1.21-ASYNC-ISOLATION.md`. One private fn in `config.ex`; adopter-invis
 - [x] **ISO-02**: Test-only `Config.put_repo_override/1` + `delete_repo_override/0` set/clear the per-process override (process-dictionary only; no global state).
 - [x] **ISO-03**: `with_counting_repo/2` uses the process override and performs **no** `Application.put_env(:rindle, :repo, …)`; defensive `async: false` demotions caused by the old global swap are reverted (e.g. `StreamingDispatchTest` restored to `async: true`).
 - [x] **ISO-04**: The v1.20 async-safety guard gains a `:global_repo_swap` rule that flags `Application.put_env/delete_env(:rindle, :repo, …)` in **any** test module, with a message pointing to `put_repo_override/1` (closes the structural guard gap).
-- [ ] **ISO-05**: A concurrency regression test proves isolation: the counting double in process A force-fails its transaction while an unrelated spawned process B reads `Config.repo() == Rindle.Repo` and its transaction succeeds; the test fails on the old impl and passes on the new.
+- [x] **ISO-05**: A concurrency regression test proves isolation: the counting double in process A force-fails its transaction while an unrelated spawned process B reads `Config.repo() == Rindle.Repo` and its transaction succeeds; the test fails on the old impl and passes on the new.
 
 ### Regression locks (LOCK)
 
@@ -96,7 +96,7 @@ Populated during roadmap creation.
 | ISO-02 | Phase 110 — Async-isolation hardening | Complete |
 | ISO-03 | Phase 110 — Async-isolation hardening | Complete |
 | ISO-04 | Phase 110 — Async-isolation hardening | Complete |
-| ISO-05 | Phase 110 — Async-isolation hardening | Pending |
+| ISO-05 | Phase 110 — Async-isolation hardening | Complete |
 | LOCK-01 | Phase 111 — Regression locks | Pending |
 | LOCK-02 | Phase 111 — Regression locks | Pending |
 | LOCK-03 | Phase 111 — Regression locks | Pending |
