@@ -5,8 +5,8 @@ milestone_name: CI/DX Reliability Tail
 current_phase: 110
 current_phase_name: Async-isolation hardening
 status: verifying
-stopped_at: Completed 109-02-PLAN.md
-last_updated: "2026-06-28T17:31:43.689Z"
+stopped_at: Phase 110 context gathered
+last_updated: "2026-06-28T17:45:26.881Z"
 last_activity: 2026-06-28
 last_activity_desc: Phase 109 complete, transitioned to Phase 110
 progress:
@@ -399,9 +399,9 @@ outside v1.20 scope (Phases 103–107):
 
 ## Session Continuity
 
-Last session: 2026-06-28T17:16:11.245Z
-Stopped at: Completed 109-02-PLAN.md
-Resume file: .planning/phases/109-subprocess-epipe-hardening/109-CONTEXT.md
+Last session: 2026-06-28T17:45:26.872Z
+Stopped at: Phase 110 context gathered
+Resume file: .planning/phases/110-async-isolation-hardening/110-CONTEXT.md
 
 ## Performance Metrics
 
