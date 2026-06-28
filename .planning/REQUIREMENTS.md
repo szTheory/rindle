@@ -40,8 +40,8 @@ Source: `v1.21-PR-MAIN-GATE-GAP.md`. CI-only; zero `lib/`.
 
 Source: `v1.21-ASYNC-ISOLATION.md`. One private fn in `config.ex`; adopter-invisible; default branch byte-unchanged.
 
-- [ ] **ISO-01**: `Rindle.Config.repo/0` consults a `$callers`-aware process-dictionary override (covering spawned Tasks / inline Oban) **before** the application env; behavior is unchanged when no override is set.
-- [ ] **ISO-02**: Test-only `Config.put_repo_override/1` + `delete_repo_override/0` set/clear the per-process override (process-dictionary only; no global state).
+- [x] **ISO-01**: `Rindle.Config.repo/0` consults a `$callers`-aware process-dictionary override (covering spawned Tasks / inline Oban) **before** the application env; behavior is unchanged when no override is set.
+- [x] **ISO-02**: Test-only `Config.put_repo_override/1` + `delete_repo_override/0` set/clear the per-process override (process-dictionary only; no global state).
 - [ ] **ISO-03**: `with_counting_repo/2` uses the process override and performs **no** `Application.put_env(:rindle, :repo, …)`; defensive `async: false` demotions caused by the old global swap are reverted (e.g. `StreamingDispatchTest` restored to `async: true`).
 - [ ] **ISO-04**: The v1.20 async-safety guard gains a `:global_repo_swap` rule that flags `Application.put_env/delete_env(:rindle, :repo, …)` in **any** test module, with a message pointing to `put_repo_override/1` (closes the structural guard gap).
 - [ ] **ISO-05**: A concurrency regression test proves isolation: the counting double in process A force-fails its transaction while an unrelated spawned process B reads `Config.repo() == Rindle.Repo` and its transaction succeeds; the test fails on the old impl and passes on the new.
@@ -92,8 +92,8 @@ Populated during roadmap creation.
 | EPIPE-04 | Phase 109 — Subprocess `:epipe` hardening | Complete |
 | EPIPE-05 | Phase 109 — Subprocess `:epipe` hardening | Complete |
 | TRUTH-01 | Phase 109 — Subprocess `:epipe` hardening | Complete |
-| ISO-01 | Phase 110 — Async-isolation hardening | Pending |
-| ISO-02 | Phase 110 — Async-isolation hardening | Pending |
+| ISO-01 | Phase 110 — Async-isolation hardening | Complete |
+| ISO-02 | Phase 110 — Async-isolation hardening | Complete |
 | ISO-03 | Phase 110 — Async-isolation hardening | Pending |
 | ISO-04 | Phase 110 — Async-isolation hardening | Pending |
 | ISO-05 | Phase 110 — Async-isolation hardening | Pending |

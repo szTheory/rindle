@@ -3,17 +3,17 @@ gsd_state_version: 1.0
 milestone: v1.21
 milestone_name: CI/DX Reliability Tail
 current_phase: 110
-current_phase_name: Async-isolation hardening
-status: verifying
+current_phase_name: async-isolation-hardening
+status: executing
 stopped_at: Phase 110 context gathered
-last_updated: "2026-06-28T17:45:26.881Z"
+last_updated: "2026-06-28T18:45:39.891Z"
 last_activity: 2026-06-28
-last_activity_desc: Phase 109 complete, transitioned to Phase 110
+last_activity_desc: Phase 110 execution started
 progress:
   total_phases: 5
   completed_phases: 2
-  total_plans: 3
-  completed_plans: 3
+  total_plans: 7
+  completed_plans: 4
   percent: 40
 ---
 
@@ -24,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-22 after v1.20)
 
 **Core value:** Media, made durable.
-**Current focus:** Phase 109 — subprocess-epipe-hardening
+**Current focus:** Phase 110 — async-isolation-hardening
 
 ## Current Position
 
-Phase: 110 — Async-isolation hardening
-Plan: Not started
-Status: Phase complete — ready for verification
-Last activity: 2026-06-28 — Phase 109 complete, transitioned to Phase 110
+Phase: 110 (async-isolation-hardening) — EXECUTING
+Plan: 2 of 4
+Status: Ready to execute
+Last activity: 2026-06-28 — Phase 110 execution started
 
 ### v1.21 roadmap (Phases 108–112) — load-bearing dependency order
 
@@ -362,6 +362,7 @@ phases follow the research-locked order — de-flake (109, 110) → lock (111) �
 - [Phase ?]: 109-01 (EPIPE-01..05): run/3 delegates to @doc false run_isolated/5 — a spawn_monitor + trap_exit'd throwaway worker owns the MuonTrap port; a late {:EXIT, port, :epipe} (#98) is drained (after 0) and dies with the worker, never reaching the caller. Parent MONITORS (never traps), caller :trap_exit untouched (D-02). Bounded SINGLE pre-reply retry via explicit retries_left + one Logger.debug citing #98 (D-05/D-07); other :DOWN -> exit(reason) (D-06). build_args/3 + build_opts/2 byte-unchanged (EPIPE-02/03). Merge-blocking regression suite: deterministic synthetic + pre-reply retry + 300-iter yes|head stress (use_cgroups:false). :canary excluded from BOTH test_helper.exs branches (D-12, load-bearing for Plan 02). Deviation: retry test pins Logger.put_module_level(Subprocess, :debug) so the D-07 breadcrumb is captured (Rule 1, test-only).
 - [Phase ?]: EPIPE-05 cleanup: advisory MuonTrap #98 canary probes UNGUARDED MuonTrap.cmd/3, routed nightly-only (--include canary, continue-on-error), excluded from PR gate
 - [Phase ?]: TRUTH-01: PROJECT.md invariant 13 + Key-Decisions row corrected to MuonTrap-only path; enforced by a merge-blocking ci.yml grep (not an ExUnit test) for Phase 111 LOCK-05 compatibility
+- [Phase ?]: 110-01 (ISO-01/ISO-02): Config.repo/0 resolves a $callers-aware process-dict override (@repo_override_key {Rindle.Config, :repo_override}) BEFORE Application.get_env(:rindle, :repo, Rindle.Repo); default branch byte-unchanged, walk runs only when an override present. put_repo_override/1 + delete_repo_override/0 are @doc false test-only process-dict setters (no Application.put_env/delete_env). Landed as fix: commits for Hex 0.3.2 patch (D-13/D-v1.21-01). config_test.exs green unchanged.
 
 ## Blockers/Concerns
 
@@ -399,7 +400,7 @@ outside v1.20 scope (Phases 103–107):
 
 ## Session Continuity
 
-Last session: 2026-06-28T17:45:26.872Z
+Last session: 2026-06-28T18:45:27.136Z
 Stopped at: Phase 110 context gathered
 Resume file: .planning/phases/110-async-isolation-hardening/110-CONTEXT.md
 
@@ -491,6 +492,7 @@ Resume file: .planning/phases/110-async-isolation-hardening/110-CONTEXT.md
 | Phase 107 P04 | 5 min | 2 tasks | 8 files |
 | Phase 109 P01 | 3 min | 3 tasks | 3 files |
 | Phase 109 P02 | 7min | 3 tasks | 4 files |
+| Phase 110 P01 | 1 min | 2 tasks | 1 files |
 
 ## Operator Next Steps
 
