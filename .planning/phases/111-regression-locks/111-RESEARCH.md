@@ -335,17 +335,17 @@ This is a meta-test/refactor phase, but no runtime state migration applies — t
 
 **This table is empty by intent — every factual claim was grep/read-confirmed on 2026-06-28. No `[ASSUMED]` claims.**
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **LOCK-04 dual-assert mechanics: count-based vs region-scoped.**
-   - What we know: post-dedupe there is exactly ONE `focusVisible: true` literal (in `focusVisibly`), zero in the gallery.
+   - What we know: post-dedupe there is exactly ONE `focus({ focusVisible: true })` call-form (in `focusVisibly`), zero in the gallery.
    - What's unclear: whether the planner prefers count-assertion (`admin-polish.js`==1, gallery==0) or helper-body region-scoping.
-   - Recommendation: count-based (simpler, stronger, catches a 4th copy in either file). Documented in Pattern 2.
+   - RESOLVED: count-based on the code call-form `focus({ focusVisible: true })` (not the bare `focusVisible: true`, which also appears in comments) — simpler, stronger, catches a 4th copy in either file. Locked into plan 111-04. Documented in Pattern 2.
 
 2. **`focusVisibly` blur-first behavior (site 1 preservation).**
    - What we know: site 1 blurs-if-active before focusing; D-02's helper spec omits it.
    - What's unclear: whether the blur is load-bearing for `assertFocusVisibleTokens`.
-   - Recommendation: helper always blurs-first-if-active (idempotent, safe for all 3 sites). Pitfall 2.
+   - RESOLVED: helper always blurs-first-if-active (idempotent, safe for all 3 sites). Locked into plan 111-03. Pitfall 2.
 
 ## Environment Availability
 
