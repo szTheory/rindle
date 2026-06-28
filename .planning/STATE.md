@@ -3,17 +3,17 @@ gsd_state_version: 1.0
 milestone: v1.21
 milestone_name: CI/DX Reliability Tail
 current_phase: 111
-current_phase_name: Regression locks
-status: verifying
+current_phase_name: regression-locks
+status: executing
 stopped_at: Phase 111 context gathered
-last_updated: "2026-06-28T19:25:11.325Z"
+last_updated: "2026-06-28T20:55:11.136Z"
 last_activity: 2026-06-28
-last_activity_desc: Phase 110 complete, transitioned to Phase 111
+last_activity_desc: Phase 111 execution started
 progress:
   total_phases: 5
   completed_phases: 3
-  total_plans: 7
-  completed_plans: 7
+  total_plans: 11
+  completed_plans: 8
   percent: 60
 ---
 
@@ -24,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-22 after v1.20)
 
 **Core value:** Media, made durable.
-**Current focus:** Phase 110 — async-isolation-hardening
+**Current focus:** Phase 111 — regression-locks
 
 ## Current Position
 
-Phase: 111 — Regression locks
-Plan: Not started
-Status: Phase complete — ready for verification
-Last activity: 2026-06-28 — Phase 110 complete, transitioned to Phase 111
+Phase: 111 (regression-locks) — EXECUTING
+Plan: 2 of 4
+Status: Ready to execute
+Last activity: 2026-06-28 — Phase 111 execution started
 
 ### v1.21 roadmap (Phases 108–112) — load-bearing dependency order
 
@@ -368,6 +368,7 @@ phases follow the research-locked order — de-flake (109, 110) → lock (111) �
 - [Phase ?]: 110-03 (ISO-04): async-safety guard gains a :global_repo_swap rule + all-modules scan (parse_all_modules/1, async-flag-agnostic) flagging Application.put_env/delete_env(:rindle,:repo) anywhere in test/ (msg -> Config.put_repo_override/1); pins [:rindle,:repo|_] so :repo_probe_owner/:counting_failing_txn_repo NOT flagged (D-11). 9 swappers allowlisted (config_test keeps put_env D-10; lifecycle_integration allow in 2nd module); counting double NOT allowlisted. Negative probe RED then reverted; 3/0 green; test: commits.
 - [Phase ?]: D-04-02: fixed Rindle.Config callers dict read (Keyword.get to List.keyfind) for the tuple override key; surfaced by ISO-05 proof; fix bundles into 0.3.2
 - [Phase ?]: D-04-01: ISO-05 reader B uses a bare spawn (no callers link), not Task.async, because with_counting_repo runs inline so process A is the test process
+- [Phase ?]: 111-01: LOCK-01 ships as sibling install_smoke_preflight_test.exs; order index uses bare 'mix archive.install hex phx_new' substring; LOCK-05 globs broader test/**/*.exs and assembles its .planning regex at runtime to avoid self-flagging
 
 ## Blockers/Concerns
 
@@ -405,7 +406,7 @@ outside v1.20 scope (Phases 103–107):
 
 ## Session Continuity
 
-Last session: 2026-06-28T19:25:11.316Z
+Last session: 2026-06-28T20:54:57.865Z
 Stopped at: Phase 111 context gathered
 Resume file: .planning/phases/111-regression-locks/111-CONTEXT.md
 
@@ -501,6 +502,7 @@ Resume file: .planning/phases/111-regression-locks/111-CONTEXT.md
 | Phase 110 P02 | 6 min | 2 tasks | 4 files |
 | Phase 110 P03 | 4 min | 2 tasks | 10 files |
 | Phase 110 P04 | 3min | 1 tasks | 2 files |
+| Phase 111 P01 | 1 | 2 tasks | 2 files |
 
 ## Operator Next Steps
 
