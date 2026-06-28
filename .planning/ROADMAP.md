@@ -222,7 +222,13 @@ required checks; asserts shipped artifacts only — never `.planning/`.
 
 **UI hint:** yes
 
-**Plans:** TBD
+**Plans:** 4 plans
+
+Plans:
+- [ ] 111-01-PLAN.md — LOCK-01 (install_smoke phx.new self-install guard meta-test) + LOCK-05 (`.planning/`-path hygiene meta-test) [wave 1]
+- [ ] 111-02-PLAN.md — LOCK-02 (package-consumer cold-path phx.new archive purge step in ci.yml) [wave 1]
+- [ ] 111-03-PLAN.md — LOCK-03 (dedupe the Tab-first `focusVisibly` helper across admin-polish.js + gallery) [wave 1]
+- [ ] 111-04-PLAN.md — LOCK-04 (post-dedupe focus-visible modality guard meta-test, count-based) [wave 2, depends on 111-03]
 
 ---
 

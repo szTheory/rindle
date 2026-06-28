@@ -49,11 +49,11 @@ LOCK-02 is a CI `run:` step (no ExUnit test) — exercised by the
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| {planner fills} | — | — | LOCK-01 | — | phx.new probe+self-install stays, precedes smoke | meta-test (scan) | `mix test test/install_smoke/...` | ❌ W0 | ⬜ pending |
-| {planner fills} | — | — | LOCK-02 | — | phx.new archive purged before package-consumer smoke | CI step (read ci.yml) | n/a (CI) | ❌ W0 | ⬜ pending |
-| {planner fills} | — | — | LOCK-03 | — | single `focusVisibly` helper exported + consumed by all sites | refactor (sites call helper) | `mix test test/focus_visible_modality_guard_test.exs` | ❌ W0 | ⬜ pending |
-| {planner fills} | — | — | LOCK-04 | — | Tab-first at every focusVisible site; no raw call outside helper | meta-test (scan) | `mix test test/focus_visible_modality_guard_test.exs` | ❌ W0 | ⬜ pending |
-| {planner fills} | — | — | LOCK-05 | — | no `test/**/*.exs` reads a `.planning/` path | meta-test (glob) | `mix test test/planning_path_hygiene_test.exs` | ❌ W0 | ⬜ pending |
+| 111-01 / Task 1 | 111-01 | 1 | LOCK-01 | T-111-02 | phx.new probe+self-install stays, precedes smoke | meta-test (scan) | `mix test test/install_smoke/install_smoke_preflight_test.exs` | ❌ W0 (this task creates it) | ⬜ pending |
+| 111-02 / Task 1 | 111-02 | 1 | LOCK-02 | T-111-04, T-111-05 | phx.new archive purged before package-consumer smoke | CI step (read ci.yml) | `grep -n 'mix archive.uninstall phx_new --force' .github/workflows/ci.yml` | ❌ W0 (this task adds it) | ⬜ pending |
+| 111-03 / Task 1+2 | 111-03 | 1 | LOCK-03 | T-111-06, T-111-07, T-111-08 | single `focusVisibly` helper exported + consumed by all sites | refactor (sites call helper) | `node --check` both files; call-form count admin-polish.js==1, gallery==0 | ❌ W0 (this task creates the helper) | ⬜ pending |
+| 111-04 / Task 1 | 111-04 | 2 | LOCK-04 | T-111-09, T-111-10, T-111-11 | Tab-first in helper; no raw call-form outside helper (count-based) | meta-test (scan) | `mix test test/focus_visible_modality_guard_test.exs` | ❌ W0 (this task creates it; depends on 111-03) | ⬜ pending |
+| 111-01 / Task 2 | 111-01 | 1 | LOCK-05 | T-111-01, T-111-03 | no `test/**/*.exs` reads a `.planning/` path | meta-test (glob) | `mix test test/planning_path_hygiene_test.exs` | ❌ W0 (this task creates it) | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
