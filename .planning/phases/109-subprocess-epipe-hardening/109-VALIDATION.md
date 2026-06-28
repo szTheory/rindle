@@ -1,8 +1,8 @@
 ---
 phase: 109
 slug: subprocess-epipe-hardening
-status: draft
-nyquist_compliant: false
+status: approved
+nyquist_compliant: true
 wave_0_complete: false
 created: 2026-06-28
 ---
@@ -49,7 +49,7 @@ created: 2026-06-28
 | EPIPE-05 | post-Wave 0 | forward-compatible no-op; no double-handling / leaked monitors | code comment (D-13) + demonitor/drain proven by synthetic | covered by EPIPE-01 synthetic | merge-blocking | ❌ W0 |
 | D-09 | n/a | two originally-flaking tests pass UNMODIFIED | regression (no edits to those files) | `mix test test/rindle/processor/ffmpeg_test.exs:32 test/rindle/ops/lifecycle_repair_test.exs:122` | merge-blocking | ✅ (byte-identical) |
 | cleanup signal | post-Wave 0 | MuonTrap #98 still reproduces (remove-shim trigger) | behavioral canary | `mix test test/rindle/av/subprocess_epipe_canary_test.exs --include canary` | **ADVISORY (nightly)** | ❌ W0 |
-| TRUTH-01 | post-Wave 0 | invariant 13 / Key-Decisions prose corrected | doc assertion (ExUnit reads PROJECT.md) | asserts `Rambo` absent from invariant 13 + `FFmpex + MuonTrap` absent from Key-Decisions | merge-blocking | ❌ W0 |
+| TRUTH-01 | post-Wave 0 | invariant 13 / Key-Decisions prose corrected | CI grep step (`quality` lane) — NOT ExUnit, avoids Phase 111 LOCK-05 collision | asserts `Rambo` absent from invariant 13 + `FFmpex + MuonTrap` absent from Key-Decisions | merge-blocking | ❌ W0 |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -60,7 +60,7 @@ created: 2026-06-28
 - [ ] `test/rindle/av/subprocess_epipe_test.exs` — deterministic synthetic (RESEARCH §1) + real stress (§2); covers EPIPE-01/04/05
 - [ ] `test/rindle/av/subprocess_epipe_canary_test.exs` — advisory canary (§3); cleanup signal
 - [ ] `test/test_helper.exs` — add `:canary` to both exclude branches (§4 step 1) — **LOAD-BEARING** (a bare `@tag :canary` would otherwise gate PRs)
-- [ ] TRUTH-01 doc-assertion test (or CI grep step) — asserts the corrected prose landed and guards regression
+- [ ] TRUTH-01 CI grep step in the merge-blocking `quality` lane — asserts the corrected prose landed and guards regression (NOT an ExUnit test reading `.planning/` — would collide with Phase 111 LOCK-05)
 
 *ExUnit ships with Elixir — no framework install needed.*
 
@@ -78,12 +78,12 @@ created: 2026-06-28
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 45s
-- [ ] `:canary` excluded from default `mix test` (PR gate safety, D-12)
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 45s (stress test ~30-45s — watch CI p95; drop to 200-iter floor if it regresses)
+- [x] `:canary` excluded from default `mix test` (PR gate safety, D-12)
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-06-28 (gsd-plan-checker Dim 8 PASS)

@@ -103,9 +103,15 @@ The canary uses `Application.spec(:muontrap, :vsn)` in its loud-failure message 
 
 ---
 
-### `test/install_smoke/docs_parity_test.exs` (test, docs-parity — TRUTH-01 guard)
+### `test/install_smoke/docs_parity_test.exs` (test, docs-parity — TRUTH-01 guard) — SUPERSEDED
 
-**Analog:** self — extend this existing file with a TRUTH-01 assertion (RESEARCH Open Question 1 recommends extending an existing docs-parity test over a CI grep step).
+> **SUPERSEDED by planning decision:** TRUTH-01 is enforced via a **CI grep step in the merge-blocking
+> `quality` lane** (see 109-02-PLAN.md), NOT an ExUnit doc-assertion test. An ExUnit test reading
+> `.planning/PROJECT.md` would collide with **Phase 111 LOCK-05** (a meta-test banning tests that read
+> `.planning/` paths). The pattern below is retained only as reference for the affirm-new/deny-stale
+> string shape the grep guard mirrors — do NOT add this as an ExUnit test.
+
+**Analog (reference only):** self — the existing docs-parity file's read+assert/refute shape.
 
 **File-read + assert/refute-string pattern to copy** (`test/install_smoke/docs_parity_test.exs:7,32-43,286-295`):
 ```elixir

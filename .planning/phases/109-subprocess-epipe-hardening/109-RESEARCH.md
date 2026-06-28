@@ -612,13 +612,18 @@ test_helper.exs, nightly.yml, ffmpeg.ex/ffprobe.ex/ffmpeg_test.exs/lifecycle_rep
 
 ## Open Questions
 
-1. **TRUTH-01 enforcement: doc-assertion test vs CI grep step?**
+1. **TRUTH-01 enforcement: doc-assertion test vs CI grep step? — RESOLVED (CI grep step).**
    - What we know: a cheap grep (`Rambo` absent from invariant 13; `FFmpex + MuonTrap` absent from
      Key-Decisions) proves the edit landed and guards against regression.
-   - What's unclear: whether the planner wants this as an ExUnit test (e.g. extend an existing
-     docs-parity test like `test/install_smoke/docs_parity_test.exs`) or a CI shell step.
-   - Recommendation: a small ExUnit assertion in the merge-blocking suite (reads `PROJECT.md`,
-     asserts the strings) — keeps the guard in the same lane as the rest and is self-documenting.
+   - ~~Recommendation: a small ExUnit assertion in the merge-blocking suite.~~ **REJECTED during
+     planning.** An ExUnit test that reads `.planning/PROJECT.md` would be the first such test in the
+     repo and would collide with **Phase 111 LOCK-05**, which adds a merge-blocking meta-test that
+     fails if *any* test reads a `.planning/` path.
+   - **RESOLUTION:** Plan 02 enforces TRUTH-01 via a **CI grep step in the merge-blocking `quality`
+     lane** (assert `Rambo` absent from invariant 13 + `FFmpex + MuonTrap` absent from Key-Decisions).
+     This keeps the guard merge-blocking without the LOCK-05 collision. Do NOT reintroduce the ExUnit
+     doc-assertion approach. (Supersedes the VALIDATION.md "doc assertion" row and the PATTERNS.md
+     `docs_parity_test.exs` analog below — both predate this decision.)
 
 ## Environment Availability
 
