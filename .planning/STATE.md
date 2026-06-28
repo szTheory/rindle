@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.21
 milestone_name: CI/DX Reliability Tail
-current_phase: 109
-current_phase_name: subprocess-epipe-hardening
+current_phase: 110
+current_phase_name: Async-isolation hardening
 status: verifying
 stopped_at: Completed 109-02-PLAN.md
-last_updated: "2026-06-28T17:16:11.253Z"
+last_updated: "2026-06-28T17:31:43.689Z"
 last_activity: 2026-06-28
-last_activity_desc: Phase 109 execution started
+last_activity_desc: Phase 109 complete, transitioned to Phase 110
 progress:
   total_phases: 5
   completed_phases: 2
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-06-22 after v1.20)
 
 ## Current Position
 
-Phase: 109 (subprocess-epipe-hardening) — EXECUTING
-Plan: 2 of 2
+Phase: 110 — Async-isolation hardening
+Plan: Not started
 Status: Phase complete — ready for verification
-Last activity: 2026-06-28 — Phase 109 execution started
+Last activity: 2026-06-28 — Phase 109 complete, transitioned to Phase 110
 
 ### v1.21 roadmap (Phases 108–112) — load-bearing dependency order
 
