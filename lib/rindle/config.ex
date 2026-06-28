@@ -15,6 +15,16 @@ defmodule Rindle.Config do
     end
   end
 
+  # Test-only seam (no global state). Sets/clears the per-process repo override
+  # read by repo/0; never used by production code.
+  @doc false
+  @spec put_repo_override(module()) :: module() | nil
+  def put_repo_override(mod), do: Process.put(@repo_override_key, mod)
+
+  @doc false
+  @spec delete_repo_override() :: module() | nil
+  def delete_repo_override, do: Process.delete(@repo_override_key)
+
   @spec signed_url_ttl_seconds() :: pos_integer()
   def signed_url_ttl_seconds do
     Application.get_env(:rindle, :signed_url_ttl_seconds, 900)
