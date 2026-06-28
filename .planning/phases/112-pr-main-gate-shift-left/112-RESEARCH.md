@@ -360,19 +360,23 @@ REQUIRED_CHECKS=(
 | A4 | `N` (consecutive green main runs) is an operator-chosen value, not a repo-locked number. | GATE-04 precondition | If a locked `N` exists somewhere unread, the planner should use it. Verified: `N` is symbolic in ROADMAP, STATE, REQUIREMENTS, and the research — no numeric lock found. [VERIFIED: grep across .planning] |
 | A5 | Keeping the `Cohort contrast + literal gate` step (`node brandbook/src/cohort-contrast.mjs`) in the lean lane is harmless (deterministic, ~fast) — but it may be redundant since `brandbook-tokens` already runs the contrast gate on PR. | Code Examples | Low — at worst a few seconds of redundancy. Planner may drop it from the lean lane for speed. [ASSUMED] |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Spec-scoping mechanism: env var vs. a dedicated lean wrapper?**
+> All three resolved during planning and reflected in executable PLAN.md content:
+> Q1 → 112-01 Task 1 (env-var threaded through `e2e_local.sh`); Q2 → maintainer-locked DEFER
+> (GATE-A9 out of scope); Q3 → 112-01 Task 2 (Cohort-contrast step dropped from the lean lane).
+
+1. **RESOLVED:** **Spec-scoping mechanism: env var vs. a dedicated lean wrapper?**
    - What we know: the research proposes `ADOPTION_DEMO_E2E_SPECS` threaded through `e2e_local.sh`; the var is unimplemented; `e2e_local.sh` is the active wrapper.
    - What's unclear: whether to (a) thread the env var (back-compatible, research-locked) or (b) pass specs as positional args some other way.
    - Recommendation: (a) — exactly as the research specifies (GATE-A3), with a unit assertion that unset → full-suite invocation.
 
-2. **Is GATE-A9 (push:main issue-on-failure alerting) in-scope for Phase 112?**
+2. **RESOLVED (maintainer-locked: DEFER):** **Is GATE-A9 (push:main issue-on-failure alerting) in-scope for Phase 112?**
    - What we know: the research flags this as an *optional* escalation (a real sub-gap: red main `ci.yml` runs are silent, unlike nightly which has `nightly-failure-issue`).
    - What's unclear: whether "close the gate gap" includes alerting, or whether it's a separate concern.
    - Recommendation: Escalate to the maintainer in discuss-phase. Default: DEFER (keep Phase 112 minimal — the 4 GATE reqs don't mention alerting; it's a GATE-A9 "optional, escalate" bullet).
 
-3. **Keep or drop the `Cohort contrast + literal gate` step in the lean lane?**
+3. **RESOLVED (drop):** **Keep or drop the `Cohort contrast + literal gate` step in the lean lane?**
    - What we know: `brandbook-tokens` already runs the admin contrast gate on PR; `cohort-contrast.mjs` is the Cohort gate. The full E2E lane runs it before Playwright.
    - Recommendation: Drop it from the lean lane (it's not a browser-render check and may duplicate coverage); the lean lane's job is the *browser* smoke + admin-console mount. Confirm in discuss-phase.
 
