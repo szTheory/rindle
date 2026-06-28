@@ -1,5 +1,5 @@
 defmodule Rindle.BatchOwnerErasureTaskTest do
-  use Rindle.DataCase, async: false
+  use Rindle.DataCase, async: true
   import Mox
   import Rindle.Test.OwnerErasureBatchFixtures
 

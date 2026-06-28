@@ -1,10 +1,12 @@
 defmodule Rindle.OwnerErasureBatchProofTest do
-  # async: false — this suite uses Rindle.Test.CountingFailingTxnRepo.with_counting_repo/2, which
-  # swaps the GLOBAL `:rindle, :repo` (Application.put_env) and force-fails the Nth transaction.
-  # Run concurrently it pollutes any async test resolving Rindle.Config.repo() in that window
-  # (e.g. StreamingDispatchTest got force-failed transactions → intermittent `== ` failures).
-  # Its sibling batch_owner_erasure_task_test.exs is already async: false for the same reason.
-  use Rindle.DataCase, async: false
+  # async: true — root-caused in Phase 110. This suite uses
+  # Rindle.Test.CountingFailingTxnRepo.with_counting_repo/2, which previously swapped the GLOBAL
+  # `:rindle, :repo` (Application.put_env) and so polluted any concurrent async test resolving
+  # Rindle.Config.repo() in its window (StreamingDispatchTest got force-failed transactions →
+  # intermittent `==` failures). The double is now process-scoped: with_counting_repo/2 installs the
+  # override via Config.put_repo_override/1, visible only to its own process tree, so it can no longer
+  # pollute a concurrent reader. The global mutation is eliminated, so this suite is clean to promote.
+  use Rindle.DataCase, async: true
   use Oban.Testing, repo: Rindle.Repo
   import Mox
   import Rindle.Test.OwnerErasureBatchFixtures
