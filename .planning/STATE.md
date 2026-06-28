@@ -4,17 +4,17 @@ milestone: v1.21
 milestone_name: CI/DX Reliability Tail
 current_phase: 111
 current_phase_name: regression-locks
-status: executing
+status: verifying
 stopped_at: Phase 111 context gathered
-last_updated: "2026-06-28T21:03:06.884Z"
+last_updated: "2026-06-28T21:08:05.911Z"
 last_activity: 2026-06-28
 last_activity_desc: Phase 111 execution started
 progress:
   total_phases: 5
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 11
-  completed_plans: 10
-  percent: 60
+  completed_plans: 11
+  percent: 80
 ---
 
 # Project State
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-06-22 after v1.20)
 
 Phase: 111 (regression-locks) — EXECUTING
 Plan: 4 of 4
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-06-28 — Phase 111 execution started
 
 ### v1.21 roadmap (Phases 108–112) — load-bearing dependency order
@@ -371,6 +371,7 @@ phases follow the research-locked order — de-flake (109, 110) → lock (111) �
 - [Phase ?]: 111-01: LOCK-01 ships as sibling install_smoke_preflight_test.exs; order index uses bare 'mix archive.install hex phx_new' substring; LOCK-05 globs broader test/**/*.exs and assembles its .planning regex at runtime to avoid self-flagging
 - [Phase 111]: 111-02 (LOCK-02): added a 'mix archive.uninstall phx_new --force || true' step to the lean PR-gating package-consumer job, before the built-artifact image-only smoke, so install_smoke.sh's cold self-install path (:31 probe -> :33 archive.install) is exercised every PR (honest cold-path lock, not warm-cache theater). Off-PR package-consumer-full, name:CI, filename, and CI Summary needs untouched; zero lib/ change.
 - [Phase ?]: 111-03 (LOCK-03): deduped the Tab-first :focus-visible workaround into ONE exported focusVisibly(page, locator) helper in admin-polish.js; routed all 3 former raw focus({focusVisible:true}) sites through it (2 local + gallery via existing adoptionRequire import). Helper always blurs-first-if-active (preserves site 1 semantics, idempotent); site 2's state-reading evaluate + matchesFV return intact (only Tab+focus prelude extracted). Post-dedupe call-form: admin-polish.js==1 (helper only), gallery==0 — the LOCK-04 precondition. Zero lib/ change, no test/ci literal touched.
+- [Phase ?]: LOCK-04: count the CODE call-form (regex built at runtime), not the bare focusVisible: true substring, so the lock is immune to explanatory-comment occurrences (admin-polish.js call-form == 1, gallery == 0); Test A indexes the call-form (not bare substring) since the bare token precedes the Tab press in a comment
 
 ## Blockers/Concerns
 
@@ -408,7 +409,7 @@ outside v1.20 scope (Phases 103–107):
 
 ## Session Continuity
 
-Last session: 2026-06-28T21:02:41.408Z
+Last session: 2026-06-28T21:07:30.464Z
 Stopped at: Phase 111 context gathered
 Resume file: .planning/phases/111-regression-locks/111-CONTEXT.md
 
@@ -507,6 +508,7 @@ Resume file: .planning/phases/111-regression-locks/111-CONTEXT.md
 | Phase 111 P01 | 1 | 2 tasks | 2 files |
 | Phase 111 P02 | 3 min | 1 tasks | 1 files |
 | Phase 111 P03 | 6 min | 2 tasks | 2 files |
+| Phase 111 P04 | 8 min | 1 tasks | 1 files |
 
 ## Operator Next Steps
 

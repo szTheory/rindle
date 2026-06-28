@@ -53,7 +53,7 @@ Source: `v1.21-REGRESSION-LOCKS.md`. Asserts **shipped artifacts only**, never `
 - [x] **LOCK-01**: A merge-blocking meta-test asserts `scripts/install_smoke.sh` keeps the `phx.new` probe + self-install before the smoke proceeds (`quality`).
 - [x] **LOCK-02**: A CI step purges the `phx.new` archive before the package-consumer smoke so the cold-cache path is exercised on every PR (`package-consumer`).
 - [x] **LOCK-03**: The keyboard-modality (`:focus-visible` Tab-first) helper is deduped into one shared exported function consumed by both `examples/adoption_demo/e2e/support/admin-polish.js` and `brandbook/src/admin-gallery-check.mjs`.
-- [ ] **LOCK-04**: A merge-blocking meta-test asserts the Tab-first modality is present at every `focus({focusVisible:true})` site (post-dedupe, asserts the shared helper) (`quality`).
+- [x] **LOCK-04**: A merge-blocking meta-test asserts the Tab-first modality is present at every `focus({focusVisible:true})` site (post-dedupe, asserts the shared helper) (`quality`).
 - [x] **LOCK-05**: A merge-blocking meta-test globbing `test/**/*.exs` fails if any test reads a `.planning/` path (keeps the decoupled hygiene from regressing) (`quality`).
 
 ### Truth fix (TRUTH)
@@ -100,7 +100,7 @@ Populated during roadmap creation.
 | LOCK-01 | Phase 111 — Regression locks | Complete |
 | LOCK-02 | Phase 111 — Regression locks | Complete |
 | LOCK-03 | Phase 111 — Regression locks | Complete |
-| LOCK-04 | Phase 111 — Regression locks | Pending |
+| LOCK-04 | Phase 111 — Regression locks | Complete |
 | LOCK-05 | Phase 111 — Regression locks | Complete |
 | GATE-01 | Phase 112 — PR↔main gate shift-left | Pending |
 | GATE-02 | Phase 112 — PR↔main gate shift-left | Pending |
