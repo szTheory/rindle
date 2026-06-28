@@ -181,25 +181,26 @@ jobs:
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
-      # The gating step STAYS `mix coveralls` (NOT replaced by coveralls.json).
+      # Single-run dual-output coverage (COV-01..COV-03). The merge-blocking gate
+      # is `mix coveralls.multiple --type local --type json`: `--type local` runs
+      # the SAME `local` analyzer as `mix coveralls` (ExCoveralls.Local.execute →
+      # ensure_minimum_coverage), so the gate's pass/fail is byte-identical to the
+      # old `mix coveralls` and is taken from THAT analyzer / the ExUnit exit —
+      # NEVER from the Json formatter. `--type json` is a side-artifact only,
+      # emitted from the SAME single suite execution (no redundant second run).
+      # See Mix.Tasks.Coveralls.Multiple (README-undocumented multi-formatter task).
       # --slowest 20 is additive; tee captures the slowest-test lines + the
       # ExUnit seed (`Randomized with seed N`) into the run summary (OBS-02 D-05).
       - name: Run tests with coverage
         run: |
           set -o pipefail
-          mix coveralls --slowest 20 2>&1 | tee /tmp/test.out
+          mix coveralls.multiple --type local --type json --slowest 20 2>&1 | tee /tmp/test.out
           {
             echo "## Test timing — ${{ github.job }} (${{ matrix.elixir }}/${{ matrix.otp }})"
             echo '```'
             grep -E 'Randomized with seed|slowest|^\s+\* test ' /tmp/test.out | tail -30 || true
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
-
-      # OBS-02 (additive sibling): generate coverage JSON for artifact upload.
-      # Does NOT replace the gating `mix coveralls` run above.
-      - name: Generate coverage JSON artifact
-        if: always()
-        run: mix coveralls.json
 
       - name: Upload JUnit + coverage artifacts
         if: always()
@@ -383,11 +384,10 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       # OBS-02 (additive): JUnit XML is emitted by test_helper.exs when CI is set
-      # (Plan 01); coverage JSON is generated as an additive sibling for upload.
-      - name: Generate coverage JSON artifact
-        if: always()
-        run: mix coveralls.json
-
+      # (Plan 01). No standalone coverage-JSON run here (COV-03, D-04/D-07): the
+      # integration gate above stays plain `mix test`, and no consumer reads an
+      # integration-lane coverage artifact. The upload step keeps if-no-files-found:
+      # warn, so the absent cover/excoveralls.json is tolerated (D-06).
       - name: Upload JUnit + coverage artifacts
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
@@ -643,13 +643,11 @@ jobs:
           export GITHUB_REF_NAME="v${MIX_VERSION}"
           bash scripts/assert_version_match.sh
 
-      # OBS-02 (additive sibling): generate coverage JSON, then upload JUnit +
-      # coverage artifacts on every run (pass or fail). if-no-files-found: warn
-      # keeps the lane green if a given artifact is absent for this job.
-      - name: Generate coverage JSON artifact
-        if: always()
-        run: MIX_ENV=test mix coveralls.json
-
+      # OBS-02 (additive): upload JUnit + coverage artifacts on every run (pass or
+      # fail). No standalone coverage-JSON run here (COV-03, D-05): this job gates
+      # on install-smoke / version checks, not the unit suite, and no consumer reads
+      # its coverage artifact. if-no-files-found: warn keeps the lane green when the
+      # absent cover/excoveralls.json is missing for this job (D-06).
       - name: Upload JUnit + coverage artifacts
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
