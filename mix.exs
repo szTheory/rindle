@@ -51,6 +51,7 @@ defmodule Rindle.MixProject do
         "coveralls.detail": :test,
         "coveralls.html": :test,
         "coveralls.json": :test,
+        "coveralls.multiple": :test,
         precommit: :test,
         # HARD-03 (D-07): `mix ci` ends in the gating unit suite, which must run
         # under MIX_ENV=test (same as `precommit`); otherwise the nested `test`
