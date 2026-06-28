@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.21
 milestone_name: CI/DX Reliability Tail
-current_phase: 110
-current_phase_name: async-isolation-hardening
+current_phase: 111
+current_phase_name: Regression locks
 status: verifying
 stopped_at: Phase 110 context gathered
-last_updated: "2026-06-28T19:06:11.278Z"
+last_updated: "2026-06-28T19:15:55.445Z"
 last_activity: 2026-06-28
-last_activity_desc: Phase 110 execution started
+last_activity_desc: Phase 110 complete, transitioned to Phase 111
 progress:
   total_phases: 5
   completed_phases: 3
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-06-22 after v1.20)
 
 ## Current Position
 
-Phase: 110 (async-isolation-hardening) — EXECUTING
-Plan: 4 of 4
+Phase: 111 — Regression locks
+Plan: Not started
 Status: Phase complete — ready for verification
-Last activity: 2026-06-28 — Phase 110 execution started
+Last activity: 2026-06-28 — Phase 110 complete, transitioned to Phase 111
 
 ### v1.21 roadmap (Phases 108–112) — load-bearing dependency order
 
