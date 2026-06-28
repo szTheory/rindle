@@ -70,8 +70,9 @@ matrix both of those entrypoints link to.
 | `package-consumer` (lean, PR) | merge-blocking | `needs: [quality, optional-dependencies]` | Phase 106: representative `image`-only install-smoke + version alignment; stays in `CI Summary.needs` |
 | `package-consumer-full` | off-critical-path | `push:main`/release (`if: github.event_name != 'pull_request'`) | Phase 106: full 5-profile matrix + release preflight + `hex.publish --dry-run`; **NOT** a required PR check (omitted from `CI Summary.needs`); release proof is the push:main run conclusion |
 | `adoption-demo-unit` | merge-blocking | `needs: [quality, optional-dependencies]`; Postgres only | Fast ExUnit proof for `examples/adoption_demo`: brand mark/wordmark, admin-console mount, lifecycle-state display, README walkthrough parity (storage-free, direct-insert seeds) |
-| `adoption-demo-e2e` | merge-blocking | `needs: [quality, optional-dependencies]`; repo `szTheory/rindle` only | Playwright browser proof for `examples/adoption_demo` (image, tus, stretch journeys, admin lifecycle render, homepage cold-start smoke) |
-| `cohort-demo-smoke` | merge-blocking | `needs: [quality, optional-dependencies]`; repo `szTheory/rindle` only | Docker-compose cold-start gate (`scripts/ci/cohort_demo_smoke.sh`): builds the demo image, boots the full stack, asserts homepage + admin console serve 200 with seeded data — the boot path human UAT used to cover |
+| `adoption-demo-e2e-smoke` | merge-blocking | Every PR (no repo/event gate); `needs: [quality, optional-dependencies]`; Postgres + MinIO-local | Phase 112: lean Chromium smoke (`e2e/smoke.spec.js` + `e2e/admin-console.spec.js` only, no screenshot spec) in the pinned Playwright container; the browser render-regression PR proxy. No secrets (MinIO-local literal creds), so it runs on forks too (skip==pass safety). Enters `CI Summary.needs` in Plan 02 after N=3 green push:main `adoption-demo-e2e` runs (GATE-04, operator checkpoint) |
+| `adoption-demo-e2e` | off-critical-path | `push:main` only (repo `szTheory/rindle` + `if: github.event_name != 'pull_request'`); `needs: [quality, optional-dependencies]` | Phase 106: full Playwright browser proof for `examples/adoption_demo` (image, tus, stretch journeys, admin lifecycle render, homepage cold-start smoke + screenshot specs). **NOT** in `CI Summary.needs` — it is the release/main render signal, not a PR-required check; its PR-side proxy is the lean `adoption-demo-e2e-smoke` lane above |
+| `cohort-demo-smoke` | off-critical-path | `push:main` only (repo `szTheory/rindle` + `if: github.event_name != 'pull_request'`); `needs: [quality, optional-dependencies]` | Phase 106: Docker-compose cold-start gate (`scripts/ci/cohort_demo_smoke.sh`): builds the demo image, boots the full stack, asserts homepage + admin console serve 200 with seeded data — the boot path human UAT used to cover. **NOT** in `CI Summary.needs`; it stays off the PR gate because the full docker-compose boot is too slow for the ≤7-min PR budget — it is the push:main/release signal, not a PR-required check |
 | `brandbook-tokens` | merge-blocking | `needs: [quality, optional-dependencies]`; repo `szTheory/rindle` only | PIPE-01 drift gate: regenerates brandbook token CSS, admin CSS, gallery proof, and shipped priv/ CSS copy, then fails on any generated-artifact diff |
 | `adopter` | merge-blocking | `needs: [quality, optional-dependencies, integration, contract]` | Canonical adopter lifecycle only (doc parity in `proof` job) |
 | `mux-soak` | secret-gated soak (label-gated PR lane) | Label `streaming` on PR; `needs: quality` | Not in branch protection required checks; fails closed when secrets absent. Phase 106: **stays in `ci.yml`** as a label-gated PR lane (NOT moved to nightly) |
@@ -130,6 +131,14 @@ lanes are required contexts; they gate merges transitively through `CI Summary.n
 `CI Summary.needs` — their regressions are caught on main (and block release via the push:main run
 conclusion), not on the PR merge gate. `package-consumer-full` is likewise omitted from
 `CI Summary.needs` (it is `if: github.event_name != 'pull_request'`).
+
+Phase 112 adds the lean `adoption-demo-e2e-smoke` lane as the PR-side browser-render proxy for the
+push:main-only `adoption-demo-e2e` lane. It runs on every PR today but is **not yet** in
+`CI Summary.needs` — it is wired into the list above in Plan 02 (GATE-04), behind an operator
+green-run checkpoint, only after N=3 consecutive green push:main `adoption-demo-e2e` runs confirm
+the lane is non-flaky. Wiring it before that would risk importing a live flake into the required
+gate. (GATE-A9 push:main issue-on-failure alerting is explicitly deferred — out of scope for
+Phase 112.)
 
 ## Verify The Runtime
 
