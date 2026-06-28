@@ -136,7 +136,7 @@ defmodule Rindle.InstallSmoke.CiObservabilityTest do
           "mix compile --profile time",
           "schedulers_online",
           "Randomized with seed",
-          "mix coveralls.json",
+          "--type json",
           "actions/upload-artifact@",
           "_build/test/junit/rindle-junit.xml"
         ] do
@@ -145,10 +145,10 @@ defmodule Rindle.InstallSmoke.CiObservabilityTest do
     end
   end
 
-  test "OBS-02: the gating step STAYS `mix coveralls --slowest 20` (coveralls.json is additive, never the gate)",
+  test "OBS-02: the gating step STAYS the local-analyzer gate `mix coveralls.multiple --type local` (json is additive, never the gate)",
        %{ci: ci} do
-    assert ci =~ "mix coveralls --slowest 20",
-           "the gating unit step must stay `mix coveralls --slowest 20` — coveralls.json must NOT replace the gate (OBS-02)"
+    assert ci =~ "mix coveralls.multiple --type local --type json --slowest 20",
+           "the gating unit step must run `mix coveralls.multiple --type local` — the `--type local` analyzer is the byte-identical merge-blocking gate (ExCoveralls.Local → ensure_minimum_coverage); `--type json` is an additive side-artifact, never the gate (OBS-02, COV-01..03)"
   end
 
   test "OBS-02: test_helper.exs wires JUnitFormatter CI-gated, mkdir_p's the report dir, and binds report_dir to _build/test/junit",
