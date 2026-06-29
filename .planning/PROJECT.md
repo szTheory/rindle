@@ -35,11 +35,47 @@ Admin Console & Adoption Lab closed `shipped` 2026-06-20 after HUMAN-UAT sign-of
 
 **Open planning debt:** None. v1.18, v1.19, v1.20, and v1.21 are all shipped and archived.
 
-**Active milestone:** None — between milestones. Feature milestones remain demand-gated on **LIFE-06**
-(force-delete) / **STREAM-10** (second provider) per `config.json`
-(`workflow.milestone_boundary.block_feature_milestone_without_signal`); a non-feature/DX milestone
-needs a documented seed (as SEED-003 was for v1.20 and SEED-004 for v1.21). Next: `/gsd-new-milestone`
-once a demand signal or DX seed lands.
+**Active milestone:** **v1.22 OSS Quality & Trust Hardening** — chartered 2026-06-29 from **SEED-005**,
+the non-feature signal for a two-milestone software-quality consolidation arc (v1.22 trust hardening →
+v1.23 Postgres schema isolation). Phases resume at **113**. Feature milestones remain demand-gated on
+**LIFE-06** / **STREAM-10**; this arc is non-feature/DX, so the feature-pause block does not apply.
+
+> **Release-state correction (2026-06-29):** Hex **0.3.2 was never published.** Hex live = 0.3.1;
+> `mix.exs` / `.release-please-manifest.json` / CHANGELOG all = 0.3.1. The v1.21 `lib/` fixes
+> (`fix(109-01)` `:epipe` absorb, `fix(110-01..04)` config override) plus 3 `feat` / 6 `fix` commits are
+> merged to `main` but **unreleased** — no `release rindle 0.3.2` commit and no open release-please PR.
+> The v1.21 prose below claiming "ships as Hex 0.3.2" is therefore aspirational, not shipped. v1.22
+> HYGIENE cuts the stuck 0.3.2 release and reconciles the claim.
+
+## Current Milestone: v1.22 OSS Quality & Trust Hardening
+
+**Goal:** Close the cheap, high-ROI OSS trust/positioning/governance gaps surfaced by the 2026-06-29
+software-quality recon, and ship the versioned `Rindle.Migration` substrate v1.23 needs — low risk, no
+breaking change, ships as a 0.3.x minor (0.4.0 is reserved for v1.23's breaking schema isolation).
+
+**Target features (requirement areas):**
+- **EVAL** — concise, evidence-cited scored-weakness summary as the milestone's opening artifact
+  (sharpened recon; not the full 36-dimension report).
+- **TRUST** — `SECURITY.md` (untrusted uploads / MIME sniffing / signed delivery / webhook HMAC),
+  `CODE_OF_CONDUCT.md`, `.github/ISSUE_TEMPLATE/` + `PULL_REQUEST_TEMPLATE.md`.
+- **META** — Hex `package:` metadata: `links` "Changelog" + "Docs" (HexDocs convention) + `maintainers`.
+- **VERSION** — stated SemVer / pre-1.0 stability contract (README + CONTRIBUTING) + generalized
+  `guides/upgrading.md` beyond the single pre-0.1.4 case.
+- **README** — image-first "first attachment in ~2 minutes" path (today's first-run is FFmpeg/AV-heavy)
+  + a "what this is NOT / when not to use" block.
+- **MIGRATE** — versioned `Rindle.Migration.up/1`+`down/1` module (Oban-style, idempotent) replacing the
+  raw 15-file `Ecto.Migrator` copy-paste install path; **stop creating `oban_jobs`** (adopter owns Oban).
+  Non-breaking: defaults keep tables in `public`; existing adopters' applied migrations stay valid. This
+  is the foundation v1.23 builds the schema prefix onto.
+- **HYGIENE** — cut the stuck Hex 0.3.2 release (adopter-facing `:epipe`/config fixes are merged-but-
+  unreleased) and reconcile PROJECT.md; fix stale `status: open` frontmatter on SEED-003/004 (consumed).
+
+**Key context:** Non-feature/DX charter from **SEED-005**. Two false premises were corrected in recon:
+szTheory peer deps → empty (Rindle depends on none), and CI/CD performance → already done by v1.20+v1.21.
+The `Rindle.Migration` module is intentionally pulled into v1.22 (not v1.23) because it is a "good-guest"
+fix in its own right and de-risks the v1.23 breaking flip. Full arc: SEED-005 + the approved roadmap at
+`/Users/jon/.claude/plans/software-quality-evaluation-prompt-txt-gleaming-sifakis.md`.
+
 
 ## Last Milestone: v1.21 CI/DX Reliability Tail (shipped 2026-06-29)
 
@@ -376,8 +412,10 @@ To keep this posture durable across GSD workflows:
 
 ### Active
 
-**None — between milestones.** v1.21 shipped 2026-06-29; no milestone is in flight. The next milestone
-is demand- or seed-gated (see below); start it with `/gsd-new-milestone`.
+**v1.22 OSS Quality & Trust Hardening** (chartered 2026-06-29 from SEED-005) — see the Current Milestone
+section above. Requirement areas: EVAL, TRUST, META, VERSION, README, MIGRATE, HYGIENE. Scoped in
+`.planning/REQUIREMENTS.md`; phases begin at 113. Followed by **v1.23 Postgres Schema Isolation**
+(breaking → 0.4.0), chartered after v1.22 ships.
 
 **Demand-gated for next feature milestone:**
 
@@ -770,4 +808,8 @@ This document evolves at phase transitions and milestone boundaries.
    (`workflow.milestone_boundary.block_feature_milestone_without_signal`)
 
 ---
-*Last updated: 2026-06-29 after v1.21 CI/DX Reliability Tail milestone — shipped 2026-06-29, 24/24 requirements validated across 5/5 verified phases (108–112), audit `passed`. Made the merge gate deterministic (single-run coverage, `:epipe` absorb, process-scoped repo override, regression locks, PR↔main smoke lane wired LAST); two adopter-invisible `lib/` patches ship as Hex 0.3.2. Archived to `milestones/v1.21-*.md`. Between milestones — next: `/gsd-new-milestone` once a demand signal or DX seed lands.*
+*Last updated: 2026-06-29 after chartering v1.22 OSS Quality & Trust Hardening (from SEED-005) — a
+two-milestone software-quality consolidation arc (v1.22 trust hardening → v1.23 Postgres schema
+isolation). Recon corrected two premises (szTheory deps → empty; CI/CD perf → already done by v1.20+v1.21)
+and confirmed Hex 0.3.2 was never published (v1.21 `lib/` fixes are merged-but-unreleased). v1.21 phase
+dirs archived to `milestones/v1.21-phases/`. Phases resume at 113.*

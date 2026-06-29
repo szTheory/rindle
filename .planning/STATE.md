@@ -1,20 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.21
-milestone_name: CI/DX Reliability Tail
-current_phase: 21
-status: Awaiting next milestone
-stopped_at: Phase 111 context gathered
-last_updated: "2026-06-29T19:54:16.791Z"
+milestone: v1.22
+milestone_name: OSS Quality & Trust Hardening
+status: planning
+last_updated: "2026-06-29T20:43:22.556Z"
 last_activity: 2026-06-29
-last_activity_desc: Milestone v1.21 completed and archived
 progress:
-  total_phases: 5
-  completed_phases: 5
-  total_plans: 13
-  completed_plans: 13
-  percent: 100
-current_phase_name: pr-main-gate-shift-left
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -28,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-06-22 after v1.20)
 
 ## Current Position
 
-Phase: Milestone v1.21 complete
+Phase: Not started (defining requirements)
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-06-29 — Milestone v1.21 completed and archived
+Status: Defining requirements
+Last activity: 2026-06-29 — Milestone v1.22 started
 
 ### v1.21 roadmap (Phases 108–112) — load-bearing dependency order
 
