@@ -3,18 +3,18 @@ gsd_state_version: 1.0
 milestone: v1.21
 milestone_name: CI/DX Reliability Tail
 current_phase: 112
-current_phase_name: pr-main-gate-shift-left
 status: verifying
-stopped_at: Phase 111 complete — verified 5/5 (LOCK-01..05)
-last_updated: "2026-06-28T22:15:15.569Z"
-last_activity: 2026-06-28
-last_activity_desc: Phase 112 execution started
+stopped_at: Phase 111 context gathered
+last_updated: "2026-06-29T17:11:41.397Z"
+last_activity: 2026-06-29
+last_activity_desc: Phase 112 complete
 progress:
   total_phases: 5
   completed_phases: 5
   total_plans: 13
   completed_plans: 13
   percent: 100
+current_phase_name: pr-main-gate-shift-left
 ---
 
 # Project State
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-06-22 after v1.20)
 
 ## Current Position
 
-Phase: 112 (pr-main-gate-shift-left) — EXECUTING
-Plan: 2 of 2
+Phase: 112
+Plan: Not started
 Status: Phase complete — ready for verification
-Last activity: 2026-06-28 — Phase 112 execution started
+Last activity: 2026-06-29 — Phase 112 complete
 
 ### v1.21 roadmap (Phases 108–112) — load-bearing dependency order
 
