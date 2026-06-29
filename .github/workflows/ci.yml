@@ -220,7 +220,7 @@ jobs:
 
       - name: Upload JUnit + coverage artifacts
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: junit-coverage-${{ github.job }}-${{ matrix.elixir || 'na' }}
           path: |
@@ -406,7 +406,7 @@ jobs:
       # warn, so the absent cover/excoveralls.json is tolerated (D-06).
       - name: Upload JUnit + coverage artifacts
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: junit-coverage-${{ github.job }}-${{ matrix.elixir || 'na' }}
           path: |
@@ -674,7 +674,7 @@ jobs:
       # absent cover/excoveralls.json is missing for this job (D-06).
       - name: Upload JUnit + coverage artifacts
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: junit-coverage-${{ github.job }}-${{ matrix.elixir || 'na' }}
           path: |
@@ -987,7 +987,7 @@ jobs:
 
       - name: Upload Playwright report on failure
         if: failure()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: adoption-demo-playwright-report
           path: |
@@ -1097,7 +1097,7 @@ jobs:
 
       - name: Upload Playwright report on failure
         if: failure()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: adoption-demo-e2e-smoke-report
           path: |
@@ -1321,7 +1321,7 @@ jobs:
 
       - name: Upload admin gallery report on failure
         if: failure()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: brandbook-tokens-gallery-report
           path: |
