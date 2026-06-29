@@ -2,6 +2,59 @@
 
 ---
 
+## Milestone: v1.21 — CI/DX Reliability Tail
+
+**Shipped:** 2026-06-29
+**Phases:** 5 (108–112) | **Plans:** 13 | **Tasks:** 20
+**Source change:** 49 files (1660+/185−); `lib/` 3 files (145+/3−) → Hex 0.3.2 via two `fix:` patches
+
+### What Was Built
+
+- Single-run coverage (Phase 108): each default-suite lane runs ExUnit exactly once — `quality` emits both the merge-blocking `local` gate and `cover/excoveralls.json` from one `mix coveralls.multiple --type local --type json --slowest 20`; redundant standalone coverage re-runs deleted from quality/integration/adoption.
+- Subprocess `:epipe` hardening (Phase 109, `lib/`): `Rindle.AV.Subprocess.run/3` delegates to a `spawn_monitor` + `trap_exit`'d `run_isolated/5` that absorbs the MuonTrap #98 broken-pipe `{:EXIT, port, :epipe}` async exit at the single AV chokepoint; deterministic-synthetic + real-subprocess-stress regression suite; advisory nightly MuonTrap canary; TRUTH-01 invariant-13 correction (MuonTrap-only path, no Rambo) guarded by a CI grep.
+- Async-isolation hardening (Phase 110, `lib/`): `Rindle.Config.repo/0` consults a `$callers`-aware process-dictionary override before app-env; `CountingFailingTxnRepo` double migrated off all global state; three suites re-promoted to `async: true` (28 tests); the v1.20 async-safety guard gained a `:global_repo_swap` rule (all modules, async-flag-agnostic) making the global-swap footgun un-reintroducible. Writing the process-scoped isolation proof surfaced and fixed a latent tuple-key bug in the Plan 01 `$callers` resolver.
+- Regression locks (Phase 111): five merge-blocking, shipped-artifact-only meta-tests locking the 2026-06-26 cluster (phx.new self-install preflight, `:focus-visible` Tab-modality, `.planning/`-path hygiene, etc.) so it cannot silently regress.
+- PR↔main gate shift-left (Phase 112): lean `adoption-demo-e2e-smoke` Chromium PR job (MinIO-local, no secrets, pinned Playwright, deterministic 2-spec subset) wired into `ci-summary.needs` — merge-blocking transitively through the sole required `CI Summary` — only after de-flake landed AND 3 green push:main runs were observed; GATE topology locked by a shipped-artifact meta-test.
+
+### What Worked
+
+- **Load-bearing order held in the shipped artifacts:** de-flake (108→109→110) → lock (111) → shift-left (112) LAST. The smoke lane's needs-wiring commit was the *last* `ci.yml` touch — the gate never imported a still-live flake.
+- **Shift-left gated on observed green, not assumption:** the smoke lane joined the required gate only after 3 consecutive green `push:main` runs — the precondition that prevents importing a live flake into the merge gate.
+- **First post-v1.20 `lib/` touch shipped adopter-invisible:** both fixes (`av/subprocess.ex` epipe absorb, `config.ex` repo override) changed zero public API / return-shape / error-vocab / security-invariant — audit confirmed all 11 Ffmpeg/Ffprobe call sites + the default no-override repo path unchanged; clean `fix:`→0.3.2.
+- **Shipped-artifact-only meta-tests:** LOCK tests assert SHIPPED artifacts and never read `.planning/` at runtime — directly applying the prior lesson that `.planning/`-reading tests break filtered PR branches and during phase-dir archiving.
+- **v1.20's lesson applied:** phase dirs from prior milestones were already archived, so `milestone.complete` scoped cleanly this time (5 phases / 13 plans / 20 tasks — no cross-milestone over-count or mis-attribution).
+- **Proof-first found a real bug:** the ISO-05 process-scoped isolation test (`async: true`, bare-spawned `$callers`-unlinked reader B) surfaced a latent tuple-key defect in the `$callers` resolver that no other test exercised.
+
+### What Was Inefficient
+
+- **Human-attested gates couldn't be automated:** GATE-02 (PR p95 wall-clock) and GATE-04 (the "3 green main runs" precondition) carried runtime/operator sub-criteria routed to human verification at execute time (resolved on PR #46). These resist the standing goal of 0 human verification — runtime wall-clock and "N green main runs observed" are inherently operator-attested rather than ExUnit-assertable.
+- **Sparse SUMMARY frontmatter again:** several SUMMARYs (110-01, all of 111) lacked `one_liner`/`requirements-completed` fields, so the CLI's accomplishment extraction and the weakest provenance source stayed thin (coverage still proven by VERIFICATION + REQUIREMENTS).
+- **Nyquist coverage partial:** VALIDATION.md missing for 108 and 110, draft/non-compliant for 111/112. Primary verification (gsd-verifier 5/5) carried the gate; the Nyquist tail is optional follow-up.
+- **Pre-existing `actionlint` noise persisted:** 7 SC2251/SC2209/expression findings in unrelated `ci.yml` jobs remain (byte-identical before/after); the new smoke job introduced zero but the surrounding file stayed un-linted.
+
+### Patterns Established
+
+- **Shift-left LAST, gated on observed-green:** add a flake-prone lane to the required gate only after the underlying flakes are fixed AND N consecutive green `push:main` runs are observed — never gate a still-live flake.
+- **Single isolation chokepoint for third-party async exits:** wrap an external port/process at one `spawn_monitor` + `trap_exit` seam (`run_isolated/5`) so an upstream library's async exit can never kill the caller, proven by a deterministic-synthetic + real-stress pair.
+- **Process-scoped overrides replace global `put_env`:** `$callers`-aware process-dictionary override + a static guard rule (`:global_repo_swap`) that makes the global-state footgun un-reintroducible, with a sanctioned API authors are pointed at.
+- **Shipped-artifact-only regression locks:** meta-tests assert the SHIPPED tree and never read `.planning/` — survive PR-branch filtering and phase-dir archiving.
+
+### Key Lessons
+
+- Archiving phase dirs before each close (the v1.20 lesson) paid off — `milestone.complete` scoped correctly with zero manual rewrite of counts/accomplishments this time.
+- Write the isolation/concurrency proof even when the fix "looks done" — the ISO-05 proof found a latent `$callers` tuple-key bug nothing else caught.
+- Some acceptance criteria (runtime p95, "N green main runs") are inherently operator-attested; model them as explicit human checkpoints with a clear pass record (PR #46) rather than forcing a brittle automation — but keep converting the automatable ones (the goal remains 0 human verification on the boot/merge path).
+- Keep regression-lock meta-tests pointed at shipped artifacts only; a `.planning/`-reading assertion is a latent red-main on the next archive or filtered-branch CI run.
+
+### Cost Observations
+
+- Model mix: predominantly opus for orchestration; executor/debugger/verifier on `composer-2.5` per `config.json` overrides; subagent-heavy research (5 locked `research/v1.21-*.md`) + verification/integration phases.
+- Sessions: multi-session over 2026-06-26 → 2026-06-29 (4 days, charter to ship).
+- Notable: a non-feature/DX milestone with only 3 `lib/` files touched (145 insertions) still ran the full discuss→plan→execute→verify chain per phase; the load-bearing order kept the merge gate from ever importing a live flake.
+
+---
+
+
 ## Milestone: v1.20 — CI/CD Performance
 
 **Shipped:** 2026-06-22
@@ -411,16 +464,18 @@ STREAM-10 not built (Mux-only adapter); batch erasure does not propagate force o
 
 ## Cross-Milestone Trends
 
-| Trend | v1.1 | v1.2 | v1.5 | v1.6 | v1.16 |
-|-------|------|------|------|------|-------|
-| Cleanup phases needed | 0 | 2 (Phases 13, 14) | 0 | 0 | 1 (Phase 77) |
-| Audit status at close | passed | tech_debt (closed) | passed | acknowledged-and-defer | no dedicated audit (gap-closure) |
-| Plans per phase (avg) | 3.0 | 2.2 | 3.5 | 3.75 | 3.3 |
-| Phase count | 4 | 5 | 4 | 4 | 3 |
-| Files changed | — | 60 | — | 144 | 19 |
-| Timeline (days) | — | 5 | 2 | ~1 (~22h) | 1 |
-| Optional phase deferred | — | — | — | Phase 37 (deferred to v1.7) | — |
+| Trend | v1.1 | v1.2 | v1.5 | v1.6 | v1.16 | v1.20 | v1.21 |
+|-------|------|------|------|------|-------|-------|-------|
+| Cleanup phases needed | 0 | 2 (Phases 13, 14) | 0 | 0 | 1 (Phase 77) | 0 | 0 |
+| Audit status at close | passed | tech_debt (closed) | passed | acknowledged-and-defer | no dedicated audit (gap-closure) | passed | passed (1 todo deferred) |
+| Plans per phase (avg) | 3.0 | 2.2 | 3.5 | 3.75 | 3.3 | 3.4 | 2.6 |
+| Phase count | 4 | 5 | 4 | 4 | 3 | 5 | 5 |
+| Files changed | — | 60 | — | 144 | 19 | — (0 `lib/`) | 49 (3 `lib/`) |
+| Timeline (days) | — | 5 | 2 | ~1 (~22h) | 1 | 3 | 4 |
+| Optional phase deferred | — | — | — | Phase 37 (deferred to v1.7) | — | — | — |
 
 **Recurring observation:** Each milestone has ended with some planning artifact debt (stale STATE.md references, incomplete VALIDATION files, metadata inconsistencies, REQUIREMENTS.md checkboxes not flipped). The debt accumulates faster than it is addressed during execution. A milestone-close checklist that explicitly audits these before declaring done would reduce closure phase count.
 
 **v1.6 trend:** First milestone to formalize "acknowledged-and-defer" close mode — recognizing that some artifact-and-wiring-complete phases route observable proof to CI/maintainer environments by design. The audit semantics need to evolve to distinguish these from real gaps. Optional-phase deferral (Phase 37 → v1.7) emerged as a clean scope-management primitive separate from cleanup-phase work.
+
+**v1.20→v1.21 trend (DX/infra pair):** Two consecutive non-feature/DX milestones cleared the recurring artifact-debt pattern — both closed with audit `passed` and **zero cleanup phases**, reversing the "each milestone ends with planning debt" observation above. The decisive change was archiving phase dirs at the prior close so `milestone.complete` scopes counts/accomplishments correctly (v1.20 required a full manual MILESTONES rewrite from over-counting; v1.21 needed none). The one persistent gap across both is **human-attested acceptance criteria** (runtime p95, "N green main runs") that resist ExUnit automation — modeled as explicit operator checkpoints with a recorded pass (v1.21 GATE-02/04 on PR #46) rather than skipped or faked. Carry-over debt is now a single stale v1.18-era docker-demo-warnings todo, re-deferred at both closes.

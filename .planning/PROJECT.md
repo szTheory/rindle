@@ -2,47 +2,49 @@
 
 ## Current State
 
-**Last shipped:** v1.20 CI/CD Performance — shipped 2026-06-22 and archived at
-[.planning/milestones/v1.20-ROADMAP.md](milestones/v1.20-ROADMAP.md) with 18/18 requirements
-validated across 5/5 verified phases (103–107) and **zero `lib/` public-API change**. A non-feature
-/ DX-infrastructure milestone that cut PR CI feedback time and hardened gate determinism via a
-measure → classify → restructure pass: an observability baseline (`103-BASELINE.md`), `setup-elixir`
-/ `setup-minio` composites with correct cache keys + a Dialyzer PLT restore/save split, a single
-`CI Summary` aggregate required check with the live branch-protection flip executed, a fast PR lane
-+ `nightly.yml` split (the headline 15→≤7min cut), and reliability/security hardening (ExUnit
-async-safety AST guard, SHA-pinned Actions + Dependabot + `mix_audit`, a `mix ci` alias, and a
-faithful pinned Linux-Chromium repro). All three hard release-coupling invariants held throughout.
+**Last shipped:** v1.21 CI/DX Reliability Tail — shipped 2026-06-29 and archived at
+[.planning/milestones/v1.21-ROADMAP.md](milestones/v1.21-ROADMAP.md) with 24/24 requirements
+validated across 5/5 verified phases (108–112). A non-feature/DX companion to v1.20 that made the
+merge gate deterministic and trustworthy — a green PR now reliably means a green `main`. Delivered:
+single-run coverage (one `mix coveralls.multiple --type local --type json` per lane, killing the
+double-suite run; COV-01..04); subprocess `:epipe` hardening (`run_isolated/5` absorbs the MuonTrap
+#98 broken-pipe `{:EXIT, port, :epipe}` exit at the single AV chokepoint; EPIPE-01..05 + TRUTH-01
+invariant-13 correction); async-isolation hardening (`Rindle.Config.repo/0` now consults a
+`$callers`-aware process-dictionary override before app-env, retiring the global `put_env(:rindle,
+:repo, …)` swap; the v1.20 async-safety guard's `:global_repo_swap` rule makes the footgun
+un-reintroducible; ISO-01..05); five merge-blocking shipped-artifact regression-lock meta-tests for
+the 2026-06-26 cluster (LOCK-01..05); and the lean `adoption-demo-e2e-smoke` PR lane wired into
+`CI Summary` LAST — only after the de-flake phases landed and 3 green push:main runs were observed
+(GATE-01..04). The two adopter-invisible `lib/` patches (`av/subprocess.ex`, `config.ex`) ship as Hex
+**0.3.2** via release-please `fix:` commits. All three hard release-coupling invariants held throughout.
 
-**Proof posture:** v1.20 audit `passed` (`milestones/v1.20-MILESTONE-AUDIT.md`): 18/18 requirements
-satisfied via 3-source cross-reference, integration PASS (all cross-phase wiring WIRED), and Nyquist
-5/5 compliant. Local `mix ci` green (1186 tests, 0 failures). Two stale v1.19 carry-over artifacts
-(`95-VERIFICATION.md` frontmatter; a docker-demo-warnings tooling todo) were acknowledged and
-deferred at close — both outside v1.20 scope.
+**Proof posture:** v1.21 audit `passed` (`milestones/v1.21-MILESTONE-AUDIT.md`): 24/24 requirements
+satisfied via 3-source cross-reference, integration **14/14 WIRED** (0 blockers, 0 warnings), the
+CI-gate E2E flow complete, and the load-bearing de-flake→lock→shift-left order proven in the shipped
+artifacts (the smoke lane's needs-wiring commit is the last `ci.yml` touch). Tech debt is minimal and
+advisory (WR-01 cyclic-`$callers` defense-in-depth hardening; 7 pre-existing `actionlint` findings in
+unrelated `ci.yml` jobs, byte-identical before/after). One stale v1.18-era docker-demo-warnings
+tooling todo was acknowledged and deferred at close — outside v1.21 scope (see STATE.md Deferred Items).
 
-**Prior milestone:** v1.19 Design-System Stress-Test — shipped 2026-06-19, 20/20 requirements
-validated (token-pipeline hardening, fractal admin/Cohort DS uplift, daisyUI retirement, single
-merge-blocking computed-style visual gate). Archived to `milestones/v1.19-*.md`. v1.18 Admin Console
-& Adoption Lab closed `shipped` 2026-06-20 after HUMAN-UAT sign-off; archived to `milestones/v1.18-*.md`.
+**Prior milestone:** v1.20 CI/CD Performance — shipped 2026-06-22, 18/18 requirements validated across
+5/5 phases (103–107) with **zero `lib/` change** (CI observability + baseline, `setup-elixir`/
+`setup-minio` composites + PLT restore/save split, single `CI Summary` aggregate required check + live
+branch-protection flip, fast PR lane + `nightly.yml` split, reliability/security/DX hardening).
+Archived to `milestones/v1.20-*.md`. v1.19 Design-System Stress-Test shipped 2026-06-19 (20/20); v1.18
+Admin Console & Adoption Lab closed `shipped` 2026-06-20 after HUMAN-UAT sign-off. All archived.
 
-**Open planning debt:** None. v1.18, v1.19, and v1.20 are all shipped and archived.
+**Open planning debt:** None. v1.18, v1.19, v1.20, and v1.21 are all shipped and archived.
 
-**Active milestone:** **v1.21 CI/DX Reliability Tail** — chartered 2026-06-26 from **SEED-004**
-(the documented seed satisfies the non-feature/DX gate; feature milestones remain demand-gated on
-LIFE-06 / STREAM-10 per `config.json`). Companion to v1.20: closes the reliability tail SEED-003
-flagged but v1.20 did not fix. **Unlike v1.20, this milestone DOES touch `lib/`** — two small,
-adopter-invisible hardening patches (authorized 2026-06-26, see D-v1.21-01), so it ships as Hex
-patch **0.3.2** via release-please `fix:` commits. Phase numbering continues at **108**.
+**Active milestone:** None — between milestones. Feature milestones remain demand-gated on **LIFE-06**
+(force-delete) / **STREAM-10** (second provider) per `config.json`
+(`workflow.milestone_boundary.block_feature_milestone_without_signal`); a non-feature/DX milestone
+needs a documented seed (as SEED-003 was for v1.20 and SEED-004 for v1.21). Next: `/gsd-new-milestone`
+once a demand signal or DX seed lands.
 
-**v1.21 progress:** Phase 110 (Async-isolation hardening) complete 2026-06-28 — 4/4 plans,
-verification `passed` (12/12 must-haves; ISO-01..05). `Rindle.Config.repo/0` now consults a
-`$callers`-aware process-dictionary override before app env (the milestone's authorized `lib/` touch,
-landed via `fix(110-*)` → bundles into the 0.3.2 patch), the `CountingFailingTxnRepo` double is
-process-scoped (no global `put_env(:rindle, :repo, …)`), three modules re-promoted to `async: true`,
-and the v1.20 async-safety guard gained a `:global_repo_swap` rule making the footgun
-un-reintroducible. Code review carried one advisory (WR-01: cyclic `$callers` unbounded recursion —
-low reachability, defense-in-depth hardening for a future patch). Next: Phase 111 (Regression locks).
+## Last Milestone: v1.21 CI/DX Reliability Tail (shipped 2026-06-29)
 
-## Current Milestone: v1.21 CI/DX Reliability Tail
+<details>
+<summary>v1.21 CI/DX Reliability Tail — shipped scope (collapsed)</summary>
 
 **Goal:** Close the reliability tail v1.20 (SEED-003) left open — make the merge gate deterministic
 and trustworthy by killing the structural double-suite-run, fixing the underlying subprocess
@@ -72,6 +74,8 @@ authorized (D-v1.21-01) → ships Hex **0.3.2**. Hard invariants carry over from
 `ci.yml` / `name: CI` (release-train coupling); `CI Summary` keeps `skipped`==pass (fork-PR safety);
 never weaken the release full-verification gate. Research locked in `.planning/research/v1.21-*.md`.
 Phases resume at **108**.
+
+</details>
 
 <details>
 <summary>v1.20 CI/CD Performance — shipped scope (collapsed)</summary>
@@ -361,12 +365,19 @@ To keep this posture durable across GSD workflows:
   reliability/security/DX hardening — async-safety AST guard, SHA-pinned actions + Dependabot +
   `mix_audit`, `mix ci` alias, faithful Linux-Chromium repro (HARD-01..04). 18/18 validated.
   Archived: `milestones/v1.20-REQUIREMENTS.md`.
+- ✓ **v1.21 CI/DX Reliability Tail** — shipped 2026-06-29 (non-feature/DX, two adopter-invisible
+  `lib/` `fix:` patches → Hex 0.3.2): single-run coverage killing the double-suite run
+  (COV-01..04), subprocess `:epipe` hardening via `run_isolated/5` at the AV chokepoint + invariant-13
+  truth correction (EPIPE-01..05, TRUTH-01), `$callers`-aware process-scoped repo override retiring the
+  global swap + `:global_repo_swap` guard rule (ISO-01..05), five shipped-artifact regression-lock
+  meta-tests for the 2026-06-26 cluster (LOCK-01..05), and the lean `adoption-demo-e2e-smoke` PR lane
+  wired into `CI Summary` LAST after de-flake + 3 green main runs (GATE-01..04). 24/24 validated.
+  Archived: `milestones/v1.21-REQUIREMENTS.md`.
 
 ### Active
 
-**v1.21 CI/DX Reliability Tail (in flight — see `.planning/REQUIREMENTS.md`):** single-run coverage
-(COV), subprocess `:epipe` hardening (EPIPE, `lib/`), PR↔main gate-coverage gap (GATE), async
-isolation (ISO, `lib/`), regression locks + proof (LOCK/PROOF), truth fix (TRUTH).
+**None — between milestones.** v1.21 shipped 2026-06-29; no milestone is in flight. The next milestone
+is demand- or seed-gated (see below); start it with `/gsd-new-milestone`.
 
 **Demand-gated for next feature milestone:**
 
@@ -547,8 +558,8 @@ that section on next docs maintenance pass.
 | Never rename `ci.yml`/`name: CI`; never weaken the release full-verification gate | Release-train coupling (`release-please-automerge.yml` + `gate-ci-green`) reads the workflow name + full-matrix push:main run; renaming or weakening it would silently break publishing | ✓ Held v1.20 (byte-unchanged across all 5 phases) |
 | Scope the `package-consumer` long pole by trigger (lean `image` smoke on PR; full 5-profile matrix + preflight + dry-run on push:main/nightly/release) | The headline wall-clock cut; release readiness proven by the push:main run conclusion via `gate-ci-green`, not by a PR-gating check name | ✓ Good v1.20 (Phase 106; PR p95 under ≤7 min) |
 | ExUnit async conversion is gated behind an AST static-safety meta-test; `--partitions` deferred until measured core-starvation | Fail-closed guard prevents silent shared-state races; partitioning payoff is evidence-gated, not assumed (DEFER-02) | ✓ Good v1.20 (Phase 107; 15 modules converted, 2 latent races fixed) |
-| D-v1.21-01: v1.21 relaxes v1.20's zero-`lib/`-change invariant for two adopter-invisible hardening patches (`av/subprocess.ex` MuonTrap-#98 `:epipe` absorb; `config.ex` `$callers`-aware process-scoped repo override) | The correctness-true fixes for the recurring `:epipe` flake and the async-isolation root cause both live in production code; both are adopter-invisible (no public API / return-shape / error-vocab / security-invariant change), so they ship as a `fix:` patch (0.3.2) without escalation beyond this authorization | — Pending (authorized 2026-06-26 by maintainer) |
-| D-v1.21-02: keep `mix coveralls` (`local` analyzer) as the merge-gate; never derive the gate from `coveralls.json`'s exit code | ExCoveralls 0.18.5 source: `coveralls.json` does NOT call `ensure_minimum_coverage`, so gating on it would silently drop threshold enforcement; `coveralls.multiple --type local --type json` gives both from one run | — Pending |
+| D-v1.21-01: v1.21 relaxes v1.20's zero-`lib/`-change invariant for two adopter-invisible hardening patches (`av/subprocess.ex` MuonTrap-#98 `:epipe` absorb; `config.ex` `$callers`-aware process-scoped repo override) | The correctness-true fixes for the recurring `:epipe` flake and the async-isolation root cause both live in production code; both are adopter-invisible (no public API / return-shape / error-vocab / security-invariant change), so they ship as a `fix:` patch (0.3.2) without escalation beyond this authorization | ✓ Good v1.21 (both patches landed adopter-invisible; audit confirmed `lib/` seam unchanged at all 11 Ffmpeg/Ffprobe call sites + default no-override repo path) |
+| D-v1.21-02: keep `mix coveralls` (`local` analyzer) as the merge-gate; never derive the gate from `coveralls.json`'s exit code | ExCoveralls 0.18.5 source: `coveralls.json` does NOT call `ensure_minimum_coverage`, so gating on it would silently drop threshold enforcement; `coveralls.multiple --type local --type json` gives both from one run | ✓ Good v1.21 (Phase 108; one suite run per lane emits both the `local` gate and `excoveralls.json`) |
 
 
 ## Historical Snapshot
@@ -759,4 +770,4 @@ This document evolves at phase transitions and milestone boundaries.
    (`workflow.milestone_boundary.block_feature_milestone_without_signal`)
 
 ---
-*Last updated: 2026-06-28 — Phase 110 (Async-isolation hardening) complete: process-scoped repo override + async-safety `:global_repo_swap` guard; the first authorized v1.21 `lib/` touch landed via `fix:` (bundles into Hex 0.3.2). v1.21 chartered 2026-06-26 (SEED-004 + the 2026-06-26 flake cluster); 5 research areas locked in `.planning/research/v1.21-*.md`. Next: Phase 111 (Regression locks).*
+*Last updated: 2026-06-29 after v1.21 CI/DX Reliability Tail milestone — shipped 2026-06-29, 24/24 requirements validated across 5/5 verified phases (108–112), audit `passed`. Made the merge gate deterministic (single-run coverage, `:epipe` absorb, process-scoped repo override, regression locks, PR↔main smoke lane wired LAST); two adopter-invisible `lib/` patches ship as Hex 0.3.2. Archived to `milestones/v1.21-*.md`. Between milestones — next: `/gsd-new-milestone` once a demand signal or DX seed lands.*

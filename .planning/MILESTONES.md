@@ -1,5 +1,28 @@
 # Milestones
 
+## v1.21 CI/DX Reliability Tail (Shipped: 2026-06-29)
+
+**Phases completed:** 5 phases, 13 plans, 20 tasks
+
+**Key accomplishments:**
+
+- Default-suite CI lanes now run ExUnit exactly once per matrix cell — the quality gate emits both the merge-blocking console verdict and cover/excoveralls.json from a single `mix coveralls.multiple --type local --type json --slowest 20` run, and the redundant standalone coverage re-runs were deleted from quality, integration, and adoption.
+- `Rindle.AV.Subprocess.run/3` now delegates to a `spawn_monitor` + `trap_exit`'d worker (`run_isolated/5`) that absorbs the MuonTrap #98 broken-pipe `{:EXIT, port, :epipe}` async exit so it can never kill the caller, proven by a merge-blocking deterministic-synthetic + real-subprocess-stress regression suite.
+- Shipped the advisory MuonTrap #98 cleanup canary (probing the UNGUARDED `MuonTrap.cmd/3`, routed advisory-only to the nightly lane and excluded from the PR gate) plus the TRUTH-01 PROJECT.md correction (invariant 13 + Key-Decisions row to the real MuonTrap-only path), guarded by a merge-blocking CI grep step that stays compatible with Phase 111 LOCK-05.
+- `Rindle.Test.CountingFailingTxnRepo.with_counting_repo/2` migrated off ALL global state (repo via `Config.put_repo_override/1`, fail-config to the process dict), enabling the three repo-swap-demoted suites back to `async: true` — 28 tests green, serialization tax recovered.
+- The v1.20 async-safety guard now scans EVERY test module (async-flag-agnostic) and red-gates any `Application.put_env`/`delete_env(:rindle, :repo, …)` outside a per-module `@async_safety_allow [:global_repo_swap]`, pointing authors at the sanctioned `Config.put_repo_override/1` — making the global-repo-swap footgun un-reintroducible; the 9 legitimate adopter/probe swappers are allowlisted and the suite is green (3/0).
+- `test/rindle/config/repo_override_isolation_test.exs` (`async: true`) proves the counting double's repo override is process-scoped: process A force-fails its 1st transaction while an unrelated, `$callers`-unlinked bare-spawned reader B concurrently resolves `Rindle.Repo` and runs a successful transaction inside A's window. Writing the proof surfaced and fixed a latent tuple-key bug in the Plan 01 `$callers` resolver.
+- Lean `adoption-demo-e2e-smoke` Chromium PR job (MinIO-local, no secrets, pinned Playwright container, no `if:` gate, deterministic 2-spec subset) stood up and wired into `e2e_local.sh` via a back-compatible `ADOPTION_DEMO_E2E_SPECS` env var — without yet adding it to the merge gate.
+- Wired the lean `adoption-demo-e2e-smoke` PR browser-render proxy into `ci-summary.needs` + `ci-observability.needs` — making it merge-blocking TRANSITIVELY through the sole required `CI Summary` check — and locked the GATE topology with a shipped-artifact meta-test, all behind the satisfied GATE-04 operator checkpoint, with both byte-frozen gate scripts proven unchanged.
+
+**Audit:** `passed` (24/24 requirements via 3-source cross-reference, 5/5 phases verified, 14/14 cross-phase connections WIRED, 1/1 E2E flow). See `milestones/v1.21-MILESTONE-AUDIT.md`.
+
+**Stats:** 49 source files changed (1660+/185−), `lib/` 3 files (145+/3−) → Hex 0.3.2 via two adopter-invisible `fix:` patches · timeline 2026-06-26 → 2026-06-29 (4 days).
+
+**Known deferred items:** 1 (acknowledged at close) — the stale v1.18-era `2026-06-19-fix-docker-demo-startup-warnings.md` tooling todo (Cohort demo Docker startup warnings; cosmetic log noise, no behavior regression; outside v1.21 scope). See STATE.md Deferred Items.
+
+---
+
 ## v1.20 CI/CD Performance (Shipped: 2026-06-22)
 
 **Delivered:** Cut PR CI feedback time and hardened gate determinism/reliability without dropping real quality signal — a measure → classify → restructure pass shipped as stepwise PRs. Non-feature / DX-infrastructure milestone: **zero `lib/` public-API change**.

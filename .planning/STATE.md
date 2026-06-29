@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v1.21
 milestone_name: CI/DX Reliability Tail
-current_phase: 112
-status: verifying
+current_phase: 21
+status: Awaiting next milestone
 stopped_at: Phase 111 context gathered
-last_updated: "2026-06-29T17:11:41.397Z"
+last_updated: "2026-06-29T19:54:16.791Z"
 last_activity: 2026-06-29
-last_activity_desc: Phase 112 complete
+last_activity_desc: Milestone v1.21 completed and archived
 progress:
   total_phases: 5
   completed_phases: 5
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-06-22 after v1.20)
 
 ## Current Position
 
-Phase: 112
-Plan: Not started
-Status: Phase complete — ready for verification
-Last activity: 2026-06-29 — Phase 112 complete
+Phase: Milestone v1.21 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-06-29 — Milestone v1.21 completed and archived
 
 ### v1.21 roadmap (Phases 108–112) — load-bearing dependency order
 
@@ -409,6 +409,15 @@ outside v1.20 scope (Phases 103–107):
 | verification | `95-VERIFICATION.md` flagged `gaps_found` (Phase 95, v1.19) | stale frontmatter — the gap was already closed in 95-05 (mobile sticky-table fix, `2960883`); refresh status on a future v1.19 metadata pass or `/gsd-cleanup` |
 | tooling | `2026-06-19-fix-docker-demo-startup-warnings.md` todo | deferred — Cohort demo Docker startup warnings (missing Mox/inotify); not v1.20 scope |
 
+### Acknowledged at v1.21 milestone close (2026-06-29)
+
+Item surfaced by the open-artifact audit and acknowledged/deferred — a stale v1.18-era DX carry-over
+outside v1.21 scope (Phases 108–112, CI/DX reliability tail; no demo-runtime changes):
+
+| Category | Item | Status |
+|----------|------|--------|
+| tooling | `2026-06-19-fix-docker-demo-startup-warnings.md` todo | still deferred — Cohort demo Docker startup warnings (Mox compile warnings + `inotify-tools` live-reload); cosmetic log noise, no behavior regression; not v1.21 scope. Carries forward to a future DX milestone. |
+
 ## Session Continuity
 
 Last session: 2026-06-28T22:14:58.895Z
@@ -516,4 +525,4 @@ Resume file: .planning/phases/111-regression-locks/111-CONTEXT.md
 
 ## Operator Next Steps
 
-- Plan the first v1.21 phase with `/gsd-plan-phase 108`
+- Start the next milestone with /gsd-new-milestone
