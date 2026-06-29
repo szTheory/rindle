@@ -2,6 +2,7 @@
 
 ## Milestones
 
+- 🔵 **v1.22 OSS Quality & Trust Hardening** — Phases 113–116 (active, chartered 2026-06-29 from SEED-005; non-feature/DX, ships a 0.3.x minor; 14 reqs EVAL/TRUST/META/VERSION/README/MIGRATE/HYGIENE; [requirements](REQUIREMENTS.md))
 - ✅ **v1.21 CI/DX Reliability Tail** — Phases 108–112 (shipped 2026-06-29, non-feature/DX, ships Hex 0.3.2 via two adopter-invisible `lib/` `fix:` patches D-v1.21-01; 24/24 reqs COV/EPIPE/GATE/ISO/LOCK/TRUTH; [archive](milestones/v1.21-ROADMAP.md), [requirements](milestones/v1.21-REQUIREMENTS.md), [audit](milestones/v1.21-MILESTONE-AUDIT.md))
 - ✅ **v1.20 CI/CD Performance** — Phases 103–107 (shipped 2026-06-22, non-feature / DX-infra, ZERO `lib/` change, 18/18 reqs; [archive](milestones/v1.20-ROADMAP.md), [requirements](milestones/v1.20-REQUIREMENTS.md), [audit](milestones/v1.20-MILESTONE-AUDIT.md))
 - ✅ **v1.19 Design-System Stress-Test** — Phases 94-102 (shipped 2026-06-19, [archive](milestones/v1.19-ROADMAP.md), [audit](milestones/v1.19-MILESTONE-AUDIT.md))
@@ -26,6 +27,130 @@
 - ✅ **v1.1 Adopter Hardening** — Phases 6–9 (shipped 2026-04-28, [archive](milestones/v1.1-ROADMAP.md))
 - ✅ **v1.0 MVP** — Phases 1–5 (shipped 2026-04-xx, [archive](milestones/v1.0-ROADMAP.md))
 
+## Phases
+
+v1.22 OSS Quality & Trust Hardening (active). Phases continue from v1.21's Phase 112.
+
+This is a low-risk, mostly-independent hardening milestone. Most requirements do not hard-depend on
+each other; the phases group naturally rather than impose a deep dependency chain. Two ordering notes:
+the time-sensitive release unstick (HYGIENE-01) lands EARLY in Phase 113 to reach adopters; the
+versioned `Rindle.Migration` substrate (the only real code change, the v1.23 foundation) lands LAST in
+Phase 116 so its new install/upgrade docs converge coherently with the README/VERSION doc work in 115.
+
+- [ ] **Phase 113: Evaluation Baseline & Release Hygiene** - Opening scored-weakness summary, cut the stuck Hex 0.3.2 release to reach adopters, and reconcile planning truth
+- [ ] **Phase 114: OSS Trust & Governance** - SECURITY.md / CODE_OF_CONDUCT.md / issue+PR templates plus Hex `package` links + maintainers
+- [ ] **Phase 115: Versioning & README Positioning** - SemVer/pre-1.0 stability contract, generalized upgrade guide, image-first skimmable README + "when not to use"
+- [ ] **Phase 116: Versioned `Rindle.Migration` Module** - Oban-style versioned `up/1`+`down/1` install path; adopter owns `oban_jobs`; non-breaking, defaults to `public`
+
+## Phase Details
+
+### Phase 113: Evaluation Baseline & Release Hygiene
+
+**Goal**: Open the milestone with an evidence-cited scored-weakness summary, unstick the
+merged-but-unreleased v1.21 adopter fixes by cutting the 0.3.2 release, and reconcile the planning
+truth those gaps created.
+
+**Depends on**: Nothing (first phase of v1.22; continues from shipped Phase 112)
+
+**Requirements**: EVAL-01, HYGIENE-01, HYGIENE-02
+
+**Success Criteria** (what must be TRUE):
+  1. A maintainer can read a concise, right-sized, evidence-cited scored-weakness summary of Rindle's
+     OSS quality (the milestone's opening artifact) naming the weak dimensions (governance/trust,
+     versioning/positioning, host-app respectfulness) vs. the already-strong ones — not the full
+     36-dimension report.
+  2. Hex 0.3.2 is published so the merged-but-unreleased v1.21 `lib/` fixes (`:epipe` absorb,
+     `$callers` config override) reach adopters; `mix.exs`, `.release-please-manifest.json`, and
+     CHANGELOG all reflect the released version and the root cause (why release-please did not open a
+     0.3.2 PR) is investigated and recorded.
+  3. PROJECT.md / MILESTONES reconcile the prior aspirational "ships as Hex 0.3.2" claim with reality
+     (released vs. previously unshipped).
+  4. SEED-003 and SEED-004 frontmatter `status:` is corrected from stale `open` to `consumed` (they
+     shipped as v1.20 / v1.21).
+
+**Plans**: TBD
+
+### Phase 114: OSS Trust & Governance
+
+**Goal**: Close the OSS governance/trust gap so a newcomer or security researcher lands on a project
+that signals it is maintained, safe to report to, and welcoming to contribute to — and so hex.pm
+surfaces the conventional package links and maintainers.
+
+**Depends on**: Phase 113 (uses the EVAL-01 scored-weakness summary as the prioritized work list)
+
+**Requirements**: TRUST-01, TRUST-02, TRUST-03, META-01, META-02
+
+**Success Criteria** (what must be TRUE):
+  1. The repo has a `SECURITY.md` with a vulnerability-disclosure policy appropriate for a library
+     handling untrusted uploads, MIME sniffing, signed delivery, and webhook HMAC verification.
+  2. The repo has a `CODE_OF_CONDUCT.md`.
+  3. A newcomer opening an issue or PR is guided by `.github/ISSUE_TEMPLATE/` templates (bug report /
+     feature proposal) and a `PULL_REQUEST_TEMPLATE.md` (the existing CONTRIBUTING is CI-only — these
+     add the on-ramp).
+  4. hex.pm surfaces "Changelog" and "Docs" links (HexDocs convention) alongside the existing GitHub
+     link via `package.links`.
+  5. The Hex `package` declares `maintainers`.
+
+**Plans**: TBD
+
+### Phase 115: Versioning & README Positioning
+
+**Goal**: Set adopter expectations correctly — state the pre-1.0 stability contract and give every
+future change a documented upgrade home — and make the README skimmable with an image-first first-run
+and an honest "when not to use it" boundary.
+
+**Depends on**: Phase 113 (EVAL-01 names the positioning/versioning weaknesses this phase closes)
+
+**Requirements**: VERSION-01, VERSION-02, README-01, README-02
+
+**Success Criteria** (what must be TRUE):
+  1. README and CONTRIBUTING state the SemVer / pre-1.0 stability contract ("0.x: API may change
+     between minor versions; see CHANGELOG") plus a short note on what 1.0 will mean.
+  2. `guides/upgrading.md` is a reusable, versioned upgrade-notes structure — not just the single
+     pre-0.1.4 image-only→AV case — so every future change has a documented home.
+  3. The README leads with an image-only "first attachment in ~2 minutes" path that needs no
+     FFmpeg/libvips; the heavier AV quickstart is demoted below it.
+  4. The README has a clear "what Rindle is NOT / when not to use it" block (lifted from
+     `guides/user_flows.md`).
+
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 116: Versioned `Rindle.Migration` Module
+
+**Goal**: Replace the raw 15-file `Ecto.Migrator` copy-paste install path with a versioned,
+idempotent, Oban-style `Rindle.Migration` module and stop creating the shared `oban_jobs` table on the
+adopter's behalf — non-breaking, and the load-bearing foundation v1.23 builds the schema prefix onto.
+
+**Depends on**: Phase 115 (its new install/upgrade docs converge with the README/VERSION/`upgrading.md`
+work landed in 115)
+
+**Requirements**: MIGRATE-01, MIGRATE-02
+
+**Success Criteria** (what must be TRUE):
+  1. Adopters install Rindle's tables via a versioned, idempotent `Rindle.Migration.up/1` + `down/1`
+     module (Oban-style) instead of the raw 15-file copy-paste path; README, getting-started, and
+     `upgrading.md` show the new ~3-line migration. Non-breaking — the default schema stays `public`
+     and existing adopters' already-applied migrations remain valid.
+  2. Rindle no longer creates the shared `oban_jobs` table; the adopter owns `Oban.Migration`,
+     documented in the install/upgrade guides (removes the latent host-Oban collision).
+  3. The existing test suite stays green (135 test files; the async-safety meta-test still governs
+     `async: true`), and doctor / runtime_status migration-inspection logic keeps working alongside
+     legacy 15-file installs.
+  4. Hard release-coupling invariants are preserved: `ci.yml` / `name: CI` unchanged, `CI Summary`
+     keeps `skipped`==pass, and the release full-verification gate is not weakened.
+
+**Plans**: TBD
+
+## Progress
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 113. Evaluation Baseline & Release Hygiene | 0/? | Not started | - |
+| 114. OSS Trust & Governance | 0/? | Not started | - |
+| 115. Versioning & README Positioning | 0/? | Not started | - |
+| 116. Versioned `Rindle.Migration` Module | 0/? | Not started | - |
+
 ## Phases (shipped — collapsed history)
 
 <details>
@@ -37,6 +162,9 @@ delivered intact (de-flake 108→109→110 → lock 111 → shift-left 112 LAST)
 adopter-invisible `lib/` `fix:` patches (D-v1.21-01: `av/subprocess.ex` EPIPE; `config.ex` ISO). All
 hard release-coupling invariants preserved: `ci.yml` filename + `name: CI` byte-unchanged; `CI Summary`
 treats `skipped` as pass and stays the sole required check.
+
+> Note: the v1.21 `lib/` fixes are merged but **0.3.2 was never published** (Hex live = 0.3.1). v1.22
+> Phase 113 (HYGIENE-01) cuts the stuck release and reconciles the claim.
 
 - [x] Phase 108: Coverage single-run (1/1 plan) — completed 2026-06-28
 - [x] Phase 109: Subprocess `:epipe` hardening (2/2 plans) — completed 2026-06-28
@@ -87,384 +215,24 @@ Archive: [milestones/v1.19-ROADMAP.md](milestones/v1.19-ROADMAP.md); audit: [mil
 <details>
 <summary>✅ v1.18 Admin Console & Adoption Lab (Phases 86–93) — SHIPPED 2026-06-20 · full detail in <a href="milestones/v1.18-ROADMAP.md">archive</a></summary>
 
-### v1.18 Admin Console & Adoption Lab (Phases 86–93)
-
-**Charter (2026-06-10):** Maintainer-pull feature milestone — explicit, recorded override
-of the PAUSE-03 v1.18+ reservation (LIFE-06/STREAM-10 stay demand-gated, now v1.19+).
-Reverses the JTBD T4 "admin UI out of scope" exclusion as a deliberate scope change.
-Ships as hex **0.3.0** (brand work releases separately as 0.2.0 first).
-
-**Locked decisions:** D-v1.18-01 console ships in the `rindle` package, mountable
-Oban-Web/LiveDashboard-style with self-contained assets; D-v1.18-02 hex 0.3.0 after the
-0.2.0 brand release; D-v1.18-03 Cohort stays the demo domain, extended (audio + documents
-
-+ full state-space seeds) — no E2E churn for its own sake.
-
-Each phase runs full GSD: discuss → research → plan → execute → verify, with a
-maintainer go/no-go gate between phases.
-
-- [x] **Phase 86: Research & Architecture Lock** — parallel subagent research → locked ADRs: (completed 2026-06-11)
-  LiveDashboard/Oban Web packaging (router macro, asset serving, CSP, CSS isolation,
-  optional-dep matrix); gov.uk/GDS information architecture → persona/JTBD-driven console
-  IA map; emilkowal.ski animation principles → restrained motion spec tied to brand
-  `motion` tokens; Docker multi-project DX (COMPOSE_PROJECT_NAME / env ports / traefik
-  tradeoffs); CSS architecture lock (BEM + custom properties generated from
-  `brandbook/tokens/tokens.json` for the console; Cohort keeps Tailwind/daisyUI momentum).
-  Output includes the UI-principles doc linked from `AGENTS.md` (PRIN-01).
-
-- [x] **Phase 87: Docker & Demo DX** (early — every later UI phase iterates faster) — (completed 2026-06-11)
-  project namespacing, env-driven ports + conflict guidance, layer-cache fix
-  (deps before source COPY), dev style-change path without rebuilds, launch URL map,
-  reader-empathetic docs. (DX-01..03)
-
-- [x] **Phase 88: Admin Design System & UI Kit** — token-generated `rindle-admin` CSS
-  (BEM), light/dark/system theme picker, core components (nav shell, tables,
-  lifecycle-state chips, buttons, confirm dialog, drawer, toasts, empty states,
-  skeletons), component-gallery screenshot harness, WCAG contrast gate.
-  **Checkpoint: maintainer reviewed rendered gallery; requested anchor-navigation fix is
-  implemented and regression-covered.** (completed 2026-06-11; DS-01..03, ADMIN-02 groundwork)
-
-- [x] **Phase 89: Console Read Surfaces** — router macro + host-auth `on_mount` + (completed 2026-06-12)
-  asset-serving plug (safe by default); home, assets list/detail, upload sessions,
-  variant/job activity, doctor + runtime status; pubsub live updates;
-  `Rindle.Admin.Queries` isolation; optional-dep CI matrix. (ADMIN-01..03, 05, 06)
-
-- [x] **Phase 90: Console Ops Actions** — erasure preview/execute + batch with (completed 2026-06-13; UAT complete 2026-06-14 — destructive-UX gate automated into merge-blocking CI)
-  destructive-action UX (typed confirmation, collateral preview), variant regeneration,
-  quarantine review, lifecycle repair. (ADMIN-04)
-
-- [x] **Phase 91: Cohort Demo Evolution** — Cohort's own lightweight brand (completed 2026-06-12)
-  (**rendered options checkpoint**), audio + document profiles, seeds expressing every
-  lifecycle state, mounts the console, click-around walkthrough. (DEMO-01..03)
-
-- [x] **Phase 92: E2E & Screenshot-Driven Polish Loop** — deterministic console Playwright (completed 2026-06-13; UAT complete 2026-06-14 — screenshot visual-polish review automated into the merge-blocking CI lane via `admin-polish.js`; 0 human UAT)
-  specs (happy/error/boundary/theme/destructive) in a merge-blocking lane; all-screens ×
-  light/dark capture → analyze → fix polish passes. (E2E-01..02)
-
-- [x] **Phase 93: Truth, Docs & Milestone Audit** — `guides/admin_console.md`, (completed 2026-06-13)
-  user_flows + JTBD-MAP updates (T4 reversal), facade moduledoc truth fix
-  (`lib/rindle.ex` "no admin UI" line), README/HexDocs, traceability closure,
-  MILESTONE-AUDIT. (TRUTH-07)
-
-## Phase Details
-
-### Phase 86: Research & Architecture Lock
-
-**Goal:** Lock the architecture, information architecture, animation, Docker DX, CSS, and
-UI-principles decisions that downstream v1.18 phases must follow.
-
-**Depends on:** v1.18 charter recorded; b1.0 brand assets and tokens available.
-
-**Requirements:** PRIN-01
-
-**Success criteria:**
-
-1. LiveDashboard/Oban Web packaging decisions are recorded for router macro, asset serving,
-   CSP, CSS isolation, and optional-dependency matrix.
-
-2. Console information architecture is mapped from persona/JTBD lenses, with gov.uk/GDS
-   research translated into maintainer-facing Rindle surfaces.
-
-3. Motion principles are tied to brand `motion` tokens and remain restrained for an
-   operational console.
-
-4. Docker multi-project DX decisions cover `COMPOSE_PROJECT_NAME`, env-driven ports, and
-   traefik tradeoffs.
-
-5. CSS architecture is locked: console uses BEM + generated custom properties from
-   `brandbook/tokens/tokens.json`; Cohort keeps Tailwind/daisyUI momentum.
-
-6. UI-principles document is linked from `AGENTS.md`.
-
-**Plans:** 3/3 plans complete
-
-Plans:
-
-- [x] 86-01-PLAN.md — Lock mountable console architecture and task-first IA.
-- [x] 86-02-PLAN.md — Lock console CSS architecture and operational motion.
-- [x] 86-03-PLAN.md — Lock Docker demo DX and link UI principles from `AGENTS.md`.
-
----
-
-### Phase 87: Docker & Demo DX
-
-**Goal:** Make the demo stack fast and conflict-free before the UI-heavy phases iterate on it.
-
-**Depends on:** Phase 86
-
-**Requirements:** DX-01, DX-02, DX-03
-
-**Success criteria:**
-
-1. Compose stack can run alongside sibling projects via namespacing and env-driven ports.
-2. Port conflict guidance is documented with sane defaults.
-3. Dockerfile layer cache fetches deps before source COPY.
-4. Dev iteration path supports style/template changes without rebuilding deps.
-5. Launch flow prints a copy-pasteable URL map for app, admin console, and MinIO console.
-
-**Plans:** 3/3 plans complete
-
-Plans:
-
-**Wave 1**
-
-- [x] 87-01-PLAN.md - Env-driven compose ports and launch URL map.
-- [x] 87-02-PLAN.md - Dockerfile dependency-cache ordering.
-
-**Wave 2** *(blocked on Wave 1 completion)*
-
-- [x] 87-03-PLAN.md - Docker quick-try and proof-matrix docs.
-
----
-
-### Phase 88: Admin Design System & UI Kit
-
-**Goal:** Ship the token-generated `rindle-admin` design system and component kit that the
-console implementation will use.
-
-**Depends on:** Phase 86 and Phase 87
-
-**Requirements:** DS-01, DS-02, DS-03, ADMIN-02 groundwork
-
-**Success criteria:**
-
-1. `rindle-admin` CSS is generated from `brandbook/tokens/tokens.json` using BEM and CSS
-   custom properties.
-
-2. Light/dark/system theme picker is implemented as a first-class component.
-3. Core components exist for nav shell, tables, lifecycle-state chips, buttons, confirm
-   dialog, drawer, toasts, empty states, and skeletons.
-
-4. Component-gallery screenshot harness exists for maintainer review.
-5. Mechanical WCAG AA contrast gate covers console token pairs.
-6. Maintainer reviews rendered gallery before later console phases rely on it.
-
-**Plans:** 3/3 plans complete
-
-Plans:
-
-**Wave 1**
-
-- [x] 88-01-PLAN.md — Generate `rindle-admin` CSS and console contrast gates.
-
-**Wave 2** *(blocked on Wave 1 completion)*
-
-- [x] 88-02-PLAN.md — Generate component gallery and screenshot/theme harness.
-
-**Wave 3** *(blocked on Waves 1–2 completion)*
-
-- [x] 88-03-PLAN.md — Document design-system operation and run maintainer gallery review.
-
----
-
-### Phase 89: Console Read Surfaces
-
-**Goal:** Ship the mountable console read experience with safe host integration, self-contained
-assets, live updates, and isolated admin queries.
-
-**Depends on:** Phase 88
-
-**Requirements:** ADMIN-01, ADMIN-02, ADMIN-03, ADMIN-05, ADMIN-06
-
-**Success criteria:**
-
-1. Host app mounts the console via router macro with host auth pipeline and `on_mount` hook.
-2. Console asset-serving plug is safe by default and self-contained.
-3. Home, assets list/detail, upload sessions, variant/job activity, doctor, and runtime status
-   read surfaces are available.
-
-4. PubSub live updates use existing `:asset`, `:variant`, and `:upload_session` topics.
-5. Queries remain isolated in `Rindle.Admin.Queries`, not added to the public facade.
-6. Optional-dependency CI matrix proves `phoenix_live_view` compiles away cleanly when absent.
-
-**Plans:** 7/7 plans complete
-
-Plans:
-
-**Wave 1**
-
-- [x] 89-01-PLAN.md — Mount router macro and safe host-auth boundary.
-
-**Wave 2** *(blocked on Wave 1 completion)*
-
-- [x] 89-02-PLAN.md — Package and prove self-contained admin assets.
-- [x] 89-03-PLAN.md — Build isolated admin read query boundary.
-
-**Wave 3** *(blocked on Wave 2 completion)*
-
-- [x] 89-04-PLAN.md — Implement shell, Home/Status, Assets, and Upload Sessions.
-
-**Wave 4** *(blocked on Wave 3 completion)*
-
-- [x] 89-05-PLAN.md — Complete Variants/Jobs, Runtime/Doctor, and Actions read surfaces.
-
-**Wave 5** *(blocked on Wave 4 completion)*
-
-- [x] 89-06-PLAN.md — Add upload-session PubSub broadcasts and invalidation proof.
-
-**Wave 6** *(blocked on Wave 5 completion)*
-
-- [x] 89-07-PLAN.md — Add optional LiveView compile-away CI proof.
-
----
-
-### Phase 90: Console Ops Actions
-
-**Goal:** Add operational console actions for existing lifecycle capabilities without adding new
-lifecycle semantics.
-
-**Depends on:** Phase 89
-
-**Requirements:** ADMIN-04
-
-**Success criteria:**
-
-1. Owner erasure preview/execute and batch erasure are exposed with deliberate destructive UX.
-2. Typed confirmation and collateral preview are required for destructive actions.
-3. Variant regeneration, quarantine review, and lifecycle repair reuse existing facade
-   capabilities.
-
-4. Console actions do not introduce new lifecycle semantics beyond recorded v1.18 scope.
-
-**Plans:** 2/2 plans complete
-
-Plans:
-
-**Wave 1**
-
-- [x] 90-01-PLAN.md — Owner erasure and batch erasure with typed-confirmation destructive UX.
-- [x] 90-02-PLAN.md — Variant regeneration, lifecycle repair, and quarantine-review triage.
-
-**Status:** Complete — 8/8 must-haves verified; HUMAN-UAT (destructive-action UX) signed off 2026-06-20.
-
----
-
-### Phase 91: Cohort Demo Evolution
-
-**Goal:** Evolve Cohort into the adoption lab that proves the console across branded demo
-surfaces, media types, and lifecycle states.
-
-**Depends on:** Phase 90
-
-**Requirements:** DEMO-01, DEMO-02, DEMO-03
-
-**Success criteria:**
-
-1. Cohort gets a lightweight brand distinct from Rindle after a rendered options checkpoint.
-2. Demo covers audio and document media profiles.
-3. Seeds express every asset, variant, and upload-session lifecycle state, including degraded,
-   quarantined, failed, stale, and expired.
-
-4. Cohort mounts the admin console.
-5. Click-around walkthrough is documented.
-
-**Plans:** 3/3 plans complete
-
-Plans:
-
-**Wave 1**
-
-- [x] 91-01-PLAN.md — Replace default Phoenix logo with new distinct Cohort brand.
-- [x] 91-02-PLAN.md — Define Audio/Document profiles and seed database with lifecycle edge cases.
-- [x] 91-03-PLAN.md — Mount Rindle Admin console in Cohort and document walkthrough.
-
----
-
-### Phase 92: E2E & Screenshot-Driven Polish Loop
-
-**Goal:** Make console behavior and polish deterministic through merge-blocking Playwright and
-all-screens screenshot iteration.
-
-**Depends on:** Phase 91
-
-**Requirements:** E2E-01, E2E-02
-
-**Success criteria:**
-
-1. Deterministic Playwright specs cover happy paths, main error cases, boundary conditions,
-   theme switching, and destructive flows.
-
-2. Console E2E lane is merge-blocking.
-3. Automated screenshot capture covers all screens in light and dark mode.
-4. Screenshot analyze-to-fix polish passes are run until visual regressions are resolved.
-
-**Plans:** 5/5 plans complete
-
-Plans:
-
-**Wave 1**
-
-- [x] 92-01-PLAN.md — Create admin E2E helper and stable selector foundation.
-
-**Wave 2** *(blocked on Wave 1 completion)*
-
-- [x] 92-02-PLAN.md — Add admin surface, boundary, detail, redaction, and theme specs.
-- [x] 92-03-PLAN.md — Add destructive and non-destructive admin action specs.
-
-**Wave 3** *(blocked on Wave 2 completion)*
-
-- [x] 92-04-PLAN.md — Add live all-screen screenshots and run screenshot polish iteration.
-
-**Wave 4** *(blocked on Wave 3 completion)*
-
-- [x] 92-05-PLAN.md — Wire specs into proof matrix, drift gate, docs, and CI lane truth.
-
----
-
-### Phase 93: Truth, Docs & Milestone Audit
-
-**Goal:** Close v1.18 with truthful docs, public-surface parity, traceability closure, and a
-milestone audit.
-
-**Depends on:** Phase 92
-
-**Requirements:** TRUTH-07
-
-**Success criteria:**
-
-1. `guides/admin_console.md` documents the console accurately.
-2. `user_flows` and `JTBD-MAP` reflect the T4 admin UI reversal.
-3. `lib/rindle.ex` no longer claims there is no admin UI.
-4. README and HexDocs describe the shipped console truthfully.
-5. Requirements traceability is closed.
-6. v1.18 milestone audit is written.
-
-**Plans:** 4/4 plans complete
-
-Plans:
-
-- [x] 93-01-PLAN.md — Fix facade moduledoc + operations/troubleshooting/user_flows admin-UI denials (F1–F5).
-- [x] 93-02-PLAN.md — Reverse JTBD-MAP T4 admin-UI exclusion (idempotent anchor) + close REQUIREMENTS traceability.
-- [x] 93-03-PLAN.md — Author guides/admin_console.md, wire into mix.exs extras, add README mention.
-- [x] 93-04-PLAN.md — Parity-test lock (Nyquist) + regenerate v1.18 milestone audit + UAT-status checkpoint.
-
-**Audit:** [.planning/milestones/v1.18-MILESTONE-AUDIT.md](milestones/v1.18-MILESTONE-AUDIT.md) — status `shipped` (19/19 reqs + 8/8 phases verified; HUMAN-UAT for phases 90/91/92 signed off 2026-06-20).
+Mountable token-generated admin console (ADMIN-01..06, DS-01..03), Cohort adoption-lab demo with full
+media-type + lifecycle-state coverage (DEMO-01..03), deterministic console E2E + screenshot polish loop
+(E2E-01..02), port-conflict-free Docker DX (DX-01..03), durable UI-principles doc (PRIN-01), and
+scope-reversal docs parity (TRUTH-07). 19/19 reqs across 8 phases. Full phase details + per-plan
+breakdown in the archive.
+
+- [x] Phase 86: Research & Architecture Lock — completed 2026-06-11
+- [x] Phase 87: Docker & Demo DX — completed 2026-06-11
+- [x] Phase 88: Admin Design System & UI Kit — completed 2026-06-11
+- [x] Phase 89: Console Read Surfaces — completed 2026-06-12
+- [x] Phase 90: Console Ops Actions — completed 2026-06-13 (HUMAN-UAT signed off 2026-06-20)
+- [x] Phase 91: Cohort Demo Evolution — completed 2026-06-12
+- [x] Phase 92: E2E & Screenshot-Driven Polish Loop — completed 2026-06-13 (HUMAN-UAT signed off 2026-06-20)
+- [x] Phase 93: Truth, Docs & Milestone Audit — completed 2026-06-13
+
+Audit: [.planning/milestones/v1.18-MILESTONE-AUDIT.md](milestones/v1.18-MILESTONE-AUDIT.md) — status `shipped`.
 
 </details>
-
-## Progress
-
-| Phase | Plans Complete | Status | Completed |
-|-------|----------------|--------|-----------|
-| 108. Coverage single-run | 1/1 | Complete    | 2026-06-28 |
-| 109. Subprocess `:epipe` hardening | 2/2 | Complete    | 2026-06-28 |
-| 110. Async-isolation hardening | 4/4 | Complete    | 2026-06-28 |
-| 111. Regression locks | 4/4 | Complete   | 2026-06-28 |
-| 112. PR↔main gate shift-left | 2/2 | Complete    | 2026-06-29 |
-| 103. Observability / Baseline | 4/4 | Complete    | 2026-06-20 |
-| 104. Cache & Tooling Hygiene | 4/4 | Complete    | 2026-06-21 |
-| 105. Aggregate Required Check + Branch-Protection Flip | 1/1 | Complete   | 2026-06-21 |
-| 106. Trigger Split + Matrix/Lane Refinement | 4/4 | Complete    | 2026-06-22 |
-| 107. Reliability, Security & DX Hardening | 4/4 | Complete    | 2026-06-22 |
-| 94. Foundation — Token Pipeline CI Gate & New Categories | 5/5 | Complete    | 2026-06-15 |
-| 95. Admin Level-1 Component Audit [A] | 5/5 | Complete   | 2026-06-16 |
-| 96. Cohort Component Layer + Dark/Reduced-Motion [B] | 5/5 | Complete    | 2026-06-17 |
-| 97. Admin Level-2 Meta-Components [A] | 4/4 | Complete    | 2026-06-17 |
-| 98. Admin Level-3 Pages + Motion/Mobile/A11y/IA/Microcopy [A] | 5/5 | Complete    | 2026-06-18 |
-| 99. Cohort Page Migrations (small 7) [B] | 5/5 | Complete    | 2026-06-18 |
-| 100. Cohort /upload Migration [B] | 2/2 | Complete    | 2026-06-18 |
-| 101. daisyUI Retirement [B] | 4/4 | Complete    | 2026-06-18 |
-| 102. Re-Converge — Visual Matrix, Idempotency & Audit | 6/6 | Complete    | 2026-06-19 |
 
 <details>
 <summary>✅ b1.0 Brand Foundations (Phases 81–85) — SHIPPED 2026-06-10</summary>
@@ -513,31 +281,42 @@ Audit: [.planning/milestones/v1.15-MILESTONE-AUDIT.md](milestones/v1.15-MILESTON
 
 </details>
 
-## Demand-Gated Pause — Superseded for v1.18/v1.19 (2026-06-10 / 2026-06-14)
+## Demand-Gated Pause — Non-feature arc in progress (v1.22/v1.23)
 
-**Formalized:** 2026-05-27 | **Status:** Overridden by maintainer-pull v1.18 charter
-(recorded in PAUSE-03 amendment, `.planning/REQUIREMENTS.md`) and extended by the v1.19
-Design-System Stress-Test quality milestone (2026-06-14). The demand gates themselves
-remain intact for v1.20+:
+**Formalized:** 2026-05-27 | **Status:** The demand gates remain intact for the next *feature*
+milestone, but the current v1.22→v1.23 software-quality consolidation arc (SEED-005) is non-feature/DX,
+so `block_feature_milestone_without_signal` does not apply. Feature work still requires:
 
 - **LIFE-06** — compliance/legal ticket for force-delete shared assets, or
 - **STREAM-10** — named adopter for second streaming provider
 
-Pause posture resumes after v1.19 ships unless a new charter exists.
 See [post-v116 assessment](threads/2026-05-27-post-v116-milestone-assessment.md).
 
-## Deferred to v1.20+ / Later
+## Deferred to v1.23+ / Later
 
+- **v1.23 Postgres Schema Isolation** (breaking → 0.4.0): `rindle` schema default via config-driven
+  `@schema_prefix`; 4 manual escapes; `prefix: "public"` opt-out + `ALTER TABLE … SET SCHEMA` move
+  migration (ISO23-01..04 in REQUIREMENTS.md). Builds on v1.22's `Rindle.Migration` substrate.
 - Force-delete semantics for still-shared assets (LIFE-06) — compliance pull only
 - Second streaming provider (Cloudflare/Bunny) — explicit adopter demand only
-- IETF RUFH / tus 2.0
-- GCS-as-tus-backend / R2-native tus proxying
-- Rindle-owned standalone tus JS client package
-- Richer reusable uploader component abstractions
+- IETF RUFH / tus 2.0; GCS-as-tus-backend / R2-native tus proxying
+- Rindle-owned standalone tus JS client package; richer reusable uploader component abstractions
 - Signed dynamic image transforms / EXIF privacy stripping
+- `mix test --partitions` parallelization — evidence-gated on a measured core-starvation showing (DEFER-02)
 
 ## Archive
 
+- [.planning/milestones/v1.21-ROADMAP.md](milestones/v1.21-ROADMAP.md)
+- [.planning/milestones/v1.21-REQUIREMENTS.md](milestones/v1.21-REQUIREMENTS.md)
+- [.planning/milestones/v1.21-MILESTONE-AUDIT.md](milestones/v1.21-MILESTONE-AUDIT.md)
+- [.planning/milestones/v1.20-ROADMAP.md](milestones/v1.20-ROADMAP.md)
+- [.planning/milestones/v1.20-REQUIREMENTS.md](milestones/v1.20-REQUIREMENTS.md)
+- [.planning/milestones/v1.20-MILESTONE-AUDIT.md](milestones/v1.20-MILESTONE-AUDIT.md)
+- [.planning/milestones/v1.19-ROADMAP.md](milestones/v1.19-ROADMAP.md)
+- [.planning/milestones/v1.19-MILESTONE-AUDIT.md](milestones/v1.19-MILESTONE-AUDIT.md)
+- [.planning/milestones/v1.18-ROADMAP.md](milestones/v1.18-ROADMAP.md)
+- [.planning/milestones/v1.18-REQUIREMENTS.md](milestones/v1.18-REQUIREMENTS.md)
+- [.planning/milestones/v1.18-MILESTONE-AUDIT.md](milestones/v1.18-MILESTONE-AUDIT.md)
 - [.planning/milestones/b1.0-ROADMAP.md](milestones/b1.0-ROADMAP.md)
 - [.planning/milestones/b1.0-REQUIREMENTS.md](milestones/b1.0-REQUIREMENTS.md)
 - [.planning/milestones/b1.0-MILESTONE-AUDIT.md](milestones/b1.0-MILESTONE-AUDIT.md)
@@ -556,4 +335,4 @@ See [post-v116 assessment](threads/2026-05-27-post-v116-milestone-assessment.md)
 _(empty — no open backlog items)_
 
 ---
-*Last updated: 2026-06-26 — chartered **v1.21 CI/DX Reliability Tail** (Phases 108–112, 24/24 requirements mapped: COV→108, EPIPE+TRUTH→109, ISO→110, LOCK→111, GATE→112); research-locked load-bearing order (de-flake 108–110 → lock 111 → shift-left 112 LAST). Ships Hex 0.3.2 via two adopter-invisible `lib/` `fix:` patches (D-v1.21-01). Prior: backlog review removed resolved item 999.1 (v1.20 CI green-up — CI green, 0.3.1 shipped, branch-protection flip already fired). Backlog now empty. v1.20 CI/CD Performance SHIPPED & archived (Phases 103–107, 18/18 requirements, 5/5 phases, ZERO `lib/` change); phase details in [milestones/v1.20-ROADMAP.md](milestones/v1.20-ROADMAP.md). No active milestone — next via `/gsd-new-milestone`. v1.18 and v1.19 shipped & archived.*
+*Last updated: 2026-06-29 — chartered **v1.22 OSS Quality & Trust Hardening** (Phases 113–116, 14/14 requirements mapped: EVAL+HYGIENE→113, TRUST+META→114, VERSION+README→115, MIGRATE→116). Non-feature/DX arc from SEED-005; ships a 0.3.x minor (0.4.0 reserved for v1.23's breaking schema isolation). Time-sensitive release unstick (HYGIENE-01) lands early in 113; the versioned `Rindle.Migration` substrate (the only real code change, the v1.23 foundation) lands last in 116 so its install/upgrade docs converge with the 115 README/VERSION work. v1.21 CI/DX Reliability Tail shipped & archived (Phases 108–112, 24/24); v1.21 `lib/` fixes merged but 0.3.2 unpublished — Phase 113 cuts it.*

@@ -92,30 +92,34 @@ Deferred to the next milestone; tracked but not in this roadmap.
 
 ## Traceability
 
-Populated during roadmap creation.
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| EVAL-01 | TBD | Pending |
-| TRUST-01 | TBD | Pending |
-| TRUST-02 | TBD | Pending |
-| TRUST-03 | TBD | Pending |
-| META-01 | TBD | Pending |
-| META-02 | TBD | Pending |
-| VERSION-01 | TBD | Pending |
-| VERSION-02 | TBD | Pending |
-| README-01 | TBD | Pending |
-| README-02 | TBD | Pending |
-| MIGRATE-01 | TBD | Pending |
-| MIGRATE-02 | TBD | Pending |
-| HYGIENE-01 | TBD | Pending |
-| HYGIENE-02 | TBD | Pending |
+| EVAL-01 | Phase 113 | Pending |
+| HYGIENE-01 | Phase 113 | Pending |
+| HYGIENE-02 | Phase 113 | Pending |
+| TRUST-01 | Phase 114 | Pending |
+| TRUST-02 | Phase 114 | Pending |
+| TRUST-03 | Phase 114 | Pending |
+| META-01 | Phase 114 | Pending |
+| META-02 | Phase 114 | Pending |
+| VERSION-01 | Phase 115 | Pending |
+| VERSION-02 | Phase 115 | Pending |
+| README-01 | Phase 115 | Pending |
+| README-02 | Phase 115 | Pending |
+| MIGRATE-01 | Phase 116 | Pending |
+| MIGRATE-02 | Phase 116 | Pending |
 
 **Coverage:**
 - v1.22 requirements: 14 total
-- Mapped to phases: 0 (pending roadmap)
-- Unmapped: 14 ⚠️
+- Mapped to phases: 14 ✓
+- Unmapped: 0
+
+**Phase distribution:**
+- Phase 113 (Evaluation Baseline & Release Hygiene): EVAL-01, HYGIENE-01, HYGIENE-02 (3)
+- Phase 114 (OSS Trust & Governance): TRUST-01, TRUST-02, TRUST-03, META-01, META-02 (5)
+- Phase 115 (Versioning & README Positioning): VERSION-01, VERSION-02, README-01, README-02 (4)
+- Phase 116 (Versioned `Rindle.Migration` Module): MIGRATE-01, MIGRATE-02 (2)
 
 ---
 *Requirements defined: 2026-06-29*
-*Last updated: 2026-06-29 at milestone v1.22 charter*
+*Last updated: 2026-06-29 — roadmap created; all 14 v1.22 requirements mapped to Phases 113–116 (100% coverage)*
