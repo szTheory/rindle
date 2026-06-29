@@ -50,7 +50,7 @@ release full-verification gate; security invariants 8–13 byte-equivalent at ar
 - [x] **Phase 108: Coverage single-run** — one ExUnit suite execution per lane; `quality` emits both the gate and the JSON artifact, integration/adoption drop their redundant coverage run (COV-01..04) (completed 2026-06-28)
 - [x] **Phase 109: Subprocess `:epipe` hardening** — absorb MuonTrap #98 broken-pipe in `Subprocess.run/3` + correct the stale invariant-13 truth (EPIPE-01..05, TRUTH-01) (completed 2026-06-28)
 - [x] **Phase 110: Async-isolation hardening** — process-scoped repo override replaces the global swap; guard closes the cross-pool gap (ISO-01..05) (completed 2026-06-28)
-- [ ] **Phase 111: Regression locks** — durable shipped-artifact meta-tests lock the 2026-06-26 cluster so it cannot regress (LOCK-01..05)
+- [x] **Phase 111: Regression locks** — durable shipped-artifact meta-tests lock the 2026-06-26 cluster so it cannot regress (LOCK-01..05) (completed 2026-06-28)
 - [x] **Phase 112: PR↔main gate shift-left** — lean `adoption-demo-e2e-smoke` joins the PR gate AFTER de-flake + N green main runs (GATE-01..04) (completed 2026-06-29)
 
 ## Phase Details
