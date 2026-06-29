@@ -1,14 +1,16 @@
 ---
 phase: 112-pr-main-gate-shift-left
 verified: 2026-06-28T22:30:00Z
-status: human_needed
+status: passed
 score: 7/8 must-haves verified
 behavior_unverified: 0
 overrides_applied: 0
 human_verification:
+
   - test: "GATE-02 — PR p95 wall-clock ≤ ~7.5 min with the new lane in the gate. Open a PR (or inspect a recent PR `CI` run) and read CI Observability native per-job durations; confirm `adoption-demo-e2e-smoke` runs as a parallel chain at/under the image-smoke long pole and PR p95 stays ≤ ~7.5 min."
     expected: "PR critical-path wall-clock unchanged within budget; the smoke lane finishes at/under the existing long pole (it shares needs: [quality, optional-dependencies] and runs only the 2-spec subset)."
     why_human: "Wall-clock p95 is a runtime CI observation, not a static codebase fact. The lane is structurally parallel (verified) but its actual on-PR duration must be observed in an Actions run."
+
   - test: "GATE-04 ordering — the wiring commit (68046c6) landed ONLY after 3 consecutive green push:main `Adoption Demo E2E` runs. Run `gh run list --workflow=CI --branch=main --limit 20` and confirm 3 consecutive green `Adoption Demo E2E` job conclusions preceded the wiring commit timestamp (2026-06-28T18:12Z)."
     expected: "3 consecutive green push:main `Adoption Demo E2E` runs observed before the needs-wiring commit; SUMMARY records the operator returned APPROVED for the blocking-human checkpoint (Task 1, Plan 02)."
     why_human: "The green-run precondition was a blocking-human operator checkpoint approved this session; the per-run conclusions are GitHub Actions runtime state not present in the codebase. Plan structure (autonomous:false, checkpoint task, wiring committed after job-half) is consistent with approval, but the actual 3-green observation is operator-attested, not codebase-verifiable."
