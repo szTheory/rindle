@@ -2,11 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.22
 milestone_name: OSS Quality & Trust Hardening
+current_phase: 113
+current_phase_name: roadmap created — ready to plan Phase 113
 status: planning
-last_updated: "2026-06-29T20:43:22.556Z"
+stopped_at: Phase 113 context gathered
+last_updated: "2026-06-29T23:26:53.075Z"
 last_activity: 2026-06-29
+last_activity_desc: v1.22 ROADMAP.md created
 progress:
-  total_phases: 4
+  total_phases: 1
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -129,13 +133,16 @@ release-coupling invariants held.
 - **Two false premises corrected in recon:** (1) szTheory dep bumps → **empty** (Rindle depends on zero
   szTheory-owned packages); (2) CI/CD performance → **already done** by v1.20 + v1.21 (the pasted audit
   prompt *is* SEED-003). Only deferred CI lever is `mix test --partitions`, gated on measured core-starvation.
+
 - **Weak dimensions the recon found (5=strong):** OSS governance/trust 2/5 (→ Phase 114), versioning/
   path-to-1.0 2/5 + README positioning 2.5/5 (→ Phase 115), host-app respectfulness 3.5/5 whose one real
   gap is the Postgres schema issue (→ the `Rindle.Migration` substrate in Phase 116, then v1.23's flip).
   Already-strong, left alone: telemetry 5/5, docs/ExDoc IA 4.5/5, public API + `Rindle.Error` 4/5, CI/testing.
+
 - **`Rindle.Migration` is pulled into v1.22 (not v1.23) deliberately** — a "good-guest" fix in its own
   right that de-risks the v1.23 breaking schema flip. Full arc: SEED-005 +
   `/Users/jon/.claude/plans/software-quality-evaluation-prompt-txt-gleaming-sifakis.md`.
+
 - **HYGIENE-01 release-please investigation:** Hex live = 0.3.1, no `release rindle 0.3.2` commit, no open
   release-please PR. See `reference_release_please_autopublish` — green main auto-publishes; a release PR
   stuck on `autorelease: pending` stalls it (relabel to `tagged`). Pre-1.0 `feat:` → patch bump.
@@ -169,6 +176,6 @@ _(none open for v1.22 at roadmap creation)_
 
 ## Session Continuity
 
-Last session: 2026-06-29 — v1.22 roadmap created (Phases 113–116, 14/14 reqs mapped).
-Stopped at: Roadmap created; ready to plan Phase 113.
-Resume file: .planning/ROADMAP.md (Phase Details for 113–116)
+Last session: 2026-06-29T23:26:53.065Z
+Stopped at: Phase 113 context gathered
+Resume file: .planning/phases/113-evaluation-baseline-release-hygiene/113-CONTEXT.md
