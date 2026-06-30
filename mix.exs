@@ -279,8 +279,11 @@ defmodule Rindle.MixProject do
   defp package do
     [
       licenses: ["MIT"],
+      maintainers: ["szTheory"],
       links: %{
-        "GitHub" => @source_url
+        "GitHub" => @source_url,
+        "Changelog" => "#{@source_url}/blob/main/CHANGELOG.md",
+        "Docs" => "https://hexdocs.pm/rindle"
       },
       files:
         ~w(lib priv/repo/migrations priv/static/rindle_admin mix.exs README.md RUNNING.md CHANGELOG.md LICENSE guides)

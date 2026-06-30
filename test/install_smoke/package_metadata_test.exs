@@ -68,8 +68,15 @@ defmodule Rindle.InstallSmoke.PackageMetadataTest do
     assert metadata =~ "Phoenix/Ecto-native media lifecycle library. Media, made durable."
     assert metadata =~ ~s({<<"licenses">>,[<<"MIT">>]}.)
 
-    assert metadata =~
-             ~s({<<"links">>,[{<<"GitHub">>,<<"https://github.com/szTheory/rindle">>}]}.)
+    compact_metadata = String.replace(metadata, ~r/\s+/, "")
+
+    assert compact_metadata =~ ~s({<<"GitHub">>,<<"https://github.com/szTheory/rindle">>})
+
+    assert compact_metadata =~
+             ~s({<<"Changelog">>,<<"https://github.com/szTheory/rindle/blob/main/CHANGELOG.md">>})
+
+    assert compact_metadata =~ ~s({<<"Docs">>,<<"https://hexdocs.pm/rindle">>})
+    assert Mix.Project.config()[:package][:maintainers] == ["szTheory"]
 
     for rel_path <- @required_paths do
       assert metadata =~ ~s(<<"#{rel_path}">>)
