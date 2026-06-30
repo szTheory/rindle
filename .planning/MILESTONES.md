@@ -17,7 +17,7 @@
 
 **Audit:** `passed` (24/24 requirements via 3-source cross-reference, 5/5 phases verified, 14/14 cross-phase connections WIRED, 1/1 E2E flow). See `milestones/v1.21-MILESTONE-AUDIT.md`.
 
-**Stats:** 49 source files changed (1660+/185−), `lib/` 3 files (145+/3−) → Hex 0.3.2 via two adopter-invisible `fix:` patches · timeline 2026-06-26 → 2026-06-29 (4 days).
+**Stats:** 49 source files changed (1660+/185−), `lib/` 3 files (145+/3−) → Hex 0.3.2 (merged in v1.21, released in v1.22 Phase 113 — was merged-but-unreleased) via two adopter-invisible `fix:` patches · timeline 2026-06-26 → 2026-06-29 (4 days).
 
 **Known deferred items:** 1 (acknowledged at close) — the stale v1.18-era `2026-06-19-fix-docker-demo-startup-warnings.md` tooling todo (Cohort demo Docker startup warnings; cosmetic log noise, no behavior regression; outside v1.21 scope). See STATE.md Deferred Items.
 

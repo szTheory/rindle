@@ -16,7 +16,8 @@ un-reintroducible; ISO-01..05); five merge-blocking shipped-artifact regression-
 the 2026-06-26 cluster (LOCK-01..05); and the lean `adoption-demo-e2e-smoke` PR lane wired into
 `CI Summary` LAST — only after the de-flake phases landed and 3 green push:main runs were observed
 (GATE-01..04). The two adopter-invisible `lib/` patches (`av/subprocess.ex`, `config.ex`) ship as Hex
-**0.3.2** via release-please `fix:` commits. All three hard release-coupling invariants held throughout.
+**0.3.2** (merged in v1.21, released in v1.22 Phase 113 — was merged-but-unreleased) via release-please
+`fix:` commits. All three hard release-coupling invariants held throughout.
 
 **Proof posture:** v1.21 audit `passed` (`milestones/v1.21-MILESTONE-AUDIT.md`): 24/24 requirements
 satisfied via 3-source cross-reference, integration **14/14 WIRED** (0 blockers, 0 warnings), the
@@ -40,12 +41,13 @@ the non-feature signal for a two-milestone software-quality consolidation arc (v
 v1.23 Postgres schema isolation). Phases resume at **113**. Feature milestones remain demand-gated on
 **LIFE-06** / **STREAM-10**; this arc is non-feature/DX, so the feature-pause block does not apply.
 
-> **Release-state correction (2026-06-29):** Hex **0.3.2 was never published.** Hex live = 0.3.1;
-> `mix.exs` / `.release-please-manifest.json` / CHANGELOG all = 0.3.1. The v1.21 `lib/` fixes
-> (`fix(109-01)` `:epipe` absorb, `fix(110-01..04)` config override) plus 3 `feat` / 6 `fix` commits are
-> merged to `main` but **unreleased** — no `release rindle 0.3.2` commit and no open release-please PR.
-> The v1.21 prose below claiming "ships as Hex 0.3.2" is therefore aspirational, not shipped. v1.22
-> HYGIENE cuts the stuck 0.3.2 release and reconciles the claim.
+> **Release-state reconciliation (2026-06-30):** Hex 0.3.2 (the two adopter-invisible v1.21 `lib/` `fix:`
+> patches) was merged to `main` in v1.21 but left unreleased — release-please never opened the 0.3.2 PR
+> (Hex live was 0.3.1). v1.22 Phase 113 (HYGIENE-01) cut the stuck release; 0.3.2 is now live. The cut
+> required three fixes in series: rotating the expired `RELEASE_PLEASE_TOKEN`, relabeling merged PR #40
+> `autorelease: pending` → `autorelease: tagged`, and a manual publish-dispatch (the new fine-grained PAT
+> lacked `Actions: write`). `mix.exs` / `.release-please-manifest.json` / CHANGELOG now reflect 0.3.2,
+> written by release-please. The v1.21 prose below claiming "ships as Hex 0.3.2" is therefore now true.
 
 ## Current Milestone: v1.22 OSS Quality & Trust Hardening
 
@@ -67,8 +69,9 @@ breaking change, ships as a 0.3.x minor (0.4.0 is reserved for v1.23's breaking 
   raw 15-file `Ecto.Migrator` copy-paste install path; **stop creating `oban_jobs`** (adopter owns Oban).
   Non-breaking: defaults keep tables in `public`; existing adopters' applied migrations stay valid. This
   is the foundation v1.23 builds the schema prefix onto.
-- **HYGIENE** — cut the stuck Hex 0.3.2 release (adopter-facing `:epipe`/config fixes are merged-but-
-  unreleased) and reconcile PROJECT.md; fix stale `status: open` frontmatter on SEED-003/004 (consumed).
+- **HYGIENE** — cut the stuck Hex 0.3.2 release (adopter-facing `:epipe`/config fixes were merged-but-
+  unreleased; **now live** — released in v1.22 Phase 113) and reconcile PROJECT.md; fix stale
+  `status: open` frontmatter on SEED-003/004 (consumed).
 
 **Key context:** Non-feature/DX charter from **SEED-005**. Two false premises were corrected in recon:
 szTheory peer deps → empty (Rindle depends on none), and CI/CD performance → already done by v1.20+v1.21.
@@ -106,7 +109,8 @@ smell — so a green PR reliably means a green `main`.
   MuonTrap-only; no Rambo in `mix.lock`); correct it.
 
 **Key context:** Non-feature/DX charter from **SEED-004**; two adopter-invisible `lib/` patches
-authorized (D-v1.21-01) → ships Hex **0.3.2**. Hard invariants carry over from v1.20: never rename
+authorized (D-v1.21-01) → Hex **0.3.2** (merged in v1.21, released in v1.22 Phase 113 — was
+merged-but-unreleased). Hard invariants carry over from v1.20: never rename
 `ci.yml` / `name: CI` (release-train coupling); `CI Summary` keeps `skipped`==pass (fork-PR safety);
 never weaken the release full-verification gate. Research locked in `.planning/research/v1.21-*.md`.
 Phases resume at **108**.
@@ -402,7 +406,8 @@ To keep this posture durable across GSD workflows:
   `mix_audit`, `mix ci` alias, faithful Linux-Chromium repro (HARD-01..04). 18/18 validated.
   Archived: `milestones/v1.20-REQUIREMENTS.md`.
 - ✓ **v1.21 CI/DX Reliability Tail** — shipped 2026-06-29 (non-feature/DX, two adopter-invisible
-  `lib/` `fix:` patches → Hex 0.3.2): single-run coverage killing the double-suite run
+  `lib/` `fix:` patches → Hex 0.3.2, released in v1.22 Phase 113 — was merged-but-unreleased):
+  single-run coverage killing the double-suite run
   (COV-01..04), subprocess `:epipe` hardening via `run_isolated/5` at the AV chokepoint + invariant-13
   truth correction (EPIPE-01..05, TRUTH-01), `$callers`-aware process-scoped repo override retiring the
   global swap + `:global_repo_swap` guard rule (ISO-01..05), five shipped-artifact regression-lock
@@ -596,7 +601,7 @@ that section on next docs maintenance pass.
 | Never rename `ci.yml`/`name: CI`; never weaken the release full-verification gate | Release-train coupling (`release-please-automerge.yml` + `gate-ci-green`) reads the workflow name + full-matrix push:main run; renaming or weakening it would silently break publishing | ✓ Held v1.20 (byte-unchanged across all 5 phases) |
 | Scope the `package-consumer` long pole by trigger (lean `image` smoke on PR; full 5-profile matrix + preflight + dry-run on push:main/nightly/release) | The headline wall-clock cut; release readiness proven by the push:main run conclusion via `gate-ci-green`, not by a PR-gating check name | ✓ Good v1.20 (Phase 106; PR p95 under ≤7 min) |
 | ExUnit async conversion is gated behind an AST static-safety meta-test; `--partitions` deferred until measured core-starvation | Fail-closed guard prevents silent shared-state races; partitioning payoff is evidence-gated, not assumed (DEFER-02) | ✓ Good v1.20 (Phase 107; 15 modules converted, 2 latent races fixed) |
-| D-v1.21-01: v1.21 relaxes v1.20's zero-`lib/`-change invariant for two adopter-invisible hardening patches (`av/subprocess.ex` MuonTrap-#98 `:epipe` absorb; `config.ex` `$callers`-aware process-scoped repo override) | The correctness-true fixes for the recurring `:epipe` flake and the async-isolation root cause both live in production code; both are adopter-invisible (no public API / return-shape / error-vocab / security-invariant change), so they ship as a `fix:` patch (0.3.2) without escalation beyond this authorization | ✓ Good v1.21 (both patches landed adopter-invisible; audit confirmed `lib/` seam unchanged at all 11 Ffmpeg/Ffprobe call sites + default no-override repo path) |
+| D-v1.21-01: v1.21 relaxes v1.20's zero-`lib/`-change invariant for two adopter-invisible hardening patches (`av/subprocess.ex` MuonTrap-#98 `:epipe` absorb; `config.ex` `$callers`-aware process-scoped repo override) | The correctness-true fixes for the recurring `:epipe` flake and the async-isolation root cause both live in production code; both are adopter-invisible (no public API / return-shape / error-vocab / security-invariant change), so they ship as a `fix:` patch (0.3.2 — merged in v1.21, released in v1.22 Phase 113) without escalation beyond this authorization | ✓ Good v1.21 (both patches landed adopter-invisible; audit confirmed `lib/` seam unchanged at all 11 Ffmpeg/Ffprobe call sites + default no-override repo path) |
 | D-v1.21-02: keep `mix coveralls` (`local` analyzer) as the merge-gate; never derive the gate from `coveralls.json`'s exit code | ExCoveralls 0.18.5 source: `coveralls.json` does NOT call `ensure_minimum_coverage`, so gating on it would silently drop threshold enforcement; `coveralls.multiple --type local --type json` gives both from one run | ✓ Good v1.21 (Phase 108; one suite run per lane emits both the `local` gate and `excoveralls.json`) |
 
 

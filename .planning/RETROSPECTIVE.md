@@ -6,7 +6,7 @@
 
 **Shipped:** 2026-06-29
 **Phases:** 5 (108–112) | **Plans:** 13 | **Tasks:** 20
-**Source change:** 49 files (1660+/185−); `lib/` 3 files (145+/3−) → Hex 0.3.2 via two `fix:` patches
+**Source change:** 49 files (1660+/185−); `lib/` 3 files (145+/3−) → Hex 0.3.2 (merged in v1.21, released in v1.22 Phase 113 — was merged-but-unreleased) via two `fix:` patches
 
 ### What Was Built
 

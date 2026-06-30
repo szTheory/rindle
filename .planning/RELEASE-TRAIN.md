@@ -9,13 +9,13 @@ PR lane in `.planning/DEVELOPMENT-TRAIN.md`.
 
 ## Current Baseline
 
-- Latest released version: `0.1.10` (Hex.pm, 2026-05-30)
+- Latest released version: `0.3.2` (Hex.pm, 2026-06-30)
 - Catch-up release: none (published)
 - GSD posture: `demand-gated-pause` (formalized 2026-05-27)
 - Release automation: Release Please + exact-ref dispatch publish (see `.github/workflows/release.yml`)
-- Last publish workflow: https://github.com/szTheory/rindle/actions/runs/26685184583
-- Last publish CI gate: https://github.com/szTheory/rindle/actions/runs/26684741090
-- Last public verify: https://github.com/szTheory/rindle/actions/runs/26685184583 (Hex index + `scripts/public_smoke.sh` passed)
+- Last publish workflow: https://github.com/szTheory/rindle/actions/runs/28420598348
+- Last publish CI gate: https://github.com/szTheory/rindle/actions/runs/28420598348 (gate-ci-green on merge SHA `d228b67`)
+- Last public verify: https://github.com/szTheory/rindle/actions/runs/28420598348 (Hex index + `scripts/public_smoke.sh` passed)
 
 Update this section after each successful Hex publish with run ID, version, and public-smoke proof.
 
@@ -31,6 +31,7 @@ Update this section after each successful Hex publish with run ID, version, and 
 | 2026-05-28 | 0.1.7 publish + public smoke + automated baseline | Pass | [run 26578423402](https://github.com/szTheory/rindle/actions/runs/26578423402) — all jobs success; baseline ledger updated on `main` without manual edit |
 | 2026-05-28 | Release Please new PR after 0.1.6 | **Resolved** | Retagged `rindle-v0.1.6` → `b5a6a0d`; removed `autorelease: pending` from PR #12; RP opened [#14](https://github.com/szTheory/rindle/pull/14) (0.1.8) |
 | 2026-06-29 | Release-please stuck: 0.3.2 PR never opened | Root-caused + guarded | `Bad credentials` 401 in [run 28399407429](https://github.com/szTheory/rindle/actions/runs/28399407429); `RELEASE_PLEASE_TOKEN` expired; `secrets.X \|\| github.token` masks a bad token (PR #40 was the 0.3.1 PR; fixes merged 2026-06-28). Rotated token + added release-train-drift guard + token-validity guard. |
+| 2026-06-30 | 0.3.2 publish + public verify | Pass | [run 28420598348](https://github.com/szTheory/rindle/actions/runs/28420598348) (merge SHA `d228b67`) — Publish + Public Verify GREEN; Hex live == 0.3.2. Required THREE fixes: rotate expired `RELEASE_PLEASE_TOKEN` (fine-grained PAT) + relabel #40 `pending`→`tagged` + manual publish-dispatch (PAT lacked `Actions: write` — durable fix pending: add `Actions: Read and write` to the PAT or move to a GitHub App token). |
 
 ## Automated Release Loop
 
