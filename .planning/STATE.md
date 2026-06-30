@@ -4,17 +4,17 @@ milestone: v1.22
 milestone_name: OSS Quality & Trust Hardening
 current_phase: 114
 current_phase_name: oss-trust-governance
-status: executing
-stopped_at: Completed 114-01-PLAN.md
-last_updated: "2026-06-30T14:49:43.956Z"
+status: verifying
+stopped_at: Completed 114-02-PLAN.md
+last_updated: "2026-06-30T14:58:55.545Z"
 last_activity: 2026-06-30
 last_activity_desc: Phase 114 execution started
 progress:
   total_phases: 2
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 6
-  completed_plans: 5
-  percent: 50
+  completed_plans: 6
+  percent: 100
 ---
 
 # Project State
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-06-29 after chartering v1.22)
 
 Phase: 114 (oss-trust-governance) — EXECUTING
 Plan: 2 of 2
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-06-30 — Phase 114 execution started
 
 ### v1.22 roadmap (Phases 113–116) — natural-grouping order
@@ -164,6 +164,7 @@ _(v1.22 phase-execution decisions accumulate here as phases are planned and exec
 - [Phase ?]: D-07: recorded the CORRECTED stuck-release root cause (PR #40 = the 0.3.1 PR; fixes merged 2026-06-28; run 28399407429 401'd on expired RELEASE_PLEASE_TOKEN) in runbook + ledger; refuted the superseded PR-#40-was-0.3.2 framing
 - [Phase ?]: [Phase 113]: HYGIENE-01 — Hex 0.3.2 cut live (run 28420598348, merge d228b67) after a THREE-fix unstick (rotate expired RELEASE_PLEASE_TOKEN + relabel #40 pending->tagged + manual publish-dispatch since PAT lacked Actions:write); D-12 honored — live-truth edits committed only after publish observed. Durable fix pending: add Actions:write to PAT or move to GitHub App token.
 - [Phase 114]: Phase 114 Plan 01 kept governance artifacts repo-only and did not touch mix.exs or package metadata scope.
+- [Phase 114]: Phase 114 Plan 02 verifies META-02 maintainers from Mix.Project package config because Hex 2.5 unpacked metadata does not serialize :maintainers for this package. — Preserves the maintainer declaration success criterion while keeping generated metadata assertions focused on links that Hex emits locally.
 
 ## Blockers/Concerns
 
@@ -183,8 +184,8 @@ _(none open for v1.22 at roadmap creation)_
 
 ## Session Continuity
 
-Last session: 2026-06-30T14:49:26.565Z
-Stopped at: Completed 114-01-PLAN.md
+Last session: 2026-06-30T14:58:23.853Z
+Stopped at: Completed 114-02-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -196,3 +197,4 @@ Resume file: None
 | Phase 113 P03 | ~2m | 2 tasks | 3 files |
 | Phase 113 P04 | ~3min | 2 tasks | 5 files |
 | Phase 114 P01 | 4 min | 3 tasks | 7 files |
+| Phase 114 P02 | 4 min | 1 tasks | 3 files |

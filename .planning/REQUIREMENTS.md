@@ -29,10 +29,10 @@ Each maps to exactly one roadmap phase (phases begin at 113).
 
 ### Hex Package Metadata (META)
 
-- [ ] **META-01**: Hex `package.links` exposes "Changelog" and "Docs" entries (HexDocs convention, surfaced
+- [x] **META-01**: Hex `package.links` exposes "Changelog" and "Docs" entries (HexDocs convention, surfaced
   on hex.pm) alongside the existing GitHub link.
 
-- [ ] **META-02**: Hex `package` declares `maintainers`.
+- [x] **META-02**: Hex `package` declares `maintainers`.
 
 ### Versioning & Stability (VERSION)
 
@@ -109,8 +109,8 @@ Deferred to the next milestone; tracked but not in this roadmap.
 | TRUST-01 | Phase 114 | Complete |
 | TRUST-02 | Phase 114 | Complete |
 | TRUST-03 | Phase 114 | Complete |
-| META-01 | Phase 114 | Pending |
-| META-02 | Phase 114 | Pending |
+| META-01 | Phase 114 | Complete |
+| META-02 | Phase 114 | Complete |
 | VERSION-01 | Phase 115 | Pending |
 | VERSION-02 | Phase 115 | Pending |
 | README-01 | Phase 115 | Pending |
