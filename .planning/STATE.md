@@ -3,16 +3,16 @@ gsd_state_version: 1.0
 milestone: v1.22
 milestone_name: OSS Quality & Trust Hardening
 current_phase: 113
-current_phase_name: roadmap created — ready to plan Phase 113
-status: planning
+current_phase_name: evaluation-baseline-release-hygiene
+status: executing
 stopped_at: Phase 113 context gathered
-last_updated: "2026-06-29T23:26:53.075Z"
-last_activity: 2026-06-29
-last_activity_desc: v1.22 ROADMAP.md created
+last_updated: "2026-06-30T11:24:28.867Z"
+last_activity: 2026-06-30
+last_activity_desc: Phase 113 execution started
 progress:
   total_phases: 1
   completed_phases: 0
-  total_plans: 0
+  total_plans: 4
   completed_plans: 0
   percent: 0
 ---
@@ -24,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-29 after chartering v1.22)
 
 **Core value:** Media, made durable.
-**Current focus:** Phase 113 — Evaluation Baseline & Release Hygiene (roadmap created, ready to plan)
+**Current focus:** Phase 113 — evaluation-baseline-release-hygiene
 
 ## Current Position
 
-Phase: Not started (roadmap created — ready to plan Phase 113)
-Plan: —
-Status: Roadmap created — 14/14 v1.22 requirements mapped across 4 phases (113–116)
-Last activity: 2026-06-29 — v1.22 ROADMAP.md created
+Phase: 113 (evaluation-baseline-release-hygiene) — EXECUTING
+Plan: 1 of 4
+Status: Executing Phase 113
+Last activity: 2026-06-30 — Phase 113 execution started
 
 ### v1.22 roadmap (Phases 113–116) — natural-grouping order
 
