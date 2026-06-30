@@ -279,7 +279,6 @@ defmodule Rindle.MixProject do
   defp package do
     [
       licenses: ["MIT"],
-      maintainers: ["szTheory"],
       links: %{
         "GitHub" => @source_url,
         "Changelog" => "#{@source_url}/blob/main/CHANGELOG.md",

@@ -38,7 +38,7 @@ versioned `Rindle.Migration` substrate (the only real code change, the v1.23 fou
 Phase 116 so its new install/upgrade docs converge coherently with the README/VERSION doc work in 115.
 
 - [ ] **Phase 113: Evaluation Baseline & Release Hygiene** - Opening scored-weakness summary, cut the stuck Hex 0.3.2 release to reach adopters, and reconcile planning truth
-- [ ] **Phase 114: OSS Trust & Governance** - SECURITY.md / CODE_OF_CONDUCT.md / issue+PR templates plus Hex `package` links + maintainers
+- [ ] **Phase 114: OSS Trust & Governance** - SECURITY.md / CODE_OF_CONDUCT.md / issue+PR templates plus Hex `package` links + public owner verification
 - [ ] **Phase 115: Versioning & README Positioning** - SemVer/pre-1.0 stability contract, generalized upgrade guide, image-first skimmable README + "when not to use"
 - [ ] **Phase 116: Versioned `Rindle.Migration` Module** - Oban-style versioned `up/1`+`down/1` install path; adopter owns `oban_jobs`; non-breaking, defaults to `public`
 
@@ -85,7 +85,7 @@ Plans:
 
 **Goal**: Close the OSS governance/trust gap so a newcomer or security researcher lands on a project
 that signals it is maintained, safe to report to, and welcoming to contribute to — and so hex.pm
-surfaces the conventional package links and maintainers.
+surfaces the conventional package links and owner-derived maintainer signal.
 
 **Depends on**: Phase 113 (uses the EVAL-01 scored-weakness summary as the prioritized work list)
 
@@ -104,12 +104,13 @@ surfaces the conventional package links and maintainers.
   4. hex.pm surfaces "Changelog" and "Docs" links (HexDocs convention) alongside the existing GitHub
      link via `package.links`.
 
-  5. The Hex `package` declares `maintainers`.
+  5. The release public-verification path checks the Hex package API for the `sztheory` owner-derived
+     maintainer signal.
 
 **Plans**: 2 plans
 
   - [x] 114-01-PLAN.md — Governance files: SECURITY.md, CODE_OF_CONDUCT.md, issue forms + config.yml + PR template, governance-presence meta-test (TRUST-01/02/03)
-  - [x] 114-02-PLAN.md — Hex package metadata: `package.links` (+Changelog/+Docs) and `maintainers`, paired with package_metadata_test update (META-01/02)
+  - [x] 114-02-PLAN.md — Hex package metadata: `package.links` (+Changelog/+Docs) plus public owner verification, paired with package_metadata_test update (META-01/02)
 
 ### Phase 115: Versioning & README Positioning
 

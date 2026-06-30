@@ -32,7 +32,8 @@ Each maps to exactly one roadmap phase (phases begin at 113).
 - [x] **META-01**: Hex `package.links` exposes "Changelog" and "Docs" entries (HexDocs convention, surfaced
   on hex.pm) alongside the existing GitHub link.
 
-- [x] **META-02**: Hex `package` declares `maintainers`.
+- [x] **META-02**: Hex.pm exposes the package owner/maintainer signal for `sztheory`, verified from the
+  public Hex API during release public verification.
 
 ### Versioning & Stability (VERSION)
 

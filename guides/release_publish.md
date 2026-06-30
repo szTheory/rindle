@@ -6,6 +6,7 @@
 - Wait for `ci.yml` to finish green on the exact release SHA.
 - Let the `Release` workflow run `Run release preflight`, `Verify version alignment`, and `Check whether Hex.pm release already exists`.
 - If the version is already live, recovery reruns skip publish and continue to public verification.
+- Public verification checks Hex.pm package links and owner metadata before the clean-room smoke test.
 - Use `mix hex.publish --revert VERSION` for in-window rollback; use retire plus a fix release after the window.
 
 This maintainer runbook documents the workflow that shipped Rindle to Hex.pm on
@@ -63,12 +64,17 @@ Check the unpacked `hex_metadata.config` and package contents for:
 - the intended release version
 - `MIT`
 - `GitHub`
+- `Changelog`
+- `Docs`
 - `CHANGELOG.md`
 - `guides/release_publish.md`
 - `mix docs --warnings-as-errors`
 
 Review shipped metadata, not just repo source. The packaged metadata review is
 still diagnostic until the same commit is green in GitHub Actions CI.
+Hex owner/maintainer display is verified after publish from the public Hex API
+by `scripts/verify_hex_package_metadata.sh VERSION`; it is not a `mix.exs`
+package metadata key.
 
 ## Routine Releases
 
@@ -84,6 +90,7 @@ Run this sequence on every release after the inaugural publish:
    - `Dry run Hex publish`
    - `Publish to Hex.pm (live)`
    - `Wait for Hex.pm index (post-publish)`
+   - `Verify public Hex.pm metadata`
    - `Verify HexDocs reachability`
    - `Verify public Hex.pm artifact`
 3. Use the recovery-only dispatch lane only when you must rerun the trusted path from an exact immutable ref.
@@ -98,6 +105,7 @@ bash scripts/assert_version_match.sh
 bash scripts/hex_release_exists.sh
 mix hex.publish --dry-run --yes
 mix hex.publish --yes
+bash scripts/verify_hex_package_metadata.sh "$VERSION"
 curl --fail --location --silent --show-error "https://hexdocs.pm/rindle/$VERSION"
 bash scripts/public_smoke.sh "$VERSION"
 ```
@@ -105,8 +113,9 @@ bash scripts/public_smoke.sh "$VERSION"
 The repo's `package-consumer` lane shifts the release contract left before
 publish time. The release workflow waits for `ci.yml` on the exact release SHA
 to finish green before entering the protected publish lane. After live publish,
-`Wait for Hex.pm index (post-publish)` and `Verify HexDocs reachability` poll
-for up to 5 minutes with 15-second retries. The HexDocs probe follows
+`Wait for Hex.pm index (post-publish)` polls for up to 5 minutes with
+15-second retries. `Verify public Hex.pm metadata` checks the package API for
+GitHub/Changelog/Docs links plus the `sztheory` owner. The HexDocs probe follows
 redirects to the final `2xx` response for
 `https://hexdocs.pm/rindle/$VERSION`. `Verify public Hex.pm artifact` then
 proves the package from a fresh runner with `HEX_API_KEY` cleared.
@@ -190,9 +199,10 @@ After the first publish:
 After every publish:
 
 1. Confirm the `Release` workflow finished successfully.
-2. Confirm `Verify HexDocs reachability` passed for `https://hexdocs.pm/rindle/$VERSION`.
-3. Confirm `Verify public Hex.pm artifact` passed.
-4. Update this runbook when workflow behavior changes.
+2. Confirm `Verify public Hex.pm metadata` passed.
+3. Confirm `Verify HexDocs reachability` passed for `https://hexdocs.pm/rindle/$VERSION`.
+4. Confirm `Verify public Hex.pm artifact` passed.
+5. Update this runbook when workflow behavior changes.
 
 ## Rollback and Revert
 

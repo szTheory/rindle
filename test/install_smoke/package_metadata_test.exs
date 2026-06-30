@@ -16,6 +16,7 @@ defmodule Rindle.InstallSmoke.PackageMetadataTest do
   @public_smoke_script Path.join(@repo_root, "scripts/public_smoke.sh")
   @docs_assertion_script Path.join(@repo_root, "scripts/assert_release_docs_html.sh")
   @release_exists_script Path.join(@repo_root, "scripts/hex_release_exists.sh")
+  @hex_metadata_script Path.join(@repo_root, "scripts/verify_hex_package_metadata.sh")
   @assert_version_script Path.join(@repo_root, "scripts/assert_version_match.sh")
   @release_workflow Path.join(@repo_root, ".github/workflows/release.yml")
   @ci_workflow Path.join(@repo_root, ".github/workflows/ci.yml")
@@ -52,6 +53,7 @@ defmodule Rindle.InstallSmoke.PackageMetadataTest do
        public_smoke_script: File.read!(@public_smoke_script),
        docs_assertion_script: File.read!(@docs_assertion_script),
        release_exists_script: File.read!(@release_exists_script),
+       hex_metadata_script: File.read!(@hex_metadata_script),
        assert_version_script: File.read!(@assert_version_script),
        release_workflow: File.read!(@release_workflow),
        ci_workflow: File.read!(@ci_workflow)
@@ -76,7 +78,6 @@ defmodule Rindle.InstallSmoke.PackageMetadataTest do
              ~s({<<"Changelog">>,<<"https://github.com/szTheory/rindle/blob/main/CHANGELOG.md">>})
 
     assert compact_metadata =~ ~s({<<"Docs">>,<<"https://hexdocs.pm/rindle">>})
-    assert Mix.Project.config()[:package][:maintainers] == ["szTheory"]
 
     for rel_path <- @required_paths do
       assert metadata =~ ~s(<<"#{rel_path}">>)
@@ -173,6 +174,7 @@ defmodule Rindle.InstallSmoke.PackageMetadataTest do
     assert workflow =~ "public_verify:"
     assert workflow =~ "needs: [gate-ci-green, publish]"
     assert workflow =~ "name: Wait for Hex.pm index (post-publish)"
+    assert workflow =~ "name: Verify public Hex.pm metadata"
     assert workflow =~ "name: Verify HexDocs reachability"
     assert workflow =~ "name: Verify public Hex.pm artifact"
     assert workflow =~ ~s(HEX_API_KEY: "")
@@ -184,17 +186,35 @@ defmodule Rindle.InstallSmoke.PackageMetadataTest do
     assert workflow =~ "DEADLINE=$(( SECONDS + 300 ))"
     assert workflow =~ "Release blocked: HexDocs did not serve"
     assert workflow =~ "sleep 15"
+    assert workflow =~ ~s(bash scripts/verify_hex_package_metadata.sh "$VERSION")
     assert workflow =~ ~s(bash scripts/public_smoke.sh "$VERSION")
 
     wait_pos = snippet_position(workflow, "name: Wait for Hex.pm index (post-publish)")
+    metadata_pos = snippet_position(workflow, "name: Verify public Hex.pm metadata")
     docs_pos = snippet_position(workflow, "name: Verify HexDocs reachability")
     smoke_pos = snippet_position(workflow, "name: Verify public Hex.pm artifact")
 
     assert is_integer(wait_pos)
+    assert is_integer(metadata_pos)
     assert is_integer(docs_pos)
     assert is_integer(smoke_pos)
     assert wait_pos < docs_pos
+    assert wait_pos < metadata_pos
+    assert metadata_pos < docs_pos
     assert docs_pos < smoke_pos
+  end
+
+  test "Hex public metadata verifier checks package links and owner", %{
+    hex_metadata_script: script
+  } do
+    assert script =~ "https://hex.pm/api/packages/${PACKAGE}"
+    assert script =~ "https://hex.pm/api/packages/${PACKAGE}/releases/${VERSION}"
+    assert script =~ ~s("GitHub": source_url)
+    assert script =~ ~s("Changelog": f"{source_url}/blob/main/CHANGELOG.md")
+    assert script =~ ~s("Docs": "https://hexdocs.pm/rindle")
+    assert script =~ "package_data.get(\"owners\", [])"
+    assert script =~ "expected_owner in owners"
+    assert script =~ "release_data.get(\"version\") == version"
   end
 
   test "release workflow gates publish on idempotency probe", %{release_workflow: workflow} do
@@ -254,6 +274,7 @@ defmodule Rindle.InstallSmoke.PackageMetadataTest do
   test "release scripts accept RINDLE_PROJECT_ROOT discipline", %{
     release_exists_script: release_exists_script,
     assert_version_script: assert_version_script,
+    hex_metadata_script: hex_metadata_script,
     install_smoke_script: install_smoke_script,
     public_smoke_script: public_smoke_script,
     script: preflight_script,
@@ -262,6 +283,7 @@ defmodule Rindle.InstallSmoke.PackageMetadataTest do
     for script <- [
           release_exists_script,
           assert_version_script,
+          hex_metadata_script,
           install_smoke_script,
           public_smoke_script,
           preflight_script,

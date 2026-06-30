@@ -512,6 +512,11 @@ jobs:
           done
           echo "Hex.pm indexed rindle $VERSION."
 
+      - name: Verify public Hex.pm metadata
+        env:
+          VERSION: ${{ needs.publish.outputs.release_version }}
+        run: bash scripts/verify_hex_package_metadata.sh "$VERSION"
+
       - name: Verify HexDocs reachability
         env:
           VERSION: ${{ needs.publish.outputs.release_version }}

@@ -42,7 +42,7 @@ created: 2026-06-30
 | 114-01-02 | 01 | 1 | TRUST-02 | — | `CODE_OF_CONDUCT.md` present | meta/file-exists | `mix test test/install_smoke/governance_files_test.exs` | ❌ W0 | ⬜ pending |
 | 114-01-03 | 01 | 1 | TRUST-03 | — | issue templates + PR template present | meta/file-exists | `mix test test/install_smoke/governance_files_test.exs` | ❌ W0 | ⬜ pending |
 | 114-02-01 | 02 | 1 | META-01 | — | `package.links` has Changelog + Docs | meta/metadata | `mix test test/install_smoke/package_metadata_test.exs` | ✅ | ⬜ pending |
-| 114-02-02 | 02 | 1 | META-02 | — | `package` declares `maintainers: ["szTheory"]` | meta/metadata | `mix test test/install_smoke/package_metadata_test.exs` | ✅ | ⬜ pending |
+| 114-02-02 | 02 | 1 | META-02 | — | release public verification checks Hex API owner `sztheory` | release/public-api | `mix test test/install_smoke/package_metadata_test.exs` | ✅ | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
