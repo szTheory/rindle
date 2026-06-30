@@ -62,7 +62,7 @@ Each maps to exactly one roadmap phase (phases begin at 113).
 
 ### Release & Planning Hygiene (HYGIENE)
 
-- [ ] **HYGIENE-01**: The stuck Hex 0.3.2 release is cut so the merged-but-unreleased v1.21 `lib/` fixes
+- [x] **HYGIENE-01**: The stuck Hex 0.3.2 release is cut so the merged-but-unreleased v1.21 `lib/` fixes
   (`:epipe` absorb, `$callers` config override) reach adopters; PROJECT.md / MILESTONES reconcile the prior
   "ships as Hex 0.3.2" claim with reality.
 
@@ -104,7 +104,7 @@ Deferred to the next milestone; tracked but not in this roadmap.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | EVAL-01 | Phase 113 | Complete |
-| HYGIENE-01 | Phase 113 | Pending |
+| HYGIENE-01 | Phase 113 | Complete |
 | HYGIENE-02 | Phase 113 | Complete |
 | TRUST-01 | Phase 114 | Pending |
 | TRUST-02 | Phase 114 | Pending |
