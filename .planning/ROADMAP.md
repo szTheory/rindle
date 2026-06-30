@@ -68,7 +68,13 @@ truth those gaps created.
   4. SEED-003 and SEED-004 frontmatter `status:` is corrected from stale `open` to `consumed` (they
      shipped as v1.20 / v1.21).
 
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [ ] 113-01-PLAN.md — EVAL-01 scored-weakness summary + HYGIENE-02 SEED-003/004 frontmatter (Track A)
+- [ ] 113-02-PLAN.md — Release recurrence guards: drift workflow + issue template + token-validity step + required-path lock meta-test (Track A)
+- [ ] 113-03-PLAN.md — D-08 public_smoke junit hardening + D-07 corrected root-cause prose (runbook + ledger) (Track A)
+- [ ] 113-04-PLAN.md — Human token-rotation checkpoint → observe 0.3.2 publish → truth-reconciliation edits (Track B, gated)
 
 ### Phase 114: OSS Trust & Governance
 
@@ -146,7 +152,7 @@ work landed in 115)
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 113. Evaluation Baseline & Release Hygiene | 0/? | Not started | - |
+| 113. Evaluation Baseline & Release Hygiene | 0/4 | Not started | - |
 | 114. OSS Trust & Governance | 0/? | Not started | - |
 | 115. Versioning & README Positioning | 0/? | Not started | - |
 | 116. Versioned `Rindle.Migration` Module | 0/? | Not started | - |
