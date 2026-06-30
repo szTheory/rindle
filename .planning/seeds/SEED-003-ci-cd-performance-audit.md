@@ -1,8 +1,10 @@
 ---
 id: SEED-003
-status: open
+status: consumed
 planted: 2026-06-20
 planted_during: post-ship Cohort demo polish (#27/#28/#29) — maintainer noticed ~15min PR feedback
+consumed: 2026-06-22
+consumed_by: "v1.20 CI/CD Performance (chartered 2026-06-20, shipped 2026-06-22; 18/18 reqs). Reliability tail continued as SEED-004 -> v1.21."
 trigger_when: "Next `gsd new milestone`, OR sooner if PR CI wall-clock or flakiness becomes a felt drag on contributor/maintainer velocity. Surface whenever scope touches CI/CD, test-suite runtime, release engineering, or developer experience."
 scope: Medium-Large
 ---

@@ -1,8 +1,10 @@
 ---
 id: SEED-004
-status: open
+status: consumed
 planted: 2026-06-26
 planted_during: post-v1.20 maintenance — cleaning up red `main` after the phase-dir archive (PR #45)
+consumed: 2026-06-29
+consumed_by: "v1.21 CI/DX Reliability Tail (chartered 2026-06-26, shipped 2026-06-29; 24/24 reqs)."
 trigger_when: "Next CI/DX reliability milestone, OR sooner if the `:epipe` flake recurs often enough to cost real rerun time / erode trust in the gate. Surface whenever scope touches CI/CD, test-suite runtime, ExUnit determinism, coverage tooling, or developer experience. Natural companion to [[SEED-003]] (which became v1.20)."
 scope: Small-Medium
 ---
