@@ -128,6 +128,58 @@ probe, publish lane, and public verification. If the target version is already
 live on Hex.pm, the workflow skips both publish steps, writes a skip summary,
 and still runs public verification.
 
+### Stuck release: expired `RELEASE_PLEASE_TOKEN` (the `|| github.token` footgun)
+
+**Symptom:** `release-please failed: Bad credentials` in the Release Please job;
+no `chore(main): release rindle X.Y.Z` PR appears despite releasable commits on
+`main`.
+
+**Root cause (corrected chain):** The `:epipe`/`$callers` fix commits merged
+**2026-06-28**, AFTER the last successful release-please run (**2026-06-26**,
+which only re-found the already-merged 0.3.1 PR — **PR #40 was the 0.3.1 release
+PR, NOT a 0.3.2 PR**). The next push-to-`main` (**2026-06-29, run 28399407429**) —
+the first that would have opened a **0.3.2** PR — failed with `Bad credentials`
+because `RELEASE_PLEASE_TOKEN` had **expired**, and the workflow expression
+`secrets.RELEASE_PLEASE_TOKEN || github.token` lets a *present-but-invalid*
+secret WIN the `||` (a non-empty string is truthy), so `github.token` never
+engages as a fallback. As a result **no 0.3.2 PR was ever opened**.
+
+**Recovery:**
+
+1. **Rotate `RELEASE_PLEASE_TOKEN`.** Prefer a GitHub App installation token (no
+   expiry surprise) or a fine-grained PAT with **contents: read/write +
+   pull-requests: read/write + issues: read/write + `Actions: read/write`**.
+   Update repo **Settings → Secrets and variables → Actions**.
+2. **Relabel any stuck-but-published release PR truthfully.** If a prior release
+   PR is stuck on `autorelease: pending` while its version IS already published,
+   relabel it so release-please stops re-finding it and will open the next
+   version:
+   `gh pr edit <N> --remove-label "autorelease: pending" --add-label "autorelease: tagged"`.
+3. **Re-trigger `release.yml`.** Push (or re-run the latest `main` push) to
+   re-run the canonical automerge → dispatch → gate-ci-green → publish chain.
+
+**`Actions: write` footgun (confirmed while cutting 0.3.2):** this repo's
+automerge job publishes by *dispatching* `release.yml`
+(`gh workflow run … --field recovery_ref=<merge_sha>`). A PAT **without**
+`Actions: write` merges the release PR fine but the dispatch step **403s**
+(`Resource not accessible by personal access token`), so Publish/Public-Verify
+never run (they are `workflow_dispatch`-gated, NOT push-gated). If only this
+fails, complete the publish manually:
+`gh workflow run release.yml --ref main --field recovery_reason="…" --field recovery_ref=<merge_sha>`.
+
+**What actually unstuck 0.3.2 (2026-06-30):** THREE fixes in series — (a) rotate
+the expired token, (b) relabel #40 `pending` → `tagged`, and (c) (because the new
+PAT lacked `Actions: write`) a manual publish-dispatch. Published + verified via
+run **28420598348**; Hex live == **0.3.2**.
+
+**Prevention:**
+
+- `release-train-drift.yml` self-files an issue when `main` has releasable
+  commits with no open release PR.
+- The token-validity step in the Release Please job should fail loudly on a
+  present-but-invalid token (and ideally check `Actions: write` capability, not
+  just `gh api user`) so the `|| github.token` mask cannot pass silently.
+
 ## Post-Publish Follow-Up
 
 After the first publish:

@@ -30,6 +30,7 @@ Update this section after each successful Hex publish with run ID, version, and 
 | 2026-05-28 | PATs configured | Pass | `RELEASE_PLEASE_TOKEN`, `BRANCH_PROTECTION_PAT` set in repo secrets |
 | 2026-05-28 | 0.1.7 publish + public smoke + automated baseline | Pass | [run 26578423402](https://github.com/szTheory/rindle/actions/runs/26578423402) — all jobs success; baseline ledger updated on `main` without manual edit |
 | 2026-05-28 | Release Please new PR after 0.1.6 | **Resolved** | Retagged `rindle-v0.1.6` → `b5a6a0d`; removed `autorelease: pending` from PR #12; RP opened [#14](https://github.com/szTheory/rindle/pull/14) (0.1.8) |
+| 2026-06-29 | Release-please stuck: 0.3.2 PR never opened | Root-caused + guarded | `Bad credentials` 401 in [run 28399407429](https://github.com/szTheory/rindle/actions/runs/28399407429); `RELEASE_PLEASE_TOKEN` expired; `secrets.X \|\| github.token` masks a bad token (PR #40 was the 0.3.1 PR; fixes merged 2026-06-28). Rotated token + added release-train-drift guard + token-validity guard. |
 
 ## Automated Release Loop
 
