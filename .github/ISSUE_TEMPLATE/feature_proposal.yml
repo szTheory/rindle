@@ -1,0 +1,19 @@
+name: Feature proposal
+description: Propose a new Rindle capability or behavior change.
+labels: ["type:feature"]
+body:
+  - type: markdown
+    attributes:
+      value: "Before filing, see [CONTRIBUTING.md](../../CONTRIBUTING.md) for how CI gates project changes."
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: Describe the adopter need, operational pain, or security gap.
+    validations:
+      required: true
+  - type: textarea
+    id: proposed-approach
+    attributes:
+      label: Proposed approach
+      description: Describe the smallest useful shape you have in mind.
