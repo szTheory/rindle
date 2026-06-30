@@ -5,15 +5,15 @@ milestone_name: OSS Quality & Trust Hardening
 current_phase: 113
 current_phase_name: evaluation-baseline-release-hygiene
 status: executing
-stopped_at: Phase 113 context gathered
-last_updated: "2026-06-30T11:39:30.957Z"
+stopped_at: Completed 113-03-PLAN.md
+last_updated: "2026-06-30T11:44:59.366Z"
 last_activity: 2026-06-30
 last_activity_desc: Phase 113 execution started
 progress:
   total_phases: 1
   completed_phases: 0
   total_plans: 4
-  completed_plans: 2
+  completed_plans: 3
   percent: 0
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-06-29 after chartering v1.22)
 ## Current Position
 
 Phase: 113 (evaluation-baseline-release-hygiene) — EXECUTING
-Plan: 3 of 4
+Plan: 4 of 4
 Status: Ready to execute
 Last activity: 2026-06-30 — Phase 113 execution started
 
@@ -160,6 +160,8 @@ _(v1.22 phase-execution decisions accumulate here as phases are planned and exec
 
 - [Phase 113]: EVAL-01 — v1.22-OSS-QUALITY-EVAL.md authored; weakness→closing-phase column mapped byte-faithful to REQUIREMENTS.md (governance→114, versioning/README→115, host-respect→116, schema-flip→v1.23 ISO23); scores lifted from SEED-005, not re-derived.
 - [Phase 113]: HYGIENE-02 — SEED-003/004 frontmatter corrected status: open→consumed with consumed:/consumed_by: attribution (D-14).
+- [Phase ?]: D-08: harden public_smoke.sh junit write path via env -u CI on the install-smoke shell-out (option c) so abnormal exits stay legible
+- [Phase ?]: D-07: recorded the CORRECTED stuck-release root cause (PR #40 = the 0.3.1 PR; fixes merged 2026-06-28; run 28399407429 401'd on expired RELEASE_PLEASE_TOKEN) in runbook + ledger; refuted the superseded PR-#40-was-0.3.2 framing
 
 ## Blockers/Concerns
 
@@ -179,9 +181,9 @@ _(none open for v1.22 at roadmap creation)_
 
 ## Session Continuity
 
-Last session: 2026-06-30T11:39:06.866Z
-Stopped at: Phase 113 context gathered
-Resume file: .planning/phases/113-evaluation-baseline-release-hygiene/113-CONTEXT.md
+Last session: 2026-06-30T11:44:59.362Z
+Stopped at: Completed 113-03-PLAN.md
+Resume file: None
 
 ## Performance Metrics
 
@@ -189,3 +191,4 @@ Resume file: .planning/phases/113-evaluation-baseline-release-hygiene/113-CONTEX
 |-------|------|----------|-------|
 | Phase 113 P01 | 2 | 2 tasks | 3 files |
 | Phase 113 P02 | 5min | 3 tasks | 4 files |
+| Phase 113 P03 | ~2m | 2 tasks | 3 files |
