@@ -4,9 +4,8 @@
 
 - Merge the Release Please PR on `main`.
 - Wait for `ci.yml` to finish green on the exact release SHA.
-- Let the `Release` workflow run `Run release preflight`, `Verify version alignment`, and `Check whether Hex.pm release already exists`.
+- Let the `Release` workflow run `Run release preflight`, `Verify version alignment`, `Check whether Hex.pm release already exists`, and public metadata verification.
 - If the version is already live, recovery reruns skip publish and continue to public verification.
-- Public verification checks Hex.pm package links and owner metadata before the clean-room smoke test.
 - Use `mix hex.publish --revert VERSION` for in-window rollback; use retire plus a fix release after the window.
 
 This maintainer runbook documents the workflow that shipped Rindle to Hex.pm on
