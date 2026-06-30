@@ -106,7 +106,10 @@ surfaces the conventional package links and maintainers.
 
   5. The Hex `package` declares `maintainers`.
 
-**Plans**: TBD
+**Plans**: 2 plans
+
+  - [ ] 114-01-PLAN.md — Governance files: SECURITY.md, CODE_OF_CONDUCT.md, issue forms + config.yml + PR template, governance-presence meta-test (TRUST-01/02/03)
+  - [ ] 114-02-PLAN.md — Hex package metadata: `package.links` (+Changelog/+Docs) and `maintainers`, paired with package_metadata_test update (META-01/02)
 
 ### Phase 115: Versioning & README Positioning
 
