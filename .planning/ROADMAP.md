@@ -55,23 +55,28 @@ truth those gaps created.
 **Requirements**: EVAL-01, HYGIENE-01, HYGIENE-02
 
 **Success Criteria** (what must be TRUE):
+
   1. A maintainer can read a concise, right-sized, evidence-cited scored-weakness summary of Rindle's
      OSS quality (the milestone's opening artifact) naming the weak dimensions (governance/trust,
      versioning/positioning, host-app respectfulness) vs. the already-strong ones — not the full
      36-dimension report.
+
   2. Hex 0.3.2 is published so the merged-but-unreleased v1.21 `lib/` fixes (`:epipe` absorb,
      `$callers` config override) reach adopters; `mix.exs`, `.release-please-manifest.json`, and
      CHANGELOG all reflect the released version and the root cause (why release-please did not open a
      0.3.2 PR) is investigated and recorded.
+
   3. PROJECT.md / MILESTONES reconcile the prior aspirational "ships as Hex 0.3.2" claim with reality
      (released vs. previously unshipped).
+
   4. SEED-003 and SEED-004 frontmatter `status:` is corrected from stale `open` to `consumed` (they
      shipped as v1.20 / v1.21).
 
 **Plans**: 4 plans
 
 Plans:
-- [ ] 113-01-PLAN.md — EVAL-01 scored-weakness summary + HYGIENE-02 SEED-003/004 frontmatter (Track A)
+
+- [x] 113-01-PLAN.md — EVAL-01 scored-weakness summary + HYGIENE-02 SEED-003/004 frontmatter (Track A)
 - [ ] 113-02-PLAN.md — Release recurrence guards: drift workflow + issue template + token-validity step + required-path lock meta-test (Track A)
 - [ ] 113-03-PLAN.md — D-08 public_smoke junit hardening + D-07 corrected root-cause prose (runbook + ledger) (Track A)
 - [ ] 113-04-PLAN.md — Human token-rotation checkpoint → observe 0.3.2 publish → truth-reconciliation edits (Track B, gated)
@@ -87,14 +92,18 @@ surfaces the conventional package links and maintainers.
 **Requirements**: TRUST-01, TRUST-02, TRUST-03, META-01, META-02
 
 **Success Criteria** (what must be TRUE):
+
   1. The repo has a `SECURITY.md` with a vulnerability-disclosure policy appropriate for a library
      handling untrusted uploads, MIME sniffing, signed delivery, and webhook HMAC verification.
+
   2. The repo has a `CODE_OF_CONDUCT.md`.
   3. A newcomer opening an issue or PR is guided by `.github/ISSUE_TEMPLATE/` templates (bug report /
      feature proposal) and a `PULL_REQUEST_TEMPLATE.md` (the existing CONTRIBUTING is CI-only — these
      add the on-ramp).
+
   4. hex.pm surfaces "Changelog" and "Docs" links (HexDocs convention) alongside the existing GitHub
      link via `package.links`.
+
   5. The Hex `package` declares `maintainers`.
 
 **Plans**: TBD
@@ -110,12 +119,16 @@ and an honest "when not to use it" boundary.
 **Requirements**: VERSION-01, VERSION-02, README-01, README-02
 
 **Success Criteria** (what must be TRUE):
+
   1. README and CONTRIBUTING state the SemVer / pre-1.0 stability contract ("0.x: API may change
      between minor versions; see CHANGELOG") plus a short note on what 1.0 will mean.
+
   2. `guides/upgrading.md` is a reusable, versioned upgrade-notes structure — not just the single
      pre-0.1.4 image-only→AV case — so every future change has a documented home.
+
   3. The README leads with an image-only "first attachment in ~2 minutes" path that needs no
      FFmpeg/libvips; the heavier AV quickstart is demoted below it.
+
   4. The README has a clear "what Rindle is NOT / when not to use it" block (lifted from
      `guides/user_flows.md`).
 
@@ -134,15 +147,19 @@ work landed in 115)
 **Requirements**: MIGRATE-01, MIGRATE-02
 
 **Success Criteria** (what must be TRUE):
+
   1. Adopters install Rindle's tables via a versioned, idempotent `Rindle.Migration.up/1` + `down/1`
      module (Oban-style) instead of the raw 15-file copy-paste path; README, getting-started, and
      `upgrading.md` show the new ~3-line migration. Non-breaking — the default schema stays `public`
      and existing adopters' already-applied migrations remain valid.
+
   2. Rindle no longer creates the shared `oban_jobs` table; the adopter owns `Oban.Migration`,
      documented in the install/upgrade guides (removes the latent host-Oban collision).
+
   3. The existing test suite stays green (135 test files; the async-safety meta-test still governs
      `async: true`), and doctor / runtime_status migration-inspection logic keeps working alongside
      legacy 15-file installs.
+
   4. Hard release-coupling invariants are preserved: `ci.yml` / `name: CI` unchanged, `CI Summary`
      keeps `skipped`==pass, and the release full-verification gate is not weakened.
 
@@ -152,7 +169,7 @@ work landed in 115)
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 113. Evaluation Baseline & Release Hygiene | 0/4 | Not started | - |
+| 113. Evaluation Baseline & Release Hygiene | 1/4 | In Progress|  |
 | 114. OSS Trust & Governance | 0/? | Not started | - |
 | 115. Versioning & README Positioning | 0/? | Not started | - |
 | 116. Versioned `Rindle.Migration` Module | 0/? | Not started | - |
@@ -303,6 +320,7 @@ See [post-v116 assessment](threads/2026-05-27-post-v116-milestone-assessment.md)
 - **v1.23 Postgres Schema Isolation** (breaking → 0.4.0): `rindle` schema default via config-driven
   `@schema_prefix`; 4 manual escapes; `prefix: "public"` opt-out + `ALTER TABLE … SET SCHEMA` move
   migration (ISO23-01..04 in REQUIREMENTS.md). Builds on v1.22's `Rindle.Migration` substrate.
+
 - Force-delete semantics for still-shared assets (LIFE-06) — compliance pull only
 - Second streaming provider (Cloudflare/Bunny) — explicit adopter demand only
 - IETF RUFH / tus 2.0; GCS-as-tus-backend / R2-native tus proxying

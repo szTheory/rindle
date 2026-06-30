@@ -6,14 +6,14 @@ current_phase: 113
 current_phase_name: evaluation-baseline-release-hygiene
 status: executing
 stopped_at: Phase 113 context gathered
-last_updated: "2026-06-30T11:24:28.867Z"
+last_updated: "2026-06-30T11:30:57.945Z"
 last_activity: 2026-06-30
 last_activity_desc: Phase 113 execution started
 progress:
   total_phases: 1
   completed_phases: 0
   total_plans: 4
-  completed_plans: 0
+  completed_plans: 1
   percent: 0
 ---
 
@@ -29,8 +29,8 @@ See: .planning/PROJECT.md (updated 2026-06-29 after chartering v1.22)
 ## Current Position
 
 Phase: 113 (evaluation-baseline-release-hygiene) — EXECUTING
-Plan: 1 of 4
-Status: Executing Phase 113
+Plan: 2 of 4
+Status: Ready to execute
 Last activity: 2026-06-30 — Phase 113 execution started
 
 ### v1.22 roadmap (Phases 113–116) — natural-grouping order
@@ -158,6 +158,9 @@ in REQUIREMENTS.md (Future Requirements section). Builds on the v1.22 `Rindle.Mi
 
 _(v1.22 phase-execution decisions accumulate here as phases are planned and executed.)_
 
+- [Phase 113]: EVAL-01 — v1.22-OSS-QUALITY-EVAL.md authored; weakness→closing-phase column mapped byte-faithful to REQUIREMENTS.md (governance→114, versioning/README→115, host-respect→116, schema-flip→v1.23 ISO23); scores lifted from SEED-005, not re-derived.
+- [Phase 113]: HYGIENE-02 — SEED-003/004 frontmatter corrected status: open→consumed with consumed:/consumed_by: attribution (D-14).
+
 ## Blockers/Concerns
 
 _(none open for v1.22 at roadmap creation)_
@@ -176,6 +179,12 @@ _(none open for v1.22 at roadmap creation)_
 
 ## Session Continuity
 
-Last session: 2026-06-29T23:26:53.065Z
+Last session: 2026-06-30T11:29:57.054Z
 Stopped at: Phase 113 context gathered
 Resume file: .planning/phases/113-evaluation-baseline-release-hygiene/113-CONTEXT.md
+
+## Performance Metrics
+
+| Phase | Plan | Duration | Notes |
+|-------|------|----------|-------|
+| Phase 113 P01 | 2 | 2 tasks | 3 files |
