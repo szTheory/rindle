@@ -108,7 +108,7 @@ surfaces the conventional package links and maintainers.
 
 **Plans**: 2 plans
 
-  - [ ] 114-01-PLAN.md — Governance files: SECURITY.md, CODE_OF_CONDUCT.md, issue forms + config.yml + PR template, governance-presence meta-test (TRUST-01/02/03)
+  - [x] 114-01-PLAN.md — Governance files: SECURITY.md, CODE_OF_CONDUCT.md, issue forms + config.yml + PR template, governance-presence meta-test (TRUST-01/02/03)
   - [ ] 114-02-PLAN.md — Hex package metadata: `package.links` (+Changelog/+Docs) and `maintainers`, paired with package_metadata_test update (META-01/02)
 
 ### Phase 115: Versioning & README Positioning
@@ -173,7 +173,7 @@ work landed in 115)
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 113. Evaluation Baseline & Release Hygiene | 4/4 | Complete   | 2026-06-30 |
-| 114. OSS Trust & Governance | 0/? | Not started | - |
+| 114. OSS Trust & Governance | 1/2 | In Progress|  |
 | 115. Versioning & README Positioning | 0/? | Not started | - |
 | 116. Versioned `Rindle.Migration` Module | 0/? | Not started | - |
 

@@ -19,11 +19,11 @@ Each maps to exactly one roadmap phase (phases begin at 113).
 
 ### OSS Trust & Governance (TRUST)
 
-- [ ] **TRUST-01**: Repo has a `SECURITY.md` with a vulnerability-disclosure policy appropriate for a
+- [x] **TRUST-01**: Repo has a `SECURITY.md` with a vulnerability-disclosure policy appropriate for a
   library handling untrusted uploads, MIME sniffing, signed delivery, and webhook HMAC verification.
 
-- [ ] **TRUST-02**: Repo has a `CODE_OF_CONDUCT.md`.
-- [ ] **TRUST-03**: Repo has issue templates (`.github/ISSUE_TEMPLATE/`) and a `PULL_REQUEST_TEMPLATE.md`
+- [x] **TRUST-02**: Repo has a `CODE_OF_CONDUCT.md`.
+- [x] **TRUST-03**: Repo has issue templates (`.github/ISSUE_TEMPLATE/`) and a `PULL_REQUEST_TEMPLATE.md`
   that guide a good bug report / feature proposal / PR (the existing CONTRIBUTING is CI-only — these add
   the newcomer on-ramp).
 
@@ -106,9 +106,9 @@ Deferred to the next milestone; tracked but not in this roadmap.
 | EVAL-01 | Phase 113 | Complete |
 | HYGIENE-01 | Phase 113 | Complete |
 | HYGIENE-02 | Phase 113 | Complete |
-| TRUST-01 | Phase 114 | Pending |
-| TRUST-02 | Phase 114 | Pending |
-| TRUST-03 | Phase 114 | Pending |
+| TRUST-01 | Phase 114 | Complete |
+| TRUST-02 | Phase 114 | Complete |
+| TRUST-03 | Phase 114 | Complete |
 | META-01 | Phase 114 | Pending |
 | META-02 | Phase 114 | Pending |
 | VERSION-01 | Phase 115 | Pending |
