@@ -37,18 +37,18 @@ Each maps to exactly one roadmap phase (phases begin at 113).
 
 ### Versioning & Stability (VERSION)
 
-- [ ] **VERSION-01**: README and CONTRIBUTING state the SemVer / pre-1.0 stability contract — "0.x: API may
+- [x] **VERSION-01**: README and CONTRIBUTING state the SemVer / pre-1.0 stability contract — "0.x: API may
   change between minor versions; see CHANGELOG" — and a short note on what 1.0 will mean.
 
-- [ ] **VERSION-02**: `guides/upgrading.md` is generalized into a reusable upgrade-notes structure (versioned
+- [x] **VERSION-02**: `guides/upgrading.md` is generalized into a reusable upgrade-notes structure (versioned
   sections), not just the single pre-0.1.4 image-only→AV case, so every future change has a documented home.
 
 ### README Positioning (README)
 
-- [ ] **README-01**: README leads with an image-only "first attachment in ~2 minutes" path that needs no
+- [x] **README-01**: README leads with an image-only "first attachment in ~2 minutes" path that needs no
   FFmpeg/libvips; the heavier AV quickstart is demoted below it.
 
-- [ ] **README-02**: README has a clear "what Rindle is NOT / when not to use it" block (lift the existing
+- [x] **README-02**: README has a clear "what Rindle is NOT / when not to use it" block (lift the existing
   copy from `guides/user_flows.md`).
 
 ### Versioned Migration Module (MIGRATE)
@@ -112,10 +112,10 @@ Deferred to the next milestone; tracked but not in this roadmap.
 | TRUST-03 | Phase 114 | Complete |
 | META-01 | Phase 114 | Complete |
 | META-02 | Phase 114 | Complete |
-| VERSION-01 | Phase 115 | Pending |
-| VERSION-02 | Phase 115 | Pending |
-| README-01 | Phase 115 | Pending |
-| README-02 | Phase 115 | Pending |
+| VERSION-01 | Phase 115 | Complete |
+| VERSION-02 | Phase 115 | Complete |
+| README-01 | Phase 115 | Complete |
+| README-02 | Phase 115 | Complete |
 | MIGRATE-01 | Phase 116 | Pending |
 | MIGRATE-02 | Phase 116 | Pending |
 

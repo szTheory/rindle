@@ -4,17 +4,17 @@ milestone: v1.22
 milestone_name: OSS Quality & Trust Hardening
 current_phase: 115
 current_phase_name: Versioning & README Positioning
-status: executing
-stopped_at: Phase 115 context gathered
-last_updated: "2026-07-01T15:25:30.532Z"
+status: verifying
+stopped_at: Completed 115-01-PLAN.md
+last_updated: "2026-07-01T15:39:57.390Z"
 last_activity: 2026-07-01
-last_activity_desc: Phase 114 complete, transitioned to Phase 115
+last_activity_desc: Phase 115 Plan 01 complete
 progress:
   total_phases: 3
-  completed_phases: 2
-  total_plans: 6
-  completed_plans: 6
-  percent: 67
+  completed_phases: 3
+  total_plans: 7
+  completed_plans: 7
+  percent: 100
 ---
 
 # Project State
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-06-29 after chartering v1.22)
 
 ## Current Position
 
-Phase: 115 — Versioning & README Positioning
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-07-01 — Phase 114 complete, transitioned to Phase 115
+Phase: 115 (Versioning & README Positioning) — COMPLETE
+Plan: 1 of 1
+Status: Phase complete — ready for verification
+Last activity: 2026-07-01 — Phase 115 Plan 01 complete
 
 ### v1.22 roadmap (Phases 113–116) — natural-grouping order
 
@@ -162,6 +162,9 @@ _(v1.22 phase-execution decisions accumulate here as phases are planned and exec
 - [Phase ?]: [Phase 113]: HYGIENE-01 — Hex 0.3.2 cut live (run 28420598348, merge d228b67) after a THREE-fix unstick (rotate expired RELEASE_PLEASE_TOKEN + relabel #40 pending->tagged + manual publish-dispatch since PAT lacked Actions:write); D-12 honored — live-truth edits committed only after publish observed. Durable fix pending: add Actions:write to PAT or move to GitHub App token.
 - [Phase 114]: Phase 114 Plan 01 kept governance artifacts repo-only and did not touch mix.exs or package metadata scope.
 - [Phase 114]: Phase 114 Plan 02 verifies META-02 maintainers from Mix.Project package config because Hex 2.5 unpacked metadata does not serialize :maintainers for this package. — Preserves the maintainer declaration success criterion while keeping generated metadata assertions focused on links that Hex emits locally.
+- [Phase 115]: Phase 115 stayed docs-only with no runtime, migration API, release-version, dependency, CSS, or JS changes. — The plan and phase context scoped this as README, CONTRIBUTING, upgrading guide, and docs parity work only.
+- [Phase 115]: guides/upgrading.md is the reusable action-oriented upgrade home; CHANGELOG.md remains release history. — This closes VERSION-02 and gives Phase 116 a versioned docs structure for migration upgrade notes.
+- [Phase 115]: README first-run onboarding now leads with an original-only image attachment path before AV setup. — This closes README-01 while keeping FFmpeg/libvips dependency details linked from RUNNING.md.
 
 ## Blockers/Concerns
 
@@ -181,9 +184,9 @@ _(none open for v1.22 at roadmap creation)_
 
 ## Session Continuity
 
-Last session: 2026-07-01T14:32:44.396Z
-Stopped at: Phase 115 context gathered
-Resume file: .planning/phases/115-versioning-readme-positioning/115-CONTEXT.md
+Last session: 2026-07-01T15:39:35.106Z
+Stopped at: Completed 115-01-PLAN.md
+Resume file: None
 
 ## Performance Metrics
 
@@ -195,3 +198,4 @@ Resume file: .planning/phases/115-versioning-readme-positioning/115-CONTEXT.md
 | Phase 113 P04 | ~3min | 2 tasks | 5 files |
 | Phase 114 P01 | 4 min | 3 tasks | 7 files |
 | Phase 114 P02 | 4 min | 1 tasks | 3 files |
+| Phase 115 P01 | 6 min | 3 tasks | 4 files |

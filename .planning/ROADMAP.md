@@ -141,7 +141,7 @@ and an honest "when not to use it" boundary.
 
 Plans:
 
-- [ ] 115-01-PLAN.md — Stability contract, versioned upgrade guide, image-first README positioning, and docs parity lock
+- [x] 115-01-PLAN.md — Stability contract, versioned upgrade guide, image-first README positioning, and docs parity lock
 
 ### Phase 116: Versioned `Rindle.Migration` Module
 
@@ -179,7 +179,7 @@ work landed in 115)
 |-------|----------------|--------|-----------|
 | 113. Evaluation Baseline & Release Hygiene | 4/4 | Complete   | 2026-06-30 |
 | 114. OSS Trust & Governance | 2/2 | Complete   | 2026-07-01 |
-| 115. Versioning & README Positioning | 0/? | Not started | - |
+| 115. Versioning & README Positioning | 1/1 | Complete   | 2026-07-01 |
 | 116. Versioned `Rindle.Migration` Module | 0/? | Not started | - |
 
 ## Phases (shipped — collapsed history)
