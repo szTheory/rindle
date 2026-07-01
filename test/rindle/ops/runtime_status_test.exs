@@ -6,6 +6,8 @@ defmodule Rindle.Ops.RuntimeStatusTest do
   alias Rindle.Ops.RuntimeStatus
   alias Rindle.Workers.ProcessVariant
 
+  @runtime_status_config Rindle.Ops.RuntimeStatus
+
   defmodule StatusImageProfile do
     use Rindle.Profile,
       storage: Rindle.StorageMock,
@@ -20,6 +22,62 @@ defmodule Rindle.Ops.RuntimeStatusTest do
       variants: [web_720p: [kind: :video, preset: :web_720p]],
       allow_mime: ["video/mp4"],
       max_bytes: 524_288_000
+  end
+
+  setup do
+    previous_runtime_status_config = Application.get_env(:rindle, @runtime_status_config)
+
+    on_exit(fn ->
+      if previous_runtime_status_config do
+        Application.put_env(:rindle, @runtime_status_config, previous_runtime_status_config)
+      else
+        Application.delete_env(:rindle, @runtime_status_config)
+      end
+    end)
+
+    :ok
+  end
+
+  describe "setup preflight" do
+    test "returns setup_incomplete before report queries when Rindle-owned schema is missing" do
+      put_setup_readiness(%{
+        rindle_schema: %{ready?: false, missing_tables: ["media_assets"]},
+        oban_jobs: %{ready?: true}
+      })
+
+      assert {:error, {:setup_incomplete, :rindle_schema}} = RuntimeStatus.runtime_status([])
+    end
+
+    test "returns setup_incomplete before report queries when host-owned oban_jobs is missing" do
+      put_setup_readiness(%{
+        rindle_schema: %{ready?: true},
+        oban_jobs: %{ready?: false, setup: "Oban.Migration"}
+      })
+
+      assert {:error, {:setup_incomplete, :oban_jobs}} = RuntimeStatus.runtime_status([])
+    end
+
+    test "preserves the successful report shape when setup preflight is healthy" do
+      put_setup_readiness(%{
+        rindle_schema: %{ready?: true},
+        oban_jobs: %{ready?: true}
+      })
+
+      assert {:ok, report} = RuntimeStatus.runtime_status(limit: 2)
+
+      assert %{
+               generated_at: %DateTime{},
+               filters: %{limit: 2},
+               runtime_checks: %{counts: _, findings: _},
+               assets: %{counts: _},
+               variants: %{counts: _, findings: _},
+               upload_sessions: %{counts: _, findings: _, resumable: _},
+               provider_assets: %{counts: _, findings: _, threshold_seconds: _},
+               recommendations: recommendations
+             } = report
+
+      assert is_list(recommendations)
+    end
   end
 
   test "classifies failed, cancelled, stale, missing, and queue-starved variants" do
@@ -403,6 +461,10 @@ defmodule Rindle.Ops.RuntimeStatusTest do
     end
 
     Rindle.Repo.get!(MediaProviderAsset, row.id)
+  end
+
+  defp put_setup_readiness(readiness) do
+    Application.put_env(:rindle, @runtime_status_config, setup_readiness: readiness)
   end
 
   defp insert_asset(attrs) do

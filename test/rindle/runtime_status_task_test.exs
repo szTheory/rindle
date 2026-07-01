@@ -1,8 +1,10 @@
 defmodule Rindle.RuntimeStatusTaskTest do
-  use Rindle.DataCase, async: true
+  use Rindle.DataCase, async: false
 
   alias Mix.Tasks.Rindle.RuntimeStatus, as: RuntimeStatusTask
   alias Rindle.Domain.{MediaAsset, MediaUploadSession, MediaVariant}
+
+  @runtime_status_config Rindle.Ops.RuntimeStatus
 
   defmodule TaskProfile do
     use Rindle.Profile,
@@ -14,9 +16,19 @@ defmodule Rindle.RuntimeStatusTaskTest do
 
   setup do
     previous_shell = Mix.shell()
+    previous_runtime_status_config = Application.get_env(:rindle, @runtime_status_config)
     Mix.shell(Mix.Shell.Process)
 
-    on_exit(fn -> Mix.shell(previous_shell) end)
+    on_exit(fn ->
+      Mix.shell(previous_shell)
+
+      if previous_runtime_status_config do
+        Application.put_env(:rindle, @runtime_status_config, previous_runtime_status_config)
+      else
+        Application.delete_env(:rindle, @runtime_status_config)
+      end
+    end)
+
     :ok
   end
 
@@ -55,6 +67,22 @@ defmodule Rindle.RuntimeStatusTaskTest do
     assert_received {:mix_shell, :error, [message]}
     assert message =~ "Rindle.RuntimeStatus failed"
     assert message =~ "invalid_format"
+  end
+
+  test "exits non-zero with host-owned Oban.Migration copy when oban_jobs is missing" do
+    put_setup_readiness(%{
+      rindle_schema: %{ready?: true},
+      oban_jobs: %{ready?: false, setup: "Oban.Migration"}
+    })
+
+    assert catch_exit(RuntimeStatusTask.run(["--limit", "1"])) == {:shutdown, 1}
+
+    assert_received {:mix_shell, :error, [message]}
+    assert message =~ "setup_incomplete"
+    assert message =~ "oban_jobs"
+    assert message =~ "mix rindle.doctor"
+    assert message =~ "Oban.Migration"
+    assert message =~ "Rindle no longer manages `oban_jobs`"
   end
 
   describe "--provider-stuck (MUX-14)" do
@@ -221,6 +249,10 @@ defmodule Rindle.RuntimeStatusTaskTest do
       expires_at: DateTime.add(DateTime.utc_now(), 3600, :second)
     })
     |> Rindle.Repo.insert!()
+  end
+
+  defp put_setup_readiness(readiness) do
+    Application.put_env(:rindle, @runtime_status_config, setup_readiness: readiness)
   end
 
   defp age_ago(seconds) do
