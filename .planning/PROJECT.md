@@ -79,11 +79,13 @@ The `Rindle.Migration` module is intentionally pulled into v1.22 (not v1.23) bec
 fix in its own right and de-risks the v1.23 breaking flip. Full arc: SEED-005 + the approved roadmap at
 `/Users/jon/.claude/plans/software-quality-evaluation-prompt-txt-gleaming-sifakis.md`.
 
-**Phase 115 complete (2026-07-01):** README and CONTRIBUTING now state the shared pre-1.0 SemVer
-stability contract; `guides/upgrading.md` is the reusable newest-first upgrade home with HexDocs-safe
-version navigation; README leads hands-on onboarding with an original-only image attachment path before
-AV setup and includes the "when not to use Rindle" boundary. Next up is Phase 116, the versioned
-`Rindle.Migration` module and install/upgrade docs that build on this structure.
+**Phase 116 complete (2026-07-01):** v1.22 implementation is fully verified through the versioned
+`Rindle.Migration` substrate. Adopters now install Rindle tables through pinned `up/1` + `down/1`
+migration wrappers with default `public` behavior, legacy packaged migration histories stay valid, and
+Rindle no longer creates host-owned `oban_jobs`; install, getting-started, and upgrade docs now point to
+host migrations plus adopter-owned `Oban.Migration`. Phase verification passed the focused migration/
+doctor/runtime/docs/generated-app suite, generated-app image smoke, and full `mix ci`; v1.22 is ready
+for final milestone closeout gates.
 
 
 ## Last Milestone: v1.21 CI/DX Reliability Tail (shipped 2026-06-29)
@@ -819,5 +821,5 @@ This document evolves at phase transitions and milestone boundaries.
    (`workflow.milestone_boundary.block_feature_milestone_without_signal`)
 
 ---
-*Last updated: 2026-07-01 after completing Phase 115 (Versioning & README Positioning). v1.22 remains in
-progress with Phase 116 next: the non-breaking `Rindle.Migration` substrate for v1.23 schema isolation.*
+*Last updated: 2026-07-01 after completing Phase 116 (Versioned `Rindle.Migration` Module). v1.22
+implementation phases are complete; final milestone closeout gates remain before archive/release handoff.*
