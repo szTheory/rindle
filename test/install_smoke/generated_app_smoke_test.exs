@@ -333,6 +333,7 @@ if GeneratedAppHelper.profile_enabled?(:video) do
       assert_host_owned_migrations!(report)
       assert report.legacy_migration_cutoff == "20260428110000"
       assert String.ends_with?(report.legacy_rindle_migration_path, "/priv/repo/migrations")
+      refute report.legacy_current_marker_preinstalled?
       assert report.legacy_asset_kind == "image"
       assert report.legacy_asset_profile =~ ".RindleProfile"
       assert report.legacy_asset_upgrade_safe?

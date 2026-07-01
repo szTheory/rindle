@@ -28,6 +28,10 @@ Rindle's legacy packaged migrations can keep those migrations in place.
 Rindle now exposes a host-migration API for Rindle-owned tables:
 `Rindle.Migration.up(version: 1)` and
 `Rindle.Migration.down(version: 1)`. The default schema remains `public`.
+If you pass a different prefix, also set
+`config :rindle, :rindle_prefix, "tenant_media"` and, when Oban is outside
+`public`, `config :rindle, :oban_prefix, "tenant_media"` so doctor and runtime
+status inspect the schema your host migrations use.
 
 Host apps own `Oban.Migration` and the shared `oban_jobs` table. Rindle no
 longer creates or owns `oban_jobs`.

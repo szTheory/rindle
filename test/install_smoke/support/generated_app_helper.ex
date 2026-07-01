@@ -306,6 +306,8 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       rindle_migration_path: migration_report["rindle_migration_path"],
       legacy_rindle_migration_path: legacy_seed["legacy_rindle_migration_path"],
       legacy_migration_cutoff: legacy_seed["legacy_rindle_migration_version"],
+      legacy_current_marker_preinstalled?:
+        legacy_seed["current_rindle_marker_preinstalled"] == true,
       canonical_upgrade_step_sequence: canonical_upgrade_step_sequence(),
       legacy_asset_kind: get_in(upgrade_report, ["legacy_asset", "kind"]),
       legacy_asset_profile: get_in(upgrade_report, ["legacy_asset", "profile"]),
@@ -1067,10 +1069,23 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       rindle_path = Application.app_dir(:rindle, "priv/repo/migrations")
       legacy_cutoff = #{@legacy_rindle_migration_version}
 
-      {:ok, _, _} =
+      regclass_exists? = fn repo, table_name ->
+        {:ok, %{rows: [[result]]}} =
+          repo.query("select to_regclass($1)::text", ["public.\#{table_name}"])
+
+        result == table_name
+      end
+
+      {:ok, legacy_report, _} =
         Ecto.Migrator.with_repo(#{app_module}.Repo, fn repo ->
-          Ecto.Migrator.run(repo, host_path, :up, all: true)
+          Ecto.Migrator.run(repo, host_path, :up, to: #{@host_migration_version})
+          Ecto.Migrator.run(repo, host_path, :up, to: #{@host_oban_migration_version})
           Ecto.Migrator.run(repo, rindle_path, :up, to: legacy_cutoff)
+
+          %{
+            current_rindle_marker_preinstalled:
+              regclass_exists?.(repo, "rindle_migration_versions")
+          }
         end)
 
       legacy_asset_id = Ecto.UUID.generate()
@@ -1157,6 +1172,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
         Jason.encode!(%{
           legacy_rindle_migration_version: Integer.to_string(legacy_cutoff),
           legacy_rindle_migration_path: rindle_path,
+          current_rindle_marker_preinstalled: legacy_report.current_rindle_marker_preinstalled,
           legacy_asset_id: legacy_asset_id,
           legacy_variant_id: legacy_variant_id,
           legacy_session_id: legacy_session_id

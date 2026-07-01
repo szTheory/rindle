@@ -105,7 +105,7 @@ defmodule MyApp.Repo.Migrations.AddObanJobs do
 end
 ```
 
-Then install Rindle's tables with a pinned migration version. The default schema remains `public` unless you pass a different prefix.
+Then install Rindle's tables with a pinned migration version. The default schema remains `public` unless you pass a different prefix and set matching runtime config such as `config :rindle, :rindle_prefix, "tenant_media"`.
 
 ```elixir
 defmodule MyApp.Repo.Migrations.InstallRindle do
@@ -115,6 +115,10 @@ defmodule MyApp.Repo.Migrations.InstallRindle do
   def down, do: Rindle.Migration.down(version: 1)
 end
 ```
+
+If `Oban.Migration` also runs outside `public`, set
+`config :rindle, :oban_prefix, "tenant_media"` so `mix rindle.doctor` and
+`mix rindle.runtime_status` inspect the same schema your host migrations use.
 
 Run your host app's normal migration workflow, then verify setup:
 

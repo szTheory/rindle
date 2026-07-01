@@ -665,7 +665,7 @@ defmodule Rindle.Ops.RuntimeChecks do
   end
 
   defp rindle_schema_catalog(opts) do
-    prefix = Keyword.get(opts, :prefix, "public")
+    prefix = Keyword.get(opts, :prefix, Config.rindle_prefix())
     requirements = MigrationV1.catalog_requirements()
     rindle_tables = MigrationV1.rindle_tables()
     marker_table = MigrationV1.marker_table()
@@ -715,7 +715,7 @@ defmodule Rindle.Ops.RuntimeChecks do
   end
 
   defp oban_jobs_catalog(opts) do
-    prefix = Keyword.get(opts, :oban_prefix, "public")
+    prefix = Keyword.get(opts, :oban_prefix, Config.oban_prefix())
 
     with_catalog_repo(fn started_repo ->
       with {:ok, %{num_rows: count}} <-

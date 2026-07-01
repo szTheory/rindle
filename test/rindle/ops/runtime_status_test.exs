@@ -26,6 +26,8 @@ defmodule Rindle.Ops.RuntimeStatusTest do
 
   setup do
     previous_runtime_status_config = Application.get_env(:rindle, @runtime_status_config)
+    previous_rindle_prefix = Application.get_env(:rindle, :rindle_prefix)
+    previous_oban_prefix = Application.get_env(:rindle, :oban_prefix)
 
     on_exit(fn ->
       if previous_runtime_status_config do
@@ -33,6 +35,9 @@ defmodule Rindle.Ops.RuntimeStatusTest do
       else
         Application.delete_env(:rindle, @runtime_status_config)
       end
+
+      restore_env(:rindle_prefix, previous_rindle_prefix)
+      restore_env(:oban_prefix, previous_oban_prefix)
     end)
 
     :ok
@@ -77,6 +82,25 @@ defmodule Rindle.Ops.RuntimeStatusTest do
              } = report
 
       assert is_list(recommendations)
+    end
+
+    test "inspects configured Rindle prefix instead of silently falling back to public" do
+      prefix = temporary_prefix!()
+
+      Application.put_env(:rindle, :rindle_prefix, prefix)
+      Application.put_env(:rindle, :oban_prefix, "public")
+
+      assert {:error, {:setup_incomplete, :rindle_schema}} = RuntimeStatus.runtime_status([])
+    end
+
+    test "inspects configured Oban prefix after configured Rindle schema is ready" do
+      prefix = temporary_prefix!()
+
+      run_rindle_migration_up(prefix)
+      Application.put_env(:rindle, :rindle_prefix, prefix)
+      Application.put_env(:rindle, :oban_prefix, prefix)
+
+      assert {:error, {:setup_incomplete, :oban_jobs}} = RuntimeStatus.runtime_status([])
     end
   end
 
@@ -465,6 +489,47 @@ defmodule Rindle.Ops.RuntimeStatusTest do
 
   defp put_setup_readiness(readiness) do
     Application.put_env(:rindle, @runtime_status_config, setup_readiness: readiness)
+  end
+
+  defp restore_env(key, nil), do: Application.delete_env(:rindle, key)
+  defp restore_env(key, value), do: Application.put_env(:rindle, key, value)
+
+  defp temporary_prefix! do
+    prefix = "runtime_status_prefix_#{System.unique_integer([:positive])}"
+    Rindle.Repo.query!("CREATE SCHEMA #{quote_ident(prefix)}")
+
+    on_exit(fn ->
+      Rindle.Repo.query!("DROP SCHEMA IF EXISTS #{quote_ident(prefix)} CASCADE")
+    end)
+
+    prefix
+  end
+
+  defp run_rindle_migration_up(prefix) do
+    {:ok, runner} =
+      Ecto.Migration.Runner.start_link(
+        {self(), Rindle.Repo, Rindle.Repo.config(), __MODULE__, :forward, :up,
+         %{level: false, sql: false}}
+      )
+
+    Ecto.Migration.Runner.metadata(runner, prefix: prefix)
+
+    try do
+      Rindle.Migration.up(version: 1, prefix: prefix)
+      Ecto.Migration.Runner.flush()
+    after
+      if Process.alive?(runner), do: Ecto.Migration.Runner.stop()
+      Process.delete(:ecto_migration)
+    end
+  end
+
+  defp quote_ident(identifier) do
+    escaped =
+      identifier
+      |> to_string()
+      |> String.replace(~s("), ~s(""))
+
+    ~s("#{escaped}")
   end
 
   defp insert_asset(attrs) do

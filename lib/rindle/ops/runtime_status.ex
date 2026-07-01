@@ -98,7 +98,7 @@ defmodule Rindle.Ops.RuntimeStatus do
   end
 
   defp inspect_rindle_schema_readiness do
-    prefix = "public"
+    prefix = Config.rindle_prefix()
     tables = MigrationV1.catalog_requirements() |> Map.fetch!(:tables)
 
     case Config.repo().query(
@@ -119,11 +119,11 @@ defmodule Rindle.Ops.RuntimeStatus do
         %{ready?: false, error: reason, prefix: prefix}
     end
   rescue
-    error -> %{ready?: false, error: error, prefix: "public"}
+    error -> %{ready?: false, error: error, prefix: Config.rindle_prefix()}
   end
 
   defp inspect_oban_jobs_readiness do
-    prefix = "public"
+    prefix = Config.oban_prefix()
 
     case Config.repo().query(
            """
@@ -142,7 +142,7 @@ defmodule Rindle.Ops.RuntimeStatus do
         %{ready?: false, error: reason, setup: "Oban.Migration", prefix: prefix}
     end
   rescue
-    error -> %{ready?: false, error: error, setup: "Oban.Migration", prefix: "public"}
+    error -> %{ready?: false, error: error, setup: "Oban.Migration", prefix: Config.oban_prefix()}
   end
 
   defp ready?(%{ready?: true}), do: true
