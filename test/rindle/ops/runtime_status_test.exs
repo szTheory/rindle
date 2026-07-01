@@ -3,6 +3,7 @@ defmodule Rindle.Ops.RuntimeStatusTest do
   use Oban.Testing, repo: Rindle.Repo
 
   alias Rindle.Domain.{MediaAsset, MediaProviderAsset, MediaUploadSession, MediaVariant}
+  alias Rindle.Ops.RuntimeChecks
   alias Rindle.Ops.RuntimeStatus
   alias Rindle.Workers.ProcessVariant
 
@@ -101,6 +102,62 @@ defmodule Rindle.Ops.RuntimeStatusTest do
       Application.put_env(:rindle, :oban_prefix, prefix)
 
       assert {:error, {:setup_incomplete, :oban_jobs}} = RuntimeStatus.runtime_status([])
+    end
+
+    test "runtime report queries use the configured Rindle prefix after setup preflight" do
+      prefix = temporary_prefix!()
+
+      run_rindle_migration_up(prefix)
+      create_oban_jobs_table!(prefix)
+
+      Application.put_env(:rindle, :rindle_prefix, prefix)
+      Application.put_env(:rindle, :oban_prefix, prefix)
+
+      asset =
+        insert_prefixed_asset(prefix, %{
+          profile: to_string(StatusVideoProfile),
+          kind: "video",
+          state: "available",
+          content_type: "video/mp4"
+        })
+
+      assert {:ok, report} = RuntimeStatus.runtime_status(limit: 5)
+
+      assert report.assets.counts.total == 1
+      assert report.assets.counts.available == 1
+      assert report.variants.counts.total == 0
+      assert report.upload_sessions.counts.total == 0
+      assert report.runtime_checks.counts.probe_drift == 1
+
+      assert [%{class: :probe_drift, samples: [sample]}] = report.runtime_checks.findings
+      assert sample.asset_id == asset.id
+    end
+
+    test "runtime checks inspect resumable schema in the configured Rindle prefix" do
+      prefix = temporary_prefix!()
+
+      run_rindle_migration_up(prefix)
+      Application.put_env(:rindle, :rindle_prefix, prefix)
+
+      assert prefixed_table_exists?(prefix, "media_upload_sessions")
+
+      report =
+        RuntimeChecks.run([],
+          probe: fn -> :ok end,
+          profiles: [],
+          oban_config: healthy_oban_config(),
+          migration_statuses: [],
+          oban_jobs_catalog: %{exists?: true, owner: :host, setup: "Oban.Migration"}
+        )
+
+      assert report.success?, inspect(report.checks, pretty: true)
+
+      schema = Enum.find(report.checks, &(&1.id == "doctor.rindle_schema.ready"))
+      assert schema.status == :ok
+      assert schema.summary =~ inspect(prefix)
+
+      resumable = Enum.find(report.checks, &(&1.id == "doctor.resumable_session_schema"))
+      assert resumable.status == :ok
     end
   end
 
@@ -521,6 +578,45 @@ defmodule Rindle.Ops.RuntimeStatusTest do
       if Process.alive?(runner), do: Ecto.Migration.Runner.stop()
       Process.delete(:ecto_migration)
     end
+  end
+
+  defp create_oban_jobs_table!(prefix) do
+    Rindle.Repo.query!("CREATE TABLE #{quote_ident(prefix)}.oban_jobs (id bigint PRIMARY KEY)")
+  end
+
+  defp prefixed_table_exists?(prefix, table) do
+    %{rows: [[exists?]]} =
+      Rindle.Repo.query!("SELECT to_regclass($1) IS NOT NULL", ["#{prefix}.#{table}"])
+
+    exists?
+  end
+
+  defp insert_prefixed_asset(prefix, attrs) do
+    params =
+      %{
+        state: "available",
+        profile: to_string(StatusImageProfile),
+        storage_key: "prefix/assets/#{System.unique_integer([:positive])}.bin",
+        kind: "image",
+        content_type: "image/png"
+      }
+      |> Map.merge(attrs)
+
+    %MediaAsset{}
+    |> MediaAsset.changeset(params)
+    |> Rindle.Repo.insert!(prefix: prefix)
+  end
+
+  defp healthy_oban_config do
+    [
+      repo: Rindle.Repo,
+      queues: [
+        rindle_promote: 1,
+        rindle_process: 1,
+        rindle_purge: 1,
+        rindle_maintenance: 1
+      ]
+    ]
   end
 
   defp quote_ident(identifier) do

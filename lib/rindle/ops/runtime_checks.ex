@@ -739,7 +739,7 @@ defmodule Rindle.Ops.RuntimeChecks do
 
     cond do
       Process.whereis(repo) && sandbox_repo?(repo) ->
-        with_sandbox_checkout(repo, fun)
+        with_existing_or_checked_out_sandbox(repo, fun)
 
       Process.whereis(repo) ->
         fun.(repo)
@@ -752,6 +752,13 @@ defmodule Rindle.Ops.RuntimeChecks do
     end
   rescue
     error -> {:error, error}
+  end
+
+  defp with_existing_or_checked_out_sandbox(repo, fun) do
+    fun.(repo)
+  rescue
+    _error in DBConnection.OwnershipError ->
+      with_sandbox_checkout(repo, fun)
   end
 
   defp with_sandbox_checkout(repo, fun) do
@@ -776,42 +783,37 @@ defmodule Rindle.Ops.RuntimeChecks do
   end
 
   defp resumable_session_schema_catalog do
-    case Migrator.with_repo(
-           Config.repo(),
-           fn started_repo ->
-             with {:ok, %{rows: column_rows}} <-
-                    started_repo.query(
-                      """
-                      SELECT column_name, is_nullable, column_default
-                      FROM information_schema.columns
-                      WHERE table_schema = 'public' AND table_name = 'media_upload_sessions'
-                        AND column_name IN ('session_uri', 'session_uri_expires_at', 'last_known_offset', 'region_hint')
-                      """,
-                      []
-                    ),
-                  {:ok, %{rows: index_rows}} <-
-                    started_repo.query(
-                      """
-                      SELECT indexdef
-                      FROM pg_indexes
-                      WHERE schemaname = 'public' AND tablename = 'media_upload_sessions'
-                      """,
-                      []
-                    ) do
-               %{
-                 columns:
-                   Map.new(column_rows, fn [name, is_nullable, column_default] ->
-                     {name, %{is_nullable: is_nullable, column_default: column_default}}
-                   end),
-                 indexes: Enum.map(index_rows, fn [indexdef] -> indexdef end)
-               }
-             end
-           end,
-           mode: :temporary
-         ) do
-      {:ok, catalog, _apps} -> catalog
-      {:error, reason} -> {:error, reason}
-    end
+    prefix = Config.rindle_prefix()
+
+    with_catalog_repo(fn started_repo ->
+      with {:ok, %{rows: column_rows}} <-
+             started_repo.query(
+               """
+               SELECT column_name, is_nullable, column_default
+               FROM information_schema.columns
+               WHERE table_schema = $1 AND table_name = 'media_upload_sessions'
+                 AND column_name IN ('session_uri', 'session_uri_expires_at', 'last_known_offset', 'region_hint')
+               """,
+               [prefix]
+             ),
+           {:ok, %{rows: index_rows}} <-
+             started_repo.query(
+               """
+               SELECT indexdef
+               FROM pg_indexes
+               WHERE schemaname = $1 AND tablename = 'media_upload_sessions'
+               """,
+               [prefix]
+             ) do
+        %{
+          columns:
+            Map.new(column_rows, fn [name, is_nullable, column_default] ->
+              {name, %{is_nullable: is_nullable, column_default: column_default}}
+            end),
+          indexes: Enum.map(index_rows, fn [indexdef] -> indexdef end)
+        }
+      end
+    end)
   end
 
   defp profile_runtime_failures(profiles, env) do

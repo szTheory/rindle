@@ -1260,7 +1260,10 @@ defmodule Rindle.Ops.RuntimeChecksTest do
   defp run_runtime_checks(opts) do
     RuntimeChecks.run(
       [],
-      Keyword.put_new(opts, :resumable_session_schema_catalog, resumable_session_schema_fixture())
+      opts
+      |> Keyword.put_new(:rindle_schema_catalog, fresh_marker_catalog_fixture())
+      |> Keyword.put_new(:oban_jobs_catalog, oban_jobs_ready_fixture())
+      |> Keyword.put_new(:resumable_session_schema_catalog, resumable_session_schema_fixture())
     )
   end
 

@@ -221,7 +221,7 @@ defmodule Rindle.DoctorTest do
       assert_raise Mix.Error, ~r/Rindle\.Doctor failed: 1 check\(s\) failed/, fn ->
         capture_io(fn ->
           run_doctor_checks([],
-            probe: fn -> :ok end,
+            probe: fn -> raise RuntimeError, "ffmpeg missing" end,
             env: %{},
             profiles: [],
             oban_config: [
@@ -233,9 +233,7 @@ defmodule Rindle.DoctorTest do
                 rindle_maintenance: 1
               ]
             ],
-            migration_statuses: [
-              {:up, 20_260_425_090_000, "** FILE NOT FOUND **"}
-            ]
+            migration_statuses: []
           )
         end)
       end
@@ -322,7 +320,10 @@ defmodule Rindle.DoctorTest do
   defp run_doctor_checks(args, opts) do
     Doctor.run_checks(
       args,
-      Keyword.put_new(opts, :resumable_session_schema_catalog, resumable_session_schema_fixture())
+      opts
+      |> Keyword.put_new(:rindle_schema_catalog, fresh_marker_catalog_fixture())
+      |> Keyword.put_new(:oban_jobs_catalog, oban_jobs_ready_fixture())
+      |> Keyword.put_new(:resumable_session_schema_catalog, resumable_session_schema_fixture())
     )
   end
 
@@ -353,6 +354,15 @@ defmodule Rindle.DoctorTest do
 
   defp applied_legacy_migration_statuses do
     Enum.map(@legacy_migration_versions, &{:up, &1, "#{&1}_legacy_rindle_migration.exs"})
+  end
+
+  defp fresh_marker_catalog_fixture do
+    %{
+      marker_versions: [1],
+      tables: @rindle_tables,
+      legacy_packaged_install?: false,
+      prefix: "public"
+    }
   end
 
   defp healthy_legacy_catalog_fixture do

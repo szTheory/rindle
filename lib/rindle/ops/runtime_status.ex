@@ -151,7 +151,7 @@ defmodule Rindle.Ops.RuntimeStatus do
   defp runtime_checks_report(filters, cutoff, now) do
     rows =
       asset_probe_rows_query(filters, cutoff)
-      |> Config.repo().all()
+      |> rindle_all()
       |> Enum.map(&probe_drift_sample(&1, now))
       |> Enum.filter(& &1)
 
@@ -168,7 +168,7 @@ defmodule Rindle.Ops.RuntimeStatus do
       )
       |> maybe_filter_profile(:asset, filters.profile)
       |> group_by([a], a.state)
-      |> Config.repo().all()
+      |> rindle_all()
       |> count_map()
 
     %{counts: Map.put(counts, :total, Enum.sum(Map.values(counts)))}
@@ -177,7 +177,7 @@ defmodule Rindle.Ops.RuntimeStatus do
   defp variant_report(filters, cutoff, now) do
     rows =
       variant_finding_rows_query(filters, cutoff)
-      |> Config.repo().all()
+      |> rindle_all()
 
     findings =
       rows
@@ -192,7 +192,7 @@ defmodule Rindle.Ops.RuntimeStatus do
       )
       |> maybe_filter_profile(:variant, filters.profile)
       |> group_by([v, _a], v.state)
-      |> Config.repo().all()
+      |> rindle_all()
       |> count_map()
 
     %{
@@ -204,7 +204,7 @@ defmodule Rindle.Ops.RuntimeStatus do
   defp upload_session_report(filters, cutoff, now) do
     findings =
       upload_session_finding_rows_query(filters, cutoff)
-      |> Config.repo().all()
+      |> rindle_all()
       |> Enum.map(&upload_session_sample(&1, now))
       |> summarize_state_findings(filters.limit)
 
@@ -216,7 +216,7 @@ defmodule Rindle.Ops.RuntimeStatus do
       )
       |> maybe_filter_profile(:upload_session, filters.profile)
       |> group_by([s, _a], s.state)
-      |> Config.repo().all()
+      |> rindle_all()
       |> count_map()
 
     %{
@@ -236,7 +236,7 @@ defmodule Rindle.Ops.RuntimeStatus do
         select: count(s.id)
       )
       |> maybe_filter_profile(:upload_session, filters.profile)
-      |> Config.repo().one()
+      |> rindle_one()
 
     expired =
       from(s in MediaUploadSession,
@@ -248,7 +248,7 @@ defmodule Rindle.Ops.RuntimeStatus do
         select: count(s.id)
       )
       |> maybe_filter_profile(:upload_session, filters.profile)
-      |> Config.repo().one()
+      |> rindle_one()
 
     stale =
       from(s in MediaUploadSession,
@@ -261,7 +261,7 @@ defmodule Rindle.Ops.RuntimeStatus do
         select: count(s.id)
       )
       |> maybe_filter_profile(:upload_session, filters.profile)
-      |> Config.repo().one()
+      |> rindle_one()
 
     %{
       resumable_sessions_pending: pending || 0,
@@ -276,7 +276,7 @@ defmodule Rindle.Ops.RuntimeStatus do
     rows =
       if filters.provider_stuck do
         provider_assets_finding_rows_query(filters, threshold, now)
-        |> Config.repo().all()
+        |> rindle_all()
         |> Enum.map(&provider_asset_sample(&1, now))
       else
         []
@@ -290,7 +290,7 @@ defmodule Rindle.Ops.RuntimeStatus do
       )
       |> maybe_filter_provider_assets_profile(filters.profile)
       |> group_by([p], p.state)
-      |> Config.repo().all()
+      |> rindle_all()
       |> count_map()
 
     %{
@@ -497,13 +497,17 @@ defmodule Rindle.Ops.RuntimeStatus do
       select:
         {fragment("?->>'asset_id'", j.args), fragment("?->>'variant_name'", j.args), j.state}
     )
-    |> Config.repo().all()
+    |> oban_all()
     |> Enum.reduce(%{}, fn {asset_id, variant_name, state}, acc ->
       key = {asset_id, variant_name}
       state_atom = String.to_existing_atom(state)
       Map.update(acc, key, MapSet.new([state_atom]), &MapSet.put(&1, state_atom))
     end)
   end
+
+  defp rindle_all(query), do: Config.repo().all(query, prefix: Config.rindle_prefix())
+  defp rindle_one(query), do: Config.repo().one(query, prefix: Config.rindle_prefix())
+  defp oban_all(query), do: Config.repo().all(query, prefix: Config.oban_prefix())
 
   defp processing_threshold_seconds(%{asset_kind: kind}) when kind in ["video", "audio"] do
     max(div(ProcessVariant.av_timeout_ms() * 2, 1000), 20 * 60)
