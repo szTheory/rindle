@@ -9,6 +9,8 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
              0x06, 0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82>>
 
   @host_migration_version "20260428170000"
+  @host_oban_migration_version "20260428170100"
+  @rindle_migration_version "20260428170200"
   @legacy_rindle_migration_version 20_260_428_110_000
 
   def profile_enabled?(profile_mode) when profile_mode in [:image, :video, :tus, :mux, :gcs] do
@@ -108,6 +110,9 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       network_mode?: install_mode == :network,
       deps_rindle_present?: deps_rindle_present?,
       host_migration_ran?: migration_report["host_migration_ran"] == true,
+      host_oban_migration_ran?: migration_report["host_oban_migration_ran"] == true,
+      rindle_migration_ran?: migration_report["rindle_migration_ran"] == true,
+      rindle_created_oban_jobs?: migration_report["rindle_created_oban_jobs"] == true,
       migration_resolution: migration_report["resolver"] |> to_existing_atom_safe(),
       rindle_migration_path: migration_report["rindle_migration_path"],
       smoke_output: smoke_result.output,
@@ -294,8 +299,12 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       network_mode?: install_mode == :network,
       deps_rindle_present?: deps_rindle_present?,
       host_migration_ran?: migration_report["host_migration_ran"] == true,
+      host_oban_migration_ran?: migration_report["host_oban_migration_ran"] == true,
+      rindle_migration_ran?: migration_report["rindle_migration_ran"] == true,
+      rindle_created_oban_jobs?: migration_report["rindle_created_oban_jobs"] == true,
       migration_resolution: migration_report["resolver"] |> to_existing_atom_safe(),
       rindle_migration_path: migration_report["rindle_migration_path"],
+      legacy_rindle_migration_path: legacy_seed["legacy_rindle_migration_path"],
       legacy_migration_cutoff: legacy_seed["legacy_rindle_migration_version"],
       canonical_upgrade_step_sequence: canonical_upgrade_step_sequence(),
       legacy_asset_kind: get_in(upgrade_report, ["legacy_asset", "kind"]),
@@ -412,6 +421,8 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     write_tus_live_view!(root, app_name, app_module, profile_mode)
     write_profile!(root, app_name, app_module, profile_mode)
     write_host_migration!(root)
+    write_host_oban_migration!(root)
+    write_rindle_migration!(root)
     write_migration_runner!(root, app_name, app_module)
     write_legacy_upgrade_preparer!(root, app_module)
     write_smoke_test!(root, app_module, profile_mode, network_version)
@@ -948,6 +959,46 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     )
   end
 
+  defp write_host_oban_migration!(root) do
+    path =
+      Path.join(
+        root,
+        "priv/repo/migrations/#{@host_oban_migration_version}_install_host_owned_oban.exs"
+      )
+
+    File.write!(
+      path,
+      """
+      defmodule RindleSmokeApp.Repo.Migrations.InstallHostOwnedOban do
+        use Ecto.Migration
+
+        def up, do: Oban.Migration.up()
+        def down, do: Oban.Migration.down(version: 1)
+      end
+      """
+    )
+  end
+
+  defp write_rindle_migration!(root) do
+    path =
+      Path.join(
+        root,
+        "priv/repo/migrations/#{@rindle_migration_version}_install_rindle.exs"
+      )
+
+    File.write!(
+      path,
+      """
+      defmodule RindleSmokeApp.Repo.Migrations.InstallRindle do
+        use Ecto.Migration
+
+        def up, do: Rindle.Migration.up(version: 1)
+        def down, do: Rindle.Migration.down(version: 1)
+      end
+      """
+    )
+  end
+
   defp write_migration_runner!(root, _app_name, app_module) do
     path = Path.join(root, "priv/install_smoke/migrate.exs")
     File.mkdir_p!(Path.dirname(path))
@@ -959,33 +1010,44 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       {:ok, _pid} = #{app_module}.Repo.start_link()
 
       host_path = Path.join([File.cwd!(), "priv", "repo", "migrations"])
-      rindle_path = Application.app_dir(:rindle, "priv/repo/migrations")
 
-      unless File.dir?(rindle_path) do
-        raise "Rindle migration path missing: \#{rindle_path}"
+      rindle_migration_file =
+        Path.join(host_path, "#{@rindle_migration_version}_install_rindle.exs")
+
+      regclass_exists? = fn repo, table_name ->
+        {:ok, %{rows: [[result]]}} =
+          repo.query("select to_regclass($1)::text", ["public.\#{table_name}"])
+
+        result == table_name
       end
 
-      {:ok, _, _} =
+      {:ok, migration_report, _apps} =
         Ecto.Migrator.with_repo(#{app_module}.Repo, fn repo ->
-          for path <- [host_path, rindle_path] do
-            Ecto.Migrator.run(repo, path, :up, all: true)
-          end
-        end)
+          Ecto.Migrator.run(repo, host_path, :up, to: #{String.to_integer(@host_migration_version)})
+          host_migration_ran? = regclass_exists?.(repo, "install_smoke_markers")
 
-      {:ok, result} =
-        #{app_module}.Repo.query(
-          "select to_regclass('public.install_smoke_markers')::text"
-        )
+          Ecto.Migrator.run(repo, host_path, :up, to: #{String.to_integer(@host_oban_migration_version)})
+          host_oban_migration_ran? = regclass_exists?.(repo, "oban_jobs")
+
+          Ecto.Migrator.run(repo, host_path, :up, to: #{String.to_integer(@rindle_migration_version)})
+          rindle_migration_ran? = regclass_exists?.(repo, "rindle_migration_versions")
+          oban_jobs_after_rindle? = regclass_exists?.(repo, "oban_jobs")
+
+          %{
+            resolver: "host_migrations",
+            host_migration_ran: host_migration_ran?,
+            host_oban_migration_ran: host_oban_migration_ran?,
+            rindle_migration_ran: rindle_migration_ran?,
+            rindle_created_oban_jobs: not host_oban_migration_ran? and oban_jobs_after_rindle?,
+            rindle_migration_path: rindle_migration_file
+          }
+        end)
 
       File.mkdir_p!("tmp")
 
       File.write!(
         "tmp/install_smoke_migration_report.json",
-        Jason.encode!(%{
-          resolver: "application_app_dir",
-          host_migration_ran: result.rows == [["install_smoke_markers"]],
-          rindle_migration_path: rindle_path
-        })
+        Jason.encode!(migration_report)
       )
       """
     )
@@ -1094,6 +1156,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
         "tmp/install_smoke_upgrade_seed.json",
         Jason.encode!(%{
           legacy_rindle_migration_version: Integer.to_string(legacy_cutoff),
+          legacy_rindle_migration_path: rindle_path,
           legacy_asset_id: legacy_asset_id,
           legacy_variant_id: legacy_variant_id,
           legacy_session_id: legacy_session_id
@@ -1162,7 +1225,8 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
         test "generated app boots with adopter repo ownership and default Oban wiring" do
           assert Application.fetch_env!(:rindle, :repo) == Repo
           assert Application.fetch_env!(:#{Macro.underscore(app_module)}, Oban)[:repo] == Repo
-          assert File.dir?(Application.app_dir(:rindle, "priv/repo/migrations"))
+          assert function_exported?(Rindle.Migration, :up, 1)
+          assert function_exported?(Rindle.Migration, :down, 1)
       #{deps_rindle_assertion}
         end
 

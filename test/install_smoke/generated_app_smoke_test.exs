@@ -30,6 +30,17 @@ defmodule Rindle.InstallSmoke.GeneratedAppSmokeAssertions do
         assert report.boot_exit_code == 0
       end
 
+      defp assert_host_owned_migrations!(report) do
+        assert report.host_migration_ran?
+        assert report.host_oban_migration_ran?
+        assert report.rindle_migration_ran?
+        refute report.rindle_created_oban_jobs?
+        assert report.migration_resolution == :host_migrations
+        assert String.contains?(report.rindle_migration_path || "", "install_rindle")
+        refute String.contains?(report.rindle_migration_path || "", "deps/rindle")
+        refute String.contains?(report.rindle_migration_path || "", "Application.app_dir")
+      end
+
       defp assert_tus_guide_parity! do
         guide = File.read!("guides/resumable_uploads.md")
 
@@ -80,6 +91,21 @@ end
 
 alias Rindle.InstallSmoke.GeneratedAppHelper
 
+defmodule Rindle.InstallSmoke.GeneratedAppMigrationContractTest do
+  use ExUnit.Case, async: true
+
+  test "generated-app migration proof requires the public Rindle.Migration API" do
+    assert Code.ensure_loaded?(Rindle.Migration),
+           "generated-app smoke requires Rindle.Migration.up(version: 1) and Rindle.Migration.down(version: 1)"
+
+    assert function_exported?(Rindle.Migration, :up, 1),
+           "generated-app smoke requires Rindle.Migration.up(version: 1)"
+
+    assert function_exported?(Rindle.Migration, :down, 1),
+           "generated-app smoke requires Rindle.Migration.down(version: 1)"
+  end
+end
+
 if GeneratedAppHelper.profile_enabled?(:gcs) do
   defmodule Rindle.InstallSmoke.GeneratedAppSmokeGCSTest do
     use ExUnit.Case, async: false
@@ -99,10 +125,7 @@ if GeneratedAppHelper.profile_enabled?(:gcs) do
 
     test "generated Phoenix app exposes a first-class GCS path with doctor and resumable status proof surfaces",
          %{report: report} do
-      assert report.host_migration_ran?
-      assert report.migration_resolution == :application_app_dir
-      assert String.ends_with?(report.rindle_migration_path, "/priv/repo/migrations")
-      refute String.contains?(report.rindle_migration_path, "deps/rindle")
+      assert_host_owned_migrations!(report)
       assert report.smoke_exit_code == 0
       assert report.lifecycle_proved?
       assert report.doctor_command =~ "mix rindle.doctor"
@@ -147,10 +170,7 @@ if GeneratedAppHelper.profile_enabled?(:image) do
 
     test "generated Phoenix app runs host plus Rindle migrations explicitly and proves the canonical presigned PUT lifecycle",
          %{report: report} do
-      assert report.host_migration_ran?
-      assert report.migration_resolution == :application_app_dir
-      assert String.ends_with?(report.rindle_migration_path, "/priv/repo/migrations")
-      refute String.contains?(report.rindle_migration_path, "deps/rindle")
+      assert_host_owned_migrations!(report)
       assert report.smoke_exit_code == 0
       assert report.lifecycle_proved?
     end
@@ -176,10 +196,7 @@ if GeneratedAppHelper.profile_enabled?(:video) do
 
     test "generated Phoenix app proves the canonical AV path with web_720p, poster, and signed delivery",
          %{report: report} do
-      assert report.host_migration_ran?
-      assert report.migration_resolution == :application_app_dir
-      assert String.ends_with?(report.rindle_migration_path, "/priv/repo/migrations")
-      refute String.contains?(report.rindle_migration_path, "deps/rindle")
+      assert_host_owned_migrations!(report)
       assert report.smoke_exit_code == 0
       assert report.lifecycle_proved?
       assert report.av_ready_variants == ["poster", "web_720p"]
@@ -210,10 +227,7 @@ if GeneratedAppHelper.profile_enabled?(:tus) do
 
     test "generated Phoenix app proves a real-socket tus-js-client drop-and-resume flow against MinIO",
          %{report: report} do
-      assert report.host_migration_ran?
-      assert report.migration_resolution == :application_app_dir
-      assert String.ends_with?(report.rindle_migration_path, "/priv/repo/migrations")
-      refute String.contains?(report.rindle_migration_path, "deps/rindle")
+      assert_host_owned_migrations!(report)
       assert report.smoke_exit_code == 0, tus_failure_details(report)
       assert report.lifecycle_proved?, tus_failure_details(report)
       assert report.phoenix_helper_uploader == "RindleTus"
@@ -288,10 +302,7 @@ if GeneratedAppHelper.profile_enabled?(:mux) do
 
     test "generated Phoenix app proves the canonical AV path PLUS Mux-signed HLS streaming URL via cassette",
          %{report: report} do
-      assert report.host_migration_ran?
-      assert report.migration_resolution == :application_app_dir
-      assert String.ends_with?(report.rindle_migration_path, "/priv/repo/migrations")
-      refute String.contains?(report.rindle_migration_path, "deps/rindle")
+      assert_host_owned_migrations!(report)
       assert report.smoke_exit_code == 0, report.smoke_output
       assert report.lifecycle_proved?
       assert report.av_ready_variants == ["poster", "web_720p"]
@@ -319,11 +330,9 @@ if GeneratedAppHelper.profile_enabled?(:video) do
     test "generated Phoenix app upgrades a pre-v1.4 image-only adopter through the public migration path",
          %{report: report} do
       assert_install_source!(report)
-      assert report.host_migration_ran?
-      assert report.migration_resolution == :application_app_dir
+      assert_host_owned_migrations!(report)
       assert report.legacy_migration_cutoff == "20260428110000"
-      assert String.ends_with?(report.rindle_migration_path, "/priv/repo/migrations")
-      refute String.contains?(report.rindle_migration_path, "deps/rindle")
+      assert String.ends_with?(report.legacy_rindle_migration_path, "/priv/repo/migrations")
       assert report.legacy_asset_kind == "image"
       assert report.legacy_asset_profile =~ ".RindleProfile"
       assert report.legacy_asset_upgrade_safe?
