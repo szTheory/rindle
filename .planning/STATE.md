@@ -4,17 +4,17 @@ milestone: v1.22
 milestone_name: OSS Quality & Trust Hardening
 current_phase: 116
 current_phase_name: versioned-rindle-migration-module
-status: executing
-stopped_at: Completed 116-06-PLAN.md
-last_updated: "2026-07-01T20:47:02.807Z"
+status: verifying
+stopped_at: Completed 116-07-PLAN.md
+last_updated: "2026-07-01T20:57:09.270Z"
 last_activity: 2026-07-01
 last_activity_desc: Phase 116 execution started
 progress:
   total_phases: 4
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 14
-  completed_plans: 13
-  percent: 75
+  completed_plans: 14
+  percent: 100
 ---
 
 # Project State
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-06-29 after chartering v1.22)
 
 Phase: 116 (versioned-rindle-migration-module) — EXECUTING
 Plan: 7 of 7
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-07-01 — Phase 116 execution started
 
 ### v1.22 roadmap (Phases 113–116) — natural-grouping order
@@ -174,6 +174,7 @@ _(v1.22 phase-execution decisions accumulate here as phases are planned and exec
 - [Phase 116]: Public install docs now teach normal host migrations: host-owned Oban.Migration for oban_jobs and pinned Rindle.Migration for Rindle-owned tables.
 - [Phase 116]: Legacy package-directory migration replay remains documented only in the historical 0.1.3-and-earlier upgrade path.
 - [Phase 116]: Troubleshooting treats missing oban_jobs as host-owned Oban setup, not as a Rindle migration responsibility.
+- [Phase 116]: Plan 116-07 closed Phase 116 with focused tests, generated-app image smoke, mix ci, release-train audit, and schema-push audit all passing. — Final evidence for MIGRATE-01 and MIGRATE-02: no workflow diffs, no configured schema-push path matches, and direct key-link grep proves the pinned README/generated-app migration pattern.
 
 ## Blockers/Concerns
 
@@ -193,8 +194,8 @@ _(none open for v1.22 at roadmap creation)_
 
 ## Session Continuity
 
-Last session: 2026-07-01T20:46:55.175Z
-Stopped at: Completed 116-06-PLAN.md
+Last session: 2026-07-01T20:57:09.263Z
+Stopped at: Completed 116-07-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -214,3 +215,4 @@ Resume file: None
 | Phase 116 P04 | 8 min | 3 tasks | 4 files |
 | Phase 116 P05 | 11 min | 2 tasks | 4 files |
 | Phase 116 P06 | 10 min | 3 tasks | 5 files |
+| Phase 116 P07 | 5 min | 2 tasks | 1 files |
