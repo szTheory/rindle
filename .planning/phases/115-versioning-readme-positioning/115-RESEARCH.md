@@ -413,17 +413,15 @@ Source: `DocsParityTest` already reads docs into setup and can add a `@contribut
 |---|-------|---------|---------------|
 | none | No claims are tagged `[ASSUMED]`; all research claims are tied to repo inspection, command output, or official sources. | all | n/a |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **How should the planner handle the live Hex vs local release-file mismatch?** [VERIFIED: Hex API curl, `mix.exs`, `.release-please-manifest.json`, `CHANGELOG.md`, `.planning/STATE.md`]
    - What we know: Hex API reports latest `rindle` as `0.3.2`; local release files still report `0.3.1`; planning state says Phase 113 reconciled release files. [VERIFIED: Hex API curl, repo files, `.planning/STATE.md`]
-   - What's unclear: Whether this checkout is intentionally behind release-please output or whether Phase 113 completion state is ahead of repo truth. [VERIFIED: conflicting local/remote evidence]
-   - Recommendation: Add a planner checkpoint to avoid changing version files inside Phase 115 unless the user explicitly scopes release reconciliation. [VERIFIED: `.planning/ROADMAP.md`]
+   - Resolution (RESOLVED via D-22): Phase 115 must not reconcile local release version files (`mix.exs`, `.release-please-manifest.json`, `CHANGELOG.md`) as an implicit task. The mismatch is a planning risk and scope guardrail only; the Phase 115 plan keeps release-truth edits out of scope unless a separate scoped task authorizes them. [VERIFIED: `.planning/phases/115-versioning-readme-positioning/115-CONTEXT.md`, `.planning/phases/115-versioning-readme-positioning/115-01-PLAN.md`]
 
 2. **Can README literally promise no libvips for the complete image lifecycle?** [VERIFIED: `lib/rindle/probe/image.ex`, `lib/rindle/workers/promote_asset.ex`]
    - What we know: `variants: []` compiles, but image promotion still probes via Image/libvips. [VERIFIED: `MIX_ENV=test mix run --no-start`, `lib/rindle/probe/image.ex`]
-   - What's unclear: Whether success criterion intends "no libvips before the first attachment" or "no libvips even when background promotion runs." [VERIFIED: `.planning/REQUIREMENTS.md`, code inspection]
-   - Recommendation: Keep Phase 115 docs-only and phrase the first path as original-only first attachment; do not state background image processing is libvips-free. [VERIFIED: `.planning/ROADMAP.md`, `RUNNING.md`]
+   - Resolution (RESOLVED via D-12): README must phrase the path as original-only first attachment before variants/AV processing, and must not promise that complete image background processing is libvips-free. Image variants and background image processing still require libvips; AV work still requires FFmpeg. [VERIFIED: `.planning/phases/115-versioning-readme-positioning/115-CONTEXT.md`, `.planning/phases/115-versioning-readme-positioning/115-01-PLAN.md`, `RUNNING.md`]
 
 ## Environment Availability
 

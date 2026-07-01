@@ -27,7 +27,8 @@ created: 2026-07-01
 
 ## Sampling Rate
 
-- **After every task commit:** Run `MIX_ENV=test mix test test/install_smoke/docs_parity_test.exs --trace`
+- **After Task 1 and Task 2 commits:** Run the task-local Node source/order checks listed in `115-01-PLAN.md`. These are acceptable per-task sampling because Task 1 and Task 2 intentionally edit docs before Task 3 extends `test/install_smoke/docs_parity_test.exs`; requiring the old docs parity suite after those intermediate doc-only commits can produce stale-test failures.
+- **After Task 3 commit:** Run `MIX_ENV=test mix test test/install_smoke/docs_parity_test.exs --trace` plus `mix format --check-formatted test/install_smoke/docs_parity_test.exs`.
 - **After every plan wave:** Run `mix ci` when test code changes; otherwise run docs parity plus `./scripts/maintainer/check_docs_links.sh`
 - **Before `/gsd:verify-work`:** `mix ci` or the maintainer-approved equivalent must be green
 - **Max feedback latency:** Quick docs parity feedback should stay under 60 seconds
@@ -38,8 +39,8 @@ created: 2026-07-01
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 115-01-01 | 01 | 1 | VERSION-01 | N/A | N/A | docs parity | `MIX_ENV=test mix test test/install_smoke/docs_parity_test.exs --trace` | W0 | pending |
-| 115-01-02 | 01 | 1 | VERSION-02 | N/A | N/A | docs parity | `MIX_ENV=test mix test test/install_smoke/docs_parity_test.exs --trace` | W0 | pending |
+| 115-01-01 | 01 | 1 | VERSION-01 | N/A | N/A | task-local source/order sampling | Node stability-contract check from `115-01-PLAN.md` Task 1; docs parity enforced by Task 3 and final verification | W0 | pending |
+| 115-01-02 | 01 | 1 | VERSION-02 | N/A | N/A | task-local source/order sampling | Node upgrade-guide structure check from `115-01-PLAN.md` Task 1; docs parity enforced by Task 3 and final verification | W0 | pending |
 | 115-01-03 | 01 | 1 | README-01 | N/A | Avoid overclaiming dependency-free runtime behavior | docs parity | `MIX_ENV=test mix test test/install_smoke/docs_parity_test.exs --trace` | W0 | pending |
 | 115-01-04 | 01 | 1 | README-02 | N/A | N/A | docs parity | `MIX_ENV=test mix test test/install_smoke/docs_parity_test.exs --trace` | W0 | pending |
 
