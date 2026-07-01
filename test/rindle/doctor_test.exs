@@ -11,6 +11,32 @@ defmodule Rindle.DoctorTest do
       variants: [thumb: [mode: :fit, width: 32]]
   end
 
+  @rindle_tables ~w(
+    media_assets
+    media_attachments
+    media_variants
+    media_upload_sessions
+    media_processing_runs
+    media_provider_assets
+  )
+  @legacy_migration_versions [
+    20_260_424_155_129,
+    20_260_424_205_942,
+    20_260_425_090_000,
+    20_260_425_090_100,
+    20_260_425_090_150,
+    20_260_425_090_200,
+    20_260_425_090_300,
+    20_260_428_110_000,
+    20_260_502_120_000,
+    20_260_506_120_000,
+    20_260_507_160_000,
+    20_260_522_120_000,
+    20_260_524_120_000,
+    20_260_527_065_924,
+    20_260_527_120_000
+  ]
+
   describe "run_checks/2 success output" do
     test "prints success message when ffmpeg is valid" do
       output =
@@ -136,6 +162,50 @@ defmodule Rindle.DoctorTest do
       end)
     end
 
+    test "prints warning-only legacy file-history drift when catalog readiness is healthy" do
+      {report, output} =
+        captured_doctor_report([],
+          exit_on_failure?: true,
+          probe: fn -> :ok end,
+          env: %{},
+          profiles: [],
+          oban_config: healthy_oban_config(),
+          migration_statuses: [{:up, 20_260_425_090_000, "** FILE NOT FOUND **"}],
+          rindle_schema_catalog: healthy_legacy_catalog_fixture(),
+          oban_jobs_catalog: oban_jobs_ready_fixture()
+        )
+
+      assert output =~ "[WARN] doctor.migrations.unresolved"
+      assert output =~ "history"
+      assert output =~ "legacy"
+      refute output =~ "delete"
+      refute output =~ "replay"
+      assert output =~ "Rindle: Environment checks passed"
+      assert report.success?
+      assert report.failed == 0
+    end
+
+    test "prints host-owned Oban.Migration setup copy when oban_jobs is missing" do
+      {report, output} =
+        captured_doctor_report([],
+          exit_on_failure?: false,
+          probe: fn -> :ok end,
+          env: %{},
+          profiles: [],
+          oban_config: healthy_oban_config(),
+          migration_statuses: applied_legacy_migration_statuses(),
+          rindle_schema_catalog: healthy_legacy_catalog_fixture(),
+          oban_jobs_catalog: %{exists?: false}
+        )
+
+      assert output =~ "[ERROR] doctor.oban_jobs.ready"
+      assert output =~ "oban_jobs"
+      assert output =~ "Oban.Migration"
+      assert output =~ "Rindle no longer manages `oban_jobs`"
+      assert output =~ "Rindle: Environment checks failed"
+      refute report.success?
+    end
+
     test "OptionParser accepts --streaming boolean flag" do
       # Unit-test the OptionParser boundary directly: invoking
       # `Doctor.run/1` calls Mix.Project.config and may not
@@ -254,6 +324,48 @@ defmodule Rindle.DoctorTest do
       args,
       Keyword.put_new(opts, :resumable_session_schema_catalog, resumable_session_schema_fixture())
     )
+  end
+
+  defp captured_doctor_report(args, opts) do
+    ref = make_ref()
+
+    output =
+      capture_io(fn ->
+        report = run_doctor_checks(args, opts)
+        send(self(), {ref, report})
+      end)
+
+    assert_received {^ref, report}
+    {report, output}
+  end
+
+  defp healthy_oban_config do
+    [
+      repo: Rindle.Repo,
+      queues: [
+        rindle_promote: 1,
+        rindle_process: 1,
+        rindle_purge: 1,
+        rindle_maintenance: 1
+      ]
+    ]
+  end
+
+  defp applied_legacy_migration_statuses do
+    Enum.map(@legacy_migration_versions, &{:up, &1, "#{&1}_legacy_rindle_migration.exs"})
+  end
+
+  defp healthy_legacy_catalog_fixture do
+    %{
+      marker_versions: [],
+      tables: @rindle_tables,
+      legacy_packaged_install?: true,
+      prefix: "public"
+    }
+  end
+
+  defp oban_jobs_ready_fixture do
+    %{exists?: true, owner: :host, setup: "Oban.Migration"}
   end
 
   defp resumable_session_schema_fixture do
