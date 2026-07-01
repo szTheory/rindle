@@ -4,6 +4,7 @@ defmodule Rindle.Ops.RuntimeChecks do
   alias Ecto.Migrator
   alias Rindle.Config
   alias Rindle.Delivery
+  alias Rindle.Migration.V1, as: MigrationV1
   alias Rindle.Processor.AV
   alias Rindle.Processor.AV.RuntimeGuard
   alias Rindle.Storage.Local
@@ -86,6 +87,14 @@ defmodule Rindle.Ops.RuntimeChecks do
     migration_statuses =
       Keyword.get_lazy(opts, :migration_statuses, fn -> migration_statuses(opts) end)
 
+    rindle_schema_catalog =
+      Keyword.get_lazy(opts, :rindle_schema_catalog, fn -> rindle_schema_catalog(opts) end)
+
+    rindle_schema_catalog_supplied? = Keyword.has_key?(opts, :rindle_schema_catalog)
+
+    oban_jobs_catalog =
+      Keyword.get_lazy(opts, :oban_jobs_catalog, fn -> oban_jobs_catalog(opts) end)
+
     resumable_session_schema_catalog =
       Keyword.get_lazy(opts, :resumable_session_schema_catalog, fn ->
         resumable_session_schema_catalog()
@@ -124,10 +133,18 @@ defmodule Rindle.Ops.RuntimeChecks do
          fn -> check_delivery_support(profiles) end,
          fn -> check_ffmpeg_runtime(probe) end,
          fn -> check_local_playback(profiles, local_playback_route) end,
-         fn -> check_migration_pending(migration_statuses) end,
-         fn -> check_migration_unresolved(migration_statuses) end,
+         fn -> check_migration_pending(migration_statuses, rindle_schema_catalog) end,
+         fn ->
+           check_migration_unresolved(
+             migration_statuses,
+             rindle_schema_catalog,
+             rindle_schema_catalog_supplied?
+           )
+         end,
          fn -> check_resumable_session_schema(resumable_session_schema_catalog) end,
+         fn -> check_rindle_schema_ready(rindle_schema_catalog) end,
          fn -> check_oban_default_instance(oban_config) end,
+         fn -> check_oban_jobs_ready(oban_jobs_catalog) end,
          fn -> check_oban_required_queues(profiles, oban_config) end,
          fn -> check_profile_runtime_fit(resolved, env) end,
          fn -> check_streaming_credentials(profiles, env) end,
@@ -355,7 +372,7 @@ defmodule Rindle.Ops.RuntimeChecks do
     end
   end
 
-  defp check_migration_pending(statuses) do
+  defp check_migration_pending(statuses, rindle_schema_catalog) do
     pending =
       statuses
       |> Enum.filter(fn
@@ -364,24 +381,34 @@ defmodule Rindle.Ops.RuntimeChecks do
       end)
       |> Enum.map(&migration_version/1)
 
-    if pending == [] do
-      ok_result(
-        "doctor.migrations.pending",
-        :migrations,
-        "No pending Rindle migrations were found.",
-        "Keep Rindle migrations applied before running the runtime pipeline."
-      )
-    else
-      error_result(
-        "doctor.migrations.pending",
-        :migrations,
-        "Pending Rindle migrations: #{Enum.join(pending, ", ")}.",
-        "Run `mix ecto.migrate` for the repo configured at `config :rindle, :repo` before retrying."
-      )
+    cond do
+      pending == [] ->
+        ok_result(
+          "doctor.migrations.pending",
+          :migrations,
+          "No pending Rindle migrations were found.",
+          "Keep Rindle migrations applied before running the runtime pipeline."
+        )
+
+      rindle_schema_ready?(rindle_schema_catalog) and all_legacy_statuses_pending?(statuses) ->
+        warn_result(
+          "doctor.migrations.pending",
+          :migrations,
+          "Legacy Rindle migration history has pending entries, but the Rindle-owned schema catalog is ready.",
+          "Treat legacy packaged migration history as historical compatibility when `Rindle.Migration` catalog readiness is current."
+        )
+
+      true ->
+        error_result(
+          "doctor.migrations.pending",
+          :migrations,
+          "Pending Rindle migrations: #{Enum.join(pending, ", ")}.",
+          "Run `mix ecto.migrate` for the repo configured at `config :rindle, :repo` before retrying."
+        )
     end
   end
 
-  defp check_migration_unresolved(statuses) do
+  defp check_migration_unresolved(statuses, rindle_schema_catalog, catalog_supplied?) do
     unresolved =
       statuses
       |> Enum.filter(fn
@@ -390,21 +417,137 @@ defmodule Rindle.Ops.RuntimeChecks do
       end)
       |> Enum.map(&migration_version/1)
 
-    if unresolved == [] do
-      ok_result(
-        "doctor.migrations.unresolved",
-        :migrations,
-        "No unresolved applied Rindle migrations were found.",
-        "Keep local Rindle migration files in sync with the database history."
-      )
-    else
-      error_result(
-        "doctor.migrations.unresolved",
-        :migrations,
-        "Applied Rindle migrations missing from local code: #{Enum.join(unresolved, ", ")}.",
-        "Restore the migration files missing from local code, or reconcile the database history before running more Rindle migrations."
-      )
+    cond do
+      unresolved == [] ->
+        ok_result(
+          "doctor.migrations.unresolved",
+          :migrations,
+          "No unresolved applied Rindle migrations were found.",
+          "Keep local Rindle migration files in sync with the database history."
+        )
+
+      catalog_supplied? and rindle_schema_ready?(rindle_schema_catalog) and
+          no_pending_migration_statuses?(statuses) ->
+        warn_result(
+          "doctor.migrations.unresolved",
+          :migrations,
+          "Legacy Rindle migration history has applied file-history drift, but the Rindle-owned schema catalog is ready.",
+          "Keep the legacy migration history for compatibility; no destructive history rewrite is required."
+        )
+
+      true ->
+        error_result(
+          "doctor.migrations.unresolved",
+          :migrations,
+          "Applied Rindle migrations missing from local code: #{Enum.join(unresolved, ", ")}.",
+          "Restore the migration files missing from local code, or reconcile the database history before running more Rindle migrations."
+        )
     end
+  end
+
+  defp check_rindle_schema_ready({:error, reason}) do
+    error_result(
+      "doctor.rindle_schema.ready",
+      :migrations,
+      "Could not inspect Rindle-owned schema readiness: #{Exception.message(normalize_exception(reason))}.",
+      "Verify the configured Rindle repo can query information_schema, then re-run `mix rindle.doctor`."
+    )
+  end
+
+  defp check_rindle_schema_ready(%{} = catalog) do
+    requirements = MigrationV1.catalog_requirements()
+    required_tables = Map.fetch!(requirements, :tables)
+    current_version = Map.fetch!(requirements, :current_version)
+    present_tables = Map.get(catalog, :tables, [])
+    missing_tables = Map.get(catalog, :missing_tables, required_tables -- present_tables)
+    marker_versions = Map.get(catalog, :marker_versions, [])
+    prefix = Map.get(catalog, :prefix, "public")
+
+    cond do
+      missing_tables != [] ->
+        error_result(
+          "doctor.rindle_schema.ready",
+          :migrations,
+          "Rindle-owned schema is incomplete in #{inspect(prefix)}; missing tables: #{Enum.join(missing_tables, ", ")}.",
+          "Add a host migration that calls `Rindle.Migration.up(version: 1)` and run `mix ecto.migrate` before retrying."
+        )
+
+      current_version in marker_versions ->
+        ok_result(
+          "doctor.rindle_schema.ready",
+          :migrations,
+          "Rindle.Migration catalog is ready in #{inspect(prefix)} at version #{current_version}.",
+          "Keep host migrations pinned to `Rindle.Migration.up(version: 1)` for deterministic installs."
+        )
+
+      Map.get(catalog, :legacy_packaged_install?, false) ->
+        ok_result(
+          "doctor.rindle_schema.ready",
+          :migrations,
+          "legacy packaged Rindle install is healthy; catalog readiness is complete in #{inspect(prefix)}.",
+          "Existing legacy migration history can remain in place; use `Rindle.Migration` for fresh installs going forward."
+        )
+
+      true ->
+        error_result(
+          "doctor.rindle_schema.ready",
+          :migrations,
+          "Rindle-owned tables are present in #{inspect(prefix)}, but no Rindle.Migration marker or legacy catalog signal was found.",
+          "Run `mix rindle.doctor` after applying a host migration that calls `Rindle.Migration.up(version: 1)`, or verify legacy migration history is intact."
+        )
+    end
+  end
+
+  defp check_oban_jobs_ready({:error, reason}) do
+    error_result(
+      "doctor.oban_jobs.ready",
+      :oban,
+      "Could not inspect host-owned `oban_jobs` readiness: #{Exception.message(normalize_exception(reason))}.",
+      "Verify the configured Rindle repo can query information_schema, then re-run `mix rindle.doctor`."
+    )
+  end
+
+  defp check_oban_jobs_ready(%{exists?: true}) do
+    ok_result(
+      "doctor.oban_jobs.ready",
+      :oban,
+      "Host-owned `oban_jobs` table is installed.",
+      "Keep Oban installed through a host migration using `Oban.Migration`."
+    )
+  end
+
+  defp check_oban_jobs_ready(_catalog) do
+    error_result(
+      "doctor.oban_jobs.ready",
+      :oban,
+      "Host-owned `oban_jobs` table is not installed.",
+      "Install Oban through a host migration using `Oban.Migration`. Rindle no longer manages `oban_jobs`."
+    )
+  end
+
+  defp rindle_schema_ready?(%{} = catalog) do
+    case check_rindle_schema_ready(catalog) do
+      %{status: :ok} -> true
+      _other -> false
+    end
+  end
+
+  defp rindle_schema_ready?(_catalog), do: false
+
+  defp all_legacy_statuses_pending?([]), do: false
+
+  defp all_legacy_statuses_pending?(statuses) do
+    Enum.all?(statuses, fn
+      {:down, version, _name} when version > 0 -> true
+      _other -> false
+    end)
+  end
+
+  defp no_pending_migration_statuses?(statuses) do
+    not Enum.any?(statuses, fn
+      {:down, version, _name} when version > 0 -> true
+      _other -> false
+    end)
   end
 
   defp check_resumable_session_schema({:error, reason}) do
@@ -519,6 +662,117 @@ defmodule Rindle.Ops.RuntimeChecks do
   rescue
     error ->
       [{:down, -1, "migration inspection failed: #{Exception.message(error)}"}]
+  end
+
+  defp rindle_schema_catalog(opts) do
+    prefix = Keyword.get(opts, :prefix, "public")
+    requirements = MigrationV1.catalog_requirements()
+    rindle_tables = MigrationV1.rindle_tables()
+    marker_table = MigrationV1.marker_table()
+    inspected_tables = rindle_tables ++ [marker_table]
+
+    with_catalog_repo(fn started_repo ->
+      with {:ok, %{rows: table_rows}} <-
+             started_repo.query(
+               """
+               SELECT table_name
+               FROM information_schema.tables
+               WHERE table_schema = $1
+                 AND table_name = ANY($2::text[])
+               """,
+               [prefix, inspected_tables]
+             ) do
+        present_tables = Enum.map(table_rows, fn [table_name] -> table_name end)
+        marker_versions = marker_versions(started_repo, prefix, marker_table, present_tables)
+        missing_tables = Map.fetch!(requirements, :tables) -- present_tables
+
+        %{
+          marker_versions: marker_versions,
+          tables: present_tables -- [marker_table],
+          missing_tables: missing_tables,
+          legacy_packaged_install?: marker_versions == [] and missing_tables == [],
+          prefix: prefix
+        }
+      end
+    end)
+  end
+
+  defp marker_versions(repo, prefix, marker_table, present_tables) do
+    if marker_table in present_tables do
+      sql = """
+      SELECT version
+      FROM #{qualified_table(prefix, marker_table)}
+      ORDER BY version
+      """
+
+      case repo.query(sql, []) do
+        {:ok, %{rows: rows}} -> Enum.map(rows, fn [version] -> version end)
+        {:error, _reason} -> []
+      end
+    else
+      []
+    end
+  end
+
+  defp oban_jobs_catalog(opts) do
+    prefix = Keyword.get(opts, :oban_prefix, "public")
+
+    with_catalog_repo(fn started_repo ->
+      with {:ok, %{num_rows: count}} <-
+             started_repo.query(
+               """
+               SELECT 1
+               FROM information_schema.tables
+               WHERE table_schema = $1
+                 AND table_name = 'oban_jobs'
+               LIMIT 1
+               """,
+               [prefix]
+             ) do
+        %{exists?: count == 1, owner: :host, setup: "Oban.Migration", prefix: prefix}
+      end
+    end)
+  end
+
+  defp with_catalog_repo(fun) do
+    repo = Config.repo()
+
+    cond do
+      Process.whereis(repo) && sandbox_repo?(repo) ->
+        with_sandbox_checkout(repo, fun)
+
+      Process.whereis(repo) ->
+        fun.(repo)
+
+      true ->
+        case Migrator.with_repo(repo, fun, mode: :temporary) do
+          {:ok, result, _apps} -> result
+          {:error, reason} -> {:error, reason}
+        end
+    end
+  rescue
+    error -> {:error, error}
+  end
+
+  defp with_sandbox_checkout(repo, fun) do
+    case Ecto.Adapters.SQL.Sandbox.checkout(repo) do
+      :ok ->
+        try do
+          fun.(repo)
+        after
+          Ecto.Adapters.SQL.Sandbox.checkin(repo)
+        end
+
+      {:already, _owner_or_allowed} ->
+        fun.(repo)
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
+  defp sandbox_repo?(repo) do
+    Keyword.get(repo.config(), :pool) == Ecto.Adapters.SQL.Sandbox
   end
 
   defp resumable_session_schema_catalog do
@@ -704,6 +958,17 @@ defmodule Rindle.Ops.RuntimeChecks do
 
   defp migration_version({_state, -1, _name}), do: "migration inspection failed"
   defp migration_version({_state, version, _name}), do: Integer.to_string(version)
+
+  defp qualified_table(prefix, table), do: "#{quote_ident(prefix)}.#{quote_ident(table)}"
+
+  defp quote_ident(identifier) do
+    escaped =
+      identifier
+      |> to_string()
+      |> String.replace(~s("), ~s(""))
+
+    ~s("#{escaped}")
+  end
 
   defp module_from_string(name) do
     name
