@@ -6,6 +6,7 @@ defmodule Rindle.Ops.RuntimeStatus do
   alias Oban.Job
   alias Rindle.Config
   alias Rindle.Domain.{MediaAsset, MediaProviderAsset, MediaUploadSession, MediaVariant}
+  alias Rindle.Migration.V1, as: MigrationV1
   alias Rindle.Workers.ProcessVariant
 
   @allowed_filter_keys [:profile, :older_than, :limit, :format, :provider_stuck]
@@ -35,7 +36,8 @@ defmodule Rindle.Ops.RuntimeStatus do
 
   @spec runtime_status(keyword() | map()) :: {:ok, report()} | {:error, term()}
   def runtime_status(opts \\ []) do
-    with {:ok, filters} <- normalize_filters(opts) do
+    with {:ok, filters} <- normalize_filters(opts),
+         :ok <- setup_ready?() do
       now = DateTime.utc_now()
       cutoff = older_than_cutoff(now, filters.older_than)
 
@@ -62,6 +64,89 @@ defmodule Rindle.Ops.RuntimeStatus do
         error
     end
   end
+
+  defp setup_ready? do
+    readiness =
+      :rindle
+      |> Application.get_env(__MODULE__, [])
+      |> Keyword.get(:setup_readiness, :inspect)
+
+    readiness =
+      case readiness do
+        :inspect -> inspect_setup_readiness()
+        fun when is_function(fun, 0) -> fun.()
+        other -> other
+      end
+
+    cond do
+      not ready?(Map.get(readiness, :rindle_schema)) ->
+        {:error, {:setup_incomplete, :rindle_schema}}
+
+      not ready?(Map.get(readiness, :oban_jobs)) ->
+        {:error, {:setup_incomplete, :oban_jobs}}
+
+      true ->
+        :ok
+    end
+  end
+
+  defp inspect_setup_readiness do
+    %{
+      rindle_schema: inspect_rindle_schema_readiness(),
+      oban_jobs: inspect_oban_jobs_readiness()
+    }
+  end
+
+  defp inspect_rindle_schema_readiness do
+    prefix = "public"
+    tables = MigrationV1.catalog_requirements() |> Map.fetch!(:tables)
+
+    case Config.repo().query(
+           """
+           SELECT table_name
+           FROM information_schema.tables
+           WHERE table_schema = $1
+             AND table_name = ANY($2::text[])
+           """,
+           [prefix, tables]
+         ) do
+      {:ok, %{rows: rows}} ->
+        present = Enum.map(rows, fn [table_name] -> table_name end)
+        missing = tables -- present
+        %{ready?: missing == [], missing_tables: missing, prefix: prefix}
+
+      {:error, reason} ->
+        %{ready?: false, error: reason, prefix: prefix}
+    end
+  rescue
+    error -> %{ready?: false, error: error, prefix: "public"}
+  end
+
+  defp inspect_oban_jobs_readiness do
+    prefix = "public"
+
+    case Config.repo().query(
+           """
+           SELECT 1
+           FROM information_schema.tables
+           WHERE table_schema = $1
+             AND table_name = 'oban_jobs'
+           LIMIT 1
+           """,
+           [prefix]
+         ) do
+      {:ok, %{num_rows: count}} ->
+        %{ready?: count == 1, setup: "Oban.Migration", prefix: prefix}
+
+      {:error, reason} ->
+        %{ready?: false, error: reason, setup: "Oban.Migration", prefix: prefix}
+    end
+  rescue
+    error -> %{ready?: false, error: error, setup: "Oban.Migration", prefix: "public"}
+  end
+
+  defp ready?(%{ready?: true}), do: true
+  defp ready?(_readiness), do: false
 
   defp runtime_checks_report(filters, cutoff, now) do
     rows =

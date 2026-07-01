@@ -60,9 +60,22 @@ defmodule Mix.Tasks.Rindle.RuntimeStatus do
         end
 
       {:error, reason} ->
-        Mix.shell().error("Rindle.RuntimeStatus failed: #{inspect(reason)}")
+        Mix.shell().error(format_error(reason))
         exit({:shutdown, 1})
     end
+  end
+
+  @doc false
+  def format_error({:setup_incomplete, :rindle_schema}) do
+    "Rindle.RuntimeStatus failed: setup_incomplete rindle_schema. Run `mix rindle.doctor`, then apply a host migration that calls `Rindle.Migration.up(version: 1)` and rerun `mix ecto.migrate`."
+  end
+
+  def format_error({:setup_incomplete, :oban_jobs}) do
+    "Rindle.RuntimeStatus failed: setup_incomplete oban_jobs. Run `mix rindle.doctor`. Install Oban through a host-owned migration using `Oban.Migration`. Rindle no longer manages `oban_jobs`."
+  end
+
+  def format_error(reason) do
+    "Rindle.RuntimeStatus failed: #{inspect(reason)}"
   end
 
   @doc false
