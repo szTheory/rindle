@@ -5,16 +5,16 @@ milestone_name: OSS Quality & Trust Hardening
 current_phase: 116
 current_phase_name: versioned-rindle-migration-module
 status: executing
-stopped_at: Completed 116-02-PLAN.md
-last_updated: "2026-07-01T19:53:07.300Z"
+stopped_at: Completed 116-03-PLAN.md
+last_updated: "2026-07-01T20:06:15.930Z"
 last_activity: 2026-07-01
 last_activity_desc: Phase 116 execution started
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 14
-  completed_plans: 9
-  percent: 64
+  completed_plans: 10
+  percent: 71
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-06-29 after chartering v1.22)
 ## Current Position
 
 Phase: 116 (versioned-rindle-migration-module) — EXECUTING
-Plan: 3 of 7
+Plan: 4 of 7
 Status: Ready to execute
 Last activity: 2026-07-01 — Phase 116 execution started
 
@@ -166,6 +166,7 @@ _(v1.22 phase-execution decisions accumulate here as phases are planned and exec
 - [Phase 115]: guides/upgrading.md is the reusable action-oriented upgrade home; CHANGELOG.md remains release history. — This closes VERSION-02 and gives Phase 116 a versioned docs structure for migration upgrade notes.
 - [Phase 115]: README first-run onboarding now leads with an original-only image attachment path before AV setup. — This closes README-01 while keeping FFmpeg/libvips dependency details linked from RUNNING.md.
 - [Phase 116]: Plan 116-02 stayed RED-only and used injected doctor/runtime readiness fixtures to lock hybrid migration health before implementation. — The phase plan requires failing tests first for marker/catalog/legacy/Oban readiness semantics.
+- [Phase 116]: Plan 116-03 stayed RED-only and locked docs/generated-app migration ownership before implementation. — Docs parity now requires pinned Rindle.Migration host snippets and generated-app proof now expects separate host-owned Oban.Migration plus Rindle.Migration files with no Rindle-created oban_jobs.
 
 ## Blockers/Concerns
 
@@ -185,8 +186,8 @@ _(none open for v1.22 at roadmap creation)_
 
 ## Session Continuity
 
-Last session: 2026-07-01T19:53:07.294Z
-Stopped at: Completed 116-02-PLAN.md
+Last session: 2026-07-01T20:06:15.923Z
+Stopped at: Completed 116-03-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -202,3 +203,4 @@ Resume file: None
 | Phase 115 P01 | 6 min | 3 tasks | 4 files |
 | Phase 116 P01 | 4 min | 2 tasks | 3 files |
 | Phase 116 P02 | 6 min | 2 tasks | 4 files |
+| Phase 116 P03 | 9 min | 2 tasks | 3 files |
