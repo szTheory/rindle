@@ -1,8 +1,9 @@
 # Upgrading Existing Adopters
 
-Use this guide with [CHANGELOG.md](../CHANGELOG.md): the changelog names release
-history, and this guide explains how existing apps should move safely. Fresh
-installs should stay on [README](readme.html) and
+Use this guide with
+[CHANGELOG.md](https://github.com/szTheory/rindle/blob/main/CHANGELOG.md): the
+changelog names release history, and this guide explains how existing apps
+should move safely. Fresh installs should stay on [README](readme.html) and
 [Getting Started](getting_started.html).
 
 CI validates the documented upgrade paths from generated Phoenix apps before
@@ -11,14 +12,15 @@ on adopter work rather than duplicating the changelog.
 
 ## Version index
 
-- [Unreleased / Next](#unreleased--next)
-- [0.1.3 and earlier -> current AV-aware runtime](#013-and-earlier---current-av-aware-runtime)
+- [Unreleased / Next](#unreleased-next)
+- [0.1.3 and earlier -> current AV-aware runtime](#0-1-3-and-earlier-current-av-aware-runtime)
 
 ## Unreleased / Next
 
 ### Applies to
 
-Future releases that list adopter action items in [CHANGELOG.md](../CHANGELOG.md).
+Future releases that list adopter action items in
+[CHANGELOG.md](https://github.com/szTheory/rindle/blob/main/CHANGELOG.md).
 
 ### What changed
 

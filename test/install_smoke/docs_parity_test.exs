@@ -342,6 +342,16 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
     end
   end
 
+  test "upgrade guide uses HexDocs-safe version navigation links", %{upgrade: upgrade} do
+    assert upgrade =~ "[Unreleased / Next](#unreleased-next)"
+
+    assert upgrade =~
+             "[0.1.3 and earlier -> current AV-aware runtime](#0-1-3-and-earlier-current-av-aware-runtime)"
+
+    refute upgrade =~ "](../CHANGELOG.md)"
+    assert upgrade =~ "https://github.com/szTheory/rindle/blob/main/CHANGELOG.md"
+  end
+
   test "upgrade guide mirrors the canonical generated-app proof sequence", %{upgrade: upgrade} do
     steps = GeneratedAppHelper.canonical_upgrade_step_sequence()
 
