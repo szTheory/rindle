@@ -1,24 +1,25 @@
 ---
 phase: 114-oss-trust-governance
-verified: 2026-06-30T15:26:28Z
-status: human_needed
-next_action: "Enable GitHub Private Vulnerability Reporting in repo Settings, confirm the Report a vulnerability button renders, then rerun verification."
-next_command: "/gsd-verify-work 114"
+verified: 2026-07-01T01:18:47Z
+status: complete
+next_action: "None - GitHub Private Vulnerability Reporting was enabled and UAT confirmed the Report a vulnerability path renders."
+next_command: ""
 score: "9/9 must-haves verified"
 behavior_unverified: 0
 overrides_applied: 0
-human_verification:
+human_verification_completed:
   - test: "Enable GitHub Private Vulnerability Reporting and confirm the Security tab exposes Report a vulnerability."
     expected: "The repository Security tab shows the private Report a vulnerability path for GitHub Security Advisories."
-    why_human: "This is a GitHub repository setting outside the codebase; the repo tree can only verify SECURITY.md and issue-template routing."
+    result: "pass"
+    evidence: "Maintainer confirmed the Security tab exposes a Report a vulnerability link to /szTheory/rindle/security/advisories/new."
 ---
 
 # Phase 114: OSS Trust & Governance Verification Report
 
 **Phase Goal:** Close the OSS governance/trust gap so a newcomer or security researcher lands on a project that signals it is maintained, safe to report to, and welcoming to contribute to, and so hex.pm surfaces conventional package links and owner-derived maintainer signal.
-**Verified:** 2026-06-30T15:26:28Z
-**Status:** human_needed
-**Re-verification:** No, initial verification
+**Verified:** 2026-07-01T01:18:47Z
+**Status:** complete
+**Re-verification:** Yes, external GitHub setting confirmed by UAT
 
 ## Goal Achievement
 
@@ -97,7 +98,7 @@ human_verification:
 
 | Requirement | Source Plan | Description | Status | Evidence |
 |---|---|---|---|---|
-| TRUST-01 | 114-01 | SECURITY.md with vulnerability disclosure policy for untrusted uploads, MIME sniffing, signed delivery, webhook HMAC | SATISFIED, human setting remains | `SECURITY.md` content verified, no email disclosure path, advisory routing present, governance test passed. Manual GitHub Private Vulnerability Reporting setting remains. |
+| TRUST-01 | 114-01 | SECURITY.md with vulnerability disclosure policy for untrusted uploads, MIME sniffing, signed delivery, webhook HMAC | SATISFIED | `SECURITY.md` content verified, no email disclosure path, advisory routing present, governance test passed, and GitHub Private Vulnerability Reporting was enabled with the Report a vulnerability path visible. |
 | TRUST-02 | 114-01 | CODE_OF_CONDUCT.md | SATISFIED | `CODE_OF_CONDUCT.md` exists as Contributor Covenant 2.1 with GitHub-routed enforcement contact. |
 | TRUST-03 | 114-01 | Issue templates and PR template guide contributor intake | SATISFIED | Bug and feature issue forms, config, and PR template exist; blank issues disabled; security contact link routes to advisories; release-train-drift template preserved. |
 | META-01 | 114-02 | Hex package.links exposes Changelog and Docs alongside GitHub | SATISFIED | `mix.exs` three-entry links map and package metadata smoke test verify generated metadata. Governance files were not added to `files:`. |
@@ -113,7 +114,7 @@ human_verification:
 
 No `TBD`, `FIXME`, or `XXX` markers were found in phase files. No blocker anti-patterns were found.
 
-### Human Verification Required
+### Human Verification Completed
 
 #### 1. GitHub Private Vulnerability Reporting Setting
 
@@ -121,13 +122,13 @@ No `TBD`, `FIXME`, or `XXX` markers were found in phase files. No blocker anti-p
 
 **Expected:** The Security tab shows the private Report a vulnerability path, routing reporters into GitHub Security Advisories rather than public issues or email.
 
-**Why human:** This is an external GitHub repository setting. The codebase verifies the policy file and issue-template contact link, but cannot prove the GitHub-hosted button renders.
+**Result:** PASS. Maintainer confirmed the Security tab exposes a `Report a vulnerability` link to `/szTheory/rindle/security/advisories/new`.
 
 ### Gaps Summary
 
-No codebase gaps found. All in-repo governance, package metadata, release workflow, tests, and runbook requirements are verified. Overall status is `human_needed` only because the GitHub Private Vulnerability Reporting setting must be enabled and confirmed outside the repository.
+No codebase gaps found. All in-repo governance, package metadata, release workflow, tests, runbook requirements, and the external GitHub Private Vulnerability Reporting setting are verified.
 
 ---
 
-_Verified: 2026-06-30T15:26:28Z_
+_Verified: 2026-07-01T01:18:47Z_
 _Verifier: the agent (gsd-verifier)_
