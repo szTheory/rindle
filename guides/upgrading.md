@@ -1,16 +1,55 @@
 # Upgrading Existing Adopters
 
-Use this runbook when your app already ships Rindle from the pre-0.1.4
-image-only shape and you need to move onto the current AV-aware runtime
-contract. Fresh installs should stay on [README](readme.html) and
+Use this guide with [CHANGELOG.md](../CHANGELOG.md): the changelog names release
+history, and this guide explains how existing apps should move safely. Fresh
+installs should stay on [README](readme.html) and
 [Getting Started](getting_started.html).
 
-CI validates this upgrade path from a generated Phoenix app before each Hex
-publish. Follow the checkpoints in order: explicit host plus packaged migrations,
-`mix rindle.doctor`, optional `mix rindle.runtime_status`, then the repair verb
-that matches the observed state.
+CI validates the documented upgrade paths from generated Phoenix apps before
+each Hex publish. Keep future entries newest-first, action-oriented, and focused
+on adopter work rather than duplicating the changelog.
 
-## 1. Confirm Runtime Ownership And AV Prerequisites
+## Version index
+
+- [Unreleased / Next](#unreleased--next)
+- [0.1.3 and earlier -> current AV-aware runtime](#013-and-earlier---current-av-aware-runtime)
+
+## Unreleased / Next
+
+### Applies to
+
+Future releases that list adopter action items in [CHANGELOG.md](../CHANGELOG.md).
+
+### What changed
+
+No upgrade notes for this version yet.
+
+### Upgrade steps
+
+There are no adopter action items for this version. Review `CHANGELOG.md` before
+upgrading, then return here when a release lists migration or behavior changes.
+
+### Verification
+
+Use the release's documented verification steps once an upgrade note exists.
+
+## 0.1.3 and earlier -> current AV-aware runtime
+
+### Applies to
+
+Apps that already ship Rindle from the pre-0.1.4 image-only shape and need to
+move onto the current AV-aware runtime contract.
+
+### What changed
+
+The runtime now supports AV-aware assets and variants. Existing adopters need to
+confirm runtime ownership, keep explicit host plus packaged migrations, validate
+the upgraded environment, and use the bounded repair verb that matches the
+observed state.
+
+### Upgrade steps
+
+#### 1. Confirm runtime ownership and AV prerequisites
 
 Before you touch migrations, make sure the host app still owns the same runtime
 boundaries:
@@ -31,7 +70,7 @@ If you only need the greenfield setup details again, return to
 [Getting Started](getting_started.html). This guide assumes the app already
 owns its Repo, Oban config, and storage configuration.
 
-## 2. Run Explicit Host And Packaged Migrations
+#### 2. Run explicit host and packaged migrations
 
 Run your host migrations and the packaged Rindle migrations explicitly. The
 canonical upgrade path stays on `Application.app_dir(:rindle, "priv/repo/migrations")`:
@@ -58,7 +97,7 @@ end
 Rindle still does not hide this behind a public install task. The host app owns
 the migration handoff.
 
-## 3. Validate The Upgraded Runtime
+#### 3. Validate the upgraded runtime
 
 Run the read-only environment check immediately after migrations:
 
@@ -69,7 +108,7 @@ mix rindle.doctor
 `mix rindle.doctor` validates setup and drift. If it reports FFmpeg, Oban, or
 migration issues, fix those before you attempt any repair command.
 
-## 4. Inspect Degraded Upgraded Work When Needed
+#### 4. Inspect degraded upgraded work when needed
 
 If a specific upgraded asset or variant looks wrong after the migration, inspect
 the bounded runtime report before you mutate anything:
@@ -84,7 +123,7 @@ to confirm whether the problem is failed asset-scoped work,
 maps stay in [Operations](operations.html) and
 [Troubleshooting](troubleshooting.html).
 
-## 5. Repair One Upgraded Asset Through The Public Facade
+#### 5. Repair one upgraded asset through the public facade
 
 For one failed upgraded asset, use the asset-scoped repair surface:
 
@@ -99,7 +138,7 @@ asset_id = "..."
 named failed variants without pulling `ready`, `queued`,
 `processing`, `stale`, or `missing` siblings into the run.
 
-## 6. Reserve Broad Drift Repair For Stale Or Missing Variants
+#### 6. Reserve broad drift repair for stale or missing variants
 
 Do not use asset-scoped `requeue` as a surrogate for profile drift or missing
 storage objects. For broader derivative drift, stay on:
@@ -110,6 +149,18 @@ mix rindle.regenerate_variants
 
 That command is the broad maintenance lane for `stale` or `missing` variants
 after recipe, preset, or storage drift.
+
+### Verification
+
+Run the same checks that CI uses for this path:
+
+1. Confirm the explicit host plus packaged migrations completed.
+2. Run `mix rindle.doctor`.
+3. If needed, inspect degraded work with `mix rindle.runtime_status --format json`.
+4. Repair one failed upgraded asset with
+   `Rindle.requeue_variants(asset_id, variant_names: ["web_720p"])`.
+5. Reserve broad drift repair for stale or missing variants with
+   `mix rindle.regenerate_variants`.
 
 ## Next Reads
 

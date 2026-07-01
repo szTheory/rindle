@@ -33,6 +33,10 @@ smoke) before each Hex publish. Existing adopters upgrading from the pre-0.1.4
 image-only shape should use [Upgrading](upgrading.html) instead of stretching
 the greenfield quickstart into an upgrade runbook.
 
+## Versioning and stability
+
+Rindle follows Semantic Versioning. While Rindle is 0.x, public APIs may change between minor versions; review CHANGELOG.md and guides/upgrading.md before upgrading. Rindle 1.0 will mean the public API is stable enough that breaking public API changes move to major versions.
+
 ## Install
 
 Add Rindle to your deps:
