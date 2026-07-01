@@ -19,21 +19,72 @@ on adopter work rather than duplicating the changelog.
 
 ### Applies to
 
-Future releases that list adopter action items in
-[CHANGELOG.md](https://github.com/szTheory/rindle/blob/main/CHANGELOG.md).
+Fresh installs and existing apps moving to the first release that includes the
+versioned `Rindle.Migration` module. Existing apps that already applied
+Rindle's legacy packaged migrations can keep those migrations in place.
 
 ### What changed
 
-No upgrade notes for this version yet.
+Rindle now exposes a host-migration API for Rindle-owned tables:
+`Rindle.Migration.up(version: 1)` and
+`Rindle.Migration.down(version: 1)`. The default schema remains `public`.
+
+Host apps own `Oban.Migration` and the shared `oban_jobs` table. Rindle no
+longer creates or owns `oban_jobs`.
 
 ### Upgrade steps
 
-There are no adopter action items for this version. Review `CHANGELOG.md` before
-upgrading, then return here when a release lists migration or behavior changes.
+#### Fresh installs
+
+Create normal host-app migration files. Install Oban first:
+
+```elixir
+defmodule MyApp.Repo.Migrations.AddObanJobs do
+  use Ecto.Migration
+
+  def up, do: Oban.Migration.up()
+  def down, do: Oban.Migration.down(version: 1)
+end
+```
+
+Then install Rindle's tables with the pinned version:
+
+```elixir
+defmodule MyApp.Repo.Migrations.InstallRindle do
+  use Ecto.Migration
+
+  def up, do: Rindle.Migration.up(version: 1)
+  def down, do: Rindle.Migration.down(version: 1)
+end
+```
+
+Run the host app's normal migration workflow:
+
+```bash
+mix ecto.migrate
+```
+
+> **Rollback:** `Rindle.Migration.down/1` is destructive. Back up the database
+> before running `Rindle.Migration.down(version: 1)`; it removes Rindle-owned
+> tables only and does not manage `oban_jobs`.
+
+#### Existing legacy installs
+
+If your app already applied Rindle's legacy packaged migrations, leave that
+history in place. Do not delete, replay, or rewrite already-applied legacy
+migration files just to adopt this release. Use the new `Rindle.Migration`
+module for fresh installs and future versioned migration work.
 
 ### Verification
 
-Use the release's documented verification steps once an upgrade note exists.
+Run the doctor after migrations:
+
+```bash
+mix rindle.doctor
+```
+
+`mix rindle.doctor` should show the Rindle-owned schema as ready and should
+treat `oban_jobs` as host-owned Oban setup.
 
 ## 0.1.3 and earlier -> current AV-aware runtime
 

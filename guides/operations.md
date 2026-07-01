@@ -49,7 +49,9 @@ console.
 
 For existing-adopter upgrades, keep the sequencing strict: explicit migrations
 first, `mix rindle.doctor` second, optional `mix rindle.runtime_status` only
-when the upgraded state looks wrong, then the matching repair verb.
+when the upgraded state looks wrong, then the matching repair verb. If doctor
+reports missing `oban_jobs`, fix host-owned Oban setup with `Oban.Migration`;
+`Rindle.Migration` creates Rindle-owned tables only.
 
 ## Supported Repair Verbs
 

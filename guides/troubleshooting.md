@@ -27,6 +27,10 @@ For upgrade troubleshooting, keep the same order: explicit migrations,
 `mix rindle.doctor`, optional `mix rindle.runtime_status`, then the repair verb
 that matches the actual state.
 
+If `mix rindle.doctor` reports missing `oban_jobs`, install Oban through a
+host-owned `Oban.Migration` and run `mix ecto.migrate` again. `Rindle.Migration`
+creates Rindle-owned tables only and does not create or own `oban_jobs`.
+
 If the failing profile uses `Rindle.Storage.GCS`, keep the same order and then
 use [Storage (GCS)](storage_gcs.html) for the bucket, CORS, `session_uri`, and
 resumable-upload operator runbook instead of rebuilding that flow from logs.
