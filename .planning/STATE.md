@@ -5,15 +5,15 @@ milestone_name: OSS Quality & Trust Hardening
 current_phase: 116
 current_phase_name: versioned-rindle-migration-module
 status: executing
-stopped_at: Completed 116-05-PLAN.md
-last_updated: "2026-07-01T20:32:38.757Z"
+stopped_at: Completed 116-06-PLAN.md
+last_updated: "2026-07-01T20:47:02.807Z"
 last_activity: 2026-07-01
 last_activity_desc: Phase 116 execution started
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 14
-  completed_plans: 12
+  completed_plans: 13
   percent: 75
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-06-29 after chartering v1.22)
 ## Current Position
 
 Phase: 116 (versioned-rindle-migration-module) — EXECUTING
-Plan: 6 of 7
+Plan: 7 of 7
 Status: Ready to execute
 Last activity: 2026-07-01 — Phase 116 execution started
 
@@ -171,6 +171,9 @@ _(v1.22 phase-execution decisions accumulate here as phases are planned and exec
 - [Phase 116]: The legacy CreateObanTables migration filename remains packaged as a no-op compatibility stub. — Preserves legacy schema_migrations history while removing Rindle authority over host-owned job storage.
 - [Phase 116]: Doctor readiness now separates Rindle-owned schema readiness from host-owned Oban readiness.
 - [Phase 116]: Runtime status returns setup_incomplete before report queries touch missing Rindle or Oban tables.
+- [Phase 116]: Public install docs now teach normal host migrations: host-owned Oban.Migration for oban_jobs and pinned Rindle.Migration for Rindle-owned tables.
+- [Phase 116]: Legacy package-directory migration replay remains documented only in the historical 0.1.3-and-earlier upgrade path.
+- [Phase 116]: Troubleshooting treats missing oban_jobs as host-owned Oban setup, not as a Rindle migration responsibility.
 
 ## Blockers/Concerns
 
@@ -190,8 +193,8 @@ _(none open for v1.22 at roadmap creation)_
 
 ## Session Continuity
 
-Last session: 2026-07-01T20:32:38.752Z
-Stopped at: Completed 116-05-PLAN.md
+Last session: 2026-07-01T20:46:55.175Z
+Stopped at: Completed 116-06-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -210,3 +213,4 @@ Resume file: None
 | Phase 116 P03 | 9 min | 2 tasks | 3 files |
 | Phase 116 P04 | 8 min | 3 tasks | 4 files |
 | Phase 116 P05 | 11 min | 2 tasks | 4 files |
+| Phase 116 P06 | 10 min | 3 tasks | 5 files |
