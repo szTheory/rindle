@@ -79,6 +79,12 @@ The `Rindle.Migration` module is intentionally pulled into v1.22 (not v1.23) bec
 fix in its own right and de-risks the v1.23 breaking flip. Full arc: SEED-005 + the approved roadmap at
 `/Users/jon/.claude/plans/software-quality-evaluation-prompt-txt-gleaming-sifakis.md`.
 
+**Phase 115 complete (2026-07-01):** README and CONTRIBUTING now state the shared pre-1.0 SemVer
+stability contract; `guides/upgrading.md` is the reusable newest-first upgrade home with HexDocs-safe
+version navigation; README leads hands-on onboarding with an original-only image attachment path before
+AV setup and includes the "when not to use Rindle" boundary. Next up is Phase 116, the versioned
+`Rindle.Migration` module and install/upgrade docs that build on this structure.
+
 
 ## Last Milestone: v1.21 CI/DX Reliability Tail (shipped 2026-06-29)
 
@@ -813,8 +819,5 @@ This document evolves at phase transitions and milestone boundaries.
    (`workflow.milestone_boundary.block_feature_milestone_without_signal`)
 
 ---
-*Last updated: 2026-06-29 after chartering v1.22 OSS Quality & Trust Hardening (from SEED-005) — a
-two-milestone software-quality consolidation arc (v1.22 trust hardening → v1.23 Postgres schema
-isolation). Recon corrected two premises (szTheory deps → empty; CI/CD perf → already done by v1.20+v1.21)
-and confirmed Hex 0.3.2 was never published (v1.21 `lib/` fixes are merged-but-unreleased). v1.21 phase
-dirs archived to `milestones/v1.21-phases/`. Phases resume at 113.*
+*Last updated: 2026-07-01 after completing Phase 115 (Versioning & README Positioning). v1.22 remains in
+progress with Phase 116 next: the non-breaking `Rindle.Migration` substrate for v1.23 schema isolation.*

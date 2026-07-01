@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v1.22
 milestone_name: OSS Quality & Trust Hardening
-current_phase: 115
-status: verifying
-stopped_at: Completed 115-01-PLAN.md
-last_updated: "2026-07-01T15:59:42.841Z"
+current_phase: 116
+status: ready
+stopped_at: Phase 115 complete; Phase 116 ready to plan
+last_updated: "2026-07-01T16:00:34Z"
 last_activity: 2026-07-01
 last_activity_desc: Phase 115 complete
 progress:
-  total_phases: 3
+  total_phases: 4
   completed_phases: 3
   total_plans: 7
   completed_plans: 7
-  percent: 100
-current_phase_name: Versioning & README Positioning
+  percent: 75
+current_phase_name: Versioned Rindle.Migration Module
 ---
 
 # Project State
@@ -24,14 +24,14 @@ current_phase_name: Versioning & README Positioning
 See: .planning/PROJECT.md (updated 2026-06-29 after chartering v1.22)
 
 **Core value:** Media, made durable.
-**Current focus:** Phase 115 — Versioning & README Positioning
+**Current focus:** Phase 116 — Versioned `Rindle.Migration` Module
 
 ## Current Position
 
-Phase: 115
+Phase: 116 — Versioned `Rindle.Migration` Module
 Plan: Not started
-Status: Phase complete — ready for verification
-Last activity: 2026-07-01 — Phase 115 complete
+Status: Ready to plan
+Last activity: 2026-07-01 — Phase 115 complete; Phase 116 ready to plan
 
 ### v1.22 roadmap (Phases 113–116) — natural-grouping order
 
@@ -78,11 +78,11 @@ green (135 test files; the async-safety meta-test governs `async: true`).
 
 ## Next Step
 
-**Plan Phase 115 (Versioning & README Positioning):** `/gsd-plan-phase 115`. Phase 114 is complete after
-UAT confirmed GitHub Private Vulnerability Reporting renders the `Report a vulnerability` path. Phase 115
-closes the versioning / README positioning weaknesses from EVAL-01: pre-1.0 stability contract,
-generalized upgrade guide, image-first README first-run, and honest "when not to use" boundary. Phase 116
-remains LAST so its `Rindle.Migration` install/upgrade docs converge with the 115 README/VERSION work.
+**Plan Phase 116 (Versioned `Rindle.Migration` Module):** `/gsd-plan-phase 116`. Phase 115 is verified
+and complete: README/CONTRIBUTING now state the pre-1.0 stability contract, `guides/upgrading.md` is a
+versioned upgrade home, README leads with an image-first first attachment path, and the product-fit
+boundary is locked by docs parity tests. Phase 116 remains LAST so its `Rindle.Migration` install/upgrade
+docs converge with the 115 README/VERSION work.
 
 ## Recently Shipped Milestone
 
