@@ -1,11 +1,14 @@
 defmodule Rindle.Repo.Migrations.CreateObanTables do
   use Ecto.Migration
 
+  # Legacy compatibility stub: keep this packaged filename for adopters that
+  # already have the version in migration history. Rindle no longer manages
+  # shared job storage from this file.
   def up do
-    Oban.Migration.up(version: 12)
+    :ok
   end
 
   def down do
-    Oban.Migration.down(version: 1)
+    :ok
   end
 end
