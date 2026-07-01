@@ -136,8 +136,12 @@ and an honest "when not to use it" boundary.
   4. The README has a clear "what Rindle is NOT / when not to use it" block (lifted from
      `guides/user_flows.md`).
 
-**Plans**: TBD
+**Plans**: 1 plan
 **UI hint**: yes
+
+Plans:
+
+- [ ] 115-01-PLAN.md — Stability contract, versioned upgrade guide, image-first README positioning, and docs parity lock
 
 ### Phase 116: Versioned `Rindle.Migration` Module
 
