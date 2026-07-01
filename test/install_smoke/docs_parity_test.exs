@@ -5,6 +5,7 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
   use ExUnit.Case, async: true
 
   @readme_path Path.expand("../../README.md", __DIR__)
+  @contributing_path Path.expand("../../CONTRIBUTING.md", __DIR__)
   @guide_path Path.expand("../../guides/getting_started.md", __DIR__)
   @upgrade_path Path.expand("../../guides/upgrading.md", __DIR__)
   @troubleshooting_path Path.expand("../../guides/troubleshooting.md", __DIR__)
@@ -16,6 +17,8 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
   @mix_exs_path Path.expand("../../mix.exs", __DIR__)
 
   @expected_tus_extensions "creation,expiration,termination,checksum,creation-defer-length,concatenation"
+
+  @stability_sentence "Rindle follows Semantic Versioning. While Rindle is 0.x, public APIs may change between minor versions; review CHANGELOG.md and guides/upgrading.md before upgrading. Rindle 1.0 will mean the public API is stable enough that breaking public API changes move to major versions."
 
   @nine_mix_tasks [
     "mix rindle.abort_incomplete_uploads",
@@ -33,6 +36,7 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
     {:ok,
      %{
        readme: File.read!(@readme_path),
+       contributing: File.read!(@contributing_path),
        guide: File.read!(@guide_path),
        upgrade: File.read!(@upgrade_path),
        troubleshooting: File.read!(@troubleshooting_path),
@@ -40,6 +44,26 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
        running: File.read!(@running_path),
        user_flows: File.read!(@user_flows_path)
      }}
+  end
+
+  test "README and CONTRIBUTING state the shared pre-1.0 stability contract", %{
+    readme: readme,
+    contributing: contributing
+  } do
+    for {doc, name} <- [{readme, "README"}, {contributing, "CONTRIBUTING"}] do
+      assert doc =~ "## Versioning and stability"
+      assert doc =~ @stability_sentence
+
+      assert doc |> String.split(@stability_sentence) |> length() == 2,
+             "#{name} should contain the shared stability sentence exactly once"
+    end
+
+    assert_in_order!(readme, ["## Versioning and stability", "## Install"])
+
+    assert_in_order!(contributing, [
+      "## Versioning and stability",
+      "## Reproduce the PR gate locally: `mix ci`"
+    ])
   end
 
   test "README and getting-started guide teach the facade-first lifecycle and handoff", %{
@@ -178,6 +202,64 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
     end
   end
 
+  test "README leads with original-only image attachment before AV setup", %{readme: readme} do
+    image_first_index = string_index(readme, "## First Attachment in ~2 Minutes")
+
+    assert image_first_index,
+           "README must include the image-first first attachment section"
+
+    assert_in_order!(readme, [
+      "## First Attachment in ~2 Minutes",
+      "## AV Quickstart"
+    ])
+
+    for snippet <- [
+          "FFmpeg >= 6.0",
+          "libvips",
+          "kind: :video",
+          "Rindle.Profile.Presets.Web",
+          "web_720p",
+          "poster"
+        ] do
+      index = string_index(readme, snippet)
+      assert index, "expected #{inspect(snippet)} in README"
+
+      assert index > image_first_index,
+             "#{inspect(snippet)} must appear after image-first section"
+    end
+
+    for snippet <- [
+          "variants: []",
+          "allow_mime",
+          "max_bytes",
+          "Rindle.initiate_upload",
+          "Rindle.Upload.Broker.sign_url",
+          "Rindle.verify_completion",
+          "Rindle.attach",
+          "Rindle.url",
+          "running.html"
+        ] do
+      assert readme =~ snippet
+    end
+  end
+
+  test "README states the product-fit boundary", %{readme: readme} do
+    assert readme =~ "## When Not to Use Rindle"
+
+    for snippet <- [
+          "Phoenix/Ecto library",
+          "hosted media platform",
+          "daemon",
+          "CDN replacement",
+          "DRM",
+          "HLS/DASH",
+          "AI/GPU",
+          "PDF/Office"
+        ] do
+      assert readme =~ snippet
+    end
+  end
+
   test "docs distinguish public install guidance from maintainer-only release runbooks", %{
     readme: readme,
     guide: guide
@@ -207,6 +289,57 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
     assert upgrade =~ "[Getting Started](getting_started.html)"
     assert upgrade =~ "pre-0.1.4"
     assert String.downcase(upgrade) =~ "existing adopters"
+  end
+
+  test "upgrade guide is a newest-first versioned upgrade home", %{upgrade: upgrade} do
+    headings =
+      ~r/^## .+$/m
+      |> Regex.scan(upgrade)
+      |> List.flatten()
+
+    assert Enum.at(headings, 0) == "## Version index"
+
+    assert_in_order!(upgrade, [
+      "## Version index",
+      "## Unreleased / Next",
+      "## 0.1.3 and earlier -> current AV-aware runtime"
+    ])
+
+    for snippet <- [
+          "CHANGELOG.md",
+          "### Applies to",
+          "### What changed",
+          "### Upgrade steps",
+          "### Verification",
+          "Application.app_dir(:rindle, \"priv/repo/migrations\")",
+          "mix rindle.doctor",
+          "mix rindle.runtime_status --format json",
+          "Rindle.requeue_variants(asset_id, variant_names: [\"web_720p\"])",
+          "mix rindle.regenerate_variants"
+        ] do
+      assert upgrade =~ snippet
+    end
+
+    unreleased_index = string_index(upgrade, "## Unreleased / Next")
+    av_upgrade_index = string_index(upgrade, "## 0.1.3 and earlier -> current AV-aware runtime")
+
+    assert unreleased_index && av_upgrade_index
+    assert unreleased_index < av_upgrade_index
+
+    unreleased_section =
+      binary_part(upgrade, unreleased_index, av_upgrade_index - unreleased_index)
+
+    av_upgrade_section =
+      binary_part(upgrade, av_upgrade_index, byte_size(upgrade) - av_upgrade_index)
+
+    for section <- [unreleased_section, av_upgrade_section] do
+      assert_in_order!(section, [
+        "### Applies to",
+        "### What changed",
+        "### Upgrade steps",
+        "### Verification"
+      ])
+    end
   end
 
   test "upgrade guide mirrors the canonical generated-app proof sequence", %{upgrade: upgrade} do
