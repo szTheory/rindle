@@ -67,14 +67,6 @@ Each release is exercised from a generated Phoenix app in CI before it ships
 to Hex. Adopters follow the same public setup contract described here and in
 [Getting Started](getting_started.html).
 
-For AV profiles, install `FFmpeg >= 6.0` before you touch background jobs, then
-run `mix rindle.doctor`. The per-platform install/runtime matrix lives in
-[Running](running.html).
-
-For image variants, install **libvips** on the host before background image
-processing jobs run (`libvips-dev` on Debian/Ubuntu, `vips` via Homebrew on
-macOS). See [Running](running.html) for the install matrix.
-
 ## Runtime Ownership
 
 Rindle persists through your adopter-owned Repo. Configure that explicitly:
@@ -116,7 +108,49 @@ host_path = Path.join([File.cwd!(), "priv", "repo", "migrations"])
 Rindle does not ship a public `mix rindle.*` install task for migrations. The
 public path is the docs snippet above.
 
-## First Run: AV Quickstart
+## First Attachment in ~2 Minutes
+
+Create first attachment with an original-only image profile before you add
+variants or AV processing. This keeps the first path focused on the upload,
+verify, attach, and URL lifecycle:
+
+```elixir
+defmodule MyApp.AvatarProfile do
+  use Rindle.Profile,
+    storage: Rindle.Storage.S3,
+    variants: [],
+    allow_mime: ["image/png", "image/jpeg", "image/webp"],
+    max_bytes: 8_000_000
+end
+```
+
+The first-run path is direct upload by presigned PUT:
+
+```elixir
+{:ok, session} =
+  Rindle.initiate_upload(MyApp.AvatarProfile, filename: "avatar.png")
+
+{:ok, %{session: signed, presigned: presigned}} =
+  Rindle.Upload.Broker.sign_url(session.id)
+
+# your client PUTs bytes to presigned.url
+
+{:ok, %{session: completed, asset: asset}} =
+  Rindle.verify_completion(session.id)
+
+{:ok, attachment} =
+  Rindle.attach(asset.id, current_user, "avatar")
+
+{:ok, signed_url} =
+  Rindle.url(MyApp.AvatarProfile, asset.storage_key)
+```
+
+That proves the durable lifecycle with the original file first. Install
+**libvips** before image variants or background image processing, and install
+`FFmpeg >= 6.0` before AV work. The per-platform runtime dependency details
+live in [Running](running.html).
+
+## AV Quickstart
 
 The locked onboarding path is:
 
@@ -281,11 +315,20 @@ actions. It needs the optional `phoenix_live_view` dependency, the host owns
 auth, and production refuses unguarded mounts. See
 [Admin Console](admin_console.html).
 
+## When Not to Use Rindle
+
+Rindle is a Phoenix/Ecto library for media lifecycle work inside your
+application, not a hosted media platform. It does not run a daemon, act as a
+CDN replacement, provide DRM, become a full HLS/DASH streaming platform, ship
+an AI/GPU processing suite, or handle broad PDF/Office document processing.
+Those jobs belong to other tools; Rindle stays focused on durable upload,
+asset, variant, delivery, cleanup, and repair workflows in Phoenix apps.
+
 ## Next Reads
 
 - [User Flows](user_flows.html): map your job to the right guide (start here when evaluating)
 - [Admin Console](admin_console.html): mount the optional host-authenticated operator console
-- [Upgrading](upgrading.html): existing-adopter upgrade runbook (pre-0.1.4 image-only → current)
+- [Upgrading](upgrading.html): versioned existing-adopter upgrade guide and runbook home
 - [Getting Started](getting_started.html): deep greenfield guide — Repo, Oban, migrations, profiles
 - [Running](running.html): libvips and FFmpeg install matrix (macOS, Linux, Fly, Heroku, Render, CI)
 - [Background Processing](background_processing.html): Oban queues and worker behavior
