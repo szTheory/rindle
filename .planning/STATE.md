@@ -3,18 +3,18 @@ gsd_state_version: 1.0
 milestone: v1.22
 milestone_name: OSS Quality & Trust Hardening
 current_phase: 115
+current_phase_name: Versioning & README Positioning
 status: ready_to_plan
-stopped_at: Phase 114 complete, ready to plan Phase 115
-last_updated: "2026-07-01T01:21:45.397Z"
+stopped_at: Phase 115 UI-SPEC approved
+last_updated: "2026-07-01T01:57:12.172Z"
 last_activity: 2026-07-01
-last_activity_desc: Phase 114 complete
+last_activity_desc: Phase 114 complete, transitioned to Phase 115
 progress:
-  total_phases: 4
+  total_phases: 3
   completed_phases: 2
   total_plans: 6
   completed_plans: 6
-  percent: 50
-current_phase_name: versioning-readme-positioning
+  percent: 67
 ---
 
 # Project State
@@ -181,9 +181,9 @@ _(none open for v1.22 at roadmap creation)_
 
 ## Session Continuity
 
-Last session: 2026-07-01T01:21:45.397Z
-Stopped at: Phase 114 complete, ready to plan Phase 115
-Resume file: None
+Last session: 2026-07-01T01:57:12.166Z
+Stopped at: Phase 115 UI-SPEC approved
+Resume file: .planning/phases/115-versioning-readme-positioning/115-UI-SPEC.md
 
 ## Performance Metrics
 
