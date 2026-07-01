@@ -91,22 +91,46 @@ config :my_app, Oban,
 
 ## Migrations
 
-Run your host app migrations and the packaged Rindle migrations explicitly:
+Create normal host-app migrations for the two pieces of database state:
+`Oban.Migration` creates the host-owned `oban_jobs` table, and
+`Rindle.Migration` creates Rindle-owned tables. Rindle no longer creates or
+owns `oban_jobs`.
 
 ```elixir
-rindle_path = Application.app_dir(:rindle, "priv/repo/migrations")
-host_path = Path.join([File.cwd!(), "priv", "repo", "migrations"])
+defmodule MyApp.Repo.Migrations.AddObanJobs do
+  use Ecto.Migration
 
-{:ok, _, _} =
-  Ecto.Migrator.with_repo(MyApp.Repo, fn repo ->
-    for path <- [host_path, rindle_path] do
-      Ecto.Migrator.run(repo, path, :up, all: true)
-    end
-  end)
+  def up, do: Oban.Migration.up()
+  def down, do: Oban.Migration.down(version: 1)
+end
 ```
 
-Rindle does not ship a public `mix rindle.*` install task for migrations. The
-public path is the docs snippet above.
+Then install Rindle's tables with a pinned migration version. The default schema remains `public` unless you pass a different prefix.
+
+```elixir
+defmodule MyApp.Repo.Migrations.InstallRindle do
+  use Ecto.Migration
+
+  def up, do: Rindle.Migration.up(version: 1)
+  def down, do: Rindle.Migration.down(version: 1)
+end
+```
+
+Run your host app's normal migration workflow, then verify setup:
+
+```bash
+mix ecto.migrate
+mix rindle.doctor
+```
+
+> **Rollback:** `Rindle.Migration.down/1` is destructive. Back up the database
+> before running `Rindle.Migration.down(version: 1)`; it removes Rindle-owned
+> tables only and does not manage `oban_jobs`.
+
+> **Upgrade note:** Existing apps that already applied Rindle's legacy packaged
+> migrations can leave them in place. The new module is the documented install
+> path going forward; it does not require replaying or deleting legacy migration
+> files.
 
 ## First Attachment in ~2 Minutes
 
