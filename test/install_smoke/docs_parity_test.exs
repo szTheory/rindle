@@ -137,19 +137,86 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
     end
   end
 
-  test "docs call out adopter-owned Repo, default Oban ownership, and explicit migrations", %{
+  test "migration docs teach pinned Rindle.Migration and host-owned Oban setup", %{
     readme: readme,
-    guide: guide
+    guide: guide,
+    upgrade: upgrade
   } do
-    for doc <- [readme, guide] do
-      assert doc =~ "adopter-owned Repo"
-      assert doc =~ "default Oban"
-      assert doc =~ ~s(config :rindle, :repo, MyApp.Repo)
-      assert doc =~ ~s(config :my_app, Oban)
-      assert doc =~ "Application.app_dir(:rindle, \"priv/repo/migrations\")"
-      assert doc =~ "docs snippet"
-      assert doc =~ "mix rindle.*"
+    migration_sections = [
+      {"README migrations", section_between!(readme, "## Migrations", "## First Attachment")},
+      {"getting-started step 3", section_between!(guide, "## 3.", "## 4.")},
+      {"Unreleased upgrade note", section_between!(upgrade, "## Unreleased / Next", "## 0.1.3")}
+    ]
+
+    for {name, section} <- migration_sections do
+      assert section =~ "Rindle.Migration.up(version: 1)",
+             "#{name} must include Rindle.Migration.up(version: 1)"
+
+      assert section =~ "Rindle.Migration.down(version: 1)",
+             "#{name} must include Rindle.Migration.down(version: 1)"
+
+      assert section =~ "Oban.Migration",
+             "#{name} must name Oban.Migration as the host-owned Oban migration path"
+
+      assert section =~ "oban_jobs",
+             "#{name} must say Rindle does not own or create oban_jobs"
+
+      assert section =~ "mix ecto.migrate",
+             "#{name} must keep the normal host-app migration workflow"
+
+      assert section =~ "mix rindle.doctor",
+             "#{name} must keep doctor as the post-migration verification command"
+
+      assert Regex.match?(
+               ~r/(prefix:\s*"public"|default schema (stays|remains|is) `public`|default `public`)/i,
+               section
+             ),
+             "#{name} must state the default public schema or prefix"
+
+      assert Regex.match?(~r/back\s*up|backup/i, section),
+             "#{name} must pair rollback copy with backup guidance"
+
+      assert Regex.match?(~r/destructive/i, section),
+             "#{name} must label Rindle.Migration.down/1 as destructive"
+
+      assert section =~ "Rindle-owned tables",
+             "#{name} must scope rollback to Rindle-owned tables"
+
+      refute section =~ "Application.app_dir(:rindle, \"priv/repo/migrations\")",
+             "#{name} must not teach the legacy package migration directory as the greenfield path"
+
+      refute section =~ "Ecto.Migrator.run",
+             "#{name} must not teach raw package-path Ecto.Migrator.run for greenfield setup"
     end
+  end
+
+  test "legacy package-directory migration copy is scoped to historical upgrade guidance", %{
+    readme: readme,
+    guide: guide,
+    upgrade: upgrade
+  } do
+    readme_migrations = section_between!(readme, "## Migrations", "## First Attachment")
+    guide_step_three = section_between!(guide, "## 3.", "## 4.")
+    unreleased = section_between!(upgrade, "## Unreleased / Next", "## 0.1.3")
+    legacy_upgrade = section_between!(upgrade, "## 0.1.3", "## Next Reads")
+
+    for {name, section} <- [
+          {"README migrations", readme_migrations},
+          {"getting-started step 3", guide_step_three},
+          {"Unreleased upgrade note", unreleased}
+        ] do
+      refute section =~ "Application.app_dir(:rindle, \"priv/repo/migrations\")",
+             "#{name} must reject the raw package-directory greenfield flow"
+
+      refute section =~ "Ecto.Migrator.run",
+             "#{name} must reject direct package-path migration replay for fresh installs"
+    end
+
+    assert legacy_upgrade =~ "Application.app_dir(:rindle, \"priv/repo/migrations\")",
+           "historical upgrade guidance may still name the legacy package migration directory"
+
+    assert legacy_upgrade =~ "Ecto.Migrator.run",
+           "historical upgrade guidance may still show intentionally scoped legacy replay"
   end
 
   test "docs keep presigned PUT first-run and multipart advanced-only", %{
@@ -670,6 +737,19 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
 
         {index, snippet}
       end)
+  end
+
+  defp section_between!(doc, start_snippet, stop_snippet) do
+    start_index =
+      string_index(doc, start_snippet) ||
+        flunk("expected section start #{inspect(start_snippet)}")
+
+    tail = binary_part(doc, start_index, byte_size(doc) - start_index)
+
+    case string_index(tail, stop_snippet) do
+      nil -> tail
+      stop_index -> binary_part(tail, 0, stop_index)
+    end
   end
 
   defp string_index(doc, snippet) do
