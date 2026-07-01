@@ -53,12 +53,12 @@ Each maps to exactly one roadmap phase (phases begin at 113).
 
 ### Versioned Migration Module (MIGRATE)
 
-- [ ] **MIGRATE-01**: Adopters install Rindle's tables via a versioned, idempotent `Rindle.Migration.up/1`
+- [x] **MIGRATE-01**: Adopters install Rindle's tables via a versioned, idempotent `Rindle.Migration.up/1`
   + `down/1` module (Oban-style), replacing the raw 15-file `Ecto.Migrator` copy-paste install path; README,
   getting-started, and upgrading docs updated to the new 3-line migration. Non-breaking — default schema
   stays `public`; existing adopters' already-applied migrations remain valid.
 
-- [ ] **MIGRATE-02**: Rindle no longer creates the shared `oban_jobs` table on the adopter's behalf; the
+- [x] **MIGRATE-02**: Rindle no longer creates the shared `oban_jobs` table on the adopter's behalf; the
   adopter owns `Oban.Migration`, documented in install/upgrade guides. (Removes the latent host-Oban collision.)
 
 ### Release & Planning Hygiene (HYGIENE)
@@ -116,8 +116,8 @@ Deferred to the next milestone; tracked but not in this roadmap.
 | VERSION-02 | Phase 115 | Complete |
 | README-01 | Phase 115 | Complete |
 | README-02 | Phase 115 | Complete |
-| MIGRATE-01 | Phase 116 | Pending |
-| MIGRATE-02 | Phase 116 | Pending |
+| MIGRATE-01 | Phase 116 | Complete |
+| MIGRATE-02 | Phase 116 | Complete |
 
 **Coverage:**
 
