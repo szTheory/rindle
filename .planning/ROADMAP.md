@@ -180,7 +180,7 @@ work landed in 115)
 | 113. Evaluation Baseline & Release Hygiene | 4/4 | Complete   | 2026-06-30 |
 | 114. OSS Trust & Governance | 2/2 | Complete   | 2026-07-01 |
 | 115. Versioning & README Positioning | 1/1 | Complete    | 2026-07-01 |
-| 116. Versioned `Rindle.Migration` Module | 1/7 | In Progress|  |
+| 116. Versioned `Rindle.Migration` Module | 2/7 | In Progress|  |
 
 ## Phases (shipped — collapsed history)
 
