@@ -20,6 +20,7 @@ defmodule Rindle.InstallSmoke.PackageMetadataTest do
   @assert_version_script Path.join(@repo_root, "scripts/assert_version_match.sh")
   @release_workflow Path.join(@repo_root, ".github/workflows/release.yml")
   @ci_workflow Path.join(@repo_root, ".github/workflows/ci.yml")
+  @legacy_oban_migration "priv/repo/migrations/20260424205942_create_oban_tables.exs"
   @required_paths [
     "mix.exs",
     "README.md",
@@ -30,7 +31,8 @@ defmodule Rindle.InstallSmoke.PackageMetadataTest do
     "priv/static/rindle_admin/logo.svg",
     "priv/static/rindle_admin/favicon.svg",
     "guides/getting_started.md",
-    "guides/release_publish.md"
+    "guides/release_publish.md",
+    @legacy_oban_migration
   ]
   @prohibited_paths ["_build", ".planning", "test", ".github", "coveralls.json"]
 
@@ -101,6 +103,15 @@ defmodule Rindle.InstallSmoke.PackageMetadataTest do
     for rel_path <- @prohibited_paths do
       refute File.exists?(Path.join(package_root, rel_path))
     end
+  end
+
+  test "legacy packaged migration directory keeps the historical Oban filename shipped", %{
+    metadata: metadata,
+    package_root: package_root
+  } do
+    assert File.dir?(Path.join(package_root, "priv/repo/migrations"))
+    assert File.exists?(Path.join(package_root, @legacy_oban_migration))
+    assert metadata =~ ~s(<<"#{@legacy_oban_migration}">>)
   end
 
   test "release preflight script runs the release gates in order", %{script: script} do
