@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v1.22
 milestone_name: OSS Quality & Trust Hardening
-current_phase: 114
-current_phase_name: oss-trust-governance
-status: verifying
-stopped_at: Completed 114-02-PLAN.md
-last_updated: "2026-06-30T14:58:55.545Z"
-last_activity: 2026-06-30
-last_activity_desc: Phase 114 execution started
+current_phase: 115
+status: ready_to_plan
+stopped_at: Phase 114 complete, ready to plan Phase 115
+last_updated: "2026-07-01T01:21:45.397Z"
+last_activity: 2026-07-01
+last_activity_desc: Phase 114 complete
 progress:
-  total_phases: 2
+  total_phases: 4
   completed_phases: 2
   total_plans: 6
   completed_plans: 6
-  percent: 100
+  percent: 50
+current_phase_name: versioning-readme-positioning
 ---
 
 # Project State
@@ -24,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-29 after chartering v1.22)
 
 **Core value:** Media, made durable.
-**Current focus:** Phase 114 — oss-trust-governance
+**Current focus:** Phase 115 — Versioning & README Positioning
 
 ## Current Position
 
-Phase: 114 (oss-trust-governance) — EXECUTING
-Plan: 2 of 2
-Status: Phase complete — ready for verification
-Last activity: 2026-06-30 — Phase 114 execution started
+Phase: 115 — Versioning & README Positioning
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-07-01 — Phase 114 complete, transitioned to Phase 115
 
 ### v1.22 roadmap (Phases 113–116) — natural-grouping order
 
@@ -78,14 +78,11 @@ green (135 test files; the async-safety meta-test governs `async: true`).
 
 ## Next Step
 
-**Plan Phase 113 (Evaluation Baseline & Release Hygiene):** `/gsd-plan-phase 113`. It is the milestone's
-opening phase and carries the one time-sensitive, independent item — cutting the stuck Hex 0.3.2 release
-so adopter-facing v1.21 `lib/` fixes reach adopters. EVAL-01 (the scored-weakness summary) is the opening
-artifact that becomes the prioritized work list for Phases 114/115. HYGIENE-01 must investigate why
-release-please did not open a 0.3.2 PR (reference: `reference_release_please_autopublish` — a merged
-release PR stuck on `autorelease: pending` blocks auto-publish). The remaining phases follow:
-governance/metadata (114) → positioning/docs (115) → `Rindle.Migration` LAST (116) so its docs converge
-with the 115 README/VERSION work.
+**Plan Phase 115 (Versioning & README Positioning):** `/gsd-plan-phase 115`. Phase 114 is complete after
+UAT confirmed GitHub Private Vulnerability Reporting renders the `Report a vulnerability` path. Phase 115
+closes the versioning / README positioning weaknesses from EVAL-01: pre-1.0 stability contract,
+generalized upgrade guide, image-first README first-run, and honest "when not to use" boundary. Phase 116
+remains LAST so its `Rindle.Migration` install/upgrade docs converge with the 115 README/VERSION work.
 
 ## Recently Shipped Milestone
 
@@ -184,8 +181,8 @@ _(none open for v1.22 at roadmap creation)_
 
 ## Session Continuity
 
-Last session: 2026-06-30T14:58:23.853Z
-Stopped at: Completed 114-02-PLAN.md
+Last session: 2026-07-01T01:21:45.397Z
+Stopped at: Phase 114 complete, ready to plan Phase 115
 Resume file: None
 
 ## Performance Metrics

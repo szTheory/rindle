@@ -38,7 +38,7 @@ versioned `Rindle.Migration` substrate (the only real code change, the v1.23 fou
 Phase 116 so its new install/upgrade docs converge coherently with the README/VERSION doc work in 115.
 
 - [ ] **Phase 113: Evaluation Baseline & Release Hygiene** - Opening scored-weakness summary, cut the stuck Hex 0.3.2 release to reach adopters, and reconcile planning truth
-- [ ] **Phase 114: OSS Trust & Governance** - SECURITY.md / CODE_OF_CONDUCT.md / issue+PR templates plus Hex `package` links + public owner verification
+- [x] **Phase 114: OSS Trust & Governance** - SECURITY.md / CODE_OF_CONDUCT.md / issue+PR templates plus Hex `package` links + public owner verification (completed 2026-07-01)
 - [ ] **Phase 115: Versioning & README Positioning** - SemVer/pre-1.0 stability contract, generalized upgrade guide, image-first skimmable README + "when not to use"
 - [ ] **Phase 116: Versioned `Rindle.Migration` Module** - Oban-style versioned `up/1`+`down/1` install path; adopter owns `oban_jobs`; non-breaking, defaults to `public`
 
@@ -174,7 +174,7 @@ work landed in 115)
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 113. Evaluation Baseline & Release Hygiene | 4/4 | Complete   | 2026-06-30 |
-| 114. OSS Trust & Governance | 2/2 | Complete   | 2026-06-30 |
+| 114. OSS Trust & Governance | 2/2 | Complete   | 2026-07-01 |
 | 115. Versioning & README Positioning | 0/? | Not started | - |
 | 116. Versioned `Rindle.Migration` Module | 0/? | Not started | - |
 
