@@ -1,8 +1,10 @@
+completed: 2026-07-01
 ---
 created: 2026-06-19T20:29:52.374Z
 title: Fix Docker demo startup warnings
 area: tooling
 files:
+
   - scripts/demo/up.sh
   - docker/compose.cohort-demo.yml
   - docker/Dockerfile.cohort-demo
@@ -11,6 +13,7 @@ files:
   - examples/adoption_demo/lib/adoption_demo/mux_cassette.ex:47
   - examples/adoption_demo/lib/adoption_demo/mux_cassette.ex:56
   - examples/adoption_demo/lib/adoption_demo/mux_cassette.ex:65
+
 ---
 
 ## Problem
@@ -26,4 +29,11 @@ The second warning is optional per Phoenix's own log text, but it degrades Docke
 
 ## Solution
 
-TBD. Investigate whether the Docker demo should include Mox in the relevant Mix environment, guard `AdoptionDemo.MuxCassette` behind dependency availability, or avoid compiling that module for the demo runtime. Separately decide whether to install `inotify-tools` in `docker/Dockerfile.cohort-demo` for clean live-reload DX or document the warning as accepted noise.
+Resolved 2026-07-01:
+
+- `examples/adoption_demo/mix.exs` now includes `mox` in both `:dev` and `:test`, matching the Cohort demo Docker image's `MIX_ENV=dev` compile path while preserving the existing test cassette behavior.
+- `docker/Dockerfile.cohort-demo` now installs `inotify-tools`, so Phoenix live-reload can attach to the filesystem watcher in the preview container instead of logging the `fs_inotify_bootstrap_error` warning.
+
+## Verification
+
+- `cd examples/adoption_demo && mix deps.get && mix compile --warnings-as-errors` passed on 2026-07-01.

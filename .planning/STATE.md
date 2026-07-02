@@ -123,7 +123,7 @@ release-coupling invariants held.
 
 ### Pending Todos
 
-- [2026-06-19] Fix Docker demo startup warnings — `./scripts/demo/up.sh` logs missing Mox warnings from `AdoptionDemo.MuxCassette` and missing `inotify-tools` / `fs_inotify_bootstrap_error` for Phoenix live-reload inside the Cohort demo container. (Carried across v1.20/v1.21; outside both scopes; future DX milestone.)
+_(none)_
 
 ### v1.22 charter context (carried from SEED-005 + recon, 2026-06-29)
 
@@ -190,7 +190,6 @@ _(none open for v1.22 at roadmap creation)_
 | testing | `mix test --partitions` parallelization | evidence-gated on measured core-starvation (DEFER-02) |
 | tus | IETF RUFH / tus 2.0; GCS-as-tus-backend; standalone tus JS client; richer uploader abstractions | deferred / out of scope |
 | polish | Signed dynamic image transforms (TRANS-01); EXIF privacy stripping (PRIV-01) | deferred |
-| tooling | `2026-06-19-fix-docker-demo-startup-warnings.md` todo | deferred — Cohort demo Docker startup warnings (Mox compile warnings + `inotify-tools` live-reload); cosmetic; future DX milestone |
 
 ## Session Continuity
 
