@@ -14,7 +14,7 @@ PR lane in `.planning/DEVELOPMENT-TRAIN.md`.
 - GSD posture: `demand-gated-pause` (formalized 2026-05-27)
 - Release automation: Release Please + exact-ref dispatch publish (see `.github/workflows/release.yml`)
 - Last publish workflow: https://github.com/szTheory/rindle/actions/runs/28420598348
-- Last publish CI gate: https://github.com/szTheory/rindle/actions/runs/28420598348 (gate-ci-green on merge SHA `d228b67`)
+- Last publish CI gate: https://github.com/szTheory/rindle/actions/runs/28420474641
 - Last public verify: https://github.com/szTheory/rindle/actions/runs/28420598348 (Hex index + `scripts/public_smoke.sh` passed)
 
 Update this section after each successful Hex publish with run ID, version, and public-smoke proof.

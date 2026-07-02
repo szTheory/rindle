@@ -2,6 +2,25 @@
 
 0.1.0-0.1.3 were release-pipeline shakedown iterations; treat 0.1.4 as the first recommended pin.
 
+## [0.3.2](https://github.com/szTheory/rindle/compare/rindle-v0.3.1...rindle-v0.3.2) (2026-06-30)
+
+
+### Features
+
+* **112-01:** add lean adoption-demo-e2e-smoke PR job to ci.yml ([0cb6b93](https://github.com/szTheory/rindle/commit/0cb6b93265c2c1c6515aa5dc996e9070be082f25))
+* **112-01:** thread ADOPTION_DEMO_E2E_SPECS through e2e_local.sh ([046a579](https://github.com/szTheory/rindle/commit/046a579ba6f171c3cb8387bb438d70fdde974299))
+* **112-02:** wire adoption-demo-e2e-smoke into ci-summary + ci-observability needs ([68046c6](https://github.com/szTheory/rindle/commit/68046c6e65da525e81d54ade97af6dd00737c9c3))
+
+
+### Bug Fixes
+
+* **109-01:** absorb MuonTrap [#98](https://github.com/szTheory/rindle/issues/98) :epipe exit at the AV chokepoint ([ce18719](https://github.com/szTheory/rindle/commit/ce18719b6a8305c92c6515114f8d9c945d9e6bb4))
+* **109:** realign OBS-02 meta-test to phase-108 coveralls.multiple gate ([3a4a99c](https://github.com/szTheory/rindle/commit/3a4a99c037df8aaab7a3ec77d2bb5934986a04a3))
+* **110-01:** expose test-only put_repo_override/1 + delete_repo_override/0 ([830a9a4](https://github.com/szTheory/rindle/commit/830a9a495caae96f76cb812d14cc7a93528e44eb))
+* **110-01:** resolve a $callers-aware per-process repo override before app env ([9948a22](https://github.com/szTheory/rindle/commit/9948a22685f26021a03e13e006f329e977600c71))
+* **110-04:** tuple-safe $callers dict read in repo override resolver ([80ab4e1](https://github.com/szTheory/rindle/commit/80ab4e169d8898f5b8ee8aaf75c1781a33a9adbf))
+* green up main after v1.20 phase-dir archive + decouple install_smoke from planning paths ([#45](https://github.com/szTheory/rindle/issues/45)) ([dacdbb2](https://github.com/szTheory/rindle/commit/dacdbb2b6508166f84b2f87cadf97a3f3de9e379))
+
 ## [0.3.1](https://github.com/szTheory/rindle/compare/rindle-v0.3.0...rindle-v0.3.1) (2026-06-26)
 
 
