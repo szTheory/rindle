@@ -1,10 +1,12 @@
 ---
 phase: 115
 slug: versioning-readme-positioning
-status: draft
+status: complete
 nyquist_compliant: true
-wave_0_complete: false
+wave_0_complete: true
 created: 2026-07-01
+updated: 2026-07-02
+validated: 2026-07-02
 ---
 
 # Phase 115 - Validation Strategy
@@ -39,10 +41,10 @@ created: 2026-07-01
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 115-01-01 | 01 | 1 | VERSION-01 | N/A | N/A | task-local source/order sampling | Node stability-contract check from `115-01-PLAN.md` Task 1; docs parity enforced by Task 3 and final verification | W0 | pending |
-| 115-01-02 | 01 | 1 | VERSION-02 | N/A | N/A | task-local source/order sampling | Node upgrade-guide structure check from `115-01-PLAN.md` Task 1; docs parity enforced by Task 3 and final verification | W0 | pending |
-| 115-01-03 | 01 | 1 | README-01 | N/A | Avoid overclaiming dependency-free runtime behavior | docs parity | `MIX_ENV=test mix test test/install_smoke/docs_parity_test.exs --trace` | W0 | pending |
-| 115-01-04 | 01 | 1 | README-02 | N/A | N/A | docs parity | `MIX_ENV=test mix test test/install_smoke/docs_parity_test.exs --trace` | W0 | pending |
+| 115-01-01 | 01 | 1 | VERSION-01 | N/A | N/A | task-local source/order sampling | Node stability-contract check from `115-01-PLAN.md` Task 1; docs parity enforced by Task 3 and final verification | exists | green |
+| 115-01-02 | 01 | 1 | VERSION-02 | N/A | N/A | task-local source/order sampling | Node upgrade-guide structure check from `115-01-PLAN.md` Task 1; docs parity enforced by Task 3 and final verification | exists | green |
+| 115-01-03 | 01 | 1 | README-01 | N/A | Avoid overclaiming dependency-free runtime behavior | docs parity | `MIX_ENV=test mix test test/install_smoke/docs_parity_test.exs --trace` | exists | green |
+| 115-01-04 | 01 | 1 | README-02 | N/A | N/A | docs parity | `MIX_ENV=test mix test test/install_smoke/docs_parity_test.exs --trace` | exists | green |
 
 *Status: pending / green / red / flaky*
 
@@ -50,11 +52,11 @@ created: 2026-07-01
 
 ## Wave 0 Requirements
 
-- [ ] `test/install_smoke/docs_parity_test.exs` reads `CONTRIBUTING.md` in setup.
-- [ ] `test/install_smoke/docs_parity_test.exs` asserts README and CONTRIBUTING include the pre-1.0 stability contract and 1.0 meaning.
-- [ ] `test/install_smoke/docs_parity_test.exs` asserts `guides/upgrading.md` has a reusable versioned structure while preserving existing pre-0.1.4 upgrade proof content.
-- [ ] `test/install_smoke/docs_parity_test.exs` asserts the README image-first first attachment section appears before the AV quickstart section.
-- [ ] `test/install_smoke/docs_parity_test.exs` asserts README contains the "what Rindle is not / when not to use it" boundary.
+- [x] `test/install_smoke/docs_parity_test.exs` reads `CONTRIBUTING.md` in setup.
+- [x] `test/install_smoke/docs_parity_test.exs` asserts README and CONTRIBUTING include the pre-1.0 stability contract and 1.0 meaning.
+- [x] `test/install_smoke/docs_parity_test.exs` asserts `guides/upgrading.md` has a reusable versioned structure while preserving existing pre-0.1.4 upgrade proof content.
+- [x] `test/install_smoke/docs_parity_test.exs` asserts the README image-first first attachment section appears before the AV quickstart section.
+- [x] `test/install_smoke/docs_parity_test.exs` asserts README contains the "what Rindle is not / when not to use it" boundary.
 
 ---
 
@@ -76,4 +78,15 @@ created: 2026-07-01
 - [x] Feedback latency target < 60s for quick docs parity
 - [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** passed
+
+## Validation Audit 2026-07-02
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+Phase verification later proved all Phase 115 requirements with automated evidence: source/order checks,
+docs parity regression tests, formatting checks, and rendered-doc link checks. No additional tests were required.

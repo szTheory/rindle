@@ -2,6 +2,71 @@
 
 ---
 
+## Milestone: v1.22 — OSS Quality & Trust Hardening
+
+**Shipped:** 2026-07-02
+**Phases:** 4 (113–116) | **Plans:** 14 | **Tasks:** 28
+**Audit:** passed (14/14 requirements, 4/4 phases, 9/9 integration links, 6/6 E2E flows)
+
+### What Was Built
+
+- Evaluation baseline and release hygiene: an OSS-quality weakness map, release-train recurrence guards,
+  and a live Hex 0.3.2 reconciliation after the expired release token stalled release-please.
+- OSS trust surfaces: `SECURITY.md`, `CODE_OF_CONDUCT.md`, issue forms, PR template, security intake, and
+  install-smoke coverage for the public governance files.
+- Hex/package trust: package links now expose GitHub, Changelog, and HexDocs; public verification checks
+  the Hex owner-derived maintainer signal instead of relying on tarball metadata that Hex does not emit.
+- Versioning and README positioning: pre-1.0 stability contract, upgrade guide, image-first onboarding,
+  and docs parity tests around those claims.
+- Versioned `Rindle.Migration`: host apps pin Rindle-owned migrations while Oban remains host-owned; doctor
+  and runtime status now distinguish Rindle schema readiness from host-owned Oban setup.
+
+### What Worked
+
+- Release truth was corrected against live state before documentation claims changed: 0.3.2 was not treated
+  as shipped until Hex and release-please evidence existed.
+- The trust/governance work stayed mostly docs and package metadata, keeping the real runtime blast radius
+  concentrated in Phase 116.
+- Pulling `Rindle.Migration` into v1.22 de-risked the future v1.23 schema-prefix flip without making the
+  breaking change yet.
+- Final closeout resolved the stale docker demo startup todo and normalized Nyquist validation metadata
+  before archiving, so no open artifacts were carried forward.
+
+### What Was Inefficient
+
+- The initial metadata success criterion assumed `:maintainers` would be present in unpacked Hex metadata;
+  the implementation had to pivot to the public Hex owner signal.
+- Several validation files were behaviorally complete but frontmatter-incomplete, which made the closeout
+  audit noisier than the shipped code warranted.
+- Release-please recovery needed operator intervention because the available PAT lacked Actions write scope;
+  the durable release-token fix remains outside the milestone.
+
+### Patterns Established
+
+- Public package trust should verify emitted Hex metadata for links and use Hex owner data for maintainer
+  provenance.
+- Host-owned dependency storage needs explicit documentation, generated-app proof, and runtime/doctor
+  messaging that does not imply Rindle owns the external table.
+- Planning closeout should audit open todos, release truth, and Nyquist frontmatter before running
+  `milestone.complete`.
+
+### Key Lessons
+
+- Do not trust release prose over the live package index; reconcile Hex, release-please, and version files
+  before declaring a release shipped.
+- Metadata assertions should target what the ecosystem actually serializes, not what Mix project config
+  accepts.
+- A non-breaking substrate phase can be the right place to land migration ownership boundaries ahead of a
+  future breaking schema default.
+
+### Cost Observations
+
+- Sessions: multi-session over 2026-06-29 → 2026-07-02 (4 days, charter to archive).
+- Notable: the milestone had one concentrated runtime/migration phase and three mostly docs/trust/release
+  phases; closeout cost was dominated by release-state reconciliation and planning-artifact normalization.
+
+---
+
 ## Milestone: v1.21 — CI/DX Reliability Tail
 
 **Shipped:** 2026-06-29
@@ -464,18 +529,18 @@ STREAM-10 not built (Mux-only adapter); batch erasure does not propagate force o
 
 ## Cross-Milestone Trends
 
-| Trend | v1.1 | v1.2 | v1.5 | v1.6 | v1.16 | v1.20 | v1.21 |
-|-------|------|------|------|------|-------|-------|-------|
-| Cleanup phases needed | 0 | 2 (Phases 13, 14) | 0 | 0 | 1 (Phase 77) | 0 | 0 |
-| Audit status at close | passed | tech_debt (closed) | passed | acknowledged-and-defer | no dedicated audit (gap-closure) | passed | passed (1 todo deferred) |
-| Plans per phase (avg) | 3.0 | 2.2 | 3.5 | 3.75 | 3.3 | 3.4 | 2.6 |
-| Phase count | 4 | 5 | 4 | 4 | 3 | 5 | 5 |
-| Files changed | — | 60 | — | 144 | 19 | — (0 `lib/`) | 49 (3 `lib/`) |
-| Timeline (days) | — | 5 | 2 | ~1 (~22h) | 1 | 3 | 4 |
-| Optional phase deferred | — | — | — | Phase 37 (deferred to v1.7) | — | — | — |
+| Trend | v1.1 | v1.2 | v1.5 | v1.6 | v1.16 | v1.20 | v1.21 | v1.22 |
+|-------|------|------|------|------|-------|-------|-------|-------|
+| Cleanup phases needed | 0 | 2 (Phases 13, 14) | 0 | 0 | 1 (Phase 77) | 0 | 0 | 0 |
+| Audit status at close | passed | tech_debt (closed) | passed | acknowledged-and-defer | no dedicated audit (gap-closure) | passed | passed (1 todo deferred) | passed |
+| Plans per phase (avg) | 3.0 | 2.2 | 3.5 | 3.75 | 3.3 | 3.4 | 2.6 | 3.5 |
+| Phase count | 4 | 5 | 4 | 4 | 3 | 5 | 5 | 4 |
+| Files changed | — | 60 | — | 144 | 19 | — (0 `lib/`) | 49 (3 `lib/`) | — |
+| Timeline (days) | — | 5 | 2 | ~1 (~22h) | 1 | 3 | 4 | 4 |
+| Optional phase deferred | — | — | — | Phase 37 (deferred to v1.7) | — | — | — | schema flip to v1.23 candidate |
 
 **Recurring observation:** Each milestone has ended with some planning artifact debt (stale STATE.md references, incomplete VALIDATION files, metadata inconsistencies, REQUIREMENTS.md checkboxes not flipped). The debt accumulates faster than it is addressed during execution. A milestone-close checklist that explicitly audits these before declaring done would reduce closure phase count.
 
 **v1.6 trend:** First milestone to formalize "acknowledged-and-defer" close mode — recognizing that some artifact-and-wiring-complete phases route observable proof to CI/maintainer environments by design. The audit semantics need to evolve to distinguish these from real gaps. Optional-phase deferral (Phase 37 → v1.7) emerged as a clean scope-management primitive separate from cleanup-phase work.
 
-**v1.20→v1.21 trend (DX/infra pair):** Two consecutive non-feature/DX milestones cleared the recurring artifact-debt pattern — both closed with audit `passed` and **zero cleanup phases**, reversing the "each milestone ends with planning debt" observation above. The decisive change was archiving phase dirs at the prior close so `milestone.complete` scopes counts/accomplishments correctly (v1.20 required a full manual MILESTONES rewrite from over-counting; v1.21 needed none). The one persistent gap across both is **human-attested acceptance criteria** (runtime p95, "N green main runs") that resist ExUnit automation — modeled as explicit operator checkpoints with a recorded pass (v1.21 GATE-02/04 on PR #46) rather than skipped or faked. Carry-over debt is now a single stale v1.18-era docker-demo-warnings todo, re-deferred at both closes.
+**v1.20→v1.22 trend (DX/quality arc):** Three consecutive non-feature quality milestones closed with audit `passed` and **zero cleanup phases**, reversing the "each milestone ends with planning debt" observation above. The decisive changes were archiving phase dirs at close, resolving open todos instead of repeatedly deferring them, and normalizing validation metadata before milestone archive. The recurring hard part remains **environment/live-state acceptance criteria** (runtime p95, "N green main runs", live Hex release truth) that resist pure ExUnit automation; model them as explicit operator checkpoints with recorded evidence, then convert any repeatable part into shipped-artifact tests or scripts.

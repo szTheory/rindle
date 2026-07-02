@@ -1,74 +1,45 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.22
-milestone_name: OSS Quality & Trust Hardening
-current_phase: 116
-status: verifying
-stopped_at: Completed 116-07-PLAN.md
-last_updated: "2026-07-01T23:03:35.524Z"
-last_activity: 2026-07-01
-last_activity_desc: Phase 116 complete
+milestone: null
+milestone_name: none
+current_phase: null
+status: Awaiting next milestone
+stopped_at: Completed v1.22 milestone archive
+last_updated: "2026-07-02T12:40:56.088Z"
+last_activity: 2026-07-02
+last_activity_desc: Milestone v1.22 completed and archived
 progress:
   total_phases: 4
   completed_phases: 4
   total_plans: 14
   completed_plans: 14
   percent: 100
-current_phase_name: versioned-rindle-migration-module
+current_phase_name: none
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-06-29 after chartering v1.22)
+See: .planning/PROJECT.md (updated 2026-07-02 after shipping v1.22)
 
 **Core value:** Media, made durable.
-**Current focus:** Phase 116 — versioned-rindle-migration-module
+**Current focus:** Awaiting next milestone
 
 ## Current Position
 
-Phase: 116
-Plan: Not started
-Status: Phase complete — ready for verification
-Last activity: 2026-07-01 — Phase 116 complete
+Phase: Milestone v1.22 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-07-02 — Milestone v1.22 completed and archived
 
-### v1.22 roadmap (Phases 113–116) — natural-grouping order
+### v1.22 shipped summary
 
-Chartered 2026-06-29 from SEED-005, the non-feature signal for the two-milestone software-quality
-consolidation arc (v1.22 trust hardening → v1.23 Postgres schema isolation). Phase numbering continues
-from v1.21's Phase 112. Non-feature/DX milestone; ships a **0.3.x minor** (0.4.0 reserved for v1.23's
-breaking schema isolation). Low risk, mostly-independent requirements — phases group naturally rather
-than form a deep dependency chain. Two ordering notes are load-bearing: the time-sensitive release
-unstick (HYGIENE-01) lands EARLY (Phase 113) to reach adopters; the versioned `Rindle.Migration`
-substrate (the only real code change, the v1.23 foundation) lands LAST (Phase 116) so its install/upgrade
-docs converge with the 115 README/VERSION work.
-
-- **Phase 113 — Evaluation Baseline & Release Hygiene** (EVAL-01, HYGIENE-01, HYGIENE-02): the
-  milestone's opening artifact — a concise, evidence-cited scored-weakness summary (right-sized, not
-  the full 36-dimension report). Cut the stuck Hex **0.3.2** release so the merged-but-unreleased v1.21
-  `lib/` fixes (`:epipe` absorb, `$callers` config override) reach adopters — and investigate WHY
-  release-please never opened a 0.3.2 PR (Hex live = 0.3.1). Reconcile PROJECT.md / MILESTONES "ships as
-  Hex 0.3.2" aspirational prose with reality. Fix stale SEED-003 / SEED-004 `status: open` → `consumed`.
-
-- **Phase 114 — OSS Trust & Governance** (TRUST-01..03, META-01..02): `SECURITY.md`
-  (untrusted-uploads/MIME-sniffing/signed-delivery/webhook-HMAC disclosure policy), `CODE_OF_CONDUCT.md`,
-  `.github/ISSUE_TEMPLATE/` + `PULL_REQUEST_TEMPLATE.md` newcomer on-ramp, and Hex `package.links`
-  "Changelog"/"Docs" + `maintainers`. Doc/metadata only; no `lib/` change.
-
-- **Phase 115 — Versioning & README Positioning** (VERSION-01..02, README-01..02): stated SemVer/pre-1.0
-  stability contract (README + CONTRIBUTING) + what 1.0 will mean; generalize `guides/upgrading.md` into a
-  reusable versioned-sections structure; lead the README with an image-only "first attachment in ~2
-  minutes" path (demote the FFmpeg/libvips-heavy AV quickstart) + a "what Rindle is NOT / when not to use"
-  block lifted from `guides/user_flows.md`. Docs only; no `lib/` change.
-
-- **Phase 116 — Versioned `Rindle.Migration` Module** (MIGRATE-01..02): the only real code change. Ship a
-  versioned, idempotent, Oban-style `Rindle.Migration.up/1` + `down/1` replacing the raw 15-file
-  `Ecto.Migrator` copy-paste install path (README/getting-started/upgrading show the new ~3-line
-  migration); stop creating the shared `oban_jobs` table (adopter owns `Oban.Migration`). **Non-breaking**
-  — default schema stays `public`, existing adopters' applied migrations stay valid. This is the
-  load-bearing foundation v1.23 builds the schema prefix onto. Touches `lib/` + `priv/`; doctor /
-  runtime_status migration-inspection must keep working alongside legacy 15-file installs.
+v1.22 OSS Quality & Trust Hardening shipped 2026-07-02 and is archived at
+`.planning/milestones/v1.22-ROADMAP.md`, `.planning/milestones/v1.22-REQUIREMENTS.md`, and
+`.planning/milestones/v1.22-MILESTONE-AUDIT.md`. It satisfied 14/14 requirements across Phases 113–116:
+EVAL/HYGIENE release truth, OSS governance and Hex metadata trust signals, versioning/README positioning,
+and the non-breaking versioned `Rindle.Migration` substrate with host-owned Oban setup.
 
 **Hard invariants (carry from v1.20/v1.21, highest blast radius):** never rename `ci.yml` / `name: CI`
 (release-train coupling via `release-please-automerge.yml` + `gate-ci-green`); `CI Summary` keeps
@@ -78,13 +49,10 @@ green (135 test files; the async-safety meta-test governs `async: true`).
 
 ## Next Step
 
-**Plan Phase 116 (Versioned `Rindle.Migration` Module):** `/gsd-plan-phase 116`. Phase 115 is verified
-and complete: README/CONTRIBUTING now state the pre-1.0 stability contract, `guides/upgrading.md` is a
-versioned upgrade home, README leads with an image-first first attachment path, and the product-fit
-boundary is locked by docs parity tests. Phase 116 remains LAST so its `Rindle.Migration` install/upgrade
-docs converge with the 115 README/VERSION work.
+Start the next milestone with `/skill:gsd-new-milestone`. The named candidate is v1.23 Postgres Schema
+Isolation (breaking 0.4.0), but it should get fresh requirements before phases are added.
 
-## Recently Shipped Milestone
+## Prior Milestone
 
 **v1.21 CI/DX Reliability Tail** (SEED-004) — shipped 2026-06-29, archived at
 `milestones/v1.21-ROADMAP.md`. Non-feature/DX milestone making the merge gate deterministic and
@@ -94,10 +62,9 @@ correction (EPIPE-01..05, TRUTH-01), `$callers`-aware process-scoped repo overri
 shipped-artifact regression-lock meta-tests (LOCK-01..05), and the lean `adoption-demo-e2e-smoke` PR lane
 wired into `CI Summary` LAST (GATE-01..04).
 
-> **Release-state note carried into v1.22:** the two v1.21 `lib/` `fix:` patches are merged to `main`
-> but **0.3.2 was never published** (Hex live = 0.3.1; `mix.exs` / manifest / CHANGELOG all = 0.3.1; no
-> open release-please PR). The "ships as Hex 0.3.2" prose is aspirational. **v1.22 Phase 113 (HYGIENE-01)
-> cuts the stuck release and reconciles the claim.**
+> **Release-state reconciliation:** the two v1.21 `lib/` `fix:` patches are now live as Hex **0.3.2**.
+> v1.22 Phase 113 (HYGIENE-01) rotated the expired release token, unstuck release-please, cut the release,
+> and reconciled the planning claim against live Hex state.
 
 <details>
 <summary>v1.21 roadmap (Phases 108–112) — shipped, load-bearing order (collapsed)</summary>
@@ -140,20 +107,21 @@ _(none)_
   right that de-risks the v1.23 breaking schema flip. Full arc: SEED-005 +
   `/Users/jon/.claude/plans/software-quality-evaluation-prompt-txt-gleaming-sifakis.md`.
 
-- **HYGIENE-01 release-please investigation:** Hex live = 0.3.1, no `release rindle 0.3.2` commit, no open
-  release-please PR. See `reference_release_please_autopublish` — green main auto-publishes; a release PR
-  stuck on `autorelease: pending` stalls it (relabel to `tagged`). Pre-1.0 `feat:` → patch bump.
+- **HYGIENE-01 release-please investigation:** at charter, Hex live was 0.3.1 with no `release rindle
+  0.3.2` commit and no open release-please PR. Phase 113 resolved it: Hex 0.3.2 is live, the release-train
+  notes are reconciled, and the remaining durable improvement is an Actions-capable release token or GitHub
+  App token.
 
 ### Next milestone after v1.22
 
 **v1.23 Postgres Schema Isolation** (breaking → 0.4.0): `rindle` schema default via config-driven
 `@schema_prefix`; 4 manual escapes (2 raw-SQL `runtime_checks.ex` + 2 Oban-binding queries); one-line
-`prefix: "public"` opt-out + `ALTER TABLE … SET SCHEMA` move migration. Requirements ISO23-01..04 tracked
-in REQUIREMENTS.md (Future Requirements section). Builds on the v1.22 `Rindle.Migration` substrate.
+`prefix: "public"` opt-out + `ALTER TABLE … SET SCHEMA` move migration. Re-charter from the ISO23 notes in
+the v1.22 requirements archive. Builds on the v1.22 `Rindle.Migration` substrate.
 
 ## Decisions
 
-_(v1.22 phase-execution decisions accumulate here as phases are planned and executed.)_
+_(Key v1.22 execution decisions recorded at milestone close.)_
 
 - [Phase 113]: EVAL-01 — v1.22-OSS-QUALITY-EVAL.md authored; weakness→closing-phase column mapped byte-faithful to REQUIREMENTS.md (governance→114, versioning/README→115, host-respect→116, schema-flip→v1.23 ISO23); scores lifted from SEED-005, not re-derived.
 - [Phase 113]: HYGIENE-02 — SEED-003/004 frontmatter corrected status: open→consumed with consumed:/consumed_by: attribution (D-14).
@@ -161,7 +129,7 @@ _(v1.22 phase-execution decisions accumulate here as phases are planned and exec
 - [Phase ?]: D-07: recorded the CORRECTED stuck-release root cause (PR #40 = the 0.3.1 PR; fixes merged 2026-06-28; run 28399407429 401'd on expired RELEASE_PLEASE_TOKEN) in runbook + ledger; refuted the superseded PR-#40-was-0.3.2 framing
 - [Phase ?]: [Phase 113]: HYGIENE-01 — Hex 0.3.2 cut live (run 28420598348, merge d228b67) after a THREE-fix unstick (rotate expired RELEASE_PLEASE_TOKEN + relabel #40 pending->tagged + manual publish-dispatch since PAT lacked Actions:write); D-12 honored — live-truth edits committed only after publish observed. Durable fix pending: add Actions:write to PAT or move to GitHub App token.
 - [Phase 114]: Phase 114 Plan 01 kept governance artifacts repo-only and did not touch mix.exs or package metadata scope.
-- [Phase 114]: Phase 114 Plan 02 verifies META-02 maintainers from Mix.Project package config because Hex 2.5 unpacked metadata does not serialize :maintainers for this package. — Preserves the maintainer declaration success criterion while keeping generated metadata assertions focused on links that Hex emits locally.
+- [Phase 114]: Phase 114 Plan 02 verifies META-02 maintainers from Hex owner-derived public API data because Hex 2.5 unpacked tarball metadata does not serialize `:maintainers` for this package. — Preserves the maintainer trust signal while keeping generated metadata assertions focused on links that Hex emits locally.
 - [Phase 115]: Phase 115 stayed docs-only with no runtime, migration API, release-version, dependency, CSS, or JS changes. — The plan and phase context scoped this as README, CONTRIBUTING, upgrading guide, and docs parity work only.
 - [Phase 115]: guides/upgrading.md is the reusable action-oriented upgrade home; CHANGELOG.md remains release history. — This closes VERSION-02 and gives Phase 116 a versioned docs structure for migration upgrade notes.
 - [Phase 115]: README first-run onboarding now leads with an original-only image attachment path before AV setup. — This closes README-01 while keeping FFmpeg/libvips dependency details linked from RUNNING.md.
@@ -215,3 +183,7 @@ Resume file: None
 | Phase 116 P05 | 11 min | 2 tasks | 4 files |
 | Phase 116 P06 | 10 min | 3 tasks | 5 files |
 | Phase 116 P07 | 5 min | 2 tasks | 1 files |
+
+## Operator Next Steps
+
+- Start the next milestone with /gsd-new-milestone

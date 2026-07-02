@@ -9,6 +9,7 @@ provides:
   - EVAL-01
   - HYGIENE-02
   - "v1.22-OSS-QUALITY-EVAL.md (dimension→phase work-list consumed by 114/115/116)"
+requirements-completed: [EVAL-01, HYGIENE-02]
 affects:
   - "Phase 114 (TRUST/META) — consumes governance-2/5 row"
   - "Phase 115 (VERSION/README) — consumes versioning-2/5 + README-2.5/5 rows"
