@@ -73,45 +73,38 @@ defmodule Rindle.Config.ConfigTest do
     assert "host_oban" == Rindle.Config.oban_prefix()
   end
 
-  test "defaults a newly compiled Rindle schema to the rindle prefix" do
+  test "newly compiled Rindle schemas retain the already-compiled prefix authority" do
     previous_rindle_prefix = Application.get_env(:rindle, :rindle_prefix)
-    module = Module.concat(Rindle, "DefaultPrefixSchema#{System.unique_integer([:positive])}")
+    module = Module.concat(Rindle, "CompiledPrefixSchema#{System.unique_integer([:positive])}")
+    configured_prefix = opposite_prefix(Rindle.Schema.prefix())
 
     on_exit(fn ->
       restore_env(:rindle_prefix, previous_rindle_prefix)
     end)
 
-    Application.delete_env(:rindle, :rindle_prefix)
+    Application.put_env(:rindle, :rindle_prefix, configured_prefix)
 
     Code.compile_string("""
     defmodule #{inspect(module)} do
       use Rindle.Schema
-      schema "default_prefix_schemas" do
+      schema "compiled_prefix_schemas" do
       end
     end
     """)
 
-    assert "rindle" == module.__schema__(:prefix)
-    assert "rindle" == struct(module).__meta__.prefix
+    assert configured_prefix != Rindle.Schema.prefix()
+    assert Rindle.Schema.prefix() == module.__schema__(:prefix)
+    assert Rindle.Schema.prefix() == struct(module).__meta__.prefix
   end
 
-  test "rejects unsupported prefixes when a schema is compiled" do
-    previous_rindle_prefix = Application.get_env(:rindle, :rindle_prefix)
-
-    on_exit(fn ->
-      restore_env(:rindle_prefix, previous_rindle_prefix)
-    end)
-
-    Application.put_env(:rindle, :rindle_prefix, "tenant_private")
-
+  test "rejects unsupported prefixes" do
     assert_raise ArgumentError, ~r/expected :rindle_prefix.*"rindle".*"public"/, fn ->
-      Code.compile_string("""
-      defmodule Rindle.InvalidPrefixSchema do
-        use Rindle.Schema
-      end
-      """)
+      Rindle.Schema.validate_prefix!("tenant_private")
     end
   end
+
+  defp opposite_prefix("rindle"), do: "public"
+  defp opposite_prefix("public"), do: "rindle"
 
   defp restore_env(key, nil), do: Application.delete_env(:rindle, key)
   defp restore_env(key, value), do: Application.put_env(:rindle, key, value)
