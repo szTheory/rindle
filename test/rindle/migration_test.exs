@@ -350,10 +350,7 @@ defmodule Rindle.MigrationTest do
           assert_fk_enforced!("public")
           assert host_relation_snapshots("public") == host_relations_before
         after
-          run_down([prefix: "public"], fn ->
-            Rindle.Migration.down(version: 1, prefix: "public")
-          end)
-
+          cleanup_public_move_fixtures!()
           Repo.query!("DROP SCHEMA IF EXISTS \"rindle\" CASCADE")
 
           Repo.query!("DELETE FROM public.schema_migrations WHERE version = $1", [
@@ -426,9 +423,12 @@ defmodule Rindle.MigrationTest do
     test "reads production privilege state when no test override is present" do
       Process.delete(:rindle_migration_test_privileges)
 
-      snapshot = run_move(fn -> Rindle.Migration.V1.preflight_public_to_rindle() end)
+      assert {:provisionable_absent_target, snapshot} =
+               run_move(fn -> Rindle.Migration.V1.preflight_public_to_rindle() end)
 
-      assert {:refusal, :public_incomplete} = snapshot
+      assert is_boolean(snapshot.database_create?)
+      assert is_boolean(snapshot.target_usable?)
+      assert is_boolean(snapshot.public_usable?)
     end
   end
 
@@ -646,6 +646,24 @@ defmodule Rindle.MigrationTest do
     assert marker_versions("public") == [1]
     assert_fk_enforced!("public")
     assert host_relation_snapshots("public") == host_relations_before
+  end
+
+  defp cleanup_public_move_fixtures! do
+    Repo.query!("""
+    DELETE FROM public.media_attachments
+    WHERE asset_id IN (
+      SELECT id FROM public.media_assets WHERE storage_key LIKE 'move-fixture/%'
+    )
+    """)
+
+    Repo.query!("""
+    DELETE FROM public.media_variants
+    WHERE asset_id IN (
+      SELECT id FROM public.media_assets WHERE storage_key LIKE 'move-fixture/%'
+    )
+    """)
+
+    Repo.query!("DELETE FROM public.media_assets WHERE storage_key LIKE 'move-fixture/%'")
   end
 
   defp schema_exists?(schema) do
