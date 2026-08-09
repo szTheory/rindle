@@ -5,15 +5,15 @@ milestone_name: Postgres Schema Isolation
 current_phase: 117
 current_phase_name: prefix-routing-architecture
 status: verifying
-stopped_at: Completed 117-02-PLAN.md
-last_updated: "2026-08-09T01:45:33.263Z"
+stopped_at: Completed 117-03-PLAN.md
+last_updated: "2026-08-09T02:22:08.729Z"
 last_activity: 2026-08-08
 last_activity_desc: Phase 117 execution started
 progress:
   total_phases: 4
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 3
+  completed_plans: 3
   percent: 25
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-07-02 after shipping v1.22)
 ## Current Position
 
 Phase: 117 (prefix-routing-architecture) — EXECUTING
-Plan: 2 of 2
+Plan: 3 of 3
 Status: Phase complete — ready for verification
 Last activity: 2026-08-08 — Phase 117 execution started
 
@@ -162,6 +162,8 @@ _(Key v1.22 execution decisions recorded at milestone close.)_
 - [Phase ?]: Phase 117 Plan 01: all six Rindle-owned schemas use a validated compile-time Rindle.Schema prefix; only rindle and public are supported, while Oban stays independent.
 - [Phase ?]: Phase 117 Plan 02: Prefix isolation tests use public as the selected compatibility build and rindle as the decoy until Phase 118 provisions rindle.
 - [Phase ?]: Phase 117 Plan 02: AST contract tests prohibit owned schemas from bypassing Rindle.Schema with direct Ecto.Schema or @schema_prefix.
+- [Phase ?]: Phase 117 Plan 03: Rindle.Schema binds its compiled prefix before consumer expansion and rejects final Ecto metadata mutations after compilation.
+- [Phase ?]: Phase 117 Plan 03: Runtime application-env changes cannot retarget Rindle schema metadata; Oban remains host-owned and independent.
 
 ## Blockers/Concerns
 
@@ -180,8 +182,8 @@ _(none open for v1.22 at roadmap creation)_
 
 ## Session Continuity
 
-Last session: 2026-08-09T01:45:33.257Z
-Stopped at: Completed 117-02-PLAN.md
+Last session: 2026-08-09T02:21:53.242Z
+Stopped at: Completed 117-03-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -208,6 +210,7 @@ Resume file: None
 |------|----------|-------|-------|
 | Phase 117 P01 | 4 min | 2 tasks | 12 files |
 | Phase 117 P02 | 3 min | 3 tasks | 3 files |
+| Phase 117 P03 | 4min | 2 tasks | 3 files |
 
 ## Operator Next Steps
 
