@@ -71,24 +71,42 @@ defmodule Rindle.Migration do
   @spec move_public_to_rindle(keyword()) :: :ok
   def move_public_to_rindle(opts \\ []) when is_list(opts) do
     opts
-    |> validate_directional_move!()
+    |> validate_directional_move!(:move_public_to_rindle)
     |> V1.move_public_to_rindle()
+  end
+
+  @doc """
+  Moves the fixed V1 Rindle relation set from `rindle` back to `public`.
+
+  Use only from a quiesced host migration down path while state is exactly
+  reversible. It never drops the `rindle` schema and is distinct from the
+  destructive `down/1` teardown.
+
+  ## Options
+
+    * `:version` - required pinned migration version; only `1` is supported.
+  """
+  @spec move_rindle_to_public(keyword()) :: :ok
+  def move_rindle_to_public(opts \\ []) when is_list(opts) do
+    opts
+    |> validate_directional_move!(:move_rindle_to_public)
+    |> V1.move_rindle_to_public()
   end
 
   defp dispatch(%{version: 1} = opts, :up), do: V1.up(opts)
   defp dispatch(%{version: 1} = opts, :down), do: V1.down(opts)
 
-  defp validate_directional_move!(opts) do
+  defp validate_directional_move!(opts, function) do
     case opts do
       [version: 1] ->
         %{version: 1}
 
       [] ->
-        raise ArgumentError, "move_public_to_rindle/1 requires version: 1"
+        raise ArgumentError, "#{function}/1 requires version: 1"
 
       _ ->
         raise ArgumentError,
-              "move_public_to_rindle/1 accepts only version: 1; :prefix, :from, and :to are not supported"
+              "#{function}/1 accepts only version: 1; :prefix, :from, and :to are not supported"
     end
   end
 end

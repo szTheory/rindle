@@ -245,6 +245,34 @@ defmodule Rindle.MigrationTest do
         assert host_relation_snapshots("public") == host_relations_before
       end
     end
+
+    test "moves the exact populated relation set back to public without dropping rindle" do
+      reset_rindle_schema!()
+
+      run_up([prefix: "public"], fn ->
+        Rindle.Migration.up(version: 1, prefix: "public")
+      end)
+
+      fixture = insert_public_move_fixture!()
+      host_relations_before = host_relation_snapshots("public")
+      index_before = index_names("public", "media_assets")
+
+      assert :ok = run_move(fn -> Rindle.Migration.move_public_to_rindle(version: 1) end)
+      assert :ok = run_move(fn -> Rindle.Migration.move_rindle_to_public(version: 1) end)
+
+      assert schema_exists?("rindle")
+
+      for relation <- Rindle.Migration.V1.owned_relations() do
+        assert table_exists?("public", relation)
+        refute table_exists?("rindle", relation)
+      end
+
+      assert_fixture_present!("public", fixture)
+      assert marker_versions("public") == [1]
+      assert index_names("public", "media_assets") == index_before
+      assert_fk_enforced!("public")
+      assert host_relation_snapshots("public") == host_relations_before
+    end
   end
 
   defp run_up(fun) when is_function(fun, 0), do: run_migration(:up, [], fun)
