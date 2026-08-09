@@ -40,20 +40,6 @@ defmodule Rindle.SchemaPrefixContractTest do
     end
   end
 
-  test "schema declaration restores the authority after callback removal and prefix mutation" do
-    module = unique_module_name("CallbackRemovalPrefixOverride")
-    expected_prefix = Rindle.Schema.prefix()
-    actual_prefix = opposite_prefix(expected_prefix)
-
-    [{^module, _bytecode}] =
-      module
-      |> callback_removal_consumer_source(actual_prefix)
-      |> Code.compile_string()
-
-    assert module.__schema__(:prefix) == expected_prefix
-    assert struct(module).__meta__.prefix == expected_prefix
-  end
-
   test "rejects callback deletion plus raw Ecto declaration from a non-owned consumer" do
     module = unique_module_name("RawEctoCallbackDeletion")
     actual_prefix = opposite_prefix(Rindle.Schema.prefix())
@@ -105,19 +91,6 @@ defmodule Rindle.SchemaPrefixContractTest do
 
   defp opposite_prefix("rindle"), do: "public"
   defp opposite_prefix("public"), do: "rindle"
-
-  defp callback_removal_consumer_source(module, alternate_prefix) do
-    """
-    defmodule #{inspect(module)} do
-      use Rindle.Schema
-      Module.delete_attribute(__MODULE__, :after_compile)
-      Module.put_attribute(__MODULE__, :schema_prefix, #{inspect(alternate_prefix)})
-
-      schema "callback_removal_prefix_override_schemas" do
-      end
-    end
-    """
-  end
 
   defp raw_ecto_callback_deletion_consumer_source(module, alternate_prefix) do
     """

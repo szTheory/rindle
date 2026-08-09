@@ -2,6 +2,14 @@ defmodule Rindle.Schema do
   @moduledoc false
 
   @supported_prefixes ["rindle", "public"]
+  @owned_schema_modules [
+    Rindle.Domain.MediaAsset,
+    Rindle.Domain.MediaAttachment,
+    Rindle.Domain.MediaProcessingRun,
+    Rindle.Domain.MediaProviderAsset,
+    Rindle.Domain.MediaUploadSession,
+    Rindle.Domain.MediaVariant
+  ]
   @rindle_prefix Application.compile_env(:rindle, :rindle_prefix, "rindle")
 
   unless @rindle_prefix in @supported_prefixes do
@@ -14,6 +22,7 @@ defmodule Rindle.Schema do
   def prefix, do: @rindle_prefix
 
   defmacro __using__(_opts) do
+    validate_owned_schema!(__CALLER__.module)
     prefix = Rindle.Schema.prefix()
 
     quote bind_quoted: [prefix: prefix] do
@@ -62,5 +71,12 @@ defmodule Rindle.Schema do
   def validate_prefix!(prefix) do
     raise ArgumentError,
           "expected :rindle_prefix to be one of \"rindle\" or \"public\", got: #{inspect(prefix)}"
+  end
+
+  defp validate_owned_schema!(module) when module in @owned_schema_modules, do: :ok
+
+  defp validate_owned_schema!(module) do
+    raise ArgumentError,
+          "Rindle.Schema is internal to Rindle-owned domain schemas; unsupported caller #{inspect(module)}"
   end
 end
