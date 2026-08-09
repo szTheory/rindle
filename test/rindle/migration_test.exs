@@ -22,6 +22,15 @@ defmodule Rindle.MigrationTest do
     end
   end
 
+  defmodule LockContentionMoveMigration do
+    use Ecto.Migration
+
+    def up do
+      execute("SET LOCAL lock_timeout = '100ms'")
+      Rindle.Migration.move_public_to_rindle(version: 1)
+    end
+  end
+
   describe "Rindle.Migration.up/1" do
     test "defaults to rindle, provisions its schema, and records the current Rindle migration version" do
       reset_rindle_schema!()
@@ -289,6 +298,66 @@ defmodule Rindle.MigrationTest do
       assert_fk_enforced!("public")
       assert host_relation_snapshots("public") == host_relations_before
     end
+
+    test "turns synchronized lock contention into bounded guidance without leaking lock_timeout" do
+      reset_rindle_schema!()
+
+      run_up([prefix: "public"], fn ->
+        Rindle.Migration.up(version: 1, prefix: "public")
+      end)
+
+      fixture = insert_public_move_fixture!()
+      host_relations_before = host_relation_snapshots("public")
+      index_before = index_names("public", "media_assets")
+      lock_timeout_before = lock_timeout()
+
+      {holder, holder_backend_pid} = hold_access_exclusive_lock!("public", "media_assets")
+
+      assert holder_backend_pid != backend_pid(),
+             "expected a genuinely separate PostgreSQL backend"
+
+      assert_raise ArgumentError,
+                   ~r/keep Rindle writers and workers quiesced.*retry the host migration/is,
+                   fn ->
+                     Repo.transaction(fn ->
+                       run_move(fn -> LockContentionMoveMigration.up() end)
+                     end)
+                   end
+
+      release_lock!(holder)
+
+      assert lock_timeout() == lock_timeout_before
+      refute schema_exists?("rindle")
+
+      for relation <- Rindle.Migration.V1.owned_relations() do
+        assert table_exists?("public", relation)
+        refute table_exists?("rindle", relation)
+      end
+
+      assert_fixture_present!("public", fixture)
+      assert marker_versions("public") == [1]
+      assert index_names("public", "media_assets") == index_before
+      assert_fk_enforced!("public")
+      assert host_relation_snapshots("public") == host_relations_before
+    end
+
+    test "does not translate a non-lock Postgrex error" do
+      reset_rindle_schema!()
+
+      run_up([prefix: "public"], fn ->
+        Rindle.Migration.up(version: 1, prefix: "public")
+      end)
+
+      Process.put(:rindle_migration_test_postgrex_error, :undefined_table)
+
+      try do
+        assert_raise Postgrex.Error, ~r/undefined_table/, fn ->
+          run_move(fn -> Rindle.Migration.move_public_to_rindle(version: 1) end)
+        end
+      after
+        Process.delete(:rindle_migration_test_postgrex_error)
+      end
+    end
   end
 
   describe "documented host migration" do
@@ -413,6 +482,58 @@ defmodule Rindle.MigrationTest do
     on_exit(fn ->
       Repo.query!("DROP SCHEMA IF EXISTS \"rindle\" CASCADE")
     end)
+  end
+
+  defp hold_access_exclusive_lock!(schema, table) do
+    parent = self()
+
+    holder =
+      spawn_link(fn ->
+        {:ok, connection} = Postgrex.start_link(postgrex_connection_options())
+        {:ok, _} = Postgrex.query(connection, "BEGIN", [])
+
+        {:ok, _} =
+          Postgrex.query(
+            connection,
+            "LOCK TABLE #{qualified(schema, table)} IN ACCESS EXCLUSIVE MODE",
+            []
+          )
+
+        {:ok, %{rows: [[backend_pid]]}} =
+          Postgrex.query(connection, "SELECT pg_backend_pid()", [])
+
+        send(parent, {:rindle_migration_lock_acquired, self(), backend_pid})
+
+        receive do
+          :release_rindle_migration_lock ->
+            {:ok, _} = Postgrex.query(connection, "ROLLBACK", [])
+            :ok = GenServer.stop(connection)
+            send(parent, {:rindle_migration_lock_released, self()})
+        end
+      end)
+
+    assert_receive {:rindle_migration_lock_acquired, ^holder, backend_pid}, 1_000
+    {holder, backend_pid}
+  end
+
+  defp release_lock!(holder) do
+    send(holder, :release_rindle_migration_lock)
+    assert_receive {:rindle_migration_lock_released, ^holder}, 1_000
+  end
+
+  defp postgrex_connection_options do
+    Repo.config()
+    |> Keyword.take([:username, :password, :hostname, :port, :database, :ssl, :socket_options])
+  end
+
+  defp backend_pid do
+    %{rows: [[backend_pid]]} = Repo.query!("SELECT pg_backend_pid()")
+    backend_pid
+  end
+
+  defp lock_timeout do
+    %{rows: [[lock_timeout]]} = Repo.query!("SHOW lock_timeout")
+    lock_timeout
   end
 
   defp schema_exists?(schema) do
