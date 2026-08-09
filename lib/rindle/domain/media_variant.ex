@@ -24,11 +24,8 @@ defmodule Rindle.Domain.MediaVariant do
   behavior.
   """
 
-  use Ecto.Schema
+  use Rindle.Schema
   import Ecto.Changeset
-
-  @primary_key {:id, :binary_id, autogenerate: true}
-  @foreign_key_type :binary_id
 
   @states ~w(planned queued processing ready stale missing failed cancelled purged)
 

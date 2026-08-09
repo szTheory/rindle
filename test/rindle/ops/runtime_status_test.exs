@@ -85,33 +85,24 @@ defmodule Rindle.Ops.RuntimeStatusTest do
       assert is_list(recommendations)
     end
 
-    test "inspects configured Rindle prefix instead of silently falling back to public" do
-      prefix = temporary_prefix!()
-
-      Application.put_env(:rindle, :rindle_prefix, prefix)
+    test "does not let runtime configuration override the compiled Rindle prefix" do
+      Application.put_env(:rindle, :rindle_prefix, "runtime_override")
       Application.put_env(:rindle, :oban_prefix, "public")
 
-      assert {:error, {:setup_incomplete, :rindle_schema}} = RuntimeStatus.runtime_status([])
+      assert "public" == Rindle.Config.rindle_prefix()
+      assert {:ok, _report} = RuntimeStatus.runtime_status([])
     end
 
-    test "inspects configured Oban prefix after configured Rindle schema is ready" do
+    test "inspects configured Oban prefix after the compiled Rindle schema is ready" do
       prefix = temporary_prefix!()
 
-      run_rindle_migration_up(prefix)
-      Application.put_env(:rindle, :rindle_prefix, prefix)
       Application.put_env(:rindle, :oban_prefix, prefix)
 
       assert {:error, {:setup_incomplete, :oban_jobs}} = RuntimeStatus.runtime_status([])
     end
 
-    test "runtime report queries use the configured Rindle prefix after setup preflight" do
-      prefix = temporary_prefix!()
-
-      run_rindle_migration_up(prefix)
-      create_oban_jobs_table!(prefix)
-
-      Application.put_env(:rindle, :rindle_prefix, prefix)
-      Application.put_env(:rindle, :oban_prefix, prefix)
+    test "runtime report queries use the compiled Rindle prefix after setup preflight" do
+      prefix = Rindle.Config.rindle_prefix()
 
       asset =
         insert_prefixed_asset(prefix, %{
@@ -133,11 +124,8 @@ defmodule Rindle.Ops.RuntimeStatusTest do
       assert sample.asset_id == asset.id
     end
 
-    test "runtime checks inspect resumable schema in the configured Rindle prefix" do
-      prefix = temporary_prefix!()
-
-      run_rindle_migration_up(prefix)
-      Application.put_env(:rindle, :rindle_prefix, prefix)
+    test "runtime checks inspect resumable schema in the compiled Rindle prefix" do
+      prefix = Rindle.Config.rindle_prefix()
 
       assert prefixed_table_exists?(prefix, "media_upload_sessions")
 
@@ -560,28 +548,6 @@ defmodule Rindle.Ops.RuntimeStatusTest do
     end)
 
     prefix
-  end
-
-  defp run_rindle_migration_up(prefix) do
-    {:ok, runner} =
-      Ecto.Migration.Runner.start_link(
-        {self(), Rindle.Repo, Rindle.Repo.config(), __MODULE__, :forward, :up,
-         %{level: false, sql: false}}
-      )
-
-    Ecto.Migration.Runner.metadata(runner, prefix: prefix)
-
-    try do
-      Rindle.Migration.up(version: 1, prefix: prefix)
-      Ecto.Migration.Runner.flush()
-    after
-      if Process.alive?(runner), do: Ecto.Migration.Runner.stop()
-      Process.delete(:ecto_migration)
-    end
-  end
-
-  defp create_oban_jobs_table!(prefix) do
-    Rindle.Repo.query!("CREATE TABLE #{quote_ident(prefix)}.oban_jobs (id bigint PRIMARY KEY)")
   end
 
   defp prefixed_table_exists?(prefix, table) do

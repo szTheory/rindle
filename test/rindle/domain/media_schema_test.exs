@@ -33,8 +33,8 @@ defmodule Rindle.Domain.MediaSchemaTest do
       ]
 
       for schema <- schemas do
-        assert "rindle" == schema.__schema__(:prefix)
-        assert "rindle" == struct(schema).__meta__.prefix
+        assert Rindle.Config.rindle_prefix() == schema.__schema__(:prefix)
+        assert Rindle.Config.rindle_prefix() == struct(schema).__meta__.prefix
         assert :binary_id == schema.__schema__(:type, :id)
       end
 

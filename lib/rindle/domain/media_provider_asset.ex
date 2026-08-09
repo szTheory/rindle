@@ -29,11 +29,8 @@ defmodule Rindle.Domain.MediaProviderAsset do
   See `Rindle.Domain.ProviderAssetFSM` for the locked transition allowlist.
   """
 
-  use Ecto.Schema
+  use Rindle.Schema
   import Ecto.Changeset
-
-  @primary_key {:id, :binary_id, autogenerate: true}
-  @foreign_key_type :binary_id
 
   @states ~w(pending uploading processing ready errored deleted)
 

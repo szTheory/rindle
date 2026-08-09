@@ -68,9 +68,31 @@ defmodule Rindle.Config.ConfigTest do
 
     Application.put_env(:rindle, :oban_prefix, "host_oban")
 
-    assert "rindle" == Rindle.Config.rindle_prefix()
+    assert "public" == Rindle.Config.rindle_prefix()
     assert Rindle.Schema.prefix() == Rindle.Config.rindle_prefix()
     assert "host_oban" == Rindle.Config.oban_prefix()
+  end
+
+  test "defaults a newly compiled Rindle schema to the rindle prefix" do
+    previous_rindle_prefix = Application.get_env(:rindle, :rindle_prefix)
+    module = Module.concat(Rindle, "DefaultPrefixSchema#{System.unique_integer([:positive])}")
+
+    on_exit(fn ->
+      restore_env(:rindle_prefix, previous_rindle_prefix)
+    end)
+
+    Application.delete_env(:rindle, :rindle_prefix)
+
+    Code.compile_string("""
+    defmodule #{inspect(module)} do
+      use Rindle.Schema
+      schema "default_prefix_schemas" do
+      end
+    end
+    """)
+
+    assert "rindle" == module.__schema__(:prefix)
+    assert "rindle" == struct(module).__meta__.prefix
   end
 
   test "rejects unsupported prefixes when a schema is compiled" do

@@ -25,11 +25,8 @@ defmodule Rindle.Domain.MediaAsset do
   See the state table below for the supported lifecycle transitions.
   """
 
-  use Ecto.Schema
+  use Rindle.Schema
   import Ecto.Changeset
-
-  @primary_key {:id, :binary_id, autogenerate: true}
-  @foreign_key_type :binary_id
 
   @states [
     "staged",
