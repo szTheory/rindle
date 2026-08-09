@@ -1,10 +1,26 @@
 defmodule Rindle.MigrationTest do
   use Rindle.DataCase, async: false
 
+  alias Ecto.Adapters.SQL.Sandbox
   alias Rindle.Repo
 
   @marker_table Rindle.Migration.V1.marker_table()
   @rindle_tables Rindle.Migration.V1.rindle_tables()
+  @documented_move_migration_version 20_260_809_118_005
+
+  defmodule DocumentedMoveMigration do
+    use Ecto.Migration
+
+    def up do
+      execute("SET LOCAL lock_timeout = '5s'")
+      Rindle.Migration.move_public_to_rindle(version: 1)
+    end
+
+    def down do
+      execute("SET LOCAL lock_timeout = '5s'")
+      Rindle.Migration.move_rindle_to_public(version: 1)
+    end
+  end
 
   describe "Rindle.Migration.up/1" do
     test "defaults to rindle, provisions its schema, and records the current Rindle migration version" do
@@ -272,6 +288,95 @@ defmodule Rindle.MigrationTest do
       assert index_names("public", "media_assets") == index_before
       assert_fk_enforced!("public")
       assert host_relation_snapshots("public") == host_relations_before
+    end
+  end
+
+  describe "documented host migration" do
+    test "moves the populated fixed relation set through Ecto.Migrator and reverses it safely" do
+      Sandbox.unboxed_run(Repo, fn ->
+        Repo.query!("DROP SCHEMA IF EXISTS \"rindle\" CASCADE")
+
+        try do
+          run_up([prefix: "public"], fn ->
+            Rindle.Migration.up(version: 1, prefix: "public")
+          end)
+
+          Repo.query!(
+            "CREATE TABLE IF NOT EXISTS #{qualified("public", "oban_jobs")} (id bigint PRIMARY KEY)"
+          )
+
+          fixture = insert_public_move_fixture!()
+          oban_jobs_before = relation_snapshot("public", "oban_jobs")
+          index_before = index_names("public", "media_assets")
+          sequence_before = owned_sequences("public", "media_assets")
+
+          assert :ok =
+                   Ecto.Migrator.up(
+                     Repo,
+                     @documented_move_migration_version,
+                     DocumentedMoveMigration,
+                     log: false
+                   )
+
+          host_relations_after_up = host_relation_snapshots("public")
+
+          assert schema_exists?("rindle")
+
+          for relation <- Rindle.Migration.V1.owned_relations() do
+            refute table_exists?("public", relation), "expected public.#{relation} to move"
+            assert table_exists?("rindle", relation), "expected rindle.#{relation} after the move"
+          end
+
+          assert moved_fixture("rindle") == fixture
+          assert marker_versions("rindle") == [1]
+          assert index_names("rindle", "media_assets") == index_before
+          assert owned_sequences("rindle", "media_assets") == sequence_before
+          assert_fk_enforced!("rindle")
+          assert relation_snapshot("public", "oban_jobs") == oban_jobs_before
+          assert table_exists?("public", "schema_migrations")
+          refute table_exists?("rindle", "schema_migrations")
+
+          assert :ok =
+                   Ecto.Migrator.down(
+                     Repo,
+                     @documented_move_migration_version,
+                     DocumentedMoveMigration,
+                     log: false
+                   )
+
+          assert schema_exists?("rindle")
+
+          for relation <- Rindle.Migration.V1.owned_relations() do
+            assert table_exists?("public", relation),
+                   "expected public.#{relation} after the reverse"
+
+            refute table_exists?("rindle", relation),
+                   "expected rindle.#{relation} to return to public"
+          end
+
+          assert_fixture_present!("public", fixture)
+          assert marker_versions("public") == [1]
+          assert index_names("public", "media_assets") == index_before
+          assert owned_sequences("public", "media_assets") == sequence_before
+          assert_fk_enforced!("public")
+
+          assert host_relation_snapshots("public") ==
+                   Map.put(host_relations_after_up, "schema_migrations", {:present, 0})
+
+          refute table_exists?("rindle", "schema_migrations")
+        after
+          run_down([prefix: "public"], fn ->
+            Rindle.Migration.down(version: 1, prefix: "public")
+          end)
+
+          Repo.query!("DROP SCHEMA IF EXISTS \"rindle\" CASCADE")
+          Repo.query!("DROP TABLE IF EXISTS public.oban_jobs")
+
+          Repo.query!("DELETE FROM public.schema_migrations WHERE version = $1", [
+            @documented_move_migration_version
+          ])
+        end
+      end)
     end
   end
 
