@@ -4,17 +4,17 @@ milestone: v1.23
 milestone_name: Postgres Schema Isolation
 current_phase: 117
 current_phase_name: prefix-routing-architecture
-status: executing
-stopped_at: Completed 117-01-PLAN.md
-last_updated: "2026-08-09T01:38:07.241Z"
+status: verifying
+stopped_at: Completed 117-02-PLAN.md
+last_updated: "2026-08-09T01:45:33.263Z"
 last_activity: 2026-08-08
 last_activity_desc: Phase 117 execution started
 progress:
   total_phases: 4
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 1
-  percent: 0
+  completed_plans: 2
+  percent: 25
 ---
 
 # Project State
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-07-02 after shipping v1.22)
 
 Phase: 117 (prefix-routing-architecture) — EXECUTING
 Plan: 2 of 2
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-08-08 — Phase 117 execution started
 
 ### v1.22 shipped summary
@@ -160,6 +160,8 @@ _(Key v1.22 execution decisions recorded at milestone close.)_
 - [Phase 116]: Troubleshooting treats missing oban_jobs as host-owned Oban setup, not as a Rindle migration responsibility.
 - [Phase 116]: Plan 116-07 closed Phase 116 with focused tests, generated-app image smoke, mix ci, release-train audit, and schema-push audit all passing. — Final evidence for MIGRATE-01 and MIGRATE-02: no workflow diffs, no configured schema-push path matches, and direct key-link grep proves the pinned README/generated-app migration pattern.
 - [Phase ?]: Phase 117 Plan 01: all six Rindle-owned schemas use a validated compile-time Rindle.Schema prefix; only rindle and public are supported, while Oban stays independent.
+- [Phase ?]: Phase 117 Plan 02: Prefix isolation tests use public as the selected compatibility build and rindle as the decoy until Phase 118 provisions rindle.
+- [Phase ?]: Phase 117 Plan 02: AST contract tests prohibit owned schemas from bypassing Rindle.Schema with direct Ecto.Schema or @schema_prefix.
 
 ## Blockers/Concerns
 
@@ -178,8 +180,8 @@ _(none open for v1.22 at roadmap creation)_
 
 ## Session Continuity
 
-Last session: 2026-08-09T01:38:07.234Z
-Stopped at: Completed 117-01-PLAN.md
+Last session: 2026-08-09T01:45:33.257Z
+Stopped at: Completed 117-02-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -205,6 +207,7 @@ Resume file: None
 | Plan | Duration | Tasks | Files |
 |------|----------|-------|-------|
 | Phase 117 P01 | 4 min | 2 tasks | 12 files |
+| Phase 117 P02 | 3 min | 3 tasks | 3 files |
 
 ## Operator Next Steps
 
