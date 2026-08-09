@@ -73,8 +73,8 @@ mix ecto.migrate
 
 #### Existing populated public installs
 
-Prepare a maintenance window: back up the database, then stop or drain Rindle
-HTTP writers and Oban workers that invoke Rindle. Ecto's migrator lock
+Prepare a maintenance window: back up the database, then stop or drain Rindle HTTP
+writers and Oban workers that invoke Rindle. Ecto's migrator lock
 serializes migrators; it does not quiesce application traffic. PostgreSQL
 `ALTER TABLE` can require an `ACCESS EXCLUSIVE` lock.
 
@@ -107,11 +107,11 @@ seven Rindle relations and normal reads and writes. Rindle does not touch
 `oban_jobs` or `schema_migrations`; keep Oban configuration and the host
 migration ledger unchanged.
 
-Use the guarded reverse only while the application remains quiesced, there have
-been no post-move writes or later migrations, and you can redeploy the previous
-public-compiled release. It does not drop the `rindle` schema. Otherwise,
-restore the backup. `Rindle.Migration.down/1` is destructive teardown, not a
-populated-upgrade rollback.
+Use the guarded reverse only while the application remains quiesced and state is
+exactly reversible: there have been no post-move writes or later migrations, and
+you can redeploy the previous public-compiled release. It does not drop the
+`rindle` schema. Otherwise, restore the backup. `Rindle.Migration.down/1` is
+destructive teardown, not a populated-upgrade rollback.
 
 #### Existing legacy installs
 

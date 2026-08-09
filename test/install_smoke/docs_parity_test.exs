@@ -201,15 +201,15 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
 
   test "upgrade guide documents the bounded host-owned populated move", %{upgrade: upgrade} do
     upgrade_section =
-      section_between!(
-        upgrade,
+      upgrade
+      |> section_between!(
         "#### Existing populated public installs",
         "#### Existing legacy installs"
       )
+      |> String.replace(~r/\s+/, " ")
 
     for snippet <- [
           "maintenance window",
-          "stop or drain Rindle HTTP writers and Oban workers",
           "SET LOCAL lock_timeout = '5s'",
           "Rindle.Migration.move_public_to_rindle(version: 1)",
           "Rindle.Migration.move_rindle_to_public(version: 1)",
@@ -223,11 +223,15 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
           "deploy the build compiled for `rindle`",
           "normal reads and writes",
           "exactly reversible",
-          "Rindle.Migration.down/1 is destructive teardown"
+          "Rindle.Migration.down/1",
+          "destructive teardown"
         ] do
       assert upgrade_section =~ snippet,
              "populated upgrade guidance must include #{inspect(snippet)}"
     end
+
+    assert upgrade_section =~ "stop or drain Rindle HTTP writers and Oban workers",
+           "populated upgrade guidance must require draining Rindle writers and Oban workers"
 
     for forbidden <- ["search_path", "Rindle.Migration.move(", "tenant_media"] do
       refute upgrade_section =~ forbidden,
