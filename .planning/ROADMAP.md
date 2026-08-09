@@ -73,7 +73,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 118-02-PLAN.md — Preflight and move the populated fixed seven-relation set.
+- [x] 118-02-PLAN.md — Preflight and move the populated fixed seven-relation set.
 
 **Wave 3** *(blocked on Wave 2 completion)*
 

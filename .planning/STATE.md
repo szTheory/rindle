@@ -5,15 +5,15 @@ milestone_name: Postgres Schema Isolation
 current_phase: 118
 current_phase_name: isolated-migration-safe-upgrade
 status: executing
-stopped_at: Completed 118-01-PLAN.md
-last_updated: "2026-08-09T16:03:13.828Z"
+stopped_at: Completed 118-02-PLAN.md
+last_updated: "2026-08-09T16:13:18.713Z"
 last_activity: 2026-08-09
 last_activity_desc: Phase 118 execution started
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 9
-  completed_plans: 6
+  completed_plans: 7
   percent: 25
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-07-02 after shipping v1.22)
 ## Current Position
 
 Phase: 118 (isolated-migration-safe-upgrade) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 Status: Ready to execute
 Last activity: 2026-08-09 — Phase 118 execution started
 
@@ -167,6 +167,8 @@ _(Key v1.22 execution decisions recorded at milestone close.)_
 - [Phase ?]: Rindle.Schema.schema/2 reasserts the compiled prefix at declaration time; after-compile validation is defense in depth for raw Ecto declarations.
 - [Phase ?]: Rindle.Schema is internal to the six owned domain schemas; validate macro callers before emitting Ecto setup.
 - [Phase ?]: Phase 118 Plan 01: approved rindle as the migration default; only explicit public compatibility remains supported.
+- [Phase ?]: Approved D-118-06: transactional fixed public-to-rindle ALTER TABLE move after complete preflight.
+- [Phase ?]: 118-02 pins move_public_to_rindle/1 to version: 1 and excludes generic schema moves.
 
 ## Blockers/Concerns
 
@@ -185,8 +187,8 @@ _(none open for v1.22 at roadmap creation)_
 
 ## Session Continuity
 
-Last session: 2026-08-09T16:03:13.819Z
-Stopped at: Completed 118-01-PLAN.md
+Last session: 2026-08-09T16:13:18.704Z
+Stopped at: Completed 118-02-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -217,6 +219,7 @@ Resume file: None
 | Phase 117 P04 | 3 min | 2 tasks | 2 files |
 | Phase 117 P05 | 7min | 2 tasks | 3 files |
 | Phase 118 P01 | 18 min | 2 tasks | 6 files |
+| Phase 118 P02 | 31 min | 2 tasks | 5 files |
 
 ## Operator Next Steps
 

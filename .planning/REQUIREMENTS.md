@@ -22,11 +22,11 @@
 - [x] **MIGRATE-01**: The versioned Rindle migration provisions the selected schema before creating
   Rindle-owned tables and marker state, and remains idempotent for a fresh install.
 
-- [ ] **MIGRATE-02**: A populated legacy `public` install can follow a documented, host-owned upgrade
+- [x] **MIGRATE-02**: A populated legacy `public` install can follow a documented, host-owned upgrade
   migration that moves exactly the six Rindle tables and `rindle_migration_versions` to `rindle`,
   preserving data and relational integrity.
 
-- [ ] **MIGRATE-03**: Mixed, incomplete, or permission-inadequate schema states fail with bounded,
+- [x] **MIGRATE-03**: Mixed, incomplete, or permission-inadequate schema states fail with bounded,
   actionable guidance; the move's maintenance-window and rollback limits are documented honestly.
 
 ### Ownership & Operations
@@ -78,8 +78,8 @@
 | PREFIX-02 | Phase 117 | Complete |
 | PREFIX-03 | Phase 117 | Complete |
 | MIGRATE-01 | Phase 118 | Complete |
-| MIGRATE-02 | Phase 118 | Pending |
-| MIGRATE-03 | Phase 118 | Pending |
+| MIGRATE-02 | Phase 118 | Complete |
+| MIGRATE-03 | Phase 118 | Complete |
 | BOUNDARY-01 | Phase 119 | Pending |
 | BOUNDARY-02 | Phase 119 | Pending |
 | OPS-01 | Phase 119 | Pending |
