@@ -5,8 +5,8 @@ milestone_name: Postgres Schema Isolation
 current_phase: 118
 current_phase_name: Isolated Migration & Safe Upgrade
 status: planning
-stopped_at: Completed 117-05-PLAN.md
-last_updated: "2026-08-09T03:28:46.609Z"
+stopped_at: Phase 118 context gathered
+last_updated: "2026-08-09T04:40:34.211Z"
 last_activity: 2026-08-08
 last_activity_desc: Phase 117 complete, transitioned to Phase 118
 progress:
@@ -24,7 +24,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-02 after shipping v1.22)
 
 **Core value:** Media, made durable.
-**Current focus:** Phase 117 — prefix-routing-architecture
+**Current focus:** Phase 118 — Isolated Migration & Safe Upgrade
 
 ## Current Position
 
@@ -49,9 +49,9 @@ green (135 test files; the async-safety meta-test governs `async: true`).
 
 ## Next Step
 
-Plan Phase 117: Prefix Routing Architecture. It must decide and prove one coherent routing model—
-compile-time schema macro or runtime per-query helper—before later phases build the default `rindle`
-install and public-to-`rindle` upgrade path.
+Discuss and plan Phase 118 before execution. Its plan must pair Phase 117's compile-time `rindle`/
+`public` routing authority with idempotent selected-schema provisioning and a host-owned, bounded
+public-to-`rindle` move for the six Rindle tables plus `rindle_migration_versions`.
 
 ## Prior Milestone
 
@@ -184,9 +184,9 @@ _(none open for v1.22 at roadmap creation)_
 
 ## Session Continuity
 
-Last session: 2026-08-09T03:24:03.440Z
-Stopped at: Completed 117-05-PLAN.md
-Resume file: None
+Last session: 2026-08-09T04:40:34.199Z
+Stopped at: Phase 118 context gathered
+Resume file: .planning/phases/118-isolated-migration-safe-upgrade/118-CONTEXT.md
 
 ## Performance Metrics
 
