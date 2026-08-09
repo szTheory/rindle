@@ -167,11 +167,14 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
       assert section =~ "mix rindle.doctor",
              "#{name} must keep doctor as the post-migration verification command"
 
-      assert Regex.match?(
-               ~r/(prefix:\s*"public"|default schema (stays|remains|is) `public`|default `public`)/i,
-               section
-             ),
-             "#{name} must state the default public schema or prefix"
+      assert section =~ "rindle",
+             "#{name} must state the rindle default"
+
+      assert section =~ "prefix: \"public\"",
+             "#{name} must keep the explicit public compatibility pairing"
+
+      assert section =~ "public schema",
+             "#{name} must pair public compatibility with a public-compiled release"
 
       assert Regex.match?(~r/back\s*up|backup/i, section),
              "#{name} must pair rollback copy with backup guidance"
@@ -182,11 +185,53 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
       assert section =~ "Rindle-owned tables",
              "#{name} must scope rollback to Rindle-owned tables"
 
+      assert section =~ "schema_migrations",
+             "#{name} must preserve the host migration ledger"
+
+      refute section =~ "tenant_media",
+             "#{name} must not teach arbitrary schema prefixes"
+
       refute section =~ "Application.app_dir(:rindle, \"priv/repo/migrations\")",
              "#{name} must not teach the legacy package migration directory as the greenfield path"
 
       refute section =~ "Ecto.Migrator.run",
              "#{name} must not teach raw package-path Ecto.Migrator.run for greenfield setup"
+    end
+  end
+
+  test "upgrade guide documents the bounded host-owned populated move", %{upgrade: upgrade} do
+    upgrade_section =
+      section_between!(
+        upgrade,
+        "#### Existing populated public installs",
+        "#### Existing legacy installs"
+      )
+
+    for snippet <- [
+          "maintenance window",
+          "stop or drain Rindle HTTP writers and Oban workers",
+          "SET LOCAL lock_timeout = '5s'",
+          "Rindle.Migration.move_public_to_rindle(version: 1)",
+          "Rindle.Migration.move_rindle_to_public(version: 1)",
+          "Do not create `rindle` yourself",
+          "classifies the complete public-only Rindle state",
+          "inside the same host transaction",
+          "fails boundedly",
+          "transaction rollback leaves no partial destination",
+          "six Rindle tables plus the",
+          "rindle_migration_versions",
+          "deploy the build compiled for `rindle`",
+          "normal reads and writes",
+          "exactly reversible",
+          "Rindle.Migration.down/1 is destructive teardown"
+        ] do
+      assert upgrade_section =~ snippet,
+             "populated upgrade guidance must include #{inspect(snippet)}"
+    end
+
+    for forbidden <- ["search_path", "Rindle.Migration.move(", "tenant_media"] do
+      refute upgrade_section =~ forbidden,
+             "populated upgrade guidance must not teach #{inspect(forbidden)}"
     end
   end
 
