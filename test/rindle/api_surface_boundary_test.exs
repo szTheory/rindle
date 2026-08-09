@@ -184,6 +184,9 @@ defmodule Rindle.ApiSurfaceBoundaryTest do
       assert visible_function_doc?(Rindle.Migration, :move_public_to_rindle, 1),
              "Rindle.Migration.move_public_to_rindle/1 should be publicly documented"
 
+      assert visible_function_doc?(Rindle.Migration, :move_rindle_to_public, 1),
+             "Rindle.Migration.move_rindle_to_public/1 should be publicly documented"
+
       refute function_exported?(Rindle.Migration, :move, 1),
              "Rindle.Migration must not expose a generic schema mover"
 
