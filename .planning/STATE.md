@@ -5,15 +5,15 @@ milestone_name: Postgres Schema Isolation
 current_phase: 117
 current_phase_name: prefix-routing-architecture
 status: executing
-stopped_at: Completed 117-04-PLAN.md
-last_updated: "2026-08-09T03:10:28.866Z"
+stopped_at: Completed 117-05-PLAN.md
+last_updated: "2026-08-09T03:24:03.446Z"
 last_activity: 2026-08-08
 last_activity_desc: Phase 117 execution started
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 5
-  completed_plans: 4
+  completed_plans: 5
   percent: 25
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-07-02 after shipping v1.22)
 ## Current Position
 
 Phase: 117 (prefix-routing-architecture) — EXECUTING
-Plan: 4 of 4
+Plan: 2 of 5
 Status: Ready to execute
 Last activity: 2026-08-08 — Phase 117 execution started
 
@@ -165,6 +165,7 @@ _(Key v1.22 execution decisions recorded at milestone close.)_
 - [Phase ?]: Phase 117 Plan 03: Rindle.Schema binds its compiled prefix before consumer expansion and rejects final Ecto metadata mutations after compilation.
 - [Phase ?]: Phase 117 Plan 03: Runtime application-env changes cannot retarget Rindle schema metadata; Oban remains host-owned and independent.
 - [Phase ?]: Rindle.Schema.schema/2 reasserts the compiled prefix at declaration time; after-compile validation is defense in depth for raw Ecto declarations.
+- [Phase ?]: Rindle.Schema is internal to the six owned domain schemas; validate macro callers before emitting Ecto setup.
 
 ## Blockers/Concerns
 
@@ -183,8 +184,8 @@ _(none open for v1.22 at roadmap creation)_
 
 ## Session Continuity
 
-Last session: 2026-08-09T02:52:08.999Z
-Stopped at: Completed 117-04-PLAN.md
+Last session: 2026-08-09T03:24:03.440Z
+Stopped at: Completed 117-05-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -213,6 +214,7 @@ Resume file: None
 | Phase 117 P02 | 3 min | 3 tasks | 3 files |
 | Phase 117 P03 | 4min | 2 tasks | 3 files |
 | Phase 117 P04 | 3 min | 2 tasks | 2 files |
+| Phase 117 P05 | 7min | 2 tasks | 3 files |
 
 ## Operator Next Steps
 
