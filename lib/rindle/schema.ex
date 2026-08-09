@@ -14,15 +14,30 @@ defmodule Rindle.Schema do
   def prefix, do: @rindle_prefix
 
   defmacro __using__(_opts) do
-    quote do
+    prefix = Rindle.Schema.prefix()
+
+    quote bind_quoted: [prefix: prefix] do
       use Ecto.Schema
 
       @primary_key {:id, :binary_id, autogenerate: true}
       @foreign_key_type :binary_id
-      @schema_prefix Rindle.Schema.validate_prefix!(
-                       Application.compile_env(:rindle, :rindle_prefix, "rindle")
-                     )
+      @schema_prefix prefix
+      @after_compile Rindle.Schema
     end
+  end
+
+  @doc false
+  @spec __after_compile__(Macro.Env.t(), binary()) :: :ok
+  def __after_compile__(%Macro.Env{module: module}, _bytecode) do
+    expected_prefix = prefix()
+    actual_prefix = module.__schema__(:prefix)
+
+    if actual_prefix != expected_prefix do
+      raise ArgumentError,
+            "Rindle.Schema prefix mismatch for #{inspect(module)}: expected #{inspect(expected_prefix)}, got #{inspect(actual_prefix)}"
+    end
+
+    :ok
   end
 
   @doc false
