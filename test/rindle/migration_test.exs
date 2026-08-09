@@ -7,6 +7,7 @@ defmodule Rindle.MigrationTest do
   @marker_table Rindle.Migration.V1.marker_table()
   @rindle_tables Rindle.Migration.V1.rindle_tables()
   @documented_move_migration_version 20_260_809_118_005
+  @lock_contention_migration_version 20_260_809_118_006
 
   defmodule DocumentedMoveMigration do
     use Ecto.Migration
@@ -220,7 +221,7 @@ defmodule Rindle.MigrationTest do
         assert table_exists?("rindle", table), "expected rindle.#{table} after the move"
       end
 
-      assert moved_fixture("rindle") == fixture
+      assert moved_fixture("rindle", fixture) == fixture
       assert marker_versions("rindle") == [1]
       assert index_names("rindle", "media_assets") == index_before
       assert owned_sequences("rindle", "media_assets") == sequence_before
@@ -300,45 +301,66 @@ defmodule Rindle.MigrationTest do
     end
 
     test "turns synchronized lock contention into bounded guidance without leaking lock_timeout" do
-      reset_rindle_schema!()
+      Sandbox.unboxed_run(Repo, fn ->
+        reset_rindle_schema!()
 
-      run_up([prefix: "public"], fn ->
-        Rindle.Migration.up(version: 1, prefix: "public")
+        try do
+          run_up([prefix: "public"], fn ->
+            Rindle.Migration.up(version: 1, prefix: "public")
+          end)
+
+          fixture = insert_public_move_fixture!()
+          host_relations_before = host_relation_snapshots("public")
+          index_before = index_names("public", "media_assets")
+          lock_timeout_before = lock_timeout()
+
+          {holder, holder_backend_pid} = hold_access_exclusive_lock!("public", "media_assets")
+
+          on_exit(fn ->
+            if Process.alive?(holder), do: release_lock!(holder)
+          end)
+
+          assert holder_backend_pid != backend_pid(),
+                 "expected a genuinely separate PostgreSQL backend"
+
+          assert_raise ArgumentError,
+                       ~r/keep Rindle writers and workers quiesced.*retry the host migration/is,
+                       fn ->
+                         Ecto.Migrator.up(
+                           Repo,
+                           @lock_contention_migration_version,
+                           LockContentionMoveMigration,
+                           log: false
+                         )
+                       end
+
+          release_lock!(holder)
+
+          assert lock_timeout() == lock_timeout_before
+          refute schema_exists?("rindle")
+
+          for relation <- Rindle.Migration.V1.owned_relations() do
+            assert table_exists?("public", relation)
+            refute table_exists?("rindle", relation)
+          end
+
+          assert_fixture_present!("public", fixture)
+          assert marker_versions("public") == [1]
+          assert index_names("public", "media_assets") == index_before
+          assert_fk_enforced!("public")
+          assert host_relation_snapshots("public") == host_relations_before
+        after
+          run_down([prefix: "public"], fn ->
+            Rindle.Migration.down(version: 1, prefix: "public")
+          end)
+
+          Repo.query!("DROP SCHEMA IF EXISTS \"rindle\" CASCADE")
+
+          Repo.query!("DELETE FROM public.schema_migrations WHERE version = $1", [
+            @lock_contention_migration_version
+          ])
+        end
       end)
-
-      fixture = insert_public_move_fixture!()
-      host_relations_before = host_relation_snapshots("public")
-      index_before = index_names("public", "media_assets")
-      lock_timeout_before = lock_timeout()
-
-      {holder, holder_backend_pid} = hold_access_exclusive_lock!("public", "media_assets")
-
-      assert holder_backend_pid != backend_pid(),
-             "expected a genuinely separate PostgreSQL backend"
-
-      assert_raise ArgumentError,
-                   ~r/keep Rindle writers and workers quiesced.*retry the host migration/is,
-                   fn ->
-                     Repo.transaction(fn ->
-                       run_move(fn -> LockContentionMoveMigration.up() end)
-                     end)
-                   end
-
-      release_lock!(holder)
-
-      assert lock_timeout() == lock_timeout_before
-      refute schema_exists?("rindle")
-
-      for relation <- Rindle.Migration.V1.owned_relations() do
-        assert table_exists?("public", relation)
-        refute table_exists?("rindle", relation)
-      end
-
-      assert_fixture_present!("public", fixture)
-      assert marker_versions("public") == [1]
-      assert index_names("public", "media_assets") == index_before
-      assert_fk_enforced!("public")
-      assert host_relation_snapshots("public") == host_relations_before
     end
 
     test "does not translate a non-lock Postgrex error" do
@@ -446,7 +468,7 @@ defmodule Rindle.MigrationTest do
             assert table_exists?("rindle", relation), "expected rindle.#{relation} after the move"
           end
 
-          assert moved_fixture("rindle") == fixture
+          assert moved_fixture("rindle", fixture) == fixture
           assert marker_versions("rindle") == [1]
           assert index_names("rindle", "media_assets") == index_before
           assert owned_sequences("rindle", "media_assets") == sequence_before
@@ -539,31 +561,36 @@ defmodule Rindle.MigrationTest do
 
     holder =
       spawn(fn ->
-        case Postgrex.start_link(postgrex_connection_options()) do
-          {:ok, connection} ->
-            {:ok, _} = Postgrex.query(connection, "BEGIN", [])
+        try do
+          case Postgrex.start_link(postgrex_connection_options()) do
+            {:ok, connection} ->
+              {:ok, _} = Postgrex.query(connection, "BEGIN", [])
+              {:ok, _} = Postgrex.query(connection, "SET LOCAL lock_timeout = '500ms'", [])
 
-            {:ok, _} =
-              Postgrex.query(
-                connection,
-                "LOCK TABLE #{qualified(schema, table)} IN ACCESS EXCLUSIVE MODE",
-                []
-              )
+              {:ok, _} =
+                Postgrex.query(
+                  connection,
+                  "LOCK TABLE #{qualified(schema, table)} IN ACCESS EXCLUSIVE MODE",
+                  []
+                )
 
-            {:ok, %{rows: [[backend_pid]]}} =
-              Postgrex.query(connection, "SELECT pg_backend_pid()", [])
+              {:ok, %{rows: [[backend_pid]]}} =
+                Postgrex.query(connection, "SELECT pg_backend_pid()", [])
 
-            send(parent, {:rindle_migration_lock_acquired, self(), backend_pid})
+              send(parent, {:rindle_migration_lock_acquired, self(), backend_pid})
 
-            receive do
-              :release_rindle_migration_lock ->
-                {:ok, _} = Postgrex.query(connection, "ROLLBACK", [])
-                :ok = GenServer.stop(connection)
-                send(parent, {:rindle_migration_lock_released, self()})
-            end
+              receive do
+                :release_rindle_migration_lock ->
+                  {:ok, _} = Postgrex.query(connection, "ROLLBACK", [])
+                  :ok = GenServer.stop(connection)
+                  send(parent, {:rindle_migration_lock_released, self()})
+              end
 
-          {:error, reason} ->
-            send(parent, {:rindle_migration_lock_failed, self(), reason})
+            {:error, reason} ->
+              send(parent, {:rindle_migration_lock_failed, self(), reason})
+          end
+        rescue
+          error -> send(parent, {:rindle_migration_lock_failed, self(), error})
         end
       end)
 
@@ -691,15 +718,22 @@ defmodule Rindle.MigrationTest do
     %{asset_id: asset_id, attachment_id: attachment_id, variant_id: variant_id}
   end
 
-  defp moved_fixture(prefix) do
+  defp moved_fixture(prefix, fixture) do
     %{rows: [[asset_id]]} =
-      Repo.query!("SELECT id::text FROM #{qualified(prefix, "media_assets")}")
+      Repo.query!("SELECT id::text FROM #{qualified(prefix, "media_assets")} WHERE id = $1", [
+        uuid_parameter(fixture.asset_id)
+      ])
 
     %{rows: [[attachment_id]]} =
-      Repo.query!("SELECT id::text FROM #{qualified(prefix, "media_attachments")}")
+      Repo.query!(
+        "SELECT id::text FROM #{qualified(prefix, "media_attachments")} WHERE id = $1",
+        [uuid_parameter(fixture.attachment_id)]
+      )
 
     %{rows: [[variant_id]]} =
-      Repo.query!("SELECT id::text FROM #{qualified(prefix, "media_variants")}")
+      Repo.query!("SELECT id::text FROM #{qualified(prefix, "media_variants")} WHERE id = $1", [
+        uuid_parameter(fixture.variant_id)
+      ])
 
     %{asset_id: asset_id, attachment_id: attachment_id, variant_id: variant_id}
   end
