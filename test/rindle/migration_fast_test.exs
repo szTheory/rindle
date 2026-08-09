@@ -50,4 +50,34 @@ defmodule Rindle.MigrationFastTest do
     assert_raise ArgumentError, fn -> Rindle.Migration.move_public_to_rindle(version: 2) end
     assert_raise ArgumentError, fn -> Rindle.Migration.move_rindle_to_public(version: 2) end
   end
+
+  test "current migration documentation names the bounded schema upgrade contract" do
+    docs =
+      ["README.md", "guides/getting_started.md", "guides/upgrading.md"]
+      |> Enum.map(&File.read!/1)
+
+    for doc <- docs do
+      assert doc =~ "Rindle.Migration.up(version: 1)"
+      assert doc =~ "prefix: \"public\""
+      assert doc =~ "public schema"
+      assert doc =~ "oban_jobs"
+      assert doc =~ "schema_migrations"
+      assert doc =~ "Rindle.Migration.down/1"
+      assert doc =~ "destructive"
+      refute doc =~ "tenant_media"
+    end
+
+    upgrade = File.read!("guides/upgrading.md")
+
+    for phrase <- [
+          "SET LOCAL lock_timeout = '5s'",
+          "Rindle.Migration.move_public_to_rindle(version: 1)",
+          "Rindle.Migration.move_rindle_to_public(version: 1)",
+          "maintenance window",
+          "ACCESS EXCLUSIVE",
+          "does not quiesce application traffic"
+        ] do
+      assert upgrade =~ phrase
+    end
+  end
 end

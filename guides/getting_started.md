@@ -123,9 +123,9 @@ defmodule MyApp.Repo.Migrations.AddObanJobs do
 end
 ```
 
-Rindle's migration is separate and pinned. The default schema remains `public`
-unless you pass a different prefix and set matching runtime config such as
-`config :rindle, :rindle_prefix, "tenant_media"`.
+Rindle's migration is separate and pinned. The default provisions the `rindle`
+schema. The only compatibility pairing is explicit `prefix: "public"` with a
+release compiled for the public schema.
 
 ```elixir
 defmodule MyApp.Repo.Migrations.InstallRindle do
@@ -135,10 +135,6 @@ defmodule MyApp.Repo.Migrations.InstallRindle do
   def down, do: Rindle.Migration.down(version: 1)
 end
 ```
-
-If `Oban.Migration` also runs outside `public`, set
-`config :rindle, :oban_prefix, "tenant_media"` so `mix rindle.doctor` and
-`mix rindle.runtime_status` inspect the same schema your host migrations use.
 
 Run the host app's standard migration command, then use the doctor task as the
 first verification step:
@@ -150,7 +146,8 @@ mix rindle.doctor
 
 > **Rollback:** `Rindle.Migration.down/1` is destructive. Back up the database
 > before running `Rindle.Migration.down(version: 1)`; it removes Rindle-owned
-> tables only and does not manage `oban_jobs`.
+> tables only and does not manage host infrastructure such as `oban_jobs` or
+> `schema_migrations`.
 
 > **Upgrade note:** Existing apps that already applied Rindle's legacy packaged
 > migrations can leave them in place. The new module is the documented install

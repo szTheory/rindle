@@ -27,14 +27,13 @@ Rindle's legacy packaged migrations can keep those migrations in place.
 
 Rindle now exposes a host-migration API for Rindle-owned tables:
 `Rindle.Migration.up(version: 1)` and
-`Rindle.Migration.down(version: 1)`. The default schema remains `public`.
-If you pass a different prefix, also set
-`config :rindle, :rindle_prefix, "tenant_media"` and, when Oban is outside
-`public`, `config :rindle, :oban_prefix, "tenant_media"` so doctor and runtime
-status inspect the schema your host migrations use.
+`Rindle.Migration.down(version: 1)`. Fresh installs default to the `rindle`
+schema. The only compatibility pairing is explicit `prefix: "public"` with a
+release compiled for the public schema.
 
-Host apps own `Oban.Migration` and the shared `oban_jobs` table. Rindle no
-longer creates or owns `oban_jobs`.
+Host apps own `Oban.Migration`, the shared `oban_jobs` table, and their
+`schema_migrations` ledger. Rindle does not create, move, or own that host
+infrastructure.
 
 ### Upgrade steps
 
@@ -70,7 +69,49 @@ mix ecto.migrate
 
 > **Rollback:** `Rindle.Migration.down/1` is destructive. Back up the database
 > before running `Rindle.Migration.down(version: 1)`; it removes Rindle-owned
-> tables only and does not manage `oban_jobs`.
+> tables only and does not manage `oban_jobs` or `schema_migrations`.
+
+#### Existing populated public installs
+
+Prepare a maintenance window: back up the database, then stop or drain Rindle
+HTTP writers and Oban workers that invoke Rindle. Ecto's migrator lock
+serializes migrators; it does not quiesce application traffic. PostgreSQL
+`ALTER TABLE` can require an `ACCESS EXCLUSIVE` lock.
+
+Create a host-owned migration. Do not create `rindle` yourself. The forward
+helper first classifies the complete public-only Rindle state and required
+privileges, then creates an absent `rindle` destination inside the same host
+transaction immediately before it moves the fixed six Rindle tables plus the
+`rindle_migration_versions` marker. If creation or usability privileges are
+insufficient, it fails boundedly; transaction rollback leaves no partial
+destination or moved relation.
+
+```elixir
+defmodule MyApp.Repo.Migrations.MoveRindleToSchema do
+  use Ecto.Migration
+
+  def up do
+    execute(fn -> repo().query!("SET LOCAL lock_timeout = '5s'") end)
+    execute(fn -> Rindle.Migration.move_public_to_rindle(version: 1) end)
+  end
+
+  def down do
+    execute(fn -> repo().query!("SET LOCAL lock_timeout = '5s'") end)
+    execute(fn -> Rindle.Migration.move_rindle_to_public(version: 1) end)
+  end
+end
+```
+
+Run the host migration, deploy the build compiled for `rindle`, then verify all
+seven Rindle relations and normal reads and writes. Rindle does not touch
+`oban_jobs` or `schema_migrations`; keep Oban configuration and the host
+migration ledger unchanged.
+
+Use the guarded reverse only while the application remains quiesced, there have
+been no post-move writes or later migrations, and you can redeploy the previous
+public-compiled release. It does not drop the `rindle` schema. Otherwise,
+restore the backup. `Rindle.Migration.down/1` is destructive teardown, not a
+populated-upgrade rollback.
 
 #### Existing legacy installs
 
