@@ -3,35 +3,32 @@ defmodule Rindle.MigrationTest do
 
   alias Rindle.Repo
 
-  @marker_table "rindle_migration_versions"
-  @rindle_tables ~w(
-    media_assets
-    media_attachments
-    media_variants
-    media_upload_sessions
-    media_processing_runs
-    media_provider_assets
-  )
+  @marker_table Rindle.Migration.V1.marker_table()
+  @rindle_tables Rindle.Migration.V1.rindle_tables()
 
   describe "Rindle.Migration.up/1" do
-    test "defaults to the public prefix and records the current Rindle migration version" do
+    test "defaults to rindle, provisions its schema, and records the current Rindle migration version" do
+      reset_rindle_schema!()
+
       run_up(fn ->
         Rindle.Migration.up(version: 1)
       end)
 
-      assert table_exists?("public", @marker_table),
-             "expected Rindle.Migration.up(version: 1) to default to prefix: \"public\""
+      assert schema_exists?("rindle")
 
-      assert marker_versions("public") == [1]
+      assert table_exists?("rindle", @marker_table),
+             "expected Rindle.Migration.up(version: 1) to default to prefix: \"rindle\""
+
+      assert marker_versions("rindle") == [1]
 
       for table <- @rindle_tables do
-        assert table_exists?("public", table),
-               "expected Rindle.Migration.up(version: 1) to create public.#{table}"
+        assert table_exists?("rindle", table),
+               "expected Rindle.Migration.up(version: 1) to create rindle.#{table}"
       end
     end
 
-    test "creates current Rindle-owned tables idempotently without creating oban_jobs" do
-      prefix = temporary_prefix!()
+    test "supports explicit public compatibility and remains idempotent without host relations" do
+      prefix = "public"
 
       refute table_exists?(prefix, "oban_jobs")
 
@@ -51,10 +48,11 @@ defmodule Rindle.MigrationTest do
       assert table_exists?(prefix, @marker_table)
       assert marker_versions(prefix) == [1]
       refute table_exists?(prefix, "oban_jobs")
+      refute table_exists?(prefix, "schema_migrations")
     end
 
     test "uses explicit uuid primary keys for Rindle-owned tables" do
-      prefix = temporary_prefix!()
+      prefix = "public"
 
       run_up([prefix: prefix], fn ->
         Rindle.Migration.up(version: 1, prefix: prefix)
@@ -69,7 +67,7 @@ defmodule Rindle.MigrationTest do
 
   describe "Rindle.Migration.down/1" do
     test "drops only Rindle-owned tables and marker state while leaving oban_jobs intact" do
-      prefix = temporary_prefix!()
+      prefix = "public"
 
       Repo.query!("CREATE TABLE #{qualified(prefix, "oban_jobs")} (id bigint PRIMARY KEY)")
       Repo.query!("INSERT INTO #{qualified(prefix, "oban_jobs")} (id) VALUES (1)")
@@ -132,15 +130,17 @@ defmodule Rindle.MigrationTest do
     end
   end
 
-  defp temporary_prefix! do
-    prefix = "rindle_migration_test_#{System.unique_integer([:positive])}"
-    Repo.query!("CREATE SCHEMA #{quote_ident(prefix)}")
+  defp reset_rindle_schema! do
+    Repo.query!("DROP SCHEMA IF EXISTS \"rindle\" CASCADE")
 
     on_exit(fn ->
-      Repo.query!("DROP SCHEMA IF EXISTS #{quote_ident(prefix)} CASCADE")
+      Repo.query!("DROP SCHEMA IF EXISTS \"rindle\" CASCADE")
     end)
+  end
 
-    prefix
+  defp schema_exists?(schema) do
+    %{rows: [[exists?]]} = Repo.query!("SELECT to_regnamespace($1) IS NOT NULL", [schema])
+    exists?
   end
 
   defp table_exists?(prefix, table) do
