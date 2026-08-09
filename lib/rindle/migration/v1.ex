@@ -73,17 +73,20 @@ defmodule Rindle.Migration.V1 do
   @doc false
   @spec move_public_to_rindle(%{version: 1}) :: :ok
   def move_public_to_rindle(%{version: 1}) do
+    failure_point = Process.get(:rindle_migration_test_failure)
+
     case preflight_public_to_rindle() do
       :already_upgraded ->
         :ok
 
       {:provisionable_absent_target, _snapshot} ->
         provision_schema(@rindle_schema)
-        move_owned_relations(@public_schema, @rindle_schema)
+        inject_test_failure_after(failure_point, :after_target_schema)
+        move_owned_relations(@public_schema, @rindle_schema, failure_point)
         :ok
 
       {:movable_existing_target, _snapshot} ->
-        move_owned_relations(@public_schema, @rindle_schema)
+        move_owned_relations(@public_schema, @rindle_schema, failure_point)
         :ok
 
       {:refusal, reason} ->
@@ -381,10 +384,19 @@ defmodule Rindle.Migration.V1 do
     end
   end
 
-  defp move_owned_relations(source, destination) do
-    for relation <- owned_relations() do
+  defp move_owned_relations(source, destination, failure_point) do
+    for {relation, index} <- Enum.with_index(owned_relations(), 1) do
       execute("ALTER TABLE #{qualified(source, relation)} SET SCHEMA #{quote_ident(destination)}")
+      inject_test_failure_after(failure_point, {:after_relation, index})
     end
+  end
+
+  defp inject_test_failure_after(failure_point, point) do
+    execute(fn ->
+      if failure_point == point do
+        raise RuntimeError, "injected Rindle migration failure"
+      end
+    end)
   end
 
   defp migration_snapshot do

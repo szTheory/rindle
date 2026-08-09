@@ -215,18 +215,19 @@ defmodule Rindle.MigrationTest do
         host_relations_before = host_relation_snapshots("public")
         index_before = index_names("public", "media_assets")
 
-        assert {:error, %RuntimeError{message: "injected Rindle migration failure"}} =
-                 Repo.transaction(fn ->
-                   Process.put(:rindle_migration_test_failure, failure_point)
+        assert_raise RuntimeError, "injected Rindle migration failure", fn ->
+          Repo.transaction(fn ->
+            Process.put(:rindle_migration_test_failure, failure_point)
 
-                   try do
-                     run_move(fn ->
-                       Rindle.Migration.move_public_to_rindle(version: 1)
-                     end)
-                   after
-                     Process.delete(:rindle_migration_test_failure)
-                   end
-                 end)
+            try do
+              run_move(fn ->
+                Rindle.Migration.move_public_to_rindle(version: 1)
+              end)
+            after
+              Process.delete(:rindle_migration_test_failure)
+            end
+          end)
+        end
 
         refute schema_exists?("rindle")
 
@@ -237,7 +238,7 @@ defmodule Rindle.MigrationTest do
           refute table_exists?("rindle", relation)
         end
 
-        assert moved_fixture("public") == fixture
+        assert_fixture_present!("public", fixture)
         assert marker_versions("public") == [1]
         assert index_names("public", "media_assets") == index_before
         assert_fk_enforced!("public")
@@ -362,6 +363,19 @@ defmodule Rindle.MigrationTest do
       Repo.query!("SELECT id::text FROM #{qualified(prefix, "media_variants")}")
 
     %{asset_id: asset_id, attachment_id: attachment_id, variant_id: variant_id}
+  end
+
+  defp assert_fixture_present!(prefix, fixture) do
+    for {table, id} <- [
+          {"media_assets", fixture.asset_id},
+          {"media_attachments", fixture.attachment_id},
+          {"media_variants", fixture.variant_id}
+        ] do
+      %{rows: [[1]]} =
+        Repo.query!("SELECT count(*) FROM #{qualified(prefix, table)} WHERE id = $1", [
+          uuid_parameter(id)
+        ])
+    end
   end
 
   defp index_names(prefix, table) do
