@@ -1,8 +1,8 @@
 ---
 phase: 118-isolated-migration-safe-upgrade
-reviewed: 2026-08-09T00:00:00Z
+reviewed: 2026-08-09T17:19:43Z
 depth: standard
-files_reviewed: 11
+files_reviewed: 12
 files_reviewed_list:
   - README.md
   - guides/getting_started.md
@@ -15,9 +15,10 @@ files_reviewed_list:
   - test/rindle/migration_default_build_probe.exs
   - test/rindle/migration_fast_test.exs
   - test/rindle/migration_test.exs
+  - test/rindle/schema_prefix_contract_test.exs
 findings:
-  critical: 1
-  warning: 1
+  critical: 0
+  warning: 2
   info: 0
   total: 2
 status: issues_found
@@ -25,51 +26,77 @@ status: issues_found
 
 # Phase 118: Code Review Report
 
-**Reviewed:** 2026-08-09T00:00:00Z
+**Reviewed:** 2026-08-09T17:19:43Z
 **Depth:** standard
-**Files Reviewed:** 11
+**Files Reviewed:** 12
 **Status:** issues_found
 
 ## Summary
 
-The fixed-prefix validation and identifier quoting boundaries are appropriately narrow, and the focused fast, API-boundary, and documentation-parity tests pass. However, the copy-pasteable populated-upgrade migration does not actually perform the table moves because it nests Ecto migration commands during the runner's flush. This is a data-migration release blocker.
+The previously reported nested-Runner defect is fixed: the guide and its
+`Ecto.Migrator` test invoke the directional helpers at migration-body scope.
+The fixed relation allowlist, prefix validation, identifier quoting, and host
+relation boundary are appropriately narrow. Focused fast/API/docs checks pass
+(58 tests), and compilation succeeds with warnings treated as errors.
+
+No Critical source defect was found. The two warnings below still prevent the
+claimed bounded-refusal and live-upgrade proof from being fully robust. The
+known partial shared test database is a verification gate, not itself a
+production migration defect; WR-02 identifies the non-hermetic test behavior
+that permits that state to affect this suite.
 
 ## Narrative Findings (AI reviewer)
 
-## Critical Issues
+## Warnings
 
-### CR-01: Published populated-upgrade migration silently leaves all relations in `public`
+### WR-01: A malformed or unreadable marker relation bypasses bounded preflight guidance
 
-**File:** `guides/upgrading.md:94-100`
-**Issue:** The example wraps both the timeout and `Rindle.Migration.move_*` calls in `execute(fn -> ...)`. `execute/1` functions run only during the final `Ecto.Migration.Runner.flush/0`. When the deferred helper then calls `V1.move_owned_relations/3`, its `execute("ALTER TABLE ...")` calls are appended to the runner queue *after* that flush has already copied and begun iterating its command list. Ecto does not recursively flush commands appended by a currently executing command, so the migration completes successfully after setting `lock_timeout` while none of the seven `ALTER TABLE ... SET SCHEMA` commands run. The subsequent deployment uses a `rindle`-compiled runtime against tables still in `public`.
+**File:** `lib/rindle/migration/v1.ex:574-585`
+**Issue:** `migration_snapshot/0` calls `marker_rows/1` before the preflight checks
+`source_owned?`/`target_owned?` and before it can return an explicit refusal.
+For any same-named `rindle_migration_versions` table that is not owned by the
+current role, lacks a `version` column, or cannot be selected, this dynamic
+`SELECT version` raises a raw Postgrex error instead of the promised bounded
+`source_not_owned`/marker-state guidance. This is one of the malformed and
+permission-inadequate states the upgrade API is required to refuse safely.
 
-**Fix:** Do not defer the helper itself. Queue the local timeout, then call the helper directly from the migration callback so its DDL is present before the runner's final flush:
+**Fix:** Build the ownership snapshot first and only query marker contents for
+relations that are owned and have the expected marker shape. Convert an
+unreadable/malformed marker into a dedicated preflight refusal, for example:
 
 ```elixir
-def up do
-  execute(fn -> repo().query!("SET LOCAL lock_timeout = '5s'") end)
-  Rindle.Migration.move_public_to_rindle(version: 1)
-end
-
-def down do
-  execute(fn -> repo().query!("SET LOCAL lock_timeout = '5s'") end)
-  Rindle.Migration.move_rindle_to_public(version: 1)
+if marker_relation_owned_and_shaped?(relation_rows, schema) do
+  marker_rows_for(schema)
+else
+  [{schema, :invalid_marker}]
 end
 ```
 
-Alternatively, redesign `Rindle.Migration.V1` to issue its DDL immediately inside one deferred callback and preserve transaction/error handling. Add an integration test that executes the documented callback shape via `Ecto.Migrator`, then asserts all seven relations changed schema.
+Then make `valid_marker?/1` reject that state and add integration tests for a
+same-named marker table without `version` and for a marker table the migration
+role cannot read.
 
-## Warnings
+### WR-02: Unboxed migration tests mutate the shared `public` baseline instead of restoring it
 
-### WR-01: The integration coverage does not execute the documented Ecto callback shape
+**File:** `test/rindle/migration_test.exs:436-520`
+**Issue:** The documented `Ecto.Migrator` test intentionally runs outside the
+SQL sandbox, creates/drops Rindle relations in `public`, and in `after` removes
+the public Rindle tables rather than restoring the pre-test state (lines
+509-518). The lock-contention test has the same unboxed/shared-schema pattern
+at lines 303-360. Because these changes commit outside the sandbox, later
+tests depend on execution order and on whatever the shared `rindle_test`
+database happened to contain. This is the concrete cause of the current
+clean-database human-verification gate and makes CI/live migration evidence
+non-repeatable.
 
-**File:** `test/rindle/migration_test.exs:173-275`
-**Issue:** Move tests call `Rindle.Migration.move_*` directly before their test runner flushes. Documentation parity only checks required strings (`test/install_smoke/docs_parity_test.exs:211-239`). Neither covers the nested `execute(fn -> Rindle.Migration.move_* ... end)` form in the guide, which is why the runner-queue failure in CR-01 remained green.
-
-**Fix:** Define a test migration using the exact public guide structure and run it through `Ecto.Migrator`/`Ecto.Migration.Runner`; assert the `rindle` schema contains every `V1.owned_relations/0` relation and `public` no longer contains them. Keep this test even after correcting the guide so future examples cannot reintroduce deferred helper invocation.
+**Fix:** Run these Ecto.Migrator cases against an isolated disposable database,
+or snapshot and restore every affected public relation plus migration-ledger
+row in `on_exit`. Do not use destructive cleanup as the baseline reset. Add a
+test setup assertion that the fixture creates a complete public Rindle set
+independently of prior test state.
 
 ---
 
-_Reviewed: 2026-08-09T00:00:00Z_
+_Reviewed: 2026-08-09T17:19:43Z_
 _Reviewer: the agent (gsd-code-reviewer)_
 _Depth: standard_
