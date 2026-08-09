@@ -1,8 +1,8 @@
 ---
 phase: 118
 slug: isolated-migration-safe-upgrade
-status: draft
-nyquist_compliant: false
+status: approved
+nyquist_compliant: true
 wave_0_complete: false
 created: 2026-08-09
 ---
@@ -35,7 +35,9 @@ created: 2026-08-09
 | 118-01-01 | 01 | 1 | MIGRATE-01 | T-118-01 | Only `rindle` and `public` prefixes reach quoted DDL; fresh provisioning creates the selected schema and exactly Rindle-owned relations idempotently. | PostgreSQL integration | `mix test test/rindle/migration_test.exs --seed 0` | ✅ | ⬜ pending |
 | 118-02-01 | 02 | 2 | MIGRATE-02 | T-118-02 | A preflighted fixed seven-relation move preserves rows, foreign keys, indexes, and marker while leaving host relations untouched. | Serial PostgreSQL integration | `mix test test/rindle/migration_test.exs --seed 0` | ✅ | ⬜ pending |
 | 118-02-02 | 02 | 2 | MIGRATE-03 | T-118-03 | Mixed, partial, marker-invalid, privilege-inadequate, injected-failure, and lock-contention states fail before unsafe mutation or roll back atomically. | Unit + serial PostgreSQL integration | `mix test test/rindle/migration_test.exs --seed 0` | ✅ | ⬜ pending |
-| 118-03-01 | 03 | 3 | MIGRATE-03 | T-118-04 | Host migration instructions require maintenance, transaction-local timeout, verification, and a guarded reverse move rather than destructive `down/1`. | Documentation parity test | `mix test test/install_smoke/docs_parity_test.exs` | ✅ | ⬜ pending |
+| 118-03-01 | 03 | 3 | MIGRATE-03 | T-118-08, T-118-09 | Refusal states, injected failure, and lock contention fail without a partial move. | Serial PostgreSQL integration | `mix test test/rindle/migration_test.exs --seed 0` | ✅ | ⬜ pending |
+| 118-03-02 | 03 | 3 | MIGRATE-02, MIGRATE-03 | T-118-10 | The guarded reverse restores the fixed relation set only while state remains exactly reversible and never drops `rindle`. | Serial PostgreSQL integration + API contract | `mix test test/rindle/migration_test.exs test/rindle/api_surface_boundary_test.exs --seed 0` | ✅ | ⬜ pending |
+| 118-04-01 | 04 | 4 | MIGRATE-01, MIGRATE-02, MIGRATE-03 | T-118-12 | Host migration instructions require maintenance, transaction-local timeout, verification, and guarded reverse rather than destructive `down/1`. | Documentation parity test | `mix test test/install_smoke/docs_parity_test.exs --seed 0` | ✅ | ⬜ pending |
 
 ## Wave 0 Requirements
 
@@ -53,11 +55,11 @@ created: 2026-08-09
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies.
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify.
-- [ ] Wave 0 covers all MISSING references.
-- [ ] No watch-mode flags.
-- [ ] Feedback latency < 60 seconds for targeted checks.
-- [ ] `nyquist_compliant: true` set in frontmatter.
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies.
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify.
+- [x] Wave 0 covers all MISSING references.
+- [x] No watch-mode flags.
+- [x] Feedback latency < 60 seconds for targeted checks.
+- [x] `nyquist_compliant: true` set in frontmatter.
 
-**Approval:** pending
+**Approval:** Phase 118 plans approved for execution; Wave 0 artifacts remain pending implementation.

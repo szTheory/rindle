@@ -64,7 +64,13 @@
   3. Mixed, incomplete, or insufficient-permission database states stop before an unsafe move and provide bounded corrective guidance.
   4. Upgrade instructions state the required maintenance window and the limited, host-controlled rollback path truthfully.
 
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [ ] 118-01-PLAN.md — Trace fresh `rindle` provisioning and explicit `public` compatibility.
+- [ ] 118-02-PLAN.md — Preflight and move the populated fixed seven-relation set.
+- [ ] 118-03-PLAN.md — Prove refusal/rollback/lock safety and add the guarded reverse.
+- [ ] 118-04-PLAN.md — Publish and lock maintenance-window upgrade guidance.
 
 ### Phase 119: Ownership Boundaries & Diagnostics
 
@@ -99,7 +105,7 @@
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 117. Prefix Routing Architecture | 5/5 | Complete    | 2026-08-08 |
-| 118. Isolated Migration & Safe Upgrade | 0/TBD | Not started | - |
+| 118. Isolated Migration & Safe Upgrade | 0/4 | Planned | - |
 | 119. Ownership Boundaries & Diagnostics | 0/TBD | Not started | - |
 | 120. Adoption Proof & Release Truth | 0/TBD | Not started | - |
 
