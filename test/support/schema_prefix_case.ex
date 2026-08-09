@@ -30,7 +30,7 @@ defmodule Rindle.SchemaPrefixCase do
     create_tables!(decoy_prefix)
 
     selected = insert_asset!(selected_prefix, "selected-#{selected_prefix}")
-    decoy = insert_asset!(decoy_prefix, "decoy-#{decoy_prefix}")
+    decoy = insert_decoy_asset!(decoy_prefix, "decoy-#{decoy_prefix}")
 
     %{
       selected_prefix: selected_prefix,
@@ -81,8 +81,36 @@ defmodule Rindle.SchemaPrefixCase do
     |> Repo.insert!(prefix: prefix)
   end
 
+  def decoy_asset!(prefix, id) do
+    uuid = Ecto.UUID.dump!(id)
+
+    %{rows: [[storage_key, content_type]]} =
+      Repo.query!(
+        "SELECT storage_key, content_type FROM #{qualified(prefix, "media_assets")} WHERE id = $1::uuid",
+        [uuid]
+      )
+
+    %{id: id, storage_key: storage_key, content_type: content_type}
+  end
+
   defp other_prefix("public"), do: "rindle"
   defp other_prefix("rindle"), do: "public"
+
+  defp insert_decoy_asset!(prefix, storage_key) do
+    id = Ecto.UUID.generate()
+    uuid = Ecto.UUID.dump!(id)
+
+    Repo.query!(
+      """
+      INSERT INTO #{qualified(prefix, "media_assets")}
+        (id, state, profile, storage_key, filename, kind, inserted_at, updated_at)
+      VALUES ($1::uuid, 'available', $2, $3, $4, 'image', NOW(), NOW())
+      """,
+      [uuid, "Rindle.SchemaPrefixCase.Profile", storage_key, "#{storage_key}.jpg"]
+    )
+
+    %{id: id, storage_key: storage_key, content_type: nil}
+  end
 
   defp ensure_schema!(prefix) do
     Repo.query!("CREATE SCHEMA IF NOT EXISTS #{quote_ident(prefix)}")
