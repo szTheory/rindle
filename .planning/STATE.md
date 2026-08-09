@@ -1,20 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: null
-milestone_name: none
-current_phase: null
-status: Awaiting next milestone
-stopped_at: Completed v1.22 milestone archive
-last_updated: "2026-07-02T12:40:56.088Z"
-last_activity: 2026-07-02
-last_activity_desc: Milestone v1.22 completed and archived
+milestone: v1.23
+milestone_name: Postgres Schema Isolation
+status: planning
+last_updated: "2026-08-09T01:02:40.654Z"
+last_activity: 2026-08-08
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 14
-  completed_plans: 14
-  percent: 100
-current_phase_name: none
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -28,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-07-02 after shipping v1.22)
 
 ## Current Position
 
-Phase: Milestone v1.22 complete
+Phase: Not started (defining requirements)
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-07-02 — Milestone v1.22 completed and archived
+Status: Defining requirements
+Last activity: 2026-08-08 — Milestone v1.23 started
 
 ### v1.22 shipped summary
 

@@ -26,11 +26,21 @@ adopter-invisible `lib/` fixes shipped as Hex **0.3.2** after v1.22 Phase 113 un
 v1.20 CI/CD Performance, v1.19 Design-System Stress-Test, and v1.18 Admin Console & Adoption Lab are
 all shipped and archived.
 
-**Open planning debt:** None. v1.22 is shipped and archived.
+**Open planning debt:** None carried forward from v1.22.
 
-**Active milestone:** None. The next named candidate is **v1.23 Postgres Schema Isolation** (breaking
-0.4.0), but it must start with fresh requirements via `/skill:gsd-new-milestone` before phases are added.
-Feature milestones remain demand-gated on **LIFE-06** / **STREAM-10**.
+## Current Milestone: v1.23 Postgres Schema Isolation
+
+**Goal:** Make Rindle a respectful Postgres guest by isolating its domain tables in a dedicated `rindle`
+schema by default, with an explicit safe upgrade route and truthful runtime/install proof — a breaking
+0.4.0 release.
+
+**Target features:**
+- Config-driven schema-prefix default and `prefix: "public"` compatibility opt-out.
+- Versioned migration and upgrade path that creates/moves the six Rindle tables without taking ownership
+  of host-owned Oban tables.
+- Prefix-correct runtime diagnostics, generated-app proof, demo provisioning, and release/docs truth.
+
+Feature milestones unrelated to schema isolation remain demand-gated on **LIFE-06** / **STREAM-10**.
 
 > **Release-state reconciliation (2026-06-30):** Hex 0.3.2 (the two adopter-invisible v1.21 `lib/` `fix:`
 > patches) was merged to `main` in v1.21 but left unreleased — release-please never opened the 0.3.2 PR
@@ -420,8 +430,8 @@ To keep this posture durable across GSD workflows:
 
 ### Active
 
-_(none — v1.22 is shipped and archived. Start v1.23 Postgres Schema Isolation with
-`/skill:gsd-new-milestone` so it receives fresh requirements before phases are added.)_
+- [ ] v1.23 Postgres Schema Isolation — define, implement, and verify the breaking 0.4.0 default-prefix
+  change with an explicit compatibility and upgrade path.
 
 **Demand-gated for next feature milestone:**
 
