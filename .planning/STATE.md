@@ -2,14 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.23
 milestone_name: Postgres Schema Isolation
-status: planning
-last_updated: "2026-08-09T01:02:40.654Z"
+current_phase: 117
+current_phase_name: prefix-routing-architecture
+status: executing
+stopped_at: Completed 117-01-PLAN.md
+last_updated: "2026-08-09T01:38:07.241Z"
 last_activity: 2026-08-08
+last_activity_desc: Phase 117 execution started
 progress:
   total_phases: 4
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 2
+  completed_plans: 1
   percent: 0
 ---
 
@@ -20,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-02 after shipping v1.22)
 
 **Core value:** Media, made durable.
-**Current focus:** v1.23 Postgres Schema Isolation (breaking 0.4.0)
+**Current focus:** Phase 117 — prefix-routing-architecture
 
 ## Current Position
 
-Phase: 117 of 120 (Prefix Routing Architecture)
-Plan: —
-Status: Roadmap ready; planning not started
-Last activity: 2026-08-08 — v1.23 roadmap created; 12/12 requirements mapped to Phases 117–120
+Phase: 117 (prefix-routing-architecture) — EXECUTING
+Plan: 2 of 2
+Status: Ready to execute
+Last activity: 2026-08-08 — Phase 117 execution started
 
 ### v1.22 shipped summary
 
@@ -121,10 +125,13 @@ the v1.22 requirements archive. Builds on the v1.22 `Rindle.Migration` substrate
 - Phase 117 decides and proves the single routing architecture for the default `rindle` prefix and
   explicit `public` compatibility; it is intentionally first because Ecto schema-prefix configuration
   and runtime routing cannot be mixed casually.
+
 - Phase 118 provisions the selected schema and performs the narrow, data-preserving public-to-`rindle`
   move for only the six Rindle tables plus `rindle_migration_versions`.
+
 - Phase 119 hardens the manual raw-SQL/catalog/Oban boundaries and exposes separate-prefix diagnostics
   through doctor and runtime status.
+
 - Phase 120 proves the full breaking contract in packed generated applications, Cohort, docs parity,
   and 0.4.0 release truth.
 
@@ -152,6 +159,7 @@ _(Key v1.22 execution decisions recorded at milestone close.)_
 - [Phase 116]: Legacy package-directory migration replay remains documented only in the historical 0.1.3-and-earlier upgrade path.
 - [Phase 116]: Troubleshooting treats missing oban_jobs as host-owned Oban setup, not as a Rindle migration responsibility.
 - [Phase 116]: Plan 116-07 closed Phase 116 with focused tests, generated-app image smoke, mix ci, release-train audit, and schema-push audit all passing. — Final evidence for MIGRATE-01 and MIGRATE-02: no workflow diffs, no configured schema-push path matches, and direct key-link grep proves the pinned README/generated-app migration pattern.
+- [Phase ?]: Phase 117 Plan 01: all six Rindle-owned schemas use a validated compile-time Rindle.Schema prefix; only rindle and public are supported, while Oban stays independent.
 
 ## Blockers/Concerns
 
@@ -170,8 +178,8 @@ _(none open for v1.22 at roadmap creation)_
 
 ## Session Continuity
 
-Last session: 2026-07-01T20:57:09.263Z
-Stopped at: Completed 116-07-PLAN.md
+Last session: 2026-08-09T01:38:07.234Z
+Stopped at: Completed 117-01-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -192,6 +200,11 @@ Resume file: None
 | Phase 116 P05 | 11 min | 2 tasks | 4 files |
 | Phase 116 P06 | 10 min | 3 tasks | 5 files |
 | Phase 116 P07 | 5 min | 2 tasks | 1 files |
+**Per-Plan Metrics:**
+
+| Plan | Duration | Tasks | Files |
+|------|----------|-------|-------|
+| Phase 117 P01 | 4 min | 2 tasks | 12 files |
 
 ## Operator Next Steps
 

@@ -7,11 +7,13 @@
 
 ### Prefix Contract
 
-- [ ] **PREFIX-01**: A fresh Rindle install defaults all Rindle-owned domain state to the Postgres
+- [x] **PREFIX-01**: A fresh Rindle install defaults all Rindle-owned domain state to the Postgres
   `rindle` schema without callers manually adding query prefixes.
-- [ ] **PREFIX-02**: An adopter can explicitly retain a legacy `public` install through one documented,
+
+- [x] **PREFIX-02**: An adopter can explicitly retain a legacy `public` install through one documented,
   coherent prefix configuration and migration pairing.
-- [ ] **PREFIX-03**: Every normal Rindle data path—including facade calls, background work, Ecto.Multi
+
+- [x] **PREFIX-03**: Every normal Rindle data path—including facade calls, background work, Ecto.Multi
   steps, and loaded/new schema structs—uses the configured Rindle prefix rather than silently falling
   back to `public`.
 
@@ -19,9 +21,11 @@
 
 - [ ] **MIGRATE-01**: The versioned Rindle migration provisions the selected schema before creating
   Rindle-owned tables and marker state, and remains idempotent for a fresh install.
+
 - [ ] **MIGRATE-02**: A populated legacy `public` install can follow a documented, host-owned upgrade
   migration that moves exactly the six Rindle tables and `rindle_migration_versions` to `rindle`,
   preserving data and relational integrity.
+
 - [ ] **MIGRATE-03**: Mixed, incomplete, or permission-inadequate schema states fail with bounded,
   actionable guidance; the move's maintenance-window and rollback limits are documented honestly.
 
@@ -30,8 +34,10 @@
 - [ ] **BOUNDARY-01**: Rindle never creates, moves, drops, or prefixes host-owned `oban_jobs` or the
   host `schema_migrations` ledger; Oban's prefix remains independently configured and defaults to
   `public`.
+
 - [ ] **BOUNDARY-02**: Prefix-sensitive raw SQL, catalog checks, and Oban-binding queries use validated,
   safely quoted/bound identifiers and resolve their respective Rindle or Oban schemas correctly.
+
 - [ ] **OPS-01**: `mix rindle.doctor` and `mix rindle.runtime_status` report the expected Rindle and
   Oban prefixes separately and diagnose migration/runtime-prefix mismatch without raw database errors.
 
@@ -39,8 +45,10 @@
 
 - [ ] **PROOF-01**: Automated isolation proof verifies fresh default installs, explicit public
   compatibility, a populated public-to-rindle upgrade, runtime routing, and the public Oban boundary.
+
 - [ ] **PROOF-02**: Packed-artifact generated-app smoke and the Cohort adoption demo provision and run
   end-to-end with Rindle in `rindle` and Oban in `public`.
+
 - [ ] **DOCS-01**: README, getting-started, upgrade, migration API docs, docs-parity tests, and the
   0.4.0 release notes agree on the breaking default, compatibility escape hatch, upgrade order,
   permissions, downtime expectations, and Oban ownership.
@@ -66,9 +74,9 @@
 
 | Requirement | Phase | Status |
 |---|---|---|
-| PREFIX-01 | Phase 117 | Pending |
-| PREFIX-02 | Phase 117 | Pending |
-| PREFIX-03 | Phase 117 | Pending |
+| PREFIX-01 | Phase 117 | Complete |
+| PREFIX-02 | Phase 117 | Complete |
+| PREFIX-03 | Phase 117 | Complete |
 | MIGRATE-01 | Phase 118 | Pending |
 | MIGRATE-02 | Phase 118 | Pending |
 | MIGRATE-03 | Phase 118 | Pending |

@@ -39,47 +39,59 @@
 ## Phase Details
 
 ### Phase 117: Prefix Routing Architecture
+
 **Goal**: Adopters can rely on one explicit, proven Rindle schema-routing model: `rindle` by default or an intentional `public` compatibility configuration, with no normal data path silently falling back.
 **Depends on**: Phase 116
 **Requirements**: PREFIX-01, PREFIX-02, PREFIX-03
 **Success Criteria** (what must be TRUE):
+
   1. A fresh configured application can use Rindle without manually adding query prefixes, and its normal Rindle reads and writes resolve to `rindle`.
   2. An adopter can select the documented `public` compatibility configuration and receive the same normal Rindle behavior against `public`.
   3. Facade operations, background work, Ecto.Multi callbacks, and both loaded and newly created Rindle structs consistently use the selected prefix, including when decoy public tables exist.
   4. The project has one tested architectural decision—compile-time schema macro or runtime routing helper—with its configuration/release implications explicit; mixed routing semantics are not exposed to adopters.
+
 **Plans**: TBD
 
 ### Phase 118: Isolated Migration & Safe Upgrade
+
 **Goal**: Adopters can create a fresh isolated install or move a populated legacy install to `rindle` without losing Rindle data or taking ownership of host infrastructure.
 **Depends on**: Phase 117
 **Requirements**: MIGRATE-01, MIGRATE-02, MIGRATE-03
 **Success Criteria** (what must be TRUE):
+
   1. A fresh host migration provisions the selected schema, all six Rindle tables, and Rindle's marker state idempotently.
   2. An adopter can run a host-owned public-to-`rindle` upgrade that moves exactly the six Rindle tables and `rindle_migration_versions` while preserving rows, indexes, and relationships.
   3. Mixed, incomplete, or insufficient-permission database states stop before an unsafe move and provide bounded corrective guidance.
   4. Upgrade instructions state the required maintenance window and the limited, host-controlled rollback path truthfully.
+
 **Plans**: TBD
 
 ### Phase 119: Ownership Boundaries & Diagnostics
+
 **Goal**: Operators can distinguish Rindle's configured schema from independently configured host Oban infrastructure and resolve prefix problems without raw database failures.
 **Depends on**: Phase 118
 **Requirements**: BOUNDARY-01, BOUNDARY-02, OPS-01
 **Success Criteria** (what must be TRUE):
+
   1. Rindle never creates, moves, drops, or prefixes `oban_jobs` or the host `schema_migrations` ledger; Oban keeps its independently configured (normally `public`) prefix.
   2. Rindle catalog checks, raw SQL, and Oban-binding queries resolve the correct respective schema using validated, safely quoted or bound identifiers.
   3. `mix rindle.doctor` reports expected Rindle and Oban prefixes separately and identifies an installation or migration-prefix mismatch with actionable guidance.
   4. `mix rindle.runtime_status` detects missing or mismatched Rindle/Oban state before report queries and returns a bounded setup failure rather than a raw database exception.
+
 **Plans**: TBD
 
 ### Phase 120: Adoption Proof & Release Truth
+
 **Goal**: Adopters and maintainers can verify the breaking 0.4.0 schema contract end-to-end from packaged installation through upgrade, demo operation, and documentation.
 **Depends on**: Phase 119
 **Requirements**: PROOF-01, PROOF-02, DOCS-01
 **Success Criteria** (what must be TRUE):
+
   1. Automated proof covers fresh `rindle` installs, explicit `public` compatibility, populated public-to-`rindle` upgrades, runtime routing, and the untouched public Oban boundary.
   2. A packed-artifact generated Phoenix application and the Cohort adoption demo provision and run with Rindle in `rindle` and Oban in `public`.
   3. README, getting-started, migration API docs, upgrading guide, docs-parity tests, and 0.4.0 release notes agree on the breaking default, escape hatch, order of operations, permissions, downtime, and Oban ownership.
   4. Release verification demonstrates that packaged artifacts—not only the repository checkout—honor the documented isolation contract.
+
 **Plans**: TBD
 
 ## Progress
