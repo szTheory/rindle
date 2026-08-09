@@ -5,15 +5,15 @@ milestone_name: Postgres Schema Isolation
 current_phase: 118
 current_phase_name: isolated-migration-safe-upgrade
 status: executing
-stopped_at: Completed 118-02-PLAN.md
-last_updated: "2026-08-09T16:13:18.713Z"
+stopped_at: Completed 118-03-PLAN.md
+last_updated: "2026-08-09T16:22:24.205Z"
 last_activity: 2026-08-09
 last_activity_desc: Phase 118 execution started
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 9
-  completed_plans: 7
+  completed_plans: 8
   percent: 25
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-07-02 after shipping v1.22)
 ## Current Position
 
 Phase: 118 (isolated-migration-safe-upgrade) — EXECUTING
-Plan: 3 of 4
+Plan: 4 of 4
 Status: Ready to execute
 Last activity: 2026-08-09 — Phase 118 execution started
 
@@ -169,6 +169,7 @@ _(Key v1.22 execution decisions recorded at milestone close.)_
 - [Phase ?]: Phase 118 Plan 01: approved rindle as the migration default; only explicit public compatibility remains supported.
 - [Phase ?]: Approved D-118-06: transactional fixed public-to-rindle ALTER TABLE move after complete preflight.
 - [Phase ?]: 118-02 pins move_public_to_rindle/1 to version: 1 and excludes generic schema moves.
+- [Phase ?]: Approved D-118-08 guarded move_rindle_to_public/1 for quiesced, exactly reversible host migration down paths; it never drops rindle or calls destructive down/1.
 
 ## Blockers/Concerns
 
@@ -187,8 +188,8 @@ _(none open for v1.22 at roadmap creation)_
 
 ## Session Continuity
 
-Last session: 2026-08-09T16:13:18.704Z
-Stopped at: Completed 118-02-PLAN.md
+Last session: 2026-08-09T16:22:24.188Z
+Stopped at: Completed 118-03-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -220,6 +221,7 @@ Resume file: None
 | Phase 117 P05 | 7min | 2 tasks | 3 files |
 | Phase 118 P01 | 18 min | 2 tasks | 6 files |
 | Phase 118 P02 | 31 min | 2 tasks | 5 files |
+| Phase 118 P03 | 15 min | 2 tasks | 5 files |
 
 ## Operator Next Steps
 

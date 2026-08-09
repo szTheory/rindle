@@ -77,7 +77,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 118-03-PLAN.md — Prove refusal/rollback/lock safety and add the guarded reverse.
+- [x] 118-03-PLAN.md — Prove refusal/rollback/lock safety and add the guarded reverse.
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
