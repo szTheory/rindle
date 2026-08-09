@@ -46,16 +46,9 @@ defmodule Rindle.SchemaPrefixContractTest do
     actual_prefix = opposite_prefix(expected_prefix)
 
     [{^module, _bytecode}] =
-      Code.compile_string("""
-      defmodule #{inspect(module)} do
-        use Rindle.Schema
-        Module.delete_attribute(__MODULE__, :after_compile)
-        Module.put_attribute(__MODULE__, :schema_prefix, #{inspect(actual_prefix)})
-
-        schema "callback_removal_prefix_override_schemas" do
-        end
-      end
-      """)
+      module
+      |> callback_removal_consumer_source(actual_prefix)
+      |> Code.compile_string()
 
     assert module.__schema__(:prefix) == expected_prefix
     assert struct(module).__meta__.prefix == expected_prefix
@@ -121,6 +114,19 @@ defmodule Rindle.SchemaPrefixContractTest do
 
   defp opposite_prefix("rindle"), do: "public"
   defp opposite_prefix("public"), do: "rindle"
+
+  defp callback_removal_consumer_source(module, alternate_prefix) do
+    """
+    defmodule #{inspect(module)} do
+      use Rindle.Schema
+      Module.delete_attribute(__MODULE__, :after_compile)
+      Module.put_attribute(__MODULE__, :schema_prefix, #{inspect(alternate_prefix)})
+
+      schema "callback_removal_prefix_override_schemas" do
+      end
+    end
+    """
+  end
 
   defp unique_module_name(prefix) do
     Module.concat(Rindle, "#{prefix}#{System.unique_integer([:positive])}")
