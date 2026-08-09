@@ -81,7 +81,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 118-04-PLAN.md — Publish and lock maintenance-window upgrade guidance.
+- [x] 118-04-PLAN.md — Publish and lock maintenance-window upgrade guidance.
 
 ### Phase 119: Ownership Boundaries & Diagnostics
 

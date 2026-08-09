@@ -4,17 +4,17 @@ milestone: v1.23
 milestone_name: Postgres Schema Isolation
 current_phase: 118
 current_phase_name: isolated-migration-safe-upgrade
-status: executing
-stopped_at: Completed 118-03-PLAN.md
-last_updated: "2026-08-09T16:22:24.205Z"
+status: verifying
+stopped_at: Completed 118-04-PLAN.md
+last_updated: "2026-08-09T16:29:22.172Z"
 last_activity: 2026-08-09
 last_activity_desc: Phase 118 execution started
 progress:
   total_phases: 4
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 9
-  completed_plans: 8
-  percent: 25
+  completed_plans: 9
+  percent: 50
 ---
 
 # Project State
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-07-02 after shipping v1.22)
 
 Phase: 118 (isolated-migration-safe-upgrade) — EXECUTING
 Plan: 4 of 4
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-08-09 — Phase 118 execution started
 
 ### v1.22 shipped summary
@@ -170,6 +170,7 @@ _(Key v1.22 execution decisions recorded at milestone close.)_
 - [Phase ?]: Approved D-118-06: transactional fixed public-to-rindle ALTER TABLE move after complete preflight.
 - [Phase ?]: 118-02 pins move_public_to_rindle/1 to version: 1 and excludes generic schema moves.
 - [Phase ?]: Approved D-118-08 guarded move_rindle_to_public/1 for quiesced, exactly reversible host migration down paths; it never drops rindle or calls destructive down/1.
+- [Phase ?]: Phase 118 Plan 04 locks the rindle default, public-only compatibility pairing, and host-owned maintenance-window upgrade contract in docs parity.
 
 ## Blockers/Concerns
 
@@ -188,8 +189,8 @@ _(none open for v1.22 at roadmap creation)_
 
 ## Session Continuity
 
-Last session: 2026-08-09T16:22:24.188Z
-Stopped at: Completed 118-03-PLAN.md
+Last session: 2026-08-09T16:29:22.162Z
+Stopped at: Completed 118-04-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -222,6 +223,7 @@ Resume file: None
 | Phase 118 P01 | 18 min | 2 tasks | 6 files |
 | Phase 118 P02 | 31 min | 2 tasks | 5 files |
 | Phase 118 P03 | 15 min | 2 tasks | 5 files |
+| Phase 118 P04 | ~13 min | 2 tasks | 5 files |
 
 ## Operator Next Steps
 
