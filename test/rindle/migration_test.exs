@@ -538,32 +538,44 @@ defmodule Rindle.MigrationTest do
     parent = self()
 
     holder =
-      spawn_link(fn ->
-        {:ok, connection} = Postgrex.start_link(postgrex_connection_options())
-        {:ok, _} = Postgrex.query(connection, "BEGIN", [])
+      spawn(fn ->
+        case Postgrex.start_link(postgrex_connection_options()) do
+          {:ok, connection} ->
+            {:ok, _} = Postgrex.query(connection, "BEGIN", [])
 
-        {:ok, _} =
-          Postgrex.query(
-            connection,
-            "LOCK TABLE #{qualified(schema, table)} IN ACCESS EXCLUSIVE MODE",
-            []
-          )
+            {:ok, _} =
+              Postgrex.query(
+                connection,
+                "LOCK TABLE #{qualified(schema, table)} IN ACCESS EXCLUSIVE MODE",
+                []
+              )
 
-        {:ok, %{rows: [[backend_pid]]}} =
-          Postgrex.query(connection, "SELECT pg_backend_pid()", [])
+            {:ok, %{rows: [[backend_pid]]}} =
+              Postgrex.query(connection, "SELECT pg_backend_pid()", [])
 
-        send(parent, {:rindle_migration_lock_acquired, self(), backend_pid})
+            send(parent, {:rindle_migration_lock_acquired, self(), backend_pid})
 
-        receive do
-          :release_rindle_migration_lock ->
-            {:ok, _} = Postgrex.query(connection, "ROLLBACK", [])
-            :ok = GenServer.stop(connection)
-            send(parent, {:rindle_migration_lock_released, self()})
+            receive do
+              :release_rindle_migration_lock ->
+                {:ok, _} = Postgrex.query(connection, "ROLLBACK", [])
+                :ok = GenServer.stop(connection)
+                send(parent, {:rindle_migration_lock_released, self()})
+            end
+
+          {:error, reason} ->
+            send(parent, {:rindle_migration_lock_failed, self(), reason})
         end
       end)
 
-    assert_receive {:rindle_migration_lock_acquired, ^holder, backend_pid}, 1_000
-    {holder, backend_pid}
+    receive do
+      {:rindle_migration_lock_acquired, ^holder, backend_pid} ->
+        {holder, backend_pid}
+
+      {:rindle_migration_lock_failed, ^holder, reason} ->
+        flunk("could not start lock holder: #{inspect(reason)}")
+    after
+      1_000 -> flunk("lock holder did not report readiness")
+    end
   end
 
   defp release_lock!(holder) do
@@ -574,6 +586,7 @@ defmodule Rindle.MigrationTest do
   defp postgrex_connection_options do
     Repo.config()
     |> Keyword.take([:username, :password, :hostname, :port, :database, :ssl, :socket_options])
+    |> Enum.reject(fn {_key, value} -> is_nil(value) end)
   end
 
   defp backend_pid do

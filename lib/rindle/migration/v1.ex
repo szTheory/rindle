@@ -489,6 +489,8 @@ defmodule Rindle.Migration.V1 do
   end
 
   defp migration_snapshot do
+    privilege_override = test_privilege_override()
+
     %{rows: schema_rows} =
       repo().query!(
         "SELECT nspname FROM pg_namespace WHERE nspname = ANY($1) ORDER BY nspname",
@@ -515,6 +517,8 @@ defmodule Rindle.Migration.V1 do
     %{rows: [[database_create?]]} =
       repo().query!("SELECT has_database_privilege(current_database(), 'CREATE')", [])
 
+    database_create? = Map.get(privilege_override, :database_create?, database_create?)
+
     schemas = Enum.map(schema_rows, &hd/1)
     target_exists? = @rindle_schema in schemas
 
@@ -528,8 +532,12 @@ defmodule Rindle.Migration.V1 do
         false
       end
 
+    target_usable? = Map.get(privilege_override, :target_usable?, target_usable?)
+
     %{rows: [[public_usable?]]} =
       repo().query!("SELECT has_schema_privilege($1, 'USAGE, CREATE')", [@public_schema])
+
+    public_usable? = Map.get(privilege_override, :public_usable?, public_usable?)
 
     relation_state =
       Enum.reduce(
@@ -575,6 +583,19 @@ defmodule Rindle.Migration.V1 do
 
       Enum.map(rows, fn [version] -> [schema, version] end)
     end)
+  end
+
+  defp test_privilege_override do
+    case Process.get(:rindle_migration_test_privileges) do
+      override when is_map(override) ->
+        override
+        |> Map.take([:database_create?, :target_usable?, :public_usable?])
+        |> Enum.filter(fn {_key, value} -> is_boolean(value) end)
+        |> Map.new()
+
+      _ ->
+        %{}
+    end
   end
 
   defp complete_source?(snapshot), do: snapshot.source_relations == Enum.sort(owned_relations())
