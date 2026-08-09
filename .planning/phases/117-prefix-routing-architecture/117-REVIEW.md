@@ -1,25 +1,24 @@
 ---
 phase: 117-prefix-routing-architecture
-reviewed: 2026-08-09T02:24:56Z
+reviewed: 2026-08-08T23:30:00-04:00
 depth: standard
-files_reviewed: 13
+files_reviewed: 12
 files_reviewed_list:
-  - lib/rindle/schema.ex
   - lib/rindle/config.ex
   - lib/rindle/domain/media_asset.ex
   - lib/rindle/domain/media_attachment.ex
-  - lib/rindle/domain/media_variant.ex
-  - lib/rindle/domain/media_upload_session.ex
   - lib/rindle/domain/media_processing_run.ex
   - lib/rindle/domain/media_provider_asset.ex
+  - lib/rindle/domain/media_upload_session.ex
+  - lib/rindle/domain/media_variant.ex
+  - lib/rindle/schema.ex
   - test/rindle/config/config_test.exs
   - test/rindle/domain/media_schema_test.exs
-  - test/rindle/schema_prefix_integration_test.exs
   - test/rindle/schema_prefix_contract_test.exs
-  - test/support/schema_prefix_case.ex
+  - test/rindle/schema_prefix_integration_test.exs
 findings:
-  critical: 1
-  warning: 0
+  critical: 0
+  warning: 1
   info: 0
   total: 1
 status: issues_found
@@ -27,41 +26,25 @@ status: issues_found
 
 # Phase 117: Code Review Report
 
-**Reviewed:** 2026-08-09T02:24:56Z
+**Reviewed:** 2026-08-08T23:30:00-04:00
 **Depth:** standard
-**Files Reviewed:** 13
+**Files Reviewed:** 12
 **Status:** issues_found
 
 ## Summary
 
-The review covered the Phase 117 schema-prefix implementation, domain consumers, and its focused regression/integration support. The Plan 117-03 finalization guard rejects the specific `Module.put_attribute/3` mutation covered by its test, but the guard itself remains mutable by the consumer. This leaves the phase's claimed single routing authority bypassable.
+Reviewed all supplied prefix-routing implementation and test files, including the macro's compile-time authority, Ecto metadata/association use, and facade/worker integration paths. No blocker was found. The focused Phase 117 suite passed (35 tests), but compilation emits a warning from a reviewed test file.
 
-## Narrative Findings (AI reviewer)
+## Warnings
 
-## Critical Issues
+### WR-01: Test module emits an unused module-attribute compiler warning
 
-### CR-01: Consumer code can remove the final-prefix guard before changing the prefix
-
-**File:** `lib/rindle/schema.ex:25`
-
-**Issue:** `use Rindle.Schema` registers its only enforcement mechanism in the consumer's mutable `:after_compile` module attribute. A consumer can call `Module.delete_attribute(__MODULE__, :after_compile)` after `use Rindle.Schema`, then set `:schema_prefix` to the alternate allowed prefix before `schema/2`. The module compiles and Ecto records the attacker-selected prefix because `Rindle.Schema.__after_compile__/2` is never run. This directly reopens the dynamic-metadata bypass that Plan 117-03 is intended to close.
-
-Reproduced under `MIX_ENV=dev` with a generated consumer containing:
-
-```elixir
-use Rindle.Schema
-Module.delete_attribute(__MODULE__, :after_compile)
-Module.put_attribute(__MODULE__, :schema_prefix, "public")
-schema "after_compile_bypass_probes" do
-end
-```
-
-It compiled successfully and returned `"public"` from `module.__schema__(:prefix)` while `Rindle.Schema.prefix()` was `"rindle"`.
-
-**Fix:** Do not rely solely on a removable consumer callback. Make the schema declaration boundary reassert the compiled prefix immediately before Ecto consumes it (for example, expose a `Rindle.Schema.schema/2` wrapper and exclude raw `Ecto.Schema.schema/2` from the consumer import), while retaining the finalization check as defense in depth. Extend the contract test with the reproduced callback-removal sequence and assert it cannot yield a schema whose metadata differs from `Rindle.Schema.prefix/0`; also reject direct raw Ecto schema declaration in the owned-schema source guard.
+**File:** `test/rindle/config/config_test.exs:8`
+**Issue:** `@async_safety_allow` is set but never consumed. `mix test` reports this warning during the Phase 117 focused suite, adding avoidable noise and making real compiler warnings less visible in CI output.
+**Fix:** Remove the attribute if the test-harness allowlist no longer consumes it, or wire the attribute into the harness mechanism that requires it.
 
 ---
 
-_Reviewed: 2026-08-09T02:24:56Z_
+_Reviewed: 2026-08-08T23:30:00-04:00_
 _Reviewer: the agent (gsd-code-reviewer)_
 _Depth: standard_
