@@ -31,7 +31,7 @@
 
 ### v1.23 Postgres Schema Isolation (0.4.0)
 
-- [ ] **Phase 117: Prefix Routing Architecture** - Prove and deliver one explicit schema-routing model for all normal Rindle data paths.
+- [x] **Phase 117: Prefix Routing Architecture** - Prove and deliver one explicit schema-routing model for all normal Rindle data paths. (completed 2026-08-08)
 - [ ] **Phase 118: Isolated Migration & Safe Upgrade** - Provision `rindle` by default and give populated public installs a bounded move path.
 - [ ] **Phase 119: Ownership Boundaries & Diagnostics** - Keep Rindle and Oban schemas independent and make prefix faults actionable.
 - [ ] **Phase 120: Adoption Proof & Release Truth** - Prove the 0.4.0 contract in generated apps, Cohort, documentation, and release artifacts.
@@ -98,7 +98,7 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 117. Prefix Routing Architecture | 0/TBD | Not started | - |
+| 117. Prefix Routing Architecture | 5/5 | Complete    | 2026-08-08 |
 | 118. Isolated Migration & Safe Upgrade | 0/TBD | Not started | - |
 | 119. Ownership Boundaries & Diagnostics | 0/TBD | Not started | - |
 | 120. Adoption Proof & Release Truth | 0/TBD | Not started | - |
