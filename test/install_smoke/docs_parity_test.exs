@@ -206,7 +206,25 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
         "#### Existing populated public installs",
         "#### Existing legacy installs"
       )
-      |> String.replace(~r/\s+/, " ")
+
+    migration_snippet =
+      fenced_elixir_after!(upgrade_section, "defmodule MyApp.Repo.Migrations.MoveRindleToSchema")
+
+    assert_in_order!(migration_snippet, [
+      "def up do",
+      "execute(\"SET LOCAL lock_timeout = '5s'\")",
+      "Rindle.Migration.move_public_to_rindle(version: 1)",
+      "def down do",
+      "execute(\"SET LOCAL lock_timeout = '5s'\")",
+      "Rindle.Migration.move_rindle_to_public(version: 1)"
+    ])
+
+    for helper <- ["move_public_to_rindle", "move_rindle_to_public"] do
+      refute Regex.match?(~r/execute\(fn\s*->.*#{helper}/s, migration_snippet),
+             "populated migration snippet must call #{helper}/1 directly at migration-body scope"
+    end
+
+    upgrade_section = String.replace(upgrade_section, ~r/\s+/, " ")
 
     for snippet <- [
           "maintenance window",
@@ -798,6 +816,17 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
     case string_index(tail, stop_snippet) do
       nil -> tail
       stop_index -> binary_part(tail, 0, stop_index)
+    end
+  end
+
+  defp fenced_elixir_after!(section, snippet) do
+    ~r/^```elixir\n(.*?)^```/ms
+    |> Regex.scan(section, capture: :all_but_first)
+    |> Enum.map(&hd/1)
+    |> Enum.find(&String.contains?(&1, snippet))
+    |> case do
+      nil -> flunk("expected a closed Elixir fence containing #{inspect(snippet)}")
+      contents -> contents
     end
   end
 
