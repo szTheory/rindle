@@ -61,6 +61,30 @@ defmodule Rindle.SchemaPrefixContractTest do
     assert struct(module).__meta__.prefix == expected_prefix
   end
 
+  test "after-compile validation remains available for non-normal declarations" do
+    module = unique_module_name("DynamicPrefixOverride")
+    expected_prefix = Rindle.Schema.prefix()
+    actual_prefix = opposite_prefix(expected_prefix)
+
+    error =
+      assert_raise ArgumentError, fn ->
+        Code.compile_string("""
+        defmodule #{inspect(module)} do
+          use Rindle.Schema
+          Module.put_attribute(__MODULE__, :schema_prefix, #{inspect(actual_prefix)})
+          require Ecto.Schema
+
+          Ecto.Schema.schema "dynamic_prefix_override_schemas" do
+          end
+        end
+        """)
+      end
+
+    assert Exception.message(error) =~ inspect(module)
+    assert Exception.message(error) =~ "expected #{inspect(expected_prefix)}"
+    assert Exception.message(error) =~ "got #{inspect(actual_prefix)}"
+  end
+
   defp uses_rindle_schema?(ast), do: contains?(ast, &rindle_schema_use?/1)
   defp uses_ecto_schema_directly?(ast), do: contains?(ast, &ecto_schema_use?/1)
   defp imports_ecto_schema_directly?(ast), do: contains?(ast, &ecto_schema_import?/1)

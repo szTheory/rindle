@@ -18,11 +18,26 @@ defmodule Rindle.Schema do
 
     quote bind_quoted: [prefix: prefix] do
       use Ecto.Schema
+      import Ecto.Schema, except: [schema: 2]
+      import Rindle.Schema, only: [schema: 2]
 
       @primary_key {:id, :binary_id, autogenerate: true}
       @foreign_key_type :binary_id
       @schema_prefix prefix
       @after_compile Rindle.Schema
+    end
+  end
+
+  @doc false
+  defmacro schema(source, do: block) do
+    prefix = Rindle.Schema.prefix()
+
+    quote do
+      @schema_prefix unquote(prefix)
+
+      Ecto.Schema.schema unquote(source) do
+        unquote(block)
+      end
     end
   end
 
