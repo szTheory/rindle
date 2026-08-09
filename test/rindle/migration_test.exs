@@ -202,6 +202,48 @@ defmodule Rindle.MigrationTest do
       assert_fk_enforced!("rindle")
       assert host_relation_snapshots("public") == host_relations_before
     end
+
+    test "rolls back destination creation and partial moves when the host transaction fails" do
+      for failure_point <- [:after_target_schema, {:after_relation, 1}] do
+        reset_rindle_schema!()
+
+        run_up([prefix: "public"], fn ->
+          Rindle.Migration.up(version: 1, prefix: "public")
+        end)
+
+        fixture = insert_public_move_fixture!()
+        host_relations_before = host_relation_snapshots("public")
+        index_before = index_names("public", "media_assets")
+
+        assert {:error, %RuntimeError{message: "injected Rindle migration failure"}} =
+                 Repo.transaction(fn ->
+                   Process.put(:rindle_migration_test_failure, failure_point)
+
+                   try do
+                     run_move(fn ->
+                       Rindle.Migration.move_public_to_rindle(version: 1)
+                     end)
+                   after
+                     Process.delete(:rindle_migration_test_failure)
+                   end
+                 end)
+
+        refute schema_exists?("rindle")
+
+        for relation <- Rindle.Migration.V1.owned_relations() do
+          assert table_exists?("public", relation),
+                 "expected public.#{relation} after #{inspect(failure_point)} rollback"
+
+          refute table_exists?("rindle", relation)
+        end
+
+        assert moved_fixture("public") == fixture
+        assert marker_versions("public") == [1]
+        assert index_names("public", "media_assets") == index_before
+        assert_fk_enforced!("public")
+        assert host_relation_snapshots("public") == host_relations_before
+      end
+    end
   end
 
   defp run_up(fun) when is_function(fun, 0), do: run_migration(:up, [], fun)
