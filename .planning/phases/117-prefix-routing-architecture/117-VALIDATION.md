@@ -1,8 +1,8 @@
 ---
 phase: 117
 slug: prefix-routing-architecture
-status: draft
-nyquist_compliant: false
+status: validated
+nyquist_compliant: true
 wave_0_complete: true
 created: 2026-08-08
 ---
@@ -30,10 +30,16 @@ created: 2026-08-08
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | Status |
 |---|---|---|---|---|---|---|
-| 117-01-01 | 01 | 1 | PREFIX-01 | schema/config unit | `mix test test/rindle/config/config_test.exs test/rindle/domain/media_schema_test.exs --seed 0` | pending |
-| 117-01-02 | 01 | 1 | PREFIX-03 | integration | `mix test test/rindle/schema_prefix_integration_test.exs --seed 0` | pending |
-| 117-02-01 | 02 | 2 | PREFIX-02 | compatibility/contract | `mix test test/rindle/schema_prefix_contract_test.exs --seed 0` | pending |
-| 117-02-02 | 02 | 2 | PREFIX-01..03 | regression | `mix coveralls.multiple --type local --type json` | pending |
+| 117-01-01 | 01 | 1 | PREFIX-01 | schema/config unit | `mix test test/rindle/config/config_test.exs test/rindle/domain/media_schema_test.exs --seed 0` | covered |
+| 117-01-02 | 01 | 1 | PREFIX-03 | selected-versus-decoy integration | `mix test test/rindle/schema_prefix_integration_test.exs --seed 0` | covered |
+| 117-02-01 | 02 | 2 | PREFIX-02 | compatibility/contract | `mix test test/rindle/schema_prefix_contract_test.exs --seed 0` | covered |
+| 117-02-02 | 02 | 2 | PREFIX-01..03 | full regression | `mix coveralls.multiple --type local --type json` | covered |
+| 117-03-01 | 03 | 3 | PREFIX-01, PREFIX-03 | compile-finalization regression | `mix test test/rindle/schema_prefix_contract_test.exs --seed 0` | covered |
+| 117-03-02 | 03 | 3 | PREFIX-02 | default/public build authority | `mix test test/rindle/config/config_test.exs test/rindle/schema_prefix_contract_test.exs --seed 0` | covered |
+| 117-04-01 | 04 | 3 | PREFIX-01, PREFIX-02 | callback-resistance contract | `mix test test/rindle/schema_prefix_contract_test.exs --seed 0` | covered |
+| 117-04-02 | 04 | 3 | PREFIX-03 | facade, Multi, worker, and loaded-struct routing | `mix test test/rindle/schema_prefix_integration_test.exs --seed 0` | covered |
+| 117-05-01 | 05 | 3 | PREFIX-01 | owned-schema boundary | `mix test test/rindle/schema_prefix_contract_test.exs --seed 0` | covered |
+| 117-05-02 | 05 | 3 | PREFIX-02, PREFIX-03 | build authority and routing regression | `mix coveralls.multiple --type local --type json` | covered |
 
 ## Wave 0 Requirements
 
@@ -49,7 +55,20 @@ proof is completed in Phase 120.
 
 - [x] Every planned behavior has an automated verification route.
 - [x] Existing infrastructure needs no new framework or harness.
-- [ ] Focused prefix tests and full quality suite are green.
-- [ ] `nyquist_compliant: true` set after execution evidence is recorded.
+- [x] Focused prefix tests and full quality suite are green (35 focused tests; 1,261 full-suite tests, 0 failures).
+- [x] `nyquist_compliant: true` set after execution evidence is recorded.
 
-**Approval:** pending
+**Approval:** validated 2026-08-08
+
+## Validation Audit 2026-08-08
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+Evidence recorded in this audit:
+
+- `mix test test/rindle/config/config_test.exs test/rindle/domain/media_schema_test.exs test/rindle/schema_prefix_contract_test.exs test/rindle/schema_prefix_integration_test.exs --seed 0` — 35 tests, 0 failures.
+- `mix coveralls.multiple --type local --type json --slowest 20` — 1,261 tests, 0 failures, 4 skipped, 77 excluded; 81.5% coverage.
