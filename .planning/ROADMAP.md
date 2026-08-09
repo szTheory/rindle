@@ -69,7 +69,7 @@
 Plans:
 **Wave 1**
 
-- [ ] 118-01-PLAN.md — Trace fresh `rindle` provisioning and explicit `public` compatibility.
+- [x] 118-01-PLAN.md — Trace fresh `rindle` provisioning and explicit `public` compatibility.
 
 **Wave 2** *(blocked on Wave 1 completion)*
 

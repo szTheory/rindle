@@ -3,17 +3,17 @@ gsd_state_version: 1.0
 milestone: v1.23
 milestone_name: Postgres Schema Isolation
 current_phase: 118
-current_phase_name: Isolated Migration & Safe Upgrade
+current_phase_name: isolated-migration-safe-upgrade
 status: executing
-stopped_at: Phase 118 context gathered
-last_updated: "2026-08-09T15:52:38.494Z"
-last_activity: 2026-08-08
-last_activity_desc: Phase 117 complete, transitioned to Phase 118
+stopped_at: Completed 118-01-PLAN.md
+last_updated: "2026-08-09T16:03:13.828Z"
+last_activity: 2026-08-09
+last_activity_desc: Phase 118 execution started
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 9
-  completed_plans: 5
+  completed_plans: 6
   percent: 25
 ---
 
@@ -24,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-02 after shipping v1.22)
 
 **Core value:** Media, made durable.
-**Current focus:** Phase 118 — Isolated Migration & Safe Upgrade
+**Current focus:** Phase 118 — isolated-migration-safe-upgrade
 
 ## Current Position
 
-Phase: 118 — Isolated Migration & Safe Upgrade
-Plan: Not started
+Phase: 118 (isolated-migration-safe-upgrade) — EXECUTING
+Plan: 2 of 4
 Status: Ready to execute
-Last activity: 2026-08-08 — Phase 117 complete, transitioned to Phase 118
+Last activity: 2026-08-09 — Phase 118 execution started
 
 ### v1.22 shipped summary
 
@@ -166,6 +166,7 @@ _(Key v1.22 execution decisions recorded at milestone close.)_
 - [Phase ?]: Phase 117 Plan 03: Runtime application-env changes cannot retarget Rindle schema metadata; Oban remains host-owned and independent.
 - [Phase ?]: Rindle.Schema.schema/2 reasserts the compiled prefix at declaration time; after-compile validation is defense in depth for raw Ecto declarations.
 - [Phase ?]: Rindle.Schema is internal to the six owned domain schemas; validate macro callers before emitting Ecto setup.
+- [Phase ?]: Phase 118 Plan 01: approved rindle as the migration default; only explicit public compatibility remains supported.
 
 ## Blockers/Concerns
 
@@ -184,9 +185,9 @@ _(none open for v1.22 at roadmap creation)_
 
 ## Session Continuity
 
-Last session: 2026-08-09T04:40:34.199Z
-Stopped at: Phase 118 context gathered
-Resume file: .planning/phases/118-isolated-migration-safe-upgrade/118-CONTEXT.md
+Last session: 2026-08-09T16:03:13.819Z
+Stopped at: Completed 118-01-PLAN.md
+Resume file: None
 
 ## Performance Metrics
 
@@ -215,6 +216,7 @@ Resume file: .planning/phases/118-isolated-migration-safe-upgrade/118-CONTEXT.md
 | Phase 117 P03 | 4min | 2 tasks | 3 files |
 | Phase 117 P04 | 3 min | 2 tasks | 2 files |
 | Phase 117 P05 | 7min | 2 tasks | 3 files |
+| Phase 118 P01 | 18 min | 2 tasks | 6 files |
 
 ## Operator Next Steps
 

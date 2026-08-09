@@ -19,7 +19,7 @@
 
 ### Migration & Upgrade
 
-- [ ] **MIGRATE-01**: The versioned Rindle migration provisions the selected schema before creating
+- [x] **MIGRATE-01**: The versioned Rindle migration provisions the selected schema before creating
   Rindle-owned tables and marker state, and remains idempotent for a fresh install.
 
 - [ ] **MIGRATE-02**: A populated legacy `public` install can follow a documented, host-owned upgrade
@@ -77,7 +77,7 @@
 | PREFIX-01 | Phase 117 | Complete |
 | PREFIX-02 | Phase 117 | Complete |
 | PREFIX-03 | Phase 117 | Complete |
-| MIGRATE-01 | Phase 118 | Pending |
+| MIGRATE-01 | Phase 118 | Complete |
 | MIGRATE-02 | Phase 118 | Pending |
 | MIGRATE-03 | Phase 118 | Pending |
 | BOUNDARY-01 | Phase 119 | Pending |
