@@ -78,10 +78,13 @@ defmodule Rindle.Migration.V1 do
         :ok
 
       {:provisionable_absent_target, _snapshot} ->
-        raise_preflight_error!(:provisionable_absent_target)
+        provision_schema(@rindle_schema)
+        move_owned_relations(@public_schema, @rindle_schema)
+        :ok
 
       {:movable_existing_target, _snapshot} ->
-        raise_preflight_error!(:movable_existing_target)
+        move_owned_relations(@public_schema, @rindle_schema)
+        :ok
 
       {:refusal, reason} ->
         raise_preflight_error!(reason)
@@ -375,6 +378,12 @@ defmodule Rindle.Migration.V1 do
   defp create_marker(prefix) do
     create_if_not_exists table(@marker_table, primary_key: false, prefix: prefix) do
       add :version, :integer, primary_key: true
+    end
+  end
+
+  defp move_owned_relations(source, destination) do
+    for relation <- owned_relations() do
+      execute("ALTER TABLE #{qualified(source, relation)} SET SCHEMA #{quote_ident(destination)}")
     end
   end
 
