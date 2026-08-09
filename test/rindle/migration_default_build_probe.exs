@@ -1,5 +1,8 @@
 alias Rindle.Repo
 
+{:ok, _started} = Application.ensure_all_started(:rindle)
+{:ok, _repo} = Repo.start_link()
+
 if Rindle.Schema.prefix() != "rindle" do
   raise "default build must compile Rindle.Schema with the rindle prefix"
 end

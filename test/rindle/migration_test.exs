@@ -29,8 +29,7 @@ defmodule Rindle.MigrationTest do
 
     test "supports explicit public compatibility and remains idempotent without host relations" do
       prefix = "public"
-
-      refute table_exists?(prefix, "oban_jobs")
+      host_relations_before = host_relation_snapshots(prefix)
 
       run_up([prefix: prefix], fn ->
         Rindle.Migration.up(version: 1, prefix: prefix)
@@ -47,8 +46,7 @@ defmodule Rindle.MigrationTest do
 
       assert table_exists?(prefix, @marker_table)
       assert marker_versions(prefix) == [1]
-      refute table_exists?(prefix, "oban_jobs")
-      refute table_exists?(prefix, "schema_migrations")
+      assert host_relation_snapshots(prefix) == host_relations_before
     end
 
     test "uses explicit uuid primary keys for Rindle-owned tables" do
@@ -69,8 +67,11 @@ defmodule Rindle.MigrationTest do
     test "drops only Rindle-owned tables and marker state while leaving oban_jobs intact" do
       prefix = "public"
 
-      Repo.query!("CREATE TABLE #{qualified(prefix, "oban_jobs")} (id bigint PRIMARY KEY)")
-      Repo.query!("INSERT INTO #{qualified(prefix, "oban_jobs")} (id) VALUES (1)")
+      Repo.query!(
+        "CREATE TABLE IF NOT EXISTS #{qualified(prefix, "oban_jobs")} (id bigint PRIMARY KEY)"
+      )
+
+      oban_jobs_before = relation_snapshot(prefix, "oban_jobs")
 
       run_up([prefix: prefix], fn ->
         Rindle.Migration.up(version: 1, prefix: prefix)
@@ -86,7 +87,8 @@ defmodule Rindle.MigrationTest do
       end
 
       assert table_exists?(prefix, "oban_jobs")
-      assert %{rows: [[1]]} = Repo.query!("SELECT id FROM #{qualified(prefix, "oban_jobs")}")
+
+      assert relation_snapshot(prefix, "oban_jobs") == oban_jobs_before
     end
   end
 
@@ -155,6 +157,21 @@ defmodule Rindle.MigrationTest do
       Repo.query!("SELECT version FROM #{qualified(prefix, @marker_table)} ORDER BY version")
 
     Enum.map(rows, fn [version] -> version end)
+  end
+
+  defp host_relation_snapshots(prefix) do
+    for relation <- ["oban_jobs", "schema_migrations"], into: %{} do
+      {relation, relation_snapshot(prefix, relation)}
+    end
+  end
+
+  defp relation_snapshot(prefix, relation) do
+    if table_exists?(prefix, relation) do
+      %{rows: [[count]]} = Repo.query!("SELECT count(*) FROM #{qualified(prefix, relation)}")
+      {:present, count}
+    else
+      :absent
+    end
   end
 
   defp primary_key_columns(prefix, table) do

@@ -16,8 +16,8 @@ defmodule Rindle.Migration do
   applications install and own shared infrastructure such as `oban_jobs`
   separately through `Oban.Migration`.
 
-  The default `:prefix` is `"public"`. Pass an explicit prefix only when your
-  host migration and runtime configuration are prepared for that schema.
+  The default `:prefix` is `"rindle"`. Pass `prefix: "public"` only for the
+  documented compatibility pairing with a public-compiled runtime.
   """
 
   use Ecto.Migration
@@ -31,7 +31,8 @@ defmodule Rindle.Migration do
   ## Options
 
     * `:version` - supported migration version. Defaults to `1`.
-    * `:prefix` - Postgres schema prefix. Defaults to `"public"`.
+    * `:prefix` - Postgres schema prefix. Defaults to `"rindle"`; only
+      `"rindle"` and `"public"` are supported.
 
   """
   @spec up(keyword()) :: :ok

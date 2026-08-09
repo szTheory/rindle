@@ -2,6 +2,7 @@ defmodule Rindle.Migration.Options do
   @moduledoc false
 
   @supported_versions [1]
+  @supported_prefixes ["rindle", "public"]
 
   @schema [
     version: [
@@ -10,8 +11,8 @@ defmodule Rindle.Migration.Options do
       doc: "Versioned Rindle migration to run."
     ],
     prefix: [
-      type: :string,
-      default: "public",
+      type: :any,
+      default: "rindle",
       doc: "Postgres schema prefix for Rindle-owned tables."
     ]
   ]
@@ -43,15 +44,10 @@ defmodule Rindle.Migration.Options do
       reraise ArgumentError, Exception.message(error), __STACKTRACE__
   end
 
-  defp validate_prefix!("") do
-    raise ArgumentError, "expected :prefix to be a non-empty string"
-  end
+  defp validate_prefix!(prefix) when prefix in @supported_prefixes, do: prefix
 
-  defp validate_prefix!(prefix) when is_binary(prefix) do
-    if String.contains?(prefix, <<0>>) do
-      raise ArgumentError, "expected :prefix to be a valid Postgres identifier prefix"
-    end
-
-    prefix
+  defp validate_prefix!(prefix) do
+    raise ArgumentError,
+          "expected :prefix to be one of \"rindle\" or \"public\", got: #{inspect(prefix)}"
   end
 end

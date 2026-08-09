@@ -17,6 +17,7 @@ defmodule Rindle.Migration.V1 do
 
   @spec up(%{prefix: String.t()}) :: :ok
   def up(%{prefix: prefix}) do
+    provision_schema(prefix)
     create_media_assets(prefix)
     create_media_attachments(prefix)
     create_media_variants(prefix)
@@ -54,6 +55,9 @@ defmodule Rindle.Migration.V1 do
 
   @spec rindle_tables() :: [String.t()]
   def rindle_tables, do: @rindle_tables
+
+  @spec owned_relations() :: [String.t()]
+  def owned_relations, do: rindle_tables() ++ [marker_table()]
 
   @spec catalog_requirements() :: map()
   def catalog_requirements do
@@ -303,6 +307,10 @@ defmodule Rindle.Migration.V1 do
     create_if_not_exists table(@marker_table, primary_key: false, prefix: prefix) do
       add :version, :integer, primary_key: true
     end
+  end
+
+  defp provision_schema(prefix) do
+    execute("CREATE SCHEMA IF NOT EXISTS #{quote_ident(prefix)}")
   end
 
   defp record_marker(prefix) do
