@@ -55,6 +55,40 @@ defmodule Rindle.Migration do
     |> dispatch(:down)
   end
 
+  @doc """
+  Moves the fixed V1 Rindle relation set from `public` to `rindle`.
+
+  Call this only from an adopter-owned Ecto migration after preparing a
+  maintenance window. The operation preflights the complete Rindle-owned
+  state before it mutates anything and never touches host relations such as
+  `oban_jobs` or `schema_migrations`.
+
+  ## Options
+
+    * `:version` - required pinned migration version; only `1` is supported.
+
+  """
+  @spec move_public_to_rindle(keyword()) :: :ok
+  def move_public_to_rindle(opts \\ []) when is_list(opts) do
+    opts
+    |> validate_directional_move!()
+    |> V1.move_public_to_rindle()
+  end
+
   defp dispatch(%{version: 1} = opts, :up), do: V1.up(opts)
   defp dispatch(%{version: 1} = opts, :down), do: V1.down(opts)
+
+  defp validate_directional_move!(opts) do
+    case opts do
+      [version: 1] ->
+        %{version: 1}
+
+      [] ->
+        raise ArgumentError, "move_public_to_rindle/1 requires version: 1"
+
+      _ ->
+        raise ArgumentError,
+              "move_public_to_rindle/1 accepts only version: 1; :prefix, :from, and :to are not supported"
+    end
+  end
 end

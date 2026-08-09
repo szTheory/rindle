@@ -109,6 +109,52 @@ defmodule Rindle.MigrationTest do
   end
 
   describe "Rindle.Migration.move_public_to_rindle/1 preflight" do
+    test "classifies a complete public source and absent rindle destination without DDL" do
+      reset_rindle_schema!()
+
+      run_up([prefix: "public"], fn ->
+        Rindle.Migration.up(version: 1, prefix: "public")
+      end)
+
+      assert {:provisionable_absent_target, snapshot} =
+               run_move(fn -> Rindle.Migration.V1.preflight_public_to_rindle() end)
+
+      assert snapshot.source_relations == Enum.sort(Rindle.Migration.V1.owned_relations())
+      refute snapshot.target_exists?
+      refute schema_exists?("rindle")
+    end
+
+    test "classifies marker-invalid, mixed, and already-upgraded states before mutation" do
+      reset_rindle_schema!()
+
+      run_up([prefix: "public"], fn ->
+        Rindle.Migration.up(version: 1, prefix: "public")
+      end)
+
+      Repo.query!("DELETE FROM public.rindle_migration_versions")
+      Repo.query!("INSERT INTO public.rindle_migration_versions (version) VALUES (2)")
+
+      assert {:refusal, :public_marker_invalid} =
+               run_move(fn -> Rindle.Migration.V1.preflight_public_to_rindle() end)
+
+      Repo.query!("DELETE FROM public.rindle_migration_versions")
+      Repo.query!("INSERT INTO public.rindle_migration_versions (version) VALUES (1)")
+
+      run_up(fn ->
+        Rindle.Migration.up(version: 1)
+      end)
+
+      assert {:refusal, :rindle_not_empty} =
+               run_move(fn -> Rindle.Migration.V1.preflight_public_to_rindle() end)
+
+      run_down([prefix: "public"], fn ->
+        Rindle.Migration.down(version: 1, prefix: "public")
+      end)
+
+      assert :already_upgraded =
+               run_move(fn -> Rindle.Migration.V1.preflight_public_to_rindle() end)
+    end
+
     test "refuses an incomplete public source without creating rindle or touching host relations" do
       reset_rindle_schema!()
       host_relations_before = host_relation_snapshots("public")
@@ -142,8 +188,9 @@ defmodule Rindle.MigrationTest do
     Ecto.Migration.Runner.metadata(runner, opts)
 
     try do
-      fun.()
+      result = fun.()
       Ecto.Migration.Runner.flush()
+      result
     after
       if Process.alive?(runner), do: Ecto.Migration.Runner.stop()
       Process.delete(:ecto_migration)
