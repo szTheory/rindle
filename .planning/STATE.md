@@ -6,7 +6,7 @@ status: planning
 last_updated: "2026-08-09T01:02:40.654Z"
 last_activity: 2026-08-08
 progress:
-  total_phases: 0
+  total_phases: 4
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-02 after shipping v1.22)
 
 **Core value:** Media, made durable.
-**Current focus:** Awaiting next milestone
+**Current focus:** v1.23 Postgres Schema Isolation (breaking 0.4.0)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 117 of 120 (Prefix Routing Architecture)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-08-08 — Milestone v1.23 started
+Status: Roadmap ready; planning not started
+Last activity: 2026-08-08 — v1.23 roadmap created; 12/12 requirements mapped to Phases 117–120
 
 ### v1.22 shipped summary
 
@@ -45,8 +45,9 @@ green (135 test files; the async-safety meta-test governs `async: true`).
 
 ## Next Step
 
-Start the next milestone with `/skill:gsd-new-milestone`. The named candidate is v1.23 Postgres Schema
-Isolation (breaking 0.4.0), but it should get fresh requirements before phases are added.
+Plan Phase 117: Prefix Routing Architecture. It must decide and prove one coherent routing model—
+compile-time schema macro or runtime per-query helper—before later phases build the default `rindle`
+install and public-to-`rindle` upgrade path.
 
 ## Prior Milestone
 
@@ -114,6 +115,18 @@ _(none)_
 `@schema_prefix`; 4 manual escapes (2 raw-SQL `runtime_checks.ex` + 2 Oban-binding queries); one-line
 `prefix: "public"` opt-out + `ALTER TABLE … SET SCHEMA` move migration. Re-charter from the ISO23 notes in
 the v1.22 requirements archive. Builds on the v1.22 `Rindle.Migration` substrate.
+
+### v1.23 roadmap (2026-08-08)
+
+- Phase 117 decides and proves the single routing architecture for the default `rindle` prefix and
+  explicit `public` compatibility; it is intentionally first because Ecto schema-prefix configuration
+  and runtime routing cannot be mixed casually.
+- Phase 118 provisions the selected schema and performs the narrow, data-preserving public-to-`rindle`
+  move for only the six Rindle tables plus `rindle_migration_versions`.
+- Phase 119 hardens the manual raw-SQL/catalog/Oban boundaries and exposes separate-prefix diagnostics
+  through doctor and runtime status.
+- Phase 120 proves the full breaking contract in packed generated applications, Cohort, docs parity,
+  and 0.4.0 release truth.
 
 ## Decisions
 

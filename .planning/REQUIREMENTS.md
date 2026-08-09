@@ -66,24 +66,24 @@
 
 | Requirement | Phase | Status |
 |---|---|---|
-| PREFIX-01 | Unmapped | Pending |
-| PREFIX-02 | Unmapped | Pending |
-| PREFIX-03 | Unmapped | Pending |
-| MIGRATE-01 | Unmapped | Pending |
-| MIGRATE-02 | Unmapped | Pending |
-| MIGRATE-03 | Unmapped | Pending |
-| BOUNDARY-01 | Unmapped | Pending |
-| BOUNDARY-02 | Unmapped | Pending |
-| OPS-01 | Unmapped | Pending |
-| PROOF-01 | Unmapped | Pending |
-| PROOF-02 | Unmapped | Pending |
-| DOCS-01 | Unmapped | Pending |
+| PREFIX-01 | Phase 117 | Pending |
+| PREFIX-02 | Phase 117 | Pending |
+| PREFIX-03 | Phase 117 | Pending |
+| MIGRATE-01 | Phase 118 | Pending |
+| MIGRATE-02 | Phase 118 | Pending |
+| MIGRATE-03 | Phase 118 | Pending |
+| BOUNDARY-01 | Phase 119 | Pending |
+| BOUNDARY-02 | Phase 119 | Pending |
+| OPS-01 | Phase 119 | Pending |
+| PROOF-01 | Phase 120 | Pending |
+| PROOF-02 | Phase 120 | Pending |
+| DOCS-01 | Phase 120 | Pending |
 
 **Coverage:**
 
 - v1.23 requirements: 12 total
-- Mapped to phases: 0
-- Unmapped: 12
+- Mapped to phases: 12 ✓
+- Unmapped: 0
 
 ---
-*Requirements defined: 2026-08-08 after v1.23 schema-isolation research synthesis.*
+*Requirements defined: 2026-08-08 after v1.23 schema-isolation research synthesis. Last updated: 2026-08-08 — mapped 12/12 requirements to Phases 117–120.*
