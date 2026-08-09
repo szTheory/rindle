@@ -170,6 +170,40 @@ defmodule Rindle.MigrationTest do
     end
   end
 
+  describe "Rindle.Migration.move_public_to_rindle/1" do
+    test "moves the populated fixed relation set without touching host relations" do
+      reset_rindle_schema!()
+
+      run_up([prefix: "public"], fn ->
+        Rindle.Migration.up(version: 1, prefix: "public")
+      end)
+
+      fixture = insert_public_move_fixture!()
+      host_relations_before = host_relation_snapshots("public")
+      index_before = index_names("public", "media_assets")
+      sequence_before = owned_sequences("public", "media_assets")
+
+      assert :ok =
+               run_move(fn ->
+                 Rindle.Migration.move_public_to_rindle(version: 1)
+               end)
+
+      assert schema_exists?("rindle")
+
+      for table <- Rindle.Migration.V1.owned_relations() do
+        refute table_exists?("public", table), "expected public.#{table} to move"
+        assert table_exists?("rindle", table), "expected rindle.#{table} after the move"
+      end
+
+      assert moved_fixture("rindle") == fixture
+      assert marker_versions("rindle") == [1]
+      assert index_names("rindle", "media_assets") == index_before
+      assert owned_sequences("rindle", "media_assets") == sequence_before
+      assert_fk_enforced!("rindle")
+      assert host_relation_snapshots("public") == host_relations_before
+    end
+  end
+
   defp run_up(fun) when is_function(fun, 0), do: run_migration(:up, [], fun)
 
   defp run_up(opts, fun), do: run_migration(:up, opts, fun)
@@ -238,6 +272,105 @@ defmodule Rindle.MigrationTest do
       :absent
     end
   end
+
+  defp insert_public_move_fixture! do
+    asset_id = Ecto.UUID.generate()
+    attachment_id = Ecto.UUID.generate()
+    variant_id = Ecto.UUID.generate()
+
+    Repo.query!(
+      """
+      INSERT INTO public.media_assets (id, state, storage_key, profile, kind, metadata, inserted_at, updated_at)
+      VALUES ($1, 'ready', $2, 'default', 'image', '{}'::jsonb, now(), now())
+      """,
+      [uuid_parameter(asset_id), "move-fixture/#{asset_id}"]
+    )
+
+    Repo.query!(
+      """
+      INSERT INTO public.media_attachments (id, asset_id, owner_type, owner_id, slot, inserted_at, updated_at)
+      VALUES ($1, $2, 'Post', $3, 'hero', now(), now())
+      """,
+      [
+        uuid_parameter(attachment_id),
+        uuid_parameter(asset_id),
+        uuid_parameter(Ecto.UUID.generate())
+      ]
+    )
+
+    Repo.query!(
+      """
+      INSERT INTO public.media_variants (id, asset_id, name, state, recipe_digest, output_kind, inserted_at, updated_at)
+      VALUES ($1, $2, 'thumb', 'ready', 'fixture-digest', 'image', now(), now())
+      """,
+      [uuid_parameter(variant_id), uuid_parameter(asset_id)]
+    )
+
+    %{asset_id: asset_id, attachment_id: attachment_id, variant_id: variant_id}
+  end
+
+  defp moved_fixture(prefix) do
+    %{rows: [[asset_id]]} =
+      Repo.query!("SELECT id::text FROM #{qualified(prefix, "media_assets")}")
+
+    %{rows: [[attachment_id]]} =
+      Repo.query!("SELECT id::text FROM #{qualified(prefix, "media_attachments")}")
+
+    %{rows: [[variant_id]]} =
+      Repo.query!("SELECT id::text FROM #{qualified(prefix, "media_variants")}")
+
+    %{asset_id: asset_id, attachment_id: attachment_id, variant_id: variant_id}
+  end
+
+  defp index_names(prefix, table) do
+    %{rows: rows} =
+      Repo.query!(
+        "SELECT indexname FROM pg_indexes WHERE schemaname = $1 AND tablename = $2 ORDER BY indexname",
+        [prefix, table]
+      )
+
+    Enum.map(rows, &hd/1)
+  end
+
+  defp owned_sequences(prefix, table) do
+    %{rows: rows} =
+      Repo.query!(
+        """
+        SELECT sequence_namespace.nspname, sequence_relation.relname
+        FROM pg_class AS table_relation
+        JOIN pg_namespace AS table_namespace ON table_namespace.oid = table_relation.relnamespace
+        JOIN pg_depend AS dependency ON dependency.refobjid = table_relation.oid
+        JOIN pg_class AS sequence_relation ON sequence_relation.oid = dependency.objid
+        JOIN pg_namespace AS sequence_namespace ON sequence_namespace.oid = sequence_relation.relnamespace
+        WHERE table_namespace.nspname = $1
+          AND table_relation.relname = $2
+          AND sequence_relation.relkind = 'S'
+        ORDER BY sequence_namespace.nspname, sequence_relation.relname
+        """,
+        [prefix, table]
+      )
+
+    rows
+  end
+
+  defp assert_fk_enforced!(prefix) do
+    assert_raise Postgrex.Error, fn ->
+      Repo.query!(
+        """
+        INSERT INTO #{qualified(prefix, "media_attachments")}
+          (id, asset_id, owner_type, owner_id, slot, inserted_at, updated_at)
+        VALUES ($1, $2, 'Post', $3, 'invalid-fk', now(), now())
+        """,
+        [
+          uuid_parameter(Ecto.UUID.generate()),
+          uuid_parameter(Ecto.UUID.generate()),
+          uuid_parameter(Ecto.UUID.generate())
+        ]
+      )
+    end
+  end
+
+  defp uuid_parameter(uuid), do: Ecto.UUID.dump!(uuid)
 
   defp primary_key_columns(prefix, table) do
     %{rows: rows} =
