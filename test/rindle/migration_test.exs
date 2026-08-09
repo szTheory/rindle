@@ -358,6 +358,56 @@ defmodule Rindle.MigrationTest do
         Process.delete(:rindle_migration_test_postgrex_error)
       end
     end
+
+    test "refuses before creating rindle when database CREATE is denied" do
+      reset_rindle_schema!()
+
+      run_up([prefix: "public"], fn ->
+        Rindle.Migration.up(version: 1, prefix: "public")
+      end)
+
+      fixture = insert_public_move_fixture!()
+      host_relations_before = host_relation_snapshots("public")
+
+      with_privilege_override(%{database_create?: false}, fn ->
+        assert_raise ArgumentError, ~r/database_create_denied.*grant database CREATE/is, fn ->
+          run_move(fn -> Rindle.Migration.move_public_to_rindle(version: 1) end)
+        end
+      end)
+
+      refute schema_exists?("rindle")
+      assert_public_move_refused_without_mutation!(fixture, host_relations_before)
+    end
+
+    test "refuses before moving relations when an empty rindle schema is unusable" do
+      reset_rindle_schema!()
+
+      run_up([prefix: "public"], fn ->
+        Rindle.Migration.up(version: 1, prefix: "public")
+      end)
+
+      Repo.query!("CREATE SCHEMA rindle")
+      fixture = insert_public_move_fixture!()
+      host_relations_before = host_relation_snapshots("public")
+
+      with_privilege_override(%{target_usable?: false}, fn ->
+        assert_raise ArgumentError, ~r/rindle_unusable.*grant CREATE and USAGE/is, fn ->
+          run_move(fn -> Rindle.Migration.move_public_to_rindle(version: 1) end)
+        end
+      end)
+
+      assert schema_exists?("rindle")
+      assert Enum.all?(Rindle.Migration.V1.owned_relations(), &(not table_exists?("rindle", &1)))
+      assert_public_move_refused_without_mutation!(fixture, host_relations_before)
+    end
+
+    test "reads production privilege state when no test override is present" do
+      Process.delete(:rindle_migration_test_privileges)
+
+      snapshot = run_move(fn -> Rindle.Migration.V1.preflight_public_to_rindle() end)
+
+      assert {:refusal, :public_incomplete} = snapshot
+    end
   end
 
   describe "documented host migration" do
@@ -534,6 +584,28 @@ defmodule Rindle.MigrationTest do
   defp lock_timeout do
     %{rows: [[lock_timeout]]} = Repo.query!("SHOW lock_timeout")
     lock_timeout
+  end
+
+  defp with_privilege_override(override, fun) do
+    Process.put(:rindle_migration_test_privileges, override)
+
+    try do
+      fun.()
+    after
+      Process.delete(:rindle_migration_test_privileges)
+    end
+  end
+
+  defp assert_public_move_refused_without_mutation!(fixture, host_relations_before) do
+    for relation <- Rindle.Migration.V1.owned_relations() do
+      assert table_exists?("public", relation)
+      refute table_exists?("rindle", relation)
+    end
+
+    assert_fixture_present!("public", fixture)
+    assert marker_versions("public") == [1]
+    assert_fk_enforced!("public")
+    assert host_relation_snapshots("public") == host_relations_before
   end
 
   defp schema_exists?(schema) do
