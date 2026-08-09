@@ -348,7 +348,7 @@ defmodule Rindle.MigrationTest do
         Rindle.Migration.up(version: 1, prefix: "public")
       end)
 
-      Process.put(:rindle_migration_test_postgrex_error, :undefined_table)
+      Process.put(:rindle_migration_test_postgrex_error, "42P01")
 
       try do
         assert_raise Postgrex.Error, ~r/undefined_table/, fn ->

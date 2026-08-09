@@ -443,10 +443,42 @@ defmodule Rindle.Migration.V1 do
 
   defp move_owned_relations(source, destination, failure_point) do
     for {relation, index} <- Enum.with_index(owned_relations(), 1) do
-      execute("ALTER TABLE #{qualified(source, relation)} SET SCHEMA #{quote_ident(destination)}")
+      execute(fn ->
+        move_relation!(source, destination, relation)
+      end)
+
       inject_test_failure_after(failure_point, {:after_relation, index})
     end
   end
+
+  defp move_relation!(source, destination, relation) do
+    sql = "ALTER TABLE #{qualified(source, relation)} SET SCHEMA #{quote_ident(destination)}"
+
+    try do
+      case Process.get(:rindle_migration_test_postgrex_error) do
+        nil ->
+          repo().query!(sql, [])
+
+        code ->
+          raise Postgrex.Error,
+            postgres: %{code: code, message: "injected Postgrex error", severity: "ERROR"}
+      end
+    rescue
+      error in Postgrex.Error ->
+        if lock_not_available?(error) do
+          raise ArgumentError,
+                "Rindle public-to-rindle migration could not acquire the required table lock; " <>
+                  "host relations were not touched. Next action: keep Rindle writers and workers " <>
+                  "quiesced, then retry the host migration."
+        else
+          reraise error, __STACKTRACE__
+        end
+    end
+  end
+
+  defp lock_not_available?(%Postgrex.Error{postgres: %{code: :lock_not_available}}), do: true
+  defp lock_not_available?(%Postgrex.Error{postgres: %{pg_code: "55P03"}}), do: true
+  defp lock_not_available?(_error), do: false
 
   defp inject_test_failure_after(failure_point, point) do
     execute(fn ->
