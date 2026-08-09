@@ -73,9 +73,8 @@ defmodule Rindle.Config.ConfigTest do
     assert "host_oban" == Rindle.Config.oban_prefix()
   end
 
-  test "newly compiled Rindle schemas retain the already-compiled prefix authority" do
+  test "Rindle-owned schemas retain the already-compiled prefix authority" do
     previous_rindle_prefix = Application.get_env(:rindle, :rindle_prefix)
-    module = Module.concat(Rindle, "CompiledPrefixSchema#{System.unique_integer([:positive])}")
     configured_prefix = opposite_prefix(Rindle.Schema.prefix())
 
     on_exit(fn ->
@@ -84,17 +83,19 @@ defmodule Rindle.Config.ConfigTest do
 
     Application.put_env(:rindle, :rindle_prefix, configured_prefix)
 
-    Code.compile_string("""
-    defmodule #{inspect(module)} do
-      use Rindle.Schema
-      schema "compiled_prefix_schemas" do
-      end
-    end
-    """)
-
     assert configured_prefix != Rindle.Schema.prefix()
-    assert Rindle.Schema.prefix() == module.__schema__(:prefix)
-    assert Rindle.Schema.prefix() == struct(module).__meta__.prefix
+
+    for schema <- [
+          Rindle.Domain.MediaAsset,
+          Rindle.Domain.MediaAttachment,
+          Rindle.Domain.MediaProcessingRun,
+          Rindle.Domain.MediaProviderAsset,
+          Rindle.Domain.MediaUploadSession,
+          Rindle.Domain.MediaVariant
+        ] do
+      assert Rindle.Schema.prefix() == schema.__schema__(:prefix)
+      assert Rindle.Schema.prefix() == struct(schema).__meta__.prefix
+    end
   end
 
   test "rejects unsupported prefixes" do
