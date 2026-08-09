@@ -91,13 +91,13 @@ defmodule MyApp.Repo.Migrations.MoveRindleToSchema do
   use Ecto.Migration
 
   def up do
-    execute(fn -> repo().query!("SET LOCAL lock_timeout = '5s'") end)
-    execute(fn -> Rindle.Migration.move_public_to_rindle(version: 1) end)
+    execute("SET LOCAL lock_timeout = '5s'")
+    Rindle.Migration.move_public_to_rindle(version: 1)
   end
 
   def down do
-    execute(fn -> repo().query!("SET LOCAL lock_timeout = '5s'") end)
-    execute(fn -> Rindle.Migration.move_rindle_to_public(version: 1) end)
+    execute("SET LOCAL lock_timeout = '5s'")
+    Rindle.Migration.move_rindle_to_public(version: 1)
   end
 end
 ```

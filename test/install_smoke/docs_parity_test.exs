@@ -210,14 +210,17 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
     migration_snippet =
       fenced_elixir_after!(upgrade_section, "defmodule MyApp.Repo.Migrations.MoveRindleToSchema")
 
-    assert_in_order!(migration_snippet, [
-      "def up do",
-      "execute(\"SET LOCAL lock_timeout = '5s'\")",
-      "Rindle.Migration.move_public_to_rindle(version: 1)",
-      "def down do",
-      "execute(\"SET LOCAL lock_timeout = '5s'\")",
-      "Rindle.Migration.move_rindle_to_public(version: 1)"
-    ])
+    assert Regex.match?(
+             ~r/def up do\s+execute\("SET LOCAL lock_timeout = '5s'"\)\s+Rindle\.Migration\.move_public_to_rindle\(version: 1\)/s,
+             migration_snippet
+           ),
+           "populated migration snippet must queue the forward timeout before its direct helper call"
+
+    assert Regex.match?(
+             ~r/def down do\s+execute\("SET LOCAL lock_timeout = '5s'"\)\s+Rindle\.Migration\.move_rindle_to_public\(version: 1\)/s,
+             migration_snippet
+           ),
+           "populated migration snippet must queue the reverse timeout before its direct helper call"
 
     for helper <- ["move_public_to_rindle", "move_rindle_to_public"] do
       refute Regex.match?(~r/execute\(fn\s*->.*#{helper}/s, migration_snippet),
