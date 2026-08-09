@@ -67,9 +67,20 @@
 **Plans**: 4 plans
 
 Plans:
+**Wave 1**
+
 - [ ] 118-01-PLAN.md — Trace fresh `rindle` provisioning and explicit `public` compatibility.
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 118-02-PLAN.md — Preflight and move the populated fixed seven-relation set.
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 118-03-PLAN.md — Prove refusal/rollback/lock safety and add the guarded reverse.
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
 - [ ] 118-04-PLAN.md — Publish and lock maintenance-window upgrade guidance.
 
 ### Phase 119: Ownership Boundaries & Diagnostics

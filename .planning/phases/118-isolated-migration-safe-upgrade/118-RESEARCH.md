@@ -311,17 +311,20 @@ Use returned state only to classify; never build a relation name from catalog da
 | A2 | `SET LOCAL lock_timeout = '5s'` is a suitable example/default for adopters; exact timeout needs repository/operator confirmation. | Code Examples | Timeout may be too short for a valid maintenance operation or too long for local policy. |
 | A3 | The proposed `information_schema.tables` array-query shape is compatible with the project's supported PostgreSQL/adapter matrix. | Code Examples | Planner may need a `pg_catalog` query instead. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **What is the exact error/result contract for an already-upgraded full `rindle` set?**
+1. **RESOLVED — What is the exact error/result contract for an already-upgraded full `rindle` set?**
    - What we know: It may be idempotent success; all other mixed/partial states must refuse. [VERIFIED: 118-CONTEXT.md]
    - Recommendation: Return `:ok` with a clear “already in rindle; nothing moved” message and test it explicitly. [ASSUMED]
-2. **How should privilege refusal be integration-tested under the local PostgreSQL setup?**
+   - Resolution: A complete `rindle` set with no public set returns idempotent `:ok` and emits a clear, bounded “already in rindle; nothing moved” message. [RESOLVED: 118-02-PLAN.md]
+2. **RESOLVED — How should privilege refusal be integration-tested under the local PostgreSQL setup?**
    - What we know: PostgreSQL requires source-table ownership and target-schema `CREATE`; the normal test role likely owns test schemas. [CITED: https://www.postgresql.org/docs/current/sql-altertable.html] [ASSUMED]
    - Recommendation: Use a dedicated test role only if CI permits role creation; otherwise inject the catalog/privilege seam for unit coverage and retain a documented manual privilege proof. [ASSUMED]
-3. **Should docs use a fixed timeout or an explicit placeholder?**
+   - Resolution: Use real-role integration coverage when CI permits role creation; otherwise use an injected catalog/privilege seam for automated coverage and retain a documented manual privilege proof. [RESOLVED: 118-03-PLAN.md]
+3. **RESOLVED — Should docs use a fixed timeout or an explicit placeholder?**
    - What we know: transaction-local timeout is required by the locked decision, but the value is discretionary. [VERIFIED: 118-CONTEXT.md]
    - Recommendation: Choose and document one bounded value in the host migration snippet, with a comment that operators may adapt it to policy. [ASSUMED]
+   - Resolution: Host migration documentation uses `SET LOCAL lock_timeout = '5s'`, with operators permitted to adapt the bounded value to local policy. [RESOLVED: 118-04-PLAN.md]
 
 ## Environment Availability
 
