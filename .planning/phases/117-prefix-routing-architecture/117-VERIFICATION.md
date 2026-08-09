@@ -1,34 +1,41 @@
 ---
 phase: 117-prefix-routing-architecture
-verified: 2026-08-08T21:56:00-04:00
+verified: 2026-08-09T02:27:11Z
 status: gaps_found
-score: 2/4 must-haves verified
+score: 3/4 must-haves verified
 behavior_unverified: 0
 overrides_applied: 0
+re_verification:
+  previous_status: gaps_found
+  previous_score: 2/4
+  gaps_closed: []
+  gaps_remaining:
+    - "A consumer can remove the sole final-prefix guard and compile a schema with metadata that differs from Rindle.Schema.prefix/0."
+  regressions: []
 gaps:
-  - truth: "The project has one tested architectural schema-routing decision; mixed routing semantics are not exposed to adopters."
+  - truth: "The project has one tested routing authority; a Rindle.Schema consumer cannot finish compilation with final Ecto prefix metadata different from Rindle.Schema.prefix()/0."
     status: failed
-    reason: "A consumer can replace @schema_prefix after `use Rindle.Schema`; Ecto then uses the replacement prefix while Rindle.Schema.prefix/0 retains the configured prefix. The source AST guard does not detect Module.put_attribute/3."
+    reason: "The only finalization enforcement is the consumer-owned @after_compile attribute. A consumer can delete it after use Rindle.Schema, set @schema_prefix to the alternate allowed prefix, and compile successfully."
     artifacts:
       - path: "lib/rindle/schema.ex"
-        issue: "The macro sets a mutable module attribute but has no final-prefix enforcement after the consuming schema compiles."
+        issue: "Registers @after_compile Rindle.Schema in mutable consumer module state but does not reassert the authority at schema/2 declaration time."
       - path: "test/rindle/schema_prefix_contract_test.exs"
-        issue: "The structural check rejects only literal @schema_prefix AST nodes, not dynamic module-attribute mutation."
+        issue: "Tests only Module.put_attribute/3; it does not include Module.delete_attribute(__MODULE__, :after_compile) before the override."
     missing:
-      - "Enforce after schema compilation that module.__schema__(:prefix) equals Rindle.Schema.prefix()."
-      - "Add a regression test that attempts Module.put_attribute(__MODULE__, :schema_prefix, \"public\") after use Rindle.Schema and proves compilation is rejected."
+      - "Make the schema declaration boundary reassert the compiled prefix immediately before Ecto consumes it (for example, a Rindle.Schema.schema/2 wrapper while excluding raw Ecto.Schema.schema/2 from the consumer import)."
+      - "Retain finalization as defense in depth and add regressions for callback deletion plus alternate-prefix mutation in both the default rindle and explicit public builds."
 deferred:
-  - truth: "Public compatibility is documented with the matching migration configuration."
+  - truth: "Release-facing public compatibility documentation and the public-to-rindle migration pairing are complete."
     addressed_in: "Phases 118 and 120"
-    evidence: "Phase 118 success criterion 2 supplies the public-to-rindle migration path; Phase 120 success criterion 3 requires docs to agree on the breaking default and escape hatch. Current README and guides still say public is default and advertise unsupported tenant_media prefixes."
+    evidence: "Phase 118 success criteria own the data-preserving public-to-rindle move; Phase 120 success criterion 3 owns documentation of the breaking default and public escape hatch."
 ---
 
 # Phase 117: Prefix Routing Architecture Verification Report
 
 **Phase Goal:** Adopters can rely on one explicit, proven Rindle schema-routing model: `rindle` by default or an intentional `public` compatibility configuration, with no normal data path silently falling back.
-**Verified:** 2026-08-08T21:56:00-04:00
+**Verified:** 2026-08-09T02:27:11Z
 **Status:** gaps_found
-**Re-verification:** No — initial verification
+**Re-verification:** Yes — after Plan 117-03 gap closure
 
 ## Goal Achievement
 
@@ -36,87 +43,89 @@ deferred:
 
 | # | Truth | Status | Evidence |
 | --- | --- | --- | --- |
-| 1 | A fresh configured application resolves normal Rindle schema metadata to `rindle` without per-query prefixes. | ✓ VERIFIED | `Rindle.Schema` defaults `Application.compile_env/3` to `"rindle"`; `ConfigTest` dynamically compiles an unset-config schema and asserts both `__schema__(:prefix)` and a new struct metadata prefix are `"rindle"`. All six current domain schemas use the macro. Provisioning actual tables is intentionally Phase 118 scope. |
-| 2 | An adopter can select the documented `public` compatibility configuration and receive equivalent normal behavior. | ✗ FAILED (DEFERRED) | `config/test.exs` proves the compile-time `public` compatibility build and integration tests exercise it. But current README/getting-started/upgrading documentation still declares `public` the default and suggests unsupported `tenant_media`; the required migration pairing also remains later-phase work. See Deferred Items. |
-| 3 | Facade operations, background work, Ecto.Multi callbacks, and loaded/new structs consistently retain the selected prefix in the presence of a decoy. | ✓ VERIFIED | `schema_prefix_integration_test.exs` passed with distinguishable `public` (selected) and `rindle` (decoy) tables: `Rindle.attach/3` covers `Ecto.Multi` and a new attachment; `attachment_for/2` covers facade read/preload; `PromoteAsset.persist_probe_result/3` updates a loaded struct; decoy rows stay unchanged. |
-| 4 | There is one tested routing authority; mixed routing semantics cannot be introduced by a schema consumer. | ✗ FAILED | Independent compile probe: `use Rindle.Schema` then `Module.put_attribute(__MODULE__, :schema_prefix, "public")` produced `{ "rindle", "public", "public" }` for `{Rindle.Schema.prefix(), module.__schema__(:prefix), struct(module).__meta__.prefix}`. |
+| 1 | A configured default build assigns `rindle` metadata to normal Rindle schemas without callers supplying per-query prefixes. | ✓ VERIFIED | `Rindle.Schema.prefix/0` defaults its compile-time config to `"rindle"`; all six owned schemas use it. A `MIX_ENV=dev` unmodified consumer compiles with that authority, and the ordinary post-`use` public override raises the bounded mismatch error. Schema provisioning itself is Phase 118 scope. |
+| 2 | The explicit `public` compatibility build assigns the same normal Rindle behavior to `public`. | ✓ VERIFIED | `config/test.exs` selects `"public"`; focused tests pass (35 tests), including real facade/Multi and worker persistence against selected `public` tables with `rindle` decoys. |
+| 3 | Facade, `Ecto.Multi`, worker, loaded-struct, and new-struct paths retain the selected prefix when decoy tables exist. | ✓ VERIFIED | `schema_prefix_integration_test.exs` passed: `Rindle.attach/3`, `attachment_for/2`, and `PromoteAsset.persist_probe_result/3` read/write selected rows while the decoy remains unchanged. The test checks returned and loaded struct metadata. |
+| 4 | One tested architectural authority prevents a schema consumer from finishing with metadata different from `Rindle.Schema.prefix/0`. | ✗ FAILED | Independent probes deleted the consumer's `:after_compile` attribute before changing `:schema_prefix`. Default build output was `{"rindle", "public", "public"}`; public build output was `{"public", "rindle", "rindle"}` for `{authority, schema metadata, struct metadata}`. |
 
-**Score:** 2/4 truths verified (0 present, behavior-unverified)
+**Score:** 3/4 truths verified (0 present, behavior-unverified)
 
 ### Deferred Items
 
-Items not yet met but explicitly addressed in later milestone phases.
-
 | # | Item | Addressed In | Evidence |
-|---|------|-------------|----------|
-| 1 | Public compatibility documentation and matching migration pairing | Phases 118 and 120 | Phase 118 SC2 covers the public-to-`rindle` upgrade; Phase 120 SC3 requires docs to state the breaking default and escape hatch. |
+| --- | --- | --- | --- |
+| 1 | Release-facing public compatibility docs and migration pairing | Phases 118 and 120 | Phase 118 owns the public-to-`rindle` move; Phase 120 owns consistent release documentation and packed-adopter proof. |
 
 ### Required Artifacts
 
 | Artifact | Expected | Status | Details |
-| -------- | -------- | ------ | ------- |
-| `lib/rindle/schema.ex` | Shared compile-time prefix macro | ⚠️ PARTIAL | Exists and is substantive (validated `rindle`/`public`, binary keys) and every current owned schema uses it, but its final prefix can be overwritten after `use`. |
-| `lib/rindle/config.ex` | Diagnostics report compiled Rindle prefix, independent Oban prefix | ✓ VERIFIED | `rindle_prefix/0` delegates to `Rindle.Schema.prefix/0`; `oban_prefix/0` remains a separate runtime setting. The focused config test proves the two values can differ without changing the compiled Rindle value. |
-| Six `lib/rindle/domain/media_*.ex` schemas | Domain table metadata uses shared macro | ✓ VERIFIED | Each module has `use Rindle.Schema`; contract and media-schema tests assert selected prefix, struct metadata, and binary keys. |
-| `test/support/schema_prefix_case.ex` | Isolated selected/decoy fixture data source | ✓ VERIFIED | Creates only the decoy schema/tables, seeds selected and decoy values, and does not mutate `search_path`. |
-| `test/rindle/schema_prefix_integration_test.exs` | Runtime routing proof | ✓ VERIFIED | Two non-stub integration tests passed. |
-| `test/rindle/schema_prefix_contract_test.exs` | Regression guard against routing bypass | ✗ STUB FOR DYNAMIC BYPASS | It checks literal `@schema_prefix` syntax only; dynamic attribute mutation remains accepted. |
+| --- | --- | --- | --- |
+| `lib/rindle/schema.ex` | Shared, compile-time routing authority | ⚠️ PARTIAL | Exists and is substantive: validates only `rindle`/`public`, binds the prefix before the consumer quote, retains binary keys, and has `__after_compile__/2`. Its sole final guard is removable by consumer code, so it does not enforce its stated invariant. |
+| `lib/rindle/config.ex` | Diagnostics reflect the compiled Rindle authority; Oban stays independent | ✓ VERIFIED | `rindle_prefix/0` delegates to `Rindle.Schema.prefix/0`; `oban_prefix/0` remains a separate runtime value. Focused config test sets Oban to `host_oban` without retargeting Rindle. |
+| Six `lib/rindle/domain/media_*.ex` schemas | All present Rindle-owned schemas use the shared macro | ✓ VERIFIED | AST contract test and `media_schema_test.exs` confirm each uses `Rindle.Schema`, carries selected schema/struct metadata, and preserves binary ID/foreign-key metadata. No direct `Ecto.Schema` or `@schema_prefix` appears in those six sources. |
+| `test/rindle/schema_prefix_contract_test.exs` | Negative regression for prefix authority | ⚠️ PARTIAL | The ordinary `Module.put_attribute/3` attack is covered and passes, but the test omits callback removal, the route that actually defeats the guard. |
+| `test/rindle/schema_prefix_integration_test.exs` and `test/support/schema_prefix_case.ex` | Selected-versus-decoy runtime routing proof | ✓ VERIFIED | Non-stub PostgreSQL fixtures create distinguishable selected/decoy rows without changing `search_path`; both tests passed. |
 
 ### Key Link Verification
 
 | From | To | Via | Status | Details |
-| ---- | --- | --- | ------ | ------- |
-| `Rindle.Schema` | Six domain schemas | `use Rindle.Schema` before each `schema/2` block | ⚠️ PARTIAL | All six links exist, but the link does not prevent a later consumer mutation from changing Ecto metadata. |
-| `Rindle.Config.rindle_prefix/0` | `Rindle.Schema.prefix/0` | direct delegation | ✓ WIRED | No mutable runtime `:rindle_prefix` value can override diagnostic routing. |
-| Facade / worker operations | Ecto schema metadata | `Rindle.attach`, `attachment_for`, `PromoteAsset.persist_probe_result` | ✓ WIRED | Integration proof passes against selected/decoy fixtures. |
-| Contract test | dynamic prefix overrides | AST validation | ✗ NOT_WIRED | No detection of `Module.put_attribute/3` or macro-expanded assignment; the negative invariant is untested. |
+| --- | --- | --- | --- | --- |
+| `Rindle.Schema.prefix/0` | consumer `@schema_prefix` | `quote bind_quoted: [prefix: prefix]` | ✓ WIRED | `schema.ex` resolves the already-compiled authority outside the quote and assigns that bound value in the consumer. |
+| `Rindle.Schema.__using__/1` | `Rindle.Schema.__after_compile__/2` | consumer `@after_compile Rindle.Schema` | ⚠️ PARTIAL | The registration exists, but it lives in mutable consumer module state and can be deleted before compilation ends. |
+| `Rindle.Schema.__after_compile__/2` | consumer `__schema__(:prefix)` | equality check | ⚠️ PARTIAL | The equality check is substantive and rejects the ordinary mutation, but is never invoked after `Module.delete_attribute(__MODULE__, :after_compile)`. |
+| contract test | finalization boundary | dynamic compiled consumer | ✗ NOT_WIRED FOR CALLBACK REMOVAL | The test compiles a consumer with `Module.put_attribute/3`, but no test exercises deletion of the enforcement callback. |
 
 ### Data-Flow Trace (Level 4)
 
 | Artifact | Data Variable | Source | Produces Real Data | Status |
-| -------- | ------------- | ------ | ------------------ | ------ |
-| `Rindle.Schema` / domain schemas | `@schema_prefix`, Ecto struct metadata | Compile-time `Application.compile_env(:rindle, :rindle_prefix, "rindle")` | Yes — used by Ecto query and struct metadata in integration tests | ⚠️ HOLLOW GUARD |
-| Prefix integration test | `selected` / `decoy` rows | Sandbox-owned PostgreSQL fixtures in distinct schemas | Yes — rows have distinguishable keys and content types | ✓ FLOWING |
-
-The primary data flow is real and test-exercised, but it is not immutable: the after-`use` mutation probe changes the consumer's Ecto metadata without changing the shared authority.
+| --- | --- | --- | --- | --- |
+| `Rindle.Schema` and six domain schemas | Ecto schema/struct prefix | compile-time `:rindle_prefix` → macro-bound `@schema_prefix` | Yes — selected-prefix metadata routes the integration reads/writes and struct metadata | ✓ FLOWING for existing schemas |
+| finalization guard | final schema prefix comparison | consumer `@after_compile` callback | No, adversarially bypassable — callback removal prevents the check from running | ✗ DISCONNECTED enforcement |
+| integration fixtures | selected/decoy assets | PostgreSQL schemas and distinguishable storage keys | Yes — assertions show reads/writes reach selected rows and leave decoys untouched | ✓ FLOWING |
 
 ### Behavioral Spot-Checks
 
 | Behavior | Command | Result | Status |
-| -------- | ------- | ------ | ------ |
-| Current config, schema, contract, facade/Multi, loaded-struct, and worker routing tests | `mix test test/rindle/config/config_test.exs test/rindle/domain/media_schema_test.exs test/rindle/schema_prefix_contract_test.exs test/rindle/schema_prefix_integration_test.exs --seed 0` | 34 tests, 0 failures | ✓ PASS |
-| Shared authority resists a post-`use` prefix change | `mix run --no-start -e '<dynamic schema with Module.put_attribute/3>'` | `{ "rindle", "public", "public" }` | ✗ FAIL |
+| --- | --- | --- | --- |
+| Existing config, metadata, facade/Multi, loaded/new struct, and worker routes | `mix test test/rindle/config/config_test.exs test/rindle/domain/media_schema_test.exs test/rindle/schema_prefix_contract_test.exs test/rindle/schema_prefix_integration_test.exs --seed 0` | 35 tests, 0 failures; one pre-existing unused-attribute warning | ✓ PASS |
+| Ordinary default-build post-use override is rejected | `MIX_ENV=dev mix run --no-start -e '<ordinary public override probe>'` | Raised `Rindle.Schema prefix mismatch ... expected "rindle", got "public"` | ✓ PASS |
+| Default-build callback-removal bypass is rejected | `MIX_ENV=dev mix run --no-start -e '<delete :after_compile; set public; schema>'` | Compiled; output `{"rindle", "public", "public"}` | ✗ FAIL |
+| Public-build callback-removal bypass is rejected | `MIX_ENV=test mix run --no-start -e '<delete :after_compile; set rindle; schema>'` | Compiled; output `{"public", "rindle", "rindle"}` | ✗ FAIL |
+| Formatting for Plan 03 files | `mix format --check-formatted lib/rindle/schema.ex test/rindle/schema_prefix_contract_test.exs test/rindle/config/config_test.exs` | Exit 0 | ✓ PASS |
 
 ### Probe Execution
 
-Step 7c: SKIPPED — neither plans nor summaries declare probes, and no `scripts/*/tests/probe-*.sh` files exist.
+Step 7c: SKIPPED — the phase plans/summaries declare no `probe-*.sh` executable and no conventional project probe applies.
 
 ### Requirements Coverage
 
 | Requirement | Source Plan | Description | Status | Evidence |
-| ----------- | ---------- | ----------- | ------ | -------- |
-| PREFIX-01 | 117-01, 117-02 | Default all owned domain state to `rindle` without caller query prefixes | ✗ BLOCKED | Current six schemas have the default macro metadata, but the macro does not remain the sole authority; a later owned schema can silently select another prefix. |
-| PREFIX-02 | 117-01, 117-02 | Explicit legacy `public` compatibility through one documented coherent configuration and migration pairing | ⚠️ PARTIAL / DEFERRED | Public compilation and runtime routing are proven. Documentation and the migration pairing are explicitly scheduled to Phases 118/120 and currently contradict the new two-value contract. |
-| PREFIX-03 | 117-01, 117-02 | Normal facade, worker, Multi, loaded/new struct paths use selected prefix | ⚠️ PARTIAL | Selected-`public` paths are integration-proven, but the same mutable-attribute bypass means the architectural guarantee is not enforceable. |
+| --- | --- | --- | --- | --- |
+| PREFIX-01 | 117-01, 117-02, 117-03 | Default Rindle-owned state routes to `rindle` without callers adding prefixes | ⚠️ PARTIAL / BLOCKED | The intended default is correctly compiled into the six current schemas, but a macro consumer can remove the enforcement callback and compile with `public` metadata. The claimed single authority is therefore not enforceable. |
+| PREFIX-02 | 117-01, 117-02, 117-03 | Explicit legacy `public` compatibility through one coherent prefix configuration and migration pairing | ⚠️ PARTIAL / BLOCKED | The explicit public build and its normal routes work, but the same callback-removal probe compiles a consumer with `rindle` metadata. Migration/doc pairing remains explicitly deferred to Phases 118/120. |
+| PREFIX-03 | 117-01, 117-02, 117-03 | Facade, worker, Multi, loaded/new struct paths use selected prefix rather than silently falling back | ⚠️ PARTIAL / BLOCKED | Present shipped paths pass selected/decoy integration tests and Oban remains independent, but the architectural guard can be removed so the invariant is not durable for a consumer/changed owned schema. |
 
-No orphaned Phase 117 requirements were found: all three are claimed by both phase plans and map to Phase 117 in `REQUIREMENTS.md`.
+No orphaned Phase 117 requirements were found: all three IDs appear in every 117 plan and map to Phase 117 in `.planning/REQUIREMENTS.md`.
 
 ### Anti-Patterns Found
 
 | File | Line | Pattern | Severity | Impact |
-| ---- | ---- | ------- | -------- | ------ |
-| `test/rindle/schema_prefix_contract_test.exs` | 53-57 | Syntax-only negative guard | 🛑 Blocker | A passing contract test gives false confidence because dynamic module-attribute mutation bypasses it. |
-| `test/rindle/config/config_test.exs` | 8 | Unused `@async_safety_allow` compile warning | ⚠️ Warning | Focused test run emits a warning; it does not block prefix routing. |
+| --- | --- | --- | --- | --- |
+| `lib/rindle/schema.ex` | 25 | Sole enforcement stored as mutable `@after_compile` consumer attribute | 🛑 Blocker | Consumer removes it and bypasses the final-prefix equality check. |
+| `test/rindle/schema_prefix_contract_test.exs` | 37-57 | Negative test covers only the weaker mutation | 🛑 Blocker | Test passes while the callback-removal bypass remains untested and exploitable. |
+| `test/rindle/config/config_test.exs` | 8 | Unused `@async_safety_allow` warning | ⚠️ Warning | No routing impact; emitted during focused test run. |
 
-No unreferenced `TBD`, `FIXME`, or `XXX` debt markers were found in phase-modified source/test files.
+No unreferenced `TBD`, `FIXME`, or `XXX` markers were found in the Plan 117 modified implementation/test files.
 
 ### Gaps Summary
 
-The submitted implementation proves that the six present schemas and several real operation paths use the selected prefix. It does **not** establish the required single routing authority: any consuming schema can mutate the ordinary `@schema_prefix` attribute after `use Rindle.Schema`, creating divergent routing that the current tests accept. This is a **BLOCKER** for the phase goal, not a human-verification question.
+Plan 117-03 closed the originally tested direct `Module.put_attribute/3` mutation, but not the claimed architectural invariant. `@after_compile` is ordinary mutable module state of the schema consumer; deleting it before changing `@schema_prefix` suppresses `Rindle.Schema.__after_compile__/2` entirely. This produces mismatched schema and struct prefix metadata in both supported build modes.
 
-The public-compatibility documentation/migration mismatch is recorded as deferred because later roadmap phases explicitly own that release-facing work; it is not the reason for the blocking verdict.
+This is a **BLOCKER**: Phase 117 has not proved or delivered one enforceable routing model. The migration and release-documentation work is correctly deferred, but it does not address this implementation-level authority bypass.
+
+**Next command:** `$gsd-plan-phase 117 --gaps`
 
 ---
 
-_Verified: 2026-08-08T21:56:00-04:00_
+_Verified: 2026-08-09T02:27:11Z_
 _Verifier: the agent (gsd-verifier)_
