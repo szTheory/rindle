@@ -20,6 +20,12 @@ defmodule Rindle.SchemaPrefixContractTest do
       refute uses_ecto_schema_directly?(ast),
              "expected #{inspect(schema)} not to bypass Rindle.Schema"
 
+      refute imports_ecto_schema_directly?(ast),
+             "expected #{inspect(schema)} not to import Ecto.Schema directly"
+
+      refute calls_ecto_schema_directly?(ast),
+             "expected #{inspect(schema)} not to call Ecto.Schema.schema/2 directly"
+
       refute sets_schema_prefix_directly?(ast),
              "expected #{inspect(schema)} not to override the shared prefix"
     end
@@ -34,31 +40,31 @@ defmodule Rindle.SchemaPrefixContractTest do
     end
   end
 
-  test "rejects a dynamic post-use schema prefix override at compile finalization" do
-    module = unique_module_name("DynamicPrefixOverride")
+  test "schema declaration restores the authority after callback removal and prefix mutation" do
+    module = unique_module_name("CallbackRemovalPrefixOverride")
     expected_prefix = Rindle.Schema.prefix()
     actual_prefix = opposite_prefix(expected_prefix)
 
-    error =
-      assert_raise ArgumentError, fn ->
-        Code.compile_string("""
-        defmodule #{inspect(module)} do
-          use Rindle.Schema
-          Module.put_attribute(__MODULE__, :schema_prefix, #{inspect(actual_prefix)})
+    [{^module, _bytecode}] =
+      Code.compile_string("""
+      defmodule #{inspect(module)} do
+        use Rindle.Schema
+        Module.delete_attribute(__MODULE__, :after_compile)
+        Module.put_attribute(__MODULE__, :schema_prefix, #{inspect(actual_prefix)})
 
-          schema "dynamic_prefix_override_schemas" do
-          end
+        schema "callback_removal_prefix_override_schemas" do
         end
-        """)
       end
+      """)
 
-    assert Exception.message(error) =~ inspect(module)
-    assert Exception.message(error) =~ "expected #{inspect(expected_prefix)}"
-    assert Exception.message(error) =~ "got #{inspect(actual_prefix)}"
+    assert module.__schema__(:prefix) == expected_prefix
+    assert struct(module).__meta__.prefix == expected_prefix
   end
 
   defp uses_rindle_schema?(ast), do: contains?(ast, &rindle_schema_use?/1)
   defp uses_ecto_schema_directly?(ast), do: contains?(ast, &ecto_schema_use?/1)
+  defp imports_ecto_schema_directly?(ast), do: contains?(ast, &ecto_schema_import?/1)
+  defp calls_ecto_schema_directly?(ast), do: contains?(ast, &ecto_schema_call?/1)
   defp sets_schema_prefix_directly?(ast), do: contains?(ast, &schema_prefix_attribute?/1)
 
   defp contains?(ast, predicate) do
@@ -75,6 +81,16 @@ defmodule Rindle.SchemaPrefixContractTest do
 
   defp ecto_schema_use?({:use, _, [{:__aliases__, _, [:Ecto, :Schema]}]}), do: true
   defp ecto_schema_use?(_), do: false
+
+  defp ecto_schema_import?({:import, _, [{:__aliases__, _, [:Ecto, :Schema]} | _]}), do: true
+  defp ecto_schema_import?(_), do: false
+
+  defp ecto_schema_call?(
+         {{:., _, [{:__aliases__, _, [:Ecto, :Schema]}, :schema]}, _, [_, [do: _]]}
+       ),
+       do: true
+
+  defp ecto_schema_call?(_), do: false
 
   defp schema_prefix_attribute?({:@, _, [{:schema_prefix, _, _}]}), do: true
   defp schema_prefix_attribute?(_), do: false
