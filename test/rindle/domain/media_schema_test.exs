@@ -6,6 +6,7 @@ defmodule Rindle.Domain.MediaSchemaTest do
   alias MediaVariant
   alias Rindle.Domain.MediaAsset
   alias Rindle.Domain.MediaAttachment
+  alias Rindle.Domain.MediaProviderAsset
   alias Rindle.Domain.MediaProcessingRun
   alias Rindle.Domain.MediaUploadSession
   alias Rindle.Domain.MediaVariant
@@ -18,6 +19,32 @@ defmodule Rindle.Domain.MediaSchemaTest do
       assert "media_variants" == MediaVariant.__schema__(:source)
       assert "media_upload_sessions" == MediaUploadSession.__schema__(:source)
       assert "media_processing_runs" == MediaProcessingRun.__schema__(:source)
+      assert "media_provider_assets" == MediaProviderAsset.__schema__(:source)
+    end
+
+    test "routes all Rindle-owned schemas and new structs through the selected prefix" do
+      schemas = [
+        MediaAsset,
+        MediaAttachment,
+        MediaVariant,
+        MediaUploadSession,
+        MediaProcessingRun,
+        MediaProviderAsset
+      ]
+
+      for schema <- schemas do
+        assert "rindle" == schema.__schema__(:prefix)
+        assert "rindle" == struct(schema).__meta__.prefix
+        assert :binary_id == schema.__schema__(:type, :id)
+      end
+
+      assert :binary_id == MediaAttachment.__schema__(:type, :asset_id)
+      assert :binary_id == MediaVariant.__schema__(:type, :asset_id)
+      assert :binary_id == MediaUploadSession.__schema__(:type, :asset_id)
+      assert :binary_id == MediaProcessingRun.__schema__(:type, :asset_id)
+      assert :binary_id == MediaProviderAsset.__schema__(:type, :asset_id)
+
+      assert nil == Oban.Job.__schema__(:prefix)
     end
   end
 

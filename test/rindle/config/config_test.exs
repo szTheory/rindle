@@ -59,6 +59,38 @@ defmodule Rindle.Config.ConfigTest do
     assert Rindle.Repo == Rindle.Config.repo()
   end
 
+  test "reports the compile-time Rindle schema prefix while Oban remains independent" do
+    previous_oban_prefix = Application.get_env(:rindle, :oban_prefix)
+
+    on_exit(fn ->
+      restore_env(:oban_prefix, previous_oban_prefix)
+    end)
+
+    Application.put_env(:rindle, :oban_prefix, "host_oban")
+
+    assert "rindle" == Rindle.Config.rindle_prefix()
+    assert Rindle.Schema.prefix() == Rindle.Config.rindle_prefix()
+    assert "host_oban" == Rindle.Config.oban_prefix()
+  end
+
+  test "rejects unsupported prefixes when a schema is compiled" do
+    previous_rindle_prefix = Application.get_env(:rindle, :rindle_prefix)
+
+    on_exit(fn ->
+      restore_env(:rindle_prefix, previous_rindle_prefix)
+    end)
+
+    Application.put_env(:rindle, :rindle_prefix, "tenant_private")
+
+    assert_raise ArgumentError, ~r/expected :rindle_prefix.*"rindle".*"public"/, fn ->
+      Code.compile_string("""
+      defmodule Rindle.InvalidPrefixSchema do
+        use Rindle.Schema
+      end
+      """)
+    end
+  end
+
   defp restore_env(key, nil), do: Application.delete_env(:rindle, key)
   defp restore_env(key, value), do: Application.put_env(:rindle, key, value)
 end
