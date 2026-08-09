@@ -54,28 +54,19 @@ defmodule Rindle.SchemaPrefixContractTest do
     assert struct(module).__meta__.prefix == expected_prefix
   end
 
-  test "after-compile validation remains available for non-normal declarations" do
-    module = unique_module_name("DynamicPrefixOverride")
-    expected_prefix = Rindle.Schema.prefix()
-    actual_prefix = opposite_prefix(expected_prefix)
+  test "rejects callback deletion plus raw Ecto declaration from a non-owned consumer" do
+    module = unique_module_name("RawEctoCallbackDeletion")
+    actual_prefix = opposite_prefix(Rindle.Schema.prefix())
 
     error =
       assert_raise ArgumentError, fn ->
-        Code.compile_string("""
-        defmodule #{inspect(module)} do
-          use Rindle.Schema
-          Module.put_attribute(__MODULE__, :schema_prefix, #{inspect(actual_prefix)})
-          require Ecto.Schema
-
-          Ecto.Schema.schema "dynamic_prefix_override_schemas" do
-          end
-        end
-        """)
+        module
+        |> raw_ecto_callback_deletion_consumer_source(actual_prefix)
+        |> Code.compile_string()
       end
 
     assert Exception.message(error) =~ inspect(module)
-    assert Exception.message(error) =~ "expected #{inspect(expected_prefix)}"
-    assert Exception.message(error) =~ "got #{inspect(actual_prefix)}"
+    assert Exception.message(error) =~ "internal"
   end
 
   defp uses_rindle_schema?(ast), do: contains?(ast, &rindle_schema_use?/1)
@@ -123,6 +114,20 @@ defmodule Rindle.SchemaPrefixContractTest do
       Module.put_attribute(__MODULE__, :schema_prefix, #{inspect(alternate_prefix)})
 
       schema "callback_removal_prefix_override_schemas" do
+      end
+    end
+    """
+  end
+
+  defp raw_ecto_callback_deletion_consumer_source(module, alternate_prefix) do
+    """
+    defmodule #{inspect(module)} do
+      use Rindle.Schema
+      Module.delete_attribute(__MODULE__, :after_compile)
+      Module.put_attribute(__MODULE__, :schema_prefix, #{inspect(alternate_prefix)})
+      require Ecto.Schema
+
+      Ecto.Schema.schema "raw_ecto_callback_deletion_schemas" do
       end
     end
     """
