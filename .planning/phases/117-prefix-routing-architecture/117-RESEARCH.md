@@ -277,17 +277,17 @@ The fixture helper is illustrative; planner work must reuse the repository's mig
 | A2 | `Config.rindle_prefix/0` should resolve the compile-time selection (or cease to govern routing) so diagnostics cannot drift. | Architecture Patterns / Pitfall 1 | Phase 119 diagnostics could need an additional explicit runtime expected-prefix input. |
 | A3 | Public-mode full behavioral proof is best run in separately compiled consumer/generated-app coverage because runtime mutation cannot change compiled schema metadata. | Pitfall 3 | Test architecture could be more complex than necessary if the suite can safely recompile isolated schemas. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Where should the shared compile-time prefix validator live?**
+1. **RESOLVED — Where should the shared compile-time prefix validator live?**
    - What we know: `Rindle.Schema` is the natural single compilation boundary, and `Rindle.Migration.Options` currently permits any non-empty non-NUL string. [VERIFIED: lib/rindle/migration/options.ex]
    - What's unclear: whether Phase 117 should make the setting strict immediately or Phase 118 should own the migration validator change.
-   - Recommendation: Phase 117 validates the schema macro setting and documents the two values; Phase 118 aligns migration validation/defaulting in the same release sequence.
+   - Resolution: Phase 117 validates the schema macro setting and documents the two values; Phase 118 aligns migration validation/defaulting in the same release sequence.
 
-2. **How should public compatibility be proved before Phase 120?**
+2. **RESOLVED — How should public compatibility be proved before Phase 120?**
    - What we know: normal unit tests compile Rindle once, and runtime test setup already mutates config for runtime-status tests. [VERIFIED: test/rindle/ops/runtime_status_test.exs]
    - What's unclear: whether the repository has an existing additional Mix environment for isolated compile configuration.
-   - Recommendation: Phase 117 adds metadata/default-routing proof plus a decoy-table integration path; Phase 120 owns packaged/compiled public consumer proof.
+   - Resolution: Phase 117 adds metadata/default-routing proof plus a decoy-table integration path; Phase 120 owns packaged/compiled public consumer proof.
 
 ## Environment Availability
 
