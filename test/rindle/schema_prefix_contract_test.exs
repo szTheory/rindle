@@ -34,6 +34,29 @@ defmodule Rindle.SchemaPrefixContractTest do
     end
   end
 
+  test "rejects a dynamic post-use schema prefix override at compile finalization" do
+    module = unique_module_name("DynamicPrefixOverride")
+    expected_prefix = Rindle.Schema.prefix()
+    actual_prefix = opposite_prefix(expected_prefix)
+
+    error =
+      assert_raise ArgumentError, fn ->
+        Code.compile_string("""
+        defmodule #{inspect(module)} do
+          use Rindle.Schema
+          Module.put_attribute(__MODULE__, :schema_prefix, #{inspect(actual_prefix)})
+
+          schema "dynamic_prefix_override_schemas" do
+          end
+        end
+        """)
+      end
+
+    assert Exception.message(error) =~ inspect(module)
+    assert Exception.message(error) =~ "expected #{inspect(expected_prefix)}"
+    assert Exception.message(error) =~ "got #{inspect(actual_prefix)}"
+  end
+
   defp uses_rindle_schema?(ast), do: contains?(ast, &rindle_schema_use?/1)
   defp uses_ecto_schema_directly?(ast), do: contains?(ast, &ecto_schema_use?/1)
   defp sets_schema_prefix_directly?(ast), do: contains?(ast, &schema_prefix_attribute?/1)
@@ -55,4 +78,11 @@ defmodule Rindle.SchemaPrefixContractTest do
 
   defp schema_prefix_attribute?({:@, _, [{:schema_prefix, _, _}]}), do: true
   defp schema_prefix_attribute?(_), do: false
+
+  defp opposite_prefix("rindle"), do: "public"
+  defp opposite_prefix("public"), do: "rindle"
+
+  defp unique_module_name(prefix) do
+    Module.concat(Rindle, "#{prefix}#{System.unique_integer([:positive])}")
+  end
 end
