@@ -34,4 +34,16 @@ defmodule Rindle.MigrationFastTest do
     assert_raise ArgumentError, fn -> Options.validate!(unknown: true) end
     assert_raise ArgumentError, fn -> Options.validate!(version: 2) end
   end
+
+  test "exposes only the pinned public-to-rindle move" do
+    assert function_exported?(Rindle.Migration, :move_public_to_rindle, 1)
+    refute function_exported?(Rindle.Migration, :move, 1)
+    refute function_exported?(Rindle.Migration, :move, 2)
+
+    for opts <- [[], [prefix: "public"], [from: "public"], [to: "rindle"]] do
+      assert_raise ArgumentError, fn -> Rindle.Migration.move_public_to_rindle(opts) end
+    end
+
+    assert_raise ArgumentError, fn -> Rindle.Migration.move_public_to_rindle(version: 2) end
+  end
 end

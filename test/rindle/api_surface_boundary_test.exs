@@ -180,6 +180,15 @@ defmodule Rindle.ApiSurfaceBoundaryTest do
 
       assert visible_function_doc?(Rindle.Migration, :down, 1),
              "Rindle.Migration.down/1 should be publicly documented"
+
+      assert visible_function_doc?(Rindle.Migration, :move_public_to_rindle, 1),
+             "Rindle.Migration.move_public_to_rindle/1 should be publicly documented"
+
+      refute function_exported?(Rindle.Migration, :move, 1),
+             "Rindle.Migration must not expose a generic schema mover"
+
+      refute function_exported?(Rindle.Migration, :move, 2),
+             "Rindle.Migration must not expose a generic schema mover"
     end
 
     test "admin read helpers stay out of the public Rindle facade" do

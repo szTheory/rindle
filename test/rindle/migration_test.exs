@@ -108,11 +108,29 @@ defmodule Rindle.MigrationTest do
     end
   end
 
+  describe "Rindle.Migration.move_public_to_rindle/1 preflight" do
+    test "refuses an incomplete public source without creating rindle or touching host relations" do
+      reset_rindle_schema!()
+      host_relations_before = host_relation_snapshots("public")
+
+      assert_raise ArgumentError, ~r/public.*incomplete|prepare/i, fn ->
+        run_move(fn ->
+          Rindle.Migration.move_public_to_rindle(version: 1)
+        end)
+      end
+
+      refute schema_exists?("rindle")
+      assert host_relation_snapshots("public") == host_relations_before
+    end
+  end
+
   defp run_up(fun) when is_function(fun, 0), do: run_migration(:up, [], fun)
 
   defp run_up(opts, fun), do: run_migration(:up, opts, fun)
 
   defp run_down(opts, fun), do: run_migration(:down, opts, fun)
+
+  defp run_move(fun), do: run_migration(:up, [], fun)
 
   defp run_migration(direction, opts, fun) do
     {:ok, runner} =
