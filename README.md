@@ -91,10 +91,10 @@ config :my_app, Oban,
 
 ## Migrations
 
-Create normal host-app migrations for the two pieces of database state:
-`Oban.Migration` creates the host-owned `oban_jobs` table, and
-`Rindle.Migration` creates Rindle-owned tables. Rindle no longer creates or
-owns `oban_jobs`.
+Create separate normal host-app migrations for the two pieces of database
+state. `Oban.Migration` creates the host-owned `public.oban_jobs` table; the
+host's migration ledger remains `public.schema_migrations`. `Rindle.Migration`
+creates only Rindle-owned tables and never creates or owns either host relation.
 
 ```elixir
 defmodule MyApp.Repo.Migrations.AddObanJobs do
@@ -105,15 +105,29 @@ defmodule MyApp.Repo.Migrations.AddObanJobs do
 end
 ```
 
-Then install Rindle's tables with a pinned migration version. The default is the
-`rindle` schema. The only compatibility pairing is explicit
-`prefix: "public"` with a release compiled for the public schema.
+Then install Rindle's tables with a pinned migration version. The default call
+omits `:prefix` and creates Rindle state in the `rindle` schema. The only
+compatibility pairing is an explicit `prefix: "public"` call in a separate host
+migration with a public-compiled release for the public schema; it is not an
+arbitrary-prefix mode.
 
 ```elixir
 defmodule MyApp.Repo.Migrations.InstallRindle do
   use Ecto.Migration
 
   def up, do: Rindle.Migration.up(version: 1)
+  def down, do: Rindle.Migration.down(version: 1)
+end
+```
+
+For that explicit public compatibility pairing only, use the matching
+public-compiled release and a separate host migration:
+
+```elixir
+defmodule MyApp.Repo.Migrations.InstallPublicRindle do
+  use Ecto.Migration
+
+  def up, do: Rindle.Migration.up(version: 1, prefix: "public")
   def down, do: Rindle.Migration.down(version: 1)
 end
 ```
