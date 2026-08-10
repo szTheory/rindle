@@ -386,6 +386,50 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
     end
   end
 
+  test "troubleshooting routes schema and Oban faults through bounded ownership actions", %{
+    troubleshooting: troubleshooting
+  } do
+    setup_section =
+      troubleshooting
+      |> section_between!("## Schema Isolation and Host Oban Setup", "## Supported Recovery Verbs")
+
+    assert_in_order!(setup_section, [
+      "Rindle prefix mismatch",
+      "mix rindle.doctor",
+      "maintenance-window upgrade",
+      "mix rindle.runtime_status",
+      "Missing Rindle setup",
+      "mix rindle.doctor",
+      "Rindle.Migration.up(version: 1)",
+      "mix rindle.runtime_status",
+      "Host Oban binding missing or drifted",
+      "mix rindle.doctor",
+      "Oban.Migration",
+      "mix ecto.migrate",
+      "mix rindle.runtime_status"
+    ])
+
+    for snippet <- [
+          "fixed seven-relation Rindle scope",
+          "public.oban_jobs",
+          "public.schema_migrations",
+          "Rindle does not own or configure Oban"
+        ] do
+      assert setup_section =~ snippet,
+             "schema troubleshooting must preserve #{inspect(snippet)} ownership truth"
+    end
+
+    for forbidden <- [
+          "raw SQL",
+          "automatic migration",
+          "generic schema discovery",
+          "Rindle.Migration.move("
+        ] do
+      refute setup_section =~ forbidden,
+             "schema troubleshooting must not recommend #{inspect(forbidden)}"
+    end
+  end
+
   test "legacy package-directory migration copy is scoped to historical upgrade guidance", %{
     readme: readme,
     guide: guide,
