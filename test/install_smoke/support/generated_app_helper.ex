@@ -1432,8 +1432,8 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
 
         columns =
           repo.query!(
-            "select attribute.attname, pg_catalog.format_type(attribute.atttypid, attribute.atttypmod), not attribute.attnotnull, pg_get_expr(default_value.adbin, default_value.adrelid), attribute.attidentity, attribute.attgenerated from pg_attribute attribute left join pg_attrdef default_value on default_value.adrelid = attribute.attrelid and default_value.adnum = attribute.attnum where attribute.attrelid = $1::regclass and attribute.attnum > 0 and not attribute.attisdropped order by attribute.attnum",
-            ["public.oban_jobs"]
+            "select attribute.attname, pg_catalog.format_type(attribute.atttypid, attribute.atttypmod), not attribute.attnotnull, pg_get_expr(default_value.adbin, default_value.adrelid), attribute.attidentity, attribute.attgenerated from pg_attribute attribute left join pg_attrdef default_value on default_value.adrelid = attribute.attrelid and default_value.adnum = attribute.attnum where attribute.attrelid = $1 and attribute.attnum > 0 and not attribute.attisdropped order by attribute.attnum",
+            [oid]
           ).rows
           |> Enum.map(fn [name, type, nullable, default, identity, generated] ->
             %{
@@ -1448,8 +1448,8 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
 
         constraints =
           repo.query!(
-            "select constraint.conname, constraint.contype::text, pg_get_constraintdef(constraint.oid) from pg_constraint constraint where constraint.conrelid = $1::regclass order by constraint.conname",
-            ["public.oban_jobs"]
+            "select constraint.conname, constraint.contype::text, pg_get_constraintdef(constraint.oid) from pg_constraint constraint where constraint.conrelid = $1 order by constraint.conname",
+            [oid]
           ).rows
           |> Enum.map(fn [name, type, definition] ->
             %{name: name, type: type, definition: definition}
@@ -1457,8 +1457,8 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
 
         indexes =
           repo.query!(
-            "select namespace.nspname, index_relation.relname, index_metadata.indisprimary, index_metadata.indisunique, pg_get_indexdef(index_relation.oid) from pg_index index_metadata join pg_class index_relation on index_relation.oid = index_metadata.indexrelid join pg_class relation on relation.oid = index_metadata.indrelid join pg_namespace namespace on namespace.oid = index_relation.relnamespace where relation.oid = $1::regclass order by namespace.nspname, index_relation.relname",
-            ["public.oban_jobs"]
+            "select namespace.nspname, index_relation.relname, index_metadata.indisprimary, index_metadata.indisunique, pg_get_indexdef(index_relation.oid) from pg_index index_metadata join pg_class index_relation on index_relation.oid = index_metadata.indexrelid join pg_class relation on relation.oid = index_metadata.indrelid join pg_namespace namespace on namespace.oid = index_relation.relnamespace where relation.oid = $1 order by namespace.nspname, index_relation.relname",
+            [oid]
           ).rows
           |> Enum.map(fn [schema, name, primary, unique, definition] ->
             %{

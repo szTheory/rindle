@@ -22,7 +22,7 @@ decisions:
   - "Upgrade preservation is proven with marker contents and named PostgreSQL catalog objects, not existence booleans."
   - "public.oban_jobs preservation is exact before/after catalog snapshot equality independent of host-migration provenance."
 metrics:
-  duration: 18m
+  duration: 25m
   completed: 2026-08-10
   tasks: 2
   files: 2
@@ -49,6 +49,12 @@ The packed populated-upgrade harness now reports exact Rindle catalog facts and 
 - `mix format --check-formatted test/install_smoke/support/generated_app_helper.ex test/install_smoke/generated_app_smoke_test.exs` — passed before the shared database connection pool became exhausted.
 - `mix test test/install_smoke/generated_app_smoke_test.exs --only phase_120_upgrade_contract --seed 0` — passed (3 tests, 0 failures) after implementation.
 - `RINDLE_INSTALL_SMOKE_PROFILE=image mix test test/install_smoke/generated_app_smoke_test.exs --include minio --only phase_120_isolation_upgrade --seed 0` — unrun: PostgreSQL rejected connections with `FATAL 53300 (too_many_connections)` before the generated-app scenario could execute.
+
+### Follow-up correction
+
+- A packed public-compatibility rerun exposed Postgrex's typed `regclass` parameter encoding: a relation name passed to `$1::regclass` was encoded as an OID and failed before catalog observation.
+- The generated snapshot now reuses the selected `public.oban_jobs` OID for all column, constraint, and index catalog queries. The focused source regression rejects a return to the incompatible `::regclass` parameter pattern.
+- `mix format --check-formatted test/install_smoke/support/generated_app_helper.ex test/install_smoke/generated_app_smoke_test.exs` and `mix test test/install_smoke/generated_app_smoke_test.exs --only phase_120_upgrade_contract --seed 0` — passed (4 tests, 0 failures). Per follow-up scope, no external packed or Cohort gate was attempted.
 
 ## Deviations from Plan
 

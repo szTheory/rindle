@@ -202,6 +202,20 @@ defmodule Rindle.InstallSmoke.GeneratedAppPhase120FastContractTest do
   end
 
   @tag :phase_120_upgrade_contract
+  test "generated Oban snapshot queries reuse the selected relation OID" do
+    helper_source = File.read!("test/install_smoke/support/generated_app_helper.ex")
+
+    refute helper_source =~ "attribute.attrelid = $1::regclass"
+    refute helper_source =~ "constraint.conrelid = $1::regclass"
+    refute helper_source =~ "relation.oid = $1::regclass"
+
+    assert helper_source =~ "attribute.attrelid = $1"
+    assert helper_source =~ "constraint.conrelid = $1"
+    assert helper_source =~ "relation.oid = $1"
+    assert helper_source =~ "[oid]"
+  end
+
+  @tag :phase_120_upgrade_contract
   test "upgrade catalog policy rejects missing marker, foreign key, and named indexes" do
     report = valid_isolation_upgrade_catalog_report()
 
