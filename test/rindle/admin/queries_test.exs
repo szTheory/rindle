@@ -259,14 +259,29 @@ defmodule Rindle.Admin.QueriesTest do
     end
   end
 
-  test "runtime_doctor/1 projects runtime failures into bounded diagnostic data" do
+  @tag :phase_119_redaction
+  test "runtime_doctor/1 projects runtime failures and migration failures into bounded diagnostic data" do
     sentinel = "SELECT secret FROM pg_catalog -- Postgrex.Error credential=demo-password"
     previous = Application.get_env(:rindle, RuntimeStatus)
 
     stub(Rindle.StorageMock, :capabilities, fn -> [:signed_url] end)
 
     Application.put_env(:rindle, RuntimeStatus,
-      ownership_snapshot: {:unexpected_runtime_failure, sentinel}
+      ownership_snapshot: %{
+        rindle: %{
+          classification: :rindle_prefix_mismatch,
+          expected_prefix: "rindle",
+          observed_prefix: "public",
+          owner: :rindle
+        },
+        oban: %{
+          classification: :ready,
+          expected_prefix: "public",
+          observed_prefix: "public",
+          owner: :host
+        }
+      },
+      report_query: fn _operation, _query, _prefix -> raise "REPORT_QUERY_REACHED" end
     )
 
     on_exit(fn ->
@@ -277,17 +292,32 @@ defmodule Rindle.Admin.QueriesTest do
       end
     end)
 
-    assert {:ok, model} = Queries.runtime_doctor([])
+    assert {:ok, model} =
+             Queries.runtime_doctor(
+               doctor_opts: [
+                 probe: fn -> :ok end,
+                 env: %{},
+                 profiles: [],
+                 oban_config: [repo: Rindle.Repo, queues: []],
+                 migration_statuses: [{:down, -1, "migration inspection failed: #{sentinel}"}]
+               ]
+             )
+
     assert model.runtime_status == nil
     assert model.diagnostic.status == "error"
-    assert model.diagnostic.classification == "inspection_failed"
+    assert model.diagnostic.classification == "rindle_prefix_mismatch"
     assert model.diagnostic.owner == "rindle"
     assert model.diagnostic.next_action == "mix rindle.doctor"
     assert model.diagnostic_text =~ "no report queries ran"
     assert model.diagnostic_text =~ "mix rindle.doctor"
 
+    migration = Enum.find(model.doctor.checks, &(&1.id == "doctor.migrations.pending"))
+    assert migration.status == :error
+    assert migration.summary =~ "migration inspection failed"
+
     refute inspect(model) =~ sentinel
     refute model.diagnostic_text =~ "Postgrex.Error"
+    refute inspect(model) =~ "REPORT_QUERY_REACHED"
   end
 
   test "actions_directory/0 keeps only contextless cross-cutting ops (UI-SPEC §E, D-98-10)" do

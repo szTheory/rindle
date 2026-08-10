@@ -178,6 +178,29 @@ defmodule Rindle.Ops.RuntimeChecksTest do
       end
     end
 
+    @tag :phase_119_redaction
+    test "redacts migration inspection failure names while preserving ownership checks" do
+      sentinel = "Postgrex.Error SELECT password FROM credentials"
+
+      report =
+        run_runtime_checks(
+          probe: fn -> :ok end,
+          env: %{},
+          profiles: [],
+          oban_config: healthy_oban_config(),
+          migration_statuses: [{:down, -1, "migration inspection failed: #{sentinel}"}]
+        )
+
+      migration = fetch_check(report, "doctor.migrations.pending")
+      assert migration.status == :error
+      assert migration.summary =~ "migration inspection failed"
+      refute inspect(report) =~ sentinel
+
+      for id <- ["doctor.rindle_schema.ready", "doctor.oban_jobs.ready"] do
+        assert fetch_check(report, id).owner in [:rindle, :host]
+      end
+    end
+
     test "does not require rindle_media for image-only profiles" do
       report =
         run_runtime_checks(

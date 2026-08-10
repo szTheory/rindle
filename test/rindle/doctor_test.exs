@@ -103,6 +103,26 @@ defmodule Rindle.DoctorTest do
   end
 
   describe "run_checks/2" do
+    @tag :phase_119_redaction
+    test "renders a bounded migration inspection failure" do
+      sentinel = "Postgrex.Error SELECT password FROM credentials"
+
+      {report, output} =
+        captured_doctor_report([],
+          exit_on_failure?: false,
+          probe: fn -> :ok end,
+          env: %{},
+          profiles: [],
+          oban_config: healthy_oban_config(),
+          migration_statuses: [{:down, -1, "migration inspection failed: #{sentinel}"}]
+        )
+
+      assert Enum.find(report.checks, &(&1.id == "doctor.migrations.pending")).status == :error
+      assert output =~ "doctor.migrations.pending"
+      assert output =~ "migration inspection failed"
+      refute output =~ sentinel
+    end
+
     test "renders a safe actionable ownership diagnosis for a Rindle prefix mismatch" do
       sentinel = "SELECT secret FROM pg_catalog WHERE password = 'credential'"
 

@@ -11,6 +11,7 @@ defmodule Rindle.Ops.RuntimeChecks do
   alias Rindle.Storage.Local
 
   @base_queues [:rindle_maintenance, :rindle_process, :rindle_promote, :rindle_purge]
+  @migration_inspection_failure "migration inspection failed"
   @local_playback_fix """
   Configure `config :rindle, :local_playback_route, [base_url: ..., secret_key_base: ...]` and mount `Rindle.Delivery.LocalPlug` for local AV playback, or use `Rindle.Delivery.url/3` for progressive delivery instead.
   """
@@ -664,15 +665,12 @@ defmodule Rindle.Ops.RuntimeChecks do
       {:ok, statuses, _apps} ->
         statuses
 
-      {:error, reason} ->
-        [
-          {:down, -1,
-           "migration inspection failed: #{Exception.message(normalize_exception(reason))}"}
-        ]
+      {:error, _reason} ->
+        [{:down, -1, @migration_inspection_failure}]
     end
   rescue
-    error ->
-      [{:down, -1, "migration inspection failed: #{Exception.message(error)}"}]
+    _error ->
+      [{:down, -1, @migration_inspection_failure}]
   end
 
   defp rindle_schema_catalog(opts) do
