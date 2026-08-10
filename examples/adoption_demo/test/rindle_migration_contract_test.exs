@@ -41,6 +41,19 @@ defmodule AdoptionDemo.RindleMigrationContractTest do
     assert relation_snapshot(@public_schema, "oban_jobs") == oban_snapshot
   end
 
+  test "the cold-start proof tracks the fixed Rindle relation catalog" do
+    script = File.read!("../../scripts/ci/cohort_demo_smoke.sh")
+
+    [_, relations_block] = Regex.run(~r/rindle_relations=\(\n(.*?)\n\)/s, script)
+
+    script_relations =
+      relations_block
+      |> String.split("\n", trim: true)
+      |> Enum.map(&String.trim/1)
+
+    assert script_relations == V1.owned_relations()
+  end
+
   defp assert_owned_relations!(schema, expected?) do
     for relation <- V1.owned_relations() do
       assert table_exists?(schema, relation) == expected?,

@@ -86,4 +86,54 @@ if ! curl -fsS "${base}/admin/rindle/assets" | grep -q 'data-rindle-admin-row="a
   exit 1
 fi
 
+# Keep this fixed V1 catalog explicit in the running-stack proof. The demo
+# contract test compares it with Rindle.Migration.V1.owned_relations/0.
+rindle_relations=(
+  media_assets
+  media_attachments
+  media_variants
+  media_upload_sessions
+  media_processing_runs
+  media_provider_assets
+  rindle_migration_versions
+)
+
+psql_query() {
+  "${compose[@]}" exec -T postgres \
+    psql -U postgres -d adoption_demo_dev -v ON_ERROR_STOP=1 -Atqc "$1"
+}
+
+relation_exists() {
+  local schema="$1" relation="$2"
+  psql_query "SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = '${schema}' AND table_name = '${relation}');"
+}
+
+echo "[smoke] verifying schema-qualified Rindle and host migration ownership..."
+for relation in "${rindle_relations[@]}"; do
+  if [[ "$(relation_exists rindle "${relation}")" != "t" ]]; then
+    echo "[smoke] missing rindle.${relation}" >&2
+    exit 1
+  fi
+
+  if [[ "$(relation_exists public "${relation}")" != "f" ]]; then
+    echo "[smoke] unexpected public.${relation}" >&2
+    exit 1
+  fi
+done
+
+for relation in oban_jobs schema_migrations; do
+  if [[ "$(relation_exists public "${relation}")" != "t" ]]; then
+    echo "[smoke] missing public.${relation}" >&2
+    exit 1
+  fi
+done
+
+for version in 20260528120100 20260809000000; do
+  if [[ "$(psql_query "SELECT EXISTS (SELECT 1 FROM public.schema_migrations WHERE version = ${version});")" != "t" ]]; then
+    echo "[smoke] missing public.schema_migrations entry ${version}" >&2
+    exit 1
+  fi
+done
+
+echo "[smoke] verified ${#rindle_relations[@]} Rindle relations in rindle only; Oban and ledger remain public."
 echo "[smoke] cohort-demo cold-start smoke passed."

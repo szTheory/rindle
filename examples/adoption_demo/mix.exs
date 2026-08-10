@@ -68,15 +68,12 @@ defmodule AdoptionDemo.MixProject do
       "ecto.setup": [
         "ecto.create",
         "ecto.migrate",
-        "rindle.migrate",
         "run priv/repo/seeds.exs"
       ],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
-      "rindle.migrate": ["cmd mix run --no-start priv/rindle_migrate.exs"],
       test: [
         "cmd sh -c 'PHX_SERVER=1 mix ecto.create --quiet || true'",
         "cmd sh -c 'PHX_SERVER=1 mix ecto.migrate --quiet'",
-        "cmd sh -c 'PHX_SERVER=1 mix rindle.migrate'",
         "test"
       ],
       precommit: ["compile --warnings-as-errors", "deps.unlock --unused", "format", "test"]

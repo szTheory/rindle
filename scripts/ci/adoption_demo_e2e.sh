@@ -34,7 +34,6 @@ mix assets.vendor
 mix ecto.drop --quiet || true
 mix ecto.create
 mix ecto.migrate
-mix rindle.migrate
 PHX_SERVER= mix run priv/repo/seeds.exs
 
 npm ci
