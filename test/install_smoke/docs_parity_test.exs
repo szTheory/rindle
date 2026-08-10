@@ -199,6 +199,51 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
     end
   end
 
+  test "fresh-install docs match generated host migration fixtures", %{
+    readme: readme,
+    guide: guide
+  } do
+    default_fixture = GeneratedAppHelper.default_install_contract()
+    public_fixture = GeneratedAppHelper.public_compatibility_contract()
+
+    assert default_fixture.host_oban_migration_source =~ "Oban.Migration.up()"
+    assert default_fixture.rindle_migration_source =~ "Rindle.Migration.up(version: 1)"
+    assert public_fixture.migration_source =~ "Rindle.Migration.up(version: 1, prefix: \"public\")"
+    assert public_fixture.compile_prefix == "public"
+
+    for {name, section} <- [
+          {"README migrations", section_between!(readme, "## Migrations", "## First Attachment")},
+          {"getting-started step 3", section_between!(guide, "## 3.", "## 4.")}
+        ] do
+      assert section =~ default_fixture.host_oban_migration_source |> migration_call!(),
+             "#{name} must match the generated host-owned Oban migration"
+
+      assert section =~ default_fixture.rindle_migration_source |> migration_call!(),
+             "#{name} must match the generated default Rindle migration"
+
+      assert section =~ public_fixture.migration_source |> migration_call!(),
+             "#{name} must teach the generated explicit-public Rindle migration"
+
+      assert section =~ "public-compiled",
+             "#{name} must pair public compatibility with the public-compiled fixture"
+
+      for host_relation <- ["public.oban_jobs", "public.schema_migrations"] do
+        assert section =~ host_relation,
+               "#{name} must keep #{host_relation} outside Rindle ownership"
+      end
+
+      for forbidden <- [
+            "Application.app_dir(:rindle, \"priv/repo/migrations\")",
+            "Ecto.Migrator.run",
+            "search_path",
+            "tenant_media"
+          ] do
+        refute section =~ forbidden,
+               "#{name} must not teach #{inspect(forbidden)} for a fresh install"
+      end
+    end
+  end
+
   test "upgrade guide documents the bounded host-owned populated move", %{upgrade: upgrade} do
     upgrade_section =
       upgrade
@@ -830,6 +875,16 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
     |> case do
       nil -> flunk("expected a closed Elixir fence containing #{inspect(snippet)}")
       contents -> contents
+    end
+  end
+
+  defp migration_call!(source) do
+    source
+    |> String.split("\n")
+    |> Enum.find(&String.contains?(&1, "def up, do:"))
+    |> case do
+      nil -> flunk("expected generated migration fixture to contain a one-line up/0 call")
+      call -> String.trim(call)
     end
   end
 
