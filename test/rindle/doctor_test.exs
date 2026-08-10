@@ -103,6 +103,62 @@ defmodule Rindle.DoctorTest do
   end
 
   describe "run_checks/2" do
+    test "renders a safe actionable ownership diagnosis for a Rindle prefix mismatch" do
+      sentinel = "SELECT secret FROM pg_catalog WHERE password = 'credential'"
+
+      {report, output} =
+        captured_doctor_report([],
+          exit_on_failure?: false,
+          probe: fn -> :ok end,
+          env: %{},
+          profiles: [],
+          oban_config: healthy_oban_config(),
+          migration_statuses: applied_legacy_migration_statuses(),
+          ownership_snapshot: %{
+            rindle: %{
+              expected_prefix: "public",
+              observed_prefix: "rindle",
+              owner: :rindle,
+              classification: :rindle_prefix_mismatch,
+              next_action:
+                "Schedule the host-owned maintenance-window move, then deploy the matching Rindle prefix."
+            },
+            oban: %{
+              expected_prefix: "public",
+              observed_prefix: "public",
+              owner: :host,
+              classification: :ready,
+              next_action: "Host owns Oban.Migration for oban_jobs.",
+              raw_reason: sentinel
+            }
+          }
+        )
+
+      rindle = Enum.find(report.checks, &(&1.id == "doctor.rindle_schema.ready"))
+      oban = Enum.find(report.checks, &(&1.id == "doctor.oban_jobs.ready"))
+
+      assert rindle.expected_prefix == "public"
+      assert rindle.observed_prefix == "rindle"
+      assert rindle.owner == :rindle
+      assert rindle.classification == :rindle_prefix_mismatch
+      assert rindle.next_action =~ "maintenance-window"
+      assert oban.expected_prefix == "public"
+      assert oban.observed_prefix == "public"
+      assert oban.owner == :host
+      assert oban.classification == :ready
+      assert oban.next_action =~ "Oban.Migration"
+      assert output =~ "expected public"
+      assert output =~ "observed rindle"
+
+      assert output =~
+               "Rindle never creates, moves, drops, or prefixes `oban_jobs` or host `schema_migrations`."
+
+      assert output =~ "Host owns Oban.Migration"
+      refute inspect(rindle) =~ sentinel
+      refute inspect(oban) =~ sentinel
+      refute output =~ sentinel
+    end
+
     test "prints all checks in stable order and emits a summary before failing" do
       output =
         capture_io(fn ->
