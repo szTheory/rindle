@@ -206,13 +206,15 @@ defmodule Rindle.InstallSmoke.GeneratedAppPhase120FastContractTest do
     helper_source = File.read!("test/install_smoke/support/generated_app_helper.ex")
 
     refute helper_source =~ "attribute.attrelid = $1::regclass"
-    refute helper_source =~ "constraint.conrelid = $1::regclass"
+    refute helper_source =~ "catalog_constraint.conrelid = $1::regclass"
     refute helper_source =~ "relation.oid = $1::regclass"
 
     assert helper_source =~ "attribute.attrelid = $1"
-    assert helper_source =~ "constraint.conrelid = $1"
+    assert helper_source =~ "catalog_constraint.conrelid = $1"
     assert helper_source =~ "relation.oid = $1"
     assert helper_source =~ "[oid]"
+    refute helper_source =~ "pg_constraint constraint"
+    assert helper_source =~ "pg_constraint catalog_constraint"
   end
 
   @tag :phase_120_upgrade_contract

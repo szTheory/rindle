@@ -1448,7 +1448,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
 
         constraints =
           repo.query!(
-            "select constraint.conname, constraint.contype::text, pg_get_constraintdef(constraint.oid) from pg_constraint constraint where constraint.conrelid = $1 order by constraint.conname",
+            "select catalog_constraint.conname, catalog_constraint.contype::text, pg_get_constraintdef(catalog_constraint.oid) from pg_constraint catalog_constraint where catalog_constraint.conrelid = $1 order by catalog_constraint.conname",
             [oid]
           ).rows
           |> Enum.map(fn [name, type, definition] ->
@@ -1502,7 +1502,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
 
           media_variants_foreign_key =
             case repo.query(
-                   "select constraint.conname, constraint.contype::text, source_namespace.nspname, source_relation.relname, source_column.attname, target_namespace.nspname, target_relation.relname, target_column.attname, pg_get_constraintdef(constraint.oid) from pg_constraint constraint join pg_class source_relation on source_relation.oid = constraint.conrelid join pg_namespace source_namespace on source_namespace.oid = source_relation.relnamespace join pg_class target_relation on target_relation.oid = constraint.confrelid join pg_namespace target_namespace on target_namespace.oid = target_relation.relnamespace join unnest(constraint.conkey) with ordinality as source_key(attnum, position) on true join pg_attribute source_column on source_column.attrelid = source_relation.oid and source_column.attnum = source_key.attnum join unnest(constraint.confkey) with ordinality as target_key(attnum, position) on target_key.position = source_key.position join pg_attribute target_column on target_column.attrelid = target_relation.oid and target_column.attnum = target_key.attnum where source_namespace.nspname = $1 and source_relation.relname = $2 and constraint.conname = $3 order by source_key.position",
+                   "select catalog_constraint.conname, catalog_constraint.contype::text, source_namespace.nspname, source_relation.relname, source_column.attname, target_namespace.nspname, target_relation.relname, target_column.attname, pg_get_constraintdef(catalog_constraint.oid) from pg_constraint catalog_constraint join pg_class source_relation on source_relation.oid = catalog_constraint.conrelid join pg_namespace source_namespace on source_namespace.oid = source_relation.relnamespace join pg_class target_relation on target_relation.oid = catalog_constraint.confrelid join pg_namespace target_namespace on target_namespace.oid = target_relation.relnamespace join unnest(catalog_constraint.conkey) with ordinality as source_key(attnum, position) on true join pg_attribute source_column on source_column.attrelid = source_relation.oid and source_column.attnum = source_key.attnum join unnest(catalog_constraint.confkey) with ordinality as target_key(attnum, position) on target_key.position = source_key.position join pg_attribute target_column on target_column.attrelid = target_relation.oid and target_column.attnum = target_key.attnum where source_namespace.nspname = $1 and source_relation.relname = $2 and catalog_constraint.conname = $3 order by source_key.position",
                    ["#{selected_prefix}", "media_variants", "media_variants_asset_id_fkey"]
                  ) do
               {:ok, %{rows: [[name, type, source_schema, source_table, source_column, target_schema, target_table, target_column, definition]]}} ->

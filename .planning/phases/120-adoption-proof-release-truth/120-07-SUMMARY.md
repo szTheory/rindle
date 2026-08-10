@@ -56,6 +56,12 @@ The packed populated-upgrade harness now reports exact Rindle catalog facts and 
 - The generated snapshot now reuses the selected `public.oban_jobs` OID for all column, constraint, and index catalog queries. The focused source regression rejects a return to the incompatible `::regclass` parameter pattern.
 - `mix format --check-formatted test/install_smoke/support/generated_app_helper.ex test/install_smoke/generated_app_smoke_test.exs` and `mix test test/install_smoke/generated_app_smoke_test.exs --only phase_120_upgrade_contract --seed 0` — passed (4 tests, 0 failures). Per follow-up scope, no external packed or Cohort gate was attempted.
 
+### Follow-up correction: reserved catalog alias
+
+- A fresh packed run exposed PostgreSQL 42601 because generated catalog SQL used the reserved word `constraint` as an unquoted alias.
+- Replaced that alias with `catalog_constraint` in both the Oban snapshot and media-variant foreign-key queries; the focused source policy rejects `pg_constraint constraint`.
+- `mix format --check-formatted test/install_smoke/support/generated_app_helper.ex test/install_smoke/generated_app_smoke_test.exs` and `mix test test/install_smoke/generated_app_smoke_test.exs --only phase_120_upgrade_contract --seed 0` — passed (4 tests, 0 failures). No external smoke was run.
+
 ## Deviations from Plan
 
 ### Auto-fixed Issues
