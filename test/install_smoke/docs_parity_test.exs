@@ -214,6 +214,12 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
     assert public_fixture.migration_source =~
              "Rindle.Migration.up(version: 1, prefix: \"public\")"
 
+    assert public_fixture.migration_calls.up ==
+             "def up, do: Rindle.Migration.up(version: 1, prefix: \"public\")"
+
+    assert public_fixture.migration_calls.down ==
+             "def down, do: Rindle.Migration.down(version: 1, prefix: \"public\")"
+
     assert public_fixture.compile_prefix == "public"
 
     for {name, section} <- [
@@ -226,8 +232,10 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
       assert section =~ default_fixture.rindle_migration_source |> migration_call!(),
              "#{name} must match the generated default Rindle migration"
 
-      assert section =~ public_fixture.migration_source |> migration_call!(),
-             "#{name} must teach the generated explicit-public Rindle migration"
+      for {callback, call} <- public_fixture.migration_calls do
+        assert section =~ call,
+               "#{name} must teach the generated explicit-public Rindle #{callback}/0 callback"
+      end
 
       assert section =~ "public-compiled",
              "#{name} must pair public compatibility with the public-compiled fixture"
@@ -258,7 +266,7 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
     public_fixture = GeneratedAppHelper.public_compatibility_contract()
 
     default_call = migration_call!(default_fixture.rindle_migration_source)
-    public_call = migration_call!(public_fixture.migration_source)
+    public_calls = public_fixture.migration_calls
     oban_call = migration_call!(default_fixture.host_oban_migration_source)
 
     assert public_fixture.compile_prefix == "public"
@@ -271,7 +279,10 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
 
     for {name, surface} <- surfaces do
       assert surface =~ default_call, "#{name} must match the default generated fixture"
-      assert surface =~ public_call, "#{name} must match the explicit-public generated fixture"
+      for {callback, call} <- public_calls do
+        assert surface =~ call,
+               "#{name} must match the explicit-public generated #{callback}/0 callback"
+      end
       assert surface =~ oban_call, "#{name} must retain separate host-owned Oban setup"
       assert surface =~ "public.oban_jobs", "#{name} must retain host-owned Oban in public"
 
