@@ -49,6 +49,39 @@ Do not substitute a green branch head, a rerun on a different commit, or a
 local-only transcript for this proof. The `Package Consumer Proof Matrix + Release Preflight`
 lane in `ci.yml` is part of the exact-SHA boundary.
 
+## 0.4.0 Schema-Isolation Signoff
+
+Use the focused checks below to diagnose the 0.4.0 schema-isolation release
+candidate before requesting release signoff. They are local diagnostic evidence,
+not release authority:
+
+```bash
+mix test test/install_smoke/docs_parity_test.exs test/install_smoke/release_docs_parity_test.exs --seed 0
+bash scripts/install_smoke.sh image
+cd examples/adoption_demo && mix precommit
+```
+
+Run `bash scripts/ci/cohort_demo_smoke.sh` for the Cohort cold-start and schema
+boot assertion. It verifies the composed demo can build, start, and serve its
+seeded homepage and admin console, but a checkout transcript never replaces the
+exact-SHA GitHub Actions result.
+
+Before merging the Release Please PR, review its generated `## [0.4.0]` note:
+fold the staged `## Unreleased / 0.4.0` text into that generated block and remove the staging marker. Keep the detailed operator procedure linked through [Upgrading](upgrading.html). Release Please alone owns the final version, tag, and generated changelog heading.
+
+The authoritative evidence chain is a green `ci.yml` run on the exact
+release-candidate SHA. Confirm the following live workflow results:
+
+- `Proof` docs/parity result
+- Lean `Package Consumer Proof Matrix + Release Preflight` result
+- `Adoption Demo Unit` result
+- Off-PR `Package Consumer Full Matrix + Release Preflight` result on push to `main`
+- `Cohort Demo Smoke` result on push to `main`
+
+Then let the `Release` workflow run `Run release preflight`, `Verify version
+alignment`, `Dry run Hex publish`, and `Verify public Hex.pm artifact`; those
+packed and public gates, not local checkout results, authorize the release.
+
 ## Package Metadata Review
 
 Build the package exactly as shipped before every release attempt:
