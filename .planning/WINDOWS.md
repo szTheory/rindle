@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 3
+open_count: 4
 waived_count: 0
 fixed_count: 0
-total_count: 3
-last_updated: 2026-08-10T02:06:46.584Z
+total_count: 4
+last_updated: 2026-08-10T03:58:36.554Z
 ---
 
 # Broken Windows Ledger
@@ -18,6 +18,7 @@ last_updated: 2026-08-10T02:06:46.584Z
 | 1 | 117 | deviation | .planning/STATE.md |  | Reconciled stale Phase 117 plan counter from four on-disk summaries. | open |  | 2026-08-09T02:52:51.780Z |  |
 | 2 | 119 | unrun-verify | test/rindle/ops/runtime_status_test.exs |  | Plan-level runtime/doctor verification is blocked by protected Phase 118 database fixtures missing public Rindle tables | open |  | 2026-08-10T02:00:44.512Z |  |
 | 3 | 119 | unrun-verify | examples/adoption_demo/e2e/ops-surfaces.spec.js |  | Supplemental ops browser proof is blocked before Playwright by protected Phase 118 demo fixtures missing rindle.media_attachments | open |  | 2026-08-10T02:06:46.584Z |  |
+| 4 | 120 | unrun-verify | scripts/ci/cohort_demo_smoke.sh |  | Authoritative Docker cold-start proof blocked before boot because Docker predefined address pools are exhausted. | open |  | 2026-08-10T03:58:36.554Z |  |
 
 ````json
 [
@@ -55,6 +56,18 @@ last_updated: 2026-08-10T02:06:46.584Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-08-10T02:06:46.584Z",
+    "resolved_at": null
+  },
+  {
+    "id": 4,
+    "kind": "unrun-verify",
+    "phase": "120",
+    "file": "scripts/ci/cohort_demo_smoke.sh",
+    "line": null,
+    "description": "Authoritative Docker cold-start proof blocked before boot because Docker predefined address pools are exhausted.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-10T03:58:36.554Z",
     "resolved_at": null
   }
 ]
