@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 5
+open_count: 6
 waived_count: 0
 fixed_count: 0
-total_count: 5
-last_updated: 2026-08-10T20:33:03.670Z
+total_count: 6
+last_updated: 2026-08-10T20:44:27.512Z
 ---
 
 # Broken Windows Ledger
@@ -20,6 +20,7 @@ last_updated: 2026-08-10T20:33:03.670Z
 | 3 | 119 | unrun-verify | examples/adoption_demo/e2e/ops-surfaces.spec.js |  | Supplemental ops browser proof is blocked before Playwright by protected Phase 118 demo fixtures missing rindle.media_attachments | open |  | 2026-08-10T02:06:46.584Z |  |
 | 4 | 120 | unrun-verify | scripts/ci/cohort_demo_smoke.sh |  | Authoritative Docker cold-start proof blocked before boot because Docker predefined address pools are exhausted. | open |  | 2026-08-10T03:58:36.554Z |  |
 | 5 | 120 | unrun-verify | test/install_smoke/generated_app_smoke_test.exs |  | Authoritative image-profile package gate was interrupted after phx.new --install stalled while generating the public compatibility consumer. | open |  | 2026-08-10T20:33:03.670Z |  |
+| 6 | 120 | deviation | test/install_smoke/docs_parity_test.exs |  | Formatted new docs-parity assertions after check-formatted failed. | open |  | 2026-08-10T20:44:27.512Z |  |
 
 ````json
 [
@@ -81,6 +82,18 @@ last_updated: 2026-08-10T20:33:03.670Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-08-10T20:33:03.670Z",
+    "resolved_at": null
+  },
+  {
+    "id": 6,
+    "kind": "deviation",
+    "phase": "120",
+    "file": "test/install_smoke/docs_parity_test.exs",
+    "line": null,
+    "description": "Formatted new docs-parity assertions after check-formatted failed.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-10T20:44:27.512Z",
     "resolved_at": null
   }
 ]
