@@ -88,6 +88,10 @@ defmodule Mix.Tasks.Rindle.RuntimeStatus do
     "Rindle.RuntimeStatus failed: inspection_failed; no report queries ran. Run `mix rindle.doctor` to verify the bounded ownership diagnostics before retrying."
   end
 
+  def format_error({:invalid_format, _value}) do
+    "Rindle.RuntimeStatus failed: invalid_format; no report queries ran. Run `mix rindle.doctor` before retrying with `--format text` or `--format json`."
+  end
+
   def format_error(_reason),
     do:
       "Rindle.RuntimeStatus failed: unknown; no report queries ran. Run `mix rindle.doctor` before retrying."
@@ -138,6 +142,9 @@ defmodule Mix.Tasks.Rindle.RuntimeStatus do
       owner: details |> Map.get(:owner) |> atom_string(),
       next_action: "mix rindle.doctor"
     }
+
+  defp error_details({:invalid_format, _value}),
+    do: %{classification: "invalid_format", next_action: "mix rindle.doctor"}
 
   defp error_details(_reason), do: %{classification: "unknown", next_action: "mix rindle.doctor"}
 
