@@ -66,9 +66,7 @@ defmodule Rindle.InstallSmoke.ReleaseDocsParityTest do
         end
 
       true ->
-        flunk(
-          "expected Release Please manifest version 0.3.2 or 0.4.0, got: #{release_manifest}"
-        )
+        flunk("expected Release Please manifest version 0.3.2 or 0.4.0, got: #{release_manifest}")
     end
   end
 
