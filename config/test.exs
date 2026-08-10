@@ -57,7 +57,9 @@ config :ex_aws,
 
 config :logger, level: :warning
 
-config :oban, Oban, testing: :inline
+# The test process is the host application: its default Oban binding uses the
+# same Repo and public schema as the test-host migrations in test_helper.exs.
+config :rindle, Oban, repo: Rindle.Repo, queues: [], testing: :inline
 
 # GitHub Actions and other CI runners often lack cgroup attach permissions for
 # MuonTrap. AV subprocess tests still exercise ffprobe/ffmpeg without cgroups.

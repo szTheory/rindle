@@ -29,6 +29,7 @@ defmodule Rindle.Ops.RuntimeStatusTest do
     previous_runtime_status_config = Application.get_env(:rindle, @runtime_status_config)
     previous_rindle_prefix = Application.get_env(:rindle, :rindle_prefix)
     previous_oban_prefix = Application.get_env(:rindle, :oban_prefix)
+    previous_oban_config = Application.get_env(:rindle, Oban)
 
     on_exit(fn ->
       if previous_runtime_status_config do
@@ -39,6 +40,7 @@ defmodule Rindle.Ops.RuntimeStatusTest do
 
       restore_env(:rindle_prefix, previous_rindle_prefix)
       restore_env(:oban_prefix, previous_oban_prefix)
+      restore_env(Oban, previous_oban_config)
     end)
 
     :ok
@@ -144,6 +146,7 @@ defmodule Rindle.Ops.RuntimeStatusTest do
       prefix = temporary_prefix!()
 
       Application.put_env(:rindle, :oban_prefix, prefix)
+      Application.put_env(:rindle, Oban, repo: Rindle.Repo, queues: [], prefix: prefix)
 
       assert {:error, {:setup_incomplete, :oban_jobs}} = RuntimeStatus.runtime_status([])
     end

@@ -1,4 +1,14 @@
 {:ok, _} = Rindle.Repo.start_link()
+
+# Rindle's legacy packaged Oban migration is intentionally a no-op. The test
+# application is still the host, so install its own Oban schema before starting
+# Oban or running tests that enqueue jobs.
+Ecto.Migrator.up(Rindle.Repo, 20_260_810_000_000, Rindle.TestSupport.HostObanMigration,
+  log: false
+)
+
+Rindle.TestSupport.HostRindleMigration.install!()
+
 Ecto.Adapters.SQL.Sandbox.mode(Rindle.Repo, :manual)
 
 case ExMarcel.TableWrapper.start_link([]) do

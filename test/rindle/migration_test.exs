@@ -241,6 +241,11 @@ defmodule Rindle.MigrationTest do
 
     test "refuses an incomplete public source without creating rindle or touching host relations" do
       reset_rindle_schema!()
+
+      run_down([prefix: "public"], fn ->
+        Rindle.Migration.down(version: 1, prefix: "public")
+      end)
+
       host_relations_before = host_relation_snapshots("public")
 
       assert_raise ArgumentError, ~r/public.*incomplete|prepare/i, fn ->
