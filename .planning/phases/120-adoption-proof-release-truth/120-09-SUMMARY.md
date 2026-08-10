@@ -18,7 +18,7 @@ key-files:
     - .planning/phases/120-adoption-proof-release-truth/120-09-SUMMARY.md
   modified: []
 key-decisions:
-  - "The dedicated supported MinIO container unblocked the exact local chain; packed explicit-public now passes, but populated upgrade fails the doctor-readiness assertion, so no partial local output is release authority."
+  - "The generated doctor-proof fix requires a new immutable candidate; its docs gate passes with healthy MinIO, but its packed explicit-public stage stalls before completion, so no partial local output is release authority."
 requirements-completed: []
 coverage:
   - id: D1
@@ -29,7 +29,7 @@ coverage:
         ref: "Task 1 exact chained command"
         status: fail
     human_judgment: true
-    rationale: "The latest candidate's docs and packed explicit-public stages pass with healthy MinIO, but populated upgrade reports doctor_ready? false; later chained stages were not executed."
+    rationale: "The latest candidate's docs gate passes with healthy MinIO and zero database sessions, but packed explicit-public stalls as an active generated-app process without a completion receipt; later chained stages were not executed."
   - id: D2
     description: "Immutable exact-SHA CI and Release workflow evidence."
     requirement: PROOF-02
@@ -40,7 +40,7 @@ coverage:
     human_judgment: true
     rationale: "Task 1 is blocked and release authorization requires GitHub-hosted results on the identical candidate SHA."
 metrics:
-  duration: 34m
+  duration: 40m
   completed: 2026-08-10
   tasks: 0
   files: 1
@@ -49,15 +49,15 @@ status: blocked
 
 # Phase 120 Plan 09: Blocked Local Release-Proof Receipt
 
-The current candidate reaches the packed populated-upgrade gate with healthy MinIO, but its doctor-readiness assertion fails. No local release proof or release authorization has been established.
+The current candidate's packed explicit-public stage stalls with healthy MinIO before it can produce a completion receipt. No local release proof or release authorization has been established.
 
 ## Candidate and Checkout Identity
 
-- **Current candidate SHA:** `c820a2bbfa35794d3e065e859b8191274118bfd3` (40 characters)
-- **Candidate checkout:** detached clean worktree at `/private/tmp/rindle-120-09-clean-c820a2b`
+- **Current candidate SHA:** `cc66128c1bb8679d270348ddd71cf263ddcdd9cd` (40 characters)
+- **Candidate checkout:** detached clean worktree at `/private/tmp/rindle-120-09-clean-cc66128`
 - **Candidate worktree status:** clean (`git status --porcelain=v1` produced no output)
 - **Shared checkout:** intentionally left dirty; no product source was changed by this plan.
-- **Superseded candidates:** `2a32a0ae34a3866c4a95b1252134d59bc6210f87` predates the OID binding fix; `92201beea7969a80aa7d335646c408cfc424a592` predates the reserved-alias fix; `33146ad16e5b036477d78f39dcbeee0e8408e1e6` predates supported MinIO availability; `7a7efea4ed42ce5139a6a0d873bdc22a434b6cfe` precedes the current clean local run. None is eligible for external release evidence.
+- **Superseded candidates:** `2a32a0ae34a3866c4a95b1252134d59bc6210f87` predates the OID binding fix; `92201beea7969a80aa7d335646c408cfc424a592` predates the reserved-alias fix; `33146ad16e5b036477d78f39dcbeee0e8408e1e6` predates supported MinIO availability; `7a7efea4ed42ce5139a6a0d873bdc22a434b6cfe` is the pre-MinIO receipt; `c820a2bbfa35794d3e065e859b8191274118bfd3` predates the generated doctor-proof fix. None is eligible for external release evidence.
 
 ## Preconditions
 
@@ -196,11 +196,22 @@ Raw Stage 3 diagnostic:
 
 The generated-app harness cleanup stalled after the test failure; the isolated verification session was interrupted and exited `130`. It is explicitly not recorded as success.
 
+### Current-Candidate Rerun After Generated Doctor-Proof Fix
+
+Candidate `cc66128c1bb8679d270348ddd71cf263ddcdd9cd` used a fresh clean detached worktree after `MIX_ENV=test mix deps.get` exited `0`. Preconditions passed: PostgreSQL had zero lingering `rindle_test` sessions, `rindle-phase120-minio` was running, and its live health endpoint returned `200`.
+
+- **Stage 1 — docs/release parity:** passed: `56 tests, 0 failures`.
+- **Stage 2 — packed explicit-public compatibility:** started but remained an active generated-app process for more than three minutes without the normal focused-test completion output.
+- **Stage 3 — packed populated isolation upgrade:** not executed because the chain uses `&&`.
+- **Stage 4 — Cohort Compose smoke:** not executed because the chain uses `&&`.
+
+The current chain had no failure output beyond the stall. It was interrupted while the generated-app process remained active, yielding exit `130`; this is explicitly not a success receipt.
+
 ## Required External Evidence (Not Inspected)
 
 Per the plan, GitHub evidence is intentionally not inspected until Task 1 has clean passing local receipts. When the dependency prerequisite has been restored and Task 1 passes, record immutable URLs, run IDs, conclusions, and job/step results for this exact SHA only:
 
-`c820a2bbfa35794d3e065e859b8191274118bfd3`
+`cc66128c1bb8679d270348ddd71cf263ddcdd9cd`
 
 Required evidence:
 
@@ -220,11 +231,12 @@ None — the plan required a fail-closed record when an environment prerequisite
 - The superseded `92201be…` candidate clears the prior connection-capacity and OID failures but its packed explicit-public generated migration used an unquoted `pg_constraint constraint` alias, which PostgreSQL rejected with `42601`.
 - The superseded `33146ad…` candidate clears those blockers but its packed explicit-public smoke process exits `2`.
 - The superseded `7a7efea…` candidate could not start because MinIO was not reachable at localhost:9000.
-- The current candidate clears the MinIO block and passes packed explicit-public but fails populated-upgrade doctor readiness. Product source was not changed because this executor owns receipts only.
+- The superseded `c820a2b…` candidate clears the MinIO block and passes packed explicit-public but fails populated-upgrade doctor readiness.
+- The current candidate clears the doctor-proof code issue but its packed explicit-public process stalls without a completion receipt. Product source was not changed because this executor owns receipts only.
 
 ## Next Phase Readiness
 
-Blocked. Diagnose and resolve the populated-upgrade `doctor_ready?` failure, then rerun the exact chained Task 1 command. Only after all four stages pass may GitHub Actions evidence for `c820a2bbfa35794d3e065e859b8191274118bfd3` be inspected.
+Blocked. Diagnose the current generated-app smoke stall, then rerun the exact chained Task 1 command. Only after all four stages pass may GitHub Actions evidence for `cc66128c1bb8679d270348ddd71cf263ddcdd9cd` be inspected.
 
 ## Self-Check: PASSED
 
