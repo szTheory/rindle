@@ -296,16 +296,13 @@ Source: `guides/upgrading.md`; Ecto documents transaction-scoped lock-timeout pa
 | A1 | Release Please will transform the prepared Unreleased release-note draft into the final `0.4.0` heading; `mix.exs` should not be manually version-bumped in this phase. | Common Pitfalls | The plan could place the 0.4.0 notes in the wrong changelog location or conflict with release automation. |
 | A2 | `Oban.Migration` is exported by the exact demo-resolved Oban version and can replace its current `Oban.Migrations` spelling. | State of the Art | The demo migration could fail to compile; verify with `mix help`/compile before editing. |
 
-## Open Questions
+## Resolved Planning Preconditions
 
-1. **How should the project stage exact 0.4.0 notes before the release commit exists?**
-   - What we know: the current changelog's latest release is 0.3.2, and `release.yml` extracts notes for the resolved version from `CHANGELOG.md`. [VERIFIED: codebase]
-   - What's unclear: the repository's chosen Release Please convention for an unreleased breaking-change draft. [VERIFIED: codebase]
-   - Recommendation: inspect the release-please config and a current release PR convention before selecting the exact heading; parity-test its content, not an invented version-bump workflow. [ASSUMED]
+1. **Release-note staging:** use a manifest-aware `## Unreleased / 0.4.0` staging section. Plan 120-06 verifies the Release Please configuration/manifest and requires the generated `[0.4.0]` heading to consume the staging marker after release automation advances it; it does not manually bump `mix.exs`.
 
-2. **Should public compatibility and populated move run as separate generated apps?**
-   - What we know: helper profiles are optimized around distinct temporary app/database reports and already keep a separate legacy-upgrade scenario. [VERIFIED: codebase]
-   - Recommendation: use separate named scenarios/reports to keep compile-time prefix changes and pre-move data state isolated; do not mutate application configuration within one BEAM test. [VERIFIED: 117-CONTEXT.md]
+2. **Generated-app isolation:** run explicit-public compatibility and populated public-to-`rindle` upgrade as separate named temporary apps, databases, reports, and compile stages. This prevents a compile-time prefix pairing or seeded legacy state from leaking between scenarios.
+
+3. **Cohort Oban API:** the locked demo dependency is Oban 2.23.0. Plan 120-03 adds a blocking export precheck for `Oban.Migration.up/0` and `down/0` before normalizing the checked-in host migration, so the migration source and actual resolved dependency cannot diverge.
 
 ## Environment Availability
 
