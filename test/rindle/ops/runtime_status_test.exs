@@ -45,6 +45,53 @@ defmodule Rindle.Ops.RuntimeStatusTest do
   end
 
   describe "setup preflight" do
+    test "refuses every bounded snapshot failure before a report-query tripwire" do
+      for {component, classification, expected_prefix, observed_prefix, expected_error} <- [
+            {:rindle, :rindle_prefix_mismatch, "rindle", "public",
+             {:rindle_prefix_mismatch,
+              %{
+                component: :rindle,
+                expected_prefix: "rindle",
+                observed_prefix: "public",
+                owner: :rindle
+              }}},
+            {:oban, :oban_binding_drift, "host_oban", "public",
+             {:oban_binding_drift,
+              %{
+                component: :oban,
+                expected_prefix: "host_oban",
+                observed_prefix: "public",
+                owner: :host
+              }}},
+            {:rindle, :inspection_failed, "rindle", nil,
+             {:inspection_failed, %{component: :rindle, owner: :rindle}}}
+          ] do
+        put_runtime_config(
+          ownership_snapshot:
+            ownership_snapshot(component, classification, expected_prefix, observed_prefix),
+          report_query: fn _operation, _query, _prefix -> raise "REPORT_QUERY_REACHED" end
+        )
+
+        assert {:error, ^expected_error} = RuntimeStatus.runtime_status([])
+      end
+    end
+
+    test "uses the snapshot's Rindle prefix for healthy report queries" do
+      parent = self()
+      rindle_prefix = Rindle.Schema.prefix()
+
+      put_runtime_config(
+        ownership_snapshot: ownership_snapshot(:ready, :ready, rindle_prefix, "public"),
+        report_query: fn operation, _query, prefix ->
+          send(parent, {:report_query, operation, prefix})
+          if operation == :one, do: 0, else: []
+        end
+      )
+
+      assert {:ok, _report} = RuntimeStatus.runtime_status([])
+      assert_received {:report_query, :rindle_all, ^rindle_prefix}
+    end
+
     test "returns setup_incomplete before report queries when Rindle-owned schema is missing" do
       put_setup_readiness(%{
         rindle_schema: %{ready?: false, missing_tables: ["media_assets"]},
@@ -532,8 +579,54 @@ defmodule Rindle.Ops.RuntimeStatusTest do
     Rindle.Repo.get!(MediaProviderAsset, row.id)
   end
 
-  defp put_setup_readiness(readiness) do
-    Application.put_env(:rindle, @runtime_status_config, setup_readiness: readiness)
+  defp put_setup_readiness(readiness), do: put_runtime_config(setup_readiness: readiness)
+
+  defp put_runtime_config(config),
+    do: Application.put_env(:rindle, @runtime_status_config, config)
+
+  defp ownership_snapshot(:ready, :ready, rindle_prefix, oban_prefix) do
+    %{
+      rindle: %{
+        classification: :ready,
+        expected_prefix: rindle_prefix,
+        observed_prefix: rindle_prefix,
+        owner: :rindle
+      },
+      oban: %{
+        classification: :ready,
+        expected_prefix: oban_prefix,
+        observed_prefix: oban_prefix,
+        owner: :host
+      }
+    }
+  end
+
+  defp ownership_snapshot(component, classification, expected_prefix, observed_prefix) do
+    ready_rindle = %{
+      classification: :ready,
+      expected_prefix: "rindle",
+      observed_prefix: "rindle",
+      owner: :rindle
+    }
+
+    ready_oban = %{
+      classification: :ready,
+      expected_prefix: "public",
+      observed_prefix: "public",
+      owner: :host
+    }
+
+    failure = %{
+      classification: classification,
+      expected_prefix: expected_prefix,
+      observed_prefix: observed_prefix,
+      owner: if(component == :rindle, do: :rindle, else: :host)
+    }
+
+    case component do
+      :rindle -> %{rindle: failure, oban: ready_oban}
+      :oban -> %{rindle: ready_rindle, oban: failure}
+    end
   end
 
   defp restore_env(key, nil), do: Application.delete_env(:rindle, key)
