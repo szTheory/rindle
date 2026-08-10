@@ -18,7 +18,7 @@ key-files:
     - .planning/phases/120-adoption-proof-release-truth/120-09-SUMMARY.md
   modified: []
 key-decisions:
-  - "Local verification is blocked until the clean candidate worktree has its declared dependencies fetched; no checkout-only or partial result is release authority."
+  - "The dependency prerequisite was restored, but the packed explicit-public gate still fails closed on PostgreSQL connection exhaustion and a generated-app catalog-query error; no checkout-only or partial result is release authority."
 requirements-completed: []
 coverage:
   - id: D1
@@ -29,7 +29,7 @@ coverage:
         ref: "Task 1 exact chained command"
         status: fail
     human_judgment: true
-    rationale: "The first gate could not run because the clean candidate worktree has no declared dependencies; remaining chained gates were not executed."
+    rationale: "The docs/release parity gate passed, but the packed explicit-public gate hit PostgreSQL connection exhaustion and then a generated-app catalog-query error; later chained gates were not executed."
   - id: D2
     description: "Immutable exact-SHA CI and Release workflow evidence."
     requirement: PROOF-02
@@ -40,7 +40,7 @@ coverage:
     human_judgment: true
     rationale: "Task 1 is blocked and release authorization requires GitHub-hosted results on the identical candidate SHA."
 metrics:
-  duration: 4m
+  duration: 12m
   completed: 2026-08-10
   tasks: 0
   files: 1
@@ -86,7 +86,33 @@ the dependency is not available, run "mix deps.get"
 ** (Mix) Can't continue due to errors on dependencies
 ```
 
-This is an environment prerequisite failure, not a passing receipt. It also means the known PostgreSQL `53300` capacity condition was not reached or evaluated in this attempt.
+This was an environment prerequisite failure, not a passing receipt. The declared test dependencies were subsequently fetched in the clean candidate worktree with `MIX_ENV=test mix deps.get` before the following rerun.
+
+### Rerun After Declared Dependencies Were Restored
+
+The same exact chained command was rerun from the same clean candidate checkout. Its results were:
+
+- **Stage 1 — docs/release parity:** passed: `56 tests, 0 failures`.
+- **Stage 2 — packed explicit-public compatibility:** failed during `setup_all`; it did not produce a valid packed receipt.
+- **Stage 3 — packed populated isolation upgrade:** not executed because the chain uses `&&`.
+- **Stage 4 — Cohort Compose smoke:** not executed because the chain uses `&&`.
+
+Raw failure diagnostics from Stage 2:
+
+```text
+** (RuntimeError) command failed (1): mix run --no-start priv/install_smoke/migrate.exs
+cwd: /var/folders/f3/f0clj9rd2zb85n2c849wcsrc0000gn/T/rindle-install-smoke-8/rindle_public_compat_smoke_app
+
+[error] Postgrex.Protocol ... FATAL 53300 (too_many_connections) sorry, too many clients already
+
+** (ArgumentError) you tried to use a binary for an oid type (public.oban_jobs) when an integer was expected.
+    (postgrex 0.22.4) lib/postgrex/type_module.ex:1045: Postgrex.DefaultTypes.encode_params/3
+    test/install_smoke/support/generated_app_helper.ex:1918: Rindle.InstallSmoke.GeneratedAppHelper.run_cmd!/3
+    test/install_smoke/support/generated_app_helper.ex:361: Rindle.InstallSmoke.GeneratedAppHelper.prove_package_install!/2
+    test/install_smoke/generated_app_smoke_test.exs:411: Rindle.InstallSmoke.GeneratedAppPublicCompatibilityTest.__ex_unit_setup_all_1/1
+```
+
+After the failure, the command remained stalled in its generated-app cleanup for over a minute. The isolated verification session was interrupted and exited `130`; it is explicitly not recorded as success. The connection-limit failure and catalog-query error both require resolution before rerunning the exact chain.
 
 ## Required External Evidence (Not Inspected)
 
@@ -108,11 +134,12 @@ None — the plan required a fail-closed record when an environment prerequisite
 
 ## Issues Encountered
 
-- The clean candidate worktree did not have any declared Mix dependencies available. Fetching them is required before rerunning the exact Task 1 chain; no fallback to the shared dirty checkout was used.
+- The clean candidate worktree initially did not have declared Mix dependencies. They were fetched before the rerun; the docs/release parity stage then passed.
+- The packed explicit-public generated-app path hit PostgreSQL `53300` connection exhaustion and an `oid` parameter encoding error for `public.oban_jobs`. Product source was not changed because this executor owns receipts only.
 
 ## Next Phase Readiness
 
-Blocked. Restore the clean worktree's declared dependencies, rerun the exact chained Task 1 command, and only after all four stages pass inspect GitHub Actions evidence for the recorded immutable SHA.
+Blocked. Restore PostgreSQL connection capacity and resolve the packed generated-app catalog-query failure, then rerun the exact chained Task 1 command. Only after all four stages pass may GitHub Actions evidence for the recorded immutable SHA be inspected.
 
 ## Self-Check: PASSED
 
