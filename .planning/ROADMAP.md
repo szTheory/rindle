@@ -33,7 +33,7 @@
 
 - [x] **Phase 117: Prefix Routing Architecture** - Prove and deliver one explicit schema-routing model for all normal Rindle data paths. (completed 2026-08-08)
 - [ ] **Phase 118: Isolated Migration & Safe Upgrade** - Provision `rindle` by default and give populated public installs a bounded move path.
-- [ ] **Phase 119: Ownership Boundaries & Diagnostics** - Keep Rindle and Oban schemas independent and make prefix faults actionable.
+- [x] **Phase 119: Ownership Boundaries & Diagnostics** - Keep Rindle and Oban schemas independent and make prefix faults actionable. (completed 2026-08-09)
 - [ ] **Phase 120: Adoption Proof & Release Truth** - Prove the 0.4.0 contract in generated apps, Cohort, documentation, and release artifacts.
 
 ## Phase Details
@@ -117,7 +117,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 117. Prefix Routing Architecture | 5/5 | Complete    | 2026-08-08 |
 | 118. Isolated Migration & Safe Upgrade | 0/4 | Planned | - |
-| 119. Ownership Boundaries & Diagnostics | 0/TBD | Not started | - |
+| 119. Ownership Boundaries & Diagnostics | 5/5 | Complete    | 2026-08-09 |
 | 120. Adoption Proof & Release Truth | 0/TBD | Not started | - |
 
 ## Phases (shipped — collapsed history)

@@ -31,14 +31,14 @@
 
 ### Ownership & Operations
 
-- [ ] **BOUNDARY-01**: Rindle never creates, moves, drops, or prefixes host-owned `oban_jobs` or the
+- [x] **BOUNDARY-01**: Rindle never creates, moves, drops, or prefixes host-owned `oban_jobs` or the
   host `schema_migrations` ledger; Oban's prefix remains independently configured and defaults to
   `public`.
 
-- [ ] **BOUNDARY-02**: Prefix-sensitive raw SQL, catalog checks, and Oban-binding queries use validated,
+- [x] **BOUNDARY-02**: Prefix-sensitive raw SQL, catalog checks, and Oban-binding queries use validated,
   safely quoted/bound identifiers and resolve their respective Rindle or Oban schemas correctly.
 
-- [ ] **OPS-01**: `mix rindle.doctor` and `mix rindle.runtime_status` report the expected Rindle and
+- [x] **OPS-01**: `mix rindle.doctor` and `mix rindle.runtime_status` report the expected Rindle and
   Oban prefixes separately and diagnose migration/runtime-prefix mismatch without raw database errors.
 
 ### Adoption Proof & Release Truth
@@ -80,9 +80,9 @@
 | MIGRATE-01 | Phase 118 | Complete |
 | MIGRATE-02 | Phase 118 | Complete |
 | MIGRATE-03 | Phase 118 | Complete |
-| BOUNDARY-01 | Phase 119 | Pending |
-| BOUNDARY-02 | Phase 119 | Pending |
-| OPS-01 | Phase 119 | Pending |
+| BOUNDARY-01 | Phase 119 | Complete |
+| BOUNDARY-02 | Phase 119 | Complete |
+| OPS-01 | Phase 119 | Complete |
 | PROOF-01 | Phase 120 | Pending |
 | PROOF-02 | Phase 120 | Pending |
 | DOCS-01 | Phase 120 | Pending |

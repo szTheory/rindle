@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v1.23
 milestone_name: Postgres Schema Isolation
-current_phase: 118
-current_phase_name: isolated-migration-safe-upgrade
-status: executing
+current_phase: 120
+current_phase_name: Adoption Proof & Release Truth
+status: planning
 stopped_at: Phase 119 context gathered (assumptions mode)
-last_updated: "2026-08-10T01:29:16.707Z"
+last_updated: "2026-08-10T02:48:33.162Z"
 last_activity: 2026-08-09
-last_activity_desc: Phase 118 execution started
+last_activity_desc: Phase 119 complete, transitioned to Phase 120
 progress:
   total_phases: 4
-  completed_phases: 2
-  total_plans: 15
-  completed_plans: 11
-  percent: 50
+  completed_phases: 3
+  total_plans: 16
+  completed_plans: 16
+  percent: 75
 ---
 
 # Project State
@@ -24,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-02 after shipping v1.22)
 
 **Core value:** Media, made durable.
-**Current focus:** Phase 118 — isolated-migration-safe-upgrade
+**Current focus:** Phase 119 — ownership-boundaries-diagnostics
 
 ## Current Position
 
-Phase: 118 (isolated-migration-safe-upgrade) — EXECUTING
-Plan: 1 of 6
-Status: Ready to execute
-Last activity: 2026-08-09 — Phase 118 execution started
+Phase: 120 — Adoption Proof & Release Truth
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-08-09 — Phase 119 complete, transitioned to Phase 120
 
 ### v1.22 shipped summary
 
