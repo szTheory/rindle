@@ -229,6 +229,17 @@ defmodule Rindle.InstallSmoke.GeneratedAppPhase120FastContractTest do
   end
 
   @tag :phase_120_upgrade_contract
+  test "generated child commands have bounded stage-labelled diagnostics" do
+    helper_source = File.read!("test/install_smoke/support/generated_app_helper.ex")
+
+    assert helper_source =~ "@generated_command_timeout_ms :timer.minutes(20)"
+    assert helper_source =~ "Task.yield(task, @generated_command_timeout_ms)"
+    assert helper_source =~ "Task.shutdown(task, :brutal_kill)"
+    assert helper_source =~ "stage=\#{stage}"
+    assert helper_source =~ "timed_out?: true"
+  end
+
+  @tag :phase_120_upgrade_contract
   test "upgrade catalog policy rejects missing marker, foreign key, and named indexes" do
     report = valid_isolation_upgrade_catalog_report()
 

@@ -68,6 +68,12 @@ The packed populated-upgrade harness now reports exact Rindle catalog facts and 
 - Isolation-upgrade readiness now requires the generated smoke test's `doctor_success=true` output, where `Doctor.run_checks` receives its filtered host migration statuses.
 - A focused source policy rejects the brittle outer-doctor phrase. Formatting and the `phase_120_upgrade_contract` suite passed (5 tests, 0 failures); no external smoke was run.
 
+### Follow-up correction: bounded generated command diagnostics
+
+- Generated child commands now run through a 20-minute bounded task, with their command stage prepended to captured output and explicit timeout diagnostics (including cwd).
+- This preserves existing callers while ensuring an expensive package/Phoenix/dependency/compile command cannot silently hold the parent test process indefinitely.
+- Focused contracts passed (6 tests, 0 failures). A direct packed public gate invocation was started, but its profile-gated module had already been compiled by the preceding fast run and selected no tests; it was not treated as integration evidence.
+
 ## Deviations from Plan
 
 ### Auto-fixed Issues

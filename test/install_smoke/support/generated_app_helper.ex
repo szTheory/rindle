@@ -18,6 +18,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     "media_variants_state_index",
     "media_variants_output_kind_index"
   ]
+  @generated_command_timeout_ms :timer.minutes(20)
 
   def default_install_contract do
     %{
@@ -1910,9 +1911,9 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       %{exit_code: 0} = result ->
         result
 
-      %{exit_code: exit_code, output: output} ->
+      %{exit_code: exit_code, output: output, stage: stage} ->
         raise """
-        command failed (#{exit_code}): #{Enum.join(argv, " ")}
+        generated command failed (stage=#{stage}, exit=#{exit_code}): #{Enum.join(argv, " ")}
         cwd: #{cwd}
 
         #{output}
@@ -1921,15 +1922,36 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
   end
 
   defp run_cmd(cwd, argv, env) do
-    {output, exit_code} =
-      System.cmd(List.first(argv), tl(argv),
-        cd: cwd,
-        env: env,
-        stderr_to_stdout: true,
-        into: ""
-      )
+    stage = Enum.join(argv, " ")
 
-    %{output: output, exit_code: exit_code}
+    task =
+      Task.async(fn ->
+        System.cmd(List.first(argv), tl(argv),
+          cd: cwd,
+          env: env,
+          stderr_to_stdout: true,
+          into: ""
+        )
+      end)
+
+    case Task.yield(task, @generated_command_timeout_ms) || Task.shutdown(task, :brutal_kill) do
+      {:ok, {output, exit_code}} ->
+        %{
+          output: "stage=#{stage}\n#{output}",
+          exit_code: exit_code,
+          stage: stage,
+          timed_out?: false
+        }
+
+      nil ->
+        %{
+          output:
+            "stage=#{stage}\ncommand timed out after #{@generated_command_timeout_ms}ms\ncwd=#{cwd}",
+          exit_code: 124,
+          stage: stage,
+          timed_out?: true
+        }
+    end
   end
 
   defp shared_env(db_name, profile_mode) do
