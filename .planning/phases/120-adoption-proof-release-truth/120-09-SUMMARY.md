@@ -18,7 +18,7 @@ key-files:
     - .planning/phases/120-adoption-proof-release-truth/120-09-SUMMARY.md
   modified: []
 key-decisions:
-  - "The generated doctor-proof fix requires a new immutable candidate; its docs gate passes with healthy MinIO, but its packed explicit-public stage stalls before completion, so no partial local output is release authority."
+  - "The workspace-isolation fix requires a new immutable candidate; its service preconditions pass, but Mix fails before the docs gate can start because a shared temporary synchronization lock disappears."
 requirements-completed: []
 coverage:
   - id: D1
@@ -29,7 +29,7 @@ coverage:
         ref: "Task 1 exact chained command"
         status: fail
     human_judgment: true
-    rationale: "The latest candidate's docs gate passes with healthy MinIO and zero database sessions, but packed explicit-public stalls as an active generated-app process without a completion receipt; later chained stages were not executed."
+    rationale: "The latest candidate's service preconditions pass, but Stage 1 exits 1 before tests begin because Mix cannot open its shared temporary lock file; later chained stages were not executed."
   - id: D2
     description: "Immutable exact-SHA CI and Release workflow evidence."
     requirement: PROOF-02
@@ -40,7 +40,7 @@ coverage:
     human_judgment: true
     rationale: "Task 1 is blocked and release authorization requires GitHub-hosted results on the identical candidate SHA."
 metrics:
-  duration: 40m
+  duration: 42m
   completed: 2026-08-10
   tasks: 0
   files: 1
@@ -49,15 +49,15 @@ status: blocked
 
 # Phase 120 Plan 09: Blocked Local Release-Proof Receipt
 
-The current candidate's packed explicit-public stage stalls with healthy MinIO before it can produce a completion receipt. No local release proof or release authorization has been established.
+The current candidate cannot begin the docs gate because Mix loses a shared temporary synchronization lock while compiling dependencies. No local release proof or release authorization has been established.
 
 ## Candidate and Checkout Identity
 
-- **Current candidate SHA:** `cc66128c1bb8679d270348ddd71cf263ddcdd9cd` (40 characters)
-- **Candidate checkout:** detached clean worktree at `/private/tmp/rindle-120-09-clean-cc66128`
+- **Current candidate SHA:** `21a6e7db10db6b7514f1b2aea34d02f6c89ec74d` (40 characters)
+- **Candidate checkout:** detached clean worktree at `/private/tmp/rindle-120-09-clean-21a6e7d`
 - **Candidate worktree status:** clean (`git status --porcelain=v1` produced no output)
 - **Shared checkout:** intentionally left dirty; no product source was changed by this plan.
-- **Superseded candidates:** `2a32a0ae34a3866c4a95b1252134d59bc6210f87` predates the OID binding fix; `92201beea7969a80aa7d335646c408cfc424a592` predates the reserved-alias fix; `33146ad16e5b036477d78f39dcbeee0e8408e1e6` predates supported MinIO availability; `7a7efea4ed42ce5139a6a0d873bdc22a434b6cfe` is the pre-MinIO receipt; `c820a2bbfa35794d3e065e859b8191274118bfd3` predates the generated doctor-proof fix. None is eligible for external release evidence.
+- **Superseded candidates:** `2a32a0ae34a3866c4a95b1252134d59bc6210f87` predates the OID binding fix; `92201beea7969a80aa7d335646c408cfc424a592` predates the reserved-alias fix; `33146ad16e5b036477d78f39dcbeee0e8408e1e6` predates supported MinIO availability; `7a7efea4ed42ce5139a6a0d873bdc22a434b6cfe` is the pre-MinIO receipt; `c820a2bbfa35794d3e065e859b8191274118bfd3` predates the generated doctor-proof fix; `cc66128c1bb8679d270348ddd71cf263ddcdd9cd` predates the workspace-isolation fix. None is eligible for external release evidence.
 
 ## Preconditions
 
@@ -207,11 +207,29 @@ Candidate `cc66128c1bb8679d270348ddd71cf263ddcdd9cd` used a fresh clean detached
 
 The current chain had no failure output beyond the stall. It was interrupted while the generated-app process remained active, yielding exit `130`; this is explicitly not a success receipt.
 
+### Current-Candidate Rerun After Workspace-Isolation Fix
+
+Candidate `21a6e7db10db6b7514f1b2aea34d02f6c89ec74d` used a fresh clean detached worktree after `MIX_ENV=test mix deps.get` exited `0`. Preconditions passed: PostgreSQL had zero lingering `rindle_test` sessions; `rindle-phase120-minio` was running; and its live health endpoint returned `200`.
+
+- **Stage 1 — docs/release parity:** failed before tests began, exit `1`.
+- **Stage 2 — packed explicit-public compatibility:** not executed because the chain uses `&&`.
+- **Stage 3 — packed populated isolation upgrade:** not executed because the chain uses `&&`.
+- **Stage 4 — Cohort Compose smoke:** not executed because the chain uses `&&`.
+
+Raw Stage 1 diagnostic:
+
+```text
+** (File.Error) could not open "/var/folders/f3/f0clj9rd2zb85n2c849wcsrc0000gn/T/mix_lock_user501/31ZKvxVsRb2o5KSX0AfpQQ/lock_0": no such file or directory
+    (mix 1.19.5) lib/mix/sync/lock.ex:412: Mix.Sync.Lock.switch_file_replace!/2
+    (mix 1.19.5) lib/mix/sync/lock.ex:350: Mix.Sync.Lock.unlock/1
+TASK_1_CHAIN_EXIT=1
+```
+
 ## Required External Evidence (Not Inspected)
 
 Per the plan, GitHub evidence is intentionally not inspected until Task 1 has clean passing local receipts. When the dependency prerequisite has been restored and Task 1 passes, record immutable URLs, run IDs, conclusions, and job/step results for this exact SHA only:
 
-`cc66128c1bb8679d270348ddd71cf263ddcdd9cd`
+`21a6e7db10db6b7514f1b2aea34d02f6c89ec74d`
 
 Required evidence:
 
@@ -232,11 +250,12 @@ None — the plan required a fail-closed record when an environment prerequisite
 - The superseded `33146ad…` candidate clears those blockers but its packed explicit-public smoke process exits `2`.
 - The superseded `7a7efea…` candidate could not start because MinIO was not reachable at localhost:9000.
 - The superseded `c820a2b…` candidate clears the MinIO block and passes packed explicit-public but fails populated-upgrade doctor readiness.
-- The current candidate clears the doctor-proof code issue but its packed explicit-public process stalls without a completion receipt. Product source was not changed because this executor owns receipts only.
+- The superseded `cc66128…` candidate clears the doctor-proof code issue but its packed explicit-public process stalls without a completion receipt.
+- The current candidate reaches neither generated-app scenario because the shared Mix temporary lock disappears. Product source was not changed because this executor owns receipts only.
 
 ## Next Phase Readiness
 
-Blocked. Diagnose the current generated-app smoke stall, then rerun the exact chained Task 1 command. Only after all four stages pass may GitHub Actions evidence for `cc66128c1bb8679d270348ddd71cf263ddcdd9cd` be inspected.
+Blocked. Stabilize the shared Mix temporary-lock environment, then rerun the exact chained Task 1 command. Only after all four stages pass may GitHub Actions evidence for `21a6e7db10db6b7514f1b2aea34d02f6c89ec74d` be inspected.
 
 ## Self-Check: PASSED
 
