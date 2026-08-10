@@ -228,12 +228,12 @@ end
 |---|---|---|---|
 | A1 | No assumptions required. | — | All implementation guidance is constrained by inspected code, locked decisions, or official PostgreSQL/Oban documentation. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Exact default-Oban configuration shape in all supported host apps**
-   - What we know: current code reads `Application.get_env(mix_app, Oban)` and validates `:repo`; Oban documents a default config with `:repo` and optional `:prefix`. [VERIFIED: codebase inspection] [CITED: https://hexdocs.pm/oban/isolation.html]
-   - What's unclear: whether this library's supported host matrix has a legacy `prefix: false` representation beyond the locked refusal requirement.
-   - Recommendation: plan a focused normalization test matrix for absent prefix (`"public"` only if Oban’s resolved binding confirms it), explicit binary prefix, `false`, nil config, named/alternate repo, invalid binary, and compatibility drift; reject unsupported forms with no raw payload.
+1. **Exact default-Oban configuration shape in all supported host apps — resolved by D-119-03**
+   - Current code reads `Application.get_env(mix_app, Oban)` and validates `:repo`; Oban documents a default config with `:repo` and optional `:prefix`. [VERIFIED: codebase inspection] [CITED: https://hexdocs.pm/oban/isolation.html]
+   - The supported contract is deliberately bounded: an absent prefix on an otherwise valid default binding may resolve to `"public"`, and an explicit non-empty valid binary prefix is accepted.
+   - `prefix: false` is an unsupported setup/configuration and must return the fixed bounded Oban-binding refusal before catalog I/O. It is never normalized, inferred, queried, or treated as legacy support. Nil config, named/alternate repo shapes, invalid identifiers, and compatibility drift follow their corresponding bounded refusal paths with no raw payload. [VERIFIED: context decision D-119-03]
 
 ## Environment Availability
 
