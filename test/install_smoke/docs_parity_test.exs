@@ -348,7 +348,39 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
     assert upgrade_section =~ "stop or drain Rindle HTTP writers and Oban workers",
            "populated upgrade guidance must require draining Rindle writers and Oban workers"
 
-    for forbidden <- ["search_path", "Rindle.Migration.move(", "tenant_media"] do
+    assert_in_order!(upgrade_section, [
+      "maintenance window",
+      "back up the database",
+      "stop or drain Rindle HTTP writers and Oban workers",
+      "mix ecto.migrate",
+      "deploy the build compiled for `rindle`",
+      "mix rindle.doctor",
+      "mix rindle.runtime_status"
+    ])
+
+    for snippet <- [
+          "database owner",
+          "CREATE privilege",
+          "ACCESS EXCLUSIVE",
+          "Ecto's migrator lock",
+          "does not quiesce application traffic",
+          "guarded reverse",
+          "Otherwise, restore the backup"
+        ] do
+      assert upgrade_section =~ snippet,
+             "populated upgrade guidance must explain #{inspect(snippet)}"
+    end
+
+    for forbidden <- [
+          "search_path",
+          "Rindle.Migration.move(",
+          "tenant_media",
+          "online migration",
+          "seamless migration",
+          "automatic migration",
+          "dual-write",
+          "generic schema movement"
+        ] do
       refute upgrade_section =~ forbidden,
              "populated upgrade guidance must not teach #{inspect(forbidden)}"
     end
