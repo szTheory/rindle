@@ -14,6 +14,7 @@ defmodule Rindle.Admin.Queries do
     MediaVariant
   }
 
+  alias Mix.Tasks.Rindle.RuntimeStatus, as: RuntimeStatusTask
   alias Rindle.Ops.{RuntimeChecks, RuntimeStatus}
 
   @asset_filter_keys [:state, :profile, :kind, :limit, :cursor]
@@ -218,13 +219,26 @@ defmodule Rindle.Admin.Queries do
     doctor_opts = Map.get(opts, :doctor_opts, [])
     profiles = Map.get(opts, :profiles, [])
 
-    with {:ok, runtime_status} <- RuntimeStatus.runtime_status(runtime_opts) do
-      {:ok,
-       %{
-         generated_at: DateTime.utc_now(),
-         doctor: RuntimeChecks.run(profile_args(profiles), doctor_opts),
-         runtime_status: runtime_status
-       }}
+    case RuntimeStatus.runtime_status(runtime_opts) do
+      {:ok, runtime_status} ->
+        {:ok,
+         %{
+           generated_at: DateTime.utc_now(),
+           doctor: RuntimeChecks.run(profile_args(profiles), doctor_opts),
+           runtime_status: runtime_status,
+           diagnostic: nil,
+           diagnostic_text: nil
+         }}
+
+      {:error, reason} ->
+        {:ok,
+         %{
+           generated_at: DateTime.utc_now(),
+           doctor: RuntimeChecks.run(profile_args(profiles), doctor_opts),
+           runtime_status: nil,
+           diagnostic: RuntimeStatusTask.format_json_error(reason),
+           diagnostic_text: RuntimeStatusTask.format_error(reason)
+         }}
     end
   end
 

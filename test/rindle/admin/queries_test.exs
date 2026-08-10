@@ -263,6 +263,8 @@ defmodule Rindle.Admin.QueriesTest do
     sentinel = "SELECT secret FROM pg_catalog -- Postgrex.Error credential=demo-password"
     previous = Application.get_env(:rindle, RuntimeStatus)
 
+    stub(Rindle.StorageMock, :capabilities, fn -> [:signed_url] end)
+
     Application.put_env(:rindle, RuntimeStatus,
       ownership_snapshot: {:unexpected_runtime_failure, sentinel}
     )
