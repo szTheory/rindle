@@ -221,7 +221,9 @@ defmodule Rindle.InstallSmoke.GeneratedAppPhase120FastContractTest do
   test "generated upgrade doctor readiness comes from the generated smoke result" do
     helper_source = File.read!("test/install_smoke/support/generated_app_helper.ex")
 
-    assert helper_source =~
+    assert helper_source =~ "doctor_ready?: smoke_result.exit_code == 0"
+
+    refute helper_source =~
              "doctor_ready?: String.contains?(smoke_result.output, \"doctor_success=true\")"
 
     refute helper_source =~

@@ -79,6 +79,12 @@ The packed populated-upgrade harness now reports exact Rindle catalog facts and 
 - Replaced VM-local `System.unique_integer/1` workspace names with `mktemp -d` allocation beneath the system temporary directory, preventing concurrent BEAM processes from sharing and deleting one another's generated-app root.
 - The focused source policy rejects the process-local workspace pattern and requires the OS-global temporary-directory allocation. Formatting and the focused suite passed (7 tests, 0 failures). The packed retry was deferred because the currently compiled profile gate would select no tests without a clean rebuild.
 
+### Follow-up correction: generated doctor exit evidence
+
+- The generated lifecycle test captures `doctor_success=true` internally, so outer command output cannot reliably contain that text.
+- Isolation-upgrade readiness now requires the generated smoke test to exit successfully; that test itself asserts Doctor success with the correctly filtered host migration statuses. The source policy rejects a return to checking captured doctor text in outer output.
+- Formatting and the focused suite passed (7 tests, 0 failures); no external smoke was run.
+
 ## Deviations from Plan
 
 ### Auto-fixed Issues
