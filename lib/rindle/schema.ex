@@ -21,6 +21,10 @@ defmodule Rindle.Schema do
   @spec prefix() :: String.t()
   def prefix, do: @rindle_prefix
 
+  @doc false
+  @spec supported_prefixes() :: [String.t()]
+  def supported_prefixes, do: @supported_prefixes
+
   defmacro __using__(_opts) do
     validate_owned_schema!(__CALLER__.module)
     prefix = Rindle.Schema.prefix()

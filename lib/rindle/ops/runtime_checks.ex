@@ -5,6 +5,7 @@ defmodule Rindle.Ops.RuntimeChecks do
   alias Rindle.Config
   alias Rindle.Delivery
   alias Rindle.Migration.V1, as: MigrationV1
+  alias Rindle.Ops.OwnershipSnapshot
   alias Rindle.Processor.AV
   alias Rindle.Processor.AV.RuntimeGuard
   alias Rindle.Storage.Local
@@ -95,6 +96,15 @@ defmodule Rindle.Ops.RuntimeChecks do
     oban_jobs_catalog =
       Keyword.get_lazy(opts, :oban_jobs_catalog, fn -> oban_jobs_catalog(opts) end)
 
+    ownership_snapshot =
+      Keyword.get_lazy(opts, :ownership_snapshot, fn ->
+        OwnershipSnapshot.inspect(
+          rindle_schema_catalog: rindle_schema_catalog,
+          oban_jobs_catalog: oban_jobs_catalog,
+          oban_prefix: Keyword.get(opts, :oban_prefix, Config.oban_prefix())
+        )
+      end)
+
     resumable_session_schema_catalog =
       Keyword.get_lazy(opts, :resumable_session_schema_catalog, fn ->
         resumable_session_schema_catalog()
@@ -142,9 +152,9 @@ defmodule Rindle.Ops.RuntimeChecks do
            )
          end,
          fn -> check_resumable_session_schema(resumable_session_schema_catalog) end,
-         fn -> check_rindle_schema_ready(rindle_schema_catalog) end,
+         fn -> check_rindle_schema_ready(ownership_snapshot.rindle) end,
          fn -> check_oban_default_instance(oban_config) end,
-         fn -> check_oban_jobs_ready(oban_jobs_catalog) end,
+         fn -> check_oban_jobs_ready(ownership_snapshot.oban) end,
          fn -> check_oban_required_queues(profiles, oban_config) end,
          fn -> check_profile_runtime_fit(resolved, env) end,
          fn -> check_streaming_credentials(profiles, env) end,
@@ -445,88 +455,77 @@ defmodule Rindle.Ops.RuntimeChecks do
     end
   end
 
-  defp check_rindle_schema_ready({:error, reason}) do
-    error_result(
-      "doctor.rindle_schema.ready",
-      :migrations,
-      "Could not inspect Rindle-owned schema readiness: #{Exception.message(normalize_exception(reason))}.",
-      "Verify the configured Rindle repo can query information_schema, then re-run `mix rindle.doctor`."
-    )
+  defp check_rindle_schema_ready(snapshot) do
+    {status, summary} =
+      case snapshot.classification do
+        :ready ->
+          {:ok,
+           "Rindle.Migration catalog is ready in #{inspect(snapshot.expected_prefix)} at version 1."}
+
+        :legacy_ready ->
+          {:ok,
+           "legacy packaged Rindle install is healthy; catalog readiness is complete in #{inspect(snapshot.expected_prefix)}."}
+
+        :rindle_prefix_mismatch ->
+          {:error,
+           "Rindle-owned catalog expected #{snapshot.expected_prefix}, observed #{snapshot.observed_prefix}."}
+
+        :inspection_failed ->
+          {:error, "Could not inspect Rindle-owned schema readiness."}
+
+        :incomplete ->
+          {:error,
+           "Rindle-owned schema is incomplete in #{inspect(snapshot.expected_prefix)}; missing tables: #{Enum.join(Map.get(snapshot, :missing_relations, []), ", ")}."}
+
+        :marker_invalid ->
+          {:error,
+           "Rindle-owned schema marker is invalid in #{inspect(snapshot.expected_prefix)}."}
+      end
+
+    ownership_result("doctor.rindle_schema.ready", :migrations, status, summary, snapshot)
   end
 
-  defp check_rindle_schema_ready(%{} = catalog) do
-    requirements = MigrationV1.catalog_requirements()
-    required_tables = Map.fetch!(requirements, :tables)
-    current_version = Map.fetch!(requirements, :current_version)
-    present_tables = Map.get(catalog, :tables, [])
-    missing_tables = Map.get(catalog, :missing_tables, required_tables -- present_tables)
-    marker_versions = Map.get(catalog, :marker_versions, [])
-    prefix = Map.get(catalog, :prefix, "public")
+  defp check_oban_jobs_ready(snapshot) do
+    status = if snapshot.classification == :ready, do: :ok, else: :error
 
-    cond do
-      missing_tables != [] ->
-        error_result(
-          "doctor.rindle_schema.ready",
-          :migrations,
-          "Rindle-owned schema is incomplete in #{inspect(prefix)}; missing tables: #{Enum.join(missing_tables, ", ")}.",
-          "Add a host migration that calls `Rindle.Migration.up(version: 1)` and run `mix ecto.migrate` before retrying."
-        )
+    summary =
+      if status == :ok do
+        "Host-owned `oban_jobs` table is installed in #{inspect(snapshot.observed_prefix)}. Host owns Oban.Migration."
+      else
+        "Host-owned `oban_jobs` table is not ready in #{inspect(snapshot.expected_prefix)}."
+      end
 
-      current_version in marker_versions ->
-        ok_result(
-          "doctor.rindle_schema.ready",
-          :migrations,
-          "Rindle.Migration catalog is ready in #{inspect(prefix)} at version #{current_version}.",
-          "Keep host migrations pinned to `Rindle.Migration.up(version: 1)` for deterministic installs."
-        )
-
-      Map.get(catalog, :legacy_packaged_install?, false) ->
-        ok_result(
-          "doctor.rindle_schema.ready",
-          :migrations,
-          "legacy packaged Rindle install is healthy; catalog readiness is complete in #{inspect(prefix)}.",
-          "Existing legacy migration history can remain in place; use `Rindle.Migration` for fresh installs going forward."
-        )
-
-      true ->
-        error_result(
-          "doctor.rindle_schema.ready",
-          :migrations,
-          "Rindle-owned tables are present in #{inspect(prefix)}, but no Rindle.Migration marker or legacy catalog signal was found.",
-          "Run `mix rindle.doctor` after applying a host migration that calls `Rindle.Migration.up(version: 1)`, or verify legacy migration history is intact."
-        )
-    end
+    ownership_result("doctor.oban_jobs.ready", :oban, status, summary, snapshot)
   end
 
-  defp check_oban_jobs_ready({:error, reason}) do
-    error_result(
-      "doctor.oban_jobs.ready",
-      :oban,
-      "Could not inspect host-owned `oban_jobs` readiness: #{Exception.message(normalize_exception(reason))}.",
-      "Verify the configured Rindle repo can query information_schema, then re-run `mix rindle.doctor`."
-    )
-  end
-
-  defp check_oban_jobs_ready(%{exists?: true}) do
-    ok_result(
-      "doctor.oban_jobs.ready",
-      :oban,
-      "Host-owned `oban_jobs` table is installed.",
-      "Keep Oban installed through a host migration using `Oban.Migration`."
-    )
-  end
-
-  defp check_oban_jobs_ready(_catalog) do
-    error_result(
-      "doctor.oban_jobs.ready",
-      :oban,
-      "Host-owned `oban_jobs` table is not installed.",
-      "Install Oban through a host migration using `Oban.Migration`. Rindle no longer manages `oban_jobs`."
-    )
+  defp ownership_result(id, component, status, summary, snapshot) do
+    %{
+      id: id,
+      status: status,
+      component: component,
+      summary: summary,
+      fix: snapshot.next_action,
+      expected_prefix: snapshot.expected_prefix,
+      observed_prefix: snapshot.observed_prefix,
+      owner: snapshot.owner,
+      classification: snapshot.classification,
+      next_action: snapshot.next_action,
+      ownership_boundary:
+        "Rindle never creates, moves, drops, or prefixes `oban_jobs` or host `schema_migrations`."
+    }
   end
 
   defp rindle_schema_ready?(%{} = catalog) do
-    case check_rindle_schema_ready(catalog) do
+    expected_prefix = Map.get(catalog, :prefix, Config.rindle_prefix())
+    other_prefix = Enum.find(Rindle.Schema.supported_prefixes(), &(&1 != expected_prefix))
+
+    snapshot =
+      OwnershipSnapshot.inspect(
+        expected_prefix: expected_prefix,
+        catalogs: %{expected_prefix => catalog, other_prefix => %{}}
+      )
+
+    case check_rindle_schema_ready(snapshot.rindle) do
       %{status: :ok} -> true
       _other -> false
     end

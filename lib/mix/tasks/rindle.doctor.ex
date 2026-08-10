@@ -95,6 +95,29 @@ defmodule Mix.Tasks.Rindle.Doctor do
     report
   end
 
+  defp emit_check(
+         shell,
+         %{expected_prefix: expected, owner: owner, classification: classification} = check
+       ) do
+    emit_check(
+      shell,
+      Map.drop(check, [
+        :expected_prefix,
+        :observed_prefix,
+        :owner,
+        :classification,
+        :next_action,
+        :ownership_boundary
+      ])
+    )
+
+    shell.info(
+      "  Ownership: #{owner}; expected #{expected}; observed #{check.observed_prefix || "none"}; classification #{classification}."
+    )
+
+    shell.info("  #{check.ownership_boundary}")
+  end
+
   defp emit_check(shell, %{
          status: status,
          id: id,
