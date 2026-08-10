@@ -11,6 +11,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
   @host_migration_version "20260428170000"
   @host_oban_migration_version "20260428170100"
   @rindle_migration_version "20260428170200"
+  @directional_migration_version "20260428170300"
   @legacy_rindle_migration_version 20_260_428_110_000
 
   def default_install_contract do
@@ -101,6 +102,106 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     )
   end
 
+  def prove_isolation_upgrade! do
+    public_report = prove_public_compatibility_install!()
+    public_env = shared_env(public_report.database_name, :image)
+
+    _ =
+      run_cmd!(
+        public_report.generated_app_root,
+        ["mix", "run", "--no-start", "priv/install_smoke/seed_isolation_upgrade.exs"],
+        public_env
+      )
+
+    seed =
+      read_json!(Path.join(public_report.generated_app_root, "tmp/isolation_upgrade_seed.json"))
+
+    default_contract = isolation_upgrade_contract()
+    default_root = Path.join(public_report.workspace_root, default_contract.default_app_name)
+    default_module = Macro.camelize(default_contract.default_app_name)
+    network_version = System.get_env("RINDLE_INSTALL_SMOKE_NETWORK_VERSION")
+
+    generate_phoenix_app!(public_report.workspace_root, default_root)
+
+    patch_generated_app!(
+      default_root,
+      default_contract.default_app_name,
+      default_module,
+      public_report.package_root,
+      network_version,
+      :image,
+      migration_kind: :directional_upgrade,
+      migration_report_name: "isolation_upgrade_migration_report.json"
+    )
+
+    fetch_deps!(default_root, public_env, network_version)
+    compile_result = run_cmd!(default_root, ["mix", "compile"], public_env)
+
+    _ =
+      run_cmd!(
+        default_root,
+        ["mix", "run", "--no-start", "priv/install_smoke/migrate.exs"],
+        public_env
+      )
+
+    migration_report =
+      read_json!(Path.join(default_root, "tmp/isolation_upgrade_migration_report.json"))
+
+    doctor_result =
+      run_cmd(
+        default_root,
+        ["mix", "rindle.doctor", "#{default_module}.RindleProfile"],
+        public_env
+      )
+
+    boot_result = boot_app!(default_root, default_module, public_env)
+
+    smoke_result =
+      run_cmd(default_root, ["mix", "test", "test/rindle_install_smoke_test.exs"], public_env)
+
+    persistence_lifecycle =
+      read_json!(Path.join(default_root, "tmp/install_smoke_persistence_lifecycle_report.json"))
+
+    %{
+      workspace_root: public_report.workspace_root,
+      generated_app_root: default_root,
+      public_generated_app_root: public_report.generated_app_root,
+      package_root: public_report.package_root,
+      database_name: public_report.database_name,
+      scenario: :isolation_upgrade,
+      profile_mode: :image,
+      public_compile_prefix: public_report.compile_prefix,
+      default_compile_prefix: "rindle",
+      install_mode: public_report.install_mode,
+      network_mode?: public_report.network_mode?,
+      install_source: public_report.install_source,
+      package_root_provenance: public_report.package_root_provenance,
+      compile_exit_code: compile_result.exit_code,
+      boot_exit_code: boot_result.exit_code,
+      smoke_exit_code: smoke_result.exit_code,
+      deps_rindle_present?: File.exists?(Path.join(default_root, "deps/rindle")),
+      host_migration_ran?: migration_report["host_migration_ran"] == true,
+      host_oban_migration_ran?: migration_report["host_oban_migration_ran"] == true,
+      rindle_migration_ran?: migration_report["rindle_migration_ran"] == true,
+      rindle_created_oban_jobs?: migration_report["rindle_created_oban_jobs"] == true,
+      migration_resolution: migration_report["resolver"] |> to_existing_atom_safe(),
+      rindle_migration_path: migration_report["rindle_migration_path"],
+      selected_schema_relations: migration_report["selected_schema_relations"] || %{},
+      decoy_schema_relations: migration_report["decoy_schema_relations"] || %{},
+      public_host_relations: migration_report["public_host_relations"] || %{},
+      persistence_lifecycle: persistence_lifecycle,
+      seeded_asset_id: seed["asset_id"],
+      seeded_variant_id: seed["variant_id"],
+      seeded_marker: migration_report["seeded_marker"] == true,
+      foreign_key_preserved?: migration_report["foreign_key_preserved"] == true,
+      index_preserved?: migration_report["index_preserved"] == true,
+      doctor_ready?: doctor_result.exit_code == 0,
+      doctor_output: doctor_result.output,
+      lifecycle_proved?:
+        smoke_result.exit_code == 0 and String.contains?(smoke_result.output, "0 failures")
+    }
+  end
+
   defp prove_package_install!(profile_mode, options) do
     network_version = System.get_env("RINDLE_INSTALL_SMOKE_NETWORK_VERSION")
     install_mode = install_mode(network_version)
@@ -118,7 +219,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
         Path.join(workspace_root, "package/#{package_name()}")
 
     generated_app_root = Path.join(workspace_root, app_name)
-    db_name = "#{app_name}_#{System.unique_integer([:positive])}_test"
+    db_name = "#{app_name}_#{System.system_time(:microsecond)}_test"
     shared_env = shared_env(db_name, profile_mode)
 
     if is_nil(network_version) do
@@ -337,7 +438,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
         Path.join(workspace_root, "package/#{package_name()}")
 
     generated_app_root = Path.join(workspace_root, app_name)
-    db_name = "#{app_name}_#{System.unique_integer([:positive])}_test"
+    db_name = "#{app_name}_#{System.system_time(:microsecond)}_test"
     shared_env = shared_env(db_name, :video)
 
     if is_nil(network_version) do
@@ -540,16 +641,25 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     write_profile!(root, app_name, app_module, profile_mode)
     write_host_migration!(root)
     write_host_oban_migration!(root)
-    write_rindle_migration!(root, Keyword.get(options, :compile_prefix, "rindle"))
+    migration_kind = Keyword.get(options, :migration_kind, :install)
+
+    migration_version =
+      write_rindle_migration!(
+        root,
+        Keyword.get(options, :compile_prefix, "rindle"),
+        migration_kind
+      )
 
     write_migration_runner!(
       root,
       app_name,
       app_module,
       Keyword.get(options, :compile_prefix, "rindle"),
-      Keyword.get(options, :migration_report_name, "install_smoke_migration_report.json")
+      Keyword.get(options, :migration_report_name, "install_smoke_migration_report.json"),
+      migration_version
     )
 
+    write_isolation_upgrade_seed!(root, app_module)
     write_legacy_upgrade_preparer!(root, app_module)
     write_smoke_test!(root, app_module, profile_mode, network_version)
     write_fixture!(root, profile_mode)
@@ -1096,14 +1206,21 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     File.write!(path, host_oban_migration_source())
   end
 
-  defp write_rindle_migration!(root, prefix) do
+  defp write_rindle_migration!(root, prefix, migration_kind) do
+    {migration_version, migration_source} =
+      case migration_kind do
+        :install -> {@rindle_migration_version, rindle_migration_source(prefix)}
+        :directional_upgrade -> {@directional_migration_version, directional_migration_source()}
+      end
+
     path =
       Path.join(
         root,
-        "priv/repo/migrations/#{@rindle_migration_version}_install_rindle.exs"
+        "priv/repo/migrations/#{migration_version}_install_rindle.exs"
       )
 
-    File.write!(path, rindle_migration_source(prefix))
+    File.write!(path, migration_source)
+    migration_version
   end
 
   defp host_oban_migration_source do
@@ -1143,7 +1260,14 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     """
   end
 
-  defp write_migration_runner!(root, _app_name, app_module, selected_prefix, report_name) do
+  defp write_migration_runner!(
+         root,
+         _app_name,
+         app_module,
+         selected_prefix,
+         report_name,
+         migration_version
+       ) do
     path = Path.join(root, "priv/install_smoke/migrate.exs")
     File.mkdir_p!(Path.dirname(path))
 
@@ -1156,7 +1280,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       host_path = Path.join([File.cwd!(), "priv", "repo", "migrations"])
 
       rindle_migration_file =
-        Path.join(host_path, "#{@rindle_migration_version}_install_rindle.exs")
+        Path.join(host_path, "#{migration_version}_install_rindle.exs")
 
       regclass_exists? = fn repo, schema, relation ->
         {:ok, %{rows: [[result]]}} =
@@ -1181,12 +1305,26 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
           Ecto.Migrator.run(repo, host_path, :up, to: #{String.to_integer(@host_oban_migration_version)})
           host_oban_migration_ran? = regclass_exists?.(repo, "public", "oban_jobs")
 
-          Ecto.Migrator.run(repo, host_path, :up, to: #{String.to_integer(@rindle_migration_version)})
+          Ecto.Migrator.run(repo, host_path, :up, to: #{String.to_integer(migration_version)})
           selected_schema_relations = relation_catalog.(repo, "#{selected_prefix}", rindle_relations)
           decoy_schema_relations = relation_catalog.(repo, "#{if(selected_prefix == "public", do: "rindle", else: "public")}", rindle_relations)
           rindle_migration_ran? = Enum.all?(selected_schema_relations, fn {_relation, exists?} -> exists? end)
           oban_jobs_after_rindle? = regclass_exists?.(repo, "public", "oban_jobs")
           public_host_relations = relation_catalog.(repo, "public", ["oban_jobs", "schema_migrations"])
+
+          seeded_marker? = regclass_exists?.(repo, "#{selected_prefix}", "rindle_migration_versions")
+
+          foreign_key_preserved? =
+            case repo.query("select count(*) from #{selected_prefix}.media_variants v join #{selected_prefix}.media_assets a on a.id = v.asset_id where a.metadata ->> 'isolation_upgrade_seed' = 'true'") do
+              {:ok, %{rows: [[count]]}} -> count > 0
+              _other -> false
+            end
+
+          index_preserved? =
+            case repo.query("select count(*) from pg_indexes where schemaname = $1 and tablename = 'media_variants'", ["#{selected_prefix}"]) do
+              {:ok, %{rows: [[count]]}} -> count > 0
+              _other -> false
+            end
 
           %{
             resolver: "host_migrations",
@@ -1198,6 +1336,9 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
             selected_schema_relations: selected_schema_relations,
             decoy_schema_relations: decoy_schema_relations,
             public_host_relations: public_host_relations,
+            seeded_marker: seeded_marker?,
+            foreign_key_preserved: foreign_key_preserved?,
+            index_preserved: index_preserved?,
             host_migration_paths: %{
               host_root: host_path,
               oban: Path.join(host_path, "#{@host_oban_migration_version}_install_host_owned_oban.exs"),
@@ -1211,6 +1352,63 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       File.write!(
         "tmp/#{report_name}",
         Jason.encode!(migration_report)
+      )
+      """
+    )
+  end
+
+  defp write_isolation_upgrade_seed!(root, app_module) do
+    path = Path.join(root, "priv/install_smoke/seed_isolation_upgrade.exs")
+    File.mkdir_p!(Path.dirname(path))
+
+    File.write!(
+      path,
+      """
+      Application.ensure_all_started(:rindle)
+      {:ok, _pid} = #{app_module}.Repo.start_link()
+
+      asset_id = Ecto.UUID.generate()
+      variant_id = Ecto.UUID.generate()
+      now = NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
+
+      #{app_module}.Repo.query!(
+        "insert into public.media_assets (id, state, storage_key, content_type, byte_size, filename, metadata, recipe_digest, profile, inserted_at, updated_at) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)",
+        [
+          Ecto.UUID.dump!(asset_id),
+          "ready",
+          "isolation-upgrade/assets/seed.png",
+          "image/png",
+          68,
+          "isolation-upgrade-seed.png",
+          %{"isolation_upgrade_seed" => true},
+          "isolation-upgrade-recipe",
+          "#{app_module}.RindleProfile",
+          now,
+          now
+        ]
+      )
+
+      #{app_module}.Repo.query!(
+        "insert into public.media_variants (id, asset_id, name, state, recipe_digest, storage_key, generated_at, byte_size, content_type, inserted_at, updated_at) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)",
+        [
+          Ecto.UUID.dump!(variant_id),
+          Ecto.UUID.dump!(asset_id),
+          "thumb",
+          "ready",
+          "isolation-upgrade-recipe",
+          "isolation-upgrade/variants/seed.png",
+          now,
+          68,
+          "image/png",
+          now,
+          now
+        ]
+      )
+
+      File.mkdir_p!("tmp")
+      File.write!(
+        "tmp/isolation_upgrade_seed.json",
+        Jason.encode!(%{"asset_id" => asset_id, "variant_id" => variant_id})
       )
       """
     )

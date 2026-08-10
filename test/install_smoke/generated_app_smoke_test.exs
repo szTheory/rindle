@@ -276,6 +276,40 @@ if GeneratedAppHelper.profile_enabled?(:image) do
     end
   end
 
+  defmodule Rindle.InstallSmoke.GeneratedAppIsolationUpgradeTest do
+    use ExUnit.Case, async: false
+    use Rindle.InstallSmoke.GeneratedAppSmokeAssertions
+
+    @moduletag :minio
+    @moduletag :phase_120_isolation_upgrade
+
+    setup_all do
+      report = GeneratedAppHelper.prove_isolation_upgrade!()
+      on_exit(fn -> GeneratedAppHelper.cleanup(report) end)
+      {:ok, report: report}
+    end
+
+    test "generated public and default builds preserve populated Rindle state through the host-owned move",
+         %{report: report} do
+      assert_install_source!(report)
+      assert_host_owned_migrations!(report)
+      assert report.scenario == :isolation_upgrade
+      assert report.public_compile_prefix == "public"
+      assert report.default_compile_prefix == "rindle"
+      assert report.public_generated_app_root != report.generated_app_root
+      assert report.seeded_marker
+      assert report.foreign_key_preserved?
+      assert report.index_preserved?
+      assert report.doctor_ready?
+      assert report.smoke_exit_code == 0
+      assert report.lifecycle_proved?
+
+      assert Enum.all?(report.selected_schema_relations, fn {_relation, exists?} -> exists? end)
+      assert Enum.all?(report.decoy_schema_relations, fn {_relation, exists?} -> not exists? end)
+      assert report.public_host_relations == %{"oban_jobs" => true, "schema_migrations" => true}
+    end
+  end
+
   defmodule Rindle.InstallSmoke.GeneratedAppSmokeImageTest do
     use ExUnit.Case, async: false
     use Rindle.InstallSmoke.GeneratedAppSmokeAssertions
