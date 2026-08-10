@@ -279,10 +279,12 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
 
     for {name, surface} <- surfaces do
       assert surface =~ default_call, "#{name} must match the default generated fixture"
+
       for {callback, call} <- public_calls do
         assert surface =~ call,
                "#{name} must match the explicit-public generated #{callback}/0 callback"
       end
+
       assert surface =~ oban_call, "#{name} must retain separate host-owned Oban setup"
       assert surface =~ "public.oban_jobs", "#{name} must retain host-owned Oban in public"
 
@@ -402,7 +404,10 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
   } do
     setup_section =
       troubleshooting
-      |> section_between!("## Schema Isolation and Host Oban Setup", "## Supported Recovery Verbs")
+      |> section_between!(
+        "## Schema Isolation and Host Oban Setup",
+        "## Supported Recovery Verbs"
+      )
 
     prefix_mismatch =
       section_between!(setup_section, "### Rindle prefix mismatch", "### Missing Rindle setup")

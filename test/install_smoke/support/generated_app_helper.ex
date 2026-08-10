@@ -45,13 +45,16 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
   end
 
   def public_compatibility_contract do
+    migration_source = rindle_migration_source("public")
+
     %{
       scenario: :public_compatibility,
       app_name: "rindle_public_compat_smoke_app",
       database_identity: "rindle_public_compat_smoke_app",
       report_identity: "public_compatibility_migration_report.json",
       compile_prefix: "public",
-      migration_source: rindle_migration_source("public"),
+      migration_source: migration_source,
+      migration_calls: migration_calls(migration_source),
       required_report_keys: [
         :selected_schema_relations,
         :decoy_schema_relations,
@@ -1353,9 +1356,23 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       use Ecto.Migration
 
       def up, do: Rindle.Migration.up(version: 1#{prefix_option})
-      def down, do: Rindle.Migration.down(version: 1)
+      def down, do: Rindle.Migration.down(version: 1#{prefix_option})
     end
     """
+  end
+
+  defp migration_calls(source) do
+    for callback <- [:up, :down], into: %{} do
+      prefix = "def #{callback}, do:"
+
+      call =
+        source
+        |> String.split("\n")
+        |> Enum.find(&String.contains?(&1, prefix))
+        |> String.trim()
+
+      {callback, call}
+    end
   end
 
   defp directional_migration_source do
