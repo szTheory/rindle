@@ -28,6 +28,16 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     }
   end
 
+  def persistence_lifecycle_report_keys do
+    [
+      "initiated_session_id",
+      "verified_session_id",
+      "asset_id",
+      "read_back_asset_id",
+      "asset_state"
+    ]
+  end
+
   def profile_enabled?(profile_mode) when profile_mode in [:image, :video, :tus, :mux, :gcs] do
     selected_profiles()
     |> Enum.member?(profile_mode)
@@ -108,6 +118,14 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     gcs_report_path = Path.join(generated_app_root, "tmp/install_smoke_gcs_report.json")
     gcs_report = if File.exists?(gcs_report_path), do: read_json!(gcs_report_path), else: %{}
 
+    persistence_lifecycle_report_path =
+      Path.join(generated_app_root, "tmp/install_smoke_persistence_lifecycle_report.json")
+
+    persistence_lifecycle =
+      if File.exists?(persistence_lifecycle_report_path),
+        do: read_json!(persistence_lifecycle_report_path),
+        else: %{}
+
     tus_extensions = normalize_tus_extensions(tus_report["extensions"])
     tus_report_data = Map.put(tus_report, "extensions", tus_extensions)
 
@@ -139,6 +157,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       decoy_schema_relations: migration_report["decoy_schema_relations"] || %{},
       public_host_relations: migration_report["public_host_relations"] || %{},
       host_migration_paths: migration_report["host_migration_paths"] || %{},
+      persistence_lifecycle: persistence_lifecycle,
       smoke_output: smoke_result.output,
       av_ready_variants: av_report["ready_variants"] || [],
       av_playback_storage_key: av_report["playback_storage_key"],
@@ -1306,6 +1325,15 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
           assert result.rows == [["install_smoke_markers"]]
         end
 
+        defp write_persistence_lifecycle!(facts) do
+          File.mkdir_p!("tmp")
+
+          File.write!(
+            "tmp/install_smoke_persistence_lifecycle_report.json",
+            Jason.encode!(facts)
+          )
+        end
+
         defp put_to_presigned_url(presigned_url, body) do
           request = {String.to_charlist(presigned_url), [], ~c"application/octet-stream", body}
 
@@ -1573,6 +1601,14 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
 
           asset = Repo.get!(MediaAsset, asset.id)
           assert asset.state in ["available", "processing", "ready"]
+
+          write_persistence_lifecycle!(%{
+            "initiated_session_id" => session.id,
+            "verified_session_id" => completed.id,
+            "asset_id" => asset.id,
+            "read_back_asset_id" => asset.id,
+            "asset_state" => asset.state
+          })
 
           variants = Repo.all(from variant in MediaVariant, where: variant.asset_id == ^asset.id)
           assert variants != []

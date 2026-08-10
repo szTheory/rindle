@@ -41,6 +41,21 @@ defmodule Rindle.InstallSmoke.GeneratedAppSmokeAssertions do
         refute String.contains?(report.rindle_migration_path || "", "Application.app_dir")
       end
 
+      defp assert_default_schema_ownership!(report) do
+        assert report.package_root_provenance.unpacked?
+        refute report.package_root_provenance.repository_path_fallback?
+        assert File.dir?(report.package_root_provenance.path)
+
+        assert Enum.all?(report.selected_schema_relations, fn {_relation, exists?} -> exists? end)
+
+        assert Enum.all?(report.decoy_schema_relations, fn {_relation, exists?} -> not exists? end)
+
+        assert report.public_host_relations == %{"oban_jobs" => true, "schema_migrations" => true}
+
+        assert String.contains?(report.host_migration_paths["oban"], "install_host_owned_oban")
+        assert String.contains?(report.host_migration_paths["rindle"], "install_rindle")
+      end
+
       defp assert_tus_guide_parity! do
         guide = File.read!("guides/resumable_uploads.md")
 
@@ -204,8 +219,14 @@ if GeneratedAppHelper.profile_enabled?(:image) do
     test "generated Phoenix app runs host plus Rindle migrations explicitly and proves the canonical presigned PUT lifecycle",
          %{report: report} do
       assert_host_owned_migrations!(report)
+      assert_default_schema_ownership!(report)
       assert report.smoke_exit_code == 0
       assert report.lifecycle_proved?
+
+      lifecycle = report.persistence_lifecycle
+      assert lifecycle["initiated_session_id"] == lifecycle["verified_session_id"]
+      assert lifecycle["asset_id"] == lifecycle["read_back_asset_id"]
+      assert lifecycle["asset_state"] in ["available", "processing", "ready"]
     end
   end
 end
