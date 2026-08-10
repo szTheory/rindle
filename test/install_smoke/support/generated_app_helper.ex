@@ -13,6 +13,21 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
   @rindle_migration_version "20260428170200"
   @legacy_rindle_migration_version 20_260_428_110_000
 
+  def default_install_contract do
+    %{
+      host_oban_migration_source: host_oban_migration_source(),
+      rindle_migration_source: rindle_migration_source(),
+      required_report_keys: [
+        :package_root_provenance,
+        :selected_schema_relations,
+        :decoy_schema_relations,
+        :public_host_relations,
+        :host_migration_paths,
+        :persistence_lifecycle
+      ]
+    }
+  end
+
   def profile_enabled?(profile_mode) when profile_mode in [:image, :video, :tus, :mux, :gcs] do
     selected_profiles()
     |> Enum.member?(profile_mode)
@@ -104,6 +119,11 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       profile_mode: profile_mode,
       install_mode: install_mode,
       install_source: install_source(install_mode, package_root, network_version),
+      package_root_provenance: %{
+        path: package_root,
+        unpacked?: install_mode == :package,
+        repository_path_fallback?: false
+      },
       compile_exit_code: compile_result.exit_code,
       boot_exit_code: boot_result.exit_code,
       smoke_exit_code: smoke_result.exit_code,
@@ -115,6 +135,10 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       rindle_created_oban_jobs?: migration_report["rindle_created_oban_jobs"] == true,
       migration_resolution: migration_report["resolver"] |> to_existing_atom_safe(),
       rindle_migration_path: migration_report["rindle_migration_path"],
+      selected_schema_relations: migration_report["selected_schema_relations"] || %{},
+      decoy_schema_relations: migration_report["decoy_schema_relations"] || %{},
+      public_host_relations: migration_report["public_host_relations"] || %{},
+      host_migration_paths: migration_report["host_migration_paths"] || %{},
       smoke_output: smoke_result.output,
       av_ready_variants: av_report["ready_variants"] || [],
       av_playback_storage_key: av_report["playback_storage_key"],
@@ -968,17 +992,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
         "priv/repo/migrations/#{@host_oban_migration_version}_install_host_owned_oban.exs"
       )
 
-    File.write!(
-      path,
-      """
-      defmodule RindleSmokeApp.Repo.Migrations.InstallHostOwnedOban do
-        use Ecto.Migration
-
-        def up, do: Oban.Migration.up()
-        def down, do: Oban.Migration.down(version: 1)
-      end
-      """
-    )
+    File.write!(path, host_oban_migration_source())
   end
 
   defp write_rindle_migration!(root) do
@@ -988,17 +1002,29 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
         "priv/repo/migrations/#{@rindle_migration_version}_install_rindle.exs"
       )
 
-    File.write!(
-      path,
-      """
-      defmodule RindleSmokeApp.Repo.Migrations.InstallRindle do
-        use Ecto.Migration
+    File.write!(path, rindle_migration_source())
+  end
 
-        def up, do: Rindle.Migration.up(version: 1)
-        def down, do: Rindle.Migration.down(version: 1)
-      end
-      """
-    )
+  defp host_oban_migration_source do
+    """
+    defmodule RindleSmokeApp.Repo.Migrations.InstallHostOwnedOban do
+      use Ecto.Migration
+
+      def up, do: Oban.Migration.up()
+      def down, do: Oban.Migration.down(version: 1)
+    end
+    """
+  end
+
+  defp rindle_migration_source do
+    """
+    defmodule RindleSmokeApp.Repo.Migrations.InstallRindle do
+      use Ecto.Migration
+
+      def up, do: Rindle.Migration.up(version: 1)
+      def down, do: Rindle.Migration.down(version: 1)
+    end
+    """
   end
 
   defp write_migration_runner!(root, _app_name, app_module) do
@@ -1016,24 +1042,35 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       rindle_migration_file =
         Path.join(host_path, "#{@rindle_migration_version}_install_rindle.exs")
 
-      regclass_exists? = fn repo, table_name ->
+      regclass_exists? = fn repo, schema, relation ->
         {:ok, %{rows: [[result]]}} =
-          repo.query("select to_regclass($1)::text", ["public.\#{table_name}"])
+          repo.query("select to_regclass($1)::text", ["\#{schema}.\#{relation}"])
 
-        result == table_name
+        not is_nil(result)
       end
+
+      relation_catalog = fn repo, schema, relations ->
+        Map.new(relations, fn relation ->
+          {relation, regclass_exists?.(repo, schema, relation)}
+        end)
+      end
+
+      rindle_relations = #{inspect(Rindle.Migration.V1.owned_relations())}
 
       {:ok, migration_report, _apps} =
         Ecto.Migrator.with_repo(#{app_module}.Repo, fn repo ->
           Ecto.Migrator.run(repo, host_path, :up, to: #{String.to_integer(@host_migration_version)})
-          host_migration_ran? = regclass_exists?.(repo, "install_smoke_markers")
+          host_migration_ran? = regclass_exists?.(repo, "public", "install_smoke_markers")
 
           Ecto.Migrator.run(repo, host_path, :up, to: #{String.to_integer(@host_oban_migration_version)})
-          host_oban_migration_ran? = regclass_exists?.(repo, "oban_jobs")
+          host_oban_migration_ran? = regclass_exists?.(repo, "public", "oban_jobs")
 
           Ecto.Migrator.run(repo, host_path, :up, to: #{String.to_integer(@rindle_migration_version)})
-          rindle_migration_ran? = regclass_exists?.(repo, "rindle_migration_versions")
-          oban_jobs_after_rindle? = regclass_exists?.(repo, "oban_jobs")
+          selected_schema_relations = relation_catalog.(repo, "rindle", rindle_relations)
+          decoy_schema_relations = relation_catalog.(repo, "public", rindle_relations)
+          rindle_migration_ran? = Enum.all?(selected_schema_relations, fn {_relation, exists?} -> exists? end)
+          oban_jobs_after_rindle? = regclass_exists?.(repo, "public", "oban_jobs")
+          public_host_relations = relation_catalog.(repo, "public", ["oban_jobs", "schema_migrations"])
 
           %{
             resolver: "host_migrations",
@@ -1041,7 +1078,15 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
             host_oban_migration_ran: host_oban_migration_ran?,
             rindle_migration_ran: rindle_migration_ran?,
             rindle_created_oban_jobs: not host_oban_migration_ran? and oban_jobs_after_rindle?,
-            rindle_migration_path: rindle_migration_file
+            rindle_migration_path: rindle_migration_file,
+            selected_schema_relations: selected_schema_relations,
+            decoy_schema_relations: decoy_schema_relations,
+            public_host_relations: public_host_relations,
+            host_migration_paths: %{
+              host_root: host_path,
+              oban: Path.join(host_path, "#{@host_oban_migration_version}_install_host_owned_oban.exs"),
+              rindle: rindle_migration_file
+            }
           }
         end)
 
