@@ -134,6 +134,64 @@ defmodule Rindle.MigrationTest do
     end
   end
 
+  describe "ownership diagnostics" do
+    test "read-only diagnostics preserve host relations and Oban configuration on healthy and refused paths" do
+      original_oban_config = Application.get_env(:rindle, Oban)
+      original_compatibility_prefix = Application.get_env(:rindle, :oban_prefix)
+
+      reset_rindle_schema!()
+
+      run_up([prefix: "public"], fn ->
+        Rindle.Migration.up(version: 1, prefix: "public")
+      end)
+
+      Repo.query!(
+        "CREATE TABLE IF NOT EXISTS #{qualified("public", "oban_jobs")} (id bigint PRIMARY KEY)"
+      )
+
+      host_relations_before = host_relation_snapshots("public")
+
+      snapshot =
+        Rindle.Ops.OwnershipSnapshot.inspect(
+          expected_prefix: "public",
+          oban_binding: [repo: Repo],
+          compatibility_oban_prefix: "public"
+        )
+
+      assert snapshot.rindle.classification == :ready
+      assert snapshot.oban.classification == :ready
+
+      report =
+        Rindle.Ops.RuntimeChecks.run(
+          [],
+          ownership_snapshot: snapshot,
+          probe: fn -> :ok end,
+          profiles: [],
+          migration_statuses: [],
+          oban_config: [repo: Repo, queues: []],
+          resumable_session_schema_catalog: %{columns: %{}, indexes: []}
+        )
+
+      assert Enum.any?(report.checks, &(&1.id == "doctor.rindle_schema.ready"))
+      assert Enum.any?(report.checks, &(&1.id == "doctor.oban_jobs.ready"))
+      assert host_relation_snapshots("public") == host_relations_before
+      assert Application.get_env(:rindle, Oban) == original_oban_config
+      assert Application.get_env(:rindle, :oban_prefix) == original_compatibility_prefix
+
+      refused =
+        Rindle.Ops.OwnershipSnapshot.inspect(
+          expected_prefix: "public",
+          oban_binding: [repo: Repo, prefix: false],
+          compatibility_oban_prefix: "public"
+        )
+
+      assert refused.oban.classification == :oban_binding_unavailable
+      assert host_relation_snapshots("public") == host_relations_before
+      assert Application.get_env(:rindle, Oban) == original_oban_config
+      assert Application.get_env(:rindle, :oban_prefix) == original_compatibility_prefix
+    end
+  end
+
   describe "Rindle.Migration.move_public_to_rindle/1 preflight" do
     test "classifies a complete public source and absent rindle destination without DDL" do
       reset_rindle_schema!()
