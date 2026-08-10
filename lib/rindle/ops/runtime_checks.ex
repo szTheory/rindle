@@ -93,15 +93,16 @@ defmodule Rindle.Ops.RuntimeChecks do
 
     rindle_schema_catalog_supplied? = Keyword.has_key?(opts, :rindle_schema_catalog)
 
-    oban_jobs_catalog =
-      Keyword.get_lazy(opts, :oban_jobs_catalog, fn -> oban_jobs_catalog(opts) end)
+    oban_jobs_catalog = Keyword.get(opts, :oban_jobs_catalog)
 
     ownership_snapshot =
       Keyword.get_lazy(opts, :ownership_snapshot, fn ->
         OwnershipSnapshot.inspect(
           rindle_schema_catalog: rindle_schema_catalog,
           oban_jobs_catalog: oban_jobs_catalog,
-          oban_prefix: Keyword.get(opts, :oban_prefix, Config.oban_prefix())
+          mix_app: mix_app,
+          oban_binding: Keyword.get(opts, :oban_binding, oban_config),
+          compatibility_oban_prefix: Keyword.get(opts, :oban_prefix, Config.oban_prefix())
         )
       end)
 
@@ -489,10 +490,18 @@ defmodule Rindle.Ops.RuntimeChecks do
     status = if snapshot.classification == :ready, do: :ok, else: :error
 
     summary =
-      if status == :ok do
-        "Host-owned `oban_jobs` table is installed in #{inspect(snapshot.observed_prefix)}. Host owns Oban.Migration."
-      else
-        "Host-owned `oban_jobs` table is not ready in #{inspect(snapshot.expected_prefix)}."
+      case {status, snapshot.classification} do
+        {:ok, _classification} ->
+          "Host-owned `oban_jobs` table is installed in #{inspect(snapshot.observed_prefix)}. Host owns Oban.Migration."
+
+        {:error, :oban_binding_drift} ->
+          "Default Oban binding drift: expected #{inspect(snapshot.expected_prefix)}, observed #{inspect(snapshot.observed_prefix)}."
+
+        {:error, :oban_binding_unavailable} ->
+          "Default Oban binding is unavailable or unsupported; no host catalog query ran."
+
+        {:error, _classification} ->
+          "Host-owned `oban_jobs` table is not ready in #{inspect(snapshot.expected_prefix)}."
       end
 
     ownership_result("doctor.oban_jobs.ready", :oban, status, summary, snapshot)
@@ -522,7 +531,10 @@ defmodule Rindle.Ops.RuntimeChecks do
     snapshot =
       OwnershipSnapshot.inspect(
         expected_prefix: expected_prefix,
-        catalogs: %{expected_prefix => catalog, other_prefix => %{}}
+        catalogs: %{expected_prefix => catalog, other_prefix => %{}},
+        oban_binding: [repo: Config.repo()],
+        compatibility_oban_prefix: Config.oban_prefix(),
+        oban_jobs_catalog: %{exists?: true}
       )
 
     case check_rindle_schema_ready(snapshot.rindle) do
@@ -711,26 +723,6 @@ defmodule Rindle.Ops.RuntimeChecks do
     else
       []
     end
-  end
-
-  defp oban_jobs_catalog(opts) do
-    prefix = Keyword.get(opts, :oban_prefix, Config.oban_prefix())
-
-    with_catalog_repo(fn started_repo ->
-      with {:ok, %{num_rows: count}} <-
-             started_repo.query(
-               """
-               SELECT 1
-               FROM information_schema.tables
-               WHERE table_schema = $1
-                 AND table_name = 'oban_jobs'
-               LIMIT 1
-               """,
-               [prefix]
-             ) do
-        %{exists?: count == 1, owner: :host, setup: "Oban.Migration", prefix: prefix}
-      end
-    end)
   end
 
   defp with_catalog_repo(fun) do

@@ -10,7 +10,7 @@ defmodule Rindle.Ops.OwnershipSnapshotTest do
       OwnershipSnapshot.inspect(
         expected_prefix: "public",
         catalogs: %{
-          "public" => incomplete_catalog(),
+          "public" => empty_catalog(),
           "rindle" => complete_catalog()
         },
         oban_binding: valid_oban_binding(),
@@ -30,7 +30,7 @@ defmodule Rindle.Ops.OwnershipSnapshotTest do
         expected_prefix: "rindle",
         catalogs: %{
           "public" => complete_catalog(),
-          "rindle" => incomplete_catalog()
+          "rindle" => empty_catalog()
         },
         oban_binding: valid_oban_binding(prefix: "public"),
         compatibility_oban_prefix: "public",
@@ -168,6 +168,8 @@ defmodule Rindle.Ops.OwnershipSnapshotTest do
   defp incomplete_catalog do
     %{marker_versions: [], relations: @relations -- ["media_variants"]}
   end
+
+  defp empty_catalog, do: %{marker_versions: [], relations: []}
 
   defp healthy_catalogs(prefix) do
     other_prefix = if prefix == "public", do: "rindle", else: "public"
