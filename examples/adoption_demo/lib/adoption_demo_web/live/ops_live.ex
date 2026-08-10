@@ -151,14 +151,18 @@ defmodule AdoptionDemoWeb.OpsLive do
   end
 
   defp runtime_status_output do
-    case Rindle.runtime_status([]) do
+    case runtime_status_provider().runtime_status([]) do
       {:ok, report} ->
         report
         |> Mix.Tasks.Rindle.RuntimeStatus.format_text_report()
         |> Enum.join("\n")
 
       {:error, reason} ->
-        "Rindle.RuntimeStatus failed: #{inspect(reason)}"
+        Mix.Tasks.Rindle.RuntimeStatus.format_error(reason)
     end
+  end
+
+  defp runtime_status_provider do
+    Application.get_env(:adoption_demo, :ops_runtime_status_provider, Rindle)
   end
 end
