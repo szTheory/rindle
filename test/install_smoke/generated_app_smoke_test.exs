@@ -106,6 +106,29 @@ defmodule Rindle.InstallSmoke.GeneratedAppMigrationContractTest do
   end
 end
 
+defmodule Rindle.InstallSmoke.GeneratedAppPhase120FastContractTest do
+  use ExUnit.Case, async: true
+
+  @moduletag :phase_120_fast_contract
+
+  test "default package proof keeps host migrations separate and reports schema-qualified ownership" do
+    contract = GeneratedAppHelper.default_install_contract()
+
+    assert contract.host_oban_migration_source =~ "Oban.Migration.up()"
+    assert contract.rindle_migration_source =~ "Rindle.Migration.up(version: 1)"
+    refute contract.rindle_migration_source =~ "prefix: \"public\""
+
+    assert contract.required_report_keys == [
+             :package_root_provenance,
+             :selected_schema_relations,
+             :decoy_schema_relations,
+             :public_host_relations,
+             :host_migration_paths,
+             :persistence_lifecycle
+           ]
+  end
+end
+
 if GeneratedAppHelper.profile_enabled?(:gcs) do
   defmodule Rindle.InstallSmoke.GeneratedAppSmokeGCSTest do
     use ExUnit.Case, async: false
