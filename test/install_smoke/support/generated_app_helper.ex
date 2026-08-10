@@ -38,6 +38,48 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     ]
   end
 
+  def public_compatibility_contract do
+    %{
+      scenario: :public_compatibility,
+      app_name: "rindle_public_compat_smoke_app",
+      database_identity: "rindle_public_compat_smoke_app",
+      report_identity: "public_compatibility_migration_report.json",
+      compile_prefix: "public",
+      migration_source: rindle_migration_source("public"),
+      required_report_keys: [
+        :selected_schema_relations,
+        :decoy_schema_relations,
+        :public_host_relations,
+        :persistence_lifecycle
+      ]
+    }
+  end
+
+  def isolation_upgrade_contract do
+    %{
+      scenario: :isolation_upgrade,
+      public_app_name: "rindle_isolation_upgrade_public_app",
+      default_app_name: "rindle_isolation_upgrade_default_app",
+      public_root_identity: "isolation-upgrade-public",
+      default_root_identity: "isolation-upgrade-default",
+      public_compile_prefix: "public",
+      default_compile_prefix: "rindle",
+      directional_migration_source: directional_migration_source(),
+      required_report_keys: [
+        :seeded_asset_id,
+        :seeded_variant_id,
+        :seeded_marker,
+        :foreign_key_preserved?,
+        :index_preserved?,
+        :selected_schema_relations,
+        :decoy_schema_relations,
+        :public_host_relations,
+        :doctor_ready?,
+        :persistence_lifecycle
+      ]
+    }
+  end
+
   def profile_enabled?(profile_mode) when profile_mode in [:image, :video, :tus, :mux, :gcs] do
     selected_profiles()
     |> Enum.member?(profile_mode)
@@ -45,6 +87,21 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
 
   def prove_package_install!(profile_mode \\ :image)
       when profile_mode in [:image, :video, :tus, :mux, :gcs] do
+    prove_package_install!(profile_mode, [])
+  end
+
+  def prove_public_compatibility_install! do
+    contract = public_compatibility_contract()
+
+    prove_package_install!(:image,
+      app_name: contract.app_name,
+      compile_prefix: contract.compile_prefix,
+      migration_report_name: contract.report_identity,
+      scenario: contract.scenario
+    )
+  end
+
+  defp prove_package_install!(profile_mode, options) do
     network_version = System.get_env("RINDLE_INSTALL_SMOKE_NETWORK_VERSION")
     install_mode = install_mode(network_version)
 
@@ -53,7 +110,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
 
     File.mkdir_p!(workspace_root)
 
-    app_name = install_smoke_app_name(profile_mode)
+    app_name = Keyword.get(options, :app_name, install_smoke_app_name(profile_mode))
     app_module = Macro.camelize(app_name)
 
     package_root =
@@ -76,7 +133,8 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       app_module,
       package_root,
       network_version,
-      profile_mode
+      profile_mode,
+      options
     )
 
     fetch_deps!(generated_app_root, shared_env, network_version)
@@ -92,7 +150,12 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       )
 
     migration_report =
-      read_json!(Path.join(generated_app_root, "tmp/install_smoke_migration_report.json"))
+      read_json!(
+        Path.join(
+          generated_app_root,
+          "tmp/#{Keyword.get(options, :migration_report_name, "install_smoke_migration_report.json")}"
+        )
+      )
 
     boot_result = boot_app!(generated_app_root, app_module, shared_env)
 
@@ -135,6 +198,8 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       package_root: package_root,
       database_name: db_name,
       profile_mode: profile_mode,
+      scenario: Keyword.get(options, :scenario, :default),
+      compile_prefix: Keyword.get(options, :compile_prefix, "rindle"),
       install_mode: install_mode,
       install_source: install_source(install_mode, package_root, network_version),
       package_root_provenance: %{
@@ -455,10 +520,18 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
          app_module,
          package_root,
          network_version,
-         profile_mode
+         profile_mode,
+         options \\ []
        ) do
     patch_mix_exs!(root, package_root, network_version, profile_mode)
-    patch_test_config!(root, app_name, profile_mode)
+
+    patch_test_config!(
+      root,
+      app_name,
+      profile_mode,
+      Keyword.get(options, :compile_prefix, "rindle")
+    )
+
     patch_test_helper!(root, profile_mode)
     patch_runtime_config!(root, app_name, app_module, profile_mode)
     patch_application!(root, app_name, app_module, profile_mode)
@@ -467,8 +540,16 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     write_profile!(root, app_name, app_module, profile_mode)
     write_host_migration!(root)
     write_host_oban_migration!(root)
-    write_rindle_migration!(root)
-    write_migration_runner!(root, app_name, app_module)
+    write_rindle_migration!(root, Keyword.get(options, :compile_prefix, "rindle"))
+
+    write_migration_runner!(
+      root,
+      app_name,
+      app_module,
+      Keyword.get(options, :compile_prefix, "rindle"),
+      Keyword.get(options, :migration_report_name, "install_smoke_migration_report.json")
+    )
+
     write_legacy_upgrade_preparer!(root, app_module)
     write_smoke_test!(root, app_module, profile_mode, network_version)
     write_fixture!(root, profile_mode)
@@ -549,7 +630,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     File.write!(path, updated)
   end
 
-  defp patch_test_config!(root, app_name, profile_mode) do
+  defp patch_test_config!(root, app_name, profile_mode, compile_prefix) do
     path = Path.join(root, "config/test.exs")
 
     base_updated =
@@ -580,6 +661,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
         migration_timestamps: [type: :utc_datetime_usec]
 
       config :rindle, :repo, #{Macro.camelize(app_name)}.Repo
+      config :rindle, :rindle_prefix, #{inspect(compile_prefix)}
       """)
 
     base_updated =
@@ -1014,14 +1096,14 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     File.write!(path, host_oban_migration_source())
   end
 
-  defp write_rindle_migration!(root) do
+  defp write_rindle_migration!(root, prefix) do
     path =
       Path.join(
         root,
         "priv/repo/migrations/#{@rindle_migration_version}_install_rindle.exs"
       )
 
-    File.write!(path, rindle_migration_source())
+    File.write!(path, rindle_migration_source(prefix))
   end
 
   defp host_oban_migration_source do
@@ -1035,18 +1117,33 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     """
   end
 
-  defp rindle_migration_source do
+  defp rindle_migration_source(prefix \\ "rindle") do
+    prefix_option = if prefix == "public", do: ~s(, prefix: "public"), else: ""
+
     """
     defmodule RindleSmokeApp.Repo.Migrations.InstallRindle do
       use Ecto.Migration
 
-      def up, do: Rindle.Migration.up(version: 1)
+      def up, do: Rindle.Migration.up(version: 1#{prefix_option})
       def down, do: Rindle.Migration.down(version: 1)
     end
     """
   end
 
-  defp write_migration_runner!(root, _app_name, app_module) do
+  defp directional_migration_source do
+    """
+    defmodule RindleSmokeApp.Repo.Migrations.MovePublicRindleToDefaultSchema do
+      use Ecto.Migration
+
+      def up do
+        execute("SET LOCAL lock_timeout = '5s'")
+        Rindle.Migration.move_public_to_rindle(version: 1)
+      end
+    end
+    """
+  end
+
+  defp write_migration_runner!(root, _app_name, app_module, selected_prefix, report_name) do
     path = Path.join(root, "priv/install_smoke/migrate.exs")
     File.mkdir_p!(Path.dirname(path))
 
@@ -1085,8 +1182,8 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
           host_oban_migration_ran? = regclass_exists?.(repo, "public", "oban_jobs")
 
           Ecto.Migrator.run(repo, host_path, :up, to: #{String.to_integer(@rindle_migration_version)})
-          selected_schema_relations = relation_catalog.(repo, "rindle", rindle_relations)
-          decoy_schema_relations = relation_catalog.(repo, "public", rindle_relations)
+          selected_schema_relations = relation_catalog.(repo, "#{selected_prefix}", rindle_relations)
+          decoy_schema_relations = relation_catalog.(repo, "#{if(selected_prefix == "public", do: "rindle", else: "public")}", rindle_relations)
           rindle_migration_ran? = Enum.all?(selected_schema_relations, fn {_relation, exists?} -> exists? end)
           oban_jobs_after_rindle? = regclass_exists?.(repo, "public", "oban_jobs")
           public_host_relations = relation_catalog.(repo, "public", ["oban_jobs", "schema_migrations"])
@@ -1112,7 +1209,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       File.mkdir_p!("tmp")
 
       File.write!(
-        "tmp/install_smoke_migration_report.json",
+        "tmp/#{report_name}",
         Jason.encode!(migration_report)
       )
       """

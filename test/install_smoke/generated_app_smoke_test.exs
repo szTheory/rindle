@@ -150,7 +150,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppPhase120FastContractTest do
              "asset_id",
              "read_back_asset_id",
              "asset_state"
-    ]
+           ]
   end
 
   @tag :phase_120_compat_contract
@@ -247,6 +247,35 @@ if GeneratedAppHelper.profile_enabled?(:gcs) do
 end
 
 if GeneratedAppHelper.profile_enabled?(:image) do
+  defmodule Rindle.InstallSmoke.GeneratedAppPublicCompatibilityTest do
+    use ExUnit.Case, async: false
+    use Rindle.InstallSmoke.GeneratedAppSmokeAssertions
+
+    @moduletag :minio
+    @moduletag :phase_120_public_compat
+
+    setup_all do
+      report = GeneratedAppHelper.prove_public_compatibility_install!()
+      on_exit(fn -> GeneratedAppHelper.cleanup(report) end)
+      {:ok, report: report}
+    end
+
+    test "generated Phoenix app proves the explicit public compatibility build without runtime retargeting",
+         %{report: report} do
+      assert_install_source!(report)
+      assert_host_owned_migrations!(report)
+      assert report.scenario == :public_compatibility
+      assert report.compile_prefix == "public"
+      assert report.smoke_exit_code == 0
+      assert report.lifecycle_proved?
+
+      assert Enum.all?(report.selected_schema_relations, fn {_relation, exists?} -> exists? end)
+      assert Enum.all?(report.decoy_schema_relations, fn {_relation, exists?} -> not exists? end)
+      assert report.public_host_relations == %{"oban_jobs" => true, "schema_migrations" => true}
+      assert report.rindle_migration_path =~ "install_rindle"
+    end
+  end
+
   defmodule Rindle.InstallSmoke.GeneratedAppSmokeImageTest do
     use ExUnit.Case, async: false
     use Rindle.InstallSmoke.GeneratedAppSmokeAssertions
