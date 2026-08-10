@@ -2,6 +2,8 @@ defmodule Rindle.InstallSmoke.ReleaseDocsParityTest do
   use ExUnit.Case, async: true
 
   @mix_exs_path Path.expand("../../mix.exs", __DIR__)
+  @changelog_path Path.expand("../../CHANGELOG.md", __DIR__)
+  @release_manifest_path Path.expand("../../.release-please-manifest.json", __DIR__)
   @release_guide_path Path.expand("../../guides/release_publish.md", __DIR__)
   @release_workflow_path Path.expand("../../.github/workflows/release.yml", __DIR__)
   @operations_path Path.expand("../../guides/operations.md", __DIR__)
@@ -13,6 +15,8 @@ defmodule Rindle.InstallSmoke.ReleaseDocsParityTest do
     {:ok,
      %{
        mix_exs: File.read!(@mix_exs_path),
+       changelog: File.read!(@changelog_path),
+       release_manifest: File.read!(@release_manifest_path),
        release_guide: File.read!(@release_guide_path),
        release_workflow: File.read!(@release_workflow_path),
        operations: File.read!(@operations_path),
@@ -20,6 +24,60 @@ defmodule Rindle.InstallSmoke.ReleaseDocsParityTest do
        getting_started: File.read!(@getting_started_path),
        running: File.read!(@running_path)
      }}
+  end
+
+  test "0.4.0 release notes stay manifest-aware and preserve the isolation contract", %{
+    changelog: changelog,
+    release_manifest: release_manifest
+  } do
+    required_contract = [
+      "`rindle` schema by default",
+      "`prefix: \"public\"`",
+      "maintenance window",
+      "backup",
+      "lock",
+      "downtime",
+      "guarded reverse",
+      "Oban",
+      "schema_migrations",
+      "guides/upgrading.md"
+    ]
+
+    cond do
+      release_manifest =~ ~s(".": "0.3.2") ->
+        assert length(Regex.scan(~r/^## Unreleased \/ 0\.4\.0$/m, changelog)) == 1
+        assert changelog =~ ~r/^## Unreleased \/ 0\.4\.0$\n[\s\S]+^## \[0\.3\.2\]/m
+
+        staging_notes = changelog_section(changelog, "Unreleased / 0.4.0")
+
+        for fact <- required_contract do
+          assert staging_notes =~ fact
+        end
+
+      release_manifest =~ ~s(".": "0.4.0") ->
+        refute changelog =~ ~r/^## Unreleased \/ 0\.4\.0$/m
+
+        generated_notes = changelog_section(changelog, "[0.4.0]")
+
+        for fact <- required_contract do
+          assert generated_notes =~ fact
+        end
+
+      true ->
+        flunk(
+          "expected Release Please manifest version 0.3.2 or 0.4.0, got: #{release_manifest}"
+        )
+    end
+  end
+
+  defp changelog_section(changelog, heading) do
+    escaped_heading = Regex.escape(heading)
+    pattern = ~r/^## #{escaped_heading}.*$([\s\S]*?)(?=^## |\z)/m
+
+    case Regex.run(pattern, changelog) do
+      [_, section] -> section
+      nil -> flunk("missing changelog section: #{heading}")
+    end
   end
 
   test "release guide states the first public versioning sequence", %{
