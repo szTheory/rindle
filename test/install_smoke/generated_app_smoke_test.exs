@@ -34,7 +34,6 @@ defmodule Rindle.InstallSmoke.GeneratedAppSmokeAssertions do
         assert report.host_migration_ran?
         assert report.host_oban_migration_ran?
         assert report.rindle_migration_ran?
-        refute report.rindle_created_oban_jobs?
         assert report.migration_resolution == :host_migrations
         assert String.contains?(report.rindle_migration_path || "", "install_rindle")
         refute String.contains?(report.rindle_migration_path || "", "deps/rindle")
@@ -202,6 +201,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppPhase120FastContractTest do
            ]
   end
 
+  @tag :phase_120_upgrade_contract
   test "upgrade catalog policy rejects missing marker, foreign key, and named indexes" do
     report = valid_isolation_upgrade_catalog_report()
 
@@ -228,8 +228,28 @@ defmodule Rindle.InstallSmoke.GeneratedAppPhase120FastContractTest do
                    Enum.reject(report.media_variants_indexes, &(&1["name"] == index_name))
              })
     end
+
+    for index_name <- [
+          "media_variants_asset_id_name_index",
+          "media_variants_state_index",
+          "media_variants_output_kind_index"
+        ] do
+      refute GeneratedAppHelper.isolation_upgrade_catalog_preserved?(%{
+               report
+               | media_variants_indexes:
+                   Enum.map(report.media_variants_indexes, fn index ->
+                     if index["name"] == index_name,
+                       do: %{
+                         index
+                         | "definition" => "CREATE INDEX unrelated_index ON rindle.unrelated (id)"
+                       },
+                       else: index
+                   end)
+             })
+    end
   end
 
+  @tag :phase_120_upgrade_contract
   test "upgrade catalog policy rejects each public Oban catalog change" do
     report = valid_isolation_upgrade_catalog_report()
 
@@ -238,7 +258,14 @@ defmodule Rindle.InstallSmoke.GeneratedAppPhase120FastContractTest do
     for {field, replacement} <- [
           {:identity, %{"oid" => 999, "schema" => "public", "name" => "oban_jobs"}},
           {:columns, [%{"name" => "id", "type" => "integer"}]},
-          {:constraints, [%{"name" => "oban_jobs_pkey", "type" => "p", "definition" => "PRIMARY KEY (id)"}]},
+          {:constraints,
+           [
+             %{
+               "name" => "oban_jobs_queue_check",
+               "type" => "c",
+               "definition" => "CHECK (queue <> '')"
+             }
+           ]},
           {:indexes,
            [
              %{
@@ -246,7 +273,8 @@ defmodule Rindle.InstallSmoke.GeneratedAppPhase120FastContractTest do
                "name" => "oban_jobs_queue_index",
                "primary" => false,
                "unique" => false,
-               "definition" => "CREATE INDEX oban_jobs_queue_index ON public.oban_jobs USING btree (queue)"
+               "definition" =>
+                 "CREATE INDEX oban_jobs_queue_index ON public.oban_jobs USING btree (queue)"
              }
            ]}
         ] do
@@ -271,20 +299,24 @@ defmodule Rindle.InstallSmoke.GeneratedAppPhase120FastContractTest do
         "target_schema" => "rindle",
         "target_table" => "media_assets",
         "target_column" => "id",
-        "definition" => "FOREIGN KEY (asset_id) REFERENCES rindl<e>.media_assets(id) ON DELETE CASCADE"
+        "definition" =>
+          "FOREIGN KEY (asset_id) REFERENCES rindle.media_assets(id) ON DELETE CASCADE"
       },
       media_variants_indexes: [
         %{
           "name" => "media_variants_asset_id_name_index",
-          "definition" => "CREATE UNIQUE INDEX media_variants_asset_id_name_index ON rindl<e>.media_variants USING btree (asset_id, name)"
+          "definition" =>
+            "CREATE UNIQUE INDEX media_variants_asset_id_name_index ON rindle.media_variants USING btree (asset_id, name)"
         },
         %{
           "name" => "media_variants_state_index",
-          "definition" => "CREATE INDEX media_variants_state_index ON rindl<e>.media_variants USING btree (state)"
+          "definition" =>
+            "CREATE INDEX media_variants_state_index ON rindle.media_variants USING btree (state)"
         },
         %{
           "name" => "media_variants_output_kind_index",
-          "definition" => "CREATE INDEX media_variants_output_kind_index ON rindl<e>.media_variants USING btree (output_kind)"
+          "definition" =>
+            "CREATE INDEX media_variants_output_kind_index ON rindle.media_variants USING btree (output_kind)"
         }
       ],
       oban_jobs_before: valid_oban_jobs_snapshot(),
@@ -295,9 +327,29 @@ defmodule Rindle.InstallSmoke.GeneratedAppPhase120FastContractTest do
   defp valid_oban_jobs_snapshot do
     %{
       identity: %{"oid" => 42, "schema" => "public", "name" => "oban_jobs"},
-      columns: [%{"name" => "id", "type" => "bigint", "nullable" => false, "default" => nil, "identity" => "", "generated" => ""}],
-      constraints: [%{"name" => "oban_jobs_pkey", "type" => "p", "definition" => "PRIMARY KEY (id)"}],
-      indexes: [%{"schema" => "public", "name" => "oban_jobs_pkey", "primary" => true, "unique" => true, "definition" => "CREATE UNIQUE INDEX oban_jobs_pkey ON public.oban_jobs USING btree (id)"}]
+      columns: [
+        %{
+          "name" => "id",
+          "type" => "bigint",
+          "nullable" => false,
+          "default" => nil,
+          "identity" => "",
+          "generated" => ""
+        }
+      ],
+      constraints: [
+        %{"name" => "oban_jobs_pkey", "type" => "p", "definition" => "PRIMARY KEY (id)"}
+      ],
+      indexes: [
+        %{
+          "schema" => "public",
+          "name" => "oban_jobs_pkey",
+          "primary" => true,
+          "unique" => true,
+          "definition" =>
+            "CREATE UNIQUE INDEX oban_jobs_pkey ON public.oban_jobs USING btree (id)"
+        }
+      ]
     }
   end
 end
@@ -398,9 +450,33 @@ if GeneratedAppHelper.profile_enabled?(:image) do
       assert report.public_compile_prefix == "public"
       assert report.default_compile_prefix == "rindle"
       assert report.public_generated_app_root != report.generated_app_root
-      assert report.seeded_marker
-      assert report.foreign_key_preserved?
-      assert report.index_preserved?
+      assert report.marker_versions == [1], inspect(report)
+
+      assert report.media_variants_foreign_key == %{
+               "name" => "media_variants_asset_id_fkey",
+               "type" => "f",
+               "source_schema" => "rindle",
+               "source_table" => "media_variants",
+               "source_column" => "asset_id",
+               "target_schema" => "rindle",
+               "target_table" => "media_assets",
+               "target_column" => "id",
+               "definition" => report.media_variants_foreign_key["definition"]
+             },
+             inspect(report)
+
+      assert Enum.map(report.media_variants_indexes, & &1["name"]) == [
+               "media_variants_asset_id_name_index",
+               "media_variants_state_index",
+               "media_variants_output_kind_index"
+             ],
+             inspect(report)
+
+      assert Enum.all?(report.media_variants_indexes, &is_binary(&1["definition"])),
+             inspect(report)
+
+      assert report.oban_jobs_before == report.oban_jobs_after, inspect(report)
+      assert GeneratedAppHelper.isolation_upgrade_catalog_preserved?(report), inspect(report)
       assert report.doctor_ready?
       assert report.smoke_exit_code == 0
       assert report.lifecycle_proved?

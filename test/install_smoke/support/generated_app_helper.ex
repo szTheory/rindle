@@ -13,6 +13,11 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
   @rindle_migration_version "20260428170200"
   @directional_migration_version "20260428170300"
   @legacy_rindle_migration_version 20_260_428_110_000
+  @expected_media_variants_indexes [
+    "media_variants_asset_id_name_index",
+    "media_variants_state_index",
+    "media_variants_output_kind_index"
+  ]
 
   def default_install_contract do
     %{
@@ -69,9 +74,11 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       required_report_keys: [
         :seeded_asset_id,
         :seeded_variant_id,
-        :seeded_marker,
-        :foreign_key_preserved?,
-        :index_preserved?,
+        :marker_versions,
+        :media_variants_foreign_key,
+        :media_variants_indexes,
+        :oban_jobs_before,
+        :oban_jobs_after,
         :selected_schema_relations,
         :decoy_schema_relations,
         :public_host_relations,
@@ -80,6 +87,105 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       ]
     }
   end
+
+  def isolation_upgrade_catalog_preserved?(%{
+        marker_versions: [1],
+        media_variants_foreign_key: foreign_key,
+        media_variants_indexes: indexes,
+        oban_jobs_before: oban_jobs_before,
+        oban_jobs_after: oban_jobs_after
+      }) do
+    exact_media_variants_foreign_key?(foreign_key) and
+      exact_media_variants_indexes?(indexes) and
+      complete_oban_jobs_snapshot?(oban_jobs_before) and
+      oban_jobs_before == oban_jobs_after
+  end
+
+  def isolation_upgrade_catalog_preserved?(_report), do: false
+
+  defp exact_media_variants_foreign_key?(foreign_key) when is_map(foreign_key) do
+    Map.take(foreign_key, [
+      "name",
+      "type",
+      "source_schema",
+      "source_table",
+      "source_column",
+      "target_schema",
+      "target_table",
+      "target_column"
+    ]) == %{
+      "name" => "media_variants_asset_id_fkey",
+      "type" => "f",
+      "source_schema" => "rindle",
+      "source_table" => "media_variants",
+      "source_column" => "asset_id",
+      "target_schema" => "rindle",
+      "target_table" => "media_assets",
+      "target_column" => "id"
+    } and is_binary(foreign_key["definition"]) and
+      String.contains?(foreign_key["definition"], "FOREIGN KEY (asset_id)") and
+      String.contains?(foreign_key["definition"], "REFERENCES rindle.media_assets(id)")
+  end
+
+  defp exact_media_variants_foreign_key?(_foreign_key), do: false
+
+  defp exact_media_variants_indexes?(indexes) when is_list(indexes) do
+    Enum.map(indexes, & &1["name"]) == @expected_media_variants_indexes and
+      Enum.all?(indexes, &exact_media_variants_index?/1)
+  end
+
+  defp exact_media_variants_indexes?(_indexes), do: false
+
+  defp exact_media_variants_index?(%{
+         "name" => "media_variants_asset_id_name_index",
+         "definition" => definition
+       }) do
+    is_binary(definition) and String.contains?(definition, "CREATE UNIQUE INDEX") and
+      String.contains?(definition, "ON rindle.media_variants") and
+      String.contains?(definition, "(asset_id, name)")
+  end
+
+  defp exact_media_variants_index?(%{
+         "name" => "media_variants_state_index",
+         "definition" => definition
+       }) do
+    is_binary(definition) and String.contains?(definition, "CREATE INDEX") and
+      String.contains?(definition, "ON rindle.media_variants") and
+      String.contains?(definition, "(state)")
+  end
+
+  defp exact_media_variants_index?(%{
+         "name" => "media_variants_output_kind_index",
+         "definition" => definition
+       }) do
+    is_binary(definition) and String.contains?(definition, "CREATE INDEX") and
+      String.contains?(definition, "ON rindle.media_variants") and
+      String.contains?(definition, "(output_kind)")
+  end
+
+  defp exact_media_variants_index?(_index), do: false
+
+  defp complete_oban_jobs_snapshot?(%{
+         "identity" => %{"oid" => oid, "schema" => "public", "name" => "oban_jobs"},
+         "columns" => columns,
+         "constraints" => constraints,
+         "indexes" => indexes
+       }) do
+    is_integer(oid) and oid > 0 and is_list(columns) and columns != [] and
+      is_list(constraints) and constraints != [] and is_list(indexes) and indexes != []
+  end
+
+  defp complete_oban_jobs_snapshot?(%{
+         identity: %{"oid" => oid, "schema" => "public", "name" => "oban_jobs"},
+         columns: columns,
+         constraints: constraints,
+         indexes: indexes
+       }) do
+    is_integer(oid) and oid > 0 and is_list(columns) and columns != [] and
+      is_list(constraints) and constraints != [] and is_list(indexes) and indexes != []
+  end
+
+  defp complete_oban_jobs_snapshot?(_snapshot), do: false
 
   def profile_enabled?(profile_mode) when profile_mode in [:image, :video, :tus, :mux, :gcs] do
     selected_profiles()
@@ -183,7 +289,6 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       host_migration_ran?: migration_report["host_migration_ran"] == true,
       host_oban_migration_ran?: migration_report["host_oban_migration_ran"] == true,
       rindle_migration_ran?: migration_report["rindle_migration_ran"] == true,
-      rindle_created_oban_jobs?: migration_report["rindle_created_oban_jobs"] == true,
       migration_resolution: migration_report["resolver"] |> to_existing_atom_safe(),
       rindle_migration_path: migration_report["rindle_migration_path"],
       selected_schema_relations: migration_report["selected_schema_relations"] || %{},
@@ -192,9 +297,11 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       persistence_lifecycle: persistence_lifecycle,
       seeded_asset_id: seed["asset_id"],
       seeded_variant_id: seed["variant_id"],
-      seeded_marker: migration_report["seeded_marker"] == true,
-      foreign_key_preserved?: migration_report["foreign_key_preserved"] == true,
-      index_preserved?: migration_report["index_preserved"] == true,
+      marker_versions: migration_report["marker_versions"] || [],
+      media_variants_foreign_key: migration_report["media_variants_foreign_key"],
+      media_variants_indexes: migration_report["media_variants_indexes"] || [],
+      oban_jobs_before: migration_report["oban_jobs_before"] || %{},
+      oban_jobs_after: migration_report["oban_jobs_after"] || %{},
       doctor_ready?:
         String.contains?(
           doctor_result.output,
@@ -1299,6 +1406,61 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
         end)
       end
 
+      oban_jobs_snapshot = fn repo ->
+        {:ok, %{rows: [[oid, schema, relation]]}} =
+          repo.query(
+            "select relation.oid, namespace.nspname, relation.relname from pg_class relation join pg_namespace namespace on namespace.oid = relation.relnamespace where namespace.nspname = $1 and relation.relname = $2",
+            ["public", "oban_jobs"]
+          )
+
+        columns =
+          repo.query!(
+            "select attribute.attname, pg_catalog.format_type(attribute.atttypid, attribute.atttypmod), not attribute.attnotnull, pg_get_expr(default_value.adbin, default_value.adrelid), attribute.attidentity, attribute.attgenerated from pg_attribute attribute left join pg_attrdef default_value on default_value.adrelid = attribute.attrelid and default_value.adnum = attribute.attnum where attribute.attrelid = $1::regclass and attribute.attnum > 0 and not attribute.attisdropped order by attribute.attnum",
+            ["public.oban_jobs"]
+          ).rows
+          |> Enum.map(fn [name, type, nullable, default, identity, generated] ->
+            %{
+              name: name,
+              type: type,
+              nullable: nullable,
+              default: default,
+              identity: identity,
+              generated: generated
+            }
+          end)
+
+        constraints =
+          repo.query!(
+            "select constraint.conname, constraint.contype::text, pg_get_constraintdef(constraint.oid) from pg_constraint constraint where constraint.conrelid = $1::regclass order by constraint.conname",
+            ["public.oban_jobs"]
+          ).rows
+          |> Enum.map(fn [name, type, definition] ->
+            %{name: name, type: type, definition: definition}
+          end)
+
+        indexes =
+          repo.query!(
+            "select namespace.nspname, index_relation.relname, index_metadata.indisprimary, index_metadata.indisunique, pg_get_indexdef(index_relation.oid) from pg_index index_metadata join pg_class index_relation on index_relation.oid = index_metadata.indexrelid join pg_class relation on relation.oid = index_metadata.indrelid join pg_namespace namespace on namespace.oid = index_relation.relnamespace where relation.oid = $1::regclass order by namespace.nspname, index_relation.relname",
+            ["public.oban_jobs"]
+          ).rows
+          |> Enum.map(fn [schema, name, primary, unique, definition] ->
+            %{
+              schema: schema,
+              name: name,
+              primary: primary,
+              unique: unique,
+              definition: definition
+            }
+          end)
+
+        %{
+          identity: %{oid: oid, schema: schema, name: relation},
+          columns: columns,
+          constraints: constraints,
+          indexes: indexes
+        }
+      end
+
       rindle_relations = #{inspect(Rindle.Migration.V1.owned_relations())}
 
       {:ok, migration_report, _apps} =
@@ -1308,26 +1470,63 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
 
           Ecto.Migrator.run(repo, host_path, :up, to: #{String.to_integer(@host_oban_migration_version)})
           host_oban_migration_ran? = regclass_exists?.(repo, "public", "oban_jobs")
+          oban_jobs_before = oban_jobs_snapshot.(repo)
 
           Ecto.Migrator.run(repo, host_path, :up, to: #{String.to_integer(migration_version)})
           selected_schema_relations = relation_catalog.(repo, "#{selected_prefix}", rindle_relations)
           decoy_schema_relations = relation_catalog.(repo, "#{if(selected_prefix == "public", do: "rindle", else: "public")}", rindle_relations)
           rindle_migration_ran? = Enum.all?(selected_schema_relations, fn {_relation, exists?} -> exists? end)
-          oban_jobs_after_rindle? = regclass_exists?.(repo, "public", "oban_jobs")
+          oban_jobs_after = oban_jobs_snapshot.(repo)
           public_host_relations = relation_catalog.(repo, "public", ["oban_jobs", "schema_migrations"])
 
-          seeded_marker? = regclass_exists?.(repo, "#{selected_prefix}", "rindle_migration_versions")
+          marker_versions =
+            repo.query!("select version from #{selected_prefix}.rindle_migration_versions order by version").rows
+            |> Enum.map(fn [version] -> version end)
 
-          foreign_key_preserved? =
-            case repo.query("select count(*) from #{selected_prefix}.media_variants v join #{selected_prefix}.media_assets a on a.id = v.asset_id where a.metadata ->> 'isolation_upgrade_seed' = 'true'") do
-              {:ok, %{rows: [[count]]}} -> count > 0
-              _other -> false
+          media_variants_foreign_key =
+            case repo.query(
+                   "select constraint.conname, constraint.contype::text, source_namespace.nspname, source_relation.relname, source_column.attname, target_namespace.nspname, target_relation.relname, target_column.attname, pg_get_constraintdef(constraint.oid) from pg_constraint constraint join pg_class source_relation on source_relation.oid = constraint.conrelid join pg_namespace source_namespace on source_namespace.oid = source_relation.relnamespace join pg_class target_relation on target_relation.oid = constraint.confrelid join pg_namespace target_namespace on target_namespace.oid = target_relation.relnamespace join unnest(constraint.conkey) with ordinality as source_key(attnum, position) on true join pg_attribute source_column on source_column.attrelid = source_relation.oid and source_column.attnum = source_key.attnum join unnest(constraint.confkey) with ordinality as target_key(attnum, position) on target_key.position = source_key.position join pg_attribute target_column on target_column.attrelid = target_relation.oid and target_column.attnum = target_key.attnum where source_namespace.nspname = $1 and source_relation.relname = $2 and constraint.conname = $3 order by source_key.position",
+                   ["#{selected_prefix}", "media_variants", "media_variants_asset_id_fkey"]
+                 ) do
+              {:ok, %{rows: [[name, type, source_schema, source_table, source_column, target_schema, target_table, target_column, definition]]}} ->
+                %{
+                  name: name,
+                  type: type,
+                  source_schema: source_schema,
+                  source_table: source_table,
+                  source_column: source_column,
+                  target_schema: target_schema,
+                  target_table: target_table,
+                  target_column: target_column,
+                  definition: definition
+                }
+
+              _other ->
+                nil
             end
 
-          index_preserved? =
-            case repo.query("select count(*) from pg_indexes where schemaname = $1 and tablename = 'media_variants'", ["#{selected_prefix}"]) do
-              {:ok, %{rows: [[count]]}} -> count > 0
-              _other -> false
+          expected_media_variants_indexes = #{inspect(@expected_media_variants_indexes)}
+
+          media_variants_indexes =
+            case repo.query(
+                   "select namespace.nspname, index_relation.relname, pg_get_indexdef(index_relation.oid) from pg_index index_metadata join pg_class relation on relation.oid = index_metadata.indrelid join pg_namespace relation_namespace on relation_namespace.oid = relation.relnamespace join pg_class index_relation on index_relation.oid = index_metadata.indexrelid join pg_namespace namespace on namespace.oid = index_relation.relnamespace where relation_namespace.nspname = $1 and relation.relname = $2 and index_relation.relname = any($3::text[]) order by index_relation.relname",
+                   ["#{selected_prefix}", "media_variants", expected_media_variants_indexes]
+                 ) do
+              {:ok, %{rows: rows}} ->
+                indexes_by_name =
+                  Map.new(rows, fn [schema, name, definition] ->
+                    {name, %{schema: schema, name: name, definition: definition}}
+                  end)
+
+                Enum.flat_map(expected_media_variants_indexes, fn name ->
+                  case Map.fetch(indexes_by_name, name) do
+                    {:ok, index} -> [index]
+                    :error -> []
+                  end
+                end)
+
+              _other ->
+                []
             end
 
           %{
@@ -1335,14 +1534,15 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
             host_migration_ran: host_migration_ran?,
             host_oban_migration_ran: host_oban_migration_ran?,
             rindle_migration_ran: rindle_migration_ran?,
-            rindle_created_oban_jobs: not host_oban_migration_ran? and oban_jobs_after_rindle?,
             rindle_migration_path: rindle_migration_file,
             selected_schema_relations: selected_schema_relations,
             decoy_schema_relations: decoy_schema_relations,
             public_host_relations: public_host_relations,
-            seeded_marker: seeded_marker?,
-            foreign_key_preserved: foreign_key_preserved?,
-            index_preserved: index_preserved?,
+            marker_versions: marker_versions,
+            media_variants_foreign_key: media_variants_foreign_key,
+            media_variants_indexes: media_variants_indexes,
+            oban_jobs_before: oban_jobs_before,
+            oban_jobs_after: oban_jobs_after,
             host_migration_paths: %{
               host_root: host_path,
               oban: Path.join(host_path, "#{@host_oban_migration_version}_install_host_owned_oban.exs"),
