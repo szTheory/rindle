@@ -150,6 +150,53 @@ defmodule Rindle.InstallSmoke.GeneratedAppPhase120FastContractTest do
              "asset_id",
              "read_back_asset_id",
              "asset_state"
+    ]
+  end
+
+  @tag :phase_120_compat_contract
+  test "public compatibility uses an isolated compiled consumer and fixed public migration" do
+    contract = GeneratedAppHelper.public_compatibility_contract()
+
+    assert contract.scenario == :public_compatibility
+    assert contract.app_name != "rindle_smoke_app"
+    assert contract.database_identity != "rindle_smoke_app"
+    assert contract.report_identity != "install_smoke_migration_report.json"
+    assert contract.compile_prefix == "public"
+    assert contract.migration_source =~ ~s|Rindle.Migration.up(version: 1, prefix: "public")|
+    refute contract.migration_source =~ "System.get_env"
+
+    assert contract.required_report_keys == [
+             :selected_schema_relations,
+             :decoy_schema_relations,
+             :public_host_relations,
+             :persistence_lifecycle
+           ]
+  end
+
+  @tag :phase_120_upgrade_contract
+  test "populated isolation upgrade uses public and default builds plus the directional host migration" do
+    contract = GeneratedAppHelper.isolation_upgrade_contract()
+
+    assert contract.scenario == :isolation_upgrade
+    assert contract.public_app_name != contract.default_app_name
+    assert contract.public_root_identity != contract.default_root_identity
+    assert contract.public_compile_prefix == "public"
+    assert contract.default_compile_prefix == "rindle"
+    assert contract.directional_migration_source =~ "SET LOCAL lock_timeout = '5s'"
+    assert contract.directional_migration_source =~ "move_public_to_rindle(version: 1)"
+    refute contract.directional_migration_source =~ "move_rindle_to_public"
+
+    assert contract.required_report_keys == [
+             :seeded_asset_id,
+             :seeded_variant_id,
+             :seeded_marker,
+             :foreign_key_preserved?,
+             :index_preserved?,
+             :selected_schema_relations,
+             :decoy_schema_relations,
+             :public_host_relations,
+             :doctor_ready?,
+             :persistence_lifecycle
            ]
   end
 end
