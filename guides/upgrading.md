@@ -76,7 +76,11 @@ mix ecto.migrate
 Prepare a maintenance window: back up the database, then stop or drain Rindle HTTP
 writers and Oban workers that invoke Rindle. Ecto's migrator lock
 serializes migrators; it does not quiesce application traffic. PostgreSQL
-`ALTER TABLE` can require an `ACCESS EXCLUSIVE` lock.
+`ALTER TABLE` can require an `ACCESS EXCLUSIVE` lock. Run the host migration as
+the database owner, or as a role that owns the seven Rindle relations and has
+the database CREATE privilege needed to provision `rindle`. A lock-timeout
+refusal is bounded: keep traffic stopped, investigate the competing lock, and
+run the host migration again only in the maintenance window.
 
 Create a host-owned migration. Do not create `rindle` yourself. The forward
 helper first classifies the complete public-only Rindle state and required
@@ -102,10 +106,25 @@ defmodule MyApp.Repo.Migrations.MoveRindleToSchema do
 end
 ```
 
-Run the host migration, deploy the build compiled for `rindle`, then verify all
-seven Rindle relations and normal reads and writes. Rindle does not touch
-`oban_jobs` or `schema_migrations`; keep Oban configuration and the host
-migration ledger unchanged.
+Run the host migration while writers and workers remain drained:
+
+```bash
+mix ecto.migrate
+```
+
+Then deploy the build compiled for `rindle` that matches this migration.
+Verify the deployment in this order:
+
+```bash
+mix rindle.doctor
+mix rindle.runtime_status
+```
+
+Doctor confirms the Rindle and host-owned Oban setup; runtime status confirms
+that the deployed application can report its operational state. Verify all
+seven Rindle relations and normal reads and writes after those commands.
+Rindle does not touch `oban_jobs` or `schema_migrations`; keep Oban
+configuration and the host migration ledger unchanged.
 
 Use the guarded reverse only while the application remains quiesced and state is
 exactly reversible: there have been no post-move writes or later migrations, and
