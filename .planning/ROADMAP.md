@@ -118,7 +118,7 @@ Plans:
 | 117. Prefix Routing Architecture | 5/5 | Complete    | 2026-08-08 |
 | 118. Isolated Migration & Safe Upgrade | 6/6 | Complete    | 2026-08-09 |
 | 119. Ownership Boundaries & Diagnostics | 5/5 | Complete    | 2026-08-09 |
-| 120. Adoption Proof & Release Truth | 0/TBD | Not started | - |
+| 120. Adoption Proof & Release Truth | 1/6 | In Progress | - |
 
 ## Phases (shipped — collapsed history)
 

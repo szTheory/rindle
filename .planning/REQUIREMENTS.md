@@ -43,10 +43,10 @@
 
 ### Adoption Proof & Release Truth
 
-- [ ] **PROOF-01**: Automated isolation proof verifies fresh default installs, explicit public
+- [x] **PROOF-01**: Automated isolation proof verifies fresh default installs, explicit public
   compatibility, a populated public-to-rindle upgrade, runtime routing, and the public Oban boundary.
 
-- [ ] **PROOF-02**: Packed-artifact generated-app smoke and the Cohort adoption demo provision and run
+- [x] **PROOF-02**: Packed-artifact generated-app smoke and the Cohort adoption demo provision and run
   end-to-end with Rindle in `rindle` and Oban in `public`.
 
 - [ ] **DOCS-01**: README, getting-started, upgrade, migration API docs, docs-parity tests, and the
@@ -83,8 +83,8 @@
 | BOUNDARY-01 | Phase 119 | Complete |
 | BOUNDARY-02 | Phase 119 | Complete |
 | OPS-01 | Phase 119 | Complete |
-| PROOF-01 | Phase 120 | Pending |
-| PROOF-02 | Phase 120 | Pending |
+| PROOF-01 | Phase 120 | Complete |
+| PROOF-02 | Phase 120 | Complete |
 | DOCS-01 | Phase 120 | Pending |
 
 **Coverage:**
