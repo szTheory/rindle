@@ -2,6 +2,32 @@
 
 0.1.0-0.1.3 were release-pipeline shakedown iterations; treat 0.1.4 as the first recommended pin.
 
+## Unreleased / 0.4.0
+
+### Breaking schema-isolation default
+
+Rindle 0.4.0 stores Rindle-owned relations in the `rindle` schema by default.
+The only compatibility pairing is an explicit `prefix: "public"` migration with a
+release compiled for `public`; arbitrary schema routing is not supported. Fresh
+installs use normal host migrations: the host owns `Oban.Migration`,
+`public.oban_jobs`, and its `public.schema_migrations` ledger, while the separate
+Rindle migration provisions only Rindle-owned relations.
+
+Existing populated public installs require a host-owned maintenance window: take a
+backup, stop or drain Rindle writers and workers, then run the pinned host
+migration with a lock timeout and the database permissions required to create the
+destination schema and move Rindle relations. PostgreSQL locking can require
+downtime; the migrator lock serializes migrations but does not quiesce traffic.
+Deploy the matching `rindle`-compiled release, then verify with doctor and runtime
+status. The guarded reverse is only for a quiesced, exactly reversible state with
+no post-move writes or later migrations; otherwise restore the backup. Rindle does
+not create, move, or own public Oban tables or the host migration ledger.
+
+Follow the full operator procedure in [Upgrading](guides/upgrading.md). Release
+Please must fold this staged section into its generated `## [0.4.0]` notes and
+remove this marker before the release PR merges; it alone owns the final version,
+tag, and generated changelog heading.
+
 ## [0.3.2](https://github.com/szTheory/rindle/compare/rindle-v0.3.1...rindle-v0.3.2) (2026-06-30)
 
 
