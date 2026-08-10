@@ -109,7 +109,18 @@ Plans:
   3. README, getting-started, migration API docs, upgrading guide, docs-parity tests, and 0.4.0 release notes agree on the breaking default, escape hatch, order of operations, permissions, downtime, and Oban ownership.
   4. Release verification demonstrates that packaged artifacts—not only the repository checkout—honor the documented isolation contract.
 
-**Plans**: TBD
+**Plans**: 9 plans
+
+Plans:
+- [x] 120-01-PLAN.md — packed default install, schema ownership, boot, and persistence proof
+- [x] 120-02-PLAN.md — explicit-public compatibility and populated public-to-rindle upgrade proof
+- [x] 120-03-PLAN.md — Cohort host-owned migration and cold-start proof
+- [x] 120-04-PLAN.md — fresh-install documentation and migration API parity
+- [x] 120-05-PLAN.md — populated-upgrade and troubleshooting operational truth
+- [x] 120-06-PLAN.md — 0.4.0 release notes and exact-SHA signoff contract
+- [ ] 120-07-PLAN.md — exact marker, FK, index, and Oban catalog proof
+- [ ] 120-08-PLAN.md — explicit-public down-prefix and both-direction docs parity
+- [ ] 120-09-PLAN.md — packed public/upgrade, Cohort, and immutable exact-SHA evidence
 
 ## Progress
 
