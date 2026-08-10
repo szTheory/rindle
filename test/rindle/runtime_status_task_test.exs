@@ -85,6 +85,53 @@ defmodule Rindle.RuntimeStatusTaskTest do
     assert message =~ "Rindle no longer manages `oban_jobs`"
   end
 
+  test "formats bounded snapshot refusals safely for text and JSON" do
+    for {reason, classification, component} <- [
+          {{:rindle_prefix_mismatch,
+            %{
+              component: :rindle,
+              expected_prefix: "rindle",
+              observed_prefix: "public",
+              owner: :rindle
+            }}, "rindle_prefix_mismatch", "rindle"},
+          {{:oban_binding_drift,
+            %{
+              component: :oban,
+              expected_prefix: "host_oban",
+              observed_prefix: "public",
+              owner: :host
+            }}, "oban_binding_drift", "oban"},
+          {{:inspection_failed, %{component: :rindle, owner: :rindle}}, "inspection_failed",
+           "rindle"}
+        ] do
+      text = RuntimeStatusTask.format_error(reason)
+      json = RuntimeStatusTask.format_json_error(reason) |> Jason.encode!()
+
+      assert text =~ "no report queries ran"
+      assert text =~ "mix rindle.doctor"
+      assert json =~ ~s("status":"error")
+      assert json =~ ~s("classification":"#{classification}")
+      assert json =~ ~s("component":"#{component}")
+      refute text =~ "postgres://"
+      refute json =~ "postgres://"
+    end
+  end
+
+  test "uses constant safe copy for unknown runtime errors" do
+    sentinel = {:raw_adapter_failure, "postgres://user:credential@host SQL sentinel"}
+
+    text = RuntimeStatusTask.format_error(sentinel)
+    json = RuntimeStatusTask.format_json_error(sentinel) |> Jason.encode!()
+
+    assert text =~ "mix rindle.doctor"
+    assert text =~ "no report queries ran"
+    assert json =~ ~s("classification":"unknown")
+    refute text =~ "credential"
+    refute json =~ "credential"
+    refute text =~ "SQL sentinel"
+    refute json =~ "SQL sentinel"
+  end
+
   describe "--provider-stuck (MUX-14)" do
     test "the --provider-stuck flag is parsed and surfaces in filters" do
       RuntimeStatusTask.run(["--provider-stuck", "--limit", "1"])
