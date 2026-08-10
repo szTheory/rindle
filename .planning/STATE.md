@@ -5,8 +5,8 @@ milestone_name: Postgres Schema Isolation
 current_phase: 120
 current_phase_name: Adoption Proof & Release Truth
 status: planning
-stopped_at: Phase 119 context gathered (assumptions mode)
-last_updated: "2026-08-10T02:49:28.459Z"
+stopped_at: Phase 120 context gathered
+last_updated: "2026-08-10T02:55:13.039Z"
 last_activity: 2026-08-09
 last_activity_desc: Phase 119 complete, transitioned to Phase 120
 progress:
@@ -189,9 +189,9 @@ _(none open for v1.22 at roadmap creation)_
 
 ## Session Continuity
 
-Last session: 2026-08-10T01:01:39.227Z
-Stopped at: Phase 119 context gathered (assumptions mode)
-Resume file: .planning/phases/119-ownership-boundaries-diagnostics/119-CONTEXT.md
+Last session: 2026-08-10T02:55:13.028Z
+Stopped at: Phase 120 context gathered
+Resume file: .planning/phases/120-adoption-proof-release-truth/120-CONTEXT.md
 
 ## Performance Metrics
 
