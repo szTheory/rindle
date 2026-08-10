@@ -240,6 +240,15 @@ defmodule Rindle.InstallSmoke.GeneratedAppPhase120FastContractTest do
   end
 
   @tag :phase_120_upgrade_contract
+  test "generated workspaces use OS-global temporary directory allocation" do
+    helper_source = File.read!("test/install_smoke/support/generated_app_helper.ex")
+
+    refute helper_source =~ ~S|rindle-install-smoke-#{System.unique_integer([:positive])}|
+    assert helper_source =~ "System.cmd(\"mktemp\", [\"-d\", template]"
+    assert helper_source =~ "rindle-install-smoke.XXXXXX"
+  end
+
+  @tag :phase_120_upgrade_contract
   test "upgrade catalog policy rejects missing marker, foreign key, and named indexes" do
     report = valid_isolation_upgrade_catalog_report()
 

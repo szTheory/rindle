@@ -74,6 +74,11 @@ The packed populated-upgrade harness now reports exact Rindle catalog facts and 
 - This preserves existing callers while ensuring an expensive package/Phoenix/dependency/compile command cannot silently hold the parent test process indefinitely.
 - Focused contracts passed (6 tests, 0 failures). A direct packed public gate invocation was started, but its profile-gated module had already been compiled by the preceding fast run and selected no tests; it was not treated as integration evidence.
 
+### Follow-up correction: globally unique generated workspaces
+
+- Replaced VM-local `System.unique_integer/1` workspace names with `mktemp -d` allocation beneath the system temporary directory, preventing concurrent BEAM processes from sharing and deleting one another's generated-app root.
+- The focused source policy rejects the process-local workspace pattern and requires the OS-global temporary-directory allocation. Formatting and the focused suite passed (7 tests, 0 failures). The packed retry was deferred because the currently compiled profile gate would select no tests without a clean rebuild.
+
 ## Deviations from Plan
 
 ### Auto-fixed Issues

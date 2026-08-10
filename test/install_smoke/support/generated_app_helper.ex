@@ -317,10 +317,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     network_version = System.get_env("RINDLE_INSTALL_SMOKE_NETWORK_VERSION")
     install_mode = install_mode(network_version)
 
-    workspace_root =
-      Path.join(System.tmp_dir!(), "rindle-install-smoke-#{System.unique_integer([:positive])}")
-
-    File.mkdir_p!(workspace_root)
+    workspace_root = create_workspace_root!()
 
     app_name = Keyword.get(options, :app_name, install_smoke_app_name(profile_mode))
     app_module = Macro.camelize(app_name)
@@ -536,10 +533,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     network_version = System.get_env("RINDLE_INSTALL_SMOKE_NETWORK_VERSION")
     install_mode = install_mode(network_version)
 
-    workspace_root =
-      Path.join(System.tmp_dir!(), "rindle-install-smoke-#{System.unique_integer([:positive])}")
-
-    File.mkdir_p!(workspace_root)
+    workspace_root = create_workspace_root!()
 
     app_name = "rindle_smoke_app"
     app_module = Macro.camelize(app_name)
@@ -688,6 +682,12 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
   end
 
   def cleanup(_report), do: :ok
+
+  defp create_workspace_root! do
+    template = Path.join(System.tmp_dir!(), "rindle-install-smoke.XXXXXX")
+    {path, 0} = System.cmd("mktemp", ["-d", template], stderr_to_stdout: true)
+    String.trim(path)
+  end
 
   defp ensure_package!(workspace_root, package_root) do
     if File.dir?(package_root) do
