@@ -18,7 +18,7 @@ key-files:
     - .planning/phases/120-adoption-proof-release-truth/120-09-SUMMARY.md
   modified: []
 key-decisions:
-  - "The reserved-alias fix requires a new immutable candidate; that clean candidate clears the prior catalog-query blockers but the packed explicit-public smoke process exits 2, so no partial local output is release authority."
+  - "The MinIO-backed Task 1 chain is never run without a reachable MinIO endpoint; the latest candidate is blocked at its read-only precondition check rather than producing a false smoke receipt."
 requirements-completed: []
 coverage:
   - id: D1
@@ -29,7 +29,7 @@ coverage:
         ref: "Task 1 exact chained command"
         status: fail
     human_judgment: true
-    rationale: "The latest docs/release parity gate passed, PostgreSQL had no lingering rindle_test sessions, and packed explicit-public reached its smoke assertion, but that process exited 2; later chained gates were not executed."
+    rationale: "The latest candidate's PostgreSQL state is clean, but MinIO is unreachable at the required local endpoint and no MinIO container is running; the exact chain was not started."
   - id: D2
     description: "Immutable exact-SHA CI and Release workflow evidence."
     requirement: PROOF-02
@@ -40,7 +40,7 @@ coverage:
     human_judgment: true
     rationale: "Task 1 is blocked and release authorization requires GitHub-hosted results on the identical candidate SHA."
 metrics:
-  duration: 25m
+  duration: 27m
   completed: 2026-08-10
   tasks: 0
   files: 1
@@ -49,15 +49,14 @@ status: blocked
 
 # Phase 120 Plan 09: Blocked Local Release-Proof Receipt
 
-The current exact candidate checkout is clean and has its declared dependencies, but the required Task 1 chain still fails in the packed explicit-public stage. No local release proof or release authorization has been established.
+The current candidate is blocked before Task 1 can start because its required local MinIO endpoint is unreachable. No local release proof or release authorization has been established.
 
 ## Candidate and Checkout Identity
 
-- **Current candidate SHA:** `33146ad16e5b036477d78f39dcbeee0e8408e1e6` (40 characters)
-- **Current candidate checkout:** detached clean worktree at `/private/tmp/rindle-120-09-clean-33146ad`
-- **Candidate worktree status:** clean (`git status --porcelain=v1` produced no output)
+- **Current candidate SHA:** `7a7efea4ed42ce5139a6a0d873bdc22a434b6cfe` (40 characters)
+- **Candidate checkout:** not created: the MinIO precondition failed before the fresh detached worktree step.
 - **Shared checkout:** intentionally left dirty; no product source was changed by this plan.
-- **Superseded candidates:** `2a32a0ae34a3866c4a95b1252134d59bc6210f87` predates the OID binding fix; `92201beea7969a80aa7d335646c408cfc424a592` predates the reserved-alias fix. Neither is eligible for external release evidence.
+- **Superseded candidates:** `2a32a0ae34a3866c4a95b1252134d59bc6210f87` predates the OID binding fix; `92201beea7969a80aa7d335646c408cfc424a592` predates the reserved-alias fix; `33146ad16e5b036477d78f39dcbeee0e8408e1e6` precedes the latest candidate. None is eligible for external release evidence.
 
 ## Preconditions
 
@@ -65,6 +64,7 @@ The current exact candidate checkout is clean and has its declared dependencies,
 - `PGUSER=postgres PGPASSWORD=postgres PGHOST=localhost PGPORT=5432 pg_isready -d rindle_test` exited `0`: `localhost:5432 - accepting connections`.
 - `docker ps` exited `0`; Docker was reachable. No running MinIO container was listed, but both the generated-app and Cohort harnesses own their required service setup.
 - Before the current-candidate run, `rindle_test` reported `0` lingering non-self PostgreSQL sessions.
+- For current candidate `7a7efea…`, the same session check again returned `0`, but `curl -fsS http://localhost:9000/minio/health/live` failed with `curl: (7) Failed to connect to localhost port 9000`; `docker ps -a` showed no MinIO container.
 
 ## Task 1 Local Receipt — BLOCKED
 
@@ -163,11 +163,22 @@ Raw Stage 2 diagnostic:
 
 The failed command did not emit a more detailed smoke-process diagnostic before its harness cleanup stalled. The isolated verification session was interrupted and exited `130`; it is explicitly not recorded as success.
 
+### Latest Candidate Precondition Block — MinIO Unreachable
+
+Candidate `7a7efea4ed42ce5139a6a0d873bdc22a434b6cfe` was not allowed to begin the Task 1 chain. The required read-only endpoint check failed before a fresh worktree was created:
+
+```text
+curl: (7) Failed to connect to localhost port 9000 after 0 ms: Couldn't connect to server
+000
+```
+
+PostgreSQL had zero lingering `rindle_test` sessions, but `docker ps -a` contained no MinIO container. This is an unmet prerequisite, not a test result; all four chained stages remain unrun for this candidate.
+
 ## Required External Evidence (Not Inspected)
 
 Per the plan, GitHub evidence is intentionally not inspected until Task 1 has clean passing local receipts. When the dependency prerequisite has been restored and Task 1 passes, record immutable URLs, run IDs, conclusions, and job/step results for this exact SHA only:
 
-`33146ad16e5b036477d78f39dcbeee0e8408e1e6`
+`7a7efea4ed42ce5139a6a0d873bdc22a434b6cfe`
 
 Required evidence:
 
@@ -185,11 +196,12 @@ None — the plan required a fail-closed record when an environment prerequisite
 
 - The superseded candidate initially lacked declared Mix dependencies, then hit PostgreSQL `53300` and the OID parameter encoding error. It is retained only as historical diagnostic evidence.
 - The superseded `92201be…` candidate clears the prior connection-capacity and OID failures but its packed explicit-public generated migration used an unquoted `pg_constraint constraint` alias, which PostgreSQL rejected with `42601`.
-- The current candidate clears those blockers but its packed explicit-public smoke process exits `2`. Product source was not changed because this executor owns receipts only.
+- The superseded `33146ad…` candidate clears those blockers but its packed explicit-public smoke process exits `2`.
+- The current candidate cannot start because MinIO is not reachable at localhost:9000 and no MinIO container is present. Product source was not changed because this executor owns receipts only.
 
 ## Next Phase Readiness
 
-Blocked. Diagnose and resolve the current candidate's packed explicit-public smoke exit `2`, then rerun the exact chained Task 1 command. Only after all four stages pass may GitHub Actions evidence for `33146ad16e5b036477d78f39dcbeee0e8408e1e6` be inspected.
+Blocked. Restore the supported local MinIO service and its reachable `localhost:9000` endpoint, then create a fresh clean candidate worktree and rerun the exact chained Task 1 command. Only after all four stages pass may GitHub Actions evidence for `7a7efea4ed42ce5139a6a0d873bdc22a434b6cfe` be inspected.
 
 ## Self-Check: PASSED
 
