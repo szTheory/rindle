@@ -18,7 +18,7 @@ key-files:
     - .planning/phases/120-adoption-proof-release-truth/120-09-SUMMARY.md
   modified: []
 key-decisions:
-  - "The workspace-isolation fix requires a new immutable candidate; its service preconditions pass, but Mix fails before the docs gate can start because a shared temporary synchronization lock disappears."
+  - "An exact candidate SHA must resolve locally before any isolated TMPDIR run; the supplied next-candidate SHA is not a commit in this checkout, so it cannot be silently replaced."
 requirements-completed: []
 coverage:
   - id: D1
@@ -29,7 +29,7 @@ coverage:
         ref: "Task 1 exact chained command"
         status: fail
     human_judgment: true
-    rationale: "The latest candidate's service preconditions pass, but Stage 1 exits 1 before tests begin because Mix cannot open its shared temporary lock file; later chained stages were not executed."
+    rationale: "The requested next candidate does not resolve as a commit, so the TMPDIR-isolated chain was not started."
   - id: D2
     description: "Immutable exact-SHA CI and Release workflow evidence."
     requirement: PROOF-02
@@ -40,7 +40,7 @@ coverage:
     human_judgment: true
     rationale: "Task 1 is blocked and release authorization requires GitHub-hosted results on the identical candidate SHA."
 metrics:
-  duration: 42m
+  duration: 43m
   completed: 2026-08-10
   tasks: 0
   files: 1
@@ -49,12 +49,12 @@ status: blocked
 
 # Phase 120 Plan 09: Blocked Local Release-Proof Receipt
 
-The current candidate cannot begin the docs gate because Mix loses a shared temporary synchronization lock while compiling dependencies. No local release proof or release authorization has been established.
+The requested next candidate does not resolve as a commit in this checkout, so the TMPDIR-isolated Task 1 run cannot start. No local release proof or release authorization has been established.
 
 ## Candidate and Checkout Identity
 
-- **Current candidate SHA:** `21a6e7db10db6b7514f1b2aea34d02f6c89ec74d` (40 characters)
-- **Candidate checkout:** detached clean worktree at `/private/tmp/rindle-120-09-clean-21a6e7d`
+- **Last verified candidate SHA:** `21a6e7db10db6b7514f1b2aea34d02f6c89ec74d` (40 characters)
+- **Last verified candidate checkout:** detached clean worktree at `/private/tmp/rindle-120-09-clean-21a6e7d`
 - **Candidate worktree status:** clean (`git status --porcelain=v1` produced no output)
 - **Shared checkout:** intentionally left dirty; no product source was changed by this plan.
 - **Superseded candidates:** `2a32a0ae34a3866c4a95b1252134d59bc6210f87` predates the OID binding fix; `92201beea7969a80aa7d335646c408cfc424a592` predates the reserved-alias fix; `33146ad16e5b036477d78f39dcbeee0e8408e1e6` predates supported MinIO availability; `7a7efea4ed42ce5139a6a0d873bdc22a434b6cfe` is the pre-MinIO receipt; `c820a2bbfa35794d3e065e859b8191274118bfd3` predates the generated doctor-proof fix; `cc66128c1bb8679d270348ddd71cf263ddcdd9cd` predates the workspace-isolation fix. None is eligible for external release evidence.
@@ -225,11 +225,21 @@ Raw Stage 1 diagnostic:
 TASK_1_CHAIN_EXIT=1
 ```
 
+### Requested TMPDIR-Isolated Candidate Identity Block
+
+The supplied next candidate `8f5542580463511af1f83346d03a9a322c6093bb` failed the mandatory identity check before a worktree or dedicated TMPDIR was created:
+
+```text
+fatal: Not a valid object name 8f5542580463511af1f83346d03a9a322c6093bb^{commit}
+```
+
+The checkout's observed HEAD was `8f5542593e3f5c116d71e3d80f4adde5c4683e16`, which differs from the supplied SHA. It was not substituted as a release candidate. The MinIO and PostgreSQL checks were therefore not used as Task 1 receipts.
+
 ## Required External Evidence (Not Inspected)
 
 Per the plan, GitHub evidence is intentionally not inspected until Task 1 has clean passing local receipts. When the dependency prerequisite has been restored and Task 1 passes, record immutable URLs, run IDs, conclusions, and job/step results for this exact SHA only:
 
-`21a6e7db10db6b7514f1b2aea34d02f6c89ec74d`
+No resolvable next candidate is available. The last verified candidate was `21a6e7db10db6b7514f1b2aea34d02f6c89ec74d`.
 
 Required evidence:
 
@@ -252,10 +262,11 @@ None — the plan required a fail-closed record when an environment prerequisite
 - The superseded `c820a2b…` candidate clears the MinIO block and passes packed explicit-public but fails populated-upgrade doctor readiness.
 - The superseded `cc66128…` candidate clears the doctor-proof code issue but its packed explicit-public process stalls without a completion receipt.
 - The current candidate reaches neither generated-app scenario because the shared Mix temporary lock disappears. Product source was not changed because this executor owns receipts only.
+- The requested TMPDIR-isolated candidate SHA is not present in the checkout; no substitute candidate was used.
 
 ## Next Phase Readiness
 
-Blocked. Stabilize the shared Mix temporary-lock environment, then rerun the exact chained Task 1 command. Only after all four stages pass may GitHub Actions evidence for `21a6e7db10db6b7514f1b2aea34d02f6c89ec74d` be inspected.
+Blocked. Provide the exact resolvable 40-character candidate SHA intended for the TMPDIR-isolated run, then rerun the exact chained Task 1 command. Only after all four stages pass may GitHub Actions evidence be inspected.
 
 ## Self-Check: PASSED
 
