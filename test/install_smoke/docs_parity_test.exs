@@ -393,16 +393,32 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
       troubleshooting
       |> section_between!("## Schema Isolation and Host Oban Setup", "## Supported Recovery Verbs")
 
-    assert_in_order!(setup_section, [
-      "Rindle prefix mismatch",
+    prefix_mismatch =
+      section_between!(setup_section, "### Rindle prefix mismatch", "### Missing Rindle setup")
+
+    missing_setup =
+      section_between!(
+        setup_section,
+        "### Missing Rindle setup",
+        "### Host Oban binding missing or drifted"
+      )
+
+    oban_binding =
+      section_between!(setup_section, "### Host Oban binding missing or drifted", "## Supported")
+
+    assert_in_order!(prefix_mismatch, [
       "mix rindle.doctor",
       "maintenance-window upgrade",
-      "mix rindle.runtime_status",
-      "Missing Rindle setup",
+      "mix rindle.runtime_status"
+    ])
+
+    assert_in_order!(missing_setup, [
       "mix rindle.doctor",
       "Rindle.Migration.up(version: 1)",
-      "mix rindle.runtime_status",
-      "Host Oban binding missing or drifted",
+      "mix rindle.runtime_status"
+    ])
+
+    assert_in_order!(oban_binding, [
       "mix rindle.doctor",
       "Oban.Migration",
       "mix ecto.migrate",
