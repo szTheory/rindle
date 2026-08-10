@@ -189,15 +189,116 @@ defmodule Rindle.InstallSmoke.GeneratedAppPhase120FastContractTest do
     assert contract.required_report_keys == [
              :seeded_asset_id,
              :seeded_variant_id,
-             :seeded_marker,
-             :foreign_key_preserved?,
-             :index_preserved?,
+             :marker_versions,
+             :media_variants_foreign_key,
+             :media_variants_indexes,
+             :oban_jobs_before,
+             :oban_jobs_after,
              :selected_schema_relations,
              :decoy_schema_relations,
              :public_host_relations,
              :doctor_ready?,
              :persistence_lifecycle
            ]
+  end
+
+  test "upgrade catalog policy rejects missing marker, foreign key, and named indexes" do
+    report = valid_isolation_upgrade_catalog_report()
+
+    assert GeneratedAppHelper.isolation_upgrade_catalog_preserved?(report)
+
+    refute GeneratedAppHelper.isolation_upgrade_catalog_preserved?(%{
+             report
+             | marker_versions: []
+           })
+
+    refute GeneratedAppHelper.isolation_upgrade_catalog_preserved?(%{
+             report
+             | media_variants_foreign_key: nil
+           })
+
+    for index_name <- [
+          "media_variants_asset_id_name_index",
+          "media_variants_state_index",
+          "media_variants_output_kind_index"
+        ] do
+      refute GeneratedAppHelper.isolation_upgrade_catalog_preserved?(%{
+               report
+               | media_variants_indexes:
+                   Enum.reject(report.media_variants_indexes, &(&1["name"] == index_name))
+             })
+    end
+  end
+
+  test "upgrade catalog policy rejects each public Oban catalog change" do
+    report = valid_isolation_upgrade_catalog_report()
+
+    assert GeneratedAppHelper.isolation_upgrade_catalog_preserved?(report)
+
+    for {field, replacement} <- [
+          {:identity, %{"oid" => 999, "schema" => "public", "name" => "oban_jobs"}},
+          {:columns, [%{"name" => "id", "type" => "integer"}]},
+          {:constraints, [%{"name" => "oban_jobs_pkey", "type" => "p", "definition" => "PRIMARY KEY (id)"}]},
+          {:indexes,
+           [
+             %{
+               "schema" => "public",
+               "name" => "oban_jobs_queue_index",
+               "primary" => false,
+               "unique" => false,
+               "definition" => "CREATE INDEX oban_jobs_queue_index ON public.oban_jobs USING btree (queue)"
+             }
+           ]}
+        ] do
+      changed_after = Map.put(report.oban_jobs_after, field, replacement)
+
+      refute GeneratedAppHelper.isolation_upgrade_catalog_preserved?(%{
+               report
+               | oban_jobs_after: changed_after
+             })
+    end
+  end
+
+  defp valid_isolation_upgrade_catalog_report do
+    %{
+      marker_versions: [1],
+      media_variants_foreign_key: %{
+        "name" => "media_variants_asset_id_fkey",
+        "type" => "f",
+        "source_schema" => "rindle",
+        "source_table" => "media_variants",
+        "source_column" => "asset_id",
+        "target_schema" => "rindle",
+        "target_table" => "media_assets",
+        "target_column" => "id",
+        "definition" => "FOREIGN KEY (asset_id) REFERENCES rindl<e>.media_assets(id) ON DELETE CASCADE"
+      },
+      media_variants_indexes: [
+        %{
+          "name" => "media_variants_asset_id_name_index",
+          "definition" => "CREATE UNIQUE INDEX media_variants_asset_id_name_index ON rindl<e>.media_variants USING btree (asset_id, name)"
+        },
+        %{
+          "name" => "media_variants_state_index",
+          "definition" => "CREATE INDEX media_variants_state_index ON rindl<e>.media_variants USING btree (state)"
+        },
+        %{
+          "name" => "media_variants_output_kind_index",
+          "definition" => "CREATE INDEX media_variants_output_kind_index ON rindl<e>.media_variants USING btree (output_kind)"
+        }
+      ],
+      oban_jobs_before: valid_oban_jobs_snapshot(),
+      oban_jobs_after: valid_oban_jobs_snapshot()
+    }
+  end
+
+  defp valid_oban_jobs_snapshot do
+    %{
+      identity: %{"oid" => 42, "schema" => "public", "name" => "oban_jobs"},
+      columns: [%{"name" => "id", "type" => "bigint", "nullable" => false, "default" => nil, "identity" => "", "generated" => ""}],
+      constraints: [%{"name" => "oban_jobs_pkey", "type" => "p", "definition" => "PRIMARY KEY (id)"}],
+      indexes: [%{"schema" => "public", "name" => "oban_jobs_pkey", "primary" => true, "unique" => true, "definition" => "CREATE UNIQUE INDEX oban_jobs_pkey ON public.oban_jobs USING btree (id)"}]
+    }
   end
 end
 
