@@ -5,6 +5,7 @@ defmodule Rindle.InstallSmoke.ReleaseDocsParityTest do
   @changelog_path Path.expand("../../CHANGELOG.md", __DIR__)
   @release_manifest_path Path.expand("../../.release-please-manifest.json", __DIR__)
   @release_guide_path Path.expand("../../guides/release_publish.md", __DIR__)
+  @ci_workflow_path Path.expand("../../.github/workflows/ci.yml", __DIR__)
   @release_workflow_path Path.expand("../../.github/workflows/release.yml", __DIR__)
   @operations_path Path.expand("../../guides/operations.md", __DIR__)
   @readme_path Path.expand("../../README.md", __DIR__)
@@ -18,6 +19,7 @@ defmodule Rindle.InstallSmoke.ReleaseDocsParityTest do
        changelog: File.read!(@changelog_path),
        release_manifest: File.read!(@release_manifest_path),
        release_guide: File.read!(@release_guide_path),
+       ci_workflow: File.read!(@ci_workflow_path),
        release_workflow: File.read!(@release_workflow_path),
        operations: File.read!(@operations_path),
        readme: File.read!(@readme_path),
@@ -122,6 +124,60 @@ defmodule Rindle.InstallSmoke.ReleaseDocsParityTest do
         ] do
       assert release_guide =~ snippet
     end
+  end
+
+  test "0.4.0 schema-isolation signoff names local diagnostics and exact-SHA evidence", %{
+    release_guide: release_guide,
+    ci_workflow: ci_workflow,
+    release_workflow: release_workflow
+  } do
+    local_diagnostics = [
+      "mix test test/install_smoke/docs_parity_test.exs test/install_smoke/release_docs_parity_test.exs --seed 0",
+      "bash scripts/install_smoke.sh image",
+      "bash scripts/ci/cohort_demo_smoke.sh"
+    ]
+
+    authoritative_evidence = [
+      "Proof",
+      "Package Consumer Full Matrix + Release Preflight",
+      "Adoption Demo Unit",
+      "Cohort Demo Smoke",
+      "exact release-candidate SHA",
+      "Run release preflight",
+      "Verify version alignment",
+      "Dry run Hex publish",
+      "Verify public Hex.pm artifact"
+    ]
+
+    for command <- local_diagnostics do
+      assert release_guide =~ command
+    end
+
+    for evidence <- authoritative_evidence do
+      assert release_guide =~ evidence
+    end
+
+    for workflow_name <- [
+          "Proof",
+          "Package Consumer Full Matrix + Release Preflight",
+          "Adoption Demo Unit",
+          "Cohort Demo Smoke"
+        ] do
+      assert ci_workflow =~ workflow_name
+    end
+
+    for step_name <- [
+          "Run release preflight",
+          "Verify version alignment",
+          "Dry run Hex publish",
+          "Verify public Hex.pm artifact"
+        ] do
+      assert release_workflow =~ step_name
+    end
+
+    assert release_guide =~ "## Unreleased / 0.4.0"
+    assert release_guide =~ "[Upgrading](upgrading.html)"
+    assert release_guide =~ "remove the staging marker"
   end
 
   test "maintainer release guidance stays in maintainer docs and is cross-linked", %{
