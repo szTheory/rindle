@@ -2,8 +2,19 @@ defmodule Rindle.Migration do
   @moduledoc """
   Versioned migrations for Rindle-owned database tables.
 
-  Create a normal migration in your Phoenix or Ecto application and call
-  `Rindle.Migration` from that host migration:
+  Create separate normal migrations in your Phoenix or Ecto application. The
+  host owns `public.oban_jobs` and its `public.schema_migrations` ledger; install
+  Oban first in its own host migration:
+
+      defmodule MyApp.Repo.Migrations.InstallHostOwnedOban do
+        use Ecto.Migration
+
+        def up, do: Oban.Migration.up()
+        def down, do: Oban.Migration.down(version: 1)
+      end
+
+  Then call `Rindle.Migration` from a separate host migration. The default call
+  omits `:prefix` and creates Rindle-owned state in `rindle`:
 
       defmodule MyApp.Repo.Migrations.InstallRindle do
         use Ecto.Migration
@@ -12,12 +23,23 @@ defmodule Rindle.Migration do
         def down, do: Rindle.Migration.down(version: 1)
       end
 
-  Rindle's migration creates and rolls back only Rindle-owned tables. Host
-  applications install and own shared infrastructure such as `oban_jobs`
-  separately through `Oban.Migration`.
+  For the explicit public compatibility pairing only, use a public-compiled
+  release and a separate host migration:
 
-  The default `:prefix` is `"rindle"`. Pass `prefix: "public"` only for the
-  documented compatibility pairing with a public-compiled runtime.
+      defmodule MyApp.Repo.Migrations.InstallPublicRindle do
+        use Ecto.Migration
+
+        def up, do: Rindle.Migration.up(version: 1, prefix: "public")
+        def down, do: Rindle.Migration.down(version: 1)
+      end
+
+  Rindle creates and rolls back only its fixed relation set; it never owns
+  `public.oban_jobs` or `public.schema_migrations`. Run your normal host
+  migration workflow (`mix ecto.migrate`) and then verify it with
+  `mix rindle.doctor`.
+
+  For populated public installs, use the host-owned maintenance-window move in
+  [Upgrading](guides/upgrading.md); do not broaden this fresh-install API.
   """
 
   use Ecto.Migration

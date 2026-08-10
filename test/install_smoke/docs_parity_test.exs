@@ -210,7 +210,10 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
 
     assert default_fixture.host_oban_migration_source =~ "Oban.Migration.up()"
     assert default_fixture.rindle_migration_source =~ "Rindle.Migration.up(version: 1)"
-    assert public_fixture.migration_source =~ "Rindle.Migration.up(version: 1, prefix: \"public\")"
+
+    assert public_fixture.migration_source =~
+             "Rindle.Migration.up(version: 1, prefix: \"public\")"
+
     assert public_fixture.compile_prefix == "public"
 
     for {name, section} <- [
