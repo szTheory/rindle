@@ -86,11 +86,13 @@ defmodule Rindle.RuntimeStatusTaskTest do
   end
 
   test "formats bounded snapshot refusals safely for text and JSON" do
+    sentinel = "postgres://rindle:credential@db.example/Rindle SQL SELECT secret"
+
     for {reason, classification, component} <- [
           {{:rindle_prefix_mismatch,
             %{
               component: :rindle,
-              expected_prefix: "rindle",
+              expected_prefix: sentinel,
               observed_prefix: "public",
               owner: :rindle
             }}, "rindle_prefix_mismatch", "rindle"},
@@ -98,9 +100,16 @@ defmodule Rindle.RuntimeStatusTaskTest do
             %{
               component: :oban,
               expected_prefix: "host_oban",
-              observed_prefix: "public",
+              observed_prefix: sentinel,
               owner: :host
             }}, "oban_binding_drift", "oban"},
+          {{:rindle_prefix_mismatch,
+            %{
+              component: :postgres_adapter,
+              expected_prefix: "rindle",
+              observed_prefix: "public",
+              owner: :credential_owner
+            }}, "rindle_prefix_mismatch", nil},
           {{:inspection_failed, %{component: :rindle, owner: :rindle}}, "inspection_failed",
            "rindle"}
         ] do
@@ -111,9 +120,13 @@ defmodule Rindle.RuntimeStatusTaskTest do
       assert text =~ "mix rindle.doctor"
       assert json =~ ~s("status":"error")
       assert json =~ ~s("classification":"#{classification}")
-      assert json =~ ~s("component":"#{component}")
+      if component, do: assert(json =~ ~s("component":"#{component}"))
       refute text =~ "postgres://"
       refute json =~ "postgres://"
+      refute text =~ sentinel
+      refute json =~ sentinel
+      refute text =~ "credential_owner"
+      refute json =~ "credential_owner"
     end
   end
 
@@ -137,7 +150,7 @@ defmodule Rindle.RuntimeStatusTaskTest do
       ownership_snapshot: %{
         rindle: %{
           classification: :rindle_prefix_mismatch,
-          expected_prefix: "rindle",
+          expected_prefix: "postgres://rindle:credential@db.example/Rindle SQL SELECT secret",
           observed_prefix: "public",
           owner: :rindle
         },
@@ -155,7 +168,9 @@ defmodule Rindle.RuntimeStatusTaskTest do
 
     assert_received {:mix_shell, :info, [output]}
     assert output =~ ~s("classification":"rindle_prefix_mismatch")
-    assert output =~ ~s("expected_prefix":"rindle")
+    assert output =~ ~s("expected_prefix":"unknown")
+    refute output =~ "postgres://"
+    refute output =~ "credential"
     refute output =~ "REPORT_QUERY_REACHED"
   end
 

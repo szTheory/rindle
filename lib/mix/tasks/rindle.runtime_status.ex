@@ -76,11 +76,15 @@ defmodule Mix.Tasks.Rindle.RuntimeStatus do
     "Rindle.RuntimeStatus failed: setup_incomplete oban_jobs; no report queries ran. Run `mix rindle.doctor`. Install Oban through a host-owned migration using `Oban.Migration`. Rindle no longer manages `oban_jobs`."
   end
 
-  def format_error({:rindle_prefix_mismatch, details}) do
+  def format_error({:rindle_prefix_mismatch, _details} = reason) do
+    details = error_details(reason)
+
     "Rindle.RuntimeStatus failed: rindle_prefix_mismatch; no report queries ran. Run `mix rindle.doctor`. Expected Rindle prefix #{details.expected_prefix}, observed #{details.observed_prefix}. Schedule the host-owned maintenance-window migration, then deploy the matching Rindle prefix."
   end
 
-  def format_error({:oban_binding_drift, details}) do
+  def format_error({:oban_binding_drift, _details} = reason) do
+    details = error_details(reason)
+
     "Rindle.RuntimeStatus failed: oban_binding_drift; no report queries ran. Run `mix rindle.doctor`. Expected host Oban prefix #{details.expected_prefix}, observed #{details.observed_prefix}. Align the host-owned default Oban binding and `:rindle, :oban_prefix`, then deploy matching configuration."
   end
 
@@ -123,14 +127,24 @@ defmodule Mix.Tasks.Rindle.RuntimeStatus do
       next_action: "mix rindle.doctor"
     }
 
-  defp error_details({classification, details})
-       when classification in [:rindle_prefix_mismatch, :oban_binding_drift] and is_map(details) do
+  defp error_details({:rindle_prefix_mismatch, details}) when is_map(details) do
     %{
-      classification: Atom.to_string(classification),
-      component: details |> Map.get(:component) |> atom_string(),
-      expected_prefix: Map.get(details, :expected_prefix),
-      observed_prefix: Map.get(details, :observed_prefix),
-      owner: details |> Map.get(:owner) |> atom_string(),
+      classification: "rindle_prefix_mismatch",
+      component: "rindle",
+      expected_prefix: safe_prefix(:rindle, Map.get(details, :expected_prefix)),
+      observed_prefix: safe_prefix(:rindle, Map.get(details, :observed_prefix)),
+      owner: "rindle",
+      next_action: "mix rindle.doctor"
+    }
+  end
+
+  defp error_details({:oban_binding_drift, details}) when is_map(details) do
+    %{
+      classification: "oban_binding_drift",
+      component: "oban",
+      expected_prefix: safe_prefix(:oban, Map.get(details, :expected_prefix)),
+      observed_prefix: safe_prefix(:oban, Map.get(details, :observed_prefix)),
+      owner: "host",
       next_action: "mix rindle.doctor"
     }
   end
@@ -148,7 +162,15 @@ defmodule Mix.Tasks.Rindle.RuntimeStatus do
 
   defp error_details(_reason), do: %{classification: "unknown", next_action: "mix rindle.doctor"}
 
-  defp atom_string(value) when is_atom(value), do: Atom.to_string(value)
+  defp safe_prefix(:rindle, prefix) when prefix in ["rindle", "public"], do: prefix
+
+  defp safe_prefix(:oban, prefix) when is_binary(prefix) do
+    if Regex.match?(~r/\A[a-zA-Z_][a-zA-Z0-9_$]*\z/, prefix), do: prefix, else: "unknown"
+  end
+
+  defp safe_prefix(_component, _prefix), do: "unknown"
+
+  defp atom_string(value) when value in [:rindle, :oban, :host], do: Atom.to_string(value)
   defp atom_string(_value), do: nil
 
   @doc false
