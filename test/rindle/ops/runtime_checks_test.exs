@@ -125,6 +125,59 @@ defmodule Rindle.Ops.RuntimeChecksTest do
       end
     end
 
+    test "keeps ownership check IDs and telemetry bounded for binding refusal" do
+      handler_id = "ownership-checks-#{System.unique_integer([:positive])}"
+      parent = self()
+
+      :telemetry.attach(
+        handler_id,
+        [:rindle, :runtime, :check, :stop],
+        fn _event, _measurements, metadata, _ ->
+          send(parent, {:telemetry, metadata})
+        end,
+        nil
+      )
+
+      try do
+        report =
+          run_runtime_checks(
+            probe: fn -> :ok end,
+            env: %{},
+            profiles: [],
+            oban_config: healthy_oban_config(),
+            migration_statuses: [],
+            ownership_snapshot: %{
+              rindle: %{
+                expected_prefix: "public",
+                observed_prefix: nil,
+                owner: :rindle,
+                classification: :inspection_failed,
+                next_action: "Run mix rindle.doctor."
+              },
+              oban: %{
+                expected_prefix: "host_oban",
+                observed_prefix: "public",
+                owner: :host,
+                classification: :oban_binding_drift,
+                next_action: "Host owns Oban.Migration."
+              }
+            }
+          )
+
+        for id <- ["doctor.rindle_schema.ready", "doctor.oban_jobs.ready"] do
+          check = fetch_check(report, id)
+          assert check.status == :error
+          assert check.classification in [:inspection_failed, :oban_binding_drift]
+          refute inspect(check) =~ "credential"
+        end
+
+        assert_receive {:telemetry,
+                        %{check: "doctor.oban_jobs.ready", status: :error, component: :oban}}
+      after
+        :telemetry.detach(handler_id)
+      end
+    end
+
     test "does not require rindle_media for image-only profiles" do
       report =
         run_runtime_checks(
