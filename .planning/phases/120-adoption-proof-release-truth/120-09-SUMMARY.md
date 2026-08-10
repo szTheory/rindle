@@ -18,7 +18,7 @@ key-files:
     - .planning/phases/120-adoption-proof-release-truth/120-09-SUMMARY.md
   modified: []
 key-decisions:
-  - "The OID binding fix requires a new immutable candidate; that clean candidate clears the prior connection-capacity failure but still fails closed on an unquoted pg_constraint alias in the generated packed migration script."
+  - "The reserved-alias fix requires a new immutable candidate; that clean candidate clears the prior catalog-query blockers but the packed explicit-public smoke process exits 2, so no partial local output is release authority."
 requirements-completed: []
 coverage:
   - id: D1
@@ -29,7 +29,7 @@ coverage:
         ref: "Task 1 exact chained command"
         status: fail
     human_judgment: true
-    rationale: "The latest docs/release parity gate passed and PostgreSQL had no lingering rindle_test sessions, but packed explicit-public failed on a pg_constraint alias syntax error; later chained gates were not executed."
+    rationale: "The latest docs/release parity gate passed, PostgreSQL had no lingering rindle_test sessions, and packed explicit-public reached its smoke assertion, but that process exited 2; later chained gates were not executed."
   - id: D2
     description: "Immutable exact-SHA CI and Release workflow evidence."
     requirement: PROOF-02
@@ -40,7 +40,7 @@ coverage:
     human_judgment: true
     rationale: "Task 1 is blocked and release authorization requires GitHub-hosted results on the identical candidate SHA."
 metrics:
-  duration: 18m
+  duration: 25m
   completed: 2026-08-10
   tasks: 0
   files: 1
@@ -53,11 +53,11 @@ The current exact candidate checkout is clean and has its declared dependencies,
 
 ## Candidate and Checkout Identity
 
-- **Current candidate SHA:** `92201beea7969a80aa7d335646c408cfc424a592` (40 characters)
-- **Current candidate checkout:** detached clean worktree at `/private/tmp/rindle-120-09-clean-92201be`
+- **Current candidate SHA:** `33146ad16e5b036477d78f39dcbeee0e8408e1e6` (40 characters)
+- **Current candidate checkout:** detached clean worktree at `/private/tmp/rindle-120-09-clean-33146ad`
 - **Candidate worktree status:** clean (`git status --porcelain=v1` produced no output)
 - **Shared checkout:** intentionally left dirty; no product source was changed by this plan.
-- **Superseded candidate:** `2a32a0ae34a3866c4a95b1252134d59bc6210f87` predates the OID binding fix and is not eligible for external release evidence.
+- **Superseded candidates:** `2a32a0ae34a3866c4a95b1252134d59bc6210f87` predates the OID binding fix; `92201beea7969a80aa7d335646c408cfc424a592` predates the reserved-alias fix. Neither is eligible for external release evidence.
 
 ## Preconditions
 
@@ -116,7 +116,7 @@ cwd: /var/folders/f3/f0clj9rd2zb85n2c849wcsrc0000gn/T/rindle-install-smoke-8/rin
 
 After the failure, the command remained stalled in its generated-app cleanup for over a minute. The isolated verification session was interrupted and exited `130`; it is explicitly not recorded as success. That candidate has since been superseded by the OID binding fix.
 
-### Current-Candidate Rerun After Capacity Cleanup and OID Binding Fix
+### Historical Rerun on Superseded Candidate After Capacity Cleanup and OID Binding Fix
 
 The exact chained command was run from clean detached candidate `92201beea7969a80aa7d335646c408cfc424a592` after `MIX_ENV=test mix deps.get` exited `0`.
 
@@ -138,13 +138,36 @@ query: select constraint.conname, constraint.contype::text, pg_get_constraintdef
     priv/install_smoke/migrate.exs:46: anonymous fn/1 in :elixir_compiler_2.__FILE__/1
 ```
 
-No `53300` connection-limit error occurred in this current-candidate attempt. Its failed generated-app cleanup again stalled, so the isolated verification session was interrupted and exited `130`; it is explicitly not recorded as success.
+No `53300` connection-limit error occurred in that attempt. Its failed generated-app cleanup again stalled, so the isolated verification session was interrupted and exited `130`; it is explicitly not recorded as success. That candidate has since been superseded by the reserved-alias fix.
+
+### Current-Candidate Rerun After Reserved-Alias Fix
+
+The exact chained command was run from clean detached candidate `33146ad16e5b036477d78f39dcbeee0e8408e1e6` after `MIX_ENV=test mix deps.get` exited `0`. PostgreSQL had zero lingering `rindle_test` sessions and no prior smoke processes were present.
+
+- **Stage 1 — docs/release parity:** passed: `56 tests, 0 failures`.
+- **Stage 2 — packed explicit-public compatibility:** reached its smoke assertion but failed: `assert report.smoke_exit_code == 0`, left `2`, right `0` at `test/install_smoke/generated_app_smoke_test.exs:438`.
+- **Stage 3 — packed populated isolation upgrade:** not executed because the chain uses `&&`.
+- **Stage 4 — Cohort Compose smoke:** not executed because the chain uses `&&`.
+
+Raw Stage 2 diagnostic:
+
+```text
+1) test generated Phoenix app proves the explicit public compatibility build without runtime retargeting
+   Assertion with == failed
+   code:  assert report.smoke_exit_code == 0
+   left:  2
+   right: 0
+   stacktrace:
+     test/install_smoke/generated_app_smoke_test.exs:438: (test)
+```
+
+The failed command did not emit a more detailed smoke-process diagnostic before its harness cleanup stalled. The isolated verification session was interrupted and exited `130`; it is explicitly not recorded as success.
 
 ## Required External Evidence (Not Inspected)
 
 Per the plan, GitHub evidence is intentionally not inspected until Task 1 has clean passing local receipts. When the dependency prerequisite has been restored and Task 1 passes, record immutable URLs, run IDs, conclusions, and job/step results for this exact SHA only:
 
-`92201beea7969a80aa7d335646c408cfc424a592`
+`33146ad16e5b036477d78f39dcbeee0e8408e1e6`
 
 Required evidence:
 
@@ -161,11 +184,12 @@ None — the plan required a fail-closed record when an environment prerequisite
 ## Issues Encountered
 
 - The superseded candidate initially lacked declared Mix dependencies, then hit PostgreSQL `53300` and the OID parameter encoding error. It is retained only as historical diagnostic evidence.
-- The current candidate clears the prior connection-capacity and OID failures but its packed explicit-public generated migration now has an unquoted `pg_constraint constraint` alias, which PostgreSQL rejects with `42601`. Product source was not changed because this executor owns receipts only.
+- The superseded `92201be…` candidate clears the prior connection-capacity and OID failures but its packed explicit-public generated migration used an unquoted `pg_constraint constraint` alias, which PostgreSQL rejected with `42601`.
+- The current candidate clears those blockers but its packed explicit-public smoke process exits `2`. Product source was not changed because this executor owns receipts only.
 
 ## Next Phase Readiness
 
-Blocked. Resolve the current candidate's packed generated-app `pg_constraint` alias syntax error, then rerun the exact chained Task 1 command. Only after all four stages pass may GitHub Actions evidence for `92201beea7969a80aa7d335646c408cfc424a592` be inspected.
+Blocked. Diagnose and resolve the current candidate's packed explicit-public smoke exit `2`, then rerun the exact chained Task 1 command. Only after all four stages pass may GitHub Actions evidence for `33146ad16e5b036477d78f39dcbeee0e8408e1e6` be inspected.
 
 ## Self-Check: PASSED
 
