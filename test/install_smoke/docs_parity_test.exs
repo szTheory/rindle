@@ -15,6 +15,7 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
   @operations_path Path.expand("../../guides/operations.md", __DIR__)
   @admin_console_path Path.expand("../../guides/admin_console.md", __DIR__)
   @mix_exs_path Path.expand("../../mix.exs", __DIR__)
+  @migration_module_path Path.expand("../../lib/rindle/migration.ex", __DIR__)
 
   @expected_tus_extensions "creation,expiration,termination,checksum,creation-defer-length,concatenation"
 
@@ -42,7 +43,8 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
        troubleshooting: File.read!(@troubleshooting_path),
        release: File.read!(@release_path),
        running: File.read!(@running_path),
-       user_flows: File.read!(@user_flows_path)
+       user_flows: File.read!(@user_flows_path),
+       migration_module: File.read!(@migration_module_path)
      }}
   end
 
@@ -242,6 +244,50 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
                "#{name} must not teach #{inspect(forbidden)} for a fresh install"
       end
     end
+  end
+
+  test "Rindle.Migration moduledoc matches public fresh-install fixtures", %{
+    readme: readme,
+    guide: guide,
+    migration_module: migration_module
+  } do
+    default_fixture = GeneratedAppHelper.default_install_contract()
+    public_fixture = GeneratedAppHelper.public_compatibility_contract()
+
+    default_call = migration_call!(default_fixture.rindle_migration_source)
+    public_call = migration_call!(public_fixture.migration_source)
+    oban_call = migration_call!(default_fixture.host_oban_migration_source)
+
+    assert public_fixture.compile_prefix == "public"
+
+    surfaces = [
+      {"README migrations", section_between!(readme, "## Migrations", "## First Attachment")},
+      {"getting-started step 3", section_between!(guide, "## 3.", "## 4.")},
+      {"Rindle.Migration moduledoc source", migration_module}
+    ]
+
+    for {name, surface} <- surfaces do
+      assert surface =~ default_call, "#{name} must match the default generated fixture"
+      assert surface =~ public_call, "#{name} must match the explicit-public generated fixture"
+      assert surface =~ oban_call, "#{name} must retain separate host-owned Oban setup"
+      assert surface =~ "public.oban_jobs", "#{name} must retain host-owned Oban in public"
+
+      assert surface =~ "public.schema_migrations",
+             "#{name} must retain the host migration ledger in public"
+
+      for forbidden <- [
+            "Application.app_dir(:rindle, \"priv/repo/migrations\")",
+            "Ecto.Migrator.run",
+            "search_path",
+            "tenant_media"
+          ] do
+        refute surface =~ forbidden,
+               "#{name} must not broaden the fresh-install migration contract"
+      end
+    end
+
+    assert migration_module =~ "guides/upgrading.md",
+           "Rindle.Migration moduledoc must direct populated installs to the upgrade guide"
   end
 
   test "upgrade guide documents the bounded host-owned populated move", %{upgrade: upgrade} do
