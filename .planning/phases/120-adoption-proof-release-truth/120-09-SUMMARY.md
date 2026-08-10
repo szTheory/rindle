@@ -18,7 +18,7 @@ key-files:
     - .planning/phases/120-adoption-proof-release-truth/120-09-SUMMARY.md
   modified: []
 key-decisions:
-  - "The generated doctor exit fix makes all three local packed gates pass under an isolated TMPDIR; Docker address-pool exhaustion still blocks the final Cohort Compose gate."
+  - "With Docker network capacity restored, all packed gates pass; Cohort then fails because the persistent MinIO prerequisite occupies the Compose stack's published port 9000."
 requirements-completed: []
 coverage:
   - id: D1
@@ -29,7 +29,7 @@ coverage:
         ref: "Task 1 exact chained command"
         status: fail
     human_judgment: true
-    rationale: "The TMPDIR-isolated docs, explicit-public, and populated-upgrade stages passed, but Cohort could not create its Docker network because all predefined address pools are exhausted."
+    rationale: "The TMPDIR-isolated packed stages passed and Cohort created its network, but its MinIO container could not bind host port 9000 already used by the persistent prerequisite service."
   - id: D2
     description: "Immutable exact-SHA CI and Release workflow evidence."
     requirement: PROOF-02
@@ -40,7 +40,7 @@ coverage:
     human_judgment: true
     rationale: "Task 1 is blocked and release authorization requires GitHub-hosted results on the identical candidate SHA."
 metrics:
-  duration: 57m
+  duration: 65m
   completed: 2026-08-10
   tasks: 0
   files: 1
@@ -49,13 +49,13 @@ status: blocked
 
 # Phase 120 Plan 09: Blocked Local Release-Proof Receipt
 
-The TMPDIR-isolated current candidate passes all three packed gates, but Cohort Compose is blocked by Docker address-pool exhaustion. No local release proof or release authorization has been established.
+The TMPDIR-isolated current candidate passes all three packed gates and Cohort creates its network, but Cohort's own MinIO cannot bind host port 9000 already used by the persistent prerequisite service. No local release proof or release authorization has been established.
 
 ## Candidate and Checkout Identity
 
-- **Current candidate SHA:** `2159ba3b4ff4fd40542d95ebd0f89622d790086f` (40 characters)
-- **Candidate checkout:** detached clean worktree at `/private/tmp/rindle-120-09-clean-2159ba3`
-- **Dedicated TMPDIR:** `/private/tmp/rindle-120-09-tmp-2159ba3` (mode 700), used for dependency fetch and every chain stage.
+- **Current candidate SHA:** `bd7cdd853f623fa86c9b76040572fe5a6c7fbaac` (40 characters)
+- **Candidate checkout:** detached clean worktree at `/private/tmp/rindle-120-09-clean-bd7cdd8`
+- **Dedicated TMPDIR:** `/private/tmp/rindle-120-09-tmp-bd7cdd8` (mode 700), used for dependency fetch and every chain stage.
 - **Candidate worktree status:** clean (`git status --porcelain=v1` produced no output)
 - **Shared checkout:** intentionally left dirty; no product source was changed by this plan.
 - **Superseded candidates:** `2a32a0ae34a3866c4a95b1252134d59bc6210f87` predates the OID binding fix; `92201beea7969a80aa7d335646c408cfc424a592` predates the reserved-alias fix; `33146ad16e5b036477d78f39dcbeee0e8408e1e6` predates supported MinIO availability; `7a7efea4ed42ce5139a6a0d873bdc22a434b6cfe` is the pre-MinIO receipt; `c820a2bbfa35794d3e065e859b8191274118bfd3` predates the generated doctor-proof fix; `cc66128c1bb8679d270348ddd71cf263ddcdd9cd` predates the workspace-isolation fix. None is eligible for external release evidence.
@@ -270,11 +270,26 @@ failed to create network cohort-demo_default: Error response from daemon: all pr
 TASK_1_CHAIN_EXIT=1
 ```
 
+### Current Candidate Rerun After Docker Network Capacity Restoration
+
+Candidate `bd7cdd853f623fa86c9b76040572fe5a6c7fbaac` used a fresh clean worktree and dedicated TMPDIR. PostgreSQL sessions were `0`, MinIO health was `200`, and a create/remove Docker network capacity probe passed.
+
+- **Stage 1 — docs/release parity:** passed: `56 tests, 0 failures`.
+- **Stage 2 — packed explicit-public compatibility:** passed: `4 tests, 0 failures (11 excluded)` in 188.0s.
+- **Stage 3 — packed populated isolation upgrade:** passed: `4 tests, 0 failures (11 excluded)` in 257.1s.
+- **Stage 4 — Cohort Compose smoke:** failed, exit `1`; `cohort-demo_default` was created successfully, then Compose could not bind host port 9000 for its own MinIO.
+
+```text
+Network cohort-demo_default Created
+Bind for 0.0.0.0:9000 failed: port is already allocated
+TASK_1_CHAIN_EXIT=1
+```
+
 ## Required External Evidence (Not Inspected)
 
 Per the plan, GitHub evidence is intentionally not inspected until Task 1 has clean passing local receipts. When the dependency prerequisite has been restored and Task 1 passes, record immutable URLs, run IDs, conclusions, and job/step results for this exact SHA only:
 
-`2159ba3b4ff4fd40542d95ebd0f89622d790086f`
+`bd7cdd853f623fa86c9b76040572fe5a6c7fbaac`
 
 Required evidence:
 
@@ -300,10 +315,11 @@ None — the plan required a fail-closed record when an environment prerequisite
 - The requested TMPDIR-isolated candidate SHA is not present in the checkout; no substitute candidate was used.
 - The current TMPDIR-isolated candidate removes the Mix lock failure but retains the populated-upgrade doctor readiness failure. Product source was not changed because this executor owns receipts only.
 - The current doctor-exit candidate passes all packed gates but Docker has no available predefined network address pool for Cohort. Product source was not changed because this executor owns receipts only.
+- The current capacity-verified candidate passes all packed gates but Cohort's own MinIO collides with the persistent prerequisite MinIO at host port 9000. Product source was not changed because this executor owns receipts only.
 
 ## Next Phase Readiness
 
-Blocked. Restore Docker capacity to allocate a Compose network, then rerun the TMPDIR-isolated exact chained Task 1 command. Only after all four stages pass may GitHub Actions evidence for `2159ba3b4ff4fd40542d95ebd0f89622d790086f` be inspected.
+Blocked. Free host port 9000 for the Cohort-owned MinIO container while retaining a safe way to run the packed stages, then rerun the TMPDIR-isolated exact chained Task 1 command. Only after all four stages pass may GitHub Actions evidence for `bd7cdd853f623fa86c9b76040572fe5a6c7fbaac` be inspected.
 
 ## Self-Check: PASSED
 
