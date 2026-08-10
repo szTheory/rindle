@@ -132,6 +132,33 @@ defmodule Rindle.RuntimeStatusTaskTest do
     refute json =~ "SQL sentinel"
   end
 
+  test "emits a bounded JSON refusal and exits non-zero" do
+    Application.put_env(:rindle, @runtime_status_config,
+      ownership_snapshot: %{
+        rindle: %{
+          classification: :rindle_prefix_mismatch,
+          expected_prefix: "rindle",
+          observed_prefix: "public",
+          owner: :rindle
+        },
+        oban: %{
+          classification: :ready,
+          expected_prefix: "public",
+          observed_prefix: "public",
+          owner: :host
+        }
+      },
+      report_query: fn _operation, _query, _prefix -> raise "REPORT_QUERY_REACHED" end
+    )
+
+    assert catch_exit(RuntimeStatusTask.run(["--format", "json"])) == {:shutdown, 1}
+
+    assert_received {:mix_shell, :info, [output]}
+    assert output =~ ~s("classification":"rindle_prefix_mismatch")
+    assert output =~ ~s("expected_prefix":"rindle")
+    refute output =~ "REPORT_QUERY_REACHED"
+  end
+
   describe "--provider-stuck (MUX-14)" do
     test "the --provider-stuck flag is parsed and surfaces in filters" do
       RuntimeStatusTask.run(["--provider-stuck", "--limit", "1"])
