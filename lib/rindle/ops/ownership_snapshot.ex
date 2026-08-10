@@ -328,9 +328,6 @@ defmodule Rindle.Ops.OwnershipSnapshot do
     repo = Config.repo()
 
     cond do
-      Process.whereis(repo) and Keyword.get(repo.config(), :pool) == Ecto.Adapters.SQL.Sandbox ->
-        with_sandbox_checkout(repo, fun)
-
       Process.whereis(repo) ->
         fun.(repo)
 
@@ -343,22 +340,5 @@ defmodule Rindle.Ops.OwnershipSnapshot do
     end
   rescue
     _error -> {:error, :catalog_unavailable}
-  end
-
-  defp with_sandbox_checkout(repo, fun) do
-    case Ecto.Adapters.SQL.Sandbox.checkout(repo) do
-      :ok ->
-        try do
-          fun.(repo)
-        after
-          Ecto.Adapters.SQL.Sandbox.checkin(repo)
-        end
-
-      {:already, _owner} ->
-        fun.(repo)
-
-      {:error, _reason} ->
-        {:error, :catalog_unavailable}
-    end
   end
 end
