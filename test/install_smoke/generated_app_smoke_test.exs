@@ -127,6 +127,16 @@ defmodule Rindle.InstallSmoke.GeneratedAppPhase120FastContractTest do
              :persistence_lifecycle
            ]
   end
+
+  test "default package proof defines JSON-safe persistence lifecycle facts" do
+    assert GeneratedAppHelper.persistence_lifecycle_report_keys() == [
+             "initiated_session_id",
+             "verified_session_id",
+             "asset_id",
+             "read_back_asset_id",
+             "asset_state"
+           ]
+  end
 end
 
 if GeneratedAppHelper.profile_enabled?(:gcs) do
