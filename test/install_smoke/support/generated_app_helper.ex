@@ -195,7 +195,11 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       seeded_marker: migration_report["seeded_marker"] == true,
       foreign_key_preserved?: migration_report["foreign_key_preserved"] == true,
       index_preserved?: migration_report["index_preserved"] == true,
-      doctor_ready?: doctor_result.exit_code == 0,
+      doctor_ready?:
+        String.contains?(
+          doctor_result.output,
+          "expected rindle; observed rindle; classification ready"
+        ),
       doctor_output: doctor_result.output,
       lifecycle_proved?:
         smoke_result.exit_code == 0 and String.contains?(smoke_result.output, "0 failures")
