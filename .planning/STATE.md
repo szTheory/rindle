@@ -3,18 +3,18 @@ gsd_state_version: 1.0
 milestone: v1.23
 milestone_name: Postgres Schema Isolation
 current_phase: 120
-current_phase_name: Adoption Proof & Release Truth
-status: planning
-stopped_at: Phase 120 context gathered
-last_updated: "2026-08-10T02:55:13.039Z"
-last_activity: 2026-08-09
-last_activity_desc: Phase 119 complete, transitioned to Phase 120
+current_phase_name: adoption-proof-release-truth
+status: executing
+stopped_at: Completed 120-06-PLAN.md
+last_updated: "2026-08-10T21:27:37.193Z"
+last_activity: 2026-08-10
+last_activity_desc: Phase 120 execution started
 progress:
   total_phases: 4
-  completed_phases: 3
-  total_plans: 16
-  completed_plans: 16
-  percent: 75
+  completed_phases: 4
+  total_plans: 22
+  completed_plans: 22
+  percent: 100
 ---
 
 # Project State
@@ -24,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-02 after shipping v1.22)
 
 **Core value:** Media, made durable.
-**Current focus:** Phase 119 — ownership-boundaries-diagnostics
+**Current focus:** Phase 120 — adoption-proof-release-truth
 
 ## Current Position
 
-Phase: 120 — Adoption Proof & Release Truth
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-08-09 — Phase 119 complete, transitioned to Phase 120
+Phase: 120 (adoption-proof-release-truth) — EXECUTING
+Plan: 2 of 6
+Status: Ready to execute
+Last activity: 2026-08-10 — Phase 120 execution started
 
 ### v1.22 shipped summary
 
@@ -171,6 +171,10 @@ _(Key v1.22 execution decisions recorded at milestone close.)_
 - [Phase ?]: 118-02 pins move_public_to_rindle/1 to version: 1 and excludes generic schema moves.
 - [Phase ?]: Approved D-118-08 guarded move_rindle_to_public/1 for quiesced, exactly reversible host migration down paths; it never drops rindle or calls destructive down/1.
 - [Phase ?]: Phase 118 Plan 04 locks the rindle default, public-only compatibility pairing, and host-owned maintenance-window upgrade contract in docs parity.
+- [Phase ?]: Phase 120 Plan 01 derives its fixed schema-qualified Rindle relation catalog from Rindle.Migration.V1.owned_relations/0 and keeps policy assertions in repository ExUnit.
+- [Phase ?]: Cohort now owns distinct pinned Oban and default Rindle host migrations; all active setup paths run normal ecto.migrate.
+- [Phase ?]: Release Please must promote the sole Unreleased / 0.4.0 staging block into generated [0.4.0] notes and remove the marker.
+- [Phase ?]: Exact-SHA CI and Release workflow gates authorize 0.4.0; local package/demo/Cohort checks remain diagnostic.
 
 ## Blockers/Concerns
 
@@ -189,9 +193,9 @@ _(none open for v1.22 at roadmap creation)_
 
 ## Session Continuity
 
-Last session: 2026-08-10T02:55:13.028Z
-Stopped at: Phase 120 context gathered
-Resume file: .planning/phases/120-adoption-proof-release-truth/120-CONTEXT.md
+Last session: 2026-08-10T21:27:37.185Z
+Stopped at: Completed 120-06-PLAN.md
+Resume file: None
 
 ## Performance Metrics
 
@@ -224,6 +228,9 @@ Resume file: .planning/phases/120-adoption-proof-release-truth/120-CONTEXT.md
 | Phase 118 P02 | 31 min | 2 tasks | 5 files |
 | Phase 118 P03 | 15 min | 2 tasks | 5 files |
 | Phase 118 P04 | ~13 min | 2 tasks | 5 files |
+| Phase 120 P01 | 5 min | 2 tasks | 2 files |
+| Phase 120 P03 | 8m | 3 tasks | 12 files |
+| Phase 120 P06 | 4h 18m | 2 tasks | 3 files |
 
 ## Operator Next Steps
 

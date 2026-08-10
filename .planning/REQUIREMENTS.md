@@ -49,7 +49,7 @@
 - [x] **PROOF-02**: Packed-artifact generated-app smoke and the Cohort adoption demo provision and run
   end-to-end with Rindle in `rindle` and Oban in `public`.
 
-- [ ] **DOCS-01**: README, getting-started, upgrade, migration API docs, docs-parity tests, and the
+- [x] **DOCS-01**: README, getting-started, upgrade, migration API docs, docs-parity tests, and the
   0.4.0 release notes agree on the breaking default, compatibility escape hatch, upgrade order,
   permissions, downtime expectations, and Oban ownership.
 
@@ -85,7 +85,7 @@
 | OPS-01 | Phase 119 | Complete |
 | PROOF-01 | Phase 120 | Complete |
 | PROOF-02 | Phase 120 | Complete |
-| DOCS-01 | Phase 120 | Pending |
+| DOCS-01 | Phase 120 | Complete |
 
 **Coverage:**
 
