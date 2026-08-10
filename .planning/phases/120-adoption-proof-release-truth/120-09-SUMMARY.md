@@ -18,7 +18,7 @@ key-files:
     - .planning/phases/120-adoption-proof-release-truth/120-09-SUMMARY.md
   modified: []
 key-decisions:
-  - "An exact candidate SHA must resolve locally before any isolated TMPDIR run; the supplied next-candidate SHA is not a commit in this checkout, so it cannot be silently replaced."
+  - "A dedicated TMPDIR removes the shared Mix lock failure, but passing docs and explicit-public proof cannot substitute for the populated-upgrade doctor-readiness receipt."
 requirements-completed: []
 coverage:
   - id: D1
@@ -29,7 +29,7 @@ coverage:
         ref: "Task 1 exact chained command"
         status: fail
     human_judgment: true
-    rationale: "The requested next candidate does not resolve as a commit, so the TMPDIR-isolated chain was not started."
+    rationale: "The TMPDIR-isolated docs and explicit-public stages passed, but populated upgrade still reports doctor_ready? false; Cohort was not reached."
   - id: D2
     description: "Immutable exact-SHA CI and Release workflow evidence."
     requirement: PROOF-02
@@ -40,7 +40,7 @@ coverage:
     human_judgment: true
     rationale: "Task 1 is blocked and release authorization requires GitHub-hosted results on the identical candidate SHA."
 metrics:
-  duration: 43m
+  duration: 49m
   completed: 2026-08-10
   tasks: 0
   files: 1
@@ -49,12 +49,13 @@ status: blocked
 
 # Phase 120 Plan 09: Blocked Local Release-Proof Receipt
 
-The requested next candidate does not resolve as a commit in this checkout, so the TMPDIR-isolated Task 1 run cannot start. No local release proof or release authorization has been established.
+The TMPDIR-isolated current candidate passes docs and packed explicit-public proof but fails populated-upgrade doctor readiness. No local release proof or release authorization has been established.
 
 ## Candidate and Checkout Identity
 
-- **Last verified candidate SHA:** `21a6e7db10db6b7514f1b2aea34d02f6c89ec74d` (40 characters)
-- **Last verified candidate checkout:** detached clean worktree at `/private/tmp/rindle-120-09-clean-21a6e7d`
+- **Current candidate SHA:** `38550c9986239b1f6d9065020d198a503b0cef87` (40 characters)
+- **Candidate checkout:** detached clean worktree at `/private/tmp/rindle-120-09-clean-38550c9`
+- **Dedicated TMPDIR:** `/private/tmp/rindle-120-09-tmp-38550c9` (mode 700), used for dependency fetch and every chain stage.
 - **Candidate worktree status:** clean (`git status --porcelain=v1` produced no output)
 - **Shared checkout:** intentionally left dirty; no product source was changed by this plan.
 - **Superseded candidates:** `2a32a0ae34a3866c4a95b1252134d59bc6210f87` predates the OID binding fix; `92201beea7969a80aa7d335646c408cfc424a592` predates the reserved-alias fix; `33146ad16e5b036477d78f39dcbeee0e8408e1e6` predates supported MinIO availability; `7a7efea4ed42ce5139a6a0d873bdc22a434b6cfe` is the pre-MinIO receipt; `c820a2bbfa35794d3e065e859b8191274118bfd3` predates the generated doctor-proof fix; `cc66128c1bb8679d270348ddd71cf263ddcdd9cd` predates the workspace-isolation fix. None is eligible for external release evidence.
@@ -235,11 +236,30 @@ fatal: Not a valid object name 8f5542580463511af1f83346d03a9a322c6093bb^{commit}
 
 The checkout's observed HEAD was `8f5542593e3f5c116d71e3d80f4adde5c4683e16`, which differs from the supplied SHA. It was not substituted as a release candidate. The MinIO and PostgreSQL checks were therefore not used as Task 1 receipts.
 
+### Current Candidate TMPDIR-Isolated Rerun
+
+Candidate `38550c9986239b1f6d9065020d198a503b0cef87` used the dedicated TMPDIR `/private/tmp/rindle-120-09-tmp-38550c9`. PostgreSQL had zero lingering sessions, MinIO health returned `200`, and `TMPDIR=... MIX_ENV=test mix deps.get` exited `0`.
+
+- **Stage 1 — docs/release parity:** passed: `56 tests, 0 failures`.
+- **Stage 2 — packed explicit-public compatibility:** passed (focused ExUnit output `.`).
+- **Stage 3 — packed populated isolation upgrade:** failed at `test/install_smoke/generated_app_smoke_test.exs:527`: `assert report.doctor_ready?` expected truthy, got `false`.
+- **Stage 4 — Cohort Compose smoke:** not executed because the chain uses `&&`.
+
+```text
+1) test generated public and default builds preserve populated Rindle state through the host-owned move
+   Expected truthy, got false
+   code: assert report.doctor_ready?
+   stacktrace:
+     test/install_smoke/generated_app_smoke_test.exs:527: (test)
+```
+
+The session stalled in harness cleanup after this failure and was interrupted with exit `130`; it is explicitly not recorded as success.
+
 ## Required External Evidence (Not Inspected)
 
 Per the plan, GitHub evidence is intentionally not inspected until Task 1 has clean passing local receipts. When the dependency prerequisite has been restored and Task 1 passes, record immutable URLs, run IDs, conclusions, and job/step results for this exact SHA only:
 
-No resolvable next candidate is available. The last verified candidate was `21a6e7db10db6b7514f1b2aea34d02f6c89ec74d`.
+`38550c9986239b1f6d9065020d198a503b0cef87`
 
 Required evidence:
 
@@ -263,10 +283,11 @@ None — the plan required a fail-closed record when an environment prerequisite
 - The superseded `cc66128…` candidate clears the doctor-proof code issue but its packed explicit-public process stalls without a completion receipt.
 - The current candidate reaches neither generated-app scenario because the shared Mix temporary lock disappears. Product source was not changed because this executor owns receipts only.
 - The requested TMPDIR-isolated candidate SHA is not present in the checkout; no substitute candidate was used.
+- The current TMPDIR-isolated candidate removes the Mix lock failure but retains the populated-upgrade doctor readiness failure. Product source was not changed because this executor owns receipts only.
 
 ## Next Phase Readiness
 
-Blocked. Provide the exact resolvable 40-character candidate SHA intended for the TMPDIR-isolated run, then rerun the exact chained Task 1 command. Only after all four stages pass may GitHub Actions evidence be inspected.
+Blocked. Resolve the populated-upgrade `doctor_ready?` failure, then rerun the TMPDIR-isolated exact chained Task 1 command. Only after all four stages pass may GitHub Actions evidence for `38550c9986239b1f6d9065020d198a503b0cef87` be inspected.
 
 ## Self-Check: PASSED
 
