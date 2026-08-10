@@ -272,6 +272,53 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ "Waiting for lifecycle events"
     end
 
+    @tag :phase_119_refusal
+    test "Runtime/Doctor renders a bounded ownership refusal without querying a report", %{
+      conn: conn
+    } do
+      hostile_prefix = "postgres://rindle:credential@db.example/Rindle SQL SELECT secret"
+
+      previous_runtime_status = Application.get_env(:rindle, Rindle.Ops.RuntimeStatus)
+
+      Application.put_env(:rindle, Rindle.Ops.RuntimeStatus,
+        ownership_snapshot: %{
+          rindle: %{
+            classification: :rindle_prefix_mismatch,
+            expected_prefix: hostile_prefix,
+            observed_prefix: "public",
+            owner: :rindle
+          },
+          oban: %{
+            classification: :ready,
+            expected_prefix: "public",
+            observed_prefix: "public",
+            owner: :host
+          }
+        },
+        report_query: fn _operation, _query, _prefix -> raise "REPORT_QUERY_REACHED" end
+      )
+
+      on_exit(fn ->
+        if previous_runtime_status do
+          Application.put_env(:rindle, Rindle.Ops.RuntimeStatus, previous_runtime_status)
+        else
+          Application.delete_env(:rindle, Rindle.Ops.RuntimeStatus)
+        end
+      end)
+
+      {:ok, _view, html} = Phoenix.LiveViewTest.live(conn, "/admin/rindle/runtime-doctor")
+
+      assert_shell(html, "runtime-doctor")
+      assert html =~ "Runtime status unavailable"
+      assert html =~ "rindle_prefix_mismatch"
+      assert html =~ "rindle"
+      assert html =~ "mix rindle.doctor"
+      assert html =~ "Doctor checks"
+      assert html =~ ~s(data-rindle-admin-row="doctor-check")
+      refute html =~ hostile_prefix
+      refute html =~ "REPORT_QUERY_REACHED"
+    end
+
     test "Maintenance keeps only contextless cross-cutting ops (erasure)", %{conn: conn} do
       {:ok, _view, html} = Phoenix.LiveViewTest.live(conn, "/admin/rindle/actions")
 

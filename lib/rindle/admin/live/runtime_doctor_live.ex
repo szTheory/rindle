@@ -140,7 +140,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp load(socket) do
       case Queries.runtime_doctor(runtime_opts: @runtime_opts) do
         {:ok, model} ->
-          assign(socket, model: model, error?: is_map(model.diagnostic))
+          # A bounded runtime refusal is a successful doctor model: retain the
+          # existing checks and actions instead of replacing them with the page-wide
+          # transport-error panel.
+          assign(socket, model: model, error?: false)
       end
     end
 
@@ -186,6 +189,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp failed_checks(%{doctor: %{checks: checks}}) do
       Enum.filter(checks, &(&1.status == :error))
     end
+
+    defp runtime_findings(%{runtime_status: nil}), do: []
 
     defp runtime_findings(%{runtime_status: runtime_status}) do
       runtime_status.variants.findings ++

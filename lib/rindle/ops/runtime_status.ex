@@ -160,11 +160,22 @@ defmodule Rindle.Ops.RuntimeStatus do
     {classification,
      %{
        component: component,
-       expected_prefix: Map.get(snapshot, :expected_prefix),
-       observed_prefix: Map.get(snapshot, :observed_prefix),
-       owner: Map.get(snapshot, :owner)
+       expected_prefix: safe_prefix(component, Map.get(snapshot, :expected_prefix)),
+       observed_prefix: safe_prefix(component, Map.get(snapshot, :observed_prefix)),
+       owner: refusal_owner(component)
      }}
   end
+
+  defp safe_prefix(:rindle, prefix) when prefix in ["rindle", "public"], do: prefix
+
+  defp safe_prefix(:oban, prefix) when is_binary(prefix) do
+    if Regex.match?(~r/\A[a-zA-Z_][a-zA-Z0-9_$]*\z/, prefix), do: prefix, else: "unknown"
+  end
+
+  defp safe_prefix(_component, _prefix), do: "unknown"
+
+  defp refusal_owner(:rindle), do: :rindle
+  defp refusal_owner(:oban), do: :host
 
   defp runtime_checks_report(filters, cutoff, now) do
     rows =
