@@ -62,6 +62,12 @@ The packed populated-upgrade harness now reports exact Rindle catalog facts and 
 - Replaced that alias with `catalog_constraint` in both the Oban snapshot and media-variant foreign-key queries; the focused source policy rejects `pg_constraint constraint`.
 - `mix format --check-formatted test/install_smoke/support/generated_app_helper.ex test/install_smoke/generated_app_smoke_test.exs` and `mix test test/install_smoke/generated_app_smoke_test.exs --only phase_120_upgrade_contract --seed 0` — passed (4 tests, 0 failures). No external smoke was run.
 
+### Follow-up correction: authoritative generated doctor evidence
+
+- The outer `mix rindle.doctor` invocation cannot observe the generated host migration context and is retained only as diagnostic output.
+- Isolation-upgrade readiness now requires the generated smoke test's `doctor_success=true` output, where `Doctor.run_checks` receives its filtered host migration statuses.
+- A focused source policy rejects the brittle outer-doctor phrase. Formatting and the `phase_120_upgrade_contract` suite passed (5 tests, 0 failures); no external smoke was run.
+
 ## Deviations from Plan
 
 ### Auto-fixed Issues

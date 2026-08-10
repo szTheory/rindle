@@ -305,11 +305,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       media_variants_indexes: migration_report["media_variants_indexes"] || [],
       oban_jobs_before: migration_report["oban_jobs_before"] || %{},
       oban_jobs_after: migration_report["oban_jobs_after"] || %{},
-      doctor_ready?:
-        String.contains?(
-          doctor_result.output,
-          "expected rindle; observed rindle; classification ready"
-        ),
+      doctor_ready?: String.contains?(smoke_result.output, "doctor_success=true"),
       doctor_output: doctor_result.output,
       lifecycle_proved?:
         smoke_result.exit_code == 0 and String.contains?(smoke_result.output, "0 failures")

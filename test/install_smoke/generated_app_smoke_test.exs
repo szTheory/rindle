@@ -218,6 +218,17 @@ defmodule Rindle.InstallSmoke.GeneratedAppPhase120FastContractTest do
   end
 
   @tag :phase_120_upgrade_contract
+  test "generated upgrade doctor readiness comes from the generated smoke result" do
+    helper_source = File.read!("test/install_smoke/support/generated_app_helper.ex")
+
+    assert helper_source =~
+             "doctor_ready?: String.contains?(smoke_result.output, \"doctor_success=true\")"
+
+    refute helper_source =~
+             "doctor_result.output,\n          \"expected rindle; observed rindle; classification ready\""
+  end
+
+  @tag :phase_120_upgrade_contract
   test "upgrade catalog policy rejects missing marker, foreign key, and named indexes" do
     report = valid_isolation_upgrade_catalog_report()
 
