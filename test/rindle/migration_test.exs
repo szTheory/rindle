@@ -1,7 +1,6 @@
 defmodule Rindle.MigrationTest do
   use Rindle.DataCase, async: false
 
-  alias Ecto.Adapters.SQL.Sandbox
   alias Rindle.Repo
 
   @marker_table Rindle.Migration.V1.marker_table()
@@ -363,8 +362,10 @@ defmodule Rindle.MigrationTest do
       assert host_relation_snapshots("public") == host_relations_before
     end
 
+    @tag migration_e2e: :lock_contention
+    @tag sandbox: false
     test "turns synchronized lock contention into bounded guidance without leaking lock_timeout" do
-      Sandbox.unboxed_run(Repo, fn ->
+      run_e2e(fn ->
         reset_rindle_schema!()
 
         try do
@@ -413,12 +414,9 @@ defmodule Rindle.MigrationTest do
           assert_fk_enforced!("public")
           assert host_relation_snapshots("public") == host_relations_before
         after
-          cleanup_public_move_fixtures!()
-          Repo.query!("DROP SCHEMA IF EXISTS \"rindle\" CASCADE")
-
-          Repo.query!("DELETE FROM public.schema_migrations WHERE version = $1", [
-            @lock_contention_migration_version
-          ])
+          # This test runs only in a disposable migration_e2e database. Avoid
+          # cross-connection cleanup DDL after Ecto.Migrator has used its own task.
+          :ok
         end
       end)
     end
@@ -485,6 +483,11 @@ defmodule Rindle.MigrationTest do
 
     test "reads production privilege state when no test override is present" do
       Process.delete(:rindle_migration_test_privileges)
+      reset_rindle_schema!()
+
+      run_up([prefix: "public"], fn ->
+        Rindle.Migration.up(version: 1, prefix: "public")
+      end)
 
       assert {:provisionable_absent_target, snapshot} =
                run_move(fn -> Rindle.Migration.V1.preflight_public_to_rindle() end)
@@ -493,11 +496,91 @@ defmodule Rindle.MigrationTest do
       assert is_boolean(snapshot.target_usable?)
       assert is_boolean(snapshot.public_usable?)
     end
+
+    @tag migration_e2e: :database_privilege
+    @tag sandbox: false
+    test "refuses before schema creation for a real role without database CREATE" do
+      run_e2e(fn ->
+        role = create_restricted_role!()
+
+        try do
+          reset_public_rindle_state!()
+          prepare_public_source_owned_by!(role)
+
+          as_role!(role, fn ->
+            fixture = insert_public_move_fixture!()
+
+            assert_raise ArgumentError, ~r/database_create_denied.*grant database CREATE/is, fn ->
+              run_move(fn -> Rindle.Migration.move_public_to_rindle(version: 1) end)
+            end
+
+            assert_fixture_present!("public", fixture)
+          end)
+
+          refute schema_exists?("rindle")
+        after
+          reset_role!()
+          reset_public_rindle_state!()
+          drop_role!(role)
+        end
+      end)
+    end
+
+    @tag migration_e2e: :schema_privilege
+    @tag sandbox: false
+    test "refuses before relation moves for a real role without target schema access" do
+      run_e2e(fn ->
+        role = create_restricted_role!()
+
+        try do
+          reset_public_rindle_state!()
+          Repo.query!("CREATE SCHEMA rindle")
+          prepare_public_source_owned_by!(role)
+
+          as_role!(role, fn ->
+            fixture = insert_public_move_fixture!()
+
+            assert_raise ArgumentError, ~r/rindle_unusable.*grant CREATE and USAGE/is, fn ->
+              run_move(fn -> Rindle.Migration.move_public_to_rindle(version: 1) end)
+            end
+
+            assert_fixture_present!("public", fixture)
+          end)
+
+          assert schema_exists?("rindle")
+
+          assert Enum.all?(
+                   Rindle.Migration.V1.owned_relations(),
+                   &(not table_exists?("rindle", &1))
+                 )
+        after
+          reset_role!()
+          reset_public_rindle_state!()
+          drop_role!(role)
+        end
+      end)
+    end
+
+    test "refuses a malformed marker before querying its version" do
+      reset_rindle_schema!()
+
+      run_up([prefix: "public"], fn ->
+        Rindle.Migration.up(version: 1, prefix: "public")
+      end)
+
+      Repo.query!("DROP TABLE public.rindle_migration_versions")
+      Repo.query!("CREATE TABLE public.rindle_migration_versions (marker text PRIMARY KEY)")
+
+      assert {:refusal, :public_marker_invalid} =
+               run_move(fn -> Rindle.Migration.V1.preflight_public_to_rindle() end)
+    end
   end
 
   describe "documented host migration" do
+    @tag migration_e2e: :documented
+    @tag sandbox: false
     test "moves the populated fixed relation set through Ecto.Migrator and reverses it safely" do
-      Sandbox.unboxed_run(Repo, fn ->
+      run_e2e(fn ->
         Repo.query!("DROP SCHEMA IF EXISTS \"rindle\" CASCADE")
 
         try do
@@ -511,6 +594,7 @@ defmodule Rindle.MigrationTest do
 
           fixture = insert_public_move_fixture!()
           oban_jobs_before = relation_snapshot("public", "oban_jobs")
+          host_relations_before = host_relation_snapshots("public")
           index_before = index_names("public", "media_assets")
           sequence_before = owned_sequences("public", "media_assets")
 
@@ -521,8 +605,6 @@ defmodule Rindle.MigrationTest do
                      DocumentedMoveMigration,
                      log: false
                    )
-
-          host_relations_after_up = host_relation_snapshots("public")
 
           assert schema_exists?("rindle")
 
@@ -564,21 +646,13 @@ defmodule Rindle.MigrationTest do
           assert owned_sequences("public", "media_assets") == sequence_before
           assert_fk_enforced!("public")
 
-          assert host_relation_snapshots("public") ==
-                   Map.put(host_relations_after_up, "schema_migrations", {:present, 0})
+          assert host_relation_snapshots("public") == host_relations_before
 
           refute table_exists?("rindle", "schema_migrations")
         after
-          run_down([prefix: "public"], fn ->
-            Rindle.Migration.down(version: 1, prefix: "public")
-          end)
-
-          Repo.query!("DROP SCHEMA IF EXISTS \"rindle\" CASCADE")
-          Repo.query!("DROP TABLE IF EXISTS public.oban_jobs")
-
-          Repo.query!("DELETE FROM public.schema_migrations WHERE version = $1", [
-            @documented_move_migration_version
-          ])
+          # This test runs only in a disposable migration_e2e database. Avoid
+          # cross-connection cleanup DDL after Ecto.Migrator has used its own task.
+          :ok
         end
       end)
     end
@@ -591,6 +665,8 @@ defmodule Rindle.MigrationTest do
   defp run_down(opts, fun), do: run_migration(:down, opts, fun)
 
   defp run_move(fun), do: run_migration(:up, [], fun)
+
+  defp run_e2e(fun), do: fun.()
 
   defp run_migration(direction, opts, fun) do
     {:ok, runner} =
@@ -617,6 +693,64 @@ defmodule Rindle.MigrationTest do
     on_exit(fn ->
       Repo.query!("DROP SCHEMA IF EXISTS \"rindle\" CASCADE")
     end)
+  end
+
+  defp reset_public_rindle_state! do
+    Repo.query!("DROP SCHEMA IF EXISTS \"rindle\" CASCADE")
+
+    for table <- [@marker_table | Enum.reverse(@rindle_tables)] do
+      Repo.query!("DROP TABLE IF EXISTS #{qualified("public", table)} CASCADE")
+    end
+
+    Repo.query!("DROP TABLE IF EXISTS public.oban_jobs")
+    cleanup_migration_ledger!()
+  end
+
+  defp create_restricted_role! do
+    role = "rindle_migration_e2e_#{System.unique_integer([:positive])}"
+
+    Repo.query!("CREATE ROLE #{quote_ident(role)} NOLOGIN")
+    Repo.query!("GRANT USAGE, CREATE ON SCHEMA public TO #{quote_ident(role)}")
+
+    role
+  end
+
+  defp prepare_public_source_owned_by!(role) do
+    run_up([prefix: "public"], fn ->
+      Rindle.Migration.up(version: 1, prefix: "public")
+    end)
+
+    for relation <- Rindle.Migration.V1.owned_relations() do
+      Repo.query!("ALTER TABLE #{qualified("public", relation)} OWNER TO #{quote_ident(role)}")
+    end
+  end
+
+  defp as_role!(role, fun) do
+    Repo.query!("SET ROLE #{quote_ident(role)}")
+
+    try do
+      fun.()
+    after
+      reset_role!()
+    end
+  end
+
+  defp reset_role!, do: Repo.query!("RESET ROLE")
+
+  defp drop_role!(role) do
+    Repo.query!("REASSIGN OWNED BY #{quote_ident(role)} TO CURRENT_USER")
+    Repo.query!("DROP OWNED BY #{quote_ident(role)}")
+    Repo.query!("DROP ROLE IF EXISTS #{quote_ident(role)}")
+  end
+
+  defp cleanup_migration_ledger! do
+    Repo.query!("DELETE FROM public.schema_migrations WHERE version = $1", [
+      @documented_move_migration_version
+    ])
+
+    Repo.query!("DELETE FROM public.schema_migrations WHERE version = $1", [
+      @lock_contention_migration_version
+    ])
   end
 
   defp hold_access_exclusive_lock!(schema, table) do
@@ -709,24 +843,6 @@ defmodule Rindle.MigrationTest do
     assert marker_versions("public") == [1]
     assert_fk_enforced!("public")
     assert host_relation_snapshots("public") == host_relations_before
-  end
-
-  defp cleanup_public_move_fixtures! do
-    Repo.query!("""
-    DELETE FROM public.media_attachments
-    WHERE asset_id IN (
-      SELECT id FROM public.media_assets WHERE storage_key LIKE 'move-fixture/%'
-    )
-    """)
-
-    Repo.query!("""
-    DELETE FROM public.media_variants
-    WHERE asset_id IN (
-      SELECT id FROM public.media_assets WHERE storage_key LIKE 'move-fixture/%'
-    )
-    """)
-
-    Repo.query!("DELETE FROM public.media_assets WHERE storage_key LIKE 'move-fixture/%'")
   end
 
   defp schema_exists?(schema) do

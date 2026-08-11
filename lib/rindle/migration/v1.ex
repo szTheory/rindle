@@ -574,15 +574,37 @@ defmodule Rindle.Migration.V1 do
   defp marker_rows(relation_rows) do
     relation_rows
     |> Enum.filter(fn [_schema, relation, _owned?] -> relation == @marker_table end)
-    |> Enum.flat_map(fn [schema, _relation, _owned?] ->
-      %{rows: rows} =
-        repo().query!(
-          "SELECT version FROM #{qualified(schema, @marker_table)} ORDER BY version",
-          []
-        )
+    |> Enum.flat_map(fn [schema, _relation, owned?] ->
+      if owned? and marker_has_version_column?(schema) do
+        %{rows: rows} =
+          repo().query!(
+            "SELECT version FROM #{qualified(schema, @marker_table)} ORDER BY version",
+            []
+          )
 
-      Enum.map(rows, fn [version] -> [schema, version] end)
+        Enum.map(rows, fn [version] -> [schema, version] end)
+      else
+        [[schema, :invalid_marker]]
+      end
     end)
+  end
+
+  defp marker_has_version_column?(schema) do
+    %{rows: [[exists?]]} =
+      repo().query!(
+        """
+        SELECT EXISTS (
+          SELECT 1
+          FROM information_schema.columns
+          WHERE table_schema = $1
+            AND table_name = $2
+            AND column_name = 'version'
+        )
+        """,
+        [schema, @marker_table]
+      )
+
+    exists?
   end
 
   defp test_privilege_override do

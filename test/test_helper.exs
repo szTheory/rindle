@@ -33,9 +33,9 @@ targeted_adopter_or_integration? =
 
 exclude_tags =
   if targeted_adopter_or_integration? do
-    [:minio, :contract, :canary]
+    [:minio, :contract, :migration_e2e, :canary]
   else
-    [:integration, :minio, :contract, :adopter, :canary]
+    [:integration, :minio, :contract, :adopter, :migration_e2e, :canary]
   end
 
 # Only emit JUnit XML in CI to keep local runs quiet (CI sets the CI env var).
