@@ -24,11 +24,8 @@ defmodule Rindle.Domain.MediaUploadSession do
   `Rindle.Upload.Broker` for the lifecycle entry points.
   """
 
-  use Ecto.Schema
+  use Rindle.Schema
   import Ecto.Changeset
-
-  @primary_key {:id, :binary_id, autogenerate: true}
-  @foreign_key_type :binary_id
 
   @states [
     "initialized",

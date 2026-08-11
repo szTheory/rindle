@@ -23,6 +23,7 @@ defmodule Rindle.ApiSurfaceBoundaryTest do
     Rindle.Scanner,
     Rindle.Processor,
     Rindle.Processor.Image,
+    Rindle.Migration,
     Mix.Tasks.Rindle.AbortIncompleteUploads,
     Mix.Tasks.Rindle.BackfillMetadata,
     Mix.Tasks.Rindle.BatchOwnerErasure,
@@ -50,7 +51,9 @@ defmodule Rindle.ApiSurfaceBoundaryTest do
     Rindle.Security.UploadValidation,
     Rindle.Profile.Validator,
     Rindle.Profile.Digest,
-    Rindle.Storage.Capabilities
+    Rindle.Storage.Capabilities,
+    Rindle.Migration.Options,
+    Rindle.Migration.V1
   ]
 
   @domain_hidden_modules [
@@ -169,6 +172,26 @@ defmodule Rindle.ApiSurfaceBoundaryTest do
     test "runtime_status/1 stays publicly documented on the facade" do
       assert visible_function_doc?(Rindle, :runtime_status, 1),
              "Rindle.runtime_status/1 should be publicly documented"
+    end
+
+    test "versioned migration API stays publicly documented" do
+      assert visible_function_doc?(Rindle.Migration, :up, 1),
+             "Rindle.Migration.up/1 should be publicly documented"
+
+      assert visible_function_doc?(Rindle.Migration, :down, 1),
+             "Rindle.Migration.down/1 should be publicly documented"
+
+      assert visible_function_doc?(Rindle.Migration, :move_public_to_rindle, 1),
+             "Rindle.Migration.move_public_to_rindle/1 should be publicly documented"
+
+      assert visible_function_doc?(Rindle.Migration, :move_rindle_to_public, 1),
+             "Rindle.Migration.move_rindle_to_public/1 should be publicly documented"
+
+      refute function_exported?(Rindle.Migration, :move, 1),
+             "Rindle.Migration must not expose a generic schema mover"
+
+      refute function_exported?(Rindle.Migration, :move, 2),
+             "Rindle.Migration must not expose a generic schema mover"
     end
 
     test "admin read helpers stay out of the public Rindle facade" do

@@ -2,52 +2,55 @@
 
 ## Current State
 
-**Last shipped:** v1.21 CI/DX Reliability Tail — shipped 2026-06-29 and archived at
-[.planning/milestones/v1.21-ROADMAP.md](milestones/v1.21-ROADMAP.md) with 24/24 requirements
-validated across 5/5 verified phases (108–112). A non-feature/DX companion to v1.20 that made the
-merge gate deterministic and trustworthy — a green PR now reliably means a green `main`. Delivered:
-single-run coverage (one `mix coveralls.multiple --type local --type json` per lane, killing the
-double-suite run; COV-01..04); subprocess `:epipe` hardening (`run_isolated/5` absorbs the MuonTrap
-#98 broken-pipe `{:EXIT, port, :epipe}` exit at the single AV chokepoint; EPIPE-01..05 + TRUTH-01
-invariant-13 correction); async-isolation hardening (`Rindle.Config.repo/0` now consults a
-`$callers`-aware process-dictionary override before app-env, retiring the global `put_env(:rindle,
-:repo, …)` swap; the v1.20 async-safety guard's `:global_repo_swap` rule makes the footgun
-un-reintroducible; ISO-01..05); five merge-blocking shipped-artifact regression-lock meta-tests for
-the 2026-06-26 cluster (LOCK-01..05); and the lean `adoption-demo-e2e-smoke` PR lane wired into
-`CI Summary` LAST — only after the de-flake phases landed and 3 green push:main runs were observed
-(GATE-01..04). The two adopter-invisible `lib/` patches (`av/subprocess.ex`, `config.ex`) ship as Hex
-**0.3.2** via release-please `fix:` commits. All three hard release-coupling invariants held throughout.
+**Last shipped:** v1.22 OSS Quality & Trust Hardening — shipped 2026-07-02 and archived at
+[.planning/milestones/v1.22-ROADMAP.md](milestones/v1.22-ROADMAP.md), with requirements archived at
+[.planning/milestones/v1.22-REQUIREMENTS.md](milestones/v1.22-REQUIREMENTS.md) and audit archived at
+[.planning/milestones/v1.22-MILESTONE-AUDIT.md](milestones/v1.22-MILESTONE-AUDIT.md). It satisfied
+14/14 requirements across 4/4 verified phases (113–116): EVAL-01, HYGIENE-01/02, TRUST-01/02/03,
+META-01/02, VERSION-01/02, README-01/02, and MIGRATE-01/02.
 
-**Proof posture:** v1.21 audit `passed` (`milestones/v1.21-MILESTONE-AUDIT.md`): 24/24 requirements
-satisfied via 3-source cross-reference, integration **14/14 WIRED** (0 blockers, 0 warnings), the
-CI-gate E2E flow complete, and the load-bearing de-flake→lock→shift-left order proven in the shipped
-artifacts (the smoke lane's needs-wiring commit is the last `ci.yml` touch). Tech debt is minimal and
-advisory (WR-01 cyclic-`$callers` defense-in-depth hardening; 7 pre-existing `actionlint` findings in
-unrelated `ci.yml` jobs, byte-identical before/after). One stale v1.18-era docker-demo-warnings
-tooling todo was acknowledged and deferred at close — outside v1.21 scope (see STATE.md Deferred Items).
+**Delivered:** v1.22 closed the cheap, high-ROI OSS trust/positioning/governance gaps surfaced by
+SEED-005; cut and reconciled the stuck Hex 0.3.2 release; added `SECURITY.md`, `CODE_OF_CONDUCT.md`,
+issue/PR templates, Hex package Changelog/Docs links, and public owner-derived maintainer verification;
+made README/CONTRIBUTING explicit about pre-1.0 stability and product-fit boundaries; and shipped the
+non-breaking versioned `Rindle.Migration.up/1` + `down/1` substrate with host-owned `Oban.Migration`.
 
-**Prior milestone:** v1.20 CI/CD Performance — shipped 2026-06-22, 18/18 requirements validated across
-5/5 phases (103–107) with **zero `lib/` change** (CI observability + baseline, `setup-elixir`/
-`setup-minio` composites + PLT restore/save split, single `CI Summary` aggregate required check + live
-branch-protection flip, fast PR lane + `nightly.yml` split, reliability/security/DX hardening).
-Archived to `milestones/v1.20-*.md`. v1.19 Design-System Stress-Test shipped 2026-06-19 (20/20); v1.18
-Admin Console & Adoption Lab closed `shipped` 2026-06-20 after HUMAN-UAT sign-off. All archived.
+**Proof posture:** v1.22 audit `passed`: 14/14 requirements satisfied via 3-source cross-reference,
+9/9 integration links wired, 6/6 E2E flows pass, 4/4 phases Nyquist-compliant, and open-artifact audit
+clean. The closeout also resolved the stale v1.18-era Cohort Docker demo startup warnings todo
+(`mox` now available in dev/test; `inotify-tools` installed in the demo image).
 
-**Open planning debt:** None. v1.18, v1.19, v1.20, and v1.21 are all shipped and archived.
+**Prior milestone:** v1.21 CI/DX Reliability Tail — shipped 2026-06-29, archived at
+`milestones/v1.21-*.md`, and made the merge gate deterministic and trustworthy. Its two
+adopter-invisible `lib/` fixes shipped as Hex **0.3.2** after v1.22 Phase 113 unstuck release-please.
+v1.20 CI/CD Performance, v1.19 Design-System Stress-Test, and v1.18 Admin Console & Adoption Lab are
+all shipped and archived.
 
-**Active milestone:** **v1.22 OSS Quality & Trust Hardening** — chartered 2026-06-29 from **SEED-005**,
-the non-feature signal for a two-milestone software-quality consolidation arc (v1.22 trust hardening →
-v1.23 Postgres schema isolation). Phases resume at **113**. Feature milestones remain demand-gated on
-**LIFE-06** / **STREAM-10**; this arc is non-feature/DX, so the feature-pause block does not apply.
+**Open planning debt:** None carried forward from v1.22.
 
-> **Release-state correction (2026-06-29):** Hex **0.3.2 was never published.** Hex live = 0.3.1;
-> `mix.exs` / `.release-please-manifest.json` / CHANGELOG all = 0.3.1. The v1.21 `lib/` fixes
-> (`fix(109-01)` `:epipe` absorb, `fix(110-01..04)` config override) plus 3 `feat` / 6 `fix` commits are
-> merged to `main` but **unreleased** — no `release rindle 0.3.2` commit and no open release-please PR.
-> The v1.21 prose below claiming "ships as Hex 0.3.2" is therefore aspirational, not shipped. v1.22
-> HYGIENE cuts the stuck 0.3.2 release and reconciles the claim.
+## Current Milestone: v1.23 Postgres Schema Isolation
 
-## Current Milestone: v1.22 OSS Quality & Trust Hardening
+**Goal:** Make Rindle a respectful Postgres guest by isolating its domain tables in a dedicated `rindle`
+schema by default, with an explicit safe upgrade route and truthful runtime/install proof — a breaking
+0.4.0 release.
+
+**Target features:**
+- Config-driven schema-prefix default and `prefix: "public"` compatibility opt-out.
+- Versioned migration and upgrade path that creates/moves the six Rindle tables without taking ownership
+  of host-owned Oban tables.
+- Prefix-correct runtime diagnostics, generated-app proof, demo provisioning, and release/docs truth.
+
+Feature milestones unrelated to schema isolation remain demand-gated on **LIFE-06** / **STREAM-10**.
+
+> **Release-state reconciliation (2026-06-30):** Hex 0.3.2 (the two adopter-invisible v1.21 `lib/` `fix:`
+> patches) was merged to `main` in v1.21 but left unreleased — release-please never opened the 0.3.2 PR
+> (Hex live was 0.3.1). v1.22 Phase 113 (HYGIENE-01) cut the stuck release; 0.3.2 is now live. The cut
+> required three fixes in series: rotating the expired `RELEASE_PLEASE_TOKEN`, relabeling merged PR #40
+> `autorelease: pending` → `autorelease: tagged`, and a manual publish-dispatch (the new fine-grained PAT
+> lacked `Actions: write`). `mix.exs` / `.release-please-manifest.json` / CHANGELOG now reflect 0.3.2,
+> written by release-please. The v1.21 prose below claiming "ships as Hex 0.3.2" is therefore now true.
+
+## Last Milestone: v1.22 OSS Quality & Trust Hardening
 
 **Goal:** Close the cheap, high-ROI OSS trust/positioning/governance gaps surfaced by the 2026-06-29
 software-quality recon, and ship the versioned `Rindle.Migration` substrate v1.23 needs — low risk, no
@@ -58,7 +61,8 @@ breaking change, ships as a 0.3.x minor (0.4.0 is reserved for v1.23's breaking 
   (sharpened recon; not the full 36-dimension report).
 - **TRUST** — `SECURITY.md` (untrusted uploads / MIME sniffing / signed delivery / webhook HMAC),
   `CODE_OF_CONDUCT.md`, `.github/ISSUE_TEMPLATE/` + `PULL_REQUEST_TEMPLATE.md`.
-- **META** — Hex `package:` metadata: `links` "Changelog" + "Docs" (HexDocs convention) + `maintainers`.
+- **META** — Hex `package:` metadata: `links` "Changelog" + "Docs" (HexDocs convention) plus
+  owner-derived maintainer verification from the public Hex API.
 - **VERSION** — stated SemVer / pre-1.0 stability contract (README + CONTRIBUTING) + generalized
   `guides/upgrading.md` beyond the single pre-0.1.4 case.
 - **README** — image-first "first attachment in ~2 minutes" path (today's first-run is FFmpeg/AV-heavy)
@@ -67,8 +71,9 @@ breaking change, ships as a 0.3.x minor (0.4.0 is reserved for v1.23's breaking 
   raw 15-file `Ecto.Migrator` copy-paste install path; **stop creating `oban_jobs`** (adopter owns Oban).
   Non-breaking: defaults keep tables in `public`; existing adopters' applied migrations stay valid. This
   is the foundation v1.23 builds the schema prefix onto.
-- **HYGIENE** — cut the stuck Hex 0.3.2 release (adopter-facing `:epipe`/config fixes are merged-but-
-  unreleased) and reconcile PROJECT.md; fix stale `status: open` frontmatter on SEED-003/004 (consumed).
+- **HYGIENE** — cut the stuck Hex 0.3.2 release (adopter-facing `:epipe`/config fixes were merged-but-
+  unreleased; **now live** — released in v1.22 Phase 113) and reconcile PROJECT.md; fix stale
+  `status: open` frontmatter on SEED-003/004 (consumed).
 
 **Key context:** Non-feature/DX charter from **SEED-005**. Two false premises were corrected in recon:
 szTheory peer deps → empty (Rindle depends on none), and CI/CD performance → already done by v1.20+v1.21.
@@ -76,8 +81,13 @@ The `Rindle.Migration` module is intentionally pulled into v1.22 (not v1.23) bec
 fix in its own right and de-risks the v1.23 breaking flip. Full arc: SEED-005 + the approved roadmap at
 `/Users/jon/.claude/plans/software-quality-evaluation-prompt-txt-gleaming-sifakis.md`.
 
+**Shipped (2026-07-02):** v1.22 implementation is verified and archived. Adopters now install Rindle
+tables through pinned `up/1` + `down/1` migration wrappers with default `public` behavior, legacy packaged
+migration histories stay valid, and Rindle no longer creates host-owned `oban_jobs`; install,
+getting-started, and upgrade docs point to host migrations plus adopter-owned `Oban.Migration`.
 
-## Last Milestone: v1.21 CI/DX Reliability Tail (shipped 2026-06-29)
+
+## Prior Milestone: v1.21 CI/DX Reliability Tail (shipped 2026-06-29)
 
 <details>
 <summary>v1.21 CI/DX Reliability Tail — shipped scope (collapsed)</summary>
@@ -106,7 +116,8 @@ smell — so a green PR reliably means a green `main`.
   MuonTrap-only; no Rambo in `mix.lock`); correct it.
 
 **Key context:** Non-feature/DX charter from **SEED-004**; two adopter-invisible `lib/` patches
-authorized (D-v1.21-01) → ships Hex **0.3.2**. Hard invariants carry over from v1.20: never rename
+authorized (D-v1.21-01) → Hex **0.3.2** (merged in v1.21, released in v1.22 Phase 113 — was
+merged-but-unreleased). Hard invariants carry over from v1.20: never rename
 `ci.yml` / `name: CI` (release-train coupling); `CI Summary` keeps `skipped`==pass (fork-PR safety);
 never weaken the release full-verification gate. Research locked in `.planning/research/v1.21-*.md`.
 Phases resume at **108**.
@@ -402,20 +413,25 @@ To keep this posture durable across GSD workflows:
   `mix_audit`, `mix ci` alias, faithful Linux-Chromium repro (HARD-01..04). 18/18 validated.
   Archived: `milestones/v1.20-REQUIREMENTS.md`.
 - ✓ **v1.21 CI/DX Reliability Tail** — shipped 2026-06-29 (non-feature/DX, two adopter-invisible
-  `lib/` `fix:` patches → Hex 0.3.2): single-run coverage killing the double-suite run
+  `lib/` `fix:` patches → Hex 0.3.2, released in v1.22 Phase 113 — was merged-but-unreleased):
+  single-run coverage killing the double-suite run
   (COV-01..04), subprocess `:epipe` hardening via `run_isolated/5` at the AV chokepoint + invariant-13
   truth correction (EPIPE-01..05, TRUTH-01), `$callers`-aware process-scoped repo override retiring the
   global swap + `:global_repo_swap` guard rule (ISO-01..05), five shipped-artifact regression-lock
   meta-tests for the 2026-06-26 cluster (LOCK-01..05), and the lean `adoption-demo-e2e-smoke` PR lane
   wired into `CI Summary` LAST after de-flake + 3 green main runs (GATE-01..04). 24/24 validated.
   Archived: `milestones/v1.21-REQUIREMENTS.md`.
+- ✓ **v1.22 OSS Quality & Trust Hardening** — shipped 2026-07-02 (non-feature/DX): concise OSS-quality
+  evaluation baseline (EVAL-01), release-train hygiene and live Hex 0.3.2 reconciliation (HYGIENE-01..02),
+  governance/trust artifacts plus security intake (TRUST-01..04), Hex metadata links and owner-derived
+  maintainer verification (META-01..03), pre-1.0/versioning/README positioning (VERSION-01..04,
+  README-01), and versioned `Rindle.Migration` with host-owned Oban setup (MIGRATE-01..02). 14/14
+  validated. Archived: `milestones/v1.22-REQUIREMENTS.md`.
 
 ### Active
 
-**v1.22 OSS Quality & Trust Hardening** (chartered 2026-06-29 from SEED-005) — see the Current Milestone
-section above. Requirement areas: EVAL, TRUST, META, VERSION, README, MIGRATE, HYGIENE. Scoped in
-`.planning/REQUIREMENTS.md`; phases begin at 113. Followed by **v1.23 Postgres Schema Isolation**
-(breaking → 0.4.0), chartered after v1.22 ships.
+- [ ] v1.23 Postgres Schema Isolation — define, implement, and verify the breaking 0.4.0 default-prefix
+  change with an explicit compatibility and upgrade path.
 
 **Demand-gated for next feature milestone:**
 
@@ -596,7 +612,7 @@ that section on next docs maintenance pass.
 | Never rename `ci.yml`/`name: CI`; never weaken the release full-verification gate | Release-train coupling (`release-please-automerge.yml` + `gate-ci-green`) reads the workflow name + full-matrix push:main run; renaming or weakening it would silently break publishing | ✓ Held v1.20 (byte-unchanged across all 5 phases) |
 | Scope the `package-consumer` long pole by trigger (lean `image` smoke on PR; full 5-profile matrix + preflight + dry-run on push:main/nightly/release) | The headline wall-clock cut; release readiness proven by the push:main run conclusion via `gate-ci-green`, not by a PR-gating check name | ✓ Good v1.20 (Phase 106; PR p95 under ≤7 min) |
 | ExUnit async conversion is gated behind an AST static-safety meta-test; `--partitions` deferred until measured core-starvation | Fail-closed guard prevents silent shared-state races; partitioning payoff is evidence-gated, not assumed (DEFER-02) | ✓ Good v1.20 (Phase 107; 15 modules converted, 2 latent races fixed) |
-| D-v1.21-01: v1.21 relaxes v1.20's zero-`lib/`-change invariant for two adopter-invisible hardening patches (`av/subprocess.ex` MuonTrap-#98 `:epipe` absorb; `config.ex` `$callers`-aware process-scoped repo override) | The correctness-true fixes for the recurring `:epipe` flake and the async-isolation root cause both live in production code; both are adopter-invisible (no public API / return-shape / error-vocab / security-invariant change), so they ship as a `fix:` patch (0.3.2) without escalation beyond this authorization | ✓ Good v1.21 (both patches landed adopter-invisible; audit confirmed `lib/` seam unchanged at all 11 Ffmpeg/Ffprobe call sites + default no-override repo path) |
+| D-v1.21-01: v1.21 relaxes v1.20's zero-`lib/`-change invariant for two adopter-invisible hardening patches (`av/subprocess.ex` MuonTrap-#98 `:epipe` absorb; `config.ex` `$callers`-aware process-scoped repo override) | The correctness-true fixes for the recurring `:epipe` flake and the async-isolation root cause both live in production code; both are adopter-invisible (no public API / return-shape / error-vocab / security-invariant change), so they ship as a `fix:` patch (0.3.2 — merged in v1.21, released in v1.22 Phase 113) without escalation beyond this authorization | ✓ Good v1.21 (both patches landed adopter-invisible; audit confirmed `lib/` seam unchanged at all 11 Ffmpeg/Ffprobe call sites + default no-override repo path) |
 | D-v1.21-02: keep `mix coveralls` (`local` analyzer) as the merge-gate; never derive the gate from `coveralls.json`'s exit code | ExCoveralls 0.18.5 source: `coveralls.json` does NOT call `ensure_minimum_coverage`, so gating on it would silently drop threshold enforcement; `coveralls.multiple --type local --type json` gives both from one run | ✓ Good v1.21 (Phase 108; one suite run per lane emits both the `local` gate and `excoveralls.json`) |
 
 
@@ -808,8 +824,4 @@ This document evolves at phase transitions and milestone boundaries.
    (`workflow.milestone_boundary.block_feature_milestone_without_signal`)
 
 ---
-*Last updated: 2026-06-29 after chartering v1.22 OSS Quality & Trust Hardening (from SEED-005) — a
-two-milestone software-quality consolidation arc (v1.22 trust hardening → v1.23 Postgres schema
-isolation). Recon corrected two premises (szTheory deps → empty; CI/CD perf → already done by v1.20+v1.21)
-and confirmed Hex 0.3.2 was never published (v1.21 `lib/` fixes are merged-but-unreleased). v1.21 phase
-dirs archived to `milestones/v1.21-phases/`. Phases resume at 113.*
+*Last updated: 2026-07-02 after shipping and archiving v1.22 OSS Quality & Trust Hardening.*

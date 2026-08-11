@@ -1,10 +1,11 @@
 defmodule Rindle.Admin.QueriesTest do
-  use Rindle.DataCase, async: true
+  use Rindle.DataCase, async: false
   use Oban.Testing, repo: Rindle.Repo
 
   import Mox
 
   alias Rindle.Admin.Queries
+  alias Rindle.Ops.RuntimeStatus
 
   alias Rindle.Domain.{
     MediaAsset,
@@ -246,6 +247,77 @@ defmodule Rindle.Admin.QueriesTest do
 
     encoded = inspect(model)
     refute encoded =~ "Mix.Tasks.Rindle.Doctor"
+
+    assert Enum.any?(model.doctor.checks, &(&1.id == "doctor.rindle_schema.ready"))
+    assert Enum.any?(model.doctor.checks, &(&1.id == "doctor.oban_jobs.ready"))
+
+    for check <- model.doctor.checks,
+        check.id in ["doctor.rindle_schema.ready", "doctor.oban_jobs.ready"] do
+      assert check.owner in [:rindle, :host]
+      assert is_binary(check.expected_prefix)
+      assert is_binary(check.observed_prefix)
+    end
+  end
+
+  @tag :phase_119_redaction
+  test "runtime_doctor/1 projects runtime failures and migration failures into bounded diagnostic data" do
+    sentinel = "SELECT secret FROM pg_catalog -- Postgrex.Error credential=demo-password"
+    previous = Application.get_env(:rindle, RuntimeStatus)
+
+    stub(Rindle.StorageMock, :capabilities, fn -> [:signed_url] end)
+
+    Application.put_env(:rindle, RuntimeStatus,
+      ownership_snapshot: %{
+        rindle: %{
+          classification: :rindle_prefix_mismatch,
+          expected_prefix: "rindle",
+          observed_prefix: "public",
+          owner: :rindle
+        },
+        oban: %{
+          classification: :ready,
+          expected_prefix: "public",
+          observed_prefix: "public",
+          owner: :host
+        }
+      },
+      report_query: fn _operation, _query, _prefix -> raise "REPORT_QUERY_REACHED" end
+    )
+
+    on_exit(fn ->
+      if previous do
+        Application.put_env(:rindle, RuntimeStatus, previous)
+      else
+        Application.delete_env(:rindle, RuntimeStatus)
+      end
+    end)
+
+    assert {:ok, model} =
+             Queries.runtime_doctor(
+               doctor_opts: [
+                 probe: fn -> :ok end,
+                 env: %{},
+                 profiles: [],
+                 oban_config: [repo: Rindle.Repo, queues: []],
+                 migration_statuses: [{:down, -1, "migration inspection failed: #{sentinel}"}]
+               ]
+             )
+
+    assert model.runtime_status == nil
+    assert model.diagnostic.status == "error"
+    assert model.diagnostic.classification == "rindle_prefix_mismatch"
+    assert model.diagnostic.owner == "rindle"
+    assert model.diagnostic.next_action == "mix rindle.doctor"
+    assert model.diagnostic_text =~ "no report queries ran"
+    assert model.diagnostic_text =~ "mix rindle.doctor"
+
+    migration = Enum.find(model.doctor.checks, &(&1.id == "doctor.migrations.pending"))
+    assert migration.status == :error
+    assert migration.summary =~ "migration inspection failed"
+
+    refute inspect(model) =~ sentinel
+    refute model.diagnostic_text =~ "Postgrex.Error"
+    refute inspect(model) =~ "REPORT_QUERY_REACHED"
   end
 
   test "actions_directory/0 keeps only contextless cross-cutting ops (UI-SPEC §E, D-98-10)" do

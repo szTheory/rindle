@@ -40,7 +40,14 @@ run_install_smoke_profile() {
   local profile="$1"
   echo "Public smoke: profile=${profile}"
   export RINDLE_INSTALL_SMOKE_PROFILE="$profile"
-  mix test test/install_smoke/generated_app_smoke_test.exs --include minio
+  # D-08: Run the parent install-smoke suite with CI UNSET so test_helper.exs does
+  # NOT engage JUnitFormatter for this crash-prone clean-room shell-out. On an
+  # abnormal exit (e.g. an :epipe child crash), JUnitFormatter.handle_suite_finished/1
+  # would try to write rindle-junit.xml during a teardown and surface an opaque
+  # `File.Error ... bad argument` that MASKS the real crash (Pitfall 3, run 28246413418).
+  # With CI unset the suite emits a CLEAN failure (the actual crash) instead. The child
+  # generated app's own JUnit behavior and the normal CI JUnit suite are unaffected.
+  env -u CI mix test test/install_smoke/generated_app_smoke_test.exs --include minio
 }
 
 if [ "$PROFILE" = "all" ]; then

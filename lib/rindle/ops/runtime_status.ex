@@ -6,6 +6,8 @@ defmodule Rindle.Ops.RuntimeStatus do
   alias Oban.Job
   alias Rindle.Config
   alias Rindle.Domain.{MediaAsset, MediaProviderAsset, MediaUploadSession, MediaVariant}
+  alias Rindle.Ops.OwnershipSnapshot
+  alias Rindle.Schema
   alias Rindle.Workers.ProcessVariant
 
   @allowed_filter_keys [:profile, :older_than, :limit, :format, :provider_stuck]
@@ -35,12 +37,13 @@ defmodule Rindle.Ops.RuntimeStatus do
 
   @spec runtime_status(keyword() | map()) :: {:ok, report()} | {:error, term()}
   def runtime_status(opts \\ []) do
-    with {:ok, filters} <- normalize_filters(opts) do
+    with {:ok, filters} <- normalize_filters(opts),
+         {:ok, snapshot} <- ready_snapshot() do
       now = DateTime.utc_now()
       cutoff = older_than_cutoff(now, filters.older_than)
 
       runtime_checks = runtime_checks_report(filters, cutoff, now)
-      variants = variant_report(filters, cutoff, now)
+      variants = variant_report(filters, cutoff, now, snapshot.oban.expected_prefix)
       upload_sessions = upload_session_report(filters, cutoff, now)
       provider_assets = provider_assets_report(filters, now)
 
@@ -63,10 +66,121 @@ defmodule Rindle.Ops.RuntimeStatus do
     end
   end
 
+  defp ready_snapshot do
+    snapshot = ownership_snapshot()
+
+    case snapshot do
+      %{rindle: %{classification: rindle}, oban: %{classification: oban}} = valid_snapshot ->
+        classify_snapshot(rindle, oban, valid_snapshot)
+
+      _other ->
+        {:error, {:inspection_failed, %{component: :rindle, owner: :rindle}}}
+    end
+  end
+
+  defp ownership_snapshot do
+    config = Application.get_env(:rindle, __MODULE__, [])
+
+    case Keyword.get(config, :ownership_snapshot, :inspect) do
+      :inspect ->
+        case Keyword.get(config, :setup_readiness, :inspect) do
+          :inspect -> OwnershipSnapshot.inspect()
+          readiness -> legacy_readiness_snapshot(readiness)
+        end
+
+      fun when is_function(fun, 0) ->
+        fun.()
+
+      snapshot ->
+        snapshot
+    end
+  end
+
+  defp legacy_readiness_snapshot(readiness) when is_function(readiness, 0),
+    do: legacy_readiness_snapshot(readiness.())
+
+  defp legacy_readiness_snapshot(readiness) when is_map(readiness) do
+    rindle_ready? = Map.get(readiness, :rindle_schema, %{}) |> Map.get(:ready?, false)
+    oban_ready? = Map.get(readiness, :oban_jobs, %{}) |> Map.get(:ready?, false)
+
+    %{
+      rindle:
+        snapshot_component(
+          :rindle,
+          if(rindle_ready?, do: :ready, else: :incomplete),
+          Schema.prefix(),
+          Schema.prefix()
+        ),
+      oban:
+        snapshot_component(
+          :host,
+          if(oban_ready?, do: :ready, else: :incomplete),
+          Config.oban_prefix(),
+          if(oban_ready?, do: Config.oban_prefix(), else: nil)
+        )
+    }
+  end
+
+  defp legacy_readiness_snapshot(_other), do: %{}
+
+  defp snapshot_component(owner, classification, expected_prefix, observed_prefix) do
+    %{
+      owner: owner,
+      classification: classification,
+      expected_prefix: expected_prefix,
+      observed_prefix: observed_prefix
+    }
+  end
+
+  defp classify_snapshot(:incomplete, _oban, _snapshot),
+    do: {:error, {:setup_incomplete, :rindle_schema}}
+
+  defp classify_snapshot(_rindle, :incomplete, _snapshot),
+    do: {:error, {:setup_incomplete, :oban_jobs}}
+
+  defp classify_snapshot(:ready, :ready, snapshot), do: {:ok, snapshot}
+  defp classify_snapshot(:legacy_ready, :ready, snapshot), do: {:ok, snapshot}
+
+  defp classify_snapshot(:rindle_prefix_mismatch, _oban, snapshot),
+    do: {:error, bounded_refusal(:rindle_prefix_mismatch, :rindle, snapshot.rindle)}
+
+  defp classify_snapshot(_rindle, :oban_binding_drift, snapshot),
+    do: {:error, bounded_refusal(:oban_binding_drift, :oban, snapshot.oban)}
+
+  defp classify_snapshot(:inspection_failed, _oban, _snapshot),
+    do: {:error, {:inspection_failed, %{component: :rindle, owner: :rindle}}}
+
+  defp classify_snapshot(_rindle, :inspection_failed, _snapshot),
+    do: {:error, {:inspection_failed, %{component: :oban, owner: :host}}}
+
+  defp classify_snapshot(_rindle, _oban, _snapshot),
+    do: {:error, {:inspection_failed, %{component: :rindle, owner: :rindle}}}
+
+  defp bounded_refusal(classification, component, snapshot) do
+    {classification,
+     %{
+       component: component,
+       expected_prefix: safe_prefix(component, Map.get(snapshot, :expected_prefix)),
+       observed_prefix: safe_prefix(component, Map.get(snapshot, :observed_prefix)),
+       owner: refusal_owner(component)
+     }}
+  end
+
+  defp safe_prefix(:rindle, prefix) when prefix in ["rindle", "public"], do: prefix
+
+  defp safe_prefix(:oban, prefix) when is_binary(prefix) do
+    if Regex.match?(~r/\A[a-zA-Z_][a-zA-Z0-9_$]*\z/, prefix), do: prefix, else: "unknown"
+  end
+
+  defp safe_prefix(_component, _prefix), do: "unknown"
+
+  defp refusal_owner(:rindle), do: :rindle
+  defp refusal_owner(:oban), do: :host
+
   defp runtime_checks_report(filters, cutoff, now) do
     rows =
       asset_probe_rows_query(filters, cutoff)
-      |> Config.repo().all()
+      |> rindle_all()
       |> Enum.map(&probe_drift_sample(&1, now))
       |> Enum.filter(& &1)
 
@@ -83,20 +197,20 @@ defmodule Rindle.Ops.RuntimeStatus do
       )
       |> maybe_filter_profile(:asset, filters.profile)
       |> group_by([a], a.state)
-      |> Config.repo().all()
+      |> rindle_all()
       |> count_map()
 
     %{counts: Map.put(counts, :total, Enum.sum(Map.values(counts)))}
   end
 
-  defp variant_report(filters, cutoff, now) do
+  defp variant_report(filters, cutoff, now, oban_prefix) do
     rows =
       variant_finding_rows_query(filters, cutoff)
-      |> Config.repo().all()
+      |> rindle_all()
 
     findings =
       rows
-      |> classify_variants(oban_index(rows), now)
+      |> classify_variants(oban_index(rows, oban_prefix), now)
       |> summarize_findings(filters.limit)
 
     counts =
@@ -107,7 +221,7 @@ defmodule Rindle.Ops.RuntimeStatus do
       )
       |> maybe_filter_profile(:variant, filters.profile)
       |> group_by([v, _a], v.state)
-      |> Config.repo().all()
+      |> rindle_all()
       |> count_map()
 
     %{
@@ -119,7 +233,7 @@ defmodule Rindle.Ops.RuntimeStatus do
   defp upload_session_report(filters, cutoff, now) do
     findings =
       upload_session_finding_rows_query(filters, cutoff)
-      |> Config.repo().all()
+      |> rindle_all()
       |> Enum.map(&upload_session_sample(&1, now))
       |> summarize_state_findings(filters.limit)
 
@@ -131,7 +245,7 @@ defmodule Rindle.Ops.RuntimeStatus do
       )
       |> maybe_filter_profile(:upload_session, filters.profile)
       |> group_by([s, _a], s.state)
-      |> Config.repo().all()
+      |> rindle_all()
       |> count_map()
 
     %{
@@ -151,7 +265,7 @@ defmodule Rindle.Ops.RuntimeStatus do
         select: count(s.id)
       )
       |> maybe_filter_profile(:upload_session, filters.profile)
-      |> Config.repo().one()
+      |> rindle_one()
 
     expired =
       from(s in MediaUploadSession,
@@ -163,7 +277,7 @@ defmodule Rindle.Ops.RuntimeStatus do
         select: count(s.id)
       )
       |> maybe_filter_profile(:upload_session, filters.profile)
-      |> Config.repo().one()
+      |> rindle_one()
 
     stale =
       from(s in MediaUploadSession,
@@ -176,7 +290,7 @@ defmodule Rindle.Ops.RuntimeStatus do
         select: count(s.id)
       )
       |> maybe_filter_profile(:upload_session, filters.profile)
-      |> Config.repo().one()
+      |> rindle_one()
 
     %{
       resumable_sessions_pending: pending || 0,
@@ -191,7 +305,7 @@ defmodule Rindle.Ops.RuntimeStatus do
     rows =
       if filters.provider_stuck do
         provider_assets_finding_rows_query(filters, threshold, now)
-        |> Config.repo().all()
+        |> rindle_all()
         |> Enum.map(&provider_asset_sample(&1, now))
       else
         []
@@ -205,7 +319,7 @@ defmodule Rindle.Ops.RuntimeStatus do
       )
       |> maybe_filter_provider_assets_profile(filters.profile)
       |> group_by([p], p.state)
-      |> Config.repo().all()
+      |> rindle_all()
       |> count_map()
 
     %{
@@ -398,9 +512,9 @@ defmodule Rindle.Ops.RuntimeStatus do
     end
   end
 
-  defp oban_index([]), do: %{}
+  defp oban_index([], _oban_prefix), do: %{}
 
-  defp oban_index(rows) do
+  defp oban_index(rows, oban_prefix) do
     asset_ids = Enum.map(rows, & &1.asset_id) |> Enum.uniq()
     names = Enum.map(rows, & &1.variant_name) |> Enum.uniq()
 
@@ -412,12 +526,36 @@ defmodule Rindle.Ops.RuntimeStatus do
       select:
         {fragment("?->>'asset_id'", j.args), fragment("?->>'variant_name'", j.args), j.state}
     )
-    |> Config.repo().all()
+    |> oban_all(oban_prefix)
     |> Enum.reduce(%{}, fn {asset_id, variant_name, state}, acc ->
       key = {asset_id, variant_name}
       state_atom = String.to_existing_atom(state)
       Map.update(acc, key, MapSet.new([state_atom]), &MapSet.put(&1, state_atom))
     end)
+  end
+
+  defp rindle_all(query), do: report_all(:rindle_all, query, Schema.prefix())
+  defp rindle_one(query), do: report_one(query, Schema.prefix())
+  defp oban_all(query, prefix), do: report_all(:oban_all, query, prefix)
+
+  defp report_all(operation, query, prefix) do
+    case report_query() do
+      fun when is_function(fun, 3) -> fun.(operation, query, prefix)
+      _other -> Config.repo().all(query, prefix: prefix)
+    end
+  end
+
+  defp report_one(query, prefix) do
+    case report_query() do
+      fun when is_function(fun, 3) -> fun.(:one, query, prefix)
+      _other -> Config.repo().one(query, prefix: prefix)
+    end
+  end
+
+  defp report_query do
+    :rindle
+    |> Application.get_env(__MODULE__, [])
+    |> Keyword.get(:report_query)
   end
 
   defp processing_threshold_seconds(%{asset_kind: kind}) when kind in ["video", "audio"] do

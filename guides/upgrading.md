@@ -1,16 +1,172 @@
 # Upgrading Existing Adopters
 
-Use this runbook when your app already ships Rindle from the pre-0.1.4
-image-only shape and you need to move onto the current AV-aware runtime
-contract. Fresh installs should stay on [README](readme.html) and
+Use this guide with
+[CHANGELOG.md](https://github.com/szTheory/rindle/blob/main/CHANGELOG.md): the
+changelog names release history, and this guide explains how existing apps
+should move safely. Fresh installs should stay on [README](readme.html) and
 [Getting Started](getting_started.html).
 
-CI validates this upgrade path from a generated Phoenix app before each Hex
-publish. Follow the checkpoints in order: explicit host plus packaged migrations,
-`mix rindle.doctor`, optional `mix rindle.runtime_status`, then the repair verb
-that matches the observed state.
+CI validates the documented upgrade paths from generated Phoenix apps before
+each Hex publish. Keep future entries newest-first, action-oriented, and focused
+on adopter work rather than duplicating the changelog.
 
-## 1. Confirm Runtime Ownership And AV Prerequisites
+## Version index
+
+- [Unreleased / Next](#unreleased-next)
+- [0.1.3 and earlier -> current AV-aware runtime](#0-1-3-and-earlier-current-av-aware-runtime)
+
+## Unreleased / Next
+
+### Applies to
+
+Fresh installs and existing apps moving to the first release that includes the
+versioned `Rindle.Migration` module. Existing apps that already applied
+Rindle's legacy packaged migrations can keep those migrations in place.
+
+### What changed
+
+Rindle now exposes a host-migration API for Rindle-owned tables:
+`Rindle.Migration.up(version: 1)` and
+`Rindle.Migration.down(version: 1)`. Fresh installs default to the `rindle`
+schema. The only compatibility pairing is explicit `prefix: "public"` with a
+release compiled for the public schema.
+
+Host apps own `Oban.Migration`, the shared `oban_jobs` table, and their
+`schema_migrations` ledger. Rindle does not create, move, or own that host
+infrastructure.
+
+### Upgrade steps
+
+#### Fresh installs
+
+Create normal host-app migration files. Install Oban first:
+
+```elixir
+defmodule MyApp.Repo.Migrations.AddObanJobs do
+  use Ecto.Migration
+
+  def up, do: Oban.Migration.up()
+  def down, do: Oban.Migration.down(version: 1)
+end
+```
+
+Then install Rindle's tables with the pinned version:
+
+```elixir
+defmodule MyApp.Repo.Migrations.InstallRindle do
+  use Ecto.Migration
+
+  def up, do: Rindle.Migration.up(version: 1)
+  def down, do: Rindle.Migration.down(version: 1)
+end
+```
+
+Run the host app's normal migration workflow:
+
+```bash
+mix ecto.migrate
+```
+
+> **Rollback:** `Rindle.Migration.down/1` is destructive. Back up the database
+> before running `Rindle.Migration.down(version: 1)`; it removes Rindle-owned
+> tables only and does not manage `oban_jobs` or `schema_migrations`.
+
+#### Existing populated public installs
+
+Prepare a maintenance window: back up the database, then stop or drain Rindle HTTP
+writers and Oban workers that invoke Rindle. Ecto's migrator lock
+serializes migrators; it does not quiesce application traffic. PostgreSQL
+`ALTER TABLE` can require an `ACCESS EXCLUSIVE` lock. Run the host migration as
+the database owner, or as a role that owns the seven Rindle relations and has
+the database CREATE privilege needed to provision `rindle`. A lock-timeout
+refusal is bounded: keep traffic stopped, investigate the competing lock, and
+run the host migration again only in the maintenance window.
+
+Create a host-owned migration. Do not create `rindle` yourself. The forward
+helper first classifies the complete public-only Rindle state and required
+privileges, then creates an absent `rindle` destination inside the same host
+transaction immediately before it moves the fixed six Rindle tables plus the
+`rindle_migration_versions` marker. If creation or usability privileges are
+insufficient, it fails boundedly; transaction rollback leaves no partial
+destination or moved relation.
+
+```elixir
+defmodule MyApp.Repo.Migrations.MoveRindleToSchema do
+  use Ecto.Migration
+
+  def up do
+    execute("SET LOCAL lock_timeout = '5s'")
+    Rindle.Migration.move_public_to_rindle(version: 1)
+  end
+
+  def down do
+    execute("SET LOCAL lock_timeout = '5s'")
+    Rindle.Migration.move_rindle_to_public(version: 1)
+  end
+end
+```
+
+Run the host migration while writers and workers remain drained:
+
+```bash
+mix ecto.migrate
+```
+
+Then deploy the build compiled for `rindle` that matches this migration.
+Verify the deployment in this order:
+
+```bash
+mix rindle.doctor
+mix rindle.runtime_status
+```
+
+Doctor confirms the Rindle and host-owned Oban setup; runtime status confirms
+that the deployed application can report its operational state. Verify all
+seven Rindle relations and normal reads and writes after those commands.
+Rindle does not touch `oban_jobs` or `schema_migrations`; keep Oban
+configuration and the host migration ledger unchanged.
+
+Use the guarded reverse only while the application remains quiesced and state is
+exactly reversible: there have been no post-move writes or later migrations, and
+you can redeploy the previous public-compiled release. It does not drop the
+`rindle` schema. Otherwise, restore the backup. `Rindle.Migration.down/1` is
+destructive teardown, not a populated-upgrade rollback.
+
+#### Existing legacy installs
+
+If your app already applied Rindle's legacy packaged migrations, leave that
+history in place. Do not delete, replay, or rewrite already-applied legacy
+migration files just to adopt this release. Use the new `Rindle.Migration`
+module for fresh installs and future versioned migration work.
+
+### Verification
+
+Run the doctor after migrations:
+
+```bash
+mix rindle.doctor
+```
+
+`mix rindle.doctor` should show the Rindle-owned schema as ready and should
+treat `oban_jobs` as host-owned Oban setup.
+
+## 0.1.3 and earlier -> current AV-aware runtime
+
+### Applies to
+
+Apps that already ship Rindle from the pre-0.1.4 image-only shape and need to
+move onto the current AV-aware runtime contract.
+
+### What changed
+
+The runtime now supports AV-aware assets and variants. Existing adopters need to
+confirm runtime ownership, keep explicit host plus packaged migrations, validate
+the upgraded environment, and use the bounded repair verb that matches the
+observed state.
+
+### Upgrade steps
+
+#### 1. Confirm runtime ownership and AV prerequisites
 
 Before you touch migrations, make sure the host app still owns the same runtime
 boundaries:
@@ -31,7 +187,7 @@ If you only need the greenfield setup details again, return to
 [Getting Started](getting_started.html). This guide assumes the app already
 owns its Repo, Oban config, and storage configuration.
 
-## 2. Run Explicit Host And Packaged Migrations
+#### 2. Run explicit host and packaged migrations
 
 Run your host migrations and the packaged Rindle migrations explicitly. The
 canonical upgrade path stays on `Application.app_dir(:rindle, "priv/repo/migrations")`:
@@ -58,7 +214,7 @@ end
 Rindle still does not hide this behind a public install task. The host app owns
 the migration handoff.
 
-## 3. Validate The Upgraded Runtime
+#### 3. Validate the upgraded runtime
 
 Run the read-only environment check immediately after migrations:
 
@@ -69,7 +225,7 @@ mix rindle.doctor
 `mix rindle.doctor` validates setup and drift. If it reports FFmpeg, Oban, or
 migration issues, fix those before you attempt any repair command.
 
-## 4. Inspect Degraded Upgraded Work When Needed
+#### 4. Inspect degraded upgraded work when needed
 
 If a specific upgraded asset or variant looks wrong after the migration, inspect
 the bounded runtime report before you mutate anything:
@@ -84,7 +240,7 @@ to confirm whether the problem is failed asset-scoped work,
 maps stay in [Operations](operations.html) and
 [Troubleshooting](troubleshooting.html).
 
-## 5. Repair One Upgraded Asset Through The Public Facade
+#### 5. Repair one upgraded asset through the public facade
 
 For one failed upgraded asset, use the asset-scoped repair surface:
 
@@ -99,7 +255,7 @@ asset_id = "..."
 named failed variants without pulling `ready`, `queued`,
 `processing`, `stale`, or `missing` siblings into the run.
 
-## 6. Reserve Broad Drift Repair For Stale Or Missing Variants
+#### 6. Reserve broad drift repair for stale or missing variants
 
 Do not use asset-scoped `requeue` as a surrogate for profile drift or missing
 storage objects. For broader derivative drift, stay on:
@@ -110,6 +266,18 @@ mix rindle.regenerate_variants
 
 That command is the broad maintenance lane for `stale` or `missing` variants
 after recipe, preset, or storage drift.
+
+### Verification
+
+Run the same checks that CI uses for this path:
+
+1. Confirm the explicit host plus packaged migrations completed.
+2. Run `mix rindle.doctor`.
+3. If needed, inspect degraded work with `mix rindle.runtime_status --format json`.
+4. Repair one failed upgraded asset with
+   `Rindle.requeue_variants(asset_id, variant_names: ["web_720p"])`.
+5. Reserve broad drift repair for stale or missing variants with
+   `mix rindle.regenerate_variants`.
 
 ## Next Reads
 

@@ -1,8 +1,10 @@
 defmodule Rindle.RuntimeStatusTaskTest do
-  use Rindle.DataCase, async: true
+  use Rindle.DataCase, async: false
 
   alias Mix.Tasks.Rindle.RuntimeStatus, as: RuntimeStatusTask
   alias Rindle.Domain.{MediaAsset, MediaUploadSession, MediaVariant}
+
+  @runtime_status_config Rindle.Ops.RuntimeStatus
 
   defmodule TaskProfile do
     use Rindle.Profile,
@@ -14,9 +16,19 @@ defmodule Rindle.RuntimeStatusTaskTest do
 
   setup do
     previous_shell = Mix.shell()
+    previous_runtime_status_config = Application.get_env(:rindle, @runtime_status_config)
     Mix.shell(Mix.Shell.Process)
 
-    on_exit(fn -> Mix.shell(previous_shell) end)
+    on_exit(fn ->
+      Mix.shell(previous_shell)
+
+      if previous_runtime_status_config do
+        Application.put_env(:rindle, @runtime_status_config, previous_runtime_status_config)
+      else
+        Application.delete_env(:rindle, @runtime_status_config)
+      end
+    end)
+
     :ok
   end
 
@@ -55,6 +67,111 @@ defmodule Rindle.RuntimeStatusTaskTest do
     assert_received {:mix_shell, :error, [message]}
     assert message =~ "Rindle.RuntimeStatus failed"
     assert message =~ "invalid_format"
+  end
+
+  test "exits non-zero with host-owned Oban.Migration copy when oban_jobs is missing" do
+    put_setup_readiness(%{
+      rindle_schema: %{ready?: true},
+      oban_jobs: %{ready?: false, setup: "Oban.Migration"}
+    })
+
+    assert catch_exit(RuntimeStatusTask.run(["--limit", "1"])) == {:shutdown, 1}
+
+    assert_received {:mix_shell, :error, [message]}
+    assert message =~ "setup_incomplete"
+    assert message =~ "oban_jobs"
+    assert message =~ "mix rindle.doctor"
+    assert message =~ "Oban.Migration"
+    assert message =~ "Rindle no longer manages `oban_jobs`"
+  end
+
+  test "formats bounded snapshot refusals safely for text and JSON" do
+    sentinel = "postgres://rindle:credential@db.example/Rindle SQL SELECT secret"
+
+    for {reason, classification, component} <- [
+          {{:rindle_prefix_mismatch,
+            %{
+              component: :rindle,
+              expected_prefix: sentinel,
+              observed_prefix: "public",
+              owner: :rindle
+            }}, "rindle_prefix_mismatch", "rindle"},
+          {{:oban_binding_drift,
+            %{
+              component: :oban,
+              expected_prefix: "host_oban",
+              observed_prefix: sentinel,
+              owner: :host
+            }}, "oban_binding_drift", "oban"},
+          {{:rindle_prefix_mismatch,
+            %{
+              component: :postgres_adapter,
+              expected_prefix: "rindle",
+              observed_prefix: "public",
+              owner: :credential_owner
+            }}, "rindle_prefix_mismatch", nil},
+          {{:inspection_failed, %{component: :rindle, owner: :rindle}}, "inspection_failed",
+           "rindle"}
+        ] do
+      text = RuntimeStatusTask.format_error(reason)
+      json = RuntimeStatusTask.format_json_error(reason) |> Jason.encode!()
+
+      assert text =~ "no report queries ran"
+      assert text =~ "mix rindle.doctor"
+      assert json =~ ~s("status":"error")
+      assert json =~ ~s("classification":"#{classification}")
+      if component, do: assert(json =~ ~s("component":"#{component}"))
+      refute text =~ "postgres://"
+      refute json =~ "postgres://"
+      refute text =~ sentinel
+      refute json =~ sentinel
+      refute text =~ "credential_owner"
+      refute json =~ "credential_owner"
+    end
+  end
+
+  test "uses constant safe copy for unknown runtime errors" do
+    sentinel = {:raw_adapter_failure, "postgres://user:credential@host SQL sentinel"}
+
+    text = RuntimeStatusTask.format_error(sentinel)
+    json = RuntimeStatusTask.format_json_error(sentinel) |> Jason.encode!()
+
+    assert text =~ "mix rindle.doctor"
+    assert text =~ "no report queries ran"
+    assert json =~ ~s("classification":"unknown")
+    refute text =~ "credential"
+    refute json =~ "credential"
+    refute text =~ "SQL sentinel"
+    refute json =~ "SQL sentinel"
+  end
+
+  test "emits a bounded JSON refusal and exits non-zero" do
+    Application.put_env(:rindle, @runtime_status_config,
+      ownership_snapshot: %{
+        rindle: %{
+          classification: :rindle_prefix_mismatch,
+          expected_prefix: "postgres://rindle:credential@db.example/Rindle SQL SELECT secret",
+          observed_prefix: "public",
+          owner: :rindle
+        },
+        oban: %{
+          classification: :ready,
+          expected_prefix: "public",
+          observed_prefix: "public",
+          owner: :host
+        }
+      },
+      report_query: fn _operation, _query, _prefix -> raise "REPORT_QUERY_REACHED" end
+    )
+
+    assert catch_exit(RuntimeStatusTask.run(["--format", "json"])) == {:shutdown, 1}
+
+    assert_received {:mix_shell, :info, [output]}
+    assert output =~ ~s("classification":"rindle_prefix_mismatch")
+    assert output =~ ~s("expected_prefix":"unknown")
+    refute output =~ "postgres://"
+    refute output =~ "credential"
+    refute output =~ "REPORT_QUERY_REACHED"
   end
 
   describe "--provider-stuck (MUX-14)" do
@@ -221,6 +338,10 @@ defmodule Rindle.RuntimeStatusTaskTest do
       expires_at: DateTime.add(DateTime.utc_now(), 3600, :second)
     })
     |> Rindle.Repo.insert!()
+  end
+
+  defp put_setup_readiness(readiness) do
+    Application.put_env(:rindle, @runtime_status_config, setup_readiness: readiness)
   end
 
   defp age_ago(seconds) do

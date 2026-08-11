@@ -44,7 +44,7 @@ defmodule AdoptionDemo.MixProject do
       {:phoenix_live_reload, "~> 1.2", only: :dev},
       {:phoenix_live_view, "~> 1.1.0"},
       {:lazy_html, ">= 0.1.0", only: :test},
-      {:mox, "~> 1.0", only: :test},
+      {:mox, "~> 1.0", only: [:dev, :test]},
       {:telemetry_metrics, "~> 1.0"},
       {:telemetry_poller, "~> 1.0"},
       {:jason, "~> 1.2"},
@@ -68,15 +68,12 @@ defmodule AdoptionDemo.MixProject do
       "ecto.setup": [
         "ecto.create",
         "ecto.migrate",
-        "rindle.migrate",
         "run priv/repo/seeds.exs"
       ],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
-      "rindle.migrate": ["cmd mix run --no-start priv/rindle_migrate.exs"],
       test: [
         "cmd sh -c 'PHX_SERVER=1 mix ecto.create --quiet || true'",
         "cmd sh -c 'PHX_SERVER=1 mix ecto.migrate --quiet'",
-        "cmd sh -c 'PHX_SERVER=1 mix rindle.migrate'",
         "test"
       ],
       precommit: ["compile --warnings-as-errors", "deps.unlock --unused", "format", "test"]

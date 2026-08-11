@@ -2,7 +2,7 @@
 
 ## Milestones
 
-- 🔵 **v1.22 OSS Quality & Trust Hardening** — Phases 113–116 (active, chartered 2026-06-29 from SEED-005; non-feature/DX, ships a 0.3.x minor; 14 reqs EVAL/TRUST/META/VERSION/README/MIGRATE/HYGIENE; [requirements](REQUIREMENTS.md))
+- ✅ **v1.22 OSS Quality & Trust Hardening** — Phases 113–116 (shipped 2026-07-02, 14/14 reqs EVAL/TRUST/META/VERSION/README/MIGRATE/HYGIENE; [archive](milestones/v1.22-ROADMAP.md), [requirements](milestones/v1.22-REQUIREMENTS.md), [audit](milestones/v1.22-MILESTONE-AUDIT.md))
 - ✅ **v1.21 CI/DX Reliability Tail** — Phases 108–112 (shipped 2026-06-29, non-feature/DX, ships Hex 0.3.2 via two adopter-invisible `lib/` `fix:` patches D-v1.21-01; 24/24 reqs COV/EPIPE/GATE/ISO/LOCK/TRUTH; [archive](milestones/v1.21-ROADMAP.md), [requirements](milestones/v1.21-REQUIREMENTS.md), [audit](milestones/v1.21-MILESTONE-AUDIT.md))
 - ✅ **v1.20 CI/CD Performance** — Phases 103–107 (shipped 2026-06-22, non-feature / DX-infra, ZERO `lib/` change, 18/18 reqs; [archive](milestones/v1.20-ROADMAP.md), [requirements](milestones/v1.20-REQUIREMENTS.md), [audit](milestones/v1.20-MILESTONE-AUDIT.md))
 - ✅ **v1.19 Design-System Stress-Test** — Phases 94-102 (shipped 2026-06-19, [archive](milestones/v1.19-ROADMAP.md), [audit](milestones/v1.19-MILESTONE-AUDIT.md))
@@ -29,135 +29,149 @@
 
 ## Phases
 
-v1.22 OSS Quality & Trust Hardening (active). Phases continue from v1.21's Phase 112.
+### v1.23 Postgres Schema Isolation (0.4.0)
 
-This is a low-risk, mostly-independent hardening milestone. Most requirements do not hard-depend on
-each other; the phases group naturally rather than impose a deep dependency chain. Two ordering notes:
-the time-sensitive release unstick (HYGIENE-01) lands EARLY in Phase 113 to reach adopters; the
-versioned `Rindle.Migration` substrate (the only real code change, the v1.23 foundation) lands LAST in
-Phase 116 so its new install/upgrade docs converge coherently with the README/VERSION doc work in 115.
-
-- [ ] **Phase 113: Evaluation Baseline & Release Hygiene** - Opening scored-weakness summary, cut the stuck Hex 0.3.2 release to reach adopters, and reconcile planning truth
-- [ ] **Phase 114: OSS Trust & Governance** - SECURITY.md / CODE_OF_CONDUCT.md / issue+PR templates plus Hex `package` links + maintainers
-- [ ] **Phase 115: Versioning & README Positioning** - SemVer/pre-1.0 stability contract, generalized upgrade guide, image-first skimmable README + "when not to use"
-- [ ] **Phase 116: Versioned `Rindle.Migration` Module** - Oban-style versioned `up/1`+`down/1` install path; adopter owns `oban_jobs`; non-breaking, defaults to `public`
+- [x] **Phase 117: Prefix Routing Architecture** - Prove and deliver one explicit schema-routing model for all normal Rindle data paths. (completed 2026-08-08)
+- [x] **Phase 118: Isolated Migration & Safe Upgrade** - Provision `rindle` by default and give populated public installs a bounded move path. (completed 2026-08-09)
+- [x] **Phase 119: Ownership Boundaries & Diagnostics** - Keep Rindle and Oban schemas independent and make prefix faults actionable. (completed 2026-08-09)
+- [ ] **Phase 120: Adoption Proof & Release Truth** - Prove the 0.4.0 contract in generated apps, Cohort, documentation, and release artifacts.
 
 ## Phase Details
 
-### Phase 113: Evaluation Baseline & Release Hygiene
+### Phase 117: Prefix Routing Architecture
 
-**Goal**: Open the milestone with an evidence-cited scored-weakness summary, unstick the
-merged-but-unreleased v1.21 adopter fixes by cutting the 0.3.2 release, and reconcile the planning
-truth those gaps created.
-
-**Depends on**: Nothing (first phase of v1.22; continues from shipped Phase 112)
-
-**Requirements**: EVAL-01, HYGIENE-01, HYGIENE-02
-
+**Goal**: Adopters can rely on one explicit, proven Rindle schema-routing model: `rindle` by default or an intentional `public` compatibility configuration, with no normal data path silently falling back.
+**Depends on**: Phase 116
+**Requirements**: PREFIX-01, PREFIX-02, PREFIX-03
 **Success Criteria** (what must be TRUE):
-  1. A maintainer can read a concise, right-sized, evidence-cited scored-weakness summary of Rindle's
-     OSS quality (the milestone's opening artifact) naming the weak dimensions (governance/trust,
-     versioning/positioning, host-app respectfulness) vs. the already-strong ones — not the full
-     36-dimension report.
-  2. Hex 0.3.2 is published so the merged-but-unreleased v1.21 `lib/` fixes (`:epipe` absorb,
-     `$callers` config override) reach adopters; `mix.exs`, `.release-please-manifest.json`, and
-     CHANGELOG all reflect the released version and the root cause (why release-please did not open a
-     0.3.2 PR) is investigated and recorded.
-  3. PROJECT.md / MILESTONES reconcile the prior aspirational "ships as Hex 0.3.2" claim with reality
-     (released vs. previously unshipped).
-  4. SEED-003 and SEED-004 frontmatter `status:` is corrected from stale `open` to `consumed` (they
-     shipped as v1.20 / v1.21).
+
+  1. A fresh configured application can use Rindle without manually adding query prefixes, and its normal Rindle reads and writes resolve to `rindle`.
+  2. An adopter can select the documented `public` compatibility configuration and receive the same normal Rindle behavior against `public`.
+  3. Facade operations, background work, Ecto.Multi callbacks, and both loaded and newly created Rindle structs consistently use the selected prefix, including when decoy public tables exist.
+  4. The project has one tested architectural decision—compile-time schema macro or runtime routing helper—with its configuration/release implications explicit; mixed routing semantics are not exposed to adopters.
+
+**Plans**: TBD
+
+### Phase 118: Isolated Migration & Safe Upgrade
+
+**Goal**: Adopters can create a fresh isolated install or move a populated legacy install to `rindle` without losing Rindle data or taking ownership of host infrastructure.
+**Depends on**: Phase 117
+**Requirements**: MIGRATE-01, MIGRATE-02, MIGRATE-03
+**Success Criteria** (what must be TRUE):
+
+  1. A fresh host migration provisions the selected schema, all six Rindle tables, and Rindle's marker state idempotently.
+  2. An adopter can run a host-owned public-to-`rindle` upgrade that moves exactly the six Rindle tables and `rindle_migration_versions` while preserving rows, indexes, and relationships.
+  3. Mixed, incomplete, or insufficient-permission database states stop before an unsafe move and provide bounded corrective guidance.
+  4. Upgrade instructions state the required maintenance window and the limited, host-controlled rollback path truthfully.
 
 **Plans**: 4 plans
 
 Plans:
-- [ ] 113-01-PLAN.md — EVAL-01 scored-weakness summary + HYGIENE-02 SEED-003/004 frontmatter (Track A)
-- [ ] 113-02-PLAN.md — Release recurrence guards: drift workflow + issue template + token-validity step + required-path lock meta-test (Track A)
-- [ ] 113-03-PLAN.md — D-08 public_smoke junit hardening + D-07 corrected root-cause prose (runbook + ledger) (Track A)
-- [ ] 113-04-PLAN.md — Human token-rotation checkpoint → observe 0.3.2 publish → truth-reconciliation edits (Track B, gated)
+**Wave 1**
 
-### Phase 114: OSS Trust & Governance
+- [x] 118-01-PLAN.md — Trace fresh `rindle` provisioning and explicit `public` compatibility.
 
-**Goal**: Close the OSS governance/trust gap so a newcomer or security researcher lands on a project
-that signals it is maintained, safe to report to, and welcoming to contribute to — and so hex.pm
-surfaces the conventional package links and maintainers.
+**Wave 2** *(blocked on Wave 1 completion)*
 
-**Depends on**: Phase 113 (uses the EVAL-01 scored-weakness summary as the prioritized work list)
+- [x] 118-02-PLAN.md — Preflight and move the populated fixed seven-relation set.
 
-**Requirements**: TRUST-01, TRUST-02, TRUST-03, META-01, META-02
+**Wave 3** *(blocked on Wave 2 completion)*
 
+- [x] 118-03-PLAN.md — Prove refusal/rollback/lock safety and add the guarded reverse.
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [x] 118-04-PLAN.md — Publish and lock maintenance-window upgrade guidance.
+
+### Phase 119: Ownership Boundaries & Diagnostics
+
+**Goal**: Operators can distinguish Rindle's configured schema from independently configured host Oban infrastructure and resolve prefix problems without raw database failures.
+**Depends on**: Phase 118
+**Requirements**: BOUNDARY-01, BOUNDARY-02, OPS-01
 **Success Criteria** (what must be TRUE):
-  1. The repo has a `SECURITY.md` with a vulnerability-disclosure policy appropriate for a library
-     handling untrusted uploads, MIME sniffing, signed delivery, and webhook HMAC verification.
-  2. The repo has a `CODE_OF_CONDUCT.md`.
-  3. A newcomer opening an issue or PR is guided by `.github/ISSUE_TEMPLATE/` templates (bug report /
-     feature proposal) and a `PULL_REQUEST_TEMPLATE.md` (the existing CONTRIBUTING is CI-only — these
-     add the on-ramp).
-  4. hex.pm surfaces "Changelog" and "Docs" links (HexDocs convention) alongside the existing GitHub
-     link via `package.links`.
-  5. The Hex `package` declares `maintainers`.
+
+  1. Rindle never creates, moves, drops, or prefixes `oban_jobs` or the host `schema_migrations` ledger; Oban keeps its independently configured (normally `public`) prefix.
+  2. Rindle catalog checks, raw SQL, and Oban-binding queries resolve the correct respective schema using validated, safely quoted or bound identifiers.
+  3. `mix rindle.doctor` reports expected Rindle and Oban prefixes separately and identifies an installation or migration-prefix mismatch with actionable guidance.
+  4. `mix rindle.runtime_status` detects missing or mismatched Rindle/Oban state before report queries and returns a bounded setup failure rather than a raw database exception.
 
 **Plans**: TBD
 
-### Phase 115: Versioning & README Positioning
+### Phase 120: Adoption Proof & Release Truth
 
-**Goal**: Set adopter expectations correctly — state the pre-1.0 stability contract and give every
-future change a documented upgrade home — and make the README skimmable with an image-first first-run
-and an honest "when not to use it" boundary.
-
-**Depends on**: Phase 113 (EVAL-01 names the positioning/versioning weaknesses this phase closes)
-
-**Requirements**: VERSION-01, VERSION-02, README-01, README-02
-
+**Goal**: Adopters and maintainers can verify the breaking 0.4.0 schema contract end-to-end from packaged installation through upgrade, demo operation, and documentation.
+**Depends on**: Phase 119
+**Requirements**: PROOF-01, PROOF-02, DOCS-01
 **Success Criteria** (what must be TRUE):
-  1. README and CONTRIBUTING state the SemVer / pre-1.0 stability contract ("0.x: API may change
-     between minor versions; see CHANGELOG") plus a short note on what 1.0 will mean.
-  2. `guides/upgrading.md` is a reusable, versioned upgrade-notes structure — not just the single
-     pre-0.1.4 image-only→AV case — so every future change has a documented home.
-  3. The README leads with an image-only "first attachment in ~2 minutes" path that needs no
-     FFmpeg/libvips; the heavier AV quickstart is demoted below it.
-  4. The README has a clear "what Rindle is NOT / when not to use it" block (lifted from
-     `guides/user_flows.md`).
 
-**Plans**: TBD
-**UI hint**: yes
+  1. Automated proof covers fresh `rindle` installs, explicit `public` compatibility, populated public-to-`rindle` upgrades, runtime routing, and the untouched public Oban boundary.
+  2. A packed-artifact generated Phoenix application and the Cohort adoption demo provision and run with Rindle in `rindle` and Oban in `public`.
+  3. README, getting-started, migration API docs, upgrading guide, docs-parity tests, and 0.4.0 release notes agree on the breaking default, escape hatch, order of operations, permissions, downtime, and Oban ownership.
+  4. Release verification demonstrates that packaged artifacts—not only the repository checkout—honor the documented isolation contract.
 
-### Phase 116: Versioned `Rindle.Migration` Module
+**Plans**: 11 plans
 
-**Goal**: Replace the raw 15-file `Ecto.Migrator` copy-paste install path with a versioned,
-idempotent, Oban-style `Rindle.Migration` module and stop creating the shared `oban_jobs` table on the
-adopter's behalf — non-breaking, and the load-bearing foundation v1.23 builds the schema prefix onto.
+Plans:
+**Wave 1**
 
-**Depends on**: Phase 115 (its new install/upgrade docs converge with the README/VERSION/`upgrading.md`
-work landed in 115)
+- [x] 120-01-PLAN.md — packed default install, schema ownership, boot, and persistence proof
+- [x] 120-03-PLAN.md — Cohort host-owned migration and cold-start proof
 
-**Requirements**: MIGRATE-01, MIGRATE-02
+**Wave 2** *(blocked on Wave 1 completion)*
 
-**Success Criteria** (what must be TRUE):
-  1. Adopters install Rindle's tables via a versioned, idempotent `Rindle.Migration.up/1` + `down/1`
-     module (Oban-style) instead of the raw 15-file copy-paste path; README, getting-started, and
-     `upgrading.md` show the new ~3-line migration. Non-breaking — the default schema stays `public`
-     and existing adopters' already-applied migrations remain valid.
-  2. Rindle no longer creates the shared `oban_jobs` table; the adopter owns `Oban.Migration`,
-     documented in the install/upgrade guides (removes the latent host-Oban collision).
-  3. The existing test suite stays green (135 test files; the async-safety meta-test still governs
-     `async: true`), and doctor / runtime_status migration-inspection logic keeps working alongside
-     legacy 15-file installs.
-  4. Hard release-coupling invariants are preserved: `ci.yml` / `name: CI` unchanged, `CI Summary`
-     keeps `skipped`==pass, and the release full-verification gate is not weakened.
+- [x] 120-02-PLAN.md — explicit-public compatibility and populated public-to-rindle upgrade proof
 
-**Plans**: TBD
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 120-04-PLAN.md — fresh-install documentation and migration API parity
+- [x] 120-07-PLAN.md — exact marker, FK, index, and Oban catalog proof
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [x] 120-05-PLAN.md — populated-upgrade and troubleshooting operational truth
+- [x] 120-08-PLAN.md — explicit-public down-prefix and both-direction docs parity
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [x] 120-06-PLAN.md — 0.4.0 release notes and exact-SHA signoff contract
+- [x] 120-09-PLAN.md — packed public/upgrade, Cohort, and immutable exact-SHA evidence
+
+**Wave 6** *(blocked on Wave 5 completion)*
+
+- [x] 120-10-PLAN.md — remove the residual forced Oban ownership report field and retain snapshot-only proof
+
+**Wave 7** *(blocked on Wave 6 completion)*
+
+- [ ] 120-11-PLAN.md — rerun clean packed/Cohort proof and require honest exact-SHA release evidence
 
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 113. Evaluation Baseline & Release Hygiene | 0/4 | Not started | - |
-| 114. OSS Trust & Governance | 0/? | Not started | - |
-| 115. Versioning & README Positioning | 0/? | Not started | - |
-| 116. Versioned `Rindle.Migration` Module | 0/? | Not started | - |
+| 117. Prefix Routing Architecture | 5/5 | Complete    | 2026-08-08 |
+| 118. Isolated Migration & Safe Upgrade | 6/6 | Complete    | 2026-08-09 |
+| 119. Ownership Boundaries & Diagnostics | 5/5 | Complete    | 2026-08-09 |
+| 120. Adoption Proof & Release Truth | 1/6 | In Progress | - |
 
 ## Phases (shipped — collapsed history)
+
+<details>
+<summary>✅ v1.22 OSS Quality & Trust Hardening (Phases 113–116) — SHIPPED 2026-07-02</summary>
+
+Non-feature/DX hardening milestone from SEED-005. Delivered the concise OSS-quality weakness summary,
+cut and reconciled the stuck Hex 0.3.2 release, added OSS governance and Hex metadata trust signals,
+locked pre-1.0 versioning and README positioning, and shipped the non-breaking versioned
+`Rindle.Migration` substrate with host-owned `oban_jobs`. 14/14 requirements, 4/4 phases, 14 plans,
+audit passed.
+
+- [x] Phase 113: Evaluation Baseline & Release Hygiene (4/4 plans) — completed 2026-06-30
+- [x] Phase 114: OSS Trust & Governance (2/2 plans) — completed 2026-07-01
+- [x] Phase 115: Versioning & README Positioning (1/1 plan) — completed 2026-07-01
+- [x] Phase 116: Versioned `Rindle.Migration` Module (7/7 plans) — completed 2026-07-01
+
+Archive: [milestones/v1.22-ROADMAP.md](milestones/v1.22-ROADMAP.md); requirements: [milestones/v1.22-REQUIREMENTS.md](milestones/v1.22-REQUIREMENTS.md); audit: [milestones/v1.22-MILESTONE-AUDIT.md](milestones/v1.22-MILESTONE-AUDIT.md).
+
+</details>
 
 <details>
 <summary>✅ v1.21 CI/DX Reliability Tail (Phases 108–112) — SHIPPED 2026-06-29</summary>
@@ -169,8 +183,8 @@ adopter-invisible `lib/` `fix:` patches (D-v1.21-01: `av/subprocess.ex` EPIPE; `
 hard release-coupling invariants preserved: `ci.yml` filename + `name: CI` byte-unchanged; `CI Summary`
 treats `skipped` as pass and stays the sole required check.
 
-> Note: the v1.21 `lib/` fixes are merged but **0.3.2 was never published** (Hex live = 0.3.1). v1.22
-> Phase 113 (HYGIENE-01) cuts the stuck release and reconciles the claim.
+> Release note: the v1.21 `lib/` fixes are now live as Hex **0.3.2** after v1.22 Phase 113
+> (HYGIENE-01) unstuck release-please and reconciled the release-train claim.
 
 - [x] Phase 108: Coverage single-run (1/1 plan) — completed 2026-06-28
 - [x] Phase 109: Subprocess `:epipe` hardening (2/2 plans) — completed 2026-06-28
@@ -287,11 +301,12 @@ Audit: [.planning/milestones/v1.15-MILESTONE-AUDIT.md](milestones/v1.15-MILESTON
 
 </details>
 
-## Demand-Gated Pause — Non-feature arc in progress (v1.22/v1.23)
+## Demand-Gated Pause — Next Candidate: v1.23 Schema Isolation
 
-**Formalized:** 2026-05-27 | **Status:** The demand gates remain intact for the next *feature*
-milestone, but the current v1.22→v1.23 software-quality consolidation arc (SEED-005) is non-feature/DX,
-so `block_feature_milestone_without_signal` does not apply. Feature work still requires:
+**Formalized:** 2026-05-27 | **Status:** v1.22 shipped the non-feature OSS-quality/trust half of the
+SEED-005 software-quality arc. v1.23 Postgres Schema Isolation remains the named non-feature/breaking
+candidate and should be re-chartered with fresh requirements before phases are added. Feature work still
+requires:
 
 - **LIFE-06** — compliance/legal ticket for force-delete shared assets, or
 - **STREAM-10** — named adopter for second streaming provider
@@ -302,7 +317,9 @@ See [post-v116 assessment](threads/2026-05-27-post-v116-milestone-assessment.md)
 
 - **v1.23 Postgres Schema Isolation** (breaking → 0.4.0): `rindle` schema default via config-driven
   `@schema_prefix`; 4 manual escapes; `prefix: "public"` opt-out + `ALTER TABLE … SET SCHEMA` move
-  migration (ISO23-01..04 in REQUIREMENTS.md). Builds on v1.22's `Rindle.Migration` substrate.
+  migration. Re-charter from the ISO23 notes in the v1.22 requirements archive; builds on v1.22's
+  `Rindle.Migration` substrate.
+
 - Force-delete semantics for still-shared assets (LIFE-06) — compliance pull only
 - Second streaming provider (Cloudflare/Bunny) — explicit adopter demand only
 - IETF RUFH / tus 2.0; GCS-as-tus-backend / R2-native tus proxying
@@ -312,6 +329,9 @@ See [post-v116 assessment](threads/2026-05-27-post-v116-milestone-assessment.md)
 
 ## Archive
 
+- [.planning/milestones/v1.22-ROADMAP.md](milestones/v1.22-ROADMAP.md)
+- [.planning/milestones/v1.22-REQUIREMENTS.md](milestones/v1.22-REQUIREMENTS.md)
+- [.planning/milestones/v1.22-MILESTONE-AUDIT.md](milestones/v1.22-MILESTONE-AUDIT.md)
 - [.planning/milestones/v1.21-ROADMAP.md](milestones/v1.21-ROADMAP.md)
 - [.planning/milestones/v1.21-REQUIREMENTS.md](milestones/v1.21-REQUIREMENTS.md)
 - [.planning/milestones/v1.21-MILESTONE-AUDIT.md](milestones/v1.21-MILESTONE-AUDIT.md)
@@ -341,4 +361,4 @@ See [post-v116 assessment](threads/2026-05-27-post-v116-milestone-assessment.md)
 _(empty — no open backlog items)_
 
 ---
-*Last updated: 2026-06-29 — chartered **v1.22 OSS Quality & Trust Hardening** (Phases 113–116, 14/14 requirements mapped: EVAL+HYGIENE→113, TRUST+META→114, VERSION+README→115, MIGRATE→116). Non-feature/DX arc from SEED-005; ships a 0.3.x minor (0.4.0 reserved for v1.23's breaking schema isolation). Time-sensitive release unstick (HYGIENE-01) lands early in 113; the versioned `Rindle.Migration` substrate (the only real code change, the v1.23 foundation) lands last in 116 so its install/upgrade docs converge with the 115 README/VERSION work. v1.21 CI/DX Reliability Tail shipped & archived (Phases 108–112, 24/24); v1.21 `lib/` fixes merged but 0.3.2 unpublished — Phase 113 cuts it.*
+*Last updated: 2026-07-02 — shipped and archived **v1.22 OSS Quality & Trust Hardening** (Phases 113–116, 14/14 requirements, audit passed). No active milestone; v1.23 Postgres Schema Isolation remains the named candidate and needs fresh requirements before phases are added.*

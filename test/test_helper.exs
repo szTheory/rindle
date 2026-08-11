@@ -1,4 +1,14 @@
 {:ok, _} = Rindle.Repo.start_link()
+
+# Rindle's legacy packaged Oban migration is intentionally a no-op. The test
+# application is still the host, so install its own Oban schema before starting
+# Oban or running tests that enqueue jobs.
+Ecto.Migrator.up(Rindle.Repo, 20_260_810_000_000, Rindle.TestSupport.HostObanMigration,
+  log: false
+)
+
+Rindle.TestSupport.HostRindleMigration.install!()
+
 Ecto.Adapters.SQL.Sandbox.mode(Rindle.Repo, :manual)
 
 case ExMarcel.TableWrapper.start_link([]) do
@@ -23,9 +33,9 @@ targeted_adopter_or_integration? =
 
 exclude_tags =
   if targeted_adopter_or_integration? do
-    [:minio, :contract, :canary]
+    [:minio, :contract, :migration_e2e, :canary]
   else
-    [:integration, :minio, :contract, :adopter, :canary]
+    [:integration, :minio, :contract, :adopter, :migration_e2e, :canary]
   end
 
 # Only emit JUnit XML in CI to keep local runs quiet (CI sets the CI env var).

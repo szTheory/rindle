@@ -4,11 +4,14 @@ defmodule Rindle.Ops.RuntimeChecks do
   alias Ecto.Migrator
   alias Rindle.Config
   alias Rindle.Delivery
+  alias Rindle.Migration.V1, as: MigrationV1
+  alias Rindle.Ops.OwnershipSnapshot
   alias Rindle.Processor.AV
   alias Rindle.Processor.AV.RuntimeGuard
   alias Rindle.Storage.Local
 
   @base_queues [:rindle_maintenance, :rindle_process, :rindle_promote, :rindle_purge]
+  @migration_inspection_failure "migration inspection failed"
   @local_playback_fix """
   Configure `config :rindle, :local_playback_route, [base_url: ..., secret_key_base: ...]` and mount `Rindle.Delivery.LocalPlug` for local AV playback, or use `Rindle.Delivery.url/3` for progressive delivery instead.
   """
@@ -77,7 +80,7 @@ defmodule Rindle.Ops.RuntimeChecks do
   def run(args, opts \\ []) do
     env = Keyword.get(opts, :env, System.get_env())
     probe = Keyword.get(opts, :probe, fn -> Rindle.AV.Probe.check_ffmpeg!() end)
-    mix_app = Keyword.get(opts, :mix_app, :rindle)
+    mix_app = Keyword.get_lazy(opts, :mix_app, &Config.host_app/0)
     resolved = resolve_profiles(args, Keyword.get(opts, :profiles, Config.profile_modules()))
     profiles = resolved.profiles
     oban_config = Keyword.get(opts, :oban_config, Application.get_env(mix_app, Oban))
@@ -85,6 +88,24 @@ defmodule Rindle.Ops.RuntimeChecks do
 
     migration_statuses =
       Keyword.get_lazy(opts, :migration_statuses, fn -> migration_statuses(opts) end)
+
+    rindle_schema_catalog =
+      Keyword.get_lazy(opts, :rindle_schema_catalog, fn -> rindle_schema_catalog(opts) end)
+
+    rindle_schema_catalog_supplied? = Keyword.has_key?(opts, :rindle_schema_catalog)
+
+    oban_jobs_catalog = Keyword.get(opts, :oban_jobs_catalog)
+
+    ownership_snapshot =
+      Keyword.get_lazy(opts, :ownership_snapshot, fn ->
+        OwnershipSnapshot.inspect(
+          rindle_schema_catalog: rindle_schema_catalog,
+          oban_jobs_catalog: oban_jobs_catalog,
+          mix_app: mix_app,
+          oban_binding: Keyword.get(opts, :oban_binding, oban_config),
+          compatibility_oban_prefix: Keyword.get(opts, :oban_prefix, Config.oban_prefix())
+        )
+      end)
 
     resumable_session_schema_catalog =
       Keyword.get_lazy(opts, :resumable_session_schema_catalog, fn ->
@@ -124,10 +145,18 @@ defmodule Rindle.Ops.RuntimeChecks do
          fn -> check_delivery_support(profiles) end,
          fn -> check_ffmpeg_runtime(probe) end,
          fn -> check_local_playback(profiles, local_playback_route) end,
-         fn -> check_migration_pending(migration_statuses) end,
-         fn -> check_migration_unresolved(migration_statuses) end,
+         fn -> check_migration_pending(migration_statuses, rindle_schema_catalog) end,
+         fn ->
+           check_migration_unresolved(
+             migration_statuses,
+             rindle_schema_catalog,
+             rindle_schema_catalog_supplied?
+           )
+         end,
          fn -> check_resumable_session_schema(resumable_session_schema_catalog) end,
+         fn -> check_rindle_schema_ready(ownership_snapshot.rindle) end,
          fn -> check_oban_default_instance(oban_config) end,
+         fn -> check_oban_jobs_ready(ownership_snapshot.oban) end,
          fn -> check_oban_required_queues(profiles, oban_config) end,
          fn -> check_profile_runtime_fit(resolved, env) end,
          fn -> check_streaming_credentials(profiles, env) end,
@@ -355,7 +384,7 @@ defmodule Rindle.Ops.RuntimeChecks do
     end
   end
 
-  defp check_migration_pending(statuses) do
+  defp check_migration_pending(statuses, rindle_schema_catalog) do
     pending =
       statuses
       |> Enum.filter(fn
@@ -364,24 +393,34 @@ defmodule Rindle.Ops.RuntimeChecks do
       end)
       |> Enum.map(&migration_version/1)
 
-    if pending == [] do
-      ok_result(
-        "doctor.migrations.pending",
-        :migrations,
-        "No pending Rindle migrations were found.",
-        "Keep Rindle migrations applied before running the runtime pipeline."
-      )
-    else
-      error_result(
-        "doctor.migrations.pending",
-        :migrations,
-        "Pending Rindle migrations: #{Enum.join(pending, ", ")}.",
-        "Run `mix ecto.migrate` for the repo configured at `config :rindle, :repo` before retrying."
-      )
+    cond do
+      pending == [] ->
+        ok_result(
+          "doctor.migrations.pending",
+          :migrations,
+          "No pending Rindle migrations were found.",
+          "Keep Rindle migrations applied before running the runtime pipeline."
+        )
+
+      rindle_schema_ready?(rindle_schema_catalog) and all_legacy_statuses_pending?(statuses) ->
+        warn_result(
+          "doctor.migrations.pending",
+          :migrations,
+          "Legacy Rindle migration history has pending entries, but the Rindle-owned schema catalog is ready.",
+          "Treat legacy packaged migration history as historical compatibility when `Rindle.Migration` catalog readiness is current."
+        )
+
+      true ->
+        error_result(
+          "doctor.migrations.pending",
+          :migrations,
+          "Pending Rindle migrations: #{Enum.join(pending, ", ")}.",
+          "Run `mix ecto.migrate` for the repo configured at `config :rindle, :repo` before retrying."
+        )
     end
   end
 
-  defp check_migration_unresolved(statuses) do
+  defp check_migration_unresolved(statuses, rindle_schema_catalog, catalog_supplied?) do
     unresolved =
       statuses
       |> Enum.filter(fn
@@ -390,21 +429,137 @@ defmodule Rindle.Ops.RuntimeChecks do
       end)
       |> Enum.map(&migration_version/1)
 
-    if unresolved == [] do
-      ok_result(
-        "doctor.migrations.unresolved",
-        :migrations,
-        "No unresolved applied Rindle migrations were found.",
-        "Keep local Rindle migration files in sync with the database history."
-      )
-    else
-      error_result(
-        "doctor.migrations.unresolved",
-        :migrations,
-        "Applied Rindle migrations missing from local code: #{Enum.join(unresolved, ", ")}.",
-        "Restore the migration files missing from local code, or reconcile the database history before running more Rindle migrations."
-      )
+    cond do
+      unresolved == [] ->
+        ok_result(
+          "doctor.migrations.unresolved",
+          :migrations,
+          "No unresolved applied Rindle migrations were found.",
+          "Keep local Rindle migration files in sync with the database history."
+        )
+
+      catalog_supplied? and rindle_schema_ready?(rindle_schema_catalog) and
+          no_pending_migration_statuses?(statuses) ->
+        warn_result(
+          "doctor.migrations.unresolved",
+          :migrations,
+          "Legacy Rindle migration history has applied file-history drift, but the Rindle-owned schema catalog is ready.",
+          "Keep the legacy migration history for compatibility; no destructive history rewrite is required."
+        )
+
+      true ->
+        error_result(
+          "doctor.migrations.unresolved",
+          :migrations,
+          "Applied Rindle migrations missing from local code: #{Enum.join(unresolved, ", ")}.",
+          "Restore the migration files missing from local code, or reconcile the database history before running more Rindle migrations."
+        )
     end
+  end
+
+  defp check_rindle_schema_ready(snapshot) do
+    {status, summary} =
+      case snapshot.classification do
+        :ready ->
+          {:ok,
+           "Rindle.Migration catalog is ready in #{inspect(snapshot.expected_prefix)} at version 1."}
+
+        :legacy_ready ->
+          {:ok,
+           "legacy packaged Rindle install is healthy; catalog readiness is complete in #{inspect(snapshot.expected_prefix)}."}
+
+        :rindle_prefix_mismatch ->
+          {:error,
+           "Rindle-owned catalog expected #{snapshot.expected_prefix}, observed #{snapshot.observed_prefix}."}
+
+        :inspection_failed ->
+          {:error, "Could not inspect Rindle-owned schema readiness."}
+
+        :incomplete ->
+          {:error,
+           "Rindle-owned schema is incomplete in #{inspect(snapshot.expected_prefix)}; missing tables: #{Enum.join(Map.get(snapshot, :missing_relations, []), ", ")}."}
+
+        :marker_invalid ->
+          {:error,
+           "Rindle-owned schema marker is invalid in #{inspect(snapshot.expected_prefix)}."}
+      end
+
+    ownership_result("doctor.rindle_schema.ready", :migrations, status, summary, snapshot)
+  end
+
+  defp check_oban_jobs_ready(snapshot) do
+    status = if snapshot.classification == :ready, do: :ok, else: :error
+
+    summary =
+      case {status, snapshot.classification} do
+        {:ok, _classification} ->
+          "Host-owned `oban_jobs` table is installed in #{inspect(snapshot.observed_prefix)}. Host owns Oban.Migration."
+
+        {:error, :oban_binding_drift} ->
+          "Default Oban binding drift: expected #{inspect(snapshot.expected_prefix)}, observed #{inspect(snapshot.observed_prefix)}."
+
+        {:error, :oban_binding_unavailable} ->
+          "Default Oban binding is unavailable or unsupported; no host catalog query ran."
+
+        {:error, _classification} ->
+          "Host-owned `oban_jobs` table is not ready in #{inspect(snapshot.expected_prefix)}."
+      end
+
+    ownership_result("doctor.oban_jobs.ready", :oban, status, summary, snapshot)
+  end
+
+  defp ownership_result(id, component, status, summary, snapshot) do
+    %{
+      id: id,
+      status: status,
+      component: component,
+      summary: summary,
+      fix: snapshot.next_action,
+      expected_prefix: snapshot.expected_prefix,
+      observed_prefix: snapshot.observed_prefix,
+      owner: snapshot.owner,
+      classification: snapshot.classification,
+      next_action: snapshot.next_action,
+      ownership_boundary:
+        "Rindle never creates, moves, drops, or prefixes `oban_jobs` or host `schema_migrations`."
+    }
+  end
+
+  defp rindle_schema_ready?(%{} = catalog) do
+    expected_prefix = Map.get(catalog, :prefix, Config.rindle_prefix())
+    other_prefix = Enum.find(Rindle.Schema.supported_prefixes(), &(&1 != expected_prefix))
+
+    snapshot =
+      OwnershipSnapshot.inspect(
+        expected_prefix: expected_prefix,
+        catalogs: %{expected_prefix => catalog, other_prefix => %{}},
+        oban_binding: [repo: Config.repo()],
+        compatibility_oban_prefix: Config.oban_prefix(),
+        oban_jobs_catalog: %{exists?: true}
+      )
+
+    case check_rindle_schema_ready(snapshot.rindle) do
+      %{status: :ok} -> true
+      _other -> false
+    end
+  end
+
+  defp rindle_schema_ready?(_catalog), do: false
+
+  defp all_legacy_statuses_pending?([]), do: false
+
+  defp all_legacy_statuses_pending?(statuses) do
+    Enum.all?(statuses, fn
+      {:down, version, _name} when version > 0 -> true
+      _other -> false
+    end)
+  end
+
+  defp no_pending_migration_statuses?(statuses) do
+    not Enum.any?(statuses, fn
+      {:down, version, _name} when version > 0 -> true
+      _other -> false
+    end)
   end
 
   defp check_resumable_session_schema({:error, reason}) do
@@ -510,54 +665,144 @@ defmodule Rindle.Ops.RuntimeChecks do
       {:ok, statuses, _apps} ->
         statuses
 
-      {:error, reason} ->
-        [
-          {:down, -1,
-           "migration inspection failed: #{Exception.message(normalize_exception(reason))}"}
-        ]
+      {:error, _reason} ->
+        [{:down, -1, @migration_inspection_failure}]
     end
   rescue
-    error ->
-      [{:down, -1, "migration inspection failed: #{Exception.message(error)}"}]
+    _error ->
+      [{:down, -1, @migration_inspection_failure}]
+  end
+
+  defp rindle_schema_catalog(opts) do
+    prefix = Keyword.get(opts, :prefix, Config.rindle_prefix())
+    requirements = MigrationV1.catalog_requirements()
+    rindle_tables = MigrationV1.rindle_tables()
+    marker_table = MigrationV1.marker_table()
+    inspected_tables = rindle_tables ++ [marker_table]
+
+    with_catalog_repo(fn started_repo ->
+      with {:ok, %{rows: table_rows}} <-
+             started_repo.query(
+               """
+               SELECT table_name
+               FROM information_schema.tables
+               WHERE table_schema = $1
+                 AND table_name = ANY($2::text[])
+               """,
+               [prefix, inspected_tables]
+             ) do
+        present_tables = Enum.map(table_rows, fn [table_name] -> table_name end)
+        marker_versions = marker_versions(started_repo, prefix, marker_table, present_tables)
+        missing_tables = Map.fetch!(requirements, :tables) -- present_tables
+
+        %{
+          marker_versions: marker_versions,
+          tables: present_tables -- [marker_table],
+          missing_tables: missing_tables,
+          legacy_packaged_install?: marker_versions == [] and missing_tables == [],
+          prefix: prefix
+        }
+      end
+    end)
+  end
+
+  defp marker_versions(repo, prefix, marker_table, present_tables) do
+    if marker_table in present_tables do
+      sql = """
+      SELECT version
+      FROM #{qualified_table(prefix, marker_table)}
+      ORDER BY version
+      """
+
+      case repo.query(sql, []) do
+        {:ok, %{rows: rows}} -> Enum.map(rows, fn [version] -> version end)
+        {:error, _reason} -> []
+      end
+    else
+      []
+    end
+  end
+
+  defp with_catalog_repo(fun) do
+    repo = Config.repo()
+
+    cond do
+      Process.whereis(repo) && sandbox_repo?(repo) ->
+        with_existing_or_checked_out_sandbox(repo, fun)
+
+      Process.whereis(repo) ->
+        fun.(repo)
+
+      true ->
+        case Migrator.with_repo(repo, fun, mode: :temporary) do
+          {:ok, result, _apps} -> result
+          {:error, reason} -> {:error, reason}
+        end
+    end
+  rescue
+    error -> {:error, error}
+  end
+
+  defp with_existing_or_checked_out_sandbox(repo, fun) do
+    fun.(repo)
+  rescue
+    _error in DBConnection.OwnershipError ->
+      with_sandbox_checkout(repo, fun)
+  end
+
+  defp with_sandbox_checkout(repo, fun) do
+    case Ecto.Adapters.SQL.Sandbox.checkout(repo) do
+      :ok ->
+        try do
+          fun.(repo)
+        after
+          Ecto.Adapters.SQL.Sandbox.checkin(repo)
+        end
+
+      {:already, _owner_or_allowed} ->
+        fun.(repo)
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
+  defp sandbox_repo?(repo) do
+    Keyword.get(repo.config(), :pool) == Ecto.Adapters.SQL.Sandbox
   end
 
   defp resumable_session_schema_catalog do
-    case Migrator.with_repo(
-           Config.repo(),
-           fn started_repo ->
-             with {:ok, %{rows: column_rows}} <-
-                    started_repo.query(
-                      """
-                      SELECT column_name, is_nullable, column_default
-                      FROM information_schema.columns
-                      WHERE table_schema = 'public' AND table_name = 'media_upload_sessions'
-                        AND column_name IN ('session_uri', 'session_uri_expires_at', 'last_known_offset', 'region_hint')
-                      """,
-                      []
-                    ),
-                  {:ok, %{rows: index_rows}} <-
-                    started_repo.query(
-                      """
-                      SELECT indexdef
-                      FROM pg_indexes
-                      WHERE schemaname = 'public' AND tablename = 'media_upload_sessions'
-                      """,
-                      []
-                    ) do
-               %{
-                 columns:
-                   Map.new(column_rows, fn [name, is_nullable, column_default] ->
-                     {name, %{is_nullable: is_nullable, column_default: column_default}}
-                   end),
-                 indexes: Enum.map(index_rows, fn [indexdef] -> indexdef end)
-               }
-             end
-           end,
-           mode: :temporary
-         ) do
-      {:ok, catalog, _apps} -> catalog
-      {:error, reason} -> {:error, reason}
-    end
+    prefix = Config.rindle_prefix()
+
+    with_catalog_repo(fn started_repo ->
+      with {:ok, %{rows: column_rows}} <-
+             started_repo.query(
+               """
+               SELECT column_name, is_nullable, column_default
+               FROM information_schema.columns
+               WHERE table_schema = $1 AND table_name = 'media_upload_sessions'
+                 AND column_name IN ('session_uri', 'session_uri_expires_at', 'last_known_offset', 'region_hint')
+               """,
+               [prefix]
+             ),
+           {:ok, %{rows: index_rows}} <-
+             started_repo.query(
+               """
+               SELECT indexdef
+               FROM pg_indexes
+               WHERE schemaname = $1 AND tablename = 'media_upload_sessions'
+               """,
+               [prefix]
+             ) do
+        %{
+          columns:
+            Map.new(column_rows, fn [name, is_nullable, column_default] ->
+              {name, %{is_nullable: is_nullable, column_default: column_default}}
+            end),
+          indexes: Enum.map(index_rows, fn [indexdef] -> indexdef end)
+        }
+      end
+    end)
   end
 
   defp profile_runtime_failures(profiles, env) do
@@ -704,6 +949,17 @@ defmodule Rindle.Ops.RuntimeChecks do
 
   defp migration_version({_state, -1, _name}), do: "migration inspection failed"
   defp migration_version({_state, version, _name}), do: Integer.to_string(version)
+
+  defp qualified_table(prefix, table), do: "#{quote_ident(prefix)}.#{quote_ident(table)}"
+
+  defp quote_ident(identifier) do
+    escaped =
+      identifier
+      |> to_string()
+      |> String.replace(~s("), ~s(""))
+
+    ~s("#{escaped}")
+  end
 
   defp module_from_string(name) do
     name

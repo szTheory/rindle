@@ -8,6 +8,10 @@ This document focuses on **what CI runs on your PR versus after merge**, so you 
 which signal is fast-feedback and which is release-readiness breadth, and on the single
 local command — `mix ci` — that reproduces the PR verdict before you push.
 
+## Versioning and stability
+
+Rindle follows Semantic Versioning. While Rindle is 0.x, public APIs may change between minor versions; review CHANGELOG.md and guides/upgrading.md before upgrading. Rindle 1.0 will mean the public API is stable enough that breaking public API changes move to major versions.
+
 ## Reproduce the PR gate locally: `mix ci`
 
 `mix ci` runs the same merge-blocking checks the PR gate runs, in a sensible local order:

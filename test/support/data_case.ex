@@ -21,7 +21,13 @@ defmodule Rindle.DataCase do
 
   def setup_sandbox(tags) do
     repo = tags[:sandbox_repo] || Rindle.Repo
-    pid = Sandbox.start_owner!(repo, shared: not tags[:async])
-    on_exit(fn -> Sandbox.stop_owner(pid) end)
+
+    if tags[:sandbox] == false do
+      Sandbox.mode(repo, :auto)
+      on_exit(fn -> Sandbox.mode(repo, :manual) end)
+    else
+      pid = Sandbox.start_owner!(repo, shared: not tags[:async])
+      on_exit(fn -> Sandbox.stop_owner(pid) end)
+    end
   end
 end

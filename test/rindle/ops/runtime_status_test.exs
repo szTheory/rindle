@@ -3,8 +3,11 @@ defmodule Rindle.Ops.RuntimeStatusTest do
   use Oban.Testing, repo: Rindle.Repo
 
   alias Rindle.Domain.{MediaAsset, MediaProviderAsset, MediaUploadSession, MediaVariant}
+  alias Rindle.Ops.RuntimeChecks
   alias Rindle.Ops.RuntimeStatus
   alias Rindle.Workers.ProcessVariant
+
+  @runtime_status_config Rindle.Ops.RuntimeStatus
 
   defmodule StatusImageProfile do
     use Rindle.Profile,
@@ -20,6 +23,180 @@ defmodule Rindle.Ops.RuntimeStatusTest do
       variants: [web_720p: [kind: :video, preset: :web_720p]],
       allow_mime: ["video/mp4"],
       max_bytes: 524_288_000
+  end
+
+  setup do
+    previous_runtime_status_config = Application.get_env(:rindle, @runtime_status_config)
+    previous_rindle_prefix = Application.get_env(:rindle, :rindle_prefix)
+    previous_oban_prefix = Application.get_env(:rindle, :oban_prefix)
+    previous_oban_config = Application.get_env(:rindle, Oban)
+
+    on_exit(fn ->
+      if previous_runtime_status_config do
+        Application.put_env(:rindle, @runtime_status_config, previous_runtime_status_config)
+      else
+        Application.delete_env(:rindle, @runtime_status_config)
+      end
+
+      restore_env(:rindle_prefix, previous_rindle_prefix)
+      restore_env(:oban_prefix, previous_oban_prefix)
+      restore_env(Oban, previous_oban_config)
+    end)
+
+    :ok
+  end
+
+  describe "setup preflight" do
+    test "refuses every bounded snapshot failure before a report-query tripwire" do
+      for {component, classification, expected_prefix, observed_prefix, expected_error} <- [
+            {:rindle, :rindle_prefix_mismatch, "rindle", "public",
+             {:rindle_prefix_mismatch,
+              %{
+                component: :rindle,
+                expected_prefix: "rindle",
+                observed_prefix: "public",
+                owner: :rindle
+              }}},
+            {:oban, :oban_binding_drift, "host_oban", "public",
+             {:oban_binding_drift,
+              %{
+                component: :oban,
+                expected_prefix: "host_oban",
+                observed_prefix: "public",
+                owner: :host
+              }}},
+            {:rindle, :inspection_failed, "rindle", nil,
+             {:inspection_failed, %{component: :rindle, owner: :rindle}}}
+          ] do
+        put_runtime_config(
+          ownership_snapshot:
+            ownership_snapshot(component, classification, expected_prefix, observed_prefix),
+          report_query: fn _operation, _query, _prefix -> raise "REPORT_QUERY_REACHED" end
+        )
+
+        assert {:error, ^expected_error} = RuntimeStatus.runtime_status([])
+      end
+    end
+
+    test "uses the snapshot's Rindle prefix for healthy report queries" do
+      parent = self()
+      rindle_prefix = Rindle.Schema.prefix()
+
+      put_runtime_config(
+        ownership_snapshot: ownership_snapshot(:ready, :ready, rindle_prefix, "public"),
+        report_query: fn operation, _query, prefix ->
+          send(parent, {:report_query, operation, prefix})
+          if operation == :one, do: 0, else: []
+        end
+      )
+
+      assert {:ok, _report} = RuntimeStatus.runtime_status([])
+      assert_received {:report_query, :rindle_all, ^rindle_prefix}
+    end
+
+    test "returns setup_incomplete before report queries when Rindle-owned schema is missing" do
+      put_setup_readiness(%{
+        rindle_schema: %{ready?: false, missing_tables: ["media_assets"]},
+        oban_jobs: %{ready?: true}
+      })
+
+      assert {:error, {:setup_incomplete, :rindle_schema}} = RuntimeStatus.runtime_status([])
+    end
+
+    test "returns setup_incomplete before report queries when host-owned oban_jobs is missing" do
+      put_setup_readiness(%{
+        rindle_schema: %{ready?: true},
+        oban_jobs: %{ready?: false, setup: "Oban.Migration"}
+      })
+
+      assert {:error, {:setup_incomplete, :oban_jobs}} = RuntimeStatus.runtime_status([])
+    end
+
+    test "preserves the successful report shape when setup preflight is healthy" do
+      put_setup_readiness(%{
+        rindle_schema: %{ready?: true},
+        oban_jobs: %{ready?: true}
+      })
+
+      assert {:ok, report} = RuntimeStatus.runtime_status(limit: 2)
+
+      assert %{
+               generated_at: %DateTime{},
+               filters: %{limit: 2},
+               runtime_checks: %{counts: _, findings: _},
+               assets: %{counts: _},
+               variants: %{counts: _, findings: _},
+               upload_sessions: %{counts: _, findings: _, resumable: _},
+               provider_assets: %{counts: _, findings: _, threshold_seconds: _},
+               recommendations: recommendations
+             } = report
+
+      assert is_list(recommendations)
+    end
+
+    test "does not let runtime configuration override the compiled Rindle prefix" do
+      Application.put_env(:rindle, :rindle_prefix, "runtime_override")
+      Application.put_env(:rindle, :oban_prefix, "public")
+
+      assert "public" == Rindle.Config.rindle_prefix()
+      assert {:ok, _report} = RuntimeStatus.runtime_status([])
+    end
+
+    test "inspects configured Oban prefix after the compiled Rindle schema is ready" do
+      prefix = temporary_prefix!()
+
+      Application.put_env(:rindle, :oban_prefix, prefix)
+      Application.put_env(:rindle, Oban, repo: Rindle.Repo, queues: [], prefix: prefix)
+
+      assert {:error, {:setup_incomplete, :oban_jobs}} = RuntimeStatus.runtime_status([])
+    end
+
+    test "runtime report queries use the compiled Rindle prefix after setup preflight" do
+      prefix = Rindle.Config.rindle_prefix()
+
+      asset =
+        insert_prefixed_asset(prefix, %{
+          profile: to_string(StatusVideoProfile),
+          kind: "video",
+          state: "available",
+          content_type: "video/mp4"
+        })
+
+      assert {:ok, report} = RuntimeStatus.runtime_status(limit: 5)
+
+      assert report.assets.counts.total == 1
+      assert report.assets.counts.available == 1
+      assert report.variants.counts.total == 0
+      assert report.upload_sessions.counts.total == 0
+      assert report.runtime_checks.counts.probe_drift == 1
+
+      assert [%{class: :probe_drift, samples: [sample]}] = report.runtime_checks.findings
+      assert sample.asset_id == asset.id
+    end
+
+    test "runtime checks inspect resumable schema in the compiled Rindle prefix" do
+      prefix = Rindle.Config.rindle_prefix()
+
+      assert prefixed_table_exists?(prefix, "media_upload_sessions")
+
+      report =
+        RuntimeChecks.run([],
+          probe: fn -> :ok end,
+          profiles: [],
+          oban_config: healthy_oban_config(),
+          migration_statuses: [],
+          oban_jobs_catalog: %{exists?: true, owner: :host, setup: "Oban.Migration"}
+        )
+
+      assert report.success?, inspect(report.checks, pretty: true)
+
+      schema = Enum.find(report.checks, &(&1.id == "doctor.rindle_schema.ready"))
+      assert schema.status == :ok
+      assert schema.summary =~ inspect(prefix)
+
+      resumable = Enum.find(report.checks, &(&1.id == "doctor.resumable_session_schema"))
+      assert resumable.status == :ok
+    end
   end
 
   test "classifies failed, cancelled, stale, missing, and queue-starved variants" do
@@ -403,6 +580,114 @@ defmodule Rindle.Ops.RuntimeStatusTest do
     end
 
     Rindle.Repo.get!(MediaProviderAsset, row.id)
+  end
+
+  defp put_setup_readiness(readiness), do: put_runtime_config(setup_readiness: readiness)
+
+  defp put_runtime_config(config),
+    do: Application.put_env(:rindle, @runtime_status_config, config)
+
+  defp ownership_snapshot(:ready, :ready, rindle_prefix, oban_prefix) do
+    %{
+      rindle: %{
+        classification: :ready,
+        expected_prefix: rindle_prefix,
+        observed_prefix: rindle_prefix,
+        owner: :rindle
+      },
+      oban: %{
+        classification: :ready,
+        expected_prefix: oban_prefix,
+        observed_prefix: oban_prefix,
+        owner: :host
+      }
+    }
+  end
+
+  defp ownership_snapshot(component, classification, expected_prefix, observed_prefix) do
+    ready_rindle = %{
+      classification: :ready,
+      expected_prefix: "rindle",
+      observed_prefix: "rindle",
+      owner: :rindle
+    }
+
+    ready_oban = %{
+      classification: :ready,
+      expected_prefix: "public",
+      observed_prefix: "public",
+      owner: :host
+    }
+
+    failure = %{
+      classification: classification,
+      expected_prefix: expected_prefix,
+      observed_prefix: observed_prefix,
+      owner: if(component == :rindle, do: :rindle, else: :host)
+    }
+
+    case component do
+      :rindle -> %{rindle: failure, oban: ready_oban}
+      :oban -> %{rindle: ready_rindle, oban: failure}
+    end
+  end
+
+  defp restore_env(key, nil), do: Application.delete_env(:rindle, key)
+  defp restore_env(key, value), do: Application.put_env(:rindle, key, value)
+
+  defp temporary_prefix! do
+    prefix = "runtime_status_prefix_#{System.unique_integer([:positive])}"
+    Rindle.Repo.query!("CREATE SCHEMA #{quote_ident(prefix)}")
+
+    on_exit(fn ->
+      Rindle.Repo.query!("DROP SCHEMA IF EXISTS #{quote_ident(prefix)} CASCADE")
+    end)
+
+    prefix
+  end
+
+  defp prefixed_table_exists?(prefix, table) do
+    %{rows: [[exists?]]} =
+      Rindle.Repo.query!("SELECT to_regclass($1) IS NOT NULL", ["#{prefix}.#{table}"])
+
+    exists?
+  end
+
+  defp insert_prefixed_asset(prefix, attrs) do
+    params =
+      %{
+        state: "available",
+        profile: to_string(StatusImageProfile),
+        storage_key: "prefix/assets/#{System.unique_integer([:positive])}.bin",
+        kind: "image",
+        content_type: "image/png"
+      }
+      |> Map.merge(attrs)
+
+    %MediaAsset{}
+    |> MediaAsset.changeset(params)
+    |> Rindle.Repo.insert!(prefix: prefix)
+  end
+
+  defp healthy_oban_config do
+    [
+      repo: Rindle.Repo,
+      queues: [
+        rindle_promote: 1,
+        rindle_process: 1,
+        rindle_purge: 1,
+        rindle_maintenance: 1
+      ]
+    ]
+  end
+
+  defp quote_ident(identifier) do
+    escaped =
+      identifier
+      |> to_string()
+      |> String.replace(~s("), ~s(""))
+
+    ~s("#{escaped}")
   end
 
   defp insert_asset(attrs) do

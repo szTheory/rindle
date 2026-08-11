@@ -16,9 +16,11 @@ defmodule Rindle.InstallSmoke.PackageMetadataTest do
   @public_smoke_script Path.join(@repo_root, "scripts/public_smoke.sh")
   @docs_assertion_script Path.join(@repo_root, "scripts/assert_release_docs_html.sh")
   @release_exists_script Path.join(@repo_root, "scripts/hex_release_exists.sh")
+  @hex_metadata_script Path.join(@repo_root, "scripts/verify_hex_package_metadata.sh")
   @assert_version_script Path.join(@repo_root, "scripts/assert_version_match.sh")
   @release_workflow Path.join(@repo_root, ".github/workflows/release.yml")
   @ci_workflow Path.join(@repo_root, ".github/workflows/ci.yml")
+  @legacy_oban_migration "priv/repo/migrations/20260424205942_create_oban_tables.exs"
   @required_paths [
     "mix.exs",
     "README.md",
@@ -29,7 +31,8 @@ defmodule Rindle.InstallSmoke.PackageMetadataTest do
     "priv/static/rindle_admin/logo.svg",
     "priv/static/rindle_admin/favicon.svg",
     "guides/getting_started.md",
-    "guides/release_publish.md"
+    "guides/release_publish.md",
+    @legacy_oban_migration
   ]
   @prohibited_paths ["_build", ".planning", "test", ".github", "coveralls.json"]
 
@@ -52,6 +55,7 @@ defmodule Rindle.InstallSmoke.PackageMetadataTest do
        public_smoke_script: File.read!(@public_smoke_script),
        docs_assertion_script: File.read!(@docs_assertion_script),
        release_exists_script: File.read!(@release_exists_script),
+       hex_metadata_script: File.read!(@hex_metadata_script),
        assert_version_script: File.read!(@assert_version_script),
        release_workflow: File.read!(@release_workflow),
        ci_workflow: File.read!(@ci_workflow)
@@ -68,8 +72,14 @@ defmodule Rindle.InstallSmoke.PackageMetadataTest do
     assert metadata =~ "Phoenix/Ecto-native media lifecycle library. Media, made durable."
     assert metadata =~ ~s({<<"licenses">>,[<<"MIT">>]}.)
 
-    assert metadata =~
-             ~s({<<"links">>,[{<<"GitHub">>,<<"https://github.com/szTheory/rindle">>}]}.)
+    compact_metadata = String.replace(metadata, ~r/\s+/, "")
+
+    assert compact_metadata =~ ~s({<<"GitHub">>,<<"https://github.com/szTheory/rindle">>})
+
+    assert compact_metadata =~
+             ~s({<<"Changelog">>,<<"https://github.com/szTheory/rindle/blob/main/CHANGELOG.md">>})
+
+    assert compact_metadata =~ ~s({<<"Docs">>,<<"https://hexdocs.pm/rindle">>})
 
     for rel_path <- @required_paths do
       assert metadata =~ ~s(<<"#{rel_path}">>)
@@ -93,6 +103,15 @@ defmodule Rindle.InstallSmoke.PackageMetadataTest do
     for rel_path <- @prohibited_paths do
       refute File.exists?(Path.join(package_root, rel_path))
     end
+  end
+
+  test "legacy packaged migration directory keeps the historical Oban filename shipped", %{
+    metadata: metadata,
+    package_root: package_root
+  } do
+    assert File.dir?(Path.join(package_root, "priv/repo/migrations"))
+    assert File.exists?(Path.join(package_root, @legacy_oban_migration))
+    assert metadata =~ ~s(<<"#{@legacy_oban_migration}">>)
   end
 
   test "release preflight script runs the release gates in order", %{script: script} do
@@ -166,6 +185,7 @@ defmodule Rindle.InstallSmoke.PackageMetadataTest do
     assert workflow =~ "public_verify:"
     assert workflow =~ "needs: [gate-ci-green, publish]"
     assert workflow =~ "name: Wait for Hex.pm index (post-publish)"
+    assert workflow =~ "name: Verify public Hex.pm metadata"
     assert workflow =~ "name: Verify HexDocs reachability"
     assert workflow =~ "name: Verify public Hex.pm artifact"
     assert workflow =~ ~s(HEX_API_KEY: "")
@@ -177,17 +197,35 @@ defmodule Rindle.InstallSmoke.PackageMetadataTest do
     assert workflow =~ "DEADLINE=$(( SECONDS + 300 ))"
     assert workflow =~ "Release blocked: HexDocs did not serve"
     assert workflow =~ "sleep 15"
+    assert workflow =~ ~s(bash scripts/verify_hex_package_metadata.sh "$VERSION")
     assert workflow =~ ~s(bash scripts/public_smoke.sh "$VERSION")
 
     wait_pos = snippet_position(workflow, "name: Wait for Hex.pm index (post-publish)")
+    metadata_pos = snippet_position(workflow, "name: Verify public Hex.pm metadata")
     docs_pos = snippet_position(workflow, "name: Verify HexDocs reachability")
     smoke_pos = snippet_position(workflow, "name: Verify public Hex.pm artifact")
 
     assert is_integer(wait_pos)
+    assert is_integer(metadata_pos)
     assert is_integer(docs_pos)
     assert is_integer(smoke_pos)
     assert wait_pos < docs_pos
+    assert wait_pos < metadata_pos
+    assert metadata_pos < docs_pos
     assert docs_pos < smoke_pos
+  end
+
+  test "Hex public metadata verifier checks package links and owner", %{
+    hex_metadata_script: script
+  } do
+    assert script =~ "https://hex.pm/api/packages/${PACKAGE}"
+    assert script =~ "https://hex.pm/api/packages/${PACKAGE}/releases/${VERSION}"
+    assert script =~ ~s("GitHub": source_url)
+    assert script =~ ~s("Changelog": f"{source_url}/blob/main/CHANGELOG.md")
+    assert script =~ ~s("Docs": "https://hexdocs.pm/rindle")
+    assert script =~ "package_data.get(\"owners\", [])"
+    assert script =~ "expected_owner in owners"
+    assert script =~ "release_data.get(\"version\") == version"
   end
 
   test "release workflow gates publish on idempotency probe", %{release_workflow: workflow} do
@@ -247,6 +285,7 @@ defmodule Rindle.InstallSmoke.PackageMetadataTest do
   test "release scripts accept RINDLE_PROJECT_ROOT discipline", %{
     release_exists_script: release_exists_script,
     assert_version_script: assert_version_script,
+    hex_metadata_script: hex_metadata_script,
     install_smoke_script: install_smoke_script,
     public_smoke_script: public_smoke_script,
     script: preflight_script,
@@ -255,6 +294,7 @@ defmodule Rindle.InstallSmoke.PackageMetadataTest do
     for script <- [
           release_exists_script,
           assert_version_script,
+          hex_metadata_script,
           install_smoke_script,
           public_smoke_script,
           preflight_script,

@@ -49,6 +49,8 @@ defmodule Mix.Tasks.Rindle.RuntimeStatus do
       |> maybe_put(:format, Keyword.get(opts, :format))
       |> maybe_put(:provider_stuck, Keyword.get(opts, :provider_stuck))
 
+    json? = Keyword.get(opts, :format) == "json"
+
     case Rindle.runtime_status(filters) do
       {:ok, report} ->
         case report.filters.format do
@@ -60,10 +62,116 @@ defmodule Mix.Tasks.Rindle.RuntimeStatus do
         end
 
       {:error, reason} ->
-        Mix.shell().error("Rindle.RuntimeStatus failed: #{inspect(reason)}")
+        print_error(reason, json?)
         exit({:shutdown, 1})
     end
   end
+
+  @doc false
+  def format_error({:setup_incomplete, :rindle_schema}) do
+    "Rindle.RuntimeStatus failed: setup_incomplete rindle_schema; no report queries ran. Run `mix rindle.doctor`, then apply a host migration that calls `Rindle.Migration.up(version: 1)` and rerun `mix ecto.migrate`."
+  end
+
+  def format_error({:setup_incomplete, :oban_jobs}) do
+    "Rindle.RuntimeStatus failed: setup_incomplete oban_jobs; no report queries ran. Run `mix rindle.doctor`. Install Oban through a host-owned migration using `Oban.Migration`. Rindle no longer manages `oban_jobs`."
+  end
+
+  def format_error({:rindle_prefix_mismatch, _details} = reason) do
+    details = error_details(reason)
+
+    "Rindle.RuntimeStatus failed: rindle_prefix_mismatch; no report queries ran. Run `mix rindle.doctor`. Expected Rindle prefix #{details.expected_prefix}, observed #{details.observed_prefix}. Schedule the host-owned maintenance-window migration, then deploy the matching Rindle prefix."
+  end
+
+  def format_error({:oban_binding_drift, _details} = reason) do
+    details = error_details(reason)
+
+    "Rindle.RuntimeStatus failed: oban_binding_drift; no report queries ran. Run `mix rindle.doctor`. Expected host Oban prefix #{details.expected_prefix}, observed #{details.observed_prefix}. Align the host-owned default Oban binding and `:rindle, :oban_prefix`, then deploy matching configuration."
+  end
+
+  def format_error({:inspection_failed, _details}) do
+    "Rindle.RuntimeStatus failed: inspection_failed; no report queries ran. Run `mix rindle.doctor` to verify the bounded ownership diagnostics before retrying."
+  end
+
+  def format_error({:invalid_format, _value}) do
+    "Rindle.RuntimeStatus failed: invalid_format; no report queries ran. Run `mix rindle.doctor` before retrying with `--format text` or `--format json`."
+  end
+
+  def format_error(_reason),
+    do:
+      "Rindle.RuntimeStatus failed: unknown; no report queries ran. Run `mix rindle.doctor` before retrying."
+
+  @doc false
+  def format_json_error(reason) do
+    %{status: "error"}
+    |> Map.merge(error_details(reason))
+    |> Enum.reject(fn {_key, value} -> is_nil(value) end)
+    |> Map.new()
+  end
+
+  defp print_error(reason, true), do: Mix.shell().info(Jason.encode!(format_json_error(reason)))
+  defp print_error(reason, false), do: Mix.shell().error(format_error(reason))
+
+  defp error_details({:setup_incomplete, :rindle_schema}),
+    do: %{
+      classification: "setup_incomplete",
+      component: "rindle",
+      owner: "rindle",
+      next_action: "mix rindle.doctor"
+    }
+
+  defp error_details({:setup_incomplete, :oban_jobs}),
+    do: %{
+      classification: "setup_incomplete",
+      component: "oban",
+      owner: "host",
+      next_action: "mix rindle.doctor"
+    }
+
+  defp error_details({:rindle_prefix_mismatch, details}) when is_map(details) do
+    %{
+      classification: "rindle_prefix_mismatch",
+      component: "rindle",
+      expected_prefix: safe_prefix(:rindle, Map.get(details, :expected_prefix)),
+      observed_prefix: safe_prefix(:rindle, Map.get(details, :observed_prefix)),
+      owner: "rindle",
+      next_action: "mix rindle.doctor"
+    }
+  end
+
+  defp error_details({:oban_binding_drift, details}) when is_map(details) do
+    %{
+      classification: "oban_binding_drift",
+      component: "oban",
+      expected_prefix: safe_prefix(:oban, Map.get(details, :expected_prefix)),
+      observed_prefix: safe_prefix(:oban, Map.get(details, :observed_prefix)),
+      owner: "host",
+      next_action: "mix rindle.doctor"
+    }
+  end
+
+  defp error_details({:inspection_failed, details}) when is_map(details),
+    do: %{
+      classification: "inspection_failed",
+      component: details |> Map.get(:component) |> atom_string(),
+      owner: details |> Map.get(:owner) |> atom_string(),
+      next_action: "mix rindle.doctor"
+    }
+
+  defp error_details({:invalid_format, _value}),
+    do: %{classification: "invalid_format", next_action: "mix rindle.doctor"}
+
+  defp error_details(_reason), do: %{classification: "unknown", next_action: "mix rindle.doctor"}
+
+  defp safe_prefix(:rindle, prefix) when prefix in ["rindle", "public"], do: prefix
+
+  defp safe_prefix(:oban, prefix) when is_binary(prefix) do
+    if Regex.match?(~r/\A[a-zA-Z_][a-zA-Z0-9_$]*\z/, prefix), do: prefix, else: "unknown"
+  end
+
+  defp safe_prefix(_component, _prefix), do: "unknown"
+
+  defp atom_string(value) when value in [:rindle, :oban, :host], do: Atom.to_string(value)
+  defp atom_string(_value), do: nil
 
   @doc false
   def format_text_report(report) do

@@ -47,6 +47,46 @@ jobs:
         with:
           fetch-depth: 0
 
+      # D-06b: validate RELEASE_PLEASE_TOKEN BEFORE Run Release Please. The token
+      # line below reads `secrets.RELEASE_PLEASE_TOKEN || github.token` — a
+      # present-but-INVALID secret WINS the `||`, so github.token never engages
+      # and release-please dies on an opaque "Bad credentials" (or, worse, stalls
+      # silently post-merge). This is exactly what cut the 0.3.2 publish.
+      #
+      # The emptiness check lives INSIDE the run body (secret read via env: only,
+      # never inline-interpolated or echoed — V14 / T-113-04). Pitfall 5: a
+      # step-level `if: secrets.* != ''` may not evaluate on all runners and would
+      # risk a new actionlint finding; the bar is ZERO new findings.
+      - name: Validate RELEASE_PLEASE_TOKEN (fail loud, don't silently fall through ||)
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ -z "${GH_TOKEN:-}" ]; then
+            echo "RELEASE_PLEASE_TOKEN is not set; Run Release Please will rely on github.token. Skipping validation."
+            exit 0
+          fi
+
+          # Auth check: does the token authenticate at all?
+          if ! gh api user >/dev/null 2>&1; then
+            echo "::error::RELEASE_PLEASE_TOKEN is present but INVALID (expired/revoked). release.yml uses 'secrets.RELEASE_PLEASE_TOKEN || github.token' — a present-but-bad secret WINS the '||' so github.token never engages, and Run Release Please dies on 'Bad credentials' (or stalls post-merge). Rotate the secret (fine-grained PAT with contents:write + pull-requests:write, or a GitHub App installation token) then re-run."
+            exit 1
+          fi
+
+          # Actions-scope check (the confirmed gap that 403'd the 0.3.2 publish
+          # dispatch): `gh api user` succeeds even when a fine-grained PAT lacks
+          # `Actions: read/write`, but automerge's `gh workflow run release.yml`
+          # publish-dispatch then 403s and the publish silently never runs.
+          if ! gh api "repos/${GH_REPO}/actions/permissions" >/dev/null 2>&1; then
+            echo "::error::RELEASE_PLEASE_TOKEN cannot access the Actions API — add 'Actions: read/write' (fine-grained PAT) or use a GitHub App token, else automerge's publish-dispatch will 403 and 0.3.2-style publishes will stall after merge."
+            exit 1
+          fi
+
+          echo "RELEASE_PLEASE_TOKEN validated (auth + Actions scope)."
+
       - name: Run Release Please
         id: release
         uses: googleapis/release-please-action@5c625bfb5d1ff62eadeeb3772007f7f66fdcf071 # v4.4.1
@@ -471,6 +511,11 @@ jobs:
             sleep 15
           done
           echo "Hex.pm indexed rindle $VERSION."
+
+      - name: Verify public Hex.pm metadata
+        env:
+          VERSION: ${{ needs.publish.outputs.release_version }}
+        run: bash scripts/verify_hex_package_metadata.sh "$VERSION"
 
       - name: Verify HexDocs reachability
         env:

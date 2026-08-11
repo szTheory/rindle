@@ -392,6 +392,10 @@ jobs:
           set -o pipefail
           mix test test/rindle/upload/lifecycle_integration_test.exs --include integration --slowest 20 2>&1 | tee /tmp/test.out
           mix test test/rindle/storage/storage_adapter_test.exs --include minio --slowest 20 2>&1 | tee -a /tmp/test.out
+          MIX_TEST_PARTITION=_migration_e2e_documented mix test test/rindle/migration_test.exs --only migration_e2e:documented --seed 0 --slowest 20 2>&1 | tee -a /tmp/test.out
+          MIX_TEST_PARTITION=_migration_e2e_lock mix test test/rindle/migration_test.exs --only migration_e2e:lock_contention --seed 0 --slowest 20 2>&1 | tee -a /tmp/test.out
+          MIX_TEST_PARTITION=_migration_e2e_database_privilege mix test test/rindle/migration_test.exs --only migration_e2e:database_privilege --seed 0 --slowest 20 2>&1 | tee -a /tmp/test.out
+          MIX_TEST_PARTITION=_migration_e2e_schema_privilege mix test test/rindle/migration_test.exs --only migration_e2e:schema_privilege --seed 0 --slowest 20 2>&1 | tee -a /tmp/test.out
           {
             echo "## Test timing — ${{ github.job }}"
             echo '```'
@@ -858,7 +862,6 @@ jobs:
           mix deps.get
           mix ecto.create --quiet
           mix ecto.migrate --quiet
-          mix rindle.migrate
           mix test
 
   cohort-demo-smoke:

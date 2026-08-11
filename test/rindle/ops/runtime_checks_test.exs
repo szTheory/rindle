@@ -42,6 +42,32 @@ defmodule Rindle.Ops.RuntimeChecksTest do
       max_bytes: 10_000_000
   end
 
+  @rindle_tables ~w(
+    media_assets
+    media_attachments
+    media_variants
+    media_upload_sessions
+    media_processing_runs
+    media_provider_assets
+  )
+  @legacy_migration_versions [
+    20_260_424_155_129,
+    20_260_424_205_942,
+    20_260_425_090_000,
+    20_260_425_090_100,
+    20_260_425_090_150,
+    20_260_425_090_200,
+    20_260_425_090_300,
+    20_260_428_110_000,
+    20_260_502_120_000,
+    20_260_506_120_000,
+    20_260_507_160_000,
+    20_260_522_120_000,
+    20_260_524_120_000,
+    20_260_527_065_924,
+    20_260_527_120_000
+  ]
+
   describe "run/2" do
     test "returns deterministic stable check ids" do
       previous = Application.get_env(:rindle, :tus_profiles)
@@ -76,9 +102,11 @@ defmodule Rindle.Ops.RuntimeChecksTest do
                  "doctor.migrations.pending",
                  "doctor.migrations.unresolved",
                  "doctor.oban_default_instance",
+                 "doctor.oban_jobs.ready",
                  "doctor.oban_required_queues",
                  "doctor.profile_runtime_fit",
                  "doctor.resumable_session_schema",
+                 "doctor.rindle_schema.ready",
                  "doctor.streaming_credentials",
                  "doctor.streaming_signing_key",
                  "doctor.streaming_smoke_ping",
@@ -94,6 +122,82 @@ defmodule Rindle.Ops.RuntimeChecksTest do
         else
           Application.delete_env(:rindle, :tus_profiles)
         end
+      end
+    end
+
+    test "keeps ownership check IDs and telemetry bounded for binding refusal" do
+      handler_id = "ownership-checks-#{System.unique_integer([:positive])}"
+      parent = self()
+
+      :telemetry.attach(
+        handler_id,
+        [:rindle, :runtime, :check, :stop],
+        fn _event, _measurements, metadata, _ ->
+          send(parent, {:telemetry, metadata})
+        end,
+        nil
+      )
+
+      try do
+        report =
+          run_runtime_checks(
+            probe: fn -> :ok end,
+            env: %{},
+            profiles: [],
+            oban_config: healthy_oban_config(),
+            migration_statuses: [],
+            ownership_snapshot: %{
+              rindle: %{
+                expected_prefix: "public",
+                observed_prefix: nil,
+                owner: :rindle,
+                classification: :inspection_failed,
+                next_action: "Run mix rindle.doctor."
+              },
+              oban: %{
+                expected_prefix: "host_oban",
+                observed_prefix: "public",
+                owner: :host,
+                classification: :oban_binding_drift,
+                next_action: "Host owns Oban.Migration."
+              }
+            }
+          )
+
+        for id <- ["doctor.rindle_schema.ready", "doctor.oban_jobs.ready"] do
+          check = fetch_check(report, id)
+          assert check.status == :error
+          assert check.classification in [:inspection_failed, :oban_binding_drift]
+          refute inspect(check) =~ "credential"
+        end
+
+        assert_receive {:telemetry,
+                        %{check: "doctor.oban_jobs.ready", status: :error, component: :oban}}
+      after
+        :telemetry.detach(handler_id)
+      end
+    end
+
+    @tag :phase_119_redaction
+    test "redacts migration inspection failure names while preserving ownership checks" do
+      sentinel = "Postgrex.Error SELECT password FROM credentials"
+
+      report =
+        run_runtime_checks(
+          probe: fn -> :ok end,
+          env: %{},
+          profiles: [],
+          oban_config: healthy_oban_config(),
+          migration_statuses: [{:down, -1, "migration inspection failed: #{sentinel}"}]
+        )
+
+      migration = fetch_check(report, "doctor.migrations.pending")
+      assert migration.status == :error
+      assert migration.summary =~ "migration inspection failed"
+      refute inspect(report) =~ sentinel
+
+      for id <- ["doctor.rindle_schema.ready", "doctor.oban_jobs.ready"] do
+        assert fetch_check(report, id).owner in [:rindle, :host]
       end
     end
 
@@ -230,6 +334,116 @@ defmodule Rindle.Ops.RuntimeChecksTest do
       assert unresolved.status == :error
       assert unresolved.summary =~ "20260425090000"
       assert unresolved.fix =~ "missing from local code"
+    end
+
+    test "accepts a fresh Rindle.Migration marker/catalog install without legacy file history" do
+      report =
+        run_runtime_checks(
+          probe: fn -> :ok end,
+          env: %{},
+          profiles: [],
+          oban_config: healthy_oban_config(),
+          migration_statuses: pending_legacy_migration_statuses(),
+          rindle_schema_catalog: fresh_marker_catalog_fixture(),
+          oban_jobs_catalog: oban_jobs_ready_fixture()
+        )
+
+      assert report.success?
+
+      schema = fetch_check(report, "doctor.rindle_schema.ready")
+      assert schema.status == :ok
+      assert schema.summary =~ "Rindle.Migration"
+      assert schema.summary =~ "version 1"
+
+      pending = fetch_check(report, "doctor.migrations.pending")
+      assert pending.status in [:ok, :warn]
+      refute pending.status == :error
+    end
+
+    test "accepts a healthy legacy packaged migration install when the catalog is current" do
+      report =
+        run_runtime_checks(
+          probe: fn -> :ok end,
+          env: %{},
+          profiles: [],
+          oban_config: healthy_oban_config(),
+          migration_statuses: applied_legacy_migration_statuses(),
+          rindle_schema_catalog: healthy_legacy_catalog_fixture(),
+          oban_jobs_catalog: oban_jobs_ready_fixture()
+        )
+
+      assert report.success?
+
+      schema = fetch_check(report, "doctor.rindle_schema.ready")
+      assert schema.status == :ok
+      assert schema.summary =~ "legacy"
+      assert schema.summary =~ "catalog"
+    end
+
+    test "errors when Rindle-owned schema catalog checks are incomplete" do
+      report =
+        run_runtime_checks(
+          probe: fn -> :ok end,
+          env: %{},
+          profiles: [],
+          oban_config: healthy_oban_config(),
+          migration_statuses: applied_legacy_migration_statuses(),
+          rindle_schema_catalog: incomplete_rindle_catalog_fixture(["media_variants"]),
+          oban_jobs_catalog: oban_jobs_ready_fixture()
+        )
+
+      refute report.success?
+
+      schema = fetch_check(report, "doctor.rindle_schema.ready")
+      assert schema.status == :error
+      assert schema.summary =~ "media_variants"
+      assert schema.fix =~ "Rindle.Migration.up(version: 1)"
+    end
+
+    test "downgrades healthy legacy unresolved file-history drift to warning-only copy" do
+      report =
+        run_runtime_checks(
+          probe: fn -> :ok end,
+          env: %{},
+          profiles: [],
+          oban_config: healthy_oban_config(),
+          migration_statuses: [
+            {:up, 20_260_425_090_000, "** FILE NOT FOUND **"}
+          ],
+          rindle_schema_catalog: healthy_legacy_catalog_fixture(),
+          oban_jobs_catalog: oban_jobs_ready_fixture()
+        )
+
+      assert report.success?
+      assert report.failed == 0
+
+      unresolved = fetch_check(report, "doctor.migrations.unresolved")
+      assert unresolved.status == :warn
+      assert unresolved.summary =~ "history"
+      assert unresolved.fix =~ "legacy"
+      refute unresolved.fix =~ "delete"
+      refute unresolved.fix =~ "replay"
+    end
+
+    test "errors when the host-owned oban_jobs table is not installed" do
+      report =
+        run_runtime_checks(
+          probe: fn -> :ok end,
+          env: %{},
+          profiles: [],
+          oban_config: healthy_oban_config(),
+          migration_statuses: applied_legacy_migration_statuses(),
+          rindle_schema_catalog: healthy_legacy_catalog_fixture(),
+          oban_jobs_catalog: %{exists?: false}
+        )
+
+      refute report.success?
+
+      oban_jobs = fetch_check(report, "doctor.oban_jobs.ready")
+      assert oban_jobs.status == :error
+      assert oban_jobs.summary =~ "oban_jobs"
+      assert oban_jobs.fix =~ "Oban.Migration"
+      assert oban_jobs.fix =~ "Rindle no longer manages `oban_jobs`"
     end
 
     test "reports resumable session schema success when columns and filtered index are present" do
@@ -1067,10 +1281,65 @@ defmodule Rindle.Ops.RuntimeChecksTest do
       flunk("expected check #{inspect(id)} to be present")
   end
 
+  defp healthy_oban_config do
+    [
+      repo: Rindle.Repo,
+      queues: [
+        rindle_promote: 1,
+        rindle_process: 1,
+        rindle_purge: 1,
+        rindle_maintenance: 1
+      ]
+    ]
+  end
+
+  defp pending_legacy_migration_statuses do
+    Enum.map(@legacy_migration_versions, &{:down, &1, "#{&1}_legacy_rindle_migration.exs"})
+  end
+
+  defp applied_legacy_migration_statuses do
+    Enum.map(@legacy_migration_versions, &{:up, &1, "#{&1}_legacy_rindle_migration.exs"})
+  end
+
+  defp fresh_marker_catalog_fixture do
+    %{
+      marker_versions: [1],
+      tables: @rindle_tables,
+      legacy_packaged_install?: false,
+      prefix: "public"
+    }
+  end
+
+  defp healthy_legacy_catalog_fixture do
+    %{
+      marker_versions: [],
+      tables: @rindle_tables,
+      legacy_packaged_install?: true,
+      prefix: "public"
+    }
+  end
+
+  defp incomplete_rindle_catalog_fixture(missing_tables) do
+    %{
+      marker_versions: [1],
+      tables: @rindle_tables -- missing_tables,
+      missing_tables: missing_tables,
+      legacy_packaged_install?: false,
+      prefix: "public"
+    }
+  end
+
+  defp oban_jobs_ready_fixture do
+    %{exists?: true, owner: :host, setup: "Oban.Migration"}
+  end
+
   defp run_runtime_checks(opts) do
     RuntimeChecks.run(
       [],
-      Keyword.put_new(opts, :resumable_session_schema_catalog, resumable_session_schema_fixture())
+      opts
+      |> Keyword.put_new(:rindle_schema_catalog, fresh_marker_catalog_fixture())
+      |> Keyword.put_new(:oban_jobs_catalog, oban_jobs_ready_fixture())
+      |> Keyword.put_new(:resumable_session_schema_catalog, resumable_session_schema_fixture())
     )
   end
 

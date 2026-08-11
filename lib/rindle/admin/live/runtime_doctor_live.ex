@@ -50,6 +50,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 {"Provider assets", count_value(@model, [:runtime_status, :provider_assets, :counts, :total])}
               ]} />
             </section>
+            <section :if={@model.diagnostic} aria-label="Runtime status refusal">
+              <h2>Runtime status unavailable</h2>
+              <p><strong>Status: {@model.diagnostic.status}</strong></p>
+              <p>{@model.diagnostic_text}</p>
+              <.metadata_list items={diagnostic_items(@model.diagnostic)} />
+            </section>
           </:summary>
           <:work>
             <section>
@@ -60,14 +66,20 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   <tr>
                     <th class="rindle-admin-table__cell" scope="col">Check</th>
                     <th class="rindle-admin-table__cell" scope="col">Status</th>
+                    <th class="rindle-admin-table__cell" scope="col">Owner</th>
+                    <th class="rindle-admin-table__cell" scope="col">Prefixes</th>
+                    <th class="rindle-admin-table__cell" scope="col">Classification</th>
                     <th class="rindle-admin-table__cell" scope="col">Summary</th>
-                    <th class="rindle-admin-table__cell" scope="col">Fix</th>
+                    <th class="rindle-admin-table__cell" scope="col">Next action</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr :for={check <- @model.doctor.checks} class="rindle-admin-table__row" data-rindle-admin-row="doctor-check">
                     <td class="rindle-admin-table__cell" scope="row" data-label="Check"><code>{check.id}</code></td>
                     <td class="rindle-admin-table__cell" data-label="Status"><.status_chip state={to_string(check.status)} label={to_string(check.status)} /></td>
+                    <td class="rindle-admin-table__cell" data-label="Owner">{Map.get(check, :owner, "not specified")}</td>
+                    <td class="rindle-admin-table__cell" data-label="Prefixes">{prefixes(check)}</td>
+                    <td class="rindle-admin-table__cell" data-label="Classification">{Map.get(check, :classification, "not specified")}</td>
                     <td class="rindle-admin-table__cell" data-label="Summary">{check.summary}</td>
                     <td class="rindle-admin-table__cell" data-label="Fix">{check.fix}</td>
                   </tr>
@@ -128,16 +140,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp load(socket) do
       case Queries.runtime_doctor(runtime_opts: @runtime_opts) do
         {:ok, model} ->
+          # A bounded runtime refusal is a successful doctor model: retain the
+          # existing checks and actions instead of replacing them with the page-wide
+          # transport-error panel.
           assign(socket, model: model, error?: false)
-
-        {:error, reason} ->
-          assign(socket, model: empty_model(), error?: true, error_reason: reason)
       end
     end
 
     defp empty_model do
       %{
         generated_at: nil,
+        diagnostic: nil,
+        diagnostic_text: nil,
         doctor: %{checks: [], failed: 0, success?: false, total: 0},
         runtime_status: %{
           runtime_checks: %{counts: %{}, findings: []},
@@ -151,9 +165,32 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     defp count_value(model, path), do: get_in(model, path) || 0
 
+    defp diagnostic_items(diagnostic) do
+      [
+        {"Classification", diagnostic.classification},
+        {"Owner", Map.get(diagnostic, :owner)},
+        {"Expected prefix", Map.get(diagnostic, :expected_prefix)},
+        {"Observed prefix", Map.get(diagnostic, :observed_prefix)},
+        {"Next action", diagnostic.next_action}
+      ]
+      |> Enum.reject(fn {_label, value} -> is_nil(value) end)
+    end
+
+    defp prefixes(check) do
+      case {Map.get(check, :expected_prefix), Map.get(check, :observed_prefix)} do
+        {expected, observed} when is_binary(expected) and is_binary(observed) ->
+          "expected #{expected}; observed #{observed}"
+
+        _other ->
+          "not specified"
+      end
+    end
+
     defp failed_checks(%{doctor: %{checks: checks}}) do
       Enum.filter(checks, &(&1.status == :error))
     end
+
+    defp runtime_findings(%{runtime_status: nil}), do: []
 
     defp runtime_findings(%{runtime_status: runtime_status}) do
       runtime_status.variants.findings ++

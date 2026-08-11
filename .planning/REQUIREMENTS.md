@@ -1,125 +1,97 @@
-# Requirements: Rindle — v1.22 OSS Quality & Trust Hardening
+# Requirements: Rindle v1.23 Postgres Schema Isolation
 
-**Defined:** 2026-06-29
+**Defined:** 2026-08-08
 **Core Value:** Media, made durable.
-**Charter:** SEED-005 (software-quality consolidation arc). Non-feature/DX milestone; ships a 0.3.x minor
-(0.4.0 reserved for v1.23's breaking schema isolation). Low risk, no breaking change. Also lays the
-versioned `Rindle.Migration` substrate v1.23 builds the schema prefix onto.
 
-## Milestone v1.22 Requirements
+## v1.23 Requirements
 
-Each maps to exactly one roadmap phase (phases begin at 113).
+### Prefix Contract
 
-### Evaluation Baseline (EVAL)
+- [x] **PREFIX-01**: A fresh Rindle install defaults all Rindle-owned domain state to the Postgres
+  `rindle` schema without callers manually adding query prefixes.
 
-- [ ] **EVAL-01**: Maintainer can read a concise, evidence-cited scored-weakness summary of Rindle's OSS
-  quality (the milestone's opening artifact) — the sharpened 2026-06-29 recon naming weak dimensions
-  (governance/trust, versioning/positioning, host-app respectfulness) vs. already-strong ones (telemetry,
-  docs IA, public API, CI/testing). Right-sized; not the full 36-dimension report.
+- [x] **PREFIX-02**: An adopter can explicitly retain a legacy `public` install through one documented,
+  coherent prefix configuration and migration pairing.
 
-### OSS Trust & Governance (TRUST)
+- [x] **PREFIX-03**: Every normal Rindle data path—including facade calls, background work, Ecto.Multi
+  steps, and loaded/new schema structs—uses the configured Rindle prefix rather than silently falling
+  back to `public`.
 
-- [ ] **TRUST-01**: Repo has a `SECURITY.md` with a vulnerability-disclosure policy appropriate for a
-  library handling untrusted uploads, MIME sniffing, signed delivery, and webhook HMAC verification.
-- [ ] **TRUST-02**: Repo has a `CODE_OF_CONDUCT.md`.
-- [ ] **TRUST-03**: Repo has issue templates (`.github/ISSUE_TEMPLATE/`) and a `PULL_REQUEST_TEMPLATE.md`
-  that guide a good bug report / feature proposal / PR (the existing CONTRIBUTING is CI-only — these add
-  the newcomer on-ramp).
+### Migration & Upgrade
 
-### Hex Package Metadata (META)
+- [x] **MIGRATE-01**: The versioned Rindle migration provisions the selected schema before creating
+  Rindle-owned tables and marker state, and remains idempotent for a fresh install.
 
-- [ ] **META-01**: Hex `package.links` exposes "Changelog" and "Docs" entries (HexDocs convention, surfaced
-  on hex.pm) alongside the existing GitHub link.
-- [ ] **META-02**: Hex `package` declares `maintainers`.
+- [x] **MIGRATE-02**: A populated legacy `public` install can follow a documented, host-owned upgrade
+  migration that moves exactly the six Rindle tables and `rindle_migration_versions` to `rindle`,
+  preserving data and relational integrity.
 
-### Versioning & Stability (VERSION)
+- [x] **MIGRATE-03**: Mixed, incomplete, or permission-inadequate schema states fail with bounded,
+  actionable guidance; the move's maintenance-window and rollback limits are documented honestly.
 
-- [ ] **VERSION-01**: README and CONTRIBUTING state the SemVer / pre-1.0 stability contract — "0.x: API may
-  change between minor versions; see CHANGELOG" — and a short note on what 1.0 will mean.
-- [ ] **VERSION-02**: `guides/upgrading.md` is generalized into a reusable upgrade-notes structure (versioned
-  sections), not just the single pre-0.1.4 image-only→AV case, so every future change has a documented home.
+### Ownership & Operations
 
-### README Positioning (README)
+- [x] **BOUNDARY-01**: Rindle never creates, moves, drops, or prefixes host-owned `oban_jobs` or the
+  host `schema_migrations` ledger; Oban's prefix remains independently configured and defaults to
+  `public`.
 
-- [ ] **README-01**: README leads with an image-only "first attachment in ~2 minutes" path that needs no
-  FFmpeg/libvips; the heavier AV quickstart is demoted below it.
-- [ ] **README-02**: README has a clear "what Rindle is NOT / when not to use it" block (lift the existing
-  copy from `guides/user_flows.md`).
+- [x] **BOUNDARY-02**: Prefix-sensitive raw SQL, catalog checks, and Oban-binding queries use validated,
+  safely quoted/bound identifiers and resolve their respective Rindle or Oban schemas correctly.
 
-### Versioned Migration Module (MIGRATE)
+- [x] **OPS-01**: `mix rindle.doctor` and `mix rindle.runtime_status` report the expected Rindle and
+  Oban prefixes separately and diagnose migration/runtime-prefix mismatch without raw database errors.
 
-- [ ] **MIGRATE-01**: Adopters install Rindle's tables via a versioned, idempotent `Rindle.Migration.up/1`
-  + `down/1` module (Oban-style), replacing the raw 15-file `Ecto.Migrator` copy-paste install path; README,
-  getting-started, and upgrading docs updated to the new 3-line migration. Non-breaking — default schema
-  stays `public`; existing adopters' already-applied migrations remain valid.
-- [ ] **MIGRATE-02**: Rindle no longer creates the shared `oban_jobs` table on the adopter's behalf; the
-  adopter owns `Oban.Migration`, documented in install/upgrade guides. (Removes the latent host-Oban collision.)
+### Adoption Proof & Release Truth
 
-### Release & Planning Hygiene (HYGIENE)
+- [x] **PROOF-01**: Automated isolation proof verifies fresh default installs, explicit public
+  compatibility, a populated public-to-rindle upgrade, runtime routing, and the public Oban boundary.
 
-- [ ] **HYGIENE-01**: The stuck Hex 0.3.2 release is cut so the merged-but-unreleased v1.21 `lib/` fixes
-  (`:epipe` absorb, `$callers` config override) reach adopters; PROJECT.md / MILESTONES reconcile the prior
-  "ships as Hex 0.3.2" claim with reality.
-- [ ] **HYGIENE-02**: Stale `status: open` frontmatter on SEED-003 / SEED-004 is corrected to `consumed`
-  (they shipped as v1.20 / v1.21).
+- [x] **PROOF-02**: Packed-artifact generated-app smoke and the Cohort adoption demo provision and run
+  end-to-end with Rindle in `rindle` and Oban in `public`.
 
-## Future Requirements (v1.23 — Postgres Schema Isolation, breaking → 0.4.0)
+- [x] **DOCS-01**: README, getting-started, upgrade, migration API docs, docs-parity tests, and the
+  0.4.0 release notes agree on the breaking default, compatibility escape hatch, upgrade order,
+  permissions, downtime expectations, and Oban ownership.
 
-Deferred to the next milestone; tracked but not in this roadmap.
+## Future Requirements
 
-### Schema Isolation (ISO23)
-
-- **ISO23-01**: `rindle` Postgres schema is the default via config-driven `@schema_prefix` (`use
-  Rindle.Schema` macro over the 6 domain modules); `prefix: "public"` is the one-line opt-out.
-- **ISO23-02**: The 4 manual escapes are handled — raw-SQL `runtime_checks.ex` (2 sites) and Oban-binding
-  queries (2 sites) — so health checks resolve in the right schema and `oban_jobs` is not contaminated.
-- **ISO23-03**: Documented breaking-upgrade path — `prefix: "public"` opt-out + `ALTER TABLE … SET SCHEMA`
-  move migration; ships 0.4.0 with a release-please breaking-change note.
-- **ISO23-04**: Isolation proof — suite green under default `prefix: "rindle"`; a tagged lane proves rows
-  land in the prefix and `oban_jobs` stays in `public`; demo app provisions end-to-end into `rindle`.
+- **LIFE-06**: Force-delete still-shared assets only with a compliance/legal charter.
+- **STREAM-10**: Second streaming provider only for a named adopter and selected provider.
+- **TRANS-01**: Signed dynamic image transforms only with explicit product pull.
+- **PRIV-01**: Explicit original EXIF/GPS stripping only with explicit privacy-product pull.
 
 ## Out of Scope
 
 | Feature | Reason |
-|---------|--------|
-| Full 36-dimension scored quality report | Replaced by the right-sized EVAL-01 summary; recon already found the weak dimensions with high confidence |
-| szTheory peer-dep bumps | Rindle depends on zero szTheory-owned packages — empty workstream (recon-confirmed) |
-| CI/CD performance milestone | Already delivered by v1.20 (SEED-003) + v1.21 (SEED-004); the pasted audit is SEED-003 |
-| `mix test --partitions` parallelization | Deliberately evidence-gated on a measured core-starvation showing (DEFER-02) |
-| Breaking schema-default flip to `rindle` | That is v1.23 (0.4.0); v1.22 stays non-breaking and ships the migration substrate only |
-| New media features (LIFE-06 force-delete, STREAM-10 second provider) | Demand-gated; this arc is non-feature hardening |
-| Sibling-lib adoption (e.g. `oban_powertools`) | Separate future question, not this arc |
+|---|---|
+| Changing or managing Oban's schema | Oban is host-owned infrastructure; coupling it to Rindle's tables violates the v1.22 ownership boundary. |
+| `search_path`-based routing | It makes resolution implicit and expands the trusted-namespace/security surface. |
+| Per-tenant or arbitrary schema management | This is a library default/compatibility migration, not a multitenancy platform. |
+| Copy/dual-write migration | `ALTER TABLE ... SET SCHEMA` is the narrow data-preserving route; dual writes add unnecessary cutover risk. |
+| Force-delete, second provider, transforms, EXIF stripping | Separate demand-gated or long-tail product work. |
 
 ## Traceability
 
 | Requirement | Phase | Status |
-|-------------|-------|--------|
-| EVAL-01 | Phase 113 | Pending |
-| HYGIENE-01 | Phase 113 | Pending |
-| HYGIENE-02 | Phase 113 | Pending |
-| TRUST-01 | Phase 114 | Pending |
-| TRUST-02 | Phase 114 | Pending |
-| TRUST-03 | Phase 114 | Pending |
-| META-01 | Phase 114 | Pending |
-| META-02 | Phase 114 | Pending |
-| VERSION-01 | Phase 115 | Pending |
-| VERSION-02 | Phase 115 | Pending |
-| README-01 | Phase 115 | Pending |
-| README-02 | Phase 115 | Pending |
-| MIGRATE-01 | Phase 116 | Pending |
-| MIGRATE-02 | Phase 116 | Pending |
+|---|---|---|
+| PREFIX-01 | Phase 117 | Complete |
+| PREFIX-02 | Phase 117 | Complete |
+| PREFIX-03 | Phase 117 | Complete |
+| MIGRATE-01 | Phase 118 | Complete |
+| MIGRATE-02 | Phase 118 | Complete |
+| MIGRATE-03 | Phase 118 | Complete |
+| BOUNDARY-01 | Phase 119 | Complete |
+| BOUNDARY-02 | Phase 119 | Complete |
+| OPS-01 | Phase 119 | Complete |
+| PROOF-01 | Phase 120 | Complete |
+| PROOF-02 | Phase 120 | Complete |
+| DOCS-01 | Phase 120 | Complete |
 
 **Coverage:**
-- v1.22 requirements: 14 total
-- Mapped to phases: 14 ✓
+
+- v1.23 requirements: 12 total
+- Mapped to phases: 12 ✓
 - Unmapped: 0
 
-**Phase distribution:**
-- Phase 113 (Evaluation Baseline & Release Hygiene): EVAL-01, HYGIENE-01, HYGIENE-02 (3)
-- Phase 114 (OSS Trust & Governance): TRUST-01, TRUST-02, TRUST-03, META-01, META-02 (5)
-- Phase 115 (Versioning & README Positioning): VERSION-01, VERSION-02, README-01, README-02 (4)
-- Phase 116 (Versioned `Rindle.Migration` Module): MIGRATE-01, MIGRATE-02 (2)
-
 ---
-*Requirements defined: 2026-06-29*
-*Last updated: 2026-06-29 — roadmap created; all 14 v1.22 requirements mapped to Phases 113–116 (100% coverage)*
+*Requirements defined: 2026-08-08 after v1.23 schema-isolation research synthesis. Last updated: 2026-08-08 — mapped 12/12 requirements to Phases 117–120.*

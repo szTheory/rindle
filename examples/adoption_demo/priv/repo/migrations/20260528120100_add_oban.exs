@@ -1,7 +1,7 @@
 defmodule AdoptionDemo.Repo.Migrations.AddOban do
   use Ecto.Migration
 
-  def up, do: Oban.Migrations.up()
+  def up, do: Oban.Migration.up()
 
-  def down, do: Oban.Migrations.down()
+  def down, do: Oban.Migration.down()
 end

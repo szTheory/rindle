@@ -108,35 +108,65 @@ children = [
 The shipped path is the default `Oban` module. Named-instance or custom
 `:oban_name` routing is not part of the public contract.
 
-## 3. Run Host-App And Rindle Migrations Explicitly
+## 3. Run host-owned migrations
 
-Your app owns its own migrations, and Rindle ships a second migration path
-inside the package:
+Your app owns the Repo and migration history. Install Oban and Rindle with
+separate normal host-app migration files: host apps own `Oban.Migration`,
+`public.oban_jobs`, and `public.schema_migrations`, while `Rindle.Migration`
+owns only Rindle-owned tables.
 
 ```elixir
-Application.ensure_all_started(:rindle)
-{:ok, _pid} = MyApp.Repo.start_link()
+defmodule MyApp.Repo.Migrations.AddObanJobs do
+  use Ecto.Migration
 
-host_path = Path.join([File.cwd!(), "priv", "repo", "migrations"])
-rindle_path = Application.app_dir(:rindle, "priv/repo/migrations")
-
-unless File.dir?(rindle_path) do
-  raise "Rindle migration path missing: #{rindle_path}"
+  def up, do: Oban.Migration.up()
+  def down, do: Oban.Migration.down(version: 1)
 end
-
-{:ok, _, _} =
-  Ecto.Migrator.with_repo(MyApp.Repo, fn repo ->
-    for path <- [host_path, rindle_path] do
-      Ecto.Migrator.run(repo, path, :up, all: true)
-    end
-  end)
 ```
 
-Rindle does not ship a public `mix rindle.*` install task for migrations. The
-public install path is this docs snippet.
+Rindle's migration is separate and pinned. The default call omits `:prefix` and
+provisions the `rindle` schema. The only compatibility pairing is an explicit
+`prefix: "public"` call in a separate host migration with a public-compiled
+release for the public schema; it is not an arbitrary-prefix mode.
 
-If your app uses binary IDs globally, keep your Repo migration defaults aligned
-with your host app conventions before running the shared path.
+```elixir
+defmodule MyApp.Repo.Migrations.InstallRindle do
+  use Ecto.Migration
+
+  def up, do: Rindle.Migration.up(version: 1)
+  def down, do: Rindle.Migration.down(version: 1)
+end
+```
+
+For that explicit public compatibility pairing only, use the matching
+public-compiled release and a separate host migration:
+
+```elixir
+defmodule MyApp.Repo.Migrations.InstallPublicRindle do
+  use Ecto.Migration
+
+  def up, do: Rindle.Migration.up(version: 1, prefix: "public")
+  def down, do: Rindle.Migration.down(version: 1, prefix: "public")
+end
+```
+
+Run the host app's standard migration command, then use the doctor task as the
+first verification step:
+
+```bash
+mix ecto.migrate
+mix rindle.doctor
+```
+
+> **Rollback:** `Rindle.Migration.down/1` is destructive. Back up the database
+> before running `Rindle.Migration.down(version: 1)`; it removes Rindle-owned
+> tables only and does not manage host infrastructure such as `oban_jobs` or
+> `schema_migrations`.
+
+> **Upgrade note:** Existing apps that already applied Rindle's legacy packaged
+> migrations can leave them in place. The new module is the documented install
+> path going forward; it does not require replaying or deleting legacy migration
+> files.
 
 ## 4. Define The Canonical AV Profile
 

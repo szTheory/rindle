@@ -27,9 +27,48 @@ For upgrade troubleshooting, keep the same order: explicit migrations,
 `mix rindle.doctor`, optional `mix rindle.runtime_status`, then the repair verb
 that matches the actual state.
 
+If `mix rindle.doctor` reports missing `oban_jobs`, install Oban through a
+host-owned `Oban.Migration` and run `mix ecto.migrate` again. `Rindle.Migration`
+creates Rindle-owned tables only and does not create or own `oban_jobs`.
+
 If the failing profile uses `Rindle.Storage.GCS`, keep the same order and then
 use [Storage (GCS)](storage_gcs.html) for the bucket, CORS, `session_uri`, and
 resumable-upload operator runbook instead of rebuilding that flow from logs.
+
+## Schema Isolation and Host Oban Setup
+
+Use the following bounded routes for schema-isolation setup faults. Start with
+doctor, follow the named host-owned action, then run runtime status after the
+fix. These checks diagnose state; they do not change schema routing or deploy
+an application.
+
+### Rindle prefix mismatch
+
+Run `mix rindle.doctor`. If it reports that the build expects `rindle` while a
+complete Rindle catalog remains in `public`, prepare the
+[maintenance-window upgrade](upgrading.html#existing-populated-public-installs).
+The host migration moves the fixed seven-relation Rindle scope, followed by the
+matching `rindle`-compiled deployment. Rerun `mix rindle.doctor`, then run
+`mix rindle.runtime_status` to verify the deployed application. Do not change
+Oban or the host ledger as part of this route.
+
+### Missing Rindle setup
+
+Run `mix rindle.doctor` to distinguish an incomplete Rindle install from a
+prefix mismatch. For a fresh, missing Rindle setup, add the pinned
+`Rindle.Migration.up(version: 1)` call to a host-owned Ecto migration and run
+`mix ecto.migrate`. Deploy the matching configured build, rerun
+`mix rindle.doctor`, then run `mix rindle.runtime_status`. For a populated
+public install, use the maintenance-window upgrade instead of the fresh-install
+helper.
+
+### Host Oban binding missing or drifted
+
+Run `mix rindle.doctor` first. If the host Oban binding is missing or drifted,
+the host must correct its Oban configuration or add its own `Oban.Migration`,
+then run `mix ecto.migrate`. Rerun `mix rindle.doctor`, then run
+`mix rindle.runtime_status` after the host fix. Rindle does not own or configure Oban:
+`public.oban_jobs` and `public.schema_migrations` remain host-owned boundaries.
 
 ## Supported Recovery Verbs
 

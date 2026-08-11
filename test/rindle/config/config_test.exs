@@ -59,6 +59,59 @@ defmodule Rindle.Config.ConfigTest do
     assert Rindle.Repo == Rindle.Config.repo()
   end
 
+  test "host_app/1 resolves the OTP application that owns the configured repo" do
+    assert :rindle == Rindle.Config.host_app(Rindle.Repo)
+    assert :decimal == Rindle.Config.host_app(Decimal)
+  end
+
+  test "reports the compile-time Rindle schema prefix while Oban remains independent" do
+    previous_oban_prefix = Application.get_env(:rindle, :oban_prefix)
+
+    on_exit(fn ->
+      restore_env(:oban_prefix, previous_oban_prefix)
+    end)
+
+    Application.put_env(:rindle, :oban_prefix, "host_oban")
+
+    assert "public" == Rindle.Config.rindle_prefix()
+    assert Rindle.Schema.prefix() == Rindle.Config.rindle_prefix()
+    assert "host_oban" == Rindle.Config.oban_prefix()
+  end
+
+  test "Rindle-owned schemas retain the already-compiled prefix authority" do
+    previous_rindle_prefix = Application.get_env(:rindle, :rindle_prefix)
+    configured_prefix = opposite_prefix(Rindle.Schema.prefix())
+
+    on_exit(fn ->
+      restore_env(:rindle_prefix, previous_rindle_prefix)
+    end)
+
+    Application.put_env(:rindle, :rindle_prefix, configured_prefix)
+
+    assert configured_prefix != Rindle.Schema.prefix()
+
+    for schema <- [
+          Rindle.Domain.MediaAsset,
+          Rindle.Domain.MediaAttachment,
+          Rindle.Domain.MediaProcessingRun,
+          Rindle.Domain.MediaProviderAsset,
+          Rindle.Domain.MediaUploadSession,
+          Rindle.Domain.MediaVariant
+        ] do
+      assert Rindle.Schema.prefix() == schema.__schema__(:prefix)
+      assert Rindle.Schema.prefix() == struct(schema).__meta__.prefix
+    end
+  end
+
+  test "rejects unsupported prefixes" do
+    assert_raise ArgumentError, ~r/expected :rindle_prefix.*"rindle".*"public"/, fn ->
+      Rindle.Schema.validate_prefix!("tenant_private")
+    end
+  end
+
+  defp opposite_prefix("rindle"), do: "public"
+  defp opposite_prefix("public"), do: "rindle"
+
   defp restore_env(key, nil), do: Application.delete_env(:rindle, key)
   defp restore_env(key, value), do: Application.put_env(:rindle, key, value)
 end

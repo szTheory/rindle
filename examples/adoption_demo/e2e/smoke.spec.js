@@ -2,7 +2,7 @@ const { test, expect } = require("@playwright/test");
 const { waitForLiveSocket } = require("./support/liveview");
 
 // Cold-start smoke (native path): the e2e CI job boots the demo from scratch —
-// ecto.drop -> create -> migrate -> rindle.migrate -> seeds — before any spec
+// ecto.drop -> create -> migrate -> seeds — before any spec
 // runs. This asserts that a from-scratch boot serves the launchpad homepage with
 // live data, catching startup/seed regressions that only surface on a fresh start.
 test("homepage loads the Cohort launchpad after a cold boot", async ({ page }) => {

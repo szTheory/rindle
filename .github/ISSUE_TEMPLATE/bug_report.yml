@@ -1,0 +1,26 @@
+name: Bug report
+description: Report a defect in Rindle.
+labels: ["type:bug"]
+body:
+  - type: markdown
+    attributes:
+      value: "Before filing, see [CONTRIBUTING.md](../../CONTRIBUTING.md) for how CI gates your report."
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Steps to reproduce, expected behavior, and actual behavior.
+    validations:
+      required: true
+  - type: input
+    id: rindle-version
+    attributes:
+      label: Rindle version
+      description: For example, 0.3.2 or the commit SHA you are testing.
+    validations:
+      required: true
+  - type: input
+    id: elixir-otp
+    attributes:
+      label: Elixir / OTP version
+      description: For example, Elixir 1.17 / OTP 27.

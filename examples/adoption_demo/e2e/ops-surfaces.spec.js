@@ -13,4 +13,7 @@ test("ops surfaces render doctor and runtime status output", async ({ page }) =>
   await page.getByTestId("run-runtime-status-button").click();
   await expect(page.getByTestId("runtime-status-output")).toBeVisible();
   await expect(page.getByTestId("runtime-status-output")).not.toBeEmpty();
+  await expect(page.getByTestId("runtime-status-output")).toContainText(
+    "Rindle: runtime status report",
+  );
 });

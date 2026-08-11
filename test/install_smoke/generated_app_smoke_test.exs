@@ -30,6 +30,31 @@ defmodule Rindle.InstallSmoke.GeneratedAppSmokeAssertions do
         assert report.boot_exit_code == 0
       end
 
+      defp assert_host_owned_migrations!(report) do
+        assert report.host_migration_ran?
+        assert report.host_oban_migration_ran?
+        assert report.rindle_migration_ran?
+        assert report.migration_resolution == :host_migrations
+        assert String.contains?(report.rindle_migration_path || "", "install_rindle")
+        refute String.contains?(report.rindle_migration_path || "", "deps/rindle")
+        refute String.contains?(report.rindle_migration_path || "", "Application.app_dir")
+      end
+
+      defp assert_default_schema_ownership!(report) do
+        assert report.package_root_provenance.unpacked?
+        refute report.package_root_provenance.repository_path_fallback?
+        assert File.dir?(report.package_root_provenance.path)
+
+        assert Enum.all?(report.selected_schema_relations, fn {_relation, exists?} -> exists? end)
+
+        assert Enum.all?(report.decoy_schema_relations, fn {_relation, exists?} -> not exists? end)
+
+        assert report.public_host_relations == %{"oban_jobs" => true, "schema_migrations" => true}
+
+        assert String.contains?(report.host_migration_paths["oban"], "install_host_owned_oban")
+        assert String.contains?(report.host_migration_paths["rindle"], "install_rindle")
+      end
+
       defp assert_tus_guide_parity! do
         guide = File.read!("guides/resumable_uploads.md")
 
@@ -80,7 +105,335 @@ end
 
 alias Rindle.InstallSmoke.GeneratedAppHelper
 
-if GeneratedAppHelper.profile_enabled?(:gcs) do
+defmodule Rindle.InstallSmoke.GeneratedAppMigrationContractTest do
+  use ExUnit.Case, async: true
+
+  test "generated-app migration proof requires the public Rindle.Migration API" do
+    assert Code.ensure_loaded?(Rindle.Migration),
+           "generated-app smoke requires Rindle.Migration.up(version: 1) and Rindle.Migration.down(version: 1)"
+
+    assert function_exported?(Rindle.Migration, :up, 1),
+           "generated-app smoke requires Rindle.Migration.up(version: 1)"
+
+    assert function_exported?(Rindle.Migration, :down, 1),
+           "generated-app smoke requires Rindle.Migration.down(version: 1)"
+  end
+end
+
+defmodule Rindle.InstallSmoke.GeneratedAppPhase120FastContractTest do
+  use ExUnit.Case, async: true
+
+  @moduletag :phase_120_fast_contract
+
+  test "default package proof keeps host migrations separate and reports schema-qualified ownership" do
+    contract = GeneratedAppHelper.default_install_contract()
+
+    assert contract.host_oban_migration_source =~ "Oban.Migration.up()"
+    assert contract.rindle_migration_source =~ "Rindle.Migration.up(version: 1)"
+    refute contract.rindle_migration_source =~ "prefix: \"public\""
+
+    assert contract.required_report_keys == [
+             :package_root_provenance,
+             :selected_schema_relations,
+             :decoy_schema_relations,
+             :public_host_relations,
+             :host_migration_paths,
+             :persistence_lifecycle
+           ]
+  end
+
+  test "default package proof defines JSON-safe persistence lifecycle facts" do
+    assert GeneratedAppHelper.persistence_lifecycle_report_keys() == [
+             "initiated_session_id",
+             "verified_session_id",
+             "asset_id",
+             "read_back_asset_id",
+             "asset_state"
+           ]
+  end
+
+  test "focused Phase 120 MinIO commands exclude sibling generated-app scenarios" do
+    assert GeneratedAppHelper.phase_120_scenario_enabled?(:phase_120_public_compat, [
+             :minio,
+             :phase_120_public_compat
+           ])
+
+    refute GeneratedAppHelper.phase_120_scenario_enabled?(:phase_120_isolation_upgrade, [
+             :minio,
+             :phase_120_public_compat
+           ])
+
+    refute GeneratedAppHelper.phase_120_scenario_enabled?(:default, [
+             :minio,
+             :phase_120_public_compat
+           ])
+
+    assert GeneratedAppHelper.phase_120_scenario_enabled?(:default, [:minio])
+  end
+
+  @tag :phase_120_compat_contract
+  test "public compatibility uses an isolated compiled consumer and fixed public migration" do
+    contract = GeneratedAppHelper.public_compatibility_contract()
+
+    assert contract.scenario == :public_compatibility
+    assert contract.app_name != "rindle_smoke_app"
+    assert contract.database_identity != "rindle_smoke_app"
+    assert contract.report_identity != "install_smoke_migration_report.json"
+    assert contract.compile_prefix == "public"
+    assert contract.migration_source =~ ~s|Rindle.Migration.up(version: 1, prefix: "public")|
+    refute contract.migration_source =~ "System.get_env"
+
+    assert contract.required_report_keys == [
+             :selected_schema_relations,
+             :decoy_schema_relations,
+             :public_host_relations,
+             :persistence_lifecycle
+           ]
+  end
+
+  @tag :phase_120_upgrade_contract
+  test "populated isolation upgrade uses public and default builds plus the directional host migration" do
+    contract = GeneratedAppHelper.isolation_upgrade_contract()
+
+    assert contract.scenario == :isolation_upgrade
+    assert contract.public_app_name != contract.default_app_name
+    assert contract.public_root_identity != contract.default_root_identity
+    assert contract.public_compile_prefix == "public"
+    assert contract.default_compile_prefix == "rindle"
+    assert contract.directional_migration_source =~ "SET LOCAL lock_timeout = '5s'"
+    assert contract.directional_migration_source =~ "move_public_to_rindle(version: 1)"
+    refute contract.directional_migration_source =~ "move_rindle_to_public"
+
+    assert contract.required_report_keys == [
+             :seeded_asset_id,
+             :seeded_variant_id,
+             :marker_versions,
+             :media_variants_foreign_key,
+             :media_variants_indexes,
+             :oban_jobs_before,
+             :oban_jobs_after,
+             :selected_schema_relations,
+             :decoy_schema_relations,
+             :public_host_relations,
+             :doctor_ready?,
+             :persistence_lifecycle
+           ]
+  end
+
+  @tag :phase_120_upgrade_contract
+  test "generated reports use snapshots rather than the obsolete Oban ownership field" do
+    helper_source = File.read!("test/install_smoke/support/generated_app_helper.ex")
+
+    refute helper_source =~ "rindle_created_oban_jobs"
+    assert helper_source =~ "oban_jobs_before: oban_jobs_before"
+    assert helper_source =~ "oban_jobs_after: oban_jobs_after"
+    assert helper_source =~ "oban_jobs_before == oban_jobs_after"
+  end
+
+  @tag :phase_120_upgrade_contract
+  test "generated Oban snapshot queries reuse the selected relation OID" do
+    helper_source = File.read!("test/install_smoke/support/generated_app_helper.ex")
+
+    refute helper_source =~ "attribute.attrelid = $1::regclass"
+    refute helper_source =~ "catalog_constraint.conrelid = $1::regclass"
+    refute helper_source =~ "relation.oid = $1::regclass"
+
+    assert helper_source =~ "attribute.attrelid = $1"
+    assert helper_source =~ "catalog_constraint.conrelid = $1"
+    assert helper_source =~ "relation.oid = $1"
+    assert helper_source =~ "[oid]"
+    refute helper_source =~ "pg_constraint constraint"
+    assert helper_source =~ "pg_constraint catalog_constraint"
+  end
+
+  @tag :phase_120_upgrade_contract
+  test "generated upgrade doctor readiness comes from the generated smoke result" do
+    helper_source = File.read!("test/install_smoke/support/generated_app_helper.ex")
+
+    assert helper_source =~ "doctor_ready?: smoke_result.exit_code == 0"
+
+    refute helper_source =~
+             "doctor_ready?: String.contains?(smoke_result.output, \"doctor_success=true\")"
+
+    refute helper_source =~
+             "doctor_result.output,\n          \"expected rindle; observed rindle; classification ready\""
+  end
+
+  @tag :phase_120_upgrade_contract
+  test "generated child commands have bounded stage-labelled diagnostics" do
+    helper_source = File.read!("test/install_smoke/support/generated_app_helper.ex")
+
+    assert helper_source =~ "@generated_command_timeout_ms :timer.minutes(20)"
+    assert helper_source =~ "Task.yield(task, @generated_command_timeout_ms)"
+    assert helper_source =~ "Task.shutdown(task, :brutal_kill)"
+    assert helper_source =~ "stage=\#{stage}"
+    assert helper_source =~ "timed_out?: true"
+  end
+
+  @tag :phase_120_upgrade_contract
+  test "generated workspaces use OS-global temporary directory allocation" do
+    helper_source = File.read!("test/install_smoke/support/generated_app_helper.ex")
+
+    refute helper_source =~ ~S|rindle-install-smoke-#{System.unique_integer([:positive])}|
+    assert helper_source =~ "System.cmd(\"mktemp\", [\"-d\", template]"
+    assert helper_source =~ "rindle-install-smoke.XXXXXX"
+  end
+
+  @tag :phase_120_upgrade_contract
+  test "upgrade catalog policy rejects missing marker, foreign key, and named indexes" do
+    report = valid_isolation_upgrade_catalog_report()
+
+    assert GeneratedAppHelper.isolation_upgrade_catalog_preserved?(report)
+
+    refute GeneratedAppHelper.isolation_upgrade_catalog_preserved?(%{
+             report
+             | marker_versions: []
+           })
+
+    refute GeneratedAppHelper.isolation_upgrade_catalog_preserved?(%{
+             report
+             | media_variants_foreign_key: nil
+           })
+
+    for index_name <- [
+          "media_variants_asset_id_name_index",
+          "media_variants_state_index",
+          "media_variants_output_kind_index"
+        ] do
+      refute GeneratedAppHelper.isolation_upgrade_catalog_preserved?(%{
+               report
+               | media_variants_indexes:
+                   Enum.reject(report.media_variants_indexes, &(&1["name"] == index_name))
+             })
+    end
+
+    for index_name <- [
+          "media_variants_asset_id_name_index",
+          "media_variants_state_index",
+          "media_variants_output_kind_index"
+        ] do
+      refute GeneratedAppHelper.isolation_upgrade_catalog_preserved?(%{
+               report
+               | media_variants_indexes:
+                   Enum.map(report.media_variants_indexes, fn index ->
+                     if index["name"] == index_name,
+                       do: %{
+                         index
+                         | "definition" => "CREATE INDEX unrelated_index ON rindle.unrelated (id)"
+                       },
+                       else: index
+                   end)
+             })
+    end
+  end
+
+  @tag :phase_120_upgrade_contract
+  test "upgrade catalog policy rejects each public Oban catalog change" do
+    report = valid_isolation_upgrade_catalog_report()
+
+    assert GeneratedAppHelper.isolation_upgrade_catalog_preserved?(report)
+
+    for {field, replacement} <- [
+          {:identity, %{"oid" => 999, "schema" => "public", "name" => "oban_jobs"}},
+          {:columns, [%{"name" => "id", "type" => "integer"}]},
+          {:constraints,
+           [
+             %{
+               "name" => "oban_jobs_queue_check",
+               "type" => "c",
+               "definition" => "CHECK (queue <> '')"
+             }
+           ]},
+          {:indexes,
+           [
+             %{
+               "schema" => "public",
+               "name" => "oban_jobs_queue_index",
+               "primary" => false,
+               "unique" => false,
+               "definition" =>
+                 "CREATE INDEX oban_jobs_queue_index ON public.oban_jobs USING btree (queue)"
+             }
+           ]}
+        ] do
+      changed_after = Map.put(report.oban_jobs_after, field, replacement)
+
+      refute GeneratedAppHelper.isolation_upgrade_catalog_preserved?(%{
+               report
+               | oban_jobs_after: changed_after
+             })
+    end
+  end
+
+  defp valid_isolation_upgrade_catalog_report do
+    %{
+      marker_versions: [1],
+      media_variants_foreign_key: %{
+        "name" => "media_variants_asset_id_fkey",
+        "type" => "f",
+        "source_schema" => "rindle",
+        "source_table" => "media_variants",
+        "source_column" => "asset_id",
+        "target_schema" => "rindle",
+        "target_table" => "media_assets",
+        "target_column" => "id",
+        "definition" =>
+          "FOREIGN KEY (asset_id) REFERENCES rindle.media_assets(id) ON DELETE CASCADE"
+      },
+      media_variants_indexes: [
+        %{
+          "name" => "media_variants_asset_id_name_index",
+          "definition" =>
+            "CREATE UNIQUE INDEX media_variants_asset_id_name_index ON rindle.media_variants USING btree (asset_id, name)"
+        },
+        %{
+          "name" => "media_variants_state_index",
+          "definition" =>
+            "CREATE INDEX media_variants_state_index ON rindle.media_variants USING btree (state)"
+        },
+        %{
+          "name" => "media_variants_output_kind_index",
+          "definition" =>
+            "CREATE INDEX media_variants_output_kind_index ON rindle.media_variants USING btree (output_kind)"
+        }
+      ],
+      oban_jobs_before: valid_oban_jobs_snapshot(),
+      oban_jobs_after: valid_oban_jobs_snapshot()
+    }
+  end
+
+  defp valid_oban_jobs_snapshot do
+    %{
+      identity: %{"oid" => 42, "schema" => "public", "name" => "oban_jobs"},
+      columns: [
+        %{
+          "name" => "id",
+          "type" => "bigint",
+          "nullable" => false,
+          "default" => nil,
+          "identity" => "",
+          "generated" => ""
+        }
+      ],
+      constraints: [
+        %{"name" => "oban_jobs_pkey", "type" => "p", "definition" => "PRIMARY KEY (id)"}
+      ],
+      indexes: [
+        %{
+          "schema" => "public",
+          "name" => "oban_jobs_pkey",
+          "primary" => true,
+          "unique" => true,
+          "definition" =>
+            "CREATE UNIQUE INDEX oban_jobs_pkey ON public.oban_jobs USING btree (id)"
+        }
+      ]
+    }
+  end
+end
+
+if GeneratedAppHelper.profile_enabled?(:gcs) and
+     GeneratedAppHelper.phase_120_scenario_enabled?(:default) do
   defmodule Rindle.InstallSmoke.GeneratedAppSmokeGCSTest do
     use ExUnit.Case, async: false
     use Rindle.InstallSmoke.GeneratedAppSmokeAssertions
@@ -99,10 +452,7 @@ if GeneratedAppHelper.profile_enabled?(:gcs) do
 
     test "generated Phoenix app exposes a first-class GCS path with doctor and resumable status proof surfaces",
          %{report: report} do
-      assert report.host_migration_ran?
-      assert report.migration_resolution == :application_app_dir
-      assert String.ends_with?(report.rindle_migration_path, "/priv/repo/migrations")
-      refute String.contains?(report.rindle_migration_path, "deps/rindle")
+      assert_host_owned_migrations!(report)
       assert report.smoke_exit_code == 0
       assert report.lifecycle_proved?
       assert report.doctor_command =~ "mix rindle.doctor"
@@ -128,7 +478,101 @@ if GeneratedAppHelper.profile_enabled?(:gcs) do
   end
 end
 
-if GeneratedAppHelper.profile_enabled?(:image) do
+if GeneratedAppHelper.profile_enabled?(:image) and
+     GeneratedAppHelper.phase_120_scenario_enabled?(:phase_120_public_compat) do
+  defmodule Rindle.InstallSmoke.GeneratedAppPublicCompatibilityTest do
+    use ExUnit.Case, async: false
+    use Rindle.InstallSmoke.GeneratedAppSmokeAssertions
+
+    @moduletag :minio
+    @moduletag :phase_120_public_compat
+
+    setup_all do
+      report = GeneratedAppHelper.prove_public_compatibility_install!()
+      on_exit(fn -> GeneratedAppHelper.cleanup(report) end)
+      {:ok, report: report}
+    end
+
+    test "generated Phoenix app proves the explicit public compatibility build without runtime retargeting",
+         %{report: report} do
+      assert_install_source!(report)
+      assert_host_owned_migrations!(report)
+      assert report.scenario == :public_compatibility
+      assert report.compile_prefix == "public"
+      assert report.smoke_exit_code == 0
+      assert report.lifecycle_proved?
+
+      assert Enum.all?(report.selected_schema_relations, fn {_relation, exists?} -> exists? end)
+      assert Enum.all?(report.decoy_schema_relations, fn {_relation, exists?} -> not exists? end)
+      assert report.public_host_relations == %{"oban_jobs" => true, "schema_migrations" => true}
+      assert report.rindle_migration_path =~ "install_rindle"
+    end
+  end
+end
+
+if GeneratedAppHelper.profile_enabled?(:image) and
+     GeneratedAppHelper.phase_120_scenario_enabled?(:phase_120_isolation_upgrade) do
+  defmodule Rindle.InstallSmoke.GeneratedAppIsolationUpgradeTest do
+    use ExUnit.Case, async: false
+    use Rindle.InstallSmoke.GeneratedAppSmokeAssertions
+
+    @moduletag :minio
+    @moduletag :phase_120_isolation_upgrade
+
+    setup_all do
+      report = GeneratedAppHelper.prove_isolation_upgrade!()
+      on_exit(fn -> GeneratedAppHelper.cleanup(report) end)
+      {:ok, report: report}
+    end
+
+    test "generated public and default builds preserve populated Rindle state through the host-owned move",
+         %{report: report} do
+      assert_install_source!(report)
+      assert_host_owned_migrations!(report)
+      assert report.scenario == :isolation_upgrade
+      assert report.public_compile_prefix == "public"
+      assert report.default_compile_prefix == "rindle"
+      assert report.public_generated_app_root != report.generated_app_root
+      assert report.marker_versions == [1], inspect(report)
+
+      assert report.media_variants_foreign_key == %{
+               "name" => "media_variants_asset_id_fkey",
+               "type" => "f",
+               "source_schema" => "rindle",
+               "source_table" => "media_variants",
+               "source_column" => "asset_id",
+               "target_schema" => "rindle",
+               "target_table" => "media_assets",
+               "target_column" => "id",
+               "definition" => report.media_variants_foreign_key["definition"]
+             },
+             inspect(report)
+
+      assert Enum.map(report.media_variants_indexes, & &1["name"]) == [
+               "media_variants_asset_id_name_index",
+               "media_variants_state_index",
+               "media_variants_output_kind_index"
+             ],
+             inspect(report)
+
+      assert Enum.all?(report.media_variants_indexes, &is_binary(&1["definition"])),
+             inspect(report)
+
+      assert report.oban_jobs_before == report.oban_jobs_after, inspect(report)
+      assert GeneratedAppHelper.isolation_upgrade_catalog_preserved?(report), inspect(report)
+      assert report.doctor_ready?
+      assert report.smoke_exit_code == 0
+      assert report.lifecycle_proved?
+
+      assert Enum.all?(report.selected_schema_relations, fn {_relation, exists?} -> exists? end)
+      assert Enum.all?(report.decoy_schema_relations, fn {_relation, exists?} -> not exists? end)
+      assert report.public_host_relations == %{"oban_jobs" => true, "schema_migrations" => true}
+    end
+  end
+end
+
+if GeneratedAppHelper.profile_enabled?(:image) and
+     GeneratedAppHelper.phase_120_scenario_enabled?(:default) do
   defmodule Rindle.InstallSmoke.GeneratedAppSmokeImageTest do
     use ExUnit.Case, async: false
     use Rindle.InstallSmoke.GeneratedAppSmokeAssertions
@@ -147,17 +591,21 @@ if GeneratedAppHelper.profile_enabled?(:image) do
 
     test "generated Phoenix app runs host plus Rindle migrations explicitly and proves the canonical presigned PUT lifecycle",
          %{report: report} do
-      assert report.host_migration_ran?
-      assert report.migration_resolution == :application_app_dir
-      assert String.ends_with?(report.rindle_migration_path, "/priv/repo/migrations")
-      refute String.contains?(report.rindle_migration_path, "deps/rindle")
+      assert_host_owned_migrations!(report)
+      assert_default_schema_ownership!(report)
       assert report.smoke_exit_code == 0
       assert report.lifecycle_proved?
+
+      lifecycle = report.persistence_lifecycle
+      assert lifecycle["initiated_session_id"] == lifecycle["verified_session_id"]
+      assert lifecycle["asset_id"] == lifecycle["read_back_asset_id"]
+      assert lifecycle["asset_state"] in ["available", "processing", "ready"]
     end
   end
 end
 
-if GeneratedAppHelper.profile_enabled?(:video) do
+if GeneratedAppHelper.profile_enabled?(:video) and
+     GeneratedAppHelper.phase_120_scenario_enabled?(:default) do
   defmodule Rindle.InstallSmoke.GeneratedAppSmokeVideoTest do
     use ExUnit.Case, async: false
     use Rindle.InstallSmoke.GeneratedAppSmokeAssertions
@@ -176,10 +624,7 @@ if GeneratedAppHelper.profile_enabled?(:video) do
 
     test "generated Phoenix app proves the canonical AV path with web_720p, poster, and signed delivery",
          %{report: report} do
-      assert report.host_migration_ran?
-      assert report.migration_resolution == :application_app_dir
-      assert String.ends_with?(report.rindle_migration_path, "/priv/repo/migrations")
-      refute String.contains?(report.rindle_migration_path, "deps/rindle")
+      assert_host_owned_migrations!(report)
       assert report.smoke_exit_code == 0
       assert report.lifecycle_proved?
       assert report.av_ready_variants == ["poster", "web_720p"]
@@ -191,7 +636,8 @@ if GeneratedAppHelper.profile_enabled?(:video) do
   end
 end
 
-if GeneratedAppHelper.profile_enabled?(:tus) do
+if GeneratedAppHelper.profile_enabled?(:tus) and
+     GeneratedAppHelper.phase_120_scenario_enabled?(:default) do
   defmodule Rindle.InstallSmoke.GeneratedAppSmokeTusTest do
     use ExUnit.Case, async: false
     use Rindle.InstallSmoke.GeneratedAppSmokeAssertions
@@ -210,10 +656,7 @@ if GeneratedAppHelper.profile_enabled?(:tus) do
 
     test "generated Phoenix app proves a real-socket tus-js-client drop-and-resume flow against MinIO",
          %{report: report} do
-      assert report.host_migration_ran?
-      assert report.migration_resolution == :application_app_dir
-      assert String.ends_with?(report.rindle_migration_path, "/priv/repo/migrations")
-      refute String.contains?(report.rindle_migration_path, "deps/rindle")
+      assert_host_owned_migrations!(report)
       assert report.smoke_exit_code == 0, tus_failure_details(report)
       assert report.lifecycle_proved?, tus_failure_details(report)
       assert report.phoenix_helper_uploader == "RindleTus"
@@ -269,7 +712,8 @@ if GeneratedAppHelper.profile_enabled?(:tus) do
   end
 end
 
-if GeneratedAppHelper.profile_enabled?(:mux) do
+if GeneratedAppHelper.profile_enabled?(:mux) and
+     GeneratedAppHelper.phase_120_scenario_enabled?(:default) do
   defmodule Rindle.InstallSmoke.GeneratedAppSmokeMuxTest do
     use ExUnit.Case, async: false
     use Rindle.InstallSmoke.GeneratedAppSmokeAssertions
@@ -288,10 +732,7 @@ if GeneratedAppHelper.profile_enabled?(:mux) do
 
     test "generated Phoenix app proves the canonical AV path PLUS Mux-signed HLS streaming URL via cassette",
          %{report: report} do
-      assert report.host_migration_ran?
-      assert report.migration_resolution == :application_app_dir
-      assert String.ends_with?(report.rindle_migration_path, "/priv/repo/migrations")
-      refute String.contains?(report.rindle_migration_path, "deps/rindle")
+      assert_host_owned_migrations!(report)
       assert report.smoke_exit_code == 0, report.smoke_output
       assert report.lifecycle_proved?
       assert report.av_ready_variants == ["poster", "web_720p"]
@@ -304,7 +745,8 @@ if GeneratedAppHelper.profile_enabled?(:mux) do
   end
 end
 
-if GeneratedAppHelper.profile_enabled?(:video) do
+if GeneratedAppHelper.profile_enabled?(:video) and
+     GeneratedAppHelper.phase_120_scenario_enabled?(:default) do
   defmodule Rindle.InstallSmoke.GeneratedAppSmokeUpgradeTest do
     use ExUnit.Case, async: false
     use Rindle.InstallSmoke.GeneratedAppSmokeAssertions
@@ -319,11 +761,10 @@ if GeneratedAppHelper.profile_enabled?(:video) do
     test "generated Phoenix app upgrades a pre-v1.4 image-only adopter through the public migration path",
          %{report: report} do
       assert_install_source!(report)
-      assert report.host_migration_ran?
-      assert report.migration_resolution == :application_app_dir
+      assert_host_owned_migrations!(report)
       assert report.legacy_migration_cutoff == "20260428110000"
-      assert String.ends_with?(report.rindle_migration_path, "/priv/repo/migrations")
-      refute String.contains?(report.rindle_migration_path, "deps/rindle")
+      assert String.ends_with?(report.legacy_rindle_migration_path, "/priv/repo/migrations")
+      refute report.legacy_current_marker_preinstalled?
       assert report.legacy_asset_kind == "image"
       assert report.legacy_asset_profile =~ ".RindleProfile"
       assert report.legacy_asset_upgrade_safe?

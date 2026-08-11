@@ -5,6 +5,7 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
   use ExUnit.Case, async: true
 
   @readme_path Path.expand("../../README.md", __DIR__)
+  @contributing_path Path.expand("../../CONTRIBUTING.md", __DIR__)
   @guide_path Path.expand("../../guides/getting_started.md", __DIR__)
   @upgrade_path Path.expand("../../guides/upgrading.md", __DIR__)
   @troubleshooting_path Path.expand("../../guides/troubleshooting.md", __DIR__)
@@ -14,8 +15,11 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
   @operations_path Path.expand("../../guides/operations.md", __DIR__)
   @admin_console_path Path.expand("../../guides/admin_console.md", __DIR__)
   @mix_exs_path Path.expand("../../mix.exs", __DIR__)
+  @migration_module_path Path.expand("../../lib/rindle/migration.ex", __DIR__)
 
   @expected_tus_extensions "creation,expiration,termination,checksum,creation-defer-length,concatenation"
+
+  @stability_sentence "Rindle follows Semantic Versioning. While Rindle is 0.x, public APIs may change between minor versions; review CHANGELOG.md and guides/upgrading.md before upgrading. Rindle 1.0 will mean the public API is stable enough that breaking public API changes move to major versions."
 
   @nine_mix_tasks [
     "mix rindle.abort_incomplete_uploads",
@@ -33,13 +37,35 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
     {:ok,
      %{
        readme: File.read!(@readme_path),
+       contributing: File.read!(@contributing_path),
        guide: File.read!(@guide_path),
        upgrade: File.read!(@upgrade_path),
        troubleshooting: File.read!(@troubleshooting_path),
        release: File.read!(@release_path),
        running: File.read!(@running_path),
-       user_flows: File.read!(@user_flows_path)
+       user_flows: File.read!(@user_flows_path),
+       migration_module: File.read!(@migration_module_path)
      }}
+  end
+
+  test "README and CONTRIBUTING state the shared pre-1.0 stability contract", %{
+    readme: readme,
+    contributing: contributing
+  } do
+    for {doc, name} <- [{readme, "README"}, {contributing, "CONTRIBUTING"}] do
+      assert doc =~ "## Versioning and stability"
+      assert doc =~ @stability_sentence
+
+      assert doc |> String.split(@stability_sentence) |> length() == 2,
+             "#{name} should contain the shared stability sentence exactly once"
+    end
+
+    assert_in_order!(readme, ["## Versioning and stability", "## Install"])
+
+    assert_in_order!(contributing, [
+      "## Versioning and stability",
+      "## Reproduce the PR gate locally: `mix ci`"
+    ])
   end
 
   test "README and getting-started guide teach the facade-first lifecycle and handoff", %{
@@ -113,19 +139,356 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
     end
   end
 
-  test "docs call out adopter-owned Repo, default Oban ownership, and explicit migrations", %{
+  test "migration docs teach pinned Rindle.Migration and host-owned Oban setup", %{
+    readme: readme,
+    guide: guide,
+    upgrade: upgrade
+  } do
+    migration_sections = [
+      {"README migrations", section_between!(readme, "## Migrations", "## First Attachment")},
+      {"getting-started step 3", section_between!(guide, "## 3.", "## 4.")},
+      {"Unreleased upgrade note", section_between!(upgrade, "## Unreleased / Next", "## 0.1.3")}
+    ]
+
+    for {name, section} <- migration_sections do
+      assert section =~ "Rindle.Migration.up(version: 1)",
+             "#{name} must include Rindle.Migration.up(version: 1)"
+
+      assert section =~ "Rindle.Migration.down(version: 1)",
+             "#{name} must include Rindle.Migration.down(version: 1)"
+
+      assert section =~ "Oban.Migration",
+             "#{name} must name Oban.Migration as the host-owned Oban migration path"
+
+      assert section =~ "oban_jobs",
+             "#{name} must say Rindle does not own or create oban_jobs"
+
+      assert section =~ "mix ecto.migrate",
+             "#{name} must keep the normal host-app migration workflow"
+
+      assert section =~ "mix rindle.doctor",
+             "#{name} must keep doctor as the post-migration verification command"
+
+      assert section =~ "rindle",
+             "#{name} must state the rindle default"
+
+      assert section =~ "prefix: \"public\"",
+             "#{name} must keep the explicit public compatibility pairing"
+
+      assert section =~ "public schema",
+             "#{name} must pair public compatibility with a public-compiled release"
+
+      assert Regex.match?(~r/back\s*up|backup/i, section),
+             "#{name} must pair rollback copy with backup guidance"
+
+      assert Regex.match?(~r/destructive/i, section),
+             "#{name} must label Rindle.Migration.down/1 as destructive"
+
+      assert section =~ "Rindle-owned tables",
+             "#{name} must scope rollback to Rindle-owned tables"
+
+      assert section =~ "schema_migrations",
+             "#{name} must preserve the host migration ledger"
+
+      refute section =~ "tenant_media",
+             "#{name} must not teach arbitrary schema prefixes"
+
+      refute section =~ "Application.app_dir(:rindle, \"priv/repo/migrations\")",
+             "#{name} must not teach the legacy package migration directory as the greenfield path"
+
+      refute section =~ "Ecto.Migrator.run",
+             "#{name} must not teach raw package-path Ecto.Migrator.run for greenfield setup"
+    end
+  end
+
+  test "fresh-install docs match generated host migration fixtures", %{
     readme: readme,
     guide: guide
   } do
-    for doc <- [readme, guide] do
-      assert doc =~ "adopter-owned Repo"
-      assert doc =~ "default Oban"
-      assert doc =~ ~s(config :rindle, :repo, MyApp.Repo)
-      assert doc =~ ~s(config :my_app, Oban)
-      assert doc =~ "Application.app_dir(:rindle, \"priv/repo/migrations\")"
-      assert doc =~ "docs snippet"
-      assert doc =~ "mix rindle.*"
+    default_fixture = GeneratedAppHelper.default_install_contract()
+    public_fixture = GeneratedAppHelper.public_compatibility_contract()
+
+    assert default_fixture.host_oban_migration_source =~ "Oban.Migration.up()"
+    assert default_fixture.rindle_migration_source =~ "Rindle.Migration.up(version: 1)"
+
+    assert public_fixture.migration_source =~
+             "Rindle.Migration.up(version: 1, prefix: \"public\")"
+
+    assert public_fixture.migration_calls.up ==
+             "def up, do: Rindle.Migration.up(version: 1, prefix: \"public\")"
+
+    assert public_fixture.migration_calls.down ==
+             "def down, do: Rindle.Migration.down(version: 1, prefix: \"public\")"
+
+    assert public_fixture.compile_prefix == "public"
+
+    for {name, section} <- [
+          {"README migrations", section_between!(readme, "## Migrations", "## First Attachment")},
+          {"getting-started step 3", section_between!(guide, "## 3.", "## 4.")}
+        ] do
+      assert section =~ default_fixture.host_oban_migration_source |> migration_call!(),
+             "#{name} must match the generated host-owned Oban migration"
+
+      assert section =~ default_fixture.rindle_migration_source |> migration_call!(),
+             "#{name} must match the generated default Rindle migration"
+
+      for {callback, call} <- public_fixture.migration_calls do
+        assert section =~ call,
+               "#{name} must teach the generated explicit-public Rindle #{callback}/0 callback"
+      end
+
+      assert section =~ "public-compiled",
+             "#{name} must pair public compatibility with the public-compiled fixture"
+
+      for host_relation <- ["public.oban_jobs", "public.schema_migrations"] do
+        assert section =~ host_relation,
+               "#{name} must keep #{host_relation} outside Rindle ownership"
+      end
+
+      for forbidden <- [
+            "Application.app_dir(:rindle, \"priv/repo/migrations\")",
+            "Ecto.Migrator.run",
+            "search_path",
+            "tenant_media"
+          ] do
+        refute section =~ forbidden,
+               "#{name} must not teach #{inspect(forbidden)} for a fresh install"
+      end
     end
+  end
+
+  test "Rindle.Migration moduledoc matches public fresh-install fixtures", %{
+    readme: readme,
+    guide: guide,
+    migration_module: migration_module
+  } do
+    default_fixture = GeneratedAppHelper.default_install_contract()
+    public_fixture = GeneratedAppHelper.public_compatibility_contract()
+
+    default_call = migration_call!(default_fixture.rindle_migration_source)
+    public_calls = public_fixture.migration_calls
+    oban_call = migration_call!(default_fixture.host_oban_migration_source)
+
+    assert public_fixture.compile_prefix == "public"
+
+    surfaces = [
+      {"README migrations", section_between!(readme, "## Migrations", "## First Attachment")},
+      {"getting-started step 3", section_between!(guide, "## 3.", "## 4.")},
+      {"Rindle.Migration moduledoc source", migration_module}
+    ]
+
+    for {name, surface} <- surfaces do
+      assert surface =~ default_call, "#{name} must match the default generated fixture"
+
+      for {callback, call} <- public_calls do
+        assert surface =~ call,
+               "#{name} must match the explicit-public generated #{callback}/0 callback"
+      end
+
+      assert surface =~ oban_call, "#{name} must retain separate host-owned Oban setup"
+      assert surface =~ "public.oban_jobs", "#{name} must retain host-owned Oban in public"
+
+      assert surface =~ "public.schema_migrations",
+             "#{name} must retain the host migration ledger in public"
+
+      for forbidden <- [
+            "Application.app_dir(:rindle, \"priv/repo/migrations\")",
+            "Ecto.Migrator.run",
+            "search_path",
+            "tenant_media"
+          ] do
+        refute surface =~ forbidden,
+               "#{name} must not broaden the fresh-install migration contract"
+      end
+    end
+
+    assert migration_module =~ "guides/upgrading.md",
+           "Rindle.Migration moduledoc must direct populated installs to the upgrade guide"
+  end
+
+  test "upgrade guide documents the bounded host-owned populated move", %{upgrade: upgrade} do
+    upgrade_section =
+      upgrade
+      |> section_between!(
+        "#### Existing populated public installs",
+        "#### Existing legacy installs"
+      )
+
+    migration_snippet =
+      fenced_elixir_after!(upgrade_section, "defmodule MyApp.Repo.Migrations.MoveRindleToSchema")
+
+    assert Regex.match?(
+             ~r/def up do\s+execute\("SET LOCAL lock_timeout = '5s'"\)\s+Rindle\.Migration\.move_public_to_rindle\(version: 1\)/s,
+             migration_snippet
+           ),
+           "populated migration snippet must queue the forward timeout before its direct helper call"
+
+    assert Regex.match?(
+             ~r/def down do\s+execute\("SET LOCAL lock_timeout = '5s'"\)\s+Rindle\.Migration\.move_rindle_to_public\(version: 1\)/s,
+             migration_snippet
+           ),
+           "populated migration snippet must queue the reverse timeout before its direct helper call"
+
+    for helper <- ["move_public_to_rindle", "move_rindle_to_public"] do
+      refute Regex.match?(~r/execute\(fn\s*->.*#{helper}/s, migration_snippet),
+             "populated migration snippet must call #{helper}/1 directly at migration-body scope"
+    end
+
+    upgrade_section = String.replace(upgrade_section, ~r/\s+/, " ")
+
+    for snippet <- [
+          "maintenance window",
+          "SET LOCAL lock_timeout = '5s'",
+          "Rindle.Migration.move_public_to_rindle(version: 1)",
+          "Rindle.Migration.move_rindle_to_public(version: 1)",
+          "Do not create `rindle` yourself",
+          "classifies the complete public-only Rindle state",
+          "inside the same host transaction",
+          "fails boundedly",
+          "transaction rollback leaves no partial destination",
+          "six Rindle tables plus the",
+          "rindle_migration_versions",
+          "deploy the build compiled for `rindle`",
+          "normal reads and writes",
+          "exactly reversible",
+          "Rindle.Migration.down/1",
+          "destructive teardown"
+        ] do
+      assert upgrade_section =~ snippet,
+             "populated upgrade guidance must include #{inspect(snippet)}"
+    end
+
+    assert upgrade_section =~ "stop or drain Rindle HTTP writers and Oban workers",
+           "populated upgrade guidance must require draining Rindle writers and Oban workers"
+
+    assert_in_order!(upgrade_section, [
+      "maintenance window",
+      "back up the database",
+      "stop or drain Rindle HTTP writers and Oban workers",
+      "mix ecto.migrate",
+      "deploy the build compiled for `rindle`",
+      "mix rindle.doctor",
+      "mix rindle.runtime_status"
+    ])
+
+    for snippet <- [
+          "database owner",
+          "CREATE privilege",
+          "ACCESS EXCLUSIVE",
+          "Ecto's migrator lock",
+          "does not quiesce application traffic",
+          "guarded reverse",
+          "Otherwise, restore the backup"
+        ] do
+      assert upgrade_section =~ snippet,
+             "populated upgrade guidance must explain #{inspect(snippet)}"
+    end
+
+    for forbidden <- [
+          "search_path",
+          "Rindle.Migration.move(",
+          "tenant_media",
+          "online migration",
+          "seamless migration",
+          "automatic migration",
+          "dual-write",
+          "generic schema movement"
+        ] do
+      refute upgrade_section =~ forbidden,
+             "populated upgrade guidance must not teach #{inspect(forbidden)}"
+    end
+  end
+
+  test "troubleshooting routes schema and Oban faults through bounded ownership actions", %{
+    troubleshooting: troubleshooting
+  } do
+    setup_section =
+      troubleshooting
+      |> section_between!(
+        "## Schema Isolation and Host Oban Setup",
+        "## Supported Recovery Verbs"
+      )
+
+    prefix_mismatch =
+      section_between!(setup_section, "### Rindle prefix mismatch", "### Missing Rindle setup")
+
+    missing_setup =
+      section_between!(
+        setup_section,
+        "### Missing Rindle setup",
+        "### Host Oban binding missing or drifted"
+      )
+
+    oban_binding =
+      section_between!(setup_section, "### Host Oban binding missing or drifted", "## Supported")
+
+    assert_in_order!(prefix_mismatch, [
+      "mix rindle.doctor",
+      "maintenance-window upgrade",
+      "mix rindle.runtime_status"
+    ])
+
+    assert_in_order!(missing_setup, [
+      "mix rindle.doctor",
+      "Rindle.Migration.up(version: 1)",
+      "mix rindle.runtime_status"
+    ])
+
+    assert_in_order!(oban_binding, [
+      "mix rindle.doctor",
+      "Oban.Migration",
+      "mix ecto.migrate",
+      "mix rindle.runtime_status"
+    ])
+
+    for snippet <- [
+          "fixed seven-relation Rindle scope",
+          "public.oban_jobs",
+          "public.schema_migrations",
+          "Rindle does not own or configure Oban"
+        ] do
+      assert setup_section =~ snippet,
+             "schema troubleshooting must preserve #{inspect(snippet)} ownership truth"
+    end
+
+    for forbidden <- [
+          "raw SQL",
+          "automatic migration",
+          "generic schema discovery",
+          "Rindle.Migration.move("
+        ] do
+      refute setup_section =~ forbidden,
+             "schema troubleshooting must not recommend #{inspect(forbidden)}"
+    end
+  end
+
+  test "legacy package-directory migration copy is scoped to historical upgrade guidance", %{
+    readme: readme,
+    guide: guide,
+    upgrade: upgrade
+  } do
+    readme_migrations = section_between!(readme, "## Migrations", "## First Attachment")
+    guide_step_three = section_between!(guide, "## 3.", "## 4.")
+    unreleased = section_between!(upgrade, "## Unreleased / Next", "## 0.1.3")
+    legacy_upgrade = section_between!(upgrade, "## 0.1.3", "## Next Reads")
+
+    for {name, section} <- [
+          {"README migrations", readme_migrations},
+          {"getting-started step 3", guide_step_three},
+          {"Unreleased upgrade note", unreleased}
+        ] do
+      refute section =~ "Application.app_dir(:rindle, \"priv/repo/migrations\")",
+             "#{name} must reject the raw package-directory greenfield flow"
+
+      refute section =~ "Ecto.Migrator.run",
+             "#{name} must reject direct package-path migration replay for fresh installs"
+    end
+
+    assert legacy_upgrade =~ "Application.app_dir(:rindle, \"priv/repo/migrations\")",
+           "historical upgrade guidance may still name the legacy package migration directory"
+
+    assert legacy_upgrade =~ "Ecto.Migrator.run",
+           "historical upgrade guidance may still show intentionally scoped legacy replay"
   end
 
   test "docs keep presigned PUT first-run and multipart advanced-only", %{
@@ -178,6 +541,64 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
     end
   end
 
+  test "README leads with original-only image attachment before AV setup", %{readme: readme} do
+    image_first_index = string_index(readme, "## First Attachment in ~2 Minutes")
+
+    assert image_first_index,
+           "README must include the image-first first attachment section"
+
+    assert_in_order!(readme, [
+      "## First Attachment in ~2 Minutes",
+      "## AV Quickstart"
+    ])
+
+    for snippet <- [
+          "FFmpeg >= 6.0",
+          "libvips",
+          "kind: :video",
+          "Rindle.Profile.Presets.Web",
+          "web_720p",
+          "poster"
+        ] do
+      index = string_index(readme, snippet)
+      assert index, "expected #{inspect(snippet)} in README"
+
+      assert index > image_first_index,
+             "#{inspect(snippet)} must appear after image-first section"
+    end
+
+    for snippet <- [
+          "variants: []",
+          "allow_mime",
+          "max_bytes",
+          "Rindle.initiate_upload",
+          "Rindle.Upload.Broker.sign_url",
+          "Rindle.verify_completion",
+          "Rindle.attach",
+          "Rindle.url",
+          "running.html"
+        ] do
+      assert readme =~ snippet
+    end
+  end
+
+  test "README states the product-fit boundary", %{readme: readme} do
+    assert readme =~ "## When Not to Use Rindle"
+
+    for snippet <- [
+          "Phoenix/Ecto library",
+          "hosted media platform",
+          "daemon",
+          "CDN replacement",
+          "DRM",
+          "HLS/DASH",
+          "AI/GPU",
+          "PDF/Office"
+        ] do
+      assert readme =~ snippet
+    end
+  end
+
   test "docs distinguish public install guidance from maintainer-only release runbooks", %{
     readme: readme,
     guide: guide
@@ -207,6 +628,67 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
     assert upgrade =~ "[Getting Started](getting_started.html)"
     assert upgrade =~ "pre-0.1.4"
     assert String.downcase(upgrade) =~ "existing adopters"
+  end
+
+  test "upgrade guide is a newest-first versioned upgrade home", %{upgrade: upgrade} do
+    headings =
+      ~r/^## .+$/m
+      |> Regex.scan(upgrade)
+      |> List.flatten()
+
+    assert Enum.at(headings, 0) == "## Version index"
+
+    assert_in_order!(upgrade, [
+      "## Version index",
+      "## Unreleased / Next",
+      "## 0.1.3 and earlier -> current AV-aware runtime"
+    ])
+
+    for snippet <- [
+          "CHANGELOG.md",
+          "### Applies to",
+          "### What changed",
+          "### Upgrade steps",
+          "### Verification",
+          "Application.app_dir(:rindle, \"priv/repo/migrations\")",
+          "mix rindle.doctor",
+          "mix rindle.runtime_status --format json",
+          "Rindle.requeue_variants(asset_id, variant_names: [\"web_720p\"])",
+          "mix rindle.regenerate_variants"
+        ] do
+      assert upgrade =~ snippet
+    end
+
+    unreleased_index = string_index(upgrade, "## Unreleased / Next")
+    av_upgrade_index = string_index(upgrade, "## 0.1.3 and earlier -> current AV-aware runtime")
+
+    assert unreleased_index && av_upgrade_index
+    assert unreleased_index < av_upgrade_index
+
+    unreleased_section =
+      binary_part(upgrade, unreleased_index, av_upgrade_index - unreleased_index)
+
+    av_upgrade_section =
+      binary_part(upgrade, av_upgrade_index, byte_size(upgrade) - av_upgrade_index)
+
+    for section <- [unreleased_section, av_upgrade_section] do
+      assert_in_order!(section, [
+        "### Applies to",
+        "### What changed",
+        "### Upgrade steps",
+        "### Verification"
+      ])
+    end
+  end
+
+  test "upgrade guide uses HexDocs-safe version navigation links", %{upgrade: upgrade} do
+    assert upgrade =~ "[Unreleased / Next](#unreleased-next)"
+
+    assert upgrade =~
+             "[0.1.3 and earlier -> current AV-aware runtime](#0-1-3-and-earlier-current-av-aware-runtime)"
+
+    refute upgrade =~ "](../CHANGELOG.md)"
+    assert upgrade =~ "https://github.com/szTheory/rindle/blob/main/CHANGELOG.md"
   end
 
   test "upgrade guide mirrors the canonical generated-app proof sequence", %{upgrade: upgrade} do
@@ -527,6 +1009,40 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
 
         {index, snippet}
       end)
+  end
+
+  defp section_between!(doc, start_snippet, stop_snippet) do
+    start_index =
+      string_index(doc, start_snippet) ||
+        flunk("expected section start #{inspect(start_snippet)}")
+
+    tail = binary_part(doc, start_index, byte_size(doc) - start_index)
+
+    case string_index(tail, stop_snippet) do
+      nil -> tail
+      stop_index -> binary_part(tail, 0, stop_index)
+    end
+  end
+
+  defp fenced_elixir_after!(section, snippet) do
+    ~r/^```elixir\n(.*?)^```/ms
+    |> Regex.scan(section, capture: :all_but_first)
+    |> Enum.map(&hd/1)
+    |> Enum.find(&String.contains?(&1, snippet))
+    |> case do
+      nil -> flunk("expected a closed Elixir fence containing #{inspect(snippet)}")
+      contents -> contents
+    end
+  end
+
+  defp migration_call!(source) do
+    source
+    |> String.split("\n")
+    |> Enum.find(&String.contains?(&1, "def up, do:"))
+    |> case do
+      nil -> flunk("expected generated migration fixture to contain a one-line up/0 call")
+      call -> String.trim(call)
+    end
   end
 
   defp string_index(doc, snippet) do

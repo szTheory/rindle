@@ -13,11 +13,8 @@ defmodule Rindle.Domain.MediaProcessingRun do
   for operator visibility, retry diagnostics, and Day-2 cleanup queries.
   """
 
-  use Ecto.Schema
+  use Rindle.Schema
   import Ecto.Changeset
-
-  @primary_key {:id, :binary_id, autogenerate: true}
-  @foreign_key_type :binary_id
 
   @states ["queued", "processing", "succeeded", "failed"]
 

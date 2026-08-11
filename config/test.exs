@@ -14,6 +14,10 @@ config :rindle, Rindle.Repo,
   pool: Ecto.Adapters.SQL.Sandbox,
   pool_size: System.schedulers_online() * 2
 
+# Existing test fixtures use the legacy public schema until Phase 118 provisions
+# the new default schema. This is the explicit compatibility build mode.
+config :rindle, :rindle_prefix, "public"
+
 # Adopter Repo for CI-08 lane (Plan 05-04).
 #
 # This Repo is intentionally NOT registered in `:ecto_repos` (and is not started
@@ -53,7 +57,9 @@ config :ex_aws,
 
 config :logger, level: :warning
 
-config :oban, Oban, testing: :inline
+# The test process is the host application: its default Oban binding uses the
+# same Repo and public schema as the test-host migrations in test_helper.exs.
+config :rindle, Oban, repo: Rindle.Repo, queues: [], testing: :inline
 
 # GitHub Actions and other CI runners often lack cgroup attach permissions for
 # MuonTrap. AV subprocess tests still exercise ffprobe/ffmpeg without cgroups.

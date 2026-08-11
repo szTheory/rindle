@@ -1,0 +1,112 @@
+# Release-train drift guard (D-06a) — NON-REQUIRED, standalone.
+#
+# Catches the symptom of the 0.3.2 stuck-release footgun: `main` carries
+# releasable feat:/fix: commits ahead of the last `rindle-v*` tag, yet no open
+# Release Please PR exists to cut them. Self-files / updates a single rolling
+# issue on a daily cron and closes it on recovery.
+#
+# HARD invariant (D-09): this workflow MUST NOT be added to ci.yml `ci-summary`
+# `needs:`. `CI Summary` stays the sole required check; this guard is advisory.
+# Locked by test/install_smoke/release_guard_meta_test.exs.
+name: Release Train Drift Check
+
+on:
+  schedule:
+    # Daily; offset from the sibling verify-published-release crons ("17 6") so
+    # the runner queues do not collide.
+    - cron: "23 7 * * *"
+  workflow_dispatch:
+
+# Least-privilege (V14 / T-113-05): the predicate is read-only `git log` +
+# `gh pr list`; the only write is opening/closing the rolling drift issue.
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: release-train-drift-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  drift:
+    name: Detect release-train drift
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          # The predicate resolves the last `rindle-v*` tag, so the clone needs
+          # full history + tags.
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Compute drift predicate
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # Last released tag. If none exists yet, there is nothing to drift
+          # against — treat as no-drift and exit the predicate cleanly.
+          if ! last_tag="$(git describe --tags --match 'rindle-v*' --abbrev=0 2>/dev/null)"; then
+            echo "No rindle-v* tag yet; cannot drift. Treating as no-drift."
+            echo "drift=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "Last release tag: ${last_tag}"
+
+          # Releasable commits since the last tag (Conventional Commit feat:/fix:,
+          # with or without a scope). `|| true` so a zero match does not trip -e.
+          ahead="$(git log "${last_tag}..HEAD" --pretty=%s | grep -cE '^(feat|fix)(\(|:)' || true)"
+
+          # An open Release Please PR for the rindle component means the train is
+          # already moving — not drift.
+          open_pr="$(gh pr list --state open --base main \
+            --search 'head:release-please--branches--main--components--rindle' \
+            --json number --jq 'length')"
+
+          echo "ahead=${ahead} open_pr=${open_pr}"
+
+          if [ "${ahead}" -gt 0 ] && [ "${open_pr}" -eq 0 ]; then
+            echo "DRIFT: ${ahead} releasable commit(s) since ${last_tag} with no open release PR."
+            echo "drift=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No drift: ahead=${ahead}, open_pr=${open_pr}."
+            echo "drift=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Open or update drift issue
+        if: ${{ steps.check.outputs.drift == 'true' && github.event_name == 'schedule' }}
+        uses: JasonEtco/create-an-issue@1b14a70e4d8dc185e5cc76d3bec9eab20257b2c5 # v2.9.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          update_existing: true
+          search_existing: open
+          filename: .github/ISSUE_TEMPLATE/release-train-drift.md
+
+      - name: Close drift issue on recovery
+        if: ${{ steps.check.outputs.drift == 'false' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          issue_number="$(gh issue list --state open \
+            --search 'in:title "Release train drift: main ahead of last rindle-v* tag with no open release PR"' \
+            --json number --jq '.[0].number // empty')"
+          if [ -n "${issue_number}" ]; then
+            gh issue close "${issue_number}" \
+              --comment "Release train no longer drifting: an open Release Please PR exists (or no releasable commits remain). Auto-closed by release-train-drift."
+            echo "Closed drift issue #${issue_number}."
+          else
+            echo "No open drift issue to close."
+          fi
+
+      - name: Fail on drift
+        if: ${{ steps.check.outputs.drift == 'true' }}
+        shell: bash
+        run: |
+          echo "::error::main has releasable feat:/fix: commits ahead of the last rindle-v* tag with no open Release Please PR. The release train is stuck — check RELEASE_PLEASE_TOKEN validity and the release-please job." >&2
+          exit 1

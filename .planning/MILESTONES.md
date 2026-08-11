@@ -1,5 +1,40 @@
 # Milestones
 
+## v1.22 OSS Quality & Trust Hardening (Shipped: 2026-07-02)
+
+**Delivered:** Closed the cheap, high-ROI OSS trust/positioning/governance gaps from SEED-005; cut the
+stuck Hex 0.3.2 release; added OSS governance/security intake, Hex metadata trust signals, README and
+versioning positioning, and a versioned `Rindle.Migration` substrate that keeps Oban host-owned.
+
+**Phases completed:** 4 phases, 14 plans, 28 tasks
+
+**Key accomplishments:**
+
+- Concise OSS-quality evaluation baseline mapped weakness areas to closing phases and deferred schema
+  isolation to the v1.23 candidate.
+- Two D-06 release-train recurrence guards (a cron drift workflow that self-files a rolling issue, and a RELEASE_PLEASE_TOKEN validity preflight that fails loud on an invalid/Actions-scopeless token) plus an install_smoke meta-test that locks both OFF the sole required CI path.
+- GitHub-routed OSS governance intake with security policy, Contributor Covenant, structured issue forms, PR template, and install-smoke coverage
+- Hex package metadata now exposes GitHub, Changelog, and HexDocs links, and release public verification checks the Hex owner-derived maintainer signal.
+- Pre-1.0 stability contract, versioned upgrade guide, image-first README onboarding, and parity tests for the docs claims
+- RED contract tests now lock the versioned Rindle.Migration API, host-owned Oban boundary, and legacy packaged migration filename.
+- RED contract tests now lock hybrid doctor migration health and runtime setup-preflight failures for Rindle-owned schema and host-owned Oban readiness.
+- Docs parity and generated-app smoke tests now fail until public docs teach pinned Rindle.Migration host migrations and fresh installs prove host-owned Oban.
+- Versioned Rindle.Migration now creates, marks, and rolls back Rindle-owned schema while leaving host-owned Oban state untouched.
+- Doctor and runtime status now distinguish Rindle-owned schema readiness from host-owned Oban setup and fail with bounded setup guidance.
+- Pinned host migrations for Rindle-owned tables and host-owned Oban setup are now documented and proven through generated-app smoke.
+- Focused migration/runtime tests, generated-app install smoke, full local CI, release-train audit, and schema-push detection all passed for the versioned Rindle.Migration closeout.
+
+**Audit:** `passed` (14/14 requirements, 4/4 phases, 9/9 integration links, 6/6 E2E flows, 4/4 Nyquist
+validation files compliant). See `milestones/v1.22-MILESTONE-AUDIT.md`.
+
+**Archive:** `milestones/v1.22-ROADMAP.md`, `milestones/v1.22-REQUIREMENTS.md`,
+`milestones/v1.22-MILESTONE-AUDIT.md`
+
+**Known deferred items at close:** 0 open artifacts. v1.23 Postgres Schema Isolation remains a named
+future candidate, not unresolved v1.22 debt.
+
+---
+
 ## v1.21 CI/DX Reliability Tail (Shipped: 2026-06-29)
 
 **Phases completed:** 5 phases, 13 plans, 20 tasks
@@ -17,7 +52,7 @@
 
 **Audit:** `passed` (24/24 requirements via 3-source cross-reference, 5/5 phases verified, 14/14 cross-phase connections WIRED, 1/1 E2E flow). See `milestones/v1.21-MILESTONE-AUDIT.md`.
 
-**Stats:** 49 source files changed (1660+/185−), `lib/` 3 files (145+/3−) → Hex 0.3.2 via two adopter-invisible `fix:` patches · timeline 2026-06-26 → 2026-06-29 (4 days).
+**Stats:** 49 source files changed (1660+/185−), `lib/` 3 files (145+/3−) → Hex 0.3.2 (merged in v1.21, released in v1.22 Phase 113 — was merged-but-unreleased) via two adopter-invisible `fix:` patches · timeline 2026-06-26 → 2026-06-29 (4 days).
 
 **Known deferred items:** 1 (acknowledged at close) — the stale v1.18-era `2026-06-19-fix-docker-demo-startup-warnings.md` tooling todo (Cohort demo Docker startup warnings; cosmetic log noise, no behavior regression; outside v1.21 scope). See STATE.md Deferred Items.
 

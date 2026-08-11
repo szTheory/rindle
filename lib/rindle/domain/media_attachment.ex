@@ -20,11 +20,8 @@ defmodule Rindle.Domain.MediaAttachment do
   newer attachment (see `Rindle.attach/4`).
   """
 
-  use Ecto.Schema
+  use Rindle.Schema
   import Ecto.Changeset
-
-  @primary_key {:id, :binary_id, autogenerate: true}
-  @foreign_key_type :binary_id
 
   @type t :: %__MODULE__{}
 

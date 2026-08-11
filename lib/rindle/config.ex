@@ -2,6 +2,7 @@ defmodule Rindle.Config do
   @moduledoc false
 
   @repo_override_key {__MODULE__, :repo_override}
+  @default_oban_prefix "public"
 
   @spec queue_name() :: atom()
   def queue_name do
@@ -13,6 +14,20 @@ defmodule Rindle.Config do
     with nil <- repo_override(self()) do
       Application.get_env(:rindle, :repo, Rindle.Repo)
     end
+  end
+
+  @doc false
+  @spec host_app(module()) :: atom()
+  def host_app(repo \\ repo()) do
+    Application.get_application(repo) || :rindle
+  end
+
+  @spec rindle_prefix() :: String.t()
+  def rindle_prefix, do: Rindle.Schema.prefix()
+
+  @spec oban_prefix() :: String.t()
+  def oban_prefix do
+    schema_prefix(:oban_prefix, @default_oban_prefix)
   end
 
   # Test-only seam (no global state). Sets/clears the per-process repo override
@@ -114,6 +129,13 @@ defmodule Rindle.Config do
 
       _ ->
         nil
+    end
+  end
+
+  defp schema_prefix(key, default) do
+    case Application.get_env(:rindle, key, default) do
+      prefix when is_binary(prefix) and prefix != "" -> prefix
+      _ -> default
     end
   end
 

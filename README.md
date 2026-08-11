@@ -33,6 +33,10 @@ smoke) before each Hex publish. Existing adopters upgrading from the pre-0.1.4
 image-only shape should use [Upgrading](upgrading.html) instead of stretching
 the greenfield quickstart into an upgrade runbook.
 
+## Versioning and stability
+
+Rindle follows Semantic Versioning. While Rindle is 0.x, public APIs may change between minor versions; review CHANGELOG.md and guides/upgrading.md before upgrading. Rindle 1.0 will mean the public API is stable enough that breaking public API changes move to major versions.
+
 ## Install
 
 Add Rindle to your deps:
@@ -63,14 +67,6 @@ Each release is exercised from a generated Phoenix app in CI before it ships
 to Hex. Adopters follow the same public setup contract described here and in
 [Getting Started](getting_started.html).
 
-For AV profiles, install `FFmpeg >= 6.0` before you touch background jobs, then
-run `mix rindle.doctor`. The per-platform install/runtime matrix lives in
-[Running](running.html).
-
-For image variants, install **libvips** on the host before background image
-processing jobs run (`libvips-dev` on Debian/Ubuntu, `vips` via Homebrew on
-macOS). See [Running](running.html) for the install matrix.
-
 ## Runtime Ownership
 
 Rindle persists through your adopter-owned Repo. Configure that explicitly:
@@ -95,24 +91,107 @@ config :my_app, Oban,
 
 ## Migrations
 
-Run your host app migrations and the packaged Rindle migrations explicitly:
+Create separate normal host-app migrations for the two pieces of database
+state. `Oban.Migration` creates the host-owned `public.oban_jobs` table; the
+host's migration ledger remains `public.schema_migrations`. `Rindle.Migration`
+creates only Rindle-owned tables and never creates or owns either host relation.
 
 ```elixir
-rindle_path = Application.app_dir(:rindle, "priv/repo/migrations")
-host_path = Path.join([File.cwd!(), "priv", "repo", "migrations"])
+defmodule MyApp.Repo.Migrations.AddObanJobs do
+  use Ecto.Migration
 
-{:ok, _, _} =
-  Ecto.Migrator.with_repo(MyApp.Repo, fn repo ->
-    for path <- [host_path, rindle_path] do
-      Ecto.Migrator.run(repo, path, :up, all: true)
-    end
-  end)
+  def up, do: Oban.Migration.up()
+  def down, do: Oban.Migration.down(version: 1)
+end
 ```
 
-Rindle does not ship a public `mix rindle.*` install task for migrations. The
-public path is the docs snippet above.
+Then install Rindle's tables with a pinned migration version. The default call
+omits `:prefix` and creates Rindle state in the `rindle` schema. The only
+compatibility pairing is an explicit `prefix: "public"` call in a separate host
+migration with a public-compiled release for the public schema; it is not an
+arbitrary-prefix mode.
 
-## First Run: AV Quickstart
+```elixir
+defmodule MyApp.Repo.Migrations.InstallRindle do
+  use Ecto.Migration
+
+  def up, do: Rindle.Migration.up(version: 1)
+  def down, do: Rindle.Migration.down(version: 1)
+end
+```
+
+For that explicit public compatibility pairing only, use the matching
+public-compiled release and a separate host migration:
+
+```elixir
+defmodule MyApp.Repo.Migrations.InstallPublicRindle do
+  use Ecto.Migration
+
+  def up, do: Rindle.Migration.up(version: 1, prefix: "public")
+  def down, do: Rindle.Migration.down(version: 1, prefix: "public")
+end
+```
+
+Run your host app's normal migration workflow, then verify setup:
+
+```bash
+mix ecto.migrate
+mix rindle.doctor
+```
+
+> **Rollback:** `Rindle.Migration.down/1` is destructive. Back up the database
+> before running `Rindle.Migration.down(version: 1)`; it removes Rindle-owned
+> tables only and does not manage host infrastructure such as `oban_jobs` or
+> `schema_migrations`.
+
+> **Upgrade note:** Existing apps that already applied Rindle's legacy packaged
+> migrations can leave them in place. The new module is the documented install
+> path going forward; it does not require replaying or deleting legacy migration
+> files.
+
+## First Attachment in ~2 Minutes
+
+Create first attachment with an original-only image profile before you add
+variants or AV processing. This keeps the first path focused on the upload,
+verify, attach, and URL lifecycle:
+
+```elixir
+defmodule MyApp.AvatarProfile do
+  use Rindle.Profile,
+    storage: Rindle.Storage.S3,
+    variants: [],
+    allow_mime: ["image/png", "image/jpeg", "image/webp"],
+    max_bytes: 8_000_000
+end
+```
+
+The first-run path is direct upload by presigned PUT:
+
+```elixir
+{:ok, session} =
+  Rindle.initiate_upload(MyApp.AvatarProfile, filename: "avatar.png")
+
+{:ok, %{session: signed, presigned: presigned}} =
+  Rindle.Upload.Broker.sign_url(session.id)
+
+# your client PUTs bytes to presigned.url
+
+{:ok, %{session: completed, asset: asset}} =
+  Rindle.verify_completion(session.id)
+
+{:ok, attachment} =
+  Rindle.attach(asset.id, current_user, "avatar")
+
+{:ok, signed_url} =
+  Rindle.url(MyApp.AvatarProfile, asset.storage_key)
+```
+
+That proves the durable lifecycle with the original file first. Install
+**libvips** before image variants or background image processing, and install
+`FFmpeg >= 6.0` before AV work. The per-platform runtime dependency details
+live in [Running](running.html).
+
+## AV Quickstart
 
 The locked onboarding path is:
 
@@ -277,11 +356,20 @@ actions. It needs the optional `phoenix_live_view` dependency, the host owns
 auth, and production refuses unguarded mounts. See
 [Admin Console](admin_console.html).
 
+## When Not to Use Rindle
+
+Rindle is a Phoenix/Ecto library for media lifecycle work inside your
+application, not a hosted media platform. It does not run a daemon, act as a
+CDN replacement, provide DRM, become a full HLS/DASH streaming platform, ship
+an AI/GPU processing suite, or handle broad PDF/Office document processing.
+Those jobs belong to other tools; Rindle stays focused on durable upload,
+asset, variant, delivery, cleanup, and repair workflows in Phoenix apps.
+
 ## Next Reads
 
 - [User Flows](user_flows.html): map your job to the right guide (start here when evaluating)
 - [Admin Console](admin_console.html): mount the optional host-authenticated operator console
-- [Upgrading](upgrading.html): existing-adopter upgrade runbook (pre-0.1.4 image-only → current)
+- [Upgrading](upgrading.html): versioned existing-adopter upgrade guide and runbook home
 - [Getting Started](getting_started.html): deep greenfield guide — Repo, Oban, migrations, profiles
 - [Running](running.html): libvips and FFmpeg install matrix (macOS, Linux, Fly, Heroku, Render, CI)
 - [Background Processing](background_processing.html): Oban queues and worker behavior

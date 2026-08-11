@@ -9,24 +9,336 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
              0x06, 0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82>>
 
   @host_migration_version "20260428170000"
+  @host_oban_migration_version "20260428170100"
+  @rindle_migration_version "20260428170200"
+  @directional_migration_version "20260428170300"
   @legacy_rindle_migration_version 20_260_428_110_000
+  @expected_media_variants_indexes [
+    "media_variants_asset_id_name_index",
+    "media_variants_state_index",
+    "media_variants_output_kind_index"
+  ]
+  @generated_command_timeout_ms :timer.minutes(20)
+
+  def default_install_contract do
+    %{
+      host_oban_migration_source: host_oban_migration_source(),
+      rindle_migration_source: rindle_migration_source(),
+      required_report_keys: [
+        :package_root_provenance,
+        :selected_schema_relations,
+        :decoy_schema_relations,
+        :public_host_relations,
+        :host_migration_paths,
+        :persistence_lifecycle
+      ]
+    }
+  end
+
+  def persistence_lifecycle_report_keys do
+    [
+      "initiated_session_id",
+      "verified_session_id",
+      "asset_id",
+      "read_back_asset_id",
+      "asset_state"
+    ]
+  end
+
+  def public_compatibility_contract do
+    migration_source = rindle_migration_source("public")
+
+    %{
+      scenario: :public_compatibility,
+      app_name: "rindle_public_compat_smoke_app",
+      database_identity: "rindle_public_compat_smoke_app",
+      report_identity: "public_compatibility_migration_report.json",
+      compile_prefix: "public",
+      migration_source: migration_source,
+      migration_calls: migration_calls(migration_source),
+      required_report_keys: [
+        :selected_schema_relations,
+        :decoy_schema_relations,
+        :public_host_relations,
+        :persistence_lifecycle
+      ]
+    }
+  end
+
+  def isolation_upgrade_contract do
+    %{
+      scenario: :isolation_upgrade,
+      public_app_name: "rindle_isolation_upgrade_public_app",
+      default_app_name: "rindle_isolation_upgrade_default_app",
+      public_root_identity: "isolation-upgrade-public",
+      default_root_identity: "isolation-upgrade-default",
+      public_compile_prefix: "public",
+      default_compile_prefix: "rindle",
+      directional_migration_source: directional_migration_source(),
+      required_report_keys: [
+        :seeded_asset_id,
+        :seeded_variant_id,
+        :marker_versions,
+        :media_variants_foreign_key,
+        :media_variants_indexes,
+        :oban_jobs_before,
+        :oban_jobs_after,
+        :selected_schema_relations,
+        :decoy_schema_relations,
+        :public_host_relations,
+        :doctor_ready?,
+        :persistence_lifecycle
+      ]
+    }
+  end
+
+  def isolation_upgrade_catalog_preserved?(%{
+        marker_versions: [1],
+        media_variants_foreign_key: foreign_key,
+        media_variants_indexes: indexes,
+        oban_jobs_before: oban_jobs_before,
+        oban_jobs_after: oban_jobs_after
+      }) do
+    exact_media_variants_foreign_key?(foreign_key) and
+      exact_media_variants_indexes?(indexes) and
+      complete_oban_jobs_snapshot?(oban_jobs_before) and
+      oban_jobs_before == oban_jobs_after
+  end
+
+  def isolation_upgrade_catalog_preserved?(_report), do: false
+
+  defp exact_media_variants_foreign_key?(foreign_key) when is_map(foreign_key) do
+    Map.take(foreign_key, [
+      "name",
+      "type",
+      "source_schema",
+      "source_table",
+      "source_column",
+      "target_schema",
+      "target_table",
+      "target_column"
+    ]) == %{
+      "name" => "media_variants_asset_id_fkey",
+      "type" => "f",
+      "source_schema" => "rindle",
+      "source_table" => "media_variants",
+      "source_column" => "asset_id",
+      "target_schema" => "rindle",
+      "target_table" => "media_assets",
+      "target_column" => "id"
+    } and is_binary(foreign_key["definition"]) and
+      String.contains?(foreign_key["definition"], "FOREIGN KEY (asset_id)") and
+      String.contains?(foreign_key["definition"], "REFERENCES rindle.media_assets(id)")
+  end
+
+  defp exact_media_variants_foreign_key?(_foreign_key), do: false
+
+  defp exact_media_variants_indexes?(indexes) when is_list(indexes) do
+    Enum.map(indexes, & &1["name"]) == @expected_media_variants_indexes and
+      Enum.all?(indexes, &exact_media_variants_index?/1)
+  end
+
+  defp exact_media_variants_indexes?(_indexes), do: false
+
+  defp exact_media_variants_index?(%{
+         "name" => "media_variants_asset_id_name_index",
+         "definition" => definition
+       }) do
+    is_binary(definition) and String.contains?(definition, "CREATE UNIQUE INDEX") and
+      String.contains?(definition, "ON rindle.media_variants") and
+      String.contains?(definition, "(asset_id, name)")
+  end
+
+  defp exact_media_variants_index?(%{
+         "name" => "media_variants_state_index",
+         "definition" => definition
+       }) do
+    is_binary(definition) and String.contains?(definition, "CREATE INDEX") and
+      String.contains?(definition, "ON rindle.media_variants") and
+      String.contains?(definition, "(state)")
+  end
+
+  defp exact_media_variants_index?(%{
+         "name" => "media_variants_output_kind_index",
+         "definition" => definition
+       }) do
+    is_binary(definition) and String.contains?(definition, "CREATE INDEX") and
+      String.contains?(definition, "ON rindle.media_variants") and
+      String.contains?(definition, "(output_kind)")
+  end
+
+  defp exact_media_variants_index?(_index), do: false
+
+  defp complete_oban_jobs_snapshot?(%{
+         "identity" => %{"oid" => oid, "schema" => "public", "name" => "oban_jobs"},
+         "columns" => columns,
+         "constraints" => constraints,
+         "indexes" => indexes
+       }) do
+    is_integer(oid) and oid > 0 and is_list(columns) and columns != [] and
+      is_list(constraints) and constraints != [] and is_list(indexes) and indexes != []
+  end
+
+  defp complete_oban_jobs_snapshot?(%{
+         identity: %{"oid" => oid, "schema" => "public", "name" => "oban_jobs"},
+         columns: columns,
+         constraints: constraints,
+         indexes: indexes
+       }) do
+    is_integer(oid) and oid > 0 and is_list(columns) and columns != [] and
+      is_list(constraints) and constraints != [] and is_list(indexes) and indexes != []
+  end
+
+  defp complete_oban_jobs_snapshot?(_snapshot), do: false
 
   def profile_enabled?(profile_mode) when profile_mode in [:image, :video, :tus, :mux, :gcs] do
     selected_profiles()
     |> Enum.member?(profile_mode)
   end
 
+  def phase_120_scenario_enabled?(scenario, included_tags \\ nil)
+
+  def phase_120_scenario_enabled?(scenario, nil) do
+    included_tags = ExUnit.configuration() |> Keyword.get(:include, [])
+    phase_120_scenario_enabled?(scenario, included_tags)
+  end
+
+  def phase_120_scenario_enabled?(scenario, included_tags) when is_list(included_tags) do
+    selected_scenarios =
+      included_tags
+      |> Enum.map(fn
+        {tag, _value} -> tag
+        tag -> tag
+      end)
+      |> Enum.filter(&(&1 in [:phase_120_public_compat, :phase_120_isolation_upgrade]))
+
+    selected_scenarios == [] or scenario in selected_scenarios
+  end
+
   def prove_package_install!(profile_mode \\ :image)
       when profile_mode in [:image, :video, :tus, :mux, :gcs] do
+    prove_package_install!(profile_mode, [])
+  end
+
+  def prove_public_compatibility_install! do
+    contract = public_compatibility_contract()
+
+    prove_package_install!(:image,
+      app_name: contract.app_name,
+      compile_prefix: contract.compile_prefix,
+      migration_report_name: contract.report_identity,
+      scenario: contract.scenario
+    )
+  end
+
+  def prove_isolation_upgrade! do
+    public_report = prove_public_compatibility_install!()
+    public_env = shared_env(public_report.database_name, :image)
+
+    _ =
+      run_cmd!(
+        public_report.generated_app_root,
+        ["mix", "run", "--no-start", "priv/install_smoke/seed_isolation_upgrade.exs"],
+        public_env
+      )
+
+    seed =
+      read_json!(Path.join(public_report.generated_app_root, "tmp/isolation_upgrade_seed.json"))
+
+    default_contract = isolation_upgrade_contract()
+    default_root = Path.join(public_report.workspace_root, default_contract.default_app_name)
+    default_module = Macro.camelize(default_contract.default_app_name)
+    network_version = System.get_env("RINDLE_INSTALL_SMOKE_NETWORK_VERSION")
+
+    generate_phoenix_app!(public_report.workspace_root, default_root)
+
+    patch_generated_app!(
+      default_root,
+      default_contract.default_app_name,
+      default_module,
+      public_report.package_root,
+      network_version,
+      :image,
+      migration_kind: :directional_upgrade,
+      migration_report_name: "isolation_upgrade_migration_report.json"
+    )
+
+    fetch_deps!(default_root, public_env, network_version)
+    compile_result = run_cmd!(default_root, ["mix", "compile"], public_env)
+
+    _ =
+      run_cmd!(
+        default_root,
+        ["mix", "run", "--no-start", "priv/install_smoke/migrate.exs"],
+        public_env
+      )
+
+    migration_report =
+      read_json!(Path.join(default_root, "tmp/isolation_upgrade_migration_report.json"))
+
+    doctor_result =
+      run_cmd(
+        default_root,
+        ["mix", "rindle.doctor", "#{default_module}.RindleProfile"],
+        public_env
+      )
+
+    boot_result = boot_app!(default_root, default_module, public_env)
+
+    smoke_result =
+      run_cmd(default_root, ["mix", "test", "test/rindle_install_smoke_test.exs"], public_env)
+
+    persistence_lifecycle =
+      read_json!(Path.join(default_root, "tmp/install_smoke_persistence_lifecycle_report.json"))
+
+    %{
+      workspace_root: public_report.workspace_root,
+      generated_app_root: default_root,
+      public_generated_app_root: public_report.generated_app_root,
+      package_root: public_report.package_root,
+      database_name: public_report.database_name,
+      scenario: :isolation_upgrade,
+      profile_mode: :image,
+      public_compile_prefix: public_report.compile_prefix,
+      default_compile_prefix: "rindle",
+      install_mode: public_report.install_mode,
+      network_mode?: public_report.network_mode?,
+      install_source: public_report.install_source,
+      package_root_provenance: public_report.package_root_provenance,
+      compile_exit_code: compile_result.exit_code,
+      boot_exit_code: boot_result.exit_code,
+      smoke_exit_code: smoke_result.exit_code,
+      deps_rindle_present?: File.exists?(Path.join(default_root, "deps/rindle")),
+      host_migration_ran?: migration_report["host_migration_ran"] == true,
+      host_oban_migration_ran?: migration_report["host_oban_migration_ran"] == true,
+      rindle_migration_ran?: migration_report["rindle_migration_ran"] == true,
+      migration_resolution: migration_report["resolver"] |> to_existing_atom_safe(),
+      rindle_migration_path: migration_report["rindle_migration_path"],
+      selected_schema_relations: migration_report["selected_schema_relations"] || %{},
+      decoy_schema_relations: migration_report["decoy_schema_relations"] || %{},
+      public_host_relations: migration_report["public_host_relations"] || %{},
+      persistence_lifecycle: persistence_lifecycle,
+      seeded_asset_id: seed["asset_id"],
+      seeded_variant_id: seed["variant_id"],
+      marker_versions: migration_report["marker_versions"] || [],
+      media_variants_foreign_key: migration_report["media_variants_foreign_key"],
+      media_variants_indexes: migration_report["media_variants_indexes"] || [],
+      oban_jobs_before: migration_report["oban_jobs_before"] || %{},
+      oban_jobs_after: migration_report["oban_jobs_after"] || %{},
+      doctor_ready?: smoke_result.exit_code == 0,
+      doctor_output: doctor_result.output,
+      lifecycle_proved?:
+        smoke_result.exit_code == 0 and String.contains?(smoke_result.output, "0 failures")
+    }
+  end
+
+  defp prove_package_install!(profile_mode, options) do
     network_version = System.get_env("RINDLE_INSTALL_SMOKE_NETWORK_VERSION")
     install_mode = install_mode(network_version)
 
-    workspace_root =
-      Path.join(System.tmp_dir!(), "rindle-install-smoke-#{System.unique_integer([:positive])}")
+    workspace_root = create_workspace_root!()
 
-    File.mkdir_p!(workspace_root)
-
-    app_name = install_smoke_app_name(profile_mode)
+    app_name = Keyword.get(options, :app_name, install_smoke_app_name(profile_mode))
     app_module = Macro.camelize(app_name)
 
     package_root =
@@ -34,7 +346,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
         Path.join(workspace_root, "package/#{package_name()}")
 
     generated_app_root = Path.join(workspace_root, app_name)
-    db_name = "#{app_name}_#{System.unique_integer([:positive])}_test"
+    db_name = "#{app_name}_#{System.system_time(:microsecond)}_test"
     shared_env = shared_env(db_name, profile_mode)
 
     if is_nil(network_version) do
@@ -49,7 +361,8 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       app_module,
       package_root,
       network_version,
-      profile_mode
+      profile_mode,
+      options
     )
 
     fetch_deps!(generated_app_root, shared_env, network_version)
@@ -65,7 +378,12 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       )
 
     migration_report =
-      read_json!(Path.join(generated_app_root, "tmp/install_smoke_migration_report.json"))
+      read_json!(
+        Path.join(
+          generated_app_root,
+          "tmp/#{Keyword.get(options, :migration_report_name, "install_smoke_migration_report.json")}"
+        )
+      )
 
     boot_result = boot_app!(generated_app_root, app_module, shared_env)
 
@@ -91,6 +409,14 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     gcs_report_path = Path.join(generated_app_root, "tmp/install_smoke_gcs_report.json")
     gcs_report = if File.exists?(gcs_report_path), do: read_json!(gcs_report_path), else: %{}
 
+    persistence_lifecycle_report_path =
+      Path.join(generated_app_root, "tmp/install_smoke_persistence_lifecycle_report.json")
+
+    persistence_lifecycle =
+      if File.exists?(persistence_lifecycle_report_path),
+        do: read_json!(persistence_lifecycle_report_path),
+        else: %{}
+
     tus_extensions = normalize_tus_extensions(tus_report["extensions"])
     tus_report_data = Map.put(tus_report, "extensions", tus_extensions)
 
@@ -100,16 +426,30 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       package_root: package_root,
       database_name: db_name,
       profile_mode: profile_mode,
+      scenario: Keyword.get(options, :scenario, :default),
+      compile_prefix: Keyword.get(options, :compile_prefix, "rindle"),
       install_mode: install_mode,
       install_source: install_source(install_mode, package_root, network_version),
+      package_root_provenance: %{
+        path: package_root,
+        unpacked?: install_mode == :package,
+        repository_path_fallback?: false
+      },
       compile_exit_code: compile_result.exit_code,
       boot_exit_code: boot_result.exit_code,
       smoke_exit_code: smoke_result.exit_code,
       network_mode?: install_mode == :network,
       deps_rindle_present?: deps_rindle_present?,
       host_migration_ran?: migration_report["host_migration_ran"] == true,
+      host_oban_migration_ran?: migration_report["host_oban_migration_ran"] == true,
+      rindle_migration_ran?: migration_report["rindle_migration_ran"] == true,
       migration_resolution: migration_report["resolver"] |> to_existing_atom_safe(),
       rindle_migration_path: migration_report["rindle_migration_path"],
+      selected_schema_relations: migration_report["selected_schema_relations"] || %{},
+      decoy_schema_relations: migration_report["decoy_schema_relations"] || %{},
+      public_host_relations: migration_report["public_host_relations"] || %{},
+      host_migration_paths: migration_report["host_migration_paths"] || %{},
+      persistence_lifecycle: persistence_lifecycle,
       smoke_output: smoke_result.output,
       av_ready_variants: av_report["ready_variants"] || [],
       av_playback_storage_key: av_report["playback_storage_key"],
@@ -211,10 +551,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     network_version = System.get_env("RINDLE_INSTALL_SMOKE_NETWORK_VERSION")
     install_mode = install_mode(network_version)
 
-    workspace_root =
-      Path.join(System.tmp_dir!(), "rindle-install-smoke-#{System.unique_integer([:positive])}")
-
-    File.mkdir_p!(workspace_root)
+    workspace_root = create_workspace_root!()
 
     app_name = "rindle_smoke_app"
     app_module = Macro.camelize(app_name)
@@ -224,7 +561,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
         Path.join(workspace_root, "package/#{package_name()}")
 
     generated_app_root = Path.join(workspace_root, app_name)
-    db_name = "#{app_name}_#{System.unique_integer([:positive])}_test"
+    db_name = "#{app_name}_#{System.system_time(:microsecond)}_test"
     shared_env = shared_env(db_name, :video)
 
     if is_nil(network_version) do
@@ -294,9 +631,14 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       network_mode?: install_mode == :network,
       deps_rindle_present?: deps_rindle_present?,
       host_migration_ran?: migration_report["host_migration_ran"] == true,
+      host_oban_migration_ran?: migration_report["host_oban_migration_ran"] == true,
+      rindle_migration_ran?: migration_report["rindle_migration_ran"] == true,
       migration_resolution: migration_report["resolver"] |> to_existing_atom_safe(),
       rindle_migration_path: migration_report["rindle_migration_path"],
+      legacy_rindle_migration_path: legacy_seed["legacy_rindle_migration_path"],
       legacy_migration_cutoff: legacy_seed["legacy_rindle_migration_version"],
+      legacy_current_marker_preinstalled?:
+        legacy_seed["current_rindle_marker_preinstalled"] == true,
       canonical_upgrade_step_sequence: canonical_upgrade_step_sequence(),
       legacy_asset_kind: get_in(upgrade_report, ["legacy_asset", "kind"]),
       legacy_asset_profile: get_in(upgrade_report, ["legacy_asset", "profile"]),
@@ -358,6 +700,12 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
 
   def cleanup(_report), do: :ok
 
+  defp create_workspace_root! do
+    template = Path.join(System.tmp_dir!(), "rindle-install-smoke.XXXXXX")
+    {path, 0} = System.cmd("mktemp", ["-d", template], stderr_to_stdout: true)
+    String.trim(path)
+  end
+
   defp ensure_package!(workspace_root, package_root) do
     if File.dir?(package_root) do
       :ok
@@ -401,10 +749,18 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
          app_module,
          package_root,
          network_version,
-         profile_mode
+         profile_mode,
+         options \\ []
        ) do
     patch_mix_exs!(root, package_root, network_version, profile_mode)
-    patch_test_config!(root, app_name, profile_mode)
+
+    patch_test_config!(
+      root,
+      app_name,
+      profile_mode,
+      Keyword.get(options, :compile_prefix, "rindle")
+    )
+
     patch_test_helper!(root, profile_mode)
     patch_runtime_config!(root, app_name, app_module, profile_mode)
     patch_application!(root, app_name, app_module, profile_mode)
@@ -412,7 +768,26 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     write_tus_live_view!(root, app_name, app_module, profile_mode)
     write_profile!(root, app_name, app_module, profile_mode)
     write_host_migration!(root)
-    write_migration_runner!(root, app_name, app_module)
+    write_host_oban_migration!(root)
+    migration_kind = Keyword.get(options, :migration_kind, :install)
+
+    migration_version =
+      write_rindle_migration!(
+        root,
+        Keyword.get(options, :compile_prefix, "rindle"),
+        migration_kind
+      )
+
+    write_migration_runner!(
+      root,
+      app_name,
+      app_module,
+      Keyword.get(options, :compile_prefix, "rindle"),
+      Keyword.get(options, :migration_report_name, "install_smoke_migration_report.json"),
+      migration_version
+    )
+
+    write_isolation_upgrade_seed!(root, app_module)
     write_legacy_upgrade_preparer!(root, app_module)
     write_smoke_test!(root, app_module, profile_mode, network_version)
     write_fixture!(root, profile_mode)
@@ -493,7 +868,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     File.write!(path, updated)
   end
 
-  defp patch_test_config!(root, app_name, profile_mode) do
+  defp patch_test_config!(root, app_name, profile_mode, compile_prefix) do
     path = Path.join(root, "config/test.exs")
 
     base_updated =
@@ -524,6 +899,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
         migration_timestamps: [type: :utc_datetime_usec]
 
       config :rindle, :repo, #{Macro.camelize(app_name)}.Repo
+      config :rindle, :rindle_prefix, #{inspect(compile_prefix)}
       """)
 
     base_updated =
@@ -948,7 +1324,92 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     )
   end
 
-  defp write_migration_runner!(root, _app_name, app_module) do
+  defp write_host_oban_migration!(root) do
+    path =
+      Path.join(
+        root,
+        "priv/repo/migrations/#{@host_oban_migration_version}_install_host_owned_oban.exs"
+      )
+
+    File.write!(path, host_oban_migration_source())
+  end
+
+  defp write_rindle_migration!(root, prefix, migration_kind) do
+    {migration_version, migration_source} =
+      case migration_kind do
+        :install -> {@rindle_migration_version, rindle_migration_source(prefix)}
+        :directional_upgrade -> {@directional_migration_version, directional_migration_source()}
+      end
+
+    path =
+      Path.join(
+        root,
+        "priv/repo/migrations/#{migration_version}_install_rindle.exs"
+      )
+
+    File.write!(path, migration_source)
+    migration_version
+  end
+
+  defp host_oban_migration_source do
+    """
+    defmodule RindleSmokeApp.Repo.Migrations.InstallHostOwnedOban do
+      use Ecto.Migration
+
+      def up, do: Oban.Migration.up()
+      def down, do: Oban.Migration.down(version: 1)
+    end
+    """
+  end
+
+  defp rindle_migration_source(prefix \\ "rindle") do
+    prefix_option = if prefix == "public", do: ~s(, prefix: "public"), else: ""
+
+    """
+    defmodule RindleSmokeApp.Repo.Migrations.InstallRindle do
+      use Ecto.Migration
+
+      def up, do: Rindle.Migration.up(version: 1#{prefix_option})
+      def down, do: Rindle.Migration.down(version: 1#{prefix_option})
+    end
+    """
+  end
+
+  defp migration_calls(source) do
+    for callback <- [:up, :down], into: %{} do
+      prefix = "def #{callback}, do:"
+
+      call =
+        source
+        |> String.split("\n")
+        |> Enum.find(&String.contains?(&1, prefix))
+        |> String.trim()
+
+      {callback, call}
+    end
+  end
+
+  defp directional_migration_source do
+    """
+    defmodule RindleSmokeApp.Repo.Migrations.MovePublicRindleToDefaultSchema do
+      use Ecto.Migration
+
+      def up do
+        execute("SET LOCAL lock_timeout = '5s'")
+        Rindle.Migration.move_public_to_rindle(version: 1)
+      end
+    end
+    """
+  end
+
+  defp write_migration_runner!(
+         root,
+         _app_name,
+         app_module,
+         selected_prefix,
+         report_name,
+         migration_version
+       ) do
     path = Path.join(root, "priv/install_smoke/migrate.exs")
     File.mkdir_p!(Path.dirname(path))
 
@@ -959,33 +1420,230 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       {:ok, _pid} = #{app_module}.Repo.start_link()
 
       host_path = Path.join([File.cwd!(), "priv", "repo", "migrations"])
-      rindle_path = Application.app_dir(:rindle, "priv/repo/migrations")
 
-      unless File.dir?(rindle_path) do
-        raise "Rindle migration path missing: \#{rindle_path}"
+      rindle_migration_file =
+        Path.join(host_path, "#{migration_version}_install_rindle.exs")
+
+      regclass_exists? = fn repo, schema, relation ->
+        {:ok, %{rows: [[result]]}} =
+          repo.query("select to_regclass($1)::text", ["\#{schema}.\#{relation}"])
+
+        not is_nil(result)
       end
 
-      {:ok, _, _} =
-        Ecto.Migrator.with_repo(#{app_module}.Repo, fn repo ->
-          for path <- [host_path, rindle_path] do
-            Ecto.Migrator.run(repo, path, :up, all: true)
-          end
+      relation_catalog = fn repo, schema, relations ->
+        Map.new(relations, fn relation ->
+          {relation, regclass_exists?.(repo, schema, relation)}
         end)
+      end
 
-      {:ok, result} =
-        #{app_module}.Repo.query(
-          "select to_regclass('public.install_smoke_markers')::text"
-        )
+      oban_jobs_snapshot = fn repo ->
+        {:ok, %{rows: [[oid, schema, relation]]}} =
+          repo.query(
+            "select relation.oid, namespace.nspname, relation.relname from pg_class relation join pg_namespace namespace on namespace.oid = relation.relnamespace where namespace.nspname = $1 and relation.relname = $2",
+            ["public", "oban_jobs"]
+          )
+
+        columns =
+          repo.query!(
+            "select attribute.attname, pg_catalog.format_type(attribute.atttypid, attribute.atttypmod), not attribute.attnotnull, pg_get_expr(default_value.adbin, default_value.adrelid), attribute.attidentity, attribute.attgenerated from pg_attribute attribute left join pg_attrdef default_value on default_value.adrelid = attribute.attrelid and default_value.adnum = attribute.attnum where attribute.attrelid = $1 and attribute.attnum > 0 and not attribute.attisdropped order by attribute.attnum",
+            [oid]
+          ).rows
+          |> Enum.map(fn [name, type, nullable, default, identity, generated] ->
+            %{
+              name: name,
+              type: type,
+              nullable: nullable,
+              default: default,
+              identity: identity,
+              generated: generated
+            }
+          end)
+
+        constraints =
+          repo.query!(
+            "select catalog_constraint.conname, catalog_constraint.contype::text, pg_get_constraintdef(catalog_constraint.oid) from pg_constraint catalog_constraint where catalog_constraint.conrelid = $1 order by catalog_constraint.conname",
+            [oid]
+          ).rows
+          |> Enum.map(fn [name, type, definition] ->
+            %{name: name, type: type, definition: definition}
+          end)
+
+        indexes =
+          repo.query!(
+            "select namespace.nspname, index_relation.relname, index_metadata.indisprimary, index_metadata.indisunique, pg_get_indexdef(index_relation.oid) from pg_index index_metadata join pg_class index_relation on index_relation.oid = index_metadata.indexrelid join pg_class relation on relation.oid = index_metadata.indrelid join pg_namespace namespace on namespace.oid = index_relation.relnamespace where relation.oid = $1 order by namespace.nspname, index_relation.relname",
+            [oid]
+          ).rows
+          |> Enum.map(fn [schema, name, primary, unique, definition] ->
+            %{
+              schema: schema,
+              name: name,
+              primary: primary,
+              unique: unique,
+              definition: definition
+            }
+          end)
+
+        %{
+          identity: %{oid: oid, schema: schema, name: relation},
+          columns: columns,
+          constraints: constraints,
+          indexes: indexes
+        }
+      end
+
+      rindle_relations = #{inspect(Rindle.Migration.V1.owned_relations())}
+
+      {:ok, migration_report, _apps} =
+        Ecto.Migrator.with_repo(#{app_module}.Repo, fn repo ->
+          Ecto.Migrator.run(repo, host_path, :up, to: #{String.to_integer(@host_migration_version)})
+          host_migration_ran? = regclass_exists?.(repo, "public", "install_smoke_markers")
+
+          Ecto.Migrator.run(repo, host_path, :up, to: #{String.to_integer(@host_oban_migration_version)})
+          host_oban_migration_ran? = regclass_exists?.(repo, "public", "oban_jobs")
+          oban_jobs_before = oban_jobs_snapshot.(repo)
+
+          Ecto.Migrator.run(repo, host_path, :up, to: #{String.to_integer(migration_version)})
+          selected_schema_relations = relation_catalog.(repo, "#{selected_prefix}", rindle_relations)
+          decoy_schema_relations = relation_catalog.(repo, "#{if(selected_prefix == "public", do: "rindle", else: "public")}", rindle_relations)
+          rindle_migration_ran? = Enum.all?(selected_schema_relations, fn {_relation, exists?} -> exists? end)
+          oban_jobs_after = oban_jobs_snapshot.(repo)
+          public_host_relations = relation_catalog.(repo, "public", ["oban_jobs", "schema_migrations"])
+
+          marker_versions =
+            repo.query!("select version from #{selected_prefix}.rindle_migration_versions order by version").rows
+            |> Enum.map(fn [version] -> version end)
+
+          media_variants_foreign_key =
+            case repo.query(
+                   "select catalog_constraint.conname, catalog_constraint.contype::text, source_namespace.nspname, source_relation.relname, source_column.attname, target_namespace.nspname, target_relation.relname, target_column.attname, pg_get_constraintdef(catalog_constraint.oid) from pg_constraint catalog_constraint join pg_class source_relation on source_relation.oid = catalog_constraint.conrelid join pg_namespace source_namespace on source_namespace.oid = source_relation.relnamespace join pg_class target_relation on target_relation.oid = catalog_constraint.confrelid join pg_namespace target_namespace on target_namespace.oid = target_relation.relnamespace join unnest(catalog_constraint.conkey) with ordinality as source_key(attnum, position) on true join pg_attribute source_column on source_column.attrelid = source_relation.oid and source_column.attnum = source_key.attnum join unnest(catalog_constraint.confkey) with ordinality as target_key(attnum, position) on target_key.position = source_key.position join pg_attribute target_column on target_column.attrelid = target_relation.oid and target_column.attnum = target_key.attnum where source_namespace.nspname = $1 and source_relation.relname = $2 and catalog_constraint.conname = $3 order by source_key.position",
+                   ["#{selected_prefix}", "media_variants", "media_variants_asset_id_fkey"]
+                 ) do
+              {:ok, %{rows: [[name, type, source_schema, source_table, source_column, target_schema, target_table, target_column, definition]]}} ->
+                %{
+                  name: name,
+                  type: type,
+                  source_schema: source_schema,
+                  source_table: source_table,
+                  source_column: source_column,
+                  target_schema: target_schema,
+                  target_table: target_table,
+                  target_column: target_column,
+                  definition: definition
+                }
+
+              _other ->
+                nil
+            end
+
+          expected_media_variants_indexes = #{inspect(@expected_media_variants_indexes)}
+
+          media_variants_indexes =
+            case repo.query(
+                   "select namespace.nspname, index_relation.relname, pg_get_indexdef(index_relation.oid) from pg_index index_metadata join pg_class relation on relation.oid = index_metadata.indrelid join pg_namespace relation_namespace on relation_namespace.oid = relation.relnamespace join pg_class index_relation on index_relation.oid = index_metadata.indexrelid join pg_namespace namespace on namespace.oid = index_relation.relnamespace where relation_namespace.nspname = $1 and relation.relname = $2 and index_relation.relname = any($3::text[]) order by index_relation.relname",
+                   ["#{selected_prefix}", "media_variants", expected_media_variants_indexes]
+                 ) do
+              {:ok, %{rows: rows}} ->
+                indexes_by_name =
+                  Map.new(rows, fn [schema, name, definition] ->
+                    {name, %{schema: schema, name: name, definition: definition}}
+                  end)
+
+                Enum.flat_map(expected_media_variants_indexes, fn name ->
+                  case Map.fetch(indexes_by_name, name) do
+                    {:ok, index} -> [index]
+                    :error -> []
+                  end
+                end)
+
+              _other ->
+                []
+            end
+
+          %{
+            resolver: "host_migrations",
+            host_migration_ran: host_migration_ran?,
+            host_oban_migration_ran: host_oban_migration_ran?,
+            rindle_migration_ran: rindle_migration_ran?,
+            rindle_migration_path: rindle_migration_file,
+            selected_schema_relations: selected_schema_relations,
+            decoy_schema_relations: decoy_schema_relations,
+            public_host_relations: public_host_relations,
+            marker_versions: marker_versions,
+            media_variants_foreign_key: media_variants_foreign_key,
+            media_variants_indexes: media_variants_indexes,
+            oban_jobs_before: oban_jobs_before,
+            oban_jobs_after: oban_jobs_after,
+            host_migration_paths: %{
+              host_root: host_path,
+              oban: Path.join(host_path, "#{@host_oban_migration_version}_install_host_owned_oban.exs"),
+              rindle: rindle_migration_file
+            }
+          }
+        end)
 
       File.mkdir_p!("tmp")
 
       File.write!(
-        "tmp/install_smoke_migration_report.json",
-        Jason.encode!(%{
-          resolver: "application_app_dir",
-          host_migration_ran: result.rows == [["install_smoke_markers"]],
-          rindle_migration_path: rindle_path
-        })
+        "tmp/#{report_name}",
+        Jason.encode!(migration_report)
+      )
+      """
+    )
+  end
+
+  defp write_isolation_upgrade_seed!(root, app_module) do
+    path = Path.join(root, "priv/install_smoke/seed_isolation_upgrade.exs")
+    File.mkdir_p!(Path.dirname(path))
+
+    File.write!(
+      path,
+      """
+      Application.ensure_all_started(:rindle)
+      {:ok, _pid} = #{app_module}.Repo.start_link()
+
+      asset_id = Ecto.UUID.generate()
+      variant_id = Ecto.UUID.generate()
+      now = NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
+
+      #{app_module}.Repo.query!(
+        "insert into public.media_assets (id, state, storage_key, content_type, byte_size, filename, metadata, recipe_digest, profile, inserted_at, updated_at) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)",
+        [
+          Ecto.UUID.dump!(asset_id),
+          "ready",
+          "isolation-upgrade/assets/seed.png",
+          "image/png",
+          68,
+          "isolation-upgrade-seed.png",
+          %{"isolation_upgrade_seed" => true},
+          "isolation-upgrade-recipe",
+          "#{app_module}.RindleProfile",
+          now,
+          now
+        ]
+      )
+
+      #{app_module}.Repo.query!(
+        "insert into public.media_variants (id, asset_id, name, state, recipe_digest, storage_key, generated_at, byte_size, content_type, inserted_at, updated_at) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)",
+        [
+          Ecto.UUID.dump!(variant_id),
+          Ecto.UUID.dump!(asset_id),
+          "thumb",
+          "ready",
+          "isolation-upgrade-recipe",
+          "isolation-upgrade/variants/seed.png",
+          now,
+          68,
+          "image/png",
+          now,
+          now
+        ]
+      )
+
+      File.mkdir_p!("tmp")
+      File.write!(
+        "tmp/isolation_upgrade_seed.json",
+        Jason.encode!(%{"asset_id" => asset_id, "variant_id" => variant_id})
       )
       """
     )
@@ -1005,10 +1663,23 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       rindle_path = Application.app_dir(:rindle, "priv/repo/migrations")
       legacy_cutoff = #{@legacy_rindle_migration_version}
 
-      {:ok, _, _} =
+      regclass_exists? = fn repo, table_name ->
+        {:ok, %{rows: [[result]]}} =
+          repo.query("select to_regclass($1)::text", ["public.\#{table_name}"])
+
+        result == table_name
+      end
+
+      {:ok, legacy_report, _} =
         Ecto.Migrator.with_repo(#{app_module}.Repo, fn repo ->
-          Ecto.Migrator.run(repo, host_path, :up, all: true)
+          Ecto.Migrator.run(repo, host_path, :up, to: #{@host_migration_version})
+          Ecto.Migrator.run(repo, host_path, :up, to: #{@host_oban_migration_version})
           Ecto.Migrator.run(repo, rindle_path, :up, to: legacy_cutoff)
+
+          %{
+            current_rindle_marker_preinstalled:
+              regclass_exists?.(repo, "rindle_migration_versions")
+          }
         end)
 
       legacy_asset_id = Ecto.UUID.generate()
@@ -1094,6 +1765,8 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
         "tmp/install_smoke_upgrade_seed.json",
         Jason.encode!(%{
           legacy_rindle_migration_version: Integer.to_string(legacy_cutoff),
+          legacy_rindle_migration_path: rindle_path,
+          current_rindle_marker_preinstalled: legacy_report.current_rindle_marker_preinstalled,
           legacy_asset_id: legacy_asset_id,
           legacy_variant_id: legacy_variant_id,
           legacy_session_id: legacy_session_id
@@ -1162,7 +1835,8 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
         test "generated app boots with adopter repo ownership and default Oban wiring" do
           assert Application.fetch_env!(:rindle, :repo) == Repo
           assert Application.fetch_env!(:#{Macro.underscore(app_module)}, Oban)[:repo] == Repo
-          assert File.dir?(Application.app_dir(:rindle, "priv/repo/migrations"))
+          assert function_exported?(Rindle.Migration, :up, 1)
+          assert function_exported?(Rindle.Migration, :down, 1)
       #{deps_rindle_assertion}
         end
 
@@ -1179,6 +1853,15 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
                    Repo.query("select to_regclass('public.install_smoke_markers')::text")
 
           assert result.rows == [["install_smoke_markers"]]
+        end
+
+        defp write_persistence_lifecycle!(facts) do
+          File.mkdir_p!("tmp")
+
+          File.write!(
+            "tmp/install_smoke_persistence_lifecycle_report.json",
+            Jason.encode!(facts)
+          )
         end
 
         defp put_to_presigned_url(presigned_url, body) do
@@ -1245,9 +1928,9 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       %{exit_code: 0} = result ->
         result
 
-      %{exit_code: exit_code, output: output} ->
+      %{exit_code: exit_code, output: output, stage: stage} ->
         raise """
-        command failed (#{exit_code}): #{Enum.join(argv, " ")}
+        generated command failed (stage=#{stage}, exit=#{exit_code}): #{Enum.join(argv, " ")}
         cwd: #{cwd}
 
         #{output}
@@ -1256,15 +1939,36 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
   end
 
   defp run_cmd(cwd, argv, env) do
-    {output, exit_code} =
-      System.cmd(List.first(argv), tl(argv),
-        cd: cwd,
-        env: env,
-        stderr_to_stdout: true,
-        into: ""
-      )
+    stage = Enum.join(argv, " ")
 
-    %{output: output, exit_code: exit_code}
+    task =
+      Task.async(fn ->
+        System.cmd(List.first(argv), tl(argv),
+          cd: cwd,
+          env: env,
+          stderr_to_stdout: true,
+          into: ""
+        )
+      end)
+
+    case Task.yield(task, @generated_command_timeout_ms) || Task.shutdown(task, :brutal_kill) do
+      {:ok, {output, exit_code}} ->
+        %{
+          output: "stage=#{stage}\n#{output}",
+          exit_code: exit_code,
+          stage: stage,
+          timed_out?: false
+        }
+
+      nil ->
+        %{
+          output:
+            "stage=#{stage}\ncommand timed out after #{@generated_command_timeout_ms}ms\ncwd=#{cwd}",
+          exit_code: 124,
+          stage: stage,
+          timed_out?: true
+        }
+    end
   end
 
   defp shared_env(db_name, profile_mode) do
@@ -1448,6 +2152,14 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
 
           asset = Repo.get!(MediaAsset, asset.id)
           assert asset.state in ["available", "processing", "ready"]
+
+          write_persistence_lifecycle!(%{
+            "initiated_session_id" => session.id,
+            "verified_session_id" => completed.id,
+            "asset_id" => asset.id,
+            "read_back_asset_id" => asset.id,
+            "asset_state" => asset.state
+          })
 
           variants = Repo.all(from variant in MediaVariant, where: variant.asset_id == ^asset.id)
           assert variants != []

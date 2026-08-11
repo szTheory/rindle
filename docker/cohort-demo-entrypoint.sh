@@ -29,7 +29,6 @@ wait_for minio "curl -fsS '${minio_health_url%/}/minio/health/ready'"
 
 mix ecto.create || true
 mix ecto.migrate
-mix rindle.migrate
 mix run priv/repo/seeds.exs
 
 exec mix phx.server
