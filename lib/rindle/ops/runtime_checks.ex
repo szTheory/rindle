@@ -80,7 +80,7 @@ defmodule Rindle.Ops.RuntimeChecks do
   def run(args, opts \\ []) do
     env = Keyword.get(opts, :env, System.get_env())
     probe = Keyword.get(opts, :probe, fn -> Rindle.AV.Probe.check_ffmpeg!() end)
-    mix_app = Keyword.get(opts, :mix_app, :rindle)
+    mix_app = Keyword.get_lazy(opts, :mix_app, &Config.host_app/0)
     resolved = resolve_profiles(args, Keyword.get(opts, :profiles, Config.profile_modules()))
     profiles = resolved.profiles
     oban_config = Keyword.get(opts, :oban_config, Application.get_env(mix_app, Oban))

@@ -16,6 +16,12 @@ defmodule Rindle.Config do
     end
   end
 
+  @doc false
+  @spec host_app(module()) :: atom()
+  def host_app(repo \\ repo()) do
+    Application.get_application(repo) || :rindle
+  end
+
   @spec rindle_prefix() :: String.t()
   def rindle_prefix, do: Rindle.Schema.prefix()
 

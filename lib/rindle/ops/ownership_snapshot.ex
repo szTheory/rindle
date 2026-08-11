@@ -58,7 +58,7 @@ defmodule Rindle.Ops.OwnershipSnapshot do
   end
 
   defp resolve_oban_binding(opts) do
-    mix_app = Keyword.get(opts, :mix_app, :rindle)
+    mix_app = Keyword.get_lazy(opts, :mix_app, &Config.host_app/0)
     binding = Keyword.get_lazy(opts, :oban_binding, fn -> Application.get_env(mix_app, Oban) end)
     compatibility_prefix = Keyword.get(opts, :compatibility_oban_prefix, Config.oban_prefix())
 

@@ -59,6 +59,11 @@ defmodule Rindle.Config.ConfigTest do
     assert Rindle.Repo == Rindle.Config.repo()
   end
 
+  test "host_app/1 resolves the OTP application that owns the configured repo" do
+    assert :rindle == Rindle.Config.host_app(Rindle.Repo)
+    assert :decimal == Rindle.Config.host_app(Decimal)
+  end
+
   test "reports the compile-time Rindle schema prefix while Oban remains independent" do
     previous_oban_prefix = Application.get_env(:rindle, :oban_prefix)
 
