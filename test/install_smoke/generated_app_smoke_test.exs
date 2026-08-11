@@ -152,6 +152,25 @@ defmodule Rindle.InstallSmoke.GeneratedAppPhase120FastContractTest do
            ]
   end
 
+  test "focused Phase 120 MinIO commands exclude sibling generated-app scenarios" do
+    assert GeneratedAppHelper.phase_120_scenario_enabled?(:phase_120_public_compat, [
+             :minio,
+             :phase_120_public_compat
+           ])
+
+    refute GeneratedAppHelper.phase_120_scenario_enabled?(:phase_120_isolation_upgrade, [
+             :minio,
+             :phase_120_public_compat
+           ])
+
+    refute GeneratedAppHelper.phase_120_scenario_enabled?(:default, [
+             :minio,
+             :phase_120_public_compat
+           ])
+
+    assert GeneratedAppHelper.phase_120_scenario_enabled?(:default, [:minio])
+  end
+
   @tag :phase_120_compat_contract
   test "public compatibility uses an isolated compiled consumer and fixed public migration" do
     contract = GeneratedAppHelper.public_compatibility_contract()
@@ -413,7 +432,8 @@ defmodule Rindle.InstallSmoke.GeneratedAppPhase120FastContractTest do
   end
 end
 
-if GeneratedAppHelper.profile_enabled?(:gcs) do
+if GeneratedAppHelper.profile_enabled?(:gcs) and
+     GeneratedAppHelper.phase_120_scenario_enabled?(:default) do
   defmodule Rindle.InstallSmoke.GeneratedAppSmokeGCSTest do
     use ExUnit.Case, async: false
     use Rindle.InstallSmoke.GeneratedAppSmokeAssertions
@@ -458,7 +478,8 @@ if GeneratedAppHelper.profile_enabled?(:gcs) do
   end
 end
 
-if GeneratedAppHelper.profile_enabled?(:image) do
+if GeneratedAppHelper.profile_enabled?(:image) and
+     GeneratedAppHelper.phase_120_scenario_enabled?(:phase_120_public_compat) do
   defmodule Rindle.InstallSmoke.GeneratedAppPublicCompatibilityTest do
     use ExUnit.Case, async: false
     use Rindle.InstallSmoke.GeneratedAppSmokeAssertions
@@ -487,7 +508,10 @@ if GeneratedAppHelper.profile_enabled?(:image) do
       assert report.rindle_migration_path =~ "install_rindle"
     end
   end
+end
 
+if GeneratedAppHelper.profile_enabled?(:image) and
+     GeneratedAppHelper.phase_120_scenario_enabled?(:phase_120_isolation_upgrade) do
   defmodule Rindle.InstallSmoke.GeneratedAppIsolationUpgradeTest do
     use ExUnit.Case, async: false
     use Rindle.InstallSmoke.GeneratedAppSmokeAssertions
@@ -545,7 +569,10 @@ if GeneratedAppHelper.profile_enabled?(:image) do
       assert report.public_host_relations == %{"oban_jobs" => true, "schema_migrations" => true}
     end
   end
+end
 
+if GeneratedAppHelper.profile_enabled?(:image) and
+     GeneratedAppHelper.phase_120_scenario_enabled?(:default) do
   defmodule Rindle.InstallSmoke.GeneratedAppSmokeImageTest do
     use ExUnit.Case, async: false
     use Rindle.InstallSmoke.GeneratedAppSmokeAssertions
@@ -577,7 +604,8 @@ if GeneratedAppHelper.profile_enabled?(:image) do
   end
 end
 
-if GeneratedAppHelper.profile_enabled?(:video) do
+if GeneratedAppHelper.profile_enabled?(:video) and
+     GeneratedAppHelper.phase_120_scenario_enabled?(:default) do
   defmodule Rindle.InstallSmoke.GeneratedAppSmokeVideoTest do
     use ExUnit.Case, async: false
     use Rindle.InstallSmoke.GeneratedAppSmokeAssertions
@@ -608,7 +636,8 @@ if GeneratedAppHelper.profile_enabled?(:video) do
   end
 end
 
-if GeneratedAppHelper.profile_enabled?(:tus) do
+if GeneratedAppHelper.profile_enabled?(:tus) and
+     GeneratedAppHelper.phase_120_scenario_enabled?(:default) do
   defmodule Rindle.InstallSmoke.GeneratedAppSmokeTusTest do
     use ExUnit.Case, async: false
     use Rindle.InstallSmoke.GeneratedAppSmokeAssertions
@@ -683,7 +712,8 @@ if GeneratedAppHelper.profile_enabled?(:tus) do
   end
 end
 
-if GeneratedAppHelper.profile_enabled?(:mux) do
+if GeneratedAppHelper.profile_enabled?(:mux) and
+     GeneratedAppHelper.phase_120_scenario_enabled?(:default) do
   defmodule Rindle.InstallSmoke.GeneratedAppSmokeMuxTest do
     use ExUnit.Case, async: false
     use Rindle.InstallSmoke.GeneratedAppSmokeAssertions
@@ -715,7 +745,8 @@ if GeneratedAppHelper.profile_enabled?(:mux) do
   end
 end
 
-if GeneratedAppHelper.profile_enabled?(:video) do
+if GeneratedAppHelper.profile_enabled?(:video) and
+     GeneratedAppHelper.phase_120_scenario_enabled?(:default) do
   defmodule Rindle.InstallSmoke.GeneratedAppSmokeUpgradeTest do
     use ExUnit.Case, async: false
     use Rindle.InstallSmoke.GeneratedAppSmokeAssertions

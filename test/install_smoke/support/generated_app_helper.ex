@@ -196,6 +196,25 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     |> Enum.member?(profile_mode)
   end
 
+  def phase_120_scenario_enabled?(scenario, included_tags \\ nil)
+
+  def phase_120_scenario_enabled?(scenario, nil) do
+    included_tags = ExUnit.configuration() |> Keyword.get(:include, [])
+    phase_120_scenario_enabled?(scenario, included_tags)
+  end
+
+  def phase_120_scenario_enabled?(scenario, included_tags) when is_list(included_tags) do
+    selected_scenarios =
+      included_tags
+      |> Enum.map(fn
+        {tag, _value} -> tag
+        tag -> tag
+      end)
+      |> Enum.filter(&(&1 in [:phase_120_public_compat, :phase_120_isolation_upgrade]))
+
+    selected_scenarios == [] or scenario in selected_scenarios
+  end
+
   def prove_package_install!(profile_mode \\ :image)
       when profile_mode in [:image, :video, :tus, :mux, :gcs] do
     prove_package_install!(profile_mode, [])
