@@ -5,16 +5,16 @@ milestone_name: Postgres Schema Isolation
 current_phase: 120
 current_phase_name: adoption-proof-release-truth
 status: executing
-stopped_at: Completed 120-06-PLAN.md
-last_updated: "2026-08-10T21:27:37.193Z"
+stopped_at: Completed 120-10-PLAN.md
+last_updated: "2026-08-11T00:26:20.547Z"
 last_activity: 2026-08-10
 last_activity_desc: Phase 120 execution started
 progress:
   total_phases: 4
-  completed_phases: 4
-  total_plans: 22
-  completed_plans: 22
-  percent: 100
+  completed_phases: 3
+  total_plans: 27
+  completed_plans: 26
+  percent: 75
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-07-02 after shipping v1.22)
 ## Current Position
 
 Phase: 120 (adoption-proof-release-truth) — EXECUTING
-Plan: 2 of 6
+Plan: 2 of 11
 Status: Ready to execute
 Last activity: 2026-08-10 — Phase 120 execution started
 
@@ -175,6 +175,7 @@ _(Key v1.22 execution decisions recorded at milestone close.)_
 - [Phase ?]: Cohort now owns distinct pinned Oban and default Rindle host migrations; all active setup paths run normal ecto.migrate.
 - [Phase ?]: Release Please must promote the sole Unreleased / 0.4.0 staging block into generated [0.4.0] notes and remove the marker.
 - [Phase ?]: Exact-SHA CI and Release workflow gates authorize 0.4.0; local package/demo/Cohort checks remain diagnostic.
+- [Phase ?]: Phase 120 Plan 10: generated reports no longer project host migration provenance as Oban evidence; complete catalog snapshot equality is the sole preservation decision.
 
 ## Blockers/Concerns
 
@@ -193,8 +194,8 @@ _(none open for v1.22 at roadmap creation)_
 
 ## Session Continuity
 
-Last session: 2026-08-10T21:27:37.185Z
-Stopped at: Completed 120-06-PLAN.md
+Last session: 2026-08-11T00:26:20.536Z
+Stopped at: Completed 120-10-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -231,6 +232,7 @@ Resume file: None
 | Phase 120 P01 | 5 min | 2 tasks | 2 files |
 | Phase 120 P03 | 8m | 3 tasks | 12 files |
 | Phase 120 P06 | 4h 18m | 2 tasks | 3 files |
+| Phase 120 P10 | 8m | 1 tasks | 2 files |
 
 ## Operator Next Steps
 
