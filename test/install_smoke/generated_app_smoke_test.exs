@@ -202,6 +202,16 @@ defmodule Rindle.InstallSmoke.GeneratedAppPhase120FastContractTest do
   end
 
   @tag :phase_120_upgrade_contract
+  test "generated reports use snapshots rather than the obsolete Oban ownership field" do
+    helper_source = File.read!("test/install_smoke/support/generated_app_helper.ex")
+
+    refute helper_source =~ "rindle_created_oban_jobs"
+    assert helper_source =~ "oban_jobs_before: oban_jobs_before"
+    assert helper_source =~ "oban_jobs_after: oban_jobs_after"
+    assert helper_source =~ "oban_jobs_before == oban_jobs_after"
+  end
+
+  @tag :phase_120_upgrade_contract
   test "generated Oban snapshot queries reuse the selected relation OID" do
     helper_source = File.read!("test/install_smoke/support/generated_app_helper.ex")
 
