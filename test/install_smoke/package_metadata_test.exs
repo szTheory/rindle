@@ -163,6 +163,10 @@ defmodule Rindle.InstallSmoke.PackageMetadataTest do
     assert install_smoke_script =~
              "mix test test/install_smoke/generated_app_smoke_test.exs --include minio"
 
+    assert install_smoke_script =~
+             "env -u CI mix test test/install_smoke/generated_app_smoke_test.exs",
+           "nested generated-app orchestration must not let the parent JUnit formatter mask its failures"
+
     assert public_smoke_script =~ "export RINDLE_MINIO_RESET_BUCKET=1"
     assert public_smoke_script =~ "bash \"$SCRIPT_DIR/ensure_minio.sh\""
     assert public_smoke_script =~ "generated_app_smoke_test.exs --include minio"

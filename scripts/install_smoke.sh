@@ -52,12 +52,23 @@ fi
 
 export RINDLE_INSTALL_SMOKE_PACKAGE_ROOT="$PACKAGE_ROOT"
 
+# The parent suite shells out to clean-room Mix projects. Keep the repository's
+# CI-only JUnit formatter out of this orchestration process: if a nested command
+# fails, formatter teardown can otherwise mask the real error with an opaque
+# `_build/test/junit/... bad argument` failure. The generated app still runs its
+# own normal test configuration, and ordinary repository CI suites keep JUnit.
 if [ "$PROFILE" = "gcs" ]; then
-  mix test test/install_smoke/generated_app_smoke_test.exs
-  status=$?
+  if env -u CI mix test test/install_smoke/generated_app_smoke_test.exs; then
+    status=0
+  else
+    status=$?
+  fi
 else
-  mix test test/install_smoke/generated_app_smoke_test.exs --include minio
-  status=$?
+  if env -u CI mix test test/install_smoke/generated_app_smoke_test.exs --include minio; then
+    status=0
+  else
+    status=$?
+  fi
 fi
 
 if [ "$status" -ne 0 ] && [ "$PROFILE" = "tus" ]; then

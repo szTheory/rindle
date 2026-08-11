@@ -92,6 +92,15 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     }
   end
 
+  def legacy_upgrade_contract do
+    %{
+      scenario: :legacy_upgrade,
+      compile_prefix: "rindle",
+      migration_kind: :legacy_upgrade,
+      migration_source: legacy_upgrade_migration_source()
+    }
+  end
+
   def isolation_upgrade_catalog_preserved?(%{
         marker_versions: [1],
         media_variants_foreign_key: foreign_key,
@@ -550,6 +559,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
   def prove_upgrade_install! do
     network_version = System.get_env("RINDLE_INSTALL_SMOKE_NETWORK_VERSION")
     install_mode = install_mode(network_version)
+    upgrade_contract = legacy_upgrade_contract()
 
     workspace_root = create_workspace_root!()
 
@@ -576,7 +586,8 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       app_module,
       package_root,
       network_version,
-      :video
+      :video,
+      migration_kind: upgrade_contract.migration_kind
     )
 
     fetch_deps!(generated_app_root, shared_env, network_version)
@@ -1339,6 +1350,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       case migration_kind do
         :install -> {@rindle_migration_version, rindle_migration_source(prefix)}
         :directional_upgrade -> {@directional_migration_version, directional_migration_source()}
+        :legacy_upgrade -> {@directional_migration_version, legacy_upgrade_migration_source()}
       end
 
     path =
@@ -1396,6 +1408,21 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
 
       def up do
         execute("SET LOCAL lock_timeout = '5s'")
+        Rindle.Migration.move_public_to_rindle(version: 1)
+      end
+    end
+    """
+  end
+
+  defp legacy_upgrade_migration_source do
+    """
+    defmodule RindleSmokeApp.Repo.Migrations.UpgradeLegacyPublicRindleToDefaultSchema do
+      use Ecto.Migration
+
+      def up do
+        execute("SET LOCAL lock_timeout = '5s'")
+        Rindle.Migration.up(version: 1, prefix: "public")
+        flush()
         Rindle.Migration.move_public_to_rindle(version: 1)
       end
     end
@@ -2831,23 +2858,17 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
                   fn repo ->
                     Ecto.Migrator.migrations(
                       repo,
-                      Application.app_dir(:rindle, "priv/repo/migrations")
+                      Path.join([File.cwd!(), "priv", "repo", "migrations"])
                     )
                   end,
                   mode: :temporary
                 )
 
-              filtered_migration_statuses =
-                Enum.reject(migration_statuses, fn
-                  {:up, #{@host_migration_version}, "** FILE NOT FOUND **"} -> true
-                  _other -> false
-                end)
-
               report =
                 Doctor.run_checks(
                   [inspect(VideoProfile)],
                   exit_on_failure?: false,
-                  migration_statuses: filtered_migration_statuses
+                  migration_statuses: migration_statuses
                 )
               IO.puts("doctor_success=\#{report.success?}")
             end)
