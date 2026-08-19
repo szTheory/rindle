@@ -30,6 +30,7 @@ defmodule Rindle.InstallSmoke.CiLaneSplitTest do
   @ci_path Path.expand("../../.github/workflows/ci.yml", __DIR__)
   @nightly_path Path.expand("../../.github/workflows/nightly.yml", __DIR__)
   @release_path Path.expand("../../.github/workflows/release.yml", __DIR__)
+  @epipe_regression_path Path.expand("../rindle/av/subprocess_epipe_test.exs", __DIR__)
   @automerge_path Path.expand(
                     "../../.github/workflows/release-please-automerge.yml",
                     __DIR__
@@ -42,6 +43,7 @@ defmodule Rindle.InstallSmoke.CiLaneSplitTest do
      %{
        ci: File.read!(@ci_path),
        nightly: File.read!(@nightly_path),
+       epipe_regression: File.read!(@epipe_regression_path),
        release: File.read!(@release_path),
        automerge: File.read!(@automerge_path),
        branch_protection: File.read!(@branch_protection_path),
@@ -221,6 +223,19 @@ defmodule Rindle.InstallSmoke.CiLaneSplitTest do
     # real key in any form.
     refute yaml_keys_only(dialyzer) =~ "continue-on-error",
            "the nightly Dialyzer job must have NO continue-on-error key — it is the owned GATING type-contract signal (LANE-03, D-17)"
+  end
+
+  test "LANE-03: probabilistic :epipe stress is bounded and advisory-only", %{
+    nightly: nightly,
+    epipe_regression: epipe_regression
+  } do
+    assert epipe_regression =~ "@tag :canary"
+    assert epipe_regression =~ "@tag timeout: 60_000"
+    refute epipe_regression =~ "Process.flag(:trap_exit, true)"
+
+    assert nightly =~ "test/rindle/av/subprocess_epipe_test.exs"
+    assert nightly =~ "test/rindle/av/subprocess_epipe_canary_test.exs"
+    assert nightly =~ "--include canary"
   end
 
   test "LANE-03: the moved gcs-soak + package-consumer-gcs-live jobs live in nightly.yml, not ci.yml",

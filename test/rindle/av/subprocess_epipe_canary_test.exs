@@ -18,28 +18,40 @@ defmodule Rindle.AV.SubprocessEpipeCanaryTest do
   # D-12), so a bare `mix test` never runs this file. It is opted back in ONLY by the nightly lane's
   # `--include canary` step (continue-on-error: true) — purely informational, never a merge gate.
   test "MuonTrap #98 :epipe still reproduces (remove the Subprocess shim when this fails)" do
-    Process.flag(:trap_exit, true)
+    task =
+      Task.async(fn ->
+        Process.flag(:trap_exit, true)
+
+        Enum.reduce_while(1..@iters, false, fn _i, _acc ->
+          try do
+            _ =
+              MuonTrap.cmd("sh", ["-c", "yes | head -n 100000"],
+                into: "",
+                stderr_to_stdout: true,
+                timeout: 5_000
+              )
+
+            # Also catch the async signal form if it landed in our mailbox.
+            receive do
+              {:EXIT, _port, :epipe} -> {:halt, true}
+            after
+              0 -> {:cont, false}
+            end
+          catch
+            :exit, :epipe -> {:halt, true}
+            :exit, {:epipe, _} -> {:halt, true}
+          end
+        end)
+      end)
 
     reproduced? =
-      Enum.reduce_while(1..@iters, false, fn _i, _acc ->
-        try do
-          _ =
-            MuonTrap.cmd("sh", ["-c", "yes | head -n 100000"],
-              into: "",
-              stderr_to_stdout: true
-            )
+      case Task.yield(task, 60_000) || Task.shutdown(task, :brutal_kill) do
+        {:ok, result} ->
+          result
 
-          # Also catch the async signal form if it landed in our mailbox.
-          receive do
-            {:EXIT, _port, :epipe} -> {:halt, true}
-          after
-            0 -> {:cont, false}
-          end
-        catch
-          :exit, :epipe -> {:halt, true}
-          :exit, {:epipe, _} -> {:halt, true}
-        end
-      end)
+        nil ->
+          flunk("MuonTrap #98 canary exceeded its 60s advisory budget")
+      end
 
     assert reproduced?, """
     MuonTrap #98 NO LONGER reproduces across #{@iters} iterations.
