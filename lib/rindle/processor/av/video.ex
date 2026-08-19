@@ -137,7 +137,7 @@ defmodule Rindle.Processor.AV.Video do
       select_filter,
       "-frames:v",
       "1",
-      "-vsync",
+      "-fps_mode",
       "vfr",
       destination_path
     ]
@@ -152,7 +152,7 @@ defmodule Rindle.Processor.AV.Video do
       "select='eq(pict_type,I)'",
       "-frames:v",
       "1",
-      "-vsync",
+      "-fps_mode",
       "vfr",
       destination_path
     ]

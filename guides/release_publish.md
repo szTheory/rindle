@@ -221,6 +221,71 @@ run **28420598348**; Hex live == **0.3.2**.
   present-but-invalid token (and ideally check `Actions: write` capability, not
   just `gh api user`) so the `|| github.token` mask cannot pass silently.
 
+## Runbook: Rotating `RELEASE_PLEASE_TOKEN`
+
+`RELEASE_PLEASE_TOKEN` is a repository-scoped fine-grained PAT with a fixed
+expiry. Rotate it before expiry so Release Please cannot stall behind the
+present-but-invalid `|| github.token` fallback described above.
+
+### Rotation log
+
+| Rotated | Expires | Notes |
+| --- | --- | --- |
+| 2026-06-30 | ~2026-08 | 0.3.2 recovery token lacked `Actions: write`; publish dispatch required manual recovery. |
+| 2026-08-18 | 2026-11-16 | Scoped only to `szTheory/rindle` with the authoritative permissions below. |
+
+### Authoritative token configuration
+
+Create a **fine-grained** token at
+<https://github.com/settings/personal-access-tokens/new>:
+
+| Field | Value |
+| --- | --- |
+| Token name | `rindle-release-please` |
+| Resource owner | `szTheory` |
+| Repository access | **Only select repositories** → `szTheory/rindle` |
+| Expiration | Use the shortest operationally practical lifetime; record the exact date above. |
+
+Grant exactly these repository permissions and leave all other configurable
+permissions at *No access*:
+
+| Permission | Access | Why |
+| --- | --- | --- |
+| Actions | Read and write | The automerge workflow dispatches `release.yml`; dispatch fails without write access. |
+| Contents | Read and write | Release Please writes version/changelog commits and release tags. |
+| Issues | Read and write | Release Please manages its release labels and issue metadata. |
+| Pull requests | Read and write | Release Please opens and updates the release PR. |
+
+GitHub adds mandatory `Metadata: Read-only`; account permissions remain at
+zero. Never grant organization-wide or all-repository access.
+
+### Rotation procedure
+
+1. Confirm the token summary names only `szTheory/rindle` and the permissions
+   above, then generate it.
+2. Copy the value once. Never paste it into chat, a shell command, an issue, or
+   a repository file.
+3. Open <https://github.com/szTheory/rindle/settings/secrets/actions>, update
+   the existing `RELEASE_PLEASE_TOKEN`, and save it under that exact name.
+4. Confirm the secret's **Last updated** timestamp changed. GitHub deliberately
+   does not expose the stored value.
+5. On the next intended `release.yml` run, confirm the validator prints
+   `RELEASE_PLEASE_TOKEN validated (auth + Actions scope).`
+6. Confirm the later automerge publish-dispatch step succeeds. The current
+   validator proves authentication and Actions API access, but the successful
+   dispatch is the end-to-end proof of `Actions: write`.
+7. Record the new rotation and expiry date in the table above.
+
+Do not rerun Release Please solely as a token health check while a release is
+mid-flight. A push to `main` in the normal green-main release train provides the
+canonical validation path.
+
+### Longer-term improvement
+
+Prefer a repository-installed GitHub App that mints a short-lived installation
+token per workflow run. Give the App the same four repository permissions. This
+removes calendar-based PAT rotation and retains repository-only scope.
+
 ## Post-Publish Follow-Up
 
 After the first publish:

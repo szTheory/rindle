@@ -92,8 +92,6 @@ defmodule Rindle.Ops.RuntimeChecks do
     rindle_schema_catalog =
       Keyword.get_lazy(opts, :rindle_schema_catalog, fn -> rindle_schema_catalog(opts) end)
 
-    rindle_schema_catalog_supplied? = Keyword.has_key?(opts, :rindle_schema_catalog)
-
     oban_jobs_catalog = Keyword.get(opts, :oban_jobs_catalog)
 
     ownership_snapshot =
@@ -147,11 +145,7 @@ defmodule Rindle.Ops.RuntimeChecks do
          fn -> check_local_playback(profiles, local_playback_route) end,
          fn -> check_migration_pending(migration_statuses, rindle_schema_catalog) end,
          fn ->
-           check_migration_unresolved(
-             migration_statuses,
-             rindle_schema_catalog,
-             rindle_schema_catalog_supplied?
-           )
+           check_migration_unresolved(migration_statuses, rindle_schema_catalog)
          end,
          fn -> check_resumable_session_schema(resumable_session_schema_catalog) end,
          fn -> check_rindle_schema_ready(ownership_snapshot.rindle) end,
@@ -420,7 +414,7 @@ defmodule Rindle.Ops.RuntimeChecks do
     end
   end
 
-  defp check_migration_unresolved(statuses, rindle_schema_catalog, catalog_supplied?) do
+  defp check_migration_unresolved(statuses, rindle_schema_catalog) do
     unresolved =
       statuses
       |> Enum.filter(fn
@@ -438,8 +432,7 @@ defmodule Rindle.Ops.RuntimeChecks do
           "Keep local Rindle migration files in sync with the database history."
         )
 
-      catalog_supplied? and rindle_schema_ready?(rindle_schema_catalog) and
-          no_pending_migration_statuses?(statuses) ->
+      rindle_schema_ready?(rindle_schema_catalog) and no_pending_migration_statuses?(statuses) ->
         warn_result(
           "doctor.migrations.unresolved",
           :migrations,

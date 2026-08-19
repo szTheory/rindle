@@ -152,6 +152,25 @@ defmodule Rindle.InstallSmoke.GeneratedAppPhase120FastContractTest do
            ]
   end
 
+  test "legacy video upgrade moves populated public tables into the default isolated schema" do
+    contract = GeneratedAppHelper.legacy_upgrade_contract()
+
+    assert contract.scenario == :legacy_upgrade
+    assert contract.compile_prefix == "rindle"
+    assert contract.migration_kind == :legacy_upgrade
+    assert contract.migration_source =~ ~s|Rindle.Migration.up(version: 1, prefix: "public")|
+    assert contract.migration_source =~ "Rindle.Migration.move_public_to_rindle(version: 1)"
+
+    up_position = :binary.match(contract.migration_source, "Rindle.Migration.up")
+    flush_position = :binary.match(contract.migration_source, "flush()")
+
+    move_position =
+      :binary.match(contract.migration_source, "Rindle.Migration.move_public_to_rindle")
+
+    assert up_position < flush_position
+    assert flush_position < move_position
+  end
+
   test "focused Phase 120 MinIO commands exclude sibling generated-app scenarios" do
     assert GeneratedAppHelper.phase_120_scenario_enabled?(:phase_120_public_compat, [
              :minio,
