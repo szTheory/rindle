@@ -19,6 +19,8 @@ defmodule Rindle.InstallSmoke.CiCacheHygieneTest do
   @nightly_path Path.expand("../../.github/workflows/nightly.yml", __DIR__)
   @release_path Path.expand("../../.github/workflows/release.yml", __DIR__)
   @install_ffmpeg_path Path.expand("../../scripts/ci/install_ffmpeg.sh", __DIR__)
+  @ffmpeg_release_fixture Path.expand("../fixtures/install_smoke/btbn_latest_release.json", __DIR__)
+  @repo_root Path.expand("../..", __DIR__)
   @install_apt_packages_path Path.expand("../../scripts/ci/install_apt_packages.sh", __DIR__)
   @tool_versions_path Path.expand("../../.tool-versions", __DIR__)
 
@@ -165,6 +167,23 @@ defmodule Rindle.InstallSmoke.CiCacheHygieneTest do
     assert install_ffmpeg =~ "max_by([(.major | tonumber), (.minor | tonumber)])"
     assert install_ffmpeg =~ "RINDLE_FFMPEG_RESOLVE_ONLY"
     refute install_ffmpeg =~ ~r/asset="ffmpeg-n[0-9]/
+  end
+
+  test "CACHE-05: FFmpeg installer resolves the current stable GPL asset and API download URL" do
+    {output, 0} =
+      System.cmd("bash", [@install_ffmpeg_path],
+        cd: @repo_root,
+        env: [
+          {"RINDLE_FFMPEG_RELEASE_API", "file://#{@ffmpeg_release_fixture}"},
+          {"RINDLE_FFMPEG_RESOLVE_ONLY", "1"}
+        ],
+        stderr_to_stdout: true
+      )
+
+    assert String.split(output, "\n", trim: true) == [
+             "ffmpeg-n9.0.1-6-g9d4ca21220-linux64-gpl-9.0.tar.xz",
+             "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-n9.0.1-6-g9d4ca21220-linux64-gpl-9.0.tar.xz"
+           ]
   end
 
   test "apt package installation is shared, bounded, and retryable across every workflow",
