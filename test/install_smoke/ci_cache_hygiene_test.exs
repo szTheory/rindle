@@ -18,6 +18,7 @@ defmodule Rindle.InstallSmoke.CiCacheHygieneTest do
   @ci_path Path.expand("../../.github/workflows/ci.yml", __DIR__)
   @nightly_path Path.expand("../../.github/workflows/nightly.yml", __DIR__)
   @release_path Path.expand("../../.github/workflows/release.yml", __DIR__)
+  @install_ffmpeg_path Path.expand("../../scripts/ci/install_ffmpeg.sh", __DIR__)
   @tool_versions_path Path.expand("../../.tool-versions", __DIR__)
 
   setup_all do
@@ -28,6 +29,7 @@ defmodule Rindle.InstallSmoke.CiCacheHygieneTest do
        ci: File.read!(@ci_path),
        nightly: File.read!(@nightly_path),
        release: File.read!(@release_path),
+       install_ffmpeg: File.read!(@install_ffmpeg_path),
        tool_versions: File.read!(@tool_versions_path)
      }}
   end
@@ -153,6 +155,14 @@ defmodule Rindle.InstallSmoke.CiCacheHygieneTest do
 
     assert release =~ "install_ffmpeg",
            "release.yml must reference the install_ffmpeg.sh script (CACHE-05)"
+  end
+
+  test "CACHE-05: FFmpeg installer resolves the highest stable BtbN asset instead of a disappearing version pin",
+       %{install_ffmpeg: install_ffmpeg} do
+    assert install_ffmpeg =~ "api.github.com/repos/BtbN/FFmpeg-Builds/releases/latest"
+    assert install_ffmpeg =~ "max_by([(.major | tonumber), (.minor | tonumber)])"
+    assert install_ffmpeg =~ "RINDLE_FFMPEG_RESOLVE_ONLY"
+    refute install_ffmpeg =~ ~r/asset="ffmpeg-n[0-9]/
   end
 
   test "CACHE-05: version-invariant lint steps in ci.yml are guarded by matrix.lint", %{ci: ci} do
