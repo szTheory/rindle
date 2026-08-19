@@ -99,7 +99,7 @@ jobs:
           install-deps: "false"
 
       - name: Install libvips
-        run: sudo apt-get update && sudo apt-get install -y libvips-dev
+        run: bash scripts/ci/install_apt_packages.sh libvips-dev
 
       - name: Install FFmpeg
         # Reliable static ffmpeg >= 6 (apt only ships 4.4, below the >= 6.0 gate
@@ -180,7 +180,7 @@ jobs:
           install-deps: "false"
 
       - name: Install libvips
-        run: sudo apt-get update && sudo apt-get install -y libvips-dev
+        run: bash scripts/ci/install_apt_packages.sh libvips-dev
 
       - name: Install dependencies
         run: mix deps.get
@@ -285,7 +285,7 @@ jobs:
 
       - name: Install libvips
         if: steps.gcs-live-config.outputs.enabled == 'true'
-        run: sudo apt-get update && sudo apt-get install -y libvips-dev
+        run: bash scripts/ci/install_apt_packages.sh libvips-dev
 
       - name: Install dependencies
         if: steps.gcs-live-config.outputs.enabled == 'true'
@@ -364,7 +364,7 @@ jobs:
 
       - name: Install libvips
         if: steps.gcs-live-config.outputs.enabled == 'true'
-        run: sudo apt-get update && sudo apt-get install -y libvips-dev
+        run: bash scripts/ci/install_apt_packages.sh libvips-dev
 
       - name: Install dependencies
         if: steps.gcs-live-config.outputs.enabled == 'true'

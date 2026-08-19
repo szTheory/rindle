@@ -129,6 +129,29 @@ defmodule Rindle.InstallSmoke.ReleaseGuardMetaTest do
            "the token guard must not surface as a new job/check name (D-06b/D-09)"
   end
 
+  test "Release Please PR maintenance gets one bounded retry, never a publish retry",
+       %{release: release} do
+    assert release =~ "id: release_primary",
+           "the primary Release Please attempt must have a stable outcome id"
+
+    assert release =~ "continue-on-error: true",
+           "the primary attempt must allow the bounded retry step to run"
+
+    assert release =~ "if: ${{ steps.release_primary.outcome == 'failure' }}",
+           "the retry must run only after the primary Release Please attempt fails"
+
+    assert length(Regex.scan(~r/uses: googleapis\/release-please-action@/, release)) == 2,
+           "Release Please must have exactly one primary attempt and one retry"
+
+    [release_please_job, _protected_release_path] =
+      String.split(release, "\n  recovery-validation:\n", parts: 2)
+
+    assert release_please_job =~ "Retry Release Please once after a transient failure"
+
+    refute release_please_job =~ "mix hex.publish",
+           "the retry must remain isolated from the protected Hex publish path"
+  end
+
   # ------------------------------------------------------------------
   # D-09: neither guard sneaks onto the sole required CI path.
   # ------------------------------------------------------------------

@@ -39,9 +39,9 @@ jobs:
       issues: write
       pull-requests: write
     outputs:
-      release_created: ${{ steps.release.outputs.release_created || 'false' }}
-      tag_name: ${{ steps.release.outputs.tag_name }}
-      version: ${{ steps.release.outputs.version }}
+      release_created: ${{ steps.release_primary.outputs.release_created || steps.release_retry.outputs.release_created || 'false' }}
+      tag_name: ${{ steps.release_primary.outputs.tag_name || steps.release_retry.outputs.tag_name }}
+      version: ${{ steps.release_primary.outputs.version || steps.release_retry.outputs.version }}
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
@@ -90,8 +90,23 @@ jobs:
           # non-ambiguous proof of Actions:write.
           echo "RELEASE_PLEASE_TOKEN validated (auth + repository access)."
 
+      # Release Please's PR operation is idempotent, but its history walk makes
+      # many GitHub API calls. Retry it once when GitHub returns a transient 5xx
+      # (for example the generic Unicorn HTML response); the retry remains
+      # bounded and never wraps the protected publish path below.
       - name: Run Release Please
-        id: release
+        id: release_primary
+        continue-on-error: true
+        uses: googleapis/release-please-action@5c625bfb5d1ff62eadeeb3772007f7f66fdcf071 # v4.4.1
+        with:
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN || github.token }}
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+          skip-github-release: true
+
+      - name: Retry Release Please once after a transient failure
+        id: release_retry
+        if: ${{ steps.release_primary.outcome == 'failure' }}
         uses: googleapis/release-please-action@5c625bfb5d1ff62eadeeb3772007f7f66fdcf071 # v4.4.1
         with:
           token: ${{ secrets.RELEASE_PLEASE_TOKEN || github.token }}
@@ -327,7 +342,7 @@ jobs:
           restore-keys: deps-${{ runner.os }}-1.17-27-
 
       - name: Install libvips
-        run: sudo apt-get update && sudo apt-get install -y libvips-dev
+        run: bash scripts/ci/install_apt_packages.sh libvips-dev
 
       - name: Install dependencies
         run: mix deps.get
@@ -491,7 +506,7 @@ jobs:
           mix local.rebar --force
 
       - name: Install libvips
-        run: sudo apt-get update && sudo apt-get install -y libvips-dev
+        run: bash scripts/ci/install_apt_packages.sh libvips-dev
 
       - name: Install dependencies
         run: mix deps.get
