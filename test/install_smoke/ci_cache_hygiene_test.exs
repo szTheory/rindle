@@ -19,7 +19,10 @@ defmodule Rindle.InstallSmoke.CiCacheHygieneTest do
   @nightly_path Path.expand("../../.github/workflows/nightly.yml", __DIR__)
   @release_path Path.expand("../../.github/workflows/release.yml", __DIR__)
   @install_ffmpeg_path Path.expand("../../scripts/ci/install_ffmpeg.sh", __DIR__)
-  @ffmpeg_release_fixture Path.expand("../fixtures/install_smoke/btbn_latest_release.json", __DIR__)
+  @ffmpeg_release_fixture Path.expand(
+                            "../fixtures/install_smoke/btbn_latest_release.json",
+                            __DIR__
+                          )
   @repo_root Path.expand("../..", __DIR__)
   @install_apt_packages_path Path.expand("../../scripts/ci/install_apt_packages.sh", __DIR__)
   @tool_versions_path Path.expand("../../.tool-versions", __DIR__)
