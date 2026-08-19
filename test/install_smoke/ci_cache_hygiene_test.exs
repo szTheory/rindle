@@ -164,7 +164,8 @@ defmodule Rindle.InstallSmoke.CiCacheHygieneTest do
   test "CACHE-05: FFmpeg installer resolves the highest stable BtbN asset instead of a disappearing version pin",
        %{install_ffmpeg: install_ffmpeg} do
     assert install_ffmpeg =~ "api.github.com/repos/BtbN/FFmpeg-Builds/releases/latest"
-    assert install_ffmpeg =~ "max_by([(.major | tonumber), (.minor | tonumber)])"
+    assert install_ffmpeg =~ "max_by([.major, .minor, .patch])"
+    assert install_ffmpeg =~ "browser_download_url"
     assert install_ffmpeg =~ "RINDLE_FFMPEG_RESOLVE_ONLY"
     refute install_ffmpeg =~ ~r/asset="ffmpeg-n[0-9]/
   end
