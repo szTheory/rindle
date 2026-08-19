@@ -342,7 +342,7 @@ jobs:
           restore-keys: deps-${{ runner.os }}-1.17-27-
 
       - name: Install libvips
-        run: bash scripts/ci/install_libvips.sh
+        run: bash scripts/ci/install_apt_packages.sh libvips-dev
 
       - name: Install dependencies
         run: mix deps.get
@@ -506,7 +506,7 @@ jobs:
           mix local.rebar --force
 
       - name: Install libvips
-        run: bash scripts/ci/install_libvips.sh
+        run: bash scripts/ci/install_apt_packages.sh libvips-dev
 
       - name: Install dependencies
         run: mix deps.get

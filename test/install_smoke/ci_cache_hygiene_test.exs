@@ -19,7 +19,7 @@ defmodule Rindle.InstallSmoke.CiCacheHygieneTest do
   @nightly_path Path.expand("../../.github/workflows/nightly.yml", __DIR__)
   @release_path Path.expand("../../.github/workflows/release.yml", __DIR__)
   @install_ffmpeg_path Path.expand("../../scripts/ci/install_ffmpeg.sh", __DIR__)
-  @install_libvips_path Path.expand("../../scripts/ci/install_libvips.sh", __DIR__)
+  @install_apt_packages_path Path.expand("../../scripts/ci/install_apt_packages.sh", __DIR__)
   @tool_versions_path Path.expand("../../.tool-versions", __DIR__)
 
   setup_all do
@@ -31,7 +31,7 @@ defmodule Rindle.InstallSmoke.CiCacheHygieneTest do
        nightly: File.read!(@nightly_path),
        release: File.read!(@release_path),
        install_ffmpeg: File.read!(@install_ffmpeg_path),
-       install_libvips: File.read!(@install_libvips_path),
+       install_apt_packages: File.read!(@install_apt_packages_path),
        tool_versions: File.read!(@tool_versions_path)
      }}
   end
@@ -167,22 +167,26 @@ defmodule Rindle.InstallSmoke.CiCacheHygieneTest do
     refute install_ffmpeg =~ ~r/asset="ffmpeg-n[0-9]/
   end
 
-  test "libvips installation is shared, bounded, and retryable across every workflow",
+  test "apt package installation is shared, bounded, and retryable across every workflow",
        %{
          ci: ci,
          nightly: nightly,
          release: release,
-         install_libvips: install_libvips
+         install_apt_packages: install_apt_packages
        } do
     workflows = ci <> nightly <> release
 
-    assert count(workflows, "bash scripts/ci/install_libvips.sh") == 15
+    assert count(workflows, "bash scripts/ci/install_apt_packages.sh") == 18
     refute workflows =~ "apt-get install -y libvips-dev"
-    assert install_libvips =~ "Acquire::Retries=2"
-    assert install_libvips =~ "Acquire::http::Timeout=15"
-    assert install_libvips =~ "timeout --kill-after=15s 240s"
-    assert install_libvips =~ "--no-install-recommends libvips-dev"
-    assert install_libvips =~ "for attempt in 1 2"
+    refute workflows =~ "apt-get install -y ffmpeg"
+    assert workflows =~ "install_apt_packages.sh ffmpeg"
+    assert install_apt_packages =~ ~s(Acquire::Retries "2")
+    assert install_apt_packages =~ ~s(Acquire::http::Timeout "15")
+    assert install_apt_packages =~ "timeout --kill-after=15s 240s"
+    assert install_apt_packages =~ "--no-install-recommends"
+    assert install_apt_packages =~ "for attempt in 1 2"
+    assert install_apt_packages =~ "--configure-only"
+    assert ci =~ "timeout --kill-after=15s 300s npx playwright install --with-deps chromium"
   end
 
   test "CACHE-05: version-invariant lint steps in ci.yml are guarded by matrix.lint", %{ci: ci} do
