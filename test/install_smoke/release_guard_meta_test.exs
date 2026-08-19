@@ -147,6 +147,7 @@ defmodule Rindle.InstallSmoke.ReleaseGuardMetaTest do
       String.split(release, "\n  recovery-validation:\n", parts: 2)
 
     assert release_please_job =~ "Retry Release Please once after a transient failure"
+
     refute release_please_job =~ "mix hex.publish",
            "the retry must remain isolated from the protected Hex publish path"
   end
