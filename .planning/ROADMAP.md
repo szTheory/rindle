@@ -109,7 +109,7 @@ Plans:
   3. README, getting-started, migration API docs, upgrading guide, docs-parity tests, and 0.4.0 release notes agree on the breaking default, escape hatch, order of operations, permissions, downtime, and Oban ownership.
   4. Release verification demonstrates that packaged artifacts—not only the repository checkout—honor the documented isolation contract.
 
-**Plans**: 12 plans
+**Plans**: 14 plans
 
 Plans:
 **Wave 1**
@@ -147,6 +147,14 @@ Plans:
 **Wave 8** *(reconciles the split local/hosted evidence after Wave 7)*
 
 - [ ] 120-12-PLAN.md — prove one current candidate locally and carry it through PR-first main/Release evidence
+
+**Wave 9** *(blocked on Wave 8 completion)*
+
+- [ ] 120-13-PLAN.md — correct the Release Please 0.3.3 proposal through a parity-tested `Release-As: 0.4.0` commit
+
+**Wave 10** *(blocked on Wave 9 completion)*
+
+- [ ] 120-14-PLAN.md — capture the human-authorized exact-SHA CI, protected Release, GitHub release, and Hex 0.4.0 evidence chain
 
 ## Progress
 
