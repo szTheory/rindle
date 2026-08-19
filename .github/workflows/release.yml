@@ -76,16 +76,19 @@ jobs:
             exit 1
           fi
 
-          # Actions-scope check (the confirmed gap that 403'd the 0.3.2 publish
-          # dispatch): `gh api user` succeeds even when a fine-grained PAT lacks
-          # `Actions: read/write`, but automerge's `gh workflow run release.yml`
-          # publish-dispatch then 403s and the publish silently never runs.
-          if ! gh api "repos/${GH_REPO}/actions/permissions" >/dev/null 2>&1; then
-            echo "::error::RELEASE_PLEASE_TOKEN cannot access the Actions API — add 'Actions: read/write' (fine-grained PAT) or use a GitHub App token, else automerge's publish-dispatch will 403 and 0.3.2-style publishes will stall after merge."
+          # Repository-selection check: prove this fine-grained PAT is scoped to
+          # the repository it must operate on. Do not probe actions/permissions:
+          # that settings endpoint requires Administration:read and falsely
+          # rejects the intended least-privilege Actions:read/write token.
+          if ! gh api "repos/${GH_REPO}" >/dev/null 2>&1; then
+            echo "::error::RELEASE_PLEASE_TOKEN authenticates but cannot access ${GH_REPO} — add this repository to the fine-grained PAT selection, then re-run."
             exit 1
           fi
 
-          echo "RELEASE_PLEASE_TOKEN validated (auth + Actions scope)."
+          # GitHub does not expose fine-grained PAT grants through a safe token
+          # introspection endpoint. The later workflow dispatch is the actual
+          # non-ambiguous proof of Actions:write.
+          echo "RELEASE_PLEASE_TOKEN validated (auth + repository access)."
 
       - name: Run Release Please
         id: release
