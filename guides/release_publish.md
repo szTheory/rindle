@@ -66,6 +66,25 @@ boot assertion. It verifies the composed demo can build, start, and serve its
 seeded homepage and admin console, but a checkout transcript never replaces the
 exact-SHA GitHub Actions result.
 
+### Set the breaking-release intent before Release Please regenerates the candidate
+
+The retained `bump-patch-for-minor-pre-major` setting makes the observed Release
+Please PR #59 proposal of `0.3.3` expected when no release intent is supplied.
+This schema-isolation milestone is breaking and must release as `0.4.0`, so keep
+the incorrect `0.3.3` candidate blocked; do not merge or publish it.
+
+Open one ordinary PR containing only the release-intent change. The ordinary PR's squash/merge commit must contain this exact standalone footer:
+
+```text
+Release-As: 0.4.0
+```
+
+Do not hand-edit `mix.exs`, `.release-please-manifest.json`, a tag, or the
+generated changelog heading. Release Please remains the sole owner of those
+version, manifest, tag, and generated-note mutations. After that ordinary PR
+merges, let Release Please regenerate the candidate and require `0.4.0` before
+continuing this signoff.
+
 Before merging the Release Please PR, review its generated `## [0.4.0]` note:
 fold the staged `## Unreleased / 0.4.0` text into that generated block and remove the staging marker. Keep the detailed operator procedure linked through [Upgrading](upgrading.html). Release Please alone owns the final version, tag, and generated changelog heading.
 
