@@ -90,7 +90,7 @@ defmodule Rindle.InstallSmoke.ReleaseGuardMetaTest do
   # D-06b: the token-validity guard ships inside release-please (a STEP, not a
   # new top-level job / required check).
   # ------------------------------------------------------------------
-  test "D-06b: release.yml validates RELEASE_PLEASE_TOKEN (auth + Actions scope) before Run Release Please",
+  test "D-06b: release.yml validates RELEASE_PLEASE_TOKEN auth and repository selection before Run Release Please",
        %{release: release} do
     assert release =~ "gh api user",
            "release.yml must run `gh api user` to validate RELEASE_PLEASE_TOKEN auth (D-06b)"
@@ -98,10 +98,14 @@ defmodule Rindle.InstallSmoke.ReleaseGuardMetaTest do
     assert release =~ "Validate RELEASE_PLEASE_TOKEN",
            "release.yml must carry the token-validity guard step (D-06b)"
 
-    # The confirmed 0.3.2 dispatch-403 gap: a PAT can pass `gh api user` yet lack
-    # Actions:write. The guard must also probe the Actions API.
-    assert release =~ "actions/permissions",
-           "release.yml token guard must also probe the Actions API (the 0.3.2 dispatch-403 gap, D-06b)"
+    assert release =~ ~s(gh api "repos/${GH_REPO}"),
+           "release.yml token guard must confirm the fine-grained PAT can access the selected repository (D-06b)"
+
+    refute release =~ ~s(gh api "repos/${GH_REPO}/actions/permissions"),
+           "the Actions settings endpoint requires Administration:read and must not reject the least-privilege token"
+
+    assert release =~ "The later workflow dispatch is the actual",
+           "release.yml must state that only the real dispatch proves Actions:write"
 
     # The original footgun token line stays byte-identical — the guard is
     # additive, not a rewrite of how the token is consumed.

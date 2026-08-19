@@ -270,10 +270,12 @@ zero. Never grant organization-wide or all-repository access.
 4. Confirm the secret's **Last updated** timestamp changed. GitHub deliberately
    does not expose the stored value.
 5. On the next intended `release.yml` run, confirm the validator prints
-   `RELEASE_PLEASE_TOKEN validated (auth + Actions scope).`
+   `RELEASE_PLEASE_TOKEN validated (auth + repository access).`
 6. Confirm the later automerge publish-dispatch step succeeds. The current
-   validator proves authentication and Actions API access, but the successful
-   dispatch is the end-to-end proof of `Actions: write`.
+   validator proves authentication and repository selection. GitHub does not
+   provide a safe fine-grained-PAT introspection endpoint for checking write
+   grants, so the successful dispatch is the end-to-end proof of
+   `Actions: write`.
 7. Record the new rotation and expiry date in the table above.
 
 Do not rerun Release Please solely as a token health check while a release is
