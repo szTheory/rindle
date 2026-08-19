@@ -1,0 +1,24 @@
+{
+  "assets": [
+    {
+      "name": "ffmpeg-master-latest-linux64-gpl.tar.xz",
+      "browser_download_url": "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-linux64-gpl.tar.xz"
+    },
+    {
+      "name": "ffmpeg-n8.0-4-g1234567890-linux64-gpl-8.0.tar.xz",
+      "browser_download_url": "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-n8.0-4-g1234567890-linux64-gpl-8.0.tar.xz"
+    },
+    {
+      "name": "ffmpeg-n9.0.1-6-g9d4ca21220-linux64-gpl-9.0.tar.xz",
+      "browser_download_url": "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-n9.0.1-6-g9d4ca21220-linux64-gpl-9.0.tar.xz"
+    },
+    {
+      "name": "ffmpeg-n9.0.1-6-g9d4ca21220-linux64-gpl-shared-9.0.tar.xz",
+      "browser_download_url": "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-n9.0.1-6-g9d4ca21220-linux64-gpl-shared-9.0.tar.xz"
+    },
+    {
+      "name": "ffmpeg-n9.0.1-6-g9d4ca21220-linux64-lgpl-9.0.tar.xz",
+      "browser_download_url": "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-n9.0.1-6-g9d4ca21220-linux64-lgpl-9.0.tar.xz"
+    }
+  ]
+}
