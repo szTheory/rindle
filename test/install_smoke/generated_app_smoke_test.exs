@@ -152,6 +152,57 @@ defmodule Rindle.InstallSmoke.GeneratedAppPhase120FastContractTest do
            ]
   end
 
+  test "network install provenance reports the fetched unpacked Hex dependency instead of the unused local package path" do
+    workspace_root =
+      Path.join(
+        System.tmp_dir!(),
+        "rindle-network-provenance-#{System.unique_integer([:positive])}"
+      )
+
+    generated_app_root = Path.join(workspace_root, "generated_app")
+    fetched_package_root = Path.join(generated_app_root, "deps/rindle")
+    unused_local_package_root = Path.join(workspace_root, "package/rindle")
+
+    File.mkdir_p!(fetched_package_root)
+    on_exit(fn -> File.rm_rf(workspace_root) end)
+
+    provenance =
+      GeneratedAppHelper.package_root_provenance(
+        :network,
+        generated_app_root,
+        unused_local_package_root
+      )
+
+    assert provenance.path == fetched_package_root
+    assert provenance.unpacked?
+    refute provenance.repository_path_fallback?
+  end
+
+  test "package install provenance keeps the unpacked local package root" do
+    workspace_root =
+      Path.join(
+        System.tmp_dir!(),
+        "rindle-package-provenance-#{System.unique_integer([:positive])}"
+      )
+
+    generated_app_root = Path.join(workspace_root, "generated_app")
+    package_root = Path.join(workspace_root, "package/rindle")
+
+    File.mkdir_p!(package_root)
+    on_exit(fn -> File.rm_rf(workspace_root) end)
+
+    provenance =
+      GeneratedAppHelper.package_root_provenance(
+        :package,
+        generated_app_root,
+        package_root
+      )
+
+    assert provenance.path == package_root
+    assert provenance.unpacked?
+    refute provenance.repository_path_fallback?
+  end
+
   test "legacy video upgrade moves populated public tables into the default isolated schema" do
     contract = GeneratedAppHelper.legacy_upgrade_contract()
 
