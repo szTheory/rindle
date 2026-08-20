@@ -2,10 +2,10 @@
 
 ## Current State
 
-**Last shipped:** v1.23 Postgres Schema Isolation — implementation and public release completed
-2026-08-20. All 12/12 requirements across 4/4 verified phases (117–120) are satisfied; GitHub and
-Hex expose `rindle` 0.4.0 from frozen source `78349c1bc5d082b0c0c9fce6796806011fa89a33`.
-Milestone archival remains a separate `$gsd-complete-milestone` step.
+**Last shipped:** v1.23 Postgres Schema Isolation — shipped and archived 2026-08-20. All 12/12
+requirements across 4/4 verified phases (117–120) are satisfied; GitHub and Hex expose `rindle` 0.4.0
+from frozen source `78349c1bc5d082b0c0c9fce6796806011fa89a33`. Historical planning and proof
+live in `.planning/milestones/v1.23-*`.
 
 **Delivered:** v1.23 makes the `rindle` schema the default for Rindle-owned relations, retains an
 explicit `prefix: "public"` compatibility pairing, provides a bounded populated-install move and
@@ -23,7 +23,7 @@ separately from the frozen package source.
 `test/install_smoke/release_docs_parity_test.exs` so its historical 0.4.0 contract remains enforced
 without rejecting every later valid manifest version (Phase 120 review WR-01).
 
-## Current Milestone: v1.23 Postgres Schema Isolation — implementation complete
+## Last Milestone: v1.23 Postgres Schema Isolation — shipped 2026-08-20
 
 **Goal:** Make Rindle a respectful Postgres guest by isolating its domain tables in a dedicated `rindle`
 schema by default, with an explicit safe upgrade route and truthful runtime/install proof — a breaking
@@ -45,7 +45,7 @@ Feature milestones unrelated to schema isolation remain demand-gated on **LIFE-0
 > lacked `Actions: write`). `mix.exs` / `.release-please-manifest.json` / CHANGELOG now reflect 0.3.2,
 > written by release-please. The v1.21 prose below claiming "ships as Hex 0.3.2" is therefore now true.
 
-## Last Milestone: v1.22 OSS Quality & Trust Hardening
+## Prior Milestone: v1.22 OSS Quality & Trust Hardening
 
 **Goal:** Close the cheap, high-ROI OSS trust/positioning/governance gaps surfaced by the 2026-06-29
 software-quality recon, and ship the versioned `Rindle.Migration` substrate v1.23 needs — low risk, no
@@ -82,7 +82,7 @@ migration histories stay valid, and Rindle no longer creates host-owned `oban_jo
 getting-started, and upgrade docs point to host migrations plus adopter-owned `Oban.Migration`.
 
 
-## Prior Milestone: v1.21 CI/DX Reliability Tail (shipped 2026-06-29)
+## Earlier Milestone: v1.21 CI/DX Reliability Tail (shipped 2026-06-29)
 
 <details>
 <summary>v1.21 CI/DX Reliability Tail — shipped scope (collapsed)</summary>
@@ -426,11 +426,11 @@ To keep this posture durable across GSD workflows:
   schema ownership, explicit-public compatibility, bounded populated-install upgrade/reversal,
   prefix-correct diagnostics, packed generated-app and Cohort proof, cross-surface documentation
   parity, exact-SHA protected release binding, and fresh public-artifact verification. 12/12 validated
-  across Phases 117–120; milestone archival is pending.
+  across Phases 117–120. Archived: `milestones/v1.23-REQUIREMENTS.md`.
 
 ### Active
 
-No active milestone requirements. The release train returns to demand-gated pause after v1.23 archival.
+No active milestone requirements. The release train is in demand-gated pause after v1.23 archival.
 
 **Demand-gated for next feature milestone:**
 
@@ -471,6 +471,13 @@ signed dynamic transforms, EXIF privacy stripping.
 
 ## Context
 
+**v1.23 result:** Rindle 0.4.0 is live with a compile-time `rindle`/`public` schema authority, a
+fixed-catalog migration path for fresh and populated installs, separately owned Oban diagnostics, and
+packed-adopter/Cohort/release proof. The milestone changed 176 files across its implementation range
+(19,997 insertions, 623 deletions) and closed with exact-source CI, protected release binding, and a
+fresh public Hex artifact verification. The only release-planning follow-up is to generalize the
+manifest-state-specific release-docs parity test before a future package version.
+
 **v1.6 result:** Rindle ships a real streaming provider contract with Mux as
 the single reference adapter — the v1.4-reserved `streaming_url/3` seam now
 backs a runtime behaviour, durable provider state, signed-webhook ingest with
@@ -480,12 +487,12 @@ AV-enabled lanes. Optional `mux` + `jose` deps preserve zero transitive cost
 for non-streaming adopters. The single-provider rule keeps the abstraction
 honest; v1.7+ adapters (GCS, second streaming provider) become contract tests.
 
-**Between milestones:** Demand-gated pause formalized 2026-05-27 after v1.17 archive.
-Post-v117 assessment (repo-verified) reaffirms pause as default — no feature milestone
+**Between milestones:** Demand-gated pause formalized 2026-05-27 and reaffirmed after v1.23 archive.
+No feature milestone begins
 until LIFE-06 or STREAM-10 signal. Mission coverage ~94–96%. Feature milestones require
 LIFE-06 or STREAM-10 signal per `config.json`
 `workflow.milestone_boundary.block_feature_milestone_without_signal`.
-See `.planning/threads/2026-05-27-post-v117-milestone-assessment.md`.
+The next milestone-boundary assessment should supersede the prior post-v1.17 thread.
 
 **Support-truth note:** Adopter-facing roadmap prose in `guides/user_flows.md` must not
 claim tus or browser→Mux direct upload as future work — both shipped v1.8–v1.11. Refresh
@@ -613,6 +620,10 @@ that section on next docs maintenance pass.
 | ExUnit async conversion is gated behind an AST static-safety meta-test; `--partitions` deferred until measured core-starvation | Fail-closed guard prevents silent shared-state races; partitioning payoff is evidence-gated, not assumed (DEFER-02) | ✓ Good v1.20 (Phase 107; 15 modules converted, 2 latent races fixed) |
 | D-v1.21-01: v1.21 relaxes v1.20's zero-`lib/`-change invariant for two adopter-invisible hardening patches (`av/subprocess.ex` MuonTrap-#98 `:epipe` absorb; `config.ex` `$callers`-aware process-scoped repo override) | The correctness-true fixes for the recurring `:epipe` flake and the async-isolation root cause both live in production code; both are adopter-invisible (no public API / return-shape / error-vocab / security-invariant change), so they ship as a `fix:` patch (0.3.2 — merged in v1.21, released in v1.22 Phase 113) without escalation beyond this authorization | ✓ Good v1.21 (both patches landed adopter-invisible; audit confirmed `lib/` seam unchanged at all 11 Ffmpeg/Ffprobe call sites + default no-override repo path) |
 | D-v1.21-02: keep `mix coveralls` (`local` analyzer) as the merge-gate; never derive the gate from `coveralls.json`'s exit code | ExCoveralls 0.18.5 source: `coveralls.json` does NOT call `ensure_minimum_coverage`, so gating on it would silently drop threshold enforcement; `coveralls.multiple --type local --type json` gives both from one run | ✓ Good v1.21 (Phase 108; one suite run per lane emits both the `local` gate and `excoveralls.json`) |
+| v1.23 uses one compile-time `Rindle.Schema` authority with exactly `rindle` default and explicit `public` compatibility | Mixed runtime/compile-time routing would permit silent prefix drift across schema metadata, facade, worker, and loaded/new struct paths | ✓ Validated v1.23 (Phase 117) |
+| Populated upgrades move the fixed six-table-plus-marker catalog transactionally after complete preflight, with a guarded reverse for quiesced hosts | A fixed ownership set and fail-before-mutation checks bound the breaking migration without taking ownership of host infrastructure | ✓ Validated v1.23 (Phase 118) |
+| Oban and host `schema_migrations` remain independently configured and outside Rindle migration ownership | Rindle is a guest library; host job infrastructure must not be created, moved, or inferred from Rindle's schema choice | ✓ Validated v1.23 (Phases 118–120) |
+| Release truth is bound to an immutable source SHA and packed/public artifacts, not repository-local success alone | The breaking 0.4.0 contract must be proven in generated consumers, Cohort, protected release automation, and the installed Hex package | ✓ Validated v1.23 (Phase 120) |
 
 
 ## Historical Snapshot
@@ -823,4 +834,4 @@ This document evolves at phase transitions and milestone boundaries.
    (`workflow.milestone_boundary.block_feature_milestone_without_signal`)
 
 ---
-*Last updated: 2026-08-20 after completing Phase 120 and publicly verifying rindle 0.4.0.*
+*Last updated: 2026-08-20 after archiving v1.23 and publicly verifying rindle 0.4.0.*

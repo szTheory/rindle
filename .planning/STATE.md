@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.23
 milestone_name: Postgres Schema Isolation
-current_phase: 120
-status: completed
-stopped_at: Completed 120-10-PLAN.md
-last_updated: "2026-08-20T15:54:21.000Z"
+status: Awaiting next milestone
+stopped_at: Milestone v1.23 archived
+last_updated: "2026-08-20T21:18:39.741Z"
 last_activity: 2026-08-20
-last_activity_desc: Phase 120 complete
+last_activity_desc: Milestone v1.23 completed and archived
 progress:
   total_phases: 4
   completed_phases: 4
   total_plans: 30
   completed_plans: 30
   percent: 100
+current_phase: 120
 current_phase_name: adoption-proof-release-truth
 ---
 
@@ -21,51 +21,44 @@ current_phase_name: adoption-proof-release-truth
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-07-02 after shipping v1.22)
+See: .planning/PROJECT.md (updated 2026-08-20 after archiving v1.23)
 
 **Core value:** Media, made durable.
-**Current focus:** Phase 120 — adoption-proof-release-truth
+**Current focus:** Demand-gated pause; maintain the green release train
 
 ## Current Position
 
-Phase: 120
-Plan: Not started
-Status: All phases complete
-Last activity: 2026-08-20 — Phase 120 complete
+Phase: Milestone v1.23 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-08-20 — Milestone v1.23 completed and archived
 
-### v1.22 shipped summary
+### v1.23 shipped summary
 
-v1.22 OSS Quality & Trust Hardening shipped 2026-07-02 and is archived at
-`.planning/milestones/v1.22-ROADMAP.md`, `.planning/milestones/v1.22-REQUIREMENTS.md`, and
-`.planning/milestones/v1.22-MILESTONE-AUDIT.md`. It satisfied 14/14 requirements across Phases 113–116:
-EVAL/HYGIENE release truth, OSS governance and Hex metadata trust signals, versioning/README positioning,
-and the non-breaking versioned `Rindle.Migration` substrate with host-owned Oban setup.
+v1.23 Postgres Schema Isolation shipped 2026-08-20 and is archived at
+`.planning/milestones/v1.23-ROADMAP.md`, `.planning/milestones/v1.23-REQUIREMENTS.md`, and
+`.planning/milestones/v1.23-MILESTONE-AUDIT.md`. It satisfied 12/12 requirements across four verified
+phases (117–120) and released Hex 0.4.0 from frozen source `78349c1…`: default `rindle` ownership,
+explicit-public compatibility, bounded populated-install migration/reversal, independent Oban ownership,
+bounded diagnostics, and packed/Cohort/public-artifact proof.
 
 **Hard invariants (carry from v1.20/v1.21, highest blast radius):** never rename `ci.yml` / `name: CI`
 (release-train coupling via `release-please-automerge.yml` + `gate-ci-green`); `CI Summary` keeps
 `skipped`==pass and stays the sole required check; never weaken the release full-verification gate. The
-MIGRATE phase (116) is the only one that touches `lib/` + `priv/` and must keep the existing test suite
-green (135 test files; the async-safety meta-test governs `async: true`).
+next release must also generalize the 0.4.0-specific release-docs parity state before changing the
+manifest version.
 
 ## Next Step
 
-Discuss and plan Phase 118 before execution. Its plan must pair Phase 117's compile-time `rindle`/
-`public` routing authority with idempotent selected-schema provisioning and a host-owned, bounded
-public-to-`rindle` move for the six Rindle tables plus `rindle_migration_versions`.
+No implementation step is approved. Remain in demand-gated pause until LIFE-06 compliance pull or a
+named STREAM-10 adopter exists. If an approved milestone signal arrives, start with
+`$gsd-new-milestone`; otherwise keep the green-main release train idle.
 
 ## Prior Milestone
 
-**v1.21 CI/DX Reliability Tail** (SEED-004) — shipped 2026-06-29, archived at
-`milestones/v1.21-ROADMAP.md`. Non-feature/DX milestone making the merge gate deterministic and
-trustworthy — a green PR reliably means a green `main`. 24/24 requirements across 5/5 verified phases
-(108–112): single-run coverage (COV-01..04), subprocess `:epipe` hardening + invariant-13 truth
-correction (EPIPE-01..05, TRUTH-01), `$callers`-aware process-scoped repo override (ISO-01..05), five
-shipped-artifact regression-lock meta-tests (LOCK-01..05), and the lean `adoption-demo-e2e-smoke` PR lane
-wired into `CI Summary` LAST (GATE-01..04).
-
-> **Release-state reconciliation:** the two v1.21 `lib/` `fix:` patches are now live as Hex **0.3.2**.
-> v1.22 Phase 113 (HYGIENE-01) rotated the expired release token, unstuck release-please, cut the release,
-> and reconciled the planning claim against live Hex state.
+**v1.22 OSS Quality & Trust Hardening** — shipped 2026-07-02 and archived at
+`milestones/v1.22-ROADMAP.md`. It delivered the versioned `Rindle.Migration` and host-owned Oban boundary
+that v1.23 extended into the breaking schema-isolation contract.
 
 <details>
 <summary>v1.21 roadmap (Phases 108–112) — shipped, load-bearing order (collapsed)</summary>
@@ -179,13 +172,12 @@ _(Key v1.22 execution decisions recorded at milestone close.)_
 
 ## Blockers/Concerns
 
-_(none open for v1.22 at roadmap creation)_
+_(none open for v1.23 closeout)_
 
 ## Deferred Items
 
 | Category | Item | Status |
 |----------|------|--------|
-| schema | Postgres schema isolation / `@schema_prefix` default flip (ISO23-01..04) | v1.23 (0.4.0 breaking); builds on v1.22 `Rindle.Migration` substrate |
 | lifecycle | Force-delete policy (LIFE-06) | demand-gated (compliance ticket) |
 | streaming | Second provider (Cloudflare/Bunny) | demand-gated (named adopter) |
 | testing | `mix test --partitions` parallelization | evidence-gated on measured core-starvation (DEFER-02) |
@@ -194,8 +186,8 @@ _(none open for v1.22 at roadmap creation)_
 
 ## Session Continuity
 
-Last session: 2026-08-11T00:26:20.536Z
-Stopped at: Completed 120-10-PLAN.md
+Last session: 2026-08-20
+Stopped at: Milestone v1.23 archived
 Resume file: None
 
 ## Performance Metrics
@@ -236,4 +228,4 @@ Resume file: None
 
 ## Operator Next Steps
 
-- Start the next milestone with /gsd-new-milestone
+- Wait for an approved LIFE-06 or STREAM-10 signal; then start the next milestone with `/gsd-new-milestone`.
