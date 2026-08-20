@@ -178,6 +178,24 @@ defmodule Rindle.InstallSmoke.ReleaseDocsParityTest do
     assert release_guide =~ "remove the staging marker"
   end
 
+  test "0.4.0 signoff requires explicit Release Please intent and blocks the 0.3.3 candidate", %{
+    release_guide: release_guide
+  } do
+    for snippet <- [
+          "bump-patch-for-minor-pre-major",
+          "0.3.3",
+          "blocked",
+          "Release-As: 0.4.0",
+          "ordinary PR",
+          "squash/merge commit",
+          "mix.exs",
+          ".release-please-manifest.json",
+          "generated changelog heading"
+        ] do
+      assert release_guide =~ snippet
+    end
+  end
+
   test "maintainer release guidance stays in maintainer docs and is cross-linked", %{
     mix_exs: mix_exs,
     release_guide: release_guide,
