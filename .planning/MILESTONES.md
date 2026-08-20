@@ -1,5 +1,48 @@
 # Milestones
 
+## v1.23 Postgres Schema Isolation (Shipped: 2026-08-20)
+
+**Delivered:** Released Rindle 0.4.0 with dedicated-by-default Postgres ownership, a bounded legacy
+upgrade path, independent host Oban ownership, actionable diagnostics, and end-to-end packaged proof.
+
+**Phases completed:** 117–120 (4 phases, 30 plans, 35 tasks)
+
+**Key accomplishments:**
+
+- Established one compile-time `Rindle.Schema` authority for all six owned schemas: `rindle` by
+  default, with an explicit and fully tested `public` compatibility build.
+- Added idempotent selected-schema provisioning plus transactional, preflight-guarded
+  public-to-`rindle` migration and a bounded reverse path that preserves data and relational integrity.
+- Kept `oban_jobs` and the host migration ledger independently owned while making prefix/ownership
+  failures safe and actionable across doctor, runtime status, admin, and adoption-demo surfaces.
+- Proved fresh, public-compatible, and populated-upgrade contracts in packed generated Phoenix apps and
+  Cohort, including exact marker/FK/index evidence and before/after Oban catalog equality.
+- Aligned README, guides, migration API docs, executable parity tests, and 0.4.0 release notes on the
+  breaking default, maintenance window, permissions, rollback, and ownership boundaries.
+- Released Hex 0.4.0 from frozen source `78349c1…` with exact-source CI, protected recovery binding,
+  idempotent publish handling, and fresh public installed-artifact verification.
+
+**Stats:**
+
+- 176 files changed; +19,997 / −623 across the milestone implementation range
+- 4 phases, 30 plans, 35 tasks, 12/12 requirements
+- 13 days from charter to ship (2026-08-08 → 2026-08-20)
+
+**Git range:** `89e1cb3` → `b1a5cae`
+
+**Audit:** `passed` (12/12 requirements, 4/4 phases, 10/10 integration links, 5/5 E2E flows).
+See `milestones/v1.23-MILESTONE-AUDIT.md`.
+
+**Archive:** `milestones/v1.23-ROADMAP.md`, `milestones/v1.23-REQUIREMENTS.md`,
+`milestones/v1.23-MILESTONE-AUDIT.md`, and `milestones/v1.23-phases/`.
+
+**Known non-blocking follow-up:** generalize the 0.3.2/0.4.0 manifest-state parity test before a
+future package release; optionally refresh canonical Nyquist metadata for Phases 118–120.
+
+**What's next:** demand-gated pause unless LIFE-06 or STREAM-10 supplies an approved milestone signal.
+
+---
+
 ## v1.22 OSS Quality & Trust Hardening (Shipped: 2026-07-02)
 
 **Delivered:** Closed the cheap, high-ROI OSS trust/positioning/governance gaps from SEED-005; cut the
@@ -12,6 +55,7 @@ versioning positioning, and a versioned `Rindle.Migration` substrate that keeps 
 
 - Concise OSS-quality evaluation baseline mapped weakness areas to closing phases and deferred schema
   isolation to the v1.23 candidate.
+
 - Two D-06 release-train recurrence guards (a cron drift workflow that self-files a rolling issue, and a RELEASE_PLEASE_TOKEN validity preflight that fails loud on an invalid/Actions-scopeless token) plus an install_smoke meta-test that locks both OFF the sole required CI path.
 - GitHub-routed OSS governance intake with security policy, Contributor Covenant, structured issue forms, PR template, and install-smoke coverage
 - Hex package metadata now exposes GitHub, Changelog, and HexDocs links, and release public verification checks the Hex owner-derived maintainer signal.

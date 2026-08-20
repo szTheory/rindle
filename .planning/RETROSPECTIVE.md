@@ -2,6 +2,79 @@
 
 ---
 
+## Milestone: v1.23 — Postgres Schema Isolation
+
+**Shipped:** 2026-08-20
+**Phases:** 4 (117–120) | **Plans:** 30 | **Tasks:** 35
+**Audit:** passed (12/12 requirements, 4/4 phases, 10/10 integration links, 5/5 E2E flows)
+
+### What Was Built
+
+- One compile-time `Rindle.Schema` authority routes all six owned domain schemas to `rindle` by
+  default or an explicit `public` compatibility build.
+- Fresh installs provision the selected schema, while populated legacy installs receive a
+  transactionally guarded fixed-catalog move and bounded reverse path.
+- Ownership diagnostics keep host Oban and `schema_migrations` independent, validate prefix-sensitive
+  catalog access, and return bounded guidance through CLI, admin, and demo surfaces.
+- Packed generated apps and Cohort prove default, public-compatible, and populated-upgrade paths with
+  exact marker/FK/index and Oban catalog evidence.
+- Documentation parity, exact-source CI, protected recovery binding, and public Hex verification close
+  the breaking 0.4.0 release chain.
+
+### What Worked
+
+- The four-phase dependency order held: routing authority → migration ownership → diagnostics →
+  packaged/release proof. Each later phase consumed the prior phase's actual boundary.
+- Gap closure replaced weak claims with structural proof: owned-schema caller enforcement, real
+  PostgreSQL privilege/lock tests, bounded diagnostic projections, and exact before/after Oban snapshots.
+- Release truth stayed SHA-specific. Local proof, release tooling repairs, immutable package source, and
+  public artifact verification were recorded separately instead of being collapsed into one claim.
+- Archiving phase directories by default kept the completion tool correctly scoped at 4 phases,
+  30 plans, and 35 tasks.
+
+### What Was Inefficient
+
+- Phase 120 expanded to 14 plans because release candidate selection, Release Please version intent,
+  exact-SHA CI, and protected recovery evidence were resolved incrementally rather than from one
+  pre-existing release receipt.
+- Several SUMMARY one-liners captured deviation notes or temporary blocked states, so automatic
+  milestone accomplishment extraction required a manual rewrite into durable outcomes.
+- VALIDATION frontmatter drifted across `approved`, `ready`, and `draft` status vocabularies even though
+  final phase VERIFICATION reports passed; historical Nyquist metadata is therefore less authoritative
+  than the goal-verification and CI evidence.
+
+### Patterns Established
+
+- Schema routing and migration routing must share one bounded prefix vocabulary; compile-time domain
+  metadata and host migration options cannot be independently configurable.
+- Ownership preservation is proved by exact catalog snapshots, not a synthetic boolean or inferred
+  migration provenance field.
+- Breaking-release signoff binds to the package source SHA; recovery tooling may advance independently
+  only when it proves the frozen source and records both identities.
+- Operational refusal paths should project allowlisted fields at both producer and renderer boundaries.
+
+### Key Lessons
+
+- For data-moving milestones, test the documented Ecto.Migrator callback itself against disposable
+  PostgreSQL databases, including lock and real privilege refusal paths.
+- Generated-consumer proof is strongest when it asserts catalog contents and lifecycle read-back rather
+  than only successful boot.
+- Keep SUMMARY `one_liner` fields outcome-oriented; transient deviations belong elsewhere so automated
+  closeout summaries remain trustworthy.
+- Generalize version-state parity assertions before the next release instead of teaching them only the
+  current staging/released pair.
+
+### Cost Observations
+
+- Timeline: 13 days (2026-08-08 → 2026-08-20).
+- Scope: 176 files changed, +19,997 / −623 across the milestone implementation range.
+- Model/runtime mix: Cursor overlay routed planning/research to Auto and execution/verification to
+  Composer 2.5; closeout used the repository's GSD audit and integration-checker workflow.
+- Notable: the long tail was release evidence rather than core schema implementation; the exact-source
+  artifact chain dominated Phase 120 plan count.
+
+---
+
 ## Milestone: v1.22 — OSS Quality & Trust Hardening
 
 **Shipped:** 2026-07-02
@@ -529,18 +602,23 @@ STREAM-10 not built (Mux-only adapter); batch erasure does not propagate force o
 
 ## Cross-Milestone Trends
 
-| Trend | v1.1 | v1.2 | v1.5 | v1.6 | v1.16 | v1.20 | v1.21 | v1.22 |
-|-------|------|------|------|------|-------|-------|-------|-------|
-| Cleanup phases needed | 0 | 2 (Phases 13, 14) | 0 | 0 | 1 (Phase 77) | 0 | 0 | 0 |
-| Audit status at close | passed | tech_debt (closed) | passed | acknowledged-and-defer | no dedicated audit (gap-closure) | passed | passed (1 todo deferred) | passed |
-| Plans per phase (avg) | 3.0 | 2.2 | 3.5 | 3.75 | 3.3 | 3.4 | 2.6 | 3.5 |
-| Phase count | 4 | 5 | 4 | 4 | 3 | 5 | 5 | 4 |
-| Files changed | — | 60 | — | 144 | 19 | — (0 `lib/`) | 49 (3 `lib/`) | — |
-| Timeline (days) | — | 5 | 2 | ~1 (~22h) | 1 | 3 | 4 | 4 |
-| Optional phase deferred | — | — | — | Phase 37 (deferred to v1.7) | — | — | — | schema flip to v1.23 candidate |
+| Trend | v1.1 | v1.2 | v1.5 | v1.6 | v1.16 | v1.20 | v1.21 | v1.22 | v1.23 |
+|-------|------|------|------|------|-------|-------|-------|-------|-------|
+| Cleanup phases needed | 0 | 2 (Phases 13, 14) | 0 | 0 | 1 (Phase 77) | 0 | 0 | 0 | 0 |
+| Audit status at close | passed | tech_debt (closed) | passed | acknowledged-and-defer | no dedicated audit (gap-closure) | passed | passed (1 todo deferred) | passed | passed |
+| Plans per phase (avg) | 3.0 | 2.2 | 3.5 | 3.75 | 3.3 | 3.4 | 2.6 | 3.5 | 7.5 |
+| Phase count | 4 | 5 | 4 | 4 | 3 | 5 | 5 | 4 | 4 |
+| Files changed | — | 60 | — | 144 | 19 | — (0 `lib/`) | 49 (3 `lib/`) | — | 176 |
+| Timeline (days) | — | 5 | 2 | ~1 (~22h) | 1 | 3 | 4 | 4 | 13 |
+| Optional phase deferred | — | — | — | Phase 37 (deferred to v1.7) | — | — | — | schema flip to v1.23 candidate | feature work demand-gated |
 
 **Recurring observation:** Each milestone has ended with some planning artifact debt (stale STATE.md references, incomplete VALIDATION files, metadata inconsistencies, REQUIREMENTS.md checkboxes not flipped). The debt accumulates faster than it is addressed during execution. A milestone-close checklist that explicitly audits these before declaring done would reduce closure phase count.
 
 **v1.6 trend:** First milestone to formalize "acknowledged-and-defer" close mode — recognizing that some artifact-and-wiring-complete phases route observable proof to CI/maintainer environments by design. The audit semantics need to evolve to distinguish these from real gaps. Optional-phase deferral (Phase 37 → v1.7) emerged as a clean scope-management primitive separate from cleanup-phase work.
 
 **v1.20→v1.22 trend (DX/quality arc):** Three consecutive non-feature quality milestones closed with audit `passed` and **zero cleanup phases**, reversing the "each milestone ends with planning debt" observation above. The decisive changes were archiving phase dirs at close, resolving open todos instead of repeatedly deferring them, and normalizing validation metadata before milestone archive. The recurring hard part remains **environment/live-state acceptance criteria** (runtime p95, "N green main runs", live Hex release truth) that resist pure ExUnit automation; model them as explicit operator checkpoints with recorded evidence, then convert any repeatable part into shipped-artifact tests or scripts.
+
+**v1.23 trend (breaking release):** The same zero-cleanup outcome held, but average plans per phase more
+than doubled because exact-source release evidence required multiple reconciliation plans. Future
+breaking releases should define the immutable candidate, Release Please intent, and protected recovery
+receipt shape before the final proof phase; keep the evidence rigorous while reducing orchestration churn.
