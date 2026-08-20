@@ -2,33 +2,28 @@
 
 ## Current State
 
-**Last shipped:** v1.22 OSS Quality & Trust Hardening — shipped 2026-07-02 and archived at
-[.planning/milestones/v1.22-ROADMAP.md](milestones/v1.22-ROADMAP.md), with requirements archived at
-[.planning/milestones/v1.22-REQUIREMENTS.md](milestones/v1.22-REQUIREMENTS.md) and audit archived at
-[.planning/milestones/v1.22-MILESTONE-AUDIT.md](milestones/v1.22-MILESTONE-AUDIT.md). It satisfied
-14/14 requirements across 4/4 verified phases (113–116): EVAL-01, HYGIENE-01/02, TRUST-01/02/03,
-META-01/02, VERSION-01/02, README-01/02, and MIGRATE-01/02.
+**Last shipped:** v1.23 Postgres Schema Isolation — implementation and public release completed
+2026-08-20. All 12/12 requirements across 4/4 verified phases (117–120) are satisfied; GitHub and
+Hex expose `rindle` 0.4.0 from frozen source `78349c1bc5d082b0c0c9fce6796806011fa89a33`.
+Milestone archival remains a separate `$gsd-complete-milestone` step.
 
-**Delivered:** v1.22 closed the cheap, high-ROI OSS trust/positioning/governance gaps surfaced by
-SEED-005; cut and reconciled the stuck Hex 0.3.2 release; added `SECURITY.md`, `CODE_OF_CONDUCT.md`,
-issue/PR templates, Hex package Changelog/Docs links, and public owner-derived maintainer verification;
-made README/CONTRIBUTING explicit about pre-1.0 stability and product-fit boundaries; and shipped the
-non-breaking versioned `Rindle.Migration.up/1` + `down/1` substrate with host-owned `Oban.Migration`.
+**Delivered:** v1.23 makes the `rindle` schema the default for Rindle-owned relations, retains an
+explicit `prefix: "public"` compatibility pairing, provides a bounded populated-install move and
+guarded reversal, keeps Oban and the host migration ledger in `public`, and proves the contract in
+packed generated apps, Cohort, documentation, protected release automation, and the public Hex package.
 
-**Proof posture:** v1.22 audit `passed`: 14/14 requirements satisfied via 3-source cross-reference,
-9/9 integration links wired, 6/6 E2E flows pass, 4/4 phases Nyquist-compliant, and open-artifact audit
-clean. The closeout also resolved the stale v1.18-era Cohort Docker demo startup warnings todo
-(`mox` now available in dev/test; `inotify-tools` installed in the demo image).
+**Proof posture:** Phase 120 verification `passed` at 4/4 must-haves. Exact release-source CI, every
+full package-consumer matrix cell, Cohort, protected recovery source binding, idempotent existing-release
+handling, and a fresh public Hex artifact proof are green. The release tooling repair SHA is recorded
+separately from the frozen package source.
 
-**Prior milestone:** v1.21 CI/DX Reliability Tail — shipped 2026-06-29, archived at
-`milestones/v1.21-*.md`, and made the merge gate deterministic and trustworthy. Its two
-adopter-invisible `lib/` fixes shipped as Hex **0.3.2** after v1.22 Phase 113 unstuck release-please.
-v1.20 CI/CD Performance, v1.19 Design-System Stress-Test, and v1.18 Admin Console & Adoption Lab are
-all shipped and archived.
+**Prior milestone:** v1.22 OSS Quality & Trust Hardening — shipped and archived 2026-07-02.
 
-**Open planning debt:** None carried forward from v1.22.
+**Open planning debt:** Before the next release, generalize
+`test/install_smoke/release_docs_parity_test.exs` so its historical 0.4.0 contract remains enforced
+without rejecting every later valid manifest version (Phase 120 review WR-01).
 
-## Current Milestone: v1.23 Postgres Schema Isolation
+## Current Milestone: v1.23 Postgres Schema Isolation — implementation complete
 
 **Goal:** Make Rindle a respectful Postgres guest by isolating its domain tables in a dedicated `rindle`
 schema by default, with an explicit safe upgrade route and truthful runtime/install proof — a breaking
@@ -427,11 +422,15 @@ To keep this posture durable across GSD workflows:
   maintainer verification (META-01..03), pre-1.0/versioning/README positioning (VERSION-01..04,
   README-01), and versioned `Rindle.Migration` with host-owned Oban setup (MIGRATE-01..02). 14/14
   validated. Archived: `milestones/v1.22-REQUIREMENTS.md`.
+- ✓ **v1.23 Postgres Schema Isolation** — shipped as Hex 0.4.0 on 2026-08-20: default `rindle`
+  schema ownership, explicit-public compatibility, bounded populated-install upgrade/reversal,
+  prefix-correct diagnostics, packed generated-app and Cohort proof, cross-surface documentation
+  parity, exact-SHA protected release binding, and fresh public-artifact verification. 12/12 validated
+  across Phases 117–120; milestone archival is pending.
 
 ### Active
 
-- [ ] v1.23 Postgres Schema Isolation — define, implement, and verify the breaking 0.4.0 default-prefix
-  change with an explicit compatibility and upgrade path.
+No active milestone requirements. The release train returns to demand-gated pause after v1.23 archival.
 
 **Demand-gated for next feature milestone:**
 
@@ -824,4 +823,4 @@ This document evolves at phase transitions and milestone boundaries.
    (`workflow.milestone_boundary.block_feature_milestone_without_signal`)
 
 ---
-*Last updated: 2026-07-02 after shipping and archiving v1.22 OSS Quality & Trust Hardening.*
+*Last updated: 2026-08-20 after completing Phase 120 and publicly verifying rindle 0.4.0.*
