@@ -2,7 +2,7 @@
 
 0.1.0-0.1.3 were release-pipeline shakedown iterations; treat 0.1.4 as the first recommended pin.
 
-## Unreleased / 0.4.0
+## [0.4.0](https://github.com/szTheory/rindle/compare/rindle-v0.3.2...rindle-v0.4.0) (2026-08-20)
 
 ### Breaking schema-isolation default
 
@@ -23,13 +23,7 @@ status. The guarded reverse is only for a quiesced, exactly reversible state wit
 no post-move writes or later migrations; otherwise restore the backup. Rindle does
 not create, move, or own public Oban tables or the host migration ledger.
 
-Follow the full operator procedure in [Upgrading](guides/upgrading.md). Release
-Please must fold this staged section into its generated `## [0.4.0]` notes and
-remove this marker before the release PR merges; it alone owns the final version,
-tag, and generated changelog heading.
-
-## [0.4.0](https://github.com/szTheory/rindle/compare/rindle-v0.3.2...rindle-v0.4.0) (2026-08-20)
-
+Follow the full operator procedure in [Upgrading](guides/upgrading.md).
 
 ### Features
 
