@@ -17,26 +17,38 @@
 #     Rindle's probe accepts the optional `n` prefix.
 set -euo pipefail
 
-release_api="https://api.github.com/repos/BtbN/FFmpeg-Builds/releases/latest"
+release_api="${RINDLE_FFMPEG_RELEASE_API:-https://api.github.com/repos/BtbN/FFmpeg-Builds/releases/latest}"
 
-asset=$(
+read -r asset url < <(
   curl -fsSL --retry 5 --retry-all-errors --retry-delay 5 "$release_api" |
     jq -er '
       [
-        .assets[].name
-        | capture("^ffmpeg-n(?<major>[0-9]+)\\.(?<minor>[0-9]+)-latest-linux64-gpl-(?<version>[0-9]+\\.[0-9]+)\\.tar\\.xz$")
+        .assets[]
         | . as $asset
-        | select($asset.version == ($asset.major + "." + $asset.minor))
+        | ($asset.name
+           | capture("^ffmpeg-n(?<major>[0-9]+)\\.(?<minor>[0-9]+)(?:\\.(?<patch>[0-9]+))?-[A-Za-z0-9][A-Za-z0-9._-]*-linux64-gpl-[0-9]+(?:\\.[0-9]+){1,2}\\.tar\\.xz$")) as $version
+        | select((.browser_download_url | type) == "string" and (.browser_download_url | length) > 0)
+        | {
+            name: $asset.name,
+            url: $asset.browser_download_url,
+            major: ($version.major | tonumber),
+            minor: ($version.minor | tonumber),
+            patch: ($version.patch // "0" | tonumber)
+          }
       ]
-      | max_by([(.major | tonumber), (.minor | tonumber)])
-      | "ffmpeg-n\(.version)-latest-linux64-gpl-\(.version).tar.xz"
+      | if length == 0 then
+          error("no stable linux64 GPL FFmpeg asset found in release response")
+        else
+          max_by([.major, .minor, .patch])
+          | [.name, .url]
+          | @tsv
+        end
     '
 )
 
-url="https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/${asset}"
-
 if [ "${RINDLE_FFMPEG_RESOLVE_ONLY:-0}" = "1" ]; then
   printf '%s\n' "$asset"
+  printf '%s\n' "$url"
   exit 0
 fi
 
