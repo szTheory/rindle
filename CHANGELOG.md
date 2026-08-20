@@ -2,7 +2,7 @@
 
 0.1.0-0.1.3 were release-pipeline shakedown iterations; treat 0.1.4 as the first recommended pin.
 
-## Unreleased / 0.4.0
+## [0.4.0](https://github.com/szTheory/rindle/compare/rindle-v0.3.2...rindle-v0.4.0) (2026-08-20)
 
 ### Breaking schema-isolation default
 
@@ -23,10 +23,96 @@ status. The guarded reverse is only for a quiesced, exactly reversible state wit
 no post-move writes or later migrations; otherwise restore the backup. Rindle does
 not create, move, or own public Oban tables or the host migration ledger.
 
-Follow the full operator procedure in [Upgrading](guides/upgrading.md). Release
-Please must fold this staged section into its generated `## [0.4.0]` notes and
-remove this marker before the release PR merges; it alone owns the final version,
-tag, and generated changelog heading.
+Follow the full operator procedure in [Upgrading](guides/upgrading.md).
+
+### Features
+
+* **113-02:** add RELEASE_PLEASE_TOKEN validity guard to release-please job ([b76a55a](https://github.com/szTheory/rindle/commit/b76a55ab6839e885e3a0362442802db08734d670))
+* **113-02:** add release-train-drift guard workflow + issue template ([9c4c5bf](https://github.com/szTheory/rindle/commit/9c4c5bf9be3dc14663d6b260448cc57235797a36))
+* **114-02:** add Hex package trust metadata ([c55f2e0](https://github.com/szTheory/rindle/commit/c55f2e019d2bea532ee5d66cc41bdc7c9618368a))
+* **116-04:** add versioned migration API wrapper ([8b34789](https://github.com/szTheory/rindle/commit/8b34789e5ae08e27b02d603ce4e342abadcc4b35))
+* **116-04:** implement Rindle migration v1 DDL ([c66ddc6](https://github.com/szTheory/rindle/commit/c66ddc6c4a2887a5c4c88059c19c9451081ddba3))
+* **116-05:** implement hybrid doctor migration health ([c29247d](https://github.com/szTheory/rindle/commit/c29247d75a25cc9a4dd162e16fa9d259c1a8a391))
+* **116-05:** implement runtime status setup preflight ([527f713](https://github.com/szTheory/rindle/commit/527f71309eebad6b9a7e33890ee7d9e0fc44ce61))
+* **117-01:** route Rindle schemas by compile-time prefix ([92e7211](https://github.com/szTheory/rindle/commit/92e7211fdb8c14d9e6680fb85d6ede67c66f0988))
+* **117-03:** enforce final schema prefix authority ([09aa63e](https://github.com/szTheory/rindle/commit/09aa63e3c46b825d64c03bd5e3b4919a3dd01f7d))
+* **117-04:** make schema declaration authoritative ([7cc55bf](https://github.com/szTheory/rindle/commit/7cc55bf94a6d3e490d96ada105da76120d1d03cf))
+* **117-05:** restrict schema macro to owned domain schemas\n\n- Validate the macro caller before emitting Ecto setup\n- Permit only the six Rindle-owned domain schemas\n- Reject callback-deletion raw-Ecto consumers at the internal boundary\n ([7f187cd](https://github.com/szTheory/rindle/commit/7f187cd2ec269696a7facc67fe84210c9a65e91e))
+* **118-01:** provision isolated fresh installs\n\n- Default migration provisioning to the rindle schema\n- Restrict fresh migration prefixes to rindle or public\n- Create the selected schema before Rindle-owned DDL\n ([c0f9f94](https://github.com/szTheory/rindle/commit/c0f9f94f886ec6be89fb7a0092d73091ed703ad0))
+* **118-02:** classify public-to-rindle upgrade state ([d62c9fd](https://github.com/szTheory/rindle/commit/d62c9fdfcc31faa5aed728b1d3f7a49dd713e562))
+* **118-02:** move fixed Rindle relations transactionally ([8022575](https://github.com/szTheory/rindle/commit/80225759dd57121ed08e1f1de69499fc1195c1f6))
+* **118-03:** add guarded reverse migration\n\n- Move only the fixed V1 relation set back to public after reverse preflight\n- Preserve the empty rindle schema and keep destructive down separate\n ([956df10](https://github.com/szTheory/rindle/commit/956df10ba6f1ee09a5290a9ab531a8bb3f6fd948))
+* **118-03:** roll back failed schema moves\n\n- Scope deterministic migration fault injection to the invoking test process\n- Prove destination creation and partial relation moves roll back atomically\n ([6b30ef3](https://github.com/szTheory/rindle/commit/6b30ef3ff38bca41b77f10b44f4ec587729acac4))
+* **118-04:** enforce safe migration docs contract ([80c4b6c](https://github.com/szTheory/rindle/commit/80c4b6cf9d4e82c6323ad88f0484808574825453))
+* **118-05:** publish direct migration helper calls ([63dd997](https://github.com/szTheory/rindle/commit/63dd9979015d879120f4898b3aa1b24cbdf2b970))
+* **118-06:** bound migration lock failures ([cafe2ca](https://github.com/szTheory/rindle/commit/cafe2cac493aa71c7a118700c891b249ead72239))
+* **118-06:** refuse unsafe migration privileges ([34ed54b](https://github.com/szTheory/rindle/commit/34ed54bb0acd0243bd30499689e67b82d0c6fac7))
+* **119-01:** diagnose ownership prefix mismatches ([f6f8277](https://github.com/szTheory/rindle/commit/f6f827724949c1fed96c0621ac9913bbf1796773))
+* **119-02:** resolve canonical Oban ownership bindings ([c2c8297](https://github.com/szTheory/rindle/commit/c2c82973e53919008fc378c6dc4142d07a81cc31))
+* **119-03:** gate runtime reports on ownership snapshots ([201f2ec](https://github.com/szTheory/rindle/commit/201f2ec94996d2172d1d769ada03168192179b2c))
+* **119-03:** render bounded runtime status failures ([ea5268b](https://github.com/szTheory/rindle/commit/ea5268bc8b2742a34d7448fdc158770ae9bfbd41))
+* **119-04:** bound admin runtime doctor diagnostics ([4f7ac8c](https://github.com/szTheory/rindle/commit/4f7ac8ce4d0d2cc37e2eca0512df155551a5e4d7))
+* **119-04:** bound demo runtime-status output ([51b6901](https://github.com/szTheory/rindle/commit/51b6901051e5b82a8fcdec1b7de85a513caeda58))
+* **119-05:** render bounded runtime refusals\n\n- project hostile ownership prefix details before output\n- retain doctor checks on the Runtime/Doctor refusal model\n ([3d1bca9](https://github.com/szTheory/rindle/commit/3d1bca949de1dfa6f35d249796511f39f3aa482a))
+* **120-01:** prove default persistence lifecycle\n\n- Emit generated-app write/read lifecycle facts\n- Assert default schema ownership and host boundaries\n- Preserve packed package provenance checks\n ([f1536b4](https://github.com/szTheory/rindle/commit/f1536b468c309ea4f3764a79e5ca12461ab7549a))
+* **120-01:** prove packed default schema ownership\n\n- Report schema-qualified Rindle and host relation facts\n- Keep generated Oban and Rindle migrations explicitly separate\n- Expose a fast package-proof contract\n ([0a6176c](https://github.com/szTheory/rindle/commit/0a6176c7e3c90458e0430ab0453622150b5749a2))
+* **120-02:** prove populated isolation upgrade ([3c43e0f](https://github.com/szTheory/rindle/commit/3c43e0f92dd4db9082c385e45359e2ef31529886))
+* **120-02:** prove public compatibility consumer ([8d1cc63](https://github.com/szTheory/rindle/commit/8d1cc639a3351a274951aac8cb320966f9640c60))
+* **120-03:** install Rindle through Cohort migration ([c2bdc59](https://github.com/szTheory/rindle/commit/c2bdc59b38267b98f378b797173dc3be944fbc64))
+* **120-03:** prove Cohort host migration ownership ([ae1b5c0](https://github.com/szTheory/rindle/commit/ae1b5c0d53d54fa76265b04caa69210d3a66cc1b))
+* **120-03:** retain Cohort-owned Oban migration ([6ae71d3](https://github.com/szTheory/rindle/commit/6ae71d3fc83fc094f766d63a3b06c55cf0793a1e))
+* **120-07:** prove exact upgrade catalog preservation ([d54b24e](https://github.com/szTheory/rindle/commit/d54b24edac5c80275b7bc8ff5a451b6f281da424))
+* **120-08:** align public migration rollback contract ([204f50d](https://github.com/szTheory/rindle/commit/204f50dfb5e3a21d1033eceaa4c79e719ce8bc7f))
+* **120-10:** remove obsolete Oban report predicate ([67bfb5e](https://github.com/szTheory/rindle/commit/67bfb5ea6093a38301ec37c254d967ab6de008b2))
+* **120-13:** declare 0.4.0 release intent ([081f6e0](https://github.com/szTheory/rindle/commit/081f6e00e3ad65cfdf4e5302e22778d96b2883ef))
+* ship v1.23 Postgres schema isolation ([80b6127](https://github.com/szTheory/rindle/commit/80b612731c3e42fb3fe889bdcd0c050e067225f6))
+
+
+### Bug Fixes
+
+* **113-03:** harden public_smoke junit write path so abnormal exits stay legible (D-08) ([d87b079](https://github.com/szTheory/rindle/commit/d87b0790c89035eb461426a8d27296e6be79998b))
+* **114-02:** keep release runbook TLDR concise ([ef9f907](https://github.com/szTheory/rindle/commit/ef9f907bc86ab3da1e39d630c6e2fb292e3f8c22))
+* **114-02:** verify Hex owner metadata via public gate ([cf4a4c1](https://github.com/szTheory/rindle/commit/cf4a4c14d93c15f8e51a82f39fb64e98c13a50c5))
+* **115-01:** repair upgrade guide rendered links ([2969b8d](https://github.com/szTheory/rindle/commit/2969b8d5e097750257d85cced2d52936f6c306f7))
+* **115:** revise planner artifacts for checker feedback ([21d5620](https://github.com/szTheory/rindle/commit/21d5620ab9ccb14527f614fcce66248c915b636b))
+* **116-04:** neutralize bundled Oban migration ([5d49a66](https://github.com/szTheory/rindle/commit/5d49a6698da19f79e09ed12723e4ba8d8b718f19))
+* **116:** align runtime prefix checks and upgrade smoke ([fed1fb2](https://github.com/szTheory/rindle/commit/fed1fb2f0d5e0f340f842ee4ef716f0f31de74ec))
+* **116:** honor prefixes in runtime reports ([3cae28a](https://github.com/szTheory/rindle/commit/3cae28a284f2f76532696b504a520fd5893ad631))
+* **117:** revise prefix routing gap plan ([06a7c42](https://github.com/szTheory/rindle/commit/06a7c422f59255fb351ff53a20c07fbc9d020e95))
+* **118-06:** isolate migration contention proof ([3229af3](https://github.com/szTheory/rindle/commit/3229af3fea497a244e11dc5d8818e4b9df9f68f4))
+* **118-06:** preserve shared migration test tables ([a354de6](https://github.com/szTheory/rindle/commit/a354de6520dc196647c6c38195fdb026a53232bb))
+* **118:** revise plans for destination schema provisioning ([7423325](https://github.com/szTheory/rindle/commit/7423325115a5c39bfa34814a6ab2f0f3a6dbf122))
+* **118:** tighten nyquist validation loop ([ec71fcf](https://github.com/szTheory/rindle/commit/ec71fcf20803caed9b7dd7e64018392c7023b875))
+* **119-02:** inspect shared sandbox catalogs directly ([7c32147](https://github.com/szTheory/rindle/commit/7c32147adfe7d6d53f8547532ee3e07ec3749208))
+* **119-03:** preserve safe invalid-format guidance ([148b7ad](https://github.com/szTheory/rindle/commit/148b7ade80c6d5a06613cf10d6264f415e5de749))
+* **119-05:** bound runtime status tuple rendering\n\n- validate known refusal fields for text and JSON output\n- cover hostile and forged refusal tuple data\n ([dd10fc2](https://github.com/szTheory/rindle/commit/dd10fc2d2361551a17bfd2a72d700643eff36d97))
+* **119-05:** redact migration inspection failures\n\n- replace exception-derived migration status names with a fixed marker\n- verify doctor and admin models keep diagnostics bounded\n ([01ea75b](https://github.com/szTheory/rindle/commit/01ea75b06f5eb5277c5b7f6afa0a98b853ffc45e))
+* **120-02:** isolate generated smoke databases ([55a46bc](https://github.com/szTheory/rindle/commit/55a46bc64d8b57246542dd30ddaca46d3dfe2588))
+* **120-07:** avoid reserved catalog constraint alias ([33146ad](https://github.com/szTheory/rindle/commit/33146ad16e5b036477d78f39dcbeee0e8408e1e6))
+* **120-07:** bind Oban catalog queries by oid ([92201be](https://github.com/szTheory/rindle/commit/92201beea7969a80aa7d335646c408cfc424a592))
+* **120-07:** bound generated command execution ([cb6175e](https://github.com/szTheory/rindle/commit/cb6175e70ef4548b3280ad9fc1a3d0d4f8e354ad))
+* **120-07:** isolate generated smoke workspaces ([21a6e7d](https://github.com/szTheory/rindle/commit/21a6e7db10db6b7514f1b2aea34d02f6c89ec74d))
+* **120-07:** trust generated doctor test exit ([2159ba3](https://github.com/szTheory/rindle/commit/2159ba3b4ff4fd40542d95ebd0f89622d790086f))
+* **120-07:** use generated doctor proof ([cc66128](https://github.com/szTheory/rindle/commit/cc66128c1bb8679d270348ddd71cf263ddcdd9cd))
+* **av:** support ffmpeg 9 frame extraction ([0d3d1db](https://github.com/szTheory/rindle/commit/0d3d1dbc87edbb61e187b129303dc2d5f715daaf))
+* **ci:** bound all apt-backed setup steps ([919ea02](https://github.com/szTheory/rindle/commit/919ea02d0576602b3b572290ba249569c507e2af))
+* **ci:** bound libvips apt installation ([224488e](https://github.com/szTheory/rindle/commit/224488e832a736fd1b5417f77af6a859f9fb174a))
+* **ci:** harden release and system-dependency retries ([17c662e](https://github.com/szTheory/rindle/commit/17c662e20c310f419b2d2b79ec56eeeb2820f3f9))
+* **ci:** isolate migration e2e databases ([61a6dc9](https://github.com/szTheory/rindle/commit/61a6dc9da51f50cd529c60b44f1548accc85b31d))
+* **ci:** move epipe stress off merge gate ([e520606](https://github.com/szTheory/rindle/commit/e520606e372f3e1506ffb525da8e4a52c04c1b64))
+* **ci:** move epipe stress off merge gate ([65e654f](https://github.com/szTheory/rindle/commit/65e654fb1a929f156d17b8af21db50da4e839eab))
+* **ci:** resolve current BtbN FFmpeg GPL release assets ([899d678](https://github.com/szTheory/rindle/commit/899d6787ddf8d48cfbbb0ca15a3f32c4a565be5b))
+* **ci:** resolve current BtbN FFmpeg release assets ([916ee0d](https://github.com/szTheory/rindle/commit/916ee0df0fd4eaec1151c502bf2f0a5f53a86406))
+* **ci:** resolve current stable ffmpeg asset ([128282d](https://github.com/szTheory/rindle/commit/128282d3bb6d7ff0cd3cd0789bd6ef7fc8acd413))
+* **ci:** retry transient release-please failures once ([2db24c3](https://github.com/szTheory/rindle/commit/2db24c33221c5964bae0bc3e312f5d916d224432))
+* clean cohort demo startup warnings ([af7a005](https://github.com/szTheory/rindle/commit/af7a00570829a931b4db19f54653e46da4ba1744))
+* **diagnostics:** resolve host Oban application ([fcd8066](https://github.com/szTheory/rindle/commit/fcd806685fa86445a4db203a7b338dee23f9ae94))
+* **install-smoke:** isolate focused MinIO scenarios ([ec3aae5](https://github.com/szTheory/rindle/commit/ec3aae5d85225dbdd43992f28a5d30e16fb8aea5))
+* **install-smoke:** repair legacy video upgrade ([0d9159d](https://github.com/szTheory/rindle/commit/0d9159d3c142e04a080064042166336cc6824a9b))
+* **install-smoke:** repair legacy video upgrade ([607561d](https://github.com/szTheory/rindle/commit/607561dacf11f74b72c770323014451f7934e7f6))
+* **release:** validate least-privilege token correctly ([07338c2](https://github.com/szTheory/rindle/commit/07338c24c5f0ccba47fbc9ea2487b317512b472f))
+* **release:** validate least-privilege token correctly ([4fdace9](https://github.com/szTheory/rindle/commit/4fdace94ae4f58619cf568f9be7d7559d1ce3ebc))
+* **test:** bootstrap host migrations ([090c8ec](https://github.com/szTheory/rindle/commit/090c8eca3b248fa0868ba3d12fc320761c1484f2))
 
 ## [0.3.2](https://github.com/szTheory/rindle/compare/rindle-v0.3.1...rindle-v0.3.2) (2026-06-30)
 
