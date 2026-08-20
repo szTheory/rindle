@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 6
-waived_count: 0
-fixed_count: 0
-total_count: 6
-last_updated: 2026-08-10T20:44:27.512Z
+open_count: 0
+waived_count: 2
+fixed_count: 9
+total_count: 11
+last_updated: 2026-08-20T20:59:01.237Z
 ---
 
 # Broken Windows Ledger
@@ -15,12 +15,17 @@ last_updated: 2026-08-10T20:44:27.512Z
 
 | id | phase | kind | file | line | description | status | reason | recorded_at | resolved_at |
 |----|-------|------|------|------|-------------|--------|--------|-------------|-------------|
-| 1 | 117 | deviation | .planning/STATE.md |  | Reconciled stale Phase 117 plan counter from four on-disk summaries. | open |  | 2026-08-09T02:52:51.780Z |  |
-| 2 | 119 | unrun-verify | test/rindle/ops/runtime_status_test.exs |  | Plan-level runtime/doctor verification is blocked by protected Phase 118 database fixtures missing public Rindle tables | open |  | 2026-08-10T02:00:44.512Z |  |
-| 3 | 119 | unrun-verify | examples/adoption_demo/e2e/ops-surfaces.spec.js |  | Supplemental ops browser proof is blocked before Playwright by protected Phase 118 demo fixtures missing rindle.media_attachments | open |  | 2026-08-10T02:06:46.584Z |  |
-| 4 | 120 | unrun-verify | scripts/ci/cohort_demo_smoke.sh |  | Authoritative Docker cold-start proof blocked before boot because Docker predefined address pools are exhausted. | open |  | 2026-08-10T03:58:36.554Z |  |
-| 5 | 120 | unrun-verify | test/install_smoke/generated_app_smoke_test.exs |  | Authoritative image-profile package gate was interrupted after phx.new --install stalled while generating the public compatibility consumer. | open |  | 2026-08-10T20:33:03.670Z |  |
-| 6 | 120 | deviation | test/install_smoke/docs_parity_test.exs |  | Formatted new docs-parity assertions after check-formatted failed. | open |  | 2026-08-10T20:44:27.512Z |  |
+| 1 | 117 | deviation | .planning/STATE.md |  | Reconciled stale Phase 117 plan counter from four on-disk summaries. | fixed |  | 2026-08-09T02:52:51.780Z | 2026-08-20T20:59:00.533Z |
+| 2 | 119 | unrun-verify | test/rindle/ops/runtime_status_test.exs |  | Plan-level runtime/doctor verification is blocked by protected Phase 118 database fixtures missing public Rindle tables | fixed |  | 2026-08-10T02:00:44.512Z | 2026-08-20T20:59:00.603Z |
+| 3 | 119 | unrun-verify | examples/adoption_demo/e2e/ops-surfaces.spec.js |  | Supplemental ops browser proof is blocked before Playwright by protected Phase 118 demo fixtures missing rindle.media_attachments | waived | Superseded by focused Phase 119 ownership verification and green exact-source Adoption E2E; this supplemental browser probe is not a release gate. | 2026-08-10T02:06:46.584Z | 2026-08-20T20:59:01.170Z |
+| 4 | 120 | unrun-verify | scripts/ci/cohort_demo_smoke.sh |  | Authoritative Docker cold-start proof blocked before boot because Docker predefined address pools are exhausted. | fixed |  | 2026-08-10T03:58:36.554Z | 2026-08-20T20:59:00.676Z |
+| 5 | 120 | unrun-verify | test/install_smoke/generated_app_smoke_test.exs |  | Authoritative image-profile package gate was interrupted after phx.new --install stalled while generating the public compatibility consumer. | fixed |  | 2026-08-10T20:33:03.670Z | 2026-08-20T20:59:00.747Z |
+| 6 | 120 | deviation | test/install_smoke/docs_parity_test.exs |  | Formatted new docs-parity assertions after check-formatted failed. | fixed |  | 2026-08-10T20:44:27.512Z | 2026-08-20T20:59:00.817Z |
+| 7 | 120 | deviation | test/install_smoke/docs_parity_test.exs |  | Scoped repeated diagnostic-order assertions to individual troubleshooting routes. | fixed |  | 2026-08-20T20:59:00.137Z | 2026-08-20T20:59:00.887Z |
+| 8 | 120 | unrun-verify | guides/release_publish.md |  | Release docs link checker has 45 pre-existing planning-artifact findings in unrelated docs. | waived | Pre-existing planning-artifact link findings are outside the 0.4.0 release surface; release docs parity, exact-source CI, and public verification passed. | 2026-08-20T20:59:00.238Z | 2026-08-20T20:59:01.237Z |
+| 9 | 120 | unrun-verify | examples/adoption_demo/test/rindle_migration_contract_test.exs | 11 | Cohort precommit blocked by inherited dirty schema fixture: public.media_assets already exists. | fixed |  | 2026-08-20T20:59:00.311Z | 2026-08-20T20:59:00.958Z |
+| 10 | 120 | unrun-verify | test/install_smoke/docs_parity_test.exs |  | mix ci blocked by unrelated pre-existing formatting drift. | fixed |  | 2026-08-20T20:59:00.386Z | 2026-08-20T20:59:01.027Z |
+| 11 | 120 | unrun-verify | scripts/install_smoke.sh |  | Broad packed/Cohort verification runner detached before final exit receipts; exact-SHA CI remains required. | fixed |  | 2026-08-20T20:59:00.462Z | 2026-08-20T20:59:01.101Z |
 
 ````json
 [
@@ -31,10 +36,10 @@ last_updated: 2026-08-10T20:44:27.512Z
     "file": ".planning/STATE.md",
     "line": null,
     "description": "Reconciled stale Phase 117 plan counter from four on-disk summaries.",
-    "status": "open",
+    "status": "fixed",
     "reason": "",
     "recorded_at": "2026-08-09T02:52:51.780Z",
-    "resolved_at": null
+    "resolved_at": "2026-08-20T20:59:00.533Z"
   },
   {
     "id": 2,
@@ -43,10 +48,10 @@ last_updated: 2026-08-10T20:44:27.512Z
     "file": "test/rindle/ops/runtime_status_test.exs",
     "line": null,
     "description": "Plan-level runtime/doctor verification is blocked by protected Phase 118 database fixtures missing public Rindle tables",
-    "status": "open",
+    "status": "fixed",
     "reason": "",
     "recorded_at": "2026-08-10T02:00:44.512Z",
-    "resolved_at": null
+    "resolved_at": "2026-08-20T20:59:00.603Z"
   },
   {
     "id": 3,
@@ -55,10 +60,10 @@ last_updated: 2026-08-10T20:44:27.512Z
     "file": "examples/adoption_demo/e2e/ops-surfaces.spec.js",
     "line": null,
     "description": "Supplemental ops browser proof is blocked before Playwright by protected Phase 118 demo fixtures missing rindle.media_attachments",
-    "status": "open",
-    "reason": "",
+    "status": "waived",
+    "reason": "Superseded by focused Phase 119 ownership verification and green exact-source Adoption E2E; this supplemental browser probe is not a release gate.",
     "recorded_at": "2026-08-10T02:06:46.584Z",
-    "resolved_at": null
+    "resolved_at": "2026-08-20T20:59:01.170Z"
   },
   {
     "id": 4,
@@ -67,10 +72,10 @@ last_updated: 2026-08-10T20:44:27.512Z
     "file": "scripts/ci/cohort_demo_smoke.sh",
     "line": null,
     "description": "Authoritative Docker cold-start proof blocked before boot because Docker predefined address pools are exhausted.",
-    "status": "open",
+    "status": "fixed",
     "reason": "",
     "recorded_at": "2026-08-10T03:58:36.554Z",
-    "resolved_at": null
+    "resolved_at": "2026-08-20T20:59:00.676Z"
   },
   {
     "id": 5,
@@ -79,10 +84,10 @@ last_updated: 2026-08-10T20:44:27.512Z
     "file": "test/install_smoke/generated_app_smoke_test.exs",
     "line": null,
     "description": "Authoritative image-profile package gate was interrupted after phx.new --install stalled while generating the public compatibility consumer.",
-    "status": "open",
+    "status": "fixed",
     "reason": "",
     "recorded_at": "2026-08-10T20:33:03.670Z",
-    "resolved_at": null
+    "resolved_at": "2026-08-20T20:59:00.747Z"
   },
   {
     "id": 6,
@@ -91,10 +96,70 @@ last_updated: 2026-08-10T20:44:27.512Z
     "file": "test/install_smoke/docs_parity_test.exs",
     "line": null,
     "description": "Formatted new docs-parity assertions after check-formatted failed.",
-    "status": "open",
+    "status": "fixed",
     "reason": "",
     "recorded_at": "2026-08-10T20:44:27.512Z",
-    "resolved_at": null
+    "resolved_at": "2026-08-20T20:59:00.817Z"
+  },
+  {
+    "id": 7,
+    "kind": "deviation",
+    "phase": "120",
+    "file": "test/install_smoke/docs_parity_test.exs",
+    "line": null,
+    "description": "Scoped repeated diagnostic-order assertions to individual troubleshooting routes.",
+    "status": "fixed",
+    "reason": "",
+    "recorded_at": "2026-08-20T20:59:00.137Z",
+    "resolved_at": "2026-08-20T20:59:00.887Z"
+  },
+  {
+    "id": 8,
+    "kind": "unrun-verify",
+    "phase": "120",
+    "file": "guides/release_publish.md",
+    "line": null,
+    "description": "Release docs link checker has 45 pre-existing planning-artifact findings in unrelated docs.",
+    "status": "waived",
+    "reason": "Pre-existing planning-artifact link findings are outside the 0.4.0 release surface; release docs parity, exact-source CI, and public verification passed.",
+    "recorded_at": "2026-08-20T20:59:00.238Z",
+    "resolved_at": "2026-08-20T20:59:01.237Z"
+  },
+  {
+    "id": 9,
+    "kind": "unrun-verify",
+    "phase": "120",
+    "file": "examples/adoption_demo/test/rindle_migration_contract_test.exs",
+    "line": 11,
+    "description": "Cohort precommit blocked by inherited dirty schema fixture: public.media_assets already exists.",
+    "status": "fixed",
+    "reason": "",
+    "recorded_at": "2026-08-20T20:59:00.311Z",
+    "resolved_at": "2026-08-20T20:59:00.958Z"
+  },
+  {
+    "id": 10,
+    "kind": "unrun-verify",
+    "phase": "120",
+    "file": "test/install_smoke/docs_parity_test.exs",
+    "line": null,
+    "description": "mix ci blocked by unrelated pre-existing formatting drift.",
+    "status": "fixed",
+    "reason": "",
+    "recorded_at": "2026-08-20T20:59:00.386Z",
+    "resolved_at": "2026-08-20T20:59:01.027Z"
+  },
+  {
+    "id": 11,
+    "kind": "unrun-verify",
+    "phase": "120",
+    "file": "scripts/install_smoke.sh",
+    "line": null,
+    "description": "Broad packed/Cohort verification runner detached before final exit receipts; exact-SHA CI remains required.",
+    "status": "fixed",
+    "reason": "",
+    "recorded_at": "2026-08-20T20:59:00.462Z",
+    "resolved_at": "2026-08-20T20:59:01.101Z"
   }
 ]
 ````
