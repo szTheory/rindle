@@ -95,7 +95,7 @@ defmodule Rindle.MixProject do
       # GCS adapter (optional — Rindle.Storage.GCS only loads when these are present)
       {:goth, "~> 1.4", optional: true},
       {:finch, "~> 0.21", optional: true},
-      {:gcs_signed_url, "~> 0.4.6", optional: true},
+      {:gcs_signed_url, "~> 0.6.0", optional: true},
 
       # Configuration validation
       {:nimble_options, "~> 1.1"},
