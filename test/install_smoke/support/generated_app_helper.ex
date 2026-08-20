@@ -439,11 +439,8 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       compile_prefix: Keyword.get(options, :compile_prefix, "rindle"),
       install_mode: install_mode,
       install_source: install_source(install_mode, package_root, network_version),
-      package_root_provenance: %{
-        path: package_root,
-        unpacked?: install_mode == :package,
-        repository_path_fallback?: false
-      },
+      package_root_provenance:
+        package_root_provenance(install_mode, generated_app_root, package_root),
       compile_exit_code: compile_result.exit_code,
       boot_exit_code: boot_result.exit_code,
       smoke_exit_code: smoke_result.exit_code,
@@ -2080,6 +2077,24 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
 
   defp install_mode(nil), do: :package
   defp install_mode(_network_version), do: :network
+
+  def package_root_provenance(:network, generated_app_root, _package_root) do
+    fetched_package_root = Path.join(generated_app_root, "deps/rindle")
+
+    %{
+      path: fetched_package_root,
+      unpacked?: File.dir?(fetched_package_root),
+      repository_path_fallback?: false
+    }
+  end
+
+  def package_root_provenance(:package, _generated_app_root, package_root) do
+    %{
+      path: package_root,
+      unpacked?: File.dir?(package_root),
+      repository_path_fallback?: false
+    }
+  end
 
   defp install_source(:package, package_root, _network_version), do: package_root
   defp install_source(:network, _package_root, network_version), do: "hex:#{network_version}"
