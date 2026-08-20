@@ -34,7 +34,7 @@
 - [x] **Phase 117: Prefix Routing Architecture** - Prove and deliver one explicit schema-routing model for all normal Rindle data paths. (completed 2026-08-08)
 - [x] **Phase 118: Isolated Migration & Safe Upgrade** - Provision `rindle` by default and give populated public installs a bounded move path. (completed 2026-08-09)
 - [x] **Phase 119: Ownership Boundaries & Diagnostics** - Keep Rindle and Oban schemas independent and make prefix faults actionable. (completed 2026-08-09)
-- [ ] **Phase 120: Adoption Proof & Release Truth** - Prove the 0.4.0 contract in generated apps, Cohort, documentation, and release artifacts.
+- [x] **Phase 120: Adoption Proof & Release Truth** - Prove the 0.4.0 contract in generated apps, Cohort, documentation, and release artifacts. (completed 2026-08-20)
 
 ## Phase Details
 
@@ -109,7 +109,7 @@ Plans:
   3. README, getting-started, migration API docs, upgrading guide, docs-parity tests, and 0.4.0 release notes agree on the breaking default, escape hatch, order of operations, permissions, downtime, and Oban ownership.
   4. Release verification demonstrates that packaged artifacts—not only the repository checkout—honor the documented isolation contract.
 
-**Plans**: 11 plans
+**Plans**: 14 plans
 
 Plans:
 **Wave 1**
@@ -142,7 +142,19 @@ Plans:
 
 **Wave 7** *(blocked on Wave 6 completion)*
 
-- [ ] 120-11-PLAN.md — rerun clean packed/Cohort proof and require honest exact-SHA release evidence
+- [x] 120-11-PLAN.md — rerun clean packed/Cohort proof and require honest exact-SHA release evidence
+
+**Wave 8** *(reconciles the split local/hosted evidence after Wave 7)*
+
+- [x] 120-12-PLAN.md — prove one current candidate locally and carry it through PR-first main/Release evidence
+
+**Wave 9** *(blocked on Wave 8 completion)*
+
+- [x] 120-13-PLAN.md — correct the Release Please 0.3.3 proposal through a parity-tested `Release-As: 0.4.0` commit
+
+**Wave 10** *(blocked on Wave 9 completion)*
+
+- [x] 120-14-PLAN.md — capture the human-authorized exact-SHA CI, protected Release, GitHub release, and Hex 0.4.0 evidence chain
 
 ## Progress
 
@@ -151,7 +163,7 @@ Plans:
 | 117. Prefix Routing Architecture | 5/5 | Complete    | 2026-08-08 |
 | 118. Isolated Migration & Safe Upgrade | 6/6 | Complete    | 2026-08-09 |
 | 119. Ownership Boundaries & Diagnostics | 5/5 | Complete    | 2026-08-09 |
-| 120. Adoption Proof & Release Truth | 1/6 | In Progress | - |
+| 120. Adoption Proof & Release Truth | 14/14 | Complete    | 2026-08-20 |
 
 ## Phases (shipped — collapsed history)
 
