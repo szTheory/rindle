@@ -2,16 +2,15 @@
 
 Rindle ships a **mountable, host-authenticated admin console** in the `rindle`
 package — `Rindle.Admin.Router.rindle_admin/2`. It is the operator UI for the
-media lifecycle: assets, upload sessions, variants/jobs, runtime health, and a
-small set of destructive and repair actions. The console follows the
+media lifecycle: assets, upload sessions, processing work, diagnostic health, and
+a small set of deliberate maintenance operations. The console follows the
 LiveDashboard / Oban Web pattern: you call one macro from an authenticated
 router scope and it expands to direct LiveView routes inside a `live_session`.
 
 > Adopters who do not want the console pay nothing. `phoenix_live_view` is an
 > optional dependency; without it the console modules compile away cleanly and
-> Rindle keeps its zero-cost posture. The console is the only new public surface
-> in this milestone — it reuses existing lifecycle facade verbs and adds no new
-> lifecycle semantics.
+> Rindle keeps its zero-cost posture. The console reuses existing lifecycle facade
+> verbs and adds no new lifecycle semantics.
 
 This guide covers:
 
@@ -19,8 +18,8 @@ This guide covers:
 - The optional `phoenix_live_view` dependency
 - Mounting with `Rindle.Admin.Router.rindle_admin/2`
 - Authentication and the production refusal rule
-- The eight console pages
-- Operator actions (destructive UX, typed confirmation, reused facade verbs)
+- The six console surfaces across eight routes
+- Maintenance operations (destructive UX, typed confirmation, reused facade verbs)
 - Self-contained assets and CSP / socket options
 - Optional-dependency compile-away behavior
 - Trying it locally via the Cohort demo at `/admin/rindle`
@@ -114,21 +113,21 @@ In short: do not deploy the console under a bare `pipe_through :browser` scope
 with no `:on_mount` guard and no `auth_guarded?: true`. Production will not let
 you.
 
-## 5. Pages
+## 5. Surfaces And Routes
 
 The mount expands to eight routes, relative to the mount path (`/admin/rindle`
 in the example above):
 
-| Route | LiveView | Purpose |
-| --- | --- | --- |
-| `/` | `HomeLive` | Console home / lifecycle overview |
-| `/assets` | `AssetsLive` (index) | Browse media assets |
-| `/assets/:id` | `AssetsLive` (show) | Asset detail, variants, attachments |
-| `/upload-sessions` | `UploadSessionsLive` (index) | Upload sessions list |
-| `/upload-sessions/:id` | `UploadSessionsLive` (show) | Upload session detail |
-| `/variants-jobs` | `VariantsJobsLive` | Variant state and job/processing context |
-| `/runtime-doctor` | `RuntimeDoctorLive` | Runtime health / doctor surface |
-| `/actions` | `ActionsLive` | Operator actions hub (see below) |
+| Surface | Route | LiveView | Purpose |
+| --- | --- | --- | --- |
+| `Overview` | `/` | `HomeLive` | Lifecycle health and the next diagnostic step |
+| `Assets` | `/assets` | `AssetsLive` (index) | Browse media assets |
+| `Assets` | `/assets/:id` | `AssetsLive` (show) | Asset detail, variants, attachments |
+| `Upload sessions` | `/upload-sessions` | `UploadSessionsLive` (index) | Upload sessions list |
+| `Upload sessions` | `/upload-sessions/:id` | `UploadSessionsLive` (show) | Upload session detail |
+| `Processing` | `/variants-jobs` | `VariantsJobsLive` | Variant state and job/processing context |
+| `Doctor` | `/runtime-doctor` | `RuntimeDoctorLive` | Runtime health and setup diagnostics |
+| `Maintenance` | `/actions` | `ActionsLive` | Guarded repair and erasure operations (see below) |
 
 Live updates reuse `Rindle.PubSub` and the existing `:asset` / `:variant` /
 `:upload_session` topics, so lifecycle changes reflect in the console without a
@@ -136,9 +135,10 @@ console-specific realtime channel. The reads behind these pages are composed
 internally and are not part of the public `Rindle` facade — they are an
 implementation detail of the console, not an adopter entrypoint.
 
-## 6. Operator Actions
+## 6. Maintenance After Diagnostics
 
-The `/actions` hub exposes a small set of guarded operations. Destructive
+Use `Overview`, `Processing`, and `Doctor` to understand the affected lifecycle
+state before opening `Maintenance`. The `/actions` route exposes a small set of guarded operations. Destructive
 actions require a **typed confirmation** (you type an explicit token before the
 action executes), and every action reuses an existing public facade or ops verb
 — the console adds no new lifecycle semantics:
@@ -152,7 +152,9 @@ action executes), and every action reuses an existing public facade or ops verb
 - **Quarantine triage** — read-only review of quarantined/problem rows.
 
 The console never invents a new deletion or lifecycle path. It is a UI over the
-same supported surfaces you would call from code or `mix rindle.*` tasks.
+same supported surfaces you would call from code or `mix rindle.*` tasks. Diagnostics
+remain read-only; destructive operations stay in `Maintenance` with their collateral
+preview and typed confirmation.
 
 ## 7. Assets, CSP, And Socket Options
 
@@ -206,7 +208,7 @@ end
 ```
 
 That puts the console at **`/admin/rindle`** (demo port `4102`). The full
-walkthrough — seeded assets, every lifecycle state, and the actions hub — lives
+walkthrough — seeded assets, every lifecycle state, and the `Maintenance` surface — lives
 in `examples/adoption_demo/README.md`. Remember that `allow_unauthenticated?:
 true` is a demo-only convenience: production requires real host auth as
 described in [section 4](#4-authentication-and-the-production-refusal-rule).
