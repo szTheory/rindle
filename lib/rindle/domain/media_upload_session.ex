@@ -96,6 +96,9 @@ defmodule Rindle.Domain.MediaUploadSession do
     |> foreign_key_constraint(:asset_id)
   end
 
+  @doc """
+  Redacts an upload-session URI before it is rendered or inspected.
+  """
   @spec redact_session_uri(nil | String.t()) :: nil | String.t()
   def redact_session_uri(nil), do: nil
   def redact_session_uri(session_uri) when is_binary(session_uri), do: "[REDACTED]"

@@ -202,7 +202,8 @@ defmodule Rindle.MixProject do
           Rindle.Storage.Local,
           Rindle.Storage.S3,
           Rindle.Storage.GCS,
-          Rindle.Processor.Image
+          Rindle.Processor.Image,
+          Rindle.Processor.AV
         ],
         Operations: [
           Mix.Tasks.Rindle.AbortIncompleteUploads,
