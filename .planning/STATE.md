@@ -4,7 +4,7 @@ milestone: v1.23
 milestone_name: Postgres Schema Isolation
 status: Awaiting next milestone
 stopped_at: Milestone v1.23 archived
-last_updated: "2026-08-20T21:18:39.741Z"
+last_updated: "2026-08-22T16:30:20-04:00"
 last_activity: 2026-08-20
 last_activity_desc: Milestone v1.23 completed and archived
 progress:
@@ -45,8 +45,8 @@ bounded diagnostics, and packed/Cohort/public-artifact proof.
 **Hard invariants (carry from v1.20/v1.21, highest blast radius):** never rename `ci.yml` / `name: CI`
 (release-train coupling via `release-please-automerge.yml` + `gate-ci-green`); `CI Summary` keeps
 `skipped`==pass and stays the sole required check; never weaken the release full-verification gate. The
-next release must also generalize the 0.4.0-specific release-docs parity state before changing the
-manifest version.
+release-docs parity test now derives the active version from the manifest while separately preserving
+the historical 0.4.0 contract; do not regress either side of that invariant.
 
 ## Next Step
 
