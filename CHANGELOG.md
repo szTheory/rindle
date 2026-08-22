@@ -2,6 +2,13 @@
 
 0.1.0-0.1.3 were release-pipeline shakedown iterations; treat 0.1.4 as the first recommended pin.
 
+## [0.4.2](https://github.com/szTheory/rindle/compare/rindle-v0.4.1...rindle-v0.4.2) (2026-08-22)
+
+
+### Bug Fixes
+
+* **ci:** reconcile nightly warning baseline ([#77](https://github.com/szTheory/rindle/issues/77)) ([586f7f2](https://github.com/szTheory/rindle/commit/586f7f2818e58887c3b1123be28e2f17076a8a14))
+
 ## [0.4.1](https://github.com/szTheory/rindle/compare/rindle-v0.4.0...rindle-v0.4.1) (2026-08-22)
 
 
