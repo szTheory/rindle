@@ -466,10 +466,14 @@ defmodule Rindle.Migration.V1 do
     rescue
       error in Postgrex.Error ->
         if lock_not_available?(error) do
-          raise ArgumentError,
-                "Rindle public-to-rindle migration could not acquire the required table lock; " <>
-                  "host relations were not touched. Next action: keep Rindle writers and workers " <>
-                  "quiesced, then retry the host migration."
+          reraise(
+            ArgumentError.exception(
+              "Rindle public-to-rindle migration could not acquire the required table lock; " <>
+                "host relations were not touched. Next action: keep Rindle writers and workers " <>
+                "quiesced, then retry the host migration."
+            ),
+            __STACKTRACE__
+          )
         else
           reraise error, __STACKTRACE__
         end

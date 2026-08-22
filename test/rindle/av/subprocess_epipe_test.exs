@@ -15,8 +15,12 @@ defmodule Rindle.AV.SubprocessEpipeTest do
   test "run_isolated absorbs a terminal :epipe and still returns the real {output, status}" do
     fake_port =
       case Port.list() do
-        [port | _] -> port
-        [] -> :erlang.open_port({:spawn, "true"}, [:binary])
+        [port | _] ->
+          port
+
+        [] ->
+          true_path = System.find_executable("true")
+          :erlang.open_port({:spawn_executable, true_path}, [:binary, args: []])
       end
 
     run_fun = fn _cmd, _args, _opts ->
