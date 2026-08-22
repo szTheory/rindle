@@ -90,8 +90,8 @@ defmodule Rindle.Capability do
   @doc """
   Returns the subset of `profiles` that opt into the `:streaming` delivery key.
 
-    Public seam used by `mix rindle.doctor`'s streaming checks as the single
-    source of truth for "is this profile streaming-enabled?". The
+  Public seam used by `mix rindle.doctor`'s streaming checks as the single
+  source of truth for "is this profile streaming-enabled?". The
   predicate is identity with the inner `report/0` filter — both call
   `streaming_config_for/1` via `delivery_policy/0`.
   """
@@ -106,9 +106,9 @@ defmodule Rindle.Capability do
   @doc """
   Returns the subset of `profiles` that select `Rindle.Storage.GCS` as their storage adapter.
 
-    Public seam used by `mix rindle.doctor`'s GCS checks as the single source of
-    truth for "is this profile GCS-enabled?". Mirrors
-    `configured_streaming_profiles/1` — both delegate from
+  Public seam used by `mix rindle.doctor`'s GCS checks as the single source of
+  truth for "is this profile GCS-enabled?". Mirrors
+  `configured_streaming_profiles/1` — both delegate from
   `runtime_checks.ex` so the doctor module never inlines profile-filter logic.
   """
   @spec configured_gcs_profiles([module()]) :: [module()]
