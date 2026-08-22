@@ -98,12 +98,31 @@ Populated during roadmap creation. Each v1.24 requirement maps to exactly one ph
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
+| SIGNAL-01 | Phase 121 | Pending |
+| SIGNAL-02 | Phase 121 | Pending |
+| SIGNAL-03 | Phase 121 | Pending |
+| SIGNAL-04 | Phase 121 | Pending |
+| SAFE-01 | Phase 121 | Pending |
+| CLARITY-01 | Phase 122 | Pending |
+| CLARITY-02 | Phase 122 | Pending |
+| CLARITY-03 | Phase 122 | Pending |
+| OPS-01 | Phase 123 | Pending |
+| OPS-02 | Phase 123 | Pending |
+| OPS-03 | Phase 123 | Pending |
+| UPLOAD-01 | Phase 124 | Pending |
+| UPLOAD-02 | Phase 124 | Pending |
+| TEST-01 | Phase 125 | Pending |
+| TEST-02 | Phase 125 | Pending |
+| TEST-03 | Phase 125 | Pending |
+| TEST-04 | Phase 125 | Pending |
+| TYPE-01 | Phase 126 | Pending |
+| TYPE-02 | Phase 126 | Pending |
 
 **Coverage:**
 - v1.24 requirements: 19 total
-- Mapped to phases: 0
-- Unmapped: 19
+- Mapped to phases: 19
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-08-22*
-*Last updated: 2026-08-22 after approved milestone scoping*
+*Last updated: 2026-08-22 after v1.24 roadmap creation (19/19 requirements mapped)*

@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v1.24
 milestone_name: Core Clarity & Quality Ratchet
 status: planning
-last_updated: "2026-08-22T21:16:28.807Z"
+last_updated: "2026-08-22T21:18:47Z"
 last_activity: 2026-08-22
 progress:
-  total_phases: 0
+  total_phases: 6
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -24,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-08-22 for v1.24)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-08-22 — Milestone v1.24 started
+Phase: 121 of 126 — Truthful Quality Signals & Mechanical Hygiene
+Plan: Not yet planned
+Status: Ready for planning
+Last activity: 2026-08-22 — v1.24 roadmap created; 19/19 requirements mapped
 
 ### v1.24 charter
 
@@ -54,8 +54,10 @@ the historical 0.4.0 contract; do not regress either side of that invariant.
 
 ## Next Step
 
-Define the v1.24 requirements and Phases 121–126, then execute the first truthful-signal slice PR-first
-from the green PR #80 baseline.
+Plan Phase 121, then execute its truthful-signal and mechanical-hygiene slice PR-first from the green
+PR #80 baseline. Signals and the SAFE-01 regression contract must land before the clarity and refactor
+phases; Phase 126 is intentionally last because Dialyzer retirement depends on the preceding code and
+test-support cleanup.
 
 ## Prior Milestone
 
@@ -134,6 +136,11 @@ the v1.22 requirements archive. Builds on the v1.22 `Rindle.Migration` substrate
 ## Decisions
 
 _(Key v1.22 execution decisions recorded at milestone close.)_
+
+- [Phase 121]: v1.24 roadmap order is locked: restore truthful signals and establish SAFE-01 first;
+  reconcile live truth and remove the schema compile cycle next; then decompose runtime operations,
+  upload paths, and test support; retire the curated Dialyzer baseline last. The whole milestone preserves
+  public API, schema/migration, telemetry, error-shape, CI/release, and supported behavior contracts.
 
 - [Phase 113]: EVAL-01 — v1.22-OSS-QUALITY-EVAL.md authored; weakness→closing-phase column mapped byte-faithful to REQUIREMENTS.md (governance→114, versioning/README→115, host-respect→116, schema-flip→v1.23 ISO23); scores lifted from SEED-005, not re-derived.
 - [Phase 113]: HYGIENE-02 — SEED-003/004 frontmatter corrected status: open→consumed with consumed:/consumed_by: attribution (D-14).
