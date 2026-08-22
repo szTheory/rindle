@@ -2,6 +2,16 @@
 
 0.1.0-0.1.3 were release-pipeline shakedown iterations; treat 0.1.4 as the first recommended pin.
 
+## [0.4.1](https://github.com/szTheory/rindle/compare/rindle-v0.4.0...rindle-v0.4.1) (2026-08-22)
+
+
+### Bug Fixes
+
+* **ci:** reconcile nightly and dependency baseline ([#67](https://github.com/szTheory/rindle/issues/67)) ([8c54617](https://github.com/szTheory/rindle/commit/8c54617b15c4fb374150ab2212db31cdfec40332))
+* **ci:** reconcile release and subprocess baseline ([#70](https://github.com/szTheory/rindle/issues/70)) ([093e2f1](https://github.com/szTheory/rindle/commit/093e2f139892fb3b6de2d074b54cf7a2e3e15067))
+* **install-smoke:** report fetched network package provenance ([#62](https://github.com/szTheory/rindle/issues/62)) ([0973f24](https://github.com/szTheory/rindle/commit/0973f2433b14f307f44acc747ebe1a1d3101dc62))
+* **release:** trigger automerge from release PR CI ([#73](https://github.com/szTheory/rindle/issues/73)) ([151a4e6](https://github.com/szTheory/rindle/commit/151a4e69e815db18ed92a466d12da181a4431c91))
+
 ## [0.4.0](https://github.com/szTheory/rindle/compare/rindle-v0.3.2...rindle-v0.4.0) (2026-08-20)
 
 ### Breaking schema-isolation default
