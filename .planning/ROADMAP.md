@@ -110,11 +110,11 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
   2. Current maintainer and adopter documentation accurately describes implemented CI lanes, support posture, Admin navigation labels, and shipped tus and streaming behavior without forward-looking claims that are no longer true.
   3. Contributors can compile and inspect the project without the `Rindle.Schema` seven-module cycle, while public schema ownership and prefix behavior remain byte-for-byte compatible.
 
-**Plans**: 5 plans
+**Plans**: 1/5 plans executed
 
 **Wave 1 — compile truth**
 
-- [ ] 122-01-PLAN.md — Remove the schema compile cycle and compose objective xref proof into SAFE-01.
+- [x] 122-01-PLAN.md — Remove the schema compile cycle and compose objective xref proof into SAFE-01.
 
 **Wave 2 — bounded live truth** *(blocked on Wave 1)*
 
@@ -182,7 +182,7 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 121. Truthful Quality Signals & Mechanical Hygiene | 7/7 | Complete    | 2026-08-22 |
-| 122. Live Truth & Compile Clarity | 0/5 | Planned | - |
+| 122. Live Truth & Compile Clarity | 1/5 | In Progress|  |
 | 123. Runtime Operations Decomposition | 0/TBD | Not started | - |
 | 124. Upload Path Clarity | 0/TBD | Not started | - |
 | 125. Behavioral Test Support | 0/TBD | Not started | - |

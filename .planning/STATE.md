@@ -4,16 +4,16 @@ milestone: v1.24
 milestone_name: Core Clarity & Quality Ratchet
 current_phase: 122
 current_phase_name: Live Truth & Compile Clarity
-status: planning
-stopped_at: Phase 121 verified complete; Phase 122 ready to plan
-last_updated: "2026-08-22T22:56:55.713Z"
+status: executing
+stopped_at: Completed 122-01-PLAN.md
+last_updated: "2026-08-22T23:52:21.211Z"
 last_activity: 2026-08-22
 last_activity_desc: Phase 121 complete, transitioned to Phase 122
 progress:
   total_phases: 6
   completed_phases: 1
-  total_plans: 7
-  completed_plans: 7
+  total_plans: 12
+  completed_plans: 8
 ---
 
 # Project State
@@ -28,9 +28,9 @@ See: .planning/PROJECT.md (updated 2026-08-22 for v1.24)
 ## Current Position
 
 Phase: 122 — Live Truth & Compile Clarity
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-08-22 — Phase 121 complete, transitioned to Phase 122
+Plan: 2 of 5
+Status: In progress
+Last activity: 2026-08-22 — Completed 122-01 schema compile-clarity plan
 
 ### v1.24 charter
 
@@ -181,6 +181,7 @@ _(Key v1.22 execution decisions recorded at milestone close.)_
 - [Phase ?]: Release Please must promote the sole Unreleased / 0.4.0 staging block into generated [0.4.0] notes and remove the marker.
 - [Phase ?]: Exact-SHA CI and Release workflow gates authorize 0.4.0; local package/demo/Cohort checks remain diagnostic.
 - [Phase ?]: Phase 120 Plan 10: generated reports no longer project host migration provenance as Oban evidence; complete catalog snapshot equality is the sole preservation decision.
+- [Phase 122]: Rindle.Schema uses a closed canonical caller-name allowlist with fail-closed validation, removing reverse compile references while retaining macro, prefix, and callback contracts.
 
 ## Blockers/Concerns
 
@@ -198,8 +199,8 @@ _(none open for v1.23 closeout)_
 
 ## Session Continuity
 
-Last session: 2026-08-20
-Stopped at: Milestone v1.23 archived
+Last session: 2026-08-22T23:52:21.206Z
+Stopped at: Completed 122-01-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -237,6 +238,7 @@ Resume file: None
 | Phase 120 P03 | 8m | 3 tasks | 12 files |
 | Phase 120 P06 | 4h 18m | 2 tasks | 3 files |
 | Phase 120 P10 | 8m | 1 tasks | 2 files |
+| Phase 122 P01 | 12 min | 2 tasks | 4 files |
 
 ## Operator Next Steps
 

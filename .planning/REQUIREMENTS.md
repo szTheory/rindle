@@ -30,7 +30,7 @@
   lanes, support posture, Admin navigation labels, and shipped tus/streaming state without stale
   forward references.
 
-- [ ] **CLARITY-03**: Contributors can compile and inspect the project without the `Rindle.Schema`
+- [x] **CLARITY-03**: Contributors can compile and inspect the project without the `Rindle.Schema`
   seven-module compile cycle, while schema ownership and prefix behavior remain byte-for-byte
   compatible at public boundaries.
 
@@ -117,7 +117,7 @@ Populated during roadmap creation. Each v1.24 requirement maps to exactly one ph
 | SAFE-01 | Phase 121 | Complete |
 | CLARITY-01 | Phase 122 | Pending |
 | CLARITY-02 | Phase 122 | Pending |
-| CLARITY-03 | Phase 122 | Pending |
+| CLARITY-03 | Phase 122 | Complete |
 | OPS-01 | Phase 123 | Pending |
 | OPS-02 | Phase 123 | Pending |
 | OPS-03 | Phase 123 | Pending |
