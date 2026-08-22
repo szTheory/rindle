@@ -2,7 +2,7 @@ defmodule Rindle.Schema do
   @moduledoc false
 
   @supported_prefixes ["rindle", "public"]
-  @owned_schema_modules [
+  @owned_schema_names [
     "Elixir.Rindle.Domain.MediaAsset",
     "Elixir.Rindle.Domain.MediaAttachment",
     "Elixir.Rindle.Domain.MediaProcessingRun",
@@ -77,8 +77,8 @@ defmodule Rindle.Schema do
           "expected :rindle_prefix to be one of \"rindle\" or \"public\", got: #{inspect(prefix)}"
   end
 
-  defp validate_owned_schema!(module) when is_atom(module) do
-    if Atom.to_string(module) in @owned_schema_modules,
+  defp validate_owned_schema!(module) do
+    if is_atom(module) and Atom.to_string(module) in @owned_schema_names,
       do: :ok,
       else: reject_unsupported_schema!(module)
   end
