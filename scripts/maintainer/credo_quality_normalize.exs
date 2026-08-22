@@ -2,7 +2,7 @@ defmodule Rindle.CredoQualityNormalize do
   @identity_keys ["check", "file", "trigger", "observed_metric"]
 
   def run([kind]) do
-    input = IO.read(:stdio, :all) |> Jason.decode!()
+    input = IO.read(:stdio, :eof) |> Jason.decode!()
 
     normalized =
       case kind do

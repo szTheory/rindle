@@ -9,7 +9,9 @@ defmodule Rindle.InstallSmoke.QualitySignalPolicyTest do
     {:ok, %{workflow: YamlElixir.read_from_file!(@ci_path), mix: File.read!(@mix_path)}}
   end
 
-  test "deterministic quality signals block through the existing Quality carrier", %{workflow: workflow} do
+  test "deterministic quality signals block through the existing Quality carrier", %{
+    workflow: workflow
+  } do
     assert_required_step!(
       workflow,
       "quality",
@@ -41,12 +43,19 @@ defmodule Rindle.InstallSmoke.QualitySignalPolicyTest do
     assert index_of(names, "Install FFmpeg") < index_of(names, "Run focused AV behavior tests")
   end
 
-  test "runtime doctor and full-tree Credo style remain visible advisory checks", %{workflow: workflow} do
-    assert step(workflow, "quality", "Verify AV runtime with public doctor task")["continue-on-error"]
+  test "runtime doctor and full-tree Credo style remain visible advisory checks", %{
+    workflow: workflow
+  } do
+    assert step(workflow, "quality", "Verify AV runtime with public doctor task")[
+             "continue-on-error"
+           ]
+
     assert step(workflow, "quality", "Credo (strict, advisory style)")["continue-on-error"]
   end
 
-  test "Contract carries deterministic contract tests and SAFE-01 without masking", %{workflow: workflow} do
+  test "Contract carries deterministic contract tests and SAFE-01 without masking", %{
+    workflow: workflow
+  } do
     assert_required_step!(
       workflow,
       "contract",
@@ -69,8 +78,10 @@ defmodule Rindle.InstallSmoke.QualitySignalPolicyTest do
     assert summary["name"] == "CI Summary"
     assert "quality" in summary["needs"]
     assert "contract" in summary["needs"]
+
     assert step(workflow, "ci-summary", "Evaluate gating job results")["run"] ==
              "bash scripts/ci/eval_ci_summary.sh"
+
     refute "package-consumer-full" in summary["needs"]
   end
 
@@ -86,8 +97,10 @@ defmodule Rindle.InstallSmoke.QualitySignalPolicyTest do
 
     ci = alias_block(mix, "ci")
     assert ci =~ "\"quality_signals\""
+
     assert index_of(String.split(ci, "\n"), "        \"quality_signals\",") <
              index_of(String.split(ci, "\n"), "        \"test\"")
+
     assert length(Regex.scan(~r/\"test\"/, ci)) == 1
   end
 

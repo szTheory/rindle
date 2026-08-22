@@ -133,13 +133,18 @@ defmodule Rindle.CredoPolicyTest do
     |> Keyword.fetch!(:groups_for_modules)
     |> Keyword.values()
     |> List.flatten()
-    |> Enum.map(fn module ->
-      module
-      |> Module.split()
-      |> Enum.map_join("/", &Macro.underscore/1)
-      |> then(&"lib/#{&1}.ex")
-    end)
+    |> Enum.map(&source_file!/1)
     |> Enum.sort()
+  end
+
+  defp source_file!(module) do
+    assert Code.ensure_loaded?(module), "expected #{inspect(module)} to be compiled"
+
+    module
+    |> apply(:module_info, [:compile])
+    |> Keyword.fetch!(:source)
+    |> List.to_string()
+    |> Path.relative_to(@repo_root)
   end
 
   defp baseline_entries do

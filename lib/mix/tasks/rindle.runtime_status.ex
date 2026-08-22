@@ -68,6 +68,7 @@ defmodule Mix.Tasks.Rindle.RuntimeStatus do
   end
 
   @doc false
+  @spec format_error(term()) :: String.t()
   def format_error({:setup_incomplete, :rindle_schema}) do
     "Rindle.RuntimeStatus failed: setup_incomplete rindle_schema; no report queries ran. Run `mix rindle.doctor`, then apply a host migration that calls `Rindle.Migration.up(version: 1)` and rerun `mix ecto.migrate`."
   end
@@ -101,6 +102,7 @@ defmodule Mix.Tasks.Rindle.RuntimeStatus do
       "Rindle.RuntimeStatus failed: unknown; no report queries ran. Run `mix rindle.doctor` before retrying."
 
   @doc false
+  @spec format_json_error(term()) :: map()
   def format_json_error(reason) do
     %{status: "error"}
     |> Map.merge(error_details(reason))
@@ -174,6 +176,7 @@ defmodule Mix.Tasks.Rindle.RuntimeStatus do
   defp atom_string(_value), do: nil
 
   @doc false
+  @spec format_text_report(Rindle.Ops.RuntimeStatus.report()) :: [String.t()]
   def format_text_report(report) do
     [
       "Rindle: runtime status report...",
@@ -244,6 +247,7 @@ defmodule Mix.Tasks.Rindle.RuntimeStatus do
   end
 
   @doc false
+  @spec format_provider_findings([map()]) :: [String.t()]
   def format_provider_findings([]), do: ["Provider asset findings:", "  none"]
 
   def format_provider_findings(findings) do

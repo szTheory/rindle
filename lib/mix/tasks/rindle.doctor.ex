@@ -57,6 +57,7 @@ defmodule Mix.Tasks.Rindle.Doctor do
   end
 
   @doc false
+  @spec run_checks([String.t()], keyword()) :: Rindle.Ops.RuntimeChecks.report()
   def run_checks(args, opts \\ []) do
     shell = Keyword.get(opts, :shell, Mix.shell())
     mix_app = Keyword.get(opts, :mix_app, Mix.Project.config()[:app])

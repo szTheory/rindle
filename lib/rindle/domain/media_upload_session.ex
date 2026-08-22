@@ -106,6 +106,7 @@ defmodule Rindle.Domain.MediaUploadSession do
 end
 
 defimpl Inspect, for: Rindle.Domain.MediaUploadSession do
+  @impl Inspect
   def inspect(session, opts) do
     redacted = %{
       session

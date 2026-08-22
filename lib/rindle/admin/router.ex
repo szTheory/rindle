@@ -34,8 +34,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) and Code.ensure_loaded?(Phoenix.Router)
         "favicon.svg" => "image/svg+xml"
       }
 
+      @spec init(String.t()) :: String.t()
       def init(file), do: file
 
+      @spec call(Plug.Conn.t(), String.t()) :: Plug.Conn.t()
       def call(conn, file) when is_binary(file) and is_map_key(@content_types, file) do
         path = Path.join([:code.priv_dir(:rindle), "static", "rindle_admin", file])
 
