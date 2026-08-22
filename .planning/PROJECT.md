@@ -19,9 +19,10 @@ separately from the frozen package source.
 
 **Prior milestone:** v1.22 OSS Quality & Trust Hardening — shipped and archived 2026-07-02.
 
-**Open planning debt:** Before the next release, generalize
-`test/install_smoke/release_docs_parity_test.exs` so its historical 0.4.0 contract remains enforced
-without rejecting every later valid manifest version (Phase 120 review WR-01).
+**Resolved planning debt:** Post-v1.23 cleanup generalized
+`test/install_smoke/release_docs_parity_test.exs` so the active package, manifest, and generated
+changelog version must agree while the historical 0.4.0 schema-isolation contract remains enforced
+(Phase 120 review WR-01; cleanup PR #68).
 
 ## Last Milestone: v1.23 Postgres Schema Isolation — shipped 2026-08-20
 
@@ -475,8 +476,9 @@ signed dynamic transforms, EXIF privacy stripping.
 fixed-catalog migration path for fresh and populated installs, separately owned Oban diagnostics, and
 packed-adopter/Cohort/release proof. The milestone changed 176 files across its implementation range
 (19,997 insertions, 623 deletions) and closed with exact-source CI, protected release binding, and a
-fresh public Hex artifact verification. The only release-planning follow-up is to generalize the
-manifest-state-specific release-docs parity test before a future package version.
+fresh public Hex artifact verification. Post-milestone cleanup resolved its release-planning follow-up:
+the release-docs parity test now accepts future aligned manifest versions while preserving the 0.4.0
+historical contract.
 
 **v1.6 result:** Rindle ships a real streaming provider contract with Mux as
 the single reference adapter — the v1.4-reserved `streaming_url/3` seam now
@@ -834,4 +836,4 @@ This document evolves at phase transitions and milestone boundaries.
    (`workflow.milestone_boundary.block_feature_milestone_without_signal`)
 
 ---
-*Last updated: 2026-08-20 after archiving v1.23 and publicly verifying rindle 0.4.0.*
+*Last updated: 2026-08-22 after post-v1.23 cleanup and public rindle 0.4.2 verification.*

@@ -60,9 +60,9 @@ the wire until a qualifying signal exists:
 - **LIFE-06** — a compliance/legal ticket for force-deleting still-shared assets, or
 - **STREAM-10** — a named adopter for a second streaming provider.
 
-Before the next legitimate package release, generalize
-`test/install_smoke/release_docs_parity_test.exs` so its 0.4.0 historical contract remains enforced
-without rejecting future valid manifest versions.
+Resolved in post-v1.23 cleanup: `test/install_smoke/release_docs_parity_test.exs` now derives the active
+version from the release manifest, requires `mix.exs` and the generated changelog heading to agree, and
+separately preserves the historical 0.4.0 schema-isolation contract (cleanup PR #68).
 
 ## Deferred to a Demand-Gated Milestone
 
@@ -78,4 +78,4 @@ without rejecting future valid manifest versions.
 _(empty — no open backlog items)_
 
 ---
-*Last updated: 2026-08-20 — shipped and archived **v1.23 Postgres Schema Isolation** (Phases 117–120, 30 plans, 12/12 requirements, audit passed). No active milestone; release-train maintenance and demand-gated pause are the default.*
+*Last updated: 2026-08-22 — reconciled the completed post-v1.23 cleanup through public rindle 0.4.2. No active milestone; release-train maintenance and demand-gated pause remain the default.*
