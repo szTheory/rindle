@@ -32,7 +32,7 @@ jobs:
     name: Detect release-train drift
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           # The predicate resolves the last `rindle-v*` tag, so the clone needs
           # full history + tags.
@@ -78,13 +78,43 @@ jobs:
 
       - name: Open or update drift issue
         if: ${{ steps.check.outputs.drift == 'true' && github.event_name == 'schedule' }}
-        uses: JasonEtco/create-an-issue@1b14a70e4d8dc185e5cc76d3bec9eab20257b2c5 # v2.9.2
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          update_existing: true
-          search_existing: open
-          filename: .github/ISSUE_TEMPLATE/release-train-drift.md
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          issue_title='Release train drift: main ahead of last rindle-v* tag with no open release PR'
+          body_file="$(mktemp)"
+          trap 'rm -f "$body_file"' EXIT
+
+          awk '
+            /^---$/ { frontmatter_delimiters++; next }
+            frontmatter_delimiters >= 2 { print }
+          ' .github/ISSUE_TEMPLATE/release-train-drift.md |
+            sed "s#{{ env.GITHUB_SERVER_URL }}/{{ env.GITHUB_REPOSITORY }}/actions/runs/{{ env.GITHUB_RUN_ID }}#${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}#g" \
+              > "$body_file"
+
+          issue_number="$(gh issue list --state open \
+            --search "in:title \"${issue_title}\"" \
+            --json number --jq '.[0].number // empty')"
+
+          if [ -n "$issue_number" ]; then
+            gh issue edit "$issue_number" \
+              --title "$issue_title" \
+              --body-file "$body_file" \
+              --add-label 'area:release' \
+              --add-label 'severity:drift' \
+              --add-assignee szTheory
+            echo "Updated drift issue #${issue_number}."
+          else
+            gh issue create \
+              --title "$issue_title" \
+              --body-file "$body_file" \
+              --label 'area:release' \
+              --label 'severity:drift' \
+              --assignee szTheory
+          fi
 
       - name: Close drift issue on recovery
         if: ${{ steps.check.outputs.drift == 'false' }}

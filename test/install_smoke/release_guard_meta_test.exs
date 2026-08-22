@@ -57,13 +57,19 @@ defmodule Rindle.InstallSmoke.ReleaseGuardMetaTest do
   # ------------------------------------------------------------------
   # D-06a: the release-train drift guard ships and is wired.
   # ------------------------------------------------------------------
-  test "D-06a: release-train-drift.yml ships, runs on cron + dispatch, least-privilege, JasonEtco-wired",
+  test "D-06a: release-train-drift.yml ships, runs on cron + dispatch, least-privilege, and self-files",
        %{drift: drift} do
     assert drift =~ "name: Release Train Drift Check",
            "release-train-drift.yml must carry its stable workflow name (D-06a)"
 
-    assert drift =~ "JasonEtco/create-an-issue",
-           "release-train-drift.yml must open/update the rolling issue via JasonEtco/create-an-issue (D-06a)"
+    assert drift =~ "gh issue create",
+           "release-train-drift.yml must create the rolling issue with the runner-native GitHub CLI (D-06a)"
+
+    assert drift =~ "gh issue edit",
+           "release-train-drift.yml must update an existing rolling issue instead of filing duplicates (D-06a)"
+
+    refute drift =~ "JasonEtco/create-an-issue",
+           "release-train-drift.yml must not depend on the retired Node 20 issue action"
 
     assert drift =~ "schedule:",
            "release-train-drift.yml must run on a `schedule` cron (D-06a)"
