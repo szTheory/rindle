@@ -125,6 +125,7 @@ defmodule Rindle.MixProject do
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:doctor, "~> 0.22.0", only: [:dev, :test], runtime: false},
       {:mix_audit, "~> 2.1", only: [:dev, :test], runtime: false},
+      {:yaml_elixir, "~> 2.12", only: :test},
       {:excoveralls, "~> 0.18", only: [:test, :dev], runtime: false},
       json_polyfill_dep(),
       {:ex_doc, "~> 0.40", only: :dev, runtime: false}
