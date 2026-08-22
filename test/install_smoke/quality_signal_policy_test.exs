@@ -58,6 +58,13 @@ defmodule Rindle.InstallSmoke.QualitySignalPolicyTest do
   } do
     contract_step_names = workflow |> steps("contract") |> Enum.map(&Map.get(&1, "name"))
 
+    assert_required_step!(
+      workflow,
+      "contract",
+      "Install FFmpeg",
+      "bash scripts/ci/install_ffmpeg.sh"
+    )
+
     assert index_of(contract_step_names, "Install FFmpeg") <
              index_of(contract_step_names, "Run contract tests")
 

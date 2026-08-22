@@ -219,13 +219,12 @@ Run `mix rindle.doctor` in the build or pre-deploy command.
 
 ### GitHub Actions
 
-Use `FedericoCarboni/setup-ffmpeg` so CI exercises the same runtime posture:
+Use the repository installer so CI resolves a stable static build and validates
+the required FFmpeg major version:
 
 ```yaml
 - name: Install FFmpeg
-  uses: FedericoCarboni/setup-ffmpeg@v3
-  with:
-    ffmpeg-version: 6.0
+  run: bash scripts/ci/install_ffmpeg.sh
 
 - name: Verify Rindle runtime
   run: mix rindle.doctor
