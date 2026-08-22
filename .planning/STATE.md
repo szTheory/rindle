@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.24
 milestone_name: Core Clarity & Quality Ratchet
-status: planning
-last_updated: "2026-08-22T21:18:47Z"
+status: ready_to_execute
+last_updated: "2026-08-22T21:53:00Z"
 last_activity: 2026-08-22
 progress:
   total_phases: 6
   completed_phases: 0
-  total_plans: 0
+  total_plans: 7
   completed_plans: 0
   percent: 0
 ---
@@ -25,9 +25,9 @@ See: .planning/PROJECT.md (updated 2026-08-22 for v1.24)
 ## Current Position
 
 Phase: 121 of 126 — Truthful Quality Signals & Mechanical Hygiene
-Plan: Not yet planned
-Status: Ready for planning
-Last activity: 2026-08-22 — v1.24 roadmap created; 19/19 requirements mapped
+Plan: 0 of 7
+Status: Ready to execute
+Last activity: 2026-08-22 — Phase 121 planned and checker-verified; 7 plans across 3 waves
 
 ### v1.24 charter
 
@@ -54,9 +54,9 @@ the historical 0.4.0 contract; do not regress either side of that invariant.
 
 ## Next Step
 
-Plan Phase 121, then execute its truthful-signal and mechanical-hygiene slice PR-first from the green
-PR #80 baseline. Signals and the SAFE-01 regression contract must land before the clarity and refactor
-phases; Phase 126 is intentionally last because Dialyzer retirement depends on the preceding code and
+Execute Phase 121's truthful-signal and mechanical-hygiene slice PR-first from the green PR #80
+baseline. Signals and the SAFE-01 regression contract must land before the clarity and refactor phases;
+Phase 126 is intentionally last because Dialyzer retirement depends on the preceding code and
 test-support cleanup.
 
 ## Prior Milestone

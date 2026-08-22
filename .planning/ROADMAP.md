@@ -78,7 +78,20 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
   3. Credo blocks actionable warnings, complexity/nesting, and public docs/spec drift while explicitly retaining only low-value style preferences as advisory.
   4. Mechanically proven residue and recurrence-prone root lint outputs are removed or narrowly ignored without deleting unique audit, historical, debug, or maintainer evidence.
   5. Every subsequent refactor slice has a runnable regression contract proving unchanged public signatures, schema/migration behavior, telemetry names and metadata, error shapes, and supported CI/release invariants.
-**Plans**: TBD
+**Plans**: 7 plans
+
+**Wave 1**
+- [ ] 121-01-PLAN.md — Establish the SAFE-01 refactor regression contract.
+- [ ] 121-02-PLAN.md — Restore deterministic Contract truth and select real AV proof.
+- [ ] 121-03-PLAN.md — Enforce measured public Doctor coverage.
+- [ ] 121-04-PLAN.md — Clear the actionable Credo warning baseline mechanically.
+- [ ] 121-05-PLAN.md — Lock exact-file, tracked-safe repository cleanup.
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 121-06-PLAN.md — Add the curated Credo aggregate and stable debt inventory.
+
+**Wave 3** *(blocked on Waves 1–2 completion)*
+- [ ] 121-07-PLAN.md — Wire truthful gates into CI Summary and local workflows.
 
 ### Phase 122: Live Truth & Compile Clarity
 **Goal**: Current code, tests, and maintainer/adopter documentation accurately describe shipped behavior, and contributors can compile without the internal schema cycle.
@@ -133,7 +146,7 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 121. Truthful Quality Signals & Mechanical Hygiene | 0/TBD | Ready for planning | - |
+| 121. Truthful Quality Signals & Mechanical Hygiene | 0/7 | Ready to execute | - |
 | 122. Live Truth & Compile Clarity | 0/TBD | Not started | - |
 | 123. Runtime Operations Decomposition | 0/TBD | Not started | - |
 | 124. Upload Path Clarity | 0/TBD | Not started | - |
