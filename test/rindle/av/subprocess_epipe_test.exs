@@ -94,6 +94,47 @@ defmodule Rindle.AV.SubprocessEpipeTest do
     assert Agent.get(counter, & &1) == 2
   end
 
+  @tag :regression
+  @tag :av
+  test "run_isolated retries MuonTrap's port-close timeout race once" do
+    {:ok, counter} = Agent.start_link(fn -> 0 end)
+
+    run_fun = fn _cmd, _args, _opts ->
+      n = Agent.get_and_update(counter, fn count -> {count, count + 1} end)
+
+      if n == 0 do
+        exit({%ArgumentError{}, [{:erlang, :port_close, [], []}]})
+      else
+        {"OK", 0}
+      end
+    end
+
+    assert {"OK", 0} =
+             Subprocess.run_isolated("ffmpeg", [], [timeout: 10], 1, run_fun)
+
+    assert Agent.get(counter, & &1) == 2
+  end
+
+  @tag :regression
+  @tag :av
+  test "run_isolated returns a bounded timeout when the port-close retry is exhausted" do
+    run_fun = fn _cmd, _args, _opts ->
+      exit({:badarg, [{:erlang, :port_close, 1, []}]})
+    end
+
+    assert {"", :timeout} =
+             Subprocess.run_isolated("ffmpeg", [], [timeout: 10], 1, run_fun)
+  end
+
+  @tag :regression
+  @tag :av
+  test "run_isolated still fails loudly for unrelated worker exceptions" do
+    run_fun = fn _cmd, _args, _opts -> exit(%ArgumentError{message: "unrelated"}) end
+
+    assert catch_exit(Subprocess.run_isolated("ffmpeg", [], [timeout: 10], 1, run_fun)) ==
+             %ArgumentError{message: "unrelated"}
+  end
+
   # (3) Real-subprocess stress — advisory-only because it deliberately amplifies
   # a probabilistic OS race. The deterministic synthetic tests above remain in
   # the merge gate; nightly opts this probe back in alongside the raw canary.

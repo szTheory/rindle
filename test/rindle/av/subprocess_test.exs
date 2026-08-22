@@ -76,6 +76,7 @@ defmodule Rindle.AV.SubprocessTest do
     test "omits cgroups in test env by default" do
       opts = Subprocess.build_opts([])
       refute Keyword.has_key?(opts, :cgroup_base)
+      assert opts[:timeout] == 15_000
     end
   end
 end

@@ -33,6 +33,14 @@ defmodule Rindle.InstallSmoke.ReleaseGuardMetaTest do
                          "../../.github/ISSUE_TEMPLATE/release-train-drift.md",
                          __DIR__
                        )
+  @progress_guard_path Path.expand(
+                         "../../scripts/maintainer/check_release_please_progress.sh",
+                         __DIR__
+                       )
+  @label_reconcile_path Path.expand(
+                          "../../scripts/maintainer/reconcile_release_please_label.sh",
+                          __DIR__
+                        )
 
   setup_all do
     {:ok,
@@ -40,7 +48,9 @@ defmodule Rindle.InstallSmoke.ReleaseGuardMetaTest do
        ci: File.read!(@ci_path),
        release: File.read!(@release_path),
        drift: File.read!(@drift_path),
-       drift_template: File.read!(@drift_template_path)
+       drift_template: File.read!(@drift_template_path),
+       progress_guard: File.read!(@progress_guard_path),
+       label_reconcile: File.read!(@label_reconcile_path)
      }}
   end
 
@@ -150,6 +160,32 @@ defmodule Rindle.InstallSmoke.ReleaseGuardMetaTest do
 
     refute release_please_job =~ "mix hex.publish",
            "the retry must remain isolated from the protected Hex publish path"
+  end
+
+  test "Release Please fails closed when a stale merged pending PR suppresses progress", %{
+    release: release,
+    progress_guard: progress_guard
+  } do
+    assert release =~ "bash scripts/maintainer/check_release_please_progress.sh"
+    assert progress_guard =~ "releasable_commits"
+    assert progress_guard =~ "open_release_prs"
+    assert progress_guard =~ "stale_pending_prs"
+    assert progress_guard =~ "Release Please made no progress"
+    assert progress_guard =~ "autorelease: tagged"
+  end
+
+  test "public verification reconciles the matching Release Please PR label", %{
+    release: release,
+    label_reconcile: label_reconcile
+  } do
+    assert release =~ "needs: [gate-ci-green, publish, public_verify]"
+    assert release =~ "needs.public_verify.result == 'success'"
+    assert release =~ "bash scripts/maintainer/reconcile_release_please_label.sh"
+    assert release =~ "RELEASE_SHA: ${{ needs.gate-ci-green.outputs.release_sha }}"
+    assert label_reconcile =~ "commits/${RELEASE_SHA}/pulls"
+    assert label_reconcile =~ "autorelease: pending"
+    assert label_reconcile =~ "autorelease: tagged"
+    assert label_reconcile =~ "label reconciliation did not persist"
   end
 
   # ------------------------------------------------------------------

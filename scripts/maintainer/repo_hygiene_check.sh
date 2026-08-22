@@ -97,7 +97,13 @@ hex_latest_version() {
     return 1
   fi
 
-  mix hex.info rindle 2>/dev/null | sed -nE 's/^.*Version: ([0-9]+\.[0-9]+\.[0-9]+).*/\1/p' | head -n 1
+  # Hex 2.2+ prints a "Recent releases:" list; retain the older "Version:"
+  # parser as a compatibility fallback for maintainers with older Hex clients.
+  mix hex.info rindle 2>/dev/null |
+    sed -nE \
+      -e 's/^[[:space:]]*([0-9]+\.[0-9]+\.[0-9]+)[[:space:]]+\(.*/\1/p' \
+      -e 's/^.*Version: ([0-9]+\.[0-9]+\.[0-9]+).*/\1/p' |
+    head -n 1
 }
 
 release_train_has_required_lines() {

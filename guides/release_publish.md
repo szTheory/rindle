@@ -175,10 +175,9 @@ engages as a fallback. As a result **no 0.3.2 PR was ever opened**.
    expiry surprise) or a fine-grained PAT with **contents: read/write +
    pull-requests: read/write + issues: read/write + `Actions: read/write`**.
    Update repo **Settings → Secrets and variables → Actions**.
-2. **Relabel any stuck-but-published release PR truthfully.** If a prior release
-   PR is stuck on `autorelease: pending` while its version IS already published,
-   relabel it so release-please stops re-finding it and will open the next
-   version:
+2. **Relabel any already-stuck, already-published release PR truthfully.** The
+   current workflow now performs this transition automatically after Public
+   Verify succeeds. For a release published before that guard shipped, use:
    `gh pr edit <N> --remove-label "autorelease: pending" --add-label "autorelease: tagged"`.
 3. **Re-trigger `release.yml`.** Push (or re-run the latest `main` push) to
    re-run the canonical automerge → dispatch → gate-ci-green → publish chain.
@@ -201,6 +200,10 @@ run **28420598348**; Hex live == **0.3.2**.
 
 - `release-train-drift.yml` self-files an issue when `main` has releasable
   commits with no open release PR.
+- The Release Please job fails on the originating push when releasable commits
+  are blocked by a merged release PR that still has `autorelease: pending`.
+- After Public Verify succeeds, `release.yml` transitions the matching merged
+  Release Please PR to `autorelease: tagged` and verifies the label persisted.
 - The token-validity step in the Release Please job should fail loudly on a
   present-but-invalid token (and ideally check `Actions: write` capability, not
   just `gh api user`) so the `|| github.token` mask cannot pass silently.
