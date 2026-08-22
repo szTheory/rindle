@@ -217,7 +217,7 @@ defmodule AdoptionDemoWeb.StyleguideLive do
         <h2 class="ck-section__title">Form</h2>
         <span class="ck-section__hint">FormField semantics, focus-visible, disabled, non-color error.</span>
       </div>
-      <.form for={@form} phx-change="noop" phx-submit="noop">
+      <.form for={@form} id="styleguide-form" phx-change="noop" phx-submit="noop">
         <.ck_field field={@form[:email]} label="Email" help="We never share this.">
           <.ck_input field={@form[:email]} type="email" placeholder="maya@cohort.dev" />
         </.ck_field>

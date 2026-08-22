@@ -197,17 +197,20 @@ defmodule Rindle.InstallSmoke.CiLaneSplitTest do
     assert nightly =~ "compat-matrix:",
            "nightly.yml must declare the broad compat-matrix job (LANE-03)"
 
-    # Multiple cells straddling the OTP-27 json_polyfill branch. Assert a few of
-    # the literal diagonal cells that are present on disk now.
+    # Multiple cells straddling the OTP-27 json_polyfill branch. OTP 25 is not a
+    # supported cell because the current JOSE dependency requires OTP 26+.
     for cell <- [
           ~s(elixir: "1.15"),
-          ~s(otp: "25"),
+          ~s(otp: "26"),
           ~s(elixir: "1.18"),
           ~s(otp: "28")
         ] do
       assert nightly =~ cell,
              "compat-matrix must include the #{inspect(cell)} cell (broad OTP×Elixir breadth, LANE-03)"
     end
+
+    refute nightly =~ ~s(otp: "25"),
+           "compat-matrix must not claim the unsupported OTP 25 toolchain (LANE-03)"
   end
 
   test "LANE-03: the owned nightly Dialyzer job runs gating (no continue-on-error YAML key in its block)",

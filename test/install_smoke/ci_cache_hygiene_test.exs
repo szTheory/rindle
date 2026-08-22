@@ -114,15 +114,14 @@ defmodule Rindle.InstallSmoke.CiCacheHygieneTest do
            "the PLT cache/save step must NOT live in ci.yml (moved to nightly.yml by Phase 106)"
   end
 
-  test "CACHE-03: the PLT key hashes mix.exs + .dialyzer_ignore.exs and NOT mix.lock", %{
+  test "CACHE-03: the PLT key hashes the dependency lock and has no broad fallback", %{
     nightly: nightly
   } do
-    assert nightly =~ "hashFiles('mix.exs', '.dialyzer_ignore.exs')",
-           "PLT key must hash mix.exs + .dialyzer_ignore.exs (anti-rot anchor, CACHE-03)"
+    assert nightly =~ "hashFiles('mix.exs', 'mix.lock', '.dialyzer_ignore.exs')",
+           "PLT key must hash mix.exs + mix.lock + .dialyzer_ignore.exs (CACHE-03)"
 
-    refute nightly =~
-             "plt-v1-${{ runner.os }}-${{ runner.arch }}-otp27-elixir1.17-${{ hashFiles('mix.lock') }}",
-           "PLT key must NOT hash mix.lock — it must survive unrelated dep bumps (CACHE-03)"
+    refute nightly =~ "restore-keys:",
+           "PLT restore must not fall back across dependency locks (CACHE-03)"
   end
 
   test "CACHE-03: the PLT save step is guarded on cache-miss, never if: always()", %{

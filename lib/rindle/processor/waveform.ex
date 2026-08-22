@@ -13,7 +13,7 @@ defmodule Rindle.Processor.Waveform do
            {:ok, sample_rate} <- audio_sample_rate(probe),
            args <- waveform_args(source_path, spec, raw_path),
            :ok <- validate_command(args),
-           {_output, 0} <- Subprocess.run("ffmpeg", args),
+           {_output, 0} <- Subprocess.run("ffmpeg", args, timeout: subprocess_timeout()),
            {:ok, peaks} <- read_peaks(raw_path, spec.length),
            payload = %{length: spec.length, sample_rate: sample_rate, peaks: peaks},
            {:ok, json} <- Jason.encode(payload),
@@ -141,6 +141,10 @@ defmodule Rindle.Processor.Waveform do
       {:ok, _command} -> :ok
       {:error, reason} -> {:error, reason}
     end
+  end
+
+  defp subprocess_timeout do
+    Application.get_env(:rindle, __MODULE__, [])[:subprocess_timeout] || 600_000
   end
 
   defp clamp_peak(value), do: min(max(value, -1.0), 1.0)

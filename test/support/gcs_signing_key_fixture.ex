@@ -48,7 +48,7 @@ defmodule Rindle.Storage.GCS.SigningKeyFixture do
   def fixture_client_email, do: @client_email
 
   defp generate_pem do
-    # PRIMARY: simpler PKCS#1 PEM. `gcs_signed_url 0.4.6` parses both PKCS#1
+    # PRIMARY: simpler PKCS#1 PEM. `gcs_signed_url 0.6` parses both PKCS#1
     # and PKCS#8 PEMs via :public_key.pem_decode/1 + cert chain detection,
     # so PKCS#1 is the cleaner default. The [FALLBACK] PKCS#8 wrap below is
     # only needed if Client.load/1 raises MatchError on the PKCS#1 PEM

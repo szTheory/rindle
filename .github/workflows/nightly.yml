@@ -31,11 +31,11 @@ jobs:
   # D-13: broad OTP×Elixir compatibility on a CURATED ~6-cell diagonal (NOT a
   # cartesian product — cartesian/dynamic-matrix is an explicit milestone
   # anti-feature). fail-fast: false so one red cell never masks the others.
-  # The 1.15/25 and 1.15/26 cells deliberately straddle the mix.exs
-  # json_polyfill_dep/0 `otp_major < 27` branch (mix.exs:141-147): OTP<27 pulls
-  # {:json_polyfill, ...}, OTP>=27 does not — so both sides of the polyfill are
-  # exercised on the floor. 1.18/27 + 1.18/28 are the newest/newest drift
-  # early-warning. 1.17/27 is the PR ceiling/home cell.
+  # The 1.15/26 floor and 1.17/27 home cells deliberately straddle the mix.exs
+  # json_polyfill_dep/0 `otp_major < 27` branch (mix.exs:135-141): OTP<27 pulls
+  # {:json_polyfill, ...}, OTP>=27 does not. OTP 25 is no longer claimed because
+  # the current JOSE dependency requires OTP 26+. 1.18/27 + 1.18/28 are the
+  # newest/newest drift early-warning. 1.17/27 is the PR ceiling/home cell.
   compat-matrix:
     name: Compat Matrix
     runs-on: ubuntu-22.04
@@ -45,8 +45,6 @@ jobs:
         include:
           - elixir: "1.15"
             otp: "26"
-          - elixir: "1.15"
-            otp: "25" # OTP < 27 → exercises the json_polyfill_dep/0 branch
           - elixir: "1.16"
             otp: "26"
           - elixir: "1.17"
@@ -186,20 +184,19 @@ jobs:
         run: mix deps.get
 
       # D-20: reuse the Phase-104 PLT restore/save SHAPE (restore → create-dir →
-      # build-plt → save-BEFORE-analysis). Key hashes mix.exs + .dialyzer_ignore.exs
-      # (NOT mix.lock) so the multi-minute PLT survives unrelated dep bumps and is
-      # invalidated by ignore-file drift (the anti-rot anchor). The OTP/Elixir
+      # build-plt → save-BEFORE-analysis). The exact dependency lock belongs in
+      # the key because Dialyzer PLTs encode dependency BEAM types; restoring a
+      # prefix-matched PLT from another lock can produce an unusable old PLT. The
+      # OTP/Elixir
       # segment is the LITERAL home cell `otp27-elixir1.17` (single-cell job — see
-      # the job comment); preserve the hashFiles('mix.exs', '.dialyzer_ignore.exs')
-      # segment EXACTLY (the acceptance grep depends on it).
+      # the job comment); the segment remains literal because this is not a
+      # matrix job.
       - name: Restore PLT cache
         uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         id: plt_cache
         with:
           path: priv/plts
-          key: plt-v1-${{ runner.os }}-${{ runner.arch }}-otp27-elixir1.17-${{ hashFiles('mix.exs', '.dialyzer_ignore.exs') }}
-          restore-keys: |
-            plt-v1-${{ runner.os }}-${{ runner.arch }}-otp27-elixir1.17-
+          key: plt-v2-${{ runner.os }}-${{ runner.arch }}-otp27-elixir1.17-${{ hashFiles('mix.exs', 'mix.lock', '.dialyzer_ignore.exs') }}
 
       - name: Create PLT directory
         if: steps.plt_cache.outputs.cache-hit != 'true'
@@ -217,7 +214,7 @@ jobs:
         uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
           path: priv/plts
-          key: plt-v1-${{ runner.os }}-${{ runner.arch }}-otp27-elixir1.17-${{ hashFiles('mix.exs', '.dialyzer_ignore.exs') }}
+          key: plt-v2-${{ runner.os }}-${{ runner.arch }}-otp27-elixir1.17-${{ hashFiles('mix.exs', 'mix.lock', '.dialyzer_ignore.exs') }}
 
       # D-17: GATING — NO continue-on-error. A type-contract regression or
       # ignore-file drift fails the nightly lane.

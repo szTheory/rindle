@@ -42,7 +42,7 @@ defmodule AdoptionDemo.MixProject do
       {:postgrex, ">= 0.0.0"},
       {:phoenix_html, "~> 4.1"},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
-      {:phoenix_live_view, "~> 1.1.0"},
+      {:phoenix_live_view, "~> 1.2"},
       {:lazy_html, ">= 0.1.0", only: :test},
       {:mox, "~> 1.0", only: [:dev, :test]},
       {:telemetry_metrics, "~> 1.0"},
@@ -51,7 +51,7 @@ defmodule AdoptionDemo.MixProject do
       {:dns_cluster, "~> 0.2.0"},
       {:bandit, "~> 1.5"},
       {:oban, "~> 2.21"},
-      {:hackney, "~> 1.20"},
+      {:req, "~> 0.6"},
       {:mux, "~> 3.2"},
       {:jose, "~> 1.11"}
     ]

@@ -64,6 +64,37 @@ defmodule Rindle.AV.Subprocess do
 
       {:DOWN, ^mon, :process, ^pid, reason} ->
         exit(reason)
+    after
+      watchdog_timeout(muon_opts) ->
+        terminate_worker(pid, mon, ref)
+
+        if retries_left > 0 do
+          Logger.warning(
+            "Rindle.AV.Subprocess: MuonTrap worker exceeded its command timeout; retrying the AV call once"
+          )
+
+          run_isolated(cmd, args, muon_opts, retries_left - 1, run_fun)
+        else
+          {"", :timeout}
+        end
+    end
+  end
+
+  defp watchdog_timeout(muon_opts) do
+    Keyword.get(muon_opts, :timeout, 600_000) + 250
+  end
+
+  defp terminate_worker(pid, mon, ref) do
+    Process.exit(pid, :kill)
+
+    receive do
+      {:DOWN, ^mon, :process, ^pid, _reason} -> :ok
+    end
+
+    receive do
+      {^ref, _late_result} -> :ok
+    after
+      0 -> :ok
     end
   end
 
