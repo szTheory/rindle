@@ -20,6 +20,11 @@ defmodule Rindle.Brandbook.AdminDesignSystemValidationTest do
   # The six task-first nav labels in canonical §E order (D-98-03). Slugs/suffixes are
   # frozen behavior contracts; only the human label changed off the legacy slashed names.
   @nav_labels ["Overview", "Assets", "Upload sessions", "Processing", "Doctor", "Maintenance"]
+  @admin_navigation_guides [
+    "guides/admin_console_ia.md",
+    "guides/admin_design_system.md"
+  ]
+  @retired_nav_labels ["Home/Status", "Upload Sessions", "Variants/Jobs", "Runtime/Doctor", "Actions"]
 
   # §F R4 hype words + §F R5 vague standalone labels — must NEVER appear in admin markup.
   @denylist_words ~w(blazing seamless effortless powerful revolutionary supercharge
@@ -500,6 +505,25 @@ defmodule Rindle.Brandbook.AdminDesignSystemValidationTest do
       end
     end
 
+    test "Admin navigation guides mirror rendered labels and reject retired labels" do
+      rendered_labels = rendered_nav_labels()
+
+      assert rendered_labels == @nav_labels
+
+      for guide_path <- @admin_navigation_guides,
+          guide = read!(guide_path),
+          label <- rendered_labels do
+        assert guide =~ "`#{label}`", "#{guide_path} is missing rendered label #{label}"
+      end
+
+      for guide_path <- @admin_navigation_guides,
+          guide = read!(guide_path),
+          retired_label <- @retired_nav_labels do
+        refute guide =~ "`#{retired_label}`",
+               "#{guide_path} still presents retired label #{retired_label}"
+      end
+    end
+
     test "Overview triage DOM order: needs-attention -> system-health -> recent-activity -> totals" do
       src = read!("lib/rindle/admin/live/home_live.ex")
 
@@ -599,6 +623,11 @@ defmodule Rindle.Brandbook.AdminDesignSystemValidationTest do
       theme: "auto",
       inner_block: slot("WORK")
     })
+  end
+
+  defp rendered_nav_labels do
+    html = shell_html()
+    Enum.filter(@nav_labels, &String.contains?(html, &1))
   end
 
   # :binary.match over a hand-built needle is brittle to HEEx whitespace; fall back to a
