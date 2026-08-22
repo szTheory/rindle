@@ -13,9 +13,9 @@ defmodule Rindle.InstallSmoke.QualitySignalPolicyTest do
     assert quality =~ "bash scripts/maintainer/credo_quality.sh"
     assert quality =~ "MIX_ENV=dev mix doctor --full --raise"
     assert quality =~ "mix test test/rindle/probe/av_probe_test.exs test/rindle/processor/image_test.exs --seed 0"
-    refute blocking_step(quality, "Credo quality") =~ "continue-on-error"
-    refute blocking_step(quality, "Doctor") =~ "continue-on-error"
-    refute blocking_step(quality, "Run focused AV behavior tests") =~ "continue-on-error"
+    refute yaml_keys(blocking_step(quality, "Credo quality")) =~ "continue-on-error"
+    refute yaml_keys(blocking_step(quality, "Doctor")) =~ "continue-on-error"
+    refute yaml_keys(blocking_step(quality, "Run focused AV behavior tests")) =~ "continue-on-error"
   end
 
   test "focused AV proof follows its FFmpeg and libvips prerequisites", %{ci: ci} do
@@ -39,8 +39,9 @@ defmodule Rindle.InstallSmoke.QualitySignalPolicyTest do
     assert blocking_step(contract, "Run SAFE-01 preservation contract") =~
              "bash scripts/maintainer/refactor_contract.sh"
 
-    refute blocking_step(contract, "Run contract tests") =~ "continue-on-error"
-    refute blocking_step(contract, "Run SAFE-01 preservation contract") =~ "continue-on-error"
+    refute yaml_keys(blocking_step(contract, "Run contract tests")) =~ "continue-on-error"
+    refute yaml_keys(blocking_step(contract, "Run SAFE-01 preservation contract")) =~
+             "continue-on-error"
   end
 
   test "the required CI and release topology remains unchanged", %{ci: ci} do
@@ -52,7 +53,7 @@ defmodule Rindle.InstallSmoke.QualitySignalPolicyTest do
     assert summary =~ "- quality\n"
     assert summary =~ "- contract\n"
     assert summary =~ "bash scripts/ci/eval_ci_summary.sh"
-    refute summary =~ "package-consumer-full"
+    refute ci_summary_needs(summary) =~ "package-consumer-full"
   end
 
   defp job_block(ci, job) do
@@ -68,4 +69,17 @@ defmodule Rindle.InstallSmoke.QualitySignalPolicyTest do
   end
 
   defp index_of(text, needle), do: :binary.match(text, needle) |> elem(0)
+
+  defp ci_summary_needs(summary) do
+    [_, after_needs] = String.split(summary, "    needs:\n", parts: 2)
+    [needs | _] = String.split(after_needs, "    if: always()", parts: 2)
+    needs
+  end
+
+  defp yaml_keys(step) do
+    step
+    |> String.split("\n")
+    |> Enum.reject(&(String.trim_leading(&1) |> String.starts_with?("#")))
+    |> Enum.join("\n")
+  end
 end
