@@ -217,11 +217,12 @@ test "running guide documents proof job as merge-blocking", %{running: running} 
 end
 ```
 
-For the navigation contract, use the canonical six labels already documented in
-`guides/admin_console_ia.md` lines 21-28 and `guides/admin_design_system.md` lines 92-102:
-`Home/Status`, `Assets`, `Upload Sessions`, `Variants/Jobs`, `Runtime/Doctor`, and `Actions`.
-Verify claims in README/guide prose against `guides/admin_console.md` route table and the live
-router/UI tests, rather than adding a second independent vocabulary.
+For the navigation contract, use the six labels rendered by `Rindle.Admin.Components` and frozen by
+the primary Admin behavior tests: `Overview`, `Assets`, `Upload sessions`, `Processing`, `Doctor`, and
+`Maintenance`. The current guide spellings `Home/Status`, `Variants/Jobs`, `Runtime/Doctor`, and
+`Actions` are retired navigation labels and must be rejected by the corrected parity contract. Verify
+README/guide claims against `guides/admin_console.md`'s unchanged route table and the live router/UI
+tests rather than adding a second vocabulary or changing route suffixes/active keys.
 
 **Caution:** Do not turn this into a whole-doc byte snapshot. Assert only stable shipped claims:
 CI lane placement/severity, documented support posture, exact navigation labels, and active tus /

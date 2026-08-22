@@ -294,19 +294,23 @@ Use the full SAFE-01 runner as the phase gate; it covers public signatures, sche
 | # | Claim | Section | Risk if Wrong |
 |---|---|---|---|
 | A1 | Replacing the six direct module aliases with canonical string/segment identities eliminates the reported component on this compiler version. | Architecture Patterns | Medium: exact post-change xref evidence is mandatory; adjust only the internal representation if it does not. |
-| A2 | A focused ExUnit wrapper around `mix xref` is stable enough for the default suite. | Validation Architecture | Medium: if process invocation is brittle, retain the command as a deterministic phase/CI check rather than adding a flaky test. |
+| A2 | Fresh compile plus xref can run sequentially in the SAFE-01 shell context without a nested Mix invocation from ExUnit. | Validation Architecture | Medium: Plan 122-01 must prove the shell sequence before retaining it and stops rather than weakening the gate if it is unstable. |
 
-## Open Questions
+## Resolved Planning Decisions
 
-1. **Which live Phase/Plan comments are explanatory history rather than stale narration?**
-   - What we know: the four `EXPECTED RED` files and forward claims in `Capability`, Mux modules, and selected tests are plainly stale; many other comments explain active safety invariants.
-   - What's unclear: the exact smallest reviewable target set.
-   - Recommendation: plan a one-time evidence inventory, require each edit to replace a stale claim with domain rationale, and prohibit bulk replacement.
+1. **Live commentary uses the reviewed exact inventory, not a blanket token ban.** Plans 122-02 and
+   122-03 own only the source and test files enumerated in `## Exact Live-Truth Inventory`. Each stale
+   delivery-process claim is replaced with the adjacent domain invariant. Historical snapshots, active
+   safety rationale, `.planning/**`, `CHANGELOG.md`, prompts, fixtures, generated/vendor content, and the
+   current complexity inventory remain outside the cleanup target.
 
-2. **Should the xref gate be a committed ExUnit test?**
-   - What we know: Mix 1.19.5 provides stable machine-readable/CLI cycle output and the local command is deterministic.
-   - What's unclear: whether invoking nested Mix in the normal ExUnit runtime has unwanted build-lock/process interaction.
-   - Recommendation: prove a focused test once. If it is not reliably isolated, document and run the exact command in the phase verifier/CI policy rather than creating a self-inspecting test.
+2. **The objective xref proof is composed into SAFE-01 after its shell invocation is proven stable.**
+   Plan 122-01 first proves a fresh test compile plus
+   `mix xref graph --format cycles --label compile-connected --fail-above 0` directly against the
+   refactored allowlist. It then runs that same fail-closed sequence from the SAFE-01 shell context before
+   retaining it in `scripts/maintainer/refactor_contract.sh` and locking command presence, ordering, and
+   status propagation in `test/install_smoke/refactor_contract_test.exs`. The plan does not invoke nested
+   Mix from ExUnit or replace compiler graph evidence with source-string inference.
 
 ## Environment Availability
 
@@ -335,9 +339,9 @@ Use the full SAFE-01 runner as the phase gate; it covers public signatures, sche
 
 | Req ID | Behavior | Test Type | Automated Command | File Exists? |
 |---|---|---|---|---|
-| CLARITY-01 | Live stale forward/dead-red commentary is replaced; archives excluded | focused source/docs regression plus review | focused files under `test/rindle/...` and parity suites | Partial — target-specific tests need prose updates/additions |
+| CLARITY-01 | Live stale forward/dead-red commentary is replaced; archives excluded | exact-inventory review plus focused behavior regression | Plan 122-02/03 focused commands plus archive-scope diff check | Planned — exact tasks and review receipt defined in `122-VALIDATION.md` |
 | CLARITY-02 | Admin/tus/streaming/support/CI prose matches shipped behavior | docs parity | `mix test test/install_smoke/docs_parity_test.exs test/install_smoke/phoenix_tus_truth_parity_test.exs test/install_smoke/streaming_cancel_docs_parity_test.exs test/brandbook/admin_design_system_validation_test.exs` | Yes, extend only for identified drift |
-| CLARITY-03 | No seven-module xref cycle; schema ownership/prefix unchanged | compile graph plus unit/integration contract | xref command + schema prefix tests + SAFE-01 | Prefix tests yes; xref regression proof gap |
+| CLARITY-03 | No seven-module xref cycle; schema ownership/prefix unchanged | compile graph plus unit/integration contract | xref command + schema prefix tests + SAFE-01 | Planned — Plan 122-01 owns direct and SAFE-composed proof |
 | SAFE-01 | Public/schema/migration/telemetry/error/release contracts remain unchanged | aggregate contract | `bash scripts/maintainer/refactor_contract.sh` | Yes |
 
 ### Sampling Rate
@@ -346,11 +350,14 @@ Use the full SAFE-01 runner as the phase gate; it covers public signatures, sche
 - **Per wave merge:** `bash scripts/maintainer/refactor_contract.sh`.
 - **Phase gate:** `mix ci`, SAFE-01, exact xref check, and `./scripts/maintainer/repo_hygiene_check.sh` before PR/release handoff.
 
-### Wave 0 Gaps
+### Wave 0 Ownership (Resolved)
 
-- [ ] Decide/prove the xref regression mechanism: a behavior-oriented ExUnit invocation only if it is stable; otherwise a named deterministic verifier command.
-- [ ] Extend existing docs parity tests with only the corrected Admin labels and tus/streaming support boundaries.
-- [ ] Add a reviewed non-archive stale-comment inventory/negative check only if it can avoid policing arbitrary prose or `.planning/` history.
+- [x] Xref mechanism — Plan 122-01 Tasks 1–2 prove the compiler command directly, prove it in the
+  SAFE-01 shell context, and lock it without a nested-Mix ExUnit test.
+- [x] Documentation parity — Plan 122-04 Tasks 1–2 own rendered Admin labels/security boundaries;
+  Plan 122-05 Tasks 1–3 own CI/support, tus, and streaming parity.
+- [x] Commentary scope — Plans 122-02 and 122-03 own the reviewed exact inventory and require a
+  before/after review receipt; no repository-wide token prohibition is introduced.
 
 ## Security Domain
 
