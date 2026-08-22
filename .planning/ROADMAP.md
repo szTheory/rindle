@@ -81,7 +81,7 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
   4. Mechanically proven residue and recurrence-prone root lint outputs are removed or narrowly ignored without deleting unique audit, historical, debug, or maintainer evidence.
   5. Every subsequent refactor slice has a runnable regression contract proving unchanged public signatures, schema/migration behavior, telemetry names and metadata, error shapes, and supported CI/release invariants.
 
-**Plans**: 6/7 plans executed
+**Plans**: 7/7 plans executed
 
 **Wave 1**
 
@@ -97,7 +97,7 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 
 **Wave 3** *(blocked on Waves 1–2 completion)*
 
-- [ ] 121-07-PLAN.md — Wire truthful gates into CI Summary and local workflows.
+- [x] 121-07-PLAN.md — Wire truthful gates into CI Summary and local workflows.
 
 ### Phase 122: Live Truth & Compile Clarity
 
@@ -167,7 +167,7 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 121. Truthful Quality Signals & Mechanical Hygiene | 6/7 | In Progress | - |
+| 121. Truthful Quality Signals & Mechanical Hygiene | 7/7 | In Progress | - |
 | 122. Live Truth & Compile Clarity | 0/TBD | Not started | - |
 | 123. Runtime Operations Decomposition | 0/TBD | Not started | - |
 | 124. Upload Path Clarity | 0/TBD | Not started | - |
