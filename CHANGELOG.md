@@ -2,6 +2,17 @@
 
 0.1.0-0.1.3 were release-pipeline shakedown iterations; treat 0.1.4 as the first recommended pin.
 
+## [0.4.3](https://github.com/szTheory/rindle/compare/rindle-v0.4.2...rindle-v0.4.3) (2026-08-22)
+
+
+### Bug Fixes
+
+* **121:** close quality review findings ([2f174b0](https://github.com/szTheory/rindle/commit/2f174b01041527fc782957d0c8e27278228c9eb0))
+* **121:** CR-01 cover exact ExDoc public sources ([7990cf9](https://github.com/szTheory/rindle/commit/7990cf960514da8bf936cca863fcf83e2ee910e3))
+* **121:** declare Contract FFmpeg prerequisite ([25cc8bb](https://github.com/szTheory/rindle/commit/25cc8bb9b7c506489b731f1bd6deb022217cd98d))
+* **121:** WR-01 remove jq quality gate dependency ([ec84f08](https://github.com/szTheory/rindle/commit/ec84f080a40bfff58e56c15c875589e0805b89c9))
+* **121:** WR-02 validate enabled CI workflow steps ([372b784](https://github.com/szTheory/rindle/commit/372b7846b27d7a8eaf5d59859d10570c23fbfb82))
+
 ## [0.4.2](https://github.com/szTheory/rindle/compare/rindle-v0.4.1...rindle-v0.4.2) (2026-08-22)
 
 
