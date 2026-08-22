@@ -108,7 +108,7 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
 
       * `:provider_quota_exceeded` (HTTP 429) — caller can extract `Retry-After`
         from `%Tesla.Env{}.headers` via `create_asset_with_retry_hint/3` if it
-        needs the snooze duration (Plan 02 worker uses that variant).
+        needs the snooze duration (ingest workers use that variant).
       * `:provider_sync_failed` (HTTP 4xx/5xx other than 429).
     """
     @impl Rindle.Streaming.Provider
