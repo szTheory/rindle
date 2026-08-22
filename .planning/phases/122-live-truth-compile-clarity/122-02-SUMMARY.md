@@ -66,7 +66,7 @@ status: complete
 
 ## Task Commits
 
-1. **Task 1: Recast capability, delivery, and Mux adapter prose around shipped contracts** — `4235488` (docs)
+1. **Task 1: Recast capability, delivery, and Mux adapter prose around shipped contracts** — `4235488`, `c54a3d2` (docs)
 2. **Task 2: Recast event, validator, and coordinator prose around durable invariants** — `69582c4` (docs)
 
 ## Verification
@@ -96,4 +96,4 @@ Phase 122's live-source commentary is ready for the phase-wide documentation and
 ## Self-Check: PASSED
 
 - All six declared live modules exist.
-- Both task commits (`4235488`, `69582c4`) exist in git history.
+- All task commits (`4235488`, `69582c4`, `c54a3d2`) exist in git history.
