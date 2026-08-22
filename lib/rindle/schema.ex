@@ -3,12 +3,12 @@ defmodule Rindle.Schema do
 
   @supported_prefixes ["rindle", "public"]
   @owned_schema_modules [
-    Rindle.Domain.MediaAsset,
-    Rindle.Domain.MediaAttachment,
-    Rindle.Domain.MediaProcessingRun,
-    Rindle.Domain.MediaProviderAsset,
-    Rindle.Domain.MediaUploadSession,
-    Rindle.Domain.MediaVariant
+    "Elixir.Rindle.Domain.MediaAsset",
+    "Elixir.Rindle.Domain.MediaAttachment",
+    "Elixir.Rindle.Domain.MediaProcessingRun",
+    "Elixir.Rindle.Domain.MediaProviderAsset",
+    "Elixir.Rindle.Domain.MediaUploadSession",
+    "Elixir.Rindle.Domain.MediaVariant"
   ]
   @rindle_prefix Application.compile_env(:rindle, :rindle_prefix, "rindle")
 
@@ -77,9 +77,13 @@ defmodule Rindle.Schema do
           "expected :rindle_prefix to be one of \"rindle\" or \"public\", got: #{inspect(prefix)}"
   end
 
-  defp validate_owned_schema!(module) when module in @owned_schema_modules, do: :ok
+  defp validate_owned_schema!(module) when is_atom(module) do
+    if Atom.to_string(module) in @owned_schema_modules,
+      do: :ok,
+      else: reject_unsupported_schema!(module)
+  end
 
-  defp validate_owned_schema!(module) do
+  defp reject_unsupported_schema!(module) do
     raise ArgumentError,
           "Rindle.Schema is internal to Rindle-owned domain schemas; unsupported caller #{inspect(module)}"
   end
