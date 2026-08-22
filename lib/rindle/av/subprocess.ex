@@ -98,17 +98,24 @@ defmodule Rindle.AV.Subprocess do
   end
 
   # MuonTrap 1.7 can race its timeout cleanup: the port is already closed when
-  # MuonTrap.Port.do_cmd/4 calls :erlang.port_close/1, so the worker exits with
-  # ArgumentError instead of returning a timeout tuple. Match only that narrow
-  # stack shape; unrelated worker exceptions must still fail loudly.
-  defp muontrap_timeout_race?({%ArgumentError{}, stack}) when is_list(stack) do
-    Enum.any?(stack, fn
-      {:erlang, :port_close, _args, _metadata} -> true
-      _other -> false
-    end)
+  # MuonTrap.Port.do_cmd/4 calls :erlang.port_close/1, so the worker exits
+  # instead of returning a timeout tuple. OTP releases wrap that exception
+  # differently, so match the invariant stack entry anywhere in the monitored
+  # reason. Unrelated worker exceptions still fail loudly.
+  defp muontrap_timeout_race?(reason), do: contains_port_close?(reason)
+
+  defp contains_port_close?({:erlang, :port_close, _args, _metadata}), do: true
+
+  defp contains_port_close?(tuple) when is_tuple(tuple) do
+    tuple
+    |> Tuple.to_list()
+    |> Enum.any?(&contains_port_close?/1)
   end
 
-  defp muontrap_timeout_race?(_reason), do: false
+  defp contains_port_close?(list) when is_list(list),
+    do: Enum.any?(list, &contains_port_close?/1)
+
+  defp contains_port_close?(_other), do: false
 
   defp terminate_worker(pid, mon, ref) do
     Process.exit(pid, :kill)

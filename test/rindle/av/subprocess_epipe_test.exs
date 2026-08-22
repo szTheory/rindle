@@ -119,11 +119,20 @@ defmodule Rindle.AV.SubprocessEpipeTest do
   @tag :av
   test "run_isolated returns a bounded timeout when the port-close retry is exhausted" do
     run_fun = fn _cmd, _args, _opts ->
-      exit({%ArgumentError{}, [{:erlang, :port_close, [], []}]})
+      exit({:badarg, [{:erlang, :port_close, 1, []}]})
     end
 
     assert {"", :timeout} =
              Subprocess.run_isolated("ffmpeg", [], [timeout: 10], 1, run_fun)
+  end
+
+  @tag :regression
+  @tag :av
+  test "run_isolated still fails loudly for unrelated worker exceptions" do
+    run_fun = fn _cmd, _args, _opts -> exit(%ArgumentError{message: "unrelated"}) end
+
+    assert catch_exit(Subprocess.run_isolated("ffmpeg", [], [timeout: 10], 1, run_fun)) ==
+             %ArgumentError{message: "unrelated"}
   end
 
   # (3) Real-subprocess stress — advisory-only because it deliberately amplifies
