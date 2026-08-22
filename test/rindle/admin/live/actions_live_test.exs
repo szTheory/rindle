@@ -170,6 +170,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       # Initial state
       assert has_element?(view, "[data-rindle-admin-state=\"input\"]")
+      assert has_element?(view, "#owner-erasure-preview-form")
 
       owner_id = Ecto.UUID.generate()
       owner_id2 = Ecto.UUID.generate()
@@ -185,6 +186,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       # Now in preview state
       assert has_element?(view, "[data-rindle-admin-state=\"preview\"]")
       assert has_element?(view, "[data-rindle-admin-form=\"owner_erasure_execute\"]")
+      assert has_element?(view, "#owner-erasure-execute-form")
       assert has_element?(view, "[data-rindle-admin-preview=\"owner_erasure\"]")
       assert has_element?(view, "[data-rindle-admin-input=\"confirmation\"]")
       assert has_element?(view, "[data-rindle-admin-submit=\"execute_owner_erasure\"]")
@@ -276,6 +278,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       |> render_click()
 
       assert has_element?(view, "[data-rindle-admin-state=\"input\"]")
+      assert has_element?(view, "#batch-erasure-preview-form")
 
       owner_id1 = Ecto.UUID.generate()
       owner_id2 = Ecto.UUID.generate()
@@ -291,6 +294,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert has_element?(view, "[data-rindle-admin-state=\"preview\"]")
       assert has_element?(view, "[data-rindle-admin-preview=\"batch_erasure\"]")
       assert has_element?(view, "[data-rindle-admin-form=\"batch_erasure_execute\"]")
+      assert has_element?(view, "#batch-erasure-execute-form")
       assert has_element?(view, "[data-rindle-admin-submit=\"execute_batch_erasure\"]")
       assert render(view) =~ "Type <pre>ERASE 2 OWNERS</pre> to confirm"
 

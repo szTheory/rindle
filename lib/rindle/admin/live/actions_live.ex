@@ -430,7 +430,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       ~H"""
       <.confirm_dialog id="owner-erasure-confirm" show={true} on_cancel={JS.push("change_owner_erasure")}>
         <:title>Erase this owner?</:title>
-        <form phx-change="change_owner_erasure" phx-submit="execute_owner_erasure" data-rindle-admin-form="owner_erasure_execute">
+        <form id="owner-erasure-execute-form" phx-change="change_owner_erasure" phx-submit="execute_owner_erasure" data-rindle-admin-form="owner_erasure_execute">
           <p>
             This permanently erases owner data and enqueues purge of the associated assets. This action cannot be undone.
           </p>
@@ -459,7 +459,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       ~H"""
       <.confirm_dialog id="batch-erasure-confirm" show={true} on_cancel={JS.push("change_batch_erasure")}>
         <:title>Erase these owners?</:title>
-        <form phx-change="change_batch_erasure" phx-submit="execute_batch_erasure" data-rindle-admin-form="batch_erasure_execute">
+        <form id="batch-erasure-execute-form" phx-change="change_batch_erasure" phx-submit="execute_batch_erasure" data-rindle-admin-form="batch_erasure_execute">
           <p>
             This permanently erases owner data and enqueues purge of the associated assets. This action cannot be undone.
           </p>
@@ -502,7 +502,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp render_owner_erasure_state(%{action_state: :input} = assigns) do
       ~H"""
       <div data-rindle-admin-state="input">
-        <form phx-submit="preview_owner_erasure" phx-change="change_owner_erasure" data-rindle-admin-form="owner_erasure_preview">
+        <form id="owner-erasure-preview-form" phx-submit="preview_owner_erasure" phx-change="change_owner_erasure" data-rindle-admin-form="owner_erasure_preview">
           <div>
             <label>Owner Type</label>
             <input type="text" name="owner_type" data-rindle-admin-input="owner_type" required />
@@ -547,7 +547,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp render_batch_erasure_state(%{action_state: :input} = assigns) do
       ~H"""
       <div data-rindle-admin-state="input">
-        <form phx-submit="preview_batch_erasure" phx-change="change_batch_erasure" data-rindle-admin-form="batch_erasure_preview">
+        <form id="batch-erasure-preview-form" phx-submit="preview_batch_erasure" phx-change="change_batch_erasure" data-rindle-admin-form="batch_erasure_preview">
           <div>
             <label>Owners (one per line as Module:id)</label>
             <textarea name="owners" rows="5" data-rindle-admin-input="batch_owners" required></textarea>
