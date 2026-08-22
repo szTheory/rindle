@@ -56,6 +56,11 @@ defmodule Rindle.InstallSmoke.QualitySignalPolicyTest do
   test "Contract carries deterministic contract tests and SAFE-01 without masking", %{
     workflow: workflow
   } do
+    contract_step_names = workflow |> steps("contract") |> Enum.map(&Map.get(&1, "name"))
+
+    assert index_of(contract_step_names, "Install FFmpeg") <
+             index_of(contract_step_names, "Run contract tests")
+
     assert_required_step!(
       workflow,
       "contract",

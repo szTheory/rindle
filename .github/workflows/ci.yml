@@ -478,6 +478,11 @@ jobs:
           mix-env: test
           install-deps: "false"
 
+      # The contract suite includes the real ProcessVariant telemetry path,
+      # which invokes ffmpeg and ffprobe. Keep that prerequisite explicit.
+      - name: Install FFmpeg
+        run: bash scripts/ci/install_ffmpeg.sh
+
       - name: Install dependencies
         run: mix deps.get
 
