@@ -25,10 +25,10 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
           provider_polling_floor_seconds: 30,
           provider_stuck_threshold_seconds: 7200
 
-    ## DSL ↔ Mux REST translation (D-04 memo correction)
+    ## DSL ↔ Mux REST translation
 
-    Phase 33 ships the DSL atom `:playback_policy` (singular) and the schema
-    column `playback_policy` (singular). The Phase 33 schema also defines
+    Rindle uses the DSL atom `:playback_policy` (singular) and the schema
+    column `playback_policy` (singular). The schema also defines
     `field :playback_ids, {:array, :string}` (PLURAL ARRAY).
 
     At the SDK boundary this adapter translates to the **current Mux REST API
@@ -69,7 +69,7 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
     `asset_id` as a redacted identifier — it is not a stable correlation key.
 
       * `[:rindle, :provider, :ingest, :start | :stop | :exception]` — emitted
-        by `Rindle.Workers.MuxIngestVariant` (Phase 34).
+        by `Rindle.Workers.MuxIngestVariant`.
         - measurements: `%{system_time, duration?}` (`duration` only on `:stop`/`:exception`)
         - metadata: `%{profile, provider, asset_id, variant_name, kind?, reason?}`
         - `kind: :error | :cancelled` is added on `:exception` to distinguish
@@ -77,18 +77,17 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
           (`{:cancel, {:stale_source, _}}`).
 
       * `[:rindle, :provider, :sync, :resolved | :stuck]` — emitted by
-        `Rindle.Workers.MuxSyncProviderAsset` (Phase 34).
+        `Rindle.Workers.MuxSyncProviderAsset`.
         - measurements: `%{system_time}`
         - metadata: `%{profile, provider, asset_id, provider_state, age_ms}`
         - `:stuck` fires when a row in `:processing`/`:uploading` exceeds
           `:provider_stuck_threshold_seconds` (default 7200).
 
-      * `[:rindle, :delivery, :streaming, :resolved]` — already shipped by
-        Phase 33's `dispatch_streaming/4`. No new event from Phase 34 on this
-        path; the metadata extension is the documented v1.4-contract addition.
+      * `[:rindle, :delivery, :streaming, :resolved]` — emitted by
+        `Rindle.Delivery.dispatch_streaming/4` when streaming resolution succeeds.
 
-    Phase 35 will add `[:rindle, :provider, :webhook, _]` events. Phase 34
-    does not emit them.
+    Webhook processing emits `[:rindle, :provider, :webhook, _]` events from
+    the webhook boundary; this adapter records verification-attempt telemetry.
     """
 
     @behaviour Rindle.Streaming.Provider
@@ -102,10 +101,10 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
     @doc """
     Server-push ingest entry point. Translates DSL `:playback_policy` (singular,
     via `opts`) to the Mux REST PLURAL `playback_policies` key. Returns the
-    Phase 33 contract shape `{:ok, %{provider_asset_id: _, playback_ids: [_]}}`
+    provider contract shape `{:ok, %{provider_asset_id: _, playback_ids: [_]}}`
     (PLURAL array, even with a single element).
 
-    Errors are normalized to the Phase 33 atom set:
+    Errors are normalized to Rindle's provider error vocabulary:
 
       * `:provider_quota_exceeded` (HTTP 429) — caller can extract `Retry-After`
         from `%Tesla.Env{}.headers` via `create_asset_with_retry_hint/3` if it
@@ -172,7 +171,7 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
 
     @doc """
     Worker-facing variant of `create_asset/3` that exposes the 429 `Retry-After`
-    seconds value so the Plan 02 worker can snooze cleanly. Param construction
+    seconds value so ingest workers can snooze cleanly. Param construction
     (PLURAL keys) lives ONLY here in the adapter — never duplicated in workers.
 
     Returns:
@@ -409,8 +408,8 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
     # a verified Mux event should be enqueued (`:dispatch`) or acknowledged with
     # 200 OK and dropped (`:drop`).
     #
-    # Phase 35 dispatches: `video.asset.{ready,errored,deleted,created}` and
-    # `video.upload.asset_created` (direct-creator-upload linker, shipped v1.8).
+    # The webhook boundary dispatches `video.asset.{ready,errored,deleted,created}`
+    # and `video.upload.asset_created` for direct-creator-upload linking.
     # Everything else drops — Mux ships event types Rindle does not act on
     # (master files, tracks, static renditions, live-stream, etc.). Returning
     # 200 OK ensures Mux does not retry; the verified-but-dropped events surface
@@ -455,7 +454,7 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
       end
     end
 
-    # Mux uses "preparing" while transcoding; Phase 33 FSM uses "processing".
+    # Mux uses "preparing" while Rindle's FSM uses "processing".
     defp normalize_state("preparing"), do: "processing"
     defp normalize_state("ready"), do: "ready"
     defp normalize_state("errored"), do: "errored"

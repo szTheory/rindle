@@ -2,8 +2,8 @@ defmodule Rindle.Capability do
   @moduledoc """
   Aggregates Rindle runtime capability surfaces for ops/doctor consumers.
 
-  Phase 33 ships the aggregator function only. Phase 36 (MUX-16) refactors
-  `mix rindle.doctor` to consume `report/0`.
+  `report/0` is the shared capability view consumed by operator-facing doctor
+  checks.
 
   ## Security invariant 14
 
@@ -14,7 +14,7 @@ defmodule Rindle.Capability do
   configured, so it does not crash when the optional `:mux` dep is absent.
   """
 
-  @typedoc "Locked report shape per Phase 33 D-30."
+  @typedoc "Capability report shape consumed by runtime and doctor checks."
   @type report :: %{
           storage: %{module() => [atom()]},
           processor: %{module() => [atom()]},
@@ -53,9 +53,9 @@ defmodule Rindle.Capability do
   # --- processor ---
 
   defp processor_report(profiles) do
-    # Phase 33 has no Rindle.Processor.Capabilities module yet (AV uses a
-    # different shape via Rindle.AV.Capability). Map known processor modules
-    # to their advertised capabilities; if the function is missing or raises,
+    # Processors expose capabilities through their existing module contracts.
+    # Map known processor modules to their advertised capabilities; if the
+    # function is missing or raises,
     # return an empty list.
     for profile <- profiles, into: %{} do
       processor = safely_call_zero(profile, :processor)
@@ -90,8 +90,8 @@ defmodule Rindle.Capability do
   @doc """
   Returns the subset of `profiles` that opt into the `:streaming` delivery key.
 
-  Public seam used by `mix rindle.doctor`'s streaming checks (Phase 36 / MUX-16)
-  as the single source of truth for "is this profile streaming-enabled?". The
+    Public seam used by `mix rindle.doctor`'s streaming checks as the single
+    source of truth for "is this profile streaming-enabled?". The
   predicate is identity with the inner `report/0` filter — both call
   `streaming_config_for/1` via `delivery_policy/0`.
   """
@@ -106,9 +106,9 @@ defmodule Rindle.Capability do
   @doc """
   Returns the subset of `profiles` that select `Rindle.Storage.GCS` as their storage adapter.
 
-  Public seam used by `mix rindle.doctor`'s GCS checks (Phase 37 / D-13) as the
-  single source of truth for "is this profile GCS-enabled?". Mirrors
-  `configured_streaming_profiles/1` (Phase 36 / MUX-16) — both delegate from
+    Public seam used by `mix rindle.doctor`'s GCS checks as the single source of
+    truth for "is this profile GCS-enabled?". Mirrors
+    `configured_streaming_profiles/1` — both delegate from
   `runtime_checks.ex` so the doctor module never inlines profile-filter logic.
   """
   @spec configured_gcs_profiles([module()]) :: [module()]
