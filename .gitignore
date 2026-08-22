@@ -41,6 +41,8 @@ Thumbs.db
 /recent.txt
 /roadmap.json
 /state.json
+/credo.json
+/credo.txt
 /rindle-*/
 
 # Claude Code runtime (worktrees, scheduled-task locks, etc.)
