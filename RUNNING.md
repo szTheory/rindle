@@ -55,14 +55,15 @@ matrix both of those entrypoints link to.
 | Job / step | Severity | When it runs | Notes |
 |------------|----------|--------------|-------|
 | `quality` — Compile, Check formatting | merge-blocking | Every PR/push; Elixir 1.15/OTP 26 and 1.17/OTP 27 matrix | Both matrix cells must pass |
-| `quality` — Credo (strict) | advisory | Same job | Step-level `continue-on-error` |
-| `quality` — Doctor (full, raise) | advisory | Same job | Step-level `continue-on-error` |
-| `quality` — Verify AV runtime with public doctor task | advisory | Same job | Step-level `continue-on-error` |
+| `quality` — Credo quality | merge-blocking | Canonical lint cell (Elixir 1.17/OTP 27) | `scripts/maintainer/credo_quality.sh`: reviewed warnings, public-contract checks, and complexity inventory |
+| `quality` — Doctor (full, raise) | merge-blocking | Canonical lint cell (Elixir 1.17/OTP 27) | Measured public `lib/` report under `MIX_ENV=dev` |
+| `quality` — Credo (strict, advisory style) | advisory | Canonical lint cell | Full-tree style output remains visible with step-level `continue-on-error` |
+| `quality` — Verify AV runtime with public doctor task | advisory | Same job | Requires DB, Oban, and canonical profile readiness that this job intentionally does not prepare |
+| `quality` — Run focused AV behavior tests | merge-blocking | Same job, after FFmpeg/libvips installation | Real FFmpeg/ffprobe fixture and Vix/libvips behavior proof; no `vips` CLI is required |
 | `quality` — Run tests with coverage | merge-blocking | Same job | Default `mix test` suite run **once** via `mix coveralls.multiple --type local --type json` (single run → console gate + `cover/excoveralls.json`); both matrix cells must pass |
 | `optional-dependencies` | merge-blocking | Every PR/push; Elixir 1.15/OTP 26 and 1.17/OTP 27 matrix | ADMIN-06 proof: `mix deps.get --no-optional-deps` and `mix compile --no-optional-deps --warnings-as-errors` |
 | `integration` | merge-blocking | `needs: [quality, optional-dependencies]` | Lifecycle + MinIO adapter tests plus the disposable-database migration E2E suite (documented Ecto.Migrator path, lock contention, and real-role privilege refusals) |
-| `contract` — Run AV hygiene gate | merge-blocking | `needs: [quality, optional-dependencies]` | `scripts/assert_av_hygiene.sh` |
-| `contract` — Run contract tests | advisory | Same job | Step-level `continue-on-error`; job still required in graph |
+| `contract` — Run AV hygiene gate, contract tests, SAFE-01 | merge-blocking | `needs: [quality, optional-dependencies]` | AV hygiene plus deterministic `--only contract` tests and `scripts/maintainer/refactor_contract.sh` |
 | `proof` | merge-blocking | `needs: [quality, optional-dependencies]` | `docs_parity_test.exs`, adoption proof matrix drift gate, `batch_owner_erasure_task_test.exs`; Postgres only; Elixir 1.17/OTP 27 |
 | `package-consumer-full` — repo hygiene gate | off-critical-path | `push:main`/release (`if: github.event_name != 'pull_request'`) | `scripts/maintainer/repo_hygiene_check.sh --ci`; release/main gate, not merge-blocking on PRs |
 | `package-consumer` (lean, PR) | merge-blocking | `needs: [quality, optional-dependencies]` | Representative `image`-only install-smoke + version alignment; stays in `CI Summary.needs` |
@@ -95,22 +96,37 @@ To reproduce the merge-blocking **gate alone** (no JSON artifact), `mix coverall
 is unchanged — it runs the identical `local` analyzer and produces the same
 pass/fail verdict.
 
-### Static analysis policy (CI-04)
+### Truthful quality policy
 
-**Decision:** Credo (strict) remains **advisory** in the PR `quality` job.
-Dialyzer runs as an owned, gating job in `nightly.yml`; it is not on the PR critical path.
+The reviewed Credo aggregate and measured public Doctor report are merge-blocking on the
+canonical Quality lint cell. Reproduce them locally with:
 
-**Rationale:**
+```sh
+mix credo_quality
+MIX_ENV=dev mix doctor --full --raise
+mix refactor_contract
+```
 
-- **Signal value:** Static analysis catches style and typespec drift; failures remain
-  visible in CI logs for maintainers without blocking adopter-critical merge lanes.
-- **Fork latency:** Keeping the Dialyzer PLT build in Nightly avoids raising contributor
-  and fork PR cost while retaining a daily gating signal.
-- **Green-main honesty:** Adopter-critical lanes are already merge-blocking (`mix coveralls`,
-  `proof`, `package-consumer`, `adopter`, `integration`, contract AV hygiene). Static
-  analysis is maintainer hygiene, not adopter contract.
+`mix quality_signals` runs those three deterministic checks in that order, and `mix ci`
+includes it before the repository's one default test-suite execution. The full-tree
+`mix credo --strict --format oneline` style report remains intentionally advisory in CI;
+it is visible for maintainer review but is not the reviewed actionable policy.
 
-Doctor and AV doctor steps remain advisory. See the matrix rows above.
+For focused real AV behavior, first install the host prerequisites described above
+(FFmpeg >= 6 and libvips for Vix), then run:
+
+```sh
+mix test test/rindle/probe/av_probe_test.exs test/rindle/processor/image_test.exs --seed 0
+```
+
+This test command exercises FFmpeg/ffprobe and Vix/libvips directly; it does not require
+a standalone `vips` CLI. The public `mix rindle.doctor` remains a separate, advisory
+runtime readiness command in Quality because that job intentionally lacks the adopter's
+DB, Oban, and profile-host setup. Run it only from a DB/Oban/profile-ready adopter host.
+
+Dialyzer remains an owned, gating Nightly signal, outside the PR-local alias and critical
+path. Push-main/full-verification-only lanes likewise remain outside `mix ci`; the release
+workflow still relies on the complete `ci.yml` run for the exact release SHA.
 
 ### Release train
 
