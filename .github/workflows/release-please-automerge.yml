@@ -6,6 +6,10 @@ on:
       - CI
     types:
       - completed
+  # Recovery seam for an already-green Release Please PR when a workflow_run
+  # delivery was skipped or predated a trigger fix. Branch protection still
+  # enforces the required CI Summary before `gh pr merge` can succeed.
+  workflow_dispatch:
 
 concurrency:
   group: release-please-automerge-main
@@ -19,7 +23,10 @@ permissions:
 jobs:
   automerge:
     name: Auto-merge eligible Release Please PR
-    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' }}
+    if: >-
+      ${{ github.event_name == 'workflow_dispatch' ||
+          (github.event.workflow_run.conclusion == 'success' &&
+           github.event.workflow_run.head_branch == 'release-please--branches--main--components--rindle') }}
     runs-on: ubuntu-22.04
 
     steps:
@@ -132,12 +139,12 @@ jobs:
           GH_REPO: ${{ github.repository }}
           MERGE_SHA: ${{ steps.merge.outputs.merge_sha }}
           PR_NUMBER: ${{ steps.candidate.outputs.number }}
-          SOURCE_CI_RUN_ID: ${{ github.event.workflow_run.id }}
+          SOURCE_CI_RUN_ID: ${{ github.event.workflow_run.id || github.run_id }}
         shell: bash
         run: |
           set -euo pipefail
 
           gh workflow run release.yml \
             --ref main \
-            --field recovery_reason="Automated Release Please PR #$PR_NUMBER merge after green main CI run $SOURCE_CI_RUN_ID" \
+            --field recovery_reason="Automated Release Please PR #$PR_NUMBER merge after protected CI evidence $SOURCE_CI_RUN_ID" \
             --field recovery_ref="$MERGE_SHA"

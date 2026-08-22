@@ -325,6 +325,16 @@ defmodule Rindle.InstallSmoke.CiLaneSplitTest do
     assert automerge =~ "workflows:\n      - CI",
            "release-please-automerge.yml must listen on the `CI` workflow (couples to ci.yml `name: CI`, SC5)"
 
+    assert automerge =~ "workflow_dispatch:",
+           "release-please-automerge.yml must retain a manual recovery seam for an already-green release PR"
+
+    assert automerge =~
+             "github.event.workflow_run.head_branch == 'release-please--branches--main--components--rindle'",
+           "automerge must react to successful CI on the canonical Release Please PR branch"
+
+    refute automerge =~ "github.event.workflow_run.head_branch == 'main'",
+           "pull-request CI reports the PR head branch, so a main-only condition permanently skips automerge"
+
     # release.yml gate-ci-green reads the ci.yml run conclusion by workflow_id.
     assert release =~ "workflow_id: 'ci.yml'",
            "release.yml gate-ci-green must read the ci.yml run by `workflow_id: 'ci.yml'` (SC5)"
