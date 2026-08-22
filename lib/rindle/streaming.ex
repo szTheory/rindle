@@ -2,8 +2,8 @@ defmodule Rindle.Streaming do
   @moduledoc """
   Streaming-owned public entrypoints.
 
-  Phase 45 adds browser-to-provider direct upload creation here so the public
-  contract stays separate from the storage broker lifecycle.
+  Browser-to-provider direct upload creation lives here so the public contract
+  stays separate from the storage broker lifecycle.
 
   ## Direct upload cancel (v1.13)
 
@@ -28,7 +28,7 @@ defmodule Rindle.Streaming do
           {:ok, %{upload_url: String.t(), asset_id: Ecto.UUID.t()}} | {:error, term()}
 
   @typedoc """
-  Result of `cancel_direct_upload/1` (implementation ships Phase 65).
+  Result of `cancel_direct_upload/1`.
 
   Success is bare `:ok` (idempotent re-cancel included). Provider handles never
   appear on this boundary.

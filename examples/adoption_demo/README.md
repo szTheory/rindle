@@ -68,7 +68,7 @@ Here is what you can click around to see:
 Local dev uses a path dependency (`../..`). CI and tarball smoke use a built Hex package:
 
 ```bash
-export RINDLE_DEMO_RINDLE_PATH=/path/to/rindle-0.1.9
+export RINDLE_DEMO_RINDLE_PATH=/path/to/rindle-checkout
 mix deps.get && mix setup
 ```
 

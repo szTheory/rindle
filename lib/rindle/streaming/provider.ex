@@ -1,6 +1,6 @@
 defmodule Rindle.Streaming.Provider do
   @moduledoc """
-  Behaviour contract for streaming providers (Phase 33 — promoted from v1.4 reserved shim).
+  Behaviour contract for streaming providers.
 
   A streaming provider implements asset-CRUD + signed-playback-URL + webhook-verify
   against an external streaming service (e.g. Mux). The dispatch surface that decides
@@ -31,10 +31,8 @@ defmodule Rindle.Streaming.Provider do
   @typedoc """
   Locked finite-state-machine vocabulary for `media_provider_assets.state`.
 
-  BL-04 alignment: the schema column is `:string` (see
-  `Rindle.Domain.MediaProviderAsset.@states`), the FSM keys are strings
-  (`Rindle.Domain.ProviderAssetFSM.@allowed_transitions`), and adapter
-  implementations return strings (e.g. `Rindle.Streaming.Provider.Mux.normalize_state/1`).
+  The schema column and transition-table keys are strings, and adapter
+  implementations return strings.
   This typespec mirrors that surface — the closed set lives at the schema
   layer, not in the type system. Adopters MUST treat values as one of:
 
@@ -50,9 +48,8 @@ defmodule Rindle.Streaming.Provider do
   (e.g. lifecycle events like `video.asset.created` that pre-date transcoding).
 
   `:upload_id` is OPTIONAL and populated only by adapter typed branches that
-  carry both an upload id and a provider asset id (e.g. Mux's
-  `video.upload.asset_created` — see D-29 / D-30, added in Phase 35 as
-  forward-compat for direct-creator-upload, shipped in v1.8).
+  carry both an upload id and a provider asset id (for example Mux's
+  `video.upload.asset_created` event).
   """
   @type provider_event :: %{
           required(:type) => atom(),
@@ -64,7 +61,7 @@ defmodule Rindle.Streaming.Provider do
           optional(:upload_id) => String.t() | nil
         }
 
-  @typedoc "Capability atom advertised by `capabilities/0`. Closed vocabulary lives in `Rindle.Streaming.Capabilities`."
+  @typedoc "Capability atom advertised by `capabilities/0`. Rindle validates the closed vocabulary internally."
   @type capability ::
           :signed_playback
           | :public_playback
@@ -72,7 +69,7 @@ defmodule Rindle.Streaming.Provider do
           | :server_push_ingest
           | :direct_creator_upload
 
-  @doc "Capabilities advertised by this provider. Filtered against `Rindle.Streaming.Capabilities.known/0` by `safe/1`."
+  @doc "Capabilities advertised by this provider. Values are filtered against Rindle's closed vocabulary."
   @callback capabilities() :: [capability()]
 
   @doc """

@@ -98,12 +98,12 @@ Rindle Admin uses exactly six top-level surfaces:
 - Runtime/Doctor
 - Actions
 
-These names are the navigation contract for later console phases. Do not replace
+These names are the navigation contract for the console. Do not replace
 them with decorative dashboard categories.
 
 ## Level-1 Component Inventory
 
-The Phase 95 Level-1 primitive inventory is exact and singular:
+The Level-1 primitive inventory is exact and singular:
 
 - shell
 - nav
@@ -188,22 +188,21 @@ frameworks, or registry components. The forbidden dependency list is:
 - daisyUI registry
 - third-party UI registries
 
-If a later phase proposes any runtime UI dependency or third-party registry,
+If a future change proposes any runtime UI dependency or third-party registry,
 stop and escalate because dependency footprint is a recorded high-blast-radius
 boundary.
 
 ## Decision Coverage
 
-This guide records durable operating coverage for the Phase 88 generated kit,
-Phase 94 token pipeline, and Phase 95 Level-1 primitive audit: D-95-01 through
-D-95-09 plus ADMIN-02 package/dependency boundary groundwork.
+This guide records the durable operating contract for the generated kit, token
+pipeline, Level-1 primitive inventory, and package/dependency boundary.
 
 ## Review Checklist
 
-Before later admin phases rely on the kit, run the command chain above and
+Before changing or releasing the kit, run the command chain above and
 review the gallery plus screenshots. Confirm that light, dark, auto, mobile,
 status-chip, theme-picker, confirm-dialog, form-controls, error-state, and
-loading-state fixtures match the Phase 95 UI-SPEC: readable themes, no text
+loading-state fixtures match the UI specification: readable themes, no text
 overlap or clipping, visible focus-visible states, active/current states that do
 not rely on focus outlines, disabled/loading affordances, status chips with
 labels plus non-color marks, and confirm-dialog collateral preview plus typed

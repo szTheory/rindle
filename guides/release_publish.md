@@ -46,60 +46,25 @@ while iterating, then rely on the exact-SHA `ci.yml` run selected by Release
 Please or `workflow_dispatch` recovery.
 
 Do not substitute a green branch head, a rerun on a different commit, or a
-local-only transcript for this proof. The `Package Consumer Proof Matrix + Release Preflight`
-lane in `ci.yml` is part of the exact-SHA boundary.
+local-only transcript for this proof. The lean `package-consumer` PR lane and
+off-PR `Package Consumer Full Matrix + Release Preflight` lane are both part of
+the maintained evidence chain.
 
-## 0.4.0 Schema-Isolation Signoff
+## 0.4.0 Schema-Isolation Release Receipt
 
-Use the focused checks below to diagnose the 0.4.0 schema-isolation release
-candidate before requesting release signoff. They are local diagnostic evidence,
-not release authority:
+Rindle 0.4.0 shipped on 2026-08-20. Its immutable source was verified by exact-SHA
+CI and the protected release workflow, and the installed Hex package passed fresh
+public verification:
 
-```bash
-mix test test/install_smoke/docs_parity_test.exs test/install_smoke/release_docs_parity_test.exs --seed 0
-bash scripts/install_smoke.sh image
-cd examples/adoption_demo && mix precommit
-```
+- [exact-source CI run 32371768158](https://github.com/szTheory/rindle/actions/runs/32371768158)
+- [protected release and public verification run 32383632492](https://github.com/szTheory/rindle/actions/runs/32383632492)
+- [0.4.0 on Hex.pm](https://hex.pm/packages/rindle/0.4.0)
 
-Run `bash scripts/ci/cohort_demo_smoke.sh` for the Cohort cold-start and schema
-boot assertion. It verifies the composed demo can build, start, and serve its
-seeded homepage and admin console, but a checkout transcript never replaces the
-exact-SHA GitHub Actions result.
-
-### Set the breaking-release intent before Release Please regenerates the candidate
-
-The retained `bump-patch-for-minor-pre-major` setting makes the observed Release
-Please PR #59 proposal of `0.3.3` expected when no release intent is supplied.
-This schema-isolation milestone is breaking and must release as `0.4.0`, so keep
-the incorrect `0.3.3` candidate blocked; do not merge or publish it.
-
-Open one ordinary PR containing only the release-intent change. The ordinary PR's squash/merge commit must contain this exact standalone footer:
-
-```text
-Release-As: 0.4.0
-```
-
-Do not hand-edit `mix.exs`, `.release-please-manifest.json`, a tag, or the
-generated changelog heading. Release Please remains the sole owner of those
-version, manifest, tag, and generated-note mutations. After that ordinary PR
-merges, let Release Please regenerate the candidate and require `0.4.0` before
-continuing this signoff.
-
-Before merging the Release Please PR, review its generated `## [0.4.0]` note:
-fold the staged `## Unreleased / 0.4.0` text into that generated block and remove the staging marker. Keep the detailed operator procedure linked through [Upgrading](upgrading.html). Release Please alone owns the final version, tag, and generated changelog heading.
-
-The authoritative evidence chain is a green `ci.yml` run on the exact
-release-candidate SHA. Confirm the following live workflow results:
-
-- `Proof` docs/parity result
-- Lean `Package Consumer Proof Matrix + Release Preflight` result
-- `Adoption Demo Unit` result
-- Off-PR `Package Consumer Full Matrix + Release Preflight` result on push to `main`
-- `Cohort Demo Smoke` result on push to `main`
-
-Then let the `Release` workflow run `Run release preflight`, `Verify version
-alignment`, `Dry run Hex publish`, and `Verify public Hex.pm artifact`; those
-packed and public gates, not local checkout results, authorize the release.
+The pre-release `Release-As: 0.4.0` correction and staged changelog procedure are
+historical evidence, not current operator instructions. For adopter migration and
+rollback guidance, use [Upgrading](upgrading.html). For the next patch release, use
+the routine release procedure below and let Release Please own version, manifest,
+tag, and generated changelog changes.
 
 ## Package Metadata Review
 
@@ -384,7 +349,7 @@ rindle FIX_VERSION - replacement for retired BAD_VERSION
 
 | Date | Change | Evidence |
 | --- | --- | --- |
-| 2026-04-30 | Added idempotent recovery reruns so `workflow_dispatch` skips publish when the target version is already live and still runs public verification. | Phase 16 recovery fix on current branch |
+| 2026-04-30 | Added idempotent recovery reruns so `workflow_dispatch` skips publish when the target version is already live and still runs public verification. | Recovery fix on the release branch |
 | 2026-04-29 | Hardened publish preflight after first live publish friction. | `d5c21ad`, `65728e5` |
 | 2026-04-29 | Locked current tooling against frozen source via `git worktree` recovery flow. | `71a0f99` |
 | 2026-04-29 | Moved public verification to the public package path and refreshed smoke discipline. | `6dd0d54` |

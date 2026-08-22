@@ -50,8 +50,8 @@ defmodule Rindle do
   Rindle now ships a mountable admin console, mounted from your router via
   `Rindle.Admin.Router.rindle_admin/2`. The console is host-authenticated and
   separate from this facade; see `guides/admin_console.md` for the adopter
-  setup. Admin read composition lives in `Rindle.Admin.Queries`, which is
-  internal and is not promoted onto this `Rindle` facade.
+  setup. Admin read composition stays internal and is not promoted onto this
+  `Rindle` facade.
 
   `detach/3` remains the slot-scoped attachment API, and
   `mix rindle.cleanup_orphans` remains the maintenance-only upload-residue
@@ -90,8 +90,8 @@ defmodule Rindle do
         }
 
   @typedoc """
-  Owner identity reference extracted from owner structs.
-  Matches the tuple `Rindle.Internal.OwnerErasure` derives internally.
+  Owner identity reference extracted from owner structs. Matches the tuple the
+  internal erasure implementation derives.
   """
   @type owner_ref :: {owner_type :: String.t(), owner_id :: Ecto.UUID.t()}
 
@@ -648,7 +648,20 @@ defmodule Rindle do
 
   """
   @spec reprobe(MediaAsset.t() | binary()) ::
-          {:ok, LifecycleRepair.reprobe_report()} | {:error, term()}
+          {:ok,
+           %{
+             asset_id: binary(),
+             attempted: non_neg_integer(),
+             refreshed: non_neg_integer(),
+             errors: non_neg_integer(),
+             failures: [],
+             cleared_fields: [atom()],
+             content_type: binary(),
+             kind: binary(),
+             refreshed_fields: [atom()],
+             updated_at: NaiveDateTime.t()
+           }}
+          | {:error, term()}
   def reprobe(asset_or_id) do
     LifecycleRepair.reprobe_asset(asset_or_id)
   end
@@ -679,7 +692,16 @@ defmodule Rindle do
 
   """
   @spec requeue_variants(MediaAsset.t() | binary(), keyword() | map()) ::
-          {:ok, LifecycleRepair.requeue_report()} | {:error, term()}
+          {:ok,
+           %{
+             asset_id: binary(),
+             selected: non_neg_integer(),
+             enqueued: non_neg_integer(),
+             skipped: non_neg_integer(),
+             errors: non_neg_integer(),
+             failures: [map()]
+           }}
+          | {:error, term()}
   def requeue_variants(asset_or_id, opts \\ []) do
     LifecycleRepair.requeue_failed_variants(asset_or_id, opts)
   end

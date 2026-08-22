@@ -7,6 +7,27 @@ cd "$ROOT"
 
 failures=0
 
+scan() {
+  local pattern="$1"
+  shift
+  local output
+  local scan_status
+
+  if output="$(git grep -n -E -e "$pattern" -- "$@" 2>&1)"; then
+    printf '%s\n' "$output"
+    return 0
+  else
+    scan_status=$?
+  fi
+
+  if [[ "$scan_status" -eq 1 ]]; then
+    return 0
+  fi
+
+  echo "check_docs_links: scanner failed (git grep exit $scan_status): $output" >&2
+  exit "$scan_status"
+}
+
 report() {
   echo "check_docs_links: $1" >&2
   failures=$((failures + 1))
@@ -17,13 +38,13 @@ echo "Checking adopter docs for GitHub-only .md link patterns in guides/..."
 while IFS= read -r match; do
   report "guides should link siblings as .html, not .md: $match"
 done < <(
-  rg -n '\]\([^)]*guides/[^)]+\.md[^)]*\)' guides/ README.md RUNNING.md 2>/dev/null || true
+  scan '\]\([^)]*guides/[^)]+\.md[^)]*\)' guides README.md RUNNING.md
 )
 
 while IFS= read -r match; do
   report "use readme.html / running.html on HexDocs, not parent .md paths: $match"
 done < <(
-  rg -n '\]\(\.\./(README|RUNNING)\.md\)' guides/ 2>/dev/null || true
+  scan '\]\(\.\./(README|RUNNING)\.md\)' guides
 )
 
 echo "Checking for planning artifacts in adopter-facing docs..."
@@ -43,9 +64,7 @@ for pattern in 'Phase [0-9]+' 'D-[0-9]+' '\.planning' 'GSD Hygiene' '\$gsd-'; do
         ;;
     esac
     report "planning artifact ($pattern): $match"
-  done < <(
-    rg -n "$pattern" README.md RUNNING.md guides/*.md 2>/dev/null | rg -v 'guides/release_publish.md' || true
-  )
+  done < <(scan "$pattern" README.md RUNNING.md guides)
 done
 
 if [[ "$failures" -gt 0 ]]; then

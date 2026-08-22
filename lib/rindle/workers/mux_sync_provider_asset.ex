@@ -4,8 +4,8 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
   defmodule Rindle.Workers.MuxSyncProviderAsset do
     @moduledoc """
     Per-row defensive sync for `media_provider_assets` rows that may have
-    missed a webhook. Called by `Rindle.Workers.MuxSyncCoordinator` (Phase 34
-    ships the cron coordinator; Phase 35 wires up webhook-driven sync).
+    missed a webhook. Called by `Rindle.Workers.MuxSyncCoordinator` and the
+    webhook-driven synchronization path.
 
     ## Job Arguments
 
@@ -17,7 +17,7 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
       2. If the row is past the stuck threshold, transition to `:errored`
          with `last_sync_error: "stuck in :<state> past threshold"` and emit
          `[:rindle, :provider, :sync, :stuck]`.
-      3. Otherwise, call `Rindle.Streaming.Provider.Mux.get_asset/1` and
+      3. Otherwise, call the provider adapter's `get_asset/1` callback and
          reconcile FSM/playback_ids. Emit `[:rindle, :provider, :sync, :resolved]`.
       4. If Mux returns 404, transition to `:errored` with reason
          `"mux asset not found"` and emit `:resolved` (the row IS now reconciled

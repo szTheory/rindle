@@ -32,6 +32,7 @@ Update this section after each successful Hex publish with run ID, version, and 
 | 2026-05-28 | Release Please new PR after 0.1.6 | **Resolved** | Retagged `rindle-v0.1.6` → `b5a6a0d`; removed `autorelease: pending` from PR #12; RP opened [#14](https://github.com/szTheory/rindle/pull/14) (0.1.8) |
 | 2026-06-29 | Release-please stuck: 0.3.2 PR never opened | Root-caused + guarded | `Bad credentials` 401 in [run 28399407429](https://github.com/szTheory/rindle/actions/runs/28399407429); `RELEASE_PLEASE_TOKEN` expired; `secrets.X \|\| github.token` masks a bad token (PR #40 was the 0.3.1 PR; fixes merged 2026-06-28). Rotated token + added release-train-drift guard + token-validity guard. |
 | 2026-06-30 | 0.3.2 publish + public verify | Pass | [run 28420598348](https://github.com/szTheory/rindle/actions/runs/28420598348) (merge SHA `d228b67`) — Publish + Public Verify GREEN; Hex live == 0.3.2. Required THREE fixes: rotate expired `RELEASE_PLEASE_TOKEN` (fine-grained PAT) + relabel #40 `pending`→`tagged` + manual publish-dispatch (PAT lacked `Actions: write` — durable fix pending: add `Actions: Read and write` to the PAT or move to a GitHub App token). |
+| 2026-08-20 | 0.4.0 publish + public verify | Pass | [run 32383632492](https://github.com/szTheory/rindle/actions/runs/32383632492) — frozen source `78349c1…`; exact-source CI [32371768158](https://github.com/szTheory/rindle/actions/runs/32371768158); Hex and fresh public artifact verification green. |
 
 ## Automated Release Loop
 
@@ -96,22 +97,30 @@ branches for feature milestones; after merge, Release Please owns the normal rel
 ## Next Cut Condition
 
 Cut the next release when there is at least one merged patch-eligible change on `main`, the
-latest `main` CI is green (merge-blocking jobs: Quality, Integration, Proof, Package Consumer,
-Adopter), the repo hygiene gate reports no `BLOCK`, and release truth is coherent across
+latest `main` CI is green (`CI Summary` succeeded), the repo hygiene gate reports no `BLOCK`,
+and release truth is coherent across
 `mix.exs`, `.release-please-manifest.json`, and `CHANGELOG.md`.
 
 ## Merge-Blocking CI Jobs
 
-Required for a releasable `main` (see `RUNNING.md` and `.github/workflows/ci.yml`):
+Branch protection requires the single aggregate `CI Summary` context. Its merge-blocking
+inputs are (see `RUNNING.md` and `.github/workflows/ci.yml`):
 
 - Quality (1.15, 26) and Quality (1.17, 27)
+- ADMIN-06 Optional Dependencies (1.15, 26) and (1.17, 27)
 - Integration
 - Contract
 - Proof
-- Package Consumer Proof Matrix + Release Preflight
+- Package Consumer (lean image proof; workflow display name remains historical)
+- Adoption Demo Unit
+- Adoption Demo E2E Smoke
 - Adopter
+- brandbook-tokens
+- CI Script Tests
 
-Optional/soak lanes (mux-soak, gcs-soak) are not merge-blocking.
+The full package-consumer matrix, Cohort smoke, and full browser E2E run on push to
+`main`; Dialyzer and GCS live proof run nightly. Mux soak is label-gated. These are not
+PR merge-blocking contexts, but push-main failures block release readiness.
 
 When `BRANCH_PROTECTION_PAT` is set, `branch-protection-apply.yml` enforces these contexts on
 `main` (see `bash scripts/setup_branch_protection.sh --print-expected`).

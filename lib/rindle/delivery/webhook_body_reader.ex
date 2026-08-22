@@ -12,7 +12,7 @@ defmodule Rindle.Delivery.WebhookBodyReader do
         json_decoder: Jason
 
   The reader drains the request body (looping over `{:more, _, conn}` reads
-  that `Plug.Parsers.JSON.decode/3` does NOT loop on), caps total bytes at
+  that the JSON parser does not loop on), caps total bytes at
   1 MiB, and stores the body in `conn.assigns[:raw_body]` as a list of
   binaries (most-recent first; multipart-safe).
 

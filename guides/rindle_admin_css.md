@@ -5,15 +5,15 @@ The shipped console CSS is a vanilla `rindle-admin` layer generated from
 selectors, and self-contained static assets. It does not require host Tailwind, daisyUI,
 esbuild, or host asset-pipeline integration.
 
-Phase 86 locks the CSS contract only. Phase 88 implements the generator, CSS, components,
-and contrast extensions.
+The repository ships the generator, CSS, components, and contrast extensions described
+here.
 
 ## Source Of Truth
 
 `brandbook/tokens/tokens.json` is the token source of truth. Generated CSS is an artifact,
 like `brandbook/tokens/tokens.css`, and must not be edited by hand.
 
-The future admin generator should follow the existing pattern:
+Regenerate and verify the admin layer with the repository's existing build commands:
 
 ```sh
 node brandbook/src/tokens-build.mjs
@@ -28,7 +28,7 @@ contrast pairs should extend that pattern rather than rely on visual judgment.
 The console layer is named `rindle-admin`. It should ship as one namespaced CSS surface
 served by Rindle static assets.
 
-Selector examples locked for downstream implementation:
+Shipped selector examples include:
 
 - `.rindle-admin-shell`
 - `.rindle-admin-nav__item`
@@ -45,7 +45,7 @@ system. Do not use global element selectors for console styling.
 
 Generated custom properties are prefixed `--rindle-`.
 
-Examples that downstream implementation should consume:
+Examples consumed by the shipped implementation include:
 
 - `--rindle-surface`
 - `--rindle-surface-raised`
@@ -91,7 +91,7 @@ Locked status examples:
 
 ## UI-SPEC Values
 
-These values are downstream constraints from the Phase 86 UI design contract:
+These values are constraints from the admin UI design contract:
 
 | Concern | Locked value |
 | --- | --- |
@@ -122,12 +122,12 @@ Phoenix adopters.
 Do not add shadcn, Radix, Tailwind UI, daisyUI, or third-party UI registries to the shipped
 console. The design system is vanilla CSS plus Phoenix/LiveView markup.
 
-If a later phase proposes a new runtime UI dependency, stop and escalate because dependency
+If a future change proposes a new runtime UI dependency, stop and review because dependency
 footprint is a recorded high-blast-radius boundary.
 
-## Downstream Constraints
+## Implementation Constraints
 
-- Phase 88 generates and ships the `rindle-admin` CSS layer.
-- Phase 88 extends contrast gating for console token pairs.
-- Phase 89 serves the generated assets from the `:rindle` OTP app.
-- Phase 92 screenshot polish uses this CSS contract rather than one-off styles.
+- The build scripts generate and ship the `rindle-admin` CSS layer.
+- Contrast gating covers console token pairs.
+- The `:rindle` OTP app serves the generated assets.
+- Screenshot polish uses this CSS contract rather than one-off styles.

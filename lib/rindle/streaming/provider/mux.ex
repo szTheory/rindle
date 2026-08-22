@@ -37,7 +37,7 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
     use plural here. Param construction lives in a single private helper
     (`build_create_params/2`) so workers never duplicate this logic.
 
-    The Phase 33 callback contract returns `playback_ids: [playback_id()]` (a
+    The callback contract returns `playback_ids: [playback_id()]` (a
     list); the row schema persists `playback_ids` as `{:array, :string}`. The
     adapter writes the array verbatim; reads use `List.first/1` only when a
     single id is needed (e.g., for URL minting).
@@ -48,7 +48,7 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
     `Rindle.Streaming.Provider.Mux.ClientMock` by overriding the
     `:http_client` key on the same `:rindle, __MODULE__` config keyspace
     (see `test/rindle/streaming/provider/mux/mux_test.exs` for the canonical
-    setup). The default `:http_client` is `Rindle.Streaming.Provider.Mux.HTTP`.
+    setup). The default `:http_client` is Rindle's internal Mux HTTP adapter.
 
     ## Security invariants
 

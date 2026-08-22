@@ -335,8 +335,7 @@ defmodule Rindle.Storage.S3 do
   Canonical reaper-facing path of the on-disk tail buffer for a tus session.
 
   Returns the EXACT file `upload_part_stream/5` writes its sub-5-MiB tail
-  remainder to for `session_id`, so cleanup code (the orphan reaper /
-  `Rindle.Ops.UploadMaintenance`) can delete the real file rather than guessing
+  remainder to for `session_id`, so cleanup code can delete the real file rather than guessing
   at the encoding. The adapter owns the one canonical tail-path computation
   here: the path is `Base.url_encode64(session_id, padding: false) <> ".tail"`
   under the sweepable `Rindle.tmp/tus/` root — never the raw id (CR-02).

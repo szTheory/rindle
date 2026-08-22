@@ -404,17 +404,18 @@ To cancel stuck `IngestProviderWebhook` jobs in Oban:
 Oban.cancel_jobs(Rindle.Workers.IngestProviderWebhook)
 ```
 
-A higher-level `Rindle.cancel_provider_ingest/1` API is planned for v0.3+;
-until then, use Oban's job-cancellation surface directly.
+There is no facade API for cancelling webhook-processing jobs. Use Oban's
+job-cancellation surface directly. This is separate from
+`Rindle.Streaming.cancel_direct_upload/1`, which cancels an in-flight browser upload.
 
 ## 11. Performance Note: High-Throughput JWT Signing
 
 For adopters above ~1,000 playback URLs/sec, `JOSE.JWK.from_pem/1` becomes
-a hot path because Rindle re-parses the PEM on every signed-URL call. The
-recommended optimization is a `:persistent_term` cache keyed by signing
-key id; an in-library cache ships in v0.3+. Until then, you can patch the
-cache yourself by wrapping `Rindle.Streaming.Provider.Mux.sign_playback_id/2`
-in your application.
+a hot path because Rindle re-parses the PEM on every signed-URL call. Rindle
+does not currently cache parsed signing keys. If profiling shows this path is
+material for your workload, keep key rotation and cache invalidation in the
+design and open an upstream issue with measurements before introducing a
+custom provider wrapper.
 
 For most adopters (<100 playback URLs/sec) this is below the noise floor
 and no action is needed.

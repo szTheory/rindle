@@ -28,9 +28,19 @@ defmodule Rindle.InstallSmoke.ReleaseDocsParityTest do
      }}
   end
 
-  test "0.4.0 release notes stay manifest-aware and preserve the isolation contract", %{
+  test "current package, manifest, and generated changelog heading stay aligned", %{
+    mix_exs: mix_exs,
     changelog: changelog,
     release_manifest: release_manifest
+  } do
+    assert {:ok, %{"." => version}} = Jason.decode(release_manifest)
+    assert mix_exs =~ ~s(@version "#{version}")
+    assert changelog =~ ~r/^## \[#{Regex.escape(version)}\]/m
+    refute changelog =~ ~r/^## Unreleased \/ #{Regex.escape(version)}$/m
+  end
+
+  test "0.4.0 historical release notes preserve the isolation contract", %{
+    changelog: changelog
   } do
     required_contract = [
       "`rindle` schema by default",
@@ -45,28 +55,11 @@ defmodule Rindle.InstallSmoke.ReleaseDocsParityTest do
       "guides/upgrading.md"
     ]
 
-    cond do
-      release_manifest =~ ~s(".": "0.3.2") ->
-        assert length(Regex.scan(~r/^## Unreleased \/ 0\.4\.0$/m, changelog)) == 1
-        assert changelog =~ ~r/^## Unreleased \/ 0\.4\.0$\n[\s\S]+^## \[0\.3\.2\]/m
+    refute changelog =~ ~r/^## Unreleased \/ 0\.4\.0$/m
+    generated_notes = changelog_section(changelog, "[0.4.0]")
 
-        staging_notes = changelog_section(changelog, "Unreleased / 0.4.0")
-
-        for fact <- required_contract do
-          assert staging_notes =~ fact
-        end
-
-      release_manifest =~ ~s(".": "0.4.0") ->
-        refute changelog =~ ~r/^## Unreleased \/ 0\.4\.0$/m
-
-        generated_notes = changelog_section(changelog, "[0.4.0]")
-
-        for fact <- required_contract do
-          assert generated_notes =~ fact
-        end
-
-      true ->
-        flunk("expected Release Please manifest version 0.3.2 or 0.4.0, got: #{release_manifest}")
+    for fact <- required_contract do
+      assert generated_notes =~ fact
     end
   end
 
@@ -116,7 +109,7 @@ defmodule Rindle.InstallSmoke.ReleaseDocsParityTest do
           "Local preflight is diagnostic preparation, not authoritative release proof.",
           "Authoritative signoff requires a green GitHub Actions run on the exact release-candidate SHA.",
           "waits for `ci.yml` on the exact release SHA",
-          "Package Consumer Proof Matrix + Release Preflight",
+          "Package Consumer Full Matrix + Release Preflight",
           "outside `scripts/release_preflight.sh`",
           "outside secret-gated automation"
         ] do
@@ -124,34 +117,19 @@ defmodule Rindle.InstallSmoke.ReleaseDocsParityTest do
     end
   end
 
-  test "0.4.0 schema-isolation signoff names local diagnostics and exact-SHA evidence", %{
+  test "0.4.0 schema-isolation receipt names immutable public evidence", %{
     release_guide: release_guide,
     ci_workflow: ci_workflow,
     release_workflow: release_workflow
   } do
-    local_diagnostics = [
-      "mix test test/install_smoke/docs_parity_test.exs test/install_smoke/release_docs_parity_test.exs --seed 0",
-      "bash scripts/install_smoke.sh image",
-      "bash scripts/ci/cohort_demo_smoke.sh"
-    ]
-
-    authoritative_evidence = [
-      "Proof",
-      "Package Consumer Full Matrix + Release Preflight",
-      "Adoption Demo Unit",
-      "Cohort Demo Smoke",
-      "exact release-candidate SHA",
-      "Run release preflight",
-      "Verify version alignment",
-      "Dry run Hex publish",
-      "Verify public Hex.pm artifact"
-    ]
-
-    for command <- local_diagnostics do
-      assert release_guide =~ command
-    end
-
-    for evidence <- authoritative_evidence do
+    for evidence <- [
+          "exact-source CI run 32371768158",
+          "protected release and public verification run 32383632492",
+          "0.4.0 on Hex.pm",
+          "Release-As: 0.4.0",
+          "historical evidence",
+          "[Upgrading](upgrading.html)"
+        ] do
       assert release_guide =~ evidence
     end
 
@@ -173,24 +151,18 @@ defmodule Rindle.InstallSmoke.ReleaseDocsParityTest do
       assert release_workflow =~ step_name
     end
 
-    assert release_guide =~ "## Unreleased / 0.4.0"
-    assert release_guide =~ "[Upgrading](upgrading.html)"
-    assert release_guide =~ "remove the staging marker"
+    refute release_guide =~ "keep the incorrect `0.3.3` candidate blocked"
+    refute release_guide =~ "remove the staging marker"
   end
 
-  test "0.4.0 signoff requires explicit Release Please intent and blocks the 0.3.3 candidate", %{
+  test "0.4.0 receipt routes future releases back to the routine Release Please path", %{
     release_guide: release_guide
   } do
     for snippet <- [
-          "bump-patch-for-minor-pre-major",
-          "0.3.3",
-          "blocked",
-          "Release-As: 0.4.0",
-          "ordinary PR",
-          "squash/merge commit",
-          "mix.exs",
-          ".release-please-manifest.json",
-          "generated changelog heading"
+          "For the next patch release",
+          "routine release procedure",
+          "Release Please own version, manifest",
+          "generated changelog changes"
         ] do
       assert release_guide =~ snippet
     end

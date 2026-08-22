@@ -13,12 +13,12 @@ This guide covers:
 - Optional `phoenix_live_view` dependency safety
 - The `Rindle.Admin.Queries` read boundary
 
-Phase 86 locks architecture only. Console modules, assets, routes, and CI matrix proof
-are implemented in later phases.
+The console modules, assets, routes, and optional-dependency proofs described here ship
+with Rindle.
 
 ## Router Macro
 
-Downstream implementation should expose the mount surface as
+The mount surface is
 `Rindle.Admin.Router.rindle_admin/2`, following Phoenix LiveDashboard and Oban Web prior
 art: a host calls the macro from an authenticated router scope, and the macro expands to
 direct LiveView routes rather than a `forward`-only plug.
@@ -41,8 +41,8 @@ scope "/admin", MyAppWeb do
 end
 ```
 
-The recommended public shape is `Rindle.Admin.Router.rindle_admin/2`. Exact internal
-module layout remains a Phase 89 implementation decision.
+The public shape is `Rindle.Admin.Router.rindle_admin/2`; internal LiveView modules remain
+library-owned implementation details.
 
 ## Safe Mount Contract
 
@@ -58,9 +58,10 @@ Rindle must refuse unsafe unauthenticated mounts in production by default. Unsaf
 unauthenticated mounts are any production mount where the host has not supplied an auth
 pipeline or equivalent `:on_mount` guard acknowledgement.
 
-Development and test need a narrow dev/test-only escape-hatch policy for examples,
-preview apps, and CI proofs. The exact public option name is intentionally not locked in
-Phase 86 because that name is part of the auth/security API shape and belongs to Phase 89.
+Development and test have the narrow `allow_unauthenticated?: true` escape hatch for
+examples, preview apps, and CI proofs. Production rejects that option. A production mount
+must instead supply a non-empty `:on_mount` list or explicitly acknowledge a host-owned
+guard with `auth_guarded?: true`.
 
 Do not mount the console under a plain `pipe_through :browser` production scope unless
 the host has an explicit, reviewed auth mechanism.
@@ -77,18 +78,18 @@ The router macro should reserve these option concepts:
 | `:live_socket_path` | Host socket path when it differs from `/live`. |
 | `:transport` | Host transport override when needed. |
 | `:csp_nonce_assign_key` | Assign keys used to apply CSP nonces to console assets. |
+| `:auth_guarded?` | Acknowledge that the surrounding host router pipeline enforces authentication. |
+| `:allow_unauthenticated?` | Permit an unauthenticated mount outside production only. |
 
-Logo behavior is locked at the option-category level. The default Rindle logo links to
-`:home_path`; host replacement or hiding of the logo is allowed as an implementation-phase
-option category. Exact logo option names remain deferred to Phase 89.
+The default Rindle logo links to `:home_path`.
 
 ## Static Assets
 
 Rindle owns the console CSS and JavaScript. The shipped console must not require host Tailwind,
 host esbuild, or host asset-pipeline integration.
 
-Future implementation should serve namespaced files from the `:rindle` OTP app with
-`Plug.Static`, for example:
+Rindle serves namespaced files from the `:rindle` OTP app through its static-assets plug.
+The equivalent asset shape is:
 
 ```elixir
 plug Plug.Static,
@@ -107,8 +108,7 @@ The console must work in strict host CSP environments. The mount contract theref
 a Rindle nonce generator.
 
 `:live_socket_path` and `:transport` stay explicit because host apps can customize
-LiveView socket paths and transports. Phase 89 should mirror the prior-art option style
-rather than hard-code a single socket assumption.
+LiveView socket paths and transports.
 
 ## Optional Dependency Matrix
 
@@ -135,20 +135,9 @@ Do not promote admin convenience reads to `lib/rindle.ex`. The only new public s
 permitted by the v1.18 charter is the mountable console boundary; read helpers stay behind
 `Rindle.Admin.Queries`.
 
-## What Not To Build In Phase 86
+## Boundary Constraints
 
-- No console LiveView modules
-- No asset-serving plug
-- No generated CSS or JavaScript
 - No public `Rindle` facade convenience reads
-- No exact dev/test escape-hatch option name
-- No logo option names beyond the replacement/hiding category
-
-## Downstream Constraints
-
-- Phase 89 implements the macro, safe mount check, asset serving, CSP/socket options, and
-  optional dependency matrix.
-- Phase 89 keeps reads in `Rindle.Admin.Queries`.
-- Phase 90 action screens call existing facade/ops capabilities; they do not add new
-  lifecycle semantics.
-- Phase 93 updates public docs/facade truth after the console actually ships.
+- No new lifecycle semantics in action screens; they call existing facade/ops capabilities
+- No host asset-pipeline requirement
+- No production unauthenticated escape hatch
