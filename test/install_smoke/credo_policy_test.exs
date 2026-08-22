@@ -17,7 +17,7 @@ defmodule Rindle.CredoPolicyTest do
 
     public_contract = Map.fetch!(configs, "public_contract")
     assert Enum.all?(public_contract.files.included, &String.ends_with?(&1, ".ex"))
-    assert length(public_contract.files.included) > 20
+    assert Enum.sort(public_contract.files.included) == public_exdoc_source_files()
     refute Map.has_key?(public_contract.files, :excluded)
 
     assert check_modules(public_contract) == [
@@ -123,6 +123,21 @@ defmodule Rindle.CredoPolicyTest do
     do: module |> Atom.to_string() |> String.starts_with?("Elixir.Credo.Check.Warning.")
 
   defp check_modules(config), do: Enum.map(config.checks.enabled, &elem(&1, 0))
+
+  defp public_exdoc_source_files do
+    Mix.Project.config()
+    |> Keyword.fetch!(:docs)
+    |> Keyword.fetch!(:groups_for_modules)
+    |> Keyword.values()
+    |> List.flatten()
+    |> Enum.map(fn module ->
+      module
+      |> Module.split()
+      |> Enum.map_join("/", &Macro.underscore/1)
+      |> then(&"lib/#{&1}.ex")
+    end)
+    |> Enum.sort()
+  end
 
   defp baseline_entries do
     @baseline_path
