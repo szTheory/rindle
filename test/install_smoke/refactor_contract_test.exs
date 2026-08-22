@@ -20,7 +20,9 @@ defmodule Rindle.RefactorContractTest do
      meaningful_lines: meaningful_lines(File.read!(@script_path))}
   end
 
-  test "SAFE-01 remains an executable, planning-independent preservation command", %{script: script} do
+  test "SAFE-01 remains an executable, planning-independent preservation command", %{
+    script: script
+  } do
     assert executable?(@script_path), "SAFE-01 runner must remain executable"
     assert script =~ "set -euo pipefail"
     assert script =~ "BASH_SOURCE[0]"
