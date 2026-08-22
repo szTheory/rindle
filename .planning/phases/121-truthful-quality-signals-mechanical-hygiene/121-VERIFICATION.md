@@ -112,6 +112,16 @@ None. All phase success criteria are deterministic CI/local policy and test beha
 
 None. No deferred item applies: later phases refactor the preserved domains but do not defer any Phase 121 quality signal or preservation-contract requirement.
 
+### PR CI disconfirmation follow-up
+
+The first PR run (`32603899720`) exposed a prerequisite the local tool-equipped checkout could not:
+Contract's real `ProcessVariant` telemetry test invoked ffmpeg, but the Contract job did not install it.
+Commits `25cc8bb`, `6082872`, and `12426bb` made the pinned installer explicit and fail-closed,
+locked its command and ordering in the parsed-workflow policy test, and retired the stale action name
+from both current guides and parity contracts. Fresh focused evidence passed: 15 Contract tests,
+7 workflow-policy tests, and 58 documentation-parity tests. The final clean re-review covers the
+expanded 29-file scope with zero findings.
+
 ---
 
 _Verified: 2026-08-22T22:55:24Z_
