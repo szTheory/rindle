@@ -19,9 +19,18 @@ defmodule Rindle.Processor.AV do
     :audio_waveform
   ]
 
+  @doc """
+  Lists the AV transformation capabilities supplied by this processor.
+  """
   @spec capabilities() :: [atom()]
   def capabilities, do: @capabilities
 
+  @doc """
+  Validates and canonicalizes a preset-led AV variant specification.
+
+  Image-output and waveform presets are normalized locally; video and audio
+  recipes are delegated to the AV recipe implementation.
+  """
   @spec normalize(map()) :: {:ok, map()} | {:error, term()}
   def normalize(%{kind: :image} = spec), do: normalize_image_recipe(spec)
 
@@ -35,6 +44,9 @@ defmodule Rindle.Processor.AV do
   def normalize(%{kind: :waveform} = spec), do: normalize_waveform_recipe(spec)
   def normalize(spec), do: Recipe.normalize(spec)
 
+  @doc """
+  Returns a canonical AV variant specification or raises for an invalid recipe.
+  """
   @spec normalize!(map()) :: map()
   def normalize!(spec) do
     case normalize(spec) do
@@ -46,6 +58,9 @@ defmodule Rindle.Processor.AV do
     end
   end
 
+  @doc """
+  Processes an AV source into a destination using a normalized variant recipe.
+  """
   @impl Rindle.Processor
   @spec process(Path.t(), map(), Path.t()) :: {:ok, Path.t()} | {:error, term()}
   def process(source_path, variant_spec, destination_path) do

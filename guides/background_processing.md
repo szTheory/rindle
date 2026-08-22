@@ -168,7 +168,8 @@ AV processing follows one public triplet naming convention:
 `[:rindle, :media, :transcode, :stop]`, and
 `[:rindle, :media, :transcode, :exception]`.
 
-The exact public event allowlist is:
+The exact public event allowlist is the `@public_events` registry locked by
+[`test/rindle/contracts/telemetry_contract_test.exs`](../test/rindle/contracts/telemetry_contract_test.exs):
 
 - `[:rindle, :upload, :start]`
 - `[:rindle, :upload, :stop]`

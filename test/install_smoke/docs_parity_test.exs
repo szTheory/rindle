@@ -719,7 +719,7 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
           "brew install ffmpeg",
           "apt-get install -y ffmpeg",
           "apk add --no-cache ffmpeg",
-          "FedericoCarboni/setup-ffmpeg",
+          "bash scripts/ci/install_ffmpeg.sh",
           "Fly.io Dockerfile",
           "Heroku Aptfile",
           "Render Dockerfile",
@@ -727,6 +727,8 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
         ] do
       assert running =~ snippet
     end
+
+    refute running =~ "FedericoCarboni/setup-ffmpeg"
   end
 
   test "running guide publishes the maintainer CI lane severity matrix", %{running: running} do

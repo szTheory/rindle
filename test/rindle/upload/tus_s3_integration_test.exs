@@ -168,7 +168,7 @@ defmodule Rindle.Upload.TusS3IntegrationTest do
     # proving real UploadParts crossed the wire before the drop.
     assert %{"parts" => persisted_parts} = persisted.multipart_parts
     assert is_list(persisted_parts)
-    assert length(persisted_parts) >= 1
+    assert [_ | _] = persisted_parts
 
     # 3. Simulate drop: client re-HEADs for the authoritative offset.
     assert get_resp_header(head(opts, token), "upload-offset") == [
@@ -251,7 +251,7 @@ defmodule Rindle.Upload.TusS3IntegrationTest do
     # live multipart upload genuinely exists before the DELETE aborts it.
     assert %{"parts" => persisted_parts} = persisted.multipart_parts
     assert is_list(persisted_parts)
-    assert length(persisted_parts) >= 1
+    assert [_ | _] = persisted_parts
 
     # 3. Capture the upload key the multipart was opened against.
     upload_key = persisted.upload_key

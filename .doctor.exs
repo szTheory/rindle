@@ -5,7 +5,7 @@
     # Application supervisor (auto-generated, not adopter-facing)
     Rindle.Application,
 
-    # Rindle.Internal.* namespace (regex catches future additions)
+    # Rindle.Internal.* namespace is implementation-only by ownership.
     ~r/^Rindle\.Internal\./,
 
     # Rindle.Security.* helpers (mime/filename validation primitives)
@@ -28,6 +28,34 @@
     Rindle.Config,
     Rindle.Repo,
     Rindle.Storage.Capabilities,
+
+    # Nested Admin modules implement the mounted console; Router remains public.
+    Rindle.Admin.Components,
+    Rindle.Admin.Live.AssetsLive,
+    Rindle.Admin.Live.Support,
+    Rindle.Admin.Queries,
+    Rindle.Admin.Router.StaticAssetsPlug,
+
+    # AV command/probe and recipe helpers; Rindle.Processor.AV is the public boundary.
+    ~r/^Rindle\.AV\./,
+    Rindle.Processor.AV.Audio,
+    Rindle.Processor.AV.OutputProbe,
+    Rindle.Processor.AV.Recipe,
+    Rindle.Processor.AV.RuntimeGuard,
+    Rindle.Processor.AV.Video,
+    Rindle.Processor.Waveform,
+
+    # Implementation-only aggregates and versioned migration helpers.
+    Rindle.Capability,
+    Rindle.Domain.AssetAggregate,
+    Rindle.Migration.Options,
+    Rindle.Migration.V1,
+
+    # Provider signing/client and telemetry emission helpers.
+    Rindle.Storage.GCS.Client,
+    Rindle.Storage.GCS.Signer,
+    Rindle.Streaming.Capabilities,
+    Rindle.Upload.ResumableTelemetry,
 
     # Internal pipeline workers (AbortIncompleteUploads / CleanupOrphans are public)
     Rindle.Workers.PromoteAsset,

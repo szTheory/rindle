@@ -34,8 +34,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) and Code.ensure_loaded?(Phoenix.Router)
         "favicon.svg" => "image/svg+xml"
       }
 
+      @spec init(String.t()) :: String.t()
       def init(file), do: file
 
+      @spec call(Plug.Conn.t(), String.t()) :: Plug.Conn.t()
       def call(conn, file) when is_binary(file) and is_map_key(@content_types, file) do
         path = Path.join([:code.priv_dir(:rindle), "static", "rindle_admin", file])
 
@@ -55,6 +57,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) and Code.ensure_loaded?(Phoenix.Router)
     The `allow_unauthenticated?: true` escape hatch is only accepted outside
     production for examples, CI fixtures, and local previews.
     """
+    @spec rindle_admin(Macro.t(), keyword()) :: Macro.t()
     defmacro rindle_admin(path, opts \\ []) do
       env = rindle_admin_validation_env()
 
@@ -112,6 +115,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) and Code.ensure_loaded?(Phoenix.Router)
     end
 
     @doc false
+    @spec __validate_rindle_admin_mount_opts__(keyword(), atom()) :: {:ok, map()} | no_return()
     def __validate_rindle_admin_mount_opts__(opts, env) when is_list(opts) do
       opts
       |> normalize_mount_opts()
