@@ -97,7 +97,7 @@ None - plan executed exactly as written.
 
 ## Issues Encountered
 
-None.
+`state.advance-plan` and `state.update-progress` could not parse the legacy Phase 122 state layout. The plan's completed status, progress counts, next-plan position, roadmap row, and requirement traceability were updated directly and verified from the resulting files; no product code or acceptance evidence was affected.
 
 ## User Setup Required
 
