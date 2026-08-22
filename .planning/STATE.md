@@ -1,37 +1,41 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.23
-milestone_name: Postgres Schema Isolation
-status: Awaiting next milestone
-stopped_at: Milestone v1.23 archived
-last_updated: "2026-08-22T16:30:20-04:00"
-last_activity: 2026-08-20
-last_activity_desc: Milestone v1.23 completed and archived
+milestone: v1.24
+milestone_name: Core Clarity & Quality Ratchet
+status: planning
+last_updated: "2026-08-22T21:16:28.807Z"
+last_activity: 2026-08-22
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 30
-  completed_plans: 30
-  percent: 100
-current_phase: 120
-current_phase_name: adoption-proof-release-truth
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-08-20 after archiving v1.23)
+See: .planning/PROJECT.md (updated 2026-08-22 for v1.24)
 
 **Core value:** Media, made durable.
-**Current focus:** Demand-gated pause; maintain the green release train
+**Current focus:** Core clarity and a truthful, curated quality ratchet
 
 ## Current Position
 
-Phase: Milestone v1.23 complete
+Phase: Not started (defining requirements)
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-08-20 — Milestone v1.23 completed and archived
+Status: Defining requirements
+Last activity: 2026-08-22 — Milestone v1.24 started
+
+### v1.24 charter
+
+Finite, behavior-preserving maintenance only: restore truthful quality signals, remove live planning
+residue and a schema compile cycle, decompose enumerated core hotspots, rebuild oversized/self-inspecting
+test support, reconcile async-isolation evidence, and retire the curated Dialyzer baseline. No public
+contract, data-model, telemetry, error-vocabulary, admin-feature, dependency-major, or forced-release
+scope is approved.
 
 ### v1.23 shipped summary
 
@@ -50,9 +54,8 @@ the historical 0.4.0 contract; do not regress either side of that invariant.
 
 ## Next Step
 
-No implementation step is approved. Remain in demand-gated pause until LIFE-06 compliance pull or a
-named STREAM-10 adopter exists. If an approved milestone signal arrives, start with
-`$gsd-new-milestone`; otherwise keep the green-main release train idle.
+Define the v1.24 requirements and Phases 121–126, then execute the first truthful-signal slice PR-first
+from the green PR #80 baseline.
 
 ## Prior Milestone
 
