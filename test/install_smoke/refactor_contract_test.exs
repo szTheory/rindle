@@ -37,6 +37,24 @@ defmodule Rindle.RefactorContractTest do
     end
   end
 
+  test "SAFE-01 fails closed on compile-connected cycles before preservation tests", %{
+    meaningful_lines: lines
+  } do
+    compile_line = "MIX_ENV=test mix compile --force"
+
+    xref_line =
+      "MIX_ENV=test mix xref graph --format cycles --label compile-connected --fail-above 0"
+
+    assert Enum.find_index(lines, &(&1 == compile_line))
+    assert Enum.find_index(lines, &(&1 == xref_line))
+
+    assert Enum.find_index(lines, &(&1 == compile_line)) <
+             Enum.find_index(lines, &(&1 == xref_line))
+
+    assert Enum.find_index(lines, &(&1 == xref_line)) <
+             Enum.find_index(lines, &String.contains?(&1, "mix test"))
+  end
+
   test "SAFE-01 uses one foreground Mix test process with the telemetry contract enabled", %{
     meaningful_lines: lines
   } do

@@ -5,6 +5,9 @@ set -euo pipefail
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "${repo_root}"
 
+MIX_ENV=test mix compile --force
+MIX_ENV=test mix xref graph --format cycles --label compile-connected --fail-above 0
+
 exec mix test --include contract --seed 0 \
   test/rindle/api_surface_boundary_test.exs \
   test/rindle/schema_prefix_contract_test.exs \
