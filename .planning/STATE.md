@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.24
 milestone_name: Core Clarity & Quality Ratchet
-current_phase: 121
-current_phase_name: Truthful Quality Signals & Mechanical Hygiene
-status: executing
-stopped_at: Phase 121 implementation and code review complete; verification pending
-last_updated: "2026-08-22T22:55:00.000Z"
+current_phase: 122
+current_phase_name: Live Truth & Compile Clarity
+status: planning
+stopped_at: Phase 121 verified complete; Phase 122 ready to plan
+last_updated: "2026-08-22T22:56:55.713Z"
 last_activity: 2026-08-22
-last_activity_desc: Phase 121 implementation complete; 7/7 plans and clean code review verified
+last_activity_desc: Phase 121 complete, transitioned to Phase 122
 progress:
   total_phases: 6
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 7
   completed_plans: 7
 ---
@@ -23,14 +23,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-08-22 for v1.24)
 
 **Core value:** Media, made durable.
-**Current focus:** Phase 121 — Truthful Quality Signals & Mechanical Hygiene
+**Current focus:** Phase 122 — Live Truth & Compile Clarity
 
 ## Current Position
 
-Phase: 121 (Truthful Quality Signals & Mechanical Hygiene) — EXECUTING
-Plan: 7 of 7
-Status: Executing Phase 121
-Last activity: 2026-08-22 — implementation and clean code review complete; goal verification pending
+Phase: 122 — Live Truth & Compile Clarity
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-08-22 — Phase 121 complete, transitioned to Phase 122
 
 ### v1.24 charter
 
@@ -57,10 +57,9 @@ the historical 0.4.0 contract; do not regress either side of that invariant.
 
 ## Next Step
 
-Execute Phase 121's truthful-signal and mechanical-hygiene slice PR-first from the green PR #80
-baseline. Signals and the SAFE-01 regression contract must land before the clarity and refactor phases;
-Phase 126 is intentionally last because Dialyzer retirement depends on the preceding code and
-test-support cleanup.
+Plan and execute Phase 122's live-truth and compile-clarity slice against the verified Phase 121
+quality gates. Reconcile current source/docs only, preserve historical archives, and remove the
+`Rindle.Schema` compile cycle without changing public schema ownership or prefix behavior.
 
 ## Prior Milestone
 

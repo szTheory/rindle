@@ -59,7 +59,7 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 
 ## Phases
 
-- [ ] **Phase 121: Truthful Quality Signals & Mechanical Hygiene** - Restore blocking, evidence-based quality gates and establish the invariant-preserving refactor contract.
+- [x] **Phase 121: Truthful Quality Signals & Mechanical Hygiene** - Restore blocking, evidence-based quality gates and establish the invariant-preserving refactor contract. (completed 2026-08-22)
 - [ ] **Phase 122: Live Truth & Compile Clarity** - Reconcile live source and documentation truth while removing the internal schema compile cycle.
 - [ ] **Phase 123: Runtime Operations Decomposition** - Make runtime diagnostics, migration preflight, and status code easier to reason about without contract drift.
 - [ ] **Phase 124: Upload Path Clarity** - Decompose tus and broker internals into cohesive, contract-preserving boundaries.
@@ -167,7 +167,7 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 121. Truthful Quality Signals & Mechanical Hygiene | 7/7 | In Progress | - |
+| 121. Truthful Quality Signals & Mechanical Hygiene | 7/7 | Complete    | 2026-08-22 |
 | 122. Live Truth & Compile Clarity | 0/TBD | Not started | - |
 | 123. Runtime Operations Decomposition | 0/TBD | Not started | - |
 | 124. Upload Path Clarity | 0/TBD | Not started | - |
