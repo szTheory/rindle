@@ -4,6 +4,7 @@ defmodule Rindle.CredoPolicyTest do
   @repo_root Path.expand("../..", __DIR__)
   @config_path Path.join(@repo_root, ".credo.exs")
   @aggregate_path Path.join(@repo_root, "scripts/maintainer/credo_quality.sh")
+  @normalizer_path Path.join(@repo_root, "scripts/maintainer/credo_quality_normalize.exs")
   @baseline_path Path.join(@repo_root, "scripts/maintainer/credo_complexity_baseline.json")
 
   test "profiles keep warnings global, public contracts explicit, and style advisory" do
@@ -108,6 +109,7 @@ defmodule Rindle.CredoPolicyTest do
 
   test "aggregate comparison is explicitly independent of lines and non-metric wording" do
     script = File.read!(@aggregate_path)
+    normalizer = File.read!(@normalizer_path)
     baseline = File.read!(@baseline_path)
 
     refute baseline =~ "line_no"
@@ -115,8 +117,9 @@ defmodule Rindle.CredoPolicyTest do
     refute baseline =~ "message"
     refute script =~ "line_no"
     refute script =~ "column"
-    assert script =~ "capture(\"cyclomatic complexity is"
-    assert script =~ "capture(\"was (?<metric>"
+    refute script =~ "jq"
+    assert normalizer =~ "cyclomatic complexity is"
+    assert normalizer =~ "was (?<metric>"
   end
 
   defp warning_check?({module, _options}),
