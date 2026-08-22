@@ -579,6 +579,16 @@ jobs:
           ref: main
           fetch-depth: 0
 
+      # This state repair needs only the runner's preinstalled gh CLI. Keep it
+      # ahead of optional ledger-tool setup so a transient Beam/Hex failure
+      # cannot leave a publicly verified release stuck at `pending` again.
+      - name: Reconcile Release Please state after public verification
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN || secrets.BRANCH_PROTECTION_PAT || github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_SHA: ${{ needs.gate-ci-green.outputs.release_sha }}
+        run: bash scripts/maintainer/reconcile_release_please_label.sh
+
       - name: Set up Elixir
         uses: erlef/setup-beam@fc68ffb90438ef2936bbb3251622353b3dcb2f93 # v1.24.0
         with:
@@ -587,13 +597,6 @@ jobs:
 
       - name: Install Hex
         run: mix local.hex --force
-
-      - name: Reconcile Release Please state after public verification
-        env:
-          GH_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN || secrets.BRANCH_PROTECTION_PAT || github.token }}
-          GH_REPO: ${{ github.repository }}
-          RELEASE_SHA: ${{ needs.gate-ci-green.outputs.release_sha }}
-        run: bash scripts/maintainer/reconcile_release_please_label.sh
 
       - name: Update RELEASE-TRAIN baseline ledger
         env:
