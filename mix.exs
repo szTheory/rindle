@@ -150,6 +150,7 @@ defmodule Rindle.MixProject do
         "README.md",
         "RUNNING.md",
         "guides/user_flows.md",
+        "guides/docker_demo_dx.md",
         "guides/getting_started.md",
         "guides/upgrading.md",
         "guides/core_concepts.md",

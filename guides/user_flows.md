@@ -9,10 +9,10 @@ basics, then come back here to see the breadth. If you're evaluating Rindle, sta
 
 **Try the Cohort demo:** From the repo root, `./scripts/demo/up.sh` (Docker preview —
 auto-picks free ports and prints your URLs; see [Running the Cohort demo in
-Docker](docker_demo_dx.md)) or [`examples/adoption_demo/`](../examples/adoption_demo/) native
+Docker](docker_demo_dx.html)) or the [native adoption demo](https://github.com/szTheory/rindle/tree/main/examples/adoption_demo)
 setup (`mix setup && mix phx.server`, then `npm run e2e` for maintainers). The dashboard seeds
 members, lessons, posts, and shared-media erasure stories. See
-[`examples/adoption_demo/docs/adoption-proof-matrix.md`](../examples/adoption_demo/docs/adoption-proof-matrix.md)
+[the adoption proof matrix](https://github.com/szTheory/rindle/blob/main/examples/adoption_demo/docs/adoption-proof-matrix.md)
 for what each lane proves.
 
 ## The mental model in one paragraph

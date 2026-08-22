@@ -146,7 +146,7 @@ Content:
 
 Destructive action flows must show collateral preview, require typed confirmation, and
 name the owner/assets before enabling execution. Owner erasure and batch erasure are
-collateral-preview and typed-confirmation flows for Phase 90.
+collateral-preview and typed-confirmation flows.
 
 ## Query Boundary
 
@@ -169,9 +169,8 @@ Use ordered steps only when sequence matters:
 
 Do not turn independent navigation choices into numbered wizards.
 
-## Downstream Constraints
+## Implementation Constraints
 
-- Phase 89 maps read surfaces to these six top-level surfaces.
-- Phase 90 maps action surfaces to existing capabilities and keeps destructive flows
-  deliberate.
-- Phase 92 uses stable selectors for these surfaces instead of text-only assertions.
+- Read routes map to these six top-level surfaces.
+- Action routes call existing capabilities and keep destructive flows deliberate.
+- Browser proofs use stable selectors for these surfaces instead of text-only assertions.

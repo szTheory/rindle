@@ -189,7 +189,7 @@ throwaway placeholders. Don't expose any of it publicly.
 ## Reuse this setup in another lib
 
 The same pattern (auto free ports, URL map, auto-detected Traefik, cached Dockerfile) is packaged as
-a copy-pasteable template at [`docker/dx-template/`](../docker/dx-template/TEMPLATE.md) — see
+a copy-pasteable [Docker DX template](https://github.com/szTheory/rindle/blob/main/docker/dx-template/TEMPLATE.md) — see
 its `TEMPLATE.md` for the rename checklist and the shared-Traefik contract.
 
 ---

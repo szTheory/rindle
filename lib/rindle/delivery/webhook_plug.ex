@@ -60,8 +60,8 @@ defmodule Rindle.Delivery.WebhookPlug do
       :provider_callback_raised | :sig_mismatch | :oban_unavailable`.
 
   Provider-internal telemetry under
-  `[:rindle, :provider, :mux, :webhook_attempt, _]` (emitted from inside
-  `Rindle.Streaming.Provider.Mux.verify_webhook/3`):
+  `[:rindle, :provider, :mux, :webhook_attempt, _]` (emitted by the Mux
+  webhook verifier):
 
     * `:secret_used` — metadata `%{secret_index}`.
     * `:rejected` — metadata `%{secret_index, sdk_reason}`.

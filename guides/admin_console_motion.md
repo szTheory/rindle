@@ -3,7 +3,7 @@
 Rindle Admin motion is materialization, feedback, and state continuity. It is not
 entertainment, marketing polish, or decoration.
 
-Phase 86 locks motion rules only. Phase 88 and Phase 92 implement and verify the behavior.
+The generated console CSS and browser proofs implement and verify these rules.
 
 ## Token Contract
 
@@ -85,8 +85,8 @@ The animation explains continuity; the label and state value carry the meaning.
 | Screen transition | `--rindle-motion-transition`, preserve user orientation. |
 | Destructive confirmation error | No animated delay; show state immediately. |
 
-## Downstream Constraints
+## Implementation Constraints
 
-- Phase 88 component CSS uses these tokens only.
-- Phase 90 destructive flows keep failure/destructive state immediate.
-- Phase 92 screenshot polish must not add decorative motion to make captures look richer.
+- Component CSS uses these tokens only.
+- Destructive flows keep failure and destructive state immediate.
+- Screenshot polish must not add decorative motion to make captures look richer.

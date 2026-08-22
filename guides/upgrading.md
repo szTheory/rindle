@@ -12,15 +12,15 @@ on adopter work rather than duplicating the changelog.
 
 ## Version index
 
-- [Unreleased / Next](#unreleased-next)
+- [0.4.0 schema isolation](#040-schema-isolation)
 - [0.1.3 and earlier -> current AV-aware runtime](#0-1-3-and-earlier-current-av-aware-runtime)
 
-## Unreleased / Next
+## 0.4.0 schema isolation
 
 ### Applies to
 
-Fresh installs and existing apps moving to the first release that includes the
-versioned `Rindle.Migration` module. Existing apps that already applied
+Fresh installs and existing apps moving to Rindle 0.4.0 or later, which includes
+the versioned `Rindle.Migration` module. Existing apps that already applied
 Rindle's legacy packaged migrations can keep those migrations in place.
 
 ### What changed

@@ -1,10 +1,10 @@
 defmodule Rindle.Domain.MediaProviderAsset do
   @moduledoc """
-  Ecto schema for a provider-side asset row (Phase 33 — `media_provider_assets`).
+  Ecto schema for a provider-side `media_provider_assets` row.
 
   One row per `(asset, profile, provider)`. Tracks durable provider-side state
-  (FSM lives in `Rindle.Domain.ProviderAssetFSM`) and the public-side
-  `playback_ids` array.
+  through a closed transition table and stores the public-side `playback_ids`
+  array.
 
   ## Security invariant 14
 
@@ -26,7 +26,7 @@ defmodule Rindle.Domain.MediaProviderAsset do
   | `"errored"` | Provider sync failed; inspect `last_sync_error`. |
   | `"deleted"` | Soft-deleted; provider asset may already be purged. |
 
-  See `Rindle.Domain.ProviderAssetFSM` for the locked transition allowlist.
+  The internal provider-asset transition table owns the locked allowlist.
   """
 
   use Rindle.Schema
@@ -36,7 +36,7 @@ defmodule Rindle.Domain.MediaProviderAsset do
 
   @type t :: %__MODULE__{}
 
-  @doc "Locked state vocabulary (matches `Rindle.Domain.ProviderAssetFSM` keys)."
+  @doc "Locked state vocabulary used by the provider-asset transition table."
   @spec states() :: [String.t()]
   def states, do: @states
 

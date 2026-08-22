@@ -147,7 +147,7 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
     migration_sections = [
       {"README migrations", section_between!(readme, "## Migrations", "## First Attachment")},
       {"getting-started step 3", section_between!(guide, "## 3.", "## 4.")},
-      {"Unreleased upgrade note", section_between!(upgrade, "## Unreleased / Next", "## 0.1.3")}
+      {"0.4.0 upgrade note", section_between!(upgrade, "## 0.4.0 schema isolation", "## 0.1.3")}
     ]
 
     for {name, section} <- migration_sections do
@@ -469,13 +469,13 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
   } do
     readme_migrations = section_between!(readme, "## Migrations", "## First Attachment")
     guide_step_three = section_between!(guide, "## 3.", "## 4.")
-    unreleased = section_between!(upgrade, "## Unreleased / Next", "## 0.1.3")
+    current_release = section_between!(upgrade, "## 0.4.0 schema isolation", "## 0.1.3")
     legacy_upgrade = section_between!(upgrade, "## 0.1.3", "## Next Reads")
 
     for {name, section} <- [
           {"README migrations", readme_migrations},
           {"getting-started step 3", guide_step_three},
-          {"Unreleased upgrade note", unreleased}
+          {"0.4.0 upgrade note", current_release}
         ] do
       refute section =~ "Application.app_dir(:rindle, \"priv/repo/migrations\")",
              "#{name} must reject the raw package-directory greenfield flow"
@@ -640,7 +640,7 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
 
     assert_in_order!(upgrade, [
       "## Version index",
-      "## Unreleased / Next",
+      "## 0.4.0 schema isolation",
       "## 0.1.3 and earlier -> current AV-aware runtime"
     ])
 
@@ -659,19 +659,19 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
       assert upgrade =~ snippet
     end
 
-    unreleased_index = string_index(upgrade, "## Unreleased / Next")
+    current_release_index = string_index(upgrade, "## 0.4.0 schema isolation")
     av_upgrade_index = string_index(upgrade, "## 0.1.3 and earlier -> current AV-aware runtime")
 
-    assert unreleased_index && av_upgrade_index
-    assert unreleased_index < av_upgrade_index
+    assert current_release_index && av_upgrade_index
+    assert current_release_index < av_upgrade_index
 
-    unreleased_section =
-      binary_part(upgrade, unreleased_index, av_upgrade_index - unreleased_index)
+    current_release_section =
+      binary_part(upgrade, current_release_index, av_upgrade_index - current_release_index)
 
     av_upgrade_section =
       binary_part(upgrade, av_upgrade_index, byte_size(upgrade) - av_upgrade_index)
 
-    for section <- [unreleased_section, av_upgrade_section] do
+    for section <- [current_release_section, av_upgrade_section] do
       assert_in_order!(section, [
         "### Applies to",
         "### What changed",
@@ -682,7 +682,7 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
   end
 
   test "upgrade guide uses HexDocs-safe version navigation links", %{upgrade: upgrade} do
-    assert upgrade =~ "[Unreleased / Next](#unreleased-next)"
+    assert upgrade =~ "[0.4.0 schema isolation](#040-schema-isolation)"
 
     assert upgrade =~
              "[0.1.3 and earlier -> current AV-aware runtime](#0-1-3-and-earlier-current-av-aware-runtime)"

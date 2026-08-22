@@ -125,11 +125,9 @@ author who pushed an unrelated change. And the full release-verification gate (t
 five-profile matrix + release preflight + `hex.publish --dry-run`) always runs, provably,
 on `push:main` before any Hex publish — so release readiness is never weakened.
 
-The full keep / optimize / move-to-nightly / label-gated / off-critical-path
-classification behind every lane placement is recorded in
-[`.planning/phases/106-trigger-split-matrix-lane-refinement/106-LANE-CLASSIFICATION.md`](.planning/phases/106-trigger-split-matrix-lane-refinement/106-LANE-CLASSIFICATION.md),
-and the maintainer lane-severity table is in [`RUNNING.md`](RUNNING.md) §"Maintainer: CI
-lane severity".
+The maintained keep / optimize / move-to-nightly / label-gated /
+off-critical-path classification is in [`RUNNING.md`](RUNNING.md) §"Maintainer: CI lane
+severity".
 
 ### On your PR (representative gate, ≤7 min target)
 
@@ -159,10 +157,8 @@ lane severity".
 
 ### PR-side handoff (do not skip)
 
-LANE-04 requires the trust/speed label to appear **both** in this file **and in the PR**.
-The copy-pasteable block above is the canonical text. The `/gsd-ship`-time step **MUST
-paste that trust/speed paragraph into the PR body** so the PR-side half of the requirement
-is not lost. (No automation is added here — this is a ship-time handoff reminder.)
+Include the trust/speed paragraph above in the PR body when a change affects CI lane
+placement, so reviewers can see which evidence runs before merge and which runs later.
 
 ## Scope note
 
