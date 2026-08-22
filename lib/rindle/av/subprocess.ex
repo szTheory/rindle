@@ -63,7 +63,20 @@ defmodule Rindle.AV.Subprocess do
         run_isolated(cmd, args, muon_opts, retries_left - 1, run_fun)
 
       {:DOWN, ^mon, :process, ^pid, reason} ->
-        exit(reason)
+        cond do
+          muontrap_timeout_race?(reason) and retries_left > 0 ->
+            Logger.warning(
+              "Rindle.AV.Subprocess: MuonTrap closed its port at the command timeout; retrying the AV call once"
+            )
+
+            run_isolated(cmd, args, muon_opts, retries_left - 1, run_fun)
+
+          muontrap_timeout_race?(reason) ->
+            {"", :timeout}
+
+          true ->
+            exit(reason)
+        end
     after
       watchdog_timeout(muon_opts) ->
         terminate_worker(pid, mon, ref)
@@ -83,6 +96,19 @@ defmodule Rindle.AV.Subprocess do
   defp watchdog_timeout(muon_opts) do
     Keyword.get(muon_opts, :timeout, 600_000) + 250
   end
+
+  # MuonTrap 1.7 can race its timeout cleanup: the port is already closed when
+  # MuonTrap.Port.do_cmd/4 calls :erlang.port_close/1, so the worker exits with
+  # ArgumentError instead of returning a timeout tuple. Match only that narrow
+  # stack shape; unrelated worker exceptions must still fail loudly.
+  defp muontrap_timeout_race?({%ArgumentError{}, stack}) when is_list(stack) do
+    Enum.any?(stack, fn
+      {:erlang, :port_close, _args, _metadata} -> true
+      _other -> false
+    end)
+  end
+
+  defp muontrap_timeout_race?(_reason), do: false
 
   defp terminate_worker(pid, mon, ref) do
     Process.exit(pid, :kill)
@@ -111,7 +137,7 @@ defmodule Rindle.AV.Subprocess do
   @doc false
   def build_opts(opts) do
     opts = Keyword.put_new(opts, :use_cgroups, default_use_cgroups?())
-    timeout = Keyword.get(opts, :timeout, Keyword.get(opts, :max_wall_ms, 600_000))
+    timeout = Keyword.get(opts, :timeout, Keyword.get(opts, :max_wall_ms, default_timeout()))
     base = [into: "", stderr_to_stdout: true, timeout: timeout]
 
     if :os.type() == {:unix, :linux} and Keyword.get(opts, :use_cgroups, true) do
@@ -130,6 +156,11 @@ defmodule Rindle.AV.Subprocess do
     else
       base
     end
+  end
+
+  defp default_timeout do
+    Application.get_env(:rindle, __MODULE__, [])
+    |> Keyword.get(:timeout, 600_000)
   end
 
   @doc false

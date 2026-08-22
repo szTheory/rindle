@@ -38,6 +38,9 @@ jobs:
   quality:
     name: Quality
     runs-on: ubuntu-22.04
+    # Normal completion is ~3 minutes. Bound external-tool or port stalls so a
+    # required PR check cannot remain in_progress indefinitely.
+    timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
