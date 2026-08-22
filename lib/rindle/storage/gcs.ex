@@ -1,7 +1,7 @@
 defmodule Rindle.Storage.GCS do
   @moduledoc """
   Google Cloud Storage adapter using `goth ~> 1.4` (auth) + `finch ~> 0.21` (HTTP) +
-  `gcs_signed_url ~> 0.4.6` (V4 signing).
+  `gcs_signed_url ~> 0.6` (V4 signing).
 
   ## Setup
 

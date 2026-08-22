@@ -51,7 +51,7 @@ defmodule AdoptionDemo.MixProject do
       {:dns_cluster, "~> 0.2.0"},
       {:bandit, "~> 1.5"},
       {:oban, "~> 2.21"},
-      {:hackney, "~> 1.20"},
+      {:req, "~> 0.6"},
       {:mux, "~> 3.2"},
       {:jose, "~> 1.11"}
     ]

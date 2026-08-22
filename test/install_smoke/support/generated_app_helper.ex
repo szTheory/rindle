@@ -845,7 +845,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
           """
                 {:goth, "~> 1.4"},
                 {:finch, "~> 0.21"},
-                {:gcs_signed_url, "~> 0.4.6"},
+                {:gcs_signed_url, "~> 0.6"},
           """
 
         :mux ->
@@ -866,7 +866,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
         """
         {:bandit, "~> 1.5"},
               {:oban, "#{oban_requirement}"},
-              {:hackney, "~> 1.20"},
+              {:req, "~> 0.6"},
               {:mox, "~> 1.1", only: :test},
         #{extra_deps}
               #{rindle_dep}
@@ -1147,6 +1147,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
             end
 
           config :rindle, :repo, #{app_module}.Repo
+          config :ex_aws, http_client: ExAws.Request.Req
 
           config :rindle, Rindle.Storage.GCS,
             bucket: System.get_env("RINDLE_GCS_BUCKET", "generated-install-smoke-bucket"),
@@ -1172,6 +1173,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
           %URI{host: host, port: port, scheme: scheme} = URI.parse(minio_url)
 
           config :rindle, :repo, #{app_module}.Repo
+          config :ex_aws, http_client: ExAws.Request.Req
           config :rindle, Rindle.Storage.S3, bucket: bucket
 
           config :ex_aws, :s3,

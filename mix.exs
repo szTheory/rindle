@@ -95,7 +95,7 @@ defmodule Rindle.MixProject do
       # GCS adapter (optional — Rindle.Storage.GCS only loads when these are present)
       {:goth, "~> 1.4", optional: true},
       {:finch, "~> 0.21", optional: true},
-      {:gcs_signed_url, "~> 0.4.6", optional: true},
+      {:gcs_signed_url, "~> 0.6", optional: true},
 
       # Configuration validation
       {:nimble_options, "~> 1.1"},
@@ -104,22 +104,10 @@ defmodule Rindle.MixProject do
       {:ex_marcel, "~> 0.2"},
       {:ex_aws, "~> 2.5"},
       {:ex_aws_s3, "~> 2.5"},
-      # ExAws optional HTTP client — needed for the integration + adopter
-      # CI lanes to actually talk to MinIO/S3. Declared optional so adopters
-      # pick their own HTTP client (hackney, req, or finch via ex_aws_*) at
-      # runtime without a forced transitive dep from Rindle. Optional rather
-      # than `only: :test` because the optional `gcs_signed_url ~> 0.4.6` dep
-      # (Phase 37) pulls `httpoison ~> 2.0` whose hackney requirement is
-      # `optional: false` — mix's `:only` calculation requires consistency
-      # across all paths reaching hackney. See `.planning/phases/37-gcs-adapter-foundation/37-01-PLAN.md` Task 1.
-      {:hackney, "~> 1.20", optional: true},
-      # Root-declared optional so `mix compile --no-optional-deps` prunes it
-      # consistently on every Mix version (Elixir 1.15/1.17 don't transitively
-      # prune deps-of-optional-deps the way 1.19 does). httpoison only reaches us
-      # via the optional `gcs_signed_url`; without this, ADMIN-06's no-optional
-      # compile tried to build httpoison while its (pruned) hackney includes were
-      # absent. Pairs with the hackney declaration above.
-      {:httpoison, "~> 2.0", optional: true},
+      # ExAws optional HTTP client — needed for the integration + adopter CI
+      # lanes to talk to MinIO/S3. Req avoids ExAws's legacy Hackney 1.x default,
+      # and is also the transport used by gcs_signed_url >= 0.6.
+      {:req, "~> 0.6", optional: true},
 
       # Observability
       {:telemetry, "~> 1.2"},

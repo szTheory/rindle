@@ -7,6 +7,8 @@
 # General application configuration
 import Config
 
+config :ex_aws, http_client: ExAws.Request.Req
+
 config :adoption_demo,
   ecto_repos: [AdoptionDemo.Repo],
   generators: [timestamp_type: :utc_datetime]

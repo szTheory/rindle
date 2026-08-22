@@ -27,16 +27,22 @@ def deps do
 end
 ```
 
-If you use `Rindle.Storage.S3`, also choose an ExAws HTTP client. `:hackney`
-is the most-tested path in this repo:
+If you use `Rindle.Storage.S3`, also choose an ExAws HTTP client. Rindle's
+tested path uses Req:
 
 ```elixir
 def deps do
   [
     {:rindle, "~> 0.1"},
-    {:hackney, "~> 1.20"}
+    {:req, "~> 0.6"}
   ]
 end
+```
+
+Configure ExAws to use it at build time:
+
+```elixir
+config :ex_aws, http_client: ExAws.Request.Req
 ```
 
 Run `mix deps.get`.

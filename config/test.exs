@@ -51,6 +51,7 @@ config :rindle, Rindle.Adopter.CanonicalApp.Repo,
 # last and which therefore override these dummies — so live S3/MinIO coverage is
 # unaffected.
 config :ex_aws,
+  http_client: ExAws.Request.Req,
   access_key_id: "test-access-key-id",
   secret_access_key: "test-secret-access-key",
   region: "us-east-1"
