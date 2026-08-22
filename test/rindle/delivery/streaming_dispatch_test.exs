@@ -18,14 +18,12 @@ defmodule Rindle.Delivery.StreamingDispatchTest do
     - [:rindle, :delivery, :streaming, :resolved] preserved verbatim on Branches 1, 6 (kind: :progressive)
     - Telemetry metadata key set unchanged: profile, adapter, mode, kind, mime
   """
-  # async: true — root-caused in Phase 110. This suite was previously serialized because the only
-  # cross-test pollution source was Rindle.Test.CountingFailingTxnRepo's former GLOBAL `:rindle, :repo`
-  # swap: a concurrent test that force-failed a transaction in its window made Branch 5/5b dispatch
-  # resolve the wrong repo → intermittent `==` failures. That double is now process-scoped (it sets
-  # the override via Config.put_repo_override/1, visible only to its own process tree), so no
-  # concurrent process can pollute this suite's Config.repo() reads. The global mutation is gone, so
-  # the workaround is eliminated rather than deferred — these 17 tests are safe to run async again.
-  use Rindle.DataCase, async: true
+  # The database and repo overrides used here are process-isolated, but telemetry handlers are
+  # global. Several branches intentionally assert that no `:resolved` event was emitted; when this
+  # module runs concurrently, an unrelated delivery test can legitimately emit that event into the
+  # handler's process and make the negative assertion flaky. Keep this small branch-matrix suite
+  # serialized so those absence assertions describe only the call under test.
+  use Rindle.DataCase, async: false
 
   import Mox
   alias Rindle.Domain.MediaAsset
