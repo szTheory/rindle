@@ -758,7 +758,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
          package_root,
          network_version,
          profile_mode,
-         options \\ []
+         options
        ) do
     patch_mix_exs!(root, package_root, network_version, profile_mode)
 

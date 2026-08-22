@@ -78,6 +78,22 @@ defmodule Rindle.AV.SubprocessEpipeTest do
     refute_received {:EXIT, _, :epipe}
   end
 
+  @tag :regression
+  @tag :av
+  test "run_isolated bounds and retries a worker that never replies" do
+    {:ok, counter} = Agent.start_link(fn -> 0 end)
+
+    run_fun = fn _cmd, _args, _opts ->
+      Agent.update(counter, &(&1 + 1))
+      Process.sleep(:infinity)
+    end
+
+    assert {"", :timeout} =
+             Subprocess.run_isolated("blocked", [], [timeout: 10], 1, run_fun)
+
+    assert Agent.get(counter, & &1) == 2
+  end
+
   # (3) Real-subprocess stress — advisory-only because it deliberately amplifies
   # a probabilistic OS race. The deterministic synthetic tests above remain in
   # the merge gate; nightly opts this probe back in alongside the raw canary.

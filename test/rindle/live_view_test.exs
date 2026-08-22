@@ -439,7 +439,7 @@ defmodule Rindle.LiveViewTest do
 
     test "rejects unsupported scopes" do
       assert_raise FunctionClauseError, fn ->
-        Rindle.LiveView.subscribe(:profile, "bad")
+        apply(Rindle.LiveView, :subscribe, [:profile, "bad"])
       end
     end
   end

@@ -111,7 +111,8 @@ defmodule Rindle.AsyncSafetyGuardTest do
   # the globally-read `:rindle, :repo` library config via Application.put_env/delete_env.
   # The footgun is un-reintroducible: a new global swap goes RED and points the author
   # at the sanctioned process-local `Rindle.Config.put_repo_override/1`. The 9 legitimate
-  # adopter/probe-repo swappers opt out with `@async_safety_allow [:global_repo_swap]`.
+  # adopter/probe-repo swappers opt out with
+  # `@moduletag async_safety_allow: [:global_repo_swap]`.
   test "no test module swaps the global :rindle, :repo config (regardless of async flag)", %{
     all_modules: all_modules
   } do
@@ -210,11 +211,17 @@ defmodule Rindle.AsyncSafetyGuardTest do
     found
   end
 
-  # Reads @async_safety_allow [ ... ] from the module body; returns a list of atoms.
+  # Reads either the legacy module attribute or the warning-free ExUnit module tag
+  # from the module body; returns a list of atoms.
   defp collect_allowlist(body) do
     {_ast, allow} =
       Macro.prewalk(body, [], fn
         {:@, _, [{:async_safety_allow, _, [list]}]} = node, acc when is_list(list) ->
+          atoms = Enum.filter(list, &is_atom/1)
+          {node, acc ++ atoms}
+
+        {:@, _, [{:moduletag, _, [[async_safety_allow: list]]}]} = node, acc
+        when is_list(list) ->
           atoms = Enum.filter(list, &is_atom/1)
           {node, acc ++ atoms}
 
@@ -528,7 +535,7 @@ defmodule Rindle.AsyncSafetyGuardTest do
     via `Rindle.Config.delete_repo_override/0`) instead — it overrides the repo only for \
     the current process and its `$callers`, never globally. If a module genuinely must swap \
     the Application env to exercise the app-env resolution path itself (e.g. config_test), \
-    opt out with a justified `@async_safety_allow [:global_repo_swap]` module attribute.
+    opt out with a justified `@moduletag async_safety_allow: [:global_repo_swap]` marker.
     """
   end
 end

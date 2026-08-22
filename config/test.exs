@@ -65,6 +65,7 @@ config :rindle, Oban, repo: Rindle.Repo, queues: [], testing: :inline
 # GitHub Actions and other CI runners often lack cgroup attach permissions for
 # MuonTrap. AV subprocess tests still exercise ffprobe/ffmpeg without cgroups.
 config :rindle, Rindle.AV.Subprocess, use_cgroups: false
+config :rindle, Rindle.Processor.Waveform, subprocess_timeout: 15_000
 
 # Offline-deterministic S3 multipart request seam for the tus tail-buffer unit
 # specs (TUS-06). The stub fabricates well-formed responses for the three
