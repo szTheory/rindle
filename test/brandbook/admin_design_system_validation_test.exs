@@ -21,6 +21,7 @@ defmodule Rindle.Brandbook.AdminDesignSystemValidationTest do
   # frozen behavior contracts; only the human label changed off the legacy slashed names.
   @nav_labels ["Overview", "Assets", "Upload sessions", "Processing", "Doctor", "Maintenance"]
   @admin_navigation_guides [
+    "guides/admin_console.md",
     "guides/admin_console_ia.md",
     "guides/admin_design_system.md"
   ]
