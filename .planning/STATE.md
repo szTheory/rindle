@@ -2,15 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.24
 milestone_name: Core Clarity & Quality Ratchet
-status: ready_to_execute
-last_updated: "2026-08-22T21:53:00Z"
+current_phase: 121
+current_phase_name: Truthful Quality Signals & Mechanical Hygiene
+status: executing
+stopped_at: Phase 121 Wave 1 complete
+last_updated: "2026-08-22T21:53:32.997Z"
 last_activity: 2026-08-22
+last_activity_desc: Phase 121 Wave 1 completed; 5/7 plans verified
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 7
-  completed_plans: 0
-  percent: 0
+  completed_plans: 5
 ---
 
 # Project State
@@ -20,14 +23,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-08-22 for v1.24)
 
 **Core value:** Media, made durable.
-**Current focus:** Core clarity and a truthful, curated quality ratchet
+**Current focus:** Phase 121 — Truthful Quality Signals & Mechanical Hygiene
 
 ## Current Position
 
-Phase: 121 of 126 — Truthful Quality Signals & Mechanical Hygiene
-Plan: 0 of 7
-Status: Ready to execute
-Last activity: 2026-08-22 — Phase 121 planned and checker-verified; 7 plans across 3 waves
+Phase: 121 (Truthful Quality Signals & Mechanical Hygiene) — EXECUTING
+Plan: 5 of 7
+Status: Executing Phase 121
+Last activity: 2026-08-22 — Wave 1 complete; SAFE-01, Contract, Doctor, warnings, and cleanup verified
 
 ### v1.24 charter
 
