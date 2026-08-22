@@ -5,15 +5,15 @@ ROOT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 cd "$ROOT_DIR"
 
 TRANSIENT_FILES=(
+  ".DS_Store"
+  "erl_crash.dump"
   "init.json"
   "progress.txt"
   "recent.txt"
   "roadmap.json"
   "state.json"
-)
-
-TRANSIENT_GLOBS=(
-  "rindle-*"
+  "credo.json"
+  "credo.txt"
 )
 
 removed_paths=()
@@ -26,7 +26,7 @@ is_tracked() {
 remove_path() {
   local path="$1"
 
-  if [ ! -e "$path" ]; then
+  if [ ! -e "$path" ] && [ ! -L "$path" ]; then
     return 0
   fi
 
@@ -35,21 +35,13 @@ remove_path() {
     return 0
   fi
 
-  rm -rf -- "$path"
+  rm -f -- "$path"
   removed_paths+=("$path")
 }
 
 for path in "${TRANSIENT_FILES[@]}"; do
   remove_path "$path"
 done
-
-shopt -s nullglob
-for pattern in "${TRANSIENT_GLOBS[@]}"; do
-  for path in $pattern; do
-    remove_path "$path"
-  done
-done
-shopt -u nullglob
 
 git worktree prune >/dev/null 2>&1 || true
 

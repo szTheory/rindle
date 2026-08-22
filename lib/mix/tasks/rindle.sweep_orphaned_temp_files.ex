@@ -84,6 +84,8 @@ defmodule Mix.Tasks.Rindle.SweepOrphanedTempFiles do
   end
 
   @doc false
+  @spec format_report(Rindle.Ops.SweepOrphanedTempFiles.report(), non_neg_integer()) ::
+          [String.t()]
   def format_report(report, limit \\ @failure_output_limit) do
     summary_lines = [
       "  run_dirs_scanned: #{report.run_dirs_scanned}",

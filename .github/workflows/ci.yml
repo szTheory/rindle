@@ -153,27 +153,36 @@ jobs:
           echo "lint-cell: format running"
           mix format --check-formatted
 
-      # CI-04 (v1.17): Credo and Dialyzer remain advisory (continue-on-error).
-      # Doctor and AV doctor also advisory — not part of CI-04 decision record.
-      # Default unit suite (mix coveralls) is merge-blocking. See RUNNING.md
-      # `### Static analysis policy (CI-04)` and `## CI lane severity`.
-      # CACHE-05 (D-12): de-dup only — continue-on-error preserved exactly.
-      - name: Credo (strict)
+      # SIGNAL-02/03: the curated actionable Credo policy and measured public
+      # Doctor report run once on the canonical lint cell and block Quality.
+      - name: Credo quality
         if: ${{ matrix.lint }}
-        run: mix credo --strict
-        continue-on-error: true
+        run: bash scripts/maintainer/credo_quality.sh
 
       - name: Doctor (full, raise)
         if: ${{ matrix.lint }}
-        run: MIX_ENV=test mix doctor --full --raise
+        run: MIX_ENV=dev mix doctor --full --raise
+
+      # Full-tree style output remains visible but advisory: the deterministic
+      # actionable Credo policy above is the merge-blocking quality signal.
+      - name: Credo (strict, advisory style)
+        if: ${{ matrix.lint }}
+        run: mix credo --strict --format oneline
         continue-on-error: true
 
+      # This host-state check needs DB, Oban, and canonical profile readiness
+      # that the Quality job intentionally does not prepare, so it stays advisory.
       - name: Verify AV runtime with public doctor task
         continue-on-error: true
         run: >
           mix rindle.doctor
           Rindle.Adopter.CanonicalApp.Profile
           Rindle.Adopter.CanonicalApp.VideoProfile
+
+      # FFmpeg/ffprobe and Vix/libvips behavior is deterministic after the
+      # pinned installations above; unlike the public runtime doctor it blocks.
+      - name: Run focused AV behavior tests
+        run: mix test test/rindle/probe/av_probe_test.exs test/rindle/processor/image_test.exs --seed 0
 
       # HARD-02 (D-05): mix_audit scans the transitive hex dep tree against the
       # hex advisory DB. ADVISORY (continue-on-error) per the house default and
@@ -469,6 +478,11 @@ jobs:
           mix-env: test
           install-deps: "false"
 
+      # The contract suite includes the real ProcessVariant telemetry path,
+      # which invokes ffmpeg and ffprobe. Keep that prerequisite explicit.
+      - name: Install FFmpeg
+        run: bash scripts/ci/install_ffmpeg.sh
+
       - name: Install dependencies
         run: mix deps.get
 
@@ -478,11 +492,12 @@ jobs:
       - name: Run AV hygiene gate
         run: bash scripts/assert_av_hygiene.sh
 
-      # Phase 71 (CI proof honesty): contract ExUnit suite is advisory; AV hygiene gate
-      # remains merge-blocking. See RUNNING.md `## CI lane severity` for the full matrix.
+      # Contract-tagged tests and SAFE-01 are deterministic preservation proof.
       - name: Run contract tests
-        continue-on-error: true
-        run: mix test --only contract
+        run: mix test --only contract --seed 0
+
+      - name: Run SAFE-01 preservation contract
+        run: bash scripts/maintainer/refactor_contract.sh
 
   proof:
     name: Proof

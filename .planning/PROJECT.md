@@ -1,28 +1,24 @@
 # Rindle
 
-## Current State
+## Current Milestone: v1.24 Core Clarity & Quality Ratchet
 
-**Last shipped:** v1.23 Postgres Schema Isolation — shipped and archived 2026-08-20. All 12/12
-requirements across 4/4 verified phases (117–120) are satisfied; GitHub and Hex expose `rindle` 0.4.0
-from frozen source `78349c1bc5d082b0c0c9fce6796806011fa89a33`. Historical planning and proof
-live in `.planning/milestones/v1.23-*`.
+**Goal:** Make Rindle's core code, tests, comments, and quality gates truthful, minimal, and a joy to
+read through a finite behavior-preserving maintenance pass.
 
-**Delivered:** v1.23 makes the `rindle` schema the default for Rindle-owned relations, retains an
-explicit `prefix: "public"` compatibility pairing, provides a bounded populated-install move and
-guarded reversal, keeps Oban and the host migration ledger in `public`, and proves the contract in
-packed generated apps, Cohort, documentation, protected release automation, and the public Hex package.
+**Target features:**
+- Restore truthful contract, documentation-coverage, Credo, and Dialyzer signals with curated blocking
+  gates instead of blanket advisory status.
+- Remove stale live-code/planning residue and decompose the proven core hotspots in runtime operations,
+  migration preflight, runtime status, tus upload, and broker code without changing public contracts.
+- Rebuild oversized and self-inspecting test support around smaller behavioral contracts, reconcile the
+  async-isolation issue with stress evidence, and remove only mechanically proven repository residue.
 
-**Proof posture:** Phase 120 verification `passed` at 4/4 must-haves. Exact release-source CI, every
-full package-consumer matrix cell, Cohort, protected recovery source binding, idempotent existing-release
-handling, and a fresh public Hex artifact proof are green. The release tooling repair SHA is recorded
-separately from the frozen package source.
+**Boundaries:** No public API, schema, migration, telemetry, or error-shape changes. Admin-console feature
+work, broad dependency upgrades, historical-archive rewrites, and release-forcing commit types are out of
+scope. Stop after the enumerated hotspots and keep every implementation slice PR-first and green.
 
-**Prior milestone:** v1.22 OSS Quality & Trust Hardening — shipped and archived 2026-07-02.
-
-**Resolved planning debt:** Post-v1.23 cleanup generalized
-`test/install_smoke/release_docs_parity_test.exs` so the active package, manifest, and generated
-changelog version must agree while the historical 0.4.0 schema-isolation contract remains enforced
-(Phase 120 review WR-01; cleanup PR #68).
+**Baseline:** v1.23 Postgres Schema Isolation is archived; public `rindle` 0.4.2 and PR #80 provide the
+green starting point for this non-feature milestone.
 
 ## Last Milestone: v1.23 Postgres Schema Isolation — shipped 2026-08-20
 
@@ -431,7 +427,9 @@ To keep this posture durable across GSD workflows:
 
 ### Active
 
-No active milestone requirements. The release train is in demand-gated pause after v1.23 archival.
+v1.24 is an explicitly approved non-feature maintenance milestone. Active requirements are defined in
+`.planning/REQUIREMENTS.md` and cover truthful quality gates, core clarity, hotspot decomposition, test
+support, and a curated Dialyzer ratchet.
 
 **Demand-gated for next feature milestone:**
 
@@ -836,4 +834,4 @@ This document evolves at phase transitions and milestone boundaries.
    (`workflow.milestone_boundary.block_feature_milestone_without_signal`)
 
 ---
-*Last updated: 2026-08-22 after post-v1.23 cleanup and public rindle 0.4.2 verification.*
+*Last updated: 2026-08-22 after starting v1.24 Core Clarity & Quality Ratchet.*

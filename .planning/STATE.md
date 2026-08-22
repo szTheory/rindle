@@ -1,37 +1,44 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.23
-milestone_name: Postgres Schema Isolation
-status: Awaiting next milestone
-stopped_at: Milestone v1.23 archived
-last_updated: "2026-08-22T16:30:20-04:00"
-last_activity: 2026-08-20
-last_activity_desc: Milestone v1.23 completed and archived
+milestone: v1.24
+milestone_name: Core Clarity & Quality Ratchet
+current_phase: 122
+current_phase_name: Live Truth & Compile Clarity
+status: planning
+stopped_at: Phase 121 verified complete; Phase 122 ready to plan
+last_updated: "2026-08-22T22:56:55.713Z"
+last_activity: 2026-08-22
+last_activity_desc: Phase 121 complete, transitioned to Phase 122
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 30
-  completed_plans: 30
-  percent: 100
-current_phase: 120
-current_phase_name: adoption-proof-release-truth
+  total_phases: 6
+  completed_phases: 1
+  total_plans: 7
+  completed_plans: 7
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-08-20 after archiving v1.23)
+See: .planning/PROJECT.md (updated 2026-08-22 for v1.24)
 
 **Core value:** Media, made durable.
-**Current focus:** Demand-gated pause; maintain the green release train
+**Current focus:** Phase 122 — Live Truth & Compile Clarity
 
 ## Current Position
 
-Phase: Milestone v1.23 complete
-Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-08-20 — Milestone v1.23 completed and archived
+Phase: 122 — Live Truth & Compile Clarity
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-08-22 — Phase 121 complete, transitioned to Phase 122
+
+### v1.24 charter
+
+Finite, behavior-preserving maintenance only: restore truthful quality signals, remove live planning
+residue and a schema compile cycle, decompose enumerated core hotspots, rebuild oversized/self-inspecting
+test support, reconcile async-isolation evidence, and retire the curated Dialyzer baseline. No public
+contract, data-model, telemetry, error-vocabulary, admin-feature, dependency-major, or forced-release
+scope is approved.
 
 ### v1.23 shipped summary
 
@@ -50,9 +57,9 @@ the historical 0.4.0 contract; do not regress either side of that invariant.
 
 ## Next Step
 
-No implementation step is approved. Remain in demand-gated pause until LIFE-06 compliance pull or a
-named STREAM-10 adopter exists. If an approved milestone signal arrives, start with
-`$gsd-new-milestone`; otherwise keep the green-main release train idle.
+Plan and execute Phase 122's live-truth and compile-clarity slice against the verified Phase 121
+quality gates. Reconcile current source/docs only, preserve historical archives, and remove the
+`Rindle.Schema` compile cycle without changing public schema ownership or prefix behavior.
 
 ## Prior Milestone
 
@@ -131,6 +138,11 @@ the v1.22 requirements archive. Builds on the v1.22 `Rindle.Migration` substrate
 ## Decisions
 
 _(Key v1.22 execution decisions recorded at milestone close.)_
+
+- [Phase 121]: v1.24 roadmap order is locked: restore truthful signals and establish SAFE-01 first;
+  reconcile live truth and remove the schema compile cycle next; then decompose runtime operations,
+  upload paths, and test support; retire the curated Dialyzer baseline last. The whole milestone preserves
+  public API, schema/migration, telemetry, error-shape, CI/release, and supported behavior contracts.
 
 - [Phase 113]: EVAL-01 — v1.22-OSS-QUALITY-EVAL.md authored; weakness→closing-phase column mapped byte-faithful to REQUIREMENTS.md (governance→114, versioning/README→115, host-respect→116, schema-flip→v1.23 ISO23); scores lifted from SEED-005, not re-derived.
 - [Phase 113]: HYGIENE-02 — SEED-003/004 frontmatter corrected status: open→consumed with consumed:/consumed_by: attribution (D-14).

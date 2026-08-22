@@ -72,8 +72,8 @@ The first AV onboarding path is explicit:
 
 Use [Running](running.html) for the per-platform libvips and FFmpeg install
 surface: macOS/Homebrew, Ubuntu or Debian/apt, Alpine/apk, Fly.io Dockerfile,
-Heroku Aptfile, Render Dockerfile, and GitHub Actions via
-`FedericoCarboni/setup-ffmpeg`.
+Heroku Aptfile, Render Dockerfile, and GitHub Actions via the repository's
+`scripts/ci/install_ffmpeg.sh` installer.
 
 ## 2. Configure Adopter-Owned Runtime Boundaries
 

@@ -414,7 +414,10 @@ defmodule Rindle.InstallSmoke.ReleaseDocsParityTest do
       refute doc =~ "HEX_API_KEY"
     end
 
-    assert running =~ "FedericoCarboni/setup-ffmpeg"
+    assert running =~ "bash scripts/ci/install_ffmpeg.sh"
+    refute running =~ "FedericoCarboni/setup-ffmpeg"
+    assert getting_started =~ "scripts/ci/install_ffmpeg.sh"
+    refute getting_started =~ "FedericoCarboni/setup-ffmpeg"
     refute running =~ "Release Please"
   end
 

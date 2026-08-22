@@ -119,6 +119,7 @@ defmodule Mix.Tasks.Rindle.BatchOwnerErasure do
   end
 
   @doc false
+  @spec parse_owners_entries(String.t()) :: [struct()]
   def parse_owners_entries(json) when is_binary(json) do
     case Jason.decode(json) do
       {:ok, decoded} when is_list(decoded) ->
@@ -142,6 +143,7 @@ defmodule Mix.Tasks.Rindle.BatchOwnerErasure do
   end
 
   @doc false
+  @spec format_text_report(Rindle.owner_erasure_batch_report(), boolean()) :: [String.t()]
   def format_text_report(report, dry_run?) do
     prefix = if dry_run?, do: "[DRY RUN] ", else: ""
 

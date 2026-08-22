@@ -125,6 +125,7 @@ defmodule Rindle.MixProject do
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:doctor, "~> 0.22.0", only: [:dev, :test], runtime: false},
       {:mix_audit, "~> 2.1", only: [:dev, :test], runtime: false},
+      {:yaml_elixir, "~> 2.12", only: [:dev, :test]},
       {:excoveralls, "~> 0.18", only: [:test, :dev], runtime: false},
       json_polyfill_dep(),
       {:ex_doc, "~> 0.40", only: :dev, runtime: false}
@@ -202,7 +203,8 @@ defmodule Rindle.MixProject do
           Rindle.Storage.Local,
           Rindle.Storage.S3,
           Rindle.Storage.GCS,
-          Rindle.Processor.Image
+          Rindle.Processor.Image,
+          Rindle.Processor.AV
         ],
         Operations: [
           Mix.Tasks.Rindle.AbortIncompleteUploads,
@@ -282,10 +284,18 @@ defmodule Rindle.MixProject do
     [
       "gsd.clean": ["cmd bash scripts/gsd_cleanup.sh"],
       precommit: ["test"],
+      refactor_contract: ["cmd bash scripts/maintainer/refactor_contract.sh"],
+      credo_quality: ["cmd bash scripts/maintainer/credo_quality.sh"],
+      quality_signals: [
+        "credo_quality",
+        "cmd env MIX_ENV=dev mix doctor --full --raise",
+        "refactor_contract"
+      ],
       # HARD-03 (D-07): `mix ci` reproduces the PR merge-blocking verdict locally.
-      # Ordered fast-static -> compile -> format -> brandbook drift gates -> the
-      # gating unit suite last. It mirrors ONLY the merge-blocking set surfaced by
-      # the `CI Summary` gate (ci.yml `quality` + `brandbook-tokens`); it does NOT
+      # Ordered fast-static -> compile -> format -> truthful quality signals ->
+      # brandbook drift gates -> the gating unit suite last. It mirrors ONLY the
+      # merge-blocking set surfaced by the `CI Summary` gate (ci.yml `quality` +
+      # `brandbook-tokens`); it does NOT
       # include push:main/nightly-only lanes (package-consumer-full, adoption-demo
       # -e2e, mux-soak, the broad OTP x Elixir matrix, Dialyzer).
       #
@@ -302,6 +312,7 @@ defmodule Rindle.MixProject do
         "deps.unlock --check-unused",
         "compile --warnings-as-errors",
         "format --check-formatted",
+        "quality_signals",
         "cmd node brandbook/src/tokens-build.mjs",
         "cmd node brandbook/src/admin-css-build.mjs",
         "cmd node brandbook/src/admin-contrast.mjs",
