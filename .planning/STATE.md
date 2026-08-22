@@ -5,15 +5,15 @@ milestone_name: Core Clarity & Quality Ratchet
 current_phase: 122
 current_phase_name: Live Truth & Compile Clarity
 status: executing
-stopped_at: Completed 122-01-PLAN.md
-last_updated: "2026-08-22T23:52:21.211Z"
+stopped_at: Completed Wave 2 through 122-04-PLAN.md
+last_updated: "2026-08-22T23:58:36.000Z"
 last_activity: 2026-08-22
 last_activity_desc: Phase 121 complete, transitioned to Phase 122
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 12
-  completed_plans: 8
+  completed_plans: 11
 ---
 
 # Project State
@@ -28,9 +28,9 @@ See: .planning/PROJECT.md (updated 2026-08-22 for v1.24)
 ## Current Position
 
 Phase: 122 — Live Truth & Compile Clarity
-Plan: 2 of 5
+Plan: 5 of 5
 Status: In progress
-Last activity: 2026-08-22 — Completed 122-01 schema compile-clarity plan
+Last activity: 2026-08-22 — Completed Phase 122 Wave 2 live-truth plans
 
 ### v1.24 charter
 
@@ -57,9 +57,8 @@ the historical 0.4.0 contract; do not regress either side of that invariant.
 
 ## Next Step
 
-Plan and execute Phase 122's live-truth and compile-clarity slice against the verified Phase 121
-quality gates. Reconcile current source/docs only, preserve historical archives, and remove the
-`Rindle.Schema` compile cycle without changing public schema ownership or prefix behavior.
+Execute 122-05 to reconcile current CI/support/tus/streaming documentation and run the complete
+Phase 122 parity, SAFE-01, `mix ci`, repository-hygiene, and supported-CI acceptance gates.
 
 ## Prior Milestone
 

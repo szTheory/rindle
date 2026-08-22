@@ -110,7 +110,7 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
   2. Current maintainer and adopter documentation accurately describes implemented CI lanes, support posture, Admin navigation labels, and shipped tus and streaming behavior without forward-looking claims that are no longer true.
   3. Contributors can compile and inspect the project without the `Rindle.Schema` seven-module cycle, while public schema ownership and prefix behavior remain byte-for-byte compatible.
 
-**Plans**: 1/5 plans executed
+**Plans**: 4/5 plans executed
 
 **Wave 1 — compile truth**
 
@@ -118,9 +118,9 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 
 **Wave 2 — bounded live truth** *(blocked on Wave 1)*
 
-- [ ] 122-02-PLAN.md — Replace stale source chronology with current domain rationale.
-- [ ] 122-03-PLAN.md — Replace stale upload-test chronology with observable contract language.
-- [ ] 122-04-PLAN.md — Align Admin guides with rendered labels and host-owned security boundaries.
+- [x] 122-02-PLAN.md — Replace stale source chronology with current domain rationale.
+- [x] 122-03-PLAN.md — Replace stale upload-test chronology with observable contract language.
+- [x] 122-04-PLAN.md — Align Admin guides with rendered labels and host-owned security boundaries.
 
 **Wave 3 — adopter/maintainer truth and phase gate** *(blocked on Waves 1–2)*
 
@@ -182,7 +182,7 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 121. Truthful Quality Signals & Mechanical Hygiene | 7/7 | Complete    | 2026-08-22 |
-| 122. Live Truth & Compile Clarity | 1/5 | In Progress|  |
+| 122. Live Truth & Compile Clarity | 4/5 | In Progress|  |
 | 123. Runtime Operations Decomposition | 0/TBD | Not started | - |
 | 124. Upload Path Clarity | 0/TBD | Not started | - |
 | 125. Behavioral Test Support | 0/TBD | Not started | - |
