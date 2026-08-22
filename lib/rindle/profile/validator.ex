@@ -54,7 +54,7 @@ defmodule Rindle.Profile.Validator do
     ],
     streaming: [
       type: {:or, [:keyword_list, {:map, :atom, :any}]},
-      doc: "Optional streaming-provider configuration (Phase 33). See `@streaming_schema`."
+      doc: "Optional streaming-provider configuration. See `@streaming_schema`."
     ]
   ]
 
@@ -111,15 +111,14 @@ defmodule Rindle.Profile.Validator do
     ]
   ]
 
-  # Per-kind schemas added in Phase 24 (AV-02-06).
-  # Allowlist values mirror SYNTHESIS §2.4 in/out scope; nothing in the
-  # "Out of v1.4" column (HLS, DASH, MKV ingest, raw AAC, hardware accel)
-  # may appear here.
+  # Per-kind schemas keep the accepted preset vocabulary explicit. Formats not
+  # represented by these allowlists (such as HLS, DASH, MKV ingest, raw AAC,
+  # or hardware acceleration) are not accepted profile variants.
   @video_variant_schema [
     preset: [
       type: {:in, [:web_720p, :web_480p]},
       required: true,
-      doc: "Named transcode preset. Phase 25 ships :web_720p; :web_480p reserved."
+      doc: "Named transcode preset accepted by the video variant contract."
     ],
     faststart: [
       type: :boolean,
@@ -147,7 +146,7 @@ defmodule Rindle.Profile.Validator do
     two_pass: [
       type: :boolean,
       default: false,
-      doc: "Two-pass loudnorm for higher fidelity (Phase 25)."
+      doc: "Two-pass loudnorm for higher-fidelity audio output."
     ]
   ]
 
@@ -155,7 +154,7 @@ defmodule Rindle.Profile.Validator do
     preset: [
       type: {:in, [:overview]},
       required: true,
-      doc: "Named waveform preset. v1.4 ships a single overview contract."
+      doc: "Named waveform preset; `:overview` is the accepted waveform contract."
     ]
   ]
 
