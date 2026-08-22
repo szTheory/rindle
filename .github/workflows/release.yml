@@ -114,6 +114,12 @@ jobs:
           manifest-file: .release-please-manifest.json
           skip-github-release: true
 
+      - name: Fail if Release Please made no progress
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN || github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: bash scripts/maintainer/check_release_please_progress.sh
+
   recovery-validation:
     name: Validate Recovery Ref
     if: ${{ github.event_name == 'workflow_dispatch' }}
@@ -564,6 +570,8 @@ jobs:
     runs-on: ubuntu-22.04
     permissions:
       contents: write
+      issues: write
+      pull-requests: write
     steps:
       - name: Checkout main
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
@@ -579,6 +587,13 @@ jobs:
 
       - name: Install Hex
         run: mix local.hex --force
+
+      - name: Reconcile Release Please state after public verification
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN || secrets.BRANCH_PROTECTION_PAT || github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_SHA: ${{ needs.gate-ci-green.outputs.release_sha }}
+        run: bash scripts/maintainer/reconcile_release_please_label.sh
 
       - name: Update RELEASE-TRAIN baseline ledger
         env:
