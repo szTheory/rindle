@@ -1,11 +1,13 @@
 Code.require_file("generated_app/contracts.ex", __DIR__)
 Code.require_file("generated_app/command_runner.ex", __DIR__)
+Code.require_file("generated_app/workspace.ex", __DIR__)
 
 defmodule Rindle.InstallSmoke.GeneratedAppHelper do
   @moduledoc false
   alias Mix.Dep.Lock
   alias Rindle.InstallSmoke.GeneratedApp.CommandRunner
   alias Rindle.InstallSmoke.GeneratedApp.Contracts
+  alias Rindle.InstallSmoke.GeneratedApp.Workspace
 
   @png_1x1 <<0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D, 0x49, 0x48,
              0x44, 0x52, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x08, 0x02, 0x00, 0x00,
@@ -509,56 +511,15 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     ]
   end
 
-  def cleanup(%{generated_app_root: generated_app_root} = report) do
-    _ = generated_app_root
-    File.rm_rf(report.workspace_root)
-    :ok
-  end
+  def cleanup(report), do: Workspace.cleanup(report)
 
-  def cleanup(_report), do: :ok
+  defp create_workspace_root!, do: Workspace.create_root!()
 
-  defp create_workspace_root! do
-    template = Path.join(System.tmp_dir!(), "rindle-install-smoke.XXXXXX")
-    {path, 0} = System.cmd("mktemp", ["-d", template], stderr_to_stdout: true)
-    String.trim(path)
-  end
+  defp ensure_package!(workspace_root, package_root),
+    do: Workspace.ensure_package!(workspace_root, package_root)
 
-  defp ensure_package!(workspace_root, package_root) do
-    if File.dir?(package_root) do
-      :ok
-    else
-      build_package!(workspace_root, package_root)
-    end
-  end
-
-  defp build_package!(workspace_root, package_root) do
-    File.mkdir_p!(Path.join(workspace_root, "package"))
-
-    _ =
-      run_cmd!(
-        repo_root(),
-        ["mix", "hex.build", "--unpack", "--output", package_root],
-        [{"MIX_ENV", "dev"}]
-      )
-  end
-
-  defp generate_phoenix_app!(workspace_root, generated_app_root) do
-    _ =
-      run_cmd!(
-        workspace_root,
-        [
-          "mix",
-          "phx.new",
-          generated_app_root,
-          "--no-assets",
-          "--no-dashboard",
-          "--no-mailer",
-          "--no-gettext",
-          "--install"
-        ],
-        [{"MIX_ENV", "dev"}]
-      )
-  end
+  defp generate_phoenix_app!(workspace_root, generated_app_root),
+    do: Workspace.generate_phoenix_app!(workspace_root, generated_app_root)
 
   defp patch_generated_app!(
          root,
@@ -1705,113 +1666,17 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     CommandRunner.run(cwd, argv, env, timeout_ms: @generated_command_timeout_ms)
   end
 
-  defp shared_env(db_name, profile_mode) do
-    base_env = [
-      {"MIX_ENV", "test"},
-      # Generated apps install Rindle as a dep and do not inherit config/test.exs;
-      # GitHub Actions runners cannot attach MuonTrap cgroups without extra caps.
-      {"RINDLE_AV_USE_CGROUPS", "false"},
-      {"RINDLE_INSTALL_SMOKE_DB", db_name},
-      {"PGUSER", env_or_default("PGUSER", System.get_env("USER") || "postgres")},
-      {"PGPASSWORD", System.get_env("PGPASSWORD")},
-      {"PGHOST", env_or_default("PGHOST", "localhost")},
-      {"PGPORT", env_or_default("PGPORT", "5432")},
-      {"RINDLE_MINIO_URL", env_or_default("RINDLE_MINIO_URL", "http://localhost:9000")},
-      {"RINDLE_MINIO_BUCKET", env_or_default("RINDLE_MINIO_BUCKET", "rindle-test")},
-      {"RINDLE_MINIO_ACCESS_KEY", env_or_default("RINDLE_MINIO_ACCESS_KEY", "minioadmin")},
-      {"RINDLE_MINIO_SECRET_KEY", env_or_default("RINDLE_MINIO_SECRET_KEY", "minioadmin")},
-      {"RINDLE_MINIO_REGION", env_or_default("RINDLE_MINIO_REGION", "us-east-1")}
-    ]
+  defp shared_env(db_name, profile_mode), do: Workspace.shared_env(db_name, profile_mode)
+  defp package_name, do: Workspace.package_name()
+  defp install_mode(network_version), do: Workspace.install_mode(network_version)
 
-    # Phase 36 CR-03: only the :mux profile reads the Mux fixture private
-    # key. Previously this `File.read!/1` ran for every profile mode
-    # (`:image`, `:video`, `:mux`), which coupled non-Mux runs to a
-    # Mux-only fixture file — running `bash scripts/install_smoke.sh image`
-    # against a checkout that lacked `test/fixtures/mux/test_signing_private_key.pem`
-    # crashed with a low-level `File.Error` stack trace instead of cleanly
-    # skipping. Push the read into the `:mux` branch so :image/:video runs
-    # never touch the Mux fixture tree.
-    full_env =
-      case profile_mode do
-        :mux -> base_env ++ build_mux_env()
-        :gcs -> base_env ++ build_gcs_env()
-        _other -> base_env
-      end
+  def package_root_provenance(mode, generated_app_root, package_root),
+    do: Workspace.package_root_provenance(mode, generated_app_root, package_root)
 
-    Enum.reject(full_env, fn {_key, value} -> is_nil(value) end)
-  end
+  defp install_source(mode, package_root, network_version),
+    do: Workspace.install_source(mode, package_root, network_version)
 
-  # Phase 36 D-17 + CR-03: Mux fixture env vars. `env_or_default/2`
-  # semantics — `System.get_env(name) || default` — are load-bearing: in
-  # soak mode the GitHub Actions job's `env:` block (real `${{ secrets.* }}`)
-  # wins via `System.get_env/1`; in cassette mode, fixtures win.
-  defp build_mux_env do
-    private_key_pem =
-      System.get_env("RINDLE_MUX_SIGNING_PRIVATE_KEY") ||
-        File.read!("test/fixtures/mux/test_signing_private_key.pem")
-
-    [
-      {"RINDLE_MUX_TOKEN_ID", env_or_default("RINDLE_MUX_TOKEN_ID", "test-token-id")},
-      {"RINDLE_MUX_TOKEN_SECRET", env_or_default("RINDLE_MUX_TOKEN_SECRET", "test-token-secret")},
-      {"RINDLE_MUX_SIGNING_KEY_ID",
-       env_or_default("RINDLE_MUX_SIGNING_KEY_ID", "test-signing-key-id")},
-      {"RINDLE_MUX_SIGNING_PRIVATE_KEY", private_key_pem},
-      {"RINDLE_MUX_WEBHOOK_SECRETS",
-       env_or_default(
-         "RINDLE_MUX_WEBHOOK_SECRETS",
-         "whsec_test_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-       )},
-      {"RINDLE_MUX_USE_REAL_API", System.get_env("RINDLE_MUX_USE_REAL_API")},
-      # Phase 36 CR-01: propagate the soak passthrough tag into the
-      # generated app's worker process. Unset on cassette runs so the
-      # cassette mock never sees the key (cassette test asserts the
-      # request body matches the stub, no passthrough field expected).
-      {"RINDLE_MUX_PASSTHROUGH_TAG", System.get_env("RINDLE_MUX_PASSTHROUGH_TAG")}
-    ]
-  end
-
-  defp build_gcs_env do
-    [
-      {"GOOGLE_APPLICATION_CREDENTIALS_JSON",
-       System.get_env("GOOGLE_APPLICATION_CREDENTIALS_JSON")},
-      {"RINDLE_GCS_BUCKET", System.get_env("RINDLE_GCS_BUCKET")},
-      {"RINDLE_INSTALL_SMOKE_GCS_PREFIX", System.get_env("RINDLE_INSTALL_SMOKE_GCS_PREFIX")},
-      {"RINDLE_INSTALL_SMOKE_GCS_CLEANUP_FILE",
-       System.get_env("RINDLE_INSTALL_SMOKE_GCS_CLEANUP_FILE")}
-    ]
-  end
-
-  defp package_name do
-    "#{Mix.Project.config()[:app]}-#{Mix.Project.config()[:version]}"
-  end
-
-  defp install_mode(nil), do: :package
-  defp install_mode(_network_version), do: :network
-
-  def package_root_provenance(:network, generated_app_root, _package_root) do
-    fetched_package_root = Path.join(generated_app_root, "deps/rindle")
-
-    %{
-      path: fetched_package_root,
-      unpacked?: File.dir?(fetched_package_root),
-      repository_path_fallback?: false
-    }
-  end
-
-  def package_root_provenance(:package, _generated_app_root, package_root) do
-    %{
-      path: package_root,
-      unpacked?: File.dir?(package_root),
-      repository_path_fallback?: false
-    }
-  end
-
-  defp install_source(:package, package_root, _network_version), do: package_root
-  defp install_source(:network, _package_root, network_version), do: "hex:#{network_version}"
-
-  defp repo_root do
-    File.cwd!()
-  end
+  defp repo_root, do: Workspace.repo_root()
 
   defp maybe_write_tus_run_hint!(%{profile_mode: :tus} = report) do
     hint_path = Path.join([repo_root(), "tmp", "install_smoke_tus_last_run.json"])
@@ -1850,29 +1715,8 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
   defp to_existing_atom_safe(nil), do: nil
   defp to_existing_atom_safe(value) when is_binary(value), do: String.to_atom(value)
 
-  defp fetch_deps!(generated_app_root, shared_env, network_version) do
-    if network_version do
-      retry_network_deps_get!(generated_app_root, shared_env)
-    else
-      _ = run_cmd!(generated_app_root, ["mix", "deps.get"], shared_env)
-    end
-  end
-
-  defp retry_network_deps_get!(generated_app_root, shared_env) do
-    Enum.reduce_while(1..30, :error, fn attempt, _acc ->
-      case run_cmd(generated_app_root, ["mix", "deps.get"], shared_env) do
-        %{exit_code: 0} ->
-          {:halt, :ok}
-
-        _ when attempt == 30 ->
-          raise "deps.get failed after 30 attempts"
-
-        _ ->
-          Process.sleep(10_000)
-          {:cont, :error}
-      end
-    end)
-  end
+  defp fetch_deps!(generated_app_root, shared_env, network_version),
+    do: Workspace.fetch_deps!(generated_app_root, shared_env, network_version)
 
   defp lifecycle_test_source(_app_module, :image) do
     """
@@ -3646,6 +3490,4 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       cleaned -> String.slice(cleaned, 0, 32)
     end
   end
-
-  defp env_or_default(name, default), do: System.get_env(name) || default
 end

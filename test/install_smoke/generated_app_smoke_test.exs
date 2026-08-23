@@ -412,11 +412,31 @@ defmodule Rindle.InstallSmoke.GeneratedAppPhase120FastContractTest do
 
   @tag :phase_120_upgrade_contract
   test "generated workspaces use OS-global temporary directory allocation" do
-    helper_source = File.read!("test/install_smoke/support/generated_app_helper.ex")
+    first_root = Rindle.InstallSmoke.GeneratedApp.Workspace.create_root!()
+    second_root = Rindle.InstallSmoke.GeneratedApp.Workspace.create_root!()
 
-    refute helper_source =~ ~S|rindle-install-smoke-#{System.unique_integer([:positive])}|
-    assert helper_source =~ "System.cmd(\"mktemp\", [\"-d\", template]"
-    assert helper_source =~ "rindle-install-smoke.XXXXXX"
+    on_exit(fn ->
+      Rindle.InstallSmoke.GeneratedApp.Workspace.cleanup(%{workspace_root: first_root})
+      Rindle.InstallSmoke.GeneratedApp.Workspace.cleanup(%{workspace_root: second_root})
+    end)
+
+    assert first_root != second_root
+    assert File.dir?(first_root)
+    assert File.dir?(second_root)
+    assert Path.dirname(first_root) == Path.expand(System.tmp_dir!())
+    assert Path.dirname(second_root) == Path.expand(System.tmp_dir!())
+
+    assert :ok = Rindle.InstallSmoke.GeneratedApp.Workspace.cleanup(%{workspace_root: first_root})
+    refute File.exists?(first_root)
+    assert :ok = Rindle.InstallSmoke.GeneratedApp.Workspace.cleanup(%{workspace_root: first_root})
+
+    assert :ok =
+             Rindle.InstallSmoke.GeneratedApp.Workspace.cleanup(%{workspace_root: second_root})
+
+    refute File.exists?(second_root)
+
+    assert :ok =
+             Rindle.InstallSmoke.GeneratedApp.Workspace.cleanup(%{workspace_root: second_root})
   end
 
   @tag :phase_120_upgrade_contract
