@@ -141,15 +141,15 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 
 **Wave 1 — runtime diagnostic orchestration**
 
-- [ ] 123-01-PLAN.md — Extract cohesive runtime-check domains behind the unchanged orchestration/result/telemetry façade.
+- [x] 123-01-PLAN.md — Extract cohesive runtime-check domains behind the unchanged orchestration/result/telemetry façade.
 
 **Wave 2 — populated-install preflight** *(blocked on Wave 1)*
 
-- [ ] 123-02-PLAN.md — Separate migration snapshot and directional validation while V1 retains all catalog, DDL, transaction, and reversal authority.
+- [x] 123-02-PLAN.md — Separate migration snapshot and directional validation while V1 retains all catalog, DDL, transaction, and reversal authority.
 
 **Wave 3 — runtime-status collection and presentation** *(blocked on Wave 2)*
 
-- [ ] 123-03-PLAN.md — Separate status collection and command formatting, then run the complete preservation and supported-CI gate.
+- [x] 123-03-PLAN.md — Separate status collection and command formatting, then run the complete preservation and supported-CI gate.
 
 ### Phase 124: Upload Path Clarity
 

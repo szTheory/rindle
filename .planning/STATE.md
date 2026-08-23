@@ -4,16 +4,16 @@ milestone: v1.24
 milestone_name: Core Clarity & Quality Ratchet
 current_phase: 123
 current_phase_name: Runtime Operations Decomposition
-status: ready_to_plan
-stopped_at: Phase 123 context gathered (assumptions mode)
-last_updated: "2026-08-23T01:09:49.852Z"
+status: verifying
+stopped_at: Phase 123 implementation locally verified; independent review and supported PR CI pending
+last_updated: "2026-08-23T01:49:00.000Z"
 last_activity: 2026-08-23
 last_activity_desc: Phase 122 complete; supported CI and release-train hygiene green
 progress:
   total_phases: 3
   completed_phases: 2
-  total_plans: 12
-  completed_plans: 12
+  total_plans: 15
+  completed_plans: 15
 ---
 
 # Project State
@@ -28,9 +28,9 @@ See: .planning/PROJECT.md (updated 2026-08-22 for v1.24)
 ## Current Position
 
 Phase: 123 — Runtime Operations Decomposition
-Plan: Not yet planned
-Status: Ready to plan
-Last activity: 2026-08-23 — Phase 122 complete; supported CI and release-train hygiene green
+Plan: 3 of 3 complete
+Status: Verifying
+Last activity: 2026-08-23 — Phase 123 implementation and local merge-equivalent gates green; independent review and supported PR CI pending
 
 ### v1.24 charter
 
@@ -57,8 +57,7 @@ the historical 0.4.0 contract; do not regress either side of that invariant.
 
 ## Next Step
 
-Plan Phase 123 as a finite, behavior-preserving decomposition of runtime diagnostics, migration
-preflight, and runtime-status responsibilities.
+Close Phase 123 through independent review, goal-backward verification, and exact-head supported PR CI.
 
 ## Prior Milestone
 
@@ -198,9 +197,9 @@ _(none open for v1.23 closeout)_
 
 ## Session Continuity
 
-Last session: 2026-08-23T01:09:49.845Z
-Stopped at: Phase 123 context gathered (assumptions mode)
-Resume file: .planning/phases/123-runtime-operations-decomposition/123-CONTEXT.md
+Last session: 2026-08-23T01:49:00.000Z
+Stopped at: Phase 123 implementation locally verified; independent review and supported PR CI pending
+Resume file: .planning/phases/123-runtime-operations-decomposition/123-VERIFICATION.md
 
 ## Performance Metrics
 
