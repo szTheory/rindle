@@ -87,6 +87,23 @@ invalid evidence.
 
 ## Supported Policy-Tracer Receipt
 
-Pending Task 2. The receipt must bind the pushed policy-tracer SHA to the
-workflow-dispatch run's `headSha`, record both `Dialyzer` and `Nightly Summary`,
-and state the Elixir 1.17 / OTP 27 home cell identity.
+- Policy-tracer commit: `b3263d096071ff51912eb4f31bb8e5c9473b16c1`
+- [Exact-head Nightly run 32637068060](https://github.com/szTheory/rindle/actions/runs/32637068060)
+  (`workflow_dispatch`; `headSha` exactly equals the policy-tracer commit)
+- Toolchain: Elixir 1.17.3, OTP 27.3.4.16, Ubuntu 22.04
+- [Dialyzer job 97188327765](https://github.com/szTheory/rindle/actions/runs/32637068060/job/97188327765):
+  **failure** (completed 2026-08-23T11:38:47Z)
+- [Nightly Summary job 97188615049](https://github.com/szTheory/rindle/actions/runs/32637068060/job/97188615049):
+  **success** (completed 2026-08-23T11:40:15Z); its `Dialyzer` row is `failure`.
+
+This is an authority/topology receipt, not an acceptance-green claim. With the
+starting suppressions unchanged, the job reported 46 errors, skipped 43, and
+emitted the following exact remaining warnings:
+
+1. `The pattern can never match the type {:error, _}.`
+2. `The guard clause can never succeed.`
+3. `The guard test _@1::'nil' | crypto:hash_state() breaks the opaqueness of its argument.`
+
+Those warnings correspond to E38–E40 (`lib/rindle/upload/tus_plug.ex`). Their
+rows remain `pending`; subsequent owner work must make the required supported
+receipt, behavior-test, and SAFE-01 disposition before changing any filter.
