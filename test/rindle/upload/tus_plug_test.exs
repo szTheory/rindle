@@ -897,6 +897,33 @@ defmodule Rindle.Upload.TusPlugTest do
       assert p1.status == 400
     end
 
+    test "PATCH does not accept Upload-Defer-Length in place of its required Upload-Length", %{
+      root: root
+    } do
+      opts = opts_for(root)
+
+      conn =
+        conn(:post, "/uploads/tus")
+        |> put_req_header("upload-defer-length", "1")
+        |> TusPlug.call(opts)
+
+      [location] = get_resp_header(conn, "location")
+      token = location |> String.split("/") |> List.last()
+      {:ok, payload} = Plug.Crypto.verify(@secret_key_base, @tus_url_salt, token)
+
+      response =
+        conn(:patch, "/uploads/tus/" <> token, "01234")
+        |> put_req_header("content-type", "application/offset+octet-stream")
+        |> put_req_header("upload-offset", "0")
+        |> put_req_header("upload-defer-length", "1")
+        |> TusPlug.call(opts)
+
+      assert response.status == 400
+      session = AdopterRepo.get!(MediaUploadSession, payload["session_id"])
+      assert session.upload_length == nil
+      assert session.last_known_offset == 0
+    end
+
     test "PATCH verifies valid sha256 checksum", %{root: root} do
       opts = opts_for(root)
       {token, _sid} = create(opts, 10)
