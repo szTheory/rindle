@@ -68,6 +68,7 @@ defmodule Rindle.ApiSurfaceBoundaryTest do
     Rindle.Ops.MetadataBackfill,
     Rindle.Ops.RuntimeStatus,
     Rindle.Ops.RuntimeChecks.CoreChecks,
+    Rindle.Ops.RuntimeChecks.IntegrationChecks,
     Rindle.Ops.RuntimeChecks.OwnershipChecks,
     Rindle.Ops.UploadMaintenance,
     Rindle.Ops.VariantMaintenance,

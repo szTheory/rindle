@@ -6,7 +6,7 @@ defmodule Rindle.Ops.RuntimeChecks do
   alias Rindle.Delivery
   alias Rindle.Migration.V1, as: MigrationV1
   alias Rindle.Ops.OwnershipSnapshot
-  alias Rindle.Ops.RuntimeChecks.{CoreChecks, OwnershipChecks}
+  alias Rindle.Ops.RuntimeChecks.{CoreChecks, IntegrationChecks, OwnershipChecks}
   alias Rindle.Processor.AV
   alias Rindle.Processor.AV.RuntimeGuard
   alias Rindle.Storage.Local
@@ -111,34 +111,6 @@ defmodule Rindle.Ops.RuntimeChecks do
         resumable_session_schema_catalog()
       end)
 
-    gcs_extra =
-      if gcs_profiles(profiles) != [] do
-        base_checks = [
-          # Phase 37 / D-13 — GCS adapter health checks. Conditionally appended
-          # so image-only S3 adopters see no new doctor noise (WARNING 3 lock —
-          # not even silent OK rows). Resumable-specific CORS check defers to
-          # Phase 41 RESUMABLE-13.
-          fn -> check_gcs_goth_running(profiles, env) end,
-          fn -> check_gcs_bucket_reachable(profiles, env) end,
-          fn -> check_gcs_signing_key(profiles, env) end
-        ]
-
-        if resumable_gcs_profiles(profiles) != [] do
-          base_checks ++ [fn -> check_gcs_resumable_cors(profiles, opts) end]
-        else
-          base_checks
-        end
-      else
-        []
-      end
-
-    tus_extra =
-      if tus_profiles(profiles) != [] do
-        [fn -> check_tus_capability(profiles) end]
-      else
-        []
-      end
-
     core_checks =
       CoreChecks.schedule(profiles, probe, local_playback_route, resolved, env, %{
         delivery_support: &check_delivery_support/1,
@@ -166,13 +138,24 @@ defmodule Rindle.Ops.RuntimeChecks do
         }
       )
 
+    integration_checks =
+      IntegrationChecks.schedule(profiles, env, opts, %{
+        gcs_profiles: &gcs_profiles/1,
+        resumable_gcs_profiles: &resumable_gcs_profiles/1,
+        tus_profiles: &tus_profiles/1,
+        tus_capability: &check_tus_capability/1,
+        gcs_goth_running: &check_gcs_goth_running/2,
+        gcs_bucket_reachable: &check_gcs_bucket_reachable/2,
+        gcs_signing_key: &check_gcs_signing_key/2,
+        gcs_resumable_cors: &check_gcs_resumable_cors/2,
+        streaming_credentials: &check_streaming_credentials/2,
+        streaming_signing_key: &check_streaming_signing_key/2,
+        streaming_webhook_secrets: &check_streaming_webhook_secrets/2,
+        streaming_smoke_ping: &check_streaming_smoke_ping/3
+      })
+
     checks =
-      (core_checks ++ ownership_checks ++ [
-         fn -> check_streaming_credentials(profiles, env) end,
-         fn -> check_streaming_signing_key(profiles, env) end,
-         fn -> check_streaming_webhook_secrets(profiles, env) end,
-         fn -> check_streaming_smoke_ping(profiles, env, opts) end
-       ] ++ gcs_extra ++ tus_extra)
+      (core_checks ++ ownership_checks ++ integration_checks)
       |> Enum.map(&run_check/1)
       |> Enum.sort_by(& &1.id)
 

@@ -211,7 +211,7 @@ defmodule Rindle.Contracts.TelemetryContractTest do
     end
 
     test "doctor check runner emits runtime check stop telemetry", %{ref: ref} do
-      _report =
+      report =
         RuntimeChecks.run([],
           probe: fn -> :ok end,
           env: %{},
@@ -228,11 +228,17 @@ defmodule Rindle.Contracts.TelemetryContractTest do
           migration_statuses: []
         )
 
-      assert_received {[:rindle, :runtime, :check, :stop], ^ref, measurements, metadata}
-      assert_numeric_measurements(measurements)
-      assert is_binary(metadata.check)
-      assert metadata.status in [:ok, :error]
-      assert is_atom(metadata.component)
+      events =
+        for _ <- report.checks do
+          assert_received {[:rindle, :runtime, :check, :stop], ^ref, measurements, metadata}
+          assert_numeric_measurements(measurements)
+          assert is_binary(metadata.check)
+          assert metadata.status in [:ok, :warn, :error]
+          assert is_atom(metadata.component)
+          metadata.check
+        end
+
+      assert Enum.sort(events) == Enum.map(report.checks, & &1.id)
     end
 
     test "resumable telemetry helpers emit the locked public contract", %{ref: ref} do
