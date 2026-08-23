@@ -54,6 +54,7 @@ defmodule Rindle.ApiSurfaceBoundaryTest do
     Rindle.Storage.Capabilities,
     Rindle.Upload.TusCreation,
     Rindle.Upload.TusProtocol,
+    Rindle.Upload.TusStream,
     Rindle.Migration.Options,
     Rindle.Migration.V1
   ]
@@ -142,6 +143,17 @@ defmodule Rindle.ApiSurfaceBoundaryTest do
         assert hidden_function_doc?(Rindle.Upload.TusProtocol, name, arity)
       end
     end
+
+    test "tus stream mechanics stay hidden behind the visible Plug facade" do
+      assert visible_module?(Rindle.Upload.TusPlug)
+      assert hidden_module?(Rindle.Upload.TusStream)
+
+      for {name, arity} <- [append: 7, persistence_attrs: 2, completion: 3] do
+        assert function_exported?(Rindle.Upload.TusStream, name, arity)
+        assert hidden_function_doc?(Rindle.Upload.TusStream, name, arity)
+      end
+    end
+
   end
 
   describe "facade export and shim expectations" do
