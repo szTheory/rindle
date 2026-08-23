@@ -1,7 +1,7 @@
 ---
 phase: 122
 slug: live-truth-compile-clarity
-status: planned
+status: validated
 nyquist_compliant: true
 wave_0_complete: true
 created: 2026-08-22
@@ -41,17 +41,17 @@ authoritative acceptance environment.
 
 | Task ID | Plan | Wave | Requirement | Test type | Automated command | Status |
 |---|---:|---:|---|---|---|---|
-| 122-01-01 | 01 | 1 | CLARITY-03 | compiler graph + schema contract | `MIX_ENV=test mix compile --force && MIX_ENV=test mix xref graph --format cycles --label compile-connected --fail-above 0 && MIX_ENV=test mix test test/rindle/schema_prefix_contract_test.exs test/rindle/domain/media_schema_test.exs test/rindle/config/config_test.exs` | planned |
-| 122-01-02 | 01 | 1 | CLARITY-03, SAFE-01 | SAFE runner policy + aggregate | `MIX_ENV=test mix test test/install_smoke/refactor_contract_test.exs && bash scripts/maintainer/refactor_contract.sh` | planned |
-| 122-02-01 | 02 | 2 | CLARITY-01 | source compile + focused behavior | `MIX_ENV=test mix compile --warnings-as-errors && MIX_ENV=test mix test test/rindle/capability_test.exs test/rindle/delivery_test.exs test/rindle/streaming/provider/mux/mux_test.exs` | planned |
-| 122-02-02 | 02 | 2 | CLARITY-01, SAFE-01 | source compile + provider behavior + aggregate | `MIX_ENV=test mix compile --warnings-as-errors && MIX_ENV=test mix test test/rindle/streaming/provider/mux/event_test.exs test/rindle/profile/validator_test.exs test/rindle/workers/mux_sync_coordinator_test.exs && bash scripts/maintainer/refactor_contract.sh` | planned |
-| 122-03-01 | 03 | 2 | CLARITY-01 | tus/S3 behavior | `MIX_ENV=test mix test test/rindle/upload/tus_plug_test.exs test/rindle/storage/s3_tus_test.exs` | planned |
-| 122-03-02 | 03 | 2 | CLARITY-01, SAFE-01 | adapter/maintenance behavior + aggregate | `MIX_ENV=test mix test test/rindle/storage/storage_adapter_test.exs test/rindle/ops/upload_maintenance_test.exs && bash scripts/maintainer/refactor_contract.sh` | planned |
-| 122-04-01 | 04 | 2 | CLARITY-02 | rendered Admin label parity | `MIX_ENV=test mix test test/brandbook/admin_design_system_validation_test.exs test/rindle/admin/live/home_assets_upload_test.exs` | planned |
-| 122-04-02 | 04 | 2 | CLARITY-02, SAFE-01 | Admin guide/live behavior + aggregate | `MIX_ENV=test mix test test/brandbook/admin_design_system_validation_test.exs test/rindle/admin/live/home_assets_upload_test.exs && bash scripts/maintainer/refactor_contract.sh` | planned |
-| 122-05-01 | 05 | 3 | CLARITY-02 | CI/support parity | `MIX_ENV=test mix test test/install_smoke/docs_parity_test.exs test/install_smoke/ci_lane_split_test.exs test/install_smoke/quality_signal_policy_test.exs test/install_smoke/release_guard_meta_test.exs` | planned |
-| 122-05-02 | 05 | 3 | CLARITY-02 | tus/adapter parity | `MIX_ENV=test mix test test/install_smoke/phoenix_tus_truth_parity_test.exs test/rindle/storage/storage_adapter_test.exs test/rindle/upload/tus_plug_test.exs test/rindle/storage/gcs_test.exs` | planned |
-| 122-05-03 | 05 | 3 | CLARITY-02, SAFE-01 | all parity + aggregate + full local gate | `MIX_ENV=test mix test test/install_smoke/docs_parity_test.exs test/install_smoke/phoenix_tus_truth_parity_test.exs test/install_smoke/streaming_cancel_docs_parity_test.exs test/brandbook/admin_design_system_validation_test.exs && bash scripts/maintainer/refactor_contract.sh && mix ci && ./scripts/maintainer/repo_hygiene_check.sh` | planned |
+| 122-01-01 | 01 | 1 | CLARITY-03 | compiler graph + schema contract | `MIX_ENV=test mix compile --force && MIX_ENV=test mix xref graph --format cycles --label compile-connected --fail-above 0 && MIX_ENV=test mix test test/rindle/schema_prefix_contract_test.exs test/rindle/domain/media_schema_test.exs test/rindle/config/config_test.exs` | ✅ green |
+| 122-01-02 | 01 | 1 | CLARITY-03, SAFE-01 | SAFE runner policy + aggregate | `MIX_ENV=test mix test test/install_smoke/refactor_contract_test.exs && bash scripts/maintainer/refactor_contract.sh` | ✅ green |
+| 122-02-01 | 02 | 2 | CLARITY-01 | source compile + focused behavior | `MIX_ENV=test mix compile --warnings-as-errors && MIX_ENV=test mix test test/rindle/capability_test.exs test/rindle/delivery_test.exs test/rindle/streaming/provider/mux/mux_test.exs` | ✅ green |
+| 122-02-02 | 02 | 2 | CLARITY-01, SAFE-01 | source compile + provider behavior + aggregate | `MIX_ENV=test mix compile --warnings-as-errors && MIX_ENV=test mix test test/rindle/streaming/provider/mux/event_test.exs test/rindle/profile/validator_test.exs test/rindle/workers/mux_sync_coordinator_test.exs && bash scripts/maintainer/refactor_contract.sh` | ✅ green |
+| 122-03-01 | 03 | 2 | CLARITY-01 | tus/S3 behavior | `MIX_ENV=test mix test test/rindle/upload/tus_plug_test.exs test/rindle/storage/s3_tus_test.exs` | ✅ green |
+| 122-03-02 | 03 | 2 | CLARITY-01, SAFE-01 | adapter/maintenance behavior + aggregate | `MIX_ENV=test mix test test/rindle/storage/storage_adapter_test.exs test/rindle/ops/upload_maintenance_test.exs && bash scripts/maintainer/refactor_contract.sh` | ✅ green |
+| 122-04-01 | 04 | 2 | CLARITY-02 | rendered Admin label parity | `MIX_ENV=test mix test test/brandbook/admin_design_system_validation_test.exs test/rindle/admin/live/home_assets_upload_test.exs` | ✅ green |
+| 122-04-02 | 04 | 2 | CLARITY-02, SAFE-01 | Admin guide/live behavior + aggregate | `MIX_ENV=test mix test test/brandbook/admin_design_system_validation_test.exs test/rindle/admin/live/home_assets_upload_test.exs && bash scripts/maintainer/refactor_contract.sh` | ✅ green |
+| 122-05-01 | 05 | 3 | CLARITY-02 | CI/support parity | `MIX_ENV=test mix test test/install_smoke/docs_parity_test.exs test/install_smoke/ci_lane_split_test.exs test/install_smoke/quality_signal_policy_test.exs test/install_smoke/release_guard_meta_test.exs` | ✅ green |
+| 122-05-02 | 05 | 3 | CLARITY-02 | tus/adapter parity | `MIX_ENV=test mix test test/install_smoke/phoenix_tus_truth_parity_test.exs test/rindle/storage/storage_adapter_test.exs test/rindle/upload/tus_plug_test.exs test/rindle/storage/gcs_test.exs` | ✅ green |
+| 122-05-03 | 05 | 3 | CLARITY-02, SAFE-01 | all parity + aggregate + full local gate | `MIX_ENV=test mix test test/install_smoke/docs_parity_test.exs test/install_smoke/phoenix_tus_truth_parity_test.exs test/install_smoke/streaming_cancel_docs_parity_test.exs test/brandbook/admin_design_system_validation_test.exs && bash scripts/maintainer/refactor_contract.sh && mix ci && ./scripts/maintainer/repo_hygiene_check.sh` | ✅ green |
 
 ## Wave 0 Ownership
 
@@ -100,11 +100,24 @@ CLARITY-02 uses the same review receipt for corrected claims in addition to auto
 
 ## Validation Sign-Off Criteria
 
-- [ ] Every task's focused command passes before commit.
-- [ ] Mix xref reports zero compile-connected cycles after a fresh test compile.
-- [ ] CLARITY-01/02 review receipts are present and bounded to the exact inventory.
-- [ ] SAFE-01, `mix ci`, and repository hygiene pass.
-- [ ] Historical archives, dependencies, Admin features, public API/schema/migration/telemetry/error
+- [x] Every task's focused command passes before commit.
+- [x] Mix xref reports zero compile-connected cycles after a fresh test compile.
+- [x] CLARITY-01/02 review receipts are present and bounded to the exact inventory.
+- [x] SAFE-01, `mix ci`, and repository hygiene pass in the recorded supported-CI acceptance environment.
+- [x] Historical archives, dependencies, Admin features, public API/schema/migration/telemetry/error
   contracts, and CI/release topology have no phase diff.
-- [ ] Supported CI checks are green for the exact PR head SHA.
+- [x] Supported CI checks are green for the exact PR head SHA.
 
+## Validation Audit 2026-08-23
+
+| Metric | Count |
+|---|---:|
+| Plan tasks mapped | 11 |
+| Gaps found | 0 |
+| Fresh compile graph | `No cycles found` |
+| Fresh cross-surface focused suite | green (contract tag included; expected integration/MinIO exclusions retained) |
+| Fresh SAFE-01 runner | 92 tests, 0 failures |
+
+The fresh audit ran the compiler/xref proof and all named focused test files from the task map in a single ExUnit invocation. The Phase 122 verification report supplies the supported Elixir 1.17/OTP 27 CI and full-gate evidence; its recorded head is `693b74e6e14d006557ff8898203256ae2b08b700`.
+
+**Approval:** validated 2026-08-23

@@ -2,7 +2,7 @@
 
 ## Milestones
 
-- 🚧 **v1.24 Core Clarity & Quality Ratchet** — Phases 121–126 (active; behavior-preserving maintenance)
+- ✅ **v1.24 Core Clarity & Quality Ratchet** — Phases 121–126 (shipped 2026-08-23, 19/19 requirements, 6/6 verified phases; [archive](milestones/v1.24-ROADMAP.md), [requirements](milestones/v1.24-REQUIREMENTS.md), [audit](milestones/v1.24-MILESTONE-AUDIT.md))
 - ✅ **v1.23 Postgres Schema Isolation** — Phases 117–120 (shipped 2026-08-20, Hex 0.4.0, 12/12 requirements, 4/4 verified phases; [archive](milestones/v1.23-ROADMAP.md), [requirements](milestones/v1.23-REQUIREMENTS.md), [audit](milestones/v1.23-MILESTONE-AUDIT.md))
 - ✅ **v1.22 OSS Quality & Trust Hardening** — Phases 113–116 (shipped 2026-07-02; [archive](milestones/v1.22-ROADMAP.md), [requirements](milestones/v1.22-REQUIREMENTS.md), [audit](milestones/v1.22-MILESTONE-AUDIT.md))
 - ✅ **v1.21 CI/DX Reliability Tail** — Phases 108–112 (shipped 2026-06-29; [archive](milestones/v1.21-ROADMAP.md), [requirements](milestones/v1.21-REQUIREMENTS.md), [audit](milestones/v1.21-MILESTONE-AUDIT.md))
@@ -35,16 +35,38 @@
 
 </details>
 
-Historical milestones and phase detail are retained in `.planning/milestones/`.
+Historical milestone and phase detail is retained in `.planning/milestones/`.
+
+## Phases
+
+<details>
+<summary>✅ v1.24 Core Clarity & Quality Ratchet (Phases 121–126) — SHIPPED 2026-08-23</summary>
+
+Behavior-preserving maintenance that made quality signals truthful and blocking, removed stale live
+truth and a schema compile cycle, decomposed runtime/upload/test-support hotspots behind stable
+facades, and established a supported removal-only Dialyzer ratchet.
+
+- [x] Phase 121: Truthful Quality Signals & Mechanical Hygiene (7/7 plans) — completed 2026-08-22
+- [x] Phase 122: Live Truth & Compile Clarity (5/5 plans) — completed 2026-08-23
+- [x] Phase 123: Runtime Operations Decomposition (3/3 plans) — completed 2026-08-23
+- [x] Phase 124: Upload Path Clarity (5/5 plans) — completed 2026-08-23
+- [x] Phase 125: Behavioral Test Support (10/10 plans) — completed 2026-08-23
+- [x] Phase 126: Curated Type Ratchet (10/10 plans) — completed 2026-08-23
+
+Archive: [milestones/v1.24-ROADMAP.md](milestones/v1.24-ROADMAP.md); requirements:
+[milestones/v1.24-REQUIREMENTS.md](milestones/v1.24-REQUIREMENTS.md); audit:
+[milestones/v1.24-MILESTONE-AUDIT.md](milestones/v1.24-MILESTONE-AUDIT.md); phase evidence:
+[milestones/v1.24-phases/](milestones/v1.24-phases/).
+
+</details>
 
 <details>
 <summary>✅ v1.23 Postgres Schema Isolation (Phases 117–120) — SHIPPED 2026-08-20</summary>
 
 Rindle 0.4.0 isolates its six domain tables and migration marker in `rindle` by default, retains an
-explicit `public` compatibility build, provides a bounded host-owned populated-install move and guarded
-reverse, keeps Oban and the host migration ledger independent, and proves the contract through packed
-generated apps, Cohort, operational diagnostics, documentation parity, exact-source CI, and the public
-Hex artifact.
+explicit `public` compatibility build, provides a bounded populated-install move and reverse, keeps
+Oban and the host migration ledger independent, and proves the contract through packed adopters,
+diagnostics, documentation parity, exact-source CI, and the public Hex artifact.
 
 - [x] Phase 117: Prefix Routing Architecture (5/5 plans) — completed 2026-08-08
 - [x] Phase 118: Isolated Migration & Safe Upgrade (6/6 plans) — completed 2026-08-09
@@ -57,250 +79,7 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 
 </details>
 
-## Phases
-
-- [x] **Phase 121: Truthful Quality Signals & Mechanical Hygiene** - Restore blocking, evidence-based quality gates and establish the invariant-preserving refactor contract. (completed 2026-08-22)
-- [x] **Phase 122: Live Truth & Compile Clarity** - Reconcile live source and documentation truth while removing the internal schema compile cycle. (completed 2026-08-23)
-- [x] **Phase 123: Runtime Operations Decomposition** - Make runtime diagnostics, migration preflight, and status code easier to reason about without contract drift. (completed 2026-08-23)
-- [x] **Phase 124: Upload Path Clarity** - Decompose tus and broker internals into cohesive, contract-preserving boundaries. (completed 2026-08-23)
-- [x] **Phase 125: Behavioral Test Support** - Replace oversized and self-inspecting test support with focused behavioral proof and async-isolation evidence. (completed 2026-08-23)
-- [x] **Phase 126: Curated Type Ratchet** - Retire the actionable Dialyzer baseline on the supported toolchain and block its return. (completed 2026-08-23)
-
-## Phase Details
-
-### Phase 121: Truthful Quality Signals & Mechanical Hygiene
-
-**Goal**: Maintainers receive truthful, blocking quality feedback for deterministic regressions and can make every later refactor against an explicit behavior-preservation contract.
-**Depends on**: Nothing (first phase)
-**Requirements**: SIGNAL-01, SIGNAL-02, SIGNAL-03, SIGNAL-04, SAFE-01
-**Success Criteria** (what must be TRUE):
-
-  1. A deterministic public-contract or documentation-parity regression fails a blocking CI result, while AV-dependent checks visibly declare and prove their prerequisites rather than disappearing behind advisory status.
-  2. Running the documentation doctor reports measured public module, function, and spec coverage that meets the enforced ratchet, and its gate fails when measured health regresses.
-  3. Credo blocks actionable warnings, complexity/nesting, and public docs/spec drift while explicitly retaining only low-value style preferences as advisory.
-  4. Mechanically proven residue and recurrence-prone root lint outputs are removed or narrowly ignored without deleting unique audit, historical, debug, or maintainer evidence.
-  5. Every subsequent refactor slice has a runnable regression contract proving unchanged public signatures, schema/migration behavior, telemetry names and metadata, error shapes, and supported CI/release invariants.
-
-**Plans**: 7/7 plans executed
-
-**Wave 1**
-
-- [x] 121-01-PLAN.md — Establish the SAFE-01 refactor regression contract.
-- [x] 121-02-PLAN.md — Restore deterministic Contract truth and select real AV proof.
-- [x] 121-03-PLAN.md — Enforce measured public Doctor coverage.
-- [x] 121-04-PLAN.md — Clear the actionable Credo warning baseline mechanically.
-- [x] 121-05-PLAN.md — Lock exact-file, tracked-safe repository cleanup.
-
-**Wave 2** *(blocked on Wave 1 completion)*
-
-- [x] 121-06-PLAN.md — Add the curated Credo aggregate and stable debt inventory.
-
-**Wave 3** *(blocked on Waves 1–2 completion)*
-
-- [x] 121-07-PLAN.md — Wire truthful gates into CI Summary and local workflows.
-
-### Phase 122: Live Truth & Compile Clarity
-
-**Goal**: Current code, tests, and maintainer/adopter documentation accurately describe shipped behavior, and contributors can compile without the internal schema cycle.
-**Depends on**: Phase 121
-**Requirements**: CLARITY-01, CLARITY-02, CLARITY-03
-**Success Criteria** (what must be TRUE):
-
-  1. A reader of live source and tests finds domain rationale instead of obsolete Phase, Plan, or EXPECTED-RED commentary, with historical planning archives unchanged.
-  2. Current maintainer and adopter documentation accurately describes implemented CI lanes, support posture, Admin navigation labels, and shipped tus and streaming behavior without forward-looking claims that are no longer true.
-  3. Contributors can compile and inspect the project without the `Rindle.Schema` seven-module cycle, while public schema ownership and prefix behavior remain byte-for-byte compatible.
-
-**Plans**: 5/5 plans executed and verified
-
-**Wave 1 — compile truth**
-
-- [x] 122-01-PLAN.md — Remove the schema compile cycle and compose objective xref proof into SAFE-01.
-
-**Wave 2 — bounded live truth** *(blocked on Wave 1)*
-
-- [x] 122-02-PLAN.md — Replace stale source chronology with current domain rationale.
-- [x] 122-03-PLAN.md — Replace stale upload-test chronology with observable contract language.
-- [x] 122-04-PLAN.md — Align Admin guides with rendered labels and host-owned security boundaries.
-
-**Wave 3 — adopter/maintainer truth and phase gate** *(blocked on Waves 1–2)*
-
-- [x] 122-05-PLAN.md — Reconcile CI/support/tus/streaming docs and run full preservation proof.
-
-### Phase 123: Runtime Operations Decomposition
-
-**Goal**: Runtime operational code is organized by diagnostic responsibility while retaining every existing operator-facing behavior and safety boundary.
-**Depends on**: Phase 122
-**Requirements**: OPS-01, OPS-02, OPS-03
-**Success Criteria** (what must be TRUE):
-
-  1. Maintainers can follow `Rindle.Ops.RuntimeChecks` through a small orchestration boundary and cohesive collaborators for each diagnostic domain, with result and telemetry contracts unchanged.
-  2. Populated-install migration preflight is understandable through named, bounded validation components while its fixed owned-table catalog, transaction order, and reversal safety remain unchanged.
-  3. Runtime-status collection, formatting, and command concerns are independently readable while flags, output shapes, limits, and failure semantics remain unchanged.
-
-**Plans**: 3 plans
-
-**Wave 1 — runtime diagnostic orchestration**
-
-- [x] 123-01-PLAN.md — Extract cohesive runtime-check domains behind the unchanged orchestration/result/telemetry façade.
-
-**Wave 2 — populated-install preflight** *(blocked on Wave 1)*
-
-- [x] 123-02-PLAN.md — Separate migration snapshot and directional validation while V1 retains all catalog, DDL, transaction, and reversal authority.
-
-**Wave 3 — runtime-status collection and presentation** *(blocked on Wave 2)*
-
-- [x] 123-03-PLAN.md — Separate status collection and command formatting, then run the complete preservation and supported-CI gate.
-
-### Phase 124: Upload Path Clarity
-
-**Goal**: The tus and upload-broker paths have clear responsibility boundaries without changing their public protocol or storage behavior.
-**Depends on**: Phase 123
-**Requirements**: UPLOAD-01, UPLOAD-02
-**Success Criteria** (what must be TRUE):
-
-  1. Maintainers can trace a tus request through parsing, protocol validation, storage effects, and response construction in cohesive units while Plug contract, resumability, and error vocabulary stay unchanged.
-  2. Maintainers can trace upload-broker validation, capability negotiation, session persistence, and completion orchestration in cohesive units while public APIs and storage-adapter behavior stay unchanged.
-
-**Plans**: 5 plans
-
-**Wave 1 — end-to-end tus creation tracer**
-
-- [x] 124-01-PLAN.md — Extract signed creation/concatenation mechanics behind the unchanged TusPlug and Broker facades.
-
-**Wave 2 — tus protocol boundary** *(blocked on Wave 1)*
-
-- [x] 124-02-PLAN.md — Extract token and protocol parsing while retaining order-sensitive Plug gates and responses.
-
-**Wave 3 — tus storage and termination** *(blocked on Wave 2)*
-
-- [x] 124-03-PLAN.md — Extract bounded adapter-polymorphic PATCH and DELETE abort mechanics.
-
-**Wave 4 — broker session lifecycle** *(blocked on Wave 3)*
-
-- [x] 124-04-PLAN.md — Extract cohesive Broker seed, persistence/compensation, and validation mechanics.
-
-**Wave 5 — broker completion and supported authority** *(blocked on Wave 4)*
-
-- [x] 124-05-PLAN.md — Extract the exact completion transaction and close local/S3/SAFE-01/exact-head CI proof.
-
-### Phase 125: Behavioral Test Support
-
-**Goal**: Test support proves observable contracts with focused ownership, including conclusive evidence on async isolation.
-**Depends on**: Phase 124
-**Requirements**: TEST-01, TEST-02, TEST-03, TEST-04
-**Success Criteria** (what must be TRUE):
-
-  1. Generated-app proof support is split into focused, discoverable modules while packed-adopter coverage remains unchanged.
-  2. Tests assert observable behavior, compiled metadata, or explicit structural contracts rather than self-reading helper or source strings for implementation text.
-  3. Documentation-parity suites are organized by public contract domain with shared helpers, equivalent assertions, and failures that identify the owning contract.
-  4. Async-isolation issue #42 has stress evidence against the shipped single-run coverage and process-scoped repo override, and is either closed as non-reproducible or narrowed to a concrete remaining failure.
-
-**Plans**: 10/10 plans executed
-
-**Wave 1 — async-isolation causal and runner tracer**
-
-- [x] 125-01-PLAN.md — Lock the high-iteration causal proof and fixed local-only 25-seed runner.
-
-**Wave 2 — generated contracts** *(blocked on Wave 1)*
-
-- [x] 125-02-PLAN.md — Extract pure report/catalog contracts behind GeneratedAppHelper and replace contract snapshots.
-
-**Wave 3 — generated process and workspace effects** *(blocked on Wave 2)*
-
-- [x] 125-03-PLAN.md — Extract bounded command execution and temporary package/workspace ownership with behavior proof.
-
-**Wave 4 — generated Phoenix patching** *(blocked on Wave 3)*
-
-- [x] 125-04-PLAN.md — Extract profile-aware Phoenix source/config patching behind the stable facade.
-
-**Wave 5 — generated migrations and catalog proof** *(blocked on Wave 4)*
-
-- [x] 125-05-PLAN.md — Extract generated migration/upgrade/catalog mechanics without schema-ownership drift.
-
-**Wave 6 — generated lifecycle sources and packed authority** *(blocked on Wave 5)*
-
-- [x] 125-06-PLAN.md — Extract lifecycle/profile source owners and replace Phoenix tus helper snapshots with outcomes/metadata.
-
-**Wave 7 — docs shared support and migration domain** *(blocked on Wave 6)*
-
-- [x] 125-07-PLAN.md — Extract shared docs mechanics and the install/migration/upgrade contract domain.
-
-**Wave 8 — docs onboarding and operations domains** *(blocked on Wave 7)*
-
-- [x] 125-08-PLAN.md — Split onboarding/capabilities and maintainer operations into explicit owners.
-
-**Wave 9 — docs product/Admin domain and Proof carrier** *(blocked on Wave 8)*
-
-- [x] 125-09-PLAN.md — Retire the aggregate and wire all four domains into the unchanged Proof topology.
-
-**Wave 10 — finite evidence and issue disposition** *(blocked on Wave 9)*
-
-- [x] 125-10-PLAN.md — Run the 25 fresh-process matrix, exact-head supported CI, and close-or-narrow #42.
-
-### Phase 126: Curated Type Ratchet
-
-**Goal**: The supported Elixir/OTP cell has an actionable, enforced Dialyzer baseline with no retirement ambiguity.
-**Depends on**: Phase 125
-**Requirements**: TYPE-01, TYPE-02
-**Success Criteria** (what must be TRUE):
-
-  1. The supported Elixir 1.17 / OTP 27 home cell passes Dialyzer, and every retained ignore is justified while unsupported local-toolchain noise does not determine acceptance.
-  2. CI blocks newly introduced actionable Dialyzer findings through a curated gate, with issue #76 closed using the resulting baseline evidence.
-
-**Plans**: 9/10 plans executed
-
-**Wave 1 — policy-test tracer and immutable inventory**
-
-- [x] 126-01-PLAN.md — Lock curated-ignore policy, record the 45-entry baseline, and prove the supported authority seam.
-
-**Wave 2 — migration and host support** *(blocked on Wave 1)*
-
-- [x] 126-02-PLAN.md — Probe and reconcile migration/support type boundaries under unchanged migration behavior.
-
-**Wave 3 — operational task/Admin/runtime checks** *(blocked on Wave 2)*
-
-- [x] 126-03-PLAN.md — Probe and reconcile task, Admin, and runtime-check warnings.
-
-**Wave 4 — historical runtime-pattern owners** *(blocked on Wave 3)*
-
-- [x] 126-04-PLAN.md — Probe and reconcile runtime-status, HTML, and ProcessVariant atoms.
-
-**Wave 5 — GCS and Local adapters** *(blocked on Wave 4)*
-
-- [x] 126-05-PLAN.md — Probe and reconcile GCS and Local stream/opaque warnings.
-
-**Wave 6 — S3 adapter** *(blocked on Wave 5)*
-
-- [x] 126-06-PLAN.md — Probe and reconcile S3 stream/tail warnings.
-
-**Wave 7 — Tus and Mux boundaries** *(blocked on Wave 6)*
-
-- [x] 126-07-PLAN.md — Probe and reconcile Tus crypto and Mux response-pattern warnings.
-
-**Wave 8 — facade and lifecycle atoms** *(blocked on Wave 7)*
-
-- [x] 126-08-PLAN.md — Reconcile facade, Broker, and PromoteAsset atoms and complete all 45 dispositions.
-
-**Wave 9 — exact-head authority and immutable issue receipt** *(blocked on Wave 8)*
-
-- [x] 126-09-PLAN.md — Run final gates, require unchanged-head Nightly/PR success, and publish the external #76 receipt.
-
-**Wave 10 — removal-only policy gap closure** *(blocked on Wave 9)*
-
-- [x] 126-10-PLAN.md — Reject every unapproved exact filter, rerun preservation gates, and replace the exact-head #76 receipt.
-
-## Progress
-
-| Phase | Plans Complete | Status | Completed |
-|-------|----------------|--------|-----------|
-| 121. Truthful Quality Signals & Mechanical Hygiene | 7/7 | Complete    | 2026-08-22 |
-| 122. Live Truth & Compile Clarity | 5/5 | Complete | 2026-08-23 |
-| 123. Runtime Operations Decomposition | 3/3 | Complete | 2026-08-23 |
-| 124. Upload Path Clarity | 5/5 | Complete    | 2026-08-23 |
-| 125. Behavioral Test Support | 10/10 | Complete    | 2026-08-23 |
-| 126. Curated Type Ratchet | 10/10 | Complete    | 2026-08-23 |
-
-## Deferred to a Demand-Gated Milestone
+## Demand-Gated Candidates
 
 - Force-delete semantics for still-shared assets (LIFE-06) — compliance pull only.
 - Second streaming provider (Cloudflare/Bunny) — explicit adopter demand only.
@@ -310,4 +89,4 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 - `mix test --partitions` parallelization — evidence-gated on measured core starvation (DEFER-02).
 
 ---
-*Last updated: 2026-08-23 — Phase 126 adds one bounded removal-only policy gap-closure wave after adversarial verification.*
+*Last updated: 2026-08-23 — v1.24 archived; no milestone is active.*

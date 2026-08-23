@@ -2,43 +2,45 @@
 gsd_state_version: 1.0
 milestone: v1.24
 milestone_name: Core Clarity & Quality Ratchet
-current_phase: 126
-status: completed
-stopped_at: Completed 126-09-PLAN.md
-last_updated: "2026-08-23T17:02:07.191Z"
+status: Awaiting next milestone
+stopped_at: Milestone v1.24 archived; demand-gated pause
+last_updated: "2026-08-23T18:25:41.782Z"
 last_activity: 2026-08-23
-last_activity_desc: Phase 126 complete
+last_activity_desc: Milestone v1.24 completed and archived
 progress:
   total_phases: 6
   completed_phases: 6
   total_plans: 40
   completed_plans: 40
-current_phase_name: curated-type-ratchet
+current_phase: null
+current_phase_name: null
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-08-22 for v1.24)
+See: .planning/PROJECT.md (updated 2026-08-23 after v1.24)
 
 **Core value:** Media, made durable.
-**Current focus:** Phase 126 — curated-type-ratchet
+**Current focus:** Demand-gated pause; monitor the green-main release train and approved issue signals.
 
 ## Current Position
 
-Phase: 126
-Plan: Not started
-Status: All phases complete
-Last activity: 2026-08-23 — Phase 126 complete
+Phase: Milestone v1.24 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-08-23 — Milestone v1.24 completed and archived
 
-### v1.24 charter
+### v1.24 shipped summary
 
-Finite, behavior-preserving maintenance only: restore truthful quality signals, remove live planning
-residue and a schema compile cycle, decompose enumerated core hotspots, rebuild oversized/self-inspecting
-test support, reconcile async-isolation evidence, and retire the curated Dialyzer baseline. No public
-contract, data-model, telemetry, error-vocabulary, admin-feature, dependency-major, or forced-release
-scope is approved.
+v1.24 Core Clarity & Quality Ratchet shipped and is archived at
+`.planning/milestones/v1.24-ROADMAP.md`, `.planning/milestones/v1.24-REQUIREMENTS.md`,
+`.planning/milestones/v1.24-MILESTONE-AUDIT.md`, and `.planning/milestones/v1.24-phases/`. It satisfied
+19/19 requirements across six verified and Nyquist-compliant phases, preserved all public/data/telemetry/
+error/release boundaries, passed the independent 13/13 integration audit, closed Phase 126 security with
+zero open threats, and landed with green post-merge main CI. TEST-04 remains honestly narrowed at 1/25
+with issue #42 open; issue #76 is closed against the supported Dialyzer authority.
 
 ### v1.23 shipped summary
 
@@ -57,7 +59,8 @@ the historical 0.4.0 contract; do not regress either side of that invariant.
 
 ## Next Step
 
-Phase 126 complete; metadata is local-only and non-authoritative.
+No new milestone is approved. Remain silent on the wire unless LIFE-06, STREAM-10, issue #42, a
+release-train incident, or another concrete maintainer/adopter signal authorizes bounded work.
 
 ## Prior Milestone
 
@@ -201,7 +204,7 @@ _(Key v1.22 execution decisions recorded at milestone close.)_
 
 ## Blockers/Concerns
 
-- Phase 126 TYPE-02 remains open after adversarial verification: the current policy accepts a new nonblank strict description for an existing owner. Plan 126-10 is the bounded test-only closure; issue #76 remains open until corrected exact-head authorities pass.
+_(none)_
 
 ## Deferred Items
 
@@ -215,8 +218,8 @@ _(Key v1.22 execution decisions recorded at milestone close.)_
 
 ## Session Continuity
 
-Last session: 2026-08-23T15:52:07.553Z
-Stopped at: Completed 126-09-PLAN.md
+Last session: 2026-08-23T18:25:41.782Z
+Stopped at: Milestone v1.24 archived; demand-gated pause
 Resume file: None
 
 ## Performance Metrics
@@ -272,4 +275,4 @@ Resume file: None
 
 ## Operator Next Steps
 
-- Execute only the Phase 126 gap closure with `/gsd-execute-phase 126 --gaps-only`; do not start a demand-gated milestone until TYPE-02 is reverified.
+- Start the next milestone with /gsd-new-milestone

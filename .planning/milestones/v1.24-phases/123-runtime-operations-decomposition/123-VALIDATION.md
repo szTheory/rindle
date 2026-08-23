@@ -1,7 +1,7 @@
 ---
 phase: 123
 slug: runtime-operations-decomposition
-status: planned
+status: validated
 nyquist_compliant: true
 wave_0_complete: true
 created: 2026-08-23
@@ -46,12 +46,12 @@ their topology or claims release readiness from planning/local results.
 
 | Task ID | Plan | Wave | Requirement | Test type | Automated command | Status |
 |---|---:|---:|---|---|---|---|
-| 123-01-01 | 01 | 1 | OPS-01, SAFE-01 | façade behavior + compiled API boundary | `MIX_ENV=test mix test test/rindle/ops/runtime_checks_test.exs test/rindle/api_surface_boundary_test.exs --seed 0` | planned |
-| 123-01-02 | 01 | 1 | OPS-01, SAFE-01 | optional integration + telemetry + fresh preservation | `MIX_ENV=test mix compile --force && MIX_ENV=test mix test test/rindle/ops/runtime_checks_test.exs test/rindle/ops/runtime_checks_streaming_test.exs test/rindle/contracts/telemetry_contract_test.exs --seed 0 && bash scripts/maintainer/refactor_contract.sh` | planned |
-| 123-02-01 | 02 | 2 | OPS-02, SAFE-01 | fixed catalog + forward preflight behavior | `MIX_ENV=test mix test test/rindle/migration_fast_test.exs --seed 0` | planned |
-| 123-02-02 | 02 | 2 | OPS-02, SAFE-01 | forward/reverse DB effects + rollback + fresh preservation | `MIX_ENV=test mix compile --force && MIX_ENV=test mix test test/rindle/migration_fast_test.exs test/rindle/migration_test.exs --seed 0 && bash scripts/maintainer/refactor_contract.sh` | planned |
-| 123-03-01 | 03 | 3 | OPS-03 | readiness tripwire + report behavior + refusal telemetry | `MIX_ENV=test mix test test/rindle/ops/runtime_status_test.exs test/rindle/contracts/telemetry_contract_test.exs --seed 0` | planned |
-| 123-03-02 | 03 | 3 | OPS-03 | CLI presentation + focused runtime-status/formatter regression | `MIX_ENV=test mix test test/rindle/ops/runtime_status_test.exs test/rindle/runtime_status_task_test.exs test/rindle/contracts/telemetry_contract_test.exs --seed 0` | planned |
+| 123-01-01 | 01 | 1 | OPS-01, SAFE-01 | façade behavior + compiled API boundary | `MIX_ENV=test mix test test/rindle/ops/runtime_checks_test.exs test/rindle/api_surface_boundary_test.exs --seed 0` | ✅ green — plan receipt and current aggregate |
+| 123-01-02 | 01 | 1 | OPS-01, SAFE-01 | optional integration + telemetry + fresh preservation | `MIX_ENV=test mix compile --force && MIX_ENV=test mix test test/rindle/ops/runtime_checks_test.exs test/rindle/ops/runtime_checks_streaming_test.exs test/rindle/contracts/telemetry_contract_test.exs --seed 0 && bash scripts/maintainer/refactor_contract.sh` | ✅ green — plan receipt and current aggregate |
+| 123-02-01 | 02 | 2 | OPS-02, SAFE-01 | fixed catalog + forward preflight behavior | `MIX_ENV=test mix test test/rindle/migration_fast_test.exs --seed 0` | ✅ green — plan receipt and current aggregate |
+| 123-02-02 | 02 | 2 | OPS-02, SAFE-01 | forward/reverse DB effects + rollback + fresh preservation | `MIX_ENV=test mix compile --force && MIX_ENV=test mix test test/rindle/migration_fast_test.exs test/rindle/migration_test.exs --seed 0 && bash scripts/maintainer/refactor_contract.sh` | ✅ green — plan receipt and current aggregate |
+| 123-03-01 | 03 | 3 | OPS-03 | readiness tripwire + report behavior + refusal telemetry | `MIX_ENV=test mix test test/rindle/ops/runtime_status_test.exs test/rindle/contracts/telemetry_contract_test.exs --seed 0` | ✅ green — plan receipt and current aggregate |
+| 123-03-02 | 03 | 3 | OPS-03 | CLI presentation + focused runtime-status/formatter regression | `MIX_ENV=test mix test test/rindle/ops/runtime_status_test.exs test/rindle/runtime_status_task_test.exs test/rindle/contracts/telemetry_contract_test.exs --seed 0` | ✅ green — plan receipt and current aggregate |
 
 ## Objective Evidence Rules
 
@@ -114,12 +114,22 @@ runtime-status collector, Mix-task formatter, and their focused tests named in t
 
 ## Validation Sign-Off Criteria
 
-- [ ] Every task's focused command passes before its atomic commit.
-- [ ] Fresh compile and SAFE-01 pass after each of the three ordered slices.
-- [ ] OPS-01 façade reports, conditional rows, exports, and telemetry remain exact.
-- [ ] OPS-02 fixed catalog, refusal precedence, move effects/order, rollback, locks, and reversal remain exact.
-- [ ] OPS-03 filters, readiness tripwire, report shapes/limits, text/JSON order/redaction, and exit semantics remain exact.
-- [ ] Full focused aggregate, `mix ci`, and repository hygiene pass locally.
-- [ ] Forbidden public/schema/migration-file/telemetry/error/CI/release/dependency/Admin/archive surfaces have no diff.
-- [ ] Supported PR CI is green at the exact head SHA; post-merge main CI is recorded when available.
-- [ ] Delivery remains a non-release chore and no deferred Phase 124–126 work appears.
+- [x] Every task's focused command passed before its atomic commit.
+- [x] Fresh compile and SAFE-01 passed after each of the three ordered slices.
+- [x] OPS-01 façade reports, conditional rows, exports, and telemetry remain exact.
+- [x] OPS-02 fixed catalog, refusal precedence, move effects/order, rollback, locks, and reversal remain exact.
+- [x] OPS-03 filters, readiness tripwire, report shapes/limits, text/JSON order/redaction, and exit semantics remain exact.
+- [x] Full focused aggregate, `mix ci`, and repository hygiene passed locally.
+- [x] Forbidden public/schema/migration-file/telemetry/error/CI/release/dependency/Admin/archive surfaces had no diff.
+- [x] Supported PR CI was green at exact SHA `ad99ed9979517de507771b28ed55c69cef5205f3` (PR #85, run `32612445302`, CI Summary `97128954793`).
+- [x] Delivery remained a non-release chore and no deferred Phase 124–126 work appeared.
+
+## Validation Audit 2026-08-23
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+Current-checkout receipt: `MIX_ENV=test mix test test/rindle/ops/runtime_checks_test.exs test/rindle/ops/runtime_checks_streaming_test.exs test/rindle/migration_fast_test.exs test/rindle/migration_test.exs test/rindle/ops/runtime_status_test.exs test/rindle/runtime_status_task_test.exs test/rindle/contracts/telemetry_contract_test.exs --include contract --seed 0` passed: **136 tests, 0 failures, 4 excluded**. The aggregate contains every behavior suite named by the task map; compile, SAFE-01, full CI, hygiene, and exact-head supported CI receipts remain recorded in the plan summaries and verification report.

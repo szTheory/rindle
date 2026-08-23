@@ -1,6 +1,6 @@
 # Rindle
 
-## Current Milestone: v1.24 Core Clarity & Quality Ratchet
+## Current State: v1.24 Core Clarity & Quality Ratchet — shipped 2026-08-23
 
 **Goal:** Make Rindle's core code, tests, comments, and quality gates truthful, minimal, and a joy to
 read through a finite behavior-preserving maintenance pass.
@@ -17,10 +17,12 @@ read through a finite behavior-preserving maintenance pass.
 work, broad dependency upgrades, historical-archive rewrites, and release-forcing commit types are out of
 scope. Stop after the enumerated hotspots and keep every implementation slice PR-first and green.
 
-**Baseline:** v1.23 Postgres Schema Isolation is archived; public `rindle` 0.4.2 and PR #80 provide the
-green starting point for this non-feature milestone.
+**Result:** All 19 requirements passed across Phases 121–126. The milestone is behavior-preserving:
+public API, schema/migration, telemetry, error, Admin, dependency, and release boundaries remain
+guarded by SAFE-01. Public `rindle` 0.4.3 is the current release-train baseline; the milestone's final
+post-merge `main` CI is green.
 
-## Last Milestone: v1.23 Postgres Schema Isolation — shipped 2026-08-20
+## Previous Milestone: v1.23 Postgres Schema Isolation — shipped 2026-08-20
 
 **Goal:** Make Rindle a respectful Postgres guest by isolating its domain tables in a dedicated `rindle`
 schema by default, with an explicit safe upgrade route and truthful runtime/install proof — a breaking
@@ -424,12 +426,17 @@ To keep this posture durable across GSD workflows:
   prefix-correct diagnostics, packed generated-app and Cohort proof, cross-surface documentation
   parity, exact-SHA protected release binding, and fresh public-artifact verification. 12/12 validated
   across Phases 117–120. Archived: `milestones/v1.23-REQUIREMENTS.md`.
+- ✓ **v1.24 Core Clarity & Quality Ratchet** — shipped 2026-08-23 as a behavior-preserving
+  maintenance milestone: blocking truthful quality signals and SAFE-01 (SIGNAL-01..04, SAFE-01),
+  present-tense code/docs truth and zero schema compile cycles (CLARITY-01..03), cohesive runtime and
+  upload responsibility boundaries (OPS-01..03, UPLOAD-01..02), focused behavioral test support with
+  honest async-evidence narrowing (TEST-01..04), and a supported Elixir 1.17/OTP 27 removal-only
+  Dialyzer ratchet (TYPE-01..02). 19/19 validated across Phases 121–126.
 
 ### Active
 
-v1.24 is an explicitly approved non-feature maintenance milestone. Active requirements are defined in
-`.planning/REQUIREMENTS.md` and cover truthful quality gates, core clarity, hotspot decomposition, test
-support, and a curated Dialyzer ratchet.
+No milestone is active. The repository returns to the demand-gated pause: do not invent a feature or
+maintenance milestone without a concrete adopter, compliance, reliability, or release-train signal.
 
 **Demand-gated for next feature milestone:**
 
@@ -469,6 +476,16 @@ signed dynamic transforms, EXIF privacy stripping.
   (D-v1.18-01); console actions reuse existing facade capabilities only
 
 ## Context
+
+**v1.24 result:** The core maintenance pass replaced advisory or self-referential signals with
+blocking behavioral contracts, removed the schema compile cycle and stale live chronology, decomposed
+the runtime/tus/Broker/test-support hotspots behind stable facades, and reduced the supported Dialyzer
+baseline from 45 starting entries to a justified 35-entry removal-only universe. The milestone changed
+235 files across its implementation range (+26,452 / −8,487), completed 40 plans and 81 tasks, and
+closed with 19/19 requirements, 6/6 verified phases, 13/13 integration links, eight end-to-end outcomes,
+zero open security threats, green exact-head Nightly authority, and green post-merge `main` CI. TEST-04
+remains honestly narrowed at the first finite-matrix failure with issue #42 open; it is not represented
+as a 25/25 pass.
 
 **v1.23 result:** Rindle 0.4.0 is live with a compile-time `rindle`/`public` schema authority, a
 fixed-catalog migration path for fresh and populated installs, separately owned Oban diagnostics, and
@@ -626,6 +643,8 @@ that section on next docs maintenance pass.
 | Release truth is bound to an immutable source SHA and packed/public artifacts, not repository-local success alone | The breaking 0.4.0 contract must be proven in generated consumers, Cohort, protected release automation, and the installed Hex package | ✓ Validated v1.23 (Phase 120) |
 | Public operational and upload modules remain thin orchestration/effects boundaries while compiled-hidden collaborators own cohesive mechanics | Responsibility boundaries should improve readability without expanding the public API or moving order-sensitive telemetry, persistence, or response contracts | ✓ Validated v1.24 (Phases 123–124) |
 | Maintenance refactors are accepted only with behavior, compiled-boundary, quality-ratchet, and supported exact-head CI proof | Smaller files alone are not evidence of better architecture; each decomposition must preserve public signatures and observable ordering | ✓ Validated v1.24 (Phases 121–124) |
+| Test-support decomposition is accepted through generated outcomes, compiled metadata, and domain-owned parity—not helper or library source-text snapshots | Tests should protect observable contracts while allowing private implementation to become clearer | ✓ Validated v1.24 (Phase 125) |
+| The Dialyzer baseline is a removal-only set approved by exact supported-toolchain evidence; local unsupported warnings never expand it | A curated ratchet must reject new suppressions while retaining only analyzer noise proven on Elixir 1.17 / OTP 27 | ✓ Validated v1.24 (Phase 126) |
 
 
 ## Historical Snapshot
@@ -836,4 +855,4 @@ This document evolves at phase transitions and milestone boundaries.
    (`workflow.milestone_boundary.block_feature_milestone_without_signal`)
 
 ---
-*Last updated: 2026-08-23 after completing Phase 124 Upload Path Clarity.*
+*Last updated: 2026-08-23 after shipping v1.24 Core Clarity & Quality Ratchet.*

@@ -2,6 +2,75 @@
 
 ---
 
+## Milestone: v1.24 — Core Clarity & Quality Ratchet
+
+**Shipped:** 2026-08-23
+**Phases:** 6 (121–126) | **Plans:** 40 | **Tasks:** 81
+**Audit:** passed (19/19 requirements, 6/6 phases, 13/13 integration links, 8/8 outcomes)
+
+### What Was Built
+
+- Blocking, executable quality truth: actionable Credo, measured Doctor, deterministic contracts,
+  explicit AV prerequisites, SAFE-01, and a schema zero-cycle check.
+- Present-tense live code/docs truth tied to rendered, compiled, runtime, and workflow authorities.
+- Cohesive hidden owners for runtime diagnostics, migration preflight, runtime status, TusPlug, Broker,
+  generated-app support, and documentation parity behind stable facades.
+- A supported Elixir 1.17 / OTP 27 type ratchet that dispositioned all 45 starting suppressions and
+  permits only removal from a closed 35-tuple approved universe.
+
+### What Worked
+
+- The explicit SAFE-01 contract made aggressive internal decomposition safe without freezing private
+  implementation: every phase could prove the same public, schema, telemetry, error, and CI boundaries.
+- Adversarial review found real semantic gaps—not cosmetic preferences—including closure-only
+  RuntimeChecks collaborators, formatter output drift, source-snapshot tests, and an expandable type
+  baseline. Each was fixed with behavior-backed proof before merge.
+- Supported-toolchain authority stayed exact-SHA. Local Elixir 1.19 / OTP 28 remained diagnostic while
+  PR CI and Nightly Elixir 1.17 / OTP 27 decided acceptance.
+- The final integration audit exercised the connections, not only the phase artifacts: 262 focused
+  tests, 92 SAFE tests, no compile cycles, and CI Summary gate logic all passed.
+
+### What Was Inefficient
+
+- Phase 126 needed a tenth closure plan because the initial type-policy test validated shape and count
+  but did not reject a new exact strict filter. The approval universe should have been closed from the
+  first tracer plan.
+- Nyquist files for Phases 121–125 were left absent, planned, or draft after goal verification and had
+  to be reconciled at milestone close. The verification workflow should promote validation metadata
+  in the same closeout commit.
+- Auto-generated milestone accomplishments again included noisy deviation prose and undercounted tasks;
+  the final archive required a manual six-item synthesis and a plan-task recount.
+
+### Patterns Established
+
+- **Facade/effects plus hidden mechanics:** public modules retain orchestration, ordering, telemetry,
+  and result shaping; compiled-hidden collaborators own cohesive mechanics.
+- **Behavioral test-support ownership:** assert generated outcomes, compiled metadata, durable effects,
+  and explicit artifact contracts—not source wording or helper implementation text.
+- **Removal-only analyzer baseline:** live suppressions are a subset of a literal approved universe;
+  deletion passes, while additions and rewrites fail.
+- **Honest finite evidence:** stop at the first failure, retain the sanitized receipt, and narrow the
+  owning issue without retrying or laundering the result.
+
+### Key Lessons
+
+- Readability refactors need objective contracts and explicit stopping conditions; smaller files alone
+  are not evidence of better architecture.
+- A ratchet is only a ratchet when its accepted universe cannot expand silently.
+- Current documentation should bind to executable/rendered authority, while historical planning prose
+  remains provenance rather than cleanup fodder.
+- Milestone-close metadata should be reconciled during phase verification, not as a final bookkeeping pass.
+
+### Cost Observations
+
+- Timeline: 2 calendar days (2026-08-22 → 2026-08-23)
+- Git range: 49 mainline commits from `d1e5b54` through `6b5c690`
+- Scope: 235 files changed; +26,452 / −8,487; 6 PR-first phases plus two focused repair PRs
+- Notable: the only deliberately incomplete experiment was TEST-04's one-shot matrix; it stopped at
+  1/25 and remained attached to open issue #42 exactly as planned by the close-or-narrow contract.
+
+---
+
 ## Milestone: v1.23 — Postgres Schema Isolation
 
 **Shipped:** 2026-08-20
@@ -602,15 +671,15 @@ STREAM-10 not built (Mux-only adapter); batch erasure does not propagate force o
 
 ## Cross-Milestone Trends
 
-| Trend | v1.1 | v1.2 | v1.5 | v1.6 | v1.16 | v1.20 | v1.21 | v1.22 | v1.23 |
-|-------|------|------|------|------|-------|-------|-------|-------|-------|
-| Cleanup phases needed | 0 | 2 (Phases 13, 14) | 0 | 0 | 1 (Phase 77) | 0 | 0 | 0 | 0 |
-| Audit status at close | passed | tech_debt (closed) | passed | acknowledged-and-defer | no dedicated audit (gap-closure) | passed | passed (1 todo deferred) | passed | passed |
-| Plans per phase (avg) | 3.0 | 2.2 | 3.5 | 3.75 | 3.3 | 3.4 | 2.6 | 3.5 | 7.5 |
-| Phase count | 4 | 5 | 4 | 4 | 3 | 5 | 5 | 4 | 4 |
-| Files changed | — | 60 | — | 144 | 19 | — (0 `lib/`) | 49 (3 `lib/`) | — | 176 |
-| Timeline (days) | — | 5 | 2 | ~1 (~22h) | 1 | 3 | 4 | 4 | 13 |
-| Optional phase deferred | — | — | — | Phase 37 (deferred to v1.7) | — | — | — | schema flip to v1.23 candidate | feature work demand-gated |
+| Trend | v1.1 | v1.2 | v1.5 | v1.6 | v1.16 | v1.20 | v1.21 | v1.22 | v1.23 | v1.24 |
+|-------|------|------|------|------|-------|-------|-------|-------|-------|-------|
+| Cleanup phases needed | 0 | 2 (Phases 13, 14) | 0 | 0 | 1 (Phase 77) | 0 | 0 | 0 | 0 | 0 |
+| Audit status at close | passed | tech_debt (closed) | passed | acknowledged-and-defer | no dedicated audit (gap-closure) | passed | passed (1 todo deferred) | passed | passed | passed |
+| Plans per phase (avg) | 3.0 | 2.2 | 3.5 | 3.75 | 3.3 | 3.4 | 2.6 | 3.5 | 7.5 | 6.7 |
+| Phase count | 4 | 5 | 4 | 4 | 3 | 5 | 5 | 4 | 4 | 6 |
+| Files changed | — | 60 | — | 144 | 19 | — (0 `lib/`) | 49 (3 `lib/`) | — | 176 | 235 |
+| Timeline (days) | — | 5 | 2 | ~1 (~22h) | 1 | 3 | 4 | 4 | 13 | 2 |
+| Optional phase deferred | — | — | — | Phase 37 (deferred to v1.7) | — | — | — | schema flip to v1.23 candidate | feature work demand-gated | feature work demand-gated |
 
 **Recurring observation:** Each milestone has ended with some planning artifact debt (stale STATE.md references, incomplete VALIDATION files, metadata inconsistencies, REQUIREMENTS.md checkboxes not flipped). The debt accumulates faster than it is addressed during execution. A milestone-close checklist that explicitly audits these before declaring done would reduce closure phase count.
 
@@ -622,3 +691,9 @@ STREAM-10 not built (Mux-only adapter); batch erasure does not propagate force o
 than doubled because exact-source release evidence required multiple reconciliation plans. Future
 breaking releases should define the immutable candidate, Release Please intent, and protected recovery
 receipt shape before the final proof phase; keep the evidence rigorous while reducing orchestration churn.
+
+**v1.24 trend (quality/readability):** Zero cleanup phase still held, but validation metadata and the
+auto-generated milestone summary needed closeout repair. The implementation pattern itself converged:
+stable facades plus hidden cohesive owners, behavior-backed tests, exact supported authority, and a
+closed removal-only ratchet. Future maintenance should reuse those contracts only when a concrete
+quality signal exists; do not turn elegance into continuous churn.

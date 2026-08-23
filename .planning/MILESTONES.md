@@ -1,5 +1,48 @@
 # Milestones
 
+## v1.24 Core Clarity & Quality Ratchet (Shipped: 2026-08-23)
+
+**Delivered:** A finite, behavior-preserving quality pass that made the core code, tests, comments,
+documentation, and quality gates more truthful, cohesive, and maintainable.
+
+**Phases completed:** 121–126 (6 phases, 40 plans, 81 tasks)
+
+**Key accomplishments:**
+
+- Made actionable Credo, measured Doctor, deterministic contracts, AV prerequisites, and SAFE-01
+  truthful blocking signals while preserving the sole CI Summary and release topology.
+- Removed mechanically proven residue, stale current-tree chronology, and the seven-module
+  `Rindle.Schema` compile cycle without rewriting historical provenance.
+- Decomposed runtime checks, migration preflight, runtime status, TusPlug, and Broker mechanics into
+  cohesive compiled-hidden owners behind stable public orchestration boundaries.
+- Split oversized generated-app and documentation-parity support into behavioral, domain-owned proof;
+  retained honest fail-fast async-isolation evidence with issue #42 open at the narrowed boundary.
+- Reconciled every one of 45 starting Dialyzer suppressions and installed a closed 35-tuple,
+  removal-only policy accepted by supported Elixir 1.17 / OTP 27 Nightly with zero annotations.
+- Closed with 19/19 requirements, 6/6 verified and Nyquist-compliant phases, 13/13 integration links,
+  eight end-to-end outcomes, zero open security threats, and green post-merge `main` CI.
+
+**Stats:**
+
+- 235 files changed; +26,452 / −8,487 across the implementation range
+- 6 phases, 40 plans, 81 tasks, 19/19 requirements
+- 2 calendar days (2026-08-22 → 2026-08-23)
+
+**Git range:** `d1e5b54` → `6b5c690`
+
+**Audit:** `passed` (19/19 requirements, 6/6 phases, 13/13 integration links, 8/8 outcomes,
+6/6 Nyquist validation files compliant). See `milestones/v1.24-MILESTONE-AUDIT.md`.
+
+**Archive:** `milestones/v1.24-ROADMAP.md`, `milestones/v1.24-REQUIREMENTS.md`,
+`milestones/v1.24-MILESTONE-AUDIT.md`, and `milestones/v1.24-phases/`.
+
+**Known evidence boundary:** TEST-04 followed its explicit close-or-narrow branch: 100 causal windows
+passed, the sole finite matrix stopped honestly at 1/25, and issue #42 remains open. No retry was made.
+
+**What's next:** demand-gated pause; no speculative milestone without a concrete signal.
+
+---
+
 ## v1.23 Postgres Schema Isolation (Shipped: 2026-08-20)
 
 **Delivered:** Released Rindle 0.4.0 with dedicated-by-default Postgres ownership, a bounded legacy
@@ -11,14 +54,19 @@ upgrade path, independent host Oban ownership, actionable diagnostics, and end-t
 
 - Established one compile-time `Rindle.Schema` authority for all six owned schemas: `rindle` by
   default, with an explicit and fully tested `public` compatibility build.
+
 - Added idempotent selected-schema provisioning plus transactional, preflight-guarded
   public-to-`rindle` migration and a bounded reverse path that preserves data and relational integrity.
+
 - Kept `oban_jobs` and the host migration ledger independently owned while making prefix/ownership
   failures safe and actionable across doctor, runtime status, admin, and adoption-demo surfaces.
+
 - Proved fresh, public-compatible, and populated-upgrade contracts in packed generated Phoenix apps and
   Cohort, including exact marker/FK/index evidence and before/after Oban catalog equality.
+
 - Aligned README, guides, migration API docs, executable parity tests, and 0.4.0 release notes on the
   breaking default, maintenance window, permissions, rollback, and ownership boundaries.
+
 - Released Hex 0.4.0 from frozen source `78349c1…` with exact-source CI, protected recovery binding,
   idempotent publish handling, and fresh public installed-artifact verification.
 
