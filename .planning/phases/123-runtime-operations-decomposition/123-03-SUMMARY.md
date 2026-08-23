@@ -49,13 +49,14 @@ Runtime status now delegates bounded database collection and command presentatio
    - Added a RED-then-GREEN formatter parity test and formatted the extracted collaborators.
    - Removed the temporary duplicated collector implementation from the façade in `575cc7c`; the façade now contains only its retained orchestration, readiness, recommendation, and telemetry responsibilities.
    - Marked the internal collaborator entry points explicitly non-public for the strict Doctor contract in `e0f40bc`.
+   - Restored the exact pre-extraction text/error/JSON/provider presentation in `9bc6913`, made all task compatibility helpers pure delegates, and added populated sample/recommendation parity proof.
 
 ## Verification
 
 - `MIX_ENV=test mix compile --force --warnings-as-errors` — PASS (139 files).
-- Complete focused aggregate — PASS (120 tests, 19 excluded): runtime checks, migration, runtime status, task, and telemetry contract suites.
+- Complete focused aggregate — PASS (121 tests, 19 excluded): runtime checks, migration, runtime status, task, and telemetry contract suites.
 - `bash scripts/maintainer/refactor_contract.sh` — PASS (87 tests).
-- `mix ci` — PASS (3 doctests and 1,363 tests, 0 failures, 4 skipped, 85 excluded; Doctor 100% docs/specs).
+- `mix ci` — PASS (3 doctests and 1,364 tests, 0 failures, 4 skipped, 85 excluded; Doctor 100% docs/specs).
 - `./scripts/maintainer/repo_hygiene_check.sh` — PASS (11 PASS, 0 WARN, 0 BLOCK).
 - Forbidden-surface audit (`git diff --quiet main...HEAD -- .github/workflows mix.exs mix.lock priv/repo/migrations lib/rindle/admin .planning/milestones`) — PASS.
 - Supported exact-SHA PR CI remains external/root-owned and was not invoked here.
@@ -81,6 +82,11 @@ Runtime status now delegates bounded database collection and command presentatio
    - **Issue:** three new internal collaborator modules exposed callable seams without `@doc false`, reducing strict documentation coverage.
    - **Fix:** marked every internal entry point `@doc false`; Doctor returned to 100% docs/specs.
 
+4. **[Rule 1 - Bug] Restored command formatter parity**
+   - **Found during:** independent code review.
+   - **Issue:** the first formatter implementation omitted generated/filter fields, finding samples, and recommendation summaries from actual CLI output.
+   - **Fix:** moved the retained task formatter into the internal formatter unchanged, reduced task helpers to delegates, and added behavior-backed populated-report parity coverage.
+
 ## Known Stubs
 
 None.
@@ -88,4 +94,4 @@ None.
 ## Self-Check: PASSED
 
 - Created collector and formatter files exist.
-- Task commits `a510440`, `dca15c5`, `9556604`, and `d419c08` exist in git history.
+- Task and repair commits `a510440`, `dca15c5`, `d419c08`, `575cc7c`, `e0f40bc`, and `9bc6913` exist in git history.
