@@ -403,7 +403,11 @@ defmodule Rindle.Upload.Broker do
          {:ok, status} <-
            adapter.resumable_upload_status(session.upload_key, session.session_uri, opts),
          {:ok, updated_session} <-
-           Persistence.update(repo, session, SessionValidation.resumable_status_attrs(session, status)),
+           Persistence.update(
+             repo,
+             session,
+             SessionValidation.resumable_status_attrs(session, status)
+           ),
          :ok <-
            ResumableTelemetry.emit_status(
              asset.profile,

@@ -51,7 +51,13 @@ defmodule Rindle.Upload.Broker.Persistence do
         {:ok, session}
 
       {:error, reason} ->
-        compensate_failed_multipart_persist(adapter, session_seed.storage_key, multipart.upload_id, opts)
+        compensate_failed_multipart_persist(
+          adapter,
+          session_seed.storage_key,
+          multipart.upload_id,
+          opts
+        )
+
         {:error, reason}
     end
   end
@@ -70,7 +76,13 @@ defmodule Rindle.Upload.Broker.Persistence do
         {:ok, session}
 
       {:error, reason} ->
-        compensate_failed_resumable_persist(adapter, session_seed.storage_key, resumable.session_uri, opts)
+        compensate_failed_resumable_persist(
+          adapter,
+          session_seed.storage_key,
+          resumable.session_uri,
+          opts
+        )
+
         {:error, reason}
     end
   end
@@ -106,30 +118,44 @@ defmodule Rindle.Upload.Broker.Persistence do
 
   defp compensate_failed_multipart_persist(adapter, storage_key, upload_id, opts) do
     case adapter.abort_multipart_upload(storage_key, upload_id, opts) do
-      {:ok, _} -> :ok
-      {:error, :not_found} -> :ok
+      {:ok, _} ->
+        :ok
+
+      {:error, :not_found} ->
+        :ok
+
       {:error, reason} ->
         require Logger
+
         Logger.warning("rindle.upload.broker.multipart_persist_compensation_failed",
           upload_key: storage_key,
           multipart_upload_id: upload_id,
           reason: inspect(reason)
         )
+
         :ok
     end
   end
 
   defp compensate_failed_resumable_persist(adapter, storage_key, session_uri, opts) do
     case adapter.cancel_resumable_upload(storage_key, session_uri, opts) do
-      {:ok, _} -> :ok
-      {:error, :session_uri_unknown} -> :ok
-      {:error, :session_uri_expired} -> :ok
+      {:ok, _} ->
+        :ok
+
+      {:error, :session_uri_unknown} ->
+        :ok
+
+      {:error, :session_uri_expired} ->
+        :ok
+
       {:error, reason} ->
         require Logger
+
         Logger.warning("rindle.upload.broker.resumable_persist_compensation_failed",
           upload_key: storage_key,
           reason: inspect(reason)
         )
+
         :ok
     end
   end
@@ -138,13 +164,17 @@ defmodule Rindle.Upload.Broker.Persistence do
     part_path = Local.tus_part_path(asset_id, opts)
 
     case File.rm_rf(part_path) do
-      {:ok, _removed} -> :ok
+      {:ok, _removed} ->
+        :ok
+
       {:error, reason, _file} ->
         require Logger
+
         Logger.warning("rindle.upload.broker.tus_persist_compensation_failed",
           upload_key: storage_key,
           reason: inspect(reason)
         )
+
         :ok
     end
   end
