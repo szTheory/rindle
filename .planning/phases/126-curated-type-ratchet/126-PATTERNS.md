@@ -12,7 +12,7 @@ TYPE-01 is the Elixir 1.17 / OTP 27 home cell, not the local host toolchain. TYP
 | Migration no-return/call warnings — `migration.ex`, `migration/v1.ex`, host fixtures | `Rindle.Migration` public API with generated-app migration proof | Add explicit specs or narrow dispatcher result types; preserve generated host-Oban vs pinned-Rindle ownership | `test/rindle/migration_test.exs`, `migration_fast_test.exs`, generated-app migration contract/smoke tests |
 | Storage stream/callback warnings — `storage/local.ex`, `storage/s3.ex`, `storage/gcs/client.ex` | Adapter behaviour/capability matrix and Local/S3/GCS tests | Correct stream callback/typespec contracts at adapter edges; never weaken runtime validation or turn streamed errors into raises | `test/rindle/storage/{local,s3,gcs,storage_adapter}_test.exs`, tus variants |
 | Pattern-match warnings — process/promote workers, runtime checks, admin actions, mux workers | Explicit tagged worker result handling and error-shape tests | Make currently reachable clauses/type unions agree, or remove genuinely unreachable private clauses only after tests prove parity | respective worker tests; `ops/runtime_checks_streaming_test.exs`; Mux provider tests |
-| Tus opaque/pattern warnings — `upload/tus_plug.ex` | Tus protocol boundary and LiveView upload tests | Preserve crypto hash-state opacity; introduce opaque-safe helper/spec instead of inspecting implementation state | `test/rindle/upload/tus_plug_test.exs`, `test/rindle/live_view_test.exs` |
+| Tus extracted warnings — immutable filters at `upload/tus_plug.ex`, supported E38 emitted by `upload/tus_creation.ex`, E39-E40 by `upload/tus_stream.ex` | `TusPlug` drives creation/concatenation and PATCH streaming through the extracted modules | Preserve the starting tuple identity in evidence; correct the actual emitted owner, never relocate code merely to match a stale filter path; preserve crypto hash-state opacity | `test/rindle/upload/tus_plug_test.exs` (POST, concatenation, checksum/PATCH), `test/rindle/storage/local_tus_test.exs` (stream offsets/part state) |
 | Existing description-strict ignore entries | `.dialyzer_ignore.exs` v0.4.1 baseline comments | Retire one exact `{file, warning-description}` entry only when its home-cell warning is absent; do not add file-wide ignores | Home-cell `mix dialyzer --format github` |
 
 ## Files that must remain unchanged
@@ -32,6 +32,10 @@ TYPE-01 is the Elixir 1.17 / OTP 27 home cell, not the local host toolchain. TYP
 2. PLT cold path when required: `MIX_ENV=test mix dialyzer --plt` then the analysis command.
 3. Targeted behavior suites for each changed boundary (see table), plus `bash scripts/maintainer/refactor_contract.sh` for SAFE-01.
 4. Static workflow review: verify `nightly.yml` retains literal `otp27-elixir1.17`, hashes `mix.exs`, `mix.lock`, and `.dialyzer_ignore.exs`, and executes gating `mix dialyzer --format github`.
+
+## Deterministic GitHub receipt protocol
+
+For every Plan 126-02–126-09 receipt, first list completed runs filtered by workflow, branch, event, and exact commit. Reuse a completed receipt only after `gh run view` proves `headSha`, `event`, terminal status, and the exact named jobs. If none qualifies, record a UTC dispatch timestamp immediately before `gh workflow run nightly.yml --ref <branch>`, poll by branch + `workflow_dispatch` + exact `headSha` + `createdAt >= dispatch timestamp`, and fail on zero-after-timeout or multiple candidates instead of picking `.[0]`. Poll the captured database ID to terminal. Intermediate Plans 02–06 explicitly tolerate the expected workflow failure while asserting Dialyzer failure and Nightly Summary success; Plans 07–09 require the overall run and named jobs to succeed. Check annotations with `gh api --paginate --slurp .../annotations?per_page=100 | jq 'add'`, then compare the complete warning multiset to the exact expected set so an extra fourth warning or later page fails.
 
 ## Planning guidance
 

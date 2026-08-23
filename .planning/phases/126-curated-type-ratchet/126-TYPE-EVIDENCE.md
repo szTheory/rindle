@@ -77,9 +77,12 @@ atom filters and 37 exact description filters.
 
 Every entry begins `pending`. It can transition only to `obsolete`,
 `actionable-fixed`, or `retained-analyzer-noise` after this row records all of:
-the supported-run URL, `Dialyzer` job identity, exact warning text, focused
-owner test command, and SAFE-01 result. A status without every receipt field is
-invalid evidence.
+the immutable starting tuple path/discriminator, any distinct supported emitted
+path/message, the supported-run URL, `Dialyzer` job identity, focused owner test
+command, and SAFE-01 result. A status without every receipt field is invalid
+evidence. When extraction changes the emitted owner, the ledger preserves the
+starting tuple identity and records a separate derived finding; it never rewrites
+the starting inventory to make the paths appear identical.
 
 | IDs | Status | Supported run URL | Job identity | Exact warning | Owner test command | SAFE-01 |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -104,9 +107,20 @@ emitted the following exact remaining warnings:
 2. `The guard clause can never succeed.`
 3. `The guard test _@1::'nil' | crypto:hash_state() breaks the opaqueness of its argument.`
 
-Those warnings correspond to E38–E40 (`lib/rindle/upload/tus_plug.ex`). Their
-rows remain `pending`; subsequent owner work must make the required supported
-receipt, behavior-test, and SAFE-01 disposition before changing any filter.
+The warning texts correspond to the three immutable E38–E40 discriminators, but
+the supported annotations do **not** use their starting `tus_plug.ex` paths. The
+extracted identities are E38 text at `lib/rindle/upload/tus_creation.ex` and
+E39–E40 text at `lib/rindle/upload/tus_stream.ex`. E38–E40 remain `pending` as
+starting filter identities, and Plan 126-07 owns the separately recorded derived
+findings at the emitted paths. It must determine whether the original
+`tus_plug.ex` tuples are obsolete while correcting or explicitly retaining the
+actual creation/stream findings; neither identity may erase the other.
+
+| Starting ID | Immutable filter path | Supported emitted path | Warning discriminator | Derived owner status |
+| --- | --- | --- | --- | --- |
+| E38 | `lib/rindle/upload/tus_plug.ex` | `lib/rindle/upload/tus_creation.ex` | `The pattern can never match the type {:error, _}.` | pending Plan 126-07 disposition |
+| E39 | `lib/rindle/upload/tus_plug.ex` | `lib/rindle/upload/tus_stream.ex` | `The guard test _@1::'nil' \| crypto:hash_state() breaks the opaqueness of its argument.` | pending Plan 126-07 disposition |
+| E40 | `lib/rindle/upload/tus_plug.ex` | `lib/rindle/upload/tus_stream.ex` | `The guard clause can never succeed.` | pending Plan 126-07 disposition |
 
 ## Supported Migration/Host Probe Receipt
 
