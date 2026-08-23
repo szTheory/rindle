@@ -25,7 +25,13 @@ defmodule Rindle.Brandbook.AdminDesignSystemValidationTest do
     "guides/admin_console_ia.md",
     "guides/admin_design_system.md"
   ]
-  @retired_nav_labels ["Home/Status", "Upload Sessions", "Variants/Jobs", "Runtime/Doctor", "Actions"]
+  @retired_nav_labels [
+    "Home/Status",
+    "Upload Sessions",
+    "Variants/Jobs",
+    "Runtime/Doctor",
+    "Actions"
+  ]
 
   # §F R4 hype words + §F R5 vague standalone labels — must NEVER appear in admin markup.
   @denylist_words ~w(blazing seamless effortless powerful revolutionary supercharge
