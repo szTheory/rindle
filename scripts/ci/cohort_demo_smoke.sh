@@ -81,7 +81,13 @@ assert_200 "/admin/rindle/assets"
 
 # Seed proof: the assets surface must render at least one seeded asset row.
 echo "[smoke] verifying seeded data on the admin assets surface..."
-if ! curl -fsS "${base}/admin/rindle/assets" | grep -q 'data-rindle-admin-row="asset"'; then
+assets_page=""
+if ! assets_page="$(curl -fsS "${base}/admin/rindle/assets")"; then
+  echo "[smoke] could not read /admin/rindle/assets for seed verification" >&2
+  exit 1
+fi
+
+if ! grep -Fq 'data-rindle-admin-row="asset"' <<< "${assets_page}"; then
   echo "[smoke] no seeded asset rows on /admin/rindle/assets — seed may have failed" >&2
   exit 1
 fi
