@@ -1,7 +1,4 @@
 [
-  {"lib/rindle.ex", :call_without_opaque},
-  {"lib/rindle/upload/broker.ex", :call_without_opaque},
-  {"lib/rindle/workers/promote_asset.ex", :call_without_opaque},
   # Pre-existing pattern_match / pattern_match_cov warnings surfaced after
   # Phase 34 PLT regen with :mux + :jose. Not Phase 34 surface; tracked
   # in .planning/phases/34-mux-rest-adapter-server-push-sync/deferred-items.md.
@@ -18,7 +15,6 @@
   # behavior for dynamic processor and profile inputs.
   {"lib/rindle/workers/process_variant.ex", :pattern_match},
   {"lib/rindle/workers/process_variant.ex", :pattern_match_cov},
-  {"lib/rindle/workers/promote_asset.ex", :pattern_match_cov},
 
   # v0.4.1 baseline reconciliation: repairing the Nightly PLT cache exposed the
   # pre-existing warnings below. Keep these filters description-strict so the
