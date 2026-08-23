@@ -2,6 +2,7 @@ defmodule Rindle.RuntimeStatusTaskTest do
   use Rindle.DataCase, async: false
 
   alias Mix.Tasks.Rindle.RuntimeStatus, as: RuntimeStatusTask
+  alias Mix.Tasks.Rindle.RuntimeStatus.Formatter
   alias Rindle.Domain.{MediaAsset, MediaUploadSession, MediaVariant}
 
   @runtime_status_config Rindle.Ops.RuntimeStatus
@@ -143,6 +144,33 @@ defmodule Rindle.RuntimeStatusTaskTest do
     refute json =~ "credential"
     refute text =~ "SQL sentinel"
     refute json =~ "SQL sentinel"
+  end
+
+  test "formatter preserves the task's bounded unknown-error copy" do
+    sentinel = {:raw_adapter_failure, "postgres://user:credential@host SQL sentinel"}
+
+    assert Formatter.format_error(sentinel) == RuntimeStatusTask.format_error(sentinel)
+    assert Formatter.format_json_error(sentinel) == RuntimeStatusTask.format_json_error(sentinel)
+  end
+
+  test "formatter preserves populated text and provider output behind compatibility delegates" do
+    report = build_populated_report()
+
+    formatter_lines = Formatter.format_text_report(report)
+
+    assert RuntimeStatusTask.format_text_report(report) == formatter_lines
+
+    assert Formatter.format_provider_findings(report.provider_assets.findings) ==
+             RuntimeStatusTask.format_provider_findings(report.provider_assets.findings)
+
+    assert "  generated_at: 2026-05-06T12:00:00Z" in formatter_lines
+    assert "    - asset-1: drift" in formatter_lines
+    assert "    - thumb: failed" in formatter_lines
+    assert "    - upload-1: timed out" in formatter_lines
+
+    assert "    - 11111111-2222-3333-4444-555555555555 (...dddd): row stuck in processing for 9000s" in formatter_lines
+
+    assert "  requeue via Rindle.requeue_variants/2 — Retry failed work." in formatter_lines
   end
 
   test "emits a bounded JSON refusal and exits non-zero" do
@@ -296,6 +324,59 @@ defmodule Rindle.RuntimeStatusTaskTest do
       },
       recommendations: []
     }
+  end
+
+  defp build_populated_report do
+    build_report_with_provider_findings([build_provider_finding()])
+    |> Map.merge(%{
+      runtime_checks: %{
+        counts: %{total: 1, probe_drift: 1},
+        findings: [
+          %{
+            class: :probe_drift,
+            count: 1,
+            oldest_age_seconds: 600,
+            samples: [%{asset_id: "asset-1", reason: "drift"}]
+          }
+        ]
+      },
+      assets: %{counts: %{total: 1, available: 1}},
+      variants: %{
+        counts: %{total: 1, failed: 1},
+        findings: [
+          %{
+            class: :failed_work,
+            count: 1,
+            oldest_age_seconds: 700,
+            samples: [%{variant_name: "thumb", reason: "failed"}]
+          }
+        ]
+      },
+      upload_sessions: %{
+        counts: %{total: 1, expired: 1},
+        findings: [
+          %{
+            state: :expired,
+            count: 1,
+            oldest_age_seconds: 800,
+            samples: [%{session_id: "upload-1", failure_reason: "timed out"}]
+          }
+        ],
+        resumable: %{
+          resumable_sessions_pending: 2,
+          resumable_sessions_expired: 1,
+          resumable_session_uris_stale: 1
+        }
+      },
+      recommendations: [
+        %{
+          class: :failed_work,
+          action: :requeue,
+          surface: "Rindle.requeue_variants/2",
+          summary: "Retry failed work."
+        }
+      ]
+    })
   end
 
   defp insert_asset do

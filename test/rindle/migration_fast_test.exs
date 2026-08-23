@@ -2,6 +2,7 @@ defmodule Rindle.MigrationFastTest do
   use ExUnit.Case, async: true
 
   alias Rindle.Migration.{Options, V1}
+  alias Rindle.Migration.V1.Preflight
 
   test "defaults migration options to rindle and accepts only the supported pair" do
     assert Options.validate!([]) == %{version: 1, prefix: "rindle"}
@@ -28,6 +29,34 @@ defmodule Rindle.MigrationFastTest do
 
     refute "oban_jobs" in V1.owned_relations()
     refute "schema_migrations" in V1.owned_relations()
+  end
+
+  test "classifies the V1-provided fixed catalog before any move authority runs" do
+    owned_relations = Enum.sort(V1.owned_relations())
+
+    snapshot = %{
+      source_relations: owned_relations,
+      target_relations: [],
+      source_owned?: true,
+      target_owned?: true,
+      source_marker: [V1.current_version()],
+      target_marker: [],
+      target_exists?: false,
+      database_create?: true,
+      target_usable?: false,
+      public_usable?: true,
+      owned_relations: owned_relations,
+      current_version: V1.current_version()
+    }
+
+    assert {:provisionable_absent_target, ^snapshot} =
+             Preflight.classify(:public_to_rindle, snapshot)
+
+    assert {:refusal, :source_not_owned} =
+             Preflight.classify(:public_to_rindle, %{snapshot | source_owned?: false})
+
+    assert {:refusal, :public_marker_invalid} =
+             Preflight.classify(:public_to_rindle, %{snapshot | source_marker: [2]})
   end
 
   test "rejects unknown options and unsupported versions before migration DDL" do

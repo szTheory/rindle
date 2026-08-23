@@ -3,6 +3,8 @@ defmodule Rindle.Migration.V1 do
 
   use Ecto.Migration
 
+  alias Rindle.Migration.V1.{Preflight, Snapshot}
+
   @current_version 1
   @marker_table "rindle_migration_versions"
   @public_schema "public"
@@ -121,83 +123,16 @@ defmodule Rindle.Migration.V1 do
           | {:provisionable_absent_target | :movable_existing_target, map()}
           | {:refusal, atom()}
   def preflight_public_to_rindle do
-    snapshot = migration_snapshot()
-
-    cond do
-      complete_source?(snapshot) and
-        snapshot.target_relations == [] and
-        valid_marker?(snapshot.source_marker) and
-        snapshot.source_owned? and not snapshot.target_exists? and
-          snapshot.database_create? ->
-        {:provisionable_absent_target, snapshot}
-
-      complete_source?(snapshot) and
-        snapshot.target_relations == [] and
-        valid_marker?(snapshot.source_marker) and
-        snapshot.source_owned? and snapshot.target_exists? and snapshot.target_usable? ->
-        {:movable_existing_target, snapshot}
-
-      snapshot.source_relations == [] and complete_target?(snapshot) and
-          valid_marker?(snapshot.target_marker) ->
-        :already_upgraded
-
-      not snapshot.source_owned? ->
-        {:refusal, :source_not_owned}
-
-      not complete_source?(snapshot) ->
-        {:refusal, :public_incomplete}
-
-      not valid_marker?(snapshot.source_marker) ->
-        {:refusal, :public_marker_invalid}
-
-      snapshot.target_relations != [] ->
-        {:refusal, :rindle_not_empty}
-
-      not snapshot.target_exists? and not snapshot.database_create? ->
-        {:refusal, :database_create_denied}
-
-      snapshot.target_exists? and not snapshot.target_usable? ->
-        {:refusal, :rindle_unusable}
-
-      true ->
-        {:refusal, :mixed_state}
-    end
+    :public_to_rindle
+    |> Preflight.classify(migration_snapshot())
   end
 
   @doc false
   @spec preflight_rindle_to_public() ::
           :already_reversed | {:movable_existing_target, map()} | {:refusal, atom()}
   def preflight_rindle_to_public do
-    snapshot = migration_snapshot()
-
-    cond do
-      complete_target?(snapshot) and snapshot.source_relations == [] and
-        valid_marker?(snapshot.target_marker) and snapshot.target_owned? and
-          snapshot.public_usable? ->
-        {:movable_existing_target, snapshot}
-
-      complete_source?(snapshot) and snapshot.target_relations == [] and
-          valid_marker?(snapshot.source_marker) ->
-        :already_reversed
-
-      not snapshot.target_owned? ->
-        {:refusal, :source_not_owned}
-
-      not complete_target?(snapshot) ->
-        {:refusal, :rindle_incomplete}
-
-      not valid_marker?(snapshot.target_marker) ->
-        {:refusal, :rindle_marker_invalid}
-
-      snapshot.source_relations != [] ->
-        {:refusal, :public_not_empty}
-
-      not snapshot.public_usable? ->
-        {:refusal, :public_unusable}
-
-      true ->
-        {:refusal, :mixed_state}
-    end
+    :rindle_to_public
+    |> Preflight.classify(migration_snapshot())
   end
 
   defp create_media_assets(prefix) do
@@ -493,122 +428,14 @@ defmodule Rindle.Migration.V1 do
   end
 
   defp migration_snapshot do
-    privilege_override = test_privilege_override()
-
-    %{rows: schema_rows} =
-      repo().query!(
-        "SELECT nspname FROM pg_namespace WHERE nspname = ANY($1) ORDER BY nspname",
-        [[@public_schema, @rindle_schema]]
-      )
-
-    %{rows: relation_rows} =
-      repo().query!(
-        """
-        SELECT namespace.nspname, relation.relname,
-               pg_has_role(current_user, relation.relowner, 'USAGE')
-        FROM pg_class AS relation
-        JOIN pg_namespace AS namespace ON namespace.oid = relation.relnamespace
-        WHERE namespace.nspname = ANY($1)
-          AND relation.relname = ANY($2)
-          AND relation.relkind IN ('r', 'p')
-        ORDER BY namespace.nspname, relation.relname
-        """,
-        [[@public_schema, @rindle_schema], owned_relations()]
-      )
-
-    marker_rows = marker_rows(relation_rows)
-
-    %{rows: [[database_create?]]} =
-      repo().query!("SELECT has_database_privilege(current_database(), 'CREATE')", [])
-
-    database_create? = Map.get(privilege_override, :database_create?, database_create?)
-
-    schemas = Enum.map(schema_rows, &hd/1)
-    target_exists? = @rindle_schema in schemas
-
-    target_usable? =
-      if target_exists? do
-        %{rows: [[usable?]]} =
-          repo().query!("SELECT has_schema_privilege($1, 'USAGE, CREATE')", [@rindle_schema])
-
-        usable?
-      else
-        false
-      end
-
-    target_usable? = Map.get(privilege_override, :target_usable?, target_usable?)
-
-    %{rows: [[public_usable?]]} =
-      repo().query!("SELECT has_schema_privilege($1, 'USAGE, CREATE')", [@public_schema])
-
-    public_usable? = Map.get(privilege_override, :public_usable?, public_usable?)
-
-    relation_state =
-      Enum.reduce(
-        relation_rows,
-        %{
-          @public_schema => %{names: [], owned?: true},
-          @rindle_schema => %{names: [], owned?: true}
-        },
-        fn [schema, name, owned?], acc ->
-          update_in(acc, [schema], fn state ->
-            state
-            |> Map.update!(:names, &[name | &1])
-            |> Map.update(:owned?, owned?, &(&1 and owned?))
-          end)
-        end
-      )
-
-    marker_state = Enum.group_by(marker_rows, &hd/1, &List.last/1)
-
-    %{
-      source_relations: relation_state[@public_schema].names |> Enum.sort(),
-      target_relations: relation_state[@rindle_schema].names |> Enum.sort(),
-      source_owned?: relation_state[@public_schema].owned?,
-      target_owned?: relation_state[@rindle_schema].owned?,
-      source_marker: Map.get(marker_state, @public_schema, []),
-      target_marker: Map.get(marker_state, @rindle_schema, []),
-      target_exists?: target_exists?,
-      database_create?: database_create?,
-      target_usable?: target_usable?,
-      public_usable?: public_usable?
-    }
-  end
-
-  defp marker_rows(relation_rows) do
-    relation_rows
-    |> Enum.filter(fn [_schema, relation, _owned?] -> relation == @marker_table end)
-    |> Enum.flat_map(fn [schema, _relation, owned?] ->
-      if owned? and marker_has_version_column?(schema) do
-        %{rows: rows} =
-          repo().query!(
-            "SELECT version FROM #{qualified(schema, @marker_table)} ORDER BY version",
-            []
-          )
-
-        Enum.map(rows, fn [version] -> [schema, version] end)
-      else
-        [[schema, :invalid_marker]]
-      end
-    end)
-  end
-
-  defp marker_has_version_column?(schema) do
-    %{rows: [[exists?]]} =
-      repo().query!(
-        """
-        SELECT EXISTS (
-          SELECT 1
-          FROM information_schema.columns
-          WHERE table_schema = $1
-            AND table_name = $2
-            AND column_name = 'version'
-        )
-        """,
-        [schema, @marker_table]
-      )
-
-    exists?
+    Snapshot.observe(repo(), %{
+      source_schema: @public_schema,
+      target_schema: @rindle_schema,
+      owned_relations: owned_relations(),
+      marker_table: marker_table(),
+      current_version: current_version(),
+      privilege_override: test_privilege_override()
+    })
   end
 
   defp test_privilege_override do
@@ -623,10 +450,6 @@ defmodule Rindle.Migration.V1 do
         %{}
     end
   end
-
-  defp complete_source?(snapshot), do: snapshot.source_relations == Enum.sort(owned_relations())
-  defp complete_target?(snapshot), do: snapshot.target_relations == Enum.sort(owned_relations())
-  defp valid_marker?(versions), do: versions == [@current_version]
 
   defp raise_preflight_error!(reason, direction \\ :public_to_rindle) do
     action =

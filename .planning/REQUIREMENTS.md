@@ -36,14 +36,14 @@
 
 ### Runtime Operations Architecture
 
-- [ ] **OPS-01**: Maintainers can read `Rindle.Ops.RuntimeChecks` as a small orchestration boundary with
+- [x] **OPS-01**: Maintainers can read `Rindle.Ops.RuntimeChecks` as a small orchestration boundary with
   cohesive collaborators for independent diagnostic domains and unchanged result/telemetry contracts.
 
-- [ ] **OPS-02**: Maintainers can reason about populated-install migration preflight through named,
+- [x] **OPS-02**: Maintainers can reason about populated-install migration preflight through named,
   bounded validation components without changing the fixed owned-table catalog, transaction order, or
   reversal safety.
 
-- [ ] **OPS-03**: Maintainers can read runtime-status collection, formatting, and command concerns in
+- [x] **OPS-03**: Maintainers can read runtime-status collection, formatting, and command concerns in
   separate cohesive units without changing flags, output shapes, limits, or failure semantics.
 
 ### Upload Path Clarity
@@ -118,9 +118,9 @@ Populated during roadmap creation. Each v1.24 requirement maps to exactly one ph
 | CLARITY-01 | Phase 122 | Complete |
 | CLARITY-02 | Phase 122 | Complete |
 | CLARITY-03 | Phase 122 | Complete |
-| OPS-01 | Phase 123 | Pending |
-| OPS-02 | Phase 123 | Pending |
-| OPS-03 | Phase 123 | Pending |
+| OPS-01 | Phase 123 | Complete |
+| OPS-02 | Phase 123 | Complete |
+| OPS-03 | Phase 123 | Complete |
 | UPLOAD-01 | Phase 124 | Pending |
 | UPLOAD-02 | Phase 124 | Pending |
 | TEST-01 | Phase 125 | Pending |

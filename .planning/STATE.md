@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.24
 milestone_name: Core Clarity & Quality Ratchet
-current_phase: 123
-current_phase_name: Runtime Operations Decomposition
-status: ready_to_plan
-stopped_at: Phase 122 verified on supported CI; ready to plan Phase 123
-last_updated: "2026-08-23T00:44:00.000Z"
+current_phase: 124
+current_phase_name: Upload Path Clarity
+status: ready_to_discuss
+stopped_at: Phase 123 complete; supported exact-head CI Summary green on PR 85
+last_updated: "2026-08-23T02:28:00.000Z"
 last_activity: 2026-08-23
-last_activity_desc: Phase 122 complete; supported CI and release-train hygiene green
+last_activity_desc: Phase 123 complete; review clean and supported CI Summary green
 progress:
   total_phases: 6
-  completed_phases: 2
-  total_plans: 12
-  completed_plans: 12
+  completed_phases: 3
+  total_plans: 15
+  completed_plans: 15
 ---
 
 # Project State
@@ -23,14 +23,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-08-22 for v1.24)
 
 **Core value:** Media, made durable.
-**Current focus:** Phase 123 — Runtime Operations Decomposition
+**Current focus:** Phase 124 — Upload Path Clarity
 
 ## Current Position
 
-Phase: 123 — Runtime Operations Decomposition
+Phase: 124 — Upload Path Clarity
 Plan: Not yet planned
-Status: Ready to plan
-Last activity: 2026-08-23 — Phase 122 complete; supported CI and release-train hygiene green
+Status: Ready to discuss
+Last activity: 2026-08-23 — Phase 123 complete; review clean and supported exact-head CI Summary green on PR #85
 
 ### v1.24 charter
 
@@ -57,8 +57,7 @@ the historical 0.4.0 contract; do not regress either side of that invariant.
 
 ## Next Step
 
-Plan Phase 123 as a finite, behavior-preserving decomposition of runtime diagnostics, migration
-preflight, and runtime-status responsibilities.
+Discuss and plan Phase 124 as a contract-preserving decomposition of tus and upload-broker internals.
 
 ## Prior Milestone
 
@@ -198,9 +197,9 @@ _(none open for v1.23 closeout)_
 
 ## Session Continuity
 
-Last session: 2026-08-22T23:52:21.206Z
-Stopped at: Completed 122-01-PLAN.md
-Resume file: None
+Last session: 2026-08-23T02:28:00.000Z
+Stopped at: Phase 123 complete; supported exact-head CI Summary green on PR #85
+Resume file: .planning/STATE.md
 
 ## Performance Metrics
 

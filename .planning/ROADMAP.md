@@ -61,7 +61,7 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 
 - [x] **Phase 121: Truthful Quality Signals & Mechanical Hygiene** - Restore blocking, evidence-based quality gates and establish the invariant-preserving refactor contract. (completed 2026-08-22)
 - [x] **Phase 122: Live Truth & Compile Clarity** - Reconcile live source and documentation truth while removing the internal schema compile cycle. (completed 2026-08-23)
-- [ ] **Phase 123: Runtime Operations Decomposition** - Make runtime diagnostics, migration preflight, and status code easier to reason about without contract drift.
+- [x] **Phase 123: Runtime Operations Decomposition** - Make runtime diagnostics, migration preflight, and status code easier to reason about without contract drift. (completed 2026-08-23)
 - [ ] **Phase 124: Upload Path Clarity** - Decompose tus and broker internals into cohesive, contract-preserving boundaries.
 - [ ] **Phase 125: Behavioral Test Support** - Replace oversized and self-inspecting test support with focused behavioral proof and async-isolation evidence.
 - [ ] **Phase 126: Curated Type Ratchet** - Retire the actionable Dialyzer baseline on the supported toolchain and block its return.
@@ -137,7 +137,19 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
   2. Populated-install migration preflight is understandable through named, bounded validation components while its fixed owned-table catalog, transaction order, and reversal safety remain unchanged.
   3. Runtime-status collection, formatting, and command concerns are independently readable while flags, output shapes, limits, and failure semantics remain unchanged.
 
-**Plans**: TBD
+**Plans**: 3 plans
+
+**Wave 1 — runtime diagnostic orchestration**
+
+- [x] 123-01-PLAN.md — Extract cohesive runtime-check domains behind the unchanged orchestration/result/telemetry façade.
+
+**Wave 2 — populated-install preflight** *(blocked on Wave 1)*
+
+- [x] 123-02-PLAN.md — Separate migration snapshot and directional validation while V1 retains all catalog, DDL, transaction, and reversal authority.
+
+**Wave 3 — runtime-status collection and presentation** *(blocked on Wave 2)*
+
+- [x] 123-03-PLAN.md — Separate status collection and command formatting, then run the complete preservation and supported-CI gate.
 
 ### Phase 124: Upload Path Clarity
 
@@ -183,7 +195,7 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 |-------|----------------|--------|-----------|
 | 121. Truthful Quality Signals & Mechanical Hygiene | 7/7 | Complete    | 2026-08-22 |
 | 122. Live Truth & Compile Clarity | 4/5 | In Progress|  |
-| 123. Runtime Operations Decomposition | 0/TBD | Not started | - |
+| 123. Runtime Operations Decomposition | 0/3 | Planned | - |
 | 124. Upload Path Clarity | 0/TBD | Not started | - |
 | 125. Behavioral Test Support | 0/TBD | Not started | - |
 | 126. Curated Type Ratchet | 0/TBD | Not started | - |

@@ -5,6 +5,7 @@ defmodule Rindle.Ops.RuntimeStatusTest do
   alias Rindle.Domain.{MediaAsset, MediaProviderAsset, MediaUploadSession, MediaVariant}
   alias Rindle.Ops.RuntimeChecks
   alias Rindle.Ops.RuntimeStatus
+  alias Rindle.Ops.RuntimeStatus.Collector
   alias Rindle.Workers.ProcessVariant
 
   @runtime_status_config Rindle.Ops.RuntimeStatus
@@ -197,6 +198,26 @@ defmodule Rindle.Ops.RuntimeStatusTest do
       resumable = Enum.find(report.checks, &(&1.id == "doctor.resumable_session_schema"))
       assert resumable.status == :ok
     end
+  end
+
+  test "collector returns the bounded report sections for readiness-approved inputs" do
+    now = DateTime.utc_now()
+
+    filters = %{
+      profile: nil,
+      older_than: nil,
+      limit: 2,
+      format: :text,
+      provider_stuck: false
+    }
+
+    assert %{
+             runtime_checks: %{counts: _, findings: _},
+             assets: %{counts: _},
+             variants: %{counts: _, findings: _},
+             upload_sessions: %{counts: _, findings: _, resumable: _},
+             provider_assets: %{counts: _, findings: _, threshold_seconds: _}
+           } = Collector.collect(filters, now, nil, Rindle.Config.oban_prefix())
   end
 
   test "classifies failed, cancelled, stale, missing, and queue-starved variants" do

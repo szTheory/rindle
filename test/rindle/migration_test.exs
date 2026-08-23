@@ -2,6 +2,7 @@ defmodule Rindle.MigrationTest do
   use Rindle.DataCase, async: false
 
   alias Rindle.Repo
+  alias Rindle.Migration.V1.Preflight
 
   @marker_table Rindle.Migration.V1.marker_table()
   @rindle_tables Rindle.Migration.V1.rindle_tables()
@@ -255,6 +256,33 @@ defmodule Rindle.MigrationTest do
 
       refute schema_exists?("rindle")
       assert host_relation_snapshots("public") == host_relations_before
+    end
+  end
+
+  describe "Rindle.Migration.move_rindle_to_public/1 preflight" do
+    test "classifies the first reverse refusal from one fixed-catalog snapshot" do
+      owned_relations = Enum.sort(Rindle.Migration.V1.owned_relations())
+
+      snapshot = %{
+        source_relations: [],
+        target_relations: owned_relations,
+        source_owned?: true,
+        target_owned?: true,
+        source_marker: [],
+        target_marker: [Rindle.Migration.V1.current_version()],
+        target_exists?: true,
+        database_create?: true,
+        target_usable?: true,
+        public_usable?: false,
+        owned_relations: owned_relations,
+        current_version: Rindle.Migration.V1.current_version()
+      }
+
+      assert {:refusal, :public_unusable} =
+               Preflight.classify(:rindle_to_public, snapshot)
+
+      assert {:refusal, :source_not_owned} =
+               Preflight.classify(:rindle_to_public, %{snapshot | target_owned?: false})
     end
   end
 

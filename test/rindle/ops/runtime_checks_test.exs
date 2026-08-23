@@ -69,6 +69,15 @@ defmodule Rindle.Ops.RuntimeChecksTest do
   ]
 
   describe "run/2" do
+    test "keeps runtime check orchestration callable only through the facade" do
+      assert function_exported?(RuntimeChecks, :run, 2)
+      assert function_exported?(RuntimeChecks, :probe_gcs_bucket, 4)
+      assert function_exported?(RuntimeChecks, :do_probe, 4)
+
+      refute function_exported?(Rindle.Ops.RuntimeChecks.CoreChecks, :run, 2)
+      refute function_exported?(Rindle.Ops.RuntimeChecks.OwnershipChecks, :run, 2)
+    end
+
     test "returns deterministic stable check ids" do
       previous = Application.get_env(:rindle, :tus_profiles)
       Application.put_env(:rindle, :tus_profiles, [ImageProfile])
