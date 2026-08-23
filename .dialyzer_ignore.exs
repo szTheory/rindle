@@ -89,14 +89,6 @@
   {"lib/rindle/storage/s3.ex", "Function truncate_tail_head/2 will never be called."},
   {"lib/rindle/storage/s3.ex", "Function open_rest/2 will never be called."},
   {"lib/rindle/storage/s3.ex", "Function copy_rest/2 will never be called."},
-  {"lib/rindle/upload/tus_plug.ex", "The pattern can never match the type {:error, _}."},
-  {"lib/rindle/upload/tus_plug.ex",
-   "The guard test _@1::'nil' | crypto:hash_state() breaks the opaqueness of its argument."},
-  {"lib/rindle/upload/tus_plug.ex", "The guard clause can never succeed."},
-  {"lib/rindle/workers/mux_ingest_variant.ex",
-   "The pattern pattern <__mux_response@1, __reason@1> can never match the type, because it is covered by previous clauses."},
-  {"lib/rindle/workers/mux_sync_provider_asset.ex",
-   "The pattern variable _err@2 can never match the type, because it is covered by previous clauses."},
   # Supported Nightly run 32637455725 / Dialyzer job 97189240234: the fixture
   # is a real host Ecto.Migration callback and its runner lifecycle is dynamic.
   {"test/support/host_rindle_migration.ex", "Function up/0 has no local return."},
