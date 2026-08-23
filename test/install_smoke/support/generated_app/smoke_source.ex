@@ -2,7 +2,6 @@ defmodule Rindle.InstallSmoke.GeneratedApp.SmokeSource do
   @moduledoc false
 
   alias Rindle.InstallSmoke.GeneratedApp.ProfileHelpers
-  alias Rindle.InstallSmoke.GeneratedApp.CommandRunner
   alias Rindle.InstallSmoke.GeneratedApp.Workspace
 
   @png_1x1 <<0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D, 0x49, 0x48,
@@ -10,7 +9,6 @@ defmodule Rindle.InstallSmoke.GeneratedApp.SmokeSource do
              0x00, 0x90, 0x77, 0x53, 0xDE, 0x00, 0x00, 0x00, 0x0C, 0x49, 0x44, 0x41, 0x54, 0x08,
              0xD7, 0x63, 0xF8, 0xFF, 0xFF, 0x3F, 0x00, 0x05, 0xFE, 0x02, 0xFE, 0xDC, 0x44, 0x74,
              0x06, 0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82>>
-  @generated_command_timeout_ms :timer.minutes(20)
 
   def write!(
         root,
@@ -148,48 +146,8 @@ defmodule Rindle.InstallSmoke.GeneratedApp.SmokeSource do
     end
   end
 
-  defp boot_app!(generated_app_root, app_module, env) do
-    run_cmd!(
-      generated_app_root,
-      [
-        "mix",
-        "run",
-        "--no-start",
-        "-e",
-        "Application.ensure_all_started(:#{Macro.underscore(app_module)}); repo = Application.fetch_env!(:rindle, :repo); oban_repo = Application.fetch_env!(:#{Macro.underscore(app_module)}, Oban)[:repo]; if repo != #{app_module}.Repo or oban_repo != #{app_module}.Repo, do: raise(\"boot wiring invalid\"); IO.puts(\"boot ok\")"
-      ],
-      env
-    )
-  end
-
-  defp read_json!(path) do
-    path
-    |> File.read!()
-    |> Jason.decode!()
-  end
-
-  defp run_cmd!(cwd, argv, env) do
-    CommandRunner.run!(cwd, argv, env)
-  end
-
-  defp run_cmd(cwd, argv, env) do
-    CommandRunner.run(cwd, argv, env, timeout_ms: @generated_command_timeout_ms)
-  end
-
-  defp shared_env(db_name, profile_mode), do: Workspace.shared_env(db_name, profile_mode)
-  defp package_name, do: Workspace.package_name()
-  defp install_mode(network_version), do: Workspace.install_mode(network_version)
-
-  def package_root_provenance(mode, generated_app_root, package_root),
-    do: Workspace.package_root_provenance(mode, generated_app_root, package_root)
-
-  defp install_source(mode, package_root, network_version),
-    do: Workspace.install_source(mode, package_root, network_version)
-
-  defp repo_root, do: Workspace.repo_root()
-
   def maybe_write_tus_run_hint!(%{profile_mode: :tus} = report) do
-    hint_path = Path.join([repo_root(), "tmp", "install_smoke_tus_last_run.json"])
+    hint_path = Path.join([Workspace.repo_root(), "tmp", "install_smoke_tus_last_run.json"])
     File.mkdir_p!(Path.dirname(hint_path))
 
     File.write!(
@@ -211,22 +169,6 @@ defmodule Rindle.InstallSmoke.GeneratedApp.SmokeSource do
   end
 
   def maybe_write_tus_run_hint!(_report), do: :ok
-
-  defp oban_requirement do
-    case Lock.read()[:oban] do
-      {:hex, :oban, version, _checksum, _managers, _deps, _repo, _outer_checksum} ->
-        "~> #{version}"
-
-      other ->
-        raise "unexpected Oban lock entry: #{inspect(other)}"
-    end
-  end
-
-  defp to_existing_atom_safe(nil), do: nil
-  defp to_existing_atom_safe(value) when is_binary(value), do: String.to_atom(value)
-
-  defp fetch_deps!(generated_app_root, shared_env, network_version),
-    do: Workspace.fetch_deps!(generated_app_root, shared_env, network_version)
 
   defp lifecycle_test_source(_app_module, :image) do
     """
