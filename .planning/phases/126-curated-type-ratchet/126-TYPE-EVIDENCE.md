@@ -86,7 +86,7 @@ the starting inventory to make the paths appear identical.
 
 | IDs | Status | Supported run URL | Job identity | Exact warning | Owner test command | SAFE-01 |
 | --- | --- | --- | --- | --- | --- | --- |
-| E01–E45 | pending | pending | pending | inventory value above | pending | pending |
+| E01–E45 | complete | [32648274668](https://github.com/szTheory/rindle/actions/runs/32648274668) | Dialyzer 97215815600; Nightly Summary 97216143803 | empty final annotation multiset | owning focused suites recorded in each slice | 92 tests passed |
 
 ## Supported Policy-Tracer Receipt
 
@@ -497,3 +497,25 @@ telemetry, errors, or opaque Ecto/Oban value handling was changed.
 | `{E43}` | retained-analyzer-noise | 32637455725 host migration callback receipt |
 | `{E44}` | retained-analyzer-noise | 32637455725 host migration callback receipt |
 | `{E45}` | retained-analyzer-noise | 32637455725 host migration callback receipt |
+
+## Final Local Candidate Receipt
+
+- Pre-authority source SHA: `4dbb75b36e1839ebe02fd9bd10334cdad70a3c78`.
+  The immutable candidate SHA is the commit that records this receipt and is bound
+  to its exact-head GitHub authorities in the external issue receipt; a commit
+  cannot contain its own content-addressed SHA.
+- All 45 immutable starting tuples have exactly one final disposition: 10
+  `obsolete` or `actionable-fixed`, and 35 `retained-analyzer-noise` entries with
+  the supported-run and owner-behavior rationales recorded above. No
+  `pending`, `obsolete-retained`, or `actionable-retained` state remains.
+- `MIX_ENV=test mix test test/install_smoke/dialyzer_ignore_policy_test.exs
+  test/install_smoke/ci_lane_split_test.exs
+  test/install_smoke/ci_cache_hygiene_test.exs --seed 0`: passed (34 tests).
+- All eight mapped owner suites passed; the GCS/Local suite had 44 passing tests
+  and one existing skipped test. `bash scripts/maintainer/refactor_contract.sh`
+  passed (92 tests), `mix ci` passed, and
+  `./scripts/maintainer/repo_hygiene_check.sh --ci` passed (8/8).
+- The `implementation_base_sha` scope audit found only enumerated owner files,
+  `.dialyzer_ignore.exs`, and Phase 126 planning artifacts; no dependency,
+  lockfile, workflow, cache, job, schedule, release-policy, schema/migration,
+  public API/docs, telemetry, error, or Admin surface drift was found.

@@ -385,7 +385,12 @@ defmodule Rindle.Storage.GCS.Client do
   # RESEARCH Pitfall 1 — `URI.encode/2` with `&URI.char_unreserved?/1` encodes
   # `/` as `%2F` so multi-segment object names hit the right GCS path. Plain
   # `URI.encode/1` would leave `/` alone and 404.
-  @spec url_for(:metadata | :media | :upload | :resumable_upload, String.t(), String.t(), keyword()) ::
+  @spec url_for(
+          :metadata | :media | :upload | :resumable_upload,
+          String.t(),
+          String.t(),
+          keyword()
+        ) ::
           String.t()
   defp url_for(:metadata, bucket, key, opts) do
     "#{base_url(opts)}/storage/v1/b/#{bucket}/o/#{URI.encode(key, &URI.char_unreserved?/1)}"
