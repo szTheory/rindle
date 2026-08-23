@@ -254,3 +254,32 @@ The complete final annotation multiset is E38 at
 `lib/rindle/upload/tus_stream.ex:66`. No runtime-status, HTML, ProcessVariant,
 earlier, or unowned warning is emitted. This is an intentionally red
 intermediate Nightly result until Plan 126-07 owns E38-E40.
+
+## Supported GCS and Local Probe Receipt
+
+- Probe commit: `634e817f7a6910802953faf4b5b178e9160058a7`; only the six
+  strict E25–E30 filters were removed. `lib/rindle/storage/gcs/client.ex` and
+  `lib/rindle/storage/local.ex` were unchanged.
+- [Exact-head Nightly run 32643457947](https://github.com/szTheory/rindle/actions/runs/32643457947)
+  (`workflow_dispatch`; `headSha` exactly equals the probe commit).
+- [Dialyzer job 97203998038](https://github.com/szTheory/rindle/actions/runs/32643457947/job/97203998038):
+  **failure** with ten warnings; [Nightly Summary job
+  97204524549](https://github.com/szTheory/rindle/actions/runs/32643457947/job/97204524549)
+  was **success** and recorded `DIALYZER: failure`.
+- `MIX_ENV=test mix test test/install_smoke/dialyzer_ignore_policy_test.exs --seed 0`:
+  passed (2 tests).
+
+Only E25–E30 were exposed. Their seven emitted annotations reproduced beside
+the three later-owned E38–E40 annotations; no earlier or unowned warning
+appeared. The single strict Local `stream!` discriminator emits at both stream
+call sites and is therefore one immutable filter identity with two supported
+locations.
+
+| IDs | Probe disposition | Exact supported observation |
+| --- | --- | --- |
+| E25 | reproduced candidate | `gcs/client.ex:78`: `The function call stream! will not succeed.` |
+| E26 | reproduced candidate | `gcs/client.ex:396`: `The pattern can never match the type :resumable_upload, _, _, Keyword.t().` |
+| E27 | reproduced candidate | `gcs/client.ex:431`: the exact covered `{'error', __other@1}` pattern. |
+| E28 | reproduced candidate | `local.ex:88`: `Function upload_part_stream/5 has no local return.` |
+| E29 | reproduced candidate | `local.ex:99` and `:140`: `The function call stream! will not succeed.` |
+| E30 | reproduced candidate | `local.ex:136`: `The created anonymous function has no local return.` |
