@@ -12,12 +12,10 @@ defmodule Rindle.Config.RepoOverrideIsolationTest do
   #     process reading `Config.repo()` still sees `Rindle.Repo` → this test is GREEN.
   #
   # Process A (the `with_counting_repo/1` callback's process) force-fails its 1st transaction
-  # and sees the double. Process B is an UNRELATED reader: it is a `Task.async` spawned from the
-  # TEST process BEFORE entering A's window, so its `$callers` chain is the test process — NOT A.
-  # The test process holds no override (A's override is set only inside the callback), so B
-  # resolves `Rindle.Repo` and runs a real transaction successfully WHILE A's window is open.
-  # If B were spawned from inside the window (a `$callers` descendant of A) it would correctly
-  # inherit the override and the proof would be inverted — so it deliberately is not.
+  # and sees the double. Process B is an UNRELATED reader created with bare `spawn`, so it has
+  # no `$callers` ancestry from A. A only releases B after its override is open, and B acknowledges
+  # that release before it resolves `Rindle.Repo` and commits. Repeating that causal window with
+  # distinct refs makes one focused invocation a bounded 100-iteration stress proof.
   #
   # The module is `async: true`: it is itself the canonical async-safe demonstration, and any
   # future regression that re-globalizes the repo swap makes B observe the double and turns this
@@ -29,40 +27,57 @@ defmodule Rindle.Config.RepoOverrideIsolationTest do
   alias Rindle.Test.CountingFailingTxnRepo
 
   test "process-scoped override does not pollute a concurrent reader in an unrelated process tree" do
+    for iteration <- 1..100 do
+      assert_causal_isolation(iteration)
+    end
+  end
+
+  defp assert_causal_isolation(iteration) do
     test_pid = self()
+    release_ref = make_ref()
+    result_ref = make_ref()
 
-    # Process A is THIS (test) process: with_counting_repo/2 runs its callback inline and sets the
-    # override in the caller's process dictionary. So reader B must NOT have the test process in its
-    # $callers chain — otherwise it would inherit A's override and the proof would be inverted.
-    #
-    # A bare `spawn` (unlike Task.async) injects NO `:"$callers"`, so B is a genuinely unrelated
-    # process tree: its dict has no override and walks to no caller holding one → it resolves
-    # Rindle.Repo. B blocks on :go so it reads Config.repo() and runs its real transaction
-    # concurrently INSIDE A's open window. B needs an explicit Sandbox allowance (it shares no
-    # ownership lineage with A) to run a real transaction against the sandboxed repo.
-    reader =
-      spawn(fn ->
+    # Bare spawn deliberately creates no $callers ancestry from A. The monitor lets the test stop
+    # a blocked reader if an assertion fails before release.
+    {reader, monitor} =
+      spawn_monitor(fn ->
         receive do
-          :go -> :ok
-        end
+          {:release, ^release_ref} ->
+            send(test_pid, {:reader_released, release_ref, self()})
 
-        result = {Config.repo(), Config.repo().transaction(fn -> :ok end)}
-        send(test_pid, {:reader_result, self(), result})
+            result = {Config.repo(), Config.repo().transaction(fn -> :ok end)}
+            send(test_pid, {:reader_result, result_ref, self(), result})
+        end
       end)
 
-    # Grant B access to A's sandbox connection so its real transaction can run.
     Sandbox.allow(Rindle.Repo, test_pid, reader)
 
-    CountingFailingTxnRepo.with_counting_repo(1, fn ->
-      # Process A: the override is active here and the 1st transaction force-fails.
-      assert Config.repo() == Rindle.Test.CountingFailingTxnRepo
-      assert {:error, :plan, _reason, %{}} = Config.repo().transaction(fn -> :ok end)
+    try do
+      CountingFailingTxnRepo.with_counting_repo(1, fn ->
+        # A owns the open override window and B cannot move past this point before that window.
+        assert Config.repo() == Rindle.Test.CountingFailingTxnRepo,
+               "iteration #{iteration}: A did not resolve the counting double"
 
-      # Release B so it reads the resolver and runs its real transaction inside A's window.
-      send(reader, :go)
+        assert match?(
+                 {:error, :plan, _reason, %{}},
+                 Config.repo().transaction(fn -> :ok end)
+               ),
+               "iteration #{iteration}: A did not force-fail its transaction"
 
-      # B (unpolluted) resolves the REAL repo and its transaction succeeds, concurrently with A.
-      assert_receive {:reader_result, ^reader, {Rindle.Repo, {:ok, :ok}}}
-    end)
+        send(reader, {:release, release_ref})
+
+        assert_receive {:reader_released, ^release_ref, ^reader},
+                       1_000,
+                       "iteration #{iteration}: B was not released while A's override remained open"
+
+        assert_receive {:reader_result, ^result_ref, ^reader, {Rindle.Repo, {:ok, :ok}}},
+                       1_000,
+                       "iteration #{iteration}: unrelated B did not resolve Rindle.Repo and commit"
+      end)
+    after
+      if Process.alive?(reader), do: Process.exit(reader, :kill)
+
+      Process.demonitor(monitor, [:flush])
+    end
   end
 end
