@@ -5,15 +5,15 @@ milestone_name: Core Clarity & Quality Ratchet
 current_phase: 125
 current_phase_name: Behavioral Test Support
 status: ready_to_execute
-stopped_at: Completed 125-09-PLAN.md
-last_updated: "2026-08-23T06:37:49.577Z"
+stopped_at: Completed 125-10-PLAN.md
+last_updated: "2026-08-23T09:07:30.051Z"
 last_activity: 2026-08-23
 last_activity_desc: Phase 125 planned with Nyquist validation and 10 sequential tracer slices
 progress:
   total_phases: 5
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 30
-  completed_plans: 29
+  completed_plans: 30
 ---
 
 # Project State
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-08-22 for v1.24)
 ## Current Position
 
 Phase: 125 — Behavioral Test Support
-Plan: 3 of 10
+Plan: 4 of 10
 Status: Ready to execute
 Last activity: 2026-08-23 — Phase 125 planned with Nyquist validation and 10 sequential tracer slices
 
@@ -183,6 +183,7 @@ _(Key v1.22 execution decisions recorded at milestone close.)_
 - [Phase ?]: Docs parity support is read-once mechanics only; install/migration assertions are domain-owned.
 - [Phase ?]: Docs parity assigns adopter onboarding and maintainer operations to separate read-once domain suites.
 - [Phase ?]: Proof now explicitly executes the four docs-parity domains in one unchanged topology step.
+- [Phase ?]: Issue #42 remains open because its sole authorized matrix attempt completed only 1/25 runs; exact-head CI cannot override incomplete local evidence.
 
 ## Blockers/Concerns
 
@@ -200,8 +201,8 @@ _(none open for v1.23 closeout)_
 
 ## Session Continuity
 
-Last session: 2026-08-23T06:37:49.571Z
-Stopped at: Completed 125-09-PLAN.md
+Last session: 2026-08-23T09:07:30.045Z
+Stopped at: Completed 125-10-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -243,6 +244,7 @@ Resume file: None
 | Phase 125-behavioral-test-support P07 | 27min | 2 tasks | 3 files |
 | Phase 125-behavioral-test-support P08 | 24min | 2 tasks | 3 files |
 | Phase 125-behavioral-test-support P09 | 16min | 2 tasks | 4 files |
+| Phase 125 P10 | 45min | 2 tasks | 8 files |
 
 ## Operator Next Steps
 
