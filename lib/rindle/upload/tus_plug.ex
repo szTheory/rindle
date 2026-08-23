@@ -635,7 +635,7 @@ defmodule Rindle.Upload.TusPlug do
     if is_integer(session.upload_length) do
       {:ok, session, session.upload_length}
     else
-      with {:ok, length} <- TusProtocol.parse_upload_length(conn),
+      with {:ok, length} when is_integer(length) <- TusProtocol.parse_upload_length(conn),
            :ok <- TusProtocol.check_max_size(length, opts[:max_size]) do
         # Deferred length is the facade's persistence boundary: parsing and bounds
         # are settled before the row changes, and streaming remains later in the
@@ -646,6 +646,9 @@ defmodule Rindle.Upload.TusPlug do
           |> Config.repo().update()
 
         {:ok, updated, length}
+      else
+        {:ok, _deferred} -> {:error, :invalid_length}
+        {:error, reason} -> {:error, reason}
       end
     end
   end
