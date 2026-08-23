@@ -384,3 +384,23 @@ The exhaustive annotations contain no earlier or unowned warning. The three
 warning emitted there. They remain immutable ledger identities while their
 extracted owner findings are handled independently; no crypto hash state was
 inspected to establish this distinction.
+
+## Final Tus and Mux Slice Receipt
+
+- [Exact-head Nightly run 32647429343](https://github.com/szTheory/rindle/actions/runs/32647429343)
+  for `f0081e22f635ebfe6b2372d200d1975a5cb6babb` (`workflow_dispatch`):
+  **success**.
+- [Dialyzer job 97213716124](https://github.com/szTheory/rindle/actions/runs/32647429343/job/97213716124):
+  **success**, with an exhaustive empty warning annotation list.
+- [Nightly Summary job 97214118173](https://github.com/szTheory/rindle/actions/runs/32647429343/job/97214118173):
+  **success**.
+- Focused TusPlug, Local-TUS, Mux ingest, and Mux sync suites: **78 tests
+  passed**. `bash scripts/maintainer/refactor_contract.sh`: **92 tests passed**.
+
+| IDs | Final status | Supported rationale |
+| --- | --- | --- |
+| E38 | actionable-fixed | `concatenate_tus_sessions/3` now advertises its truthful session-map result, matching TusCreation's established POST/concatenation boundary. |
+| E39 | actionable-fixed | TusStream carries checksum state as an explicit `{:hash, opaque_state}` tag and finalizes it only in that tagged branch; no crypto opaque value is inspected. |
+| E40 | actionable-fixed | Part persistence always merges the encoded map; the removed truthiness branch was unreachable because encoding always returns a map. |
+| Mux ingest | actionable-fixed | Compensation is called only after the normalized Mux create response establishes `provider_asset_id`; the fallback was unreachable and compensation, logging, redaction, and cancel behavior remain owner-tested. |
+| Mux sync | actionable-fixed | ProviderAssetFSM's exact `:ok | {:error, {:invalid_transition, _, _}}` union covers the reachable transition outcomes; the fallback was unreachable and the invalid-transition reconciliation remains owner-tested. |
