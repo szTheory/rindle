@@ -354,3 +354,33 @@ not a basis to remove reachable helpers.
 | E31 | retained-analyzer-noise | The provider can return tagged adapter errors at runtime; removing the branch would narrow S3 error behavior. |
 | E32 | retained-analyzer-noise | `File.stream!/3` is the bounded tail producer; replacing it would buffer PATCH data or alter the file-error boundary. |
 | E33–E37 | retained-analyzer-noise | These reachable helpers maintain ordered multipart slicing, bounded tail remainder copying, and tail-file cleanup. |
+
+## Supported Tus and Mux Probe Receipt
+
+- Probe commit: `f2c56d0702f4365d94eeb36b1d952e48649f6dd9`; only the
+  immutable E38–E40 `tus_plug.ex` tuples and the two strict Mux tuples were
+  removed. All four owner modules were source-unchanged.
+- [Exact-head Nightly run 32645321210](https://github.com/szTheory/rindle/actions/runs/32645321210)
+  (`workflow_dispatch`; `headSha` exactly equals the probe commit).
+- [Dialyzer job 97208588724](https://github.com/szTheory/rindle/actions/runs/32645321210/job/97208588724):
+  **failure** with exactly five warnings. [Nightly Summary job
+  97209175734](https://github.com/szTheory/rindle/actions/runs/32645321210/job/97209175734)
+  was **success** and recorded `DIALYZER: failure`.
+- `MIX_ENV=test mix test test/install_smoke/dialyzer_ignore_policy_test.exs --seed 0`:
+  passed (2 tests).
+
+The historical filters and emitted owners are intentionally separate facts:
+
+| Starting ID | Immutable filter path | Supported emitted path | Warning discriminator | Probe disposition |
+| --- | --- | --- | --- | --- |
+| E38 | `lib/rindle/upload/tus_plug.ex` | `lib/rindle/upload/tus_creation.ex:35` | `The pattern can never match the type {:error, _}.` | reproduced candidate; Plan 126-07 owner |
+| E39 | `lib/rindle/upload/tus_plug.ex` | `lib/rindle/upload/tus_stream.ex:163` | `The guard test _@1::'nil' \| crypto:hash_state() breaks the opaqueness of its argument.` | reproduced candidate; Plan 126-07 owner |
+| E40 | `lib/rindle/upload/tus_plug.ex` | `lib/rindle/upload/tus_stream.ex:66` | `The guard clause can never succeed.` | reproduced candidate; Plan 126-07 owner |
+| Mux ingest | `lib/rindle/workers/mux_ingest_variant.ex` | `lib/rindle/workers/mux_ingest_variant.ex:434` | `The pattern pattern <__mux_response@1, __reason@1> can never match the type, because it is covered by previous clauses.` | reproduced candidate; Plan 126-07 owner |
+| Mux sync | `lib/rindle/workers/mux_sync_provider_asset.ex` | `lib/rindle/workers/mux_sync_provider_asset.ex:226` | `The pattern variable _err@2 can never match the type, because it is covered by previous clauses.` | reproduced candidate; Plan 126-07 owner |
+
+The exhaustive annotations contain no earlier or unowned warning. The three
+`tus_plug.ex` tuples are obsolete only at their original paths: no matching
+warning emitted there. They remain immutable ledger identities while their
+extracted owner findings are handled independently; no crypto hash state was
+inspected to establish this distinction.
