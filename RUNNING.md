@@ -92,6 +92,30 @@ One suite run emits both the console coverage gate and `cover/excoveralls.json`.
 `--type local` runs the same `local` analyzer / `ensure_minimum_coverage` as the
 gate; `--type json` is a side-artifact only and **never** decides pass/fail.
 
+### Local async-isolation evidence (issue #42)
+
+The issue-evidence matrix is a maintainer-only local command, not a CI job and not
+a replacement for the single Quality coverage invocation. First inspect its fixed
+25-seed plan without running coverage:
+
+```sh
+bash scripts/maintainer/async_isolation_evidence.sh --validate
+```
+
+When you are ready to collect the finite evidence, choose a new explicit report
+path under the Phase 125 directory:
+
+```sh
+bash scripts/maintainer/async_isolation_evidence.sh \
+  --report .planning/phases/125-behavioral-test-support/async-isolation-evidence.jsonl
+```
+
+The runner starts one fresh foreground `mix coveralls.multiple --type local --type
+json --seed SEED --slowest 20` process per fixed seed, stops at the first nonzero
+exit, and records only the seed, revision, toolchain, argv, exit, and a bounded
+sanitized failure location. Do not add this loop to CI or run a second coverage
+command for any one seed.
+
 To reproduce the merge-blocking **gate alone** (no JSON artifact), `mix coveralls`
 is unchanged — it runs the identical `local` analyzer and produces the same
 pass/fail verdict.
