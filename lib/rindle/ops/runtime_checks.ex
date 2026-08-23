@@ -6,6 +6,7 @@ defmodule Rindle.Ops.RuntimeChecks do
   alias Rindle.Delivery
   alias Rindle.Migration.V1, as: MigrationV1
   alias Rindle.Ops.OwnershipSnapshot
+  alias Rindle.Ops.RuntimeChecks.{CoreChecks, OwnershipChecks}
   alias Rindle.Processor.AV
   alias Rindle.Processor.AV.RuntimeGuard
   alias Rindle.Storage.Local
@@ -138,21 +139,35 @@ defmodule Rindle.Ops.RuntimeChecks do
         []
       end
 
+    core_checks =
+      CoreChecks.schedule(profiles, probe, local_playback_route, resolved, env, %{
+        delivery_support: &check_delivery_support/1,
+        ffmpeg_runtime: &check_ffmpeg_runtime/1,
+        local_playback: &check_local_playback/2,
+        profile_runtime_fit: &check_profile_runtime_fit/2
+      })
+
+    ownership_checks =
+      OwnershipChecks.schedule(
+        migration_statuses,
+        rindle_schema_catalog,
+        resumable_session_schema_catalog,
+        ownership_snapshot,
+        profiles,
+        oban_config,
+        %{
+          migration_pending: &check_migration_pending/2,
+          migration_unresolved: &check_migration_unresolved/2,
+          resumable_session_schema: &check_resumable_session_schema/1,
+          rindle_schema_ready: &check_rindle_schema_ready/1,
+          oban_default_instance: &check_oban_default_instance/1,
+          oban_jobs_ready: &check_oban_jobs_ready/1,
+          oban_required_queues: &check_oban_required_queues/2
+        }
+      )
+
     checks =
-      ([
-         fn -> check_delivery_support(profiles) end,
-         fn -> check_ffmpeg_runtime(probe) end,
-         fn -> check_local_playback(profiles, local_playback_route) end,
-         fn -> check_migration_pending(migration_statuses, rindle_schema_catalog) end,
-         fn ->
-           check_migration_unresolved(migration_statuses, rindle_schema_catalog)
-         end,
-         fn -> check_resumable_session_schema(resumable_session_schema_catalog) end,
-         fn -> check_rindle_schema_ready(ownership_snapshot.rindle) end,
-         fn -> check_oban_default_instance(oban_config) end,
-         fn -> check_oban_jobs_ready(ownership_snapshot.oban) end,
-         fn -> check_oban_required_queues(profiles, oban_config) end,
-         fn -> check_profile_runtime_fit(resolved, env) end,
+      (core_checks ++ ownership_checks ++ [
          fn -> check_streaming_credentials(profiles, env) end,
          fn -> check_streaming_signing_key(profiles, env) end,
          fn -> check_streaming_webhook_secrets(profiles, env) end,
