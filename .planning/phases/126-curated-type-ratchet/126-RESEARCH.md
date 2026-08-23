@@ -15,7 +15,7 @@ The sole acceptance authority is `.github/workflows/nightly.yml` `dialyzer` (sin
 
 ## Inventory
 
-`.dialyzer_ignore.exs` is the entire curated baseline: **42 description-specific entries**. No entry may be widened to a file-only or regex-wide suppression.
+`.dialyzer_ignore.exs` is the entire curated baseline: **45 entries across 18 files**—8 legacy atom-class filters from Phase 34 and 37 description-specific filters from the v0.4.1 strict baseline. No entry may be widened to a file-only or regex-wide suppression.
 
 | Category | Owners | Disposition rule |
 |---|---|---|
@@ -35,7 +35,7 @@ For each exact `{path, description}` pair: reproduce on supported CI; identify t
 1. Add a focused baseline-policy ExUnit test for valid tuple shape, duplicate rejection, no file-wide ignores, and removal of a stale entry.
 2. Keep the two existing workflow/cache structural tests as topology regressions.
 3. Per owner slice: focused behavioral tests plus `bash scripts/maintainer/refactor_contract.sh` (SAFE-01).
-4. Final: supported Nightly `mix dialyzer --format github` succeeds on exact head; inspect `Nightly Summary`; post the sanitized baseline/result link to #76 and close it only when zero curated ignores remain.
+4. Final: supported Nightly `mix dialyzer --format github` succeeds on exact head; inspect `Nightly Summary`; post the sanitized baseline/result link to #76 and close it only when every obsolete or actionable ignore is gone and every retained analyzer-noise filter has an explicit supported-cell justification.
 
 ## Recommended Bounded Slices
 
@@ -47,7 +47,7 @@ For each exact `{path, description}` pair: reproduce on supported CI; identify t
 
 ## Boundaries and Risks
 
-Out of scope: public API, schemas/migrations, telemetry, error vocabulary, Admin behavior, dependencies, release topology, cache redesign, and local toolchain promotion. Major risks are opaque crypto/stream false positives and Ecto migration callback inference; treat both as retainable only with explicit supported-cell evidence. Issue #76 stays open until the final supported Nightly run is green and the baseline is retired; no partial closure.
+Out of scope: public API, schemas/migrations, telemetry, error vocabulary, Admin behavior, dependencies, release topology, cache redesign, and local toolchain promotion. Major risks are opaque crypto/stream false positives and Ecto migration callback inference; treat both as retainable only with explicit supported-cell evidence. Issue #76 stays open until the final supported Nightly run is green and the temporary strict baseline is retired; a small curated analyzer-noise remainder is acceptable only when each retained filter has an explicit supported-cell justification.
 
 ## Resolved Open Questions
 

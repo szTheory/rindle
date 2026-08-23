@@ -35,4 +35,4 @@ TYPE-01 is the Elixir 1.17 / OTP 27 home cell, not the local host toolchain. TYP
 
 ## Planning guidance
 
-Treat each ignore entry as debt with a named source/test owner. Start with a tracer that proves the supported home-cell baseline and validates strict ignore specificity; then retire warning groups by cohesive type boundary. Do not use unsupported local Dialyzer output to create or preserve ignores.
+Treat all 45 ignore entries—8 legacy atom-class filters and 37 strict description filters—as debt with a named source/test owner. Start with a tracer that proves the supported home-cell baseline and validates strict ignore specificity; then retire warning groups by cohesive type boundary. Close #76 only after the supported cell proves that no obsolete or actionable suppression remains and every retained analyzer-noise filter is explicitly justified. Do not use unsupported local Dialyzer output to create or preserve ignores.
