@@ -91,15 +91,17 @@ environment variables, or adopter data.
 
 Rindle Admin uses exactly six top-level surfaces:
 
-- Home/Status
-- Assets
-- Upload Sessions
-- Variants/Jobs
-- Runtime/Doctor
-- Actions
+- `Overview`
+- `Assets`
+- `Upload sessions`
+- `Processing`
+- `Doctor`
+- `Maintenance`
 
-These names are the navigation contract for the console. Do not replace
-them with decorative dashboard categories.
+These rendered names are the navigation contract for the console. Their route
+suffixes and internal active keys remain separate implementation contracts; do
+not replace the labels with decorative dashboard categories or copy them into
+route identifiers.
 
 ## Level-1 Component Inventory
 

@@ -6,7 +6,7 @@ defmodule Rindle.Delivery do
   and authorization (when configured) runs before any URL is issued.
 
   Production delivery remains redirect-oriented: Rindle resolves URLs and lets
-  the underlying storage or future streaming provider serve bytes directly.
+  the underlying storage or configured streaming provider serve bytes directly.
 
   Signed URL TTL guidance stays intentionally policy-level rather than
   widening the profile DSL:
@@ -148,21 +148,20 @@ defmodule Rindle.Delivery do
   @doc """
   Returns a streaming URL for an asset.
 
-  Phase 33 — Promotes the v1.4 no-op delegate to a deterministic 8-branch
-  dispatch tree (per CONTEXT D-19). When a profile has not opted into streaming
-  via the `:streaming` key, behaviour is byte-for-byte identical to v1.4:
-  progressive playback wrapped as `%{url, kind: :progressive, mime}` with the
-  existing `[:rindle, :delivery, :streaming, :resolved]` telemetry emit.
+  Streaming resolution uses a deterministic dispatch tree. When a profile has
+  not opted into streaming via the `:streaming` key, it returns progressive
+  playback wrapped as `%{url, kind: :progressive, mime}` and emits
+  `[:rindle, :delivery, :streaming, :resolved]` telemetry.
 
   When a profile has opted in:
 
-    1. profile streaming nil                → existing v1.4 progressive path (Branch 1)
+    1. profile streaming nil                → progressive path
     2. streaming + binary key               → :streaming_provider_requires_asset_struct (Branch 2)
     3. row in (pending|uploading|processing) → :provider_asset_not_ready (Branch 3)
-    4. row in :errored                      → :provider_sync_failed (Branch 4)
-    5. row in :ready + playback_id          → provider.signed_playback_url/3 (Branch 5)
+    4. row in :errored                      → :provider_sync_failed
+    5. row in :ready + playback_id          → provider.signed_playback_url/3
     6. no row + opts[:strict] == false      → progressive fallback (Branch 6)
-    7. no row + opts[:strict] == true       → :provider_asset_not_ready (Branch 7, D-20)
+    7. no row + opts[:strict] == true       → :provider_asset_not_ready
 
   `[:rindle, :delivery, :streaming, :resolved]` telemetry is preserved verbatim
   on Branches 1 and 6 (`kind: :progressive`); fires with `kind: :hls` on Branch 5
@@ -189,8 +188,8 @@ defmodule Rindle.Delivery do
     end
   end
 
-  # Preserves the v1.4 body verbatim. Called from Branch 1 AND Branch 6 (no row,
-  # non-strict). D-24 — telemetry contract preservation.
+  # The progressive path serves profiles without streaming configuration and
+  # non-strict assets without a provider row while preserving its telemetry contract.
   defp do_progressive_streaming_url(profile, key, opts) when is_binary(key) do
     opts = normalize_delivery_opts(key, opts)
     mime = Keyword.get(opts, :mime, "video/mp4")
@@ -356,8 +355,7 @@ defmodule Rindle.Delivery do
 
   # WR-04 — cross-check the persisted policy/mode on a :ready row against the
   # live streaming_config. nil row fields are treated as "not yet recorded"
-  # and skipped (no drift), matching how D-19 historically used `state` as the
-  # source of truth pre-Phase 33. When BOTH the row and the config carry a
+  # and skipped (no drift). When BOTH the row and the config carry a
   # value AND they disagree, return drift metadata so the dispatch layer can
   # emit a warning telemetry event and refuse the URL.
   defp streaming_config_drift(

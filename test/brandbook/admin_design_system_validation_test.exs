@@ -20,6 +20,18 @@ defmodule Rindle.Brandbook.AdminDesignSystemValidationTest do
   # The six task-first nav labels in canonical §E order (D-98-03). Slugs/suffixes are
   # frozen behavior contracts; only the human label changed off the legacy slashed names.
   @nav_labels ["Overview", "Assets", "Upload sessions", "Processing", "Doctor", "Maintenance"]
+  @admin_navigation_guides [
+    "guides/admin_console.md",
+    "guides/admin_console_ia.md",
+    "guides/admin_design_system.md"
+  ]
+  @retired_nav_labels [
+    "Home/Status",
+    "Upload Sessions",
+    "Variants/Jobs",
+    "Runtime/Doctor",
+    "Actions"
+  ]
 
   # §F R4 hype words + §F R5 vague standalone labels — must NEVER appear in admin markup.
   @denylist_words ~w(blazing seamless effortless powerful revolutionary supercharge
@@ -477,19 +489,7 @@ defmodule Rindle.Brandbook.AdminDesignSystemValidationTest do
 
   describe "§E task-first IA (D-98-03/10)" do
     test "nav renders exactly the six task-first labels in canonical order" do
-      html = shell_html()
-
-      offsets =
-        Enum.map(@nav_labels, fn label ->
-          assert {offset, _len} =
-                   :binary.match(html, ">\n                #{label}\n")
-                   |> normalize_match(html, label),
-                 "nav missing label #{label}"
-
-          offset
-        end)
-
-      assert offsets == Enum.sort(offsets), "nav labels out of §E order"
+      assert rendered_nav_labels() == @nav_labels
     end
 
     test "no legacy slashed / verb-bucket nav label survives" do
@@ -497,6 +497,25 @@ defmodule Rindle.Brandbook.AdminDesignSystemValidationTest do
 
       for legacy <- ["Home/Status", "Variants/Jobs", "Runtime/Doctor"] do
         refute src =~ ~s(name: "#{legacy}"), "legacy nav label #{legacy} still present"
+      end
+    end
+
+    test "Admin navigation guides mirror rendered labels and reject retired labels" do
+      rendered_labels = rendered_nav_labels()
+
+      assert rendered_labels == @nav_labels
+
+      for guide_path <- @admin_navigation_guides,
+          guide = read!(guide_path),
+          label <- rendered_labels do
+        assert guide =~ "`#{label}`", "#{guide_path} is missing rendered label #{label}"
+      end
+
+      for guide_path <- @admin_navigation_guides,
+          guide = read!(guide_path),
+          retired_label <- @retired_nav_labels do
+        refute guide =~ "`#{retired_label}`",
+               "#{guide_path} still presents retired label #{retired_label}"
       end
     end
 
@@ -601,10 +620,12 @@ defmodule Rindle.Brandbook.AdminDesignSystemValidationTest do
     })
   end
 
-  # :binary.match over a hand-built needle is brittle to HEEx whitespace; fall back to a
-  # plain label match if the formatted needle misses, so the order assertion stays robust.
-  defp normalize_match(:nomatch, html, label), do: :binary.match(html, label)
-  defp normalize_match(match, _html, _label), do: match
+  defp rendered_nav_labels do
+    shell_html()
+    |> LazyHTML.from_fragment()
+    |> LazyHTML.query("[data-rindle-admin-nav-item]")
+    |> Enum.map(&(LazyHTML.text(&1) |> String.trim()))
+  end
 
   defp run_node(script) do
     node = System.find_executable("node") || flunk("node executable is required for #{script}")

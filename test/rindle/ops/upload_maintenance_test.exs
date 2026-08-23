@@ -682,12 +682,10 @@ defmodule Rindle.Ops.UploadMaintenanceTest do
     end
 
     # -------------------------------------------------------------------------
-    # TUS-09 reaper branch: tus sessions abort the S3 multipart upload, NOT the
-    # provider-direct resumable session URI. EXPECTED RED until Plan 03 adds the
-    # `tus_session?/1` branch to expire_session/2 — today a tus session matches
-    # resumable_abort_session?/1 and is mis-routed to cancel_resumable_upload via
-    # resolve_resumable_adapter (which requires the :resumable_upload_session cap
-    # S3/Local do NOT advertise) -> the S3 multipart is never aborted -> LEAK.
+    # Tus sessions abort their S3 multipart upload, rather than a provider-direct
+    # resumable session URI. The expiry router checks `tus_session?/1` before the
+    # provider-direct branch so S3 and Local sessions use multipart abort even
+    # though they do not advertise :resumable_upload_session.
     # -------------------------------------------------------------------------
 
     test "aborts an expired tus session via abort_multipart_upload, not cancel_resumable_upload" do

@@ -1,8 +1,8 @@
 defmodule Rindle.Storage.S3TusTest do
   @moduledoc """
-  Wave-0 RED unit specs for the S3 tail-buffer math behind `upload_part_stream/5`
-  (TUS-06). NO network: every assertion drives the pure S3 part-streaming logic
-  against on-disk temp files only.
+  Unit specs for the S3 tail-buffer math behind `upload_part_stream/5` (TUS-06).
+  No network is required: every assertion drives the S3 part-streaming logic against
+  on-disk temporary files.
 
   S3 requires every NON-final multipart part to be >= 5 MiB. A tus PATCH may
   carry fewer bytes (especially a resumed tail), so the adapter buffers bytes on
@@ -10,10 +10,9 @@ defmodule Rindle.Storage.S3TusTest do
   remainder buffered across PATCHes. On completion the leftover tail (any size)
   is flushed as the final part. These specs pin that slice/accumulate contract.
 
-  EXPECTED RED until Plan 02 lands `Rindle.Storage.S3.upload_part_stream/5` +
-  `complete_part_stream/4`. The file compiles cleanly today; the calls raise
-  `UndefinedFunctionError` (a loud runtime failure, not a CompileError) until the
-  impl exists. When Plan 02 ships, these go GREEN unchanged.
+  The tests cover `Rindle.Storage.S3.upload_part_stream/5` and
+  `complete_part_stream/4` directly so the buffering contract stays independent of
+  the Plug layer.
   """
   use ExUnit.Case, async: true
 
@@ -42,11 +41,9 @@ defmodule Rindle.Storage.S3TusTest do
 
   # The pure tail-buffer logic must NOT require S3 for buffering decisions: a
   # sub-5-MiB PATCH never reaches the network (no UploadPart issued), so these
-  # specs hold even with no MinIO. The >= 5-MiB slice path DOES issue an
-  # UploadPart; those calls will surface a transport error (no live S3) which is
-  # itself a RED signal that the slice path was reached — Plan 02 turns the math
-  # GREEN and the MinIO round-trip (s3_test.exs / tus_s3_integration_test.exs)
-  # proves the live UploadPart.
+  # specs hold even with no MinIO. The >= 5-MiB slice path issues an UploadPart;
+  # the MinIO round-trip suites (`s3_test.exs` and `tus_s3_integration_test.exs`)
+  # prove that live operation.
 
   describe "tail-buffer accumulate (TUS-06): sub-5-MiB PATCH produces zero parts" do
     test "a single sub-5-MiB PATCH leaves the tail < 5 MiB and emits no parts", %{root: root} do
@@ -243,9 +240,9 @@ defmodule Rindle.Storage.S3TusTest do
       refute File.exists?(S3.tus_tail_path(key, root: root))
 
       # A sub-5-MiB body so the slice path (live UploadPart) is never reached
-      # even if the guard were absent — the guard fires first, offline. Pre-fix
-      # the guard sees parts == [] -> :ok and silently appends to a fresh empty
-      # tail (corruption); post-fix it fails loudly.
+      # even if the guard were absent — the guard fires first, offline. A fresh
+      # empty tail would silently corrupt the assembled object, so this path must
+      # fail loudly.
       bytes = String.duplicate("x", 1024 * 1024)
 
       assert {:error, :tus_tail_missing} = patch(key, bytes, 3 * 1024 * 1024, state, root)

@@ -60,7 +60,7 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 ## Phases
 
 - [x] **Phase 121: Truthful Quality Signals & Mechanical Hygiene** - Restore blocking, evidence-based quality gates and establish the invariant-preserving refactor contract. (completed 2026-08-22)
-- [ ] **Phase 122: Live Truth & Compile Clarity** - Reconcile live source and documentation truth while removing the internal schema compile cycle.
+- [x] **Phase 122: Live Truth & Compile Clarity** - Reconcile live source and documentation truth while removing the internal schema compile cycle. (completed 2026-08-23)
 - [ ] **Phase 123: Runtime Operations Decomposition** - Make runtime diagnostics, migration preflight, and status code easier to reason about without contract drift.
 - [ ] **Phase 124: Upload Path Clarity** - Decompose tus and broker internals into cohesive, contract-preserving boundaries.
 - [ ] **Phase 125: Behavioral Test Support** - Replace oversized and self-inspecting test support with focused behavioral proof and async-isolation evidence.
@@ -110,7 +110,21 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
   2. Current maintainer and adopter documentation accurately describes implemented CI lanes, support posture, Admin navigation labels, and shipped tus and streaming behavior without forward-looking claims that are no longer true.
   3. Contributors can compile and inspect the project without the `Rindle.Schema` seven-module cycle, while public schema ownership and prefix behavior remain byte-for-byte compatible.
 
-**Plans**: TBD
+**Plans**: 5/5 plans executed and verified
+
+**Wave 1 — compile truth**
+
+- [x] 122-01-PLAN.md — Remove the schema compile cycle and compose objective xref proof into SAFE-01.
+
+**Wave 2 — bounded live truth** *(blocked on Wave 1)*
+
+- [x] 122-02-PLAN.md — Replace stale source chronology with current domain rationale.
+- [x] 122-03-PLAN.md — Replace stale upload-test chronology with observable contract language.
+- [x] 122-04-PLAN.md — Align Admin guides with rendered labels and host-owned security boundaries.
+
+**Wave 3 — adopter/maintainer truth and phase gate** *(blocked on Waves 1–2)*
+
+- [x] 122-05-PLAN.md — Reconcile CI/support/tus/streaming docs and run full preservation proof.
 
 ### Phase 123: Runtime Operations Decomposition
 
@@ -168,7 +182,7 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 121. Truthful Quality Signals & Mechanical Hygiene | 7/7 | Complete    | 2026-08-22 |
-| 122. Live Truth & Compile Clarity | 0/TBD | Not started | - |
+| 122. Live Truth & Compile Clarity | 4/5 | In Progress|  |
 | 123. Runtime Operations Decomposition | 0/TBD | Not started | - |
 | 124. Upload Path Clarity | 0/TBD | Not started | - |
 | 125. Behavioral Test Support | 0/TBD | Not started | - |

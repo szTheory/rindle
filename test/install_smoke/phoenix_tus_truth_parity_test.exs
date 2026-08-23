@@ -14,11 +14,15 @@ defmodule Rindle.InstallSmoke.PhoenixTusTruthParityTest do
   use ExUnit.Case, async: true
 
   @guide_path Path.expand("../../guides/resumable_uploads.md", __DIR__)
+  @storage_capabilities_path Path.expand("../../guides/storage_capabilities.md", __DIR__)
+  @profiles_guide_path Path.expand("../../guides/profiles.md", __DIR__)
   @live_view_path Path.expand("../../lib/rindle/live_view.ex", __DIR__)
   @generated_helper_path Path.expand("support/generated_app_helper.ex", __DIR__)
 
   test "guide, helper seam, and generated-app proof freeze the Phase 50 Phoenix contract" do
     guide = File.read!(@guide_path)
+    storage_capabilities = File.read!(@storage_capabilities_path)
+    profiles_guide = File.read!(@profiles_guide_path)
     live_view = File.read!(@live_view_path)
     generated_helper = File.read!(@generated_helper_path)
 
@@ -64,5 +68,24 @@ defmodule Rindle.InstallSmoke.PhoenixTusTruthParityTest do
 
     assert generated_helper =~ ~s(phoenix_state_sequence: ["uploading", "verifying", "ready"])
     assert generated_helper =~ ~s(phoenix_error_state: "error")
+
+    for doc <- [guide, storage_capabilities, profiles_guide] do
+      assert doc =~ "Local/S3"
+      assert doc =~ ":tus_upload"
+      assert Regex.match?(~r/GCS\s+provider-direct/, doc)
+    end
+
+    assert storage_capabilities =~ "Cloudflare R2"
+    assert storage_capabilities =~ "server-mediated tus edge is available through that adapter"
+
+    assert guide =~ "no silent fallback"
+    assert storage_capabilities =~ "silently falls back"
+    assert Regex.match?(~r/does not\s+silently downgrade/, profiles_guide)
+  end
+
+  test "shipped storage adapters advertise the documented tus boundary" do
+    assert :tus_upload in Rindle.Storage.Local.capabilities()
+    assert :tus_upload in Rindle.Storage.S3.capabilities()
+    refute :tus_upload in Rindle.Storage.GCS.capabilities()
   end
 end

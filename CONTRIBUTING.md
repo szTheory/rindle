@@ -38,6 +38,10 @@ individual matrix-leg / lane names are intentionally *not* required contexts; on
 `CI Summary` is. `mix ci` mirrors that gate's PR-side check set locally — green `mix ci`
 means the PR-side `CI Summary` inputs should be green too.
 
+The supported acceptance cells are the repository CI matrix, including Elixir 1.17/OTP
+27. A newer local Elixir/OTP pair can help diagnose an issue, but it is not the authority
+for Rindle's supported-toolchain claim.
+
 `mix ci` mirrors **only** the merge-blocking PR set. It does **not** run the
 push:main / nightly / label-gated lanes (the full five-profile package-consumer matrix +
 release preflight + `hex.publish --dry-run`, the Playwright browser E2E, the Docker-compose

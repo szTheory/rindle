@@ -111,9 +111,9 @@ defmodule Rindle.Storage.StorageAdapterTest do
   test "capability lists are truthful for all adapters" do
     assert [:local, :presigned_put, :tus_upload] == Local.capabilities()
 
-    # TUS-07: S3 advertises :tus_upload once Plan 02 lands upload_part_stream/5.
-    # EXPECTED RED until then (capability honesty, D-09 — advertise only what is
-    # implemented).
+    # S3 advertises :tus_upload because it implements the server-mediated part
+    # streaming and completion callbacks. Capabilities advertise only shipped
+    # adapter behavior.
     assert [:presigned_put, :head, :signed_url, :multipart_upload, :tus_upload] ==
              S3.capabilities()
 

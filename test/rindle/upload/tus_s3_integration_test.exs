@@ -7,9 +7,9 @@ defmodule Rindle.Upload.TusS3IntegrationTest do
   for the abandoned key).
 
   `@moduletag :minio` — EXCLUDED from the default `mix test` run (the harness only
-  runs it when MinIO is configured + the `:minio` tag is included). It MUST
-  compile cleanly today. Plan 05 fills in the live S3 dispatch body against the
-  running MinIO service; the steps below are the executable contract it satisfies.
+  runs it when MinIO is configured + the `:minio` tag is included). With that
+  service available, these tests exercise the shipped S3 dispatch boundary; the
+  steps below name the observable contract it preserves.
 
   Why >= 1 GiB: the proof is that bytes never accumulate in BEAM memory and that
   the S3 tail-buffer slices real multipart parts across a drop. Size, not

@@ -16,6 +16,9 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
   @admin_console_path Path.expand("../../guides/admin_console.md", __DIR__)
   @mix_exs_path Path.expand("../../mix.exs", __DIR__)
   @migration_module_path Path.expand("../../lib/rindle/migration.ex", __DIR__)
+  @ci_workflow_path Path.expand("../../.github/workflows/ci.yml", __DIR__)
+  @ci_summary_path Path.expand("../../scripts/ci/eval_ci_summary.sh", __DIR__)
+  @tool_versions_path Path.expand("../../.tool-versions", __DIR__)
 
   @expected_tus_extensions "creation,expiration,termination,checksum,creation-defer-length,concatenation"
 
@@ -44,8 +47,39 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
        release: File.read!(@release_path),
        running: File.read!(@running_path),
        user_flows: File.read!(@user_flows_path),
-       migration_module: File.read!(@migration_module_path)
+       migration_module: File.read!(@migration_module_path),
+       ci_workflow: File.read!(@ci_workflow_path),
+       ci_summary: File.read!(@ci_summary_path),
+       tool_versions: File.read!(@tool_versions_path)
      }}
+  end
+
+  test "root documentation derives CI and supported-toolchain posture from shipped policy", %{
+    readme: readme,
+    contributing: contributing,
+    running: running,
+    ci_workflow: ci_workflow,
+    ci_summary: ci_summary,
+    tool_versions: tool_versions
+  } do
+    assert ci_workflow =~ "name: CI Summary"
+    assert ci_workflow =~ "- package-consumer"
+    refute ci_workflow =~ "- package-consumer-full\n    if: always()"
+    assert ci_summary =~ "success|skipped"
+    assert tool_versions =~ "elixir 1.17"
+    assert tool_versions =~ "erlang 27"
+
+    for doc <- [readme, contributing, running] do
+      assert doc =~ "CI Summary"
+    end
+
+    for doc <- [readme, contributing, running] do
+      assert Regex.match?(~r/Elixir 1\.17\/OTP\s+27/, doc)
+    end
+
+    assert running =~ "package-consumer-full"
+    assert running =~ "off-critical-path"
+    assert contributing =~ "skipped` counts as pass"
   end
 
   test "README and CONTRIBUTING state the shared pre-1.0 stability contract", %{

@@ -1,16 +1,15 @@
 defmodule Rindle.Upload.TusPlugTest do
   @moduledoc """
-  Contract test for the tus protocol edge `Rindle.Upload.TusPlug` (Plan 02 — the
-  create/read half). The path-segment token extraction under `forward` (Landmine 1)
-  is de-risked FIRST, via a real `Plug.Router` `forward` so the prefix-strip is
-  exercised, not assumed.
+  Contract tests for the `Rindle.Upload.TusPlug` protocol edge. A real
+  `Plug.Router` `forward` exercises path-segment token extraction after the mounted
+  prefix is stripped, rather than assuming that routing boundary.
   """
 
   use Rindle.DataCase, async: false
   use Oban.Testing, repo: Rindle.Adopter.CanonicalApp.Repo
 
   # why: swaps :rindle, :repo to an adopter/probe repo to exercise Config.repo/0
-  # resolution — not the counting-double cross-pollution; see Phase 110 D-09.
+  # resolution rather than the counting-double cross-pollution.
   @moduletag async_safety_allow: [:global_repo_swap]
 
   import Plug.Test
@@ -175,7 +174,7 @@ defmodule Rindle.Upload.TusPlugTest do
     conn(:head, "/uploads/tus/" <> token) |> TusPlug.call(opts)
   end
 
-  describe "Task 1 — Wave-0 de-risk: init/1 capability raise + method guard" do
+  describe "initialization capability validation and method guard" do
     test "init/1 raises ArgumentError when the adapter lacks :tus_upload (no silent downgrade)" do
       assert_raise ArgumentError, ~r/:tus_upload/, fn ->
         TusPlug.init(profile: NoTusProfile, secret_key_base: @secret_key_base)
@@ -380,7 +379,7 @@ defmodule Rindle.Upload.TusPlugTest do
     end
   end
 
-  describe "Phase 44 — optional resume authorizer" do
+  describe "optional resume authorization" do
     setup :set_mox_from_context
     setup :verify_on_exit!
 
@@ -427,7 +426,7 @@ defmodule Rindle.Upload.TusPlugTest do
     end
   end
 
-  describe "Plan 03 Task 1 — PATCH gates (415/409/413) + streaming append" do
+  describe "PATCH content, offset, size, and streaming append gates" do
     test "PATCH with the wrong Content-Type returns 415 without reading the body", %{root: root} do
       opts = opts_for(root)
       {token, sid} = create(opts, 100)
@@ -487,10 +486,10 @@ defmodule Rindle.Upload.TusPlugTest do
     end
   end
 
-  describe "Plan 03 Task 2 — DELETE termination" do
+  describe "DELETE termination" do
     test "DELETE with a valid token returns 204, aborts the session AND removes the Local backing part (CR-01)",
          %{root: root} do
-      # CR-01 (Plan 09): DELETE now ACTIVELY aborts the backing store before the
+      # DELETE actively aborts the backing store before the
       # state transition — for a Local-backed session that means the per-session
       # tmp part file is removed by the DELETE itself, not left for the reaper.
       opts = opts_for(root)
@@ -525,7 +524,7 @@ defmodule Rindle.Upload.TusPlugTest do
     end
   end
 
-  describe "Plan 09 — DELETE aborts the backing store BEFORE the transition (CR-01) + honours update (WR-02)" do
+  describe "DELETE aborts the backing store before its state transition" do
     setup :set_mox_from_context
     setup :verify_on_exit!
 
@@ -631,11 +630,11 @@ defmodule Rindle.Upload.TusPlugTest do
 
     # -------------------------------------------------------------------------
     # CR-01 (Plug half): a DELETE whose backing abort fails transiently must
-    # persist a retryable `tus_abort_failed:%` marker on the row (so the Task-1
+    # persist a retryable `tus_abort_failed:%` marker on the row so the
     # reaper query re-aborts the orphaned multipart) while STILL returning 204 to
     # the client (the cancel is accepted; the cost-leak compensation is the
-    # reaper's job). Pre-fix `abort_delete_backing/2` swallows the {:error,_} and
-    # returns :ok, so failure_reason stays nil and the orphan leaks forever (RED).
+    # reaper can retry it. The client-facing cancellation remains accepted while
+    # maintenance compensates for the backing-store failure.
     # -------------------------------------------------------------------------
 
     test "DELETE persists the tus_abort_failed marker (and still returns 204) when the backing abort fails (CR-01 Plug half)",
@@ -675,13 +674,11 @@ defmodule Rindle.Upload.TusPlugTest do
     end
   end
 
-  describe "Plan 04 — polymorphic adapter dispatch (TUS-06/08, RED until Plan 04)" do
+  describe "polymorphic storage adapter dispatch" do
     # These specs prove TusPlug routes PATCH/completion through the storage
-    # behaviour rather than the hard-wired Local helpers. EXPECTED RED until
-    # Plan 04 replaces the Local.tus_part_path/Local.tus_complete calls with
-    # adapter.upload_part_stream/5 + adapter.complete_part_stream/4. Today the
-    # Plug never touches the adapter for PATCH bytes, so the Mox expectations go
-    # unsatisfied -> verify_on_exit! fails (RED).
+    # behaviour rather than hard-wired Local helpers. PATCH bytes use
+    # adapter.upload_part_stream/5 and completion uses adapter.complete_part_stream/4,
+    # so the Mox expectations expose an accidental concrete-adapter dependency.
     setup :set_mox_from_context
     setup :verify_on_exit!
 
@@ -784,10 +781,9 @@ defmodule Rindle.Upload.TusPlugTest do
     end
   end
 
-  describe "Plan 03 Task 3 — full tus-js-client-shaped resume contract flow" do
-    # Phase 42 proves the tus wire sequence via Plug.Test synthetic conns; the live
-    # Node tus-js-client + MinIO proof is Phase 44 (RESEARCH Open Question 3) — the
-    # verifier should NOT expect a Node harness here.
+  describe "full tus-client-shaped resume contract flow" do
+    # This suite proves the tus wire sequence with synthetic Plug connections;
+    # browser-client and MinIO coverage belongs to the dedicated integration suite.
     test "POST -> HEAD -> PATCH(partial) -> drop(409) -> HEAD -> PATCH(resume) -> completion -> validating",
          %{root: root} do
       opts = opts_for(root)

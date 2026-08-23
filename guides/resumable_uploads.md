@@ -5,6 +5,10 @@ covers the adopter-owned wiring: endpoint mount, client configuration,
 capability checks, and the constraints you must keep in mind when resuming
 uploads against Local or S3-backed storage.
 
+Local/S3 support this server-mediated tus path through `:tus_upload`. GCS
+provider-direct resumability is a separate adapter capability and does not become
+a tus fallback; unsupported selections fail instead of changing upload protocols.
+
 Supported tus extensions: creation, expiration, termination, checksum, creation-defer-length, concatenation.
 
 This guide covers:

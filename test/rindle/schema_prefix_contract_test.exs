@@ -36,7 +36,9 @@ defmodule Rindle.SchemaPrefixContractTest do
 
     for schema <- @domain_schemas do
       assert schema.__schema__(:prefix) == Rindle.Schema.prefix()
+      assert schema.__schema__(:prefix) == Rindle.Config.rindle_prefix()
       assert struct(schema).__meta__.prefix == Rindle.Schema.prefix()
+      assert struct(schema).__meta__.prefix == Rindle.Config.rindle_prefix()
     end
   end
 

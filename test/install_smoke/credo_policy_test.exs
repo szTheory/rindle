@@ -122,6 +122,18 @@ defmodule Rindle.CredoPolicyTest do
     assert normalizer =~ "was (?<metric>"
   end
 
+  test "normalizers never compile while JSON is redirected" do
+    script = File.read!(@aggregate_path)
+
+    assert script =~
+             "mix run --no-compile --no-start scripts/maintainer/credo_quality_normalize.exs issues"
+
+    assert script =~
+             "mix run --no-compile --no-start scripts/maintainer/credo_quality_normalize.exs baseline"
+
+    refute script =~ "mix run --no-start scripts/maintainer/credo_quality_normalize.exs"
+  end
+
   defp warning_check?({module, _options}),
     do: module |> Atom.to_string() |> String.starts_with?("Elixir.Credo.Check.Warning.")
 

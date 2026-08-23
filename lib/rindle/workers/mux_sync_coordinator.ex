@@ -25,8 +25,7 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
 
     Cron resolution is 1 minute (`Oban.Plugins.Cron` docs); the coordinator's
     internal query enforces the `provider_polling_floor_seconds: 30` floor so
-    rows that were just touched by a webhook (Phase 35) are not redundantly
-    polled.
+    rows that were just touched by a webhook are not redundantly polled.
 
     ## Job Arguments
 
@@ -45,9 +44,8 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
 
     Per-row unique constraint (`unique: [period: 60, keys: [:provider_asset_id]]`)
     deduplicates within the 60s window — the second cron tick will not
-    re-fan-out a still-running per-row job. Phase 34 ships unbounded scan;
-    if real-world adopter feedback shows queue floods (>1k stuck rows), add
-    a `LIMIT` cap in v1.7.
+    re-fan-out a still-running per-row job. The query orders oldest rows first
+    and applies its configured batch cap to bound each fan-out.
 
     ## Observability
 
@@ -84,9 +82,8 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
       limit = config(:provider_polling_batch_size, 1_000)
       cutoff = DateTime.add(DateTime.utc_now(), -floor, :second)
 
-      # WAIVED (POLISH-01/D-13): WR-07 was a documented v1.7 deferral (unbounded
-      # scan; add LIMIT only on a >1k-stuck-rows adopter signal). No behavior
-      # change is required here — the `limit`/`order_by` cap is already in place.
+      # The configured `limit` and oldest-first ordering bound work while
+      # prioritizing rows that have waited longest for a provider update.
       provider_asset_ids =
         repo.all(
           from r in MediaProviderAsset,

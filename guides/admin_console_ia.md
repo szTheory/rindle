@@ -20,32 +20,32 @@ The console has exactly these top-level surfaces:
 
 | Surface | Operator job | Read/action boundary |
 | --- | --- | --- |
-| `Home/Status` | See whether Rindle is healthy and what needs attention next. | Read-only summary from `Rindle.Admin.Queries`, `Rindle.Ops.RuntimeStatus`, and doctor output. |
+| `Overview` | See whether Rindle is healthy and what needs attention next. | Read-only summary from `Rindle.Admin.Queries`, `Rindle.Ops.RuntimeStatus`, and Doctor output. |
 | `Assets` | Find assets by lifecycle state and inspect detail/timeline. | Read-only query surface over media assets, variants, attachments, and state history. |
-| `Upload Sessions` | Diagnose stuck, failed, expired, or resumable uploads. | Read-only query surface over upload-session lifecycle state. |
-| `Variants/Jobs` | Inspect ready, stale, failed, cancelled, queued, or missing variants and related work. | Read-only query surface over variants, jobs, and recommendations. |
-| `Runtime/Doctor` | Validate setup, runtime drift, and environment prerequisites. | Read-only doctor/runtime status results first. |
-| `Actions` | Run repair, erasure, regeneration, quarantine, and lifecycle operations deliberately. | Action surface using existing facade/ops capabilities after diagnostics. |
+| `Upload sessions` | Diagnose stuck, failed, expired, or resumable uploads. | Read-only query surface over upload-session lifecycle state. |
+| `Processing` | Inspect ready, stale, failed, cancelled, queued, or missing variants and related work. | Read-only query surface over variants, jobs, and recommendations. |
+| `Doctor` | Validate setup, runtime drift, and environment prerequisites. | Read-only doctor/runtime status results first. |
+| `Maintenance` | Run repair, erasure, regeneration, quarantine, and lifecycle operations deliberately. | Action surface using existing facade/ops capabilities after diagnostics. |
 
 ## Persona And JTBD Map
 
 | Persona | Job to be done | Starts at | Goes deeper |
 | --- | --- | --- | --- |
-| Maintainer/operator | See if media lifecycle work is healthy before users notice issues. | `Home/Status` | `Runtime/Doctor`, `Variants/Jobs`, then `Actions` only if repair is needed. |
+| Maintainer/operator | See if media lifecycle work is healthy before users notice issues. | `Overview` | `Doctor`, `Processing`, then `Maintenance` only if repair is needed. |
 | Support engineer | Investigate a user report about missing, delayed, or unsafe media. | `Assets` | Asset detail, upload sessions, variants/jobs, then a scoped action with receipt. |
-| Adopter developer | Verify integration wiring, seeds, and demo behavior while developing. | `Runtime/Doctor` | `Upload Sessions`, `Assets`, and deterministic test selectors documented in UI principles. |
+| Adopter developer | Verify integration wiring, seeds, and demo behavior while developing. | `Doctor` | `Upload sessions`, `Assets`, and deterministic test selectors documented in UI principles. |
 
 ## Find Your Job
 
 | When you want to... | You reach for... | Why |
 | --- | --- | --- |
-| Know whether the installation is healthy | `Home/Status` | It summarizes blocked work and the next required action. |
-| Check environment and runtime prerequisites | `Runtime/Doctor` | It keeps setup validation separate from repair. |
+| Know whether the installation is healthy | `Overview` | It summarizes blocked work and the next required action. |
+| Check environment and runtime prerequisites | `Doctor` | It keeps setup validation separate from repair. |
 | Find a specific media asset or lifecycle state | `Assets` | It maps to first-class `MediaAsset` state. |
-| Understand upload residue or failed/resumable sessions | `Upload Sessions` | It maps to `MediaUploadSession` state. |
-| Inspect stale, missing, failed, or processing derivatives | `Variants/Jobs` | It maps to `MediaVariant` state and Oban-backed runtime findings. |
-| Repair lifecycle drift | `Actions` | Actions stay separated from diagnostics and require confirmation. |
-| Delete one or more owners' Rindle-managed media links | `Actions` | Owner erasure and batch erasure require collateral preview and typed confirmation. |
+| Understand upload residue or failed/resumable sessions | `Upload sessions` | It maps to `MediaUploadSession` state. |
+| Inspect stale, missing, failed, or processing derivatives | `Processing` | It maps to `MediaVariant` state and Oban-backed runtime findings. |
+| Repair lifecycle drift | `Maintenance` | Maintenance stays separated from diagnostics and requires confirmation. |
+| Delete one or more owners' Rindle-managed media links | `Maintenance` | Owner erasure and batch erasure require collateral preview and typed confirmation. |
 
 ## Diagnostics Before Actions
 
@@ -65,12 +65,12 @@ un-quarantine write path or direct row mutation. Current un-quarantine remains a
 audited exception.
 
 Do not put destructive buttons on status summaries. Status screens may link to the
-relevant action flow, but the action itself starts on `Actions` with context and
+relevant action flow, but the action itself starts on `Maintenance` with context and
 confirmation.
 
 ## Surface Details
 
-### Home/Status
+### Overview
 
 Purpose: show readiness, blocked work, and the next required action.
 
@@ -96,7 +96,7 @@ Content:
 - timeline or state history when available
 - links to owner erasure or repair flows only where appropriate
 
-### Upload Sessions
+### Upload sessions
 
 Purpose: diagnose incomplete, expired, resumable, failed, or stuck upload work.
 
@@ -108,7 +108,7 @@ Content:
 - expiration and failure reason
 - cleanup guidance when residue is expired
 
-### Variants/Jobs
+### Processing
 
 Purpose: inspect derivative work without making the operator spelunk through Oban.
 
@@ -120,7 +120,7 @@ Content:
 - recommended repair lane
 - job correlation where the implementation can provide it safely
 
-### Runtime/Doctor
+### Doctor
 
 Purpose: keep setup checks and runtime drift visible and read-only.
 
@@ -131,7 +131,7 @@ Content:
 - provider-stuck and upload residue findings
 - recommended next surface
 
-### Actions
+### Maintenance
 
 Purpose: make existing operations executable with deliberate UX.
 
@@ -161,7 +161,7 @@ continues to expose lifecycle operations; the admin console has its own query na
 
 Use ordered steps only when sequence matters:
 
-1. Diagnose with `Runtime/Doctor`.
+1. Diagnose with `Doctor`.
 2. Inspect the affected asset/session/variant.
 3. Preview collateral impact.
 4. Confirm deliberately.

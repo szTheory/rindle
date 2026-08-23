@@ -12,11 +12,11 @@ fail() {
 }
 
 normalize_issues() {
-  mix run --no-start scripts/maintainer/credo_quality_normalize.exs issues
+  mix run --no-compile --no-start scripts/maintainer/credo_quality_normalize.exs issues
 }
 
 normalize_baseline() {
-  mix run --no-start scripts/maintainer/credo_quality_normalize.exs baseline
+  mix run --no-compile --no-start scripts/maintainer/credo_quality_normalize.exs baseline
 }
 
 [ -f "$baseline_path" ] || fail "baseline not found: $baseline_path"

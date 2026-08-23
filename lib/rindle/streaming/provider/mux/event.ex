@@ -1,14 +1,14 @@
 defmodule Rindle.Streaming.Provider.Mux.Event do
   @moduledoc false
 
-  # Pure-Elixir webhook event normalizer. NOT wrapped in an optional-dep guard
-  # (Pitfall 4) — this module references no Mux SDK symbols, so it is safe to
-  # compile in adopter envs without `:mux` loaded. Phase 35 wires this into
-  # `Rindle.Delivery.WebhookPlug`; Phase 34 only ships the callback path.
+  # Pure-Elixir webhook event normalizer. NOT wrapped in an optional-dep guard:
+  # this module references no Mux SDK symbols, so it is safe to compile in
+  # adopter environments without `:mux` loaded. `Rindle.Delivery.WebhookPlug`
+  # uses it at the webhook boundary.
 
   @doc """
   Normalize a Mux webhook event JSON map (already `Jason.decode!/1`-parsed)
-  into the locked Phase 33 `provider_event` shape (see
+  into Rindle's `provider_event` shape (see
   `Rindle.Streaming.Provider.@type provider_event`).
 
   Returns `{:error, :provider_webhook_invalid}` for malformed payloads.
@@ -20,8 +20,8 @@ defmodule Rindle.Streaming.Provider.Mux.Event do
   asset id) and `data.asset_id` is the asset id. Without the typed branch
   below, the generic clause would mis-attribute `data.id` to
   `provider_asset_id` — silent data corruption when direct-creator-upload links
-  creator uploads. Phase 35 lands the typed branch as forward-compat; the
-  Phase 35 worker no-ops on `:upload_asset_created` (D-27).
+  creator uploads. The typed event keeps the upload identifier distinct from
+  the provider asset identifier for downstream webhook handling.
   """
   @spec normalize(map()) :: {:ok, map()} | {:error, term()}
   def normalize(%{"type" => "video.upload.asset_created", "data" => data} = raw)
@@ -61,7 +61,7 @@ defmodule Rindle.Streaming.Provider.Mux.Event do
   defp normalize_type(other) when is_binary(other), do: :unknown
   defp normalize_type(_), do: :unknown
 
-  # Mux uses "preparing" while transcoding; Phase 33 FSM uses "processing".
+  # Mux uses "preparing" while transcoding; Rindle's FSM uses "processing".
   defp normalize_state("preparing"), do: "processing"
   defp normalize_state("ready"), do: "ready"
   defp normalize_state("errored"), do: "errored"
