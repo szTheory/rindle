@@ -308,4 +308,28 @@ The complete final annotation multiset is exactly E38 at
 `lib/rindle/upload/tus_stream.ex:163`, and E40 at
 `lib/rindle/upload/tus_stream.ex:66`. No GCS, Local, earlier, or unowned warning
 is emitted. This remains an intentionally red intermediate Nightly result until
-Plan 126-07 owns E38–E40.
+Plan 126-07 owns E38-E40.
+
+## Supported S3 Probe Receipt
+
+- Probe commit: `d21607f7889f9bbfc4f022d11842d8cfebf76b01`; only the seven
+  strict E31–E37 filters were removed. `lib/rindle/storage/s3.ex` was unchanged.
+- [Exact-head Nightly run 32644554878](https://github.com/szTheory/rindle/actions/runs/32644554878)
+  (`workflow_dispatch`; `headSha` exactly equals the probe commit).
+- [Dialyzer job 97206702391](https://github.com/szTheory/rindle/actions/runs/32644554878/job/97206702391):
+  **failure** with ten warnings; [Nightly Summary job
+  97207265664](https://github.com/szTheory/rindle/actions/runs/32644554878/job/97207265664)
+  was **success** and recorded `DIALYZER: failure`.
+- `MIX_ENV=test mix test test/install_smoke/dialyzer_ignore_policy_test.exs --seed 0`:
+  passed (2 tests).
+
+Only E31–E37 were exposed. Every S3 entry reproduced beside the three
+later-owned TUS annotations; no earlier or unowned warning appeared. The S3
+source is unchanged on this supported receipt, so these are candidates only and
+not a basis to remove reachable helpers.
+
+| IDs | Probe disposition | Exact supported observation |
+| --- | --- | --- |
+| E31 | reproduced candidate | `s3.ex:182`: `The pattern can never match the type {:error, atom()}.` |
+| E32 | reproduced candidate | `s3.ex:430`: `The function call stream! will not succeed.` |
+| E33–E37 | reproduced candidate | `drain_tail_parts/7`, `read_leading_part/1`, `truncate_tail_head/2`, `open_rest/2`, and `copy_rest/2` each emitted their exact `will never be called` discriminator at `s3.ex:447`, `:499`, `:521`, `:538`, and `:549`. |
