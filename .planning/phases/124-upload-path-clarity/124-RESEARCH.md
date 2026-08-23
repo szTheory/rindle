@@ -254,17 +254,14 @@ Keep every currently exported Broker function and type in `Rindle.Upload.Broker`
 | A1 | Candidate names such as `TusProtocol` and `Broker.Persistence` are recommended names, not mandatory module/file names. | Exact Responsibility Seams | Low: planner can choose fewer/better named internal modules so long as ownership/invariants hold. |
 | A2 | A shared private broadcast helper is worthwhile only if it reduces duplicated exact mechanics without obscuring timing. | Exact Responsibility Seams | Medium: unnecessary extraction could make lifecycle ordering harder to trace. |
 
-## Open Questions
+## Resolved Planning Decisions
 
-1. **Which existing hidden-module allowlist should own the new collaborators?**
-   - What we know: `api_surface_boundary_test.exs` explicitly locks visible and hidden docs boundaries, including Phase 123 collaborator modules. [VERIFIED: API-surface test]
-   - What's unclear: it currently does not enumerate Upload collaborator names.
-   - Recommendation: choose the minimal stable set during planning, add each only to the hidden boundary assertion, and do not expose them.
-
-2. **Should broadcasts be deduplicated now?**
-   - What we know: TusPlug and Broker currently duplicate the payload/topics exactly. [VERIFIED: both modules]
-   - What's unclear: whether an extraction makes timing/ownership clearer rather than merely reducing lines.
-   - Recommendation: treat it as optional; extract only after the protocol and broker-specific boundaries are independently clear.
+1. **Hidden collaborator ownership:** the planner will choose the minimum stable set of upload-internal
+   modules, mark them `@moduledoc false`, and add those exact modules to the existing compiled API-boundary
+   assertion. No new collaborator becomes a documented public module.
+2. **Broadcast duplication:** leave broadcast construction in the two public façades unless, after the
+   protocol- and broker-specific seams are independently extracted, one exact private helper makes timing
+   clearer. Line-count reduction alone does not justify this extraction.
 
 ## Sources
 
