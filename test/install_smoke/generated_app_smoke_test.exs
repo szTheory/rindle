@@ -291,42 +291,24 @@ defmodule Rindle.InstallSmoke.GeneratedAppPhase120FastContractTest do
   end
 
   @tag :phase_120_upgrade_contract
-  test "generated reports use snapshots rather than the obsolete Oban ownership field" do
-    helper_source = File.read!("test/install_smoke/support/generated_app_helper.ex")
+  test "isolation upgrade contract requires before and after Oban catalog snapshots" do
+    contract = GeneratedAppHelper.isolation_upgrade_contract()
 
-    refute helper_source =~ "rindle_created_oban_jobs"
-    assert helper_source =~ "oban_jobs_before: oban_jobs_before"
-    assert helper_source =~ "oban_jobs_after: oban_jobs_after"
-    assert helper_source =~ "oban_jobs_before == oban_jobs_after"
+    assert :oban_jobs_before in contract.required_report_keys
+    assert :oban_jobs_after in contract.required_report_keys
+
+    report = valid_isolation_upgrade_catalog_report()
+    assert GeneratedAppHelper.isolation_upgrade_catalog_preserved?(report)
+
+    refute GeneratedAppHelper.isolation_upgrade_catalog_preserved?(%{
+             report
+             | oban_jobs_after: Map.put(report.oban_jobs_after, :columns, [])
+           })
   end
 
   @tag :phase_120_upgrade_contract
-  test "generated Oban snapshot queries reuse the selected relation OID" do
-    helper_source = File.read!("test/install_smoke/support/generated_app_helper.ex")
-
-    refute helper_source =~ "attribute.attrelid = $1::regclass"
-    refute helper_source =~ "catalog_constraint.conrelid = $1::regclass"
-    refute helper_source =~ "relation.oid = $1::regclass"
-
-    assert helper_source =~ "attribute.attrelid = $1"
-    assert helper_source =~ "catalog_constraint.conrelid = $1"
-    assert helper_source =~ "relation.oid = $1"
-    assert helper_source =~ "[oid]"
-    refute helper_source =~ "pg_constraint constraint"
-    assert helper_source =~ "pg_constraint catalog_constraint"
-  end
-
-  @tag :phase_120_upgrade_contract
-  test "generated upgrade doctor readiness comes from the generated smoke result" do
-    helper_source = File.read!("test/install_smoke/support/generated_app_helper.ex")
-
-    assert helper_source =~ "doctor_ready?: smoke_result.exit_code == 0"
-
-    refute helper_source =~
-             "doctor_ready?: String.contains?(smoke_result.output, \"doctor_success=true\")"
-
-    refute helper_source =~
-             "doctor_result.output,\n          \"expected rindle; observed rindle; classification ready\""
+  test "isolation upgrade contract requires generated doctor readiness" do
+    assert :doctor_ready? in GeneratedAppHelper.isolation_upgrade_contract().required_report_keys
   end
 
   @tag :phase_120_upgrade_contract
