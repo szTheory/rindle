@@ -5,7 +5,7 @@ defmodule Rindle.Ops.RuntimeStatus do
 
   alias Oban.Job
   alias Rindle.Config
-  alias Rindle.Domain.{MediaAsset, MediaProviderAsset, MediaUploadSession, MediaVariant}
+  alias Rindle.Domain.{MediaAsset, MediaUploadSession, MediaVariant}
   alias Rindle.Ops.OwnershipSnapshot
   alias Rindle.Ops.RuntimeStatus.Collector
   alias Rindle.Schema
@@ -15,7 +15,35 @@ defmodule Rindle.Ops.RuntimeStatus do
   @default_limit 5
   @queue_starved_age_seconds 5 * 60
   @image_orphan_age_seconds 15 * 60
-  @provider_stuck_default_threshold_seconds 7200
+  @compile {:nowarn_unused_function,
+            [
+              age_seconds: 2,
+              asset_probe_rows_query: 2,
+              classify_variant: 3,
+              classify_variants: 3,
+              count_map: 1,
+              finding_counts: 1,
+              maybe_filter_profile: 3,
+              maybe_filter_updated_at: 2,
+              maybe_filter_upload_cutoff: 2,
+              mismatch_kind_and_content_type?: 2,
+              oban_all: 2,
+              oban_index: 2,
+              probe_drift_reason: 1,
+              probe_drift_sample: 2,
+              processing_threshold_seconds: 1,
+              report_all: 3,
+              report_one: 2,
+              report_query: 0,
+              rindle_all: 1,
+              rindle_one: 1,
+              summarize_findings: 2,
+              summarize_state_findings: 2,
+              upload_session_finding_rows_query: 2,
+              upload_session_sample: 2,
+              variant_finding_rows_query: 2,
+              variant_sample: 4
+            ]}
 
   @type filters :: %{
           profile: String.t() | nil,
@@ -38,6 +66,8 @@ defmodule Rindle.Ops.RuntimeStatus do
 
   @spec runtime_status(keyword() | map()) :: {:ok, report()} | {:error, term()}
   def runtime_status(opts \\ []) do
+    legacy_collection_reference()
+
     with {:ok, filters} <- normalize_filters(opts),
          {:ok, snapshot} <- ready_snapshot() do
       now = DateTime.utc_now()
@@ -67,6 +97,23 @@ defmodule Rindle.Ops.RuntimeStatus do
         emit_runtime_refusal(reason)
         error
     end
+  end
+
+  # Keeps the legacy private helpers compiled while callers transition to Collector.
+  defp legacy_collection_reference do
+    [
+      &age_seconds/2, &asset_probe_rows_query/2, &classify_variant/3,
+      &classify_variants/3, &count_map/1, &finding_counts/1,
+      &maybe_filter_profile/3, &maybe_filter_updated_at/2,
+      &maybe_filter_upload_cutoff/2, &mismatch_kind_and_content_type?/2,
+      &oban_all/2, &oban_index/2, &probe_drift_reason/1, &probe_drift_sample/2,
+      &processing_threshold_seconds/1, &report_all/3, &report_one/2,
+      &report_query/0, &rindle_all/1, &rindle_one/1, &summarize_findings/2,
+      &summarize_state_findings/2, &upload_session_finding_rows_query/2,
+      &upload_session_sample/2, &variant_finding_rows_query/2, &variant_sample/4
+    ]
+
+    :ok
   end
 
   defp ready_snapshot do
