@@ -55,6 +55,7 @@ defmodule Rindle.ApiSurfaceBoundaryTest do
     Rindle.Upload.TusCreation,
     Rindle.Upload.TusProtocol,
     Rindle.Upload.TusStream,
+    Rindle.Upload.TusTermination,
     Rindle.Migration.Options,
     Rindle.Migration.V1
   ]
@@ -152,6 +153,13 @@ defmodule Rindle.ApiSurfaceBoundaryTest do
         assert function_exported?(Rindle.Upload.TusStream, name, arity)
         assert hidden_function_doc?(Rindle.Upload.TusStream, name, arity)
       end
+    end
+
+    test "tus termination mechanics stay hidden behind the visible Plug facade" do
+      assert visible_module?(Rindle.Upload.TusPlug)
+      assert hidden_module?(Rindle.Upload.TusTermination)
+      assert function_exported?(Rindle.Upload.TusTermination, :abort_attrs, 2)
+      assert hidden_function_doc?(Rindle.Upload.TusTermination, :abort_attrs, 2)
     end
   end
 
