@@ -1,8 +1,8 @@
 # Phase 123: Runtime Operations Decomposition - Pattern Map
 
-**Mapped:** 2026-08-22  
-**Scope source:** `.planning/ROADMAP.md` Phase 123 and `OPS-01`, `OPS-02`, `OPS-03`, `SAFE-01` in `.planning/REQUIREMENTS.md`. No Phase 123 `CONTEXT.md` or `RESEARCH.md` existed when this map was produced.  
-**Files analyzed:** 11 implementation and preservation-test surfaces  
+**Mapped:** 2026-08-22
+**Scope source:** `.planning/ROADMAP.md` Phase 123 and `OPS-01`, `OPS-02`, `OPS-03`, `SAFE-01` in `.planning/REQUIREMENTS.md`. No Phase 123 `CONTEXT.md` or `RESEARCH.md` existed when this map was produced.
+**Files analyzed:** 11 implementation and preservation-test surfaces
 **Analogs found:** 11 / 11
 
 Phase 123 is an internal, behavior-preserving extraction. The public entrypoints
@@ -294,7 +294,7 @@ foreground `mix test --include contract --seed 0` process. Phase 123 must not we
 ## Metadata
 
 **Analog search scope:** `lib/rindle/ops`, `lib/rindle/migration`, `lib/mix/tasks`, `test/rindle/ops`,
-`test/rindle`, `test/install_smoke`, and `scripts/maintainer`.  
+`test/rindle`, `test/install_smoke`, and `scripts/maintainer`.
 **Primary live analogs:** `RuntimeChecks`, `RuntimeStatus`, `Migration.V1`, `OwnershipSnapshot`,
-the runtime-status Mix task, and their behavior/contract suites.  
+the runtime-status Mix task, and their behavior/contract suites.
 **Pattern extraction date:** 2026-08-22
