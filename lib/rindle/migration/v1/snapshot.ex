@@ -3,8 +3,13 @@ defmodule Rindle.Migration.V1.Snapshot do
 
   @spec observe(module(), map()) :: map()
   def observe(repo, requirements) do
-    %{source_schema: source_schema, target_schema: target_schema, owned_relations: owned_relations,
-      marker_table: marker_table, privilege_override: privilege_override} = requirements
+    %{
+      source_schema: source_schema,
+      target_schema: target_schema,
+      owned_relations: owned_relations,
+      marker_table: marker_table,
+      privilege_override: privilege_override
+    } = requirements
 
     %{rows: schema_rows} =
       repo.query!(
@@ -93,7 +98,10 @@ defmodule Rindle.Migration.V1.Snapshot do
     |> Enum.flat_map(fn [schema, _relation, owned?] ->
       if owned? and marker_has_version_column?(repo, schema, marker_table) do
         %{rows: rows} =
-          repo.query!("SELECT version FROM #{qualified(schema, marker_table)} ORDER BY version", [])
+          repo.query!(
+            "SELECT version FROM #{qualified(schema, marker_table)} ORDER BY version",
+            []
+          )
 
         Enum.map(rows, fn [version] -> [schema, version] end)
       else

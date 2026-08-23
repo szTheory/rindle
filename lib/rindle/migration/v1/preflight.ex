@@ -9,16 +9,16 @@ defmodule Rindle.Migration.V1.Preflight do
   def classify(:public_to_rindle, snapshot) do
     cond do
       complete_source?(snapshot) and
-          snapshot.target_relations == [] and
-          valid_marker?(snapshot.source_marker, snapshot) and
-          snapshot.source_owned? and not snapshot.target_exists? and
+        snapshot.target_relations == [] and
+        valid_marker?(snapshot.source_marker, snapshot) and
+        snapshot.source_owned? and not snapshot.target_exists? and
           snapshot.database_create? ->
         {:provisionable_absent_target, snapshot}
 
       complete_source?(snapshot) and
-          snapshot.target_relations == [] and
-          valid_marker?(snapshot.source_marker, snapshot) and
-          snapshot.source_owned? and snapshot.target_exists? and snapshot.target_usable? ->
+        snapshot.target_relations == [] and
+        valid_marker?(snapshot.source_marker, snapshot) and
+        snapshot.source_owned? and snapshot.target_exists? and snapshot.target_usable? ->
         {:movable_existing_target, snapshot}
 
       snapshot.source_relations == [] and complete_target?(snapshot) and
@@ -51,7 +51,7 @@ defmodule Rindle.Migration.V1.Preflight do
   def classify(:rindle_to_public, snapshot) do
     cond do
       complete_target?(snapshot) and snapshot.source_relations == [] and
-          valid_marker?(snapshot.target_marker, snapshot) and snapshot.target_owned? and
+        valid_marker?(snapshot.target_marker, snapshot) and snapshot.target_owned? and
           snapshot.public_usable? ->
         {:movable_existing_target, snapshot}
 
