@@ -4,16 +4,16 @@ milestone: v1.24
 milestone_name: Core Clarity & Quality Ratchet
 current_phase: 122
 current_phase_name: Live Truth & Compile Clarity
-status: executing
-stopped_at: Completed Wave 2 through 122-04-PLAN.md
+status: verifying
+stopped_at: Completed all 5 Phase 122 plans; awaiting supported-CI and release-train confirmation
 last_updated: "2026-08-22T23:58:36.000Z"
 last_activity: 2026-08-22
-last_activity_desc: Phase 121 complete, transitioned to Phase 122
+last_activity_desc: Phase 122 implementation complete; supported-CI and release-train verification pending
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 12
-  completed_plans: 11
+  completed_plans: 12
 ---
 
 # Project State
@@ -29,8 +29,8 @@ See: .planning/PROJECT.md (updated 2026-08-22 for v1.24)
 
 Phase: 122 — Live Truth & Compile Clarity
 Plan: 5 of 5
-Status: In progress
-Last activity: 2026-08-22 — Completed Phase 122 Wave 2 live-truth plans
+Status: Verification pending
+Last activity: 2026-08-22 — Completed all 5 Phase 122 plans; awaiting supported-CI and release-train confirmation
 
 ### v1.24 charter
 
@@ -57,8 +57,8 @@ the historical 0.4.0 contract; do not regress either side of that invariant.
 
 ## Next Step
 
-Execute 122-05 to reconcile current CI/support/tus/streaming documentation and run the complete
-Phase 122 parity, SAFE-01, `mix ci`, repository-hygiene, and supported-CI acceptance gates.
+Obtain supported-CI and release-train confirmation for completed Phase 122 work, then mark
+CLARITY-01/02/03 complete only when that evidence passes.
 
 ## Prior Milestone
 

@@ -110,7 +110,7 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
   2. Current maintainer and adopter documentation accurately describes implemented CI lanes, support posture, Admin navigation labels, and shipped tus and streaming behavior without forward-looking claims that are no longer true.
   3. Contributors can compile and inspect the project without the `Rindle.Schema` seven-module cycle, while public schema ownership and prefix behavior remain byte-for-byte compatible.
 
-**Plans**: 4/5 plans executed
+**Plans**: 5/5 plans executed; supported-CI verification pending
 
 **Wave 1 — compile truth**
 
@@ -124,7 +124,7 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 
 **Wave 3 — adopter/maintainer truth and phase gate** *(blocked on Waves 1–2)*
 
-- [ ] 122-05-PLAN.md — Reconcile CI/support/tus/streaming docs and run full preservation proof.
+- [x] 122-05-PLAN.md — Reconcile CI/support/tus/streaming docs and run full preservation proof (supported-CI verification pending).
 
 ### Phase 123: Runtime Operations Decomposition
 
