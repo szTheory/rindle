@@ -57,6 +57,17 @@
   # checkout can return an error at runtime; preserving it protects diagnostics.
   {"lib/rindle/ops/runtime_checks.ex",
    "The pattern can never match the type :ok | {:already, :allowed | :owner}."},
+  # Supported Nightly run 32643457947 / Dialyzer job 97203998038: multipart
+  # upload must pass File.stream!/3 through Finch as a bounded request stream;
+  # changing that opaque producer would buffer the upload or change error terms.
+  {"lib/rindle/storage/gcs/client.ex", "The function call stream! will not succeed."},
+  # Supported Nightly run 32643457947 / Dialyzer job 97203998038: Local's
+  # bounded TUS stream returns tagged append errors and its concatenate stream
+  # preserves source cleanup; forcing analyzer-visible stream internals would
+  # change those adapter-edge contracts.
+  {"lib/rindle/storage/local.ex", "Function upload_part_stream/5 has no local return."},
+  {"lib/rindle/storage/local.ex", "The function call stream! will not succeed."},
+  {"lib/rindle/storage/local.ex", "The created anonymous function has no local return."},
   {"lib/rindle/storage/s3.ex", "The pattern can never match the type {:error, atom()}."},
   {"lib/rindle/storage/s3.ex", "The function call stream! will not succeed."},
   {"lib/rindle/storage/s3.ex", "Function drain_tail_parts/7 will never be called."},
