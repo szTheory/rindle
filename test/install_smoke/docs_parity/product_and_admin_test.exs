@@ -1,15 +1,14 @@
-Code.require_file("support/generated_app_helper.ex", __DIR__)
-Code.require_file("docs_parity/support.ex", __DIR__)
+Code.require_file("support.ex", __DIR__)
 
-defmodule Rindle.InstallSmoke.DocsParityTest do
+defmodule Rindle.InstallSmoke.DocsParity.ProductAndAdminTest do
   import Rindle.InstallSmoke.DocsParity.Support
   use ExUnit.Case, async: true
 
-  @readme_path Path.expand("../../README.md", __DIR__)
-  @guide_path Path.expand("../../guides/getting_started.md", __DIR__)
-  @user_flows_path Path.expand("../../guides/user_flows.md", __DIR__)
-  @admin_console_path Path.expand("../../guides/admin_console.md", __DIR__)
-  @mix_exs_path Path.expand("../../mix.exs", __DIR__)
+  @readme_path Path.expand("../../../README.md", __DIR__)
+  @guide_path Path.expand("../../../guides/getting_started.md", __DIR__)
+  @user_flows_path Path.expand("../../../guides/user_flows.md", __DIR__)
+  @admin_console_path Path.expand("../../../guides/admin_console.md", __DIR__)
+  @mix_exs_path Path.expand("../../../mix.exs", __DIR__)
 
   setup_all do
     {:ok,
@@ -134,7 +133,7 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
        %{
          user_flows: user_flows
        } do
-    operations = File.read!(Path.expand("../../guides/operations.md", __DIR__))
+    operations = File.read!(Path.expand("../../../guides/operations.md", __DIR__))
     normalized_flows = String.downcase(user_flows)
     normalized_ops = String.downcase(operations)
 
@@ -151,7 +150,7 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
        %{
          guide: guide
        } do
-    operations = File.read!(Path.expand("../../guides/operations.md", __DIR__))
+    operations = File.read!(Path.expand("../../../guides/operations.md", __DIR__))
 
     assert guide =~ "[User Flows](user_flows.html)"
     assert guide =~ "account deletion / owner erasure"
