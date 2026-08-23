@@ -18,6 +18,21 @@
   {"lib/mix/tasks/rindle.batch_owner_erasure.ex", "The function call message will not succeed."},
   {"lib/rindle/admin/live/actions_live.ex",
    "The pattern pattern {'error', _} can never match the type, because it is covered by previous clauses."},
+  # Supported Nightly run 32637455725 / Dialyzer job 97189240234: these public
+  # Ecto.Migration callbacks execute DSL operations through the host migrator;
+  # Dialyzer cannot model that dynamic execution context without changing the
+  # pinned migration API or DDL/transaction authority.
+  {"lib/rindle/migration.ex", "Function up/0 has no local return."},
+  {"lib/rindle/migration.ex", "Function up/1 has no local return."},
+  {"lib/rindle/migration.ex", "Function down/0 has no local return."},
+  {"lib/rindle/migration.ex", "Function down/1 has no local return."},
+  {"lib/rindle/migration.ex", "The function call move_public_to_rindle will not succeed."},
+  {"lib/rindle/migration.ex", "Function move_public_to_rindle/0 has no local return."},
+  {"lib/rindle/migration.ex", "The function call move_rindle_to_public will not succeed."},
+  {"lib/rindle/migration.ex", "Function move_rindle_to_public/0 has no local return."},
+  {"lib/rindle/migration.ex", "The function call up will not succeed."},
+  {"lib/rindle/migration.ex", "Function dispatch/2 has no local return."},
+  {"lib/rindle/migration.ex", "The function call down will not succeed."},
   {"lib/rindle/ops/runtime_checks.ex",
    "The pattern can never match the type :ok | {:already, :allowed | :owner}."},
   {"lib/rindle/storage/gcs/client.ex", "The function call stream! will not succeed."},
@@ -43,4 +58,9 @@
    "The pattern pattern <__mux_response@1, __reason@1> can never match the type, because it is covered by previous clauses."},
   {"lib/rindle/workers/mux_sync_provider_asset.ex",
    "The pattern variable _err@2 can never match the type, because it is covered by previous clauses."},
+  # Supported Nightly run 32637455725 / Dialyzer job 97189240234: the fixture
+  # is a real host Ecto.Migration callback and its runner lifecycle is dynamic.
+  {"test/support/host_rindle_migration.ex", "Function up/0 has no local return."},
+  {"test/support/host_rindle_migration.ex", "Function down/0 has no local return."},
+  {"test/support/host_rindle_migration.ex", "Function install!/0 has no local return."}
 ]
