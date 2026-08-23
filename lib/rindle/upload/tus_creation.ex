@@ -117,7 +117,7 @@ defmodule Rindle.Upload.TusCreation do
   end
 
   defp check_not_expired(%{"exp" => exp} = claims) when is_integer(exp) do
-    if exp > System.system_time(:second), do: {:ok, claims}, else: {:error, :expired_token}
+    if exp >= System.system_time(:second), do: {:ok, claims}, else: {:error, :expired_token}
   end
 
   defp check_not_expired(_claims), do: {:error, :invalid_token}

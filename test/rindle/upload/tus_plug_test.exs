@@ -170,6 +170,13 @@ defmodule Rindle.Upload.TusPlugTest do
     |> TusPlug.call(opts)
   end
 
+  defp wait_until_system_second(second) do
+    if System.system_time(:second) < second do
+      Process.sleep(1)
+      wait_until_system_second(second)
+    end
+  end
+
   defp head(opts, token) do
     conn(:head, "/uploads/tus/" <> token) |> TusPlug.call(opts)
   end
@@ -1032,6 +1039,43 @@ defmodule Rindle.Upload.TusPlugTest do
 
       final_path = Local.path_for(session.upload_key, root: root)
       assert File.read!(final_path) == "12345678"
+    end
+
+    test "POST with Upload-Concat: final accepts a partial token in its exact expiry second", %{
+      root: root
+    } do
+      opts = opts_for(root)
+
+      partial =
+        conn(:post, "/uploads/tus")
+        |> put_req_header("upload-concat", "partial")
+        |> put_req_header("upload-length", "4")
+        |> TusPlug.call(opts)
+
+      [location] = get_resp_header(partial, "location")
+      token = location |> String.split("/") |> List.last()
+      assert patch(opts, token, 0, "1234").status == 204
+
+      {:ok, claims} = Plug.Crypto.verify(@secret_key_base, @tus_url_salt, token)
+      expiry_second = System.system_time(:second) + 2
+
+      exact_expiry_url =
+        "/uploads/tus/" <>
+          Plug.Crypto.sign(
+            @secret_key_base,
+            @tus_url_salt,
+            Map.put(claims, "exp", expiry_second)
+          )
+
+      wait_until_system_second(expiry_second)
+      assert System.system_time(:second) == expiry_second
+
+      final =
+        conn(:post, "/uploads/tus")
+        |> put_req_header("upload-concat", "final;#{exact_expiry_url}")
+        |> TusPlug.call(opts)
+
+      assert final.status == 201
     end
 
     test "POST with Upload-Concat: final fails if a partial is incomplete", %{root: root} do
