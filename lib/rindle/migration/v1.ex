@@ -131,36 +131,8 @@ defmodule Rindle.Migration.V1 do
   @spec preflight_rindle_to_public() ::
           :already_reversed | {:movable_existing_target, map()} | {:refusal, atom()}
   def preflight_rindle_to_public do
-    snapshot = migration_snapshot()
-
-    cond do
-      complete_target?(snapshot) and snapshot.source_relations == [] and
-          valid_marker?(snapshot.target_marker) and snapshot.target_owned? and
-          snapshot.public_usable? ->
-        {:movable_existing_target, snapshot}
-
-      complete_source?(snapshot) and snapshot.target_relations == [] and
-          valid_marker?(snapshot.source_marker) ->
-        :already_reversed
-
-      not snapshot.target_owned? ->
-        {:refusal, :source_not_owned}
-
-      not complete_target?(snapshot) ->
-        {:refusal, :rindle_incomplete}
-
-      not valid_marker?(snapshot.target_marker) ->
-        {:refusal, :rindle_marker_invalid}
-
-      snapshot.source_relations != [] ->
-        {:refusal, :public_not_empty}
-
-      not snapshot.public_usable? ->
-        {:refusal, :public_unusable}
-
-      true ->
-        {:refusal, :mixed_state}
-    end
+    :rindle_to_public
+    |> Preflight.classify(migration_snapshot())
   end
 
   defp create_media_assets(prefix) do
@@ -478,10 +450,6 @@ defmodule Rindle.Migration.V1 do
         %{}
     end
   end
-
-  defp complete_source?(snapshot), do: snapshot.source_relations == Enum.sort(owned_relations())
-  defp complete_target?(snapshot), do: snapshot.target_relations == Enum.sort(owned_relations())
-  defp valid_marker?(versions), do: versions == [@current_version]
 
   defp raise_preflight_error!(reason, direction \\ :public_to_rindle) do
     action =
