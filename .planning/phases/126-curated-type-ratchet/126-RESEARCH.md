@@ -28,7 +28,7 @@ The sole acceptance authority is `.github/workflows/nightly.yml` `dialyzer` (sin
 
 ## Actionability Decision Rule
 
-For each exact `{path, description}` pair: reproduce on supported CI; identify the owning public/behavior boundary; make the smallest truthful code/spec/pattern correction; run focused behavior tests and SAFE-01; remove exactly that pair; then require the supported nightly gate. A finding is retained only when it is version/dependency analyzer noise or fixing it would require an unsupported contract/schema/telemetry/error change. Record the exact rationale next to the entry. Never suppress a new warning merely to make the gate green.
+For each exact `{path, description}` pair: reproduce on supported CI; identify the owning public/behavior boundary; make the smallest truthful code/spec/pattern correction; run focused behavior tests and SAFE-01; remove exactly that pair; then inspect the supported Nightly result. Through Plan 126-06, the current slice passes only when its owned warning set is absent or explicitly retained with supported rationale, no new or unowned warning appears, and exact annotation identity/count proves the emitted set is only the previously recorded later-owned E38-E40 Tus warnings; Dialyzer must honestly conclude `failure` and Nightly Summary must record that failure. Plan 126-07 owns TUS/Mux and restores the global green requirement, which remains mandatory for Plans 126-08 and 126-09. A finding is retained only when it is version/dependency analyzer noise or fixing it would require an unsupported contract/schema/telemetry/error change. Record the exact rationale next to the entry. Never suppress a new warning merely to make the gate green.
 
 ## Validation Architecture
 
