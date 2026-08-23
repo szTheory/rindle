@@ -6,9 +6,8 @@ defmodule Rindle.Upload.Broker do
   alias Rindle.Config
   alias Rindle.Domain.{AssetFSM, MediaAsset, MediaUploadSession, UploadSessionFSM}
   alias Rindle.Storage.Capabilities
-  alias Rindle.Upload.Broker.{Persistence, SessionSeed, SessionValidation}
+  alias Rindle.Upload.Broker.{Completion, Persistence, SessionSeed, SessionValidation}
   alias Rindle.Upload.ResumableTelemetry
-  alias Rindle.Workers.PromoteAsset
   alias Phoenix.PubSub
 
   @default_multipart_part_size 8 * 1024 * 1024
@@ -502,34 +501,7 @@ defmodule Rindle.Upload.Broker do
   end
 
   defp execute_verify_completion(repo, session, asset, profile_module, metadata) do
-    Ecto.Multi.new()
-    |> Ecto.Multi.update(
-      :verifying_session,
-      MediaUploadSession.changeset(session, %{state: "verifying"})
-    )
-    |> Ecto.Multi.run(:verify_fsm_complete, fn _repo, %{verifying_session: vs} ->
-      do_fsm_transition(vs)
-    end)
-    |> Ecto.Multi.update(
-      :session,
-      fn %{verifying_session: vs} ->
-        MediaUploadSession.changeset(vs, %{
-          state: "completed",
-          verified_at: DateTime.utc_now()
-        })
-      end
-    )
-    |> Ecto.Multi.update(
-      :asset,
-      MediaAsset.changeset(asset, %{
-        state: "validating",
-        byte_size: Map.get(metadata, :size),
-        content_type: Map.get(metadata, :content_type)
-      })
-    )
-    |> Oban.insert(:promote_job, PromoteAsset.new(%{asset_id: asset.id}))
-    |> repo.transaction()
-    |> case do
+    case Completion.transact(repo, session, asset, metadata) do
       {:ok, %{session: updated_session, asset: updated_asset}} ->
         :telemetry.execute(
           [:rindle, :upload, :stop],
@@ -562,13 +534,6 @@ defmodule Rindle.Upload.Broker do
 
       {:error, _name, reason, _changes} ->
         {:error, reason}
-    end
-  end
-
-  defp do_fsm_transition(vs) do
-    case UploadSessionFSM.transition(vs.state, "completed", %{session_id: vs.id}) do
-      :ok -> {:ok, :transitioned}
-      err -> err
     end
   end
 
