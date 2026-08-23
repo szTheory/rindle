@@ -53,10 +53,11 @@ defmodule Rindle.Upload.TusCreation do
 
   defp verify_tokens_for_concat(tokens, opts) do
     secret_key_base = Keyword.fetch!(opts, :secret_key_base)
+    now_seconds = Keyword.get(opts, :now_seconds, fn -> System.system_time(:second) end)
 
     Enum.reduce_while(tokens, {:ok, []}, fn token, {:ok, acc} ->
       with {:ok, claims} <- Plug.Crypto.verify(secret_key_base, @tus_url_salt, token),
-           {:ok, claims} <- check_not_expired(claims) do
+           {:ok, claims} <- check_not_expired(claims, now_seconds) do
         {:cont, {:ok, [claims | acc]}}
       else
         _ -> {:halt, {:error, :invalid_token}}
@@ -116,9 +117,10 @@ defmodule Rindle.Upload.TusCreation do
     String.trim_trailing(base_path, "/") <> "/" <> token
   end
 
-  defp check_not_expired(%{"exp" => exp} = claims) when is_integer(exp) do
-    if exp >= System.system_time(:second), do: {:ok, claims}, else: {:error, :expired_token}
+  defp check_not_expired(%{"exp" => exp} = claims, now_seconds)
+       when is_integer(exp) and is_function(now_seconds, 0) do
+    if exp >= now_seconds.(), do: {:ok, claims}, else: {:error, :expired_token}
   end
 
-  defp check_not_expired(_claims), do: {:error, :invalid_token}
+  defp check_not_expired(_claims, _now_seconds), do: {:error, :invalid_token}
 end

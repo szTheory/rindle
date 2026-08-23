@@ -170,13 +170,6 @@ defmodule Rindle.Upload.TusPlugTest do
     |> TusPlug.call(opts)
   end
 
-  defp wait_until_system_second(second) do
-    if System.system_time(:second) < second do
-      Process.sleep(1)
-      wait_until_system_second(second)
-    end
-  end
-
   defp head(opts, token) do
     conn(:head, "/uploads/tus/" <> token) |> TusPlug.call(opts)
   end
@@ -1057,7 +1050,7 @@ defmodule Rindle.Upload.TusPlugTest do
       assert patch(opts, token, 0, "1234").status == 204
 
       {:ok, claims} = Plug.Crypto.verify(@secret_key_base, @tus_url_salt, token)
-      expiry_second = System.system_time(:second) + 2
+      expiry_second = 1_700_000_000
 
       exact_expiry_url =
         "/uploads/tus/" <>
@@ -1067,13 +1060,10 @@ defmodule Rindle.Upload.TusPlugTest do
             Map.put(claims, "exp", expiry_second)
           )
 
-      wait_until_system_second(expiry_second)
-      assert System.system_time(:second) == expiry_second
-
       final =
         conn(:post, "/uploads/tus")
         |> put_req_header("upload-concat", "final;#{exact_expiry_url}")
-        |> TusPlug.call(opts)
+        |> TusPlug.call(Keyword.put(opts, :now_seconds, fn -> expiry_second end))
 
       assert final.status == 201
     end
