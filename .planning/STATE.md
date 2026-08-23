@@ -4,16 +4,16 @@ milestone: v1.24
 milestone_name: Core Clarity & Quality Ratchet
 current_phase: 126
 current_phase_name: curated-type-ratchet
-status: executing
-stopped_at: Completed 126-08-PLAN.md
-last_updated: "2026-08-23T15:26:13.507Z"
+status: verifying
+stopped_at: Completed 126-09-PLAN.md
+last_updated: "2026-08-23T15:52:07.565Z"
 last_activity: 2026-08-23
 last_activity_desc: Phase 126 execution started
 progress:
   total_phases: 6
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 39
-  completed_plans: 38
+  completed_plans: 39
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-08-22 for v1.24)
 
 Phase: 126 (curated-type-ratchet) — EXECUTING
 Plan: 9 of 9
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-08-23 — Phase 126 execution started
 
 ### v1.24 charter
@@ -197,6 +197,7 @@ _(Key v1.22 execution decisions recorded at milestone close.)_
 - [Phase ?]: E38-E40 preserve immutable tus_plug filter history separately from extracted creation/stream owners; all five Tus/Mux candidates are actionable-fixed on supported Nightly.
 - [Phase ?]: E01-E03 are obsolete only after the source-unchanged supported probe emitted no matching facade/Broker/PromoteAsset warnings.
 - [Phase ?]: E08 removes only an unreachable private PromoteAsset fallback; the four retained atom filters are E04-E07.
+- [Phase ?]: Phase 126 Plan 09: exact-head Nightly 1.17/27 Dialyzer, Nightly Summary, and PR CI Summary accepted candidate a36cd146; issue #76 closed only after all 45 dispositions qualified.
 
 ## Blockers/Concerns
 
@@ -214,8 +215,8 @@ _(none open for v1.23 closeout)_
 
 ## Session Continuity
 
-Last session: 2026-08-23T15:26:13.463Z
-Stopped at: Completed 126-08-PLAN.md
+Last session: 2026-08-23T15:52:07.553Z
+Stopped at: Completed 126-09-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -266,6 +267,7 @@ Resume file: None
 | Phase 126 P06 | 13min | 2 tasks | 3 files |
 | Phase 126 P07 | 47min | 2 tasks | 7 files |
 | Phase 126 P08 | 15min | 2 tasks | 4 files |
+| Phase 126 P09 | 24min | 2 tasks | 3 files |
 
 ## Operator Next Steps
 
