@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.24
 milestone_name: Core Clarity & Quality Ratchet
-current_phase: 125
-current_phase_name: Behavioral Test Support
-status: ready_to_execute
+current_phase: 126
+current_phase_name: Curated Type Ratchet
+status: planning
 stopped_at: Completed 125-10-PLAN.md
-last_updated: "2026-08-23T09:07:30.051Z"
+last_updated: "2026-08-23T10:56:46.195Z"
 last_activity: 2026-08-23
-last_activity_desc: Phase 125 planned with Nyquist validation and 10 sequential tracer slices
+last_activity_desc: Phase 125 complete, transitioned to Phase 126
 progress:
-  total_phases: 5
+  total_phases: 6
   completed_phases: 5
   total_plans: 30
   completed_plans: 30
@@ -27,10 +27,10 @@ See: .planning/PROJECT.md (updated 2026-08-22 for v1.24)
 
 ## Current Position
 
-Phase: 125 — Behavioral Test Support
-Plan: 4 of 10
-Status: Ready to execute
-Last activity: 2026-08-23 — Phase 125 planned with Nyquist validation and 10 sequential tracer slices
+Phase: 126 — Curated Type Ratchet
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-08-23 — Phase 125 complete, transitioned to Phase 126
 
 ### v1.24 charter
 

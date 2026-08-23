@@ -63,7 +63,7 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 - [x] **Phase 122: Live Truth & Compile Clarity** - Reconcile live source and documentation truth while removing the internal schema compile cycle. (completed 2026-08-23)
 - [x] **Phase 123: Runtime Operations Decomposition** - Make runtime diagnostics, migration preflight, and status code easier to reason about without contract drift. (completed 2026-08-23)
 - [x] **Phase 124: Upload Path Clarity** - Decompose tus and broker internals into cohesive, contract-preserving boundaries. (completed 2026-08-23)
-- [ ] **Phase 125: Behavioral Test Support** - Replace oversized and self-inspecting test support with focused behavioral proof and async-isolation evidence.
+- [x] **Phase 125: Behavioral Test Support** - Replace oversized and self-inspecting test support with focused behavioral proof and async-isolation evidence. (completed 2026-08-23)
 - [ ] **Phase 126: Curated Type Ratchet** - Retire the actionable Dialyzer baseline on the supported toolchain and block its return.
 
 ## Phase Details
@@ -257,7 +257,7 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 | 122. Live Truth & Compile Clarity | 5/5 | Complete | 2026-08-23 |
 | 123. Runtime Operations Decomposition | 3/3 | Complete | 2026-08-23 |
 | 124. Upload Path Clarity | 5/5 | Complete    | 2026-08-23 |
-| 125. Behavioral Test Support | 10/10 | In Progress|  |
+| 125. Behavioral Test Support | 10/10 | Complete    | 2026-08-23 |
 | 126. Curated Type Ratchet | 0/TBD | Not started | - |
 
 ## Deferred to a Demand-Gated Milestone
