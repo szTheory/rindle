@@ -121,8 +121,9 @@ end
 
 Capability promises are documented centrally in
 [Storage Capabilities](storage_capabilities.html). That guide is the source of
-truth for the current adapter/provider matrix, the Cloudflare R2 compatibility
-posture, and the reserved future resumable vocabulary.
+ truth for the current adapter/provider matrix, the Cloudflare R2 compatibility
+ posture, and the distinct Local/S3 server-mediated tus versus GCS provider-direct
+ resumability boundaries.
 
 At the profile layer, the important rule is simpler: choose an adapter whose
 advertised capabilities match the flows your profile requires. For example:
@@ -131,8 +132,9 @@ advertised capabilities match the flows your profile requires. For example:
   `{:error, {:delivery_unsupported, :signed_url}}`.
 - Multipart direct-upload flows require `:multipart_upload`, or multipart
   entrypoints fail with `{:error, {:upload_unsupported, :multipart_upload}}`.
-- Resumable flows (GCS sessions, tus) require the adapter to advertise the
-  matching capability; Rindle does not silently downgrade unsupported paths.
+- Local/S3 tus flows require `:tus_upload`; GCS provider-direct resumable sessions
+  require `:resumable_upload` and `:resumable_upload_session`. Rindle does not
+  silently downgrade unsupported paths or substitute one protocol for the other.
 
 ## Adapter Configuration
 

@@ -14,13 +14,23 @@ defmodule Rindle.InstallSmoke.PhoenixTusTruthParityTest do
   use ExUnit.Case, async: true
 
   @guide_path Path.expand("../../guides/resumable_uploads.md", __DIR__)
+  @storage_capabilities_path Path.expand("../../guides/storage_capabilities.md", __DIR__)
+  @profiles_guide_path Path.expand("../../guides/profiles.md", __DIR__)
+  @local_storage_path Path.expand("../../lib/rindle/storage/local.ex", __DIR__)
+  @s3_storage_path Path.expand("../../lib/rindle/storage/s3.ex", __DIR__)
+  @gcs_storage_path Path.expand("../../lib/rindle/storage/gcs.ex", __DIR__)
   @live_view_path Path.expand("../../lib/rindle/live_view.ex", __DIR__)
   @generated_helper_path Path.expand("support/generated_app_helper.ex", __DIR__)
 
   test "guide, helper seam, and generated-app proof freeze the Phase 50 Phoenix contract" do
     guide = File.read!(@guide_path)
+    storage_capabilities = File.read!(@storage_capabilities_path)
+    profiles_guide = File.read!(@profiles_guide_path)
     live_view = File.read!(@live_view_path)
     generated_helper = File.read!(@generated_helper_path)
+    local_storage = File.read!(@local_storage_path)
+    s3_storage = File.read!(@s3_storage_path)
+    gcs_storage = File.read!(@gcs_storage_path)
 
     assert guide =~ "allow_tus_upload/4"
     assert guide =~ ~s(uploader: "RindleTus")
@@ -64,5 +74,19 @@ defmodule Rindle.InstallSmoke.PhoenixTusTruthParityTest do
 
     assert generated_helper =~ ~s(phoenix_state_sequence: ["uploading", "verifying", "ready"])
     assert generated_helper =~ ~s(phoenix_error_state: "error")
+
+    assert local_storage =~ ":tus_upload"
+    assert s3_storage =~ ":tus_upload"
+    refute gcs_storage =~ ":tus_upload"
+
+    for doc <- [guide, storage_capabilities, profiles_guide] do
+      assert doc =~ "Local/S3"
+      assert doc =~ ":tus_upload"
+      assert Regex.match?(~r/GCS\s+provider-direct/, doc)
+    end
+
+    assert guide =~ "no silent fallback"
+    assert storage_capabilities =~ "silently falls back"
+    assert Regex.match?(~r/does not\s+silently downgrade/, profiles_guide)
   end
 end

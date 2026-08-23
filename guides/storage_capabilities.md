@@ -19,6 +19,7 @@ Rindle currently knows these capability atoms:
 | `:signed_url` | The adapter can mint a time-limited signed delivery URL for private delivery. |
 | `:head` | The adapter can read remote object metadata for verification and cleanup. |
 | `:local` | The adapter is backed by local filesystem semantics. |
+| `:tus_upload` | The adapter supports Rindle's server-mediated tus edge through `Rindle.Upload.TusPlug`. |
 | `:resumable_upload` | The adapter can drive a resumable upload lifecycle instead of a single-shot direct PUT. |
 | `:resumable_upload_session` | The adapter can create and continue provider-owned resumable upload sessions. |
 
@@ -55,9 +56,9 @@ provider choices.
 
 | Backend / provider | Runtime seam | Expected capabilities today | Proof posture | Notes |
 | ------------------ | ------------ | --------------------------- | ------------- | ----- |
-| Local filesystem | `Rindle.Storage.Local` | `[:local, :presigned_put]` | Automated in the default test suite | Presigned PUT is a local-development parity shim, not a remote-object-store claim. `Rindle.Storage.Local` does not advertise `:resumable_upload` or `:resumable_upload_session`. |
-| MinIO | `Rindle.Storage.S3` | `[:presigned_put, :head, :signed_url, :multipart_upload]` | Automated in default CI and local integration lanes | This is the always-on real S3-compatible proof for direct PUT, multipart upload, metadata verification, and signed delivery URL generation. `Rindle.Storage.S3` does not advertise the resumable capability family. |
-| Generic S3-compatible provider | `Rindle.Storage.S3` | `[:presigned_put, :head, :signed_url, :multipart_upload]` | Expected by contract; not proven against every vendor in default CI | Rindle uses the shipped S3 adapter seam. Provider-specific behavior beyond that seam should be validated in adopter-owned environments. |
+| Local filesystem | `Rindle.Storage.Local` | `[:local, :presigned_put, :tus_upload]` | Automated in the default test suite | Presigned PUT is a local-development parity shim, not a remote-object-store claim. Local supports the server-mediated tus edge, but not GCS provider-direct resumable sessions. |
+| MinIO | `Rindle.Storage.S3` | `[:presigned_put, :head, :signed_url, :multipart_upload, :tus_upload]` | Automated in default CI and local integration lanes | This is the always-on real S3-compatible proof for direct PUT, multipart upload, metadata verification, signed delivery URL generation, and the server-mediated tus edge. It does not advertise GCS provider-direct resumable sessions. |
+| Generic S3-compatible provider | `Rindle.Storage.S3` | `[:presigned_put, :head, :signed_url, :multipart_upload, :tus_upload]` | Expected by contract; not proven against every vendor in default CI | Rindle uses the shipped S3 adapter seam. Provider-specific behavior beyond that seam should be validated in adopter-owned environments. |
 | Cloudflare R2 | `Rindle.Storage.S3` | `[:presigned_put, :head, :signed_url, :multipart_upload]` when the provider honors the shipped S3-compatible operations | Documented compatibility target; adopters validate vendor behavior in their own environments | Uses the shipped S3 adapter seam (no separate R2 adapter). MinIO is the automated CI proof lane. |
 | Google Cloud Storage | `Rindle.Storage.GCS` | `[:head, :signed_url, :resumable_upload, :resumable_upload_session]` | Live GCS proof exists in the GCS test lanes; adopters still own bucket and browser wiring | `Rindle.Storage.GCS` is the shipped adapter that honestly advertises the resumable capability family. See [Storage (GCS)](storage_gcs.html) for runtime wiring, CORS, and session hygiene. |
 
@@ -83,8 +84,9 @@ This guide does not imply provider-specific live R2 proof in CI.
 Capability claims are adapter-specific, not marketing-wide:
 
 - `Rindle.Storage.GCS` advertises `:resumable_upload` and `:resumable_upload_session`
-- `Rindle.Storage.S3` advertises neither resumable capability today
-- `Rindle.Storage.Local` advertises neither resumable capability today
+- `Rindle.Storage.S3` and `Rindle.Storage.Local` advertise `:tus_upload` for
+  the server-mediated `Rindle.Upload.TusPlug` path, but neither advertises the
+  GCS provider-direct resumable-session capability family
 - custom adapters may honestly advertise either, both, or neither depending on
   what they actually implement
 
@@ -109,16 +111,19 @@ This guide does not claim:
 
 ## Resumable Boundary
 
-Resumable upload is shipped where the adapter advertises it. Today that means
-`Rindle.Storage.GCS`.
+Rindle ships two distinct resumability boundaries. Local/S3 support the
+server-mediated tus edge through `Rindle.Upload.TusPlug` and `:tus_upload`.
+`Rindle.Storage.GCS` separately supports GCS provider-direct resumable sessions
+through `:resumable_upload` and `:resumable_upload_session`; it is not a tus
+adapter.
 
 That does not mean:
 
 - every adapter supports resumable upload
 - Rindle falls back automatically from resumable upload to presigned PUT
-- S3-compatible providers inherit resumable semantics through `Rindle.Storage.S3`
-- Rindle ships tus or a provider-agnostic resumable abstraction beyond the
-  honest capability contract
+- S3-compatible providers inherit GCS provider-direct resumable-session semantics
+  through `Rindle.Storage.S3`
+- a missing capability silently falls back to another upload strategy
 
 ## Public (browser-facing) delivery endpoint (S3)
 
