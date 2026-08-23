@@ -283,3 +283,29 @@ locations.
 | E28 | reproduced candidate | `local.ex:88`: `Function upload_part_stream/5 has no local return.` |
 | E29 | reproduced candidate | `local.ex:99` and `:140`: `The function call stream! will not succeed.` |
 | E30 | reproduced candidate | `local.ex:136`: `The created anonymous function has no local return.` |
+
+## Final GCS and Local Slice Receipt
+
+- [Exact-head Nightly run 32644122207](https://github.com/szTheory/rindle/actions/runs/32644122207)
+  for `e4bcd1194205a447c9de21f814c9f42c4e1f210e` (`workflow_dispatch`).
+- [Dialyzer job 97205599179](https://github.com/szTheory/rindle/actions/runs/32644122207/job/97205599179):
+  **failure**, with exactly the three later-owned E38–E40 annotations.
+- [Nightly Summary job 97206185744](https://github.com/szTheory/rindle/actions/runs/32644122207/job/97206185744):
+  **success**, explicitly recording `DIALYZER: failure`.
+- Focused GCS/Local suites (44 tests, one existing skipped test), the
+  ignore-policy suite (2 tests), and `bash scripts/maintainer/refactor_contract.sh`
+  (92 contract tests): passed.
+
+| IDs | Final status | Supported rationale |
+| --- | --- | --- |
+| E25 | retained-analyzer-noise | GCS must pass the bounded `File.stream!/3` producer to Finch for multipart upload; unwrapping it would change the opaque stream/error boundary. |
+| E26 | retained-analyzer-noise | The supported analyzer still infers the broker-exercised resumable URL mode as unreachable despite the truthful complete mode spec; retaining its exact description preserves resumable initiation. |
+| E27 | actionable-fixed | `authed_headers/1` now has one error-normalizing clause matching its true `fetch_token/1` boundary, removing the inferred-covered duplicate without changing `:goth_unconfigured` behavior. |
+| E28–E30 | retained-analyzer-noise | Local's bounded append and concatenate streams preserve tagged append errors, atomic completion, source cleanup, and no-whole-upload buffering; inspecting stream internals or replacing tagged errors would change those contracts. |
+
+The complete final annotation multiset is exactly E38 at
+`lib/rindle/upload/tus_creation.ex:35`, E39 at
+`lib/rindle/upload/tus_stream.ex:163`, and E40 at
+`lib/rindle/upload/tus_stream.ex:66`. No GCS, Local, earlier, or unowned warning
+is emitted. This remains an intentionally red intermediate Nightly result until
+Plan 126-07 owns E38–E40.
