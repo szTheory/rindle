@@ -33,6 +33,12 @@
   {"lib/rindle/migration.ex", "The function call up will not succeed."},
   {"lib/rindle/migration.ex", "Function dispatch/2 has no local return."},
   {"lib/rindle/migration.ex", "The function call down will not succeed."},
+  # Supported Nightly run 32637455725 / Dialyzer job 97189240234: the private
+  # helper intentionally raises every time, and Ecto's migration DSL cannot
+  # represent the host transaction/DDL execution path in its static result.
+  {"lib/rindle/migration/v1.ex", "Function raise_preflight_error!/1 has no local return."},
+  {"lib/rindle/migration/v1.ex",
+   "The pattern can never match the type \n  :database_create_denied\n  | :mixed_state\n  | :public_incomplete\n  | :public_marker_invalid\n  | :public_not_empty\n  | :public_unusable\n  | :rindle_incomplete\n  | :rindle_marker_invalid\n  | :rindle_not_empty\n  | :rindle_unusable\n  | :source_not_owned\n."},
   {"lib/rindle/ops/runtime_checks.ex",
    "The pattern can never match the type :ok | {:already, :allowed | :owner}."},
   {"lib/rindle/storage/gcs/client.ex", "The function call stream! will not succeed."},
