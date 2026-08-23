@@ -26,6 +26,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
 
   defdelegate default_install_contract(), to: Contracts
   defdelegate persistence_lifecycle_report_keys(), to: Contracts
+  defdelegate tus_outcome_contract(), to: Contracts
   defdelegate public_compatibility_contract(), to: Contracts
   defdelegate isolation_upgrade_contract(), to: Contracts
   defdelegate legacy_upgrade_contract(), to: Contracts

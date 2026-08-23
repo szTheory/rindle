@@ -1,3 +1,5 @@
+Code.require_file("support/generated_app_helper.ex", __DIR__)
+
 defmodule Rindle.InstallSmoke.PhoenixTusTruthParityTest do
   @moduledoc """
   Freezes the SHIPPED Phoenix tus contract (Phase 50): the adopter-facing guide,
@@ -13,6 +15,8 @@ defmodule Rindle.InstallSmoke.PhoenixTusTruthParityTest do
   """
   use ExUnit.Case, async: true
 
+  alias Rindle.InstallSmoke.GeneratedAppHelper
+
   @guide_path Path.expand("../../guides/resumable_uploads.md", __DIR__)
   @storage_capabilities_path Path.expand("../../guides/storage_capabilities.md", __DIR__)
   @profiles_guide_path Path.expand("../../guides/profiles.md", __DIR__)
@@ -21,6 +25,7 @@ defmodule Rindle.InstallSmoke.PhoenixTusTruthParityTest do
     guide = File.read!(@guide_path)
     storage_capabilities = File.read!(@storage_capabilities_path)
     profiles_guide = File.read!(@profiles_guide_path)
+    tus_outcome = GeneratedAppHelper.tus_outcome_contract()
 
     assert guide =~ "allow_tus_upload/4"
     assert guide =~ ~s(uploader: "RindleTus")
@@ -45,6 +50,25 @@ defmodule Rindle.InstallSmoke.PhoenixTusTruthParityTest do
 
     assert function_exported?(Rindle.LiveView, :allow_tus_upload, 4)
     assert function_exported?(Rindle.LiveView, :consume_uploaded_entries, 3)
+
+    assert tus_outcome.required_report_fields == [
+             :phoenix_helper_endpoint,
+             :phoenix_helper_uploader,
+             :phoenix_helper_upload_url,
+             :phoenix_helper_session_id,
+             :phoenix_helper_asset_id,
+             :completion_surface,
+             :phoenix_state_sequence,
+             :phoenix_error_state
+           ]
+
+    assert tus_outcome.endpoint == "/uploads/tus"
+    assert tus_outcome.uploader == "RindleTus"
+    assert tus_outcome.upload_url_fragment == "/uploads/tus/"
+    assert tus_outcome.completion_surface == "consume_uploaded_entries->verify_completion"
+    assert tus_outcome.state_sequence == ["uploading", "verifying", "ready"]
+    assert is_nil(tus_outcome.success_error_state)
+    assert tus_outcome.failure_error_state == "error"
 
     {:docs_v1, _, _, _, _, _, docs} = Code.fetch_docs(Rindle.LiveView)
 

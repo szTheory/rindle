@@ -35,6 +35,29 @@ defmodule Rindle.InstallSmoke.GeneratedApp.Contracts do
   end
 
   @doc false
+  def tus_outcome_contract do
+    %{
+      required_report_fields: [
+        :phoenix_helper_endpoint,
+        :phoenix_helper_uploader,
+        :phoenix_helper_upload_url,
+        :phoenix_helper_session_id,
+        :phoenix_helper_asset_id,
+        :completion_surface,
+        :phoenix_state_sequence,
+        :phoenix_error_state
+      ],
+      endpoint: "/uploads/tus",
+      uploader: "RindleTus",
+      upload_url_fragment: "/uploads/tus/",
+      completion_surface: "consume_uploaded_entries->verify_completion",
+      state_sequence: ["uploading", "verifying", "ready"],
+      success_error_state: nil,
+      failure_error_state: "error"
+    }
+  end
+
+  @doc false
   def expected_media_variants_indexes, do: @expected_media_variants_indexes
 
   @doc false

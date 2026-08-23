@@ -159,6 +159,8 @@ defmodule Rindle.InstallSmoke.GeneratedAppPhase120FastContractTest do
           {:persistence_lifecycle_report_keys,
            GeneratedAppHelper.persistence_lifecycle_report_keys(),
            Rindle.InstallSmoke.GeneratedApp.Contracts.persistence_lifecycle_report_keys()},
+          {:tus_outcome_contract, GeneratedAppHelper.tus_outcome_contract(),
+           Rindle.InstallSmoke.GeneratedApp.Contracts.tus_outcome_contract()},
           {:public_compatibility_contract, GeneratedAppHelper.public_compatibility_contract(),
            Rindle.InstallSmoke.GeneratedApp.Contracts.public_compatibility_contract()},
           {:isolation_upgrade_contract, GeneratedAppHelper.isolation_upgrade_contract(),
@@ -834,24 +836,31 @@ if GeneratedAppHelper.profile_enabled?(:tus) and
 
     test "generated Phoenix app proves a real-socket tus-js-client drop-and-resume flow against MinIO",
          %{report: report} do
+      contract = GeneratedAppHelper.tus_outcome_contract()
+
       assert_host_owned_migrations!(report)
       assert report.smoke_exit_code == 0, tus_failure_details(report)
       assert report.lifecycle_proved?, tus_failure_details(report)
-      assert report.phoenix_helper_uploader == "RindleTus"
 
-      assert report.phoenix_helper_endpoint == "/uploads/tus" or
-               String.contains?(report.phoenix_helper_endpoint || "", "/uploads/tus")
+      for field <- contract.required_report_fields do
+        assert Map.has_key?(report, field), "generated tus report is missing #{inspect(field)}"
+      end
+
+      assert report.phoenix_helper_uploader == contract.uploader
+
+      assert report.phoenix_helper_endpoint == contract.endpoint or
+               String.contains?(report.phoenix_helper_endpoint || "", contract.endpoint)
 
       assert is_binary(report.phoenix_helper_upload_url)
-      assert String.contains?(report.phoenix_helper_upload_url, "/uploads/tus/")
+      assert String.contains?(report.phoenix_helper_upload_url, contract.upload_url_fragment)
       assert is_binary(report.phoenix_helper_session_id)
       assert is_binary(report.phoenix_helper_asset_id)
-      assert report.completion_surface == "consume_uploaded_entries->verify_completion"
-      assert report.phoenix_state_sequence == ["uploading", "verifying", "ready"]
+      assert report.completion_surface == contract.completion_surface
+      assert report.phoenix_state_sequence == contract.state_sequence
 
       assert if(report.tus_failure_phase in [nil, "none"],
-               do: is_nil(report.phoenix_error_state),
-               else: report.phoenix_error_state == "error"
+               do: report.phoenix_error_state == contract.success_error_state,
+               else: report.phoenix_error_state == contract.failure_error_state
              )
 
       assert is_binary(report.tus_upload_url)
