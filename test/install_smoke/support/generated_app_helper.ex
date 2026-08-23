@@ -139,6 +139,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       selected_schema_relations: migration_report["selected_schema_relations"] || %{},
       decoy_schema_relations: migration_report["decoy_schema_relations"] || %{},
       public_host_relations: migration_report["public_host_relations"] || %{},
+      host_migration_paths: migration_report["host_migration_paths"] || %{},
       persistence_lifecycle: persistence_lifecycle,
       seeded_asset_id: seed["asset_id"],
       seeded_variant_id: seed["variant_id"],
