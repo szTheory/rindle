@@ -333,3 +333,19 @@ not a basis to remove reachable helpers.
 | E31 | reproduced candidate | `s3.ex:182`: `The pattern can never match the type {:error, atom()}.` |
 | E32 | reproduced candidate | `s3.ex:430`: `The function call stream! will not succeed.` |
 | E33–E37 | reproduced candidate | `drain_tail_parts/7`, `read_leading_part/1`, `truncate_tail_head/2`, `open_rest/2`, and `copy_rest/2` each emitted their exact `will never be called` discriminator at `s3.ex:447`, `:499`, `:521`, `:538`, and `:549`. |
+
+## Final S3 Slice Receipt
+
+- Focused S3, TUS-tail, and public-endpoint suites plus the ignore-policy suite:
+  passed; `bash scripts/maintainer/refactor_contract.sh` passed.
+- The exact S3 filters are retained because the supported probe proves each
+  warning against active stream/tail behavior: E31 preserves tagged provider
+  errors, E32 preserves bounded `File.stream!/3` tail writes, and E33–E37
+  preserve ordered multipart slicing and bounded remainder copying.
+- The final exact-head Nightly receipt is recorded after its terminal run below.
+
+| IDs | Final status | Supported rationale |
+| --- | --- | --- |
+| E31 | retained-analyzer-noise | The provider can return tagged adapter errors at runtime; removing the branch would narrow S3 error behavior. |
+| E32 | retained-analyzer-noise | `File.stream!/3` is the bounded tail producer; replacing it would buffer PATCH data or alter the file-error boundary. |
+| E33–E37 | retained-analyzer-noise | These reachable helpers maintain ordered multipart slicing, bounded tail remainder copying, and tail-file cleanup. |

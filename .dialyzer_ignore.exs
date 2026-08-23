@@ -73,6 +73,22 @@
   {"lib/rindle/storage/local.ex", "Function upload_part_stream/5 has no local return."},
   {"lib/rindle/storage/local.ex", "The function call stream! will not succeed."},
   {"lib/rindle/storage/local.ex", "The created anonymous function has no local return."},
+  # Supported Nightly run 32644554878 / Dialyzer job 97206702391: the tagged
+  # error branch preserves S3 adapter failures that a provider can return at
+  # runtime; removing it would narrow the storage behavior contract.
+  {"lib/rindle/storage/s3.ex", "The pattern can never match the type {:error, atom()}."},
+  # Supported Nightly run 32644554878 / Dialyzer job 97206702391: File.stream!/3
+  # remains the bounded producer for the tail buffer. Replacing it would buffer
+  # PATCH bodies or alter the adapter's file-error boundary.
+  {"lib/rindle/storage/s3.ex", "The function call stream! will not succeed."},
+  # Supported Nightly run 32644554878 / Dialyzer job 97206702391: these private
+  # tail helpers are reached by the multipart stream path. Removing or flattening
+  # them would change ordered slicing, bounded remainder copying, or file cleanup.
+  {"lib/rindle/storage/s3.ex", "Function drain_tail_parts/7 will never be called."},
+  {"lib/rindle/storage/s3.ex", "Function read_leading_part/1 will never be called."},
+  {"lib/rindle/storage/s3.ex", "Function truncate_tail_head/2 will never be called."},
+  {"lib/rindle/storage/s3.ex", "Function open_rest/2 will never be called."},
+  {"lib/rindle/storage/s3.ex", "Function copy_rest/2 will never be called."},
   {"lib/rindle/upload/tus_plug.ex", "The pattern can never match the type {:error, _}."},
   {"lib/rindle/upload/tus_plug.ex",
    "The guard test _@1::'nil' | crypto:hash_state() breaks the opaqueness of its argument."},
