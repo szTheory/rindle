@@ -549,7 +549,7 @@ jobs:
         run: mix compile
 
       - name: Run docs parity tests
-        run: mix test test/install_smoke/docs_parity_test.exs
+        run: mix test test/install_smoke/docs_parity/install_and_migrations_test.exs test/install_smoke/docs_parity/onboarding_and_capabilities_test.exs test/install_smoke/docs_parity/operations_test.exs test/install_smoke/docs_parity/product_and_admin_test.exs
 
       - name: Run adopter docs link hygiene gate
         run: bash scripts/maintainer/check_docs_links.sh

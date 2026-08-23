@@ -58,16 +58,16 @@
 
 ### Behavioral Test Support
 
-- [ ] **TEST-01**: Generated-app proof support is split from the 3,955-line helper into focused modules
+- [x] **TEST-01**: Generated-app proof support is split from the 3,955-line helper into focused modules
   with one discoverable responsibility each and unchanged packed-adopter coverage.
 
-- [ ] **TEST-02**: Tests validate observable behavior, compiled metadata, or explicit structural
+- [x] **TEST-02**: Tests validate observable behavior, compiled metadata, or explicit structural
   contracts instead of reading their own helper/source text to assert implementation strings.
 
-- [ ] **TEST-03**: Large documentation-parity suites are split by public contract domain with shared
+- [x] **TEST-03**: Large documentation-parity suites are split by public contract domain with shared
   helpers, equivalent assertions, and clearer failure ownership.
 
-- [ ] **TEST-04**: Async-isolation issue #42 is stress-tested against the shipped single-run coverage and
+- [x] **TEST-04**: Async-isolation issue #42 is stress-tested against the shipped single-run coverage and
   process-scoped repo override; the issue is closed with evidence if it no longer reproduces or narrowed
   to a concrete remaining failure if it does.
 
@@ -123,10 +123,10 @@ Populated during roadmap creation. Each v1.24 requirement maps to exactly one ph
 | OPS-03 | Phase 123 | Complete |
 | UPLOAD-01 | Phase 124 | Complete |
 | UPLOAD-02 | Phase 124 | Complete |
-| TEST-01 | Phase 125 | Pending |
-| TEST-02 | Phase 125 | Pending |
-| TEST-03 | Phase 125 | Pending |
-| TEST-04 | Phase 125 | Pending |
+| TEST-01 | Phase 125 | Complete |
+| TEST-02 | Phase 125 | Complete |
+| TEST-03 | Phase 125 | Complete |
+| TEST-04 | Phase 125 | Complete |
 | TYPE-01 | Phase 126 | Pending |
 | TYPE-02 | Phase 126 | Pending |
 

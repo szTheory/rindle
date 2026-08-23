@@ -152,6 +152,50 @@ defmodule Rindle.InstallSmoke.GeneratedAppPhase120FastContractTest do
            ]
   end
 
+  test "stable facade preserves every pure contract and scenario predicate" do
+    for {name, facade_value, owner_value} <- [
+          {:default_install_contract, GeneratedAppHelper.default_install_contract(),
+           Rindle.InstallSmoke.GeneratedApp.Contracts.default_install_contract()},
+          {:persistence_lifecycle_report_keys,
+           GeneratedAppHelper.persistence_lifecycle_report_keys(),
+           Rindle.InstallSmoke.GeneratedApp.Contracts.persistence_lifecycle_report_keys()},
+          {:tus_outcome_contract, GeneratedAppHelper.tus_outcome_contract(),
+           Rindle.InstallSmoke.GeneratedApp.Contracts.tus_outcome_contract()},
+          {:public_compatibility_contract, GeneratedAppHelper.public_compatibility_contract(),
+           Rindle.InstallSmoke.GeneratedApp.Contracts.public_compatibility_contract()},
+          {:isolation_upgrade_contract, GeneratedAppHelper.isolation_upgrade_contract(),
+           Rindle.InstallSmoke.GeneratedApp.Contracts.isolation_upgrade_contract()},
+          {:legacy_upgrade_contract, GeneratedAppHelper.legacy_upgrade_contract(),
+           Rindle.InstallSmoke.GeneratedApp.Contracts.legacy_upgrade_contract()}
+        ] do
+      assert facade_value == owner_value, "facade changed #{name}"
+    end
+
+    valid_report = valid_isolation_upgrade_catalog_report()
+
+    for report <- [valid_report, %{valid_report | marker_versions: []}] do
+      assert GeneratedAppHelper.isolation_upgrade_catalog_preserved?(report) ==
+               Rindle.InstallSmoke.GeneratedApp.Contracts.isolation_upgrade_catalog_preserved?(
+                 report
+               )
+    end
+
+    for profile <- [:image, :video, :tus, :mux, :gcs] do
+      assert GeneratedAppHelper.profile_enabled?(profile) ==
+               Rindle.InstallSmoke.GeneratedApp.Contracts.profile_enabled?(profile)
+    end
+
+    tags = [:minio, :phase_120_public_compat]
+
+    for scenario <- [:default, :phase_120_public_compat, :phase_120_isolation_upgrade] do
+      assert GeneratedAppHelper.phase_120_scenario_enabled?(scenario, tags) ==
+               Rindle.InstallSmoke.GeneratedApp.Contracts.phase_120_scenario_enabled?(
+                 scenario,
+                 tags
+               )
+    end
+  end
+
   test "network install provenance reports the fetched unpacked Hex dependency instead of the unused local package path" do
     workspace_root =
       Path.join(
@@ -291,62 +335,110 @@ defmodule Rindle.InstallSmoke.GeneratedAppPhase120FastContractTest do
   end
 
   @tag :phase_120_upgrade_contract
-  test "generated reports use snapshots rather than the obsolete Oban ownership field" do
-    helper_source = File.read!("test/install_smoke/support/generated_app_helper.ex")
+  test "isolation upgrade contract requires before and after Oban catalog snapshots" do
+    contract = GeneratedAppHelper.isolation_upgrade_contract()
 
-    refute helper_source =~ "rindle_created_oban_jobs"
-    assert helper_source =~ "oban_jobs_before: oban_jobs_before"
-    assert helper_source =~ "oban_jobs_after: oban_jobs_after"
-    assert helper_source =~ "oban_jobs_before == oban_jobs_after"
+    assert :oban_jobs_before in contract.required_report_keys
+    assert :oban_jobs_after in contract.required_report_keys
+
+    report = valid_isolation_upgrade_catalog_report()
+    assert GeneratedAppHelper.isolation_upgrade_catalog_preserved?(report)
+
+    refute GeneratedAppHelper.isolation_upgrade_catalog_preserved?(%{
+             report
+             | oban_jobs_after: Map.put(report.oban_jobs_after, :columns, [])
+           })
   end
 
   @tag :phase_120_upgrade_contract
-  test "generated Oban snapshot queries reuse the selected relation OID" do
-    helper_source = File.read!("test/install_smoke/support/generated_app_helper.ex")
-
-    refute helper_source =~ "attribute.attrelid = $1::regclass"
-    refute helper_source =~ "catalog_constraint.conrelid = $1::regclass"
-    refute helper_source =~ "relation.oid = $1::regclass"
-
-    assert helper_source =~ "attribute.attrelid = $1"
-    assert helper_source =~ "catalog_constraint.conrelid = $1"
-    assert helper_source =~ "relation.oid = $1"
-    assert helper_source =~ "[oid]"
-    refute helper_source =~ "pg_constraint constraint"
-    assert helper_source =~ "pg_constraint catalog_constraint"
-  end
-
-  @tag :phase_120_upgrade_contract
-  test "generated upgrade doctor readiness comes from the generated smoke result" do
-    helper_source = File.read!("test/install_smoke/support/generated_app_helper.ex")
-
-    assert helper_source =~ "doctor_ready?: smoke_result.exit_code == 0"
-
-    refute helper_source =~
-             "doctor_ready?: String.contains?(smoke_result.output, \"doctor_success=true\")"
-
-    refute helper_source =~
-             "doctor_result.output,\n          \"expected rindle; observed rindle; classification ready\""
+  test "isolation upgrade contract requires generated doctor readiness" do
+    assert :doctor_ready? in GeneratedAppHelper.isolation_upgrade_contract().required_report_keys
   end
 
   @tag :phase_120_upgrade_contract
   test "generated child commands have bounded stage-labelled diagnostics" do
-    helper_source = File.read!("test/install_smoke/support/generated_app_helper.ex")
+    cwd = File.cwd!()
 
-    assert helper_source =~ "@generated_command_timeout_ms :timer.minutes(20)"
-    assert helper_source =~ "Task.yield(task, @generated_command_timeout_ms)"
-    assert helper_source =~ "Task.shutdown(task, :brutal_kill)"
-    assert helper_source =~ "stage=\#{stage}"
-    assert helper_source =~ "timed_out?: true"
+    success =
+      Rindle.InstallSmoke.GeneratedApp.CommandRunner.run(
+        cwd,
+        ["sh", "-c", "printf ready"],
+        [],
+        stage: "fast-success",
+        timeout_ms: 1_000
+      )
+
+    assert success == %{
+             output: "stage=fast-success\nready",
+             exit_code: 0,
+             stage: "fast-success",
+             timed_out?: false
+           }
+
+    failure =
+      Rindle.InstallSmoke.GeneratedApp.CommandRunner.run(
+        cwd,
+        ["sh", "-c", "printf failed; exit 23"],
+        [],
+        stage: "nonzero",
+        timeout_ms: 1_000
+      )
+
+    assert failure.exit_code == 23
+    assert failure.output == "stage=nonzero\nfailed"
+
+    assert_raise RuntimeError, ~r/stage=nonzero/, fn ->
+      Rindle.InstallSmoke.GeneratedApp.CommandRunner.run!(
+        cwd,
+        ["sh", "-c", "exit 23"],
+        [],
+        stage: "nonzero",
+        timeout_ms: 1_000
+      )
+    end
+
+    timeout =
+      Rindle.InstallSmoke.GeneratedApp.CommandRunner.run(
+        cwd,
+        ["sh", "-c", "sleep 1"],
+        [],
+        stage: "short-timeout",
+        timeout_ms: 10
+      )
+
+    assert timeout.exit_code == 124
+    assert timeout.timed_out?
+    assert timeout.output =~ "stage=short-timeout"
+    assert timeout.output =~ "timed out after 10ms"
   end
 
   @tag :phase_120_upgrade_contract
   test "generated workspaces use OS-global temporary directory allocation" do
-    helper_source = File.read!("test/install_smoke/support/generated_app_helper.ex")
+    first_root = Rindle.InstallSmoke.GeneratedApp.Workspace.create_root!()
+    second_root = Rindle.InstallSmoke.GeneratedApp.Workspace.create_root!()
 
-    refute helper_source =~ ~S|rindle-install-smoke-#{System.unique_integer([:positive])}|
-    assert helper_source =~ "System.cmd(\"mktemp\", [\"-d\", template]"
-    assert helper_source =~ "rindle-install-smoke.XXXXXX"
+    on_exit(fn ->
+      Rindle.InstallSmoke.GeneratedApp.Workspace.cleanup(%{workspace_root: first_root})
+      Rindle.InstallSmoke.GeneratedApp.Workspace.cleanup(%{workspace_root: second_root})
+    end)
+
+    assert first_root != second_root
+    assert File.dir?(first_root)
+    assert File.dir?(second_root)
+    assert Path.dirname(first_root) == Path.expand(System.tmp_dir!())
+    assert Path.dirname(second_root) == Path.expand(System.tmp_dir!())
+
+    assert :ok = Rindle.InstallSmoke.GeneratedApp.Workspace.cleanup(%{workspace_root: first_root})
+    refute File.exists?(first_root)
+    assert :ok = Rindle.InstallSmoke.GeneratedApp.Workspace.cleanup(%{workspace_root: first_root})
+
+    assert :ok =
+             Rindle.InstallSmoke.GeneratedApp.Workspace.cleanup(%{workspace_root: second_root})
+
+    refute File.exists?(second_root)
+
+    assert :ok =
+             Rindle.InstallSmoke.GeneratedApp.Workspace.cleanup(%{workspace_root: second_root})
   end
 
   @tag :phase_120_upgrade_contract
@@ -629,6 +721,11 @@ if GeneratedAppHelper.profile_enabled?(:image) and
              inspect(report)
 
       assert report.oban_jobs_before == report.oban_jobs_after, inspect(report)
+      assert report.oban_jobs_before["identity"]["schema"] == "public"
+      assert report.oban_jobs_before["identity"]["name"] == "oban_jobs"
+      assert report.oban_jobs_before["columns"] != []
+      assert report.oban_jobs_before["constraints"] != []
+      assert report.oban_jobs_before["indexes"] != []
       assert GeneratedAppHelper.isolation_upgrade_catalog_preserved?(report), inspect(report)
       assert report.doctor_ready?
       assert report.smoke_exit_code == 0
@@ -637,6 +734,9 @@ if GeneratedAppHelper.profile_enabled?(:image) and
       assert Enum.all?(report.selected_schema_relations, fn {_relation, exists?} -> exists? end)
       assert Enum.all?(report.decoy_schema_relations, fn {_relation, exists?} -> not exists? end)
       assert report.public_host_relations == %{"oban_jobs" => true, "schema_migrations" => true}
+      assert String.contains?(report.host_migration_paths["host_root"], "/priv/repo/migrations")
+      assert String.contains?(report.host_migration_paths["oban"], "install_host_owned_oban")
+      assert String.contains?(report.host_migration_paths["rindle"], "install_rindle")
     end
   end
 end
@@ -657,6 +757,16 @@ if GeneratedAppHelper.profile_enabled?(:image) and
     test "generated Phoenix app installs Rindle from the configured package source and never falls back to repo-local deps",
          %{report: report} do
       assert_install_source!(report)
+    end
+
+    test "generated image consumer reaches the compiled boot and report boundary through the stable facade",
+         %{report: report} do
+      assert report.profile_mode == :image
+      assert report.compile_prefix == "rindle"
+      assert report.compile_exit_code == 0
+      assert report.boot_exit_code == 0
+      assert report.smoke_exit_code == 0
+      assert report.lifecycle_proved?
     end
 
     test "generated Phoenix app runs host plus Rindle migrations explicitly and proves the canonical presigned PUT lifecycle",
@@ -726,24 +836,31 @@ if GeneratedAppHelper.profile_enabled?(:tus) and
 
     test "generated Phoenix app proves a real-socket tus-js-client drop-and-resume flow against MinIO",
          %{report: report} do
+      contract = GeneratedAppHelper.tus_outcome_contract()
+
       assert_host_owned_migrations!(report)
       assert report.smoke_exit_code == 0, tus_failure_details(report)
       assert report.lifecycle_proved?, tus_failure_details(report)
-      assert report.phoenix_helper_uploader == "RindleTus"
 
-      assert report.phoenix_helper_endpoint == "/uploads/tus" or
-               String.contains?(report.phoenix_helper_endpoint || "", "/uploads/tus")
+      for field <- contract.required_report_fields do
+        assert Map.has_key?(report, field), "generated tus report is missing #{inspect(field)}"
+      end
+
+      assert report.phoenix_helper_uploader == contract.uploader
+
+      assert report.phoenix_helper_endpoint == contract.endpoint or
+               String.contains?(report.phoenix_helper_endpoint || "", contract.endpoint)
 
       assert is_binary(report.phoenix_helper_upload_url)
-      assert String.contains?(report.phoenix_helper_upload_url, "/uploads/tus/")
+      assert String.contains?(report.phoenix_helper_upload_url, contract.upload_url_fragment)
       assert is_binary(report.phoenix_helper_session_id)
       assert is_binary(report.phoenix_helper_asset_id)
-      assert report.completion_surface == "consume_uploaded_entries->verify_completion"
-      assert report.phoenix_state_sequence == ["uploading", "verifying", "ready"]
+      assert report.completion_surface == contract.completion_surface
+      assert report.phoenix_state_sequence == contract.state_sequence
 
       assert if(report.tus_failure_phase in [nil, "none"],
-               do: is_nil(report.phoenix_error_state),
-               else: report.phoenix_error_state == "error"
+               do: report.phoenix_error_state == contract.success_error_state,
+               else: report.phoenix_error_state == contract.failure_error_state
              )
 
       assert is_binary(report.tus_upload_url)

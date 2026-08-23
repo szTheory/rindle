@@ -1,0 +1,2 @@
+{"kind":"async_isolation_evidence","schema":["iteration","seed","sha","toolchain","argv","exit_status","failure_location"]}
+{"iteration":1,"seed":0,"sha":"eb7da78e1dd9d1e2ce3e3089e3c82bc2d1307cbe","toolchain":"elixir-1.19.5","argv":"mix coveralls.multiple --type local --type json --seed 0 --slowest 20","exit_status":2,"failure_location":"credo_policy_test.exs:78"}

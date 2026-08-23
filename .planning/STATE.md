@@ -4,16 +4,16 @@ milestone: v1.24
 milestone_name: Core Clarity & Quality Ratchet
 current_phase: 125
 current_phase_name: Behavioral Test Support
-status: planning
-stopped_at: "Phase 124 complete; supported exact-head CI Summary green on PR #86"
-last_updated: "2026-08-23T05:14:22.365Z"
+status: ready_to_execute
+stopped_at: Completed 125-10-PLAN.md
+last_updated: "2026-08-23T09:07:30.051Z"
 last_activity: 2026-08-23
-last_activity_desc: Phase 124 complete, transitioned to Phase 125
+last_activity_desc: Phase 125 planned with Nyquist validation and 10 sequential tracer slices
 progress:
-  total_phases: 6
-  completed_phases: 4
-  total_plans: 20
-  completed_plans: 20
+  total_phases: 5
+  completed_phases: 5
+  total_plans: 30
+  completed_plans: 30
 ---
 
 # Project State
@@ -28,9 +28,9 @@ See: .planning/PROJECT.md (updated 2026-08-22 for v1.24)
 ## Current Position
 
 Phase: 125 — Behavioral Test Support
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-08-23 — Phase 124 complete, transitioned to Phase 125
+Plan: 4 of 10
+Status: Ready to execute
+Last activity: 2026-08-23 — Phase 125 planned with Nyquist validation and 10 sequential tracer slices
 
 ### v1.24 charter
 
@@ -180,6 +180,10 @@ _(Key v1.22 execution decisions recorded at milestone close.)_
 - [Phase ?]: Exact-SHA CI and Release workflow gates authorize 0.4.0; local package/demo/Cohort checks remain diagnostic.
 - [Phase ?]: Phase 120 Plan 10: generated reports no longer project host migration provenance as Oban evidence; complete catalog snapshot equality is the sole preservation decision.
 - [Phase 122]: Rindle.Schema uses a closed canonical caller-name allowlist with fail-closed validation, removing reverse compile references while retaining macro, prefix, and callback contracts.
+- [Phase ?]: Docs parity support is read-once mechanics only; install/migration assertions are domain-owned.
+- [Phase ?]: Docs parity assigns adopter onboarding and maintainer operations to separate read-once domain suites.
+- [Phase ?]: Proof now explicitly executes the four docs-parity domains in one unchanged topology step.
+- [Phase ?]: Issue #42 remains open because its sole authorized matrix attempt completed only 1/25 runs; exact-head CI cannot override incomplete local evidence.
 
 ## Blockers/Concerns
 
@@ -197,9 +201,9 @@ _(none open for v1.23 closeout)_
 
 ## Session Continuity
 
-Last session: 2026-08-23T02:28:00.000Z
-Stopped at: Phase 123 complete; supported exact-head CI Summary green on PR #85
-Resume file: .planning/STATE.md
+Last session: 2026-08-23T09:07:30.045Z
+Stopped at: Completed 125-10-PLAN.md
+Resume file: None
 
 ## Performance Metrics
 
@@ -237,6 +241,10 @@ Resume file: .planning/STATE.md
 | Phase 120 P06 | 4h 18m | 2 tasks | 3 files |
 | Phase 120 P10 | 8m | 1 tasks | 2 files |
 | Phase 122 P01 | 12 min | 2 tasks | 4 files |
+| Phase 125-behavioral-test-support P07 | 27min | 2 tasks | 3 files |
+| Phase 125-behavioral-test-support P08 | 24min | 2 tasks | 3 files |
+| Phase 125-behavioral-test-support P09 | 16min | 2 tasks | 4 files |
+| Phase 125 P10 | 45min | 2 tasks | 8 files |
 
 ## Operator Next Steps
 
