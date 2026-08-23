@@ -56,6 +56,9 @@ defmodule Rindle.ApiSurfaceBoundaryTest do
     Rindle.Upload.TusProtocol,
     Rindle.Upload.TusStream,
     Rindle.Upload.TusTermination,
+    Rindle.Upload.Broker.SessionSeed,
+    Rindle.Upload.Broker.Persistence,
+    Rindle.Upload.Broker.SessionValidation,
     Rindle.Migration.Options,
     Rindle.Migration.V1
   ]
@@ -160,6 +163,32 @@ defmodule Rindle.ApiSurfaceBoundaryTest do
       assert hidden_module?(Rindle.Upload.TusTermination)
       assert function_exported?(Rindle.Upload.TusTermination, :abort_attrs, 2)
       assert hidden_function_doc?(Rindle.Upload.TusTermination, :abort_attrs, 2)
+    end
+
+    test "broker session mechanics stay hidden behind the visible Broker facade" do
+      assert visible_module?(Rindle.Upload.Broker)
+
+      for {module, seams} <- [
+            {Rindle.Upload.Broker.SessionSeed, [build: 2]},
+            {Rindle.Upload.Broker.Persistence,
+             [create: 3, persist_multipart: 5, persist_resumable: 5, persist_tus: 3, update: 3]},
+            {Rindle.Upload.Broker.SessionValidation,
+             [
+               multipart: 1,
+               resumable: 1,
+               profile_module: 1,
+               normalize_parts: 1,
+               encode_parts: 1,
+               resumable_status_attrs: 2
+             ]}
+          ] do
+        assert hidden_module?(module)
+
+        for {name, arity} <- seams do
+          assert function_exported?(module, name, arity)
+          assert hidden_function_doc?(module, name, arity)
+        end
+      end
     end
   end
 
