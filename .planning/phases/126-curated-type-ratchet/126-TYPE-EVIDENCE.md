@@ -107,3 +107,30 @@ emitted the following exact remaining warnings:
 Those warnings correspond to E38–E40 (`lib/rindle/upload/tus_plug.ex`). Their
 rows remain `pending`; subsequent owner work must make the required supported
 receipt, behavior-test, and SAFE-01 disposition before changing any filter.
+
+## Supported Migration/Host Probe Receipt
+
+- Probe commit: `f29f5b14e1834c8572c8e98fd4f05b78e4bed1c4`
+- [Exact-head Nightly run 32637455725](https://github.com/szTheory/rindle/actions/runs/32637455725)
+  (`workflow_dispatch`; `headSha` exactly equals the probe commit)
+- Toolchain: Elixir 1.17.3, OTP 27.3.4.16, Ubuntu 22.04
+- [Dialyzer job 97189240234](https://github.com/szTheory/rindle/actions/runs/32637455725/job/97189240234):
+  **failure** (46 errors, 26 skipped)
+- [Nightly Summary job 97189700144](https://github.com/szTheory/rindle/actions/runs/32637455725/job/97189700144):
+  **success**; its `Dialyzer` row is `failure`.
+
+The probe removed only E11–E23 and E43–E45 and made no `lib/` migration edit.
+All 16 exact descriptions reproduced, so none is obsolete. They are candidate
+findings only: local Elixir 1.19 / OTP 28 output is not used to classify them.
+
+| IDs | Probe disposition | Exact supported observation |
+| --- | --- | --- |
+| E11–E14 | reproduced candidate | `Function up/0`, `up/1`, `down/0`, and `down/1` each have no local return. |
+| E15–E21 | reproduced candidate | `move_public_to_rindle`, `move_rindle_to_public`, `up`, `down`, and `dispatch/2` each reproduce the exact call/no-local-return description in the starting inventory. |
+| E22 | reproduced candidate | `Function raise_preflight_error!/1 has no local return.` |
+| E23 | reproduced candidate | The starting preflight-refusal union description reproduced twice, once for each directional move. |
+| E43–E45 | reproduced candidate | Host fixture `up/0`, `down/0`, and `install!/0` each have no local return. |
+
+No candidate has left `pending`: a final `obsolete`, `actionable-fixed`, or
+`retained-analyzer-noise` disposition still requires the focused owner tests
+and SAFE-01 result specified by the ledger protocol.
