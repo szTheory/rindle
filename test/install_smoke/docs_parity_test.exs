@@ -1,7 +1,9 @@
 Code.require_file("support/generated_app_helper.ex", __DIR__)
+Code.require_file("docs_parity/support.ex", __DIR__)
 
 defmodule Rindle.InstallSmoke.DocsParityTest do
   alias Rindle.InstallSmoke.GeneratedAppHelper
+  import Rindle.InstallSmoke.DocsParity.Support
   use ExUnit.Case, async: true
 
   @readme_path Path.expand("../../README.md", __DIR__)
@@ -38,20 +40,20 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
 
   setup_all do
     {:ok,
-     %{
-       readme: File.read!(@readme_path),
-       contributing: File.read!(@contributing_path),
-       guide: File.read!(@guide_path),
-       upgrade: File.read!(@upgrade_path),
-       troubleshooting: File.read!(@troubleshooting_path),
-       release: File.read!(@release_path),
-       running: File.read!(@running_path),
-       user_flows: File.read!(@user_flows_path),
-       migration_module: File.read!(@migration_module_path),
-       ci_workflow: File.read!(@ci_workflow_path),
-       ci_summary: File.read!(@ci_summary_path),
-       tool_versions: File.read!(@tool_versions_path)
-     }}
+     load_docs!(%{
+       readme: @readme_path,
+       contributing: @contributing_path,
+       guide: @guide_path,
+       upgrade: @upgrade_path,
+       troubleshooting: @troubleshooting_path,
+       release: @release_path,
+       running: @running_path,
+       user_flows: @user_flows_path,
+       migration_module: @migration_module_path,
+       ci_workflow: @ci_workflow_path,
+       ci_summary: @ci_summary_path,
+       tool_versions: @tool_versions_path
+     })}
   end
 
   test "root documentation derives CI and supported-toolchain posture from shipped policy", %{
@@ -1021,98 +1023,5 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
 
     refute guide =~ "detach each of an owner"
     refute operations =~ "detach each of an owner"
-  end
-
-  defp introductory_section(doc) do
-    case Regex.split(~r/^##\s+/m, doc, parts: 2) do
-      [intro] -> intro
-      [intro, _rest] -> intro
-    end
-  end
-
-  defp assert_in_order!(doc, snippets) do
-    normalized_doc = String.downcase(doc)
-
-    {_last_index, _last_snippet} =
-      Enum.reduce(snippets, {-1, nil}, fn snippet, {last_index, _last_snippet} ->
-        index = string_index(normalized_doc, String.downcase(snippet))
-
-        assert index,
-               "expected snippet #{inspect(snippet)} to appear in order after index #{last_index}"
-
-        assert index > last_index,
-               "expected snippet #{inspect(snippet)} to appear after #{last_index}, got #{index}"
-
-        {index, snippet}
-      end)
-  end
-
-  defp section_between!(doc, start_snippet, stop_snippet) do
-    start_index =
-      string_index(doc, start_snippet) ||
-        flunk("expected section start #{inspect(start_snippet)}")
-
-    tail = binary_part(doc, start_index, byte_size(doc) - start_index)
-
-    case string_index(tail, stop_snippet) do
-      nil -> tail
-      stop_index -> binary_part(tail, 0, stop_index)
-    end
-  end
-
-  defp fenced_elixir_after!(section, snippet) do
-    ~r/^```elixir\n(.*?)^```/ms
-    |> Regex.scan(section, capture: :all_but_first)
-    |> Enum.map(&hd/1)
-    |> Enum.find(&String.contains?(&1, snippet))
-    |> case do
-      nil -> flunk("expected a closed Elixir fence containing #{inspect(snippet)}")
-      contents -> contents
-    end
-  end
-
-  defp migration_call!(source) do
-    source
-    |> String.split("\n")
-    |> Enum.find(&String.contains?(&1, "def up, do:"))
-    |> case do
-      nil -> flunk("expected generated migration fixture to contain a one-line up/0 call")
-      call -> String.trim(call)
-    end
-  end
-
-  defp string_index(doc, snippet) do
-    case :binary.match(doc, snippet) do
-      {index, _length} -> index
-      :nomatch -> nil
-    end
-  end
-
-  defp fetch_docs!(module) do
-    assert Code.ensure_loaded?(module),
-           "#{inspect(module)} must be loadable for docs parity checks"
-
-    case Code.fetch_docs(module) do
-      {:error, reason} ->
-        flunk("expected compiled docs for #{inspect(module)}, got #{inspect(reason)}")
-
-      docs ->
-        docs
-    end
-  end
-
-  defp moduledoc!(module) do
-    case fetch_docs!(module) do
-      {:docs_v1, _, _, _, %{"en" => doc}, _, _} when is_binary(doc) -> doc
-      {:docs_v1, _, _, _, {_, doc}, _, _} when is_binary(doc) -> doc
-      {:docs_v1, _, _, _, doc, _, _} when is_binary(doc) -> doc
-      other -> flunk("expected moduledoc for #{inspect(module)}, got #{inspect(other)}")
-    end
-  end
-
-  defp normalize_whitespace(text) do
-    text
-    |> String.replace(~r/\s+/, " ")
-    |> String.trim()
   end
 end
