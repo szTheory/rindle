@@ -85,6 +85,9 @@ defmodule Rindle.InstallSmoke.PhoenixTusTruthParityTest do
       assert Regex.match?(~r/GCS\s+provider-direct/, doc)
     end
 
+    assert storage_capabilities =~ "Cloudflare R2"
+    assert storage_capabilities =~ "server-mediated tus edge is available through that adapter"
+
     assert guide =~ "no silent fallback"
     assert storage_capabilities =~ "silently falls back"
     assert Regex.match?(~r/does not\s+silently downgrade/, profiles_guide)
