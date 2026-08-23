@@ -2,6 +2,14 @@
 
 0.1.0-0.1.3 were release-pipeline shakedown iterations; treat 0.1.4 as the first recommended pin.
 
+## [0.4.4](https://github.com/szTheory/rindle/compare/rindle-v0.4.3...rindle-v0.4.4) (2026-08-23)
+
+
+### Bug Fixes
+
+* **ci:** avoid cohort seed probe pipefail ([#89](https://github.com/szTheory/rindle/issues/89)) ([4b0da80](https://github.com/szTheory/rindle/commit/4b0da80984400957399ab782975363a2f23d900f))
+* **ci:** keep async evidence runner archive-safe ([505eb28](https://github.com/szTheory/rindle/commit/505eb2822a707738044c69ca37271fe56adf99d9))
+
 ## [0.4.3](https://github.com/szTheory/rindle/compare/rindle-v0.4.2...rindle-v0.4.3) (2026-08-22)
 
 
