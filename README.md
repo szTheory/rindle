@@ -14,7 +14,9 @@
 _The CI badge tracks the `ci.yml` workflow run on `main`; that run's verdict is the
 `CI Summary` gate — the sole required check for merge. GitHub has no native per-check
 badge, so the workflow-run badge is the meaningful signal. Reproduce that gate locally
-with `mix ci` (see [CONTRIBUTING](https://github.com/szTheory/rindle/blob/main/CONTRIBUTING.md))._
+with `mix ci` (see [CONTRIBUTING](https://github.com/szTheory/rindle/blob/main/CONTRIBUTING.md)).
+The repository's supported acceptance cells include Elixir 1.17/OTP 27; a newer local
+toolchain is useful for diagnosis but does not redefine that compatibility contract._
 
 **Media, made durable.**
 
