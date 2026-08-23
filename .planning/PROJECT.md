@@ -624,6 +624,8 @@ that section on next docs maintenance pass.
 | Populated upgrades move the fixed six-table-plus-marker catalog transactionally after complete preflight, with a guarded reverse for quiesced hosts | A fixed ownership set and fail-before-mutation checks bound the breaking migration without taking ownership of host infrastructure | ✓ Validated v1.23 (Phase 118) |
 | Oban and host `schema_migrations` remain independently configured and outside Rindle migration ownership | Rindle is a guest library; host job infrastructure must not be created, moved, or inferred from Rindle's schema choice | ✓ Validated v1.23 (Phases 118–120) |
 | Release truth is bound to an immutable source SHA and packed/public artifacts, not repository-local success alone | The breaking 0.4.0 contract must be proven in generated consumers, Cohort, protected release automation, and the installed Hex package | ✓ Validated v1.23 (Phase 120) |
+| Public operational and upload modules remain thin orchestration/effects boundaries while compiled-hidden collaborators own cohesive mechanics | Responsibility boundaries should improve readability without expanding the public API or moving order-sensitive telemetry, persistence, or response contracts | ✓ Validated v1.24 (Phases 123–124) |
+| Maintenance refactors are accepted only with behavior, compiled-boundary, quality-ratchet, and supported exact-head CI proof | Smaller files alone are not evidence of better architecture; each decomposition must preserve public signatures and observable ordering | ✓ Validated v1.24 (Phases 121–124) |
 
 
 ## Historical Snapshot
@@ -834,4 +836,4 @@ This document evolves at phase transitions and milestone boundaries.
    (`workflow.milestone_boundary.block_feature_milestone_without_signal`)
 
 ---
-*Last updated: 2026-08-22 after starting v1.24 Core Clarity & Quality Ratchet.*
+*Last updated: 2026-08-23 after completing Phase 124 Upload Path Clarity.*

@@ -48,11 +48,11 @@
 
 ### Upload Path Clarity
 
-- [ ] **UPLOAD-01**: Maintainers can follow tus request parsing, protocol validation, storage effects,
+- [x] **UPLOAD-01**: Maintainers can follow tus request parsing, protocol validation, storage effects,
   and response construction through cohesive boundaries while preserving the existing Plug contract,
   resumable semantics, and error vocabulary.
 
-- [ ] **UPLOAD-02**: Maintainers can follow upload broker validation, capability negotiation, session
+- [x] **UPLOAD-02**: Maintainers can follow upload broker validation, capability negotiation, session
   persistence, and completion orchestration through cohesive boundaries while preserving all public
   APIs and storage-adapter behavior.
 
@@ -121,8 +121,8 @@ Populated during roadmap creation. Each v1.24 requirement maps to exactly one ph
 | OPS-01 | Phase 123 | Complete |
 | OPS-02 | Phase 123 | Complete |
 | OPS-03 | Phase 123 | Complete |
-| UPLOAD-01 | Phase 124 | Pending |
-| UPLOAD-02 | Phase 124 | Pending |
+| UPLOAD-01 | Phase 124 | Complete |
+| UPLOAD-02 | Phase 124 | Complete |
 | TEST-01 | Phase 125 | Pending |
 | TEST-02 | Phase 125 | Pending |
 | TEST-03 | Phase 125 | Pending |
@@ -138,4 +138,4 @@ Populated during roadmap creation. Each v1.24 requirement maps to exactly one ph
 
 ---
 *Requirements defined: 2026-08-22*
-*Last updated: 2026-08-22 after v1.24 roadmap creation (19/19 requirements mapped)*
+*Last updated: 2026-08-23 after Phase 124 completion (14/19 requirements complete)*

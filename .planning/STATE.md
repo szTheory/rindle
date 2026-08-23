@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.24
 milestone_name: Core Clarity & Quality Ratchet
-current_phase: 124
-current_phase_name: Upload Path Clarity
-status: ready_to_discuss
-stopped_at: Phase 123 complete; supported exact-head CI Summary green on PR 85
-last_updated: "2026-08-23T02:28:00.000Z"
+current_phase: 125
+current_phase_name: Behavioral Test Support
+status: planning
+stopped_at: "Phase 124 complete; supported exact-head CI Summary green on PR #86"
+last_updated: "2026-08-23T05:14:22.365Z"
 last_activity: 2026-08-23
-last_activity_desc: Phase 123 complete; review clean and supported CI Summary green
+last_activity_desc: Phase 124 complete, transitioned to Phase 125
 progress:
   total_phases: 6
-  completed_phases: 3
-  total_plans: 15
-  completed_plans: 15
+  completed_phases: 4
+  total_plans: 20
+  completed_plans: 20
 ---
 
 # Project State
@@ -23,14 +23,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-08-22 for v1.24)
 
 **Core value:** Media, made durable.
-**Current focus:** Phase 124 — Upload Path Clarity
+**Current focus:** Phase 125 — Behavioral Test Support
 
 ## Current Position
 
-Phase: 124 — Upload Path Clarity
-Plan: Not yet planned
-Status: Ready to discuss
-Last activity: 2026-08-23 — Phase 123 complete; review clean and supported exact-head CI Summary green on PR #85
+Phase: 125 — Behavioral Test Support
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-08-23 — Phase 124 complete, transitioned to Phase 125
 
 ### v1.24 charter
 
@@ -57,7 +57,7 @@ the historical 0.4.0 contract; do not regress either side of that invariant.
 
 ## Next Step
 
-Discuss and plan Phase 124 as a contract-preserving decomposition of tus and upload-broker internals.
+Plan Phase 125 as a behavior-preserving decomposition of generated-app and documentation-parity test support, with stress evidence for async isolation.
 
 ## Prior Milestone
 
