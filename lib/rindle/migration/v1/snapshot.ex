@@ -1,6 +1,7 @@
 defmodule Rindle.Migration.V1.Snapshot do
   @moduledoc false
 
+  @doc false
   @spec observe(module(), map()) :: map()
   def observe(repo, requirements) do
     %{

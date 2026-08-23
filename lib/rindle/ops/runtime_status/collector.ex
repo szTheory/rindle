@@ -13,6 +13,7 @@ defmodule Rindle.Ops.RuntimeStatus.Collector do
   @image_orphan_age_seconds 15 * 60
   @provider_stuck_default_threshold_seconds 7200
 
+  @doc false
   @spec collect(map(), DateTime.t(), NaiveDateTime.t() | nil, String.t()) :: map()
   def collect(filters, now, cutoff, oban_prefix) do
     runtime_checks = runtime_checks_report(filters, cutoff, now)

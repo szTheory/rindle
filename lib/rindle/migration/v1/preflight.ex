@@ -1,6 +1,7 @@
 defmodule Rindle.Migration.V1.Preflight do
   @moduledoc false
 
+  @doc false
   @spec classify(:public_to_rindle | :rindle_to_public, map()) ::
           :already_upgraded
           | :already_reversed
