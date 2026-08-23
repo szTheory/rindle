@@ -102,13 +102,9 @@ a replacement for the single Quality coverage invocation. First inspect its fixe
 bash scripts/maintainer/async_isolation_evidence.sh --validate
 ```
 
-When you are ready to collect the finite evidence, choose a new explicit report
-path under the Phase 125 directory:
-
-```sh
-bash scripts/maintainer/async_isolation_evidence.sh \
-  --report .planning/phases/125-behavioral-test-support/async-isolation-evidence.jsonl
-```
+When collecting finite evidence, follow the active maintainer procedure for a
+new report path. The runner rejects existing report files and paths outside the
+maintainer-managed evidence location.
 
 The runner starts one fresh foreground `mix coveralls.multiple --type local --type
 json --seed SEED --slowest 20` process per fixed seed, stops at the first nonzero
