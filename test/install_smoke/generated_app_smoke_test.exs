@@ -719,6 +719,11 @@ if GeneratedAppHelper.profile_enabled?(:image) and
              inspect(report)
 
       assert report.oban_jobs_before == report.oban_jobs_after, inspect(report)
+      assert report.oban_jobs_before.identity["schema"] == "public"
+      assert report.oban_jobs_before.identity["name"] == "oban_jobs"
+      assert report.oban_jobs_before.columns != []
+      assert report.oban_jobs_before.constraints != []
+      assert report.oban_jobs_before.indexes != []
       assert GeneratedAppHelper.isolation_upgrade_catalog_preserved?(report), inspect(report)
       assert report.doctor_ready?
       assert report.smoke_exit_code == 0
@@ -727,6 +732,9 @@ if GeneratedAppHelper.profile_enabled?(:image) and
       assert Enum.all?(report.selected_schema_relations, fn {_relation, exists?} -> exists? end)
       assert Enum.all?(report.decoy_schema_relations, fn {_relation, exists?} -> not exists? end)
       assert report.public_host_relations == %{"oban_jobs" => true, "schema_migrations" => true}
+      assert String.contains?(report.host_migration_paths["host_root"], "/priv/repo/migrations")
+      assert String.contains?(report.host_migration_paths["oban"], "install_host_owned_oban")
+      assert String.contains?(report.host_migration_paths["rindle"], "install_rindle")
     end
   end
 end
