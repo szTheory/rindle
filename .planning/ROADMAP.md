@@ -247,7 +247,31 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
   1. The supported Elixir 1.17 / OTP 27 home cell passes Dialyzer, and every retained ignore is justified while unsupported local-toolchain noise does not determine acceptance.
   2. CI blocks newly introduced actionable Dialyzer findings through a curated gate, with issue #76 closed using the resulting baseline evidence.
 
-**Plans**: TBD
+**Plans**: 6 sequential plans
+
+**Wave 1 — policy-test tracer and immutable inventory**
+
+- [ ] 126-01-PLAN.md — Lock curated-ignore policy, record the 45-entry baseline, and prove the supported authority seam.
+
+**Wave 2 — migration and host support** *(blocked on Wave 1)*
+
+- [ ] 126-02-PLAN.md — Probe and reconcile migration/support type boundaries under unchanged migration behavior.
+
+**Wave 3 — operational/runtime owners** *(blocked on Wave 2)*
+
+- [ ] 126-03-PLAN.md — Probe and reconcile task, Admin, runtime, HTML, and ProcessVariant warnings.
+
+**Wave 4 — storage adapters** *(blocked on Wave 3)*
+
+- [ ] 126-04-PLAN.md — Probe and reconcile GCS, Local, and S3 stream/opaque warnings.
+
+**Wave 5 — tus, Mux, and remaining historical atoms** *(blocked on Wave 4)*
+
+- [ ] 126-05-PLAN.md — Complete all 45 owner dispositions while preserving protocol and lifecycle behavior.
+
+**Wave 6 — exact-head authority and issue disposition** *(blocked on Wave 5)*
+
+- [ ] 126-06-PLAN.md — Run local/hygiene gates, require Nightly and PR exact-head success, and close or narrow #76.
 
 ## Progress
 
@@ -258,7 +282,7 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 | 123. Runtime Operations Decomposition | 3/3 | Complete | 2026-08-23 |
 | 124. Upload Path Clarity | 5/5 | Complete    | 2026-08-23 |
 | 125. Behavioral Test Support | 10/10 | Complete    | 2026-08-23 |
-| 126. Curated Type Ratchet | 0/TBD | Not started | - |
+| 126. Curated Type Ratchet | 0/6 | Planned | - |
 
 ## Deferred to a Demand-Gated Milestone
 
@@ -270,4 +294,4 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 - `mix test --partitions` parallelization — evidence-gated on measured core starvation (DEFER-02).
 
 ---
-*Last updated: 2026-08-22 — v1.24 roadmap created from the approved finite, behavior-preserving requirement set. Signal restoration precedes refactors; Dialyzer retirement is last.*
+*Last updated: 2026-08-23 — Phase 126 planned as six sequential supported-evidence waves; Dialyzer retirement remains last.*

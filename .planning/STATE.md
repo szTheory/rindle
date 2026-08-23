@@ -4,15 +4,15 @@ milestone: v1.24
 milestone_name: Core Clarity & Quality Ratchet
 current_phase: 126
 current_phase_name: Curated Type Ratchet
-status: planning
-stopped_at: Completed 125-10-PLAN.md
-last_updated: "2026-08-23T10:56:46.195Z"
+status: ready_to_execute
+stopped_at: "Phase 126 planned: 6 sequential curated-type-ratchet plans ready"
+last_updated: "2026-08-23T11:14:11.000Z"
 last_activity: 2026-08-23
-last_activity_desc: Phase 125 complete, transitioned to Phase 126
+last_activity_desc: Phase 126 planned with Nyquist validation and 6 supported-evidence waves
 progress:
   total_phases: 6
   completed_phases: 5
-  total_plans: 30
+  total_plans: 36
   completed_plans: 30
 ---
 
@@ -23,14 +23,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-08-22 for v1.24)
 
 **Core value:** Media, made durable.
-**Current focus:** Phase 125 — Behavioral Test Support
+**Current focus:** Phase 126 — Curated Type Ratchet
 
 ## Current Position
 
 Phase: 126 — Curated Type Ratchet
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-08-23 — Phase 125 complete, transitioned to Phase 126
+Plan: 0 of 6
+Status: Ready to execute
+Last activity: 2026-08-23 — Phase 126 planned with Nyquist validation and 6 supported-evidence waves
 
 ### v1.24 charter
 
@@ -57,7 +57,7 @@ the historical 0.4.0 contract; do not regress either side of that invariant.
 
 ## Next Step
 
-Plan Phase 125 as a behavior-preserving decomposition of generated-app and documentation-parity test support, with stress evidence for async isolation.
+Execute Phase 126 as six sequential supported-evidence waves, beginning with the policy-test tracer and 45-entry inventory receipt.
 
 ## Prior Milestone
 
@@ -201,8 +201,8 @@ _(none open for v1.23 closeout)_
 
 ## Session Continuity
 
-Last session: 2026-08-23T09:07:30.045Z
-Stopped at: Completed 125-10-PLAN.md
+Last session: 2026-08-23T11:14:11.000Z
+Stopped at: Phase 126 planned; 126-01-PLAN.md is next
 Resume file: None
 
 ## Performance Metrics
@@ -248,4 +248,4 @@ Resume file: None
 
 ## Operator Next Steps
 
-- Wait for an approved LIFE-06 or STREAM-10 signal; then start the next milestone with `/gsd-new-milestone`.
+- Execute Phase 126 sequentially with `/gsd-execute-phase 126`; do not start a demand-gated milestone until the v1.24 type ratchet is verified.
