@@ -195,7 +195,7 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
   3. Documentation-parity suites are organized by public contract domain with shared helpers, equivalent assertions, and failures that identify the owning contract.
   4. Async-isolation issue #42 has stress evidence against the shipped single-run coverage and process-scoped repo override, and is either closed as non-reproducible or narrowed to a concrete remaining failure.
 
-**Plans**: 8/10 plans executed
+**Plans**: 9/10 plans executed
 
 **Wave 1 — async-isolation causal and runner tracer**
 
@@ -231,7 +231,7 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 
 **Wave 9 — docs product/Admin domain and Proof carrier** *(blocked on Wave 8)*
 
-- [ ] 125-09-PLAN.md — Retire the aggregate and wire all four domains into the unchanged Proof topology.
+- [x] 125-09-PLAN.md — Retire the aggregate and wire all four domains into the unchanged Proof topology.
 
 **Wave 10 — finite evidence and issue disposition** *(blocked on Wave 9)*
 
@@ -257,7 +257,7 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 | 122. Live Truth & Compile Clarity | 5/5 | Complete | 2026-08-23 |
 | 123. Runtime Operations Decomposition | 3/3 | Complete | 2026-08-23 |
 | 124. Upload Path Clarity | 5/5 | Complete    | 2026-08-23 |
-| 125. Behavioral Test Support | 8/10 | In Progress|  |
+| 125. Behavioral Test Support | 9/10 | In Progress|  |
 | 126. Curated Type Ratchet | 0/TBD | Not started | - |
 
 ## Deferred to a Demand-Gated Milestone
