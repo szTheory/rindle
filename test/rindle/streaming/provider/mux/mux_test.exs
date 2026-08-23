@@ -10,11 +10,11 @@ defmodule Rindle.Streaming.Provider.MuxTest do
   setup :verify_on_exit!
 
   defmodule TestProfile do
-    # The plan-level test profile. The Phase 33 DSL nests delivery options
-    # under `:delivery`; `signed_url_ttl_seconds: 900` becomes the profile-level
-    # TTL that `Rindle.Delivery.signed_url_ttl_seconds/1` returns. We do not
-    # exercise the `:streaming` DSL key here — `signed_playback_url/3` does not
-    # consult it, and the `:streaming` schema requires fields that Plan 02 owns.
+    # The test profile nests delivery options under `:delivery`;
+    # `signed_url_ttl_seconds: 900` becomes the profile-level TTL that
+    # `Rindle.Delivery.signed_url_ttl_seconds/1` returns. It deliberately omits
+    # `:streaming`: `signed_playback_url/3` does not consult that configuration,
+    # whose schema validates provider settings outside this focused behavior.
     use Rindle.Profile,
       storage: Rindle.StorageMock,
       variants: [hero: [mode: :fit, width: 320]],
