@@ -23,10 +23,10 @@
 
 ### Live Truth and Compile Clarity
 
-- [ ] **CLARITY-01**: Readers of current source and tests see domain rationale rather than obsolete
+- [x] **CLARITY-01**: Readers of current source and tests see domain rationale rather than obsolete
   Phase/Plan/EXPECTED-RED commentary; historical planning archives remain untouched.
 
-- [ ] **CLARITY-02**: Readers of current maintainer and adopter documentation see the implemented CI
+- [x] **CLARITY-02**: Readers of current maintainer and adopter documentation see the implemented CI
   lanes, support posture, Admin navigation labels, and shipped tus/streaming state without stale
   forward references.
 
@@ -115,8 +115,8 @@ Populated during roadmap creation. Each v1.24 requirement maps to exactly one ph
 | SIGNAL-03 | Phase 121 | Complete |
 | SIGNAL-04 | Phase 121 | Complete |
 | SAFE-01 | Phase 121 | Complete |
-| CLARITY-01 | Phase 122 | Pending |
-| CLARITY-02 | Phase 122 | Pending |
+| CLARITY-01 | Phase 122 | Complete |
+| CLARITY-02 | Phase 122 | Complete |
 | CLARITY-03 | Phase 122 | Complete |
 | OPS-01 | Phase 123 | Pending |
 | OPS-02 | Phase 123 | Pending |

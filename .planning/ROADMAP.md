@@ -60,7 +60,7 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 ## Phases
 
 - [x] **Phase 121: Truthful Quality Signals & Mechanical Hygiene** - Restore blocking, evidence-based quality gates and establish the invariant-preserving refactor contract. (completed 2026-08-22)
-- [ ] **Phase 122: Live Truth & Compile Clarity** - Reconcile live source and documentation truth while removing the internal schema compile cycle.
+- [x] **Phase 122: Live Truth & Compile Clarity** - Reconcile live source and documentation truth while removing the internal schema compile cycle. (completed 2026-08-23)
 - [ ] **Phase 123: Runtime Operations Decomposition** - Make runtime diagnostics, migration preflight, and status code easier to reason about without contract drift.
 - [ ] **Phase 124: Upload Path Clarity** - Decompose tus and broker internals into cohesive, contract-preserving boundaries.
 - [ ] **Phase 125: Behavioral Test Support** - Replace oversized and self-inspecting test support with focused behavioral proof and async-isolation evidence.
@@ -110,7 +110,7 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
   2. Current maintainer and adopter documentation accurately describes implemented CI lanes, support posture, Admin navigation labels, and shipped tus and streaming behavior without forward-looking claims that are no longer true.
   3. Contributors can compile and inspect the project without the `Rindle.Schema` seven-module cycle, while public schema ownership and prefix behavior remain byte-for-byte compatible.
 
-**Plans**: 5/5 plans executed; supported-CI verification pending
+**Plans**: 5/5 plans executed and verified
 
 **Wave 1 — compile truth**
 
@@ -124,7 +124,7 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 
 **Wave 3 — adopter/maintainer truth and phase gate** *(blocked on Waves 1–2)*
 
-- [x] 122-05-PLAN.md — Reconcile CI/support/tus/streaming docs and run full preservation proof (supported-CI verification pending).
+- [x] 122-05-PLAN.md — Reconcile CI/support/tus/streaming docs and run full preservation proof.
 
 ### Phase 123: Runtime Operations Decomposition
 

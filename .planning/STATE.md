@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.24
 milestone_name: Core Clarity & Quality Ratchet
-current_phase: 122
-current_phase_name: Live Truth & Compile Clarity
-status: verifying
-stopped_at: Completed all 5 Phase 122 plans; awaiting supported-CI and release-train confirmation
-last_updated: "2026-08-22T23:58:36.000Z"
-last_activity: 2026-08-22
-last_activity_desc: Phase 122 implementation complete; supported-CI and release-train verification pending
+current_phase: 123
+current_phase_name: Runtime Operations Decomposition
+status: ready_to_plan
+stopped_at: Phase 122 verified on supported CI; ready to plan Phase 123
+last_updated: "2026-08-23T00:44:00.000Z"
+last_activity: 2026-08-23
+last_activity_desc: Phase 122 complete; supported CI and release-train hygiene green
 progress:
   total_phases: 6
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 12
   completed_plans: 12
 ---
@@ -23,14 +23,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-08-22 for v1.24)
 
 **Core value:** Media, made durable.
-**Current focus:** Phase 122 — Live Truth & Compile Clarity
+**Current focus:** Phase 123 — Runtime Operations Decomposition
 
 ## Current Position
 
-Phase: 122 — Live Truth & Compile Clarity
-Plan: 5 of 5
-Status: Verification pending
-Last activity: 2026-08-22 — Completed all 5 Phase 122 plans; awaiting supported-CI and release-train confirmation
+Phase: 123 — Runtime Operations Decomposition
+Plan: Not yet planned
+Status: Ready to plan
+Last activity: 2026-08-23 — Phase 122 complete; supported CI and release-train hygiene green
 
 ### v1.24 charter
 
@@ -57,8 +57,8 @@ the historical 0.4.0 contract; do not regress either side of that invariant.
 
 ## Next Step
 
-Obtain supported-CI and release-train confirmation for completed Phase 122 work, then mark
-CLARITY-01/02/03 complete only when that evidence passes.
+Plan Phase 123 as a finite, behavior-preserving decomposition of runtime diagnostics, migration
+preflight, and runtime-status responsibilities.
 
 ## Prior Milestone
 
