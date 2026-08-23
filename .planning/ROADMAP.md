@@ -161,7 +161,27 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
   1. Maintainers can trace a tus request through parsing, protocol validation, storage effects, and response construction in cohesive units while Plug contract, resumability, and error vocabulary stay unchanged.
   2. Maintainers can trace upload-broker validation, capability negotiation, session persistence, and completion orchestration in cohesive units while public APIs and storage-adapter behavior stay unchanged.
 
-**Plans**: TBD
+**Plans**: 5 plans
+
+**Wave 1 — end-to-end tus creation tracer**
+
+- [ ] 124-01-PLAN.md — Extract signed creation/concatenation mechanics behind the unchanged TusPlug and Broker facades.
+
+**Wave 2 — tus protocol boundary** *(blocked on Wave 1)*
+
+- [ ] 124-02-PLAN.md — Extract token and protocol parsing while retaining order-sensitive Plug gates and responses.
+
+**Wave 3 — tus storage and termination** *(blocked on Wave 2)*
+
+- [ ] 124-03-PLAN.md — Extract bounded adapter-polymorphic PATCH and DELETE abort mechanics.
+
+**Wave 4 — broker session lifecycle** *(blocked on Wave 3)*
+
+- [ ] 124-04-PLAN.md — Extract cohesive Broker seed, persistence/compensation, and validation mechanics.
+
+**Wave 5 — broker completion and supported authority** *(blocked on Wave 4)*
+
+- [ ] 124-05-PLAN.md — Extract the exact completion transaction and close local/S3/SAFE-01/exact-head CI proof.
 
 ### Phase 125: Behavioral Test Support
 
