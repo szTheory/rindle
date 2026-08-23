@@ -15,6 +15,14 @@
   # pre-existing warnings below. Keep these filters description-strict so the
   # gating Nightly lane still rejects every new warning while the known debt is
   # retired deliberately in #76 instead of being hidden by file-wide filters.
+  # Supported Nightly run 32640992583 / Dialyzer job 97197944599: the two
+  # error-reporting branches preserve the task's distinct partial and general
+  # error terms; Rindle.Error.message/1 accepts the behaviorally correct map.
+  {"lib/mix/tasks/rindle.batch_owner_erasure.ex", "The function call message will not succeed."},
+  # Supported Nightly run 32640992583 / Dialyzer job 97197944599: the generic
+  # fallback preserves a non-binary facade failure without changing Admin copy.
+  {"lib/rindle/admin/live/actions_live.ex",
+   "The pattern pattern {'error', _} can never match the type, because it is covered by previous clauses."},
   # Supported Nightly run 32637455725 / Dialyzer job 97189240234: these public
   # Ecto.Migration callbacks execute DSL operations through the host migrator;
   # Dialyzer cannot model that dynamic execution context without changing the
@@ -36,6 +44,10 @@
   {"lib/rindle/migration/v1.ex", "Function raise_preflight_error!/1 has no local return."},
   {"lib/rindle/migration/v1.ex",
    "The pattern can never match the type \n  :database_create_denied\n  | :mixed_state\n  | :public_incomplete\n  | :public_marker_invalid\n  | :public_not_empty\n  | :public_unusable\n  | :rindle_incomplete\n  | :rindle_marker_invalid\n  | :rindle_not_empty\n  | :rindle_unusable\n  | :source_not_owned\n."},
+  # Supported Nightly run 32640992583 / Dialyzer job 97197944599: Sandbox
+  # checkout can return an error at runtime; preserving it protects diagnostics.
+  {"lib/rindle/ops/runtime_checks.ex",
+   "The pattern can never match the type :ok | {:already, :allowed | :owner}."},
   {"lib/rindle/storage/gcs/client.ex", "The function call stream! will not succeed."},
   {"lib/rindle/storage/gcs/client.ex",
    "The pattern can never match the type :resumable_upload, _, _, Keyword.t()."},
