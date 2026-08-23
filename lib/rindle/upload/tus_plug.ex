@@ -83,15 +83,12 @@ defmodule Rindle.Upload.TusPlug do
   alias Rindle.Domain.MediaUploadSession
   alias Rindle.Ops.UploadMaintenance
   alias Rindle.Storage.Capabilities
-  alias Rindle.Upload.{Broker, ResumableTelemetry, TusCreation, TusProtocol}
+  alias Rindle.Upload.{Broker, ResumableTelemetry, TusCreation, TusProtocol, TusStream}
 
   @tus_version "1.0.0"
   # Conservative adopter-overridable default (5 GiB). The only adopter-facing
   # size knob; the PATCH read-loop constants below stay fixed (D-07).
   @default_max_size 5 * 1024 * 1024 * 1024
-  # Socket fill + per-read return size — a fixed safety constant so a slow-loris
-  # PATCH cannot pin memory (D-07). Never adopter config.
-  @read_length 1_048_576
 
   @type create_upload_result ::
           {:ok,
@@ -294,9 +291,22 @@ defmodule Rindle.Upload.TusPlug do
          {:ok, session, effective_len} <- resolve_patch_length(conn, session, claims, opts),
          {:ok, checksum_alg, expected_hash} <- TusProtocol.parse_upload_checksum(conn),
          {:ok, part_state} <-
-           stream_append(conn, session, claims, effective_len, checksum_alg, expected_hash, opts) do
+           TusStream.append(
+             conn,
+             session,
+             claims,
+             effective_len,
+             checksum_alg,
+             expected_hash,
+             opts
+           ) do
       new_offset = part_state.offset
-      {:ok, advanced} = persist_offset(session, part_state)
+
+      {:ok, advanced} =
+        session
+        |> MediaUploadSession.changeset(TusStream.persistence_attrs(session, part_state))
+        |> Config.repo().update()
+
       broadcast_upload_session(advanced, :upload_session_uploading, %{offset: new_offset})
 
       ResumableTelemetry.emit_patch(
@@ -312,172 +322,6 @@ defmodule Rindle.Upload.TusPlug do
       {:error, reason} -> tus_error(conn, TusProtocol.status_for(reason), "")
     end
   end
-
-  # Drains the PATCH body in 1 MiB chunks to a per-PATCH temp file (distinct from
-  # the .part/.tail backing files) — never buffers the whole body (D-07). Bounds
-  # total bytes by the per-PATCH ceiling (max_size) AND the declared Upload-Length
-  # → 413. Then dispatches the temp path POLYMORPHICALLY through the storage
-  # behaviour (`adapter.upload_part_stream/5`) — no `if adapter == Local` branch
-  # (D-12). The temp file holds exactly ONE PATCH worth of bytes and is removed
-  # after dispatch.
-  defp stream_append(conn, session, payload, effective_len, checksum_alg, expected_hash, opts) do
-    temp_path = Path.join([tus_tmp_dir(opts), session.id <> ".patch"])
-    File.mkdir_p!(Path.dirname(temp_path))
-    ceiling = opts[:max_size]
-
-    hash_ctx =
-      case checksum_alg do
-        "sha1" -> :crypto.hash_init(:sha)
-        "sha256" -> :crypto.hash_init(:sha256)
-        _ -> nil
-      end
-
-    drain_result =
-      case File.open(temp_path, [:write, :binary]) do
-        {:ok, file} ->
-          try do
-            drain(conn, file, session.last_known_offset, 0, ceiling, effective_len, hash_ctx)
-          after
-            File.close(file)
-          end
-
-        {:error, reason} ->
-          {:error, reason}
-      end
-
-    drain_result =
-      case {drain_result, expected_hash} do
-        {{:ok, new_offset, final_hash_ctx}, hash} when not is_nil(hash) ->
-          if :crypto.hash_final(final_hash_ctx) == hash do
-            {:ok, new_offset}
-          else
-            {:error, :checksum_mismatch}
-          end
-
-        {{:ok, new_offset, _}, _} ->
-          {:ok, new_offset}
-
-        {{:error, reason}, _} ->
-          {:error, reason}
-      end
-
-    try do
-      dispatch_part(drain_result, temp_path, session, payload, opts)
-    after
-      File.rm(temp_path)
-    end
-  end
-
-  # Hands the drained temp file to the adapter's tus sink. The prior part-state
-  # (offset + S3's multipart_upload_id/parts; nil/[] for Local) is threaded back
-  # in as `state`; the adapter returns the updated `t:tus_part_state/0` to persist.
-  defp dispatch_part({:ok, _new_offset}, temp_path, session, payload, opts) do
-    opts[:adapter].upload_part_stream(
-      session.upload_key,
-      temp_path,
-      session.last_known_offset,
-      prior_state(session),
-      call_opts(session, payload["content_type"], opts)
-    )
-  end
-
-  defp dispatch_part({:error, reason}, _temp_path, _session, _payload, _opts),
-    do: {:error, reason}
-
-  # Rebuilds the prior `t:tus_part_state/0` from the persisted session row. The
-  # `multipart_parts` column is typed `:map` (Phase 7), so the accumulated S3
-  # parts list is stored wrapped under a `"parts"` key (same convention as the
-  # presigned-multipart flow, broker.ex) and unwrapped back into a bare list
-  # here. Local has no parts → `[]`.
-  defp prior_state(session) do
-    %{
-      offset: session.last_known_offset,
-      upload_id: session.multipart_upload_id,
-      parts: decode_parts(session.multipart_parts)
-    }
-  end
-
-  defp decode_parts(%{"parts" => parts}) when is_list(parts), do: parts
-  defp decode_parts(_), do: []
-
-  defp drain(conn, file, base_offset, written, ceiling, upload_length, hash_ctx) do
-    case Plug.Conn.read_body(conn, length: @read_length, read_length: @read_length) do
-      {:ok, chunk, _conn} ->
-        write_chunk(file, chunk, base_offset, written, ceiling, upload_length, hash_ctx, :done)
-
-      {:more, chunk, conn} ->
-        case write_chunk(
-               file,
-               chunk,
-               base_offset,
-               written,
-               ceiling,
-               upload_length,
-               hash_ctx,
-               :more
-             ) do
-          {:cont, new_written, new_hash_ctx} ->
-            drain(conn, file, base_offset, new_written, ceiling, upload_length, new_hash_ctx)
-
-          other ->
-            other
-        end
-
-      {:error, reason} ->
-        {:error, reason}
-    end
-  end
-
-  defp write_chunk(file, chunk, base_offset, written, ceiling, upload_length, hash_ctx, mode) do
-    new_written = written + byte_size(chunk)
-
-    cond do
-      new_written > ceiling ->
-        {:error, :too_large}
-
-      is_integer(upload_length) and base_offset + new_written > upload_length ->
-        {:error, :too_large}
-
-      true ->
-        IO.binwrite(file, chunk)
-        new_hash_ctx = if hash_ctx, do: :crypto.hash_update(hash_ctx, chunk), else: nil
-
-        if mode == :done do
-          {:ok, base_offset + new_written, new_hash_ctx}
-        else
-          {:cont, new_written, new_hash_ctx}
-        end
-    end
-  end
-
-  # Persist the authoritative offset AND the cross-PATCH multipart bookkeeping
-  # (S3's UploadId + accumulated parts). The `multipart_parts` column is `:map`
-  # NOT NULL (Phase 7), so the S3 parts list is wrapped under a `"parts"` key
-  # (matching the presigned-multipart convention in broker.ex) and an absent
-  # parts list (Local — no part semantics) persists as the column default `%{}`,
-  # never nil. `multipart_upload_id` is nullable; Local persists nil. Threaded
-  # back in as the prior `state` on the next PATCH.
-  defp persist_offset(session, part_state) do
-    new_parts = encode_parts(Map.get(part_state, :parts))
-
-    merged_parts =
-      if new_parts do
-        Map.merge(session.multipart_parts || %{}, new_parts)
-      else
-        session.multipart_parts
-      end
-
-    session
-    |> MediaUploadSession.changeset(%{
-      last_known_offset: part_state.offset,
-      multipart_upload_id: Map.get(part_state, :upload_id),
-      multipart_parts: merged_parts
-    })
-    |> Config.repo().update()
-  end
-
-  defp encode_parts(parts) when is_list(parts) and parts != [], do: %{"parts" => parts}
-  defp encode_parts(_), do: %{}
 
   defp maybe_complete(conn, session, new_offset, effective_len, payload, opts) do
     if new_offset == effective_len do
@@ -502,12 +346,7 @@ defmodule Rindle.Upload.TusPlug do
   # already appended during the matching upload_part_stream/5 call.
   defp complete_upload(conn, session, payload, opts) do
     with {:ok, _result} <-
-           opts[:adapter].complete_part_stream(
-             session.upload_key,
-             nil,
-             prior_state(session),
-             call_opts(session, payload["content_type"], opts)
-           ),
+           TusStream.completion(session, payload, opts),
          {:ok, %{session: _completed}} <- Broker.verify_completion(session.id, root: opts[:root]) do
       conn
       |> put_tus_resumable()
@@ -517,26 +356,6 @@ defmodule Rindle.Upload.TusPlug do
     else
       {:error, _reason} -> tus_error(conn, 500, "")
     end
-  end
-
-  # Per-PATCH temp + adapter-call opts. The temp dir is under the storage root
-  # (Local renames within the same filesystem) or the sweepable Rindle.tmp/ root.
-  # `call_opts` thread the server-issued session_id (traversal-proof tmp keying)
-  # and root; the S3 adapter resolves bucket/aws_config via its own app-env
-  # fallback (Pitfall 4) so no creds are threaded through the Plug edge.
-  defp tus_tmp_dir(opts) do
-    opts[:root] || Rindle.AV.TempRunDir.root_dir()
-  end
-
-  defp call_opts(session_or_id, content_type, opts) do
-    session_id =
-      case session_or_id do
-        %{id: id} -> id
-        id when is_binary(id) -> id
-      end
-
-    [session_id: session_id, root: opts[:root]]
-    |> maybe_put_opt(:content_type, content_type)
   end
 
   # ── DELETE (Termination) ─────────────────────────────────────────────────────
@@ -684,10 +503,6 @@ defmodule Rindle.Upload.TusPlug do
   end
 
   defp maybe_put_upload_length(conn, _length), do: conn
-
-  defp maybe_put_opt(opts, _key, nil), do: opts
-  defp maybe_put_opt(opts, _key, ""), do: opts
-  defp maybe_put_opt(opts, key, value), do: Keyword.put(opts, key, value)
 
   defp expired?(nil), do: false
   defp expired?(%DateTime{} = at), do: DateTime.compare(at, DateTime.utc_now()) == :lt

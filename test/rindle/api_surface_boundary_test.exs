@@ -153,7 +153,6 @@ defmodule Rindle.ApiSurfaceBoundaryTest do
         assert hidden_function_doc?(Rindle.Upload.TusStream, name, arity)
       end
     end
-
   end
 
   describe "facade export and shim expectations" do
