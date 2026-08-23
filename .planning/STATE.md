@@ -4,15 +4,15 @@ milestone: v1.24
 milestone_name: Core Clarity & Quality Ratchet
 current_phase: 126
 current_phase_name: curated-type-ratchet
-status: verifying
-stopped_at: Completed 126-09-PLAN.md
-last_updated: "2026-08-23T15:52:07.565Z"
+status: planned
+stopped_at: Planned 126-10-PLAN.md gap closure
+last_updated: "2026-08-23T16:02:37Z"
 last_activity: 2026-08-23
-last_activity_desc: Phase 126 execution started
+last_activity_desc: Planned bounded TYPE-02 removal-only policy gap closure
 progress:
   total_phases: 6
-  completed_phases: 6
-  total_plans: 39
+  completed_phases: 5
+  total_plans: 40
   completed_plans: 39
 ---
 
@@ -27,10 +27,10 @@ See: .planning/PROJECT.md (updated 2026-08-22 for v1.24)
 
 ## Current Position
 
-Phase: 126 (curated-type-ratchet) — EXECUTING
-Plan: 9 of 9
-Status: Phase complete — ready for verification
-Last activity: 2026-08-23 — Phase 126 execution started
+Phase: 126 (curated-type-ratchet) — GAP CLOSURE PLANNED
+Plan: 9 of 10
+Status: Verification found one TYPE-02 policy hole; 126-10 is ready to execute
+Last activity: 2026-08-23 — Planned bounded TYPE-02 removal-only policy gap closure
 
 ### v1.24 charter
 
@@ -57,7 +57,7 @@ the historical 0.4.0 contract; do not regress either side of that invariant.
 
 ## Next Step
 
-Execute Phase 126 as nine sequential supported-evidence waves, beginning with the policy-test tracer and 45-entry inventory receipt; the immutable final authority receipt is external on GitHub issue #76/PR.
+Execute only Phase 126 Plan 10: make the policy's exact approved universe removal-only, rerun local preservation gates, then replace the exact-head authority receipt on PR #91 and reopened issue #76.
 
 ## Prior Milestone
 
@@ -201,7 +201,7 @@ _(Key v1.22 execution decisions recorded at milestone close.)_
 
 ## Blockers/Concerns
 
-_(none open for v1.23 closeout)_
+- Phase 126 TYPE-02 remains open after adversarial verification: the current policy accepts a new nonblank strict description for an existing owner. Plan 126-10 is the bounded test-only closure; issue #76 remains open until corrected exact-head authorities pass.
 
 ## Deferred Items
 
@@ -268,7 +268,8 @@ Resume file: None
 | Phase 126 P07 | 47min | 2 tasks | 7 files |
 | Phase 126 P08 | 15min | 2 tasks | 4 files |
 | Phase 126 P09 | 24min | 2 tasks | 3 files |
+| Phase 126 P10 | planned | 2 tasks | 1 implementation file |
 
 ## Operator Next Steps
 
-- Execute Phase 126 sequentially with `/gsd-execute-phase 126`; do not start a demand-gated milestone until the v1.24 type ratchet is verified.
+- Execute only the Phase 126 gap closure with `/gsd-execute-phase 126 --gaps-only`; do not start a demand-gated milestone until TYPE-02 is reverified.

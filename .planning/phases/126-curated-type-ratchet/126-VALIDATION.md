@@ -33,7 +33,7 @@ created: 2026-08-23
 
 ## Per-Task Verification Map
 
-Every task from the nine sequential plans has a runnable local check or exact supported-CI receipt. Each source-bearing slice has its own source-unchanged supported probe, focused owner behavior with SAFE-01, and exact-head Nightly finalizer on Elixir 1.17 / OTP 27.
+Every task from the ten sequential plans has a runnable local check or exact supported-CI receipt. Each source-bearing slice has its own source-unchanged supported probe, focused owner behavior with SAFE-01, and exact-head Nightly finalizer on Elixir 1.17 / OTP 27.
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
@@ -56,6 +56,8 @@ Every task from the nine sequential plans has a runnable local check or exact su
 | 126-08-02 | 08 | 8 | TYPE-01, TYPE-02, SAFE-01 | T-126-02, T-126-08 | Facade/Broker/PromoteAsset unchanged; 45/45 dispositions complete | owner integration + SAFE-01 + supported CI | Focused facade/broker/promote tests, policy, SAFE-01, exact-head Nightly Dialyzer and Summary success | ✅ | ⬜ pending |
 | 126-09-01 | 09 | 9 | TYPE-01, TYPE-02, SAFE-01 | T-126-01, T-126-03 | Complete local gates, clean candidate commit, and bounded phase diff | aggregate | Policy/topology/cache tests, all mapped owner commands, SAFE-01, `mix ci`, `./scripts/maintainer/repo_hygiene_check.sh --ci` | ✅ | ⬜ pending |
 | 126-09-02 | 09 | 9 | TYPE-01, TYPE-02, SAFE-01 | T-126-02, T-126-09 | Exact-head authorities and immutable external #76 receipt without repository mutation | supported CI/external state | Candidate=PR head; Dialyzer/Summary success; CI Summary SUCCESS; sanitized issue comment links; issue-state predicate; candidate unchanged | ✅ | ⬜ pending |
+| 126-10-01 | 10 | 10 | TYPE-02, SAFE-01 | T-126-10-01, T-126-10-05 | Closed exact approved universe rejects new strict/atom filters while remaining removal-only and test-only | unit/policy + aggregate | Witness RED, then focused policy/topology/cache, SAFE-01, `mix ci`, hygiene, and forbidden-surface diff | ✅ | ⬜ pending |
+| 126-10-02 | 10 | 10 | TYPE-01, TYPE-02, SAFE-01 | T-126-10-02, T-126-10-03, T-126-10-04 | Corrected exact head receives PR/Nightly authority and sanitized conditional issue disposition | supported CI/external state | Candidate=PR #91 head; CI Summary success; Nightly Dialyzer/Summary success; complete annotations set empty; replacement receipt; issue-state predicate | ✅ | ⬜ pending |
 
 ## Wave 0 Requirements
 
