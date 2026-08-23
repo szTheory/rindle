@@ -1,7 +1,7 @@
 # Phase 125: Behavioral Test Support - Pattern Map
 
-**Mapped:** 2026-08-23  
-**Files analyzed:** 14 likely implementation, test, and CI-preservation surfaces  
+**Mapped:** 2026-08-23
+**Files analyzed:** 14 likely implementation, test, and CI-preservation surfaces
 **Analogs found:** 13 / 14
 
 The repository has no approved Phase 125 `CONTEXT.md` or `RESEARCH.md` yet. This map derives the
@@ -394,6 +394,6 @@ single-run command, and its exit/output evidence in the phase verification artif
 
 ## Metadata
 
-**Analog search scope:** Phase 125 roadmap/requirements; generated-app helper and smoke suite; all current docs parity suites; compiled-doc/structural contract tests; repo override resolver/double/proof; CI workflow, RUNNING, install-smoke, and SAFE-01 runner/meta-test.  
-**Files scanned:** 20 primary code/test/config artifacts plus Phase 122/124 precedent maps.  
+**Analog search scope:** Phase 125 roadmap/requirements; generated-app helper and smoke suite; all current docs parity suites; compiled-doc/structural contract tests; repo override resolver/double/proof; CI workflow, RUNNING, install-smoke, and SAFE-01 runner/meta-test.
+**Files scanned:** 20 primary code/test/config artifacts plus Phase 122/124 precedent maps.
 **Pattern extraction date:** 2026-08-23
