@@ -152,6 +152,48 @@ defmodule Rindle.InstallSmoke.GeneratedAppPhase120FastContractTest do
            ]
   end
 
+  test "stable facade preserves every pure contract and scenario predicate" do
+    for {name, facade_value, owner_value} <- [
+          {:default_install_contract, GeneratedAppHelper.default_install_contract(),
+           Rindle.InstallSmoke.GeneratedApp.Contracts.default_install_contract()},
+          {:persistence_lifecycle_report_keys,
+           GeneratedAppHelper.persistence_lifecycle_report_keys(),
+           Rindle.InstallSmoke.GeneratedApp.Contracts.persistence_lifecycle_report_keys()},
+          {:public_compatibility_contract, GeneratedAppHelper.public_compatibility_contract(),
+           Rindle.InstallSmoke.GeneratedApp.Contracts.public_compatibility_contract()},
+          {:isolation_upgrade_contract, GeneratedAppHelper.isolation_upgrade_contract(),
+           Rindle.InstallSmoke.GeneratedApp.Contracts.isolation_upgrade_contract()},
+          {:legacy_upgrade_contract, GeneratedAppHelper.legacy_upgrade_contract(),
+           Rindle.InstallSmoke.GeneratedApp.Contracts.legacy_upgrade_contract()}
+        ] do
+      assert facade_value == owner_value, "facade changed #{name}"
+    end
+
+    valid_report = valid_isolation_upgrade_catalog_report()
+
+    for report <- [valid_report, %{valid_report | marker_versions: []}] do
+      assert GeneratedAppHelper.isolation_upgrade_catalog_preserved?(report) ==
+               Rindle.InstallSmoke.GeneratedApp.Contracts.isolation_upgrade_catalog_preserved?(
+                 report
+               )
+    end
+
+    for profile <- [:image, :video, :tus, :mux, :gcs] do
+      assert GeneratedAppHelper.profile_enabled?(profile) ==
+               Rindle.InstallSmoke.GeneratedApp.Contracts.profile_enabled?(profile)
+    end
+
+    tags = [:minio, :phase_120_public_compat]
+
+    for scenario <- [:default, :phase_120_public_compat, :phase_120_isolation_upgrade] do
+      assert GeneratedAppHelper.phase_120_scenario_enabled?(scenario, tags) ==
+               Rindle.InstallSmoke.GeneratedApp.Contracts.phase_120_scenario_enabled?(
+                 scenario,
+                 tags
+               )
+    end
+  end
+
   test "network install provenance reports the fetched unpacked Hex dependency instead of the unused local package path" do
     workspace_root =
       Path.join(
