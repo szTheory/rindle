@@ -229,3 +229,28 @@ unowned path appeared. The source owners were unchanged.
 | E05 | reproduced candidate | `lib/rindle/ops/runtime_status.ex:349` and `:350`: the `__reason@1` and `_reason@1` clauses are each covered by previous clauses. |
 | E06 | reproduced candidate | `lib/rindle/workers/process_variant.ex:157`: `The pattern can never match the type {:error, _}.` |
 | E07 | reproduced candidate | `lib/rindle/workers/process_variant.ex:449`: `The pattern variable __variant_spec@1 can never match the type, because it is covered by previous clauses.` |
+
+## Final Runtime, HTML, and ProcessVariant Slice Receipt
+
+- [Exact-head Nightly run 32642989666](https://github.com/szTheory/rindle/actions/runs/32642989666)
+  for `82f8c557d4e32831ce4a0fa61160b35b35bc632d` (`workflow_dispatch`).
+- [Dialyzer job 97202854464](https://github.com/szTheory/rindle/actions/runs/32642989666/job/97202854464):
+  **failure** only for the three later-owned TUS annotations.
+- [Nightly Summary job 97203393276](https://github.com/szTheory/rindle/actions/runs/32642989666/job/97203393276):
+  **success**, explicitly recording `DIALYZER: failure`.
+- Focused runtime-status/task/HTML/ProcessVariant suites (65 tests) and
+  `bash scripts/maintainer/refactor_contract.sh` (92 contract tests): passed.
+
+| IDs | Final status | Supported rationale |
+| --- | --- | --- |
+| E04 | retained-analyzer-noise | The `nil` MIME fallback is an intentional optional-integration safe path; removing it would change valid HTML helper output. |
+| E05 | retained-analyzer-noise | Runtime-status accepts arbitrary refusal terms at its private telemetry boundary; the fallbacks preserve diagnostics and task/API failure behavior. |
+| E06 | retained-analyzer-noise | ProcessVariant retains its cancel/error branch for dynamic processor outcomes, preserving lifecycle transitions, retry/discard behavior, telemetry, and error terms. |
+| E07 | retained-analyzer-noise | The non-map fallback remains defensive for dynamic profile inputs; removing it would narrow worker behavior outside Dialyzer's inferred internal map flow. |
+
+The complete final annotation multiset is E38 at
+`lib/rindle/upload/tus_creation.ex:35`, E39 at
+`lib/rindle/upload/tus_stream.ex:163`, and E40 at
+`lib/rindle/upload/tus_stream.ex:66`. No runtime-status, HTML, ProcessVariant,
+earlier, or unowned warning is emitted. This is an intentionally red
+intermediate Nightly result until Plan 126-07 owns E38-E40.
