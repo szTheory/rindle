@@ -5,6 +5,19 @@
   # Pre-existing pattern_match / pattern_match_cov warnings surfaced after
   # Phase 34 PLT regen with :mux + :jose. Not Phase 34 surface; tracked
   # in .planning/phases/34-mux-rest-adapter-server-push-sync/deferred-items.md.
+  # Supported Nightly run 32642668846 / Dialyzer job 97202060703: the optional
+  # MIME fallback preserves HTML rendering when an integration does not provide
+  # a source type; narrowing it would remove a behaviorally valid safe fallback.
+  {"lib/rindle/html.ex", :pattern_match},
+  # Supported Nightly run 32642668846 / Dialyzer job 97202060703: fallback
+  # refusal normalization keeps arbitrary diagnostic terms safe for telemetry
+  # without changing the runtime-status API or task failure output.
+  {"lib/rindle/ops/runtime_status.ex", :pattern_match_cov},
+  # Supported Nightly run 32642668846 / Dialyzer job 97202060703: the worker's
+  # cancel/error and non-map fallbacks preserve lifecycle, retry, and error
+  # behavior for dynamic processor and profile inputs.
+  {"lib/rindle/workers/process_variant.ex", :pattern_match},
+  {"lib/rindle/workers/process_variant.ex", :pattern_match_cov},
   {"lib/rindle/workers/promote_asset.ex", :pattern_match_cov},
 
   # v0.4.1 baseline reconciliation: repairing the Nightly PLT cache exposed the

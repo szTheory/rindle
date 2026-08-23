@@ -208,3 +208,24 @@ The exact final annotation multiset is E38 at
 `lib/rindle/upload/tus_stream.ex:66`. No operational, migration/support, or
 unowned warning is emitted. This remains an intentionally red intermediate
 Nightly result until Plan 126-07 owns the three TUS findings.
+
+## Supported Runtime, HTML, and ProcessVariant Probe Receipt
+
+- Probe commit: `f446e68c9dea5df27a4544fed2d7c9d8b65031d3`
+- [Exact-head Nightly run 32642668846](https://github.com/szTheory/rindle/actions/runs/32642668846)
+  (`workflow_dispatch`; `headSha` exactly equals the probe commit)
+- [Dialyzer job 97202060703](https://github.com/szTheory/rindle/actions/runs/32642668846/job/97202060703):
+  **failure** with eight warnings; [Nightly Summary job
+  97202596326](https://github.com/szTheory/rindle/actions/runs/32642668846/job/97202596326)
+  was **success** and recorded `DIALYZER: failure`.
+
+Only E04-E07 were exposed on this source-unchanged probe. All four historical
+filters reproduced alongside the three later-owned TUS warnings; no earlier or
+unowned path appeared. The source owners were unchanged.
+
+| IDs | Probe disposition | Exact supported observation |
+| --- | --- | --- |
+| E04 | reproduced candidate | `lib/rindle/html.ex:273`: `The pattern can never match the type binary().` |
+| E05 | reproduced candidate | `lib/rindle/ops/runtime_status.ex:349` and `:350`: the `__reason@1` and `_reason@1` clauses are each covered by previous clauses. |
+| E06 | reproduced candidate | `lib/rindle/workers/process_variant.ex:157`: `The pattern can never match the type {:error, _}.` |
+| E07 | reproduced candidate | `lib/rindle/workers/process_variant.ex:449`: `The pattern variable __variant_spec@1 can never match the type, because it is covered by previous clauses.` |
