@@ -195,7 +195,7 @@ Use a map of named document paths in `DocsParity.Support.setup_docs/0` rather th
 
 **What goes wrong:** The existing isolation proof validates the old-to-new causal delta but does not sample the full one-run coverage workload or seed variability. [VERIFIED: existing one-test isolation proof; issue #42]
 
-**How to avoid:** Keep the focused proof, add a bounded repeated fresh-process stress protocol using the exact Quality coverage command, record seed/iteration/toolchain/command/head SHA, and treat any failure as a concrete issue update rather than retrying it away. [VERIFIED: issue #42, RUNNING.md; ASSUMED: recommended evidence format]
+**How to avoid:** Keep a high-iteration focused causal proof in the normal suite, then add a bounded local fresh-process stress protocol using the exact Quality coverage command. Record seed/iteration/toolchain/command/head SHA, and treat any failure as a concrete issue update rather than retrying it away. This is an evidence threshold, not a statistical proof that failure is impossible. [VERIFIED: issue #42, RUNNING.md; ASSUMED: recommended evidence format]
 
 ### Pitfall 5: Masking an issue #42 failure
 
@@ -248,19 +248,15 @@ Keep the current helper semantics and test assertions; the example only illustra
 | # | Claim | Section | Risk if Wrong |
 |---|---|---|---|
 | A1 | A focused command runner can accept a safe test-only timeout/command injection without changing externally observable generated-app behavior. | Replacement map / Pattern 1 | Low; execution can instead test a pure result-normalizer while retaining current runner. |
-| A2 | A 25-seed fresh Quality-command matrix plus focused repeated isolation proof is a sufficient pre-closure threshold for a historically rare flake. | Async stress protocol | Medium; it may be insufficient to convince the maintainer or issue evidence may reveal a failure. |
 | A3 | Docs suite filenames/domains proposed here are the least-surprising ownership split. | Recommended Project Structure | Low; filenames are private test organization. |
 
-## Open Questions
+## Resolved Planning Decisions
 
-1. **What exact repeat count should issue #42 closure claim?**
-   - What we know: issue #42 is rare/order-dependent; CI now executes the single-run coverage command; the local toolchain is Elixir 1.19/OTP 28 while the supported CI authority is 1.17/OTP 27. [VERIFIED: issue #42, RUNNING.md, local environment]
-   - What's unclear: no historical frequency supports a mathematically conclusive run count.
-   - Recommendation: use 25 distinct deterministic seeds as the local stress floor, preserve every iteration result, then require the exact-head supported CI Quality matrix/CI Summary before closing. If any iteration fails, stop and narrow instead. [ASSUMED]
+1. **Issue #42 evidence threshold:** Run a finite local matrix of 25 distinct deterministic seeds. Each iteration starts a fresh BEAM process and invokes the exact shipped Quality command once: `mix coveralls.multiple --type local --type json --seed <seed> --slowest 20`. Record iteration, seed, command, toolchain, head SHA, exit status, and sanitized failure location. In parallel, strengthen the focused causal isolation proof into a high-iteration loop that runs during each normal focused/full suite invocation, retaining the separate-process condition: the counting double sees its local override while the unrelated bare spawned reader sees `Rindle.Repo` and completes a real allowed transaction. This is the finite evidence threshold for a historically rare failure, explicitly not a statistical proof of impossibility. [VERIFIED: issue #42, RUNNING.md, existing isolation proof; ASSUMED: 25-seed threshold and evidence record fields]
 
-2. **Can Phase 125 close GitHub issue #42 itself?**
-   - What we know: the roadmap requires close-or-narrow disposition and the issue is currently open. [VERIFIED: ROADMAP.md, GitHub issue #42]
-   - Recommendation: plan a final human-visible issue update only after evidence is committed and exact-head CI passes. If it fails, post the minimal reproducer and leave it open. This is external state, so do not close it as a side effect of local test edits. [ASSUMED]
+2. **Issue disposition authority:** Phase 125 is authorized to post sanitized evidence and close issue #42 only after all 25 local matrix iterations, the high-iteration causal proof, and the exact-head supported Quality/CI Summary authority pass. On the first local or CI failure, stop the matrix, post the minimal sanitized reproducer/narrowed remaining failure, and leave the issue open. [VERIFIED: ROADMAP.md, GitHub issue #42; ASSUMED: execution disposition protocol]
+
+3. **CI topology remains fixed:** The 25-run matrix is local/maintainer evidence, never 25 coverage invocations within a CI job. Do not add partitions, a second coverage run, or any workflow topology expansion. Each existing Quality CI job continues to invoke its shipped single `coveralls.multiple --type local --type json` run exactly once. [VERIFIED: ROADMAP.md, RUNNING.md, CI workflow]
 
 ## Environment Availability
 
@@ -291,20 +287,20 @@ Keep the current helper semantics and test assertions; the example only illustra
 | TEST-01 | Facade-backed generated-app proofs keep package/consumer outcomes unchanged after support split | integration/adopter | `MIX_ENV=test mix test test/install_smoke/generated_app_smoke_test.exs --seed 0` plus existing tagged package/adopter lanes | ✅ |
 | TEST-02 | No helper implementation-string snapshots; replacement contract behavior/metadata passes | unit + structural | focused generated-app contract and Phoenix tus parity tests | ❌ Wave 0 adjustment |
 | TEST-03 | Domain suites retain all docs assertions with shared support | unit/static docs | `MIX_ENV=test mix test test/install_smoke/docs_parity --seed 0` | ❌ Wave 0 split |
-| TEST-04 | Repeated current coverage plus override isolation evidence yields close-or-narrow issue disposition | stress + integration | fresh-process loop of `mix coveralls.multiple --type local --type json --seed <seed>` and focused isolation test | ❌ Wave 0 stress harness |
+| TEST-04 | 25 fresh local Quality-command runs plus high-iteration causal proof yield an authorized close-or-narrow issue disposition | stress + integration | local `for seed in <25 distinct seeds>` invokes one fresh `mix coveralls.multiple --type local --type json --seed "$seed" --slowest 20` per iteration; normal suites run focused causal proof | ❌ Wave 0 stress harness |
 | SAFE-01 | Protected public/schema/telemetry/error/release contracts stay intact | contract | `bash scripts/maintainer/refactor_contract.sh` | ✅ |
 
 ### Sampling Rate
 
 - **Per task commit:** focused test file(s), `mix format --check-formatted`, and `bash scripts/maintainer/refactor_contract.sh` when shared test support changes. [VERIFIED: existing Phase 124 verification posture]
-- **Per wave merge:** `mix test` for affected install-smoke/docs/isolation suites with `--seed 0`. [ASSUMED]
-- **Phase gate:** exact shipped Quality coverage command on 25 recorded seeds; final supported exact-head CI Summary green. [ASSUMED; VERIFIED: CI Summary authority]
+- **Per wave merge:** `MIX_ENV=test mix test` for affected install-smoke/docs/isolation suites with `--seed 0`; this includes the high-iteration focused causal isolation proof. [ASSUMED]
+- **Phase gate:** locally run 25 distinct deterministic seeds as 25 fresh processes, each executing the exact shipped Quality command once; then require exact-head supported Quality/CI Summary green. A failure stops immediately and narrows issue #42; passing evidence authorizes its sanitized closeout. [VERIFIED: CI Summary authority; ASSUMED: 25-seed threshold]
 
 ### Wave 0 Gaps
 
 - [ ] `test/install_smoke/docs_parity/support.ex` and domain test files — preserve current assertions while making ownership explicit.
 - [ ] Focused generated-app command-runner/workspace behavioral tests — replace helper text snapshots.
-- [ ] Reproducible async-isolation stress runner/report format — records command, seeds, toolchain, SHA, and first failure.
+- [ ] Reproducible local-only async-isolation stress runner/report format — runs exactly 25 fresh single-coverage invocations, records command/seeds/toolchain/SHA/first failure, and never changes CI workflow topology.
 - [ ] No framework installation — existing ExUnit/Ecto/ExCoveralls stack covers the phase. [VERIFIED: mix project/lock]
 
 ## Security Domain
