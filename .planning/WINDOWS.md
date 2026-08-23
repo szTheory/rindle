@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 0
+open_count: 2
 waived_count: 2
 fixed_count: 9
-total_count: 11
-last_updated: 2026-08-20T20:59:01.237Z
+total_count: 13
+last_updated: 2026-08-23T15:10:46.355Z
 ---
 
 # Broken Windows Ledger
@@ -26,6 +26,8 @@ last_updated: 2026-08-20T20:59:01.237Z
 | 9 | 120 | unrun-verify | examples/adoption_demo/test/rindle_migration_contract_test.exs | 11 | Cohort precommit blocked by inherited dirty schema fixture: public.media_assets already exists. | fixed |  | 2026-08-20T20:59:00.311Z | 2026-08-20T20:59:00.958Z |
 | 10 | 120 | unrun-verify | test/install_smoke/docs_parity_test.exs |  | mix ci blocked by unrelated pre-existing formatting drift. | fixed |  | 2026-08-20T20:59:00.386Z | 2026-08-20T20:59:01.027Z |
 | 11 | 120 | unrun-verify | scripts/install_smoke.sh |  | Broad packed/Cohort verification runner detached before final exit receipts; exact-SHA CI remains required. | fixed |  | 2026-08-20T20:59:00.462Z | 2026-08-20T20:59:01.101Z |
+| 12 | 126 | deviation | .planning/phases/126-curated-type-ratchet/126-04-SUMMARY.md |  | Verification predicate used a punctuation typo; exact emitted E38 text was used for supported receipt validation. | open |  | 2026-08-23T13:45:36.941Z |  |
+| 13 | 126 | deviation | lib/rindle/upload/broker.ex | 193 | Corrected concatenate_tus_sessions/3 return spec to match its existing session-map result. | open |  | 2026-08-23T15:10:46.355Z |  |
 
 ````json
 [
@@ -160,6 +162,30 @@ last_updated: 2026-08-20T20:59:01.237Z
     "reason": "",
     "recorded_at": "2026-08-20T20:59:00.462Z",
     "resolved_at": "2026-08-20T20:59:01.101Z"
+  },
+  {
+    "id": 12,
+    "kind": "deviation",
+    "phase": "126",
+    "file": ".planning/phases/126-curated-type-ratchet/126-04-SUMMARY.md",
+    "line": null,
+    "description": "Verification predicate used a punctuation typo; exact emitted E38 text was used for supported receipt validation.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-23T13:45:36.941Z",
+    "resolved_at": null
+  },
+  {
+    "id": 13,
+    "kind": "deviation",
+    "phase": "126",
+    "file": "lib/rindle/upload/broker.ex",
+    "line": 193,
+    "description": "Corrected concatenate_tus_sessions/3 return spec to match its existing session-map result.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-23T15:10:46.355Z",
+    "resolved_at": null
   }
 ]
 ````

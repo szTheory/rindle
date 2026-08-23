@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.24
 milestone_name: Core Clarity & Quality Ratchet
-current_phase: 125
-current_phase_name: Behavioral Test Support
-status: ready_to_execute
-stopped_at: Completed 125-10-PLAN.md
-last_updated: "2026-08-23T09:07:30.051Z"
+current_phase: 126
+status: completed
+stopped_at: Completed 126-09-PLAN.md
+last_updated: "2026-08-23T17:02:07.191Z"
 last_activity: 2026-08-23
-last_activity_desc: Phase 125 planned with Nyquist validation and 10 sequential tracer slices
+last_activity_desc: Phase 126 complete
 progress:
-  total_phases: 5
-  completed_phases: 5
-  total_plans: 30
-  completed_plans: 30
+  total_phases: 6
+  completed_phases: 6
+  total_plans: 40
+  completed_plans: 40
+current_phase_name: curated-type-ratchet
 ---
 
 # Project State
@@ -23,14 +23,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-08-22 for v1.24)
 
 **Core value:** Media, made durable.
-**Current focus:** Phase 125 — Behavioral Test Support
+**Current focus:** Phase 126 — curated-type-ratchet
 
 ## Current Position
 
-Phase: 125 — Behavioral Test Support
-Plan: 4 of 10
-Status: Ready to execute
-Last activity: 2026-08-23 — Phase 125 planned with Nyquist validation and 10 sequential tracer slices
+Phase: 126
+Plan: Not started
+Status: All phases complete
+Last activity: 2026-08-23 — Phase 126 complete
 
 ### v1.24 charter
 
@@ -57,7 +57,7 @@ the historical 0.4.0 contract; do not regress either side of that invariant.
 
 ## Next Step
 
-Plan Phase 125 as a behavior-preserving decomposition of generated-app and documentation-parity test support, with stress evidence for async isolation.
+Phase 126 complete; metadata is local-only and non-authoritative.
 
 ## Prior Milestone
 
@@ -184,10 +184,24 @@ _(Key v1.22 execution decisions recorded at milestone close.)_
 - [Phase ?]: Docs parity assigns adopter onboarding and maintainer operations to separate read-once domain suites.
 - [Phase ?]: Proof now explicitly executes the four docs-parity domains in one unchanged topology step.
 - [Phase ?]: Issue #42 remains open because its sole authorized matrix attempt completed only 1/25 runs; exact-head CI cannot override incomplete local evidence.
+- [Phase ?]: Phase 126 Plan 01: Nightly Elixir 1.17 / OTP 27 is the sole Dialyzer acceptance authority; local output remains diagnostic.
+- [Phase ?]: Phase 126 Plan 01: E38-E40 stay pending after exact-head supported CI emitted the unchanged tus_plug warnings.
+- [Phase ?]: Migration Ecto callback and intentional-raise warnings remain exact supported analyzer-noise filters.
+- [Phase ?]: E09, E10, and E24 remain exact supported analyzer-noise filters to preserve task output, Admin fallback, and runtime diagnostics.
+- [Phase ?]: E04-E07 remain exact supported analyzer-noise filters because their fallback clauses preserve optional HTML, runtime diagnostics, and ProcessVariant lifecycle behavior.
+- [Phase ?]: Intermediate exact-head Nightly acceptance remains the complete E38-E40 TUS-only multiset with Dialyzer failure and Nightly Summary success.
+- [Phase ?]: GCS and Local stream warnings remain exact supported filters when bounded streams, tagged errors, cleanup, or opaque dependency boundaries make a behavior-preserving correction unsafe.
+- [Phase ?]: GCS collapsed the duplicate private auth-error pattern; E26 remains exact supported analyzer noise because the broker-exercised resumable URL mode stays inferred unreachable on the home cell.
+- [Phase ?]: S3 stream and tail warnings remain exact supported analyzer-noise filters because the accepted home cell proves bounded stream, tagged-error, ordered-slicing, and cleanup paths are reachable.
+- [Phase ?]: Intermediate exact-head Nightly acceptance remains E38-E40 only, with Dialyzer failure honestly surfaced by Nightly Summary success.
+- [Phase ?]: E38-E40 preserve immutable tus_plug filter history separately from extracted creation/stream owners; all five Tus/Mux candidates are actionable-fixed on supported Nightly.
+- [Phase ?]: E01-E03 are obsolete only after the source-unchanged supported probe emitted no matching facade/Broker/PromoteAsset warnings.
+- [Phase ?]: E08 removes only an unreachable private PromoteAsset fallback; the four retained atom filters are E04-E07.
+- [Phase ?]: Phase 126 Plan 09: exact-head Nightly 1.17/27 Dialyzer, Nightly Summary, and PR CI Summary accepted candidate a36cd146; issue #76 closed only after all 45 dispositions qualified.
 
 ## Blockers/Concerns
 
-_(none open for v1.23 closeout)_
+- Phase 126 TYPE-02 remains open after adversarial verification: the current policy accepts a new nonblank strict description for an existing owner. Plan 126-10 is the bounded test-only closure; issue #76 remains open until corrected exact-head authorities pass.
 
 ## Deferred Items
 
@@ -201,8 +215,8 @@ _(none open for v1.23 closeout)_
 
 ## Session Continuity
 
-Last session: 2026-08-23T09:07:30.045Z
-Stopped at: Completed 125-10-PLAN.md
+Last session: 2026-08-23T15:52:07.553Z
+Stopped at: Completed 126-09-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -245,7 +259,17 @@ Resume file: None
 | Phase 125-behavioral-test-support P08 | 24min | 2 tasks | 3 files |
 | Phase 125-behavioral-test-support P09 | 16min | 2 tasks | 4 files |
 | Phase 125 P10 | 45min | 2 tasks | 8 files |
+| Phase 126 P01 | ~15 min | 2 tasks | 2 files |
+| Phase 126-curated-type-ratchet P02 | 45 min | 3 tasks | 4 files |
+| Phase 126 P03 | 31min | 2 tasks | 2 files |
+| Phase 126 P04 | 14min | 2 tasks | 3 files |
+| Phase 126 P05 | 19min | 2 tasks | 3 files |
+| Phase 126 P06 | 13min | 2 tasks | 3 files |
+| Phase 126 P07 | 47min | 2 tasks | 7 files |
+| Phase 126 P08 | 15min | 2 tasks | 4 files |
+| Phase 126 P09 | 24min | 2 tasks | 3 files |
+| Phase 126 P10 | planned | 2 tasks | 1 implementation file |
 
 ## Operator Next Steps
 
-- Wait for an approved LIFE-06 or STREAM-10 signal; then start the next milestone with `/gsd-new-milestone`.
+- Execute only the Phase 126 gap closure with `/gsd-execute-phase 126 --gaps-only`; do not start a demand-gated milestone until TYPE-02 is reverified.

@@ -73,10 +73,10 @@
 
 ### Curated Type Ratchet
 
-- [ ] **TYPE-01**: The supported Elixir 1.17 / OTP 27 home cell passes Dialyzer after each retained
+- [x] **TYPE-01**: The supported Elixir 1.17 / OTP 27 home cell passes Dialyzer after each retained
   ignore entry is justified or removed; unsupported local toolchain noise does not define acceptance.
 
-- [ ] **TYPE-02**: CI blocks newly introduced actionable Dialyzer findings through a curated gate, and
+- [x] **TYPE-02**: CI blocks newly introduced actionable Dialyzer findings through a curated gate, and
   issue #76 is closed with the resulting baseline evidence.
 
 ### Behavior Preservation
@@ -127,8 +127,8 @@ Populated during roadmap creation. Each v1.24 requirement maps to exactly one ph
 | TEST-02 | Phase 125 | Complete |
 | TEST-03 | Phase 125 | Complete |
 | TEST-04 | Phase 125 | Complete |
-| TYPE-01 | Phase 126 | Pending |
-| TYPE-02 | Phase 126 | Pending |
+| TYPE-01 | Phase 126 | Complete |
+| TYPE-02 | Phase 126 | Complete |
 
 **Coverage:**
 

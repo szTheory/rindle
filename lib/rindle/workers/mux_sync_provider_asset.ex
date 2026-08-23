@@ -222,9 +222,6 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
               profile_atom,
               "live state #{to} not reachable from #{from}"
             )
-
-          err ->
-            err
         end
       end
     end

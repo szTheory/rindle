@@ -63,8 +63,8 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 - [x] **Phase 122: Live Truth & Compile Clarity** - Reconcile live source and documentation truth while removing the internal schema compile cycle. (completed 2026-08-23)
 - [x] **Phase 123: Runtime Operations Decomposition** - Make runtime diagnostics, migration preflight, and status code easier to reason about without contract drift. (completed 2026-08-23)
 - [x] **Phase 124: Upload Path Clarity** - Decompose tus and broker internals into cohesive, contract-preserving boundaries. (completed 2026-08-23)
-- [ ] **Phase 125: Behavioral Test Support** - Replace oversized and self-inspecting test support with focused behavioral proof and async-isolation evidence.
-- [ ] **Phase 126: Curated Type Ratchet** - Retire the actionable Dialyzer baseline on the supported toolchain and block its return.
+- [x] **Phase 125: Behavioral Test Support** - Replace oversized and self-inspecting test support with focused behavioral proof and async-isolation evidence. (completed 2026-08-23)
+- [x] **Phase 126: Curated Type Ratchet** - Retire the actionable Dialyzer baseline on the supported toolchain and block its return. (completed 2026-08-23)
 
 ## Phase Details
 
@@ -247,7 +247,47 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
   1. The supported Elixir 1.17 / OTP 27 home cell passes Dialyzer, and every retained ignore is justified while unsupported local-toolchain noise does not determine acceptance.
   2. CI blocks newly introduced actionable Dialyzer findings through a curated gate, with issue #76 closed using the resulting baseline evidence.
 
-**Plans**: TBD
+**Plans**: 9/10 plans executed
+
+**Wave 1 — policy-test tracer and immutable inventory**
+
+- [x] 126-01-PLAN.md — Lock curated-ignore policy, record the 45-entry baseline, and prove the supported authority seam.
+
+**Wave 2 — migration and host support** *(blocked on Wave 1)*
+
+- [x] 126-02-PLAN.md — Probe and reconcile migration/support type boundaries under unchanged migration behavior.
+
+**Wave 3 — operational task/Admin/runtime checks** *(blocked on Wave 2)*
+
+- [x] 126-03-PLAN.md — Probe and reconcile task, Admin, and runtime-check warnings.
+
+**Wave 4 — historical runtime-pattern owners** *(blocked on Wave 3)*
+
+- [x] 126-04-PLAN.md — Probe and reconcile runtime-status, HTML, and ProcessVariant atoms.
+
+**Wave 5 — GCS and Local adapters** *(blocked on Wave 4)*
+
+- [x] 126-05-PLAN.md — Probe and reconcile GCS and Local stream/opaque warnings.
+
+**Wave 6 — S3 adapter** *(blocked on Wave 5)*
+
+- [x] 126-06-PLAN.md — Probe and reconcile S3 stream/tail warnings.
+
+**Wave 7 — Tus and Mux boundaries** *(blocked on Wave 6)*
+
+- [x] 126-07-PLAN.md — Probe and reconcile Tus crypto and Mux response-pattern warnings.
+
+**Wave 8 — facade and lifecycle atoms** *(blocked on Wave 7)*
+
+- [x] 126-08-PLAN.md — Reconcile facade, Broker, and PromoteAsset atoms and complete all 45 dispositions.
+
+**Wave 9 — exact-head authority and immutable issue receipt** *(blocked on Wave 8)*
+
+- [x] 126-09-PLAN.md — Run final gates, require unchanged-head Nightly/PR success, and publish the external #76 receipt.
+
+**Wave 10 — removal-only policy gap closure** *(blocked on Wave 9)*
+
+- [x] 126-10-PLAN.md — Reject every unapproved exact filter, rerun preservation gates, and replace the exact-head #76 receipt.
 
 ## Progress
 
@@ -257,8 +297,8 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 | 122. Live Truth & Compile Clarity | 5/5 | Complete | 2026-08-23 |
 | 123. Runtime Operations Decomposition | 3/3 | Complete | 2026-08-23 |
 | 124. Upload Path Clarity | 5/5 | Complete    | 2026-08-23 |
-| 125. Behavioral Test Support | 10/10 | In Progress|  |
-| 126. Curated Type Ratchet | 0/TBD | Not started | - |
+| 125. Behavioral Test Support | 10/10 | Complete    | 2026-08-23 |
+| 126. Curated Type Ratchet | 10/10 | Complete    | 2026-08-23 |
 
 ## Deferred to a Demand-Gated Milestone
 
@@ -270,4 +310,4 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 - `mix test --partitions` parallelization — evidence-gated on measured core starvation (DEFER-02).
 
 ---
-*Last updated: 2026-08-22 — v1.24 roadmap created from the approved finite, behavior-preserving requirement set. Signal restoration precedes refactors; Dialyzer retirement is last.*
+*Last updated: 2026-08-23 — Phase 126 adds one bounded removal-only policy gap-closure wave after adversarial verification.*
