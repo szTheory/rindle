@@ -5,12 +5,12 @@ milestone_name: Core Clarity & Quality Ratchet
 current_phase: 123
 current_phase_name: Runtime Operations Decomposition
 status: ready_to_plan
-stopped_at: Phase 122 verified on supported CI; ready to plan Phase 123
-last_updated: "2026-08-23T00:44:00.000Z"
+stopped_at: Phase 123 context gathered (assumptions mode)
+last_updated: "2026-08-23T01:09:49.852Z"
 last_activity: 2026-08-23
 last_activity_desc: Phase 122 complete; supported CI and release-train hygiene green
 progress:
-  total_phases: 6
+  total_phases: 3
   completed_phases: 2
   total_plans: 12
   completed_plans: 12
@@ -198,9 +198,9 @@ _(none open for v1.23 closeout)_
 
 ## Session Continuity
 
-Last session: 2026-08-22T23:52:21.206Z
-Stopped at: Completed 122-01-PLAN.md
-Resume file: None
+Last session: 2026-08-23T01:09:49.845Z
+Stopped at: Phase 123 context gathered (assumptions mode)
+Resume file: .planning/phases/123-runtime-operations-decomposition/123-CONTEXT.md
 
 ## Performance Metrics
 
