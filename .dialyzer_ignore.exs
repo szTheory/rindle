@@ -61,6 +61,11 @@
   # upload must pass File.stream!/3 through Finch as a bounded request stream;
   # changing that opaque producer would buffer the upload or change error terms.
   {"lib/rindle/storage/gcs/client.ex", "The function call stream! will not succeed."},
+  # Supported Nightly run 32643843369 / Dialyzer job 97204927840: the inferred
+  # unreachable resumable URL mode is exercised by the broker-safe resumable
+  # initiation path; its explicit URL-mode spec preserves that protocol branch.
+  {"lib/rindle/storage/gcs/client.ex",
+   "The pattern can never match the type :resumable_upload, _, _, Keyword.t()."},
   # Supported Nightly run 32643457947 / Dialyzer job 97203998038: Local's
   # bounded TUS stream returns tagged append errors and its concatenate stream
   # preserves source cleanup; forcing analyzer-visible stream internals would
