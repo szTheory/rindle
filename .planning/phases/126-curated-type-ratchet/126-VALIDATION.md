@@ -32,7 +32,7 @@ created: 2026-08-23
 
 ## Per-Task Verification Map
 
-Every task from the six sequential plans has a runnable local check or exact supported-CI receipt. Source-bearing tasks pair focused owner behavior with SAFE-01; every plan-level probe/finalizer binds evidence to a pushed Nightly `headSha` on Elixir 1.17 / OTP 27.
+Every task from the nine sequential plans has a runnable local check or exact supported-CI receipt. Each source-bearing slice has its own source-unchanged supported probe, focused owner behavior with SAFE-01, and exact-head Nightly finalizer on Elixir 1.17 / OTP 27.
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
@@ -41,17 +41,20 @@ Every task from the six sequential plans has a runnable local check or exact sup
 | 126-02-01 | 02 | 2 | TYPE-01, TYPE-02 | T-126-01, T-126-02 | Source-unchanged migration probe precedes edits | supported CI/policy | Exact-head Nightly failed-log inspection plus `dialyzer_ignore_policy_test.exs` | ✅ | ⬜ pending |
 | 126-02-02 | 02 | 2 | TYPE-01, SAFE-01 | T-126-04 | Dispatcher/host behavior and migration ownership unchanged | owner integration + SAFE-01 | `MIX_ENV=test mix test test/rindle/migration_fast_test.exs test/rindle/migration_test.exs test/install_smoke/docs_parity/install_and_migrations_test.exs --seed 0 && bash scripts/maintainer/refactor_contract.sh` | ✅ | ⬜ pending |
 | 126-02-03 | 02 | 2 | TYPE-01, TYPE-02, SAFE-01 | T-126-02, T-126-04 | V1 refusals/DDL/reversal unchanged; supported slice green | owner integration + SAFE-01 + supported CI | Migration fast/full tests, SAFE-01, exact-head Nightly Dialyzer success | ✅ | ⬜ pending |
-| 126-03-01 | 03 | 3 | TYPE-01, TYPE-02 | T-126-01, T-126-02 | Source-unchanged operational/runtime probe | supported CI/policy | Exact-head Nightly failed-log inspection plus policy test | ✅ | ⬜ pending |
-| 126-03-02 | 03 | 3 | TYPE-01, SAFE-01 | T-126-05 | Task/Admin/diagnostic results, telemetry, errors unchanged | owner integration + SAFE-01 | `MIX_ENV=test mix test test/rindle/batch_owner_erasure_task_test.exs test/rindle/admin/live/actions_live_test.exs test/rindle/ops/runtime_checks_test.exs test/rindle/ops/runtime_checks_streaming_test.exs --seed 0 && bash scripts/maintainer/refactor_contract.sh` | ✅ | ⬜ pending |
-| 126-03-03 | 03 | 3 | TYPE-01, TYPE-02, SAFE-01 | T-126-02, T-126-05 | Runtime-status/HTML/ProcessVariant behavior unchanged; supported slice green | owner integration + SAFE-01 + supported CI | Focused status/HTML/worker tests, SAFE-01, exact-head Nightly Dialyzer success | ✅ | ⬜ pending |
-| 126-04-01 | 04 | 4 | TYPE-01, TYPE-02 | T-126-01, T-126-07 | Source-unchanged storage probe; opacity preserved | supported CI/policy | Exact-head Nightly failed-log inspection plus policy test | ✅ | ⬜ pending |
-| 126-04-02 | 04 | 4 | TYPE-01, SAFE-01 | T-126-06, T-126-07 | GCS/Local streams, cleanup, and tagged errors unchanged | owner integration + SAFE-01 | `MIX_ENV=test mix test test/rindle/storage/gcs/client_test.exs test/rindle/storage/gcs_test.exs test/rindle/storage/gcs_concatenate_test.exs test/rindle/storage/local_test.exs test/rindle/storage/local_tus_test.exs --seed 0 && bash scripts/maintainer/refactor_contract.sh` | ✅ | ⬜ pending |
-| 126-04-03 | 04 | 4 | TYPE-01, TYPE-02, SAFE-01 | T-126-02, T-126-06 | S3 stream/tail behavior unchanged; supported slice green | owner integration + SAFE-01 + supported CI | Focused S3 tests, SAFE-01, exact-head Nightly Dialyzer success | ✅ | ⬜ pending |
-| 126-05-01 | 05 | 5 | TYPE-01, TYPE-02 | T-126-01, T-126-07 | Source-unchanged tus/Mux/final-atom probe | supported CI/policy | Exact-head Nightly failed-log inspection plus policy test | ✅ | ⬜ pending |
-| 126-05-02 | 05 | 5 | TYPE-01, SAFE-01 | T-126-07, T-126-08 | Tus opacity/protocol and Mux response/error behavior unchanged | owner integration + SAFE-01 | `MIX_ENV=test mix test test/rindle/upload/tus_plug_test.exs test/rindle/live_view_test.exs test/rindle/workers/mux_ingest_variant_test.exs test/rindle/workers/mux_sync_provider_asset_test.exs --seed 0 && bash scripts/maintainer/refactor_contract.sh` | ✅ | ⬜ pending |
-| 126-05-03 | 05 | 5 | TYPE-01, TYPE-02, SAFE-01 | T-126-02, T-126-08 | Facade/Broker/PromoteAsset behavior unchanged; 45/45 dispositions complete | owner integration + SAFE-01 + supported CI | Focused facade/broker/promote tests, policy, SAFE-01, exact-head Nightly Dialyzer success | ✅ | ⬜ pending |
-| 126-06-01 | 06 | 6 | TYPE-01, TYPE-02, SAFE-01 | T-126-01, T-126-03 | Complete local gates and bounded phase diff | aggregate | Policy/topology/cache tests, all mapped owner commands, SAFE-01, `mix ci`, `./scripts/maintainer/repo_hygiene_check.sh --ci` | ✅ | ⬜ pending |
-| 126-06-02 | 06 | 6 | TYPE-01, TYPE-02, SAFE-01 | T-126-02, T-126-09 | Exact-head Nightly/summary/PR authority and conditional #76 state | supported CI/external state | HEAD=PR head; Dialyzer success; Nightly Summary Dialyzer row success; CI Summary SUCCESS; issue-state predicate | ✅ | ⬜ pending |
+| 126-03-01 | 03 | 3 | TYPE-01, TYPE-02 | T-126-01, T-126-02 | Source-unchanged task/Admin/runtime-check probe | supported CI/policy | Exact-head Nightly failed-log inspection plus policy test | ✅ | ⬜ pending |
+| 126-03-02 | 03 | 3 | TYPE-01, TYPE-02, SAFE-01 | T-126-02, T-126-05 | Task/Admin/diagnostic results, telemetry, errors unchanged; supported slice green | owner integration + SAFE-01 + supported CI | Focused task/Admin/runtime-check tests, SAFE-01, exact-head Nightly Dialyzer and Summary success | ✅ | ⬜ pending |
+| 126-04-01 | 04 | 4 | TYPE-01, TYPE-02 | T-126-01, T-126-02 | Source-unchanged runtime-status/HTML/ProcessVariant atom probe | supported CI/policy | Exact-head Nightly failed-log inspection plus policy test | ✅ | ⬜ pending |
+| 126-04-02 | 04 | 4 | TYPE-01, TYPE-02, SAFE-01 | T-126-02, T-126-05 | Runtime-status/task/HTML/ProcessVariant behavior unchanged | owner integration + SAFE-01 + supported CI | Focused status/task/HTML/worker tests, SAFE-01, exact-head Nightly Dialyzer and Summary success | ✅ | ⬜ pending |
+| 126-05-01 | 05 | 5 | TYPE-01, TYPE-02 | T-126-01, T-126-07 | Source-unchanged GCS/Local probe; opacity preserved | supported CI/policy | Exact-head Nightly failed-log inspection plus policy test | ✅ | ⬜ pending |
+| 126-05-02 | 05 | 5 | TYPE-01, TYPE-02, SAFE-01 | T-126-06, T-126-07 | GCS/Local streams, cleanup, concatenation, and tagged errors unchanged | owner integration + SAFE-01 + supported CI | Focused GCS/Local tests, SAFE-01, exact-head Nightly Dialyzer and Summary success | ✅ | ⬜ pending |
+| 126-06-01 | 06 | 6 | TYPE-01, TYPE-02 | T-126-01, T-126-07 | Source-unchanged S3 probe; opacity preserved | supported CI/policy | Exact-head Nightly failed-log inspection plus policy test | ✅ | ⬜ pending |
+| 126-06-02 | 06 | 6 | TYPE-01, TYPE-02, SAFE-01 | T-126-06, T-126-07 | S3 stream/tail/endpoint behavior unchanged | owner integration + SAFE-01 + supported CI | Focused S3 tests, SAFE-01, exact-head Nightly Dialyzer and Summary success | ✅ | ⬜ pending |
+| 126-07-01 | 07 | 7 | TYPE-01, TYPE-02 | T-126-01, T-126-07 | Source-unchanged Tus/Mux probe | supported CI/policy | Exact-head Nightly failed-log inspection plus policy test | ✅ | ⬜ pending |
+| 126-07-02 | 07 | 7 | TYPE-01, TYPE-02, SAFE-01 | T-126-07, T-126-08 | Tus opacity/protocol and Mux response/error behavior unchanged | owner integration + SAFE-01 + supported CI | Focused Tus/Mux tests, SAFE-01, exact-head Nightly Dialyzer and Summary success | ✅ | ⬜ pending |
+| 126-08-01 | 08 | 8 | TYPE-01, TYPE-02 | T-126-01, T-126-07 | Source-unchanged facade/Broker/PromoteAsset probe | supported CI/policy | Exact-head Nightly failed-log inspection plus policy test | ✅ | ⬜ pending |
+| 126-08-02 | 08 | 8 | TYPE-01, TYPE-02, SAFE-01 | T-126-02, T-126-08 | Facade/Broker/PromoteAsset unchanged; 45/45 dispositions complete | owner integration + SAFE-01 + supported CI | Focused facade/broker/promote tests, policy, SAFE-01, exact-head Nightly Dialyzer and Summary success | ✅ | ⬜ pending |
+| 126-09-01 | 09 | 9 | TYPE-01, TYPE-02, SAFE-01 | T-126-01, T-126-03 | Complete local gates, clean candidate commit, and bounded phase diff | aggregate | Policy/topology/cache tests, all mapped owner commands, SAFE-01, `mix ci`, `./scripts/maintainer/repo_hygiene_check.sh --ci` | ✅ | ⬜ pending |
+| 126-09-02 | 09 | 9 | TYPE-01, TYPE-02, SAFE-01 | T-126-02, T-126-09 | Exact-head authorities and immutable external #76 receipt without repository mutation | supported CI/external state | Candidate=PR head; Dialyzer/Summary success; CI Summary SUCCESS; sanitized issue comment links; issue-state predicate; candidate unchanged | ✅ | ⬜ pending |
 
 ## Wave 0 Requirements
 
@@ -63,7 +66,7 @@ Every task from the six sequential plans has a runnable local check or exact sup
 
 | Behavior | Requirement | Why Manual | Test Instructions |
 |----------|-------------|------------|-------------------|
-| Supported Dialyzer authority and issue #76 disposition | TYPE-01, TYPE-02 | GitHub Actions supplies the locked Elixir 1.17 / OTP 27 runtime and issue state | Dispatch Nightly on the exact branch head, require `dialyzer` and `Nightly Summary` success, inspect retained-filter evidence, and close #76 only after its acceptance criteria are met. |
+| Supported Dialyzer authority and issue #76 disposition | TYPE-01, TYPE-02 | GitHub Actions supplies the locked Elixir 1.17 / OTP 27 runtime and issue state | Dispatch Nightly on the exact candidate head, require `dialyzer` and `Nightly Summary` success, require PR `CI Summary`, publish the sanitized immutable issue receipt, and close #76 only after its acceptance criteria are met. |
 
 ## Validation Sign-Off
 
@@ -72,6 +75,6 @@ Every task from the six sequential plans has a runnable local check or exact sup
 - [ ] Wave 0 policy coverage is green before suppressions are changed.
 - [ ] Unsupported local Dialyzer output is diagnostic only and never justifies baseline edits.
 - [ ] No watch-mode flags.
-- [x] `nyquist_compliant: true` set after the planner reconciled all 16 tasks.
+- [x] `nyquist_compliant: true` set after the planner reconciled all 19 tasks.
 
 **Approval:** ready for plan-checker review

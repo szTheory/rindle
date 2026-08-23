@@ -5,14 +5,14 @@ milestone_name: Core Clarity & Quality Ratchet
 current_phase: 126
 current_phase_name: Curated Type Ratchet
 status: ready_to_execute
-stopped_at: "Phase 126 planned: 6 sequential curated-type-ratchet plans ready"
-last_updated: "2026-08-23T11:14:11.000Z"
+stopped_at: "Phase 126 revised: 9 sequential curated-type-ratchet plans ready"
+last_updated: "2026-08-23T15:30:00.000Z"
 last_activity: 2026-08-23
-last_activity_desc: Phase 126 planned with Nyquist validation and 6 supported-evidence waves
+last_activity_desc: Phase 126 checker revision split high-risk slices into 9 supported-evidence waves
 progress:
   total_phases: 6
   completed_phases: 5
-  total_plans: 36
+  total_plans: 39
   completed_plans: 30
 ---
 
@@ -28,9 +28,9 @@ See: .planning/PROJECT.md (updated 2026-08-22 for v1.24)
 ## Current Position
 
 Phase: 126 — Curated Type Ratchet
-Plan: 0 of 6
+Plan: 0 of 9
 Status: Ready to execute
-Last activity: 2026-08-23 — Phase 126 planned with Nyquist validation and 6 supported-evidence waves
+Last activity: 2026-08-23 — Phase 126 checker revision split high-risk slices into 9 supported-evidence waves
 
 ### v1.24 charter
 
@@ -57,7 +57,7 @@ the historical 0.4.0 contract; do not regress either side of that invariant.
 
 ## Next Step
 
-Execute Phase 126 as six sequential supported-evidence waves, beginning with the policy-test tracer and 45-entry inventory receipt.
+Execute Phase 126 as nine sequential supported-evidence waves, beginning with the policy-test tracer and 45-entry inventory receipt; the immutable final authority receipt is external on GitHub issue #76/PR.
 
 ## Prior Milestone
 
@@ -202,7 +202,7 @@ _(none open for v1.23 closeout)_
 ## Session Continuity
 
 Last session: 2026-08-23T11:14:11.000Z
-Stopped at: Phase 126 planned; 126-01-PLAN.md is next
+Stopped at: Phase 126 revised into nine checker-safe slices; 126-01-PLAN.md is next
 Resume file: None
 
 ## Performance Metrics
