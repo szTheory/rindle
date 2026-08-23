@@ -150,8 +150,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       oban_jobs_after: migration_report["oban_jobs_after"] || %{},
       doctor_ready?: smoke_result.exit_code == 0,
       doctor_output: doctor_result.output,
-      lifecycle_proved?:
-        smoke_result.exit_code == 0 and String.contains?(smoke_result.output, "0 failures")
+      lifecycle_proved?: successful_lifecycle?(smoke_result)
     }
   end
 
@@ -599,6 +598,10 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
 
   defp to_existing_atom_safe(nil), do: nil
   defp to_existing_atom_safe(value) when is_binary(value), do: String.to_atom(value)
+
+  defp successful_lifecycle?(result),
+    do: result.exit_code == 0 and String.contains?(result.output, "0 failures")
+
   defp maybe_write_tus_run_hint!(report), do: SmokeSource.maybe_write_tus_run_hint!(report)
 
   defp boot_app!(root, app_module, env),
