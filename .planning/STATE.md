@@ -3,17 +3,17 @@ gsd_state_version: 1.0
 milestone: v1.24
 milestone_name: Core Clarity & Quality Ratchet
 current_phase: 126
-current_phase_name: curated-type-ratchet
-status: complete
-stopped_at: Completed 126-10-PLAN.md (local metadata non-authority)
-last_updated: "2026-08-23T16:02:37Z"
+status: completed
+stopped_at: Completed 126-09-PLAN.md
+last_updated: "2026-08-23T17:02:07.191Z"
 last_activity: 2026-08-23
-last_activity_desc: Planned bounded TYPE-02 removal-only policy gap closure
+last_activity_desc: Phase 126 complete
 progress:
   total_phases: 6
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 40
   completed_plans: 40
+current_phase_name: curated-type-ratchet
 ---
 
 # Project State
@@ -27,10 +27,10 @@ See: .planning/PROJECT.md (updated 2026-08-22 for v1.24)
 
 ## Current Position
 
-Phase: 126 (curated-type-ratchet) — COMPLETE
-Plan: 10 of 10
-Status: TYPE-02 gap closed by exact-head authorities
-Last activity: 2026-08-23 — Planned bounded TYPE-02 removal-only policy gap closure
+Phase: 126
+Plan: Not started
+Status: All phases complete
+Last activity: 2026-08-23 — Phase 126 complete
 
 ### v1.24 charter
 

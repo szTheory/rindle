@@ -127,8 +127,8 @@ Populated during roadmap creation. Each v1.24 requirement maps to exactly one ph
 | TEST-02 | Phase 125 | Complete |
 | TEST-03 | Phase 125 | Complete |
 | TEST-04 | Phase 125 | Complete |
-| TYPE-01 | Phase 126 | In Progress |
-| TYPE-02 | Phase 126 | In Progress |
+| TYPE-01 | Phase 126 | Complete |
+| TYPE-02 | Phase 126 | Complete |
 
 **Coverage:**
 
