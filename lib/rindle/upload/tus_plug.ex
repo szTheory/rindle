@@ -242,19 +242,15 @@ defmodule Rindle.Upload.TusPlug do
     "final;" <> urls_string = concat_header
     urls = String.split(urls_string, " ", trim: true)
 
-    with {:ok, tokens} <- extract_tokens_from_urls(urls),
-         {:ok, claims_list} <- verify_tokens_for_concat(tokens, opts),
-         {:ok, %{session: final_session}} <-
-           Broker.concatenate_tus_sessions(opts[:profile], claims_list, opts),
-         {:ok, upload_url, signed_session} <-
-           sign_and_persist(
+    with {:ok, %{session: signed_session, upload_url: upload_url}} <-
+           TusCreation.concatenate(
              location_base(conn),
-             final_session,
-             final_session.upload_length,
-             upload_metadata_content_type(conn),
-             opts[:secret_key_base],
-             opts[:identity_fn].(conn),
-             false
+             opts[:profile],
+             urls,
+             opts
+             |> Keyword.put(:secret_key_base, opts[:secret_key_base])
+             |> Keyword.put(:actor, opts[:identity_fn].(conn))
+             |> Keyword.put(:content_type, upload_metadata_content_type(conn))
            ) do
       conn
       |> put_tus_resumable()
@@ -266,71 +262,6 @@ defmodule Rindle.Upload.TusPlug do
       _ -> tus_error(conn, 400, "invalid concatenation request")
     end
   end
-
-  defp extract_tokens_from_urls(urls) do
-    tokens =
-      Enum.map(urls, fn url ->
-        url |> String.split("/") |> List.last()
-      end)
-
-    if Enum.all?(tokens, &(&1 != nil and &1 != "")),
-      do: {:ok, tokens},
-      else: {:error, :invalid_urls}
-  end
-
-  defp verify_tokens_for_concat(tokens, opts) do
-    Enum.reduce_while(tokens, {:ok, []}, fn token, {:ok, acc} ->
-      with {:ok, claims} <- Plug.Crypto.verify(opts[:secret_key_base], @tus_url_salt, token),
-           {:ok, claims} <- check_not_expired(claims) do
-        {:cont, {:ok, [claims | acc]}}
-      else
-        _ -> {:halt, {:error, :invalid_token}}
-      end
-    end)
-    |> case do
-      {:ok, reversed_claims} -> {:ok, Enum.reverse(reversed_claims)}
-      error -> error
-    end
-  end
-
-  defp sign_and_persist(
-         base_path,
-         session,
-         length,
-         content_type,
-         secret_key_base,
-         actor,
-         is_partial
-       ) do
-    claims =
-      %{
-        "session_id" => session.id,
-        "actor" => actor,
-        "exp" => DateTime.to_unix(session.expires_at),
-        "length" => length
-      }
-      |> maybe_put_content_type(content_type)
-
-    token = Plug.Crypto.sign(secret_key_base, @tus_url_salt, claims)
-    location = join_upload_url(base_path, token)
-
-    attrs =
-      %{session_uri: location, session_uri_expires_at: session.expires_at}
-      |> maybe_mark_partial(is_partial)
-
-    session
-    |> MediaUploadSession.changeset(attrs)
-    |> Config.repo().update()
-    |> case do
-      {:ok, updated} -> {:ok, location, updated}
-      {:error, changeset} -> {:error, changeset}
-    end
-  end
-
-  defp maybe_mark_partial(attrs, true),
-    do: Map.put(attrs, :multipart_parts, %{"is_partial" => true})
-
-  defp maybe_mark_partial(attrs, false), do: attrs
 
   # ── HEAD (authoritative offset) ──────────────────────────────────────────────
 
@@ -899,13 +830,6 @@ defmodule Rindle.Upload.TusPlug do
     end)
   end
 
-  defp maybe_put_content_type(payload, content_type)
-       when is_binary(content_type) and content_type != "" do
-    Map.put(payload, "content_type", content_type)
-  end
-
-  defp maybe_put_content_type(payload, _content_type), do: payload
-
   defp maybe_put_opt(opts, _key, nil), do: opts
   defp maybe_put_opt(opts, _key, ""), do: opts
   defp maybe_put_opt(opts, key, value), do: Keyword.put(opts, key, value)
@@ -913,10 +837,6 @@ defmodule Rindle.Upload.TusPlug do
   defp check_max_size("deferred", _max_size), do: :ok
   defp check_max_size(length, max_size) when length > max_size, do: {:error, :too_large}
   defp check_max_size(_length, _max_size), do: :ok
-
-  defp join_upload_url(base_path, token) when is_binary(base_path) and is_binary(token) do
-    String.trim_trailing(base_path, "/") <> "/" <> token
-  end
 
   defp normalize_length("deferred"), do: {:ok, "deferred"}
   defp normalize_length(length) when is_integer(length) and length >= 0, do: {:ok, length}

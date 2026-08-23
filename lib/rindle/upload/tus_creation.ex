@@ -25,6 +25,49 @@ defmodule Rindle.Upload.TusCreation do
     end
   end
 
+  @doc false
+  @spec concatenate(String.t(), module(), [String.t()], keyword()) ::
+          {:ok,
+           %{session: MediaUploadSession.t(), upload_url: String.t(), expires_at: DateTime.t()}}
+          | {:error, term()}
+  def concatenate(base_path, profile, urls, opts)
+      when is_binary(base_path) and is_atom(profile) and is_list(urls) and is_list(opts) do
+    with {:ok, tokens} <- extract_tokens_from_urls(urls),
+         {:ok, claims_list} <- verify_tokens_for_concat(tokens, opts),
+         {:ok, %{session: final_session}} <-
+           Broker.concatenate_tus_sessions(profile, claims_list, opts),
+         {:ok, upload_url, signed_session} <-
+           sign_and_persist(base_path, final_session, Keyword.put(opts, :is_partial, false)) do
+      {:ok,
+       %{session: signed_session, upload_url: upload_url, expires_at: signed_session.expires_at}}
+    end
+  end
+
+  defp extract_tokens_from_urls(urls) do
+    tokens = Enum.map(urls, &(String.split(&1, "/") |> List.last()))
+
+    if Enum.all?(tokens, &(&1 != nil and &1 != "")),
+      do: {:ok, tokens},
+      else: {:error, :invalid_urls}
+  end
+
+  defp verify_tokens_for_concat(tokens, opts) do
+    secret_key_base = Keyword.fetch!(opts, :secret_key_base)
+
+    Enum.reduce_while(tokens, {:ok, []}, fn token, {:ok, acc} ->
+      with {:ok, claims} <- Plug.Crypto.verify(secret_key_base, @tus_url_salt, token),
+           {:ok, claims} <- check_not_expired(claims) do
+        {:cont, {:ok, [claims | acc]}}
+      else
+        _ -> {:halt, {:error, :invalid_token}}
+      end
+    end)
+    |> case do
+      {:ok, reversed_claims} -> {:ok, Enum.reverse(reversed_claims)}
+      error -> error
+    end
+  end
+
   defp sign_and_persist(base_path, session, opts) do
     length = Keyword.get(opts, :length, session.upload_length)
     content_type = Keyword.get(opts, :content_type)
@@ -72,4 +115,10 @@ defmodule Rindle.Upload.TusCreation do
   defp join_upload_url(base_path, token) do
     String.trim_trailing(base_path, "/") <> "/" <> token
   end
+
+  defp check_not_expired(%{"exp" => exp} = claims) when is_integer(exp) do
+    if exp > System.system_time(:second), do: {:ok, claims}, else: {:error, :expired_token}
+  end
+
+  defp check_not_expired(_claims), do: {:error, :invalid_token}
 end
