@@ -431,3 +431,69 @@ inspected to establish this distinction.
 The exhaustive Dialyzer annotation list contains no facade or Broker warning and
 no unowned analyzer warning. The E01–E03 absences and E08 reproduction are
 supported-head facts; local analyzer output is not used for these dispositions.
+
+## Final Curated Baseline Receipt and Complete Disposition Ledger
+
+- [Exact-head Nightly run 32648274668](https://github.com/szTheory/rindle/actions/runs/32648274668)
+  for `34a97267199dc69b86aca1f51054a92957ed0c85` (`workflow_dispatch`):
+  **success**.
+- [Dialyzer job 97215815600](https://github.com/szTheory/rindle/actions/runs/32648274668/job/97215815600):
+  **success**, with an exhaustive empty annotation list.
+- [Nightly Summary job 97216143803](https://github.com/szTheory/rindle/actions/runs/32648274668/job/97216143803):
+  **success**. The overall workflow is also **success**.
+- Focused facade, Broker, and PromoteAsset suites: **60 tests passed**;
+  ignore-policy: **2 tests passed**; SAFE-01: **92 tests passed**.
+
+Each immutable starting tuple below has a supported probe and an owner-test / SAFE-01
+receipt in its owning slice above. E01–E03 are obsolete because their warnings are
+absent from the source-unchanged probe; E08 is actionable-fixed because the only
+supported emitted private fallback is removed. No public facade, broker lifecycle,
+telemetry, errors, or opaque Ecto/Oban value handling was changed.
+
+| Starting tuple | Disposition | Supported basis |
+| --- | --- | --- |
+| `{E01}` | obsolete | 32647835411 absent facade atom; 32648274668 green |
+| `{E02}` | obsolete | 32647835411 absent Broker atom; 32648274668 green |
+| `{E03}` | obsolete | 32647835411 absent PromoteAsset opaque atom; 32648274668 green |
+| `{E04}` | retained-analyzer-noise | 32642668846 HTML fallback receipt |
+| `{E05}` | retained-analyzer-noise | 32642668846 runtime diagnostic receipt |
+| `{E06}` | retained-analyzer-noise | 32642668846 ProcessVariant error receipt |
+| `{E07}` | retained-analyzer-noise | 32642668846 ProcessVariant profile receipt |
+| `{E08}` | actionable-fixed | 32647835411 private fallback reproduced; 32648274668 green |
+| `{E09}` | retained-analyzer-noise | 32640992583 batch error-term receipt |
+| `{E10}` | retained-analyzer-noise | 32640992583 Admin error-copy receipt |
+| `{E11}` | retained-analyzer-noise | 32637455725 migration callback receipt |
+| `{E12}` | retained-analyzer-noise | 32637455725 migration callback receipt |
+| `{E13}` | retained-analyzer-noise | 32637455725 migration callback receipt |
+| `{E14}` | retained-analyzer-noise | 32637455725 migration callback receipt |
+| `{E15}` | retained-analyzer-noise | 32637455725 migration DSL receipt |
+| `{E16}` | retained-analyzer-noise | 32637455725 migration DSL receipt |
+| `{E17}` | retained-analyzer-noise | 32637455725 migration DSL receipt |
+| `{E18}` | retained-analyzer-noise | 32637455725 migration DSL receipt |
+| `{E19}` | retained-analyzer-noise | 32637455725 migration DSL receipt |
+| `{E20}` | retained-analyzer-noise | 32637455725 migration dispatcher receipt |
+| `{E21}` | retained-analyzer-noise | 32637455725 migration DSL receipt |
+| `{E22}` | retained-analyzer-noise | 32637455725 intentional refusal receipt |
+| `{E23}` | retained-analyzer-noise | 32637455725 preflight refusal receipt |
+| `{E24}` | retained-analyzer-noise | 32640992583 runtime checkout receipt |
+| `{E25}` | retained-analyzer-noise | 32643457947 bounded GCS stream receipt |
+| `{E26}` | retained-analyzer-noise | 32643843369 resumable URL-mode receipt |
+| `{E27}` | actionable-fixed | 32643843369 GCS error-boundary correction |
+| `{E28}` | retained-analyzer-noise | 32643457947 Local bounded append receipt |
+| `{E29}` | retained-analyzer-noise | 32643457947 Local bounded stream receipt |
+| `{E30}` | retained-analyzer-noise | 32643457947 Local stream callback receipt |
+| `{E31}` | retained-analyzer-noise | 32644554878 S3 provider-error receipt |
+| `{E32}` | retained-analyzer-noise | 32644554878 S3 bounded stream receipt |
+| `{E33}` | retained-analyzer-noise | 32644554878 S3 tail helper receipt |
+| `{E34}` | retained-analyzer-noise | 32644554878 S3 tail helper receipt |
+| `{E35}` | retained-analyzer-noise | 32644554878 S3 tail helper receipt |
+| `{E36}` | retained-analyzer-noise | 32644554878 S3 tail helper receipt |
+| `{E37}` | retained-analyzer-noise | 32644554878 S3 tail helper receipt |
+| `{E38}` | actionable-fixed | 32647429343 Tus creation result receipt |
+| `{E39}` | actionable-fixed | 32647429343 tagged opaque checksum receipt |
+| `{E40}` | actionable-fixed | 32647429343 Tus parts merge receipt |
+| `{E41}` | actionable-fixed | 32647429343 Mux ingest union receipt |
+| `{E42}` | actionable-fixed | 32647429343 Mux transition union receipt |
+| `{E43}` | retained-analyzer-noise | 32637455725 host migration callback receipt |
+| `{E44}` | retained-analyzer-noise | 32637455725 host migration callback receipt |
+| `{E45}` | retained-analyzer-noise | 32637455725 host migration callback receipt |
