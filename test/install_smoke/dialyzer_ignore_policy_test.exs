@@ -18,6 +18,7 @@ defmodule Rindle.InstallSmoke.DialyzerIgnorePolicyTest do
 
   test "TYPE-02: invalid fixtures are rejected without freezing the live count" do
     assert_invalid([{"lib/rindle.ex", :unapproved_atom}])
+    assert_invalid([{"lib/rindle.ex", "The function call new_exact_filter/0 will not succeed."}])
     assert_invalid([{"lib/rindle.ex", "specific"}, {"lib/rindle.ex", "specific"}])
     assert_invalid([{"lib/missing.ex", "specific"}])
     assert_invalid([{"lib/rindle.ex", ""}])
