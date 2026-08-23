@@ -2,6 +2,7 @@ defmodule Rindle.RuntimeStatusTaskTest do
   use Rindle.DataCase, async: false
 
   alias Mix.Tasks.Rindle.RuntimeStatus, as: RuntimeStatusTask
+  alias Mix.Tasks.Rindle.RuntimeStatus.Formatter
   alias Rindle.Domain.{MediaAsset, MediaUploadSession, MediaVariant}
 
   @runtime_status_config Rindle.Ops.RuntimeStatus
@@ -143,6 +144,13 @@ defmodule Rindle.RuntimeStatusTaskTest do
     refute json =~ "credential"
     refute text =~ "SQL sentinel"
     refute json =~ "SQL sentinel"
+  end
+
+  test "formatter preserves the task's bounded unknown-error copy" do
+    sentinel = {:raw_adapter_failure, "postgres://user:credential@host SQL sentinel"}
+
+    assert Formatter.format_error(sentinel) == RuntimeStatusTask.format_error(sentinel)
+    assert Formatter.format_json_error(sentinel) == RuntimeStatusTask.format_json_error(sentinel)
   end
 
   test "emits a bounded JSON refusal and exits non-zero" do

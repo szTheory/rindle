@@ -26,6 +26,8 @@ defmodule Mix.Tasks.Rindle.RuntimeStatus do
 
   use Mix.Task
 
+  alias Mix.Tasks.Rindle.RuntimeStatus.Formatter
+
   @requirements ["app.start"]
 
   @impl Mix.Task
@@ -110,8 +112,8 @@ defmodule Mix.Tasks.Rindle.RuntimeStatus do
     |> Map.new()
   end
 
-  defp print_error(reason, true), do: Mix.shell().info(Jason.encode!(format_json_error(reason)))
-  defp print_error(reason, false), do: Mix.shell().error(format_error(reason))
+  defp print_error(reason, true), do: Mix.shell().info(Jason.encode!(Formatter.format_json_error(reason)))
+  defp print_error(reason, false), do: Mix.shell().error(Formatter.format_error(reason))
 
   defp error_details({:setup_incomplete, :rindle_schema}),
     do: %{
@@ -198,7 +200,7 @@ defmodule Mix.Tasks.Rindle.RuntimeStatus do
   end
 
   defp print_text_report(report) do
-    Enum.each(format_text_report(report), fn line -> Mix.shell().info(line) end)
+    Enum.each(Formatter.format_text_report(report), fn line -> Mix.shell().info(line) end)
   end
 
   defp format_section(name, counts) do
