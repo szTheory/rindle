@@ -64,7 +64,7 @@
 - [ ] **TEST-02**: Tests validate observable behavior, compiled metadata, or explicit structural
   contracts instead of reading their own helper/source text to assert implementation strings.
 
-- [ ] **TEST-03**: Large documentation-parity suites are split by public contract domain with shared
+- [x] **TEST-03**: Large documentation-parity suites are split by public contract domain with shared
   helpers, equivalent assertions, and clearer failure ownership.
 
 - [ ] **TEST-04**: Async-isolation issue #42 is stress-tested against the shipped single-run coverage and
@@ -125,7 +125,7 @@ Populated during roadmap creation. Each v1.24 requirement maps to exactly one ph
 | UPLOAD-02 | Phase 124 | Complete |
 | TEST-01 | Phase 125 | Pending |
 | TEST-02 | Phase 125 | Pending |
-| TEST-03 | Phase 125 | Pending |
+| TEST-03 | Phase 125 | Complete |
 | TEST-04 | Phase 125 | Pending |
 | TYPE-01 | Phase 126 | Pending |
 | TYPE-02 | Phase 126 | Pending |

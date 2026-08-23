@@ -195,35 +195,35 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
   3. Documentation-parity suites are organized by public contract domain with shared helpers, equivalent assertions, and failures that identify the owning contract.
   4. Async-isolation issue #42 has stress evidence against the shipped single-run coverage and process-scoped repo override, and is either closed as non-reproducible or narrowed to a concrete remaining failure.
 
-**Plans**: 10 plans
+**Plans**: 7/10 plans executed
 
 **Wave 1 — async-isolation causal and runner tracer**
 
-- [ ] 125-01-PLAN.md — Lock the high-iteration causal proof and fixed local-only 25-seed runner.
+- [x] 125-01-PLAN.md — Lock the high-iteration causal proof and fixed local-only 25-seed runner.
 
 **Wave 2 — generated contracts** *(blocked on Wave 1)*
 
-- [ ] 125-02-PLAN.md — Extract pure report/catalog contracts behind GeneratedAppHelper and replace contract snapshots.
+- [x] 125-02-PLAN.md — Extract pure report/catalog contracts behind GeneratedAppHelper and replace contract snapshots.
 
 **Wave 3 — generated process and workspace effects** *(blocked on Wave 2)*
 
-- [ ] 125-03-PLAN.md — Extract bounded command execution and temporary package/workspace ownership with behavior proof.
+- [x] 125-03-PLAN.md — Extract bounded command execution and temporary package/workspace ownership with behavior proof.
 
 **Wave 4 — generated Phoenix patching** *(blocked on Wave 3)*
 
-- [ ] 125-04-PLAN.md — Extract profile-aware Phoenix source/config patching behind the stable facade.
+- [x] 125-04-PLAN.md — Extract profile-aware Phoenix source/config patching behind the stable facade.
 
 **Wave 5 — generated migrations and catalog proof** *(blocked on Wave 4)*
 
-- [ ] 125-05-PLAN.md — Extract generated migration/upgrade/catalog mechanics without schema-ownership drift.
+- [x] 125-05-PLAN.md — Extract generated migration/upgrade/catalog mechanics without schema-ownership drift.
 
 **Wave 6 — generated lifecycle sources and packed authority** *(blocked on Wave 5)*
 
-- [ ] 125-06-PLAN.md — Extract lifecycle/profile source owners and replace Phoenix tus helper snapshots with outcomes/metadata.
+- [x] 125-06-PLAN.md — Extract lifecycle/profile source owners and replace Phoenix tus helper snapshots with outcomes/metadata.
 
 **Wave 7 — docs shared support and migration domain** *(blocked on Wave 6)*
 
-- [ ] 125-07-PLAN.md — Extract shared docs mechanics and the install/migration/upgrade contract domain.
+- [x] 125-07-PLAN.md — Extract shared docs mechanics and the install/migration/upgrade contract domain.
 
 **Wave 8 — docs onboarding and operations domains** *(blocked on Wave 7)*
 
@@ -257,7 +257,7 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 | 122. Live Truth & Compile Clarity | 5/5 | Complete | 2026-08-23 |
 | 123. Runtime Operations Decomposition | 3/3 | Complete | 2026-08-23 |
 | 124. Upload Path Clarity | 5/5 | Complete    | 2026-08-23 |
-| 125. Behavioral Test Support | 0/TBD | Not started | - |
+| 125. Behavioral Test Support | 7/10 | In Progress|  |
 | 126. Curated Type Ratchet | 0/TBD | Not started | - |
 
 ## Deferred to a Demand-Gated Milestone
