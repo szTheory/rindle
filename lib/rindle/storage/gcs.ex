@@ -24,9 +24,11 @@ defmodule Rindle.Storage.GCS do
   ## Capabilities
 
   This adapter advertises `[:signed_url, :head, :resumable_upload,
-  :resumable_upload_session]`. `:resumable_upload` covers broker-owned
-  initiation plus adapter-side completion verification; the session-scoped atom
-  widens that to remote status and cancel operations.
+  :resumable_upload_session, :concatenate]`. `:resumable_upload` covers
+  broker-owned initiation plus adapter-side completion verification; the
+  session-scoped atom widens that to remote status and cancel operations.
+  `:concatenate` composes stored upload parts into a final object through the
+  GCS compose API.
 
   See `guides/storage_gcs.md` for the full setup walk-through, including
   service-account JSON wiring, signed-URL lifecycle, and why Content-Disposition
