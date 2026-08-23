@@ -7,6 +7,7 @@ defmodule Rindle.Ops.RuntimeStatus do
   alias Rindle.Config
   alias Rindle.Domain.{MediaAsset, MediaProviderAsset, MediaUploadSession, MediaVariant}
   alias Rindle.Ops.OwnershipSnapshot
+  alias Rindle.Ops.RuntimeStatus.Collector
   alias Rindle.Schema
   alias Rindle.Workers.ProcessVariant
 
@@ -42,22 +43,24 @@ defmodule Rindle.Ops.RuntimeStatus do
       now = DateTime.utc_now()
       cutoff = older_than_cutoff(now, filters.older_than)
 
-      runtime_checks = runtime_checks_report(filters, cutoff, now)
-      variants = variant_report(filters, cutoff, now, snapshot.oban.expected_prefix)
-      upload_sessions = upload_session_report(filters, cutoff, now)
-      provider_assets = provider_assets_report(filters, now)
+      collected = Collector.collect(filters, now, cutoff, snapshot.oban.expected_prefix)
 
       {:ok,
        %{
          generated_at: now,
          filters: filters,
-         runtime_checks: runtime_checks,
-         assets: asset_report(filters),
-         variants: variants,
-         upload_sessions: upload_sessions,
-         provider_assets: provider_assets,
+         runtime_checks: collected.runtime_checks,
+         assets: collected.assets,
+         variants: collected.variants,
+         upload_sessions: collected.upload_sessions,
+         provider_assets: collected.provider_assets,
          recommendations:
-           build_recommendations(runtime_checks, variants, upload_sessions, provider_assets)
+           build_recommendations(
+             collected.runtime_checks,
+             collected.variants,
+             collected.upload_sessions,
+             collected.provider_assets
+           )
        }}
     else
       {:error, reason} = error ->
@@ -176,218 +179,6 @@ defmodule Rindle.Ops.RuntimeStatus do
 
   defp refusal_owner(:rindle), do: :rindle
   defp refusal_owner(:oban), do: :host
-
-  defp runtime_checks_report(filters, cutoff, now) do
-    rows =
-      asset_probe_rows_query(filters, cutoff)
-      |> rindle_all()
-      |> Enum.map(&probe_drift_sample(&1, now))
-      |> Enum.filter(& &1)
-
-    %{
-      counts: finding_counts(rows),
-      findings: summarize_findings(rows, filters.limit)
-    }
-  end
-
-  defp asset_report(filters) do
-    counts =
-      from(a in MediaAsset,
-        select: {a.state, count(a.id)}
-      )
-      |> maybe_filter_profile(:asset, filters.profile)
-      |> group_by([a], a.state)
-      |> rindle_all()
-      |> count_map()
-
-    %{counts: Map.put(counts, :total, Enum.sum(Map.values(counts)))}
-  end
-
-  defp variant_report(filters, cutoff, now, oban_prefix) do
-    rows =
-      variant_finding_rows_query(filters, cutoff)
-      |> rindle_all()
-
-    findings =
-      rows
-      |> classify_variants(oban_index(rows, oban_prefix), now)
-      |> summarize_findings(filters.limit)
-
-    counts =
-      from(v in MediaVariant,
-        join: a in MediaAsset,
-        on: a.id == v.asset_id,
-        select: {v.state, count(v.id)}
-      )
-      |> maybe_filter_profile(:variant, filters.profile)
-      |> group_by([v, _a], v.state)
-      |> rindle_all()
-      |> count_map()
-
-    %{
-      counts: Map.put(counts, :total, Enum.sum(Map.values(counts))),
-      findings: findings
-    }
-  end
-
-  defp upload_session_report(filters, cutoff, now) do
-    findings =
-      upload_session_finding_rows_query(filters, cutoff)
-      |> rindle_all()
-      |> Enum.map(&upload_session_sample(&1, now))
-      |> summarize_state_findings(filters.limit)
-
-    counts =
-      from(s in MediaUploadSession,
-        join: a in MediaAsset,
-        on: a.id == s.asset_id,
-        select: {s.state, count(s.id)}
-      )
-      |> maybe_filter_profile(:upload_session, filters.profile)
-      |> group_by([s, _a], s.state)
-      |> rindle_all()
-      |> count_map()
-
-    %{
-      counts: Map.put(counts, :total, Enum.sum(Map.values(counts))),
-      findings: findings,
-      resumable: resumable_session_summary(filters, now)
-    }
-  end
-
-  defp resumable_session_summary(filters, now) do
-    pending =
-      from(s in MediaUploadSession,
-        join: a in MediaAsset,
-        on: a.id == s.asset_id,
-        where: s.upload_strategy == "resumable",
-        where: s.state in ["signed", "resuming", "uploading"],
-        select: count(s.id)
-      )
-      |> maybe_filter_profile(:upload_session, filters.profile)
-      |> rindle_one()
-
-    expired =
-      from(s in MediaUploadSession,
-        join: a in MediaAsset,
-        on: a.id == s.asset_id,
-        where: s.upload_strategy == "resumable",
-        where: not is_nil(s.session_uri_expires_at),
-        where: s.session_uri_expires_at < ^now,
-        select: count(s.id)
-      )
-      |> maybe_filter_profile(:upload_session, filters.profile)
-      |> rindle_one()
-
-    stale =
-      from(s in MediaUploadSession,
-        join: a in MediaAsset,
-        on: a.id == s.asset_id,
-        where: s.upload_strategy == "resumable",
-        where: not is_nil(s.session_uri_expires_at),
-        where: s.session_uri_expires_at < ^now,
-        where: not is_nil(s.session_uri),
-        select: count(s.id)
-      )
-      |> maybe_filter_profile(:upload_session, filters.profile)
-      |> rindle_one()
-
-    %{
-      resumable_sessions_pending: pending || 0,
-      resumable_sessions_expired: expired || 0,
-      resumable_session_uris_stale: stale || 0
-    }
-  end
-
-  defp provider_assets_report(filters, now) do
-    threshold = effective_provider_stuck_threshold(filters)
-
-    rows =
-      if filters.provider_stuck do
-        provider_assets_finding_rows_query(filters, threshold, now)
-        |> rindle_all()
-        |> Enum.map(&provider_asset_sample(&1, now))
-      else
-        []
-      end
-
-    findings = summarize_findings(rows, filters.limit)
-
-    counts =
-      from(p in MediaProviderAsset,
-        select: {p.state, count(p.id)}
-      )
-      |> maybe_filter_provider_assets_profile(filters.profile)
-      |> group_by([p], p.state)
-      |> rindle_all()
-      |> count_map()
-
-    %{
-      counts: Map.put(counts, :total, Enum.sum(Map.values(counts))),
-      threshold_seconds: threshold,
-      findings: findings
-    }
-  end
-
-  defp effective_provider_stuck_threshold(%{older_than: older_than})
-       when is_integer(older_than) do
-    older_than
-  end
-
-  defp effective_provider_stuck_threshold(_filters) do
-    :rindle
-    |> Application.get_env(Rindle.Streaming.Provider.Mux, [])
-    |> Keyword.get(:provider_stuck_threshold_seconds, @provider_stuck_default_threshold_seconds)
-  end
-
-  defp provider_assets_finding_rows_query(filters, threshold_seconds, now) do
-    cutoff =
-      now
-      |> DateTime.to_naive()
-      |> NaiveDateTime.add(-threshold_seconds, :second)
-
-    from(p in MediaProviderAsset,
-      where: p.state in ["uploading", "processing"],
-      where: p.updated_at < ^cutoff,
-      select: %{
-        asset_id: p.asset_id,
-        provider_asset_id: p.provider_asset_id,
-        profile: p.profile,
-        provider_name: p.provider_name,
-        state: p.state,
-        updated_at: p.updated_at,
-        last_event_at: p.last_event_at,
-        last_sync_error: p.last_sync_error
-      }
-    )
-    |> maybe_filter_provider_assets_profile(filters.profile)
-  end
-
-  defp maybe_filter_provider_assets_profile(query, nil), do: query
-
-  defp maybe_filter_provider_assets_profile(query, profile) do
-    from p in query, where: p.profile == ^profile
-  end
-
-  defp provider_asset_sample(row, now) do
-    age = age_seconds(row.updated_at, now)
-
-    %{
-      class: :provider_stuck,
-      age_seconds: age,
-      sample: %{
-        asset_id: row.asset_id,
-        provider_asset_id: MediaProviderAsset.redact_id(row.provider_asset_id),
-        profile: row.profile,
-        provider: row.provider_name,
-        state: row.state,
-        updated_at: row.updated_at,
-        last_event_at: row.last_event_at,
-        last_sync_error: row.last_sync_error,
-        reason: "row stuck in #{row.state} for #{age}s"
-      }
-    }
-  end
 
   defp build_recommendations(runtime_checks, variants, upload_sessions, provider_assets) do
     classes =
