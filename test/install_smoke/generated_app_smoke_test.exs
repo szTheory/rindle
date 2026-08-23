@@ -355,13 +355,59 @@ defmodule Rindle.InstallSmoke.GeneratedAppPhase120FastContractTest do
 
   @tag :phase_120_upgrade_contract
   test "generated child commands have bounded stage-labelled diagnostics" do
-    helper_source = File.read!("test/install_smoke/support/generated_app_helper.ex")
+    cwd = File.cwd!()
 
-    assert helper_source =~ "@generated_command_timeout_ms :timer.minutes(20)"
-    assert helper_source =~ "Task.yield(task, @generated_command_timeout_ms)"
-    assert helper_source =~ "Task.shutdown(task, :brutal_kill)"
-    assert helper_source =~ "stage=\#{stage}"
-    assert helper_source =~ "timed_out?: true"
+    success =
+      Rindle.InstallSmoke.GeneratedApp.CommandRunner.run(
+        cwd,
+        ["sh", "-c", "printf ready"],
+        [],
+        stage: "fast-success",
+        timeout_ms: 1_000
+      )
+
+    assert success == %{
+             output: "stage=fast-success\nready",
+             exit_code: 0,
+             stage: "fast-success",
+             timed_out?: false
+           }
+
+    failure =
+      Rindle.InstallSmoke.GeneratedApp.CommandRunner.run(
+        cwd,
+        ["sh", "-c", "printf failed; exit 23"],
+        [],
+        stage: "nonzero",
+        timeout_ms: 1_000
+      )
+
+    assert failure.exit_code == 23
+    assert failure.output == "stage=nonzero\nfailed"
+
+    assert_raise RuntimeError, ~r/stage=nonzero/, fn ->
+      Rindle.InstallSmoke.GeneratedApp.CommandRunner.run!(
+        cwd,
+        ["sh", "-c", "exit 23"],
+        [],
+        stage: "nonzero",
+        timeout_ms: 1_000
+      )
+    end
+
+    timeout =
+      Rindle.InstallSmoke.GeneratedApp.CommandRunner.run(
+        cwd,
+        ["sh", "-c", "sleep 1"],
+        [],
+        stage: "short-timeout",
+        timeout_ms: 10
+      )
+
+    assert timeout.exit_code == 124
+    assert timeout.timed_out?
+    assert timeout.output =~ "stage=short-timeout"
+    assert timeout.output =~ "timed out after 10ms"
   end
 
   @tag :phase_120_upgrade_contract

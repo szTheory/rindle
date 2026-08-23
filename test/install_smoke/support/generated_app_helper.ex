@@ -1,8 +1,10 @@
 Code.require_file("generated_app/contracts.ex", __DIR__)
+Code.require_file("generated_app/command_runner.ex", __DIR__)
 
 defmodule Rindle.InstallSmoke.GeneratedAppHelper do
   @moduledoc false
   alias Mix.Dep.Lock
+  alias Rindle.InstallSmoke.GeneratedApp.CommandRunner
   alias Rindle.InstallSmoke.GeneratedApp.Contracts
 
   @png_1x1 <<0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D, 0x49, 0x48,
@@ -1696,51 +1698,11 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
   end
 
   defp run_cmd!(cwd, argv, env) do
-    case run_cmd(cwd, argv, env) do
-      %{exit_code: 0} = result ->
-        result
-
-      %{exit_code: exit_code, output: output, stage: stage} ->
-        raise """
-        generated command failed (stage=#{stage}, exit=#{exit_code}): #{Enum.join(argv, " ")}
-        cwd: #{cwd}
-
-        #{output}
-        """
-    end
+    CommandRunner.run!(cwd, argv, env)
   end
 
   defp run_cmd(cwd, argv, env) do
-    stage = Enum.join(argv, " ")
-
-    task =
-      Task.async(fn ->
-        System.cmd(List.first(argv), tl(argv),
-          cd: cwd,
-          env: env,
-          stderr_to_stdout: true,
-          into: ""
-        )
-      end)
-
-    case Task.yield(task, @generated_command_timeout_ms) || Task.shutdown(task, :brutal_kill) do
-      {:ok, {output, exit_code}} ->
-        %{
-          output: "stage=#{stage}\n#{output}",
-          exit_code: exit_code,
-          stage: stage,
-          timed_out?: false
-        }
-
-      nil ->
-        %{
-          output:
-            "stage=#{stage}\ncommand timed out after #{@generated_command_timeout_ms}ms\ncwd=#{cwd}",
-          exit_code: 124,
-          stage: stage,
-          timed_out?: true
-        }
-    end
+    CommandRunner.run(cwd, argv, env, timeout_ms: @generated_command_timeout_ms)
   end
 
   defp shared_env(db_name, profile_mode) do
