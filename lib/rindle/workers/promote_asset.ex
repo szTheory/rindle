@@ -255,8 +255,6 @@ defmodule Rindle.Workers.PromoteAsset do
       Map.has_key?(spec, :audio_codec)
   end
 
-  defp normalized_av_spec?(_spec), do: false
-
   defp download_to(asset, destination_path) do
     profile_module = String.to_existing_atom(asset.profile)
 

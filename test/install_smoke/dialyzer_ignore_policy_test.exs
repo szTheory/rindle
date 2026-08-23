@@ -3,21 +3,17 @@ defmodule Rindle.InstallSmoke.DialyzerIgnorePolicyTest do
 
   @ignore_path Path.expand("../../.dialyzer_ignore.exs", __DIR__)
   @legacy_atom_filters [
-    {"lib/rindle.ex", :call_without_opaque},
-    {"lib/rindle/upload/broker.ex", :call_without_opaque},
-    {"lib/rindle/workers/promote_asset.ex", :call_without_opaque},
     {"lib/rindle/html.ex", :pattern_match},
     {"lib/rindle/ops/runtime_status.ex", :pattern_match_cov},
     {"lib/rindle/workers/process_variant.ex", :pattern_match},
-    {"lib/rindle/workers/process_variant.ex", :pattern_match_cov},
-    {"lib/rindle/workers/promote_asset.ex", :pattern_match_cov}
+    {"lib/rindle/workers/process_variant.ex", :pattern_match_cov}
   ]
 
   test "TYPE-02: the live curated ignore list is a unique, owned, exact inventory" do
     ignores = Code.eval_file(@ignore_path) |> elem(0)
 
     assert valid_ignore_list?(ignores)
-    assert Enum.count(ignores, fn {_path, discriminator} -> is_atom(discriminator) end) == 8
+    assert Enum.count(ignores, fn {_path, discriminator} -> is_atom(discriminator) end) == 4
   end
 
   test "TYPE-02: invalid fixtures are rejected without freezing the live count" do
