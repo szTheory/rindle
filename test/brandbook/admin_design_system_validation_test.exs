@@ -489,19 +489,7 @@ defmodule Rindle.Brandbook.AdminDesignSystemValidationTest do
 
   describe "§E task-first IA (D-98-03/10)" do
     test "nav renders exactly the six task-first labels in canonical order" do
-      html = shell_html()
-
-      offsets =
-        Enum.map(@nav_labels, fn label ->
-          assert {offset, _len} =
-                   :binary.match(html, ">\n                #{label}\n")
-                   |> normalize_match(html, label),
-                 "nav missing label #{label}"
-
-          offset
-        end)
-
-      assert offsets == Enum.sort(offsets), "nav labels out of §E order"
+      assert rendered_nav_labels() == @nav_labels
     end
 
     test "no legacy slashed / verb-bucket nav label survives" do
@@ -633,14 +621,11 @@ defmodule Rindle.Brandbook.AdminDesignSystemValidationTest do
   end
 
   defp rendered_nav_labels do
-    html = shell_html()
-    Enum.filter(@nav_labels, &String.contains?(html, &1))
+    shell_html()
+    |> LazyHTML.from_fragment()
+    |> LazyHTML.query("[data-rindle-admin-nav-item]")
+    |> Enum.map(&(LazyHTML.text(&1) |> String.trim()))
   end
-
-  # :binary.match over a hand-built needle is brittle to HEEx whitespace; fall back to a
-  # plain label match if the formatted needle misses, so the order assertion stays robust.
-  defp normalize_match(:nomatch, html, label), do: :binary.match(html, label)
-  defp normalize_match(match, _html, _label), do: match
 
   defp run_node(script) do
     node = System.find_executable("node") || flunk("node executable is required for #{script}")
