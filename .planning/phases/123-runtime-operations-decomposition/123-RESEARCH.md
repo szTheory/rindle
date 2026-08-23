@@ -292,16 +292,14 @@ No new framework adoption is warranted. This phase’s current best practice is 
 |---|-------|---------|---------------|
 | A1 | The exact collaborator file layout should be selected minimally during planning rather than implemented verbatim from the suggested structure. | Architecture Patterns | Low—affects file naming only, not required preservation boundaries. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **How far should RuntimeChecks split on its first extraction?**
    - What we know: it spans core, schema/Oban, profile/streaming, GCS, and tus domains in 1,803 lines. [VERIFIED: `lib/rindle/ops/runtime_checks.ex`]
-   - What's unclear: the smallest module count that meets maintainability without a multi-file churn spike. [ASSUMED]
-   - Recommendation: plan a stable façade plus two or three coarse domain collaborators first; do not force one module per individual check. [ASSUMED]
+   - **Disposition:** Select exactly three coarse internal domains per D-123-01 and `123-VALIDATION.md` Wave 0: core profile/delivery runtime; migration/ownership/Oban; and optional GCS/tus/streaming integrations. `IntegrationChecks` owns all three optional domains; no one-module-per-check split or configurable registry is planned. [RESOLVED]
 2. **Whether task formatter helpers move or delegate.**
    - What we know: tests call several helpers directly on the Mix task. [VERIFIED: `test/rindle/runtime_status_task_test.exs`]
-   - What's unclear: whether direct helper exports are intended as public support surface. [ASSUMED]
-   - Recommendation: preserve task functions as delegates in Phase 123 even if internal formatting moves. [ASSUMED]
+   - **Disposition:** Keep `format_error/1`, `format_json_error/1`, `format_text_report/1`, and `format_provider_findings/1` as task-module compatibility delegates to the internal formatter per D-123-06 and `123-VALIDATION.md` Wave 0. [RESOLVED]
 
 ## Environment Availability
 

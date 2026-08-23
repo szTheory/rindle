@@ -50,8 +50,8 @@ their topology or claims release readiness from planning/local results.
 | 123-01-02 | 01 | 1 | OPS-01, SAFE-01 | optional integration + telemetry + fresh preservation | `MIX_ENV=test mix compile --force && MIX_ENV=test mix test test/rindle/ops/runtime_checks_test.exs test/rindle/ops/runtime_checks_streaming_test.exs test/rindle/contracts/telemetry_contract_test.exs --seed 0 && bash scripts/maintainer/refactor_contract.sh` | planned |
 | 123-02-01 | 02 | 2 | OPS-02, SAFE-01 | fixed catalog + forward preflight behavior | `MIX_ENV=test mix test test/rindle/migration_fast_test.exs --seed 0` | planned |
 | 123-02-02 | 02 | 2 | OPS-02, SAFE-01 | forward/reverse DB effects + rollback + fresh preservation | `MIX_ENV=test mix compile --force && MIX_ENV=test mix test test/rindle/migration_fast_test.exs test/rindle/migration_test.exs --seed 0 && bash scripts/maintainer/refactor_contract.sh` | planned |
-| 123-03-01 | 03 | 3 | OPS-03, SAFE-01 | readiness tripwire + report behavior + refusal telemetry | `MIX_ENV=test mix test test/rindle/ops/runtime_status_test.exs test/rindle/contracts/telemetry_contract_test.exs --seed 0` | planned |
-| 123-03-02 | 03 | 3 | OPS-01, OPS-02, OPS-03, SAFE-01 | CLI presentation + complete phase gate | `MIX_ENV=test mix compile --force && MIX_ENV=test mix test test/rindle/ops/runtime_checks_test.exs test/rindle/ops/runtime_checks_streaming_test.exs test/rindle/migration_fast_test.exs test/rindle/migration_test.exs test/rindle/ops/runtime_status_test.exs test/rindle/runtime_status_task_test.exs test/rindle/contracts/telemetry_contract_test.exs --seed 0 && bash scripts/maintainer/refactor_contract.sh && mix ci && ./scripts/maintainer/repo_hygiene_check.sh` | planned |
+| 123-03-01 | 03 | 3 | OPS-03 | readiness tripwire + report behavior + refusal telemetry | `MIX_ENV=test mix test test/rindle/ops/runtime_status_test.exs test/rindle/contracts/telemetry_contract_test.exs --seed 0` | planned |
+| 123-03-02 | 03 | 3 | OPS-03 | CLI presentation + focused runtime-status/formatter regression | `MIX_ENV=test mix test test/rindle/ops/runtime_status_test.exs test/rindle/runtime_status_task_test.exs test/rindle/contracts/telemetry_contract_test.exs --seed 0` | planned |
 
 ## Objective Evidence Rules
 
@@ -73,7 +73,7 @@ external setup is required before implementation.
 
 | Gap / research ambiguity | Resolution | Owner |
 |---|---|---|
-| RuntimeChecks collaborator count | Three coarse internal domains: core runtime, migration/ownership/Oban, and optional integrations. This directly implements D-123-01 without one-file-per-check churn. | 123-01 Tasks 1–2 |
+| RuntimeChecks collaborator count | Three coarse internal domains: core profile/delivery runtime, migration/ownership/Oban, and optional GCS/tus/streaming integrations. `IntegrationChecks` owns all three optional domains exactly per D-123-01. | 123-01 Tasks 1–2 |
 | Shared result construction across collaborators | Collaborators return internal schedule/outcome data; `RuntimeChecks` alone constructs maps, wraps telemetry, sorts, and aggregates per D-123-02. | 123-01 Tasks 1–2 |
 | One migration classifier versus two | Start with one `Preflight` module and explicit direction functions/branches; share predicates only where refusal precedence stays obvious. No separate directional module or duplicated catalog is planned. | 123-02 Tasks 1–2 |
 | Formatter helper compatibility | Keep all four current task-module helpers as delegates to one internal formatter, so direct callers/tests remain valid per D-123-06. | 123-03 Task 2 |
