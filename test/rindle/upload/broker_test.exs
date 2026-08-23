@@ -461,7 +461,7 @@ defmodule Rindle.Upload.BrokerTest do
       end)
 
       parts = [
-        %{part_number: 2, etag: "\"etag-2\""},
+        %{"part_number" => 2, "etag" => "\"etag-2\""},
         %{part_number: 1, etag: "\"etag-1\""}
       ]
 

@@ -897,6 +897,33 @@ defmodule Rindle.Upload.TusPlugTest do
       assert p1.status == 400
     end
 
+    test "PATCH does not accept Upload-Defer-Length in place of its required Upload-Length", %{
+      root: root
+    } do
+      opts = opts_for(root)
+
+      conn =
+        conn(:post, "/uploads/tus")
+        |> put_req_header("upload-defer-length", "1")
+        |> TusPlug.call(opts)
+
+      [location] = get_resp_header(conn, "location")
+      token = location |> String.split("/") |> List.last()
+      {:ok, payload} = Plug.Crypto.verify(@secret_key_base, @tus_url_salt, token)
+
+      response =
+        conn(:patch, "/uploads/tus/" <> token, "01234")
+        |> put_req_header("content-type", "application/offset+octet-stream")
+        |> put_req_header("upload-offset", "0")
+        |> put_req_header("upload-defer-length", "1")
+        |> TusPlug.call(opts)
+
+      assert response.status == 400
+      session = AdopterRepo.get!(MediaUploadSession, payload["session_id"])
+      assert session.upload_length == nil
+      assert session.last_known_offset == 0
+    end
+
     test "PATCH verifies valid sha256 checksum", %{root: root} do
       opts = opts_for(root)
       {token, _sid} = create(opts, 10)
@@ -1005,6 +1032,40 @@ defmodule Rindle.Upload.TusPlugTest do
 
       final_path = Local.path_for(session.upload_key, root: root)
       assert File.read!(final_path) == "12345678"
+    end
+
+    test "POST with Upload-Concat: final accepts a partial token in its exact expiry second", %{
+      root: root
+    } do
+      opts = opts_for(root)
+
+      partial =
+        conn(:post, "/uploads/tus")
+        |> put_req_header("upload-concat", "partial")
+        |> put_req_header("upload-length", "4")
+        |> TusPlug.call(opts)
+
+      [location] = get_resp_header(partial, "location")
+      token = location |> String.split("/") |> List.last()
+      assert patch(opts, token, 0, "1234").status == 204
+
+      {:ok, claims} = Plug.Crypto.verify(@secret_key_base, @tus_url_salt, token)
+      expiry_second = 1_700_000_000
+
+      exact_expiry_url =
+        "/uploads/tus/" <>
+          Plug.Crypto.sign(
+            @secret_key_base,
+            @tus_url_salt,
+            Map.put(claims, "exp", expiry_second)
+          )
+
+      final =
+        conn(:post, "/uploads/tus")
+        |> put_req_header("upload-concat", "final;#{exact_expiry_url}")
+        |> TusPlug.call(Keyword.put(opts, :now_seconds, fn -> expiry_second end))
+
+      assert final.status == 201
     end
 
     test "POST with Upload-Concat: final fails if a partial is incomplete", %{root: root} do

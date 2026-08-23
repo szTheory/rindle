@@ -52,6 +52,14 @@ defmodule Rindle.ApiSurfaceBoundaryTest do
     Rindle.Profile.Validator,
     Rindle.Profile.Digest,
     Rindle.Storage.Capabilities,
+    Rindle.Upload.TusCreation,
+    Rindle.Upload.TusProtocol,
+    Rindle.Upload.TusStream,
+    Rindle.Upload.TusTermination,
+    Rindle.Upload.Broker.SessionSeed,
+    Rindle.Upload.Broker.Persistence,
+    Rindle.Upload.Broker.SessionValidation,
+    Rindle.Upload.Broker.Completion,
     Rindle.Migration.Options,
     Rindle.Migration.V1
   ]
@@ -103,6 +111,85 @@ defmodule Rindle.ApiSurfaceBoundaryTest do
       for module <- @ops_hidden_modules do
         assert hidden_module?(module),
                "#{inspect(module)} should be hidden from compiled docs"
+      end
+    end
+
+    test "tus creation mechanics stay hidden behind the visible Plug and Broker facades" do
+      assert visible_module?(Rindle.Upload.TusPlug)
+      assert visible_module?(Rindle.Upload.Broker)
+      assert hidden_module?(Rindle.Upload.TusCreation)
+      assert function_exported?(Rindle.Upload.TusCreation, :create, 3)
+      assert hidden_function_doc?(Rindle.Upload.TusCreation, :create, 3)
+      assert function_exported?(Rindle.Upload.TusCreation, :concatenate, 4)
+      assert hidden_function_doc?(Rindle.Upload.TusCreation, :concatenate, 4)
+    end
+
+    test "tus protocol mechanics stay hidden behind the visible Plug facade" do
+      assert visible_module?(Rindle.Upload.TusPlug)
+      assert hidden_module?(Rindle.Upload.TusProtocol)
+
+      for {name, arity} <- [
+            verify_token: 2,
+            check_not_expired: 1,
+            parse_upload_length: 1,
+            metadata_content_type: 1,
+            require_offset_octet_stream: 1,
+            parse_upload_offset: 1,
+            check_offset_match: 2,
+            parse_upload_checksum: 1,
+            normalize_length: 1,
+            check_max_size: 2,
+            effective_length: 2,
+            status_for: 1,
+            http_date: 1,
+            location_base: 1
+          ] do
+        assert function_exported?(Rindle.Upload.TusProtocol, name, arity)
+        assert hidden_function_doc?(Rindle.Upload.TusProtocol, name, arity)
+      end
+    end
+
+    test "tus stream mechanics stay hidden behind the visible Plug facade" do
+      assert visible_module?(Rindle.Upload.TusPlug)
+      assert hidden_module?(Rindle.Upload.TusStream)
+
+      for {name, arity} <- [append: 7, persistence_attrs: 2, completion: 3] do
+        assert function_exported?(Rindle.Upload.TusStream, name, arity)
+        assert hidden_function_doc?(Rindle.Upload.TusStream, name, arity)
+      end
+    end
+
+    test "tus termination mechanics stay hidden behind the visible Plug facade" do
+      assert visible_module?(Rindle.Upload.TusPlug)
+      assert hidden_module?(Rindle.Upload.TusTermination)
+      assert function_exported?(Rindle.Upload.TusTermination, :abort_attrs, 2)
+      assert hidden_function_doc?(Rindle.Upload.TusTermination, :abort_attrs, 2)
+    end
+
+    test "broker session mechanics stay hidden behind the visible Broker facade" do
+      assert visible_module?(Rindle.Upload.Broker)
+
+      for {module, seams} <- [
+            {Rindle.Upload.Broker.SessionSeed, [build: 2]},
+            {Rindle.Upload.Broker.Persistence,
+             [create: 3, persist_multipart: 5, persist_resumable: 5, persist_tus: 3, update: 3]},
+            {Rindle.Upload.Broker.SessionValidation,
+             [
+               multipart: 1,
+               resumable: 1,
+               profile_module: 1,
+               normalize_parts: 1,
+               encode_parts: 1,
+               resumable_status_attrs: 2
+             ]},
+            {Rindle.Upload.Broker.Completion, [transact: 4]}
+          ] do
+        assert hidden_module?(module)
+
+        for {name, arity} <- seams do
+          assert function_exported?(module, name, arity)
+          assert hidden_function_doc?(module, name, arity)
+        end
       end
     end
   end

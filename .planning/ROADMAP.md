@@ -62,7 +62,7 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 - [x] **Phase 121: Truthful Quality Signals & Mechanical Hygiene** - Restore blocking, evidence-based quality gates and establish the invariant-preserving refactor contract. (completed 2026-08-22)
 - [x] **Phase 122: Live Truth & Compile Clarity** - Reconcile live source and documentation truth while removing the internal schema compile cycle. (completed 2026-08-23)
 - [x] **Phase 123: Runtime Operations Decomposition** - Make runtime diagnostics, migration preflight, and status code easier to reason about without contract drift. (completed 2026-08-23)
-- [ ] **Phase 124: Upload Path Clarity** - Decompose tus and broker internals into cohesive, contract-preserving boundaries.
+- [x] **Phase 124: Upload Path Clarity** - Decompose tus and broker internals into cohesive, contract-preserving boundaries. (completed 2026-08-23)
 - [ ] **Phase 125: Behavioral Test Support** - Replace oversized and self-inspecting test support with focused behavioral proof and async-isolation evidence.
 - [ ] **Phase 126: Curated Type Ratchet** - Retire the actionable Dialyzer baseline on the supported toolchain and block its return.
 
@@ -161,7 +161,27 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
   1. Maintainers can trace a tus request through parsing, protocol validation, storage effects, and response construction in cohesive units while Plug contract, resumability, and error vocabulary stay unchanged.
   2. Maintainers can trace upload-broker validation, capability negotiation, session persistence, and completion orchestration in cohesive units while public APIs and storage-adapter behavior stay unchanged.
 
-**Plans**: TBD
+**Plans**: 5 plans
+
+**Wave 1 — end-to-end tus creation tracer**
+
+- [x] 124-01-PLAN.md — Extract signed creation/concatenation mechanics behind the unchanged TusPlug and Broker facades.
+
+**Wave 2 — tus protocol boundary** *(blocked on Wave 1)*
+
+- [x] 124-02-PLAN.md — Extract token and protocol parsing while retaining order-sensitive Plug gates and responses.
+
+**Wave 3 — tus storage and termination** *(blocked on Wave 2)*
+
+- [x] 124-03-PLAN.md — Extract bounded adapter-polymorphic PATCH and DELETE abort mechanics.
+
+**Wave 4 — broker session lifecycle** *(blocked on Wave 3)*
+
+- [x] 124-04-PLAN.md — Extract cohesive Broker seed, persistence/compensation, and validation mechanics.
+
+**Wave 5 — broker completion and supported authority** *(blocked on Wave 4)*
+
+- [x] 124-05-PLAN.md — Extract the exact completion transaction and close local/S3/SAFE-01/exact-head CI proof.
 
 ### Phase 125: Behavioral Test Support
 
@@ -194,9 +214,9 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 121. Truthful Quality Signals & Mechanical Hygiene | 7/7 | Complete    | 2026-08-22 |
-| 122. Live Truth & Compile Clarity | 4/5 | In Progress|  |
-| 123. Runtime Operations Decomposition | 0/3 | Planned | - |
-| 124. Upload Path Clarity | 0/TBD | Not started | - |
+| 122. Live Truth & Compile Clarity | 5/5 | Complete | 2026-08-23 |
+| 123. Runtime Operations Decomposition | 3/3 | Complete | 2026-08-23 |
+| 124. Upload Path Clarity | 5/5 | Complete    | 2026-08-23 |
 | 125. Behavioral Test Support | 0/TBD | Not started | - |
 | 126. Curated Type Ratchet | 0/TBD | Not started | - |
 

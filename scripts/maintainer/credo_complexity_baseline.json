@@ -11,7 +11,6 @@
     {"check":"Credo.Check.Refactor.CyclomaticComplexity","file":"lib/rindle/ops/runtime_status/collector.ex","trigger":"classify_variant","observed_metric":12,"count":1,"owner":"Phase 123 OPS-03","removal_trigger":"Named function is <=9."},
     {"check":"Credo.Check.Refactor.CyclomaticComplexity","file":"lib/rindle/streaming/provider/mux.ex","trigger":"create_asset_with_retry_hint","observed_metric":10,"count":1,"owner":"Unassigned streaming-provider scope","removal_trigger":"Developer-approved streaming phase brings named function to <=9."},
     {"check":"Credo.Check.Refactor.CyclomaticComplexity","file":"lib/rindle/upload/broker.ex","trigger":"concatenate_tus_sessions","observed_metric":11,"count":1,"owner":"Phase 124 UPLOAD-02","removal_trigger":"Named function is <=9."},
-    {"check":"Credo.Check.Refactor.CyclomaticComplexity","file":"lib/rindle/upload/tus_plug.ex","trigger":"stream_append","observed_metric":12,"count":1,"owner":"Phase 124 UPLOAD-01","removal_trigger":"Named function is <=9."},
     {"check":"Credo.Check.Refactor.CyclomaticComplexity","file":"lib/rindle/workers/ingest_provider_webhook.ex","trigger":"dispatch","observed_metric":10,"count":1,"owner":"Unassigned provider-worker scope","removal_trigger":"Developer-approved worker phase brings dispatch to <=9."},
     {"check":"Credo.Check.Refactor.CyclomaticComplexity","file":"test/install_smoke/support/generated_app_helper.ex","trigger":"prove_package_install!","observed_metric":20,"count":1,"owner":"Phase 125 TEST-01","removal_trigger":"Named helper is <=9."},
     {"check":"Credo.Check.Refactor.Nesting","file":"lib/rindle/admin/live/actions_live.ex","trigger":"case","observed_metric":3,"count":1,"owner":"Unassigned Admin-maintenance scope","removal_trigger":"Developer-approved phase makes this finding green."},
@@ -30,8 +29,7 @@
     {"check":"Credo.Check.Refactor.Nesting","file":"lib/rindle/streaming.ex","trigger":"case","observed_metric":4,"count":1,"owner":"Unassigned streaming scope","removal_trigger":"Developer-approved streaming phase makes this finding green."},
     {"check":"Credo.Check.Refactor.Nesting","file":"lib/rindle/streaming/provider/mux.ex","trigger":"with","observed_metric":4,"count":1,"owner":"Unassigned streaming-provider scope","removal_trigger":"Developer-approved streaming phase makes this finding green."},
     {"check":"Credo.Check.Refactor.Nesting","file":"lib/rindle/upload/broker.ex","trigger":"case","observed_metric":3,"count":1,"owner":"Phase 124 UPLOAD-02","removal_trigger":"Finding is absent."},
-    {"check":"Credo.Check.Refactor.Nesting","file":"lib/rindle/upload/tus_plug.ex","trigger":"case","observed_metric":3,"count":2,"owner":"Phase 124 UPLOAD-01","removal_trigger":"Both findings are absent."},
-    {"check":"Credo.Check.Refactor.Nesting","file":"lib/rindle/upload/tus_plug.ex","trigger":"case","observed_metric":4,"count":1,"owner":"Phase 124 UPLOAD-01","removal_trigger":"Finding is absent."},
+    {"check":"Credo.Check.Refactor.Nesting","file":"lib/rindle/upload/tus_protocol.ex","trigger":"case","observed_metric":3,"count":2,"owner":"Phase 124 UPLOAD-01","removal_trigger":"Both findings are absent."},
     {"check":"Credo.Check.Refactor.Nesting","file":"lib/rindle/workers/mux_sync_provider_asset.ex","trigger":"case","observed_metric":3,"count":1,"owner":"Unassigned provider-worker scope","removal_trigger":"Developer-approved worker phase makes this finding green."}
   ]
 }
