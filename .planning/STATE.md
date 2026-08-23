@@ -3,17 +3,17 @@ gsd_state_version: 1.0
 milestone: v1.24
 milestone_name: Core Clarity & Quality Ratchet
 current_phase: 126
-current_phase_name: Curated Type Ratchet
-status: ready_to_execute
-stopped_at: "Phase 126 revised: 9 sequential curated-type-ratchet plans ready"
-last_updated: "2026-08-23T15:30:00.000Z"
+current_phase_name: curated-type-ratchet
+status: executing
+stopped_at: Completed 126-01-PLAN.md
+last_updated: "2026-08-23T11:42:07.621Z"
 last_activity: 2026-08-23
-last_activity_desc: Phase 126 checker revision split high-risk slices into 9 supported-evidence waves
+last_activity_desc: Phase 126 execution started
 progress:
   total_phases: 6
   completed_phases: 5
   total_plans: 39
-  completed_plans: 30
+  completed_plans: 31
 ---
 
 # Project State
@@ -23,14 +23,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-08-22 for v1.24)
 
 **Core value:** Media, made durable.
-**Current focus:** Phase 126 — Curated Type Ratchet
+**Current focus:** Phase 126 — curated-type-ratchet
 
 ## Current Position
 
-Phase: 126 — Curated Type Ratchet
-Plan: 0 of 9
-Status: Ready to execute
-Last activity: 2026-08-23 — Phase 126 checker revision split high-risk slices into 9 supported-evidence waves
+Phase: 126 (curated-type-ratchet) — EXECUTING
+Plan: 2 of 9
+Status: Executing Phase 126
+Last activity: 2026-08-23 — Phase 126 execution started
 
 ### v1.24 charter
 
@@ -184,6 +184,8 @@ _(Key v1.22 execution decisions recorded at milestone close.)_
 - [Phase ?]: Docs parity assigns adopter onboarding and maintainer operations to separate read-once domain suites.
 - [Phase ?]: Proof now explicitly executes the four docs-parity domains in one unchanged topology step.
 - [Phase ?]: Issue #42 remains open because its sole authorized matrix attempt completed only 1/25 runs; exact-head CI cannot override incomplete local evidence.
+- [Phase ?]: Phase 126 Plan 01: Nightly Elixir 1.17 / OTP 27 is the sole Dialyzer acceptance authority; local output remains diagnostic.
+- [Phase ?]: Phase 126 Plan 01: E38-E40 stay pending after exact-head supported CI emitted the unchanged tus_plug warnings.
 
 ## Blockers/Concerns
 
@@ -201,8 +203,8 @@ _(none open for v1.23 closeout)_
 
 ## Session Continuity
 
-Last session: 2026-08-23T11:14:11.000Z
-Stopped at: Phase 126 revised into nine checker-safe slices; 126-01-PLAN.md is next
+Last session: 2026-08-23T11:42:07.609Z
+Stopped at: Completed 126-01-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -245,6 +247,7 @@ Resume file: None
 | Phase 125-behavioral-test-support P08 | 24min | 2 tasks | 3 files |
 | Phase 125-behavioral-test-support P09 | 16min | 2 tasks | 4 files |
 | Phase 125 P10 | 45min | 2 tasks | 8 files |
+| Phase 126 P01 | ~15 min | 2 tasks | 2 files |
 
 ## Operator Next Steps
 
