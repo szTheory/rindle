@@ -61,7 +61,7 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 
 - [x] **Phase 121: Truthful Quality Signals & Mechanical Hygiene** - Restore blocking, evidence-based quality gates and establish the invariant-preserving refactor contract. (completed 2026-08-22)
 - [x] **Phase 122: Live Truth & Compile Clarity** - Reconcile live source and documentation truth while removing the internal schema compile cycle. (completed 2026-08-23)
-- [ ] **Phase 123: Runtime Operations Decomposition** - Make runtime diagnostics, migration preflight, and status code easier to reason about without contract drift.
+- [x] **Phase 123: Runtime Operations Decomposition** - Make runtime diagnostics, migration preflight, and status code easier to reason about without contract drift. (completed 2026-08-23)
 - [ ] **Phase 124: Upload Path Clarity** - Decompose tus and broker internals into cohesive, contract-preserving boundaries.
 - [ ] **Phase 125: Behavioral Test Support** - Replace oversized and self-inspecting test support with focused behavioral proof and async-isolation evidence.
 - [ ] **Phase 126: Curated Type Ratchet** - Retire the actionable Dialyzer baseline on the supported toolchain and block its return.

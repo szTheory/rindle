@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.24
 milestone_name: Core Clarity & Quality Ratchet
-current_phase: 123
-current_phase_name: Runtime Operations Decomposition
-status: verifying
-stopped_at: Phase 123 implementation locally verified; independent review and supported PR CI pending
-last_updated: "2026-08-23T01:49:00.000Z"
+current_phase: 124
+current_phase_name: Upload Path Clarity
+status: ready_to_discuss
+stopped_at: Phase 123 complete; supported exact-head CI Summary green on PR 85
+last_updated: "2026-08-23T02:28:00.000Z"
 last_activity: 2026-08-23
-last_activity_desc: Phase 122 complete; supported CI and release-train hygiene green
+last_activity_desc: Phase 123 complete; review clean and supported CI Summary green
 progress:
-  total_phases: 3
-  completed_phases: 2
+  total_phases: 6
+  completed_phases: 3
   total_plans: 15
   completed_plans: 15
 ---
@@ -23,14 +23,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-08-22 for v1.24)
 
 **Core value:** Media, made durable.
-**Current focus:** Phase 123 — Runtime Operations Decomposition
+**Current focus:** Phase 124 — Upload Path Clarity
 
 ## Current Position
 
-Phase: 123 — Runtime Operations Decomposition
-Plan: 3 of 3 complete
-Status: Verifying
-Last activity: 2026-08-23 — Phase 123 implementation and local merge-equivalent gates green; independent review and supported PR CI pending
+Phase: 124 — Upload Path Clarity
+Plan: Not yet planned
+Status: Ready to discuss
+Last activity: 2026-08-23 — Phase 123 complete; review clean and supported exact-head CI Summary green on PR #85
 
 ### v1.24 charter
 
@@ -57,7 +57,7 @@ the historical 0.4.0 contract; do not regress either side of that invariant.
 
 ## Next Step
 
-Close Phase 123 through independent review, goal-backward verification, and exact-head supported PR CI.
+Discuss and plan Phase 124 as a contract-preserving decomposition of tus and upload-broker internals.
 
 ## Prior Milestone
 
@@ -197,9 +197,9 @@ _(none open for v1.23 closeout)_
 
 ## Session Continuity
 
-Last session: 2026-08-23T01:49:00.000Z
-Stopped at: Phase 123 implementation locally verified; independent review and supported PR CI pending
-Resume file: .planning/phases/123-runtime-operations-decomposition/123-VERIFICATION.md
+Last session: 2026-08-23T02:28:00.000Z
+Stopped at: Phase 123 complete; supported exact-head CI Summary green on PR #85
+Resume file: .planning/STATE.md
 
 ## Performance Metrics
 

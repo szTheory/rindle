@@ -1,8 +1,8 @@
 ---
 phase: 123-runtime-operations-decomposition
-verified: 2026-08-23T02:14:55Z
-status: human_needed
-score: 5/6 must-haves verified
+verified: 2026-08-23T02:31:35Z
+status: passed
+score: 6/6 must-haves verified
 behavior_unverified: 0
 overrides_applied: 0
 re_verification:
@@ -13,17 +13,13 @@ re_verification:
     - "The runtime-status formatter changed CLI text output while compatibility helpers remained unwired."
   gaps_remaining: []
   regressions: []
-human_verification:
-  - test: "On the non-release Phase 123 PR at its exact current head SHA, run the required-check watch."
-    expected: "The repository-supported Elixir 1.17/OTP 27 CI concludes with the sole required CI Summary check passing."
-    why_human: "Supported PR CI is external to this workspace and is not yet available; local Elixir 1.19/OTP 28 output is diagnostic, not merge authority."
 ---
 
 # Phase 123: Runtime Operations Decomposition Verification Report
 
 **Phase Goal:** Runtime operational code is organized by diagnostic responsibility while retaining every existing operator-facing behavior and safety boundary.
-**Verified:** 2026-08-23T02:14:55Z
-**Status:** human_needed
+**Verified:** 2026-08-23T02:31:35Z
+**Status:** passed
 **Re-verification:** Yes — after gap closure
 
 ## Goal Achievement
@@ -37,9 +33,9 @@ human_verification:
 | 3 | Runtime-check IDs, conditional rows, warnings, redaction, injected seams, report shapes, telemetry events, and telemetry order remain stable. | ✓ VERIFIED | Fresh seven-suite Phase 123 aggregate with contract tag passed: 136 tests, 0 failures, 4 excluded. A named contract test passes against the exact 15-event execution order as well as report sorting. |
 | 4 | Populated-install preflight is composed from named bounded validation components while V1 retains its fixed catalog, transaction order, and reversal safety. | ✓ VERIFIED | `V1` supplies requirements to real PostgreSQL `Snapshot.observe/2`, calls pure `Preflight.classify/2`, and retains catalog, DDL, movement, transaction, and bounded-error authority. Focused migration proof passed. |
 | 5 | Runtime-status collection, formatting, and command concerns are separate with flags, output shapes, limits, and failure semantics unchanged. | ✓ VERIFIED | `RuntimeStatus` remains the readiness/report façade and `Collector` has real query flow. The task’s four compatibility helpers are now direct delegates to `Formatter`, which is also the actual output path; populated formatter tests assert legacy fields, samples, ordering, redaction, and recommendations. |
-| 6 | Fresh compile, focused proof, SAFE-01, local CI/hygiene, and supported CI authority close the phase without release-topology changes. | ? UNCERTAIN | Local full `mix ci` is reported green (1,364 tests); fresh focused proof and SAFE-01 passed here. Forbidden-surface audit passed. Supported exact-SHA PR CI is not available yet. |
+| 6 | Fresh compile, focused proof, SAFE-01, local CI/hygiene, and supported CI authority close the phase without release-topology changes. | ✓ VERIFIED | Local `mix ci` passed (1,364 tests); fresh focused proof and SAFE-01 passed; forbidden-surface audit passed; PR #85 exact head `ad99ed9979517de507771b28ed55c69cef5205f3` has successful run `32612445302` and required `CI Summary` job `97128954793`. |
 
-**Score:** 5/6 truths verified (0 present, behavior-unverified)
+**Score:** 6/6 truths verified (0 present, behavior-unverified)
 
 ### Required Artifacts
 
@@ -88,6 +84,7 @@ human_verification:
 | SAFE-01 preservation contract | `bash scripts/maintainer/refactor_contract.sh` | Fresh compile; 87 tests, 0 failures | ✓ PASS |
 | Local hygiene/release checks | `./scripts/maintainer/repo_hygiene_check.sh` | 10 PASS; working-tree warning is caused by uncommitted verification/review artifacts during verification, not a product/release surface regression | ✓ PASS WITH ENVIRONMENT NOTE |
 | Local merge-equivalent CI | `mix ci` | Caller reports 1,364 tests green | ✓ PASS (reported local evidence) |
+| Supported exact-head PR CI | PR #85, SHA `ad99ed9979517de507771b28ed55c69cef5205f3`, run `32612445302` | Required `CI Summary` job `97128954793` passed; run conclusion `success` | ✓ PASS |
 
 ### Requirements Coverage
 
@@ -96,27 +93,17 @@ human_verification:
 | OPS-01 | 123-01 | Small `RuntimeChecks` orchestration with cohesive diagnostic collaborators | ✓ SATISFIED | Domain ownership moved out of the façade into substantive core/ownership/integration modules. |
 | OPS-02 | 123-02 | Named bounded populated-install preflight with catalog/order/reversal safety | ✓ SATISFIED | V1/Snapshot/Preflight layering and focused migration behavior are intact. |
 | OPS-03 | 123-03 | Separate runtime-status collection, formatting, and command concerns without behavior drift | ✓ SATISFIED | Collector and formatter are wired; direct compatibility delegation and populated output proof close the prior drift. |
-| SAFE-01 | 123-01–03 | Preserve API, migration, telemetry, error, CI, and release invariants | ? NEEDS HUMAN | Fresh contract proof and scope checks pass; the supported exact-SHA PR CI authority is still pending. |
+| SAFE-01 | 123-01–03 | Preserve API, migration, telemetry, error, CI, and release invariants | ✓ SATISFIED | Fresh contract and scope proof pass; the supported exact-SHA required CI Summary is green. |
 
 ### Anti-Patterns Found
 
 No `TBD`, `FIXME`, `XXX`, placeholder, empty-implementation, hardcoded-empty-data, or console-only patterns were found in Phase 123 source/test files. The Credo complexity-baseline update follows the moved function ownership. `git diff --quiet main...HEAD -- .github/workflows mix.exs mix.lock priv/repo/migrations lib/rindle/admin .planning/milestones` returned exit 0.
 
-### Human Verification Required
+### Completion Summary
 
-### 1. Supported exact-SHA CI authority
-
-**Test:** On the Phase 123 non-release PR, run the required-check watch for its exact head SHA.
-
-**Expected:** The repository-supported Elixir 1.17/OTP 27 run reports the sole required `CI Summary` check as passing.
-
-**Why human:** The supported PR CI is external and not yet available from this workspace; unsupported local-toolchain results cannot substitute for it.
-
-### Gaps Summary
-
-The two prior implementation gaps are closed. No source-level or behavior-level gap remains. Phase completion awaits the supported exact-SHA PR CI decision.
+The two prior implementation gaps are closed. All source-level, behavior-level, local-gate, scope, and supported exact-SHA CI evidence is now present. Phase goal achieved.
 
 ---
 
-_Verified: 2026-08-23T02:14:55Z_
+_Verified: 2026-08-23T02:31:35Z_
 _Verifier: the agent (gsd-verifier)_
