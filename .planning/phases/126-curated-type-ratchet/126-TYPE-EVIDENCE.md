@@ -184,3 +184,27 @@ Elixir 1.19 / OTP 28 result was not used to classify them.
 | E09 | reproduced candidate | `The function call message will not succeed.` at `batch_owner_erasure.ex:112` and `:116`. |
 | E10 | reproduced candidate | The exact covered `{'error', _}` pattern at `actions_live.ex:85`. |
 | E24 | reproduced candidate | The exact `:ok | {:already, :allowed | :owner}` pattern at `runtime_checks.ex:294`. |
+
+## Final Operational/Runtime Slice Receipt
+
+- [Exact-head Nightly run 32641395080](https://github.com/szTheory/rindle/actions/runs/32641395080)
+  for `19c53b2c37452ccaa0a0de685758cf0bfaf2feb0` (`workflow_dispatch`)
+- [Dialyzer job 97198921550](https://github.com/szTheory/rindle/actions/runs/32641395080/job/97198921550):
+  **failure**, with exactly three annotations, all later-owned E38–E40.
+- [Nightly Summary job 97199446324](https://github.com/szTheory/rindle/actions/runs/32641395080/job/97199446324):
+  **success**, explicitly recording `DIALYZER: failure`.
+- Focused batch task/Admin/runtime-check suites and
+  `bash scripts/maintainer/refactor_contract.sh`: passed.
+
+| IDs | Final status | Supported rationale |
+| --- | --- | --- |
+| E09 | retained-analyzer-noise | Both facade result-error branches retain distinct task output and `{:shutdown, 1}` behavior; `Rindle.Error.message/1` accepts the behaviorally correct error map. |
+| E10 | retained-analyzer-noise | The non-binary facade-error fallback preserves the existing Admin failure copy without narrowing reachable errors. |
+| E24 | retained-analyzer-noise | Sandbox checkout can return `{:error, reason}` at runtime; retaining the branch preserves runtime diagnostics and error shapes. |
+
+The exact final annotation multiset is E38 at
+`lib/rindle/upload/tus_creation.ex:35`, E39 at
+`lib/rindle/upload/tus_stream.ex:163`, and E40 at
+`lib/rindle/upload/tus_stream.ex:66`. No operational, migration/support, or
+unowned warning is emitted. This remains an intentionally red intermediate
+Nightly result until Plan 126-07 owns the three TUS findings.
