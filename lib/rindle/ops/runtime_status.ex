@@ -102,15 +102,32 @@ defmodule Rindle.Ops.RuntimeStatus do
   # Keeps the legacy private helpers compiled while callers transition to Collector.
   defp legacy_collection_reference do
     [
-      &age_seconds/2, &asset_probe_rows_query/2, &classify_variant/3,
-      &classify_variants/3, &count_map/1, &finding_counts/1,
-      &maybe_filter_profile/3, &maybe_filter_updated_at/2,
-      &maybe_filter_upload_cutoff/2, &mismatch_kind_and_content_type?/2,
-      &oban_all/2, &oban_index/2, &probe_drift_reason/1, &probe_drift_sample/2,
-      &processing_threshold_seconds/1, &report_all/3, &report_one/2,
-      &report_query/0, &rindle_all/1, &rindle_one/1, &summarize_findings/2,
-      &summarize_state_findings/2, &upload_session_finding_rows_query/2,
-      &upload_session_sample/2, &variant_finding_rows_query/2, &variant_sample/4
+      &age_seconds/2,
+      &asset_probe_rows_query/2,
+      &classify_variant/3,
+      &classify_variants/3,
+      &count_map/1,
+      &finding_counts/1,
+      &maybe_filter_profile/3,
+      &maybe_filter_updated_at/2,
+      &maybe_filter_upload_cutoff/2,
+      &mismatch_kind_and_content_type?/2,
+      &oban_all/2,
+      &oban_index/2,
+      &probe_drift_reason/1,
+      &probe_drift_sample/2,
+      &processing_threshold_seconds/1,
+      &report_all/3,
+      &report_one/2,
+      &report_query/0,
+      &rindle_all/1,
+      &rindle_one/1,
+      &summarize_findings/2,
+      &summarize_state_findings/2,
+      &upload_session_finding_rows_query/2,
+      &upload_session_sample/2,
+      &variant_finding_rows_query/2,
+      &variant_sample/4
     ]
 
     :ok

@@ -196,7 +196,9 @@ defmodule Rindle.Ops.RuntimeStatus.Collector do
   end
 
   defp maybe_filter_provider_assets_profile(query, nil), do: query
-  defp maybe_filter_provider_assets_profile(query, profile), do: from(p in query, where: p.profile == ^profile)
+
+  defp maybe_filter_provider_assets_profile(query, profile),
+    do: from(p in query, where: p.profile == ^profile)
 
   defp provider_asset_sample(row, now) do
     age = age_seconds(row.updated_at, now)
@@ -291,19 +293,33 @@ defmodule Rindle.Ops.RuntimeStatus.Collector do
     active_states = Map.get(oban_index, key, MapSet.new())
 
     cond do
-      row.state == "failed" -> variant_sample(:failed_work, row, age, "variant exhausted its retry budget")
-      row.state == "cancelled" -> variant_sample(:cancelled_work, row, age, "variant was intentionally cancelled")
-      row.state == "stale" -> variant_sample(:recipe_drift, row, age, "variant recipe digest drifted")
-      row.state == "missing" -> variant_sample(:storage_drift, row, age, "variant storage object is missing")
-      row.state == "queued" and age > @queue_starved_age_seconds and MapSet.disjoint?(active_states, MapSet.new(ProcessVariant.active_job_states())) ->
+      row.state == "failed" ->
+        variant_sample(:failed_work, row, age, "variant exhausted its retry budget")
+
+      row.state == "cancelled" ->
+        variant_sample(:cancelled_work, row, age, "variant was intentionally cancelled")
+
+      row.state == "stale" ->
+        variant_sample(:recipe_drift, row, age, "variant recipe digest drifted")
+
+      row.state == "missing" ->
+        variant_sample(:storage_drift, row, age, "variant storage object is missing")
+
+      row.state == "queued" and age > @queue_starved_age_seconds and
+          MapSet.disjoint?(active_states, MapSet.new(ProcessVariant.active_job_states())) ->
         variant_sample(:queue_starved, row, age, "queued variant lacks corroborating Oban job")
-      row.state == "processing" and age > processing_threshold_seconds(row) and MapSet.disjoint?(active_states, MapSet.new([:executing, :retryable])) ->
+
+      row.state == "processing" and age > processing_threshold_seconds(row) and
+          MapSet.disjoint?(active_states, MapSet.new([:executing, :retryable])) ->
         variant_sample(:orphan_suspect, row, age, "processing variant lacks executing Oban job")
-      true -> nil
+
+      true ->
+        nil
     end
   end
 
   defp oban_index([], _prefix), do: %{}
+
   defp oban_index(rows, prefix) do
     asset_ids = rows |> Enum.map(& &1.asset_id) |> Enum.uniq()
     names = rows |> Enum.map(& &1.variant_name) |> Enum.uniq()
@@ -313,7 +329,8 @@ defmodule Rindle.Ops.RuntimeStatus.Collector do
       where: j.state in ^Enum.map(ProcessVariant.active_job_states(), &Atom.to_string/1),
       where: fragment("?->>'asset_id' = ANY(?)", j.args, ^asset_ids),
       where: fragment("?->>'variant_name' = ANY(?)", j.args, ^names),
-      select: {fragment("?->>'asset_id'", j.args), fragment("?->>'variant_name'", j.args), j.state}
+      select:
+        {fragment("?->>'asset_id'", j.args), fragment("?->>'variant_name'", j.args), j.state}
     )
     |> oban_all(prefix)
     |> Enum.reduce(%{}, fn {asset_id, variant_name, state}, acc ->
@@ -340,37 +357,66 @@ defmodule Rindle.Ops.RuntimeStatus.Collector do
     :rindle |> Application.get_env(Rindle.Ops.RuntimeStatus, []) |> Keyword.get(:report_query)
   end
 
-  defp processing_threshold_seconds(%{asset_kind: kind}) when kind in ["video", "audio"], do: max(div(ProcessVariant.av_timeout_ms() * 2, 1000), 20 * 60)
+  defp processing_threshold_seconds(%{asset_kind: kind}) when kind in ["video", "audio"],
+    do: max(div(ProcessVariant.av_timeout_ms() * 2, 1000), 20 * 60)
+
   defp processing_threshold_seconds(_row), do: @image_orphan_age_seconds
 
   defp probe_drift_sample(row, now) do
     case probe_drift_reason(row) do
-      nil -> nil
-      reason -> %{class: :probe_drift, age_seconds: age_seconds(row.updated_at, now), sample: %{asset_id: row.asset_id, state: row.state, kind: row.kind, reason: reason}}
+      nil ->
+        nil
+
+      reason ->
+        %{
+          class: :probe_drift,
+          age_seconds: age_seconds(row.updated_at, now),
+          sample: %{asset_id: row.asset_id, state: row.state, kind: row.kind, reason: reason}
+        }
     end
   end
 
   defp probe_drift_reason(%{kind: "video"} = row) do
     cond do
-      mismatch_kind_and_content_type?(row.kind, row.content_type) -> "content type does not match persisted video kind"
-      is_nil(row.duration_ms) or is_nil(row.width) or is_nil(row.height) or row.has_video_track != true -> "video asset is missing probe-owned AV fields"
-      true -> nil
+      mismatch_kind_and_content_type?(row.kind, row.content_type) ->
+        "content type does not match persisted video kind"
+
+      is_nil(row.duration_ms) or is_nil(row.width) or is_nil(row.height) or
+          row.has_video_track != true ->
+        "video asset is missing probe-owned AV fields"
+
+      true ->
+        nil
     end
   end
+
   defp probe_drift_reason(%{kind: "audio"} = row) do
     cond do
-      mismatch_kind_and_content_type?(row.kind, row.content_type) -> "content type does not match persisted audio kind"
-      is_nil(row.duration_ms) or row.has_audio_track != true -> "audio asset is missing probe-owned AV fields"
-      true -> nil
+      mismatch_kind_and_content_type?(row.kind, row.content_type) ->
+        "content type does not match persisted audio kind"
+
+      is_nil(row.duration_ms) or row.has_audio_track != true ->
+        "audio asset is missing probe-owned AV fields"
+
+      true ->
+        nil
     end
   end
+
   defp probe_drift_reason(%{kind: "image"} = row) do
     cond do
-      mismatch_kind_and_content_type?(row.kind, row.content_type) -> "content type does not match persisted image kind"
-      not is_nil(row.duration_ms) or not is_nil(row.has_video_track) or not is_nil(row.has_audio_track) -> "image asset still carries AV-only probe fields"
-      true -> nil
+      mismatch_kind_and_content_type?(row.kind, row.content_type) ->
+        "content type does not match persisted image kind"
+
+      not is_nil(row.duration_ms) or not is_nil(row.has_video_track) or
+          not is_nil(row.has_audio_track) ->
+        "image asset still carries AV-only probe fields"
+
+      true ->
+        nil
     end
   end
+
   defp probe_drift_reason(_row), do: nil
   defp mismatch_kind_and_content_type?(_kind, nil), do: false
   defp mismatch_kind_and_content_type?("image", <<"audio/", _::binary>>), do: true
@@ -400,29 +446,81 @@ defmodule Rindle.Ops.RuntimeStatus.Collector do
     |> Enum.sort_by(fn {class, _samples} -> Atom.to_string(class) end)
     |> Enum.map(fn {class, rows} ->
       sorted = Enum.sort_by(rows, &{-&1.age_seconds, &1.sample.asset_id})
-      %{class: class, count: length(rows), oldest_age_seconds: hd(sorted).age_seconds, samples: sorted |> Enum.take(limit) |> Enum.map(& &1.sample)}
+
+      %{
+        class: class,
+        count: length(rows),
+        oldest_age_seconds: hd(sorted).age_seconds,
+        samples: sorted |> Enum.take(limit) |> Enum.map(& &1.sample)
+      }
     end)
   end
+
   defp summarize_state_findings(samples, limit) do
     samples
     |> Enum.group_by(& &1.state)
     |> Enum.sort_by(fn {state, _samples} -> state end)
     |> Enum.map(fn {state, rows} ->
       sorted = Enum.sort_by(rows, &{-&1.age_seconds, &1.sample.asset_id})
-      %{state: state, count: length(rows), oldest_age_seconds: hd(sorted).age_seconds, samples: sorted |> Enum.take(limit) |> Enum.map(& &1.sample)}
+
+      %{
+        state: state,
+        count: length(rows),
+        oldest_age_seconds: hd(sorted).age_seconds,
+        samples: sorted |> Enum.take(limit) |> Enum.map(& &1.sample)
+      }
     end)
   end
-  defp finding_counts(samples), do: samples |> Enum.group_by(& &1.class) |> Enum.map(fn {class, rows} -> {class, length(rows)} end) |> Enum.sort_by(fn {class, _count} -> Atom.to_string(class) end) |> Map.new()
-  defp count_map(rows), do: rows |> Enum.map(fn {state, count} -> {String.to_atom(state), count} end) |> Map.new()
-  defp variant_sample(class, row, age, reason), do: %{class: class, age_seconds: age, sample: %{asset_id: row.asset_id, variant_id: row.variant_id, variant_name: row.variant_name, state: row.state, reason: reason, error_reason: row.error_reason}}
+
+  defp finding_counts(samples),
+    do:
+      samples
+      |> Enum.group_by(& &1.class)
+      |> Enum.map(fn {class, rows} -> {class, length(rows)} end)
+      |> Enum.sort_by(fn {class, _count} -> Atom.to_string(class) end)
+      |> Map.new()
+
+  defp count_map(rows),
+    do: rows |> Enum.map(fn {state, count} -> {String.to_atom(state), count} end) |> Map.new()
+
+  defp variant_sample(class, row, age, reason),
+    do: %{
+      class: class,
+      age_seconds: age,
+      sample: %{
+        asset_id: row.asset_id,
+        variant_id: row.variant_id,
+        variant_name: row.variant_name,
+        state: row.state,
+        reason: reason,
+        error_reason: row.error_reason
+      }
+    }
+
   defp age_seconds(nil, _now), do: 0
-  defp age_seconds(%NaiveDateTime{} = value, now), do: NaiveDateTime.diff(DateTime.to_naive(now), value, :second)
+
+  defp age_seconds(%NaiveDateTime{} = value, now),
+    do: NaiveDateTime.diff(DateTime.to_naive(now), value, :second)
+
   defp age_seconds(%DateTime{} = value, now), do: DateTime.diff(now, value, :second)
   defp maybe_filter_profile(query, _scope, nil), do: query
-  defp maybe_filter_profile(query, :asset, profile), do: from(a in query, where: a.profile == ^profile)
-  defp maybe_filter_profile(query, scope, profile) when scope in [:variant, :upload_session], do: from([_row, a] in query, where: a.profile == ^profile)
+
+  defp maybe_filter_profile(query, :asset, profile),
+    do: from(a in query, where: a.profile == ^profile)
+
+  defp maybe_filter_profile(query, scope, profile) when scope in [:variant, :upload_session],
+    do: from([_row, a] in query, where: a.profile == ^profile)
+
   defp maybe_filter_updated_at(query, nil), do: query
-  defp maybe_filter_updated_at(query, cutoff), do: from(row in query, where: row.updated_at <= ^cutoff)
+
+  defp maybe_filter_updated_at(query, cutoff),
+    do: from(row in query, where: row.updated_at <= ^cutoff)
+
   defp maybe_filter_upload_cutoff(query, nil), do: query
-  defp maybe_filter_upload_cutoff(query, cutoff), do: from(s in query, where: s.updated_at <= ^cutoff or (not is_nil(s.expires_at) and s.expires_at <= ^cutoff))
+
+  defp maybe_filter_upload_cutoff(query, cutoff),
+    do:
+      from(s in query,
+        where: s.updated_at <= ^cutoff or (not is_nil(s.expires_at) and s.expires_at <= ^cutoff)
+      )
 end

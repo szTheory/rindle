@@ -112,7 +112,9 @@ defmodule Mix.Tasks.Rindle.RuntimeStatus do
     |> Map.new()
   end
 
-  defp print_error(reason, true), do: Mix.shell().info(Jason.encode!(Formatter.format_json_error(reason)))
+  defp print_error(reason, true),
+    do: Mix.shell().info(Jason.encode!(Formatter.format_json_error(reason)))
+
   defp print_error(reason, false), do: Mix.shell().error(Formatter.format_error(reason))
 
   defp error_details({:setup_incomplete, :rindle_schema}),
