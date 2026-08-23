@@ -52,6 +52,7 @@ defmodule Rindle.ApiSurfaceBoundaryTest do
     Rindle.Profile.Validator,
     Rindle.Profile.Digest,
     Rindle.Storage.Capabilities,
+    Rindle.Upload.TusCreation,
     Rindle.Migration.Options,
     Rindle.Migration.V1
   ]
@@ -104,6 +105,14 @@ defmodule Rindle.ApiSurfaceBoundaryTest do
         assert hidden_module?(module),
                "#{inspect(module)} should be hidden from compiled docs"
       end
+    end
+
+    test "tus creation mechanics stay hidden behind the visible Plug and Broker facades" do
+      assert visible_module?(Rindle.Upload.TusPlug)
+      assert visible_module?(Rindle.Upload.Broker)
+      assert hidden_module?(Rindle.Upload.TusCreation)
+      assert hidden_function_doc?(Rindle.Upload.TusCreation, :create, 3)
+      assert hidden_function_doc?(Rindle.Upload.TusCreation, :concatenate, 4)
     end
   end
 
