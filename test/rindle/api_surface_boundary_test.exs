@@ -59,6 +59,7 @@ defmodule Rindle.ApiSurfaceBoundaryTest do
     Rindle.Upload.Broker.SessionSeed,
     Rindle.Upload.Broker.Persistence,
     Rindle.Upload.Broker.SessionValidation,
+    Rindle.Upload.Broker.Completion,
     Rindle.Migration.Options,
     Rindle.Migration.V1
   ]
@@ -180,7 +181,8 @@ defmodule Rindle.ApiSurfaceBoundaryTest do
                normalize_parts: 1,
                encode_parts: 1,
                resumable_status_attrs: 2
-             ]}
+             ]},
+            {Rindle.Upload.Broker.Completion, [transact: 4]}
           ] do
         assert hidden_module?(module)
 
