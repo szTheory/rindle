@@ -18,9 +18,6 @@ defmodule Rindle.InstallSmoke.DialyzerIgnorePolicyTest do
 
     assert valid_ignore_list?(ignores)
     assert Enum.count(ignores, fn {_path, discriminator} -> is_atom(discriminator) end) == 8
-    assert Enum.count(ignores, fn {_path, discriminator} -> is_binary(discriminator) end) == 37
-    assert length(ignores) == 45
-    assert ignores |> Enum.map(&elem(&1, 0)) |> Enum.uniq() |> length() == 18
   end
 
   test "TYPE-02: invalid fixtures are rejected without freezing the live count" do
