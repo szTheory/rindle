@@ -4,7 +4,17 @@ defmodule Rindle.Upload.Broker.Persistence do
   alias Rindle.Domain.{MediaAsset, MediaUploadSession}
   alias Rindle.Storage.Local
 
+  @type session_seed :: %{
+          required(:asset_id) => String.t(),
+          required(:profile_name) => String.t(),
+          required(:storage_key) => String.t(),
+          required(:filename) => String.t(),
+          required(:expires_at) => DateTime.t()
+        }
+  @type session_result :: {:ok, MediaUploadSession.t()} | {:error, term()}
+
   @doc false
+  @spec create(module(), session_seed(), map()) :: session_result()
   def create(repo, session_seed, session_attrs) do
     case repo.transaction(fn ->
            {:ok, asset} =
@@ -40,6 +50,8 @@ defmodule Rindle.Upload.Broker.Persistence do
   end
 
   @doc false
+  @spec persist_multipart(module(), module(), session_seed(), map(), keyword()) ::
+          session_result()
   def persist_multipart(repo, adapter, session_seed, multipart, opts) do
     case create(repo, session_seed, %{
            state: "initialized",
@@ -63,6 +75,8 @@ defmodule Rindle.Upload.Broker.Persistence do
   end
 
   @doc false
+  @spec persist_resumable(module(), module(), session_seed(), map(), keyword()) ::
+          session_result()
   def persist_resumable(repo, adapter, session_seed, resumable, opts) do
     case create(repo, session_seed, %{
            state: "signed",
@@ -88,6 +102,7 @@ defmodule Rindle.Upload.Broker.Persistence do
   end
 
   @doc false
+  @spec persist_tus(module(), session_seed(), keyword()) :: session_result()
   def persist_tus(repo, session_seed, opts) do
     case create(repo, session_seed, %{
            state: "signed",
@@ -105,6 +120,8 @@ defmodule Rindle.Upload.Broker.Persistence do
   end
 
   @doc false
+  @spec update(module(), MediaUploadSession.t(), map()) ::
+          {:ok, MediaUploadSession.t()} | {:error, term()}
   def update(repo, session, attrs) do
     repo.transaction(fn ->
       {:ok, updated_session} =

@@ -5,6 +5,8 @@ defmodule Rindle.Upload.Broker.Completion do
   alias Rindle.Workers.PromoteAsset
 
   @doc false
+  @spec transact(module(), MediaUploadSession.t(), MediaAsset.t(), map()) ::
+          {:ok, map()} | {:error, atom(), term(), map()}
   def transact(repo, session, asset, metadata) do
     Ecto.Multi.new()
     |> Ecto.Multi.update(

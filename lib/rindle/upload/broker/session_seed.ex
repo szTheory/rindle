@@ -3,7 +3,16 @@ defmodule Rindle.Upload.Broker.SessionSeed do
 
   alias Rindle.Security.StorageKey
 
+  @type seed :: %{
+          asset_id: String.t(),
+          profile_name: String.t(),
+          storage_key: String.t(),
+          filename: String.t(),
+          expires_at: DateTime.t()
+        }
+
   @doc false
+  @spec build(module(), keyword()) :: seed()
   def build(profile_module, opts) do
     profile_name = to_string(profile_module)
     filename = Keyword.get(opts, :filename, "unknown")

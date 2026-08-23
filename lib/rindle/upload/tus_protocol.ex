@@ -7,6 +7,8 @@ defmodule Rindle.Upload.TusProtocol do
   @offset_content_type "application/offset+octet-stream"
 
   @doc false
+  @spec verify_token(Plug.Conn.t(), String.t()) ::
+          {:ok, map()} | {:error, :invalid_token | :expired_token}
   def verify_token(conn, secret_key_base) do
     with token when is_binary(token) <- extract_token(conn),
          {:ok, claims} <- Plug.Crypto.verify(secret_key_base, @tus_url_salt, token) do
@@ -19,6 +21,7 @@ defmodule Rindle.Upload.TusProtocol do
   end
 
   @doc false
+  @spec check_not_expired(map()) :: {:ok, map()} | {:error, :invalid_token | :expired_token}
   def check_not_expired(%{"exp" => exp} = claims) when is_integer(exp) do
     if exp >= System.system_time(:second), do: {:ok, claims}, else: {:error, :expired_token}
   end
@@ -26,6 +29,8 @@ defmodule Rindle.Upload.TusProtocol do
   def check_not_expired(_claims), do: {:error, :invalid_token}
 
   @doc false
+  @spec parse_upload_length(Plug.Conn.t()) ::
+          {:ok, non_neg_integer() | String.t()} | {:error, :invalid_length}
   def parse_upload_length(conn) do
     case {get_req_header(conn, "upload-length"), get_req_header(conn, "upload-defer-length")} do
       {[value], _} -> parse_non_negative(value, :invalid_length)
@@ -35,6 +40,7 @@ defmodule Rindle.Upload.TusProtocol do
   end
 
   @doc false
+  @spec metadata_content_type(Plug.Conn.t()) :: String.t() | nil
   def metadata_content_type(conn) do
     conn
     |> get_req_header("upload-metadata")
@@ -44,6 +50,7 @@ defmodule Rindle.Upload.TusProtocol do
   end
 
   @doc false
+  @spec require_offset_octet_stream(Plug.Conn.t()) :: :ok | {:error, :wrong_content_type}
   def require_offset_octet_stream(conn) do
     case get_req_header(conn, "content-type") do
       [@offset_content_type <> _rest] -> :ok
@@ -52,6 +59,7 @@ defmodule Rindle.Upload.TusProtocol do
   end
 
   @doc false
+  @spec parse_upload_offset(Plug.Conn.t()) :: {:ok, non_neg_integer()} | {:error, :invalid_offset}
   def parse_upload_offset(conn) do
     case get_req_header(conn, "upload-offset") do
       [value] -> parse_non_negative(value, :invalid_offset)
@@ -60,10 +68,13 @@ defmodule Rindle.Upload.TusProtocol do
   end
 
   @doc false
+  @spec check_offset_match(term(), term()) :: :ok | {:error, :offset_mismatch}
   def check_offset_match(inbound, current) when inbound == current, do: :ok
   def check_offset_match(_inbound, _current), do: {:error, :offset_mismatch}
 
   @doc false
+  @spec parse_upload_checksum(Plug.Conn.t()) ::
+          {:ok, String.t() | nil, binary() | nil} | {:error, :invalid_checksum}
   def parse_upload_checksum(conn) do
     case get_req_header(conn, "upload-checksum") do
       [value] ->
@@ -84,16 +95,21 @@ defmodule Rindle.Upload.TusProtocol do
   end
 
   @doc false
+  @spec normalize_length(term()) ::
+          {:ok, non_neg_integer() | String.t()} | {:error, :invalid_length}
   def normalize_length("deferred"), do: {:ok, "deferred"}
   def normalize_length(length) when is_integer(length) and length >= 0, do: {:ok, length}
   def normalize_length(_), do: {:error, :invalid_length}
 
   @doc false
+  @spec check_max_size(non_neg_integer() | String.t(), non_neg_integer()) ::
+          :ok | {:error, :too_large}
   def check_max_size("deferred", _max_size), do: :ok
   def check_max_size(length, max_size) when length > max_size, do: {:error, :too_large}
   def check_max_size(_length, _max_size), do: :ok
 
   @doc false
+  @spec effective_length(map(), map()) :: non_neg_integer() | nil
   def effective_length(%{upload_length: length}, %{"length" => "deferred"})
       when is_integer(length),
       do: length
@@ -102,6 +118,7 @@ defmodule Rindle.Upload.TusProtocol do
   def effective_length(_session, _payload), do: nil
 
   @doc false
+  @spec status_for(term()) :: pos_integer()
   def status_for(:invalid_token), do: 404
   def status_for(:not_found), do: 404
   def status_for(:expired_token), do: 401
@@ -117,12 +134,14 @@ defmodule Rindle.Upload.TusProtocol do
   def status_for(_reason), do: 500
 
   @doc false
+  @spec http_date(DateTime.t() | term()) :: String.t()
   def http_date(%DateTime{} = datetime),
     do: Calendar.strftime(datetime, "%a, %d %b %Y %H:%M:%S GMT")
 
   def http_date(_), do: ""
 
   @doc false
+  @spec location_base(Plug.Conn.t()) :: String.t()
   def location_base(conn) do
     case conn.script_name do
       [] -> conn.request_path

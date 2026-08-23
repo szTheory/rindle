@@ -3,7 +3,14 @@ defmodule Rindle.Upload.Broker.SessionValidation do
 
   alias Rindle.Domain.MediaUploadSession
 
+  @type multipart_part :: %{part_number: pos_integer(), etag: String.t()}
+  @type multipart_error ::
+          :multipart_upload_not_initialized | {:upload_unsupported, :multipart_upload}
+  @type resumable_error ::
+          :resumable_upload_not_initialized | {:upload_unsupported, :resumable_upload_session}
+
   @doc false
+  @spec multipart(MediaUploadSession.t()) :: :ok | {:error, multipart_error()}
   def multipart(%MediaUploadSession{upload_strategy: "multipart", multipart_upload_id: upload_id})
       when is_binary(upload_id) and upload_id != "",
       do: :ok
@@ -14,6 +21,7 @@ defmodule Rindle.Upload.Broker.SessionValidation do
   def multipart(_session), do: {:error, {:upload_unsupported, :multipart_upload}}
 
   @doc false
+  @spec resumable(MediaUploadSession.t()) :: :ok | {:error, resumable_error()}
   def resumable(%MediaUploadSession{upload_strategy: "resumable", session_uri: session_uri})
       when is_binary(session_uri) and session_uri != "",
       do: :ok
@@ -24,6 +32,7 @@ defmodule Rindle.Upload.Broker.SessionValidation do
   def resumable(_session), do: {:error, {:upload_unsupported, :resumable_upload_session}}
 
   @doc false
+  @spec profile_module(String.t()) :: {:ok, module()} | {:error, :unknown_profile}
   def profile_module(name) do
     {:ok, String.to_existing_atom(name)}
   rescue
@@ -31,6 +40,7 @@ defmodule Rindle.Upload.Broker.SessionValidation do
   end
 
   @doc false
+  @spec normalize_parts(list()) :: {:ok, [multipart_part()]} | {:error, :invalid_multipart_parts}
   def normalize_parts(parts) when is_list(parts) do
     parts
     |> Enum.reduce_while({:ok, []}, fn part, {:ok, acc} ->
@@ -48,6 +58,7 @@ defmodule Rindle.Upload.Broker.SessionValidation do
   def normalize_parts(_parts), do: {:error, :invalid_multipart_parts}
 
   @doc false
+  @spec encode_parts([multipart_part()]) :: [map()]
   def encode_parts(parts) do
     Enum.map(parts, fn %{part_number: part_number, etag: etag} ->
       %{"part_number" => part_number, "etag" => etag}
@@ -55,6 +66,7 @@ defmodule Rindle.Upload.Broker.SessionValidation do
   end
 
   @doc false
+  @spec resumable_status_attrs(MediaUploadSession.t(), map()) :: map()
   def resumable_status_attrs(session, status) do
     %{
       last_known_offset: status.committed_bytes,
