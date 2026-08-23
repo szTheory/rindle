@@ -404,3 +404,30 @@ inspected to establish this distinction.
 | E40 | actionable-fixed | Part persistence always merges the encoded map; the removed truthiness branch was unreachable because encoding always returns a map. |
 | Mux ingest | actionable-fixed | Compensation is called only after the normalized Mux create response establishes `provider_asset_id`; the fallback was unreachable and compensation, logging, redaction, and cancel behavior remain owner-tested. |
 | Mux sync | actionable-fixed | ProviderAssetFSM's exact `:ok | {:error, {:invalid_transition, _, _}}` union covers the reachable transition outcomes; the fallback was unreachable and the invalid-transition reconciliation remains owner-tested. |
+
+## Supported Facade, Broker, and PromoteAsset Probe Receipt
+
+- Probe commit: `a064b87e93728ca7a5343a9df7f734baadaa3d55`; only E01–E03
+  and E08's historical atom filters were removed. `lib/rindle.ex`,
+  `upload/broker.ex`, and `workers/promote_asset.ex` were source-unchanged.
+- [Exact-head Nightly run 32647835411](https://github.com/szTheory/rindle/actions/runs/32647835411)
+  (`workflow_dispatch`; `headSha` exactly equals the probe commit).
+- [Dialyzer job 97214740743](https://github.com/szTheory/rindle/actions/runs/32647835411/job/97214740743):
+  **failure** with exactly one annotation: E08 at
+  `lib/rindle/workers/promote_asset.ex:258`.
+- [Nightly Summary job 97215298957](https://github.com/szTheory/rindle/actions/runs/32647835411/job/97215298957):
+  **success**, recording the Dialyzer failure. The complete workflow is expected
+  to fail at this source-unchanged stage because the policy test still asserts
+  the pre-reconciliation atom count; that policy is updated with the final
+  baseline, not used to classify analyzer output.
+
+| IDs | Immutable filter path | Supported emitted path | Warning discriminator | Probe disposition |
+| --- | --- | --- | --- | --- |
+| E01 | `lib/rindle.ex` | absent | `:call_without_opaque` | obsolete candidate |
+| E02 | `lib/rindle/upload/broker.ex` | absent | `:call_without_opaque` | obsolete candidate |
+| E03 | `lib/rindle/workers/promote_asset.ex` | absent | `:call_without_opaque` | obsolete candidate |
+| E08 | `lib/rindle/workers/promote_asset.ex` | `lib/rindle/workers/promote_asset.ex:258` | `:pattern_match_cov` | reproduced candidate; Plan 126-08 owner |
+
+The exhaustive Dialyzer annotation list contains no facade or Broker warning and
+no unowned analyzer warning. The E01–E03 absences and E08 reproduction are
+supported-head facts; local analyzer output is not used for these dispositions.
