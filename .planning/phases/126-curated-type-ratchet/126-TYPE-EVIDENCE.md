@@ -162,3 +162,25 @@ and SAFE-01 result specified by the ledger protocol.
 | E22 | retained-analyzer-noise | `raise_preflight_error!/1` intentionally never returns; changing that would weaken the refusal path. |
 | E23 | retained-analyzer-noise | Preflight’s directional exhaustive refusal patterns are intentionally narrower than the shared classifier’s atom result. |
 | E43–E45 | retained-analyzer-noise | The host fixture is a real Ecto.Migration runner callback with dynamic lifecycle execution. |
+
+## Supported Operational/Runtime Probe Receipt
+
+- Probe commit: `7397e3791aa9fbad5b1292b06e76ddc654327c96`
+- [Exact-head Nightly run 32640992583](https://github.com/szTheory/rindle/actions/runs/32640992583)
+  (`workflow_dispatch`; `headSha` exactly equals the probe commit)
+- [Dialyzer job 97197944599](https://github.com/szTheory/rindle/actions/runs/32640992583/job/97197944599):
+  **failure** (completed 2026-08-23T13:03:46Z; 46 errors, 39 skipped)
+- [Nightly Summary job 97198472813](https://github.com/szTheory/rindle/actions/runs/32640992583/job/97198472813):
+  **success**; its `Dialyzer` row is `failure`.
+
+Only E09, E10, and E24 were exposed for this source-unchanged probe. All four
+owned annotations reproduced, including E09 twice at its two result-error
+printing branches. The three later-owned TUS annotations also remained; no
+other owner warning was emitted. These are candidate findings only: the local
+Elixir 1.19 / OTP 28 result was not used to classify them.
+
+| IDs | Probe disposition | Exact supported observation |
+| --- | --- | --- |
+| E09 | reproduced candidate | `The function call message will not succeed.` at `batch_owner_erasure.ex:112` and `:116`. |
+| E10 | reproduced candidate | The exact covered `{'error', _}` pattern at `actions_live.ex:85`. |
+| E24 | reproduced candidate | The exact `:ok | {:already, :allowed | :owner}` pattern at `runtime_checks.ex:294`. |
