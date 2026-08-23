@@ -164,7 +164,7 @@ defmodule Rindle.InstallSmoke.DocsParity.OperationsTest do
           "adopter",
           "`proof`",
           "repo_hygiene_check.sh",
-          "docs_parity_test.exs",
+          "docs-parity install/migrations",
           "batch_owner_erasure_task_test.exs",
           ".github/workflows/ci.yml"
         ] do
