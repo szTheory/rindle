@@ -1,7 +1,7 @@
 # Streaming Providers
 
-Rindle ships a single optional streaming provider: **Mux**. This
-guide walks you through enabling signed HLS streaming end-to-end —
+Rindle ships a single optional streaming provider: **Mux**. Mux is the only
+shipped streaming provider. This guide walks you through enabling signed HLS streaming end-to-end —
 dependencies, signing-key creation, profile configuration, webhook plug
 wiring, scheduled sync, local development, secret rotation, the
 `mix rindle.doctor --streaming` smoke check, an operator runbook for

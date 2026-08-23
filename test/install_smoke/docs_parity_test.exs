@@ -76,6 +76,7 @@ defmodule Rindle.InstallSmoke.DocsParityTest do
     for doc <- [readme, contributing, running] do
       assert Regex.match?(~r/Elixir 1\.17\/OTP\s+27/, doc)
     end
+
     assert running =~ "package-consumer-full"
     assert running =~ "off-critical-path"
     assert contributing =~ "skipped` counts as pass"
