@@ -148,3 +148,17 @@ findings only: local Elixir 1.19 / OTP 28 output is not used to classify them.
 No candidate has left `pending`: a final `obsolete`, `actionable-fixed`, or
 `retained-analyzer-noise` disposition still requires the focused owner tests
 and SAFE-01 result specified by the ledger protocol.
+
+## Final Migration Slice Receipt
+
+- [Exact-head Nightly run 32640649625](https://github.com/szTheory/rindle/actions/runs/32640649625) for `bf8bc1bdcac96027b4ce7be337ac0fbfb4ca9dbe`
+- [Dialyzer job 97197110357](https://github.com/szTheory/rindle/actions/runs/32640649625/job/97197110357): failure only for the three later-owned Tus annotations.
+- [Nightly Summary job 97197608165](https://github.com/szTheory/rindle/actions/runs/32640649625/job/97197608165): success, `DIALYZER: failure`.
+- Focused migration suites and `bash scripts/maintainer/refactor_contract.sh`: passed.
+
+| IDs | Final status | Supported rationale |
+| --- | --- | --- |
+| E11–E21 | retained-analyzer-noise | Public Ecto.Migration callbacks and host transaction DSL have dynamic execution not statically modeled; API, DDL, transaction, and reversal contracts were preserved. |
+| E22 | retained-analyzer-noise | `raise_preflight_error!/1` intentionally never returns; changing that would weaken the refusal path. |
+| E23 | retained-analyzer-noise | Preflight’s directional exhaustive refusal patterns are intentionally narrower than the shared classifier’s atom result. |
+| E43–E45 | retained-analyzer-noise | The host fixture is a real Ecto.Migration runner callback with dynamic lifecycle execution. |
