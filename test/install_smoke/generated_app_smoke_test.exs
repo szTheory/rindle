@@ -719,11 +719,11 @@ if GeneratedAppHelper.profile_enabled?(:image) and
              inspect(report)
 
       assert report.oban_jobs_before == report.oban_jobs_after, inspect(report)
-      assert report.oban_jobs_before.identity["schema"] == "public"
-      assert report.oban_jobs_before.identity["name"] == "oban_jobs"
-      assert report.oban_jobs_before.columns != []
-      assert report.oban_jobs_before.constraints != []
-      assert report.oban_jobs_before.indexes != []
+      assert report.oban_jobs_before["identity"]["schema"] == "public"
+      assert report.oban_jobs_before["identity"]["name"] == "oban_jobs"
+      assert report.oban_jobs_before["columns"] != []
+      assert report.oban_jobs_before["constraints"] != []
+      assert report.oban_jobs_before["indexes"] != []
       assert GeneratedAppHelper.isolation_upgrade_catalog_preserved?(report), inspect(report)
       assert report.doctor_ready?
       assert report.smoke_exit_code == 0
