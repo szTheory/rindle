@@ -83,11 +83,9 @@ defmodule Rindle.Upload.TusPlug do
   alias Rindle.Domain.MediaUploadSession
   alias Rindle.Ops.UploadMaintenance
   alias Rindle.Storage.Capabilities
-  alias Rindle.Upload.{Broker, ResumableTelemetry, TusCreation}
+  alias Rindle.Upload.{Broker, ResumableTelemetry, TusCreation, TusProtocol}
 
-  @tus_url_salt "rindle:tus:url"
   @tus_version "1.0.0"
-  @offset_content_type "application/offset+octet-stream"
   # Conservative adopter-overridable default (5 GiB). The only adopter-facing
   # size knob; the PATCH read-loop constants below stay fixed (D-07).
   @default_max_size 5 * 1024 * 1024 * 1024
@@ -162,7 +160,7 @@ defmodule Rindle.Upload.TusPlug do
     with path when is_binary(path) <- Keyword.fetch!(opts, :path),
          secret_key_base when is_binary(secret_key_base) <-
            Keyword.fetch!(opts, :secret_key_base),
-         {:ok, length} <- normalize_length(Keyword.get(opts, :length)) do
+         {:ok, length} <- TusProtocol.normalize_length(Keyword.get(opts, :length)) do
       actor = Keyword.get(opts, :actor, "anonymous")
       content_type = Keyword.get(opts, :content_type)
 
@@ -202,7 +200,7 @@ defmodule Rindle.Upload.TusPlug do
   # ── POST (Creation — HMAC-sign the URL, bind to a tus session) ───────────────
 
   defp handle_post(conn, opts) do
-    content_type = upload_metadata_content_type(conn)
+    content_type = TusProtocol.metadata_content_type(conn)
     concat_header = get_req_header(conn, "upload-concat") |> List.first()
 
     cond do
@@ -212,10 +210,10 @@ defmodule Rindle.Upload.TusPlug do
       true ->
         is_partial = concat_header == "partial"
 
-        with {:ok, length} <- parse_upload_length(conn),
-             :ok <- check_max_size(length, opts[:max_size]),
+        with {:ok, length} <- TusProtocol.parse_upload_length(conn),
+             :ok <- TusProtocol.check_max_size(length, opts[:max_size]),
              {:ok, %{session: session, upload_url: location}} <-
-               TusCreation.create(location_base(conn), opts[:profile],
+               TusCreation.create(TusProtocol.location_base(conn), opts[:profile],
                  filename: "unknown",
                  expires_in: 3600,
                  secret_key_base: opts[:secret_key_base],
@@ -227,7 +225,7 @@ defmodule Rindle.Upload.TusPlug do
           conn
           |> put_tus_resumable()
           |> put_resp_header("location", location)
-          |> put_resp_header("upload-expires", http_date(session.expires_at))
+          |> put_resp_header("upload-expires", TusProtocol.http_date(session.expires_at))
           |> send_resp(201, "")
           |> halt()
         else
@@ -244,18 +242,18 @@ defmodule Rindle.Upload.TusPlug do
 
     with {:ok, %{session: signed_session, upload_url: upload_url}} <-
            TusCreation.concatenate(
-             location_base(conn),
+             TusProtocol.location_base(conn),
              opts[:profile],
              urls,
              opts
              |> Keyword.put(:secret_key_base, opts[:secret_key_base])
              |> Keyword.put(:actor, opts[:identity_fn].(conn))
-             |> Keyword.put(:content_type, upload_metadata_content_type(conn))
+             |> Keyword.put(:content_type, TusProtocol.metadata_content_type(conn))
            ) do
       conn
       |> put_tus_resumable()
       |> put_resp_header("location", upload_url)
-      |> put_resp_header("upload-expires", http_date(signed_session.expires_at))
+      |> put_resp_header("upload-expires", TusProtocol.http_date(signed_session.expires_at))
       |> send_resp(201, "")
       |> halt()
     else
@@ -266,19 +264,19 @@ defmodule Rindle.Upload.TusPlug do
   # ── HEAD (authoritative offset) ──────────────────────────────────────────────
 
   defp handle_head(conn, opts) do
-    with {:ok, claims} <- verify_token(conn, opts),
+    with {:ok, claims} <- TusProtocol.verify_token(conn, opts[:secret_key_base]),
          {:ok, session} <- load_active_session(claims),
          :ok <- authorize_resume(conn, claims, session, :head, opts) do
       conn
       |> put_tus_resumable()
       |> put_resp_header("upload-offset", Integer.to_string(session.last_known_offset))
-      |> maybe_put_upload_length(effective_length(session, claims))
+      |> maybe_put_upload_length(TusProtocol.effective_length(session, claims))
       |> put_resp_header("cache-control", "no-store")
-      |> put_resp_header("upload-expires", http_date(session.expires_at))
+      |> put_resp_header("upload-expires", TusProtocol.http_date(session.expires_at))
       |> send_resp(204, "")
       |> halt()
     else
-      {:error, reason} -> tus_error(conn, status_for(reason), "")
+      {:error, reason} -> tus_error(conn, TusProtocol.status_for(reason), "")
     end
   end
 
@@ -287,14 +285,14 @@ defmodule Rindle.Upload.TusPlug do
   defp handle_patch(conn, opts) do
     # Order is strict: token → session → 415 (Content-Type) → 409 (offset) all
     # gate BEFORE any body is read (the 409 contract spine; never drain on mismatch).
-    with {:ok, claims} <- verify_token(conn, opts),
+    with {:ok, claims} <- TusProtocol.verify_token(conn, opts[:secret_key_base]),
          {:ok, session} <- load_active_session(claims),
          :ok <- authorize_resume(conn, claims, session, :patch, opts),
-         :ok <- require_offset_octet_stream(conn),
-         {:ok, inbound_offset} <- parse_upload_offset(conn),
-         :ok <- check_offset_match(inbound_offset, session.last_known_offset),
+         :ok <- TusProtocol.require_offset_octet_stream(conn),
+         {:ok, inbound_offset} <- TusProtocol.parse_upload_offset(conn),
+         :ok <- TusProtocol.check_offset_match(inbound_offset, session.last_known_offset),
          {:ok, session, effective_len} <- resolve_patch_length(conn, session, claims, opts),
-         {:ok, checksum_alg, expected_hash} <- parse_upload_checksum(conn),
+         {:ok, checksum_alg, expected_hash} <- TusProtocol.parse_upload_checksum(conn),
          {:ok, part_state} <-
            stream_append(conn, session, claims, effective_len, checksum_alg, expected_hash, opts) do
       new_offset = part_state.offset
@@ -311,7 +309,7 @@ defmodule Rindle.Upload.TusPlug do
 
       maybe_complete(conn, advanced, new_offset, effective_len, claims, opts)
     else
-      {:error, reason} -> tus_error(conn, status_for(reason), "")
+      {:error, reason} -> tus_error(conn, TusProtocol.status_for(reason), "")
     end
   end
 
@@ -488,7 +486,7 @@ defmodule Rindle.Upload.TusPlug do
       conn
       |> put_tus_resumable()
       |> put_resp_header("upload-offset", Integer.to_string(new_offset))
-      |> put_resp_header("upload-expires", http_date(session.expires_at))
+      |> put_resp_header("upload-expires", TusProtocol.http_date(session.expires_at))
       |> send_resp(204, "")
       |> halt()
     end
@@ -549,7 +547,7 @@ defmodule Rindle.Upload.TusPlug do
   # runs ONLY after token verification + session load succeed (auth order is
   # unchanged; a tampered token never reaches the abort).
   defp handle_delete(conn, opts) do
-    with {:ok, claims} <- verify_token(conn, opts),
+    with {:ok, claims} <- TusProtocol.verify_token(conn, opts[:secret_key_base]),
          {:ok, session} <- load_active_session(claims),
          :ok <- authorize_resume(conn, claims, session, :delete, opts) do
       # (1) FIRST abort the backing store polymorphically (S3 multipart abort, or
@@ -580,7 +578,7 @@ defmodule Rindle.Upload.TusPlug do
           tus_error(conn, 500, "")
       end
     else
-      {:error, reason} -> tus_error(conn, status_for(reason), "")
+      {:error, reason} -> tus_error(conn, TusProtocol.status_for(reason), "")
     end
   end
 
@@ -633,58 +631,21 @@ defmodule Rindle.Upload.TusPlug do
 
   defp tus_abort_marker(_reason), do: @tus_abort_marker_prefix <> "transport"
 
-  defp require_offset_octet_stream(conn) do
-    case get_req_header(conn, "content-type") do
-      [@offset_content_type <> _rest] -> :ok
-      _ -> {:error, :wrong_content_type}
-    end
-  end
-
-  defp parse_upload_offset(conn) do
-    case get_req_header(conn, "upload-offset") do
-      [value] ->
-        case Integer.parse(value) do
-          {offset, ""} when offset >= 0 -> {:ok, offset}
-          _ -> {:error, :invalid_offset}
-        end
-
-      _ ->
-        {:error, :invalid_offset}
-    end
-  end
-
-  defp check_offset_match(inbound, current) when inbound == current, do: :ok
-  defp check_offset_match(_inbound, _current), do: {:error, :offset_mismatch}
-
   defp resolve_patch_length(conn, session, %{"length" => "deferred"}, opts) do
     if is_integer(session.upload_length) do
       {:ok, session, session.upload_length}
     else
-      case get_req_header(conn, "upload-length") do
-        [value] ->
-          case Integer.parse(value) do
-            {length, ""} when length >= 0 ->
-              case check_max_size(length, opts[:max_size]) do
-                :ok ->
-                  # persist the length
-                  {:ok, updated} =
-                    session
-                    |> MediaUploadSession.changeset(%{upload_length: length})
-                    |> Config.repo().update()
+      with {:ok, length} <- TusProtocol.parse_upload_length(conn),
+           :ok <- TusProtocol.check_max_size(length, opts[:max_size]) do
+        # Deferred length is the facade's persistence boundary: parsing and bounds
+        # are settled before the row changes, and streaming remains later in the
+        # enclosing PATCH sequence.
+        {:ok, updated} =
+          session
+          |> MediaUploadSession.changeset(%{upload_length: length})
+          |> Config.repo().update()
 
-                  {:ok, updated, length}
-
-                {:error, :too_large} ->
-                  {:error, :too_large}
-              end
-
-            _ ->
-              {:error, :invalid_length}
-          end
-
-        _ ->
-          # First PATCH must have Upload-Length
-          {:error, :invalid_length}
+        {:ok, updated, length}
       end
     end
   end
@@ -693,49 +654,6 @@ defmodule Rindle.Upload.TusPlug do
        when is_integer(length) do
     {:ok, session, length}
   end
-
-  defp parse_upload_checksum(conn) do
-    case get_req_header(conn, "upload-checksum") do
-      [value] ->
-        case String.split(value, " ", parts: 2) do
-          [alg, hash] when alg in ["sha1", "sha256"] ->
-            case Base.decode64(hash) do
-              {:ok, decoded} -> {:ok, alg, decoded}
-              :error -> {:error, :invalid_checksum}
-            end
-
-          _ ->
-            {:error, :invalid_checksum}
-        end
-
-      _ ->
-        {:ok, nil, nil}
-    end
-  end
-
-  # ── Token extraction + verification ──────────────────────────────────────────
-
-  # D-04: the signed token is the FINAL path segment, resolved from
-  # `conn.path_info` AFTER `forward` strips the mount prefix.
-  defp extract_token(%Plug.Conn{path_info: []}), do: nil
-  defp extract_token(%Plug.Conn{path_info: segments}), do: List.last(segments)
-
-  defp verify_token(conn, opts) do
-    with token when is_binary(token) <- extract_token(conn),
-         {:ok, claims} <- Plug.Crypto.verify(opts[:secret_key_base], @tus_url_salt, token) do
-      check_not_expired(claims)
-    else
-      nil -> {:error, :invalid_token}
-      {:error, :expired} -> {:error, :expired_token}
-      {:error, _reason} -> {:error, :invalid_token}
-    end
-  end
-
-  defp check_not_expired(%{"exp" => exp} = claims) when is_integer(exp) do
-    if exp >= System.system_time(:second), do: {:ok, claims}, else: {:error, :expired_token}
-  end
-
-  defp check_not_expired(_claims), do: {:error, :invalid_token}
 
   defp load_active_session(%{"session_id" => session_id}) do
     case Config.repo().get(MediaUploadSession, session_id) do
@@ -749,22 +667,6 @@ defmodule Rindle.Upload.TusPlug do
 
   # ── Helpers ──────────────────────────────────────────────────────────────────
 
-  # Tampered/forged/missing token → 404 (do not leak existence). Validly-signed
-  # but expired token → 401. Session past `expires_at` → 410. Never 200.
-  defp status_for(:invalid_token), do: 404
-  defp status_for(:not_found), do: 404
-  defp status_for(:expired_token), do: 401
-  defp status_for(:resume_rejected), do: 401
-  defp status_for(:gone), do: 410
-  defp status_for(:wrong_content_type), do: 415
-  defp status_for(:offset_mismatch), do: 409
-  defp status_for(:too_large), do: 413
-  defp status_for(:invalid_offset), do: 400
-  defp status_for(:invalid_length), do: 400
-  defp status_for(:invalid_checksum), do: 400
-  defp status_for(:checksum_mismatch), do: 460
-  defp status_for(_reason), do: 500
-
   defp tus_error(conn, status, body) do
     conn
     |> put_tus_resumable()
@@ -774,93 +676,18 @@ defmodule Rindle.Upload.TusPlug do
 
   defp put_tus_resumable(conn), do: put_resp_header(conn, "tus-resumable", @tus_version)
 
-  defp effective_length(%{upload_length: length}, %{"length" => "deferred"})
-       when is_integer(length),
-       do: length
-
-  defp effective_length(_session, %{"length" => length}) when is_integer(length), do: length
-  defp effective_length(_session, _payload), do: nil
-
   defp maybe_put_upload_length(conn, length) when is_integer(length) do
     put_resp_header(conn, "upload-length", Integer.to_string(length))
   end
 
   defp maybe_put_upload_length(conn, _length), do: conn
 
-  defp parse_upload_length(conn) do
-    case {get_req_header(conn, "upload-length"), get_req_header(conn, "upload-defer-length")} do
-      {[value], _} ->
-        case Integer.parse(value) do
-          {length, ""} when length >= 0 -> {:ok, length}
-          _ -> {:error, :invalid_length}
-        end
-
-      {[], ["1"]} ->
-        {:ok, "deferred"}
-
-      _ ->
-        {:error, :invalid_length}
-    end
-  end
-
-  defp upload_metadata_content_type(conn) do
-    conn
-    |> get_req_header("upload-metadata")
-    |> List.first()
-    |> decode_upload_metadata()
-    |> Map.get("filetype")
-  end
-
-  defp decode_upload_metadata(nil), do: %{}
-
-  defp decode_upload_metadata(header) when is_binary(header) do
-    header
-    |> String.split(",", trim: true)
-    |> Enum.reduce(%{}, fn pair, acc ->
-      case String.split(pair, " ", parts: 2) do
-        [key, encoded] when key != "" ->
-          case Base.decode64(encoded, padding: false) do
-            {:ok, value} -> Map.put(acc, key, value)
-            :error -> acc
-          end
-
-        _ ->
-          acc
-      end
-    end)
-  end
-
   defp maybe_put_opt(opts, _key, nil), do: opts
   defp maybe_put_opt(opts, _key, ""), do: opts
   defp maybe_put_opt(opts, key, value), do: Keyword.put(opts, key, value)
 
-  defp check_max_size("deferred", _max_size), do: :ok
-  defp check_max_size(length, max_size) when length > max_size, do: {:error, :too_large}
-  defp check_max_size(_length, _max_size), do: :ok
-
-  defp normalize_length("deferred"), do: {:ok, "deferred"}
-  defp normalize_length(length) when is_integer(length) and length >= 0, do: {:ok, length}
-  defp normalize_length(_), do: {:error, :invalid_length}
-
-  # The Location reflects the actual mount: `forward` populates `script_name`
-  # with the consumed prefix segments, so the URL is correct regardless of where
-  # the adopter mounts the Plug. Falls back to the request path when unmounted.
-  defp location_base(conn) do
-    case conn.script_name do
-      [] -> conn.request_path
-      segments -> "/" <> Enum.join(segments, "/")
-    end
-  end
-
   defp expired?(nil), do: false
   defp expired?(%DateTime{} = at), do: DateTime.compare(at, DateTime.utc_now()) == :lt
-
-  # RFC 9110 IMF-fixdate (e.g. "Wed, 21 Oct 2026 07:28:00 GMT"). `expires_at` is
-  # stored as utc_datetime_usec, so it is already UTC.
-  defp http_date(%DateTime{} = datetime),
-    do: Calendar.strftime(datetime, "%a, %d %b %Y %H:%M:%S GMT")
-
-  defp http_date(_), do: ""
 
   @doc false
   # Public so it can be used as a remote-capture default (`&__MODULE__.default_actor/1`),
