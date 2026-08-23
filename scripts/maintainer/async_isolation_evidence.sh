@@ -3,13 +3,13 @@
 set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-phase_dir="${repo_root}/.planning/phases/125-behavioral-test-support"
+evidence_dir="${RINDLE_ASYNC_EVIDENCE_DIR:-${repo_root}/.planning/evidence/async-isolation}"
 seeds=(0 17 43 71 101 131 173 211 257 307 353 401 449 503 557 601 653 701 757 809 863 911 967 1013 1061)
 coverage_argv=(mix coveralls.multiple --type local --type json --seed SEED --slowest 20)
 report_schema=(iteration seed sha toolchain argv exit_status failure_location)
 
 usage() {
-  echo "usage: $0 --validate | --report .planning/phases/125-behavioral-test-support/<new-report>.jsonl" >&2
+  echo "usage: $0 --validate | --report .planning/evidence/async-isolation/<new-report>.jsonl" >&2
   exit 64
 }
 
@@ -52,15 +52,20 @@ fi
 report_path="$2"
 cd "${repo_root}"
 
+case "${evidence_dir}" in
+  /*) ;;
+  *) evidence_dir="${repo_root}/${evidence_dir}" ;;
+esac
+
 case "${report_path}" in
   /*) ;;
   *) report_path="${repo_root}/${report_path}" ;;
 esac
 
 case "${report_path}" in
-  "${phase_dir}"/*.jsonl) ;;
+  "${evidence_dir}"/*.jsonl) ;;
   *)
-    echo "report target must be a new .jsonl file under ${phase_dir}" >&2
+    echo "report target must be a new .jsonl file under ${evidence_dir}" >&2
     exit 64
     ;;
 esac
@@ -70,10 +75,7 @@ if [ -e "${report_path}" ]; then
   exit 64
 fi
 
-if [ ! -d "${phase_dir}" ]; then
-  echo "phase directory is missing: ${phase_dir}" >&2
-  exit 64
-fi
+mkdir -p "${evidence_dir}"
 
 umask 077
 sha="$(git rev-parse HEAD)"

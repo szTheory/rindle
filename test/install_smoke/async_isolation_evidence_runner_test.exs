@@ -5,7 +5,6 @@ defmodule Rindle.AsyncIsolationEvidenceRunnerTest do
 
   @repo_root Path.expand("../..", __DIR__)
   @runner Path.join(@repo_root, "scripts/maintainer/async_isolation_evidence.sh")
-  @phase_dir Path.join(@repo_root, ".planning/phases/125-behavioral-test-support")
 
   test "validation exposes the fixed matrix, one coverage argv, and report schema without running Mix" do
     {output, 0} =
@@ -72,8 +71,11 @@ defmodule Rindle.AsyncIsolationEvidenceRunnerTest do
 
   defp run_runner(report, log, options \\ []) do
     shim_dir = temporary_path("mix-shim")
+    evidence_dir = Path.dirname(report)
     File.mkdir_p!(shim_dir)
+    File.mkdir_p!(evidence_dir)
     on_exit(fn -> File.rm_rf!(shim_dir) end)
+    on_exit(fn -> File.rm_rf!(evidence_dir) end)
 
     shim = Path.join(shim_dir, "mix")
 
@@ -101,6 +103,7 @@ defmodule Rindle.AsyncIsolationEvidenceRunnerTest do
     env = [
       {"PATH", shim_dir <> ":" <> System.get_env("PATH", "")},
       {"RINDLE_ASYNC_LOG", log},
+      {"RINDLE_ASYNC_EVIDENCE_DIR", evidence_dir},
       {"RINDLE_ASYNC_FAIL_SEED", to_string(Keyword.get(options, :fail_seed, ""))},
       {"RINDLE_ASYNC_FAIL_STATUS", to_string(Keyword.get(options, :fail_status, 1))}
     ]
@@ -114,8 +117,8 @@ defmodule Rindle.AsyncIsolationEvidenceRunnerTest do
 
   defp report_path(label) do
     Path.join(
-      @phase_dir,
-      "async-isolation-evidence-#{label}-#{System.unique_integer([:positive])}.jsonl"
+      temporary_path("evidence"),
+      "#{label}.jsonl"
     )
   end
 
