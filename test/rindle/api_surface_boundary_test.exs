@@ -53,6 +53,7 @@ defmodule Rindle.ApiSurfaceBoundaryTest do
     Rindle.Profile.Digest,
     Rindle.Storage.Capabilities,
     Rindle.Upload.TusCreation,
+    Rindle.Upload.TusProtocol,
     Rindle.Migration.Options,
     Rindle.Migration.V1
   ]
@@ -115,6 +116,31 @@ defmodule Rindle.ApiSurfaceBoundaryTest do
       assert hidden_function_doc?(Rindle.Upload.TusCreation, :create, 3)
       assert function_exported?(Rindle.Upload.TusCreation, :concatenate, 4)
       assert hidden_function_doc?(Rindle.Upload.TusCreation, :concatenate, 4)
+    end
+
+    test "tus protocol mechanics stay hidden behind the visible Plug facade" do
+      assert visible_module?(Rindle.Upload.TusPlug)
+      assert hidden_module?(Rindle.Upload.TusProtocol)
+
+      for {name, arity} <- [
+            verify_token: 2,
+            check_not_expired: 1,
+            parse_upload_length: 1,
+            metadata_content_type: 1,
+            require_offset_octet_stream: 1,
+            parse_upload_offset: 1,
+            check_offset_match: 2,
+            parse_upload_checksum: 1,
+            normalize_length: 1,
+            check_max_size: 2,
+            effective_length: 2,
+            status_for: 1,
+            http_date: 1,
+            location_base: 1
+          ] do
+        assert function_exported?(Rindle.Upload.TusProtocol, name, arity)
+        assert hidden_function_doc?(Rindle.Upload.TusProtocol, name, arity)
+      end
     end
   end
 
