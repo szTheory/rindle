@@ -5,15 +5,15 @@ milestone_name: Core Clarity & Quality Ratchet
 current_phase: 126
 current_phase_name: curated-type-ratchet
 status: executing
-stopped_at: Completed 126-03-PLAN.md
-last_updated: "2026-08-23T13:30:35.066Z"
+stopped_at: Completed 126-04-PLAN.md
+last_updated: "2026-08-23T13:45:50.350Z"
 last_activity: 2026-08-23
 last_activity_desc: Phase 126 execution started
 progress:
   total_phases: 6
   completed_phases: 5
   total_plans: 39
-  completed_plans: 33
+  completed_plans: 34
 ---
 
 # Project State
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-08-22 for v1.24)
 ## Current Position
 
 Phase: 126 (curated-type-ratchet) — EXECUTING
-Plan: 4 of 9
+Plan: 5 of 9
 Status: Ready to execute
 Last activity: 2026-08-23 — Phase 126 execution started
 
@@ -188,6 +188,8 @@ _(Key v1.22 execution decisions recorded at milestone close.)_
 - [Phase ?]: Phase 126 Plan 01: E38-E40 stay pending after exact-head supported CI emitted the unchanged tus_plug warnings.
 - [Phase ?]: Migration Ecto callback and intentional-raise warnings remain exact supported analyzer-noise filters.
 - [Phase ?]: E09, E10, and E24 remain exact supported analyzer-noise filters to preserve task output, Admin fallback, and runtime diagnostics.
+- [Phase ?]: E04-E07 remain exact supported analyzer-noise filters because their fallback clauses preserve optional HTML, runtime diagnostics, and ProcessVariant lifecycle behavior.
+- [Phase ?]: Intermediate exact-head Nightly acceptance remains the complete E38-E40 TUS-only multiset with Dialyzer failure and Nightly Summary success.
 
 ## Blockers/Concerns
 
@@ -205,8 +207,8 @@ _(none open for v1.23 closeout)_
 
 ## Session Continuity
 
-Last session: 2026-08-23T13:30:35.058Z
-Stopped at: Completed 126-03-PLAN.md
+Last session: 2026-08-23T13:45:50.343Z
+Stopped at: Completed 126-04-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -252,6 +254,7 @@ Resume file: None
 | Phase 126 P01 | ~15 min | 2 tasks | 2 files |
 | Phase 126-curated-type-ratchet P02 | 45 min | 3 tasks | 4 files |
 | Phase 126 P03 | 31min | 2 tasks | 2 files |
+| Phase 126 P04 | 14min | 2 tasks | 3 files |
 
 ## Operator Next Steps
 

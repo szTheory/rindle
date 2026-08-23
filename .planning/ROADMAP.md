@@ -247,7 +247,7 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
   1. The supported Elixir 1.17 / OTP 27 home cell passes Dialyzer, and every retained ignore is justified while unsupported local-toolchain noise does not determine acceptance.
   2. CI blocks newly introduced actionable Dialyzer findings through a curated gate, with issue #76 closed using the resulting baseline evidence.
 
-**Plans**: 3/9 plans executed
+**Plans**: 4/9 plans executed
 
 **Wave 1 — policy-test tracer and immutable inventory**
 
@@ -263,7 +263,7 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 
 **Wave 4 — historical runtime-pattern owners** *(blocked on Wave 3)*
 
-- [ ] 126-04-PLAN.md — Probe and reconcile runtime-status, HTML, and ProcessVariant atoms.
+- [x] 126-04-PLAN.md — Probe and reconcile runtime-status, HTML, and ProcessVariant atoms.
 
 **Wave 5 — GCS and Local adapters** *(blocked on Wave 4)*
 
@@ -294,7 +294,7 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 | 123. Runtime Operations Decomposition | 3/3 | Complete | 2026-08-23 |
 | 124. Upload Path Clarity | 5/5 | Complete    | 2026-08-23 |
 | 125. Behavioral Test Support | 10/10 | Complete    | 2026-08-23 |
-| 126. Curated Type Ratchet | 3/9 | In Progress|  |
+| 126. Curated Type Ratchet | 4/9 | In Progress|  |
 
 ## Deferred to a Demand-Gated Milestone
 
