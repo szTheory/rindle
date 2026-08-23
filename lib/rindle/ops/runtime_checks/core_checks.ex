@@ -12,14 +12,16 @@ defmodule Rindle.Ops.RuntimeChecks.CoreChecks do
 
   @doc false
   def schedule(profiles, probe, local_playback_route, resolved, env) do
-    checks = [
+    initial_checks = [
       fn -> check_delivery_support(profiles) end,
       fn -> check_ffmpeg_runtime(probe) end,
-      fn -> check_local_playback(profiles, local_playback_route) end,
-      fn -> check_profile_runtime_fit(resolved, env) end
+      fn -> check_local_playback(profiles, local_playback_route) end
     ]
 
-    {checks, %{av_profiles?: Enum.any?(profiles, &profile_has_av_variants?/1)}}
+    profile_check = fn -> check_profile_runtime_fit(resolved, env) end
+    facts = %{av_profiles?: Enum.any?(profiles, &profile_has_av_variants?/1)}
+
+    {initial_checks, profile_check, facts}
   end
 
   defp check_ffmpeg_runtime(probe) do

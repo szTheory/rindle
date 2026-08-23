@@ -238,6 +238,24 @@ defmodule Rindle.Contracts.TelemetryContractTest do
           metadata.check
         end
 
+      assert events == [
+               "doctor.delivery_support",
+               "doctor.ffmpeg_runtime",
+               "doctor.local_playback",
+               "doctor.migrations.pending",
+               "doctor.migrations.unresolved",
+               "doctor.resumable_session_schema",
+               "doctor.rindle_schema.ready",
+               "doctor.oban_default_instance",
+               "doctor.oban_jobs.ready",
+               "doctor.oban_required_queues",
+               "doctor.profile_runtime_fit",
+               "doctor.streaming_credentials",
+               "doctor.streaming_signing_key",
+               "doctor.streaming_webhook_secrets",
+               "doctor.streaming_smoke_ping"
+             ]
+
       assert Enum.sort(events) == Enum.map(report.checks, & &1.id)
     end
 

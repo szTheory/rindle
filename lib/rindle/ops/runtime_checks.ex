@@ -63,7 +63,7 @@ defmodule Rindle.Ops.RuntimeChecks do
     gcs_profiles = Rindle.Capability.configured_gcs_profiles(profiles)
     tus_profiles = Rindle.Capability.configured_tus_profiles(profiles)
 
-    {core_checks, core_facts} =
+    {initial_core_checks, profile_check, core_facts} =
       CoreChecks.schedule(profiles, probe, local_playback_route, resolved, env)
 
     schema_context = %{
@@ -100,7 +100,7 @@ defmodule Rindle.Ops.RuntimeChecks do
       )
 
     checks =
-      (core_checks ++ ownership_checks ++ integration_checks)
+      (initial_core_checks ++ ownership_checks ++ [profile_check] ++ integration_checks)
       |> Enum.map(&run_check/1)
       |> Enum.sort_by(& &1.id)
 
