@@ -195,7 +195,47 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
   3. Documentation-parity suites are organized by public contract domain with shared helpers, equivalent assertions, and failures that identify the owning contract.
   4. Async-isolation issue #42 has stress evidence against the shipped single-run coverage and process-scoped repo override, and is either closed as non-reproducible or narrowed to a concrete remaining failure.
 
-**Plans**: TBD
+**Plans**: 10 plans
+
+**Wave 1 — async-isolation causal and runner tracer**
+
+- [ ] 125-01-PLAN.md — Lock the high-iteration causal proof and fixed local-only 25-seed runner.
+
+**Wave 2 — generated contracts** *(blocked on Wave 1)*
+
+- [ ] 125-02-PLAN.md — Extract pure report/catalog contracts behind GeneratedAppHelper and replace contract snapshots.
+
+**Wave 3 — generated process and workspace effects** *(blocked on Wave 2)*
+
+- [ ] 125-03-PLAN.md — Extract bounded command execution and temporary package/workspace ownership with behavior proof.
+
+**Wave 4 — generated Phoenix patching** *(blocked on Wave 3)*
+
+- [ ] 125-04-PLAN.md — Extract profile-aware Phoenix source/config patching behind the stable facade.
+
+**Wave 5 — generated migrations and catalog proof** *(blocked on Wave 4)*
+
+- [ ] 125-05-PLAN.md — Extract generated migration/upgrade/catalog mechanics without schema-ownership drift.
+
+**Wave 6 — generated lifecycle sources and packed authority** *(blocked on Wave 5)*
+
+- [ ] 125-06-PLAN.md — Extract lifecycle/profile source owners and replace Phoenix tus helper snapshots with outcomes/metadata.
+
+**Wave 7 — docs shared support and migration domain** *(blocked on Wave 6)*
+
+- [ ] 125-07-PLAN.md — Extract shared docs mechanics and the install/migration/upgrade contract domain.
+
+**Wave 8 — docs onboarding and operations domains** *(blocked on Wave 7)*
+
+- [ ] 125-08-PLAN.md — Split onboarding/capabilities and maintainer operations into explicit owners.
+
+**Wave 9 — docs product/Admin domain and Proof carrier** *(blocked on Wave 8)*
+
+- [ ] 125-09-PLAN.md — Retire the aggregate and wire all four domains into the unchanged Proof topology.
+
+**Wave 10 — finite evidence and issue disposition** *(blocked on Wave 9)*
+
+- [ ] 125-10-PLAN.md — Run the 25 fresh-process matrix, exact-head supported CI, and close-or-narrow #42.
 
 ### Phase 126: Curated Type Ratchet
 

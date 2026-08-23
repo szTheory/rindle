@@ -4,15 +4,15 @@ milestone: v1.24
 milestone_name: Core Clarity & Quality Ratchet
 current_phase: 125
 current_phase_name: Behavioral Test Support
-status: planning
-stopped_at: "Phase 124 complete; supported exact-head CI Summary green on PR #86"
-last_updated: "2026-08-23T05:14:22.365Z"
+status: ready_to_execute
+stopped_at: "Phase 125 planned: 10 sequential behavioral-test-support plans ready"
+last_updated: "2026-08-23T05:36:06.000Z"
 last_activity: 2026-08-23
-last_activity_desc: Phase 124 complete, transitioned to Phase 125
+last_activity_desc: Phase 125 planned with Nyquist validation and 10 sequential tracer slices
 progress:
   total_phases: 6
   completed_phases: 4
-  total_plans: 20
+  total_plans: 30
   completed_plans: 20
 ---
 
@@ -28,9 +28,9 @@ See: .planning/PROJECT.md (updated 2026-08-22 for v1.24)
 ## Current Position
 
 Phase: 125 — Behavioral Test Support
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-08-23 — Phase 124 complete, transitioned to Phase 125
+Plan: 0 of 10
+Status: Ready to execute
+Last activity: 2026-08-23 — Phase 125 planned with Nyquist validation and 10 sequential tracer slices
 
 ### v1.24 charter
 
