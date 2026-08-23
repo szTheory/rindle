@@ -287,7 +287,7 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 
 **Wave 10 — removal-only policy gap closure** *(blocked on Wave 9)*
 
-- [ ] 126-10-PLAN.md — Reject every unapproved exact filter, rerun preservation gates, and replace the exact-head #76 receipt.
+- [x] 126-10-PLAN.md — Reject every unapproved exact filter, rerun preservation gates, and replace the exact-head #76 receipt.
 
 ## Progress
 
@@ -298,7 +298,7 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 | 123. Runtime Operations Decomposition | 3/3 | Complete | 2026-08-23 |
 | 124. Upload Path Clarity | 5/5 | Complete    | 2026-08-23 |
 | 125. Behavioral Test Support | 10/10 | Complete    | 2026-08-23 |
-| 126. Curated Type Ratchet | 9/10 | Gaps Found |  |
+| 126. Curated Type Ratchet | 10/10 | Complete | 2026-08-23 |
 
 ## Deferred to a Demand-Gated Milestone
 

@@ -4,8 +4,8 @@ milestone: v1.24
 milestone_name: Core Clarity & Quality Ratchet
 current_phase: 126
 current_phase_name: curated-type-ratchet
-status: planned
-stopped_at: Planned 126-10-PLAN.md gap closure
+status: complete
+stopped_at: Completed 126-10-PLAN.md (local metadata non-authority)
 last_updated: "2026-08-23T16:02:37Z"
 last_activity: 2026-08-23
 last_activity_desc: Planned bounded TYPE-02 removal-only policy gap closure
@@ -13,7 +13,7 @@ progress:
   total_phases: 6
   completed_phases: 5
   total_plans: 40
-  completed_plans: 39
+  completed_plans: 40
 ---
 
 # Project State
@@ -27,9 +27,9 @@ See: .planning/PROJECT.md (updated 2026-08-22 for v1.24)
 
 ## Current Position
 
-Phase: 126 (curated-type-ratchet) — GAP CLOSURE PLANNED
-Plan: 9 of 10
-Status: Verification found one TYPE-02 policy hole; 126-10 is ready to execute
+Phase: 126 (curated-type-ratchet) — COMPLETE
+Plan: 10 of 10
+Status: TYPE-02 gap closed by exact-head authorities
 Last activity: 2026-08-23 — Planned bounded TYPE-02 removal-only policy gap closure
 
 ### v1.24 charter
@@ -57,7 +57,7 @@ the historical 0.4.0 contract; do not regress either side of that invariant.
 
 ## Next Step
 
-Execute only Phase 126 Plan 10: make the policy's exact approved universe removal-only, rerun local preservation gates, then replace the exact-head authority receipt on PR #91 and reopened issue #76.
+Phase 126 complete; metadata is local-only and non-authoritative.
 
 ## Prior Milestone
 
