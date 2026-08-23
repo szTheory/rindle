@@ -342,7 +342,12 @@ not a basis to remove reachable helpers.
   warning against active stream/tail behavior: E31 preserves tagged provider
   errors, E32 preserves bounded `File.stream!/3` tail writes, and E33–E37
   preserve ordered multipart slicing and bounded remainder copying.
-- The final exact-head Nightly receipt is recorded after its terminal run below.
+- [Exact-head Nightly run 32644884559](https://github.com/szTheory/rindle/actions/runs/32644884559)
+  for `d2107e6445680bf0d172230d01f3639fa946d1ec` (`workflow_dispatch`).
+- [Dialyzer job 97207519962](https://github.com/szTheory/rindle/actions/runs/32644884559/job/97207519962):
+  **failure**, with exactly the three later-owned E38–E40 annotations.
+- [Nightly Summary job 97208026544](https://github.com/szTheory/rindle/actions/runs/32644884559/job/97208026544):
+  **success**, explicitly recording `DIALYZER: failure`.
 
 | IDs | Final status | Supported rationale |
 | --- | --- | --- |
