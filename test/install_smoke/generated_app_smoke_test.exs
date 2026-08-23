@@ -749,6 +749,16 @@ if GeneratedAppHelper.profile_enabled?(:image) and
       assert_install_source!(report)
     end
 
+    test "generated image consumer reaches the compiled boot and report boundary through the stable facade",
+         %{report: report} do
+      assert report.profile_mode == :image
+      assert report.compile_prefix == "rindle"
+      assert report.compile_exit_code == 0
+      assert report.boot_exit_code == 0
+      assert report.smoke_exit_code == 0
+      assert report.lifecycle_proved?
+    end
+
     test "generated Phoenix app runs host plus Rindle migrations explicitly and proves the canonical presigned PUT lifecycle",
          %{report: report} do
       assert_host_owned_migrations!(report)
