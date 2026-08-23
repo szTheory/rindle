@@ -431,8 +431,6 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
       end
     end
 
-    defp compensate_delete_mux_asset(_mux_response, _reason), do: :ok
-
     # ============================================================
     # Adapter call — routed through `create_asset_with_retry_hint/3`.
     # PLURAL SDK key construction lives ONLY in the adapter (Plan 01);

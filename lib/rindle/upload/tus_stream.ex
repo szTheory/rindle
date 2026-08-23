@@ -22,9 +22,9 @@ defmodule Rindle.Upload.TusStream do
 
     hash_ctx =
       case checksum_alg do
-        "sha1" -> :crypto.hash_init(:sha)
-        "sha256" -> :crypto.hash_init(:sha256)
-        _ -> nil
+        "sha1" -> {:hash, :crypto.hash_init(:sha)}
+        "sha256" -> {:hash, :crypto.hash_init(:sha256)}
+        _ -> :no_hash
       end
 
     drain_result =
@@ -62,12 +62,7 @@ defmodule Rindle.Upload.TusStream do
   def persistence_attrs(session, part_state) do
     new_parts = encode_parts(Map.get(part_state, :parts))
 
-    merged_parts =
-      if new_parts do
-        Map.merge(session.multipart_parts || %{}, new_parts)
-      else
-        session.multipart_parts
-      end
+    merged_parts = Map.merge(session.multipart_parts || %{}, new_parts)
 
     %{
       last_known_offset: part_state.offset,
@@ -87,13 +82,13 @@ defmodule Rindle.Upload.TusStream do
     )
   end
 
-  defp verify_checksum({:ok, new_offset, final_hash_ctx}, hash) when not is_nil(hash) do
+  defp verify_checksum({:ok, new_offset, {:hash, final_hash_ctx}}, hash) when is_binary(hash) do
     if :crypto.hash_final(final_hash_ctx) == hash,
       do: {:ok, new_offset},
       else: {:error, :checksum_mismatch}
   end
 
-  defp verify_checksum({:ok, new_offset, _}, _), do: {:ok, new_offset}
+  defp verify_checksum({:ok, new_offset, :no_hash}, _), do: {:ok, new_offset}
   defp verify_checksum({:error, reason}, _), do: {:error, reason}
 
   defp dispatch_part({:ok, _new_offset}, temp_path, session, payload, opts) do
@@ -160,7 +155,7 @@ defmodule Rindle.Upload.TusStream do
 
       true ->
         IO.binwrite(file, chunk)
-        new_hash_ctx = if hash_ctx, do: :crypto.hash_update(hash_ctx, chunk), else: nil
+        new_hash_ctx = update_hash_context(hash_ctx, chunk)
 
         if mode == :done,
           do: {:ok, base_offset + new_written, new_hash_ctx},
@@ -170,6 +165,11 @@ defmodule Rindle.Upload.TusStream do
 
   defp encode_parts(parts) when is_list(parts) and parts != [], do: %{"parts" => parts}
   defp encode_parts(_), do: %{}
+
+  defp update_hash_context({:hash, hash_ctx}, chunk),
+    do: {:hash, :crypto.hash_update(hash_ctx, chunk)}
+
+  defp update_hash_context(:no_hash, _chunk), do: :no_hash
 
   defp tmp_dir(opts), do: opts[:root] || Rindle.AV.TempRunDir.root_dir()
 

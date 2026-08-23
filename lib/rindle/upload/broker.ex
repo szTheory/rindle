@@ -190,7 +190,7 @@ defmodule Rindle.Upload.Broker do
   @doc """
   Concatenates multiple complete partial tus sessions into a single final session.
   """
-  @spec concatenate_tus_sessions(module(), [map()], keyword()) :: session_only_result()
+  @spec concatenate_tus_sessions(module(), [map()], keyword()) :: initiate_tus_result()
   def concatenate_tus_sessions(profile_module, payloads, opts \\ []) do
     repo = Config.repo()
 
