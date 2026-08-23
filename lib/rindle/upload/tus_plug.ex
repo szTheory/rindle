@@ -83,7 +83,7 @@ defmodule Rindle.Upload.TusPlug do
   alias Rindle.Domain.MediaUploadSession
   alias Rindle.Ops.UploadMaintenance
   alias Rindle.Storage.Capabilities
-  alias Rindle.Upload.{Broker, ResumableTelemetry}
+  alias Rindle.Upload.{Broker, ResumableTelemetry, TusCreation}
 
   @tus_url_salt "rindle:tus:url"
   @tus_version "1.0.0"
@@ -166,7 +166,7 @@ defmodule Rindle.Upload.TusPlug do
       actor = Keyword.get(opts, :actor, "anonymous")
       content_type = Keyword.get(opts, :content_type)
 
-      create_upload_for_path(path, profile,
+      TusCreation.create(path, profile,
         filename: Keyword.get(opts, :filename, "unknown"),
         expires_in: Keyword.get(opts, :expires_in, 3600),
         secret_key_base: secret_key_base,
@@ -215,7 +215,7 @@ defmodule Rindle.Upload.TusPlug do
         with {:ok, length} <- parse_upload_length(conn),
              :ok <- check_max_size(length, opts[:max_size]),
              {:ok, %{session: session, upload_url: location}} <-
-               create_upload_for_path(location_base(conn), opts[:profile],
+               TusCreation.create(location_base(conn), opts[:profile],
                  filename: "unknown",
                  expires_in: 3600,
                  secret_key_base: opts[:secret_key_base],
@@ -246,7 +246,6 @@ defmodule Rindle.Upload.TusPlug do
          {:ok, claims_list} <- verify_tokens_for_concat(tokens, opts),
          {:ok, %{session: final_session}} <-
            Broker.concatenate_tus_sessions(opts[:profile], claims_list, opts),
-         # No Upload-Length header allowed/parsed for final. The length is the sum of partials.
          {:ok, upload_url, signed_session} <-
            sign_and_persist(
              location_base(conn),
@@ -294,32 +293,6 @@ defmodule Rindle.Upload.TusPlug do
     end
   end
 
-  defp create_upload_for_path(base_path, profile, opts) do
-    filename = Keyword.get(opts, :filename, "unknown")
-    expires_in = Keyword.get(opts, :expires_in, 3600)
-    length = Keyword.get(opts, :length)
-    content_type = Keyword.get(opts, :content_type)
-    actor = Keyword.get(opts, :actor, "anonymous")
-    secret_key_base = Keyword.fetch!(opts, :secret_key_base)
-    is_partial = Keyword.get(opts, :is_partial, false)
-
-    with {:ok, %{session: session}} <-
-           Broker.initiate_tus_upload(profile, filename: filename, expires_in: expires_in),
-         {:ok, upload_url, signed_session} <-
-           sign_and_persist(
-             base_path,
-             session,
-             length,
-             content_type,
-             secret_key_base,
-             actor,
-             is_partial
-           ) do
-      {:ok,
-       %{session: signed_session, upload_url: upload_url, expires_at: signed_session.expires_at}}
-    end
-  end
-
   defp sign_and_persist(
          base_path,
          session,
@@ -329,33 +302,22 @@ defmodule Rindle.Upload.TusPlug do
          actor,
          is_partial
        ) do
-    # Token claims are HMAC-signed and tamper-proof, so `length` rides inside it
-    # rather than a new column (D-10 budget). HEAD/PATCH read it back on verify.
-    claims = %{
-      "session_id" => session.id,
-      "actor" => actor,
-      "exp" => DateTime.to_unix(session.expires_at),
-      "length" => length
-    }
-
-    claims = maybe_put_content_type(claims, content_type)
+    claims =
+      %{
+        "session_id" => session.id,
+        "actor" => actor,
+        "exp" => DateTime.to_unix(session.expires_at),
+        "length" => length
+      }
+      |> maybe_put_content_type(content_type)
 
     token = Plug.Crypto.sign(secret_key_base, @tus_url_salt, claims)
     location = join_upload_url(base_path, token)
 
-    attrs = %{
-      session_uri: location,
-      session_uri_expires_at: session.expires_at
-    }
-
     attrs =
-      if is_partial do
-        Map.put(attrs, :multipart_parts, %{"is_partial" => true})
-      else
-        attrs
-      end
+      %{session_uri: location, session_uri_expires_at: session.expires_at}
+      |> maybe_mark_partial(is_partial)
 
-    # Persist ONLY into session_uri so the redacting Inspect applies (invariant 14).
     session
     |> MediaUploadSession.changeset(attrs)
     |> Config.repo().update()
@@ -364,6 +326,11 @@ defmodule Rindle.Upload.TusPlug do
       {:error, changeset} -> {:error, changeset}
     end
   end
+
+  defp maybe_mark_partial(attrs, true),
+    do: Map.put(attrs, :multipart_parts, %{"is_partial" => true})
+
+  defp maybe_mark_partial(attrs, false), do: attrs
 
   # ── HEAD (authoritative offset) ──────────────────────────────────────────────
 

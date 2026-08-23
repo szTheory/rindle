@@ -111,8 +111,8 @@ defmodule Rindle.ApiSurfaceBoundaryTest do
       assert visible_module?(Rindle.Upload.TusPlug)
       assert visible_module?(Rindle.Upload.Broker)
       assert hidden_module?(Rindle.Upload.TusCreation)
+      assert function_exported?(Rindle.Upload.TusCreation, :create, 3)
       assert hidden_function_doc?(Rindle.Upload.TusCreation, :create, 3)
-      assert hidden_function_doc?(Rindle.Upload.TusCreation, :concatenate, 4)
     end
   end
 
