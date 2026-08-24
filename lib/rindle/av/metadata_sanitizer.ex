@@ -7,13 +7,12 @@ defmodule Rindle.AV.MetadataSanitizer do
     1. Strip control characters in `\x00-\x1F` except `\t`.
     2. Truncate to 1024 bytes (codepoint-aligned; no invalid UTF-8 emitted).
 
-  This is layered ON TOP of `Rindle.AV.Ffprobe`'s HTML-escape (Phase 23).
-  Both layers are intentional — Phase 23's escape is render-time defense in
-  depth (output safety), Phase 24's truncate-and-strip is ingest-time
-  stored-data hygiene (input safety). Do NOT collapse them. (D-21)
+  This is layered on top of `Rindle.AV.Ffprobe`'s HTML escaping. Both layers are
+  intentional: escaping is render-time defense in depth, while truncation and
+  control-character stripping protect stored data at ingest. Do not collapse them.
 
-  Called from `Rindle.Probe.AVProbe` (Plan 05) AFTER `Rindle.AV.Ffprobe.probe/1`
-  and BEFORE the result is written into `media_assets.metadata`. (D-20)
+  Called from `Rindle.Probe.AVProbe` after `Rindle.AV.Ffprobe.probe/1` and before
+  the result is written into `media_assets.metadata`.
 
   Implementation note: the standard byte-slice helper arrived in Elixir 1.17,
   while the CI matrix includes Elixir 1.15. The hand-rolled `binary-size` +

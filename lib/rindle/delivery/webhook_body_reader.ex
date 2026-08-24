@@ -19,13 +19,13 @@ defmodule Rindle.Delivery.WebhookBodyReader do
   `raw_body/1` is the public accessor `Rindle.Delivery.WebhookPlug` calls to
   retrieve the verified raw body for HMAC signature checks.
 
-  ## Body cap (D-08)
+  ## Body cap
 
   Mux webhooks are <10 KB in practice; 1 MiB is 100× headroom and matches
   Stripe's documented recommendation. Over-limit returns `{:error, :too_large}`,
   which `Plug.Parsers` translates to `Plug.Parsers.RequestTooLargeError` → 413.
 
-  ## Multipart safety (D-06)
+  ## Multipart safety
 
   `Plug.Parsers.MULTIPART` invokes the body reader once per part; chunked
   transfers may produce multiple `{:more, _}` reads. The cache stores each

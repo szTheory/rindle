@@ -10,7 +10,7 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
     ## Configuration
 
     Credentials and tunables are resolved from the application environment on
-    every call (D-30 — no caching at module load time; adopters using
+    every call, with no module-load cache, so adopters using
     `config/runtime.exs` are unaffected):
 
         config :rindle, Rindle.Streaming.Provider.Mux,
@@ -224,7 +224,7 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
     end
 
     # SDK-boundary param construction — PLURAL keys, single source of truth.
-    # NEVER duplicate this in workers (D-04 memo correction).
+    # Keep this construction at the provider boundary; workers must not duplicate it.
     #
     # `:passthrough` (CR-01) — when supplied, stamped onto the create-asset
     # request as the Mux REST `passthrough` field. The soak install-smoke
@@ -332,7 +332,7 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
       with {:ok, key_id} <- fetch_required(:signing_key_id),
            {:ok, private_key} <- fetch_required(:signing_private_key) do
         ttl = Rindle.Delivery.signed_url_ttl_seconds(profile)
-        # WAIVED (POLISH-01/D-13): IN-03 — playback_id is a documented URL-safe
+        # playback_id is documented as URL-safe
         # alphanumeric (Mux contract); the `URI.encode_www_form/1` here is
         # belt-and-suspenders only. No behavior change required.
         encoded_playback_id = URI.encode_www_form(playback_id)
@@ -359,7 +359,7 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
         {:ok, sig_header} ->
           tolerance = get_tolerance()
 
-          # D-17: provider-internal telemetry. The PUBLIC callback contract
+          # Provider-internal telemetry leaves the public callback contract
           # (`{:ok, provider_event()} | {:error, :provider_webhook_invalid}`)
           # is UNCHANGED; this telemetry is additive and lets operators
           # distinguish secret-rotation issues from upstream queue lag.
@@ -439,7 +439,7 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
     # Forward-compat default — unknown events drop. Mux ships novelty regularly.
     def dispatch_kind(_other), do: :drop
 
-    # WR-02 (POLISH-01/D-13): HTTP header names are case-insensitive (RFC 7230).
+    # HTTP header names are case-insensitive (RFC 7230).
     # Plug.Conn lowercases request headers per the HTTP/2 spec, but adopter
     # wrappers, edge proxies, or future libraries may pass other casings
     # (`MUX-SIGNATURE`, `Mux-Signature`, ...). Downcase the entire header map

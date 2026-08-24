@@ -100,8 +100,8 @@ defmodule Rindle.Domain.MediaProviderAsset do
   Builds a changeset for a `MediaProviderAsset` row.
 
   Casts the writable fields, requires the minimum invariants, validates the
-  lifecycle state, enforces `last_sync_error` 4096-char truncation per D-09, and
-  asserts the two unique constraints from D-10.
+  lifecycle state, enforces the 4096-character `last_sync_error` limit, and
+  asserts the provider identity and asset/profile uniqueness constraints.
   """
   @spec changeset(t() | %__MODULE__{}, map()) :: Ecto.Changeset.t()
   def changeset(asset, attrs) do

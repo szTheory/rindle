@@ -164,8 +164,7 @@ defmodule Rindle.Delivery do
     7. no row + opts[:strict] == true       → :provider_asset_not_ready
 
   `[:rindle, :delivery, :streaming, :resolved]` telemetry is preserved verbatim
-  on Branches 1 and 6 (`kind: :progressive`); fires with `kind: :hls` on Branch 5
-  (D-24).
+  on Branches 1 and 6 (`kind: :progressive`); fires with `kind: :hls` on Branch 5.
   """
   @spec streaming_url(module(), String.t() | map(), keyword()) ::
           {:ok, %{url: String.t(), kind: :progressive | :hls, mime: String.t()}}
@@ -321,7 +320,7 @@ defmodule Rindle.Delivery do
             }
           )
 
-          # D-23 — pass-through return shape unchanged.
+          # Preserve the provider's public return shape.
           result
 
         {:error, _} = err ->
@@ -345,7 +344,7 @@ defmodule Rindle.Delivery do
     end
   end
 
-  # D-22 — provider_name derivation. Module suffix to underscore.
+  # Provider names use the underscored final module segment.
   defp derive_provider_name(provider_module) when is_atom(provider_module) do
     provider_module
     |> Module.split()

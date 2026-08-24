@@ -10,7 +10,7 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
 
     # Real HTTP-client implementation for the Mux REST adapter. Delegates to the
     # `mux` SDK's `Assets` module. The `Mux.Base.new/2` Tesla client is
-    # constructed per call (D-30 — no caching of credentials at module load time;
+    # constructed per call; credentials are never cached at module load time, so
     # adopters using runtime config are unaffected).
     #
     # Return shapes match the `Rindle.Streaming.Provider.Mux.Client` behaviour:
@@ -19,7 +19,7 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
     #   * `{:error, msg, %Tesla.Env{}}` — preserves status + headers so the
     #     adapter can branch on 429 / 4xx / 5xx and read `Retry-After` (Pitfall
     #     3 / SDK Issue #42).
-    #   * `:ok` on `delete_asset/1` success (idempotent on 404 per Phase 33).
+    #   * `:ok` on `delete_asset/1` success, including an already-deleted 404.
 
     @impl true
     def create_asset(params) when is_map(params) do
@@ -56,7 +56,7 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
       with {:ok, client} <- build_client() do
         case Assets.delete(client, provider_asset_id) do
           {:ok, _body, _env} -> :ok
-          # Idempotent on :not_found per Phase 33 contract — `delete_asset/1`
+          # `delete_asset/1` is idempotent on :not_found:
           # returns `:ok` for both successful delete and already-deleted assets.
           {:error, _msg, %{status: 404}} -> :ok
           {:error, msg, env} -> {:error, msg, env}

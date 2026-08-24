@@ -373,7 +373,7 @@ defmodule Rindle.Profile.Validator do
     end
   end
 
-  # AV-02-08 (D-15): forbid cross-variant chaining at compile time.
+  # Cross-variant chaining is rejected at compile time.
   # The fix-hint message names the offending key and the rule.
   defp guard_no_from_variant!(name, opts) do
     if Keyword.has_key?(opts, :from_variant) do
@@ -392,7 +392,7 @@ defmodule Rindle.Profile.Validator do
   defp schema_for_variant(:audio, _opts), do: @audio_variant_schema
   defp schema_for_variant(:waveform, _opts), do: @waveform_variant_schema
 
-  # D-14 LOAD-BEARING: omit :kind from the validated map for default-:image
+  # Omit :kind from the validated map for default and explicit image variants
   # AND explicit-:image, so v1.0 image profiles digest identically to v1.4
   # explicit-:image profiles AND to v1.0 (no :kind) profiles. The :kind
   # information is recoverable from the variant SCHEMA at runtime via the

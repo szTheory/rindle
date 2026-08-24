@@ -6,12 +6,8 @@ defmodule Rindle.Storage.GCS.Signer do
   # Wraps gcs_signed_url ~> 0.6 in Client (private-key) auth mode only.
   # IAM SignBlob mode (OAuthConfig) is deferred to v1.7+ behind a config flag.
   #
-  # See:
-  # - .planning/phases/37-gcs-adapter-foundation/37-CONTEXT.md (D-01, D-03, D-04, D-08)
-  # - .planning/phases/37-gcs-adapter-foundation/37-RESEARCH.md
-  #   (Q3 — Client mode returns BARE String, NOT {:ok, _};
-  #    Q5 LOCKED — accepts map (preferred) + bare PEM; file paths MUST raise;
-  #    RESEARCH §Section 3 — Client.load JSON-map dispatch)
+  # The upstream library returns a bare URL, accepts decoded service-account maps
+  # or raw PEM credentials, and does not load credential files on Rindle's behalf.
 
   ## Public API
 
@@ -21,9 +17,9 @@ defmodule Rindle.Storage.GCS.Signer do
     client = build_client(signing_key(opts))
     expires = ttl(opts)
 
-    # gcs_signed_url Client mode returns a BARE String.t() (RESEARCH Q3).
+    # gcs_signed_url client mode returns a bare String.t().
     # Wrap in {:ok, _} for parity with the Rindle.Storage.url/2 callback contract.
-    # NOTE: D-03 lock — Content-Disposition and Content-Type live in GCS object
+    # Content-Disposition and Content-Type live in GCS object
     # metadata at store/3, NEVER as URL response-* query parameters.
     signed_url = GcsSignedUrl.generate_v4(client, bucket, key, verb: "GET", expires: expires)
     {:ok, signed_url}
@@ -31,7 +27,7 @@ defmodule Rindle.Storage.GCS.Signer do
 
   ## Helpers
 
-  # RESEARCH Q5 LOCKED dispatch:
+  # Credential dispatch:
   # - decoded JSON map → GcsSignedUrl.Client.load/1 (preferred)
   # - bare PEM string → manual %GcsSignedUrl.Client{} construction with
   #   :client_email sourced from app env
@@ -87,7 +83,7 @@ defmodule Rindle.Storage.GCS.Signer do
               "`config :rindle, Rindle.Storage.GCS, signing_key: <decoded_json_map | pem_string>`."
   end
 
-  # D-04 mirror of `lib/rindle/storage/s3.ex:55-61` — opts precedence over
+  # Match S3 precedence: call options override
   # Rindle.Config.signed_url_ttl_seconds/0 fallback.
   defp ttl(opts) do
     Keyword.get(opts, :expires_in, Rindle.Config.signed_url_ttl_seconds())

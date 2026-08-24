@@ -485,7 +485,7 @@ defmodule Rindle do
     end
   end
 
-  # Bang variants — Phase 19 (API-11).
+  # Bang variants keep the public convenience API consistent with Ecto-style callers.
 
   @doc "Same as `attach/4` but raises `Rindle.Error` on failure or re-raises the original exception for storage adapter exceptions. Database constraint failures (e.g., foreign-key violations) surface as `Rindle.Error` with the underlying changeset as the reason."
   @spec attach!(MediaAsset.t() | binary(), struct(), String.t()) :: MediaAttachment.t()
@@ -522,7 +522,7 @@ defmodule Rindle do
     end
   end
 
-  # Convenience read helpers — Phase 19 (API-09 / API-10).
+  # Convenience read helpers keep common lookup paths on the public facade.
 
   @doc """
   Fetches the most recent `MediaAttachment` for an `(owner, slot)` pair.

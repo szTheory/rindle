@@ -3,12 +3,9 @@ defmodule Rindle.Storage.GCS.Client do
 
   # Hand-rolled Finch JSON-API client for Google Cloud Storage.
   #
-  # See:
-  # - .planning/phases/37-gcs-adapter-foundation/37-CONTEXT.md (D-01, D-03, D-09)
-  # - .planning/phases/37-gcs-adapter-foundation/37-RESEARCH.md
-  #   (Pattern 2 — Goth + rescue ArgumentError; Pattern 3 — uploadType=multipart;
-  #    Pattern 4 — HEAD via alt=json; Pitfall 1 — `/` URL encoding;
-  #    §Section 2 — size-as-string parse; Pitfall 6 — Goth ArgumentError rescue)
+  # The client deliberately handles Goth lookup failures, GCS multipart uploads,
+  # metadata reads through `alt=json`, encoded multi-segment object names, and
+  # the API's string-encoded object sizes.
 
   @default_base_url "https://storage.googleapis.com"
 
@@ -382,7 +379,7 @@ defmodule Rindle.Storage.GCS.Client do
 
   ## URL helpers
 
-  # RESEARCH Pitfall 1 — `URI.encode/2` with `&URI.char_unreserved?/1` encodes
+  # `URI.encode/2` with `&URI.char_unreserved?/1` encodes
   # `/` as `%2F` so multi-segment object names hit the right GCS path. Plain
   # `URI.encode/1` would leave `/` alone and 404.
   @spec url_for(
@@ -438,7 +435,7 @@ defmodule Rindle.Storage.GCS.Client do
     end
   end
 
-  # RESEARCH Pitfall 6: Goth.fetch/1 raises ArgumentError when the named
+  # Goth.fetch/1 raises ArgumentError when the named
   # instance is not in the supervision tree (NOT `:exit, :noproc`). The
   # load-bearing rescue is `rescue ArgumentError`. `catch :exit, _reason`
   # is retained as defense-in-depth for older Goth versions or unexpected
@@ -478,7 +475,7 @@ defmodule Rindle.Storage.GCS.Client do
   end
 
   ## Helpers — mirrors lib/rindle/storage/s3.ex:154-163 (parse_size/1)
-  ## RESEARCH §Section 2 — GCS JSON API returns `size` as STRING; parse to integer.
+  ## GCS returns object `size` as a string; normalize it to an integer.
 
   defp parse_size(nil), do: 0
 

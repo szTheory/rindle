@@ -55,7 +55,7 @@ defmodule Rindle.Storage.S3 do
 
   # Read size when streaming the per-PATCH temp file onto the tail buffer. Keeps
   # the body off the heap — bytes flow temp_file -> tail_file in bounded chunks,
-  # never accumulated in a binary (T-43-03 / RESEARCH anti-pattern line 282).
+  # never accumulated in a binary.
   @tail_copy_chunk 1024 * 1024
 
   @impl true
@@ -63,7 +63,7 @@ defmodule Rindle.Storage.S3 do
     # Return shape mirrors Rindle.Storage.Local.store/3 — `%{key: key, ...}` —
     # so consumers of the Storage behaviour (e.g. Rindle.Workers.ProcessVariant)
     # can read `storage_meta.key` uniformly across adapters. Surfaced by the
-    # adopter lifecycle test in Plan 05-04 (CI-08).
+    # generated-adopter lifecycle proof.
     with {:ok, bucket} <- bucket(opts),
          {:ok, body} <- File.read(source_path),
          {:ok, response} <-
@@ -78,7 +78,7 @@ defmodule Rindle.Storage.S3 do
   def download(key, destination_path, opts) do
     # ExAws.S3.download_file returns an ExAws.S3.Download struct; ExAws.request
     # on a Download struct returns {:ok, :done} on success, NOT bare :ok.
-    # Surfaced by the adopter lifecycle test in Plan 05-04 (CI-08); this was
+    # Covered by the generated-adopter lifecycle proof; this was
     # a latent Rule-1 bug (Local adapter is used everywhere upstream so no
     # downstream test exercised this S3-specific path until now).
     with {:ok, bucket} <- bucket(opts),

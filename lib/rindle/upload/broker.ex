@@ -251,13 +251,13 @@ defmodule Rindle.Upload.Broker do
   Sibling to `initiate_resumable_session/2` but for the tus (Topology B,
   server-mediated) protocol over a Local-backed sink. Unlike the GCS-native
   resumable path, this does NOT call any adapter-side `initiate_*` (Local has no
-  multipart machinery, D-02); it only gates on the `:tus_upload` capability and
+  multipart machinery); it only gates on the `:tus_upload` capability and
   persists a session row stamped `resumable_protocol: "tus"`, reusing the
-  `"resumable"` strategy lane (D-10/D-11).
+  `"resumable"` strategy lane.
 
   The session is persisted in `"signed"` so the completion edge
   `signed -> verifying` stays legal (Pitfall 7). The signed tus URL itself is
-  minted and stored into `session_uri` by the `TusPlug` edge (Plan 02), which
+  minted and stored into `session_uri` by the `TusPlug` edge, which
   owns `secret_key_base`; this broker entrypoint returns the unsigned session.
   """
   @spec initiate_tus_upload(module(), keyword()) :: initiate_tus_result()

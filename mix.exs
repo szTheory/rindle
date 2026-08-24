@@ -53,7 +53,6 @@ defmodule Rindle.MixProject do
         "coveralls.json": :test,
         "coveralls.multiple": :test,
         precommit: :test,
-        # HARD-03 (D-07): `mix ci` ends in the gating unit suite, which must run
         # under MIX_ENV=test (same as `precommit`); otherwise the nested `test`
         # task raises the "running in dev environment" guard.
         ci: :test
@@ -291,7 +290,7 @@ defmodule Rindle.MixProject do
         "cmd env MIX_ENV=dev mix doctor --full --raise",
         "refactor_contract"
       ],
-      # HARD-03 (D-07): `mix ci` reproduces the PR merge-blocking verdict locally.
+      # `mix ci` is the discoverable local approximation of the PR merge gate.
       # Ordered fast-static -> compile -> format -> truthful quality signals ->
       # brandbook drift gates -> the gating unit suite last. It mirrors ONLY the
       # merge-blocking set surfaced by the `CI Summary` gate (ci.yml `quality` +
@@ -303,7 +302,8 @@ defmodule Rindle.MixProject do
       # the default-tag suite, which test/test_helper.exs already excludes
       # :integration/:minio/:contract/:adopter from — so `mix ci` runs on a fresh
       # clone WITHOUT a running MinIO and never hard-fails for its absence
-      # (Pitfall 5). The full-parity storage command is documented in CONTRIBUTING.
+      # clone without a running MinIO. The full-parity storage command is documented
+      # in CONTRIBUTING.
       # The Playwright browser gallery proof is omitted to keep `mix ci`
       # Elixir-toolchain-only (covered by `brandbook-tokens` in CI +
       # scripts/ci/e2e_local.sh locally).
