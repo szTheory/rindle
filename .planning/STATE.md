@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.25
 milestone_name: Maintainer Craft & Feedback Velocity
-status: Active
-stopped_at: Phase 127 implementation started
-last_updated: "2026-08-24T12:00:00-04:00"
+status: Active — awaiting external CI evidence
+stopped_at: Phase 132 ten-run PR timing receipt
+last_updated: "2026-08-24T17:05:00-04:00"
 last_activity: 2026-08-24
-last_activity_desc: v1.25 initialized from approved evidence-bounded quality plan
+last_activity_desc: Phases 127-131 implemented and locally verified; CI-14 remains open
 progress:
   total_phases: 6
-  completed_phases: 0
+  completed_phases: 5
   total_plans: 6
-  completed_plans: 0
-current_phase: 127
-current_phase_name: Evidence Charter & Quality Census
+  completed_plans: 5
+current_phase: 132
+current_phase_name: Measured Closure
 ---
 
 # Project State
@@ -27,10 +27,10 @@ See: .planning/PROJECT.md (updated 2026-08-23 after v1.24)
 
 ## Current Position
 
-Phase: 127 of 132 — Evidence Charter & Quality Census
-Plan: Implement the approved six-phase quality ratchet
-Status: In progress
-Last activity: 2026-08-24 — v1.25 initialized
+Phase: 132 of 132 — Measured Closure
+Plan: Collect ten comparable non-cancelled PR timing receipts
+Status: Waiting for external PR-run evidence; local implementation is verified
+Last activity: 2026-08-24 — Phases 127–131 implemented and verified
 
 ### v1.24 shipped summary
 
@@ -59,9 +59,9 @@ the historical 0.4.0 contract; do not regress either side of that invariant.
 
 ## Next Step
 
-Complete the finite candidate ledger, then execute provenance, test ownership, runtime diagnostics,
-and CI slices in separate behavior-preserving diffs. Phase 132 cannot close until ten comparable PR
-runs provide the approved timing receipt.
+Open a PR from `codex/v1.25-maintainer-craft`, preserve the exact-head required gate, and record ten
+comparable non-cancelled runs in the Phase 132 timing receipt. The milestone cannot close until the
+approved <=8-minute median / <=10-minute p95 target is demonstrated.
 
 ## Prior Milestone
 

@@ -6,8 +6,9 @@
 shortening trustworthy pull-request feedback through measured, behavior-preserving changes.
 
 **Target features:**
-- Replace historical delivery markers in live code, tests, scripts, and workflows with present-tense
-  domain rationale, retaining only reviewed compatibility literals.
+- Review historical delivery markers across live code, tests, scripts, and workflows; replace prose in
+  changed production owners with present-tense rationale and explicitly disposition untouched policy
+  provenance rather than creating a rename-only diff.
 - Give the mixed runtime-diagnostic and maintenance test surfaces clear behavioral ownership, and
   reduce only the complexity findings whose responsibilities are demonstrably separable.
 - Restore concurrent PR test execution, streamline the existing image-only package-consumer proof,
@@ -22,6 +23,11 @@ cycle remains deferred until concrete change-cost evidence exists.
 
 **Current baseline:** quality signals and SAFE-01 are green; coverage is 82.13%; the curated Credo
 inventory contains 35 findings (34 non-Admin); recent PR CI is 13.8 minutes median / 15.4 minutes p95.
+
+**Implementation result:** Phases 127–131 are locally verified. Strict Credo fell from 143 to 130,
+the curated complexity baseline fell from 35 to 31, exact coverage is 82.1343%, provider diagnostics
+and mixed operations tests have cohesive owners, and required image proof now starts independently
+with a pinned Phoenix installer. Phase 132 remains open solely for the ten-run PR timing receipt.
 
 ## Previous Milestone: v1.24 Core Clarity & Quality Ratchet — shipped 2026-08-23
 

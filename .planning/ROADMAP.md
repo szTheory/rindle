@@ -42,17 +42,17 @@ Historical milestone and phase detail is retained in `.planning/milestones/`.
 
 ### 🚧 v1.25 Maintainer Craft & Feedback Velocity (Phases 127–132)
 
-- [ ] **Phase 127: Evidence Charter & Quality Census** — Freeze the candidate inventory, baselines,
+- [x] **Phase 127: Evidence Charter & Quality Census** — Freeze the candidate inventory, baselines,
   craftsmanship rubric, explicit dispositions, and change-to-proof skeleton. Requirements: CRAFT-01,
   CRAFT-02.
-- [ ] **Phase 128: Present-Tense Code & Test Provenance** — Remove unreviewed delivery-history markers
+- [x] **Phase 128: Present-Tense Code & Test Provenance** — Remove unreviewed delivery-history markers
   and rewrite useful prose around current domain invariants. Requirements: PROV-01, PROV-02.
-- [ ] **Phase 129: Behavioral Test Ownership** — Reorganize the two mixed suites and audit
+- [x] **Phase 129: Behavioral Test Ownership** — Reorganize the two mixed suites and audit
   source/artifact-reading tests without implementation snapshots. Requirements: TEST-05, TEST-06,
   TEST-07.
-- [ ] **Phase 130: Runtime Diagnostics & Complexity** — Separate Mux/GCS diagnostics and remove their
+- [x] **Phase 130: Runtime Diagnostics & Complexity** — Separate Mux/GCS diagnostics and remove their
   owned complexity findings without contract drift. Requirements: MAINT-01, MAINT-02, MAINT-03.
-- [ ] **Phase 131: Signal-Preserving CI Velocity** — Restore coverage concurrency, streamline and
+- [x] **Phase 131: Signal-Preserving CI Velocity** — Restore coverage concurrency, streamline and
   parallelize image consumer proof, pin generator setup, and publish the change-to-proof map.
   Requirements: DX-04, CI-10, CI-11, CI-12, CI-13.
 - [ ] **Phase 132: Measured Closure** — Re-census the ratchets, prove preservation, and collect the
@@ -108,4 +108,4 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 - `mix test --partitions` parallelization — evidence-gated on measured core starvation (DEFER-02).
 
 ---
-*Last updated: 2026-08-24 — v1.25 initialized; Phase 127 active.*
+*Last updated: 2026-08-24 — Phases 127–131 verified; Phase 132 awaits ten-run CI timing receipt.*
