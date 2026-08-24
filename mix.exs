@@ -77,7 +77,7 @@ defmodule Rindle.MixProject do
       {:ecto_sql, "~> 3.11"},
       {:postgrex, "~> 0.18"},
       {:jason, "~> 1.4"},
-      {:muontrap, "~> 1.7"},
+      {:muontrap, "~> 2.0"},
 
       # Background processing
       {:oban, "~> 2.21"},
