@@ -1,6 +1,29 @@
 # Rindle
 
-## Current State: v1.24 Core Clarity & Quality Ratchet — shipped 2026-08-23
+## Current State: v1.25 Maintainer Craft & Feedback Velocity — active 2026-08-24
+
+**Goal:** Make Rindle's non-Admin codebase feel deliberately handwritten and easy to navigate while
+shortening trustworthy pull-request feedback through measured, behavior-preserving changes.
+
+**Target features:**
+- Replace historical delivery markers in live code, tests, scripts, and workflows with present-tense
+  domain rationale, retaining only reviewed compatibility literals.
+- Give the mixed runtime-diagnostic and maintenance test surfaces clear behavioral ownership, and
+  reduce only the complexity findings whose responsibilities are demonstrably separable.
+- Restore concurrent PR test execution, streamline the existing image-only package-consumer proof,
+  and measure a target of <=8 minutes median / <=10 minutes p95 across ten comparable PR runs.
+- Publish one change-to-proof map and close every identified quality candidate as fix, retain, or
+  defer so the milestone ends with a finite evidence trail rather than an aesthetic backlog.
+
+**Boundaries:** No Admin/operator UI, public API, schema or migration semantics, telemetry/error
+vocabulary, broad dependency upgrades, release-proof breadth changes, coverage chasing, archive
+rewrites, or abstractions introduced solely to lower line or cycle counts. The broad runtime facade
+cycle remains deferred until concrete change-cost evidence exists.
+
+**Current baseline:** quality signals and SAFE-01 are green; coverage is 82.13%; the curated Credo
+inventory contains 35 findings (34 non-Admin); recent PR CI is 13.8 minutes median / 15.4 minutes p95.
+
+## Previous Milestone: v1.24 Core Clarity & Quality Ratchet — shipped 2026-08-23
 
 **Goal:** Make Rindle's core code, tests, comments, and quality gates truthful, minimal, and a joy to
 read through a finite behavior-preserving maintenance pass.
@@ -22,7 +45,7 @@ public API, schema/migration, telemetry, error, Admin, dependency, and release b
 guarded by SAFE-01. Public `rindle` 0.4.3 is the current release-train baseline; the milestone's final
 post-merge `main` CI is green.
 
-## Previous Milestone: v1.23 Postgres Schema Isolation — shipped 2026-08-20
+## Earlier Milestone: v1.23 Postgres Schema Isolation — shipped 2026-08-20
 
 **Goal:** Make Rindle a respectful Postgres guest by isolating its domain tables in a dedicated `rindle`
 schema by default, with an explicit safe upgrade route and truthful runtime/install proof — a breaking

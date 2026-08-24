@@ -1,19 +1,19 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.24
-milestone_name: Core Clarity & Quality Ratchet
-status: Awaiting next milestone
-stopped_at: Milestone v1.24 archived; demand-gated pause
-last_updated: "2026-08-23T18:25:41.782Z"
-last_activity: 2026-08-23
-last_activity_desc: Milestone v1.24 completed and archived
+milestone: v1.25
+milestone_name: Maintainer Craft & Feedback Velocity
+status: Active
+stopped_at: Phase 127 implementation started
+last_updated: "2026-08-24T12:00:00-04:00"
+last_activity: 2026-08-24
+last_activity_desc: v1.25 initialized from approved evidence-bounded quality plan
 progress:
   total_phases: 6
-  completed_phases: 6
-  total_plans: 40
-  completed_plans: 40
-current_phase: null
-current_phase_name: null
+  completed_phases: 0
+  total_plans: 6
+  completed_plans: 0
+current_phase: 127
+current_phase_name: Evidence Charter & Quality Census
 ---
 
 # Project State
@@ -23,14 +23,14 @@ current_phase_name: null
 See: .planning/PROJECT.md (updated 2026-08-23 after v1.24)
 
 **Core value:** Media, made durable.
-**Current focus:** Demand-gated pause; monitor the green-main release train and approved issue signals.
+**Current focus:** v1.25 evidence-bounded non-Admin maintainability and PR feedback velocity.
 
 ## Current Position
 
-Phase: Milestone v1.24 complete
-Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-08-23 — Milestone v1.24 completed and archived
+Phase: 127 of 132 — Evidence Charter & Quality Census
+Plan: Implement the approved six-phase quality ratchet
+Status: In progress
+Last activity: 2026-08-24 — v1.25 initialized
 
 ### v1.24 shipped summary
 
@@ -59,8 +59,9 @@ the historical 0.4.0 contract; do not regress either side of that invariant.
 
 ## Next Step
 
-No new milestone is approved. Remain silent on the wire unless LIFE-06, STREAM-10, issue #42, a
-release-train incident, or another concrete maintainer/adopter signal authorizes bounded work.
+Complete the finite candidate ledger, then execute provenance, test ownership, runtime diagnostics,
+and CI slices in separate behavior-preserving diffs. Phase 132 cannot close until ten comparable PR
+runs provide the approved timing receipt.
 
 ## Prior Milestone
 
