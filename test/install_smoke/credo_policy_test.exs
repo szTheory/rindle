@@ -47,8 +47,8 @@ defmodule Rindle.CredoPolicyTest do
   test "manifest is a complete counted identity inventory without location or prose gates" do
     entries = baseline_entries()
 
-    assert length(entries) == 31
-    assert Enum.sum(Enum.map(entries, & &1["count"])) == 35
+    assert length(entries) == 27
+    assert Enum.sum(Enum.map(entries, & &1["count"])) == 31
 
     assert Enum.all?(entries, fn entry ->
              Map.keys(entry) |> Enum.sort() == [

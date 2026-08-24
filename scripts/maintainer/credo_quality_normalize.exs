@@ -59,8 +59,8 @@ defmodule Rindle.CredoQualityNormalize do
   defp captured_metric(_, _), do: raise(ArgumentError, "Credo issue message must be a string")
 
   defp normalize_baseline(%{"entries" => entries}) when is_list(entries) do
-    if length(entries) != 31 or Enum.sum(Enum.map(entries, &Map.get(&1, "count", 0))) != 35 do
-      raise ArgumentError, "baseline must contain 31 identities and 35 occurrences"
+    if length(entries) != 27 or Enum.sum(Enum.map(entries, &Map.get(&1, "count", 0))) != 31 do
+      raise ArgumentError, "baseline must contain 27 identities and 31 occurrences"
     end
 
     entries
@@ -75,10 +75,14 @@ defmodule Rindle.CredoQualityNormalize do
     expected_keys = Enum.sort(@identity_keys ++ ["count", "owner", "removal_trigger"])
 
     if Enum.sort(Map.keys(entry)) != expected_keys or
-         not Enum.all?(["check", "file", "trigger", "owner", "removal_trigger"], &(is_binary(entry[&1]) and entry[&1] != "")) or
+         not Enum.all?(
+           ["check", "file", "trigger", "owner", "removal_trigger"],
+           &(is_binary(entry[&1]) and entry[&1] != "")
+         ) or
          not is_number(entry["observed_metric"]) or
          not is_integer(entry["count"]) or entry["count"] <= 0 do
-      raise ArgumentError, "baseline entries require stable identity, count, owner, and removal trigger"
+      raise ArgumentError,
+            "baseline entries require stable identity, count, owner, and removal trigger"
     end
 
     Map.take(entry, @identity_keys ++ ["count"])
