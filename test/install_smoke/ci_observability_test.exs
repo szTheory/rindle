@@ -127,12 +127,11 @@ defmodule Rindle.InstallSmoke.CiObservabilityTest do
   end
 
   # ------------------------------------------------------------------
-  # OBS-02: --slowest 20, compile profile, schedulers, seed, JUnit + coverage.
+  # Test diagnostics keep compile/scheduler/seed visibility without serializing ExUnit.
   # ------------------------------------------------------------------
-  test "OBS-02: ci.yml surfaces slowest tests, compile profile, schedulers, seed, coverage json, and uploads JUnit + coverage artifacts",
+  test "ci.yml surfaces compile profile, schedulers, seed, coverage json, and JUnit artifacts",
        %{ci: ci} do
     for fragment <- [
-          "--slowest 20",
           "mix compile --profile time",
           "schedulers_online",
           "Randomized with seed",
@@ -141,13 +140,15 @@ defmodule Rindle.InstallSmoke.CiObservabilityTest do
           "_build/test/junit/rindle-junit.xml"
         ] do
       assert ci =~ fragment,
-             "ci.yml must surface #{inspect(fragment)} (OBS-02)"
+             "ci.yml must surface #{inspect(fragment)}"
     end
+
+    refute ci =~ "mix coveralls.multiple --type local --type json --slowest"
   end
 
   test "OBS-02: the gating step STAYS the local-analyzer gate `mix coveralls.multiple --type local` (json is additive, never the gate)",
        %{ci: ci} do
-    assert ci =~ "mix coveralls.multiple --type local --type json --slowest 20",
+    assert ci =~ "mix coveralls.multiple --type local --type json",
            "the gating unit step must run `mix coveralls.multiple --type local` — the `--type local` analyzer is the byte-identical merge-blocking gate (ExCoveralls.Local → ensure_minimum_coverage); `--type json` is an additive side-artifact, never the gate (OBS-02, COV-01..03)"
   end
 

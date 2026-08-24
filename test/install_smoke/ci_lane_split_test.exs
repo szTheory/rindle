@@ -88,6 +88,18 @@ defmodule Rindle.InstallSmoke.CiLaneSplitTest do
            "the off-PR `package-consumer-full` job must exist (LANE-02)"
   end
 
+  test "the required image consumer starts independently and carries only image prerequisites",
+       %{ci: ci} do
+    consumer = package_consumer_block(ci)
+
+    refute yaml_keys_only(consumer) =~ "needs:"
+    refute consumer =~ "name: Set up Node"
+    refute consumer =~ "name: Set up FFmpeg"
+    assert consumer =~ "name: Install libvips"
+    assert consumer =~ "bash scripts/install_smoke.sh image"
+    assert consumer =~ "mix run --no-start --no-compile"
+  end
+
   test "LANE-02: package-consumer-full is off-PR (event gate) with a fail-fast:false 5-profile matrix and NO continue-on-error",
        %{ci: ci} do
     full = package_consumer_full_block(ci)
@@ -275,12 +287,13 @@ defmodule Rindle.InstallSmoke.CiLaneSplitTest do
   # A–E classification doc (106-LANE-CLASSIFICATION.md) is intentionally NOT
   # asserted here — it is an archived planning artifact, not shipped code.
   # ------------------------------------------------------------------
-  test "LANE-04: CONTRIBUTING.md carries the trust/speed label (on-PR vs after-merge/nightly, ≤7-min, image smoke)",
+  test "CONTRIBUTING.md carries the current PR feedback target and proof split",
        %{contributing: contributing} do
     for phrase <- [
           "what CI runs on your PR versus after merge",
           "after merge",
-          "≤7 minutes",
+          "≤8 minutes median",
+          "≤10 minutes p95",
           "representative `image` package-consumer install-smoke",
           "caught on `main` within one merge"
         ] do
@@ -350,6 +363,12 @@ defmodule Rindle.InstallSmoke.CiLaneSplitTest do
   defp package_consumer_full_block(ci) do
     [_, after_key] = String.split(ci, "\n  package-consumer-full:\n", parts: 2)
     [block | _] = String.split(after_key, "\n  adoption-demo-unit:\n", parts: 2)
+    block
+  end
+
+  defp package_consumer_block(ci) do
+    [_, after_key] = String.split(ci, "\n  package-consumer:\n", parts: 2)
+    [block | _] = String.split(after_key, "\n  package-consumer-full:\n", parts: 2)
     block
   end
 

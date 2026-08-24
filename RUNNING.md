@@ -66,7 +66,7 @@ matrix both of those entrypoints link to.
 | `contract` — Run AV hygiene gate, contract tests, SAFE-01 | merge-blocking | `needs: [quality, optional-dependencies]`; after FFmpeg installation | AV hygiene plus deterministic `--only contract` tests and `scripts/maintainer/refactor_contract.sh`; the telemetry contract exercises the real AV path |
 | `proof` | merge-blocking | `needs: [quality, optional-dependencies]` | docs-parity install/migrations, onboarding/capabilities, operations, and product/admin domain suites; adoption proof matrix drift gate; `batch_owner_erasure_task_test.exs`; Postgres only; Elixir 1.17/OTP 27 |
 | `package-consumer-full` — repo hygiene gate | off-critical-path | `push:main`/release (`if: github.event_name != 'pull_request'`) | `scripts/maintainer/repo_hygiene_check.sh --ci`; release/main gate, not merge-blocking on PRs |
-| `package-consumer` (lean, PR) | merge-blocking | `needs: [quality, optional-dependencies]` | Representative `image`-only install-smoke + version alignment; stays in `CI Summary.needs` |
+| `package-consumer` (lean, PR) | merge-blocking | Starts independently; `CI Summary` waits for it | Representative `image`-only install-smoke + version alignment; full profile breadth remains on main/release |
 | `package-consumer-full` | off-critical-path | `push:main`/release (`if: github.event_name != 'pull_request'`) | Full 5-profile matrix + release preflight + `hex.publish --dry-run`; **NOT** a required PR check (omitted from `CI Summary.needs`); release proof is the push:main run conclusion |
 | `adoption-demo-unit` | merge-blocking | `needs: [quality, optional-dependencies]`; Postgres only | Fast ExUnit proof for `examples/adoption_demo`: brand mark/wordmark, admin-console mount, lifecycle-state display, README walkthrough parity (storage-free, direct-insert seeds) |
 | `adoption-demo-e2e-smoke` | merge-blocking | Every PR (no repo/event gate); `needs: [quality, optional-dependencies]`; Postgres + MinIO-local | Lean Chromium smoke (`e2e/smoke.spec.js` + `e2e/admin-console.spec.js` only, no screenshot spec) in the pinned Playwright container. No secrets, so it runs on forks and is included in `CI Summary.needs`. |
@@ -85,7 +85,7 @@ The full CI coverage step — the `quality` — Run tests with coverage row abov
 reproduced locally with a single command:
 
 ```sh
-mix coveralls.multiple --type local --type json --slowest 20
+mix coveralls.multiple --type local --type json
 ```
 
 One suite run emits both the console coverage gate and `cover/excoveralls.json`.

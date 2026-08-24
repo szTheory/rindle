@@ -217,16 +217,16 @@ jobs:
       # NEVER from the Json formatter. `--type json` is a side-artifact only,
       # emitted from the SAME single suite execution (no redundant second run).
       # See Mix.Tasks.Coveralls.Multiple (README-undocumented multi-formatter task).
-      # --slowest 20 is additive; tee captures the slowest-test lines + the
-      # ExUnit seed (`Randomized with seed N`) into the run summary (OBS-02 D-05).
+      # Slow-test profiling stays separate because ExUnit's `--slowest` option
+      # enables trace mode and serializes otherwise async tests.
       - name: Run tests with coverage
         run: |
           set -o pipefail
-          mix coveralls.multiple --type local --type json --slowest 20 2>&1 | tee /tmp/test.out
+          mix coveralls.multiple --type local --type json 2>&1 | tee /tmp/test.out
           {
             echo "## Test timing — ${{ github.job }} (${{ matrix.elixir }}/${{ matrix.otp }})"
             echo '```'
-            grep -E 'Randomized with seed|slowest|^\s+\* test ' /tmp/test.out | tail -30 || true
+            grep -E 'Randomized with seed' /tmp/test.out | tail -1 || true
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
@@ -563,15 +563,9 @@ jobs:
   package-consumer:
     name: Package Consumer Proof Matrix + Release Preflight
     runs-on: ubuntu-22.04
-    # LANE-02 (D-08/D-10): LEAN, PR-gating representative of the package-consumer
-    # long pole. Runs on ALL triggers (no event gate) and carries ONLY the single
-    # representative `image` install-smoke + the cheap structural version-alignment
-    # check. The 887s-p95 breadth (release_preflight + repo_hygiene + the
-    # video/tus/mux/gcs profiles + hex.publish --dry-run) moved to the
-    # `package-consumer-full` job below, which runs off-PR only. This lean job stays
-    # in CI Summary.needs (the PR critical-path gate). See RUNNING.md `## CI lane
-    # severity` and 106-CONTEXT.md D-08/D-10.
-    needs: [quality, optional-dependencies]
+    # Required image-only packed-consumer proof. It shares no artifacts with
+    # Quality or Optional Dependencies, so it starts immediately and remains a
+    # merge gate through CI Summary. Full profile breadth stays off-PR.
     env:
       MIX_ENV: test
       RINDLE_AV_USE_CGROUPS: "false"
@@ -615,18 +609,6 @@ jobs:
           otp-version: "27"
           mix-env: test
           install-deps: "false"
-
-      - name: Set up Node
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        with:
-          node-version: "20"
-
-      - name: Set up FFmpeg
-        # Reliable static ffmpeg >= 6, replacing FedericoCarboni/setup-ffmpeg@v3
-        # which intermittently failed ("Failed to get latest johnvansickle ffmpeg
-        # release") and blocked merges. apt only ships 4.4 — below the >= 6.0 gate
-        # in lib/rindle/av/probe.ex. See scripts/ci/install_ffmpeg.sh.
-        run: bash scripts/ci/install_ffmpeg.sh
 
       - name: Install libvips
         run: bash scripts/ci/install_apt_packages.sh libvips-dev
@@ -682,10 +664,8 @@ jobs:
         run: bash scripts/install_smoke.sh image
 
       - name: Verify version alignment (mocking tag)
-        env:
-          MIX_ENV: dev
         run: |
-          MIX_VERSION=$(mix run --no-start -e 'IO.write(Mix.Project.config()[:version])')
+          MIX_VERSION=$(mix run --no-start --no-compile -e 'IO.write(Mix.Project.config()[:version])')
           export GITHUB_REF_NAME="v${MIX_VERSION}"
           bash scripts/assert_version_match.sh
 

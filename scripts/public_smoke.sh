@@ -29,10 +29,7 @@ unset RINDLE_INSTALL_SMOKE_PACKAGE_ROOT
 export RINDLE_INSTALL_SMOKE_NETWORK_VERSION="$VERSION"
 export RINDLE_MINIO_RESET_BUCKET=1
 
-if ! mix phx.new --version >/dev/null 2>&1; then
-  echo "Installing Phoenix generator archive for install smoke..."
-  mix archive.install hex phx_new --force
-fi
+bash "$SCRIPT_DIR/ci/ensure_phx_new.sh"
 
 bash "$SCRIPT_DIR/ensure_minio.sh"
 
@@ -40,7 +37,6 @@ run_install_smoke_profile() {
   local profile="$1"
   echo "Public smoke: profile=${profile}"
   export RINDLE_INSTALL_SMOKE_PROFILE="$profile"
-  # D-08: Run the parent install-smoke suite with CI UNSET so test_helper.exs does
   # NOT engage JUnitFormatter for this crash-prone clean-room shell-out. On an
   # abnormal exit (e.g. an :epipe child crash), JUnitFormatter.handle_suite_finished/1
   # would try to write rindle-junit.xml during a teardown and surface an opaque
