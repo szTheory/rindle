@@ -123,3 +123,63 @@ Review of that range found no drift in the prohibited surfaces:
 The correction remains limited to removing Phoenix's pre-patch `--install` argv
 entry and locking that ordering through its focused test. It does not characterize
 unrelated product or CI drift as behavior-preserving.
+
+## Final Automation Candidate Re-census
+
+**Preserved automation candidate SHA:**
+`9d8e7e3a16f35f69ce6e8fa4f1b476afc491a2fa`
+
+This is the immutable code-bearing subject for Plan 05. Commits between this SHA and
+the measured PR head may change only `.planning/**`; the unattended controller
+enforces that boundary before publication or sampling.
+
+The final re-census includes the Phase 132 automation controller and its forward
+policy, plus two automation defects found by this census:
+
+- discovered live runs are resumed from persisted state without triggering a
+  duplicate sample;
+- Phoenix generation passes `--no-install`, preserving the post-patch `deps.get`
+  authority while suppressing the Phoenix 1.8.9 interactive install prompt.
+
+The isolation-upgrade smoke command now uses the raising command boundary, so a
+substantive generated-app failure reports its captured stage and output instead of
+being masked by a later missing-receipt error.
+
+### Final successful authorities
+
+All commands below ran after the final source edit on 2026-08-25 and exited `0`:
+
+1. `mix test test/install_smoke/generated_app_smoke_test.exs --only phase_132_generator_contract --seed 0`
+   - `1 test, 0 failures` (`32 excluded`).
+2. `mix test test/install_smoke/ci_timing_automation_test.exs test/install_smoke/automation_first_contract_test.exs test/install_smoke/ci_lane_split_test.exs test/install_smoke/ci_observability_test.exs --seed 0`
+   - `38 tests, 0 failures`.
+3. `bash scripts/ci/test_ci_summary_gate.sh`
+   - `passed: 6  failed: 0`.
+4. `mix quality_signals`
+   - Credo/public-contract/complexity passed; Doctor reported 79 passed modules and
+     100% doc/moduledoc/spec coverage; the contract suite reported `93 tests, 0 failures`.
+5. `bash scripts/maintainer/refactor_contract.sh`
+   - 150 files compiled, no compile-connected cycles, `93 tests, 0 failures`.
+6. `./scripts/maintainer/automation_first_contract.sh`
+   - The Phase 132 automation-first contract passed with no manual-only acceptance.
+7. `./scripts/maintainer/repo_hygiene_check.sh --ci`
+   - `9 PASS, 0 WARN, 0 BLOCK`.
+8. `mix coveralls.multiple --type local --type json`
+   - `3 doctests, 1391 tests, 0 failures, 4 skipped (86 excluded)` and a non-empty
+     `cover/excoveralls.json`.
+9. `bash scripts/install_smoke.sh image`
+   - The packed image consumer completed the default, public-compatibility, and
+     isolation-upgrade generated applications with `22 tests, 0 failures` in 123.5s.
+
+### Final coverage arithmetic
+
+The final `cover/excoveralls.json` contains `5149` positive covered entries among
+`6269` non-null relevant entries:
+
+- exact percentage: `5149 / 6269 * 100 = 82.13431169245494%`;
+- rounded receipt value: `82.1343%`;
+- inclusive threshold proof: `5149 * 10000 >= 6269 * 8213` is `true`.
+
+No percentage-only test, required-check relaxation, workflow topology change,
+dependency change, public API change, schema/migration change, telemetry/error-shape
+change, or human verification/UAT exception was introduced.

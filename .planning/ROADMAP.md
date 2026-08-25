@@ -114,7 +114,7 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
   2. `CI Summary` remains the sole required check with its required-job set and skip-as-pass behavior intact; any external-runner exception includes job-level evidence, a named owner, and a dated follow-up.
   3. Authoritative coverage remains at or above 82.13%, and the final correction passes focused proof, `mix quality_signals`, SAFE-01, the relevant integration or packed-consumer lane, and bounded prohibited-surface diff review.
 
-**Plans**: 3/5 plans executed
+**Plans**: 4/5 plans executed
 
 **Wave 1 — tracer correction and package proof**
 
@@ -130,7 +130,7 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 
 **Wave 4 — final preservation re-census** *(blocked on Wave 3 completion)*
 
-- [ ] 132-04-PLAN.md — Re-run every preservation authority on the final automated candidate and record its immutable subject SHA.
+- [x] 132-04-PLAN.md — Re-run every preservation authority on the final automated candidate and record its immutable subject SHA.
 
 **Wave 5 — unattended live timing acceptance** *(blocked on Wave 4 completion)*
 
