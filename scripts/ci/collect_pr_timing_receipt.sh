@@ -152,6 +152,7 @@ pr_json="$(gh pr view "$pr" --repo "$repo" --json state,isDraft,headRefName,head
 head_ref="$(jq -r '.headRefName' <<<"$pr_json")"
 remote_sha="$(jq -r '.headRefOid' <<<"$pr_json")"
 [ -n "$head_ref" ] && [ "$head_ref" != null ] || die "PR head branch is unavailable"
+encoded_head_ref="$(jq -rn --arg value "$head_ref" '$value | @uri')"
 
 gh label list --repo "$repo" --limit 100 --json name --jq '.[].name' | grep -Fxq "$label" || die "label does not exist: $label"
 if jq -e --arg label_name "$label" 'any(.labels[]?; .name == $label_name)' <<<"$pr_json" >/dev/null; then
@@ -213,14 +214,40 @@ if [ "$(jq -r '.status // ""' "$state_file")" = complete ]; then
   exit 2
 fi
 
+gh_api_json() {
+  local endpoint="$1" output reset now delay
+  while :; do
+    if output="$(gh api -H 'Accept: application/vnd.github+json' "$endpoint" 2>&1)"; then
+      printf '%s\n' "$output"
+      return 0
+    fi
+
+    if grep -qi 'rate limit exceeded' <<<"$output"; then
+      reset="$(gh api rate_limit --jq '.resources.core.reset' 2>/dev/null || true)"
+      now="$(date +%s)"
+      delay=60
+      if [[ "$reset" =~ ^[0-9]+$ ]] && [ "$reset" -gt "$now" ] && [ $((reset - now + 2)) -lt "$delay" ]; then
+        delay=$((reset - now + 2))
+      fi
+      [ "$delay" -gt 0 ] || delay=1
+      echo "[ci-timing] GitHub API rate limited; retrying in ${delay}s" >&2
+      sleep "$delay"
+      continue
+    fi
+
+    printf '%s\n' "$output" >&2
+    return 1
+  done
+}
+
 list_runs() {
-  gh api --paginate --slurp -H 'Accept: application/vnd.github+json' \
-    "repos/${repo}/actions/workflows/${workflow}/runs?event=pull_request&per_page=100"
+  gh_api_json \
+    "repos/${repo}/actions/workflows/${workflow}/runs?event=pull_request&branch=${encoded_head_ref}&per_page=100"
 }
 
 same_sha_runs() {
   list_runs | jq -c --arg sha "$head_sha" --argjson pr "$pr" '
-    [.[].workflow_runs[] |
+    [(if type == "array" then .[].workflow_runs[] else .workflow_runs[] end) |
       select(.event == "pull_request" and .head_sha == $sha and any(.pull_requests[]?; .number == $pr))]
   '
 }
@@ -295,12 +322,12 @@ wait_and_validate_run() {
   local run_id="$1" deadline run_json jobs_json summary_count duration result
   deadline=$(( $(date +%s) + run_timeout ))
   while :; do
-    run_json="$(gh api -H 'Accept: application/vnd.github+json' "repos/${repo}/actions/runs/${run_id}")"
+    run_json="$(gh_api_json "repos/${repo}/actions/runs/${run_id}")"
     [ "$(jq -r '.status' <<<"$run_json")" = completed ] && break
     [ "$(date +%s)" -lt "$deadline" ] || return 1
     sleep "$poll_seconds"
   done
-  jobs_json="$(gh api --paginate --slurp -H 'Accept: application/vnd.github+json' "repos/${repo}/actions/runs/${run_id}/jobs?per_page=100")"
+  jobs_json="$(gh_api_json "repos/${repo}/actions/runs/${run_id}/jobs?per_page=100")"
   summary_count="$(jq --arg name "$summary_job" '
     (if type == "array" then [.[].jobs[]] else [.jobs[]] end) |
     [.[] | select(.name == $name)] | length

@@ -128,6 +128,16 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
     assert source =~ "$label_name"
   end
 
+  test "controller bounds workflow-list API use and backs off on rate limits" do
+    source = File.read!(@script)
+
+    refute source =~ "gh api --paginate"
+    assert source =~ "per_page=100"
+    assert source =~ "branch=${encoded_head_ref}"
+    assert source =~ "GitHub API rate limited; retrying"
+    assert source =~ "gh_api_json"
+  end
+
   defp run_controller(context, extra_env \\ []) do
     args = [
       "run",
