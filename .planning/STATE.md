@@ -5,7 +5,7 @@ milestone_name: Maintainer Craft & Feedback Velocity
 current_phase: 132
 current_phase_name: measured-closure
 status: executing
-stopped_at: Implementing 132-03-PLAN.md automation-first closure
+stopped_at: Completed 132-03-PLAN.md
 last_updated: "2026-08-25T19:03:58.531Z"
 last_activity: 2026-08-25
 last_activity_desc: Phase 132 execution started
@@ -13,7 +13,7 @@ progress:
   total_phases: 3
   completed_phases: 0
   total_plans: 5
-  completed_plans: 2
+  completed_plans: 3
   percent: 0
 ---
 
@@ -29,9 +29,9 @@ See: .planning/PROJECT.md (updated 2026-08-23 after v1.24)
 ## Current Position
 
 Phase: 132 (measured-closure) — EXECUTING
-Plan: 3 of 5
-Status: Automation-first closure in progress
-Last activity: 2026-08-25 — replaced the manual timing checkpoint with autonomous controller, preservation, and live-receipt waves
+Plan: 4 of 5
+Status: Ready for final preservation re-census
+Last activity: 2026-08-25 — completed the unattended timing controller and zero-human acceptance contract
 
 ### v1.24 shipped summary
 
@@ -60,8 +60,8 @@ the historical 0.4.0 contract; do not regress either side of that invariant.
 
 ## Next Step
 
-Complete the automation-first controller, re-preserve its final code-bearing subject, and run the
-bounded unattended ten-run PR measurement. The milestone cannot close until the approved <=8-minute
+Re-preserve the final automation code-bearing subject, then run the bounded unattended ten-run PR
+measurement. The milestone cannot close until the approved <=8-minute
 median / <=10-minute p95 target is demonstrated by machine-verifiable evidence with no human UAT.
 
 ## Prior Milestone
@@ -225,7 +225,7 @@ _(none)_
 ## Session Continuity
 
 Last session: 2026-08-25T19:03:58.524Z
-Stopped at: Implementing 132-03-PLAN.md automation-first closure
+Stopped at: Completed 132-03-PLAN.md
 Resume file: None
 
 ## Performance Metrics
