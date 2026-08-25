@@ -57,4 +57,69 @@ No count has been inferred beyond these command outputs.
 
 ## Task 2: Full Preservation Authorities
 
-Task 2 evidence is appended only after each ordered authority completes successfully.
+The following authorities ran in this order on 2026-08-25 and each exited `0`:
+
+1. `mix quality_signals`
+   - Credo/public-contract/complexity aggregate passed.
+   - Doctor reported 79 passed modules, 0 failed modules, and 100.0% total doc,
+     moduledoc, and spec coverage.
+   - The included contract invocation reported `93 tests, 0 failures`.
+2. `bash scripts/maintainer/refactor_contract.sh`
+   - Compile completed for 150 files, no compile-connected cycles were found, and
+     the contract suite reported `93 tests, 0 failures`.
+3. `mix coveralls.multiple --type local --type json`
+   - This was the single authoritative coverage invocation for this receipt.
+   - It exited `0` and produced non-empty `cover/excoveralls.json`.
+   - The run emitted the repository's existing test-load-filter warning for support
+     files; it did not change the command result.
+4. `bash scripts/install_smoke.sh image`
+   - The packed clean-room image consumer exited `0` after package build/unpack and
+     the generated-app MinIO profile proof. Its live output showed the unpacked
+     `rindle-0.4.4` package and the included MinIO ExUnit profile.
+
+### Authoritative coverage arithmetic
+
+From `cover/excoveralls.json`, treating non-null entries as relevant lines and
+positive entries as covered lines:
+
+- covered lines: `5149`
+- relevant lines: `6269`
+- exact percentage: `5149 / 6269 * 100 = 82.1343%` (rounded to four decimals)
+- inclusive D-07 check: `5149 * 10000 >= 6269 * 8213` is `true`
+
+This clears the `82.13%` threshold without adding a percentage-only test. The
+coverage artifact came from the one recorded authoritative command above; no second
+coverage suite was run.
+
+### Packed-consumer result
+
+The successful `image` authority used the built and unpacked package, then exercised
+the existing generated Phoenix application path. Its profile retains the tracer's
+package provenance, post-patch dependency fetch and compile, explicit host plus
+Rindle migrations, compiled boot/report boundary, MinIO-backed presigned-PUT
+lifecycle, and cleanup assertions. The repository script invokes the generated-app
+suite with `--include minio`; this receipt records its command exit rather than
+inventing an additional test total from partially displayed nested output.
+
+### Bounded prohibited-surface review
+
+The complete Plan 01 net correction range contains only:
+
+- `test/install_smoke/generated_app_smoke_test.exs`
+- `test/install_smoke/support/generated_app/workspace.ex`
+
+Review of that range found no drift in the prohibited surfaces:
+
+| Surface | Finding |
+| --- | --- |
+| Admin | No Admin path changed. |
+| Public functions | No `lib/` path changed; no public API changed. |
+| Schema or migration | No schema or migration path changed. |
+| Telemetry or error shape | No telemetry/error path changed. |
+| Dependencies or lockfiles | No manifest or lockfile changed. |
+| CI workflow | No `.github/workflows` path changed; required topology and evaluator are separately proven above. |
+| Release proof | No release workflow, package metadata, or release-runbook path changed. |
+
+The correction remains limited to removing Phoenix's pre-patch `--install` argv
+entry and locking that ordering through its focused test. It does not characterize
+unrelated product or CI drift as behavior-preserving.
