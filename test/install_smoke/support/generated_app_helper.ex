@@ -109,10 +109,13 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     boot_result = boot_app!(default_root, default_module, public_env)
 
     smoke_result =
-      run_cmd(default_root, ["mix", "test", "test/rindle_install_smoke_test.exs"], public_env)
+      run_cmd!(default_root, ["mix", "test", "test/rindle_install_smoke_test.exs"], public_env)
+
+    persistence_lifecycle_path =
+      Path.join(default_root, "tmp/install_smoke_persistence_lifecycle_report.json")
 
     persistence_lifecycle =
-      read_json!(Path.join(default_root, "tmp/install_smoke_persistence_lifecycle_report.json"))
+      read_json!(persistence_lifecycle_path)
 
     %{
       workspace_root: public_report.workspace_root,

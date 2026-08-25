@@ -146,8 +146,9 @@ defmodule Rindle.InstallSmoke.GeneratedAppPhase132GeneratorContractTest do
       assert generate_phoenix_app =~ feature_omission
     end
 
+    assert generate_phoenix_app =~ "--no-install"
     assert generate_phoenix_app =~ ~s({"MIX_ENV", "dev"})
-    refute generate_phoenix_app =~ "--install"
+    refute generate_phoenix_app =~ ~r/["']--install["']/
   end
 end
 

@@ -203,6 +203,14 @@ if [ ! -f "$state_file" ] || [ "$(jq -r '.status // ""' "$state_file")" = failed
   write_initial_state
 fi
 
+if [ "$(jq -r '.status // ""' "$state_file")" = complete ]; then
+  verify_receipt_shape "$receipt"
+  completed_verdict="$(jq -r '.verdict' "$state_file")"
+  echo "[ci-timing] existing completed receipt verified: verdict=$completed_verdict"
+  [ "$completed_verdict" = PASS ] && exit 0
+  exit 2
+fi
+
 list_runs() {
   gh api --paginate --slurp -H 'Accept: application/vnd.github+json' \
     "repos/${repo}/actions/workflows/${workflow}/runs?event=pull_request&per_page=100"
@@ -266,7 +274,7 @@ wait_and_validate_run() {
   ' <<<"$jobs_json")"
   [ "$summary_count" -eq 1 ] || return 2
 
-  result="$(jq -cn --argjson run "$run_json" --argjson pages "$jobs_json" --arg sha "$head_sha" --arg name "$summary_job" '
+  result="$(jq -cn --argjson run "$run_json" --argjson pages "$jobs_json" --arg repo "$repo" --arg sha "$head_sha" --arg name "$summary_job" '
     ($pages | (if type == "array" then [.[].jobs[]] else [.jobs[]] end) | [.[] | select(.name == $name)]) as $summary |
     if ($run.event == "pull_request" and $run.head_sha == $sha and $run.run_attempt == 1 and
         $run.status == "completed" and $run.conclusion == "success" and
@@ -274,7 +282,7 @@ wait_and_validate_run() {
         $run.run_started_at != null and $summary[0].completed_at != null)
     then {
       id:$run.id,
-      url:($run.html_url // ("https://github.com/" + env.repo + "/actions/runs/" + ($run.id|tostring))),
+      url:($run.html_url // ("https://github.com/" + $repo + "/actions/runs/" + ($run.id|tostring))),
       started_at:$run.run_started_at,
       started_epoch:($run.run_started_at|fromdateiso8601),
       summary_completed_at:$summary[0].completed_at,
@@ -294,18 +302,24 @@ while [ "$attempt" -le "$max_sequences" ]; do
   invalid_reason=""
   while [ "$(jq '.runs | length' "$state_file")" -lt "$samples" ]; do
     sample=$(( $(jq '.runs | length' "$state_file") + 1 ))
-    before_ids="$(same_sha_runs | jq '[.[].id]')"
-    echo "[ci-timing] triggering sample $sample/$samples"
-    gh pr edit "$pr" --repo "$repo" --add-label "$label" >/dev/null
-    label_owned=1
-    if ! run_id="$(wait_for_new_run "$before_ids")"; then
-      invalid_reason="expected exactly one new same-head PR run after labeling"
+    current_run_id="$(jq -r '.current_run_id // empty' "$state_file")"
+    if [ -n "$current_run_id" ]; then
+      run_id="$current_run_id"
+      echo "[ci-timing] resuming discovered sample $sample/$samples as run $run_id"
+    else
+      before_ids="$(same_sha_runs | jq '[.[].id]')"
+      echo "[ci-timing] triggering sample $sample/$samples"
+      gh pr edit "$pr" --repo "$repo" --add-label "$label" >/dev/null
+      label_owned=1
+      if ! run_id="$(wait_for_new_run "$before_ids")"; then
+        invalid_reason="expected exactly one new same-head PR run after labeling"
+        cleanup_label
+        break
+      fi
+      tmp="$(mktemp "${TMPDIR:-/tmp}/rindle-ci-timing-state.XXXXXX")"
+      jq --argjson id "$run_id" '.current_run_id=$id' "$state_file" > "$tmp" && mv "$tmp" "$state_file"
       cleanup_label
-      break
     fi
-    tmp="$(mktemp "${TMPDIR:-/tmp}/rindle-ci-timing-state.XXXXXX")"
-    jq --argjson id "$run_id" '.current_run_id=$id' "$state_file" > "$tmp" && mv "$tmp" "$state_file"
-    cleanup_label
 
     if ! run_result="$(wait_and_validate_run "$run_id")"; then
       invalid_reason="run $run_id was not a qualifying successful first-attempt sample"

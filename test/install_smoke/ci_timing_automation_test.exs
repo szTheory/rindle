@@ -68,6 +68,36 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
     assert String.trim(File.read!(Path.join(context.fixture_dir, "count"))) == "13"
   end
 
+  test "resumes a discovered run without triggering a duplicate", context do
+    File.write!(Path.join(context.fixture_dir, "count"), "1\n")
+
+    state_file = Path.join(context.state_dir, "pr-96-#{context.head}.json")
+
+    File.write!(
+      state_file,
+      Jason.encode!(%{
+        schema_version: 1,
+        repo: "szTheory/rindle",
+        pr: 96,
+        sha: context.head,
+        label: "ci-timing-sample",
+        max_sequences: 2,
+        sequence_attempt: 1,
+        status: "running",
+        runs: [],
+        current_run_id: 1001,
+        errors: []
+      })
+    )
+
+    assert {output, 0} = run_controller(context)
+    assert output =~ "resuming discovered sample 1/10 as run 1001"
+
+    manifest = manifest!(context.receipt)
+    assert Enum.map(manifest["runs"], & &1["id"]) == Enum.to_list(1001..1010)
+    assert String.trim(File.read!(Path.join(context.fixture_dir, "count"))) == "10"
+  end
+
   test "verify rejects a partial receipt", context do
     File.write!(context.receipt, """
     #{context.baseline}
