@@ -249,17 +249,19 @@ Do not alter this evaluator or change what it receives in `needs`. [VERIFIED: sc
 
 The candidate is deliberately a testable hypothesis, not a performance guarantee: native timing proves the enclosing step is the bottleneck but does not expose its nested command durations. [VERIFIED: GitHub Actions API; GitHub Actions log for run 32863291301]
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **How much of the nested proof is spent in Phoenix’s pre-patch install versus the post-patch lifecycle?**
    - What we know: the parent step takes 292–424 seconds and the nested generated-app proof accounted for 411.7 synchronous seconds in one representative run. [VERIFIED: GitHub Actions API; GitHub Actions log for run 32863291301]
    - What's unclear: the current command runner captures child output but does not emit per-child timing in a successful test log. [VERIFIED: test/install_smoke/support/generated_app/command_runner.ex]
    - Recommendation: make the minimal `--install` removal with focused proof first; if it misses the receipt target, add only bounded stage timing to the existing helper before considering another correction. [ASSUMED]
+   - **RESOLVED operationally:** The phase does not claim a nested-command duration. Plan 01 treats removal of `--install` as a bounded hypothesis: first run the tagged argv contract, then require the unchanged full image package-consumer as integration acceptance. Plan 03's ten-run immutable-head receipt decides whether the hypothesis closes CI-14. If it misses, the residual timing uncertainty remains explicit and routes to bounded stage timing before any further correction. [VERIFIED: 132-01-PLAN.md; 132-03-PLAN.md]
 
 2. **Can the new receipt be collected without a maintainer action on the draft PR?**
    - What we know: the workflow accepts `pull_request` `labeled` events and the prior receipt used sequential PR runs. [VERIFIED: .github/workflows/ci.yml; 132-CI-TIMING-RECEIPT.md]
    - What's unclear: the exact maintainer trigger cadence/label procedure is not encoded as a committed script. [VERIFIED: codebase grep]
    - Recommendation: include a human checkpoint to trigger/observe each run sequentially and document the exact operation in the final receipt. [ASSUMED]
+   - **RESOLVED operationally:** Plan 03 supplies the maintainer procedure as a blocking checkpoint: verify PR #96's immutable head, add the existing `ci-timing-sample` label, capture exactly one qualifying `pull_request` run, remove the label, wait through successful `CI Summary` completion, and only then trigger the next sample. The checkpoint preserves the remaining external dependency instead of assuming automation that the repository does not provide. [VERIFIED: 132-03-PLAN.md]
 
 ## Environment Availability
 
