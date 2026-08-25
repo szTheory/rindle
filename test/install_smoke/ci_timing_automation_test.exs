@@ -119,6 +119,15 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
     assert output =~ "exactly 10 runs"
   end
 
+  test "controller remains compatible with jq versions where label is a keyword" do
+    source = File.read!(@script)
+
+    refute source =~ "--arg label "
+    refute source =~ "$label)"
+    assert source =~ "--arg label_name"
+    assert source =~ "$label_name"
+  end
+
   defp run_controller(context, extra_env \\ []) do
     args = [
       "run",

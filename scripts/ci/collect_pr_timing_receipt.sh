@@ -154,10 +154,11 @@ remote_sha="$(jq -r '.headRefOid' <<<"$pr_json")"
 [ -n "$head_ref" ] && [ "$head_ref" != null ] || die "PR head branch is unavailable"
 
 gh label list --repo "$repo" --limit 100 --json name --jq '.[].name' | grep -Fxq "$label" || die "label does not exist: $label"
-if jq -e --arg label "$label" 'any(.labels[]?; .name == $label)' <<<"$pr_json" >/dev/null; then
+if jq -e --arg label_name "$label" 'any(.labels[]?; .name == $label_name)' <<<"$pr_json" >/dev/null; then
   die "PR already has $label; refusing to take ownership of a pre-existing trigger label"
 fi
 
+published_now=0
 if [ "$publish_head" -eq 1 ] && [ "$remote_sha" != "$head_sha" ]; then
   git fetch --quiet origin "$head_ref"
   git merge-base --is-ancestor "$remote_sha" "$head_sha" || die "remote PR head is not an ancestor of local HEAD; refusing non-fast-forward publication"
@@ -170,6 +171,7 @@ if [ "$publish_head" -eq 1 ] && [ "$remote_sha" != "$head_sha" ]; then
     [ "$(date +%s)" -lt "$deadline" ] || die "PR head did not converge to published SHA"
     sleep 2
   done
+  published_now=1
 elif [ "$remote_sha" != "$head_sha" ]; then
   die "PR head $remote_sha does not equal local HEAD $head_sha and publication is disabled"
 fi
@@ -193,9 +195,9 @@ write_initial_state() {
   local tmp
   tmp="$(mktemp "${TMPDIR:-/tmp}/rindle-ci-timing-state.XXXXXX")"
   jq -n \
-    --arg repo "$repo" --argjson pr "$pr" --arg sha "$head_sha" --arg label "$label" \
+    --arg repo "$repo" --argjson pr "$pr" --arg sha "$head_sha" --arg label_name "$label" \
     --argjson max_sequences "$max_sequences" \
-    '{schema_version:1,repo:$repo,pr:$pr,sha:$sha,label:$label,max_sequences:$max_sequences,sequence_attempt:1,status:"running",runs:[],current_run_id:null,errors:[]}' > "$tmp"
+    '{schema_version:1,repo:$repo,pr:$pr,sha:$sha,label:$label_name,max_sequences:$max_sequences,sequence_attempt:1,status:"running",runs:[],current_run_id:null,errors:[]}' > "$tmp"
   mv "$tmp" "$state_file"
 }
 
@@ -221,6 +223,37 @@ same_sha_runs() {
     [.[].workflow_runs[] |
       select(.event == "pull_request" and .head_sha == $sha and any(.pull_requests[]?; .number == $pr))]
   '
+}
+
+wait_for_published_head_quiescence() {
+  local deadline runs ids previous_ids active observed stable
+  deadline=$(( $(date +%s) + run_timeout ))
+  previous_ids="[]"
+  observed=0
+  stable=0
+  echo "[ci-timing] waiting for the publication-triggered PR run to quiesce"
+
+  while :; do
+    runs="$(same_sha_runs)"
+    ids="$(jq -c 'map(.id) | sort' <<<"$runs")"
+    active="$(jq '[.[] | select(.status != "completed")] | length' <<<"$runs")"
+    [ "$(jq 'length' <<<"$runs")" -gt 0 ] && observed=1
+
+    if [ "$observed" -eq 1 ] && [ "$active" -eq 0 ] && [ "$ids" = "$previous_ids" ]; then
+      stable=$((stable + 1))
+    else
+      stable=0
+    fi
+
+    if [ "$stable" -ge 1 ]; then
+      echo "[ci-timing] publication-triggered PR run set is quiescent"
+      return 0
+    fi
+
+    [ "$(date +%s)" -lt "$deadline" ] || return 1
+    previous_ids="$ids"
+    sleep "$poll_seconds"
+  done
 }
 
 record_error_and_restart() {
@@ -295,6 +328,10 @@ wait_and_validate_run() {
   [ "$(jq -r '.duration_seconds >= 0' <<<"$result")" = true ] || return 3
   printf '%s\n' "$result"
 }
+
+if [ "$published_now" -eq 1 ]; then
+  wait_for_published_head_quiescence || die "publication-triggered PR run did not quiesce before sampling"
+fi
 
 attempt="$(jq -r '.sequence_attempt' "$state_file")"
 while [ "$attempt" -le "$max_sequences" ]; do

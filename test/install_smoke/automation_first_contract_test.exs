@@ -76,8 +76,6 @@ defmodule Rindle.InstallSmoke.AutomationFirstContractTest do
   end
 
   defp run_contract(phase_dir) do
-    System.cmd("bash", [@script, "--phase-dir", phase_dir],
-      stderr_to_stdout: true
-    )
+    System.cmd("bash", [@script, "--phase-dir", phase_dir], stderr_to_stdout: true)
   end
 end
