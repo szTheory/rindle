@@ -27,7 +27,8 @@ inventory contains 35 findings (34 non-Admin); recent PR CI is 13.8 minutes medi
 **Implementation result:** Phases 127–131 are locally verified. Strict Credo fell from 143 to 130,
 the curated complexity baseline fell from 35 to 31, exact coverage is 82.1343%, provider diagnostics
 and mixed operations tests have cohesive owners, and required image proof now starts independently
-with a pinned Phoenix installer. Phase 132 remains open solely for the ten-run PR timing receipt.
+with a pinned Phoenix installer. Phase 132's ten-run PR receipt measured an 8m35.5s median and 9m04s
+p95; CI-14 remains open because the median misses its <=8-minute target by 35.5 seconds.
 
 ## Previous Milestone: v1.24 Core Clarity & Quality Ratchet — shipped 2026-08-23
 

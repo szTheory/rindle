@@ -80,9 +80,9 @@
 | TEST-05, TEST-06, TEST-07 | 129 | Verified |
 | MAINT-01, MAINT-02, MAINT-03 | 130 | Verified |
 | DX-04, CI-10, CI-11, CI-12, CI-13 | 131 | Verified |
-| CI-14, COV-05, SAFE-02 | 132 | In progress — COV-05 and SAFE-02 verified; CI-14 awaits PR runs |
+| CI-14, COV-05, SAFE-02 | 132 | In progress — COV-05 and SAFE-02 verified; CI-14 measured 8m35.5s median / 9m04s p95 and remains open |
 
 **Coverage:** 18 requirements; 18 mapped; 0 unmapped.
 
 ---
-*Last updated: 2026-08-24 — 17/18 requirements verified; CI-14 timing receipt open.*
+*Last updated: 2026-08-25 — 17/18 requirements verified; CI-14 median target missed.*

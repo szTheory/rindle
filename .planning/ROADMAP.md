@@ -108,4 +108,4 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 - `mix test --partitions` parallelization — evidence-gated on measured core starvation (DEFER-02).
 
 ---
-*Last updated: 2026-08-24 — Phases 127–131 verified; Phase 132 awaits ten-run CI timing receipt.*
+*Last updated: 2026-08-25 — Phases 127–131 verified; Phase 132 measured 8m35.5s median / 9m04s p95 and remains open.*
