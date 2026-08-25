@@ -127,19 +127,24 @@ unrelated product or CI drift as behavior-preserving.
 ## Final Automation Candidate Re-census
 
 **Preserved automation candidate SHA:**
-`9d8e7e3a16f35f69ce6e8fa4f1b476afc491a2fa`
+`b60e3e7822a0e59cdb36f19bcfe6e0c1b654b7b1`
 
 This is the immutable code-bearing subject for Plan 05. Commits between this SHA and
 the measured PR head may change only `.planning/**`; the unattended controller
 enforces that boundary before publication or sampling.
 
 The final re-census includes the Phase 132 automation controller and its forward
-policy, plus two automation defects found by this census:
+policy, plus automation defects found by the census and the first fail-closed live
+attempt:
 
 - discovered live runs are resumed from persisted state without triggering a
   duplicate sample;
 - Phoenix generation passes `--no-install`, preserving the post-patch `deps.get`
   authority while suppressing the Phoenix 1.8.9 interactive install prompt.
+- jq arguments avoid the reserved `label` identifier used by the CI runner's jq
+  version;
+- after a fast-forward publication, the controller waits for the synchronize-triggered
+  PR run set to become terminal and stable before applying a sampling label.
 
 The isolation-upgrade smoke command now uses the raising command boundary, so a
 substantive generated-app failure reports its captured stage and output instead of
@@ -152,7 +157,7 @@ All commands below ran after the final source edit on 2026-08-25 and exited `0`:
 1. `mix test test/install_smoke/generated_app_smoke_test.exs --only phase_132_generator_contract --seed 0`
    - `1 test, 0 failures` (`32 excluded`).
 2. `mix test test/install_smoke/ci_timing_automation_test.exs test/install_smoke/automation_first_contract_test.exs test/install_smoke/ci_lane_split_test.exs test/install_smoke/ci_observability_test.exs --seed 0`
-   - `38 tests, 0 failures`.
+   - `39 tests, 0 failures`.
 3. `bash scripts/ci/test_ci_summary_gate.sh`
    - `passed: 6  failed: 0`.
 4. `mix quality_signals`
@@ -165,11 +170,11 @@ All commands below ran after the final source edit on 2026-08-25 and exited `0`:
 7. `./scripts/maintainer/repo_hygiene_check.sh --ci`
    - `9 PASS, 0 WARN, 0 BLOCK`.
 8. `mix coveralls.multiple --type local --type json`
-   - `3 doctests, 1391 tests, 0 failures, 4 skipped (86 excluded)` and a non-empty
+   - `3 doctests, 1392 tests, 0 failures, 4 skipped (86 excluded)` and a non-empty
      `cover/excoveralls.json`.
 9. `bash scripts/install_smoke.sh image`
    - The packed image consumer completed the default, public-compatibility, and
-     isolation-upgrade generated applications with `22 tests, 0 failures` in 123.5s.
+     isolation-upgrade generated applications with `22 tests, 0 failures` in 122.4s.
 
 ### Final coverage arithmetic
 
