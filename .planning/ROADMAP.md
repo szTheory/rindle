@@ -98,6 +98,19 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 
 </details>
 
+### Phase 132: Measured Closure
+
+**Goal**: Close the measured CI-14 median gap on the existing required pull-request path, prove the behavior-preserving quality ratchets remain intact, and replace the failed timing measurement with a fresh comparable ten-run receipt.
+**Depends on**: Phase 131
+**Requirements**: CI-14, COV-05, SAFE-02
+**Success Criteria** (what must be TRUE):
+
+  1. Ten consecutive successful, non-cancelled, first-attempt pull-request runs from one immutable implementation head achieve a median of at most 480 seconds and nearest-rank p95 of at most 600 seconds without weaker gates or newly introduced reruns.
+  2. `CI Summary` remains the sole required check with its required-job set and skip-as-pass behavior intact; any external-runner exception includes job-level evidence, a named owner, and a dated follow-up.
+  3. Authoritative coverage remains at or above 82.13%, and the final correction passes focused proof, `mix quality_signals`, SAFE-01, the relevant integration or packed-consumer lane, and bounded prohibited-surface diff review.
+
+**Plans**: 0 plans
+
 ## Demand-Gated Candidates
 
 - Force-delete semantics for still-shared assets (LIFE-06) — compliance pull only.
