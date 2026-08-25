@@ -132,6 +132,16 @@ includes it before the repository's one default test-suite execution. The full-t
 `mix credo --strict --format oneline` style report remains intentionally advisory in CI;
 it is visible for maintainer review but is not the reviewed actionable policy.
 
+Active planning acceptance is also executable. After changing a current PLAN or VALIDATION artifact,
+run:
+
+```sh
+./scripts/maintainer/automation_first_contract.sh
+```
+
+The contract rejects manual-only verification/UAT while permitting checkpoints whose sole purpose is
+credential bootstrap or irreversible-action authorization. Repository hygiene runs the same check.
+
 For focused real AV behavior, first install the host prerequisites described above
 (FFmpeg >= 6 and libvips for Vix), then run:
 

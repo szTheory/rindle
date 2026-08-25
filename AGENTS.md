@@ -49,6 +49,12 @@ If subagents still bill API models, fall back to manual picker only (remove `mod
 
 **Automated coding agents:** honor the constraints in this file; keep edits focused, run the checks **RUNNING.md** names for your change, and update **`.planning/PROJECT.md`** when you intentionally change product scope or shipped claims.
 
+**Automation-first acceptance:** active requirements must close through executable tests, probes, or
+evidence collectors—not human verification or UAT. Human checkpoints may authorize credentials or
+irreversible actions, but their response must not satisfy a requirement. If acceptance cannot yet be
+automated, add the automation-enablement work or leave the requirement open. After changing active
+planning artifacts, run `./scripts/maintainer/automation_first_contract.sh`.
+
 For UI/admin-console work, follow [guides/ui_principles.md](guides/ui_principles.md) before changing console, Cohort, E2E, or visual-polish surfaces.
 
 Agents should default to the repo's **green-main release train** posture:

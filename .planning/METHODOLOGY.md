@@ -99,6 +99,25 @@ scope and existing architecture cleanly.
 **Apply when:** Designing public APIs, provider boundaries, lifecycle jobs,
 upload surfaces, docs, or operator tooling.
 
+## Automation-First Acceptance Lens
+
+**Diagnoses:** A phase can only close after a maintainer clicks, watches, or manually judges a
+repeatable behavior that software could drive and verify.
+
+**Recommends:** Shift acceptance left into executable contracts:
+
+- every requirement maps to an automated test, integration probe, or evidence collector
+- external systems are driven by bounded, authenticated, resumable maintainer automation
+- human checkpoints authorize credentials or irreversible actions only; they never prove behavior
+- subjective exploratory feedback is optional and non-blocking
+- an acceptance path that is not yet automatable remains open and receives automation-enablement work
+
+Run `./scripts/maintainer/automation_first_contract.sh` after active PLAN or VALIDATION changes. The
+release-hygiene gate runs the same contract so manual-only acceptance cannot silently ship.
+
+**Apply when:** Discussing, planning, executing, validating, or auditing any phase with E2E,
+integration, live-service, package, release, or operational acceptance.
+
 ## Durable Planning Memory Lens
 
 **Diagnoses:** Re-deriving prior conclusions, losing investigations between

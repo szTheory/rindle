@@ -159,6 +159,16 @@ repo_owned_checks() {
     record_result "BLOCK" "ci gate" "release workflow still contains CI bypass paths"
   fi
 
+  if [[ -x scripts/maintainer/automation_first_contract.sh ]]; then
+    if automation_output="$(scripts/maintainer/automation_first_contract.sh 2>&1)"; then
+      record_result "PASS" "automation-first validation" "$automation_output"
+    else
+      record_result "BLOCK" "automation-first validation" "$automation_output"
+    fi
+  else
+    record_result "BLOCK" "automation-first validation" "scripts/maintainer/automation_first_contract.sh is missing or not executable"
+  fi
+
   if [[ -z "$baseline_ver" ]]; then
     record_result "WARN" "hex baseline" "RELEASE-TRAIN baseline version line missing"
   elif [[ "$mix_ver" == "$baseline_ver" ]]; then
