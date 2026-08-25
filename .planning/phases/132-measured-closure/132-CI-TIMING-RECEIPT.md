@@ -49,3 +49,39 @@ the ten consecutive successful runs that followed it.
 External-runner exceptions require job-level evidence, a named owner, and a dated follow-up. Code
 and local verification may be complete while this receipt remains open; the milestone may not close
 without it.
+
+## Fresh corrected-head receipt
+
+Corrected implementation SHA: `1161029d5403088d19f4a5017daf3048ecf159aa`
+Preserved subject SHA: `5001e2a05f378c4fb3b0db9abefc316f8652d3c2`
+Measured immutable PR head: `24c17783bbc080a085e398164450b7c3f475781e`
+
+CI_TIMING_TABLE_BEGIN
+| Sequence | Run ID | Source | Started (UTC) | Duration seconds | Attempt | Result | Exception disposition |
+| ---: | ---: | --- | --- | ---: | ---: | --- | --- |
+| 1 | 32899635815 | https://github.com/szTheory/rindle/actions/runs/32899635815 | 2026-08-25T21:11:17Z | 499 | 1 | success | none |
+| 2 | 32900433539 | https://github.com/szTheory/rindle/actions/runs/32900433539 | 2026-08-25T21:20:00Z | 519 | 1 | success | none |
+| 3 | 32901253399 | https://github.com/szTheory/rindle/actions/runs/32901253399 | 2026-08-25T21:29:13Z | 410 | 1 | success | none |
+| 4 | 32901888556 | https://github.com/szTheory/rindle/actions/runs/32901888556 | 2026-08-25T21:36:24Z | 542 | 1 | success | none |
+| 5 | 32902703631 | https://github.com/szTheory/rindle/actions/runs/32902703631 | 2026-08-25T21:45:36Z | 503 | 1 | success | none |
+| 6 | 32903456697 | https://github.com/szTheory/rindle/actions/runs/32903456697 | 2026-08-25T21:54:19Z | 525 | 1 | success | none |
+| 7 | 32904266058 | https://github.com/szTheory/rindle/actions/runs/32904266058 | 2026-08-25T22:03:34Z | 514 | 1 | success | none |
+| 8 | 32904999937 | https://github.com/szTheory/rindle/actions/runs/32904999937 | 2026-08-25T22:12:18Z | 543 | 1 | success | none |
+| 9 | 32905752635 | https://github.com/szTheory/rindle/actions/runs/32905752635 | 2026-08-25T22:21:33Z | 461 | 1 | success | none |
+| 10 | 32906413809 | https://github.com/szTheory/rindle/actions/runs/32906413809 | 2026-08-25T22:29:48Z | 543 | 1 | success | none |
+CI_TIMING_TABLE_END
+
+Sorted duration seconds: `410, 461, 499, 503, 514, 519, 525, 542, 543, 543`
+
+- Median: (rank 5 + rank 6) / 2 = 516.5 seconds (target <= 480).
+- Nearest-rank p95: rank 10 = 543 seconds (target <= 600).
+
+| Metric | Target | Observed | Verdict |
+| --- | ---: | ---: | --- |
+| Median | <= 480 | 516.5 | FAIL |
+| p95 | <= 600 | 543 | PASS |
+| Verdict | FAIL | FAIL | FAIL |
+
+CI_TIMING_SOURCE_BEGIN
+{"sha":"24c17783bbc080a085e398164450b7c3f475781e","runs":[{"id":32899635815,"duration_seconds":499},{"id":32900433539,"duration_seconds":519},{"id":32901253399,"duration_seconds":410},{"id":32901888556,"duration_seconds":542},{"id":32902703631,"duration_seconds":503},{"id":32903456697,"duration_seconds":525},{"id":32904266058,"duration_seconds":514},{"id":32904999937,"duration_seconds":543},{"id":32905752635,"duration_seconds":461},{"id":32906413809,"duration_seconds":543}],"median_seconds":516.5,"p95_seconds":543}
+CI_TIMING_SOURCE_END

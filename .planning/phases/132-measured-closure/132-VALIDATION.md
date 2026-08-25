@@ -1,7 +1,7 @@
 ---
 phase: 132
 slug: measured-closure
-status: draft
+status: gaps_found
 nyquist_compliant: true
 wave_0_complete: true
 created: 2026-08-25
@@ -45,8 +45,8 @@ created: 2026-08-25
 | 132-02-02 | 02 | 2 | COV-05, SAFE-02 | T-132-01 | Coverage and prohibited product/release surfaces do not drift | ordered integration + contract | `mix quality_signals`; `bash scripts/maintainer/refactor_contract.sh`; one authoritative coverage run; `bash scripts/install_smoke.sh image` | ✅ | ✅ green |
 | 132-03-01 | 03 | 3 | CI-14 | T-132-02 / T-132-03 | Controller owns fast-forward publication, label cleanup, exact run identity, sequencing, restart budget, and receipt arithmetic | offline orchestration | `mix test test/install_smoke/ci_timing_automation_test.exs --seed 0` | ✅ | ✅ green |
 | 132-03-02 | 03 | 3 | SAFE-02 | T-132-01 | Active requirements cannot close through manual verification or UAT | planning contract | `mix test test/install_smoke/automation_first_contract_test.exs --seed 0 && ./scripts/maintainer/automation_first_contract.sh` | ✅ | ✅ green |
-| 132-04-01 | 04 | 4 | CI-14, COV-05, SAFE-02 | T-132-01 / T-132-04 | Final controller candidate retains every required ratchet | preservation acceptance | focused contracts, quality_signals, SAFE-01, authoritative coverage, image package-consumer | ✅ | ⬜ pending |
-| 132-05-01 | 05 | 5 | CI-14 | T-132-02 / T-132-03 | Ten-run receipt is generated, sourced, calculated, and judged without a person | live automated acceptance | `collect_pr_timing_receipt.sh run ... && collect_pr_timing_receipt.sh verify ...` | ✅ | ⬜ pending |
+| 132-04-01 | 04 | 4 | CI-14, COV-05, SAFE-02 | T-132-01 / T-132-04 | Final controller candidate retains every required ratchet | preservation acceptance | focused contracts, quality_signals, SAFE-01, authoritative coverage, image package-consumer | ✅ | ✅ green |
+| 132-05-01 | 05 | 5 | CI-14 | T-132-02 / T-132-03 | Ten-run receipt is generated, sourced, calculated, and judged without a person | live automated acceptance | `collect_pr_timing_receipt.sh run ... && collect_pr_timing_receipt.sh verify ...` | ✅ | ❌ red |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -76,4 +76,5 @@ None. Every Phase 132 requirement has an automated contract, preservation author
 - [x] Fast tagged-contract feedback is recorded before the distinct full image integration acceptance
 - [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** automation contract established; live acceptance pending Plan 05
+**Approval:** automated evidence complete with `gaps_found`; CI-14's 516.5-second median exceeds the
+480-second target, while the 543-second p95 passes. No manual verification or UAT is required.

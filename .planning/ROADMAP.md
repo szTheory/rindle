@@ -114,7 +114,7 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
   2. `CI Summary` remains the sole required check with its required-job set and skip-as-pass behavior intact; any external-runner exception includes job-level evidence, a named owner, and a dated follow-up.
   3. Authoritative coverage remains at or above 82.13%, and the final correction passes focused proof, `mix quality_signals`, SAFE-01, the relevant integration or packed-consumer lane, and bounded prohibited-surface diff review.
 
-**Plans**: 4/5 plans executed
+**Plans**: 5/5 plans executed
 
 **Wave 1 — tracer correction and package proof**
 
@@ -134,7 +134,7 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 
 **Wave 5 — unattended live timing acceptance** *(blocked on Wave 4 completion)*
 
-- [ ] 132-05-PLAN.md — Publish, collect, calculate, and independently verify the fresh exact-head ten-run CI receipt without UAT.
+- [x] 132-05-PLAN.md — Publish, collect, calculate, and independently verify the fresh exact-head ten-run CI receipt without UAT.
 
 ## Demand-Gated Candidates
 
@@ -146,4 +146,4 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 - `mix test --partitions` parallelization — evidence-gated on measured core starvation (DEFER-02).
 
 ---
-*Last updated: 2026-08-25 — Phases 127–131 verified; Phase 132 measured 8m35.5s median / 9m04s p95 and remains open.*
+*Last updated: 2026-08-25 — Phase 132 executed all five plans; the fresh automated receipt measured 8m36.5s median / 9m03s p95, so CI-14 and the phase remain open with gaps found.*

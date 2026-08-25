@@ -4,16 +4,16 @@ milestone: v1.25
 milestone_name: Maintainer Craft & Feedback Velocity
 current_phase: 132
 current_phase_name: measured-closure
-status: executing
-stopped_at: Completed 132-04-PLAN.md
-last_updated: "2026-08-25T20:12:05Z"
+status: gaps_found
+stopped_at: Completed 132-05-PLAN.md — gaps found
+last_updated: "2026-08-25T22:40:49Z"
 last_activity: 2026-08-25
-last_activity_desc: Phase 132 execution started
+last_activity_desc: Phase 132 automated timing receipt completed with CI-14 median gap
 progress:
   total_phases: 3
   completed_phases: 0
   total_plans: 5
-  completed_plans: 4
+  completed_plans: 5
   percent: 0
 ---
 
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-08-23 after v1.24)
 
 ## Current Position
 
-Phase: 132 (measured-closure) — EXECUTING
+Phase: 132 (measured-closure) — GAPS FOUND
 Plan: 5 of 5
-Status: Ready for unattended live timing acceptance
-Last activity: 2026-08-25 — preserved the final automation candidate after the complete re-census
+Status: CI-14 median 516.5s exceeds the 480s target; p95 543s passes
+Last activity: 2026-08-25 — completed and independently verified the unattended ten-run receipt
 
 ### v1.24 shipped summary
 
@@ -60,9 +60,9 @@ the historical 0.4.0 contract; do not regress either side of that invariant.
 
 ## Next Step
 
-Re-preserve the final automation code-bearing subject, then run the bounded unattended ten-run PR
-measurement. The milestone cannot close until the approved <=8-minute
-median / <=10-minute p95 target is demonstrated by machine-verifiable evidence with no human UAT.
+Plan a new evidence-guided CI-14 remediation slice from the fresh receipt. The milestone cannot close
+until the approved <=8-minute median / <=10-minute p95 target is demonstrated by machine-verifiable
+evidence; no human UAT is needed.
 
 ## Prior Milestone
 
@@ -207,6 +207,7 @@ _(Key v1.22 execution decisions recorded at milestone close.)_
 - [Phase ?]: The generator argv is protected by a bounded source-region contract plus the real built-package image proof.
 - [Phase ?]: Phase 132 Plan 02 records both the final implementation commit literal one-file diff and the complete two-file TDD correction range rather than misrepresenting commit topology.
 - [Phase ?]: COV-05 and SAFE-02 preservation passed with one authoritative 82.1343% coverage run; CI-14 remains externally open pending the Plan 03 ten-run receipt.
+- [Phase 132]: Plan 05 completed ten sequential first-attempt PR samples at immutable head 24c17783; median 516.5s failed CI-14 by 36.5s while p95 543s passed, so verification is gaps_found with no human-needed state.
 
 ## Blockers/Concerns
 
@@ -224,8 +225,8 @@ _(none)_
 
 ## Session Continuity
 
-Last session: 2026-08-25T20:12:05Z
-Stopped at: Completed 132-04-PLAN.md
+Last session: 2026-08-25T22:40:49Z
+Stopped at: Completed 132-05-PLAN.md — gaps found
 Resume file: None
 
 ## Performance Metrics
@@ -282,7 +283,8 @@ Resume file: None
 | Phase 132 P02 | 6 min | 2 tasks | 2 files |
 | Phase 132 P03 | 16 min | 1 tasks | 12 files |
 | Phase 132 P04 | 56 min | 1 tasks | 6 files |
+| Phase 132 P05 | ~96 min | 1 tasks | 5 planning files |
 
 ## Operator Next Steps
 
-- Execute Phase 132 Plan 05 unattended live timing acceptance.
+- Plan a bounded automated CI-14 median-remediation slice from the fresh exact-head receipt; no UAT.

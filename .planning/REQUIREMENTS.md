@@ -58,7 +58,7 @@
 - [x] **CI-13**: Generated-app entry scripts install one centrally owned Phoenix generator version and
   prove cold installation, matching-version reuse, and actionable mismatch behavior.
 
-- [x] **CI-14**: Ten consecutive comparable non-cancelled PR runs achieve <=8 minutes median and <=10
+- [ ] **CI-14**: Ten consecutive comparable non-cancelled PR runs achieve <=8 minutes median and <=10
   minutes p95 without weaker gates or newly introduced reruns. External-runner exceptions require
   job-level evidence, a named owner, and a dated follow-up.
 
@@ -93,7 +93,7 @@
 | TEST-05, TEST-06, TEST-07 | 129 | Verified |
 | MAINT-01, MAINT-02, MAINT-03 | 130 | Verified |
 | DX-04, CI-10, CI-11, CI-12, CI-13 | 131 | Verified |
-| CI-14, COV-05, SAFE-02 | 132 | In progress — COV-05 and SAFE-02 verified; CI-14 measured 8m35.5s median / 9m04s p95 and remains open |
+| CI-14, COV-05, SAFE-02 | 132 | Gaps found — COV-05 and SAFE-02 verified; fresh automated CI-14 receipt measured 8m36.5s median / 9m03s p95 and remains open |
 
 **Coverage:** 18 requirements; 18 mapped; 0 unmapped.
 
