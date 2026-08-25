@@ -109,7 +109,19 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
   2. `CI Summary` remains the sole required check with its required-job set and skip-as-pass behavior intact; any external-runner exception includes job-level evidence, a named owner, and a dated follow-up.
   3. Authoritative coverage remains at or above 82.13%, and the final correction passes focused proof, `mix quality_signals`, SAFE-01, the relevant integration or packed-consumer lane, and bounded prohibited-surface diff review.
 
-**Plans**: 0 plans
+**Plans**: 3 plans
+
+**Wave 1 — tracer correction and package proof**
+
+- [ ] 132-01-PLAN.md — Remove duplicated pre-patch generator installation and prove the unchanged clean-room image lifecycle.
+
+**Wave 2 — preservation census** *(blocked on Wave 1 completion)*
+
+- [ ] 132-02-PLAN.md — Reconfirm required-gate topology, authoritative coverage, SAFE-01, and packed image-consumer preservation.
+
+**Wave 3 — live timing acceptance** *(blocked on Wave 2 completion)*
+
+- [ ] 132-03-PLAN.md — Collect and independently verify the fresh non-overlapping exact-head ten-run CI receipt.
 
 ## Demand-Gated Candidates
 
