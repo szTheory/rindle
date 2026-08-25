@@ -44,6 +44,7 @@ created: 2026-08-25
 | 132-02-01 | 02 | 2 | CI-14 | T-132-01 / T-132-04 | Required-job set, skip-as-pass behavior, and quoted trusted inputs remain unchanged | contract | `mix test test/install_smoke/ci_lane_split_test.exs test/install_smoke/ci_observability_test.exs`, then `bash scripts/ci/test_ci_summary_gate.sh`; stop at the first failure | ✅ | ⬜ pending |
 | 132-02-02 | 02 | 2 | COV-05, SAFE-02 | T-132-01 | Coverage and prohibited product/release surfaces do not drift | ordered integration + contract | Run independently in order, stopping at the first failure: `mix quality_signals`; `bash scripts/maintainer/refactor_contract.sh`; `mix coveralls.multiple --type local --type json`; `test -s cover/excoveralls.json`; the documented `jq -e` inclusive-threshold check; `bash scripts/install_smoke.sh image` | ✅ | ⬜ pending |
 | 132-03-01 | 03 | 3 | CI-14 | T-132-02 / T-132-03 | Receipt excludes reruns, mixed heads, cancellations, and unsupported runner exceptions | live acceptance | read-only `gh api` receipt collection from one immutable implementation SHA | manual/external | ⬜ pending |
+| 132-03-02 | 03 | 3 | CI-14 | T-132-02 / T-132-03 | Receipt source manifest equals ten consecutive eligible API runs, has no baseline overlap, and recomputed median/p95 both meet their inclusive thresholds | automated live-evidence gate | Plan 03 Task 2 read-only `gh api`/`jq` source-manifest verification | ✅ inline plan gate | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
