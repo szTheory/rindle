@@ -45,16 +45,21 @@ Historical milestone and phase detail is retained in `.planning/milestones/`.
 - [x] **Phase 127: Evidence Charter & Quality Census** — Freeze the candidate inventory, baselines,
   craftsmanship rubric, explicit dispositions, and change-to-proof skeleton. Requirements: CRAFT-01,
   CRAFT-02.
+
 - [x] **Phase 128: Present-Tense Code & Test Provenance** — Remove unreviewed delivery-history markers
   and rewrite useful prose around current domain invariants. Requirements: PROV-01, PROV-02.
+
 - [x] **Phase 129: Behavioral Test Ownership** — Reorganize the two mixed suites and audit
   source/artifact-reading tests without implementation snapshots. Requirements: TEST-05, TEST-06,
   TEST-07.
+
 - [x] **Phase 130: Runtime Diagnostics & Complexity** — Separate Mux/GCS diagnostics and remove their
   owned complexity findings without contract drift. Requirements: MAINT-01, MAINT-02, MAINT-03.
+
 - [x] **Phase 131: Signal-Preserving CI Velocity** — Restore coverage concurrency, streamline and
   parallelize image consumer proof, pin generator setup, and publish the change-to-proof map.
   Requirements: DX-04, CI-10, CI-11, CI-12, CI-13.
+
 - [ ] **Phase 132: Measured Closure** — Re-census the ratchets, prove preservation, and collect the
   ten-run CI timing receipt. Requirements: CI-14, COV-05, SAFE-02.
 
@@ -109,11 +114,11 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
   2. `CI Summary` remains the sole required check with its required-job set and skip-as-pass behavior intact; any external-runner exception includes job-level evidence, a named owner, and a dated follow-up.
   3. Authoritative coverage remains at or above 82.13%, and the final correction passes focused proof, `mix quality_signals`, SAFE-01, the relevant integration or packed-consumer lane, and bounded prohibited-surface diff review.
 
-**Plans**: 3 plans
+**Plans**: 1/3 plans executed
 
 **Wave 1 — tracer correction and package proof**
 
-- [ ] 132-01-PLAN.md — Remove duplicated pre-patch generator installation and prove the unchanged clean-room image lifecycle.
+- [x] 132-01-PLAN.md — Remove duplicated pre-patch generator installation and prove the unchanged clean-room image lifecycle.
 
 **Wave 2 — preservation census** *(blocked on Wave 1 completion)*
 

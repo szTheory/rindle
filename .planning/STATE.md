@@ -2,18 +2,19 @@
 gsd_state_version: 1.0
 milestone: v1.25
 milestone_name: Maintainer Craft & Feedback Velocity
-status: Active — CI timing target missed
-stopped_at: Phase 132 context gathered (assumptions mode)
-last_updated: "2026-08-25T16:49:34Z"
-last_activity: 2026-08-25
-last_activity_desc: Ten-run PR receipt recorded; 8m35.5s median misses CI-14
-progress:
-  total_phases: 6
-  completed_phases: 5
-  total_plans: 6
-  completed_plans: 5
 current_phase: 132
-current_phase_name: Measured Closure
+current_phase_name: measured-closure
+status: executing
+stopped_at: Completed 132-01-PLAN.md
+last_updated: "2026-08-25T18:57:10.402Z"
+last_activity: 2026-08-25
+last_activity_desc: Phase 132 execution started
+progress:
+  total_phases: 3
+  completed_phases: 0
+  total_plans: 3
+  completed_plans: 1
+  percent: 0
 ---
 
 # Project State
@@ -23,14 +24,14 @@ current_phase_name: Measured Closure
 See: .planning/PROJECT.md (updated 2026-08-23 after v1.24)
 
 **Core value:** Media, made durable.
-**Current focus:** v1.25 evidence-bounded non-Admin maintainability and PR feedback velocity.
+**Current focus:** Phase 132 — measured-closure
 
 ## Current Position
 
-Phase: 132 of 132 — Measured Closure
-Plan: Close the measured CI-14 median gap without weakening required proof
-Status: Ten-run receipt complete; p95 passes at 9m04s, median fails at 8m35.5s
-Last activity: 2026-08-25 — ten consecutive successful PR runs measured on PR #96
+Phase: 132 (measured-closure) — EXECUTING
+Plan: 2 of 3
+Status: Ready to execute
+Last activity: 2026-08-25 — Phase 132 execution started
 
 ### v1.24 shipped summary
 
@@ -202,6 +203,8 @@ _(Key v1.22 execution decisions recorded at milestone close.)_
 - [Phase ?]: E01-E03 are obsolete only after the source-unchanged supported probe emitted no matching facade/Broker/PromoteAsset warnings.
 - [Phase ?]: E08 removes only an unreachable private PromoteAsset fallback; the four retained atom filters are E04-E07.
 - [Phase ?]: Phase 126 Plan 09: exact-head Nightly 1.17/27 Dialyzer, Nightly Summary, and PR CI Summary accepted candidate a36cd146; issue #76 closed only after all 45 dispositions qualified.
+- [Phase ?]: Phase 132 Plan 01 removes only Phoenix --install and retains Workspace.fetch_deps!/3 as the sole post-patch dependency authority.
+- [Phase ?]: The generator argv is protected by a bounded source-region contract plus the real built-package image proof.
 
 ## Blockers/Concerns
 
@@ -219,9 +222,9 @@ _(none)_
 
 ## Session Continuity
 
-Last session: 2026-08-25T16:49:34Z
-Stopped at: Phase 132 context gathered (assumptions mode)
-Resume file: .planning/phases/132-measured-closure/132-CONTEXT.md
+Last session: 2026-08-25T18:57:10.396Z
+Stopped at: Completed 132-01-PLAN.md
+Resume file: None
 
 ## Performance Metrics
 
@@ -273,6 +276,7 @@ Resume file: .planning/phases/132-measured-closure/132-CONTEXT.md
 | Phase 126 P08 | 15min | 2 tasks | 4 files |
 | Phase 126 P09 | 24min | 2 tasks | 3 files |
 | Phase 126 P10 | planned | 2 tasks | 1 implementation file |
+| Phase 132 P01 | 4 min | 1 tasks | 2 files |
 
 ## Operator Next Steps
 
