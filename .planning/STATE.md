@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.25
 milestone_name: Maintainer Craft & Feedback Velocity
 status: Active — CI timing target missed
-stopped_at: Phase 132 measured median above CI-14 target
-last_updated: "2026-08-25T11:50:00-04:00"
+stopped_at: Phase 132 context gathered (assumptions mode)
+last_updated: "2026-08-25T16:49:34Z"
 last_activity: 2026-08-25
 last_activity_desc: Ten-run PR receipt recorded; 8m35.5s median misses CI-14
 progress:
@@ -219,9 +219,9 @@ _(none)_
 
 ## Session Continuity
 
-Last session: 2026-08-23T18:25:41.782Z
-Stopped at: Milestone v1.24 archived; demand-gated pause
-Resume file: None
+Last session: 2026-08-25T16:49:34Z
+Stopped at: Phase 132 context gathered (assumptions mode)
+Resume file: .planning/phases/132-measured-closure/132-CONTEXT.md
 
 ## Performance Metrics
 
