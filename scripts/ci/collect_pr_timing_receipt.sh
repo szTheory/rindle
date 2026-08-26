@@ -6,7 +6,8 @@ usage() {
   cat <<'EOF' >&2
 usage:
   collect_pr_timing_receipt.sh preflight|run [options]
-  collect_pr_timing_receipt.sh verify --receipt PATH
+  collect_pr_timing_receipt.sh verify --repo OWNER/REPO --workflow FILE --summary-job NAME
+    --samples N --median-max SECONDS --p95-max SECONDS --receipt PATH
 
 run/preflight options:
   --repo OWNER/REPO --pr N --workflow FILE --summary-job NAME --label NAME
@@ -74,20 +75,20 @@ done
 
 require_command jq
 
-manifest_from_receipt() {
+current_manifest_from_receipt() {
   local path="$1"
-  awk '$0 == "CI_TIMING_SOURCE_BEGIN" {take=1; next} $0 == "CI_TIMING_SOURCE_END" {take=0} take' "$path"
+  awk '$0 == "CI_TIMING_CURRENT_SOURCE_BEGIN" {take=1; next} $0 == "CI_TIMING_CURRENT_SOURCE_END" {take=0} take' "$path"
 }
 
-verify_receipt_shape() {
+verify_current_receipt_shape() {
   local path="$1" manifest table_rows manifest_rows
   [ -s "$path" ] || die "receipt is missing or empty: $path"
-  [ "$(grep -c '^CI_TIMING_SOURCE_BEGIN$' "$path" || true)" -eq 1 ] || die "receipt must contain one CI_TIMING_SOURCE_BEGIN marker"
-  [ "$(grep -c '^CI_TIMING_SOURCE_END$' "$path" || true)" -eq 1 ] || die "receipt must contain one CI_TIMING_SOURCE_END marker"
-  [ "$(grep -c '^CI_TIMING_TABLE_BEGIN$' "$path" || true)" -eq 1 ] || die "receipt must contain one CI_TIMING_TABLE_BEGIN marker"
-  [ "$(grep -c '^CI_TIMING_TABLE_END$' "$path" || true)" -eq 1 ] || die "receipt must contain one CI_TIMING_TABLE_END marker"
+  [ "$(grep -c '^CI_TIMING_CURRENT_SOURCE_BEGIN$' "$path" || true)" -eq 1 ] || die "receipt must contain one CI_TIMING_CURRENT_SOURCE_BEGIN marker"
+  [ "$(grep -c '^CI_TIMING_CURRENT_SOURCE_END$' "$path" || true)" -eq 1 ] || die "receipt must contain one CI_TIMING_CURRENT_SOURCE_END marker"
+  [ "$(grep -c '^CI_TIMING_CURRENT_TABLE_BEGIN$' "$path" || true)" -eq 1 ] || die "receipt must contain one CI_TIMING_CURRENT_TABLE_BEGIN marker"
+  [ "$(grep -c '^CI_TIMING_CURRENT_TABLE_END$' "$path" || true)" -eq 1 ] || die "receipt must contain one CI_TIMING_CURRENT_TABLE_END marker"
 
-  manifest="$(manifest_from_receipt "$path")"
+  manifest="$(current_manifest_from_receipt "$path")"
   jq -e --argjson expected "$samples" '
     (.sha | test("^[0-9a-f]{40}$")) and
     (.runs | type == "array" and length == $expected) and
@@ -98,8 +99,8 @@ verify_receipt_shape() {
   ' <<<"$manifest" >/dev/null || die "receipt manifest must contain exactly $samples runs with valid timing data"
 
   table_rows="$(awk '
-    $0 == "CI_TIMING_TABLE_BEGIN" {take=1; next}
-    $0 == "CI_TIMING_TABLE_END" {take=0}
+    $0 == "CI_TIMING_CURRENT_TABLE_BEGIN" {take=1; next}
+    $0 == "CI_TIMING_CURRENT_TABLE_END" {take=0}
     take && $0 ~ /^\| [0-9]+ \| [0-9]+ \|/ {
       gsub(/^\| /, ""); split($0, c, " \\| "); print c[2] "\t" c[5]
     }
@@ -116,9 +117,56 @@ verify_receipt_shape() {
   [ "$(jq -r '.p95' <<<"$recalculated")" = "$(jq -r '.p95_seconds' <<<"$manifest")" ] || die "receipt p95 does not match its durations"
 }
 
+verify_api_backed_receipt() {
+  local path="$1" manifest run id run_api jobs_api actual selected eligible workflow_runs chronology previous_end current_start
+  verify_current_receipt_shape "$path"
+  manifest="$(current_manifest_from_receipt "$path")"
+  [ "$(jq -r '.sha | length == 40' <<<"$manifest")" = true ] || die "current receipt SHA must be immutable"
+
+  while IFS= read -r run; do
+    id="$(jq -r '.id' <<<"$run")"
+    run_api="$(gh api -H 'Accept: application/vnd.github+json' "repos/${repo}/actions/runs/${id}")" || die "unable to resolve Actions run $id"
+    jobs_api="$(gh api -H 'Accept: application/vnd.github+json' "repos/${repo}/actions/runs/${id}/jobs?per_page=100")" || die "unable to resolve Actions jobs for $id"
+    actual="$(jq -cn --argjson expected "$run" --argjson api "$run_api" --argjson jobs "$jobs_api" --arg name "$summary_job" '
+      ($jobs | (if type == "array" then [.[].jobs[]] else [.jobs[]] end) | [.[] | select(.name == $name)]) as $summary |
+      if ($summary|length) != 1 then error("CI Summary must appear exactly once")
+      elif ($api.event != "pull_request" or $api.head_sha != $expected.sha or $api.run_attempt != 1 or $api.status != "completed" or $api.conclusion != "success") then error("run identity is not qualifying")
+      elif ($summary[0].status != "completed" or $summary[0].conclusion != "success" or $api.run_started_at == null or $summary[0].completed_at == null) then error("summary is not qualifying")
+      else {id:$api.id, sha:$api.head_sha, url:($api.html_url // ""), started_at:$api.run_started_at, summary_completed_at:$summary[0].completed_at, duration_seconds:(($summary[0].completed_at|fromdateiso8601)-($api.run_started_at|fromdateiso8601))} end
+    ' 2>/dev/null)" || die "run $id failed Actions identity or CI Summary validation"
+    jq -e --argjson expected "$run" --argjson actual "$actual" '
+      $actual.duration_seconds >= 0 and
+      $expected.id == $actual.id and $expected.sha == $actual.sha and
+      $expected.started_at == $actual.started_at and
+      $expected.duration_seconds == $actual.duration_seconds and
+      (($expected.url // $actual.url) == $actual.url)
+    ' >/dev/null || die "run $id differs from the current receipt manifest"
+  done < <(jq -c '.sha as $sha | .runs[] | . + {sha:$sha}' <<<"$manifest")
+
+  selected="$(jq -c '[.runs[].id]' <<<"$manifest")"
+  workflow_runs="$(gh api -H 'Accept: application/vnd.github+json' "repos/${repo}/actions/workflows/${workflow}/runs?event=pull_request&per_page=100")" || die "unable to resolve eligible Actions chronology"
+  eligible="$(jq -c --arg sha "$(jq -r .sha <<<"$manifest")" '(if type == "array" then .[0] else . end).workflow_runs | map(select(.event == "pull_request" and .head_sha == $sha and .run_attempt == 1 and .status == "completed" and .conclusion == "success") | {id,run_started_at}) | sort_by(.run_started_at, .id) | map(.id)' <<<"$workflow_runs")" || die "unable to resolve eligible Actions chronology"
+  [ "$eligible" = "$selected" ] || die "current receipt is not the complete consecutive exact-head eligible run slice"
+  previous_end=0
+  chronology="$(jq -r '.runs[] | . as $run | [($run.started_at | fromdateiso8601), ($run.summary_completed_at | fromdateiso8601)] | @tsv' <<<"$manifest")" || die "current receipt chronology is malformed"
+  while IFS=$'\t' read -r current_start current_end; do
+    [ "$current_start" -ge "$previous_end" ] || die "current receipt samples overlap"
+    previous_end="$current_end"
+  done <<<"$chronology"
+
+  jq -e --argjson median_max "$median_max" --argjson p95_max "$p95_max" '
+    .median_seconds <= $median_max and .p95_seconds <= $p95_max
+  ' <<<"$manifest" >/dev/null || die "current receipt misses inclusive CI-14 timing thresholds"
+}
+
 if [ "$mode" = verify ]; then
+  require_command gh
+  [ "$repo" = "szTheory/rindle" ] || die "verify requires --repo szTheory/rindle"
+  [ "$workflow" = "ci.yml" ] || die "verify requires --workflow ci.yml"
+  [ "$summary_job" = "CI Summary" ] || die "verify requires --summary-job CI Summary"
   [ -n "$receipt" ] || die "--receipt is required"
-  verify_receipt_shape "$receipt"
+  [ "$samples" -eq 10 ] || die "--samples must be exactly 10 for the CI-14 contract"
+  verify_api_backed_receipt "$receipt"
   echo "[ci-timing] receipt verification passed: $receipt"
   exit 0
 fi
@@ -207,7 +255,7 @@ if [ ! -f "$state_file" ] || [ "$(jq -r '.status // ""' "$state_file")" = failed
 fi
 
 if [ "$(jq -r '.status // ""' "$state_file")" = complete ]; then
-  verify_receipt_shape "$receipt"
+  verify_current_receipt_shape "$receipt"
   completed_verdict="$(jq -r '.verdict' "$state_file")"
   echo "[ci-timing] existing completed receipt verified: verdict=$completed_verdict"
   [ "$completed_verdict" = PASS ] && exit 0
@@ -428,7 +476,10 @@ verdict=PASS
 jq -en --argjson actual "$median" --argjson maximum "$median_max" '$actual <= $maximum' >/dev/null || verdict=FAIL
 jq -en --argjson actual "$p95" --argjson maximum "$p95_max" '$actual <= $maximum' >/dev/null || verdict=FAIL
 
-[ "$(grep -c '^CI_TIMING_SOURCE_BEGIN$' "$receipt" 2>/dev/null || true)" -eq 0 ] || die "receipt already contains a fresh source manifest"
+[ "$(grep -c '^CI_TIMING_CURRENT_SOURCE_BEGIN$' "$receipt" 2>/dev/null || true)" -eq 0 ] || die "receipt already contains a current source manifest"
+[ "$(grep -c '^CI_TIMING_CURRENT_SOURCE_END$' "$receipt" 2>/dev/null || true)" -eq 0 ] || die "receipt contains a partial current source manifest"
+[ "$(grep -c '^CI_TIMING_CURRENT_TABLE_BEGIN$' "$receipt" 2>/dev/null || true)" -eq 0 ] || die "receipt already contains a current timing table"
+[ "$(grep -c '^CI_TIMING_CURRENT_TABLE_END$' "$receipt" 2>/dev/null || true)" -eq 0 ] || die "receipt contains a partial current timing table"
 section="$(mktemp "${TMPDIR:-/tmp}/rindle-ci-timing-section.XXXXXX")"
 next_receipt="$(mktemp "${TMPDIR:-/tmp}/rindle-ci-timing-receipt.XXXXXX")"
 trap 'cleanup_label; rm -f "${section:-}" "${next_receipt:-}"' EXIT INT TERM
@@ -441,11 +492,11 @@ trap 'cleanup_label; rm -f "${section:-}" "${next_receipt:-}"' EXIT INT TERM
   echo "Preserved subject SHA: \`$preserved_subject_sha\`"
   echo "Measured immutable PR head: \`$head_sha\`"
   echo
-  echo "CI_TIMING_TABLE_BEGIN"
+  echo "CI_TIMING_CURRENT_TABLE_BEGIN"
   echo "| Sequence | Run ID | Source | Started (UTC) | Duration seconds | Attempt | Result | Exception disposition |"
   echo "| ---: | ---: | --- | --- | ---: | ---: | --- | --- |"
   jq -r 'to_entries[] | "| \(.key + 1) | \(.value.id) | \(.value.url) | \(.value.started_at) | \(.value.duration_seconds) | \(.value.attempt) | \(.value.conclusion) | none |"' <<<"$runs"
-  echo "CI_TIMING_TABLE_END"
+  echo "CI_TIMING_CURRENT_TABLE_END"
   echo
   echo "Sorted duration seconds: \`$(jq -r 'join(", ")' <<<"$sorted")\`"
   echo
@@ -458,15 +509,15 @@ trap 'cleanup_label; rm -f "${section:-}" "${next_receipt:-}"' EXIT INT TERM
   echo "| p95 | <= $p95_max | $p95 | $([ "$(jq -n --argjson a "$p95" --argjson b "$p95_max" '$a <= $b')" = true ] && echo PASS || echo FAIL) |"
   echo "| Verdict | $verdict | $verdict | $verdict |"
   echo
-  echo "CI_TIMING_SOURCE_BEGIN"
-  jq -cn --arg sha "$head_sha" --argjson runs "$runs" --argjson median "$median" --argjson p95 "$p95" '{sha:$sha,runs:($runs|map({id,duration_seconds})),median_seconds:$median,p95_seconds:$p95}'
-  echo "CI_TIMING_SOURCE_END"
+  echo "CI_TIMING_CURRENT_SOURCE_BEGIN"
+  jq -cn --arg sha "$head_sha" --argjson runs "$runs" --argjson median "$median" --argjson p95 "$p95" '{sha:$sha,runs:$runs,median_seconds:$median,p95_seconds:$p95}'
+  echo "CI_TIMING_CURRENT_SOURCE_END"
 } > "$section"
 
 cp "$receipt" "$next_receipt"
 cat "$section" >> "$next_receipt"
 mv "$next_receipt" "$receipt"
-verify_receipt_shape "$receipt"
+verify_current_receipt_shape "$receipt"
 
 tmp="$(mktemp "${TMPDIR:-/tmp}/rindle-ci-timing-state.XXXXXX")"
 jq --arg verdict "$verdict" --argjson median "$median" --argjson p95 "$p95" '.status="complete" | .verdict=$verdict | .median_seconds=$median | .p95_seconds=$p95' "$state_file" > "$tmp" && mv "$tmp" "$state_file"
