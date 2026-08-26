@@ -7,7 +7,7 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
     root =
       Path.join(
         System.tmp_dir!(),
-        "rindle-ci-timing-#{System.unique_integer([:positive])}"
+        "rindle-ci-timing-#{System.os_time(:nanosecond)}-#{System.unique_integer([:positive])}"
       )
 
     bin = Path.join(root, "bin")
@@ -43,14 +43,14 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
     assert File.read!(context.receipt) |> String.starts_with?(context.baseline)
 
     receipt = File.read!(context.receipt)
-    assert receipt =~ "CI_TIMING_SOURCE_BEGIN"
-    assert receipt =~ "CI_TIMING_TABLE_BEGIN"
+    assert receipt =~ "CI_TIMING_CURRENT_SOURCE_BEGIN"
+    assert receipt =~ "CI_TIMING_CURRENT_TABLE_BEGIN"
     assert receipt =~ "Verdict | PASS"
-    assert count(receipt, "https://github.com/szTheory/rindle/actions/runs/") == 10
+    assert count(receipt, "https://github.com/szTheory/rindle/actions/runs/") == 20
     assert File.read!(Path.join(context.fixture_dir, "label")) == "absent\n"
 
     assert {verify_output, 0} =
-             System.cmd("bash", [@script, "verify", "--receipt", context.receipt],
+             System.cmd("bash", verify_args(context),
                env: controller_env(context),
                stderr_to_stdout: true
              )
@@ -101,22 +101,70 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
   test "verify rejects a partial receipt", context do
     File.write!(context.receipt, """
     #{context.baseline}
-    CI_TIMING_TABLE_BEGIN
+    CI_TIMING_CURRENT_TABLE_BEGIN
     | Sequence | Run ID | Source | Started (UTC) | Duration seconds |
     | ---: | ---: | --- | --- | ---: |
-    CI_TIMING_TABLE_END
-    CI_TIMING_SOURCE_BEGIN
+    CI_TIMING_CURRENT_TABLE_END
+    CI_TIMING_CURRENT_SOURCE_BEGIN
     {"sha":"#{context.head}","runs":[],"median_seconds":0,"p95_seconds":0}
-    CI_TIMING_SOURCE_END
+    CI_TIMING_CURRENT_SOURCE_END
     """)
 
     assert {output, 1} =
-             System.cmd("bash", [@script, "verify", "--receipt", context.receipt],
+             System.cmd("bash", verify_args(context),
                env: controller_env(context),
                stderr_to_stdout: true
              )
 
     assert output =~ "exactly 10 runs"
+  end
+
+  test "verify rejects the retained failed receipt because it has no current section" do
+    receipt =
+      Path.expand("../../.planning/phases/132-measured-closure/132-CI-TIMING-RECEIPT.md", __DIR__)
+
+    assert {_output, 1} =
+             System.cmd("bash", [@script, "verify", "--receipt", receipt], stderr_to_stdout: true)
+  end
+
+  test "verify uses API evidence and accepts inclusive timing boundaries", context do
+    assert {_output, 0} =
+             run_controller(context, [
+               {"GH_BOUNDARY_DURATIONS", "400,420,440,460,480,480,500,520,540,600"}
+             ])
+
+    assert {output, 0} =
+             System.cmd(
+               "bash",
+               verify_args(context),
+               env:
+                 controller_env(context) ++
+                   [{"GH_BOUNDARY_DURATIONS", "400,420,440,460,480,480,500,520,540,600"}],
+               stderr_to_stdout: true
+             )
+
+    assert output =~ "receipt verification passed"
+  end
+
+  test "verify rejects API identity, event, attempt, summary, duration, and chronology drift",
+       context do
+    assert {_output, 0} = run_controller(context)
+
+    for {flag, value} <- [
+          {"GH_WRONG_HEAD", "1"},
+          {"GH_WRONG_EVENT", "1"},
+          {"GH_WRONG_ATTEMPT", "1"},
+          {"GH_BAD_SUMMARY", "1"},
+          {"GH_DUPLICATE_SUMMARY", "1"}
+        ] do
+      assert {_output, 1} =
+               System.cmd(
+                 "bash",
+                 verify_args(context),
+                 env: controller_env(context) ++ [{flag, value}],
+                 stderr_to_stdout: true
+               )
+    end
   end
 
   test "controller remains compatible with jq versions where label is a keyword" do
@@ -187,9 +235,30 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
     ]
   end
 
+  defp verify_args(context) do
+    [
+      @script,
+      "verify",
+      "--repo",
+      "szTheory/rindle",
+      "--workflow",
+      "ci.yml",
+      "--summary-job",
+      "CI Summary",
+      "--samples",
+      "10",
+      "--median-max",
+      "480",
+      "--p95-max",
+      "600",
+      "--receipt",
+      context.receipt
+    ]
+  end
+
   defp manifest!(receipt) do
-    [_, body] = String.split(File.read!(receipt), "CI_TIMING_SOURCE_BEGIN\n", parts: 2)
-    [json | _] = String.split(body, "\nCI_TIMING_SOURCE_END", parts: 2)
+    [_, body] = String.split(File.read!(receipt), "CI_TIMING_CURRENT_SOURCE_BEGIN\n", parts: 2)
+    [json | _] = String.split(body, "\nCI_TIMING_CURRENT_SOURCE_END", parts: 2)
     Jason.decode!(json)
   end
 
@@ -254,7 +323,11 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
           n=$((id - 1000))
           conclusion=success
           if [ "${GH_FAIL_RUN_ID:-0}" = "$id" ]; then conclusion=failure; fi
-          jq -cn --arg conclusion "$conclusion" --argjson n "$n" '{jobs:[{name:"CI Summary",status:"completed",conclusion:$conclusion,completed_at:(1787616400 + (($n - 1) * 700) | todateiso8601)}]}'
+          jq -cn --arg conclusion "$conclusion" --argjson n "$n" '
+            ((env.GH_BOUNDARY_DURATIONS // "") | if . == "" then [] else split(",") | map(tonumber) end) as $durations |
+            (if ($durations|length) >= $n then $durations[$n - 1] else 400 end) as $duration |
+            [{name:"CI Summary",status:"completed",conclusion:(if env.GH_BAD_SUMMARY == "1" then "failure" else $conclusion end),completed_at:(1787616000 + (($n - 1) * 700) + $duration | todateiso8601)}] as $jobs |
+            {jobs:(if env.GH_DUPLICATE_SUMMARY == "1" then $jobs + $jobs else $jobs end)}'
           ;;
         *actions/runs/*)
           id="${endpoint#*actions/runs/}"
@@ -262,7 +335,9 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
           n=$((id - 1000))
           conclusion=success
           if [ "${GH_FAIL_RUN_ID:-0}" = "$id" ]; then conclusion=failure; fi
-          jq -cn --arg sha "$GH_EXPECTED_SHA" --arg conclusion "$conclusion" --argjson id "$id" --argjson n "$n" '{id:$id,event:"pull_request",head_sha:$sha,run_attempt:1,status:"completed",conclusion:$conclusion,run_started_at:(1787616000 + (($n - 1) * 700) | todateiso8601),updated_at:(1787616400 + (($n - 1) * 700) | todateiso8601),html_url:("https://github.com/szTheory/rindle/actions/runs/" + ($id | tostring))}'
+          jq -cn --arg sha "$GH_EXPECTED_SHA" --arg conclusion "$conclusion" --argjson id "$id" --argjson n "$n" '
+            (1787616000 + (($n - 1) * (if env.GH_OVERLAP == "1" then 300 else 700 end))) as $started |
+            {id:$id,event:(if env.GH_WRONG_EVENT == "1" then "push" else "pull_request" end),head_sha:(if env.GH_WRONG_HEAD == "1" then "0000000000000000000000000000000000000000" else $sha end),run_attempt:(if env.GH_WRONG_ATTEMPT == "1" then 2 else 1 end),status:"completed",conclusion:$conclusion,run_started_at:($started|todateiso8601),updated_at:($started + 400|todateiso8601),html_url:("https://github.com/szTheory/rindle/actions/runs/" + ($id | tostring))}'
           ;;
         *) echo "unexpected gh api endpoint: $endpoint" >&2; exit 2 ;;
       esac
