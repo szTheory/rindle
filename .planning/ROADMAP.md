@@ -114,7 +114,7 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
   2. `CI Summary` remains the sole required check with its required-job set and skip-as-pass behavior intact; any external-runner exception includes job-level evidence, a named owner, and a dated follow-up.
   3. Authoritative coverage remains at or above 82.13%, and the final correction passes focused proof, `mix quality_signals`, SAFE-01, the relevant integration or packed-consumer lane, and bounded prohibited-surface diff review.
 
-**Plans**: 10/11 plans executed
+**Plans**: 11/11 plans executed; CI-14 remains open after the bounded recovery sampler exhausted both sequence attempts without a qualifying run.
 
 **Wave 1 — tracer correction and package proof**
 
@@ -158,7 +158,7 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 
 **Wave 11 — locked recovery live acceptance** *(blocked on Wave 10 completion)*
 
-- [ ] 132-11-PLAN.md — Run one bounded exact-ten live controller and require API-backed inclusive median/p95 acceptance or honest `gaps_found`.
+- [x] 132-11-PLAN.md — Ran the one bounded controller; both permitted first-attempt PR sequences failed, leaving CI-14 honestly open with `gaps_found` and no replacement sample.
 
 ## Demand-Gated Candidates
 
