@@ -114,7 +114,7 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
   2. `CI Summary` remains the sole required check with its required-job set and skip-as-pass behavior intact; any external-runner exception includes job-level evidence, a named owner, and a dated follow-up.
   3. Authoritative coverage remains at or above 82.13%, and the final correction passes focused proof, `mix quality_signals`, SAFE-01, the relevant integration or packed-consumer lane, and bounded prohibited-surface diff review.
 
-**Plans**: 11/11 plans executed; CI-14 remains open after the bounded recovery sampler exhausted both sequence attempts without a qualifying run.
+**Plans**: 15 plans; 11 executed and 4 verification-gap closure plans pending. CI-14 remains open until the terminal fresh receipt passes both thresholds.
 
 **Wave 1 — tracer correction and package proof**
 
@@ -160,6 +160,19 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 
 - [x] 132-11-PLAN.md — Ran the one bounded controller; both permitted first-attempt PR sequences failed, leaving CI-14 honestly open with `gaps_found` and no replacement sample.
 
+**Wave 12 — controller tracer and failed-run remediation** *(blocked on Wave 11 evidence; plans run without file overlap)*
+
+- [ ] 132-12-PLAN.md — Fail-close completed PASS state through live Actions API revalidation with forged/stale-state regression coverage.
+- [ ] 132-13-PLAN.md — Record both formatter-failed recovery runs and apply the formatter-only correction to the D-08/D-09 topology contract.
+
+**Wave 13 — final immutable preservation census** *(blocked on both Wave 12 corrections)*
+
+- [ ] 132-14-PLAN.md — Re-run formatter, focused/full quality, SAFE-01, coverage, packed-consumer, prohibited-surface, and no-publish preflight authorities.
+
+**Wave 14 — terminal API-backed timing acceptance** *(blocked on Wave 13 completion)*
+
+- [ ] 132-15-PLAN.md — Publish the preserved head once, collect an exact-ten current receipt, and close CI-14 only on live-verified median <=480s and p95 <=600s.
+
 ## Demand-Gated Candidates
 
 - Force-delete semantics for still-shared assets (LIFE-06) — compliance pull only.
@@ -170,4 +183,4 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 - `mix test --partitions` parallelization — evidence-gated on measured core starvation (DEFER-02).
 
 ---
-*Last updated: 2026-08-26 — Phase 132 recovery appends D-08/D-09 topology correction, preservation, and locked live-acceptance plans after the measured 591s median / 612s p95 partial sequence exposed both serialized critical branches.*
+*Last updated: 2026-08-26 — Verification-gap closure adds completed-state API revalidation, the formatter-only remediation demonstrated by both failed recovery attempts, a fresh immutable preservation census, and one terminal exact-ten sampler.*

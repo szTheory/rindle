@@ -1,3 +1,3 @@
 # API Coverage — Phase 132
 
-No external API integration: Phase 132 changes a local generator command and uses existing `gh` read-only timing evidence; it creates no API client, endpoint, webhook, or product integration.
+No external API integration: Phase 132 hardens and reuses the existing `gh`-based GitHub Actions timing controller/evidence path; it creates no new API client, endpoint, webhook, service capability, or product integration.
