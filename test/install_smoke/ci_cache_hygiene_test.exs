@@ -221,11 +221,14 @@ defmodule Rindle.InstallSmoke.CiCacheHygieneTest do
     assert result.log == [
              "timeout --kill-after=15s 240s apt-get install -y --no-install-recommends libvips-dev ffmpeg",
              "apt-get install -y --no-install-recommends libvips-dev ffmpeg"
-           ], result.output
+           ],
+           result.output
   end
 
   @tag :tmp_dir
-  test "apt helper refreshes once after a failed install before one final install", %{tmp_dir: tmp_dir} do
+  test "apt helper refreshes once after a failed install before one final install", %{
+    tmp_dir: tmp_dir
+  } do
     result = run_apt_helper(tmp_dir, ["libvips-dev"], %{"RINDLE_FAKE_APT_FAIL_FIRST" => "1"})
 
     assert result.status == 0
@@ -237,7 +240,8 @@ defmodule Rindle.InstallSmoke.CiCacheHygieneTest do
              "apt-get update",
              "timeout --kill-after=15s 240s apt-get install -y --no-install-recommends libvips-dev",
              "apt-get install -y --no-install-recommends libvips-dev"
-           ], result.output
+           ],
+           result.output
   end
 
   @tag :tmp_dir

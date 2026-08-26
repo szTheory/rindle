@@ -119,12 +119,14 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
     assert output =~ "exactly 10 runs"
   end
 
-  test "verify rejects the retained failed receipt because it has no current section" do
-    receipt =
-      Path.expand("../../.planning/phases/132-measured-closure/132-CI-TIMING-RECEIPT.md", __DIR__)
+  test "verify rejects a legacy receipt without a current section", context do
+    assert {output, 1} =
+             System.cmd("bash", verify_args(context),
+               env: controller_env(context),
+               stderr_to_stdout: true
+             )
 
-    assert {_output, 1} =
-             System.cmd("bash", [@script, "verify", "--receipt", receipt], stderr_to_stdout: true)
+    assert output =~ "CI_TIMING_CURRENT_SOURCE_BEGIN"
   end
 
   test "verify uses API evidence and accepts inclusive timing boundaries", context do
