@@ -20,7 +20,7 @@ key-files:
 decisions:
   - Preserve full HEAD 0696c49896f34f8747a38fbe6ac08fa2c3355b05 as the final post-Plan-06 evidence subject.
   - Accept COV-05 only from the single fresh 5149/6269 coverage artifact using inclusive integer arithmetic.
-requirements-completed: [CI-14, COV-05, SAFE-02]
+requirements-completed: [COV-05, SAFE-02]
 coverage:
   - id: D1
     description: Final remediation subject retains executable COV-05 and SAFE-02 preservation evidence.
@@ -83,7 +83,19 @@ The post-apt-remediation subject is bound to fresh ordered quality, SAFE-01, hyg
 
 ## Deviations from Plan
 
-None - plan executed exactly as written.
+### Auto-fixed Issues
+
+**1. [Rule 1 - Metadata correctness] Kept CI-14 open pending the Plan 132-08 live receipt**
+
+- **Found during:** State update
+- **Issue:** The generic requirement-marker read the plan's broad requirements list and checked CI-14 even though the plan explicitly leaves its comparable ten-run acceptance to Plan 132-08.
+- **Fix:** Restored CI-14 to open and limited this plan's completed-requirements metadata to COV-05 and SAFE-02.
+- **Files modified:** `.planning/REQUIREMENTS.md`, this summary
+- **Verification:** The Plan 132-08 roadmap item remains pending and the receipt names live sampling as the next automated authority.
+
+**Total deviations:** 1 auto-fixed (Rule 1 metadata correctness).
+
+**Impact on plan:** No scope change; the correction preserves the plan's explicitly stated acceptance ordering.
 
 ## Known Stubs
 
