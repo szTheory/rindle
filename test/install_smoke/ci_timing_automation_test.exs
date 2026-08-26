@@ -263,6 +263,7 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
     source = File.read!(@script)
 
     assert source =~ "test/install_smoke/ci_cache_hygiene_test\\.exs"
+    assert source =~ "scripts/ci/install_ffmpeg\\.sh"
   end
 
   test "controller locks a SHA-scoped state path before sampling" do
