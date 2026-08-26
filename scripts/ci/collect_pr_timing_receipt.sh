@@ -274,7 +274,7 @@ write_initial_state() {
   jq -n \
     --arg repo "$repo" --argjson pr "$pr" --arg sha "$head_sha" --arg label_name "$label" \
     --argjson max_sequences "$max_sequences" \
-    '{schema_version:1,repo:$repo,pr:$pr,sha:$sha,label:$label_name,max_sequences:$max_sequences,sequence_attempt:1,status:"running",runs:[],current_run_id:null,current_run_status:null,errors:[]}' > "$tmp"
+    '{schema_version:2,repo:$repo,pr:$pr,sha:$sha,label:$label_name,max_sequences:$max_sequences,sequence_attempt:1,status:"running",runs:[],pending_trigger:null,current_run_id:null,current_run_status:null,errors:[]}' > "$tmp"
   mv "$tmp" "$state_file"
 }
 
@@ -364,7 +364,7 @@ record_error_and_restart() {
   tmp="$(mktemp "${TMPDIR:-/tmp}/rindle-ci-timing-state.XXXXXX")"
   jq --arg reason "$reason" --argjson next "$((attempt + 1))" '
     .errors += [{sequence_attempt:.sequence_attempt,reason:$reason,runs:.runs}] |
-    .sequence_attempt=$next | .runs=[] | .current_run_id=null | .current_run_status=null | .status="running"
+    .sequence_attempt=$next | .runs=[] | .pending_trigger=null | .current_run_id=null | .current_run_status=null | .status="running"
   ' "$state_file" > "$tmp"
   mv "$tmp" "$state_file"
 }
@@ -372,7 +372,7 @@ record_error_and_restart() {
 append_run_state() {
   local run_json="$1" tmp
   tmp="$(mktemp "${TMPDIR:-/tmp}/rindle-ci-timing-state.XXXXXX")"
-  jq --argjson run "$run_json" '.runs += [$run] | .current_run_id=null | .current_run_status=null' "$state_file" > "$tmp"
+  jq --argjson run "$run_json" '.runs += [$run] | .pending_trigger=null | .current_run_id=null | .current_run_status=null' "$state_file" > "$tmp"
   mv "$tmp" "$state_file"
 }
 
@@ -385,10 +385,26 @@ record_current_run_status() {
   mv "$tmp" "$state_file"
 }
 
+persist_pending_trigger() {
+  local before_ids="$1" triggered_at tmp
+  triggered_at="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+  tmp="$(mktemp "${TMPDIR:-/tmp}/rindle-ci-timing-state.XXXXXX")"
+  jq --argjson before "$before_ids" --arg triggered_at "$triggered_at" '
+    .pending_trigger={before_run_ids:$before,triggered_at:$triggered_at,status:"awaiting_run"}
+  ' "$state_file" > "$tmp" && mv "$tmp" "$state_file"
+}
+
+adopt_pending_trigger_run() {
+  local run_id="$1" tmp
+  tmp="$(mktemp "${TMPDIR:-/tmp}/rindle-ci-timing-state.XXXXXX")"
+  jq --argjson id "$run_id" '
+    .current_run_id=$id | .current_run_status="discovered" |
+    .pending_trigger=(.pending_trigger // {}) + {status:"discovered",run_id:$id}
+  ' "$state_file" > "$tmp" && mv "$tmp" "$state_file"
+}
+
 wait_for_new_run() {
-  local before_ids="$1" started deadline candidates
-  started="$(date +%s)"
-  deadline=$((started + creation_timeout))
+  local before_ids="$1" candidates
   while :; do
     candidates="$(same_sha_runs | jq -c --argjson before "$before_ids" '[.[] | select((.id as $id | $before | index($id)) == null)]')"
     if [ "$(jq 'length' <<<"$candidates")" -eq 1 ]; then
@@ -398,7 +414,7 @@ wait_for_new_run() {
     if [ "$(jq 'length' <<<"$candidates")" -gt 1 ]; then
       return 2
     fi
-    [ "$(date +%s)" -lt "$deadline" ] || return 1
+    echo "[ci-timing] owned trigger is awaiting its delayed PR run; polling without relabeling" >&2
     sleep "$poll_seconds"
   done
 }
@@ -459,17 +475,23 @@ while [ "$attempt" -le "$max_sequences" ]; do
       run_id="$current_run_id"
       echo "[ci-timing] resuming discovered sample $sample/$samples as run $run_id"
     else
-      before_ids="$(same_sha_runs | jq '[.[].id]')"
-      echo "[ci-timing] triggering sample $sample/$samples"
-      gh pr edit "$pr" --repo "$repo" --add-label "$label" >/dev/null
-      label_owned=1
+      pending_before_ids="$(jq -c '.pending_trigger.before_run_ids // empty' "$state_file")"
+      if [ -n "$pending_before_ids" ]; then
+        before_ids="$pending_before_ids"
+        echo "[ci-timing] resuming owned delayed trigger for sample $sample/$samples"
+      else
+        before_ids="$(same_sha_runs | jq '[.[].id]')"
+        persist_pending_trigger "$before_ids"
+        echo "[ci-timing] triggering sample $sample/$samples"
+        gh pr edit "$pr" --repo "$repo" --add-label "$label" >/dev/null
+        label_owned=1
+      fi
       if ! run_id="$(wait_for_new_run "$before_ids")"; then
         invalid_reason="expected exactly one new same-head PR run after labeling"
         cleanup_label
         break
       fi
-      tmp="$(mktemp "${TMPDIR:-/tmp}/rindle-ci-timing-state.XXXXXX")"
-      jq --argjson id "$run_id" '.current_run_id=$id' "$state_file" > "$tmp" && mv "$tmp" "$state_file"
+      adopt_pending_trigger_run "$run_id"
       cleanup_label
     fi
 
@@ -498,7 +520,7 @@ while [ "$attempt" -le "$max_sequences" ]; do
 
   if [ "$attempt" -ge "$max_sequences" ]; then
     tmp="$(mktemp "${TMPDIR:-/tmp}/rindle-ci-timing-state.XXXXXX")"
-    jq --arg reason "$invalid_reason" '.errors += [{sequence_attempt:.sequence_attempt,reason:$reason,runs:.runs}] | .status="failed" | .current_run_id=null | .current_run_status=null' "$state_file" > "$tmp" && mv "$tmp" "$state_file"
+    jq --arg reason "$invalid_reason" '.errors += [{sequence_attempt:.sequence_attempt,reason:$reason,runs:.runs}] | .status="failed" | .pending_trigger=null | .current_run_id=null | .current_run_status=null' "$state_file" > "$tmp" && mv "$tmp" "$state_file"
     die "sample sequence exhausted after $max_sequences attempt(s): $invalid_reason"
   fi
   echo "[ci-timing] $invalid_reason; restarting sequence $((attempt + 1))/$max_sequences"
