@@ -18,9 +18,16 @@
 set -euo pipefail
 
 release_api="${RINDLE_FFMPEG_RELEASE_API:-https://api.github.com/repos/BtbN/FFmpeg-Builds/releases/latest}"
+api_auth_args=()
+
+# GitHub-hosted runners share unauthenticated API limits. Use the ephemeral Actions
+# token when present, but keep local/file-fixture resolution token-free.
+if [ -n "${GITHUB_TOKEN:-}" ]; then
+  api_auth_args=(-H "Authorization: Bearer ${GITHUB_TOKEN}")
+fi
 
 read -r asset url < <(
-  curl -fsSL --retry 5 --retry-all-errors --retry-delay 5 "$release_api" |
+  curl -fsSL --retry 5 --retry-all-errors --retry-delay 5 "${api_auth_args[@]}" "$release_api" |
     jq -er '
       [
         .assets[]
