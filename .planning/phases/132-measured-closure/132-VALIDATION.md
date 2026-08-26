@@ -19,7 +19,7 @@ created: 2026-08-25
 |----------|-------|
 | **Framework** | ExUnit (project-native) |
 | **Config file** | `test/test_helper.exs` |
-| **Quick run command** | `mix test test/install_smoke/generated_app_smoke_test.exs --only phase_132_generator_contract` |
+| **Quick run command** | `mix test test/install_smoke/ci_lane_split_test.exs test/install_smoke/ci_observability_test.exs test/install_smoke/ci_timing_automation_test.exs --seed 0` |
 | **Full suite command** | `mix quality_signals && bash scripts/maintainer/refactor_contract.sh && mix coveralls.multiple --type local --type json && bash scripts/install_smoke.sh image` |
 | **Estimated runtime** | Tagged-contract runtime is measured during execution; the distinct full image integration proof is historically ~420 seconds, and full preservation runtime varies by lane |
 
@@ -28,6 +28,8 @@ created: 2026-08-25
 ## Sampling Rate
 
 - **After the Plan 01 argv change:** Run the fast tagged generator contract immediately, then run the full image package-consumer as a distinct integration-acceptance check.
+- **After the recovery topology test commit:** Run the focused CI lane, observability, and timing automation suite before changing workflow edges.
+- **After the exact six-edge workflow correction:** Re-run the focused suite plus `bash scripts/ci/test_ci_summary_gate.sh` before any preservation or live timing work.
 - **After every later task commit:** Run the applicable focused CI topology/gate test before its heavier preservation authority.
 - **After every plan wave:** Run `mix quality_signals` and `bash scripts/maintainer/refactor_contract.sh`.
 - **Before phase verification:** Authoritative coverage, packed image-consumer proof, automated prohibited-surface diff census, and the complete live ten-run exact-head receipt must pass.
@@ -47,6 +49,9 @@ created: 2026-08-25
 | 132-03-02 | 03 | 3 | SAFE-02 | T-132-01 | Active requirements cannot close through manual verification or UAT | planning contract | `mix test test/install_smoke/automation_first_contract_test.exs --seed 0 && ./scripts/maintainer/automation_first_contract.sh` | ✅ | ✅ green |
 | 132-04-01 | 04 | 4 | CI-14, COV-05, SAFE-02 | T-132-01 / T-132-04 | Final controller candidate retains every required ratchet | preservation acceptance | focused contracts, quality_signals, SAFE-01, authoritative coverage, image package-consumer | ✅ | ✅ green |
 | 132-05-01 | 05 | 5 | CI-14 | T-132-02 / T-132-03 | Ten-run receipt is generated, sourced, calculated, and judged without a person | live automated acceptance | `collect_pr_timing_receipt.sh run ... && collect_pr_timing_receipt.sh verify ...` | ✅ | ❌ red |
+| 132-R1 | recovery | pending | CI-14, SAFE-02 | T-132-01 / T-132-04 | Exactly six approved prerequisite edges are removed while required membership, gate semantics, job bodies, and all other topology remain fixed | source-bound contract | `mix test test/install_smoke/ci_lane_split_test.exs test/install_smoke/ci_observability_test.exs --seed 0 && bash scripts/ci/test_ci_summary_gate.sh` | ✅ extend | ⬜ pending |
+| 132-R2 | recovery | pending | COV-05, SAFE-02 | Final topology candidate retains authoritative coverage and every preservation authority | integration + contract | `mix quality_signals && bash scripts/maintainer/refactor_contract.sh && mix coveralls.multiple --type local --type json && bash scripts/install_smoke.sh image && ./scripts/maintainer/automation_first_contract.sh` | ✅ | ⬜ pending |
+| 132-R3 | recovery | pending | CI-14 | T-132-02 / T-132-03 | One immutable head produces ten consecutive successful first-attempt PR runs whose median is <=480s and p95 is <=600s | live automated acceptance | `collect_pr_timing_receipt.sh run ... && collect_pr_timing_receipt.sh verify ...` | ✅ | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -58,6 +63,8 @@ created: 2026-08-25
 - [x] Add an offline stateful-gh contract for unattended live timing orchestration and bounded restart.
 - [x] Add an executable planning contract that rejects human verification/UAT.
 - [x] Existing ExUnit infrastructure and CI contract suites require no new framework or dependency.
+- [ ] Extend the topology contract to assert D-08's exact six removed edges, D-09's unchanged edges/job bodies, complete `CI Summary` and observability membership, and unchanged skip-as-pass evaluation.
+- [ ] Add deterministic fixture arithmetic showing the approved ordering removes both measured critical branches; do not use local wall-clock timing as CI-14 evidence.
 
 ---
 
@@ -76,5 +83,6 @@ None. Every Phase 132 requirement has an automated contract, preservation author
 - [x] Fast tagged-contract feedback is recorded before the distinct full image integration acceptance
 - [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** automated evidence complete with `gaps_found`; CI-14's 516.5-second median exceeds the
-480-second target, while the 543-second p95 passes. No manual verification or UAT is required.
+**Approval:** recovery pending. Earlier automated evidence remains `gaps_found`; the 2026-08-26 live
+census authorizes only D-08's six-edge scheduling exception. No manual verification or UAT may close
+CI-14; the final authority remains a fresh API-backed ten-run receipt.

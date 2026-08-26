@@ -1,6 +1,6 @@
 # Phase 132: Measured Closure - Context
 
-**Gathered:** 2026-08-25 (assumptions mode)
+**Gathered:** 2026-08-25 (assumptions mode); recovery decision added 2026-08-26
 **Status:** Ready for planning
 
 <domain>
@@ -30,6 +30,19 @@ surfaces.
 - **D-03:** An external-runner exception is valid only when job-level evidence, a named owner, and a
   dated follow-up satisfy CI-14. The observed median miss is not itself an external-runner exception.
 
+### Measured recovery exception
+- **D-08:** The 2026-08-26 live census authorizes one bounded exception to D-02: remove only the
+  `quality` and `optional-dependencies` scheduling prerequisites from `integration`, `contract`, and
+  `adoption-demo-e2e-smoke`, after executable tests prove each job is self-contained. This changes
+  six scheduling edges, not required-job membership or gate semantics. `adopter` must continue to
+  require `quality`, `optional-dependencies`, `integration`, and `contract`; `ci-summary.needs` and
+  `ci-observability.needs` must retain every current required member; `CI Summary` remains the sole
+  required check with `if: always()` and the existing skip-as-pass evaluator.
+- **D-09:** No other topology edge, job body, proof command, runner, matrix, cache, test partition,
+  rerun policy, or exception policy may change in this recovery. The three affected jobs must keep
+  their own checkout, toolchain setup, services, dependency acquisition, and proof commands. A
+  deterministic regression must assert the exact six-edge exception and reject any broader drift.
+
 ### Fresh comparable timing receipt
 - **D-04:** After the correction, collect a fresh sequence of ten successful, non-cancelled,
   first-attempt `pull_request` runs from one immutable implementation head. Measure workflow start
@@ -44,8 +57,8 @@ surfaces.
 - **D-07:** Coverage must remain at or above 82.13%; do not add tests solely to raise the percentage.
 
 ### the agent's Discretion
-- Select the exact long-pole job or step and smallest safe correction after inspecting native timing
-  evidence from the immutable failing head.
+- Choose the exact source-bounded assertions that prove D-08/D-09 without coupling tests to YAML
+  whitespace or local wall-clock timing.
 - Choose the focused verification commands needed for the touched CI boundary in addition to the
   locked phase-level preservation proof.
 - Organize the updated receipt and supporting timing evidence without changing its comparability or
@@ -134,8 +147,8 @@ proof contracts.
 
 - `mix test --partitions` parallelization remains evidence-gated on demonstrated core starvation.
 - Cache redesign and broad dependency/toolchain upgrades remain separate risk-ranked work.
-- Required-check topology changes, proof removal, and rerun-based timing improvements are not closure
-  strategies for this phase.
+- Required-check membership changes, topology changes beyond D-08's exact six edges, proof removal,
+  and rerun-based timing improvements are not closure strategies for this phase.
 
 </deferred>
 
