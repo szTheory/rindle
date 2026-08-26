@@ -286,3 +286,96 @@ schema/migration, telemetry/error, dependency/lockfile, or release-proof drift i
 being described as behavior-preserving. The equality backstop for the later timing
 receipt remains inclusive: a `480`-second median or `600`-second nearest-rank p95
 will pass when Plan 132-08 samples this preserved subject.
+
+## Recovery topology final preservation census
+
+**Correction SHA:** `11bfee5d819318a090d2c2bf065ebc3a26d0ef7d`
+(`feat(132-09): remove six critical-path scheduling edges`)
+
+**Preserved subject SHA:** `5add06528a45cc927079563138e71dd8459fe5d2`
+(`docs(132-09): complete topology recovery plan`)
+
+The correction is an ancestor of the preserved subject. The exact name/status range
+from the parent of the topology correction through the preserved subject is:
+
+```text
+M .github/workflows/ci.yml
+A test/fixtures/ci_timing/phase_132_topology_projection.json
+M test/install_smoke/ci_lane_split_test.exs
+M .planning/ROADMAP.md
+M .planning/STATE.md
+A .planning/phases/132-measured-closure/132-09-SUMMARY.md
+```
+
+The only new or modified non-planning paths are exactly the D-08/D-09 authorities:
+`.github/workflows/ci.yml`,
+`test/install_smoke/ci_lane_split_test.exs`, and
+`test/fixtures/ci_timing/phase_132_topology_projection.json`. The exact workflow
+patch deletes only these three declarations:
+
+```diff
+-    needs: [quality, optional-dependencies]
+```
+
+They are removed only from `integration`, `contract`, and `adoption-demo-e2e-smoke`.
+No other executable workflow line changes. The bounded census contains no Admin,
+product/public API, schema/migration, telemetry/error, dependency/lockfile,
+release-proof, timing-controller, or rerun-policy surface.
+
+### Ordered local authorities (2026-08-26)
+
+All commands below ran after the final topology edit and before the no-publish
+preflight. Each completed successfully:
+
+1. `mix test test/install_smoke/ci_lane_split_test.exs test/install_smoke/ci_observability_test.exs test/install_smoke/ci_timing_automation_test.exs --seed 0`
+   - `47 tests, 0 failures`.
+2. `bash scripts/ci/test_ci_summary_gate.sh`
+   - `passed: 6  failed: 0`.
+3. `mix quality_signals`
+   - Credo/public-contract/complexity passed; Doctor reported `79` passed modules
+     and `100%` doc/moduledoc/spec coverage; contract suite: `96 tests, 0 failures`.
+4. `bash scripts/maintainer/refactor_contract.sh`
+   - compiled `150` files, found no cycles, and reported `96 tests, 0 failures`.
+5. `./scripts/maintainer/automation_first_contract.sh`
+   - passed for the Phase 132 planning directory.
+6. `./scripts/maintainer/repo_hygiene_check.sh --ci`
+   - `9 PASS, 0 WARN, 0 BLOCK`.
+7. `mix coveralls.multiple --type local --type json`
+   - exactly one authoritative invocation exited `0` and produced non-empty
+     `cover/excoveralls.json`.
+8. `bash scripts/install_smoke.sh image`
+   - packed image consumer: `22 tests, 0 failures` in `162.3s`.
+
+### Canonical recovery coverage census
+
+The JSON line below was generated directly from `cover/excoveralls.json` by
+fail-closed parsing of `source_files[].coverage[]`: source files must be non-empty,
+each coverage vector must be an array, and every non-null entry must be a
+non-negative integer. Non-null entries are relevant; positive entries are covered.
+The parser rejected a zero denominator and enforced the inclusive D-07 comparison
+`covered * 10000 >= relevant * 8213`.
+
+RECOVERY_COVERAGE_CENSUS_V1_BEGIN
+{"covered":5149,"passes":true,"ratio":0.8213431169245494,"relevant":6269,"threshold_basis_points":8213}
+RECOVERY_COVERAGE_CENSUS_V1_END
+
+### No-publish sampler preflight
+
+The existing controller ran only in `preflight --no-publish` mode with immutable
+inputs: repository `szTheory/rindle`, PR `96`, workflow `ci.yml`, summary job
+`CI Summary`, label `ci-timing-sample`, `10` samples, at most `2` sequences,
+inclusive `480`/`600` thresholds, correction SHA
+`11bfee5d819318a090d2c2bf065ebc3a26d0ef7d`, and preserved subject SHA
+`5add06528a45cc927079563138e71dd8459fe5d2`.
+
+It failed closed (exit `1`) with:
+
+```text
+[ci-timing] ERROR: PR head f3476633fdc459779a937c5dc3c7234379bd8ce3 does not equal local HEAD 5add06528a45cc927079563138e71dd8459fe5d2 and publication is disabled
+```
+
+This is a required publication-path blocker for Plan 132-11, not authorization to
+push, label, trigger, rerun, or sample. Before/after GitHub workflow-run listings
+were byte-identical; the owned label was absent before and after; and
+`.gsd/ci-timing/phase-132-recovery-preflight` was absent before and after. No live
+controller lock or owned label remains.
