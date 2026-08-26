@@ -50,6 +50,22 @@ External-runner exceptions require job-level evidence, a named owner, and a date
 and local verification may be complete while this receipt remains open; the milestone may not close
 without it.
 
+## Platform anomaly ledger (2026-08-26)
+
+The following GitHub Actions runs are historical platform anomalies on superseded head
+`458458aa6712e148a1290177029cfa2783760855`. They are not samples, do not participate in any
+sequence, and must never be used for CI-14 statistics or threshold evaluation.
+
+| Run | URL | Observed API state | Contradictory cancel response | Owner | Disposition |
+| ---: | --- | --- | --- | --- | --- |
+| 32985544318 | https://github.com/szTheory/rindle/actions/runs/32985544318 | `queued`; no started jobs | `gh run cancel` reported the run already completed | GitHub Actions | Platform anomaly; excluded permanently |
+| 32985757005 | https://github.com/szTheory/rindle/actions/runs/32985757005 | `queued`; no started jobs | `gh run cancel` reported the run already completed | GitHub Actions | Platform anomaly; excluded permanently |
+
+For context only, runs `32985742147` and `32985837362` terminated as `startup_failure` on the
+same superseded head. The owned `ci-timing-sample` label was absent and no local controller process
+was active when this record was made. This is an evidence record, not an external-runner exception
+or a substitute for a fresh API-backed receipt.
+
 ## Fresh corrected-head receipt
 
 Corrected implementation SHA: `1161029d5403088d19f4a5017daf3048ecf159aa`
