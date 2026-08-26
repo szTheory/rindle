@@ -188,6 +188,12 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
     assert source =~ "gh_api_json"
   end
 
+  test "controller permits the preserved formatting-only cache-hygiene proof" do
+    source = File.read!(@script)
+
+    assert source =~ "test/install_smoke/ci_cache_hygiene_test\\.exs"
+  end
+
   defp run_controller(context, extra_env \\ []) do
     args = [
       "run",

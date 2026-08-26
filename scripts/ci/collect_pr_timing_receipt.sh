@@ -193,9 +193,10 @@ git merge-base --is-ancestor "$correction_sha" "$head_sha" || die "correction SH
 git merge-base --is-ancestor "$preserved_subject_sha" "$head_sha" || die "preserved subject SHA is not an ancestor of HEAD"
 
 # The receipt controller and its isolated contract are evidence machinery, not product or
-# workflow topology drift. Everything else after the preserved implementation must remain
-# planning-only so a timing receipt can never silently include an unrelated correction.
-non_planning_delta="$(git diff --name-only "$preserved_subject_sha..$head_sha" | grep -Ev '^(\.planning/|scripts/ci/collect_pr_timing_receipt\.sh$|test/install_smoke/ci_timing_automation_test\.exs$)' || true)"
+# workflow topology drift. The formatter-only cache-hygiene proof is likewise allowed so
+# the Quality formatter gate can run on the candidate. Everything else after the preserved
+# implementation must remain planning-only so a timing receipt cannot include unrelated drift.
+non_planning_delta="$(git diff --name-only "$preserved_subject_sha..$head_sha" | grep -Ev '^(\.planning/|scripts/ci/collect_pr_timing_receipt\.sh$|test/install_smoke/ci_timing_automation_test\.exs$|test/install_smoke/ci_cache_hygiene_test\.exs$)' || true)"
 [ -z "$non_planning_delta" ] || die "non-planning files changed after preservation: ${non_planning_delta//$'\n'/, }"
 
 pr_json="$(gh pr view "$pr" --repo "$repo" --json state,isDraft,headRefName,headRefOid,labels)"
