@@ -85,3 +85,41 @@ Sorted duration seconds: `410, 461, 499, 503, 514, 519, 525, 542, 543, 543`
 CI_TIMING_SOURCE_BEGIN
 {"sha":"24c17783bbc080a085e398164450b7c3f475781e","runs":[{"id":32899635815,"duration_seconds":499},{"id":32900433539,"duration_seconds":519},{"id":32901253399,"duration_seconds":410},{"id":32901888556,"duration_seconds":542},{"id":32902703631,"duration_seconds":503},{"id":32903456697,"duration_seconds":525},{"id":32904266058,"duration_seconds":514},{"id":32904999937,"duration_seconds":543},{"id":32905752635,"duration_seconds":461},{"id":32906413809,"duration_seconds":543}],"median_seconds":516.5,"p95_seconds":543}
 CI_TIMING_SOURCE_END
+
+## Gap-closure causal census
+
+The failed immutable-head sample above remains unchanged. This census is a read-only
+same-head follow-up used only to identify one repeated required-path cost before the
+correction; it does not replace the final ten-run receipt or alter its arithmetic.
+
+- **Measured head:** `24c17783bbc080a085e398164450b7c3f475781e`
+- **Source run IDs:** `32899635815`, `32900433539`, `32901253399`, `32901888556`,
+  `32902703631`, `32903456697`, `32904266058`, `32904999937`, `32905752635`, and
+  `32906413809`
+- **Source:** `GET /repos/szTheory/rindle/actions/runs/{run_id}/jobs` for each exact
+  recorded run, restricted to successful jobs and steps at the measured head.
+
+The causal census recomputes the failed receipt's source identities before aggregating
+native timestamps. Among the two workload jobs that alternated as the last required
+finisher before the aggregator, `Adoption Demo E2E Smoke` finished last in 4/10 runs
+and `Adopter` finished last in 6/10. Their native job-duration summaries were:
+
+| Job | Samples | Median | Min | Max |
+| --- | ---: | ---: | ---: | ---: |
+| `Adoption Demo E2E Smoke` | 10 | 204.5s | 178s | 256s |
+| `Adopter` | 10 | 94.5s | 77s | 135s |
+
+The shared `Install libvips` step occurred successfully in eight required jobs across
+each of the ten runs (80 sequential, first-attempt samples): **25s median, 11s min,
+68s max**. This repeated setup cost is the bounded correction target. The install-first
+helper retains a single refresh-on-failure recovery path for stale indexes; it neither
+removes a proof nor changes the required-job topology.
+
+Reproducible aggregation (after saving the ten API responses as JSON) is:
+
+```sh
+jq -s '[.[] | .jobs[] | select(.conclusion == "success") |
+  {job: .name, steps: [.steps[] | select(.name == "Install libvips" and .conclusion == "success") |
+  ((.completed_at | fromdateiso8601) - (.started_at | fromdateiso8601))]}] |
+  map(.steps[]) | {count: length, median: (sort | .[39:41] | add / 2), min: min, max: max}' jobs-*.json
+```

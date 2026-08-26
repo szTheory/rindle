@@ -206,7 +206,8 @@ defmodule Rindle.InstallSmoke.CiCacheHygieneTest do
     assert install_apt_packages =~ ~s(Acquire::http::Timeout "15")
     assert install_apt_packages =~ "timeout --kill-after=15s 240s"
     assert install_apt_packages =~ "--no-install-recommends"
-    assert install_apt_packages =~ "for attempt in 1 2"
+    assert install_apt_packages =~ "attempt 1/2"
+    assert install_apt_packages =~ "attempt 2/2"
     assert install_apt_packages =~ "--configure-only"
     assert ci =~ "timeout --kill-after=15s 300s npx playwright install --with-deps chromium"
   end
@@ -250,6 +251,38 @@ defmodule Rindle.InstallSmoke.CiCacheHygieneTest do
     assert empty_input.log == []
   end
 
+  @tag :tmp_dir
+  test "apt helper propagates bounded refresh and final-install failures", %{tmp_dir: tmp_dir} do
+    refresh_failure =
+      run_apt_helper(tmp_dir, ["libvips-dev"], %{
+        "RINDLE_FAKE_APT_FAIL_FIRST" => "1",
+        "RINDLE_FAKE_APT_UPDATE_FAIL" => "1"
+      })
+
+    final_install_failure =
+      run_apt_helper(tmp_dir, ["ffmpeg"], %{"RINDLE_FAKE_APT_FAIL_INSTALLS" => "1"})
+
+    assert refresh_failure.status == 1
+
+    assert refresh_failure.log == [
+             "timeout --kill-after=15s 240s apt-get install -y --no-install-recommends libvips-dev",
+             "apt-get install -y --no-install-recommends libvips-dev",
+             "timeout --kill-after=15s 240s apt-get update",
+             "apt-get update"
+           ]
+
+    assert final_install_failure.status == 1
+
+    assert final_install_failure.log == [
+             "timeout --kill-after=15s 240s apt-get install -y --no-install-recommends ffmpeg",
+             "apt-get install -y --no-install-recommends ffmpeg",
+             "timeout --kill-after=15s 240s apt-get update",
+             "apt-get update",
+             "timeout --kill-after=15s 240s apt-get install -y --no-install-recommends ffmpeg",
+             "apt-get install -y --no-install-recommends ffmpeg"
+           ]
+  end
+
   test "CACHE-05: version-invariant lint steps in ci.yml are guarded by matrix.lint", %{ci: ci} do
     assert ci =~ "if: ${{ matrix.lint }}",
            "format/credo/doctor lint steps must be guarded by `if: ${{ matrix.lint }}` (CACHE-05)"
@@ -274,9 +307,10 @@ defmodule Rindle.InstallSmoke.CiCacheHygieneTest do
   end
 
   defp run_apt_helper(tmp_dir, args, extra_env \\ %{}) do
-    shim_dir = Path.join(tmp_dir, "apt-helper-shims")
-    log_path = Path.join(tmp_dir, "apt-helper.log")
-    first_failure_path = Path.join(tmp_dir, "first-install-failure")
+    run_root = Path.join(tmp_dir, "apt-helper-#{System.unique_integer([:positive])}")
+    shim_dir = Path.join(run_root, "shims")
+    log_path = Path.join(run_root, "apt-helper.log")
+    first_failure_path = Path.join(run_root, "first-install-failure")
 
     File.mkdir_p!(shim_dir)
     install_apt_helper_shims!(shim_dir)
@@ -312,9 +346,11 @@ defmodule Rindle.InstallSmoke.CiCacheHygieneTest do
 
     File.write!(Path.join(shim_dir, "timeout"), """
     #!/usr/bin/env bash
-    printf 'timeout'
-    printf ' %s' "$@"
-    printf '\\n' >> "$RINDLE_APT_LOG"
+    {
+      printf 'timeout'
+      printf ' %s' "$@"
+      printf '\\n'
+    } >> "$RINDLE_APT_LOG"
     while [[ "$1" == -* ]]; do shift; done
     shift
     exec "$@"
@@ -322,9 +358,17 @@ defmodule Rindle.InstallSmoke.CiCacheHygieneTest do
 
     File.write!(Path.join(shim_dir, "apt-get"), """
     #!/usr/bin/env bash
-    printf 'apt-get'
-    printf ' %s' "$@"
-    printf '\\n' >> "$RINDLE_APT_LOG"
+    {
+      printf 'apt-get'
+      printf ' %s' "$@"
+      printf '\\n'
+    } >> "$RINDLE_APT_LOG"
+    if [ "$1" = "update" ] && [ "${RINDLE_FAKE_APT_UPDATE_FAIL:-}" = "1" ]; then
+      exit 8
+    fi
+    if [ "$1" = "install" ] && [ "${RINDLE_FAKE_APT_FAIL_INSTALLS:-}" = "1" ]; then
+      exit 9
+    fi
     if [ "$1" = "install" ] && [ "${RINDLE_FAKE_APT_FAIL_FIRST:-}" = "1" ] && [ ! -f "$RINDLE_APT_FIRST_INSTALL_FAILURE" ]; then
       touch "$RINDLE_APT_FIRST_INSTALL_FAILURE"
       exit 7
@@ -332,7 +376,9 @@ defmodule Rindle.InstallSmoke.CiCacheHygieneTest do
     exit 0
     """)
 
-    for executable <- ["sudo", "timeout", "apt-get"] do
+    File.write!(Path.join(shim_dir, "sleep"), "#!/usr/bin/env bash\nexit 0\n")
+
+    for executable <- ["sudo", "timeout", "apt-get", "sleep"] do
       File.chmod!(Path.join(shim_dir, executable), 0o755)
     end
   end
