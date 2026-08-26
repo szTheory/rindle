@@ -37,6 +37,12 @@ defmodule Rindle.InstallSmoke.CiLaneSplitTest do
                   )
   @branch_protection_path Path.expand("../../scripts/setup_branch_protection.sh", __DIR__)
   @contributing_path Path.expand("../../CONTRIBUTING.md", __DIR__)
+  @required_summary_needs [
+    "quality", "optional-dependencies", "integration", "contract", "proof",
+    "package-consumer", "adoption-demo-unit", "adoption-demo-e2e-smoke", "adopter",
+    "brandbook-tokens", "ci-script-tests"
+  ]
+  @phase_132_projection_path Path.expand("../fixtures/ci_timing/phase_132_topology_projection.json", __DIR__)
 
   setup_all do
     {:ok,
@@ -175,6 +181,48 @@ defmodule Rindle.InstallSmoke.CiLaneSplitTest do
 
     assert observability_needs =~ "- adoption-demo-e2e-smoke\n",
            "ci-observability.needs must include `adoption-demo-e2e-smoke` for timing parity with the gate (GATE-01/GATE-04)"
+  end
+
+  @tag :phase_132_topology_recovery
+  test "D-08 exact six-edge topology", %{ci: ci} do
+    for job <- ["integration", "contract", "adoption-demo-e2e-smoke"] do
+      assert job_needs(ci, job) == [],
+             "#{job} must have no prerequisites: D-08 removes only quality and optional-dependencies"
+    end
+  end
+
+  @tag :phase_132_topology_recovery
+  test "phase 132 D-09 freezes affected job authorities and the required aggregation graph", %{ci: ci} do
+    for {job, tokens} <- [
+          {"integration", ["runs-on: ubuntu-22.04", "postgres:", "actions/checkout@", "setup-elixir", "mix deps.get", "mix test"]},
+          {"contract", ["runs-on: ubuntu-22.04", "postgres:", "actions/checkout@", "setup-elixir", "mix deps.get", "mix test"]},
+          {"adoption-demo-e2e-smoke", ["runs-on: ubuntu-22.04", "postgres:", "actions/checkout@", "setup-elixir", "mix deps.get", "ADOPTION_DEMO_E2E_SPECS"]}
+        ], token <- tokens do
+      assert job_block(ci, job) =~ token, "#{job} must retain #{inspect(token)} (D-09)"
+    end
+
+    assert job_needs(ci, "adopter") == ["quality", "optional-dependencies", "integration", "contract"]
+    assert job_needs(ci, "ci-summary") == @required_summary_needs
+    assert job_needs(ci, "ci-observability") == Enum.drop(@required_summary_needs, -1)
+    assert job_block(ci, "ci-summary") =~ "name: CI Summary"
+    assert job_block(ci, "ci-summary") =~ "if: always()"
+    assert job_block(ci, "ci-summary") =~ "run: bash scripts/ci/eval_ci_summary.sh"
+  end
+
+  @tag :phase_132_topology_recovery
+  test "phase 132 deterministic topology projection is source-attributed and non-accepting" do
+    fixture = @phase_132_projection_path |> File.read!() |> Jason.decode!()
+    runs = fixture["runs"]
+
+    assert fixture["immutable_head"] == "394550944bbff63c0e61c258528c8f8764298745"
+    assert Enum.map(runs, & &1["id"]) == [33003369940, 33004281315, 33005105221, 33005882907, 33006773326]
+    assert Enum.sort(Enum.map(runs, & &1["baseline_seconds"])) == [510, 548, 591, 592, 612]
+    assert median(runs, "baseline_seconds") == 591
+    assert nearest_rank_p95(runs, "baseline_seconds") == 612
+    assert median(runs, "partial_seconds") == 486
+    assert median(runs, "exact_seconds") < 480
+    assert Enum.all?(runs, &(&1["exact_seconds"] < &1["partial_seconds"]))
+    assert fixture["acceptance_note"] =~ "CI-14 acceptance requires"
   end
 
   # ------------------------------------------------------------------
@@ -357,6 +405,47 @@ defmodule Rindle.InstallSmoke.CiLaneSplitTest do
   # Block isolators — scope `refute` assertions to a single job's YAML so a
   # legitimate occurrence elsewhere never produces a false pass/fail.
   # ------------------------------------------------------------------
+
+  defp job_block(ci, job) do
+    [_, block] = Regex.run(~r/\n  #{Regex.escape(job)}:\n(.*?)(?=\n  [a-z][a-z0-9-]*:\n|\z)/s, ci)
+    block
+  end
+
+  defp job_needs(ci, job) do
+    job_block(ci, job)
+    |> String.split("\n")
+    |> Enum.find_value([], fn line ->
+      case Regex.run(~r/^    needs: \[(.*)\]$/, line) do
+        [_, members] -> String.split(members, ", ", trim: true)
+        _ -> nil
+      end
+    end)
+    |> case do
+      [] ->
+        job_block(ci, job)
+        |> String.split("\n    needs:\n", parts: 2)
+        |> case do
+          [_, following] ->
+            following
+            |> String.split("\n    if:", parts: 2)
+            |> hd()
+            |> String.split("\n", trim: true)
+            |> Enum.map(&(String.trim(&1) |> String.trim_leading("- ")))
+          _ -> []
+        end
+
+      members -> members
+    end
+  end
+
+  defp median(runs, key) do
+    values = runs |> Enum.map(& &1[key]) |> Enum.sort()
+    Enum.at(values, div(length(values), 2))
+  end
+
+  defp nearest_rank_p95(runs, key) do
+    runs |> Enum.map(& &1[key]) |> Enum.sort() |> Enum.at(length(runs) - 1)
+  end
 
   # `package-consumer-full:` job body, from its job key up to the next top-level
   # (2-space-indented) job key.

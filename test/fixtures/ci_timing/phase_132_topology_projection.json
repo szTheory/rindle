@@ -1,0 +1,12 @@
+{
+  "source": "GitHub Actions jobs API; normalized workflow-relative offsets only",
+  "immutable_head": "394550944bbff63c0e61c258528c8f8764298745",
+  "acceptance_note": "Projection is causal regression evidence only; CI-14 acceptance requires the fresh API-backed ten-run receipt in 132-11.",
+  "runs": [
+    {"id": 33003369940, "baseline_seconds": 591, "partial_seconds": 486, "exact_seconds": 401},
+    {"id": 33004281315, "baseline_seconds": 548, "partial_seconds": 482, "exact_seconds": 398},
+    {"id": 33005105221, "baseline_seconds": 510, "partial_seconds": 458, "exact_seconds": 375},
+    {"id": 33005882907, "baseline_seconds": 592, "partial_seconds": 490, "exact_seconds": 412},
+    {"id": 33006773326, "baseline_seconds": 612, "partial_seconds": 493, "exact_seconds": 421}
+  ]
+}
