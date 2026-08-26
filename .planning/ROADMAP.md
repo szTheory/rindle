@@ -114,7 +114,7 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
   2. `CI Summary` remains the sole required check with its required-job set and skip-as-pass behavior intact; any external-runner exception includes job-level evidence, a named owner, and a dated follow-up.
   3. Authoritative coverage remains at or above 82.13%, and the final correction passes focused proof, `mix quality_signals`, SAFE-01, the relevant integration or packed-consumer lane, and bounded prohibited-surface diff review.
 
-**Plans**: 5/8 plans executed; 3 focused gap-closure plans added
+**Plans**: 6/8 plans executed
 
 **Wave 1 — tracer correction and package proof**
 
@@ -138,7 +138,7 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 
 **Wave 6 — measured-path remediation** *(blocked on the failed Wave 5 receipt)*
 
-- [ ] 132-06-PLAN.md — Remove repeated unconditional apt refresh work through a tested install-first/fallback-refresh helper policy.
+- [x] 132-06-PLAN.md — Remove repeated unconditional apt refresh work through a tested install-first/fallback-refresh helper policy.
 
 **Wave 7 — gap-closure preservation re-census** *(blocked on Wave 6 completion)*
 
