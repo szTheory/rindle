@@ -1,7 +1,7 @@
-# Phase 132: Measured Closure - Research
+# Phase 132: Measured Closure - Recovery Research
 
-**Researched:** 2026-08-25
-**Domain:** GitHub Actions required-path measurement and behavior-preserving packed-consumer proof
+**Researched:** 2026-08-26
+**Domain:** GitHub Actions required-path critical-path correction and API-backed timing evidence
 **Confidence:** HIGH
 
 <user_constraints>
@@ -51,227 +51,193 @@
   strategies for this phase.
 </user_constraints>
 
-## Project Constraints (from AGENTS.md)
-
-- Keep edits focused and run the checks named by `RUNNING.md` for the change. [VERIFIED: AGENTS.md]
-- Preserve a green-main release train: Quality/coveralls, Integration, Proof, Package Consumer, and Adopter are merge-blocking through the required path. [VERIFIED: AGENTS.md; RUNNING.md]
-- Follow `guides/release_publish.md`: exact-SHA GitHub Actions evidence is authoritative; local results are diagnostic. [VERIFIED: guides/release_publish.md]
-- Do not alter `name: CI`, `ci.yml`, or the single required `CI Summary` check; release automation is coupled to them. [VERIFIED: RUNNING.md; test/install_smoke/ci_lane_split_test.exs]
-- Do not change product scope or shipped claims; this phase is CI proof and a narrow CI-boundary correction only. [VERIFIED: AGENTS.md; 132-CONTEXT.md]
-
 <phase_requirements>
 ## Phase Requirements
 
 | ID | Description | Research Support |
-|----|-------------|------------------|
-| CI-14 | Ten comparable non-cancelled PR runs achieve <=8m median and <=10m p95 without weaker gates or new reruns. | Exact ten-run job/step census identifies the packed image-consumer proof as the demonstrated long pole; receipt rules are already recorded. [VERIFIED: GitHub Actions API; 132-CI-TIMING-RECEIPT.md] |
-| COV-05 | Authoritative coverage remains >=82.13%; no coverage chasing. | Existing authoritative command is the one-run `mix coveralls.multiple --type local --type json`; Phase 131 recorded 82.1343%. [VERIFIED: RUNNING.md; 131-IMPLEMENTATION-VERIFICATION.md] |
-| SAFE-02 | Each slice passes focused proof, quality signals, SAFE-01, relevant integration/package lane, and bounded drift review. | Existing CI policy and SAFE-01 script define the preservation checks and prohibited surfaces. [VERIFIED: REQUIREMENTS.md; scripts/maintainer/refactor_contract.sh] |
+|---|---|---|
+| CI-14 | Ten comparable non-cancelled PR runs must achieve median <=480s and p95 <=600s without weaker gates or newly introduced reruns. | Current receipt verifier already enforces exact-head, first-attempt, API-backed, ten-run evidence; this research identifies the graph constraint that prevents a blind replacement receipt. [VERIFIED: repository and GitHub Actions API] |
+| COV-05 | Authoritative coverage remains >=82.13%, without percentage-only tests. | Plan 132-07 recorded 5,149/6,269 = 82.1343%; repeat the established single-run authority only after an approved CI correction. [VERIFIED: 132-07-SUMMARY.md] |
+| SAFE-02 | Each correction retains focused proof, quality signals, SAFE-01, relevant integration/package lane, and bounded drift review. | The required correction must extend the existing workflow-topology contracts and run the established preservation authority. [VERIFIED: AGENTS.md, CONTEXT.md, and 132-07-SUMMARY.md] |
 </phase_requirements>
 
 ## Summary
 
-The failed receipt is comparable and must be retained as a failed baseline: ten successful first-attempt PR runs at immutable head `005beae2…` measured a 515.5-second median and a 544-second nearest-rank p95. Only the median misses the CI-14 target, by 35.5 seconds; no external-runner exception is justified by that result. [VERIFIED: 132-CI-TIMING-RECEIPT.md]
+The repaired, authenticated FFmpeg release lookup at `f3476633fdc459779a937c5dc3c7234379bd8ce3` corrects a real repeated HTTP-403 failure mode, but it is not a demonstrated median-speed correction. Its only change is authenticated release lookup plus controller allowlisting; it preserves the required job graph. [VERIFIED: repository `git log`, `scripts/ci/install_ffmpeg.sh`, and `scripts/ci/collect_pr_timing_receipt.sh`]
 
-The native GitHub Actions jobs API re-census of those exact ten run IDs makes the correction target unambiguous. `Package Consumer Proof Matrix + Release Preflight` was the long pole in every run; its required `Run built-artifact image-only package-consumer proof against MinIO` step averaged 392.6 seconds (292–424 seconds). The next-longest required job, canonical Quality, averaged 250.4 seconds. [VERIFIED: GitHub Actions API]
+The five successful first-attempt runs on immutable head `394550944bbff63c0e61c258528c8f8764298745` measure 510, 548, 591, 592, and 612 seconds: median 591 seconds and p95 612 seconds. Thus the current path misses CI-14 by 111 seconds at the median and 12 seconds at p95. [VERIFIED: GitHub Actions API run IDs 33003369940, 33004281315, 33005105221, 33005882907, and 33006773326]
 
-Within that long-pole step, the generated-app helper first invokes `mix phx.new ... --install`, then patches the generated project and explicitly runs `mix deps.get` and `mix compile`. Plan the smallest proof-preserving correction there: remove the pre-patch generator install only after a focused regression test locks that the generator command remains minimal and the post-patch dependency fetch/compile, migrations, boot, and image lifecycle proof still run. This avoids a topology, cache, test-partition, or dependency redesign. [VERIFIED: test/install_smoke/support/generated_app/workspace.ex; test/install_smoke/support/generated_app_helper.ex; test/install_smoke/support/generated_app/smoke_source.ex]
-
-**Primary recommendation:** Replace the generated-app pre-patch `mix phx.new --install` work with generation followed by the existing post-patch fetch/compile path, preserve the packed image proof unchanged, then collect a new exact-head ten-run PR receipt. [VERIFIED: codebase grep; GitHub Actions API]
+**Primary recommendation:** Do not launch the ten-run sampler. First obtain an explicit recovery decision that either authorizes a narrowly proven required-job dependency-topology change, or declares CI-14 infeasible under D-02's unchanged-topology constraint and creates a follow-up contract; then plan the correction and only then collect exactly ten sequential first-attempt runs.
 
 ## Architectural Responsibility Map
 
 | Capability | Primary Tier | Secondary Tier | Rationale |
 |---|---|---|---|
-| Required PR gate evaluation | CI workflow / GitHub Actions | Branch protection | `ci-summary` evaluates its required job results; branch protection requires only its `CI Summary` check. [VERIFIED: .github/workflows/ci.yml; scripts/ci/eval_ci_summary.sh; RUNNING.md] |
-| Packed image-consumer behavior | CI workflow / existing required job | Generated Phoenix app | The required package-consumer job owns runner setup and invokes the clean-room generated-app proof. [VERIFIED: .github/workflows/ci.yml; scripts/install_smoke.sh] |
-| Generated-app setup correction | Test/support code | Existing CI job | Command construction belongs in the helper; CI keeps the same job, step, and gate wiring. [VERIFIED: test/install_smoke/support/generated_app/workspace.ex; .github/workflows/ci.yml] |
-| Timing receipt and percentile decision | Maintainer evidence artifact | GitHub Actions API | Live PR run timestamps and CI Summary completion are authoritative; the receipt records the comparable-window calculation. [VERIFIED: 132-CI-TIMING-RECEIPT.md; scripts/ci/collect_ci_baseline.sh] |
+| Required-result membership and merge decision | Frontend Server (CI orchestration) | API / Backend (GitHub branch protection) | `CI Summary` consumes declared `needs` results and is the sole branch-protection context. [VERIFIED: repository `ci.yml`, `eval_ci_summary.sh`, and `ci_lane_split_test.exs`] |
+| Job start ordering / critical path | Frontend Server (CI orchestration) | CDN / Static (GitHub-hosted runners) | GitHub Actions `needs` is a scheduling prerequisite, not merely an aggregation label. [CITED: https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-jobs] |
+| Native timing evidence | API / Backend (GitHub Actions API) | Frontend Server (CI observability job) | The observable source is run/job/step timestamps returned by Actions APIs; `ci-observability` publishes the same-run census. [VERIFIED: repository `ci.yml` and `collect_pr_timing_receipt.sh`] |
+| CI-14 acceptance | API / Backend (receipt verifier) | Frontend Server (sampling controller) | Verify mode recomputes durations and thresholds from API identities, rather than accepting prose or local timings. [VERIFIED: repository `collect_pr_timing_receipt.sh` and `ci_timing_automation_test.exs`] |
 
 ## Standard Stack
 
 ### Core
 
-| Library / Tool | Version | Purpose | Why Standard |
-|---|---:|---|---|
-| GitHub Actions `ci.yml` | repository-pinned actions | Required PR orchestration and native job/step timing | It is the existing, release-coupled required path; no new CI system is authorized. [VERIFIED: .github/workflows/ci.yml; RUNNING.md] |
-| Elixir / Mix | repository toolchain | Generate, patch, compile, and execute the packed clean-room consumer | All existing proof commands use Mix; no package installation is required for this phase. [VERIFIED: scripts/install_smoke.sh; test/install_smoke/support/generated_app_helper.ex] |
-| ExUnit | project test framework | Locks generated-app and workflow contracts | Existing install-smoke and CI-policy tests are the focused regression surface. [VERIFIED: test/install_smoke/generated_app_smoke_test.exs; test/install_smoke/ci_lane_split_test.exs] |
+| Component | Version | Purpose | Why Standard |
+|---|---|---|---|
+| GitHub Actions workflow `ci.yml` | repository-pinned actions | Required PR execution and `CI Summary` aggregation | It is the shipped, branch-protected CI surface; no dependency installation is proposed. [VERIFIED: repository `ci.yml` and `ci_lane_split_test.exs`] |
+| GitHub CLI `gh` | 2.95.0 locally | Authenticated read-only run/job evidence and bounded controller actions | Existing receipt controller and test shim already use it. [VERIFIED: local environment and `collect_pr_timing_receipt.sh`] |
+| `jq` | 1.7.1 locally | Deterministic extraction, chronology, and percentile recomputation | Existing controller uses it for all receipt integrity checks. [VERIFIED: local environment and `collect_pr_timing_receipt.sh`] |
 
-### Supporting
-
-| Tool | Purpose | When to Use |
-|---|---|---|
-| `gh` + `jq` | Read live Actions runs/jobs and classify attempts | Receipt collection and job-level exception evidence only; never mutate protection. [VERIFIED: scripts/ci/collect_ci_baseline.sh] |
-| `scripts/maintainer/refactor_contract.sh` | SAFE-01 compile-cycle and contract preservation authority | Run for every implementation slice and final correction. [VERIFIED: scripts/maintainer/refactor_contract.sh; RUNNING.md] |
-
-### Alternatives Considered
-
-| Instead of | Could Use | Tradeoff |
-|---|---|---|
-| Narrow generated-app setup correction | Test partitions, cache redesign, or required-job topology changes | Deferred or prohibited: none is supported by this evidence, and each changes more risk surface than the demonstrated nested setup cost. [VERIFIED: 132-CONTEXT.md; GitHub Actions API] |
-| Fresh ten-run PR receipt | Local timing or a rerun/mixed-head sample | Invalid for CI-14 because live first-attempt PR timing from one immutable head is required. [VERIFIED: 132-CONTEXT.md; 132-CI-TIMING-RECEIPT.md] |
-
-**Installation:** None — use the repository’s existing Elixir/Mix, GitHub Actions, `gh`, and `jq` tooling. [VERIFIED: package manifest and existing scripts]
+**Installation:** None — the recovery should not add packages. [VERIFIED: phase boundary and repository]
 
 ## Architecture Patterns
 
 ### System Architecture Diagram
 
 ```text
-pull_request event at immutable SHA
-        |
-        +--> Quality / optional dependencies --> Integration, Contract, Proof, Adopter
-        |                                                   |
-        +--> Package Consumer (starts independently) ------+
-        |       -> install_smoke.sh image
-        |       -> generated app: generate -> patch -> deps -> compile -> migrate -> boot -> lifecycle
-        |
-        +--> Adoption unit / E2E smoke / CI script tests / brandbook tokens
-                         |
-                         v
-                  CI Summary (success or intentional skip only)
-                         |
-                   branch protection
-                         |
-                  receipt: start -> CI Summary completion
+pull_request event
+       |
+       v
+parallel roots: Quality matrix + Optional Dependencies + Package Consumer
+       |                         |
+       |                         +--> currently gates Integration, Contract, Proof,
+       |                               Adoption Smoke, and other required jobs
+       v
+Integration ----> Adopter
+       |              |
+       +--------------+------------------------+
+Adoption Demo E2E Smoke -----------------------+--> CI Summary --> sole required check
+Package Consumer -------------------------------+
+other required jobs ----------------------------+
 ```
 
-The diagram mirrors the present required path; the correction is contained within the generated-app setup sequence and must not change any arrows or `ci-summary.needs`. [VERIFIED: .github/workflows/ci.yml; scripts/ci/eval_ci_summary.sh]
+The diagram represents current scheduling topology, not a recommendation. `ci-summary.needs` contains Quality, Optional Dependencies, Integration, Contract, Proof, Package Consumer, Adoption Demo Unit, Adoption Demo E2E Smoke, Adopter, Brandbook Tokens, and CI Script Tests; its `always()` evaluation preserves the repository's skip-as-pass semantics. [VERIFIED: repository `ci.yml`, `eval_ci_summary.sh`, and `ci_lane_split_test.exs`]
 
-### Recommended Project Structure
+### Pattern 1: Separate Membership, Gate Semantics, and Topology
 
-```text
-.github/workflows/ci.yml                         # unchanged required-job topology
-scripts/install_smoke.sh                         # unchanged profile entry point
-test/install_smoke/support/generated_app/
-  workspace.ex                                   # generator command construction
-test/install_smoke/support/generated_app_helper.ex # patch -> fetch -> compile -> proof orchestration
-test/install_smoke/generated_app_smoke_test.exs  # observable generated-app contracts
-.planning/phases/132-measured-closure/
-  132-CI-TIMING-RECEIPT.md                       # final immutable-head receipt
-```
+**What:** Evaluate all three independently before changing YAML.
 
-### Pattern 1: Patch before the one authoritative generated-app dependency installation
+| Dimension | Current contract | May a recovery alter it? |
+|---|---|---|
+| Required-job membership | `CI Summary` stays sole required context and keeps its listed required jobs. [VERIFIED: repository] | No — D-01 forbids it. |
+| Gate semantics | `CI Summary` runs with `if: always()` and its tested evaluator treats skipped prerequisite results as pass. [VERIFIED: repository] | No — D-01 forbids it. |
+| Dependency ordering/topology | `needs` delays Integration/Contract/Proof/Adoption Smoke behind Quality plus Optional Dependencies; Adopter additionally waits for Integration and Contract. [VERIFIED: repository] | No under D-02; an explicit recovery contract must authorize any exception. |
 
-**What:** Generate the bare Phoenix project, patch it with the local unpacked Rindle package/profile/migrations, then use the already-existing `mix deps.get` and `mix compile` operations as the one post-patch setup path. [VERIFIED: test/install_smoke/support/generated_app/workspace.ex; test/install_smoke/support/generated_app_helper.ex]
+**Why:** Retaining all names in `ci-summary.needs` can preserve required-job membership while a changed `needs` edge materially changes scheduling and failure propagation. GitHub documents that a job's `needs` must complete successfully before it runs. [CITED: https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-jobs]
 
-**When to use:** Only in the required image consumer after a focused test proves the package provenance, generated migration, boot, and lifecycle checks remain identical. [VERIFIED: test/install_smoke/generated_app_smoke_test.exs; 132-CONTEXT.md]
+### Pattern 2: Critical-path proof before remediation
 
-### Pattern 2: Evidence-only timing closure
+**What:** Treat a CI Summary duration as `max(required predecessor completion) + summary overhead`; choose a correction only when the native API census identifies the repeated predecessor path.
 
-**What:** Make the correction, validate it locally, then trigger one `pull_request` run at a time from the same immutable PR head. Include only `success`, `run_attempt == 1`, non-cancelled runs; measure workflow `startedAt` to `CI Summary.completedAt`, sort ten seconds values, average ranks 5 and 6 for median, and use rank 10 for p95. [VERIFIED: 132-CI-TIMING-RECEIPT.md]
+**Current evidence:**
 
-**When to use:** After the correction has merged into the candidate PR head; not as a substitute for implementation verification. [VERIFIED: guides/release_publish.md; 132-CI-TIMING-RECEIPT.md]
+| Run | Barrier to downstream starts | Last workload finisher | CI Summary | Interpretation |
+|---:|---:|---|---:|---|
+| 33003369940 | 297s | Adoption Demo E2E Smoke, 280s | 591s | Smoke starts after the Quality barrier and completes at ~579s. [VERIFIED: GitHub Actions API] |
+| 33004281315 | 296s | Adopter, 109s | 548s | Serial Quality → Integration → Adopter path is last. [VERIFIED: GitHub Actions API] |
+| 33005105221 | 270s | Adopter, 100s | 510s | Same serial path gives the best observed result, yet remains 30s over target. [VERIFIED: GitHub Actions API] |
+| 33005882907 | 319s | Adopter, 126s | 592s | Same serial path is last and exceeds target by 112s. [VERIFIED: GitHub Actions API] |
+| 33006773326 | 267s | Adoption Demo E2E Smoke, 337s | 612s | Smoke variability alone breaches the p95 limit. [VERIFIED: GitHub Actions API] |
 
-### Anti-Patterns to Avoid
+The current five-run median is 591s, not merely a single runner outlier. Three runs finish through the Adopter chain and two through E2E Smoke; that split prevents optimizing only one job from producing defensible median headroom. [VERIFIED: GitHub Actions API]
 
-- **Changing `ci-summary.needs`, its name, or skip-as-pass semantics:** this weakens/redefines the release-coupled required path rather than shortening it. [VERIFIED: 132-CONTEXT.md; scripts/ci/eval_ci_summary.sh]
-- **Adding `--slowest` to the Quality coverage command:** it enables trace mode and serializes async tests. [VERIFIED: .github/workflows/ci.yml; test/install_smoke/ci_observability_test.exs]
-- **Counting a rerun, cancellation, different SHA, or local timing:** each breaks CI-14 comparability. [VERIFIED: 132-CONTEXT.md; 132-CI-TIMING-RECEIPT.md]
-- **Calling the median miss an external-runner exception:** the existing receipt expressly rejects that disposition absent evidence, owner, and dated follow-up. [VERIFIED: 132-CI-TIMING-RECEIPT.md]
+### Pattern 3: API-backed acceptance only
+
+**What:** Keep the existing current-section receipt controller as the final authority. It requires exactly ten API-resolved PR runs on one SHA, attempt 1, success, exactly one successful `CI Summary`, non-overlap, table/manifest agreement, median ranks 5/6, p95 rank 10, and inclusive 480/600 limits. [VERIFIED: repository `collect_pr_timing_receipt.sh` and `ci_timing_automation_test.exs`]
+
+**When to use:** After the recovery correction has passed all executable local preservation contracts. A re-sample by itself cannot establish causality or satisfy this research's recovery requirement. [VERIFIED: CONTEXT.md and repository controller]
+
+## Concrete Recovery Options and Tradeoffs
+
+| Option | Expected scheduling effect | Contract status | Recommendation |
+|---|---|---|---|
+| Re-sample `f347663` unchanged | Removes FFmpeg 403 risk but leaves the observed Quality → Integration → Adopter chain and Quality → Smoke start barrier. [VERIFIED: repository and GitHub Actions API] | Permitted mechanically, but no evidence of enough median headroom. | Reject — it is a blind re-sample. |
+| Further tune one install step | Smoke steps include Playwright 78–111s, FFmpeg 17–111s, and libvips 21–172s; the current five-run median requires 111s total improvement. [VERIFIED: GitHub Actions API] | D-02 permits only if new data proves one bounded step is causal. | Reject now — no single demonstrated step has 111s repeatable median headroom across both critical branches. |
+| Remove only Smoke's Quality/Optional `needs` | Makes Smoke independent while retaining it in `CI Summary`; it addresses Smoke-last runs, but not three Adopter-last runs. [VERIFIED: repository topology and GitHub Actions API] | Prohibited by D-02's unchanged-topology contract. | Insufficient even if authorized alone. |
+| Remove Integration's Quality/Optional `needs` after proving it is self-contained | Lets Integration overlap the Quality barrier; Adopter still retains Quality, Integration, and Contract as required prerequisites, so completion can be bounded by Quality + its remaining short successor rather than Quality + Integration + Adopter. [INFERENCE from VERIFIED: repository graph and GitHub Actions API] | Prohibited by D-02 today; this is the smallest topology candidate that targets the Adopter branch. | Candidate only after an explicit topology recovery decision and dedicated proof that it does not hide a required precondition. |
+| Decouple both Smoke and the proven self-contained Integration branch, preserving all `CI Summary` membership | Removes both observed last-finisher branches from the Quality-start barrier while retaining jobs, gate evaluator, and summary membership. [INFERENCE from VERIFIED: repository graph and GitHub Actions API] | Prohibited by D-02 today; a controlled topology change, not gate weakening. | Smallest evidence-backed path with plausible margin for <=480 median / <=600 p95; plan only after authorization. |
+| External-runner exception | Does not improve time. | D-03 requires job evidence, named owner, and dated follow-up; the observed repeatable dependency-chain pattern is not such evidence. [VERIFIED: CONTEXT.md and GitHub Actions API] | Reject. |
+
+### Feasibility Verdict
+
+The unchanged-topology contract makes CI-14 infeasible on current evidence: its best observed 510s result already misses the median target, and its five-run median is 591s. The only shipped correction after those samples is an FFmpeg-authentication reliability fix, so there is no measured speed change that could support a ten-run attempt. [VERIFIED: GitHub Actions API and repository `git log`]
+
+**Required explicit decision before planning:** choose one of the following, and record it in a recovery CONTEXT/roadmap amendment.
+
+1. **Authorize a bounded topology exception:** retain every `CI Summary` need, the sole required check, skip-as-pass, and zero-rerun policy; permit removal of only identified prerequisite edges after an executable self-containment proof for each affected job. This supports a new Phase 132 recovery plan.
+2. **Keep D-02 unchanged:** declare CI-14 not closable in Phase 132, retain the failed receipt, and charter a follow-up phase whose contract explicitly permits dependency-topology optimization with preservation tests. This is the honest path if graph change is not acceptable.
+
+Do not select an external-runner exception or a sample-only Plan 132-08 recovery; neither resolves the demonstrated cause. [VERIFIED: CONTEXT.md, REQUIREMENTS.md, and GitHub Actions API]
 
 ## Don't Hand-Roll
 
 | Problem | Don't Build | Use Instead | Why |
 |---|---|---|---|
-| Required-check aggregation | A second aggregate check or custom branch-protection rule | Existing `ci-summary` plus `scripts/ci/eval_ci_summary.sh` | It already implements the single required check and skip-as-pass rule. [VERIFIED: .github/workflows/ci.yml; scripts/ci/eval_ci_summary.sh] |
-| Timing API client / percentile convention | A new telemetry system or alternate statistic | Existing Actions jobs API workflow plus documented receipt rules | The repo already defines run-attempt filtering, start/summary timestamps, and nearest-rank p95. [VERIFIED: scripts/ci/collect_ci_baseline.sh; 132-CI-TIMING-RECEIPT.md] |
-| Generated-app proof replacement | A lightweight mock of package installation | Existing `scripts/install_smoke.sh image` / generated-app lifecycle | The required lane deliberately proves build/unpack, install, migrations, boot, and lifecycle in a clean room. [VERIFIED: .github/workflows/ci.yml; 131-IMPLEMENTATION-VERIFICATION.md] |
-
-**Key insight:** CI-14 needs less duplicated work inside an already-required proof, not less proof. [VERIFIED: 132-CONTEXT.md; GitHub Actions API]
+| CI-14 timing proof | Manual spreadsheet, screenshots, or a one-off timing script | Existing `collect_pr_timing_receipt.sh verify` API-backed controller | It rejects mixed heads, retries, failed/cancelled runs, bad summary jobs, altered durations, overlaps, and threshold misses. [VERIFIED: repository controller and tests] |
+| Required-gate evaluation | Ad hoc `needs` parsing in a new job | Existing `eval_ci_summary.sh` plus `test_ci_summary_gate.sh` | It preserves the tested skip-as-pass fork semantics. [VERIFIED: repository] |
+| Package install retry | New unbounded mirror/retry logic | Existing bounded install-first `install_apt_packages.sh` | It has two 240-second-bounded attempts and refreshes only after initial failure. [VERIFIED: repository and 132-06-SUMMARY.md] |
 
 ## Common Pitfalls
 
-### Pitfall 1: Optimizing a non-critical job
+### Pitfall 1: Calling membership preservation “unchanged topology”
 
-**What goes wrong:** A plan edits Quality or parallelism even though the required package-consumer job governs completion. [VERIFIED: GitHub Actions API]
+**What goes wrong:** A plan leaves every `ci-summary.needs` entry intact but removes a job's earlier `needs`; it then falsely claims no topology changed. [VERIFIED: repository graph]
 
-**How to avoid:** Keep the correction inside the image packed-consumer step unless new same-head timings disprove this census. [VERIFIED: 132-CONTEXT.md; GitHub Actions API]
+**How to avoid:** Test membership/gate semantics separately from each job's exact prerequisite set; describe any removed edge as a topology exception. [CITED: https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-jobs]
 
-### Pitfall 2: Removing cold-install proof while removing duplicate setup
+### Pitfall 2: Optimizing only the visible long standalone job
 
-**What goes wrong:** A shortcut makes the generated consumer reuse repository artifacts or omits post-patch dependency resolution. [VERIFIED: test/install_smoke/support/generated_app_helper.ex; test/install_smoke/generated_app_smoke_test.exs]
+**What goes wrong:** `Package Consumer Proof Matrix` is roughly 371–393 seconds, but it was not the last required finisher in the supplied successful samples. [VERIFIED: supplied live census]
 
-**How to avoid:** Lock package-root provenance, `deps/rindle` absence for package mode, compile, migrations, boot, and the canonical presigned-PUT lifecycle before/with the command change. [VERIFIED: test/install_smoke/generated_app_smoke_test.exs; test/install_smoke/support/generated_app/smoke_source.ex]
+**How to avoid:** Select the correction using end-to-end finish time and predecessor chain, not duration alone. [VERIFIED: GitHub Actions API]
 
-### Pitfall 3: Replacing the failed receipt instead of preserving it
+### Pitfall 3: Treating the 403 fix as timing evidence
 
-**What goes wrong:** The prior valid window is overwritten or mixed into the new head’s sample, obscuring the true before/after evidence. [VERIFIED: 132-CI-TIMING-RECEIPT.md]
+**What goes wrong:** A successful authenticated FFmpeg release lookup is conflated with a measured speedup. [VERIFIED: repository diff and supplied anomaly]
 
-**How to avoid:** Retain the failed baseline and add a distinct final receipt section/table keyed to the corrected immutable SHA. [VERIFIED: 132-CONTEXT.md]
+**How to avoid:** Keep it as reliability preservation; collect native step timings after any authorized scheduling correction and require the normal ten-run acceptance receipt. [VERIFIED: repository controller]
 
-### Pitfall 4: Misclassifying an infrastructure event
+### Pitfall 4: Human acceptance or reruns masking a miss
 
-**What goes wrong:** A slow run is excluded merely for missing the target. [VERIFIED: 132-CONTEXT.md]
+**What goes wrong:** A user acknowledgement, a rerun, a mixed-head sample, or choosing only fast runs appears to improve a metric while invalidating CI-14. [VERIFIED: REQUIREMENTS.md and repository controller]
 
-**How to avoid:** An exception needs job-level evidence, a named owner, and a dated follow-up; otherwise the run remains evidence or the collection restarts as required. [VERIFIED: REQUIREMENTS.md; 132-CONTEXT.md]
+**How to avoid:** Retain exactly ten chronological first-attempt successful PR runs from a single immutable head, with API verification as the phase gate. [VERIFIED: repository controller]
 
 ## Code Examples
 
-### Preserve the patch-then-setup ordering
+### Required topology regression shape
 
 ```elixir
-# Source: test/install_smoke/support/generated_app_helper.ex
-generate_phoenix_app!(workspace_root, generated_app_root)
-patch_generated_app!(generated_app_root, app_name, app_module, package_root, network_version, :image, [])
-fetch_deps!(generated_app_root, shared_env, network_version)
-compile_result = run_cmd!(generated_app_root, ["mix", "compile"], shared_env)
+# Extend the shipped topology test; source: repository ci_lane_split_test.exs
+summary_needs = ci_summary_needs_block(ci)
+assert summary_needs =~ "- adoption-demo-e2e-smoke\n"
+assert summary_needs =~ "- integration\n"
+assert summary_needs =~ "- adopter\n"
+
+# If a recovery exception is approved, assert the precise authorized prerequisite
+# removal and retain all self-contained setup/proof steps in that job block.
 ```
 
-The implementation change belongs only in the generator argv; preserve the following post-patch operations. [VERIFIED: test/install_smoke/support/generated_app_helper.ex]
-
-### Keep the aggregate gate evaluator unchanged
+### Final acceptance command
 
 ```bash
-# Source: scripts/ci/eval_ci_summary.sh
-case "${result}" in
-  success|skipped) ;;
-  *) failed=1 ;;
-esac
+# Source: repository scripts/ci/collect_pr_timing_receipt.sh
+bash scripts/ci/collect_pr_timing_receipt.sh verify \
+  --repo szTheory/rindle --workflow ci.yml --summary-job "CI Summary" \
+  --samples 10 --median-max 480 --p95-max 600 \
+  --receipt .planning/phases/132-measured-closure/132-CI-TIMING-RECEIPT.md
 ```
-
-Do not alter this evaluator or change what it receives in `needs`. [VERIFIED: scripts/ci/eval_ci_summary.sh; 132-CONTEXT.md]
-
-## State of the Art
-
-| Old Approach | Current Approach | Impact |
-|---|---|---|
-| Quality waited for package-consumer | Image packed-consumer starts independently while still joining `CI Summary` | The gate retains the proof and removes avoidable inter-job queueing. [VERIFIED: git show a07eaff; .github/workflows/ci.yml] |
-| Quality coverage used `--slowest` | Coverage runs once without trace serialization; slow-test diagnostics remain separate | Prevents the coverage lane from serializing async tests. [VERIFIED: git show a07eaff; .github/workflows/ci.yml] |
-| Timing target was unproven | A failed but comparable ten-run receipt now exists | The next phase action is a causal correction plus fresh receipt, not further baseline work. [VERIFIED: 132-CI-TIMING-RECEIPT.md]
-
-## Assumptions Log
-
-| # | Claim | Section | Risk if Wrong |
-|---|---|---|---|
-| A1 | Removing `--install` from `mix phx.new` will save enough time to close the 35.5-second median gap. | Summary / Architecture Patterns | The correction could preserve behavior but fail CI-14, requiring a new evidence-guided investigation. |
-
-The candidate is deliberately a testable hypothesis, not a performance guarantee: native timing proves the enclosing step is the bottleneck but does not expose its nested command durations. [VERIFIED: GitHub Actions API; GitHub Actions log for run 32863291301]
-
-## Open Questions (RESOLVED)
-
-1. **How much of the nested proof is spent in Phoenix’s pre-patch install versus the post-patch lifecycle?**
-   - What we know: the parent step takes 292–424 seconds and the nested generated-app proof accounted for 411.7 synchronous seconds in one representative run. [VERIFIED: GitHub Actions API; GitHub Actions log for run 32863291301]
-   - What's unclear: the current command runner captures child output but does not emit per-child timing in a successful test log. [VERIFIED: test/install_smoke/support/generated_app/command_runner.ex]
-   - Recommendation: make the minimal `--install` removal with focused proof first; if it misses the receipt target, add only bounded stage timing to the existing helper before considering another correction. [ASSUMED]
-   - **RESOLVED operationally:** The phase does not claim a nested-command duration. Plan 01 treats removal of `--install` as a bounded hypothesis: first run the tagged argv contract, then require the unchanged full image package-consumer as integration acceptance. Plan 03's ten-run immutable-head receipt decides whether the hypothesis closes CI-14. If it misses, the residual timing uncertainty remains explicit and routes to bounded stage timing before any further correction. [VERIFIED: 132-01-PLAN.md; 132-03-PLAN.md]
-
-2. **Can the new receipt be collected without a maintainer action on the draft PR?**
-   - What we know: the workflow accepts `pull_request` `labeled` events and the prior receipt used sequential PR runs. [VERIFIED: .github/workflows/ci.yml; 132-CI-TIMING-RECEIPT.md]
-   - What's unclear: the exact maintainer trigger cadence/label procedure is not encoded as a committed script. [VERIFIED: codebase grep]
-   - Recommendation: include a human checkpoint to trigger/observe each run sequentially and document the exact operation in the final receipt. [ASSUMED]
-   - **RESOLVED operationally:** Plan 03 supplies the maintainer procedure as a blocking checkpoint: verify PR #96's immutable head, add the existing `ci-timing-sample` label, capture exactly one qualifying `pull_request` run, remove the label, wait through successful `CI Summary` completion, and only then trigger the next sample. The checkpoint preserves the remaining external dependency instead of assuming automation that the repository does not provide. [VERIFIED: 132-03-PLAN.md]
 
 ## Environment Availability
 
 | Dependency | Required By | Available | Version | Fallback |
-|---|---|---|---|---|
-| Elixir/Mix | focused and quality verification | ✓ | OTP 28 runtime detected | — [VERIFIED: local command probe] |
-| `gh` | live receipt and job-evidence collection | ✓ | 2.95.0 | — [VERIFIED: local command probe] |
-| `jq` | collector/receipt processing | ✓ | 1.7.1 | — [VERIFIED: local command probe] |
-| Docker | packed-consumer local proof services | ✓ | 29.5.2 | GitHub Actions for authoritative timing only. [VERIFIED: local command probe] |
-| GitHub Actions PR runner | CI-14 receipt | available externally | live API returned all ten recorded run/job payloads | No local substitute for CI-14. [VERIFIED: GitHub Actions API; guides/release_publish.md] |
+|---|---|---:|---|---|
+| `gh` authenticated CLI | API census and final receipt verification | ✓ | 2.95.0 | None — authentication is a runtime precondition, not acceptance. [VERIFIED: local environment and controller] |
+| `jq` | Receipt parsing/recomputation | ✓ | 1.7.1 | None — controller requires it. [VERIFIED: local environment and controller] |
+| `git` / Bash | Head checks and controller | ✓ | 2.41.0 / 5.2.37 | None. [VERIFIED: local environment] |
+| Elixir/Mix | Executable topology and preservation tests | ✓ | OTP 28 / installed Mix | Repository test environment. [VERIFIED: local environment] |
+
+**Missing dependencies with no fallback:** None. [VERIFIED: local environment]
 
 ## Validation Architecture
 
@@ -279,31 +245,24 @@ The candidate is deliberately a testable hypothesis, not a performance guarantee
 
 | Property | Value |
 |---|---|
-| Framework | ExUnit (project-native) [VERIFIED: test/install_smoke/generated_app_smoke_test.exs] |
-| Config file | `test/test_helper.exs` [VERIFIED: test/install_smoke/ci_observability_test.exs] |
-| Quick run command | `mix test test/install_smoke/generated_app_smoke_test.exs --include minio` [VERIFIED: scripts/install_smoke.sh] |
-| Full preservation commands | `mix quality_signals`; `bash scripts/maintainer/refactor_contract.sh`; `mix coveralls.multiple --type local --type json`; `bash scripts/install_smoke.sh image` [VERIFIED: RUNNING.md; scripts/maintainer/refactor_contract.sh] |
+| Framework | ExUnit (repository Mix project) [VERIFIED: repository tests] |
+| Config file | `test/test_helper.exs` [VERIFIED: repository] |
+| Quick run command | `mix test test/install_smoke/ci_lane_split_test.exs test/install_smoke/ci_observability_test.exs test/install_smoke/ci_timing_automation_test.exs --seed 0` [VERIFIED: repository] |
+| Full preservation commands | `mix quality_signals && bash scripts/maintainer/refactor_contract.sh && bash scripts/install_smoke.sh image` [VERIFIED: 132-07-SUMMARY.md] |
 
 ### Phase Requirements → Test Map
 
 | Req ID | Behavior | Test Type | Automated Command | File Exists? |
 |---|---|---|---|---|
-| CI-14 | Generator change preserves clean-room package/image lifecycle before live receipt | focused integration | `mix test test/install_smoke/generated_app_smoke_test.exs --include minio` | ✅ |
-| CI-14 | Required-gate topology and skip-as-pass remain unchanged | contract | `mix test test/install_smoke/ci_lane_split_test.exs test/install_smoke/ci_observability_test.exs && bash scripts/ci/test_ci_summary_gate.sh` | ✅ |
-| CI-14 | Ten exact-head first-attempt PR runs meet percentile targets | live acceptance | read-only `gh api` receipt collection | manual/external acceptance |
-| COV-05 | Authoritative coverage stays >=82.13% | integration | `mix coveralls.multiple --type local --type json` | ✅ |
-| SAFE-02 | No behavior/prohibited-surface drift | contract + packed consumer | `mix quality_signals && bash scripts/maintainer/refactor_contract.sh && bash scripts/install_smoke.sh image` | ✅ |
-
-### Sampling Rate
-
-- **Per task commit:** focused generated-app proof plus CI topology/gate tests. [VERIFIED: 132-CONTEXT.md]
-- **Per wave merge:** `mix quality_signals` and SAFE-01. [VERIFIED: RUNNING.md]
-- **Phase gate:** authoritative coverage, packed image consumer, bounded prohibited-surface diff review, then a complete green ten-run exact-head receipt. [VERIFIED: REQUIREMENTS.md; 132-CONTEXT.md]
+| CI-14 | Exact ten-run receipt identity, chronology, statistics, and inclusive threshold verification | Controller/integration fixture + live API verifier | `mix test test/install_smoke/ci_timing_automation_test.exs --seed 0` then controller `verify` command above | ✅ |
+| CI-14 | Required membership and skip-as-pass survive any approved topology exception | Source-bound workflow and Bash gate regression | `mix test test/install_smoke/ci_lane_split_test.exs test/install_smoke/ci_observability_test.exs --seed 0 && bash scripts/ci/test_ci_summary_gate.sh` | ✅, extend for authorized edges |
+| COV-05 | Coverage floor remains authoritative | Integration/coverage | `mix coveralls.multiple --type local --type json` | ✅ |
+| SAFE-02 | Preservation and prohibited-surface boundaries | Integration/contract | `mix quality_signals && bash scripts/maintainer/refactor_contract.sh && bash scripts/install_smoke.sh image && ./scripts/maintainer/automation_first_contract.sh` | ✅ |
 
 ### Wave 0 Gaps
 
-- [ ] Add a focused contract that detects regression to generator pre-patch dependency installation, while asserting downstream package provenance/lifecycle behavior; this must land before or with the helper correction. [ASSUMED]
-- [ ] No new framework or dependency install is needed. [VERIFIED: codebase grep]
+- [ ] Add a topology-specific regression only if the recovery decision authorizes named `needs` removals: assert all `CI Summary` membership and evaluator semantics remain, assert exactly the approved edge set changes, and assert the affected jobs retain their required self-contained setup/proof commands. [INFERENCE from VERIFIED: repository contracts]
+- [ ] Add a deterministic critical-path assertion derived from fixture timestamps only if it verifies the approved decision; do not encode a local wall-clock performance target. [VERIFIED: AGENTS.md automation-first constraint and existing receipt method]
 
 ## Security Domain
 
@@ -311,40 +270,65 @@ The candidate is deliberately a testable hypothesis, not a performance guarantee
 
 | ASVS Category | Applies | Standard Control |
 |---|---|---|
-| V2 Authentication | no | CI receipt reads use the maintainer’s existing `gh` authentication; no product auth change. [VERIFIED: scripts/ci/collect_ci_baseline.sh] |
-| V3 Session Management | no | No application-session change. [VERIFIED: phase boundary] |
-| V4 Access Control | yes | Keep branch protection’s sole required check and the workflow’s existing least-privilege `contents: read` default. [VERIFIED: RUNNING.md; .github/workflows/ci.yml] |
-| V5 Input Validation | yes | Preserve quoted shell variables and trusted GitHub-context use; do not introduce PR title/body/branch shell interpolation. [VERIFIED: .github/workflows/ci.yml] |
-| V6 Cryptography | no | No cryptographic implementation or dependency change. [VERIFIED: phase boundary] |
+| V2 Authentication | Yes | Reuse authenticated `gh`; do not print tokens. [VERIFIED: controller and FFmpeg helper] |
+| V3 Session Management | No | No application session surface changes. [VERIFIED: phase boundary] |
+| V4 Access Control | Yes | Controller validates PR/head ancestry and owns/removes only its named label. [VERIFIED: controller] |
+| V5 Input Validation | Yes | Shell option validation, SHA checks, exact repo/workflow/summary-job constraints, and API identity checks fail closed. [VERIFIED: controller] |
+| V6 Cryptography | No | No cryptographic implementation is proposed. [VERIFIED: phase boundary] |
 
-### Known Threat Patterns for CI workflow changes
+### Known Threat Patterns for CI receipt control
 
 | Pattern | STRIDE | Standard Mitigation |
 |---|---|---|
-| Required-proof bypass | Elevation of privilege | Keep `CI Summary` sole required check and unchanged required-job set; run topology and summary-gate tests. [VERIFIED: 132-CONTEXT.md; scripts/ci/test_ci_summary_gate.sh] |
-| Rerun/mixed-head timing manipulation | Tampering | Include only first-attempt, successful, non-cancelled runs from one SHA and record source URLs/timestamps. [VERIFIED: 132-CI-TIMING-RECEIPT.md] |
-| Runner incident hidden as performance success | Repudiation | Require job-level evidence, named owner, and dated follow-up for any exception. [VERIFIED: REQUIREMENTS.md] |
-| Shell injection from PR metadata | Tampering | Do not add untrusted event-field interpolation; current concurrency logic uses only event name. [VERIFIED: .github/workflows/ci.yml] |
+| Receipt/result tampering | Tampering | Re-resolve each run/job from Actions API and recompute values. [VERIFIED: controller] |
+| Slow-run exclusion | Repudiation | Require one complete consecutive exact-head eligible slice of ten. [VERIFIED: controller] |
+| Credential leak | Information disclosure | Use ephemeral `GITHUB_TOKEN` request header without outputting it. [VERIFIED: `install_ffmpeg.sh`] |
+| Unauthorized PR mutation | Elevation of privilege | Refuse pre-existing label ownership and non-fast-forward publication. [VERIFIED: controller] |
+
+## State of the Art
+
+| Old Approach | Current Approach | Impact |
+|---|---|---|
+| Legacy timing blocks could document a failed sample. | Explicit `CI_TIMING_CURRENT_*` blocks are the only acceptance input, API-validated by verify mode. [VERIFIED: controller and timing tests] | Historical failure evidence remains immutable while current acceptance is unambiguous. |
+| FFmpeg lookup used an unauthenticated release API call. | The helper sends the ephemeral Actions token when available. [VERIFIED: `install_ffmpeg.sh` and commit `4254165`] | Removes the supplied 403 failure mode; it is not a throughput claim. |
+
+## Assumptions Log
+
+| # | Claim | Section | Risk if Wrong |
+|---|---|---|---|
+| A1 | Decoupling the identified self-contained branches has enough practical headroom to meet both thresholds. | Concrete Recovery Options | Medium — it is an inference from five runs, not a completed receipt; live acceptance remains mandatory. |
+| A2 | Integration can be proven self-contained with its existing setup/services and no hidden Quality artifact. | Concrete Recovery Options | High — must be proven before any `needs` removal is implemented. |
+
+## Open Questions
+
+1. **Which exact dependency edges may be authorized?**
+   - What we know: removing only Smoke's barrier cannot solve the three Adopter-last runs; Integration is the smallest candidate that attacks the serial branch. [VERIFIED: GitHub Actions API]
+   - What's unclear: whether project policy permits the bounded topology exception.
+   - Recommendation: obtain Decision 1 or 2 in the feasibility verdict before producing a new implementation PLAN.
+
+2. **Does Contract become the new Adopter blocker when Integration is decoupled?**
+   - What we know: Adopter explicitly needs Quality, Optional Dependencies, Integration, and Contract. [VERIFIED: repository `ci.yml`]
+   - What's unclear: Contract's native completion time in a correction candidate.
+   - Recommendation: perform a read-only native job/step census of Contract before choosing the minimal approved edge set; do not sample CI-14 yet.
 
 ## Sources
 
 ### Primary (HIGH confidence)
 
-- [GitHub Actions API](https://api.github.com/repos/szTheory/rindle/actions/runs/32863291301/jobs) - exact-head run/job/step timing census across the ten receipt runs.
-- [.github/workflows/ci.yml](../../.github/workflows/ci.yml) - required workflow graph, entry trigger, package-consumer job, observability, and CI Summary.
-- [132-CI-TIMING-RECEIPT.md](132-CI-TIMING-RECEIPT.md) - existing measurement method, failed result, and integrity criteria.
-- [RUNNING.md](../../../RUNNING.md) and [release_publish.md](../../../guides/release_publish.md) - release and CI lane authorities.
+- Repository `.github/workflows/ci.yml`, timing controller, and three CI contract tests — current membership, semantics, and verifier behavior. [VERIFIED: repository]
+- GitHub Actions REST job payloads for runs 33003369940, 33004281315, 33005105221, 33005882907, and 33006773326 — actual barrier, job, and step timestamps. [VERIFIED: GitHub Actions API]
+- `132-CONTEXT.md`, `132-CI-TIMING-RECEIPT.md`, and 132-05/06/07 summaries — locked phase boundaries and prior evidence. [VERIFIED: repository]
 
 ### Secondary (MEDIUM confidence)
 
-- Context7 lookup was planned but unavailable in this runtime (`ctx7` and Context7 MCP are absent); no external framework claim is relied on for the recommendation. [VERIFIED: local command probe]
+- [GitHub Actions: Using jobs in a workflow](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-jobs) — `needs` dependency semantics. [CITED: https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-jobs]
 
 ## Metadata
 
 **Confidence breakdown:**
-- Standard stack: HIGH — no new package/tool choice; all components are repository-owned. [VERIFIED: codebase grep]
-- Architecture: HIGH — existing workflow and exact live job data establish the path and long pole. [VERIFIED: .github/workflows/ci.yml; GitHub Actions API]
-- Pitfalls: HIGH — preserved constraints and receipt invalidation rules are explicit. [VERIFIED: 132-CONTEXT.md; 132-CI-TIMING-RECEIPT.md]
+- Standard stack: HIGH — shipped repository tooling and local availability were inspected.
+- Architecture: HIGH — job graph and five live Actions job payloads were read directly; the topology-change performance outcome remains explicitly inferential.
+- Pitfalls: HIGH — grounded in the receipt verifier, required-gate tests, and observed samples.
 
-**Research date:** 2026-08-25
-**Valid until:** 2026-09-01 (fast-moving live CI evidence)
+**Research date:** 2026-08-26
+**Valid until:** Until the recovery decision or CI topology changes; timing observations must be refreshed after either event.
