@@ -242,7 +242,31 @@ cleanup_label() {
     label_owned=0
   fi
 }
-trap cleanup_label EXIT INT TERM
+
+lock_dir="${state_file}.lock"
+
+release_controller_lock() {
+  rm -f "$lock_dir/pid" 2>/dev/null || true
+  rmdir "$lock_dir" 2>/dev/null || true
+}
+
+if ! mkdir "$lock_dir" 2>/dev/null; then
+  owner_pid="$(cat "$lock_dir/pid" 2>/dev/null || true)"
+  if [[ "$owner_pid" =~ ^[0-9]+$ ]] && kill -0 "$owner_pid" 2>/dev/null; then
+    die "another controller owns state $state_file (pid $owner_pid)"
+  fi
+  release_controller_lock
+  mkdir "$lock_dir" 2>/dev/null || die "unable to acquire controller lock for $state_file"
+fi
+printf '%s\n' "$$" > "$lock_dir/pid"
+
+cleanup_controller() {
+  cleanup_label
+  release_controller_lock
+}
+
+trap cleanup_controller EXIT
+trap 'cleanup_controller; exit 143' INT TERM
 
 write_initial_state() {
   local tmp
@@ -504,7 +528,8 @@ jq -en --argjson actual "$p95" --argjson maximum "$p95_max" '$actual <= $maximum
 [ "$(grep -c '^CI_TIMING_CURRENT_TABLE_END$' "$receipt" 2>/dev/null || true)" -eq 0 ] || die "receipt contains a partial current timing table"
 section="$(mktemp "${TMPDIR:-/tmp}/rindle-ci-timing-section.XXXXXX")"
 next_receipt="$(mktemp "${TMPDIR:-/tmp}/rindle-ci-timing-receipt.XXXXXX")"
-trap 'cleanup_label; rm -f "${section:-}" "${next_receipt:-}"' EXIT INT TERM
+trap 'cleanup_controller; rm -f "${section:-}" "${next_receipt:-}"' EXIT
+trap 'cleanup_controller; rm -f "${section:-}" "${next_receipt:-}"; exit 143' INT TERM
 
 {
   echo

@@ -228,6 +228,14 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
     assert source =~ "test/install_smoke/ci_cache_hygiene_test\\.exs"
   end
 
+  test "controller locks a SHA-scoped state path before sampling" do
+    source = File.read!(@script)
+
+    assert source =~ "lock_dir=\"${state_file}.lock\""
+    assert source =~ "another controller owns state"
+    assert source =~ "release_controller_lock"
+  end
+
   defp run_controller(context, extra_env \\ []) do
     args = [
       "run",
