@@ -98,7 +98,8 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
     assert String.trim(File.read!(Path.join(context.fixture_dir, "count"))) == "10"
   end
 
-  test "waits for a queued discovered run without consuming its sequence or retriggering", context do
+  test "waits for a queued discovered run without consuming its sequence or retriggering",
+       context do
     File.write!(Path.join(context.fixture_dir, "count"), "1\n")
 
     state_file = Path.join(context.state_dir, "pr-96-#{context.head}.json")
@@ -120,7 +121,9 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
       })
     )
 
-    assert {output, 0} = run_controller(context, [{"GH_RUN_STATUS_SEQUENCE", "queued,in_progress,completed"}])
+    assert {output, 0} =
+             run_controller(context, [{"GH_RUN_STATUS_SEQUENCE", "queued,in_progress,completed"}])
+
     assert output =~ "run 1001 is queued; waiting for terminal completion"
     assert output =~ "run 1001 is in_progress; waiting for terminal completion"
 
