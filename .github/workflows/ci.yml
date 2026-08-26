@@ -310,7 +310,6 @@ jobs:
   integration:
     name: Integration
     runs-on: ubuntu-22.04
-    needs: [quality, optional-dependencies]
     env:
       MIX_ENV: test
       PGUSER: postgres
@@ -440,7 +439,6 @@ jobs:
     # with `needs: <matrixed_job>` blocks until every matrix variant
     # completes successfully. See:
     # https://docs.github.com/actions/using-jobs/using-jobs-in-a-workflow#defining-prerequisite-jobs
-    needs: [quality, optional-dependencies]
     env:
       MIX_ENV: test
       PGUSER: postgres
@@ -1014,7 +1012,6 @@ jobs:
     # NOT YET WIRED into ci-summary.needs / ci-observability.needs — that is
     # Plan 02 (GATE-04), gated behind the operator green-run checkpoint after
     # N=3 green push:main `adoption-demo-e2e` runs (T-112-05, load-bearing order).
-    needs: [quality, optional-dependencies]
     env:
       MIX_ENV: test
       RINDLE_AV_USE_CGROUPS: "false"
