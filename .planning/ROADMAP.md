@@ -114,7 +114,7 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
   2. `CI Summary` remains the sole required check with its required-job set and skip-as-pass behavior intact; any external-runner exception includes job-level evidence, a named owner, and a dated follow-up.
   3. Authoritative coverage remains at or above 82.13%, and the final correction passes focused proof, `mix quality_signals`, SAFE-01, the relevant integration or packed-consumer lane, and bounded prohibited-surface diff review.
 
-**Plans**: 7/11 plans executed
+**Plans**: 9/11 plans executed
 
 **Wave 1 — tracer correction and package proof**
 
@@ -150,7 +150,7 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 
 **Wave 9 — exact topology correction** *(blocked on Wave 7 completion; supersedes Wave 8 execution)*
 
-- [ ] 132-09-PLAN.md — RED/GREEN-lock and apply only the six authorized Quality/Optional scheduling-edge removals with deterministic projection proof.
+- [x] 132-09-PLAN.md — RED/GREEN-lock and apply only the six authorized Quality/Optional scheduling-edge removals with deterministic projection proof.
 
 **Wave 10 — recovery preservation and immutable preflight** *(blocked on Wave 9 completion)*
 

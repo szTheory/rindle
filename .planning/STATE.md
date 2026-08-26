@@ -5,15 +5,15 @@ milestone_name: Maintainer Craft & Feedback Velocity
 current_phase: 132
 current_phase_name: measured-closure
 status: executing
-stopped_at: Completed 132-07-PLAN.md
-last_updated: "2026-08-26T14:46:37.349Z"
+stopped_at: Completed 132-09-PLAN.md
+last_updated: "2026-08-26T21:22:45.212Z"
 last_activity: 2026-08-26
 last_activity_desc: Phase 132 execution started
 progress:
   total_phases: 3
   completed_phases: 0
-  total_plans: 8
-  completed_plans: 7
+  total_plans: 11
+  completed_plans: 9
   percent: 0
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-08-23 after v1.24)
 ## Current Position
 
 Phase: 132 (measured-closure) — EXECUTING
-Plan: 8 of 8
+Plan: 10 of 11
 Status: Ready to execute
 Last activity: 2026-08-26 — Phase 132 execution started
 
@@ -211,6 +211,8 @@ _(Key v1.22 execution decisions recorded at milestone close.)_
 - [Phase ?]: Plan 132-06 keeps the two bounded apt install attempts but refreshes indexes only after the first install fails; the ten exact-head Actions runs identify Install libvips as a 25-second median repeated setup cost.
 - [Phase ?]: Plan 132-07 binds post-Plan-06 HEAD 0696c49896f34f8747a38fbe6ac08fa2c3355b05 to one-run 82.1343% COV-05 and ordered SAFE-02 authorities before live timing sampling.
 - [Phase ?]: Plan 132-07 preserves CI Summary topology and treats equality at 82.13% coverage, 480-second median, and 600-second p95 as passing.
+- [Phase ?]: D-08 removes only Quality and Optional Dependencies prerequisites from Integration, Contract, and Adoption Demo E2E Smoke.
+- [Phase ?]: Projection remains causal regression evidence only; 132-11 API-backed receipt is the sole CI-14 acceptance authority.
 
 ## Blockers/Concerns
 
@@ -228,8 +230,8 @@ _(none)_
 
 ## Session Continuity
 
-Last session: 2026-08-26T14:46:37.338Z
-Stopped at: Completed 132-07-PLAN.md
+Last session: 2026-08-26T21:22:45.205Z
+Stopped at: Completed 132-09-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -289,6 +291,7 @@ Resume file: None
 | Phase 132 P05 | ~96 min | 1 tasks | 5 planning files |
 | Phase 132 P06 | 15 min | 1 tasks | 3 files |
 | Phase 132-measured-closure P07 | 10 minutes | 1 tasks | 2 files |
+| Phase 132-measured-closure P09 | 18 minutes | 2 tasks | 3 files |
 
 ## Operator Next Steps
 
