@@ -114,7 +114,7 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
   2. `CI Summary` remains the sole required check with its required-job set and skip-as-pass behavior intact; any external-runner exception includes job-level evidence, a named owner, and a dated follow-up.
   3. Authoritative coverage remains at or above 82.13%, and the final correction passes focused proof, `mix quality_signals`, SAFE-01, the relevant integration or packed-consumer lane, and bounded prohibited-surface diff review.
 
-**Plans**: 7/8 plans executed
+**Plans**: 7/11 plans executed
 
 **Wave 1 — tracer correction and package proof**
 
@@ -146,7 +146,19 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 
 **Wave 8 — replacement live timing acceptance** *(blocked on Wave 7 completion)*
 
-- [ ] 132-08-PLAN.md — Publish the preserved remediation and require a passing comparable machine-verified ten-run receipt.
+- [x] 132-08-PLAN.md — Terminalized without execution by `132-08-SUMMARY.md`; retained unchanged as historical recovery input and superseded by the post-D-08/D-09 sampler in 132-11.
+
+**Wave 9 — exact topology correction** *(blocked on Wave 7 completion; supersedes Wave 8 execution)*
+
+- [ ] 132-09-PLAN.md — RED/GREEN-lock and apply only the six authorized Quality/Optional scheduling-edge removals with deterministic projection proof.
+
+**Wave 10 — recovery preservation and immutable preflight** *(blocked on Wave 9 completion)*
+
+- [ ] 132-10-PLAN.md — Bind the topology subject to fresh focused, quality, SAFE-01, coverage, packed-consumer, prohibited-surface, and no-trigger preflight evidence.
+
+**Wave 11 — locked recovery live acceptance** *(blocked on Wave 10 completion)*
+
+- [ ] 132-11-PLAN.md — Run one bounded exact-ten live controller and require API-backed inclusive median/p95 acceptance or honest `gaps_found`.
 
 ## Demand-Gated Candidates
 
@@ -158,4 +170,4 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 - `mix test --partitions` parallelization — evidence-gated on measured core starvation (DEFER-02).
 
 ---
-*Last updated: 2026-08-25 — Phase 132 executed all five plans; the fresh automated receipt measured 8m36.5s median / 9m03s p95, so CI-14 and the phase remain open with gaps found.*
+*Last updated: 2026-08-26 — Phase 132 recovery appends D-08/D-09 topology correction, preservation, and locked live-acceptance plans after the measured 591s median / 612s p95 partial sequence exposed both serialized critical branches.*

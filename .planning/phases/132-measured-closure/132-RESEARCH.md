@@ -296,20 +296,19 @@ bash scripts/ci/collect_pr_timing_receipt.sh verify \
 
 | # | Claim | Section | Risk if Wrong |
 |---|---|---|---|
-| A1 | Decoupling the identified self-contained branches has enough practical headroom to meet both thresholds. | Concrete Recovery Options | Medium — it is an inference from five runs, not a completed receipt; live acceptance remains mandatory. |
-| A2 | Integration can be proven self-contained with its existing setup/services and no hidden Quality artifact. | Concrete Recovery Options | High — must be proven before any `needs` removal is implemented. |
+| A1 | The exact D-08 graph will retain enough real-run headroom to satisfy both inclusive thresholds. | Live acceptance | Medium — this is an explicit non-blocking live-acceptance assumption; only the fresh API-backed ten-run receipt may confirm or reject it. |
 
-## Open Questions
+## Resolved Questions
 
-1. **Which exact dependency edges may be authorized?**
-   - What we know: removing only Smoke's barrier cannot solve the three Adopter-last runs; Integration is the smallest candidate that attacks the serial branch. [VERIFIED: GitHub Actions API]
-   - What's unclear: whether project policy permits the bounded topology exception.
-   - Recommendation: obtain Decision 1 or 2 in the feasibility verdict before producing a new implementation PLAN.
+1. **Which exact dependency edges are authorized? — RESOLVED by D-08.**
+   - D-08 authorizes exactly six removals: `quality -> integration`, `optional-dependencies -> integration`, `quality -> contract`, `optional-dependencies -> contract`, `quality -> adoption-demo-e2e-smoke`, and `optional-dependencies -> adoption-demo-e2e-smoke`.
+   - D-09 freezes every other topology edge, required-result membership, job body, proof command, runner, matrix, service, cache, test partition, rerun policy, and exception surface.
 
-2. **Does Contract become the new Adopter blocker when Integration is decoupled?**
-   - What we know: Adopter explicitly needs Quality, Optional Dependencies, Integration, and Contract. [VERIFIED: repository `ci.yml`]
-   - What's unclear: Contract's native completion time in a correction candidate.
-   - Recommendation: perform a read-only native job/step census of Contract before choosing the minimal approved edge set; do not sample CI-14 yet.
+2. **Does Contract become the new Adopter blocker when Integration is decoupled? — RESOLVED by the five-run deterministic projection.**
+   - The projection shows that removing only the Integration and Smoke barriers leaves the remaining Contract path at about a 486-second median, without defensible CI-14 headroom; removing D-08's exact six edges addresses both measured critical branches with material projected headroom.
+   - This projection resolves topology selection only. It is not CI-14 acceptance evidence.
+
+**Non-blocking live-acceptance assumption:** the exact D-08 graph will retain enough real-run headroom to satisfy the inclusive 480-second median and 600-second p95 limits. Only the fresh API-backed ten-run receipt can confirm or reject that assumption; it does not block implementing the already authorized and preservation-tested topology correction.
 
 ## Sources
 
