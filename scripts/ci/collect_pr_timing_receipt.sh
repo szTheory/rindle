@@ -250,7 +250,7 @@ write_initial_state() {
   jq -n \
     --arg repo "$repo" --argjson pr "$pr" --arg sha "$head_sha" --arg label_name "$label" \
     --argjson max_sequences "$max_sequences" \
-    '{schema_version:1,repo:$repo,pr:$pr,sha:$sha,label:$label_name,max_sequences:$max_sequences,sequence_attempt:1,status:"running",runs:[],current_run_id:null,errors:[]}' > "$tmp"
+    '{schema_version:1,repo:$repo,pr:$pr,sha:$sha,label:$label_name,max_sequences:$max_sequences,sequence_attempt:1,status:"running",runs:[],current_run_id:null,current_run_status:null,errors:[]}' > "$tmp"
   mv "$tmp" "$state_file"
 }
 
@@ -340,7 +340,7 @@ record_error_and_restart() {
   tmp="$(mktemp "${TMPDIR:-/tmp}/rindle-ci-timing-state.XXXXXX")"
   jq --arg reason "$reason" --argjson next "$((attempt + 1))" '
     .errors += [{sequence_attempt:.sequence_attempt,reason:$reason,runs:.runs}] |
-    .sequence_attempt=$next | .runs=[] | .current_run_id=null | .status="running"
+    .sequence_attempt=$next | .runs=[] | .current_run_id=null | .current_run_status=null | .status="running"
   ' "$state_file" > "$tmp"
   mv "$tmp" "$state_file"
 }
@@ -348,7 +348,16 @@ record_error_and_restart() {
 append_run_state() {
   local run_json="$1" tmp
   tmp="$(mktemp "${TMPDIR:-/tmp}/rindle-ci-timing-state.XXXXXX")"
-  jq --argjson run "$run_json" '.runs += [$run] | .current_run_id=null' "$state_file" > "$tmp"
+  jq --argjson run "$run_json" '.runs += [$run] | .current_run_id=null | .current_run_status=null' "$state_file" > "$tmp"
+  mv "$tmp" "$state_file"
+}
+
+record_current_run_status() {
+  local run_id="$1" run_status="$2" tmp
+  tmp="$(mktemp "${TMPDIR:-/tmp}/rindle-ci-timing-state.XXXXXX")"
+  jq --argjson id "$run_id" --arg status "$run_status" '
+    if .current_run_id == $id then .current_run_status=$status else . end
+  ' "$state_file" > "$tmp"
   mv "$tmp" "$state_file"
 }
 
@@ -371,12 +380,15 @@ wait_for_new_run() {
 }
 
 wait_and_validate_run() {
-  local run_id="$1" deadline run_json jobs_json summary_count duration result
+  local run_id="$1" deadline run_json run_status jobs_json summary_count duration result
   deadline=$(( $(date +%s) + run_timeout ))
   while :; do
     run_json="$(gh_api_json "repos/${repo}/actions/runs/${run_id}")"
-    [ "$(jq -r '.status' <<<"$run_json")" = completed ] && break
-    [ "$(date +%s)" -lt "$deadline" ] || return 1
+    run_status="$(jq -r '.status // empty' <<<"$run_json")"
+    [ "$run_status" = completed ] && break
+    record_current_run_status "$run_id" "$run_status"
+    echo "[ci-timing] run $run_id is ${run_status:-unknown}; waiting for terminal completion" >&2
+    [ "$(date +%s)" -lt "$deadline" ] || return 4
     sleep "$poll_seconds"
   done
   jobs_json="$(gh_api_json "repos/${repo}/actions/runs/${run_id}/jobs?per_page=100")"
@@ -437,7 +449,13 @@ while [ "$attempt" -le "$max_sequences" ]; do
       cleanup_label
     fi
 
-    if ! run_result="$(wait_and_validate_run "$run_id")"; then
+    if run_result="$(wait_and_validate_run "$run_id")"; then
+      :
+    else
+      validation_exit=$?
+      if [ "$validation_exit" -eq 4 ]; then
+        die "run $run_id did not reach a terminal state before timeout; persisted current_run_id is retained for resume"
+      fi
       invalid_reason="run $run_id was not a qualifying successful first-attempt sample"
       break
     fi
@@ -456,7 +474,7 @@ while [ "$attempt" -le "$max_sequences" ]; do
 
   if [ "$attempt" -ge "$max_sequences" ]; then
     tmp="$(mktemp "${TMPDIR:-/tmp}/rindle-ci-timing-state.XXXXXX")"
-    jq --arg reason "$invalid_reason" '.errors += [{sequence_attempt:.sequence_attempt,reason:$reason,runs:.runs}] | .status="failed" | .current_run_id=null' "$state_file" > "$tmp" && mv "$tmp" "$state_file"
+    jq --arg reason "$invalid_reason" '.errors += [{sequence_attempt:.sequence_attempt,reason:$reason,runs:.runs}] | .status="failed" | .current_run_id=null | .current_run_status=null' "$state_file" > "$tmp" && mv "$tmp" "$state_file"
     die "sample sequence exhausted after $max_sequences attempt(s): $invalid_reason"
   fi
   echo "[ci-timing] $invalid_reason; restarting sequence $((attempt + 1))/$max_sequences"
