@@ -169,6 +169,7 @@ defmodule Rindle.InstallSmoke.CiCacheHygieneTest do
     assert install_ffmpeg =~ "max_by([.major, .minor, .patch])"
     assert install_ffmpeg =~ "browser_download_url"
     assert install_ffmpeg =~ "RINDLE_FFMPEG_RESOLVE_ONLY"
+    assert install_ffmpeg =~ "Authorization: Bearer ${GITHUB_TOKEN}"
     refute install_ffmpeg =~ ~r/asset="ffmpeg-n[0-9]/
   end
 
