@@ -98,6 +98,37 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
     assert String.trim(File.read!(Path.join(context.fixture_dir, "count"))) == "10"
   end
 
+  test "waits for a queued discovered run without consuming its sequence or retriggering", context do
+    File.write!(Path.join(context.fixture_dir, "count"), "1\n")
+
+    state_file = Path.join(context.state_dir, "pr-96-#{context.head}.json")
+
+    File.write!(
+      state_file,
+      Jason.encode!(%{
+        schema_version: 1,
+        repo: "szTheory/rindle",
+        pr: 96,
+        sha: context.head,
+        label: "ci-timing-sample",
+        max_sequences: 2,
+        sequence_attempt: 1,
+        status: "running",
+        runs: [],
+        current_run_id: 1001,
+        errors: []
+      })
+    )
+
+    assert {output, 0} = run_controller(context, [{"GH_RUN_STATUS_SEQUENCE", "queued,in_progress,completed"}])
+    assert output =~ "run 1001 is queued; waiting for terminal completion"
+    assert output =~ "run 1001 is in_progress; waiting for terminal completion"
+
+    manifest = manifest!(context.receipt)
+    assert Enum.map(manifest["runs"], & &1["id"]) == Enum.to_list(1001..1010)
+    assert String.trim(File.read!(Path.join(context.fixture_dir, "count"))) == "10"
+  end
+
   test "verify rejects a partial receipt", context do
     File.write!(context.receipt, """
     #{context.baseline}
@@ -343,9 +374,17 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
           n=$((id - 1000))
           conclusion=success
           if [ "${GH_FAIL_RUN_ID:-0}" = "$id" ]; then conclusion=failure; fi
-          jq -cn --arg sha "$GH_EXPECTED_SHA" --arg conclusion "$conclusion" --argjson id "$id" --argjson n "$n" '
+          status=completed
+          if [ -n "${GH_RUN_STATUS_SEQUENCE:-}" ] && [ "$id" = 1001 ]; then
+            status_count_file="$GH_FIXTURE_DIR/status-count"
+            status_count=$(cat "$status_count_file" 2>/dev/null || echo 0)
+            status=$(printf '%s' "$GH_RUN_STATUS_SEQUENCE" | cut -d, -f$((status_count + 1)))
+            [ -n "$status" ] || status=completed
+            printf '%s\n' "$((status_count + 1))" > "$status_count_file"
+          fi
+          jq -cn --arg sha "$GH_EXPECTED_SHA" --arg conclusion "$conclusion" --arg status "$status" --argjson id "$id" --argjson n "$n" '
             (1787616000 + (($n - 1) * (if env.GH_OVERLAP == "1" then 300 else 700 end))) as $started |
-            {id:$id,event:(if env.GH_WRONG_EVENT == "1" then "push" else "pull_request" end),head_sha:(if env.GH_WRONG_HEAD == "1" then "0000000000000000000000000000000000000000" else $sha end),run_attempt:(if env.GH_WRONG_ATTEMPT == "1" then 2 else 1 end),status:"completed",conclusion:$conclusion,run_started_at:($started|todateiso8601),updated_at:($started + 400|todateiso8601),html_url:("https://github.com/szTheory/rindle/actions/runs/" + ($id | tostring))}'
+            {id:$id,event:(if env.GH_WRONG_EVENT == "1" then "push" else "pull_request" end),head_sha:(if env.GH_WRONG_HEAD == "1" then "0000000000000000000000000000000000000000" else $sha end),run_attempt:(if env.GH_WRONG_ATTEMPT == "1" then 2 else 1 end),status:$status,conclusion:(if $status == "completed" then $conclusion else null end),run_started_at:($started|todateiso8601),updated_at:($started + 400|todateiso8601),html_url:("https://github.com/szTheory/rindle/actions/runs/" + ($id | tostring))}'
           ;;
         *) echo "unexpected gh api endpoint: $endpoint" >&2; exit 2 ;;
       esac
