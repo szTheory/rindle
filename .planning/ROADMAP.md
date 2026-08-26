@@ -114,7 +114,7 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
   2. `CI Summary` remains the sole required check with its required-job set and skip-as-pass behavior intact; any external-runner exception includes job-level evidence, a named owner, and a dated follow-up.
   3. Authoritative coverage remains at or above 82.13%, and the final correction passes focused proof, `mix quality_signals`, SAFE-01, the relevant integration or packed-consumer lane, and bounded prohibited-surface diff review.
 
-**Plans**: 9/11 plans executed
+**Plans**: 10/11 plans executed
 
 **Wave 1 — tracer correction and package proof**
 
@@ -154,7 +154,7 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 
 **Wave 10 — recovery preservation and immutable preflight** *(blocked on Wave 9 completion)*
 
-- [ ] 132-10-PLAN.md — Bind the topology subject to fresh focused, quality, SAFE-01, coverage, packed-consumer, prohibited-surface, and no-trigger preflight evidence.
+- [x] 132-10-PLAN.md — Bind the topology subject to fresh focused, quality, SAFE-01, coverage, packed-consumer, prohibited-surface, and no-trigger preflight evidence.
 
 **Wave 11 — locked recovery live acceptance** *(blocked on Wave 10 completion)*
 

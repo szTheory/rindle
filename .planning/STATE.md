@@ -5,15 +5,15 @@ milestone_name: Maintainer Craft & Feedback Velocity
 current_phase: 132
 current_phase_name: measured-closure
 status: executing
-stopped_at: Completed 132-09-PLAN.md
-last_updated: "2026-08-26T21:22:45.212Z"
+stopped_at: Completed 132-10-PLAN.md; Plan 132-11 blocked on PR-head alignment
+last_updated: "2026-08-26T21:32:45.327Z"
 last_activity: 2026-08-26
 last_activity_desc: Phase 132 execution started
 progress:
   total_phases: 3
   completed_phases: 0
   total_plans: 11
-  completed_plans: 9
+  completed_plans: 10
   percent: 0
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-08-23 after v1.24)
 ## Current Position
 
 Phase: 132 (measured-closure) — EXECUTING
-Plan: 10 of 11
+Plan: 11 of 11
 Status: Ready to execute
 Last activity: 2026-08-26 — Phase 132 execution started
 
@@ -213,10 +213,14 @@ _(Key v1.22 execution decisions recorded at milestone close.)_
 - [Phase ?]: Plan 132-07 preserves CI Summary topology and treats equality at 82.13% coverage, 480-second median, and 600-second p95 as passing.
 - [Phase ?]: D-08 removes only Quality and Optional Dependencies prerequisites from Integration, Contract, and Adoption Demo E2E Smoke.
 - [Phase ?]: Projection remains causal regression evidence only; 132-11 API-backed receipt is the sole CI-14 acceptance authority.
+- [Phase ?]: COV-05 is closed only from one fresh ExCoveralls artifact parsed into integer covered and relevant counts.
+- [Phase ?]: PR #96 must align with preserved subject 5add065 before Plan 132-11 may sample; the no-publish mismatch fails closed.
 
 ## Blockers/Concerns
 
-_(none)_
+_()_
+
+- Plan 132-11 is blocked: PR #96 head f3476633fdc459779a937c5dc3c7234379bd8ce3 does not equal preserved subject 5add06528a45cc927079563138e71dd8459fe5d2; authorized publication alignment is required before live sampling.
 
 ## Deferred Items
 
@@ -230,8 +234,8 @@ _(none)_
 
 ## Session Continuity
 
-Last session: 2026-08-26T21:22:45.205Z
-Stopped at: Completed 132-09-PLAN.md
+Last session: 2026-08-26T21:32:45.318Z
+Stopped at: Completed 132-10-PLAN.md; Plan 132-11 blocked on PR-head alignment
 Resume file: None
 
 ## Performance Metrics
@@ -292,6 +296,7 @@ Resume file: None
 | Phase 132 P06 | 15 min | 1 tasks | 3 files |
 | Phase 132-measured-closure P07 | 10 minutes | 1 tasks | 2 files |
 | Phase 132-measured-closure P09 | 18 minutes | 2 tasks | 3 files |
+| Phase 132 P10 | 14 min | 1 tasks | 2 files |
 
 ## Operator Next Steps
 

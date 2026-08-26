@@ -104,6 +104,11 @@ None.
 
 Plan 132-11 is blocked until the authorized publication path aligns PR #96 with the preserved subject. Once aligned, it remains the sole live controller for CI-14; COV-05 and SAFE-02 local preservation evidence is complete.
 
+## Self-Check: PASSED
+
+- Found `.planning/phases/132-measured-closure/132-PRESERVATION-RECEIPT.md` and this summary.
+- Found task receipt commit `eed5db1` and initial summary commit `0535c56` in git history.
+
 ---
 *Phase: 132-measured-closure*
 *Completed: 2026-08-26*
