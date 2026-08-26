@@ -191,3 +191,98 @@ The final `cover/excoveralls.json` contains `5149` positive covered entries amon
 No percentage-only test, required-check relaxation, workflow topology change,
 dependency change, public API change, schema/migration change, telemetry/error-shape
 change, or human verification/UAT exception was introduced.
+
+## Gap-Closure Final Preservation Census
+
+**Preserved gap-closure subject:**
+`0696c49896f34f8747a38fbe6ac08fa2c3355b05`
+(`docs(132-06): finalize apt remediation evidence`). This is the full `HEAD` after
+Plan 132-06; the final code-bearing remediation remains the bounded apt helper and
+its process-isolated contract, committed before this evidence-only subject.
+
+### Subject and bounded-diff census
+
+The Plan 132-05 measured head is
+`24c17783bbc080a085e398164450b7c3f475781e`. Its exact name-only range through the
+preserved subject is:
+
+```text
+.planning/REQUIREMENTS.md
+.planning/ROADMAP.md
+.planning/STATE.md
+.planning/phases/132-measured-closure/132-05-SUMMARY.md
+.planning/phases/132-measured-closure/132-06-PLAN.md
+.planning/phases/132-measured-closure/132-06-SUMMARY.md
+.planning/phases/132-measured-closure/132-07-PLAN.md
+.planning/phases/132-measured-closure/132-08-PLAN.md
+.planning/phases/132-measured-closure/132-CI-TIMING-RECEIPT.md
+.planning/phases/132-measured-closure/132-VALIDATION.md
+.planning/phases/132-measured-closure/132-VERIFICATION.md
+scripts/ci/install_apt_packages.sh
+test/install_smoke/ci_cache_hygiene_test.exs
+```
+
+The only non-planning paths are the approved remediation surfaces:
+`scripts/ci/install_apt_packages.sh` and
+`test/install_smoke/ci_cache_hygiene_test.exs`. The planning paths are the bounded
+timing/evidence, requirements, and execution artifacts for this phase. The range
+contains no workflow/topology, Admin, public API, schema/migration,
+telemetry/error-shape, dependency/lockfile, or release-proof path.
+
+### Ordered final authorities
+
+All following commands ran once, in this order, after the final source edit and
+before any Plan 132-08 live sample; each exited `0`:
+
+1. `mix test test/install_smoke/ci_cache_hygiene_test.exs test/install_smoke/ci_lane_split_test.exs test/install_smoke/ci_observability_test.exs --seed 0`
+   - `49 tests, 0 failures`.
+2. `bash scripts/ci/test_ci_summary_gate.sh`
+   - `passed: 6  failed: 0`.
+3. `mix quality_signals`
+   - Credo/public-contract/complexity passed; Doctor reported `79` passed modules,
+     `0` failed modules, and `100.0%` total doc, moduledoc, and spec coverage;
+     its contract suite reported `93 tests, 0 failures`.
+4. `bash scripts/maintainer/refactor_contract.sh`
+   - compiled `150` files, found no compile-connected cycles, and reported
+     `93 tests, 0 failures`.
+5. `./scripts/maintainer/automation_first_contract.sh`
+   - passed for the Phase 132 planning directory with no manual-only acceptance.
+6. `./scripts/maintainer/repo_hygiene_check.sh --ci`
+   - `9 PASS, 0 WARN, 0 BLOCK`.
+7. `mix coveralls.multiple --type local --type json && test -s cover/excoveralls.json`
+   - the single authoritative coverage invocation exited `0` and left a non-empty
+     JSON artifact.
+8. `bash scripts/install_smoke.sh image`
+   - the complete packed image consumer exited `0`, proving package build/unpack
+     provenance, generated-app dependency/compile order, host and Rindle migrations,
+     boot, lifecycle, and cleanup.
+
+### Authoritative COV-05 arithmetic
+
+The fresh non-empty `cover/excoveralls.json` has `5149` positive covered entries
+among `6269` non-null relevant entries. Therefore:
+
+- exact percentage: `5149 / 6269 * 100 = 82.13431169245494%`;
+- receipt value: `82.1343%`;
+- inclusive D-07 comparison: `5149 * 10000 >= 6269 * 8213` is `true`.
+
+This is one coverage run, not a percentage-only test. It clears the inclusive
+`82.13%` floor, including the SAFE-02 adjacency case where equality at the floor
+would pass.
+
+### CI and prohibited-surface backstop
+
+Focused lane-split/observability and summary-gate authorities retain workflow name
+`CI`, sole required check `CI Summary`, and the exact `ci-summary.needs` set:
+`quality`, `optional-dependencies`, `integration`, `contract`, `proof`,
+`package-consumer`, `adoption-demo-unit`, `adoption-demo-e2e-smoke`, `adopter`,
+`brandbook-tokens`, and `ci-script-tests`. The evaluator still treats
+`success|skipped` as passing. The `package-consumer` job remains independently
+starting and the image consumer remains part of the required aggregate.
+
+The helper correction changes no `.github/workflows/ci.yml` topology or job proof.
+The bounded diff census above confirms no Admin, product/public API,
+schema/migration, telemetry/error, dependency/lockfile, or release-proof drift is
+being described as behavior-preserving. The equality backstop for the later timing
+receipt remains inclusive: a `480`-second median or `600`-second nearest-rank p95
+will pass when Plan 132-08 samples this preserved subject.
