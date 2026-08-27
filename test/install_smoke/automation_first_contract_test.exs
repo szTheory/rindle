@@ -89,7 +89,10 @@ defmodule Rindle.InstallSmoke.AutomationFirstContractTest do
     """)
 
     assert {output, 1} = run_contract(phase_dir)
-    assert output =~ "authorization checkpoint may not carry requirement acceptance or verification"
+
+    assert output =~
+             "authorization checkpoint may not carry requirement acceptance or verification"
+
     assert output =~ "unclosed human-action checkpoint"
   end
 
