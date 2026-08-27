@@ -38,11 +38,22 @@ defmodule Rindle.InstallSmoke.CiLaneSplitTest do
   @branch_protection_path Path.expand("../../scripts/setup_branch_protection.sh", __DIR__)
   @contributing_path Path.expand("../../CONTRIBUTING.md", __DIR__)
   @required_summary_needs [
-    "quality", "optional-dependencies", "integration", "contract", "proof",
-    "package-consumer", "adoption-demo-unit", "adoption-demo-e2e-smoke", "adopter",
-    "brandbook-tokens", "ci-script-tests"
+    "quality",
+    "optional-dependencies",
+    "integration",
+    "contract",
+    "proof",
+    "package-consumer",
+    "adoption-demo-unit",
+    "adoption-demo-e2e-smoke",
+    "adopter",
+    "brandbook-tokens",
+    "ci-script-tests"
   ]
-  @phase_132_projection_path Path.expand("../fixtures/ci_timing/phase_132_topology_projection.json", __DIR__)
+  @phase_132_projection_path Path.expand(
+                               "../fixtures/ci_timing/phase_132_topology_projection.json",
+                               __DIR__
+                             )
 
   setup_all do
     {:ok,
@@ -192,16 +203,49 @@ defmodule Rindle.InstallSmoke.CiLaneSplitTest do
   end
 
   @tag :phase_132_topology_recovery
-  test "phase 132 D-09 freezes affected job authorities and the required aggregation graph", %{ci: ci} do
+  test "phase 132 D-09 freezes affected job authorities and the required aggregation graph", %{
+    ci: ci
+  } do
     for {job, tokens} <- [
-          {"integration", ["runs-on: ubuntu-22.04", "postgres:", "actions/checkout@", "setup-elixir", "mix deps.get", "mix test"]},
-          {"contract", ["runs-on: ubuntu-22.04", "postgres:", "actions/checkout@", "setup-elixir", "mix deps.get", "mix test"]},
-          {"adoption-demo-e2e-smoke", ["runs-on: ubuntu-22.04", "postgres:", "actions/checkout@", "setup-elixir", "mix deps.get", "ADOPTION_DEMO_E2E_SPECS"]}
-        ], token <- tokens do
+          {"integration",
+           [
+             "runs-on: ubuntu-22.04",
+             "postgres:",
+             "actions/checkout@",
+             "setup-elixir",
+             "mix deps.get",
+             "mix test"
+           ]},
+          {"contract",
+           [
+             "runs-on: ubuntu-22.04",
+             "postgres:",
+             "actions/checkout@",
+             "setup-elixir",
+             "mix deps.get",
+             "mix test"
+           ]},
+          {"adoption-demo-e2e-smoke",
+           [
+             "runs-on: ubuntu-22.04",
+             "postgres:",
+             "actions/checkout@",
+             "setup-elixir",
+             "mix deps.get",
+             "ADOPTION_DEMO_E2E_SPECS"
+           ]}
+        ],
+        token <- tokens do
       assert job_block(ci, job) =~ token, "#{job} must retain #{inspect(token)} (D-09)"
     end
 
-    assert job_needs(ci, "adopter") == ["quality", "optional-dependencies", "integration", "contract"]
+    assert job_needs(ci, "adopter") == [
+             "quality",
+             "optional-dependencies",
+             "integration",
+             "contract"
+           ]
+
     assert job_needs(ci, "ci-summary") == @required_summary_needs
     assert job_needs(ci, "ci-observability") == Enum.drop(@required_summary_needs, -1)
     assert job_block(ci, "ci-summary") =~ "name: CI Summary"
@@ -215,7 +259,15 @@ defmodule Rindle.InstallSmoke.CiLaneSplitTest do
     runs = fixture["runs"]
 
     assert fixture["immutable_head"] == "394550944bbff63c0e61c258528c8f8764298745"
-    assert Enum.map(runs, & &1["id"]) == [33003369940, 33004281315, 33005105221, 33005882907, 33006773326]
+
+    assert Enum.map(runs, & &1["id"]) == [
+             33_003_369_940,
+             33_004_281_315,
+             33_005_105_221,
+             33_005_882_907,
+             33_006_773_326
+           ]
+
     assert Enum.sort(Enum.map(runs, & &1["baseline_seconds"])) == [510, 548, 591, 592, 612]
     assert median(runs, "baseline_seconds") == 591
     assert nearest_rank_p95(runs, "baseline_seconds") == 612
@@ -431,10 +483,13 @@ defmodule Rindle.InstallSmoke.CiLaneSplitTest do
             |> hd()
             |> String.split("\n", trim: true)
             |> Enum.map(&(String.trim(&1) |> String.trim_leading("- ")))
-          _ -> []
+
+          _ ->
+            []
         end
 
-      members -> members
+      members ->
+        members
     end
   end
 

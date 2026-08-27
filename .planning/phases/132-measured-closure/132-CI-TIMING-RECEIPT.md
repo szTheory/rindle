@@ -139,3 +139,19 @@ jq -s '[.[] | .jobs[] | select(.conclusion == "success") |
   ((.completed_at | fromdateiso8601) - (.started_at | fromdateiso8601))]}] |
   map(.steps[]) | {count: length, median: (sort | .[39:41] | add / 2), min: min, max: max}' jobs-*.json
 ```
+
+## Failed recovery-run diagnosis (2026-08-26)
+
+Read-only GitHub Actions API evidence identifies a deterministic required-path failure in both
+authorized first-attempt recovery runs at the same immutable head. These are failed runs, not
+timing samples: they admit **zero timing rows** and cannot be characterized as runner variance.
+
+| Run | Immutable head | Event | Attempt | Conclusion | Sole required-path failure | Formatter target |
+| ---: | --- | --- | ---: | --- | --- | --- |
+| [33016605029](https://github.com/szTheory/rindle/actions/runs/33016605029) | `7f025dfdf55d612861610a10773d86761a374277` | `pull_request` | 1 | `failure` | `Quality (1.17, 27, true)` / `Check formatting` | `test/install_smoke/ci_lane_split_test.exs` |
+| [33017105225](https://github.com/szTheory/rindle/actions/runs/33017105225) | `7f025dfdf55d612861610a10773d86761a374277` | `pull_request` | 1 | `failure` | `Quality (1.17, 27, true)` / `Check formatting` | `test/install_smoke/ci_lane_split_test.exs` |
+
+The observed evidence authorizes only `mix format` normalization of that exact contract file.
+It does not authorize a workflow, topology, fixture, assertion-value, timing-policy, dependency,
+or product-surface change. The formatter remediation must be verified locally before the final
+subject is preserved or another live sample is attempted.
