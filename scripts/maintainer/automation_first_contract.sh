@@ -54,14 +54,25 @@ for plan in "$phase_dir"/*-PLAN.md; do
     record_failure "$(basename "$plan"): checkpoint:human-verify is prohibited; automate the acceptance or leave the requirement open"
   fi
 
+  # Plans use XML-like markup rather than XML.  Extract a complete task block
+  # first, then classify `type` inside its opening tag so attribute order and
+  # quote choice cannot make a human acceptance path invisible.
   awk '
-    /<task type="checkpoint:human-action"/ {inside=1; block=$0 ORS; next}
-    inside {block=block $0 ORS}
-    inside && /<\/task>/ {printf "%s%c", block, 0; inside=0; block=""}
+    function is_human_action(tag) {
+      return tag ~ /type[[:space:]]*=[[:space:]]*("checkpoint:human-action"|'"'"'checkpoint:human-action'"'"')/
+    }
+    !inside && /<task[[:space:]][^>]*>/ {
+      if (is_human_action($0)) { inside=1; block=$0 ORS; next }
+    }
+    inside { block=block $0 ORS }
+    inside && /<\/task>/ { printf "%s%c", block, 0; inside=0; block="" }
+    END { if (inside) printf "__RINDLE_UNCLOSED_HUMAN_ACTION__%c", 0 }
   ' "$plan" > "$blocks"
 
   while IFS= read -r -d '' block; do
-    if ! printf '%s' "$block" | grep -Eq '<purpose>(authorization|credential-bootstrap)</purpose>'; then
+    if [ "$block" = "__RINDLE_UNCLOSED_HUMAN_ACTION__" ]; then
+      record_failure "$(basename "$plan"): unclosed human-action checkpoint fails closed"
+    elif ! printf '%s' "$block" | grep -Eq '<purpose>(authorization|credential-bootstrap)</purpose>'; then
       record_failure "$(basename "$plan"): human-action checkpoint is not authorization-only"
     elif printf '%s' "$block" | grep -Eq '<(acceptance_criteria|verify|verification)>'; then
       record_failure "$(basename "$plan"): authorization checkpoint may not carry requirement acceptance or verification"
