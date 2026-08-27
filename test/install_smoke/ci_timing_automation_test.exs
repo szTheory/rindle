@@ -381,14 +381,17 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
     assert source =~ "$label_name"
   end
 
-  test "controller bounds workflow-list API use and backs off on rate limits" do
+  test "controller gives every API retry caller-owned deadline budget" do
     source = File.read!(@script)
 
     assert source =~ "gh api --paginate --slurp"
     assert source =~ "per_page=100"
     assert source =~ "branch=${encoded_head_ref}"
     assert source =~ "GitHub API rate limited; retrying"
-    assert source =~ "gh_api_json"
+    assert source =~ "rate-limit retry deadline expired"
+    assert source =~ "gh_api_json \"repos/${repo}/actions/runs/${run_id}\" \"\" \"$deadline\""
+    assert source =~ "same_sha_runs \"$deadline\""
+    assert source =~ "canonical_eligible_run_ids \"$head_sha\" \"$population_boundary_ids\" \"$deadline\""
   end
 
   test "controller has no post-subject executable allowlist" do
