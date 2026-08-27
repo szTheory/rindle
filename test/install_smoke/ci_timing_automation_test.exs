@@ -258,6 +258,48 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
     assert String.trim(File.read!(Path.join(context.fixture_dir, "count"))) == "10"
   end
 
+  test "terminalizes a never-created trigger at its persisted creation deadline", context do
+    assert {output, 1} =
+             run_controller(context, [{"GH_HIDE_RUN_POLLS", "2"}], creation_timeout: "0")
+
+    assert output =~ "did not appear before the persisted creation deadline"
+    assert File.read!(Path.join(context.fixture_dir, "label")) == "absent\n"
+    assert String.trim(File.read!(Path.join(context.fixture_dir, "count"))) == "1"
+
+    state =
+      context.state_dir
+      |> Path.join("pr-96-#{context.head}.json")
+      |> File.read!()
+      |> Jason.decode!()
+
+    assert state["status"] == "failed"
+    assert [%{"reason" => reason}] = state["errors"]
+    assert reason =~ "creation deadline"
+  end
+
+  test "verification fails when a qualifying second-page run is absent from the receipt",
+       context do
+    assert {_output, 0} = run_controller(context)
+
+    assert {_output, 1} =
+             System.cmd("bash", verify_args(context),
+               env: controller_env(context) ++ [{"GH_SECOND_PAGE", "qualifying"}],
+               stderr_to_stdout: true
+             )
+  end
+
+  test "verification filters a nonqualifying second-page run", context do
+    assert {_output, 0} = run_controller(context)
+
+    assert {output, 0} =
+             System.cmd("bash", verify_args(context),
+               env: controller_env(context) ++ [{"GH_SECOND_PAGE", "nonqualifying"}],
+               stderr_to_stdout: true
+             )
+
+    assert output =~ "receipt verification passed"
+  end
+
   test "verify rejects a partial receipt", context do
     File.write!(context.receipt, """
     #{context.baseline}
@@ -341,7 +383,7 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
   test "controller bounds workflow-list API use and backs off on rate limits" do
     source = File.read!(@script)
 
-    refute source =~ "gh api --paginate"
+    assert source =~ "gh api --paginate --slurp"
     assert source =~ "per_page=100"
     assert source =~ "branch=${encoded_head_ref}"
     assert source =~ "GitHub API rate limited; retrying"
@@ -508,7 +550,9 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
       context.state_dir,
       "--no-publish",
       "--poll-seconds",
-      "0"
+      "0",
+      "--creation-timeout",
+      Keyword.get(options, :creation_timeout, "300")
     ]
 
     System.cmd("bash", [@script | args],
@@ -788,7 +832,7 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
             jq -cn '[{workflow_runs: []}]'
             exit 0
           fi
-          jq -cn \
+          pages="$(jq -cn \
             --arg sha "$GH_EXPECTED_SHA" \
             --argjson pr "$GH_EXPECTED_PR" \
             --argjson count "$count" \
@@ -803,7 +847,15 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
               updated_at: (1787616400 + (($n - 1) * 700) | todateiso8601),
               html_url: ("https://github.com/szTheory/rindle/actions/runs/" + ((1000 + $n) | tostring)),
               pull_requests: [{number: $pr}]
-            }]}]'
+            }]}]')"
+          if [[ " $* " == *" --paginate "* ]] && [ -n "${GH_SECOND_PAGE:-}" ]; then
+            jq -cn --argjson pages "$pages" --arg sha "$GH_EXPECTED_SHA" --argjson pr "$GH_EXPECTED_PR" '
+              ($pages[0].workflow_runs | length) as $count |
+              {id:9999,event:"pull_request",head_sha:(if env.GH_SECOND_PAGE == "qualifying" then $sha else "0000000000000000000000000000000000000000" end),run_attempt:1,status:"completed",conclusion:"success",run_started_at:(1787616000 + ($count * 700) | todateiso8601),updated_at:(1787616400 + ($count * 700) | todateiso8601),html_url:"https://github.com/szTheory/rindle/actions/runs/9999",pull_requests:[{number:$pr}]} as $second |
+              $pages + [{workflow_runs:[$second]}]'
+          else
+            printf '%s\n' "$pages"
+          fi
           ;;
         *actions/runs/*/jobs*)
           id="${endpoint#*actions/runs/}"
