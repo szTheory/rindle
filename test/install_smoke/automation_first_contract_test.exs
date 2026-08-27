@@ -96,6 +96,41 @@ defmodule Rindle.InstallSmoke.AutomationFirstContractTest do
     assert output =~ "unclosed human-action checkpoint"
   end
 
+  test "rejects multiline human actions while ignoring commented markup", %{phase_dir: phase_dir} do
+    File.write!(Path.join(phase_dir, "132-03-PLAN.md"), """
+    <!--
+    <task type="checkpoint:human-action">
+      <purpose>authorization</purpose>
+    </task>
+    -->
+    <task
+      gate='blocking'
+      type='checkpoint:human-action'
+    >
+      <purpose>authorization</purpose>
+      <verification>Human approval closes SAFE-02.</verification>
+    </task>
+    """)
+
+    assert {output, 1} = run_contract(phase_dir)
+
+    assert output =~
+             "authorization checkpoint may not carry requirement acceptance or verification"
+  end
+
+  test "fails closed for an unclosed multiline human-action opener", %{phase_dir: phase_dir} do
+    File.write!(Path.join(phase_dir, "132-04-PLAN.md"), """
+    <!-- <task type="checkpoint:human-action">commented decoy -->
+    <task
+      type="checkpoint:human-action"
+      gate="blocking">
+      <purpose>credential-bootstrap</purpose>
+    """)
+
+    assert {output, 1} = run_contract(phase_dir)
+    assert output =~ "unclosed human-action checkpoint"
+  end
+
   defp run_contract(phase_dir) do
     System.cmd("bash", [@script, "--phase-dir", phase_dir], stderr_to_stdout: true)
   end

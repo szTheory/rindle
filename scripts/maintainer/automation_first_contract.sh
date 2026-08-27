@@ -54,19 +54,54 @@ for plan in "$phase_dir"/*-PLAN.md; do
     record_failure "$(basename "$plan"): checkpoint:human-verify is prohibited; automate the acceptance or leave the requirement open"
   fi
 
-  # Plans use XML-like markup rather than XML.  Extract a complete task block
-  # first, then classify `type` inside its opening tag so attribute order and
-  # quote choice cannot make a human acceptance path invisible.
+  # Plans use XML-like markup rather than XML.  This small state machine strips
+  # comments, tokenizes tags across lines, and only examines a completed real
+  # task opener.  It deliberately fails closed if a human-action task never
+  # closes: an incomplete block must never hide acceptance-bearing content.
   awk '
     function is_human_action(tag) {
       return tag ~ /type[[:space:]]*=[[:space:]]*("checkpoint:human-action"|'"'"'checkpoint:human-action'"'"')/
     }
-    !inside && /<task[[:space:]][^>]*>/ {
-      if (is_human_action($0)) { inside=1; block=$0 ORS; next }
+    function emit_block() {
+      printf "%s%c", block, 0
+      inside=0
+      block=""
     }
-    inside { block=block $0 ORS }
-    inside && /<\/task>/ { printf "%s%c", block, 0; inside=0; block="" }
-    END { if (inside) printf "__RINDLE_UNCLOSED_HUMAN_ACTION__%c", 0 }
+    function consume_tag(tag) {
+      if (inside) {
+        block=block tag
+        if (tag ~ /^<\/[[:space:]]*task[[:space:]]*>$/) emit_block()
+      } else if (tag ~ /^<task([[:space:]]|>)/ && is_human_action(tag)) {
+        inside=1
+        block=tag
+      }
+    }
+    {
+      line=$0 ORS
+      i=1
+      while (i <= length(line)) {
+        if (comment) {
+          if (substr(line, i, 3) == "-->") { comment=0; i+=3 } else i++
+          continue
+        }
+        if (substr(line, i, 4) == "<!--") { comment=1; i+=4; continue }
+        ch=substr(line, i, 1)
+        if (tag != "") {
+          tag=tag ch
+          i++
+          if (ch == ">") { consume_tag(tag); tag="" }
+        } else if (ch == "<") {
+          tag="<"
+          i++
+        } else {
+          if (inside) block=block ch
+          i++
+        }
+      }
+    }
+    END {
+      if (inside) printf "__RINDLE_UNCLOSED_HUMAN_ACTION__%c", 0
+    }
   ' "$plan" > "$blocks"
 
   while IFS= read -r -d '' block; do
