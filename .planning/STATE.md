@@ -4,16 +4,16 @@ milestone: v1.25
 milestone_name: Maintainer Craft & Feedback Velocity
 current_phase: 132
 current_phase_name: measured-closure
-status: executing
-stopped_at: Completed 132-11-PLAN.md with CI-14 gaps_found; bounded sampler exhausted two failed sequences
-last_updated: "2026-08-26T21:56:31Z"
-last_activity: 2026-08-26
-last_activity_desc: Phase 132 execution started
+status: gaps_found
+stopped_at: Phase 132 verification gaps_found; CI-14 exact-ten receipt missing and four controller blockers open
+last_updated: "2026-08-27T17:14:11Z"
+last_activity: 2026-08-27
+last_activity_desc: Phase 132 verification found CI-14 and controller gaps after 18/18 plans
 progress:
   total_phases: 3
   completed_phases: 0
-  total_plans: 11
-  completed_plans: 10
+  total_plans: 18
+  completed_plans: 18
   percent: 0
 ---
 
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-08-23 after v1.24)
 
 ## Current Position
 
-Phase: 132 (measured-closure) — EXECUTING
-Plan: 11 of 11
-Status: CI-14 gaps_found; remediation required
-Last activity: 2026-08-26 — Plan 132-11 exhausted its two-sequence live sampler without a qualifying run
+Phase: 132 (measured-closure) — GAPS FOUND
+Plan: 18 of 18
+Status: CI-14 exact-ten receipt missing; four fail-closed controller blockers require remediation
+Last activity: 2026-08-27 — verification confirmed 2/3 must-haves; COV-05 and SAFE-02 passed
 
 ### v1.24 shipped summary
 
@@ -60,9 +60,9 @@ the historical 0.4.0 contract; do not regress either side of that invariant.
 
 ## Next Step
 
-Plan a new evidence-guided CI-14 remediation slice from the two failed first-attempt PR runs
-`33016605029` and `33017105225`. The milestone cannot close until the approved <=8-minute median /
-<=10-minute p95 target is demonstrated by a machine-verifiable exact-ten receipt; no human UAT is needed.
+Plan a bounded gap-closure slice for the four controller blockers in `132-REVIEW.md`, then collect one
+fresh API-backed exact-ten receipt. CI-14 remains open until the receipt demonstrates the approved
+<=8-minute median / <=10-minute p95 target; no human UAT is needed.
 
 ## Prior Milestone
 
@@ -215,8 +215,14 @@ _(Key v1.22 execution decisions recorded at milestone close.)_
 - [Phase ?]: Projection remains causal regression evidence only; 132-11 API-backed receipt is the sole CI-14 acceptance authority.
 - [Phase ?]: COV-05 is closed only from one fresh ExCoveralls artifact parsed into integer covered and relevant counts.
 - [Phase ?]: PR #96 must align with preserved subject 5add065 before Plan 132-11 may sample; the no-publish mismatch fails closed.
+- [Phase ?]: Phase 132 Plan 12 uses one PR-bound canonical API population and live completed-PASS revalidation.
 - [Phase ?]: Both authorized recovery attempts failed deterministically at Quality formatting for the same topology contract and contribute zero timing rows.
 - [Phase ?]: The only authorized correction is mix format normalization of the locked regression file; topology, fixtures, assertions, and timing policy remain unchanged.
+- [Phase ?]: Transition manifests are schema-v2, Git-reproduced before mutable CI timing controller paths, and bind three distinct stages for Plans 132-12 through 132-14.
+- [Phase ?]: Plan 132-15 preserves a Git-reproducible three-stage manifest; terminal CI-14 remains exclusively Plan 132-16 exact-ten evidence.
+- [Phase 132]: Plan 132-16 closes controller repair `15336d4` without duplicate implementation; Plan 132-17 freshly preserves that source subject.
+- [Phase 132]: Plan 132-18 exhausted the second bounded sequence after run 33095420536 failed Quality and CI Summary; no exact-ten receipt exists.
+- [Phase 132]: Code review found four controller blockers: terminal failed-state reset, unrestricted sequence count, unbounded missing-run polling, and non-paginated canonical population discovery.
 
 ## Blockers/Concerns
 
@@ -238,8 +244,8 @@ _()_
 
 ## Session Continuity
 
-Last session: 2026-08-26T21:56:31Z
-Stopped at: Completed 132-11-PLAN.md with CI-14 gaps_found; no rerun authorized
+Last session: 2026-08-27T17:14:11Z
+Stopped at: Phase 132 verification gaps_found; plan controller repairs before a fresh exact-ten sample
 Resume file: None
 
 ## Performance Metrics
@@ -302,7 +308,10 @@ Resume file: None
 | Phase 132-measured-closure P09 | 18 minutes | 2 tasks | 3 files |
 | Phase 132 P10 | 14 min | 1 tasks | 2 files |
 | Phase 132 P11 | 22 min | 1 task | 3 files |
+| Phase 132-measured-closure P12 | 12m | 1 tasks | 2 files |
 | Phase 132 P13 | 5m | 1 tasks | 2 files |
+| Phase 132-measured-closure P14 | 20m | 1 tasks | 2 files |
+| Phase 132 P15 | 9m | 1 tasks | 2 files |
 
 ## Operator Next Steps
 
