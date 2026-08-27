@@ -23,6 +23,10 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
     File.write!(Path.join(fixture_dir, "count"), "0\n")
     File.write!(Path.join(fixture_dir, "label"), "absent\n")
     write_gh_shim!(Path.join(bin, "gh"))
+    repo_dir = Path.join(root, "transition-repository")
+    anchors = transition_repository!(repo_dir)
+    transition_manifest = Path.join(fixture_dir, "transition.md")
+    write_transition_manifest!(repo_dir, transition_manifest, anchors)
 
     on_exit(fn -> File.rm_rf!(root) end)
 
@@ -33,7 +37,11 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
       fixture_dir: fixture_dir,
       receipt: receipt,
       baseline: baseline,
-      head: String.trim(System.cmd("git", ["rev-parse", "HEAD"]) |> elem(0))
+      repo_dir: repo_dir,
+      transition_manifest: transition_manifest,
+      head: anchors.repair,
+      correction: anchors.controller,
+      formatter: anchors.formatter
     }
   end
 
@@ -259,11 +267,12 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
     assert source =~ "gh_api_json"
   end
 
-  test "controller permits the preserved formatting-only cache-hygiene proof" do
+  test "controller has no post-subject executable allowlist" do
     source = File.read!(@script)
 
-    assert source =~ "test/install_smoke/ci_cache_hygiene_test\\.exs"
-    assert source =~ "scripts/ci/install_ffmpeg\\.sh"
+    assert source =~ "validate_transition_manifest"
+    refute source =~ "ci_cache_hygiene_test\\.exs"
+    refute source =~ "scripts/ci/install_ffmpeg\\.sh"
   end
 
   test "controller locks a SHA-scoped state path before sampling" do
@@ -291,13 +300,15 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
     assert source =~ "repo:$repo,pr:$pr,sha:$sha"
   end
 
-  test "preflight rejects a missing transition manifest before it can own controller state", context do
+  test "preflight rejects a missing transition manifest before it can own controller state",
+       context do
     count_before = File.read!(Path.join(context.fixture_dir, "count"))
     receipt_before = File.read!(context.receipt)
 
     assert {output, 1} =
              System.cmd("bash", preflight_args(context),
                env: controller_env(context),
+               cd: context.repo_dir,
                stderr_to_stdout: true
              )
 
@@ -305,6 +316,81 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
     assert File.read!(Path.join(context.fixture_dir, "count")) == count_before
     assert File.read!(context.receipt) == receipt_before
     refute File.exists?(Path.join(context.state_dir, "pr-96-#{context.head}.json"))
+  end
+
+  test "valid exact-head and strict-ancestor manifests preflight without mutation", context do
+    for extra_env <- [[], [{"GH_REMOTE_SHA", context.formatter}]] do
+      assert {output, 0} =
+               System.cmd("bash", preflight_args(context, context.transition_manifest),
+                 env: controller_env(context) ++ extra_env,
+                 cd: context.repo_dir,
+                 stderr_to_stdout: true
+               )
+
+      assert output =~ "preflight passed"
+      assert File.read!(Path.join(context.fixture_dir, "count")) == "0\n"
+      refute File.exists?(Path.join(context.state_dir, "pr-96-#{context.head}.json"))
+    end
+  end
+
+  test "tampered transition manifests fail before labels, receipt, or controller ownership mutate",
+       context do
+    original_receipt = File.read!(context.receipt)
+    manifest = transition_manifest!(context.transition_manifest)
+
+    mutations = [
+      {:malformed,
+       "PRESERVATION_TRANSITION_V2_BEGIN\nnot json\nPRESERVATION_TRANSITION_V2_END\n"},
+      {:version, transition_document(Map.put(manifest, "schema_version", 3))},
+      {:chronology,
+       transition_document(
+         put_in(manifest, ["stages", Access.at(1), "from_sha"], String.duplicate("0", 40))
+       )},
+      {:identity,
+       transition_document(Map.put(manifest, "repair_sha", String.duplicate("0", 40)))},
+      {:classification,
+       transition_document(
+         manifest
+         |> put_in(["stages", Access.at(0), "planning"], hd(manifest["stages"])["non_planning"])
+         |> put_in(["stages", Access.at(0), "non_planning"], [])
+       )},
+      {:status,
+       transition_document(
+         put_in(manifest, ["stages", Access.at(0), "non_planning", Access.at(0), "status"], "M")
+       )},
+      {:blob,
+       transition_document(
+         put_in(
+           manifest,
+           ["stages", Access.at(2), "non_planning", Access.at(0), "blob_oid"],
+           String.duplicate("0", 40)
+         )
+       )},
+      {:extra_path,
+       transition_document(
+         update_in(
+           manifest,
+           ["stages", Access.at(1), "planning"],
+           &(&1 ++ [%{"status" => "A", "path" => ".planning/hidden.md"}])
+         )
+       )}
+    ]
+
+    for {name, document} <- mutations do
+      path = Path.join(context.fixture_dir, "#{name}-transition.md")
+      File.write!(path, document)
+
+      assert {_output, 1} =
+               System.cmd("bash", preflight_args(context, path),
+                 env: controller_env(context),
+                 cd: context.repo_dir,
+                 stderr_to_stdout: true
+               )
+
+      assert File.read!(Path.join(context.fixture_dir, "count")) == "0\n"
+      assert File.read!(context.receipt) == original_receipt
+      refute File.exists?(Path.join(context.state_dir, "pr-96-#{context.head}.json"))
+    end
   end
 
   defp run_controller(context, extra_env \\ []) do
@@ -329,9 +415,11 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
       "--p95-max",
       "600",
       "--correction-sha",
-      context.head,
+      context.correction,
       "--preserved-subject-sha",
       context.head,
+      "--transition-manifest",
+      context.transition_manifest,
       "--receipt",
       context.receipt,
       "--state-dir",
@@ -343,12 +431,13 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
 
     System.cmd("bash", [@script | args],
       env: controller_env(context) ++ extra_env,
+      cd: context.repo_dir,
       stderr_to_stdout: true
     )
   end
 
-  defp preflight_args(context) do
-    [
+  defp preflight_args(context, transition_manifest \\ nil) do
+    args = [
       @script,
       "preflight",
       "--repo",
@@ -370,7 +459,7 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
       "--p95-max",
       "600",
       "--correction-sha",
-      context.head,
+      context.correction,
       "--preserved-subject-sha",
       context.head,
       "--receipt",
@@ -381,6 +470,8 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
       "--poll-seconds",
       "0"
     ]
+
+    if transition_manifest, do: args ++ ["--transition-manifest", transition_manifest], else: args
   end
 
   defp controller_env(context) do
@@ -421,7 +512,134 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
     Jason.decode!(json)
   end
 
+  defp transition_manifest!(path) do
+    [_, body] = String.split(File.read!(path), "PRESERVATION_TRANSITION_V2_BEGIN\n", parts: 2)
+    [json | _] = String.split(body, "\nPRESERVATION_TRANSITION_V2_END", parts: 2)
+    Jason.decode!(json)
+  end
+
+  defp transition_document(manifest) do
+    "PRESERVATION_TRANSITION_V2_BEGIN\n#{Jason.encode!(manifest)}\nPRESERVATION_TRANSITION_V2_END\n"
+  end
+
   defp count(haystack, needle), do: length(String.split(haystack, needle)) - 1
+
+  defp transition_repository!(repo_dir) do
+    File.mkdir_p!(repo_dir)
+    git!(repo_dir, ["init", "--quiet"])
+    git!(repo_dir, ["config", "user.email", "timing@example.test"])
+    git!(repo_dir, ["config", "user.name", "Timing Fixture"])
+
+    write_fixture_file!(repo_dir, ".planning/prior.md", "prior preservation\n")
+    prior = commit_fixture!(repo_dir, "prior preservation")
+
+    write_fixture_file!(repo_dir, "scripts/ci/collect_pr_timing_receipt.sh", "controller v1\n")
+
+    write_fixture_file!(
+      repo_dir,
+      "test/install_smoke/ci_timing_automation_test.exs",
+      "controller test v1\n"
+    )
+
+    controller = commit_fixture!(repo_dir, "plan 132-12 controller")
+
+    write_fixture_file!(repo_dir, ".planning/formatter.md", "formatter evidence\n")
+    write_fixture_file!(repo_dir, "test/install_smoke/ci_lane_split_test.exs", "formatter v1\n")
+    formatter = commit_fixture!(repo_dir, "plan 132-13 formatter")
+
+    write_fixture_file!(
+      repo_dir,
+      "scripts/ci/collect_pr_timing_receipt.sh",
+      "controller repair\n"
+    )
+
+    write_fixture_file!(
+      repo_dir,
+      "test/install_smoke/ci_timing_automation_test.exs",
+      "controller test repair\n"
+    )
+
+    repair = commit_fixture!(repo_dir, "plan 132-14 repair")
+
+    %{prior: prior, controller: controller, formatter: formatter, repair: repair}
+  end
+
+  defp write_transition_manifest!(repo_dir, path, anchors) do
+    non_planning = fn to_sha, paths ->
+      Enum.map(paths, fn entry_path ->
+        %{
+          "status" => if(to_sha == anchors.repair, do: "M", else: "A"),
+          "path" => entry_path,
+          "blob_oid" => git!(repo_dir, ["rev-parse", "#{to_sha}:#{entry_path}"])
+        }
+      end)
+    end
+
+    manifest = %{
+      "schema_version" => 2,
+      "repo" => "szTheory/rindle",
+      "pr" => 96,
+      "prior_preserved_sha" => anchors.prior,
+      "controller_correction_sha" => anchors.controller,
+      "formatter_correction_sha" => anchors.formatter,
+      "repair_sha" => anchors.repair,
+      "preserved_subject_sha" => anchors.repair,
+      "stages" => [
+        %{
+          "id" => "plan-132-12",
+          "from_sha" => anchors.prior,
+          "to_sha" => anchors.controller,
+          "planning" => [],
+          "non_planning" =>
+            non_planning.(anchors.controller, [
+              "scripts/ci/collect_pr_timing_receipt.sh",
+              "test/install_smoke/ci_timing_automation_test.exs"
+            ])
+        },
+        %{
+          "id" => "plan-132-13",
+          "from_sha" => anchors.controller,
+          "to_sha" => anchors.formatter,
+          "planning" => [%{"status" => "A", "path" => ".planning/formatter.md"}],
+          "non_planning" =>
+            non_planning.(anchors.formatter, ["test/install_smoke/ci_lane_split_test.exs"])
+        },
+        %{
+          "id" => "plan-132-14-repair",
+          "from_sha" => anchors.formatter,
+          "to_sha" => anchors.repair,
+          "planning" => [],
+          "non_planning" =>
+            non_planning.(anchors.repair, [
+              "scripts/ci/collect_pr_timing_receipt.sh",
+              "test/install_smoke/ci_timing_automation_test.exs"
+            ])
+        }
+      ]
+    }
+
+    File.write!(
+      path,
+      "PRESERVATION_TRANSITION_V2_BEGIN\n#{Jason.encode!(manifest)}\nPRESERVATION_TRANSITION_V2_END\n"
+    )
+  end
+
+  defp write_fixture_file!(repo_dir, relative_path, contents) do
+    path = Path.join(repo_dir, relative_path)
+    File.mkdir_p!(Path.dirname(path))
+    File.write!(path, contents)
+  end
+
+  defp commit_fixture!(repo_dir, message) do
+    git!(repo_dir, ["add", "."])
+    git!(repo_dir, ["commit", "--quiet", "-m", message])
+    git!(repo_dir, ["rev-parse", "HEAD"])
+  end
+
+  defp git!(repo_dir, args) do
+    {output, 0} = System.cmd("git", args, cd: repo_dir, stderr_to_stdout: true)
+    String.trim(output)
+  end
 
   defp write_gh_shim!(path) do
     File.write!(path, """
@@ -437,7 +655,7 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
     if [ "$1 $2" = "label list" ]; then printf '%s\n' 'ci-timing-sample'; exit 0; fi
 
     if [ "$1 $2" = "pr view" ]; then
-      jq -cn --arg sha "$GH_EXPECTED_SHA" '{state:"OPEN",isDraft:true,headRefName:"codex/v1.25-maintainer-craft",headRefOid:$sha}'
+      jq -cn --arg sha "${GH_REMOTE_SHA:-$GH_EXPECTED_SHA}" '{state:"OPEN",isDraft:true,headRefName:"codex/v1.25-maintainer-craft",headRefOid:$sha}'
       exit 0
     fi
 

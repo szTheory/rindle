@@ -12,7 +12,7 @@ usage:
 run/preflight options:
   --repo OWNER/REPO --pr N --workflow FILE --summary-job NAME --label NAME
   --samples N --max-sequences N --median-max SECONDS --p95-max SECONDS
-  --correction-sha SHA --preserved-subject-sha SHA --receipt PATH
+  --correction-sha SHA --preserved-subject-sha SHA --transition-manifest PATH --receipt PATH
   [--state-dir PATH] [--publish-head|--no-publish] [--poll-seconds N]
 EOF
 }
@@ -41,6 +41,7 @@ median_max=480
 p95_max=600
 correction_sha=""
 preserved_subject_sha=""
+transition_manifest=""
 receipt=""
 state_dir=".gsd/ci-timing"
 publish_head=1
@@ -61,6 +62,7 @@ while [ "$#" -gt 0 ]; do
     --p95-max) p95_max="$2"; shift 2 ;;
     --correction-sha) correction_sha="$2"; shift 2 ;;
     --preserved-subject-sha) preserved_subject_sha="$2"; shift 2 ;;
+    --transition-manifest) transition_manifest="$2"; shift 2 ;;
     --receipt) receipt="$2"; shift 2 ;;
     --state-dir) state_dir="$2"; shift 2 ;;
     --publish-head) publish_head=1; shift ;;
@@ -74,6 +76,68 @@ while [ "$#" -gt 0 ]; do
 done
 
 require_command jq
+
+validate_transition_manifest() {
+  local path="$1" json markers declared actual duplicate stage from_sha to_sha expected_paths actual_paths entry_path blob_oid actual_blob
+  [ -s "$path" ] || die "transition manifest is missing or empty: $path"
+  markers="$(grep -c '^PRESERVATION_TRANSITION_V2_BEGIN$' "$path" || true)"
+  [ "$markers" -eq 1 ] || die "transition manifest must contain exactly one PRESERVATION_TRANSITION_V2_BEGIN marker"
+  markers="$(grep -c '^PRESERVATION_TRANSITION_V2_END$' "$path" || true)"
+  [ "$markers" -eq 1 ] || die "transition manifest must contain exactly one PRESERVATION_TRANSITION_V2_END marker"
+  json="$(awk '$0 == "PRESERVATION_TRANSITION_V2_BEGIN" {take=1; next} $0 == "PRESERVATION_TRANSITION_V2_END" {take=0} take' "$path")"
+
+  jq -e --arg repo "$repo" --argjson pr "$pr" --arg correction "$correction_sha" --arg repair "$head_sha" --arg subject "$preserved_subject_sha" '
+    .schema_version == 2 and .repo == $repo and .pr == $pr and
+    (.prior_preserved_sha | type == "string" and test("^[0-9a-f]{40}$")) and
+    .controller_correction_sha == $correction and
+    (.formatter_correction_sha | type == "string" and test("^[0-9a-f]{40}$")) and
+    .repair_sha == $repair and .preserved_subject_sha == $subject and .repair_sha == .preserved_subject_sha and
+    (.stages | type == "array" and length == 3) and
+    ([.stages[].id] == ["plan-132-12", "plan-132-13", "plan-132-14-repair"]) and
+    (.stages[0].from_sha == .prior_preserved_sha and .stages[0].to_sha == .controller_correction_sha) and
+    (.stages[1].from_sha == .stages[0].to_sha and .stages[1].to_sha == .formatter_correction_sha) and
+    (.stages[2].from_sha == .stages[1].to_sha and .stages[2].to_sha == .repair_sha) and
+    all(.stages[]; (.from_sha | type == "string" and test("^[0-9a-f]{40}$")) and (.to_sha | type == "string" and test("^[0-9a-f]{40}$")) and (.planning | type == "array") and (.non_planning | type == "array")) and
+    all(.stages[]; all((.planning + .non_planning)[]; (.status == "A" or .status == "M") and (.path | type == "string" and length > 0))) and
+    all(.stages[]; all(.planning[]; .path | startswith(".planning/"))) and
+    all(.stages[]; all(.non_planning[]; (.path | startswith(".planning/") | not) and (.blob_oid | type == "string" and test("^[0-9a-f]{40}$"))))
+  ' <<<"$json" >/dev/null || die "transition manifest schema, identity, or chronology is invalid"
+
+  # The anchors must be real, adjacent first-parent-independent Git history.  No
+  # manifest assertion is trusted until the repository reproduces it exactly.
+  while IFS=$'\t' read -r stage from_sha to_sha; do
+    git rev-parse --verify "${from_sha}^{commit}" >/dev/null 2>&1 || die "transition manifest has an unknown from SHA"
+    git rev-parse --verify "${to_sha}^{commit}" >/dev/null 2>&1 || die "transition manifest has an unknown to SHA"
+    git merge-base --is-ancestor "$from_sha" "$to_sha" || die "transition manifest stage $stage is reversed"
+    [ "$from_sha" != "$to_sha" ] || die "transition manifest stage $stage is empty"
+
+    declared="$(jq -r --arg id "$stage" '.stages[] | select(.id == $id) | (.planning[]?, .non_planning[]?) | "\(.status)\t\(.path)"' <<<"$json" | LC_ALL=C sort)"
+    actual="$(git diff-tree --no-commit-id -r --no-renames --name-status "$from_sha" "$to_sha" | awk 'NF == 2 {print $1 "\t" $2}' | LC_ALL=C sort)"
+    [ "$declared" = "$actual" ] || die "transition manifest stage $stage does not exactly match its Git delta"
+    duplicate="$(printf '%s\n' "$declared" | sed '/^$/d' | uniq -d)"
+    [ -z "$duplicate" ] || die "transition manifest stage $stage declares a path more than once"
+
+    while IFS=$'\t' read -r entry_path blob_oid; do
+      [ -n "$entry_path" ] || continue
+      actual_blob="$(git rev-parse "${to_sha}:${entry_path}" 2>/dev/null || true)"
+      [ "$actual_blob" = "$blob_oid" ] || die "transition manifest blob does not match $entry_path"
+    done < <(jq -r --arg id "$stage" '.stages[] | select(.id == $id) | .non_planning[] | "\(.path)\t\(.blob_oid)"' <<<"$json")
+  done < <(jq -r '.stages[] | [.id, .from_sha, .to_sha] | @tsv' <<<"$json")
+
+  # These are the only executable handoffs in the repaired chronology.  In
+  # particular, formatter evidence has its own stage and cannot be recast as
+  # planning-only provenance.
+  jq -e '
+    (.stages[0].non_planning | map(.path) | sort) == ["scripts/ci/collect_pr_timing_receipt.sh", "test/install_smoke/ci_timing_automation_test.exs"] and
+    (.stages[1].non_planning | map(.path) | sort) == ["test/install_smoke/ci_lane_split_test.exs"] and
+    (.stages[2].non_planning | map(.path) | sort) == ["scripts/ci/collect_pr_timing_receipt.sh", "test/install_smoke/ci_timing_automation_test.exs"]
+  ' <<<"$json" >/dev/null || die "transition manifest has an unauthorized executable stage assignment"
+
+  # Everything after the immutable preserved subject is planning evidence only;
+  # do not retain an allowlist that could hide a later executable mutation.
+  actual_paths="$(git diff --name-only "$preserved_subject_sha..$head_sha" | grep -Ev '^\.planning/' || true)"
+  [ -z "$actual_paths" ] || die "non-planning files changed after preservation: ${actual_paths//$'\n'/, }"
+}
 
 current_manifest_from_receipt() {
   local path="$1"
@@ -214,6 +278,7 @@ require_command git
 [[ "$pr" =~ ^[1-9][0-9]*$ ]] || die "--pr must be a positive integer"
 [ -n "$correction_sha" ] || die "--correction-sha is required"
 [ -n "$preserved_subject_sha" ] || die "--preserved-subject-sha is required"
+[ -n "$transition_manifest" ] || die "--transition-manifest is required"
 [ -n "$receipt" ] || die "--receipt is required"
 [[ "$samples" =~ ^[0-9]+$ ]] && [ "$samples" -eq 10 ] || die "--samples must be exactly 10 for the CI-14 contract"
 [[ "$max_sequences" =~ ^[0-9]+$ ]] && [ "$max_sequences" -ge 1 ] || die "--max-sequences must be a positive integer"
@@ -227,13 +292,6 @@ preserved_subject_sha="$(git rev-parse "$preserved_subject_sha")"
 git merge-base --is-ancestor "$correction_sha" "$head_sha" || die "correction SHA is not an ancestor of HEAD"
 git merge-base --is-ancestor "$preserved_subject_sha" "$head_sha" || die "preserved subject SHA is not an ancestor of HEAD"
 
-# The receipt controller and its isolated contract are evidence machinery, not product or
-# workflow topology drift. The formatter-only cache-hygiene proof is likewise allowed so
-# the Quality formatter gate can run on the candidate. Everything else after the preserved
-# implementation must remain planning-only so a timing receipt cannot include unrelated drift.
-non_planning_delta="$(git diff --name-only "$preserved_subject_sha..$head_sha" | grep -Ev '^(\.planning/|scripts/ci/collect_pr_timing_receipt\.sh$|scripts/ci/install_ffmpeg\.sh$|test/install_smoke/ci_timing_automation_test\.exs$|test/install_smoke/ci_cache_hygiene_test\.exs$)' || true)"
-[ -z "$non_planning_delta" ] || die "non-planning files changed after preservation: ${non_planning_delta//$'\n'/, }"
-
 pr_json="$(gh pr view "$pr" --repo "$repo" --json state,isDraft,headRefName,headRefOid,labels)"
 [ "$(jq -r '.state' <<<"$pr_json")" = OPEN ] || die "PR #$pr is not open"
 head_ref="$(jq -r '.headRefName' <<<"$pr_json")"
@@ -245,6 +303,8 @@ gh label list --repo "$repo" --limit 100 --json name --jq '.[].name' | grep -Fxq
 if jq -e --arg label_name "$label" 'any(.labels[]?; .name == $label_name)' <<<"$pr_json" >/dev/null; then
   die "PR already has $label; refusing to take ownership of a pre-existing trigger label"
 fi
+
+validate_transition_manifest "$transition_manifest"
 
 published_now=0
 if [ "$publish_head" -eq 1 ] && [ "$remote_sha" != "$head_sha" ]; then
@@ -261,7 +321,8 @@ if [ "$publish_head" -eq 1 ] && [ "$remote_sha" != "$head_sha" ]; then
   done
   published_now=1
 elif [ "$remote_sha" != "$head_sha" ]; then
-  die "PR head $remote_sha does not equal local HEAD $head_sha and publication is disabled"
+  git merge-base --is-ancestor "$remote_sha" "$head_sha" || die "remote PR head is not an ancestor of local HEAD; refusing non-fast-forward publication"
+  echo "[ci-timing] publication-ready: remote PR head $remote_sha is a strict ancestor of local HEAD"
 fi
 
 echo "[ci-timing] preflight passed: $repo#$pr @ $head_sha"
