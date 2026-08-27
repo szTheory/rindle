@@ -580,3 +580,25 @@ The controller verified the active manifest and exited zero in
 HEAD; PR head, labels, exact-head run population, timing receipt identity,
 and SHA-scoped state/lock identities all remained unchanged. Live mutation is
 reserved for Plan 132-21.
+
+## Plan 132-22 automated SAFE-02 closure (2026-08-27)
+
+Final fixed source subject: `240ad37934f5f4361d9074746744094c0881f153`.
+The bounded repair paths and target-tree blobs are:
+
+| Path | Blob OID |
+| --- | --- |
+| `scripts/ci/collect_pr_timing_receipt.sh` | `0cd402cbee9431544d56b54bd6e024dc4382306d` |
+| `test/install_smoke/ci_timing_automation_test.exs` | `76d15c809d981e128a8f5ffa3286317e9b056fd6` |
+| `scripts/maintainer/automation_first_contract.sh` | `1bc628074efaa46c6042c52ab4024066e9976ca1` |
+| `test/install_smoke/automation_first_contract_test.exs` | `00b609bce54225c74123546c08dea0eb84910f91` |
+
+Focused controller and policy suites pass. The existing timing receipt was
+verified in read-only mode with unchanged SHA-256
+`a1eec11151c1a67636b1dd34e1bf7192d071a33f3f35d8231cde146ee16b4386`:
+the immutable exact-ten population remains 453-second median and 481-second
+p95. One fresh structural coverage artifact yields `5149/6269`; inclusive
+integer comparison `5149 * 10000 >= 6269 * 8213` passes. No controller `run`,
+publication, label, dispatch, rerun, or replacement receipt was invoked;
+`new_live_sample_required: false` because neither repair changes `ci.yml` nor
+the measured workflow path.
