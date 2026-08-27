@@ -114,7 +114,7 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
   2. `CI Summary` remains the sole required check with its required-job set and skip-as-pass behavior intact; any external-runner exception includes job-level evidence, a named owner, and a dated follow-up.
   3. Authoritative coverage remains at or above 82.13%, and the final correction passes focused proof, `mix quality_signals`, SAFE-01, the relevant integration or packed-consumer lane, and bounded prohibited-surface diff review.
 
-**Plans**: 13/15 plans executed
+**Plans**: 13/16 plans executed
 
 **Wave 1 — tracer correction and package proof**
 
@@ -168,13 +168,17 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 
 - [x] 132-13-PLAN.md — Record both formatter-failed recovery runs and apply the formatter-only correction to the D-08/D-09 topology contract.
 
-**Wave 14 — manifest-bound immutable preservation census** *(blocked on the Wave 13 formatter correction)*
+**Wave 14 — transition-manifest controller repair** *(blocked on the Wave 13 formatter correction)*
 
-- [ ] 132-14-PLAN.md — Emit the source-derived two-stage transition manifest, then re-run formatter, focused/full quality, SAFE-01, coverage, packed-consumer, prohibited-surface, and successful mutation-free preflight authorities.
+- [ ] 132-14-PLAN.md — RED/GREEN the omitted `--transition-manifest` / `validate_transition_manifest` controller contract with a truthful three-stage chronology and fail-closed mutation regressions.
 
-**Wave 15 — terminal API-backed timing acceptance** *(blocked on Wave 14 completion)*
+**Wave 15 — post-repair immutable preservation census** *(blocked on Wave 14 completion)*
 
-- [ ] 132-15-PLAN.md — Revalidate the same transition manifest, publish the preserved head once, collect an exact-ten current receipt, and close CI-14 only on live-verified median <=480s and p95 <=600s.
+- [ ] 132-15-PLAN.md — Emit the source-derived three-stage transition manifest, then re-run formatter, focused/full quality, SAFE-01, coverage, packed-consumer, prohibited-surface, and successful mutation-free preflight authorities.
+
+**Wave 16 — terminal API-backed timing acceptance** *(blocked on Wave 15 completion)*
+
+- [ ] 132-16-PLAN.md — Revalidate the same three-stage transition manifest, publish the preserved head once, collect an exact-ten current receipt, and close CI-14 only on live-verified median <=480s and p95 <=600s.
 
 ## Demand-Gated Candidates
 
@@ -186,4 +190,4 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 - `mix test --partitions` parallelization — evidence-gated on measured core starvation (DEFER-02).
 
 ---
-*Last updated: 2026-08-26 — Verification-gap closure adds completed-state API revalidation, the formatter-only remediation demonstrated by both failed recovery attempts, a fresh immutable preservation census, and one terminal exact-ten sampler.*
+*Last updated: 2026-08-27 — Planning repair restores the omitted transition-manifest controller contract before a post-repair preservation census and one terminal exact-ten sampler.*
