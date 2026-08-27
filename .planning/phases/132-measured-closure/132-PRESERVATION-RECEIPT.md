@@ -380,7 +380,7 @@ were byte-identical; the owned label was absent before and after; and
 `.gsd/ci-timing/phase-132-recovery-preflight` was absent before and after. No live
 controller lock or owned label remains.
 
-## Post-repair preservation census (2026-08-27)
+## Historical post-repair preservation census (Plan 132-15, 2026-08-27)
 
 **Prior preserved subject:** `7f025dfdf55d612861610a10773d86761a374277`
 **Controller correction boundary:** `1671cdde1c42231a8a958c8f2771a24edb8b444e`
@@ -395,9 +395,9 @@ the immutable Plan 132-13 summary in its ancestry. Git confirms all three stage
 ranges are strict ancestor ranges. The repair and preserved subject are identical
 at the completed Plan 132-14 HEAD.
 
-PRESERVATION_TRANSITION_V2_BEGIN
+HISTORICAL_PRESERVATION_TRANSITION_V2_BEGIN
 {"schema_version":2,"repo":"szTheory/rindle","pr":96,"prior_preserved_sha":"7f025dfdf55d612861610a10773d86761a374277","controller_correction_sha":"1671cdde1c42231a8a958c8f2771a24edb8b444e","formatter_correction_sha":"214e56c5fc16b02a44280eee1567b8087358ffd5","repair_sha":"73e2c334f17894c14918838ee69e3507b5e42f09","preserved_subject_sha":"73e2c334f17894c14918838ee69e3507b5e42f09","stages":[{"id":"plan-132-12","from_sha":"7f025dfdf55d612861610a10773d86761a374277","to_sha":"1671cdde1c42231a8a958c8f2771a24edb8b444e","planning":[{"status":"M","path":".planning/REQUIREMENTS.md"},{"status":"M","path":".planning/ROADMAP.md"},{"status":"M","path":".planning/STATE.md"},{"status":"A","path":".planning/phases/132-measured-closure/132-11-SUMMARY.md"},{"status":"A","path":".planning/phases/132-measured-closure/132-12-PLAN.md"},{"status":"A","path":".planning/phases/132-measured-closure/132-12-SUMMARY.md"},{"status":"A","path":".planning/phases/132-measured-closure/132-13-PLAN.md"},{"status":"A","path":".planning/phases/132-measured-closure/132-14-PLAN.md"},{"status":"A","path":".planning/phases/132-measured-closure/132-15-PLAN.md"},{"status":"A","path":".planning/phases/132-measured-closure/132-REVIEW.md"},{"status":"M","path":".planning/phases/132-measured-closure/132-VALIDATION.md"},{"status":"M","path":".planning/phases/132-measured-closure/132-VERIFICATION.md"},{"status":"M","path":".planning/phases/132-measured-closure/COVERAGE.md"}],"non_planning":[{"status":"M","path":"scripts/ci/collect_pr_timing_receipt.sh","blob_oid":"dc6ea5fbd4c33b3addba8430cf2758dedae7452f"},{"status":"M","path":"test/install_smoke/ci_timing_automation_test.exs","blob_oid":"5ca85afef8c0079bb6db22a7e4ff87b5435f2cd5"}]},{"id":"plan-132-13","from_sha":"1671cdde1c42231a8a958c8f2771a24edb8b444e","to_sha":"214e56c5fc16b02a44280eee1567b8087358ffd5","planning":[{"status":"M","path":".planning/ROADMAP.md"},{"status":"M","path":".planning/STATE.md"},{"status":"A","path":".planning/phases/132-measured-closure/132-13-SUMMARY.md"},{"status":"M","path":".planning/phases/132-measured-closure/132-CI-TIMING-RECEIPT.md"}],"non_planning":[{"status":"M","path":"test/install_smoke/ci_lane_split_test.exs","blob_oid":"a641d9a84f545e7d37fcb4b8a8bdf143d02b7754"}]},{"id":"plan-132-14-repair","from_sha":"214e56c5fc16b02a44280eee1567b8087358ffd5","to_sha":"73e2c334f17894c14918838ee69e3507b5e42f09","planning":[{"status":"M","path":".planning/ROADMAP.md"},{"status":"M","path":".planning/phases/132-measured-closure/132-14-PLAN.md"},{"status":"A","path":".planning/phases/132-measured-closure/132-14-SUMMARY.md"},{"status":"M","path":".planning/phases/132-measured-closure/132-15-PLAN.md"},{"status":"A","path":".planning/phases/132-measured-closure/132-16-PLAN.md"}],"non_planning":[{"status":"M","path":"scripts/ci/collect_pr_timing_receipt.sh","blob_oid":"ae86eb515fe1fa96f5f1a0e978fdd624a94fd1c1"},{"status":"M","path":"test/install_smoke/ci_timing_automation_test.exs","blob_oid":"ce7908135e4e0cdb676690a28e7a9b433feffd9c"}]}]}
-PRESERVATION_TRANSITION_V2_END
+HISTORICAL_PRESERVATION_TRANSITION_V2_END
 
 The manifest is a full, rename-disabled, Git name/status census. Every entry is
 explicitly partitioned into planning and non-planning paths; every mutable target
@@ -447,4 +447,83 @@ Before and after snapshots were byte-identical for PR head and labels, the exact
 `ci.yml` workflow-run API response, receipt hash, and current-marker counts. The
 requested controller state directory and lock were absent both before and after. No
 publication, label trigger, rerun, state creation, or sample was performed. CI-14
-remains open for Plan 132-16's API-backed exact-ten receipt.
+remains open for the separately authorized terminal API-backed exact-ten receipt.
+
+## Post-controller-fix preservation census (Plan 132-17, 2026-08-27)
+
+This active census supersedes only the historical manifest markers above. It preserves
+the completed Plan 132-15 prose and JSON as historical evidence while recording the
+actual post-controller-fix source chronology from Git.
+
+**Prior preserved subject:** `7f025dfdf55d612861610a10773d86761a374277`
+**Controller correction boundary:** `1671cdde1c42231a8a958c8f2771a24edb8b444e`
+**Formatter correction boundary:** `214e56c5fc16b02a44280eee1567b8087358ffd5`
+**Repair and preserved source subject:** `15336d4cc8053aa90788c62377096081c5b07f21`
+
+PRESERVATION_TRANSITION_V2_BEGIN
+{"schema_version":2,"repo":"szTheory/rindle","pr":96,"prior_preserved_sha":"7f025dfdf55d612861610a10773d86761a374277","controller_correction_sha":"1671cdde1c42231a8a958c8f2771a24edb8b444e","formatter_correction_sha":"214e56c5fc16b02a44280eee1567b8087358ffd5","repair_sha":"15336d4cc8053aa90788c62377096081c5b07f21","preserved_subject_sha":"15336d4cc8053aa90788c62377096081c5b07f21","stages":[{"id":"plan-132-12","from_sha":"7f025dfdf55d612861610a10773d86761a374277","to_sha":"1671cdde1c42231a8a958c8f2771a24edb8b444e","planning":[{"status":"M","path":".planning/REQUIREMENTS.md"},{"status":"M","path":".planning/ROADMAP.md"},{"status":"M","path":".planning/STATE.md"},{"status":"A","path":".planning/phases/132-measured-closure/132-11-SUMMARY.md"},{"status":"A","path":".planning/phases/132-measured-closure/132-12-PLAN.md"},{"status":"A","path":".planning/phases/132-measured-closure/132-12-SUMMARY.md"},{"status":"A","path":".planning/phases/132-measured-closure/132-13-PLAN.md"},{"status":"A","path":".planning/phases/132-measured-closure/132-14-PLAN.md"},{"status":"A","path":".planning/phases/132-measured-closure/132-15-PLAN.md"},{"status":"A","path":".planning/phases/132-measured-closure/132-REVIEW.md"},{"status":"M","path":".planning/phases/132-measured-closure/132-VALIDATION.md"},{"status":"M","path":".planning/phases/132-measured-closure/132-VERIFICATION.md"},{"status":"M","path":".planning/phases/132-measured-closure/COVERAGE.md"}],"non_planning":[{"status":"M","path":"scripts/ci/collect_pr_timing_receipt.sh","blob_oid":"dc6ea5fbd4c33b3addba8430cf2758dedae7452f"},{"status":"M","path":"test/install_smoke/ci_timing_automation_test.exs","blob_oid":"5ca85afef8c0079bb6db22a7e4ff87b5435f2cd5"}]},{"id":"plan-132-13","from_sha":"1671cdde1c42231a8a958c8f2771a24edb8b444e","to_sha":"214e56c5fc16b02a44280eee1567b8087358ffd5","planning":[{"status":"M","path":".planning/ROADMAP.md"},{"status":"M","path":".planning/STATE.md"},{"status":"A","path":".planning/phases/132-measured-closure/132-13-SUMMARY.md"},{"status":"M","path":".planning/phases/132-measured-closure/132-CI-TIMING-RECEIPT.md"}],"non_planning":[{"status":"M","path":"test/install_smoke/ci_lane_split_test.exs","blob_oid":"a641d9a84f545e7d37fcb4b8a8bdf143d02b7754"}]},{"id":"plan-132-14-repair","from_sha":"214e56c5fc16b02a44280eee1567b8087358ffd5","to_sha":"15336d4cc8053aa90788c62377096081c5b07f21","planning":[{"status":"M","path":".planning/REQUIREMENTS.md"},{"status":"M","path":".planning/ROADMAP.md"},{"status":"M","path":".planning/phases/132-measured-closure/132-14-PLAN.md"},{"status":"A","path":".planning/phases/132-measured-closure/132-14-SUMMARY.md"},{"status":"M","path":".planning/phases/132-measured-closure/132-15-PLAN.md"},{"status":"A","path":".planning/phases/132-measured-closure/132-15-SUMMARY.md"},{"status":"A","path":".planning/phases/132-measured-closure/132-16-PLAN.md"},{"status":"M","path":".planning/phases/132-measured-closure/132-PRESERVATION-RECEIPT.md"}],"non_planning":[{"status":"M","path":"scripts/ci/collect_pr_timing_receipt.sh","blob_oid":"3bb0de6f75660870614cbc3ad3f5f6e1293b262e"},{"status":"M","path":"test/install_smoke/ci_timing_automation_test.exs","blob_oid":"cda7a618255f0030f450c2aa03e043ad01a24f12"}]}]}
+PRESERVATION_TRANSITION_V2_END
+
+The active schema-v2 manifest is a rename-disabled, full Git name/status census:
+for every stage, its declared planning/non-planning union equals the Git delta and
+every non-planning target blob equals its `to_sha` tree. Stage three is deliberately
+the cumulative `214e56c..15336d4` delta required by the shipped validator.
+
+### Plan 132-16 preserved-tail repair attribution
+
+The cumulative stage must not rewrite the source history as Plan 132-15 work. Git
+independently reproduces the strict `73e2c33..15336d4` tail as
+`plan-132-16-preserved-tail-repair`:
+
+| Order | Commit | Attribution |
+| --- | --- | --- |
+| 1 | `99c9fd6914c4e0af8b103fbe8c1356d84ade6dbc` | Plan 132-15 planning receipt |
+| 2 | `c27413d34afe4d315468eeadf340db9b4e93ec43` | Plan 132-15 planning summary |
+| 3 | `f488a7e7d30afcf0fc7e2c4e167171c29edf5041` | Plan 132-15 planning tracking |
+| 4 | `74d09e863be08cd57898fab8933ef5069b55a147` | Plan 132-15 planning closeout |
+| 5 | `15336d4cc8053aa90788c62377096081c5b07f21` | Plan 132-16 source controller repair |
+
+Its exact rename-disabled name/status census is `M .planning/REQUIREMENTS.md`,
+`M .planning/ROADMAP.md`, `A .planning/phases/132-measured-closure/132-15-SUMMARY.md`,
+`M .planning/phases/132-measured-closure/132-PRESERVATION-RECEIPT.md`,
+`M scripts/ci/collect_pr_timing_receipt.sh`, and
+`M test/install_smoke/ci_timing_automation_test.exs`. The final non-planning target
+blobs are `scripts/ci/collect_pr_timing_receipt.sh` =
+`3bb0de6f75660870614cbc3ad3f5f6e1293b262e` and
+`test/install_smoke/ci_timing_automation_test.exs` =
+`cda7a618255f0030f450c2aa03e043ad01a24f12` in tree `15336d4`.
+
+### Fresh preservation authorities and no-publish preflight
+
+The following Plan 132-17 authorities are recorded after their fresh execution:
+
+1. `mix format --check-formatted` passed.
+2. `mix test test/install_smoke/ci_timing_automation_test.exs --seed 0` passed
+   with exactly `18 tests, 0 failures`; the lane-split and observability suite
+   passed with `34 tests, 0 failures`.
+3. `bash scripts/ci/test_ci_summary_gate.sh`, `mix quality_signals`,
+   `bash scripts/maintainer/refactor_contract.sh`,
+   `./scripts/maintainer/automation_first_contract.sh`, and
+   `./scripts/maintainer/repo_hygiene_check.sh --ci` all passed.
+4. One authoritative `mix coveralls.multiple --type local --type json` invocation
+   passed and emitted a nonempty artifact. Structural parsing accepted only
+   nonempty source files, array coverage vectors, and non-null non-negative integer
+   entries; it found `5149` covered of `6269` relevant lines. The denominator is
+   positive and `5149 * 10000 >= 6269 * 8213`, so the inclusive 82.13% floor passes.
+5. `bash scripts/install_smoke.sh image` passed against the packed image consumer.
+   `git diff --check` passed, and the prohibited-surface census remains planning-only
+   after `15336d4`: no Admin, public API, schema/migration, telemetry/error,
+   dependency/lockfile, workflow, or release-proof path appears.
+
+The controller then reparsed the active manifest and the repository independently
+reproduced each stage. `preflight --no-publish` passed for `szTheory/rindle#96`
+with `ci.yml`, `CI Summary`, ten samples, at most two sequences, inclusive `480`/
+`600` limits, correction `1671cdd`, and preserved subject `15336d4`. The open draft
+PR remains at `7f025dfdf55d612861610a10773d86761a374277` with no labels. Before/after
+snapshots were equal for PR metadata, the `ci.yml` pull-request workflow API
+population, receipt hash, and current-marker count (`0`); the requested state
+directory and lock were absent both before and after. No publication, label, rerun,
+sample, durable controller ownership, or timing receipt mutation occurred.
+
+COV-05 and SAFE-02 are freshly preserved by these exact authorities. CI-14 remains
+open and is reserved for Plan 132-18's terminal API-backed exact-ten receipt.
