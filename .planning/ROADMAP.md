@@ -178,11 +178,11 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 
 **Wave 16 — preserved-tail controller repair closeout** *(blocked on Wave 15 completion)*
 
-- [ ] 132-16-PLAN.md — Verify and truthfully close existing commit `15336d4`, which accepts planning-only evidence tails after the preserved subject; no source reimplementation or GitHub mutation.
+- [x] 132-16-PLAN.md — Verified and truthfully closed existing commit `15336d4`, which accepts planning-only evidence tails after the preserved subject; no source reimplementation or GitHub mutation.
 
 **Wave 17 — post-controller-fix preservation census** *(blocked on Wave 16 completion)*
 
-- [ ] 132-17-PLAN.md — Preserve source subject `15336d4`, explicitly census the Plan 132-16 tail, and re-run COV-05/SAFE-02 plus mutation-free preflight authorities.
+- [x] 132-17-PLAN.md — Preserved source subject `15336d4`, explicitly censused the Plan 132-16 tail, and re-ran COV-05/SAFE-02 plus mutation-free preflight authorities.
 
 **Wave 18 — terminal API-backed timing acceptance** *(blocked on Wave 17 completion)*
 
@@ -198,4 +198,4 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 - `mix test --partitions` parallelization — evidence-gated on measured core starvation (DEFER-02).
 
 ---
-*Last updated: 2026-08-27 — The preserved-tail controller fix is closed separately, then freshly preserved before one terminal exact-ten sampler.*
+*Last updated: 2026-08-27 — The preserved-tail controller fix and its fresh post-fix census are complete; one terminal exact-ten sampler remains.*
