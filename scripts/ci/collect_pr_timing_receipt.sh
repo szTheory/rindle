@@ -195,8 +195,8 @@ verify_api_backed_receipt() {
 
   while IFS= read -r run; do
     id="$(jq -r '.id' <<<"$run")"
-    run_api="$(gh_api_json "repos/${repo}/actions/runs/${id}" "" "$deadline")" || die "unable to resolve Actions run $id"
-    jobs_api="$(gh_api_json "repos/${repo}/actions/runs/${id}/jobs?per_page=100" "" "$deadline")" || die "unable to resolve Actions jobs for $id"
+    run_api="$(gh_api_json "repos/${repo}/actions/runs/${id}" "" "$deadline")" || return $?
+    jobs_api="$(gh_api_json "repos/${repo}/actions/runs/${id}/jobs?per_page=100" "" "$deadline")" || return $?
     actual="$(jq -cn --argjson expected "$run" --argjson api "$run_api" --argjson jobs "$jobs_api" --arg name "$summary_job" '
       ($jobs | (if type == "array" then [.[].jobs[]] else [.jobs[]] end) | [.[] | select(.name == $name)]) as $summary |
       if ($summary|length) != 1 then error("CI Summary must appear exactly once")
@@ -538,7 +538,12 @@ wait_for_published_head_quiescence() {
 
 record_error_and_restart() {
   local reason="$1" attempt="$2" tmp boundary
-  boundary="$(same_sha_runs "$(( $(date +%s) + run_timeout ))" | jq -c 'map(.id)')"
+  if boundary="$(same_sha_runs "$(( $(date +%s) + run_timeout ))" | jq -c 'map(.id)')"; then
+    :
+  else
+    terminalize_state "deadline expired while collecting restart population boundary"
+    die "deadline expired while collecting restart population boundary"
+  fi
   tmp="$(mktemp "${TMPDIR:-/tmp}/rindle-ci-timing-state.XXXXXX")"
   jq --arg reason "$reason" --argjson next "$((attempt + 1))" --argjson boundary "$boundary" '
     .errors += [{sequence_attempt:.sequence_attempt,reason:$reason,runs:.runs}] |
@@ -587,8 +592,10 @@ wait_for_new_run() {
   triggered_at_epoch="$(jq -r '.pending_trigger.triggered_at_epoch' "$state_file")"
   deadline=$((triggered_at_epoch + creation_timeout))
   while :; do
-    if ! candidates="$(same_sha_runs "$deadline" | jq -c --argjson before "$before_ids" '[.[] | select((.id as $id | $before | index($id)) == null)]')"; then
-      return 3
+    if candidates="$(same_sha_runs "$deadline" | jq -c --argjson before "$before_ids" '[.[] | select((.id as $id | $before | index($id)) == null)]')"; then
+      :
+    else
+      return $?
     fi
     if [ "$(jq 'length' <<<"$candidates")" -eq 1 ]; then
       jq -r '.[0].id' <<<"$candidates"
@@ -654,7 +661,17 @@ wait_and_validate_run() {
 }
 
 if [ "$published_now" -eq 1 ]; then
-  wait_for_published_head_quiescence || die "publication-triggered PR run did not quiesce before sampling"
+  if wait_for_published_head_quiescence; then
+    :
+  else
+    quiescence_exit=$?
+    if [ "$quiescence_exit" -eq 124 ]; then
+      terminalize_state "deadline expired while waiting for publication-triggered PR run quiescence"
+    else
+      terminalize_state "publication-triggered PR run did not quiesce before sampling"
+    fi
+    die "publication-triggered PR run did not quiesce before sampling"
+  fi
 fi
 
 attempt="$(jq -r '.sequence_attempt' "$state_file")"
@@ -673,7 +690,12 @@ while [ "$attempt" -le "$max_sequences" ]; do
         before_ids="$pending_before_ids"
         echo "[ci-timing] resuming owned delayed trigger for sample $sample/$samples"
       else
-        before_ids="$(same_sha_runs "$(( $(date +%s) + run_timeout ))" | jq '[.[].id]')"
+        if before_ids="$(same_sha_runs "$(( $(date +%s) + run_timeout ))" | jq '[.[].id]')"; then
+          :
+        else
+          terminalize_state "deadline expired while collecting trigger population"
+          die "deadline expired while collecting trigger population"
+        fi
         persist_pending_trigger "$before_ids"
         echo "[ci-timing] triggering sample $sample/$samples"
         gh pr edit "$pr" --repo "$repo" --add-label "$label" >/dev/null
@@ -683,7 +705,7 @@ while [ "$attempt" -le "$max_sequences" ]; do
         :
       else
         discovery_exit=$?
-        if [ "$discovery_exit" -eq 3 ]; then
+        if [ "$discovery_exit" -eq 3 ] || [ "$discovery_exit" -eq 124 ]; then
           invalid_reason="owned trigger did not appear before the persisted creation deadline"
           cleanup_label
           terminalize_state "$invalid_reason"
@@ -701,8 +723,10 @@ while [ "$attempt" -le "$max_sequences" ]; do
       :
     else
       validation_exit=$?
-      if [ "$validation_exit" -eq 4 ]; then
-        die "run $run_id did not reach a terminal state before timeout; persisted current_run_id is retained for resume"
+      if [ "$validation_exit" -eq 4 ] || [ "$validation_exit" -eq 124 ]; then
+        invalid_reason="run $run_id did not reach a terminal state before timeout"
+        terminalize_state "$invalid_reason"
+        die "$invalid_reason"
       fi
       invalid_reason="run $run_id was not a qualifying successful first-attempt sample"
       break
@@ -732,7 +756,12 @@ done
 
 runs="$(jq -c '.runs' "$state_file")"
 population_boundary_ids="$(jq -c '.population_boundary_ids // []' "$state_file")"
-eligible="$(canonical_eligible_run_ids "$head_sha" "$population_boundary_ids" "$(( $(date +%s) + run_timeout ))")"
+if eligible="$(canonical_eligible_run_ids "$head_sha" "$population_boundary_ids" "$(( $(date +%s) + run_timeout ))")"; then
+  :
+else
+  terminalize_state "deadline expired while collecting final canonical population"
+  die "deadline expired while collecting final canonical population"
+fi
 selected="$(jq -c 'map(.id)' <<<"$runs")"
 [ "$eligible" = "$selected" ] || die "selected run IDs do not equal the complete canonical eligible population"
 

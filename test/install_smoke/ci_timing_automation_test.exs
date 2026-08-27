@@ -278,6 +278,50 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
     assert reason =~ "creation deadline"
   end
 
+  test "permanent API rate limits terminalize owned state and preserve receipt evidence",
+       context do
+    state_file = Path.join(context.state_dir, "pr-96-#{context.head}.json")
+    receipt_before = File.read!(context.receipt)
+
+    for endpoint <- [
+          "actions/workflows",
+          "actions/runs/1001",
+          "actions/runs/1001/jobs"
+        ] do
+      File.rm_rf!(context.state_dir)
+      File.mkdir_p!(context.state_dir)
+      File.write!(Path.join(context.fixture_dir, "count"), "0\n")
+      File.write!(Path.join(context.fixture_dir, "label"), "absent\n")
+
+      if endpoint != "actions/workflows" do
+        File.write!(state_file, Jason.encode!(discovered_running_state(context)))
+      end
+
+      assert {output, 1} =
+               run_controller(
+                 context,
+                 [
+                   {"GH_RATE_LIMIT_ENDPOINT", endpoint},
+                   {"GH_RATE_LIMIT_AFTER", "1"}
+                 ],
+                 run_timeout: "1"
+               )
+
+      assert output =~ "deadline"
+      state = state_file |> File.read!() |> Jason.decode!()
+      assert state["status"] == "failed"
+      assert state["pending_trigger"] == nil
+      assert state["current_run_id"] == nil
+      assert File.read!(Path.join(context.fixture_dir, "label")) == "absent\n"
+      assert File.read!(context.receipt) == receipt_before
+      refute File.exists?(state_file <> ".lock")
+
+      terminal = File.read!(state_file)
+      assert {_output, 1} = run_controller(context, [], run_timeout: "1")
+      assert File.read!(state_file) == terminal
+    end
+  end
+
   test "verification fails when a qualifying second-page run is absent from the receipt",
        context do
     assert {_output, 0} = run_controller(context)
@@ -556,7 +600,9 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
       "--poll-seconds",
       "0",
       "--creation-timeout",
-      Keyword.get(options, :creation_timeout, "300")
+      Keyword.get(options, :creation_timeout, "300"),
+      "--run-timeout",
+      Keyword.get(options, :run_timeout, "1800")
     ]
 
     System.cmd("bash", [@script | args],
@@ -583,6 +629,19 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
       "current_run_status" => nil,
       "errors" => []
     }
+  end
+
+  defp discovered_running_state(context) do
+    valid_running_state(context)
+    |> Map.put("pending_trigger", %{
+      "before_run_ids" => [],
+      "triggered_at" => "2026-08-26T00:00:00Z",
+      "triggered_at_epoch" => 1_787_616_000,
+      "status" => "discovered",
+      "run_id" => 1001
+    })
+    |> Map.put("current_run_id", 1001)
+    |> Map.put("current_run_status", "discovered")
   end
 
   defp preflight_args(context, transition_manifest \\ nil) do
@@ -827,6 +886,18 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
     if [ "$1" = api ]; then
       endpoint="${*: -1}"
       count=$(cat "$count_file")
+      api_count_file="$GH_FIXTURE_DIR/api-count"
+      api_count=$(cat "$api_count_file" 2>/dev/null || echo 0)
+      api_count=$((api_count + 1))
+      printf '%s\n' "$api_count" > "$api_count_file"
+      if [ "$endpoint" = rate_limit ]; then
+        printf '%s\n' '{"resources":{"core":{"reset":0}}}'
+        exit 0
+      fi
+      if [ -n "${GH_RATE_LIMIT_ENDPOINT:-}" ] && [[ "$endpoint" == *"$GH_RATE_LIMIT_ENDPOINT"* ]] && [ "$api_count" -ge "${GH_RATE_LIMIT_AFTER:-1}" ]; then
+        echo 'API rate limit exceeded' >&2
+        exit 1
+      fi
       case "$endpoint" in
         *actions/workflows/*/runs*)
           poll_file="$GH_FIXTURE_DIR/discovery-polls"
