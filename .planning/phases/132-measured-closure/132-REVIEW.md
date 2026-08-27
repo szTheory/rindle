@@ -1,8 +1,8 @@
 ---
 phase: 132-measured-closure
-reviewed: 2026-08-26T00:00:00Z
+reviewed: 2026-08-27T17:03:55Z
 depth: standard
-files_reviewed: 10
+files_reviewed: 11
 files_reviewed_list:
   - scripts/ci/collect_pr_timing_receipt.sh
   - scripts/ci/install_apt_packages.sh
@@ -10,53 +10,74 @@ files_reviewed_list:
   - scripts/maintainer/repo_hygiene_check.sh
   - test/install_smoke/automation_first_contract_test.exs
   - test/install_smoke/ci_cache_hygiene_test.exs
+  - test/install_smoke/ci_lane_split_test.exs
   - test/install_smoke/ci_timing_automation_test.exs
   - test/install_smoke/generated_app_smoke_test.exs
   - test/install_smoke/support/generated_app/workspace.ex
   - test/install_smoke/support/generated_app_helper.ex
 findings:
-  critical: 1
+  critical: 4
   warning: 2
   info: 0
-  total: 3
+  total: 6
 status: issues_found
 ---
 
 # Phase 132: Code Review Report
 
-**Reviewed:** 2026-08-26T00:00:00Z
+**Reviewed:** 2026-08-27T17:03:55Z
 **Depth:** standard
-**Files Reviewed:** 10
+**Files Reviewed:** 11
 **Status:** issues_found
 
 ## Summary
 
-The CI timing controller, maintenance checks, and generated-app smoke refactor were reviewed in context. The timing controller can report a cached receipt as passing without checking it against GitHub, and the generated-app proof has two false-positive/unsafe report-conversion paths.
+The Phase 132 controller has several paths that undermine its stated bounded, fail-closed evidence contract. In particular, a terminal controller state can be reset, the caller can authorize more than two sequences, and the sampler can wait forever for a run that never materializes. The canonical-population query also reads only one API page, so a receipt can be accepted without all eligible runs.
+
+Focused test commands passed, but the timing fixture does not cover terminal-state re-entry, an over-ceiling `--max-sequences`, a permanently absent trigger, or a paginated Actions population.
 
 ## Critical Issues
 
-### CR-01: Completed-state shortcut accepts a forged or stale timing receipt
+### CR-01: A failed controller state is silently reset and permits fresh sequences
 
-**File:** `scripts/ci/collect_pr_timing_receipt.sh:285`
-**Issue:** When the SHA-scoped state file says `status: complete` and `verdict: PASS`, `run` calls only `verify_current_receipt_shape` and exits successfully. That verifier checks internal JSON/table consistency, but does not call GitHub or apply the timing thresholds. Thus a stale or modified `.gsd/ci-timing/pr-…json` plus a syntactically valid receipt can cause the controller to claim a passing API-backed CI-14 receipt, even if the selected runs no longer qualify or the receipt was fabricated. `verify_api_backed_receipt` already implements the required live validation but is not used here.
-**Fix:** On the completed-state path, call `verify_api_backed_receipt "$receipt"` (and derive/pass the verdict from validated metrics), or remove the shortcut and always validate the receipt against the Actions API before returning success.
+**File:** `scripts/ci/collect_pr_timing_receipt.sh:377-379`
+**Issue:** A second invocation against a terminal `status: "failed"` state calls `write_initial_state`, resetting `sequence_attempt` to 1 and discarding the recorded failure. This directly bypasses the two-sequence ceiling that Plan 132-18 relies on: rerunning the same command can produce two more label-triggered sampling sequences after the authorized budget was exhausted.
+**Fix:** Treat `failed` as terminal. Validate its invocation identity, report the recorded reason, and exit non-zero without mutating it. Add a process regression that exhausts sequence 2, invokes the controller again, and proves the state file, label count, and receipt are unchanged.
+
+### CR-02: The public flag accepts an unbounded sequence budget
+
+**File:** `scripts/ci/collect_pr_timing_receipt.sh:284-285`
+**Issue:** The controller accepts every positive `--max-sequences` value, and the loop at line 575 uses that supplied value. `--max-sequences 3` (or much larger) therefore authorizes additional trigger/restart sequences despite the Phase 132 contract requiring a two-sequence ceiling.
+**Fix:** Require exactly two for this CI-14 controller, for example: `[[ "$max_sequences" =~ ^[0-9]+$ ]] && [ "$max_sequences" -eq 2 ] || die "--max-sequences must be exactly 2"`. Add tests that reject 1 and 3 before state, labels, or receipts can change.
+
+### CR-03: Missing Actions runs make the controller poll forever
+
+**File:** `scripts/ci/collect_pr_timing_receipt.sh:513-527`
+**Issue:** `wait_for_new_run` has no deadline. `creation_timeout` is declared and accepted (lines 49 and 71) but never used, so a label that does not create a visible PR run causes an unattended controller to sleep and poll indefinitely instead of terminalizing within a bounded failure path. API rate-limit retries in `gh_api_json` are likewise outside a controller deadline.
+**Fix:** Start a creation deadline when persisting the trigger, retain it in state for resume, and return a terminal failure when it expires; bound API retry time by the same deadline. Add a fixture mode that never returns a new run and assert bounded failure, retained forensic state, label cleanup, and no receipt mutation.
+
+### CR-04: Canonical eligible-run selection ignores API pagination
+
+**File:** `scripts/ci/collect_pr_timing_receipt.sh:240-252`
+**Issue:** The canonical authority requests `per_page=100` once and never follows GitHub's next-page link. If more than 100 Actions runs exist for the workflow, older qualifying first-attempt runs for the same PR/SHA are omitted; the selected IDs can equal this truncated list and a receipt can be accepted as a “complete canonical eligible population.” This invalidates the receipt's population-integrity claim.
+**Fix:** Retrieve every page (for example, `gh api --paginate` and normalize the resulting page objects) before filtering and sorting. Add a shim fixture with qualifying records beyond page 1 and prove that the controller either includes them or fails rather than issuing a ten-run receipt from a truncated population.
 
 ## Warnings
 
-### WR-01: Doctor readiness is derived from the smoke test, not the doctor command
+### WR-01: Resumed running state is trusted without identity or schema validation
 
-**File:** `test/install_smoke/support/generated_app_helper.ex:155`
-**Issue:** `doctor_result` is collected at lines 102-107, but `doctor_ready?` is set from `smoke_result.exit_code`. An isolation-upgrade smoke test can pass while `mix rindle.doctor` fails, yet the report and its assertion at `generated_app_smoke_test.exs:762` claim doctor readiness. This invalidates the intended doctor-evidence assertion.
-**Fix:** Set the field from the command actually being proved: `doctor_ready?: doctor_result.exit_code == 0`; retain `doctor_output` for diagnostics and add a unit test where doctor fails while smoke succeeds.
+**File:** `scripts/ci/collect_pr_timing_receipt.sh:377-396`
+**Issue:** Existing `running` state bypasses the identity check applied only to `complete` state. A stale or malformed JSON file in the caller-provided state directory can supply a different repository/PR/label, invalid `sequence_attempt`, arbitrary `runs`, or a pending trigger, and the controller proceeds to mutate or calculate from it. The final API check may reject some bad populations, but it is not a fail-closed resume boundary.
+**Fix:** Before using any existing nonterminal state, require schema version 2 and exact equality for repo, PR, SHA, label, max sequence count, valid attempt range, arrays, and pending/current-run shape. Add negative resume fixtures for mismatched identity and malformed state and assert no label, state, or receipt mutation.
 
-### WR-02: JSON-controlled resolver value creates atoms indefinitely
+### WR-02: Automation-first parser can miss valid XML-like checkpoint syntax
 
-**File:** `test/install_smoke/support/generated_app_helper.ex:604`
-**Issue:** `to_existing_atom_safe/1` calls `String.to_atom/1`, which creates a new VM atom for every distinct resolver value read from the generated report. The function name asserts the opposite behavior. A corrupted or unexpected report can exhaust the atom table and terminate the test VM.
-**Fix:** Keep the value as a string, or explicitly whitelist known resolver values, e.g. `"host_migrations" -> :host_migrations`; reject all others. If conversion is necessary, use `String.to_existing_atom/1` with controlled error handling only after validating the allowed set.
+**File:** `scripts/maintainer/automation_first_contract.sh:53-68`
+**Issue:** The contract recognizes only the exact substring `type="checkpoint:human-action"` (and similarly the exact human-verify spelling). Attribute order and quote style are legal in the task markup, so `<task gate="blocking" type='checkpoint:human-action'>` is skipped entirely. A manual acceptance checkpoint can consequently evade the required automation-first enforcement. The tests exercise only the one hard-coded attribute layout.
+**Fix:** Parse task tags with an XML-aware tool, or at minimum match both quote styles and attributes in either order before analyzing each complete task block. Add regressions for reordered attributes and single quotes, including a human-verify checkpoint.
 
 ---
 
-_Reviewed: 2026-08-26T00:00:00Z_
+_Reviewed: 2026-08-27T17:03:55Z_
 _Reviewer: the agent (gsd-code-reviewer)_
 _Depth: standard_
