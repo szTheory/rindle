@@ -60,7 +60,7 @@ Historical milestone and phase detail is retained in `.planning/milestones/`.
   parallelize image consumer proof, pin generator setup, and publish the change-to-proof map.
   Requirements: DX-04, CI-10, CI-11, CI-12, CI-13.
 
-- [ ] **Phase 132: Measured Closure** — Re-census the ratchets, prove preservation, and collect the
+- [x] **Phase 132: Measured Closure** — Re-census the ratchets, prove preservation, and collect the (completed 2026-08-27)
   ten-run CI timing receipt. Requirements: CI-14, COV-05, SAFE-02.
 
 <details>
@@ -202,7 +202,7 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 
 **Wave 22 — automated safety gap closure** *(blocked on Wave 21 verification)*
 
-- [ ] 132-22-PLAN.md — Bound persistent API rate limits, harden human-action parsing, and replay the existing timing/coverage/preservation authorities without UAT or a new live sample.
+- [x] 132-22-PLAN.md — Bound persistent API rate limits, harden human-action parsing, and replay the existing timing/coverage/preservation authorities without UAT or a new live sample.
 
 ## Demand-Gated Candidates
 
