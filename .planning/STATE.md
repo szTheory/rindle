@@ -4,16 +4,16 @@ milestone: v1.25
 milestone_name: Maintainer Craft & Feedback Velocity
 current_phase: 132
 current_phase_name: measured-closure
-status: verifying
-stopped_at: Completed 132-21-PLAN.md
-last_updated: "2026-08-27T20:49:26.446Z"
+status: planned
+stopped_at: Planned 132-22-PLAN.md
+last_updated: "2026-08-27T21:07:59Z"
 last_activity: 2026-08-27
-last_activity_desc: Phase 132 execution started
+last_activity_desc: Planned autonomous Phase 132 safety gap closure
 progress:
   total_phases: 3
   completed_phases: 0
-  total_plans: 21
-  completed_plans: 20
+  total_plans: 22
+  completed_plans: 21
   percent: 0
 ---
 
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-08-23 after v1.24)
 
 ## Current Position
 
-Phase: 132 (measured-closure) — EXECUTING
-Plan: 21 of 21
-Status: Phase complete — ready for verification
-Last activity: 2026-08-27 — Phase 132 execution started
+Phase: 132 (measured-closure) — PLANNED GAP CLOSURE
+Plan: 21 of 22
+Status: Automated SAFE-02 gap closure planned
+Last activity: 2026-08-27 — Planned autonomous Phase 132 safety gap closure
 
 ### v1.24 shipped summary
 
@@ -60,9 +60,9 @@ the historical 0.4.0 contract; do not regress either side of that invariant.
 
 ## Next Step
 
-Plan a bounded gap-closure slice for the four controller blockers in `132-REVIEW.md`, then collect one
-fresh API-backed exact-ten receipt. CI-14 remains open until the receipt demonstrates the approved
-<=8-minute median / <=10-minute p95 target; no human UAT is needed.
+Execute Plan 132-22 to close the two remaining automated SAFE-02 blockers, then rerun review and
+verification. The accepted exact-ten CI-14 receipt remains authoritative and must be replayed in
+verify-only mode; no new timing sample or human UAT is required unless machine evidence proves required-path drift.
 
 ## Prior Milestone
 
@@ -232,9 +232,9 @@ _(Key v1.22 execution decisions recorded at milestone close.)_
 
 _()_
 
-- CI-14 remains open: the authorized controller fast-forwarded PR #96 to
-  `7f025dfdf55d612861610a10773d86761a374277`, then its only two permitted first-attempt sample runs
-  (`33016605029`, `33017105225`) each concluded `failure`. No qualifying row or current receipt was created.
+- SAFE-02 remains blocked by unbounded persistent-rate-limit retries in controller wait paths and
+  attribute-order/quote-sensitive human-action checkpoint parsing. CI-14 and COV-05 have valid
+  machine evidence and are preservation inputs, not reopened requirements.
 
 ## Deferred Items
 

@@ -114,7 +114,7 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
   2. `CI Summary` remains the sole required check with its required-job set and skip-as-pass behavior intact; any external-runner exception includes job-level evidence, a named owner, and a dated follow-up.
   3. Authoritative coverage remains at or above 82.13%, and the final correction passes focused proof, `mix quality_signals`, SAFE-01, the relevant integration or packed-consumer lane, and bounded prohibited-surface diff review.
 
-**Plans**: 21/21 plans executed
+**Plans**: 21/22 plans executed
 
 **Wave 1 — tracer correction and package proof**
 
@@ -200,6 +200,10 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 
 - [x] 132-21-PLAN.md — Publish once, collect the complete exact-ten API population, and independently reverify the inclusive CI-14 verdict.
 
+**Wave 22 — automated safety gap closure** *(blocked on Wave 21 verification)*
+
+- [ ] 132-22-PLAN.md — Bound persistent API rate limits, harden human-action parsing, and replay the existing timing/coverage/preservation authorities without UAT or a new live sample.
+
 ## Demand-Gated Candidates
 
 - Force-delete semantics for still-shared assets (LIFE-06) — compliance pull only.
@@ -210,4 +214,4 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 - `mix test --partitions` parallelization — evidence-gated on measured core starvation (DEFER-02).
 
 ---
-*Last updated: 2026-08-27 — Three verified gap-closure plans repair the controller, re-prove preservation, and collect the fresh terminal exact-ten receipt.*
+*Last updated: 2026-08-27 — One autonomous gap plan closes the two remaining SAFE-02 blockers while preserving the accepted CI-14 and COV-05 evidence.*
