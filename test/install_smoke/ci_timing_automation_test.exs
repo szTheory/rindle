@@ -346,6 +346,8 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
       "verify",
       "--repo",
       "szTheory/rindle",
+      "--pr",
+      "96",
       "--workflow",
       "ci.yml",
       "--summary-job",

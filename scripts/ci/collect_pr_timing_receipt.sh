@@ -6,7 +6,7 @@ usage() {
   cat <<'EOF' >&2
 usage:
   collect_pr_timing_receipt.sh preflight|run [options]
-  collect_pr_timing_receipt.sh verify --repo OWNER/REPO --workflow FILE --summary-job NAME
+  collect_pr_timing_receipt.sh verify --repo OWNER/REPO --pr N --workflow FILE --summary-job NAME
     --samples N --median-max SECONDS --p95-max SECONDS --receipt PATH
 
 run/preflight options:
@@ -91,7 +91,10 @@ verify_current_receipt_shape() {
   manifest="$(current_manifest_from_receipt "$path")"
   jq -e --argjson expected "$samples" '
     (.sha | test("^[0-9a-f]{40}$")) and
+    (.repo | type == "string" and length > 0) and
+    (.pr | type == "number" and . > 0) and
     (.runs | type == "array" and length == $expected) and
+    (.population_boundary_ids | type == "array") and
     (([.runs[].id] | unique | length) == $expected) and
     (all(.runs[]; (.id | type) == "number" and (.duration_seconds | type) == "number" and .duration_seconds >= 0)) and
     ((.median_seconds | type) == "number") and
@@ -118,10 +121,13 @@ verify_current_receipt_shape() {
 }
 
 verify_api_backed_receipt() {
-  local path="$1" manifest run id run_api jobs_api actual selected eligible workflow_runs chronology previous_end current_start
+  local path="$1" expected_sha="${2:-}" manifest run id run_api jobs_api actual selected eligible chronology previous_end current_start statistics
   verify_current_receipt_shape "$path"
   manifest="$(current_manifest_from_receipt "$path")"
   [ "$(jq -r '.sha | length == 40' <<<"$manifest")" = true ] || die "current receipt SHA must be immutable"
+  [ -z "$expected_sha" ] || [ "$(jq -r .sha <<<"$manifest")" = "$expected_sha" ] || die "current receipt SHA does not match the controller head"
+  [ "$(jq -r .repo <<<"$manifest")" = "$repo" ] || die "current receipt repository does not match --repo"
+  [ "$(jq -r .pr <<<"$manifest")" = "$pr" ] || die "current receipt PR does not match --pr"
 
   while IFS= read -r run; do
     id="$(jq -r '.id' <<<"$run")"
@@ -144,9 +150,8 @@ verify_api_backed_receipt() {
   done < <(jq -c '.sha as $sha | .runs[] | . + {sha:$sha}' <<<"$manifest")
 
   selected="$(jq -c '[.runs[].id]' <<<"$manifest")"
-  workflow_runs="$(gh api -H 'Accept: application/vnd.github+json' "repos/${repo}/actions/workflows/${workflow}/runs?event=pull_request&per_page=100")" || die "unable to resolve eligible Actions chronology"
-  eligible="$(jq -c --arg sha "$(jq -r .sha <<<"$manifest")" '(if type == "array" then .[0] else . end).workflow_runs | map(select(.event == "pull_request" and .head_sha == $sha and .run_attempt == 1 and .status == "completed" and .conclusion == "success") | {id,run_started_at}) | sort_by(.run_started_at, .id) | map(.id)' <<<"$workflow_runs")" || die "unable to resolve eligible Actions chronology"
-  [ "$eligible" = "$selected" ] || die "current receipt is not the complete consecutive exact-head eligible run slice"
+  eligible="$(canonical_eligible_run_ids "$(jq -r .sha <<<"$manifest")" "$(jq -c .population_boundary_ids <<<"$manifest")")"
+  [ "$eligible" = "$selected" ] || die "selected run IDs do not equal the complete canonical eligible population"
   previous_end=0
   chronology="$(jq -r '.runs[] | . as $run | [($run.started_at | fromdateiso8601), ($run.summary_completed_at | fromdateiso8601)] | @tsv' <<<"$manifest")" || die "current receipt chronology is malformed"
   while IFS=$'\t' read -r current_start current_end; do
@@ -154,19 +159,48 @@ verify_api_backed_receipt() {
     previous_end="$current_end"
   done <<<"$chronology"
 
-  jq -e --argjson median_max "$median_max" --argjson p95_max "$p95_max" '
-    .median_seconds <= $median_max and .p95_seconds <= $p95_max
-  ' <<<"$manifest" >/dev/null || die "current receipt misses inclusive CI-14 timing thresholds"
+  statistics="$(jq -c '
+    [.runs[].duration_seconds] | sort as $v |
+    {median:(($v[4] + $v[5]) / 2), p95:$v[9]}
+  ' <<<"$manifest")"
+  jq -e --argjson stats "$statistics" '
+    .median_seconds == $stats.median and .p95_seconds == $stats.p95
+  ' <<<"$manifest" >/dev/null || die "current receipt statistics disagree with its live population"
+  jq -e --argjson median_max "$median_max" --argjson p95_max "$p95_max" --argjson stats "$statistics" '
+    $stats.median <= $median_max and $stats.p95 <= $p95_max
+  ' <<<"$manifest" >/dev/null || return 2
+}
+
+# The only authority for selecting evidence. Every caller is bound to the same
+# repository, numeric PR, immutable SHA, workflow, and deterministic ordering.
+canonical_eligible_run_ids() {
+  local sha="$1" boundary_ids="${2:-[]}" pr_identity workflow_runs
+  pr_identity="$(gh pr view "$pr" --repo "$repo" --json headRefOid)" || die "unable to resolve PR identity"
+  [ "$(jq -r .headRefOid <<<"$pr_identity")" = "$sha" ] || die "PR head does not match immutable timing SHA"
+  workflow_runs="$(gh api -H 'Accept: application/vnd.github+json' "repos/${repo}/actions/workflows/${workflow}/runs?event=pull_request&per_page=100")" || die "unable to resolve canonical Actions population"
+  jq -c --arg sha "$sha" --argjson pr "$pr" --argjson boundary "$boundary_ids" '
+    [(if type == "array" then .[].workflow_runs[] else .workflow_runs[] end) |
+      select(.event == "pull_request" and .head_sha == $sha and .run_attempt == 1 and
+        .status == "completed" and .conclusion == "success" and
+        any(.pull_requests[]?; .number == $pr) and
+        ((.id as $id | $boundary | index($id)) == null))] |
+    sort_by(.run_started_at, .id) | map(.id)
+  ' <<<"$workflow_runs" || die "unable to derive canonical eligible run IDs"
 }
 
 if [ "$mode" = verify ]; then
   require_command gh
   [ "$repo" = "szTheory/rindle" ] || die "verify requires --repo szTheory/rindle"
+  [[ "$pr" =~ ^[1-9][0-9]*$ ]] || die "verify requires --pr"
   [ "$workflow" = "ci.yml" ] || die "verify requires --workflow ci.yml"
   [ "$summary_job" = "CI Summary" ] || die "verify requires --summary-job CI Summary"
   [ -n "$receipt" ] || die "--receipt is required"
   [ "$samples" -eq 10 ] || die "--samples must be exactly 10 for the CI-14 contract"
-  verify_api_backed_receipt "$receipt"
+  verify_api_backed_receipt "$receipt" || {
+    status=$?
+    [ "$status" -eq 2 ] && die "current receipt misses inclusive CI-14 timing thresholds"
+    exit "$status"
+  }
   echo "[ci-timing] receipt verification passed: $receipt"
   exit 0
 fi
@@ -177,6 +211,7 @@ require_command gh
 require_command git
 [ -n "$repo" ] || die "--repo is required"
 [ -n "$pr" ] || die "--pr is required"
+[[ "$pr" =~ ^[1-9][0-9]*$ ]] || die "--pr must be a positive integer"
 [ -n "$correction_sha" ] || die "--correction-sha is required"
 [ -n "$preserved_subject_sha" ] || die "--preserved-subject-sha is required"
 [ -n "$receipt" ] || die "--receipt is required"
@@ -274,7 +309,7 @@ write_initial_state() {
   jq -n \
     --arg repo "$repo" --argjson pr "$pr" --arg sha "$head_sha" --arg label_name "$label" \
     --argjson max_sequences "$max_sequences" \
-    '{schema_version:2,repo:$repo,pr:$pr,sha:$sha,label:$label_name,max_sequences:$max_sequences,sequence_attempt:1,status:"running",runs:[],pending_trigger:null,current_run_id:null,current_run_status:null,errors:[]}' > "$tmp"
+    '{schema_version:2,repo:$repo,pr:$pr,sha:$sha,label:$label_name,max_sequences:$max_sequences,sequence_attempt:1,population_boundary_ids:[],status:"running",runs:[],pending_trigger:null,current_run_id:null,current_run_status:null,errors:[]}' > "$tmp"
   mv "$tmp" "$state_file"
 }
 
@@ -283,7 +318,16 @@ if [ ! -f "$state_file" ] || [ "$(jq -r '.status // ""' "$state_file")" = failed
 fi
 
 if [ "$(jq -r '.status // ""' "$state_file")" = complete ]; then
-  verify_current_receipt_shape "$receipt"
+  jq -e --arg repo "$repo" --argjson pr "$pr" --arg sha "$head_sha" '
+    .repo == $repo and .pr == $pr and .sha == $sha
+  ' "$state_file" >/dev/null || die "completed controller state identity does not match this invocation"
+  if verify_api_backed_receipt "$receipt" "$head_sha"; then
+    :
+  else
+    status=$?
+    [ "$status" -eq 2 ] && exit 2
+    exit "$status"
+  fi
   completed_verdict="$(jq -r '.verdict' "$state_file")"
   echo "[ci-timing] existing completed receipt verified: verdict=$completed_verdict"
   [ "$completed_verdict" = PASS ] && exit 0
@@ -328,6 +372,7 @@ same_sha_runs() {
   '
 }
 
+
 wait_for_published_head_quiescence() {
   local deadline runs ids previous_ids active observed stable
   deadline=$(( $(date +%s) + run_timeout ))
@@ -360,11 +405,12 @@ wait_for_published_head_quiescence() {
 }
 
 record_error_and_restart() {
-  local reason="$1" attempt="$2" tmp
+  local reason="$1" attempt="$2" tmp boundary
+  boundary="$(same_sha_runs | jq -c 'map(.id)')"
   tmp="$(mktemp "${TMPDIR:-/tmp}/rindle-ci-timing-state.XXXXXX")"
-  jq --arg reason "$reason" --argjson next "$((attempt + 1))" '
+  jq --arg reason "$reason" --argjson next "$((attempt + 1))" --argjson boundary "$boundary" '
     .errors += [{sequence_attempt:.sequence_attempt,reason:$reason,runs:.runs}] |
-    .sequence_attempt=$next | .runs=[] | .pending_trigger=null | .current_run_id=null | .current_run_status=null | .status="running"
+    .sequence_attempt=$next | .population_boundary_ids=$boundary | .runs=[] | .pending_trigger=null | .current_run_id=null | .current_run_status=null | .status="running"
   ' "$state_file" > "$tmp"
   mv "$tmp" "$state_file"
 }
@@ -529,13 +575,10 @@ while [ "$attempt" -le "$max_sequences" ]; do
 done
 
 runs="$(jq -c '.runs' "$state_file")"
-eligible="$(same_sha_runs | jq -c '[.[] | select(.run_attempt == 1 and .status == "completed" and .conclusion == "success")] | sort_by(.run_started_at, .id) | map(.id)')"
+population_boundary_ids="$(jq -c '.population_boundary_ids // []' "$state_file")"
+eligible="$(canonical_eligible_run_ids "$head_sha" "$population_boundary_ids")"
 selected="$(jq -c 'map(.id)' <<<"$runs")"
-contiguous="$(jq -n --argjson all "$eligible" --argjson selected "$selected" '
-  ($selected|length) as $n |
-  any(range(0; (($all|length)-$n+1)); . as $i | $all[$i:$i+$n] == $selected)
-')"
-[ "$contiguous" = true ] || die "selected run IDs are not a contiguous slice of eligible same-head PR runs"
+[ "$eligible" = "$selected" ] || die "selected run IDs do not equal the complete canonical eligible population"
 
 sorted="$(jq -c '[.[].duration_seconds] | sort' <<<"$runs")"
 median="$(jq -r '(.[4] + .[5]) / 2' <<<"$sorted")"
@@ -579,7 +622,7 @@ trap 'cleanup_controller; rm -f "${section:-}" "${next_receipt:-}"; exit 143' IN
   echo "| Verdict | $verdict | $verdict | $verdict |"
   echo
   echo "CI_TIMING_CURRENT_SOURCE_BEGIN"
-  jq -cn --arg sha "$head_sha" --argjson runs "$runs" --argjson median "$median" --argjson p95 "$p95" '{sha:$sha,runs:$runs,median_seconds:$median,p95_seconds:$p95}'
+  jq -cn --arg repo "$repo" --argjson pr "$pr" --arg sha "$head_sha" --argjson runs "$runs" --argjson boundary "$population_boundary_ids" --argjson median "$median" --argjson p95 "$p95" '{repo:$repo,pr:$pr,sha:$sha,population_boundary_ids:$boundary,runs:$runs,median_seconds:$median,p95_seconds:$p95}'
   echo "CI_TIMING_CURRENT_SOURCE_END"
 } > "$section"
 
