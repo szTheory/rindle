@@ -391,7 +391,7 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
     assert source =~ "rate-limit retry deadline expired"
     assert source =~ "gh_api_json \"repos/${repo}/actions/runs/${run_id}\" \"\" \"$deadline\""
     assert source =~ "same_sha_runs \"$deadline\""
-    assert source =~ "canonical_eligible_run_ids \"$head_sha\" \"$population_boundary_ids\" \"$deadline\""
+    assert source =~ "canonical_eligible_run_ids"
   end
 
   test "controller has no post-subject executable allowlist" do

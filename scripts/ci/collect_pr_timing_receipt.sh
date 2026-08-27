@@ -185,7 +185,7 @@ verify_current_receipt_shape() {
 }
 
 verify_api_backed_receipt() {
-  local path="$1" expected_sha="${2:-}" manifest run id run_api jobs_api actual selected eligible chronology previous_end current_start statistics
+  local path="$1" expected_sha="${2:-}" deadline="${3:-$(( $(date +%s) + run_timeout ))}" manifest run id run_api jobs_api actual selected eligible chronology previous_end current_start statistics
   verify_current_receipt_shape "$path"
   manifest="$(current_manifest_from_receipt "$path")"
   [ "$(jq -r '.sha | length == 40' <<<"$manifest")" = true ] || die "current receipt SHA must be immutable"
@@ -195,8 +195,8 @@ verify_api_backed_receipt() {
 
   while IFS= read -r run; do
     id="$(jq -r '.id' <<<"$run")"
-    run_api="$(gh api -H 'Accept: application/vnd.github+json' "repos/${repo}/actions/runs/${id}")" || die "unable to resolve Actions run $id"
-    jobs_api="$(gh api -H 'Accept: application/vnd.github+json' "repos/${repo}/actions/runs/${id}/jobs?per_page=100")" || die "unable to resolve Actions jobs for $id"
+    run_api="$(gh_api_json "repos/${repo}/actions/runs/${id}" "" "$deadline")" || die "unable to resolve Actions run $id"
+    jobs_api="$(gh_api_json "repos/${repo}/actions/runs/${id}/jobs?per_page=100" "" "$deadline")" || die "unable to resolve Actions jobs for $id"
     actual="$(jq -cn --argjson expected "$run" --argjson api "$run_api" --argjson jobs "$jobs_api" --arg name "$summary_job" '
       ($jobs | (if type == "array" then [.[].jobs[]] else [.jobs[]] end) | [.[] | select(.name == $name)]) as $summary |
       if ($summary|length) != 1 then error("CI Summary must appear exactly once")
@@ -214,7 +214,7 @@ verify_api_backed_receipt() {
   done < <(jq -c '.sha as $sha | .runs[] | . + {sha:$sha}' <<<"$manifest")
 
   selected="$(jq -c '[.runs[].id]' <<<"$manifest")"
-  eligible="$(canonical_eligible_run_ids "$(jq -r .sha <<<"$manifest")" "$(jq -c .population_boundary_ids <<<"$manifest")")"
+  eligible="$(canonical_eligible_run_ids "$(jq -r .sha <<<"$manifest")" "$(jq -c .population_boundary_ids <<<"$manifest")" "$deadline")"
   [ "$eligible" = "$selected" ] || die "selected run IDs do not equal the complete canonical eligible population"
   previous_end=0
   chronology="$(jq -r '.runs[] | . as $run | [($run.started_at | fromdateiso8601), ($run.summary_completed_at | fromdateiso8601)] | @tsv' <<<"$manifest")" || die "current receipt chronology is malformed"
@@ -238,10 +238,10 @@ verify_api_backed_receipt() {
 # The only authority for selecting evidence. Every caller is bound to the same
 # repository, numeric PR, immutable SHA, workflow, and deterministic ordering.
 canonical_eligible_run_ids() {
-  local sha="$1" boundary_ids="${2:-[]}" pr_identity workflow_runs
+  local sha="$1" boundary_ids="${2:-[]}" deadline="${3:-$(( $(date +%s) + run_timeout ))}" pr_identity workflow_runs
   pr_identity="$(gh pr view "$pr" --repo "$repo" --json headRefOid)" || die "unable to resolve PR identity"
   [ "$(jq -r .headRefOid <<<"$pr_identity")" = "$sha" ] || die "PR head does not match immutable timing SHA"
-  workflow_runs="$(gh_api_json "repos/${repo}/actions/workflows/${workflow}/runs?event=pull_request&per_page=100" paginate)" || die "unable to resolve canonical Actions population"
+  workflow_runs="$(gh_api_json "repos/${repo}/actions/workflows/${workflow}/runs?event=pull_request&per_page=100" paginate "$deadline")" || return $?
   jq -c --arg sha "$sha" --argjson pr "$pr" --argjson boundary "$boundary_ids" '
     [(if type == "array" then .[].workflow_runs[] else .workflow_runs[] end) |
       select(.event == "pull_request" and .head_sha == $sha and .run_attempt == 1 and
@@ -253,8 +253,11 @@ canonical_eligible_run_ids() {
 }
 
 gh_api_json() {
-  local endpoint="$1" pagination="${2:-}" output reset now delay status
+  local endpoint="$1" pagination="${2:-}" deadline="${3:-}" output reset now delay remaining status
+  [[ "$deadline" =~ ^[0-9]+$ ]] || { echo "[ci-timing] invalid API retry deadline" >&2; return 124; }
   while :; do
+    now="$(date +%s)"
+    [ "$now" -lt "$deadline" ] || { echo "[ci-timing] rate-limit retry deadline expired" >&2; return 124; }
     if [ "$pagination" = paginate ]; then
       if output="$(gh api --paginate --slurp -H 'Accept: application/vnd.github+json' "$endpoint" 2>&1)"; then
         status=0
@@ -280,7 +283,10 @@ gh_api_json() {
       if [[ "$reset" =~ ^[0-9]+$ ]] && [ "$reset" -gt "$now" ] && [ $((reset - now + 2)) -lt "$delay" ]; then
         delay=$((reset - now + 2))
       fi
-      [ "$delay" -gt 0 ] || delay=1
+      remaining=$((deadline - now))
+      [ "$remaining" -gt 0 ] || { echo "[ci-timing] rate-limit retry deadline expired" >&2; return 124; }
+      [ "$delay" -gt "$remaining" ] && delay="$remaining"
+      [ "$delay" -gt 0 ] || { echo "[ci-timing] rate-limit retry deadline expired" >&2; return 124; }
       echo "[ci-timing] GitHub API rate limited; retrying in ${delay}s" >&2
       sleep "$delay"
       continue
@@ -485,12 +491,14 @@ if [ "$(jq -r '.status // ""' "$state_file")" = complete ]; then
 fi
 
 list_runs() {
+  local deadline="$1"
   gh_api_json \
-    "repos/${repo}/actions/workflows/${workflow}/runs?event=pull_request&branch=${encoded_head_ref}&per_page=100" paginate
+    "repos/${repo}/actions/workflows/${workflow}/runs?event=pull_request&branch=${encoded_head_ref}&per_page=100" paginate "$deadline"
 }
 
 same_sha_runs() {
-  list_runs | jq -c --arg sha "$head_sha" --argjson pr "$pr" '
+  local deadline="$1"
+  list_runs "$deadline" | jq -c --arg sha "$head_sha" --argjson pr "$pr" '
     [(if type == "array" then .[].workflow_runs[] else .workflow_runs[] end) |
       select(.event == "pull_request" and .head_sha == $sha and any(.pull_requests[]?; .number == $pr))]
   '
@@ -506,7 +514,7 @@ wait_for_published_head_quiescence() {
   echo "[ci-timing] waiting for the publication-triggered PR run to quiesce"
 
   while :; do
-    runs="$(same_sha_runs)"
+    runs="$(same_sha_runs "$deadline")" || return $?
     ids="$(jq -c 'map(.id) | sort' <<<"$runs")"
     active="$(jq '[.[] | select(.status != "completed")] | length' <<<"$runs")"
     [ "$(jq 'length' <<<"$runs")" -gt 0 ] && observed=1
@@ -530,7 +538,7 @@ wait_for_published_head_quiescence() {
 
 record_error_and_restart() {
   local reason="$1" attempt="$2" tmp boundary
-  boundary="$(same_sha_runs | jq -c 'map(.id)')"
+  boundary="$(same_sha_runs "$(( $(date +%s) + run_timeout ))" | jq -c 'map(.id)')"
   tmp="$(mktemp "${TMPDIR:-/tmp}/rindle-ci-timing-state.XXXXXX")"
   jq --arg reason "$reason" --argjson next "$((attempt + 1))" --argjson boundary "$boundary" '
     .errors += [{sequence_attempt:.sequence_attempt,reason:$reason,runs:.runs}] |
@@ -579,7 +587,9 @@ wait_for_new_run() {
   triggered_at_epoch="$(jq -r '.pending_trigger.triggered_at_epoch' "$state_file")"
   deadline=$((triggered_at_epoch + creation_timeout))
   while :; do
-    candidates="$(same_sha_runs | jq -c --argjson before "$before_ids" '[.[] | select((.id as $id | $before | index($id)) == null)]')"
+    if ! candidates="$(same_sha_runs "$deadline" | jq -c --argjson before "$before_ids" '[.[] | select((.id as $id | $before | index($id)) == null)]')"; then
+      return 3
+    fi
     if [ "$(jq 'length' <<<"$candidates")" -eq 1 ]; then
       jq -r '.[0].id' <<<"$candidates"
       return 0
@@ -606,7 +616,7 @@ wait_and_validate_run() {
   local run_id="$1" deadline run_json run_status jobs_json summary_count duration result
   deadline=$(( $(date +%s) + run_timeout ))
   while :; do
-    run_json="$(gh_api_json "repos/${repo}/actions/runs/${run_id}")"
+    run_json="$(gh_api_json "repos/${repo}/actions/runs/${run_id}" "" "$deadline")" || return $?
     run_status="$(jq -r '.status // empty' <<<"$run_json")"
     [ "$run_status" = completed ] && break
     record_current_run_status "$run_id" "$run_status"
@@ -614,7 +624,7 @@ wait_and_validate_run() {
     [ "$(date +%s)" -lt "$deadline" ] || return 4
     sleep "$poll_seconds"
   done
-  jobs_json="$(gh_api_json "repos/${repo}/actions/runs/${run_id}/jobs?per_page=100")"
+  jobs_json="$(gh_api_json "repos/${repo}/actions/runs/${run_id}/jobs?per_page=100" "" "$deadline")" || return $?
   summary_count="$(jq --arg name "$summary_job" '
     (if type == "array" then [.[].jobs[]] else [.jobs[]] end) |
     [.[] | select(.name == $name)] | length
@@ -663,7 +673,7 @@ while [ "$attempt" -le "$max_sequences" ]; do
         before_ids="$pending_before_ids"
         echo "[ci-timing] resuming owned delayed trigger for sample $sample/$samples"
       else
-        before_ids="$(same_sha_runs | jq '[.[].id]')"
+        before_ids="$(same_sha_runs "$(( $(date +%s) + run_timeout ))" | jq '[.[].id]')"
         persist_pending_trigger "$before_ids"
         echo "[ci-timing] triggering sample $sample/$samples"
         gh pr edit "$pr" --repo "$repo" --add-label "$label" >/dev/null
@@ -722,7 +732,7 @@ done
 
 runs="$(jq -c '.runs' "$state_file")"
 population_boundary_ids="$(jq -c '.population_boundary_ids // []' "$state_file")"
-eligible="$(canonical_eligible_run_ids "$head_sha" "$population_boundary_ids")"
+eligible="$(canonical_eligible_run_ids "$head_sha" "$population_boundary_ids" "$(( $(date +%s) + run_timeout ))")"
 selected="$(jq -c 'map(.id)' <<<"$runs")"
 [ "$eligible" = "$selected" ] || die "selected run IDs do not equal the complete canonical eligible population"
 
