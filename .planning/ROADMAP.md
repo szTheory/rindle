@@ -160,18 +160,21 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 
 - [x] 132-11-PLAN.md — Ran the one bounded controller; both permitted first-attempt PR sequences failed, leaving CI-14 honestly open with `gaps_found` and no replacement sample.
 
-**Wave 12 — controller tracer and failed-run remediation** *(blocked on Wave 11 evidence; plans run without file overlap)*
+**Wave 12 — controller verifier and publication-readiness tracer** *(blocked on Wave 11 evidence)*
 
-- [ ] 132-12-PLAN.md — Fail-close completed PASS state through live Actions API revalidation with forged/stale-state regression coverage.
+- [ ] 132-12-PLAN.md — Unify live population/statistics/threshold verification and add source-derived, mutation-free publication-ready preflight with process regressions.
+
+**Wave 13 — failed-run formatter remediation** *(blocked on the Wave 12 controller contract)*
+
 - [ ] 132-13-PLAN.md — Record both formatter-failed recovery runs and apply the formatter-only correction to the D-08/D-09 topology contract.
 
-**Wave 13 — final immutable preservation census** *(blocked on both Wave 12 corrections)*
+**Wave 14 — manifest-bound immutable preservation census** *(blocked on the Wave 13 formatter correction)*
 
-- [ ] 132-14-PLAN.md — Re-run formatter, focused/full quality, SAFE-01, coverage, packed-consumer, prohibited-surface, and no-publish preflight authorities.
+- [ ] 132-14-PLAN.md — Emit the source-derived two-stage transition manifest, then re-run formatter, focused/full quality, SAFE-01, coverage, packed-consumer, prohibited-surface, and successful mutation-free preflight authorities.
 
-**Wave 14 — terminal API-backed timing acceptance** *(blocked on Wave 13 completion)*
+**Wave 15 — terminal API-backed timing acceptance** *(blocked on Wave 14 completion)*
 
-- [ ] 132-15-PLAN.md — Publish the preserved head once, collect an exact-ten current receipt, and close CI-14 only on live-verified median <=480s and p95 <=600s.
+- [ ] 132-15-PLAN.md — Revalidate the same transition manifest, publish the preserved head once, collect an exact-ten current receipt, and close CI-14 only on live-verified median <=480s and p95 <=600s.
 
 ## Demand-Gated Candidates
 
