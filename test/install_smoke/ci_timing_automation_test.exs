@@ -274,6 +274,23 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
     assert source =~ "release_controller_lock"
   end
 
+  test "controller uses one PR-bound canonical API population authority" do
+    source = File.read!(@script)
+
+    assert source =~ "canonical_eligible_run_ids()"
+    assert source =~ "verify_api_backed_receipt \"$receipt\""
+    assert source =~ "selected run IDs do not equal the complete canonical eligible population"
+    refute source =~ "contiguous slice of eligible"
+  end
+
+  test "completed PASS is revalidated against live API evidence" do
+    source = File.read!(@script)
+
+    assert source =~ "verify_api_backed_receipt \"$receipt\" \"$head_sha\""
+    assert source =~ "verify requires --pr"
+    assert source =~ "repo:$repo,pr:$pr,sha:$sha"
+  end
+
   defp run_controller(context, extra_env \\ []) do
     args = [
       "run",
