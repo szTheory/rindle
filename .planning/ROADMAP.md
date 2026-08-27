@@ -114,7 +114,7 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
   2. `CI Summary` remains the sole required check with its required-job set and skip-as-pass behavior intact; any external-runner exception includes job-level evidence, a named owner, and a dated follow-up.
   3. Authoritative coverage remains at or above 82.13%, and the final correction passes focused proof, `mix quality_signals`, SAFE-01, the relevant integration or packed-consumer lane, and bounded prohibited-surface diff review.
 
-**Plans**: 15/16 plans executed
+**Plans**: 15/18 plans executed
 
 **Wave 1 — tracer correction and package proof**
 
@@ -176,9 +176,17 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 
 - [x] 132-15-PLAN.md — Emit the source-derived three-stage transition manifest, then re-run formatter, focused/full quality, SAFE-01, coverage, packed-consumer, prohibited-surface, and successful mutation-free preflight authorities.
 
-**Wave 16 — terminal API-backed timing acceptance** *(blocked on Wave 15 completion)*
+**Wave 16 — preserved-tail controller repair closeout** *(blocked on Wave 15 completion)*
 
-- [ ] 132-16-PLAN.md — Revalidate the same three-stage transition manifest, publish the preserved head once, collect an exact-ten current receipt, and close CI-14 only on live-verified median <=480s and p95 <=600s.
+- [ ] 132-16-PLAN.md — Verify and truthfully close existing commit `15336d4`, which accepts planning-only evidence tails after the preserved subject; no source reimplementation or GitHub mutation.
+
+**Wave 17 — post-controller-fix preservation census** *(blocked on Wave 16 completion)*
+
+- [ ] 132-17-PLAN.md — Preserve source subject `15336d4`, explicitly census the Plan 132-16 tail, and re-run COV-05/SAFE-02 plus mutation-free preflight authorities.
+
+**Wave 18 — terminal API-backed timing acceptance** *(blocked on Wave 17 completion)*
+
+- [ ] 132-18-PLAN.md — Publish once, collect the PR-associated exact-ten canonical population with at most two sequences, and close CI-14 only on live-verified median <=480s and p95 <=600s.
 
 ## Demand-Gated Candidates
 
@@ -190,4 +198,4 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 - `mix test --partitions` parallelization — evidence-gated on measured core starvation (DEFER-02).
 
 ---
-*Last updated: 2026-08-27 — Planning repair restores the omitted transition-manifest controller contract before a post-repair preservation census and one terminal exact-ten sampler.*
+*Last updated: 2026-08-27 — The preserved-tail controller fix is closed separately, then freshly preserved before one terminal exact-ten sampler.*
