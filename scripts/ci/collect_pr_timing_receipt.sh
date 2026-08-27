@@ -86,7 +86,7 @@ validate_transition_manifest() {
   [ "$markers" -eq 1 ] || die "transition manifest must contain exactly one PRESERVATION_TRANSITION_V2_END marker"
   json="$(awk '$0 == "PRESERVATION_TRANSITION_V2_BEGIN" {take=1; next} $0 == "PRESERVATION_TRANSITION_V2_END" {take=0} take' "$path")"
 
-  jq -e --arg repo "$repo" --argjson pr "$pr" --arg correction "$correction_sha" --arg repair "$head_sha" --arg subject "$preserved_subject_sha" '
+  jq -e --arg repo "$repo" --argjson pr "$pr" --arg correction "$correction_sha" --arg repair "$preserved_subject_sha" --arg subject "$preserved_subject_sha" '
     .schema_version == 2 and .repo == $repo and .pr == $pr and
     (.prior_preserved_sha | type == "string" and test("^[0-9a-f]{40}$")) and
     .controller_correction_sha == $correction and

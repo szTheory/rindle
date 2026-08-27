@@ -39,7 +39,8 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
       baseline: baseline,
       repo_dir: repo_dir,
       transition_manifest: transition_manifest,
-      head: anchors.repair,
+      head: anchors.head,
+      preserved_subject: anchors.repair,
       correction: anchors.controller,
       formatter: anchors.formatter
     }
@@ -318,7 +319,8 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
     refute File.exists?(Path.join(context.state_dir, "pr-96-#{context.head}.json"))
   end
 
-  test "valid exact-head and strict-ancestor manifests preflight without mutation", context do
+  test "valid preserved-subject manifests accept planning-only evidence tails without mutation",
+       context do
     for extra_env <- [[], [{"GH_REMOTE_SHA", context.formatter}]] do
       assert {output, 0} =
                System.cmd("bash", preflight_args(context, context.transition_manifest),
@@ -417,7 +419,7 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
       "--correction-sha",
       context.correction,
       "--preserved-subject-sha",
-      context.head,
+      context.preserved_subject,
       "--transition-manifest",
       context.transition_manifest,
       "--receipt",
@@ -461,7 +463,7 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
       "--correction-sha",
       context.correction,
       "--preserved-subject-sha",
-      context.head,
+      context.preserved_subject,
       "--receipt",
       context.receipt,
       "--state-dir",
@@ -561,7 +563,10 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
 
     repair = commit_fixture!(repo_dir, "plan 132-14 repair")
 
-    %{prior: prior, controller: controller, formatter: formatter, repair: repair}
+    write_fixture_file!(repo_dir, ".planning/plan-132-15-summary.md", "preservation evidence\n")
+    head = commit_fixture!(repo_dir, "plan 132-15 preservation evidence")
+
+    %{prior: prior, controller: controller, formatter: formatter, repair: repair, head: head}
   end
 
   defp write_transition_manifest!(repo_dir, path, anchors) do
