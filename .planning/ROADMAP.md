@@ -114,7 +114,7 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
   2. `CI Summary` remains the sole required check with its required-job set and skip-as-pass behavior intact; any external-runner exception includes job-level evidence, a named owner, and a dated follow-up.
   3. Authoritative coverage remains at or above 82.13%, and the final correction passes focused proof, `mix quality_signals`, SAFE-01, the relevant integration or packed-consumer lane, and bounded prohibited-surface diff review.
 
-**Plans**: 13/16 plans executed
+**Plans**: 14/16 plans executed
 
 **Wave 1 — tracer correction and package proof**
 
@@ -170,7 +170,7 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 
 **Wave 14 — transition-manifest controller repair** *(blocked on the Wave 13 formatter correction)*
 
-- [ ] 132-14-PLAN.md — RED/GREEN the omitted `--transition-manifest` / `validate_transition_manifest` controller contract with a truthful three-stage chronology and fail-closed mutation regressions.
+- [x] 132-14-PLAN.md — RED/GREEN the omitted `--transition-manifest` / `validate_transition_manifest` controller contract with a truthful three-stage chronology and fail-closed mutation regressions.
 
 **Wave 15 — post-repair immutable preservation census** *(blocked on Wave 14 completion)*
 
