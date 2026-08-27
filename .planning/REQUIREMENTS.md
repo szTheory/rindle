@@ -58,16 +58,16 @@
 - [x] **CI-13**: Generated-app entry scripts install one centrally owned Phoenix generator version and
   prove cold installation, matching-version reuse, and actionable mismatch behavior.
 
-- [x] **CI-14**: Ten consecutive comparable non-cancelled PR runs achieve <=8 minutes median and <=10
+- [ ] **CI-14**: Ten consecutive comparable non-cancelled PR runs achieve <=8 minutes median and <=10
   minutes p95 without weaker gates or newly introduced reruns. External-runner exceptions require
   job-level evidence, a named owner, and a dated follow-up.
 
 ## Preservation
 
-- [x] **COV-05**: Authoritative coverage remains at or above 82.13%; tests are not added only to raise
+- [ ] **COV-05**: Authoritative coverage remains at or above 82.13%; tests are not added only to raise
   the percentage.
 
-- [x] **SAFE-02**: Each implementation slice passes focused proof, `mix quality_signals`, SAFE-01, and
+- [ ] **SAFE-02**: Each implementation slice passes focused proof, `mix quality_signals`, SAFE-01, and
   its relevant integration/package lane without Admin, public API, schema/migration, telemetry/error,
   dependency-set, or release-proof drift.
 
