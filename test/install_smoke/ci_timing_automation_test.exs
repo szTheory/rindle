@@ -384,7 +384,7 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
     receipt_before = File.read!(context.receipt)
 
     assert {output, 124} =
-             System.cmd("bash", verify_args(context),
+             System.cmd("bash", verify_args(context, run_timeout: "1"),
                env:
                  controller_env(context) ++
                    [
@@ -744,7 +744,7 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
     ]
   end
 
-  defp verify_args(context) do
+  defp verify_args(context, options \\ []) do
     [
       @script,
       "verify",
@@ -763,7 +763,7 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
       "--p95-max",
       "600",
       "--run-timeout",
-      "1",
+      Keyword.get(options, :run_timeout, "1800"),
       "--receipt",
       context.receipt
     ]
