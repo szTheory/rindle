@@ -174,7 +174,7 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 
 **Wave 15 — post-repair immutable preservation census** *(blocked on Wave 14 completion)*
 
-- [ ] 132-15-PLAN.md — Emit the source-derived three-stage transition manifest, then re-run formatter, focused/full quality, SAFE-01, coverage, packed-consumer, prohibited-surface, and successful mutation-free preflight authorities.
+- [x] 132-15-PLAN.md — Emit the source-derived three-stage transition manifest, then re-run formatter, focused/full quality, SAFE-01, coverage, packed-consumer, prohibited-surface, and successful mutation-free preflight authorities.
 
 **Wave 16 — terminal API-backed timing acceptance** *(blocked on Wave 15 completion)*
 
