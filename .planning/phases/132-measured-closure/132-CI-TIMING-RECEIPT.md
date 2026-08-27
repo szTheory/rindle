@@ -155,3 +155,39 @@ The observed evidence authorizes only `mix format` normalization of that exact c
 It does not authorize a workflow, topology, fixture, assertion-value, timing-policy, dependency,
 or product-surface change. The formatter remediation must be verified locally before the final
 subject is preserved or another live sample is attempted.
+
+## Fresh corrected-head receipt
+
+Corrected implementation SHA: `1671cdde1c42231a8a958c8f2771a24edb8b444e`
+Preserved subject SHA: `a4bbbd1bba6077134934a4e6b9a9bf63924b47e9`
+Measured immutable PR head: `869ca9cd7450dd6785aefa1fdb4bba457ce336f0`
+
+CI_TIMING_CURRENT_TABLE_BEGIN
+| Sequence | Run ID | Source | Started (UTC) | Duration seconds | Attempt | Result | Exception disposition |
+| ---: | ---: | --- | --- | ---: | ---: | --- | --- |
+| 1 | 33108596297 | https://github.com/szTheory/rindle/actions/runs/33108596297 | 2026-08-27T19:28:24Z | 446 | 1 | success | none |
+| 2 | 33109213864 | https://github.com/szTheory/rindle/actions/runs/33109213864 | 2026-08-27T19:36:01Z | 418 | 1 | success | none |
+| 3 | 33109785773 | https://github.com/szTheory/rindle/actions/runs/33109785773 | 2026-08-27T19:43:07Z | 436 | 1 | success | none |
+| 4 | 33110400721 | https://github.com/szTheory/rindle/actions/runs/33110400721 | 2026-08-27T19:50:44Z | 481 | 1 | success | none |
+| 5 | 33111089118 | https://github.com/szTheory/rindle/actions/runs/33111089118 | 2026-08-27T19:59:08Z | 404 | 1 | success | none |
+| 6 | 33111678168 | https://github.com/szTheory/rindle/actions/runs/33111678168 | 2026-08-27T20:06:13Z | 453 | 1 | success | none |
+| 7 | 33112319591 | https://github.com/szTheory/rindle/actions/runs/33112319591 | 2026-08-27T20:14:05Z | 479 | 1 | success | none |
+| 8 | 33112983558 | https://github.com/szTheory/rindle/actions/runs/33112983558 | 2026-08-27T20:22:16Z | 479 | 1 | success | none |
+| 9 | 33113664858 | https://github.com/szTheory/rindle/actions/runs/33113664858 | 2026-08-27T20:30:36Z | 473 | 1 | success | none |
+| 10 | 33114333757 | https://github.com/szTheory/rindle/actions/runs/33114333757 | 2026-08-27T20:38:47Z | 453 | 1 | success | none |
+CI_TIMING_CURRENT_TABLE_END
+
+Sorted duration seconds: `404, 418, 436, 446, 453, 453, 473, 479, 479, 481`
+
+- Median: (rank 5 + rank 6) / 2 = 453 seconds (target <= 480).
+- Nearest-rank p95: rank 10 = 481 seconds (target <= 600).
+
+| Metric | Target | Observed | Verdict |
+| --- | ---: | ---: | --- |
+| Median | <= 480 | 453 | PASS |
+| p95 | <= 600 | 481 | PASS |
+| Verdict | PASS | PASS | PASS |
+
+CI_TIMING_CURRENT_SOURCE_BEGIN
+{"repo":"szTheory/rindle","pr":96,"sha":"869ca9cd7450dd6785aefa1fdb4bba457ce336f0","population_boundary_ids":[33108069978,33107367974,33106697965,33105948783,33105376700,33104713930,33104105124,33102345203],"runs":[{"id":33108596297,"url":"https://github.com/szTheory/rindle/actions/runs/33108596297","started_at":"2026-08-27T19:28:24Z","started_epoch":1787858904,"summary_completed_at":"2026-08-27T19:35:50Z","summary_completed_epoch":1787859350,"duration_seconds":446,"attempt":1,"conclusion":"success"},{"id":33109213864,"url":"https://github.com/szTheory/rindle/actions/runs/33109213864","started_at":"2026-08-27T19:36:01Z","started_epoch":1787859361,"summary_completed_at":"2026-08-27T19:42:59Z","summary_completed_epoch":1787859779,"duration_seconds":418,"attempt":1,"conclusion":"success"},{"id":33109785773,"url":"https://github.com/szTheory/rindle/actions/runs/33109785773","started_at":"2026-08-27T19:43:07Z","started_epoch":1787859787,"summary_completed_at":"2026-08-27T19:50:23Z","summary_completed_epoch":1787860223,"duration_seconds":436,"attempt":1,"conclusion":"success"},{"id":33110400721,"url":"https://github.com/szTheory/rindle/actions/runs/33110400721","started_at":"2026-08-27T19:50:44Z","started_epoch":1787860244,"summary_completed_at":"2026-08-27T19:58:45Z","summary_completed_epoch":1787860725,"duration_seconds":481,"attempt":1,"conclusion":"success"},{"id":33111089118,"url":"https://github.com/szTheory/rindle/actions/runs/33111089118","started_at":"2026-08-27T19:59:08Z","started_epoch":1787860748,"summary_completed_at":"2026-08-27T20:05:52Z","summary_completed_epoch":1787861152,"duration_seconds":404,"attempt":1,"conclusion":"success"},{"id":33111678168,"url":"https://github.com/szTheory/rindle/actions/runs/33111678168","started_at":"2026-08-27T20:06:13Z","started_epoch":1787861173,"summary_completed_at":"2026-08-27T20:13:46Z","summary_completed_epoch":1787861626,"duration_seconds":453,"attempt":1,"conclusion":"success"},{"id":33112319591,"url":"https://github.com/szTheory/rindle/actions/runs/33112319591","started_at":"2026-08-27T20:14:05Z","started_epoch":1787861645,"summary_completed_at":"2026-08-27T20:22:04Z","summary_completed_epoch":1787862124,"duration_seconds":479,"attempt":1,"conclusion":"success"},{"id":33112983558,"url":"https://github.com/szTheory/rindle/actions/runs/33112983558","started_at":"2026-08-27T20:22:16Z","started_epoch":1787862136,"summary_completed_at":"2026-08-27T20:30:15Z","summary_completed_epoch":1787862615,"duration_seconds":479,"attempt":1,"conclusion":"success"},{"id":33113664858,"url":"https://github.com/szTheory/rindle/actions/runs/33113664858","started_at":"2026-08-27T20:30:36Z","started_epoch":1787862636,"summary_completed_at":"2026-08-27T20:38:29Z","summary_completed_epoch":1787863109,"duration_seconds":473,"attempt":1,"conclusion":"success"},{"id":33114333757,"url":"https://github.com/szTheory/rindle/actions/runs/33114333757","started_at":"2026-08-27T20:38:47Z","started_epoch":1787863127,"summary_completed_at":"2026-08-27T20:46:20Z","summary_completed_epoch":1787863580,"duration_seconds":453,"attempt":1,"conclusion":"success"}],"median_seconds":453,"p95_seconds":481}
+CI_TIMING_CURRENT_SOURCE_END
