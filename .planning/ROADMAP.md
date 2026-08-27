@@ -114,7 +114,7 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
   2. `CI Summary` remains the sole required check with its required-job set and skip-as-pass behavior intact; any external-runner exception includes job-level evidence, a named owner, and a dated follow-up.
   3. Authoritative coverage remains at or above 82.13%, and the final correction passes focused proof, `mix quality_signals`, SAFE-01, the relevant integration or packed-consumer lane, and bounded prohibited-surface diff review.
 
-**Plans**: 18/21 plans executed
+**Plans**: 20/21 plans executed
 
 **Wave 1 — tracer correction and package proof**
 
@@ -190,11 +190,11 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 
 **Wave 19 — fail-closed controller repair** *(blocked on Wave 18 verification gaps)*
 
-- [ ] 132-19-PLAN.md — Repair terminal-state, resume-identity, creation-deadline, and paginated-population defects with executable regressions.
+- [x] 132-19-PLAN.md — Repair terminal-state, resume-identity, creation-deadline, and paginated-population defects with executable regressions.
 
 **Wave 20 — repaired-source preservation census** *(blocked on Wave 19 completion)*
 
-- [ ] 132-20-PLAN.md — Bind the repaired controller to a fresh immutable subject and prove preservation plus mutation-free publication readiness.
+- [x] 132-20-PLAN.md — Bind the repaired controller to a fresh immutable subject and prove preservation plus mutation-free publication readiness.
 
 **Wave 21 — fresh terminal timing acceptance** *(blocked on Wave 20 completion)*
 
