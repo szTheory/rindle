@@ -458,10 +458,10 @@ actual post-controller-fix source chronology from Git.
 **Prior preserved subject:** `7f025dfdf55d612861610a10773d86761a374277`
 **Controller correction boundary:** `1671cdde1c42231a8a958c8f2771a24edb8b444e`
 **Formatter correction boundary:** `214e56c5fc16b02a44280eee1567b8087358ffd5`
-**Repair and preserved source subject:** `15336d4cc8053aa90788c62377096081c5b07f21`
+**Historical repair and preserved source subject:** `15336d4cc8053aa90788c62377096081c5b07f21`
 
 PRESERVATION_TRANSITION_V2_BEGIN
-{"schema_version":2,"repo":"szTheory/rindle","pr":96,"prior_preserved_sha":"7f025dfdf55d612861610a10773d86761a374277","controller_correction_sha":"1671cdde1c42231a8a958c8f2771a24edb8b444e","formatter_correction_sha":"214e56c5fc16b02a44280eee1567b8087358ffd5","repair_sha":"15336d4cc8053aa90788c62377096081c5b07f21","preserved_subject_sha":"15336d4cc8053aa90788c62377096081c5b07f21","stages":[{"id":"plan-132-12","from_sha":"7f025dfdf55d612861610a10773d86761a374277","to_sha":"1671cdde1c42231a8a958c8f2771a24edb8b444e","planning":[{"status":"M","path":".planning/REQUIREMENTS.md"},{"status":"M","path":".planning/ROADMAP.md"},{"status":"M","path":".planning/STATE.md"},{"status":"A","path":".planning/phases/132-measured-closure/132-11-SUMMARY.md"},{"status":"A","path":".planning/phases/132-measured-closure/132-12-PLAN.md"},{"status":"A","path":".planning/phases/132-measured-closure/132-12-SUMMARY.md"},{"status":"A","path":".planning/phases/132-measured-closure/132-13-PLAN.md"},{"status":"A","path":".planning/phases/132-measured-closure/132-14-PLAN.md"},{"status":"A","path":".planning/phases/132-measured-closure/132-15-PLAN.md"},{"status":"A","path":".planning/phases/132-measured-closure/132-REVIEW.md"},{"status":"M","path":".planning/phases/132-measured-closure/132-VALIDATION.md"},{"status":"M","path":".planning/phases/132-measured-closure/132-VERIFICATION.md"},{"status":"M","path":".planning/phases/132-measured-closure/COVERAGE.md"}],"non_planning":[{"status":"M","path":"scripts/ci/collect_pr_timing_receipt.sh","blob_oid":"dc6ea5fbd4c33b3addba8430cf2758dedae7452f"},{"status":"M","path":"test/install_smoke/ci_timing_automation_test.exs","blob_oid":"5ca85afef8c0079bb6db22a7e4ff87b5435f2cd5"}]},{"id":"plan-132-13","from_sha":"1671cdde1c42231a8a958c8f2771a24edb8b444e","to_sha":"214e56c5fc16b02a44280eee1567b8087358ffd5","planning":[{"status":"M","path":".planning/ROADMAP.md"},{"status":"M","path":".planning/STATE.md"},{"status":"A","path":".planning/phases/132-measured-closure/132-13-SUMMARY.md"},{"status":"M","path":".planning/phases/132-measured-closure/132-CI-TIMING-RECEIPT.md"}],"non_planning":[{"status":"M","path":"test/install_smoke/ci_lane_split_test.exs","blob_oid":"a641d9a84f545e7d37fcb4b8a8bdf143d02b7754"}]},{"id":"plan-132-14-repair","from_sha":"214e56c5fc16b02a44280eee1567b8087358ffd5","to_sha":"15336d4cc8053aa90788c62377096081c5b07f21","planning":[{"status":"M","path":".planning/REQUIREMENTS.md"},{"status":"M","path":".planning/ROADMAP.md"},{"status":"M","path":".planning/phases/132-measured-closure/132-14-PLAN.md"},{"status":"A","path":".planning/phases/132-measured-closure/132-14-SUMMARY.md"},{"status":"M","path":".planning/phases/132-measured-closure/132-15-PLAN.md"},{"status":"A","path":".planning/phases/132-measured-closure/132-15-SUMMARY.md"},{"status":"A","path":".planning/phases/132-measured-closure/132-16-PLAN.md"},{"status":"M","path":".planning/phases/132-measured-closure/132-PRESERVATION-RECEIPT.md"}],"non_planning":[{"status":"M","path":"scripts/ci/collect_pr_timing_receipt.sh","blob_oid":"3bb0de6f75660870614cbc3ad3f5f6e1293b262e"},{"status":"M","path":"test/install_smoke/ci_timing_automation_test.exs","blob_oid":"cda7a618255f0030f450c2aa03e043ad01a24f12"}]}]}
+{"schema_version":2,"repo":"szTheory/rindle","pr":96,"prior_preserved_sha":"7f025dfdf55d612861610a10773d86761a374277","controller_correction_sha":"1671cdde1c42231a8a958c8f2771a24edb8b444e","formatter_correction_sha":"214e56c5fc16b02a44280eee1567b8087358ffd5","repair_sha":"a4bbbd1bba6077134934a4e6b9a9bf63924b47e9","preserved_subject_sha":"a4bbbd1bba6077134934a4e6b9a9bf63924b47e9","stages":[{"id":"plan-132-12","from_sha":"7f025dfdf55d612861610a10773d86761a374277","to_sha":"1671cdde1c42231a8a958c8f2771a24edb8b444e","planning":[{"status":"M","path":".planning/REQUIREMENTS.md"},{"status":"M","path":".planning/ROADMAP.md"},{"status":"M","path":".planning/STATE.md"},{"status":"A","path":".planning/phases/132-measured-closure/132-11-SUMMARY.md"},{"status":"A","path":".planning/phases/132-measured-closure/132-12-PLAN.md"},{"status":"A","path":".planning/phases/132-measured-closure/132-12-SUMMARY.md"},{"status":"A","path":".planning/phases/132-measured-closure/132-13-PLAN.md"},{"status":"A","path":".planning/phases/132-measured-closure/132-14-PLAN.md"},{"status":"A","path":".planning/phases/132-measured-closure/132-15-PLAN.md"},{"status":"A","path":".planning/phases/132-measured-closure/132-REVIEW.md"},{"status":"M","path":".planning/phases/132-measured-closure/132-VALIDATION.md"},{"status":"M","path":".planning/phases/132-measured-closure/132-VERIFICATION.md"},{"status":"M","path":".planning/phases/132-measured-closure/COVERAGE.md"}],"non_planning":[{"status":"M","path":"scripts/ci/collect_pr_timing_receipt.sh","blob_oid":"dc6ea5fbd4c33b3addba8430cf2758dedae7452f"},{"status":"M","path":"test/install_smoke/ci_timing_automation_test.exs","blob_oid":"5ca85afef8c0079bb6db22a7e4ff87b5435f2cd5"}]},{"id":"plan-132-13","from_sha":"1671cdde1c42231a8a958c8f2771a24edb8b444e","to_sha":"214e56c5fc16b02a44280eee1567b8087358ffd5","planning":[{"status":"M","path":".planning/ROADMAP.md"},{"status":"M","path":".planning/STATE.md"},{"status":"A","path":".planning/phases/132-measured-closure/132-13-SUMMARY.md"},{"status":"M","path":".planning/phases/132-measured-closure/132-CI-TIMING-RECEIPT.md"}],"non_planning":[{"status":"M","path":"test/install_smoke/ci_lane_split_test.exs","blob_oid":"a641d9a84f545e7d37fcb4b8a8bdf143d02b7754"}]},{"id":"plan-132-19-repair","from_sha":"214e56c5fc16b02a44280eee1567b8087358ffd5","to_sha":"a4bbbd1bba6077134934a4e6b9a9bf63924b47e9","planning":[{"status":"M","path":".planning/REQUIREMENTS.md"},{"status":"M","path":".planning/ROADMAP.md"},{"status":"M","path":".planning/STATE.md"},{"status":"M","path":".planning/phases/132-measured-closure/132-14-PLAN.md"},{"status":"A","path":".planning/phases/132-measured-closure/132-14-SUMMARY.md"},{"status":"M","path":".planning/phases/132-measured-closure/132-15-PLAN.md"},{"status":"A","path":".planning/phases/132-measured-closure/132-15-SUMMARY.md"},{"status":"A","path":".planning/phases/132-measured-closure/132-16-PLAN.md"},{"status":"A","path":".planning/phases/132-measured-closure/132-16-SUMMARY.md"},{"status":"A","path":".planning/phases/132-measured-closure/132-17-PLAN.md"},{"status":"A","path":".planning/phases/132-measured-closure/132-17-SUMMARY.md"},{"status":"A","path":".planning/phases/132-measured-closure/132-18-PLAN.md"},{"status":"A","path":".planning/phases/132-measured-closure/132-18-SUMMARY.md"},{"status":"A","path":".planning/phases/132-measured-closure/132-19-PLAN.md"},{"status":"A","path":".planning/phases/132-measured-closure/132-20-PLAN.md"},{"status":"A","path":".planning/phases/132-measured-closure/132-21-PLAN.md"},{"status":"M","path":".planning/phases/132-measured-closure/132-PRESERVATION-RECEIPT.md"},{"status":"M","path":".planning/phases/132-measured-closure/132-REVIEW.md"},{"status":"M","path":".planning/phases/132-measured-closure/132-VERIFICATION.md"}],"non_planning":[{"status":"M","path":"scripts/ci/collect_pr_timing_receipt.sh","blob_oid":"7f15e69557bdfd6ae9887c7c1e28cac3020dba3b"},{"status":"M","path":"test/install_smoke/ci_timing_automation_test.exs","blob_oid":"c402178b0b08185626142069ce262595924e7206"}]}]}
 PRESERVATION_TRANSITION_V2_END
 
 The active schema-v2 manifest is a rename-disabled, full Git name/status census:
@@ -527,3 +527,46 @@ sample, durable controller ownership, or timing receipt mutation occurred.
 
 COV-05 and SAFE-02 are freshly preserved by these exact authorities. CI-14 remains
 open and is reserved for Plan 132-18's terminal API-backed exact-ten receipt.
+
+## Plan 132-20 active preserved-subject transition (2026-08-27)
+
+The sole active schema-version-2 payload above now binds both `repair_sha` and
+`preserved_subject_sha` to Git-derived Plan 132-19 source commit
+`a4bbbd1bba6077134934a4e6b9a9bf63924b47e9`. Its first two historical stages are
+byte-for-byte retained. The third, deliberately cumulative formatter-to-subject
+stage is Git's rename-disabled `214e56c5fc16b02a44280eee1567b8087358ffd5..a4bbbd1`
+name/status union and has exactly two non-planning paths:
+
+| Path | Target-tree blob OID |
+| --- | --- |
+| `scripts/ci/collect_pr_timing_receipt.sh` | `7f15e69557bdfd6ae9887c7c1e28cac3020dba3b` |
+| `test/install_smoke/ci_timing_automation_test.exs` | `c402178b0b08185626142069ce262595924e7206` |
+
+### Plan 132-19 source attribution
+
+The strict rename-disabled delta from prior preserved subject
+`15336d4cc8053aa90788c62377096081c5b07f21` to `a4bbbd1` has a planning-only
+tail followed by the four explicit TDD/source commits: `e3c93e5` (RED),
+`7095695` (GREEN), `8879b0d` (RED), and `a4bbbd1` (GREEN). Its only
+non-planning name/status entries are the controller and its regression test,
+both `M`; the target blobs are the two OIDs listed above. This records the
+source-versus-planning boundary without changing the chronology schema.
+
+### Plan 132-20 preservation authorities
+
+In the required order, all authorities passed: formatter; focused controller
+tests (18/0); lane-split plus observability tests (34/0); CI Summary gate;
+`mix quality_signals`; SAFE-01 refactor contract; automation-first contract;
+repository hygiene; one authoritative coverage run; packed image consumer;
+and `git diff --check`. The single coverage JSON was structurally valid,
+contained nonempty source files and integer non-null vectors, and yielded 5149
+covered of 6269 relevant lines. Its inclusive integer check
+`5149 * 10000 >= 6269 * 8213` passed (8213 basis points); no percentage-only
+test was added.
+
+The bounded census from `15336d4..a4bbbd1` finds only the authorized controller
+and timing-automation test outside `.planning/`; the tail from `a4bbbd1..HEAD`
+is planning-only. Therefore Admin, public API, schema/migration,
+telemetry/error, dependencies/lockfiles, workflow topology/job bodies/proof
+commands, runner, matrix, cache, partition, rerun policy, and release-proof
+surfaces have no drift under D-01, D-06, D-08, or D-09.
