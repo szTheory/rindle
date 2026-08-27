@@ -9,7 +9,7 @@ status: complete
 
 # Phase 132 Plan 22: Automated safety closure Summary
 
-Rate-limited controller calls now expire at caller-owned deadlines, and human-action policy parsing cannot be bypassed by attribute order or quote style.
+Rate-limited controller calls expire at caller-owned deadlines, and human-action policy parsing fails closed for reordered, multiline, and incomplete tags.
 
 ## Commits
 
@@ -18,14 +18,18 @@ Rate-limited controller calls now expire at caller-owned deadlines, and human-ac
 - `9aca676` RED human-action syntax regression
 - `454bf21` GREEN syntax-independent policy parser
 - `240ad37` formatter normalization
+- `fcc9996` through `d7c3534` post-review terminalization, deadline-fixture, and incomplete-tag repairs
 
 ## Verification
 
-- Focused controller and policy suites passed.
+- Focused controller and policy suites: 35 tests, 0 failures.
+- Timing topology/observability, CI Summary gate, formatter, quality signals, SAFE-01, automation-first, hygiene, and diff checks passed.
+- Isolated packed image consumer: 22 tests, 0 failures (161.1s).
 - `mix format --check-formatted` passed after normalization.
 - Automation-first contract passed for Phase 132.
 - Existing receipt verify passed without changing its hash: median 453s, p95 481s.
 - Fresh coverage artifact: 5149 covered / 6269 relevant; 82.13% inclusive floor passed.
+- Final source subject `d7c3534`; controller/parser/test blobs are recorded in the preservation receipt.
 
 ## Decisions Made
 

@@ -581,23 +581,29 @@ HEAD; PR head, labels, exact-head run population, timing receipt identity,
 and SHA-scoped state/lock identities all remained unchanged. Live mutation is
 reserved for Plan 132-21.
 
-## Plan 132-22 automated SAFE-02 closure (2026-08-27)
+## Plan 132-22 automated SAFE-02 closure (2026-08-27, refreshed after review)
 
-Final fixed source subject: `240ad37934f5f4361d9074746744094c0881f153`.
+Final fixed source subject: `d7c3534`.
 The bounded repair paths and target-tree blobs are:
 
 | Path | Blob OID |
 | --- | --- |
-| `scripts/ci/collect_pr_timing_receipt.sh` | `0cd402cbee9431544d56b54bd6e024dc4382306d` |
-| `test/install_smoke/ci_timing_automation_test.exs` | `76d15c809d981e128a8f5ffa3286317e9b056fd6` |
-| `scripts/maintainer/automation_first_contract.sh` | `1bc628074efaa46c6042c52ab4024066e9976ca1` |
-| `test/install_smoke/automation_first_contract_test.exs` | `00b609bce54225c74123546c08dea0eb84910f91` |
+| `scripts/ci/collect_pr_timing_receipt.sh` | `8dd1e619ffd52beb124a7808a34fbbf29fc3e25f` |
+| `test/install_smoke/ci_timing_automation_test.exs` | `c0df96b01a6cf8a8f451f661b3addca1e14ac29f` |
+| `scripts/maintainer/automation_first_contract.sh` | `86b3a92ce072ed6f994d6cd5bbe2116f87e3ee9c` |
+| `test/install_smoke/automation_first_contract_test.exs` | `29fa28eebc2422e7b64f80f7c9da6c9d1f2c68cb` |
 
-Focused controller and policy suites pass. The existing timing receipt was
+Focused controller and policy suites pass with `35 tests, 0 failures`; topology
+and observability suites, CI Summary gate, formatter, `mix quality_signals`,
+SAFE-01 refactor contract, automation-first contract, hygiene, and `git diff
+--check` also pass. The isolated packed consumer command
+`RINDLE_SMOKE_TMP=$(mktemp -d); TMPDIR="$RINDLE_SMOKE_TMP" bash scripts/install_smoke.sh image`
+passed with `22 tests, 0 failures` (161.1 seconds). The existing timing receipt was
 verified in read-only mode with unchanged SHA-256
 `a1eec11151c1a67636b1dd34e1bf7192d071a33f3f35d8231cde146ee16b4386`:
 the immutable exact-ten population remains 453-second median and 481-second
-p95. One fresh structural coverage artifact yields `5149/6269`; inclusive
+p95; its four current marker boundary lines were unchanged before and after
+verification. One fresh structural coverage artifact yields `5149/6269`; inclusive
 integer comparison `5149 * 10000 >= 6269 * 8213` passes. No controller `run`,
 publication, label, dispatch, rerun, or replacement receipt was invoked;
 `new_live_sample_required: false` because neither repair changes `ci.yml` nor
