@@ -379,3 +379,72 @@ push, label, trigger, rerun, or sample. Before/after GitHub workflow-run listing
 were byte-identical; the owned label was absent before and after; and
 `.gsd/ci-timing/phase-132-recovery-preflight` was absent before and after. No live
 controller lock or owned label remains.
+
+## Post-repair preservation census (2026-08-27)
+
+**Prior preserved subject:** `7f025dfdf55d612861610a10773d86761a374277`
+**Controller correction boundary:** `1671cdde1c42231a8a958c8f2771a24edb8b444e`
+**Formatter correction boundary:** `214e56c5fc16b02a44280eee1567b8087358ffd5`
+**Repair and preserved subject:** `73e2c334f17894c14918838ee69e3507b5e42f09`
+
+The anchors above were derived from Git, not plan prose. The controller boundary is
+the completed Plan 132-12 boundary immediately before `541b992`; it contains both
+`9e70f4b` and `5a61ab9`, plus the Plan 132-12 summary and tracking commits. The
+formatter boundary is Plan 132-13's tracking commit `214e56c`, with `541b992` and
+the immutable Plan 132-13 summary in its ancestry. Git confirms all three stage
+ranges are strict ancestor ranges. The repair and preserved subject are identical
+at the completed Plan 132-14 HEAD.
+
+PRESERVATION_TRANSITION_V2_BEGIN
+{"schema_version":2,"repo":"szTheory/rindle","pr":96,"prior_preserved_sha":"7f025dfdf55d612861610a10773d86761a374277","controller_correction_sha":"1671cdde1c42231a8a958c8f2771a24edb8b444e","formatter_correction_sha":"214e56c5fc16b02a44280eee1567b8087358ffd5","repair_sha":"73e2c334f17894c14918838ee69e3507b5e42f09","preserved_subject_sha":"73e2c334f17894c14918838ee69e3507b5e42f09","stages":[{"id":"plan-132-12","from_sha":"7f025dfdf55d612861610a10773d86761a374277","to_sha":"1671cdde1c42231a8a958c8f2771a24edb8b444e","planning":[{"status":"M","path":".planning/REQUIREMENTS.md"},{"status":"M","path":".planning/ROADMAP.md"},{"status":"M","path":".planning/STATE.md"},{"status":"A","path":".planning/phases/132-measured-closure/132-11-SUMMARY.md"},{"status":"A","path":".planning/phases/132-measured-closure/132-12-PLAN.md"},{"status":"A","path":".planning/phases/132-measured-closure/132-12-SUMMARY.md"},{"status":"A","path":".planning/phases/132-measured-closure/132-13-PLAN.md"},{"status":"A","path":".planning/phases/132-measured-closure/132-14-PLAN.md"},{"status":"A","path":".planning/phases/132-measured-closure/132-15-PLAN.md"},{"status":"A","path":".planning/phases/132-measured-closure/132-REVIEW.md"},{"status":"M","path":".planning/phases/132-measured-closure/132-VALIDATION.md"},{"status":"M","path":".planning/phases/132-measured-closure/132-VERIFICATION.md"},{"status":"M","path":".planning/phases/132-measured-closure/COVERAGE.md"}],"non_planning":[{"status":"M","path":"scripts/ci/collect_pr_timing_receipt.sh","blob_oid":"dc6ea5fbd4c33b3addba8430cf2758dedae7452f"},{"status":"M","path":"test/install_smoke/ci_timing_automation_test.exs","blob_oid":"5ca85afef8c0079bb6db22a7e4ff87b5435f2cd5"}]},{"id":"plan-132-13","from_sha":"1671cdde1c42231a8a958c8f2771a24edb8b444e","to_sha":"214e56c5fc16b02a44280eee1567b8087358ffd5","planning":[{"status":"M","path":".planning/ROADMAP.md"},{"status":"M","path":".planning/STATE.md"},{"status":"A","path":".planning/phases/132-measured-closure/132-13-SUMMARY.md"},{"status":"M","path":".planning/phases/132-measured-closure/132-CI-TIMING-RECEIPT.md"}],"non_planning":[{"status":"M","path":"test/install_smoke/ci_lane_split_test.exs","blob_oid":"a641d9a84f545e7d37fcb4b8a8bdf143d02b7754"}]},{"id":"plan-132-14-repair","from_sha":"214e56c5fc16b02a44280eee1567b8087358ffd5","to_sha":"73e2c334f17894c14918838ee69e3507b5e42f09","planning":[{"status":"M","path":".planning/ROADMAP.md"},{"status":"M","path":".planning/phases/132-measured-closure/132-14-PLAN.md"},{"status":"A","path":".planning/phases/132-measured-closure/132-14-SUMMARY.md"},{"status":"M","path":".planning/phases/132-measured-closure/132-15-PLAN.md"},{"status":"A","path":".planning/phases/132-measured-closure/132-16-PLAN.md"}],"non_planning":[{"status":"M","path":"scripts/ci/collect_pr_timing_receipt.sh","blob_oid":"ae86eb515fe1fa96f5f1a0e978fdd624a94fd1c1"},{"status":"M","path":"test/install_smoke/ci_timing_automation_test.exs","blob_oid":"ce7908135e4e0cdb676690a28e7a9b433feffd9c"}]}]}
+PRESERVATION_TRANSITION_V2_END
+
+The manifest is a full, rename-disabled, Git name/status census. Every entry is
+explicitly partitioned into planning and non-planning paths; every mutable target
+in a non-planning partition records its target-tree blob OID. No other executable
+path is attributed to a stage.
+
+### Preservation authorities and structural coverage result
+
+After recording the manifest, all required authorities passed in this order:
+
+1. `mix format --check-formatted`.
+2. Focused timing-controller, lane-split, and observability tests: `52 tests, 0 failures`.
+3. `bash scripts/ci/test_ci_summary_gate.sh`: `passed: 6  failed: 0`.
+4. `mix quality_signals` and `bash scripts/maintainer/refactor_contract.sh`.
+5. `./scripts/maintainer/automation_first_contract.sh` and
+   `./scripts/maintainer/repo_hygiene_check.sh --ci`.
+6. One authoritative `mix coveralls.multiple --type local --type json` invocation.
+7. `bash scripts/install_smoke.sh image`, the packed image consumer.
+8. `git diff --check`.
+
+The fresh nonempty ExCoveralls artifact was structurally parsed after that sole
+coverage invocation: every `source_files[].coverage` value was an array and every
+entry was either `null` or a non-negative integer. Its positive relevant-line
+denominator was `6269`, covered lines were `5149`, and inclusive integer arithmetic
+confirmed `5149 * 10000 >= 6269 * 8213`. This preserves the 82.13% floor without
+adding a percentage-only test.
+
+Git's post-subject census reports no non-planning path after
+`73e2c334f17894c14918838ee69e3507b5e42f09`: the receipt itself is planning
+evidence only. Therefore there is no workflow/required-membership, public API,
+schema/migration, telemetry/error, dependency/lockfile, Admin, or release-proof
+drift in the repaired subject.
+
+### Mutation-free strict-ancestor preflight
+
+The controller reparsed and independently reproduced this same manifest using
+repository `szTheory/rindle`, PR `96`, `ci.yml`, `CI Summary`, label
+`ci-timing-sample`, exactly ten samples, two sequences, and inclusive `480`/`600`
+limits. It received correction SHA
+`1671cdde1c42231a8a958c8f2771a24edb8b444e` and preserved SHA
+`73e2c334f17894c14918838ee69e3507b5e42f09`, then exited zero in
+`preflight --no-publish` mode. The remote PR head
+`7f025dfdf55d612861610a10773d86761a374277` was an accepted strict ancestor of the
+local repaired subject.
+
+Before and after snapshots were byte-identical for PR head and labels, the exact-head
+`ci.yml` workflow-run API response, receipt hash, and current-marker counts. The
+requested controller state directory and lock were absent both before and after. No
+publication, label trigger, rerun, state creation, or sample was performed. CI-14
+remains open for Plan 132-16's API-backed exact-ten receipt.
