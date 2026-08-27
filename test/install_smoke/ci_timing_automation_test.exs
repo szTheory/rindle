@@ -152,8 +152,15 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
         max_sequences: 2,
         sequence_attempt: 1,
         status: "running",
+        population_boundary_ids: [],
         runs: [],
-        pending_trigger: nil,
+        pending_trigger: %{
+          before_run_ids: [],
+          triggered_at: "2026-08-26T00:00:00Z",
+          triggered_at_epoch: 1_787_616_000,
+          status: "discovered",
+          run_id: 1001
+        },
         current_run_id: 1001,
         current_run_status: "discovered",
         errors: []
@@ -185,8 +192,15 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
         max_sequences: 2,
         sequence_attempt: 1,
         status: "running",
+        population_boundary_ids: [],
         runs: [],
-        pending_trigger: nil,
+        pending_trigger: %{
+          before_run_ids: [],
+          triggered_at: "2026-08-26T00:00:00Z",
+          triggered_at_epoch: 1_787_616_000,
+          status: "discovered",
+          run_id: 1001
+        },
         current_run_id: 1001,
         current_run_status: "discovered",
         errors: []
@@ -221,6 +235,7 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
         max_sequences: 2,
         sequence_attempt: 1,
         status: "running",
+        population_boundary_ids: [],
         runs: [],
         pending_trigger: %{
           before_run_ids: [],

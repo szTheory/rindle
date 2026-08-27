@@ -252,6 +252,50 @@ canonical_eligible_run_ids() {
   ' <<<"$workflow_runs" || die "unable to derive canonical eligible run IDs"
 }
 
+validate_running_state() {
+  local path="$1"
+  jq -e \
+    --arg repo "$repo" --argjson pr "$pr" --arg sha "$head_sha" --arg label_name "$label" \
+    --argjson max_sequences "$max_sequences" --argjson samples "$samples" '
+      . as $state |
+      $state.schema_version == 2 and
+      $state.repo == $repo and $state.pr == $pr and $state.sha == $sha and
+      ($state.sha | type == "string" and test("^[0-9a-f]{40}$")) and
+      $state.label == $label_name and $state.max_sequences == $max_sequences and
+      ($state.max_sequences | type == "number" and . >= 1 and . <= 2 and floor == .) and
+      ($state.sequence_attempt | type == "number" and floor == .) and
+      $state.sequence_attempt >= 1 and $state.sequence_attempt <= $state.max_sequences and
+      $state.status == "running" and
+      ($state.population_boundary_ids | type == "array" and all(.[]; type == "number") and unique == .) and
+      ($state.runs | type == "array" and length < $samples and all(.[];
+        type == "object" and (.id | type == "number") and (.started_epoch | type == "number") and
+        (.summary_completed_epoch | type == "number") and .summary_completed_epoch >= .started_epoch and
+        (.duration_seconds | type == "number" and . >= 0))) and
+      ($state.errors | type == "array" and all(.[]; type == "object")) and
+      ($state.pending_trigger == null or ($state.pending_trigger as $pending |
+        ($pending | type == "object") and
+        ($pending.before_run_ids | type == "array" and all(.[]; type == "number") and unique == .) and
+        ($pending.triggered_at | type == "string" and fromdateiso8601 >= 0) and
+        ($pending.triggered_at_epoch | type == "number" and floor == . and . >= 0) and
+        ($pending.status == "awaiting_run" or $pending.status == "discovered") and
+        (($pending.status == "awaiting_run" and $state.current_run_id == null and $state.current_run_status == null) or
+         ($pending.status == "discovered" and ($pending.run_id | type == "number") and
+          $state.current_run_id == $pending.run_id and ($state.current_run_status | type == "string" and length > 0))))) and
+      (($state.pending_trigger == null and $state.current_run_id == null and $state.current_run_status == null) or $state.pending_trigger != null)
+    ' "$path" >/dev/null || die "persisted running controller state is malformed or does not match this invocation"
+}
+
+validate_existing_state() {
+  local path="$1" status
+  status="$(jq -r '.status // empty' "$path" 2>/dev/null)" || die "persisted controller state is malformed"
+  case "$status" in
+    failed) die "persisted terminal failed controller state refuses new mutation authority" ;;
+    running) validate_running_state "$path" ;;
+    complete) ;;
+    *) die "persisted controller state has an unsupported status" ;;
+  esac
+}
+
 if [ "$mode" = verify ]; then
   require_command gh
   [ "$repo" = "szTheory/rindle" ] || die "verify requires --repo szTheory/rindle"
@@ -281,16 +325,23 @@ require_command git
 [ -n "$transition_manifest" ] || die "--transition-manifest is required"
 [ -n "$receipt" ] || die "--receipt is required"
 [[ "$samples" =~ ^[0-9]+$ ]] && [ "$samples" -eq 10 ] || die "--samples must be exactly 10 for the CI-14 contract"
-[[ "$max_sequences" =~ ^[0-9]+$ ]] && [ "$max_sequences" -ge 1 ] || die "--max-sequences must be a positive integer"
+[[ "$max_sequences" =~ ^[0-9]+$ ]] && [ "$max_sequences" -ge 1 ] && [ "$max_sequences" -le 2 ] || die "--max-sequences must be 1 or 2"
 [[ "$poll_seconds" =~ ^[0-9]+$ ]] || die "--poll-seconds must be a non-negative integer"
+[[ "$creation_timeout" =~ ^[0-9]+$ ]] || die "--creation-timeout must be a non-negative integer"
 
-gh auth status >/dev/null 2>&1 || die "gh authentication is required"
 head_sha="$(git rev-parse HEAD)"
 correction_sha="$(git rev-parse "$correction_sha")"
 preserved_subject_sha="$(git rev-parse "$preserved_subject_sha")"
 [ "${#head_sha}" -eq 40 ] || die "HEAD did not resolve to a full SHA"
 git merge-base --is-ancestor "$correction_sha" "$head_sha" || die "correction SHA is not an ancestor of HEAD"
 git merge-base --is-ancestor "$preserved_subject_sha" "$head_sha" || die "preserved subject SHA is not an ancestor of HEAD"
+
+state_file="$state_dir/pr-${pr}-${head_sha}.json"
+if [ -f "$state_file" ]; then
+  validate_existing_state "$state_file"
+fi
+
+gh auth status >/dev/null 2>&1 || die "gh authentication is required"
 
 pr_json="$(gh pr view "$pr" --repo "$repo" --json state,isDraft,headRefName,headRefOid,labels)"
 [ "$(jq -r '.state' <<<"$pr_json")" = OPEN ] || die "PR #$pr is not open"
@@ -329,7 +380,6 @@ echo "[ci-timing] preflight passed: $repo#$pr @ $head_sha"
 [ "$mode" = preflight ] && exit 0
 
 mkdir -p "$state_dir"
-state_file="$state_dir/pr-${pr}-${head_sha}.json"
 label_owned=0
 
 cleanup_label() {
@@ -374,7 +424,7 @@ write_initial_state() {
   mv "$tmp" "$state_file"
 }
 
-if [ ! -f "$state_file" ] || [ "$(jq -r '.status // ""' "$state_file")" = failed ]; then
+if [ ! -f "$state_file" ]; then
   write_initial_state
 fi
 
