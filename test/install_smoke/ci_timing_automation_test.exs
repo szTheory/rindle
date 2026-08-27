@@ -291,6 +291,22 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
     assert source =~ "repo:$repo,pr:$pr,sha:$sha"
   end
 
+  test "preflight rejects a missing transition manifest before it can own controller state", context do
+    count_before = File.read!(Path.join(context.fixture_dir, "count"))
+    receipt_before = File.read!(context.receipt)
+
+    assert {output, 1} =
+             System.cmd("bash", preflight_args(context),
+               env: controller_env(context),
+               stderr_to_stdout: true
+             )
+
+    assert output =~ "--transition-manifest is required"
+    assert File.read!(Path.join(context.fixture_dir, "count")) == count_before
+    assert File.read!(context.receipt) == receipt_before
+    refute File.exists?(Path.join(context.state_dir, "pr-96-#{context.head}.json"))
+  end
+
   defp run_controller(context, extra_env \\ []) do
     args = [
       "run",
@@ -329,6 +345,42 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
       env: controller_env(context) ++ extra_env,
       stderr_to_stdout: true
     )
+  end
+
+  defp preflight_args(context) do
+    [
+      @script,
+      "preflight",
+      "--repo",
+      "szTheory/rindle",
+      "--pr",
+      "96",
+      "--workflow",
+      "ci.yml",
+      "--summary-job",
+      "CI Summary",
+      "--label",
+      "ci-timing-sample",
+      "--samples",
+      "10",
+      "--max-sequences",
+      "2",
+      "--median-max",
+      "480",
+      "--p95-max",
+      "600",
+      "--correction-sha",
+      context.head,
+      "--preserved-subject-sha",
+      context.head,
+      "--receipt",
+      context.receipt,
+      "--state-dir",
+      context.state_dir,
+      "--no-publish",
+      "--poll-seconds",
+      "0"
+    ]
   end
 
   defp controller_env(context) do
