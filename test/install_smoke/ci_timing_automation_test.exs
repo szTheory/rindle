@@ -77,6 +77,65 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
     assert String.trim(File.read!(Path.join(context.fixture_dir, "count"))) == "13"
   end
 
+  test "rejects a sequence ceiling above two before any controller mutation", context do
+    count_before = File.read!(Path.join(context.fixture_dir, "count"))
+    receipt_before = File.read!(context.receipt)
+
+    assert {output, 1} =
+             run_controller(context, [], max_sequences: "3")
+
+    assert output =~ "--max-sequences must be 1 or 2"
+    assert File.read!(Path.join(context.fixture_dir, "count")) == count_before
+    assert File.read!(context.receipt) == receipt_before
+    refute File.exists?(Path.join(context.state_dir, "pr-96-#{context.head}.json"))
+  end
+
+  test "refuses a persisted failed state without changing its evidence", context do
+    state_file = Path.join(context.state_dir, "pr-96-#{context.head}.json")
+
+    failed =
+      valid_running_state(context)
+      |> Map.put("status", "failed")
+      |> Map.put("errors", [%{"reason" => "prior bounded failure", "runs" => []}])
+
+    File.write!(state_file, Jason.encode!(failed))
+    before = File.read!(state_file)
+
+    assert {output, 1} = run_controller(context)
+    assert output =~ "terminal failed"
+    assert File.read!(state_file) == before
+    assert File.read!(Path.join(context.fixture_dir, "count")) == "0\n"
+  end
+
+  test "rejects malformed and foreign running state before it can resume", context do
+    state_file = Path.join(context.state_dir, "pr-96-#{context.head}.json")
+
+    invalid_states = [
+      "not-json",
+      Jason.encode!(Map.put(valid_running_state(context), "schema_version", 1)),
+      Jason.encode!(Map.put(valid_running_state(context), "repo", "foreign/repo")),
+      Jason.encode!(Map.put(valid_running_state(context), "sequence_attempt", 3)),
+      Jason.encode!(Map.put(valid_running_state(context), "runs", [nil])),
+      Jason.encode!(
+        valid_running_state(context)
+        |> Map.put("pending_trigger", %{
+          "before_run_ids" => [],
+          "triggered_at" => "2026-08-26T00:00:00Z",
+          "triggered_at_epoch" => 1,
+          "status" => "awaiting_run"
+        })
+        |> Map.put("current_run_id", 1001)
+      )
+    ]
+
+    for state <- invalid_states do
+      File.write!(state_file, state)
+      assert {_output, 1} = run_controller(context)
+      assert File.read!(state_file) == state
+      assert File.read!(Path.join(context.fixture_dir, "count")) == "0\n"
+    end
+  end
+
   test "resumes a discovered run without triggering a duplicate", context do
     File.write!(Path.join(context.fixture_dir, "count"), "1\n")
 
@@ -85,7 +144,7 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
     File.write!(
       state_file,
       Jason.encode!(%{
-        schema_version: 1,
+        schema_version: 2,
         repo: "szTheory/rindle",
         pr: 96,
         sha: context.head,
@@ -94,7 +153,9 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
         sequence_attempt: 1,
         status: "running",
         runs: [],
+        pending_trigger: nil,
         current_run_id: 1001,
+        current_run_status: "discovered",
         errors: []
       })
     )
@@ -116,7 +177,7 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
     File.write!(
       state_file,
       Jason.encode!(%{
-        schema_version: 1,
+        schema_version: 2,
         repo: "szTheory/rindle",
         pr: 96,
         sha: context.head,
@@ -125,7 +186,9 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
         sequence_attempt: 1,
         status: "running",
         runs: [],
+        pending_trigger: nil,
         current_run_id: 1001,
+        current_run_status: "discovered",
         errors: []
       })
     )
@@ -162,9 +225,11 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
         pending_trigger: %{
           before_run_ids: [],
           triggered_at: "2026-08-26T00:00:00Z",
+          triggered_at_epoch: 1_787_616_000,
           status: "awaiting_run"
         },
         current_run_id: nil,
+        current_run_status: nil,
         errors: []
       })
     )
@@ -395,7 +460,7 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
     end
   end
 
-  defp run_controller(context, extra_env \\ []) do
+  defp run_controller(context, extra_env \\ [], options \\ []) do
     args = [
       "run",
       "--repo",
@@ -411,7 +476,7 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
       "--samples",
       "10",
       "--max-sequences",
-      "2",
+      Keyword.get(options, :max_sequences, "2"),
       "--median-max",
       "480",
       "--p95-max",
@@ -436,6 +501,25 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
       cd: context.repo_dir,
       stderr_to_stdout: true
     )
+  end
+
+  defp valid_running_state(context) do
+    %{
+      "schema_version" => 2,
+      "repo" => "szTheory/rindle",
+      "pr" => 96,
+      "sha" => context.head,
+      "label" => "ci-timing-sample",
+      "max_sequences" => 2,
+      "sequence_attempt" => 1,
+      "population_boundary_ids" => [],
+      "status" => "running",
+      "runs" => [],
+      "pending_trigger" => nil,
+      "current_run_id" => nil,
+      "current_run_status" => nil,
+      "errors" => []
+    }
   end
 
   defp preflight_args(context, transition_manifest \\ nil) do
