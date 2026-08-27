@@ -253,7 +253,7 @@ canonical_eligible_run_ids() {
 }
 
 gh_api_json() {
-  local endpoint="$1" pagination="${2:-}" deadline="${3:-}" output reset now delay remaining status
+  local endpoint="$1" pagination="${2:-}" deadline="${3:-}" output now delay remaining status
   [[ "$deadline" =~ ^[0-9]+$ ]] || { echo "[ci-timing] invalid API retry deadline" >&2; return 124; }
   while :; do
     now="$(date +%s)"
@@ -277,12 +277,8 @@ gh_api_json() {
     fi
 
     if grep -qi 'rate limit exceeded' <<<"$output"; then
-      reset="$(gh api rate_limit --jq '.resources.core.reset' 2>/dev/null || true)"
       now="$(date +%s)"
       delay=60
-      if [[ "$reset" =~ ^[0-9]+$ ]] && [ "$reset" -gt "$now" ] && [ $((reset - now + 2)) -lt "$delay" ]; then
-        delay=$((reset - now + 2))
-      fi
       remaining=$((deadline - now))
       [ "$remaining" -gt 0 ] || { echo "[ci-timing] rate-limit retry deadline expired" >&2; return 124; }
       [ "$delay" -gt "$remaining" ] && delay="$remaining"

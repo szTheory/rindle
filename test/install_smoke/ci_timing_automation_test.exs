@@ -356,6 +356,26 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
     end
   end
 
+  test "rate-limit reset lookup cannot outlive an owned deadline", context do
+    state_file = Path.join(context.state_dir, "pr-96-#{context.head}.json")
+
+    assert {output, 1} =
+             run_controller(
+               context,
+               [
+                 {"GH_RATE_LIMIT_ENDPOINT", "actions/workflows"},
+                 {"GH_RATE_LIMIT_AFTER", "1"},
+                 {"GH_RATE_LIMIT_RESET_BLOCK", "1"}
+               ],
+               run_timeout: "1"
+             )
+
+    assert output =~ "deadline"
+    assert state_file |> File.read!() |> Jason.decode!() |> Map.fetch!("status") == "failed"
+    refute File.exists?(Path.join(context.fixture_dir, "rate-limit-reset-called"))
+    refute File.exists?(state_file <> ".lock")
+  end
+
   test "verification fails when a qualifying second-page run is absent from the receipt",
        context do
     assert {_output, 0} = run_controller(context)
@@ -938,6 +958,13 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
       exit 0
     fi
 
+    if [ "$1 $2" = "api rate_limit" ]; then
+      : > "$GH_FIXTURE_DIR/rate-limit-reset-called"
+      if [ "${GH_RATE_LIMIT_RESET_BLOCK:-}" = 1 ]; then sleep 30; fi
+      printf '%s\n' '{"resources":{"core":{"reset":0}}}'
+      exit 0
+    fi
+
     if [ "$1" = api ]; then
       endpoint="${*: -1}"
       count=$(cat "$count_file")
@@ -945,10 +972,6 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
       api_count=$(cat "$api_count_file" 2>/dev/null || echo 0)
       api_count=$((api_count + 1))
       printf '%s\n' "$api_count" > "$api_count_file"
-      if [ "$endpoint" = rate_limit ]; then
-        printf '%s\n' '{"resources":{"core":{"reset":0}}}'
-        exit 0
-      fi
       if [ -n "${GH_RATE_LIMIT_ENDPOINT:-}" ] && [[ "$endpoint" == *"$GH_RATE_LIMIT_ENDPOINT"* ]] && [ "$api_count" -ge "${GH_RATE_LIMIT_AFTER:-1}" ]; then
         echo 'API rate limit exceeded' >&2
         exit 1
