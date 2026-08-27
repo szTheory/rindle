@@ -221,6 +221,7 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
   test "persists a delayed label trigger across restart without consuming or retriggering",
        context do
     File.write!(Path.join(context.fixture_dir, "count"), "1\n")
+    triggered_at_epoch = System.os_time(:second)
 
     state_file = Path.join(context.state_dir, "pr-96-#{context.head}.json")
 
@@ -239,8 +240,8 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
         runs: [],
         pending_trigger: %{
           before_run_ids: [],
-          triggered_at: "2026-08-26T00:00:00Z",
-          triggered_at_epoch: 1_787_616_000,
+          triggered_at: DateTime.from_unix!(triggered_at_epoch) |> DateTime.to_iso8601(),
+          triggered_at_epoch: triggered_at_epoch,
           status: "awaiting_run"
         },
         current_run_id: nil,

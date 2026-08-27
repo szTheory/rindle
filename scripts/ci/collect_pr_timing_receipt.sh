@@ -241,7 +241,7 @@ canonical_eligible_run_ids() {
   local sha="$1" boundary_ids="${2:-[]}" pr_identity workflow_runs
   pr_identity="$(gh pr view "$pr" --repo "$repo" --json headRefOid)" || die "unable to resolve PR identity"
   [ "$(jq -r .headRefOid <<<"$pr_identity")" = "$sha" ] || die "PR head does not match immutable timing SHA"
-  workflow_runs="$(gh api -H 'Accept: application/vnd.github+json' "repos/${repo}/actions/workflows/${workflow}/runs?event=pull_request&per_page=100")" || die "unable to resolve canonical Actions population"
+  workflow_runs="$(gh_api_json "repos/${repo}/actions/workflows/${workflow}/runs?event=pull_request&per_page=100" paginate)" || die "unable to resolve canonical Actions population"
   jq -c --arg sha "$sha" --argjson pr "$pr" --argjson boundary "$boundary_ids" '
     [(if type == "array" then .[].workflow_runs[] else .workflow_runs[] end) |
       select(.event == "pull_request" and .head_sha == $sha and .run_attempt == 1 and
@@ -250,6 +250,45 @@ canonical_eligible_run_ids() {
         ((.id as $id | $boundary | index($id)) == null))] |
     sort_by(.run_started_at, .id) | map(.id)
   ' <<<"$workflow_runs" || die "unable to derive canonical eligible run IDs"
+}
+
+gh_api_json() {
+  local endpoint="$1" pagination="${2:-}" output reset now delay status
+  while :; do
+    if [ "$pagination" = paginate ]; then
+      if output="$(gh api --paginate --slurp -H 'Accept: application/vnd.github+json' "$endpoint" 2>&1)"; then
+        status=0
+      else
+        status=$?
+      fi
+    else
+      if output="$(gh api -H 'Accept: application/vnd.github+json' "$endpoint" 2>&1)"; then
+        status=0
+      else
+        status=$?
+      fi
+    fi
+    if [ "$status" -eq 0 ]; then
+      printf '%s\n' "$output"
+      return 0
+    fi
+
+    if grep -qi 'rate limit exceeded' <<<"$output"; then
+      reset="$(gh api rate_limit --jq '.resources.core.reset' 2>/dev/null || true)"
+      now="$(date +%s)"
+      delay=60
+      if [[ "$reset" =~ ^[0-9]+$ ]] && [ "$reset" -gt "$now" ] && [ $((reset - now + 2)) -lt "$delay" ]; then
+        delay=$((reset - now + 2))
+      fi
+      [ "$delay" -gt 0 ] || delay=1
+      echo "[ci-timing] GitHub API rate limited; retrying in ${delay}s" >&2
+      sleep "$delay"
+      continue
+    fi
+
+    printf '%s\n' "$output" >&2
+    return 1
+  done
 }
 
 validate_running_state() {
@@ -445,35 +484,9 @@ if [ "$(jq -r '.status // ""' "$state_file")" = complete ]; then
   exit 2
 fi
 
-gh_api_json() {
-  local endpoint="$1" output reset now delay
-  while :; do
-    if output="$(gh api -H 'Accept: application/vnd.github+json' "$endpoint" 2>&1)"; then
-      printf '%s\n' "$output"
-      return 0
-    fi
-
-    if grep -qi 'rate limit exceeded' <<<"$output"; then
-      reset="$(gh api rate_limit --jq '.resources.core.reset' 2>/dev/null || true)"
-      now="$(date +%s)"
-      delay=60
-      if [[ "$reset" =~ ^[0-9]+$ ]] && [ "$reset" -gt "$now" ] && [ $((reset - now + 2)) -lt "$delay" ]; then
-        delay=$((reset - now + 2))
-      fi
-      [ "$delay" -gt 0 ] || delay=1
-      echo "[ci-timing] GitHub API rate limited; retrying in ${delay}s" >&2
-      sleep "$delay"
-      continue
-    fi
-
-    printf '%s\n' "$output" >&2
-    return 1
-  done
-}
-
 list_runs() {
   gh_api_json \
-    "repos/${repo}/actions/workflows/${workflow}/runs?event=pull_request&branch=${encoded_head_ref}&per_page=100"
+    "repos/${repo}/actions/workflows/${workflow}/runs?event=pull_request&branch=${encoded_head_ref}&per_page=100" paginate
 }
 
 same_sha_runs() {
@@ -543,11 +556,12 @@ record_current_run_status() {
 }
 
 persist_pending_trigger() {
-  local before_ids="$1" triggered_at tmp
+  local before_ids="$1" triggered_at triggered_at_epoch tmp
   triggered_at="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+  triggered_at_epoch="$(date +%s)"
   tmp="$(mktemp "${TMPDIR:-/tmp}/rindle-ci-timing-state.XXXXXX")"
-  jq --argjson before "$before_ids" --arg triggered_at "$triggered_at" '
-    .pending_trigger={before_run_ids:$before,triggered_at:$triggered_at,status:"awaiting_run"}
+  jq --argjson before "$before_ids" --arg triggered_at "$triggered_at" --argjson triggered_at_epoch "$triggered_at_epoch" '
+    .pending_trigger={before_run_ids:$before,triggered_at:$triggered_at,triggered_at_epoch:$triggered_at_epoch,status:"awaiting_run"}
   ' "$state_file" > "$tmp" && mv "$tmp" "$state_file"
 }
 
@@ -561,7 +575,9 @@ adopt_pending_trigger_run() {
 }
 
 wait_for_new_run() {
-  local before_ids="$1" candidates
+  local before_ids="$1" candidates triggered_at_epoch deadline
+  triggered_at_epoch="$(jq -r '.pending_trigger.triggered_at_epoch' "$state_file")"
+  deadline=$((triggered_at_epoch + creation_timeout))
   while :; do
     candidates="$(same_sha_runs | jq -c --argjson before "$before_ids" '[.[] | select((.id as $id | $before | index($id)) == null)]')"
     if [ "$(jq 'length' <<<"$candidates")" -eq 1 ]; then
@@ -571,9 +587,19 @@ wait_for_new_run() {
     if [ "$(jq 'length' <<<"$candidates")" -gt 1 ]; then
       return 2
     fi
+    [ "$(date +%s)" -lt "$deadline" ] || return 3
     echo "[ci-timing] owned trigger is awaiting its delayed PR run; polling without relabeling" >&2
     sleep "$poll_seconds"
   done
+}
+
+terminalize_state() {
+  local reason="$1" tmp
+  tmp="$(mktemp "${TMPDIR:-/tmp}/rindle-ci-timing-state.XXXXXX")"
+  jq --arg reason "$reason" '
+    .errors += [{sequence_attempt:.sequence_attempt,reason:$reason,runs:.runs,pending_trigger:.pending_trigger}] |
+    .status="failed" | .pending_trigger=null | .current_run_id=null | .current_run_status=null
+  ' "$state_file" > "$tmp" && mv "$tmp" "$state_file"
 }
 
 wait_and_validate_run() {
@@ -643,7 +669,16 @@ while [ "$attempt" -le "$max_sequences" ]; do
         gh pr edit "$pr" --repo "$repo" --add-label "$label" >/dev/null
         label_owned=1
       fi
-      if ! run_id="$(wait_for_new_run "$before_ids")"; then
+      if run_id="$(wait_for_new_run "$before_ids")"; then
+        :
+      else
+        discovery_exit=$?
+        if [ "$discovery_exit" -eq 3 ]; then
+          invalid_reason="owned trigger did not appear before the persisted creation deadline"
+          cleanup_label
+          terminalize_state "$invalid_reason"
+          die "$invalid_reason"
+        fi
         invalid_reason="expected exactly one new same-head PR run after labeling"
         cleanup_label
         break
