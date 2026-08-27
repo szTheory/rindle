@@ -64,10 +64,10 @@
 
 ## Preservation
 
-- [x] **COV-05**: Authoritative coverage remains at or above 82.13%; tests are not added only to raise
+- [ ] **COV-05**: Authoritative coverage remains at or above 82.13%; tests are not added only to raise
   the percentage.
 
-- [x] **SAFE-02**: Each implementation slice passes focused proof, `mix quality_signals`, SAFE-01, and
+- [ ] **SAFE-02**: Each implementation slice passes focused proof, `mix quality_signals`, SAFE-01, and
   its relevant integration/package lane without Admin, public API, schema/migration, telemetry/error,
   dependency-set, or release-proof drift.
 
