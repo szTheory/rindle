@@ -114,7 +114,7 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
   2. `CI Summary` remains the sole required check with its required-job set and skip-as-pass behavior intact; any external-runner exception includes job-level evidence, a named owner, and a dated follow-up.
   3. Authoritative coverage remains at or above 82.13%, and the final correction passes focused proof, `mix quality_signals`, SAFE-01, the relevant integration or packed-consumer lane, and bounded prohibited-surface diff review.
 
-**Plans**: 12/15 plans executed
+**Plans**: 13/15 plans executed
 
 **Wave 1 — tracer correction and package proof**
 
@@ -166,7 +166,7 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 
 **Wave 13 — failed-run formatter remediation** *(blocked on the Wave 12 controller contract)*
 
-- [ ] 132-13-PLAN.md — Record both formatter-failed recovery runs and apply the formatter-only correction to the D-08/D-09 topology contract.
+- [x] 132-13-PLAN.md — Record both formatter-failed recovery runs and apply the formatter-only correction to the D-08/D-09 topology contract.
 
 **Wave 14 — manifest-bound immutable preservation census** *(blocked on the Wave 13 formatter correction)*
 

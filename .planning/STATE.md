@@ -215,6 +215,8 @@ _(Key v1.22 execution decisions recorded at milestone close.)_
 - [Phase ?]: Projection remains causal regression evidence only; 132-11 API-backed receipt is the sole CI-14 acceptance authority.
 - [Phase ?]: COV-05 is closed only from one fresh ExCoveralls artifact parsed into integer covered and relevant counts.
 - [Phase ?]: PR #96 must align with preserved subject 5add065 before Plan 132-11 may sample; the no-publish mismatch fails closed.
+- [Phase ?]: Both authorized recovery attempts failed deterministically at Quality formatting for the same topology contract and contribute zero timing rows.
+- [Phase ?]: The only authorized correction is mix format normalization of the locked regression file; topology, fixtures, assertions, and timing policy remain unchanged.
 
 ## Blockers/Concerns
 
@@ -300,6 +302,7 @@ Resume file: None
 | Phase 132-measured-closure P09 | 18 minutes | 2 tasks | 3 files |
 | Phase 132 P10 | 14 min | 1 tasks | 2 files |
 | Phase 132 P11 | 22 min | 1 task | 3 files |
+| Phase 132 P13 | 5m | 1 tasks | 2 files |
 
 ## Operator Next Steps
 
