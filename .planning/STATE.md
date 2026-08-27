@@ -4,15 +4,15 @@ milestone: v1.25
 milestone_name: Maintainer Craft & Feedback Velocity
 current_phase: 132
 current_phase_name: measured-closure
-status: gaps_found
-stopped_at: Phase 132 verification gaps_found; CI-14 exact-ten receipt missing and four controller blockers open
-last_updated: "2026-08-27T17:14:11Z"
+status: ready_to_execute
+stopped_at: Phase 132 gap closure planned; Plan 132-19 ready to execute
+last_updated: "2026-08-27T17:40:40Z"
 last_activity: 2026-08-27
-last_activity_desc: Phase 132 verification found CI-14 and controller gaps after 18/18 plans
+last_activity_desc: Phase 132 gap closure planned and independently verified across Plans 19-21
 progress:
   total_phases: 3
   completed_phases: 0
-  total_plans: 18
+  total_plans: 21
   completed_plans: 18
   percent: 0
 ---
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-08-23 after v1.24)
 
 ## Current Position
 
-Phase: 132 (measured-closure) — GAPS FOUND
-Plan: 18 of 18
-Status: CI-14 exact-ten receipt missing; four fail-closed controller blockers require remediation
-Last activity: 2026-08-27 — verification confirmed 2/3 must-haves; COV-05 and SAFE-02 passed
+Phase: 132 (measured-closure) — PLANNED
+Plan: 18 of 21
+Status: Ready to execute the fail-closed controller repair, preservation census, and fresh terminal sampler
+Last activity: 2026-08-27 — Plans 132-19 through 132-21 passed independent plan verification
 
 ### v1.24 shipped summary
 
@@ -244,8 +244,8 @@ _()_
 
 ## Session Continuity
 
-Last session: 2026-08-27T17:14:11Z
-Stopped at: Phase 132 verification gaps_found; plan controller repairs before a fresh exact-ten sample
+Last session: 2026-08-27T17:40:40Z
+Stopped at: Phase 132 gap closure planned; execute Plan 132-19 next
 Resume file: None
 
 ## Performance Metrics
@@ -315,4 +315,4 @@ Resume file: None
 
 ## Operator Next Steps
 
-- Plan a bounded automated CI-14 remediation slice from the two failed exact-head first-attempt runs; no UAT.
+- Execute Plans 132-19 through 132-21 in dependency order; CI-14 closes only on the fresh machine-verified exact-ten receipt.
