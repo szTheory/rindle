@@ -322,6 +322,40 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
     end
   end
 
+  test "rate limits at restart-boundary and final-population owners fail closed", context do
+    state_file = Path.join(context.state_dir, "pr-96-#{context.head}.json")
+    receipt_before = File.read!(context.receipt)
+
+    for {name, env} <- [
+          {"restart boundary",
+           [
+             {"GH_FAIL_RUN_ID", "1001"},
+             {"GH_RATE_LIMIT_ENDPOINT", "actions/workflows"},
+             {"GH_RATE_LIMIT_AFTER", "5"}
+           ]},
+          {"final canonical population",
+           [
+             {"GH_RATE_LIMIT_ENDPOINT", "actions/workflows"},
+             {"GH_RATE_LIMIT_AFTER", "41"}
+           ]}
+        ] do
+      File.rm_rf!(context.state_dir)
+      File.mkdir_p!(context.state_dir)
+      File.write!(Path.join(context.fixture_dir, "count"), "0\n")
+      File.rm(Path.join(context.fixture_dir, "api-count"))
+
+      assert {output, 1} = run_controller(context, env, run_timeout: "1")
+      assert output =~ "deadline"
+
+      state = state_file |> File.read!() |> Jason.decode!()
+      assert state["status"] == "failed", "#{name} retained a resumable state"
+      assert state["pending_trigger"] == nil
+      assert state["current_run_id"] == nil
+      assert File.read!(context.receipt) == receipt_before
+      refute File.exists?(state_file <> ".lock")
+    end
+  end
+
   test "verification fails when a qualifying second-page run is absent from the receipt",
        context do
     assert {_output, 0} = run_controller(context)
@@ -343,6 +377,25 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
              )
 
     assert output =~ "receipt verification passed"
+  end
+
+  test "verify-only API rate limits preserve the accepted receipt", context do
+    assert {_output, 0} = run_controller(context)
+    receipt_before = File.read!(context.receipt)
+
+    assert {output, 124} =
+             System.cmd("bash", verify_args(context),
+               env:
+                 controller_env(context) ++
+                   [
+                     {"GH_RATE_LIMIT_ENDPOINT", "actions/runs/1001"},
+                     {"GH_RATE_LIMIT_AFTER", "1"}
+                   ],
+               stderr_to_stdout: true
+             )
+
+    assert output =~ "rate-limit retry deadline expired"
+    assert File.read!(context.receipt) == receipt_before
   end
 
   test "verify rejects a partial receipt", context do
@@ -709,6 +762,8 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
       "480",
       "--p95-max",
       "600",
+      "--run-timeout",
+      "1",
       "--receipt",
       context.receipt
     ]
