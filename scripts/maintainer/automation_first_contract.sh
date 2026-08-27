@@ -100,7 +100,9 @@ for plan in "$phase_dir"/*-PLAN.md; do
       }
     }
     END {
-      if (inside) printf "__RINDLE_UNCLOSED_HUMAN_ACTION__%c", 0
+      if (inside || (tag ~ /^<task([[:space:]]|>)/ && is_human_action(tag))) {
+        printf "__RINDLE_UNCLOSED_HUMAN_ACTION__%c", 0
+      }
     }
   ' "$plan" > "$blocks"
 
