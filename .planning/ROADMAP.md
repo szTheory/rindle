@@ -114,7 +114,7 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
   2. `CI Summary` remains the sole required check with its required-job set and skip-as-pass behavior intact; any external-runner exception includes job-level evidence, a named owner, and a dated follow-up.
   3. Authoritative coverage remains at or above 82.13%, and the final correction passes focused proof, `mix quality_signals`, SAFE-01, the relevant integration or packed-consumer lane, and bounded prohibited-surface diff review.
 
-**Plans**: 20/21 plans executed
+**Plans**: 21/21 plans executed
 
 **Wave 1 — tracer correction and package proof**
 
@@ -198,7 +198,7 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 
 **Wave 21 — fresh terminal timing acceptance** *(blocked on Wave 20 completion)*
 
-- [ ] 132-21-PLAN.md — Publish once, collect the complete exact-ten API population, and independently reverify the inclusive CI-14 verdict.
+- [x] 132-21-PLAN.md — Publish once, collect the complete exact-ten API population, and independently reverify the inclusive CI-14 verdict.
 
 ## Demand-Gated Candidates
 

@@ -4,9 +4,9 @@ milestone: v1.25
 milestone_name: Maintainer Craft & Feedback Velocity
 current_phase: 132
 current_phase_name: measured-closure
-status: executing
-stopped_at: Completed 132-20-PLAN.md
-last_updated: "2026-08-27T18:10:00.864Z"
+status: verifying
+stopped_at: Completed 132-21-PLAN.md
+last_updated: "2026-08-27T20:49:26.446Z"
 last_activity: 2026-08-27
 last_activity_desc: Phase 132 execution started
 progress:
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-08-23 after v1.24)
 
 Phase: 132 (measured-closure) — EXECUTING
 Plan: 21 of 21
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-08-27 — Phase 132 execution started
 
 ### v1.24 shipped summary
@@ -226,6 +226,7 @@ _(Key v1.22 execution decisions recorded at milestone close.)_
 - [Phase ?]: Timing controller state is schema-v2 and terminal failed evidence cannot authorize another sampling sequence.
 - [Phase ?]: Trigger creation uses a persisted absolute deadline; canonical Actions eligibility paginates every page before comparison.
 - [Phase ?]: Plan 132-20 binds active preservation to a4bbbd1 and leaves CI-14 live mutation solely to Plan 132-21.
+- [Phase ?]: Phase 132 Plan 21: bounded API-backed receipt on immutable head 869ca9c passed CI-14 at 453s median and 481s p95 after explicit verifier and completed-state re-entry.
 
 ## Blockers/Concerns
 
@@ -247,8 +248,8 @@ _()_
 
 ## Session Continuity
 
-Last session: 2026-08-27T18:10:00.853Z
-Stopped at: Completed 132-20-PLAN.md
+Last session: 2026-08-27T20:49:26.433Z
+Stopped at: Completed 132-21-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -317,6 +318,7 @@ Resume file: None
 | Phase 132 P15 | 9m | 1 tasks | 2 files |
 | Phase 132-measured-closure P19 | 0h 12m | 2 tasks | 2 files |
 | Phase 132-measured-closure P20 | ~25m | 2 tasks | 2 files |
+| Phase 132 P21 | 2h 38m | 1 tasks | 2 files |
 
 ## Operator Next Steps
 
