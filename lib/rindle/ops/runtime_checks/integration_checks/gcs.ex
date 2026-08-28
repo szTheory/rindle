@@ -444,9 +444,6 @@ defmodule Rindle.Ops.RuntimeChecks.IntegrationChecks.GCS do
 
       {:error, %Jason.DecodeError{} = error} ->
         {:error, {:decode_error, inspect(error.__struct__)}}
-
-      {:error, reason} ->
-        {:error, reason}
     end
   end
 
