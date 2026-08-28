@@ -2,6 +2,13 @@
 
 0.1.0-0.1.3 were release-pipeline shakedown iterations; treat 0.1.4 as the first recommended pin.
 
+## [0.4.6](https://github.com/szTheory/rindle/compare/rindle-v0.4.5...rindle-v0.4.6) (2026-08-28)
+
+
+### Bug Fixes
+
+* **ci:** settle green-main baseline ([#103](https://github.com/szTheory/rindle/issues/103)) ([aadc416](https://github.com/szTheory/rindle/commit/aadc416e641f35d828c6a047239d6b67382b1209))
+
 ## [0.4.5](https://github.com/szTheory/rindle/compare/rindle-v0.4.4...rindle-v0.4.5) (2026-08-28)
 
 
