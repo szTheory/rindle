@@ -118,6 +118,27 @@ defmodule Rindle.InstallSmoke.AutomationFirstContractTest do
              "authorization checkpoint may not carry requirement acceptance or verification"
   end
 
+  test "classifies large authorization blocks without a grep broken-pipe race", %{
+    phase_dir: phase_dir
+  } do
+    padding = String.duplicate("x", 200_000)
+
+    File.write!(Path.join(phase_dir, "132-03-PLAN.md"), """
+    <task type="checkpoint:human-action" gate="blocking">
+      <purpose>authorization</purpose>
+      #{padding}
+      <verification>Human approval closes SAFE-02.</verification>
+    </task>
+    """)
+
+    assert {output, 1} = run_contract(phase_dir)
+    refute output =~ "Broken pipe"
+    refute output =~ "human-action checkpoint is not authorization-only"
+
+    assert output =~
+             "authorization checkpoint may not carry requirement acceptance or verification"
+  end
+
   test "fails closed for an unclosed multiline human-action opener", %{phase_dir: phase_dir} do
     File.write!(Path.join(phase_dir, "132-04-PLAN.md"), """
     <!-- <task type="checkpoint:human-action">commented decoy -->

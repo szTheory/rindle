@@ -111,9 +111,9 @@ for plan in "$phase_dir"/*-PLAN.md; do
   while IFS= read -r -d '' block; do
     if [ "$block" = "__RINDLE_UNCLOSED_HUMAN_ACTION__" ]; then
       record_failure "$(basename "$plan"): unclosed human-action checkpoint fails closed"
-    elif ! printf '%s' "$block" | grep -Eq '<purpose>(authorization|credential-bootstrap)</purpose>'; then
+    elif ! grep -Eq '<purpose>(authorization|credential-bootstrap)</purpose>' <<<"$block"; then
       record_failure "$(basename "$plan"): human-action checkpoint is not authorization-only"
-    elif printf '%s' "$block" | grep -Eq '<(acceptance_criteria|verify|verification)>'; then
+    elif grep -Eq '<(acceptance_criteria|verify|verification)>' <<<"$block"; then
       record_failure "$(basename "$plan"): authorization checkpoint may not carry requirement acceptance or verification"
     fi
   done < "$blocks"
