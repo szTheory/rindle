@@ -2,36 +2,36 @@
 gsd_state_version: 1.0
 milestone: v1.25
 milestone_name: Maintainer Craft & Feedback Velocity
-current_phase: 132
-status: completed
-stopped_at: Completed 132-22-PLAN.md
-last_updated: "2026-08-27T22:04:51.246Z"
+status: Awaiting next milestone
+stopped_at: Milestone v1.25 archived
+last_updated: "2026-08-28T02:18:51.181Z"
 last_activity: 2026-08-27
-last_activity_desc: Phase 132 complete
+last_activity_desc: Milestone v1.25 completed and archived
 progress:
-  total_phases: 3
-  completed_phases: 1
+  total_phases: 6
+  completed_phases: 6
   total_plans: 22
   completed_plans: 22
-  percent: 33
-current_phase_name: measured-closure
+  percent: 100
+current_phase: null
+current_phase_name: null
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-08-23 after v1.24)
+See: .planning/PROJECT.md (updated 2026-08-27 after v1.25)
 
 **Core value:** Media, made durable.
-**Current focus:** Phase 132 — measured-closure
+**Current focus:** Post-ship assessment, then demand-gated pause
 
 ## Current Position
 
-Phase: 132
-Plan: 22 of 22
-Status: All phases complete
-Last activity: 2026-08-27 — Phase 132 complete
+Phase: Milestone v1.25 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-08-27 — Milestone v1.25 completed and archived
 
 ### v1.24 shipped summary
 
@@ -60,9 +60,9 @@ the historical 0.4.0 contract; do not regress either side of that invariant.
 
 ## Next Step
 
-Execute Plan 132-22 to close the two remaining automated SAFE-02 blockers, then rerun review and
-verification. The accepted exact-ten CI-14 receipt remains authoritative and must be replayed in
-verify-only mode; no new timing sample or human UAT is required unless machine evidence proves required-path drift.
+Run `$gsd-milestone-next-step` for the required post-ship assessment. Do not start a feature or
+maintenance milestone unless the assessment finds a concrete adopter, compliance, reliability, or
+release-train signal; otherwise preserve the demand-gated pause.
 
 ## Prior Milestone
 
@@ -230,11 +230,7 @@ _(Key v1.22 execution decisions recorded at milestone close.)_
 
 ## Blockers/Concerns
 
-_()_
-
-- SAFE-02 remains blocked by unbounded persistent-rate-limit retries in controller wait paths and
-  attribute-order/quote-sensitive human-action checkpoint parsing. CI-14 and COV-05 have valid
-  machine evidence and are preservation inputs, not reopened requirements.
+_(none)_
 
 ## Deferred Items
 
@@ -248,8 +244,8 @@ _()_
 
 ## Session Continuity
 
-Last session: 2026-08-27T20:49:26.433Z
-Stopped at: Completed 132-21-PLAN.md
+Last session: 2026-08-27T22:18:51-04:00
+Stopped at: Milestone v1.25 archived
 Resume file: None
 
 ## Performance Metrics
@@ -322,4 +318,5 @@ Resume file: None
 
 ## Operator Next Steps
 
-- Execute Plan 132-21: CI-14 closes only on the fresh machine-verified exact-ten receipt.
+- Run `$gsd-milestone-next-step` for the required post-ship assessment.
+- Use `$gsd-new-milestone` only if that assessment identifies an approved signal.
