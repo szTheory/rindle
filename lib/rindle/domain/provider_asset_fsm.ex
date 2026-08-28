@@ -3,9 +3,8 @@ defmodule Rindle.Domain.ProviderAssetFSM do
 
   require Logger
 
-  # D-13 — locked transitions for media_provider_assets.state.
-  # `errored → processing` is the re-ingest re-entry edge; Phase 34
-  # MuxIngestVariant retry path depends on this edge.
+  # Locked transitions for media_provider_assets.state. `errored → processing`
+  # is the re-ingest edge used by MuxIngestVariant retries.
   @allowed_transitions %{
     "pending" => ["uploading", "errored", "deleted"],
     "uploading" => ["processing", "errored", "deleted"],
@@ -19,7 +18,7 @@ defmodule Rindle.Domain.ProviderAssetFSM do
   @type transition_error :: {:error, {:invalid_transition, state(), state()}}
 
   @doc """
-  Returns `:ok` when the transition is explicitly allowlisted (D-13). Emits
+  Returns `:ok` when the transition is explicitly allowlisted. Emits
   `[:rindle, :provider_asset, :state_change]` telemetry on success; logs a
   `Logger.warning` and returns an `{:error, {:invalid_transition, from, to}}`
   tuple on rejection. Caller owns the changeset apply / persistence step;

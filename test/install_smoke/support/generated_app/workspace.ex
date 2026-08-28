@@ -35,7 +35,7 @@ defmodule Rindle.InstallSmoke.GeneratedApp.Workspace do
         "--no-dashboard",
         "--no-mailer",
         "--no-gettext",
-        "--install"
+        "--no-install"
       ],
       [{"MIX_ENV", "dev"}]
     )

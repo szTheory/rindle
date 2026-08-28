@@ -8,7 +8,7 @@ defmodule Mix.Tasks.Rindle.Doctor do
     * `ffmpeg` >= 6.0 is installed and available in the system PATH.
     * optional profile module arguments can be loaded and their AV variants are
       compatible with the bundled runtime/processor contract.
-    * Phase 36 / MUX-16 — when at least one profile opts into `:streaming`,
+    * when at least one profile opts into `:streaming`,
       four additional checks validate Mux credentials, signing key, webhook
       secrets, and (with `--streaming`) a 5s-bounded live API smoke ping.
 
@@ -36,7 +36,7 @@ defmodule Mix.Tasks.Rindle.Doctor do
     {parsed, rest, invalid} =
       OptionParser.parse(args, strict: [streaming: :boolean])
 
-    # Phase 36 WR-06: fail loudly on unknown flags so a typo like
+    # Fail loudly on unknown flags so a typo like
     # `--streming` surfaces immediately. Mix tasks generally fail on
     # unknown flags; the previous implementation discarded `invalid`
     # and silently ran without the requested flag.

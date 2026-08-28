@@ -3,10 +3,9 @@ defmodule Rindle.Workers.IngestProviderWebhook do
   Oban worker driving idempotent ingest of streaming-provider webhooks.
 
   Enqueued by `Rindle.Delivery.WebhookPlug` after the Plug verifies the HMAC
-  signature. The worker trusts upstream verification (single trust boundary
-  at the Plug edge per D-19); it does NOT re-verify.
+  signature. The worker trusts that single edge boundary and does not re-verify.
 
-  ## Queue & retry posture (D-18, D-20)
+  ## Queue and retry posture
 
     * Queue: `:rindle_provider` (shared with `Rindle.Workers.MuxIngestVariant`).
     * `max_attempts: 5` with default Oban exponential backoff for Repo errors.
@@ -15,7 +14,7 @@ defmodule Rindle.Workers.IngestProviderWebhook do
       (`states: [:scheduled, :executing, :retryable]`) — re-delivery during
       Mux outages is a no-op.
 
-  ## Race-snooze (D-21) — divergence from sibling workers
+  ## Race snooze
 
   This is the ONLY Rindle worker that uses `{:snooze, n}`. The race window is
   data-visibility (webhook for `video.asset.ready` arrives before
@@ -30,9 +29,9 @@ defmodule Rindle.Workers.IngestProviderWebhook do
     * attempt ≥ 5 → `{:cancel, :provider_asset_row_missing}`
 
   Cumulative budget ~155s. After cancel, the polling backstop
-  (`Rindle.Workers.MuxSyncProviderAsset`, Phase 34) reconciles the row.
+  (`Rindle.Workers.MuxSyncProviderAsset`) reconciles the row.
 
-  ## Dispatch table (D-27)
+  ## Dispatch table
 
   | Event type | FSM transition | Broadcast | Telemetry |
   |------------|----------------|-----------|-----------|
@@ -43,7 +42,7 @@ defmodule Rindle.Workers.IngestProviderWebhook do
   | `video.upload.asset_created` | `uploading -> processing` | `:provider_asset_created` | `:processed` |
   | other | none (last_event_at bump only) | none | `:ignored` kind: :unknown_event |
 
-  ## Telemetry (D-26 + security invariant 14)
+  ## Telemetry
 
     * `[:rindle, :provider, :webhook, :processed]` — happy path with FSM transition.
     * `[:rindle, :provider, :webhook, :ignored]` — no-op (unknown / deferred / race-snooze).
@@ -52,7 +51,7 @@ defmodule Rindle.Workers.IngestProviderWebhook do
   Metadata always routes `asset_id` through `MediaProviderAsset.redact_id/1`
   (security invariant 14).
 
-  ## PubSub (D-31, D-32, D-33)
+  ## PubSub
 
   Two-topic broadcast on `"rindle:provider_asset:#\{media_asset_id\}"` AND
   `"rindle:asset:#\{media_asset_id\}"`. Payload contract:
@@ -71,7 +70,7 @@ defmodule Rindle.Workers.IngestProviderWebhook do
   alias Phoenix.PubSub
   alias Rindle.Domain.{MediaProviderAsset, ProviderAssetFSM}
 
-  # attempt -> snooze seconds (D-21).
+  # attempt -> snooze seconds
   @snooze_curve [5, 15, 45, 90]
 
   @impl Oban.Worker
@@ -79,13 +78,13 @@ defmodule Rindle.Workers.IngestProviderWebhook do
 
   @doc """
   Public unique-job opts for callers (e.g., the Plug) that build their own
-  `Oban.Job.changeset` and need the same idempotency key (D-20).
+  `Oban.Job.changeset` and need the same idempotency key.
 
   Includes `:available` in `states` because Oban inserts newly-enqueued jobs
   in `:available` state by default — without it the unique constraint never
   fires for the most common dedup case (re-delivery right after the first
   insert, before the worker picks up the job). This mirrors
-  `Rindle.Workers.MuxIngestVariant.unique_job_opts/0` (Phase 34).
+  `Rindle.Workers.MuxIngestVariant.unique_job_opts/0`.
   """
   @spec unique_job_opts() :: keyword()
   def unique_job_opts do
@@ -144,7 +143,7 @@ defmodule Rindle.Workers.IngestProviderWebhook do
     end
   end
 
-  # Race-snooze (D-21): row not visible yet → exponential backoff up to 4 attempts.
+  # The provider row may commit just after webhook enqueue; retry that bounded race.
   defp handle_missing_row(%Oban.Job{attempt: attempt}, args) when attempt < 5 do
     delay = Enum.at(@snooze_curve, attempt - 1, List.last(@snooze_curve))
 
@@ -170,7 +169,7 @@ defmodule Rindle.Workers.IngestProviderWebhook do
   end
 
   # ============================================================
-  # Dispatch table (D-27).
+  # Event dispatch remains explicit because each branch carries different lifecycle effects.
   # ============================================================
 
   defp dispatch(repo, row, %{"event_type" => "video.asset.ready"} = args) do
@@ -180,8 +179,7 @@ defmodule Rindle.Workers.IngestProviderWebhook do
     raw = event["raw"] || %{}
 
     # NB: `playback_ids` (PLURAL) is the only schema field; there is no
-    # singular `playback_id` column. The plan-level "legacy single id" comment
-    # was outdated — Phase 33 schema is plural-only.
+    # singular `playback_id` column.
     attrs = %{
       state: "ready",
       playback_ids: playback_ids,
@@ -317,7 +315,7 @@ defmodule Rindle.Workers.IngestProviderWebhook do
   end
 
   defp dispatch(repo, row, args) do
-    # Unknown / out-of-table event types (D-25) — bump last_event_at, no FSM,
+    # Unknown event types update last_event_at without an FSM transition or
     # no broadcast.
     event = args["event"] || %{}
     occurred_at = parse_datetime(event["occurred_at"])
@@ -382,7 +380,7 @@ defmodule Rindle.Workers.IngestProviderWebhook do
   end
 
   # ============================================================
-  # PubSub broadcast (D-31, D-32) — two-topic, payload omits
+  # Broadcast on both ownership topics; the payload omits
   # provider_asset_id (security invariant 14).
   # ============================================================
 
@@ -393,7 +391,7 @@ defmodule Rindle.Workers.IngestProviderWebhook do
       profile: row.profile,
       provider: :mux,
       state: row.state
-      # NB: provider_asset_id is FORBIDDEN here (D-32).
+      # Provider asset IDs are deliberately omitted from the public payload.
     }
 
     for topic <- [
@@ -419,7 +417,7 @@ defmodule Rindle.Workers.IngestProviderWebhook do
   end
 
   # ============================================================
-  # Telemetry (D-26 + security invariant 14).
+  # Telemetry metadata excludes provider asset IDs and raw provider payloads.
   # ============================================================
 
   defp emit(stage, args, extra) do

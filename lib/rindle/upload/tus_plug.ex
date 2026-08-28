@@ -92,7 +92,7 @@ defmodule Rindle.Upload.TusPlug do
 
   @tus_version "1.0.0"
   # Conservative adopter-overridable default (5 GiB). The only adopter-facing
-  # size knob; the PATCH read-loop constants below stay fixed (D-07).
+  # size knob; the PATCH read-loop constants below stay fixed.
   @default_max_size 5 * 1024 * 1024 * 1024
 
   @type create_upload_result ::
@@ -344,8 +344,8 @@ defmodule Rindle.Upload.TusPlug do
   # Completion: finalize the upload POLYMORPHICALLY through the adapter's tus sink
   # (`adapter.complete_part_stream/4`) — S3 flushes the tail + completes the
   # multipart, Local atomic-renames its part file. NO `if adapter == Local`
-  # branch (D-12). Then converge into the UNCHANGED verify_completion/2 lane
-  # (D-08 — zero new completion vocabulary). The session is in "signed", so
+  # branch. Then converge into the existing verify_completion/2 lane without
+  # introducing a second completion vocabulary. The session is in "signed", so
   # verify_completion's signed -> verifying edge is legal (never parked in
   # "resuming" — Pitfall 7). `temp_path` is nil: the final PATCH's bytes were
   # already appended during the matching upload_part_stream/5 call.
@@ -377,7 +377,7 @@ defmodule Rindle.Upload.TusPlug do
       # (1) FIRST abort the backing store polymorphically (S3 multipart abort, or
       # Local tmp removal) via the shared PUBLIC helper, using the adapter + root
       # the Plug already holds in `opts` — no DB profile re-resolution on the hot
-      # DELETE path and no `if adapter == Local` branch (D-12). On a TRANSIENT
+      # DELETE path and no adapter-specific branch. On a transient
       # abort failure (CR-01) the abort is NOT silently swallowed: the row carries
       # a retryable `tus_abort_failed:<reason>` marker (folded into the aborted
       # changeset below) so the reaper re-aborts the orphaned multipart on the

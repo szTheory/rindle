@@ -21,21 +21,26 @@ if [ "$#" -eq 0 ]; then
   exit 2
 fi
 
-for attempt in 1 2; do
-  echo "[install_apt_packages] attempt ${attempt}/2: $*"
+echo "[install_apt_packages] attempt 1/2: $*"
 
-  if sudo timeout --kill-after=15s 240s apt-get update &&
-    sudo env DEBIAN_FRONTEND=noninteractive \
-      timeout --kill-after=15s 240s \
-      apt-get install -y --no-install-recommends "$@"; then
+if sudo env DEBIAN_FRONTEND=noninteractive \
+  timeout --kill-after=15s 240s \
+  apt-get install -y --no-install-recommends "$@"; then
+  exit 0
+fi
+
+echo "[install_apt_packages] initial install failed or timed out; refreshing indexes before final attempt" >&2
+sleep 5
+
+if sudo timeout --kill-after=15s 240s apt-get update; then
+  echo "[install_apt_packages] attempt 2/2: $*"
+
+  if sudo env DEBIAN_FRONTEND=noninteractive \
+    timeout --kill-after=15s 240s \
+    apt-get install -y --no-install-recommends "$@"; then
     exit 0
   fi
-
-  if [ "$attempt" -lt 2 ]; then
-    echo "[install_apt_packages] apt failed or timed out; retrying once after mirror failover" >&2
-    sleep 5
-  fi
-done
+fi
 
 echo "[install_apt_packages] failed after two bounded attempts: $*" >&2
 exit 1

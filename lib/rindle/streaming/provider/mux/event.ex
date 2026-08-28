@@ -13,7 +13,7 @@ defmodule Rindle.Streaming.Provider.Mux.Event do
 
   Returns `{:error, :provider_webhook_invalid}` for malformed payloads.
 
-  ## `video.upload.asset_created` typed branch (D-29)
+  ## `video.upload.asset_created` typed branch
 
   The `video.upload.asset_created` event ships a different `data` layout from
   the asset-scoped events: `data.id` is the UPLOAD identifier (NOT the
@@ -98,7 +98,7 @@ defmodule Rindle.Streaming.Provider.Mux.Event do
     end
   end
 
-  # WAIVED (POLISH-01/D-13): IN-01 — defensive-only Unix-string created_at
+  # Defensive Unix-string created_at parsing remains for non-webhook callers;
   # parse; no live caller feeds Mux REST created_at into Event normalization
   # (webhooks use ISO8601). Kept belt-and-suspenders; no behavior change.
   defp parse_occurred_at(nil), do: nil

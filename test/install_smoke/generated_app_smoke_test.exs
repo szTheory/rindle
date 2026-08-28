@@ -120,6 +120,38 @@ defmodule Rindle.InstallSmoke.GeneratedAppMigrationContractTest do
   end
 end
 
+defmodule Rindle.InstallSmoke.GeneratedAppPhase132GeneratorContractTest do
+  use ExUnit.Case, async: true
+
+  @moduletag :phase_132_generator_contract
+
+  test "Phoenix generation defers dependency installation until after the generated app is patched" do
+    workspace_source =
+      File.read!(Path.expand("support/generated_app/workspace.ex", __DIR__))
+
+    [generate_phoenix_app] =
+      Regex.run(
+        ~r/def generate_phoenix_app!\(workspace_root, generated_app_root\) do\n(?<body>.*?)\n  end/s,
+        workspace_source,
+        capture: :all_but_first
+      )
+
+    assert length(Regex.scan(~r/CommandRunner\.run!\(/, generate_phoenix_app)) == 1
+    assert generate_phoenix_app =~ "workspace_root"
+    assert generate_phoenix_app =~ "\"mix\""
+    assert generate_phoenix_app =~ "\"phx.new\""
+    assert generate_phoenix_app =~ "generated_app_root"
+
+    for feature_omission <- ["--no-assets", "--no-dashboard", "--no-mailer", "--no-gettext"] do
+      assert generate_phoenix_app =~ feature_omission
+    end
+
+    assert generate_phoenix_app =~ "--no-install"
+    assert generate_phoenix_app =~ ~s({"MIX_ENV", "dev"})
+    refute generate_phoenix_app =~ ~r/["']--install["']/
+  end
+end
+
 defmodule Rindle.InstallSmoke.GeneratedAppPhase120FastContractTest do
   use ExUnit.Case, async: true
 

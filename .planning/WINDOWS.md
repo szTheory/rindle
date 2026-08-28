@@ -2,9 +2,9 @@
 schema_version: 1
 open_count: 0
 waived_count: 2
-fixed_count: 11
-total_count: 13
-last_updated: 2026-08-23T18:15:48.584Z
+fixed_count: 12
+total_count: 14
+last_updated: 2026-08-26T14:47:47.401Z
 ---
 
 # Broken Windows Ledger
@@ -28,6 +28,7 @@ last_updated: 2026-08-23T18:15:48.584Z
 | 11 | 120 | unrun-verify | scripts/install_smoke.sh |  | Broad packed/Cohort verification runner detached before final exit receipts; exact-SHA CI remains required. | fixed |  | 2026-08-20T20:59:00.462Z | 2026-08-20T20:59:01.101Z |
 | 12 | 126 | deviation | .planning/phases/126-curated-type-ratchet/126-04-SUMMARY.md |  | Verification predicate used a punctuation typo; exact emitted E38 text was used for supported receipt validation. | fixed |  | 2026-08-23T13:45:36.941Z | 2026-08-23T18:15:48.503Z |
 | 13 | 126 | deviation | lib/rindle/upload/broker.ex | 193 | Corrected concatenate_tus_sessions/3 return spec to match its existing session-map result. | fixed |  | 2026-08-23T15:10:46.355Z | 2026-08-23T18:15:48.584Z |
+| 14 | 132 | deviation | .planning/REQUIREMENTS.md |  | CI-14 was restored to open because Plan 132-08 owns its live ten-run acceptance. | fixed |  | 2026-08-26T14:47:14.864Z | 2026-08-26T14:47:47.401Z |
 
 ````json
 [
@@ -186,6 +187,18 @@ last_updated: 2026-08-23T18:15:48.584Z
     "reason": "",
     "recorded_at": "2026-08-23T15:10:46.355Z",
     "resolved_at": "2026-08-23T18:15:48.584Z"
+  },
+  {
+    "id": 14,
+    "kind": "deviation",
+    "phase": "132",
+    "file": ".planning/REQUIREMENTS.md",
+    "line": null,
+    "description": "CI-14 was restored to open because Plan 132-08 owns its live ten-run acceptance.",
+    "status": "fixed",
+    "reason": "",
+    "recorded_at": "2026-08-26T14:47:14.864Z",
+    "resolved_at": "2026-08-26T14:47:47.401Z"
   }
 ]
 ````

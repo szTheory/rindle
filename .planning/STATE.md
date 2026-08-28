@@ -1,17 +1,18 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.24
-milestone_name: Core Clarity & Quality Ratchet
-status: Awaiting next milestone
-stopped_at: Milestone v1.24 archived; demand-gated pause
-last_updated: "2026-08-23T18:25:41.782Z"
-last_activity: 2026-08-23
-last_activity_desc: Milestone v1.24 completed and archived
+milestone: v1.25
+milestone_name: Maintainer Craft & Feedback Velocity
+status: Patch repair before demand-gated pause
+stopped_at: Post-v1.25 milestone assessment complete
+last_updated: "2026-08-28T02:45:36.300Z"
+last_activity: 2026-08-27
+last_activity_desc: Post-v1.25 assessment selected a purge-correctness patch and no new milestone
 progress:
   total_phases: 6
   completed_phases: 6
-  total_plans: 40
-  completed_plans: 40
+  total_plans: 22
+  completed_plans: 22
+  percent: 100
 current_phase: null
 current_phase_name: null
 ---
@@ -20,17 +21,26 @@ current_phase_name: null
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-08-23 after v1.24)
+See: .planning/PROJECT.md (updated 2026-08-27 after v1.25)
 
 **Core value:** Media, made durable.
-**Current focus:** Demand-gated pause; monitor the green-main release train and approved issue signals.
+**Current focus:** Ship v1.25, repair purge failure handling as a patch, then demand-gated pause
 
 ## Current Position
 
-Phase: Milestone v1.24 complete
+Phase: Between milestones
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-08-23 — Milestone v1.24 completed and archived
+Status: Patch repair before demand-gated pause
+Last activity: 2026-08-27 — Post-v1.25 milestone assessment complete
+
+### Post-v1.25 assessment
+
+Rindle is roughly 94% done for its stated Phoenix media-lifecycle mission: T0–T2 adopter jobs, docs,
+operator surfaces, generated-package proof, Cohort E2E, and release truth are strong. No compliance
+ticket, named second-provider adopter, or external 1.0 pilot exists, so no feature or graduation
+milestone is authorized. One existing-behavior reliability defect outranks new breadth: `PurgeStorage`
+discards storage deletion errors, removes the DB handle, and returns success instead of letting Oban
+retry. Full assessment: `.planning/threads/2026-08-27-post-v125-milestone-assessment.md`.
 
 ### v1.24 shipped summary
 
@@ -59,8 +69,13 @@ the historical 0.4.0 contract; do not regress either side of that invariant.
 
 ## Next Step
 
-No new milestone is approved. Remain silent on the wire unless LIFE-06, STREAM-10, issue #42, a
-release-train incident, or another concrete maintainer/adopter signal authorizes bounded work.
+First finish the existing v1.25 shipment: push the local closeout commits, update draft PR #96 from
+its older remote head, and merge only on exact-head green proof. The stale Phase 132 roadmap block was
+corrected during shipment preparation. Then fix `PurgeStorage` failure propagation as a bounded patch:
+preserve DB rows/keys on any real
+storage error, normalize already-absent results as success, return errors for Oban retry, and add focused
+failure/retry/docs proof. Do not open a new milestone for this patch. Resume the demand-gated pause after
+release.
 
 ## Prior Milestone
 
@@ -201,10 +216,40 @@ _(Key v1.22 execution decisions recorded at milestone close.)_
 - [Phase ?]: E01-E03 are obsolete only after the source-unchanged supported probe emitted no matching facade/Broker/PromoteAsset warnings.
 - [Phase ?]: E08 removes only an unreachable private PromoteAsset fallback; the four retained atom filters are E04-E07.
 - [Phase ?]: Phase 126 Plan 09: exact-head Nightly 1.17/27 Dialyzer, Nightly Summary, and PR CI Summary accepted candidate a36cd146; issue #76 closed only after all 45 dispositions qualified.
+- [Phase ?]: Phase 132 Plan 01 removes only Phoenix --install and retains Workspace.fetch_deps!/3 as the sole post-patch dependency authority.
+- [Phase ?]: The generator argv is protected by a bounded source-region contract plus the real built-package image proof.
+- [Phase ?]: Phase 132 Plan 02 records both the final implementation commit literal one-file diff and the complete two-file TDD correction range rather than misrepresenting commit topology.
+- [Phase ?]: COV-05 and SAFE-02 preservation passed with one authoritative 82.1343% coverage run; CI-14 remains externally open pending the Plan 03 ten-run receipt.
+- [Phase 132]: Plan 05 completed ten sequential first-attempt PR samples at immutable head 24c17783; median 516.5s failed CI-14 by 36.5s while p95 543s passed, so verification is gaps_found with no human-needed state.
+- [Phase ?]: Plan 132-06 keeps the two bounded apt install attempts but refreshes indexes only after the first install fails; the ten exact-head Actions runs identify Install libvips as a 25-second median repeated setup cost.
+- [Phase ?]: Plan 132-07 binds post-Plan-06 HEAD 0696c49896f34f8747a38fbe6ac08fa2c3355b05 to one-run 82.1343% COV-05 and ordered SAFE-02 authorities before live timing sampling.
+- [Phase ?]: Plan 132-07 preserves CI Summary topology and treats equality at 82.13% coverage, 480-second median, and 600-second p95 as passing.
+- [Phase ?]: D-08 removes only Quality and Optional Dependencies prerequisites from Integration, Contract, and Adoption Demo E2E Smoke.
+- [Phase ?]: Projection remains causal regression evidence only; 132-11 API-backed receipt is the sole CI-14 acceptance authority.
+- [Phase ?]: COV-05 is closed only from one fresh ExCoveralls artifact parsed into integer covered and relevant counts.
+- [Phase ?]: PR #96 must align with preserved subject 5add065 before Plan 132-11 may sample; the no-publish mismatch fails closed.
+- [Phase ?]: Phase 132 Plan 12 uses one PR-bound canonical API population and live completed-PASS revalidation.
+- [Phase ?]: Both authorized recovery attempts failed deterministically at Quality formatting for the same topology contract and contribute zero timing rows.
+- [Phase ?]: The only authorized correction is mix format normalization of the locked regression file; topology, fixtures, assertions, and timing policy remain unchanged.
+- [Phase ?]: Transition manifests are schema-v2, Git-reproduced before mutable CI timing controller paths, and bind three distinct stages for Plans 132-12 through 132-14.
+- [Phase ?]: Plan 132-15 preserves a Git-reproducible three-stage manifest; terminal CI-14 remains exclusively Plan 132-16 exact-ten evidence.
+- [Phase 132]: Plan 132-16 closes controller repair `15336d4` without duplicate implementation; Plan 132-17 freshly preserves that source subject.
+- [Phase 132]: Plan 132-18 exhausted the second bounded sequence after run 33095420536 failed Quality and CI Summary; no exact-ten receipt exists.
+- [Phase 132]: Code review found four controller blockers: terminal failed-state reset, unrestricted sequence count, unbounded missing-run polling, and non-paginated canonical population discovery.
+- [Phase ?]: Timing controller state is schema-v2 and terminal failed evidence cannot authorize another sampling sequence.
+- [Phase ?]: Trigger creation uses a persisted absolute deadline; canonical Actions eligibility paginates every page before comparison.
+- [Phase ?]: Plan 132-20 binds active preservation to a4bbbd1 and leaves CI-14 live mutation solely to Plan 132-21.
+- [Phase ?]: Phase 132 Plan 21: bounded API-backed receipt on immutable head 869ca9c passed CI-14 at 453s median and 481s p95 after explicit verifier and completed-state re-entry.
 
 ## Blockers/Concerns
 
-_(none)_
+- **Purge correctness/support truth:** released 0.4.4 `PurgeStorage` ignores tagged deletion errors,
+  deletes the asset row, and returns `:ok`; the documented three-attempt retry and “storage failures
+  cannot leave the DB inconsistent” claims are therefore false on failure paths.
+- **v1.25 is not remote yet:** PR #96 is draft at `869ca9c`; local closeout/tag `f5741dc` is 26 commits
+  ahead and must pass fresh exact-head checks after publication.
+- **Planning truth drift:** JTBD-MAP remains anchored at v1.18 / Hex 0.3.0. The stale Phase 132
+  `21/22 plans executed` block was corrected in current and archived roadmaps during shipment prep.
 
 ## Deferred Items
 
@@ -218,8 +263,8 @@ _(none)_
 
 ## Session Continuity
 
-Last session: 2026-08-23T18:25:41.782Z
-Stopped at: Milestone v1.24 archived; demand-gated pause
+Last session: 2026-08-27T22:45:36-04:00
+Stopped at: Post-v1.25 milestone assessment complete
 Resume file: None
 
 ## Performance Metrics
@@ -272,7 +317,27 @@ Resume file: None
 | Phase 126 P08 | 15min | 2 tasks | 4 files |
 | Phase 126 P09 | 24min | 2 tasks | 3 files |
 | Phase 126 P10 | planned | 2 tasks | 1 implementation file |
+| Phase 132 P01 | 4 min | 1 tasks | 2 files |
+| Phase 132 P02 | 6 min | 2 tasks | 2 files |
+| Phase 132 P03 | 16 min | 1 tasks | 12 files |
+| Phase 132 P04 | 56 min | 1 tasks | 6 files |
+| Phase 132 P05 | ~96 min | 1 tasks | 5 planning files |
+| Phase 132 P06 | 15 min | 1 tasks | 3 files |
+| Phase 132-measured-closure P07 | 10 minutes | 1 tasks | 2 files |
+| Phase 132-measured-closure P09 | 18 minutes | 2 tasks | 3 files |
+| Phase 132 P10 | 14 min | 1 tasks | 2 files |
+| Phase 132 P11 | 22 min | 1 task | 3 files |
+| Phase 132-measured-closure P12 | 12m | 1 tasks | 2 files |
+| Phase 132 P13 | 5m | 1 tasks | 2 files |
+| Phase 132-measured-closure P14 | 20m | 1 tasks | 2 files |
+| Phase 132 P15 | 9m | 1 tasks | 2 files |
+| Phase 132-measured-closure P19 | 0h 12m | 2 tasks | 2 files |
+| Phase 132-measured-closure P20 | ~25m | 2 tasks | 2 files |
+| Phase 132 P21 | 2h 38m | 1 tasks | 2 files |
 
 ## Operator Next Steps
 
-- Start the next milestone with /gsd-new-milestone
+- Finish v1.25 remote shipment and exact-head verification through PR #96.
+- Repair and release `PurgeStorage` failure handling as a bounded patch, not a milestone.
+- Return to the demand-gated pause; use `$gsd-new-milestone` only after an approved external pilot,
+  compliance ticket, named provider request, or other concrete signal.

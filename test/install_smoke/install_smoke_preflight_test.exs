@@ -1,51 +1,115 @@
 defmodule Rindle.InstallSmoke.InstallSmokePreflightTest do
   @moduledoc """
-  Phase 111 (Regression Locks) LOCK-01 regression lock for the
-  `scripts/install_smoke.sh` cold-runner phx.new self-install guard.
+  Executable contract for the generated-app Phoenix installer.
 
-  The 2026-06-26 flake cluster included an install-smoke failure where the
-  `phx.new` archive was missing on a cold CI runner. The fix added a probe
-  (`mix phx.new --version`) plus a self-install
-  (`MIX_ENV=dev mix archive.install hex phx_new --force`) BEFORE the
-  generated-app smoke runs. This lock makes that guard undeletable: a future
-  edit that drops the probe, drops the self-install, or moves the install
-  AFTER the smoke fails CI on the PR, not silently on `main`.
-
-  Deliberately asserts SHIPPED artifacts ONLY (`scripts/install_smoke.sh`). It
-  does NOT couple to internal `.planning/` doc paths, which move when a
-  milestone is archived (gsd-cleanup) and would break this suite for a
-  non-shipped reason (LOCK-05 globally enforces that decoupling). No exclude
-  tag → default suite → merge-blocking `quality` lane, mirroring the sibling
-  install_smoke parity tests.
+  Every install-smoke entry point delegates to one pinned installer helper. The
+  helper must work on a cold runner, leave a compatible archive alone, and fail
+  with an actionable message when installation does not produce the requested
+  version.
   """
+
   use ExUnit.Case, async: true
 
   @repo_root Path.expand("../..", __DIR__)
   @install_smoke_script Path.join(@repo_root, "scripts/install_smoke.sh")
+  @installer_script Path.join(@repo_root, "scripts/ci/ensure_phx_new.sh")
+  @expected_version "Phoenix installer v1.8.9"
 
   setup_all do
-    {:ok, %{install_smoke_script: File.read!(@install_smoke_script)}}
+    {:ok,
+     %{
+       install_smoke_script: File.read!(@install_smoke_script),
+       installer_script: File.read!(@installer_script)
+     }}
   end
 
-  test "install_smoke.sh self-installs phx.new before the generated-app smoke (cold-runner guard)",
-       %{install_smoke_script: script} do
-    assert script =~ "mix phx.new --version",
-           "install_smoke.sh must probe for the phx.new archive before using it " <>
-             "(the cold-runner self-install guard's presence check)"
+  test "install smoke delegates to the pinned installer before generating an app", %{
+    install_smoke_script: install_smoke,
+    installer_script: installer
+  } do
+    assert install_smoke =~ ~s(bash "$SCRIPT_DIR/ci/ensure_phx_new.sh")
+    assert installer =~ ~s(PHX_NEW_VERSION="1.8.9")
+    assert installer =~ ~s(mix archive.install hex phx_new "$PHX_NEW_VERSION" --force)
 
-    assert script =~ "mix archive.install hex phx_new --force",
-           "install_smoke.sh must self-install the phx.new archive when absent " <>
-             "(the cold-runner self-install guard)"
+    installer_index = :binary.match(install_smoke, "ensure_phx_new.sh") |> elem(0)
+    smoke_index = :binary.match(install_smoke, "generated_app_smoke_test.exs") |> elem(0)
+    assert installer_index < smoke_index
+  end
 
-    # ORDER-INDEX uses the bare "mix archive.install hex phx_new" substring (NO
-    # `MIX_ENV=dev ` prefix, NO `--force` suffix) so cosmetic edits to the live
-    # line don't break the order check. `:binary.match/2` RAISES if the substring
-    # is absent — that is the intended loud failure for a deleted guard.
-    install_idx = :binary.match(script, "mix archive.install hex phx_new") |> elem(0)
-    smoke_idx = :binary.match(script, "generated_app_smoke_test.exs") |> elem(0)
+  @tag :tmp_dir
+  test "a cold runner installs the pinned generator", %{tmp_dir: tmp_dir} do
+    fake = install_fake_mix(tmp_dir)
+    state = Path.join(tmp_dir, "state")
+    log = Path.join(tmp_dir, "calls")
 
-    assert install_idx < smoke_idx,
-           "the phx.new archive must be installed BEFORE the generated-app smoke runs " <>
-             "(install_idx=#{install_idx}, smoke_idx=#{smoke_idx})"
+    {output, 0} = run_installer(fake, state, log)
+
+    assert output =~ "Installing #{@expected_version}"
+    assert state |> File.read!() |> String.trim() == @expected_version
+    assert File.read!(log) =~ "archive.install hex phx_new 1.8.9 --force"
+  end
+
+  @tag :tmp_dir
+  test "a matching generator is reused without reinstalling", %{tmp_dir: tmp_dir} do
+    fake = install_fake_mix(tmp_dir)
+    state = Path.join(tmp_dir, "state")
+    log = Path.join(tmp_dir, "calls")
+    File.write!(state, @expected_version)
+
+    {_output, 0} = run_installer(fake, state, log)
+
+    refute File.read!(log) =~ "archive.install"
+  end
+
+  @tag :tmp_dir
+  test "a failed replacement reports the expected and actual versions", %{tmp_dir: tmp_dir} do
+    fake = install_fake_mix(tmp_dir)
+    state = Path.join(tmp_dir, "state")
+    log = Path.join(tmp_dir, "calls")
+    File.write!(state, "Phoenix installer v1.7.0")
+
+    {output, 1} = run_installer(fake, state, log, "broken")
+
+    assert output =~ "expected '#{@expected_version}'"
+    assert output =~ "Phoenix installer v0.0.0"
+  end
+
+  defp install_fake_mix(tmp_dir) do
+    path = Path.join(tmp_dir, "mix")
+
+    File.write!(path, """
+    #!/usr/bin/env bash
+    set -euo pipefail
+    echo "$*" >> "$FAKE_MIX_LOG"
+    if [ "$*" = "phx.new --version" ]; then
+      if [ -f "$FAKE_MIX_STATE" ]; then
+        cat "$FAKE_MIX_STATE"
+      else
+        exit 1
+      fi
+    elif [ "$*" = "archive.install hex phx_new 1.8.9 --force" ]; then
+      if [ "${FAKE_INSTALL_RESULT:-ok}" = "broken" ]; then
+        echo "Phoenix installer v0.0.0" > "$FAKE_MIX_STATE"
+      else
+        echo "#{@expected_version}" > "$FAKE_MIX_STATE"
+      fi
+    else
+      exit 64
+    fi
+    """)
+
+    File.chmod!(path, 0o755)
+    path
+  end
+
+  defp run_installer(fake, state, log, result \\ "ok") do
+    env = [
+      {"PATH", Path.dirname(fake) <> ":" <> System.fetch_env!("PATH")},
+      {"FAKE_MIX_STATE", state},
+      {"FAKE_MIX_LOG", log},
+      {"FAKE_INSTALL_RESULT", result}
+    ]
+
+    System.cmd("bash", [@installer_script], env: env, stderr_to_stdout: true)
   end
 end

@@ -25,7 +25,7 @@ defmodule Rindle.Delivery.WebhookPlug do
   config, and configure your Mux dashboard webhook to POST to
   `https://yourapp.example.com/webhooks/rindle/mux`.
 
-  ## Secrets resolver shapes (D-02)
+  ## Secrets resolver shapes
 
   The `:secrets` option supports four shapes, resolved at every `call/2`
   (NOT `init/1`) so runtime rotation works without a restart:
@@ -36,7 +36,7 @@ defmodule Rindle.Delivery.WebhookPlug do
       with optional path traversal into nested keyword lists / maps.
     * `(-> [binary()])` — 0-arity function.
 
-  ## Response codes (D-12..D-16)
+  ## Response codes
 
   | Status | Body | When |
   |--------|------|------|
@@ -69,8 +69,7 @@ defmodule Rindle.Delivery.WebhookPlug do
 
   @behaviour Plug
 
-  # `IngestProviderWebhook` ships in Plan 02; the module reference
-  # compiles fine because Elixir resolves modules lazily at runtime.
+  # Elixir resolves the worker module lazily; keep the optional compile warning quiet.
   @compile {:no_warn_undefined, IngestProviderWebhook}
 
   import Plug.Conn
@@ -183,7 +182,7 @@ defmodule Rindle.Delivery.WebhookPlug do
               "event" => stringify_event(event)
             }
 
-            # Mirror IngestProviderWebhook.unique_job_opts/0 (D-20).
+            # Mirror IngestProviderWebhook.unique_job_opts/0.
             # `:available` MUST be in the states list — Oban inserts newly-enqueued
             # jobs in `:available` first; without it, the unique constraint never
             # fires for the most common re-delivery dedup case (the second webhook
@@ -232,8 +231,7 @@ defmodule Rindle.Delivery.WebhookPlug do
 
       _ ->
         # Fallback for the "Plug mounted before Plug.Parsers" case Stripe
-        # documents (D-10). If THIS also yields empty, the adopter's
-        # `endpoint.ex` is misconfigured (D-16).
+        # documents. If this also yields empty, the adopter's endpoint is misconfigured.
         case Plug.Conn.read_body(conn, length: 1_048_576) do
           {:ok, body, conn} when byte_size(body) > 0 -> {:ok, body, conn}
           {:more, _partial, _conn} -> {:error, :body_missing}
@@ -242,7 +240,7 @@ defmodule Rindle.Delivery.WebhookPlug do
     end
   end
 
-  # Secrets resolver — D-02. Resolution at call time, NOT init time.
+  # Resolve secrets at call time so runtime rotation takes effect.
   defp resolve_secrets(list) when is_list(list), do: list
 
   defp resolve_secrets({:system, env_var}) when is_binary(env_var) do
@@ -326,7 +324,7 @@ defmodule Rindle.Delivery.WebhookPlug do
     end)
   end
 
-  # Provider atom shorthand — Phase 35 only Mux exists. The adapter exposes
+  # Mux is currently the only provider atom shorthand. The adapter exposes
   # the atom via its `:capabilities/0` callback indirectly; we use the
   # module's last segment for telemetry consistency.
   defp provider_atom(Rindle.Streaming.Provider.Mux), do: :mux

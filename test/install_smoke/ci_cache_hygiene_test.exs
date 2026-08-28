@@ -169,6 +169,7 @@ defmodule Rindle.InstallSmoke.CiCacheHygieneTest do
     assert install_ffmpeg =~ "max_by([.major, .minor, .patch])"
     assert install_ffmpeg =~ "browser_download_url"
     assert install_ffmpeg =~ "RINDLE_FFMPEG_RESOLVE_ONLY"
+    assert install_ffmpeg =~ "Authorization: Bearer ${GITHUB_TOKEN}"
     refute install_ffmpeg =~ ~r/asset="ffmpeg-n[0-9]/
   end
 
@@ -206,9 +207,85 @@ defmodule Rindle.InstallSmoke.CiCacheHygieneTest do
     assert install_apt_packages =~ ~s(Acquire::http::Timeout "15")
     assert install_apt_packages =~ "timeout --kill-after=15s 240s"
     assert install_apt_packages =~ "--no-install-recommends"
-    assert install_apt_packages =~ "for attempt in 1 2"
+    assert install_apt_packages =~ "attempt 1/2"
+    assert install_apt_packages =~ "attempt 2/2"
     assert install_apt_packages =~ "--configure-only"
     assert ci =~ "timeout --kill-after=15s 300s npx playwright install --with-deps chromium"
+  end
+
+  @tag :tmp_dir
+  test "apt helper installs from cached indexes without refreshing them", %{tmp_dir: tmp_dir} do
+    result = run_apt_helper(tmp_dir, ["libvips-dev", "ffmpeg"])
+
+    assert result.status == 0
+
+    assert result.log == [
+             "timeout --kill-after=15s 240s apt-get install -y --no-install-recommends libvips-dev ffmpeg",
+             "apt-get install -y --no-install-recommends libvips-dev ffmpeg"
+           ],
+           result.output
+  end
+
+  @tag :tmp_dir
+  test "apt helper refreshes once after a failed install before one final install", %{
+    tmp_dir: tmp_dir
+  } do
+    result = run_apt_helper(tmp_dir, ["libvips-dev"], %{"RINDLE_FAKE_APT_FAIL_FIRST" => "1"})
+
+    assert result.status == 0
+
+    assert result.log == [
+             "timeout --kill-after=15s 240s apt-get install -y --no-install-recommends libvips-dev",
+             "apt-get install -y --no-install-recommends libvips-dev",
+             "timeout --kill-after=15s 240s apt-get update",
+             "apt-get update",
+             "timeout --kill-after=15s 240s apt-get install -y --no-install-recommends libvips-dev",
+             "apt-get install -y --no-install-recommends libvips-dev"
+           ],
+           result.output
+  end
+
+  @tag :tmp_dir
+  test "apt helper preserves configure-only and empty-input contracts", %{tmp_dir: tmp_dir} do
+    configure_only = run_apt_helper(tmp_dir, ["--configure-only"])
+    empty_input = run_apt_helper(tmp_dir, [])
+
+    assert configure_only.status == 0
+    assert configure_only.log == []
+    assert empty_input.status == 2
+    assert empty_input.log == []
+  end
+
+  @tag :tmp_dir
+  test "apt helper propagates bounded refresh and final-install failures", %{tmp_dir: tmp_dir} do
+    refresh_failure =
+      run_apt_helper(tmp_dir, ["libvips-dev"], %{
+        "RINDLE_FAKE_APT_FAIL_FIRST" => "1",
+        "RINDLE_FAKE_APT_UPDATE_FAIL" => "1"
+      })
+
+    final_install_failure =
+      run_apt_helper(tmp_dir, ["ffmpeg"], %{"RINDLE_FAKE_APT_FAIL_INSTALLS" => "1"})
+
+    assert refresh_failure.status == 1
+
+    assert refresh_failure.log == [
+             "timeout --kill-after=15s 240s apt-get install -y --no-install-recommends libvips-dev",
+             "apt-get install -y --no-install-recommends libvips-dev",
+             "timeout --kill-after=15s 240s apt-get update",
+             "apt-get update"
+           ]
+
+    assert final_install_failure.status == 1
+
+    assert final_install_failure.log == [
+             "timeout --kill-after=15s 240s apt-get install -y --no-install-recommends ffmpeg",
+             "apt-get install -y --no-install-recommends ffmpeg",
+             "timeout --kill-after=15s 240s apt-get update",
+             "apt-get update",
+             "timeout --kill-after=15s 240s apt-get install -y --no-install-recommends ffmpeg",
+             "apt-get install -y --no-install-recommends ffmpeg"
+           ]
   end
 
   test "CACHE-05: version-invariant lint steps in ci.yml are guarded by matrix.lint", %{ci: ci} do
@@ -232,5 +309,89 @@ defmodule Rindle.InstallSmoke.CiCacheHygieneTest do
     |> String.split(needle)
     |> length()
     |> Kernel.-(1)
+  end
+
+  defp run_apt_helper(tmp_dir, args, extra_env \\ %{}) do
+    run_root = Path.join(tmp_dir, "apt-helper-#{System.unique_integer([:positive])}")
+    shim_dir = Path.join(run_root, "shims")
+    log_path = Path.join(run_root, "apt-helper.log")
+    first_failure_path = Path.join(run_root, "first-install-failure")
+
+    File.mkdir_p!(shim_dir)
+    install_apt_helper_shims!(shim_dir)
+
+    {output, status} =
+      System.cmd("bash", [@install_apt_packages_path | args],
+        cd: @repo_root,
+        env:
+          Map.merge(
+            %{
+              "PATH" => shim_dir <> ":" <> System.get_env("PATH"),
+              "RINDLE_APT_LOG" => log_path,
+              "RINDLE_APT_FIRST_INSTALL_FAILURE" => first_failure_path
+            },
+            extra_env
+          )
+          |> Map.to_list(),
+        stderr_to_stdout: true
+      )
+
+    %{status: status, output: output, log: read_log(log_path)}
+  end
+
+  defp install_apt_helper_shims!(shim_dir) do
+    File.write!(Path.join(shim_dir, "sudo"), """
+    #!/usr/bin/env bash
+    if [ "$1" = "tee" ]; then
+      cat >/dev/null
+      exit 0
+    fi
+    exec "$@"
+    """)
+
+    File.write!(Path.join(shim_dir, "timeout"), """
+    #!/usr/bin/env bash
+    {
+      printf 'timeout'
+      printf ' %s' "$@"
+      printf '\\n'
+    } >> "$RINDLE_APT_LOG"
+    while [[ "$1" == -* ]]; do shift; done
+    shift
+    exec "$@"
+    """)
+
+    File.write!(Path.join(shim_dir, "apt-get"), """
+    #!/usr/bin/env bash
+    {
+      printf 'apt-get'
+      printf ' %s' "$@"
+      printf '\\n'
+    } >> "$RINDLE_APT_LOG"
+    if [ "$1" = "update" ] && [ "${RINDLE_FAKE_APT_UPDATE_FAIL:-}" = "1" ]; then
+      exit 8
+    fi
+    if [ "$1" = "install" ] && [ "${RINDLE_FAKE_APT_FAIL_INSTALLS:-}" = "1" ]; then
+      exit 9
+    fi
+    if [ "$1" = "install" ] && [ "${RINDLE_FAKE_APT_FAIL_FIRST:-}" = "1" ] && [ ! -f "$RINDLE_APT_FIRST_INSTALL_FAILURE" ]; then
+      touch "$RINDLE_APT_FIRST_INSTALL_FAILURE"
+      exit 7
+    fi
+    exit 0
+    """)
+
+    File.write!(Path.join(shim_dir, "sleep"), "#!/usr/bin/env bash\nexit 0\n")
+
+    for executable <- ["sudo", "timeout", "apt-get", "sleep"] do
+      File.chmod!(Path.join(shim_dir, executable), 0o755)
+    end
+  end
+
+  defp read_log(path) do
+    case File.read(path) do
+      {:ok, content} -> String.split(content, "\n", trim: true)
+      {:error, :enoent} -> []
+    end
   end
 end

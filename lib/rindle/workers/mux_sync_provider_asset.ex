@@ -40,7 +40,7 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
     `provider_asset_id` (security invariant 14, via
     `Rindle.Domain.MediaProviderAsset.redact_id/1`).
 
-    ### `age_ms` semantics across `:resolved` and `:stuck` (WR-03 / POLISH-01/D-13)
+    ### `age_ms` semantics across `:resolved` and `:stuck`
 
     `metadata.age_ms` is ALWAYS "time since the row's `updated_at`", never
     "time since the last sync attempt". Because a no-op `:resolved` event

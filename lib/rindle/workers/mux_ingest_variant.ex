@@ -12,7 +12,7 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
     a `media_provider_assets` row, and advances the FSM
     `pending → uploading → processing`.
 
-    ## Adopter wiring (Phase 36 owns the canonical guide)
+    ## Adopter wiring
 
         config :my_app, Oban,
           queues: [rindle_provider: 4]
@@ -35,7 +35,7 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
     `unique` key for job-level idempotency). It is NOT a column on
     `media_provider_assets`. The row-level uniqueness is
     `(asset_id, profile, provider_name)` — different variants of the same
-    asset+profile share one provider row, by design (Phase 33 schema).
+    asset and profile share one provider row by design.
 
     ## Telemetry contract (security invariant 14 enforced via
     `MediaProviderAsset.redact_id/1` on every metadata `asset_id`)
@@ -331,7 +331,7 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
     end
 
     # B1 fix: persist `playback_ids` (PLURAL ARRAY), not singular `playback_id`.
-    # Phase 33 schema field is `field :playback_ids, {:array, :string}`.
+    # The schema stores `playback_ids` as an array of strings.
     #
     # BL-01 fix: when the post-create freshness re-check rejects the promotion,
     # the Mux asset was already created (and is billed). We MUST best-effort
@@ -433,15 +433,15 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
 
     # ============================================================
     # Adapter call — routed through `create_asset_with_retry_hint/3`.
-    # PLURAL SDK key construction lives ONLY in the adapter (Plan 01);
+    # Plural SDK key construction lives only in the adapter;
     # NEVER duplicated here. (B7 fix.)
     # ============================================================
 
     defp call_mux_create(profile_mod, signed_url) do
-      # Phase 34 default policy is :signed (capability `[:signed_playback, ...]`).
+      # The default playback policy is :signed.
       # Profile-level overrides happen at the adapter layer, not the worker.
       #
-      # Phase 36 CR-01: when the soak install-smoke lane sets
+      # When the soak install-smoke lane sets
       # `RINDLE_MUX_PASSTHROUGH_TAG=rindle_soak`, the adapter stamps the
       # `passthrough` field on the create-asset request so the layer-3
       # cleanup script (`scripts/mux_soak_cleanup.sh`) can filter on a

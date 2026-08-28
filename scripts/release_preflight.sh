@@ -25,10 +25,7 @@ fi
 
 cd "$TOOLING_ROOT"
 
-if ! mix phx.new --version >/dev/null 2>&1; then
-  echo "Installing Phoenix generator archive for install smoke..."
-  MIX_ENV=dev mix archive.install hex phx_new --force
-fi
+bash "$SCRIPT_DIR/ci/ensure_phx_new.sh"
 
 (
   cd "$SOURCE_ROOT"

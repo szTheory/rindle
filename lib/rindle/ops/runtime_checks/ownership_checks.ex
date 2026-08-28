@@ -289,7 +289,7 @@ defmodule Rindle.Ops.RuntimeChecks.OwnershipChecks do
         @base_queues
       end
 
-    # Phase 36 WR-03: streaming-enabled profiles must declare
+    # Streaming-enabled profiles must declare
     # `:rindle_provider` (the queue MuxSyncCoordinator and MuxIngestVariant
     # workers enqueue onto). The streaming guide instructs adopters to
     # configure `queues: [rindle_provider: 4]`, but the doctor check

@@ -1,6 +1,48 @@
 # Rindle
 
-## Current State: v1.24 Core Clarity & Quality Ratchet — shipped 2026-08-23
+## Current State: v1.25 Maintainer Craft & Feedback Velocity — shipped 2026-08-27
+
+**Goal:** Make Rindle's non-Admin codebase feel deliberately handwritten and easy to navigate while
+shortening trustworthy pull-request feedback through measured, behavior-preserving changes.
+
+**Target features:**
+- Review historical delivery markers across live code, tests, scripts, and workflows; replace prose in
+  changed production owners with present-tense rationale and explicitly disposition untouched policy
+  provenance rather than creating a rename-only diff.
+- Give the mixed runtime-diagnostic and maintenance test surfaces clear behavioral ownership, and
+  reduce only the complexity findings whose responsibilities are demonstrably separable.
+- Restore concurrent PR test execution, streamline the existing image-only package-consumer proof,
+  and measure a target of <=8 minutes median / <=10 minutes p95 across ten comparable PR runs.
+- Publish one change-to-proof map and close every identified quality candidate as fix, retain, or
+  defer so the milestone ends with a finite evidence trail rather than an aesthetic backlog.
+
+**Boundaries:** No Admin/operator UI, public API, schema or migration semantics, telemetry/error
+vocabulary, broad dependency upgrades, release-proof breadth changes, coverage chasing, archive
+rewrites, or abstractions introduced solely to lower line or cycle counts. The broad runtime facade
+cycle remains deferred until concrete change-cost evidence exists.
+
+**Starting baseline:** quality signals and SAFE-01 were green; coverage was 82.13%; the curated Credo
+inventory contains 35 findings (34 non-Admin); recent PR CI is 13.8 minutes median / 15.4 minutes p95.
+
+**Result:** All 18 requirements passed across Phases 127–132. Strict Credo fell from 143 to 130, the
+curated complexity baseline fell from 35 to 31, exact coverage is 82.1343%, provider diagnostics and
+mixed operations tests have cohesive owners, and required CI roots now start independently behind the
+unchanged `CI Summary` gate. The final comparable ten-run PR receipt passed CI-14 at 453 seconds median
+and 481 seconds p95. The audit passed 6/6 phases, 11/11 integration links, and 6/6 end-to-end flows.
+
+## Next Milestone Goals
+
+No milestone is authorized yet. The post-v1.25 assessment found one patch-eligible reliability repair:
+`PurgeStorage` currently discards tagged storage-deletion failures, deletes the durable asset row, and
+returns success, contradicting the documented retry/idempotence contract. Correct and release that
+bounded existing-behavior bug without bundling LIFE-06, new public API, or broader purge redesign.
+
+After the patch, remain in the demand-gated pause unless a concrete adopter, compliance, reliability,
+or release-train signal supplies an approved work item. LIFE-06 and STREAM-10 remain signal-gated
+candidates, not an active roadmap. A 1.0 graduation milestone requires a named non-maintainer Phoenix
+pilot and executable adoption evidence before Rindle freezes its public contract.
+
+## Previous Milestone: v1.24 Core Clarity & Quality Ratchet — shipped 2026-08-23
 
 **Goal:** Make Rindle's core code, tests, comments, and quality gates truthful, minimal, and a joy to
 read through a finite behavior-preserving maintenance pass.
@@ -22,7 +64,7 @@ public API, schema/migration, telemetry, error, Admin, dependency, and release b
 guarded by SAFE-01. Public `rindle` 0.4.3 is the current release-train baseline; the milestone's final
 post-merge `main` CI is green.
 
-## Previous Milestone: v1.23 Postgres Schema Isolation — shipped 2026-08-20
+## Earlier Milestone: v1.23 Postgres Schema Isolation — shipped 2026-08-20
 
 **Goal:** Make Rindle a respectful Postgres guest by isolating its domain tables in a dedicated `rindle`
 schema by default, with an explicit safe upgrade route and truthful runtime/install proof — a breaking
@@ -432,6 +474,12 @@ To keep this posture durable across GSD workflows:
   upload responsibility boundaries (OPS-01..03, UPLOAD-01..02), focused behavioral test support with
   honest async-evidence narrowing (TEST-01..04), and a supported Elixir 1.17/OTP 27 removal-only
   Dialyzer ratchet (TYPE-01..02). 19/19 validated across Phases 121–126.
+- ✓ **v1.25 Maintainer Craft & Feedback Velocity** — shipped 2026-08-27 as a behavior-preserving
+  maintenance and CI milestone: finite candidate disposition (CRAFT-01..02), present-tense provenance
+  (PROV-01..02), behavioral test ownership (TEST-05..07), cohesive diagnostics and complexity reduction
+  (MAINT-01..03), current change-to-proof guidance and independent required lanes (DX-04, CI-10..13),
+  and automated timing/coverage/safety closure (CI-14, COV-05, SAFE-02). 18/18 validated across Phases
+  127–132. Archived: `milestones/v1.25-REQUIREMENTS.md`.
 
 ### Active
 
@@ -476,6 +524,14 @@ signed dynamic transforms, EXIF privacy stripping.
   (D-v1.18-01); console actions reuse existing facade capabilities only
 
 ## Context
+
+**v1.25 result:** The maintainer-craft pass closed every candidate through explicit fix, retain, or
+defer evidence; rewrote live provenance around present invariants; gave runtime, upload-maintenance,
+Mux, and GCS proof cohesive owners; and shortened required PR feedback without weakening coverage,
+consumer breadth, the aggregate gate, or release coupling. The milestone changed 141 files across its
+implementation range (+14,613 / −3,096), completed 22 formal plans and 29 formal tasks, and closed with
+18/18 requirements, 6/6 verified phases, 11/11 integration links, six end-to-end flows, 82.1343%
+coverage, and a comparable ten-run receipt at 453 seconds median / 481 seconds p95.
 
 **v1.24 result:** The core maintenance pass replaced advisory or self-referential signals with
 blocking behavioral contracts, removed the schema compile cycle and stale live chronology, decomposed
@@ -645,6 +701,9 @@ that section on next docs maintenance pass.
 | Maintenance refactors are accepted only with behavior, compiled-boundary, quality-ratchet, and supported exact-head CI proof | Smaller files alone are not evidence of better architecture; each decomposition must preserve public signatures and observable ordering | ✓ Validated v1.24 (Phases 121–124) |
 | Test-support decomposition is accepted through generated outcomes, compiled metadata, and domain-owned parity—not helper or library source-text snapshots | Tests should protect observable contracts while allowing private implementation to become clearer | ✓ Validated v1.24 (Phase 125) |
 | The Dialyzer baseline is a removal-only set approved by exact supported-toolchain evidence; local unsupported warnings never expand it | A curated ratchet must reject new suppressions while retaining only analyzer noise proven on Elixir 1.17 / OTP 27 | ✓ Validated v1.24 (Phase 126) |
+| Quality maintenance starts from a finite evidence census and ends with explicit fix, retain, or defer dispositions | Reader value and executable contracts bound maintenance work better than aesthetic scores or raw file/cycle counts | ✓ Validated v1.25 (Phases 127–130) |
+| Required CI roots start independently while `CI Summary` remains the sole aggregate gate and main/release proof retains full breadth | Dependency edges should represent real prerequisites; shortening PR feedback must not remove signal or break release coupling | ✓ Validated v1.25 (Phase 131) |
+| Live CI performance acceptance uses one bounded, resumable, fail-closed controller and a comparable exact-ten API-backed receipt | External timing evidence must be reproducible and automation-first; failed or partial populations cannot authorize completion | ✓ Validated v1.25 (Phase 132) |
 
 
 ## Historical Snapshot
@@ -855,4 +914,4 @@ This document evolves at phase transitions and milestone boundaries.
    (`workflow.milestone_boundary.block_feature_milestone_without_signal`)
 
 ---
-*Last updated: 2026-08-23 after shipping v1.24 Core Clarity & Quality Ratchet.*
+*Last updated: 2026-08-27 after shipping v1.25 Maintainer Craft & Feedback Velocity.*

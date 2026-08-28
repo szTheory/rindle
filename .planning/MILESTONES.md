@@ -1,5 +1,55 @@
 # Milestones
 
+## v1.25 Maintainer Craft & Feedback Velocity (Shipped: 2026-08-27)
+
+**Delivered:** A finite, behavior-preserving maintenance pass that made source and test ownership
+clearer while reducing trustworthy pull-request feedback to a verified 453-second median.
+
+**Phases completed:** 127–132 (6 phases, 22 formal plans, 29 formal tasks)
+
+**Key accomplishments:**
+
+- Established a finite quality census with explicit fix, retain, and defer dispositions tied to
+  reader value and executable proof.
+- Replaced delivery-history narration with present-tense invariants and reorganized mixed runtime and
+  upload-maintenance tests around behavioral ownership.
+- Moved Mux and GCS diagnostics behind cohesive hidden owners, reduced the curated complexity baseline
+  from 35 to 31, and preserved the acyclic compile graph.
+- Restored coverage concurrency, made required integration/contract/consumer roots independent, and
+  retained the sole `CI Summary` gate plus full main/release consumer breadth.
+- Centralized pinned Phoenix generation and removed redundant pre-patch dependency installation while
+  preserving clean-room package provenance and lifecycle proof.
+- Closed with 18/18 requirements, 6/6 verified and Nyquist-compliant phases, 11/11 integration links,
+  six end-to-end flows, 82.1343% coverage, and a ten-run receipt at 453s median / 481s p95.
+
+**Stats:**
+
+- 141 files changed; +14,613 / −3,096 across the implementation range
+- 6 phases, 22 formal plans, 29 formal tasks, 18/18 requirements
+- 4 calendar days (2026-08-24 → 2026-08-27)
+
+**Git range:** `7578357` → `e82e18a`
+
+**Audit:** `passed` (18/18 requirements, 6/6 phases, 11/11 integration links, 6/6 E2E flows,
+6/6 Nyquist validation files compliant). See `milestones/v1.25-MILESTONE-AUDIT.md`.
+
+**Archive:** `milestones/v1.25-ROADMAP.md`, `milestones/v1.25-REQUIREMENTS.md`,
+`milestones/v1.25-MILESTONE-AUDIT.md`, and `milestones/v1.25-phases/`.
+
+**Known non-blocking dispositions:** Cohesive runtime configuration cycles, test partitioning, and
+cache-topology redesign remain evidence-gated; none blocks the v1.25 definition of done.
+
+**What's next:** post-ship milestone assessment, then demand-gated pause unless a concrete adopter,
+compliance, reliability, or release-train signal authorizes new work.
+
+---
+
+## v1.0 Roadmap Archive (Backfilled: 2026-08-24)
+
+**Note:** Synthesized from archive snapshot by `/gsd-health --backfill`. Original completion date unknown.
+
+---
+
 ## v1.24 Core Clarity & Quality Ratchet (Shipped: 2026-08-23)
 
 **Delivered:** A finite, behavior-preserving quality pass that made the core code, tests, comments,
@@ -11,14 +61,19 @@ documentation, and quality gates more truthful, cohesive, and maintainable.
 
 - Made actionable Credo, measured Doctor, deterministic contracts, AV prerequisites, and SAFE-01
   truthful blocking signals while preserving the sole CI Summary and release topology.
+
 - Removed mechanically proven residue, stale current-tree chronology, and the seven-module
   `Rindle.Schema` compile cycle without rewriting historical provenance.
+
 - Decomposed runtime checks, migration preflight, runtime status, TusPlug, and Broker mechanics into
   cohesive compiled-hidden owners behind stable public orchestration boundaries.
+
 - Split oversized generated-app and documentation-parity support into behavioral, domain-owned proof;
   retained honest fail-fast async-isolation evidence with issue #42 open at the narrowed boundary.
+
 - Reconciled every one of 45 starting Dialyzer suppressions and installed a closed 35-tuple,
   removal-only policy accepted by supported Elixir 1.17 / OTP 27 Nightly with zero annotations.
+
 - Closed with 19/19 requirements, 6/6 verified and Nyquist-compliant phases, 13/13 integration links,
   eight end-to-end outcomes, zero open security threats, and green post-merge `main` CI.
 

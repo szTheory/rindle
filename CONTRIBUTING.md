@@ -25,10 +25,11 @@ It executes, in order:
 1. `deps.get --check-locked` and `deps.unlock --check-unused` — lockfile drift gates
 2. `compile --warnings-as-errors`
 3. `format --check-formatted`
-4. the four brandbook token→CSS drift gates
+4. `quality_signals` — curated Credo, measured public-doc health, and SAFE-01
+5. the four brandbook token→CSS drift gates
    (`brandbook/src/tokens-build.mjs`, `admin-css-build.mjs`, `admin-contrast.mjs`,
    `sync-admin-css.mjs`)
-5. the gating unit suite (the default-tag ExUnit suite, run under `MIX_ENV=test`)
+6. the gating unit suite (the default-tag ExUnit suite, run under `MIX_ENV=test`)
 
 **The sole required check is `CI Summary`.** GitHub branch protection requires exactly one
 context — the `CI Summary` job (job id `ci-summary`) — and nothing else. It is a pure
@@ -95,7 +96,8 @@ On every PR we run the representative gate — compile (warnings-as-errors) + fu
 suite on both supported Elixir/OTP cells, optional-dependency compile, integration
 (storage + MinIO), contract + docs-parity proofs, the canonical adopter lifecycle, the
 storage-free adoption-demo unit suite, the token→CSS drift gate, and one representative
-`image` package-consumer install-smoke — targeting **≤7 minutes**. We verify the
+`image` package-consumer install-smoke — targeting **≤8 minutes median and ≤10 minutes p95** across
+comparable PR runs. We verify the
 following **after merge** (`push:main`) or **nightly**, not on your PR: the full
 five-profile package-consumer matrix + release preflight + `hex.publish --dry-run`, the
 Playwright browser E2E, the Docker-compose cold-start smoke, the broad OTP×Elixir
@@ -133,7 +135,7 @@ The maintained keep / optimize / move-to-nightly / label-gated /
 off-critical-path classification is in [`RUNNING.md`](RUNNING.md) §"Maintainer: CI lane
 severity".
 
-### On your PR (representative gate, ≤7 min target)
+### On your PR (representative gate, ≤8 min median / ≤10 min p95 target)
 
 - **compile (warnings-as-errors)** + **full test suite via `mix coveralls`** on both
   supported Elixir/OTP cells (1.15/26 and 1.17/27)
@@ -146,6 +148,21 @@ severity".
   lifecycle render)
 - **token→CSS drift gate** (`brandbook-tokens`)
 - **one representative `image` package-consumer install-smoke**
+
+### Change-to-proof map
+
+Use the narrow command while iterating, then run `mix quality_signals` and the
+broader lane named in the last column before handoff.
+
+| Changed area | Fast local proof | Broader boundary |
+|--------------|------------------|------------------|
+| Public facade, profiles, domain schemas/FSMs | `mix test test/rindle/api_surface_boundary_test.exs test/rindle/domain` | SAFE-01 + Quality |
+| Upload broker and tus protocol/Plug | `mix test test/rindle/upload` | Contract + Integration |
+| Storage adapters and resumable clients | `mix test test/rindle/storage` | Integration; live GCS remains nightly |
+| Streaming provider, webhook, and workers | `mix test test/rindle/streaming test/rindle/workers` | Contract; live Mux remains label-gated |
+| Operations, runtime checks, migration diagnostics | `mix test test/rindle/ops test/rindle/migration_fast_test.exs` | SAFE-01 + Integration migration proofs |
+| Generated adopter/package behavior | `mix test test/install_smoke/generated_app_smoke_test.exs --include minio` | Required image consumer proof; five-profile main/release proof |
+| CI scripts and workflow policy | `mix test test/install_smoke/ci_*_test.exs test/install_smoke/quality_signal_policy_test.exs` | Exact-head `CI Summary` |
 
 ### After merge (`push:main`) / nightly (not on your PR)
 

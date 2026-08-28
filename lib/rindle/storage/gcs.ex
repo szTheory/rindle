@@ -218,7 +218,7 @@ defmodule Rindle.Storage.GCS do
 
   ## Helpers
 
-  # Mirrors lib/rindle/storage/s3.ex:173-178 — D-08 lock.
+  # Match the S3 adapter's explicit-option-over-runtime-config precedence.
   defp bucket(opts) do
     case Keyword.get(opts, :bucket) || Application.get_env(:rindle, __MODULE__, [])[:bucket] do
       nil -> {:error, :missing_bucket}
@@ -226,11 +226,11 @@ defmodule Rindle.Storage.GCS do
     end
   end
 
-  # D-09 — Code.ensure_loaded?(Goth) guard. Returns :ok when present;
+  # Return :ok when Goth is available and a bounded configuration error otherwise.
   # {:error, :goth_unconfigured} when the optional dep was never installed.
-  # NOTE: Plan 01's Client also guards via the same path inside fetch_token/1
+  # Client repeats the guard inside fetch_token/1
   # (the rescue ArgumentError covers the "dep loaded but instance not started"
-  # branch — RESEARCH Pitfall 6). This adapter-entry guard catches the "dep not
+  # branch). This adapter-entry guard catches the "dep not
   # in the build at all" branch BEFORE the Client makes any HTTP plumbing
   # decisions.
   defp ensure_goth_loaded do

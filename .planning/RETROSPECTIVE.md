@@ -2,6 +2,69 @@
 
 ---
 
+## Milestone: v1.25 — Maintainer Craft & Feedback Velocity
+
+**Shipped:** 2026-08-27
+**Phases:** 6 (127–132) | **Plans:** 22 formal | **Tasks:** 29 formal
+**Audit:** passed (18/18 requirements, 6/6 phases, 11/11 integration links, 6/6 E2E flows)
+
+### What Was Built
+
+- A finite quality census that dispositioned every candidate by reader value and executable proof.
+- Present-tense live provenance plus behavioral ownership for runtime and upload-maintenance tests.
+- Cohesive hidden Mux/GCS diagnostic owners and a curated complexity reduction from 35 to 31.
+- Independent required CI roots, leaner image-consumer setup, and one current change-to-proof map.
+- A bounded automation-first timing controller and passing ten-run receipt at 453s median / 481s p95.
+
+### What Worked
+
+- The census and behavior-preservation boundaries kept a subjective craftsmanship milestone finite.
+- Stable public facades let internal owners become clearer without changing public API, schema,
+  telemetry, error vocabulary, or release coupling.
+- Comparable-run policy, immutable heads, persisted controller state, and exact receipt verification
+  turned an external CI timing target into executable acceptance.
+- The final audit repaired stale workflow commentary and then re-ran integration, flow, Nyquist,
+  quality, SAFE-01, coverage, and timing authorities before close.
+
+### What Was Inefficient
+
+- Phase 132 expanded to 22 plans because several live controller attempts exposed state-reset,
+  pagination, deadline, formatting, and policy-parser gaps sequentially.
+- Phases 127–131 were implemented as a bounded batch before ordinary plan artifacts existed, requiring
+  canonical summary/verification/validation reconstruction at close.
+- Automatic milestone extraction again selected intermediate failures and counted only five tasks;
+  the durable entry required manual accomplishment synthesis and a 29-task plan recount.
+
+### Patterns Established
+
+- **Finite craftsmanship census:** enumerate once, set stopping rules, and require fix/retain/defer
+  evidence rather than maintaining an aesthetic backlog.
+- **Automation-first external acceptance:** credentials may authorize mutation, but only executable
+  evidence can satisfy a requirement.
+- **Fail-closed live controller:** persist terminal state, bound retries and restarts by deadlines,
+  paginate the canonical population, and reject partial or mismatched evidence.
+- **Independent-root CI topology:** remove false prerequisites while preserving one aggregate gate and
+  the broader main/release proof path.
+
+### Key Lessons
+
+- External automation needs its failure-state model and bounded retry policy designed before the first
+  live mutation, not discovered one attempt at a time.
+- Present-tense prose and behavioral tests are strongest when tied to explicit shipped-artifact or
+  runtime authorities rather than private source layout.
+- Milestone tooling should count tasks from PLAN files and prefer final phase outcomes over temporary
+  deviation text.
+
+### Cost Observations
+
+- Timeline: 4 calendar days (2026-08-24 → 2026-08-27)
+- Git range: 138 commits from `7578357` through `e82e18a`
+- Scope: 141 files changed; +14,613 / −3,096; 6 phases and 22 formal plans
+- Notable: CI-14 improved from a 13.8-minute starting median to a verified 7m33s median without
+  weakening the required gate or authoritative 82.13% coverage floor.
+
+---
+
 ## Milestone: v1.24 — Core Clarity & Quality Ratchet
 
 **Shipped:** 2026-08-23
@@ -671,15 +734,15 @@ STREAM-10 not built (Mux-only adapter); batch erasure does not propagate force o
 
 ## Cross-Milestone Trends
 
-| Trend | v1.1 | v1.2 | v1.5 | v1.6 | v1.16 | v1.20 | v1.21 | v1.22 | v1.23 | v1.24 |
-|-------|------|------|------|------|-------|-------|-------|-------|-------|-------|
-| Cleanup phases needed | 0 | 2 (Phases 13, 14) | 0 | 0 | 1 (Phase 77) | 0 | 0 | 0 | 0 | 0 |
-| Audit status at close | passed | tech_debt (closed) | passed | acknowledged-and-defer | no dedicated audit (gap-closure) | passed | passed (1 todo deferred) | passed | passed | passed |
-| Plans per phase (avg) | 3.0 | 2.2 | 3.5 | 3.75 | 3.3 | 3.4 | 2.6 | 3.5 | 7.5 | 6.7 |
-| Phase count | 4 | 5 | 4 | 4 | 3 | 5 | 5 | 4 | 4 | 6 |
-| Files changed | — | 60 | — | 144 | 19 | — (0 `lib/`) | 49 (3 `lib/`) | — | 176 | 235 |
-| Timeline (days) | — | 5 | 2 | ~1 (~22h) | 1 | 3 | 4 | 4 | 13 | 2 |
-| Optional phase deferred | — | — | — | Phase 37 (deferred to v1.7) | — | — | — | schema flip to v1.23 candidate | feature work demand-gated | feature work demand-gated |
+| Trend | v1.1 | v1.2 | v1.5 | v1.6 | v1.16 | v1.20 | v1.21 | v1.22 | v1.23 | v1.24 | v1.25 |
+|-------|------|------|------|------|-------|-------|-------|-------|-------|-------|-------|
+| Cleanup phases needed | 0 | 2 (Phases 13, 14) | 0 | 0 | 1 (Phase 77) | 0 | 0 | 0 | 0 | 0 | 0 |
+| Audit status at close | passed | tech_debt (closed) | passed | acknowledged-and-defer | no dedicated audit (gap-closure) | passed | passed (1 todo deferred) | passed | passed | passed | passed |
+| Plans per phase (avg) | 3.0 | 2.2 | 3.5 | 3.75 | 3.3 | 3.4 | 2.6 | 3.5 | 7.5 | 6.7 | 3.7 formal |
+| Phase count | 4 | 5 | 4 | 4 | 3 | 5 | 5 | 4 | 4 | 6 | 6 |
+| Files changed | — | 60 | — | 144 | 19 | — (0 `lib/`) | 49 (3 `lib/`) | — | 176 | 235 | 141 |
+| Timeline (days) | — | 5 | 2 | ~1 (~22h) | 1 | 3 | 4 | 4 | 13 | 2 | 4 |
+| Optional phase deferred | — | — | — | Phase 37 (deferred to v1.7) | — | — | — | schema flip to v1.23 candidate | feature work demand-gated | feature work demand-gated | feature work demand-gated |
 
 **Recurring observation:** Each milestone has ended with some planning artifact debt (stale STATE.md references, incomplete VALIDATION files, metadata inconsistencies, REQUIREMENTS.md checkboxes not flipped). The debt accumulates faster than it is addressed during execution. A milestone-close checklist that explicitly audits these before declaring done would reduce closure phase count.
 
@@ -697,3 +760,9 @@ auto-generated milestone summary needed closeout repair. The implementation patt
 stable facades plus hidden cohesive owners, behavior-backed tests, exact supported authority, and a
 closed removal-only ratchet. Future maintenance should reuse those contracts only when a concrete
 quality signal exists; do not turn elegance into continuous churn.
+
+**v1.25 trend (craft/feedback):** The zero-cleanup audit streak held and the maintenance work stayed
+behavior-preserving, but live CI acceptance dominated orchestration cost. Future externally measured
+work should design terminal state, pagination, retry deadlines, and receipt eligibility before the
+first live run; the final automation-first controller pattern is now reusable when a concrete signal
+justifies another measured change.

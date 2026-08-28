@@ -9,7 +9,8 @@ defmodule Rindle.Probe do
 
   This is symmetric with `Rindle.Processor` (see `lib/rindle/processor.ex`)
   and intentionally distinct from the internal boot-time FFmpeg version probe
-  used by `mix rindle.doctor` (D-05). See SYNTHESIS §2.2 for the naming choice.
+  used by `mix rindle.doctor`; the names distinguish stored-media probing from
+  boot-time executable inspection.
 
   See:
     * `Rindle.Probe.Image` — libvips-backed image probe (no FFmpeg required).

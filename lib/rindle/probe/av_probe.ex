@@ -3,9 +3,8 @@ defmodule Rindle.Probe.AVProbe do
   FFprobe-backed probe for video and audio. Wraps `Rindle.AV.Ffprobe.probe/1`
   and reshapes raw FFprobe JSON into `Rindle.Probe.result()`.
 
-  Phase 23 HTML-escapes FFprobe string output at the shim layer. This module
-  applies Phase 24 metadata truncation and control-character stripping before
-  returning the probe result for persistence.
+  The FFprobe shim HTML-escapes string output. This module then applies metadata
+  truncation and control-character stripping before returning data for persistence.
   """
 
   @behaviour Rindle.Probe

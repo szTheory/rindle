@@ -2,6 +2,7 @@
 
 ## Milestones
 
+- ✅ **v1.25 Maintainer Craft & Feedback Velocity** — Phases 127–132 (shipped 2026-08-27, 18/18 requirements, 6/6 verified phases; [archive](milestones/v1.25-ROADMAP.md), [requirements](milestones/v1.25-REQUIREMENTS.md), [audit](milestones/v1.25-MILESTONE-AUDIT.md))
 - ✅ **v1.24 Core Clarity & Quality Ratchet** — Phases 121–126 (shipped 2026-08-23, 19/19 requirements, 6/6 verified phases; [archive](milestones/v1.24-ROADMAP.md), [requirements](milestones/v1.24-REQUIREMENTS.md), [audit](milestones/v1.24-MILESTONE-AUDIT.md))
 - ✅ **v1.23 Postgres Schema Isolation** — Phases 117–120 (shipped 2026-08-20, Hex 0.4.0, 12/12 requirements, 4/4 verified phases; [archive](milestones/v1.23-ROADMAP.md), [requirements](milestones/v1.23-REQUIREMENTS.md), [audit](milestones/v1.23-MILESTONE-AUDIT.md))
 - ✅ **v1.22 OSS Quality & Trust Hardening** — Phases 113–116 (shipped 2026-07-02; [archive](milestones/v1.22-ROADMAP.md), [requirements](milestones/v1.22-REQUIREMENTS.md), [audit](milestones/v1.22-MILESTONE-AUDIT.md))
@@ -79,6 +80,121 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 
 </details>
 
+<details>
+<summary>✅ v1.25 Maintainer Craft & Feedback Velocity (Phases 127–132) — SHIPPED 2026-08-27</summary>
+
+This behavior-preserving milestone clarified test and runtime ownership, tightened executable quality
+ratchets, shortened the required CI path, and closed with an API-verified ten-run timing receipt.
+
+Phases 127–131 completed the evidence, provenance, behavioral-test, runtime-diagnostics, and CI
+velocity work. Phase 132 completed all 22 closure plans and verified CI-14, COV-05, and SAFE-02.
+
+**Goal**: Close the measured CI-14 median gap on the existing required pull-request path, prove the behavior-preserving quality ratchets remain intact, and replace the failed timing measurement with a fresh comparable ten-run receipt.
+**Depends on**: Phase 131
+**Requirements**: CI-14, COV-05, SAFE-02
+**Success Criteria** (what must be TRUE):
+
+  1. Ten consecutive successful, non-cancelled, first-attempt pull-request runs from one immutable implementation head achieve a median of at most 480 seconds and nearest-rank p95 of at most 600 seconds without weaker gates or newly introduced reruns.
+  2. `CI Summary` remains the sole required check with its required-job set and skip-as-pass behavior intact; any external-runner exception includes job-level evidence, a named owner, and a dated follow-up.
+  3. Authoritative coverage remains at or above 82.13%, and the final correction passes focused proof, `mix quality_signals`, SAFE-01, the relevant integration or packed-consumer lane, and bounded prohibited-surface diff review.
+
+**Plans**: 22/22 plans executed
+
+**Wave 1 — tracer correction and package proof**
+
+- [x] 132-01-PLAN.md — Remove duplicated pre-patch generator installation and prove the unchanged clean-room image lifecycle.
+
+**Wave 2 — preservation census** *(blocked on Wave 1 completion)*
+
+- [x] 132-02-PLAN.md — Reconfirm required-gate topology, authoritative coverage, SAFE-01, and packed image-consumer preservation.
+
+**Wave 3 — automation-first controller and policy** *(blocked on Wave 2 completion)*
+
+- [x] 132-03-PLAN.md — Automate fast-forward publication, sequential live sampling, receipt verification, and the zero-human acceptance policy.
+
+**Wave 4 — final preservation re-census** *(blocked on Wave 3 completion)*
+
+- [x] 132-04-PLAN.md — Re-run every preservation authority on the final automated candidate and record its immutable subject SHA.
+
+**Wave 5 — unattended live timing acceptance** *(blocked on Wave 4 completion)*
+
+- [x] 132-05-PLAN.md — Publish, collect, calculate, and independently verify the fresh exact-head ten-run CI receipt without UAT.
+
+**Wave 6 — measured-path remediation** *(blocked on the failed Wave 5 receipt)*
+
+- [x] 132-06-PLAN.md — Remove repeated unconditional apt refresh work through a tested install-first/fallback-refresh helper policy.
+
+**Wave 7 — gap-closure preservation re-census** *(blocked on Wave 6 completion)*
+
+- [x] 132-07-PLAN.md — Bind the final remediation SHA to fresh topology, quality, SAFE-01, coverage, hygiene, and packed-consumer evidence.
+
+**Wave 8 — replacement live timing acceptance** *(blocked on Wave 7 completion)*
+
+- [x] 132-08-PLAN.md — Terminalized without execution by `132-08-SUMMARY.md`; retained unchanged as historical recovery input and superseded by the post-D-08/D-09 sampler in 132-11.
+
+**Wave 9 — exact topology correction** *(blocked on Wave 7 completion; supersedes Wave 8 execution)*
+
+- [x] 132-09-PLAN.md — RED/GREEN-lock and apply only the six authorized Quality/Optional scheduling-edge removals with deterministic projection proof.
+
+**Wave 10 — recovery preservation and immutable preflight** *(blocked on Wave 9 completion)*
+
+- [x] 132-10-PLAN.md — Bind the topology subject to fresh focused, quality, SAFE-01, coverage, packed-consumer, prohibited-surface, and no-trigger preflight evidence.
+
+**Wave 11 — locked recovery live acceptance** *(blocked on Wave 10 completion)*
+
+- [x] 132-11-PLAN.md — Ran the one bounded controller; both permitted first-attempt PR sequences failed, leaving CI-14 honestly open with `gaps_found` and no replacement sample.
+
+**Wave 12 — controller verifier and publication-readiness tracer** *(blocked on Wave 11 evidence)*
+
+- [x] 132-12-PLAN.md — Unify live population/statistics/threshold verification and add source-derived, mutation-free publication-ready preflight with process regressions.
+
+**Wave 13 — failed-run formatter remediation** *(blocked on the Wave 12 controller contract)*
+
+- [x] 132-13-PLAN.md — Record both formatter-failed recovery runs and apply the formatter-only correction to the D-08/D-09 topology contract.
+
+**Wave 14 — transition-manifest controller repair** *(blocked on the Wave 13 formatter correction)*
+
+- [x] 132-14-PLAN.md — RED/GREEN the omitted `--transition-manifest` / `validate_transition_manifest` controller contract with a truthful three-stage chronology and fail-closed mutation regressions.
+
+**Wave 15 — post-repair immutable preservation census** *(blocked on Wave 14 completion)*
+
+- [x] 132-15-PLAN.md — Emit the source-derived three-stage transition manifest, then re-run formatter, focused/full quality, SAFE-01, coverage, packed-consumer, prohibited-surface, and successful mutation-free preflight authorities.
+
+**Wave 16 — preserved-tail controller repair closeout** *(blocked on Wave 15 completion)*
+
+- [x] 132-16-PLAN.md — Verified and truthfully closed existing commit `15336d4`, which accepts planning-only evidence tails after the preserved subject; no source reimplementation or GitHub mutation.
+
+**Wave 17 — post-controller-fix preservation census** *(blocked on Wave 16 completion)*
+
+- [x] 132-17-PLAN.md — Preserved source subject `15336d4`, explicitly censused the Plan 132-16 tail, and re-ran COV-05/SAFE-02 plus mutation-free preflight authorities.
+
+**Wave 18 — terminal API-backed timing acceptance** *(blocked on Wave 17 completion)*
+
+- [x] 132-18-PLAN.md — Publish once, collect the PR-associated exact-ten canonical population with at most two sequences, and close CI-14 only on live-verified median <=480s and p95 <=600s.
+
+**Wave 19 — fail-closed controller repair** *(blocked on Wave 18 verification gaps)*
+
+- [x] 132-19-PLAN.md — Repair terminal-state, resume-identity, creation-deadline, and paginated-population defects with executable regressions.
+
+**Wave 20 — repaired-source preservation census** *(blocked on Wave 19 completion)*
+
+- [x] 132-20-PLAN.md — Bind the repaired controller to a fresh immutable subject and prove preservation plus mutation-free publication readiness.
+
+**Wave 21 — fresh terminal timing acceptance** *(blocked on Wave 20 completion)*
+
+- [x] 132-21-PLAN.md — Publish once, collect the complete exact-ten API population, and independently reverify the inclusive CI-14 verdict.
+
+**Wave 22 — automated safety gap closure** *(blocked on Wave 21 verification)*
+
+- [x] 132-22-PLAN.md — Bound persistent API rate limits, harden human-action parsing, and replay the existing timing/coverage/preservation authorities without UAT or a new live sample.
+
+Archive: [milestones/v1.25-ROADMAP.md](milestones/v1.25-ROADMAP.md); requirements:
+[milestones/v1.25-REQUIREMENTS.md](milestones/v1.25-REQUIREMENTS.md); audit:
+[milestones/v1.25-MILESTONE-AUDIT.md](milestones/v1.25-MILESTONE-AUDIT.md); phase evidence:
+[milestones/v1.25-phases/](milestones/v1.25-phases/).
+
+</details>
+
 ## Demand-Gated Candidates
 
 - Force-delete semantics for still-shared assets (LIFE-06) — compliance pull only.
@@ -89,4 +205,4 @@ Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirement
 - `mix test --partitions` parallelization — evidence-gated on measured core starvation (DEFER-02).
 
 ---
-*Last updated: 2026-08-23 — v1.24 archived; no milestone is active.*
+*Last updated: 2026-08-27 — v1.25 shipped with 22/22 Phase 132 plans and passed milestone audit.*
