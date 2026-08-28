@@ -145,6 +145,26 @@ defmodule Rindle.InstallSmoke.AutomationFirstContractTest do
     assert output =~ "unclosed human-action checkpoint"
   end
 
+  test "skips archived planning state when the active phases directory is absent", %{
+    phase_dir: phase_dir
+  } do
+    repo_dir = Path.join(phase_dir, "archived-repo")
+    script = Path.join(repo_dir, "scripts/maintainer/automation_first_contract.sh")
+    state = Path.join(repo_dir, ".planning/STATE.md")
+
+    File.mkdir_p!(Path.dirname(script))
+    File.mkdir_p!(Path.dirname(state))
+    File.cp!(@script, script)
+    File.write!(state, "current_phase: null\n")
+
+    assert {_output, 0} = System.cmd("git", ["init", "--quiet"], cd: repo_dir)
+
+    assert {output, 0} =
+             System.cmd("bash", [script], cd: repo_dir, stderr_to_stdout: true)
+
+    assert output =~ "phase null has no active directory; skipped"
+  end
+
   defp run_contract(phase_dir) do
     System.cmd("bash", [@script, "--phase-dir", phase_dir], stderr_to_stdout: true)
   end

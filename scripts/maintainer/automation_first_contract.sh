@@ -33,7 +33,9 @@ if [ -z "$phase_dir" ]; then
   [ -f "$state" ] || { echo "[automation-first] no active planning state; skipped"; exit 0; }
   phase="$(sed -nE 's/^current_phase:[[:space:]]*"?([^"[:space:]]+)"?.*$/\1/p' "$state" | head -1)"
   [ -n "$phase" ] || { echo "[automation-first] no current_phase; skipped"; exit 0; }
-  phase_dir="$(find "$repo_root/.planning/phases" -maxdepth 1 -type d -name "${phase}-*" -print | head -1)"
+  phases_root="$repo_root/.planning/phases"
+  [ -d "$phases_root" ] || { echo "[automation-first] phase $phase has no active directory; skipped"; exit 0; }
+  phase_dir="$(find "$phases_root" -maxdepth 1 -type d -name "${phase}-*" -print | head -1)"
   [ -n "$phase_dir" ] || { echo "[automation-first] phase $phase has no active directory; skipped"; exit 0; }
 fi
 
