@@ -2,6 +2,58 @@
 
 0.1.0-0.1.3 were release-pipeline shakedown iterations; treat 0.1.4 as the first recommended pin.
 
+## [0.4.5](https://github.com/szTheory/rindle/compare/rindle-v0.4.4...rindle-v0.4.5) (2026-08-28)
+
+
+### Features
+
+* **132-03:** automate live timing acceptance ([87c1760](https://github.com/szTheory/rindle/commit/87c17605d9803d6249456ef0f951d9edf59a310a))
+* **132-06:** avoid apt refresh on cached indexes ([9e15780](https://github.com/szTheory/rindle/commit/9e15780c1fe852fa901ff039ce9c651f53b408ab))
+* **132-08:** verify current CI timing evidence with Actions API ([b04c270](https://github.com/szTheory/rindle/commit/b04c270b57fa6bae27a3adbf50dd821ab27ba2ec))
+* **132-09:** remove six critical-path scheduling edges ([11bfee5](https://github.com/szTheory/rindle/commit/11bfee5d819318a090d2c2bf065ebc3a26d0ef7d))
+* **132-12:** revalidate timing receipts against canonical API runs ([5a61ab9](https://github.com/szTheory/rindle/commit/5a61ab90217ed1844ec7804b826e1b7ef3bbf4d5))
+* **132-14:** validate transition manifests before publication ([4b6cd03](https://github.com/szTheory/rindle/commit/4b6cd03aeba15ea4fb5d8e40dc9f232d2db62ab9))
+* **132-19:** bound trigger discovery and paginate runs ([a4bbbd1](https://github.com/szTheory/rindle/commit/a4bbbd1bba6077134934a4e6b9a9bf63924b47e9))
+* **132-19:** fail closed controller state resume ([7095695](https://github.com/szTheory/rindle/commit/7095695cd0284db8ea57662c071d99d95c1a3030))
+
+
+### Bug Fixes
+
+* **132-01:** defer generated app dependency installation ([1161029](https://github.com/szTheory/rindle/commit/1161029d5403088d19f4a5017daf3048ecf159aa))
+* **132-04:** harden unattended preservation ([9d8e7e3](https://github.com/szTheory/rindle/commit/9d8e7e3a16f35f69ce6e8fa4f1b476afc491a2fa))
+* **132-05:** bound GitHub API polling ([5001e2a](https://github.com/szTheory/rindle/commit/5001e2a05f378c4fb3b0db9abefc316f8652d3c2))
+* **132-05:** stabilize live CI sampling ([b60e3e7](https://github.com/szTheory/rindle/commit/b60e3e7822a0e59cdb36f19bcfe6e0c1b654b7b1))
+* **132-08:** admit scoped ffmpeg recovery drift ([f347663](https://github.com/szTheory/rindle/commit/f3476633fdc459779a937c5dc3c7234379bd8ce3))
+* **132-08:** allow formatting proof in timing preflight ([458458a](https://github.com/szTheory/rindle/commit/458458aa6712e148a1290177029cfa2783760855))
+* **132-08:** allow planning receipt history in preflight ([7bc1ff9](https://github.com/szTheory/rindle/commit/7bc1ff9bdcf674f45393e4d54934db4d392ac397))
+* **132-08:** authenticate ffmpeg release lookup ([4254165](https://github.com/szTheory/rindle/commit/4254165a27b3f23e1a9e3671bd379a3fca69d3cb))
+* **132-08:** bind sampling to evidence-only drift ([3e02971](https://github.com/szTheory/rindle/commit/3e029716f75134af07eb761d169d968d23f30f8c))
+* **132-08:** lock timing controller state ([20abc28](https://github.com/szTheory/rindle/commit/20abc2815ba52a08a64ecae850d0af6d36c87b71))
+* **132-08:** persist delayed timing trigger ownership ([3945509](https://github.com/szTheory/rindle/commit/394550944bbff63c0e61c258528c8f8764298745))
+* **132-08:** restore CI timing contract hygiene ([1acbc7d](https://github.com/szTheory/rindle/commit/1acbc7d73908c4365c764cc211c44f7b9c1ca94d))
+* **132-08:** retain queued timing runs ([1faf552](https://github.com/szTheory/rindle/commit/1faf552900c6337a6829575c8350b184a2e51793))
+* **132-12:** keep terminal receipt requirements open ([1671cdd](https://github.com/szTheory/rindle/commit/1671cdde1c42231a8a958c8f2771a24edb8b444e))
+* **132-13:** format locked CI topology contract ([541b992](https://github.com/szTheory/rindle/commit/541b9923f18da8b2e37ee9302783687d576d1a84))
+* **132-16:** accept preserved transition manifest tails ([15336d4](https://github.com/szTheory/rindle/commit/15336d4cc8053aa90788c62377096081c5b07f21))
+* **132-22:** bound controller API retries by deadlines ([623d6cd](https://github.com/szTheory/rindle/commit/623d6cd46c5375e073c6076130bdc4c0c51135ed))
+* **132-22:** make human-action policy syntax independent ([454bf21](https://github.com/szTheory/rindle/commit/454bf215c6fcbda65e2850520661c4b13029bfbc))
+* **132:** align timing population and preservation handoff ([c3cf48e](https://github.com/szTheory/rindle/commit/c3cf48ec0d4eb2d8dec2b2728d4bb31a60a95271))
+* **132:** bind timing evidence to immutable PR identity ([c347228](https://github.com/szTheory/rindle/commit/c3472280164cf87194346149b0437699d652ee8c))
+* **132:** bound rate-limit retries without reset API ([3b83d7b](https://github.com/szTheory/rindle/commit/3b83d7bc102509aa8b57b8115ddf071afee4418c))
+* **132:** close CI receipt overlap gap ([a1402e6](https://github.com/szTheory/rindle/commit/a1402e6463d26d2bf517d42e6c9b5eea2f58770a))
+* **132:** fail closed on incomplete human-action tags ([d7c3534](https://github.com/szTheory/rindle/commit/d7c3534dec2ff0dddc004fbbc190bbf996aa8d51))
+* **132:** harden human-action checkpoint parsing ([80ddb13](https://github.com/szTheory/rindle/commit/80ddb13d6d0b7533b7f7f705aac5534443695901))
+* **132:** make terminal timing verification executable ([a273349](https://github.com/szTheory/rindle/commit/a27334995a627d14773efe2a2966f4d90a83ddb1))
+* **132:** repair transition manifest plan topology ([718761d](https://github.com/szTheory/rindle/commit/718761d1a9e145d0cc93e1ad563678f11d28b6f2))
+* **132:** revise gap closure plan after checker feedback ([875fad8](https://github.com/szTheory/rindle/commit/875fad886dbf7c8a1248d229cd87607b21d4fb06))
+* **132:** revise plans based on checker feedback ([273ef80](https://github.com/szTheory/rindle/commit/273ef8055e4ef996af2d57aa586933bdd3a3012a))
+* **132:** revise plans based on checker feedback ([df31120](https://github.com/szTheory/rindle/commit/df31120f25f1e0e4fa80a11c5b2591a75455f74d))
+* **132:** strengthen timing receipt verification ([63490e7](https://github.com/szTheory/rindle/commit/63490e70f1c24c4d02337dd453c61b7bff024d1d))
+* **132:** terminalize API deadline failures ([fcc9996](https://github.com/szTheory/rindle/commit/fcc9996ee063a45e71ab8655daaec6bc3818f7a5))
+* **ci:** align docs with independent required lanes ([52cf39f](https://github.com/szTheory/rindle/commit/52cf39f0c161df73a0e5ea0e7ea477a810957c9b))
+* preserve purge rows across storage failures ([e513c4b](https://github.com/szTheory/rindle/commit/e513c4b7a474f030468ce625d340cb82216a793f))
+* preserve purge rows across storage failures ([c77ce89](https://github.com/szTheory/rindle/commit/c77ce893c19ff9397696f86694a94213e4455404))
+
 ## [0.4.4](https://github.com/szTheory/rindle/compare/rindle-v0.4.3...rindle-v0.4.4) (2026-08-23)
 
 
