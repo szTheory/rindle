@@ -144,8 +144,10 @@ defmodule Rindle.Storage do
 
   Adapters return a `t:delete_result/0` map (which MAY include `:key` when
   known). Deleting a non-existent key is adapter-defined: implementations may
-  return `:ok` (idempotent) or `{:error, :not_found}`. Async-purge callers
-  should treat both as successful eventual deletion.
+  return `:ok` (idempotent) or `{:error, :not_found}`. Local filesystem
+  deletion reports an already-absent file as `{:error, :enoent}`. Async-purge
+  callers should treat both missing-object reasons as successful eventual
+  deletion.
   """
   @callback delete(key :: String.t(), opts :: keyword()) ::
               {:ok, delete_result()} | {:error, term()}
