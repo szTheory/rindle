@@ -37,6 +37,7 @@ defmodule Rindle.InstallSmoke.CiLaneSplitTest do
                   )
   @branch_protection_path Path.expand("../../scripts/setup_branch_protection.sh", __DIR__)
   @contributing_path Path.expand("../../CONTRIBUTING.md", __DIR__)
+  @running_path Path.expand("../../RUNNING.md", __DIR__)
   @required_summary_needs [
     "quality",
     "optional-dependencies",
@@ -64,7 +65,8 @@ defmodule Rindle.InstallSmoke.CiLaneSplitTest do
        release: File.read!(@release_path),
        automerge: File.read!(@automerge_path),
        branch_protection: File.read!(@branch_protection_path),
-       contributing: File.read!(@contributing_path)
+       contributing: File.read!(@contributing_path),
+       running: File.read!(@running_path)
      }}
   end
 
@@ -200,6 +202,33 @@ defmodule Rindle.InstallSmoke.CiLaneSplitTest do
       assert job_needs(ci, job) == [],
              "#{job} must have no prerequisites: D-08 removes only quality and optional-dependencies"
     end
+  end
+
+  @tag :phase_132_topology_recovery
+  test "DX-04 documents the three independent required jobs in present tense", %{
+    ci: ci,
+    running: running
+  } do
+    for job <- ["integration", "contract", "adoption-demo-e2e-smoke"] do
+      assert job_needs(ci, job) == []
+
+      row =
+        running
+        |> String.split("\n")
+        |> Enum.find(&String.starts_with?(&1, "| `#{job}`"))
+
+      assert row, "RUNNING.md must document the #{job} lane"
+      assert row =~ "Starts independently" or row =~ "starts independently"
+      refute row =~ "needs: [quality, optional-dependencies]"
+    end
+
+    smoke = adoption_demo_e2e_smoke_block(ci)
+    refute smoke =~ "NOT YET WIRED"
+    assert smoke =~ "wired into both ci-summary.needs and ci-observability.needs"
+
+    contract = job_block(ci, "contract")
+    refute contract =~ "`needs: quality` waits"
+    assert contract =~ "Starts independently from the quality matrix"
   end
 
   @tag :phase_132_topology_recovery

@@ -433,12 +433,9 @@ jobs:
   contract:
     name: Contract
     runs-on: ubuntu-22.04
-    # `needs: quality` waits for ALL matrix entries of the quality job
-    # (Elixir 1.15/OTP 26 AND Elixir 1.17/OTP 27) to succeed. This is the
-    # standard GitHub Actions matrix-needs interaction: a downstream job
-    # with `needs: <matrixed_job>` blocks until every matrix variant
-    # completes successfully. See:
-    # https://docs.github.com/actions/using-jobs/using-jobs-in-a-workflow#defining-prerequisite-jobs
+    # Starts independently from the quality matrix. `CI Summary` joins this
+    # result with every other required root, so contract failures still block
+    # the sole required context without extending this job's critical path.
     env:
       MIX_ENV: test
       PGUSER: postgres
@@ -1009,9 +1006,9 @@ jobs:
     # catch (T-112-02). It uses NO secrets (MinIO-local literal creds only), so
     # fork-PR exposure is nil (T-112-01).
     #
-    # NOT YET WIRED into ci-summary.needs / ci-observability.needs — that is
-    # Plan 02 (GATE-04), gated behind the operator green-run checkpoint after
-    # N=3 green push:main `adoption-demo-e2e` runs (T-112-05, load-bearing order).
+    # This lane is wired into both ci-summary.needs and ci-observability.needs,
+    # so its deterministic browser-render result participates in the required
+    # merge gate and the corresponding timing evidence.
     env:
       MIX_ENV: test
       RINDLE_AV_USE_CGROUPS: "false"
