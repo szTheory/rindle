@@ -4,9 +4,9 @@ version: 2
 #
 # commit-message.prefix MUST be a NON-release Conventional-Commits type
 # (ci / build / chore) so dependabot PRs never trigger a spurious release-please
-# minor (Pitfall 2). Groups bundle minor+patch into one reviewable PR; dependabot
-# still proposes MAJOR bumps as separate PRs (the reviewable path for an action
-# major bump deferred during the D-03 pin).
+# minor (Pitfall 2). Groups bundle minor+patch updates for Actions and development
+# Mix dependencies. Runtime Mix dependencies and all major bumps stay separate so
+# their compatibility surface remains reviewable.
 updates:
   - package-ecosystem: "github-actions"
     directory: "/"
@@ -41,6 +41,7 @@ updates:
       include: "scope"
     groups:
       dev-dependencies:
+        dependency-type: "development"
         patterns:
           - "*"
         update-types:

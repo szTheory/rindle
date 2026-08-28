@@ -18,12 +18,12 @@
 set -euo pipefail
 
 release_api="${RINDLE_FFMPEG_RELEASE_API:-https://api.github.com/repos/BtbN/FFmpeg-Builds/releases/latest}"
-api_auth_args=()
+api_auth_args=(-H "Accept: application/vnd.github+json")
 
 # GitHub-hosted runners share unauthenticated API limits. Use the ephemeral Actions
 # token when present, but keep local/file-fixture resolution token-free.
 if [ -n "${GITHUB_TOKEN:-}" ]; then
-  api_auth_args=(-H "Authorization: Bearer ${GITHUB_TOKEN}")
+  api_auth_args+=(-H "Authorization: Bearer ${GITHUB_TOKEN}")
 fi
 
 read -r asset url < <(

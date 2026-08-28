@@ -59,13 +59,14 @@ Scan for the row that sounds like your sentence, then jump to the story or guide
 | Gate delivery on your own auth | `Rindle.Authorizer` behaviour | [Secure Delivery](secure_delivery.html) |
 | Wire uploads into LiveView with live progress | `Rindle.LiveView.allow_upload/4` + `consume_uploaded_entries/3` + `subscribe/2` | [LiveView, reactively](#story-4-liveview-reactively) |
 | Run on S3 / R2 / MinIO, GCS, or local disk | `Rindle.Storage.{S3,GCS,Local}` | [Storage Capabilities](storage_capabilities.html) |
+| Keep Rindle tables isolated and upgrade a legacy install safely | `Rindle.Schema`, `Rindle.Migration` | [Upgrading](upgrading.html) |
 | Plug in your own analyzer / processor / scanner | `Rindle.Analyzer`, `Rindle.Processor`, `Rindle.Scanner` | [Profiles](profiles.html) |
 | Fix bad metadata, retry failed variants, cancel work | `Rindle.reprobe/1`, `requeue_variants/2`, `cancel_processing/1` | [Friday, 5 p.m., something is stuck](#story-6-friday-5-pm-something-is-stuck) |
 | See what's stuck and repair it | `Rindle.runtime_status/1`, `mix rindle.doctor`, the `mix rindle.*` ops tasks | [Operations](operations.html) |
 
 ## The flows, told as stories
 
-These six cover the surface most apps touch. Each uses one running example — **Cohort**, a
+These seven cover the surface most apps touch. Each uses one running example — **Cohort**, a
 hypothetical course-and-community SaaS that needs avatars, post images, and lesson videos.
 Swap the names for yours; the shape is the point.
 
@@ -328,6 +329,17 @@ And the scheduled-task family keeps storage honest over time:
 `mix rindle.regenerate_variants`, `mix rindle.verify_storage` (DB vs. storage reconciliation),
 `mix rindle.cleanup_orphans`, `mix rindle.abort_incomplete_uploads`. See
 [Operations](operations.html).
+
+### Story 7: Upgrade without sharing your app schema
+
+A fresh install keeps Rindle-owned tables in the dedicated `rindle` Postgres schema by default,
+while Oban and your migration ledger remain host-owned. Existing pre-0.4 installs can inspect the
+catalog, preflight privileges, and move the fixed Rindle relation set from `public` transactionally
+through `Rindle.Migration`; a guarded reverse path is available during the maintenance window.
+
+Run `mix rindle.doctor` before and after the move, and follow the exact upgrade and rollback sequence
+in [Upgrading](upgrading.html). The migration refuses ambiguous ownership, insufficient privileges,
+and unsafe mixed states instead of guessing.
 
 ## What you inherit for free
 
