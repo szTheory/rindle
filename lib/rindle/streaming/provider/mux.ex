@@ -83,8 +83,8 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
         - `:stuck` fires when a row in `:processing`/`:uploading` exceeds
           `:provider_stuck_threshold_seconds` (default 7200).
 
-      * `[:rindle, :delivery, :streaming, :resolved]` — emitted by
-        `Rindle.Delivery.dispatch_streaming/4` when streaming resolution succeeds.
+      * `[:rindle, :delivery, :streaming, :resolved]` — emitted by the
+        `Rindle.Delivery` streaming path when resolution succeeds.
 
     Webhook processing emits `[:rindle, :provider, :webhook, _]` events from
     the webhook boundary; this adapter records verification-attempt telemetry.

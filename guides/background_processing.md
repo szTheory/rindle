@@ -152,9 +152,11 @@ underlying issue (corrupt source, insufficient memory, recipe bug) is
 resolved.
 
 For idempotent operations (`PurgeStorage`, `CleanupOrphans`), retries
-are safe by design — repeated deletion of an already-deleted object
-is a no-op (the Storage adapter swallows `not_found` errors during
-purge).
+are safe by design. `PurgeStorage` treats remote `:not_found` and Local
+filesystem `:enoent` results as confirmation that a key is already gone.
+Any other tagged error or normalized adapter exception is returned to
+Oban, while the asset and variant rows remain available for the next
+attempt.
 
 ## Telemetry Surface (Public Contract)
 
@@ -310,8 +312,12 @@ Two ordering invariants Rindle enforces:
    the transaction that updates the session row).
 2. **Purge is async and idempotent.** Detach commits the DB row
    change; purge runs in an internal worker post-commit.
-   If the purge fails (transient network error, etc.), Oban retries
-   it. Storage failures cannot leave the DB in an inconsistent state.
+   If any source or variant deletion fails (transient network error,
+   credentials, adapter exception, etc.), the worker keeps the asset and
+   variant rows and returns the error so Oban retries it. The DB asset is
+   removed only after every known storage key is deleted or confirmed
+   already absent, so a partial attempt retains the durable keys needed by
+   the next attempt.
 
 These two invariants are why Rindle requires Oban (not "supports" Oban
 optionally) — without transactional enqueueing on the upload path and

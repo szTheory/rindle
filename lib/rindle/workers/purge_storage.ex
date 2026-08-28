@@ -31,21 +31,29 @@ defmodule Rindle.Workers.PurgeStorage do
     asset = repo.get(MediaAsset, asset_id)
     source_key = if asset, do: asset.storage_key, else: nil
 
-    # 2. Execute deletions
-    Enum.each(variant_keys, fn key ->
-      if key, do: Rindle.delete(profile_module, key)
+    # 2. Delete every known object before removing the durable DB handle.
+    # A later attempt safely replays keys already deleted by an earlier partial run.
+    with :ok <- delete_storage_keys(profile_module, variant_keys ++ [source_key]) do
+      # 3. Cleanup DB records only after storage confirms every key is gone.
+      if asset do
+        repo.delete!(asset)
+      end
+
+      :ok
+    end
+  end
+
+  defp delete_storage_keys(profile_module, keys) do
+    Enum.reduce_while(keys, :ok, fn
+      nil, :ok ->
+        {:cont, :ok}
+
+      key, :ok ->
+        case Rindle.delete(profile_module, key) do
+          {:ok, _result} -> {:cont, :ok}
+          {:error, reason} when reason in [:not_found, :enoent] -> {:cont, :ok}
+          {:error, reason} -> {:halt, {:error, reason}}
+        end
     end)
-
-    if source_key do
-      Rindle.delete(profile_module, source_key)
-    end
-
-    # 3. Cleanup DB records if they still exist
-    # This ensures that the purge is complete.
-    if asset do
-      repo.delete!(asset)
-    end
-
-    :ok
   end
 end
