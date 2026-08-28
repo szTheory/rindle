@@ -240,7 +240,7 @@ _(Key v1.22 execution decisions recorded at milestone close.)_
 
 ## Blockers/Concerns
 
-- **Planning truth drift:** JTBD-MAP remains anchored at v1.18 / Hex 0.3.0. The stale Phase 132
+- None. JTBD-MAP is anchored to the post-v1.25 / Hex 0.4.5 baseline; the stale Phase 132
   `21/22 plans executed` block was corrected in current and archived roadmaps during shipment prep.
 
 ## Deferred Items

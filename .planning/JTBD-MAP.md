@@ -1,6 +1,6 @@
 # Rindle — Jobs-To-Be-Done Map & Completeness Frontier
 
-> **Generated:** 2026-06-13 · **Against:** milestone v1.18 (in progress) · **hex** 0.3.0 · **git** `4cf2cdd`
+> **Generated:** 2026-08-28 · **Against:** post-v1.25 demand-gated pause · **hex** 0.4.5 · **git** `7d5c8cd`
 
 Internal strategy artifact. Not published to HexDocs. Its job is to answer three questions
 the adopter-facing [`guides/user_flows.md`](../guides/user_flows.md) deliberately doesn't:
@@ -86,6 +86,7 @@ Status legend: ✅ Shipped · 🟡 Partial (achievable, no first-class surface) 
 | 38 | "Erase many owners in one orchestrated batch (GDPR/compliance scale)." | App dev / Sec / Operator | ✅ | v1.14 | `Rindle.preview_batch_owner_erasure/2`, `erase_batch_owner_erasure/2`, `mix rindle.batch_owner_erasure` |
 | 37 | "Abort an abandoned Mux direct upload before the browser finishes PUT." | App dev | ✅ | v1.13 | `Rindle.Streaming.cancel_direct_upload/1` (Mux-only) |
 | 39 | "Mount a Rindle-branded admin console to watch/repair media without building my own dashboard." | Operator | ✅ | v1.18 | `Rindle.Admin.Router.rindle_admin/2` (mountable, host-authenticated, self-contained assets). **Charter-recorded scope reversal** (2026-06-10 maintainer pull), not a T4 capitulation — actions reuse existing facade capabilities only; other T4 items stay excluded. |
+| 40 | "Keep Rindle's tables isolated from my app schema and upgrade a legacy install without losing data." | Platform / Operator | ✅ | v1.23 | `Rindle.Schema` + `Rindle.Migration` (dedicated-by-default `rindle` schema, guarded public-schema upgrade and rollback). |
 | 33 | "Serve images through on-the-fly signed transforms (arbitrary w/h/format)." | App dev | 🔲 | — | Not built. Named variants only. Design intent: "dynamic transforms opt-in, signed, bounded." |
 | 34 | "Strip EXIF/GPS from originals before serving (privacy)." | Sec | 🟡 | — | Variants drop metadata via `Image`; originals served as-is. No explicit privacy-strip control. |
 | 35 | "Enforce per-tenant storage quotas / billing limits." | Platform | ⛔ | — | App concern. Rindle exposes `byte_size`; quota/billing belongs to the host app. |
@@ -129,9 +130,10 @@ honesty shipped v1.15–v1.16. That is the signal to stop chasing new modalities
 
 ## Ranked gap analysis (highest leverage first)
 
-1. **Demand-gated pause (default).** No feature milestone unless compliance pull (LIFE-06) or
-   named adopter (STREAM-10). Post-v1.16 CI hygiene shipped (`mix coveralls` merge-blocking);
-   planning-truth closure complete v1.17 Phase 78 (assessment thread, JTBD anchor refresh).
+1. **Demand-gated pause (default).** No feature milestone unless compliance pull (LIFE-06),
+   named adopter (STREAM-10), or a concrete reliability/release-train signal. Milestones
+   v1.19–v1.25 completed design-system, CI/DX, OSS trust, schema-isolation, and maintainability
+   work without authorizing speculative feature breadth.
 
 2. **Force-delete semantics** (LIFE-06, job 32 extension). Compliance pull only; conflicts
    with conservative shared-asset contract unless explicitly opt-in. Separate feature milestone.
@@ -142,9 +144,10 @@ honesty shipped v1.15–v1.16. That is the signal to stop chasing new modalities
 4. **Signed dynamic image transforms** (job 33) and **EXIF privacy stripping** (job 34).
    Build only on explicit adopter pull.
 
-*Verified against code on 2026-05-27:* tus + Mux direct + cancel + owner + batch erasure +
-maintenance/proof (v1.15–v1.16) shipped in lib/tests/guides/CI. Force-delete — not built
-(`OwnerErasure.execute/2` has no force-purge path). Dynamic transforms — still not built.
+*Verified against code on 2026-08-28:* tus + Mux direct + cancel + owner + batch erasure,
+the mountable admin console, and dedicated-schema migration support ship in lib/tests/guides/CI.
+Force-delete is not built (`OwnerErasure.execute/2` has no force-purge path). Dynamic transforms
+and explicit original-file EXIF stripping are still not built.
 
 ---
 
@@ -152,12 +155,11 @@ maintenance/proof (v1.15–v1.16) shipped in lib/tests/guides/CI. Force-delete �
 
 | Priority | Milestone | Why now | Size |
 |---|---|---|---|
-| **Default** | No feature milestone | ~94–96% mission coverage; maintenance wedge complete v1.15–v1.16 | — |
-| **Conditional A** | v1.17 Force-Delete Shared Assets (LIFE-06) | Compliance pull only; separate high-blast-radius charter | medium (~3 phases) |
-| **Conditional B** | v1.17 Second Streaming Provider (STREAM-10) | Contract test; explicit adopter demand only | large (~3–4 phases) |
-| **Optional C** | v1.17 Adopter-Confidence Hygiene | JTBD/CI hygiene only; no public API | small (1–2 phases) |
-| **v1.18+** | Whichever of A/B was not v1.17 | Second demand signal | same as above |
-| **v1.19+** | Privacy & Delivery Polish (TRANS-01, PRIV-01) | Explicit product pull only | medium |
+| **Default** | No feature milestone | ~94–96% mission coverage; v1.19–v1.25 maintenance/trust/schema work is complete | — |
+| **Conditional A** | Force-Delete Shared Assets (LIFE-06) | Compliance pull only; separate high-blast-radius charter | medium (~3 phases) |
+| **Conditional B** | Second Streaming Provider (STREAM-10) | Contract test; explicit adopter demand only | large (~3–4 phases) |
+| **Conditional C** | Reliability / release-train correction | A concrete failing signal only; bounded maintenance pass, not a feature pretext | signal-sized |
+| **Later** | Privacy & Delivery Polish (TRANS-01, PRIV-01) | Explicit product pull only | medium |
 | **then** | *Long-tail / maintenance* | No speculative tus 2.0, uploader kits, or platform scope | ongoing |
 
 **Canonical ordering:** `.planning/threads/2026-05-27-path-to-done-roadmap.md`
@@ -169,6 +171,12 @@ path-to-done thread for multi-milestone sequence and terminal-state criteria.
 ---
 
 ## What changed since last generation
+
+- **2026-08-28 — post-v1.25 baseline refresh.** Anchor moved from in-progress v1.18 / Hex 0.3.0
+  to the post-v1.25 demand-gated pause / Hex 0.4.5 (`7d5c8cd`). Added job **40** for the
+  dedicated-by-default Postgres schema and guarded legacy migration path shipped in v1.23.
+  Milestones v1.19–v1.22 and v1.24–v1.25 improved design, CI/DX, OSS trust, and maintainability
+  without adding another lifecycle modality. The feature frontier and demand gates remain intact.
 
 - **2026-06-13 — v1.18 admin-UI scope reversal (Phase 93).** Anchor moved from v1.16 to v1.18
   (`4cf2cdd`), hex 0.3.0. "Admin UI" was *removed* from the two T4 exclusion points (job row 36
