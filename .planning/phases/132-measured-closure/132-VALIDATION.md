@@ -1,7 +1,7 @@
 ---
 phase: 132
 slug: measured-closure
-status: gaps_found
+status: validated
 nyquist_compliant: true
 wave_0_complete: true
 created: 2026-08-25
@@ -43,25 +43,30 @@ created: 2026-08-25
 
 ## Per-Task Verification Map
 
-| Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
-|---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 132-01-01a | 01 | 1 | CI-14 | T-132-04 | Generator argv omits pre-patch dependency installation while retaining its bounded command contract | fast contract | `mix test test/install_smoke/generated_app_smoke_test.exs --only phase_132_generator_contract` | ✅ | ✅ green |
-| 132-01-01b | 01 | 1 | CI-14 | T-132-01 | Required proof cannot bypass the post-patch package lifecycle | integration acceptance | `bash scripts/install_smoke.sh image` | ✅ | ✅ green |
-| 132-02-01 | 02 | 2 | CI-14 | T-132-01 / T-132-04 | Required-job set, skip-as-pass behavior, and quoted trusted inputs remain unchanged | contract | `mix test test/install_smoke/ci_lane_split_test.exs test/install_smoke/ci_observability_test.exs`, then `bash scripts/ci/test_ci_summary_gate.sh` | ✅ | ✅ green |
-| 132-02-02 | 02 | 2 | COV-05, SAFE-02 | T-132-01 | Coverage and prohibited product/release surfaces do not drift | ordered integration + contract | `mix quality_signals`; `bash scripts/maintainer/refactor_contract.sh`; one authoritative coverage run; `bash scripts/install_smoke.sh image` | ✅ | ✅ green |
-| 132-03-01 | 03 | 3 | CI-14 | T-132-02 / T-132-03 | Controller owns fast-forward publication, label cleanup, exact run identity, sequencing, restart budget, and receipt arithmetic | offline orchestration | `mix test test/install_smoke/ci_timing_automation_test.exs --seed 0` | ✅ | ✅ green |
-| 132-03-02 | 03 | 3 | SAFE-02 | T-132-01 | Active requirements cannot close through manual verification or UAT | planning contract | `mix test test/install_smoke/automation_first_contract_test.exs --seed 0 && ./scripts/maintainer/automation_first_contract.sh` | ✅ | ✅ green |
-| 132-04-01 | 04 | 4 | CI-14, COV-05, SAFE-02 | T-132-01 / T-132-04 | Final controller candidate retains every required ratchet | preservation acceptance | focused contracts, quality_signals, SAFE-01, authoritative coverage, image package-consumer | ✅ | ✅ green |
-| 132-05-01 | 05 | 5 | CI-14 | T-132-02 / T-132-03 | Ten-run receipt is generated, sourced, calculated, and judged without a person | live automated acceptance | `collect_pr_timing_receipt.sh run ... && collect_pr_timing_receipt.sh verify ...` | ✅ | ❌ red |
-| 132-08-X | 08 | 8 | CI-14 | — | Superseded sampler is terminalized without execution; its unchanged plan remains historical evidence and cannot enter executor dispatch | executor inventory contract | `phase-plan-index 132` reports `132-08.has_summary: true` and excludes `132-08` from `incomplete` | ✅ | ✅ terminal |
-| 132-09-01 | 09 | 9 | CI-14, SAFE-02 | T-132-09-01 / T-132-09-03 | RED source contract identifies exactly the six authorized edges while deterministic fixture projection reproduces the baseline and both critical branches | source-bound TDD tracer | tagged `phase_132_topology_recovery` run must fail at named `D-08 exact six-edge topology` case before workflow edit | ✅ extend + fixture | ⬜ pending |
-| 132-09-02 | 09 | 9 | CI-14, COV-05, SAFE-02 | T-132-09-01 / T-132-09-02 | Exact six-edge GREEN preserves affected job bodies, adopter prerequisites, all summary/observability members, sole Summary, skip-as-pass, and an exact three-deletion/zero-addition workflow patch | source-bound + exact-patch contract | normalize only zero-context diff metadata, require exactly three authorized removed declarations, then run focused ExUnit/Bash contracts and `git diff --check` | ✅ extend | ⬜ pending |
-| 132-10-01 | 10 | 10 | CI-14, COV-05, SAFE-02 | T-132-10-01 / T-132-10-02 / T-132-10-03 | Immutable topology subject retains focused proof, quality, SAFE-01, automation policy, hygiene, inclusive authoritative coverage, packed consumer, and no-trigger sampler preflight | preservation acceptance | focused contracts; `mix quality_signals`; SAFE-01; automation-first; hygiene; one authoritative coverage run; fail-closed ExCoveralls count/ratio extraction plus exact receipt comparison; packed image consumer | ✅ | ⬜ pending |
-| 132-11-01 | 11 | 11 | CI-14, COV-05, SAFE-02 | T-132-11-01 / T-132-11-02 / T-132-11-04 | One locked controller yields exactly ten consecutive successful attempt-1 PR runs on the preserved head and independently enforces inclusive 480/600 or honest gaps_found | live automated acceptance | `collect_pr_timing_receipt.sh run ...` once, then conditional API-backed `verify` plus focused topology/summary contracts | ✅ | ⬜ pending |
-| 132-12-01 | 12 | 12 | CI-14, SAFE-02 | T-132-12-01 / T-132-12-02 / T-132-12-03 / T-132-12-04 / T-132-12-06 / T-132-12-07 | Collection and verification share one repository/workflow/numeric-PR/full-SHA/boundary population and live threshold authority; explicit verify requires PR identity; missing/wrong/mismatched PR and same-SHA other-PR fixtures fail without mutation; equality passes, 481/601 honestly miss, forged/API/integrity failure is distinct, and exact/strict-ancestor no-publish preflight source-validates its transition without mutation | process-level controller regression | `mix test test/install_smoke/ci_timing_automation_test.exs --seed 0 && bash -n scripts/ci/collect_pr_timing_receipt.sh && ./scripts/maintainer/automation_first_contract.sh` | ✅ extend | ⬜ pending |
-| 132-13-01 | 13 | 13 | CI-14, SAFE-02 | T-132-13-01 / T-132-13-02 / T-132-13-03 | Both failed recovery runs are bound to the same formatter failure, and canonical formatting changes no D-08/D-09 topology, fixture, required-member, or Summary behavior | formatter + topology contract | `mix format --check-formatted test/install_smoke/ci_lane_split_test.exs && mix test test/install_smoke/ci_lane_split_test.exs test/install_smoke/ci_observability_test.exs --seed 0 && bash scripts/ci/test_ci_summary_gate.sh && ./scripts/maintainer/automation_first_contract.sh` | ✅ | ⬜ pending |
-| 132-14-01 | 14 | 14 | CI-14, COV-05, SAFE-02 | T-132-14-01 / T-132-14-02 / T-132-14-03 / T-132-14-04 | A new post-132-13 immutable subject is bound by a repository/numeric-PR marker-delimited two-stage name/status/path/blob manifest, then passes formatter/topology/quality/SAFE-01/coverage/packed-consumer preservation, inclusive 82.13% integer proof, and successful mutation-free publication-ready preflight | ordered preservation acceptance | Run the exact multiline `132-14-PLAN.md` automated command: derive prior/correction/new-preserved SHAs, validate repository `szTheory/rindle`, PR `96`, both transition stages and blob OIDs, formatter-reproduce the lane-split delta, source-check canonical population/live thresholds/preflight interfaces, then snapshot and equality-check every PR/run/label/state/lock/receipt surface around successful `preflight --no-publish` | ✅ | ⬜ pending |
-| 132-15-01 | 15 | 15 | CI-14, COV-05, SAFE-02 | T-132-15-01 / T-132-15-02 / T-132-15-03 / T-132-15-04 / T-132-15-05 / T-132-15-07 / T-132-15-08 | The same repository/PR-bound source-derived manifest passes no-publish and run; one locked live collector admits publication sample 1 plus nine label runs, selected IDs equal all ten PR-96 eligible successes and exclude same-SHA other-PR runs, and explicit/completed live threshold verification preserves every observed population | terminal live automated acceptance | Run the exact multiline `132-15-PLAN.md` automated command: require strict ancestry, reparse repository/PR identity and preflight the transition manifest without mutation, execute one publish-head controller with that manifest, assert source/state repo/PR identity, publication/nine-label provenance, exact bound-PR API population and other-PR disjointness, run explicit `verify --pr "$PR"`, snapshot receipt/current markers/state/all run IDs/eligible IDs, rerun completed state, and assert every snapshot plus label/lock cleanup remains unchanged | ✅ | ⬜ pending |
+| Plan | Requirements | Automated authority | Final status |
+|------|--------------|---------------------|--------------|
+| 132-01 | CI-14, SAFE-02 | Generator-order contract and packed image consumer | Green |
+| 132-02 | CI-14, COV-05, SAFE-02 | Topology, Summary, quality, coverage, SAFE-01, and consumer census | Green |
+| 132-03 | CI-14, SAFE-02 | Offline controller and automation-first parser suites | Green |
+| 132-04 | CI-14, COV-05, SAFE-02 | Immutable preservation census | Green |
+| 132-05 | CI-14 | Automated live run honestly failed and routed to remediation | Superseded |
+| 132-06 | CI-14, SAFE-02 | Install-first/fallback-refresh helper regressions | Green |
+| 132-07 | CI-14, COV-05, SAFE-02 | Post-remediation preservation census | Green |
+| 132-08 | CI-14 | Executor inventory terminalized the superseded plan | Terminal |
+| 132-09 | CI-14, COV-05, SAFE-02 | Exact six-edge topology and deterministic projection contract | Green |
+| 132-10 | CI-14, COV-05, SAFE-02 | Immutable topology preservation and no-trigger preflight | Green |
+| 132-11 | CI-14 | Bounded live run honestly failed and routed to controller repair | Superseded |
+| 132-12 | CI-14, SAFE-02 | Canonical population, threshold, identity, and no-mutation regressions | Green |
+| 132-13 | CI-14, SAFE-02 | Formatter/topology preservation proof | Green |
+| 132-14 | CI-14, COV-05, SAFE-02 | Transition-manifest controller regression | Green |
+| 132-15 | CI-14, COV-05, SAFE-02 | Post-repair preservation and mutation-free preflight | Green |
+| 132-16 | CI-14, SAFE-02 | Preserved-tail controller regression | Green |
+| 132-17 | CI-14, COV-05, SAFE-02 | Post-controller-fix preservation census | Green |
+| 132-18 | CI-14 | Bounded API-backed run honestly exposed controller gaps | Superseded |
+| 132-19 | CI-14, SAFE-02 | Terminal-state, deadline, resume, and pagination regressions | Green |
+| 132-20 | CI-14, COV-05, SAFE-02 | Repaired-source preservation and publication readiness | Green |
+| 132-21 | CI-14 | Exact-ten live receipt: 453s median / 481s p95 | Green |
+| 132-22 | CI-14, COV-05, SAFE-02 | Deadline-owner and syntax-independent policy regressions plus final verifier | Green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -74,8 +79,8 @@ created: 2026-08-25
 - [x] Add an executable planning contract that rejects human verification/UAT.
 - [x] Existing ExUnit infrastructure and CI contract suites require no new framework or dependency.
 - [ ] 132-09 extends the topology contract to assert D-08's exact six removed edges, D-09's unchanged edges/job bodies, complete `CI Summary` and observability membership, and unchanged skip-as-pass evaluation.
-- [ ] 132-09 adds deterministic fixture arithmetic showing the approved ordering removes both measured critical branches; local/projection timing remains non-accepting for CI-14.
-- [ ] 132-12 extends the existing process-level controller suite with publication-success-plus-nine, publication-failure bounded-sequence, repository/numeric-PR-bound exact-population/no-eleventh, required `verify --pr`, missing/wrong PR, same-SHA other-PR, CLI/state/source/API mismatch, equality/481/601 threshold cases across explicit and completed modes, forged/API/integrity rejection, positive no-retrigger resume, exact/strict-ancestor no-publish, non-ancestor/unauthorized-transition rejection, and complete receipt/state/label/lock/run-population mutation snapshots; no new framework or dependency is required.
+- [x] 132-09 added deterministic fixture arithmetic for both measured critical branches; projection evidence remains non-accepting for CI-14.
+- [x] 132-12 added process-level canonical-population, identity, threshold, no-retrigger, preflight, and no-mutation regressions.
 
 ---
 
@@ -96,8 +101,13 @@ None. Every Phase 132 requirement has an automated contract, preservation author
 - [x] Sampling continuity through Waves 12–15 is preserved: controller/threshold/preflight regression → formatter/topology proof → manifest-bound preservation and successful no-publish preflight → terminal live receipt and completed-state verification
 - [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** recovery revision pending. Earlier automated evidence remains `gaps_found`; Waves 12–15
-now require shared repository/numeric-PR-bound live threshold/population and publication-ready preflight regressions,
-formatter/topology remediation proof, manifest-bound final preservation with successful mutation-free
-preflight, and a fresh API-backed exact-ten receipt with explicit plus completed-state live
-verification. No manual verification or UAT may close CI-14.
+**Approval:** validated 2026-08-28. The final Phase 132 verifier passed all three requirements after
+Plans 19–22 closed the controller and policy gaps; no manual verification or UAT closes CI-14.
+
+## Validation Audit 2026-08-28
+
+| Metric | Count |
+|--------|------:|
+| Historical red/superseded live attempts | 3 |
+| Final green or terminal plan outcomes | 22 |
+| Remaining validation gaps | 0 |
