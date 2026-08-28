@@ -122,7 +122,7 @@ defmodule Rindle.MixProject do
       {:ex_machina, "~> 2.7", only: :test},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
-      {:doctor, "~> 0.22.0", only: [:dev, :test], runtime: false},
+      {:doctor, "~> 0.23.0", only: [:dev, :test], runtime: false},
       {:mix_audit, "~> 2.1", only: [:dev, :test], runtime: false},
       {:yaml_elixir, "~> 2.12", only: [:dev, :test]},
       {:excoveralls, "~> 0.18", only: [:test, :dev], runtime: false},
