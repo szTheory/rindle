@@ -2,11 +2,11 @@
 gsd_state_version: 1.0
 milestone: v1.25
 milestone_name: Maintainer Craft & Feedback Velocity
-status: Patch repair before demand-gated pause
-stopped_at: Post-v1.25 milestone assessment complete
-last_updated: "2026-08-28T02:45:36.300Z"
-last_activity: 2026-08-27
-last_activity_desc: Post-v1.25 assessment selected a purge-correctness patch and no new milestone
+status: demand-gated-pause
+stopped_at: v1.25 and purge-correctness patch shipped; awaiting demand signal
+last_updated: "2026-08-28T04:18:21.000Z"
+last_activity: 2026-08-28
+last_activity_desc: Released Rindle 0.4.5 with the PurgeStorage durability fix and resumed demand-gated pause
 progress:
   total_phases: 6
   completed_phases: 6
@@ -21,26 +21,27 @@ current_phase_name: null
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-08-27 after v1.25)
+See: .planning/PROJECT.md (updated 2026-08-28 after Rindle 0.4.5)
 
 **Core value:** Media, made durable.
-**Current focus:** Ship v1.25, repair purge failure handling as a patch, then demand-gated pause
+**Current focus:** Keep main and release truth green; await a concrete demand signal
 
 ## Current Position
 
 Phase: Between milestones
 Plan: —
-Status: Patch repair before demand-gated pause
-Last activity: 2026-08-27 — Post-v1.25 milestone assessment complete
+Status: demand-gated-pause
+Last activity: 2026-08-28 — Rindle 0.4.5 published and publicly verified
 
 ### Post-v1.25 assessment
 
 Rindle is roughly 94% done for its stated Phoenix media-lifecycle mission: T0–T2 adopter jobs, docs,
 operator surfaces, generated-package proof, Cohort E2E, and release truth are strong. No compliance
 ticket, named second-provider adopter, or external 1.0 pilot exists, so no feature or graduation
-milestone is authorized. One existing-behavior reliability defect outranks new breadth: `PurgeStorage`
-discards storage deletion errors, removes the DB handle, and returns success instead of letting Oban
-retry. Full assessment: `.planning/threads/2026-08-27-post-v125-milestone-assessment.md`.
+milestone is authorized. The assessment's one existing-behavior reliability defect is now fixed:
+`PurgeStorage` preserves the durable DB handle and returns real storage failures for Oban retry while
+treating authoritative absence as idempotent success. The fix shipped in Rindle 0.4.5. Full assessment
+and outcome: `.planning/threads/2026-08-27-post-v125-milestone-assessment.md`.
 
 ### v1.24 shipped summary
 
@@ -69,13 +70,9 @@ the historical 0.4.0 contract; do not regress either side of that invariant.
 
 ## Next Step
 
-First finish the existing v1.25 shipment: push the local closeout commits, update draft PR #96 from
-its older remote head, and merge only on exact-head green proof. The stale Phase 132 roadmap block was
-corrected during shipment preparation. Then fix `PurgeStorage` failure propagation as a bounded patch:
-preserve DB rows/keys on any real
-storage error, normalize already-absent results as success, return errors for Oban retry, and add focused
-failure/retry/docs proof. Do not open a new milestone for this patch. Resume the demand-gated pause after
-release.
+Remain in the demand-gated pause. Keep `main`, package truth, and release automation green, but do not
+invent a feature or maintenance milestone. Use `$gsd-new-milestone` only after a named external pilot,
+compliance ticket, named provider request, or other concrete signal authorizes bounded work.
 
 ## Prior Milestone
 
@@ -243,11 +240,6 @@ _(Key v1.22 execution decisions recorded at milestone close.)_
 
 ## Blockers/Concerns
 
-- **Purge correctness/support truth:** released 0.4.4 `PurgeStorage` ignores tagged deletion errors,
-  deletes the asset row, and returns `:ok`; the documented three-attempt retry and “storage failures
-  cannot leave the DB inconsistent” claims are therefore false on failure paths.
-- **v1.25 is not remote yet:** PR #96 is draft at `869ca9c`; local closeout/tag `f5741dc` is 26 commits
-  ahead and must pass fresh exact-head checks after publication.
 - **Planning truth drift:** JTBD-MAP remains anchored at v1.18 / Hex 0.3.0. The stale Phase 132
   `21/22 plans executed` block was corrected in current and archived roadmaps during shipment prep.
 
@@ -263,8 +255,8 @@ _(Key v1.22 execution decisions recorded at milestone close.)_
 
 ## Session Continuity
 
-Last session: 2026-08-27T22:45:36-04:00
-Stopped at: Post-v1.25 milestone assessment complete
+Last session: 2026-08-28T00:18:21-04:00
+Stopped at: v1.25 and purge-correctness patch shipped; awaiting demand signal
 Resume file: None
 
 ## Performance Metrics
@@ -337,7 +329,7 @@ Resume file: None
 
 ## Operator Next Steps
 
-- Finish v1.25 remote shipment and exact-head verification through PR #96.
-- Repair and release `PurgeStorage` failure handling as a bounded patch, not a milestone.
-- Return to the demand-gated pause; use `$gsd-new-milestone` only after an approved external pilot,
+- Maintain the demand-gated pause; use `$gsd-new-milestone` only after an approved external pilot,
   compliance ticket, named provider request, or other concrete signal.
+- Keep `main`, public package truth, and the automated release train green; otherwise preserve silence
+  on the wire.

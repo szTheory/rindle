@@ -32,15 +32,15 @@ and 481 seconds p95. The audit passed 6/6 phases, 11/11 integration links, and 6
 
 ## Next Milestone Goals
 
-No milestone is authorized yet. The post-v1.25 assessment found one patch-eligible reliability repair:
-`PurgeStorage` currently discards tagged storage-deletion failures, deletes the durable asset row, and
-returns success, contradicting the documented retry/idempotence contract. Correct and release that
-bounded existing-behavior bug without bundling LIFE-06, new public API, or broader purge redesign.
+No milestone is authorized. The post-v1.25 assessment's bounded reliability repair shipped in Rindle
+0.4.5: `PurgeStorage` now preserves durable asset rows across real storage-deletion failures, returns
+errors for Oban retry, and treats authoritative absence as idempotent success without widening the
+public API or purge scope.
 
-After the patch, remain in the demand-gated pause unless a concrete adopter, compliance, reliability,
-or release-train signal supplies an approved work item. LIFE-06 and STREAM-10 remain signal-gated
-candidates, not an active roadmap. A 1.0 graduation milestone requires a named non-maintainer Phoenix
-pilot and executable adoption evidence before Rindle freezes its public contract.
+Remain in the demand-gated pause unless a concrete adopter, compliance, reliability, or release-train
+signal supplies an approved work item. LIFE-06 and STREAM-10 remain signal-gated candidates, not an
+active roadmap. A 1.0 graduation milestone requires a named non-maintainer Phoenix pilot and executable
+adoption evidence before Rindle freezes its public contract.
 
 ## Previous Milestone: v1.24 Core Clarity & Quality Ratchet — shipped 2026-08-23
 
@@ -914,4 +914,4 @@ This document evolves at phase transitions and milestone boundaries.
    (`workflow.milestone_boundary.block_feature_milestone_without_signal`)
 
 ---
-*Last updated: 2026-08-27 after shipping v1.25 Maintainer Craft & Feedback Velocity.*
+*Last updated: 2026-08-28 after publishing Rindle 0.4.5 and resuming the demand-gated pause.*

@@ -201,3 +201,23 @@ legal requirement pulls a bounded milestone into existence.
 No configuration or global-default changes were needed. Existing repo-local settings already enforce
 the demand gate, post-ship assessment, automation-first acceptance, Nyquist validation, and PR-first
 serious work.
+
+## Outcome — 2026-08-28
+
+The maintainer approved recommendations 1 and 2, and both shipped:
+
+- v1.25 closeout merged through [PR #96](https://github.com/szTheory/rindle/pull/96) after exact-head
+  CI passed.
+- The bounded `PurgeStorage` durability repair merged through
+  [PR #99](https://github.com/szTheory/rindle/pull/99). It stops on the first real deletion failure,
+  preserves the asset row for retry, and normalizes authoritative `:not_found` / `:enoent` absence.
+- A clean-checkout release blocker in the automation-first contract was regression-tested and fixed
+  through [PR #100](https://github.com/szTheory/rindle/pull/100).
+- Rindle 0.4.5 was published from immutable source `c22a527…`; exact-source CI
+  [33139596856](https://github.com/szTheory/rindle/actions/runs/33139596856) and the complete publish,
+  Hex metadata, HexDocs, public-artifact, and release-baseline workflow
+  [33139621294](https://github.com/szTheory/rindle/actions/runs/33139621294) passed.
+
+The patch recommendation is closed. No LIFE-06 ticket, STREAM-10 adopter request, or named external
+1.0 pilot appeared during execution, so no new milestone is authorized. The repository resumes the
+`demand-gated-pause`; silence on the wire is the next action unless a concrete signal arrives.
