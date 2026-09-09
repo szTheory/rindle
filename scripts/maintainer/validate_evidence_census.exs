@@ -172,6 +172,9 @@ defmodule Rindle.ValidateEvidenceCensus do
       length(raw_observations) != length(Enum.uniq_by(raw_observations, &canonical_json/1)) ->
         {:error, "normalized observations contain duplicates"}
 
+      not Enum.all?(raw_observations, &integer_count_attributes?(&1["attributes"])) ->
+        {:error, "observation count attributes must be integers"}
+
       Enum.sort(detector_ids) != Enum.sort(declared_ids) ->
         {:error, "taxonomy detector assignment is not bijective"}
 
@@ -203,6 +206,21 @@ defmodule Rindle.ValidateEvidenceCensus do
       Path.type(observation["location"]) == :relative and
       nonempty_string?(observation["status"]) and is_map(observation["attributes"])
   end
+
+  defp integer_count_attributes?(attributes) when is_map(attributes) do
+    Enum.all?(attributes, fn {key, value} ->
+      if key == "count" or String.ends_with?(key, "_count") do
+        is_integer(value)
+      else
+        integer_count_attributes?(value)
+      end
+    end)
+  end
+
+  defp integer_count_attributes?(attributes) when is_list(attributes),
+    do: Enum.all?(attributes, &integer_count_attributes?/1)
+
+  defp integer_count_attributes?(_value), do: true
 
   defp canonical_detector_registry(detectors) do
     detectors
