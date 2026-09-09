@@ -18,6 +18,32 @@ defmodule Rindle.InstallSmoke.EvidenceCensusTest do
     "release engineering",
     "repository hygiene"
   ]
+  @detector_registry [
+    {"default-exunit", "correctness", "mix test", ["mix.exs"]},
+    {"credo-quality", "maintainability", "mix credo_quality",
+     ["scripts/maintainer/credo_complexity_baseline.json", "scripts/maintainer/credo_quality.sh"]},
+    {"mix-audit", "security", "mix deps.audit", ["mix.exs", "mix.lock"]},
+    {"pr-timing", "performance", "validate accepted PR timing receipt",
+     [
+       ".planning/milestones/v1.25-phases/132-final-craft-truth-and-feedback-proof/132-02-SUMMARY.md"
+     ]},
+    {"nightly-policy", "reliability", "evaluate Nightly evidence",
+     [".github/workflows/nightly.yml"]},
+    {"supported-toolchain", "compatibility", "verify supported toolchain matrix",
+     [".tool-versions", ".github/workflows/nightly.yml"]},
+    {"automation-first", "testing", "./scripts/maintainer/automation_first_contract.sh",
+     ["RUNNING.md", "scripts/maintainer/automation_first_contract.sh"]},
+    {"docs-accessibility", "documentation/accessibility", "mix doctor --full --raise",
+     ["RUNNING.md", "scripts/maintainer/refactor_contract.sh"]},
+    {"package-consumer", "packaging", "mix hex.build --unpack",
+     ["mix.exs", "test/install_smoke/package_metadata_test.exs"]},
+    {"workflow-topology", "CI/CD", "validate CI workflow topology",
+     [".github/workflows/ci.yml", ".github/workflows/nightly.yml"]},
+    {"release-authority", "release engineering", "validate exact-SHA release coupling",
+     [".release-please-manifest.json", ".github/workflows/release.yml", "mix.exs"]},
+    {"repository-hygiene", "repository hygiene", "./scripts/maintainer/repo_hygiene_check.sh",
+     ["scripts/maintainer/repo_hygiene_check.sh"]}
+  ]
 
   test "EVID-01: clean exact-head receipt validates against a separate reviewed ledger" do
     fixture = census_fixture!()
@@ -145,6 +171,89 @@ defmodule Rindle.InstallSmoke.EvidenceCensusTest do
     end
   end
 
+  test "EVID-01: complete registry covers every locked dimension with repository-owned inputs" do
+    fixture = complete_census_fixture!()
+
+    assert {_output, 0} = run_collector(fixture)
+    assert {_output, 0} = run_validator(fixture)
+
+    mutate_json!(fixture.ledger, fn ledger ->
+      put_in(ledger, ["detectors", Access.at(0), "command"], "opaque replacement")
+    end)
+
+    assert {_output, 0} = run_collector(fixture)
+    assert_invalid(fixture, "detector registry differs from repository-owned authority")
+  end
+
+  test "EVID-01: candidate set changes and unexplained observation transitions fail closed" do
+    for mutation <- [
+          fn ledger -> update_in(ledger, ["candidates"], &tl/1) end,
+          fn ledger ->
+            update_in(ledger, ["candidates", Access.at(0), "id"], &(&1 <> "-replacement"))
+          end
+        ] do
+      fixture = complete_census_fixture!()
+      assert {_output, 0} = run_collector(fixture)
+      mutate_ledger_and_recollect!(fixture, mutation)
+      assert_invalid(fixture, "candidate set differs from the reviewed baseline")
+    end
+
+    fixture = complete_census_fixture!()
+    assert {_output, 0} = run_collector(fixture)
+
+    mutate_ledger_and_recollect!(fixture, fn ledger ->
+      replace_candidate_observation(ledger, "candidate-automation-first", "obs-testing-after")
+    end)
+
+    assert_invalid(fixture, "changed candidate requires one Phase 133 transition")
+  end
+
+  test "EVID-01: an explicit stable-ID transition reconciles changed observations" do
+    fixture = complete_census_fixture!()
+    ledger = fixture.ledger |> File.read!() |> Jason.decode!()
+    candidate_id = "candidate-automation-first"
+    before_digest = baseline_digest(ledger, candidate_id)
+    changed = replace_candidate_observation(ledger, candidate_id, "obs-testing-after")
+    after_digest = observations_digest(["obs-testing-after"])
+
+    transitioned =
+      Map.put(changed, "phase_133_transitions", [
+        %{
+          "candidate_id" => candidate_id,
+          "before_observations_digest" => before_digest,
+          "after_observations_digest" => after_digest,
+          "reason" => "Phase 133 replaced the testing evidence producer",
+          "implementing_plan" => "133-06"
+        }
+      ])
+
+    File.write!(fixture.ledger, Jason.encode!(transitioned))
+    assert {_output, 0} = run_collector(fixture)
+    assert {_output, 0} = run_validator(fixture)
+
+    mutate_json!(fixture.ledger, &Map.put(&1, "phase_133_transitions", []))
+    assert {_output, 0} = run_collector(fixture)
+    assert_invalid(fixture, "changed candidate requires one Phase 133 transition")
+  end
+
+  test "EVID-01: registry, candidates, and transitions serialize canonically" do
+    fixture = complete_census_fixture!()
+    assert {_output, 0} = run_collector(fixture)
+    canonical = File.read!(fixture.receipt)
+
+    mutate_json!(fixture.ledger, fn ledger ->
+      ledger
+      |> Map.update!("taxonomy", &Enum.reverse/1)
+      |> Map.update!("detectors", &Enum.reverse/1)
+      |> Map.update!("candidates", &Enum.reverse/1)
+      |> Map.update!("phase_133_transitions", &Enum.reverse/1)
+    end)
+
+    assert {_output, 0} = run_collector(fixture)
+    assert File.read!(fixture.receipt) == canonical
+    assert {_output, 0} = run_validator(fixture)
+  end
+
   defp census_fixture! do
     base =
       Path.join(System.tmp_dir!(), "rindle-evidence-census-#{System.unique_integer([:positive])}")
@@ -208,10 +317,76 @@ defmodule Rindle.InstallSmoke.EvidenceCensusTest do
       "phase_133_transitions" => []
     }
 
+    ledger = Map.put(ledger, "candidate_baseline", baseline_for(ledger["candidates"]))
+
     File.write!(ledger_path, Jason.encode!(ledger))
     on_exit(fn -> File.rm_rf(base) end)
 
     %{root: root, ledger: ledger_path, receipt: receipt_path, sha: sha}
+  end
+
+  defp complete_census_fixture! do
+    fixture = census_fixture!()
+
+    for {_id, _dimension, _command, inputs} <- @detector_registry,
+        input <- inputs,
+        input != "mix.exs" do
+      path = Path.join(fixture.root, input)
+      File.mkdir_p!(Path.dirname(path))
+      File.write!(path, "fixture input: #{input}\n")
+    end
+
+    git!(fixture.root, ["add", "."])
+    git!(fixture.root, ["commit", "--quiet", "-m", "complete detector inputs"])
+    sha = git!(fixture.root, ["rev-parse", "HEAD"])
+
+    detectors =
+      Enum.map(@detector_registry, fn {id, dimension, command, inputs} ->
+        %{
+          "id" => id,
+          "dimension" => dimension,
+          "command" => command,
+          "inputs" => inputs,
+          "observations" => [
+            %{
+              "id" => "obs-#{id}",
+              "kind" => "evidence-producer",
+              "location" => hd(inputs),
+              "status" => "pass",
+              "attributes" => %{"count" => 1, "line" => 42}
+            }
+          ]
+        }
+      end)
+
+    candidates =
+      Enum.map(detectors, fn detector ->
+        %{
+          "id" => "candidate-#{detector["id"]}",
+          "observations" => ["obs-#{detector["id"]}"],
+          "disposition" => "fix",
+          "rationale" => "fixture disposition for #{detector["dimension"]}",
+          "evidence" => [detector["command"]],
+          "trigger" => nil
+        }
+      end)
+
+    ledger = %{
+      "schema_version" => 1,
+      "subject_sha" => sha,
+      "taxonomy" =>
+        Enum.map(@dimensions, fn dimension ->
+          detector = Enum.find(detectors, &(&1["dimension"] == dimension))
+          %{"id" => dimension, "applicable" => true, "detectors" => [detector["id"]]}
+        end),
+      "detectors" => detectors,
+      "candidates" => candidates,
+      "candidate_baseline" => baseline_for(candidates),
+      "phase_133_transitions" => []
+    }
+
+    File.write!(fixture.ledger, Jason.encode!(ledger))
+    %{fixture | sha: sha}
   end
 
   defp run_collector(fixture, extra_args \\ []) do
@@ -260,6 +435,57 @@ defmodule Rindle.InstallSmoke.EvidenceCensusTest do
   defp mutate_json!(path, mutation) do
     value = path |> File.read!() |> Jason.decode!() |> mutation.()
     File.write!(path, Jason.encode!(value))
+  end
+
+  defp replace_candidate_observation(ledger, candidate_id, replacement_id) do
+    previous_id =
+      ledger["candidates"]
+      |> Enum.find(&(&1["id"] == candidate_id))
+      |> Map.fetch!("observations")
+      |> hd()
+
+    ledger
+    |> update_in(["candidates"], fn candidates ->
+      Enum.map(candidates, fn candidate ->
+        if candidate["id"] == candidate_id,
+          do: Map.put(candidate, "observations", [replacement_id]),
+          else: candidate
+      end)
+    end)
+    |> update_in(["detectors"], fn detectors ->
+      Enum.map(detectors, fn detector ->
+        Map.update!(detector, "observations", fn observations ->
+          Enum.map(observations, fn observation ->
+            if observation["id"] == previous_id,
+              do: Map.put(observation, "id", replacement_id),
+              else: observation
+          end)
+        end)
+      end)
+    end)
+  end
+
+  defp baseline_for(candidates) do
+    Enum.map(candidates, fn candidate ->
+      %{
+        "id" => candidate["id"],
+        "observations_digest" => observations_digest(candidate["observations"])
+      }
+    end)
+  end
+
+  defp baseline_digest(ledger, candidate_id) do
+    ledger["candidate_baseline"]
+    |> Enum.find(&(&1["id"] == candidate_id))
+    |> Map.fetch!("observations_digest")
+  end
+
+  defp observations_digest(observations) do
+    observations
+    |> Enum.sort()
+    |> Jason.encode!()
+    |> then(&:crypto.hash(:sha256, &1))
+    |> Base.encode16(case: :lower)
   end
 
   defp git!(root, args) do
