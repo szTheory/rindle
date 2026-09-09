@@ -57,4 +57,3 @@ No corrections — all assumptions confirmed.
 - GitHub documents `needs.<job_id>.result` as exactly `success`, `failure`, `cancelled`, or `skipped`.
   `failure()` does not cover cancellation or skipped-only outcomes; a dependent scheduled lifecycle job
   must use an `always()`-compatible predicate and inspect exact results.
-
