@@ -44,7 +44,16 @@ error vocabulary, release coupling, supported behavior, or the accepted pull-req
   3. Nightly aggregation fails for failed, cancelled, unexpected, or impermissibly skipped gating states, and automated incident tests prove one exact-run-bound issue opens or updates on failure and closes only after qualifying scheduled recovery.
   4. Executable parity checks derive release, planning, support, and adoption-proof claims from authoritative state and reject every unmarked version, lane-severity, or package-proof contradiction.
 
-**Plans**: TBD
+**Plans**: 7 plans
+
+Plans:
+- [ ] 133-01-PLAN.md — Create and freeze the exact-head machine-validated evidence census.
+- [ ] 133-02-PLAN.md — Restore fresh and restored supported-cell Dialyzer evidence with exact PLT identity.
+- [ ] 133-03-PLAN.md — Make Nightly aggregation strict, fail-closed, and authoritative.
+- [ ] 133-04-PLAN.md — Implement the exact-run scheduled rolling incident lifecycle.
+- [ ] 133-05-PLAN.md — Derive version, workflow, history, and package-proof truth from authorities.
+- [ ] 133-06-PLAN.md — Reconcile active claims and run the complete automation-first evidence gate.
+- [ ] 133-07-PLAN.md — Collect and validate exact-head supported Nightly evidence without incident mutation.
 
 ### Phase 134: Dependency, Security, and Inbox Disposition
 
@@ -140,7 +149,7 @@ error vocabulary, release coupling, supported behavior, or the accepted pull-req
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 133. Evidence Charter and Live Truth | 0/TBD | Not started | - |
+| 133. Evidence Charter and Live Truth | 0/7 | Not started | - |
 | 134. Dependency, Security, and Inbox Disposition | 0/TBD | Not started | - |
 | 135. Repository and Code-Craft Consolidation | 0/TBD | Not started | - |
 | 136. Measured Quality and CI Ratchets | 0/TBD | Not started | - |
