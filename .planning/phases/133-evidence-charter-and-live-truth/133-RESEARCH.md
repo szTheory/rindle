@@ -463,22 +463,15 @@ The official CLI supports body files for create/comment and a closing comment fo
 | A5 | Explicit historical markers should delimit old version receipts outside `.planning/milestones/**`. | Architecture Pattern 6 | Medium: exact marker syntax is discretionary; without a bounded mechanism, the parity scan will either corrupt history or tolerate live drift. |
 | A6 | Duplicate open `nightly-failure` issues should fail the lifecycle job rather than silently choosing one. | Architecture Pattern 5 | Low: this is a conservative fail-closed interpretation of the one-incident requirement. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Where should the frozen census ledger live after Phase 133 archives?**
-   - What we know: later Phases 135/136 must reference stable candidate identities, and active phase directories are eventually archived. [VERIFIED: `.planning/phases/133-evidence-charter-and-live-truth/133-CONTEXT.md:31-32`]
-   - What's unclear: whether the durable source should remain phase-local, move under `scripts/maintainer/`, or be copied into a milestone evidence directory. [ASSUMED]
-   - Recommendation: keep the reviewed ledger phase-local for planning provenance and make validators accept an explicit ledger path; later plans should reference candidate IDs, not a hard-coded active-directory assumption. [ASSUMED]
+1. **Durable ledger location and archive timing — RESOLVED.** Keep `133-EVIDENCE-CENSUS.json` in the Phase 133 directory so it archives with the milestone evidence. Validators accept an explicit ledger path, and Phases 135/136 reference stable candidate IDs rather than an active-directory location. Freeze it only after all Phase 133 repair/reconciliation tasks are committed, from an isolated clean detached worktree at the recorded subject SHA; the later ledger commit does not relabel the inspected subject. [RESOLVED from D-01/D-04 and the checked plan dependency contract]
 
-2. **Should stale restored PLTs be rejected immediately or rebuilt once?**
-   - What we know: the locked decision permits either rejection or rebuild, and #101 proves normal pre-analysis checking is insufficient. [VERIFIED: `.planning/phases/133-evidence-charter-and-live-truth/133-CONTEXT.md:40-45`; authenticated [run #101](https://github.com/szTheory/rindle/actions/runs/34324448817)]
-   - What's unclear: whether the desired operational behavior prioritizes fastest diagnosis or self-healing Nightly. [ASSUMED]
-   - Recommendation: key by resolved versions, then rebuild exactly once only for the proven stale/incompatible fingerprint and record both attempts; propagate every other failure. [ASSUMED]
+2. **Canonical serialization and historical-marker syntax — RESOLVED.** Evidence JSON is UTF-8, newline-terminated, recursively key-sorted canonical JSON; taxonomy, detector, observation, candidate, and transition arrays sort by their declared stable semantic IDs, and volatile timestamps never participate in identity/digests. Outside `.planning/milestones/**`, the only accepted historical span markers are balanced, non-nested `<!-- rindle:historical-receipt:start -->` and `<!-- rindle:historical-receipt:end -->` lines. Unmatched, nested, or active-claim use fails closed. [RESOLVED at the agent's discretion under D-01, D-03, D-15, and D-16]
 
-3. **How should secret absence affect the overall Nightly conclusion?**
-   - What we know: an explicitly inapplicable secret-gated job may be exempted, but absence must be machine-checked and cannot be presented as passing live proof. [VERIFIED: `.planning/phases/133-evidence-charter-and-live-truth/133-CONTEXT.md:51-54`]
-   - What's unclear: which repositories/environments are declared applicable to live GCS evidence. [ASSUMED]
-   - Recommendation: encode the upstream-repository plus secret-presence applicability rule in policy fixtures; render allowed absence as `not-run`, not `success`, and ensure no live-support claim consumes it. [ASSUMED]
+3. **Stale restored PLT behavior — RESOLVED.** Key PLTs by resolved installed versions, then rebuild exactly once only for the recorded stale/incompatible `Old PLT file` fingerprint and record both attempts. Every ordinary warning, unknown failure, build failure, corrupt/missing state outside that class, or failed post-rebuild analysis propagates red without retry. [RESOLVED from D-06/D-07 and authenticated run #101]
+
+4. **Repository/secret applicability — RESOLVED.** Live GCS jobs are applicable only for the upstream `szTheory/rindle` repository when every required job secret is machine-observed as present through bounded workflow outputs. A fork or missing required secret is explicit `not-run` with an allowlisted reason, never `success`, and cannot support a live-provider claim. Unknown repository identity, absent applicability output, or inconsistent execution/result evidence is red. [RESOLVED from D-09/D-10/D-11 and the planned policy fixtures]
 
 ## Environment Availability
 
