@@ -189,6 +189,31 @@ defmodule Rindle.InstallSmoke.EvidenceCensusTest do
     for mutation <- [
           fn ledger -> update_in(ledger, ["candidates"], &tl/1) end,
           fn ledger ->
+            new_observation = %{
+              "id" => "obs-added-candidate",
+              "kind" => "evidence-producer",
+              "location" => "mix.exs",
+              "status" => "pass",
+              "attributes" => %{}
+            }
+
+            ledger
+            |> update_in(["detectors", Access.at(0), "observations"], &(&1 ++ [new_observation]))
+            |> update_in(["candidates"], fn candidates ->
+              candidates ++
+                [
+                  %{
+                    "id" => "candidate-added",
+                    "observations" => ["obs-added-candidate"],
+                    "disposition" => "fix",
+                    "rationale" => "unreviewed addition",
+                    "evidence" => ["mix test"],
+                    "trigger" => nil
+                  }
+                ]
+            end)
+          end,
+          fn ledger ->
             update_in(ledger, ["candidates", Access.at(0), "id"], &(&1 <> "-replacement"))
           end
         ] do
@@ -445,23 +470,30 @@ defmodule Rindle.InstallSmoke.EvidenceCensusTest do
       |> hd()
 
     ledger
-    |> update_in(["candidates"], fn candidates ->
-      Enum.map(candidates, fn candidate ->
-        if candidate["id"] == candidate_id,
-          do: Map.put(candidate, "observations", [replacement_id]),
-          else: candidate
-      end)
+    |> update_in(["candidates"], &replace_candidate_assignment(&1, candidate_id, replacement_id))
+    |> update_in(["detectors"], &replace_detector_observation(&1, previous_id, replacement_id))
+  end
+
+  defp replace_candidate_assignment(candidates, candidate_id, replacement_id) do
+    Enum.map(candidates, fn
+      %{"id" => ^candidate_id} = candidate ->
+        Map.put(candidate, "observations", [replacement_id])
+
+      candidate ->
+        candidate
     end)
-    |> update_in(["detectors"], fn detectors ->
-      Enum.map(detectors, fn detector ->
-        Map.update!(detector, "observations", fn observations ->
-          Enum.map(observations, fn observation ->
-            if observation["id"] == previous_id,
-              do: Map.put(observation, "id", replacement_id),
-              else: observation
-          end)
-        end)
-      end)
+  end
+
+  defp replace_detector_observation(detectors, previous_id, replacement_id) do
+    Enum.map(detectors, fn detector ->
+      Map.update!(detector, "observations", &replace_observation(&1, previous_id, replacement_id))
+    end)
+  end
+
+  defp replace_observation(observations, previous_id, replacement_id) do
+    Enum.map(observations, fn
+      %{"id" => ^previous_id} = observation -> Map.put(observation, "id", replacement_id)
+      observation -> observation
     end)
   end
 

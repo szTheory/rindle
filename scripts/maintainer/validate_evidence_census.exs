@@ -16,6 +16,32 @@ defmodule Rindle.ValidateEvidenceCensus do
     "repository hygiene"
   ]
   @dispositions ["fix", "retain", "defer"]
+  @detector_registry [
+    {"default-exunit", "correctness", "mix test", ["mix.exs"]},
+    {"credo-quality", "maintainability", "mix credo_quality",
+     ["scripts/maintainer/credo_complexity_baseline.json", "scripts/maintainer/credo_quality.sh"]},
+    {"mix-audit", "security", "mix deps.audit", ["mix.exs", "mix.lock"]},
+    {"pr-timing", "performance", "validate accepted PR timing receipt",
+     [
+       ".planning/milestones/v1.25-phases/132-final-craft-truth-and-feedback-proof/132-02-SUMMARY.md"
+     ]},
+    {"nightly-policy", "reliability", "evaluate Nightly evidence",
+     [".github/workflows/nightly.yml"]},
+    {"supported-toolchain", "compatibility", "verify supported toolchain matrix",
+     [".tool-versions", ".github/workflows/nightly.yml"]},
+    {"automation-first", "testing", "./scripts/maintainer/automation_first_contract.sh",
+     ["RUNNING.md", "scripts/maintainer/automation_first_contract.sh"]},
+    {"docs-accessibility", "documentation/accessibility", "mix doctor --full --raise",
+     ["RUNNING.md", "scripts/maintainer/refactor_contract.sh"]},
+    {"package-consumer", "packaging", "mix hex.build --unpack",
+     ["mix.exs", "test/install_smoke/package_metadata_test.exs"]},
+    {"workflow-topology", "CI/CD", "validate CI workflow topology",
+     [".github/workflows/ci.yml", ".github/workflows/nightly.yml"]},
+    {"release-authority", "release engineering", "validate exact-SHA release coupling",
+     [".release-please-manifest.json", ".github/workflows/release.yml", "mix.exs"]},
+    {"repository-hygiene", "repository hygiene", "./scripts/maintainer/repo_hygiene_check.sh",
+     ["scripts/maintainer/repo_hygiene_check.sh"]}
+  ]
 
   def run(argv) do
     with {:ok, options} <- parse_options(argv),
@@ -26,6 +52,7 @@ defmodule Rindle.ValidateEvidenceCensus do
          :ok <- validate_authority(ledger, receipt, head),
          :ok <- validate_taxonomy(ledger),
          :ok <- validate_detectors(ledger),
+         :ok <- validate_transition_contract(ledger),
          :ok <- validate_candidates(ledger),
          :ok <- validate_receipt(ledger, receipt, options.root) do
       IO.puts("evidence census valid for #{head}")
@@ -100,8 +127,8 @@ defmodule Rindle.ValidateEvidenceCensus do
     ids = Enum.map(taxonomy, & &1["id"])
 
     cond do
-      ids != @dimensions ->
-        {:error, "taxonomy must contain exactly the twelve locked dimensions in canonical order"}
+      Enum.sort(ids) != Enum.sort(@dimensions) ->
+        {:error, "taxonomy must contain exactly the twelve locked dimensions"}
 
       length(ids) != length(Enum.uniq(ids)) ->
         {:error, "taxonomy contains duplicate dimensions"}
@@ -151,6 +178,11 @@ defmodule Rindle.ValidateEvidenceCensus do
       not Enum.all?(detectors, &valid_detector?(&1, applicable)) ->
         {:error, "detector record is incomplete or assigned to an inapplicable dimension"}
 
+      Enum.all?(taxonomy, & &1["applicable"]) and
+          canonical_detector_registry(detectors) !=
+            canonical_detector_registry(@detector_registry) ->
+        {:error, "detector registry differs from repository-owned authority"}
+
       true ->
         :ok
     end
@@ -170,6 +202,89 @@ defmodule Rindle.ValidateEvidenceCensus do
       nonempty_string?(observation["location"]) and
       Path.type(observation["location"]) == :relative and
       nonempty_string?(observation["status"]) and is_map(observation["attributes"])
+  end
+
+  defp canonical_detector_registry(detectors) do
+    detectors
+    |> Enum.map(fn
+      {id, dimension, command, inputs} ->
+        %{"id" => id, "dimension" => dimension, "command" => command, "inputs" => inputs}
+
+      detector ->
+        Map.take(detector, ["id", "dimension", "command", "inputs"])
+    end)
+    |> Enum.sort_by(& &1["id"])
+  end
+
+  defp validate_transition_contract(%{
+         "candidate_baseline" => baseline,
+         "candidates" => candidates,
+         "phase_133_transitions" => transitions
+       })
+       when is_list(baseline) and is_list(candidates) and is_list(transitions) do
+    baseline_ids = Enum.map(baseline, & &1["id"])
+    candidate_ids = Enum.map(candidates, & &1["id"])
+    transition_ids = Enum.map(transitions, & &1["candidate_id"])
+
+    changed_ids =
+      Enum.flat_map(candidates, fn candidate ->
+        baseline_entry = Enum.find(baseline, &(&1["id"] == candidate["id"]))
+
+        if baseline_entry &&
+             baseline_entry["observations_digest"] !=
+               observations_digest(candidate["observations"] || []) do
+          [candidate["id"]]
+        else
+          []
+        end
+      end)
+
+    cond do
+      not nonempty_unique_strings?(baseline_ids) ->
+        {:error, "candidate baseline IDs must be unique non-empty strings"}
+
+      not nonempty_unique_strings?(candidate_ids) ->
+        {:error, "candidate IDs must be unique non-empty strings"}
+
+      Enum.sort(baseline_ids) != Enum.sort(candidate_ids) ->
+        {:error, "candidate set differs from the reviewed baseline"}
+
+      transition_ids != Enum.uniq(transition_ids) ->
+        {:error, "candidate transition IDs must be unique"}
+
+      Enum.sort(transition_ids) != Enum.sort(changed_ids) ->
+        {:error, "changed candidate requires one Phase 133 transition"}
+
+      not Enum.all?(transitions, &valid_transition?(&1, baseline, candidates)) ->
+        {:error, "Phase 133 transition record is incomplete or inconsistent"}
+
+      true ->
+        :ok
+    end
+  end
+
+  defp validate_transition_contract(_),
+    do: {:error, "candidate baseline and Phase 133 transitions are required"}
+
+  defp valid_transition?(transition, baseline, candidates) do
+    candidate_id = transition["candidate_id"]
+    baseline_entry = Enum.find(baseline, &(&1["id"] == candidate_id))
+    candidate = Enum.find(candidates, &(&1["id"] == candidate_id))
+
+    (baseline_entry && candidate &&
+       transition["before_observations_digest"] == baseline_entry["observations_digest"]) and
+      transition["after_observations_digest"] ==
+        observations_digest(candidate["observations"] || []) and
+      nonempty_string?(transition["reason"]) and
+      Regex.match?(~r/\A133-[0-9]{2}\z/, transition["implementing_plan"] || "")
+  end
+
+  defp observations_digest(observations) do
+    observations
+    |> Enum.sort()
+    |> Jason.encode!()
+    |> then(&:crypto.hash(:sha256, &1))
+    |> Base.encode16(case: :lower)
   end
 
   defp validate_candidates(%{"detectors" => detectors, "candidates" => candidates})
@@ -224,9 +339,15 @@ defmodule Rindle.ValidateEvidenceCensus do
   defp valid_trigger?(_), do: false
 
   defp validate_receipt(ledger, receipt, root) do
-    expected_dimensions = ledger["taxonomy"]
+    expected_dimensions =
+      ledger["taxonomy"]
+      |> Enum.map(&Map.update(&1, "detectors", [], fn ids -> Enum.sort(ids) end))
+      |> Enum.sort_by(fn record ->
+        Enum.find_index(@dimensions, &(&1 == record["id"]))
+      end)
+
     expected_observations = normalized_observations(ledger["detectors"])
-    expected_digest = candidates_digest(ledger["candidates"])
+    expected_digest = candidate_contract_digest(ledger)
 
     with :ok <-
            require_equal(
@@ -310,9 +431,20 @@ defmodule Rindle.ValidateEvidenceCensus do
     |> Enum.sort_by(& &1["id"])
   end
 
-  defp candidates_digest(candidates) do
-    candidates
-    |> Enum.sort_by(& &1["id"])
+  defp candidate_contract_digest(ledger) do
+    %{
+      "candidates" =>
+        ledger["candidates"]
+        |> Enum.map(fn candidate ->
+          candidate
+          |> Map.update("observations", [], &Enum.sort/1)
+          |> Map.update("evidence", [], &Enum.sort/1)
+        end)
+        |> Enum.sort_by(& &1["id"]),
+      "candidate_baseline" => Enum.sort_by(ledger["candidate_baseline"] || [], & &1["id"]),
+      "phase_133_transitions" =>
+        Enum.sort_by(ledger["phase_133_transitions"] || [], & &1["candidate_id"])
+    }
     |> canonical_json()
     |> then(&:crypto.hash(:sha256, &1))
     |> Base.encode16(case: :lower)

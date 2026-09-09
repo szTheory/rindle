@@ -15,6 +15,32 @@ defmodule Rindle.EvidenceCensus do
     "release engineering",
     "repository hygiene"
   ]
+  @detector_registry [
+    {"default-exunit", "correctness", "mix test", ["mix.exs"]},
+    {"credo-quality", "maintainability", "mix credo_quality",
+     ["scripts/maintainer/credo_complexity_baseline.json", "scripts/maintainer/credo_quality.sh"]},
+    {"mix-audit", "security", "mix deps.audit", ["mix.exs", "mix.lock"]},
+    {"pr-timing", "performance", "validate accepted PR timing receipt",
+     [
+       ".planning/milestones/v1.25-phases/132-final-craft-truth-and-feedback-proof/132-02-SUMMARY.md"
+     ]},
+    {"nightly-policy", "reliability", "evaluate Nightly evidence",
+     [".github/workflows/nightly.yml"]},
+    {"supported-toolchain", "compatibility", "verify supported toolchain matrix",
+     [".tool-versions", ".github/workflows/nightly.yml"]},
+    {"automation-first", "testing", "./scripts/maintainer/automation_first_contract.sh",
+     ["RUNNING.md", "scripts/maintainer/automation_first_contract.sh"]},
+    {"docs-accessibility", "documentation/accessibility", "mix doctor --full --raise",
+     ["RUNNING.md", "scripts/maintainer/refactor_contract.sh"]},
+    {"package-consumer", "packaging", "mix hex.build --unpack",
+     ["mix.exs", "test/install_smoke/package_metadata_test.exs"]},
+    {"workflow-topology", "CI/CD", "validate CI workflow topology",
+     [".github/workflows/ci.yml", ".github/workflows/nightly.yml"]},
+    {"release-authority", "release engineering", "validate exact-SHA release coupling",
+     [".release-please-manifest.json", ".github/workflows/release.yml", "mix.exs"]},
+    {"repository-hygiene", "repository hygiene", "./scripts/maintainer/repo_hygiene_check.sh",
+     ["scripts/maintainer/repo_hygiene_check.sh"]}
+  ]
 
   def run(argv) do
     with {:ok, options} <- parse_options(argv),
@@ -34,12 +60,32 @@ defmodule Rindle.EvidenceCensus do
   end
 
   def dimensions, do: @dimensions
+  def detector_registry, do: @detector_registry
 
   def canonical_json(value), do: encode_canonical(value) <> "\n"
 
   def candidates_digest(candidates) do
     candidates
     |> sort_by_id()
+    |> canonical_json()
+    |> then(&:crypto.hash(:sha256, &1))
+    |> Base.encode16(case: :lower)
+  end
+
+  def candidate_contract_digest(ledger) do
+    %{
+      "candidates" =>
+        ledger["candidates"]
+        |> Enum.map(fn candidate ->
+          candidate
+          |> Map.update("observations", [], &Enum.sort/1)
+          |> Map.update("evidence", [], &Enum.sort/1)
+        end)
+        |> sort_by_id(),
+      "candidate_baseline" => sort_by_id(ledger["candidate_baseline"] || []),
+      "phase_133_transitions" =>
+        Enum.sort_by(ledger["phase_133_transitions"] || [], & &1["candidate_id"])
+    }
     |> canonical_json()
     |> then(&:crypto.hash(:sha256, &1))
     |> Base.encode16(case: :lower)
@@ -148,7 +194,7 @@ defmodule Rindle.EvidenceCensus do
          "inputs" => inputs,
          "dimensions" => taxonomy,
          "observations" => observations,
-         "candidates_digest" => candidates_digest(ledger["candidates"] || [])
+         "candidates_digest" => candidate_contract_digest(ledger)
        }}
     end
   end
@@ -157,7 +203,12 @@ defmodule Rindle.EvidenceCensus do
     ids = Enum.map(records, & &1["id"])
 
     if Enum.sort(ids) == Enum.sort(@dimensions) and length(ids) == length(Enum.uniq(ids)) do
-      {:ok, Enum.sort_by(records, &Enum.find_index(@dimensions, fn id -> id == &1["id"] end))}
+      canonical =
+        records
+        |> Enum.map(&Map.update(&1, "detectors", [], fn ids -> Enum.sort(ids) end))
+        |> Enum.sort_by(&Enum.find_index(@dimensions, fn id -> id == &1["id"] end))
+
+      {:ok, canonical}
     else
       {:error, "taxonomy must contain exactly the twelve locked dimensions"}
     end
