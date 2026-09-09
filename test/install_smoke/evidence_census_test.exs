@@ -45,6 +45,106 @@ defmodule Rindle.InstallSmoke.EvidenceCensusTest do
            ]
   end
 
+  test "EVID-01: unchanged inputs produce byte-stable canonical receipts" do
+    fixture = census_fixture!()
+    assert {_output, 0} = run_collector(fixture)
+    first = File.read!(fixture.receipt)
+
+    assert {_output, 0} = run_collector(fixture)
+    assert File.read!(fixture.receipt) == first
+    assert String.ends_with?(first, "\n")
+  end
+
+  test "EVID-01: foreign SHA and dirty diagnostic receipts cannot become authoritative" do
+    fixture = census_fixture!()
+    assert {_output, 0} = run_collector(fixture)
+
+    mutate_json!(fixture.receipt, &Map.put(&1, "source_sha", String.duplicate("0", 40)))
+    assert_invalid(fixture, "receipt source SHA does not match repository HEAD")
+
+    File.write!(Path.join(fixture.root, "mix.exs"), "dirty\n")
+    assert {output, status} = run_collector(fixture)
+    assert status != 0
+    assert output =~ "authoritative census requires a clean worktree"
+
+    assert {output, 0} = run_collector(fixture, ["--allow-dirty-diagnostic"])
+    assert output =~ "non-authoritative diagnostic"
+    assert_invalid(fixture, "diagnostic dirty receipt is not authoritative")
+  end
+
+  test "EVID-01: taxonomy and observation assignment mutations fail closed" do
+    fixture = census_fixture!()
+    assert {_output, 0} = run_collector(fixture)
+
+    mutate_json!(fixture.ledger, fn ledger ->
+      Map.update!(ledger, "taxonomy", &tl/1)
+    end)
+
+    assert_invalid(fixture, "taxonomy must contain exactly the twelve locked dimensions")
+
+    fixture = census_fixture!()
+    assert {_output, 0} = run_collector(fixture)
+
+    mutate_ledger_and_recollect!(fixture, fn ledger ->
+      update_in(ledger, ["detectors", Access.at(0), "observations"], fn [observation] ->
+        [observation, observation]
+      end)
+    end)
+
+    assert_invalid(fixture, "normalized observations contain duplicates")
+
+    fixture = census_fixture!()
+    assert {_output, 0} = run_collector(fixture)
+
+    mutate_ledger_and_recollect!(fixture, fn ledger ->
+      update_in(ledger, ["detectors", Access.at(0), "observations"], fn observations ->
+        observations ++
+          [
+            %{
+              "id" => "obs-unassigned",
+              "kind" => "test-suite",
+              "location" => "test/other",
+              "status" => "pass",
+              "attributes" => %{}
+            }
+          ]
+      end)
+    end)
+
+    assert_invalid(fixture, "every observation must be assigned to exactly one candidate")
+  end
+
+  test "EVID-01: candidate identity and disposition mutations fail closed" do
+    fixture = census_fixture!()
+    assert {_output, 0} = run_collector(fixture)
+
+    mutate_ledger_and_recollect!(fixture, fn ledger ->
+      Map.update!(ledger, "candidates", fn [candidate] -> [candidate, candidate] end)
+    end)
+
+    assert_invalid(fixture, "candidate IDs must be unique")
+
+    for {mutation, diagnostic} <- [
+          {&put_in(&1, ["candidates", Access.at(0), "disposition"], "ignore"),
+           "candidate disposition record is incomplete"},
+          {fn ledger ->
+             ledger
+             |> put_in(["candidates", Access.at(0), "disposition"], "retain")
+             |> put_in(["candidates", Access.at(0), "evidence"], [])
+           end, "candidate disposition record is incomplete"},
+          {fn ledger ->
+             ledger
+             |> put_in(["candidates", Access.at(0), "disposition"], "defer")
+             |> put_in(["candidates", Access.at(0), "trigger"], nil)
+           end, "candidate disposition record is incomplete"}
+        ] do
+      fixture = census_fixture!()
+      assert {_output, 0} = run_collector(fixture)
+      mutate_ledger_and_recollect!(fixture, mutation)
+      assert_invalid(fixture, diagnostic)
+    end
+  end
+
   defp census_fixture! do
     base =
       Path.join(System.tmp_dir!(), "rindle-evidence-census-#{System.unique_integer([:positive])}")
@@ -114,7 +214,7 @@ defmodule Rindle.InstallSmoke.EvidenceCensusTest do
     %{root: root, ledger: ledger_path, receipt: receipt_path, sha: sha}
   end
 
-  defp run_collector(fixture) do
+  defp run_collector(fixture, extra_args \\ []) do
     run_script(@collector, [
       "--root",
       fixture.root,
@@ -124,6 +224,7 @@ defmodule Rindle.InstallSmoke.EvidenceCensusTest do
       fixture.receipt,
       "--source-sha",
       fixture.sha
+      | extra_args
     ])
   end
 
@@ -143,6 +244,22 @@ defmodule Rindle.InstallSmoke.EvidenceCensusTest do
       cd: @repo_root,
       stderr_to_stdout: true
     )
+  end
+
+  defp assert_invalid(fixture, diagnostic) do
+    {output, status} = run_validator(fixture)
+    assert status != 0
+    assert output =~ diagnostic
+  end
+
+  defp mutate_ledger_and_recollect!(fixture, mutation) do
+    mutate_json!(fixture.ledger, mutation)
+    assert {_output, 0} = run_collector(fixture)
+  end
+
+  defp mutate_json!(path, mutation) do
+    value = path |> File.read!() |> Jason.decode!() |> mutation.()
+    File.write!(path, Jason.encode!(value))
   end
 
   defp git!(root, args) do
