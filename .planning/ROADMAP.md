@@ -47,12 +47,29 @@ error vocabulary, release coupling, supported behavior, or the accepted pull-req
 **Plans**: 7 plans
 
 Plans:
+**Wave 1**
+
 - [ ] 133-01-PLAN.md — Create and freeze the exact-head machine-validated evidence census.
 - [ ] 133-02-PLAN.md — Restore fresh and restored supported-cell Dialyzer evidence with exact PLT identity.
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 133-03-PLAN.md — Make Nightly aggregation strict, fail-closed, and authoritative.
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 133-04-PLAN.md — Implement the exact-run scheduled rolling incident lifecycle.
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
 - [ ] 133-05-PLAN.md — Derive version, workflow, history, and package-proof truth from authorities.
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
 - [ ] 133-06-PLAN.md — Reconcile active claims and run the complete automation-first evidence gate.
+
+**Wave 6** *(blocked on Wave 5 completion)*
+
 - [ ] 133-07-PLAN.md — Collect and validate exact-head supported Nightly evidence without incident mutation.
 
 ### Phase 134: Dependency, Security, and Inbox Disposition
