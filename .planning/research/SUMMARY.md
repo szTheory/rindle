@@ -208,7 +208,7 @@ Phases with sufficiently established patterns to skip broad research:
 - **Processor injection:** if the current variant worker cannot select a host processor through supported configuration, use a corrupt fixture/runtime precondition and the existing public repair API rather than adding a twin-only product API.
 - **Mux/GCS realism:** deterministic provider disorder is synthetic contract evidence; live APIs remain separately labelled and may honestly be `not_run` when credentials are unavailable.
 - **CI placement:** keep the full twin off the PR critical path by default; add at most a measured tracer if the exact-ten receipt remains inside the accepted envelope.
-- **Architecture source gap:** `.planning/codebase/ARCHITECTURE.md` is absent; phase planning should continue using inspected behaviors, proof code, workflows, `RUNNING.md`, and locked project decisions.
+- **Architecture source gap:** no codebase-map architecture dossier is available; phase planning should continue using inspected behaviors, proof code, workflows, `RUNNING.md`, and locked project decisions.
 
 ## Sources
 
@@ -226,6 +226,22 @@ Phases with sufficiently established patterns to skip broad research:
 - Official Oban documentation — inline/manual testing boundaries, `perform_job/3`, `drain_queue/2`, retries, and persisted job execution.
 - Official Elixir/Dialyxir documentation — coverage meaning and warning-ignore policy.
 - Official Git, Hex, Docker, actionlint, MinIO, BtbN FFmpeg, ISO/IEC 25010/25023, NIST V&V/digital-twin, and JSON/RFC references cited in the detailed dossiers.
+
+## Files Created/Modified
+
+- `.planning/research/STACK.md` — stack and tooling recommendations.
+- `.planning/research/FEATURES.md` — readiness capabilities and anti-features.
+- `.planning/research/ARCHITECTURE.md` — evidence-plane and twin architecture.
+- `.planning/research/PITFALLS.md` — failure modes and automated mitigations.
+- `.planning/research/SUMMARY.md` — synthesized roadmap implications.
+
+## Commits
+
+- `3ec0d2a` — `docs: complete project research`
+
+## Self-Check
+
+✅ Passed: all five research artifacts exist, the synthesis is substantive and sentinel-free, the seven-phase roadmap preserves the locked boundaries, and the original research commit resolves in Git history.
 
 ---
 *Research completed: 2026-09-09*
