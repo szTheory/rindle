@@ -279,6 +279,60 @@ defmodule Rindle.InstallSmoke.EvidenceCensusTest do
     assert {_output, 0} = run_validator(fixture)
   end
 
+  test "EVID-01: zero-cardinality and imprecise count boundaries fail closed" do
+    fixture = complete_census_fixture!()
+    assert {_output, 0} = run_collector(fixture)
+
+    mutate_json!(fixture.ledger, fn ledger ->
+      ledger
+      |> Map.put("candidates", [])
+      |> Map.put("candidate_baseline", [])
+      |> update_in(["detectors"], fn detectors ->
+        Enum.map(detectors, &Map.put(&1, "observations", []))
+      end)
+    end)
+
+    assert {_output, 0} = run_collector(fixture)
+    assert_invalid(fixture, "detector record is incomplete")
+
+    fixture = complete_census_fixture!()
+    assert {_output, 0} = run_collector(fixture)
+
+    mutate_ledger_and_recollect!(fixture, fn ledger ->
+      put_in(
+        ledger,
+        ["detectors", Access.at(0), "observations", Access.at(0), "attributes", "count"],
+        1.5
+      )
+    end)
+
+    assert_invalid(fixture, "observation count attributes must be integers")
+  end
+
+  test "EVID-01: volatile evidence attributes do not replace reviewer-owned candidate identity" do
+    fixture = complete_census_fixture!()
+    assert {_output, 0} = run_collector(fixture)
+
+    before_digest =
+      fixture.receipt |> File.read!() |> Jason.decode!() |> Map.fetch!("candidates_digest")
+
+    mutate_ledger_and_recollect!(fixture, fn ledger ->
+      ledger
+      |> put_in(
+        ["detectors", Access.at(0), "observations", Access.at(0), "attributes", "count"],
+        2
+      )
+      |> put_in(
+        ["detectors", Access.at(0), "observations", Access.at(0), "attributes", "line"],
+        99
+      )
+    end)
+
+    receipt = fixture.receipt |> File.read!() |> Jason.decode!()
+    assert receipt["candidates_digest"] == before_digest
+    assert {_output, 0} = run_validator(fixture)
+  end
+
   defp census_fixture! do
     base =
       Path.join(System.tmp_dir!(), "rindle-evidence-census-#{System.unique_integer([:positive])}")
