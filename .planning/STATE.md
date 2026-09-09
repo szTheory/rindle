@@ -1,20 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.25
-milestone_name: Maintainer Craft & Feedback Velocity
-status: demand-gated-pause
-stopped_at: v1.25 and purge-correctness patch shipped; awaiting demand signal
-last_updated: "2026-08-28T04:18:21.000Z"
-last_activity: 2026-08-28
-last_activity_desc: Released Rindle 0.4.5 with the PurgeStorage durability fix and resumed demand-gated pause
+milestone: v1.26
+milestone_name: Pre-Adopter Readiness & Quality Consolidation
+status: planning
+last_updated: "2026-09-09T18:56:52.503Z"
+last_activity: 2026-09-09
 progress:
-  total_phases: 6
-  completed_phases: 6
-  total_plans: 22
-  completed_plans: 22
-  percent: 100
-current_phase: null
-current_phase_name: null
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -28,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-08-28 after Rindle 0.4.5)
 
 ## Current Position
 
-Phase: Between milestones
+Phase: Not started (defining requirements)
 Plan: —
-Status: demand-gated-pause
-Last activity: 2026-08-28 — Rindle 0.4.5 published and publicly verified
+Status: Defining requirements
+Last activity: 2026-09-09 — Milestone v1.26 started
 
 ### Post-v1.25 assessment
 
