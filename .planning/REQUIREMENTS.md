@@ -96,16 +96,52 @@
 
 ## Traceability
 
-Traceability is populated during roadmap creation. Every v1.26 requirement must map to exactly one phase.
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
+| EVID-01 | Phase 133 | Pending |
+| EVID-02 | Phase 133 | Pending |
+| EVID-03 | Phase 133 | Pending |
+| EVID-04 | Phase 133 | Pending |
+| TRUTH-08 | Phase 133 | Pending |
+| INBOX-01 | Phase 134 | Pending |
+| INBOX-02 | Phase 134 | Pending |
+| SEC-09 | Phase 134 | Pending |
+| DEPS-01 | Phase 134 | Pending |
+| CRAFT-03 | Phase 135 | Pending |
+| CRAFT-04 | Phase 135 | Pending |
+| CRAFT-05 | Phase 135 | Pending |
+| CRAFT-06 | Phase 135 | Pending |
+| HYGIENE-03 | Phase 135 | Pending |
+| MAINT-04 | Phase 136 | Pending |
+| TYPE-03 | Phase 136 | Pending |
+| COV-06 | Phase 136 | Pending |
+| TEST-08 | Phase 136 | Pending |
+| CI-15 | Phase 136 | Pending |
+| CI-16 | Phase 136 | Pending |
+| DX-05 | Phase 136 | Pending |
+| TWIN-01 | Phase 137 | Pending |
+| TWIN-02 | Phase 137 | Pending |
+| TWIN-03 | Phase 137 | Pending |
+| TWIN-04 | Phase 137 | Pending |
+| TWIN-05 | Phase 137 | Pending |
+| TWIN-06 | Phase 137 | Pending |
+| RECOV-01 | Phase 138 | Pending |
+| RECOV-02 | Phase 138 | Pending |
+| RECOV-03 | Phase 138 | Pending |
+| RECOV-04 | Phase 138 | Pending |
+| RECOV-05 | Phase 138 | Pending |
+| RECOV-06 | Phase 138 | Pending |
+| READY-01 | Phase 139 | Pending |
+| READY-02 | Phase 139 | Pending |
+| READY-03 | Phase 139 | Pending |
+| READY-04 | Phase 139 | Pending |
+| READY-05 | Phase 139 | Pending |
 
 **Coverage:**
 - v1.26 requirements: 38 total
-- Mapped to phases: 0
-- Unmapped: 38
+- Mapped to phases: 38
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-09-09*
-*Last updated: 2026-09-09 after milestone requirements approval.*
+*Last updated: 2026-09-09 after roadmap creation.*

@@ -2,207 +2,151 @@
 
 ## Milestones
 
-- ✅ **v1.25 Maintainer Craft & Feedback Velocity** — Phases 127–132 (shipped 2026-08-27, 18/18 requirements, 6/6 verified phases; [archive](milestones/v1.25-ROADMAP.md), [requirements](milestones/v1.25-REQUIREMENTS.md), [audit](milestones/v1.25-MILESTONE-AUDIT.md))
-- ✅ **v1.24 Core Clarity & Quality Ratchet** — Phases 121–126 (shipped 2026-08-23, 19/19 requirements, 6/6 verified phases; [archive](milestones/v1.24-ROADMAP.md), [requirements](milestones/v1.24-REQUIREMENTS.md), [audit](milestones/v1.24-MILESTONE-AUDIT.md))
-- ✅ **v1.23 Postgres Schema Isolation** — Phases 117–120 (shipped 2026-08-20, Hex 0.4.0, 12/12 requirements, 4/4 verified phases; [archive](milestones/v1.23-ROADMAP.md), [requirements](milestones/v1.23-REQUIREMENTS.md), [audit](milestones/v1.23-MILESTONE-AUDIT.md))
+- 🚧 **v1.26 Pre-Adopter Readiness & Quality Consolidation** — Phases 133–139 (planned, 38 requirements)
+- ✅ **v1.25 Maintainer Craft & Feedback Velocity** — Phases 127–132 (shipped 2026-08-27; [archive](milestones/v1.25-ROADMAP.md), [requirements](milestones/v1.25-REQUIREMENTS.md), [audit](milestones/v1.25-MILESTONE-AUDIT.md))
+- ✅ **v1.24 Core Clarity & Quality Ratchet** — Phases 121–126 (shipped 2026-08-23; [archive](milestones/v1.24-ROADMAP.md), [requirements](milestones/v1.24-REQUIREMENTS.md), [audit](milestones/v1.24-MILESTONE-AUDIT.md))
+- ✅ **v1.23 Postgres Schema Isolation** — Phases 117–120 (shipped 2026-08-20; [archive](milestones/v1.23-ROADMAP.md), [requirements](milestones/v1.23-REQUIREMENTS.md), [audit](milestones/v1.23-MILESTONE-AUDIT.md))
 - ✅ **v1.22 OSS Quality & Trust Hardening** — Phases 113–116 (shipped 2026-07-02; [archive](milestones/v1.22-ROADMAP.md), [requirements](milestones/v1.22-REQUIREMENTS.md), [audit](milestones/v1.22-MILESTONE-AUDIT.md))
-- ✅ **v1.21 CI/DX Reliability Tail** — Phases 108–112 (shipped 2026-06-29; [archive](milestones/v1.21-ROADMAP.md), [requirements](milestones/v1.21-REQUIREMENTS.md), [audit](milestones/v1.21-MILESTONE-AUDIT.md))
 
-<details>
-<summary>Historical milestone index</summary>
+Earlier milestone detail is retained in `.planning/milestones/` and indexed by `.planning/MILESTONES.md`.
 
-- ✅ **v1.20 CI/CD Performance** — Phases 103–107 (shipped 2026-06-22; [archive](milestones/v1.20-ROADMAP.md), [requirements](milestones/v1.20-REQUIREMENTS.md), [audit](milestones/v1.20-MILESTONE-AUDIT.md))
-- ✅ **v1.19 Design-System Stress-Test** — Phases 94–102 (shipped 2026-06-19; [archive](milestones/v1.19-ROADMAP.md), [audit](milestones/v1.19-MILESTONE-AUDIT.md))
-- ✅ **v1.18 Admin Console & Adoption Lab** — Phases 86–93 (shipped 2026-06-20; [archive](milestones/v1.18-ROADMAP.md), [requirements](milestones/v1.18-REQUIREMENTS.md), [audit](milestones/v1.18-MILESTONE-AUDIT.md))
-- ✅ **b1.0 Brand Foundations** — Phases 81–85 (shipped 2026-06-10; [archive](milestones/b1.0-ROADMAP.md), [audit](milestones/b1.0-MILESTONE-AUDIT.md))
-- ✅ **v1.17 Adopter-Confidence Hygiene** — Phases 78–80 (shipped 2026-05-27; [archive](milestones/v1.17-ROADMAP.md), [audit](milestones/v1.17-MILESTONE-AUDIT.md))
-- ✅ **v1.16 CI Enforcement & Planning Hygiene** — Phases 75–77 (shipped 2026-05-27; [archive](milestones/v1.16-ROADMAP.md))
-- ✅ **v1.15 Maintenance & Proof Honesty** — Phases 71–74 (shipped 2026-05-27; [audit](milestones/v1.15-MILESTONE-AUDIT.md))
-- ✅ **v1.14 Bulk Owner-Erasure Orchestration** — Phases 67–70 (shipped 2026-05-27; [archive](milestones/v1.14-ROADMAP.md))
-- ✅ **v1.13 Cancel Direct Upload** — Phases 64–66 (shipped 2026-05-27; [archive](milestones/v1.13-ROADMAP.md))
-- ✅ **v1.12 Adopter Truth & Maintenance Hygiene** — Phases 60–63 (shipped 2026-05-27; [archive](milestones/v1.12-ROADMAP.md))
-- ✅ **v1.11 Tus Protocol Completion** — Phases 56–59 (shipped 2026-05-27; [archive](milestones/v1.11-ROADMAP.md))
-- ✅ **v1.10 Owner Account Erasure** — Phases 53–55 (shipped 2026-05-26; [archive](milestones/v1.10-ROADMAP.md))
-- ✅ **v1.9 Phoenix Tus DX Completion** — Phases 48–52 (shipped 2026-05-25; [archive](milestones/v1.9-ROADMAP.md))
-- ✅ **v1.8 Resumable Browser Ingest** — Phases 42–47 (shipped 2026-05-25; [archive](milestones/v1.8-ROADMAP.md))
-- ✅ **v1.7 GCS Resumable Adapter** — Phases 37–41 (shipped 2026-05-08; [archive](milestones/v1.7-ROADMAP.md))
-- ✅ **v1.6 Provider Boundary + Mux** — Phases 33–36 (shipped 2026-05-07; [archive](milestones/v1.6-ROADMAP.md))
-- ✅ **v1.5 Adopter Hardening & Lifecycle Repair** — Phases 29–32 (shipped 2026-05-06; [archive](milestones/v1.5-ROADMAP.md))
-- ✅ **v1.4 Video & Audio Wedge** — Phases 23–28 (shipped 2026-05-05; [archive](milestones/v1.4-ROADMAP.md))
-- ✅ **v1.3 Live Publish & API Ergonomics** — Phases 15–22 (shipped 2026-05-02; [archive](milestones/v1.3-ROADMAP.md))
-- ✅ **v1.2 First Hex Publish** — Phases 10–14 (shipped 2026-04-29; [archive](milestones/v1.2-ROADMAP.md))
-- ✅ **v1.1 Adopter Hardening** — Phases 6–9 (shipped 2026-04-28; [archive](milestones/v1.1-ROADMAP.md))
-- ✅ **v1.0 MVP** — Phases 1–5 (shipped 2026-04; [archive](milestones/v1.0-ROADMAP.md))
+## Overview
 
-</details>
-
-Historical milestone and phase detail is retained in `.planning/milestones/`.
+v1.26 makes readiness demonstrable before Rindle's first real adopter. It first freezes exact-head
+evidence and restores trustworthy Nightly and project truth, then isolates dependency and inbox
+decisions from candidate-backed repository, code-craft, and measured CI improvements. The final three
+phases extend the existing Cohort proof into a built-package synthetic twin, execute a deterministic
+failure-and-recovery matrix, and close from one clean exact-head checkout. Throughout, automation must
+prove every requirement without aesthetic churn or drift in public API, schema/migrations, telemetry,
+error vocabulary, release coupling, supported behavior, or the accepted pull-request timing envelope.
 
 ## Phases
 
-<details>
-<summary>✅ v1.24 Core Clarity & Quality Ratchet (Phases 121–126) — SHIPPED 2026-08-23</summary>
+- [ ] **Phase 133: Evidence Charter and Live Truth** - Establish immutable evidence authority and restore truthful Nightly, incident, release, and adoption signals.
+- [ ] **Phase 134: Dependency, Security, and Inbox Disposition** - Give every live advisory and remote item an attributable, evidence-backed disposition.
+- [ ] **Phase 135: Repository and Code-Craft Consolidation** - Remove only proven residue and improve candidate-backed readability under preserved contracts.
+- [ ] **Phase 136: Measured Quality and CI Ratchets** - Tighten measured quality, contributor, and CI/CD guarantees without weakening signal or speed.
+- [ ] **Phase 137: Built-Package Twin Foundation** - Establish a production-faithful synthetic-adopter substrate with authoritative receipts and cleanup.
+- [ ] **Phase 138: Lifecycle Failure and Recovery Matrix** - Prove deterministic lifecycle recovery and zero unapproved residue through supported boundaries.
+- [ ] **Phase 139: Exact-Head Readiness Closure** - Produce one fail-closed, exact-head readiness verdict while keeping independent adoption open.
 
-Behavior-preserving maintenance that made quality signals truthful and blocking, removed stale live
-truth and a schema compile cycle, decomposed runtime/upload/test-support hotspots behind stable
-facades, and established a supported removal-only Dialyzer ratchet.
+## Phase Details
 
-- [x] Phase 121: Truthful Quality Signals & Mechanical Hygiene (7/7 plans) — completed 2026-08-22
-- [x] Phase 122: Live Truth & Compile Clarity (5/5 plans) — completed 2026-08-23
-- [x] Phase 123: Runtime Operations Decomposition (3/3 plans) — completed 2026-08-23
-- [x] Phase 124: Upload Path Clarity (5/5 plans) — completed 2026-08-23
-- [x] Phase 125: Behavioral Test Support (10/10 plans) — completed 2026-08-23
-- [x] Phase 126: Curated Type Ratchet (10/10 plans) — completed 2026-08-23
+### Phase 133: Evidence Charter and Live Truth
 
-Archive: [milestones/v1.24-ROADMAP.md](milestones/v1.24-ROADMAP.md); requirements:
-[milestones/v1.24-REQUIREMENTS.md](milestones/v1.24-REQUIREMENTS.md); audit:
-[milestones/v1.24-MILESTONE-AUDIT.md](milestones/v1.24-MILESTONE-AUDIT.md); phase evidence:
-[milestones/v1.24-phases/](milestones/v1.24-phases/).
-
-</details>
-
-<details>
-<summary>✅ v1.23 Postgres Schema Isolation (Phases 117–120) — SHIPPED 2026-08-20</summary>
-
-Rindle 0.4.0 isolates its six domain tables and migration marker in `rindle` by default, retains an
-explicit `public` compatibility build, provides a bounded populated-install move and reverse, keeps
-Oban and the host migration ledger independent, and proves the contract through packed adopters,
-diagnostics, documentation parity, exact-source CI, and the public Hex artifact.
-
-- [x] Phase 117: Prefix Routing Architecture (5/5 plans) — completed 2026-08-08
-- [x] Phase 118: Isolated Migration & Safe Upgrade (6/6 plans) — completed 2026-08-09
-- [x] Phase 119: Ownership Boundaries & Diagnostics (5/5 plans) — completed 2026-08-09
-- [x] Phase 120: Adoption Proof & Release Truth (14/14 plans) — completed 2026-08-20
-
-Archive: [milestones/v1.23-ROADMAP.md](milestones/v1.23-ROADMAP.md); requirements:
-[milestones/v1.23-REQUIREMENTS.md](milestones/v1.23-REQUIREMENTS.md); audit:
-[milestones/v1.23-MILESTONE-AUDIT.md](milestones/v1.23-MILESTONE-AUDIT.md).
-
-</details>
-
-<details>
-<summary>✅ v1.25 Maintainer Craft & Feedback Velocity (Phases 127–132) — SHIPPED 2026-08-27</summary>
-
-This behavior-preserving milestone clarified test and runtime ownership, tightened executable quality
-ratchets, shortened the required CI path, and closed with an API-verified ten-run timing receipt.
-
-Phases 127–131 completed the evidence, provenance, behavioral-test, runtime-diagnostics, and CI
-velocity work. Phase 132 completed all 22 closure plans and verified CI-14, COV-05, and SAFE-02.
-
-**Goal**: Close the measured CI-14 median gap on the existing required pull-request path, prove the behavior-preserving quality ratchets remain intact, and replace the failed timing measurement with a fresh comparable ten-run receipt.
-**Depends on**: Phase 131
-**Requirements**: CI-14, COV-05, SAFE-02
+**Goal**: Maintainers can trust exact-head quality, Nightly, incident, release, support, and adoption evidence before any cleanup changes the baseline.
+**Depends on**: Phase 132 (v1.25 shipped)
+**Requirements**: EVID-01, EVID-02, EVID-03, EVID-04, TRUTH-08
 **Success Criteria** (what must be TRUE):
 
-  1. Ten consecutive successful, non-cancelled, first-attempt pull-request runs from one immutable implementation head achieve a median of at most 480 seconds and nearest-rank p95 of at most 600 seconds without weaker gates or newly introduced reruns.
-  2. `CI Summary` remains the sole required check with its required-job set and skip-as-pass behavior intact; any external-runner exception includes job-level evidence, a named owner, and a dated follow-up.
-  3. Authoritative coverage remains at or above 82.13%, and the final correction passes focused proof, `mix quality_signals`, SAFE-01, the relevant integration or packed-consumer lane, and bounded prohibited-surface diff review.
+  1. A validator accepts a census only when it is bound to the current immutable SHA, covers every applicable quality dimension, deduplicates candidates, and assigns each exactly one `fix`, `retain`, or trigger-bound `defer` disposition.
+  2. Supported Nightly Dialyzer cells pass with both fresh and restored PLTs, while stale or incompatible PLT evidence is rejected or rebuilt by automated regression proof.
+  3. Nightly aggregation fails for failed, cancelled, unexpected, or impermissibly skipped gating states, and automated incident tests prove one exact-run-bound issue opens or updates on failure and closes only after qualifying scheduled recovery.
+  4. Executable parity checks derive release, planning, support, and adoption-proof claims from authoritative state and reject every unmarked version, lane-severity, or package-proof contradiction.
 
-**Plans**: 22/22 plans executed
+**Plans**: TBD
 
-**Wave 1 — tracer correction and package proof**
+### Phase 134: Dependency, Security, and Inbox Disposition
 
-- [x] 132-01-PLAN.md — Remove duplicated pre-patch generator installation and prove the unchanged clean-room image lifecycle.
+**Goal**: Maintainers can account for every current remote item and dependency risk without bulk mutation or ambiguous rollback.
+**Depends on**: Phase 133
+**Requirements**: INBOX-01, INBOX-02, SEC-09, DEPS-01
+**Success Criteria** (what must be TRUE):
 
-**Wave 2 — preservation census** *(blocked on Wave 1 completion)*
+  1. A timestamped, read-only collector inventories every open issue, pull request, check state, reported advisory, and relevant branch-protection setting without mutating GitHub state.
+  2. A machine-checkable ledger assigns each open issue and pull request exactly one merge, close, retain, supersede, or evidence-gated defer disposition and rejects missing or stale entries.
+  3. Every reported advisory records its dependency path, supported-runtime reachability, fix version, and either verified resolution or a bounded exception with an executable expiry trigger.
+  4. Each landed dependency risk group is independently attributable and passes supported-toolchain, public-contract, built-package consumer, and relevant twin gates before its remote disposition can close.
 
-- [x] 132-02-PLAN.md — Reconfirm required-gate topology, authoritative coverage, SAFE-01, and packed image-consumer preservation.
+**Plans**: TBD
 
-**Wave 3 — automation-first controller and policy** *(blocked on Wave 2 completion)*
+### Phase 135: Repository and Code-Craft Consolidation
 
-- [x] 132-03-PLAN.md — Automate fast-forward publication, sequential live sampling, receipt verification, and the zero-human acceptance policy.
+**Goal**: The tracked repository and candidate-backed code read as intentional, self-describing work with no mechanically proven residue and no contract drift.
+**Depends on**: Phase 134
+**Requirements**: CRAFT-03, CRAFT-04, CRAFT-05, CRAFT-06, HYGIENE-03
+**Success Criteria** (what must be TRUE):
 
-**Wave 4 — final preservation re-census** *(blocked on Wave 3 completion)*
+  1. An executable artifact ledger accounts for every tracked, ignored, generated, or candidate artifact by authority, consumer, package status, and retain/delete/ignore disposition; regeneration and package-exclusion checks detect drift.
+  2. Automated scans reject unallowlisted planning-era identifiers, mojibake, duplicated prose, obsolete narration, and artifact comments in live code, tests, scripts, configuration, and workflows.
+  3. Every readability change traces to the frozen candidate ledger and passes behavioral and boundary checks proving improved naming, cohesion, ownership, or failure semantics without public API, schema/migration, telemetry, error, or release-contract drift.
+  4. Repository hygiene fails on fetch failure, wrong branch, tracked junk, generated drift, incomplete `mix ci`, or post-verification worktree residue, while narrow ignore rules preserve intentional history and generated authority.
 
-- [x] 132-04-PLAN.md — Re-run every preservation authority on the final automated candidate and record its immutable subject SHA.
+**Plans**: TBD
 
-**Wave 5 — unattended live timing acceptance** *(blocked on Wave 4 completion)*
+### Phase 136: Measured Quality and CI Ratchets
 
-- [x] 132-05-PLAN.md — Publish, collect, calculate, and independently verify the fresh exact-head ten-run CI receipt without UAT.
+**Goal**: Contributors receive bounded, reproducible quality and CI feedback whose measured guarantees cannot silently regress.
+**Depends on**: Phase 135
+**Requirements**: MAINT-04, TYPE-03, COV-06, TEST-08, CI-15, CI-16, DX-05
+**Success Criteria** (what must be TRUE):
 
-**Wave 6 — measured-path remediation** *(blocked on the failed Wave 5 receipt)*
+  1. Complexity and Dialyzer ledgers reject baseline growth or broader suppressions; every removal carries behavior-preservation evidence and every retained identity keeps a machine-checkable removal trigger on the supported toolchain.
+  2. One fresh canonical coverage run preserves or raises the exact accepted floor, and executable tests cover changed risk branches through behavior rather than source-literal or percentage-only assertions.
+  3. Issue #42's finite isolation experiment either completes successfully or emits a reproducible failing receipt with explicit uncertainty and an evidence-triggered next action; reruns cannot erase the result.
+  4. A clean supported environment can follow one tested command map from bootstrap through focused and full verification without reconstructing workflow YAML.
+  5. Structural CI checks verify workflow semantics, cache contracts, immutable or checksum-verified inputs, and justified timeouts while preserving `ci.yml`, workflow `CI`, sole required `CI Summary`, fork safety, exact-SHA release coupling, and a fresh exact-ten receipt within the <=480-second median/<=600-second p95 envelope after topology changes.
 
-- [x] 132-06-PLAN.md — Remove repeated unconditional apt refresh work through a tested install-first/fallback-refresh helper policy.
+**Plans**: TBD
 
-**Wave 7 — gap-closure preservation re-census** *(blocked on Wave 6 completion)*
+### Phase 137: Built-Package Twin Foundation
 
-- [x] 132-07-PLAN.md — Bind the final remediation SHA to fresh topology, quality, SAFE-01, coverage, hygiene, and packed-consumer evidence.
+**Goal**: Maintainers can run a production-faithful synthetic adopter against the freshly built package and trust its redacted lifecycle and residue evidence.
+**Depends on**: Phase 136
+**Requirements**: TWIN-01, TWIN-02, TWIN-03, TWIN-04, TWIN-05, TWIN-06
+**Success Criteria** (what must be TRUE):
 
-**Wave 8 — replacement live timing acceptance** *(blocked on Wave 7 completion)*
+  1. The twin installs a freshly built external Hex artifact and fails if repository paths, private modules, source introspection, or prebuilt local BEAM output can influence the run.
+  2. The host provisions and verifies adopter-owned Repo, Oban, migrations, PostgreSQL, MinIO, and media runtimes solely through supported Rindle contracts.
+  3. Deterministic fail-N-then-delegate faults enter only through documented storage, processor, provider, HTTP, tus, or webhook boundaries, and a contract guard rejects twin-only production APIs or private coupling.
+  4. Retry evidence comes from persisted database-backed Oban execution, while restart evidence terminates and resumes a separately supervised runtime without duplicate stimulus.
+  5. Every registered scenario emits a schema-validated, redacted receipt bound to source SHA, package checksum, toolchain, transitions, job attempts, external effects, terminal state, cleanup, and residue, stamped as maintainer-operated synthetic evidence that cannot satisfy the independent-pilot gate.
 
-- [x] 132-08-PLAN.md — Terminalized without execution by `132-08-SUMMARY.md`; retained unchanged as historical recovery input and superseded by the post-D-08/D-09 sampler in 132-11.
+**Plans**: TBD
 
-**Wave 9 — exact topology correction** *(blocked on Wave 7 completion; supersedes Wave 8 execution)*
+### Phase 138: Lifecycle Failure and Recovery Matrix
 
-- [x] 132-09-PLAN.md — RED/GREEN-lock and apply only the six authorized Quality/Optional scheduling-edge removals with deterministic projection proof.
+**Goal**: Maintainers can execute the supported lifecycle's critical interruptions and observe deterministic convergence with no unapproved residue.
+**Depends on**: Phase 137
+**Requirements**: RECOV-01, RECOV-02, RECOV-03, RECOV-04, RECOV-05, RECOV-06
+**Success Criteria** (what must be TRUE):
 
-**Wave 10 — recovery preservation and immutable preflight** *(blocked on Wave 9 completion)*
+  1. An interrupted tus upload resumes from its committed offset after client recreation and converges to exactly one ready asset and one object.
+  2. A transient storage-delete failure preserves durable state, records a real Oban retry, later succeeds, and treats authoritative absence as idempotent success.
+  3. A real AV processing failure is visible through supported diagnostics and recovers through the supported repair path to a consistent terminal state.
+  4. Duplicate and out-of-order provider events plus a host restart between durable stages converge without duplicate provider state, duplicate stimulus, lost work, inconsistent terminal state, or secret-bearing telemetry.
+  5. After an interrupted cleanup, an idempotent janitor rerun leaves zero unapproved database, job, object, provider, multipart, or temporary-file residue, and the full matrix emits independently verified receipts.
 
-- [x] 132-10-PLAN.md — Bind the topology subject to fresh focused, quality, SAFE-01, coverage, packed-consumer, prohibited-surface, and no-trigger preflight evidence.
+**Plans**: TBD
 
-**Wave 11 — locked recovery live acceptance** *(blocked on Wave 10 completion)*
+### Phase 139: Exact-Head Readiness Closure
 
-- [x] 132-11-PLAN.md — Ran the one bounded controller; both permitted first-attempt PR sequences failed, leaving CI-14 honestly open with `gaps_found` and no replacement sample.
+**Goal**: Maintainers can obtain one authoritative readiness verdict for the current immutable revision without overstating synthetic evidence as real adoption.
+**Depends on**: Phase 138
+**Requirements**: READY-01, READY-02, READY-03, READY-04, READY-05
+**Success Criteria** (what must be TRUE):
 
-**Wave 12 — controller verifier and publication-readiness tracer** *(blocked on Wave 11 evidence)*
+  1. One isolated exact-head checkout passes supported toolchains, formatting, compilation, Credo, Dialyzer, Doctor, coverage, security, docs, built-package, generated-consumer, twin, and repository-hygiene gates.
+  2. The same exact head has green `main` CI and Nightly conclusions, and an automated topology check proves branch protection matches the preserved sole-required-check and release-coupling contract.
+  3. A current remote-state verifier confirms every open item and advisory has an evidence-backed disposition and no release blocker is undispositioned.
+  4. One fail-closed readiness manifest rejects missing, stale, partial, impermissibly skipped, foreign-SHA, unclean, residue-bearing, or unexplained evidence.
+  5. Automated release and adoption-truth checks keep the named independent Phoenix pilot open and reject any claim that the synthetic twin satisfies real-adopter validation or authorizes 1.0.
 
-- [x] 132-12-PLAN.md — Unify live population/statistics/threshold verification and add source-derived, mutation-free publication-ready preflight with process regressions.
+**Plans**: TBD
 
-**Wave 13 — failed-run formatter remediation** *(blocked on the Wave 12 controller contract)*
+## Progress
 
-- [x] 132-13-PLAN.md — Record both formatter-failed recovery runs and apply the formatter-only correction to the D-08/D-09 topology contract.
+**Execution Order:** 133 -> 134 -> 135 -> 136 -> 137 -> 138 -> 139
 
-**Wave 14 — transition-manifest controller repair** *(blocked on the Wave 13 formatter correction)*
-
-- [x] 132-14-PLAN.md — RED/GREEN the omitted `--transition-manifest` / `validate_transition_manifest` controller contract with a truthful three-stage chronology and fail-closed mutation regressions.
-
-**Wave 15 — post-repair immutable preservation census** *(blocked on Wave 14 completion)*
-
-- [x] 132-15-PLAN.md — Emit the source-derived three-stage transition manifest, then re-run formatter, focused/full quality, SAFE-01, coverage, packed-consumer, prohibited-surface, and successful mutation-free preflight authorities.
-
-**Wave 16 — preserved-tail controller repair closeout** *(blocked on Wave 15 completion)*
-
-- [x] 132-16-PLAN.md — Verified and truthfully closed existing commit `15336d4`, which accepts planning-only evidence tails after the preserved subject; no source reimplementation or GitHub mutation.
-
-**Wave 17 — post-controller-fix preservation census** *(blocked on Wave 16 completion)*
-
-- [x] 132-17-PLAN.md — Preserved source subject `15336d4`, explicitly censused the Plan 132-16 tail, and re-ran COV-05/SAFE-02 plus mutation-free preflight authorities.
-
-**Wave 18 — terminal API-backed timing acceptance** *(blocked on Wave 17 completion)*
-
-- [x] 132-18-PLAN.md — Publish once, collect the PR-associated exact-ten canonical population with at most two sequences, and close CI-14 only on live-verified median <=480s and p95 <=600s.
-
-**Wave 19 — fail-closed controller repair** *(blocked on Wave 18 verification gaps)*
-
-- [x] 132-19-PLAN.md — Repair terminal-state, resume-identity, creation-deadline, and paginated-population defects with executable regressions.
-
-**Wave 20 — repaired-source preservation census** *(blocked on Wave 19 completion)*
-
-- [x] 132-20-PLAN.md — Bind the repaired controller to a fresh immutable subject and prove preservation plus mutation-free publication readiness.
-
-**Wave 21 — fresh terminal timing acceptance** *(blocked on Wave 20 completion)*
-
-- [x] 132-21-PLAN.md — Publish once, collect the complete exact-ten API population, and independently reverify the inclusive CI-14 verdict.
-
-**Wave 22 — automated safety gap closure** *(blocked on Wave 21 verification)*
-
-- [x] 132-22-PLAN.md — Bound persistent API rate limits, harden human-action parsing, and replay the existing timing/coverage/preservation authorities without UAT or a new live sample.
-
-Archive: [milestones/v1.25-ROADMAP.md](milestones/v1.25-ROADMAP.md); requirements:
-[milestones/v1.25-REQUIREMENTS.md](milestones/v1.25-REQUIREMENTS.md); audit:
-[milestones/v1.25-MILESTONE-AUDIT.md](milestones/v1.25-MILESTONE-AUDIT.md); phase evidence:
-[milestones/v1.25-phases/](milestones/v1.25-phases/).
-
-</details>
-
-## Demand-Gated Candidates
-
-- Force-delete semantics for still-shared assets (LIFE-06) — compliance pull only.
-- Second streaming provider (Cloudflare/Bunny) — explicit adopter demand only.
-- IETF RUFH / tus 2.0; GCS-as-tus-backend / R2-native tus proxying.
-- Rindle-owned standalone tus JS client package and richer uploader abstractions.
-- Signed dynamic image transforms and explicit original EXIF/GPS stripping.
-- `mix test --partitions` parallelization — evidence-gated on measured core starvation (DEFER-02).
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 133. Evidence Charter and Live Truth | 0/TBD | Not started | - |
+| 134. Dependency, Security, and Inbox Disposition | 0/TBD | Not started | - |
+| 135. Repository and Code-Craft Consolidation | 0/TBD | Not started | - |
+| 136. Measured Quality and CI Ratchets | 0/TBD | Not started | - |
+| 137. Built-Package Twin Foundation | 0/TBD | Not started | - |
+| 138. Lifecycle Failure and Recovery Matrix | 0/TBD | Not started | - |
+| 139. Exact-Head Readiness Closure | 0/TBD | Not started | - |
 
 ---
-*Last updated: 2026-08-27 — v1.25 shipped with 22/22 Phase 132 plans and passed milestone audit.*
+*Last updated: 2026-09-09 after v1.26 roadmap creation; awaiting roadmap approval.*
