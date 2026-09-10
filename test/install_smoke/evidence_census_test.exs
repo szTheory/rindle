@@ -623,15 +623,17 @@ defmodule Rindle.InstallSmoke.EvidenceCensusTest do
     mutate_json!(fixture.ledger, &put_observation_location(&1, location))
 
     mutate_json!(fixture.receipt, fn receipt ->
-      update_in(receipt, ["observations"], fn observations ->
-        Enum.map(observations, fn
-          %{"id" => "obs-default-exunit"} = observation ->
-            Map.put(observation, "location", location)
+      update_in(receipt, ["observations"], &put_receipt_observation_location(&1, location))
+    end)
+  end
 
-          observation ->
-            observation
-        end)
-      end)
+  defp put_receipt_observation_location(observations, location) do
+    Enum.map(observations, fn
+      %{"id" => "obs-default-exunit"} = observation ->
+        Map.put(observation, "location", location)
+
+      observation ->
+        observation
     end)
   end
 
