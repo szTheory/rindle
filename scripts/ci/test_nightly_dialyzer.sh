@@ -86,7 +86,9 @@ assert_case() {
       bash "$fixture_runner" "$mode" 2>&1
   )" || status=$?
 
-  commands="$(tr '\n' '|' < "$command_log" 2>/dev/null || true)"
+  if [ -f "$command_log" ]; then
+    commands="$(tr '\n' '|' < "$command_log")"
+  fi
   if [ "$status" -ne "$expected_status" ]; then
     fail_case "${name}: expected exit ${expected_status}, got ${status}; output=${output}"
   elif [ "$commands" != "$expected_commands" ]; then
@@ -141,7 +143,94 @@ assert_approved_repo_reset() {
   rm -rf "$case_root"
 }
 
+assert_rejected_path() {
+  local name="$1" mode="$2" kind="$3" requested_value="${4:-}"
+  local case_root repo_fixture fixture_runner fake_mix command_log dialyzer_log external_dir output status=0 commands=""
+
+  case_root="$(mktemp -d "${TMPDIR:-/tmp}/rindle-dialyzer-reject.XXXXXX")"
+  repo_fixture="${case_root}/repo"
+  fixture_runner="${repo_fixture}/scripts/ci/run_nightly_dialyzer.sh"
+  fake_mix="${case_root}/mix"
+  command_log="${case_root}/commands.log"
+  dialyzer_log="${case_root}/dialyzer.log"
+  external_dir="${case_root}/external"
+
+  mkdir -p "${repo_fixture}/scripts/ci" "${repo_fixture}/priv/plts" "$external_dir"
+  cp "$runner" "$fixture_runner"
+  cp "${repo_root}/scripts/ci/fixtures/fake_nightly_dialyzer_mix.sh" "$fake_mix"
+  chmod +x "$fake_mix" "$fixture_runner"
+  printf 'preserve repository sibling\n' > "${repo_fixture}/priv/sibling.sentinel"
+  printf 'preserve approved child\n' > "${repo_fixture}/priv/plts/internal.sentinel"
+  printf 'preserve external target\n' > "${external_dir}/external.sentinel"
+
+  case "$kind" in
+    symlink)
+      rm "${repo_fixture}/priv/plts/internal.sentinel"
+      rmdir "${repo_fixture}/priv/plts"
+      ln -s "$external_dir" "${repo_fixture}/priv/plts"
+      ;;
+    repo-root)
+      requested_value="$repo_fixture"
+      ;;
+    external)
+      requested_value="$external_dir"
+      ;;
+  esac
+
+  if [ "$kind" = "symlink" ]; then
+    output="$(
+      MIX_BIN="$fake_mix" \
+        DIALYZER_LOG="$dialyzer_log" \
+        RINDLE_DIALYZER_TEST_SCENARIO=stale_then_success \
+        RINDLE_DIALYZER_COMMAND_LOG="$command_log" \
+        bash "$fixture_runner" "$mode" 2>&1
+    )" || status=$?
+  else
+    output="$(
+      PLT_DIR="$requested_value" \
+        MIX_BIN="$fake_mix" \
+        DIALYZER_LOG="$dialyzer_log" \
+        RINDLE_DIALYZER_TEST_SCENARIO=stale_then_success \
+        RINDLE_DIALYZER_COMMAND_LOG="$command_log" \
+        bash "$fixture_runner" "$mode" 2>&1
+    )" || status=$?
+  fi
+
+  if [ -f "$command_log" ]; then
+    commands="$(tr '\n' '|' < "$command_log")"
+  fi
+
+  if [ "$status" -ne 2 ]; then
+    fail_case "${name}: expected exit 2, got ${status}; output=${output}"
+  elif [ -n "$commands" ]; then
+    fail_case "${name}: fake Mix ran before rejection: ${commands}"
+  elif [ ! -f "${repo_fixture}/priv/sibling.sentinel" ]; then
+    fail_case "${name}: repository sibling sentinel was removed"
+  elif [ ! -f "${external_dir}/external.sentinel" ]; then
+    fail_case "${name}: external sentinel was removed"
+  elif [ "$kind" != "symlink" ] && [ ! -f "${repo_fixture}/priv/plts/internal.sentinel" ]; then
+    fail_case "${name}: approved child sentinel was removed"
+  elif [ "${#output}" -gt 256 ] || ! grep -Fq "refusing" <<<"$output"; then
+    fail_case "${name}: rejection diagnostic was absent or unbounded"
+  elif [ -n "$requested_value" ] && [ "$requested_value" != "." ] && [ "$requested_value" != "/" ] && grep -Fq "$requested_value" <<<"$output"; then
+    fail_case "${name}: diagnostic disclosed the rejected resolved value"
+  else
+    pass_case "$name"
+  fi
+
+  rm -rf "$case_root"
+}
+
 assert_approved_repo_reset
+assert_rejected_path "empty PLT override rejects before work" fresh env ""
+assert_rejected_path "dot PLT override rejects before work" fresh env "."
+assert_rejected_path "filesystem-root PLT override rejects before work" fresh env "/"
+assert_rejected_path "parent traversal rejects before work" fresh env ".."
+assert_rejected_path "multi-parent traversal rejects before work" fresh env "../.."
+assert_rejected_path "repository-root override rejects before work" fresh repo-root
+assert_rejected_path "external absolute override rejects before work" fresh external
+assert_rejected_path "fresh symlink escape rejects without deletion" fresh symlink
+assert_rejected_path "restored Old PLT symlink escape rejects before analysis" restored symlink
 assert_case "fresh builds then analyzes once" fresh success 0 "dialyzer --plt|dialyzer --format github|"
 assert_case "valid restored PLT analyzes once" restored success 0 "dialyzer --format github|"
 assert_case "old restored PLT rebuilds and re-analyzes once" restored stale_then_success 0 "dialyzer --format github|dialyzer --plt|dialyzer --format github|"
