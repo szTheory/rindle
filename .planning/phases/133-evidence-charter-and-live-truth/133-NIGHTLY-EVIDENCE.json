@@ -1,0 +1,432 @@
+{
+  "conclusion": "success",
+  "created_at": "2026-09-10T03:10:09Z",
+  "dialyzer": {
+    "cache_key": "plt-v3-Linux-X64-otpOTP-27.3.4.17-elixirv1.17.3-otp-27-6c351141945afd0267660d9e684048ac27092fe07215bcefe3a54f7d4db719ae",
+    "fresh": {
+      "analyses": 1,
+      "builds": 1,
+      "status": "pass"
+    },
+    "requested_elixir": "1.17",
+    "requested_otp": "27",
+    "resolved_elixir": "v1.17.3-otp-27",
+    "resolved_otp": "OTP-27.3.4.17",
+    "restored": {
+      "analyses": 1,
+      "status": "pass"
+    },
+    "stale_rebuilds": 0
+  },
+  "event": "workflow_dispatch",
+  "incident_snapshot_after": [
+    {
+      "body": "A scheduled nightly run failed: https://github.com/szTheory/rindle/actions/runs/32626146035\n\n| Job | Result |\n| --- | --- |\n| Compat Matrix | success |\n| Dialyzer | failure |\n| GCS Soak | success |\n| Package Consumer GCS Live | success |",
+      "comments": [
+        {
+          "author": {
+            "login": "github-actions"
+          },
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "A scheduled nightly run failed: https://github.com/szTheory/rindle/actions/runs/33166082285\n\n| Job | Result |\n| --- | --- |\n| Compat Matrix | success |\n| Dialyzer | failure |\n| GCS Soak | success |\n| Package Consumer GCS Live | success |",
+          "createdAt": "2026-08-28T11:14:58Z",
+          "id": "IC_kwDOSOrvxs8AAAABRPRNfw",
+          "includesCreatedEdit": false,
+          "isMinimized": false,
+          "minimizedReason": "",
+          "reactionGroups": [],
+          "url": "https://github.com/szTheory/rindle/issues/88#issuecomment-5451828607",
+          "viewerDidAuthor": false
+        },
+        {
+          "author": {
+            "login": "szTheory"
+          },
+          "authorAssociation": "OWNER",
+          "body": "Baseline verification: the targeted fix is now on `main` at `f2ecc92`, and an exact-head manual Nightly run completed green across Dialyzer and every compatibility lane: https://github.com/szTheory/rindle/actions/runs/33178174653. Keeping this issue open for the scheduled Nightly reporter to confirm and reconcile it on the next cron run.",
+          "createdAt": "2026-08-28T14:07:20Z",
+          "id": "IC_kwDOSOrvxs8AAAABRQ32ww",
+          "includesCreatedEdit": false,
+          "isMinimized": false,
+          "minimizedReason": "",
+          "reactionGroups": [],
+          "url": "https://github.com/szTheory/rindle/issues/88#issuecomment-5453510339",
+          "viewerDidAuthor": true
+        },
+        {
+          "author": {
+            "login": "github-actions"
+          },
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "A scheduled nightly run failed: https://github.com/szTheory/rindle/actions/runs/33604173427\n\n| Job | Result |\n| --- | --- |\n| Compat Matrix | success |\n| Dialyzer | failure |\n| GCS Soak | success |\n| Package Consumer GCS Live | success |",
+          "createdAt": "2026-09-02T07:38:46Z",
+          "id": "IC_kwDOSOrvxs8AAAABSDFxwg",
+          "includesCreatedEdit": false,
+          "isMinimized": false,
+          "minimizedReason": "",
+          "reactionGroups": [],
+          "url": "https://github.com/szTheory/rindle/issues/88#issuecomment-5506167234",
+          "viewerDidAuthor": false
+        },
+        {
+          "author": {
+            "login": "github-actions"
+          },
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "A scheduled nightly run failed: https://github.com/szTheory/rindle/actions/runs/33728680561\n\n| Job | Result |\n| --- | --- |\n| Compat Matrix | success |\n| Dialyzer | failure |\n| GCS Soak | success |\n| Package Consumer GCS Live | success |",
+          "createdAt": "2026-09-03T07:37:21Z",
+          "id": "IC_kwDOSOrvxs8AAAABSSc0sA",
+          "includesCreatedEdit": false,
+          "isMinimized": false,
+          "minimizedReason": "",
+          "reactionGroups": [],
+          "url": "https://github.com/szTheory/rindle/issues/88#issuecomment-5522273456",
+          "viewerDidAuthor": false
+        },
+        {
+          "author": {
+            "login": "github-actions"
+          },
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "A scheduled nightly run failed: https://github.com/szTheory/rindle/actions/runs/33849216884\n\n| Job | Result |\n| --- | --- |\n| Compat Matrix | success |\n| Dialyzer | failure |\n| GCS Soak | success |\n| Package Consumer GCS Live | success |",
+          "createdAt": "2026-09-04T07:37:06Z",
+          "id": "IC_kwDOSOrvxs8AAAABSgxkOw",
+          "includesCreatedEdit": false,
+          "isMinimized": false,
+          "minimizedReason": "",
+          "reactionGroups": [],
+          "url": "https://github.com/szTheory/rindle/issues/88#issuecomment-5537293371",
+          "viewerDidAuthor": false
+        },
+        {
+          "author": {
+            "login": "github-actions"
+          },
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "A scheduled nightly run failed: https://github.com/szTheory/rindle/actions/runs/33952715177\n\n| Job | Result |\n| --- | --- |\n| Compat Matrix | failure |\n| Dialyzer | failure |\n| GCS Soak | success |\n| Package Consumer GCS Live | success |",
+          "createdAt": "2026-09-05T07:34:06Z",
+          "id": "IC_kwDOSOrvxs8AAAABStMjkQ",
+          "includesCreatedEdit": false,
+          "isMinimized": false,
+          "minimizedReason": "",
+          "reactionGroups": [],
+          "url": "https://github.com/szTheory/rindle/issues/88#issuecomment-5550318481",
+          "viewerDidAuthor": false
+        },
+        {
+          "author": {
+            "login": "github-actions"
+          },
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "A scheduled nightly run failed: https://github.com/szTheory/rindle/actions/runs/34019335239\n\n| Job | Result |\n| --- | --- |\n| Compat Matrix | success |\n| Dialyzer | failure |\n| GCS Soak | success |\n| Package Consumer GCS Live | success |",
+          "createdAt": "2026-09-06T07:34:30Z",
+          "id": "IC_kwDOSOrvxs8AAAABS0TRXA",
+          "includesCreatedEdit": false,
+          "isMinimized": false,
+          "minimizedReason": "",
+          "reactionGroups": [],
+          "url": "https://github.com/szTheory/rindle/issues/88#issuecomment-5557768540",
+          "viewerDidAuthor": false
+        },
+        {
+          "author": {
+            "login": "github-actions"
+          },
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "A scheduled nightly run failed: https://github.com/szTheory/rindle/actions/runs/34096671056\n\n| Job | Result |\n| --- | --- |\n| Compat Matrix | success |\n| Dialyzer | failure |\n| GCS Soak | success |\n| Package Consumer GCS Live | success |",
+          "createdAt": "2026-09-07T07:45:03Z",
+          "id": "IC_kwDOSOrvxs8AAAABS9OkRw",
+          "includesCreatedEdit": false,
+          "isMinimized": false,
+          "minimizedReason": "",
+          "reactionGroups": [],
+          "url": "https://github.com/szTheory/rindle/issues/88#issuecomment-5567128647",
+          "viewerDidAuthor": false
+        },
+        {
+          "author": {
+            "login": "github-actions"
+          },
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "A scheduled nightly run failed: https://github.com/szTheory/rindle/actions/runs/34199910757\n\n| Job | Result |\n| --- | --- |\n| Compat Matrix | success |\n| Dialyzer | failure |\n| GCS Soak | success |\n| Package Consumer GCS Live | success |",
+          "createdAt": "2026-09-08T07:38:18Z",
+          "id": "IC_kwDOSOrvxs8AAAABTKnmUA",
+          "includesCreatedEdit": false,
+          "isMinimized": false,
+          "minimizedReason": "",
+          "reactionGroups": [],
+          "url": "https://github.com/szTheory/rindle/issues/88#issuecomment-5581170256",
+          "viewerDidAuthor": false
+        },
+        {
+          "author": {
+            "login": "github-actions"
+          },
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "A scheduled nightly run failed: https://github.com/szTheory/rindle/actions/runs/34324448817\n\n| Job | Result |\n| --- | --- |\n| Compat Matrix | success |\n| Dialyzer | failure |\n| GCS Soak | success |\n| Package Consumer GCS Live | success |",
+          "createdAt": "2026-09-09T07:37:42Z",
+          "id": "IC_kwDOSOrvxs8AAAABTatnyA",
+          "includesCreatedEdit": false,
+          "isMinimized": false,
+          "minimizedReason": "",
+          "reactionGroups": [],
+          "url": "https://github.com/szTheory/rindle/issues/88#issuecomment-5598046152",
+          "viewerDidAuthor": false
+        }
+      ],
+      "number": 88,
+      "title": "Nightly CI failure",
+      "updatedAt": "2026-09-09T07:37:43Z",
+      "url": "https://github.com/szTheory/rindle/issues/88"
+    }
+  ],
+  "incident_snapshot_before": [
+    {
+      "body": "A scheduled nightly run failed: https://github.com/szTheory/rindle/actions/runs/32626146035\n\n| Job | Result |\n| --- | --- |\n| Compat Matrix | success |\n| Dialyzer | failure |\n| GCS Soak | success |\n| Package Consumer GCS Live | success |",
+      "comments": [
+        {
+          "author": {
+            "login": "github-actions"
+          },
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "A scheduled nightly run failed: https://github.com/szTheory/rindle/actions/runs/33166082285\n\n| Job | Result |\n| --- | --- |\n| Compat Matrix | success |\n| Dialyzer | failure |\n| GCS Soak | success |\n| Package Consumer GCS Live | success |",
+          "createdAt": "2026-08-28T11:14:58Z",
+          "id": "IC_kwDOSOrvxs8AAAABRPRNfw",
+          "includesCreatedEdit": false,
+          "isMinimized": false,
+          "minimizedReason": "",
+          "reactionGroups": [],
+          "url": "https://github.com/szTheory/rindle/issues/88#issuecomment-5451828607",
+          "viewerDidAuthor": false
+        },
+        {
+          "author": {
+            "login": "szTheory"
+          },
+          "authorAssociation": "OWNER",
+          "body": "Baseline verification: the targeted fix is now on `main` at `f2ecc92`, and an exact-head manual Nightly run completed green across Dialyzer and every compatibility lane: https://github.com/szTheory/rindle/actions/runs/33178174653. Keeping this issue open for the scheduled Nightly reporter to confirm and reconcile it on the next cron run.",
+          "createdAt": "2026-08-28T14:07:20Z",
+          "id": "IC_kwDOSOrvxs8AAAABRQ32ww",
+          "includesCreatedEdit": false,
+          "isMinimized": false,
+          "minimizedReason": "",
+          "reactionGroups": [],
+          "url": "https://github.com/szTheory/rindle/issues/88#issuecomment-5453510339",
+          "viewerDidAuthor": true
+        },
+        {
+          "author": {
+            "login": "github-actions"
+          },
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "A scheduled nightly run failed: https://github.com/szTheory/rindle/actions/runs/33604173427\n\n| Job | Result |\n| --- | --- |\n| Compat Matrix | success |\n| Dialyzer | failure |\n| GCS Soak | success |\n| Package Consumer GCS Live | success |",
+          "createdAt": "2026-09-02T07:38:46Z",
+          "id": "IC_kwDOSOrvxs8AAAABSDFxwg",
+          "includesCreatedEdit": false,
+          "isMinimized": false,
+          "minimizedReason": "",
+          "reactionGroups": [],
+          "url": "https://github.com/szTheory/rindle/issues/88#issuecomment-5506167234",
+          "viewerDidAuthor": false
+        },
+        {
+          "author": {
+            "login": "github-actions"
+          },
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "A scheduled nightly run failed: https://github.com/szTheory/rindle/actions/runs/33728680561\n\n| Job | Result |\n| --- | --- |\n| Compat Matrix | success |\n| Dialyzer | failure |\n| GCS Soak | success |\n| Package Consumer GCS Live | success |",
+          "createdAt": "2026-09-03T07:37:21Z",
+          "id": "IC_kwDOSOrvxs8AAAABSSc0sA",
+          "includesCreatedEdit": false,
+          "isMinimized": false,
+          "minimizedReason": "",
+          "reactionGroups": [],
+          "url": "https://github.com/szTheory/rindle/issues/88#issuecomment-5522273456",
+          "viewerDidAuthor": false
+        },
+        {
+          "author": {
+            "login": "github-actions"
+          },
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "A scheduled nightly run failed: https://github.com/szTheory/rindle/actions/runs/33849216884\n\n| Job | Result |\n| --- | --- |\n| Compat Matrix | success |\n| Dialyzer | failure |\n| GCS Soak | success |\n| Package Consumer GCS Live | success |",
+          "createdAt": "2026-09-04T07:37:06Z",
+          "id": "IC_kwDOSOrvxs8AAAABSgxkOw",
+          "includesCreatedEdit": false,
+          "isMinimized": false,
+          "minimizedReason": "",
+          "reactionGroups": [],
+          "url": "https://github.com/szTheory/rindle/issues/88#issuecomment-5537293371",
+          "viewerDidAuthor": false
+        },
+        {
+          "author": {
+            "login": "github-actions"
+          },
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "A scheduled nightly run failed: https://github.com/szTheory/rindle/actions/runs/33952715177\n\n| Job | Result |\n| --- | --- |\n| Compat Matrix | failure |\n| Dialyzer | failure |\n| GCS Soak | success |\n| Package Consumer GCS Live | success |",
+          "createdAt": "2026-09-05T07:34:06Z",
+          "id": "IC_kwDOSOrvxs8AAAABStMjkQ",
+          "includesCreatedEdit": false,
+          "isMinimized": false,
+          "minimizedReason": "",
+          "reactionGroups": [],
+          "url": "https://github.com/szTheory/rindle/issues/88#issuecomment-5550318481",
+          "viewerDidAuthor": false
+        },
+        {
+          "author": {
+            "login": "github-actions"
+          },
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "A scheduled nightly run failed: https://github.com/szTheory/rindle/actions/runs/34019335239\n\n| Job | Result |\n| --- | --- |\n| Compat Matrix | success |\n| Dialyzer | failure |\n| GCS Soak | success |\n| Package Consumer GCS Live | success |",
+          "createdAt": "2026-09-06T07:34:30Z",
+          "id": "IC_kwDOSOrvxs8AAAABS0TRXA",
+          "includesCreatedEdit": false,
+          "isMinimized": false,
+          "minimizedReason": "",
+          "reactionGroups": [],
+          "url": "https://github.com/szTheory/rindle/issues/88#issuecomment-5557768540",
+          "viewerDidAuthor": false
+        },
+        {
+          "author": {
+            "login": "github-actions"
+          },
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "A scheduled nightly run failed: https://github.com/szTheory/rindle/actions/runs/34096671056\n\n| Job | Result |\n| --- | --- |\n| Compat Matrix | success |\n| Dialyzer | failure |\n| GCS Soak | success |\n| Package Consumer GCS Live | success |",
+          "createdAt": "2026-09-07T07:45:03Z",
+          "id": "IC_kwDOSOrvxs8AAAABS9OkRw",
+          "includesCreatedEdit": false,
+          "isMinimized": false,
+          "minimizedReason": "",
+          "reactionGroups": [],
+          "url": "https://github.com/szTheory/rindle/issues/88#issuecomment-5567128647",
+          "viewerDidAuthor": false
+        },
+        {
+          "author": {
+            "login": "github-actions"
+          },
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "A scheduled nightly run failed: https://github.com/szTheory/rindle/actions/runs/34199910757\n\n| Job | Result |\n| --- | --- |\n| Compat Matrix | success |\n| Dialyzer | failure |\n| GCS Soak | success |\n| Package Consumer GCS Live | success |",
+          "createdAt": "2026-09-08T07:38:18Z",
+          "id": "IC_kwDOSOrvxs8AAAABTKnmUA",
+          "includesCreatedEdit": false,
+          "isMinimized": false,
+          "minimizedReason": "",
+          "reactionGroups": [],
+          "url": "https://github.com/szTheory/rindle/issues/88#issuecomment-5581170256",
+          "viewerDidAuthor": false
+        },
+        {
+          "author": {
+            "login": "github-actions"
+          },
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "A scheduled nightly run failed: https://github.com/szTheory/rindle/actions/runs/34324448817\n\n| Job | Result |\n| --- | --- |\n| Compat Matrix | success |\n| Dialyzer | failure |\n| GCS Soak | success |\n| Package Consumer GCS Live | success |",
+          "createdAt": "2026-09-09T07:37:42Z",
+          "id": "IC_kwDOSOrvxs8AAAABTatnyA",
+          "includesCreatedEdit": false,
+          "isMinimized": false,
+          "minimizedReason": "",
+          "reactionGroups": [],
+          "url": "https://github.com/szTheory/rindle/issues/88#issuecomment-5598046152",
+          "viewerDidAuthor": false
+        }
+      ],
+      "number": 88,
+      "title": "Nightly CI failure",
+      "updatedAt": "2026-09-09T07:37:43Z",
+      "url": "https://github.com/szTheory/rindle/issues/88"
+    }
+  ],
+  "jobs": [
+    {
+      "conclusion": "success",
+      "id": 102730125541,
+      "name": "Compat Matrix (1.15, 26)",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "id": 102730125606,
+      "name": "Compat Matrix (1.16, 26)",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "id": 102730125594,
+      "name": "Compat Matrix (1.17, 27)",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "id": 102730125670,
+      "name": "Compat Matrix (1.18, 27)",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "id": 102730125587,
+      "name": "Compat Matrix (1.18, 28)",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "id": 102730125478,
+      "name": "Dialyzer",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "id": 102730125448,
+      "name": "GCS Soak (real bucket)",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "id": 102731052068,
+      "name": "Nightly Incident Lifecycle",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "id": 102731033497,
+      "name": "Nightly Summary",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "id": 102730125398,
+      "name": "Package Consumer GCS Live Proof",
+      "status": "completed"
+    }
+  ],
+  "local_authorities": {
+    "census": {
+      "status": "pass"
+    },
+    "live_truth": {
+      "status": "pass"
+    }
+  },
+  "preflight": {
+    "remote_ref": "phase-133-evidence-4f83e153eb7e",
+    "repository": "szTheory/rindle",
+    "status": "pass",
+    "subject_sha": "4f83e153eb7e19f3e1e3ca43b40eefdfee87a4d2",
+    "workflow": "nightly.yml"
+  },
+  "remote_ref": "phase-133-evidence-4f83e153eb7e",
+  "repository": "szTheory/rindle",
+  "run_attempt": 1,
+  "run_id": 34432289094,
+  "schema_version": 1,
+  "strict_verdict": {
+    "summary_job": "Nightly Summary",
+    "verdict": "green"
+  },
+  "subject_sha": "4f83e153eb7e19f3e1e3ca43b40eefdfee87a4d2",
+  "workflow": "nightly.yml"
+}
