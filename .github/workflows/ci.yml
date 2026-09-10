@@ -1425,6 +1425,8 @@ jobs:
         run: bash scripts/ci/test_ci_summary_gate.sh
       - name: Nightly Summary gate logic
         run: bash scripts/ci/test_nightly_summary_gate.sh
+      - name: Nightly incident lifecycle
+        run: bash scripts/ci/test_nightly_incident.sh
 
   ci-summary:
     name: CI Summary

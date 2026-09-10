@@ -533,68 +533,55 @@ jobs:
           test "${{ steps.evaluate.outputs.evaluator-status }}" = "0"
           test "${{ steps.evaluate.outputs.verdict }}" = "green"
 
-  # D-16: issue-on-failure — opens or updates a single tracking issue when a
-  # SCHEDULED nightly run fails (default GitHub scheduled-failure emails only
-  # reach the last committer — insufficient for the maintainer-as-consumer JTBD).
-  # `if: failure() && github.event_name == 'schedule'` so a manual
-  # workflow_dispatch debugging run never files an issue. Job-scoped
-  # `permissions: issues: write` and NOTHING else (D-16 least privilege): the
-  # top-level workflow default stays `contents: read`, so this job cannot push
-  # code or merge PRs. Inline `gh issue` find-open-else-create (zero new
-  # dependency, house bash idiom) — no third-party action (SHA-pinning is
-  # Phase 107). Issue body is composed from static text + trusted needs.*.result
-  # context only (no untrusted event field interpolated into the shell).
+  # D-12/D-13: one rolling incident consumes the same strict verdict that owns
+  # the workflow conclusion. `always()` makes cancelled, failed, and skipped
+  # dependency facts observable; the pure evaluator permits mutation only for a
+  # scheduled run whose exact SHA/ref still matches a fresh remote-main lookup.
   nightly-failure-issue:
-    name: Nightly Failure Issue
+    name: Nightly Incident Lifecycle
     runs-on: ubuntu-22.04
     needs:
       - compat-matrix
       - dialyzer
       - gcs-soak
       - package-consumer-gcs-live
-    if: failure() && github.event_name == 'schedule'
+      - nightly-summary
+    if: always()
     permissions:
+      contents: read
       issues: write
     steps:
-      - name: Open or update the nightly-failure tracking issue
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Resolve current remote default-branch SHA
+        id: remote-main
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
-          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          COMPAT_MATRIX: ${{ needs.compat-matrix.result }}
-          DIALYZER: ${{ needs.dialyzer.result }}
-          GCS_SOAK: ${{ needs.gcs-soak.result }}
-          GCS_LIVE: ${{ needs.package-consumer-gcs-live.result }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
         run: |
           set -euo pipefail
 
-          title="Nightly CI failure"
-          label="nightly-failure"
-
-          body="$(
-            printf '%s\n\n' "A scheduled nightly run failed: ${RUN_URL}"
-            printf '%s\n' "| Job | Result |"
-            printf '%s\n' "| --- | --- |"
-            printf '| Compat Matrix | %s |\n' "${COMPAT_MATRIX}"
-            printf '| Dialyzer | %s |\n' "${DIALYZER}"
-            printf '| GCS Soak | %s |\n' "${GCS_SOAK}"
-            printf '| Package Consumer GCS Live | %s |\n' "${GCS_LIVE}"
+          remote_main_sha="$(
+            gh api --method GET \
+              "repos/${GH_REPO}/git/ref/heads/${DEFAULT_BRANCH}" \
+              --jq '.object.sha'
           )"
+          [[ "${remote_main_sha}" =~ ^[0-9a-f]{40}$ ]]
+          echo "sha=${remote_main_sha}" >> "$GITHUB_OUTPUT"
 
-          existing="$(
-            gh issue list \
-              --state open \
-              --label "$label" \
-              --search "$title in:title" \
-              --json number \
-              --jq '.[0].number // ""'
-          )"
-
-          if [ -n "$existing" ]; then
-            echo "Commenting on existing nightly-failure issue #$existing"
-            gh issue comment "$existing" --body "$body"
-          else
-            echo "Creating a new nightly-failure tracking issue"
-            gh label create "$label" --color B60205 --description "Tracks scheduled nightly CI failures" 2>/dev/null || true
-            gh issue create --title "$title" --label "$label" --body "$body"
-          fi
+      - name: Manage scheduled Nightly incident
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          EVENT_NAME: ${{ github.event_name }}
+          NIGHTLY_VERDICT: ${{ needs.nightly-summary.outputs.verdict }}
+          RUN_ID: ${{ github.run_id }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          RUN_SHA: ${{ github.sha }}
+          RUN_REF: ${{ github.ref }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          REMOTE_MAIN_SHA: ${{ steps.remote-main.outputs.sha }}
+        run: bash scripts/ci/manage_nightly_incident.sh
