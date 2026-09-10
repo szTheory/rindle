@@ -372,11 +372,11 @@ revalidate_local_authorities() {
     rm -rf -- "$temp_root"
     die "exact-subject local authority revalidation failed"
   }
-  census_json="$(jq -cS . "$census_receipt")" || {
+  census_json="$(jq -ceS 'select(type == "object")' "$census_receipt")" || {
     rm -rf -- "$temp_root"
     die "generated census receipt is malformed"
   }
-  live_model="$(jq -cS 'del(.authority_root)' "$temp_root/live-truth.json")" || {
+  live_model="$(jq -ceS 'select(type == "object") | del(.authority_root)' "$temp_root/live-truth.json")" || {
     rm -rf -- "$temp_root"
     die "generated live-truth model is malformed"
   }

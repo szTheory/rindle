@@ -158,8 +158,21 @@ make_fake_local_authorities() {
     '  "status --porcelain") [ "${FAKE_AUTHORITY_STATE:-success}" != dirty_ledger ] || printf " M %s\n" "${4-}" ;;' \
     '  "ls-files --error-unmatch") [ "${FAKE_AUTHORITY_STATE:-success}" != untracked_ledger ] || exit 1 ;;' \
     '  "log -1") printf "%s\n" dddddddddddddddddddddddddddddddddddddddd ;;' \
-    '  "rev-parse dddddddddddddddddddddddddddddddddddddddd:.planning/phases/133-evidence-charter-and-live-truth/133-EVIDENCE-CENSUS.json") printf "%s\n" cccccccccccccccccccccccccccccccccccccccc ;;' \
-    '  "show dddddddddddddddddddddddddddddddddddddddd:.planning/phases/133-evidence-charter-and-live-truth/133-EVIDENCE-CENSUS.json") printf "fake immutable ledger\n" ;;' \
+    '  "rev-parse dddddddddddddddddddddddddddddddddddddddd:.planning/phases/133-evidence-charter-and-live-truth/133-EVIDENCE-CENSUS.json")' \
+    '    [ "${FAKE_AUTHORITY_STATE:-success}" != missing_path_at_commit ] || exit 1' \
+    '    if [ "${FAKE_AUTHORITY_STATE:-success}" = blob_mismatch ]; then' \
+    '      printf "%s\n" eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee' \
+    '    else' \
+    '      printf "%s\n" cccccccccccccccccccccccccccccccccccccccc' \
+    '    fi' \
+    '    ;;' \
+    '  "show dddddddddddddddddddddddddddddddddddddddd:.planning/phases/133-evidence-charter-and-live-truth/133-EVIDENCE-CENSUS.json")' \
+    '    if [ "${FAKE_AUTHORITY_STATE:-success}" = hash_mismatch ]; then' \
+    '      printf "forged ledger bytes\n"' \
+    '    else' \
+    '      printf "fake immutable ledger\n"' \
+    '    fi' \
+    '    ;;' \
     '  "archive --format=tar")' \
     '    [ "${FAKE_AUTHORITY_STATE:-success}" != bad_local_authority ] || exit 44' \
     '    fixture="$(mktemp -d)"' \
@@ -184,9 +197,13 @@ make_fake_local_authorities() {
     '    if [ "$1" = --output ]; then output="$2"; break; fi' \
     '    shift' \
     '  done' \
-    '  [ -z "$output" ] || printf "{\"marker\":\"immutable-object\",\"schema_version\":1,\"source_sha\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}\n" >"$output"' \
-    'elif printf "%s\n" "$*" | grep -q "validate_live_truth.exs" && printf "%s\n" "$*" | grep -q -- "--format json"; then' \
-    '  printf "{\"authority_root\":\"ephemeral\",\"schema_version\":1,\"version\":\"0.4.6\"}\n"' \
+    '  marker=immutable-object' \
+    '  [ "${FAKE_AUTHORITY_STATE:-success}" != census_receipt_changed ] || marker=forged' \
+    '  [ -z "$output" ] || printf "{\"marker\":\"%s\",\"schema_version\":1,\"source_sha\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}\n" "$marker" >"$output"' \
+    'elif printf "%s\n" "$*" | grep -q "validate_live_truth.exs" && printf "%s\n" "$*" | grep -q -- "--format"; then' \
+    '  version=0.4.6' \
+    '  [ "${FAKE_AUTHORITY_STATE:-success}" != live_model_changed ] || version=9.9.9' \
+    '  printf "{\"authority_root\":\"ephemeral\",\"schema_version\":1,\"version\":\"%s\"}\n" "$version"' \
     'fi' >"${bin_dir}/mix"
   chmod +x "${bin_dir}/git" "${bin_dir}/mix"
 }
@@ -292,10 +309,12 @@ run_case "multiple post-boundary exact matches are ambiguous" multiple_post_boun
 for state in foreign_repository foreign_workflow missing_ref foreign_sha foreign_run_sha foreign_run_ref \
   foreign_run_workflow rerun missing_job extra_job red_job skipped_job cancelled_job nonterminal red_run \
   missing_fresh missing_restored unsupported_elixir_11_17 unsupported_elixir_1_170 unsupported_otp_127 \
-  bad_local_authority dirty_ledger untracked_ledger missing_cache stale_rebuild red_verdict \
+  bad_local_authority missing_cache stale_rebuild red_verdict \
   incident_changed timeout api_failure watch_failure; do
   run_case "$state fails closed" "$state" 1
 done
+run_case "dirty ledger fails closed before collection" dirty_ledger 2
+run_case "untracked ledger fails closed before collection" untracked_ledger 2
 
 while IFS=$'\t' read -r name filter; do
   verify_mutation_case "$name" "$filter"
