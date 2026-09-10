@@ -377,9 +377,6 @@ while [ "$(date +%s)" -lt "$deadline" ]; do
     run_id="$(jq -r '.[0].databaseId' <<<"$matches")"
     break
   fi
-  if [ "$(jq 'length' <<<"$runs")" -gt 0 ] && [ "$match_count" -eq 0 ]; then
-    die "new diagnostic run has foreign workflow/ref/SHA identity"
-  fi
   [ "$poll_seconds" -eq 0 ] || sleep "$poll_seconds"
 done
 [ -n "$run_id" ] || die "timed out waiting for exact diagnostic run"
