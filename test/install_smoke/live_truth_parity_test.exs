@@ -158,7 +158,75 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
         "# run.head_sha === sha\n# latest.conclusion !== 'success'\n"
     )
 
-    assert_error(root, "exact-SHA release coupling mismatch")
+    assert_error(root, "release CI run selection mismatch")
+  end
+
+  @tag :derived_authority
+  test "release coupling rejects dead steps, duplicate gates, and broken graph edges" do
+    root = fixture_root!()
+
+    replace!(
+      root,
+      ".github/workflows/release.yml",
+      "      - name: Wait for CI to finish green on release SHA\n        id: ci\n",
+      "      - name: Wait for CI to finish green on release SHA\n        id: ci\n        if: ${{ false }}\n"
+    )
+
+    assert_error(root, "release step is unreachable: ci")
+
+    root = fixture_root!()
+
+    replace!(
+      root,
+      ".github/workflows/release.yml",
+      "  publish:\n",
+      "  duplicate-gate:\n    name: Gate on Exact-SHA Green CI\n    runs-on: ubuntu-22.04\n    steps: []\n\n  publish:\n",
+      global: false
+    )
+
+    assert_error(root, "duplicate release job gate-ci-green")
+
+    for {old, new, message} <- [
+          {"    needs: [recovery-validation]\n", "    needs: []\n",
+           "release gate needs mismatch"},
+          {"      release_sha: ${{ steps.resolve.outputs.release_sha }}\n",
+           "      release_sha: ${{ steps.resolve.outputs.checkout_ref }}\n",
+           "release gate outputs mismatch"},
+          {"                workflow_id: 'ci.yml',",
+           "                workflow_id: 'nightly.yml',", "release CI run selection mismatch"},
+          {"                head_sha: sha,", "                head_sha: ref,",
+           "release CI run selection mismatch"},
+          {"    if: ${{ github.event_name == 'workflow_dispatch' && needs.recovery-validation.result == 'success' }}\n",
+           "    if: ${{ github.event_name == 'workflow_dispatch' }}\n",
+           "release gate condition mismatch"}
+        ] do
+      root = fixture_root!()
+      replace!(root, ".github/workflows/release.yml", old, new, global: false)
+      assert_error(root, message)
+    end
+  end
+
+  @tag :derived_authority
+  test "release run evaluator accepts only completed success on the exact SHA" do
+    sha = String.duplicate("a", 40)
+    matching = %{"head_sha" => sha, "status" => "completed", "conclusion" => "success"}
+
+    assert Rindle.ValidateLiveTruth.release_run_qualifies?(matching, sha)
+
+    refute Rindle.ValidateLiveTruth.release_run_qualifies?(
+             %{matching | "head_sha" => String.duplicate("b", 40)},
+             sha
+           )
+
+    refute Rindle.ValidateLiveTruth.release_run_qualifies?(
+             %{matching | "status" => "in_progress"},
+             sha
+           )
+
+    refute Rindle.ValidateLiveTruth.release_run_qualifies?(
+             %{matching | "conclusion" => "failure"},
+             sha
+           )
   end
 
   @tag :derived_authority

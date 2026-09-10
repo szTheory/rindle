@@ -735,14 +735,203 @@ defmodule Rindle.ValidateLiveTruth do
 
   defp trigger_names(workflow), do: workflow |> Map.fetch!("on") |> Map.keys() |> Enum.sort()
 
-  defp exact_sha_release_coupling?(root) do
-    release = Path.join(root, ".github/workflows/release.yml") |> File.read!()
-
-    release =~ "workflow_id: 'ci.yml'" and
-      release =~ "head_sha: sha" and
-      release =~ "run.head_sha === sha" and
-      release =~ "latest.conclusion !== 'success'"
+  def release_run_qualifies?(run, release_sha) when is_map(run) and is_binary(release_sha) do
+    field(run, :head_sha) == release_sha and
+      field(run, :status) == "completed" and
+      field(run, :conclusion) == "success"
   end
+
+  def release_run_qualifies?(_run, _release_sha), do: false
+
+  defp exact_sha_release_coupling?(root) do
+    release = workflow!(root, ".github/workflows/release.yml")
+    jobs = Map.fetch!(release, "jobs")
+
+    recovery = exact_named_job!(jobs, "recovery-validation", "Validate Recovery Ref")
+
+    assert!(
+      recovery["if"] == "${{ github.event_name == 'workflow_dispatch' }}",
+      "release recovery condition mismatch"
+    )
+
+    assert!(
+      recovery["outputs"] == %{
+        "checkout_ref" => "${{ steps.validate.outputs.checkout_ref }}",
+        "release_tag" => "${{ steps.validate.outputs.release_tag }}"
+      },
+      "release recovery outputs mismatch"
+    )
+
+    validate_step = exact_active_step!(recovery, "validate")
+
+    assert_script_lines!(
+      validate_step["run"],
+      [
+        "echo \"release_tag=$recovery_ref\" >> \"$GITHUB_OUTPUT\""
+      ],
+      "release recovery step mismatch"
+    )
+
+    gate = exact_named_job!(jobs, "gate-ci-green", "Gate on Exact-SHA Green CI")
+    assert!(gate["needs"] == ["recovery-validation"], "release gate needs mismatch")
+
+    assert!(
+      gate["if"] ==
+        "${{ github.event_name == 'workflow_dispatch' && needs.recovery-validation.result == 'success' }}",
+      "release gate condition mismatch"
+    )
+
+    assert!(
+      Map.take(gate["outputs"] || %{}, ["checkout_ref", "release_sha", "ci_run_url"]) == %{
+        "checkout_ref" => "${{ steps.resolve.outputs.checkout_ref }}",
+        "release_sha" => "${{ steps.resolve.outputs.release_sha }}",
+        "ci_run_url" => "${{ steps.ci.outputs.ci_run_url }}"
+      },
+      "release gate outputs mismatch"
+    )
+
+    resolve_step = exact_active_step!(gate, "resolve")
+
+    assert_script_lines!(
+      resolve_step["with"]["script"],
+      [
+        "const ref = '${{ needs.recovery-validation.outputs.checkout_ref }}';",
+        "core.setOutput('checkout_ref', ref);",
+        "core.setOutput('release_sha', commit.data.sha);"
+      ],
+      "release SHA resolution mismatch"
+    )
+
+    checkout_step =
+      exact_active_step_by_name!(gate, "Checkout release target for version resolution")
+
+    assert!(
+      checkout_step["with"]["ref"] == "${{ steps.resolve.outputs.checkout_ref }}",
+      "release checkout ref mismatch"
+    )
+
+    ci_step = exact_active_step!(gate, "ci")
+
+    assert_script_lines!(
+      ci_step["with"]["script"],
+      [
+        "const sha = '${{ steps.resolve.outputs.release_sha }}';",
+        "workflow_id: 'ci.yml',",
+        "head_sha: sha,",
+        "const runs = data.workflow_runs.filter((run) => run.head_sha === sha);",
+        "if (latest.conclusion !== 'success') {"
+      ],
+      "release CI run selection mismatch"
+    )
+
+    publish = exact_named_job!(jobs, "publish", "Publish to Hex")
+
+    assert!(
+      publish["needs"] == ["recovery-validation", "gate-ci-green"],
+      "release publish needs mismatch"
+    )
+
+    assert!(
+      publish["if"] ==
+        "${{ github.event_name == 'workflow_dispatch' && needs.recovery-validation.result == 'success' && needs.gate-ci-green.result == 'success' }}",
+      "release publish condition mismatch"
+    )
+
+    source_step = exact_active_step!(publish, "release_source")
+
+    assert_script_lines!(
+      source_step["run"],
+      [
+        "git worktree add --detach \"$RELEASE_ROOT\" \"${{ needs.gate-ci-green.outputs.checkout_ref }}\"",
+        "echo \"project_root=$RELEASE_ROOT\" >> \"$GITHUB_OUTPUT\""
+      ],
+      "release source materialization mismatch"
+    )
+
+    release_step =
+      exact_active_step_by_name!(publish, "Ensure GitHub release exists for dispatch publish")
+
+    assert_script_lines!(
+      release_step["run"],
+      [
+        "--target \"${{ needs.gate-ci-green.outputs.release_sha }}\" \\"
+      ],
+      "release target SHA mismatch"
+    )
+
+    sample_sha = String.duplicate("a", 40)
+
+    assert!(
+      release_run_qualifies?(
+        %{"head_sha" => sample_sha, "status" => "completed", "conclusion" => "success"},
+        sample_sha
+      ),
+      "release CI evaluator rejected matching SHA"
+    )
+
+    assert!(
+      not release_run_qualifies?(
+        %{
+          "head_sha" => String.duplicate("b", 40),
+          "status" => "completed",
+          "conclusion" => "success"
+        },
+        sample_sha
+      ),
+      "release CI evaluator accepted mismatched SHA"
+    )
+
+    true
+  end
+
+  defp exact_named_job!(jobs, job_id, expected_name) do
+    job = Map.get(jobs, job_id) || raise ArgumentError, "missing release job #{job_id}"
+
+    matching_names =
+      Enum.filter(jobs, fn {_id, candidate} -> candidate["name"] == expected_name end)
+
+    assert!(length(matching_names) == 1, "duplicate release job #{job_id}")
+    assert!(job["name"] == expected_name, "release job name mismatch: #{job_id}")
+    job
+  end
+
+  defp exact_active_step!(job, step_id) do
+    matching = Enum.filter(job["steps"] || [], &(&1["id"] == step_id))
+    assert!(length(matching) == 1, "release step cardinality mismatch: #{step_id}")
+    [step] = matching
+    assert_active_step!(step, step_id)
+  end
+
+  defp exact_active_step_by_name!(job, name) do
+    matching = Enum.filter(job["steps"] || [], &(&1["name"] == name))
+    assert!(length(matching) == 1, "release step cardinality mismatch: #{name}")
+    [step] = matching
+    assert_active_step!(step, name)
+  end
+
+  defp assert_active_step!(step, label) do
+    condition = step["if"]
+
+    assert!(
+      condition not in [false, "false", "${{ false }}"],
+      "release step is unreachable: #{label}"
+    )
+
+    step
+  end
+
+  defp assert_script_lines!(script, expected_lines, message) when is_binary(script) do
+    lines = script |> String.split("\n") |> Enum.map(&String.trim/1)
+
+    Enum.each(expected_lines, fn expected ->
+      assert!(Enum.count(lines, fn line -> line == expected end) == 1, message)
+    end)
+
+    :ok
+  end
+
+  defp assert_script_lines!(_script, _expected_lines, message),
+    do: raise(ArgumentError, message)
 
   defp sole_required_check?(root) do
     branch_protection = Path.join(root, "scripts/setup_branch_protection.sh") |> File.read!()
