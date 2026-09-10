@@ -2,14 +2,14 @@
 schema_version: 1
 open_count: 0
 waived_count: 2
-fixed_count: 12
-total_count: 14
-last_updated: 2026-08-26T14:47:47.401Z
+fixed_count: 13
+total_count: 15
+last_updated: 2026-09-10T00:29:56.052Z
 ---
 
 # Broken Windows Ledger
 
-> Cross-phase defect register. `/gsd-ship` blocks while `open_count > 0`.
+> Cross-phase defect register. With `workflow.windows_enforce` enabled, `/gsd-ship` blocks while `open_count > 0`.
 > Waive with `gsd-tools windows waive <id> "<reason>"` (reason required).
 > Mark fixed with `gsd-tools windows fixed <id>`.
 
@@ -29,6 +29,7 @@ last_updated: 2026-08-26T14:47:47.401Z
 | 12 | 126 | deviation | .planning/phases/126-curated-type-ratchet/126-04-SUMMARY.md |  | Verification predicate used a punctuation typo; exact emitted E38 text was used for supported receipt validation. | fixed |  | 2026-08-23T13:45:36.941Z | 2026-08-23T18:15:48.503Z |
 | 13 | 126 | deviation | lib/rindle/upload/broker.ex | 193 | Corrected concatenate_tus_sessions/3 return spec to match its existing session-map result. | fixed |  | 2026-08-23T15:10:46.355Z | 2026-08-23T18:15:48.584Z |
 | 14 | 132 | deviation | .planning/REQUIREMENTS.md |  | CI-14 was restored to open because Plan 132-08 owns its live ten-run acceptance. | fixed |  | 2026-08-26T14:47:14.864Z | 2026-08-26T14:47:47.401Z |
+| 15 | 133 | deviation | test/install_smoke/ci_cache_hygiene_test.exs |  | Updated the obsolete cache-miss save assertion to the planned fresh-save-exact-restore topology | fixed |  | 2026-09-10T00:29:46.836Z | 2026-09-10T00:29:56.052Z |
 
 ````json
 [
@@ -199,6 +200,18 @@ last_updated: 2026-08-26T14:47:47.401Z
     "reason": "",
     "recorded_at": "2026-08-26T14:47:14.864Z",
     "resolved_at": "2026-08-26T14:47:47.401Z"
+  },
+  {
+    "id": 15,
+    "kind": "deviation",
+    "phase": "133",
+    "file": "test/install_smoke/ci_cache_hygiene_test.exs",
+    "line": null,
+    "description": "Updated the obsolete cache-miss save assertion to the planned fresh-save-exact-restore topology",
+    "status": "fixed",
+    "reason": "",
+    "recorded_at": "2026-09-10T00:29:46.836Z",
+    "resolved_at": "2026-09-10T00:29:56.052Z"
   }
 ]
 ````
