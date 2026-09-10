@@ -212,6 +212,18 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
   end
 
   @tag :package_authority
+  test "package authority exposes the canonical producer and verifier interfaces" do
+    assert function_exported?(
+             Rindle.InstallSmoke.GeneratedAppHelper,
+             :package_evidence_receipt!,
+             2
+           )
+
+    assert function_exported?(Rindle.ValidateLiveTruth, :normalize_package_receipt!, 2)
+    assert function_exported?(Rindle.ValidateLiveTruth, :verify_package_evidence!, 2)
+  end
+
+  @tag :package_authority
   @tag :minio
   test "fresh unpacked generated image consumer report authorizes package proof" do
     report = Rindle.InstallSmoke.GeneratedAppHelper.prove_package_install!(:image)
