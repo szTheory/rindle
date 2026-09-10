@@ -185,7 +185,8 @@ fi
 run_case "exact first-attempt run writes canonical receipt" success 0
 for state in foreign_repository foreign_workflow missing_ref foreign_sha foreign_run_sha foreign_run_ref \
   foreign_run_workflow rerun missing_job extra_job red_job skipped_job cancelled_job nonterminal red_run \
-  missing_fresh missing_restored unsupported_toolchain bad_local_authority missing_cache stale_rebuild red_verdict \
+  missing_fresh missing_restored unsupported_elixir_11_17 unsupported_elixir_1_170 unsupported_otp_127 \
+  bad_local_authority missing_cache stale_rebuild red_verdict \
   incident_changed timeout api_failure watch_failure; do
   run_case "$state fails closed" "$state" 1
 done
@@ -301,9 +302,14 @@ case "${1-} ${2-}" in
   "run view")
     if printf '%s\n' "$*" | grep -q -- '--log'; then
       if printf '%s\n' "$*" | grep -q -- '--job 6'; then
-        [ "$state" = unsupported_toolchain ] || printf '%s\n' 'Dialyzer\tSet up Elixir\tResolved Elixir version: 1.17.3' 'Dialyzer\tSet up Elixir\tResolved OTP version: 27.3.4.17'
+        resolved_elixir=1.17.3
+        resolved_otp=27.3.4.17
+        [ "$state" != unsupported_elixir_11_17 ] || resolved_elixir=11.17.3
+        [ "$state" != unsupported_elixir_1_170 ] || resolved_elixir=1.170.3
+        [ "$state" != unsupported_otp_127 ] || resolved_otp=127.3.4.17
+        printf '%s\n' "Dialyzer\tSet up Elixir\tResolved Elixir version: ${resolved_elixir}" "Dialyzer\tSet up Elixir\tResolved OTP version: ${resolved_otp}"
         [ "$state" = missing_fresh ] || printf '%s\n' 'Dialyzer\tDialyzer (fresh PLT)\tnightly-dialyzer mode=fresh action=build-plt' 'Dialyzer\tDialyzer (fresh PLT)\tnightly-dialyzer mode=fresh attempt=1 action=analyze'
-        [ "$state" = missing_cache ] || printf '%s\n' 'Dialyzer\tSave PLT cache\tCache saved with key: plt-v3-Linux-X64-otp27.3.4.17-elixir1.17.3-inputhash'
+        [ "$state" = missing_cache ] || printf '%s\n' "Dialyzer\tSave PLT cache\tCache saved with key: plt-v3-Linux-X64-otp${resolved_otp}-elixir${resolved_elixir}-inputhash"
         [ "$state" = missing_restored ] || printf '%s\n' 'Dialyzer\tDialyzer (restored PLT)\tnightly-dialyzer mode=restored attempt=1 action=analyze'
         [ "$state" != stale_rebuild ] || printf '%s\n' 'Dialyzer\tDialyzer (restored PLT)\tnightly-dialyzer mode=restored attempt=1 fingerprint=old-plt recovery=rebuild-once'
       elif printf '%s\n' "$*" | grep -q -- '--job 9'; then
