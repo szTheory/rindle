@@ -4,17 +4,17 @@ milestone: v1.26
 milestone_name: Pre-Adopter Readiness & Quality Consolidation
 current_phase: 133
 current_phase_name: Evidence Charter and Live Truth
-status: executing
-stopped_at: Completed 133-09-PLAN.md
-last_updated: "2026-09-10T16:36:34.293Z"
+status: verifying
+stopped_at: Completed 133-10-PLAN.md
+last_updated: "2026-09-10T16:50:29.229Z"
 last_activity: 2026-09-10
-last_activity_desc: Completed Phase 133 Plan 09 independently verifiable Nightly receipt closure
-state_head: 1a4f05e3039a18b7dd8f7ee6919a822cbbfc5a18
+last_activity_desc: Completed Phase 133 Plan 10 supported-toolchain boundary closure
+state_head: 0091808d4a98cce5494e8ed01170626dabc30c2f
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 10
-  completed_plans: 9
+  completed_plans: 10
 ---
 
 # Project State
@@ -28,12 +28,12 @@ See: .planning/PROJECT.md (updated 2026-09-09 for v1.26)
 
 ## Current Position
 
-Phase: 133 (Evidence Charter and Live Truth) — EXECUTING
+Phase: 133 (Evidence Charter and Live Truth) — VERIFYING
 Plan: 10 of 10
-Status: Ready to execute
-Last activity: 2026-09-10 — Completed Plan 09 independently verifiable Nightly receipt closure
+Status: Phase complete — ready for verification
+Last activity: 2026-09-10 — Completed Plan 10 supported-toolchain boundary closure
 
-Progress: [█████████░] 90%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -59,6 +59,7 @@ Progress: [█████████░] 90%
 | Phase 133 P07 | 62min | 3 tasks | 3 files |
 | Phase 133 P08 | 11min | 1 tasks | 2 files |
 | Phase 133 P09 | 77min | 2 tasks | 2 files |
+| Phase 133 P10 | 9min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -91,6 +92,8 @@ Progress: [█████████░] 90%
 - [Phase 133]: Normalize GitHub's expanded job objects to the exact four persisted job fields before receipt equality.
 - [Phase 133]: Treat incident drift as stale evidence; verify-receipt never reconciles it through mutation.
 - [Phase 133]: Revalidate census and live truth through fixed repository-owned commands from the detached receipt subject.
+- [Phase 133]: Accept only Elixir numeric major/minor 1.17 and OTP numeric major 27, with bounded setup-beam prefixes and suffixes.
+- [Phase 133]: Preserve resolved patch/build strings verbatim and require both exact strings in the PLT cache key.
 
 ### Pending Todos
 
@@ -114,6 +117,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-09-10T16:36:34.279Z
-Stopped at: Completed 133-09-PLAN.md
+Last session: 2026-09-10T16:50:29.125Z
+Stopped at: Completed 133-10-PLAN.md
 Resume file: None
