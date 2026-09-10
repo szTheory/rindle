@@ -250,6 +250,49 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
   end
 
   @tag :package_authority
+  test "caller validation markers cannot impersonate generated package authority" do
+    nonexistent_path =
+      Path.join(
+        System.tmp_dir!(),
+        "rindle-forged-package-proof-#{System.unique_integer([:positive])}"
+      )
+
+    forged_receipt = %{
+      validated: true,
+      install_mode: "package",
+      install_source: nonexistent_path,
+      unpacked_path: nonexistent_path,
+      deps_rindle_present: false
+    }
+
+    model = Rindle.ValidateLiveTruth.derive!(@repo_root, [])
+
+    assert_raise ArgumentError, ~r/package proof is not a generated consumer report/, fn ->
+      Rindle.ValidateLiveTruth.validate_claims!(model, [
+        %{type: :package, receipt: forged_receipt}
+      ])
+    end
+
+    receipt_path = "#{nonexistent_path}-receipt.json"
+    claims_path = "#{nonexistent_path}-claims.json"
+    File.write!(receipt_path, Jason.encode!(forged_receipt))
+    File.write!(claims_path, Jason.encode!([%{type: "package"}]))
+    on_exit(fn -> File.rm(receipt_path) end)
+    on_exit(fn -> File.rm(claims_path) end)
+
+    assert_raise ArgumentError, ~r/package proof is not a generated consumer report/, fn ->
+      Rindle.ValidateLiveTruth.run([
+        "--root",
+        @repo_root,
+        "--package-receipt",
+        receipt_path,
+        "--claims",
+        claims_path
+      ])
+    end
+  end
+
+  @tag :package_authority
   test "repository, prebuilt, unpacked, and install-source provenance mutations fail closed" do
     receipt = package_receipt_fixture!()
     model = Rindle.ValidateLiveTruth.derive!(@repo_root, [])
