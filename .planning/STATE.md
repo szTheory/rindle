@@ -5,16 +5,16 @@ milestone_name: Pre-Adopter Readiness & Quality Consolidation
 current_phase: 133
 current_phase_name: Evidence Charter and Live Truth
 status: executing
-stopped_at: Completed 133-04-PLAN.md
-last_updated: "2026-09-10T01:10:08.154Z"
+stopped_at: Completed 133-05-PLAN.md
+last_updated: "2026-09-10T01:40:29.668Z"
 last_activity: 2026-09-09
 last_activity_desc: Phase 133 execution resumed (wave continue)
-state_head: 4c2fbaa13da51f010d317d8431c54565e78d58ae
+state_head: c6052a189c4fe499f502c77857fbc6a18b3409c9
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 7
-  completed_plans: 4
+  completed_plans: 5
 ---
 
 # Project State
@@ -29,23 +29,23 @@ See: .planning/PROJECT.md (updated 2026-09-09 for v1.26)
 ## Current Position
 
 Phase: 133 (Evidence Charter and Live Truth) — EXECUTING
-Plan: 5 of 7
+Plan: 6 of 7
 Status: Ready to execute
 Last activity: 2026-09-09 — Phase 133 execution resumed (wave continue)
 
-Progress: [██████░░░░] 57%
+Progress: [███████░░░] 71%
 
 ## Performance Metrics
 
 **Milestone velocity:**
 
-- Total plans completed: 4
-- Average duration: 16 min
-- Total execution time: 1.08 hours
+- Total plans completed: 5
+- Average duration: 17 min
+- Total execution time: 1.43 hours
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 133–139 | 4 | 65 min | 16 min |
+| 133–139 | 5 | 86 min | 17 min |
 **Per-Plan Metrics:**
 
 | Plan | Duration | Tasks | Files |
@@ -54,6 +54,7 @@ Progress: [██████░░░░] 57%
 | Phase 133 P02 | 12 min | 2 tasks | 7 files |
 | Phase 133 P03 | 13min | 2 tasks | 6 files |
 | Phase 133 P04 | 13min | 2 tasks | 6 files |
+| Phase 133 P05 | 21min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -73,6 +74,8 @@ Progress: [██████░░░░] 57%
 - [Phase 133]: Treat every exact-label open incident as part of cardinality; duplicates fail closed.
 - [Phase 133]: Use run ID plus attempt as the stable incident evidence marker for idempotent retries.
 - [Phase 133]: Run lifecycle inspection under always() while pure policy limits mutations to scheduled current-main runs.
+- [Phase 133]: Keep workflow topology authoritative through parsed YAML while preserving exact CI, required-check, fork-safety, and release-coupling identities. — D-14 and D-17 require live structure rather than prose to decide lane truth.
+- [Phase 133]: Require a fresh generated consumer's unpacked metadata, exact source, successful lifecycle, and explicit no-fallback facts for package claims. — Checkout-local and prebuilt artifacts cannot prove shipped-package behavior.
 
 ### Pending Todos
 
@@ -96,6 +99,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-09-10T01:10:08.141Z
-Stopped at: Completed 133-04-PLAN.md
+Last session: 2026-09-10T01:40:29.655Z
+Stopped at: Completed 133-05-PLAN.md
 Resume file: None
