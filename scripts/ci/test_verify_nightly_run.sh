@@ -68,6 +68,50 @@ run_case() {
   rm -rf "$temp"
 }
 
+collect_valid_receipt() {
+  local temp="$1" got=0
+  make_fake_gh "${temp}/bin"
+  : >"${temp}/calls"
+  : >"${temp}/count"
+
+  PATH="${temp}/bin:${PATH}" FAKE_GH_LOG="${temp}/calls" FAKE_GH_COUNT_FILE="${temp}/count" \
+    FAKE_GH_STATE=success \
+    NIGHTLY_LOCAL_AUTHORITIES_JSON='{"census":{"status":"pass"},"live_truth":{"status":"pass"}}' \
+    NIGHTLY_NOW=2026-09-09T12:00:00Z \
+    bash "$collector" dispatch-and-record --repo szTheory/rindle --workflow nightly.yml \
+      --ref phase-133-evidence-aaaaaaaaaaaa --expected-sha aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \
+      --receipt "${temp}/receipt.json" --poll-seconds 0 --timeout-seconds 2 >/dev/null 2>&1 || got=$?
+
+  [ "$got" -eq 0 ] && [ -s "${temp}/receipt.json" ]
+}
+
+verify_mutation_case() {
+  local name="$1" filter="$2" temp got=0
+  temp="$(mktemp -d)"
+
+  if ! collect_valid_receipt "$temp"; then
+    record "$name" false "could not collect baseline receipt"
+    rm -rf "$temp"
+    return
+  fi
+
+  jq "$filter" "${temp}/receipt.json" >"${temp}/mutated.json"
+  : >"${temp}/calls"
+  PATH="${temp}/bin:${PATH}" FAKE_GH_LOG="${temp}/calls" FAKE_GH_COUNT_FILE="${temp}/count" \
+    FAKE_GH_STATE=success \
+    bash "$collector" verify-receipt --repo szTheory/rindle --workflow nightly.yml \
+      --ref phase-133-evidence-aaaaaaaaaaaa --expected-sha aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \
+      --receipt "${temp}/mutated.json" >/dev/null 2>&1 || got=$?
+
+  if [ "$got" -ne 0 ] &&
+     ! grep -Eq '^(workflow run|issue (create|comment|close|edit|delete)|run (cancel|rerun|delete))' "${temp}/calls"; then
+    record "$name" true
+  else
+    record "$name" false "mutated receipt exit ${got}; unsafe call recorded"
+  fi
+  rm -rf "$temp"
+}
+
 if [ ! -x "$collector" ]; then
   echo "FAIL — collector does not exist or is not executable: ${collector}" >&2
   exit 1
@@ -80,6 +124,33 @@ for state in foreign_repository foreign_workflow missing_ref foreign_sha foreign
   incident_changed timeout api_failure watch_failure; do
   run_case "$state fails closed" "$state" 1
 done
+
+while IFS=$'\t' read -r name filter; do
+  verify_mutation_case "$name" "$filter"
+done <<'MUTATIONS'
+created_at mutation fails closed	.created_at = "2026-09-09T12:00:02Z"
+run attempt mutation fails closed	.run_attempt = 2
+conclusion mutation fails closed	.conclusion = "failure"
+job id mutation fails closed	.jobs[0].id = 999
+job name mutation fails closed	.jobs[0].name = "Forged"
+job status mutation fails closed	.jobs[0].status = "queued"
+job conclusion mutation fails closed	.jobs[0].conclusion = "failure"
+job order mutation fails closed	.jobs |= reverse
+duplicate job mutation fails closed	.jobs[1] = .jobs[0]
+strict verdict mutation fails closed	.strict_verdict.verdict = "red"
+strict source job mutation fails closed	.strict_verdict.summary_job = "Dialyzer"
+preflight repository mutation fails closed	.preflight.repository = "other/project"
+preflight workflow mutation fails closed	.preflight.workflow = "other.yml"
+preflight ref mutation fails closed	.preflight.remote_ref = "other-ref"
+preflight SHA mutation fails closed	.preflight.subject_sha = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+preflight status mutation fails closed	.preflight.status = "fail"
+missing top-level key fails closed	del(.created_at)
+extra top-level key fails closed	.extra = true
+extra job key fails closed	.jobs[0].extra = true
+extra Dialyzer key fails closed	.dialyzer.extra = true
+extra strict-verdict key fails closed	.strict_verdict.extra = true
+extra preflight key fails closed	.preflight.extra = true
+MUTATIONS
 
 echo "—"
 echo "passed: ${pass}  failed: ${fail}"
