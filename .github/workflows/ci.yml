@@ -1423,6 +1423,8 @@ jobs:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - name: CI Summary gate logic
         run: bash scripts/ci/test_ci_summary_gate.sh
+      - name: Nightly Summary gate logic
+        run: bash scripts/ci/test_nightly_summary_gate.sh
 
   ci-summary:
     name: CI Summary

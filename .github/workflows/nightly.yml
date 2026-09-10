@@ -39,6 +39,11 @@ jobs:
   compat-matrix:
     name: Compat Matrix
     runs-on: ubuntu-22.04
+    outputs:
+      applicable: ${{ steps.nightly-evidence.outputs.applicable }}
+      applicability-rule: ${{ steps.nightly-evidence.outputs.applicability-rule }}
+      execution: ${{ steps.nightly-evidence.outputs.execution }}
+      inapplicability-reason: ${{ steps.nightly-evidence.outputs.inapplicability-reason }}
     strategy:
       fail-fast: false
       matrix:
@@ -125,6 +130,15 @@ jobs:
           test/rindle/av/subprocess_epipe_canary_test.exs
           --include canary
 
+      - name: Publish Nightly evidence
+        id: nightly-evidence
+        if: success()
+        run: |
+          echo "applicable=true" >> "$GITHUB_OUTPUT"
+          echo "applicability-rule=always" >> "$GITHUB_OUTPUT"
+          echo "execution=passed" >> "$GITHUB_OUTPUT"
+          echo "inapplicability-reason=" >> "$GITHUB_OUTPUT"
+
   # D-17: owned, GATING Dialyzer (extracted from ci.yml `quality`'s advisory
   # steps and removed from PR entirely). `mix dialyzer` runs WITHOUT
   # continue-on-error here, so a real type-contract regression or
@@ -139,6 +153,11 @@ jobs:
   dialyzer:
     name: Dialyzer
     runs-on: ubuntu-22.04
+    outputs:
+      applicable: ${{ steps.nightly-evidence.outputs.applicable }}
+      applicability-rule: ${{ steps.nightly-evidence.outputs.applicability-rule }}
+      execution: ${{ steps.nightly-evidence.outputs.execution }}
+      inapplicability-reason: ${{ steps.nightly-evidence.outputs.inapplicability-reason }}
     env:
       MIX_ENV: test
       PGUSER: postgres
@@ -216,16 +235,30 @@ jobs:
       - name: Dialyzer (restored PLT)
         run: bash scripts/ci/run_nightly_dialyzer.sh restored
 
+      - name: Publish Nightly evidence
+        id: nightly-evidence
+        if: success()
+        run: |
+          echo "applicable=true" >> "$GITHUB_OUTPUT"
+          echo "applicability-rule=always" >> "$GITHUB_OUTPUT"
+          echo "execution=passed" >> "$GITHUB_OUTPUT"
+          echo "inapplicability-reason=" >> "$GITHUB_OUTPUT"
+
   # D-14: GCS Soak — moved verbatim from ci.yml into the nightly lane. Real
-  # bucket proof; runs on the upstream repo only (`if: github.repository ==`),
-  # steps skip when secrets are absent (secrets cannot be referenced in a
-  # job-level if). Unlike the old ci.yml home, the `mix test --only gcs` step is
+  # bucket proof. A first step machine-checks upstream-repository identity plus
+  # required-secret presence, and every live step is gated on that result. The
+  # final evidence step distinguishes a passed live run from explicit `not-run`.
+  # Unlike the old ci.yml home, the `mix test --only gcs` step is
   # now GATING (continue-on-error dropped) so a live-GCS regression is real
   # nightly red surfaced via Nightly Summary + nightly-failure-issue.
   gcs-soak:
     name: GCS Soak (real bucket)
     runs-on: ubuntu-22.04
-    if: ${{ github.repository == 'szTheory/rindle' }}
+    outputs:
+      applicable: ${{ steps.nightly-evidence.outputs.applicable }}
+      applicability-rule: ${{ steps.nightly-evidence.outputs.applicability-rule }}
+      execution: ${{ steps.nightly-evidence.outputs.execution }}
+      inapplicability-reason: ${{ steps.nightly-evidence.outputs.inapplicability-reason }}
     env:
       MIX_ENV: test
       GOOGLE_APPLICATION_CREDENTIALS_JSON: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}
@@ -254,13 +287,24 @@ jobs:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
-      - name: Detect live GCS secret availability
+      - name: Determine live GCS applicability
         id: gcs-live-config
+        env:
+          UPSTREAM_REPOSITORY: ${{ github.repository }}
         run: |
-          if [ -n "${GOOGLE_APPLICATION_CREDENTIALS_JSON}" ] && [ -n "${RINDLE_GCS_BUCKET}" ]; then
-            echo "enabled=true" >> "$GITHUB_OUTPUT"
-          else
+          echo "applicability-rule=upstream-repository-and-required-secrets" >> "$GITHUB_OUTPUT"
+          if [ "${UPSTREAM_REPOSITORY}" != "szTheory/rindle" ]; then
             echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "applicable=false" >> "$GITHUB_OUTPUT"
+            echo "reason=not-upstream-repository" >> "$GITHUB_OUTPUT"
+          elif [ -z "${GOOGLE_APPLICATION_CREDENTIALS_JSON}" ] || [ -z "${RINDLE_GCS_BUCKET}" ]; then
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "applicable=false" >> "$GITHUB_OUTPUT"
+            echo "reason=required-secrets-unavailable" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+            echo "applicable=true" >> "$GITHUB_OUTPUT"
+            echo "reason=" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Skip live GCS soak when secrets are unavailable
@@ -289,14 +333,32 @@ jobs:
         if: steps.gcs-live-config.outputs.enabled == 'true'
         run: mix test --only gcs
 
+      - name: Publish Nightly evidence
+        id: nightly-evidence
+        if: success()
+        run: |
+          echo "applicable=${{ steps.gcs-live-config.outputs.applicable }}" >> "$GITHUB_OUTPUT"
+          echo "applicability-rule=${{ steps.gcs-live-config.outputs.applicability-rule }}" >> "$GITHUB_OUTPUT"
+          if [ "${{ steps.gcs-live-config.outputs.enabled }}" = "true" ]; then
+            echo "execution=passed" >> "$GITHUB_OUTPUT"
+          else
+            echo "execution=not-run" >> "$GITHUB_OUTPUT"
+          fi
+          echo "inapplicability-reason=${{ steps.gcs-live-config.outputs.reason }}" >> "$GITHUB_OUTPUT"
+
   # D-14: Package Consumer GCS Live Proof — moved verbatim from ci.yml. The
   # job-level `continue-on-error: true` is DROPPED on the move so a live-GCS
   # install-smoke failure becomes real nightly signal (the 105 D-04 masking trap
-  # is retired here). Secret-gated + repo-restricted: forks never reach it.
+  # is retired here). The job still runs on forks so it can publish explicit
+  # repository/secret inapplicability, but no live-provider step runs there.
   package-consumer-gcs-live:
     name: Package Consumer GCS Live Proof
     runs-on: ubuntu-22.04
-    if: ${{ github.repository == 'szTheory/rindle' }}
+    outputs:
+      applicable: ${{ steps.nightly-evidence.outputs.applicable }}
+      applicability-rule: ${{ steps.nightly-evidence.outputs.applicability-rule }}
+      execution: ${{ steps.nightly-evidence.outputs.execution }}
+      inapplicability-reason: ${{ steps.nightly-evidence.outputs.inapplicability-reason }}
     env:
       MIX_ENV: test
       GOOGLE_APPLICATION_CREDENTIALS_JSON: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}
@@ -327,13 +389,24 @@ jobs:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
-      - name: Detect live GCS secret availability
+      - name: Determine live GCS applicability
         id: gcs-live-config
+        env:
+          UPSTREAM_REPOSITORY: ${{ github.repository }}
         run: |
-          if [ -n "${GOOGLE_APPLICATION_CREDENTIALS_JSON}" ] && [ -n "${RINDLE_GCS_BUCKET}" ]; then
-            echo "enabled=true" >> "$GITHUB_OUTPUT"
-          else
+          echo "applicability-rule=upstream-repository-and-required-secrets" >> "$GITHUB_OUTPUT"
+          if [ "${UPSTREAM_REPOSITORY}" != "szTheory/rindle" ]; then
             echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "applicable=false" >> "$GITHUB_OUTPUT"
+            echo "reason=not-upstream-repository" >> "$GITHUB_OUTPUT"
+          elif [ -z "${GOOGLE_APPLICATION_CREDENTIALS_JSON}" ] || [ -z "${RINDLE_GCS_BUCKET}" ]; then
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "applicable=false" >> "$GITHUB_OUTPUT"
+            echo "reason=required-secrets-unavailable" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+            echo "applicable=true" >> "$GITHUB_OUTPUT"
+            echo "reason=" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Skip live package-consumer GCS proof when secrets are unavailable
@@ -393,10 +466,22 @@ jobs:
             fi
           done < "${RINDLE_INSTALL_SMOKE_GCS_CLEANUP_FILE}"
 
-  # D-16: Nightly Summary — mirrors the ci.yml CI Summary / ci-observability
-  # bash-loop-over-needs.*.result + $GITHUB_STEP_SUMMARY table idiom for
-  # at-a-glance nightly status. Advisory only (never a required check).
-  # `if: always()` so it reports even when an upstream lane failed.
+      - name: Publish Nightly evidence
+        id: nightly-evidence
+        if: success()
+        run: |
+          echo "applicable=${{ steps.gcs-live-config.outputs.applicable }}" >> "$GITHUB_OUTPUT"
+          echo "applicability-rule=${{ steps.gcs-live-config.outputs.applicability-rule }}" >> "$GITHUB_OUTPUT"
+          if [ "${{ steps.gcs-live-config.outputs.enabled }}" = "true" ]; then
+            echo "execution=passed" >> "$GITHUB_OUTPUT"
+          else
+            echo "execution=not-run" >> "$GITHUB_OUTPUT"
+          fi
+          echo "inapplicability-reason=${{ steps.gcs-live-config.outputs.reason }}" >> "$GITHUB_OUTPUT"
+
+  # D-09..D-11: Nightly has its own strict, fail-closed result/applicability
+  # policy. Its machine verdict is exported for incident eligibility and also
+  # controls this job's conclusion; Markdown is only a rendering of that verdict.
   nightly-summary:
     name: Nightly Summary
     runs-on: ubuntu-22.04
@@ -406,24 +491,33 @@ jobs:
       - gcs-soak
       - package-consumer-gcs-live
     if: always()
+    outputs:
+      verdict: ${{ steps.evaluate.outputs.verdict }}
+      verdict-json: ${{ steps.evaluate.outputs.verdict-json }}
     steps:
-      - name: Summarize nightly job results
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Evaluate strict Nightly verdict
+        id: evaluate
         env:
-          COMPAT_MATRIX: ${{ needs.compat-matrix.result }}
-          DIALYZER: ${{ needs.dialyzer.result }}
-          GCS_SOAK: ${{ needs.gcs-soak.result }}
-          GCS_LIVE: ${{ needs.package-consumer-gcs-live.result }}
+          NEEDS_JSON: ${{ toJSON(needs) }}
+          NIGHTLY_POLICY_JSON: >-
+            {"compat-matrix":{"applicable":${{ needs.compat-matrix.outputs.applicable }},"applicability_rule":"${{ needs.compat-matrix.outputs.applicability-rule }}","execution":"${{ needs.compat-matrix.outputs.execution }}","reason":"${{ needs.compat-matrix.outputs.inapplicability-reason }}"},"dialyzer":{"applicable":${{ needs.dialyzer.outputs.applicable }},"applicability_rule":"${{ needs.dialyzer.outputs.applicability-rule }}","execution":"${{ needs.dialyzer.outputs.execution }}","reason":"${{ needs.dialyzer.outputs.inapplicability-reason }}"},"gcs-soak":{"applicable":${{ needs.gcs-soak.outputs.applicable }},"applicability_rule":"${{ needs.gcs-soak.outputs.applicability-rule }}","execution":"${{ needs.gcs-soak.outputs.execution }}","reason":"${{ needs.gcs-soak.outputs.inapplicability-reason }}"},"package-consumer-gcs-live":{"applicable":${{ needs.package-consumer-gcs-live.outputs.applicable }},"applicability_rule":"${{ needs.package-consumer-gcs-live.outputs.applicability-rule }}","execution":"${{ needs.package-consumer-gcs-live.outputs.execution }}","reason":"${{ needs.package-consumer-gcs-live.outputs.inapplicability-reason }}"}}
         run: |
-          {
-            echo "## Nightly Summary"
-            echo ""
-            echo "| Job | Result |"
-            echo "| --- | --- |"
-            echo "| Compat Matrix | ${COMPAT_MATRIX} |"
-            echo "| Dialyzer | ${DIALYZER} |"
-            echo "| GCS Soak | ${GCS_SOAK} |"
-            echo "| Package Consumer GCS Live | ${GCS_LIVE} |"
-          } >> "$GITHUB_STEP_SUMMARY"
+          verdict_path="${RUNNER_TEMP}/nightly-verdict.json"
+          status=0
+          NIGHTLY_VERDICT_JSON="${verdict_path}" bash scripts/ci/eval_nightly_summary.sh >/dev/null || status=$?
+          verdict_json="$(jq -cS . "${verdict_path}")"
+          verdict="$(jq -r .verdict "${verdict_path}")"
+          echo "verdict=${verdict}" >> "$GITHUB_OUTPUT"
+          echo "verdict-json=${verdict_json}" >> "$GITHUB_OUTPUT"
+          echo "evaluator-status=${status}" >> "$GITHUB_OUTPUT"
+
+      - name: Enforce strict Nightly verdict
+        run: |
+          test "${{ steps.evaluate.outputs.evaluator-status }}" = "0"
+          test "${{ steps.evaluate.outputs.verdict }}" = "green"
 
   # D-16: issue-on-failure — opens or updates a single tracking issue when a
   # SCHEDULED nightly run fails (default GitHub scheduled-failure emails only

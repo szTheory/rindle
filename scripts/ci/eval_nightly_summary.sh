@@ -55,7 +55,7 @@ evaluation="$({
           elif ($declared | index($name) | not) then ["unexpected observed job"]
           else
             ([
-              if ($need | type) != "object" or ($need | keys) != ["result"] then "invalid observed job shape" else empty end,
+              if ($need | type) != "object" or (($need | keys) - ["outputs", "result"] | length) != 0 or ($need | has("result") | not) then "invalid observed job shape" else empty end,
               if ($result | allowed_result) then empty else "unknown or missing result" end,
               if ($claim | type) != "object" or ($claim | keys | sort) != ["applicability_rule", "applicable", "execution", "reason"] then "invalid policy job shape" else empty end,
               if ($rule | allowed_rule) then empty else "unknown or missing applicability rule" end,

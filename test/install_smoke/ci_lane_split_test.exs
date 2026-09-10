@@ -358,8 +358,11 @@ defmodule Rindle.InstallSmoke.CiLaneSplitTest do
        %{nightly: nightly} do
     dialyzer = nightly_dialyzer_block(nightly)
 
-    assert dialyzer =~ "mix dialyzer",
-           "the nightly Dialyzer job must actually run `mix dialyzer` (LANE-03, D-17)"
+    assert dialyzer =~ "bash scripts/ci/run_nightly_dialyzer.sh fresh",
+           "the nightly Dialyzer job must run the owned fresh-PLT analyzer (LANE-03, D-17)"
+
+    assert dialyzer =~ "bash scripts/ci/run_nightly_dialyzer.sh restored",
+           "the nightly Dialyzer job must run the owned restored-PLT analyzer (LANE-03, D-17)"
 
     # Scope to actual YAML keys, not the `# ... NO continue-on-error` doc comment
     # that legitimately appears inside the block (the verifier flagged these 5

@@ -60,6 +60,9 @@ expect_exit "repository-gated skip is explicit not-run" 0 \
 expect_exit "inapplicable successful no-op remains visibly not-run" 0 \
   "$(mutate_needs '."package-consumer-gcs-live".result = "success"')" \
   "$(mutate_policy '."package-consumer-gcs-live" = {applicable:false, applicability_rule:"upstream-repository-and-required-secrets", execution:"not-run", reason:"required-secrets-unavailable"}')"
+expect_exit "GitHub needs outputs coexist with the result envelope" 0 \
+  "$(mutate_needs 'with_entries(.value.outputs = {applicable:"true", execution:"passed"})')" \
+  "${base_policy}"
 
 for result in failure cancelled skipped unknown timed_out action_required neutral stale; do
   expect_exit "applicable ${result} is red" 1 \
