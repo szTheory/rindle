@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 0
+open_count: 1
 waived_count: 2
-fixed_count: 13
-total_count: 15
-last_updated: 2026-09-10T00:29:56.052Z
+fixed_count: 15
+total_count: 18
+last_updated: 2026-09-10T02:13:16.387Z
 ---
 
 # Broken Windows Ledger
@@ -30,6 +30,9 @@ last_updated: 2026-09-10T00:29:56.052Z
 | 13 | 126 | deviation | lib/rindle/upload/broker.ex | 193 | Corrected concatenate_tus_sessions/3 return spec to match its existing session-map result. | fixed |  | 2026-08-23T15:10:46.355Z | 2026-08-23T18:15:48.584Z |
 | 14 | 132 | deviation | .planning/REQUIREMENTS.md |  | CI-14 was restored to open because Plan 132-08 owns its live ten-run acceptance. | fixed |  | 2026-08-26T14:47:14.864Z | 2026-08-26T14:47:47.401Z |
 | 15 | 133 | deviation | test/install_smoke/ci_cache_hygiene_test.exs |  | Updated the obsolete cache-miss save assertion to the planned fresh-save-exact-restore topology | fixed |  | 2026-09-10T00:29:46.836Z | 2026-09-10T00:29:56.052Z |
+| 16 | 133 | stub | examples/adoption_demo/docs/adoption-proof-matrix.md | 43 | GCS resumable browser path remains an explicitly optional demo placeholder; live generated-app proof is separate. | open |  | 2026-09-10T02:11:37.821Z |  |
+| 17 | 133 | deviation | test/install_smoke/evidence_census_test.exs |  | Classified per-test unique census fixture writes for the async-safety guard. | fixed |  | 2026-09-10T02:12:36.558Z | 2026-09-10T02:13:07.278Z |
+| 18 | 133 | deviation | scripts/maintainer/evidence_census.exs |  | Corrected the census performance detector to the actual archived Phase 132 receipt. | fixed |  | 2026-09-10T02:13:07.391Z | 2026-09-10T02:13:16.387Z |
 
 ````json
 [
@@ -212,6 +215,42 @@ last_updated: 2026-09-10T00:29:56.052Z
     "reason": "",
     "recorded_at": "2026-09-10T00:29:46.836Z",
     "resolved_at": "2026-09-10T00:29:56.052Z"
+  },
+  {
+    "id": 16,
+    "kind": "stub",
+    "phase": "133",
+    "file": "examples/adoption_demo/docs/adoption-proof-matrix.md",
+    "line": 43,
+    "description": "GCS resumable browser path remains an explicitly optional demo placeholder; live generated-app proof is separate.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-10T02:11:37.821Z",
+    "resolved_at": null
+  },
+  {
+    "id": 17,
+    "kind": "deviation",
+    "phase": "133",
+    "file": "test/install_smoke/evidence_census_test.exs",
+    "line": null,
+    "description": "Classified per-test unique census fixture writes for the async-safety guard.",
+    "status": "fixed",
+    "reason": "",
+    "recorded_at": "2026-09-10T02:12:36.558Z",
+    "resolved_at": "2026-09-10T02:13:07.278Z"
+  },
+  {
+    "id": 18,
+    "kind": "deviation",
+    "phase": "133",
+    "file": "scripts/maintainer/evidence_census.exs",
+    "line": null,
+    "description": "Corrected the census performance detector to the actual archived Phase 132 receipt.",
+    "status": "fixed",
+    "reason": "",
+    "recorded_at": "2026-09-10T02:13:07.391Z",
+    "resolved_at": "2026-09-10T02:13:16.387Z"
   }
 ]
 ````
