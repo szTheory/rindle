@@ -88,12 +88,17 @@ validate_run_json() {
   expected_jobs="$(expected_job_names_json)"
   jq -e --arg repo "$repo" --arg workflow "$workflow" --arg ref "$remote_ref" \
     --arg sha "$expected_sha" --argjson expected_jobs "$expected_jobs" '
+      (keys == ["attempt","conclusion","createdAt","databaseId","event","headBranch","headSha","jobs","status","url","workflowName"]) and
       .workflowName == "Nightly" and .event == "workflow_dispatch" and
       .headBranch == $ref and .headSha == $sha and .attempt == 1 and
       .status == "completed" and .conclusion == "success" and
       (.databaseId | type == "number") and
+      (.createdAt | type == "string" and fromdateiso8601 >= 0) and
+      (.url | type == "string" and length > 0) and
       (.jobs | type == "array") and
+      (all(.jobs[]; keys == ["conclusion","databaseId","name","status"])) and
       ([.jobs[].name] | sort) == $expected_jobs and
+      ([.jobs[].databaseId] | unique | length) == ($expected_jobs | length) and
       (all(.jobs[]; .status == "completed" and .conclusion == "success" and
         (.databaseId | type == "number")))
     ' <<<"$run_json" >/dev/null || die "run identity, terminal state, or exact job set is not qualifying"
@@ -147,22 +152,84 @@ validate_local_authorities() {
 }
 
 verify_receipt_shape() {
-  local path="$1"
+  local path="$1" expected_jobs
+  expected_jobs="$(expected_job_names_json)"
   [ -s "$path" ] || die "receipt is missing or empty: $path"
-  jq -e --arg repo "$repo" --arg workflow "$workflow" --arg ref "$remote_ref" --arg sha "$expected_sha" '
+  jq -e --arg repo "$repo" --arg workflow "$workflow" --arg ref "$remote_ref" --arg sha "$expected_sha" \
+    --argjson expected_jobs "$expected_jobs" '
+    def exact_keys($expected): (type == "object") and ((keys) == ($expected | sort));
+    def valid_reactions:
+      type == "array" and all(.[];
+        exact_keys(["content","users"]) and
+        (.content | type == "string") and
+        (.users | exact_keys(["totalCount"])) and (.users.totalCount | type == "number"));
+    def valid_comments:
+      type == "array" and all(.[];
+        exact_keys(["author","authorAssociation","body","createdAt","id","includesCreatedEdit","isMinimized","minimizedReason","reactionGroups","url","viewerDidAuthor"]) and
+        (.author | exact_keys(["login"])) and (.author.login | type == "string") and
+        (.authorAssociation | type == "string") and (.body | type == "string") and
+        (.createdAt | type == "string" and fromdateiso8601 >= 0) and (.id | type == "string") and
+        (.includesCreatedEdit | type == "boolean") and (.isMinimized | type == "boolean") and
+        (.minimizedReason | type == "string") and (.reactionGroups | valid_reactions) and
+        (.url | type == "string") and (.viewerDidAuthor | type == "boolean"));
+    def valid_incidents:
+      type == "array" and
+      ([.[].number] | unique | length) == length and
+      all(.[];
+        exact_keys(["body","comments","number","title","updatedAt","url"]) and
+        (.number | type == "number") and (.title | type == "string") and (.body | type == "string") and
+        (.comments | valid_comments) and (.updatedAt | type == "string" and fromdateiso8601 >= 0) and
+        (.url | type == "string"));
+
+    exact_keys(["conclusion","created_at","dialyzer","event","incident_snapshot_after","incident_snapshot_before","jobs","local_authorities","preflight","remote_ref","repository","run_attempt","run_id","schema_version","strict_verdict","subject_sha","workflow"]) and
     .schema_version == 1 and .repository == $repo and .workflow == $workflow and
     .event == "workflow_dispatch" and .subject_sha == $sha and .remote_ref == $ref and
     (.run_id | type == "number") and .run_attempt == 1 and .conclusion == "success" and
     (.created_at | type == "string" and fromdateiso8601 >= 0) and
-    (.jobs | type == "array" and length == 10 and all(.[]; .status == "completed" and .conclusion == "success")) and
+    (.jobs | type == "array" and length == 10 and
+      [.[].name] == $expected_jobs and ([.[].id] | unique | length) == 10 and
+      all(.[]; exact_keys(["conclusion","id","name","status"]) and (.id | type == "number") and
+        (.name | type == "string") and .status == "completed" and .conclusion == "success")) and
+    (.dialyzer | exact_keys(["cache_key","fresh","requested_elixir","requested_otp","resolved_elixir","resolved_otp","restored","stale_rebuilds"])) and
     .dialyzer.requested_elixir == "1.17" and .dialyzer.requested_otp == "27" and
     (.dialyzer.resolved_elixir | contains("1.17")) and (.dialyzer.resolved_otp | contains("27")) and
-    .dialyzer.fresh.status == "pass" and .dialyzer.restored.status == "pass" and
+    (.dialyzer.fresh | exact_keys(["analyses","builds","status"])) and
+    .dialyzer.fresh == {analyses:1,builds:1,status:"pass"} and
+    (.dialyzer.restored | exact_keys(["analyses","status"])) and
+    .dialyzer.restored == {analyses:1,status:"pass"} and
     (.dialyzer.cache_key | startswith("plt-v3-")) and .dialyzer.stale_rebuilds == 0 and
-    .strict_verdict.verdict == "green" and
+    (.strict_verdict | exact_keys(["summary_job","verdict"])) and
+    .strict_verdict == {summary_job:"Nightly Summary",verdict:"green"} and
+    (.incident_snapshot_before | valid_incidents) and (.incident_snapshot_after | valid_incidents) and
     .incident_snapshot_before == .incident_snapshot_after and
-    .local_authorities.census.status == "pass" and .local_authorities.live_truth.status == "pass"
+    (.local_authorities | exact_keys(["census","live_truth"])) and
+    (.local_authorities.census | exact_keys(["status"])) and
+    (.local_authorities.live_truth | exact_keys(["status"])) and
+    .local_authorities.census.status == "pass" and .local_authorities.live_truth.status == "pass" and
+    (.preflight | exact_keys(["remote_ref","repository","status","subject_sha","workflow"]))
   ' "$path" >/dev/null || die "receipt schema or evidence is invalid"
+}
+
+expected_remote_from_live() {
+  local preflight="$1" run_json="$2" dialyzer="$3"
+  jq -cnS --arg repository "$repo" --arg workflow "$workflow" --arg event workflow_dispatch \
+    --arg subject_sha "$expected_sha" --arg remote_ref "$remote_ref" \
+    --argjson run "$run_json" --argjson dialyzer "$dialyzer" --argjson preflight "$preflight" '
+      {repository:$repository,workflow:$workflow,event:$event,subject_sha:$subject_sha,
+       remote_ref:$remote_ref,run_id:$run.databaseId,run_attempt:$run.attempt,
+       conclusion:$run.conclusion,created_at:$run.createdAt,
+       jobs:($run.jobs | sort_by(.name) | map({id:.databaseId,name,status,conclusion})),
+       dialyzer:$dialyzer,strict_verdict:{verdict:"green",summary_job:"Nightly Summary"},
+       preflight:$preflight}
+    '
+}
+
+compare_exact_remote_receipt() {
+  local path="$1" expected="$2"
+  jq -e --argjson expected "$expected" '
+    {repository,workflow,event,subject_sha,remote_ref,run_id,run_attempt,conclusion,created_at,
+     jobs,dialyzer,strict_verdict,preflight} == $expected
+  ' "$path" >/dev/null || die "receipt remote evidence differs from live reconstruction"
 }
 
 if [ "$mode" = preflight ]; then
@@ -171,7 +238,7 @@ if [ "$mode" = preflight ]; then
 fi
 
 if [ "$mode" = verify-receipt ]; then
-  preflight_json >/dev/null
+  live_preflight="$(preflight_json)"
   verify_receipt_shape "$receipt"
   run_id="$(jq -er '.run_id' "$receipt")"
   live_run="$(gh run view "$run_id" --repo "$repo" --json attempt,conclusion,createdAt,databaseId,event,headBranch,headSha,jobs,status,url,workflowName)" || die "run verification lookup failed"
@@ -180,7 +247,8 @@ if [ "$mode" = verify-receipt ]; then
   live_dialyzer_logs="$(job_logs "$run_id" "$live_run" "Dialyzer")"
   live_summary_logs="$(job_logs "$run_id" "$live_run" "Nightly Summary")"
   live_dialyzer="$(parse_log_evidence "${live_dialyzer_logs}"$'\n'"${live_summary_logs}")"
-  jq -e --argjson live "$live_dialyzer" '.dialyzer == $live' "$receipt" >/dev/null || die "receipt Dialyzer evidence differs from GitHub"
+  expected_remote="$(expected_remote_from_live "$live_preflight" "$live_run" "$live_dialyzer")"
+  compare_exact_remote_receipt "$receipt" "$expected_remote"
   echo "Nightly receipt valid for ${expected_sha} (run ${run_id}, attempt 1)"
   exit 0
 fi

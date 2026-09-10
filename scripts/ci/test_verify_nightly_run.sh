@@ -129,6 +129,13 @@ while IFS=$'\t' read -r name filter; do
   verify_mutation_case "$name" "$filter"
 done <<'MUTATIONS'
 created_at mutation fails closed	.created_at = "2026-09-09T12:00:02Z"
+schema version mutation fails closed	.schema_version = 2
+repository mutation fails closed	.repository = "other/project"
+workflow mutation fails closed	.workflow = "other.yml"
+event mutation fails closed	.event = "schedule"
+subject SHA mutation fails closed	.subject_sha = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+remote ref mutation fails closed	.remote_ref = "other-ref"
+run id mutation fails closed	.run_id = 999
 run attempt mutation fails closed	.run_attempt = 2
 conclusion mutation fails closed	.conclusion = "failure"
 job id mutation fails closed	.jobs[0].id = 999
@@ -139,6 +146,17 @@ job order mutation fails closed	.jobs |= reverse
 duplicate job mutation fails closed	.jobs[1] = .jobs[0]
 strict verdict mutation fails closed	.strict_verdict.verdict = "red"
 strict source job mutation fails closed	.strict_verdict.summary_job = "Dialyzer"
+requested Elixir mutation fails closed	.dialyzer.requested_elixir = "1.18"
+requested OTP mutation fails closed	.dialyzer.requested_otp = "28"
+resolved Elixir mutation fails closed	.dialyzer.resolved_elixir = "v1.17.4-otp-27"
+resolved OTP mutation fails closed	.dialyzer.resolved_otp = "OTP-27.3.4.18"
+cache key mutation fails closed	.dialyzer.cache_key += "-forged"
+fresh status mutation fails closed	.dialyzer.fresh.status = "fail"
+fresh builds mutation fails closed	.dialyzer.fresh.builds = 2
+fresh analyses mutation fails closed	.dialyzer.fresh.analyses = 2
+restored status mutation fails closed	.dialyzer.restored.status = "fail"
+restored analyses mutation fails closed	.dialyzer.restored.analyses = 2
+stale rebuild mutation fails closed	.dialyzer.stale_rebuilds = 1
 preflight repository mutation fails closed	.preflight.repository = "other/project"
 preflight workflow mutation fails closed	.preflight.workflow = "other.yml"
 preflight ref mutation fails closed	.preflight.remote_ref = "other-ref"
@@ -148,6 +166,8 @@ missing top-level key fails closed	del(.created_at)
 extra top-level key fails closed	.extra = true
 extra job key fails closed	.jobs[0].extra = true
 extra Dialyzer key fails closed	.dialyzer.extra = true
+extra fresh key fails closed	.dialyzer.fresh.extra = true
+extra restored key fails closed	.dialyzer.restored.extra = true
 extra strict-verdict key fails closed	.strict_verdict.extra = true
 extra preflight key fails closed	.preflight.extra = true
 MUTATIONS
