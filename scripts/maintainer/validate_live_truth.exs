@@ -22,6 +22,13 @@ defmodule Rindle.ValidateLiveTruth do
   @nightly_needs ["compat-matrix", "dialyzer", "gcs-soak", "package-consumer-gcs-live"]
   @historical_start "<!-- rindle:historical-receipt:start -->"
   @historical_end "<!-- rindle:historical-receipt:end -->"
+  @package_receipt_schema "rindle-package-consumer-v1"
+  @package_receipt_fields ~w(
+    schema_version evidence_type subject_sha package_name package_version package_sha256
+    unpacked_tree_sha256 generated_app_tree_sha256 dependency_lock_sha256 dependency_source
+    commands results
+  )
+  @generated_tree_exclusions [".git", "_build", "deps", "tmp"]
 
   def run(argv) do
     {options, claim_paths} = parse_options!(argv)
@@ -65,6 +72,7 @@ defmodule Rindle.ValidateLiveTruth do
       ci: ci,
       nightly: nightly,
       package_proof: nil,
+      authority_root: root,
       historical_boundaries: %{
         archived_prefix: ".planning/milestones/",
         markers: historical_markers(options)
@@ -263,28 +271,15 @@ defmodule Rindle.ValidateLiveTruth do
   defp validate_package_claim!(model, claim) do
     receipt = field(claim, :receipt) || model.package_proof
     assert!(not is_nil(receipt), "package claim requires a package receipt")
-    proof = normalize_package_receipt!(receipt)
+    evidence_context = field(claim, :evidence_context) || %{}
 
-    case proof.install_mode do
-      "package" ->
-        assert!(
-          proof.install_source == proof.unpacked_path,
-          "install source does not match unpacked package"
-        )
-
-        assert!(proof.deps_rindle_present == false, "generated deps/rindle fallback is forbidden")
-
-      "network" ->
-        assert!(
-          proof.install_source == "hex:#{model.version}",
-          "install source does not match current Hex release"
-        )
-
-        assert!(
-          String.ends_with?(proof.unpacked_path, "/deps/rindle"),
-          "network package proof did not inspect fetched deps/rindle"
-        )
-    end
+    _proof =
+      normalize_package_receipt!(receipt, %{
+        repository_root: model.authority_root,
+        package_root: field(evidence_context, :package_root),
+        generated_app_root: field(evidence_context, :generated_app_root),
+        results_path: field(evidence_context, :results_path)
+      })
 
     validate_adoption_scope!(claim)
   end
@@ -341,98 +336,118 @@ defmodule Rindle.ValidateLiveTruth do
     %{model | package_proof: receipt}
   end
 
-  defp normalize_package_receipt!(receipt) when is_map(receipt) do
+  def normalize_package_receipt!(receipt, context),
+    do: verify_package_evidence!(receipt, context)
+
+  def verify_package_evidence!(receipt, context) when is_map(receipt) and is_map(context) do
+    receipt = stringify_keys!(receipt, "package receipt")
+    context = stringify_keys!(context, "package evidence context")
+
     assert!(
-      field(receipt, :proof_origin) == "generated-app-helper",
-      "package proof is not a generated consumer report"
+      Map.keys(receipt) |> Enum.sort() == Enum.sort(@package_receipt_fields),
+      "package receipt fields mismatch"
     )
 
-    provenance = field(receipt, :package_root_provenance)
-    install_mode = normalize_install_mode(field(receipt, :install_mode))
-    install_source = field(receipt, :install_source)
-    unpacked_path = field(provenance || %{}, :path)
-    unpacked = field(provenance || %{}, :unpacked?)
-    provenance_repository_fallback = field(provenance || %{}, :repository_path_fallback?)
-
-    complete? =
-      is_map(provenance) and install_mode in ["package", "network"] and
-        is_binary(install_source) and install_source != "" and is_binary(unpacked_path) and
-        unpacked_path != "" and is_binary(field(receipt, :generated_app_root)) and
-        is_boolean(unpacked) and is_boolean(provenance_repository_fallback) and
-        is_boolean(field(receipt, :repository_path_fallback)) and
-        is_boolean(field(receipt, :prebuilt_local_fallback)) and
-        is_boolean(field(receipt, :deps_rindle_present)) and
-        is_integer(field(receipt, :compile_exit_code)) and
-        is_integer(field(receipt, :boot_exit_code)) and
-        is_integer(field(receipt, :smoke_exit_code)) and
-        is_boolean(field(receipt, :lifecycle_proved))
-
-    assert!(complete?, "generated consumer proof is incomplete")
+    assert!(
+      receipt["schema_version"] == @package_receipt_schema,
+      "package receipt schema mismatch"
+    )
 
     assert!(
-      field(receipt, :repository_path_fallback) == false,
+      receipt["evidence_type"] == "maintainer-operated-package-consumer",
+      "package evidence type mismatch"
+    )
+
+    repository_root = required_directory!(context["repository_root"], "repository root")
+    package_root = required_directory!(context["package_root"], "unpacked package root")
+    generated_app_root = required_directory!(context["generated_app_root"], "generated app root")
+    results_path = required_file!(context["results_path"], "command result receipt")
+
+    assert!(git_head!(repository_root) == receipt["subject_sha"], "package subject SHA mismatch")
+    assert!(receipt["package_name"] == "rindle", "package name mismatch")
+
+    package_mix = required_file!(Path.join(package_root, "mix.exs"), "unpacked package mix.exs")
+
+    package_metadata =
+      required_file!(Path.join(package_root, "hex_metadata.config"), "unpacked package metadata")
+
+    assert!(
+      not File.exists?(Path.join(package_root, ".git")),
       "repository source fallback is forbidden"
     )
 
-    assert!(provenance_repository_fallback == false, "repository source fallback is forbidden")
-
     assert!(
-      field(receipt, :prebuilt_local_fallback) == false,
-      "prebuilt local fallback is forbidden"
+      not File.exists?(Path.join(package_root, ".planning")),
+      "repository source fallback is forbidden"
     )
 
-    assert!(unpacked == true, "unpacked package evidence is required")
-    assert!(File.dir?(unpacked_path), "unpacked package path does not exist")
-
     assert!(
-      File.dir?(field(receipt, :generated_app_root)),
-      "generated consumer root does not exist"
+      package_version!(package_mix) == receipt["package_version"],
+      "package version mismatch"
     )
 
-    assert!(field(receipt, :compile_exit_code) == 0, "generated consumer compile failed")
-    assert!(field(receipt, :boot_exit_code) == 0, "generated consumer boot failed")
-    assert!(field(receipt, :smoke_exit_code) == 0, "generated consumer smoke failed")
-
     assert!(
-      field(receipt, :lifecycle_proved) == true,
-      "generated consumer lifecycle proof failed"
+      file_sha256!(package_metadata) == receipt["package_sha256"],
+      "package digest mismatch"
     )
 
-    if install_mode == "package" do
-      assert!(
-        File.regular?(Path.join(unpacked_path, "hex_metadata.config")),
-        "unpacked package metadata is missing"
-      )
+    unpacked_tree_sha256 = tree_sha256!(package_root, [])
 
-      assert!(
-        File.regular?(Path.join(unpacked_path, "mix.exs")),
-        "unpacked package mix.exs is missing"
-      )
+    assert!(
+      unpacked_tree_sha256 == receipt["unpacked_tree_sha256"],
+      "unpacked tree digest mismatch"
+    )
 
-      assert!(
-        not File.exists?(Path.join(unpacked_path, ".git")),
-        "repository source fallback is forbidden"
-      )
+    generated_tree_sha256 = tree_sha256!(generated_app_root, @generated_tree_exclusions)
 
-      assert!(
-        not File.exists?(Path.join(unpacked_path, ".planning")),
-        "repository source fallback is forbidden"
-      )
-    end
+    assert!(
+      generated_tree_sha256 == receipt["generated_app_tree_sha256"],
+      "generated app tree digest mismatch"
+    )
+
+    generated_mix = required_file!(Path.join(generated_app_root, "mix.exs"), "generated mix.exs")
+    dependency_lock = required_file!(Path.join(generated_app_root, "mix.lock"), "dependency lock")
+
+    assert!(
+      file_sha256!(dependency_lock) == receipt["dependency_lock_sha256"],
+      "dependency lock digest mismatch"
+    )
+
+    expected_source = %{
+      "type" => "path",
+      "package_name" => "rindle",
+      "unpacked_tree_sha256" => unpacked_tree_sha256
+    }
+
+    assert!(receipt["dependency_source"] == expected_source, "dependency source mismatch")
+    assert!(generated_mix_uses_path?(generated_mix, package_root), "dependency source mismatch")
+
+    assert!(
+      not File.exists?(Path.join(generated_app_root, "deps/rindle")),
+      "generated deps/rindle fallback is forbidden"
+    )
+
+    expected_commands = package_commands!(generated_app_root)
+    assert!(receipt["commands"] == expected_commands, "package command argv mismatch")
+
+    persisted_results = results_path |> File.read!() |> Jason.decode!()
+    assert!(receipt["results"] == persisted_results, "package command results mismatch")
+    verify_command_results!(persisted_results)
 
     %{
-      install_mode: install_mode,
-      install_source: install_source,
-      unpacked: unpacked,
-      unpacked_path: unpacked_path,
-      repository_path_fallback: false,
-      prebuilt_local_fallback: false,
-      deps_rindle_present: field(receipt, :deps_rindle_present)
+      schema_version: @package_receipt_schema,
+      evidence_type: "maintainer-operated-package-consumer",
+      subject_sha: receipt["subject_sha"],
+      lifecycle_proved: true,
+      authorizes_independent_adoption: false,
+      authorizes_1_0: false
     }
+  rescue
+    Jason.DecodeError -> raise ArgumentError, "malformed command result receipt"
   end
 
-  defp normalize_package_receipt!(_receipt),
-    do: raise(ArgumentError, "package proof is not a generated consumer report")
+  def verify_package_evidence!(_receipt, _context),
+    do: raise(ArgumentError, "package proof is not a canonical generated consumer receipt")
 
   defp validate_adoption_scope!(claim) do
     case field(claim, :type) do
@@ -464,11 +479,150 @@ defmodule Rindle.ValidateLiveTruth do
     end
   end
 
-  defp normalize_install_mode(:package), do: "package"
-  defp normalize_install_mode(:network), do: "network"
-  defp normalize_install_mode("package"), do: "package"
-  defp normalize_install_mode("network"), do: "network"
-  defp normalize_install_mode(_mode), do: nil
+  defp package_version!(mix_path) do
+    case Regex.run(~r/@version\s+"([^"]+)"/, File.read!(mix_path), capture: :all_but_first) do
+      [version] when version != "" -> version
+      _ -> raise ArgumentError, "malformed unpacked package version"
+    end
+  end
+
+  defp generated_mix_uses_path?(mix_path, package_root) do
+    File.read!(mix_path) =~ "{:rindle, path: #{inspect(package_root)}}"
+  end
+
+  defp package_commands!(generated_app_root) do
+    app_module = generated_app_root |> Path.basename() |> Macro.camelize()
+    app_name = Macro.underscore(app_module)
+
+    %{
+      "compile" => ["mix", "compile"],
+      "boot" => [
+        "mix",
+        "run",
+        "--no-start",
+        "-e",
+        "Application.ensure_all_started(:#{app_name}); repo = Application.fetch_env!(:rindle, :repo); oban_repo = Application.fetch_env!(:#{app_name}, Oban)[:repo]; if repo != #{app_module}.Repo or oban_repo != #{app_module}.Repo, do: raise(\"boot wiring invalid\"); IO.puts(\"boot ok\")"
+      ],
+      "smoke" => ["mix", "test", "test/rindle_install_smoke_test.exs"],
+      "lifecycle" => ["mix", "test", "test/rindle_install_smoke_test.exs"]
+    }
+  end
+
+  defp verify_command_results!(results) do
+    expected_names = ~w(boot compile lifecycle smoke)
+
+    assert!(
+      Map.keys(results) |> Enum.sort() == expected_names,
+      "package command result set mismatch"
+    )
+
+    Enum.each(expected_names, fn name ->
+      result = results[name]
+
+      assert!(
+        is_map(result) and
+          Map.keys(result) |> Enum.sort() ==
+            ~w(captured_bytes exit_code stderr_merged_into_stdout stderr_sha256 stdout_sha256 truncated),
+        "package command result fields mismatch: #{name}"
+      )
+
+      assert!(result["exit_code"] == 0, "package command failed: #{name}")
+
+      assert!(
+        is_binary(result["stdout_sha256"]) and byte_size(result["stdout_sha256"]) == 64,
+        "package command stdout digest mismatch: #{name}"
+      )
+
+      assert!(
+        result["stderr_sha256"] == sha256(""),
+        "package command stderr digest mismatch: #{name}"
+      )
+
+      assert!(
+        result["stderr_merged_into_stdout"] == true,
+        "package command capture mode mismatch: #{name}"
+      )
+
+      assert!(
+        is_integer(result["captured_bytes"]) and result["captured_bytes"] >= 0,
+        "package command byte count mismatch: #{name}"
+      )
+
+      assert!(
+        is_boolean(result["truncated"]),
+        "package command truncation marker mismatch: #{name}"
+      )
+    end)
+
+    :ok
+  end
+
+  defp required_directory!(path, label) do
+    assert!(is_binary(path) and path != "" and File.dir?(path), "#{label} does not exist")
+    Path.expand(path)
+  end
+
+  defp required_file!(path, label) do
+    assert!(is_binary(path) and path != "" and File.regular?(path), "#{label} does not exist")
+    Path.expand(path)
+  end
+
+  defp file_sha256!(path), do: path |> File.read!() |> sha256()
+
+  defp tree_sha256!(root, excluded_roots) do
+    entries =
+      root
+      |> Path.join("**/*")
+      |> Path.wildcard(match_dot: true)
+      |> Enum.filter(&File.regular?/1)
+      |> Enum.map(&Path.relative_to(&1, root))
+      |> Enum.reject(fn relative ->
+        first = relative |> Path.split() |> List.first()
+        first in excluded_roots
+      end)
+      |> Enum.sort()
+
+    entries
+    |> Enum.map(fn relative ->
+      relative <> "\0" <> file_sha256!(Path.join(root, relative)) <> "\n"
+    end)
+    |> IO.iodata_to_binary()
+    |> sha256()
+  end
+
+  defp git_head!(root) do
+    case System.cmd("git", ["-C", root, "rev-parse", "HEAD"], stderr_to_stdout: true) do
+      {sha, 0} -> String.trim(sha)
+      {_output, _exit_code} -> raise ArgumentError, "package subject repository is not Git"
+    end
+  end
+
+  defp sha256(content),
+    do: :crypto.hash(:sha256, content) |> Base.encode16(case: :lower)
+
+  defp stringify_keys!(map, label) when is_map(map) do
+    Enum.reduce(map, %{}, fn {key, value}, acc ->
+      string_key = if is_atom(key), do: Atom.to_string(key), else: key
+      assert!(is_binary(string_key), "#{label} contains a non-string key")
+      assert!(not Map.has_key?(acc, string_key), "#{label} contains duplicate keys")
+
+      normalized =
+        cond do
+          is_map(value) -> stringify_keys!(value, label)
+          is_list(value) -> Enum.map(value, &stringify_value!(&1, label))
+          true -> value
+        end
+
+      Map.put(acc, string_key, normalized)
+    end)
+  end
+
+  defp stringify_value!(value, label) when is_map(value), do: stringify_keys!(value, label)
+
+  defp stringify_value!(value, label) when is_list(value),
+    do: Enum.map(value, &stringify_value!(&1, label))
+
+  defp stringify_value!(value, _label), do: value
 
   defp mix_version!(root) do
     path = Path.join(root, "mix.exs")

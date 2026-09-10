@@ -23,6 +23,8 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
   @directional_migration_version "20260428170300"
   @legacy_rindle_migration_version 20_260_428_110_000
   @generated_command_timeout_ms :timer.minutes(20)
+  @package_receipt_schema "rindle-package-consumer-v1"
+  @output_digest_limit 1_048_576
 
   defdelegate default_install_contract(), to: Contracts
   defdelegate persistence_lifecycle_report_keys(), to: Contracts
@@ -317,8 +319,133 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
         smoke_result.exit_code == 0 and String.contains?(smoke_result.output, "0 failures")
     }
 
+    command_results = %{compile: compile_result, boot: boot_result, smoke: smoke_result}
+
+    report =
+      Map.merge(report, %{
+        package_evidence_receipt: package_evidence_receipt!(report, command_results),
+        package_evidence_context: package_evidence_context(report)
+      })
+
     maybe_write_tus_run_hint!(report)
     report
+  end
+
+  @doc false
+  def package_evidence_receipt!(report, command_results)
+      when is_map(report) and is_map(command_results) do
+    package_root = report.package_root_provenance.path
+    generated_app_root = report.generated_app_root
+    results_path = Path.join(generated_app_root, "tmp/rindle_package_evidence_results.json")
+    commands = package_evidence_commands(generated_app_root)
+
+    results = %{
+      "compile" => command_result!(Map.fetch!(command_results, :compile)),
+      "boot" => command_result!(Map.fetch!(command_results, :boot)),
+      "smoke" => command_result!(Map.fetch!(command_results, :smoke)),
+      "lifecycle" => command_result!(Map.fetch!(command_results, :smoke))
+    }
+
+    File.mkdir_p!(Path.dirname(results_path))
+    File.write!(results_path, Jason.encode!(results))
+
+    package_tree_sha256 = tree_sha256!(package_root, [])
+
+    %{
+      schema_version: @package_receipt_schema,
+      evidence_type: "maintainer-operated-package-consumer",
+      subject_sha: git_head!(),
+      package_name: Atom.to_string(Mix.Project.config()[:app]),
+      package_version: Mix.Project.config()[:version],
+      package_sha256: file_sha256!(Path.join(package_root, "hex_metadata.config")),
+      unpacked_tree_sha256: package_tree_sha256,
+      generated_app_tree_sha256:
+        tree_sha256!(generated_app_root, [".git", "_build", "deps", "tmp"]),
+      dependency_lock_sha256: file_sha256!(Path.join(generated_app_root, "mix.lock")),
+      dependency_source: %{
+        type: "path",
+        package_name: Atom.to_string(Mix.Project.config()[:app]),
+        unpacked_tree_sha256: package_tree_sha256
+      },
+      commands: commands,
+      results: results
+    }
+  end
+
+  def package_evidence_receipt!(_report, _command_results) do
+    raise ArgumentError, "package evidence requires a generated report and command results"
+  end
+
+  defp package_evidence_context(report) do
+    %{
+      package_root: report.package_root_provenance.path,
+      generated_app_root: report.generated_app_root,
+      results_path:
+        Path.join(report.generated_app_root, "tmp/rindle_package_evidence_results.json")
+    }
+  end
+
+  defp package_evidence_commands(generated_app_root) do
+    app_name = generated_app_root |> Path.basename() |> Macro.camelize()
+
+    %{
+      "compile" => ["mix", "compile"],
+      "boot" => boot_argv(app_name),
+      "smoke" => ["mix", "test", "test/rindle_install_smoke_test.exs"],
+      "lifecycle" => ["mix", "test", "test/rindle_install_smoke_test.exs"]
+    }
+  end
+
+  defp command_result!(%{exit_code: exit_code, output: output})
+       when is_integer(exit_code) and is_binary(output) do
+    bounded = binary_part(output, 0, min(byte_size(output), @output_digest_limit))
+
+    %{
+      "exit_code" => exit_code,
+      "stdout_sha256" => sha256(bounded),
+      "stderr_sha256" => sha256(""),
+      "stderr_merged_into_stdout" => true,
+      "captured_bytes" => byte_size(bounded),
+      "truncated" => byte_size(output) > @output_digest_limit
+    }
+  end
+
+  defp file_sha256!(path), do: path |> File.read!() |> sha256()
+
+  defp tree_sha256!(root, excluded_roots) do
+    root = Path.expand(root)
+
+    entries =
+      root
+      |> Path.join("**/*")
+      |> Path.wildcard(match_dot: true)
+      |> Enum.filter(&File.regular?/1)
+      |> Enum.map(&Path.relative_to(&1, root))
+      |> Enum.reject(fn relative ->
+        first = relative |> Path.split() |> List.first()
+        first in excluded_roots
+      end)
+      |> Enum.sort()
+
+    entries
+    |> Enum.map(fn relative ->
+      content_digest = root |> Path.join(relative) |> file_sha256!()
+      relative <> "\0" <> content_digest <> "\n"
+    end)
+    |> IO.iodata_to_binary()
+    |> sha256()
+  end
+
+  defp sha256(content),
+    do: :crypto.hash(:sha256, content) |> Base.encode16(case: :lower)
+
+  defp git_head! do
+    case System.cmd("git", ["-C", Workspace.repo_root(), "rev-parse", "HEAD"],
+           stderr_to_stdout: true
+         ) do
+      {sha, 0} -> String.trim(sha)
+      {output, exit_code} -> raise "git subject lookup failed (#{exit_code}): #{output}"
+    end
   end
 
   defp normalize_tus_extensions(raw_extensions) when is_map(raw_extensions) do
@@ -609,18 +736,19 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
   defp maybe_write_tus_run_hint!(report), do: SmokeSource.maybe_write_tus_run_hint!(report)
 
   defp boot_app!(root, app_module, env),
-    do:
-      run_cmd!(
-        root,
-        [
-          "mix",
-          "run",
-          "--no-start",
-          "-e",
-          "Application.ensure_all_started(:#{Macro.underscore(app_module)}); repo = Application.fetch_env!(:rindle, :repo); oban_repo = Application.fetch_env!(:#{Macro.underscore(app_module)}, Oban)[:repo]; if repo != #{app_module}.Repo or oban_repo != #{app_module}.Repo, do: raise(\"boot wiring invalid\"); IO.puts(\"boot ok\")"
-        ],
-        env
-      )
+    do: run_cmd!(root, boot_argv(app_module), env)
+
+  defp boot_argv(app_module) do
+    app_name = Macro.underscore(app_module)
+
+    [
+      "mix",
+      "run",
+      "--no-start",
+      "-e",
+      "Application.ensure_all_started(:#{app_name}); repo = Application.fetch_env!(:rindle, :repo); oban_repo = Application.fetch_env!(:#{app_name}, Oban)[:repo]; if repo != #{app_module}.Repo or oban_repo != #{app_module}.Repo, do: raise(\"boot wiring invalid\"); IO.puts(\"boot ok\")"
+    ]
+  end
 
   defp write_smoke_test!(root, app_module, profile_mode, network_version) do
     SmokeSource.write!(
