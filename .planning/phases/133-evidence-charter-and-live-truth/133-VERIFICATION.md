@@ -1,196 +1,259 @@
 ---
 phase: 133-evidence-charter-and-live-truth
-verified: 2026-09-10T04:14:28Z
+verified: 2026-09-10T19:09:17Z
 status: gaps_found
-score: 26/29 must-haves verified
+score: 30/38 must-haves verified
 behavior_unverified: 0
 overrides_applied: 0
 decision_coverage:
   honored: 17
   total: 17
   not_honored: []
+re_verification:
+  previous_status: gaps_found
+  previous_score: 26/29
+  gaps_closed:
+    - "Caller-controlled validated=true package-receipt shortcut removed and regression-tested."
+    - "Persisted remote receipt fields now receive exact-key canonical live reconstruction and field mutation coverage."
+    - "Elixir 11.17/1.170 and OTP 127 near-matches now fail anchored collection and receipt validation."
+  gaps_remaining: []
+  regressions:
+    - "Six additional blocker defects from 133-REVIEW.md remain present after Plans 08-10."
 gaps:
-  - truth: "Package-proof claims are accepted only with freshly built/unpacked/no-fallback provenance."
+  - truth: "Nightly Dialyzer cleanup is confined to an approved PLT directory."
     status: failed
-    reason: "A caller-controlled receipt field `validated: true` bypasses all generated-consumer provenance normalization and accepts nonexistent paths."
+    reason: "PLT_DIR is caller-controlled and values such as .., ../.., /tmp, or the repository root reach rm -rf; only empty, /, and . are rejected."
+    artifacts:
+      - path: "scripts/ci/run_nightly_dialyzer.sh"
+        issue: "reset_plt recursively deletes PLT_DIR without normalized containment or symlink protection."
+      - path: "scripts/ci/test_nightly_dialyzer.sh"
+        issue: "The 24-case suite always supplies a safe temporary child path and has no escape-path cases."
+    missing:
+      - "Remove the production override or enforce physical containment in a dedicated approved root before deletion."
+      - "Add non-destructive rejection cases for parent traversal, repository root, external absolute paths, and symlink escape."
+  - truth: "The exact-run collector tolerates GitHub list eventual consistency while selecting exactly one post-boundary matching run."
+    status: failed
+    reason: "During polling, any nonempty run list with zero exact matches aborts immediately as foreign identity, so ordinary older dispatches prevent waiting for the new run."
+    artifacts:
+      - path: "scripts/ci/verify_nightly_run.sh"
+        issue: "Lines 380-382 fail on unrelated historical runs instead of continuing the bounded poll."
+      - path: "scripts/ci/test_verify_nightly_run.sh"
+        issue: "The timeout fixture returns an empty list and never exercises old runs visible before the new run appears."
+    missing:
+      - "Ignore nonmatching historical runs until the deadline; accept one qualifying post-boundary match and fail on multiple qualifying matches."
+      - "Add an old-runs-first/new-run-later fixture."
+  - truth: "Package and adoption claims derive from authenticated built-package/generated-consumer evidence rather than arbitrary directories and self-asserted booleans."
+    status: failed
+    reason: "A forged generated-app-helper map with arbitrary existing directories, two fake files, zero exit codes, lifecycle_proved=true, and an arbitrary adopter name is accepted, including authorizes_1_0=true."
     artifacts:
       - path: "scripts/maintainer/validate_live_truth.exs"
-        issue: "validate_package_claim!/2 trusts receipt.validated and skips normalize_package_receipt!/1."
+        issue: "normalize_package_receipt!/1 checks path existence and caller booleans but no subject/package digest, dependency lock/source, command/result receipt, or authenticated adopter provenance."
       - path: "test/install_smoke/live_truth_parity_test.exs"
-        issue: "Negative package fixtures never exercise the forged validated=true fast path."
+        issue: "package_receipt_fixture!/0 constructs the same forgeable arbitrary-directory shape, so green negative tests do not prove provenance."
     missing:
-      - "Remove the caller-controlled validation bypass or replace it with an internal, unforgeable representation."
-      - "Add a regression case proving a minimal validated=true map with nonexistent paths is rejected."
-  - truth: "The final Nightly receipt independently binds every persisted remote and local evidence field to the exact implementation SHA."
+      - "Bind canonical producer evidence to immutable subject/package content and generated-app dependency provenance."
+      - "Define a distinct authenticated independent-adopter evidence type; do not accept a caller-provided name as authority."
+  - truth: "The final Nightly receipt binds census and live-truth authority immutably to its exact subject SHA."
     status: failed
-    reason: "verify-receipt accepts forged job identities, timestamps, verdict provenance, incident snapshots, and local-authority payloads while still reporting the receipt valid."
+    reason: "Revalidation runs subject-pinned scripts against the mutable current-worktree census ledger; the receipt stores only pass statuses and no ledger digest/blob/commit identity. The current receipt also fails canonical verification because live incident state has changed."
     artifacts:
       - path: "scripts/ci/verify_nightly_run.sh"
-        issue: "Revalidation compares only run_id and dialyzer evidence with live GitHub state; most persisted fields receive type/status checks only."
-      - path: "scripts/ci/test_verify_nightly_run.sh"
-        issue: "The 28-case matrix tests collection failures but has no per-field receipt-tampering matrix."
+        issue: "revalidate_local_authorities reads 133-EVIDENCE-CENSUS.json from project_root rather than an immutable recorded object."
+      - path: ".planning/phases/133-evidence-charter-and-live-truth/133-NIGHTLY-EVIDENCE.json"
+        issue: "local_authorities contains only census/live_truth pass strings; the ledger did not exist at receipt subject 4f83e15 and no digest is recorded."
     missing:
-      - "Reconstruct and compare every remotely reproducible receipt field, including created_at, exact sorted jobs, and strict-verdict source."
-      - "Re-run or independently bind local authorities and incident snapshots, require exact key sets, and add field-by-field mutation tests."
-  - truth: "The live collector accepts only the supported Elixir 1.17 / OTP 27 toolchain."
+      - "Record the ledger SHA-256 and immutable Git blob/commit identity in the receipt, materialize that exact object, and compare a detailed regenerated census receipt."
+      - "Collect a new exact-subject Nightly receipt after all authority fixes; the present receipt is stale and cannot pass verify-receipt."
+  - truth: "Every applicable census dimension retains its repository-owned detector authority even when another dimension is explicitly inapplicable."
     status: failed
-    reason: "Unanchored substring checks accept Elixir 11.17.0 and OTP 127.0 as the supported 1.17/27 cell."
+    reason: "The hard-coded detector registry comparison runs only when every taxonomy dimension is applicable; one inapplicable dimension globally disables authority checking for all remaining detectors."
     artifacts:
-      - path: "scripts/ci/verify_nightly_run.sh"
-        issue: "Collection uses unanchored Bash regexes and receipt shape validation uses contains(\"1.17\") / contains(\"27\")."
-      - path: "scripts/ci/test_verify_nightly_run.sh"
-        issue: "unsupported_toolchain covers missing output but not near-match versions."
+      - path: "scripts/maintainer/validate_evidence_census.exs"
+        issue: "Enum.all?(taxonomy, & &1[\"applicable\"]) guards the entire repository-owned registry comparison."
+      - path: "test/install_smoke/evidence_census_test.exs"
+        issue: "The minimal inapplicability fixture depends on the bypass and lacks a mixed-applicability mutation of another detector."
     missing:
-      - "Parse the setup-beam version formats and require anchored 1.17 and 27 boundaries in collection and revalidation."
-      - "Add rejection cases for 11.17, 1.170, and 127."
+      - "Validate each applicable dimension against its matching repository-owned detector record."
+      - "Allow inapplicability only through an explicit repository-owned dimension allowlist and add a mixed-applicability mutation test."
+  - truth: "Exact-SHA release coupling and the sole required check are derived from executable workflow/policy structure."
+    status: failed
+    reason: "The live-truth model accepts four inert comment substrings as exact-SHA release coupling and uses an unanchored source regex for required-check authority."
+    artifacts:
+      - path: "scripts/maintainer/validate_live_truth.exs"
+        issue: "exact_sha_release_coupling?/1 uses raw text substrings; sole_required_check?/1 can match dead/commented text."
+      - path: "test/install_smoke/live_truth_parity_test.exs"
+        issue: "No comment-only/unreachable release gate or duplicate/dead required-check fixture exists."
+    missing:
+      - "Parse executable release workflow structure and test the exact-SHA gate evaluator with matching and mismatched SHA fixtures."
+      - "Validate required-check output/argv from a structured producer or at minimum reject comment-only and duplicate matches."
 ---
 
 # Phase 133: Evidence Charter and Live Truth Verification Report
 
 **Phase Goal:** Maintainers can trust exact-head quality, Nightly, incident, release, support, and adoption evidence before any cleanup changes the baseline.
-**Verified:** 2026-09-10T04:14:28Z
+**Verified:** 2026-09-10T19:09:17Z
 **Status:** gaps_found
-**Re-verification:** No — initial verification
+**Re-verification:** Yes — after Plans 08-10 closed the three original gaps
 
 ## Goal Achievement
 
-The phase is not ready to establish a trusted cleanup baseline. The normal-path evidence is substantial and the recorded live run is internally plausible, but two authority boundaries accept forged evidence and the supported-toolchain parser accepts near-match versions. Because the goal is trust in the evidence itself, these are goal-level failures even though the existing suites are green.
+Plans 08-10 close the original forged `validated` shortcut, persisted-field comparison gap, and supported-version substring gap. The phase goal is nevertheless not achieved. Six blocker findings from `133-REVIEW.md` are confirmed in the current implementation, two through direct adversarial execution and four through unambiguous control/data-flow inspection. The sole persisted Nightly receipt also currently fails its canonical verifier because live incident state has advanced.
 
 ### Roadmap Success Criteria
 
 | # | Roadmap truth | Status | Evidence |
 |---|---|---|---|
-| 1 | Exact-SHA, twelve-dimension, deduplicated census with one disposition per candidate | ✓ VERIFIED | Ledger records subject `4f83e153eb7e19f3e1e3ca43b40eefdfee87a4d2`, 12 dimensions, 12 candidates, and 8 transitions; the focused census tests pass. |
-| 2 | Supported fresh/restored Dialyzer succeeds and stale evidence is rejected or rebuilt | ✓ VERIFIED with blocker in final collector | The actual receipt records Elixir `v1.17.3-otp-27`, OTP `OTP-27.3.4.17`, one fresh build/analysis, one restored analysis, and zero rebuilds; the 24-case runner suite passes. However, the final collector also accepts unsupported near-match versions (Gap 3). |
-| 3 | Strict Nightly aggregation and exact-run rolling incident lifecycle | ✓ VERIFIED with receipt-integrity blocker | The 49-case aggregate and 22-case incident suites pass, workflow wiring is fail-closed, and the recorded diagnostic run is attempt 1. Independent receipt revalidation does not protect most persisted evidence fields (Gap 2). |
-| 4 | Executable release/planning/support/adoption parity rejects every contradiction | ✗ FAILED | Version and workflow topology checks are derived, but a forged `validated: true` package receipt bypasses package provenance (Gap 1). |
+| 1 | Exact-SHA census covers every applicable dimension, deduplicates candidates, and gives each one disposition | ✗ FAILED | Candidate/disposition tests pass, but making one dimension inapplicable disables repository-owned detector validation globally. Observation locations also accept `../` traversal. |
+| 2 | Supported Nightly Dialyzer passes fresh/restored and rejects or rebuilds stale PLTs | ✗ FAILED | The runner behavior matrix passes, but its reset path can recursively delete an arbitrary caller-selected directory, the collector aborts during normal eventual consistency, and no currently valid exact-run receipt exists. |
+| 3 | Strict Nightly aggregation and exact-run incident lifecycle fail closed | ✓ VERIFIED | 49-case verdict and 22-case incident suites pass; parsed workflow wiring uses the strict verdict and scheduled-only issue mutation. |
+| 4 | Executable parity derives release/planning/support/adoption truth and rejects contradictions | ✗ FAILED | Arbitrary directories and caller booleans can forge package/independent-adopter authority; inert comments can forge release coupling. |
 
-**Roadmap score:** 3/4 success criteria verified.  
-**Merged PLAN truth score:** 26/29 truths verified (0 present-but-behavior-unverified).
+**Roadmap score:** 1/4 success criteria verified.
 
-### Failed PLAN Truths
+### Observable PLAN Truths
 
-| Plan | Truth | Status | Evidence |
-|---|---|---|---|
-| 133-05 | Package proof requires fresh built/unpacked/no-fallback evidence | ✗ FAILED | Direct invocation returned `:ok` for a minimal forged map with nonexistent paths. |
-| 133-07 | The collector accepts only exact requested, supported, complete Nightly evidence | ✗ FAILED | A fake run reporting Elixir `11.17.0` and OTP `127.0` produced an accepted canonical receipt. |
-| 133-07 | Final receipt binds local census/live-truth and remote Nightly facts to the same subject | ✗ FAILED | A receipt with forged jobs, timestamp, summary-job provenance, incidents, and authority fields passed `verify-receipt`. |
+| Plan | Verified | Failed | Failure summary |
+|---|---:|---:|---|
+| 133-01 | 3/4 | 1 | Applicable detector authority can be disabled by one inapplicable taxonomy row. |
+| 133-02 | 4/4 | 0 | Intended supported-cell/mode/cache/fingerprint behaviors exist, but CR-01 remains a blocker anti-pattern. |
+| 133-03 | 3/3 | 0 | Strict result/applicability/execution verdict behavior is exercised. |
+| 133-04 | 3/3 | 0 | Scheduled/current-main incident policy and least-privileged wiring are exercised. |
+| 133-05 | 3/5 | 2 | Package/adoption evidence and release-coupling authority are forgeable. |
+| 133-06 | 4/5 | 1 | Active claims inherit the forgeable package/release model. |
+| 133-07 | 3/5 | 2 | Polling rejects ordinary older runs; the final local-authority binding is mutable/stale. |
+| 133-08 | 1/2 | 1 | The discriminator shortcut is gone, but the remaining receipt facts are still self-asserted. |
+| 133-09 | 3/4 | 1 | Remote fields are reconstructed, but census authority uses a mutable ledger outside the exact subject. |
+| 133-10 | 3/3 | 0 | Anchored numeric component parsing and exact patch/cache binding are exercised. |
 
-All other PLAN truths received existence, substantive implementation, wiring, and targeted behavioral evidence. No verification override exists.
+**Score:** 30/38 PLAN truths verified (0 present-but-behavior-unverified).
 
-## Required Artifacts
+## Original Gap Re-verification
 
-| Plan | Artifacts | Status | Details |
-|---|---|---|---|
-| 133-01 | Census collector, validator, and ExUnit contract | ✓ VERIFIED | Substantive modules are wired through subprocess tests; exact-SHA, taxonomy, candidate, disposition, and transition paths are exercised. |
-| 133-02 | Dialyzer runner/tests, setup composite, Nightly workflow, failure fingerprint | ✓ VERIFIED | Fresh/restored runner and exact cache-key wiring exist; 24 behavior cases pass. |
-| 133-03 | Strict summary evaluator/tests, parsed workflow test, Nightly workflow | ✓ VERIFIED | Evaluator is invoked from `nightly-summary`; its verdict is exported then enforced. |
-| 133-04 | Incident evaluator/adapter/tests and workflow lifecycle | ✓ VERIFIED | `nightly.yml` invokes the adapter, which invokes `eval_nightly_incident.sh`; the plan's direct-link grep misses this intentional transitive wiring. The test script is substantive despite naming its helper differently from `expect_exit`. |
-| 133-05 | Live-truth validator and parity tests | ✗ PARTIAL | Files are substantive and wired, but the package-receipt trust boundary is bypassable. |
-| 133-06 | Adoption gate, active truth docs, and frozen census ledger | ✓ VERIFIED | Gate invokes derived/package tests before copy checks; active claims and ledger exist. |
-| 133-07 | Exact-run collector/tests and Nightly receipt | ✗ PARTIAL | Normal collection and the real receipt exist, but independent receipt integrity and version boundaries fail. |
-
-## Key Link Verification
-
-| From | To | Via | Status | Details |
-|---|---|---|---|---|
-| Census collector | Census validator | Canonical observations/candidates/transition digest | ✓ WIRED | Collector output fields are consumed and mutation-tested. |
-| Setup composite | Nightly Dialyzer | Resolved Elixir/OTP outputs in `plt-v3` key | ✓ WIRED | Exact outputs feed save and restore keys; no restore prefix is present. |
-| Nightly jobs | Strict summary evaluator | `NEEDS_JSON` and policy JSON under `always()` | ✓ WIRED | Evaluator controls exported verdict and terminal enforcement. |
-| Nightly lifecycle | Incident evaluator and adapter | Workflow -> `manage_nightly_incident.sh` -> `eval_nightly_incident.sh` | ✓ WIRED | Job-local `issues: write`; dispatch is policy-gated to no-op. |
-| Adoption gate | Live-truth/package tests | Tagged authority tests | ⚠ PARTIAL | Normal path is wired, but public map input can impersonate normalized package proof. |
-| Exact-run verifier | GitHub run/logs and receipt | Preflight, job-scoped logs, canonical JSON | ⚠ PARTIAL | Dialyzer is re-derived; jobs/timestamps/verdict source/incidents/local authorities are not independently rebound. |
-
-## Data-Flow Trace (Level 4)
-
-This is an infrastructure/evidence phase with no rendered dynamic UI. Evidence flow was traced instead:
-
-| Artifact | Data | Source | Status |
-|---|---|---|---|
-| `133-EVIDENCE-CENSUS.json` | SHA, taxonomy, candidates, transitions | Git/repository detectors -> collector -> validator | ✓ FLOWING |
-| Nightly verdict | Needs results and applicability outputs | GitHub Actions `needs` -> strict jq evaluator -> workflow conclusion/incident input | ✓ FLOWING |
-| Package authority | Generated-consumer provenance | Helper report -> normalization -> claim validator | ✗ BYPASSABLE |
-| `133-NIGHTLY-EVIDENCE.json` | Run/jobs/logs/incidents/local authorities | GitHub/local collectors -> JSON -> revalidation | ✗ PARTIALLY REBOUND |
-
-## Behavioral Spot-Checks and Probe Execution
-
-| Check | Result | Status |
+| Previous gap | Status | Current evidence |
 |---|---|---|
-| `bash scripts/ci/test_nightly_summary_gate.sh` | 49 passed, 0 failed | ✓ PASS |
-| `bash scripts/ci/test_nightly_dialyzer.sh` | 24 passed, 0 failed | ✓ PASS |
-| `bash scripts/ci/test_nightly_incident.sh` | 22 passed, 0 failed | ✓ PASS |
-| `bash scripts/ci/test_verify_nightly_run.sh` | 28 passed, 0 failed | ✓ PASS |
-| Focused ExUnit census/Nightly/live-truth set, excluding MinIO | 26 tests, 0 failures, 1 excluded | ✓ PASS |
-| Exact remote ref preflight and current receipt verification | Remote ref matched; run `34432289094`, attempt 1 reported valid | ⚠ PASS THROUGH INCOMPLETE VERIFIER |
-| Forged package receipt | `validate_claims!/2` returned `:ok` for nonexistent paths | ✗ FAIL |
-| Forged persisted Nightly receipt | `verify-receipt` printed `Nightly receipt valid` | ✗ FAIL |
-| Near-match toolchain | Elixir `11.17.0` / OTP `127.0` receipt was accepted | ✗ FAIL |
+| Caller `validated: true` bypass | ✓ CLOSED | `validate_package_claim!/2` always calls `normalize_package_receipt!/1`; the focused package-authority test rejects the old shortcut. |
+| Persisted remote receipt fields accepted by shape/status only | ✓ CLOSED | Exact-key canonical reconstruction plus individual field mutations now run in the 84-case suite. The separate mutable-ledger defect remains a new gap. |
+| 11.17/1.170/127 supported-toolchain near-matches | ✓ CLOSED | Shared anchored parsers reject all six collection/receipt near-match cases while retaining exact patch strings. |
 
-The green normal suites do not cover the three adversarial acceptance paths above.
+## Required Artifacts and Wiring
+
+| Plan | Artifact status | Wiring status | Details |
+|---|---|---|---|
+| 133-01 | ⚠ PARTIAL | ✓ WIRED | Collector/validator/tests are substantive; detector and observation trust boundaries are incomplete. |
+| 133-02 | ⚠ PARTIAL | ✓ WIRED | Runner, workflow, setup outputs, fingerprint, and tests exist; unsafe recursive deletion remains. |
+| 133-03 | ✓ VERIFIED | ✓ WIRED | Evaluator consumes exact `needs`/policy JSON and controls exported/enforced verdict. |
+| 133-04 | ✓ VERIFIED | ✓ WIRED | Workflow calls `manage_nightly_incident.sh`, which calls the evaluator. Automated pattern misses are naming/transitive-link false negatives. |
+| 133-05 | ✗ PARTIAL | ✓ WIRED | Live-truth validator is active but package/adoption and release authorities are forgeable. |
+| 133-06 | ✗ PARTIAL | ✓ WIRED | Adoption gate and active docs are wired; they inherit the invalid authority model. Ledger exists but is not immutable in receipt revalidation. |
+| 133-07 | ✗ PARTIAL | ⚠ PARTIAL | Collector and receipt exist; polling is defective and current receipt verification fails stale-incident comparison. |
+| 133-08 | ⚠ PARTIAL | ✓ WIRED | All inputs normalize, but normalization still trusts arbitrary paths/self-reported results. |
+| 133-09 | ✗ PARTIAL | ⚠ PARTIAL | Remote reconstruction is exact; local census revalidation consumes a mutable current-worktree ledger. |
+| 133-10 | ✓ VERIFIED | ✓ WIRED | One anchored predicate protects collection and receipt boundaries. |
+
+All 33 declared artifact entries exist. The automated artifact checker reports two literal-pattern misses (`expect_exit`) and one direct-link miss for Plan 04; manual inspection shows substantive alternate helper naming and the intentional workflow → adapter → evaluator path. These are not gaps.
+
+## Evidence/Data-Flow Trace
+
+| Evidence | Source → consumer | Status | Finding |
+|---|---|---|---|
+| Census observations/dispositions | Repository detectors → collector → ledger/receipt validator | ✗ HOLLOW AUTHORITY | Mixed applicability can bypass the registry; `../` observation locations remain accepted. |
+| Dialyzer PLT evidence | setup-beam outputs/cache → fresh/restored runner → Nightly logs | ⚠ PARTIAL | Version/cache behavior is real, but caller-controlled cleanup is unsafe. |
+| Strict Nightly verdict | GitHub `needs` + typed outputs → jq evaluator → summary conclusion/incident input | ✓ FLOWING | Exact-set failure semantics are exercised. |
+| Incident lifecycle | Scheduled context/current-main/inventory → evaluator → thin `gh` adapter | ✓ FLOWING | Fake CLI proves cardinality, idempotency, no-op dispatch, and comment-before-close semantics. |
+| Package/adoption proof | Caller receipt → normalization → claim validator | ✗ FORGEABLE | Existing arbitrary directories and self-reported success facts are accepted as independent evidence. |
+| Release coupling | Raw release.yml text → substring checks → derived model | ✗ STATIC | Comments/unreachable text can satisfy authority. |
+| Local authority in Nightly receipt | Exact-subject scripts + current-worktree ledger → `{status: pass}` | ✗ MUTABLE | Ledger bytes/identity are absent from the receipt and absent at the tested subject. |
+
+## Behavioral Spot-Checks
+
+| Behavior | Command/result | Status |
+|---|---|---|
+| Strict Nightly verdict matrix | `bash scripts/ci/test_nightly_summary_gate.sh` — 49 passed | ✓ PASS |
+| Dialyzer behavior/workflow matrix | `bash scripts/ci/test_nightly_dialyzer.sh` — 24 passed | ✓ PASS, insufficient for path containment |
+| Incident lifecycle matrix | `bash scripts/ci/test_nightly_incident.sh` — 22 passed | ✓ PASS |
+| Exact-run/receipt mutation matrix | `bash scripts/ci/test_verify_nightly_run.sh` — 84 passed | ✓ PASS, insufficient for delayed listing and mutable ledger identity |
+| Focused ExUnit policy set | 48 tests, 0 failures, 1 excluded on installed Elixir 1.19.5/OTP 28 | ✓ PASS, package-authority MinIO case excluded |
+| Forged independent adopter | Arbitrary dirs/fake files/self-reported success with `authorizes_1_0: true` returned `:ok` | ✗ FAIL |
+| Inert release workflow | Comment-only release file produced `exact_sha_release_coupling=true` | ✗ FAIL |
+| Current exact receipt | Preflight passed; `verify-receipt` exited nonzero: incident evidence stale | ✗ FAIL |
+| ShellCheck warning gate | Phase runner/verifier/test scripts exited 0 | ✓ PASS |
+
+No probe scripts are declared beyond these repository-owned shell evidence suites.
 
 ## Requirements Coverage
 
 | Requirement | Source plans | Status | Evidence |
 |---|---|---|---|
-| EVID-01 | 133-01, 133-06, 133-07 | ✓ SATISFIED | Exact-SHA census schema, 12-dimension frozen ledger, stable candidates/transitions, and passing focused tests. |
-| EVID-02 | 133-02, 133-06, 133-07 | ⚠ PARTIAL / BLOCKING | Actual supported run and stale-rebuild policy pass, but the final authority collector accepts near-match unsupported versions. |
-| EVID-03 | 133-03, 133-06, 133-07 | ✓ SATISFIED | 49-case exact-set evaluator and parsed workflow enforcement reject failed/cancelled/unexpected/impermissible-skip states. |
-| EVID-04 | 133-04, 133-06, 133-07 | ✓ SATISFIED | 22-case pure/fake-CLI lifecycle proves one incident, exact-run update/close, no-op dispatch, and duplicate failure. |
-| TRUTH-08 | 133-05, 133-06, 133-07 | ✗ BLOCKED | Package/adoption proof can be authorized by a caller-forged validated receipt. |
+| EVID-01 | 01, 06, 07, 09 | ✗ BLOCKED | SHA/candidate/disposition contracts pass, but mixed applicability bypasses detector authority and the final receipt consumes an unbound mutable ledger. |
+| EVID-02 | 02, 06, 07, 10 | ✗ BLOCKED | Fresh/restored/stale behavior and anchored toolchains pass, but unsafe PLT deletion, defective delayed run selection, and absence of a currently valid receipt prevent trusted supported evidence. |
+| EVID-03 | 03, 06, 07, 09 | ✓ SATISFIED | The exact declared set, strict applicability/execution semantics, terminal enforcement, and mutation tests pass. |
+| EVID-04 | 04, 06, 07, 09 | ✓ SATISFIED | Pure policy/fake GitHub tests prove one rolling issue, exact-run evidence, qualifying recovery, duplicate failure, and diagnostic no-op. |
+| TRUTH-08 | 05, 06, 07, 08, 09 | ✗ BLOCKED | Package/adoption and release-coupling claims do not derive from independently authenticated/executable authority. |
 
-All five requirement IDs declared across PLAN frontmatter are present in `REQUIREMENTS.md`; no Phase 133 requirement is orphaned.
-
-## Test Quality Audit
-
-| Test file | Linked requirement | Active | Skipped | Circular | Assertion level | Verdict |
-|---|---|---:|---:|---|---|---|
-| `evidence_census_test.exs` | EVID-01 | 11 focused cases represented | 0 | No | Behavioral/value | Strong |
-| `test_nightly_dialyzer.sh` | EVID-02 | 24 | 0 | No | Behavioral command/order/count | Strong, missing near-match collector case |
-| `test_nightly_summary_gate.sh` | EVID-03 | 49 | 0 | No | Behavioral truth table | Strong |
-| `test_nightly_incident.sh` | EVID-04 | 22 | 0 | No | Behavioral mutation/order | Strong |
-| `live_truth_parity_test.exs` | TRUTH-08 | Active focused cases | 0 | No | Behavioral/value | Insufficient at caller-controlled `validated` discriminator |
-| `test_verify_nightly_run.sh` | EVID-02/03/04 | 28 | 0 | No | Behavioral fake-CLI | Insufficient for persisted-field tampering and near-match versions |
-
-**Disabled requirement tests:** 0.  
-**Circular oracle patterns:** 0.  
-**Insufficient assertion surfaces:** 3, corresponding to the reproduced gaps.
+Every requirement ID declared in Plans 01-10 appears in `.planning/REQUIREMENTS.md`, maps to Phase 133, and is accounted for above. There are no orphaned Phase 133 requirement IDs.
 
 ## Prohibition Review
 
-The PLAN files declare 14 descriptor-less, unresolved prohibitions. No human judgment was credited. Executable policy tests substantively cover the census mutation boundary, narrow stale retry, strict skip semantics, scheduled-only incident mutation, immutable history, and active-claim wording. Two prohibitions are observably violated:
+No human judgment is credited. Each descriptor-less prohibition is resolved from executable/static evidence.
 
-- Package/adoption evidence can be overstated through `validated: true` without generated-consumer provenance.
-- The live collector can accept an unsupported near-match toolchain, and its persisted receipt can carry forged partial provenance.
+| Plan | Prohibition result | Evidence |
+|---|---|---|
+| 01 | 2 verified | No cleanup authorization is emitted; retain/defer require evidence or trigger. |
+| 02 | 2 verified, plus blocker safety defect | Retry remains exact old-PLT-only and support/ignore scope is unchanged; arbitrary PLT deletion is outside the wording but independently blocking. |
+| 03 | 2 verified | Not-run remains explicit and PR permissive skip semantics are not reused. |
+| 04 | 2 verified | Dispatch/stale/non-default state cannot mutate; cardinality and atomic recovery evidence are tested. |
+| 05 | 1 verified, 1 failed | History is preserved; package/adoption authority can be overstated through forged receipts. |
+| 06 | 1 verified, 1 failed | History is preserved; arbitrary caller evidence can be relabeled as an independent adopter. |
+| 07 | 2 verified historically | Near-match/rerun/partial cases reject and diagnostic collection emitted no incident mutation; current receipt is stale for later incident changes. |
+| 08 | 1 verified | The caller discriminator shortcut is removed. |
+| 09 | 1 failed, 1 verified | Remote receipt fields are independently reconstructed, but local `{status:pass}` semantics depend on a mutable caller-worktree ledger; revalidation remains read-only. |
+| 10 | 1 verified | No substring/unanchored support matcher remains. |
 
-These failures are included in the structured gaps rather than silently treated as passed.
+Three of 18 prohibitions are violated. Because automation-first acceptance forbids human closure, these failures remain structured implementation gaps.
 
-## Anti-Patterns Found
+## Test Quality Audit
 
-| File | Pattern | Severity | Impact |
+| Test surface | Active evidence | Skipped | Assertion strength | Verdict |
+|---|---:|---:|---|---|
+| `evidence_census_test.exs` | 11 focused cases | 0 | Behavioral/value | ⚠ Insufficient: complete-registry mutation only; mixed applicability and `../` observations omitted. |
+| `test_nightly_dialyzer.sh` | 24 | 0 | Behavioral order/count | ⚠ Insufficient: no PLT_DIR containment cases. |
+| `test_nightly_summary_gate.sh` | 49 | 0 | Exhaustive behavioral truth table | ✓ Strong |
+| `test_nightly_incident.sh` | 22 | 0 | Behavioral mutation/order | ✓ Strong |
+| `test_verify_nightly_run.sh` | 84 | 0 | Canonical field mutation/fake CLI | ⚠ Insufficient: timeout uses empty lists; ledger identity is not part of schema. |
+| `live_truth_parity_test.exs` | active focused cases | 0 | Behavioral/value | 🛑 Misleading fixture: arbitrary directories and self-reported booleans are the expected package oracle; inert release text is untested. |
+
+Disabled requirement tests: 0. Circular/self-derived authority patterns: 1 (`package_receipt_fixture!/0`). Insufficient assertion surfaces: 5. The self-derived package oracle and missing authority-boundary tests are blocker-level because the phase goal is evidence trust.
+
+## Anti-Patterns and Review Findings
+
+| Finding | Status | Severity | Evidence |
 |---|---|---|---|
-| Phase implementation files | Unreferenced `TBD` / `FIXME` / `XXX` | None | No blocker debt markers found. |
-| `.github/workflows/ci.yml` | `dryrun-placeholder` | Info | Existing bounded dry-run credential placeholder, not a Phase 133 implementation stub. |
-| Test files | Temporary-file cleanup and fixture writes | Info | Test infrastructure; no circular expected-value generation was found. |
+| CR-01 arbitrary recursive PLT deletion | CONFIRMED | 🛑 BLOCKER | `PLT_DIR` reaches `rm -rf` after only empty/`/`/`.` checks. |
+| CR-02 older runs abort polling | CONFIRMED | 🛑 BLOCKER | Nonempty `runs` + zero `matches` dies on first poll. |
+| CR-03 forgeable package/adoption authority | CONFIRMED BY EXECUTION | 🛑 BLOCKER | Forged `independent-adopter`, arbitrary name, `authorizes_1_0: true` returned `:ok`. |
+| CR-04 mutable ledger revalidation | CONFIRMED | 🛑 BLOCKER | Receipt has no ledger digest; ledger is read from current root and did not exist at subject SHA. |
+| CR-05 mixed-applicability registry bypass | CONFIRMED | 🛑 BLOCKER | Entire registry comparison is guarded by all dimensions applicable. |
+| CR-06 inert release-coupling text | CONFIRMED BY EXECUTION | 🛑 BLOCKER | Comment-only release file derived coupling `true`. |
+| WR-01 parent-traversal observations | CONFIRMED | ⚠ WARNING | Only absolute locations are rejected; validator accepts any `Path.type == :relative`, including `../../outside`. |
+| Debt markers in phase files | NONE | — | No unreferenced TBD/FIXME/XXX markers. Existing placeholder strings are bounded test/demo/release dry-run values. |
 
 ## Decision Coverage
 
-All 17 trackable `133-CONTEXT.md` decisions are referenced by shipped artifacts. This non-blocking coverage result does not override the behavioral gaps.
+All 17 trackable `133-CONTEXT.md` decisions are honored by shipped artifacts. This non-blocking heuristic does not supersede the confirmed authority defects.
 
 ## Deferred Item Filter
 
-No gap is deferred. Phases 134–139 cover dependency/inbox disposition, cleanup, ratchets, twin/recovery work, and final readiness; none explicitly owns repairing Phase 133's package or exact-run evidence validators.
+No gap is deferred. Phases 134-139 consume or build on the Phase 133 baseline; none explicitly owns repairing the PLT deletion boundary, live-run polling, package/adopter provenance, ledger immutability, detector registry, or release-coupling authority. Phase 139's readiness manifest is not a substitute for correcting this phase's evidence producers.
 
 ## Human Verification
 
-N/A — infrastructure/evidence phase with no user-facing surface. Under the repository's automation-first contract, human observation cannot close these gaps; executable negative tests and implementation fixes are required.
+N/A — infrastructure/evidence phase with no user-facing surface. Repository policy requires executable tests/evidence collectors; human observation cannot satisfy any Phase 133 requirement or prohibition.
 
 ## Gaps Summary
 
-Three must-have truths fail. The first lets callers forge package/adoption authority. The second makes the stored Nightly receipt independently unverifiable for most of its contents. The third allows unsupported near-match toolchains to be labeled as the supported cell. Until these fail closed, maintainers cannot rely on Phase 133 as the immutable evidence baseline promised by the phase goal.
-
-**Next action:** create and execute Phase 133 gap-closure plans with `$gsd-plan-phase 133 --gaps`, then re-run phase verification.
+The three original gaps are closed, but six blocker defects remain and the only persisted Nightly receipt is currently stale. The phase cannot serve as the trusted pre-cleanup baseline: destructive input is insufficiently contained, normal dispatch selection can fail, package/adopter and release authority can be forged, census authority can be weakened through applicability, and local receipt authority depends on mutable bytes outside the tested subject.
 
 ---
 
-_Verified: 2026-09-10T04:14:28Z_  
+_Verified: 2026-09-10T19:09:17Z_
 _Verifier: the agent (gsd-verifier)_
