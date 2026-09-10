@@ -44,7 +44,8 @@ defmodule Rindle.InstallSmoke.NightlyPolicyTest do
     assert evaluator["env"]["NEEDS_JSON"] == "${{ toJSON(needs) }}"
     assert evaluator["env"]["NIGHTLY_POLICY_JSON"] =~ "applicability_rule"
     assert evaluator["run"] =~ "bash scripts/ci/eval_nightly_summary.sh"
-    assert evaluator["run"] =~ ~s(echo "verdict-json=${verdict_json}" >> "$GITHUB_OUTPUT")
+    assert evaluator["run"] =~ ~s(echo "verdict-json=${verdict_json}")
+    assert evaluator["run"] =~ ~s(} >> "$GITHUB_OUTPUT")
     refute evaluator["continue-on-error"]
 
     enforcement = step(summary, "Enforce strict Nightly verdict")

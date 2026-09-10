@@ -134,10 +134,12 @@ jobs:
         id: nightly-evidence
         if: success()
         run: |
-          echo "applicable=true" >> "$GITHUB_OUTPUT"
-          echo "applicability-rule=always" >> "$GITHUB_OUTPUT"
-          echo "execution=passed" >> "$GITHUB_OUTPUT"
-          echo "inapplicability-reason=" >> "$GITHUB_OUTPUT"
+          {
+            echo "applicable=true"
+            echo "applicability-rule=always"
+            echo "execution=passed"
+            echo "inapplicability-reason="
+          } >> "$GITHUB_OUTPUT"
 
   # D-17: owned, GATING Dialyzer (extracted from ci.yml `quality`'s advisory
   # steps and removed from PR entirely). `mix dialyzer` runs WITHOUT
@@ -239,10 +241,12 @@ jobs:
         id: nightly-evidence
         if: success()
         run: |
-          echo "applicable=true" >> "$GITHUB_OUTPUT"
-          echo "applicability-rule=always" >> "$GITHUB_OUTPUT"
-          echo "execution=passed" >> "$GITHUB_OUTPUT"
-          echo "inapplicability-reason=" >> "$GITHUB_OUTPUT"
+          {
+            echo "applicable=true"
+            echo "applicability-rule=always"
+            echo "execution=passed"
+            echo "inapplicability-reason="
+          } >> "$GITHUB_OUTPUT"
 
   # D-14: GCS Soak — moved verbatim from ci.yml into the nightly lane. Real
   # bucket proof. A first step machine-checks upstream-repository identity plus
@@ -292,20 +296,22 @@ jobs:
         env:
           UPSTREAM_REPOSITORY: ${{ github.repository }}
         run: |
-          echo "applicability-rule=upstream-repository-and-required-secrets" >> "$GITHUB_OUTPUT"
-          if [ "${UPSTREAM_REPOSITORY}" != "szTheory/rindle" ]; then
-            echo "enabled=false" >> "$GITHUB_OUTPUT"
-            echo "applicable=false" >> "$GITHUB_OUTPUT"
-            echo "reason=not-upstream-repository" >> "$GITHUB_OUTPUT"
-          elif [ -z "${GOOGLE_APPLICATION_CREDENTIALS_JSON}" ] || [ -z "${RINDLE_GCS_BUCKET}" ]; then
-            echo "enabled=false" >> "$GITHUB_OUTPUT"
-            echo "applicable=false" >> "$GITHUB_OUTPUT"
-            echo "reason=required-secrets-unavailable" >> "$GITHUB_OUTPUT"
-          else
-            echo "enabled=true" >> "$GITHUB_OUTPUT"
-            echo "applicable=true" >> "$GITHUB_OUTPUT"
-            echo "reason=" >> "$GITHUB_OUTPUT"
-          fi
+          {
+            echo "applicability-rule=upstream-repository-and-required-secrets"
+            if [ "${UPSTREAM_REPOSITORY}" != "szTheory/rindle" ]; then
+              echo "enabled=false"
+              echo "applicable=false"
+              echo "reason=not-upstream-repository"
+            elif [ -z "${GOOGLE_APPLICATION_CREDENTIALS_JSON}" ] || [ -z "${RINDLE_GCS_BUCKET}" ]; then
+              echo "enabled=false"
+              echo "applicable=false"
+              echo "reason=required-secrets-unavailable"
+            else
+              echo "enabled=true"
+              echo "applicable=true"
+              echo "reason="
+            fi
+          } >> "$GITHUB_OUTPUT"
 
       - name: Skip live GCS soak when secrets are unavailable
         if: steps.gcs-live-config.outputs.enabled != 'true'
@@ -337,14 +343,16 @@ jobs:
         id: nightly-evidence
         if: success()
         run: |
-          echo "applicable=${{ steps.gcs-live-config.outputs.applicable }}" >> "$GITHUB_OUTPUT"
-          echo "applicability-rule=${{ steps.gcs-live-config.outputs.applicability-rule }}" >> "$GITHUB_OUTPUT"
-          if [ "${{ steps.gcs-live-config.outputs.enabled }}" = "true" ]; then
-            echo "execution=passed" >> "$GITHUB_OUTPUT"
-          else
-            echo "execution=not-run" >> "$GITHUB_OUTPUT"
-          fi
-          echo "inapplicability-reason=${{ steps.gcs-live-config.outputs.reason }}" >> "$GITHUB_OUTPUT"
+          {
+            echo "applicable=${{ steps.gcs-live-config.outputs.applicable }}"
+            echo "applicability-rule=${{ steps.gcs-live-config.outputs.applicability-rule }}"
+            if [ "${{ steps.gcs-live-config.outputs.enabled }}" = "true" ]; then
+              echo "execution=passed"
+            else
+              echo "execution=not-run"
+            fi
+            echo "inapplicability-reason=${{ steps.gcs-live-config.outputs.reason }}"
+          } >> "$GITHUB_OUTPUT"
 
   # D-14: Package Consumer GCS Live Proof — moved verbatim from ci.yml. The
   # job-level `continue-on-error: true` is DROPPED on the move so a live-GCS
@@ -394,20 +402,22 @@ jobs:
         env:
           UPSTREAM_REPOSITORY: ${{ github.repository }}
         run: |
-          echo "applicability-rule=upstream-repository-and-required-secrets" >> "$GITHUB_OUTPUT"
-          if [ "${UPSTREAM_REPOSITORY}" != "szTheory/rindle" ]; then
-            echo "enabled=false" >> "$GITHUB_OUTPUT"
-            echo "applicable=false" >> "$GITHUB_OUTPUT"
-            echo "reason=not-upstream-repository" >> "$GITHUB_OUTPUT"
-          elif [ -z "${GOOGLE_APPLICATION_CREDENTIALS_JSON}" ] || [ -z "${RINDLE_GCS_BUCKET}" ]; then
-            echo "enabled=false" >> "$GITHUB_OUTPUT"
-            echo "applicable=false" >> "$GITHUB_OUTPUT"
-            echo "reason=required-secrets-unavailable" >> "$GITHUB_OUTPUT"
-          else
-            echo "enabled=true" >> "$GITHUB_OUTPUT"
-            echo "applicable=true" >> "$GITHUB_OUTPUT"
-            echo "reason=" >> "$GITHUB_OUTPUT"
-          fi
+          {
+            echo "applicability-rule=upstream-repository-and-required-secrets"
+            if [ "${UPSTREAM_REPOSITORY}" != "szTheory/rindle" ]; then
+              echo "enabled=false"
+              echo "applicable=false"
+              echo "reason=not-upstream-repository"
+            elif [ -z "${GOOGLE_APPLICATION_CREDENTIALS_JSON}" ] || [ -z "${RINDLE_GCS_BUCKET}" ]; then
+              echo "enabled=false"
+              echo "applicable=false"
+              echo "reason=required-secrets-unavailable"
+            else
+              echo "enabled=true"
+              echo "applicable=true"
+              echo "reason="
+            fi
+          } >> "$GITHUB_OUTPUT"
 
       - name: Skip live package-consumer GCS proof when secrets are unavailable
         if: steps.gcs-live-config.outputs.enabled != 'true'
@@ -470,14 +480,16 @@ jobs:
         id: nightly-evidence
         if: success()
         run: |
-          echo "applicable=${{ steps.gcs-live-config.outputs.applicable }}" >> "$GITHUB_OUTPUT"
-          echo "applicability-rule=${{ steps.gcs-live-config.outputs.applicability-rule }}" >> "$GITHUB_OUTPUT"
-          if [ "${{ steps.gcs-live-config.outputs.enabled }}" = "true" ]; then
-            echo "execution=passed" >> "$GITHUB_OUTPUT"
-          else
-            echo "execution=not-run" >> "$GITHUB_OUTPUT"
-          fi
-          echo "inapplicability-reason=${{ steps.gcs-live-config.outputs.reason }}" >> "$GITHUB_OUTPUT"
+          {
+            echo "applicable=${{ steps.gcs-live-config.outputs.applicable }}"
+            echo "applicability-rule=${{ steps.gcs-live-config.outputs.applicability-rule }}"
+            if [ "${{ steps.gcs-live-config.outputs.enabled }}" = "true" ]; then
+              echo "execution=passed"
+            else
+              echo "execution=not-run"
+            fi
+            echo "inapplicability-reason=${{ steps.gcs-live-config.outputs.reason }}"
+          } >> "$GITHUB_OUTPUT"
 
   # D-09..D-11: Nightly has its own strict, fail-closed result/applicability
   # policy. Its machine verdict is exported for incident eligibility and also
@@ -510,9 +522,11 @@ jobs:
           NIGHTLY_VERDICT_JSON="${verdict_path}" bash scripts/ci/eval_nightly_summary.sh >/dev/null || status=$?
           verdict_json="$(jq -cS . "${verdict_path}")"
           verdict="$(jq -r .verdict "${verdict_path}")"
-          echo "verdict=${verdict}" >> "$GITHUB_OUTPUT"
-          echo "verdict-json=${verdict_json}" >> "$GITHUB_OUTPUT"
-          echo "evaluator-status=${status}" >> "$GITHUB_OUTPUT"
+          {
+            echo "verdict=${verdict}"
+            echo "verdict-json=${verdict_json}"
+            echo "evaluator-status=${status}"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Enforce strict Nightly verdict
         run: |
