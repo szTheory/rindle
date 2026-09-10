@@ -180,7 +180,7 @@ validate_local_authorities() {
 }
 
 verify_receipt_shape() {
-  local path="$1" expected_jobs
+  local path="$1" expected_jobs resolved_elixir resolved_otp cache_key
   expected_jobs="$(expected_job_names_json)"
   [ -s "$path" ] || die "receipt is missing or empty: $path"
   jq -e --arg repo "$repo" --arg workflow "$workflow" --arg ref "$remote_ref" --arg sha "$expected_sha" \
@@ -220,7 +220,6 @@ verify_receipt_shape() {
         (.name | type == "string") and .status == "completed" and .conclusion == "success")) and
     (.dialyzer | exact_keys(["cache_key","fresh","requested_elixir","requested_otp","resolved_elixir","resolved_otp","restored","stale_rebuilds"])) and
     .dialyzer.requested_elixir == "1.17" and .dialyzer.requested_otp == "27" and
-    (.dialyzer.resolved_elixir | contains("1.17")) and (.dialyzer.resolved_otp | contains("27")) and
     (.dialyzer.fresh | exact_keys(["analyses","builds","status"])) and
     .dialyzer.fresh == {analyses:1,builds:1,status:"pass"} and
     (.dialyzer.restored | exact_keys(["analyses","status"])) and
@@ -236,6 +235,19 @@ verify_receipt_shape() {
     .local_authorities.census.status == "pass" and .local_authorities.live_truth.status == "pass" and
     (.preflight | exact_keys(["remote_ref","repository","status","subject_sha","workflow"]))
   ' "$path" >/dev/null || die "receipt schema or evidence is invalid"
+
+  resolved_elixir="$(jq -er '.dialyzer.resolved_elixir | select(type == "string")' "$path")" ||
+    die "receipt resolved Elixir evidence is malformed"
+  parse_supported_elixir_version "$resolved_elixir" >/dev/null ||
+    die "receipt resolved Elixir toolchain is unsupported; expected 1.17.x"
+  resolved_otp="$(jq -er '.dialyzer.resolved_otp | select(type == "string")' "$path")" ||
+    die "receipt resolved OTP evidence is malformed"
+  parse_supported_otp_version "$resolved_otp" >/dev/null ||
+    die "receipt resolved OTP toolchain is unsupported; expected 27.x"
+  cache_key="$(jq -er '.dialyzer.cache_key | select(type == "string")' "$path")" ||
+    die "receipt PLT cache identity is malformed"
+  [[ "$cache_key" == *"$resolved_otp"* ]] || die "receipt PLT cache key omits resolved OTP identity"
+  [[ "$cache_key" == *"$resolved_elixir"* ]] || die "receipt PLT cache key omits resolved Elixir identity"
 }
 
 expected_remote_from_live() {
