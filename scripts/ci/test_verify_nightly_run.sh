@@ -42,7 +42,7 @@ run_case() {
     NIGHTLY_NOW=2026-09-09T12:00:00Z \
     bash "$collector" dispatch-and-record --repo szTheory/rindle --workflow nightly.yml \
       --ref phase-133-evidence-aaaaaaaaaaaa --expected-sha aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \
-      --receipt "${temp}/receipt.json" --poll-seconds 0 --timeout-seconds 2 >/dev/null 2>&1 || got=$?
+      --receipt "${temp}/receipt.json" --poll-seconds 0 --timeout-seconds 2 >"${temp}/output" 2>&1 || got=$?
 
   if [ "$state" = success ] && [ "$got" -eq 0 ]; then
     make_fake_local_authorities "${temp}/bin"
@@ -52,6 +52,14 @@ run_case() {
       bash "$collector" verify-receipt --repo szTheory/rindle --workflow nightly.yml \
         --ref phase-133-evidence-aaaaaaaaaaaa --expected-sha aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \
         --receipt "${temp}/receipt.json" >/dev/null 2>&1 || got=$?
+    if [ "$got" -eq 0 ]; then
+      PATH="${temp}/bin:${PATH}" FAKE_GH_LOG="${temp}/calls" FAKE_GH_COUNT_FILE="${temp}/count" \
+        FAKE_GH_RUN_LIST_COUNT_FILE="${temp}/run-list-count" \
+        FAKE_GH_STATE=success FAKE_AUTHORITY_STATE=success FAKE_AUTHORITY_LOG="${temp}/authority-calls" \
+        bash "$collector" verify-receipt --repo szTheory/rindle --workflow nightly.yml \
+          --ref phase-133-evidence-aaaaaaaaaaaa --expected-sha aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \
+          --receipt "${temp}/receipt.json" >/dev/null 2>&1 || got=$?
+    fi
   fi
 
   if [ "$got" -eq "$want_exit" ] && { [ "$want_exit" -eq 0 ] && cmp -s "${temp}/receipt.json" <(jq -S . "${temp}/receipt.json") || [ ! -e "${temp}/receipt.json" ]; }; then
@@ -64,10 +72,10 @@ run_case() {
     if [ "$(grep -c '^workflow run nightly.yml ' "${temp}/calls" || true)" -eq 1 ] &&
        [ "$(grep -c '^run view 9001 .* --job 6 --log$' "${temp}/calls" || true)" -ge 1 ] &&
        [ "$(grep -c '^run view 9001 .* --job 9 --log$' "${temp}/calls" || true)" -ge 1 ] &&
-       [ "$(grep -c '^issue list --repo szTheory/rindle --state open --label nightly-failure --limit 100 --json number,title,body,comments,updatedAt,url$' "${temp}/calls" || true)" -eq 3 ] &&
-       [ "$(grep -c '^mix run --no-deps-check --no-compile scripts/maintainer/evidence_census.exs --root ' "${temp}/authority-calls" || true)" -eq 1 ] &&
-       [ "$(grep -c '^mix run --no-deps-check --no-compile scripts/maintainer/validate_evidence_census.exs --root ' "${temp}/authority-calls" || true)" -eq 1 ] &&
-       [ "$(grep -c '^mix run --no-deps-check --no-compile -e Code.require_file("scripts/maintainer/validate_live_truth.exs")' "${temp}/authority-calls" || true)" -eq 1 ] &&
+       [ "$(grep -c '^issue list --repo szTheory/rindle --state open --label nightly-failure --limit 100 --json number,title,body,comments,updatedAt,url$' "${temp}/calls" || true)" -eq 4 ] &&
+       [ "$(grep -c '^mix run --no-deps-check --no-compile scripts/maintainer/evidence_census.exs --root ' "${temp}/authority-calls" || true)" -eq 2 ] &&
+       [ "$(grep -c '^mix run --no-deps-check --no-compile scripts/maintainer/validate_evidence_census.exs --root ' "${temp}/authority-calls" || true)" -eq 2 ] &&
+       [ "$(grep -c '^mix run --no-deps-check --no-compile -e Code.require_file("scripts/maintainer/validate_live_truth.exs")' "${temp}/authority-calls" || true)" -eq 2 ] &&
        ! grep -Eq '^(issue (create|comment|close|edit|delete)|run (cancel|rerun|delete))' "${temp}/calls"; then
       record "success argv is one dispatch plus read-only inspection" true
     else
@@ -84,6 +92,27 @@ run_case() {
       record "old history waits for and selects only the exact run" true
     else
       record "old history waits for and selects only the exact run" false "unexpected polling or selected-run argv"
+    fi
+  fi
+
+  if [ "$state" = multiple_post_boundary_matches ]; then
+    if [ "$(grep -c '^run list ' "${temp}/calls" || true)" -eq 1 ] &&
+       ! grep -Eq '^run (watch|view) ' "${temp}/calls" &&
+       grep -q 'ambiguous.*exact diagnostic run' "${temp}/output" &&
+       [ ! -e "${temp}/receipt.json" ]; then
+      record "multiple exact matches fail immediately before downstream calls" true
+    else
+      record "multiple exact matches fail immediately before downstream calls" false "ambiguity was not rejected at the selector boundary"
+    fi
+  fi
+
+  if [ "$state" = timeout ]; then
+    if [ "$(grep -c '^run list ' "${temp}/calls" || true)" -gt 1 ] &&
+       ! grep -Eq '^run (watch|view) ' "${temp}/calls" &&
+       [ ! -e "${temp}/receipt.json" ]; then
+      record "zero exact matches poll until timeout without a receipt" true
+    else
+      record "zero exact matches poll until timeout without a receipt" false "zero-match polling or receipt cleanup was incorrect"
     fi
   fi
   rm -rf "$temp"
@@ -200,6 +229,7 @@ fi
 
 run_case "exact first-attempt run writes canonical receipt" success 0
 run_case "older runs appear before the exact run" old_runs_then_exact 0
+run_case "multiple post-boundary exact matches are ambiguous" multiple_post_boundary_matches 1
 for state in foreign_repository foreign_workflow missing_ref foreign_sha foreign_run_sha foreign_run_ref \
   foreign_run_workflow rerun missing_job extra_job red_job skipped_job cancelled_job nonterminal red_run \
   missing_fresh missing_restored unsupported_elixir_11_17 unsupported_elixir_1_170 unsupported_otp_127 \
@@ -329,6 +359,11 @@ case "${1-} ${2-}" in
     [ "$state" != rerun ] || attempt=2
     [ "$state" != nonterminal ] || status=in_progress
     [ "$state" != red_run ] || conclusion=failure
+    if [ "$state" = multiple_post_boundary_matches ]; then
+      jq -cn --arg sha "$run_sha" --arg ref "$run_ref" --arg created "$created" \
+        '[{attempt:1,conclusion:"success",createdAt:$created,databaseId:9001,event:"workflow_dispatch",headBranch:$ref,headSha:$sha,status:"completed",url:"https://github.test/runs/9001",workflowName:"Nightly"},{attempt:1,conclusion:"success",createdAt:$created,databaseId:9002,event:"workflow_dispatch",headBranch:$ref,headSha:$sha,status:"completed",url:"https://github.test/runs/9002",workflowName:"Nightly"}]'
+      exit
+    fi
     jq -cn --argjson attempt "$attempt" --arg conclusion "$conclusion" --arg createdAt "$created" \
       --argjson databaseId "$run_id" --arg headBranch "$run_ref" --arg headSha "$run_sha" \
       --arg status "$status" --arg workflowName "$run_workflow" \
