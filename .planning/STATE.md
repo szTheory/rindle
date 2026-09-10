@@ -5,16 +5,16 @@ milestone_name: Pre-Adopter Readiness & Quality Consolidation
 current_phase: 133
 current_phase_name: Evidence Charter and Live Truth
 status: executing
-stopped_at: Completed 133-14-PLAN.md
-last_updated: "2026-09-10T21:31:02.261Z"
+stopped_at: Completed 133-15-PLAN.md
+last_updated: "2026-09-10T21:42:14.953Z"
 last_activity: 2026-09-10
 last_activity_desc: Phase 133 execution started
-state_head: 1f9d7c847d109a42dc77c862fe55802819f74551
+state_head: 8331c175a57a021aa9882654fe35b7835b09330b
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 17
-  completed_plans: 14
+  completed_plans: 15
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-09-09 for v1.26)
 ## Current Position
 
 Phase: 133 (Evidence Charter and Live Truth) — EXECUTING
-Plan: 15 of 17
+Plan: 16 of 17
 Status: Ready to execute
 Last activity: 2026-09-10 — Phase 133 execution started
 
@@ -64,6 +64,7 @@ Progress: [███████░░░] 65%
 | Phase 133 P12 | 6 min | 2 tasks | 2 files |
 | Phase 133 P13 | 10min | 2 tasks | 3 files |
 | Phase 133 P14 | 21min | 2 tasks | 3 files |
+| Phase 133 P15 | 8 min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -108,6 +109,8 @@ Progress: [███████░░░] 65%
 - [Phase 133]: Canonicalize observation locations only after lexical and component-wise symlink containment, with bounded non-disclosing diagnostics.
 - [Phase 133]: Keep filesystem paths outside canonical package receipts as untrusted locator context; derive authority from independently recomputed bytes and exact fields. — Arbitrary directories and filenames must not authenticate their own claims.
 - [Phase 133]: Reserve independent adoption and 1.0 authorization for the distinct repository-owned adopter allowlist, which remains empty. — Maintainer-operated synthetic proof cannot impersonate external adopter consent.
+- [Phase 133]: Bind release authority to exact parsed recovery, gate, checkout, CI-run, and publish semantics, with a pure exact-SHA completed-success evaluator.
+- [Phase 133]: Keep ci_required_checks.json as the sole required-check identity owner; shell arrays may only be runtime projections of its bytes.
 
 ### Pending Todos
 
@@ -131,6 +134,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-09-10T21:31:02.243Z
-Stopped at: Completed 133-14-PLAN.md
+Last session: 2026-09-10T21:42:14.934Z
+Stopped at: Completed 133-15-PLAN.md
 Resume file: None
