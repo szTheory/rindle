@@ -173,6 +173,42 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
     end
   end
 
+  @tag :derived_authority
+  test "active maintainer and adoption surfaces state the derived evidence classes" do
+    for path <- [
+          ".planning/INBOX-TRIAGE.md",
+          ".planning/JTBD-MAP.md",
+          "RUNNING.md",
+          "examples/adoption_demo/docs/adoption-proof-matrix.md"
+        ] do
+      full_path = Path.join(@repo_root, path)
+
+      assert :ok =
+               Rindle.ValidateLiveTruth.validate_claims!(
+                 Rindle.ValidateLiveTruth.derive!(@repo_root, []),
+                 [%{path: path, content: File.read!(full_path)}]
+               )
+    end
+
+    matrix = File.read!(Path.join(@repo_root, "examples/adoption_demo/docs/adoption-proof-matrix.md"))
+    running = File.read!(Path.join(@repo_root, "RUNNING.md"))
+
+    assert matrix =~ "Merge-blocking (`adoption-demo-e2e-smoke`)"
+    assert matrix =~ "Off-critical-path (`adoption-demo-e2e`)"
+    assert matrix =~ "maintainer-operated synthetic evidence"
+    assert matrix =~ "does not satisfy the named independent adopter"
+
+    assert running =~ "fresh and restored PLT modes"
+    assert running =~ "strict Nightly verdict"
+    assert running =~ "not-run rather than passed"
+
+    adoption_gate =
+      File.read!(Path.join(@repo_root, "scripts/maintainer/check_adoption_proof_matrix.sh"))
+
+    assert adoption_gate =~ "live_truth_parity_test.exs"
+    assert adoption_gate =~ "--only package_authority"
+  end
+
   @tag :package_authority
   @tag :minio
   test "fresh unpacked generated image consumer report authorizes package proof" do
