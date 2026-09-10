@@ -96,6 +96,50 @@ assert_case() {
   rm -rf "$case_root"
 }
 
+assert_approved_repo_reset() {
+  local name="approved repository PLT child resets from an external caller directory"
+  local case_root repo_fixture caller_dir fake_mix command_log dialyzer_log output status=0
+
+  case_root="$(mktemp -d "${TMPDIR:-/tmp}/rindle-dialyzer-approved.XXXXXX")"
+  repo_fixture="${case_root}/repo"
+  caller_dir="${case_root}/caller"
+  fake_mix="${case_root}/mix"
+  command_log="${case_root}/commands.log"
+  dialyzer_log="${case_root}/dialyzer.log"
+
+  mkdir -p "${repo_fixture}/scripts/ci" "${repo_fixture}/priv/plts" "${caller_dir}/priv/plts"
+  cp "$runner" "${repo_fixture}/scripts/ci/run_nightly_dialyzer.sh"
+  cp "${repo_root}/scripts/ci/fixtures/fake_nightly_dialyzer_mix.sh" "$fake_mix"
+  chmod +x "$fake_mix" "${repo_fixture}/scripts/ci/run_nightly_dialyzer.sh"
+  printf 'stale approved child\n' > "${repo_fixture}/priv/plts/dialyzer.plt"
+  printf 'preserve repository sibling\n' > "${repo_fixture}/priv/sibling.sentinel"
+  printf 'preserve caller child\n' > "${caller_dir}/priv/plts/caller.sentinel"
+
+  output="$(
+    cd "$caller_dir"
+    MIX_BIN="$fake_mix" \
+      DIALYZER_LOG="$dialyzer_log" \
+      RINDLE_DIALYZER_TEST_SCENARIO=success \
+      RINDLE_DIALYZER_COMMAND_LOG="$command_log" \
+      bash "${repo_fixture}/scripts/ci/run_nightly_dialyzer.sh" fresh 2>&1
+  )" || status=$?
+
+  if [ "$status" -ne 0 ]; then
+    fail_case "${name}: expected exit 0, got ${status}; output=${output}"
+  elif [ "$(cat "${repo_fixture}/priv/plts/dialyzer.plt" 2>/dev/null || true)" != "fresh fixture" ]; then
+    fail_case "${name}: approved child was not rebuilt"
+  elif [ ! -f "${repo_fixture}/priv/sibling.sentinel" ]; then
+    fail_case "${name}: repository sibling was removed"
+  elif [ ! -f "${caller_dir}/priv/plts/caller.sentinel" ]; then
+    fail_case "${name}: caller-directory child was removed"
+  else
+    pass_case "$name"
+  fi
+
+  rm -rf "$case_root"
+}
+
+assert_approved_repo_reset
 assert_case "fresh builds then analyzes once" fresh success 0 "dialyzer --plt|dialyzer --format github|"
 assert_case "valid restored PLT analyzes once" restored success 0 "dialyzer --format github|"
 assert_case "old restored PLT rebuilds and re-analyzes once" restored stale_then_success 0 "dialyzer --format github|dialyzer --plt|dialyzer --format github|"
