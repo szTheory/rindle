@@ -49,7 +49,7 @@ key-decisions:
 patterns-established:
   - "Evidence-class separation: built package, maintainer-operated synthetic host, and named independent adopter are never interchangeable."
   - "Historical preservation: explicit bounded markers exclude immutable receipts while active anchors derive from live authorities."
-requirements-completed: [EVID-01, EVID-02, EVID-03, EVID-04, TRUTH-08]
+requirements-completed: [EVID-01, EVID-03, TRUTH-08]
 coverage:
   - id: D1
     description: Active release, CI lane, Nightly applicability, package, and adoption claims match derived authority.
