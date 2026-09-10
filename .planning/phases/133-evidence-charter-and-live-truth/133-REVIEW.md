@@ -1,6 +1,6 @@
 ---
 phase: 133-evidence-charter-and-live-truth
-reviewed: 2026-09-10T04:05:12Z
+reviewed: 2026-09-10T19:01:57Z
 depth: standard
 files_reviewed: 24
 files_reviewed_list:
@@ -29,62 +29,90 @@ files_reviewed_list:
   - test/install_smoke/live_truth_parity_test.exs
   - test/install_smoke/nightly_policy_test.exs
 findings:
-  critical: 2
+  critical: 6
   warning: 1
   info: 0
-  total: 3
+  total: 7
 status: issues_found
 ---
 
 # Phase 133: Code Review Report
 
-**Reviewed:** 2026-09-10T04:05:12Z
+**Reviewed:** 2026-09-10T19:01:57Z
 **Depth:** standard
 **Files Reviewed:** 24
 **Status:** issues_found
 
 ## Summary
 
-The strict Nightly evaluator, incident mutation boundary, job-scoped log collection, and PLT cache key are generally fail-closed, and all four shell contract suites passed. However, two evidence-authority paths can accept forged data: package claims can opt themselves out of provenance validation, and the Nightly receipt verifier does not compare most persisted receipt fields with the live run. The supported-toolchain parser also uses substring matching rather than a version boundary.
+Phase 133 adds substantial negative-test coverage, but six correctness/data-loss/evidence-integrity defects remain. In particular, the Dialyzer helper can recursively delete an arbitrary caller-selected directory, the Nightly collector aborts when normal older dispatches are present, and several claimed authorities are still derived from mutable or self-asserted inputs rather than independently bound evidence.
+
+The four shell regression suites completed successfully and ShellCheck reported no warning-or-higher findings. The five focused ExUnit files could not be executed because the repository's configured `mix` toolchain is not installed in the current asdf environment; this does not affect the directly provable findings below.
 
 ## Narrative Findings (AI reviewer)
 
 ## Critical Issues
 
-### CR-01: Caller-controlled `validated` flag bypasses package provenance validation
+### CR-01: [BLOCKER] `PLT_DIR` permits recursive deletion outside the PLT directory
 
-**Classification:** BLOCKER
+**File:** `scripts/ci/run_nightly_dialyzer.sh:11-16,34-36`
 
-**File:** `scripts/maintainer/validate_live_truth.exs:263-291`
+**Issue:** `PLT_DIR` is caller-controlled, but the safety check rejects only the empty string, `/`, and `.`. Values such as `..`, `../..`, `/tmp`, or the repository's absolute root pass and are handed directly to `rm -rf`. A mistyped or inherited environment variable can therefore delete the parent checkout or another broad directory before Dialyzer runs. This is a data-loss risk, not merely a test-hook concern, because the production script advertises `PLT_DIR` as an override and calls `reset_plt` in both fresh and stale-cache paths.
 
-**Issue:** `validate_package_claim!/2` trusts any receipt carrying `validated: true` and skips `normalize_package_receipt!/1`. That flag is an ordinary caller-controlled map field, not an opaque type or signed capability. An Elixir caller can therefore submit only `%{validated: true, install_mode: "package", install_source: path, unpacked_path: path, deps_rindle_present: false}` and receive `:ok`, even when `path` does not exist and the receipt has no `proof_origin`, provenance record, generated-app root, exit codes, lifecycle result, or package metadata. This directly bypasses the checks at lines 349-426 and lets fabricated package evidence authorize package/adoption claims.
+**Fix:** Resolve the repository root and the candidate with physical paths, require the candidate to be the exact approved repository-relative PLT path (or a descendant of a dedicated temporary root), reject `..`/symlink escapes and all absolute paths outside that root, then delete only after the containment check. Prefer removing the production override entirely and injecting a temporary repository root in tests.
 
-**Fix:** Never trust a `validated` field from a claim. Always pass claim-supplied receipts through `normalize_package_receipt!/1`. If the normalized proof stored in `model.package_proof` needs an internal fast path, represent it with a private struct or validate claims against `model.package_proof` by identity rather than accepting a public boolean discriminator. Add a regression test that submits the minimal forged map above and requires rejection.
+### CR-02: [BLOCKER] Dispatch polling fails as soon as any older unrelated run exists
 
-### CR-02: Receipt revalidation accepts forged jobs, timestamps, verdict provenance, incidents, and local authorities
+**File:** `scripts/ci/verify_nightly_run.sh:364-385`
 
-**Classification:** BLOCKER
+**Issue:** Immediately after dispatch, `gh run list` may not yet include the new run because GitHub's listing is eventually consistent. The code nevertheless dies whenever the list is non-empty and the exact new run has not appeared. A repository with any prior `workflow_dispatch` run therefore takes the `foreign workflow/ref/SHA identity` branch on the first poll instead of waiting for the just-dispatched run. The fake timeout case returns an empty list, so the regression suite does not exercise the normal “old runs visible, new run not visible yet” state.
 
-**File:** `scripts/ci/verify_nightly_run.sh:149-184`
+**Fix:** Ignore nonmatching historical runs during the bounded polling window. Continue polling while the exact post-boundary match count is zero; accept exactly one qualifying match; fail explicitly on more than one post-boundary qualifying match; and time out only at the deadline. Add a fake state that returns unrelated old runs for at least one poll before exposing the new exact run.
 
-**Issue:** `verify_receipt_shape` checks only broad types/statuses for most receipt fields, while `verify-receipt` compares live GitHub data only for `run_id` and the derived Dialyzer object. It never compares the receipt's `created_at` or `jobs` (names and IDs included) to `live_run`, never validates `strict_verdict.summary_job`, and never re-establishes or cryptographically binds the incident snapshots and local-authority payloads. A reproduced test using the repository's fake `gh` changed the timestamp to 2020, replaced all ten jobs with `{name:"forged",id:0}`, changed the summary job to `forged`, replaced both incident snapshots with empty arrays, and added forged authority fields; `verify-receipt` still printed `Nightly receipt valid`. This makes the advertised independent receipt revalidation unable to detect material evidence tampering.
+### CR-03: [BLOCKER] Package and adoption authority is forgeable from arbitrary directories and self-reported booleans
 
-**Fix:** Derive a canonical expected receipt projection from `live_run` and job-scoped logs, then compare every remotely reproducible field byte-for-byte (`created_at`, sorted jobs including IDs/names/status/conclusion, run identity, and strict-verdict source). For local authorities and before/after incident snapshots that cannot be reconstructed later, bind their canonical JSON into a digest created during collection and anchored in a separately authoritative artifact, or explicitly re-run/re-query those authorities during verification. At minimum, require exact object key sets and exact job names/IDs, and add a mutation matrix covering every persisted field.
+**File:** `scripts/maintainer/validate_live_truth.exs:263-289,344-421,437-459`
+
+**Issue:** The validator treats an untrusted map as authoritative when it contains the literal `proof_origin`, points at any two existing directories, places files named `hex_metadata.config` and `mix.exs` in one of them, and self-reports zero exit codes plus `lifecycle_proved: true`. It never authenticates the receipt, binds it to a subject/package digest, verifies the unpacked package version/content, or proves that the generated application actually depended on that package. The repository's own `package_receipt_fixture!` demonstrates this shape using freshly created arbitrary directories and fake file contents. The same forgeable receipt can then be labeled `independent-adopter` with any nonempty name and `authorizes_1_0: true`, which the adoption branch accepts.
+
+**Fix:** Make the evidence producer write a canonical receipt containing immutable subject SHA, package tarball/content digest, generated-app dependency lock/source, command argv, and captured results; verify those fields against the filesystem and Git/package authorities rather than trusting booleans. Independent-adopter authority needs a distinct authenticated evidence type and allowlisted identity/provenance, not a caller-provided name on the package receipt.
+
+### CR-04: [BLOCKER] Receipt revalidation binds to a mutable current-worktree ledger
+
+**File:** `scripts/ci/verify_nightly_run.sh:275-316`
+
+**Issue:** Although validator source files are loaded from a detached worktree at `expected_sha`, both census commands consume `133-EVIDENCE-CENSUS.json` from `project_root`, i.e. the caller's current mutable working tree. The Nightly receipt stores only `{status:"pass"}` for these authorities and no ledger blob/digest/commit identity. Editing or replacing the post-subject ledger therefore changes what a historical receipt means, and a jointly forged ledger/receipt can be revalidated without any mismatch to the immutable Nightly subject. Exact-subject script execution does not make an external mutable input immutable.
+
+**Fix:** Bind the exact ledger bytes into the receipt with a SHA-256 plus immutable Git blob/commit identity, materialize that ledger from the recorded Git object during revalidation, and compare the newly generated detailed census receipt exactly. Reject dirty or untracked ledger sources; do not read authority data from the caller's working tree.
+
+### CR-05: [BLOCKER] Any inapplicable dimension disables the repository-owned detector registry check globally
+
+**File:** `scripts/maintainer/validate_evidence_census.exs:158-190`
+
+**Issue:** The hard-coded detector registry is compared only when every taxonomy dimension is applicable. Marking one dimension inapplicable makes the condition false and disables registry verification for all remaining dimensions. A forged ledger can then replace commands and inputs for supposedly applicable detectors (for example, replace `mix test` with a no-op), adjust its internally owned candidate/baseline records, recollect, and still validate. The minimal test fixture relies on precisely this global bypass, so existing tests normalize rather than detect it.
+
+**Fix:** Validate every applicable dimension's detector IDs, command, and inputs against the corresponding entries in `@detector_registry`, and separately require an explicit repository-owned allowlist for dimensions that may be inapplicable. Never gate the entire registry comparison on `Enum.all?(taxonomy, & &1["applicable"])`. Add a test with one inapplicable dimension and a mutated detector in another dimension.
+
+### CR-06: [BLOCKER] Release coupling “authority” is satisfied by inert text
+
+**File:** `scripts/maintainer/validate_live_truth.exs:514-531`
+
+**Issue:** `exact_sha_release_coupling?/1` declares the release gate valid when four substrings occur anywhere in `release.yml`; they can remain in comments or an unreachable script after the actual gate is removed. `sole_required_check?/1` similarly uses an unanchored regex over shell source and can match commented/dead text without proving what the script applies. Consequently the derived model can report exact-SHA release coupling and sole-check enforcement while neither behavior exists.
+
+**Fix:** Parse the release workflow and assert the executable job/step structure and expressions, and exercise the release-gate evaluator with qualifying and mismatched SHA fixtures. For branch protection, move required-check calculation into a pure structured producer/evaluator and validate its actual output/argv; at minimum anchor parsing to the live assignment and reject duplicate/comment-only matches.
 
 ## Warnings
 
-### WR-01: Supported toolchain checks accept unrelated versions containing `1.17` and `27`
+### WR-01: [WARNING] “Repository-relative” observation locations permit parent traversal
 
-**Classification:** WARNING
+**File:** `scripts/maintainer/evidence_census.exs:94-106,259-266`; `scripts/maintainer/validate_evidence_census.exs:203-208`
 
-**File:** `scripts/ci/verify_nightly_run.sh:112-121,158-160`
+**Issue:** Observation locations reject absolute paths but accept relative traversal such as `../../outside` because `Path.type/1 == :relative` does not imply containment. The generated receipt can therefore describe evidence outside the repository while claiming repository-relative provenance. Input paths already use an expansion-and-containment check, so the two path boundaries are inconsistent.
 
-**Issue:** Collection uses unanchored Bash regexes (`=~ 1\.17` and `=~ 27`), and receipt validation uses `contains("1.17")` / `contains("27")`. Versions such as Elixir `11.17.0` or `1.170.0` and OTP `127.0` satisfy these checks, and a cache key containing those same strings also satisfies the identity assertions. The collector could therefore label a non-supported toolchain as the required 1.17/27 cell if setup output ever drifts unexpectedly; the current `unsupported_toolchain` test only covers missing version output, not near-match versions.
-
-**Fix:** Parse and validate explicit version grammar and major/minor boundaries, for example `^1\.17(?:\.[0-9]+)*(?:-otp-[0-9]+)?$` for the resolved Elixir value and `^27(?:\.[0-9]+)*$` for OTP (adjusted to the exact setup-beam output format). Apply the same boundary rules in `verify_receipt_shape`, and add near-match rejection cases (`11.17`, `1.170`, `127`).
+**Fix:** Apply the same normalized containment rule used for detector inputs to observation locations (including rejection of `..` escapes and, where filesystem resolution matters, symlink escapes), and add collector/validator mutation tests for parent traversal.
 
 ---
 
-_Reviewed: 2026-09-10T04:05:12Z_
+_Reviewed: 2026-09-10T19:01:57Z_
 _Reviewer: the agent (gsd-code-reviewer)_
 _Depth: standard_
