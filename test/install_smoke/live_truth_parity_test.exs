@@ -273,14 +273,37 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
       ])
     end
 
+    forged_provenance_receipt =
+      Map.merge(forged_receipt, %{
+        proof_origin: "generated-app-helper",
+        generated_app_root: "#{nonexistent_path}-consumer",
+        package_root_provenance: %{
+          path: nonexistent_path,
+          unpacked?: true,
+          repository_path_fallback?: false
+        },
+        repository_path_fallback: false,
+        prebuilt_local_fallback: false,
+        compile_exit_code: 0,
+        boot_exit_code: 0,
+        smoke_exit_code: 0,
+        lifecycle_proved: true
+      })
+
+    assert_raise ArgumentError, ~r/unpacked package path does not exist/, fn ->
+      Rindle.ValidateLiveTruth.validate_claims!(model, [
+        %{type: :package, receipt: forged_provenance_receipt}
+      ])
+    end
+
     receipt_path = "#{nonexistent_path}-receipt.json"
     claims_path = "#{nonexistent_path}-claims.json"
-    File.write!(receipt_path, Jason.encode!(forged_receipt))
+    File.write!(receipt_path, Jason.encode!(forged_provenance_receipt))
     File.write!(claims_path, Jason.encode!([%{type: "package"}]))
     on_exit(fn -> File.rm(receipt_path) end)
     on_exit(fn -> File.rm(claims_path) end)
 
-    assert_raise ArgumentError, ~r/package proof is not a generated consumer report/, fn ->
+    assert_raise ArgumentError, ~r/unpacked package path does not exist/, fn ->
       Rindle.ValidateLiveTruth.run([
         "--root",
         @repo_root,
