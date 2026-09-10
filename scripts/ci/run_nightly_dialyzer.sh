@@ -118,6 +118,10 @@ run_analysis() {
   fi
 }
 
+# Reject an escaped physical PLT path before either mode can invoke Mix. The
+# reset helper repeats the same guard immediately before recursive deletion.
+require_contained_plt_dir
+
 if [ "$mode" = "fresh" ]; then
   reset_plt
   build_plt
