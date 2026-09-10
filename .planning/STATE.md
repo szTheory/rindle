@@ -5,16 +5,16 @@ milestone_name: Pre-Adopter Readiness & Quality Consolidation
 current_phase: 133
 current_phase_name: Evidence Charter and Live Truth
 status: executing
-stopped_at: Completed 133-08-PLAN.md
-last_updated: "2026-09-10T15:13:25.317Z"
+stopped_at: Completed 133-09-PLAN.md
+last_updated: "2026-09-10T16:36:34.293Z"
 last_activity: 2026-09-10
-last_activity_desc: Completed Phase 133 Plan 08 package-proof authority closure
-state_head: 933e35f26f1f003d0bc4cabd7bf5f06bdb94eec7
+last_activity_desc: Completed Phase 133 Plan 09 independently verifiable Nightly receipt closure
+state_head: 1a4f05e3039a18b7dd8f7ee6919a822cbbfc5a18
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 10
-  completed_plans: 8
+  completed_plans: 9
 ---
 
 # Project State
@@ -29,11 +29,11 @@ See: .planning/PROJECT.md (updated 2026-09-09 for v1.26)
 ## Current Position
 
 Phase: 133 (Evidence Charter and Live Truth) — EXECUTING
-Plan: 9 of 10
+Plan: 10 of 10
 Status: Ready to execute
-Last activity: 2026-09-10 — Completed Plan 08 package-proof authority closure
+Last activity: 2026-09-10 — Completed Plan 09 independently verifiable Nightly receipt closure
 
-Progress: [████████░░] 80%
+Progress: [█████████░] 90%
 
 ## Performance Metrics
 
@@ -58,6 +58,7 @@ Progress: [████████░░] 80%
 | Phase 133 P06 | 28min | 2 tasks | 10 files |
 | Phase 133 P07 | 62min | 3 tasks | 3 files |
 | Phase 133 P08 | 11min | 1 tasks | 2 files |
+| Phase 133 P09 | 77min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -87,6 +88,9 @@ Progress: [████████░░] 80%
 - [Phase 133]: Keep the Nightly receipt bound to census subject 4f83e153eb7e rather than the later receipt commit.
 - [Phase 133]: Normalize every inline or model-held package receipt at validate_package_claim!/2, regardless of caller-supplied map fields.
 - [Phase 133]: Remove the validated marker from normalized proof data so normalized authority cannot be replayed as public input.
+- [Phase 133]: Normalize GitHub's expanded job objects to the exact four persisted job fields before receipt equality.
+- [Phase 133]: Treat incident drift as stale evidence; verify-receipt never reconciles it through mutation.
+- [Phase 133]: Revalidate census and live truth through fixed repository-owned commands from the detached receipt subject.
 
 ### Pending Todos
 
@@ -110,6 +114,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-09-10T15:13:25.302Z
-Stopped at: Completed 133-08-PLAN.md
+Last session: 2026-09-10T16:36:34.279Z
+Stopped at: Completed 133-09-PLAN.md
 Resume file: None
