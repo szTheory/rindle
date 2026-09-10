@@ -124,19 +124,22 @@ defmodule Rindle.InstallSmoke.CiCacheHygieneTest do
            "PLT restore must not fall back across dependency locks (CACHE-03)"
   end
 
-  test "CACHE-03: the PLT save step is guarded on cache-miss, never if: always()", %{
+  test "CACHE-03: the fresh PLT is saved before exact restore, never if: always()", %{
     nightly: nightly
   } do
-    # Scope to the `Save PLT cache` step block only — `if: always()` legitimately
-    # appears elsewhere (the advisory nightly-summary job), so the refute must not
-    # scan the whole file. The save step itself must carry the cache-miss guard.
+    # Fresh construction is now unconditional evidence. Save it before clearing
+    # the local PLT and restoring that same exact key for the independent restored
+    # analysis; `if: always()` would still permit saving after failed analysis.
     save_step = plt_save_step(nightly)
+    {fresh_position, _} = :binary.match(nightly, "run_nightly_dialyzer.sh fresh")
+    {save_position, _} = :binary.match(nightly, "- name: Save PLT cache")
+    {restore_position, _} = :binary.match(nightly, "- name: Restore exact PLT cache")
 
-    assert save_step =~ "if: steps.plt_cache.outputs.cache-hit != 'true'",
-           "PLT save must be guarded on a cache miss (CACHE-03)"
+    assert fresh_position < save_position and save_position < restore_position,
+           "fresh analysis must precede PLT save, which must precede exact restore (CACHE-03)"
 
     refute save_step =~ "if: always()",
-           "the PLT save step must NOT use `if: always()` — it is cache-miss guarded (CACHE-03)"
+           "the PLT save step must NOT use `if: always()` (CACHE-03)"
   end
 
   # CACHE-05: .tool-versions pins, FFmpeg retirement, version-invariant lint guard.

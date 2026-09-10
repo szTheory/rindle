@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # Deterministic regression matrix for the supported Nightly Dialyzer runner.
+# shellcheck disable=SC2016 # GitHub expressions are asserted as literal text.
 set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -134,7 +135,7 @@ assert_contains "PLT key retains input hashes" "$nightly_workflow" "hashFiles('m
 assert_not_contains "PLT key rejects requested-only identity" "$nightly_workflow" "otp27-elixir1.17"
 assert_not_contains "PLT restore has no cross-toolchain fallback" "$nightly_workflow" "restore-keys:"
 assert_order "fresh evidence precedes cache save" "$nightly_workflow" "run_nightly_dialyzer.sh fresh" "- name: Save PLT cache"
-assert_order "exact restore precedes restored evidence" "$nightly_workflow" "- name: Restore PLT cache" "run_nightly_dialyzer.sh restored"
+assert_order "exact restore precedes restored evidence" "$nightly_workflow" "- name: Restore exact PLT cache" "run_nightly_dialyzer.sh restored"
 
 echo "—"
 echo "passed: ${pass}  failed: ${fail}"

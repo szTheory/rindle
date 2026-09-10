@@ -132,12 +132,10 @@ jobs:
   # advisory ignore baseline. MTTD ≈ 24h is acceptable for a contract-confidence
   # signal (the merge-blocking ExUnit suite still catches behavior on every PR).
   #
-  # SINGLE-CELL job (1.17/27 home cell) — NOT a strategy.matrix. The PLT-key
-  # OTP/Elixir segment therefore uses the job's LITERAL cell values
-  # (`otp27-elixir1.17`), NEVER a bare `${{ matrix.otp }}` / `${{ matrix.elixir }}`
-  # reference: those render to empty strings in a non-matrix job and would
-  # collapse every PLT lineage into one poisoned key. The Phase-104 split keys on
-  # matrix.* only because `quality` IS a matrix job.
+  # SINGLE-CELL job (1.17/27 home cell) — NOT a strategy.matrix. The requested
+  # support labels remain fixed, while setup-elixir's exact installed patch
+  # outputs identify the PLT bytes. Fresh and restored evidence are separate
+  # commands so neither path can substitute for the other.
   dialyzer:
     name: Dialyzer
     runs-on: ubuntu-22.04
@@ -183,43 +181,40 @@ jobs:
       - name: Install dependencies
         run: mix deps.get
 
-      # D-20: reuse the Phase-104 PLT restore/save SHAPE (restore → create-dir →
-      # build-plt → save-BEFORE-analysis). The exact dependency lock belongs in
-      # the key because Dialyzer PLTs encode dependency BEAM types; restoring a
-      # prefix-matched PLT from another lock can produce an unusable old PLT. The
-      # OTP/Elixir
-      # segment is the LITERAL home cell `otp27-elixir1.17` (single-cell job — see
-      # the job comment); the segment remains literal because this is not a
-      # matrix job.
-      - name: Restore PLT cache
+      # D-06: cold construction is always exercised first and cannot consume a
+      # restored PLT. The runner deletes only priv/plts, builds, then analyzes.
+      - name: Dialyzer (fresh PLT)
+        run: bash scripts/ci/run_nightly_dialyzer.sh fresh
+
+      # Exact installed patch versions prevent the #93 PLT from being restored
+      # under #101's newer OTP patch. Input hashes remain part of the identity,
+      # and no restore prefix permits a cross-toolchain or cross-input fallback.
+      - name: Save PLT cache
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: priv/plts
+          key: plt-v3-${{ runner.os }}-${{ runner.arch }}-otp${{ steps.setup.outputs.resolved-otp-version }}-elixir${{ steps.setup.outputs.resolved-elixir-version }}-${{ hashFiles('mix.exs', 'mix.lock', '.dialyzer_ignore.exs') }}
+
+      - name: Remove fresh PLT before restore proof
+        run: rm -rf priv/plts
+
+      - name: Restore exact PLT cache
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         id: plt_cache
         with:
           path: priv/plts
-          key: plt-v2-${{ runner.os }}-${{ runner.arch }}-otp27-elixir1.17-${{ hashFiles('mix.exs', 'mix.lock', '.dialyzer_ignore.exs') }}
+          key: plt-v3-${{ runner.os }}-${{ runner.arch }}-otp${{ steps.setup.outputs.resolved-otp-version }}-elixir${{ steps.setup.outputs.resolved-elixir-version }}-${{ hashFiles('mix.exs', 'mix.lock', '.dialyzer_ignore.exs') }}
 
-      - name: Create PLT directory
+      - name: Require exact PLT restore
         if: steps.plt_cache.outputs.cache-hit != 'true'
-        run: mkdir -p priv/plts
+        run: |
+          echo "Exact PLT cache restore failed; restored evidence cannot be substituted." >&2
+          exit 1
 
-      - name: Build PLT
-        if: steps.plt_cache.outputs.cache-hit != 'true'
-        run: mix dialyzer --plt
-
-      # Save the built PLT BEFORE the gating analysis below so the multi-minute
-      # PLT persists across runs even if `mix dialyzer` fails. Guarded
-      # `cache-hit != 'true'` — NOT `if: always()`.
-      - name: Save PLT cache
-        if: steps.plt_cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: priv/plts
-          key: plt-v2-${{ runner.os }}-${{ runner.arch }}-otp27-elixir1.17-${{ hashFiles('mix.exs', 'mix.lock', '.dialyzer_ignore.exs') }}
-
-      # D-17: GATING — NO continue-on-error. A type-contract regression or
-      # ignore-file drift fails the nightly lane.
-      - name: Dialyzer
-        run: mix dialyzer --format github
+      # D-07: valid restores analyze directly. Only the exact observed old-PLT
+      # fingerprint gets one local rebuild; warnings and unknown failures stay red.
+      - name: Dialyzer (restored PLT)
+        run: bash scripts/ci/run_nightly_dialyzer.sh restored
 
   # D-14: GCS Soak — moved verbatim from ci.yml into the nightly lane. Real
   # bucket proof; runs on the upstream repo only (`if: github.repository ==`),
