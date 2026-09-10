@@ -5,16 +5,16 @@ milestone_name: Pre-Adopter Readiness & Quality Consolidation
 current_phase: 133
 current_phase_name: Evidence Charter and Live Truth
 status: executing
-stopped_at: Completed 133-15-PLAN.md
-last_updated: "2026-09-10T21:42:14.953Z"
+stopped_at: Completed 133-16-PLAN.md
+last_updated: "2026-09-10T22:04:18.320Z"
 last_activity: 2026-09-10
 last_activity_desc: Phase 133 execution started
-state_head: 8331c175a57a021aa9882654fe35b7835b09330b
+state_head: 807ba430eaa56ccf21a6bb17fd14be7bc60bd86e
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 17
-  completed_plans: 15
+  completed_plans: 16
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-09-09 for v1.26)
 ## Current Position
 
 Phase: 133 (Evidence Charter and Live Truth) — EXECUTING
-Plan: 16 of 17
+Plan: 17 of 17
 Status: Ready to execute
 Last activity: 2026-09-10 — Phase 133 execution started
 
@@ -65,6 +65,7 @@ Progress: [███████░░░] 65%
 | Phase 133 P13 | 10min | 2 tasks | 3 files |
 | Phase 133 P14 | 21min | 2 tasks | 3 files |
 | Phase 133 P15 | 8 min | 2 tasks | 4 files |
+| Phase 133 P16 | 18min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -111,6 +112,9 @@ Progress: [███████░░░] 65%
 - [Phase 133]: Reserve independent adoption and 1.0 authorization for the distinct repository-owned adopter allowlist, which remains empty. — Maintainer-operated synthetic proof cannot impersonate external adopter consent.
 - [Phase 133]: Bind release authority to exact parsed recovery, gate, checkout, CI-run, and publish semantics, with a pure exact-SHA completed-success evaluator.
 - [Phase 133]: Keep ci_required_checks.json as the sole required-check identity owner; shell arrays may only be runtime projections of its bytes.
+- [Phase 133]: Keep census ledger commit and Nightly subject as separate explicit identities. — This preserves the frozen ledger's anti-self-reference design while authenticating both objects independently.
+- [Phase 133]: Verify stored census authority only from recorded commit:path bytes. — Caller-worktree edits cannot redefine historical evidence; collection alone requires the canonical ledger to be tracked and clean.
+- [Phase 133]: Exclude ephemeral authority_root from the canonical live-truth digest. — Temporary filesystem locations are locator context, not semantic exact-subject authority.
 
 ### Pending Todos
 
@@ -134,6 +138,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-09-10T21:42:14.934Z
-Stopped at: Completed 133-15-PLAN.md
+Last session: 2026-09-10T22:04:18.303Z
+Stopped at: Completed 133-16-PLAN.md
 Resume file: None
