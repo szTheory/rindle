@@ -4,17 +4,17 @@ milestone: v1.26
 milestone_name: Pre-Adopter Readiness & Quality Consolidation
 current_phase: 133
 current_phase_name: Evidence Charter and Live Truth
-status: executing
-stopped_at: Completed 133-06-PLAN.md
-last_updated: "2026-09-10T02:16:38.481Z"
+status: verifying
+stopped_at: Completed 133-07-PLAN.md
+last_updated: "2026-09-10T03:29:08.284Z"
 last_activity: 2026-09-09
-last_activity_desc: Completed Phase 133 Plan 06 evidence reconciliation and local closure
-state_head: a0e5cf150263fb7bedd7153a515cedbb6f8b9883
+last_activity_desc: Completed Phase 133 Plan 07 exact-subject Nightly evidence collection
+state_head: 625b7d30ecea11299789b9ecfd300c4c4947af9e
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 7
-  completed_plans: 6
+  completed_plans: 7
 ---
 
 # Project State
@@ -28,12 +28,12 @@ See: .planning/PROJECT.md (updated 2026-09-09 for v1.26)
 
 ## Current Position
 
-Phase: 133 (Evidence Charter and Live Truth) — EXECUTING
+Phase: 133 (Evidence Charter and Live Truth) — VERIFYING
 Plan: 7 of 7
-Status: Ready to execute
-Last activity: 2026-09-09 — Completed Plan 06 evidence reconciliation and local closure
+Status: Phase complete — ready for verification
+Last activity: 2026-09-09 — Completed Plan 07 exact-subject Nightly evidence collection
 
-Progress: [█████████░] 86%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -56,6 +56,7 @@ Progress: [█████████░] 86%
 | Phase 133 P04 | 13min | 2 tasks | 6 files |
 | Phase 133 P05 | 21min | 2 tasks | 2 files |
 | Phase 133 P06 | 28min | 2 tasks | 10 files |
+| Phase 133 P07 | 62min | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -80,6 +81,9 @@ Progress: [█████████░] 86%
 - [Phase 133]: Run derived truth and real unpacked-package authority before supplementary adoption-matrix copy diagnostics.
 - [Phase 133]: Freeze the Phase 133 census against pre-ledger subject 4f83e15 to avoid SHA self-reference.
 - [Phase 133]: Keep local newer-toolchain results diagnostic; Plan 07 owns supported-cell exact-run acceptance.
+- [Phase 133]: Read supported toolchain/cache markers only from exact validated job IDs.
+- [Phase 133]: Treat GitHub's expanded strict-verdict enforcement command as the live marker because GITHUB_OUTPUT writes are masked.
+- [Phase 133]: Keep the Nightly receipt bound to census subject 4f83e153eb7e rather than the later receipt commit.
 
 ### Pending Todos
 
@@ -103,6 +107,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-09-10T02:16:38.458Z
-Stopped at: Completed 133-06-PLAN.md
+Last session: 2026-09-10T03:29:08.257Z
+Stopped at: Completed 133-07-PLAN.md
 Resume file: None
