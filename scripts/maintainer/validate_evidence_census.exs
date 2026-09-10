@@ -16,6 +16,9 @@ defmodule Rindle.ValidateEvidenceCensus do
     "repository hygiene"
   ]
   @dispositions ["fix", "retain", "defer"]
+  @inapplicable_dimensions %{
+    "performance" => "not exercised by the minimal tracer fixture"
+  }
   @detector_registry [
     {"default-exunit", "correctness", "mix test", ["mix.exs"]},
     {"credo-quality", "maintainability", "mix credo_quality",
@@ -133,8 +136,11 @@ defmodule Rindle.ValidateEvidenceCensus do
       length(ids) != length(Enum.uniq(ids)) ->
         {:error, "taxonomy contains duplicate dimensions"}
 
-      not Enum.all?(taxonomy, &valid_taxonomy_record?/1) ->
+      not Enum.all?(taxonomy, &valid_taxonomy_shape?/1) ->
         {:error, "taxonomy applicability record is incomplete"}
+
+      not Enum.all?(taxonomy, &authorized_applicability?/1) ->
+        {:error, "taxonomy inapplicability is not repository-authorized"}
 
       true ->
         :ok
@@ -143,17 +149,27 @@ defmodule Rindle.ValidateEvidenceCensus do
 
   defp validate_taxonomy(_), do: {:error, "taxonomy must be an array"}
 
-  defp valid_taxonomy_record?(%{"applicable" => true, "detectors" => detectors}),
+  defp valid_taxonomy_shape?(%{"applicable" => true, "detectors" => detectors}),
     do: nonempty_unique_strings?(detectors)
 
-  defp valid_taxonomy_record?(%{
+  defp valid_taxonomy_shape?(%{
          "applicable" => false,
-         "detectors" => [],
+         "detectors" => []
+       }),
+       do: true
+
+  defp valid_taxonomy_shape?(_), do: false
+
+  defp authorized_applicability?(%{"applicable" => true}), do: true
+
+  defp authorized_applicability?(%{
+         "id" => dimension,
+         "applicable" => false,
          "rationale" => rationale
        }),
-       do: nonempty_string?(rationale)
+       do: Map.get(@inapplicable_dimensions, dimension) == rationale
 
-  defp valid_taxonomy_record?(_), do: false
+  defp authorized_applicability?(_), do: false
 
   defp validate_detectors(%{"taxonomy" => taxonomy, "detectors" => detectors})
        when is_list(detectors) and is_list(taxonomy) do
@@ -175,16 +191,14 @@ defmodule Rindle.ValidateEvidenceCensus do
       not Enum.all?(raw_observations, &integer_count_attributes?(&1["attributes"])) ->
         {:error, "observation count attributes must be integers"}
 
+      not valid_dimension_authority?(taxonomy, detectors) ->
+        {:error, "detector authority differs from repository-owned registry"}
+
       Enum.sort(detector_ids) != Enum.sort(declared_ids) ->
         {:error, "taxonomy detector assignment is not bijective"}
 
       not Enum.all?(detectors, &valid_detector?(&1, applicable)) ->
         {:error, "detector record is incomplete or assigned to an inapplicable dimension"}
-
-      Enum.all?(taxonomy, & &1["applicable"]) and
-          canonical_detector_registry(detectors) !=
-            canonical_detector_registry(@detector_registry) ->
-        {:error, "detector registry differs from repository-owned authority"}
 
       true ->
         :ok
@@ -198,6 +212,45 @@ defmodule Rindle.ValidateEvidenceCensus do
       nonempty_string?(detector["command"]) and nonempty_unique_strings?(detector["inputs"]) and
       is_list(detector["observations"]) and detector["observations"] != [] and
       Enum.all?(detector["observations"], &valid_observation?/1)
+  end
+
+  defp valid_dimension_authority?(taxonomy, detectors) do
+    detector_by_dimension = Map.new(detectors, &{&1["dimension"], &1})
+
+    registry_by_dimension =
+      Map.new(@detector_registry, fn {_id, dimension, _command, _inputs} = row ->
+        {dimension, row}
+      end)
+
+    Enum.all?(taxonomy, fn
+      %{"applicable" => false} ->
+        true
+
+      %{"id" => dimension, "applicable" => true, "detectors" => declared_ids} ->
+        case {Map.get(registry_by_dimension, dimension),
+              Map.get(detector_by_dimension, dimension)} do
+          {{id, ^dimension, command, inputs}, detector} when is_map(detector) ->
+            declared_ids == [id] and
+              canonical_detector_authority(detector) == %{
+                "id" => id,
+                "dimension" => dimension,
+                "command" => command,
+                "inputs" => Enum.sort(inputs)
+              }
+
+          _ ->
+            false
+        end
+
+      _ ->
+        false
+    end)
+  end
+
+  defp canonical_detector_authority(detector) do
+    detector
+    |> Map.take(["id", "dimension", "command", "inputs"])
+    |> Map.update("inputs", [], &Enum.sort/1)
   end
 
   defp valid_observation?(observation) do
@@ -221,18 +274,6 @@ defmodule Rindle.ValidateEvidenceCensus do
     do: Enum.all?(attributes, &integer_count_attributes?/1)
 
   defp integer_count_attributes?(_value), do: true
-
-  defp canonical_detector_registry(detectors) do
-    detectors
-    |> Enum.map(fn
-      {id, dimension, command, inputs} ->
-        %{"id" => id, "dimension" => dimension, "command" => command, "inputs" => inputs}
-
-      detector ->
-        Map.take(detector, ["id", "dimension", "command", "inputs"])
-    end)
-    |> Enum.sort_by(& &1["id"])
-  end
 
   defp validate_transition_contract(%{
          "candidate_baseline" => baseline,

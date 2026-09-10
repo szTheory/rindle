@@ -191,7 +191,7 @@ defmodule Rindle.InstallSmoke.EvidenceCensusTest do
     end)
 
     assert {_output, 0} = run_collector(fixture)
-    assert_invalid(fixture, "detector registry differs from repository-owned authority")
+    assert_invalid(fixture, "detector authority differs from repository-owned registry")
   end
 
   test "EVID-01: mixed applicability preserves exact authority for every applicable detector" do
@@ -202,21 +202,17 @@ defmodule Rindle.InstallSmoke.EvidenceCensusTest do
 
     for {field, replacement} <- [
           {"command", "opaque replacement"},
-          {"inputs", ["other-input"]},
+          {"inputs", ["mix.lock"]},
           {"id", "replacement-id"},
           {"dimension", "reliability"}
         ] do
       mutated = census_fixture!()
 
-      if field == "inputs" do
-        File.write!(Path.join(mutated.root, "other-input"), "replacement\n")
-      end
-
       mutate_json!(mutated.ledger, fn ledger ->
         put_in(ledger, ["detectors", Access.at(0), field], replacement)
       end)
 
-      assert {_output, 0} = run_collector(mutated, ["--allow-dirty-diagnostic"])
+      assert {_output, 0} = run_collector(mutated)
       assert_invalid(mutated, "detector authority differs from repository-owned registry")
     end
   end
@@ -514,7 +510,10 @@ defmodule Rindle.InstallSmoke.EvidenceCensusTest do
     end)
     |> update_in(["detectors"], &Enum.reject(&1, fn row -> row["dimension"] == dimension end))
     |> update_in(["candidates"], &Enum.reject(&1, fn row -> row["id"] == candidate_id end))
-    |> update_in(["candidate_baseline"], &Enum.reject(&1, fn row -> row["id"] == candidate_id end))
+    |> update_in(
+      ["candidate_baseline"],
+      &Enum.reject(&1, fn row -> row["id"] == candidate_id end)
+    )
   end
 
   defp run_collector(fixture, extra_args \\ []) do
