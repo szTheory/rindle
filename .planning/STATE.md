@@ -5,16 +5,16 @@ milestone_name: Pre-Adopter Readiness & Quality Consolidation
 current_phase: 133
 current_phase_name: Evidence Charter and Live Truth
 status: executing
-stopped_at: Completed 133-03-PLAN.md
-last_updated: "2026-09-10T00:51:29.491Z"
+stopped_at: Completed 133-04-PLAN.md
+last_updated: "2026-09-10T01:10:08.154Z"
 last_activity: 2026-09-09
 last_activity_desc: Phase 133 execution resumed (wave continue)
-state_head: e3bcb99406b8c5b5750012985d2336fe096e9c9d
+state_head: 4c2fbaa13da51f010d317d8431c54565e78d58ae
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 7
-  completed_plans: 3
+  completed_plans: 4
 ---
 
 # Project State
@@ -29,23 +29,23 @@ See: .planning/PROJECT.md (updated 2026-09-09 for v1.26)
 ## Current Position
 
 Phase: 133 (Evidence Charter and Live Truth) — EXECUTING
-Plan: 4 of 7
+Plan: 5 of 7
 Status: Ready to execute
 Last activity: 2026-09-09 — Phase 133 execution resumed (wave continue)
 
-Progress: [███░░░░░░░] 29%
+Progress: [██████░░░░] 57%
 
 ## Performance Metrics
 
 **Milestone velocity:**
 
-- Total plans completed: 2
-- Average duration: 20 min
-- Total execution time: 0.65 hours
+- Total plans completed: 4
+- Average duration: 16 min
+- Total execution time: 1.08 hours
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 133–139 | 2 | 39 min | 20 min |
+| 133–139 | 4 | 65 min | 16 min |
 **Per-Plan Metrics:**
 
 | Plan | Duration | Tasks | Files |
@@ -53,6 +53,7 @@ Progress: [███░░░░░░░] 29%
 | Phase 133 P01 | 27 min | 2 tasks | 3 files |
 | Phase 133 P02 | 12 min | 2 tasks | 7 files |
 | Phase 133 P03 | 13min | 2 tasks | 6 files |
+| Phase 133 P04 | 13min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -69,6 +70,9 @@ Progress: [███░░░░░░░] 29%
 - [Phase 133]: Keep Nightly's strict policy independent from the PR aggregate's intentional skip-as-pass semantics.
 - [Phase 133]: Allow Nightly inapplicability only under the named upstream-repository-and-required-secrets rule with bounded reasons.
 - [Phase 133]: Export the canonical Nightly verdict before terminal enforcement so incident consumers and workflow conclusion share one authority.
+- [Phase 133]: Treat every exact-label open incident as part of cardinality; duplicates fail closed.
+- [Phase 133]: Use run ID plus attempt as the stable incident evidence marker for idempotent retries.
+- [Phase 133]: Run lifecycle inspection under always() while pure policy limits mutations to scheduled current-main runs.
 
 ### Pending Todos
 
@@ -92,6 +96,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-09-10T00:51:29.479Z
-Stopped at: Completed 133-03-PLAN.md
+Last session: 2026-09-10T01:10:08.141Z
+Stopped at: Completed 133-04-PLAN.md
 Resume file: None
