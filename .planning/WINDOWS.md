@@ -2,9 +2,9 @@
 schema_version: 1
 open_count: 1
 waived_count: 2
-fixed_count: 15
-total_count: 18
-last_updated: 2026-09-10T02:13:16.387Z
+fixed_count: 17
+total_count: 20
+last_updated: 2026-09-10T22:05:07.060Z
 ---
 
 # Broken Windows Ledger
@@ -33,6 +33,8 @@ last_updated: 2026-09-10T02:13:16.387Z
 | 16 | 133 | stub | examples/adoption_demo/docs/adoption-proof-matrix.md | 43 | GCS resumable browser path remains an explicitly optional demo placeholder; live generated-app proof is separate. | open |  | 2026-09-10T02:11:37.821Z |  |
 | 17 | 133 | deviation | test/install_smoke/evidence_census_test.exs |  | Classified per-test unique census fixture writes for the async-safety guard. | fixed |  | 2026-09-10T02:12:36.558Z | 2026-09-10T02:13:07.278Z |
 | 18 | 133 | deviation | scripts/maintainer/evidence_census.exs |  | Corrected the census performance detector to the actual archived Phase 132 receipt. | fixed |  | 2026-09-10T02:13:07.391Z | 2026-09-10T02:13:16.387Z |
+| 19 | 133 | deviation | scripts/ci/verify_nightly_run.sh |  | Rejected empty generated census and live-truth JSON before canonical hashing | fixed |  | 2026-09-10T22:04:34.028Z | 2026-09-10T22:05:06.934Z |
+| 20 | 133 | deviation | scripts/ci/verify_nightly_run.sh |  | Restored detached Git identity for exact-subject validator execution | fixed |  | 2026-09-10T22:04:34.174Z | 2026-09-10T22:05:07.060Z |
 
 ````json
 [
@@ -251,6 +253,30 @@ last_updated: 2026-09-10T02:13:16.387Z
     "reason": "",
     "recorded_at": "2026-09-10T02:13:07.391Z",
     "resolved_at": "2026-09-10T02:13:16.387Z"
+  },
+  {
+    "id": 19,
+    "kind": "deviation",
+    "phase": "133",
+    "file": "scripts/ci/verify_nightly_run.sh",
+    "line": null,
+    "description": "Rejected empty generated census and live-truth JSON before canonical hashing",
+    "status": "fixed",
+    "reason": "",
+    "recorded_at": "2026-09-10T22:04:34.028Z",
+    "resolved_at": "2026-09-10T22:05:06.934Z"
+  },
+  {
+    "id": 20,
+    "kind": "deviation",
+    "phase": "133",
+    "file": "scripts/ci/verify_nightly_run.sh",
+    "line": null,
+    "description": "Restored detached Git identity for exact-subject validator execution",
+    "status": "fixed",
+    "reason": "",
+    "recorded_at": "2026-09-10T22:04:34.174Z",
+    "resolved_at": "2026-09-10T22:05:07.060Z"
   }
 ]
 ````
