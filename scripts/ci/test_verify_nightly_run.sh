@@ -216,6 +216,9 @@ requested Elixir mutation fails closed	.dialyzer.requested_elixir = "1.18"
 requested OTP mutation fails closed	.dialyzer.requested_otp = "28"
 resolved Elixir mutation fails closed	.dialyzer.resolved_elixir = "v1.17.4-otp-27"
 resolved OTP mutation fails closed	.dialyzer.resolved_otp = "OTP-27.3.4.18"
+resolved Elixir 11.17 near-match fails closed	.dialyzer.resolved_elixir = "v11.17.3-otp-27"
+resolved Elixir 1.170 near-match fails closed	.dialyzer.resolved_elixir = "v1.170.3-otp-27"
+resolved OTP 127 near-match fails closed	.dialyzer.resolved_otp = "OTP-127.3.4.17"
 cache key mutation fails closed	.dialyzer.cache_key += "-forged"
 fresh status mutation fails closed	.dialyzer.fresh.status = "fail"
 fresh builds mutation fails closed	.dialyzer.fresh.builds = 2
@@ -243,6 +246,12 @@ extra local-authority key fails closed	.local_authorities.extra = {"status":"pas
 extra census key fails closed	.local_authorities.census.extra = true
 extra live-truth key fails closed	.local_authorities.live_truth.extra = true
 MUTATIONS
+
+if grep -Eq 'contains\("1\.17"\)|contains\("27"\)' "$collector"; then
+  record "receipt validation has no substring toolchain fallback" false "found contains() version classification"
+else
+  record "receipt validation has no substring toolchain fallback" true
+fi
 
 verify_live_state_case "fresh incident drift fails closed" incident_verify_changed
 verify_live_state_case "local validator failure fails closed" local_validator_failure
