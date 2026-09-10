@@ -108,8 +108,7 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
       root,
       ".github/workflows/ci.yml",
       "      - adoption-demo-e2e-smoke\n",
-      "      - adoption-demo-e2e\n",
-      global: false
+      "      - adoption-demo-e2e\n"
     )
 
     assert_error(root, "CI Summary needs mismatch")
