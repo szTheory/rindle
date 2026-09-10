@@ -221,7 +221,7 @@ verify_mutation_case() {
 }
 
 verify_live_state_case() {
-  local name="$1" state="$2" temp got=0
+  local name="$1" state="$2" temp got=0 before_sha after_sha
   temp="$(mktemp -d)"
 
   if ! collect_valid_receipt "$temp"; then
@@ -234,17 +234,49 @@ verify_live_state_case() {
   : >"${temp}/calls"
   : >"${temp}/count"
   : >"${temp}/authority-calls"
+  before_sha="$(shasum -a 256 "${temp}/receipt.json" | awk '{print $1}')"
   PATH="${temp}/bin:${PATH}" FAKE_GH_LOG="${temp}/calls" FAKE_GH_COUNT_FILE="${temp}/count" \
     FAKE_GH_STATE="$state" FAKE_AUTHORITY_STATE="$state" FAKE_AUTHORITY_LOG="${temp}/authority-calls" \
     bash "$collector" verify-receipt --repo szTheory/rindle --workflow nightly.yml \
       --ref phase-133-evidence-aaaaaaaaaaaa --expected-sha aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \
       --receipt "${temp}/receipt.json" >/dev/null 2>&1 || got=$?
+  after_sha="$(shasum -a 256 "${temp}/receipt.json" | awk '{print $1}')"
 
   if [ "$got" -ne 0 ] &&
+     [ "$before_sha" = "$after_sha" ] &&
      ! grep -Eq '^(workflow run|issue (create|comment|close|edit|delete)|run (cancel|rerun|delete))' "${temp}/calls"; then
     record "$name" true
   else
     record "$name" false "live authority failure was accepted (exit ${got})"
+  fi
+  rm -rf "$temp"
+}
+
+verify_worktree_independence_case() {
+  local temp got=0
+  temp="$(mktemp -d)"
+  if ! collect_valid_receipt "$temp"; then
+    record "caller-worktree ledger edit cannot change stored authority" false "could not collect baseline receipt"
+    rm -rf "$temp"
+    return
+  fi
+
+  make_fake_local_authorities "${temp}/bin"
+  : >"${temp}/calls"
+  : >"${temp}/authority-calls"
+  PATH="${temp}/bin:${PATH}" FAKE_GH_LOG="${temp}/calls" FAKE_GH_COUNT_FILE="${temp}/count" \
+    FAKE_GH_STATE=success FAKE_AUTHORITY_STATE=current_worktree_edit FAKE_AUTHORITY_LOG="${temp}/authority-calls" \
+    bash "$collector" verify-receipt --repo szTheory/rindle --workflow nightly.yml \
+      --ref phase-133-evidence-aaaaaaaaaaaa --expected-sha aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \
+      --receipt "${temp}/receipt.json" >/dev/null 2>&1 || got=$?
+
+  if [ "$got" -eq 0 ] &&
+     ! grep -Eq '^git -C .* (status|ls-files) ' "${temp}/authority-calls" &&
+     grep -q '^git -C .* show dddddddddddddddddddddddddddddddddddddddd:.planning/phases/133-evidence-charter-and-live-truth/133-EVIDENCE-CENSUS.json$' "${temp}/authority-calls" &&
+     ! grep -Eq '^(workflow run|issue (create|comment|close|edit|delete)|run (cancel|rerun|delete))' "${temp}/calls"; then
+    record "caller-worktree ledger edit cannot change stored authority" true
+  else
+    record "caller-worktree ledger edit cannot change stored authority" false "verification consulted mutable ledger state"
   fi
   rm -rf "$temp"
 }
@@ -260,7 +292,7 @@ run_case "multiple post-boundary exact matches are ambiguous" multiple_post_boun
 for state in foreign_repository foreign_workflow missing_ref foreign_sha foreign_run_sha foreign_run_ref \
   foreign_run_workflow rerun missing_job extra_job red_job skipped_job cancelled_job nonterminal red_run \
   missing_fresh missing_restored unsupported_elixir_11_17 unsupported_elixir_1_170 unsupported_otp_127 \
-  bad_local_authority missing_cache stale_rebuild red_verdict \
+  bad_local_authority dirty_ledger untracked_ledger missing_cache stale_rebuild red_verdict \
   incident_changed timeout api_failure watch_failure; do
   run_case "$state fails closed" "$state" 1
 done
@@ -317,7 +349,19 @@ both incident snapshots forged together fail closed	.incident_snapshot_before[0]
 local census authority removed fails closed	del(.local_authorities.census)
 local live-truth authority removed fails closed	del(.local_authorities.live_truth)
 extra local-authority key fails closed	.local_authorities.extra = {"status":"pass"}
+census status mutation fails closed	.local_authorities.census.status = "fail"
+census ledger path mutation fails closed	.local_authorities.census.ledger_path = "other.json"
+census ledger SHA-256 mutation fails closed	.local_authorities.census.ledger_sha256 = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+census ledger blob mutation fails closed	.local_authorities.census.ledger_blob = "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+census ledger commit mutation fails closed	.local_authorities.census.ledger_commit = "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+census subject mutation fails closed	.local_authorities.census.subject_sha = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+census detailed receipt mutation fails closed	.local_authorities.census.receipt.marker = "forged"
+missing census ledger field fails closed	del(.local_authorities.census.ledger_blob)
 extra census key fails closed	.local_authorities.census.extra = true
+live-truth status mutation fails closed	.local_authorities.live_truth.status = "fail"
+live-truth subject mutation fails closed	.local_authorities.live_truth.subject_sha = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+live-truth model digest mutation fails closed	.local_authorities.live_truth.model_sha256 = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+missing live-truth field fails closed	del(.local_authorities.live_truth.model_sha256)
 extra live-truth key fails closed	.local_authorities.live_truth.extra = true
 MUTATIONS
 
@@ -329,6 +373,12 @@ fi
 
 verify_live_state_case "fresh incident drift fails closed" incident_verify_changed
 verify_live_state_case "local validator failure fails closed" local_validator_failure
+verify_live_state_case "ledger path missing at recorded commit fails closed" missing_path_at_commit
+verify_live_state_case "ledger blob mismatch fails closed" blob_mismatch
+verify_live_state_case "materialized ledger hash mismatch fails closed" hash_mismatch
+verify_live_state_case "regenerated census receipt drift fails closed" census_receipt_changed
+verify_live_state_case "regenerated live-truth model drift fails closed" live_model_changed
+verify_worktree_independence_case
 
 echo "—"
 echo "passed: ${pass}  failed: ${fail}"
