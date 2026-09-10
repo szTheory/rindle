@@ -6,7 +6,10 @@ defmodule Rindle.InstallSmoke.Phase133ReconciliationTest do
 
   setup do
     root =
-      Path.join(System.tmp_dir!(), "rindle-phase-133-reconciliation-#{System.unique_integer([:positive])}")
+      Path.join(
+        System.tmp_dir!(),
+        "rindle-phase-133-reconciliation-#{System.unique_integer([:positive])}"
+      )
 
     File.mkdir_p!(root)
     on_exit(fn -> File.rm_rf!(root) end)
@@ -50,7 +53,13 @@ defmodule Rindle.InstallSmoke.Phase133ReconciliationTest do
   end
 
   test "rejects an extra mapping", %{fixture: fixture} do
-    extra = %{key: "133-99-plan-verification:1", command: "true", failure: "non-zero", credit: "pending"}
+    extra = %{
+      key: "133-99-plan-verification:1",
+      command: "true",
+      failure: "non-zero",
+      credit: "pending"
+    }
+
     mutate_validation(fixture, &(&1 <> "\n" <> render_record(extra)))
     assert_invalid(fixture, "extra mapping")
   end
@@ -72,7 +81,11 @@ defmodule Rindle.InstallSmoke.Phase133ReconciliationTest do
   end
 
   test "rejects command text mutation", %{fixture: fixture} do
-    mutate_validation(fixture, &String.replace(&1, "fixture-command-11-a", "fixture-command-11-A"))
+    mutate_validation(
+      fixture,
+      &String.replace(&1, "fixture-command-11-a", "fixture-command-11-A")
+    )
+
     assert_invalid(fixture, "command text")
   end
 
@@ -87,12 +100,22 @@ defmodule Rindle.InstallSmoke.Phase133ReconciliationTest do
   end
 
   test "rejects an orphan failure direction", %{fixture: fixture} do
-    mutate_plan(fixture, 12, &String.replace(&1, "<automated>fixture-command-12-a</automated>", ""))
+    mutate_plan(
+      fixture,
+      12,
+      &String.replace(&1, "<automated>fixture-command-12-a</automated>", "")
+    )
+
     assert_invalid(fixture, "verification markup")
   end
 
   test "rejects malformed verification tags", %{fixture: fixture} do
-    mutate_plan(fixture, 12, &String.replace(&1, "</automated>", "</automated-broken>", global: false))
+    mutate_plan(
+      fixture,
+      12,
+      &String.replace(&1, "</automated>", "</automated-broken>", global: false)
+    )
+
     assert_invalid(fixture, "verification markup")
   end
 
@@ -102,7 +125,15 @@ defmodule Rindle.InstallSmoke.Phase133ReconciliationTest do
   end
 
   test "rejects wrong roadmap count or status", %{fixture: fixture} do
-    mutate_roadmap(fixture, &String.replace(&1, "10/17 plans executed; 7 pending gap closure", "11/17 plans executed; 6 pending gap closure"))
+    mutate_roadmap(
+      fixture,
+      &String.replace(
+        &1,
+        "10/17 plans executed; 7 pending gap closure",
+        "11/17 plans executed; 6 pending gap closure"
+      )
+    )
+
     assert_invalid(fixture, "roadmap status")
   end
 
@@ -116,12 +147,20 @@ defmodule Rindle.InstallSmoke.Phase133ReconciliationTest do
     mutate_roadmap(fixture, &String.replace(&1, "- [ ] 133-14-PLAN.md\n", ""))
     assert_invalid(fixture, "pending plan")
 
-    File.write!(fixture.roadmap, String.replace(original, "- [ ] 133-14-PLAN.md", "- [x] 133-14-PLAN.md"))
+    File.write!(
+      fixture.roadmap,
+      String.replace(original, "- [ ] 133-14-PLAN.md", "- [x] 133-14-PLAN.md")
+    )
+
     assert_invalid(fixture, "pending plan")
   end
 
   test "rejects premature green or executed state", %{fixture: fixture} do
-    mutate_validation(fixture, &String.replace(&1, "pending — not executed", "green — executed", global: false))
+    mutate_validation(
+      fixture,
+      &String.replace(&1, "pending — not executed", "green — executed", global: false)
+    )
+
     assert_invalid(fixture, "pending state")
   end
 
@@ -130,30 +169,60 @@ defmodule Rindle.InstallSmoke.Phase133ReconciliationTest do
     File.mkdir_p!(phase_dir)
     roadmap = Path.join(root, ".planning/ROADMAP.md")
     validation = Path.join(phase_dir, "133-VALIDATION.md")
-    historical = "# Historical Phase 133 Validation\n\n19/19 automated implementation tasks are green.\n\n| Gaps found | 0 |\n"
+
+    historical =
+      "# Historical Phase 133 Validation\n\n19/19 automated implementation tasks are green.\n\n| Gaps found | 0 |\n"
 
     File.write!(roadmap, roadmap_fixture())
     File.write!(validation, historical)
 
     records =
       Enum.flat_map(11..17, fn plan ->
-        task_pairs = if plan == 11, do: [{"fixture-command-11-a", "failure-11-a"}, {"fixture-command-11-b", "failure-11-b"}], else: [{"fixture-command-#{plan}-a", "failure-#{plan}-a"}]
-        plan_pairs = if plan == 17, do: [{"fixture-plan-17-a", "plan-failure-17-a"}, {"fixture-plan-17-b", "plan-failure-17-b"}], else: [{"fixture-plan-#{plan}-a", "plan-failure-#{plan}-a"}]
+        task_pairs =
+          if plan == 11,
+            do: [
+              {"fixture-command-11-a", "failure-11-a"},
+              {"fixture-command-11-b", "failure-11-b"}
+            ],
+            else: [{"fixture-command-#{plan}-a", "failure-#{plan}-a"}]
+
+        plan_pairs =
+          if plan == 17,
+            do: [
+              {"fixture-plan-17-a", "plan-failure-17-a"},
+              {"fixture-plan-17-b", "plan-failure-17-b"}
+            ],
+            else: [{"fixture-plan-#{plan}-a", "plan-failure-#{plan}-a"}]
+
         checkpoint? = plan == 17
-        File.write!(plan_path(root, plan), plan_fixture(plan, task_pairs, plan_pairs, checkpoint?))
+
+        File.write!(
+          plan_path(root, plan),
+          plan_fixture(plan, task_pairs, plan_pairs, checkpoint?)
+        )
 
         task_records =
           task_pairs
           |> Enum.with_index(1)
           |> Enum.map(fn {{command, failure}, pair} ->
-            %{key: "133-#{plan}-01:#{pair}", command: command, failure: failure, credit: if(checkpoint?, do: "authorization-only", else: "pending")}
+            %{
+              key: "133-#{plan}-01:#{pair}",
+              command: command,
+              failure: failure,
+              credit: if(checkpoint?, do: "authorization-only", else: "pending")
+            }
           end)
 
         plan_records =
           plan_pairs
           |> Enum.with_index(1)
           |> Enum.map(fn {{command, failure}, pair} ->
-            %{key: "133-#{plan}-plan-verification:#{pair}", command: command, failure: failure, credit: "pending"}
+            %{
+              key: "133-#{plan}-plan-verification:#{pair}",
+              command: command,
+              failure: failure,
+              credit: "pending"
+            }
           end)
 
         task_records ++ plan_records
@@ -166,9 +235,20 @@ defmodule Rindle.InstallSmoke.Phase133ReconciliationTest do
     git!(root, ["commit", "--quiet", "-m", "historical fixture"])
     historical_ref = git!(root, ["rev-parse", "HEAD"])
     historical_sha256 = sha256(historical)
-    File.write!(validation, historical <> @heading <> "\n\n" <> Enum.map_join(records, "\n", &render_record/1))
 
-    %{root: root, roadmap: roadmap, validation: validation, historical_ref: historical_ref, historical_sha256: historical_sha256, records: records}
+    File.write!(
+      validation,
+      historical <> @heading <> "\n\n" <> Enum.map_join(records, "\n", &render_record/1)
+    )
+
+    %{
+      root: root,
+      roadmap: roadmap,
+      validation: validation,
+      historical_ref: historical_ref,
+      historical_sha256: historical_sha256,
+      records: records
+    }
   end
 
   defp plan_fixture(plan, task_pairs, plan_pairs, checkpoint?) do
@@ -200,8 +280,15 @@ defmodule Rindle.InstallSmoke.Phase133ReconciliationTest do
   end
 
   defp roadmap_fixture do
-    completed = Enum.map_join(1..10, "", &"- [x] 133-#{String.pad_leading(Integer.to_string(&1), 2, "0")}-PLAN.md\n")
+    completed =
+      Enum.map_join(
+        1..10,
+        "",
+        &"- [x] 133-#{String.pad_leading(Integer.to_string(&1), 2, "0")}-PLAN.md\n"
+      )
+
     pending = Enum.map_join(11..17, "", &"- [ ] 133-#{&1}-PLAN.md\n")
+
     "# Roadmap\n\n### Phase 133: Evidence Charter and Live Truth\n\n**Plans**: 10/17 plans executed; 7 pending gap closure\n\n#{completed}#{pending}\n### Phase 134: Next\n"
   end
 
@@ -221,13 +308,26 @@ defmodule Rindle.InstallSmoke.Phase133ReconciliationTest do
   end
 
   defp remove_record(validation, key) do
-    Regex.replace(~r/<pending-validation key="#{Regex.escape(key)}">.*?<\/pending-validation>\n?/s, validation, "")
+    Regex.replace(
+      ~r/<pending-validation key="#{Regex.escape(key)}">.*?<\/pending-validation>\n?/s,
+      validation,
+      ""
+    )
   end
 
-  defp mutate_validation(fixture, fun), do: File.write!(fixture.validation, fun.(File.read!(fixture.validation)))
-  defp mutate_roadmap(fixture, fun), do: File.write!(fixture.roadmap, fun.(File.read!(fixture.roadmap)))
-  defp mutate_plan(fixture, plan, fun), do: File.write!(plan_path(fixture.root, plan), fun.(File.read!(plan_path(fixture.root, plan))))
-  defp plan_path(root, plan), do: Path.join(root, ".planning/phases/133-evidence-charter-and-live-truth/133-#{plan}-PLAN.md")
+  defp mutate_validation(fixture, fun),
+    do: File.write!(fixture.validation, fun.(File.read!(fixture.validation)))
+
+  defp mutate_roadmap(fixture, fun),
+    do: File.write!(fixture.roadmap, fun.(File.read!(fixture.roadmap)))
+
+  defp mutate_plan(fixture, plan, fun),
+    do:
+      File.write!(plan_path(fixture.root, plan), fun.(File.read!(plan_path(fixture.root, plan))))
+
+  defp plan_path(root, plan),
+    do:
+      Path.join(root, ".planning/phases/133-evidence-charter-and-live-truth/133-#{plan}-PLAN.md")
 
   defp assert_valid(fixture) do
     assert {output, 0} = run_validator(fixture)
@@ -244,7 +344,19 @@ defmodule Rindle.InstallSmoke.Phase133ReconciliationTest do
   end
 
   defp run_validator(fixture) do
-    System.cmd("elixir", [@script, "--root", fixture.root, "--fixture-historical-ref", fixture.historical_ref, "--fixture-historical-sha256", fixture.historical_sha256], stderr_to_stdout: true)
+    System.cmd(
+      "elixir",
+      [
+        @script,
+        "--root",
+        fixture.root,
+        "--fixture-historical-ref",
+        fixture.historical_ref,
+        "--fixture-historical-sha256",
+        fixture.historical_sha256
+      ],
+      stderr_to_stdout: true
+    )
   end
 
   defp git!(root, args) do
