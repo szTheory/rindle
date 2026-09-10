@@ -282,8 +282,8 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
     replace!(
       root,
       "scripts/setup_branch_protection.sh",
-      "REQUIRED_CHECKS=(\n  \"CI Summary\"\n)",
-      "REQUIRED_CHECKS=(\n  \"Merge Gate\"\n)\n# REQUIRED_CHECKS=(\"CI Summary\")\nif false; then REQUIRED_CHECKS=(\"CI Summary\"); fi"
+      "  contexts_json=$(jq -c '.contexts' \"${POLICY_FILE}\")",
+      "  contexts_json='[\"Merge Gate\"]'\n  # contexts_json=$(jq -c '.contexts' \"${POLICY_FILE}\")\n  if false; then contexts_json=$(jq -c '.contexts' \"${POLICY_FILE}\"); fi"
     )
 
     assert_error(root, "branch protection policy output mismatch")
@@ -578,7 +578,8 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
           ".github/workflows/ci.yml",
           ".github/workflows/nightly.yml",
           ".github/workflows/release.yml",
-          "scripts/setup_branch_protection.sh"
+          "scripts/setup_branch_protection.sh",
+          "config/ci_required_checks.json"
         ] do
       destination = Path.join(root, path)
       File.mkdir_p!(Path.dirname(destination))

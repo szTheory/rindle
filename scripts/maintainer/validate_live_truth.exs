@@ -4,6 +4,8 @@ defmodule Rindle.ValidateLiveTruth do
   @schema_version 1
   @ci_file ".github/workflows/ci.yml"
   @nightly_file ".github/workflows/nightly.yml"
+  @required_check_policy_file "config/ci_required_checks.json"
+  @required_check_policy_schema "rindle-required-checks-v1"
   @required_check "CI Summary"
   @required_needs [
     "quality",
@@ -98,7 +100,10 @@ defmodule Rindle.ValidateLiveTruth do
   end
 
   defp derive_ci!(workflow, root) do
-    assert!(workflow["name"] == "CI", "ci workflow name mismatch")
+    policy = required_check_policy!(root)
+    required_check = hd(policy.contexts)
+
+    assert!(workflow["name"] == policy.workflow_name, "ci workflow name mismatch")
 
     assert!(
       trigger_names(workflow) == ["pull_request", "push", "workflow_dispatch"],
@@ -108,11 +113,11 @@ defmodule Rindle.ValidateLiveTruth do
     jobs = Map.fetch!(workflow, "jobs")
 
     summary =
-      Map.get(jobs, "ci-summary") || raise ArgumentError, "required check identity mismatch"
+      Map.get(jobs, policy.job_id) || raise ArgumentError, "required check identity mismatch"
 
-    summary_names = Enum.filter(jobs, fn {_id, job} -> job["name"] == @required_check end)
+    summary_names = Enum.filter(jobs, fn {_id, job} -> job["name"] == required_check end)
 
-    assert!(summary["name"] == @required_check, "required check identity mismatch")
+    assert!(summary["name"] == required_check, "required check identity mismatch")
     assert!(length(summary_names) == 1, "required check identity mismatch")
     assert!(summary["if"] == "always()", "required check condition mismatch")
     assert!(summary["needs"] == @required_needs, "CI Summary needs mismatch")
@@ -139,7 +144,7 @@ defmodule Rindle.ValidateLiveTruth do
     end
 
     release_coupling = exact_sha_release_coupling?(root)
-    sole_required_check = sole_required_check?(root)
+    sole_required_check = sole_required_check?(root, policy)
     assert!(release_coupling, "exact-SHA release coupling mismatch")
     assert!(sole_required_check, "sole required check mismatch")
 
@@ -147,7 +152,8 @@ defmodule Rindle.ValidateLiveTruth do
       workflow_file: @ci_file,
       workflow_name: workflow["name"],
       triggers: trigger_names(workflow),
-      required_check: @required_check,
+      required_check: required_check,
+      required_check_policy: policy,
       required_needs: summary["needs"],
       off_critical_path: @off_critical_path,
       fork_safe_pr_lanes: ["adoption-demo-e2e-smoke", "package-consumer"],
@@ -933,15 +939,83 @@ defmodule Rindle.ValidateLiveTruth do
   defp assert_script_lines!(_script, _expected_lines, message),
     do: raise(ArgumentError, message)
 
-  defp sole_required_check?(root) do
-    branch_protection = Path.join(root, "scripts/setup_branch_protection.sh") |> File.read!()
+  defp required_check_policy!(root) do
+    path = Path.join(root, @required_check_policy_file)
+    assert!(File.regular?(path), "missing required check policy")
+    policy = path |> File.read!() |> Jason.decode!()
 
-    case Regex.run(~r/REQUIRED_CHECKS=\(\s*"([^"]+)"\s*\)/s, branch_protection,
-           capture: :all_but_first
+    assert!(
+      Map.keys(policy) |> Enum.sort() == ["contexts", "schema_version", "workflow"],
+      "required check policy fields mismatch"
+    )
+
+    assert!(
+      policy["schema_version"] == @required_check_policy_schema,
+      "required check policy schema mismatch"
+    )
+
+    workflow = policy["workflow"]
+
+    assert!(
+      is_map(workflow) and Map.keys(workflow) |> Enum.sort() == ["file", "job_id", "name"],
+      "required check policy workflow fields mismatch"
+    )
+
+    assert!(
+      workflow["file"] == Path.basename(@ci_file) and workflow["name"] == "CI",
+      "required check policy workflow mismatch"
+    )
+
+    assert!(workflow["job_id"] == "ci-summary", "required check policy job mismatch")
+
+    assert!(
+      policy["contexts"] == [@required_check],
+      "required check policy contexts mismatch"
+    )
+
+    %{
+      schema_version: policy["schema_version"],
+      workflow_file: workflow["file"],
+      workflow_name: workflow["name"],
+      job_id: workflow["job_id"],
+      contexts: policy["contexts"]
+    }
+  rescue
+    Jason.DecodeError -> raise ArgumentError, "malformed required check policy"
+  end
+
+  defp sole_required_check?(root, policy) do
+    script = Path.join(root, "scripts/setup_branch_protection.sh")
+
+    case System.cmd("bash", [script, "--print-expected-json"],
+           cd: root,
+           stderr_to_stdout: true
          ) do
-      [@required_check] -> true
-      _ -> false
+      {output, 0} ->
+        expected = %{
+          "required_status_checks" => %{
+            "strict" => true,
+            "contexts" => policy.contexts
+          },
+          "enforce_admins" => false,
+          "required_pull_request_reviews" => nil,
+          "restrictions" => nil,
+          "allow_force_pushes" => false,
+          "allow_deletions" => false,
+          "block_creations" => false,
+          "required_conversation_resolution" => false,
+          "lock_branch" => false,
+          "allow_fork_syncing" => false
+        }
+
+        assert!(Jason.decode!(output) == expected, "branch protection policy output mismatch")
+        true
+
+      {_output, _status} ->
+        raise ArgumentError, "branch protection policy output mismatch"
     end
+  rescue
+    Jason.DecodeError -> raise ArgumentError, "branch protection policy output mismatch"
   end
 
   defp historical_markers(options) do

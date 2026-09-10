@@ -13,16 +13,38 @@ REPO_NAME="${GITHUB_REPOSITORY:-}"
 REPO_NAME="${REPO_NAME##*/}"
 REPO_NAME="${REPO_NAME:-rindle}"
 REPO="${OWNER}/${REPO_NAME}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+POLICY_FILE="${SCRIPT_DIR}/../config/ci_required_checks.json"
 
-REQUIRED_CHECKS=(
-  "CI Summary"
-)
+if ! command -v jq >/dev/null 2>&1; then
+  echo "jq is required" >&2
+  exit 1
+fi
+
+if ! jq -e '
+  keys == ["contexts", "schema_version", "workflow"] and
+  .schema_version == "rindle-required-checks-v1" and
+  (.workflow | keys == ["file", "job_id", "name"]) and
+  (.workflow.file | type == "string" and length > 0) and
+  (.workflow.name | type == "string" and length > 0) and
+  (.workflow.job_id | type == "string" and length > 0) and
+  (.contexts | type == "array" and length == 1) and
+  (.contexts[0] | type == "string" and length > 0)
+' "${POLICY_FILE}" >/dev/null; then
+  echo "invalid required-check policy: ${POLICY_FILE}" >&2
+  exit 1
+fi
+
+REQUIRED_CHECKS=()
+while IFS= read -r context; do
+  REQUIRED_CHECKS+=("${context}")
+done < <(jq -r '.contexts[]' "${POLICY_FILE}")
 
 print_expected_text() {
-  cat <<'TEXT'
-Expected required status checks:
-  - CI Summary
+  printf 'Expected required status checks:\n'
+  printf '  - %s\n' "${REQUIRED_CHECKS[@]}"
 
+  cat <<'TEXT'
 Expected non-context branch protection fields:
   - required_status_checks.strict: true
   - enforce_admins: false
@@ -39,7 +61,7 @@ TEXT
 
 expected_json() {
   local contexts_json
-  contexts_json=$(printf '%s\n' "${REQUIRED_CHECKS[@]}" | jq -R . | jq -s .)
+  contexts_json=$(jq -c '.contexts' "${POLICY_FILE}")
 
   jq -n \
     --argjson contexts "${contexts_json}" \
@@ -88,11 +110,6 @@ BRANCH="${BRANCH:-main}"
 
 if ! command -v gh >/dev/null 2>&1; then
   echo "gh CLI is required" >&2
-  exit 1
-fi
-
-if ! command -v jq >/dev/null 2>&1; then
-  echo "jq is required" >&2
   exit 1
 fi
 
