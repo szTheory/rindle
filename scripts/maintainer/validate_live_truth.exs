@@ -263,11 +263,7 @@ defmodule Rindle.ValidateLiveTruth do
   defp validate_package_claim!(model, claim) do
     receipt = field(claim, :receipt) || model.package_proof
     assert!(not is_nil(receipt), "package claim requires a package receipt")
-
-    proof =
-      if field(receipt, :validated) == true,
-        do: receipt,
-        else: normalize_package_receipt!(receipt)
+    proof = normalize_package_receipt!(receipt)
 
     case proof.install_mode do
       "package" ->
@@ -342,8 +338,7 @@ defmodule Rindle.ValidateLiveTruth do
   end
 
   defp put_package_proof!(model, receipt) do
-    proof = normalize_package_receipt!(receipt)
-    %{model | package_proof: proof}
+    %{model | package_proof: receipt}
   end
 
   defp normalize_package_receipt!(receipt) when is_map(receipt) do
@@ -426,7 +421,6 @@ defmodule Rindle.ValidateLiveTruth do
     end
 
     %{
-      validated: true,
       install_mode: install_mode,
       install_source: install_source,
       unpacked: unpacked,
