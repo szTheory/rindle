@@ -91,7 +91,7 @@ defmodule Rindle.EvidenceCensus do
     |> Base.encode16(case: :lower)
   end
 
-  def normalized_observations(detectors) when is_list(detectors) do
+  def normalized_observations(detectors, root) when is_list(detectors) do
     detectors
     |> Enum.flat_map(fn detector ->
       Enum.map(detector["observations"] || [], fn observation ->
@@ -99,11 +99,29 @@ defmodule Rindle.EvidenceCensus do
         |> Map.take(["id", "kind", "location", "signal", "status", "attributes"])
         |> Map.put("detector_id", detector["id"])
         |> Map.put("dimension", detector["dimension"])
-        |> reject_absolute_location()
       end)
     end)
-    |> Enum.uniq_by(&canonical_json/1)
-    |> sort_by_id()
+    |> Enum.reduce_while({:ok, []}, fn observation, {:ok, normalized} ->
+      case contained_observation_location(observation["location"], root) do
+        {:ok, location} ->
+          {:cont, {:ok, [Map.put(observation, "location", location) | normalized]}}
+
+        {:error, message} ->
+          {:halt, {:error, message}}
+      end
+    end)
+    |> case do
+      {:ok, observations} ->
+        observations =
+          observations
+          |> Enum.uniq_by(&canonical_json/1)
+          |> sort_by_id()
+
+        {:ok, observations}
+
+      error ->
+        error
+    end
   end
 
   defp parse_options(argv) do
@@ -179,9 +197,8 @@ defmodule Rindle.EvidenceCensus do
   defp build_receipt(ledger, options, dirty?) do
     with {:ok, taxonomy} <- taxonomy(ledger["taxonomy"]),
          {:ok, detectors} <- detectors(ledger["detectors"]),
-         {:ok, inputs} <- input_digests(detectors, options.root) do
-      observations = normalized_observations(detectors)
-
+         {:ok, inputs} <- input_digests(detectors, options.root),
+         {:ok, observations} <- normalized_observations(detectors, options.root) do
       {:ok,
        %{
          "schema_version" => ledger["schema_version"],
@@ -256,14 +273,69 @@ defmodule Rindle.EvidenceCensus do
 
   defp safe_relative_path(_), do: {:error, "input path must be a non-empty string"}
 
-  defp reject_absolute_location(%{"location" => location} = observation)
-       when is_binary(location) do
-    if Path.type(location) == :absolute,
-      do: raise(ArgumentError, "observation locations must be repository-relative"),
-      else: observation
+  defp contained_observation_location(location, root)
+       when is_binary(location) and location != "" do
+    root = Path.expand(root)
+    expanded = Path.expand(location, root)
+
+    if Path.type(location) == :relative and contained_path?(expanded, root) and
+         physically_contained?(expanded, root) do
+      {:ok, Path.relative_to(expanded, root)}
+    else
+      {:error, "observation location must remain within repository root"}
+    end
   end
 
-  defp reject_absolute_location(observation), do: observation
+  defp contained_observation_location(_location, _root),
+    do: {:error, "observation location must remain within repository root"}
+
+  defp physically_contained?(path, root) do
+    path
+    |> Path.relative_to(root)
+    |> Path.split()
+    |> Enum.reduce_while(root, fn segment, current ->
+      candidate = Path.join(current, segment)
+
+      case resolve_symlink(candidate, MapSet.new()) do
+        {:ok, resolved} ->
+          if contained_path?(resolved, root), do: {:cont, resolved}, else: {:halt, false}
+
+        {:error, :enoent} ->
+          {:cont, candidate}
+
+        {:error, _reason} ->
+          {:halt, false}
+      end
+    end)
+    |> is_binary()
+  end
+
+  defp resolve_symlink(path, seen) do
+    case File.lstat(path) do
+      {:ok, %File.Stat{type: :symlink}} ->
+        if MapSet.member?(seen, path) do
+          {:error, :eloop}
+        else
+          with {:ok, target} <- File.read_link(path) do
+            resolved = Path.expand(target, Path.dirname(path))
+            resolve_symlink(resolved, MapSet.put(seen, path))
+          end
+        end
+
+      {:ok, _stat} ->
+        {:ok, path}
+
+      error ->
+        error
+    end
+  end
+
+  defp contained_path?(path, root) do
+    relative = Path.relative_to(path, root)
+
+    Path.type(relative) == :relative and relative != ".." and
+      not String.starts_with?(relative, "../")
+  end
 
   defp write_receipt(path, receipt) do
     with :ok <- File.mkdir_p(Path.dirname(path)),

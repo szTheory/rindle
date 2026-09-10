@@ -54,9 +54,10 @@ defmodule Rindle.ValidateEvidenceCensus do
          :ok <- validate_schema(ledger, receipt),
          :ok <- validate_authority(ledger, receipt, head),
          :ok <- validate_taxonomy(ledger),
+         :ok <- validate_observation_locations(ledger, options.root),
          :ok <- validate_detectors(ledger),
          :ok <- validate_transition_contract(ledger),
-         :ok <- validate_candidates(ledger),
+         :ok <- validate_candidates(ledger, options.root),
          :ok <- validate_receipt(ledger, receipt, options.root) do
       IO.puts("evidence census valid for #{head}")
       :ok
@@ -346,9 +347,9 @@ defmodule Rindle.ValidateEvidenceCensus do
     |> Base.encode16(case: :lower)
   end
 
-  defp validate_candidates(%{"detectors" => detectors, "candidates" => candidates})
+  defp validate_candidates(%{"detectors" => detectors, "candidates" => candidates}, root)
        when is_list(candidates) do
-    observations = normalized_observations(detectors)
+    observations = normalized_observations(detectors, root)
     observation_ids = Enum.map(observations, & &1["id"])
     candidate_ids = Enum.map(candidates, & &1["id"])
     assigned = Enum.flat_map(candidates, &(&1["observations"] || []))
@@ -377,7 +378,7 @@ defmodule Rindle.ValidateEvidenceCensus do
     end
   end
 
-  defp validate_candidates(_), do: {:error, "candidates must be an array"}
+  defp validate_candidates(_, _root), do: {:error, "candidates must be an array"}
 
   defp valid_candidate?(candidate) do
     base =
@@ -405,7 +406,7 @@ defmodule Rindle.ValidateEvidenceCensus do
         Enum.find_index(@dimensions, &(&1 == record["id"]))
       end)
 
-    expected_observations = normalized_observations(ledger["detectors"])
+    expected_observations = normalized_observations(ledger["detectors"], root)
     expected_digest = candidate_contract_digest(ledger)
 
     with :ok <-
@@ -476,7 +477,22 @@ defmodule Rindle.ValidateEvidenceCensus do
 
   defp safe_relative_path(_), do: {:error, "path must be a non-empty string"}
 
-  defp normalized_observations(detectors) do
+  defp validate_observation_locations(%{"detectors" => detectors}, root)
+       when is_list(detectors) do
+    detectors
+    |> Enum.flat_map(&(&1["observations"] || []))
+    |> Enum.reduce_while(:ok, fn observation, :ok ->
+      case contained_observation_location(observation["location"], root) do
+        {:ok, _location} -> {:cont, :ok}
+        {:error, message} -> {:halt, {:error, message}}
+      end
+    end)
+  end
+
+  defp validate_observation_locations(_ledger, _root),
+    do: {:error, "detectors must be an array"}
+
+  defp normalized_observations(detectors, root) do
     detectors
     |> Enum.flat_map(fn detector ->
       Enum.map(detector["observations"], fn observation ->
@@ -484,10 +500,78 @@ defmodule Rindle.ValidateEvidenceCensus do
         |> Map.take(["id", "kind", "location", "signal", "status", "attributes"])
         |> Map.put("detector_id", detector["id"])
         |> Map.put("dimension", detector["dimension"])
+        |> Map.update!("location", fn location ->
+          {:ok, normalized} = contained_observation_location(location, root)
+          normalized
+        end)
       end)
     end)
     |> Enum.uniq_by(&canonical_json/1)
     |> Enum.sort_by(& &1["id"])
+  end
+
+  defp contained_observation_location(location, root)
+       when is_binary(location) and location != "" do
+    root = Path.expand(root)
+    expanded = Path.expand(location, root)
+
+    if Path.type(location) == :relative and contained_path?(expanded, root) and
+         physically_contained?(expanded, root) do
+      {:ok, Path.relative_to(expanded, root)}
+    else
+      {:error, "observation location must remain within repository root"}
+    end
+  end
+
+  defp contained_observation_location(_location, _root),
+    do: {:error, "observation location must remain within repository root"}
+
+  defp physically_contained?(path, root) do
+    path
+    |> Path.relative_to(root)
+    |> Path.split()
+    |> Enum.reduce_while(root, fn segment, current ->
+      candidate = Path.join(current, segment)
+
+      case resolve_symlink(candidate, MapSet.new()) do
+        {:ok, resolved} ->
+          if contained_path?(resolved, root), do: {:cont, resolved}, else: {:halt, false}
+
+        {:error, :enoent} ->
+          {:cont, candidate}
+
+        {:error, _reason} ->
+          {:halt, false}
+      end
+    end)
+    |> is_binary()
+  end
+
+  defp resolve_symlink(path, seen) do
+    case File.lstat(path) do
+      {:ok, %File.Stat{type: :symlink}} ->
+        if MapSet.member?(seen, path) do
+          {:error, :eloop}
+        else
+          with {:ok, target} <- File.read_link(path) do
+            resolved = Path.expand(target, Path.dirname(path))
+            resolve_symlink(resolved, MapSet.put(seen, path))
+          end
+        end
+
+      {:ok, _stat} ->
+        {:ok, path}
+
+      error ->
+        error
+    end
+  end
+
+  defp contained_path?(path, root) do
+    relative = Path.relative_to(path, root)
+
+    Path.type(relative) == :relative and relative != ".." and
+      not String.starts_with?(relative, "../")
   end
 
   defp candidate_contract_digest(ledger) do
