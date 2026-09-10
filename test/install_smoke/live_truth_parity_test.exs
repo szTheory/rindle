@@ -317,6 +317,47 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
     end
   end
 
+  @tag :package_authority
+  test "independent adopter authority is repository-owned and empty until a pilot is approved" do
+    assert function_exported?(
+             Rindle.ValidateLiveTruth,
+             :verify_independent_adopter_evidence!,
+             2
+           )
+
+    model = Rindle.ValidateLiveTruth.derive!(@repo_root, [])
+    copied_package_receipt = %{schema_version: "rindle-package-consumer-v1"}
+
+    for caller_field <- [:evidence_kind, :adopter_name, :authorizes_1_0] do
+      claim =
+        %{type: :adoption, receipt: copied_package_receipt}
+        |> Map.put(caller_field, true)
+
+      assert_raise ArgumentError, ~r/caller-controlled adoption authority is forbidden/, fn ->
+        Rindle.ValidateLiveTruth.validate_claims!(model, [claim])
+      end
+    end
+
+    evidence_path = Path.join(System.tmp_dir!(), "rindle-independent-evidence.txt")
+    File.write!(evidence_path, "independent evidence fixture")
+    on_exit(fn -> File.rm(evidence_path) end)
+
+    receipt = %{
+      schema_version: "rindle-independent-adopter-v1",
+      evidence_type: "independent-adopter",
+      authority_id: "unapproved-pilot",
+      subject_sha: String.duplicate("0", 40),
+      evidence_sha256: String.duplicate("0", 64),
+      authorization_scope: ["independent-adoption", "1.0"]
+    }
+
+    assert_raise ArgumentError, ~r/independent adopter authority is not allowlisted/, fn ->
+      Rindle.ValidateLiveTruth.validate_claims!(model, [
+        %{type: :adoption, receipt: receipt, evidence_context: %{evidence_path: evidence_path}}
+      ])
+    end
+  end
+
   defp fixture_root! do
     root = Path.join(System.tmp_dir!(), "rindle-live-truth-#{System.unique_integer([:positive])}")
 
