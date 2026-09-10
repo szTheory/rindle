@@ -243,6 +243,11 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
                  receipt: receipt,
                  evidence_context: evidence_context,
                  claim: "built-package-consumer"
+               },
+               %{
+                 type: :adoption,
+                 receipt: receipt,
+                 evidence_context: evidence_context
                }
              ])
 
@@ -350,6 +355,23 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
       evidence_sha256: String.duplicate("0", 64),
       authorization_scope: ["independent-adoption", "1.0"]
     }
+
+    for {mutation, message} <- [
+          {&Map.delete(&1, :subject_sha), "independent adopter receipt fields mismatch"},
+          {&Map.put(&1, :caller_authorizes_1_0, true),
+           "independent adopter receipt fields mismatch"},
+          {&Map.put(&1, :schema_version, "rindle-package-consumer-v1"),
+           "independent adopter schema mismatch"},
+          {&Map.put(&1, :evidence_type, "maintainer-operated-package-consumer"),
+           "independent adopter evidence type mismatch"}
+        ] do
+      assert_raise ArgumentError, ~r/#{Regex.escape(message)}/, fn ->
+        Rindle.ValidateLiveTruth.verify_independent_adopter_evidence!(
+          mutation.(receipt),
+          %{evidence_path: evidence_path}
+        )
+      end
+    end
 
     assert_raise ArgumentError, ~r/independent adopter authority is not allowlisted/, fn ->
       Rindle.ValidateLiveTruth.validate_claims!(model, [

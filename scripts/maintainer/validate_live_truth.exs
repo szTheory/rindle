@@ -29,6 +29,11 @@ defmodule Rindle.ValidateLiveTruth do
     commands results
   )
   @generated_tree_exclusions [".git", "_build", "deps", "tmp"]
+  @independent_adopter_schema "rindle-independent-adopter-v1"
+  @independent_adopter_fields ~w(
+    schema_version evidence_type authority_id subject_sha evidence_sha256 authorization_scope
+  )
+  @independent_adopter_authorities %{}
 
   def run(argv) do
     {options, claim_paths} = parse_options!(argv)
@@ -218,8 +223,11 @@ defmodule Rindle.ValidateLiveTruth do
       type when type in [:nightly, "nightly"] ->
         validate_nightly_claim!(model, claim)
 
-      type when type in [:package, "package", :adoption, "adoption"] ->
+      type when type in [:package, "package"] ->
         validate_package_claim!(model, claim)
+
+      type when type in [:adoption, "adoption"] ->
+        validate_adoption_claim!(model, claim)
 
       nil ->
         validate_document!(model, claim)
@@ -281,7 +289,40 @@ defmodule Rindle.ValidateLiveTruth do
         results_path: field(evidence_context, :results_path)
       })
 
-    validate_adoption_scope!(claim)
+    :ok
+  end
+
+  defp validate_adoption_claim!(model, claim) do
+    for key <- [:evidence_kind, :adopter_name, :authorizes_1_0] do
+      assert!(
+        not has_field?(claim, key),
+        "caller-controlled adoption authority is forbidden: #{key}"
+      )
+    end
+
+    receipt = field(claim, :receipt)
+    assert!(is_map(receipt), "adoption claim requires an evidence receipt")
+    evidence_context = field(claim, :evidence_context) || %{}
+
+    case field(receipt, :schema_version) do
+      @package_receipt_schema ->
+        _proof =
+          normalize_package_receipt!(receipt, %{
+            repository_root: model.authority_root,
+            package_root: field(evidence_context, :package_root),
+            generated_app_root: field(evidence_context, :generated_app_root),
+            results_path: field(evidence_context, :results_path)
+          })
+
+        :ok
+
+      @independent_adopter_schema ->
+        _authority = verify_independent_adopter_evidence!(receipt, evidence_context)
+        :ok
+
+      _ ->
+        raise ArgumentError, "adoption evidence schema mismatch"
+    end
   end
 
   defp validate_document!(model, claim) do
@@ -449,35 +490,64 @@ defmodule Rindle.ValidateLiveTruth do
   def verify_package_evidence!(_receipt, _context),
     do: raise(ArgumentError, "package proof is not a canonical generated consumer receipt")
 
-  defp validate_adoption_scope!(claim) do
-    case field(claim, :type) do
-      type when type in [:adoption, "adoption"] ->
-        evidence_kind = field(claim, :evidence_kind)
-        authorizes_1_0 = field(claim, :authorizes_1_0)
+  def verify_independent_adopter_evidence!(receipt, context)
+      when is_map(receipt) and is_map(context) do
+    receipt = stringify_keys!(receipt, "independent adopter receipt")
+    context = stringify_keys!(context, "independent adopter evidence context")
 
-        cond do
-          evidence_kind == "maintainer-operated-synthetic" and authorizes_1_0 == true ->
-            raise ArgumentError, "synthetic evidence cannot authorize 1.0"
+    assert!(
+      Map.keys(receipt) |> Enum.sort() == Enum.sort(@independent_adopter_fields),
+      "independent adopter receipt fields mismatch"
+    )
 
-          evidence_kind == "maintainer-operated-synthetic" and authorizes_1_0 == false ->
-            :ok
+    assert!(
+      receipt["schema_version"] == @independent_adopter_schema,
+      "independent adopter schema mismatch"
+    )
 
-          evidence_kind == "independent-adopter" and
-              not (is_binary(field(claim, :adopter_name)) and field(claim, :adopter_name) != "") ->
-            raise ArgumentError,
-                  "independent adopter claim requires named independent evidence"
+    assert!(
+      receipt["evidence_type"] == "independent-adopter",
+      "independent adopter evidence type mismatch"
+    )
 
-          evidence_kind == "independent-adopter" and authorizes_1_0 in [true, false] ->
-            :ok
+    authority =
+      Map.get(@independent_adopter_authorities, receipt["authority_id"]) ||
+        raise ArgumentError, "independent adopter authority is not allowlisted"
 
-          true ->
-            raise ArgumentError, "unclassified adoption evidence"
-        end
+    evidence_path = required_file!(context["evidence_path"], "independent adopter evidence")
 
-      _ ->
-        :ok
-    end
+    expected = %{
+      "subject_sha" => authority.subject_sha,
+      "evidence_sha256" => file_sha256!(evidence_path),
+      "authorization_scope" => authority.authorization_scope
+    }
+
+    assert!(
+      receipt["subject_sha"] == expected["subject_sha"],
+      "independent adopter subject mismatch"
+    )
+
+    assert!(
+      receipt["evidence_sha256"] == expected["evidence_sha256"],
+      "independent adopter evidence digest mismatch"
+    )
+
+    assert!(
+      receipt["authorization_scope"] == expected["authorization_scope"],
+      "independent adopter authorization scope mismatch"
+    )
+
+    %{
+      authority_id: receipt["authority_id"],
+      subject_sha: expected["subject_sha"],
+      evidence_sha256: expected["evidence_sha256"],
+      independent_adoption: "independent-adoption" in expected["authorization_scope"],
+      authorizes_1_0: "1.0" in expected["authorization_scope"]
+    }
   end
+
+  def verify_independent_adopter_evidence!(_receipt, _context),
+    do: raise(ArgumentError, "independent adopter evidence must be a receipt and context")
 
   defp package_version!(mix_path) do
     case Regex.run(~r/@version\s+"([^"]+)"/, File.read!(mix_path), capture: :all_but_first) do
@@ -750,6 +820,9 @@ defmodule Rindle.ValidateLiveTruth do
   end
 
   defp field(map, key), do: Map.get(map, key, Map.get(map, Atom.to_string(key)))
+
+  defp has_field?(map, key),
+    do: Map.has_key?(map, key) or Map.has_key?(map, Atom.to_string(key))
 
   defp assert!(true, _message), do: :ok
   defp assert!(false, message), do: raise(ArgumentError, message)
