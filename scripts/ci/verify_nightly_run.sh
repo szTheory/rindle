@@ -279,11 +279,12 @@ revalidate_local_authorities() {
 
 compare_exact_local_and_incident_receipt() {
   local path="$1" incidents="$2" local_authorities="$3"
-  jq -e --argjson incidents "$incidents" --argjson local "$local_authorities" '
+  jq -e --argjson incidents "$incidents" '
     .incident_snapshot_before == $incidents and
-    .incident_snapshot_after == $incidents and
-    .local_authorities == $local
-  ' "$path" >/dev/null || die "receipt incident or local-authority evidence differs from fresh revalidation"
+    .incident_snapshot_after == $incidents
+  ' "$path" >/dev/null || die "receipt incident evidence is stale relative to the fresh exact-label snapshot"
+  jq -e --argjson local "$local_authorities" '.local_authorities == $local' "$path" >/dev/null ||
+    die "receipt local-authority evidence differs from exact-subject revalidation"
 }
 
 if [ "$mode" = preflight ]; then
