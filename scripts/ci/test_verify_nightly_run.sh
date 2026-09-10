@@ -57,6 +57,8 @@ run_case() {
 
   if [ "$state" = success ]; then
     if [ "$(grep -c '^workflow run nightly.yml ' "${temp}/calls" || true)" -eq 1 ] &&
+       [ "$(grep -c '^run view 9001 .* --job 6 --log$' "${temp}/calls" || true)" -ge 1 ] &&
+       [ "$(grep -c '^run view 9001 .* --job 9 --log$' "${temp}/calls" || true)" -ge 1 ] &&
        ! grep -Eq '^(issue (create|comment|close|edit|delete)|run (cancel|rerun|delete))' "${temp}/calls"; then
       record "success argv is one dispatch plus read-only inspection" true
     else
@@ -133,13 +135,19 @@ case "${1-} ${2-}" in
   "run watch") [ "$state" != watch_failure ] || exit 42 ;;
   "run view")
     if printf '%s\n' "$*" | grep -q -- '--log'; then
-      [ "$state" = unsupported_toolchain ] || printf '%s\n' 'Dialyzer\tSet up Elixir\tResolved Elixir version: 1.17.3' 'Dialyzer\tSet up Elixir\tResolved OTP version: 27.3.4.17'
-      [ "$state" = missing_fresh ] || printf '%s\n' 'Dialyzer\tDialyzer (fresh PLT)\tnightly-dialyzer mode=fresh action=build-plt' 'Dialyzer\tDialyzer (fresh PLT)\tnightly-dialyzer mode=fresh attempt=1 action=analyze'
-      [ "$state" = missing_cache ] || printf '%s\n' 'Dialyzer\tSave PLT cache\tCache saved with key: plt-v3-Linux-X64-otp27.3.4.17-elixir1.17.3-inputhash'
-      [ "$state" = missing_restored ] || printf '%s\n' 'Dialyzer\tDialyzer (restored PLT)\tnightly-dialyzer mode=restored attempt=1 action=analyze'
-      [ "$state" != stale_rebuild ] || printf '%s\n' 'Dialyzer\tDialyzer (restored PLT)\tnightly-dialyzer mode=restored attempt=1 fingerprint=old-plt recovery=rebuild-once'
-      [ "$state" = red_verdict ] && verdict=red || verdict=green
-      printf '%s\n' "Nightly Summary\\tEvaluate strict Nightly verdict\\tverdict=$verdict" 'Nightly Incident Lifecycle\tManage scheduled Nightly incident\tNightly incident lifecycle: no mutation'
+      if printf '%s\n' "$*" | grep -q -- '--job 6'; then
+        [ "$state" = unsupported_toolchain ] || printf '%s\n' 'Dialyzer\tSet up Elixir\tResolved Elixir version: 1.17.3' 'Dialyzer\tSet up Elixir\tResolved OTP version: 27.3.4.17'
+        [ "$state" = missing_fresh ] || printf '%s\n' 'Dialyzer\tDialyzer (fresh PLT)\tnightly-dialyzer mode=fresh action=build-plt' 'Dialyzer\tDialyzer (fresh PLT)\tnightly-dialyzer mode=fresh attempt=1 action=analyze'
+        [ "$state" = missing_cache ] || printf '%s\n' 'Dialyzer\tSave PLT cache\tCache saved with key: plt-v3-Linux-X64-otp27.3.4.17-elixir1.17.3-inputhash'
+        [ "$state" = missing_restored ] || printf '%s\n' 'Dialyzer\tDialyzer (restored PLT)\tnightly-dialyzer mode=restored attempt=1 action=analyze'
+        [ "$state" != stale_rebuild ] || printf '%s\n' 'Dialyzer\tDialyzer (restored PLT)\tnightly-dialyzer mode=restored attempt=1 fingerprint=old-plt recovery=rebuild-once'
+      elif printf '%s\n' "$*" | grep -q -- '--job 9'; then
+        [ "$state" = red_verdict ] && verdict=red || verdict=green
+        printf '%s\n' "Nightly Summary\\tEnforce strict Nightly verdict\\ttest \"$verdict\" = \"green\""
+      else
+        echo "unexpected log job: $*" >&2
+        exit 43
+      fi
     else
       jobs='[{"databaseId":1,"name":"Compat Matrix (1.15, 26)","status":"completed","conclusion":"success"},{"databaseId":2,"name":"Compat Matrix (1.16, 26)","status":"completed","conclusion":"success"},{"databaseId":3,"name":"Compat Matrix (1.17, 27)","status":"completed","conclusion":"success"},{"databaseId":4,"name":"Compat Matrix (1.18, 27)","status":"completed","conclusion":"success"},{"databaseId":5,"name":"Compat Matrix (1.18, 28)","status":"completed","conclusion":"success"},{"databaseId":6,"name":"Dialyzer","status":"completed","conclusion":"success"},{"databaseId":7,"name":"GCS Soak (real bucket)","status":"completed","conclusion":"success"},{"databaseId":8,"name":"Package Consumer GCS Live Proof","status":"completed","conclusion":"success"},{"databaseId":9,"name":"Nightly Summary","status":"completed","conclusion":"success"},{"databaseId":10,"name":"Nightly Incident Lifecycle","status":"completed","conclusion":"success"}]'
       [ "$state" != missing_job ] || jobs="$(jq 'del(.[0])' <<<"$jobs")"

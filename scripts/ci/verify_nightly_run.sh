@@ -120,13 +120,21 @@ parse_log_evidence() {
   [[ "$cache_key" == *"$resolved_otp"* ]] || die "PLT cache key omits resolved OTP identity"
   [[ "$cache_key" == *"$resolved_elixir"* ]] || die "PLT cache key omits resolved Elixir identity"
 
-  verdict="$(sed -nE 's/.*verdict=(green|red).*/\1/p' <<<"$logs" | sort -u)"
+  verdict="$(sed -nE 's/.*verdict=(green|red).*/\1/p; s/.*test "(green|red)" = "green".*/\1/p' <<<"$logs" | sort -u)"
   [ "$verdict" = green ] || die "strict Nightly verdict is not uniquely green"
 
   jq -cnS --arg requested_elixir "1.17" --arg requested_otp "27" \
     --arg resolved_elixir "$resolved_elixir" --arg resolved_otp "$resolved_otp" \
     --arg cache_key "$cache_key" --argjson stale_rebuilds "$stale_rebuilds" \
     '{requested_elixir:$requested_elixir,requested_otp:$requested_otp,resolved_elixir:$resolved_elixir,resolved_otp:$resolved_otp,fresh:{status:"pass",builds:1,analyses:1},restored:{status:"pass",analyses:1},cache_key:$cache_key,stale_rebuilds:$stale_rebuilds}'
+}
+
+job_logs() {
+  local run_id="$1" run_json="$2" job_name="$3" job_id
+  job_id="$(jq -er --arg name "$job_name" '.jobs[] | select(.name == $name) | .databaseId' <<<"$run_json")" ||
+    die "missing job ID for ${job_name}"
+  gh run view "$run_id" --repo "$repo" --job "$job_id" --log ||
+    die "${job_name} log lookup failed"
 }
 
 validate_local_authorities() {
@@ -169,8 +177,9 @@ if [ "$mode" = verify-receipt ]; then
   live_run="$(gh run view "$run_id" --repo "$repo" --json attempt,conclusion,createdAt,databaseId,event,headBranch,headSha,jobs,status,url,workflowName)" || die "run verification lookup failed"
   validate_run_json "$live_run"
   [ "$(jq -r '.run_id' "$receipt")" = "$(jq -r '.databaseId' <<<"$live_run")" ] || die "receipt run ID differs from GitHub"
-  live_logs="$(gh run view "$run_id" --repo "$repo" --log)" || die "run log verification failed"
-  live_dialyzer="$(parse_log_evidence "$live_logs")"
+  live_dialyzer_logs="$(job_logs "$run_id" "$live_run" "Dialyzer")"
+  live_summary_logs="$(job_logs "$run_id" "$live_run" "Nightly Summary")"
+  live_dialyzer="$(parse_log_evidence "${live_dialyzer_logs}"$'\n'"${live_summary_logs}")"
   jq -e --argjson live "$live_dialyzer" '.dialyzer == $live' "$receipt" >/dev/null || die "receipt Dialyzer evidence differs from GitHub"
   echo "Nightly receipt valid for ${expected_sha} (run ${run_id}, attempt 1)"
   exit 0
@@ -214,8 +223,9 @@ gh run watch "$run_id" --repo "$repo" --interval "$poll_seconds" || die "GitHub 
 run_json="$(gh run view "$run_id" --repo "$repo" --json attempt,conclusion,createdAt,databaseId,event,headBranch,headSha,jobs,status,url,workflowName)" ||
   die "run detail lookup failed"
 validate_run_json "$run_json"
-logs="$(gh run view "$run_id" --repo "$repo" --log)" || die "run log lookup failed"
-dialyzer="$(parse_log_evidence "$logs")"
+dialyzer_logs="$(job_logs "$run_id" "$run_json" "Dialyzer")"
+summary_logs="$(job_logs "$run_id" "$run_json" "Nightly Summary")"
+dialyzer="$(parse_log_evidence "${dialyzer_logs}"$'\n'"${summary_logs}")"
 local_authorities="$(validate_local_authorities)"
 incident_after="$(canonical_incidents)" || die "incident snapshot after dispatch failed"
 [ "$incident_before" = "$incident_after" ] || die "workflow_dispatch changed the nightly-failure incident"
