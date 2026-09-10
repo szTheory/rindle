@@ -9,13 +9,18 @@ if [ "$#" -ne 1 ] || { [ "$mode" != "fresh" ] && [ "$mode" != "restored" ]; }; t
 fi
 
 mix_bin="${MIX_BIN:-mix}"
-plt_dir="${PLT_DIR:-priv/plts}"
 cleanup_log=false
 
-if [ -z "$plt_dir" ] || [ "$plt_dir" = "/" ] || [ "$plt_dir" = "." ]; then
-  echo "refusing unsafe PLT_DIR: ${plt_dir:-<empty>}" >&2
+if [ "${PLT_DIR+x}" = "x" ]; then
+  echo "refusing caller-supplied PLT_DIR" >&2
   exit 2
 fi
+
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd -P)"
+approved_plt_root="${repo_root}/priv"
+plt_dir="${approved_plt_root}/plts"
+export PLT_DIR="$plt_dir"
+cd "$repo_root"
 
 if [ -n "${DIALYZER_LOG:-}" ]; then
   dialyzer_log="$DIALYZER_LOG"
@@ -31,7 +36,65 @@ cleanup() {
 }
 trap cleanup EXIT
 
+resolve_physical_path() {
+  local path="$1" parent base
+
+  if [ -d "$path" ]; then
+    (cd "$path" && pwd -P)
+    return
+  fi
+
+  parent="$(dirname "$path")"
+  base="$(basename "$path")"
+  [ -d "$parent" ] || return 1
+  printf '%s/%s\n' "$(cd "$parent" && pwd -P)" "$base"
+}
+
+require_contained_plt_dir() {
+  local physical_repo physical_root physical_candidate
+
+  if [ "$plt_dir" != "${repo_root}/priv/plts" ]; then
+    echo "refusing unsafe PLT directory: priv/plts" >&2
+    return 2
+  fi
+
+  physical_repo="$(resolve_physical_path "$repo_root")" || {
+    echo "refusing unsafe PLT directory: repository" >&2
+    return 2
+  }
+  physical_root="$(resolve_physical_path "$approved_plt_root")" || {
+    echo "refusing unsafe PLT directory: priv" >&2
+    return 2
+  }
+  physical_candidate="$(resolve_physical_path "$plt_dir")" || {
+    echo "refusing unsafe PLT directory: priv/plts" >&2
+    return 2
+  }
+
+  case "$physical_root" in
+    "$physical_repo"/*) ;;
+    *)
+      echo "refusing unsafe PLT directory: priv" >&2
+      return 2
+      ;;
+  esac
+
+  if [ "$physical_candidate" != "${physical_root}/plts" ]; then
+    echo "refusing unsafe PLT directory: priv/plts" >&2
+    return 2
+  fi
+
+  case "$physical_candidate" in
+    "$physical_repo"/*) ;;
+    *)
+      echo "refusing unsafe PLT directory: priv/plts" >&2
+      return 2
+      ;;
+  esac
+}
+
 reset_plt() {
+  require_contained_plt_dir
   rm -rf -- "$plt_dir"
   mkdir -p -- "$plt_dir"
 }

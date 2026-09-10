@@ -63,25 +63,27 @@ assert_order() {
 
 assert_case() {
   local name="$1" mode="$2" scenario="$3" expected_status="$4" expected_commands="$5"
-  local case_root fake_mix command_log dialyzer_log output status=0 commands
+  local case_root repo_fixture fixture_runner fake_mix command_log dialyzer_log output status=0 commands
 
   case_root="$(mktemp -d "${TMPDIR:-/tmp}/rindle-dialyzer-test.XXXXXX")"
+  repo_fixture="${case_root}/repo"
+  fixture_runner="${repo_fixture}/scripts/ci/run_nightly_dialyzer.sh"
   fake_mix="${case_root}/mix"
   command_log="${case_root}/commands.log"
   dialyzer_log="${case_root}/dialyzer.log"
 
+  mkdir -p "${repo_fixture}/scripts/ci" "${repo_fixture}/priv/plts"
+  cp "$runner" "$fixture_runner"
   cp "${repo_root}/scripts/ci/fixtures/fake_nightly_dialyzer_mix.sh" "$fake_mix"
-  chmod +x "$fake_mix"
-  mkdir -p "${case_root}/plts"
-  printf 'restored fixture\n' > "${case_root}/plts/dialyzer.plt"
+  chmod +x "$fake_mix" "$fixture_runner"
+  printf 'restored fixture\n' > "${repo_fixture}/priv/plts/dialyzer.plt"
 
   output="$(
     MIX_BIN="$fake_mix" \
-      PLT_DIR="${case_root}/plts" \
       DIALYZER_LOG="$dialyzer_log" \
       RINDLE_DIALYZER_TEST_SCENARIO="$scenario" \
       RINDLE_DIALYZER_COMMAND_LOG="$command_log" \
-      bash "$runner" "$mode" 2>&1
+      bash "$fixture_runner" "$mode" 2>&1
   )" || status=$?
 
   commands="$(tr '\n' '|' < "$command_log" 2>/dev/null || true)"
