@@ -22,7 +22,7 @@ base_policy='{
 }'
 
 expect_exit() {
-  local name="$1" want="$2" needs="$3" policy="$4" got=0 output_file verdict
+  local name="$1" want="$2" needs="$3" policy="$4" got=0 output_file verdict expected_verdict
   output_file="$(mktemp)"
 
   NEEDS_JSON="${needs}" NIGHTLY_POLICY_JSON="${policy}" \
@@ -32,9 +32,13 @@ expect_exit() {
   verdict="$(jq -r '.verdict // "missing"' "${output_file}" 2>/dev/null || printf 'missing')"
   rm -f "${output_file}"
 
-  if [ "${got}" -eq "${want}" ] &&
-     { [ "${want}" -eq 0 ] && [ "${verdict}" = green ] ||
-       [ "${want}" -ne 0 ] && [ "${verdict}" = red ]; }; then
+  if [ "${want}" -eq 0 ]; then
+    expected_verdict=green
+  else
+    expected_verdict=red
+  fi
+
+  if [ "${got}" -eq "${want}" ] && [ "${verdict}" = "${expected_verdict}" ]; then
     echo "ok   — ${name} (exit ${got}, verdict ${verdict})"
     pass=$((pass + 1))
   else
