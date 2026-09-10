@@ -395,6 +395,61 @@ defmodule Rindle.InstallSmoke.EvidenceCensusTest do
     assert {_output, 0} = run_validator(fixture)
   end
 
+  test "EVID-01: collector canonicalizes contained locations and rejects every escape family" do
+    fixture = census_fixture!()
+
+    mutate_json!(fixture.ledger, &put_observation_location(&1, "./nested/../mix.exs"))
+    assert {_output, 0} = run_collector(fixture)
+
+    receipt = fixture.receipt |> File.read!() |> Jason.decode!()
+
+    assert Enum.find(receipt["observations"], &(&1["id"] == "obs-default-exunit"))["location"] ==
+             "mix.exs"
+
+    for location <- ["../outside", "nested/../../outside", "/tmp/outside"] do
+      escaped = census_fixture!()
+      mutate_json!(escaped.ledger, &put_observation_location(&1, location))
+
+      assert {output, status} = run_collector(escaped)
+      assert status != 0
+      assert output =~ "observation location must remain within repository root"
+      refute output =~ "/tmp/outside"
+    end
+
+    escaped = census_fixture!()
+    external = Path.join(Path.dirname(escaped.root), "external-sentinel")
+    File.write!(external, "external\n")
+    File.ln_s!(external, Path.join(escaped.root, "external-link"))
+    mutate_json!(escaped.ledger, &put_observation_location(&1, "external-link"))
+
+    assert {output, status} = run_collector(escaped, ["--allow-dirty-diagnostic"])
+    assert status != 0
+    assert output =~ "observation location must remain within repository root"
+    refute output =~ external
+  end
+
+  test "EVID-01: validator independently rejects lexical and symlink observation escapes" do
+    for location <- ["../outside", "nested/../../outside", "/tmp/outside"] do
+      fixture = census_fixture!()
+      assert {_output, 0} = run_collector(fixture)
+      mutate_ledger_and_receipt_location!(fixture, location)
+
+      assert_invalid(fixture, "observation location must remain within repository root")
+    end
+
+    fixture = census_fixture!()
+    assert {_output, 0} = run_collector(fixture)
+    external = Path.join(Path.dirname(fixture.root), "external-sentinel")
+    File.write!(external, "external\n")
+    File.ln_s!(external, Path.join(fixture.root, "external-link"))
+    mutate_ledger_and_receipt_location!(fixture, "external-link")
+
+    {output, status} = run_validator(fixture)
+    assert status != 0
+    assert output =~ "observation location must remain within repository root"
+    refute output =~ external
+  end
+
   defp census_fixture!, do: registry_fixture!([@inapplicable_dimension])
 
   defp registry_fixture!(inapplicable_dimensions) do
@@ -562,6 +617,30 @@ defmodule Rindle.InstallSmoke.EvidenceCensusTest do
   defp mutate_json!(path, mutation) do
     value = path |> File.read!() |> Jason.decode!() |> mutation.()
     File.write!(path, Jason.encode!(value))
+  end
+
+  defp mutate_ledger_and_receipt_location!(fixture, location) do
+    mutate_json!(fixture.ledger, &put_observation_location(&1, location))
+
+    mutate_json!(fixture.receipt, fn receipt ->
+      update_in(receipt, ["observations"], fn observations ->
+        Enum.map(observations, fn
+          %{"id" => "obs-default-exunit"} = observation ->
+            Map.put(observation, "location", location)
+
+          observation ->
+            observation
+        end)
+      end)
+    end)
+  end
+
+  defp put_observation_location(ledger, location) do
+    update_in(
+      ledger,
+      ["detectors", Access.at(0), "observations", Access.at(0)],
+      &Map.put(&1, "location", location)
+    )
   end
 
   defp replace_candidate_observation(ledger, candidate_id, replacement_id) do
