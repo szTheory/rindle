@@ -373,10 +373,14 @@ while [ "$(date +%s)" -lt "$deadline" ]; do
       .headBranch == $ref and .headSha == $sha and .createdAt >= $boundary)]
   ' <<<"$runs")" || die "run listing was malformed"
   match_count="$(jq 'length' <<<"$matches")"
-  if [ "$match_count" -eq 1 ]; then
-    run_id="$(jq -r '.[0].databaseId' <<<"$matches")"
-    break
-  fi
+  case "$match_count" in
+    0) ;;
+    1)
+      run_id="$(jq -r '.[0].databaseId' <<<"$matches")"
+      break
+      ;;
+    *) die "ambiguous exact diagnostic run selection: found ${match_count} post-boundary matches" ;;
+  esac
   [ "$poll_seconds" -eq 0 ] || sleep "$poll_seconds"
 done
 [ -n "$run_id" ] || die "timed out waiting for exact diagnostic run"
