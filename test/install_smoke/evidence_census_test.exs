@@ -48,6 +48,8 @@ defmodule Rindle.InstallSmoke.EvidenceCensusTest do
     {"repository-hygiene", "repository hygiene", "./scripts/maintainer/repo_hygiene_check.sh",
      ["scripts/maintainer/repo_hygiene_check.sh"]}
   ]
+  @inapplicable_dimension "performance"
+  @inapplicable_reason "not exercised by the minimal tracer fixture"
 
   test "EVID-01: clean exact-head receipt validates against a separate reviewed ledger" do
     fixture = census_fixture!()
@@ -63,16 +65,17 @@ defmodule Rindle.InstallSmoke.EvidenceCensusTest do
     assert receipt["source_sha"] == fixture.sha
     assert receipt["dirty"] == false
     assert Enum.map(receipt["dimensions"], & &1["id"]) == @dimensions
-    assert Enum.map(receipt["observations"], & &1["id"]) == ["obs-default-tests"]
+    assert length(receipt["observations"]) == length(@detector_registry) - 1
+    refute Enum.any?(receipt["observations"], &(&1["dimension"] == @inapplicable_dimension))
     assert is_binary(receipt["candidates_digest"])
 
-    assert receipt["inputs"] == [
-             %{
+    assert Enum.any?(receipt["inputs"], fn input ->
+             input == %{
                "detector_id" => "default-exunit",
                "path" => "mix.exs",
-               "sha256" => sha256("fixture\n")
+               "sha256" => sha256("fixture input: mix.exs\n")
              }
-           ]
+           end)
   end
 
   test "EVID-01: unchanged inputs produce byte-stable canonical receipts" do
@@ -149,7 +152,9 @@ defmodule Rindle.InstallSmoke.EvidenceCensusTest do
     assert {_output, 0} = run_collector(fixture)
 
     mutate_ledger_and_recollect!(fixture, fn ledger ->
-      Map.update!(ledger, "candidates", fn [candidate] -> [candidate, candidate] end)
+      update_in(ledger, ["candidates"], fn [candidate | _] = candidates ->
+        [candidate | candidates]
+      end)
     end)
 
     assert_invalid(fixture, "candidate IDs must be unique")
@@ -187,6 +192,63 @@ defmodule Rindle.InstallSmoke.EvidenceCensusTest do
 
     assert {_output, 0} = run_collector(fixture)
     assert_invalid(fixture, "detector registry differs from repository-owned authority")
+  end
+
+  test "EVID-01: mixed applicability preserves exact authority for every applicable detector" do
+    fixture = census_fixture!()
+
+    assert {_output, 0} = run_collector(fixture)
+    assert {_output, 0} = run_validator(fixture)
+
+    for {field, replacement} <- [
+          {"command", "opaque replacement"},
+          {"inputs", ["other-input"]},
+          {"id", "replacement-id"},
+          {"dimension", "reliability"}
+        ] do
+      mutated = census_fixture!()
+
+      if field == "inputs" do
+        File.write!(Path.join(mutated.root, "other-input"), "replacement\n")
+      end
+
+      mutate_json!(mutated.ledger, fn ledger ->
+        put_in(ledger, ["detectors", Access.at(0), field], replacement)
+      end)
+
+      assert {_output, 0} = run_collector(mutated, ["--allow-dirty-diagnostic"])
+      assert_invalid(mutated, "detector authority differs from repository-owned registry")
+    end
+  end
+
+  test "EVID-01: inapplicability requires an allowlisted dimension and exact bounded reason" do
+    fixture = census_fixture!()
+    assert {_output, 0} = run_collector(fixture)
+
+    for reason <- [nil, "", "not exercised"] do
+      mutated = census_fixture!()
+
+      mutate_json!(mutated.ledger, fn ledger ->
+        update_in(ledger, ["taxonomy"], fn taxonomy ->
+          Enum.map(taxonomy, fn
+            %{"id" => @inapplicable_dimension} = row -> Map.put(row, "rationale", reason)
+            row -> row
+          end)
+        end)
+      end)
+
+      assert {_output, 0} = run_collector(mutated)
+      assert_invalid(mutated, "taxonomy inapplicability is not repository-authorized")
+    end
+
+    fixture = complete_census_fixture!()
+
+    mutate_json!(fixture.ledger, fn ledger ->
+      remove_dimension(ledger, "reliability", @inapplicable_reason)
+    end)
+
+    assert {_output, 0} = run_collector(fixture)
+    assert_invalid(fixture, "taxonomy inapplicability is not repository-authorized")
   end
 
   test "EVID-01: candidate set changes and unexplained observation transitions fail closed" do
@@ -337,7 +399,9 @@ defmodule Rindle.InstallSmoke.EvidenceCensusTest do
     assert {_output, 0} = run_validator(fixture)
   end
 
-  defp census_fixture! do
+  defp census_fixture!, do: registry_fixture!([@inapplicable_dimension])
+
+  defp registry_fixture!(inapplicable_dimensions) do
     base =
       Path.join(System.tmp_dir!(), "rindle-evidence-census-#{System.unique_integer([:positive])}")
 
@@ -346,85 +410,27 @@ defmodule Rindle.InstallSmoke.EvidenceCensusTest do
     receipt_path = Path.join(base, "receipt.json")
 
     File.mkdir_p!(root)
-    File.write!(Path.join(root, "mix.exs"), "fixture\n")
-    git!(root, ["init", "--quiet"])
-    git!(root, ["config", "user.email", "fixture@example.invalid"])
-    git!(root, ["config", "user.name", "Evidence Fixture"])
-    git!(root, ["add", "mix.exs"])
-    git!(root, ["commit", "--quiet", "-m", "fixture"])
-    sha = git!(root, ["rev-parse", "HEAD"])
-
-    ledger = %{
-      "schema_version" => 1,
-      "subject_sha" => sha,
-      "taxonomy" =>
-        Enum.map(@dimensions, fn dimension ->
-          if dimension == "correctness" do
-            %{"id" => dimension, "applicable" => true, "detectors" => ["default-exunit"]}
-          else
-            %{
-              "id" => dimension,
-              "applicable" => false,
-              "detectors" => [],
-              "rationale" => "not exercised by the minimal tracer fixture"
-            }
-          end
-        end),
-      "detectors" => [
-        %{
-          "id" => "default-exunit",
-          "dimension" => "correctness",
-          "command" => "mix test",
-          "inputs" => ["mix.exs"],
-          "observations" => [
-            %{
-              "id" => "obs-default-tests",
-              "kind" => "test-suite",
-              "location" => "test",
-              "status" => "pass",
-              "attributes" => %{"count" => 1}
-            }
-          ]
-        }
-      ],
-      "candidates" => [
-        %{
-          "id" => "candidate-default-tests",
-          "observations" => ["obs-default-tests"],
-          "disposition" => "fix",
-          "rationale" => "fixture candidate exercises the exact-head contract",
-          "evidence" => ["mix test"],
-          "trigger" => nil
-        }
-      ],
-      "phase_133_transitions" => []
-    }
-
-    ledger = Map.put(ledger, "candidate_baseline", baseline_for(ledger["candidates"]))
-
-    File.write!(ledger_path, Jason.encode!(ledger))
-    on_exit(fn -> File.rm_rf(base) end)
-
-    %{root: root, ledger: ledger_path, receipt: receipt_path, sha: sha}
-  end
-
-  defp complete_census_fixture! do
-    fixture = census_fixture!()
 
     for {_id, _dimension, _command, inputs} <- @detector_registry,
-        input <- inputs,
-        input != "mix.exs" do
-      path = Path.join(fixture.root, input)
+        input <- inputs do
+      path = Path.join(root, input)
       File.mkdir_p!(Path.dirname(path))
       File.write!(path, "fixture input: #{input}\n")
     end
 
-    git!(fixture.root, ["add", "."])
-    git!(fixture.root, ["commit", "--quiet", "-m", "complete detector inputs"])
-    sha = git!(fixture.root, ["rev-parse", "HEAD"])
+    git!(root, ["init", "--quiet"])
+    git!(root, ["config", "user.email", "fixture@example.invalid"])
+    git!(root, ["config", "user.name", "Evidence Fixture"])
+    git!(root, ["add", "."])
+    git!(root, ["commit", "--quiet", "-m", "fixture"])
+    sha = git!(root, ["rev-parse", "HEAD"])
 
     detectors =
-      Enum.map(@detector_registry, fn {id, dimension, command, inputs} ->
+      @detector_registry
+      |> Enum.reject(fn {_id, dimension, _command, _inputs} ->
+        dimension in inapplicable_dimensions
+      end)
+      |> Enum.map(fn {id, dimension, command, inputs} ->
         %{
           "id" => id,
           "dimension" => dimension,
@@ -460,16 +466,55 @@ defmodule Rindle.InstallSmoke.EvidenceCensusTest do
       "taxonomy" =>
         Enum.map(@dimensions, fn dimension ->
           detector = Enum.find(detectors, &(&1["dimension"] == dimension))
-          %{"id" => dimension, "applicable" => true, "detectors" => [detector["id"]]}
+
+          if detector do
+            %{"id" => dimension, "applicable" => true, "detectors" => [detector["id"]]}
+          else
+            %{
+              "id" => dimension,
+              "applicable" => false,
+              "detectors" => [],
+              "rationale" => @inapplicable_reason
+            }
+          end
         end),
       "detectors" => detectors,
       "candidates" => candidates,
-      "candidate_baseline" => baseline_for(candidates),
       "phase_133_transitions" => []
     }
 
-    File.write!(fixture.ledger, Jason.encode!(ledger))
-    %{fixture | sha: sha}
+    ledger = Map.put(ledger, "candidate_baseline", baseline_for(ledger["candidates"]))
+
+    File.write!(ledger_path, Jason.encode!(ledger))
+    on_exit(fn -> File.rm_rf(base) end)
+
+    %{root: root, ledger: ledger_path, receipt: receipt_path, sha: sha}
+  end
+
+  defp complete_census_fixture! do
+    registry_fixture!([])
+  end
+
+  defp remove_dimension(ledger, dimension, rationale) do
+    detector = Enum.find(ledger["detectors"], &(&1["dimension"] == dimension))
+    candidate_id = "candidate-#{detector["id"]}"
+
+    ledger
+    |> update_in(["taxonomy"], fn taxonomy ->
+      Enum.map(taxonomy, fn
+        %{"id" => ^dimension} = row ->
+          row
+          |> Map.put("applicable", false)
+          |> Map.put("detectors", [])
+          |> Map.put("rationale", rationale)
+
+        row ->
+          row
+      end)
+    end)
+    |> update_in(["detectors"], &Enum.reject(&1, fn row -> row["dimension"] == dimension end))
+    |> update_in(["candidates"], &Enum.reject(&1, fn row -> row["id"] == candidate_id end))
+    |> update_in(["candidate_baseline"], &Enum.reject(&1, fn row -> row["id"] == candidate_id end))
   end
 
   defp run_collector(fixture, extra_args \\ []) do
