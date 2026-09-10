@@ -118,6 +118,50 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
   end
 
   @tag :derived_authority
+  test "release coupling cannot be established by literals retained only in comments" do
+    root = fixture_root!()
+
+    replace!(
+      root,
+      ".github/workflows/release.yml",
+      "                workflow_id: 'ci.yml',",
+      "                workflow_id: 'nightly.yml',"
+    )
+
+    replace!(
+      root,
+      ".github/workflows/release.yml",
+      "                head_sha: sha,",
+      "                head_sha: '0000000000000000000000000000000000000000',"
+    )
+
+    replace!(
+      root,
+      ".github/workflows/release.yml",
+      "              const runs = data.workflow_runs.filter((run) => run.head_sha === sha);",
+      "              const runs = data.workflow_runs;"
+    )
+
+    replace!(
+      root,
+      ".github/workflows/release.yml",
+      "              if (latest.conclusion !== 'success') {",
+      "              if (latest.conclusion !== 'failure') {"
+    )
+
+    release_path = Path.join(root, ".github/workflows/release.yml")
+
+    File.write!(
+      release_path,
+      File.read!(release_path) <>
+        "\n# workflow_id: 'ci.yml'\n# head_sha: sha\n" <>
+        "# run.head_sha === sha\n# latest.conclusion !== 'success'\n"
+    )
+
+    assert_error(root, "exact-SHA release coupling mismatch")
+  end
+
+  @tag :derived_authority
   test "false lane and Nightly applicability claims are rejected from parsed topology" do
     model = Rindle.ValidateLiveTruth.derive!(@repo_root, [])
 
