@@ -111,6 +111,56 @@ defmodule Rindle.InstallSmoke.NightlyPolicyTest do
            |> Enum.count(fn {_id, candidate} -> candidate["name"] == "CI Summary" end) == 1
   end
 
+  test "incident lifecycle consumes the strict verdict after every gating result", %{
+    nightly: workflow
+  } do
+    lifecycle = job(workflow, "nightly-failure-issue")
+
+    assert Enum.sort(lifecycle["needs"]) == Enum.sort(["nightly-summary" | @gating_jobs])
+    assert lifecycle["if"] == "always()"
+    assert lifecycle["permissions"] == %{"contents" => "read", "issues" => "write"}
+
+    remote_main = step(lifecycle, "Resolve current remote default-branch SHA")
+    assert remote_main["id"] == "remote-main"
+    assert remote_main["run"] =~ "gh api --method GET"
+    assert remote_main["run"] =~ "git/ref/heads/${DEFAULT_BRANCH}"
+
+    manage = step(lifecycle, "Manage scheduled Nightly incident")
+
+    assert manage["env"]["NIGHTLY_VERDICT"] ==
+             "${{ needs.nightly-summary.outputs.verdict }}"
+
+    assert manage["env"]["REMOTE_MAIN_SHA"] == "${{ steps.remote-main.outputs.sha }}"
+    assert manage["run"] == "bash scripts/ci/manage_nightly_incident.sh"
+
+    refute lifecycle["if"] =~ "failure()"
+  end
+
+  test "incident mutation stays job-local and diagnostic dispatch remains evaluator-owned", %{
+    nightly: workflow,
+    ci: ci
+  } do
+    assert workflow["permissions"] == %{"contents" => "read"}
+
+    writers =
+      for {name, candidate} <- workflow["jobs"],
+          get_in(candidate, ["permissions", "issues"]) == "write",
+          do: name
+
+    assert writers == ["nightly-failure-issue"]
+
+    lifecycle = job(workflow, "nightly-failure-issue")
+    manage = step(lifecycle, "Manage scheduled Nightly incident")
+    assert manage["env"]["EVENT_NAME"] == "${{ github.event_name }}"
+    assert manage["env"]["RUN_ID"] == "${{ github.run_id }}"
+    assert manage["env"]["RUN_ATTEMPT"] == "${{ github.run_attempt }}"
+    assert manage["env"]["RUN_SHA"] == "${{ github.sha }}"
+    assert manage["env"]["RUN_REF"] == "${{ github.ref }}"
+
+    assert step(job(ci, "ci-script-tests"), "Nightly incident lifecycle")["run"] ==
+             "bash scripts/ci/test_nightly_incident.sh"
+  end
+
   defp job(workflow, name), do: workflow |> Map.fetch!("jobs") |> Map.fetch!(name)
 
   defp step(job, name) do
