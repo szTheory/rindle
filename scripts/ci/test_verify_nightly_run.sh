@@ -27,26 +27,24 @@ make_fake_gh() {
 }
 
 run_case() {
-  local name="$1" state="$2" want_exit="$3" temp got=0 local_authorities
+  local name="$1" state="$2" want_exit="$3" temp got=0
   temp="$(mktemp -d)"
   make_fake_gh "${temp}/bin"
+  make_fake_local_authorities "${temp}/bin"
   : >"${temp}/calls"
   : >"${temp}/count"
   : >"${temp}/run-list-count"
+  : >"${temp}/authority-calls"
 
-  local_authorities='{"census":{"status":"pass"},"live_truth":{"status":"pass"}}'
-  [ "$state" != bad_local_authority ] || local_authorities='{"census":{"status":"fail"},"live_truth":{"status":"pass"}}'
   PATH="${temp}/bin:${PATH}" FAKE_GH_LOG="${temp}/calls" FAKE_GH_COUNT_FILE="${temp}/count" \
     FAKE_GH_RUN_LIST_COUNT_FILE="${temp}/run-list-count" \
-    FAKE_GH_STATE="$state" NIGHTLY_LOCAL_AUTHORITIES_JSON="$local_authorities" \
+    FAKE_GH_STATE="$state" FAKE_AUTHORITY_STATE="$state" FAKE_AUTHORITY_LOG="${temp}/authority-calls" \
     NIGHTLY_NOW=2026-09-09T12:00:00Z \
     bash "$collector" dispatch-and-record --repo szTheory/rindle --workflow nightly.yml \
       --ref phase-133-evidence-aaaaaaaaaaaa --expected-sha aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \
       --receipt "${temp}/receipt.json" --poll-seconds 0 --timeout-seconds 2 >"${temp}/output" 2>&1 || got=$?
 
   if [ "$state" = success ] && [ "$got" -eq 0 ]; then
-    make_fake_local_authorities "${temp}/bin"
-    : >"${temp}/authority-calls"
     PATH="${temp}/bin:${PATH}" FAKE_GH_LOG="${temp}/calls" FAKE_GH_COUNT_FILE="${temp}/count" \
       FAKE_GH_STATE=success FAKE_AUTHORITY_STATE=success FAKE_AUTHORITY_LOG="${temp}/authority-calls" \
       bash "$collector" verify-receipt --repo szTheory/rindle --workflow nightly.yml \
@@ -76,6 +74,17 @@ run_case() {
        [ "$(grep -c '^mix run --no-deps-check --no-compile scripts/maintainer/evidence_census.exs --root ' "${temp}/authority-calls" || true)" -eq 2 ] &&
        [ "$(grep -c '^mix run --no-deps-check --no-compile scripts/maintainer/validate_evidence_census.exs --root ' "${temp}/authority-calls" || true)" -eq 2 ] &&
        [ "$(grep -c '^mix run --no-deps-check --no-compile -e Code.require_file("scripts/maintainer/validate_live_truth.exs")' "${temp}/authority-calls" || true)" -eq 2 ] &&
+       [ "$(jq -r '.schema_version' "${temp}/receipt.json")" = 2 ] &&
+       [ "$(jq -r '.local_authorities.census.ledger_path' "${temp}/receipt.json")" = .planning/phases/133-evidence-charter-and-live-truth/133-EVIDENCE-CENSUS.json ] &&
+       [ "$(jq -r '.local_authorities.census.ledger_sha256' "${temp}/receipt.json")" = 80c9c6808f18a8dd51489e9da11fafc4f8b00d993a615348a773056f81af8744 ] &&
+       [ "$(jq -r '.local_authorities.census.ledger_blob' "${temp}/receipt.json")" = cccccccccccccccccccccccccccccccccccccccc ] &&
+       [ "$(jq -r '.local_authorities.census.ledger_commit' "${temp}/receipt.json")" = dddddddddddddddddddddddddddddddddddddddd ] &&
+       [ "$(jq -r '.local_authorities.census.subject_sha' "${temp}/receipt.json")" = aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa ] &&
+       [ "$(jq -r '.local_authorities.census.receipt.marker' "${temp}/receipt.json")" = immutable-object ] &&
+       [ "$(jq -r '.local_authorities.live_truth.model_sha256 | length' "${temp}/receipt.json")" -eq 64 ] &&
+       grep -q '^git -C .* show dddddddddddddddddddddddddddddddddddddddd:.planning/phases/133-evidence-charter-and-live-truth/133-EVIDENCE-CENSUS.json$' "${temp}/authority-calls" &&
+       grep -Eq -- '--ledger /.*nightly-authority\..*/ledger.json' "${temp}/authority-calls" &&
+       ! grep -Eq -- '--ledger .*/projects/rindle/.planning/' "${temp}/authority-calls" &&
        ! grep -Eq '^(issue (create|comment|close|edit|delete)|run (cancel|rerun|delete))' "${temp}/calls"; then
       record "success argv is one dispatch plus read-only inspection" true
     else
@@ -121,14 +130,15 @@ run_case() {
 collect_valid_receipt() {
   local temp="$1" got=0
   make_fake_gh "${temp}/bin"
+  make_fake_local_authorities "${temp}/bin"
   : >"${temp}/calls"
   : >"${temp}/count"
   : >"${temp}/run-list-count"
+  : >"${temp}/authority-calls"
 
   PATH="${temp}/bin:${PATH}" FAKE_GH_LOG="${temp}/calls" FAKE_GH_COUNT_FILE="${temp}/count" \
     FAKE_GH_RUN_LIST_COUNT_FILE="${temp}/run-list-count" \
-    FAKE_GH_STATE=success \
-    NIGHTLY_LOCAL_AUTHORITIES_JSON='{"census":{"status":"pass"},"live_truth":{"status":"pass"}}' \
+    FAKE_GH_STATE=success FAKE_AUTHORITY_STATE=success FAKE_AUTHORITY_LOG="${temp}/authority-calls" \
     NIGHTLY_NOW=2026-09-09T12:00:00Z \
     bash "$collector" dispatch-and-record --repo szTheory/rindle --workflow nightly.yml \
       --ref phase-133-evidence-aaaaaaaaaaaa --expected-sha aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \
@@ -143,7 +153,13 @@ make_fake_local_authorities() {
     '#!/usr/bin/env bash' \
     'set -euo pipefail' \
     'printf "git %s\n" "$*" >>"$FAKE_AUTHORITY_LOG"' \
+    'if [ "${1-}" = -C ]; then shift 2; fi' \
     'case "${1-} ${2-}" in' \
+    '  "status --porcelain") [ "${FAKE_AUTHORITY_STATE:-success}" != dirty_ledger ] || printf " M %s\n" "${4-}" ;;' \
+    '  "ls-files --error-unmatch") [ "${FAKE_AUTHORITY_STATE:-success}" != untracked_ledger ] || exit 1 ;;' \
+    '  "log -1") printf "%s\n" dddddddddddddddddddddddddddddddddddddddd ;;' \
+    '  "rev-parse dddddddddddddddddddddddddddddddddddddddd:.planning/phases/133-evidence-charter-and-live-truth/133-EVIDENCE-CENSUS.json") printf "%s\n" cccccccccccccccccccccccccccccccccccccccc ;;' \
+    '  "show dddddddddddddddddddddddddddddddddddddddd:.planning/phases/133-evidence-charter-and-live-truth/133-EVIDENCE-CENSUS.json") printf "fake immutable ledger\n" ;;' \
     '  "worktree add") mkdir -p "$4" ;;' \
     '  "worktree remove") rm -rf "$4" ;;' \
     '  *) echo "unexpected fake git call: $*" >&2; exit 43 ;;' \
@@ -159,7 +175,9 @@ make_fake_local_authorities() {
     '    if [ "$1" = --output ]; then output="$2"; break; fi' \
     '    shift' \
     '  done' \
-    '  [ -z "$output" ] || printf "{\"schema_version\":1}\n" >"$output"' \
+    '  [ -z "$output" ] || printf "{\"marker\":\"immutable-object\",\"schema_version\":1,\"source_sha\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}\n" >"$output"' \
+    'elif printf "%s\n" "$*" | grep -q "validate_live_truth.exs" && printf "%s\n" "$*" | grep -q -- "--format json"; then' \
+    '  printf "{\"authority_root\":\"ephemeral\",\"schema_version\":1,\"version\":\"0.4.6\"}\n"' \
     'fi' >"${bin_dir}/mix"
   chmod +x "${bin_dir}/git" "${bin_dir}/mix"
 }
