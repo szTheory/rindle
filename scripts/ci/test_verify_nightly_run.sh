@@ -32,10 +32,12 @@ run_case() {
   make_fake_gh "${temp}/bin"
   : >"${temp}/calls"
   : >"${temp}/count"
+  : >"${temp}/run-list-count"
 
   local_authorities='{"census":{"status":"pass"},"live_truth":{"status":"pass"}}'
   [ "$state" != bad_local_authority ] || local_authorities='{"census":{"status":"fail"},"live_truth":{"status":"pass"}}'
   PATH="${temp}/bin:${PATH}" FAKE_GH_LOG="${temp}/calls" FAKE_GH_COUNT_FILE="${temp}/count" \
+    FAKE_GH_RUN_LIST_COUNT_FILE="${temp}/run-list-count" \
     FAKE_GH_STATE="$state" NIGHTLY_LOCAL_AUTHORITIES_JSON="$local_authorities" \
     NIGHTLY_NOW=2026-09-09T12:00:00Z \
     bash "$collector" dispatch-and-record --repo szTheory/rindle --workflow nightly.yml \
@@ -72,6 +74,18 @@ run_case() {
       record "success argv is one dispatch plus read-only inspection" false "unsafe or missing call"
     fi
   fi
+
+  if [ "$state" = old_runs_then_exact ]; then
+    if [ "$(grep -c '^run list ' "${temp}/calls" || true)" -eq 2 ] &&
+       [ "$(grep -c '^run watch 9001 ' "${temp}/calls" || true)" -eq 1 ] &&
+       [ "$(grep -c '^run view 9001 ' "${temp}/calls" || true)" -ge 1 ] &&
+       ! grep -Eq '^run (watch|view) 8000 ' "${temp}/calls" &&
+       [ "$(jq -r '.run_id' "${temp}/receipt.json" 2>/dev/null || true)" = 9001 ]; then
+      record "old history waits for and selects only the exact run" true
+    else
+      record "old history waits for and selects only the exact run" false "unexpected polling or selected-run argv"
+    fi
+  fi
   rm -rf "$temp"
 }
 
@@ -80,8 +94,10 @@ collect_valid_receipt() {
   make_fake_gh "${temp}/bin"
   : >"${temp}/calls"
   : >"${temp}/count"
+  : >"${temp}/run-list-count"
 
   PATH="${temp}/bin:${PATH}" FAKE_GH_LOG="${temp}/calls" FAKE_GH_COUNT_FILE="${temp}/count" \
+    FAKE_GH_RUN_LIST_COUNT_FILE="${temp}/run-list-count" \
     FAKE_GH_STATE=success \
     NIGHTLY_LOCAL_AUTHORITIES_JSON='{"census":{"status":"pass"},"live_truth":{"status":"pass"}}' \
     NIGHTLY_NOW=2026-09-09T12:00:00Z \
@@ -183,6 +199,7 @@ if [ ! -x "$collector" ]; then
 fi
 
 run_case "exact first-attempt run writes canonical receipt" success 0
+run_case "older runs appear before the exact run" old_runs_then_exact 0
 for state in foreign_repository foreign_workflow missing_ref foreign_sha foreign_run_sha foreign_run_ref \
   foreign_run_workflow rerun missing_job extra_job red_job skipped_job cancelled_job nonterminal red_run \
   missing_fresh missing_restored unsupported_elixir_11_17 unsupported_elixir_1_170 unsupported_otp_127 \
@@ -295,6 +312,16 @@ case "${1-} ${2-}" in
   "workflow run") exit 0 ;;
   "run list")
     [ "$state" != timeout ] || { printf '[]\n'; exit; }
+    if [ "$state" = old_runs_then_exact ]; then
+      list_count="$(cat "$FAKE_GH_RUN_LIST_COUNT_FILE" 2>/dev/null || printf 0)"
+      list_count=$((list_count + 1))
+      printf '%s' "$list_count" >"$FAKE_GH_RUN_LIST_COUNT_FILE"
+      if [ "$list_count" -eq 1 ]; then
+        jq -cn --arg sha "$sha" --arg ref "$ref" \
+          '[{attempt:1,conclusion:"success",createdAt:"2026-09-09T11:00:00Z",databaseId:8000,event:"workflow_dispatch",headBranch:$ref,headSha:$sha,status:"completed",url:"https://github.test/runs/8000",workflowName:"Nightly"}]'
+        exit
+      fi
+    fi
     run_sha="$sha"; run_ref="$ref"; run_workflow=Nightly; attempt=1; status=completed; conclusion=success
     [ "$state" != foreign_run_sha ] || run_sha=bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
     [ "$state" != foreign_run_ref ] || run_ref=other-ref
