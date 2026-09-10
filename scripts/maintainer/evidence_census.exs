@@ -22,7 +22,7 @@ defmodule Rindle.EvidenceCensus do
     {"mix-audit", "security", "mix deps.audit", ["mix.exs", "mix.lock"]},
     {"pr-timing", "performance", "validate accepted PR timing receipt",
      [
-       ".planning/milestones/v1.25-phases/132-final-craft-truth-and-feedback-proof/132-02-SUMMARY.md"
+       ".planning/milestones/v1.25-phases/132-measured-closure/132-02-SUMMARY.md"
      ]},
     {"nightly-policy", "reliability", "evaluate Nightly evidence",
      [".github/workflows/nightly.yml"]},
