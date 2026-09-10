@@ -5,6 +5,8 @@ set -euo pipefail
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 runner="${repo_root}/scripts/ci/run_nightly_dialyzer.sh"
 fingerprint="${repo_root}/.planning/phases/133-evidence-charter-and-live-truth/133-NIGHTLY-FAILURE-FINGERPRINT.json"
+setup_action="${repo_root}/.github/actions/setup-elixir/action.yml"
+nightly_workflow="${repo_root}/.github/workflows/nightly.yml"
 
 pass=0
 fail=0
@@ -17,6 +19,45 @@ fail_case() {
 pass_case() {
   echo "ok   — $1"
   pass=$((pass + 1))
+}
+
+assert_contains() {
+  local name="$1" file="$2" needle="$3"
+  if grep -Fq -- "$needle" "$file"; then
+    pass_case "$name"
+  else
+    fail_case "${name}: missing ${needle}"
+  fi
+}
+
+assert_not_contains() {
+  local name="$1" file="$2" needle="$3"
+  if grep -Fq -- "$needle" "$file"; then
+    fail_case "${name}: prohibited ${needle}"
+  else
+    pass_case "$name"
+  fi
+}
+
+assert_count() {
+  local name="$1" file="$2" needle="$3" expected="$4" actual
+  actual="$(grep -Fc -- "$needle" "$file" || true)"
+  if [ "$actual" -eq "$expected" ]; then
+    pass_case "$name"
+  else
+    fail_case "${name}: expected ${expected} occurrences of ${needle}, got ${actual}"
+  fi
+}
+
+assert_order() {
+  local name="$1" file="$2" first="$3" second="$4" first_line second_line
+  first_line="$(grep -nF -- "$first" "$file" | head -1 | cut -d: -f1 || true)"
+  second_line="$(grep -nF -- "$second" "$file" | head -1 | cut -d: -f1 || true)"
+  if [ -n "$first_line" ] && [ -n "$second_line" ] && [ "$first_line" -lt "$second_line" ]; then
+    pass_case "$name"
+  else
+    fail_case "${name}: expected ${first} before ${second}"
+  fi
 }
 
 assert_case() {
@@ -80,6 +121,20 @@ if jq -e '
 else
   fail_case "bounded #93/#101 failure fingerprint is incomplete"
 fi
+
+assert_contains "composite exposes resolved Elixir output" "$setup_action" "resolved-elixir-version:"
+assert_contains "composite forwards exact installed Elixir" "$setup_action" 'value: ${{ steps.beam.outputs.elixir-version }}'
+assert_contains "composite exposes resolved OTP output" "$setup_action" "resolved-otp-version:"
+assert_contains "composite forwards exact installed OTP" "$setup_action" 'value: ${{ steps.beam.outputs.otp-version }}'
+assert_count "Nightly invokes fresh mode exactly once" "$nightly_workflow" "run_nightly_dialyzer.sh fresh" 1
+assert_count "Nightly invokes restored mode exactly once" "$nightly_workflow" "run_nightly_dialyzer.sh restored" 1
+assert_contains "PLT key uses resolved Elixir patch" "$nightly_workflow" 'elixir${{ steps.setup.outputs.resolved-elixir-version }}'
+assert_contains "PLT key uses resolved OTP patch" "$nightly_workflow" 'otp${{ steps.setup.outputs.resolved-otp-version }}'
+assert_contains "PLT key retains input hashes" "$nightly_workflow" "hashFiles('mix.exs', 'mix.lock', '.dialyzer_ignore.exs')"
+assert_not_contains "PLT key rejects requested-only identity" "$nightly_workflow" "otp27-elixir1.17"
+assert_not_contains "PLT restore has no cross-toolchain fallback" "$nightly_workflow" "restore-keys:"
+assert_order "fresh evidence precedes cache save" "$nightly_workflow" "run_nightly_dialyzer.sh fresh" "- name: Save PLT cache"
+assert_order "exact restore precedes restored evidence" "$nightly_workflow" "- name: Restore PLT cache" "run_nightly_dialyzer.sh restored"
 
 echo "—"
 echo "passed: ${pass}  failed: ${fail}"
