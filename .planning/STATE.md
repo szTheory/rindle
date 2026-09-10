@@ -5,16 +5,16 @@ milestone_name: Pre-Adopter Readiness & Quality Consolidation
 current_phase: 133
 current_phase_name: Evidence Charter and Live Truth
 status: executing
-stopped_at: Completed 133-07-PLAN.md
-last_updated: "2026-09-10T14:50:15.008Z"
-last_activity: 2026-09-09
-last_activity_desc: Completed Phase 133 Plan 07 exact-subject Nightly evidence collection
-state_head: 390e81d36431c26198c3a479553f7c1521135735
+stopped_at: Completed 133-08-PLAN.md
+last_updated: "2026-09-10T15:13:25.317Z"
+last_activity: 2026-09-10
+last_activity_desc: Completed Phase 133 Plan 08 package-proof authority closure
+state_head: 933e35f26f1f003d0bc4cabd7bf5f06bdb94eec7
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 10
-  completed_plans: 7
+  completed_plans: 8
 ---
 
 # Project State
@@ -28,24 +28,24 @@ See: .planning/PROJECT.md (updated 2026-09-09 for v1.26)
 
 ## Current Position
 
-Phase: 133 (Evidence Charter and Live Truth) — READY TO EXECUTE
-Plan: 7 of 7
+Phase: 133 (Evidence Charter and Live Truth) — EXECUTING
+Plan: 9 of 10
 Status: Ready to execute
-Last activity: 2026-09-09 — Completed Plan 07 exact-subject Nightly evidence collection
+Last activity: 2026-09-10 — Completed Plan 08 package-proof authority closure
 
-Progress: [██████████] 100%
+Progress: [████████░░] 80%
 
 ## Performance Metrics
 
 **Milestone velocity:**
 
-- Total plans completed: 6
-- Average duration: 19 min
-- Total execution time: 1.9 hours
+- Total plans completed: 8
+- Average duration: 23 min
+- Total execution time: 3.1 hours
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 133–139 | 6 | 114 min | 19 min |
+| 133–139 | 8 | 187 min | 23 min |
 **Per-Plan Metrics:**
 
 | Plan | Duration | Tasks | Files |
@@ -57,6 +57,7 @@ Progress: [██████████] 100%
 | Phase 133 P05 | 21min | 2 tasks | 2 files |
 | Phase 133 P06 | 28min | 2 tasks | 10 files |
 | Phase 133 P07 | 62min | 3 tasks | 3 files |
+| Phase 133 P08 | 11min | 1 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -84,6 +85,8 @@ Progress: [██████████] 100%
 - [Phase 133]: Read supported toolchain/cache markers only from exact validated job IDs.
 - [Phase 133]: Treat GitHub's expanded strict-verdict enforcement command as the live marker because GITHUB_OUTPUT writes are masked.
 - [Phase 133]: Keep the Nightly receipt bound to census subject 4f83e153eb7e rather than the later receipt commit.
+- [Phase 133]: Normalize every inline or model-held package receipt at validate_package_claim!/2, regardless of caller-supplied map fields.
+- [Phase 133]: Remove the validated marker from normalized proof data so normalized authority cannot be replayed as public input.
 
 ### Pending Todos
 
@@ -107,6 +110,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-09-10T03:29:08.257Z
-Stopped at: Completed 133-07-PLAN.md
+Last session: 2026-09-10T15:13:25.302Z
+Stopped at: Completed 133-08-PLAN.md
 Resume file: None
