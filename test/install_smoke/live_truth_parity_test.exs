@@ -190,7 +190,9 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
                )
     end
 
-    matrix = File.read!(Path.join(@repo_root, "examples/adoption_demo/docs/adoption-proof-matrix.md"))
+    matrix =
+      File.read!(Path.join(@repo_root, "examples/adoption_demo/docs/adoption-proof-matrix.md"))
+
     running = File.read!(Path.join(@repo_root, "RUNNING.md"))
 
     assert matrix =~ "Merge-blocking (`adoption-demo-e2e-smoke`)"
