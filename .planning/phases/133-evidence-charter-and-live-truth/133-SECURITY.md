@@ -52,6 +52,19 @@ created: "2026-09-10"
 | T-133-26 | Tampering | evidence receipt | high | mitigate | Partial output deletion, canonical construction, exact validation, and 28-case collector matrix. | closed |
 | T-133-27 | Elevation of privilege | GitHub adapter | high | mitigate | Adapter permits only the declared dispatch and read-only repo/ref/run/job/issue calls; mutation argv are rejected. | closed |
 | T-133-28 | Repudiation | diagnostic nonmutation | medium | mitigate | Canonical exact-label incident snapshots are compared before and after and embedded in the receipt. | closed |
+| T-133-29 | Spoofing | package claim validator | high | mitigate | Every receipt is normalized at the claim boundary; forged inline and CLI validation-marker regressions pass. | closed |
+| T-133-30 | Tampering | package provenance paths | high | mitigate | Exact source, path existence, metadata, lifecycle, and no-fallback facts are rechecked after normalization. | closed |
+| T-133-31 | Information disclosure | fixture error output | low | accept | Tests expose only generated temporary paths and no credentials or private remote data. | closed — accepted |
+| T-133-32 | Tampering | persisted Nightly receipt | high | mitigate | Exact nested schemas plus canonical live reconstruction reject field, key, order, duplicate, and type mutations. | closed |
+| T-133-33 | Spoofing | job and strict-verdict provenance | high | mitigate | Exact job identities and bounded job-scoped logs are the sole source of persisted job and verdict facts. | closed |
+| T-133-34 | Repudiation | incident snapshots | high | mitigate | Exact-label incident state is freshly collected read-only and compared with both persisted snapshots. | closed |
+| T-133-35 | Elevation of privilege | revalidation command surface | high | mitigate | Exact-subject worktrees and fixed repository-owned validators prevent receipt-controlled command selection. | closed |
+| T-133-36 | Denial of service | remote/local revalidation | medium | mitigate | Positive bounded timeouts, finite API calls, and fixed local commands fail closed on lookup or execution failure. | closed |
+| T-133-37 | Information disclosure | job/incident evidence | low | accept | Evidence is bounded to public job and incident metadata; no raw-log capture or capability expansion was added. | closed — accepted |
+| T-133-38 | Spoofing | resolved toolchain parser | high | mitigate | Anchored numeric component parsing rejects 11.17, 1.170, and 127 near-matches. | closed |
+| T-133-39 | Tampering | receipt Dialyzer versions | high | mitigate | Receipt versions reuse the anchored parser and must exactly match live logs and the PLT cache key. | closed |
+| T-133-40 | Denial of service | malformed/ambiguous logs | medium | mitigate | Missing, ambiguous, malformed, and unsupported values fail deterministically without retries or broad capture. | closed |
+| T-133-41 | Information disclosure | version diagnostics | low | accept | Toolchain versions and cache identities are non-secret bounded build metadata. | closed — accepted |
 
 ## Accepted Risks Log
 
@@ -61,12 +74,16 @@ created: "2026-09-10"
 | AR-133-02 | T-133-08 | A single fresh PLT build is necessary evidence and is isolated to scheduled/diagnostic Nightly. | Phase 133 plan | 2026-09-09 |
 | AR-133-03 | T-133-12 | Complete evaluation over a fixed four-job set is bounded and preferable to incomplete diagnostics. | Phase 133 plan | 2026-09-09 |
 | AR-133-04 | T-133-20 | Derived output contains only public repository facts and bounded relative paths, with no secrets or raw logs. | Phase 133 plan | 2026-09-09 |
+| AR-133-05 | T-133-31 | Generated fixture paths contain no credentials or private remote data. | Phase 133 Plan 08 | 2026-09-10 |
+| AR-133-06 | T-133-37 | Bounded public job and incident metadata is required for evidence reconstruction; no raw-log or write capability is added. | Phase 133 Plan 09 | 2026-09-10 |
+| AR-133-07 | T-133-41 | Exact toolchain and cache identifiers are non-secret build metadata required to prevent identity substitution. | Phase 133 Plan 10 | 2026-09-10 |
 
 ## Security Audit Trail
 
 | Audit Date | Threats Total | Closed | Open | Run By |
 |------------|---------------|--------|------|--------|
 | 2026-09-10 | 28 | 28 | 0 | gsd-security-auditor |
+| 2026-09-10 | 41 | 41 | 0 | gsd-security-auditor gap-closure audit |
 
 ## Sign-Off
 
