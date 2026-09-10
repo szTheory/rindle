@@ -44,13 +44,9 @@ error vocabulary, release coupling, supported behavior, or the accepted pull-req
   3. Nightly aggregation fails for failed, cancelled, unexpected, or impermissibly skipped gating states, and automated incident tests prove one exact-run-bound issue opens or updates on failure and closes only after qualifying scheduled recovery.
   4. Executable parity checks derive release, planning, support, and adoption-proof claims from authoritative state and reject every unmarked version, lane-severity, or package-proof contradiction.
 
-**Plans**: 10/10 plans executed
+**Plans**: 10/17 plans executed; 7 pending gap closure
 
 Plans:
-
-- [x] 133-08-PLAN.md
-- [x] 133-09-PLAN.md
-- [x] 133-10-PLAN.md
 
 **Wave 1**
 
@@ -76,6 +72,40 @@ Plans:
 **Wave 6** *(blocked on Wave 5 completion)*
 
 - [x] 133-07-PLAN.md — Collect and validate exact-head supported Nightly evidence without incident mutation.
+
+**Wave 7** *(blocked on Wave 6 completion)*
+
+- [x] 133-08-PLAN.md — Reject caller-forged package authority while retaining real generated-consumer provenance.
+
+**Wave 8** *(blocked on Wave 7 completion)*
+
+- [x] 133-09-PLAN.md — Reject remote, incident, and local-authority receipt mutations without emitting forbidden GitHub mutations.
+
+**Wave 9** *(blocked on Wave 8 completion)*
+
+- [x] 133-10-PLAN.md — Enforce exact supported toolchain and cache-key evidence in collection and receipt revalidation.
+
+**Wave 10** *(blocked on Wave 9 completion)*
+
+- [ ] 133-11-PLAN.md — Reconcile pending Phase 133 truth and contain every destructive PLT reset beneath the repository-owned root.
+
+**Wave 11** *(blocked on Wave 10 completion)*
+
+- [ ] 133-12-PLAN.md — Select delayed exact Nightly runs by zero/one/many post-boundary cardinality.
+- [ ] 133-13-PLAN.md — Authenticate every census detector row and contain observation provenance.
+- [ ] 133-14-PLAN.md — Replace forgeable package/adoption maps with authenticated immutable receipts.
+
+**Wave 12** *(blocked on Wave 11 completion)*
+
+- [ ] 133-15-PLAN.md — Derive release coupling and sole-required-check truth from executable structured semantics.
+
+**Wave 13** *(blocked on Waves 11–12 completion)*
+
+- [ ] 133-16-PLAN.md — Bind local census and live-truth authority to immutable Git objects.
+
+**Wave 14** *(blocked on Wave 13 completion)*
+
+- [ ] 133-17-PLAN.md — Freeze the repaired baseline and recollect one fresh exact-subject Nightly receipt.
 
 ### Phase 134: Dependency, Security, and Inbox Disposition
 

@@ -124,3 +124,303 @@ The completed sign-off and post-execution audit above are retained as historical
 | Gaps found | 0 |
 | Resolved | 5 |
 | Escalated | 0 |
+## Pending Gap-Closure Validation Addendum (Plans 11–17)
+
+Plans 01–10 remain the immutable historical 19/19 green record above. The records below describe unexecuted Plans 11–17 only; every runnable command/failure pair stays pending, and the Plan 17 authorization checkpoint carries no acceptance credit.
+
+<pending-validation key="133-11-01:1">
+<automated>
+mix test test/install_smoke/phase_133_reconciliation_test.exs
+</automated>
+<fails_when>
+non-zero exit, zero ExUnit tests, the valid isolated fixture fails, any historical-byte/pair-cardinality/exact-text/roadmap/premature-green negative fixture passes, or a failure lacks its bounded diagnostic
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-11-01:2">
+<automated>
+MIX_ENV=test mix run --no-deps-check --no-compile scripts/maintainer/validate_phase_133_reconciliation.exs --root .
+</automated>
+<fails_when>
+non-zero exit, any production input is missing/untracked/malformed, the historical prefix differs by one byte from its recorded committed preimage, a task or plan-level verification pair has a duplicate/missing/extra or inexact mapping, Plans 11-17 are not all pending without green credit, or ROADMAP does not retain Plans 01-10 and individually list unchecked Plans 11-17 at 10/17 executed
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-11-01:3">
+<automated>
+./scripts/maintainer/automation_first_contract.sh
+</automated>
+<fails_when>
+non-zero exit, any active implementation task lacks executable evidence or a concrete failure direction, a pending task receives green credit, or human authorization is counted as acceptance
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-11-02:1">
+<automated>
+bash scripts/ci/test_nightly_dialyzer.sh
+</automated>
+<fails_when>
+non-zero exit, any FAIL line, zero passed cases, or the approved fresh/restored reset case does not remove and rebuild only its PLT child
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-11-03:1">
+<automated>
+bash scripts/ci/test_nightly_dialyzer.sh &amp;&amp; shellcheck -S warning scripts/ci/run_nightly_dialyzer.sh scripts/ci/test_nightly_dialyzer.sh
+</automated>
+<fails_when>
+non-zero exit, any FAIL line, zero passed cases, any escape sentinel is removed, fake Mix runs for a rejected path, or ShellCheck reports warning-or-higher findings
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-12-01:1">
+<automated>
+bash scripts/ci/test_verify_nightly_run.sh
+</automated>
+<fails_when>
+non-zero exit, any FAIL line, zero passed cases, old-runs-first aborts before the later exact run, or a nonmatching run ID reaches watch/view
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-12-02:1">
+<automated>
+bash scripts/ci/test_verify_nightly_run.sh &amp;&amp; shellcheck -S warning scripts/ci/verify_nightly_run.sh scripts/ci/test_verify_nightly_run.sh
+</automated>
+<fails_when>
+non-zero exit, any FAIL line, zero passed cases, duplicate matches reach watch/view, timeout leaves a receipt, repeated verification emits mutation argv, or ShellCheck reports warning-or-higher findings
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-13-01:1">
+<automated>
+mix test test/install_smoke/evidence_census_test.exs
+</automated>
+<fails_when>
+non-zero exit, the ExUnit summary reports zero tests, a mixed-applicability detector mutation validates, or an unallowlisted/empty-reason inapplicability validates
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-13-02:1">
+<automated>
+mix test test/install_smoke/evidence_census_test.exs &amp;&amp; ./scripts/maintainer/automation_first_contract.sh
+</automated>
+<fails_when>
+non-zero exit, zero ExUnit tests, any traversal/symlink mutation validates, canonical aliases produce distinct candidate identity, or the automation-first contract reports an active requirement without executable evidence
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-14-01:1">
+<automated>
+mix test test/install_smoke/live_truth_parity_test.exs --only package_authority
+</automated>
+<fails_when>
+non-zero exit, zero selected tests, the happy path uses the arbitrary-directory fixture, any digest/source/argv/result is accepted without independent recomputation, or a repository/prebuilt fallback passes
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-14-02:1">
+<automated>
+mix test test/install_smoke/live_truth_parity_test.exs --only package_authority &amp;&amp; ./scripts/maintainer/check_adoption_proof_matrix.sh
+</automated>
+<fails_when>
+non-zero exit, zero package-authority tests, any caller name/kind/authorization mutation passes, synthetic evidence authorizes 1.0, or the active adoption matrix contradicts derived authority
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-15-01:1">
+<automated>
+mix test test/install_smoke/live_truth_parity_test.exs --only derived_authority
+</automated>
+<fails_when>
+non-zero exit, zero selected tests, comment-only/dead/duplicate/mismatched fixtures derive true, or the real parsed release workflow does not derive exact-SHA coupling
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-15-02:1">
+<automated>
+mix test test/install_smoke/live_truth_parity_test.exs --only derived_authority &amp;&amp; bash scripts/setup_branch_protection.sh --print-expected-json | jq -e '.required_status_checks.contexts == ["CI Summary"]' &amp;&amp; shellcheck -S warning scripts/setup_branch_protection.sh
+</automated>
+<fails_when>
+non-zero exit, zero derived-authority tests, expected JSON contains zero/multiple/wrong contexts, any fixture passes on inert source text, or ShellCheck reports warning-or-higher findings
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-16-01:1">
+<automated>
+bash scripts/ci/test_verify_nightly_run.sh
+</automated>
+<fails_when>
+non-zero exit, any FAIL line, zero passed cases, local authority contains status-only objects, ledger bytes come from project_root, or regenerated detailed authority differs without rejection
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-16-02:1">
+<automated>
+bash scripts/ci/test_verify_nightly_run.sh &amp;&amp; shellcheck -S warning scripts/ci/verify_nightly_run.sh scripts/ci/test_verify_nightly_run.sh
+</automated>
+<fails_when>
+non-zero exit, any FAIL line, zero passed cases, any local-authority mutation verifies, caller-worktree bytes affect verdict, mutation argv is emitted, partial receipt remains, or ShellCheck reports warning-or-higher findings
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-17-01:1">
+<automated>
+subject_sha="$(jq -er '.subject_sha' .planning/phases/133-evidence-charter-and-live-truth/133-EVIDENCE-CENSUS.json)" &amp;&amp; temp_root="$(mktemp -d "${TMPDIR:-/tmp}/phase133-ledger-check.XXXXXX")" &amp;&amp; trap 'git worktree remove --force "$temp_root/subject" &gt;/dev/null 2&gt;&amp;1 || true; rm -rf -- "$temp_root"' EXIT &amp;&amp; git worktree add --detach "$temp_root/subject" "$subject_sha" &gt;/dev/null &amp;&amp; MIX_ENV=test mix run --no-deps-check --no-compile scripts/maintainer/evidence_census.exs --root "$temp_root/subject" --ledger .planning/phases/133-evidence-charter-and-live-truth/133-EVIDENCE-CENSUS.json --output "$temp_root/receipt.json" --source-sha "$subject_sha" &amp;&amp; MIX_ENV=test mix run --no-deps-check --no-compile scripts/maintainer/validate_evidence_census.exs --root "$temp_root/subject" --ledger .planning/phases/133-evidence-charter-and-live-truth/133-EVIDENCE-CENSUS.json --receipt "$temp_root/receipt.json"
+</automated>
+<fails_when>
+non-zero exit, invalid/missing subject SHA, dirty or unmaterializable subject, incomplete taxonomy/detector/candidate/disposition/transition authority, escaped observation, or nondeterministic receipt
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-17-02:1">
+<automated>
+subject_sha="$(jq -er '.subject_sha' .planning/phases/133-evidence-charter-and-live-truth/133-EVIDENCE-CENSUS.json)" &amp;&amp; git cat-file -e "${subject_sha}^{commit}" &amp;&amp; test -z "$(git status --porcelain --untracked-files=no -- . ':!.planning/phases/133-evidence-charter-and-live-truth/133-EVIDENCE-CENSUS.json' ':!.planning/phases/133-evidence-charter-and-live-truth/133-NIGHTLY-EVIDENCE.json')"
+</automated>
+<fails_when>
+non-zero exit, ledger subject is not an existing commit, or tracked source outside the two evidence artifacts is dirty
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>authorization-only</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-17-03:1">
+<automated>
+bash scripts/ci/test_nightly_dialyzer.sh &amp;&amp; bash scripts/ci/test_nightly_summary_gate.sh &amp;&amp; bash scripts/ci/test_nightly_incident.sh &amp;&amp; bash scripts/ci/test_verify_nightly_run.sh &amp;&amp; mix test test/install_smoke/evidence_census_test.exs test/install_smoke/nightly_policy_test.exs test/install_smoke/live_truth_parity_test.exs test/install_smoke/release_docs_parity_test.exs test/install_smoke/package_metadata_test.exs test/install_smoke/generated_app_smoke_test.exs &amp;&amp; bash scripts/maintainer/check_adoption_proof_matrix.sh
+</automated>
+<fails_when>
+non-zero exit, any Bash FAIL row, zero shell cases or ExUnit tests, or any census, Dialyzer, Nightly verdict, incident, receipt, live-truth, release, package, generated-consumer, or adoption authority check fails
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-17-03:2">
+<automated>
+mix ci
+</automated>
+<fails_when>
+non-zero exit, compilation/format/Credo/Doctor/quality-signal failure, zero default-suite tests, any test failure, or incomplete repository CI output
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-17-03:3">
+<automated>
+bash scripts/maintainer/refactor_contract.sh
+</automated>
+<fails_when>
+non-zero exit, zero contract tests, any public API/schema/telemetry/error/release contract failure, or the script reports an incomplete required command
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-17-03:4">
+<automated>
+receipt=.planning/phases/133-evidence-charter-and-live-truth/133-NIGHTLY-EVIDENCE.json &amp;&amp; subject_sha="$(jq -er '.subject_sha' "$receipt")" &amp;&amp; remote_ref="phase-133-evidence-$(printf '%s' "$subject_sha" | cut -c1-12)" &amp;&amp; test "$(git ls-remote --exit-code origin "refs/heads/$remote_ref" | awk 'NR == 1 {print $1}')" = "$subject_sha" &amp;&amp; bash scripts/ci/verify_nightly_run.sh preflight --repo szTheory/rindle --workflow nightly.yml --ref "$remote_ref" --expected-sha "$subject_sha" &amp;&amp; bash scripts/ci/verify_nightly_run.sh verify-receipt --repo szTheory/rindle --workflow nightly.yml --ref "$remote_ref" --expected-sha "$subject_sha" --receipt "$receipt"
+</automated>
+<fails_when>
+non-zero exit, auth/API/timeout error, remote ref mismatch, non-first or ambiguous run, incomplete/non-green job or Dialyzer evidence, incident drift, mutable/mismatched ledger authority, package/release truth failure, or stale/foreign receipt
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-17-03:5">
+<automated>
+./scripts/maintainer/automation_first_contract.sh
+</automated>
+<fails_when>
+non-zero exit, any active implementation task lacks executable evidence or a concrete failure direction, any pending Plan 11-17 task is credited green before execution, or human authorization is counted as acceptance
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-17-plan-verification:1">
+<automated>
+bash scripts/ci/test_nightly_dialyzer.sh &amp;&amp; bash scripts/ci/test_nightly_summary_gate.sh &amp;&amp; bash scripts/ci/test_nightly_incident.sh &amp;&amp; bash scripts/ci/test_verify_nightly_run.sh &amp;&amp; mix test test/install_smoke/evidence_census_test.exs test/install_smoke/nightly_policy_test.exs test/install_smoke/live_truth_parity_test.exs test/install_smoke/release_docs_parity_test.exs test/install_smoke/package_metadata_test.exs test/install_smoke/generated_app_smoke_test.exs &amp;&amp; bash scripts/maintainer/check_adoption_proof_matrix.sh
+</automated>
+<fails_when>
+non-zero exit, any Bash FAIL row, zero shell cases or ExUnit tests, or any focused authority check fails
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-17-plan-verification:2">
+<automated>
+mix ci
+</automated>
+<fails_when>
+non-zero exit, any repository CI stage/test fails, zero tests, or required CI output is incomplete
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-17-plan-verification:3">
+<automated>
+bash scripts/maintainer/refactor_contract.sh
+</automated>
+<fails_when>
+non-zero exit, zero contract tests, any preservation contract fails, or a required command is incomplete
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-17-plan-verification:4">
+<automated>
+receipt=.planning/phases/133-evidence-charter-and-live-truth/133-NIGHTLY-EVIDENCE.json &amp;&amp; subject_sha="$(jq -er '.subject_sha' "$receipt")" &amp;&amp; remote_ref="phase-133-evidence-$(printf '%s' "$subject_sha" | cut -c1-12)" &amp;&amp; test "$(git ls-remote --exit-code origin "refs/heads/$remote_ref" | awk 'NR == 1 {print $1}')" = "$subject_sha" &amp;&amp; bash scripts/ci/verify_nightly_run.sh preflight --repo szTheory/rindle --workflow nightly.yml --ref "$remote_ref" --expected-sha "$subject_sha" &amp;&amp; bash scripts/ci/verify_nightly_run.sh verify-receipt --repo szTheory/rindle --workflow nightly.yml --ref "$remote_ref" --expected-sha "$subject_sha" --receipt "$receipt"
+</automated>
+<fails_when>
+non-zero exit, remote identity mismatch, incomplete/non-green exact-run authority, incident drift, mutable local authority, or stale/foreign receipt
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-17-plan-verification:5">
+<automated>
+./scripts/maintainer/automation_first_contract.sh
+</automated>
+<fails_when>
+non-zero exit, missing executable validation/failure direction, premature green credit, or human-only acceptance
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>

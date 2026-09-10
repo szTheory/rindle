@@ -166,7 +166,7 @@ defmodule Rindle.InstallSmoke.Phase133ReconciliationTest do
     git!(root, ["commit", "--quiet", "-m", "historical fixture"])
     historical_ref = git!(root, ["rev-parse", "HEAD"])
     historical_sha256 = sha256(historical)
-    File.write!(validation, historical <> "\n" <> @heading <> "\n\n" <> Enum.map_join(records, "\n", &render_record/1))
+    File.write!(validation, historical <> @heading <> "\n\n" <> Enum.map_join(records, "\n", &render_record/1))
 
     %{root: root, roadmap: roadmap, validation: validation, historical_ref: historical_ref, historical_sha256: historical_sha256, records: records}
   end
