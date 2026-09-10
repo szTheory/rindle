@@ -36,6 +36,7 @@ defmodule Rindle.InstallSmoke.CiLaneSplitTest do
                     __DIR__
                   )
   @branch_protection_path Path.expand("../../scripts/setup_branch_protection.sh", __DIR__)
+  @required_checks_policy_path Path.expand("../../config/ci_required_checks.json", __DIR__)
   @contributing_path Path.expand("../../CONTRIBUTING.md", __DIR__)
   @running_path Path.expand("../../RUNNING.md", __DIR__)
   @required_summary_needs [
@@ -65,6 +66,7 @@ defmodule Rindle.InstallSmoke.CiLaneSplitTest do
        release: File.read!(@release_path),
        automerge: File.read!(@automerge_path),
        branch_protection: File.read!(@branch_protection_path),
+       required_checks_policy: @required_checks_policy_path |> File.read!() |> Jason.decode!(),
        contributing: File.read!(@contributing_path),
        running: File.read!(@running_path)
      }}
@@ -446,21 +448,12 @@ defmodule Rindle.InstallSmoke.CiLaneSplitTest do
   end
 
   test "RELEASE-COUPLING: setup_branch_protection.sh requires exactly one check — `CI Summary`",
-       %{branch_protection: branch_protection} do
-    # Isolate the REQUIRED_CHECKS=( ... ) array and assert it has exactly one
-    # entry, `CI Summary`. The string also appears in the print-expected heredoc,
-    # so scope to the array to avoid a false multi-count.
-    [_, after_open] = String.split(branch_protection, "REQUIRED_CHECKS=(\n", parts: 2)
-    [array_body | _] = String.split(after_open, ")", parts: 2)
+       %{branch_protection: branch_protection, required_checks_policy: policy} do
+    assert policy["contexts"] == ["CI Summary"],
+           "required-check policy must contain only CI Summary — got #{inspect(policy["contexts"])} (SC5)"
 
-    entries =
-      array_body
-      |> String.split("\n", trim: true)
-      |> Enum.map(&String.trim/1)
-      |> Enum.reject(&(&1 == ""))
-
-    assert entries == ["\"CI Summary\""],
-           "REQUIRED_CHECKS must be exactly one entry, \"CI Summary\" — got #{inspect(entries)} (SC5)"
+    assert branch_protection =~ "jq -r '.contexts[]' \"${POLICY_FILE}\"",
+           "setup_branch_protection.sh must project required contexts from the policy (SC5)"
   end
 
   test "RELEASE-COUPLING: automerge listens on the `CI` workflow and release.yml gate reads `ci.yml`",
