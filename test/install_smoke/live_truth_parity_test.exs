@@ -1,3 +1,5 @@
+Code.require_file("support/generated_app_helper.ex", __DIR__)
+
 defmodule Rindle.InstallSmoke.LiveTruthParityTest do
   use ExUnit.Case, async: true
 
@@ -170,6 +172,128 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
     end
   end
 
+  @tag :package_authority
+  test "fresh unpacked generated image consumer report authorizes package proof" do
+    report = Rindle.InstallSmoke.GeneratedAppHelper.prove_package_install!(:image)
+    on_exit(fn -> Rindle.InstallSmoke.GeneratedAppHelper.cleanup(report) end)
+
+    receipt = %{
+      proof_origin: "generated-app-helper",
+      install_mode: report.install_mode,
+      install_source: report.install_source,
+      package_root: report.package_root,
+      generated_app_root: report.generated_app_root,
+      package_root_provenance: report.package_root_provenance,
+      repository_path_fallback: report.package_root_provenance.repository_path_fallback?,
+      prebuilt_local_fallback: false,
+      deps_rindle_present: report.deps_rindle_present?,
+      compile_exit_code: report.compile_exit_code,
+      boot_exit_code: report.boot_exit_code,
+      smoke_exit_code: report.smoke_exit_code,
+      lifecycle_proved: report.lifecycle_proved?
+    }
+
+    model = Rindle.ValidateLiveTruth.derive!(@repo_root, [])
+
+    assert :ok =
+             Rindle.ValidateLiveTruth.validate_claims!(model, [
+               %{type: :package, receipt: receipt, claim: "built-package-consumer"},
+               %{
+                 type: :adoption,
+                 receipt: receipt,
+                 evidence_kind: "maintainer-operated-synthetic",
+                 authorizes_1_0: false
+               }
+             ])
+  end
+
+  @tag :package_authority
+  test "repository, prebuilt, unpacked, and install-source provenance mutations fail closed" do
+    receipt = package_receipt_fixture!()
+    model = Rindle.ValidateLiveTruth.derive!(@repo_root, [])
+
+    for {mutation, message} <- [
+          {&Map.put(&1, :repository_path_fallback, true),
+           "repository source fallback is forbidden"},
+          {&Map.put(&1, :prebuilt_local_fallback, true), "prebuilt local fallback is forbidden"},
+          {&put_in(&1, [:package_root_provenance, :unpacked?], false),
+           "unpacked package evidence is required"},
+          {&Map.put(&1, :install_source, "/tmp/not-the-unpacked-package"),
+           "install source does not match unpacked package"}
+        ] do
+      assert_raise ArgumentError, ~r/#{Regex.escape(message)}/, fn ->
+        Rindle.ValidateLiveTruth.validate_claims!(model, [
+          %{type: :package, receipt: mutation.(receipt)}
+        ])
+      end
+    end
+  end
+
+  @tag :package_authority
+  test "prose, checkout-local, and mock-only reports cannot authorize package claims" do
+    model = Rindle.ValidateLiveTruth.derive!(@repo_root, [])
+
+    for {receipt, message} <- [
+          {%{documentation: "the package consumer passed"},
+           "package proof is not a generated consumer report"},
+          {%{
+             proof_origin: "checkout-compile",
+             install_mode: :package,
+             install_source: @repo_root,
+             package_root_provenance: %{path: @repo_root, unpacked?: true}
+           }, "package proof is not a generated consumer report"},
+          {%{
+             proof_origin: "generated-app-helper",
+             install_mode: :package,
+             install_source: "/tmp/fake",
+             package_root_provenance: %{
+               path: "/tmp/fake",
+               unpacked?: true,
+               repository_path_fallback?: false
+             },
+             repository_path_fallback: false,
+             prebuilt_local_fallback: false
+           }, "generated consumer proof is incomplete"}
+        ] do
+      assert_raise ArgumentError, ~r/#{Regex.escape(message)}/, fn ->
+        Rindle.ValidateLiveTruth.validate_claims!(model, [
+          %{type: :package, receipt: receipt}
+        ])
+      end
+    end
+  end
+
+  @tag :package_authority
+  test "synthetic evidence cannot impersonate a named independent adopter or authorize 1.0" do
+    model = Rindle.ValidateLiveTruth.derive!(@repo_root, [])
+    receipt = package_receipt_fixture!()
+
+    assert_raise ArgumentError, ~r/synthetic evidence cannot authorize 1.0/, fn ->
+      Rindle.ValidateLiveTruth.validate_claims!(model, [
+        %{
+          type: :adoption,
+          receipt: receipt,
+          evidence_kind: "maintainer-operated-synthetic",
+          authorizes_1_0: true
+        }
+      ])
+    end
+
+    assert_raise ArgumentError,
+                 ~r/independent adopter claim requires named independent evidence/,
+                 fn ->
+                   Rindle.ValidateLiveTruth.validate_claims!(model, [
+                     %{
+                       type: :adoption,
+                       receipt: receipt,
+                       evidence_kind: "independent-adopter",
+                       adopter_name: nil,
+                       authorizes_1_0: false
+                     }
+                   ])
+                 end
+  end
+
   defp fixture_root! do
     root = Path.join(System.tmp_dir!(), "rindle-live-truth-#{System.unique_integer([:positive])}")
 
@@ -211,5 +335,38 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
     assert_raise ArgumentError, ~r/#{Regex.escape(message)}/, fn ->
       Rindle.ValidateLiveTruth.derive!(root, [])
     end
+  end
+
+  defp package_receipt_fixture! do
+    root =
+      Path.join(System.tmp_dir!(), "rindle-package-proof-#{System.unique_integer([:positive])}")
+
+    package_root = Path.join(root, "package/rindle-0.4.6")
+    generated_app_root = Path.join(root, "consumer")
+    File.mkdir_p!(package_root)
+    File.mkdir_p!(generated_app_root)
+    File.write!(Path.join(package_root, "hex_metadata.config"), "package metadata")
+    File.write!(Path.join(package_root, "mix.exs"), "defmodule PackageFixture do\nend\n")
+    on_exit(fn -> File.rm_rf(root) end)
+
+    %{
+      proof_origin: "generated-app-helper",
+      install_mode: :package,
+      install_source: package_root,
+      package_root: package_root,
+      generated_app_root: generated_app_root,
+      package_root_provenance: %{
+        path: package_root,
+        unpacked?: true,
+        repository_path_fallback?: false
+      },
+      repository_path_fallback: false,
+      prebuilt_local_fallback: false,
+      deps_rindle_present: false,
+      compile_exit_code: 0,
+      boot_exit_code: 0,
+      smoke_exit_code: 0,
+      lifecycle_proved: true
+    }
   end
 end
