@@ -284,6 +284,23 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
         ])
       end
     end
+
+    for {context_mutation, message} <- [
+          {&Map.put(&1, :package_root, @repo_root), "unpacked package metadata does not exist"},
+          {&Map.put(&1, :generated_app_root, @repo_root), "generated app tree digest mismatch"},
+          {&Map.put(&1, :results_path, Path.join(report.package_root, "mix.exs")),
+           "malformed command result receipt"}
+        ] do
+      assert_raise ArgumentError, ~r/#{Regex.escape(message)}/, fn ->
+        Rindle.ValidateLiveTruth.validate_claims!(model, [
+          %{
+            type: :package,
+            receipt: receipt,
+            evidence_context: context_mutation.(evidence_context)
+          }
+        ])
+      end
+    end
   end
 
   @tag :package_authority
