@@ -173,16 +173,11 @@ make_fake_local_authorities() {
     '      printf "fake immutable ledger\n"' \
     '    fi' \
     '    ;;' \
-    '  "archive --format=tar")' \
+    '  "worktree add")' \
     '    [ "${FAKE_AUTHORITY_STATE:-success}" != bad_local_authority ] || exit 44' \
-    '    fixture="$(mktemp -d)"' \
-    '    mkdir -p "$fixture/scripts/maintainer"' \
-    '    : >"$fixture/scripts/maintainer/evidence_census.exs"' \
-    '    : >"$fixture/scripts/maintainer/validate_evidence_census.exs"' \
-    '    : >"$fixture/scripts/maintainer/validate_live_truth.exs"' \
-    '    tar -cf - -C "$fixture" .' \
-    '    rm -rf "$fixture"' \
+    '    mkdir -p "$4"' \
     '    ;;' \
+    '  "worktree remove") rm -rf "$4" ;;' \
     '  *) echo "unexpected fake git call: $*" >&2; exit 43 ;;' \
     'esac' >"${bin_dir}/git"
   printf '%s\n' \

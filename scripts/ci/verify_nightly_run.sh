@@ -317,7 +317,7 @@ compare_exact_remote_receipt() {
 
 revalidate_local_authorities() {
   local recorded_census="${1:-}" project_root temp_root subject_root ledger_file census_receipt live_model
-  local mix_executable authority_path ledger_identity ledger_digest census_json live_json model_digest authority_status=0
+  local mix_executable authority_path ledger_identity ledger_digest census_json live_json model_digest authority_status=0 cleanup_status=0
   project_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
   mix_executable="$(command -v mix)" || die "mix is required for local authority revalidation"
   if [[ "$mix_executable" == */.asdf/shims/mix ]] && [ -x /opt/homebrew/bin/mix ]; then
@@ -344,10 +344,9 @@ revalidate_local_authorities() {
     ledger_identity="$(resolve_ledger_object "$project_root" "$ledger_file")"
   fi
 
-  mkdir -p "$subject_root"
-  git -C "$project_root" archive --format=tar "$expected_sha" | tar -xf - -C "$subject_root" || {
+  git -C "$project_root" worktree add --detach "$subject_root" "$expected_sha" >/dev/null 2>&1 || {
     rm -rf -- "$temp_root"
-    die "could not materialize exact-subject authority tree"
+    die "could not materialize exact-subject authority worktree"
   }
 
   (
@@ -368,6 +367,11 @@ revalidate_local_authorities() {
         'Code.require_file("scripts/maintainer/validate_live_truth.exs"); Rindle.ValidateLiveTruth.run(["--root", ".", "--format", "json"])' >"$temp_root/live-truth.json"
   ) || authority_status=$?
 
+  git -C "$project_root" worktree remove --force "$subject_root" >/dev/null 2>&1 || cleanup_status=$?
+  [ "$cleanup_status" -eq 0 ] || {
+    rm -rf -- "$temp_root"
+    die "could not remove exact-subject authority worktree"
+  }
   [ "$authority_status" -eq 0 ] || {
     rm -rf -- "$temp_root"
     die "exact-subject local authority revalidation failed"
