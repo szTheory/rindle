@@ -88,6 +88,7 @@ validate_run_json() {
   expected_jobs="$(expected_job_names_json)"
   jq -e --arg repo "$repo" --arg workflow "$workflow" --arg ref "$remote_ref" \
     --arg sha "$expected_sha" --argjson expected_jobs "$expected_jobs" '
+      (.jobs | map({databaseId,name,status,conclusion})) as $jobs |
       (keys == ["attempt","conclusion","createdAt","databaseId","event","headBranch","headSha","jobs","status","url","workflowName"]) and
       .workflowName == "Nightly" and .event == "workflow_dispatch" and
       .headBranch == $ref and .headSha == $sha and .attempt == 1 and
@@ -96,10 +97,10 @@ validate_run_json() {
       (.createdAt | type == "string" and fromdateiso8601 >= 0) and
       (.url | type == "string" and length > 0) and
       (.jobs | type == "array") and
-      (all(.jobs[]; keys == ["conclusion","databaseId","name","status"])) and
-      ([.jobs[].name] | sort) == $expected_jobs and
-      ([.jobs[].databaseId] | unique | length) == ($expected_jobs | length) and
-      (all(.jobs[]; .status == "completed" and .conclusion == "success" and
+      (all($jobs[]; keys == ["conclusion","databaseId","name","status"])) and
+      ([$jobs[].name] | sort) == $expected_jobs and
+      ([$jobs[].databaseId] | unique | length) == ($expected_jobs | length) and
+      (all($jobs[]; .status == "completed" and .conclusion == "success" and
         (.databaseId | type == "number")))
     ' <<<"$run_json" >/dev/null || die "run identity, terminal state, or exact job set is not qualifying"
 }
@@ -232,6 +233,59 @@ compare_exact_remote_receipt() {
   ' "$path" >/dev/null || die "receipt remote evidence differs from live reconstruction"
 }
 
+revalidate_local_authorities() {
+  local project_root temp_root subject_root census_receipt mix_executable authority_path authority_status=0 cleanup_status=0
+  project_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+  mix_executable="$(command -v mix)" || die "mix is required for local authority revalidation"
+  if [[ "$mix_executable" == */.asdf/shims/mix ]] && [ -x /opt/homebrew/bin/mix ]; then
+    mix_executable=/opt/homebrew/bin/mix
+  fi
+  authority_path="$(dirname "$mix_executable"):${PATH}"
+  temp_root="$(mktemp -d "${TMPDIR:-/tmp}/nightly-authority.XXXXXX")"
+  subject_root="${temp_root}/subject"
+  census_receipt="${temp_root}/census.json"
+
+  git worktree add --detach "$subject_root" "$expected_sha" >/dev/null 2>&1 || {
+    rmdir "$temp_root" 2>/dev/null || true
+    die "could not materialize exact-subject authority worktree"
+  }
+
+  (
+    cd "$subject_root"
+    PATH="$authority_path" MIX_ENV=test MIX_DEPS_PATH="${project_root}/deps" MIX_BUILD_PATH="${project_root}/_build" \
+      "$mix_executable" run --no-deps-check --no-compile scripts/maintainer/evidence_census.exs \
+        --root . \
+        --ledger "${project_root}/.planning/phases/133-evidence-charter-and-live-truth/133-EVIDENCE-CENSUS.json" \
+        --output "$census_receipt" \
+        --source-sha "$expected_sha" >/dev/null
+    PATH="$authority_path" MIX_ENV=test MIX_DEPS_PATH="${project_root}/deps" MIX_BUILD_PATH="${project_root}/_build" \
+      "$mix_executable" run --no-deps-check --no-compile scripts/maintainer/validate_evidence_census.exs \
+        --root . \
+        --ledger "${project_root}/.planning/phases/133-evidence-charter-and-live-truth/133-EVIDENCE-CENSUS.json" \
+        --receipt "$census_receipt" >/dev/null
+    PATH="$authority_path" MIX_ENV=test MIX_DEPS_PATH="${project_root}/deps" MIX_BUILD_PATH="${project_root}/_build" \
+      "$mix_executable" run --no-deps-check --no-compile -e \
+        'Code.require_file("scripts/maintainer/validate_live_truth.exs"); Rindle.ValidateLiveTruth.run(["--root", "."])' >/dev/null
+  ) || authority_status=$?
+
+  git worktree remove --force "$subject_root" >/dev/null 2>&1 || cleanup_status=$?
+  rm -f -- "$census_receipt"
+  rmdir "$temp_root" 2>/dev/null || true
+  [ "$cleanup_status" -eq 0 ] || die "could not remove exact-subject authority worktree"
+  [ "$authority_status" -eq 0 ] || die "exact-subject local authority revalidation failed"
+
+  jq -cnS '{census:{status:"pass"},live_truth:{status:"pass"}}'
+}
+
+compare_exact_local_and_incident_receipt() {
+  local path="$1" incidents="$2" local_authorities="$3"
+  jq -e --argjson incidents "$incidents" --argjson local "$local_authorities" '
+    .incident_snapshot_before == $incidents and
+    .incident_snapshot_after == $incidents and
+    .local_authorities == $local
+  ' "$path" >/dev/null || die "receipt incident or local-authority evidence differs from fresh revalidation"
+}
+
 if [ "$mode" = preflight ]; then
   preflight_json
   exit 0
@@ -249,6 +303,9 @@ if [ "$mode" = verify-receipt ]; then
   live_dialyzer="$(parse_log_evidence "${live_dialyzer_logs}"$'\n'"${live_summary_logs}")"
   expected_remote="$(expected_remote_from_live "$live_preflight" "$live_run" "$live_dialyzer")"
   compare_exact_remote_receipt "$receipt" "$expected_remote"
+  live_incidents="$(canonical_incidents)" || die "incident verification lookup failed"
+  live_local_authorities="$(revalidate_local_authorities)"
+  compare_exact_local_and_incident_receipt "$receipt" "$live_incidents" "$live_local_authorities"
   echo "Nightly receipt valid for ${expected_sha} (run ${run_id}, attempt 1)"
   exit 0
 fi

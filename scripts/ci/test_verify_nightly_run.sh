@@ -43,8 +43,11 @@ run_case() {
       --receipt "${temp}/receipt.json" --poll-seconds 0 --timeout-seconds 2 >/dev/null 2>&1 || got=$?
 
   if [ "$state" = success ] && [ "$got" -eq 0 ]; then
+    make_fake_local_authorities "${temp}/bin"
+    : >"${temp}/authority-calls"
     PATH="${temp}/bin:${PATH}" FAKE_GH_LOG="${temp}/calls" FAKE_GH_COUNT_FILE="${temp}/count" \
-      FAKE_GH_STATE=success bash "$collector" verify-receipt --repo szTheory/rindle --workflow nightly.yml \
+      FAKE_GH_STATE=success FAKE_AUTHORITY_STATE=success FAKE_AUTHORITY_LOG="${temp}/authority-calls" \
+      bash "$collector" verify-receipt --repo szTheory/rindle --workflow nightly.yml \
         --ref phase-133-evidence-aaaaaaaaaaaa --expected-sha aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \
         --receipt "${temp}/receipt.json" >/dev/null 2>&1 || got=$?
   fi
@@ -59,6 +62,10 @@ run_case() {
     if [ "$(grep -c '^workflow run nightly.yml ' "${temp}/calls" || true)" -eq 1 ] &&
        [ "$(grep -c '^run view 9001 .* --job 6 --log$' "${temp}/calls" || true)" -ge 1 ] &&
        [ "$(grep -c '^run view 9001 .* --job 9 --log$' "${temp}/calls" || true)" -ge 1 ] &&
+       [ "$(grep -c '^issue list --repo szTheory/rindle --state open --label nightly-failure --limit 100 --json number,title,body,comments,updatedAt,url$' "${temp}/calls" || true)" -eq 3 ] &&
+       [ "$(grep -c '^mix run --no-deps-check --no-compile scripts/maintainer/evidence_census.exs --root ' "${temp}/authority-calls" || true)" -eq 1 ] &&
+       [ "$(grep -c '^mix run --no-deps-check --no-compile scripts/maintainer/validate_evidence_census.exs --root ' "${temp}/authority-calls" || true)" -eq 1 ] &&
+       [ "$(grep -c '^mix run --no-deps-check --no-compile -e Code.require_file("scripts/maintainer/validate_live_truth.exs")' "${temp}/authority-calls" || true)" -eq 1 ] &&
        ! grep -Eq '^(issue (create|comment|close|edit|delete)|run (cancel|rerun|delete))' "${temp}/calls"; then
       record "success argv is one dispatch plus read-only inspection" true
     else
@@ -123,9 +130,11 @@ verify_mutation_case() {
   fi
 
   jq "$filter" "${temp}/receipt.json" >"${temp}/mutated.json"
+  make_fake_local_authorities "${temp}/bin"
   : >"${temp}/calls"
+  : >"${temp}/authority-calls"
   PATH="${temp}/bin:${PATH}" FAKE_GH_LOG="${temp}/calls" FAKE_GH_COUNT_FILE="${temp}/count" \
-    FAKE_GH_STATE=success \
+    FAKE_GH_STATE=success FAKE_AUTHORITY_STATE=success FAKE_AUTHORITY_LOG="${temp}/authority-calls" \
     bash "$collector" verify-receipt --repo szTheory/rindle --workflow nightly.yml \
       --ref phase-133-evidence-aaaaaaaaaaaa --expected-sha aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \
       --receipt "${temp}/mutated.json" >/dev/null 2>&1 || got=$?
