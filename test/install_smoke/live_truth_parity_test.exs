@@ -230,6 +230,66 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
   end
 
   @tag :derived_authority
+  test "required check authority comes from one exact structured policy" do
+    policy_path = Path.join(@repo_root, "config/ci_required_checks.json")
+    assert File.regular?(policy_path)
+
+    model = Rindle.ValidateLiveTruth.derive!(@repo_root, [])
+
+    assert model.ci.required_check_policy == %{
+             schema_version: "rindle-required-checks-v1",
+             workflow_file: "ci.yml",
+             workflow_name: "CI",
+             job_id: "ci-summary",
+             contexts: ["CI Summary"]
+           }
+
+    {json, 0} =
+      System.cmd("bash", ["scripts/setup_branch_protection.sh", "--print-expected-json"])
+
+    assert Jason.decode!(json)["required_status_checks"]["contexts"] == ["CI Summary"]
+  end
+
+  @tag :derived_authority
+  test "required check policy rejects missing, extra, duplicate, renamed, and topology drift" do
+    valid = required_check_policy()
+
+    for {mutation, message} <- [
+          {&put_in(&1, ["contexts"], []), "required check policy contexts mismatch"},
+          {&put_in(&1, ["contexts"], ["CI Summary", "Quality"]),
+           "required check policy contexts mismatch"},
+          {&put_in(&1, ["contexts"], ["CI Summary", "CI Summary"]),
+           "required check policy contexts mismatch"},
+          {&put_in(&1, ["contexts"], ["Merge Gate"]), "required check policy contexts mismatch"},
+          {&put_in(&1, ["workflow", "name"], "Other CI"),
+           "required check policy workflow mismatch"},
+          {&put_in(&1, ["workflow", "file"], "other.yml"),
+           "required check policy workflow mismatch"},
+          {&put_in(&1, ["workflow", "job_id"], "other-summary"),
+           "required check policy job mismatch"}
+        ] do
+      root = fixture_root!()
+      write_policy!(root, mutation.(valid))
+      assert_error(root, message)
+    end
+  end
+
+  @tag :derived_authority
+  test "commented and dead shell assignments cannot impersonate policy consumption" do
+    root = fixture_root!()
+    write_policy!(root, required_check_policy())
+
+    replace!(
+      root,
+      "scripts/setup_branch_protection.sh",
+      "REQUIRED_CHECKS=(\n  \"CI Summary\"\n)",
+      "REQUIRED_CHECKS=(\n  \"Merge Gate\"\n)\n# REQUIRED_CHECKS=(\"CI Summary\")\nif false; then REQUIRED_CHECKS=(\"CI Summary\"); fi"
+    )
+
+    assert_error(root, "branch protection policy output mismatch")
+  end
+
+  @tag :derived_authority
   test "false lane and Nightly applicability claims are rejected from parsed topology" do
     model = Rindle.ValidateLiveTruth.derive!(@repo_root, [])
 
@@ -527,6 +587,24 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
 
     on_exit(fn -> File.rm_rf(root) end)
     root
+  end
+
+  defp required_check_policy do
+    %{
+      "schema_version" => "rindle-required-checks-v1",
+      "workflow" => %{
+        "file" => "ci.yml",
+        "name" => "CI",
+        "job_id" => "ci-summary"
+      },
+      "contexts" => ["CI Summary"]
+    }
+  end
+
+  defp write_policy!(root, policy) do
+    path = Path.join(root, "config/ci_required_checks.json")
+    File.mkdir_p!(Path.dirname(path))
+    File.write!(path, Jason.encode!(policy))
   end
 
   defp write!(root, path, content), do: File.write!(Path.join(root, path), content)
