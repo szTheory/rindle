@@ -260,9 +260,37 @@ defmodule Rindle.ValidateLiveTruth do
     assert!(valid?, "nightly result mismatch for #{lane}")
   end
 
-  defp validate_package_claim!(model, _claim) do
-    assert!(not is_nil(model.package_proof), "package claim requires a package receipt")
-    :ok
+  defp validate_package_claim!(model, claim) do
+    receipt = field(claim, :receipt) || model.package_proof
+    assert!(not is_nil(receipt), "package claim requires a package receipt")
+
+    proof =
+      if field(receipt, :validated) == true,
+        do: receipt,
+        else: normalize_package_receipt!(receipt)
+
+    case proof.install_mode do
+      "package" ->
+        assert!(
+          proof.install_source == proof.unpacked_path,
+          "install source does not match unpacked package"
+        )
+
+        assert!(proof.deps_rindle_present == false, "generated deps/rindle fallback is forbidden")
+
+      "network" ->
+        assert!(
+          proof.install_source == "hex:#{model.version}",
+          "install source does not match current Hex release"
+        )
+
+        assert!(
+          String.ends_with?(proof.unpacked_path, "/deps/rindle"),
+          "network package proof did not inspect fetched deps/rindle"
+        )
+    end
+
+    validate_adoption_scope!(claim)
   end
 
   defp validate_document!(model, claim) do
@@ -318,9 +346,135 @@ defmodule Rindle.ValidateLiveTruth do
     %{model | package_proof: proof}
   end
 
-  defp normalize_package_receipt!(_receipt) do
-    raise ArgumentError, "package receipt validation is not implemented"
+  defp normalize_package_receipt!(receipt) when is_map(receipt) do
+    assert!(
+      field(receipt, :proof_origin) == "generated-app-helper",
+      "package proof is not a generated consumer report"
+    )
+
+    provenance = field(receipt, :package_root_provenance)
+    install_mode = normalize_install_mode(field(receipt, :install_mode))
+    install_source = field(receipt, :install_source)
+    unpacked_path = field(provenance || %{}, :path)
+    unpacked = field(provenance || %{}, :unpacked?)
+    provenance_repository_fallback = field(provenance || %{}, :repository_path_fallback?)
+
+    complete? =
+      is_map(provenance) and install_mode in ["package", "network"] and
+        is_binary(install_source) and install_source != "" and is_binary(unpacked_path) and
+        unpacked_path != "" and is_binary(field(receipt, :generated_app_root)) and
+        is_boolean(unpacked) and is_boolean(provenance_repository_fallback) and
+        is_boolean(field(receipt, :repository_path_fallback)) and
+        is_boolean(field(receipt, :prebuilt_local_fallback)) and
+        is_boolean(field(receipt, :deps_rindle_present)) and
+        is_integer(field(receipt, :compile_exit_code)) and
+        is_integer(field(receipt, :boot_exit_code)) and
+        is_integer(field(receipt, :smoke_exit_code)) and
+        is_boolean(field(receipt, :lifecycle_proved))
+
+    assert!(complete?, "generated consumer proof is incomplete")
+
+    assert!(
+      field(receipt, :repository_path_fallback) == false,
+      "repository source fallback is forbidden"
+    )
+
+    assert!(provenance_repository_fallback == false, "repository source fallback is forbidden")
+
+    assert!(
+      field(receipt, :prebuilt_local_fallback) == false,
+      "prebuilt local fallback is forbidden"
+    )
+
+    assert!(unpacked == true, "unpacked package evidence is required")
+    assert!(File.dir?(unpacked_path), "unpacked package path does not exist")
+
+    assert!(
+      File.dir?(field(receipt, :generated_app_root)),
+      "generated consumer root does not exist"
+    )
+
+    assert!(field(receipt, :compile_exit_code) == 0, "generated consumer compile failed")
+    assert!(field(receipt, :boot_exit_code) == 0, "generated consumer boot failed")
+    assert!(field(receipt, :smoke_exit_code) == 0, "generated consumer smoke failed")
+
+    assert!(
+      field(receipt, :lifecycle_proved) == true,
+      "generated consumer lifecycle proof failed"
+    )
+
+    if install_mode == "package" do
+      assert!(
+        File.regular?(Path.join(unpacked_path, "hex_metadata.config")),
+        "unpacked package metadata is missing"
+      )
+
+      assert!(
+        File.regular?(Path.join(unpacked_path, "mix.exs")),
+        "unpacked package mix.exs is missing"
+      )
+
+      assert!(
+        not File.exists?(Path.join(unpacked_path, ".git")),
+        "repository source fallback is forbidden"
+      )
+
+      assert!(
+        not File.exists?(Path.join(unpacked_path, ".planning")),
+        "repository source fallback is forbidden"
+      )
+    end
+
+    %{
+      validated: true,
+      install_mode: install_mode,
+      install_source: install_source,
+      unpacked: unpacked,
+      unpacked_path: unpacked_path,
+      repository_path_fallback: false,
+      prebuilt_local_fallback: false,
+      deps_rindle_present: field(receipt, :deps_rindle_present)
+    }
   end
+
+  defp normalize_package_receipt!(_receipt),
+    do: raise(ArgumentError, "package proof is not a generated consumer report")
+
+  defp validate_adoption_scope!(claim) do
+    case field(claim, :type) do
+      type when type in [:adoption, "adoption"] ->
+        evidence_kind = field(claim, :evidence_kind)
+        authorizes_1_0 = field(claim, :authorizes_1_0)
+
+        cond do
+          evidence_kind == "maintainer-operated-synthetic" and authorizes_1_0 == true ->
+            raise ArgumentError, "synthetic evidence cannot authorize 1.0"
+
+          evidence_kind == "maintainer-operated-synthetic" and authorizes_1_0 == false ->
+            :ok
+
+          evidence_kind == "independent-adopter" and
+              not (is_binary(field(claim, :adopter_name)) and field(claim, :adopter_name) != "") ->
+            raise ArgumentError,
+                  "independent adopter claim requires named independent evidence"
+
+          evidence_kind == "independent-adopter" and authorizes_1_0 in [true, false] ->
+            :ok
+
+          true ->
+            raise ArgumentError, "unclassified adoption evidence"
+        end
+
+      _ ->
+        :ok
+    end
+  end
+
+  defp normalize_install_mode(:package), do: "package"
+  defp normalize_install_mode(:network), do: "network"
+  defp normalize_install_mode("package"), do: "package"
+  defp normalize_install_mode("network"), do: "network"
+  defp normalize_install_mode(_mode), do: nil
 
   defp mix_version!(root) do
     path = Path.join(root, "mix.exs")

@@ -2,6 +2,7 @@ Code.require_file("support/generated_app_helper.ex", __DIR__)
 
 defmodule Rindle.InstallSmoke.LiveTruthParityTest do
   use ExUnit.Case, async: true
+  @compile {:no_warn_undefined, Rindle.ValidateLiveTruth}
 
   @repo_root Path.expand("../..", __DIR__)
   @validator Path.join(@repo_root, "scripts/maintainer/validate_live_truth.exs")
@@ -173,9 +174,12 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
   end
 
   @tag :package_authority
+  @tag :minio
   test "fresh unpacked generated image consumer report authorizes package proof" do
     report = Rindle.InstallSmoke.GeneratedAppHelper.prove_package_install!(:image)
     on_exit(fn -> Rindle.InstallSmoke.GeneratedAppHelper.cleanup(report) end)
+    assert report.smoke_exit_code == 0, report.smoke_output
+    assert report.lifecycle_proved?, report.smoke_output
 
     receipt = %{
       proof_origin: "generated-app-helper",
