@@ -37,7 +37,7 @@ incident_json() {
 eval_case() {
   local name="$1" want_exit="$2" want_action="$3" event="$4" verdict="$5"
   local open_count="$6" run_sha="${7:-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}"
-  local run_ref="${8:-refs/heads/main}" remote_sha="${9:-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}"
+  local run_ref="${8:-refs/heads/main}" remote_sha="${9-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}"
   local evidence="${10:-}" output="" got=0
 
   output="$(
