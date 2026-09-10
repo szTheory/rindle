@@ -5,16 +5,16 @@ milestone_name: Pre-Adopter Readiness & Quality Consolidation
 current_phase: 133
 current_phase_name: Evidence Charter and Live Truth
 status: executing
-stopped_at: Completed 133-10-PLAN.md
-last_updated: "2026-09-10T19:57:39.520Z"
+stopped_at: Completed 133-11-PLAN.md
+last_updated: "2026-09-10T20:44:36.542Z"
 last_activity: 2026-09-10
-last_activity_desc: Completed Phase 133 Plan 10 supported-toolchain boundary closure
-state_head: 41a1d6a3b3be220f40d332081b00cf2c54b2cc69
+last_activity_desc: Phase 133 execution started
+state_head: 01e45a164e04d672bda8318b41c4c1a489f613d0
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 17
-  completed_plans: 10
+  completed_plans: 11
 ---
 
 # Project State
@@ -28,12 +28,12 @@ See: .planning/PROJECT.md (updated 2026-09-09 for v1.26)
 
 ## Current Position
 
-Phase: 133 (Evidence Charter and Live Truth) — READY TO EXECUTE
-Plan: 10 of 10
+Phase: 133 (Evidence Charter and Live Truth) — EXECUTING
+Plan: 12 of 17
 Status: Ready to execute
-Last activity: 2026-09-10 — Completed Plan 10 supported-toolchain boundary closure
+Last activity: 2026-09-10 — Phase 133 execution started
 
-Progress: [██████████] 100%
+Progress: [███████░░░] 65%
 
 ## Performance Metrics
 
@@ -60,6 +60,7 @@ Progress: [██████████] 100%
 | Phase 133 P08 | 11min | 1 tasks | 2 files |
 | Phase 133 P09 | 77min | 2 tasks | 2 files |
 | Phase 133 P10 | 9min | 2 tasks | 2 files |
+| Phase 133 P11 | 12 min | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -94,6 +95,9 @@ Progress: [██████████] 100%
 - [Phase 133]: Revalidate census and live truth through fixed repository-owned commands from the detached receipt subject.
 - [Phase 133]: Accept only Elixir numeric major/minor 1.17 and OTP numeric major 27, with bounded setup-beam prefixes and suffixes.
 - [Phase 133]: Preserve resolved patch/build strings verbatim and require both exact strings in the PLT cache key.
+- [Phase 133]: Bind the Plans 01-10 validation preimage to immutable commit, blob, byte-length, and SHA-256 identity. — A digest alone does not preserve the exact historical commit:path authority.
+- [Phase 133]: Reject caller-supplied PLT_DIR and derive the sole target as repository-owned priv/plts. — The destructive boundary must not be caller-selectable.
+- [Phase 133]: Gate both Dialyzer modes before Mix and guard again immediately before recursive reset. — Rejected physical paths must reach neither analysis nor deletion.
 
 ### Pending Todos
 
@@ -117,6 +121,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-09-10T16:50:29.125Z
-Stopped at: Completed 133-10-PLAN.md
+Last session: 2026-09-10T20:44:36.520Z
+Stopped at: Completed 133-11-PLAN.md
 Resume file: None
