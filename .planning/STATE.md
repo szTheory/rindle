@@ -5,16 +5,16 @@ milestone_name: Pre-Adopter Readiness & Quality Consolidation
 current_phase: 133
 current_phase_name: Evidence Charter and Live Truth
 status: executing
-stopped_at: Completed 133-13-PLAN.md
-last_updated: "2026-09-10T21:06:45.747Z"
+stopped_at: Completed 133-14-PLAN.md
+last_updated: "2026-09-10T21:31:02.261Z"
 last_activity: 2026-09-10
 last_activity_desc: Phase 133 execution started
-state_head: bb97dd8e7a3cc52fa195abf78fa6bd8c295415be
+state_head: 1f9d7c847d109a42dc77c862fe55802819f74551
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 17
-  completed_plans: 13
+  completed_plans: 14
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-09-09 for v1.26)
 ## Current Position
 
 Phase: 133 (Evidence Charter and Live Truth) — EXECUTING
-Plan: 14 of 17
+Plan: 15 of 17
 Status: Ready to execute
 Last activity: 2026-09-10 — Phase 133 execution started
 
@@ -63,6 +63,7 @@ Progress: [███████░░░] 65%
 | Phase 133 P11 | 12 min | 3 tasks | 6 files |
 | Phase 133 P12 | 6 min | 2 tasks | 2 files |
 | Phase 133 P13 | 10min | 2 tasks | 3 files |
+| Phase 133 P14 | 21min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -105,6 +106,8 @@ Progress: [███████░░░] 65%
 - [Phase 133]: Permit only the performance dimension to be inapplicable with the exact repository-owned minimal-tracer reason.
 - [Phase 133]: Authenticate each applicable census row against exact detector identity, command, and normalized inputs independently of neighboring applicability.
 - [Phase 133]: Canonicalize observation locations only after lexical and component-wise symlink containment, with bounded non-disclosing diagnostics.
+- [Phase 133]: Keep filesystem paths outside canonical package receipts as untrusted locator context; derive authority from independently recomputed bytes and exact fields. — Arbitrary directories and filenames must not authenticate their own claims.
+- [Phase 133]: Reserve independent adoption and 1.0 authorization for the distinct repository-owned adopter allowlist, which remains empty. — Maintainer-operated synthetic proof cannot impersonate external adopter consent.
 
 ### Pending Todos
 
@@ -128,6 +131,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-09-10T21:06:45.724Z
-Stopped at: Completed 133-13-PLAN.md
+Last session: 2026-09-10T21:31:02.243Z
+Stopped at: Completed 133-14-PLAN.md
 Resume file: None
