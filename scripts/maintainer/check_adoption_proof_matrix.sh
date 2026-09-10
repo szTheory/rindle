@@ -5,6 +5,13 @@ set -euo pipefail
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 matrix="${repo_root}/examples/adoption_demo/docs/adoption-proof-matrix.md"
 
+cd "${repo_root}"
+
+# Authority gates run first. The copy checks below are useful review diagnostics,
+# but they cannot prove workflow topology or built-package provenance by themselves.
+mix test test/install_smoke/live_truth_parity_test.exs --only derived_authority
+mix test test/install_smoke/live_truth_parity_test.exs --only package_authority
+
 if [[ ! -f "${matrix}" ]]; then
   echo "check_adoption_proof_matrix: missing ${matrix}" >&2
   exit 1
@@ -61,6 +68,7 @@ require_substring "test-results/admin-screenshots" "admin screenshot output path
 require_substring "check_adoption_proof_matrix.sh" "drift gate script self-reference"
 require_substring "MinIO" "MinIO realism label"
 require_substring "Merge-blocking" "merge-blocking severity wording"
+require_substring "Off-critical-path" "off-critical-path severity wording"
 require_substring "Cohort" "Cohort persona wording"
 
 echo "check_adoption_proof_matrix: OK"

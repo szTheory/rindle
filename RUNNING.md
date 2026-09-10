@@ -79,6 +79,13 @@ matrix both of those entrypoints link to.
 | `gcs-soak` | nightly (gating) | `nightly.yml`: schedule 07:27 UTC / `workflow_dispatch`; no `needs:`; repo `szTheory/rindle` + secrets | Skipped when secrets are absent; a live-GCS regression makes Nightly red. |
 | `package-consumer-gcs-live` | nightly (gating) | `nightly.yml`: schedule 07:27 UTC / `workflow_dispatch`; no `needs:`; repo `szTheory/rindle` + secrets | Live GCS install-smoke when secrets are present (skipped otherwise); failures make Nightly red. |
 
+Nightly Dialyzer proves fresh and restored PLT modes independently on the supported Elixir 1.17 / OTP
+27 cell. `Nightly Summary` applies the strict Nightly verdict: failed, cancelled, unexpected, missing,
+or impermissibly skipped gating work is red. For the two live GCS jobs, the bounded upstream-repository
+and required-secrets rule records secret-absent work as not-run rather than passed. Local runs on a
+newer toolchain are diagnostic only; Plan 07's exact-SHA supported-cell run remains the live acceptance
+authority.
+
 ### Reproducing the coverage step locally (COV-04)
 
 The full CI coverage step — the `quality` — Run tests with coverage row above — is
