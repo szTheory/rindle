@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC2317 # Embedded fake-gh body executes after extraction.
 # Exact-run Nightly collector contract exercised against a deterministic fake gh.
 set -euo pipefail
 
@@ -26,19 +27,29 @@ make_fake_gh() {
 }
 
 run_case() {
-  local name="$1" state="$2" want_exit="$3" temp got=0
+  local name="$1" state="$2" want_exit="$3" temp got=0 local_authorities
   temp="$(mktemp -d)"
   make_fake_gh "${temp}/bin"
   : >"${temp}/calls"
   : >"${temp}/count"
 
+  local_authorities='{"census":{"status":"pass"},"live_truth":{"status":"pass"}}'
+  [ "$state" != bad_local_authority ] || local_authorities='{"census":{"status":"fail"},"live_truth":{"status":"pass"}}'
   PATH="${temp}/bin:${PATH}" FAKE_GH_LOG="${temp}/calls" FAKE_GH_COUNT_FILE="${temp}/count" \
-    FAKE_GH_STATE="$state" NIGHTLY_LOCAL_AUTHORITIES_JSON='{"census":{"status":"pass"},"live_truth":{"status":"pass"}}' \
+    FAKE_GH_STATE="$state" NIGHTLY_LOCAL_AUTHORITIES_JSON="$local_authorities" \
+    NIGHTLY_NOW=2026-09-09T12:00:00Z \
     bash "$collector" dispatch-and-record --repo szTheory/rindle --workflow nightly.yml \
       --ref phase-133-evidence-aaaaaaaaaaaa --expected-sha aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \
       --receipt "${temp}/receipt.json" --poll-seconds 0 --timeout-seconds 2 >/dev/null 2>&1 || got=$?
 
-  if [ "$got" -eq "$want_exit" ] && { [ "$want_exit" -eq 0 ] && jq -e -S . "${temp}/receipt.json" >/dev/null || [ ! -e "${temp}/receipt.json" ]; }; then
+  if [ "$state" = success ] && [ "$got" -eq 0 ]; then
+    PATH="${temp}/bin:${PATH}" FAKE_GH_LOG="${temp}/calls" FAKE_GH_COUNT_FILE="${temp}/count" \
+      FAKE_GH_STATE=success bash "$collector" verify-receipt --repo szTheory/rindle --workflow nightly.yml \
+        --ref phase-133-evidence-aaaaaaaaaaaa --expected-sha aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \
+        --receipt "${temp}/receipt.json" >/dev/null 2>&1 || got=$?
+  fi
+
+  if [ "$got" -eq "$want_exit" ] && { [ "$want_exit" -eq 0 ] && cmp -s "${temp}/receipt.json" <(jq -S . "${temp}/receipt.json") || [ ! -e "${temp}/receipt.json" ]; }; then
     record "$name" true
   else
     record "$name" false "expected exit ${want_exit}, got ${got}; receipt state unexpected"
@@ -62,8 +73,9 @@ fi
 
 run_case "exact first-attempt run writes canonical receipt" success 0
 for state in foreign_repository foreign_workflow missing_ref foreign_sha foreign_run_sha foreign_run_ref \
-  foreign_run_workflow rerun missing_job extra_job red_job nonterminal red_run missing_fresh \
-  unsupported_toolchain missing_cache stale_rebuild red_verdict incident_changed timeout api_failure watch_failure; do
+  foreign_run_workflow rerun missing_job extra_job red_job skipped_job cancelled_job nonterminal red_run \
+  missing_fresh missing_restored unsupported_toolchain bad_local_authority missing_cache stale_rebuild red_verdict \
+  incident_changed timeout api_failure watch_failure; do
   run_case "$state fails closed" "$state" 1
 done
 
@@ -75,6 +87,7 @@ exit "$status"
 
 # BEGIN EMBEDDED FAKE GH
 #!/usr/bin/env bash
+# shellcheck disable=SC2317
 set -euo pipefail
 printf '%s\n' "$*" >>"$FAKE_GH_LOG"
 state="${FAKE_GH_STATE:-success}"
@@ -94,8 +107,8 @@ case "${1-} ${2-}" in
     jq -cn --arg name "${repo:-szTheory/rindle}" '{nameWithOwner:$name}'
     ;;
   "workflow view")
-    [ "$state" != foreign_workflow ] || { printf 'name: Other\non: workflow_dispatch\n'; exit; }
-    printf 'name: Nightly\non: workflow_dispatch\n'
+    [ "$state" != foreign_workflow ] || { printf 'name: Other\non:\n  workflow_dispatch:\n'; exit; }
+    printf 'name: Nightly\non:\n  workflow_dispatch:\n'
     ;;
   "api repos/szTheory/rindle/git/ref/heads/phase-133-evidence-aaaaaaaaaaaa")
     [ "$state" != missing_ref ] || exit 1
@@ -123,7 +136,7 @@ case "${1-} ${2-}" in
       [ "$state" = unsupported_toolchain ] || printf '%s\n' 'Dialyzer\tSet up Elixir\tResolved Elixir version: 1.17.3' 'Dialyzer\tSet up Elixir\tResolved OTP version: 27.3.4.17'
       [ "$state" = missing_fresh ] || printf '%s\n' 'Dialyzer\tDialyzer (fresh PLT)\tnightly-dialyzer mode=fresh action=build-plt' 'Dialyzer\tDialyzer (fresh PLT)\tnightly-dialyzer mode=fresh attempt=1 action=analyze'
       [ "$state" = missing_cache ] || printf '%s\n' 'Dialyzer\tSave PLT cache\tCache saved with key: plt-v3-Linux-X64-otp27.3.4.17-elixir1.17.3-inputhash'
-      printf '%s\n' 'Dialyzer\tDialyzer (restored PLT)\tnightly-dialyzer mode=restored attempt=1 action=analyze'
+      [ "$state" = missing_restored ] || printf '%s\n' 'Dialyzer\tDialyzer (restored PLT)\tnightly-dialyzer mode=restored attempt=1 action=analyze'
       [ "$state" != stale_rebuild ] || printf '%s\n' 'Dialyzer\tDialyzer (restored PLT)\tnightly-dialyzer mode=restored attempt=1 fingerprint=old-plt recovery=rebuild-once'
       [ "$state" = red_verdict ] && verdict=red || verdict=green
       printf '%s\n' "Nightly Summary\\tEvaluate strict Nightly verdict\\tverdict=$verdict" 'Nightly Incident Lifecycle\tManage scheduled Nightly incident\tNightly incident lifecycle: no mutation'
@@ -132,7 +145,13 @@ case "${1-} ${2-}" in
       [ "$state" != missing_job ] || jobs="$(jq 'del(.[0])' <<<"$jobs")"
       [ "$state" != extra_job ] || jobs="$(jq '. + [{databaseId:11,name:"Unexpected",status:"completed",conclusion:"success"}]' <<<"$jobs")"
       [ "$state" != red_job ] || jobs="$(jq 'map(if .name == "Dialyzer" then .conclusion="failure" else . end)' <<<"$jobs")"
-      jq -cn --arg sha "$sha" --arg ref "$ref" --arg created "$created" --argjson jobs "$jobs" '{attempt:1,conclusion:"success",createdAt:$created,databaseId:9001,event:"workflow_dispatch",headBranch:$ref,headSha:$sha,jobs:$jobs,status:"completed",url:"https://github.test/runs/9001",workflowName:"Nightly"}'
+      [ "$state" != skipped_job ] || jobs="$(jq 'map(if .name == "Dialyzer" then .conclusion="skipped" else . end)' <<<"$jobs")"
+      [ "$state" != cancelled_job ] || jobs="$(jq 'map(if .name == "Dialyzer" then .conclusion="cancelled" else . end)' <<<"$jobs")"
+      attempt=1; status=completed; conclusion=success
+      [ "$state" != rerun ] || attempt=2
+      [ "$state" != nonterminal ] || status=in_progress
+      [ "$state" != red_run ] || conclusion=failure
+      jq -cn --arg sha "$sha" --arg ref "$ref" --arg created "$created" --argjson jobs "$jobs" --argjson attempt "$attempt" --arg status "$status" --arg conclusion "$conclusion" '{attempt:$attempt,conclusion:$conclusion,createdAt:$created,databaseId:9001,event:"workflow_dispatch",headBranch:$ref,headSha:$sha,jobs:$jobs,status:$status,url:"https://github.test/runs/9001",workflowName:"Nightly"}'
     fi
     ;;
   "issue list")
