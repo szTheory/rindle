@@ -97,22 +97,30 @@ The first package-authority audit attempt failed because local MinIO was not run
 
 **Approval:** validation executed and audited; Phase 133 is Nyquist-compliant with no uncovered implementation requirement.
 
-## Pending Gap-Closure Validation Addendum (Plans 08–10)
+## Gap-Closure Validation Addendum (Plans 08–10)
 
-The completed sign-off and post-execution audit above are retained as historical evidence for executed Plans 01–07. Verification subsequently found three adversarial authority gaps, so the five implementation tasks below are pending and receive no green credit until their commands pass non-vacuously after execution. Their waves continue the executed sequence at Waves 7–9.
+The completed sign-off and post-execution audit above are retained as historical evidence for executed Plans 01–07. Plans 08–10 closed the three adversarial authority gaps, and the five implementation tasks below now receive green credit from non-vacuous automated execution in Waves 7–9.
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Test Type | Automated Command | Failure Direction | File State |
 |---------|------|------|-------------|------------|-----------|-------------------|------------------|------------|
-| 133-08-01 | 08 | 7 | TRUTH-08 | T-133-29/T-133-30/T-133-31 | derived package-authority regression | `mix test test/install_smoke/live_truth_parity_test.exs --only package_authority` | Halt on nonzero, zero tests, or acceptance of the forged `validated` receipt. | pending gap closure |
-| 133-09-01 | 09 | 8 | EVID-03, EVID-04 | T-133-32/T-133-33/T-133-36/T-133-37 | fake-GitHub canonical mutation matrix | `bash scripts/ci/test_verify_nightly_run.sh` | Halt on nonzero, any `FAIL` case, zero passed cases, or acceptance of any remote-field mutation. | pending gap closure |
-| 133-09-02 | 09 | 8 | EVID-01, EVID-04, TRUTH-08 | T-133-32/T-133-34/T-133-35/T-133-36/T-133-37 | incident/local-authority mutation matrix | `bash scripts/ci/test_verify_nightly_run.sh` | Halt on nonzero, any `FAIL` case, zero passed cases, acceptance of a local/incident mutation, or emission of a mutating `gh` call. | pending gap closure |
-| 133-10-01 | 10 | 9 | EVID-02 | T-133-38/T-133-40/T-133-41 | setup-beam boundary fixtures | `bash scripts/ci/test_verify_nightly_run.sh` | Halt on nonzero, any `FAIL` case, zero passed cases, or acceptance of 11.17, 1.170, or 127 log evidence. | pending gap closure |
-| 133-10-02 | 10 | 9 | EVID-02 | T-133-38/T-133-39/T-133-40/T-133-41 | receipt boundary mutation matrix | `bash scripts/ci/test_verify_nightly_run.sh` | Halt on nonzero, any `FAIL` case, zero passed cases, or verification of any receipt-only near-match mutation. | pending gap closure |
+| 133-08-01 | 08 | 7 | TRUTH-08 | T-133-29/T-133-30/T-133-31 | derived package-authority regression | `mix test test/install_smoke/live_truth_parity_test.exs --only package_authority` | Halt on nonzero, zero tests, or acceptance of the forged `validated` receipt. | ✅ focused adversarial test passed |
+| 133-09-01 | 09 | 8 | EVID-03, EVID-04 | T-133-32/T-133-33/T-133-36/T-133-37 | fake-GitHub canonical mutation matrix | `bash scripts/ci/test_verify_nightly_run.sh` | Halt on nonzero, any `FAIL` case, zero passed cases, or acceptance of any remote-field mutation. | ✅ 84-case matrix passed |
+| 133-09-02 | 09 | 8 | EVID-01, EVID-04, TRUTH-08 | T-133-32/T-133-34/T-133-35/T-133-36/T-133-37 | incident/local-authority mutation matrix | `bash scripts/ci/test_verify_nightly_run.sh` | Halt on nonzero, any `FAIL` case, zero passed cases, acceptance of a local/incident mutation, or emission of a mutating `gh` call. | ✅ 84-case matrix passed |
+| 133-10-01 | 10 | 9 | EVID-02 | T-133-38/T-133-40/T-133-41 | setup-beam boundary fixtures | `bash scripts/ci/test_verify_nightly_run.sh` | Halt on nonzero, any `FAIL` case, zero passed cases, or acceptance of 11.17, 1.170, or 127 log evidence. | ✅ 84-case matrix passed |
+| 133-10-02 | 10 | 9 | EVID-02 | T-133-38/T-133-39/T-133-40/T-133-41 | receipt boundary mutation matrix | `bash scripts/ci/test_verify_nightly_run.sh` | Halt on nonzero, any `FAIL` case, zero passed cases, or verification of any receipt-only near-match mutation. | ✅ 84-case matrix passed |
 
-### Pending Gap-Closure Sign-Off
+### Gap-Closure Sign-Off
 
-- [ ] All five gap-closure implementation tasks have run their exact automated commands non-vacuously.
-- [ ] Wave 7 rejects caller-forged package authority while retaining real generated-consumer provenance.
-- [ ] Wave 8 rejects every remote, incident, and local-authority mutation and emits no forbidden mutation command.
-- [ ] Wave 9 rejects all named toolchain near-matches in both collection and receipt revalidation.
-- [ ] Re-run the full Phase 133 preservation gates and replace these pending boxes only with executable evidence; human authorization or observation supplies no acceptance credit.
+- [x] All five gap-closure implementation tasks ran their exact automated commands non-vacuously.
+- [x] Wave 7 rejects caller-forged package authority while retaining real generated-consumer provenance.
+- [x] Wave 8 rejects every remote, incident, and local-authority mutation and emits no forbidden mutation command.
+- [x] Wave 9 rejects all named toolchain near-matches in both collection and receipt revalidation.
+- [x] The refreshed Nyquist audit covers 5/5 requirements and 19/19 automated implementation tasks; human authorization or observation supplies no acceptance credit.
+
+## Validation Audit 2026-09-10 (Gap Closure)
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 5 |
+| Escalated | 0 |
