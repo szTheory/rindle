@@ -9,7 +9,7 @@
 
 - [x] **EVID-01**: Maintainers can generate a SHA-bound census covering every applicable quality dimension, with each unique candidate assigned exactly one `fix`, `retain`, or trigger-bound `defer` disposition.
 - [ ] **EVID-02**: Supported Nightly Dialyzer runs succeed with both fresh and restored PLTs, and automated regression proof rejects or rebuilds stale PLTs.
-- [ ] **EVID-03**: Nightly aggregation fails when any declared gating job fails, is cancelled, or reports an unexpected state; skipped work cannot silently count as success.
+- [x] **EVID-03**: Nightly aggregation fails when any declared gating job fails, is cancelled, or reports an unexpected state; skipped work cannot silently count as success.
 - [ ] **EVID-04**: Nightly failures open or update one incident, while a qualifying scheduled recovery closes it with exact-run evidence.
 - [ ] **TRUTH-08**: Release, planning, support, and adoption-proof claims derive from authoritative live state and contain no unmarked 0.4.5/0.4.6, lane-severity, or package-proof contradiction.
 
@@ -100,7 +100,7 @@
 |-------------|-------|--------|
 | EVID-01 | Phase 133 | Complete |
 | EVID-02 | Phase 133 | Pending |
-| EVID-03 | Phase 133 | Pending |
+| EVID-03 | Phase 133 | Complete |
 | EVID-04 | Phase 133 | Pending |
 | TRUTH-08 | Phase 133 | Pending |
 | INBOX-01 | Phase 134 | Pending |

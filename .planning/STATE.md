@@ -5,16 +5,16 @@ milestone_name: Pre-Adopter Readiness & Quality Consolidation
 current_phase: 133
 current_phase_name: Evidence Charter and Live Truth
 status: executing
-stopped_at: Completed 133-02-PLAN.md
-last_updated: "2026-09-10T00:32:00.912Z"
+stopped_at: Completed 133-03-PLAN.md
+last_updated: "2026-09-10T00:51:29.491Z"
 last_activity: 2026-09-09
 last_activity_desc: Phase 133 execution resumed (wave continue)
-state_head: 8d8eb2eb8f8518b645928a2d499ad6544de5d119
+state_head: e3bcb99406b8c5b5750012985d2336fe096e9c9d
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 7
-  completed_plans: 2
+  completed_plans: 3
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-09-09 for v1.26)
 ## Current Position
 
 Phase: 133 (Evidence Charter and Live Truth) — EXECUTING
-Plan: 3 of 7
+Plan: 4 of 7
 Status: Ready to execute
 Last activity: 2026-09-09 — Phase 133 execution resumed (wave continue)
 
@@ -52,6 +52,7 @@ Progress: [███░░░░░░░] 29%
 |------|----------|-------|-------|
 | Phase 133 P01 | 27 min | 2 tasks | 3 files |
 | Phase 133 P02 | 12 min | 2 tasks | 7 files |
+| Phase 133 P03 | 13min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -65,6 +66,9 @@ Progress: [███░░░░░░░] 29%
 - [Phase 133]: Bind stable candidates, reviewed baselines, and explicit Phase 133 transitions into the canonical candidate contract digest.
 - [Phase 133]: Match restored-PLT recovery only to the observed Old PLT file line and preserve every other analysis exit unchanged. — This prevents a broad retry from masking genuine Dialyzer warnings or unknown failures.
 - [Phase 133]: Key Nightly PLTs on exact resolved Elixir and OTP patch outputs while retaining the supported 1.17/27 labels. — The Nightly 93/101 evidence proves requested major/minor labels allowed incompatible OTP patch lineage.
+- [Phase 133]: Keep Nightly's strict policy independent from the PR aggregate's intentional skip-as-pass semantics.
+- [Phase 133]: Allow Nightly inapplicability only under the named upstream-repository-and-required-secrets rule with bounded reasons.
+- [Phase 133]: Export the canonical Nightly verdict before terminal enforcement so incident consumers and workflow conclusion share one authority.
 
 ### Pending Todos
 
@@ -88,6 +92,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-09-10T00:32:00.899Z
-Stopped at: Completed 133-02-PLAN.md
+Last session: 2026-09-10T00:51:29.479Z
+Stopped at: Completed 133-03-PLAN.md
 Resume file: None
