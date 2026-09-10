@@ -1,16 +1,16 @@
 ---
 phase: "133"
 slug: "evidence-charter-and-live-truth"
-status: ready
+status: validated
 nyquist_compliant: true
-wave_0_complete: false
+wave_0_complete: true
 created: "2026-09-09"
-revised: "2026-09-09"
+revised: "2026-09-10"
 ---
 
 # Phase 133 — Validation Strategy
 
-> Complete per-task validation contract for feedback sampling during execution. Wave 0 files are created test-first by their owning tasks; `wave_0_complete` remains false until execution creates them.
+> Executed per-task validation contract. Every Wave 0 artifact exists, every implementation task has executable behavioral coverage, and the exact-subject live receipt has been independently revalidated. The human publication checkpoint supplied authorization only and received no acceptance credit.
 
 ## Test Infrastructure
 
@@ -51,17 +51,17 @@ revised: "2026-09-09"
 | 133-07-02 | 07 | 6 | authorization only | T-133-27 | blocking-human decision | No automated acceptance command; choose `publish` or stop. | `stop` halts with live evidence incomplete; `publish` only authorizes Task 3 and supplies no acceptance credit. | N/A checkpoint |
 | 133-07-03 | 07 | 6 | EVID-01–04, TRUTH-08 | T-133-25–T-133-28 | remote preflight + receipt | Execute Plan 07 Task 3's exact `git ls-remote`, `preflight`, and `verify-receipt` command. | Halt on auth/API/timeout, remote SHA mismatch, rerun/partial/red evidence, or changed incident snapshot; do not accept publication itself as proof. | W0 + live output |
 
-*Status during execution: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky. The map has 14 automated implementation tasks plus one authorization-only checkpoint introduced by revision.*
+*Execution result: all 14 automated implementation tasks are ✅ green. Task 133-07-02 remains authorization-only and is intentionally excluded from acceptance credit.*
 
 ## Wave 0 Requirements
 
-- [ ] `test/install_smoke/evidence_census_test.exs` — schema, exact-head, deduplication, disposition, stable-ID transition, and mutation fixtures.
-- [ ] `scripts/ci/test_nightly_dialyzer.sh` — fresh, restored, stale, corrupt, build-failure, and genuine-warning fixtures.
-- [ ] `scripts/ci/test_nightly_summary_gate.sh` — complete result/applicability truth table.
-- [ ] `scripts/ci/test_nightly_incident.sh` — scheduled-only fake-`gh` lifecycle tests.
-- [ ] `test/install_smoke/nightly_policy_test.exs` — parsed topology, permissions, and verdict/lifecycle wiring.
-- [ ] `test/install_smoke/live_truth_parity_test.exs` — version, lane, package-proof, and exact historical-marker fixtures.
-- [ ] `scripts/ci/test_verify_nightly_run.sh` — remote preflight, exact-run, partial-state, and nonmutation fixtures.
+- [x] `test/install_smoke/evidence_census_test.exs` — schema, exact-head, deduplication, disposition, stable-ID transition, and mutation fixtures.
+- [x] `scripts/ci/test_nightly_dialyzer.sh` — fresh, restored, stale, corrupt, build-failure, and genuine-warning fixtures.
+- [x] `scripts/ci/test_nightly_summary_gate.sh` — complete result/applicability truth table.
+- [x] `scripts/ci/test_nightly_incident.sh` — scheduled-only fake-`gh` lifecycle tests.
+- [x] `test/install_smoke/nightly_policy_test.exs` — parsed topology, permissions, and verdict/lifecycle wiring.
+- [x] `test/install_smoke/live_truth_parity_test.exs` — version, lane, package-proof, and exact historical-marker fixtures.
+- [x] `scripts/ci/test_verify_nightly_run.sh` — remote preflight, exact-run, partial-state, and nonmutation fixtures.
 
 ## Manual-Only Verifications
 
@@ -75,6 +75,24 @@ None. The sole human checkpoint authorizes a reversible publication action; it d
 - [x] Wave 0 creation ownership is explicit for every missing test artifact.
 - [x] No watch-mode flags or vacuous human acceptance.
 - [x] Clean-worktree authority is isolated from the user's unrelated `.planning/config.json` edit.
-- [x] `nyquist_compliant: true` is set because the map is complete; `wave_0_complete` remains false until execution.
+- [x] Every Wave 0 artifact exists and ran non-vacuously; `wave_0_complete: true` reflects executed state.
 
-**Approval:** validation design complete; execution pending
+## Post-Execution Audit Trail
+
+Audited 2026-09-10 from the shared worktree without modifying implementation files. The pre-existing `.planning/config.json` edit and untracked `.planning/milestone.lock` / `.planning/state.json` were preserved.
+
+| Scope | Executed command/evidence | Result |
+|-------|---------------------------|--------|
+| Strict Nightly verdict | `bash scripts/ci/test_nightly_summary_gate.sh` | ✅ 49 passed, 0 failed |
+| Fresh/restored Dialyzer policy | `bash scripts/ci/test_nightly_dialyzer.sh` | ✅ 24 passed, 0 failed |
+| Rolling incident lifecycle | `bash scripts/ci/test_nightly_incident.sh` | ✅ 22 passed, 0 failed |
+| Exact-run collector mutations | `bash scripts/ci/test_verify_nightly_run.sh` | ✅ 28 passed, 0 failed |
+| Phase-focused ExUnit contracts | `mix test test/install_smoke/evidence_census_test.exs test/install_smoke/nightly_policy_test.exs test/install_smoke/live_truth_parity_test.exs test/install_smoke/release_docs_parity_test.exs test/install_smoke/package_metadata_test.exs test/install_smoke/generated_app_smoke_test.exs` | ✅ 84 tests, 0 failures, 17 excluded on documented diagnostic Elixir 1.19.5 / OTP 28.4.1 |
+| Derived truth + real package authority | `bash scripts/maintainer/check_adoption_proof_matrix.sh` | ✅ 6 derived-authority tests and 4 package-authority tests passed after repository-owned MinIO bootstrap |
+| Exact remote subject and receipt | Plan 07 Task 3 `git ls-remote` + `preflight` + `verify-receipt` command | ✅ ref `phase-133-evidence-4f83e153eb7e` equals subject `4f83e153eb7e19f3e1e3ca43b40eefdfee87a4d2`; run `34432289094`, attempt 1 accepted |
+| Census ledger | `133-EVIDENCE-CENSUS.json` plus collector/validator evidence recorded by Plans 06–07 | ✅ 12 taxonomy dimensions, 12 candidates, 8 explicit transitions, same subject SHA |
+| Full preservation gates | Plan 07 execution receipts in `133-07-SUMMARY.md` | ✅ `mix ci` (1,460 tests, 0 failures), 97 contract tests, automation-first contract, and clean detached hygiene |
+
+The first package-authority audit attempt failed because local MinIO was not running. This was an environment prerequisite, not an implementation failure; `scripts/ensure_minio.sh` established the repository-owned service and the unchanged behavioral test then passed. Supported Elixir 1.17 / OTP 27 acceptance comes from the exact live Nightly receipt, not the newer local diagnostic toolchain.
+
+**Approval:** validation executed and audited; Phase 133 is Nyquist-compliant with no uncovered implementation requirement.
