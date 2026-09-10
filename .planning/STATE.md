@@ -5,16 +5,16 @@ milestone_name: Pre-Adopter Readiness & Quality Consolidation
 current_phase: 133
 current_phase_name: Evidence Charter and Live Truth
 status: executing
-stopped_at: Completed 133-11-PLAN.md
-last_updated: "2026-09-10T20:44:36.542Z"
+stopped_at: Completed 133-12-PLAN.md
+last_updated: "2026-09-10T20:54:21.307Z"
 last_activity: 2026-09-10
 last_activity_desc: Phase 133 execution started
-state_head: 01e45a164e04d672bda8318b41c4c1a489f613d0
+state_head: 2f588817c079aaf11f559ab7ba30e1859ac7ad95
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 17
-  completed_plans: 11
+  completed_plans: 12
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-09-09 for v1.26)
 ## Current Position
 
 Phase: 133 (Evidence Charter and Live Truth) — EXECUTING
-Plan: 12 of 17
+Plan: 13 of 17
 Status: Ready to execute
 Last activity: 2026-09-10 — Phase 133 execution started
 
@@ -61,6 +61,7 @@ Progress: [███████░░░] 65%
 | Phase 133 P09 | 77min | 2 tasks | 2 files |
 | Phase 133 P10 | 9min | 2 tasks | 2 files |
 | Phase 133 P11 | 12 min | 3 tasks | 6 files |
+| Phase 133 P12 | 6 min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -98,6 +99,8 @@ Progress: [███████░░░] 65%
 - [Phase 133]: Bind the Plans 01-10 validation preimage to immutable commit, blob, byte-length, and SHA-256 identity. — A digest alone does not preserve the exact historical commit:path authority.
 - [Phase 133]: Reject caller-supplied PLT_DIR and derive the sole target as repository-owned priv/plts. — The destructive boundary must not be caller-selectable.
 - [Phase 133]: Gate both Dialyzer modes before Mix and guard again immediately before recursive reset. — Rejected physical paths must reach neither analysis nor deletion.
+- [Phase 133]: Treat zero exact matches as an eventual-consistency wait state regardless of unrelated historical list contents.
+- [Phase 133]: Treat multiple exact post-boundary matches as immediate ambiguity rather than selecting by order or recency.
 
 ### Pending Todos
 
@@ -121,6 +124,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-09-10T20:44:36.520Z
-Stopped at: Completed 133-11-PLAN.md
+Last session: 2026-09-10T20:54:21.285Z
+Stopped at: Completed 133-12-PLAN.md
 Resume file: None
