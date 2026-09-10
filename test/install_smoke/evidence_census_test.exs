@@ -1,6 +1,10 @@
 defmodule Rindle.InstallSmoke.EvidenceCensusTest do
   use ExUnit.Case, async: true
 
+  # Every mutation is confined to a per-test root suffixed with unique_integer/1;
+  # no fixture path or git repository is shared between concurrent cases.
+  @moduletag async_safety_allow: [:file_mutation]
+
   @repo_root Path.expand("../..", __DIR__)
   @collector Path.join(@repo_root, "scripts/maintainer/evidence_census.exs")
   @validator Path.join(@repo_root, "scripts/maintainer/validate_evidence_census.exs")
