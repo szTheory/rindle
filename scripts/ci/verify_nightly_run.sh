@@ -105,6 +105,27 @@ validate_run_json() {
     ' <<<"$run_json" >/dev/null || die "run identity, terminal state, or exact job set is not qualifying"
 }
 
+parse_supported_elixir_version() {
+  local value="$1" major minor
+  if [[ "$value" =~ ^v?([0-9]+)\.([0-9]+)(\.[0-9]+)*(-otp-[0-9]+(\.[0-9]+)*)?$ ]]; then
+    major="${BASH_REMATCH[1]}"
+    minor="${BASH_REMATCH[2]}"
+    [ "$major" = 1 ] && [ "$minor" = 17 ] && printf '%s\n' "$value"
+    return
+  fi
+  return 1
+}
+
+parse_supported_otp_version() {
+  local value="$1" major
+  if [[ "$value" =~ ^(OTP-)?([0-9]+)(\.[0-9]+)*$ ]]; then
+    major="${BASH_REMATCH[2]}"
+    [ "$major" = 27 ] && printf '%s\n' "$value"
+    return
+  fi
+  return 1
+}
+
 parse_log_evidence() {
   local logs="$1" resolved_elixir resolved_otp cache_key fresh_builds fresh_runs restored_runs stale_rebuilds verdict
   fresh_builds="$(grep -c 'nightly-dialyzer mode=fresh action=build-plt' <<<"$logs" || true)"
@@ -117,8 +138,14 @@ parse_log_evidence() {
 
   resolved_elixir="$(sed -nE 's/.*Resolved Elixir version:[[:space:]]*([^[:space:]]+).*/\1/p; s/.*Installing Elixir[[:space:]]+([^[:space:]]+).*/\1/p' <<<"$logs" | sort -u)"
   resolved_otp="$(sed -nE 's/.*Resolved OTP version:[[:space:]]*([^[:space:]]+).*/\1/p; s/.*Installing Erlang\/OTP[[:space:]]+([^[:space:]]+).*/\1/p' <<<"$logs" | sort -u)"
-  [ "$(wc -l <<<"$resolved_elixir" | tr -d ' ')" -eq 1 ] && [[ "$resolved_elixir" =~ 1\.17 ]] || die "resolved Elixir 1.17 evidence is missing or ambiguous"
-  [ "$(wc -l <<<"$resolved_otp" | tr -d ' ')" -eq 1 ] && [[ "$resolved_otp" =~ 27 ]] || die "resolved OTP 27 evidence is missing or ambiguous"
+  [ -n "$resolved_elixir" ] && [ "$(printf '%s\n' "$resolved_elixir" | wc -l | tr -d ' ')" -eq 1 ] ||
+    die "resolved Elixir evidence is missing or ambiguous"
+  parse_supported_elixir_version "$resolved_elixir" >/dev/null ||
+    die "resolved Elixir toolchain is unsupported; expected 1.17.x"
+  [ -n "$resolved_otp" ] && [ "$(printf '%s\n' "$resolved_otp" | wc -l | tr -d ' ')" -eq 1 ] ||
+    die "resolved OTP evidence is missing or ambiguous"
+  parse_supported_otp_version "$resolved_otp" >/dev/null ||
+    die "resolved OTP toolchain is unsupported; expected 27.x"
 
   cache_key="$(sed -nE 's/.*(plt-v3-[^[:space:]]+).*/\1/p' <<<"$logs" | sort -u)"
   [ "$(wc -l <<<"$cache_key" | tr -d ' ')" -eq 1 ] && [[ "$cache_key" == *otp* ]] && [[ "$cache_key" == *elixir* ]] ||

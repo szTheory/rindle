@@ -302,11 +302,11 @@ case "${1-} ${2-}" in
   "run view")
     if printf '%s\n' "$*" | grep -q -- '--log'; then
       if printf '%s\n' "$*" | grep -q -- '--job 6'; then
-        resolved_elixir=1.17.3
-        resolved_otp=27.3.4.17
-        [ "$state" != unsupported_elixir_11_17 ] || resolved_elixir=11.17.3
-        [ "$state" != unsupported_elixir_1_170 ] || resolved_elixir=1.170.3
-        [ "$state" != unsupported_otp_127 ] || resolved_otp=127.3.4.17
+        resolved_elixir=v1.17.3-otp-27
+        resolved_otp=OTP-27.3.4.17
+        [ "$state" != unsupported_elixir_11_17 ] || resolved_elixir=v11.17.3-otp-27
+        [ "$state" != unsupported_elixir_1_170 ] || resolved_elixir=v1.170.3-otp-27
+        [ "$state" != unsupported_otp_127 ] || resolved_otp=OTP-127.3.4.17
         printf '%s\n' "Dialyzer\tSet up Elixir\tResolved Elixir version: ${resolved_elixir}" "Dialyzer\tSet up Elixir\tResolved OTP version: ${resolved_otp}"
         [ "$state" = missing_fresh ] || printf '%s\n' 'Dialyzer\tDialyzer (fresh PLT)\tnightly-dialyzer mode=fresh action=build-plt' 'Dialyzer\tDialyzer (fresh PLT)\tnightly-dialyzer mode=fresh attempt=1 action=analyze'
         [ "$state" = missing_cache ] || printf '%s\n' "Dialyzer\tSave PLT cache\tCache saved with key: plt-v3-Linux-X64-otp${resolved_otp}-elixir${resolved_elixir}-inputhash"
