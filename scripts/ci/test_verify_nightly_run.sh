@@ -85,6 +85,33 @@ collect_valid_receipt() {
   [ "$got" -eq 0 ] && [ -s "${temp}/receipt.json" ]
 }
 
+make_fake_local_authorities() {
+  local bin_dir="$1"
+  printf '%s\n' \
+    '#!/usr/bin/env bash' \
+    'set -euo pipefail' \
+    'printf "git %s\n" "$*" >>"$FAKE_AUTHORITY_LOG"' \
+    'case "${1-} ${2-}" in' \
+    '  "worktree add") mkdir -p "$4" ;;' \
+    '  "worktree remove") rm -rf "$4" ;;' \
+    '  *) echo "unexpected fake git call: $*" >&2; exit 43 ;;' \
+    'esac' >"${bin_dir}/git"
+  printf '%s\n' \
+    '#!/usr/bin/env bash' \
+    'set -euo pipefail' \
+    'printf "mix %s\n" "$*" >>"$FAKE_AUTHORITY_LOG"' \
+    'if [ "${FAKE_AUTHORITY_STATE:-success}" = local_validator_failure ] && printf "%s\n" "$*" | grep -q "validate_live_truth.exs"; then exit 44; fi' \
+    'if printf "%s\n" "$*" | grep -q "evidence_census.exs"; then' \
+    '  output=""' \
+    '  while [ "$#" -gt 0 ]; do' \
+    '    if [ "$1" = --output ]; then output="$2"; break; fi' \
+    '    shift' \
+    '  done' \
+    '  [ -z "$output" ] || printf "{\"schema_version\":1}\n" >"$output"' \
+    'fi' >"${bin_dir}/mix"
+  chmod +x "${bin_dir}/git" "${bin_dir}/mix"
+}
+
 verify_mutation_case() {
   local name="$1" filter="$2" temp got=0
   temp="$(mktemp -d)"
@@ -108,6 +135,35 @@ verify_mutation_case() {
     record "$name" true
   else
     record "$name" false "mutated receipt exit ${got}; unsafe call recorded"
+  fi
+  rm -rf "$temp"
+}
+
+verify_live_state_case() {
+  local name="$1" state="$2" temp got=0
+  temp="$(mktemp -d)"
+
+  if ! collect_valid_receipt "$temp"; then
+    record "$name" false "could not collect baseline receipt"
+    rm -rf "$temp"
+    return
+  fi
+
+  make_fake_local_authorities "${temp}/bin"
+  : >"${temp}/calls"
+  : >"${temp}/count"
+  : >"${temp}/authority-calls"
+  PATH="${temp}/bin:${PATH}" FAKE_GH_LOG="${temp}/calls" FAKE_GH_COUNT_FILE="${temp}/count" \
+    FAKE_GH_STATE="$state" FAKE_AUTHORITY_STATE="$state" FAKE_AUTHORITY_LOG="${temp}/authority-calls" \
+    bash "$collector" verify-receipt --repo szTheory/rindle --workflow nightly.yml \
+      --ref phase-133-evidence-aaaaaaaaaaaa --expected-sha aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \
+      --receipt "${temp}/receipt.json" >/dev/null 2>&1 || got=$?
+
+  if [ "$got" -ne 0 ] &&
+     ! grep -Eq '^(workflow run|issue (create|comment|close|edit|delete)|run (cancel|rerun|delete))' "${temp}/calls"; then
+    record "$name" true
+  else
+    record "$name" false "live authority failure was accepted (exit ${got})"
   fi
   rm -rf "$temp"
 }
@@ -170,7 +226,16 @@ extra fresh key fails closed	.dialyzer.fresh.extra = true
 extra restored key fails closed	.dialyzer.restored.extra = true
 extra strict-verdict key fails closed	.strict_verdict.extra = true
 extra preflight key fails closed	.preflight.extra = true
+both incident snapshots forged together fail closed	.incident_snapshot_before[0].body = "forged" | .incident_snapshot_after[0].body = "forged"
+local census authority removed fails closed	del(.local_authorities.census)
+local live-truth authority removed fails closed	del(.local_authorities.live_truth)
+extra local-authority key fails closed	.local_authorities.extra = {"status":"pass"}
+extra census key fails closed	.local_authorities.census.extra = true
+extra live-truth key fails closed	.local_authorities.live_truth.extra = true
 MUTATIONS
+
+verify_live_state_case "fresh incident drift fails closed" incident_verify_changed
+verify_live_state_case "local validator failure fails closed" local_validator_failure
 
 echo "—"
 echo "passed: ${pass}  failed: ${fail}"
@@ -257,6 +322,7 @@ case "${1-} ${2-}" in
     count="$(cat "$FAKE_GH_COUNT_FILE" 2>/dev/null || printf 0)"; count=$((count + 1)); printf '%s' "$count" >"$FAKE_GH_COUNT_FILE"
     body=nightly-run:8000:1
     [ "$state" != incident_changed ] || { [ "$count" -eq 1 ] || body=nightly-run:9001:1; }
+    [ "$state" != incident_verify_changed ] || body=nightly-run:forged:1
     jq -cn --arg body "$body" '[{number:88,title:"Nightly CI failure",body:$body,comments:[],updatedAt:"2026-09-09T11:00:00Z",url:"https://github.test/issues/88"}]'
     ;;
   *) echo "unexpected fake gh call: $*" >&2; exit 43 ;;
