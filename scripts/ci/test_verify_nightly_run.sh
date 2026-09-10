@@ -71,9 +71,9 @@ run_case() {
        [ "$(grep -c '^run view 9001 .* --job 6 --log$' "${temp}/calls" || true)" -ge 1 ] &&
        [ "$(grep -c '^run view 9001 .* --job 9 --log$' "${temp}/calls" || true)" -ge 1 ] &&
        [ "$(grep -c '^issue list --repo szTheory/rindle --state open --label nightly-failure --limit 100 --json number,title,body,comments,updatedAt,url$' "${temp}/calls" || true)" -eq 4 ] &&
-       [ "$(grep -c '^mix run --no-deps-check --no-compile scripts/maintainer/evidence_census.exs --root ' "${temp}/authority-calls" || true)" -eq 2 ] &&
-       [ "$(grep -c '^mix run --no-deps-check --no-compile scripts/maintainer/validate_evidence_census.exs --root ' "${temp}/authority-calls" || true)" -eq 2 ] &&
-       [ "$(grep -c '^mix run --no-deps-check --no-compile -e Code.require_file("scripts/maintainer/validate_live_truth.exs")' "${temp}/authority-calls" || true)" -eq 2 ] &&
+       [ "$(grep -c '^mix run --no-deps-check --no-compile scripts/maintainer/evidence_census.exs --root ' "${temp}/authority-calls" || true)" -eq 3 ] &&
+       [ "$(grep -c '^mix run --no-deps-check --no-compile scripts/maintainer/validate_evidence_census.exs --root ' "${temp}/authority-calls" || true)" -eq 3 ] &&
+       [ "$(grep -c '^mix run --no-deps-check --no-compile -e Code.require_file("scripts/maintainer/validate_live_truth.exs")' "${temp}/authority-calls" || true)" -eq 3 ] &&
        [ "$(jq -r '.schema_version' "${temp}/receipt.json")" = 2 ] &&
        [ "$(jq -r '.local_authorities.census.ledger_path' "${temp}/receipt.json")" = .planning/phases/133-evidence-charter-and-live-truth/133-EVIDENCE-CENSUS.json ] &&
        [ "$(jq -r '.local_authorities.census.ledger_sha256' "${temp}/receipt.json")" = 80c9c6808f18a8dd51489e9da11fafc4f8b00d993a615348a773056f81af8744 ] &&
@@ -160,8 +160,16 @@ make_fake_local_authorities() {
     '  "log -1") printf "%s\n" dddddddddddddddddddddddddddddddddddddddd ;;' \
     '  "rev-parse dddddddddddddddddddddddddddddddddddddddd:.planning/phases/133-evidence-charter-and-live-truth/133-EVIDENCE-CENSUS.json") printf "%s\n" cccccccccccccccccccccccccccccccccccccccc ;;' \
     '  "show dddddddddddddddddddddddddddddddddddddddd:.planning/phases/133-evidence-charter-and-live-truth/133-EVIDENCE-CENSUS.json") printf "fake immutable ledger\n" ;;' \
-    '  "worktree add") mkdir -p "$4" ;;' \
-    '  "worktree remove") rm -rf "$4" ;;' \
+    '  "archive --format=tar")' \
+    '    [ "${FAKE_AUTHORITY_STATE:-success}" != bad_local_authority ] || exit 44' \
+    '    fixture="$(mktemp -d)"' \
+    '    mkdir -p "$fixture/scripts/maintainer"' \
+    '    : >"$fixture/scripts/maintainer/evidence_census.exs"' \
+    '    : >"$fixture/scripts/maintainer/validate_evidence_census.exs"' \
+    '    : >"$fixture/scripts/maintainer/validate_live_truth.exs"' \
+    '    tar -cf - -C "$fixture" .' \
+    '    rm -rf "$fixture"' \
+    '    ;;' \
     '  *) echo "unexpected fake git call: $*" >&2; exit 43 ;;' \
     'esac' >"${bin_dir}/git"
   printf '%s\n' \
@@ -169,6 +177,7 @@ make_fake_local_authorities() {
     'set -euo pipefail' \
     'printf "mix %s\n" "$*" >>"$FAKE_AUTHORITY_LOG"' \
     'if [ "${FAKE_AUTHORITY_STATE:-success}" = local_validator_failure ] && printf "%s\n" "$*" | grep -q "validate_live_truth.exs"; then exit 44; fi' \
+    'if [ "${FAKE_AUTHORITY_STATE:-success}" = bad_local_authority ] && printf "%s\n" "$*" | grep -q "validate_evidence_census.exs"; then exit 44; fi' \
     'if printf "%s\n" "$*" | grep -q "evidence_census.exs"; then' \
     '  output=""' \
     '  while [ "$#" -gt 0 ]; do' \
@@ -260,7 +269,7 @@ while IFS=$'\t' read -r name filter; do
   verify_mutation_case "$name" "$filter"
 done <<'MUTATIONS'
 created_at mutation fails closed	.created_at = "2026-09-09T12:00:02Z"
-schema version mutation fails closed	.schema_version = 2
+schema version mutation fails closed	.schema_version = 1
 repository mutation fails closed	.repository = "other/project"
 workflow mutation fails closed	.workflow = "other.yml"
 event mutation fails closed	.event = "schedule"

@@ -170,13 +170,47 @@ job_logs() {
     die "${job_name} log lookup failed"
 }
 
-validate_local_authorities() {
-  local value="${NIGHTLY_LOCAL_AUTHORITIES_JSON:-}"
-  jq -e '
-    type == "object" and (keys | sort) == ["census","live_truth"] and
-    .census.status == "pass" and .live_truth.status == "pass"
-  ' <<<"$value" >/dev/null || die "NIGHTLY_LOCAL_AUTHORITIES_JSON lacks green census/live-truth authority"
-  jq -cS . <<<"$value"
+ledger_path='.planning/phases/133-evidence-charter-and-live-truth/133-EVIDENCE-CENSUS.json'
+
+sha256_file() {
+  if command -v sha256sum >/dev/null 2>&1; then
+    sha256sum "$1" | awk '{print $1}'
+  else
+    shasum -a 256 "$1" | awk '{print $1}'
+  fi
+}
+
+materialize_ledger_object() {
+  local project_root="$1" commit="$2" path="$3" expected_blob="$4" output="$5" actual_blob actual_sha
+  [[ "$commit" =~ ^[0-9a-f]{40}$ ]] || die "ledger commit identity is malformed"
+  [ "$path" = "$ledger_path" ] || die "ledger path identity is not repository-owned"
+  [[ "$expected_blob" =~ ^[0-9a-f]{40}$ ]] || die "ledger blob identity is malformed"
+  actual_blob="$(git -C "$project_root" rev-parse "${commit}:${path}")" ||
+    die "ledger path is absent from recorded commit"
+  [ "$actual_blob" = "$expected_blob" ] || die "ledger blob differs from recorded commit:path"
+  git -C "$project_root" show "${commit}:${path}" >"$output" ||
+    die "could not materialize recorded ledger object"
+  [ -s "$output" ] || die "materialized ledger object is empty"
+  actual_sha="$(sha256_file "$output")" || die "could not hash materialized ledger object"
+  printf '%s\n' "$actual_sha"
+}
+
+resolve_ledger_object() {
+  local project_root="$1" output="$2" status commit blob digest
+  status="$(git -C "$project_root" status --porcelain --untracked-files=all -- "$ledger_path")" ||
+    die "could not inspect census ledger status"
+  [ -z "$status" ] || die "census ledger must be tracked and clean for collection"
+  git -C "$project_root" ls-files --error-unmatch -- "$ledger_path" >/dev/null 2>&1 ||
+    die "census ledger is not tracked"
+  commit="$(git -C "$project_root" log -1 --format=%H -- "$ledger_path")" ||
+    die "could not resolve census ledger commit"
+  [[ "$commit" =~ ^[0-9a-f]{40}$ ]] || die "census ledger has no containing commit"
+  blob="$(git -C "$project_root" rev-parse "${commit}:${ledger_path}")" ||
+    die "could not resolve census ledger blob"
+  digest="$(materialize_ledger_object "$project_root" "$commit" "$ledger_path" "$blob" "$output")"
+  jq -cnS --arg ledger_path "$ledger_path" --arg ledger_sha256 "$digest" \
+    --arg ledger_blob "$blob" --arg ledger_commit "$commit" \
+    '{ledger_path:$ledger_path,ledger_sha256:$ledger_sha256,ledger_blob:$ledger_blob,ledger_commit:$ledger_commit}'
 }
 
 verify_receipt_shape() {
@@ -210,7 +244,7 @@ verify_receipt_shape() {
         (.url | type == "string"));
 
     exact_keys(["conclusion","created_at","dialyzer","event","incident_snapshot_after","incident_snapshot_before","jobs","local_authorities","preflight","remote_ref","repository","run_attempt","run_id","schema_version","strict_verdict","subject_sha","workflow"]) and
-    .schema_version == 1 and .repository == $repo and .workflow == $workflow and
+    .schema_version == 2 and .repository == $repo and .workflow == $workflow and
     .event == "workflow_dispatch" and .subject_sha == $sha and .remote_ref == $ref and
     (.run_id | type == "number") and .run_attempt == 1 and .conclusion == "success" and
     (.created_at | type == "string" and fromdateiso8601 >= 0) and
@@ -230,9 +264,18 @@ verify_receipt_shape() {
     (.incident_snapshot_before | valid_incidents) and (.incident_snapshot_after | valid_incidents) and
     .incident_snapshot_before == .incident_snapshot_after and
     (.local_authorities | exact_keys(["census","live_truth"])) and
-    (.local_authorities.census | exact_keys(["status"])) and
-    (.local_authorities.live_truth | exact_keys(["status"])) and
-    .local_authorities.census.status == "pass" and .local_authorities.live_truth.status == "pass" and
+    (.local_authorities.census | exact_keys(["ledger_blob","ledger_commit","ledger_path","ledger_sha256","receipt","status","subject_sha"])) and
+    .local_authorities.census.status == "pass" and
+    .local_authorities.census.ledger_path == ".planning/phases/133-evidence-charter-and-live-truth/133-EVIDENCE-CENSUS.json" and
+    (.local_authorities.census.ledger_sha256 | test("^[0-9a-f]{64}$")) and
+    (.local_authorities.census.ledger_blob | test("^[0-9a-f]{40}$")) and
+    (.local_authorities.census.ledger_commit | test("^[0-9a-f]{40}$")) and
+    .local_authorities.census.subject_sha == $sha and
+    (.local_authorities.census.receipt | type == "object") and
+    (.local_authorities.live_truth | exact_keys(["model_sha256","status","subject_sha"])) and
+    .local_authorities.live_truth.status == "pass" and
+    .local_authorities.live_truth.subject_sha == $sha and
+    (.local_authorities.live_truth.model_sha256 | test("^[0-9a-f]{64}$")) and
     (.preflight | exact_keys(["remote_ref","repository","status","subject_sha","workflow"]))
   ' "$path" >/dev/null || die "receipt schema or evidence is invalid"
 
@@ -273,7 +316,8 @@ compare_exact_remote_receipt() {
 }
 
 revalidate_local_authorities() {
-  local project_root temp_root subject_root census_receipt mix_executable authority_path authority_status=0 cleanup_status=0
+  local recorded_census="${1:-}" project_root temp_root subject_root ledger_file census_receipt live_model
+  local mix_executable authority_path ledger_identity ledger_digest census_json live_json model_digest authority_status=0
   project_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
   mix_executable="$(command -v mix)" || die "mix is required for local authority revalidation"
   if [[ "$mix_executable" == */.asdf/shims/mix ]] && [ -x /opt/homebrew/bin/mix ]; then
@@ -282,11 +326,28 @@ revalidate_local_authorities() {
   authority_path="$(dirname "$mix_executable"):${PATH}"
   temp_root="$(mktemp -d "${TMPDIR:-/tmp}/nightly-authority.XXXXXX")"
   subject_root="${temp_root}/subject"
+  ledger_file="${temp_root}/ledger.json"
   census_receipt="${temp_root}/census.json"
 
-  git worktree add --detach "$subject_root" "$expected_sha" >/dev/null 2>&1 || {
-    rmdir "$temp_root" 2>/dev/null || true
-    die "could not materialize exact-subject authority worktree"
+  if [ -n "$recorded_census" ]; then
+    ledger_identity="$(jq -ce '
+      {ledger_path,ledger_sha256,ledger_blob,ledger_commit} |
+      select(all(.[]; type == "string"))
+    ' <<<"$recorded_census")" || die "recorded census ledger identity is malformed"
+    ledger_digest="$(materialize_ledger_object "$project_root" \
+      "$(jq -r '.ledger_commit' <<<"$ledger_identity")" \
+      "$(jq -r '.ledger_path' <<<"$ledger_identity")" \
+      "$(jq -r '.ledger_blob' <<<"$ledger_identity")" "$ledger_file")"
+    [ "$ledger_digest" = "$(jq -r '.ledger_sha256' <<<"$ledger_identity")" ] ||
+      die "materialized ledger SHA-256 differs from receipt"
+  else
+    ledger_identity="$(resolve_ledger_object "$project_root" "$ledger_file")"
+  fi
+
+  mkdir -p "$subject_root"
+  git -C "$project_root" archive --format=tar "$expected_sha" | tar -xf - -C "$subject_root" || {
+    rm -rf -- "$temp_root"
+    die "could not materialize exact-subject authority tree"
   }
 
   (
@@ -294,26 +355,41 @@ revalidate_local_authorities() {
     PATH="$authority_path" MIX_ENV=test MIX_DEPS_PATH="${project_root}/deps" MIX_BUILD_PATH="${project_root}/_build" \
       "$mix_executable" run --no-deps-check --no-compile scripts/maintainer/evidence_census.exs \
         --root . \
-        --ledger "${project_root}/.planning/phases/133-evidence-charter-and-live-truth/133-EVIDENCE-CENSUS.json" \
+        --ledger "$ledger_file" \
         --output "$census_receipt" \
         --source-sha "$expected_sha" >/dev/null
     PATH="$authority_path" MIX_ENV=test MIX_DEPS_PATH="${project_root}/deps" MIX_BUILD_PATH="${project_root}/_build" \
       "$mix_executable" run --no-deps-check --no-compile scripts/maintainer/validate_evidence_census.exs \
         --root . \
-        --ledger "${project_root}/.planning/phases/133-evidence-charter-and-live-truth/133-EVIDENCE-CENSUS.json" \
+        --ledger "$ledger_file" \
         --receipt "$census_receipt" >/dev/null
     PATH="$authority_path" MIX_ENV=test MIX_DEPS_PATH="${project_root}/deps" MIX_BUILD_PATH="${project_root}/_build" \
       "$mix_executable" run --no-deps-check --no-compile -e \
-        'Code.require_file("scripts/maintainer/validate_live_truth.exs"); Rindle.ValidateLiveTruth.run(["--root", "."])' >/dev/null
+        'Code.require_file("scripts/maintainer/validate_live_truth.exs"); Rindle.ValidateLiveTruth.run(["--root", ".", "--format", "json"])' >"$temp_root/live-truth.json"
   ) || authority_status=$?
 
-  git worktree remove --force "$subject_root" >/dev/null 2>&1 || cleanup_status=$?
-  rm -f -- "$census_receipt"
-  rmdir "$temp_root" 2>/dev/null || true
-  [ "$cleanup_status" -eq 0 ] || die "could not remove exact-subject authority worktree"
-  [ "$authority_status" -eq 0 ] || die "exact-subject local authority revalidation failed"
+  [ "$authority_status" -eq 0 ] || {
+    rm -rf -- "$temp_root"
+    die "exact-subject local authority revalidation failed"
+  }
+  census_json="$(jq -cS . "$census_receipt")" || {
+    rm -rf -- "$temp_root"
+    die "generated census receipt is malformed"
+  }
+  live_model="$(jq -cS 'del(.authority_root)' "$temp_root/live-truth.json")" || {
+    rm -rf -- "$temp_root"
+    die "generated live-truth model is malformed"
+  }
+  live_json="${temp_root}/live-truth-canonical.json"
+  printf '%s\n' "$live_model" >"$live_json"
+  model_digest="$(sha256_file "$live_json")"
 
-  jq -cnS '{census:{status:"pass"},live_truth:{status:"pass"}}'
+  jq -cnS --argjson ledger "$ledger_identity" --argjson receipt "$census_json" \
+    --arg subject_sha "$expected_sha" --arg model_sha256 "$model_digest" '
+      {census:($ledger + {status:"pass",subject_sha:$subject_sha,receipt:$receipt}),
+       live_truth:{status:"pass",subject_sha:$subject_sha,model_sha256:$model_sha256}}
+    '
+  rm -rf -- "$temp_root"
 }
 
 compare_exact_local_and_incident_receipt() {
@@ -344,7 +420,8 @@ if [ "$mode" = verify-receipt ]; then
   expected_remote="$(expected_remote_from_live "$live_preflight" "$live_run" "$live_dialyzer")"
   compare_exact_remote_receipt "$receipt" "$expected_remote"
   live_incidents="$(canonical_incidents)" || die "incident verification lookup failed"
-  live_local_authorities="$(revalidate_local_authorities)"
+  recorded_census="$(jq -c '.local_authorities.census' "$receipt")"
+  live_local_authorities="$(revalidate_local_authorities "$recorded_census")"
   compare_exact_local_and_incident_receipt "$receipt" "$live_incidents" "$live_local_authorities"
   echo "Nightly receipt valid for ${expected_sha} (run ${run_id}, attempt 1)"
   exit 0
@@ -392,7 +469,7 @@ validate_run_json "$run_json"
 dialyzer_logs="$(job_logs "$run_id" "$run_json" "Dialyzer")"
 summary_logs="$(job_logs "$run_id" "$run_json" "Nightly Summary")"
 dialyzer="$(parse_log_evidence "${dialyzer_logs}"$'\n'"${summary_logs}")"
-local_authorities="$(validate_local_authorities)"
+local_authorities="$(revalidate_local_authorities)"
 incident_after="$(canonical_incidents)" || die "incident snapshot after dispatch failed"
 [ "$incident_before" = "$incident_after" ] || die "workflow_dispatch changed the nightly-failure incident"
 
@@ -404,7 +481,7 @@ jq -nS \
   --argjson run "$run_json" --argjson dialyzer "$dialyzer" \
   --argjson before "$incident_before" --argjson after "$incident_after" \
   --argjson local_authorities "$local_authorities" --argjson preflight "$preflight" '
-    {schema_version:1,repository:$repository,workflow:$workflow,event:$event,
+    {schema_version:2,repository:$repository,workflow:$workflow,event:$event,
      subject_sha:$subject_sha,remote_ref:$remote_ref,run_id:$run.databaseId,
      run_attempt:$run.attempt,conclusion:$run.conclusion,created_at:$run.createdAt,
      jobs:($run.jobs | sort_by(.name) | map({id:.databaseId,name,status,conclusion})),
