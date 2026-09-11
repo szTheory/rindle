@@ -30,6 +30,51 @@ defmodule Rindle.InstallSmoke.Phase133CompletedValidationTest do
     assert output =~ "22 completed, 0 pending plans"
   end
 
+  test "rejects body and fenced-code completion impersonation" do
+    for summary <- [
+          "---\nstatus: halted\n---\n\nstatus: complete\n",
+          "---\nstatus: halted\n---\n\n```yaml\nstatus: complete\n```\n"
+        ] do
+      fixture = write_fixture!()
+      set_execution_state!(fixture, [18])
+      File.write!(summary_path(fixture.root, 18), summary)
+
+      assert_invalid(fixture, "completed summary 133-18")
+    end
+  end
+
+  test "rejects malformed, duplicate, non-scalar, and ambiguous frontmatter" do
+    for summary <- [
+          "status: complete\n",
+          "---\nstatus: complete\n",
+          "---\nstatus: complete\nmalformed: [\n---\n",
+          "---\nstatus: complete\nstatus: halted\n---\n",
+          "---\nstatus:\n  nested: complete\n---\n",
+          "---\nstatus: complete\n---\n\n---\nowner: forged\n---\n"
+        ] do
+      fixture = write_fixture!()
+      set_execution_state!(fixture, [18])
+      File.write!(summary_path(fixture.root, 18), summary)
+
+      assert_invalid(fixture, "completed summary 133-18")
+    end
+  end
+
+  test "accepts the real completed Phase 133 summaries without scanning their bodies" do
+    fixture = write_fixture!()
+    set_execution_state!(fixture, Enum.to_list(18..22))
+
+    for plan <- 1..22 do
+      File.cp!(
+        summary_path(@repo_root, plan),
+        summary_path(fixture.root, plan)
+      )
+    end
+
+    assert {output, 0} = run_validator(fixture, ["--expect-execution-complete"])
+    assert output =~ "22 completed, 0 pending plans"
+  end
+
   test "rejects wrong totals, stale Progress counts, status, and completion dates" do
     for mutation <- [:detail_total, :progress_count, :status, :completion_date] do
       fixture = write_fixture!()
@@ -215,8 +260,12 @@ defmodule Rindle.InstallSmoke.Phase133CompletedValidationTest do
 
   defp run_validator(fixture, extra \\ []) do
     System.cmd(
-      "elixir",
+      "mix",
       [
+        "run",
+        "--no-start",
+        "--no-deps-check",
+        "--no-compile",
         @validator,
         "--root",
         fixture.root,
@@ -225,6 +274,7 @@ defmodule Rindle.InstallSmoke.Phase133CompletedValidationTest do
         "--fixture-active-prefix-sha256",
         fixture.active_prefix_sha256
       ] ++ extra,
+      cd: @repo_root,
       stderr_to_stdout: true
     )
   end

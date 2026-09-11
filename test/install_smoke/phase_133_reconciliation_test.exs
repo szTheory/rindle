@@ -345,8 +345,12 @@ defmodule Rindle.InstallSmoke.Phase133ReconciliationTest do
 
   defp run_validator(fixture) do
     System.cmd(
-      "elixir",
+      "mix",
       [
+        "run",
+        "--no-start",
+        "--no-deps-check",
+        "--no-compile",
         @script,
         "--root",
         fixture.root,
@@ -355,6 +359,7 @@ defmodule Rindle.InstallSmoke.Phase133ReconciliationTest do
         "--fixture-historical-sha256",
         fixture.historical_sha256
       ],
+      cd: Path.expand("../..", __DIR__),
       stderr_to_stdout: true
     )
   end
