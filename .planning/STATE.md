@@ -4,30 +4,33 @@ milestone: v1.26
 milestone_name: Pre-Adopter Readiness & Quality Consolidation
 current_phase: 133
 current_phase_name: Evidence Charter and Live Truth
-status: executing
-stopped_at: Completed 133-21-PLAN.md
-last_updated: "2026-09-11T17:52:33.918Z"
+status: verifying
+stopped_at: Completed 133-22-PLAN.md
+last_updated: "2026-09-11T19:42:50.182Z"
 last_activity: 2026-09-11
 last_activity_desc: Phase 133 execution started
-state_head: 8500a337eacd3c17224b52c471d9ce2e99fcc679
+state_head: fd00a193ce57c9dd09655060b20a8b50acef8cd6
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 22
-  completed_plans: 21
+  completed_plans: 22
 ---
+
 ## Project Reference
 
 See: .planning/PROJECT.md (updated 2026-09-09 for v1.26)
 **Core value:** Media, made durable.
 **Current focus:** Phase 133 — Evidence Charter and Live Truth
+
 ## Current Position
 
 Phase: 133 (Evidence Charter and Live Truth) — EXECUTING
 Plan: 22 of 22
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-09-11 — Phase 133 execution started
 Progress: [███████░░░] 65%
+
 ## Performance Metrics
 
 **Milestone velocity:**
@@ -64,6 +67,8 @@ Progress: [███████░░░] 65%
 | Phase 133 P19 | 17min | 2 tasks | 4 files |
 | Phase 133 P20 | 2h 13m | 2 tasks | 4 files |
 | Phase 133 P21 | 27m | 3 tasks | 6 files |
+| Phase 133-evidence-charter-and-live-truth P22 | 26m | 3 tasks | 8 files |
+
 ## Accumulated Context
 
 ### Decisions
@@ -122,6 +127,8 @@ Progress: [███████░░░] 65%
 - [Phase 133]: Resolve the explicit repository root physically as well as each detector input. — Platform path aliases such as /var to /private/var must preserve valid containment without allowing prefix-adjacent or symlink escapes.
 - [Phase 133]: Keep validator detector-input resolution independent from producer logic. — Producer output or shared validation status cannot substitute for independent provenance reconstruction at the validator read boundary.
 - [Phase 133]: Phase 133 package truth uses independent exact-subject version authority, one attributable smoke_lifecycle result, and summary-backed 17/22-22/22 reconciliation.
+- [Phase 133]: Published only exact subject 1470cf8cb0f1 to its absent non-force diagnostic ref; preserved rejected evidence identities.
+- [Phase 133]: Accepted run 34638437301 only after canonical exact-subject receipt reconstruction and all automated gates passed.
 
 ### Pending Todos
 
@@ -145,6 +152,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-09-11T17:52:33.897Z
-Stopped at: Completed 133-21-PLAN.md
+Last session: 2026-09-11T19:42:50.160Z
+Stopped at: Completed 133-22-PLAN.md
 Resume file: None
