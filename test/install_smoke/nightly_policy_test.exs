@@ -3,6 +3,10 @@ defmodule Rindle.InstallSmoke.NightlyPolicyTest do
 
   @nightly_path Path.expand("../../.github/workflows/nightly.yml", __DIR__)
   @ci_path Path.expand("../../.github/workflows/ci.yml", __DIR__)
+  @retired_incident_evaluator_path Path.expand(
+                                      "../../scripts/ci/eval_nightly_incident.sh",
+                                      __DIR__
+                                    )
   @gating_jobs ["compat-matrix", "dialyzer", "gcs-soak", "package-consumer-gcs-live"]
   @required_ci_needs [
     "quality",
@@ -210,6 +214,33 @@ defmodule Rindle.InstallSmoke.NightlyPolicyTest do
 
     assert step(job(ci, "ci-script-tests"), "Nightly incident lifecycle")["run"] ==
              "bash scripts/ci/test_nightly_incident.sh"
+  end
+
+  test "Nightly has one executable incident-policy owner", %{nightly: workflow} do
+    refute File.exists?(@retired_incident_evaluator_path),
+           "retired incident evaluator must stay absent from the executable surface"
+
+    policy_steps =
+      for {job_name, candidate} <- workflow["jobs"],
+          candidate_step <- candidate["steps"] || [],
+          run = candidate_step["run"],
+          is_binary(run),
+          String.contains?(run, [
+            "scripts/ci/manage_nightly_incident.sh",
+            "scripts/ci/eval_nightly_incident.sh"
+          ]),
+          do: {job_name, candidate_step["name"], run}
+
+    assert policy_steps == [
+             {"nightly-failure-issue", "Manage scheduled Nightly incident",
+              "bash scripts/ci/manage_nightly_incident.sh"}
+           ]
+
+    assert job(workflow, "nightly-incident-verdict")["permissions"] == %{"contents" => "read"}
+
+    assert Enum.count(workflow["jobs"], fn {_name, candidate} ->
+             get_in(candidate, ["permissions", "issues"]) == "write"
+           end) == 1
   end
 
   defp job(workflow, name), do: workflow |> Map.fetch!("jobs") |> Map.fetch!(name)
