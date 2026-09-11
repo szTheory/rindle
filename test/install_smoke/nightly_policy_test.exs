@@ -114,11 +114,52 @@ defmodule Rindle.InstallSmoke.NightlyPolicyTest do
   test "incident lifecycle consumes the strict verdict after every gating result", %{
     nightly: workflow
   } do
+    producer = job(workflow, "nightly-incident-verdict")
     lifecycle = job(workflow, "nightly-failure-issue")
 
-    assert Enum.sort(lifecycle["needs"]) == Enum.sort(["nightly-summary" | @gating_jobs])
-    assert lifecycle["if"] == "always()"
-    assert lifecycle["permissions"] == %{"contents" => "read", "issues" => "write"}
+    assert producer["needs"] == "nightly-summary"
+    assert producer["if"] == "${{ always() && github.event_name == 'schedule' }}"
+    assert producer["permissions"] == %{"contents" => "read"}
+    refute Map.has_key?(producer, "concurrency")
+
+    write = step(producer, "Write immutable Nightly verdict event")
+    assert write["env"]["STRICT_VERDICT_JSON"] ==
+             "${{ needs.nightly-summary.outputs.verdict-json }}"
+
+    assert write["run"] =~ "rindle-nightly-incident-verdict-v1"
+    assert write["run"] =~ "--argjson run_id"
+    assert write["run"] =~ "--argjson run_attempt"
+    assert write["run"] =~ "--argjson verdict"
+    assert write["run"] =~ "jq -e"
+
+    upload = step(producer, "Upload immutable Nightly verdict event")
+
+    assert upload["uses"] ==
+             "actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a"
+
+    assert upload["with"]["name"] ==
+             "nightly-incident-verdict-${{ github.run_id }}-${{ github.run_attempt }}"
+
+    assert upload["with"]["overwrite"] == false
+    assert upload["with"]["if-no-files-found"] == "error"
+
+    assert lifecycle["needs"] == "nightly-incident-verdict"
+    assert lifecycle["if"] == "${{ always() && github.event_name == 'schedule' }}"
+
+    assert lifecycle["permissions"] == %{
+             "actions" => "read",
+             "contents" => "read",
+             "issues" => "write"
+           }
+
+    assert lifecycle["concurrency"] == %{
+             "group" => "nightly-incident-${{ github.repository }}-${{ github.workflow }}",
+             "cancel-in-progress" => false
+           }
+
+    refute lifecycle["concurrency"]["group"] =~ "run_id"
+    refute lifecycle["concurrency"]["group"] =~ "run_attempt"
+    refute lifecycle["concurrency"]["group"] =~ "sha"
 
     remote_main = step(lifecycle, "Resolve current remote default-branch SHA")
     assert remote_main["id"] == "remote-main"
@@ -126,9 +167,6 @@ defmodule Rindle.InstallSmoke.NightlyPolicyTest do
     assert remote_main["run"] =~ "git/ref/heads/${DEFAULT_BRANCH}"
 
     manage = step(lifecycle, "Manage scheduled Nightly incident")
-
-    assert manage["env"]["NIGHTLY_VERDICT"] ==
-             "${{ needs.nightly-summary.outputs.verdict }}"
 
     assert manage["env"]["REMOTE_MAIN_SHA"] == "${{ steps.remote-main.outputs.sha }}"
     assert manage["run"] == "bash scripts/ci/manage_nightly_incident.sh"
@@ -149,13 +187,25 @@ defmodule Rindle.InstallSmoke.NightlyPolicyTest do
 
     assert writers == ["nightly-failure-issue"]
 
+    producer = job(workflow, "nightly-incident-verdict")
+    refute get_in(producer, ["permissions", "issues"])
+    refute get_in(producer, ["permissions", "actions"])
+
     lifecycle = job(workflow, "nightly-failure-issue")
     manage = step(lifecycle, "Manage scheduled Nightly incident")
-    assert manage["env"]["EVENT_NAME"] == "${{ github.event_name }}"
-    assert manage["env"]["RUN_ID"] == "${{ github.run_id }}"
-    assert manage["env"]["RUN_ATTEMPT"] == "${{ github.run_attempt }}"
-    assert manage["env"]["RUN_SHA"] == "${{ github.sha }}"
-    assert manage["env"]["RUN_REF"] == "${{ github.ref }}"
+    assert manage["env"]["WORKFLOW_NAME"] == "${{ github.workflow }}"
+    assert manage["env"]["WORKFLOW_REF"] == "${{ github.workflow_ref }}"
+    assert manage["env"]["CURRENT_RUN_ID"] == "${{ github.run_id }}"
+    assert manage["env"]["CURRENT_RUN_ATTEMPT"] == "${{ github.run_attempt }}"
+
+    refute Enum.any?(workflow["jobs"], fn {name, candidate} ->
+             name != "nightly-incident-verdict" &&
+               Enum.any?(candidate["steps"] || [], fn candidate_step ->
+                 get_in(candidate_step, ["with", "name"])
+                 |> to_string()
+                 |> String.starts_with?("nightly-incident-verdict-")
+               end)
+           end)
 
     assert step(job(ci, "ci-script-tests"), "Nightly incident lifecycle")["run"] ==
              "bash scripts/ci/test_nightly_incident.sh"
