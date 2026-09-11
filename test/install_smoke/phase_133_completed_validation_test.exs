@@ -7,27 +7,27 @@ defmodule Rindle.InstallSmoke.Phase133CompletedValidationTest do
   @repo_root Path.expand("../..", __DIR__)
   @phase_rel ".planning/phases/133-evidence-charter-and-live-truth"
   @validator Path.join(@repo_root, "scripts/maintainer/validate_phase_133_reconciliation.exs")
-  @active_heading "## Pending Gap-Closure Validation Addendum (Plans 18–22)"
+  @active_heading "## Pending Gap-Closure Validation Addendum (Plans 23–27)"
 
-  test "accepts every summary-backed Wave 15 subset and keeps Plan 22 pending" do
+  test "accepts every summary-backed Wave 17 subset and keeps Plan 27 pending" do
     fixture = write_fixture!()
 
     for mask <- 0..15 do
-      completed = Enum.filter(18..21, &(Bitwise.band(mask, Bitwise.bsl(1, &1 - 18)) != 0))
+      completed = Enum.filter(23..26, &(Bitwise.band(mask, Bitwise.bsl(1, &1 - 23)) != 0))
       set_execution_state!(fixture, completed)
-      expected = 17 + length(completed)
+      expected = 22 + length(completed)
 
       assert {output, 0} = run_validator(fixture)
-      assert output =~ "#{expected} completed, #{22 - expected} pending plans"
+      assert output =~ "#{expected} completed, #{27 - expected} pending plans"
     end
   end
 
-  test "accepts execution-complete only with all 22 summaries and aligned roadmap truth" do
+  test "accepts execution-complete only with all 27 summaries and aligned roadmap truth" do
     fixture = write_fixture!()
-    set_execution_state!(fixture, Enum.to_list(18..22))
+    set_execution_state!(fixture, Enum.to_list(23..27))
 
     assert {output, 0} = run_validator(fixture, ["--expect-execution-complete"])
-    assert output =~ "22 completed, 0 pending plans"
+    assert output =~ "27 completed, 0 pending plans"
   end
 
   test "rejects body and fenced-code completion impersonation" do
@@ -36,10 +36,10 @@ defmodule Rindle.InstallSmoke.Phase133CompletedValidationTest do
           "---\nstatus: halted\n---\n\n```yaml\nstatus: complete\n```\n"
         ] do
       fixture = write_fixture!()
-      set_execution_state!(fixture, [18])
-      File.write!(summary_path(fixture.root, 18), summary)
+      set_execution_state!(fixture, [23])
+      File.write!(summary_path(fixture.root, 23), summary)
 
-      assert_invalid(fixture, "completed summary 133-18")
+      assert_invalid(fixture, "completed summary 133-23")
     end
   end
 
@@ -53,49 +53,48 @@ defmodule Rindle.InstallSmoke.Phase133CompletedValidationTest do
           "---\nstatus: complete\n---\n\n---\nowner: forged\n---\n"
         ] do
       fixture = write_fixture!()
-      set_execution_state!(fixture, [18])
-      File.write!(summary_path(fixture.root, 18), summary)
+      set_execution_state!(fixture, [23])
+      File.write!(summary_path(fixture.root, 23), summary)
 
-      assert_invalid(fixture, "completed summary 133-18")
+      assert_invalid(fixture, "completed summary 133-23")
     end
   end
 
   test "accepts the real completed Phase 133 summaries without scanning their bodies" do
     fixture = write_fixture!()
-    set_execution_state!(fixture, Enum.to_list(18..22))
+    set_execution_state!(fixture, [23, 24])
 
-    for plan <- 1..22 do
+    for plan <- 1..24 do
       File.cp!(
         summary_path(@repo_root, plan),
         summary_path(fixture.root, plan)
       )
     end
 
-    assert {output, 0} = run_validator(fixture, ["--expect-execution-complete"])
-    assert output =~ "22 completed, 0 pending plans"
+    assert {output, 0} = run_validator(fixture)
+    assert output =~ "24 completed, 3 pending plans"
   end
-
   test "rejects wrong totals, stale Progress counts, status, and completion dates" do
     for mutation <- [:detail_total, :progress_count, :status, :completion_date] do
       fixture = write_fixture!()
-      set_execution_state!(fixture, Enum.to_list(18..21))
+      set_execution_state!(fixture, Enum.to_list(23..26))
 
       mutate_roadmap!(fixture, fn roadmap ->
         case mutation do
           :detail_total ->
-            String.replace(roadmap, "21/22 plans executed", "21/23 plans executed")
+            String.replace(roadmap, "26/27 plans executed", "26/28 plans executed")
 
           :progress_count ->
-            String.replace(roadmap, "| 21/22 | In Progress |  |", "| 20/22 | In Progress |  |")
+            String.replace(roadmap, "| 26/27 | In Progress |  |", "| 25/27 | In Progress |  |")
 
           :status ->
-            String.replace(roadmap, "| 21/22 | In Progress |  |", "| 21/22 | Complete |  |")
+            String.replace(roadmap, "| 26/27 | In Progress |  |", "| 26/27 | Complete |  |")
 
           :completion_date ->
             String.replace(
               roadmap,
-              "| 21/22 | In Progress |  |",
-              "| 21/22 | In Progress | 2026-09-11 |"
+              "| 26/27 | In Progress |  |",
+              "| 26/27 | In Progress | 2026-09-11 |"
             )
         end
       end)
@@ -106,37 +105,37 @@ defmodule Rindle.InstallSmoke.Phase133CompletedValidationTest do
 
   test "rejects checkbox and complete-summary mismatches in both directions" do
     fixture = write_fixture!()
-    set_execution_state!(fixture, [18, 19, 20])
-    mutate_roadmap!(fixture, &String.replace(&1, "- [ ] 133-21-PLAN.md", "- [x] 133-21-PLAN.md"))
+    set_execution_state!(fixture, [23, 24, 25])
+    mutate_roadmap!(fixture, &String.replace(&1, "- [ ] 133-26-PLAN.md", "- [x] 133-26-PLAN.md"))
     assert_invalid(fixture, "summary/checkbox mismatch")
 
     fixture = write_fixture!()
-    set_execution_state!(fixture, Enum.to_list(18..21))
-    mutate_roadmap!(fixture, &String.replace(&1, "- [x] 133-21-PLAN.md", "- [ ] 133-21-PLAN.md"))
+    set_execution_state!(fixture, Enum.to_list(23..26))
+    mutate_roadmap!(fixture, &String.replace(&1, "- [x] 133-26-PLAN.md", "- [ ] 133-26-PLAN.md"))
     assert_invalid(fixture, "summary/checkbox mismatch")
   end
 
-  test "rejects early Plan 22 and missing or incomplete execution-complete summary" do
+  test "rejects early Plan 27 and missing or incomplete execution-complete summary" do
     fixture = write_fixture!()
-    set_execution_state!(fixture, Enum.to_list(18..22))
-    assert_invalid(fixture, "Plan 22 must remain pending")
+    set_execution_state!(fixture, Enum.to_list(23..27))
+    assert_invalid(fixture, "Plan 27 must remain pending")
 
     fixture = write_fixture!()
-    set_execution_state!(fixture, Enum.to_list(18..22))
-    File.rm!(summary_path(fixture.root, 22))
-    assert_invalid(fixture, "completed summary 133-22", ["--expect-execution-complete"])
+    set_execution_state!(fixture, Enum.to_list(23..27))
+    File.rm!(summary_path(fixture.root, 27))
+    assert_invalid(fixture, "completed summary 133-27", ["--expect-execution-complete"])
 
-    File.write!(summary_path(fixture.root, 22), "---\nstatus: halted\n---\n")
-    assert_invalid(fixture, "completed summary 133-22", ["--expect-execution-complete"])
+    File.write!(summary_path(fixture.root, 27), "---\nstatus: halted\n---\n")
+    assert_invalid(fixture, "completed summary 133-27", ["--expect-execution-complete"])
   end
 
   test "rejects omitted, duplicated, or altered post-summary mappings" do
     for mutation <- [:omitted, :duplicated, :altered] do
       fixture = write_fixture!()
-      set_execution_state!(fixture, Enum.to_list(18..21))
+      set_execution_state!(fixture, Enum.to_list(23..26))
 
       mutate_validation!(fixture, fn validation ->
-        record = record_for(validation, "133-22-post-summary:1")
+        record = record_for(validation, "133-27-post-summary:1")
 
         case mutation do
           :omitted ->
@@ -149,7 +148,7 @@ defmodule Rindle.InstallSmoke.Phase133CompletedValidationTest do
             String.replace(
               validation,
               record,
-              String.replace(record, "22/22", "21/22", global: false)
+              String.replace(record, "27/27", "26/27", global: false)
             )
         end
       end)
@@ -158,9 +157,21 @@ defmodule Rindle.InstallSmoke.Phase133CompletedValidationTest do
     end
   end
 
-  test "rejects any drift in the preserved Plans 01-17 validation history" do
+  test "rejects authorization credit assigned to the Plan 27 publication checkpoint" do
     fixture = write_fixture!()
-    set_execution_state!(fixture, Enum.to_list(18..21))
+    set_execution_state!(fixture, Enum.to_list(23..26))
+
+    mutate_validation!(fixture, fn validation ->
+      record = record_for(validation, "133-27-02:1")
+      String.replace(validation, record, String.replace(record, "authorization-only", "pending"))
+    end)
+
+    assert_invalid(fixture, "acceptance credit")
+  end
+
+  test "rejects any drift in the preserved Plans 01-22 validation history" do
+    fixture = write_fixture!()
+    set_execution_state!(fixture, Enum.to_list(23..26))
     mutate_validation!(fixture, &String.replace(&1, "19/19", "18/19", global: false))
     assert_invalid(fixture, "historical validation prefix")
   end
@@ -176,7 +187,7 @@ defmodule Rindle.InstallSmoke.Phase133CompletedValidationTest do
     File.mkdir_p!(phase_dir)
     on_exit(fn -> File.rm_rf!(root) end)
 
-    for plan <- 11..22 do
+    for plan <- 23..27 do
       File.cp!(
         Path.join(@repo_root, "#{@phase_rel}/133-#{plan}-PLAN.md"),
         Path.join(phase_dir, "133-#{plan}-PLAN.md")
@@ -216,10 +227,10 @@ defmodule Rindle.InstallSmoke.Phase133CompletedValidationTest do
   defp set_execution_state!(fixture, completed) do
     File.mkdir_p!(Path.dirname(summary_path(fixture.root, 1)))
 
-    for plan <- 1..22 do
+    for plan <- 1..27 do
       path = summary_path(fixture.root, plan)
 
-      if plan <= 17 or plan in completed do
+      if plan <= 22 or plan in completed do
         File.write!(path, "---\nstatus: complete\n---\n")
       else
         File.rm(path)
@@ -231,11 +242,11 @@ defmodule Rindle.InstallSmoke.Phase133CompletedValidationTest do
   end
 
   defp roadmap(completed) do
-    count = 17 + Enum.count(completed, &(&1 in 18..22))
+    count = 22 + Enum.count(completed, &(&1 in 23..27))
 
     rows =
-      Enum.map_join(1..22, "", fn plan ->
-        checked = if plan <= 17 or plan in completed, do: "x", else: " "
+      Enum.map_join(1..27, "", fn plan ->
+        checked = if plan <= 22 or plan in completed, do: "x", else: " "
         id = String.pad_leading(Integer.to_string(plan), 2, "0")
         "- [#{checked}] 133-#{id}-PLAN.md\n"
       end)
@@ -245,7 +256,7 @@ defmodule Rindle.InstallSmoke.Phase133CompletedValidationTest do
 
     ### Phase 133: Evidence Charter and Live Truth
 
-    **Plans**: #{count}/22 plans executed
+    **Plans**: #{count}/27 plans executed
 
     #{rows}
     ### Phase 134: Next
@@ -254,7 +265,7 @@ defmodule Rindle.InstallSmoke.Phase133CompletedValidationTest do
 
     | Phase | Plans Complete | Status | Completed |
     |-------|----------------|--------|-----------|
-    | 133. Evidence Charter and Live Truth | #{count}/22 | In Progress |  |
+    | 133. Evidence Charter and Live Truth | #{count}/27 | In Progress |  |
     """
   end
 
