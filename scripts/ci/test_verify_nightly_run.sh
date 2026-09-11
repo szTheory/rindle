@@ -126,6 +126,60 @@ run_case() {
     fi
   fi
 
+  if [ "$state" = pre_list_failure ] || [ "$state" = malformed_pre_list ] ||
+     [ "$state" = duplicate_pre_ids ] || [ "$state" = non_integer_pre_id ]; then
+    if ! grep -q '^workflow run ' "${temp}/calls" &&
+       ! grep -Eq '^run (watch|view) ' "${temp}/calls" &&
+       [ ! -e "${temp}/receipt.json" ]; then
+      record "${state} rejects before dispatch" true
+    else
+      record "${state} rejects before dispatch" false "invalid pre-snapshot inventory crossed the mutation boundary"
+    fi
+  fi
+
+  if [ "$state" = unrelated_new_then_exact ]; then
+    if [ "$(grep -c '^run list ' "${temp}/calls" || true)" -eq 3 ] &&
+       [ "$(grep -c '^run watch 9001 ' "${temp}/calls" || true)" -eq 1 ] &&
+       ! grep -Eq '^run (watch|view) 7000 ' "${temp}/calls" &&
+       [ "$(jq -r '.run_id' "${temp}/receipt.json" 2>/dev/null || true)" = 9001 ]; then
+      record "unrelated new run is ignored until one exact new ID appears" true
+    else
+      record "unrelated new run is ignored until one exact new ID appears" false "unrelated inventory changed ownership selection"
+    fi
+  fi
+
+  if [ "$state" = old_exact_delayed_exact_new ]; then
+    if [ "$(grep -c '^run list ' "${temp}/calls" || true)" -eq 3 ] &&
+       [ "$(grep -c '^run watch 9001 ' "${temp}/calls" || true)" -eq 1 ] &&
+       ! grep -Eq '^run (watch|view) 8000 ' "${temp}/calls"; then
+      record "old exact run remains excluded while the new exact run is delayed" true
+    else
+      record "old exact run remains excluded while the new exact run is delayed" false "polling did not preserve the pre-dispatch exclusion set"
+    fi
+  fi
+
+  if [ "$state" = detail_id_mismatch ]; then
+    if [ "$(grep -c '^run watch 9001 ' "${temp}/calls" || true)" -eq 1 ] &&
+       [ "$(grep -c '^run view 9001 .* --json ' "${temp}/calls" || true)" -eq 1 ] &&
+       ! grep -Eq '^run view 9001 .* --job ' "${temp}/calls" &&
+       [ ! -e "${temp}/receipt.json" ]; then
+      record "selected ID must equal the detailed run databaseId" true
+    else
+      record "selected ID must equal the detailed run databaseId" false "detail identity was not cross-bound before evidence collection"
+    fi
+  fi
+
+  if [ "$state" = success ]; then
+    first_list_line="$(grep -n '^run list ' "${temp}/calls" | head -1 | cut -d: -f1)"
+    dispatch_line="$(grep -n '^workflow run nightly.yml ' "${temp}/calls" | head -1 | cut -d: -f1)"
+    if [ -n "$first_list_line" ] && [ -n "$dispatch_line" ] &&
+       [ "$first_list_line" -lt "$dispatch_line" ]; then
+      record "initial run inventory snapshot precedes the sole dispatch" true
+    else
+      record "initial run inventory snapshot precedes the sole dispatch" false "command log order did not prove snapshot-before-dispatch"
+    fi
+  fi
+
   if [ "$state" = multiple_new_after_dispatch ]; then
     if [ "$(grep -c '^run list ' "${temp}/calls" || true)" -eq 2 ] &&
        ! grep -Eq '^run (watch|view) ' "${temp}/calls" &&
@@ -325,6 +379,15 @@ run_case "older runs appear before the exact run" old_runs_then_exact 0
 run_case "same-second old run is excluded when one new run appears" same_second_old_then_new 0
 run_case "same-second old-only history has zero new matches" same_second_old_only 1
 run_case "multiple new exact matches are ambiguous" multiple_new_after_dispatch 1
+run_case "pre-dispatch run-list API failure" pre_list_failure 1
+run_case "malformed pre-dispatch run inventory" malformed_pre_list 1
+run_case "duplicate pre-dispatch run IDs" duplicate_pre_ids 1
+run_case "non-integer pre-dispatch run ID" non_integer_pre_id 1
+run_case "unrelated new run precedes the exact new run" unrelated_new_then_exact 0
+run_case "old exact run precedes a delayed exact new run" old_exact_delayed_exact_new 0
+run_case "post-dispatch malformed inventory" malformed_post_list 1
+run_case "post-dispatch duplicate IDs" duplicate_post_ids 1
+run_case "selected run detail ID mismatch" detail_id_mismatch 1
 if [ "${VERIFY_NIGHTLY_TEST_SCOPE:-}" = ownership ]; then
   echo "—"
   echo "passed: ${pass}  failed: ${fail}"
@@ -462,8 +525,35 @@ case "${1-} ${2-}" in
     ;;
   "workflow run") exit 0 ;;
   "run list")
-    [ "$state" != timeout ] || { printf '[]\n'; exit; }
     dispatched="$(grep -c '^workflow run nightly.yml ' "$FAKE_GH_LOG" || true)"
+    if [ "$state" = pre_list_failure ] && [ "$dispatched" -eq 0 ]; then
+      echo "simulated pre-dispatch run-list failure" >&2
+      exit 41
+    fi
+    if [ "$state" = malformed_pre_list ] && [ "$dispatched" -eq 0 ]; then
+      printf '{}\n'
+      exit
+    fi
+    if [ "$state" = duplicate_pre_ids ] && [ "$dispatched" -eq 0 ]; then
+      jq -cn --arg sha "$sha" --arg ref "$ref" --arg created "$created" \
+        '[{attempt:1,conclusion:"success",createdAt:$created,databaseId:8000,event:"workflow_dispatch",headBranch:$ref,headSha:$sha,status:"completed",url:"https://github.test/runs/8000",workflowName:"Nightly"},{attempt:1,conclusion:"success",createdAt:$created,databaseId:8000,event:"workflow_dispatch",headBranch:$ref,headSha:$sha,status:"completed",url:"https://github.test/runs/8000",workflowName:"Nightly"}]'
+      exit
+    fi
+    if [ "$state" = non_integer_pre_id ] && [ "$dispatched" -eq 0 ]; then
+      jq -cn --arg sha "$sha" --arg ref "$ref" --arg created "$created" \
+        '[{attempt:1,conclusion:"success",createdAt:$created,databaseId:8000.5,event:"workflow_dispatch",headBranch:$ref,headSha:$sha,status:"completed",url:"https://github.test/runs/8000",workflowName:"Nightly"}]'
+      exit
+    fi
+    [ "$state" != timeout ] || { printf '[]\n'; exit; }
+    if [ "$state" = malformed_post_list ] && [ "$dispatched" -gt 0 ]; then
+      printf '{}\n'
+      exit
+    fi
+    if [ "$state" = duplicate_post_ids ] && [ "$dispatched" -gt 0 ]; then
+      jq -cn --arg sha "$sha" --arg ref "$ref" --arg created "$created" \
+        '[{attempt:1,conclusion:"success",createdAt:$created,databaseId:9001,event:"workflow_dispatch",headBranch:$ref,headSha:$sha,status:"completed",url:"https://github.test/runs/9001",workflowName:"Nightly"},{attempt:1,conclusion:"success",createdAt:$created,databaseId:9001,event:"workflow_dispatch",headBranch:$ref,headSha:$sha,status:"completed",url:"https://github.test/runs/9001",workflowName:"Nightly"}]'
+      exit
+    fi
     if [ "$state" = same_second_old_then_new ] || [ "$state" = same_second_old_only ]; then
       old="$(jq -cn --arg sha "$sha" --arg ref "$ref" --arg created "$created" \
         '{attempt:1,conclusion:"success",createdAt:$created,databaseId:8000,event:"workflow_dispatch",headBranch:$ref,headSha:$sha,status:"completed",url:"https://github.test/runs/8000",workflowName:"Nightly"}')"
@@ -482,6 +572,26 @@ case "${1-} ${2-}" in
       fi
       jq -cn --arg sha "$sha" --arg ref "$ref" --arg created "$created" \
         '[{attempt:1,conclusion:"success",createdAt:$created,databaseId:9001,event:"workflow_dispatch",headBranch:$ref,headSha:$sha,status:"completed",url:"https://github.test/runs/9001",workflowName:"Nightly"},{attempt:1,conclusion:"success",createdAt:$created,databaseId:9002,event:"workflow_dispatch",headBranch:$ref,headSha:$sha,status:"completed",url:"https://github.test/runs/9002",workflowName:"Nightly"}]'
+      exit
+    fi
+    if [ "$state" = unrelated_new_then_exact ] || [ "$state" = old_exact_delayed_exact_new ]; then
+      list_count="$(cat "$FAKE_GH_RUN_LIST_COUNT_FILE" 2>/dev/null || printf 0)"
+      list_count=$((list_count + 1))
+      printf '%s' "$list_count" >"$FAKE_GH_RUN_LIST_COUNT_FILE"
+      if [ "$state" = unrelated_new_then_exact ]; then
+        unrelated="$(jq -cn --arg ref "$ref" --arg created "$created" \
+          '{attempt:1,conclusion:"success",createdAt:$created,databaseId:7000,event:"workflow_dispatch",headBranch:$ref,headSha:"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",status:"completed",url:"https://github.test/runs/7000",workflowName:"Nightly"}')"
+        if [ "$list_count" -eq 1 ]; then printf '[]\n'; exit; fi
+        if [ "$list_count" -eq 2 ]; then jq -cn --argjson unrelated "$unrelated" '[$unrelated]'; exit; fi
+        jq -cn --argjson unrelated "$unrelated" --arg sha "$sha" --arg ref "$ref" --arg created "$created" \
+          '[$unrelated,{attempt:1,conclusion:"success",createdAt:$created,databaseId:9001,event:"workflow_dispatch",headBranch:$ref,headSha:$sha,status:"completed",url:"https://github.test/runs/9001",workflowName:"Nightly"}]'
+        exit
+      fi
+      old="$(jq -cn --arg sha "$sha" --arg ref "$ref" --arg created "$created" \
+        '{attempt:1,conclusion:"success",createdAt:$created,databaseId:8000,event:"workflow_dispatch",headBranch:$ref,headSha:$sha,status:"completed",url:"https://github.test/runs/8000",workflowName:"Nightly"}')"
+      if [ "$list_count" -le 2 ]; then jq -cn --argjson old "$old" '[$old]'; exit; fi
+      jq -cn --argjson old "$old" --arg sha "$sha" --arg ref "$ref" --arg created "$created" \
+        '[$old,{attempt:1,conclusion:"success",createdAt:$created,databaseId:9001,event:"workflow_dispatch",headBranch:$ref,headSha:$sha,status:"completed",url:"https://github.test/runs/9001",workflowName:"Nightly"}]'
       exit
     fi
     if [ "$state" = old_runs_then_exact ]; then
@@ -542,7 +652,9 @@ case "${1-} ${2-}" in
       [ "$state" != rerun ] || attempt=2
       [ "$state" != nonterminal ] || status=in_progress
       [ "$state" != red_run ] || conclusion=failure
-      jq -cn --arg sha "$sha" --arg ref "$ref" --arg created "$created" --argjson jobs "$jobs" --argjson attempt "$attempt" --arg status "$status" --arg conclusion "$conclusion" '{attempt:$attempt,conclusion:$conclusion,createdAt:$created,databaseId:9001,event:"workflow_dispatch",headBranch:$ref,headSha:$sha,jobs:$jobs,status:$status,url:"https://github.test/runs/9001",workflowName:"Nightly"}'
+      detail_id=9001
+      [ "$state" != detail_id_mismatch ] || detail_id=9002
+      jq -cn --arg sha "$sha" --arg ref "$ref" --arg created "$created" --argjson jobs "$jobs" --argjson attempt "$attempt" --argjson databaseId "$detail_id" --arg status "$status" --arg conclusion "$conclusion" '{attempt:$attempt,conclusion:$conclusion,createdAt:$created,databaseId:$databaseId,event:"workflow_dispatch",headBranch:$ref,headSha:$sha,jobs:$jobs,status:$status,url:"https://github.test/runs/9001",workflowName:"Nightly"}'
     fi
     ;;
   "issue list")
