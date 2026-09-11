@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "subject_sha": "03576aacbb414c59d49680ebe67f59509b4b5c00",
+  "subject_sha": "08d2f4f55fb2f59319a371de56606b2e925e6d54",
   "taxonomy": [
     {"id": "correctness", "applicable": true, "detectors": ["default-exunit"]},
     {"id": "maintainability", "applicable": true, "detectors": ["credo-quality"]},
