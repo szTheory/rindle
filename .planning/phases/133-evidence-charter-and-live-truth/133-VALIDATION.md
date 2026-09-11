@@ -424,3 +424,28 @@ non-zero exit, missing executable validation/failure direction, premature green 
 <state>pending — not executed</state>
 <acceptance-credit>pending</acceptance-credit>
 </pending-validation>
+
+## Post-Execution Nyquist Audit — Plans 11–17
+
+Audited 2026-09-10 after all seven gap-closure plans completed. The pending-validation addendum above is the immutable pre-execution snapshot required by Plan 11; it is retained as historical transition evidence and does not describe the current execution state.
+
+Current executable evidence supports all 27 mapped command/failure pairs. The production reconciliation command for `133-11-01:2` now validates the active `17/17 plans executed; 0 pending gap closure` roadmap state and requires all 17 summaries to remain `status: complete`. Its fixture overrides continue to validate the immutable `10/17` pre-execution snapshot and byte-exact pending addendum without treating those historical records as current state.
+
+| Plan | Requirement(s) | Current executable evidence | Result |
+|------|----------------|-----------------------------|--------|
+| 11 | EVID-02, TRUTH-08 | 34-case PLT safety matrix; ShellCheck; 19-test isolated reconciliation suite; completed-state production reconciliation; automation-first contract | ✅ green |
+| 12 | EVID-02, EVID-04 | 109-case exact-run selector/receipt matrix; ShellCheck | ✅ green |
+| 13 | EVID-01 | 15-test census authority/containment suite; automation-first contract | ✅ green |
+| 14 | TRUTH-08 | 4 package-authority tests using the real generated consumer; adoption-proof gate | ✅ green |
+| 15 | TRUTH-08, EVID-03 | 12 derived-authority tests; structured `CI Summary` policy projection; ShellCheck | ✅ green |
+| 16 | EVID-01, EVID-02, TRUTH-08 | 109-case immutable local-authority matrix; ShellCheck | ✅ green |
+| 17 | EVID-01–04, TRUTH-08 | Detached census validation; 113 focused ExUnit tests; focused Bash gates; `mix ci` (1,490 tests, 0 failures, 4 skipped); 97 refactor-contract tests; exact receipt verification for subject `08d2f4f55fb2f59319a371de56606b2e925e6d54`, run `34550391882`, attempt 1; automation-first contract | ✅ green; publication approval received no acceptance credit |
+
+### Current Audit Verdict
+
+- **Resolved mappings:** 27/27
+- **Escalated mappings:** 0/27
+- **Classification:** READY FOR RE-AUDIT — active roadmap truth matches the completed plan set.
+- **Remediation evidence:** the completed-state regression rejects any nonzero pending count, while the original 19-test fixture and pending addendum retain the historical pre-execution contract unchanged.
+
+The appended post-execution audit is the authoritative current status; the earlier pre-execution addendum remains historical transition evidence only.
