@@ -5,31 +5,27 @@ milestone_name: Pre-Adopter Readiness & Quality Consolidation
 current_phase: 133
 current_phase_name: Evidence Charter and Live Truth
 status: executing
-stopped_at: Completed 133-18-PLAN.md
-last_updated: "2026-09-11T14:44:56.431Z"
+stopped_at: Completed 133-19-PLAN.md
+last_updated: "2026-09-11T15:07:24.428Z"
 last_activity: 2026-09-11
 last_activity_desc: Phase 133 execution started
-state_head: 39a603f60112a83a5b4ab55d25cf382f56cb6539
+state_head: 70aa4b1d39953dcd6426823c86bf811dedc0bee9
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 22
-  completed_plans: 18
+  completed_plans: 19
 ---
-
 # Project State
-
 ## Project Reference
 
 See: .planning/PROJECT.md (updated 2026-09-09 for v1.26)
-
 **Core value:** Media, made durable.
 **Current focus:** Phase 133 — Evidence Charter and Live Truth
-
 ## Current Position
 
 Phase: 133 (Evidence Charter and Live Truth) — EXECUTING
-Plan: 19 of 22
+Plan: 20 of 22
 Status: Ready to execute
 Last activity: 2026-09-11 — Phase 133 execution started
 
@@ -68,6 +64,7 @@ Progress: [███████░░░] 65%
 | Phase 133 P16 | 18min | 2 tasks | 2 files |
 | Phase 133 P17 | 3h15m | 3 tasks | 9 files |
 | Phase 133 P18 | 26min | 2 tasks | 2 files |
+| Phase 133 P19 | 17min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -121,6 +118,9 @@ Progress: [███████░░░] 65%
 - [Phase 133]: Preserve failed evidence refs and runs; corrections use new subject-derived non-force refs. — Immutable external identities keep rejected evidence auditable and prevent relabeling a tested subject.
 - [Phase 133]: Bind diagnostic dispatch ownership to exactly one matching database ID absent from the validated pre-dispatch snapshot. — Timestamp granularity cannot distinguish a collector-owned dispatch from a same-second pre-existing exact run.
 - [Phase 133]: Cross-bind the selected diagnostic run ID to the detailed run databaseId before evidence collection. — A mismatched detail payload must not substitute a different run into logs, local authority, or the receipt.
+- [Phase 133]: Persist each scheduled strict verdict outside the stable incident concurrency group so pending-job replacement cannot erase replay input. — Immutable artifacts, not pending-job retention, preserve every verdict.
+- [Phase 133]: Use deterministic action/run/attempt mutation markers only for real issue mutations; green with no logical incident remains an unmarked replay-safe no-op. — This provides idempotency without inventing acknowledgement state.
+- [Phase 133]: Treat all-state issue history and authenticated artifacts as replay authority; never add a mutable acknowledgement cursor. — Full replay plus fresh preimages converges after drift or uncertain outcomes.
 
 ### Pending Todos
 
@@ -144,6 +144,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-09-11T14:44:56.385Z
-Stopped at: Completed 133-18-PLAN.md
+Last session: 2026-09-11T15:07:24.367Z
+Stopped at: Completed 133-19-PLAN.md
 Resume file: None
