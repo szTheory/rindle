@@ -2,9 +2,9 @@
 schema_version: 1
 open_count: 1
 waived_count: 2
-fixed_count: 17
-total_count: 20
-last_updated: 2026-09-10T22:05:07.060Z
+fixed_count: 18
+total_count: 21
+last_updated: 2026-09-11T17:20:27.089Z
 ---
 
 # Broken Windows Ledger
@@ -35,6 +35,7 @@ last_updated: 2026-09-10T22:05:07.060Z
 | 18 | 133 | deviation | scripts/maintainer/evidence_census.exs |  | Corrected the census performance detector to the actual archived Phase 132 receipt. | fixed |  | 2026-09-10T02:13:07.391Z | 2026-09-10T02:13:16.387Z |
 | 19 | 133 | deviation | scripts/ci/verify_nightly_run.sh |  | Rejected empty generated census and live-truth JSON before canonical hashing | fixed |  | 2026-09-10T22:04:34.028Z | 2026-09-10T22:05:06.934Z |
 | 20 | 133 | deviation | scripts/ci/verify_nightly_run.sh |  | Restored detached Git identity for exact-subject validator execution | fixed |  | 2026-09-10T22:04:34.174Z | 2026-09-10T22:05:07.060Z |
+| 21 | 133 | deviation | scripts/maintainer/evidence_census.exs |  | Canonicalize the inspected root through the physical resolver so platform symlink aliases do not reject contained detector inputs | fixed |  | 2026-09-11T17:20:05.449Z | 2026-09-11T17:20:27.089Z |
 
 ````json
 [
@@ -277,6 +278,19 @@ last_updated: 2026-09-10T22:05:07.060Z
     "reason": "",
     "recorded_at": "2026-09-10T22:04:34.174Z",
     "resolved_at": "2026-09-10T22:05:07.060Z"
+  },
+  {
+    "id": 21,
+    "kind": "deviation",
+    "phase": "133",
+    "file": "scripts/maintainer/evidence_census.exs",
+    "line": null,
+    "description": "Canonicalize the inspected root through the physical resolver so platform symlink aliases do not reject contained detector inputs",
+    "status": "fixed",
+    "reason": "",
+    "recorded_at": "2026-09-11T17:20:05.449Z",
+    "resolved_at": "2026-09-11T17:20:27.089Z",
+    "milestone": "v1.26"
   }
 ]
 ````
