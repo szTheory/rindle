@@ -74,6 +74,7 @@ defmodule Rindle.InstallSmoke.Phase133CompletedValidationTest do
     assert {output, 0} = run_validator(fixture)
     assert output =~ "24 completed, 3 pending plans"
   end
+
   test "rejects wrong totals, stale Progress counts, status, and completion dates" do
     for mutation <- [:detail_total, :progress_count, :status, :completion_date] do
       fixture = write_fixture!()

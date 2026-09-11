@@ -9,10 +9,10 @@ defmodule Rindle.ValidatePhase133Reconciliation do
   @historical_bytes 13_899
   @historical_sha256 "c3df0a578a2337f81d4539d5e8b0bc1d8ed4638d80ef1b4ce7fb424e43469bec"
   @historical_heading "## Pending Gap-Closure Validation Addendum (Plans 11–17)"
-  @active_ref "31d62831f63081ef399f6b6c9cd0923ecb2e0753"
-  @active_bytes 35_039
-  @active_sha256 "dd2969dd61588c3738a4cdf580ca65ead6335e46b4885ca83ba0532c193d23ac"
-  @active_heading "## Pending Gap-Closure Validation Addendum (Plans 18–22)"
+  @active_ref "8313cd6cab0370ace45a7b29ca49215f158eba38"
+  @active_bytes 50_488
+  @active_sha256 "8a86165cb73100c105aaeba876296c31b30f57aceef294a0c3b7f6505f5df40d"
+  @active_heading "## Pending Gap-Closure Validation Addendum (Plans 23–27)"
   @pending_state "pending — not executed"
 
   def run(argv) do
@@ -113,7 +113,7 @@ defmodule Rindle.ValidatePhase133Reconciliation do
 
   defp success_message(mode, completed, pair_count)
        when mode in [:execution, :execution_complete] do
-    "phase 133 reconciliation valid: #{completed} completed, #{22 - completed} pending plans, " <>
+    "phase 133 reconciliation valid: #{completed} completed, #{27 - completed} pending plans, " <>
       "#{pair_count} pending verification pairs"
   end
 
@@ -142,7 +142,7 @@ defmodule Rindle.ValidatePhase133Reconciliation do
   defp maybe_write_addendum(_root, _options, _prefix, _records, _mode), do: :ok
 
   defp require_tracked_inputs(root, mode) do
-    plans = if mode == :historical_snapshot, do: 11..17, else: 11..22
+    plans = if mode == :historical_snapshot, do: 11..17, else: 23..27
 
     paths =
       [@roadmap_path, @validation_path] ++
@@ -252,7 +252,7 @@ defmodule Rindle.ValidatePhase133Reconciliation do
   end
 
   defp expected_records(root, mode) do
-    plans = if mode == :historical_snapshot, do: 11..17, else: 18..22
+    plans = if mode == :historical_snapshot, do: 11..17, else: 23..27
 
     Enum.reduce_while(plans, {:ok, []}, fn plan, {:ok, all} ->
       path = Path.join(root, Path.join(@phase_dir, "133-#{plan}-PLAN.md"))
@@ -305,7 +305,7 @@ defmodule Rindle.ValidatePhase133Reconciliation do
     end
   end
 
-  defp parse_post_summary(contents, 22, mode) when mode in [:execution, :execution_complete] do
+  defp parse_post_summary(contents, 27, mode) when mode in [:execution, :execution_complete] do
     pattern = ~r/<post_summary_phase_gate\b[^>]*>(.*?)<\/post_summary_phase_gate>/s
 
     case Regex.scan(pattern, contents, capture: :all_but_first) do
@@ -313,7 +313,7 @@ defmodule Rindle.ValidatePhase133Reconciliation do
         with {:ok, pairs} <- parse_plan_pairs(body),
              true <-
                length(pairs) == 1 or {:error, "post-summary gate must contain exactly one pair"} do
-          {:ok, records_for("133-22-post-summary", pairs, "pending"),
+          {:ok, records_for("133-27-post-summary", pairs, "pending"),
            Regex.replace(pattern, contents, "")}
         end
 
@@ -469,7 +469,7 @@ defmodule Rindle.ValidatePhase133Reconciliation do
         {:error, "pending mapping is missing: #{hd(missing)}"}
 
       extra != [] ->
-        {:error, "extra mapping is not present in Plans 11-17: #{hd(extra)}"}
+        {:error, "extra mapping is not present in the selected plan range: #{hd(extra)}"}
 
       actual_keys != expected_keys ->
         {:error, "mapping order or within-source pair ordinal is not contiguous"}
@@ -514,7 +514,7 @@ defmodule Rindle.ValidatePhase133Reconciliation do
   end
 
   defp completed_summary_set(root) do
-    Enum.reduce_while(1..22, {:ok, MapSet.new()}, fn plan, {:ok, completed} ->
+    Enum.reduce_while(1..27, {:ok, MapSet.new()}, fn plan, {:ok, completed} ->
       plan_id = String.pad_leading(Integer.to_string(plan), 2, "0")
       path = Path.join(root, Path.join(@phase_dir, "133-#{plan_id}-SUMMARY.md"))
 
@@ -617,11 +617,11 @@ defmodule Rindle.ValidatePhase133Reconciliation do
 
   defp validate_execution_summary_set(completed, :execution) do
     cond do
-      not MapSet.subset?(MapSet.new(1..17), completed) ->
-        {:error, "historical completed summaries 133-01 through 133-17 must remain complete"}
+      not MapSet.subset?(MapSet.new(1..22), completed) ->
+        {:error, "historical completed summaries 133-01 through 133-22 must remain complete"}
 
-      MapSet.member?(completed, 22) ->
-        {:error, "Plan 22 must remain pending until the post-summary phase gate"}
+      MapSet.member?(completed, 27) ->
+        {:error, "Plan 27 must remain pending until the post-summary phase gate"}
 
       true ->
         :ok
@@ -629,7 +629,7 @@ defmodule Rindle.ValidatePhase133Reconciliation do
   end
 
   defp validate_execution_summary_set(completed, :execution_complete) do
-    missing = Enum.reject(1..22, &MapSet.member?(completed, &1))
+    missing = Enum.reject(1..27, &MapSet.member?(completed, &1))
 
     case missing do
       [] ->
@@ -710,17 +710,17 @@ defmodule Rindle.ValidatePhase133Reconciliation do
   end
 
   defp validate_execution_detail(section, expected_count) do
-    expected = "**Plans**: #{expected_count}/22 plans executed"
+    expected = "**Plans**: #{expected_count}/27 plans executed"
 
     if length(Regex.scan(~r/^#{Regex.escape(expected)}$/m, section)) == 1 do
       :ok
     else
-      {:error, "roadmap detail must report exactly #{expected_count}/22 plans executed"}
+      {:error, "roadmap detail must report exactly #{expected_count}/27 plans executed"}
     end
   end
 
   defp validate_execution_checkboxes(section, completed, mode) do
-    Enum.reduce_while(1..22, :ok, fn plan, :ok ->
+    Enum.reduce_while(1..27, :ok, fn plan, :ok ->
       id = "133-#{String.pad_leading(Integer.to_string(plan), 2, "0")}-PLAN.md"
 
       captures =
@@ -734,8 +734,8 @@ defmodule Rindle.ValidatePhase133Reconciliation do
         [[checkbox]] when checkbox == "x" == expected_checked ->
           {:cont, :ok}
 
-        _ when plan == 22 and mode == :execution ->
-          {:halt, {:error, "Plan 22 must remain pending until the post-summary phase gate"}}
+        _ when plan == 27 and mode == :execution ->
+          {:halt, {:error, "Plan 27 must remain pending until the post-summary phase gate"}}
 
         _ ->
           {:halt, {:error, "summary/checkbox mismatch for #{id}"}}
@@ -745,7 +745,7 @@ defmodule Rindle.ValidatePhase133Reconciliation do
 
   defp validate_execution_progress_row(roadmap, expected_count) do
     pattern =
-      ~r/^\|\s*133\.\s*Evidence Charter and Live Truth\s*\|\s*(\d+)\/22\s*\|\s*([^|]+)\|\s*([^|]*)\|$/m
+      ~r/^\|\s*133\.\s*Evidence Charter and Live Truth\s*\|\s*(\d+)\/27\s*\|\s*([^|]+)\|\s*([^|]*)\|$/m
 
     case Regex.scan(pattern, roadmap, capture: :all_but_first) do
       [[count, status, completed]] ->
@@ -754,7 +754,7 @@ defmodule Rindle.ValidatePhase133Reconciliation do
           :ok
         else
           {:error,
-           "roadmap Progress row must agree at #{expected_count}/22 with In Progress and blank completion date"}
+           "roadmap Progress row must agree at #{expected_count}/27 with In Progress and blank completion date"}
         end
 
       _ ->
@@ -772,7 +772,7 @@ defmodule Rindle.ValidatePhase133Reconciliation do
 
   defp render_addendum(records, mode) when mode in [:execution, :execution_complete] do
     intro =
-      "Plans 01–17 remain immutable historical validation. The records below preserve the planned verification pairs for Plans 18–22 after execution; every pair remains pending evidence history, and the Plan 22 checkpoint carries authorization-only acceptance credit."
+      "Plans 01–22 remain immutable historical validation. The records below preserve the planned verification pairs for Plans 23–27; every pair remains pending evidence history, and the Plan 27 publication checkpoint carries authorization-only acceptance credit."
 
     @active_heading <> "\n\n" <> intro <> "\n\n" <> Enum.map_join(records, "\n", &render_record/1)
   end
