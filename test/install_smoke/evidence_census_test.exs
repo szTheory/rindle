@@ -450,6 +450,90 @@ defmodule Rindle.InstallSmoke.EvidenceCensusTest do
     refute output =~ external
   end
 
+  test "EVID-01: collector rejects detector input symlinks that escape the subject" do
+    fixture = census_fixture!()
+    external = Path.join(Path.dirname(fixture.root), "external-detector-input")
+    File.write!(external, "external detector bytes must not be read\n")
+    replace_with_symlink!(Path.join(fixture.root, "mix.exs"), external)
+
+    assert {output, status} = run_collector(fixture, ["--allow-dirty-diagnostic"])
+    assert status != 0
+    assert output =~ "detector input must resolve to a regular file within repository root"
+    refute output =~ external
+    refute File.exists?(fixture.receipt)
+
+    nested = census_fixture!()
+    external_dir = Path.join(Path.dirname(nested.root), "external-detector-dir")
+    File.mkdir_p!(external_dir)
+    File.write!(Path.join(external_dir, "input.txt"), "nested external bytes\n")
+    File.ln_s!(external_dir, Path.join(nested.root, "linked-inputs"))
+    mutate_json!(nested.ledger, &put_detector_input(&1, "linked-inputs/input.txt"))
+
+    assert {output, status} = run_collector(nested, ["--allow-dirty-diagnostic"])
+    assert status != 0
+    assert output =~ "detector input must resolve to a regular file within repository root"
+    refute output =~ external_dir
+    refute File.exists?(nested.receipt)
+  end
+
+  test "EVID-01: collector rejects invalid detector input physical shapes" do
+    for {input, setup, diagnostic} <- [
+          {"dangling-input",
+           fn root ->
+             File.ln_s!("missing-target", Path.join(root, "dangling-input"))
+           end, "detector input physical path is missing or dangling"},
+          {"loop-a",
+           fn root ->
+             File.ln_s!("loop-b", Path.join(root, "loop-a"))
+             File.ln_s!("loop-a", Path.join(root, "loop-b"))
+           end, "detector input physical path contains a symlink loop"},
+          {"input-dir", fn root -> File.mkdir_p!(Path.join(root, "input-dir")) end,
+           "detector input must resolve to a regular file within repository root"},
+          {".", fn _root -> :ok end,
+           "detector input must resolve to a regular file within repository root"}
+        ] do
+      fixture = census_fixture!()
+      setup.(fixture.root)
+      mutate_json!(fixture.ledger, &put_detector_input(&1, input))
+
+      assert {output, status} = run_collector(fixture, ["--allow-dirty-diagnostic"])
+      assert status != 0
+      assert output =~ diagnostic
+      refute File.exists?(fixture.receipt)
+    end
+
+    for input <- ["../outside", "nested/../../outside", "/tmp/outside"] do
+      fixture = census_fixture!()
+      mutate_json!(fixture.ledger, &put_detector_input(&1, input))
+
+      assert {output, status} = run_collector(fixture)
+      assert status != 0
+      assert output =~ "detector input path must remain repository-relative"
+      refute File.exists?(fixture.receipt)
+    end
+  end
+
+  test "EVID-01: collector preserves identity and digest for contained detector inputs" do
+    fixture = census_fixture!()
+    target = Path.join(fixture.root, "contained-input")
+    contents = "physically contained detector bytes\n"
+    File.write!(target, contents)
+    replace_with_symlink!(Path.join(fixture.root, "mix.exs"), target)
+
+    assert {_output, 0} = run_collector(fixture, ["--allow-dirty-diagnostic"])
+    receipt = fixture.receipt |> File.read!() |> Jason.decode!()
+
+    assert Enum.any?(receipt["inputs"], fn input ->
+             input == %{
+               "detector_id" => "default-exunit",
+               "path" => "mix.exs",
+               "sha256" => sha256(contents)
+             }
+           end)
+
+    assert receipt["inputs"] == Enum.sort_by(receipt["inputs"], &{&1["detector_id"], &1["path"]})
+  end
+
   defp census_fixture!, do: registry_fixture!([@inapplicable_dimension])
 
   defp registry_fixture!(inapplicable_dimensions) do
@@ -643,6 +727,15 @@ defmodule Rindle.InstallSmoke.EvidenceCensusTest do
       ["detectors", Access.at(0), "observations", Access.at(0)],
       &Map.put(&1, "location", location)
     )
+  end
+
+  defp put_detector_input(ledger, input) do
+    put_in(ledger, ["detectors", Access.at(0), "inputs"], [input])
+  end
+
+  defp replace_with_symlink!(path, target) do
+    File.rm!(path)
+    File.ln_s!(target, path)
   end
 
   defp replace_candidate_observation(ledger, candidate_id, replacement_id) do
