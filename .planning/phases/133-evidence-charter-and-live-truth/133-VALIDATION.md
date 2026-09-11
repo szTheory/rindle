@@ -709,3 +709,33 @@ non-zero exit, zero ExUnit tests, output does not report exactly 22 completed an
 <state>pending — not executed</state>
 <acceptance-credit>pending</acceptance-credit>
 </pending-validation>
+
+## Validation Audit 2026-09-11 (Plans 18–22)
+
+The pending-validation blocks above are retained byte-for-byte as historical pre-execution evidence. This audit records their definitive post-execution disposition without granting acceptance credit to the human publication checkpoint.
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 21 |
+| Resolved mappings | 21 |
+| Escalated | 0 |
+| Automated acceptance mappings | 20 |
+| Authorization-only mappings | 1 |
+
+**Classification:** NYQUIST-COMPLIANT
+
+| Evidence | Result |
+|----------|--------|
+| Dispatch ownership | 130/130 passed |
+| Incident replay | 15/15 passed |
+| Strict Nightly summary | 49/49 passed |
+| Dialyzer policy | 34/34 passed |
+| Focused ExUnit | 130 tests, 0 failures |
+| Final reconciliation | 22 completed, 0 pending |
+| ShellCheck, format, automation-first | Passed |
+
+- All 48/48 implementation tasks across 22 plans and all 5/5 phase requirements have non-vacuous automated coverage.
+- Plans 18–22 account for 12/12 tasks and all 21 pending-validation mappings: 20 automated acceptance mappings are green; `133-22-02:1` remains authorization-only and receives zero acceptance credit.
+- `133-21-03:2`, `133-22-03:3`, and `133-22-plan-verification:1` are pre-summary historical transition probes. Their committed summaries preserve the executed pre-summary evidence; they are not reinterpreted as current-state 22/22 checks.
+- `133-22-post-summary:1` is the current-state execution-complete gate and passed at exactly 22/22.
+- No new tests or implementation changes were required by this audit.
