@@ -255,6 +255,61 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
   end
 
   @tag :derived_authority
+  test "maintainer guidance and both consumers share the structured required-check authority" do
+    model = Rindle.ValidateLiveTruth.derive!(@repo_root, [])
+    running = File.read!(Path.join(@repo_root, "RUNNING.md"))
+    setup = File.read!(Path.join(@repo_root, "scripts/setup_branch_protection.sh"))
+    validator = File.read!(@validator)
+
+    assert_running_required_check_authority!(running, model)
+    assert_required_check_consumers!(setup, validator)
+
+    for mutation <- [
+          String.replace(
+            running,
+            "`config/ci_required_checks.json` is the sole structured authority",
+            "`scripts/setup_branch_protection.sh` uses `REQUIRED_CHECKS=(\"CI Summary\")` as the authority",
+            global: false
+          ),
+          String.replace(
+            running,
+            "config/ci_required_checks.json",
+            "config/other_required_checks.json",
+            global: false
+          ),
+          String.replace(running, "`CI Summary`", "`Merge Gate`", global: false)
+        ] do
+      assert_raise ExUnit.AssertionError, fn ->
+        assert_running_required_check_authority!(mutation, model)
+      end
+    end
+
+    disconnected_setup =
+      String.replace(
+        setup,
+        "POLICY_FILE=\"${SCRIPT_DIR}/../config/ci_required_checks.json\"",
+        "POLICY_FILE=\"${SCRIPT_DIR}/../config/other_required_checks.json\"",
+        global: false
+      )
+
+    assert_raise ExUnit.AssertionError, fn ->
+      assert_required_check_consumers!(disconnected_setup, validator)
+    end
+
+    disconnected_validator =
+      String.replace(
+        validator,
+        "@required_check_policy_file \"config/ci_required_checks.json\"",
+        "@required_check_policy_file \"config/other_required_checks.json\"",
+        global: false
+      )
+
+    assert_raise ExUnit.AssertionError, fn ->
+      assert_required_check_consumers!(setup, disconnected_validator)
+    end
+  end
+
+  @tag :derived_authority
   test "required check policy rejects missing, extra, duplicate, renamed, and topology drift" do
     valid = required_check_policy()
 
@@ -969,6 +1024,27 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
     assert running =~ "scripts/ci/verify_nightly_run.sh verify-receipt"
     refute prose =~ "advisory and never a required PR check"
     refute Regex.match?(~r/Plan \d+.*live acceptance authority/i, prose)
+  end
+
+  defp assert_running_required_check_authority!(running, model) do
+    prose = String.replace(running, ~r/\s+/, " ")
+    [context] = model.ci.required_check_policy.contexts
+
+    assert prose =~ "`config/ci_required_checks.json` is the sole structured authority"
+    assert prose =~ "`scripts/setup_branch_protection.sh` loads its contexts"
+
+    assert prose =~
+             "`scripts/maintainer/validate_live_truth.exs` cross-checks the same workflow, job, and context identity"
+
+    assert prose =~ "`#{context}`"
+    refute prose =~ "REQUIRED_CHECKS=("
+  end
+
+  defp assert_required_check_consumers!(setup, validator) do
+    assert setup =~ "POLICY_FILE=\"${SCRIPT_DIR}/../config/ci_required_checks.json\""
+    assert setup =~ "jq -r '.contexts[]' \"${POLICY_FILE}\""
+    assert validator =~ "@required_check_policy_file \"config/ci_required_checks.json\""
+    assert validator =~ "policy = required_check_policy!(root)"
   end
 
   defp required_check_policy do
