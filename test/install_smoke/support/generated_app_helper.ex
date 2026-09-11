@@ -23,7 +23,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
   @directional_migration_version "20260428170300"
   @legacy_rindle_migration_version 20_260_428_110_000
   @generated_command_timeout_ms :timer.minutes(20)
-  @package_receipt_schema "rindle-package-consumer-v1"
+  @package_receipt_schema "rindle-package-consumer-v2"
   @output_digest_limit 1_048_576
 
   defdelegate default_install_contract(), to: Contracts
@@ -319,7 +319,11 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
         smoke_result.exit_code == 0 and String.contains?(smoke_result.output, "0 failures")
     }
 
-    command_results = %{compile: compile_result, boot: boot_result, smoke: smoke_result}
+    command_results = %{
+      compile: compile_result,
+      boot: boot_result,
+      smoke_lifecycle: smoke_result
+    }
 
     report =
       Map.merge(report, %{
@@ -334,6 +338,8 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
   @doc false
   def package_evidence_receipt!(report, command_results)
       when is_map(report) and is_map(command_results) do
+    ensure_attributable_command_results!(command_results)
+
     package_root = report.package_root_provenance.path
     generated_app_root = report.generated_app_root
     results_path = Path.join(generated_app_root, "tmp/rindle_package_evidence_results.json")
@@ -342,8 +348,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     results = %{
       "compile" => command_result!(Map.fetch!(command_results, :compile)),
       "boot" => command_result!(Map.fetch!(command_results, :boot)),
-      "smoke" => command_result!(Map.fetch!(command_results, :smoke)),
-      "lifecycle" => command_result!(Map.fetch!(command_results, :smoke))
+      "smoke_lifecycle" => command_result!(Map.fetch!(command_results, :smoke_lifecycle))
     }
 
     File.mkdir_p!(Path.dirname(results_path))
@@ -376,6 +381,27 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     raise ArgumentError, "package evidence requires a generated report and command results"
   end
 
+  defp ensure_attributable_command_results!(%{smoke: smoke, lifecycle: lifecycle}) do
+    if command_result!(smoke) == command_result!(lifecycle) do
+      raise ArgumentError,
+            "duplicate package command evidence cannot prove smoke and lifecycle independently"
+    end
+
+    raise ArgumentError,
+          "separate smoke and lifecycle evidence is unsupported; use the executed smoke_lifecycle command"
+  end
+
+  defp ensure_attributable_command_results!(command_results) do
+    expected_keys = [:boot, :compile, :smoke_lifecycle]
+
+    if command_results |> Map.keys() |> Enum.sort() != expected_keys do
+      raise ArgumentError,
+            "package command result keys must be exactly #{inspect(expected_keys)}"
+    end
+
+    :ok
+  end
+
   defp package_evidence_context(report) do
     %{
       package_root: report.package_root_provenance.path,
@@ -391,8 +417,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     %{
       "compile" => ["mix", "compile"],
       "boot" => boot_argv(app_name),
-      "smoke" => ["mix", "test", "test/rindle_install_smoke_test.exs"],
-      "lifecycle" => ["mix", "test", "test/rindle_install_smoke_test.exs"]
+      "smoke_lifecycle" => ["mix", "test", "test/rindle_install_smoke_test.exs"]
     }
   end
 
