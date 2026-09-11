@@ -44,7 +44,7 @@ error vocabulary, release coupling, supported behavior, or the accepted pull-req
   3. Nightly aggregation fails for failed, cancelled, unexpected, or impermissibly skipped gating states, and automated incident tests prove one exact-run-bound issue opens or updates on failure and closes only after qualifying scheduled recovery.
   4. Executable parity checks derive release, planning, support, and adoption-proof claims from authoritative state and reject every unmarked version, lane-severity, or package-proof contradiction.
 
-**Plans**: 22/22 plans executed
+**Plans**: 22/27 plans executed
 
 Plans:
 
@@ -117,6 +117,20 @@ Plans:
 **Wave 16** *(blocked on Wave 15 completion)*
 
 - [x] 133-22-PLAN.md — Rebind the Phase 133 census and Nightly receipt to the fully repaired evidence implementation.
+
+**Wave 17** *(blocked on Wave 16 completion)*
+
+- [ ] 133-23-PLAN.md — Repair cross-SHA scheduled-incident replay and retire the obsolete competing evaluator.
+- [ ] 133-24-PLAN.md — Make package proof execution-authenticated, consume receipt input exactly once, and bound resolver decoding.
+- [ ] 133-25-PLAN.md — Parse completion from bounded YAML frontmatter and extend reconciliation through Plan 27.
+
+**Wave 18** *(blocked on Plan 24)*
+
+- [ ] 133-26-PLAN.md — Replace stale maintainer guidance with durable executable authority descriptions.
+
+**Wave 19** *(blocked on Waves 17–18 completion)*
+
+- [ ] 133-27-PLAN.md — Rebind the census and collect one fresh exact-subject receipt after every gap repair.
 
 ### Phase 134: Dependency, Security, and Inbox Disposition
 
@@ -212,7 +226,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 133. Evidence Charter and Live Truth | 22/22 | In Progress|  |
+| 133. Evidence Charter and Live Truth | 22/27 | In Progress|  |
 | 134. Dependency, Security, and Inbox Disposition | 0/TBD | Not started | - |
 | 135. Repository and Code-Craft Consolidation | 0/TBD | Not started | - |
 | 136. Measured Quality and CI Ratchets | 0/TBD | Not started | - |
