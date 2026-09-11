@@ -1,6 +1,6 @@
 {
   "conclusion": "success",
-  "created_at": "2026-09-11T01:22:20Z",
+  "created_at": "2026-09-11T19:21:59Z",
   "dialyzer": {
     "cache_key": "plt-v3-Linux-X64-otpOTP-27.3.4.17-elixirv1.17.3-otp-27-6c351141945afd0267660d9e684048ac27092fe07215bcefe3a54f7d4db719ae",
     "fresh": {
@@ -187,11 +187,26 @@
           "reactionGroups": [],
           "url": "https://github.com/szTheory/rindle/issues/88#issuecomment-5614913683",
           "viewerDidAuthor": false
+        },
+        {
+          "author": {
+            "login": "github-actions"
+          },
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "A scheduled nightly run failed: https://github.com/szTheory/rindle/actions/runs/34574928855\n\n| Job | Result |\n| --- | --- |\n| Compat Matrix | success |\n| Dialyzer | failure |\n| GCS Soak | success |\n| Package Consumer GCS Live | success |",
+          "createdAt": "2026-09-11T07:37:59Z",
+          "id": "IC_kwDOSOrvxs8AAAABT6OyzA",
+          "includesCreatedEdit": false,
+          "isMinimized": false,
+          "minimizedReason": "",
+          "reactionGroups": [],
+          "url": "https://github.com/szTheory/rindle/issues/88#issuecomment-5631095500",
+          "viewerDidAuthor": false
         }
       ],
       "number": 88,
       "title": "Nightly CI failure",
-      "updatedAt": "2026-09-10T07:37:44Z",
+      "updatedAt": "2026-09-11T07:37:59Z",
       "url": "https://github.com/szTheory/rindle/issues/88"
     }
   ],
@@ -363,84 +378,105 @@
           "reactionGroups": [],
           "url": "https://github.com/szTheory/rindle/issues/88#issuecomment-5614913683",
           "viewerDidAuthor": false
+        },
+        {
+          "author": {
+            "login": "github-actions"
+          },
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "A scheduled nightly run failed: https://github.com/szTheory/rindle/actions/runs/34574928855\n\n| Job | Result |\n| --- | --- |\n| Compat Matrix | success |\n| Dialyzer | failure |\n| GCS Soak | success |\n| Package Consumer GCS Live | success |",
+          "createdAt": "2026-09-11T07:37:59Z",
+          "id": "IC_kwDOSOrvxs8AAAABT6OyzA",
+          "includesCreatedEdit": false,
+          "isMinimized": false,
+          "minimizedReason": "",
+          "reactionGroups": [],
+          "url": "https://github.com/szTheory/rindle/issues/88#issuecomment-5631095500",
+          "viewerDidAuthor": false
         }
       ],
       "number": 88,
       "title": "Nightly CI failure",
-      "updatedAt": "2026-09-10T07:37:44Z",
+      "updatedAt": "2026-09-11T07:37:59Z",
       "url": "https://github.com/szTheory/rindle/issues/88"
     }
   ],
   "jobs": [
     {
       "conclusion": "success",
-      "id": 103111887898,
+      "id": 103391958870,
       "name": "Compat Matrix (1.15, 26)",
       "status": "completed"
     },
     {
       "conclusion": "success",
-      "id": 103111887901,
+      "id": 103391958820,
       "name": "Compat Matrix (1.16, 26)",
       "status": "completed"
     },
     {
       "conclusion": "success",
-      "id": 103111887961,
+      "id": 103391958989,
       "name": "Compat Matrix (1.17, 27)",
       "status": "completed"
     },
     {
       "conclusion": "success",
-      "id": 103111887949,
+      "id": 103391958940,
       "name": "Compat Matrix (1.18, 27)",
       "status": "completed"
     },
     {
       "conclusion": "success",
-      "id": 103111887845,
+      "id": 103391958993,
       "name": "Compat Matrix (1.18, 28)",
       "status": "completed"
     },
     {
       "conclusion": "success",
-      "id": 103111887807,
+      "id": 103391958936,
       "name": "Dialyzer",
       "status": "completed"
     },
     {
       "conclusion": "success",
-      "id": 103111887892,
+      "id": 103391958563,
       "name": "GCS Soak (real bucket)",
       "status": "completed"
     },
     {
-      "conclusion": "success",
-      "id": 103112913340,
+      "conclusion": "skipped",
+      "id": 103393759939,
       "name": "Nightly Incident Lifecycle",
       "status": "completed"
     },
     {
       "conclusion": "success",
-      "id": 103112879963,
+      "id": 103393721300,
       "name": "Nightly Summary",
       "status": "completed"
     },
     {
       "conclusion": "success",
-      "id": 103111887820,
+      "id": 103391958768,
       "name": "Package Consumer GCS Live Proof",
+      "status": "completed"
+    },
+    {
+      "conclusion": "skipped",
+      "id": 103393758725,
+      "name": "Persist Nightly Incident Verdict",
       "status": "completed"
     }
   ],
   "local_authorities": {
     "census": {
-      "ledger_blob": "89ecf7ad956513b79dafdd804a275387bfa2c1bc",
-      "ledger_commit": "1fd1cf5ba0ceae3cb57a4b6cda1312819a84a255",
+      "ledger_blob": "519a359d09bcb0b31a0259b36145bccb1e1c2f8f",
+      "ledger_commit": "78a2b9403f202e70c3023a27a7b3e7d4760dd3d8",
       "ledger_path": ".planning/phases/133-evidence-charter-and-live-truth/133-EVIDENCE-CENSUS.json",
-      "ledger_sha256": "bd92fe885964aaa0312494390c16dd6772117b9241084686062e82562200ba19",
+      "ledger_sha256": "21c03b1617f20157047f464b3b997f3427fae05087b1509a864d83edffdb3acd",
       "receipt": {
-        "candidates_digest": "025bee903448cd50dac4fe92b52d4e3bf0a6c630c9a627ead92f9fe99f122620",
+        "candidates_digest": "433d2a74d9d85b30145926790e1edd1cbe3ebe9026aeebedab179c7a5ddd27bd",
         "dimensions": [
           {
             "applicable": true,
@@ -577,7 +613,7 @@
           {
             "detector_id": "nightly-policy",
             "path": ".github/workflows/nightly.yml",
-            "sha256": "f49994f5b699659cfa25ec5cac47509ed4819c9ca769dc8240417ee60f441691"
+            "sha256": "8447751a9c8186a838a1d1c4ba65cc911c18a5949dc9da1c89ca164171a1cd22"
           },
           {
             "detector_id": "package-consumer",
@@ -617,7 +653,7 @@
           {
             "detector_id": "supported-toolchain",
             "path": ".github/workflows/nightly.yml",
-            "sha256": "f49994f5b699659cfa25ec5cac47509ed4819c9ca769dc8240417ee60f441691"
+            "sha256": "8447751a9c8186a838a1d1c4ba65cc911c18a5949dc9da1c89ca164171a1cd22"
           },
           {
             "detector_id": "supported-toolchain",
@@ -632,7 +668,7 @@
           {
             "detector_id": "workflow-topology",
             "path": ".github/workflows/nightly.yml",
-            "sha256": "f49994f5b699659cfa25ec5cac47509ed4819c9ca769dc8240417ee60f441691"
+            "sha256": "8447751a9c8186a838a1d1c4ba65cc911c18a5949dc9da1c89ca164171a1cd22"
           }
         ],
         "observations": [
@@ -666,7 +702,7 @@
               "failure_count": 0,
               "local_toolchain_only": true,
               "skipped_count": 4,
-              "test_count": 1489
+              "test_count": 1507
             },
             "detector_id": "default-exunit",
             "dimension": "correctness",
@@ -704,9 +740,10 @@
           },
           {
             "attributes": {
+              "dispatch_case_count": 130,
               "exact_run_live_proof": false,
-              "incident_case_count": 22,
-              "live_owner_plan": "133-17",
+              "incident_case_count": 15,
+              "live_owner_plan": "133-22",
               "summary_case_count": 49
             },
             "detector_id": "nightly-policy",
@@ -714,12 +751,13 @@
             "id": "obs-nightly-policy-post-133",
             "kind": "strict-nightly-policy",
             "location": ".github/workflows/nightly.yml",
-            "signal": "49-case aggregate and 22-case incident lifecycle contracts",
+            "signal": "49-case aggregate, 15-case immutable incident replay, and 130-case dispatch contracts",
             "status": "local-contract-pass-live-evidence-pending"
           },
           {
             "attributes": {
-              "package_authority_test_count": 4,
+              "combined_smoke_lifecycle": true,
+              "package_authority_test_count": 9,
               "prebuilt_fallback": false,
               "repository_fallback": false,
               "unpacked": true
@@ -729,7 +767,7 @@
             "id": "obs-package-consumer-post-133",
             "kind": "built-package-provenance",
             "location": "test/install_smoke/live_truth_parity_test.exs",
-            "signal": "generated image consumer from fresh unpacked package",
+            "signal": "exact-version generated consumer from one fresh unpacked-package smoke and lifecycle execution",
             "status": "pass"
           },
           {
@@ -777,7 +815,7 @@
           {
             "attributes": {
               "dialyzer_case_count": 34,
-              "live_owner_plan": "133-17",
+              "live_owner_plan": "133-22",
               "local_elixir": "1.19.5",
               "local_otp": "28",
               "supported_cell_live_proof": false,
@@ -804,42 +842,42 @@
             "id": "obs-workflow-topology-post-133",
             "kind": "parsed-workflow-policy",
             "location": ".github/workflows/nightly.yml",
-            "signal": "strict aggregate and incident wiring with preserved CI identity",
+            "signal": "strict aggregate and immutable incident replay wiring with preserved CI identity",
             "status": "pass"
           }
         ],
         "schema_version": 1,
-        "source_sha": "08d2f4f55fb2f59319a371de56606b2e925e6d54",
+        "source_sha": "1470cf8cb0f111d0b233efbf77ee69e92f25fd68",
         "toolchain": {
           "elixir": "1.19.5",
           "otp": "28"
         }
       },
       "status": "pass",
-      "subject_sha": "08d2f4f55fb2f59319a371de56606b2e925e6d54"
+      "subject_sha": "1470cf8cb0f111d0b233efbf77ee69e92f25fd68"
     },
     "live_truth": {
       "model_sha256": "37c5575e05185bce8b44a64eed08cf62fb5084518efcd3353b8b54588929c6e0",
       "status": "pass",
-      "subject_sha": "08d2f4f55fb2f59319a371de56606b2e925e6d54"
+      "subject_sha": "1470cf8cb0f111d0b233efbf77ee69e92f25fd68"
     }
   },
   "preflight": {
-    "remote_ref": "phase-133-evidence-08d2f4f55fb2",
+    "remote_ref": "phase-133-evidence-1470cf8cb0f1",
     "repository": "szTheory/rindle",
     "status": "pass",
-    "subject_sha": "08d2f4f55fb2f59319a371de56606b2e925e6d54",
+    "subject_sha": "1470cf8cb0f111d0b233efbf77ee69e92f25fd68",
     "workflow": "nightly.yml"
   },
-  "remote_ref": "phase-133-evidence-08d2f4f55fb2",
+  "remote_ref": "phase-133-evidence-1470cf8cb0f1",
   "repository": "szTheory/rindle",
   "run_attempt": 1,
-  "run_id": 34550391882,
+  "run_id": 34638437301,
   "schema_version": 2,
   "strict_verdict": {
     "summary_job": "Nightly Summary",
     "verdict": "green"
   },
-  "subject_sha": "08d2f4f55fb2f59319a371de56606b2e925e6d54",
+  "subject_sha": "1470cf8cb0f111d0b233efbf77ee69e92f25fd68",
   "workflow": "nightly.yml"
 }

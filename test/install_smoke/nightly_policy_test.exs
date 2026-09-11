@@ -123,6 +123,7 @@ defmodule Rindle.InstallSmoke.NightlyPolicyTest do
     refute Map.has_key?(producer, "concurrency")
 
     write = step(producer, "Write immutable Nightly verdict event")
+
     assert write["env"]["STRICT_VERDICT_JSON"] ==
              "${{ needs.nightly-summary.outputs.verdict-json }}"
 
