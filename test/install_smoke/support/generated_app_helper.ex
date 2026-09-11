@@ -140,7 +140,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       host_migration_ran?: migration_report["host_migration_ran"] == true,
       host_oban_migration_ran?: migration_report["host_oban_migration_ran"] == true,
       rindle_migration_ran?: migration_report["rindle_migration_ran"] == true,
-      migration_resolution: migration_report["resolver"] |> to_existing_atom_safe(),
+      migration_resolution: decode_migration_resolver!(migration_report["resolver"]),
       rindle_migration_path: migration_report["rindle_migration_path"],
       selected_schema_relations: migration_report["selected_schema_relations"] || %{},
       decoy_schema_relations: migration_report["decoy_schema_relations"] || %{},
@@ -270,7 +270,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       host_migration_ran?: migration_report["host_migration_ran"] == true,
       host_oban_migration_ran?: migration_report["host_oban_migration_ran"] == true,
       rindle_migration_ran?: migration_report["rindle_migration_ran"] == true,
-      migration_resolution: migration_report["resolver"] |> to_existing_atom_safe(),
+      migration_resolution: decode_migration_resolver!(migration_report["resolver"]),
       rindle_migration_path: migration_report["rindle_migration_path"],
       selected_schema_relations: migration_report["selected_schema_relations"] || %{},
       decoy_schema_relations: migration_report["decoy_schema_relations"] || %{},
@@ -611,7 +611,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       host_migration_ran?: migration_report["host_migration_ran"] == true,
       host_oban_migration_ran?: migration_report["host_oban_migration_ran"] == true,
       rindle_migration_ran?: migration_report["rindle_migration_ran"] == true,
-      migration_resolution: migration_report["resolver"] |> to_existing_atom_safe(),
+      migration_resolution: decode_migration_resolver!(migration_report["resolver"]),
       rindle_migration_path: migration_report["rindle_migration_path"],
       legacy_rindle_migration_path: legacy_seed["legacy_rindle_migration_path"],
       legacy_migration_cutoff: legacy_seed["legacy_rindle_migration_version"],
@@ -751,8 +751,15 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     end
   end
 
-  defp to_existing_atom_safe(nil), do: nil
-  defp to_existing_atom_safe(value) when is_binary(value), do: String.to_atom(value)
+  @doc false
+  def decode_migration_resolver!(nil), do: nil
+  def decode_migration_resolver!("host_migrations"), do: :host_migrations
+
+  def decode_migration_resolver!(value) when is_binary(value),
+    do: raise(ArgumentError, "unknown generated migration resolver")
+
+  def decode_migration_resolver!(_value),
+    do: raise(ArgumentError, "generated migration resolver must be a known string")
 
   defp successful_lifecycle?(result),
     do: result.exit_code == 0 and String.contains?(result.output, "0 failures")
