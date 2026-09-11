@@ -387,6 +387,38 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
     assert adoption_gate =~ "--only package_authority"
   end
 
+  @tag :derived_authority
+  test "maintainer guidance binds Nightly gates and supported-cell proof to live authorities" do
+    model = Rindle.ValidateLiveTruth.derive!(@repo_root, [])
+    running = File.read!(Path.join(@repo_root, "RUNNING.md"))
+
+    assert_running_nightly_authority!(running, model)
+
+    stale_advisory =
+      String.replace(
+        running,
+        "are all **Nightly-gating** inputs to the strict `Nightly Summary`",
+        "are advisory and never required checks",
+        global: false
+      )
+
+    assert_raise ExUnit.AssertionError, fn ->
+      assert_running_nightly_authority!(stale_advisory, model)
+    end
+
+    stale_plan_authority =
+      String.replace(
+        running,
+        "The current supported-cell acceptance authority is the exact-subject",
+        "Plan 07 remains the live acceptance authority; the exact-subject",
+        global: false
+      )
+
+    assert_raise ExUnit.AssertionError, fn ->
+      assert_running_nightly_authority!(stale_plan_authority, model)
+    end
+  end
+
   @tag :package_authority
   test "package authority exposes the canonical producer and verifier interfaces" do
     assert function_exported?(
@@ -913,6 +945,25 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
 
     on_exit(fn -> File.rm_rf(root) end)
     root
+  end
+
+  defp assert_running_nightly_authority!(running, model) do
+    assert running =~ "not required PR checks"
+    assert running =~ "are all **Nightly-gating** inputs to the strict `Nightly Summary`"
+
+    for lane <- model.nightly.required_needs do
+      assert running =~ "`#{lane}`"
+    end
+
+    assert running =~
+             "Any applicable lane that fails, is cancelled, is unexpected, is missing, or is impermissibly skipped makes Nightly red."
+
+    assert running =~
+             ".planning/phases/133-evidence-charter-and-live-truth/133-NIGHTLY-EVIDENCE.json"
+
+    assert running =~ "scripts/ci/verify_nightly_run.sh verify-receipt"
+    refute running =~ "advisory and never a required PR check"
+    refute Regex.match?(~r/Plan \d+.*live acceptance authority/i, running)
   end
 
   defp required_check_policy do
