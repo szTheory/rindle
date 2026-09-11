@@ -495,6 +495,8 @@ gh run watch "$run_id" --repo "$repo" --interval "$poll_seconds" || die "GitHub 
 run_json="$(gh run view "$run_id" --repo "$repo" --json attempt,conclusion,createdAt,databaseId,event,headBranch,headSha,jobs,status,url,workflowName)" ||
   die "run detail lookup failed"
 validate_run_json "$run_json"
+[ "$run_id" = "$(jq -r '.databaseId' <<<"$run_json")" ] ||
+  die "selected run ID differs from the detailed run identity"
 dialyzer_logs="$(job_logs "$run_id" "$run_json" "Dialyzer")"
 summary_logs="$(job_logs "$run_id" "$run_json" "Nightly Summary")"
 dialyzer="$(parse_log_evidence "${dialyzer_logs}"$'\n'"${summary_logs}")"
