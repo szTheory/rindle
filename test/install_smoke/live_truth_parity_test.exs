@@ -948,22 +948,27 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
   end
 
   defp assert_running_nightly_authority!(running, model) do
-    assert running =~ "not required PR checks"
-    assert running =~ "are all **Nightly-gating** inputs to the strict `Nightly Summary`"
+    prose =
+      running
+      |> String.replace(~r/(^|\n)>\s?/, "\\1")
+      |> String.replace(~r/\s+/, " ")
+
+    assert prose =~ "not required PR checks"
+    assert prose =~ "are all **Nightly-gating** inputs to the strict `Nightly Summary`"
 
     for lane <- model.nightly.required_needs do
       assert running =~ "`#{lane}`"
     end
 
-    assert running =~
+    assert prose =~
              "Any applicable lane that fails, is cancelled, is unexpected, is missing, or is impermissibly skipped makes Nightly red."
 
     assert running =~
              ".planning/phases/133-evidence-charter-and-live-truth/133-NIGHTLY-EVIDENCE.json"
 
     assert running =~ "scripts/ci/verify_nightly_run.sh verify-receipt"
-    refute running =~ "advisory and never a required PR check"
-    refute Regex.match?(~r/Plan \d+.*live acceptance authority/i, running)
+    refute prose =~ "advisory and never a required PR check"
+    refute Regex.match?(~r/Plan \d+.*live acceptance authority/i, prose)
   end
 
   defp required_check_policy do

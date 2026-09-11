@@ -43,9 +43,12 @@ matrix both of those entrypoints link to.
 >   `package-consumer`** runs on PR (stays merge-blocking via `CI Summary`); a new
 >   **`package-consumer-full`** runs on `push:main`/release with the full 5-profile matrix
 >   + release preflight + `hex.publish --dry-run` and is **NOT** a required PR check.
-> - The broad OTP×Elixir **compat matrix**, **`gcs-soak`**, **`package-consumer-gcs-live`**,
->   and an owned gating **Dialyzer** lane move to a separate **`nightly.yml`** (`name:
->   Nightly`), advisory and never a required PR check.
+> - The broad OTP×Elixir **`compat-matrix`**, **`dialyzer`**, **`gcs-soak`**, and
+>   **`package-consumer-gcs-live`** lanes live in the separate **`nightly.yml`**
+>   (`name: Nightly`). They are not required PR checks because Nightly has no PR trigger,
+>   but are all **Nightly-gating** inputs to the strict `Nightly Summary`.
+>   Any applicable lane that fails, is cancelled, is unexpected, is missing, or is
+>   impermissibly skipped makes Nightly red.
 > - **`mux-soak` stays here** in `ci.yml` as a **label-gated PR lane** (not moved to
 >   nightly).
 >
@@ -75,6 +78,7 @@ matrix both of those entrypoints link to.
 | `brandbook-tokens` | merge-blocking | `needs: [quality, optional-dependencies]`; repo `szTheory/rindle` only | PIPE-01 drift gate: regenerates brandbook token CSS, admin CSS, gallery proof, and shipped priv/ CSS copy, then fails on any generated-artifact diff |
 | `adopter` | merge-blocking | `needs: [quality, optional-dependencies, integration, contract]` | Canonical adopter lifecycle only (doc parity in `proof` job) |
 | `mux-soak` | secret-gated soak (label-gated PR lane) | Label `streaming` on PR; `needs: quality` | Not in branch protection required checks; fails closed when secrets are absent. |
+| `compat-matrix` | nightly (gating) | `nightly.yml`: schedule 07:27 UTC / `workflow_dispatch` | Broad OTP×Elixir compatibility; not a required PR check, but every matrix cell feeds strict `Nightly Summary`. |
 | `dialyzer` | nightly (gating) | `nightly.yml`: schedule 07:27 UTC / `workflow_dispatch` | Owned type-contract lane; not a required PR check, but a failure makes Nightly red. |
 | `gcs-soak` | nightly (gating) | `nightly.yml`: schedule 07:27 UTC / `workflow_dispatch`; no `needs:`; repo `szTheory/rindle` + secrets | Skipped when secrets are absent; a live-GCS regression makes Nightly red. |
 | `package-consumer-gcs-live` | nightly (gating) | `nightly.yml`: schedule 07:27 UTC / `workflow_dispatch`; no `needs:`; repo `szTheory/rindle` + secrets | Live GCS install-smoke when secrets are present (skipped otherwise); failures make Nightly red. |
@@ -83,8 +87,10 @@ Nightly Dialyzer proves fresh and restored PLT modes independently on the suppor
 27 cell. `Nightly Summary` applies the strict Nightly verdict: failed, cancelled, unexpected, missing,
 or impermissibly skipped gating work is red. For the two live GCS jobs, the bounded upstream-repository
 and required-secrets rule records secret-absent work as not-run rather than passed. Local runs on a
-newer toolchain are diagnostic only; Plan 07's exact-SHA supported-cell run remains the live acceptance
-authority.
+newer toolchain are diagnostic only. The current supported-cell acceptance authority is the exact-subject
+receipt at `.planning/phases/133-evidence-charter-and-live-truth/133-NIGHTLY-EVIDENCE.json`, authenticated
+against live GitHub run/job/log state and detached local authorities by the repository's
+`bash scripts/ci/verify_nightly_run.sh verify-receipt` contract.
 
 ### Reproducing the coverage step locally (COV-04)
 
