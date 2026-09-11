@@ -451,14 +451,15 @@ defmodule Rindle.ValidateEvidenceCensus do
     |> Enum.sort()
     |> Enum.reduce_while({:ok, []}, fn {detector_id, path}, {:ok, acc} ->
       with :ok <- safe_relative_path(path),
-           {:ok, contents} <- File.read(Path.join(root, path)) do
+           {:ok, full_path} <- contained_input_file(path, root),
+           {:ok, contents} <- File.read(full_path) do
         digest = :crypto.hash(:sha256, contents) |> Base.encode16(case: :lower)
 
         {:cont,
          {:ok, [%{"detector_id" => detector_id, "path" => path, "sha256" => digest} | acc]}}
       else
         {:error, reason} ->
-          {:halt, {:error, "detector input #{inspect(path)}: #{inspect(reason)}"}}
+          {:halt, {:error, "detector input #{inspect(path)}: #{reason}"}}
       end
     end)
     |> case do
@@ -472,10 +473,71 @@ defmodule Rindle.ValidateEvidenceCensus do
 
     if Path.type(path) == :relative and String.starts_with?(expanded, "/evidence-root/"),
       do: :ok,
-      else: {:error, "path must remain repository-relative"}
+      else: {:error, "detector input path must remain repository-relative"}
   end
 
-  defp safe_relative_path(_), do: {:error, "path must be a non-empty string"}
+  defp safe_relative_path(_),
+    do: {:error, "detector input path must be a non-empty string"}
+
+  defp contained_input_file(path, root) do
+    root = Path.expand(root)
+    expanded = Path.expand(path, root)
+
+    with true <- contained_path?(expanded, root),
+         {:ok, physical_root} <- resolve_input_physical_path(root),
+         {:ok, resolved} <- resolve_input_physical_path(expanded),
+         true <- contained_path?(resolved, physical_root),
+         {:ok, %File.Stat{type: :regular}} <- File.lstat(resolved) do
+      {:ok, resolved}
+    else
+      {:error, :eloop} ->
+        {:error, "detector input physical path contains a symlink loop"}
+
+      {:error, :enoent} ->
+        {:error, "detector input physical path is missing or dangling"}
+
+      _ ->
+        {:error, "detector input must resolve to a regular file within repository root"}
+    end
+  end
+
+  defp resolve_input_physical_path(path) do
+    [root | segments] = path |> Path.expand() |> Path.split()
+    resolve_input_components(root, segments, MapSet.new())
+  end
+
+  defp resolve_input_components(current, [], _seen), do: {:ok, current}
+
+  defp resolve_input_components(current, [segment | rest], seen) do
+    candidate = Path.join(current, segment)
+
+    case File.lstat(candidate) do
+      {:ok, %File.Stat{type: :symlink}} ->
+        if MapSet.member?(seen, candidate) do
+          {:error, :eloop}
+        else
+          with {:ok, target} <- File.read_link(candidate),
+               {:ok, resolved} <-
+                 resolve_input_physical_path(
+                   Path.expand(target, Path.dirname(candidate)),
+                   MapSet.put(seen, candidate)
+                 ) do
+            resolve_input_components(resolved, rest, seen)
+          end
+        end
+
+      {:ok, _stat} ->
+        resolve_input_components(candidate, rest, seen)
+
+      error ->
+        error
+    end
+  end
+
+  defp resolve_input_physical_path(path, seen) do
+    [root | segments] = path |> Path.expand() |> Path.split()
+    resolve_input_components(root, segments, seen)
+  end
 
   defp validate_observation_locations(%{"detectors" => detectors}, root)
        when is_list(detectors) do
