@@ -396,6 +396,35 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
   end
 
   @tag :package_authority
+  test "package receipt rejects one captured result copied into smoke and lifecycle slots" do
+    root =
+      Path.join(
+        System.tmp_dir!(),
+        "rindle-package-command-evidence-#{System.unique_integer([:positive])}"
+      )
+
+    package_root = Path.join(root, "package/rindle")
+    generated_app_root = Path.join(root, "generated_app")
+    File.mkdir_p!(package_root)
+    File.mkdir_p!(generated_app_root)
+    File.write!(Path.join(package_root, "hex_metadata.config"), "package metadata")
+    File.write!(Path.join(generated_app_root, "mix.lock"), "%{}")
+    on_exit(fn -> File.rm_rf(root) end)
+
+    result = %{exit_code: 0, output: "1 test, 0 failures"}
+
+    assert_raise ArgumentError, ~r/duplicate package command evidence/, fn ->
+      Rindle.InstallSmoke.GeneratedAppHelper.package_evidence_receipt!(
+        %{
+          package_root_provenance: %{path: package_root},
+          generated_app_root: generated_app_root
+        },
+        %{compile: result, boot: result, smoke: result, lifecycle: result}
+      )
+    end
+  end
+
+  @tag :package_authority
   @tag :minio
   @tag timeout: :infinity
   test "fresh unpacked generated image consumer report authorizes package proof" do
