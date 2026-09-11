@@ -116,6 +116,8 @@ jobs:
         # release") and blocked merges. apt only ships 4.4 — below the >= 6.0 gate
         # in lib/rindle/av/probe.ex. See scripts/ci/install_ffmpeg.sh.
         run: bash scripts/ci/install_ffmpeg.sh
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
       # CACHE-04 (D-10): the strict --check-locked drift gate runs only on the
       # lock's canonical OTP (1.17/27) — same guard as --check-unused below, and for
@@ -375,6 +377,8 @@ jobs:
         # release") and blocked merges. apt only ships 4.4 — below the >= 6.0 gate
         # in lib/rindle/av/probe.ex. See scripts/ci/install_ffmpeg.sh.
         run: bash scripts/ci/install_ffmpeg.sh
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
       - name: Set up MinIO
         uses: ./.github/actions/setup-minio
@@ -477,6 +481,8 @@ jobs:
       # which invokes ffmpeg and ffprobe. Keep that prerequisite explicit.
       - name: Install FFmpeg
         run: bash scripts/ci/install_ffmpeg.sh
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
       - name: Install dependencies
         run: mix deps.get
@@ -755,6 +761,8 @@ jobs:
 
       - name: Set up FFmpeg
         run: bash scripts/ci/install_ffmpeg.sh
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
       - name: Install libvips
         run: bash scripts/ci/install_apt_packages.sh libvips-dev
@@ -1159,6 +1167,8 @@ jobs:
         # release") and blocked merges. apt only ships 4.4 — below the >= 6.0 gate
         # in lib/rindle/av/probe.ex. See scripts/ci/install_ffmpeg.sh.
         run: bash scripts/ci/install_ffmpeg.sh
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
       - name: Install dependencies
         run: mix deps.get

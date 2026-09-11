@@ -193,6 +193,29 @@ defmodule Rindle.InstallSmoke.CiCacheHygieneTest do
            ]
   end
 
+  test "CACHE-05: every static FFmpeg install authenticates its release lookup" do
+    for {workflow_name, workflow_path} <- [
+          {"ci.yml", @ci_path},
+          {"nightly.yml", @nightly_path},
+          {"release.yml", @release_path}
+        ] do
+      installer_steps =
+        workflow_path
+        |> YamlElixir.read_from_file!()
+        |> get_in(["jobs"])
+        |> Map.values()
+        |> Enum.flat_map(&Map.get(&1, "steps", []))
+        |> Enum.filter(&(Map.get(&1, "run") == "bash scripts/ci/install_ffmpeg.sh"))
+
+      assert installer_steps != [], "#{workflow_name} must retain its static FFmpeg install"
+
+      assert Enum.all?(installer_steps, fn step ->
+               get_in(step, ["env", "GITHUB_TOKEN"]) == "${{ github.token }}"
+             end),
+             "#{workflow_name} must pass github.token to every static FFmpeg release lookup"
+    end
+  end
+
   test "apt package installation is shared, bounded, and retryable across every workflow",
        %{
          ci: ci,

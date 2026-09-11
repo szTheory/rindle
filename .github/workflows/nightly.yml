@@ -108,6 +108,8 @@ jobs:
         # Reliable static ffmpeg >= 6 (apt only ships 4.4, below the >= 6.0 gate
         # in lib/rindle/av/probe.ex). See scripts/ci/install_ffmpeg.sh.
         run: bash scripts/ci/install_ffmpeg.sh
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
       - name: Install dependencies
         run: mix deps.get
