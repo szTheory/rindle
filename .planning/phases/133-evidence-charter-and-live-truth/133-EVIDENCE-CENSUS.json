@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "subject_sha": "08d2f4f55fb2f59319a371de56606b2e925e6d54",
+  "subject_sha": "e8d8b54b289bc36f702c91abd194a65f84f4800e",
   "taxonomy": [
     {"id": "correctness", "applicable": true, "detectors": ["default-exunit"]},
     {"id": "maintainability", "applicable": true, "detectors": ["credo-quality"]},
@@ -27,7 +27,7 @@
         "location": "test",
         "signal": "mix ci default suite",
         "status": "pass",
-        "attributes": {"test_count": 1489, "failure_count": 0, "skipped_count": 4, "local_toolchain_only": true}
+        "attributes": {"test_count": 1507, "failure_count": 0, "skipped_count": 4, "local_toolchain_only": true}
       }]
     },
     {
@@ -81,9 +81,9 @@
         "id": "obs-nightly-policy-post-133",
         "kind": "strict-nightly-policy",
         "location": ".github/workflows/nightly.yml",
-        "signal": "49-case aggregate and 22-case incident lifecycle contracts",
+        "signal": "49-case aggregate, 15-case immutable incident replay, and 130-case dispatch contracts",
         "status": "local-contract-pass-live-evidence-pending",
-        "attributes": {"summary_case_count": 49, "incident_case_count": 22, "exact_run_live_proof": false, "live_owner_plan": "133-17"}
+        "attributes": {"summary_case_count": 49, "incident_case_count": 15, "dispatch_case_count": 130, "exact_run_live_proof": false, "live_owner_plan": "133-22"}
       }]
     },
     {
@@ -97,7 +97,7 @@
         "location": ".github/workflows/nightly.yml",
         "signal": "fresh/restored/stale-only Dialyzer contract",
         "status": "local-contract-pass-live-evidence-pending",
-        "attributes": {"dialyzer_case_count": 34, "supported_elixir": "1.17", "supported_otp": "27", "local_elixir": "1.19.5", "local_otp": "28", "supported_cell_live_proof": false, "live_owner_plan": "133-17"}
+        "attributes": {"dialyzer_case_count": 34, "supported_elixir": "1.17", "supported_otp": "27", "local_elixir": "1.19.5", "local_otp": "28", "supported_cell_live_proof": false, "live_owner_plan": "133-22"}
       }]
     },
     {
@@ -137,9 +137,9 @@
         "id": "obs-package-consumer-post-133",
         "kind": "built-package-provenance",
         "location": "test/install_smoke/live_truth_parity_test.exs",
-        "signal": "generated image consumer from fresh unpacked package",
+        "signal": "exact-version generated consumer from one fresh unpacked-package smoke and lifecycle execution",
         "status": "pass",
-        "attributes": {"package_authority_test_count": 4, "repository_fallback": false, "prebuilt_fallback": false, "unpacked": true}
+        "attributes": {"package_authority_test_count": 9, "combined_smoke_lifecycle": true, "repository_fallback": false, "prebuilt_fallback": false, "unpacked": true}
       }]
     },
     {
@@ -151,7 +151,7 @@
         "id": "obs-workflow-topology-post-133",
         "kind": "parsed-workflow-policy",
         "location": ".github/workflows/nightly.yml",
-        "signal": "strict aggregate and incident wiring with preserved CI identity",
+        "signal": "strict aggregate and immutable incident replay wiring with preserved CI identity",
         "status": "pass",
         "attributes": {"required_check_count": 1, "nightly_gating_job_count": 4, "full_adoption_e2e_merge_blocking": false, "smoke_adoption_e2e_merge_blocking": true}
       }]
@@ -190,12 +190,12 @@
     {"id": "quality-maintainability-curated-complexity", "observations": ["obs-credo-quality-baseline"], "disposition": "retain", "rationale": "Phase 127's reviewed removal-only complexity multiset remains the active maintainability authority and Phase 133 introduced no new finding.", "evidence": ["mix credo_quality", ".planning/milestones/v1.25-phases/127-evidence-charter-quality-census/127-QUALITY-CENSUS.md"], "trigger": null},
     {"id": "quality-security-dependency-policy", "observations": ["obs-mix-audit-policy"], "disposition": "retain", "rationale": "Phase 133 does not mutate dependency dispositions; live dependency triage is explicitly owned by Phase 134.", "evidence": ["mix deps.audit", ".planning/ROADMAP.md"], "trigger": null},
     {"id": "quality-performance-required-pr-timing", "observations": ["obs-pr-timing-v125"], "disposition": "retain", "rationale": "The accepted ten-run <=480s median and <=600s p95 receipt remains authoritative and Phase 133 preserves the required topology.", "evidence": [".planning/milestones/v1.25-phases/132-measured-closure/132-02-SUMMARY.md"], "trigger": null},
-    {"id": "quality-reliability-nightly", "observations": ["obs-nightly-policy-post-133"], "disposition": "fix", "rationale": "Phase 133 replaced false-green Nightly aggregation and ad hoc incident handling with strict executable policies; Plan 17 owns live exact-run closure.", "evidence": ["scripts/ci/test_nightly_summary_gate.sh", "scripts/ci/test_nightly_incident.sh", "133-17"], "trigger": null},
-    {"id": "quality-compatibility-supported-toolchain", "observations": ["obs-supported-toolchain-post-133"], "disposition": "fix", "rationale": "Phase 133 keys and proves fresh/restored PLT modes by resolved patch toolchain while reserving supported-cell authority for Plan 17's exact-run Nightly receipt.", "evidence": ["scripts/ci/test_nightly_dialyzer.sh", "133-17"], "trigger": null},
+    {"id": "quality-reliability-nightly", "observations": ["obs-nightly-policy-post-133"], "disposition": "fix", "rationale": "Phase 133 replaced false-green Nightly aggregation and ad hoc incident handling with strict executable policies; Plan 22 owns live exact-run closure.", "evidence": ["scripts/ci/test_nightly_summary_gate.sh", "scripts/ci/test_nightly_incident.sh", "133-22"], "trigger": null},
+    {"id": "quality-compatibility-supported-toolchain", "observations": ["obs-supported-toolchain-post-133"], "disposition": "fix", "rationale": "Phase 133 keys and proves fresh/restored PLT modes by resolved patch toolchain while reserving supported-cell authority for Plan 22's exact-run Nightly receipt.", "evidence": ["scripts/ci/test_nightly_dialyzer.sh", "133-22"], "trigger": null},
     {"id": "quality-testing-automation-first", "observations": ["obs-automation-first-post-133"], "disposition": "fix", "rationale": "Every Phase 133 implementation requirement now closes through executable contracts; the sole human checkpoint authorizes publication only.", "evidence": ["./scripts/maintainer/automation_first_contract.sh", ".planning/phases/133-evidence-charter-and-live-truth/133-VALIDATION.md"], "trigger": null},
     {"id": "quality-documentation-accessibility", "observations": ["obs-docs-accessibility-post-133"], "disposition": "fix", "rationale": "Maintainer guidance now distinguishes local, Nightly, not-run, merge-blocking, and off-critical-path evidence while preserving generated accessibility gates.", "evidence": ["RUNNING.md", "bash scripts/maintainer/refactor_contract.sh"], "trigger": null},
-    {"id": "quality-packaging-generated-consumer", "observations": ["obs-package-consumer-post-133"], "disposition": "fix", "rationale": "Package claims now require a fresh generated consumer installed from a real unpacked package with repository and prebuilt fallbacks rejected.", "evidence": ["bash scripts/maintainer/check_adoption_proof_matrix.sh", "test/install_smoke/live_truth_parity_test.exs"], "trigger": null},
-    {"id": "quality-ci-required-topology", "observations": ["obs-workflow-topology-post-133"], "disposition": "fix", "rationale": "Nightly strict verdict and incident topology were repaired while CI, CI Summary, fork-safety, and required-needs identities remain fixed.", "evidence": ["test/install_smoke/nightly_policy_test.exs", "test/install_smoke/live_truth_parity_test.exs"], "trigger": null},
+    {"id": "quality-packaging-generated-consumer", "observations": ["obs-package-consumer-post-133"], "disposition": "fix", "rationale": "Package claims now require one exact-version generated consumer execution covering smoke and lifecycle behavior from a real unpacked package with repository and prebuilt fallbacks rejected.", "evidence": ["bash scripts/maintainer/check_adoption_proof_matrix.sh", "test/install_smoke/live_truth_parity_test.exs"], "trigger": null},
+    {"id": "quality-ci-required-topology", "observations": ["obs-workflow-topology-post-133"], "disposition": "fix", "rationale": "Nightly strict verdict and immutable incident replay topology were repaired while CI, CI Summary, fork-safety, and required-needs identities remain fixed.", "evidence": ["test/install_smoke/nightly_policy_test.exs", "test/install_smoke/live_truth_parity_test.exs"], "trigger": null},
     {"id": "quality-release-exact-sha", "observations": ["obs-release-authority-post-133"], "disposition": "fix", "rationale": "Active release and adoption claims now derive from matching 0.4.6 authorities and preserve exact-SHA release coupling.", "evidence": ["test/install_smoke/live_truth_parity_test.exs", "test/install_smoke/release_docs_parity_test.exs"], "trigger": null},
     {"id": "quality-repository-hygiene", "observations": ["obs-repository-hygiene"], "disposition": "retain", "rationale": "The existing repository hygiene gate remains the authoritative clean-subject policy and is executed in a detached exact-SHA worktree for this freeze.", "evidence": ["./scripts/maintainer/repo_hygiene_check.sh", "scripts/maintainer/evidence_census.exs"], "trigger": null}
   ],
