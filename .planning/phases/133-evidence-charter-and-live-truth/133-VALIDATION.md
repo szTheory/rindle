@@ -449,3 +449,29 @@ Current executable evidence supports all 27 mapped command/failure pairs. The pr
 - **Remediation evidence:** the completed-state regression rejects any nonzero pending count, while the original 19-test fixture and pending addendum retain the historical pre-execution contract unchanged.
 
 The appended post-execution audit is the authoritative current status; the earlier pre-execution addendum remains historical transition evidence only.
+
+## Definitive Re-Audit 2026-09-10
+
+Re-audited after the targeted completed-state reconciliation fix without modifying implementation files. The immutable historical prefix and pre-execution pending addendum remain byte-preserved; the current production path is evaluated separately as completed state.
+
+| Scope | Current execution result |
+|-------|--------------------------|
+| Completed-state reconciliation | `mix test test/install_smoke/phase_133_reconciliation_test.exs test/install_smoke/phase_133_completed_validation_test.exs` — 20 tests, 0 failures |
+| Production reconciliation | `MIX_ENV=test mix run --no-deps-check --no-compile scripts/maintainer/validate_phase_133_reconciliation.exs --root .` — 17 completed, 0 pending plans, 27 historical verification pairs |
+| Planning-path integration | Focused reconciliation plus `test/planning_path_hygiene_test.exs` — 21 tests, 0 failures after routing the completed-state regression through the validator CLI |
+| Dialyzer safety | 34 cases, 0 failures; ShellCheck passed |
+| Exact-run and local-authority mutation matrix | 109 cases, 0 failures; ShellCheck passed |
+| Strict Nightly verdict and incident lifecycle | 49 + 22 cases, 0 failures |
+| Census and truth authority | 15 census tests, 12 derived-authority tests, 4 real package-authority tests; adoption and `CI Summary` policy projections passed |
+| Focused Phase 133 aggregate | 94 tests, 0 failures, 17 excluded |
+| Detached exact-subject census | Subject `08d2f4f55fb2f59319a371de56606b2e925e6d54` validated from a detached worktree |
+| Remote exact-subject receipt | Ref SHA matched; run `34550391882`, attempt 1 revalidated successfully |
+| Repository gates | `mix ci` — 1,491 tests, 0 failures, 4 skipped; `refactor_contract.sh` — 97 tests, 0 failures; automation-first contract passed |
+
+### Definitive Verdict
+
+- **Resolved mappings:** 27/27
+- **Escalated mappings:** 0/27
+- **Classification:** NYQUIST-COMPLIANT
+- The Plan 17 publication decision remains authorization-only and receives no acceptance credit.
+- The first repository-gate attempt exposed a test-only planning-path hygiene violation. The regression now asserts the production validator's exact CLI result; the unchanged requirement and full repository gate both pass.
