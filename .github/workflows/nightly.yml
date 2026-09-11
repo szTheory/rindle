@@ -535,21 +535,83 @@ jobs:
           test "${{ steps.evaluate.outputs.evaluator-status }}" = "0"
           test "${{ steps.evaluate.outputs.verdict }}" = "green"
 
-  # D-12/D-13: one rolling incident consumes the same strict verdict that owns
-  # the workflow conclusion. `always()` makes cancelled, failed, and skipped
-  # dependency facts observable; the pure evaluator permits mutation only for a
-  # scheduled run whose exact SHA/ref still matches a fresh remote-main lookup.
+  # Every scheduled run publishes its strict machine verdict before entering
+  # the replaceable pending slot of the incident concurrency group. Artifacts
+  # are immutable replay inputs; they are never acknowledgements or cursors.
+  nightly-incident-verdict:
+    name: Persist Nightly Incident Verdict
+    runs-on: ubuntu-22.04
+    needs: nightly-summary
+    if: ${{ always() && github.event_name == 'schedule' }}
+    permissions:
+      contents: read
+    steps:
+      - name: Write immutable Nightly verdict event
+        env:
+          STRICT_VERDICT_JSON: ${{ needs.nightly-summary.outputs.verdict-json }}
+          RUN_ID: ${{ github.run_id }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+          RUN_SHA: ${{ github.sha }}
+          RUN_REF: ${{ github.ref }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          REPOSITORY: ${{ github.repository }}
+          WORKFLOW_NAME: ${{ github.workflow }}
+          WORKFLOW_REF: ${{ github.workflow_ref }}
+        run: |
+          set -euo pipefail
+
+          [[ "${RUN_ID}" =~ ^[1-9][0-9]{0,19}$ ]]
+          [[ "${RUN_ATTEMPT}" =~ ^[1-9][0-9]{0,9}$ ]]
+          [[ "${RUN_SHA}" =~ ^[0-9a-f]{40}$ ]]
+          [[ "${RUN_REF}" =~ ^refs/heads/[A-Za-z0-9._/-]{1,100}$ ]]
+          [[ "${RUN_URL}" = "https://github.com/${REPOSITORY}/actions/runs/${RUN_ID}" ]]
+          [[ "${WORKFLOW_NAME}" = "Nightly" ]]
+          [[ "${WORKFLOW_REF}" = "${REPOSITORY}/.github/workflows/nightly.yml@${RUN_REF}" ]]
+          jq -e '
+            type == "object" and
+            (.verdict | IN("red", "green")) and
+            (.jobs | type == "array" and length > 0) and
+            (.errors | type == "array")
+          ' >/dev/null <<<"${STRICT_VERDICT_JSON}"
+
+          verdict_path="${RUNNER_TEMP}/nightly-incident-verdict.json"
+          jq -cS -n \
+            --arg schema "rindle-nightly-incident-verdict-v1" \
+            --arg repository "${REPOSITORY}" \
+            --arg workflow_name "${WORKFLOW_NAME}" \
+            --arg workflow_ref "${WORKFLOW_REF}" \
+            --arg event "schedule" \
+            --argjson run_id "${RUN_ID}" \
+            --argjson run_attempt "${RUN_ATTEMPT}" \
+            --arg sha "${RUN_SHA}" \
+            --arg ref "${RUN_REF}" \
+            --arg url "${RUN_URL}" \
+            --argjson verdict "${STRICT_VERDICT_JSON}" \
+            '{schema:$schema,repository:$repository,workflow_name:$workflow_name,workflow_ref:$workflow_ref,event:$event,run_id:$run_id,run_attempt:$run_attempt,sha:$sha,ref:$ref,url:$url,verdict:$verdict}' \
+            >"${verdict_path}"
+          jq -e ".run_id == ${RUN_ID} and .run_attempt == ${RUN_ATTEMPT}" "${verdict_path}" >/dev/null
+
+      - name: Upload immutable Nightly verdict event
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: nightly-incident-verdict-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/nightly-incident-verdict.json
+          if-no-files-found: error
+          overwrite: false
+
+  # D-12/D-13: the latest surviving scheduled drainer replays the immutable
+  # event log. `cancel-in-progress: false` protects its current mutation while
+  # the pre-gate artifact preserves any replaced pending run's verdict.
   nightly-failure-issue:
     name: Nightly Incident Lifecycle
     runs-on: ubuntu-22.04
-    needs:
-      - compat-matrix
-      - dialyzer
-      - gcs-soak
-      - package-consumer-gcs-live
-      - nightly-summary
-    if: always()
+    needs: nightly-incident-verdict
+    if: ${{ always() && github.event_name == 'schedule' }}
+    concurrency:
+      group: nightly-incident-${{ github.repository }}-${{ github.workflow }}
+      cancel-in-progress: false
     permissions:
+      actions: read
       contents: read
       issues: write
     steps:
@@ -577,13 +639,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
-          EVENT_NAME: ${{ github.event_name }}
-          NIGHTLY_VERDICT: ${{ needs.nightly-summary.outputs.verdict }}
-          RUN_ID: ${{ github.run_id }}
-          RUN_ATTEMPT: ${{ github.run_attempt }}
-          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          RUN_SHA: ${{ github.sha }}
-          RUN_REF: ${{ github.ref }}
+          WORKFLOW_NAME: ${{ github.workflow }}
+          WORKFLOW_REF: ${{ github.workflow_ref }}
+          CURRENT_RUN_ID: ${{ github.run_id }}
+          CURRENT_RUN_ATTEMPT: ${{ github.run_attempt }}
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
           REMOTE_MAIN_SHA: ${{ steps.remote-main.outputs.sha }}
         run: bash scripts/ci/manage_nightly_incident.sh
