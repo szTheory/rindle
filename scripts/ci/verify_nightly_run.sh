@@ -109,7 +109,7 @@ preflight_json() {
 }
 
 expected_job_names_json() {
-  printf '%s\n' '["Compat Matrix (1.15, 26)","Compat Matrix (1.16, 26)","Compat Matrix (1.17, 27)","Compat Matrix (1.18, 27)","Compat Matrix (1.18, 28)","Dialyzer","GCS Soak (real bucket)","Nightly Incident Lifecycle","Nightly Summary","Package Consumer GCS Live Proof"]'
+  printf '%s\n' '["Compat Matrix (1.15, 26)","Compat Matrix (1.16, 26)","Compat Matrix (1.17, 27)","Compat Matrix (1.18, 27)","Compat Matrix (1.18, 28)","Dialyzer","GCS Soak (real bucket)","Nightly Incident Lifecycle","Nightly Summary","Package Consumer GCS Live Proof","Persist Nightly Incident Verdict"]'
 }
 
 validate_run_json() {
@@ -129,8 +129,12 @@ validate_run_json() {
       (all($jobs[]; keys == ["conclusion","databaseId","name","status"])) and
       ([$jobs[].name] | sort) == $expected_jobs and
       ([$jobs[].databaseId] | unique | length) == ($expected_jobs | length) and
-      (all($jobs[]; .status == "completed" and .conclusion == "success" and
-        (.databaseId | type == "number")))
+      (all($jobs[];
+        .status == "completed" and (.databaseId | type == "number") and
+        (if (.name == "Nightly Incident Lifecycle" or .name == "Persist Nightly Incident Verdict")
+         then .conclusion == "skipped"
+         else .conclusion == "success"
+         end)))
     ' <<<"$run_json" >/dev/null || die "run identity, terminal state, or exact job set is not qualifying"
 }
 
@@ -277,10 +281,14 @@ verify_receipt_shape() {
     .event == "workflow_dispatch" and .subject_sha == $sha and .remote_ref == $ref and
     (.run_id | type == "number") and .run_attempt == 1 and .conclusion == "success" and
     (.created_at | type == "string" and fromdateiso8601 >= 0) and
-    (.jobs | type == "array" and length == 10 and
-      [.[].name] == $expected_jobs and ([.[].id] | unique | length) == 10 and
+    (.jobs | type == "array" and length == 11 and
+      [.[].name] == $expected_jobs and ([.[].id] | unique | length) == 11 and
       all(.[]; exact_keys(["conclusion","id","name","status"]) and (.id | type == "number") and
-        (.name | type == "string") and .status == "completed" and .conclusion == "success")) and
+        (.name | type == "string") and .status == "completed" and
+        (if (.name == "Nightly Incident Lifecycle" or .name == "Persist Nightly Incident Verdict")
+         then .conclusion == "skipped"
+         else .conclusion == "success"
+         end))) and
     (.dialyzer | exact_keys(["cache_key","fresh","requested_elixir","requested_otp","resolved_elixir","resolved_otp","restored","stale_rebuilds"])) and
     .dialyzer.requested_elixir == "1.17" and .dialyzer.requested_otp == "27" and
     (.dialyzer.fresh | exact_keys(["analyses","builds","status"])) and
