@@ -104,14 +104,36 @@ run_case() {
     fi
   fi
 
-  if [ "$state" = multiple_post_boundary_matches ]; then
-    if [ "$(grep -c '^run list ' "${temp}/calls" || true)" -eq 1 ] &&
-       ! grep -Eq '^run (watch|view) ' "${temp}/calls" &&
-       grep -q 'ambiguous.*exact diagnostic run' "${temp}/output" &&
-       [ ! -e "${temp}/receipt.json" ]; then
-      record "multiple exact matches fail immediately before downstream calls" true
+  if [ "$state" = same_second_old_then_new ]; then
+    if [ "$got" -eq 0 ] &&
+       [ "$(grep -c '^run list ' "${temp}/calls" || true)" -eq 2 ] &&
+       [ "$(grep -c '^run watch 9001 ' "${temp}/calls" || true)" -eq 1 ] &&
+       ! grep -Eq '^run (watch|view) 8000 ' "${temp}/calls" &&
+       [ "$(jq -r '.run_id' "${temp}/receipt.json" 2>/dev/null || true)" = 9001 ]; then
+      record "same-second pre-existing run cannot impersonate the new dispatch" true
     else
-      record "multiple exact matches fail immediately before downstream calls" false "ambiguity was not rejected at the selector boundary"
+      record "same-second pre-existing run cannot impersonate the new dispatch" false "snapshot subtraction did not select only the new ID"
+    fi
+  fi
+
+  if [ "$state" = same_second_old_only ]; then
+    if [ "$(grep -c '^run list ' "${temp}/calls" || true)" -gt 1 ] &&
+       ! grep -Eq '^run (watch|view) ' "${temp}/calls" &&
+       [ ! -e "${temp}/receipt.json" ]; then
+      record "same-second old-only history polls without selecting the old run" true
+    else
+      record "same-second old-only history polls without selecting the old run" false "old snapshot ID was treated as collector-owned"
+    fi
+  fi
+
+  if [ "$state" = multiple_new_after_dispatch ]; then
+    if [ "$(grep -c '^run list ' "${temp}/calls" || true)" -eq 2 ] &&
+       ! grep -Eq '^run (watch|view) ' "${temp}/calls" &&
+       grep -q 'ambiguous.*new exact diagnostic run' "${temp}/output" &&
+       [ ! -e "${temp}/receipt.json" ]; then
+      record "multiple new exact matches fail immediately before downstream calls" true
+    else
+      record "multiple new exact matches fail immediately before downstream calls" false "post-dispatch set ambiguity was not rejected at the selector boundary"
     fi
   fi
 
@@ -300,7 +322,15 @@ fi
 
 run_case "exact first-attempt run writes canonical receipt" success 0
 run_case "older runs appear before the exact run" old_runs_then_exact 0
-run_case "multiple post-boundary exact matches are ambiguous" multiple_post_boundary_matches 1
+run_case "same-second old run is excluded when one new run appears" same_second_old_then_new 0
+run_case "same-second old-only history has zero new matches" same_second_old_only 1
+run_case "multiple new exact matches are ambiguous" multiple_new_after_dispatch 1
+if [ "${VERIFY_NIGHTLY_TEST_SCOPE:-}" = ownership ]; then
+  echo "—"
+  echo "passed: ${pass}  failed: ${fail}"
+  [ "$pass" -gt 0 ] && [ "$fail" -eq 0 ]
+  exit
+fi
 for state in foreign_repository foreign_workflow missing_ref foreign_sha foreign_run_sha foreign_run_ref \
   foreign_run_workflow rerun missing_job extra_job red_job skipped_job cancelled_job nonterminal red_run \
   missing_fresh missing_restored unsupported_elixir_11_17 unsupported_elixir_1_170 unsupported_otp_127 \
@@ -433,6 +463,27 @@ case "${1-} ${2-}" in
   "workflow run") exit 0 ;;
   "run list")
     [ "$state" != timeout ] || { printf '[]\n'; exit; }
+    dispatched="$(grep -c '^workflow run nightly.yml ' "$FAKE_GH_LOG" || true)"
+    if [ "$state" = same_second_old_then_new ] || [ "$state" = same_second_old_only ]; then
+      old="$(jq -cn --arg sha "$sha" --arg ref "$ref" --arg created "$created" \
+        '{attempt:1,conclusion:"success",createdAt:$created,databaseId:8000,event:"workflow_dispatch",headBranch:$ref,headSha:$sha,status:"completed",url:"https://github.test/runs/8000",workflowName:"Nightly"}')"
+      if [ "$state" = same_second_old_only ] || [ "$dispatched" -eq 0 ]; then
+        jq -cn --argjson old "$old" '[$old]'
+        exit
+      fi
+      jq -cn --argjson old "$old" --arg sha "$sha" --arg ref "$ref" --arg created "$created" \
+        '[$old,{attempt:1,conclusion:"success",createdAt:$created,databaseId:9001,event:"workflow_dispatch",headBranch:$ref,headSha:$sha,status:"completed",url:"https://github.test/runs/9001",workflowName:"Nightly"}]'
+      exit
+    fi
+    if [ "$state" = multiple_new_after_dispatch ]; then
+      if [ "$dispatched" -eq 0 ]; then
+        printf '[]\n'
+        exit
+      fi
+      jq -cn --arg sha "$sha" --arg ref "$ref" --arg created "$created" \
+        '[{attempt:1,conclusion:"success",createdAt:$created,databaseId:9001,event:"workflow_dispatch",headBranch:$ref,headSha:$sha,status:"completed",url:"https://github.test/runs/9001",workflowName:"Nightly"},{attempt:1,conclusion:"success",createdAt:$created,databaseId:9002,event:"workflow_dispatch",headBranch:$ref,headSha:$sha,status:"completed",url:"https://github.test/runs/9002",workflowName:"Nightly"}]'
+      exit
+    fi
     if [ "$state" = old_runs_then_exact ]; then
       list_count="$(cat "$FAKE_GH_RUN_LIST_COUNT_FILE" 2>/dev/null || printf 0)"
       list_count=$((list_count + 1))
@@ -450,11 +501,6 @@ case "${1-} ${2-}" in
     [ "$state" != rerun ] || attempt=2
     [ "$state" != nonterminal ] || status=in_progress
     [ "$state" != red_run ] || conclusion=failure
-    if [ "$state" = multiple_post_boundary_matches ]; then
-      jq -cn --arg sha "$run_sha" --arg ref "$run_ref" --arg created "$created" \
-        '[{attempt:1,conclusion:"success",createdAt:$created,databaseId:9001,event:"workflow_dispatch",headBranch:$ref,headSha:$sha,status:"completed",url:"https://github.test/runs/9001",workflowName:"Nightly"},{attempt:1,conclusion:"success",createdAt:$created,databaseId:9002,event:"workflow_dispatch",headBranch:$ref,headSha:$sha,status:"completed",url:"https://github.test/runs/9002",workflowName:"Nightly"}]'
-      exit
-    fi
     jq -cn --argjson attempt "$attempt" --arg conclusion "$conclusion" --arg createdAt "$created" \
       --argjson databaseId "$run_id" --arg headBranch "$run_ref" --arg headSha "$run_sha" \
       --arg status "$status" --arg workflowName "$run_workflow" \
