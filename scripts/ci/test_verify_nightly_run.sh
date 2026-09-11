@@ -372,6 +372,14 @@ if [ ! -x "$collector" ]; then
   exit 1
 fi
 
+if [ "${VERIFY_NIGHTLY_TEST_SCOPE:-}" = diagnostic-topology ]; then
+  run_case "workflow_dispatch accepts the exact 11-job diagnostic topology" diagnostic_topology 0
+  echo "—"
+  echo "passed: ${pass}  failed: ${fail}"
+  [ "$pass" -gt 0 ] && [ "$fail" -eq 0 ]
+  exit
+fi
+
 run_case "exact first-attempt run writes canonical receipt" success 0
 run_case "older runs appear before the exact run" old_runs_then_exact 0
 run_case "same-second old run is excluded when one new run appears" same_second_old_then_new 0
@@ -641,6 +649,9 @@ case "${1-} ${2-}" in
       fi
     else
       jobs='[{"databaseId":1,"name":"Compat Matrix (1.15, 26)","status":"completed","conclusion":"success"},{"databaseId":2,"name":"Compat Matrix (1.16, 26)","status":"completed","conclusion":"success"},{"databaseId":3,"name":"Compat Matrix (1.17, 27)","status":"completed","conclusion":"success"},{"databaseId":4,"name":"Compat Matrix (1.18, 27)","status":"completed","conclusion":"success"},{"databaseId":5,"name":"Compat Matrix (1.18, 28)","status":"completed","conclusion":"success"},{"databaseId":6,"name":"Dialyzer","status":"completed","conclusion":"success"},{"databaseId":7,"name":"GCS Soak (real bucket)","status":"completed","conclusion":"success"},{"databaseId":8,"name":"Package Consumer GCS Live Proof","status":"completed","conclusion":"success"},{"databaseId":9,"name":"Nightly Summary","status":"completed","conclusion":"success"},{"databaseId":10,"name":"Nightly Incident Lifecycle","status":"completed","conclusion":"success"}]'
+      if [ "$state" = diagnostic_topology ]; then
+        jobs='[{"databaseId":1,"name":"Compat Matrix (1.15, 26)","status":"completed","conclusion":"success"},{"databaseId":2,"name":"Compat Matrix (1.16, 26)","status":"completed","conclusion":"success"},{"databaseId":3,"name":"Compat Matrix (1.17, 27)","status":"completed","conclusion":"success"},{"databaseId":4,"name":"Compat Matrix (1.18, 27)","status":"completed","conclusion":"success"},{"databaseId":5,"name":"Compat Matrix (1.18, 28)","status":"completed","conclusion":"success"},{"databaseId":6,"name":"Dialyzer","status":"completed","conclusion":"success"},{"databaseId":7,"name":"GCS Soak (real bucket)","status":"completed","conclusion":"success"},{"databaseId":8,"name":"Package Consumer GCS Live Proof","status":"completed","conclusion":"success"},{"databaseId":9,"name":"Nightly Summary","status":"completed","conclusion":"success"},{"databaseId":10,"name":"Nightly Incident Lifecycle","status":"completed","conclusion":"skipped"},{"databaseId":11,"name":"Persist Nightly Incident Verdict","status":"completed","conclusion":"skipped"}]'
+      fi
       [ "$state" != missing_job ] || jobs="$(jq 'del(.[0])' <<<"$jobs")"
       [ "$state" != extra_job ] || jobs="$(jq '. + [{databaseId:11,name:"Unexpected",status:"completed",conclusion:"success"}]' <<<"$jobs")"
       [ "$state" != red_job ] || jobs="$(jq 'map(if .name == "Dialyzer" then .conclusion="failure" else . end)' <<<"$jobs")"
