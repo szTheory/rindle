@@ -4,6 +4,9 @@ set -euo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 manager="${here}/manage_nightly_incident.sh"
+sha_a=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+sha_b=bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+sha_foreign=cccccccccccccccccccccccccccccccccccccccc
 
 pass=0
 fail=0
@@ -20,7 +23,7 @@ record() {
 }
 
 write_event() {
-  local path="$1" run_id="$2" attempt="$3" verdict="$4"
+  local path="$1" run_id="$2" attempt="$3" verdict="$4" sha="${5:-${sha_a}}"
   jq -cS -n \
     --arg schema rindle-nightly-incident-verdict-v1 \
     --arg repository szTheory/rindle \
@@ -29,7 +32,7 @@ write_event() {
     --arg event schedule \
     --argjson run_id "${run_id}" \
     --argjson run_attempt "${attempt}" \
-    --arg sha aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \
+    --arg sha "${sha}" \
     --arg ref refs/heads/main \
     --arg url "https://github.com/szTheory/rindle/actions/runs/${run_id}" \
     --arg verdict "${verdict}" \
@@ -42,7 +45,7 @@ write_runs() {
   jq -cn '{workflow_runs:[
     {id:101,run_attempt:1,event:"schedule",status:"completed",conclusion:"failure",head_sha:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",head_branch:"main",html_url:"https://github.com/szTheory/rindle/actions/runs/101",name:"Nightly",path:".github/workflows/nightly.yml"},
     {id:102,run_attempt:1,event:"schedule",status:"completed",conclusion:"failure",head_sha:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",head_branch:"main",html_url:"https://github.com/szTheory/rindle/actions/runs/102",name:"Nightly",path:".github/workflows/nightly.yml"},
-    {id:103,run_attempt:1,event:"schedule",status:"in_progress",conclusion:null,head_sha:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",head_branch:"main",html_url:"https://github.com/szTheory/rindle/actions/runs/103",name:"Nightly",path:".github/workflows/nightly.yml"}
+    {id:103,run_attempt:1,event:"schedule",status:"in_progress",conclusion:null,head_sha:"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",head_branch:"main",html_url:"https://github.com/szTheory/rindle/actions/runs/103",name:"Nightly",path:".github/workflows/nightly.yml"}
   ]}' >"${path}"
 }
 
@@ -158,7 +161,7 @@ new_fixture() {
   write_artifacts "${temp}/state/artifacts.json"
   write_event "${temp}/state/events/nightly-incident-verdict-101-1.json" 101 1 red
   write_event "${temp}/state/events/nightly-incident-verdict-102-1.json" 102 1 red
-  write_event "${temp}/state/events/nightly-incident-verdict-103-1.json" 103 1 green
+  write_event "${temp}/state/events/nightly-incident-verdict-103-1.json" 103 1 green "${sha_b}"
   printf '%s' "${temp}"
 }
 
@@ -169,7 +172,7 @@ run_manager() {
     GH_TOKEN=test-token GH_REPO=szTheory/rindle WORKFLOW_NAME=Nightly \
     WORKFLOW_REF=szTheory/rindle/.github/workflows/nightly.yml@refs/heads/main \
     CURRENT_RUN_ID=103 CURRENT_RUN_ATTEMPT=1 DEFAULT_BRANCH=main \
-    REMOTE_MAIN_SHA=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \
+    REMOTE_MAIN_SHA="${sha_b}" \
     NIGHTLY_REPLAY_SLEEP_SECONDS=0 NIGHTLY_REPLAY_FETCH_ATTEMPTS=3 NIGHTLY_REPLAY_MAX_RESTARTS=20 \
     "$@" bash "${manager}" >"${output}" 2>&1
 }
@@ -189,9 +192,9 @@ three_overlap_case() {
   state="$(jq -r '.[0].state // "missing"' "${temp}/state/issues.json")"
   effects="$(mutation_effects "${temp}")"
   if [ "${got}" -eq 0 ] && [ "${b_count}" -eq 1 ] && [ "${state}" = CLOSED ] && [ "${effects}" -eq 3 ]; then
-    record "three-overlap replacement replays A-red/B-red/C-green exactly once" true ""
+    record "red-A/green-B history opens, updates, and closes exactly once" true ""
   else
-    record "three-overlap replacement replays A-red/B-red/C-green exactly once" false "exit=${got} B=${b_count} state=${state} effects=${effects}; $(<"${output}")"
+    record "red-A/green-B history opens, updates, and closes exactly once" false "exit=${got} B=${b_count} state=${state} effects=${effects}; $(<"${output}")"
   fi
 
   : >"${temp}/calls"
@@ -249,6 +252,7 @@ fail_closed_case() {
     malformed) printf '{not-json\n' >"${temp}/state/events/nightly-incident-verdict-102-1.json" ;;
     foreign) jq '.repository = "mallory/fork"' "${temp}/state/events/nightly-incident-verdict-102-1.json" >"${temp}/state/event.next" && mv "${temp}/state/event.next" "${temp}/state/events/nightly-incident-verdict-102-1.json" ;;
     mismatch) jq '.run_id = 999' "${temp}/state/events/nightly-incident-verdict-102-1.json" >"${temp}/state/event.next" && mv "${temp}/state/event.next" "${temp}/state/events/nightly-incident-verdict-102-1.json" ;;
+    sha-mismatch) jq --arg sha "${sha_b}" '.sha = $sha' "${temp}/state/events/nightly-incident-verdict-102-1.json" >"${temp}/state/event.next" && mv "${temp}/state/event.next" "${temp}/state/events/nightly-incident-verdict-102-1.json" ;;
     collision)
       jq -cn '[
         {number:88,title:"Nightly CI failure",state:"CLOSED",body:"nightly-mutation:open:101:1",comments:[]},
@@ -317,6 +321,8 @@ fail_closed_case "duplicate event artifact fails before issue mutation" duplicat
 fail_closed_case "malformed event fails before issue mutation" malformed
 fail_closed_case "foreign repository event fails before issue mutation" foreign
 fail_closed_case "run/artifact identity mismatch fails before issue mutation" mismatch
+fail_closed_case "historical event SHA mismatch fails before issue mutation" sha-mismatch
+fail_closed_case "foreign high-watermark SHA fails before issue mutation" none "REMOTE_MAIN_SHA=${sha_foreign}"
 fail_closed_case "duplicate marker ownership fails closed" collision
 fail_closed_case "simultaneous open incidents fail closed" simultaneous
 fail_closed_case "workflow-run API failure performs no issue mutation" none FAKE_GH_FAIL=api
