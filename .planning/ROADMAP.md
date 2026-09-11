@@ -44,7 +44,7 @@ error vocabulary, release coupling, supported behavior, or the accepted pull-req
   3. Nightly aggregation fails for failed, cancelled, unexpected, or impermissibly skipped gating states, and automated incident tests prove one exact-run-bound issue opens or updates on failure and closes only after qualifying scheduled recovery.
   4. Executable parity checks derive release, planning, support, and adoption-proof claims from authoritative state and reject every unmarked version, lane-severity, or package-proof contradiction.
 
-**Plans**: 20/22 plans executed
+**Plans**: 21/22 plans executed
 
 Plans:
 
@@ -112,7 +112,7 @@ Plans:
 - [x] 133-18-PLAN.md — Bind each accepted diagnostic Nightly run to the collector's own dispatch instead of a whole-second timestamp coincidence.
 - [x] 133-19-PLAN.md — Make the one rolling Nightly incident correct under overlapping scheduled runs.
 - [x] 133-20-PLAN.md — Bind census detector inputs to physical bytes inside the inspected immutable repository subject.
-- [ ] 133-21-PLAN.md — Cross-bind package proof to the exact-subject release model and make lifecycle evidence honestly attributable.
+- [x] 133-21-PLAN.md — Cross-bind package proof to the exact-subject release model and make lifecycle evidence honestly attributable.
 
 **Wave 16** *(blocked on Wave 15 completion)*
 
@@ -212,7 +212,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 133. Evidence Charter and Live Truth | 20/22 | In Progress|  |
+| 133. Evidence Charter and Live Truth | 21/22 | In Progress|  |
 | 134. Dependency, Security, and Inbox Disposition | 0/TBD | Not started | - |
 | 135. Repository and Code-Craft Consolidation | 0/TBD | Not started | - |
 | 136. Measured Quality and CI Ratchets | 0/TBD | Not started | - |

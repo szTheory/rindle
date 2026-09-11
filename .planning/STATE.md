@@ -5,16 +5,16 @@ milestone_name: Pre-Adopter Readiness & Quality Consolidation
 current_phase: 133
 current_phase_name: Evidence Charter and Live Truth
 status: executing
-stopped_at: Completed 133-20-PLAN.md
-last_updated: "2026-09-11T17:22:15.468Z"
+stopped_at: Completed 133-21-PLAN.md
+last_updated: "2026-09-11T17:52:33.918Z"
 last_activity: 2026-09-11
 last_activity_desc: Phase 133 execution started
-state_head: 31d62831f63081ef399f6b6c9cd0923ecb2e0753
+state_head: 8500a337eacd3c17224b52c471d9ce2e99fcc679
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 22
-  completed_plans: 20
+  completed_plans: 21
 ---
 ## Project Reference
 
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-09-09 for v1.26)
 ## Current Position
 
 Phase: 133 (Evidence Charter and Live Truth) — EXECUTING
-Plan: 21 of 22
+Plan: 22 of 22
 Status: Ready to execute
 Last activity: 2026-09-11 — Phase 133 execution started
 Progress: [███████░░░] 65%
@@ -63,6 +63,7 @@ Progress: [███████░░░] 65%
 | Phase 133 P18 | 26min | 2 tasks | 2 files |
 | Phase 133 P19 | 17min | 2 tasks | 4 files |
 | Phase 133 P20 | 2h 13m | 2 tasks | 4 files |
+| Phase 133 P21 | 27m | 3 tasks | 6 files |
 ## Accumulated Context
 
 ### Decisions
@@ -120,6 +121,7 @@ Progress: [███████░░░] 65%
 - [Phase 133]: Treat all-state issue history and authenticated artifacts as replay authority; never add a mutable acknowledgement cursor. — Full replay plus fresh preimages converges after drift or uncertain outcomes.
 - [Phase 133]: Resolve the explicit repository root physically as well as each detector input. — Platform path aliases such as /var to /private/var must preserve valid containment without allowing prefix-adjacent or symlink escapes.
 - [Phase 133]: Keep validator detector-input resolution independent from producer logic. — Producer output or shared validation status cannot substitute for independent provenance reconstruction at the validator read boundary.
+- [Phase 133]: Phase 133 package truth uses independent exact-subject version authority, one attributable smoke_lifecycle result, and summary-backed 17/22-22/22 reconciliation.
 
 ### Pending Todos
 
@@ -143,6 +145,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-09-11T17:21:58.271Z
-Stopped at: Completed 133-20-PLAN.md
+Last session: 2026-09-11T17:52:33.897Z
+Stopped at: Completed 133-21-PLAN.md
 Resume file: None
