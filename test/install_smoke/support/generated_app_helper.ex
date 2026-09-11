@@ -319,16 +319,10 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
         smoke_result.exit_code == 0 and String.contains?(smoke_result.output, "0 failures")
     }
 
-    command_results = %{
-      compile: compile_result,
-      boot: boot_result,
-      smoke_lifecycle: smoke_result
-    }
-
     report =
       Map.merge(report, %{
-        package_evidence_receipt: package_evidence_receipt!(report, command_results),
-        package_evidence_context: package_evidence_context(report)
+        package_evidence_receipt: package_evidence_receipt!(report, shared_env),
+        package_evidence_context: package_evidence_context(report, shared_env)
       })
 
     maybe_write_tus_run_hint!(report)
@@ -336,19 +330,26 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
   end
 
   @doc false
-  def package_evidence_receipt!(report, command_results)
-      when is_map(report) and is_map(command_results) do
-    ensure_attributable_command_results!(command_results)
-
+  def package_evidence_receipt!(report, execution_env) when is_map(report) do
     package_root = report.package_root_provenance.path
     generated_app_root = report.generated_app_root
     results_path = Path.join(generated_app_root, "tmp/rindle_package_evidence_results.json")
     commands = package_evidence_commands(generated_app_root)
+    execution_env = normalize_execution_env!(execution_env)
 
     results = %{
-      "compile" => command_result!(Map.fetch!(command_results, :compile)),
-      "boot" => command_result!(Map.fetch!(command_results, :boot)),
-      "smoke_lifecycle" => command_result!(Map.fetch!(command_results, :smoke_lifecycle))
+      "compile" =>
+        generated_app_root
+        |> run_cmd(commands["compile"], execution_env)
+        |> command_result!(),
+      "boot" =>
+        generated_app_root
+        |> run_cmd(commands["boot"], execution_env)
+        |> command_result!(),
+      "smoke_lifecycle" =>
+        generated_app_root
+        |> run_cmd(commands["smoke_lifecycle"], execution_env)
+        |> command_result!()
     }
 
     File.mkdir_p!(Path.dirname(results_path))
@@ -378,39 +379,36 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     }
   end
 
-  def package_evidence_receipt!(_report, _command_results) do
-    raise ArgumentError, "package evidence requires a generated report and command results"
+  def package_evidence_receipt!(_report, _execution_env) do
+    raise ArgumentError, "package evidence requires a generated report and execution environment"
   end
 
-  defp ensure_attributable_command_results!(%{smoke: smoke, lifecycle: lifecycle}) do
-    if command_result!(smoke) == command_result!(lifecycle) do
-      raise ArgumentError,
-            "duplicate package command evidence cannot prove smoke and lifecycle independently"
-    end
-
-    raise ArgumentError,
-          "separate smoke and lifecycle evidence is unsupported; use the executed smoke_lifecycle command"
-  end
-
-  defp ensure_attributable_command_results!(command_results) do
-    expected_keys = [:boot, :compile, :smoke_lifecycle]
-
-    if command_results |> Map.keys() |> Enum.sort() != expected_keys do
-      raise ArgumentError,
-            "package command result keys must be exactly #{inspect(expected_keys)}"
-    end
-
-    :ok
-  end
-
-  defp package_evidence_context(report) do
+  defp package_evidence_context(report, execution_env) do
     %{
       package_root: report.package_root_provenance.path,
       generated_app_root: report.generated_app_root,
       results_path:
-        Path.join(report.generated_app_root, "tmp/rindle_package_evidence_results.json")
+        Path.join(report.generated_app_root, "tmp/rindle_package_evidence_results.json"),
+      execution_env: Map.new(execution_env)
     }
   end
+
+  defp normalize_execution_env!(execution_env) when is_map(execution_env),
+    do: normalize_execution_env!(Map.to_list(execution_env))
+
+  defp normalize_execution_env!(execution_env) when is_list(execution_env) do
+    if Enum.all?(execution_env, fn
+         {key, value} -> is_binary(key) and is_binary(value)
+         _ -> false
+       end) do
+      execution_env
+    else
+      raise ArgumentError, "package execution environment must contain string pairs"
+    end
+  end
+
+  defp normalize_execution_env!(_execution_env),
+    do: raise(ArgumentError, "package execution environment is required")
 
   defp package_evidence_commands(generated_app_root) do
     app_name = generated_app_root |> Path.basename() |> Macro.camelize()

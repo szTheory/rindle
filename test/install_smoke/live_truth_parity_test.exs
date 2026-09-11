@@ -400,7 +400,7 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
   end
 
   @tag :package_authority
-  test "package receipt rejects one captured result copied into smoke and lifecycle slots" do
+  test "package receipt producer rejects caller-authored command result maps" do
     root =
       Path.join(
         System.tmp_dir!(),
@@ -417,7 +417,7 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
 
     result = %{exit_code: 0, output: "1 test, 0 failures"}
 
-    assert_raise ArgumentError, ~r/duplicate package command evidence/, fn ->
+    assert_raise ArgumentError, ~r/execution environment must contain string pairs/, fn ->
       Rindle.InstallSmoke.GeneratedAppHelper.package_evidence_receipt!(
         %{
           package_root_provenance: %{path: package_root},
@@ -430,7 +430,7 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
 
   @tag :package_authority
   test "current combined package evidence binds to the exact release version" do
-    evidence = package_evidence_fixture!()
+    evidence = executable_package_evidence_fixture!()
     model = Rindle.ValidateLiveTruth.derive!(@repo_root, [])
 
     assert :ok =
@@ -785,17 +785,101 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
     File.write!(Path.join(generated_app_root, "mix.lock"), "%{}")
     on_exit(fn -> File.rm_rf(root) end)
 
+    results = %{
+      "compile" => forged_command_result("compile ok"),
+      "boot" => forged_command_result("boot ok"),
+      "smoke_lifecycle" => forged_command_result("2 tests, 0 failures")
+    }
+
+    File.mkdir_p!(Path.dirname(results_path))
+    File.write!(results_path, Jason.encode!(results))
+
+    package_tree_sha256 = test_tree_sha256(package_root)
+
+    receipt = %{
+      schema_version: "rindle-package-consumer-v2",
+      evidence_type: "maintainer-operated-package-consumer",
+      subject_sha: git_head!(),
+      package_name: "rindle",
+      package_version: "0.4.6",
+      package_sha256: test_sha256(File.read!(Path.join(package_root, "hex_metadata.config"))),
+      unpacked_tree_sha256: package_tree_sha256,
+      generated_app_tree_sha256:
+        test_tree_sha256(generated_app_root, [".git", "_build", "deps", "tmp"]),
+      dependency_lock_sha256: test_sha256(File.read!(Path.join(generated_app_root, "mix.lock"))),
+      dependency_source: %{
+        type: "path",
+        package_name: "rindle",
+        package_version: "0.4.6",
+        unpacked_tree_sha256: package_tree_sha256
+      },
+      commands: package_commands(generated_app_root),
+      results: results
+    }
+
+    %{
+      receipt: receipt,
+      context: %{
+        repository_root: @repo_root,
+        package_root: package_root,
+        generated_app_root: generated_app_root,
+        results_path: results_path,
+        execution_env: %{}
+      }
+    }
+  end
+
+  defp executable_package_evidence_fixture! do
+    root =
+      Path.join(
+        System.tmp_dir!(),
+        "rindle-executable-package-authority-#{System.unique_integer([:positive])}"
+      )
+
+    package_root = Path.join(root, "package/rindle")
+    generated_app_root = Path.join(root, "generated_app")
+    results_path = Path.join(generated_app_root, "tmp/rindle_package_evidence_results.json")
+
+    write_fixture_file!(package_root, "mix.exs", executable_package_mix_source())
+    write_fixture_file!(package_root, "hex_metadata.config", "version=0.4.6")
+
+    write_fixture_file!(
+      generated_app_root,
+      "mix.exs",
+      executable_consumer_mix_source(package_root)
+    )
+
+    write_fixture_file!(generated_app_root, "mix.lock", "%{}")
+
+    write_fixture_file!(
+      generated_app_root,
+      "config/config.exs",
+      "import Config\nconfig :rindle, :repo, GeneratedApp.Repo\nconfig :generated_app, Oban, repo: GeneratedApp.Repo\n"
+    )
+
+    write_fixture_file!(
+      generated_app_root,
+      "lib/generated_app/repo.ex",
+      "defmodule GeneratedApp.Repo do\nend\n"
+    )
+
+    write_fixture_file!(generated_app_root, "test/test_helper.exs", "ExUnit.start()\n")
+
+    write_fixture_file!(
+      generated_app_root,
+      "test/rindle_install_smoke_test.exs",
+      "defmodule GeneratedApp.InstallSmokeTest do\n  use ExUnit.Case\n  test \"lifecycle\", do: assert(true)\nend\n"
+    )
+
+    on_exit(fn -> File.rm_rf(root) end)
+
     receipt =
       Rindle.InstallSmoke.GeneratedAppHelper.package_evidence_receipt!(
         %{
           package_root_provenance: %{path: package_root},
           generated_app_root: generated_app_root
         },
-        %{
-          compile: %{exit_code: 0, output: "compile ok"},
-          boot: %{exit_code: 0, output: "boot ok"},
-          smoke_lifecycle: %{exit_code: 0, output: "2 tests, 0 failures"}
-        }
+        %{}
       )
 
     %{
@@ -804,7 +888,8 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
         repository_root: @repo_root,
         package_root: package_root,
         generated_app_root: generated_app_root,
-        results_path: results_path
+        results_path: results_path,
+        execution_env: %{}
       }
     }
   end
@@ -813,12 +898,15 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
     "defmodule Rindle.PackageFixture.MixProject do\n  @version #{inspect(version)}\nend\n"
   end
 
-  defp test_tree_sha256(root) do
+  defp test_tree_sha256(root, excluded_roots \\ []) do
     root
     |> Path.join("**/*")
     |> Path.wildcard(match_dot: true)
     |> Enum.filter(&File.regular?/1)
     |> Enum.map(&Path.relative_to(&1, root))
+    |> Enum.reject(fn relative ->
+      (relative |> Path.split() |> List.first()) in excluded_roots
+    end)
     |> Enum.sort()
     |> Enum.map(fn relative ->
       relative <> "\0" <> test_sha256(File.read!(Path.join(root, relative))) <> "\n"
@@ -829,6 +917,67 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
 
   defp test_sha256(content),
     do: :crypto.hash(:sha256, content) |> Base.encode16(case: :lower)
+
+  defp forged_command_result(output) do
+    %{
+      "exit_code" => 0,
+      "stdout_sha256" => test_sha256(output),
+      "stderr_sha256" => test_sha256(""),
+      "stderr_merged_into_stdout" => true,
+      "captured_bytes" => byte_size(output),
+      "truncated" => false
+    }
+  end
+
+  defp package_commands(generated_app_root) do
+    app_module = generated_app_root |> Path.basename() |> Macro.camelize()
+    app_name = Macro.underscore(app_module)
+
+    %{
+      "compile" => ["mix", "compile"],
+      "boot" => [
+        "mix",
+        "run",
+        "--no-start",
+        "-e",
+        "Application.ensure_all_started(:#{app_name}); repo = Application.fetch_env!(:rindle, :repo); oban_repo = Application.fetch_env!(:#{app_name}, Oban)[:repo]; if repo != #{app_module}.Repo or oban_repo != #{app_module}.Repo, do: raise(\"boot wiring invalid\"); IO.puts(\"boot ok\")"
+      ],
+      "smoke_lifecycle" => ["mix", "test", "test/rindle_install_smoke_test.exs"]
+    }
+  end
+
+  defp git_head! do
+    {sha, 0} = System.cmd("git", ["-C", @repo_root, "rev-parse", "HEAD"])
+    String.trim(sha)
+  end
+
+  defp write_fixture_file!(root, relative, content) do
+    path = Path.join(root, relative)
+    File.mkdir_p!(Path.dirname(path))
+    File.write!(path, content)
+  end
+
+  defp executable_package_mix_source do
+    """
+    defmodule Rindle.MixProject do
+      use Mix.Project
+      @version "0.4.6"
+      def project, do: [app: :rindle, version: @version, elixir: "~> 1.17"]
+      def application, do: []
+    end
+    """
+  end
+
+  defp executable_consumer_mix_source(package_root) do
+    """
+    defmodule GeneratedApp.MixProject do
+      use Mix.Project
+      def project, do: [app: :generated_app, version: "0.1.0", elixir: "~> 1.17", deps: deps()]
+      def application, do: [extra_applications: [:logger]]
+      defp deps, do: [{:rindle, path: #{inspect(package_root)}}]
+    end
+    """
+  end
 
   defp write_policy!(root, policy) do
     path = Path.join(root, "config/ci_required_checks.json")

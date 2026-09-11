@@ -293,7 +293,8 @@ defmodule Rindle.ValidateLiveTruth do
         expected_package_version: model.version,
         package_root: field(evidence_context, :package_root),
         generated_app_root: field(evidence_context, :generated_app_root),
-        results_path: field(evidence_context, :results_path)
+        results_path: field(evidence_context, :results_path),
+        execution_env: field(evidence_context, :execution_env)
       })
 
     :ok
@@ -319,7 +320,8 @@ defmodule Rindle.ValidateLiveTruth do
             expected_package_version: model.version,
             package_root: field(evidence_context, :package_root),
             generated_app_root: field(evidence_context, :generated_app_root),
-            results_path: field(evidence_context, :results_path)
+            results_path: field(evidence_context, :results_path),
+            execution_env: field(evidence_context, :execution_env)
           })
 
         :ok
@@ -489,8 +491,16 @@ defmodule Rindle.ValidateLiveTruth do
     expected_commands = package_commands!(generated_app_root)
     assert!(receipt["commands"] == expected_commands, "package command argv mismatch")
 
-    verified_results = verify_command_results!(persisted_results)
-    lifecycle_proved = command_succeeded?(verified_results["smoke_lifecycle"])
+    _diagnostic_results = verify_command_results!(persisted_results)
+
+    observed_results =
+      verify_package_commands!(
+        generated_app_root,
+        expected_commands,
+        normalize_execution_env!(context["execution_env"])
+      )
+
+    lifecycle_proved = command_succeeded?(observed_results["smoke_lifecycle"])
 
     %{
       schema_version: @package_receipt_schema,
@@ -662,6 +672,62 @@ defmodule Rindle.ValidateLiveTruth do
   defp reject_duplicate_command_evidence!(_commands, _results), do: :ok
 
   defp command_succeeded?(result), do: is_map(result) and result["exit_code"] == 0
+
+  defp verify_package_commands!(generated_app_root, commands, execution_env) do
+    for name <- ~w(compile boot smoke_lifecycle), into: %{} do
+      argv = Map.fetch!(commands, name)
+      result = execute_package_command!(generated_app_root, argv, execution_env)
+
+      assert!(result["exit_code"] == 0, "package command failed: #{name}")
+
+      case name do
+        "boot" ->
+          assert!(result["output"] =~ "boot ok", "package command failed: boot")
+
+        "smoke_lifecycle" ->
+          assert!(
+            Regex.match?(~r/\d+ tests?, 0 failures/, result["output"]),
+            "package command failed: smoke_lifecycle"
+          )
+
+        "compile" ->
+          :ok
+      end
+
+      {name, result}
+    end
+  end
+
+  defp execute_package_command!(cwd, [command | args], execution_env) do
+    {output, exit_code} =
+      System.cmd(command, args,
+        cd: cwd,
+        env: execution_env,
+        stderr_to_stdout: true
+      )
+
+    %{"exit_code" => exit_code, "output" => output}
+  rescue
+    _error -> raise ArgumentError, "package command failed: #{Path.basename(command)}"
+  end
+
+  defp normalize_execution_env!(execution_env) when is_map(execution_env),
+    do: normalize_execution_env!(Map.to_list(execution_env))
+
+  defp normalize_execution_env!(execution_env) when is_list(execution_env) do
+    assert!(
+      Enum.all?(execution_env, fn
+        {key, value} -> is_binary(key) and is_binary(value)
+        _ -> false
+      end),
+      "package execution environment must contain string pairs"
+    )
+
+    execution_env
+  end
+
+  defp normalize_execution_env!(_execution_env),
+    do: raise(ArgumentError, "package execution environment is required")
 
   defp required_version_authority!(version) when is_binary(version) and version != "", do: version
 
