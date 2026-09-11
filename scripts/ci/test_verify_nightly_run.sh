@@ -494,6 +494,10 @@ case "${1-} ${2-}" in
         exit
       fi
     fi
+    if [ "$dispatched" -eq 0 ]; then
+      printf '[]\n'
+      exit
+    fi
     run_sha="$sha"; run_ref="$ref"; run_workflow=Nightly; attempt=1; status=completed; conclusion=success
     [ "$state" != foreign_run_sha ] || run_sha=bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
     [ "$state" != foreign_run_ref ] || run_ref=other-ref

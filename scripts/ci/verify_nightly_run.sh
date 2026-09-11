@@ -60,6 +60,35 @@ canonical_incidents() {
     jq -cS 'sort_by(.number)'
 }
 
+matching_run_ids() {
+  local runs
+  runs="$(gh run list --repo "$repo" --workflow "$workflow" --event workflow_dispatch \
+    --branch "$remote_ref" --limit 20 \
+    --json attempt,conclusion,createdAt,databaseId,event,headBranch,headSha,status,url,workflowName)" ||
+    die "run listing failed"
+  jq -e '
+    type == "array" and
+    ([.[].databaseId] | unique | length) == length and
+    all(.[];
+      type == "object" and
+      keys == ["attempt","conclusion","createdAt","databaseId","event","headBranch","headSha","status","url","workflowName"] and
+      (.attempt as $attempt | ($attempt | type) == "number" and $attempt >= 1 and ($attempt | floor) == $attempt) and
+      (.conclusion == null or (.conclusion | type) == "string") and
+      (.createdAt | type == "string" and fromdateiso8601 >= 0) and
+      (.databaseId as $id | ($id | type) == "number" and $id >= 1 and ($id | floor) == $id) and
+      (.event | type) == "string" and
+      (.headBranch | type) == "string" and
+      (.headSha | type) == "string" and
+      (.status | type) == "string" and
+      (.url | type) == "string" and
+      (.workflowName | type) == "string")
+  ' <<<"$runs" >/dev/null || die "run listing was malformed or contained duplicate/non-integer IDs"
+  jq -c --arg sha "$expected_sha" --arg ref "$remote_ref" '
+    [.[] | select(.workflowName == "Nightly" and .event == "workflow_dispatch" and
+      .headBranch == $ref and .headSha == $sha) | .databaseId] | sort
+  ' <<<"$runs" || die "run listing was malformed"
+}
+
 preflight_json() {
   local repo_json workflow_yaml ref_json actual_repo actual_sha
   repo_json="$(gh repo view "$repo" --json nameWithOwner)" || die "repository lookup failed"
@@ -440,27 +469,23 @@ trap cleanup EXIT
 rm -f -- "$receipt"
 preflight="$(preflight_json)"
 incident_before="$(canonical_incidents)" || die "incident snapshot before dispatch failed"
-created_after="${NIGHTLY_NOW:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")}"
+pre_dispatch_ids="$(matching_run_ids)"
 
 gh workflow run "$workflow" --repo "$repo" --ref "$remote_ref" || die "workflow dispatch failed"
 deadline=$(( $(date +%s) + timeout_seconds ))
 run_id=""
 while [ "$(date +%s)" -lt "$deadline" ]; do
-  runs="$(gh run list --repo "$repo" --workflow "$workflow" --event workflow_dispatch \
-    --branch "$remote_ref" --limit 20 \
-    --json attempt,conclusion,createdAt,databaseId,event,headBranch,headSha,status,url,workflowName)" || die "run listing failed"
-  matches="$(jq -c --arg sha "$expected_sha" --arg ref "$remote_ref" --arg boundary "$created_after" '
-    [.[] | select(.workflowName == "Nightly" and .event == "workflow_dispatch" and
-      .headBranch == $ref and .headSha == $sha and .createdAt >= $boundary)]
-  ' <<<"$runs")" || die "run listing was malformed"
-  match_count="$(jq 'length' <<<"$matches")"
+  post_dispatch_ids="$(matching_run_ids)"
+  new_matching_ids="$(jq -cn --argjson before "$pre_dispatch_ids" --argjson after "$post_dispatch_ids" \
+    '$after - $before')" || die "could not subtract the pre-dispatch run snapshot"
+  match_count="$(jq 'length' <<<"$new_matching_ids")"
   case "$match_count" in
     0) ;;
     1)
-      run_id="$(jq -r '.[0].databaseId' <<<"$matches")"
+      run_id="$(jq -r '.[0]' <<<"$new_matching_ids")"
       break
       ;;
-    *) die "ambiguous exact diagnostic run selection: found ${match_count} post-boundary matches" ;;
+    *) die "ambiguous new exact diagnostic run selection: found ${match_count} IDs absent before dispatch" ;;
   esac
   [ "$poll_seconds" -eq 0 ] || sleep "$poll_seconds"
 done
