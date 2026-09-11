@@ -425,6 +425,118 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
   end
 
   @tag :package_authority
+  test "current combined package evidence binds to the exact release version" do
+    evidence = package_evidence_fixture!()
+    model = Rindle.ValidateLiveTruth.derive!(@repo_root, [])
+
+    assert :ok =
+             Rindle.ValidateLiveTruth.validate_claims!(model, [
+               %{
+                 type: :package,
+                 receipt: evidence.receipt,
+                 evidence_context: evidence.context
+               }
+             ])
+
+    proof =
+      Rindle.ValidateLiveTruth.verify_package_evidence!(
+        evidence.receipt,
+        Map.put(evidence.context, :expected_package_version, model.version)
+      )
+
+    assert proof.lifecycle_proved
+    refute proof.authorizes_independent_adoption
+    refute proof.authorizes_1_0
+  end
+
+  @tag :package_authority
+  test "self-consistent stale package evidence fails the independent version authority" do
+    evidence = package_evidence_fixture!()
+    stale_version = "0.4.5"
+    package_mix = Path.join(evidence.context.package_root, "mix.exs")
+    package_metadata = Path.join(evidence.context.package_root, "hex_metadata.config")
+    File.write!(package_mix, package_mix_source(stale_version))
+    File.write!(package_metadata, "version=#{stale_version}")
+
+    package_tree_sha256 = test_tree_sha256(evidence.context.package_root)
+
+    stale_receipt = %{
+      evidence.receipt
+      | package_version: stale_version,
+        package_sha256: test_sha256(File.read!(package_metadata)),
+        unpacked_tree_sha256: package_tree_sha256,
+        dependency_source: %{
+          type: "path",
+          package_name: "rindle",
+          unpacked_tree_sha256: package_tree_sha256
+        }
+    }
+
+    model = Rindle.ValidateLiveTruth.derive!(@repo_root, [])
+
+    assert_raise ArgumentError, ~r/package version authority mismatch/, fn ->
+      Rindle.ValidateLiveTruth.validate_claims!(model, [
+        %{type: :package, receipt: stale_receipt, evidence_context: evidence.context}
+      ])
+    end
+  end
+
+  @tag :package_authority
+  test "combined lifecycle evidence rejects copied slots and a failed execution" do
+    evidence = package_evidence_fixture!()
+    combined_command = evidence.receipt.commands["smoke_lifecycle"]
+    combined_result = evidence.receipt.results["smoke_lifecycle"]
+
+    duplicate_results = %{
+      "compile" => evidence.receipt.results["compile"],
+      "boot" => evidence.receipt.results["boot"],
+      "smoke" => combined_result,
+      "lifecycle" => combined_result
+    }
+
+    duplicate_receipt = %{
+      evidence.receipt
+      | commands: %{
+          "compile" => evidence.receipt.commands["compile"],
+          "boot" => evidence.receipt.commands["boot"],
+          "smoke" => combined_command,
+          "lifecycle" => combined_command
+        },
+        results: duplicate_results
+    }
+
+    File.write!(evidence.context.results_path, Jason.encode!(duplicate_results))
+
+    assert_raise ArgumentError, ~r/duplicate package command evidence/, fn ->
+      Rindle.ValidateLiveTruth.verify_package_evidence!(
+        duplicate_receipt,
+        Map.put(evidence.context, :expected_package_version, "0.4.6")
+      )
+    end
+
+    failed_result = Map.put(combined_result, "exit_code", 1)
+    failed_results = Map.put(evidence.receipt.results, "smoke_lifecycle", failed_result)
+    failed_receipt = %{evidence.receipt | results: failed_results}
+    File.write!(evidence.context.results_path, Jason.encode!(failed_results))
+
+    assert_raise ArgumentError, ~r/package command failed: smoke_lifecycle/, fn ->
+      Rindle.ValidateLiveTruth.verify_package_evidence!(
+        failed_receipt,
+        Map.put(evidence.context, :expected_package_version, "0.4.6")
+      )
+    end
+  end
+
+  @tag :package_authority
+  test "package verifier requires an explicit version authority" do
+    evidence = package_evidence_fixture!()
+
+    assert_raise ArgumentError, ~r/expected package version authority is required/, fn ->
+      Rindle.ValidateLiveTruth.verify_package_evidence!(evidence.receipt, evidence.context)
+    end
+  end
+
+  @tag :package_authority
   @tag :minio
   @tag timeout: :infinity
   test "fresh unpacked generated image consumer report authorizes package proof" do
@@ -630,6 +742,74 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
       "contexts" => ["CI Summary"]
     }
   end
+
+  defp package_evidence_fixture! do
+    root =
+      Path.join(
+        System.tmp_dir!(),
+        "rindle-package-authority-#{System.unique_integer([:positive])}"
+      )
+
+    package_root = Path.join(root, "package/rindle")
+    generated_app_root = Path.join(root, "generated_app")
+    results_path = Path.join(generated_app_root, "tmp/rindle_package_evidence_results.json")
+    File.mkdir_p!(package_root)
+    File.mkdir_p!(generated_app_root)
+    File.write!(Path.join(package_root, "mix.exs"), package_mix_source("0.4.6"))
+    File.write!(Path.join(package_root, "hex_metadata.config"), "version=0.4.6")
+
+    File.write!(
+      Path.join(generated_app_root, "mix.exs"),
+      "defmodule Generated.MixProject do\n  defp deps, do: [{:rindle, path: #{inspect(package_root)}}]\nend\n"
+    )
+
+    File.write!(Path.join(generated_app_root, "mix.lock"), "%{}")
+    on_exit(fn -> File.rm_rf(root) end)
+
+    receipt =
+      Rindle.InstallSmoke.GeneratedAppHelper.package_evidence_receipt!(
+        %{
+          package_root_provenance: %{path: package_root},
+          generated_app_root: generated_app_root
+        },
+        %{
+          compile: %{exit_code: 0, output: "compile ok"},
+          boot: %{exit_code: 0, output: "boot ok"},
+          smoke_lifecycle: %{exit_code: 0, output: "2 tests, 0 failures"}
+        }
+      )
+
+    %{
+      receipt: receipt,
+      context: %{
+        repository_root: @repo_root,
+        package_root: package_root,
+        generated_app_root: generated_app_root,
+        results_path: results_path
+      }
+    }
+  end
+
+  defp package_mix_source(version) do
+    "defmodule Rindle.PackageFixture.MixProject do\n  @version #{inspect(version)}\nend\n"
+  end
+
+  defp test_tree_sha256(root) do
+    root
+    |> Path.join("**/*")
+    |> Path.wildcard(match_dot: true)
+    |> Enum.filter(&File.regular?/1)
+    |> Enum.map(&Path.relative_to(&1, root))
+    |> Enum.sort()
+    |> Enum.map(fn relative ->
+      relative <> "\0" <> test_sha256(File.read!(Path.join(root, relative))) <> "\n"
+    end)
+    |> IO.iodata_to_binary()
+    |> test_sha256()
+  end
+
+  defp test_sha256(content),
+    do: :crypto.hash(:sha256, content) |> Base.encode16(case: :lower)
 
   defp write_policy!(root, policy) do
     path = Path.join(root, "config/ci_required_checks.json")
