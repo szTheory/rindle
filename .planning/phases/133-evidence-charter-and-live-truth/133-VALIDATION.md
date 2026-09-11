@@ -475,3 +475,237 @@ Re-audited after the targeted completed-state reconciliation fix without modifyi
 - **Classification:** NYQUIST-COMPLIANT
 - The Plan 17 publication decision remains authorization-only and receives no acceptance credit.
 - The first repository-gate attempt exposed a test-only planning-path hygiene violation. The regression now asserts the production validator's exact CLI result; the unchanged requirement and full repository gate both pass.
+## Pending Gap-Closure Validation Addendum (Plans 18–22)
+
+Plans 01–17 remain immutable historical validation. The records below preserve the planned verification pairs for Plans 18–22 after execution; every pair remains pending evidence history, and the Plan 22 checkpoint carries authorization-only acceptance credit.
+
+<pending-validation key="133-18-01:1">
+<automated>
+bash scripts/ci/test_verify_nightly_run.sh
+</automated>
+<fails_when>
+non-zero exit, any `FAIL` row, or the suite reports zero cases
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-18-02:1">
+<automated>
+bash scripts/ci/test_verify_nightly_run.sh &amp;&amp; shellcheck -S warning scripts/ci/verify_nightly_run.sh scripts/ci/test_verify_nightly_run.sh
+</automated>
+<fails_when>
+non-zero exit, any `FAIL` row, zero cases, or a ShellCheck warning-or-higher diagnostic
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-19-01:1">
+<automated>
+mix test test/install_smoke/nightly_policy_test.exs
+</automated>
+<fails_when>
+non-zero exit, the ExUnit summary reports zero tests, the producer can mutate issues, a scheduled verdict is not uploaded before concurrency, or the drainer group depends on run identity
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-19-02:1">
+<automated>
+bash scripts/ci/test_nightly_incident.sh &amp;&amp; shellcheck -S warning scripts/ci/eval_nightly_incident.sh scripts/ci/manage_nightly_incident.sh scripts/ci/test_nightly_incident.sh
+</automated>
+<fails_when>
+non-zero exit, any `FAIL` row, zero cases, the three-overlap case loses or duplicates B, a no-op green writes an acknowledgement, stale preimage advances replay, or ShellCheck reports a warning-or-higher diagnostic
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-20-01:1">
+<automated>
+mix test test/install_smoke/evidence_census_test.exs
+</automated>
+<fails_when>
+non-zero exit, or the ExUnit summary reports zero tests
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-20-02:1">
+<automated>
+mix test test/install_smoke/evidence_census_test.exs &amp;&amp; mix format --check-formatted scripts/maintainer/evidence_census.exs scripts/maintainer/validate_evidence_census.exs test/install_smoke/evidence_census_test.exs
+</automated>
+<fails_when>
+non-zero exit, zero ExUnit tests, or any file is not canonically formatted
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-21-01:1">
+<automated>
+mix test test/install_smoke/live_truth_parity_test.exs test/install_smoke/generated_app_smoke_test.exs
+</automated>
+<fails_when>
+non-zero exit, or the ExUnit summary reports zero tests
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-21-02:1">
+<automated>
+mix test test/install_smoke/live_truth_parity_test.exs --only package_authority
+</automated>
+<fails_when>
+non-zero exit, or the ExUnit summary reports zero tests
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-21-02:2">
+<automated>
+mix format --check-formatted test/install_smoke/support/generated_app_helper.ex scripts/maintainer/validate_live_truth.exs test/install_smoke/live_truth_parity_test.exs
+</automated>
+<fails_when>
+non-zero exit or any changed Elixir file is not canonically formatted
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-21-03:1">
+<automated>
+mix test test/install_smoke/phase_133_reconciliation_test.exs test/install_smoke/phase_133_completed_validation_test.exs
+</automated>
+<fails_when>
+non-zero exit, zero ExUnit tests, any one of the 16 Wave 15 subsets or the execution-complete fixture fails, a named roadmap/summary/addendum/history mutation is accepted, or fixture-only 10/17 historical validation regresses
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-21-03:2">
+<automated>
+MIX_ENV=test mix run --no-deps-check --no-compile scripts/maintainer/validate_phase_133_reconciliation.exs --root .
+</automated>
+<fails_when>
+non-zero exit, reported completed count does not equal the current summary-backed checked subset from 17 through 21, Phase detail and Progress counts/status disagree, Plan 22 is early, any Plan 18-22 input/mapping is missing or inexact, or Plans 01-17 history differs
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-21-03:3">
+<automated>
+./scripts/maintainer/automation_first_contract.sh
+</automated>
+<fails_when>
+non-zero exit, any Plan 18-22 implementation task lacks executable evidence with a concrete failure direction, pending work receives green credit, or authorization is counted as acceptance
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-22-01:1">
+<automated>
+subject_sha="$(jq -er '.subject_sha' .planning/phases/133-evidence-charter-and-live-truth/133-EVIDENCE-CENSUS.json)" &amp;&amp; temp_root="$(mktemp -d "${TMPDIR:-/tmp}/phase133-final-ledger.XXXXXX")" &amp;&amp; trap 'status=$?; cleanup_status=0; if [ -e "$temp_root/subject/.git" ] &amp;&amp; ! git worktree remove --force "$temp_root/subject" &gt;/dev/null 2&gt;&amp;1; then cleanup_status=1; fi; if ! rm -rf -- "$temp_root"; then cleanup_status=1; fi; if [ "$status" -ne 0 ]; then exit "$status"; fi; exit "$cleanup_status"' EXIT &amp;&amp; git worktree add --detach "$temp_root/subject" "$subject_sha" &gt;/dev/null &amp;&amp; MIX_ENV=test mix run --no-deps-check --no-compile scripts/maintainer/evidence_census.exs --root "$temp_root/subject" --ledger .planning/phases/133-evidence-charter-and-live-truth/133-EVIDENCE-CENSUS.json --output "$temp_root/receipt.json" --source-sha "$subject_sha" &amp;&amp; MIX_ENV=test mix run --no-deps-check --no-compile scripts/maintainer/validate_evidence_census.exs --root "$temp_root/subject" --ledger .planning/phases/133-evidence-charter-and-live-truth/133-EVIDENCE-CENSUS.json --receipt "$temp_root/receipt.json"
+</automated>
+<fails_when>
+non-zero exit, the EXIT trap is absent before worktree registration, cleanup leaves a registered worktree/residue, escaped or missing detector input, foreign/dirty subject, incomplete taxonomy/candidate/disposition/transition authority, or nondeterministic receipt
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-22-02:1">
+<automated>
+subject_sha="$(jq -er '.subject_sha' .planning/phases/133-evidence-charter-and-live-truth/133-EVIDENCE-CENSUS.json)" &amp;&amp; git cat-file -e "${subject_sha}^{commit}" &amp;&amp; remote_ref="phase-133-evidence-${subject_sha:0:12}" &amp;&amp; remote_existing="$(git ls-remote origin "refs/heads/$remote_ref")" &amp;&amp; test -z "$remote_existing"
+</automated>
+<fails_when>
+non-zero exit, invalid ledger subject, or the supposedly unique remote ref already exists
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>authorization-only</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-22-03:1">
+<automated>
+bash scripts/ci/test_verify_nightly_run.sh &amp;&amp; bash scripts/ci/test_nightly_incident.sh &amp;&amp; bash scripts/ci/test_nightly_summary_gate.sh &amp;&amp; bash scripts/ci/test_nightly_dialyzer.sh &amp;&amp; mix test test/install_smoke/evidence_census_test.exs test/install_smoke/nightly_policy_test.exs test/install_smoke/live_truth_parity_test.exs test/install_smoke/generated_app_smoke_test.exs test/install_smoke/release_docs_parity_test.exs test/install_smoke/package_metadata_test.exs
+</automated>
+<fails_when>
+non-zero exit, any Bash `FAIL` row, zero shell cases or ExUnit tests, or any dispatch, overlap, provenance, package-version, lifecycle, Nightly, release, or adoption mutation case fails
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-22-03:2">
+<automated>
+mix ci &amp;&amp; bash scripts/maintainer/refactor_contract.sh
+</automated>
+<fails_when>
+non-zero exit, zero required tests, incomplete command output, or any public API/schema/telemetry/error/release preservation failure
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-22-03:3">
+<automated>
+MIX_ENV=test mix run --no-deps-check --no-compile scripts/maintainer/validate_phase_133_reconciliation.exs --root .
+</automated>
+<fails_when>
+non-zero exit, output does not report exactly 21 completed and 1 pending before this summary exists, Plans 18-21 lack matching checked rows/complete summaries, Plan 22 is checked or summarized, Phase detail and Progress counts/status disagree, or a pending mapping/history byte is inexact
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-22-03:4">
+<automated>
+receipt=.planning/phases/133-evidence-charter-and-live-truth/133-NIGHTLY-EVIDENCE.json &amp;&amp; subject_sha="$(jq -er '.subject_sha' "$receipt")" &amp;&amp; remote_ref="phase-133-evidence-${subject_sha:0:12}" &amp;&amp; remote_line="$(git ls-remote --exit-code origin "refs/heads/$remote_ref")" &amp;&amp; remote_sha="${remote_line%%[[:space:]]*}" &amp;&amp; test "$remote_sha" = "$subject_sha" &amp;&amp; bash scripts/ci/verify_nightly_run.sh preflight --repo szTheory/rindle --workflow nightly.yml --ref "$remote_ref" --expected-sha "$subject_sha" &amp;&amp; bash scripts/ci/verify_nightly_run.sh verify-receipt --repo szTheory/rindle --workflow nightly.yml --ref "$remote_ref" --expected-sha "$subject_sha" --receipt "$receipt"
+</automated>
+<fails_when>
+non-zero exit, auth/API/timeout error, remote ref mismatch, ambiguous or non-owned run, incident drift, escaped census input, stale package version, duplicated lifecycle evidence, mutable authority, or foreign receipt
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-22-03:5">
+<automated>
+temp_root="$(mktemp -d "${TMPDIR:-/tmp}/phase133-final-hygiene.XXXXXX")" &amp;&amp; trap 'status=$?; cleanup_status=0; if [ -e "$temp_root/subject/.git" ] &amp;&amp; ! git worktree remove --force "$temp_root/subject" &gt;/dev/null 2&gt;&amp;1; then cleanup_status=1; fi; if ! rm -rf -- "$temp_root"; then cleanup_status=1; fi; if [ "$status" -ne 0 ]; then exit "$status"; fi; exit "$cleanup_status"' EXIT &amp;&amp; subject_sha="$(jq -er '.subject_sha' .planning/phases/133-evidence-charter-and-live-truth/133-NIGHTLY-EVIDENCE.json)" &amp;&amp; git worktree add --detach "$temp_root/subject" "$subject_sha" &gt;/dev/null &amp;&amp; (cd "$temp_root/subject" &amp;&amp; ./scripts/maintainer/repo_hygiene_check.sh) &amp;&amp; git worktree remove --force "$temp_root/subject" &gt;/dev/null &amp;&amp; rm -rf -- "$temp_root" &amp;&amp; trap - EXIT &amp;&amp; ./scripts/maintainer/automation_first_contract.sh
+</automated>
+<fails_when>
+non-zero exit, the EXIT trap is absent before worktree registration, detached subject cannot materialize, cleanup leaves a registered worktree/residue, repository hygiene reports residue, or an active requirement is credited without executable evidence and a concrete failure direction
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-22-plan-verification:1">
+<automated>
+mix test test/install_smoke/phase_133_reconciliation_test.exs test/install_smoke/phase_133_completed_validation_test.exs &amp;&amp; MIX_ENV=test mix run --no-deps-check --no-compile scripts/maintainer/validate_phase_133_reconciliation.exs --root .
+</automated>
+<fails_when>
+non-zero exit, zero ExUnit tests, output does not report exactly 21 completed and 1 pending, Plan 22 already has a summary/checkbox, either roadmap count surface is not 21/22 `In Progress`, or Plans 01-17 historical bytes/mappings changed
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-22-post-summary:1">
+<automated>
+mix test test/install_smoke/phase_133_reconciliation_test.exs test/install_smoke/phase_133_completed_validation_test.exs &amp;&amp; MIX_ENV=test mix run --no-deps-check --no-compile scripts/maintainer/validate_phase_133_reconciliation.exs --root . --expect-execution-complete
+</automated>
+<fails_when>
+non-zero exit, zero ExUnit tests, output does not report exactly 22 completed and 0 pending, any Plan 18-22 summary is absent/non-complete, any plan checkbox is wrong, Phase detail and top Progress counts differ from 22/22, Progress is not `In Progress` with an empty completion date before verification, or Plans 01-17 historical bytes/mappings changed
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
