@@ -729,16 +729,50 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
         %{type: "package", receipt_source: "package-receipt-argument", evidence_context: %{}}
       ])
 
-    assert_raise ArgumentError, ~r/package execution environment is required/, fn ->
-      Rindle.ValidateLiveTruth.run([
-        "--root",
-        @repo_root,
-        "--package-receipt",
-        receipt_path,
-        "--claims",
-        incomplete_claims_path
+    assert_raise ArgumentError,
+                 ~r/package receipt consumer requires complete evidence context/,
+                 fn ->
+                   Rindle.ValidateLiveTruth.run([
+                     "--root",
+                     @repo_root,
+                     "--package-receipt",
+                     receipt_path,
+                     "--claims",
+                     incomplete_claims_path
+                   ])
+                 end
+  end
+
+  @tag :package_authority
+  test "one complete package claim consumes and normalizes the receipt argument" do
+    evidence = executable_package_evidence_fixture!()
+    receipt_path = write_json_fixture!(evidence.receipt)
+
+    claims_path =
+      write_json_fixture!([
+        %{
+          type: "package",
+          receipt_source: "package-receipt-argument",
+          evidence_context: evidence.context
+        }
       ])
-    end
+
+    output =
+      ExUnit.CaptureIO.capture_io(fn ->
+        assert :ok =
+                 Rindle.ValidateLiveTruth.run([
+                   "--root",
+                   @repo_root,
+                   "--format",
+                   "json",
+                   "--package-receipt",
+                   receipt_path,
+                   "--claims",
+                   claims_path
+                 ])
+      end)
+
+    assert Jason.decode!(output)["package_proof"] == nil
   end
 
   @tag :package_authority

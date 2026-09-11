@@ -40,14 +40,8 @@ defmodule Rindle.ValidateLiveTruth do
   def run(argv) do
     {options, claim_paths} = parse_options!(argv)
     model = derive!(options.root, historical_markers: options.historical_markers)
-
-    model =
-      case options.package_receipt do
-        nil -> model
-        path -> put_package_proof!(model, path |> File.read!() |> Jason.decode!())
-      end
-
     claims = Enum.flat_map(claim_paths, &read_claims!/1)
+    claims = consume_package_receipt_argument!(options.package_receipt, claims)
     validate_claims!(model, claims)
 
     if options.format == "json" do
@@ -283,7 +277,7 @@ defmodule Rindle.ValidateLiveTruth do
   end
 
   defp validate_package_claim!(model, claim) do
-    receipt = field(claim, :receipt) || model.package_proof
+    receipt = field(claim, :receipt)
     assert!(not is_nil(receipt), "package claim requires a package receipt")
     evidence_context = field(claim, :evidence_context) || %{}
 
@@ -381,10 +375,6 @@ defmodule Rindle.ValidateLiveTruth do
 
     assert!(depth == 0, "malformed historical boundary: unmatched start marker")
     lines |> Enum.reverse() |> Enum.join("\n")
-  end
-
-  defp put_package_proof!(model, receipt) do
-    %{model | package_proof: receipt}
   end
 
   def normalize_package_receipt!(receipt, context),
@@ -1168,6 +1158,87 @@ defmodule Rindle.ValidateLiveTruth do
         raise ArgumentError, "invalid arguments: #{inspect(positional ++ invalid)}"
     end
   end
+
+  defp consume_package_receipt_argument!(nil, claims) do
+    if Enum.any?(claims, &package_receipt_argument_consumer?/1) do
+      raise ArgumentError, "package receipt consumer requires --package-receipt"
+    end
+
+    claims
+  end
+
+  defp consume_package_receipt_argument!(path, claims) do
+    receipt = read_package_receipt!(path)
+
+    consumers =
+      Enum.with_index(claims)
+      |> Enum.filter(fn {claim, _index} -> package_receipt_argument_consumer?(claim) end)
+
+    assert!(
+      length(consumers) == 1,
+      "package receipt argument must be consumed exactly once"
+    )
+
+    [{consumer, index}] = consumers
+    validate_package_receipt_consumer!(consumer, receipt)
+
+    List.update_at(claims, index, fn claim ->
+      claim |> Map.delete(:receipt) |> Map.put("receipt", receipt)
+    end)
+  end
+
+  defp package_receipt_argument_consumer?(claim) when is_map(claim),
+    do: field(claim, :receipt_source) == "package-receipt-argument"
+
+  defp package_receipt_argument_consumer?(_claim), do: false
+
+  defp validate_package_receipt_consumer!(claim, receipt) do
+    type = field(claim, :type)
+
+    assert!(
+      type in [:package, "package", :adoption, "adoption"],
+      "package receipt argument consumer type mismatch"
+    )
+
+    inline_receipt = field(claim, :receipt)
+
+    if not is_nil(inline_receipt) and
+         stringify_keys!(inline_receipt, "package receipt") != receipt do
+      raise ArgumentError, "package receipt argument disagrees with inline receipt"
+    end
+
+    evidence_context = field(claim, :evidence_context)
+
+    assert!(
+      is_map(evidence_context) and
+        Enum.all?(
+          [:package_root, :generated_app_root, :results_path, :execution_env],
+          &has_field?(evidence_context, &1)
+        ),
+      "package receipt consumer requires complete evidence context"
+    )
+
+    if type in [:adoption, "adoption"] do
+      assert!(
+        field(receipt, :schema_version) == @package_receipt_schema,
+        "package receipt argument adoption consumer requires maintainer package evidence"
+      )
+    end
+
+    :ok
+  end
+
+  defp read_package_receipt!(path) when is_binary(path) and path != "" do
+    receipt = path |> File.read!() |> Jason.decode!()
+    assert!(is_map(receipt), "package receipt JSON must be an object")
+    stringify_keys!(receipt, "package receipt")
+  rescue
+    Jason.DecodeError -> raise ArgumentError, "malformed package receipt JSON"
+    File.Error -> raise ArgumentError, "package receipt could not be read"
+  end
+
+  defp read_package_receipt!(_path),
+    do: raise(ArgumentError, "package receipt path is required")
 
   defp read_claims!(path) do
     content = File.read!(path)
