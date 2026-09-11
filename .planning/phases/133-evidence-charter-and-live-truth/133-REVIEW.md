@@ -1,6 +1,6 @@
 ---
 phase: 133-evidence-charter-and-live-truth
-reviewed: 2026-09-11T02:23:52Z
+reviewed: 2026-09-11T20:06:06Z
 depth: standard
 files_reviewed: 31
 files_reviewed_list:
@@ -36,68 +36,104 @@ files_reviewed_list:
   - test/install_smoke/phase_133_reconciliation_test.exs
   - test/install_smoke/support/generated_app_helper.ex
 findings:
-  critical: 5
-  warning: 1
+  critical: 4
+  warning: 3
   info: 0
-  total: 6
+  total: 7
 status: issues_found
 ---
 
 # Phase 133: Code Review Report
 
-**Reviewed:** 2026-09-11T02:23:52Z
+**Reviewed:** 2026-09-11T20:06:06Z
 **Depth:** standard
 **Files Reviewed:** 31
 **Status:** issues_found
 
 ## Summary
 
-The strict Nightly result evaluator rejects missing, failed, cancelled, and malformed job evidence, and its focused shell suites pass. However, the surrounding evidence authorities still contain five ship-blocking integrity gaps: a diagnostic run can be attributed to the wrong dispatch, concurrent scheduled runs can corrupt the single-incident lifecycle, census inputs can escape through symlinks, package evidence is not bound to the repository release version, and a four-result package receipt is produced from only three executions. One additional warning concerns unbounded atom creation from decoded report data.
+The Phase 133 implementation contains four ship-blocking correctness defects in its Nightly incident recovery, package-evidence authority, package-receipt CLI, and phase-completion validator. The most consequential failures are that a normal red-on-SHA-A/green-on-SHA-B Nightly sequence cannot close its incident, and package proof can be manufactured from caller-authored success maps without executing the recorded commands. Three additional maintainability defects leave an unbounded atom conversion, stale public live-truth instructions, and an obsolete parallel incident policy implementation.
+
+The four shell regression suites passed 228 assertions, and the focused Phase 133/live-truth ExUnit selection passed 27 tests with one integration-tagged test excluded. Those suites do not cover the failing transitions identified below; in two cases, their fixtures directly encode the blind spot.
 
 ## Narrative Findings (AI reviewer)
 
 ## Critical Issues
 
-### CR-01: Same-second workflow history can be mistaken for the newly dispatched Nightly run
+### CR-01: [BLOCKER] Incident replay discards the prior failing SHA, so a fixed commit cannot close the incident
 
-**File:** `scripts/ci/verify_nightly_run.sh:443-463`
-**Issue:** The collector records a timestamp with only whole-second precision before dispatch, then accepts any matching run whose `createdAt >=` that timestamp. If an earlier diagnostic dispatch for the same ref/SHA was created in that same second, the first poll can select that pre-existing run and stop before GitHub exposes the run just dispatched by this process. A green receipt can therefore be attributed to the wrong dispatch while the actual requested run is still pending or later fails. The test for older history uses a run from an earlier hour and does not cover this boundary collision.
-**Fix:** Snapshot the IDs of all matching runs before dispatch and select exactly one matching post-dispatch ID not present in that snapshot. Continue polling until that new ID appears; fail on multiple new IDs. Do not use second-resolution `createdAt` as the ownership token.
+**File:** `/Users/jon/projects/rindle/scripts/ci/manage_nightly_incident.sh:125-140`
 
-### CR-02: The rolling Nightly incident lifecycle has a check-then-act race
+**Related:** `/Users/jon/projects/rindle/scripts/ci/manage_nightly_incident.sh:238-290`; `/Users/jon/projects/rindle/scripts/ci/test_nightly_incident.sh:22-46`
 
-**File:** `scripts/ci/manage_nightly_incident.sh:20-26,56-65`
-**Issue:** The script lists incidents, decides, and mutates in separate GitHub API calls. `nightly.yml` has no workflow-level concurrency serialization. Two overlapping scheduled runs (including reruns of a scheduled event) can both observe zero incidents and create duplicates, or an older green run can close an incident opened/updated by a newer red run. Once duplicates exist, future evaluations deliberately fail closed, leaving the lifecycle stuck and the public incident state inaccurate.
-**Fix:** Serialize scheduled Nightly runs with a non-cancelling workflow concurrency group, and re-read/revalidate the exact-label incident set immediately before mutation. For close/update, verify that the issue still represents the expected prior state; for create, use a serialized owner or another uniqueness mechanism.
+**Issue:** `prepare_event_index` restricts every replayed scheduled run to `head_sha == REMOTE_MAIN_SHA`. After a red scheduled run at commit A opens an incident, the fix advances `main` to commit B. The later green run at B therefore replays only B: `derive_intent` starts with `logical_open=false`, treats the green event as a no-op, and then fails because the real issue inventory still contains one open incident. The required recovery transition can work only while `main` has not changed, which is the opposite of the normal fix workflow. The test fixture masks this by assigning the same all-`a` SHA to runs 101, 102, and 103 and to every event.
 
-### CR-03: Detector input hashing follows symlinks outside the repository
+**Fix:** Authenticate each historical event against that run's own `head_sha`, default branch, workflow, event, run ID, and attempt. Require only the current high-watermark run to equal the freshly resolved remote-main SHA. Replay all authenticated scheduled default-branch events through the high watermark, then add a regression with red run A and green run B that closes exactly one incident.
 
-**File:** `scripts/maintainer/evidence_census.exs:239-270`
-**Issue:** `safe_relative_path/1` checks only lexical containment, after which `File.read/1` follows symlinks. A repository-relative detector input that is a symlink to `/tmp/...` or another external path is therefore accepted and hashed as authoritative repository evidence. Observation locations have a physical-containment check, but detector inputs do not. The independent validator repeats the same flaw at `scripts/maintainer/validate_evidence_census.exs:448-475`, so generation and validation agree on the escaped input instead of failing closed.
-**Fix:** Resolve every path component physically before reading and require the resolved file to remain beneath the physical repository root, reusing the existing `physically_contained?/2` logic. Add a test with a detector input symlink that targets a file outside the fixture repository.
+### CR-02: [BLOCKER] Caller-authored result maps can forge successful package execution evidence
 
-### CR-04: Package proof is not tied to the release version derived from the subject repository
+**File:** `/Users/jon/projects/rindle/test/install_smoke/support/generated_app_helper.ex:338-378`
 
-**File:** `scripts/maintainer/validate_live_truth.exs:285-296,408-433`
-**Issue:** Package validation ties `receipt.subject_sha` to `repository_root` HEAD, but it only checks `receipt.package_version` against the unrelated unpacked package's own `mix.exs`. The model's authoritative release version is never passed into `verify_package_evidence!/2`. Consequently, a receipt for HEAD can validate an old or otherwise unrelated unpacked Rindle package as long as the receipt, tree hashes, generated app, and caller-supplied results are internally consistent. The existing mutation test changes only the receipt version while leaving the package tree unchanged, so it does not exercise this cross-authority mismatch.
-**Fix:** Pass `expected_version: model.version` (and preferably the expected source/package digest produced at that SHA) into the verifier and require `receipt["package_version"] == expected_version` in addition to checking the unpacked `mix.exs`. Add a test using a self-consistent package tree and receipt whose version differs from the repository model.
+**Related:** `/Users/jon/projects/rindle/scripts/maintainer/validate_live_truth.exs:484-493`; `/Users/jon/projects/rindle/scripts/maintainer/validate_live_truth.exs:597-641`; `/Users/jon/projects/rindle/test/install_smoke/live_truth_parity_test.exs:751-795`
 
-### CR-05: The receipt claims four command results from only three executions
+**Issue:** The exported receipt producer accepts arbitrary `%{exit_code: 0, output: ...}` maps, hashes those strings, writes them to a caller-controlled generated-app directory, and labels them compile/boot/lifecycle evidence. The verifier checks only that the self-authored receipt matches the self-authored results file, that the argv is expected, and that the supplied result fields look valid. It never runs the commands or verifies immutable provenance for their execution. The supposedly positive unit fixture demonstrates the bypass: it creates minimal fake package/generated trees and passes literal `"compile ok"`, `"boot ok"`, and `"2 tests, 0 failures"` maps; the resulting receipt is accepted as package proof even though none of those commands ran.
 
-**File:** `test/install_smoke/support/generated_app_helper.ex:342-347`
-**Issue:** `package_evidence_receipt!/2` manufactures the `lifecycle` result by copying the single `smoke` result. The verifier requires four named results and unconditionally returns `lifecycle_proved: true`, so the receipt overstates independent execution: there is no separately attributable lifecycle command/result even though the schema presents one. A single successful test invocation is counted twice.
-**Fix:** Either model the test invocation once (for example, one `smoke_and_lifecycle` result) or execute and capture a distinct lifecycle command. The verifier should derive `lifecycle_proved` only from that real result rather than setting it unconditionally.
+**Fix:** Move command execution and receipt construction behind one canonical producer that accepts no caller-provided result maps. Bind the resulting command records to trusted run/artifact provenance (or re-execute the exact commands in the materialized unpacked tree during validation). Add a negative test that constructs a fully schema-correct, digest-consistent directory/results/receipt triple without running commands and require validation to reject it.
+
+### CR-03: [BLOCKER] `--package-receipt` accepts and reports arbitrary JSON as live truth when no package claim consumes it
+
+**File:** `/Users/jon/projects/rindle/scripts/maintainer/validate_live_truth.exs:40-56`
+
+**Related:** `/Users/jon/projects/rindle/scripts/maintainer/validate_live_truth.exs:384-389`; `/Users/jon/projects/rindle/scripts/maintainer/validate_live_truth.exs:1064-1099`
+
+**Issue:** The CLI reads `--package-receipt`, stores its decoded JSON directly in `model.package_proof`, validates only the separately supplied claims, and then prints `live truth valid`. With no `--claims` argument, any valid JSON object—including the unrelated required-check policy JSON—passes and is emitted as `package_proof` in JSON mode. This contradicts the advertised public input and the phase's explicit requirement that CLI receipt input traverse the same normalization and filesystem checks as inline receipts.
+
+**Fix:** Either remove `--package-receipt` as a standalone authority input, or require the filesystem context needed by `verify_package_evidence!/2` and normalize it immediately. If it remains a default consumed by claims, track consumption and fail when a supplied receipt was never validated. Add CLI tests for schema-invalid but valid JSON, a fully self-consistent forged receipt, and a receipt supplied without any consuming package claim.
+
+### CR-04: [BLOCKER] A body or code-block line can impersonate completed SUMMARY frontmatter
+
+**File:** `/Users/jon/projects/rindle/scripts/maintainer/validate_phase_133_reconciliation.exs:516-535`
+
+**Related:** `/Users/jon/projects/rindle/test/install_smoke/phase_133_completed_validation_test.exs:74-85`
+
+**Issue:** `completed_summary_set/1` searches the entire Markdown file for any line matching `status: complete`; it does not parse or constrain the match to YAML frontmatter. A summary with frontmatter `status: halted` followed by body text or a fenced example containing `status: complete` is therefore counted as complete and can satisfy `--expect-execution-complete`, roadmap counts, and checkbox parity. The negative test covers only halted frontmatter with no matching body line, so this false completion path remains green.
+
+**Fix:** Parse only the first delimited YAML frontmatter block, reject malformed/duplicate frontmatter, and require its single `status` value to equal `complete` (along with the expected phase/plan identity if present). Add a regression whose frontmatter is halted while its body contains `status: complete`.
 
 ## Warnings
 
-### WR-01: Report-controlled strings are converted into permanent VM atoms
+### WR-01: [WARNING] Untrusted resolver text is interned as a permanent VM atom
 
-**File:** `test/install_smoke/support/generated_app_helper.ex:730-731`
-**Issue:** `to_existing_atom_safe/1` calls `String.to_atom/1`, which creates a new permanent atom for every distinct decoded migration `resolver` string. Repeated malformed or externally influenced report values can grow the atom table until the BEAM VM terminates; the function name incorrectly suggests the safe existing-atom operation.
-**Fix:** Use `String.to_existing_atom/1` with explicit error handling, or map an allowlisted set of resolver strings to known atoms without creating new ones.
+**File:** `/Users/jon/projects/rindle/test/install_smoke/support/generated_app_helper.ex:756-757`
+
+**Related:** `/Users/jon/projects/rindle/test/install_smoke/support/generated_app_helper.ex:616`
+
+**Issue:** `to_existing_atom_safe/1` is misnamed: it calls `String.to_atom/1` on a value decoded from a generated migration report. Every novel value permanently grows the BEAM atom table. Repeated malformed or influenced reports can exhaust the atom table and terminate the VM.
+
+**Fix:** Keep the resolver as a string, map an explicit allowlist of resolver names to existing atoms, or use `String.to_existing_atom/1` with bounded error handling. Never intern arbitrary decoded text.
+
+### WR-02: [WARNING] RUNNING.md retains stale live-authority and branch-protection instructions
+
+**File:** `/Users/jon/projects/rindle/RUNNING.md:82-87`
+
+**Related:** `/Users/jon/projects/rindle/RUNNING.md:46-48`; `/Users/jon/projects/rindle/RUNNING.md:174-176`; `/Users/jon/projects/rindle/scripts/setup_branch_protection.sh:17-45`
+
+**Issue:** The maintained public live-truth document still names “Plan 07's exact-SHA ... run” as the live acceptance authority even though the phase's later repairs replaced that receipt. It also documents the old hard-coded `REQUIRED_CHECKS=("CI Summary")` implementation after the script moved authority to `config/ci_required_checks.json`, and describes Nightly as broadly “advisory” immediately before classifying its component jobs as Nightly-gating. These contradictions make the operator guide an unreliable view of the authority model this phase is meant to establish.
+
+**Fix:** Replace the Plan 07 reference with the current durable receipt/validator authority, document `config/ci_required_checks.json` as the required-context source consumed by the setup script, and distinguish “not a required PR check” from “gating the Nightly aggregate.” Add exact assertions for these active statements to the live-truth parity test.
+
+### WR-03: [WARNING] The obsolete standalone incident evaluator leaves a second divergent policy implementation
+
+**File:** `/Users/jon/projects/rindle/scripts/ci/eval_nightly_incident.sh:1-79`
+
+**Related:** `/Users/jon/projects/rindle/scripts/ci/manage_nightly_incident.sh:238-293`
+
+**Issue:** No production workflow or current test calls `eval_nightly_incident.sh`; the Nightly lifecycle now implements policy and replay inside `manage_nightly_incident.sh`. The unused evaluator still uses the retired `nightly-run:` marker shape while production uses `nightly-mutation:<action>:` markers, and it implements a separate one-event state machine. Keeping both makes future incident changes prone to updating or testing the wrong policy.
+
+**Fix:** Delete the unused evaluator, or refactor the manager so one pure evaluator is the actual production dependency and its tests exercise that exact implementation and marker schema.
 
 ---
 
-_Reviewed: 2026-09-11T02:23:52Z_
+_Reviewed: 2026-09-11T20:06:06Z_
 _Reviewer: the agent (gsd-code-reviewer)_
 _Depth: standard_
