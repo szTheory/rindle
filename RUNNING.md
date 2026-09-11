@@ -35,7 +35,10 @@ matrix both of those entrypoints link to.
 
 > Adopters can skip this section. It documents how this repository gates merges and releases.
 
-[`.github/workflows/ci.yml`](.github/workflows/ci.yml) is the source of truth for job wiring; GitHub branch protection and required-check settings live outside the repo. The `name: CI` and `ci.yml` filename are **invariant** because release automation selects that workflow by name and filename.
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) is the source of truth for job wiring;
+the required-check identity is repository-structured as described under Release train, while the
+applied GitHub branch-protection state remains remote. The `name: CI` and `ci.yml` filename are
+**invariant** because release automation selects that workflow by name and filename.
 
 > CI work is split by trigger so only representative signal stays on the PR critical
 > path (≤7 min target):
@@ -177,9 +180,12 @@ workflow still relies on the complete `ci.yml` run for the exact release SHA.
 `ci.yml` on the release SHA to finish with conclusion `success`. When the latest run is
 not green, or the wait times out, publish **fails closed** — there is no bypass path.
 
-Branch protection enforces a **single** required status check, `CI Summary` (enforced via
-`scripts/setup_branch_protection.sh`, `REQUIRED_CHECKS=("CI Summary")`). None of the individual
-lanes are required contexts; they gate merges transitively through `CI Summary.needs`, which lists
+`config/ci_required_checks.json` is the sole structured authority for branch protection's required
+status-check identity. Its workflow tuple maps `ci.yml` / `CI` / `ci-summary` to the sole required
+context `CI Summary`. `scripts/setup_branch_protection.sh` loads its contexts when rendering or
+applying branch protection, and `scripts/maintainer/validate_live_truth.exs` cross-checks the same
+workflow, job, and context identity against parsed CI topology. None of the individual lanes are
+required contexts; they gate merges transitively through `CI Summary.needs`, which lists
 `quality`, `optional-dependencies`, `integration`, `contract`, `proof`, `package-consumer` (lean),
 `adoption-demo-unit`, `adoption-demo-e2e-smoke`, `adopter`, `brandbook-tokens`, and
 `ci-script-tests`.

@@ -277,7 +277,12 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
             "config/other_required_checks.json",
             global: false
           ),
-          String.replace(running, "`CI Summary`", "`Merge Gate`", global: false)
+          Regex.replace(
+            ~r/sole required\s+context `CI Summary`/,
+            running,
+            "sole required context `Merge Gate`",
+            global: false
+          )
         ] do
       assert_raise ExUnit.AssertionError, fn ->
         assert_running_required_check_authority!(mutation, model)
@@ -1036,7 +1041,9 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
     assert prose =~
              "`scripts/maintainer/validate_live_truth.exs` cross-checks the same workflow, job, and context identity"
 
-    assert prose =~ "`#{context}`"
+    assert prose =~
+             "maps `ci.yml` / `CI` / `ci-summary` to the sole required context `#{context}`"
+
     refute prose =~ "REQUIRED_CHECKS=("
   end
 
