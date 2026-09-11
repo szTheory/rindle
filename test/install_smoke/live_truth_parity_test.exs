@@ -672,6 +672,103 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
   end
 
   @tag :package_authority
+  test "standalone package receipt requires exactly one explicit consuming claim" do
+    evidence = package_evidence_fixture!()
+    receipt_path = write_json_fixture!(evidence.receipt)
+
+    assert_raise ArgumentError, ~r/package receipt argument must be consumed exactly once/, fn ->
+      Rindle.ValidateLiveTruth.run([
+        "--root",
+        @repo_root,
+        "--package-receipt",
+        receipt_path
+      ])
+    end
+  end
+
+  @tag :package_authority
+  test "malformed package receipt JSON fails with a bounded validation error" do
+    receipt_path = write_text_fixture!("{")
+
+    assert_raise ArgumentError, ~r/malformed package receipt JSON/, fn ->
+      Rindle.ValidateLiveTruth.run([
+        "--root",
+        @repo_root,
+        "--package-receipt",
+        receipt_path
+      ])
+    end
+  end
+
+  @tag :package_authority
+  test "package receipt argument rejects multiple consumers and incomplete context" do
+    evidence = package_evidence_fixture!()
+    receipt_path = write_json_fixture!(evidence.receipt)
+
+    consumer = %{
+      type: "package",
+      receipt_source: "package-receipt-argument",
+      evidence_context: evidence.context
+    }
+
+    claims_path = write_json_fixture!([consumer, consumer])
+
+    assert_raise ArgumentError, ~r/package receipt argument must be consumed exactly once/, fn ->
+      Rindle.ValidateLiveTruth.run([
+        "--root",
+        @repo_root,
+        "--package-receipt",
+        receipt_path,
+        "--claims",
+        claims_path
+      ])
+    end
+
+    incomplete_claims_path =
+      write_json_fixture!([
+        %{type: "package", receipt_source: "package-receipt-argument", evidence_context: %{}}
+      ])
+
+    assert_raise ArgumentError, ~r/package execution environment is required/, fn ->
+      Rindle.ValidateLiveTruth.run([
+        "--root",
+        @repo_root,
+        "--package-receipt",
+        receipt_path,
+        "--claims",
+        incomplete_claims_path
+      ])
+    end
+  end
+
+  @tag :package_authority
+  test "package receipt argument rejects inline disagreement" do
+    evidence = package_evidence_fixture!()
+    receipt_path = write_json_fixture!(evidence.receipt)
+
+    claims_path =
+      write_json_fixture!([
+        %{
+          type: "package",
+          receipt_source: "package-receipt-argument",
+          receipt: Map.put(evidence.receipt, :subject_sha, String.duplicate("0", 40)),
+          evidence_context: evidence.context
+        }
+      ])
+
+    assert_raise ArgumentError, ~r/package receipt argument disagrees with inline receipt/, fn ->
+      Rindle.ValidateLiveTruth.run([
+        "--root",
+        @repo_root,
+        "--package-receipt",
+        receipt_path,
+        "--claims",
+        claims_path
+      ])
+    end
+  end
+
+  @tag :package_authority
   test "independent adopter authority is repository-owned and empty until a pilot is approved" do
     assert function_exported?(
              Rindle.ValidateLiveTruth,
@@ -955,6 +1052,20 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
     path = Path.join(root, relative)
     File.mkdir_p!(Path.dirname(path))
     File.write!(path, content)
+  end
+
+  defp write_json_fixture!(value), do: write_text_fixture!(Jason.encode!(value))
+
+  defp write_text_fixture!(content) do
+    path =
+      Path.join(
+        System.tmp_dir!(),
+        "rindle-live-truth-input-#{System.unique_integer([:positive])}.json"
+      )
+
+    File.write!(path, content)
+    on_exit(fn -> File.rm(path) end)
+    path
   end
 
   defp executable_package_mix_source do
