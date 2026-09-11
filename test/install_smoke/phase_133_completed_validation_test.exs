@@ -1,5 +1,8 @@
 defmodule Rindle.InstallSmoke.Phase133CompletedValidationTest do
   use ExUnit.Case, async: true
+  # Each reconciliation matrix case owns a unique temporary planning tree.
+  @async_safety_allow [:file_mutation]
+  def __async_safety_allow__, do: @async_safety_allow
 
   @repo_root Path.expand("../..", __DIR__)
   @phase_rel ".planning/phases/133-evidence-charter-and-live-truth"

@@ -2,6 +2,10 @@ Code.require_file("support/generated_app_helper.ex", __DIR__)
 
 defmodule Rindle.InstallSmoke.LiveTruthParityTest do
   use ExUnit.Case, async: true
+  # Fixture mutations are confined to a unique temporary root per test.
+  @async_safety_allow [:file_mutation]
+  def __async_safety_allow__, do: @async_safety_allow
+
   @compile {:no_warn_undefined, Rindle.ValidateLiveTruth}
 
   @repo_root Path.expand("../..", __DIR__)
