@@ -44,7 +44,7 @@ error vocabulary, release coupling, supported behavior, or the accepted pull-req
   3. Nightly aggregation fails for failed, cancelled, unexpected, or impermissibly skipped gating states, and automated incident tests prove one exact-run-bound issue opens or updates on failure and closes only after qualifying scheduled recovery.
   4. Executable parity checks derive release, planning, support, and adoption-proof claims from authoritative state and reject every unmarked version, lane-severity, or package-proof contradiction.
 
-**Plans**: 16/17 plans executed; 6 pending gap closure
+**Plans**: 17/17 plans executed; 6 pending gap closure
 
 Plans:
 
@@ -105,7 +105,7 @@ Plans:
 
 **Wave 14** *(blocked on Wave 13 completion)*
 
-- [ ] 133-17-PLAN.md — Freeze the repaired baseline and recollect one fresh exact-subject Nightly receipt.
+- [x] 133-17-PLAN.md — Freeze the repaired baseline and recollect one fresh exact-subject Nightly receipt.
 
 ### Phase 134: Dependency, Security, and Inbox Disposition
 
@@ -201,7 +201,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 133. Evidence Charter and Live Truth | 16/17 | In Progress|  |
+| 133. Evidence Charter and Live Truth | 17/17 | In Progress|  |
 | 134. Dependency, Security, and Inbox Disposition | 0/TBD | Not started | - |
 | 135. Repository and Code-Craft Consolidation | 0/TBD | Not started | - |
 | 136. Measured Quality and CI Ratchets | 0/TBD | Not started | - |

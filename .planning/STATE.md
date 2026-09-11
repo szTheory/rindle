@@ -4,17 +4,17 @@ milestone: v1.26
 milestone_name: Pre-Adopter Readiness & Quality Consolidation
 current_phase: 133
 current_phase_name: Evidence Charter and Live Truth
-status: executing
-stopped_at: Completed 133-16-PLAN.md
-last_updated: "2026-09-10T22:04:18.320Z"
+status: verifying
+stopped_at: Completed 133-17-PLAN.md
+last_updated: "2026-09-11T01:33:19.839Z"
 last_activity: 2026-09-10
 last_activity_desc: Phase 133 execution started
-state_head: 807ba430eaa56ccf21a6bb17fd14be7bc60bd86e
+state_head: 6aef42677839258df244984f6ccfd2b1e0d04c85
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 17
-  completed_plans: 16
+  completed_plans: 17
 ---
 
 # Project State
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-09-09 for v1.26)
 
 Phase: 133 (Evidence Charter and Live Truth) — EXECUTING
 Plan: 17 of 17
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-09-10 — Phase 133 execution started
 
 Progress: [███████░░░] 65%
@@ -66,6 +66,7 @@ Progress: [███████░░░] 65%
 | Phase 133 P14 | 21min | 2 tasks | 3 files |
 | Phase 133 P15 | 8 min | 2 tasks | 4 files |
 | Phase 133 P16 | 18min | 2 tasks | 2 files |
+| Phase 133 P17 | 3h15m | 3 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -115,6 +116,8 @@ Progress: [███████░░░] 65%
 - [Phase 133]: Keep census ledger commit and Nightly subject as separate explicit identities. — This preserves the frozen ledger's anti-self-reference design while authenticating both objects independently.
 - [Phase 133]: Verify stored census authority only from recorded commit:path bytes. — Caller-worktree edits cannot redefine historical evidence; collection alone requires the canonical ledger to be tracked and clean.
 - [Phase 133]: Exclude ephemeral authority_root from the canonical live-truth digest. — Temporary filesystem locations are locator context, not semantic exact-subject authority.
+- [Phase 133]: Authenticate every static FFmpeg release lookup with github.token. — Shared GitHub runners otherwise consume unauthenticated release API quota and can fail only selected compatibility cells with HTTP 403.
+- [Phase 133]: Preserve failed evidence refs and runs; corrections use new subject-derived non-force refs. — Immutable external identities keep rejected evidence auditable and prevent relabeling a tested subject.
 
 ### Pending Todos
 
@@ -138,6 +141,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-09-10T22:04:18.303Z
-Stopped at: Completed 133-16-PLAN.md
+Last session: 2026-09-11T01:33:19.814Z
+Stopped at: Completed 133-17-PLAN.md
 Resume file: None
