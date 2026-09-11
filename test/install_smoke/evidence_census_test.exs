@@ -534,6 +534,41 @@ defmodule Rindle.InstallSmoke.EvidenceCensusTest do
     assert receipt["inputs"] == Enum.sort_by(receipt["inputs"], &{&1["detector_id"], &1["path"]})
   end
 
+  test "EVID-01: validator rejects self-consistent external detector input evidence" do
+    fixture = census_fixture!()
+    assert {_output, 0} = run_collector(fixture)
+    move_default_observation!(fixture)
+
+    external = Path.join(Path.dirname(fixture.root), "forged-detector-input")
+    contents = "self-consistent external evidence\n"
+    File.write!(external, contents)
+    replace_with_symlink!(Path.join(fixture.root, "mix.exs"), external)
+
+    mutate_json!(fixture.receipt, fn receipt ->
+      update_in(receipt, ["inputs"], &replace_input_digest(&1, "mix.exs", sha256(contents)))
+    end)
+
+    assert {output, status} = run_validator(fixture)
+    assert status != 0
+    assert output =~ "detector input must resolve to a regular file within repository root"
+    refute output =~ external
+  end
+
+  test "EVID-01: validator rejects same-byte post-receipt symlink substitution" do
+    fixture = census_fixture!()
+    assert {_output, 0} = run_collector(fixture)
+    move_default_observation!(fixture)
+
+    external = Path.join(Path.dirname(fixture.root), "same-byte-detector-input")
+    File.write!(external, "fixture input: mix.exs\n")
+    replace_with_symlink!(Path.join(fixture.root, "mix.exs"), external)
+
+    assert {output, status} = run_validator(fixture)
+    assert status != 0
+    assert output =~ "detector input must resolve to a regular file within repository root"
+    refute output =~ external
+  end
+
   defp census_fixture!, do: registry_fixture!([@inapplicable_dimension])
 
   defp registry_fixture!(inapplicable_dimensions) do
@@ -736,6 +771,40 @@ defmodule Rindle.InstallSmoke.EvidenceCensusTest do
   defp replace_with_symlink!(path, target) do
     File.rm!(path)
     File.ln_s!(target, path)
+  end
+
+  defp move_default_observation!(fixture) do
+    location = "contained-observation"
+    File.write!(Path.join(fixture.root, location), "contained observation\n")
+
+    mutate_json!(fixture.ledger, fn ledger ->
+      update_in(ledger, ["detectors"], fn detectors ->
+        Enum.map(detectors, fn detector ->
+          Map.update!(detector, "observations", &move_input_observations(&1, location))
+        end)
+      end)
+    end)
+
+    mutate_json!(fixture.receipt, fn receipt ->
+      update_in(receipt, ["observations"], &move_input_observations(&1, location))
+    end)
+  end
+
+  defp move_input_observations(observations, location) do
+    Enum.map(observations, fn
+      %{"location" => "mix.exs"} = observation -> Map.put(observation, "location", location)
+      observation -> observation
+    end)
+  end
+
+  defp replace_input_digest(inputs, path, digest) do
+    Enum.map(inputs, fn
+      %{"path" => ^path} = input ->
+        Map.put(input, "sha256", digest)
+
+      input ->
+        input
+    end)
   end
 
   defp replace_candidate_observation(ledger, candidate_id, replacement_id) do
