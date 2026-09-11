@@ -360,6 +360,7 @@ defmodule Rindle.InstallSmoke.Phase133ReconciliationTest do
         fixture.historical_sha256
       ],
       cd: Path.expand("../..", __DIR__),
+      env: [{"MIX_QUIET", "1"}],
       stderr_to_stdout: true
     )
   end

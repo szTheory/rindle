@@ -275,6 +275,7 @@ defmodule Rindle.InstallSmoke.Phase133CompletedValidationTest do
         fixture.active_prefix_sha256
       ] ++ extra,
       cd: @repo_root,
+      env: [{"MIX_QUIET", "1"}],
       stderr_to_stdout: true
     )
   end

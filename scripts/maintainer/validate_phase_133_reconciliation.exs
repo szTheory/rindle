@@ -520,10 +520,15 @@ defmodule Rindle.ValidatePhase133Reconciliation do
 
       case File.read(path) do
         {:ok, summary} ->
-          if Regex.match?(~r/^status:\s*complete\s*$/m, summary) do
-            {:cont, {:ok, MapSet.put(completed, plan)}}
-          else
-            {:halt, {:error, "completed summary 133-#{plan_id} is not status: complete"}}
+          case summary_status(summary) do
+            {:ok, "complete"} ->
+              {:cont, {:ok, MapSet.put(completed, plan)}}
+
+            {:ok, _status} ->
+              {:halt, {:error, "completed summary 133-#{plan_id} is not status: complete"}}
+
+            {:error, reason} ->
+              {:halt, {:error, "completed summary 133-#{plan_id} #{reason}"}}
           end
 
         {:error, :enoent} ->
@@ -533,6 +538,81 @@ defmodule Rindle.ValidatePhase133Reconciliation do
           {:halt, {:error, "completed summary 133-#{plan_id} is unreadable"}}
       end
     end)
+  end
+
+  defp summary_status(summary) do
+    with {:ok, frontmatter, body} <- bounded_frontmatter(summary),
+         :ok <- reject_second_frontmatter(body),
+         :ok <- require_one_status_key(frontmatter),
+         {:ok, decoded} <- decode_frontmatter(frontmatter),
+         true <- is_map(decoded) or {:error, "frontmatter must decode to a mapping"},
+         status when is_binary(status) <- Map.get(decoded, "status") do
+      {:ok, status}
+    else
+      {:error, _reason} = error -> error
+      nil -> {:error, "frontmatter status is missing"}
+      _non_scalar -> {:error, "frontmatter status must be a scalar string"}
+    end
+  end
+
+  defp bounded_frontmatter(summary) do
+    lines = String.split(summary, "\n", trim: false)
+
+    case lines do
+      ["---" | rest] ->
+        case Enum.find_index(rest, &(&1 == "---")) do
+          nil ->
+            {:error, "frontmatter closing delimiter is missing"}
+
+          closing_index ->
+            frontmatter = rest |> Enum.take(closing_index) |> Enum.join("\n")
+            body = rest |> Enum.drop(closing_index + 1) |> Enum.join("\n")
+            {:ok, frontmatter, body}
+        end
+
+      _ ->
+        {:error, "frontmatter must be the leading document block"}
+    end
+  end
+
+  defp reject_second_frontmatter(body) do
+    lines = String.split(body, "\n", trim: false)
+
+    if second_frontmatter?(lines) do
+      {:error, "contains more than one frontmatter block"}
+    else
+      :ok
+    end
+  end
+
+  defp second_frontmatter?(["---" | rest]) do
+    case Enum.find_index(rest, &(&1 == "---")) do
+      nil ->
+        false
+
+      closing_index ->
+        rest
+        |> Enum.take(closing_index)
+        |> Enum.any?(&Regex.match?(~r/^[A-Za-z_][A-Za-z0-9_-]*[ \t]*:/, &1))
+    end
+  end
+
+  defp second_frontmatter?([_line | rest]), do: second_frontmatter?(rest)
+  defp second_frontmatter?([]), do: false
+
+  defp require_one_status_key(frontmatter) do
+    case length(Regex.scan(~r/^status[ \t]*:/m, frontmatter)) do
+      1 -> :ok
+      0 -> {:error, "frontmatter must contain exactly one status key"}
+      _count -> {:error, "frontmatter contains duplicate status keys"}
+    end
+  end
+
+  defp decode_frontmatter(frontmatter) do
+    case YamlElixir.read_from_string(frontmatter) do
+      {:ok, decoded} -> {:ok, decoded}
+      {:error, _reason} -> {:error, "frontmatter YAML is malformed"}
+    end
   end
 
   defp validate_execution_summary_set(completed, :execution) do
