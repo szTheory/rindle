@@ -1,13 +1,15 @@
 ---
 phase: 133-evidence-charter-and-live-truth
-reviewed: 2026-09-10T19:01:57Z
+reviewed: 2026-09-11T02:23:52Z
 depth: standard
-files_reviewed: 24
+files_reviewed: 31
 files_reviewed_list:
   - .github/actions/setup-elixir/action.yml
   - .github/workflows/ci.yml
   - .github/workflows/nightly.yml
+  - .github/workflows/release.yml
   - RUNNING.md
+  - config/ci_required_checks.json
   - examples/adoption_demo/docs/adoption-proof-matrix.md
   - scripts/ci/eval_nightly_incident.sh
   - scripts/ci/eval_nightly_summary.sh
@@ -23,96 +25,79 @@ files_reviewed_list:
   - scripts/maintainer/evidence_census.exs
   - scripts/maintainer/validate_evidence_census.exs
   - scripts/maintainer/validate_live_truth.exs
+  - scripts/maintainer/validate_phase_133_reconciliation.exs
+  - scripts/setup_branch_protection.sh
   - test/install_smoke/ci_cache_hygiene_test.exs
   - test/install_smoke/ci_lane_split_test.exs
   - test/install_smoke/evidence_census_test.exs
   - test/install_smoke/live_truth_parity_test.exs
   - test/install_smoke/nightly_policy_test.exs
+  - test/install_smoke/phase_133_completed_validation_test.exs
+  - test/install_smoke/phase_133_reconciliation_test.exs
+  - test/install_smoke/support/generated_app_helper.ex
 findings:
-  critical: 6
+  critical: 5
   warning: 1
   info: 0
-  total: 7
+  total: 6
 status: issues_found
 ---
 
 # Phase 133: Code Review Report
 
-**Reviewed:** 2026-09-10T19:01:57Z
+**Reviewed:** 2026-09-11T02:23:52Z
 **Depth:** standard
-**Files Reviewed:** 24
+**Files Reviewed:** 31
 **Status:** issues_found
 
 ## Summary
 
-Phase 133 adds substantial negative-test coverage, but six correctness/data-loss/evidence-integrity defects remain. In particular, the Dialyzer helper can recursively delete an arbitrary caller-selected directory, the Nightly collector aborts when normal older dispatches are present, and several claimed authorities are still derived from mutable or self-asserted inputs rather than independently bound evidence.
-
-The four shell regression suites completed successfully and ShellCheck reported no warning-or-higher findings. The five focused ExUnit files could not be executed because the repository's configured `mix` toolchain is not installed in the current asdf environment; this does not affect the directly provable findings below.
+The strict Nightly result evaluator rejects missing, failed, cancelled, and malformed job evidence, and its focused shell suites pass. However, the surrounding evidence authorities still contain five ship-blocking integrity gaps: a diagnostic run can be attributed to the wrong dispatch, concurrent scheduled runs can corrupt the single-incident lifecycle, census inputs can escape through symlinks, package evidence is not bound to the repository release version, and a four-result package receipt is produced from only three executions. One additional warning concerns unbounded atom creation from decoded report data.
 
 ## Narrative Findings (AI reviewer)
 
 ## Critical Issues
 
-### CR-01: [BLOCKER] `PLT_DIR` permits recursive deletion outside the PLT directory
+### CR-01: Same-second workflow history can be mistaken for the newly dispatched Nightly run
 
-**File:** `scripts/ci/run_nightly_dialyzer.sh:11-16,34-36`
+**File:** `scripts/ci/verify_nightly_run.sh:443-463`
+**Issue:** The collector records a timestamp with only whole-second precision before dispatch, then accepts any matching run whose `createdAt >=` that timestamp. If an earlier diagnostic dispatch for the same ref/SHA was created in that same second, the first poll can select that pre-existing run and stop before GitHub exposes the run just dispatched by this process. A green receipt can therefore be attributed to the wrong dispatch while the actual requested run is still pending or later fails. The test for older history uses a run from an earlier hour and does not cover this boundary collision.
+**Fix:** Snapshot the IDs of all matching runs before dispatch and select exactly one matching post-dispatch ID not present in that snapshot. Continue polling until that new ID appears; fail on multiple new IDs. Do not use second-resolution `createdAt` as the ownership token.
 
-**Issue:** `PLT_DIR` is caller-controlled, but the safety check rejects only the empty string, `/`, and `.`. Values such as `..`, `../..`, `/tmp`, or the repository's absolute root pass and are handed directly to `rm -rf`. A mistyped or inherited environment variable can therefore delete the parent checkout or another broad directory before Dialyzer runs. This is a data-loss risk, not merely a test-hook concern, because the production script advertises `PLT_DIR` as an override and calls `reset_plt` in both fresh and stale-cache paths.
+### CR-02: The rolling Nightly incident lifecycle has a check-then-act race
 
-**Fix:** Resolve the repository root and the candidate with physical paths, require the candidate to be the exact approved repository-relative PLT path (or a descendant of a dedicated temporary root), reject `..`/symlink escapes and all absolute paths outside that root, then delete only after the containment check. Prefer removing the production override entirely and injecting a temporary repository root in tests.
+**File:** `scripts/ci/manage_nightly_incident.sh:20-26,56-65`
+**Issue:** The script lists incidents, decides, and mutates in separate GitHub API calls. `nightly.yml` has no workflow-level concurrency serialization. Two overlapping scheduled runs (including reruns of a scheduled event) can both observe zero incidents and create duplicates, or an older green run can close an incident opened/updated by a newer red run. Once duplicates exist, future evaluations deliberately fail closed, leaving the lifecycle stuck and the public incident state inaccurate.
+**Fix:** Serialize scheduled Nightly runs with a non-cancelling workflow concurrency group, and re-read/revalidate the exact-label incident set immediately before mutation. For close/update, verify that the issue still represents the expected prior state; for create, use a serialized owner or another uniqueness mechanism.
 
-### CR-02: [BLOCKER] Dispatch polling fails as soon as any older unrelated run exists
+### CR-03: Detector input hashing follows symlinks outside the repository
 
-**File:** `scripts/ci/verify_nightly_run.sh:364-385`
+**File:** `scripts/maintainer/evidence_census.exs:239-270`
+**Issue:** `safe_relative_path/1` checks only lexical containment, after which `File.read/1` follows symlinks. A repository-relative detector input that is a symlink to `/tmp/...` or another external path is therefore accepted and hashed as authoritative repository evidence. Observation locations have a physical-containment check, but detector inputs do not. The independent validator repeats the same flaw at `scripts/maintainer/validate_evidence_census.exs:448-475`, so generation and validation agree on the escaped input instead of failing closed.
+**Fix:** Resolve every path component physically before reading and require the resolved file to remain beneath the physical repository root, reusing the existing `physically_contained?/2` logic. Add a test with a detector input symlink that targets a file outside the fixture repository.
 
-**Issue:** Immediately after dispatch, `gh run list` may not yet include the new run because GitHub's listing is eventually consistent. The code nevertheless dies whenever the list is non-empty and the exact new run has not appeared. A repository with any prior `workflow_dispatch` run therefore takes the `foreign workflow/ref/SHA identity` branch on the first poll instead of waiting for the just-dispatched run. The fake timeout case returns an empty list, so the regression suite does not exercise the normal “old runs visible, new run not visible yet” state.
+### CR-04: Package proof is not tied to the release version derived from the subject repository
 
-**Fix:** Ignore nonmatching historical runs during the bounded polling window. Continue polling while the exact post-boundary match count is zero; accept exactly one qualifying match; fail explicitly on more than one post-boundary qualifying match; and time out only at the deadline. Add a fake state that returns unrelated old runs for at least one poll before exposing the new exact run.
+**File:** `scripts/maintainer/validate_live_truth.exs:285-296,408-433`
+**Issue:** Package validation ties `receipt.subject_sha` to `repository_root` HEAD, but it only checks `receipt.package_version` against the unrelated unpacked package's own `mix.exs`. The model's authoritative release version is never passed into `verify_package_evidence!/2`. Consequently, a receipt for HEAD can validate an old or otherwise unrelated unpacked Rindle package as long as the receipt, tree hashes, generated app, and caller-supplied results are internally consistent. The existing mutation test changes only the receipt version while leaving the package tree unchanged, so it does not exercise this cross-authority mismatch.
+**Fix:** Pass `expected_version: model.version` (and preferably the expected source/package digest produced at that SHA) into the verifier and require `receipt["package_version"] == expected_version` in addition to checking the unpacked `mix.exs`. Add a test using a self-consistent package tree and receipt whose version differs from the repository model.
 
-### CR-03: [BLOCKER] Package and adoption authority is forgeable from arbitrary directories and self-reported booleans
+### CR-05: The receipt claims four command results from only three executions
 
-**File:** `scripts/maintainer/validate_live_truth.exs:263-289,344-421,437-459`
-
-**Issue:** The validator treats an untrusted map as authoritative when it contains the literal `proof_origin`, points at any two existing directories, places files named `hex_metadata.config` and `mix.exs` in one of them, and self-reports zero exit codes plus `lifecycle_proved: true`. It never authenticates the receipt, binds it to a subject/package digest, verifies the unpacked package version/content, or proves that the generated application actually depended on that package. The repository's own `package_receipt_fixture!` demonstrates this shape using freshly created arbitrary directories and fake file contents. The same forgeable receipt can then be labeled `independent-adopter` with any nonempty name and `authorizes_1_0: true`, which the adoption branch accepts.
-
-**Fix:** Make the evidence producer write a canonical receipt containing immutable subject SHA, package tarball/content digest, generated-app dependency lock/source, command argv, and captured results; verify those fields against the filesystem and Git/package authorities rather than trusting booleans. Independent-adopter authority needs a distinct authenticated evidence type and allowlisted identity/provenance, not a caller-provided name on the package receipt.
-
-### CR-04: [BLOCKER] Receipt revalidation binds to a mutable current-worktree ledger
-
-**File:** `scripts/ci/verify_nightly_run.sh:275-316`
-
-**Issue:** Although validator source files are loaded from a detached worktree at `expected_sha`, both census commands consume `133-EVIDENCE-CENSUS.json` from `project_root`, i.e. the caller's current mutable working tree. The Nightly receipt stores only `{status:"pass"}` for these authorities and no ledger blob/digest/commit identity. Editing or replacing the post-subject ledger therefore changes what a historical receipt means, and a jointly forged ledger/receipt can be revalidated without any mismatch to the immutable Nightly subject. Exact-subject script execution does not make an external mutable input immutable.
-
-**Fix:** Bind the exact ledger bytes into the receipt with a SHA-256 plus immutable Git blob/commit identity, materialize that ledger from the recorded Git object during revalidation, and compare the newly generated detailed census receipt exactly. Reject dirty or untracked ledger sources; do not read authority data from the caller's working tree.
-
-### CR-05: [BLOCKER] Any inapplicable dimension disables the repository-owned detector registry check globally
-
-**File:** `scripts/maintainer/validate_evidence_census.exs:158-190`
-
-**Issue:** The hard-coded detector registry is compared only when every taxonomy dimension is applicable. Marking one dimension inapplicable makes the condition false and disables registry verification for all remaining dimensions. A forged ledger can then replace commands and inputs for supposedly applicable detectors (for example, replace `mix test` with a no-op), adjust its internally owned candidate/baseline records, recollect, and still validate. The minimal test fixture relies on precisely this global bypass, so existing tests normalize rather than detect it.
-
-**Fix:** Validate every applicable dimension's detector IDs, command, and inputs against the corresponding entries in `@detector_registry`, and separately require an explicit repository-owned allowlist for dimensions that may be inapplicable. Never gate the entire registry comparison on `Enum.all?(taxonomy, & &1["applicable"])`. Add a test with one inapplicable dimension and a mutated detector in another dimension.
-
-### CR-06: [BLOCKER] Release coupling “authority” is satisfied by inert text
-
-**File:** `scripts/maintainer/validate_live_truth.exs:514-531`
-
-**Issue:** `exact_sha_release_coupling?/1` declares the release gate valid when four substrings occur anywhere in `release.yml`; they can remain in comments or an unreachable script after the actual gate is removed. `sole_required_check?/1` similarly uses an unanchored regex over shell source and can match commented/dead text without proving what the script applies. Consequently the derived model can report exact-SHA release coupling and sole-check enforcement while neither behavior exists.
-
-**Fix:** Parse the release workflow and assert the executable job/step structure and expressions, and exercise the release-gate evaluator with qualifying and mismatched SHA fixtures. For branch protection, move required-check calculation into a pure structured producer/evaluator and validate its actual output/argv; at minimum anchor parsing to the live assignment and reject duplicate/comment-only matches.
+**File:** `test/install_smoke/support/generated_app_helper.ex:342-347`
+**Issue:** `package_evidence_receipt!/2` manufactures the `lifecycle` result by copying the single `smoke` result. The verifier requires four named results and unconditionally returns `lifecycle_proved: true`, so the receipt overstates independent execution: there is no separately attributable lifecycle command/result even though the schema presents one. A single successful test invocation is counted twice.
+**Fix:** Either model the test invocation once (for example, one `smoke_and_lifecycle` result) or execute and capture a distinct lifecycle command. The verifier should derive `lifecycle_proved` only from that real result rather than setting it unconditionally.
 
 ## Warnings
 
-### WR-01: [WARNING] “Repository-relative” observation locations permit parent traversal
+### WR-01: Report-controlled strings are converted into permanent VM atoms
 
-**File:** `scripts/maintainer/evidence_census.exs:94-106,259-266`; `scripts/maintainer/validate_evidence_census.exs:203-208`
-
-**Issue:** Observation locations reject absolute paths but accept relative traversal such as `../../outside` because `Path.type/1 == :relative` does not imply containment. The generated receipt can therefore describe evidence outside the repository while claiming repository-relative provenance. Input paths already use an expansion-and-containment check, so the two path boundaries are inconsistent.
-
-**Fix:** Apply the same normalized containment rule used for detector inputs to observation locations (including rejection of `..` escapes and, where filesystem resolution matters, symlink escapes), and add collector/validator mutation tests for parent traversal.
+**File:** `test/install_smoke/support/generated_app_helper.ex:730-731`
+**Issue:** `to_existing_atom_safe/1` calls `String.to_atom/1`, which creates a new permanent atom for every distinct decoded migration `resolver` string. Repeated malformed or externally influenced report values can grow the atom table until the BEAM VM terminates; the function name incorrectly suggests the safe existing-atom operation.
+**Fix:** Use `String.to_existing_atom/1` with explicit error handling, or map an allowlisted set of resolver strings to known atoms without creating new ones.
 
 ---
 
-_Reviewed: 2026-09-10T19:01:57Z_
+_Reviewed: 2026-09-11T02:23:52Z_
 _Reviewer: the agent (gsd-code-reviewer)_
 _Depth: standard_
