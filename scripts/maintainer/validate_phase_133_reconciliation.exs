@@ -14,6 +14,7 @@ defmodule Rindle.ValidatePhase133Reconciliation do
   def run(argv) do
     with {:ok, options} <- parse_options(argv),
          {:ok, root} <- resolve_root(options.root),
+         mode <- validation_mode(options),
          {:ok, expected} <- expected_records(root),
          result <- maybe_print_addendum(options, expected),
          :continue <- result,
@@ -24,10 +25,9 @@ defmodule Rindle.ValidatePhase133Reconciliation do
          {:ok, addendum} <- validate_validation(root, historical),
          {:ok, actual} <- parse_addendum(addendum),
          :ok <- compare_records(expected, actual),
-         :ok <- validate_roadmap(root) do
-      IO.puts(
-        "phase 133 reconciliation valid: 10 completed, 7 pending plans, #{length(expected)} verification pairs"
-      )
+         :ok <- validate_roadmap(root, mode),
+         :ok <- validate_completed_summaries(root, mode) do
+      IO.puts(success_message(mode, length(expected)))
 
       :ok
     else
@@ -82,6 +82,15 @@ defmodule Rindle.ValidatePhase133Reconciliation do
   end
 
   defp resolve_root(root), do: {:ok, Path.expand(root)}
+
+  defp validation_mode(%{fixture_ref: ref}) when is_binary(ref), do: :historical_snapshot
+  defp validation_mode(_options), do: :completed
+
+  defp success_message(:historical_snapshot, pair_count),
+    do: "phase 133 reconciliation valid: 10 completed, 7 pending plans, #{pair_count} verification pairs"
+
+  defp success_message(:completed, pair_count),
+    do: "phase 133 reconciliation valid: 17 completed, 0 pending plans, #{pair_count} historical verification pairs"
 
   defp maybe_print_addendum(%{print_addendum: true}, records) do
     IO.write(render_addendum(records))
@@ -362,7 +371,7 @@ defmodule Rindle.ValidatePhase133Reconciliation do
     end
   end
 
-  defp validate_roadmap(root) do
+  defp validate_roadmap(root, mode) do
     with {:ok, roadmap} <- File.read(Path.join(root, @roadmap_path)),
          [section] <-
            Regex.run(
@@ -370,9 +379,8 @@ defmodule Rindle.ValidatePhase133Reconciliation do
              roadmap,
              capture: :all_but_first
            ),
-         true <- String.contains?(section, "**Plans**: 10/17 plans executed; 7 pending gap closure") or
-                   {:error, "roadmap status must report 10/17 plans executed; 7 pending gap closure"},
-         :ok <- validate_roadmap_plans(section) do
+         :ok <- validate_roadmap_status(section, mode),
+         :ok <- validate_roadmap_plans(section, mode) do
       :ok
     else
       {:error, _message} = error -> error
@@ -380,7 +388,19 @@ defmodule Rindle.ValidatePhase133Reconciliation do
     end
   end
 
-  defp validate_roadmap_plans(section) do
+  defp validate_roadmap_status(section, :historical_snapshot) do
+    if String.contains?(section, "**Plans**: 10/17 plans executed; 7 pending gap closure"),
+      do: :ok,
+      else: {:error, "roadmap status must report 10/17 plans executed; 7 pending gap closure"}
+  end
+
+  defp validate_roadmap_status(section, :completed) do
+    if String.contains?(section, "**Plans**: 17/17 plans executed; 0 pending gap closure"),
+      do: :ok,
+      else: {:error, "roadmap status must report 17/17 plans executed; 0 pending gap closure"}
+  end
+
+  defp validate_roadmap_plans(section, mode) do
     with :ok <-
            Enum.reduce_while(1..10, :ok, fn plan, :ok ->
              id = "133-#{String.pad_leading(Integer.to_string(plan), 2, "0")}-PLAN.md"
@@ -394,17 +414,36 @@ defmodule Rindle.ValidatePhase133Reconciliation do
          :ok <-
            Enum.reduce_while(11..17, :ok, fn plan, :ok ->
              id = "133-#{plan}-PLAN.md"
+             checkbox = if mode == :completed, do: "x", else: " "
+             state = if mode == :completed, do: "completed", else: "pending"
 
-             cond do
-               length(Regex.scan(~r/^- \[ \] #{Regex.escape(id)}(?:\s| |$)/m, section)) == 1 ->
-                 {:cont, :ok}
-
-               true ->
-                 {:halt, {:error, "pending plan #{id} must remain unchecked exactly once"}}
+             if length(Regex.scan(~r/^- \[#{checkbox}\] #{Regex.escape(id)}(?:\s| |$)/m, section)) == 1 do
+               {:cont, :ok}
+             else
+               {:halt, {:error, "#{state} plan #{id} must be checked correctly exactly once"}}
              end
            end) do
       :ok
     end
+  end
+
+  defp validate_completed_summaries(_root, :historical_snapshot), do: :ok
+
+  defp validate_completed_summaries(root, :completed) do
+    Enum.reduce_while(1..17, :ok, fn plan, :ok ->
+      plan_id = String.pad_leading(Integer.to_string(plan), 2, "0")
+      path = Path.join(root, Path.join(@phase_dir, "133-#{plan_id}-SUMMARY.md"))
+
+      case File.read(path) do
+        {:ok, summary} ->
+          if Regex.match?(~r/^status:\s*complete\s*$/m, summary),
+            do: {:cont, :ok},
+            else: {:halt, {:error, "completed summary 133-#{plan_id} is not status: complete"}}
+
+        {:error, _reason} ->
+          {:halt, {:error, "completed summary 133-#{plan_id} is missing or unreadable"}}
+      end
+    end)
   end
 
   defp render_addendum(records) do

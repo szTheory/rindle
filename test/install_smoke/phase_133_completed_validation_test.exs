@@ -3,6 +3,7 @@ defmodule Rindle.InstallSmoke.Phase133CompletedValidationTest do
 
   @root Path.expand("../..", __DIR__)
   @phase_dir Path.join(@root, ".planning/phases/133-evidence-charter-and-live-truth")
+  @validator Path.join(@root, "scripts/maintainer/validate_phase_133_reconciliation.exs")
 
   test "completed Phase 133 exposes zero pending gap-closure plans" do
     roadmap = File.read!(Path.join(@root, ".planning/ROADMAP.md"))
@@ -27,5 +28,11 @@ defmodule Rindle.InstallSmoke.Phase133CompletedValidationTest do
     assert receipt["run_attempt"] == 1
     assert receipt["conclusion"] == "success"
     assert receipt["strict_verdict"]["verdict"] == "green"
+
+    assert {output, 0} =
+             System.cmd("elixir", [@validator, "--root", @root], stderr_to_stdout: true)
+
+    assert output =~ "17 completed, 0 pending plans"
+    assert output =~ "historical verification pairs"
   end
 end
