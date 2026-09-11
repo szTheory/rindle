@@ -24,7 +24,7 @@ defmodule Rindle.ValidateLiveTruth do
   @nightly_needs ["compat-matrix", "dialyzer", "gcs-soak", "package-consumer-gcs-live"]
   @historical_start "<!-- rindle:historical-receipt:start -->"
   @historical_end "<!-- rindle:historical-receipt:end -->"
-  @package_receipt_schema "rindle-package-consumer-v1"
+  @package_receipt_schema "rindle-package-consumer-v2"
   @package_receipt_fields ~w(
     schema_version evidence_type subject_sha package_name package_version package_sha256
     unpacked_tree_sha256 generated_app_tree_sha256 dependency_lock_sha256 dependency_source
@@ -290,6 +290,7 @@ defmodule Rindle.ValidateLiveTruth do
     _proof =
       normalize_package_receipt!(receipt, %{
         repository_root: model.authority_root,
+        expected_package_version: model.version,
         package_root: field(evidence_context, :package_root),
         generated_app_root: field(evidence_context, :generated_app_root),
         results_path: field(evidence_context, :results_path)
@@ -315,6 +316,7 @@ defmodule Rindle.ValidateLiveTruth do
         _proof =
           normalize_package_receipt!(receipt, %{
             repository_root: model.authority_root,
+            expected_package_version: model.version,
             package_root: field(evidence_context, :package_root),
             generated_app_root: field(evidence_context, :generated_app_root),
             results_path: field(evidence_context, :results_path)
@@ -406,6 +408,7 @@ defmodule Rindle.ValidateLiveTruth do
     )
 
     repository_root = required_directory!(context["repository_root"], "repository root")
+    expected_package_version = required_version_authority!(context["expected_package_version"])
     package_root = required_directory!(context["package_root"], "unpacked package root")
     generated_app_root = required_directory!(context["generated_app_root"], "generated app root")
     results_path = required_file!(context["results_path"], "command result receipt")
@@ -428,9 +431,12 @@ defmodule Rindle.ValidateLiveTruth do
       "repository source fallback is forbidden"
     )
 
+    package_version = package_version!(package_mix)
+    assert!(package_version == receipt["package_version"], "package version mismatch")
+
     assert!(
-      package_version!(package_mix) == receipt["package_version"],
-      "package version mismatch"
+      receipt["package_version"] == expected_package_version,
+      "package version authority mismatch"
     )
 
     assert!(
@@ -463,6 +469,7 @@ defmodule Rindle.ValidateLiveTruth do
     expected_source = %{
       "type" => "path",
       "package_name" => "rindle",
+      "package_version" => expected_package_version,
       "unpacked_tree_sha256" => unpacked_tree_sha256
     }
 
@@ -474,18 +481,22 @@ defmodule Rindle.ValidateLiveTruth do
       "generated deps/rindle fallback is forbidden"
     )
 
+    persisted_results = results_path |> File.read!() |> Jason.decode!()
+    assert!(receipt["results"] == persisted_results, "package command results mismatch")
+
+    reject_duplicate_command_evidence!(receipt["commands"], persisted_results)
+
     expected_commands = package_commands!(generated_app_root)
     assert!(receipt["commands"] == expected_commands, "package command argv mismatch")
 
-    persisted_results = results_path |> File.read!() |> Jason.decode!()
-    assert!(receipt["results"] == persisted_results, "package command results mismatch")
-    verify_command_results!(persisted_results)
+    verified_results = verify_command_results!(persisted_results)
+    lifecycle_proved = command_succeeded?(verified_results["smoke_lifecycle"])
 
     %{
       schema_version: @package_receipt_schema,
       evidence_type: "maintainer-operated-package-consumer",
       subject_sha: receipt["subject_sha"],
-      lifecycle_proved: true,
+      lifecycle_proved: lifecycle_proved,
       authorizes_independent_adoption: false,
       authorizes_1_0: false
     }
@@ -579,13 +590,12 @@ defmodule Rindle.ValidateLiveTruth do
         "-e",
         "Application.ensure_all_started(:#{app_name}); repo = Application.fetch_env!(:rindle, :repo); oban_repo = Application.fetch_env!(:#{app_name}, Oban)[:repo]; if repo != #{app_module}.Repo or oban_repo != #{app_module}.Repo, do: raise(\"boot wiring invalid\"); IO.puts(\"boot ok\")"
       ],
-      "smoke" => ["mix", "test", "test/rindle_install_smoke_test.exs"],
-      "lifecycle" => ["mix", "test", "test/rindle_install_smoke_test.exs"]
+      "smoke_lifecycle" => ["mix", "test", "test/rindle_install_smoke_test.exs"]
     }
   end
 
   defp verify_command_results!(results) do
-    expected_names = ~w(boot compile lifecycle smoke)
+    expected_names = ~w(boot compile smoke_lifecycle)
 
     assert!(
       Map.keys(results) |> Enum.sort() == expected_names,
@@ -630,8 +640,33 @@ defmodule Rindle.ValidateLiveTruth do
       )
     end)
 
+    results
+  end
+
+  defp reject_duplicate_command_evidence!(commands, results)
+       when is_map(commands) and is_map(results) do
+    separate_slots? =
+      Map.has_key?(commands, "smoke") and Map.has_key?(commands, "lifecycle") and
+        Map.has_key?(results, "smoke") and Map.has_key?(results, "lifecycle")
+
+    if separate_slots? and
+         (commands["smoke"] == commands["lifecycle"] or
+            results["smoke"] == results["lifecycle"]) do
+      raise ArgumentError,
+            "duplicate package command evidence cannot prove smoke and lifecycle independently"
+    end
+
     :ok
   end
+
+  defp reject_duplicate_command_evidence!(_commands, _results), do: :ok
+
+  defp command_succeeded?(result), do: is_map(result) and result["exit_code"] == 0
+
+  defp required_version_authority!(version) when is_binary(version) and version != "", do: version
+
+  defp required_version_authority!(_version),
+    do: raise(ArgumentError, "expected package version authority is required")
 
   defp required_directory!(path, label) do
     assert!(is_binary(path) and path != "" and File.dir?(path), "#{label} does not exist")

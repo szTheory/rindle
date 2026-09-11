@@ -370,6 +370,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       dependency_source: %{
         type: "path",
         package_name: Atom.to_string(Mix.Project.config()[:app]),
+        package_version: Mix.Project.config()[:version],
         unpacked_tree_sha256: package_tree_sha256
       },
       commands: commands,

@@ -468,6 +468,7 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
         dependency_source: %{
           type: "path",
           package_name: "rindle",
+          package_version: stale_version,
           unpacked_tree_sha256: package_tree_sha256
         }
     }
@@ -567,7 +568,7 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
     mutations = [
       {&Map.delete(&1, :subject_sha), "package receipt fields mismatch"},
       {&Map.put(&1, :unexpected, true), "package receipt fields mismatch"},
-      {&Map.put(&1, :schema_version, "rindle-package-consumer-v2"),
+      {&Map.put(&1, :schema_version, "rindle-package-consumer-v3"),
        "package receipt schema mismatch"},
       {&Map.put(&1, :evidence_type, "independent-adopter"), "package evidence type mismatch"},
       {&Map.put(&1, :subject_sha, String.duplicate("0", 40)), "package subject SHA mismatch"},
@@ -661,7 +662,7 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
            )
 
     model = Rindle.ValidateLiveTruth.derive!(@repo_root, [])
-    copied_package_receipt = %{schema_version: "rindle-package-consumer-v1"}
+    copied_package_receipt = %{schema_version: "rindle-package-consumer-v2"}
 
     for caller_field <- [:evidence_kind, :adopter_name, :authorizes_1_0] do
       claim =
@@ -690,7 +691,7 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
           {&Map.delete(&1, :subject_sha), "independent adopter receipt fields mismatch"},
           {&Map.put(&1, :caller_authorizes_1_0, true),
            "independent adopter receipt fields mismatch"},
-          {&Map.put(&1, :schema_version, "rindle-package-consumer-v1"),
+          {&Map.put(&1, :schema_version, "rindle-package-consumer-v2"),
            "independent adopter schema mismatch"},
           {&Map.put(&1, :evidence_type, "maintainer-operated-package-consumer"),
            "independent adopter evidence type mismatch"}
