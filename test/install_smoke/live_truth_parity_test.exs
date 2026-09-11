@@ -454,6 +454,20 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
   end
 
   @tag :package_authority
+  test "digest-consistent caller-authored results cannot prove package execution" do
+    evidence = package_evidence_fixture!()
+
+    assert_raise ArgumentError, ~r/package command failed: compile/, fn ->
+      Rindle.ValidateLiveTruth.verify_package_evidence!(
+        evidence.receipt,
+        evidence.context
+        |> Map.put(:expected_package_version, "0.4.6")
+        |> Map.put(:execution_env, %{})
+      )
+    end
+  end
+
+  @tag :package_authority
   test "self-consistent stale package evidence fails the independent version authority" do
     evidence = package_evidence_fixture!()
     stale_version = "0.4.5"
