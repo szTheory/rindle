@@ -5,16 +5,16 @@ milestone_name: Pre-Adopter Readiness & Quality Consolidation
 current_phase: 133
 current_phase_name: Evidence Charter and Live Truth
 status: executing
-stopped_at: Completed 133-17-PLAN.md
-last_updated: "2026-09-11T04:26:14.880Z"
-last_activity: 2026-09-10
+stopped_at: Completed 133-18-PLAN.md
+last_updated: "2026-09-11T14:44:56.431Z"
+last_activity: 2026-09-11
 last_activity_desc: Phase 133 execution started
-state_head: b4b527cfa40eb9d5d65ecc7bb17b51a9f7662af1
+state_head: 39a603f60112a83a5b4ab55d25cf382f56cb6539
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 22
-  completed_plans: 17
+  completed_plans: 18
 ---
 
 # Project State
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-09-09 for v1.26)
 
 ## Current Position
 
-Phase: 133 (Evidence Charter and Live Truth) — READY TO EXECUTE
-Plan: 17 of 17
+Phase: 133 (Evidence Charter and Live Truth) — EXECUTING
+Plan: 19 of 22
 Status: Ready to execute
-Last activity: 2026-09-10 — Phase 133 execution started
+Last activity: 2026-09-11 — Phase 133 execution started
 
 Progress: [███████░░░] 65%
 
@@ -67,6 +67,7 @@ Progress: [███████░░░] 65%
 | Phase 133 P15 | 8 min | 2 tasks | 4 files |
 | Phase 133 P16 | 18min | 2 tasks | 2 files |
 | Phase 133 P17 | 3h15m | 3 tasks | 9 files |
+| Phase 133 P18 | 26min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -118,6 +119,8 @@ Progress: [███████░░░] 65%
 - [Phase 133]: Exclude ephemeral authority_root from the canonical live-truth digest. — Temporary filesystem locations are locator context, not semantic exact-subject authority.
 - [Phase 133]: Authenticate every static FFmpeg release lookup with github.token. — Shared GitHub runners otherwise consume unauthenticated release API quota and can fail only selected compatibility cells with HTTP 403.
 - [Phase 133]: Preserve failed evidence refs and runs; corrections use new subject-derived non-force refs. — Immutable external identities keep rejected evidence auditable and prevent relabeling a tested subject.
+- [Phase 133]: Bind diagnostic dispatch ownership to exactly one matching database ID absent from the validated pre-dispatch snapshot. — Timestamp granularity cannot distinguish a collector-owned dispatch from a same-second pre-existing exact run.
+- [Phase 133]: Cross-bind the selected diagnostic run ID to the detailed run databaseId before evidence collection. — A mismatched detail payload must not substitute a different run into logs, local authority, or the receipt.
 
 ### Pending Todos
 
@@ -141,6 +144,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-09-11T01:33:19.814Z
-Stopped at: Completed 133-17-PLAN.md
+Last session: 2026-09-11T14:44:56.385Z
+Stopped at: Completed 133-18-PLAN.md
 Resume file: None
