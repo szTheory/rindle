@@ -63,7 +63,7 @@ fetch_runs() {
         (.event == "schedule") and
         (.status | IN("queued", "in_progress", "completed")) and
         ((.conclusion == null) or (.conclusion | IN("success", "failure", "cancelled", "skipped", "timed_out", "action_required", "neutral", "stale"))) and
-        (.head_sha | type == "string") and
+        (.head_sha | type == "string" and test("^[0-9a-f]{40}$")) and
         (.head_branch | type == "string") and
         (.html_url | type == "string") and
         (.name == "Nightly") and
@@ -123,12 +123,11 @@ prepare_event_index() {
   ' "${workspace}/event-index.json" >/dev/null || fail "duplicate or mismatched canonical event artifact"
 
   jq -cS \
-    --arg sha "${REMOTE_MAIN_SHA}" \
     --arg branch "${DEFAULT_BRANCH}" \
     --argjson high "${CURRENT_RUN_ID}" '
       [
         .[] |
-        select(.id <= $high and .head_sha == $sha and .head_branch == $branch) |
+        select(.id <= $high and .head_branch == $branch) |
         select(.status == "completed" or .id == $high) |
         {run_id:.id,run_attempt:.run_attempt,event:.event,status:.status,conclusion:.conclusion,sha:.head_sha,branch:.head_branch,url:.html_url,name:.name,path:.path}
       ] | sort_by(.run_id, .run_attempt)
