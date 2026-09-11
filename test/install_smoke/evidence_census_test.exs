@@ -778,11 +778,7 @@ defmodule Rindle.InstallSmoke.EvidenceCensusTest do
     File.write!(Path.join(fixture.root, location), "contained observation\n")
 
     mutate_json!(fixture.ledger, fn ledger ->
-      update_in(ledger, ["detectors"], fn detectors ->
-        Enum.map(detectors, fn detector ->
-          Map.update!(detector, "observations", &move_input_observations(&1, location))
-        end)
-      end)
+      update_in(ledger, ["detectors"], &move_detector_observations(&1, location))
     end)
 
     mutate_json!(fixture.receipt, fn receipt ->
@@ -794,6 +790,12 @@ defmodule Rindle.InstallSmoke.EvidenceCensusTest do
     Enum.map(observations, fn
       %{"location" => "mix.exs"} = observation -> Map.put(observation, "location", location)
       observation -> observation
+    end)
+  end
+
+  defp move_detector_observations(detectors, location) do
+    Enum.map(detectors, fn detector ->
+      Map.update!(detector, "observations", &move_input_observations(&1, location))
     end)
   end
 
