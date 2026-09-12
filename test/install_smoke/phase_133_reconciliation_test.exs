@@ -5,6 +5,8 @@ defmodule Rindle.InstallSmoke.Phase133ReconciliationTest do
   @heading "## Pending Gap-Closure Validation Addendum (Plans 11–17)"
   @success_prefix "phase 133 reconciliation valid:"
   @failure_prefix "[validate-phase-133-reconciliation]"
+  @max_process_output_bytes 16_384
+  @max_process_output_lines 16
 
   setup do
     root =
@@ -47,6 +49,21 @@ defmodule Rindle.InstallSmoke.Phase133ReconciliationTest do
 
     assert_raise ExUnit.AssertionError, fn ->
       assert_valid_process_result({success, 1})
+    end
+  end
+
+  test "rejects process output beyond bounded bytes or lines before parsing records" do
+    success = "#{@success_prefix} 10 completed, 7 pending plans, 16 verification pairs"
+
+    assert_raise ExUnit.AssertionError, ~r/process output exceeds byte bound/, fn ->
+      assert_valid_process_result({success <> String.duplicate("x", @max_process_output_bytes), 0})
+    end
+
+    assert_raise ExUnit.AssertionError, ~r/process output exceeds line bound/, fn ->
+      diagnostics =
+        Enum.map_join(1..@max_process_output_lines, "\n", &"launcher diagnostic #{&1}")
+
+      assert_valid_process_result({"#{diagnostics}\n#{success}", 0})
     end
   end
 
