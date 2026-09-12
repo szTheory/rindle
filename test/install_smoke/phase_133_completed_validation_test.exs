@@ -45,6 +45,85 @@ defmodule Rindle.InstallSmoke.Phase133CompletedValidationTest do
     end
   end
 
+  test "accepts every remaining authorization, stop, failure, and success lifecycle state" do
+    fixtures = [
+      {[33, 34], [27, 32], false, {32, 2, 3, 34}},
+      {[33, 34, 35], [27, 32], false, {33, 2, 2, 35}},
+      {[33, 34, 35, 36], [27, 32], false, {34, 2, 1, 36}},
+      {[33, 34, 35], [27, 32, 36], false, {33, 3, 1, 36}},
+      {[33, 34, 35, 36], [27, 32, 37], false, {34, 3, 0, 37}},
+      {[33, 34, 35, 36, 37], [27, 32], true, {35, 2, 0, 37}}
+    ]
+
+    for {completed, halted, requirements_complete?, counts} <- fixtures do
+      fixture = write_branch_fixture!()
+
+      set_branch_state!(fixture,
+        completed: completed,
+        halted: halted,
+        requirements_complete: requirements_complete?
+      )
+
+      {completed_count, halted_count, pending_count, summarized_count} = counts
+      assert {output, 0} = run_validator(fixture)
+      assert output =~ "#{completed_count} completed, #{halted_count} halted"
+      assert output =~ "#{pending_count} pending plans, #{summarized_count}/37 summarized"
+    end
+  end
+
+  test "rejects off-by-one, impossible halt, premature completion, and blocked-branch drift" do
+    cases = [
+      {[33, 34], [27, 32], false, :stale_total, "roadmap detail"},
+      {[33, 34, 35], [27, 32, 36], false, :checked_requirement, "requirement EVID-01"},
+      {[33, 34, 35, 36], [27, 32, 36], false, nil, "halted set"},
+      {[33, 34, 35, 36, 37], [27, 32], false, nil, "requirements must be complete"},
+      {[33, 34, 35, 36], [27, 32, 37], true, nil, "must remain pending"}
+    ]
+
+    for {completed, halted, requirements_complete?, mutation, diagnostic} <- cases do
+      fixture = write_branch_fixture!()
+
+      set_branch_state!(fixture,
+        completed: completed,
+        halted: halted,
+        requirements_complete: requirements_complete?
+      )
+
+      if mutation, do: mutate_branch_fixture!(fixture, mutation)
+      assert_invalid(fixture, diagnostic)
+    end
+  end
+
+  test "maps every Plans 33-37 automated command without checkpoint acceptance credit" do
+    validation = File.read!(Path.join(@repo_root, "#{@phase_rel}/133-VALIDATION.md"))
+
+    assert validation =~ "## Branch-Aware Validation Addendum (Plans 33–37)"
+
+    for plan <- 33..37 do
+      plan_text = File.read!(Path.join(@repo_root, "#{@phase_rel}/133-#{plan}-PLAN.md"))
+
+      runnable_pairs =
+        Regex.scan(~r/<automated>.*?<\/automated>\s*<fails_when>.*?<\/fails_when>/s, plan_text)
+
+      assert runnable_pairs != []
+
+      for pair <- runnable_pairs do
+        [command, failure] =
+          Regex.run(
+            ~r/<automated>\s*(.*?)\s*<\/automated>\s*<fails_when>\s*(.*?)\s*<\/fails_when>/s,
+            hd(pair),
+            capture: :all_but_first
+          )
+
+        assert validation =~ String.trim(command)
+        assert validation =~ String.trim(failure)
+      end
+    end
+
+    refute validation =~
+             ~r/<pending-validation key="133-36-.*?">.*?<acceptance-credit>pending<\/acceptance-credit>/s
+  end
+
   test "accepts every dependency-valid repair state with Plan 27 halted" do
     fixture = write_fixture!()
 
@@ -368,7 +447,10 @@ defmodule Rindle.InstallSmoke.Phase133CompletedValidationTest do
     File.write!(Path.join(fixture.root, ".planning/ROADMAP.md"), roadmap(completed))
   end
 
-  defp set_branch_state!(fixture, completed: completed_tail, halted: halted) do
+  defp set_branch_state!(fixture, options) do
+    completed_tail = Keyword.fetch!(options, :completed)
+    halted = Keyword.fetch!(options, :halted)
+    requirements_complete? = Keyword.get(options, :requirements_complete, false)
     completed = MapSet.new(Enum.to_list(1..26) ++ [28, 29, 30, 31] ++ completed_tail)
     halted = MapSet.new(halted)
 
@@ -435,7 +517,7 @@ defmodule Rindle.InstallSmoke.Phase133CompletedValidationTest do
       """
     )
 
-    File.write!(fixture.requirements, requirements_fixture(false))
+    File.write!(fixture.requirements, requirements_fixture(requirements_complete?))
   end
 
   defp mutate_branch_fixture!(fixture, :stale_total) do
