@@ -5,16 +5,16 @@ milestone_name: Pre-Adopter Readiness & Quality Consolidation
 current_phase: 133
 current_phase_name: Evidence Charter and Live Truth
 status: executing
-stopped_at: Plan 133-32 halted after unqualified immutable run 34670574306; Plans 133-33 through 133-37 pending
-last_updated: "2026-09-12T16:33:00.615Z"
+stopped_at: Completed 133-33-PLAN.md
+last_updated: "2026-09-12T19:54:06.674Z"
 last_activity: 2026-09-12
-last_activity_desc: Phase 133 gap plans revised around branch-aware immutable halt and success outcomes
-state_head: eca78cca64cd121c5db5c07647990f62cda20084
+last_activity_desc: Plan 133-33 completed; Plans 133-34 through 133-37 pending
+state_head: 79fb36bef2e3852e0da72bd136de9e398c962d95
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 37
-  completed_plans: 32
+  completed_plans: 33
 ---
 
 ## Project Reference
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-09-09 for v1.26)
 
 ## Current Position
 
-Phase: 133 (Evidence Charter and Live Truth) — READY TO EXECUTE
-Plan: 32 of 37
-Status: EXECUTING — Plans 133-33 through 133-37 repair and requalify a new exact subject while preserving the Plan 133-32 halt
-Last activity: 2026-09-12 — revised the remaining lifecycle to preserve authorization-stop and failed-attempt history
+Phase: 133 (Evidence Charter and Live Truth) — EXECUTING
+Plan: 34 of 37
+Status: EXECUTING — Plans 133-34 through 133-37 reconcile and requalify a new exact subject while preserving the Plan 133-32 halt
+Last activity: 2026-09-12 — completed bounded exact-run read recovery without remote mutation
 Progress: [███████░░░] 65%
 
 ## Performance Metrics
@@ -73,6 +73,7 @@ Progress: [███████░░░] 65%
 | Phase 133 P30 | 40m | 2 tasks | 3 files |
 | Phase 133 P31 | 26m | 1 tasks | 4 files |
 | Phase 133 P32 | 11m | 0 tasks | 4 files |
+| Phase 133 P33 | 19m | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -148,6 +149,8 @@ Progress: [███████░░░] 65%
 - [Phase 133]: Plan 133-27 authorization remains consumed and cannot be reused; Plan 133-31 approval grants no EVID/TRUTH requirement or acceptance credit.
 - [Phase 133]: Reconciliation is branch-aware: the baseline halt set is Plans 27/32, `stop` adds halted Plan 36 with Plan 37 blocked, and a failed authorized attempt adds halted Plan 37; none closes the phase.
 - [Phase 133]: EVID-01 through EVID-04 and TRUTH-08 remain pending until a successful Plan 37 receipt and terminal automated reconciliation both pass.
+- [Phase 133]: Retry only exact GitHub primary or secondary rate-limit diagnostics; authentication, permission, malformed, and unrelated failures remain terminal.
+- [Phase 133]: Carry the original collector deadline and selected databaseId through recovery while keeping workflow dispatch and issue mutations outside the recovery helper.
 
 ### Pending Todos
 
@@ -172,6 +175,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-09-12T03:36:52.381Z
-Stopped at: Plan 133-32 halted after unqualified immutable run 34670574306
+Last session: 2026-09-12T19:54:06.651Z
+Stopped at: Completed 133-33-PLAN.md
 Resume file: None

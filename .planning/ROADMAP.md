@@ -44,7 +44,7 @@ error vocabulary, release coupling, supported behavior, or the accepted pull-req
   3. Nightly aggregation fails for failed, cancelled, unexpected, or impermissibly skipped gating states, and automated incident tests prove one exact-run-bound issue opens or updates on failure and closes only after qualifying scheduled recovery.
   4. Executable parity checks derive release, planning, support, and adoption-proof claims from authoritative state and reject every unmarked version, lane-severity, or package-proof contradiction.
 
-**Plans**: 32/37 plans summarized; 30 completed, Plans 133-27 and 133-32 halted with their immutable attempts preserved, 5 pending. A Plan 133-36 `stop` or failed Plan 133-37 attempt is recorded as additional halted history; only successful Plan 133-37 automated qualification closes the phase.
+**Plans**: 33/37 plans summarized; 31 completed, Plans 133-27 and 133-32 halted with their immutable attempts preserved, 4 pending. A Plan 133-36 `stop` or failed Plan 133-37 attempt is recorded as additional halted history; only successful Plan 133-37 automated qualification closes the phase.
 
 Plans:
 
@@ -148,7 +148,7 @@ Plans:
 
 **Wave 23** *(consumes the immutable Plan 133-32 halt; no remote mutation)*
 
-- [ ] 133-33-PLAN.md — Harden the exact-run collector against bounded transient read-only GitHub rate limits without changing dispatch ownership or mutation count.
+- [x] 133-33-PLAN.md — Harden the exact-run collector against bounded transient read-only GitHub rate limits without changing dispatch ownership or mutation count.
 
 **Wave 24** *(blocked on Plan 133-33)*
 
@@ -260,7 +260,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 133. Evidence Charter and Live Truth | 32/37 | In Progress|  |
+| 133. Evidence Charter and Live Truth | 33/37 | In Progress|  |
 | 134. Dependency, Security, and Inbox Disposition | 0/TBD | Not started | - |
 | 135. Repository and Code-Craft Consolidation | 0/TBD | Not started | - |
 | 136. Measured Quality and CI Ratchets | 0/TBD | Not started | - |
