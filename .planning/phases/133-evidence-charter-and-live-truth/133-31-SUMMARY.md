@@ -13,9 +13,9 @@ provides:
 affects: [133-32, EVID-01, EVID-02, EVID-03, EVID-04, TRUTH-08]
 plan_head_before: e627f518fc6becdf70cada3160304dcc20c3c7b0
 actuals:
-  tokens: 0
+  tokens: 3852
   tasks: 1
-  commits: 0
+  commits: 1
 tech-stack:
   added: []
   patterns:
@@ -27,6 +27,7 @@ key-files:
   modified:
     - .planning/STATE.md
     - .planning/ROADMAP.md
+    - .planning/WINDOWS.md
 key-decisions:
   - "Authorize exactly one later non-force creation of refs/heads/phase-133-evidence-e70623e9ea95 at e70623e9ea956c750904af574f47221cc472d2f2."
   - "Plan 133-27 authorization remains consumed and cannot be reused; this approval grants no EVID/TRUTH requirement or acceptance credit."
@@ -49,7 +50,7 @@ metrics:
 - **Started:** 2026-09-12T02:55:33Z
 - **Completed:** 2026-09-12T03:21:41Z
 - **Tasks:** 1
-- **Files modified:** one new summary plus supported tracking metadata
+- **Files modified:** one new summary plus three supported tracking files
 
 ## Authorization Record
 
@@ -72,13 +73,14 @@ Plan 133-27's earlier authorization was consumed by creation of `phase-133-evide
 
 ## Task Commits
 
-Task 1 records authorization only; its plan-scoped documentation commit is captured during finalization.
+1. **Task 1: Record exact one-time repair publication authorization** - `21e57d8`
 
 ## Files Created/Modified
 
 - `.planning/phases/133-evidence-charter-and-live-truth/133-31-SUMMARY.md` — durable exact publication authorization and evidence snapshot.
 - `.planning/STATE.md` — supported plan position, metric, decision, and session tracking.
 - `.planning/ROADMAP.md` — supported Plan 31 progress tracking while preserving Plan 27 as halted and unchecked.
+- `.planning/WINDOWS.md` — fixed record of the generic Roadmap handler's halted-plan tracking correction.
 
 The census and canonical receipt were read but not modified.
 
@@ -101,7 +103,18 @@ The census and canonical receipt were read but not modified.
 
 ## Deviations from Plan
 
-None - the plan's exact publish-or-stop checkpoint contract was followed.
+### Auto-fixed Issues
+
+**1. [Rule 3 - Blocking] Restored halted-plan Roadmap semantics after the generic progress update**
+- **Found during:** Final supported tracking updates
+- **Issue:** `roadmap.update-plan-progress` counted summaries generically and rechecked halted Plan 133-27, while leaving the semantic totals at 29 complete and two pending after Plan 31 completed.
+- **Fix:** Kept the handler's 31/32 summarized total and Plan 31 completion, restored Plan 27 to unchecked, and recorded the actual 30 complete / one halted / one pending topology.
+- **Files modified:** `.planning/ROADMAP.md`
+- **Verification:** The exact Plan 27, Plan 31, Plan 32, summary-count, and semantic-total rows were inspected after correction.
+- **Committed in:** Final plan metadata commit.
+
+**Total deviations:** 1 auto-fixed blocking issue.
+**Impact on plan:** The correction preserves the repository's established distinction between a summarized halted plan and completed work; publication scope is unchanged.
 
 ## Issues Encountered
 
