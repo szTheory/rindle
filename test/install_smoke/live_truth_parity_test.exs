@@ -501,8 +501,7 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
 
     generated_requirements = [
       package: executable_package_mix_source() |> project_elixir_requirement!(),
-      consumer:
-        executable_consumer_mix_source("/tmp/rindle") |> project_elixir_requirement!()
+      consumer: executable_consumer_mix_source("/tmp/rindle") |> project_elixir_requirement!()
     ]
 
     for {project, requirement} <- generated_requirements do
