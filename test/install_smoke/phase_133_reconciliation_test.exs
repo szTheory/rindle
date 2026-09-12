@@ -3,6 +3,8 @@ defmodule Rindle.InstallSmoke.Phase133ReconciliationTest do
 
   @script Path.expand("../../scripts/maintainer/validate_phase_133_reconciliation.exs", __DIR__)
   @heading "## Pending Gap-Closure Validation Addendum (Plans 11–17)"
+  @success_prefix "phase 133 reconciliation valid:"
+  @failure_prefix "[validate-phase-133-reconciliation]"
 
   setup do
     root =
@@ -19,6 +21,33 @@ defmodule Rindle.InstallSmoke.Phase133ReconciliationTest do
 
   test "accepts the exact historical preimage, roadmap, and pending pair map", %{fixture: fixture} do
     assert_valid(fixture)
+  end
+
+  test "accepts one authoritative success record with bounded launcher diagnostics" do
+    success = "#{@success_prefix} 10 completed, 7 pending plans, 16 verification pairs"
+
+    assert_valid_process_result({success, 0})
+    assert_valid_process_result({"Compiling reconciliation launcher\n#{success}", 0})
+  end
+
+  test "rejects missing, duplicate, failure, and nonzero process results" do
+    success = "#{@success_prefix} 10 completed, 7 pending plans, 16 verification pairs"
+
+    assert_raise ExUnit.AssertionError, fn ->
+      assert_valid_process_result({"bounded launcher diagnostic", 0})
+    end
+
+    assert_raise ExUnit.AssertionError, fn ->
+      assert_valid_process_result({"#{success}\n#{success}", 0})
+    end
+
+    assert_raise ExUnit.AssertionError, fn ->
+      assert_valid_process_result({"#{@failure_prefix} invalid roadmap\n#{success}", 0})
+    end
+
+    assert_raise ExUnit.AssertionError, fn ->
+      assert_valid_process_result({success, 1})
+    end
   end
 
   test "preserves multiple verification pairs owned by one task", %{fixture: fixture} do
@@ -330,9 +359,17 @@ defmodule Rindle.InstallSmoke.Phase133ReconciliationTest do
       Path.join(root, ".planning/phases/133-evidence-charter-and-live-truth/133-#{plan}-PLAN.md")
 
   defp assert_valid(fixture) do
-    assert {output, 0} = run_validator(fixture)
+    result = run_validator(fixture)
+    assert_valid_process_result(result)
+    {output, 0} = result
     assert output =~ "phase 133 reconciliation valid"
     assert output =~ "16 verification pairs"
+  end
+
+  defp assert_valid_process_result({output, status}) do
+    assert status == 0
+    assert output =~ @success_prefix
+    refute output =~ @failure_prefix
     assert length(String.split(String.trim(output), "\n")) == 1
   end
 
