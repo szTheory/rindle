@@ -2,9 +2,9 @@
 schema_version: 1
 open_count: 1
 waived_count: 2
-fixed_count: 20
-total_count: 23
-last_updated: 2026-09-12T02:07:50.550Z
+fixed_count: 23
+total_count: 26
+last_updated: 2026-09-12T02:53:16.295Z
 ---
 
 # Broken Windows Ledger
@@ -38,6 +38,9 @@ last_updated: 2026-09-12T02:07:50.550Z
 | 21 | 133 | deviation | scripts/maintainer/evidence_census.exs |  | Canonicalize the inspected root through the physical resolver so platform symlink aliases do not reject contained detector inputs | fixed |  | 2026-09-11T17:20:05.449Z | 2026-09-11T17:20:27.089Z |
 | 22 | 133 | deviation | scripts/maintainer/validate_phase_133_reconciliation.exs |  | Bootstrapped the literal standalone Elixir verification path from repository-bounded compiled dependencies | fixed |  | 2026-09-12T02:07:24.771Z | 2026-09-12T02:07:50.462Z |
 | 23 | 133 | deviation | .planning/ROADMAP.md |  | Corrected halted Plan 133-27 Roadmap tracking after the generic summary-count handler rechecked it | fixed |  | 2026-09-12T02:07:24.858Z | 2026-09-12T02:07:50.550Z |
+| 24 | 133 | deviation | .planning/phases/133-evidence-charter-and-live-truth/133-30-PLAN.md |  | Used the shipped detached ledger-plus-receipt validator interface because the plan's literal --census flag is obsolete. | fixed |  | 2026-09-12T02:52:04.986Z | 2026-09-12T02:52:12.603Z |
+| 25 | 133 | deviation | test/install_smoke/nightly_policy_test.exs |  | Applied the supported Elixir formatter's deterministic indentation and rebound the census to the post-fix subject. | fixed |  | 2026-09-12T02:52:05.087Z | 2026-09-12T02:52:12.726Z |
+| 26 | 133 | deviation | .planning/ROADMAP.md |  | Restored Plan 133-27 to unchecked halted status and corrected post-Plan-30 semantic totals after the generic progress handler rechecked it. | fixed |  | 2026-09-12T02:53:16.183Z | 2026-09-12T02:53:16.295Z |
 
 ````json
 [
@@ -318,6 +321,45 @@ last_updated: 2026-09-12T02:07:50.550Z
     "reason": "",
     "recorded_at": "2026-09-12T02:07:24.858Z",
     "resolved_at": "2026-09-12T02:07:50.550Z",
+    "milestone": "v1.26"
+  },
+  {
+    "id": 24,
+    "kind": "deviation",
+    "phase": "133",
+    "file": ".planning/phases/133-evidence-charter-and-live-truth/133-30-PLAN.md",
+    "line": null,
+    "description": "Used the shipped detached ledger-plus-receipt validator interface because the plan's literal --census flag is obsolete.",
+    "status": "fixed",
+    "reason": "",
+    "recorded_at": "2026-09-12T02:52:04.986Z",
+    "resolved_at": "2026-09-12T02:52:12.603Z",
+    "milestone": "v1.26"
+  },
+  {
+    "id": 25,
+    "kind": "deviation",
+    "phase": "133",
+    "file": "test/install_smoke/nightly_policy_test.exs",
+    "line": null,
+    "description": "Applied the supported Elixir formatter's deterministic indentation and rebound the census to the post-fix subject.",
+    "status": "fixed",
+    "reason": "",
+    "recorded_at": "2026-09-12T02:52:05.087Z",
+    "resolved_at": "2026-09-12T02:52:12.726Z",
+    "milestone": "v1.26"
+  },
+  {
+    "id": 26,
+    "kind": "deviation",
+    "phase": "133",
+    "file": ".planning/ROADMAP.md",
+    "line": null,
+    "description": "Restored Plan 133-27 to unchecked halted status and corrected post-Plan-30 semantic totals after the generic progress handler rechecked it.",
+    "status": "fixed",
+    "reason": "",
+    "recorded_at": "2026-09-12T02:53:16.183Z",
+    "resolved_at": "2026-09-12T02:53:16.295Z",
     "milestone": "v1.26"
   }
 ]
