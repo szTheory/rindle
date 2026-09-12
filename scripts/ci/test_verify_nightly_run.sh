@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shellcheck disable=SC2317 # Embedded fake-gh body executes after extraction.
+# shellcheck disable=SC2016,SC2317,SC2329 # Embedded fake scripts execute after literal extraction.
 # Exact-run Nightly collector contract exercised against a deterministic fake gh.
 set -euo pipefail
 
