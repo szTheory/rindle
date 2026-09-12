@@ -1,3 +1,23 @@
+unless Code.ensure_loaded?(YamlElixir) do
+  repo_root = Path.expand("../..", __DIR__)
+
+  ebin_paths =
+    ["test", "dev"]
+    |> Enum.map(&Path.join([repo_root, "_build", &1, "lib"]))
+    |> Enum.find_value(fn build_lib ->
+      paths = Path.wildcard(Path.join(build_lib, "*/ebin"))
+
+      if Enum.any?(paths, &File.exists?(Path.join(&1, "Elixir.YamlElixir.beam"))),
+        do: paths
+    end)
+
+  if is_nil(ebin_paths) do
+    raise "[validate-phase-133-reconciliation] compiled YAML dependency is unavailable under the repository build root"
+  end
+
+  Enum.each(ebin_paths, &Code.prepend_path/1)
+end
+
 defmodule Rindle.ValidatePhase133Reconciliation do
   @moduledoc false
 
@@ -9,11 +29,17 @@ defmodule Rindle.ValidatePhase133Reconciliation do
   @historical_bytes 13_899
   @historical_sha256 "c3df0a578a2337f81d4539d5e8b0bc1d8ed4638d80ef1b4ce7fb424e43469bec"
   @historical_heading "## Pending Gap-Closure Validation Addendum (Plans 11–17)"
-  @active_ref "8313cd6cab0370ace45a7b29ca49215f158eba38"
-  @active_bytes 50_488
-  @active_sha256 "8a86165cb73100c105aaeba876296c31b30f57aceef294a0c3b7f6505f5df40d"
-  @active_heading "## Pending Gap-Closure Validation Addendum (Plans 23–27)"
+  @active_ref "9adf7c74dd32239a373963ad0d30d00a6d143b93"
+  @active_bytes 68_572
+  @active_sha256 "a2ae3b34457aabf84ba9d18d1f2f099e1266e3e1e12f0381539f16bf8988b9c0"
+  @active_heading "## Gap-Repair Validation Addendum (Plans 28–32)"
   @pending_state "pending — not executed"
+  @halted_state "halted — immutable failed evidence"
+  @halted_credit "failure-history-only"
+  @failed_run "34661043059"
+  @failed_subject "0f8189ddeed7e7a52b5c7464f17b70ab44596c33"
+  @failed_ref "phase-133-evidence-0f8189ddeed7"
+  @repair_dependencies %{30 => [28, 29], 31 => [30], 32 => [31]}
 
   def run(argv) do
     with {:ok, options} <- parse_options(argv),
@@ -29,8 +55,8 @@ defmodule Rindle.ValidatePhase133Reconciliation do
          {:ok, addendum} <- validate_validation(root, prefix, mode),
          {:ok, actual} <- parse_addendum(addendum),
          :ok <- compare_records(expected, actual),
-         {:ok, completed} <- validate_summaries_and_roadmap(root, mode) do
-      IO.puts(success_message(mode, completed, length(expected)))
+         {:ok, summary_state} <- validate_summaries_and_roadmap(root, mode) do
+      IO.puts(success_message(mode, summary_state, length(expected)))
 
       :ok
     else
@@ -111,10 +137,16 @@ defmodule Rindle.ValidatePhase133Reconciliation do
     do:
       "phase 133 reconciliation valid: 10 completed, 7 pending plans, #{pair_count} verification pairs"
 
-  defp success_message(mode, completed, pair_count)
+  defp success_message(mode, summary_state, pair_count)
        when mode in [:execution, :execution_complete] do
-    "phase 133 reconciliation valid: #{completed} completed, #{27 - completed} pending plans, " <>
-      "#{pair_count} pending verification pairs"
+    completed = MapSet.size(summary_state.completed)
+    halted = MapSet.size(summary_state.halted)
+    summarized = completed + halted
+    pending = 32 - summarized
+
+    "phase 133 reconciliation valid: #{completed} completed, #{halted} halted, " <>
+      "#{pending} pending plans, #{summarized}/32 summarized, " <>
+      "#{pair_count} validation records"
   end
 
   defp maybe_print_addendum(%{print_addendum: true}, records, mode) do
@@ -142,7 +174,7 @@ defmodule Rindle.ValidatePhase133Reconciliation do
   defp maybe_write_addendum(_root, _options, _prefix, _records, _mode), do: :ok
 
   defp require_tracked_inputs(root, mode) do
-    plans = if mode == :historical_snapshot, do: 11..17, else: 23..27
+    plans = if mode == :historical_snapshot, do: 11..17, else: 28..32
 
     paths =
       [@roadmap_path, @validation_path] ++
@@ -252,9 +284,10 @@ defmodule Rindle.ValidatePhase133Reconciliation do
   end
 
   defp expected_records(root, mode) do
-    plans = if mode == :historical_snapshot, do: 11..17, else: 23..27
+    plans = if mode == :historical_snapshot, do: 11..17, else: 28..32
+    initial = if mode == :historical_snapshot, do: [], else: [halted_history_record()]
 
-    Enum.reduce_while(plans, {:ok, []}, fn plan, {:ok, all} ->
+    Enum.reduce_while(plans, {:ok, initial}, fn plan, {:ok, all} ->
       path = Path.join(root, Path.join(@phase_dir, "133-#{plan}-PLAN.md"))
 
       case File.read(path) do
@@ -268,6 +301,18 @@ defmodule Rindle.ValidatePhase133Reconciliation do
           {:halt, {:error, "missing plan 133-#{plan}"}}
       end
     end)
+  end
+
+  defp halted_history_record do
+    %{
+      key: "133-27-halted-history:1",
+      command:
+        "mix test test/install_smoke/phase_133_completed_validation_test.exs --seed 0 # immutable run #{@failed_run} attempt 1 subject #{@failed_subject} ref #{@failed_ref}",
+      failure:
+        "non-zero exit, zero ExUnit tests, Plan 133-27 is complete or checked, or its exact immutable run, attempt, subject, or ref differs",
+      state: @halted_state,
+      credit: @halted_credit
+    }
   end
 
   defp parse_plan(contents, plan, mode) do
@@ -484,7 +529,7 @@ defmodule Rindle.ValidatePhase133Reconciliation do
             got.failure != wanted.failure ->
               {:halt, {:error, "mapping failure text differs for #{wanted.key}"}}
 
-            got.state != @pending_state ->
+            got.state != wanted.state ->
               {:halt, {:error, "pending state differs for #{wanted.key}"}}
 
             got.credit != wanted.credit ->
@@ -506,52 +551,86 @@ defmodule Rindle.ValidatePhase133Reconciliation do
 
   defp validate_summaries_and_roadmap(root, mode)
        when mode in [:execution, :execution_complete] do
-    with {:ok, completed} <- completed_summary_set(root),
-         :ok <- validate_execution_summary_set(completed, mode),
-         :ok <- validate_execution_roadmap(root, completed, mode) do
-      {:ok, MapSet.size(completed)}
+    with {:ok, summary_state} <- summary_state(root),
+         :ok <- validate_execution_summary_state(summary_state, mode),
+         :ok <- validate_execution_roadmap(root, summary_state) do
+      {:ok, summary_state}
     end
   end
 
-  defp completed_summary_set(root) do
-    Enum.reduce_while(1..27, {:ok, MapSet.new()}, fn plan, {:ok, completed} ->
+  defp summary_state(root) do
+    initial = %{completed: MapSet.new(), halted: MapSet.new()}
+
+    Enum.reduce_while(1..32, {:ok, initial}, fn plan, {:ok, state} ->
       plan_id = String.pad_leading(Integer.to_string(plan), 2, "0")
       path = Path.join(root, Path.join(@phase_dir, "133-#{plan_id}-SUMMARY.md"))
 
       case File.read(path) do
         {:ok, summary} ->
-          case summary_status(summary) do
-            {:ok, "complete"} ->
-              {:cont, {:ok, MapSet.put(completed, plan)}}
+          case summary_document(summary) do
+            {:ok, %{status: "complete"}} when plan == 27 ->
+              {:halt, {:error, "Plan 27 must remain halted and cannot be status: complete"}}
 
-            {:ok, _status} ->
-              {:halt, {:error, "completed summary 133-#{plan_id} is not status: complete"}}
+            {:ok, %{status: "complete"}} ->
+              {:cont, {:ok, %{state | completed: MapSet.put(state.completed, plan)}}}
+
+            {:ok, %{status: "halted"} = document} when plan == 27 ->
+              case validate_halted_summary(document) do
+                :ok -> {:cont, {:ok, %{state | halted: MapSet.put(state.halted, plan)}}}
+                {:error, reason} -> {:halt, {:error, "halted summary 133-27 #{reason}"}}
+              end
+
+            {:ok, %{status: status}} ->
+              {:halt, {:error, "summary 133-#{plan_id} has unsupported status: #{status}"}}
 
             {:error, reason} ->
-              {:halt, {:error, "completed summary 133-#{plan_id} #{reason}"}}
+              {:halt, {:error, "summary 133-#{plan_id} #{reason}"}}
           end
 
         {:error, :enoent} ->
-          {:cont, {:ok, completed}}
+          {:cont, {:ok, state}}
 
         {:error, _reason} ->
-          {:halt, {:error, "completed summary 133-#{plan_id} is unreadable"}}
+          {:halt, {:error, "summary 133-#{plan_id} is unreadable"}}
       end
     end)
   end
 
-  defp summary_status(summary) do
+  defp summary_document(summary) do
     with {:ok, frontmatter, body} <- bounded_frontmatter(summary),
          :ok <- reject_second_frontmatter(body),
          :ok <- require_one_status_key(frontmatter),
          {:ok, decoded} <- decode_frontmatter(frontmatter),
          true <- is_map(decoded) or {:error, "frontmatter must decode to a mapping"},
          status when is_binary(status) <- Map.get(decoded, "status") do
-      {:ok, status}
+      {:ok, %{status: status, metadata: decoded, body: body}}
     else
       {:error, _reason} = error -> error
       nil -> {:error, "frontmatter status is missing"}
       _non_scalar -> {:error, "frontmatter status must be a scalar string"}
+    end
+  end
+
+  defp validate_halted_summary(document) do
+    halt_reason = Map.get(document.metadata, "halt_reason")
+
+    requirements = [
+      {is_binary(halt_reason) and String.contains?(halt_reason, @failed_run),
+       "must retain failed run #{@failed_run} in halt_reason"},
+      {is_binary(halt_reason) and String.contains?(halt_reason, "attempt 1"),
+       "must retain failed attempt 1 in halt_reason"},
+      {String.contains?(document.body, "`#{@failed_run}`"),
+       "must retain exact failed run #{@failed_run}"},
+      {String.contains?(document.body, "attempt `1`"), "must retain exact failed attempt 1"},
+      {String.contains?(document.body, "`#{@failed_subject}`"),
+       "must retain exact failed subject #{@failed_subject}"},
+      {String.contains?(document.body, "`refs/heads/#{@failed_ref}`"),
+       "must retain exact failed ref #{@failed_ref}"}
+    ]
+
+    case Enum.find(requirements, fn {valid?, _message} -> not valid? end) do
+      nil -> :ok
+      {_valid?, message} -> {:error, message}
     end
   end
 
@@ -615,29 +694,41 @@ defmodule Rindle.ValidatePhase133Reconciliation do
     end
   end
 
-  defp validate_execution_summary_set(completed, :execution) do
-    cond do
-      not MapSet.subset?(MapSet.new(1..22), completed) ->
-        {:error, "historical completed summaries 133-01 through 133-22 must remain complete"}
-
-      MapSet.member?(completed, 27) ->
-        {:error, "Plan 27 must remain pending until the post-summary phase gate"}
-
-      true ->
-        :ok
+  defp validate_execution_summary_state(summary_state, mode) do
+    with true <-
+           MapSet.subset?(MapSet.new(1..26), summary_state.completed) or
+             {:error, "historical completed summaries 133-01 through 133-26 must remain complete"},
+         true <-
+           summary_state.halted == MapSet.new([27]) or
+             {:error, "Plan 27 must remain the sole halted summary"},
+         :ok <- validate_repair_dependencies(summary_state.completed),
+         :ok <- validate_execution_complete_state(summary_state, mode) do
+      :ok
+    else
+      {:error, _message} = error -> error
+      false -> {:error, "Phase 133 summary state differs from the required topology"}
     end
   end
 
-  defp validate_execution_summary_set(completed, :execution_complete) do
-    missing = Enum.reject(1..27, &MapSet.member?(completed, &1))
+  defp validate_repair_dependencies(completed) do
+    Enum.reduce_while(@repair_dependencies, :ok, fn {plan, dependencies}, :ok ->
+      if MapSet.member?(completed, plan) and
+           Enum.any?(dependencies, &(not MapSet.member?(completed, &1))) do
+        {:halt, {:error, "repair dependency is missing for completed Plan #{plan}"}}
+      else
+        {:cont, :ok}
+      end
+    end)
+  end
+
+  defp validate_execution_complete_state(_summary_state, :execution), do: :ok
+
+  defp validate_execution_complete_state(summary_state, :execution_complete) do
+    missing = Enum.reject(28..32, &MapSet.member?(summary_state.completed, &1))
 
     case missing do
-      [] ->
-        :ok
-
-      [plan | _] ->
-        {:error,
-         "completed summary 133-#{String.pad_leading(Integer.to_string(plan), 2, "0")} is missing or unreadable"}
+      [] -> :ok
+      [plan | _] -> {:error, "execution-complete summary 133-#{plan} is missing or incomplete"}
     end
   end
 
@@ -689,8 +780,11 @@ defmodule Rindle.ValidatePhase133Reconciliation do
     end
   end
 
-  defp validate_execution_roadmap(root, completed, mode) do
-    expected_count = MapSet.size(completed)
+  defp validate_execution_roadmap(root, summary_state) do
+    completed_count = MapSet.size(summary_state.completed)
+    halted_count = MapSet.size(summary_state.halted)
+    summarized_count = completed_count + halted_count
+    pending_count = 32 - summarized_count
 
     with {:ok, roadmap} <- File.read(Path.join(root, @roadmap_path)),
          [section] <-
@@ -699,9 +793,15 @@ defmodule Rindle.ValidatePhase133Reconciliation do
              roadmap,
              capture: :all_but_first
            ),
-         :ok <- validate_execution_detail(section, expected_count),
-         :ok <- validate_execution_checkboxes(section, completed, mode),
-         :ok <- validate_execution_progress_row(roadmap, expected_count) do
+         :ok <-
+           validate_execution_detail(
+             section,
+             summarized_count,
+             completed_count,
+             pending_count
+           ),
+         :ok <- validate_execution_checkboxes(section, summary_state.completed),
+         :ok <- validate_execution_progress_row(roadmap, summarized_count) do
       :ok
     else
       {:error, _message} = error -> error
@@ -709,18 +809,22 @@ defmodule Rindle.ValidatePhase133Reconciliation do
     end
   end
 
-  defp validate_execution_detail(section, expected_count) do
-    expected = "**Plans**: #{expected_count}/27 plans executed"
+  defp validate_execution_detail(section, summarized_count, completed_count, pending_count) do
+    expected =
+      "**Plans**: #{summarized_count}/32 plans executed summarized; #{completed_count} completed, " <>
+        "Plan 133-27 halted with its failed immutable attempt preserved, #{pending_count} pending"
 
     if length(Regex.scan(~r/^#{Regex.escape(expected)}$/m, section)) == 1 do
       :ok
     else
-      {:error, "roadmap detail must report exactly #{expected_count}/27 plans executed"}
+      {:error,
+       "roadmap detail must report exactly #{summarized_count}/32 summarized, " <>
+         "#{completed_count} completed, one halted, and #{pending_count} pending"}
     end
   end
 
-  defp validate_execution_checkboxes(section, completed, mode) do
-    Enum.reduce_while(1..27, :ok, fn plan, :ok ->
+  defp validate_execution_checkboxes(section, completed) do
+    Enum.reduce_while(1..32, :ok, fn plan, :ok ->
       id = "133-#{String.pad_leading(Integer.to_string(plan), 2, "0")}-PLAN.md"
 
       captures =
@@ -734,8 +838,8 @@ defmodule Rindle.ValidatePhase133Reconciliation do
         [[checkbox]] when checkbox == "x" == expected_checked ->
           {:cont, :ok}
 
-        _ when plan == 27 and mode == :execution ->
-          {:halt, {:error, "Plan 27 must remain pending until the post-summary phase gate"}}
+        _ when plan == 27 ->
+          {:halt, {:error, "Plan 27 must remain unchecked while halted"}}
 
         _ ->
           {:halt, {:error, "summary/checkbox mismatch for #{id}"}}
@@ -743,18 +847,19 @@ defmodule Rindle.ValidatePhase133Reconciliation do
     end)
   end
 
-  defp validate_execution_progress_row(roadmap, expected_count) do
+  defp validate_execution_progress_row(roadmap, summarized_count) do
     pattern =
-      ~r/^\|\s*133\.\s*Evidence Charter and Live Truth\s*\|\s*(\d+)\/27\s*\|\s*([^|]+)\|\s*([^|]*)\|$/m
+      ~r/^\|\s*133\.\s*Evidence Charter and Live Truth\s*\|\s*(\d+)\/32\s*\|\s*([^|]+)\|\s*([^|]*)\|$/m
 
     case Regex.scan(pattern, roadmap, capture: :all_but_first) do
       [[count, status, completed]] ->
-        if count == Integer.to_string(expected_count) and String.trim(status) == "In Progress" and
+        if count == Integer.to_string(summarized_count) and
+             String.trim(status) == "In Progress" and
              String.trim(completed) == "" do
           :ok
         else
           {:error,
-           "roadmap Progress row must agree at #{expected_count}/27 with In Progress and blank completion date"}
+           "roadmap Progress row must agree at #{summarized_count}/32 with In Progress and blank completion date"}
         end
 
       _ ->
@@ -772,7 +877,7 @@ defmodule Rindle.ValidatePhase133Reconciliation do
 
   defp render_addendum(records, mode) when mode in [:execution, :execution_complete] do
     intro =
-      "Plans 01–22 remain immutable historical validation. The records below preserve the planned verification pairs for Plans 23–27; every pair remains pending evidence history, and the Plan 27 publication checkpoint carries authorization-only acceptance credit."
+      "Plans 01–27 remain immutable validation history. Plan 133-27 stays halted on its exact failed run, attempt, subject, and ref with no acceptance credit. The records below preserve every automated command/failure pair for repair Plans 133-28 through 133-32 in source order; their execution state remains separate from this ownership ledger."
 
     @active_heading <> "\n\n" <> intro <> "\n\n" <> Enum.map_join(records, "\n", &render_record/1)
   end

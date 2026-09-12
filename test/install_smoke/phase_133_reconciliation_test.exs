@@ -74,6 +74,12 @@ defmodule Rindle.InstallSmoke.Phase133ReconciliationTest do
     assert_valid(fixture)
   end
 
+  test "loads compiled YAML authority for the standalone Elixir validator", %{fixture: fixture} do
+    fixture
+    |> run_validator_with("elixir", [@script])
+    |> assert_valid_process_result()
+  end
+
   test "rejects a one-byte historical mutation", %{fixture: fixture} do
     mutate_validation(fixture, &String.replace(&1, "19/19", "18/19", global: false))
     assert_invalid(fixture, "historical prefix")
@@ -418,21 +424,27 @@ defmodule Rindle.InstallSmoke.Phase133ReconciliationTest do
   end
 
   defp run_validator(fixture) do
+    run_validator_with(fixture, "mix", [
+      "run",
+      "--no-start",
+      "--no-deps-check",
+      "--no-compile",
+      @script
+    ])
+  end
+
+  defp run_validator_with(fixture, executable, arguments) do
     System.cmd(
-      "mix",
-      [
-        "run",
-        "--no-start",
-        "--no-deps-check",
-        "--no-compile",
-        @script,
-        "--root",
-        fixture.root,
-        "--fixture-historical-ref",
-        fixture.historical_ref,
-        "--fixture-historical-sha256",
-        fixture.historical_sha256
-      ],
+      executable,
+      arguments ++
+        [
+          "--root",
+          fixture.root,
+          "--fixture-historical-ref",
+          fixture.historical_ref,
+          "--fixture-historical-sha256",
+          fixture.historical_sha256
+        ],
       cd: Path.expand("../..", __DIR__),
       env: [{"MIX_QUIET", "1"}],
       stderr_to_stdout: true

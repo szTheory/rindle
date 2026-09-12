@@ -171,6 +171,46 @@ defmodule Rindle.InstallSmoke.Phase133CompletedValidationTest do
     end
   end
 
+  test "rejects omitted, duplicated, or altered repair mappings" do
+    for mutation <- [:omitted, :duplicated, :altered] do
+      fixture = write_fixture!()
+      set_execution_state!(fixture, [28])
+
+      mutate_validation!(fixture, fn validation ->
+        record = record_for(validation, "133-32-02:4")
+
+        case mutation do
+          :omitted ->
+            String.replace(validation, record, "")
+
+          :duplicated ->
+            validation <> "\n" <> record
+
+          :altered ->
+            String.replace(
+              validation,
+              record,
+              String.replace(record, "temp_root=", "stale_temp_root=", global: false)
+            )
+        end
+      end)
+
+      assert_invalid(fixture, "mapping")
+    end
+  end
+
+  test "rejects altered Plan 27 halted-history evidence" do
+    fixture = write_fixture!()
+    set_execution_state!(fixture, [28])
+
+    mutate_validation!(fixture, fn validation ->
+      record = record_for(validation, "133-27-halted-history:1")
+      String.replace(validation, record, String.replace(record, @failed_run, "34661043058"))
+    end)
+
+    assert_invalid(fixture, "command text")
+  end
+
   test "rejects any drift in the preserved Plans 01-27 validation history" do
     fixture = write_fixture!()
     set_execution_state!(fixture, [28])
@@ -324,6 +364,16 @@ defmodule Rindle.InstallSmoke.Phase133CompletedValidationTest do
 
   defp mutate_validation!(fixture, mutation),
     do: File.write!(fixture.validation, mutation.(File.read!(fixture.validation)))
+
+  defp record_for(validation, key) do
+    [record] =
+      Regex.run(
+        ~r/<pending-validation key="#{Regex.escape(key)}">.*?<\/pending-validation>\n?/s,
+        validation
+      )
+
+    record
+  end
 
   defp summary_path(root, plan) do
     id = String.pad_leading(Integer.to_string(plan), 2, "0")

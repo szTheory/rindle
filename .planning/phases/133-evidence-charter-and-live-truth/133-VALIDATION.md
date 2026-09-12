@@ -1050,3 +1050,325 @@ non-zero exit, zero ExUnit tests, output does not report exactly 27 completed an
 <state>pending — not executed</state>
 <acceptance-credit>pending</acceptance-credit>
 </pending-validation>
+## Gap-Repair Validation Addendum (Plans 28–32)
+
+Plans 01–27 remain immutable validation history. Plan 133-27 stays halted on its exact failed run, attempt, subject, and ref with no acceptance credit. The records below preserve every automated command/failure pair for repair Plans 133-28 through 133-32 in source order; their execution state remains separate from this ownership ledger.
+
+<pending-validation key="133-27-halted-history:1">
+<automated>
+mix test test/install_smoke/phase_133_completed_validation_test.exs --seed 0 # immutable run 34661043059 attempt 1 subject 0f8189ddeed7e7a52b5c7464f17b70ab44596c33 ref phase-133-evidence-0f8189ddeed7
+</automated>
+<fails_when>
+non-zero exit, zero ExUnit tests, Plan 133-27 is complete or checked, or its exact immutable run, attempt, subject, or ref differs
+</fails_when>
+<state>halted — immutable failed evidence</state>
+<acceptance-credit>failure-history-only</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-28-01:1">
+<automated>
+MIX_ENV=test mix test test/install_smoke/live_truth_parity_test.exs --only package_authority --seed 0
+</automated>
+<fails_when>
+Non-zero exit, the ExUnit summary reports zero tests, either named package-authority regression fails, or forged command results are accepted.
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-28-01:2">
+<automated>
+mix format --check-formatted test/install_smoke/live_truth_parity_test.exs
+</automated>
+<fails_when>
+The generated package or consumer excludes a supported 1.15–1.18 fixture, either named remote regression still raises `package command failed: boot`, forged command results are accepted, or formatting fails.
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-28-02:1">
+<automated>
+MIX_ENV=test mix test test/install_smoke/live_truth_parity_test.exs --only package_authority --seed 0
+</automated>
+<fails_when>
+Non-zero exit, the ExUnit summary reports zero tests, the compile-before-boot attribution regression fails, or a malformed command result passes.
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-28-02:2">
+<automated>
+mix test test/install_smoke/live_truth_parity_test.exs --seed 0
+</automated>
+<fails_when>
+Non-zero exit, the ExUnit summary reports zero tests, or any live-truth parity regression fails.
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-28-02:3">
+<automated>
+mix format --check-formatted scripts/maintainer/validate_live_truth.exs test/install_smoke/live_truth_parity_test.exs
+</automated>
+<fails_when>
+A later boot result masks an earlier compile failure, any malformed or failed result passes, either formerly failing package-evidence case fails, or the focused authority suite is not green.
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-29-01:1">
+<automated>
+mix test test/install_smoke/phase_133_reconciliation_test.exs --seed 0
+</automated>
+<fails_when>
+Non-zero exit, the ExUnit summary reports zero tests, the bounded two-line compatibility case fails, or any duplicate/missing/error-record negative fixture passes.
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-29-01:2">
+<automated>
+mix format --check-formatted test/install_smoke/phase_133_reconciliation_test.exs
+</automated>
+<fails_when>
+The deterministic two-line fixture fails, a duplicate/missing success record passes, a validator error or nonzero exit passes, output bounds are absent, or the real nested-process test is removed.
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-29-02:1">
+<automated>
+mix test test/install_smoke/phase_133_reconciliation_test.exs test/install_smoke/phase_133_completed_validation_test.exs --seed 0
+</automated>
+<fails_when>
+Non-zero exit, the ExUnit summary reports zero tests, a legal repair state fails, or a dependency-invalid or Plan-27-as-complete fixture passes.
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-29-02:2">
+<automated>
+elixir scripts/maintainer/validate_phase_133_reconciliation.exs
+</automated>
+<fails_when>
+Non-zero exit, the canonical reconciliation success record is absent, or output reports incorrect complete, halted, pending, checkbox, or dependency totals.
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-29-02:3">
+<automated>
+./scripts/maintainer/automation_first_contract.sh
+</automated>
+<fails_when>
+Non-zero exit, or output reports a missing automated owner, missing concrete failure direction, pending-plan green credit, or human approval used as acceptance.
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-29-02:4">
+<automated>
+mix format --check-formatted scripts/maintainer/validate_phase_133_reconciliation.exs test/install_smoke/phase_133_reconciliation_test.exs test/install_smoke/phase_133_completed_validation_test.exs
+</automated>
+<fails_when>
+Plan 27 is semantically counted complete or checked, GSD summary counts differ from 27/32 initially or 32/32 terminally, a dependency-invalid repair state passes, a legal intermediate state fails, the terminal state differs from 31 completed/1 halted/0 pending, an earlier validation addendum changes, any new criterion lacks an automated owner, or formatting fails.
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-30-01:1">
+<automated>
+mix test test/install_smoke/evidence_census_test.exs --seed 0
+</automated>
+<fails_when>
+Non-zero exit, the ExUnit summary reports zero tests, or any exact-subject, candidate-identity, disposition, transition, or repeatability regression fails.
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-30-01:2">
+<automated>
+MIX_ENV=test mix run --no-deps-check --no-compile scripts/maintainer/validate_evidence_census.exs --root . --census .planning/phases/133-evidence-charter-and-live-truth/133-EVIDENCE-CENSUS.json
+</automated>
+<fails_when>
+Non-zero exit, the validator success record is absent, or output reports a missing/foreign subject, detector input, disposition, transition, or deterministic digest.
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-30-01:3">
+<automated>
+subject_sha="$(jq -er '.subject_sha' .planning/phases/133-evidence-charter-and-live-truth/133-EVIDENCE-CENSUS.json)" &amp;&amp; git cat-file -e "$subject_sha^{commit}" &amp;&amp; test "$subject_sha" != 0f8189ddeed7e7a52b5c7464f17b70ab44596c33 &amp;&amp; test "$subject_sha" != 1470cf8cb0f111d0b233efbf77ee69e92f25fd68
+</automated>
+<fails_when>
+The census subject is either prior subject, a detector input escapes the detached checkout, candidate IDs or dispositions drift without explicit transitions, repeated generation differs, validation fails, or any file besides the census is staged for this task.
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-30-02:1">
+<automated>
+mix test test/install_smoke/live_truth_parity_test.exs --only package_authority --seed 0 &amp;&amp; mix test test/install_smoke/phase_133_reconciliation_test.exs test/install_smoke/phase_133_completed_validation_test.exs --seed 0
+</automated>
+<fails_when>
+Non-zero exit, either ExUnit summary reports zero tests, or any lower-bound package, two-line reconciliation, halted-plan, or dependency-state regression fails.
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-30-02:2">
+<automated>
+bash scripts/ci/test_verify_nightly_run.sh &amp;&amp; bash scripts/ci/test_nightly_incident.sh &amp;&amp; bash scripts/ci/test_nightly_summary_gate.sh &amp;&amp; bash scripts/ci/test_nightly_dialyzer.sh &amp;&amp; mix test test/install_smoke/evidence_census_test.exs test/install_smoke/nightly_policy_test.exs test/install_smoke/live_truth_parity_test.exs test/install_smoke/generated_app_smoke_test.exs test/install_smoke/phase_133_reconciliation_test.exs test/install_smoke/phase_133_completed_validation_test.exs test/install_smoke/release_docs_parity_test.exs test/install_smoke/package_metadata_test.exs
+</automated>
+<fails_when>
+Non-zero exit, any shell fixture prints a `FAIL` case or zero-case summary, the ExUnit summary reports zero tests, or any Phase 133 authority regression fails.
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-30-02:3">
+<automated>
+mix ci &amp;&amp; bash scripts/maintainer/refactor_contract.sh &amp;&amp; MIX_ENV=test mix run --no-deps-check --no-compile scripts/maintainer/validate_phase_133_reconciliation.exs --root . &amp;&amp; ./scripts/maintainer/automation_first_contract.sh
+</automated>
+<fails_when>
+Non-zero exit, refactor or automation output reports a contract violation, or the canonical reconciliation success record is absent.
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-30-02:4">
+<automated>
+failed_line="$(git ls-remote --exit-code origin refs/heads/phase-133-evidence-0f8189ddeed7)" &amp;&amp; test "${failed_line%%[[:space:]]*}" = 0f8189ddeed7e7a52b5c7464f17b70ab44596c33 &amp;&amp; test "$(gh run view 34661043059 --json attempt,conclusion,headSha --jq '[.attempt,.conclusion,.headSha] | @tsv')" = $'1\tfailure\t0f8189ddeed7e7a52b5c7464f17b70ab44596c33' &amp;&amp; test "$(jq -r '[.subject_sha,(.run_id|tostring)] | @tsv' .planning/phases/133-evidence-charter-and-live-truth/133-NIGHTLY-EVIDENCE.json)" = $'1470cf8cb0f111d0b233efbf77ee69e92f25fd68\t34638437301'
+</automated>
+<fails_when>
+Non-zero exit, the failed ref is missing or has a different SHA, the run tuple differs from attempt-one failure at the exact subject, or the canonical receipt tuple differs from the prior valid subject/run.
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-30-02:5">
+<automated>
+temp_root="$(mktemp -d "${TMPDIR:-/tmp}/phase133-repair-hygiene.XXXXXX")" &amp;&amp; trap 'status=$?; cleanup_status=0; if [ -e "$temp_root/subject/.git" ] &amp;&amp; ! git worktree remove --force "$temp_root/subject" &gt;/dev/null 2&gt;&amp;1; then cleanup_status=1; fi; if ! rm -rf -- "$temp_root"; then cleanup_status=1; fi; if [ "$status" -ne 0 ]; then exit "$status"; fi; exit "$cleanup_status"' EXIT &amp;&amp; subject_sha="$(jq -er '.subject_sha' .planning/phases/133-evidence-charter-and-live-truth/133-EVIDENCE-CENSUS.json)" &amp;&amp; git worktree add --detach "$temp_root/subject" "$subject_sha" &gt;/dev/null &amp;&amp; (cd "$temp_root/subject" &amp;&amp; ./scripts/maintainer/repo_hygiene_check.sh) &amp;&amp; git worktree remove --force "$temp_root/subject" &gt;/dev/null &amp;&amp; rm -rf -- "$temp_root" &amp;&amp; trap - EXIT
+</automated>
+<fails_when>
+Any focused/full/refactor/reconciliation/automation/hygiene command is nonzero, a temporary worktree or residue remains, the prior receipt changes or fails verification, or the failed ref/run identity or conclusion changes.
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-31-01:1">
+<automated>
+subject_sha="$(jq -er '.subject_sha' .planning/phases/133-evidence-charter-and-live-truth/133-EVIDENCE-CENSUS.json)" &amp;&amp; git cat-file -e "${subject_sha}^{commit}" &amp;&amp; test "$subject_sha" != 0f8189ddeed7e7a52b5c7464f17b70ab44596c33 &amp;&amp; test "$subject_sha" != 1470cf8cb0f111d0b233efbf77ee69e92f25fd68 &amp;&amp; remote_ref="phase-133-evidence-${subject_sha:0:12}" &amp;&amp; test -z "$(git ls-remote origin "refs/heads/$remote_ref")"
+</automated>
+<fails_when>
+Non-zero exit, the census SHA is missing or not a commit, it equals either prior subject, or the derived remote ref lookup returns any matching ref.
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>authorization-only</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-31-01:2">
+<automated>
+failed_line="$(git ls-remote --exit-code origin refs/heads/phase-133-evidence-0f8189ddeed7)" &amp;&amp; test "${failed_line%%[[:space:]]*}" = 0f8189ddeed7e7a52b5c7464f17b70ab44596c33 &amp;&amp; test "$(gh run view 34661043059 --json attempt,conclusion,headSha,headBranch --jq '[.attempt,.conclusion,.headSha,.headBranch] | @tsv')" = $'1\tfailure\t0f8189ddeed7e7a52b5c7464f17b70ab44596c33\tphase-133-evidence-0f8189ddeed7'
+</automated>
+<fails_when>
+Non-zero exit, the failed ref is missing or has a different SHA, or the run tuple differs from attempt one, failure, the exact head SHA, and the immutable failed branch.
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>authorization-only</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-31-01:3">
+<automated>
+receipt=.planning/phases/133-evidence-charter-and-live-truth/133-NIGHTLY-EVIDENCE.json &amp;&amp; test "$(jq -r '[.subject_sha,(.run_id|tostring)] | @tsv' "$receipt")" = $'1470cf8cb0f111d0b233efbf77ee69e92f25fd68\t34638437301' &amp;&amp; bash scripts/ci/verify_nightly_run.sh verify-receipt --repo szTheory/rindle --workflow nightly.yml --ref phase-133-evidence-1470cf8cb0f1 --expected-sha 1470cf8cb0f111d0b233efbf77ee69e92f25fd68 --receipt "$receipt"
+</automated>
+<fails_when>
+The repair subject is invalid or reused, the derived ref exists, the failed ref/run differs, the prior receipt does not verify exactly, the proposed SHA/ref is not displayed, or the response is not exactly `publish` or `stop`.
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>authorization-only</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-32-01:1">
+<automated>
+candidate=/tmp/rindle-phase133-32-nightly-candidate.json &amp;&amp; subject_sha="$(jq -er '.subject_sha' .planning/phases/133-evidence-charter-and-live-truth/133-EVIDENCE-CENSUS.json)" &amp;&amp; remote_ref="phase-133-evidence-${subject_sha:0:12}" &amp;&amp; remote_line="$(git ls-remote --exit-code origin "refs/heads/$remote_ref")" &amp;&amp; test "${remote_line%%[[:space:]]*}" = "$subject_sha" &amp;&amp; test "$(jq -r '[.subject_sha,.remote_ref,(.run_id|tostring),(.run_attempt|tostring),.conclusion,.strict_verdict.verdict] | @tsv' "$candidate")" = "$subject_sha"$'\t'"$remote_ref"$'\t'"$(jq -r '.run_id' "$candidate")"$'\t1\tsuccess\tgreen' &amp;&amp; bash scripts/ci/verify_nightly_run.sh verify-receipt --repo szTheory/rindle --workflow nightly.yml --ref "$remote_ref" --expected-sha "$subject_sha" --receipt "$candidate"
+</automated>
+<fails_when>
+Non-zero exit, the remote ref is missing or points elsewhere, the candidate tuple differs from the exact subject/ref with attempt-one success and strict green, or candidate receipt verification rejects it.
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-32-01:2">
+<automated>
+failed_line="$(git ls-remote --exit-code origin refs/heads/phase-133-evidence-0f8189ddeed7)" &amp;&amp; test "${failed_line%%[[:space:]]*}" = 0f8189ddeed7e7a52b5c7464f17b70ab44596c33 &amp;&amp; test "$(gh run view 34661043059 --json attempt,conclusion,headSha,headBranch --jq '[.attempt,.conclusion,.headSha,.headBranch] | @tsv')" = $'1\tfailure\t0f8189ddeed7e7a52b5c7464f17b70ab44596c33\tphase-133-evidence-0f8189ddeed7'
+</automated>
+<fails_when>
+The exact authorization no longer matches, the ref or candidate existed before action, push uses force or a moving branch, run selection is not a one-ID set difference, the run is not attempt one/strict green/exact ref/SHA, any declared job or evidence field is missing, old failed evidence changes, or any retry/cancel/delete path is invoked.
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-32-02:1">
+<automated>
+bash scripts/ci/test_verify_nightly_run.sh &amp;&amp; bash scripts/ci/test_nightly_incident.sh &amp;&amp; bash scripts/ci/test_nightly_summary_gate.sh &amp;&amp; bash scripts/ci/test_nightly_dialyzer.sh &amp;&amp; mix test test/install_smoke/evidence_census_test.exs test/install_smoke/nightly_policy_test.exs test/install_smoke/live_truth_parity_test.exs test/install_smoke/generated_app_smoke_test.exs test/install_smoke/phase_133_reconciliation_test.exs test/install_smoke/phase_133_completed_validation_test.exs test/install_smoke/release_docs_parity_test.exs test/install_smoke/package_metadata_test.exs --seed 0
+</automated>
+<fails_when>
+Non-zero exit, any shell fixture prints a `FAIL` case or zero-case summary, the ExUnit summary reports zero tests, or any exact-subject Phase 133 authority regression fails.
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-32-02:2">
+<automated>
+mix ci &amp;&amp; bash scripts/maintainer/refactor_contract.sh &amp;&amp; MIX_ENV=test mix run --no-deps-check --no-compile scripts/maintainer/validate_phase_133_reconciliation.exs --root . &amp;&amp; ./scripts/maintainer/automation_first_contract.sh
+</automated>
+<fails_when>
+Non-zero exit, refactor or automation output reports a contract violation, or normal-mode reconciliation omits its canonical success record or reports totals other than 30 complete, one halted, and one pending.
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-32-02:3">
+<automated>
+receipt=.planning/phases/133-evidence-charter-and-live-truth/133-NIGHTLY-EVIDENCE.json &amp;&amp; subject_sha="$(jq -er '.subject_sha' "$receipt")" &amp;&amp; test "$subject_sha" = "$(jq -er '.subject_sha' .planning/phases/133-evidence-charter-and-live-truth/133-EVIDENCE-CENSUS.json)" &amp;&amp; remote_ref="phase-133-evidence-${subject_sha:0:12}" &amp;&amp; remote_line="$(git ls-remote --exit-code origin "refs/heads/$remote_ref")" &amp;&amp; test "${remote_line%%[[:space:]]*}" = "$subject_sha" &amp;&amp; bash scripts/ci/verify_nightly_run.sh verify-receipt --repo szTheory/rindle --workflow nightly.yml --ref "$remote_ref" --expected-sha "$subject_sha" --receipt "$receipt" &amp;&amp; test ! -e /tmp/rindle-phase133-32-nightly-candidate.json
+</automated>
+<fails_when>
+Non-zero exit, canonical and census subjects differ, the remote ref is missing or points elsewhere, receipt verification rejects the exact subject/ref/run, or the transient candidate still exists.
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-32-02:4">
+<automated>
+temp_root="$(mktemp -d "${TMPDIR:-/tmp}/phase133-final-hygiene.XXXXXX")" &amp;&amp; trap 'status=$?; cleanup_status=0; if [ -e "$temp_root/subject/.git" ] &amp;&amp; ! git worktree remove --force "$temp_root/subject" &gt;/dev/null 2&gt;&amp;1; then cleanup_status=1; fi; if ! rm -rf -- "$temp_root"; then cleanup_status=1; fi; if [ "$status" -ne 0 ]; then exit "$status"; fi; exit "$cleanup_status"' EXIT &amp;&amp; subject_sha="$(jq -er '.subject_sha' .planning/phases/133-evidence-charter-and-live-truth/133-NIGHTLY-EVIDENCE.json)" &amp;&amp; git worktree add --detach "$temp_root/subject" "$subject_sha" &gt;/dev/null &amp;&amp; (cd "$temp_root/subject" &amp;&amp; ./scripts/maintainer/repo_hygiene_check.sh) &amp;&amp; git worktree remove --force "$temp_root/subject" &gt;/dev/null &amp;&amp; rm -rf -- "$temp_root" &amp;&amp; trap - EXIT
+</automated>
+<fails_when>
+Any remote/local/full/refactor/reconciliation/automation/hygiene authority fails, candidate and census subjects differ, receipt verification fails, detached cleanup leaves residue, the prior receipt is replaced before all checks pass, unrelated files are committed, or any remote mutation occurs in this task.
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
