@@ -5,16 +5,16 @@ milestone_name: Pre-Adopter Readiness & Quality Consolidation
 current_phase: 133
 current_phase_name: Evidence Charter and Live Truth
 status: executing
-stopped_at: Completed 133-28-PLAN.md
-last_updated: "2026-09-12T01:39:16.804Z"
+stopped_at: Completed 133-29-PLAN.md
+last_updated: "2026-09-12T02:05:58.591Z"
 last_activity: 2026-09-11
 last_activity_desc: Phase 133 execution started
-state_head: 3ec3c8740154cf0b0461e17ada3bab555e658797
+state_head: c43a69d16893b64deb6c7963dc575ac33e78cedb
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 32
-  completed_plans: 28
+  completed_plans: 29
 ---
 
 ## Project Reference
@@ -26,8 +26,8 @@ See: .planning/PROJECT.md (updated 2026-09-09 for v1.26)
 ## Current Position
 
 Phase: 133 (Evidence Charter and Live Truth) — EXECUTING
-Plan: 29 of 32
-Status: Executing Phase 133
+Plan: 30 of 32
+Status: Ready to execute
 Last activity: 2026-09-11 — Phase 133 execution started
 Progress: [███████░░░] 65%
 
@@ -69,6 +69,7 @@ Progress: [███████░░░] 65%
 | Phase 133 P21 | 27m | 3 tasks | 6 files |
 | Phase 133-evidence-charter-and-live-truth P22 | 26m | 3 tasks | 8 files |
 | Phase 133-evidence-charter-and-live-truth P28 | 19m | 2 tasks | 2 files |
+| Phase 133 P29 | 22m | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -132,6 +133,10 @@ Progress: [███████░░░] 65%
 - [Phase 133]: Accepted run 34638437301 only after canonical exact-subject receipt reconstruction and all automated gates passed.
 - [Phase 133]: Use one executable-fixture Elixir requirement and prove both generated projects match the root ~> 1.15 contract across supported examples.
 - [Phase 133]: Sort only for command-set equality; validate results in compile, boot, then smoke-lifecycle execution order.
+- [Phase 133]: Preserve the validator success schema and grant authority only to one bounded canonical success record.
+- [Phase 133]: Count Plan 133-27 as summarized but halted, exclude it from completion, and keep its Roadmap row unchecked.
+- [Phase 133]: Require repair Plans 28 and 29 before 30, then 31 before 32.
+- [Phase 133]: Resolve standalone validator dependencies only from the repository-bounded compiled build tree.
 
 ### Pending Todos
 
@@ -155,6 +160,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-09-12T01:38:15.011Z
-Stopped at: Completed 133-28-PLAN.md
+Last session: 2026-09-12T02:05:58.568Z
+Stopped at: Completed 133-29-PLAN.md
 Resume file: None

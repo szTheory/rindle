@@ -2,9 +2,9 @@
 schema_version: 1
 open_count: 1
 waived_count: 2
-fixed_count: 18
-total_count: 21
-last_updated: 2026-09-11T17:20:27.089Z
+fixed_count: 20
+total_count: 23
+last_updated: 2026-09-12T02:07:50.550Z
 ---
 
 # Broken Windows Ledger
@@ -36,6 +36,8 @@ last_updated: 2026-09-11T17:20:27.089Z
 | 19 | 133 | deviation | scripts/ci/verify_nightly_run.sh |  | Rejected empty generated census and live-truth JSON before canonical hashing | fixed |  | 2026-09-10T22:04:34.028Z | 2026-09-10T22:05:06.934Z |
 | 20 | 133 | deviation | scripts/ci/verify_nightly_run.sh |  | Restored detached Git identity for exact-subject validator execution | fixed |  | 2026-09-10T22:04:34.174Z | 2026-09-10T22:05:07.060Z |
 | 21 | 133 | deviation | scripts/maintainer/evidence_census.exs |  | Canonicalize the inspected root through the physical resolver so platform symlink aliases do not reject contained detector inputs | fixed |  | 2026-09-11T17:20:05.449Z | 2026-09-11T17:20:27.089Z |
+| 22 | 133 | deviation | scripts/maintainer/validate_phase_133_reconciliation.exs |  | Bootstrapped the literal standalone Elixir verification path from repository-bounded compiled dependencies | fixed |  | 2026-09-12T02:07:24.771Z | 2026-09-12T02:07:50.462Z |
+| 23 | 133 | deviation | .planning/ROADMAP.md |  | Corrected halted Plan 133-27 Roadmap tracking after the generic summary-count handler rechecked it | fixed |  | 2026-09-12T02:07:24.858Z | 2026-09-12T02:07:50.550Z |
 
 ````json
 [
@@ -290,6 +292,32 @@ last_updated: 2026-09-11T17:20:27.089Z
     "reason": "",
     "recorded_at": "2026-09-11T17:20:05.449Z",
     "resolved_at": "2026-09-11T17:20:27.089Z",
+    "milestone": "v1.26"
+  },
+  {
+    "id": 22,
+    "kind": "deviation",
+    "phase": "133",
+    "file": "scripts/maintainer/validate_phase_133_reconciliation.exs",
+    "line": null,
+    "description": "Bootstrapped the literal standalone Elixir verification path from repository-bounded compiled dependencies",
+    "status": "fixed",
+    "reason": "",
+    "recorded_at": "2026-09-12T02:07:24.771Z",
+    "resolved_at": "2026-09-12T02:07:50.462Z",
+    "milestone": "v1.26"
+  },
+  {
+    "id": 23,
+    "kind": "deviation",
+    "phase": "133",
+    "file": ".planning/ROADMAP.md",
+    "line": null,
+    "description": "Corrected halted Plan 133-27 Roadmap tracking after the generic summary-count handler rechecked it",
+    "status": "fixed",
+    "reason": "",
+    "recorded_at": "2026-09-12T02:07:24.858Z",
+    "resolved_at": "2026-09-12T02:07:50.550Z",
     "milestone": "v1.26"
   }
 ]
