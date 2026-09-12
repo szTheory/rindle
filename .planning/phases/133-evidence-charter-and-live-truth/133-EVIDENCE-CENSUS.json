@@ -26,8 +26,8 @@
         "kind": "test-suite",
         "location": "test",
         "signal": "mix ci default suite plus collector and branch-aware reconciliation regressions",
-        "status": "pass",
-        "attributes": {"test_count": 1534, "failure_count": 1, "invalid_count": 2, "skipped_count": 4, "local_toolchain_only": true, "collector_case_count": 154, "reconciliation_case_count": 40}
+        "status": "fail",
+        "attributes": {"test_count": 1534, "failure_count": 1, "skipped_count": 4, "local_toolchain_only": true, "collector_case_count": 154, "reconciliation_case_count": 40}
       }]
     },
     {
@@ -40,8 +40,8 @@
         "kind": "curated-quality-policy",
         "location": "scripts/maintainer/credo_complexity_baseline.json",
         "signal": "reviewed warning and complexity multiset",
-        "status": "retain-pass",
-        "attributes": {"phase_133_changed": false}
+        "status": "fail",
+        "attributes": {"phase_133_changed": true, "unexpected_finding_count": 1, "unexpected_finding": "test/install_smoke/phase_133_completed_validation_test.exs:set_branch_state!"}
       }]
     },
     {
@@ -82,8 +82,8 @@
         "kind": "strict-nightly-policy",
         "location": ".github/workflows/nightly.yml",
         "signal": "49-case aggregate, 17-case cross-SHA immutable incident replay, 154-case exact-run collector contracts, two immutable failed/unqualified attempts, and one distinct prior valid live receipt",
-        "status": "local-contract-pass-repaired-subject-unpublished",
-        "attributes": {"summary_case_count": 49, "incident_case_count": 17, "dispatch_case_count": 154, "incident_policy_owner_count": 1, "obsolete_incident_evaluator_present": false, "repaired_subject_live_proof": false, "historical_failure_subject_sha": "0f8189ddeed7e7a52b5c7464f17b70ab44596c33", "historical_failure_ref": "phase-133-evidence-0f8189ddeed7", "historical_failure_run_id": 34661043059, "historical_failure_run_attempt": 1, "historical_failure_conclusion": "failure", "live_receipt_subject_sha": "1470cf8cb0f111d0b233efbf77ee69e92f25fd68", "live_receipt_run_id": 34638437301, "exhausted_subject_sha": "e70623e9ea956c750904af574f47221cc472d2f2", "exhausted_ref": "phase-133-evidence-e70623e9ea95", "exhausted_run_id": 34670574306, "exhausted_qualification": false}
+        "status": "local-contract-pass-historical-receipt-stale",
+        "attributes": {"summary_case_count": 49, "incident_case_count": 17, "dispatch_case_count": 154, "incident_policy_owner_count": 1, "obsolete_incident_evaluator_present": false, "repaired_subject_live_proof": false, "historical_failure_subject_sha": "0f8189ddeed7e7a52b5c7464f17b70ab44596c33", "historical_failure_ref": "phase-133-evidence-0f8189ddeed7", "historical_failure_run_id": 34661043059, "historical_failure_run_attempt": 1, "historical_failure_conclusion": "failure", "live_receipt_subject_sha": "1470cf8cb0f111d0b233efbf77ee69e92f25fd68", "live_receipt_run_id": 34638437301, "live_receipt_reverified": false, "incident_snapshot_drift_run_id": 34680908108, "exhausted_subject_sha": "e70623e9ea956c750904af574f47221cc472d2f2", "exhausted_ref": "phase-133-evidence-e70623e9ea95", "exhausted_run_id": 34670574306, "exhausted_qualification": false}
       }]
     },
     {
@@ -187,10 +187,10 @@
   ],
   "candidates": [
     {"id": "quality-correctness-default-suite", "observations": ["obs-default-exunit-repair-qualification"], "disposition": "fix", "rationale": "Phase 133 adds non-vacuous evidence contracts, package compatibility regressions, bounded exact-run recovery, and branch-aware halted-state reconciliation while the exact subject remains blocked by the unreviewed Plan 34 complexity inventory entry.", "evidence": ["mix ci", "test/async_safety_guard_test.exs", "scripts/ci/test_verify_nightly_run.sh", "test/install_smoke/phase_133_completed_validation_test.exs", "scripts/maintainer/credo_complexity_baseline.json"], "trigger": null},
-    {"id": "quality-maintainability-curated-complexity", "observations": ["obs-credo-quality-baseline"], "disposition": "retain", "rationale": "Phase 127's reviewed removal-only complexity multiset remains the active maintainability authority and Phase 133 introduced no new finding.", "evidence": ["mix credo_quality", ".planning/milestones/v1.25-phases/127-evidence-charter-quality-census/127-QUALITY-CENSUS.md"], "trigger": null},
+    {"id": "quality-maintainability-curated-complexity", "observations": ["obs-credo-quality-baseline"], "disposition": "fix", "rationale": "Phase 127's reviewed removal-only complexity multiset remains authoritative and correctly rejects Plan 34's unreviewed set_branch_state! complexity finding.", "evidence": ["mix credo_quality", "scripts/maintainer/credo_complexity_baseline.json", "test/install_smoke/phase_133_completed_validation_test.exs"], "trigger": null},
     {"id": "quality-security-dependency-policy", "observations": ["obs-mix-audit-policy"], "disposition": "retain", "rationale": "Phase 133 does not mutate dependency dispositions; live dependency triage is explicitly owned by Phase 134.", "evidence": ["mix deps.audit", ".planning/ROADMAP.md"], "trigger": null},
     {"id": "quality-performance-required-pr-timing", "observations": ["obs-pr-timing-v125"], "disposition": "retain", "rationale": "The accepted ten-run <=480s median and <=600s p95 receipt remains authoritative and Phase 133 preserves the required topology.", "evidence": [".planning/milestones/v1.25-phases/132-measured-closure/132-02-SUMMARY.md"], "trigger": null},
-    {"id": "quality-reliability-nightly", "observations": ["obs-nightly-policy-repair-qualification"], "disposition": "fix", "rationale": "Strict single-owner cross-SHA replay and bounded exact-run read recovery remain locally green while Plans 27 and 32 stay immutable failed/unqualified history and the prior valid receipt remains the distinct live authority.", "evidence": ["scripts/ci/test_nightly_summary_gate.sh", "scripts/ci/test_nightly_incident.sh", "scripts/ci/test_verify_nightly_run.sh", "133-27-SUMMARY.md", "133-32-SUMMARY.md", "133-NIGHTLY-EVIDENCE.json"], "trigger": null},
+    {"id": "quality-reliability-nightly", "observations": ["obs-nightly-policy-repair-qualification"], "disposition": "fix", "rationale": "Strict single-owner cross-SHA replay and bounded exact-run read recovery remain locally green while Plans 27 and 32 stay immutable failed/unqualified history, but the historical receipt no longer revalidates after scheduled incident run 34680908108 changed the live snapshot.", "evidence": ["scripts/ci/test_nightly_summary_gate.sh", "scripts/ci/test_nightly_incident.sh", "scripts/ci/test_verify_nightly_run.sh", "133-27-SUMMARY.md", "133-32-SUMMARY.md", "133-NIGHTLY-EVIDENCE.json"], "trigger": null},
     {"id": "quality-compatibility-supported-toolchain", "observations": ["obs-supported-toolchain-repair-qualification"], "disposition": "fix", "rationale": "Resolved patch-level PLT contracts and deterministic package compatibility remain locally green on Elixir 1.17/OTP 27 without granting the unpublished repaired subject live supported-cell credit.", "evidence": ["scripts/ci/test_nightly_dialyzer.sh", "test/install_smoke/live_truth_parity_test.exs", "133-28-SUMMARY.md"], "trigger": null},
     {"id": "quality-testing-automation-first", "observations": ["obs-automation-first-repair-qualification"], "disposition": "fix", "rationale": "All 37 plan definitions have concrete failure-directed automation ownership, Plans 27 and 32 remain halted without completion credit, and Plans 36-37 preserve authorization-only and terminal-qualification boundaries.", "evidence": ["./scripts/maintainer/automation_first_contract.sh", ".planning/phases/133-evidence-charter-and-live-truth/133-VALIDATION.md", "scripts/maintainer/validate_phase_133_reconciliation.exs", "test/install_smoke/phase_133_completed_validation_test.exs", "133-34-SUMMARY.md"], "trigger": null},
     {"id": "quality-documentation-accessibility", "observations": ["obs-docs-accessibility-gap-closure"], "disposition": "fix", "rationale": "Maintainer guidance derives Nightly, receipt, and required-check meaning from current authorities while preserving generated accessibility gates.", "evidence": ["RUNNING.md", "bash scripts/maintainer/refactor_contract.sh"], "trigger": null},
