@@ -23,7 +23,7 @@ defmodule Rindle.InstallSmoke.Phase133CompletedValidationTest do
 
     assert output ==
              "phase 133 reconciliation valid: 31 completed, 2 halted, 4 pending plans, " <>
-               "33/37 summarized, 28 validation records\n"
+               "33/37 summarized, 29 validation records\n"
   end
 
   test "rejects contradictory first post-repair authorities with bounded diagnostics" do
@@ -404,7 +404,7 @@ defmodule Rindle.InstallSmoke.Phase133CompletedValidationTest do
 
       ### Phase 133: Evidence Charter and Live Truth
 
-      **Plans**: #{summarized_count}/37 plans summarized; #{MapSet.size(completed)} completed, Plans 133-27 and 133-32 halted with immutable attempts preserved, #{pending_count} pending.
+      **Plans**: #{summarized_count}/37 plans summarized; #{MapSet.size(completed)} completed, Plans 133-27 and 133-32 halted with their immutable attempts preserved, #{pending_count} pending.
 
       #{rows}
       ### Phase 134: Next
