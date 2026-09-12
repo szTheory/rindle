@@ -5,15 +5,15 @@ milestone_name: Pre-Adopter Readiness & Quality Consolidation
 current_phase: 133
 current_phase_name: Evidence Charter and Live Truth
 status: executing
-stopped_at: Plan 133-32 halted after unqualified immutable run 34670574306
-last_updated: "2026-09-12T03:36:52.405Z"
+stopped_at: Plan 133-32 halted after unqualified immutable run 34670574306; Plans 133-33 through 133-37 pending
+last_updated: "2026-09-12"
 last_activity: 2026-09-11
-last_activity_desc: Plan 133-32 halted after its sole authorized collector attempt became unqualified
+last_activity_desc: Phase 133 gap plans revised around branch-aware immutable halt and success outcomes
 state_head: a3e1a97065528fe8a9c1c6cfd27cd32e40840cec
 progress:
   total_phases: 7
   completed_phases: 0
-  total_plans: 32
+  total_plans: 37
   completed_plans: 32
 ---
 
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-09-09 for v1.26)
 ## Current Position
 
 Phase: 133 (Evidence Charter and Live Truth) — EXECUTING
-Plan: 32 of 32
-Status: HALTED — a new clean subject, absent ref, and fresh blocking-human authorization are required
-Last activity: 2026-09-11 — Plan 133-32 halted after its sole authorized collector attempt became unqualified
+Plan: 32 of 37
+Status: EXECUTING — Plans 133-33 through 133-37 repair and requalify a new exact subject while preserving the Plan 133-32 halt
+Last activity: 2026-09-12 — revised the remaining lifecycle to preserve authorization-stop and failed-attempt history
 Progress: [███████░░░] 65%
 
 ## Performance Metrics
@@ -146,6 +146,8 @@ Progress: [███████░░░] 65%
 - [Phase 133]: Preserve Plan 133-27 as halted without completion credit.
 - [Phase 133]: Authorize exactly one later non-force creation of refs/heads/phase-133-evidence-e70623e9ea95 at e70623e9ea956c750904af574f47221cc472d2f2.
 - [Phase 133]: Plan 133-27 authorization remains consumed and cannot be reused; Plan 133-31 approval grants no EVID/TRUTH requirement or acceptance credit.
+- [Phase 133]: Reconciliation is branch-aware: the baseline halt set is Plans 27/32, `stop` adds halted Plan 36 with Plan 37 blocked, and a failed authorized attempt adds halted Plan 37; none closes the phase.
+- [Phase 133]: EVID-01 through EVID-04 and TRUTH-08 remain pending until a successful Plan 37 receipt and terminal automated reconciliation both pass.
 
 ### Pending Todos
 

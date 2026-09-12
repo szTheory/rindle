@@ -1372,3 +1372,19 @@ Any remote/local/full/refactor/reconciliation/automation/hygiene authority fails
 <state>pending — not executed</state>
 <acceptance-credit>pending</acceptance-credit>
 </pending-validation>
+
+## Branch-Aware Gap-Plan Revision Guard (Plans 33–37)
+
+The Phase 133 requirement checkboxes are pending before Plans 33–37 execute. Reconciliation added by
+Plan 34 must preserve every immutable halted summary and distinguish these legal outcomes:
+
+| Branch | Summarized | Completed | Halted | Pending/blocked | Requirement/phase effect |
+|---|---:|---:|---|---:|---|
+| Current pre-execution state | 32/37 | 30 | 27, 32 | 5 | All five requirements pending; phase executing. |
+| Plan 36 authorization stop | 36/37 | 33 | 27, 32, 36 | 1 (Plan 37 blocked) | All five requirements pending; phase halted, not complete. |
+| Plan 37 failed attempt | 37/37 | 34 | 27, 32, 37 | 0 | All five requirements pending; phase halted, not complete. |
+| Plan 37 qualified success | 37/37 | 35 | 27, 32 | 0 | EVID-01–04 and TRUTH-08 complete only after the promoted receipt and terminal automated gates pass. |
+
+Plan 34's append-only validation mapping must cover every runnable Plans 33–37 command with its
+immediate failure direction. Human authorization is never acceptance evidence, and neither a stop nor
+a failed immutable attempt may be removed or rewritten to make terminal arithmetic pass.

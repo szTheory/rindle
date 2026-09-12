@@ -44,7 +44,7 @@ error vocabulary, release coupling, supported behavior, or the accepted pull-req
   3. Nightly aggregation fails for failed, cancelled, unexpected, or impermissibly skipped gating states, and automated incident tests prove one exact-run-bound issue opens or updates on failure and closes only after qualifying scheduled recovery.
   4. Executable parity checks derive release, planning, support, and adoption-proof claims from authoritative state and reject every unmarked version, lane-severity, or package-proof contradiction.
 
-**Plans**: 32/37 plans summarized; 30 completed, Plans 133-27 and 133-32 halted with their immutable attempts preserved, 5 pending
+**Plans**: 32/37 plans summarized; 30 completed, Plans 133-27 and 133-32 halted with their immutable attempts preserved, 5 pending. A Plan 133-36 `stop` or failed Plan 133-37 attempt is recorded as additional halted history; only successful Plan 133-37 automated qualification closes the phase.
 
 Plans:
 
@@ -152,7 +152,7 @@ Plans:
 
 **Wave 24** *(blocked on Plan 133-33)*
 
-- [ ] 133-34-PLAN.md — Extend reconciliation and automated validation to the 37-plan graph while preserving Plans 133-27 and 133-32 as halted history.
+- [ ] 133-34-PLAN.md — Extend reconciliation and automated validation to every success, authorization-stop, and failed-attempt branch in the 37-plan graph without rewriting halted history.
 
 **Wave 25** *(blocked on Plan 133-34)*
 
@@ -160,11 +160,11 @@ Plans:
 
 **Wave 26** *(blocked on Plan 133-35)*
 
-- [ ] 133-36-PLAN.md — Obtain or decline a fresh exact-SHA/exact-ref blocking authorization for one new immutable attempt.
+- [ ] 133-36-PLAN.md — Obtain a fresh exact-SHA/exact-ref authorization or record `stop` as a third immutable halt that blocks Plan 133-37.
 
 **Wave 27** *(blocked on exact authorization from Plan 133-36)*
 
-- [ ] 133-37-PLAN.md — Publish the authorized ref once, collect one dispatch-owned run, and promote its receipt only after every automated gate passes.
+- [ ] 133-37-PLAN.md — Publish the authorized ref once, then either halt the failed immutable attempt or close Phase 133 only after every automated qualification gate passes.
 
 ### Phase 134: Dependency, Security, and Inbox Disposition
 
@@ -269,4 +269,4 @@ Plans:
 | 139. Exact-Head Readiness Closure | 0/TBD | Not started | - |
 
 ---
-*Last updated: 2026-09-09 after v1.26 roadmap creation; awaiting roadmap approval.*
+*Last updated: 2026-09-12 after branch-aware Phase 133 gap-plan revision.*
