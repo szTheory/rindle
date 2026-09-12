@@ -8,6 +8,7 @@ defmodule Rindle.InstallSmoke.Phase133CompletedValidationTest do
   @phase_rel ".planning/phases/133-evidence-charter-and-live-truth"
   @validator Path.join(@repo_root, "scripts/maintainer/validate_phase_133_reconciliation.exs")
   @active_heading "## Gap-Repair Validation Addendum (Plans 28–32)"
+  @branch_heading "## Branch-Aware Validation Addendum (Plans 33–37)"
   @failed_run "34661043059"
   @failed_subject "0f8189ddeed7e7a52b5c7464f17b70ab44596c33"
   @failed_ref "phase-133-evidence-0f8189ddeed7"
@@ -23,7 +24,7 @@ defmodule Rindle.InstallSmoke.Phase133CompletedValidationTest do
 
     assert output ==
              "phase 133 reconciliation valid: 31 completed, 2 halted, 4 pending plans, " <>
-               "33/37 summarized, 29 validation records\n"
+               "33/37 summarized, 27 validation records\n"
   end
 
   test "rejects contradictory first post-repair authorities with bounded diagnostics" do
@@ -75,7 +76,7 @@ defmodule Rindle.InstallSmoke.Phase133CompletedValidationTest do
     cases = [
       {[33, 34], [27, 32], false, :stale_total, "roadmap detail"},
       {[33, 34, 35], [27, 32, 36], false, :checked_requirement, "requirement EVID-01"},
-      {[33, 34, 35, 36], [27, 32, 36], false, nil, "halted set"},
+      {[33, 34], [27, 32], false, :out_of_branch_halt, "halted set"},
       {[33, 34, 35, 36, 37], [27, 32], false, nil, "requirements must be complete"},
       {[33, 34, 35, 36], [27, 32, 37], true, nil, "must remain pending"}
     ]
@@ -103,25 +104,40 @@ defmodule Rindle.InstallSmoke.Phase133CompletedValidationTest do
       plan_text = File.read!(Path.join(@repo_root, "#{@phase_rel}/133-#{plan}-PLAN.md"))
 
       runnable_pairs =
-        Regex.scan(~r/<automated>.*?<\/automated>\s*<fails_when>.*?<\/fails_when>/s, plan_text)
+        plan_text
+        |> then(&Regex.scan(~r/<task\b[^>]*>(.*?)<\/task>/s, &1, capture: :all_but_first))
+        |> Enum.flat_map(fn [task_body] ->
+          task_body
+          |> then(&Regex.scan(~r/<verify>\s*(.*?)\s*<\/verify>/s, &1, capture: :all_but_first))
+          |> Enum.flat_map(fn [verify_body] ->
+            Regex.scan(
+              ~r/<automated>\s*(.*?)\s*<\/automated>\s*<fails_when>\s*(.*?)\s*<\/fails_when>/s,
+              verify_body,
+              capture: :all_but_first
+            )
+          end)
+        end)
 
       assert runnable_pairs != []
 
-      for pair <- runnable_pairs do
-        [command, failure] =
-          Regex.run(
-            ~r/<automated>\s*(.*?)\s*<\/automated>\s*<fails_when>\s*(.*?)\s*<\/fails_when>/s,
-            hd(pair),
-            capture: :all_but_first
-          )
-
+      for [command, failure] <- runnable_pairs do
         assert validation =~ String.trim(command)
         assert validation =~ String.trim(failure)
       end
     end
 
-    refute validation =~
-             ~r/<pending-validation key="133-36-.*?">.*?<acceptance-credit>pending<\/acceptance-credit>/s
+    plan_36_records =
+      Regex.scan(
+        ~r/<pending-validation key="133-36-[^"]+">.*?<\/pending-validation>/s,
+        validation
+      )
+
+    assert length(plan_36_records) == 2
+
+    for [record] <- plan_36_records do
+      assert record =~ "<acceptance-credit>authorization-only</acceptance-credit>"
+      refute record =~ "<acceptance-credit>pending</acceptance-credit>"
+    end
   end
 
   test "accepts every dependency-valid repair state with Plan 27 halted" do
@@ -390,7 +406,7 @@ defmodule Rindle.InstallSmoke.Phase133CompletedValidationTest do
     end
 
     source_validation = File.read!(Path.join(@repo_root, "#{@phase_rel}/133-VALIDATION.md"))
-    active_prefix = active_prefix(source_validation)
+    active_prefix = branch_prefix(source_validation)
     validation_path = Path.join(phase_dir, "133-VALIDATION.md")
     File.write!(validation_path, active_prefix)
 
@@ -420,6 +436,13 @@ defmodule Rindle.InstallSmoke.Phase133CompletedValidationTest do
 
   defp active_prefix(validation) do
     case :binary.match(validation, @active_heading) do
+      {offset, _length} -> binary_part(validation, 0, offset)
+      :nomatch -> validation
+    end
+  end
+
+  defp branch_prefix(validation) do
+    case :binary.match(validation, @branch_heading) do
       {offset, _length} -> binary_part(validation, 0, offset)
       :nomatch -> validation
     end
@@ -459,10 +482,10 @@ defmodule Rindle.InstallSmoke.Phase133CompletedValidationTest do
       File.mkdir_p!(Path.dirname(path))
 
       cond do
-        MapSet.member?(completed, plan) -> File.write!(path, "---\nstatus: complete\n---\n")
+        MapSet.member?(completed, plan) -> File.write!(path, branch_complete_summary(plan))
         plan == 27 and MapSet.member?(halted, plan) -> File.write!(path, halted_summary())
         plan == 32 and MapSet.member?(halted, plan) -> File.write!(path, rate_limited_summary())
-        MapSet.member?(halted, plan) -> File.write!(path, "---\nstatus: halted\n---\n")
+        MapSet.member?(halted, plan) -> File.write!(path, branch_halted_summary(plan))
         true -> File.rm(path)
       end
     end
@@ -479,6 +502,11 @@ defmodule Rindle.InstallSmoke.Phase133CompletedValidationTest do
 
     File.mkdir_p!(Path.join(fixture.root, ".planning"))
 
+    lifecycle = branch_lifecycle(completed_tail, halted)
+    roadmap_detail = branch_roadmap_detail(lifecycle, summarized_count, completed, pending_count)
+    progress_status = if lifecycle == :qualified_success, do: "Complete", else: "In Progress"
+    progress_date = if lifecycle == :qualified_success, do: "2026-09-12", else: ""
+
     File.write!(
       fixture.roadmap,
       """
@@ -486,7 +514,7 @@ defmodule Rindle.InstallSmoke.Phase133CompletedValidationTest do
 
       ### Phase 133: Evidence Charter and Live Truth
 
-      **Plans**: #{summarized_count}/37 plans summarized; #{MapSet.size(completed)} completed, Plans 133-27 and 133-32 halted with their immutable attempts preserved, #{pending_count} pending.
+      #{roadmap_detail}
 
       #{rows}
       ### Phase 134: Next
@@ -495,16 +523,23 @@ defmodule Rindle.InstallSmoke.Phase133CompletedValidationTest do
 
       | Phase | Plans Complete | Status | Completed |
       |-------|----------------|--------|-----------|
-      | 133. Evidence Charter and Live Truth | #{summarized_count}/37 | In Progress|  |
+      | 133. Evidence Charter and Live Truth | #{summarized_count}/37 | #{progress_status} | #{progress_date} |
       """
     )
+
+    {state_status, state_plan} =
+      case lifecycle do
+        :qualified_success -> {"complete", 37}
+        lifecycle when lifecycle in [:stopped, :failed] -> {"blocked", 37}
+        _ -> {"executing", summarized_count + 1}
+      end
 
     File.write!(
       fixture.state,
       """
       ---
       current_phase: 133
-      status: executing
+      status: #{state_status}
       progress:
         total_plans: 37
         completed_plans: #{summarized_count}
@@ -512,18 +547,67 @@ defmodule Rindle.InstallSmoke.Phase133CompletedValidationTest do
 
       ## Current Position
 
-      Plan: #{summarized_count + 1} of 37
-      Status: EXECUTING
+      Plan: #{state_plan} of 37
+      Status: #{String.upcase(state_status)}
       """
     )
 
     File.write!(fixture.requirements, requirements_fixture(requirements_complete?))
   end
 
+  defp branch_lifecycle(completed, halted) do
+    case {completed, MapSet.to_list(halted) |> Enum.sort()} do
+      {[33], [27, 32]} -> :post_33
+      {[33, 34], [27, 32]} -> :post_34
+      {[33, 34, 35], [27, 32]} -> :post_35
+      {[33, 34, 35, 36], [27, 32]} -> :authorized
+      {[33, 34, 35], [27, 32, 36]} -> :stopped
+      {[33, 34, 35, 36], [27, 32, 37]} -> :failed
+      {[33, 34, 35, 36, 37], [27, 32]} -> :qualified_success
+      _ -> :invalid
+    end
+  end
+
+  defp branch_roadmap_detail(:stopped, _summarized, _completed, _pending) do
+    "**Plans**: 36/37 plans summarized; 33 completed, Plans 133-27, 133-32, and 133-36 halted with immutable attempts preserved, Plan 133-37 blocked."
+  end
+
+  defp branch_roadmap_detail(:failed, _summarized, _completed, _pending) do
+    "**Plans**: 37/37 plans summarized; 34 completed, Plans 133-27, 133-32, and 133-37 halted with immutable attempts preserved, 0 pending."
+  end
+
+  defp branch_roadmap_detail(_lifecycle, summarized, completed, pending) do
+    "**Plans**: #{summarized}/37 plans summarized; #{MapSet.size(completed)} completed, " <>
+      "Plans 133-27 and 133-32 halted with their immutable attempts preserved, #{pending} pending."
+  end
+
+  defp branch_complete_summary(36), do: "---\nstatus: complete\ndecision: authorize\n---\n"
+
+  defp branch_complete_summary(37) do
+    """
+    ---
+    status: complete
+    qualification: verified
+    terminal_automation: passed
+    requirements_completed: [EVID-01, EVID-02, EVID-03, EVID-04, TRUTH-08]
+    ---
+    """
+  end
+
+  defp branch_complete_summary(_plan), do: "---\nstatus: complete\n---\n"
+
+  defp branch_halted_summary(36), do: "---\nstatus: halted\ndecision: stop\n---\n"
+
+  defp branch_halted_summary(37) do
+    "---\nstatus: halted\nhalt_reason: immutable terminal automation failure\n---\n"
+  end
+
+  defp branch_halted_summary(_plan), do: "---\nstatus: halted\n---\n"
+
   defp mutate_branch_fixture!(fixture, :stale_total) do
     mutate_roadmap!(
       fixture,
-      &String.replace(&1, "33/37 plans summarized", "33/32 plans summarized")
+      &Regex.replace(~r/\d+\/37 plans summarized/, &1, "33/32 plans summarized", global: false)
     )
   end
 
@@ -532,7 +616,7 @@ defmodule Rindle.InstallSmoke.Phase133CompletedValidationTest do
   end
 
   defp mutate_branch_fixture!(fixture, :out_of_branch_halt) do
-    File.write!(summary_path(fixture.root, 36), "---\nstatus: halted\n---\n")
+    File.write!(summary_path(fixture.root, 36), branch_halted_summary(36))
   end
 
   defp mutate_branch_fixture!(fixture, :checked_requirement) do
@@ -549,7 +633,9 @@ defmodule Rindle.InstallSmoke.Phase133CompletedValidationTest do
   defp mutate_branch_fixture!(fixture, :progress_count) do
     mutate_roadmap!(
       fixture,
-      &String.replace(&1, "| 33/37 | In Progress|", "| 32/37 | In Progress|")
+      &Regex.replace(~r/\| \d+\/37 \| In Progress \|/, &1, "| 32/37 | In Progress |",
+        global: false
+      )
     )
   end
 

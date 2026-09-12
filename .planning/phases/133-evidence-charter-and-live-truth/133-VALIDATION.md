@@ -1388,3 +1388,303 @@ Plan 34 must preserve every immutable halted summary and distinguish these legal
 Plan 34's append-only validation mapping must cover every runnable Plans 33–37 command with its
 immediate failure direction. Human authorization is never acceptance evidence, and neither a stop nor
 a failed immutable attempt may be removed or rewritten to make terminal arithmetic pass.
+## Branch-Aware Validation Addendum (Plans 33–37)
+
+Plans 01–32 and their earlier validation addenda remain immutable. The records below map every runnable automated command/failure pair for branch-aware Plans 133-33 through 133-37 in source order. Plans 33–34 are executed; Plans 35–37 remain pending until their own summaries exist. The Plan 36 human decision is authorization-only and never acceptance evidence.
+
+<pending-validation key="133-33-01:1">
+<automated>
+bash scripts/ci/test_verify_nightly_run.sh
+</automated>
+<fails_when>
+The shell suite reports any failed case, a transient rate-limit case cannot finish on the original databaseId, a permanent condition emits a candidate, or the fake-gh mutation log contains more than one workflow dispatch.
+</fails_when>
+<state>passed — executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-33-02:1">
+<automated>
+bash scripts/ci/test_verify_nightly_run.sh
+</automated>
+<fails_when>
+Any existing or new collector case fails, a rate-limited read changes identity or mutation count, a malformed/foreign response is accepted, or a failure writes a candidate.
+</fails_when>
+<state>passed — executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-33-02:2">
+<automated>
+bash -n scripts/ci/verify_nightly_run.sh scripts/ci/test_verify_nightly_run.sh &amp;&amp; shellcheck scripts/ci/verify_nightly_run.sh scripts/ci/test_verify_nightly_run.sh
+</automated>
+<fails_when>
+Shell parsing or shellcheck reports an error in either tracked script.
+</fails_when>
+<state>passed — executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-34-01:1">
+<automated>
+mix test test/install_smoke/phase_133_reconciliation_test.exs
+</automated>
+<fails_when>
+Any legal 37-plan state fails, any contradictory state passes, or output omits the exact expected counts/halted set.
+</fails_when>
+<state>passed — executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-34-01:2">
+<automated>
+mix run scripts/maintainer/validate_phase_133_reconciliation.exs
+</automated>
+<fails_when>
+The live tracked authorities disagree, the success record is noncanonical, or the tool reports a stale plan total or halt set.
+</fails_when>
+<state>passed — executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-34-02:1">
+<automated>
+mix test test/install_smoke/phase_133_reconciliation_test.exs test/install_smoke/phase_133_completed_validation_test.exs
+</automated>
+<fails_when>
+Any lifecycle arithmetic, halt-history, or plan-to-validation mapping case fails, or a checkpoint is accepted as automated evidence.
+</fails_when>
+<state>passed — executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-34-02:2">
+<automated>
+mix run scripts/maintainer/validate_phase_133_reconciliation.exs
+</automated>
+<fails_when>
+The live repository authorities do not reconcile to the exact current state or the tool emits a noncanonical result.
+</fails_when>
+<state>passed — executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-34-02:3">
+<automated>
+./scripts/maintainer/automation_first_contract.sh
+</automated>
+<fails_when>
+The contract reports an unmapped command, missing failure signal, manual acceptance path, or other planning/validation mismatch.
+</fails_when>
+<state>passed — executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-35-01:1">
+<automated>
+bash scripts/ci/test_generate_evidence_census.sh &amp;&amp; bash scripts/ci/test_verify_evidence_census.sh &amp;&amp; bash scripts/ci/verify_evidence_census.sh .planning/phases/133-evidence-charter-and-live-truth/133-EVIDENCE-CENSUS.json
+</automated>
+<fails_when>
+Generation is nondeterministic, the ledger subject is not the captured pre-ledger HEAD, any path/dimension/disposition invariant fails, or the validator reports stale/foreign inputs.
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-35-01:2">
+<automated>
+git diff --cached --quiet -- . ':(exclude).planning/phases/133-evidence-charter-and-live-truth/133-EVIDENCE-CENSUS.json'
+</automated>
+<fails_when>
+Any staged path other than the tracked census is present.
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-35-02:1">
+<automated>
+bash scripts/ci/test_generate_evidence_census.sh &amp;&amp; bash scripts/ci/test_verify_evidence_census.sh &amp;&amp; bash scripts/ci/test_verify_nightly_run.sh
+</automated>
+<fails_when>
+Any census/collector probe fails, any required edge case is absent, or exact ownership/failure/mutation-count behavior regresses.
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-35-02:2">
+<automated>
+mix test test/install_smoke/phase_133_reconciliation_test.exs test/install_smoke/phase_133_completed_validation_test.exs test/install_smoke/phase_133_package_execution_test.exs test/install_smoke/phase_133_incident_atomicity_test.exs
+</automated>
+<fails_when>
+Any reconciliation, validation, package, incident idempotency, or concurrency case fails or is skipped.
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-35-02:3">
+<automated>
+mix ci
+</automated>
+<fails_when>
+The repository quality lane returns nonzero, reports a failing test, or omits a configured gate.
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-35-02:4">
+<automated>
+mix refactor
+</automated>
+<fails_when>
+The repository refactor lane returns nonzero or reports formatting, lint, or static-analysis drift.
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-35-02:5">
+<automated>
+mix run scripts/maintainer/validate_phase_133_reconciliation.exs &amp;&amp; ./scripts/maintainer/automation_first_contract.sh &amp;&amp; ./scripts/maintainer/repo_hygiene_check.sh
+</automated>
+<fails_when>
+Reconciliation, automation mapping, or repository hygiene reports any mismatch, manual acceptance, stale authority, or tracked debris.
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-35-02:6">
+<automated>
+scripts/ci/verify_nightly_run.sh --mode verify-receipt --receipt .planning/phases/133-evidence-charter-and-live-truth/133-NIGHTLY-EVIDENCE.json
+</automated>
+<fails_when>
+The canonical historical receipt no longer cross-validates to its exact recorded GitHub run, incident, and subject tuple.
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-36-01:1">
+<automated>
+subject_sha="$(jq -er '.subject_sha' .planning/phases/133-evidence-charter-and-live-truth/133-EVIDENCE-CENSUS.json)" &amp;&amp; test "$(git cat-file -t "$subject_sha")" = commit &amp;&amp; test "$subject_sha" != e70623e9ea956c750904af574f47221cc472d2f2 &amp;&amp; subject_ref="phase-133-evidence-${subject_sha%${subject_sha#????????????}}" &amp;&amp; test "$subject_ref" != phase-133-evidence-e70623e9ea95 &amp;&amp; remote_existing="$(git ls-remote --heads origin "refs/heads/$subject_ref")" &amp;&amp; test -z "$remote_existing"
+</automated>
+<fails_when>
+The census subject is missing/not a commit/reuses a prior subject, the derived ref equals an exhausted ref, GitHub lookup fails ambiguously, or the exact ref already exists.
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>authorization-only</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-36-01:2">
+<automated>
+scripts/ci/verify_nightly_run.sh --mode verify-receipt --receipt .planning/phases/133-evidence-charter-and-live-truth/133-NIGHTLY-EVIDENCE.json &amp;&amp; mix run scripts/maintainer/validate_phase_133_reconciliation.exs &amp;&amp; ./scripts/maintainer/automation_first_contract.sh
+</automated>
+<fails_when>
+The historical receipt does not cross-bind, reconciliation is not the exact pre-authorization state, or automation-first mapping is incomplete.
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>authorization-only</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-37-01:1">
+<automated>
+test -s /tmp/rindle-phase133-37-nightly-candidate.json &amp;&amp; scripts/ci/verify_nightly_run.sh --mode verify-receipt --receipt /tmp/rindle-phase133-37-nightly-candidate.json
+</automated>
+<fails_when>
+The candidate is absent/empty, receipt verification fails, any field is foreign/stale/malformed, the run is not green and exact, or incident/truth evidence does not cross-bind.
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-37-01:2">
+<automated>
+subject_sha=$(jq -r '.subject_sha' .planning/phases/133-evidence-charter-and-live-truth/133-EVIDENCE-CENSUS.json) &amp;&amp; subject_ref="phase-133-evidence-${subject_sha%${subject_sha#????????????}}" &amp;&amp; remote_line=$(git ls-remote --heads origin "refs/heads/$subject_ref") &amp;&amp; test "$(printf '%s\n' "$remote_line" | awk '{print $1}')" = "$subject_sha" &amp;&amp; test "$(jq -r '.head_sha' /tmp/rindle-phase133-37-nightly-candidate.json)" = "$subject_sha"
+</automated>
+<fails_when>
+The published ref is absent/misdirected, the candidate SHA differs from the census, or the GitHub read is ambiguous.
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-37-02:1">
+<automated>
+bash scripts/ci/test_generate_evidence_census.sh &amp;&amp; bash scripts/ci/test_verify_evidence_census.sh &amp;&amp; bash scripts/ci/test_verify_nightly_run.sh
+</automated>
+<fails_when>
+Any census/collector case fails, a required edge probe is absent, or exact identity/fail-closed/mutation-count behavior regresses.
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-37-02:2">
+<automated>
+mix test test/install_smoke/phase_133_reconciliation_test.exs test/install_smoke/phase_133_completed_validation_test.exs test/install_smoke/phase_133_package_execution_test.exs test/install_smoke/phase_133_incident_atomicity_test.exs
+</automated>
+<fails_when>
+Any reconciliation, validation, package, incident idempotency, or concurrency case fails or is skipped.
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-37-02:3">
+<automated>
+mix ci
+</automated>
+<fails_when>
+The repository quality lane returns nonzero, reports a failed test, or omits a configured gate.
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-37-02:4">
+<automated>
+mix refactor
+</automated>
+<fails_when>
+The repository refactor lane returns nonzero or reports formatting, lint, or static-analysis drift.
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-37-02:5">
+<automated>
+MIX_ENV=test mix run --no-deps-check --no-compile scripts/maintainer/validate_phase_133_reconciliation.exs --root . --expect-execution-complete &amp;&amp; ./scripts/maintainer/automation_first_contract.sh &amp;&amp; ./scripts/maintainer/repo_hygiene_check.sh
+</automated>
+<fails_when>
+Terminal reconciliation does not report 35 completed, Plans 27/32 halted, zero pending, a qualified canonical Plan 37 receipt, and all five requirements complete, or automation/hygiene reports manual acceptance, mismatch, or debris.
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-37-02:6">
+<automated>
+scripts/ci/verify_nightly_run.sh --mode verify-receipt --receipt .planning/phases/133-evidence-charter-and-live-truth/133-NIGHTLY-EVIDENCE.json
+</automated>
+<fails_when>
+The promoted canonical receipt fails exact live cross-validation or names a different SHA/ref/databaseId from the authorized candidate.
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-37-02:7">
+<automated>
+git diff --cached --quiet -- . ':(exclude).planning/phases/133-evidence-charter-and-live-truth/133-NIGHTLY-EVIDENCE.json' ':(exclude).planning/phases/133-evidence-charter-and-live-truth/133-37-SUMMARY.md' ':(exclude).planning/REQUIREMENTS.md' ':(exclude).planning/ROADMAP.md' ':(exclude).planning/STATE.md'
+</automated>
+<fails_when>
+Any staged tracked path outside the canonical receipt and exact Plan 37 completion metadata is present at successful promotion.
+</fails_when>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
