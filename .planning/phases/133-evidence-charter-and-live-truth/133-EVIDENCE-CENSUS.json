@@ -27,7 +27,7 @@
         "location": "test",
         "signal": "mix ci default suite plus collector and branch-aware reconciliation regressions",
         "status": "pass",
-        "attributes": {"test_count": 1529, "failure_count": 0, "skipped_count": 4, "local_toolchain_only": true, "collector_case_count": 154, "reconciliation_case_count": 40}
+        "attributes": {"test_count": 1534, "failure_count": 1, "invalid_count": 2, "skipped_count": 4, "local_toolchain_only": true, "collector_case_count": 154, "reconciliation_case_count": 40}
       }]
     },
     {
@@ -186,7 +186,7 @@
     }
   ],
   "candidates": [
-    {"id": "quality-correctness-default-suite", "observations": ["obs-default-exunit-repair-qualification"], "disposition": "fix", "rationale": "Phase 133 adds non-vacuous evidence contracts, package compatibility regressions, bounded exact-run recovery, and branch-aware halted-state reconciliation while preserving async-isolation classification and a green default suite.", "evidence": ["mix ci", "test/async_safety_guard_test.exs", "scripts/ci/test_verify_nightly_run.sh", "test/install_smoke/phase_133_completed_validation_test.exs"], "trigger": null},
+    {"id": "quality-correctness-default-suite", "observations": ["obs-default-exunit-repair-qualification"], "disposition": "fix", "rationale": "Phase 133 adds non-vacuous evidence contracts, package compatibility regressions, bounded exact-run recovery, and branch-aware halted-state reconciliation while the exact subject remains blocked by the unreviewed Plan 34 complexity inventory entry.", "evidence": ["mix ci", "test/async_safety_guard_test.exs", "scripts/ci/test_verify_nightly_run.sh", "test/install_smoke/phase_133_completed_validation_test.exs", "scripts/maintainer/credo_complexity_baseline.json"], "trigger": null},
     {"id": "quality-maintainability-curated-complexity", "observations": ["obs-credo-quality-baseline"], "disposition": "retain", "rationale": "Phase 127's reviewed removal-only complexity multiset remains the active maintainability authority and Phase 133 introduced no new finding.", "evidence": ["mix credo_quality", ".planning/milestones/v1.25-phases/127-evidence-charter-quality-census/127-QUALITY-CENSUS.md"], "trigger": null},
     {"id": "quality-security-dependency-policy", "observations": ["obs-mix-audit-policy"], "disposition": "retain", "rationale": "Phase 133 does not mutate dependency dispositions; live dependency triage is explicitly owned by Phase 134.", "evidence": ["mix deps.audit", ".planning/ROADMAP.md"], "trigger": null},
     {"id": "quality-performance-required-pr-timing", "observations": ["obs-pr-timing-v125"], "disposition": "retain", "rationale": "The accepted ten-run <=480s median and <=600s p95 receipt remains authoritative and Phase 133 preserves the required topology.", "evidence": [".planning/milestones/v1.25-phases/132-measured-closure/132-02-SUMMARY.md"], "trigger": null},
