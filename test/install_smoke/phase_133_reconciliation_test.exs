@@ -368,9 +368,13 @@ defmodule Rindle.InstallSmoke.Phase133ReconciliationTest do
 
   defp assert_valid_process_result({output, status}) do
     assert status == 0
-    assert output =~ @success_prefix
-    refute output =~ @failure_prefix
-    assert length(String.split(String.trim(output), "\n")) == 1
+
+    lines = String.split(output, "\n", trim: true)
+    success_records = Enum.filter(lines, &String.starts_with?(&1, @success_prefix))
+    failure_records = Enum.filter(lines, &String.starts_with?(&1, @failure_prefix))
+
+    assert length(success_records) == 1
+    assert failure_records == []
   end
 
   defp assert_invalid(fixture, diagnostic) do
