@@ -14,6 +14,33 @@ die() {
   exit 1
 }
 
+github_rate_limit_error() {
+  local error_file="$1"
+  LC_ALL=C grep -Eiq '(^|[^[:alnum:]_])(API rate limit exceeded|secondary rate limit)([^[:alnum:]_]|$)' "$error_file"
+}
+
+read_with_rate_limit_recovery() {
+  local output_file error_file status
+  output_file="$(mktemp "${TMPDIR:-/tmp}/nightly-read-output.XXXXXX")"
+  error_file="$(mktemp "${TMPDIR:-/tmp}/nightly-read-error.XXXXXX")"
+
+  while true; do
+    if "$@" >"$output_file" 2>"$error_file"; then
+      cat "$output_file"
+      rm -f -- "$output_file" "$error_file"
+      return 0
+    else
+      status=$?
+    fi
+
+    if ! github_rate_limit_error "$error_file" || [ "$(date +%s)" -ge "$deadline" ]; then
+      rm -f -- "$output_file" "$error_file"
+      return "$status"
+    fi
+    [ "$poll_seconds" -eq 0 ] || sleep "$poll_seconds"
+  done
+}
+
 mode="${1:-}"
 [ -n "$mode" ] || { usage; exit 64; }
 shift
@@ -499,7 +526,8 @@ while [ "$(date +%s)" -lt "$deadline" ]; do
 done
 [ -n "$run_id" ] || die "timed out waiting for exact diagnostic run"
 
-gh run watch "$run_id" --repo "$repo" --interval "$poll_seconds" || die "GitHub run watch failed"
+read_with_rate_limit_recovery gh run watch "$run_id" --repo "$repo" --interval "$poll_seconds" >/dev/null ||
+  die "GitHub run watch failed after bounded observation"
 run_json="$(gh run view "$run_id" --repo "$repo" --json attempt,conclusion,createdAt,databaseId,event,headBranch,headSha,jobs,status,url,workflowName)" ||
   die "run detail lookup failed"
 validate_run_json "$run_json"

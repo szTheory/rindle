@@ -659,16 +659,18 @@ case "${1-} ${2-}" in
       '[{attempt:$attempt,conclusion:$conclusion,createdAt:$createdAt,databaseId:$databaseId,event:"workflow_dispatch",headBranch:$headBranch,headSha:$headSha,status:$status,url:"https://github.test/runs/9001",workflowName:$workflowName}]'
     ;;
   "run watch")
-    watch_count="$(cat "$FAKE_GH_WATCH_COUNT_FILE" 2>/dev/null || printf 0)"
-    watch_count=$((watch_count + 1))
-    printf '%s' "$watch_count" >"$FAKE_GH_WATCH_COUNT_FILE"
-    if [ "$state" = watch_rate_limit_once ] && [ "$watch_count" -eq 1 ]; then
-      echo "HTTP 403: API rate limit exceeded for user ID 1234" >&2
-      exit 42
-    fi
-    if [ "$state" = watch_rate_limit_persistent ]; then
-      echo "You have exceeded a secondary rate limit. Please wait a few minutes before you try again." >&2
-      exit 42
+    if [ "$state" = watch_rate_limit_once ] || [ "$state" = watch_rate_limit_persistent ]; then
+      watch_count="$(cat "$FAKE_GH_WATCH_COUNT_FILE" 2>/dev/null || printf 0)"
+      watch_count=$((watch_count + 1))
+      printf '%s' "$watch_count" >"$FAKE_GH_WATCH_COUNT_FILE"
+      if [ "$state" = watch_rate_limit_once ] && [ "$watch_count" -eq 1 ]; then
+        echo "HTTP 403: API rate limit exceeded for user ID 1234" >&2
+        exit 42
+      fi
+      if [ "$state" = watch_rate_limit_persistent ]; then
+        echo "You have exceeded a secondary rate limit. Please wait a few minutes before you try again." >&2
+        exit 42
+      fi
     fi
     [ "$state" != watch_failure ] || exit 42
     ;;
