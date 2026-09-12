@@ -4,9 +4,9 @@ defmodule Rindle.InstallSmoke.NightlyPolicyTest do
   @nightly_path Path.expand("../../.github/workflows/nightly.yml", __DIR__)
   @ci_path Path.expand("../../.github/workflows/ci.yml", __DIR__)
   @retired_incident_evaluator_path Path.expand(
-                                      "../../scripts/ci/eval_nightly_incident.sh",
-                                      __DIR__
-                                    )
+                                     "../../scripts/ci/eval_nightly_incident.sh",
+                                     __DIR__
+                                   )
   @gating_jobs ["compat-matrix", "dialyzer", "gcs-soak", "package-consumer-gcs-live"]
   @required_ci_needs [
     "quality",
