@@ -82,17 +82,31 @@ case "$mode" in
 esac
 
 canonical_incidents() {
-  gh issue list --repo "$repo" --state open --label nightly-failure --limit 100 \
-    --json number,title,body,comments,updatedAt,url |
-    jq -cS 'sort_by(.number)'
+  local recover="${1:-false}" incidents
+  if [ "$recover" = true ]; then
+    incidents="$(read_with_rate_limit_recovery gh issue list --repo "$repo" --state open \
+      --label nightly-failure --limit 100 --json number,title,body,comments,updatedAt,url)" ||
+      return $?
+  else
+    incidents="$(gh issue list --repo "$repo" --state open --label nightly-failure --limit 100 \
+      --json number,title,body,comments,updatedAt,url)" || return $?
+  fi
+  jq -cS 'sort_by(.number)' <<<"$incidents"
 }
 
 matching_run_ids() {
-  local runs
-  runs="$(gh run list --repo "$repo" --workflow "$workflow" --event workflow_dispatch \
-    --branch "$remote_ref" --limit 20 \
-    --json attempt,conclusion,createdAt,databaseId,event,headBranch,headSha,status,url,workflowName)" ||
-    die "run listing failed"
+  local recover="${1:-false}" runs
+  if [ "$recover" = true ]; then
+    runs="$(read_with_rate_limit_recovery gh run list --repo "$repo" --workflow "$workflow" \
+      --event workflow_dispatch --branch "$remote_ref" --limit 20 \
+      --json attempt,conclusion,createdAt,databaseId,event,headBranch,headSha,status,url,workflowName)" ||
+      die "run listing failed after bounded observation"
+  else
+    runs="$(gh run list --repo "$repo" --workflow "$workflow" --event workflow_dispatch \
+      --branch "$remote_ref" --limit 20 \
+      --json attempt,conclusion,createdAt,databaseId,event,headBranch,headSha,status,url,workflowName)" ||
+      die "run listing failed"
+  fi
   jq -e '
     type == "array" and
     ([.[].databaseId] | unique | length) == length and
@@ -223,11 +237,16 @@ parse_log_evidence() {
 }
 
 job_logs() {
-  local run_id="$1" run_json="$2" job_name="$3" job_id
+  local run_id="$1" run_json="$2" job_name="$3" recover="${4:-false}" job_id
   job_id="$(jq -er --arg name "$job_name" '.jobs[] | select(.name == $name) | .databaseId' <<<"$run_json")" ||
     die "missing job ID for ${job_name}"
-  gh run view "$run_id" --repo "$repo" --job "$job_id" --log ||
-    die "${job_name} log lookup failed"
+  if [ "$recover" = true ]; then
+    read_with_rate_limit_recovery gh run view "$run_id" --repo "$repo" --job "$job_id" --log ||
+      die "${job_name} log lookup failed after bounded observation"
+  else
+    gh run view "$run_id" --repo "$repo" --job "$job_id" --log ||
+      die "${job_name} log lookup failed"
+  fi
 }
 
 ledger_path='.planning/phases/133-evidence-charter-and-live-truth/133-EVIDENCE-CENSUS.json'
@@ -510,7 +529,7 @@ gh workflow run "$workflow" --repo "$repo" --ref "$remote_ref" || die "workflow 
 deadline=$(( $(date +%s) + timeout_seconds ))
 run_id=""
 while [ "$(date +%s)" -lt "$deadline" ]; do
-  post_dispatch_ids="$(matching_run_ids)"
+  post_dispatch_ids="$(matching_run_ids true)"
   new_matching_ids="$(jq -cn --argjson before "$pre_dispatch_ids" --argjson after "$post_dispatch_ids" \
     '$after - $before')" || die "could not subtract the pre-dispatch run snapshot"
   match_count="$(jq 'length' <<<"$new_matching_ids")"
@@ -528,16 +547,17 @@ done
 
 read_with_rate_limit_recovery gh run watch "$run_id" --repo "$repo" --interval "$poll_seconds" >/dev/null ||
   die "GitHub run watch failed after bounded observation"
-run_json="$(gh run view "$run_id" --repo "$repo" --json attempt,conclusion,createdAt,databaseId,event,headBranch,headSha,jobs,status,url,workflowName)" ||
-  die "run detail lookup failed"
+run_json="$(read_with_rate_limit_recovery gh run view "$run_id" --repo "$repo" \
+  --json attempt,conclusion,createdAt,databaseId,event,headBranch,headSha,jobs,status,url,workflowName)" ||
+  die "run detail lookup failed after bounded observation"
 validate_run_json "$run_json"
 [ "$run_id" = "$(jq -r '.databaseId' <<<"$run_json")" ] ||
   die "selected run ID differs from the detailed run identity"
-dialyzer_logs="$(job_logs "$run_id" "$run_json" "Dialyzer")"
-summary_logs="$(job_logs "$run_id" "$run_json" "Nightly Summary")"
+dialyzer_logs="$(job_logs "$run_id" "$run_json" "Dialyzer" true)"
+summary_logs="$(job_logs "$run_id" "$run_json" "Nightly Summary" true)"
 dialyzer="$(parse_log_evidence "${dialyzer_logs}"$'\n'"${summary_logs}")"
 local_authorities="$(revalidate_local_authorities)"
-incident_after="$(canonical_incidents)" || die "incident snapshot after dispatch failed"
+incident_after="$(canonical_incidents true)" || die "incident snapshot after dispatch failed"
 [ "$incident_before" = "$incident_after" ] || die "workflow_dispatch changed the nightly-failure incident"
 
 temp_receipt="$(mktemp "${TMPDIR:-/tmp}/nightly-receipt.XXXXXX")"
