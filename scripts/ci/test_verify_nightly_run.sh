@@ -27,21 +27,28 @@ make_fake_gh() {
 }
 
 run_case() {
-  local name="$1" state="$2" want_exit="$3" temp got=0
+  local name="$1" state="$2" want_exit="$3" temp got=0 poll=0 timeout=2
   temp="$(mktemp -d)"
   make_fake_gh "${temp}/bin"
   make_fake_local_authorities "${temp}/bin"
   : >"${temp}/calls"
   : >"${temp}/count"
   : >"${temp}/run-list-count"
+  : >"${temp}/watch-count"
   : >"${temp}/authority-calls"
+
+  if [ "$state" = watch_rate_limit_persistent ]; then
+    poll=1
+    timeout=1
+  fi
 
   PATH="${temp}/bin:${PATH}" FAKE_GH_LOG="${temp}/calls" FAKE_GH_COUNT_FILE="${temp}/count" \
     FAKE_GH_RUN_LIST_COUNT_FILE="${temp}/run-list-count" \
+    FAKE_GH_WATCH_COUNT_FILE="${temp}/watch-count" \
     FAKE_GH_STATE="$state" FAKE_AUTHORITY_STATE="$state" FAKE_AUTHORITY_LOG="${temp}/authority-calls" \
     bash "$collector" dispatch-and-record --repo szTheory/rindle --workflow nightly.yml \
       --ref phase-133-evidence-aaaaaaaaaaaa --expected-sha aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \
-      --receipt "${temp}/receipt.json" --poll-seconds 0 --timeout-seconds 2 >"${temp}/output" 2>&1 || got=$?
+      --receipt "${temp}/receipt.json" --poll-seconds "$poll" --timeout-seconds "$timeout" >"${temp}/output" 2>&1 || got=$?
 
   if [ "$state" = success ] && [ "$got" -eq 0 ]; then
     PATH="${temp}/bin:${PATH}" FAKE_GH_LOG="${temp}/calls" FAKE_GH_COUNT_FILE="${temp}/count" \
@@ -187,6 +194,29 @@ run_case() {
       record "multiple new exact matches fail immediately before downstream calls" true
     else
       record "multiple new exact matches fail immediately before downstream calls" false "post-dispatch set ambiguity was not rejected at the selector boundary"
+    fi
+  fi
+
+  if [ "$state" = watch_rate_limit_once ]; then
+    if [ "$got" -eq 0 ] &&
+       [ "$(grep -c '^workflow run nightly.yml ' "${temp}/calls" || true)" -eq 1 ] &&
+       [ "$(grep -c '^run watch 9001 ' "${temp}/calls" || true)" -eq 2 ] &&
+       [ "$(jq -r '.run_id' "${temp}/receipt.json" 2>/dev/null || true)" = 9001 ] &&
+       ! grep -Eq '^(issue (create|comment|close|edit|delete)|run (cancel|rerun|delete))' "${temp}/calls"; then
+      record "transient watch rate limit preserves one dispatch-owned run" true
+    else
+      record "transient watch rate limit preserves one dispatch-owned run" false "recovery changed mutation count or selected identity"
+    fi
+  fi
+
+  if [ "$state" = watch_rate_limit_persistent ]; then
+    if [ "$got" -ne 0 ] &&
+       [ "$(grep -c '^workflow run nightly.yml ' "${temp}/calls" || true)" -eq 1 ] &&
+       [ "$(grep -c '^run watch 9001 ' "${temp}/calls" || true)" -ge 1 ] &&
+       [ ! -e "${temp}/receipt.json" ]; then
+      record "persistent watch rate limit exhausts the original deadline" true
+    else
+      record "persistent watch rate limit exhausts the original deadline" false "persistent recovery was not bounded and receipt-free"
     fi
   fi
 
@@ -394,6 +424,8 @@ run_case "old exact run precedes a delayed exact new run" old_exact_delayed_exac
 run_case "post-dispatch malformed inventory" malformed_post_list 1
 run_case "post-dispatch duplicate IDs" duplicate_post_ids 1
 run_case "selected run detail ID mismatch" detail_id_mismatch 1
+run_case "transient watch rate limit" watch_rate_limit_once 0
+run_case "persistent watch rate limit" watch_rate_limit_persistent 1
 if [ "${VERIFY_NIGHTLY_TEST_SCOPE:-}" = ownership ]; then
   echo "—"
   echo "passed: ${pass}  failed: ${fail}"
@@ -626,7 +658,20 @@ case "${1-} ${2-}" in
       --arg status "$status" --arg workflowName "$run_workflow" \
       '[{attempt:$attempt,conclusion:$conclusion,createdAt:$createdAt,databaseId:$databaseId,event:"workflow_dispatch",headBranch:$headBranch,headSha:$headSha,status:$status,url:"https://github.test/runs/9001",workflowName:$workflowName}]'
     ;;
-  "run watch") [ "$state" != watch_failure ] || exit 42 ;;
+  "run watch")
+    watch_count="$(cat "$FAKE_GH_WATCH_COUNT_FILE" 2>/dev/null || printf 0)"
+    watch_count=$((watch_count + 1))
+    printf '%s' "$watch_count" >"$FAKE_GH_WATCH_COUNT_FILE"
+    if [ "$state" = watch_rate_limit_once ] && [ "$watch_count" -eq 1 ]; then
+      echo "HTTP 403: API rate limit exceeded for user ID 1234" >&2
+      exit 42
+    fi
+    if [ "$state" = watch_rate_limit_persistent ]; then
+      echo "You have exceeded a secondary rate limit. Please wait a few minutes before you try again." >&2
+      exit 42
+    fi
+    [ "$state" != watch_failure ] || exit 42
+    ;;
   "run view")
     if printf '%s\n' "$*" | grep -q -- '--log'; then
       if printf '%s\n' "$*" | grep -q -- '--job 6'; then
