@@ -2,9 +2,9 @@
 schema_version: 1
 open_count: 2
 waived_count: 2
-fixed_count: 25
-total_count: 29
-last_updated: 2026-09-12T03:37:45.885Z
+fixed_count: 26
+total_count: 30
+last_updated: 2026-09-12T20:25:26.849Z
 ---
 
 # Broken Windows Ledger
@@ -44,6 +44,7 @@ last_updated: 2026-09-12T03:37:45.885Z
 | 27 | 133 | deviation | .planning/ROADMAP.md |  | Restored Plan 133-27 to unchecked halted status and corrected post-Plan-31 semantic totals after the generic progress handler rechecked it. | fixed |  | 2026-09-12T03:24:16.251Z | 2026-09-12T03:24:16.357Z |
 | 28 | 133 | unrun-verify | scripts/ci/verify_nightly_run.sh |  | Plan 133-32 terminal run/log/receipt and promotion gates were not run because the sole collector invocation halted on GitHub API rate limiting before candidate creation. | open |  | 2026-09-12T03:36:52.032Z |  |
 | 29 | 133 | deviation | .planning/ROADMAP.md |  | Restored Plans 133-27 and 133-32 to unchecked halted status and corrected post-halt semantic totals after the generic progress handler rechecked both. | fixed |  | 2026-09-12T03:37:31.584Z | 2026-09-12T03:37:45.885Z |
+| 30 | 133 | deviation | .planning/ROADMAP.md |  | Generic progress updater counted halted summaries as completed; restored exact post-Plan-34 branch arithmetic and unchecked halt rows | fixed |  | 2026-09-12T20:25:06.283Z | 2026-09-12T20:25:26.849Z |
 
 ````json
 [
@@ -402,6 +403,19 @@ last_updated: 2026-09-12T03:37:45.885Z
     "reason": "",
     "recorded_at": "2026-09-12T03:37:31.584Z",
     "resolved_at": "2026-09-12T03:37:45.885Z",
+    "milestone": "v1.26"
+  },
+  {
+    "id": 30,
+    "kind": "deviation",
+    "phase": "133",
+    "file": ".planning/ROADMAP.md",
+    "line": null,
+    "description": "Generic progress updater counted halted summaries as completed; restored exact post-Plan-34 branch arithmetic and unchecked halt rows",
+    "status": "fixed",
+    "reason": "",
+    "recorded_at": "2026-09-12T20:25:06.283Z",
+    "resolved_at": "2026-09-12T20:25:26.849Z",
     "milestone": "v1.26"
   }
 ]
