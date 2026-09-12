@@ -593,6 +593,68 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
   end
 
   @tag :package_authority
+  test "generated runtime mismatch reports compile before later command failures" do
+    evidence = executable_package_evidence_fixture!()
+    generated_mix = Path.join(evidence.context.generated_app_root, "mix.exs")
+
+    replace_file!(generated_mix, @executable_elixir_requirement, "~> 99.0")
+
+    receipt =
+      Rindle.InstallSmoke.GeneratedAppHelper.package_evidence_receipt!(
+        %{
+          package_root_provenance: %{path: evidence.context.package_root},
+          generated_app_root: evidence.context.generated_app_root
+        },
+        %{}
+      )
+
+    assert receipt.results["compile"]["exit_code"] != 0
+    assert receipt.results["boot"]["exit_code"] != 0
+
+    assert_raise ArgumentError, ~r/package command failed: compile/, fn ->
+      Rindle.ValidateLiveTruth.verify_package_evidence!(
+        receipt,
+        Map.put(evidence.context, :expected_package_version, "0.4.6")
+      )
+    end
+  end
+
+  @tag :package_authority
+  test "persisted package results fail closed in execution order" do
+    evidence = package_evidence_fixture!()
+    success = forged_command_result("success")
+    failure = Map.put(success, "exit_code", 1)
+
+    for {results, expected_stage} <- [
+          {%{"compile" => failure, "boot" => failure, "smoke_lifecycle" => failure}, "compile"},
+          {%{"compile" => success, "boot" => failure, "smoke_lifecycle" => failure}, "boot"},
+          {%{"compile" => success, "boot" => success, "smoke_lifecycle" => failure},
+           "smoke_lifecycle"}
+        ] do
+      File.write!(evidence.context.results_path, Jason.encode!(results))
+      receipt = %{evidence.receipt | results: results}
+
+      assert_raise ArgumentError, ~r/package command failed: #{expected_stage}/, fn ->
+        Rindle.ValidateLiveTruth.verify_package_evidence!(
+          receipt,
+          Map.put(evidence.context, :expected_package_version, "0.4.6")
+        )
+      end
+    end
+
+    malformed = Map.delete(success, "truncated")
+    results = %{"compile" => malformed, "boot" => success, "smoke_lifecycle" => success}
+    File.write!(evidence.context.results_path, Jason.encode!(results))
+
+    assert_raise ArgumentError, ~r/package command result fields mismatch: compile/, fn ->
+      Rindle.ValidateLiveTruth.verify_package_evidence!(
+        %{evidence.receipt | results: results},
+        Map.put(evidence.context, :expected_package_version, "0.4.6")
+      )
+    end
+  end
+
+  @tag :package_authority
   test "self-consistent stale package evidence fails the independent version authority" do
     evidence = package_evidence_fixture!()
     stale_version = "0.4.5"
@@ -1358,6 +1420,13 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
 
     assert replacement != content, "fixture mutation did not match #{old}"
     File.write!(full_path, replacement)
+  end
+
+  defp replace_file!(path, old, new) do
+    content = File.read!(path)
+    replacement = String.replace(content, old, new, global: false)
+    assert replacement != content, "fixture mutation did not match #{old}"
+    File.write!(path, replacement)
   end
 
   defp assert_error(root, message) do
