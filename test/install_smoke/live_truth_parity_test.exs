@@ -492,6 +492,39 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
   end
 
   @tag :package_authority
+  test "executable package fixtures honor the repository Elixir support floor" do
+    repository_requirement =
+      @repo_root
+      |> Path.join("mix.exs")
+      |> File.read!()
+      |> project_elixir_requirement!()
+
+    generated_requirements = [
+      package: executable_package_mix_source() |> project_elixir_requirement!(),
+      consumer:
+        executable_consumer_mix_source("/tmp/rindle") |> project_elixir_requirement!()
+    ]
+
+    for {project, requirement} <- generated_requirements do
+      assert requirement == repository_requirement,
+             "#{project} generated Elixir requirement diverged from repository support"
+
+      for {version, cell} <- [
+            {"1.15.0", "Elixir 1.15 / OTP 26"},
+            {"1.16.0", "Elixir 1.16 / OTP 26"},
+            {"1.17.0", "Elixir 1.17 / OTP 27"},
+            {"1.18.0", "Elixir 1.18 / OTP 27 or 28"}
+          ] do
+        assert Version.match?(version, requirement),
+               "#{project} excludes supported #{cell}"
+      end
+    end
+
+    refute Version.match?("1.15.0", "~> 1.17"),
+           "a fixture requirement above the support floor must not pass the contract"
+  end
+
+  @tag :package_authority
   test "package receipt producer rejects caller-authored command result maps" do
     root =
       Path.join(
@@ -1273,6 +1306,13 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
     File.write!(path, content)
     on_exit(fn -> File.rm(path) end)
     path
+  end
+
+  defp project_elixir_requirement!(source) do
+    case Regex.run(~r/elixir:\s*"([^"]+)"/, source, capture: :all_but_first) do
+      [requirement] -> requirement
+      _ -> flunk("Mix project source does not declare an Elixir requirement")
+    end
   end
 
   defp executable_package_mix_source do
