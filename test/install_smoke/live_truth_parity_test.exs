@@ -12,6 +12,7 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
   @validator Path.join(@repo_root, "scripts/maintainer/validate_live_truth.exs")
   @historical_start "<!-- rindle:historical-receipt:start -->"
   @historical_end "<!-- rindle:historical-receipt:end -->"
+  @executable_elixir_requirement "~> 1.15"
   @required_needs [
     "quality",
     "optional-dependencies",
@@ -1319,7 +1320,7 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
     defmodule Rindle.MixProject do
       use Mix.Project
       @version "0.4.6"
-      def project, do: [app: :rindle, version: @version, elixir: "~> 1.17"]
+      def project, do: [app: :rindle, version: @version, elixir: #{inspect(@executable_elixir_requirement)}]
       def application, do: []
     end
     """
@@ -1329,7 +1330,7 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
     """
     defmodule GeneratedApp.MixProject do
       use Mix.Project
-      def project, do: [app: :generated_app, version: "0.1.0", elixir: "~> 1.17", deps: deps()]
+      def project, do: [app: :generated_app, version: "0.1.0", elixir: #{inspect(@executable_elixir_requirement)}, deps: deps()]
       def application, do: [extra_applications: [:logger]]
       defp deps, do: [{:rindle, path: #{inspect(package_root)}}]
     end
