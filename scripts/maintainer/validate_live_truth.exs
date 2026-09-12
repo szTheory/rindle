@@ -595,10 +595,10 @@ defmodule Rindle.ValidateLiveTruth do
   end
 
   defp verify_command_results!(results) do
-    expected_names = ~w(boot compile smoke_lifecycle)
+    expected_names = ~w(compile boot smoke_lifecycle)
 
     assert!(
-      Map.keys(results) |> Enum.sort() == expected_names,
+      Map.keys(results) |> Enum.sort() == Enum.sort(expected_names),
       "package command result set mismatch"
     )
 
