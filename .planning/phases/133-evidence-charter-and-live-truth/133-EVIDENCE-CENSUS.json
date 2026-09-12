@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "subject_sha": "0f8189ddeed7e7a52b5c7464f17b70ab44596c33",
+  "subject_sha": "e90947687d30edd3d545bd2c15c48e3f6adfa15c",
   "taxonomy": [
     {"id": "correctness", "applicable": true, "detectors": ["default-exunit"]},
     {"id": "maintainability", "applicable": true, "detectors": ["credo-quality"]},
@@ -22,12 +22,12 @@
       "command": "mix test",
       "inputs": ["mix.exs"],
       "observations": [{
-        "id": "obs-default-exunit-gap-closure",
+        "id": "obs-default-exunit-repair-qualification",
         "kind": "test-suite",
         "location": "test",
         "signal": "mix ci default suite",
         "status": "pass",
-        "attributes": {"test_count": 1521, "failure_count": 0, "skipped_count": 4, "local_toolchain_only": true}
+        "attributes": {"test_count": 1529, "failure_count": 0, "skipped_count": 4, "local_toolchain_only": true}
       }]
     },
     {
@@ -78,12 +78,12 @@
       "command": "evaluate Nightly evidence",
       "inputs": [".github/workflows/nightly.yml"],
       "observations": [{
-        "id": "obs-nightly-policy-gap-closure",
+        "id": "obs-nightly-policy-repair-qualification",
         "kind": "strict-nightly-policy",
         "location": ".github/workflows/nightly.yml",
-        "signal": "49-case aggregate, 17-case cross-SHA immutable incident replay, and 130-case dispatch contracts",
-        "status": "local-contract-pass-live-evidence-pending",
-        "attributes": {"summary_case_count": 49, "incident_case_count": 17, "dispatch_case_count": 130, "incident_policy_owner_count": 1, "obsolete_incident_evaluator_present": false, "exact_run_live_proof": false, "live_owner_plan": "133-27"}
+        "signal": "49-case aggregate, 17-case cross-SHA immutable incident replay, 130-case dispatch contracts, one immutable failed repair run, and one distinct prior valid live receipt",
+        "status": "local-contract-pass-repaired-subject-unpublished",
+        "attributes": {"summary_case_count": 49, "incident_case_count": 17, "dispatch_case_count": 130, "incident_policy_owner_count": 1, "obsolete_incident_evaluator_present": false, "repaired_subject_live_proof": false, "historical_failure_subject_sha": "0f8189ddeed7e7a52b5c7464f17b70ab44596c33", "historical_failure_ref": "phase-133-evidence-0f8189ddeed7", "historical_failure_run_id": 34661043059, "historical_failure_run_attempt": 1, "historical_failure_conclusion": "failure", "live_receipt_subject_sha": "1470cf8cb0f111d0b233efbf77ee69e92f25fd68", "live_receipt_run_id": 34638437301}
       }]
     },
     {
@@ -92,12 +92,12 @@
       "command": "verify supported toolchain matrix",
       "inputs": [".tool-versions", ".github/workflows/nightly.yml"],
       "observations": [{
-        "id": "obs-supported-toolchain-post-133",
+        "id": "obs-supported-toolchain-repair-qualification",
         "kind": "supported-cell-policy",
         "location": ".github/workflows/nightly.yml",
-        "signal": "fresh/restored/stale-only Dialyzer contract",
-        "status": "local-contract-pass-live-evidence-pending",
-        "attributes": {"dialyzer_case_count": 34, "supported_elixir": "1.17", "supported_otp": "27", "local_elixir": "1.19.5", "local_otp": "28", "supported_cell_live_proof": false, "live_owner_plan": "133-22"}
+        "signal": "fresh/restored/stale-only Dialyzer contract plus deterministic package compatibility across Elixir 1.15/OTP 26, 1.16/OTP 26, and 1.18/OTP 27",
+        "status": "local-contract-pass-repaired-subject-unpublished",
+        "attributes": {"dialyzer_case_count": 34, "supported_elixir": "1.17", "supported_otp": "27", "local_elixir": "1.19.5", "local_otp": "28", "supported_cell_live_proof": false, "package_regression_fixture_count": 3, "historical_failure_subject_sha": "0f8189ddeed7e7a52b5c7464f17b70ab44596c33", "historical_failure_run_id": 34661043059, "live_receipt_subject_sha": "1470cf8cb0f111d0b233efbf77ee69e92f25fd68", "live_receipt_run_id": 34638437301}
       }]
     },
     {
@@ -106,12 +106,12 @@
       "command": "./scripts/maintainer/automation_first_contract.sh",
       "inputs": ["RUNNING.md", "scripts/maintainer/automation_first_contract.sh"],
       "observations": [{
-        "id": "obs-automation-first-gap-closure",
+        "id": "obs-automation-first-repair-qualification",
         "kind": "acceptance-policy",
         "location": ".planning/phases/133-evidence-charter-and-live-truth/133-VALIDATION.md",
-        "signal": "twenty-seven-plan automation-first phase contract with execution-complete isolation",
+        "signal": "thirty-two-plan automation-first repair graph with bounded process authority and one immutable halted-plan identity",
         "status": "pass",
-        "attributes": {"manual_acceptance_count": 0, "authorization_only_checkpoint_count": 1, "normal_completed_plan_count": 26, "normal_pending_plan_count": 1}
+        "attributes": {"manual_acceptance_count": 0, "repair_publication_checkpoint_count": 2, "normal_completed_plan_count": 28, "normal_halted_plan_count": 1, "normal_pending_plan_count": 3, "normal_summarized_plan_count": 29, "validation_record_count": 29, "halted_plan": "133-27", "halted_run_id": 34661043059}
       }]
     },
     {
@@ -134,12 +134,12 @@
       "command": "mix hex.build --unpack",
       "inputs": ["mix.exs", "test/install_smoke/package_metadata_test.exs"],
       "observations": [{
-        "id": "obs-package-consumer-gap-closure",
+        "id": "obs-package-consumer-repair-qualification",
         "kind": "built-package-provenance",
         "location": "test/install_smoke/live_truth_parity_test.exs",
-        "signal": "execution-authenticated exact-version consumer from one consumed unpacked-package smoke and lifecycle receipt",
+        "signal": "execution-authenticated exact-version consumer from one consumed unpacked-package receipt with support-floor fixtures and compile-before-boot failure attribution",
         "status": "pass",
-        "attributes": {"package_authority_test_count": 16, "combined_smoke_lifecycle": true, "repository_fallback": false, "prebuilt_fallback": false, "unpacked": true, "command_results_caller_supplied": false, "receipt_consumed_exactly_once": true, "resolver_atom_growth": 0}
+        "attributes": {"package_authority_test_count": 19, "supported_fixture_count": 4, "ordered_command_count": 3, "combined_smoke_lifecycle": true, "repository_fallback": false, "prebuilt_fallback": false, "unpacked": true, "command_results_caller_supplied": false, "receipt_consumed_exactly_once": true, "resolver_atom_growth": 0}
       }]
     },
     {
@@ -186,15 +186,15 @@
     }
   ],
   "candidates": [
-    {"id": "quality-correctness-default-suite", "observations": ["obs-default-exunit-gap-closure"], "disposition": "fix", "rationale": "Phase 133 added non-vacuous evidence contracts, gap-closure regressions, and reconciled their async-isolation classification so the default suite remains green.", "evidence": ["mix ci", "test/async_safety_guard_test.exs"], "trigger": null},
+    {"id": "quality-correctness-default-suite", "observations": ["obs-default-exunit-repair-qualification"], "disposition": "fix", "rationale": "Phase 133 added non-vacuous evidence contracts, package compatibility regressions, and halted-state reconciliation while preserving async-isolation classification and a green default suite.", "evidence": ["mix ci", "test/async_safety_guard_test.exs"], "trigger": null},
     {"id": "quality-maintainability-curated-complexity", "observations": ["obs-credo-quality-baseline"], "disposition": "retain", "rationale": "Phase 127's reviewed removal-only complexity multiset remains the active maintainability authority and Phase 133 introduced no new finding.", "evidence": ["mix credo_quality", ".planning/milestones/v1.25-phases/127-evidence-charter-quality-census/127-QUALITY-CENSUS.md"], "trigger": null},
     {"id": "quality-security-dependency-policy", "observations": ["obs-mix-audit-policy"], "disposition": "retain", "rationale": "Phase 133 does not mutate dependency dispositions; live dependency triage is explicitly owned by Phase 134.", "evidence": ["mix deps.audit", ".planning/ROADMAP.md"], "trigger": null},
     {"id": "quality-performance-required-pr-timing", "observations": ["obs-pr-timing-v125"], "disposition": "retain", "rationale": "The accepted ten-run <=480s median and <=600s p95 receipt remains authoritative and Phase 133 preserves the required topology.", "evidence": [".planning/milestones/v1.25-phases/132-measured-closure/132-02-SUMMARY.md"], "trigger": null},
-    {"id": "quality-reliability-nightly", "observations": ["obs-nightly-policy-gap-closure"], "disposition": "fix", "rationale": "Phase 133 replaced false-green aggregation and ad hoc incident handling with strict single-owner cross-SHA replay; Plan 27 owns final live exact-run closure.", "evidence": ["scripts/ci/test_nightly_summary_gate.sh", "scripts/ci/test_nightly_incident.sh", "133-27"], "trigger": null},
-    {"id": "quality-compatibility-supported-toolchain", "observations": ["obs-supported-toolchain-post-133"], "disposition": "fix", "rationale": "Phase 133 keys and proves fresh/restored PLT modes by resolved patch toolchain while reserving supported-cell authority for Plan 27's exact-run Nightly receipt.", "evidence": ["scripts/ci/test_nightly_dialyzer.sh", "133-27"], "trigger": null},
-    {"id": "quality-testing-automation-first", "observations": ["obs-automation-first-gap-closure"], "disposition": "fix", "rationale": "Every Phase 133 implementation and gap-closure requirement closes through executable contracts; the sole human checkpoint authorizes publication only.", "evidence": ["./scripts/maintainer/automation_first_contract.sh", ".planning/phases/133-evidence-charter-and-live-truth/133-VALIDATION.md"], "trigger": null},
+    {"id": "quality-reliability-nightly", "observations": ["obs-nightly-policy-repair-qualification"], "disposition": "fix", "rationale": "Strict single-owner cross-SHA replay remains locally green while Plan 27's failed ref/run stays immutable historical evidence and the prior valid receipt remains the distinct live authority.", "evidence": ["scripts/ci/test_nightly_summary_gate.sh", "scripts/ci/test_nightly_incident.sh", "133-27-SUMMARY.md", "133-NIGHTLY-EVIDENCE.json"], "trigger": null},
+    {"id": "quality-compatibility-supported-toolchain", "observations": ["obs-supported-toolchain-repair-qualification"], "disposition": "fix", "rationale": "Resolved patch-level PLT contracts remain intact and Plan 28 repairs the three failed package cells locally without granting the unpublished repaired subject live supported-cell credit.", "evidence": ["scripts/ci/test_nightly_dialyzer.sh", "test/install_smoke/live_truth_parity_test.exs", "133-28-SUMMARY.md"], "trigger": null},
+    {"id": "quality-testing-automation-first", "observations": ["obs-automation-first-repair-qualification"], "disposition": "fix", "rationale": "All 32 plan definitions have concrete failure-directed automation ownership, Plan 27 remains halted without completion credit, and publication checkpoints authorize external mutation only.", "evidence": ["./scripts/maintainer/automation_first_contract.sh", ".planning/phases/133-evidence-charter-and-live-truth/133-VALIDATION.md", "133-29-SUMMARY.md"], "trigger": null},
     {"id": "quality-documentation-accessibility", "observations": ["obs-docs-accessibility-gap-closure"], "disposition": "fix", "rationale": "Maintainer guidance derives Nightly, receipt, and required-check meaning from current authorities while preserving generated accessibility gates.", "evidence": ["RUNNING.md", "bash scripts/maintainer/refactor_contract.sh"], "trigger": null},
-    {"id": "quality-packaging-generated-consumer", "observations": ["obs-package-consumer-gap-closure"], "disposition": "fix", "rationale": "Package claims require independently executed compile, boot, and combined smoke/lifecycle commands from a real unpacked package, exactly-once receipt consumption, and finite resolver decoding.", "evidence": ["bash scripts/maintainer/check_adoption_proof_matrix.sh", "test/install_smoke/live_truth_parity_test.exs"], "trigger": null},
+    {"id": "quality-packaging-generated-consumer", "observations": ["obs-package-consumer-repair-qualification"], "disposition": "fix", "rationale": "Package claims require support-floor-compatible generated projects, independently executed compile, boot, and combined smoke/lifecycle commands, ordered failure attribution, exactly-once receipt consumption, and finite resolver decoding.", "evidence": ["bash scripts/maintainer/check_adoption_proof_matrix.sh", "test/install_smoke/live_truth_parity_test.exs", "133-28-SUMMARY.md"], "trigger": null},
     {"id": "quality-ci-required-topology", "observations": ["obs-workflow-topology-gap-closure"], "disposition": "fix", "rationale": "Nightly strict verdict and single-owner cross-SHA incident replay were repaired while CI, CI Summary, fork-safety, and required-needs identities remain fixed.", "evidence": ["test/install_smoke/nightly_policy_test.exs", "test/install_smoke/live_truth_parity_test.exs"], "trigger": null},
     {"id": "quality-release-exact-sha", "observations": ["obs-release-authority-post-133"], "disposition": "fix", "rationale": "Active release and adoption claims now derive from matching 0.4.6 authorities and preserve exact-SHA release coupling.", "evidence": ["test/install_smoke/live_truth_parity_test.exs", "test/install_smoke/release_docs_parity_test.exs"], "trigger": null},
     {"id": "quality-repository-hygiene", "observations": ["obs-repository-hygiene"], "disposition": "retain", "rationale": "The existing repository hygiene gate remains the authoritative clean-subject policy and is executed in a detached exact-SHA worktree for this freeze.", "evidence": ["./scripts/maintainer/repo_hygiene_check.sh", "scripts/maintainer/evidence_census.exs"], "trigger": null}
@@ -214,12 +214,12 @@
     {"id": "quality-repository-hygiene", "observations_digest": "36e6ac36ebabb285a21d546e5d716c1280ab65b2a7e91db1cb436d7d146504b5"}
   ],
   "phase_133_transitions": [
-    {"candidate_id": "quality-correctness-default-suite", "before_observations_digest": "b18f116fbed0e93a57f3b0b56c56340126392c08029773d136e2ebc3341dbcf8", "after_observations_digest": "fecddf898b1f3c269f8d551c401b62f394983046c2fe3655144741ac9c136d20", "reason": "Plans 01 through 27 added executable evidence contracts and the final gap-closure regression set while preserving async-safety classification.", "implementing_plan": "133-27"},
-    {"candidate_id": "quality-reliability-nightly", "before_observations_digest": "85be8e919c48d0deda8b42c4b8f04ed61a646de945b829dd342c6de3082835f1", "after_observations_digest": "5a6cbed855c4a2a8f658acc767d25595d47f8809ed6a8914dc4e3dc4ed3fde9c", "reason": "Plans 03, 04, 19, and 23 established strict aggregation and one cross-SHA immutable incident replay owner, retiring the obsolete evaluator.", "implementing_plan": "133-27"},
-    {"candidate_id": "quality-compatibility-supported-toolchain", "before_observations_digest": "23bcc0f2896bb68bfc6d75be56a3e07df53f227618e3d02e9287e8ea0383de2f", "after_observations_digest": "4f08435d46aa05175fa33e175632d20e53bbd72673d4326c1242c6b51e6c81e5", "reason": "Plan 02 added resolved patch-level PLT identity and independent fresh/restored/stale-only contracts.", "implementing_plan": "133-02"},
-    {"candidate_id": "quality-testing-automation-first", "before_observations_digest": "60def3ed33433acff5225aff9e86f18ceeab7b4254c0ebd28ac3eb00d3d83d2e", "after_observations_digest": "535690cd81f6bfecb17fb206bc9216afc291df5491499641506e89005528aac2", "reason": "Plans 01 through 27 supply non-vacuous automated closure, strict summary authority, and a separate post-summary completion gate.", "implementing_plan": "133-27"},
+    {"candidate_id": "quality-correctness-default-suite", "before_observations_digest": "b18f116fbed0e93a57f3b0b56c56340126392c08029773d136e2ebc3341dbcf8", "after_observations_digest": "f75decf1dc409c2fb00b9b5977a95e89a2d368840b765ac5b4b548fc4bc82d77", "previous_subject_sha": "0f8189ddeed7e7a52b5c7464f17b70ab44596c33", "previous_observations_digest": "fecddf898b1f3c269f8d551c401b62f394983046c2fe3655144741ac9c136d20", "subject_sha": "e90947687d30edd3d545bd2c15c48e3f6adfa15c", "reason": "Plans 28 and 29 added the package compatibility and bounded halted-state reconciliation regressions to the default suite.", "implementing_plan": "133-30"},
+    {"candidate_id": "quality-reliability-nightly", "before_observations_digest": "85be8e919c48d0deda8b42c4b8f04ed61a646de945b829dd342c6de3082835f1", "after_observations_digest": "4b8555f6f5789578cd6656a2893b1cef38f43098a7fdc2f819b8ba97cbab6819", "previous_subject_sha": "0f8189ddeed7e7a52b5c7464f17b70ab44596c33", "previous_observations_digest": "5a6cbed855c4a2a8f658acc767d25595d47f8809ed6a8914dc4e3dc4ed3fde9c", "subject_sha": "e90947687d30edd3d545bd2c15c48e3f6adfa15c", "reason": "Plan 27's exact failed ref and run are now historical failure evidence while the prior valid canonical receipt remains the separate live authority for the unpublished repair.", "implementing_plan": "133-30"},
+    {"candidate_id": "quality-compatibility-supported-toolchain", "before_observations_digest": "23bcc0f2896bb68bfc6d75be56a3e07df53f227618e3d02e9287e8ea0383de2f", "after_observations_digest": "5d05bbd04d3dfc068d92d02ebb71b480f6980e1db2fc1421c8fe01702107fe13", "previous_subject_sha": "0f8189ddeed7e7a52b5c7464f17b70ab44596c33", "previous_observations_digest": "4f08435d46aa05175fa33e175632d20e53bbd72673d4326c1242c6b51e6c81e5", "subject_sha": "e90947687d30edd3d545bd2c15c48e3f6adfa15c", "reason": "Plan 28 repaired the three remote package compatibility surfaces with deterministic fixtures while retaining the failed run and prior valid receipt identities.", "implementing_plan": "133-30"},
+    {"candidate_id": "quality-testing-automation-first", "before_observations_digest": "60def3ed33433acff5225aff9e86f18ceeab7b4254c0ebd28ac3eb00d3d83d2e", "after_observations_digest": "749bac9d39b2e7e968216e8ac275b256b6a65eaa826f9f22cac37bc540a0b349", "previous_subject_sha": "0f8189ddeed7e7a52b5c7464f17b70ab44596c33", "previous_observations_digest": "535690cd81f6bfecb17fb206bc9216afc291df5491499641506e89005528aac2", "subject_sha": "e90947687d30edd3d545bd2c15c48e3f6adfa15c", "reason": "Plan 29 added the bounded 32-plan repair graph, immutable Plan 27 halted-summary authority, and exact repair validation ownership.", "implementing_plan": "133-30"},
     {"candidate_id": "quality-documentation-accessibility", "before_observations_digest": "4f46e378f4c90927af57c537497d2fbb7327c9a2e07a90aa467523a5771e7ee6", "after_observations_digest": "c2b3eafbc9f9ff41196b0155b61fddf511c66320c7f75d0637eb4d85be9a0d6a", "reason": "Plans 06 and 26 reconciled maintainer evidence semantics to durable Nightly, receipt, and structured required-check authorities while retaining accessibility gates.", "implementing_plan": "133-27"},
-    {"candidate_id": "quality-packaging-generated-consumer", "before_observations_digest": "7edd594c2ca383955af9fe56b74cba3ddd9c5b7099a2fbfb0e5131ca20785744", "after_observations_digest": "2b3329f88c8f644be750f3a4c5cf55d2519bad3bb8370b5385c07a1cafee1393", "reason": "Plans 05, 06, 21, and 24 replaced prose and caller-authored package claims with independently executed unpacked-consumer proof and consumed receipts.", "implementing_plan": "133-27"},
+    {"candidate_id": "quality-packaging-generated-consumer", "before_observations_digest": "7edd594c2ca383955af9fe56b74cba3ddd9c5b7099a2fbfb0e5131ca20785744", "after_observations_digest": "2caf4cdd761654a6f87cb4c67814d6e460ce8595d50dd755ccc97fdc9b0633c9", "previous_subject_sha": "0f8189ddeed7e7a52b5c7464f17b70ab44596c33", "previous_observations_digest": "2b3329f88c8f644be750f3a4c5cf55d2519bad3bb8370b5385c07a1cafee1393", "subject_sha": "e90947687d30edd3d545bd2c15c48e3f6adfa15c", "reason": "Plan 28 aligned generated projects with the Elixir 1.15 support floor and made package failure attribution follow compile, boot, then smoke lifecycle execution order.", "implementing_plan": "133-30"},
     {"candidate_id": "quality-ci-required-topology", "before_observations_digest": "24ea42fe1fe93d62bbd2414c1dbaad2f8a5d492cec9be21427d056a6f5facd24", "after_observations_digest": "fa8e632fb9d8ac817c46f848ad7fafc8f239987a3e73a5719b20e837043d788e", "reason": "Plans 02 through 04 and 23 repaired Nightly topology, retired the competing evaluator, and preserved the CI workflow and sole CI Summary required check.", "implementing_plan": "133-27"},
     {"candidate_id": "quality-release-exact-sha", "before_observations_digest": "e1ee85ff298d40eef305d044c41b2207b475339e9dc37d451f184bbb9aa6b82f", "after_observations_digest": "982150213380cc92332671242ef927d906114dff6946e5ddcf8509301ffd7c4c", "reason": "Plans 05 and 06 derived active release, lane, and adoption claims from matching authorities and parsed topology.", "implementing_plan": "133-06"}
   ]
