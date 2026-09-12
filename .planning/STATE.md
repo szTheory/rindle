@@ -5,16 +5,16 @@ milestone_name: Pre-Adopter Readiness & Quality Consolidation
 current_phase: 133
 current_phase_name: Evidence Charter and Live Truth
 status: executing
-stopped_at: Completed 133-31-PLAN.md
-last_updated: "2026-09-12T03:23:23.206Z"
+stopped_at: Plan 133-32 halted after unqualified immutable run 34670574306
+last_updated: "2026-09-12T03:36:52.405Z"
 last_activity: 2026-09-11
-last_activity_desc: Phase 133 execution started
-state_head: 21e57d88eeddd092068723a2d06897ee5fce6d1f
+last_activity_desc: Plan 133-32 halted after its sole authorized collector attempt became unqualified
+state_head: a3e1a97065528fe8a9c1c6cfd27cd32e40840cec
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 32
-  completed_plans: 31
+  completed_plans: 32
 ---
 
 ## Project Reference
@@ -27,8 +27,8 @@ See: .planning/PROJECT.md (updated 2026-09-09 for v1.26)
 
 Phase: 133 (Evidence Charter and Live Truth) — EXECUTING
 Plan: 32 of 32
-Status: Ready to execute
-Last activity: 2026-09-11 — Phase 133 execution started
+Status: HALTED — a new clean subject, absent ref, and fresh blocking-human authorization are required
+Last activity: 2026-09-11 — Plan 133-32 halted after its sole authorized collector attempt became unqualified
 Progress: [███████░░░] 65%
 
 ## Performance Metrics
@@ -72,6 +72,7 @@ Progress: [███████░░░] 65%
 | Phase 133 P29 | 22m | 2 tasks | 6 files |
 | Phase 133 P30 | 40m | 2 tasks | 3 files |
 | Phase 133 P31 | 26m | 1 tasks | 4 files |
+| Phase 133 P32 | 11m | 0 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -155,6 +156,7 @@ None.
 - Phase 133 begins from repeated current-main Nightly Dialyzer failures and misleading aggregation; exact failure and PLT metadata must be captured before mutation.
 - Dependency and remote dispositions require current read-only evidence before any update, merge, or close action.
 - Twin restart, fault, package-provenance, redaction, and cleanup mechanics require phase-local proof against current Cohort/Rindle ownership.
+- Plan 133-32 halted after the one-time exact ref publication and dispatch-owned run 34670574306: GitHub API rate limiting interrupted qualification, so the run is immutable but unqualified and a new subject/ref/authorization cycle is required.
 
 ## Deferred Items
 
@@ -168,6 +170,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-09-12T03:23:23.181Z
-Stopped at: Completed 133-31-PLAN.md
+Last session: 2026-09-12T03:36:52.381Z
+Stopped at: Plan 133-32 halted after unqualified immutable run 34670574306
 Resume file: None

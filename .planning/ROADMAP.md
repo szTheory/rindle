@@ -44,7 +44,7 @@ error vocabulary, release coupling, supported behavior, or the accepted pull-req
   3. Nightly aggregation fails for failed, cancelled, unexpected, or impermissibly skipped gating states, and automated incident tests prove one exact-run-bound issue opens or updates on failure and closes only after qualifying scheduled recovery.
   4. Executable parity checks derive release, planning, support, and adoption-proof claims from authoritative state and reject every unmarked version, lane-severity, or package-proof contradiction.
 
-**Plans**: 31/32 plans executed summarized; 30 completed, Plan 133-27 halted with its failed immutable attempt preserved, 1 pending
+**Plans**: 32/32 plans summarized; 30 completed, Plans 133-27 and 133-32 halted with their immutable attempts preserved, 0 pending
 
 Plans:
 
@@ -144,7 +144,7 @@ Plans:
 
 **Wave 22** *(blocked on an exact publish outcome from Plan 133-31)*
 
-- [ ] 133-32-PLAN.md — Publish once, collect one dispatch-owned strict-green Nightly run, and promote its receipt after full revalidation.
+- [ ] 133-32-PLAN.md — HALTED after GitHub API rate limiting interrupted the sole authorized collector attempt; preserve ref/run and prior valid receipt.
 
 ### Phase 134: Dependency, Security, and Inbox Disposition
 
@@ -240,7 +240,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 133. Evidence Charter and Live Truth | 31/32 | In Progress|  |
+| 133. Evidence Charter and Live Truth | 32/32 | In Progress|  |
 | 134. Dependency, Security, and Inbox Disposition | 0/TBD | Not started | - |
 | 135. Repository and Code-Craft Consolidation | 0/TBD | Not started | - |
 | 136. Measured Quality and CI Ratchets | 0/TBD | Not started | - |

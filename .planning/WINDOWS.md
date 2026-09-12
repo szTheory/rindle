@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 1
+open_count: 2
 waived_count: 2
-fixed_count: 24
-total_count: 27
-last_updated: 2026-09-12T03:24:16.357Z
+fixed_count: 25
+total_count: 29
+last_updated: 2026-09-12T03:37:45.885Z
 ---
 
 # Broken Windows Ledger
@@ -42,6 +42,8 @@ last_updated: 2026-09-12T03:24:16.357Z
 | 25 | 133 | deviation | test/install_smoke/nightly_policy_test.exs |  | Applied the supported Elixir formatter's deterministic indentation and rebound the census to the post-fix subject. | fixed |  | 2026-09-12T02:52:05.087Z | 2026-09-12T02:52:12.726Z |
 | 26 | 133 | deviation | .planning/ROADMAP.md |  | Restored Plan 133-27 to unchecked halted status and corrected post-Plan-30 semantic totals after the generic progress handler rechecked it. | fixed |  | 2026-09-12T02:53:16.183Z | 2026-09-12T02:53:16.295Z |
 | 27 | 133 | deviation | .planning/ROADMAP.md |  | Restored Plan 133-27 to unchecked halted status and corrected post-Plan-31 semantic totals after the generic progress handler rechecked it. | fixed |  | 2026-09-12T03:24:16.251Z | 2026-09-12T03:24:16.357Z |
+| 28 | 133 | unrun-verify | scripts/ci/verify_nightly_run.sh |  | Plan 133-32 terminal run/log/receipt and promotion gates were not run because the sole collector invocation halted on GitHub API rate limiting before candidate creation. | open |  | 2026-09-12T03:36:52.032Z |  |
+| 29 | 133 | deviation | .planning/ROADMAP.md |  | Restored Plans 133-27 and 133-32 to unchecked halted status and corrected post-halt semantic totals after the generic progress handler rechecked both. | fixed |  | 2026-09-12T03:37:31.584Z | 2026-09-12T03:37:45.885Z |
 
 ````json
 [
@@ -374,6 +376,32 @@ last_updated: 2026-09-12T03:24:16.357Z
     "reason": "",
     "recorded_at": "2026-09-12T03:24:16.251Z",
     "resolved_at": "2026-09-12T03:24:16.357Z",
+    "milestone": "v1.26"
+  },
+  {
+    "id": 28,
+    "kind": "unrun-verify",
+    "phase": "133",
+    "file": "scripts/ci/verify_nightly_run.sh",
+    "line": null,
+    "description": "Plan 133-32 terminal run/log/receipt and promotion gates were not run because the sole collector invocation halted on GitHub API rate limiting before candidate creation.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-12T03:36:52.032Z",
+    "resolved_at": null,
+    "milestone": "v1.26"
+  },
+  {
+    "id": 29,
+    "kind": "deviation",
+    "phase": "133",
+    "file": ".planning/ROADMAP.md",
+    "line": null,
+    "description": "Restored Plans 133-27 and 133-32 to unchecked halted status and corrected post-halt semantic totals after the generic progress handler rechecked both.",
+    "status": "fixed",
+    "reason": "",
+    "recorded_at": "2026-09-12T03:37:31.584Z",
+    "resolved_at": "2026-09-12T03:37:45.885Z",
     "milestone": "v1.26"
   }
 ]
