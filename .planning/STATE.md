@@ -5,16 +5,16 @@ milestone_name: Pre-Adopter Readiness & Quality Consolidation
 current_phase: 133
 current_phase_name: Evidence Charter and Live Truth
 status: executing
-stopped_at: Completed 133-22-PLAN.md
-last_updated: "2026-09-12T01:13:22.726Z"
+stopped_at: Completed 133-28-PLAN.md
+last_updated: "2026-09-12T01:39:16.804Z"
 last_activity: 2026-09-11
 last_activity_desc: Phase 133 execution started
-state_head: fcb7d59d08469dc7486ab6be75a4409f8804e1de
+state_head: 3ec3c8740154cf0b0461e17ada3bab555e658797
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 32
-  completed_plans: 22
+  completed_plans: 28
 ---
 
 ## Project Reference
@@ -25,9 +25,9 @@ See: .planning/PROJECT.md (updated 2026-09-09 for v1.26)
 
 ## Current Position
 
-Phase: 133 (Evidence Charter and Live Truth) — READY TO EXECUTE
-Plan: 1 of 27
-Status: Ready to execute
+Phase: 133 (Evidence Charter and Live Truth) — EXECUTING
+Plan: 29 of 32
+Status: Executing Phase 133
 Last activity: 2026-09-11 — Phase 133 execution started
 Progress: [███████░░░] 65%
 
@@ -68,6 +68,7 @@ Progress: [███████░░░] 65%
 | Phase 133 P20 | 2h 13m | 2 tasks | 4 files |
 | Phase 133 P21 | 27m | 3 tasks | 6 files |
 | Phase 133-evidence-charter-and-live-truth P22 | 26m | 3 tasks | 8 files |
+| Phase 133-evidence-charter-and-live-truth P28 | 19m | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -129,6 +130,8 @@ Progress: [███████░░░] 65%
 - [Phase 133]: Phase 133 package truth uses independent exact-subject version authority, one attributable smoke_lifecycle result, and summary-backed 17/22-22/22 reconciliation.
 - [Phase 133]: Published only exact subject 1470cf8cb0f1 to its absent non-force diagnostic ref; preserved rejected evidence identities.
 - [Phase 133]: Accepted run 34638437301 only after canonical exact-subject receipt reconstruction and all automated gates passed.
+- [Phase 133]: Use one executable-fixture Elixir requirement and prove both generated projects match the root ~> 1.15 contract across supported examples.
+- [Phase 133]: Sort only for command-set equality; validate results in compile, boot, then smoke-lifecycle execution order.
 
 ### Pending Todos
 
@@ -152,6 +155,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-09-11T19:42:50.160Z
-Stopped at: Completed 133-22-PLAN.md
+Last session: 2026-09-12T01:38:15.011Z
+Stopped at: Completed 133-28-PLAN.md
 Resume file: None

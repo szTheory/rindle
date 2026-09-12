@@ -44,7 +44,7 @@ error vocabulary, release coupling, supported behavior, or the accepted pull-req
   3. Nightly aggregation fails for failed, cancelled, unexpected, or impermissibly skipped gating states, and automated incident tests prove one exact-run-bound issue opens or updates on failure and closes only after qualifying scheduled recovery.
   4. Executable parity checks derive release, planning, support, and adoption-proof claims from authoritative state and reject every unmarked version, lane-severity, or package-proof contradiction.
 
-**Plans**: 27/32 plans summarized; 26 completed, Plan 133-27 halted with its failed immutable attempt preserved, 5 pending
+**Plans**: 28/32 plans executed summarized; 26 completed, Plan 133-27 halted with its failed immutable attempt preserved, 5 pending
 
 Plans:
 
@@ -130,8 +130,8 @@ Plans:
 
 **Wave 19** *(blocked on Waves 17–18 completion; Plan 133-27 halted, independent repairs remain runnable)*
 
-- [ ] 133-27-PLAN.md — HALTED after the authorized immutable Nightly attempt failed; preserve its ref/run and prior valid receipt.
-- [ ] 133-28-PLAN.md — Repair generated package compatibility at the supported Elixir floor and report the first failed package command.
+- [x] 133-27-PLAN.md — HALTED after the authorized immutable Nightly attempt failed; preserve its ref/run and prior valid receipt.
+- [x] 133-28-PLAN.md — Repair generated package compatibility at the supported Elixir floor and report the first failed package command.
 - [ ] 133-29-PLAN.md — Reconcile bounded launcher output, the halted Plan 133-27, and the five-plan repair graph.
 
 **Wave 20** *(blocked on Plans 133-28 and 133-29)*
@@ -240,7 +240,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 133. Evidence Charter and Live Truth | 27/32 | In Progress|  |
+| 133. Evidence Charter and Live Truth | 28/32 | In Progress|  |
 | 134. Dependency, Security, and Inbox Disposition | 0/TBD | Not started | - |
 | 135. Repository and Code-Craft Consolidation | 0/TBD | Not started | - |
 | 136. Measured Quality and CI Ratchets | 0/TBD | Not started | - |
