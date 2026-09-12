@@ -35,9 +35,10 @@ run_case() {
   : >"${temp}/count"
   : >"${temp}/run-list-count"
   : >"${temp}/watch-count"
+  mkdir -p "${temp}/read-counts"
   : >"${temp}/authority-calls"
 
-  if [ "$state" = watch_rate_limit_persistent ]; then
+  if [[ "$state" == *_rate_limit_persistent ]]; then
     poll=1
     timeout=1
   fi
@@ -45,6 +46,7 @@ run_case() {
   PATH="${temp}/bin:${PATH}" FAKE_GH_LOG="${temp}/calls" FAKE_GH_COUNT_FILE="${temp}/count" \
     FAKE_GH_RUN_LIST_COUNT_FILE="${temp}/run-list-count" \
     FAKE_GH_WATCH_COUNT_FILE="${temp}/watch-count" \
+    FAKE_GH_READ_COUNT_DIR="${temp}/read-counts" \
     FAKE_GH_STATE="$state" FAKE_AUTHORITY_STATE="$state" FAKE_AUTHORITY_LOG="${temp}/authority-calls" \
     bash "$collector" dispatch-and-record --repo szTheory/rindle --workflow nightly.yml \
       --ref phase-133-evidence-aaaaaaaaaaaa --expected-sha aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \
@@ -219,6 +221,51 @@ run_case() {
       record "persistent watch rate limit exhausts the original deadline" false "persistent recovery was not bounded and receipt-free"
     fi
   fi
+
+  case "$state" in
+    post_list_rate_limit_once|detail_rate_limit_once|job_log_rate_limit_once|incident_after_rate_limit_once)
+      case "$state" in
+        post_list_*) read_pattern='^run list ' ;;
+        detail_*) read_pattern='^run view 9001 .* --json ' ;;
+        job_log_*) read_pattern='^run view 9001 .* --job 6 --log$' ;;
+        incident_after_*) read_pattern='^issue list ' ;;
+      esac
+      if [ "$got" -eq 0 ] &&
+         [ "$(grep -c '^workflow run nightly.yml ' "${temp}/calls" || true)" -eq 1 ] &&
+         [ "$(grep -c "$read_pattern" "${temp}/calls" || true)" -ge 2 ] &&
+         [ "$(jq -r '.run_id' "${temp}/receipt.json" 2>/dev/null || true)" = 9001 ] &&
+         ! grep -Eq '^(issue (create|comment|close|edit|delete)|run (cancel|rerun|delete))' "${temp}/calls"; then
+        record "${state} preserves identity and mutation count" true
+      else
+        record "${state} preserves identity and mutation count" false "transient read recovery did not stay on run 9001"
+      fi
+      ;;
+    post_list_rate_limit_persistent|detail_rate_limit_persistent|job_log_rate_limit_persistent|incident_after_rate_limit_persistent)
+      if [ "$got" -ne 0 ] &&
+         [ "$(grep -c '^workflow run nightly.yml ' "${temp}/calls" || true)" -eq 1 ] &&
+         [ ! -e "${temp}/receipt.json" ]; then
+        record "${state} exhausts without a receipt" true
+      else
+        record "${state} exhausts without a receipt" false "persistent read recovery escaped its deadline"
+      fi
+      ;;
+    detail_rate_limit_then_malformed)
+      if [ "$got" -ne 0 ] && [ ! -e "${temp}/receipt.json" ]; then
+        record "malformed detail after recovery fails closed" true
+      else
+        record "malformed detail after recovery fails closed" false "malformed recovered detail was accepted"
+      fi
+      ;;
+    detail_auth_403)
+      if [ "$got" -ne 0 ] &&
+         [ "$(grep -c '^run view 9001 .* --json ' "${temp}/calls" || true)" -eq 1 ] &&
+         [ ! -e "${temp}/receipt.json" ]; then
+        record "unrelated detail 403 is not retried" true
+      else
+        record "unrelated detail 403 is not retried" false "non-rate-limit 403 entered recovery"
+      fi
+      ;;
+  esac
 
   if [ "$state" = timeout ]; then
     if [ "$(grep -c '^run list ' "${temp}/calls" || true)" -gt 1 ] &&
@@ -426,6 +473,22 @@ run_case "post-dispatch duplicate IDs" duplicate_post_ids 1
 run_case "selected run detail ID mismatch" detail_id_mismatch 1
 run_case "transient watch rate limit" watch_rate_limit_once 0
 run_case "persistent watch rate limit" watch_rate_limit_persistent 1
+run_case "transient post-dispatch run-list rate limit" post_list_rate_limit_once 0
+run_case "persistent post-dispatch run-list rate limit" post_list_rate_limit_persistent 1
+run_case "transient run-detail rate limit" detail_rate_limit_once 0
+run_case "persistent run-detail rate limit" detail_rate_limit_persistent 1
+run_case "transient job-log rate limit" job_log_rate_limit_once 0
+run_case "persistent job-log rate limit" job_log_rate_limit_persistent 1
+run_case "transient post-dispatch incident-snapshot rate limit" incident_after_rate_limit_once 0
+run_case "persistent post-dispatch incident-snapshot rate limit" incident_after_rate_limit_persistent 1
+run_case "malformed run detail after rate-limit recovery" detail_rate_limit_then_malformed 1
+run_case "unrelated run-detail 403" detail_auth_403 1
+if [ "${VERIFY_NIGHTLY_TEST_SCOPE:-}" = rate-limit-expansion ]; then
+  echo "—"
+  echo "passed: ${pass}  failed: ${fail}"
+  [ "$pass" -gt 0 ] && [ "$fail" -eq 0 ]
+  exit
+fi
 if [ "${VERIFY_NIGHTLY_TEST_SCOPE:-}" = ownership ]; then
   echo "—"
   echo "passed: ${pass}  failed: ${fail}"
@@ -542,6 +605,34 @@ ref=phase-133-evidence-aaaaaaaaaaaa
 run_id=9001
 created=2026-09-09T12:00:01Z
 
+rate_limit_read_if_needed() {
+  local seam="$1" counter_file count
+  case "$state" in
+    "${seam}"_*) ;;
+    *) return 0 ;;
+  esac
+  counter_file="${FAKE_GH_READ_COUNT_DIR}/${seam}"
+  count="$(cat "$counter_file" 2>/dev/null || printf 0)"
+  count=$((count + 1))
+  printf '%s' "$count" >"$counter_file"
+  if [ "$state" = "${seam}_rate_limit_once" ] && [ "$count" -eq 1 ]; then
+    echo "HTTP 403: API rate limit exceeded for user ID 1234" >&2
+    return 42
+  fi
+  if [ "$state" = "${seam}_rate_limit_persistent" ]; then
+    echo "You have exceeded a secondary rate limit. Please wait a few minutes before you try again." >&2
+    return 42
+  fi
+  if [ "$state" = "${seam}_auth_403" ]; then
+    echo "HTTP 403: Resource not accessible by integration" >&2
+    return 42
+  fi
+  if [ "$state" = "${seam}_rate_limit_then_malformed" ] && [ "$count" -eq 1 ]; then
+    echo "HTTP 403: API rate limit exceeded for user ID 1234" >&2
+    return 42
+  fi
+}
+
 if [ "$state" = api_failure ] && [ "${1-}" != workflow ]; then
   echo "simulated GitHub API failure" >&2
   exit 41
@@ -564,6 +655,9 @@ case "${1-} ${2-}" in
   "workflow run") exit 0 ;;
   "run list")
     dispatched="$(grep -c '^workflow run nightly.yml ' "$FAKE_GH_LOG" || true)"
+    if [ "$dispatched" -gt 0 ]; then
+      rate_limit_read_if_needed post_list
+    fi
     if [ "$state" = pre_list_failure ] && [ "$dispatched" -eq 0 ]; then
       echo "simulated pre-dispatch run-list failure" >&2
       exit 41
@@ -677,6 +771,7 @@ case "${1-} ${2-}" in
   "run view")
     if printf '%s\n' "$*" | grep -q -- '--log'; then
       if printf '%s\n' "$*" | grep -q -- '--job 6'; then
+        rate_limit_read_if_needed job_log
         resolved_elixir=v1.17.3-otp-27
         resolved_otp=OTP-27.3.4.17
         [ "$state" != unsupported_elixir_11_17 ] || resolved_elixir=v11.17.3-otp-27
@@ -695,6 +790,11 @@ case "${1-} ${2-}" in
         exit 43
       fi
     else
+      rate_limit_read_if_needed detail
+      if [ "$state" = detail_rate_limit_then_malformed ]; then
+        printf '{}\n'
+        exit
+      fi
       jobs='[{"databaseId":1,"name":"Compat Matrix (1.15, 26)","status":"completed","conclusion":"success"},{"databaseId":2,"name":"Compat Matrix (1.16, 26)","status":"completed","conclusion":"success"},{"databaseId":3,"name":"Compat Matrix (1.17, 27)","status":"completed","conclusion":"success"},{"databaseId":4,"name":"Compat Matrix (1.18, 27)","status":"completed","conclusion":"success"},{"databaseId":5,"name":"Compat Matrix (1.18, 28)","status":"completed","conclusion":"success"},{"databaseId":6,"name":"Dialyzer","status":"completed","conclusion":"success"},{"databaseId":7,"name":"GCS Soak (real bucket)","status":"completed","conclusion":"success"},{"databaseId":8,"name":"Package Consumer GCS Live Proof","status":"completed","conclusion":"success"},{"databaseId":9,"name":"Nightly Summary","status":"completed","conclusion":"success"},{"databaseId":10,"name":"Nightly Incident Lifecycle","status":"completed","conclusion":"skipped"},{"databaseId":11,"name":"Persist Nightly Incident Verdict","status":"completed","conclusion":"skipped"}]'
       [ "$state" != missing_job ] || jobs="$(jq 'del(.[0])' <<<"$jobs")"
       [ "$state" != extra_job ] || jobs="$(jq '. + [{databaseId:12,name:"Unexpected",status:"completed",conclusion:"success"}]' <<<"$jobs")"
@@ -712,6 +812,9 @@ case "${1-} ${2-}" in
     ;;
   "issue list")
     count="$(cat "$FAKE_GH_COUNT_FILE" 2>/dev/null || printf 0)"; count=$((count + 1)); printf '%s' "$count" >"$FAKE_GH_COUNT_FILE"
+    if [ "$count" -eq 2 ]; then
+      rate_limit_read_if_needed incident_after
+    fi
     body=nightly-run:8000:1
     [ "$state" != incident_changed ] || { [ "$count" -eq 1 ] || body=nightly-run:9001:1; }
     [ "$state" != incident_verify_changed ] || body=nightly-run:forged:1
