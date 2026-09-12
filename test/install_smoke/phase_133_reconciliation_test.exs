@@ -56,7 +56,9 @@ defmodule Rindle.InstallSmoke.Phase133ReconciliationTest do
     success = "#{@success_prefix} 10 completed, 7 pending plans, 16 verification pairs"
 
     assert_raise ExUnit.AssertionError, ~r/process output exceeds byte bound/, fn ->
-      assert_valid_process_result({success <> String.duplicate("x", @max_process_output_bytes), 0})
+      assert_valid_process_result(
+        {success <> String.duplicate("x", @max_process_output_bytes), 0}
+      )
     end
 
     assert_raise ExUnit.AssertionError, ~r/process output exceeds line bound/, fn ->
@@ -384,6 +386,20 @@ defmodule Rindle.InstallSmoke.Phase133ReconciliationTest do
   end
 
   defp assert_valid_process_result({output, status}) do
+    assert byte_size(output) <= @max_process_output_bytes,
+           "process output exceeds byte bound"
+
+    line_count =
+      if output == "" do
+        0
+      else
+        length(:binary.matches(output, "\n")) +
+          if(String.ends_with?(output, "\n"), do: 0, else: 1)
+      end
+
+    assert line_count <= @max_process_output_lines,
+           "process output exceeds line bound"
+
     assert status == 0
 
     lines = String.split(output, "\n", trim: true)
