@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 2
+open_count: 4
 waived_count: 2
 fixed_count: 26
-total_count: 30
-last_updated: 2026-09-12T20:25:26.849Z
+total_count: 32
+last_updated: 2026-09-13T02:16:05.510Z
 ---
 
 # Broken Windows Ledger
@@ -45,6 +45,8 @@ last_updated: 2026-09-12T20:25:26.849Z
 | 28 | 133 | unrun-verify | scripts/ci/verify_nightly_run.sh |  | Plan 133-32 terminal run/log/receipt and promotion gates were not run because the sole collector invocation halted on GitHub API rate limiting before candidate creation. | open |  | 2026-09-12T03:36:52.032Z |  |
 | 29 | 133 | deviation | .planning/ROADMAP.md |  | Restored Plans 133-27 and 133-32 to unchecked halted status and corrected post-halt semantic totals after the generic progress handler rechecked both. | fixed |  | 2026-09-12T03:37:31.584Z | 2026-09-12T03:37:45.885Z |
 | 30 | 133 | deviation | .planning/ROADMAP.md |  | Generic progress updater counted halted summaries as completed; restored exact post-Plan-34 branch arithmetic and unchecked halt rows | fixed |  | 2026-09-12T20:25:06.283Z | 2026-09-12T20:25:26.849Z |
+| 31 | 133 | unrun-verify | scripts/ci/test_verify_nightly_run.sh |  | Plan 133-37 qualification commands after the detached exact-SHA census failure were not run because the one authorized attempt was terminal | open |  | 2026-09-13T02:16:05.419Z |  |
+| 32 | 133 | deviation | .planning/phases/133-evidence-charter-and-live-truth/133-37-SUMMARY.md |  | Plan 133-37 halted on immutable run 34732110533 after detached exact-SHA census qualification could not start :rindle | open |  | 2026-09-13T02:16:05.510Z |  |
 
 ````json
 [
@@ -416,6 +418,32 @@ last_updated: 2026-09-12T20:25:26.849Z
     "reason": "",
     "recorded_at": "2026-09-12T20:25:06.283Z",
     "resolved_at": "2026-09-12T20:25:26.849Z",
+    "milestone": "v1.26"
+  },
+  {
+    "id": 31,
+    "kind": "unrun-verify",
+    "phase": "133",
+    "file": "scripts/ci/test_verify_nightly_run.sh",
+    "line": null,
+    "description": "Plan 133-37 qualification commands after the detached exact-SHA census failure were not run because the one authorized attempt was terminal",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-13T02:16:05.419Z",
+    "resolved_at": null,
+    "milestone": "v1.26"
+  },
+  {
+    "id": 32,
+    "kind": "deviation",
+    "phase": "133",
+    "file": ".planning/phases/133-evidence-charter-and-live-truth/133-37-SUMMARY.md",
+    "line": null,
+    "description": "Plan 133-37 halted on immutable run 34732110533 after detached exact-SHA census qualification could not start :rindle",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-13T02:16:05.510Z",
+    "resolved_at": null,
     "milestone": "v1.26"
   }
 ]

@@ -4,17 +4,17 @@ milestone: v1.26
 milestone_name: Pre-Adopter Readiness & Quality Consolidation
 current_phase: 133
 current_phase_name: Evidence Charter and Live Truth
-status: executing
-stopped_at: Completed 133-36-PLAN.md
-last_updated: "2026-09-13T01:47:27.259Z"
+status: blocked
+stopped_at: Plan 133-37 halted after immutable run 34732110533 failed post-publication qualification
+last_updated: "2026-09-13T02:14:15Z"
 last_activity: 2026-09-12
-last_activity_desc: Plan 133-36 authorized the exact repaired SHA/ref pair; Plan 133-37 pending
-state_head: 06546046e06e6bd1c606a44aba85c7258d0d2a3c
+last_activity_desc: Plan 133-37 preserved immutable ref/run history and prior canonical evidence after fail-closed qualification
+state_head: 0f36ff86ae57ca0d77748c03ee32a1a775380811
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 37
-  completed_plans: 36
+  completed_plans: 37
 ---
 
 ## Project Reference
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-09-09 for v1.26)
 
 ## Current Position
 
-Phase: 133 (Evidence Charter and Live Truth) — EXECUTING
+Phase: 133 (Evidence Charter and Live Truth) — BLOCKED
 Plan: 37 of 37
-Status: EXECUTING — Plan 133-37 may perform the single authorized exact-subject attempt while preserving the Plan 133-27/32 halts
-Last activity: 2026-09-12 — authorized the literal 4ab38ab6 SHA/ref pair with no remote mutation or requirement credit
+Status: BLOCKED — Plan 133-37 exhausted its one authorized attempt; immutable run 34732110533 is green but post-publication qualification failed
+Last activity: 2026-09-12 — preserved the prior canonical receipt and pending requirements after the detached exact-SHA census gate could not start :rindle
 Progress: [███████░░░] 65%
 
 ## Performance Metrics
@@ -77,6 +77,7 @@ Progress: [███████░░░] 65%
 | Phase 133 P34 | 24min | 2 tasks | 3 files |
 | Phase 133 P35 | 116min | 2 tasks | 5 files |
 | Phase 133 P36 | 15min | 1 tasks | 3 files |
+| Phase 133 P37 | 22min | 1 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -161,6 +162,7 @@ Progress: [███████░░░] 65%
 - [Phase 133]: Plan 133-35: Local qualification does not close EVID-01 through EVID-04 or TRUTH-08; terminal Plan 37 evidence remains required.
 - [Phase 133]: Plan 133-36: authorize exactly one later non-force creation of refs/heads/phase-133-evidence-4ab38ab62878 at 4ab38ab62878eea936f20bb76e2f7321da6c2e90 and one bounded Plan 133-37 Nightly attempt.
 - [Phase 133]: Plan 133-36: human authorization grants no EVID-01/02/03/04 or TRUTH-08 completion or acceptance credit; terminal Plan 133-37 automation remains required.
+- [Phase 133]: Plan 133-37: preserve ref phase-133-evidence-4ab38ab62878 and run 34732110533 as immutable exhausted history; the green run grants no acceptance credit because post-publication qualification failed.
 
 ### Pending Todos
 
@@ -172,6 +174,7 @@ None.
 - Dependency and remote dispositions require current read-only evidence before any update, merge, or close action.
 - Twin restart, fault, package-provenance, redaction, and cleanup mechanics require phase-local proof against current Cohort/Rindle ownership.
 - Plan 133-32 halted after the one-time exact ref publication and dispatch-owned run 34670574306: GitHub API rate limiting interrupted qualification, so the run is immutable but unqualified and a new subject/ref/authorization cycle is required.
+- Plan 133-37 halted after its one-time exact ref publication and dispatch-owned run 34732110533: detached exact-SHA census qualification could not start the uncompiled :rindle application, so the prior canonical receipt remains authoritative and all five Phase 133 requirements remain pending.
 
 ## Deferred Items
 
@@ -185,6 +188,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-09-13T01:47:27.232Z
-Stopped at: Completed 133-36-PLAN.md
+Last session: 2026-09-13T02:14:15Z
+Stopped at: Plan 133-37 halted after immutable run 34732110533 failed post-publication qualification
 Resume file: None
