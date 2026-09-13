@@ -446,6 +446,7 @@ make_fake_local_authorities() {
     '#!/usr/bin/env bash' \
     'set -euo pipefail' \
     'printf "mix %s\n" "$*" >>"$FAKE_AUTHORITY_LOG"' \
+    'printf "mix-context cwd=%s mix_env=%s deps=%s build=%s argv=%s\n" "$PWD" "${MIX_ENV-}" "${MIX_DEPS_PATH-}" "${MIX_BUILD_PATH-}" "$*" >>"$FAKE_AUTHORITY_LOG"' \
     'if [ "${FAKE_AUTHORITY_STATE:-success}" = uncompiled_subject ] && ! printf "%s\n" "$*" | grep -Eq "(^| )--no-start( |$)"; then' \
     '  echo "application start attempted without rindle.app" >&2' \
     '  exit 45' \
@@ -582,6 +583,12 @@ if [ "${VERIFY_NIGHTLY_TEST_SCOPE:-}" = authority-argv ]; then
   [ "$pass" -gt 0 ] && [ "$fail" -eq 0 ]
   exit
 fi
+
+verify_uncompiled_subject_case
+verify_authority_argv_case
+verify_missing_no_start_mutation 1 "census generator"
+verify_missing_no_start_mutation 2 "census validator"
+verify_missing_no_start_mutation 3 "live-truth validator"
 
 if [ "${VERIFY_NIGHTLY_TEST_SCOPE:-}" = diagnostic-topology ]; then
   run_case "workflow_dispatch accepts the exact 11-job diagnostic topology" diagnostic_topology 0

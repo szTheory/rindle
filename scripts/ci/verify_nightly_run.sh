@@ -439,12 +439,12 @@ revalidate_local_authorities() {
         --root . \
         --ledger "$ledger_file" \
         --output "$census_receipt" \
-        --source-sha "$expected_sha" >/dev/null
+        --source-sha "$expected_sha" >/dev/null &&
     PATH="$authority_path" MIX_ENV=test MIX_DEPS_PATH="${project_root}/deps" MIX_BUILD_PATH="${project_root}/_build" \
       "$mix_executable" run --no-start --no-deps-check --no-compile scripts/maintainer/validate_evidence_census.exs \
         --root . \
         --ledger "$ledger_file" \
-        --receipt "$census_receipt" >/dev/null
+        --receipt "$census_receipt" >/dev/null &&
     PATH="$authority_path" MIX_ENV=test MIX_DEPS_PATH="${project_root}/deps" MIX_BUILD_PATH="${project_root}/_build" \
       "$mix_executable" run --no-start --no-deps-check --no-compile -e \
         'Code.require_file("scripts/maintainer/validate_live_truth.exs"); Rindle.ValidateLiveTruth.run(["--root", ".", "--format", "json"])' >"$temp_root/live-truth.json"
