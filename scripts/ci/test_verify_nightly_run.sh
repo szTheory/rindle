@@ -111,9 +111,9 @@ run_case() {
        [ "$(grep -c '^run view 9001 .* --job 6 --log$' "${temp}/calls" || true)" -ge 1 ] &&
        [ "$(grep -c '^run view 9001 .* --job 9 --log$' "${temp}/calls" || true)" -ge 1 ] &&
        [ "$(grep -c '^issue list --repo szTheory/rindle --state open --label nightly-failure --limit 100 --json number,title,body,comments,updatedAt,url$' "${temp}/calls" || true)" -eq 4 ] &&
-       [ "$(grep -c '^mix run --no-deps-check --no-compile scripts/maintainer/evidence_census.exs --root ' "${temp}/authority-calls" || true)" -eq 3 ] &&
-       [ "$(grep -c '^mix run --no-deps-check --no-compile scripts/maintainer/validate_evidence_census.exs --root ' "${temp}/authority-calls" || true)" -eq 3 ] &&
-       [ "$(grep -c '^mix run --no-deps-check --no-compile -e Code.require_file("scripts/maintainer/validate_live_truth.exs")' "${temp}/authority-calls" || true)" -eq 3 ] &&
+       [ "$(grep -c '^mix run --no-start --no-deps-check --no-compile scripts/maintainer/evidence_census.exs --root ' "${temp}/authority-calls" || true)" -eq 3 ] &&
+       [ "$(grep -c '^mix run --no-start --no-deps-check --no-compile scripts/maintainer/validate_evidence_census.exs --root ' "${temp}/authority-calls" || true)" -eq 3 ] &&
+       [ "$(grep -c '^mix run --no-start --no-deps-check --no-compile -e Code.require_file("scripts/maintainer/validate_live_truth.exs")' "${temp}/authority-calls" || true)" -eq 3 ] &&
        [ "$(jq -r '.schema_version' "${temp}/receipt.json")" = 2 ] &&
        [ "$(jq -r '.local_authorities.census.ledger_path' "${temp}/receipt.json")" = .planning/phases/133-evidence-charter-and-live-truth/133-EVIDENCE-CENSUS.json ] &&
        [ "$(jq -r '.local_authorities.census.ledger_sha256' "${temp}/receipt.json")" = 80c9c6808f18a8dd51489e9da11fafc4f8b00d993a615348a773056f81af8744 ] &&
