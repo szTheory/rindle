@@ -2,10 +2,10 @@
 phase: "133"
 slug: "evidence-charter-and-live-truth"
 status: validated
-nyquist_compliant: true
+nyquist_compliant: false
 wave_0_complete: true
 created: "2026-09-09"
-revised: "2026-09-10"
+revised: "2026-09-13"
 ---
 
 # Phase 133 — Validation Strategy
@@ -2064,3 +2064,19 @@ Terminal reconciliation does not report 39 completed, Plans 27/32/37 halted, zer
 <state>pending — not executed</state>
 <acceptance-credit>terminal-completion</acceptance-credit>
 </pending-validation>
+
+## Validation Audit 2026-09-13 — Production Reconciler Closure Map
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 1 |
+| Resolved | 0 |
+| Escalated | 1 |
+
+### Escalated Automated Gap
+
+| Task ID | Requirement | Behavioral test | Result |
+|---------|-------------|-----------------|--------|
+| 133-39-01 / 133-39-02 | EVID-01, EVID-02, EVID-03, EVID-04, TRUTH-08 | `ASDF_ERLANG_VERSION=27.3 ASDF_ELIXIR_VERSION=1.17.3-otp-27 mix test test/install_smoke/phase_133_reconciliation_test.exs --seed 0` | BLOCKER — production `branch-42` reconciliation exits 0 after the copied Plans 38–42 validation map is mutated from key `133-38-01:1` to `133-38-01:999`; the standalone completed-validation parser rejects equivalent closure-map drift, but the production reconciler does not consume those 26 records. |
+
+The auditor reproduced this behavior with a failing regression named `production reconciliation rejects drift in the Plans 38-42 validation map`. The intentionally red test was not retained in the release branch because its implementation fix requires a new reviewed gap plan; the exact mutation and command above preserve the executable reproduction contract. Implementation files remain unchanged. Plans 38–42 task mappings and all earlier append-only records above remain preserved; this audit supersedes only the prior `nyquist_compliant: true` claim until the production path validates the complete closure map.
