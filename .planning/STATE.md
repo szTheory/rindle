@@ -4,17 +4,17 @@ milestone: v1.26
 milestone_name: Pre-Adopter Readiness & Quality Consolidation
 current_phase: 133
 current_phase_name: Evidence Charter and Live Truth
-status: blocked
-stopped_at: Plan 133-37 halted after immutable run 34732110533 failed post-publication qualification
-last_updated: "2026-09-13T03:04:44.200Z"
-last_activity: 2026-09-12
-last_activity_desc: Plan 133-37 preserved immutable ref/run history and prior canonical evidence after fail-closed qualification
-state_head: d61d4f566c9c92759a2c60ca9fc7c92b09534cae
+status: executing
+stopped_at: Completed 133-38-PLAN.md
+last_updated: "2026-09-13T14:02:33.008Z"
+last_activity: 2026-09-13
+last_activity_desc: Phase 133 execution started
+state_head: c93d615f9630031e567c4c0d847f8fb0ebe52088
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 42
-  completed_plans: 37
+  completed_plans: 38
 ---
 
 ## Project Reference
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-09-09 for v1.26)
 ## Current Position
 
 Phase: 133 (Evidence Charter and Live Truth) — READY TO EXECUTE
-Plan: 37 of 37
-Status: BLOCKED — Plan 133-37 exhausted its one authorized attempt; immutable run 34732110533 is green but post-publication qualification failed
-Last activity: 2026-09-12 — preserved the prior canonical receipt and pending requirements after the detached exact-SHA census gate could not start :rindle
+Plan: 39 of 42
+Status: Ready to execute
+Last activity: 2026-09-13 — Plan 133-38 repaired detached exact-subject authority execution without promoting requirements
 Progress: [███████░░░] 65%
 
 ## Performance Metrics
@@ -78,6 +78,7 @@ Progress: [███████░░░] 65%
 | Phase 133 P35 | 116min | 2 tasks | 5 files |
 | Phase 133 P36 | 15min | 1 tasks | 3 files |
 | Phase 133 P37 | 22min | 1 tasks | 3 files |
+| Phase 133 P38 | 16 min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -163,6 +164,9 @@ Progress: [███████░░░] 65%
 - [Phase 133]: Plan 133-36: authorize exactly one later non-force creation of refs/heads/phase-133-evidence-4ab38ab62878 at 4ab38ab62878eea936f20bb76e2f7321da6c2e90 and one bounded Plan 133-37 Nightly attempt.
 - [Phase 133]: Plan 133-36: human authorization grants no EVID-01/02/03/04 or TRUTH-08 completion or acceptance credit; terminal Plan 133-37 automation remains required.
 - [Phase 133]: Plan 133-37: preserve ref phase-133-evidence-4ab38ab62878 and run 34732110533 as immutable exhausted history; the green run grants no acceptance credit because post-publication qualification failed.
+- [Phase 133]: Run all three detached exact-subject authorities with --no-start while retaining exact-subject cwd and root caches.
+- [Phase 133]: Chain detached authorities explicitly so a middle validation failure cannot be masked by a later success.
+- [Phase 133]: Plan 38 grants no requirement credit and preserves Plan 37 receipt/ref/run history unchanged.
 
 ### Pending Todos
 
@@ -188,6 +192,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-09-13T02:14:15Z
-Stopped at: Plan 133-37 halted after immutable run 34732110533 failed post-publication qualification
+Last session: 2026-09-13T14:02:32.973Z
+Stopped at: Completed 133-38-PLAN.md
 Resume file: None
