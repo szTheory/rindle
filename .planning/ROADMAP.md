@@ -44,7 +44,7 @@ error vocabulary, release coupling, supported behavior, or the accepted pull-req
   3. Nightly aggregation fails for failed, cancelled, unexpected, or impermissibly skipped gating states, and automated incident tests prove one exact-run-bound issue opens or updates on failure and closes only after qualifying scheduled recovery.
   4. Executable parity checks derive release, planning, support, and adoption-proof claims from authoritative state and reject every unmarked version, lane-severity, or package-proof contradiction.
 
-**Plans**: 37/37 plans summarized; 34 completed, Plans 133-27, 133-32, and 133-37 halted with immutable attempts preserved, 0 pending.
+**Plans**: 37/42 plans summarized; 34 completed, Plans 133-27, 133-32, and 133-37 halted with immutable attempts preserved, 5 pending.
 
 Plans:
 
@@ -165,6 +165,26 @@ Plans:
 **Wave 27** *(blocked on exact authorization from Plan 133-36)*
 
 - [ ] 133-37-PLAN.md — Publish the authorized ref once, then either halt the failed immutable attempt or close Phase 133 only after every automated qualification gate passes.
+
+**Wave 28** *(consumes the immutable Plan 133-37 halt; no remote mutation)*
+
+- [ ] 133-38-PLAN.md — Prevent detached exact-subject local authority checks from starting the uncompiled application and lock the repair with a regression harness.
+
+**Wave 29** *(blocked on Plan 133-38)*
+
+- [ ] 133-39-PLAN.md — Extend reconciliation and validation to every legal repair, authorization-stop, attempt-failure, and success branch in the 42-plan graph.
+
+**Wave 30** *(blocked on Plan 133-39)*
+
+- [ ] 133-40-PLAN.md — Rebind the census to the newly repaired clean subject and pass the full local and read-only qualification matrix.
+
+**Wave 31** *(blocked on Plan 133-40)*
+
+- [ ] 133-41-PLAN.md — Obtain or stop a fresh exact-SHA/exact-ref one-time authorization without granting requirement credit.
+
+**Wave 32** *(blocked on exact authorization from Plan 133-41)*
+
+- [ ] 133-42-PLAN.md — Publish and dispatch exactly once, then promote the candidate receipt and close Phase 133 only after every automated gate passes.
 
 ### Phase 134: Dependency, Security, and Inbox Disposition
 
