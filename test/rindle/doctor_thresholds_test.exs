@@ -9,6 +9,8 @@ defmodule Rindle.DoctorThresholdsTest do
 
   setup_all do
     {config, _bindings} = Code.eval_file(@doctor_config_path)
+    {:ok, modules} = :application.get_key(:rindle, :modules)
+    Enum.each(modules, &Code.ensure_loaded!/1)
 
     reports =
       config
