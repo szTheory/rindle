@@ -5,16 +5,16 @@ milestone_name: Pre-Adopter Readiness & Quality Consolidation
 current_phase: 133
 current_phase_name: Evidence Charter and Live Truth
 status: executing
-stopped_at: Completed 133-34-PLAN.md
-last_updated: "2026-09-12T20:24:32.493Z"
+stopped_at: Completed 133-35-PLAN.md
+last_updated: "2026-09-13T01:24:32.010Z"
 last_activity: 2026-09-12
-last_activity_desc: Plan 133-34 completed; Plans 133-35 through 133-37 pending
-state_head: 43af8b3682f65c7abd69c36b311d11c908531a08
+last_activity_desc: Plan 133-35 completed; Plans 133-36 through 133-37 pending
+state_head: 5edbfbac0570496d9769dc2a47bd876fabb4d965
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 37
-  completed_plans: 34
+  completed_plans: 35
 ---
 
 ## Project Reference
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-09-09 for v1.26)
 ## Current Position
 
 Phase: 133 (Evidence Charter and Live Truth) — EXECUTING
-Plan: 35 of 37
-Status: EXECUTING — Plans 133-35 through 133-37 qualify, authorize, and verify a new exact subject while preserving the Plan 133-32 halt
-Last activity: 2026-09-12 — completed branch-aware reconciliation and append-only validation mapping
+Plan: 36 of 37
+Status: EXECUTING — Plans 133-36 through 133-37 authorize and verify the new exact subject while preserving the Plan 133-32 halt
+Last activity: 2026-09-12 — completed exact-subject local qualification with no remote mutation
 Progress: [███████░░░] 65%
 
 ## Performance Metrics
@@ -75,6 +75,7 @@ Progress: [███████░░░] 65%
 | Phase 133 P32 | 11m | 0 tasks | 4 files |
 | Phase 133 P33 | 19m | 2 tasks | 2 files |
 | Phase 133 P34 | 24min | 2 tasks | 3 files |
+| Phase 133 P35 | 116min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -154,6 +155,9 @@ Progress: [███████░░░] 65%
 - [Phase 133]: Carry the original collector deadline and selected databaseId through recovery while keeping workflow dispatch and issue mutations outside the recovery helper.
 - [Phase 133]: Plan 133-34: accept only seven exact Plans 33-37 lifecycle states; every other completed or halted set fails closed.
 - [Phase 133]: Plan 133-34: Plan 37 alone may complete Phase 133 requirements after verified qualification and terminal automation; Plan 36 is authorization-only.
+- [Phase 133]: Plan 133-35: Keep the reviewed Credo complexity baseline fixed and reduce fixture complexity in code.
+- [Phase 133]: Plan 133-35: Validate historical Nightly incidents as monotonic append-only history while preserving exact immutable run identity.
+- [Phase 133]: Plan 133-35: Local qualification does not close EVID-01 through EVID-04 or TRUTH-08; terminal Plan 37 evidence remains required.
 
 ### Pending Todos
 
@@ -178,6 +182,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-09-12T20:24:32.454Z
-Stopped at: Completed 133-34-PLAN.md
+Last session: 2026-09-13T01:24:31.974Z
+Stopped at: Completed 133-35-PLAN.md
 Resume file: None
