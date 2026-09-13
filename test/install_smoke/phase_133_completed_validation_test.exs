@@ -9,6 +9,7 @@ defmodule Rindle.InstallSmoke.Phase133CompletedValidationTest do
   @validator Path.join(@repo_root, "scripts/maintainer/validate_phase_133_reconciliation.exs")
   @active_heading "## Gap-Repair Validation Addendum (Plans 28–32)"
   @branch_heading "## Branch-Aware Validation Addendum (Plans 33–37)"
+  @closure_heading "## Plans 38–42 Gap-Closure Addendum"
   @failed_run "34661043059"
   @failed_subject "0f8189ddeed7e7a52b5c7464f17b70ab44596c33"
   @failed_ref "phase-133-evidence-0f8189ddeed7"
@@ -138,6 +139,80 @@ defmodule Rindle.InstallSmoke.Phase133CompletedValidationTest do
       assert record =~ "<acceptance-credit>authorization-only</acceptance-credit>"
       refute record =~ "<acceptance-credit>pending</acceptance-credit>"
     end
+  end
+
+  test "maps every Plans 38-42 command and adjacent failure exactly once without human credit" do
+    validation = File.read!(Path.join(@repo_root, "#{@phase_rel}/133-VALIDATION.md"))
+    assert [_prefix, addendum] = String.split(validation, @closure_heading)
+
+    expected =
+      Enum.flat_map(38..42, fn plan ->
+        plan_text = File.read!(Path.join(@repo_root, "#{@phase_rel}/133-#{plan}-PLAN.md"))
+
+        plan_text
+        |> then(&Regex.scan(~r/<task\b([^>]*)>(.*?)<\/task>/s, &1, capture: :all_but_first))
+        |> Enum.with_index(1)
+        |> Enum.flat_map(fn {[attributes, task_body], task_ordinal} ->
+          [verify_body] =
+            Regex.run(~r/<verify>\s*(.*?)\s*<\/verify>/s, task_body, capture: :all_but_first)
+
+          verify_body
+          |> then(fn body ->
+            Regex.scan(
+              ~r/<automated>\s*(.*?)\s*<\/automated>\s*<fails_when>\s*(.*?)\s*<\/fails_when>/s,
+              body,
+              capture: :all_but_first
+            )
+          end)
+          |> Enum.with_index(1)
+          |> Enum.map(fn {[command, failure], pair_ordinal} ->
+            %{
+              key:
+                "133-#{plan}-#{String.pad_leading(Integer.to_string(task_ordinal), 2, "0")}:#{pair_ordinal}",
+              command: String.trim(command),
+              failure: String.trim(failure),
+              credit:
+                cond do
+                  String.contains?(attributes, "checkpoint:") ->
+                    "authorization-only"
+
+                  plan == 42 and task_ordinal == 2 and pair_ordinal == 7 ->
+                    "terminal-completion"
+
+                  true ->
+                    "pending"
+                end
+            }
+          end)
+        end)
+      end)
+
+    records =
+      Regex.scan(
+        ~r/<pending-validation key="([^"]+)">(.*?)<\/pending-validation>/s,
+        addendum,
+        capture: :all_but_first
+      )
+
+    assert length(expected) == 27
+    assert length(records) == length(expected)
+
+    for {%{key: key, command: command, failure: failure, credit: credit}, [record_key, body]} <-
+          Enum.zip(expected, records) do
+      assert record_key == key
+      assert body =~ "<automated>\n#{command}\n</automated>"
+      assert body =~ "<fails_when>\n#{failure}\n</fails_when>"
+      assert body =~ "<requirements>EVID-01,EVID-02,EVID-03,EVID-04,TRUTH-08</requirements>"
+      assert body =~ "<acceptance-credit>#{credit}</acceptance-credit>"
+      refute body =~ "human-verification"
+      refute body =~ "manual acceptance"
+    end
+
+    assert addendum =~
+             "<flagged-unresolved key=\"133-38-specless-startup-boundary\">"
+
+    assert addendum =~
+             "<flagged-unresolved key=\"133-38-specless-context-boundary\">"
   end
 
   test "accepts every dependency-valid repair state with Plan 27 halted" do
