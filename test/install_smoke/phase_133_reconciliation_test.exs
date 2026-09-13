@@ -484,6 +484,51 @@ defmodule Rindle.InstallSmoke.Phase133Reconciliation42Test do
                "38/42 summarized, 27 validation records\n"
   end
 
+  test "accepts every reachable 42-plan authorization, stop, failure, and success state" do
+    cases = [
+      {:post_39, {36, 3, 3, 39}},
+      {:post_40, {37, 3, 2, 40}},
+      {:authorized, {38, 3, 1, 41}},
+      {:stopped, {37, 4, 1, 41}},
+      {:failed, {38, 4, 0, 42}},
+      {:qualified_success, {39, 3, 0, 42}}
+    ]
+
+    for {lifecycle, {completed, halted, pending, summarized}} <- cases do
+      fixture = write_fixture!()
+      set_state!(fixture, lifecycle)
+
+      assert {output, 0} = run_validator(fixture)
+      assert output =~ "#{completed} completed, #{halted} halted"
+      assert output =~ "#{pending} pending plans, #{summarized}/42 summarized"
+    end
+  end
+
+  test "rejects every one-step 42-plan authority contradiction with bounded diagnostics" do
+    cases = [
+      {:post_38, :roadmap_count, "roadmap detail"},
+      {:post_38, :missing_baseline_halt, "Plans 27, 32, and 37"},
+      {:post_40, :checked_halted_row, "Plan 37 must remain unchecked"},
+      {:post_40, :out_of_branch_halt, "roadmap detail"},
+      {:authorized, :premature_requirements, "requirement EVID-01"},
+      {:qualified_success, :pending_requirements, "requirements must be complete"},
+      {:qualified_success, :receipt_subject, "canonical receipt digest"},
+      {:post_39, :state_count, "STATE completed_plans"},
+      {:post_39, :progress_count, "roadmap Progress row"}
+    ]
+
+    for {lifecycle, mutation, diagnostic} <- cases do
+      fixture = write_fixture!()
+      set_state!(fixture, lifecycle)
+      mutate!(fixture, mutation)
+
+      assert {output, status} = run_validator(fixture)
+      assert status != 0
+      assert output =~ diagnostic
+      assert byte_size(output) < 2_048
+    end
+  end
+
   defp write_fixture! do
     root =
       Path.join(
@@ -539,8 +584,11 @@ defmodule Rindle.InstallSmoke.Phase133Reconciliation42Test do
     completed = MapSet.new(Enum.to_list(1..26) ++ [28, 29, 30, 31] ++ tail)
     halted = MapSet.new(halted)
 
+    receipt = Jason.encode!(%{"subject_sha" => String.duplicate("a", 40)}) <> "\n"
+    File.write!(Path.join(fixture.root, "#{@phase_rel}/133-NIGHTLY-EVIDENCE.json"), receipt)
+
     for plan <- 1..42 do
-      write_summary!(fixture.root, plan, completed, halted, lifecycle)
+      write_summary!(fixture.root, plan, completed, halted, lifecycle, receipt)
     end
 
     summarized = MapSet.size(completed) + MapSet.size(halted)
@@ -571,7 +619,7 @@ defmodule Rindle.InstallSmoke.Phase133Reconciliation42Test do
 
       | Phase | Plans Complete | Status | Completed |
       |-------|----------------|--------|-----------|
-      | 133. Evidence Charter and Live Truth | #{summarized}/42 | In Progress |  |
+      | 133. Evidence Charter and Live Truth | #{summarized}/42 | #{progress_status(lifecycle)} | #{progress_date(lifecycle)} |
       """
     )
 
@@ -580,7 +628,7 @@ defmodule Rindle.InstallSmoke.Phase133Reconciliation42Test do
       """
       ---
       current_phase: 133
-      status: executing
+      status: #{state_status(lifecycle)}
       progress:
         total_plans: 42
         completed_plans: #{summarized}
@@ -588,8 +636,8 @@ defmodule Rindle.InstallSmoke.Phase133Reconciliation42Test do
 
       ## Current Position
 
-      Plan: #{summarized + 1} of 42
-      Status: EXECUTING
+      Plan: #{state_plan(lifecycle, summarized)} of 42
+      Status: #{String.upcase(state_status(lifecycle))}
       """
     )
 
@@ -599,26 +647,85 @@ defmodule Rindle.InstallSmoke.Phase133Reconciliation42Test do
   defp lifecycle_state(:post_38),
     do: {[33, 34, 35, 36, 38], [27, 32, 37], false}
 
+  defp lifecycle_state(:post_39),
+    do: {[33, 34, 35, 36, 38, 39], [27, 32, 37], false}
+
+  defp lifecycle_state(:post_40),
+    do: {[33, 34, 35, 36, 38, 39, 40], [27, 32, 37], false}
+
+  defp lifecycle_state(:authorized),
+    do: {[33, 34, 35, 36, 38, 39, 40, 41], [27, 32, 37], false}
+
+  defp lifecycle_state(:stopped),
+    do: {[33, 34, 35, 36, 38, 39, 40], [27, 32, 37, 41], false}
+
+  defp lifecycle_state(:failed),
+    do: {[33, 34, 35, 36, 38, 39, 40, 41], [27, 32, 37, 42], false}
+
+  defp lifecycle_state(:qualified_success),
+    do: {[33, 34, 35, 36, 38, 39, 40, 41, 42], [27, 32, 37], true}
+
+  defp roadmap_detail(:stopped, _summarized, _completed, _pending) do
+    "**Plans**: 41/42 plans summarized; 37 completed, Plans 133-27, 133-32, 133-37, " <>
+      "and 133-41 halted with immutable attempts preserved, Plan 133-42 blocked."
+  end
+
+  defp roadmap_detail(:failed, _summarized, _completed, _pending) do
+    "**Plans**: 42/42 plans summarized; 38 completed, Plans 133-27, 133-32, 133-37, " <>
+      "and 133-42 halted with immutable attempts preserved, 0 pending."
+  end
+
   defp roadmap_detail(_lifecycle, summarized, completed, pending) do
     "**Plans**: #{summarized}/42 plans summarized; #{completed} completed, " <>
       "Plans 133-27, 133-32, and 133-37 halted with immutable attempts preserved, " <>
       "#{pending} pending."
   end
 
-  defp write_summary!(root, plan, completed, halted, lifecycle) do
+  defp write_summary!(root, plan, completed, halted, lifecycle, receipt) do
     path = summary_path(root, plan)
     File.mkdir_p!(Path.dirname(path))
 
     cond do
-      MapSet.member?(completed, plan) -> File.write!(path, complete_summary(plan, lifecycle))
-      plan == 27 and MapSet.member?(halted, plan) -> File.write!(path, halted_27_summary())
-      plan == 32 and MapSet.member?(halted, plan) -> File.write!(path, halted_32_summary())
-      plan == 37 and MapSet.member?(halted, plan) -> File.write!(path, halted_37_summary())
-      true -> File.rm(path)
+      MapSet.member?(completed, plan) ->
+        File.write!(path, complete_summary(plan, lifecycle, receipt))
+
+      plan == 27 and MapSet.member?(halted, plan) ->
+        File.write!(path, halted_27_summary())
+
+      plan == 32 and MapSet.member?(halted, plan) ->
+        File.write!(path, halted_32_summary())
+
+      plan == 37 and MapSet.member?(halted, plan) ->
+        File.write!(path, halted_37_summary())
+
+      plan == 41 and MapSet.member?(halted, plan) ->
+        File.write!(path, halted_41_summary())
+
+      plan == 42 and MapSet.member?(halted, plan) ->
+        File.write!(path, halted_42_summary())
+
+      true ->
+        File.rm(path)
     end
   end
 
-  defp complete_summary(_plan, _lifecycle), do: "---\nstatus: complete\n---\n"
+  defp complete_summary(41, _lifecycle, _receipt),
+    do: "---\nstatus: complete\ndecision: authorize\n---\n"
+
+  defp complete_summary(42, :qualified_success, receipt) do
+    """
+    ---
+    status: complete
+    qualification: verified
+    terminal_automation: passed
+    subject_sha: #{String.duplicate("a", 40)}
+    receipt_sha256: #{sha256(receipt)}
+    requirements_completed: [EVID-01, EVID-02, EVID-03, EVID-04, TRUTH-08]
+    ---
+    """
+  end
+
+  defp complete_summary(_plan, _lifecycle, _receipt), do: "---\nstatus: complete\n---\n"
 
   defp halted_27_summary do
     """
@@ -626,7 +733,7 @@ defmodule Rindle.InstallSmoke.Phase133Reconciliation42Test do
     status: halted
     halt_reason: "Dispatch-owned Nightly run 34661043059 attempt 1 completed failure."
     ---
-    Run `34661043059`, attempt `1`, subject `0f8189ddeed7e7a52b5c7464f17b70ab44596c33`, ref `phase-133-evidence-0f8189ddeed7`.
+    Run `34661043059`, attempt `1`, subject `0f8189ddeed7e7a52b5c7464f17b70ab44596c33`, ref `refs/heads/phase-133-evidence-0f8189ddeed7`.
     """
   end
 
@@ -642,6 +749,72 @@ defmodule Rindle.InstallSmoke.Phase133Reconciliation42Test do
 
   defp halted_37_summary,
     do: "---\nstatus: halted\nhalt_reason: immutable terminal automation failure\n---\n"
+
+  defp halted_41_summary,
+    do: "---\nstatus: halted\ndecision: stop\n---\n"
+
+  defp halted_42_summary,
+    do: "---\nstatus: halted\nhalt_reason: immutable terminal automation failure\n---\n"
+
+  defp progress_status(:qualified_success), do: "Complete"
+  defp progress_status(_lifecycle), do: "In Progress"
+  defp progress_date(:qualified_success), do: "2026-09-13"
+  defp progress_date(_lifecycle), do: ""
+
+  defp state_status(:qualified_success), do: "complete"
+  defp state_status(lifecycle) when lifecycle in [:stopped, :failed], do: "blocked"
+  defp state_status(_lifecycle), do: "executing"
+
+  defp state_plan(lifecycle, _summarized)
+       when lifecycle in [:qualified_success, :stopped, :failed],
+       do: 42
+
+  defp state_plan(_lifecycle, summarized), do: summarized + 1
+
+  defp mutate!(fixture, :roadmap_count) do
+    mutate_file!(
+      fixture.roadmap,
+      &String.replace(&1, "38/42 plans summarized", "37/42 plans summarized")
+    )
+  end
+
+  defp mutate!(fixture, :missing_baseline_halt),
+    do: File.rm!(summary_path(fixture.root, 37))
+
+  defp mutate!(fixture, :checked_halted_row) do
+    mutate_file!(
+      fixture.roadmap,
+      &String.replace(&1, "- [ ] 133-37-PLAN.md", "- [x] 133-37-PLAN.md")
+    )
+  end
+
+  defp mutate!(fixture, :out_of_branch_halt),
+    do: File.write!(summary_path(fixture.root, 41), halted_41_summary())
+
+  defp mutate!(fixture, :premature_requirements),
+    do: File.write!(fixture.requirements, requirements_fixture(true))
+
+  defp mutate!(fixture, :pending_requirements),
+    do: File.write!(fixture.requirements, requirements_fixture(false))
+
+  defp mutate!(fixture, :receipt_subject) do
+    receipt_path = Path.join(fixture.root, "#{@phase_rel}/133-NIGHTLY-EVIDENCE.json")
+
+    File.write!(
+      receipt_path,
+      Jason.encode!(%{"subject_sha" => String.duplicate("b", 40)}) <> "\n"
+    )
+  end
+
+  defp mutate!(fixture, :state_count) do
+    mutate_file!(fixture.state, &String.replace(&1, "completed_plans: 39", "completed_plans: 38"))
+  end
+
+  defp mutate!(fixture, :progress_count) do
+    mutate_file!(fixture.roadmap, &String.replace(&1, "| 39/42 |", "| 38/42 |"))
+  end
+
+  defp mutate_file!(path, fun), do: File.write!(path, fun.(File.read!(path)))
 
   defp requirements_fixture(complete?) do
     checkbox = if complete?, do: "x", else: " "
