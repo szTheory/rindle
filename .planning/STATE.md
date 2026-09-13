@@ -5,16 +5,16 @@ milestone_name: Pre-Adopter Readiness & Quality Consolidation
 current_phase: 133
 current_phase_name: Evidence Charter and Live Truth
 status: executing
-stopped_at: Completed 133-35-PLAN.md
-last_updated: "2026-09-13T01:24:32.010Z"
+stopped_at: Completed 133-36-PLAN.md
+last_updated: "2026-09-13T01:47:27.259Z"
 last_activity: 2026-09-12
-last_activity_desc: Plan 133-35 completed; Plans 133-36 through 133-37 pending
-state_head: 5edbfbac0570496d9769dc2a47bd876fabb4d965
+last_activity_desc: Plan 133-36 authorized the exact repaired SHA/ref pair; Plan 133-37 pending
+state_head: 06546046e06e6bd1c606a44aba85c7258d0d2a3c
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 37
-  completed_plans: 35
+  completed_plans: 36
 ---
 
 ## Project Reference
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-09-09 for v1.26)
 ## Current Position
 
 Phase: 133 (Evidence Charter and Live Truth) — EXECUTING
-Plan: 36 of 37
-Status: EXECUTING — Plans 133-36 through 133-37 authorize and verify the new exact subject while preserving the Plan 133-32 halt
-Last activity: 2026-09-12 — completed exact-subject local qualification with no remote mutation
+Plan: 37 of 37
+Status: EXECUTING — Plan 133-37 may perform the single authorized exact-subject attempt while preserving the Plan 133-27/32 halts
+Last activity: 2026-09-12 — authorized the literal 4ab38ab6 SHA/ref pair with no remote mutation or requirement credit
 Progress: [███████░░░] 65%
 
 ## Performance Metrics
@@ -76,6 +76,7 @@ Progress: [███████░░░] 65%
 | Phase 133 P33 | 19m | 2 tasks | 2 files |
 | Phase 133 P34 | 24min | 2 tasks | 3 files |
 | Phase 133 P35 | 116min | 2 tasks | 5 files |
+| Phase 133 P36 | 15min | 1 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -158,6 +159,8 @@ Progress: [███████░░░] 65%
 - [Phase 133]: Plan 133-35: Keep the reviewed Credo complexity baseline fixed and reduce fixture complexity in code.
 - [Phase 133]: Plan 133-35: Validate historical Nightly incidents as monotonic append-only history while preserving exact immutable run identity.
 - [Phase 133]: Plan 133-35: Local qualification does not close EVID-01 through EVID-04 or TRUTH-08; terminal Plan 37 evidence remains required.
+- [Phase 133]: Plan 133-36: authorize exactly one later non-force creation of refs/heads/phase-133-evidence-4ab38ab62878 at 4ab38ab62878eea936f20bb76e2f7321da6c2e90 and one bounded Plan 133-37 Nightly attempt.
+- [Phase 133]: Plan 133-36: human authorization grants no EVID-01/02/03/04 or TRUTH-08 completion or acceptance credit; terminal Plan 133-37 automation remains required.
 
 ### Pending Todos
 
@@ -182,6 +185,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-09-13T01:24:31.974Z
-Stopped at: Completed 133-35-PLAN.md
+Last session: 2026-09-13T01:47:27.232Z
+Stopped at: Completed 133-36-PLAN.md
 Resume file: None
