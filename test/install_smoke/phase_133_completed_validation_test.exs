@@ -478,16 +478,7 @@ defmodule Rindle.InstallSmoke.Phase133CompletedValidationTest do
     halted = MapSet.new(halted)
 
     for plan <- 1..37 do
-      path = summary_path(fixture.root, plan)
-      File.mkdir_p!(Path.dirname(path))
-
-      cond do
-        MapSet.member?(completed, plan) -> File.write!(path, branch_complete_summary(plan))
-        plan == 27 and MapSet.member?(halted, plan) -> File.write!(path, halted_summary())
-        plan == 32 and MapSet.member?(halted, plan) -> File.write!(path, rate_limited_summary())
-        MapSet.member?(halted, plan) -> File.write!(path, branch_halted_summary(plan))
-        true -> File.rm(path)
-      end
+      write_branch_summary!(fixture.root, plan, completed, halted)
     end
 
     summarized_count = MapSet.size(completed) + MapSet.size(halted)
@@ -553,6 +544,19 @@ defmodule Rindle.InstallSmoke.Phase133CompletedValidationTest do
     )
 
     File.write!(fixture.requirements, requirements_fixture(requirements_complete?))
+  end
+
+  defp write_branch_summary!(root, plan, completed, halted) do
+    path = summary_path(root, plan)
+    File.mkdir_p!(Path.dirname(path))
+
+    cond do
+      MapSet.member?(completed, plan) -> File.write!(path, branch_complete_summary(plan))
+      plan == 27 and MapSet.member?(halted, plan) -> File.write!(path, halted_summary())
+      plan == 32 and MapSet.member?(halted, plan) -> File.write!(path, rate_limited_summary())
+      MapSet.member?(halted, plan) -> File.write!(path, branch_halted_summary(plan))
+      true -> File.rm(path)
+    end
   end
 
   defp branch_lifecycle(completed, halted) do
