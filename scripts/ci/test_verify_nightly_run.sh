@@ -57,21 +57,21 @@ run_case() {
       FAKE_GH_STATE=success FAKE_AUTHORITY_STATE=success FAKE_AUTHORITY_LOG="${temp}/authority-calls" \
       bash "$collector" verify-receipt --repo szTheory/rindle --workflow nightly.yml \
         --ref phase-133-evidence-aaaaaaaaaaaa --expected-sha aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \
-        --receipt "${temp}/receipt.json" >/dev/null 2>&1 || got=$?
+        --receipt "${temp}/receipt.json" >>"${temp}/output" 2>&1 || got=$?
     if [ "$got" -eq 0 ]; then
       PATH="${temp}/bin:${PATH}" FAKE_GH_LOG="${temp}/calls" FAKE_GH_COUNT_FILE="${temp}/count" \
         FAKE_GH_RUN_LIST_COUNT_FILE="${temp}/run-list-count" \
         FAKE_GH_STATE=success FAKE_AUTHORITY_STATE=success FAKE_AUTHORITY_LOG="${temp}/authority-calls" \
         bash "$collector" verify-receipt --repo szTheory/rindle --workflow nightly.yml \
           --ref phase-133-evidence-aaaaaaaaaaaa --expected-sha aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \
-          --receipt "${temp}/receipt.json" >/dev/null 2>&1 || got=$?
+          --receipt "${temp}/receipt.json" >>"${temp}/output" 2>&1 || got=$?
     fi
   fi
 
   if [ "$got" -eq "$want_exit" ] && { [ "$want_exit" -eq 0 ] && cmp -s "${temp}/receipt.json" <(jq -S . "${temp}/receipt.json") || [ ! -e "${temp}/receipt.json" ]; }; then
     record "$name" true
   else
-    record "$name" false "expected exit ${want_exit}, got ${got}; receipt state unexpected"
+    record "$name" false "expected exit ${want_exit}, got ${got}; receipt state unexpected; $(tail -1 "${temp}/output" 2>/dev/null || true)"
   fi
 
   if [ "$state" = success ]; then
@@ -384,7 +384,7 @@ verify_mutation_case() {
 }
 
 verify_live_state_case() {
-  local name="$1" state="$2" temp got=0 before_sha after_sha
+  local name="$1" state="$2" want_exit="${3:-1}" temp got=0 before_sha after_sha
   temp="$(mktemp -d)"
 
   if ! collect_valid_receipt "$temp"; then
@@ -405,12 +405,12 @@ verify_live_state_case() {
       --receipt "${temp}/receipt.json" >/dev/null 2>&1 || got=$?
   after_sha="$(shasum -a 256 "${temp}/receipt.json" | awk '{print $1}')"
 
-  if [ "$got" -ne 0 ] &&
+  if [ "$got" -eq "$want_exit" ] &&
      [ "$before_sha" = "$after_sha" ] &&
      ! grep -Eq '^(workflow run|issue (create|comment|close|edit|delete)|run (cancel|rerun|delete))' "${temp}/calls"; then
     record "$name" true
   else
-    record "$name" false "live authority failure was accepted (exit ${got})"
+    record "$name" false "expected exit ${want_exit}, got ${got}, or verification mutated authority"
   fi
   rm -rf "$temp"
 }
@@ -579,7 +579,11 @@ else
   record "receipt validation has no substring toolchain fallback" true
 fi
 
-verify_live_state_case "fresh incident drift fails closed" incident_verify_changed
+verify_live_state_case "later unrelated incident comment preserves historical receipt" incident_verify_appended 0
+verify_live_state_case "later successive incident marker preserves historical receipt" incident_verify_successive 0
+verify_live_state_case "missing historical incident fails closed" incident_verify_missing
+verify_live_state_case "contradictory historical incident fails closed" incident_verify_changed
+verify_live_state_case "foreign live run identity fails closed" foreign_run_sha
 verify_live_state_case "local validator failure fails closed" local_validator_failure
 verify_live_state_case "ledger path missing at recorded commit fails closed" missing_path_at_commit
 verify_live_state_case "ledger blob mismatch fails closed" blob_mismatch
@@ -805,6 +809,7 @@ case "${1-} ${2-}" in
       [ "$state" != rerun ] || attempt=2
       [ "$state" != nonterminal ] || status=in_progress
       [ "$state" != red_run ] || conclusion=failure
+      [ "$state" != foreign_run_sha ] || sha=bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
       detail_id=9001
       [ "$state" != detail_id_mismatch ] || detail_id=9002
       jq -cn --arg sha "$sha" --arg ref "$ref" --arg created "$created" --argjson jobs "$jobs" --argjson attempt "$attempt" --argjson databaseId "$detail_id" --arg status "$status" --arg conclusion "$conclusion" '{attempt:$attempt,conclusion:$conclusion,createdAt:$created,databaseId:$databaseId,event:"workflow_dispatch",headBranch:$ref,headSha:$sha,jobs:$jobs,status:$status,url:"https://github.test/runs/9001",workflowName:"Nightly"}'
@@ -812,13 +817,25 @@ case "${1-} ${2-}" in
     ;;
   "issue list")
     count="$(cat "$FAKE_GH_COUNT_FILE" 2>/dev/null || printf 0)"; count=$((count + 1)); printf '%s' "$count" >"$FAKE_GH_COUNT_FILE"
-    if [ "$count" -eq 2 ]; then
+    if [ "$count" -ge 2 ]; then
       rate_limit_read_if_needed incident_after
     fi
     body=nightly-run:8000:1
     [ "$state" != incident_changed ] || { [ "$count" -eq 1 ] || body=nightly-run:9001:1; }
     [ "$state" != incident_verify_changed ] || body=nightly-run:forged:1
-    jq -cn --arg body "$body" '[{number:88,title:"Nightly CI failure",body:$body,comments:[],updatedAt:"2026-09-09T11:00:00Z",url:"https://github.test/issues/88"}]'
+    [ "$state" != incident_verify_missing ] || { printf '[]\n'; exit; }
+    comments='[]'
+    updated_at=2026-09-09T11:00:00Z
+    if [ "$state" = incident_verify_appended ] || [ "$state" = incident_verify_successive ]; then
+      updated_at=2026-09-10T11:00:00Z
+      if [ "$state" = incident_verify_successive ]; then
+        comment_body=nightly-run:9002:1
+      else
+        comment_body='maintainer context unrelated to the recorded run'
+      fi
+      comments="$(jq -cn --arg body "$comment_body" '[{author:{login:"github-actions"},authorAssociation:"CONTRIBUTOR",body:$body,createdAt:"2026-09-10T11:00:00Z",id:"IC_later",includesCreatedEdit:false,isMinimized:false,minimizedReason:"",reactionGroups:[],url:"https://github.test/issues/88#issuecomment-later",viewerDidAuthor:false}]')"
+    fi
+    jq -cn --arg body "$body" --arg updatedAt "$updated_at" --argjson comments "$comments" '[{number:88,title:"Nightly CI failure",body:$body,comments:$comments,updatedAt:$updatedAt,url:"https://github.test/issues/88"}]'
     ;;
   *) echo "unexpected fake gh call: $*" >&2; exit 43 ;;
 esac

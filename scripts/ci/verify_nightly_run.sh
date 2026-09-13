@@ -482,9 +482,45 @@ revalidate_local_authorities() {
 compare_exact_local_and_incident_receipt() {
   local path="$1" incidents="$2" local_authorities="$3"
   jq -e --argjson incidents "$incidents" '
-    .incident_snapshot_before == $incidents and
-    .incident_snapshot_after == $incidents
-  ' "$path" >/dev/null || die "receipt incident evidence is stale relative to the fresh exact-label snapshot"
+    def exact_keys($expected): (type == "object") and ((keys) == ($expected | sort));
+    def valid_reactions:
+      type == "array" and all(.[];
+        exact_keys(["content","users"]) and
+        (.content | type == "string") and
+        (.users | exact_keys(["totalCount"])) and (.users.totalCount | type == "number"));
+    def valid_comments:
+      type == "array" and all(.[];
+        exact_keys(["author","authorAssociation","body","createdAt","id","includesCreatedEdit","isMinimized","minimizedReason","reactionGroups","url","viewerDidAuthor"]) and
+        (.author | exact_keys(["login"])) and (.author.login | type == "string") and
+        (.authorAssociation | type == "string") and (.body | type == "string") and
+        (.createdAt | type == "string" and fromdateiso8601 >= 0) and (.id | type == "string") and
+        (.includesCreatedEdit | type == "boolean") and (.isMinimized | type == "boolean") and
+        (.minimizedReason | type == "string") and (.reactionGroups | valid_reactions) and
+        (.url | type == "string") and (.viewerDidAuthor | type == "boolean"));
+    def valid_incidents:
+      type == "array" and
+      ([.[].number] | unique | length) == length and
+      all(.[];
+        exact_keys(["body","comments","number","title","updatedAt","url"]) and
+        (.number | type == "number") and (.title | type == "string") and
+        (.body | type == "string") and (.comments | valid_comments) and
+        (.updatedAt | type == "string" and fromdateiso8601 >= 0) and (.url | type == "string"));
+    def preserves_incident($recorded; $current):
+      $current.number == $recorded.number and
+      $current.title == $recorded.title and
+      $current.body == $recorded.body and
+      $current.url == $recorded.url and
+      (($current.updatedAt | fromdateiso8601) >= ($recorded.updatedAt | fromdateiso8601)) and
+      all($recorded.comments[];
+        . as $comment | ($current.comments | index($comment)) != null);
+
+    (.incident_snapshot_before == .incident_snapshot_after) and
+    ($incidents | valid_incidents) and
+    (($incidents | length) == (.incident_snapshot_after | length)) and
+    all(.incident_snapshot_after[];
+      . as $recorded |
+      any($incidents[]; .number == $recorded.number and preserves_incident($recorded; .)))
+  ' "$path" >/dev/null || die "receipt incident history is missing or contradicts its durable snapshot"
   jq -e --argjson local "$local_authorities" '.local_authorities == $local' "$path" >/dev/null ||
     die "receipt local-authority evidence differs from exact-subject revalidation"
 }
