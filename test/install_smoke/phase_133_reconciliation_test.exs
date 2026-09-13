@@ -685,29 +685,26 @@ defmodule Rindle.InstallSmoke.Phase133Reconciliation42Test do
     path = summary_path(root, plan)
     File.mkdir_p!(Path.dirname(path))
 
-    cond do
-      MapSet.member?(completed, plan) ->
-        File.write!(path, complete_summary(plan, lifecycle, receipt))
-
-      plan == 27 and MapSet.member?(halted, plan) ->
-        File.write!(path, halted_27_summary())
-
-      plan == 32 and MapSet.member?(halted, plan) ->
-        File.write!(path, halted_32_summary())
-
-      plan == 37 and MapSet.member?(halted, plan) ->
-        File.write!(path, halted_37_summary())
-
-      plan == 41 and MapSet.member?(halted, plan) ->
-        File.write!(path, halted_41_summary())
-
-      plan == 42 and MapSet.member?(halted, plan) ->
-        File.write!(path, halted_42_summary())
-
-      true ->
-        File.rm(path)
+    if MapSet.member?(completed, plan) do
+      File.write!(path, complete_summary(plan, lifecycle, receipt))
+    else
+      write_halted_summary_or_remove!(path, plan, halted)
     end
   end
+
+  defp write_halted_summary_or_remove!(path, plan, halted) do
+    case {MapSet.member?(halted, plan), halted_summary(plan)} do
+      {true, summary} when is_binary(summary) -> File.write!(path, summary)
+      _other -> File.rm(path)
+    end
+  end
+
+  defp halted_summary(27), do: halted_27_summary()
+  defp halted_summary(32), do: halted_32_summary()
+  defp halted_summary(37), do: halted_37_summary()
+  defp halted_summary(41), do: halted_41_summary()
+  defp halted_summary(42), do: halted_42_summary()
+  defp halted_summary(_plan), do: nil
 
   defp complete_summary(41, _lifecycle, _receipt),
     do: "---\nstatus: complete\ndecision: authorize\n---\n"

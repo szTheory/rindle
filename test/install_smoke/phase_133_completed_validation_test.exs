@@ -188,58 +188,7 @@ defmodule Rindle.InstallSmoke.Phase133CompletedValidationTest do
   defp assert_closure_map!(validation) do
     assert [_prefix, addendum] = String.split(validation, @closure_heading)
 
-    expected =
-      Enum.flat_map(38..42, fn plan ->
-        plan_text = File.read!(Path.join(@repo_root, "#{@phase_rel}/133-#{plan}-PLAN.md"))
-
-        plan_text
-        |> then(&Regex.scan(~r/<task\b([^>]*)>(.*?)<\/task>/s, &1, capture: :all_but_first))
-        |> Enum.with_index(1)
-        |> Enum.flat_map(fn {[attributes, task_body], task_ordinal} ->
-          [verify_body] =
-            Regex.run(~r/<verify>\s*(.*?)\s*<\/verify>/s, task_body, capture: :all_but_first)
-
-          verify_body
-          |> then(fn body ->
-            Regex.scan(
-              ~r/<automated>\s*(.*?)\s*<\/automated>\s*<fails_when>\s*(.*?)\s*<\/fails_when>/s,
-              body,
-              capture: :all_but_first
-            )
-          end)
-          |> Enum.with_index(1)
-          |> Enum.map(fn {[command, failure], pair_ordinal} ->
-            %{
-              key:
-                "133-#{plan}-#{String.pad_leading(Integer.to_string(task_ordinal), 2, "0")}:#{pair_ordinal}",
-              command: String.trim(command),
-              failure: String.trim(failure),
-              level:
-                Map.fetch!(
-                  %{
-                    38 => "repair-backstop",
-                    39 => "reconciliation-authority",
-                    40 => "exact-subject-qualification",
-                    41 => "authorization-only",
-                    42 => "terminal-attempt"
-                  },
-                  plan
-                ),
-              credit:
-                cond do
-                  String.contains?(attributes, "checkpoint:") ->
-                    "authorization-only"
-
-                  plan == 42 and task_ordinal == 2 and pair_ordinal == 6 ->
-                    "terminal-completion"
-
-                  true ->
-                    "pending"
-                end
-            }
-          end)
-        end)
-      end)
+    expected = Enum.flat_map(38..42, &expected_closure_records/1)
 
     records =
       Regex.scan(
@@ -269,6 +218,53 @@ defmodule Rindle.InstallSmoke.Phase133CompletedValidationTest do
 
     assert addendum =~
              "<flagged-unresolved key=\"133-38-specless-context-boundary\">"
+  end
+
+  defp expected_closure_records(plan) do
+    plan_text = File.read!(Path.join(@repo_root, "#{@phase_rel}/133-#{plan}-PLAN.md"))
+
+    plan_text
+    |> then(&Regex.scan(~r/<task\b([^>]*)>(.*?)<\/task>/s, &1, capture: :all_but_first))
+    |> Enum.with_index(1)
+    |> Enum.flat_map(&expected_task_records(&1, plan))
+  end
+
+  defp expected_task_records({[attributes, task_body], task_ordinal}, plan) do
+    [verify_body] =
+      Regex.run(~r/<verify>\s*(.*?)\s*<\/verify>/s, task_body, capture: :all_but_first)
+
+    Regex.scan(
+      ~r/<automated>\s*(.*?)\s*<\/automated>\s*<fails_when>\s*(.*?)\s*<\/fails_when>/s,
+      verify_body,
+      capture: :all_but_first
+    )
+    |> Enum.with_index(1)
+    |> Enum.map(&closure_record(&1, plan, task_ordinal, attributes))
+  end
+
+  defp closure_record({[command, failure], pair_ordinal}, plan, task_ordinal, attributes) do
+    %{
+      key:
+        "133-#{plan}-#{String.pad_leading(Integer.to_string(task_ordinal), 2, "0")}:#{pair_ordinal}",
+      command: String.trim(command),
+      failure: String.trim(failure),
+      level: closure_validation_level(plan),
+      credit: closure_acceptance_credit(plan, task_ordinal, pair_ordinal, attributes)
+    }
+  end
+
+  defp closure_validation_level(38), do: "repair-backstop"
+  defp closure_validation_level(39), do: "reconciliation-authority"
+  defp closure_validation_level(40), do: "exact-subject-qualification"
+  defp closure_validation_level(41), do: "authorization-only"
+  defp closure_validation_level(42), do: "terminal-attempt"
+
+  defp closure_acceptance_credit(plan, task_ordinal, pair_ordinal, attributes) do
+    cond do
+      String.contains?(attributes, "checkpoint:") -> "authorization-only"
+      plan == 42 and task_ordinal == 2 and pair_ordinal == 6 -> "terminal-completion"
+      true -> "pending"
+    end
   end
 
   defp replace_in_closure(validation, fun) do
