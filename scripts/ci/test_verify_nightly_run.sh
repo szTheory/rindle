@@ -58,6 +58,85 @@ verify_uncompiled_subject_case() {
   rm -rf "$temp"
 }
 
+verify_authority_argv_case() {
+  local temp got=0 first second third context_count
+  temp="$(mktemp -d)"
+  make_fake_gh "${temp}/bin"
+  make_fake_local_authorities "${temp}/bin"
+  : >"${temp}/calls"
+  : >"${temp}/count"
+  : >"${temp}/run-list-count"
+  : >"${temp}/watch-count"
+  mkdir -p "${temp}/read-counts"
+  : >"${temp}/authority-calls"
+
+  PATH="${temp}/bin:${PATH}" FAKE_GH_LOG="${temp}/calls" FAKE_GH_COUNT_FILE="${temp}/count" \
+    FAKE_GH_RUN_LIST_COUNT_FILE="${temp}/run-list-count" \
+    FAKE_GH_WATCH_COUNT_FILE="${temp}/watch-count" \
+    FAKE_GH_READ_COUNT_DIR="${temp}/read-counts" \
+    FAKE_GH_STATE=uncompiled_subject FAKE_AUTHORITY_STATE=uncompiled_subject \
+    FAKE_AUTHORITY_LOG="${temp}/authority-calls" \
+    bash "$collector" dispatch-and-record --repo szTheory/rindle --workflow nightly.yml \
+      --ref phase-133-evidence-aaaaaaaaaaaa --expected-sha aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \
+      --receipt "${temp}/receipt.json" --poll-seconds 0 --timeout-seconds 2 >"${temp}/output" 2>&1 || got=$?
+
+  context_count="$(grep -c '^mix-context ' "${temp}/authority-calls" || true)"
+  first="$(grep '^mix-context ' "${temp}/authority-calls" | sed -n '1p' || true)"
+  second="$(grep '^mix-context ' "${temp}/authority-calls" | sed -n '2p' || true)"
+  third="$(grep '^mix-context ' "${temp}/authority-calls" | sed -n '3p' || true)"
+  if [ "$got" -eq 0 ] && [ "$context_count" -eq 3 ] &&
+     [[ "$first" == *'/subject mix_env=test deps='*'/deps build='*'/_build argv=run --no-start --no-deps-check --no-compile scripts/maintainer/evidence_census.exs '* ]] &&
+     [[ "$second" == *'/subject mix_env=test deps='*'/deps build='*'/_build argv=run --no-start --no-deps-check --no-compile scripts/maintainer/validate_evidence_census.exs '* ]] &&
+     [[ "$third" == *'/subject mix_env=test deps='*'/deps build='*'/_build argv=run --no-start --no-deps-check --no-compile -e Code.require_file('*'validate_live_truth.exs'* ]]; then
+    record "detached authority log locks exact ordered context" true
+  else
+    record "detached authority log locks exact ordered context" false \
+      "expected three ordered detached/cache contexts, got ${context_count}; exit ${got}"
+  fi
+  rm -rf "$temp"
+}
+
+verify_missing_no_start_mutation() {
+  local call_index="$1" authority_name="$2" temp mutated_collector got=0
+  temp="$(mktemp -d)"
+  mutated_collector="${temp}/verify_nightly_run.sh"
+  awk -v target="$call_index" '
+    index($0, "\"$mix_executable\" run --no-start") {
+      seen++
+      if (seen == target) sub(/ --no-start/, "")
+    }
+    { print }
+  ' "$collector" >"$mutated_collector"
+  make_fake_gh "${temp}/bin"
+  make_fake_local_authorities "${temp}/bin"
+  : >"${temp}/calls"
+  : >"${temp}/count"
+  : >"${temp}/run-list-count"
+  : >"${temp}/watch-count"
+  mkdir -p "${temp}/read-counts"
+  : >"${temp}/authority-calls"
+
+  PATH="${temp}/bin:${PATH}" FAKE_GH_LOG="${temp}/calls" FAKE_GH_COUNT_FILE="${temp}/count" \
+    FAKE_GH_RUN_LIST_COUNT_FILE="${temp}/run-list-count" \
+    FAKE_GH_WATCH_COUNT_FILE="${temp}/watch-count" \
+    FAKE_GH_READ_COUNT_DIR="${temp}/read-counts" \
+    FAKE_GH_STATE=uncompiled_subject FAKE_AUTHORITY_STATE=uncompiled_subject \
+    FAKE_AUTHORITY_LOG="${temp}/authority-calls" \
+    bash "$mutated_collector" dispatch-and-record --repo szTheory/rindle --workflow nightly.yml \
+      --ref phase-133-evidence-aaaaaaaaaaaa --expected-sha aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \
+      --receipt "${temp}/receipt.json" --poll-seconds 0 --timeout-seconds 2 >"${temp}/output" 2>&1 || got=$?
+
+  if [ "$got" -ne 0 ] && grep -q 'application start attempted without rindle.app' "${temp}/output" &&
+     [ ! -e "${temp}/receipt.json" ] &&
+     ! grep -Eq '^(issue (create|comment|close|edit|delete)|run (cancel|rerun|delete))' "${temp}/calls"; then
+    record "missing no-start guard is detected for ${authority_name}" true
+  else
+    record "missing no-start guard is detected for ${authority_name}" false \
+      "mutation escaped its authority boundary; exit ${got}"
+  fi
+  rm -rf "$temp"
+}
+
 run_case() {
   local name="$1" state="$2" want_exit="$3" temp got=0 poll=0 timeout=2
   temp="$(mktemp -d)"
@@ -487,6 +566,17 @@ fi
 
 if [ "${VERIFY_NIGHTLY_TEST_SCOPE:-}" = uncompiled-subject ]; then
   verify_uncompiled_subject_case
+  echo "—"
+  echo "passed: ${pass}  failed: ${fail}"
+  [ "$pass" -gt 0 ] && [ "$fail" -eq 0 ]
+  exit
+fi
+
+if [ "${VERIFY_NIGHTLY_TEST_SCOPE:-}" = authority-argv ]; then
+  verify_authority_argv_case
+  verify_missing_no_start_mutation 1 "census generator"
+  verify_missing_no_start_mutation 2 "census validator"
+  verify_missing_no_start_mutation 3 "live-truth validator"
   echo "—"
   echo "passed: ${pass}  failed: ${fail}"
   [ "$pass" -gt 0 ] && [ "$fail" -eq 0 ]
