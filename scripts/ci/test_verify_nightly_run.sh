@@ -26,6 +26,38 @@ make_fake_gh() {
   chmod +x "${bin_dir}/gh"
 }
 
+verify_uncompiled_subject_case() {
+  local temp got=0
+  temp="$(mktemp -d)"
+  make_fake_gh "${temp}/bin"
+  make_fake_local_authorities "${temp}/bin"
+  : >"${temp}/calls"
+  : >"${temp}/count"
+  : >"${temp}/run-list-count"
+  : >"${temp}/watch-count"
+  mkdir -p "${temp}/read-counts"
+  : >"${temp}/authority-calls"
+
+  PATH="${temp}/bin:${PATH}" FAKE_GH_LOG="${temp}/calls" FAKE_GH_COUNT_FILE="${temp}/count" \
+    FAKE_GH_RUN_LIST_COUNT_FILE="${temp}/run-list-count" \
+    FAKE_GH_WATCH_COUNT_FILE="${temp}/watch-count" \
+    FAKE_GH_READ_COUNT_DIR="${temp}/read-counts" \
+    FAKE_GH_STATE=uncompiled_subject FAKE_AUTHORITY_STATE=uncompiled_subject \
+    FAKE_AUTHORITY_LOG="${temp}/authority-calls" \
+    bash "$collector" dispatch-and-record --repo szTheory/rindle --workflow nightly.yml \
+      --ref phase-133-evidence-aaaaaaaaaaaa --expected-sha aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \
+      --receipt "${temp}/receipt.json" --poll-seconds 0 --timeout-seconds 2 >"${temp}/output" 2>&1 || got=$?
+
+  if [ "$got" -eq 0 ] &&
+     [ "$(grep -c '^mix run --no-start --no-deps-check --no-compile ' "${temp}/authority-calls" || true)" -eq 3 ]; then
+    record "uncompiled exact subject reaches all three detached authorities without application startup" true
+  else
+    record "uncompiled exact subject reaches all three detached authorities without application startup" false \
+      "expected three guarded calls, got exit ${got}; $(tail -1 "${temp}/output" 2>/dev/null || true)"
+  fi
+  rm -rf "$temp"
+}
+
 run_case() {
   local name="$1" state="$2" want_exit="$3" temp got=0 poll=0 timeout=2
   temp="$(mktemp -d)"
@@ -335,6 +367,10 @@ make_fake_local_authorities() {
     '#!/usr/bin/env bash' \
     'set -euo pipefail' \
     'printf "mix %s\n" "$*" >>"$FAKE_AUTHORITY_LOG"' \
+    'if [ "${FAKE_AUTHORITY_STATE:-success}" = uncompiled_subject ] && ! printf "%s\n" "$*" | grep -Eq "(^| )--no-start( |$)"; then' \
+    '  echo "application start attempted without rindle.app" >&2' \
+    '  exit 45' \
+    'fi' \
     'if [ "${FAKE_AUTHORITY_STATE:-success}" = local_validator_failure ] && printf "%s\n" "$*" | grep -q "validate_live_truth.exs"; then exit 44; fi' \
     'if [ "${FAKE_AUTHORITY_STATE:-success}" = bad_local_authority ] && printf "%s\n" "$*" | grep -q "validate_evidence_census.exs"; then exit 44; fi' \
     'if printf "%s\n" "$*" | grep -q "evidence_census.exs"; then' \
@@ -447,6 +483,14 @@ verify_worktree_independence_case() {
 if [ ! -x "$collector" ]; then
   echo "FAIL — collector does not exist or is not executable: ${collector}" >&2
   exit 1
+fi
+
+if [ "${VERIFY_NIGHTLY_TEST_SCOPE:-}" = uncompiled-subject ]; then
+  verify_uncompiled_subject_case
+  echo "—"
+  echo "passed: ${pass}  failed: ${fail}"
+  [ "$pass" -gt 0 ] && [ "$fail" -eq 0 ]
+  exit
 fi
 
 if [ "${VERIFY_NIGHTLY_TEST_SCOPE:-}" = diagnostic-topology ]; then
