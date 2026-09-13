@@ -5,16 +5,16 @@ milestone_name: Pre-Adopter Readiness & Quality Consolidation
 current_phase: 133
 current_phase_name: Evidence Charter and Live Truth
 status: executing
-stopped_at: Completed 133-40-PLAN.md
-last_updated: "2026-09-13T14:59:01.440Z"
+stopped_at: Completed 133-41-PLAN.md
+last_updated: "2026-09-13T16:09:24.297Z"
 last_activity: 2026-09-13
 last_activity_desc: Phase 133 execution started
-state_head: 1bebea9ae9392faec17a634d3335e06b97c1d642
+state_head: 079f665b5a068e9b81556622cef6320d6b02fdbc
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 42
-  completed_plans: 40
+  completed_plans: 41
 ---
 
 ## Project Reference
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-09-09 for v1.26)
 ## Current Position
 
 Phase: 133 (Evidence Charter and Live Truth) — READY TO EXECUTE
-Plan: 41 of 42
+Plan: 42 of 42
 Status: Ready to execute
-Last activity: 2026-09-13 — Plan 133-38 repaired detached exact-subject authority execution without promoting requirements
+Last activity: 2026-09-13 — Plan 133-41 authorized only the literal c83f61379ad5 subject-derived ref and one bounded Plan 42 attempt without requirement credit
 Progress: [███████░░░] 65%
 
 ## Performance Metrics
@@ -81,6 +81,7 @@ Progress: [███████░░░] 65%
 | Phase 133 P38 | 16 min | 2 tasks | 3 files |
 | Phase 133 P39 | 17min | 2 tasks | 5 files |
 | Phase 133 P40 | 32m 15s | 2 tasks | 3 files |
+| Phase 133 P41 | 3min | 1 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -174,6 +175,9 @@ Progress: [███████░░░] 65%
 - [Phase 133]: Give Plan 41 authorization-only credit and reserve terminal completion credit for the final Plan 42 automated reconciliation gate.
 - [Phase 133]: Plan 40: Reduced inherited Plan 39 test-helper complexity instead of raising the reviewed baseline, then rebound the census to the repaired exact subject.
 - [Phase 133]: Plan 40: Kept the canonical Plan 37 receipt and all five Phase 133 requirements unchanged; Plan 42 remains the sole completion authority.
+- [Phase 133]: Accept the exact authorize response only for refs/heads/phase-133-evidence-c83f61379ad5 at c83f61379ad5033efef9afa7b5bc88913080bae2 and one bounded Plan 133-42 attempt. — The decision is byte-bound to the qualified absent pair and cannot transfer to another SHA, ref, or later commit.
+- [Phase 133]: Plan 42 alone may perform one non-force ref creation, one immutable dispatch, bounded incident reconciliation, and candidate promotion only after all automated gates pass. — Separating authorization from execution preserves the one-way boundary and prevents approval reuse or scope widening.
+- [Phase 133]: Keep EVID-01 through EVID-04 and TRUTH-08 pending after Plan 41 authorization. — Human authority permits the one-way action but cannot substitute for Plan 42 terminal automated evidence.
 
 ### Pending Todos
 
@@ -199,6 +203,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-09-13T14:59:01.406Z
-Stopped at: Completed 133-40-PLAN.md
+Last session: 2026-09-13T16:09:24.257Z
+Stopped at: Completed 133-41-PLAN.md
 Resume file: None
