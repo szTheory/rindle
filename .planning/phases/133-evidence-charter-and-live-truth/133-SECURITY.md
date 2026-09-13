@@ -1,15 +1,17 @@
 ---
 phase: "133"
 slug: "evidence-charter-and-live-truth"
-status: verified
-threats_open: 0
+status: open_threats
+threats_open: 8
+threats_open_total: 23
 asvs_level: 1
 created: "2026-09-10"
+revised: "2026-09-13"
 ---
 
 # Phase 133 — Security
 
-> Verified Phase 133 threat register. All planned threats are closed; accepted risks are bounded, low severity, and documented below.
+> Phase 133 security is blocked. The final gap-closure audit found eight high-severity open threats and fifteen lower-severity open threats; prior accepted risks remain bounded and documented below.
 
 ## Trust Boundaries
 
@@ -86,12 +88,28 @@ created: "2026-09-10"
 | 2026-09-10 | 41 | 41 | 0 | gsd-security-auditor gap-closure audit |
 | 2026-09-10 | 41 | 41 | 0 | execute-phase post-execution security gate |
 | 2026-09-11 | 41 | 41 | 0 | execute-phase final gap-closure security gate |
+| 2026-09-13 | 196 | 173 | 23 (8 blocking) | gsd-security-auditor Plans 38–42 audit |
+
+## Open Threats — Plans 38–42 Audit
+
+| Threat ID | Category | Severity | Missing mitigation | Evidence |
+|-----------|----------|----------|--------------------|----------|
+| T-133-32 | Tampering | high | Enforce the exact nested receipt schema and canonical reconstruction at every authority entry point. | `validate_phase_133_reconciliation.exs` accepts a self-supplied digest and subject SHA. |
+| T-133-53 | Spoofing | high | Independently reconstruct every package and adopter authority field. | `validate_live_truth.exs` trusts caller-selected roots, results, and execution environment. |
+| T-133-74 | Denial of service | high | Bound replay to a durable immutable origin. | Expired artifacts make full historical replay impossible and permanently block the drainer. |
+| T-133-85 | Denial of service | high | Preserve pre-gate immutable events through the captured high-watermark. | Normal artifact retention can permanently disable later replay. |
+| T-133-91 | Spoofing | high | Execute repository-owned commands in an authenticated generated/package tree. | An unrelated trivial tree can satisfy the current package proof. |
+| T-133-105 | Repudiation | high | Keep immutable incident evidence attributable across later open/close transitions. | Receipt verification queries only currently open issues and invalidates valid historical snapshots. |
+| T-133-39-03 | Elevation of privilege | high | Make production reconciliation enforce all Plans 38–42 validation mappings and acceptance boundaries. | The production reconciler truncates before the closure addendum while a test-only parser checks it separately. |
+| T-133-42-03 | Tampering | high | Refuse destination clobbering and gate atomic candidate promotion. | The collector deletes the requested destination before preflight and later overwrites it with `mv`. |
+
+Fifteen additional low-severity or summary-control threats remain open below the configured `high` blocking threshold. They are recorded in the 2026-09-13 auditor result and must be dispositioned during the next gap-planning cycle; they are not silently accepted here.
 
 ## Sign-Off
 
 - [x] All threats have a disposition (mitigate / accept / transfer)
 - [x] Accepted risks documented in Accepted Risks Log
-- [x] `threats_open: 0` confirmed
-- [x] `status: verified` set in frontmatter
+- [ ] `threats_open: 0` confirmed
+- [ ] `status: verified` set in frontmatter
 
-**Approval:** verified 2026-09-11
+**Approval:** blocked 2026-09-13 pending eight high-severity mitigations
