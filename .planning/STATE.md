@@ -5,16 +5,16 @@ milestone_name: Pre-Adopter Readiness & Quality Consolidation
 current_phase: 133
 current_phase_name: Evidence Charter and Live Truth
 status: executing
-stopped_at: Completed 133-38-PLAN.md
-last_updated: "2026-09-13T14:02:33.008Z"
+stopped_at: Completed 133-39-PLAN.md
+last_updated: "2026-09-13T14:23:48.913Z"
 last_activity: 2026-09-13
 last_activity_desc: Phase 133 execution started
-state_head: c93d615f9630031e567c4c0d847f8fb0ebe52088
+state_head: 53a50f2e6d72abc95da69a22ed9c07f1838dfac5
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 42
-  completed_plans: 38
+  completed_plans: 39
 ---
 
 ## Project Reference
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-09-09 for v1.26)
 ## Current Position
 
 Phase: 133 (Evidence Charter and Live Truth) — READY TO EXECUTE
-Plan: 39 of 42
+Plan: 40 of 42
 Status: Ready to execute
 Last activity: 2026-09-13 — Plan 133-38 repaired detached exact-subject authority execution without promoting requirements
 Progress: [███████░░░] 65%
@@ -79,6 +79,7 @@ Progress: [███████░░░] 65%
 | Phase 133 P36 | 15min | 1 tasks | 3 files |
 | Phase 133 P37 | 22min | 1 tasks | 3 files |
 | Phase 133 P38 | 16 min | 2 tasks | 3 files |
+| Phase 133 P39 | 17min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -167,6 +168,9 @@ Progress: [███████░░░] 65%
 - [Phase 133]: Run all three detached exact-subject authorities with --no-start while retaining exact-subject cwd and root caches.
 - [Phase 133]: Chain detached authorities explicitly so a middle validation failure cannot be masked by a later success.
 - [Phase 133]: Plan 38 grants no requirement credit and preserves Plan 37 receipt/ref/run history unchanged.
+- [Phase 133]: Treat Plans 27, 32, and 37 as immutable baseline halts in every 42-plan lifecycle state.
+- [Phase 133]: Require qualified Plan 42 success to cross-bind summary subject and digest metadata to canonical receipt bytes before requirements can complete.
+- [Phase 133]: Give Plan 41 authorization-only credit and reserve terminal completion credit for the final Plan 42 automated reconciliation gate.
 
 ### Pending Todos
 
@@ -192,6 +196,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-09-13T14:02:32.973Z
-Stopped at: Completed 133-38-PLAN.md
+Last session: 2026-09-13T14:23:48.874Z
+Stopped at: Completed 133-39-PLAN.md
 Resume file: None
