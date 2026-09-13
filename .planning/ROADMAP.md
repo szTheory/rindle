@@ -44,7 +44,7 @@ error vocabulary, release coupling, supported behavior, or the accepted pull-req
   3. Nightly aggregation fails for failed, cancelled, unexpected, or impermissibly skipped gating states, and automated incident tests prove one exact-run-bound issue opens or updates on failure and closes only after qualifying scheduled recovery.
   4. Executable parity checks derive release, planning, support, and adoption-proof claims from authoritative state and reject every unmarked version, lane-severity, or package-proof contradiction.
 
-**Plans**: 41/42 plans summarized; 38 completed, Plans 133-27, 133-32, and 133-37 halted with immutable attempts preserved, 1 pending.
+**Plans**: 42/42 plans summarized; 38 completed, Plans 133-27, 133-32, 133-37, and 133-42 halted with immutable attempts preserved, 0 pending.
 
 Plans:
 
@@ -280,7 +280,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 133. Evidence Charter and Live Truth | 41/42 | In Progress|  |
+| 133. Evidence Charter and Live Truth | 42/42 | In Progress|  |
 | 134. Dependency, Security, and Inbox Disposition | 0/TBD | Not started | - |
 | 135. Repository and Code-Craft Consolidation | 0/TBD | Not started | - |
 | 136. Measured Quality and CI Ratchets | 0/TBD | Not started | - |
@@ -289,4 +289,4 @@ Plans:
 | 139. Exact-Head Readiness Closure | 0/TBD | Not started | - |
 
 ---
-*Last updated: 2026-09-13 after Plan 133-41 exact authorization.*
+*Last updated: 2026-09-13 after Plan 133-42 immutable Nightly failure.*

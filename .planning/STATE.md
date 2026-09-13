@@ -4,17 +4,17 @@ milestone: v1.26
 milestone_name: Pre-Adopter Readiness & Quality Consolidation
 current_phase: 133
 current_phase_name: Evidence Charter and Live Truth
-status: executing
-stopped_at: Completed 133-41-PLAN.md
-last_updated: "2026-09-13T16:09:24.297Z"
+status: blocked
+stopped_at: Plan 133-42 halted after immutable run 34768317696 failed its supported Elixir 1.15 / OTP 26 compatibility cell
+last_updated: "2026-09-13T16:30:50.772Z"
 last_activity: 2026-09-13
-last_activity_desc: Phase 133 execution started
-state_head: 079f665b5a068e9b81556622cef6320d6b02fdbc
+last_activity_desc: Plan 133-42 preserved immutable ref/run history and prior canonical evidence after fail-closed Nightly failure
+state_head: a072c7c75f00235a57f2306818a5eac0e05be783
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 42
-  completed_plans: 41
+  completed_plans: 42
 ---
 
 ## Project Reference
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-09-09 for v1.26)
 
 ## Current Position
 
-Phase: 133 (Evidence Charter and Live Truth) — READY TO EXECUTE
+Phase: 133 (Evidence Charter and Live Truth) — BLOCKED
 Plan: 42 of 42
-Status: Ready to execute
-Last activity: 2026-09-13 — Plan 133-41 authorized only the literal c83f61379ad5 subject-derived ref and one bounded Plan 42 attempt without requirement credit
+Status: BLOCKED — Plan 133-42 exhausted its one authorized attempt; immutable run 34768317696 failed the supported Elixir 1.15 / OTP 26 compatibility cell
+Last activity: 2026-09-13 — preserved the prior canonical receipt and pending requirements after the sole Nightly attempt failed
 Progress: [███████░░░] 65%
 
 ## Performance Metrics
@@ -82,6 +82,7 @@ Progress: [███████░░░] 65%
 | Phase 133 P39 | 17min | 2 tasks | 5 files |
 | Phase 133 P40 | 32m 15s | 2 tasks | 3 files |
 | Phase 133 P41 | 3min | 1 tasks | 3 files |
+| Phase 133 P42 | 15min | 1 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -178,6 +179,8 @@ Progress: [███████░░░] 65%
 - [Phase 133]: Accept the exact authorize response only for refs/heads/phase-133-evidence-c83f61379ad5 at c83f61379ad5033efef9afa7b5bc88913080bae2 and one bounded Plan 133-42 attempt. — The decision is byte-bound to the qualified absent pair and cannot transfer to another SHA, ref, or later commit.
 - [Phase 133]: Plan 42 alone may perform one non-force ref creation, one immutable dispatch, bounded incident reconciliation, and candidate promotion only after all automated gates pass. — Separating authorization from execution preserves the one-way boundary and prevents approval reuse or scope widening.
 - [Phase 133]: Keep EVID-01 through EVID-04 and TRUTH-08 pending after Plan 41 authorization. — Human authority permits the one-way action but cannot substitute for Plan 42 terminal automated evidence.
+- [Phase 133]: Plan 133-42: preserve ref phase-133-evidence-c83f61379ad5 and run 34768317696 as immutable exhausted history; the failed Nightly attempt grants no acceptance credit.
+- [Phase 133]: Plan 133-42: keep the prior canonical receipt and all five Phase 133 requirements unchanged because no candidate receipt was created or promoted.
 
 ### Pending Todos
 
@@ -190,6 +193,7 @@ None.
 - Twin restart, fault, package-provenance, redaction, and cleanup mechanics require phase-local proof against current Cohort/Rindle ownership.
 - Plan 133-32 halted after the one-time exact ref publication and dispatch-owned run 34670574306: GitHub API rate limiting interrupted qualification, so the run is immutable but unqualified and a new subject/ref/authorization cycle is required.
 - Plan 133-37 halted after its one-time exact ref publication and dispatch-owned run 34732110533: detached exact-SHA census qualification could not start the uncompiled :rindle application, so the prior canonical receipt remains authoritative and all five Phase 133 requirements remain pending.
+- Plan 133-42 halted after its one-time exact ref publication and dispatch-owned run 34768317696: the supported Elixir 1.15 / OTP 26 compatibility cell failed during coverage, so no candidate was created, the prior canonical receipt remains authoritative, and all five Phase 133 requirements remain pending.
 
 ## Deferred Items
 
@@ -203,6 +207,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-09-13T16:09:24.257Z
-Stopped at: Completed 133-41-PLAN.md
+Last session: 2026-09-13T16:30:50.741Z
+Stopped at: Plan 133-42 halted after immutable run 34768317696 failed its supported Elixir 1.15 / OTP 26 compatibility cell
 Resume file: None
