@@ -1688,3 +1688,379 @@ Any staged tracked path outside the canonical receipt and exact Plan 37 completi
 <state>pending — not executed</state>
 <acceptance-credit>pending</acceptance-credit>
 </pending-validation>
+
+## Plans 38–42 Gap-Closure Addendum
+
+Plans 01–37 and every earlier validation section remain byte-identical historical authority. Plans 27, 32, and 37 remain permanent halted history. The records below map each runnable task-level command in Plans 38–42 to its immediately adjacent failure direction in source order. Plans 38 and 39 are executed repair/reconciliation evidence; Plans 40–42 remain pending. Plan 41 authorizes one action only, and only the final terminal Plan 42 record can receive completion credit for EVID-01, EVID-02, EVID-03, EVID-04, and TRUTH-08.
+
+<flagged-unresolved key="133-38-specless-startup-boundary">
+Plan 38's uncompiled-subject startup boundary is an explicit automated backstop, not independent requirement completion; it remains unresolved until Plan 42 exact evidence.
+</flagged-unresolved>
+
+<flagged-unresolved key="133-38-specless-context-boundary">
+Plan 38's detached cwd/cache/argv boundary is an explicit automated backstop, not independent requirement completion; it remains unresolved until Plan 42 exact evidence.
+</flagged-unresolved>
+
+<pending-validation key="133-38-01:1">
+<automated>
+bash scripts/ci/test_verify_nightly_run.sh
+</automated>
+<fails_when>
+The collector suite returns nonzero, any detached authority invocation starts the application, or the fake uncompiled subject does not reach all three validators.
+</fails_when>
+<requirements>EVID-01,EVID-02,EVID-03,EVID-04,TRUTH-08</requirements>
+<validation-level>repair-backstop</validation-level>
+<branch-status>passed — executed</branch-status>
+<state>passed — executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-38-02:1">
+<automated>
+bash scripts/ci/test_verify_nightly_run.sh &amp;&amp; bash scripts/ci/test_nightly_incident.sh &amp;&amp; bash scripts/ci/test_nightly_summary_gate.sh &amp;&amp; bash scripts/ci/test_nightly_dialyzer.sh
+</automated>
+<fails_when>
+Any collector, incident, summary, or Dialyzer contract returns nonzero or a mutation case fails to detect the missing invariant.
+</fails_when>
+<requirements>EVID-01,EVID-02,EVID-03,EVID-04,TRUTH-08</requirements>
+<validation-level>repair-backstop</validation-level>
+<branch-status>passed — executed</branch-status>
+<state>passed — executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-38-02:2">
+<automated>
+bash -n scripts/ci/verify_nightly_run.sh scripts/ci/test_verify_nightly_run.sh &amp;&amp; shellcheck scripts/ci/verify_nightly_run.sh scripts/ci/test_verify_nightly_run.sh
+</automated>
+<fails_when>
+Either shell file is syntactically invalid, ShellCheck reports a finding, or a new suppression hides one.
+</fails_when>
+<requirements>EVID-01,EVID-02,EVID-03,EVID-04,TRUTH-08</requirements>
+<validation-level>repair-backstop</validation-level>
+<branch-status>passed — executed</branch-status>
+<state>passed — executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-39-01:1">
+<automated>
+mix test test/install_smoke/phase_133_reconciliation_test.exs --seed 0
+</automated>
+<fails_when>
+Any legal 42-plan lifecycle state fails, any contradictory state passes, or a diagnostic omits the conflicting authority and exact counts.
+</fails_when>
+<requirements>EVID-01,EVID-02,EVID-03,EVID-04,TRUTH-08</requirements>
+<validation-level>reconciliation-authority</validation-level>
+<branch-status>passed — executed</branch-status>
+<state>passed — executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-39-01:2">
+<automated>
+MIX_ENV=test mix run --no-start --no-deps-check --no-compile scripts/maintainer/validate_phase_133_reconciliation.exs --root .
+</automated>
+<fails_when>
+The live tracked authorities do not reconcile to the exact current 42-plan state or the tool emits a stale/noncanonical result.
+</fails_when>
+<requirements>EVID-01,EVID-02,EVID-03,EVID-04,TRUTH-08</requirements>
+<validation-level>reconciliation-authority</validation-level>
+<branch-status>passed — executed</branch-status>
+<state>passed — executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-39-02:1">
+<automated>
+mix test test/install_smoke/phase_133_completed_validation_test.exs test/install_smoke/phase_133_reconciliation_test.exs --seed 0
+</automated>
+<fails_when>
+Any lifecycle or validation mapping case fails, an invalid mapping passes, or a checkpoint is accepted as automated evidence.
+</fails_when>
+<requirements>EVID-01,EVID-02,EVID-03,EVID-04,TRUTH-08</requirements>
+<validation-level>reconciliation-authority</validation-level>
+<branch-status>passed — executed</branch-status>
+<state>passed — executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-39-02:2">
+<automated>
+./scripts/maintainer/automation_first_contract.sh
+</automated>
+<fails_when>
+The contract reports an unmapped runnable command, missing failure direction, human acceptance path, or planning/validation contradiction.
+</fails_when>
+<requirements>EVID-01,EVID-02,EVID-03,EVID-04,TRUTH-08</requirements>
+<validation-level>reconciliation-authority</validation-level>
+<branch-status>passed — executed</branch-status>
+<state>passed — executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-40-01:1">
+<automated>
+mix test test/install_smoke/evidence_census_test.exs --seed 0
+</automated>
+<fails_when>
+Any boundary, determinism, freshness, normalized-identity, ordering, count, digest, dimension, or disposition fixture fails.
+</fails_when>
+<requirements>EVID-01,EVID-02,EVID-03,EVID-04,TRUTH-08</requirements>
+<validation-level>exact-subject-qualification</validation-level>
+<branch-status>pending — not executed</branch-status>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-40-01:2">
+<automated>
+repo_root=$(pwd -P) &amp;&amp; ledger="$repo_root/.planning/phases/133-evidence-charter-and-live-truth/133-EVIDENCE-CENSUS.json" &amp;&amp; subject_sha=$(jq -er '.subject_sha' "$ledger") &amp;&amp; audit_parent=$(mktemp -d) &amp;&amp; audit_parent=$(cd "$audit_parent" &amp;&amp; pwd -P) &amp;&amp; worktree_one="$audit_parent/worktree-one" &amp;&amp; worktree_two="$audit_parent/worktree-two" &amp;&amp; receipt_one="$audit_parent/receipt-one.json" &amp;&amp; receipt_two="$audit_parent/receipt-two.json" &amp;&amp; cleanup() { rc=$?; trap - EXIT HUP INT TERM; worktree_list=$(git worktree list --porcelain) || rc=1; for worktree in "$worktree_one" "$worktree_two"; do if printf '%s\n' "$worktree_list" | grep -Fqx "worktree $worktree"; then git worktree remove --force "$worktree" || rc=1; fi; done; rm -rf -- "$audit_parent" || rc=1; exit "$rc"; } &amp;&amp; trap cleanup EXIT &amp;&amp; trap 'exit 130' HUP INT TERM &amp;&amp; git worktree add --detach "$worktree_one" "$subject_sha" &amp;&amp; git worktree add --detach "$worktree_two" "$subject_sha" &amp;&amp; (cd "$worktree_one" &amp;&amp; MIX_DEPS_PATH="$repo_root/deps" MIX_BUILD_PATH="$repo_root/_build" mix run --no-start --no-deps-check --no-compile scripts/maintainer/evidence_census.exs --root "$worktree_one" --ledger "$ledger" --output "$receipt_one" --source-sha "$subject_sha") &amp;&amp; (cd "$worktree_two" &amp;&amp; MIX_DEPS_PATH="$repo_root/deps" MIX_BUILD_PATH="$repo_root/_build" mix run --no-start --no-deps-check --no-compile scripts/maintainer/evidence_census.exs --root "$worktree_two" --ledger "$ledger" --output "$receipt_two" --source-sha "$subject_sha") &amp;&amp; cmp -s "$receipt_one" "$receipt_two" &amp;&amp; (cd "$worktree_one" &amp;&amp; MIX_DEPS_PATH="$repo_root/deps" MIX_BUILD_PATH="$repo_root/_build" mix run --no-start --no-deps-check --no-compile scripts/maintainer/validate_evidence_census.exs --root "$worktree_one" --ledger "$ledger" --receipt "$receipt_one") &amp;&amp; (cd "$worktree_two" &amp;&amp; MIX_DEPS_PATH="$repo_root/deps" MIX_BUILD_PATH="$repo_root/_build" mix run --no-start --no-deps-check --no-compile scripts/maintainer/validate_evidence_census.exs --root "$worktree_two" --ledger "$ledger" --receipt "$receipt_two")
+</automated>
+<fails_when>
+Either detached worktree cannot be created at the census subject, either subject-owned generation or validation returns nonzero, the receipt bytes differ, a receipt does not bind the captured subject SHA and ledger, or cleanup leaves a worktree registration or temporary directory.
+</fails_when>
+<requirements>EVID-01,EVID-02,EVID-03,EVID-04,TRUTH-08</requirements>
+<validation-level>exact-subject-qualification</validation-level>
+<branch-status>pending — not executed</branch-status>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-40-01:3">
+<automated>
+git diff --cached --quiet -- . ':(exclude).planning/phases/133-evidence-charter-and-live-truth/133-EVIDENCE-CENSUS.json'
+</automated>
+<fails_when>
+Any path other than the tracked census is staged by this task.
+</fails_when>
+<requirements>EVID-01,EVID-02,EVID-03,EVID-04,TRUTH-08</requirements>
+<validation-level>exact-subject-qualification</validation-level>
+<branch-status>pending — not executed</branch-status>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-40-02:1">
+<automated>
+bash scripts/ci/test_verify_nightly_run.sh &amp;&amp; bash scripts/ci/test_nightly_incident.sh &amp;&amp; bash scripts/ci/test_nightly_summary_gate.sh &amp;&amp; bash scripts/ci/test_nightly_dialyzer.sh
+</automated>
+<fails_when>
+Any collector, incident, strict-summary, Dialyzer, rate-limit, identity, idempotency, or concurrency contract returns nonzero.
+</fails_when>
+<requirements>EVID-01,EVID-02,EVID-03,EVID-04,TRUTH-08</requirements>
+<validation-level>exact-subject-qualification</validation-level>
+<branch-status>pending — not executed</branch-status>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-40-02:2">
+<automated>
+mix test test/install_smoke/evidence_census_test.exs test/install_smoke/nightly_policy_test.exs test/install_smoke/live_truth_parity_test.exs test/install_smoke/generated_app_smoke_test.exs test/install_smoke/phase_133_reconciliation_test.exs test/install_smoke/phase_133_completed_validation_test.exs test/install_smoke/release_docs_parity_test.exs test/install_smoke/package_metadata_test.exs --seed 0
+</automated>
+<fails_when>
+Any census, Nightly, PLT, live-truth, package, release, adoption, or reconciliation test fails or a required case is absent/skipped.
+</fails_when>
+<requirements>EVID-01,EVID-02,EVID-03,EVID-04,TRUTH-08</requirements>
+<validation-level>exact-subject-qualification</validation-level>
+<branch-status>pending — not executed</branch-status>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-40-02:3">
+<automated>
+mix ci &amp;&amp; mix refactor_contract
+</automated>
+<fails_when>
+The quality lane or refactor contract returns nonzero, reports a failed test/check, or omits a configured gate.
+</fails_when>
+<requirements>EVID-01,EVID-02,EVID-03,EVID-04,TRUTH-08</requirements>
+<validation-level>exact-subject-qualification</validation-level>
+<branch-status>pending — not executed</branch-status>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-40-02:4">
+<automated>
+MIX_ENV=test mix run --no-start --no-deps-check --no-compile scripts/maintainer/validate_phase_133_reconciliation.exs --root . &amp;&amp; ./scripts/maintainer/automation_first_contract.sh
+</automated>
+<fails_when>
+Reconciliation rejects the exact current branch or automation-first reports an unmapped command, manual acceptance, or planning contradiction.
+</fails_when>
+<requirements>EVID-01,EVID-02,EVID-03,EVID-04,TRUTH-08</requirements>
+<validation-level>exact-subject-qualification</validation-level>
+<branch-status>pending — not executed</branch-status>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-40-02:5">
+<automated>
+receipt=.planning/phases/133-evidence-charter-and-live-truth/133-NIGHTLY-EVIDENCE.json &amp;&amp; subject_sha=$(jq -er '.subject_sha' "$receipt") &amp;&amp; remote_ref=$(jq -er '.remote_ref' "$receipt") &amp;&amp; scripts/ci/verify_nightly_run.sh verify-receipt --repo szTheory/rindle --workflow nightly.yml --ref "$remote_ref" --expected-sha "$subject_sha" --receipt "$receipt"
+</automated>
+<fails_when>
+The prior canonical receipt is missing/malformed, its exact run/ref/SHA no longer verifies, or local-authority revalidation fails.
+</fails_when>
+<requirements>EVID-01,EVID-02,EVID-03,EVID-04,TRUTH-08</requirements>
+<validation-level>exact-subject-qualification</validation-level>
+<branch-status>pending — not executed</branch-status>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-40-02:6">
+<automated>
+ledger=.planning/phases/133-evidence-charter-and-live-truth/133-EVIDENCE-CENSUS.json &amp;&amp; subject_sha=$(jq -er '.subject_sha' "$ledger") &amp;&amp; audit_parent=$(mktemp -d) &amp;&amp; audit_parent=$(cd "$audit_parent" &amp;&amp; pwd -P) &amp;&amp; audit_root="$audit_parent/worktree" &amp;&amp; cleanup() { rc=$?; trap - EXIT HUP INT TERM; worktree_list=$(git worktree list --porcelain) || rc=1; if printf '%s\n' "$worktree_list" | grep -Fqx "worktree $audit_root"; then git worktree remove --force "$audit_root" || rc=1; fi; rm -rf -- "$audit_parent" || rc=1; exit "$rc"; } &amp;&amp; trap cleanup EXIT &amp;&amp; trap 'exit 130' HUP INT TERM &amp;&amp; git worktree add --detach "$audit_root" "$subject_sha" &amp;&amp; (cd "$audit_root" &amp;&amp; ./scripts/maintainer/repo_hygiene_check.sh)
+</automated>
+<fails_when>
+The exact census subject cannot be checked out, repository hygiene reports a blocking condition, or failure-safe cleanup cannot remove the worktree registration and temporary parent.
+</fails_when>
+<requirements>EVID-01,EVID-02,EVID-03,EVID-04,TRUTH-08</requirements>
+<validation-level>exact-subject-qualification</validation-level>
+<branch-status>pending — not executed</branch-status>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-41-01:1">
+<automated>
+subject_sha=$(jq -er '.subject_sha' .planning/phases/133-evidence-charter-and-live-truth/133-EVIDENCE-CENSUS.json) &amp;&amp; test "$(git cat-file -t "$subject_sha")" = commit &amp;&amp; subject_ref="phase-133-evidence-${subject_sha%${subject_sha#????????????}}" &amp;&amp; remote_existing=$(git ls-remote --heads origin "refs/heads/$subject_ref") &amp;&amp; test -z "$remote_existing"
+</automated>
+<fails_when>
+The subject is missing/not a commit/reuses an exhausted SHA, the derived ref lookup fails, or the exact ref already exists.
+</fails_when>
+<requirements>EVID-01,EVID-02,EVID-03,EVID-04,TRUTH-08</requirements>
+<validation-level>authorization-only</validation-level>
+<branch-status>pending — not executed</branch-status>
+<state>pending — not executed</state>
+<acceptance-credit>authorization-only</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-41-01:2">
+<automated>
+receipt=.planning/phases/133-evidence-charter-and-live-truth/133-NIGHTLY-EVIDENCE.json &amp;&amp; receipt_sha=$(jq -er '.subject_sha' "$receipt") &amp;&amp; receipt_ref=$(jq -er '.remote_ref' "$receipt") &amp;&amp; scripts/ci/verify_nightly_run.sh verify-receipt --repo szTheory/rindle --workflow nightly.yml --ref "$receipt_ref" --expected-sha "$receipt_sha" --receipt "$receipt" &amp;&amp; MIX_ENV=test mix run --no-start --no-deps-check --no-compile scripts/maintainer/validate_phase_133_reconciliation.exs --root . &amp;&amp; ./scripts/maintainer/automation_first_contract.sh
+</automated>
+<fails_when>
+The canonical receipt fails exact verification, the tracked authorities are not the legal pre-authorization state, or automation-first reports incomplete/non-automated acceptance.
+</fails_when>
+<requirements>EVID-01,EVID-02,EVID-03,EVID-04,TRUTH-08</requirements>
+<validation-level>authorization-only</validation-level>
+<branch-status>pending — not executed</branch-status>
+<state>pending — not executed</state>
+<acceptance-credit>authorization-only</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-42-01:1">
+<automated>
+candidate=$(git rev-parse --git-path phase-133-candidate-receipt.json) &amp;&amp; test -f "$candidate" &amp;&amp; case "$(LC_ALL=C ls -ld "$candidate")" in -rw-------*) ;; *) exit 1 ;; esac &amp;&amp; subject_sha=$(jq -er '.subject_sha' "$candidate") &amp;&amp; remote_ref=$(jq -er '.remote_ref' "$candidate") &amp;&amp; scripts/ci/verify_nightly_run.sh verify-receipt --repo szTheory/rindle --workflow nightly.yml --ref "$remote_ref" --expected-sha "$subject_sha" --receipt "$candidate"
+</automated>
+<fails_when>
+The repository-private candidate is absent or not mode 600, its schema is malformed, exact run/ref/SHA/job/log/PLT/incident/truth binding fails, or detached local authority revalidation cannot complete.
+</fails_when>
+<requirements>EVID-01,EVID-02,EVID-03,EVID-04,TRUTH-08</requirements>
+<validation-level>terminal-attempt</validation-level>
+<branch-status>pending — not executed</branch-status>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-42-01:2">
+<automated>
+candidate=$(git rev-parse --git-path phase-133-candidate-receipt.json) &amp;&amp; test -f "$candidate" &amp;&amp; subject_sha=$(jq -er '.subject_sha' "$candidate") &amp;&amp; remote_ref=$(jq -er '.remote_ref' "$candidate") &amp;&amp; test "$subject_sha" = "$(jq -er '.subject_sha' .planning/phases/133-evidence-charter-and-live-truth/133-EVIDENCE-CENSUS.json)" &amp;&amp; remote_line=$(git ls-remote --heads origin "refs/heads/$remote_ref") &amp;&amp; test "$(printf '%s\n' "$remote_line" | awk '{print $1}')" = "$subject_sha"
+</automated>
+<fails_when>
+The durable candidate cannot be resolved in this independent command, its subject differs from the census/authorization, the published ref is absent/misdirected/ambiguous, or the live lookup fails.
+</fails_when>
+<requirements>EVID-01,EVID-02,EVID-03,EVID-04,TRUTH-08</requirements>
+<validation-level>terminal-attempt</validation-level>
+<branch-status>pending — not executed</branch-status>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-42-02:1">
+<automated>
+bash scripts/ci/test_verify_nightly_run.sh &amp;&amp; bash scripts/ci/test_nightly_incident.sh &amp;&amp; bash scripts/ci/test_nightly_summary_gate.sh &amp;&amp; bash scripts/ci/test_nightly_dialyzer.sh
+</automated>
+<fails_when>
+Any collector, incident, strict-summary, Dialyzer, rate-limit, identity, idempotency, concurrency, or fail-closed contract returns nonzero.
+</fails_when>
+<requirements>EVID-01,EVID-02,EVID-03,EVID-04,TRUTH-08</requirements>
+<validation-level>terminal-attempt</validation-level>
+<branch-status>pending — not executed</branch-status>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-42-02:2">
+<automated>
+mix test test/install_smoke/evidence_census_test.exs test/install_smoke/nightly_policy_test.exs test/install_smoke/live_truth_parity_test.exs test/install_smoke/generated_app_smoke_test.exs test/install_smoke/phase_133_reconciliation_test.exs test/install_smoke/phase_133_completed_validation_test.exs test/install_smoke/release_docs_parity_test.exs test/install_smoke/package_metadata_test.exs --seed 0
+</automated>
+<fails_when>
+Any evidence charter, Nightly, PLT, incident, package, release/support/adoption, or reconciliation test fails or a required case is absent/skipped.
+</fails_when>
+<requirements>EVID-01,EVID-02,EVID-03,EVID-04,TRUTH-08</requirements>
+<validation-level>terminal-attempt</validation-level>
+<branch-status>pending — not executed</branch-status>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-42-02:3">
+<automated>
+mix ci &amp;&amp; mix refactor_contract
+</automated>
+<fails_when>
+The quality lane or refactor contract returns nonzero, reports a failed test/check, or omits a configured gate.
+</fails_when>
+<requirements>EVID-01,EVID-02,EVID-03,EVID-04,TRUTH-08</requirements>
+<validation-level>terminal-attempt</validation-level>
+<branch-status>pending — not executed</branch-status>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-42-02:4">
+<automated>
+subject_sha=$(jq -er '.subject_sha' .planning/phases/133-evidence-charter-and-live-truth/133-EVIDENCE-CENSUS.json) &amp;&amp; audit_parent=$(mktemp -d) &amp;&amp; audit_parent=$(cd "$audit_parent" &amp;&amp; pwd -P) &amp;&amp; audit_root="$audit_parent/worktree" &amp;&amp; cleanup() { rc=$?; trap - EXIT HUP INT TERM; worktree_list=$(git worktree list --porcelain) || rc=1; if printf '%s\n' "$worktree_list" | grep -Fqx "worktree $audit_root"; then git worktree remove --force "$audit_root" || rc=1; fi; rm -rf -- "$audit_parent" || rc=1; exit "$rc"; } &amp;&amp; trap cleanup EXIT &amp;&amp; trap 'exit 130' HUP INT TERM &amp;&amp; git worktree add --detach "$audit_root" "$subject_sha" &amp;&amp; (cd "$audit_root" &amp;&amp; ./scripts/maintainer/repo_hygiene_check.sh)
+</automated>
+<fails_when>
+The exact subject cannot be checked out at the non-existent child path, repository hygiene reports debris/generated drift, or failure-safe cleanup cannot remove the worktree registration and temporary parent.
+</fails_when>
+<requirements>EVID-01,EVID-02,EVID-03,EVID-04,TRUTH-08</requirements>
+<validation-level>terminal-attempt</validation-level>
+<branch-status>pending — not executed</branch-status>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-42-02:5">
+<automated>
+receipt=.planning/phases/133-evidence-charter-and-live-truth/133-NIGHTLY-EVIDENCE.json &amp;&amp; subject_sha=$(jq -er '.subject_sha' "$receipt") &amp;&amp; remote_ref=$(jq -er '.remote_ref' "$receipt") &amp;&amp; scripts/ci/verify_nightly_run.sh verify-receipt --repo szTheory/rindle --workflow nightly.yml --ref "$remote_ref" --expected-sha "$subject_sha" --receipt "$receipt"
+</automated>
+<fails_when>
+The promoted canonical receipt is missing/malformed, names another tuple, or fails exact remote/local/incident/truth revalidation.
+</fails_when>
+<requirements>EVID-01,EVID-02,EVID-03,EVID-04,TRUTH-08</requirements>
+<validation-level>terminal-attempt</validation-level>
+<branch-status>pending — not executed</branch-status>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-42-02:6">
+<automated>
+MIX_ENV=test mix run --no-start --no-deps-check --no-compile scripts/maintainer/validate_phase_133_reconciliation.exs --root . --expect-execution-complete &amp;&amp; ./scripts/maintainer/automation_first_contract.sh
+</automated>
+<fails_when>
+Terminal reconciliation does not report 39 completed, Plans 27/32/37 halted, zero pending, qualified Plan 42 receipt, and all five requirements complete, or automation-first reports a contradiction/manual acceptance path.
+</fails_when>
+<requirements>EVID-01,EVID-02,EVID-03,EVID-04,TRUTH-08</requirements>
+<validation-level>terminal-attempt</validation-level>
+<branch-status>sole-terminal-completion-path</branch-status>
+<state>pending — not executed</state>
+<acceptance-credit>terminal-completion</acceptance-credit>
+</pending-validation>

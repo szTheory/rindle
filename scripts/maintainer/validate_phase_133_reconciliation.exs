@@ -40,6 +40,7 @@ defmodule Rindle.ValidatePhase133Reconciliation do
   @branch_bytes 90_993
   @branch_sha256 "2b1cfd85d43a1a478fc9d842af7184d826b545a605feda06c945ce638fc2649f"
   @branch_heading "## Branch-Aware Validation Addendum (Plans 33–37)"
+  @closure_heading "## Plans 38–42 Gap-Closure Addendum"
   @pending_state "pending — not executed"
   @executed_state "passed — executed"
   @halted_state "halted — immutable failed evidence"
@@ -388,6 +389,15 @@ defmodule Rindle.ValidatePhase133Reconciliation do
 
   defp bounded_addendum(body, mode) when mode in [:repair_execution, :repair_execution_complete],
     do: before_heading(body, @branch_heading)
+
+  defp bounded_addendum(body, mode)
+       when mode in [
+              :execution,
+              :execution_complete,
+              :branch_execution,
+              :branch_execution_complete
+            ],
+       do: before_heading(body, @closure_heading)
 
   defp bounded_addendum(body, _mode), do: body
 

@@ -143,6 +143,49 @@ defmodule Rindle.InstallSmoke.Phase133CompletedValidationTest do
 
   test "maps every Plans 38-42 command and adjacent failure exactly once without human credit" do
     validation = File.read!(Path.join(@repo_root, "#{@phase_rel}/133-VALIDATION.md"))
+    assert_closure_map!(validation)
+  end
+
+  test "rejects omitted, duplicate, stale, non-adjacent, and manual closure mappings" do
+    validation = File.read!(Path.join(@repo_root, "#{@phase_rel}/133-VALIDATION.md"))
+    [_prefix, addendum] = String.split(validation, @closure_heading)
+    [first_record] = Regex.run(~r/<pending-validation.*?<\/pending-validation>/s, addendum)
+
+    mutations = [
+      replace_in_closure(validation, &String.replace(&1, first_record, "", global: false)),
+      validation <> "\n" <> first_record,
+      replace_in_closure(
+        validation,
+        &String.replace(&1, "bash scripts/ci/test_verify_nightly_run.sh", "stale-command",
+          global: false
+        )
+      ),
+      replace_in_closure(
+        validation,
+        &String.replace(
+          &1,
+          "</automated>\n<fails_when>",
+          "</automated>\nmanual\n<fails_when>",
+          global: false
+        )
+      ),
+      replace_in_closure(
+        validation,
+        &Regex.replace(
+          ~r/(<pending-validation key="133-41-[^"]+">.*?)<acceptance-credit>authorization-only<\/acceptance-credit>/s,
+          &1,
+          "\\1<acceptance-credit>pending</acceptance-credit>",
+          global: false
+        )
+      )
+    ]
+
+    for mutation <- mutations do
+      assert_raise ExUnit.AssertionError, fn -> assert_closure_map!(mutation) end
+    end
+  end
+
+  defp assert_closure_map!(validation) do
     assert [_prefix, addendum] = String.split(validation, @closure_heading)
 
     expected =
@@ -171,12 +214,23 @@ defmodule Rindle.InstallSmoke.Phase133CompletedValidationTest do
                 "133-#{plan}-#{String.pad_leading(Integer.to_string(task_ordinal), 2, "0")}:#{pair_ordinal}",
               command: String.trim(command),
               failure: String.trim(failure),
+              level:
+                Map.fetch!(
+                  %{
+                    38 => "repair-backstop",
+                    39 => "reconciliation-authority",
+                    40 => "exact-subject-qualification",
+                    41 => "authorization-only",
+                    42 => "terminal-attempt"
+                  },
+                  plan
+                ),
               credit:
                 cond do
                   String.contains?(attributes, "checkpoint:") ->
                     "authorization-only"
 
-                  plan == 42 and task_ordinal == 2 and pair_ordinal == 7 ->
+                  plan == 42 and task_ordinal == 2 and pair_ordinal == 6 ->
                     "terminal-completion"
 
                   true ->
@@ -194,18 +248,20 @@ defmodule Rindle.InstallSmoke.Phase133CompletedValidationTest do
         capture: :all_but_first
       )
 
-    assert length(expected) == 27
+    assert length(expected) == 26
     assert length(records) == length(expected)
 
-    for {%{key: key, command: command, failure: failure, credit: credit}, [record_key, body]} <-
+    for {%{key: key, command: command, failure: failure, level: level, credit: credit},
+         [record_key, body]} <-
           Enum.zip(expected, records) do
       assert record_key == key
       assert body =~ "<automated>\n#{command}\n</automated>"
       assert body =~ "<fails_when>\n#{failure}\n</fails_when>"
+      assert body =~ "</automated>\n<fails_when>"
       assert body =~ "<requirements>EVID-01,EVID-02,EVID-03,EVID-04,TRUTH-08</requirements>"
+      assert body =~ "<validation-level>#{level}</validation-level>"
       assert body =~ "<acceptance-credit>#{credit}</acceptance-credit>"
       refute body =~ "human-verification"
-      refute body =~ "manual acceptance"
     end
 
     assert addendum =~
@@ -213,6 +269,11 @@ defmodule Rindle.InstallSmoke.Phase133CompletedValidationTest do
 
     assert addendum =~
              "<flagged-unresolved key=\"133-38-specless-context-boundary\">"
+  end
+
+  defp replace_in_closure(validation, fun) do
+    [prefix, addendum] = String.split(validation, @closure_heading)
+    prefix <> @closure_heading <> fun.(addendum)
   end
 
   test "accepts every dependency-valid repair state with Plan 27 halted" do
