@@ -460,3 +460,233 @@ defmodule Rindle.InstallSmoke.Phase133ReconciliationTest do
 
   defp sha256(contents), do: :crypto.hash(:sha256, contents) |> Base.encode16(case: :lower)
 end
+
+defmodule Rindle.InstallSmoke.Phase133Reconciliation42Test do
+  use ExUnit.Case, async: true
+
+  @async_safety_allow [:file_mutation]
+  def __async_safety_allow__, do: @async_safety_allow
+
+  @repo_root Path.expand("../..", __DIR__)
+  @phase_rel ".planning/phases/133-evidence-charter-and-live-truth"
+  @validator Path.join(@repo_root, "scripts/maintainer/validate_phase_133_reconciliation.exs")
+  @branch_heading "## Branch-Aware Validation Addendum (Plans 33–37)"
+  @requirements ~w(EVID-01 EVID-02 EVID-03 EVID-04 TRUTH-08)
+
+  test "accepts the first live 38/42 lifecycle state" do
+    fixture = write_fixture!()
+    set_state!(fixture, :post_38)
+
+    assert {output, 0} = run_validator(fixture)
+
+    assert output ==
+             "phase 133 reconciliation valid: 35 completed, 3 halted, 4 pending plans, " <>
+               "38/42 summarized, 27 validation records\n"
+  end
+
+  defp write_fixture! do
+    root =
+      Path.join(
+        System.tmp_dir!(),
+        "rindle-phase-133-reconciliation-42-#{System.unique_integer([:positive])}"
+      )
+
+    phase_dir = Path.join(root, @phase_rel)
+    File.mkdir_p!(phase_dir)
+    on_exit(fn -> File.rm_rf!(root) end)
+
+    for plan <- 28..42 do
+      File.cp!(
+        Path.join(@repo_root, "#{@phase_rel}/133-#{plan}-PLAN.md"),
+        Path.join(phase_dir, "133-#{plan}-PLAN.md")
+      )
+    end
+
+    source_validation = File.read!(Path.join(@repo_root, "#{@phase_rel}/133-VALIDATION.md"))
+    prefix = branch_prefix(source_validation)
+    validation = Path.join(phase_dir, "133-VALIDATION.md")
+    File.write!(validation, prefix)
+
+    fixture = %{
+      root: root,
+      roadmap: Path.join(root, ".planning/ROADMAP.md"),
+      state: Path.join(root, ".planning/STATE.md"),
+      requirements: Path.join(root, ".planning/REQUIREMENTS.md"),
+      validation: validation
+    }
+
+    set_state!(fixture, :post_38)
+    git!(root, ["init", "--quiet"])
+    git!(root, ["config", "user.email", "phase133@example.invalid"])
+    git!(root, ["config", "user.name", "Phase 133 Fixture"])
+    git!(root, ["add", ".planning"])
+    git!(root, ["commit", "--quiet", "-m", "42-plan validation prefix"])
+    prefix_ref = git!(root, ["rev-parse", "HEAD"])
+    File.write!(validation, source_validation)
+
+    Map.merge(fixture, %{prefix_ref: prefix_ref, prefix_sha256: sha256(prefix)})
+  end
+
+  defp branch_prefix(validation) do
+    case :binary.match(validation, @branch_heading) do
+      {offset, _length} -> binary_part(validation, 0, offset)
+      :nomatch -> validation
+    end
+  end
+
+  defp set_state!(fixture, lifecycle) do
+    {tail, halted, requirements_complete?} = lifecycle_state(lifecycle)
+    completed = MapSet.new(Enum.to_list(1..26) ++ [28, 29, 30, 31] ++ tail)
+    halted = MapSet.new(halted)
+
+    for plan <- 1..42 do
+      write_summary!(fixture.root, plan, completed, halted, lifecycle)
+    end
+
+    summarized = MapSet.size(completed) + MapSet.size(halted)
+    pending = 42 - summarized
+
+    rows =
+      Enum.map_join(1..42, "", fn plan ->
+        checked = if MapSet.member?(completed, plan), do: "x", else: " "
+        id = String.pad_leading(Integer.to_string(plan), 2, "0")
+        "- [#{checked}] 133-#{id}-PLAN.md\n"
+      end)
+
+    File.mkdir_p!(Path.join(fixture.root, ".planning"))
+
+    File.write!(
+      fixture.roadmap,
+      """
+      # Roadmap
+
+      ### Phase 133: Evidence Charter and Live Truth
+
+      #{roadmap_detail(lifecycle, summarized, MapSet.size(completed), pending)}
+
+      #{rows}
+      ### Phase 134: Next
+
+      ## Progress
+
+      | Phase | Plans Complete | Status | Completed |
+      |-------|----------------|--------|-----------|
+      | 133. Evidence Charter and Live Truth | #{summarized}/42 | In Progress |  |
+      """
+    )
+
+    File.write!(
+      fixture.state,
+      """
+      ---
+      current_phase: 133
+      status: executing
+      progress:
+        total_plans: 42
+        completed_plans: #{summarized}
+      ---
+
+      ## Current Position
+
+      Plan: #{summarized + 1} of 42
+      Status: EXECUTING
+      """
+    )
+
+    File.write!(fixture.requirements, requirements_fixture(requirements_complete?))
+  end
+
+  defp lifecycle_state(:post_38),
+    do: {[33, 34, 35, 36, 38], [27, 32, 37], false}
+
+  defp roadmap_detail(_lifecycle, summarized, completed, pending) do
+    "**Plans**: #{summarized}/42 plans summarized; #{completed} completed, " <>
+      "Plans 133-27, 133-32, and 133-37 halted with immutable attempts preserved, " <>
+      "#{pending} pending."
+  end
+
+  defp write_summary!(root, plan, completed, halted, lifecycle) do
+    path = summary_path(root, plan)
+    File.mkdir_p!(Path.dirname(path))
+
+    cond do
+      MapSet.member?(completed, plan) -> File.write!(path, complete_summary(plan, lifecycle))
+      plan == 27 and MapSet.member?(halted, plan) -> File.write!(path, halted_27_summary())
+      plan == 32 and MapSet.member?(halted, plan) -> File.write!(path, halted_32_summary())
+      plan == 37 and MapSet.member?(halted, plan) -> File.write!(path, halted_37_summary())
+      true -> File.rm(path)
+    end
+  end
+
+  defp complete_summary(_plan, _lifecycle), do: "---\nstatus: complete\n---\n"
+
+  defp halted_27_summary do
+    """
+    ---
+    status: halted
+    halt_reason: "Dispatch-owned Nightly run 34661043059 attempt 1 completed failure."
+    ---
+    Run `34661043059`, attempt `1`, subject `0f8189ddeed7e7a52b5c7464f17b70ab44596c33`, ref `phase-133-evidence-0f8189ddeed7`.
+    """
+  end
+
+  defp halted_32_summary do
+    """
+    ---
+    status: halted
+    halt_reason: "Dispatch-owned Nightly run 34670574306 could not be qualified."
+    ---
+    Run `34670574306`, subject `e70623e9ea956c750904af574f47221cc472d2f2`, ref `refs/heads/phase-133-evidence-e70623e9ea95`.
+    """
+  end
+
+  defp halted_37_summary,
+    do: "---\nstatus: halted\nhalt_reason: immutable terminal automation failure\n---\n"
+
+  defp requirements_fixture(complete?) do
+    checkbox = if complete?, do: "x", else: " "
+    status = if complete?, do: "Complete", else: "Pending"
+
+    Enum.map_join(@requirements, "\n", fn id ->
+      "- [#{checkbox}] **#{id}**: fixture requirement\n| #{id} | Phase 133 | #{status} |"
+    end)
+  end
+
+  defp run_validator(fixture) do
+    System.cmd(
+      "mix",
+      [
+        "run",
+        "--no-start",
+        "--no-deps-check",
+        "--no-compile",
+        @validator,
+        "--root",
+        fixture.root,
+        "--fixture-active-prefix-ref",
+        fixture.prefix_ref,
+        "--fixture-active-prefix-sha256",
+        fixture.prefix_sha256,
+        "--fixture-topology",
+        "branch-42"
+      ],
+      cd: @repo_root,
+      env: [{"MIX_QUIET", "1"}],
+      stderr_to_stdout: true
+    )
+  end
+
+  defp summary_path(root, plan) do
+    id = String.pad_leading(Integer.to_string(plan), 2, "0")
+    Path.join(root, Path.join(@phase_rel, "133-#{id}-SUMMARY.md"))
+  end
+
+  defp git!(root, args) do
+    case System.cmd("git", args, cd: root, stderr_to_stdout: true) do
+      {output, 0} -> String.trim(output)
+      {output, status} -> flunk("git #{Enum.join(args, " ")} failed (#{status}): #{output}")
+    end
+  end
+
+  defp sha256(contents), do: :crypto.hash(:sha256, contents) |> Base.encode16(case: :lower)
+end
