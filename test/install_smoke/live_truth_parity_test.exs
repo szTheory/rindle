@@ -963,6 +963,22 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
   end
 
   @tag :package_authority
+  test "a caller supplied trivial package cannot stand in for the committed Rindle package" do
+    evidence = executable_package_evidence_fixture!()
+    model = Rindle.ValidateLiveTruth.derive!(@repo_root, [])
+
+    assert_raise ArgumentError, ~r/unpacked package content mismatch/, fn ->
+      Rindle.ValidateLiveTruth.validate_claims!(model, [
+        %{
+          type: :package,
+          receipt: evidence.receipt,
+          evidence_context: evidence.context
+        }
+      ])
+    end
+  end
+
+  @tag :package_authority
   test "package receipt argument rejects inline disagreement" do
     evidence = package_evidence_fixture!()
     receipt_path = write_json_fixture!(evidence.receipt)
@@ -1044,40 +1060,6 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
       Rindle.ValidateLiveTruth.validate_claims!(model, [
         %{type: :adoption, receipt: receipt, evidence_context: %{evidence_path: evidence_path}}
       ])
-    end
-  end
-
-  @tag :package_authority
-  test "migration resolver decoding is finite and cannot allocate caller atoms" do
-    assert function_exported?(
-             Rindle.InstallSmoke.GeneratedAppHelper,
-             :decode_migration_resolver!,
-             1
-           )
-
-    assert Rindle.InstallSmoke.GeneratedAppHelper.decode_migration_resolver!(nil) == nil
-
-    assert Rindle.InstallSmoke.GeneratedAppHelper.decode_migration_resolver!("host_migrations") ==
-             :host_migrations
-
-    assert_raise ArgumentError, ~r/unknown generated migration resolver/, fn ->
-      Rindle.InstallSmoke.GeneratedAppHelper.decode_migration_resolver!("resolver-warmup")
-    end
-
-    atom_count_before = :erlang.system_info(:atom_count)
-
-    for suffix <- 1..1_000 do
-      assert_raise ArgumentError, ~r/unknown generated migration resolver/, fn ->
-        Rindle.InstallSmoke.GeneratedAppHelper.decode_migration_resolver!(
-          "unknown-resolver-#{suffix}"
-        )
-      end
-    end
-
-    assert :erlang.system_info(:atom_count) == atom_count_before
-
-    assert_raise ArgumentError, ~r/generated migration resolver must be a known string/, fn ->
-      Rindle.InstallSmoke.GeneratedAppHelper.decode_migration_resolver!(42)
     end
   end
 
@@ -1432,6 +1414,44 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
   defp assert_error(root, message) do
     assert_raise ArgumentError, ~r/#{Regex.escape(message)}/, fn ->
       Rindle.ValidateLiveTruth.derive!(root, [])
+    end
+  end
+end
+
+defmodule Rindle.InstallSmoke.LiveTruthAtomSafetyTest do
+  use ExUnit.Case, async: false
+
+  @tag :package_authority
+  test "migration resolver decoding is finite and cannot allocate caller atoms" do
+    assert function_exported?(
+             Rindle.InstallSmoke.GeneratedAppHelper,
+             :decode_migration_resolver!,
+             1
+           )
+
+    assert Rindle.InstallSmoke.GeneratedAppHelper.decode_migration_resolver!(nil) == nil
+
+    assert Rindle.InstallSmoke.GeneratedAppHelper.decode_migration_resolver!("host_migrations") ==
+             :host_migrations
+
+    assert_raise ArgumentError, ~r/unknown generated migration resolver/, fn ->
+      Rindle.InstallSmoke.GeneratedAppHelper.decode_migration_resolver!("resolver-warmup")
+    end
+
+    atom_count_before = :erlang.system_info(:atom_count)
+
+    for suffix <- 1..1_000 do
+      assert_raise ArgumentError, ~r/unknown generated migration resolver/, fn ->
+        Rindle.InstallSmoke.GeneratedAppHelper.decode_migration_resolver!(
+          "unknown-resolver-#{suffix}"
+        )
+      end
+    end
+
+    assert :erlang.system_info(:atom_count) == atom_count_before
+
+    assert_raise ArgumentError, ~r/generated migration resolver must be a known string/, fn ->
+      Rindle.InstallSmoke.GeneratedAppHelper.decode_migration_resolver!(42)
     end
   end
 end
