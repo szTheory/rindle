@@ -43,16 +43,16 @@ trap 'rm -rf "${workspace}"' EXIT
 runs_file="${workspace}/runs.json"
 artifacts_file="${workspace}/artifacts.json"
 events_file="${workspace}/events.json"
-
 fetch_runs() {
-  local pages
+  local pages base_file row run_id max_attempt attempt detail
   pages="$(${GH_CLI:-gh} api --paginate --slurp \
     "repos/${GH_REPO}/actions/workflows/nightly.yml/runs?event=schedule&per_page=100")"
   jq -e '
     type == "array" and length > 0 and
     all(.[]; type == "object" and (.workflow_runs | type == "array"))
   ' >/dev/null <<<"${pages}" || fail "invalid workflow-run inventory"
-  jq -cS '[.[].workflow_runs[]]' <<<"${pages}" >"${runs_file}"
+  base_file="${workspace}/base-runs.json"
+  jq -cS '[.[].workflow_runs[]]' <<<"${pages}" >"${base_file}"
 
   jq -e --argjson high "${CURRENT_RUN_ID}" --argjson attempt "${CURRENT_RUN_ATTEMPT}" \
     --arg sha "${REMOTE_MAIN_SHA}" --arg branch "${DEFAULT_BRANCH}" '
@@ -69,7 +69,30 @@ fetch_runs() {
         (.name == "Nightly") and
         (.path == ".github/workflows/nightly.yml")
       ) and
-      ([.[].id] | length == (unique | length)) and
+      ([.[].id] | length == (unique | length))
+    ' "${base_file}" >/dev/null || fail "workflow-run inventory was malformed or duplicated"
+
+  printf '[]\n' >"${runs_file}"
+  while IFS= read -r row; do
+    run_id="$(jq -r .id <<<"${row}")"
+    max_attempt="$(jq -r .run_attempt <<<"${row}")"
+    for ((attempt = 1; attempt <= max_attempt; attempt++)); do
+      detail="$(${GH_CLI:-gh} api "repos/${GH_REPO}/actions/runs/${run_id}/attempts/${attempt}")" ||
+        fail "workflow attempt lookup failed for ${run_id}/${attempt}"
+      jq -e --argjson id "${run_id}" --argjson attempt "${attempt}" \
+        '.id == $id and .run_attempt == $attempt and .event == "schedule" and
+         .name == "Nightly" and .path == ".github/workflows/nightly.yml"' \
+        >/dev/null <<<"${detail}" || fail "workflow attempt identity mismatch for ${run_id}/${attempt}"
+      jq -cS --argjson id "${run_id}" --argjson attempt "${attempt}" \
+        '. + {id:$id,run_attempt:$attempt}' <<<"${detail}" |
+        jq -s -cS --slurpfile existing "${runs_file}" '$existing[0] + .' >"${workspace}/runs.next"
+      mv "${workspace}/runs.next" "${runs_file}"
+    done
+  done < <(jq -c '.[]' "${base_file}")
+
+  jq -e --argjson high "${CURRENT_RUN_ID}" --argjson attempt "${CURRENT_RUN_ATTEMPT}" \
+    --arg sha "${REMOTE_MAIN_SHA}" --arg branch "${DEFAULT_BRANCH}" '
+      ([.[] | [.id, .run_attempt]] | length == (unique | length)) and
       ([.[] | select(.id == $high and .run_attempt == $attempt and .head_sha == $sha and .head_branch == $branch)] | length == 1)
     ' "${runs_file}" >/dev/null || fail "workflow-run inventory does not authenticate the current high-watermark"
 }
@@ -100,7 +123,7 @@ prepare_event_index() {
 
   jq -cS \
     --arg prefix 'nightly-incident-verdict-' \
-    --argjson high "${CURRENT_RUN_ID}" '
+    --argjson high "${CURRENT_RUN_ID}" --argjson high_attempt "${CURRENT_RUN_ATTEMPT}" '
       [
         .[] |
         select(.expired == false) |
@@ -113,7 +136,7 @@ prepare_event_index() {
           run_id:($identity.run | tonumber),
           run_attempt:($identity.attempt | tonumber)
         } |
-        select(.run_id <= $high)
+        select(.run_id < $high or (.run_id == $high and .run_attempt <= $high_attempt))
       ]
     ' "${artifacts_file}" >"${workspace}/event-index.json" || fail "malformed canonical artifact name"
 
@@ -124,10 +147,10 @@ prepare_event_index() {
 
   jq -cS \
     --arg branch "${DEFAULT_BRANCH}" \
-    --argjson high "${CURRENT_RUN_ID}" '
+    --argjson high "${CURRENT_RUN_ID}" --argjson high_attempt "${CURRENT_RUN_ATTEMPT}" '
       [
         .[] |
-        select(.id <= $high and .head_branch == $branch) |
+        select((.id < $high or (.id == $high and .run_attempt <= $high_attempt)) and .head_branch == $branch) |
         select(.status == "completed" or .id == $high) |
         {run_id:.id,run_attempt:.run_attempt,event:.event,status:.status,conclusion:.conclusion,sha:.head_sha,branch:.head_branch,url:.html_url,name:.name,path:.path}
       ] | sort_by(.run_id, .run_attempt)

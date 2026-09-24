@@ -596,6 +596,7 @@ jobs:
         with:
           name: nightly-incident-verdict-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/nightly-incident-verdict.json
+          retention-days: 14
           if-no-files-found: error
           overwrite: false
 

@@ -92,6 +92,11 @@ make_fake_gh() {
     'if [ "${1-}" = api ]; then' \
     '  [ "${FAKE_GH_FAIL-}" != api ] || exit 41' \
     '  case "$*" in' \
+    '    *"actions/runs/"*"/attempts/"*)' \
+    '      run_id="$(sed -E "s#.*actions/runs/([0-9]+)/attempts/([0-9]+).*#\\1#" <<<"$*")"' \
+    '      attempt="$(sed -E "s#.*actions/runs/([0-9]+)/attempts/([0-9]+).*#\\2#" <<<"$*")"' \
+    '      jq -ce --argjson id "$run_id" --argjson attempt "$attempt" '\''[.workflow_runs[] | select(.id == $id) | . + {run_attempt:$attempt}] | .[0] // error("missing run")'\'' "${state}/runs.json"' \
+    '      ;;' \
     '    *"actions/workflows/nightly.yml/runs"*) jq -cn --slurpfile page "${state}/runs.json" '\''[$page[0]]'\'' ;;' \
     '    *"actions/artifacts"*)' \
     '      n="$(counter artifact_reads)"' \
@@ -313,6 +318,47 @@ permanent_mutation_failure_case() {
   rm -rf "${temp}"
 }
 
+two_attempts_case() {
+  local temp output got=0
+  temp="$(new_fixture)"
+  output="${temp}/output"
+  jq '(.workflow_runs[] | select(.id == 103) | .run_attempt) = 2' "${temp}/state/runs.json" >"${temp}/state/runs.next"
+  mv "${temp}/state/runs.next" "${temp}/state/runs.json"
+  jq '.artifacts += [{id:1004,name:"nightly-incident-verdict-103-2",expired:false,workflow_run:{id:103}}]' \
+    "${temp}/state/artifacts.json" >"${temp}/state/artifacts.next"
+  mv "${temp}/state/artifacts.next" "${temp}/state/artifacts.json"
+  write_event "${temp}/state/events/nightly-incident-verdict-103-1.json" 103 1 red "${sha_b}"
+  write_event "${temp}/state/events/nightly-incident-verdict-103-2.json" 103 2 green "${sha_b}"
+  run_manager "${temp}" "${output}" CURRENT_RUN_ATTEMPT=2 || got=$?
+  if [ "${got}" -eq 0 ] && [ "$(mutation_effects "${temp}")" -eq 4 ] && \
+     rg -q 'nightly-mutation:update:103:1' "${temp}/state/issues.json" && \
+     rg -q 'nightly-mutation:close:103:2' "${temp}/state/issues.json"; then
+    record "both scheduled attempts replay as distinct ordered events" true ""
+  else
+    record "both scheduled attempts replay as distinct ordered events" false "exit=${got}; $(<"${output}")"
+  fi
+  rm -rf "${temp}"
+}
+
+skipped_attempt_case() {
+  local temp output got=0
+  temp="$(new_fixture)"
+  output="${temp}/output"
+  jq '(.workflow_runs[] | select(.id == 103) | .run_attempt) = 2' "${temp}/state/runs.json" >"${temp}/state/runs.next"
+  mv "${temp}/state/runs.next" "${temp}/state/runs.json"
+  jq '.artifacts = (.artifacts + [{id:1004,name:"nightly-incident-verdict-103-2",expired:false,workflow_run:{id:103}}] | map(select(.name != "nightly-incident-verdict-103-1")))' \
+    "${temp}/state/artifacts.json" >"${temp}/state/artifacts.next"
+  mv "${temp}/state/artifacts.next" "${temp}/state/artifacts.json"
+  write_event "${temp}/state/events/nightly-incident-verdict-103-2.json" 103 2 green "${sha_b}"
+  run_manager "${temp}" "${output}" CURRENT_RUN_ATTEMPT=2 || got=$?
+  if [ "${got}" -ne 0 ] && [ "$(jq length "${temp}/state/issues.json")" -eq 0 ]; then
+    record "a missing earlier attempt fails before incident mutation" true ""
+  else
+    record "a missing earlier attempt fails before incident mutation" false "exit=${got}; $(<"${output}")"
+  fi
+  rm -rf "${temp}"
+}
+
 three_overlap_case
 green_no_incident_case
 delayed_artifact_case
@@ -329,6 +375,8 @@ fail_closed_case "workflow-run API failure performs no issue mutation" none FAKE
 restart_case "stale mutation preimage restarts full replay" stale
 restart_case "uncertain mutation outcome restarts and converges" uncertain
 permanent_mutation_failure_case
+two_attempts_case
+skipped_attempt_case
 
 echo "—"
 echo "passed: ${pass}  failed: ${fail}"

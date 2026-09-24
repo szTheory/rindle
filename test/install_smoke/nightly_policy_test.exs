@@ -147,6 +147,7 @@ defmodule Rindle.InstallSmoke.NightlyPolicyTest do
 
     assert upload["with"]["overwrite"] == false
     assert upload["with"]["if-no-files-found"] == "error"
+    assert upload["with"]["retention-days"] == 14
 
     assert lifecycle["needs"] == "nightly-incident-verdict"
     assert lifecycle["if"] == "${{ always() && github.event_name == 'schedule' }}"
