@@ -44,7 +44,7 @@ error vocabulary, release coupling, supported behavior, or the accepted pull-req
   3. Nightly aggregation fails for failed, cancelled, unexpected, or impermissibly skipped gating states, and automated incident tests prove one exact-run-bound issue opens or updates on failure and closes only after qualifying scheduled recovery.
   4. Executable parity checks derive release, planning, support, and adoption-proof claims from authoritative state and reject every unmarked version, lane-severity, or package-proof contradiction.
 
-**Plans**: 45/49 plans executed summarized; 38 completed, Plans 133-27, 133-32, 133-37, and 133-42 halted with immutable attempts preserved, 7 gap-closure plans pending.
+**Plans**: 46/49 plans executed summarized; 42 completed, Plans 133-27, 133-32, 133-37, and 133-42 halted with immutable attempts preserved, 3 gap-closure plans pending.
 
 Plans:
 
@@ -130,7 +130,7 @@ Plans:
 
 **Wave 19** *(blocked on Waves 17–18 completion; Plan 133-27 halted, independent repairs remain runnable)*
 
-- [x] 133-27-PLAN.md — HALTED after the authorized immutable Nightly attempt failed; preserve its ref/run and prior valid receipt.
+- [ ] 133-27-PLAN.md — HALTED after the authorized immutable Nightly attempt failed; preserve its ref/run and prior valid receipt.
 - [x] 133-28-PLAN.md — Repair generated package compatibility at the supported Elixir floor and report the first failed package command.
 - [x] 133-29-PLAN.md — Reconcile bounded launcher output, the halted Plan 133-27, and the five-plan repair graph.
 
@@ -144,7 +144,7 @@ Plans:
 
 **Wave 22** *(blocked on an exact publish outcome from Plan 133-31)*
 
-- [x] 133-32-PLAN.md — HALTED after GitHub API rate limiting interrupted the sole authorized collector attempt; preserve ref/run and prior valid receipt.
+- [ ] 133-32-PLAN.md — HALTED after GitHub API rate limiting interrupted the sole authorized collector attempt; preserve ref/run and prior valid receipt.
 
 **Wave 23** *(consumes the immutable Plan 133-32 halt; no remote mutation)*
 
@@ -164,7 +164,7 @@ Plans:
 
 **Wave 27** *(blocked on exact authorization from Plan 133-36)*
 
-- [x] 133-37-PLAN.md — Publish the authorized ref once, then either halt the failed immutable attempt or close Phase 133 only after every automated qualification gate passes.
+- [ ] 133-37-PLAN.md — Publish the authorized ref once, then either halt the failed immutable attempt or close Phase 133 only after every automated qualification gate passes.
 
 **Wave 28** *(consumes the immutable Plan 133-37 halt; no remote mutation)*
 
@@ -184,14 +184,14 @@ Plans:
 
 **Wave 32** *(blocked on exact authorization from Plan 133-41)*
 
-- [x] 133-42-PLAN.md — Publish and dispatch exactly once, then promote the candidate receipt and close Phase 133 only after every automated gate passes.
+- [ ] 133-42-PLAN.md — Publish and dispatch exactly once, then promote the candidate receipt and close Phase 133 only after every automated gate passes.
 
 **Wave 1** *(four independent local repairs; Plan 133-42 remains an immutable historical halt)*
 
 - [x] 133-43-PLAN.md — Rebuild package proof from the exact subject and reject caller-owned trees and PATH.
 - [x] 133-44-PLAN.md — Publish receipts without clobbering and authenticate historical incident snapshots.
 - [x] 133-45-PLAN.md — Bound scheduled incident replay across retention and authenticate rerun attempts.
-- [ ] 133-46-PLAN.md — Enforce complete closure mapping, halted identity, and canonical receipt proof in production reconciliation.
+- [x] 133-46-PLAN.md — Enforce complete closure mapping, halted identity, and canonical receipt proof in production reconciliation.
 
 **Wave 2** *(blocked on Plans 133-43 through 133-46)*
 
@@ -299,7 +299,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 133. Evidence Charter and Live Truth | 45/49 | In Progress|  |
+| 133. Evidence Charter and Live Truth | 46/49 | In Progress|  |
 | 134. Dependency, Security, and Inbox Disposition | 0/TBD | Not started | - |
 | 135. Repository and Code-Craft Consolidation | 0/TBD | Not started | - |
 | 136. Measured Quality and CI Ratchets | 0/TBD | Not started | - |
