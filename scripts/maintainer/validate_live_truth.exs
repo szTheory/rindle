@@ -30,7 +30,6 @@ defmodule Rindle.ValidateLiveTruth do
     unpacked_tree_sha256 generated_app_tree_sha256 dependency_lock_sha256 dependency_source
     commands results
   )
-  @generated_tree_exclusions [".git", "_build", "deps", "tmp"]
   @independent_adopter_schema "rindle-independent-adopter-v1"
   @independent_adopter_fields ~w(
     schema_version evidence_type authority_id subject_sha evidence_sha256 authorization_scope
@@ -82,8 +81,20 @@ defmodule Rindle.ValidateLiveTruth do
   end
 
   def validate_claims!(model, claims) when is_list(claims) do
-    Enum.each(claims, &validate_claim!(model, &1))
-    :ok
+    cache_key = {__MODULE__, :package_proof_cache}
+    prior_cache = Process.get(cache_key, :missing)
+    Process.put(cache_key, %{})
+
+    try do
+      Enum.each(claims, &validate_claim!(model, &1))
+      :ok
+    after
+      if prior_cache == :missing do
+        Process.delete(cache_key)
+      else
+        Process.put(cache_key, prior_cache)
+      end
+    end
   end
 
   def validate_claims!(model, %{"claims" => claims}), do: validate_claims!(model, claims)
@@ -279,16 +290,11 @@ defmodule Rindle.ValidateLiveTruth do
   defp validate_package_claim!(model, claim) do
     receipt = field(claim, :receipt)
     assert!(not is_nil(receipt), "package claim requires a package receipt")
-    evidence_context = field(claim, :evidence_context) || %{}
 
     _proof =
       normalize_package_receipt!(receipt, %{
         repository_root: model.authority_root,
-        expected_package_version: model.version,
-        package_root: field(evidence_context, :package_root),
-        generated_app_root: field(evidence_context, :generated_app_root),
-        results_path: field(evidence_context, :results_path),
-        execution_env: field(evidence_context, :execution_env)
+        expected_package_version: model.version
       })
 
     :ok
@@ -311,11 +317,7 @@ defmodule Rindle.ValidateLiveTruth do
         _proof =
           normalize_package_receipt!(receipt, %{
             repository_root: model.authority_root,
-            expected_package_version: model.version,
-            package_root: field(evidence_context, :package_root),
-            generated_app_root: field(evidence_context, :generated_app_root),
-            results_path: field(evidence_context, :results_path),
-            execution_env: field(evidence_context, :execution_env)
+            expected_package_version: model.version
           })
 
         :ok
@@ -377,8 +379,27 @@ defmodule Rindle.ValidateLiveTruth do
     lines |> Enum.reverse() |> Enum.join("\n")
   end
 
-  def normalize_package_receipt!(receipt, context),
-    do: verify_package_evidence!(receipt, context)
+  def normalize_package_receipt!(receipt, context) do
+    cache_key = {__MODULE__, :package_proof_cache}
+
+    case Process.get(cache_key) do
+      cache when is_map(cache) ->
+        cache_entry = sha256(:erlang.term_to_binary({receipt, context}))
+
+        case Map.fetch(cache, cache_entry) do
+          {:ok, proof} ->
+            proof
+
+          :error ->
+            proof = verify_package_evidence!(receipt, context)
+            Process.put(cache_key, Map.put(cache, cache_entry, proof))
+            proof
+        end
+
+      _ ->
+        verify_package_evidence!(receipt, context)
+    end
+  end
 
   def verify_package_evidence!(receipt, context) when is_map(receipt) and is_map(context) do
     receipt = stringify_keys!(receipt, "package receipt")
@@ -401,96 +422,64 @@ defmodule Rindle.ValidateLiveTruth do
 
     repository_root = required_directory!(context["repository_root"], "repository root")
     expected_package_version = required_version_authority!(context["expected_package_version"])
-    package_root = required_directory!(context["package_root"], "unpacked package root")
-    generated_app_root = required_directory!(context["generated_app_root"], "generated app root")
-    results_path = required_file!(context["results_path"], "command result receipt")
-
-    assert!(git_head!(repository_root) == receipt["subject_sha"], "package subject SHA mismatch")
+    subject_sha = git_head!(repository_root)
+    assert!(subject_sha == receipt["subject_sha"], "package subject SHA mismatch")
     assert!(receipt["package_name"] == "rindle", "package name mismatch")
-
-    package_mix = required_file!(Path.join(package_root, "mix.exs"), "unpacked package mix.exs")
-
-    package_metadata =
-      required_file!(Path.join(package_root, "hex_metadata.config"), "unpacked package metadata")
-
-    assert!(
-      not File.exists?(Path.join(package_root, ".git")),
-      "repository source fallback is forbidden"
-    )
-
-    assert!(
-      not File.exists?(Path.join(package_root, ".planning")),
-      "repository source fallback is forbidden"
-    )
-
-    package_version = package_version!(package_mix)
-    assert!(package_version == receipt["package_version"], "package version mismatch")
 
     assert!(
       receipt["package_version"] == expected_package_version,
       "package version authority mismatch"
     )
 
+    reject_duplicate_command_evidence!(receipt["commands"], receipt["results"])
+    _diagnostic_results = verify_command_results!(receipt["results"])
+
+    trusted = rebuild_package_authority!(repository_root, subject_sha, receipt)
+    package = trusted["receipt"]
+
+    assert!(package["package_name"] == "rindle", "package name mismatch")
+
     assert!(
-      file_sha256!(package_metadata) == receipt["package_sha256"],
-      "package digest mismatch"
+      package["package_version"] == expected_package_version,
+      "package version authority mismatch"
     )
 
-    unpacked_tree_sha256 = tree_sha256!(package_root, [])
+    assert!(receipt["package_sha256"] == package["package_sha256"], "package digest mismatch")
 
     assert!(
-      unpacked_tree_sha256 == receipt["unpacked_tree_sha256"],
-      "unpacked tree digest mismatch"
-    )
-
-    generated_tree_sha256 = tree_sha256!(generated_app_root, @generated_tree_exclusions)
-
-    assert!(
-      generated_tree_sha256 == receipt["generated_app_tree_sha256"],
-      "generated app tree digest mismatch"
-    )
-
-    generated_mix = required_file!(Path.join(generated_app_root, "mix.exs"), "generated mix.exs")
-    dependency_lock = required_file!(Path.join(generated_app_root, "mix.lock"), "dependency lock")
-
-    assert!(
-      file_sha256!(dependency_lock) == receipt["dependency_lock_sha256"],
-      "dependency lock digest mismatch"
+      receipt["unpacked_tree_sha256"] == package["unpacked_tree_sha256"],
+      "unpacked package content mismatch"
     )
 
     expected_source = %{
       "type" => "path",
       "package_name" => "rindle",
       "package_version" => expected_package_version,
-      "unpacked_tree_sha256" => unpacked_tree_sha256
+      "unpacked_tree_sha256" => package["unpacked_tree_sha256"]
     }
 
     assert!(receipt["dependency_source"] == expected_source, "dependency source mismatch")
-    assert!(generated_mix_uses_path?(generated_mix, package_root), "dependency source mismatch")
+    assert!(receipt["commands"] == package["commands"], "package command argv mismatch")
 
     assert!(
-      not File.exists?(Path.join(generated_app_root, "deps/rindle")),
-      "generated deps/rindle fallback is forbidden"
+      receipt["generated_app_tree_sha256"] == package["generated_app_tree_sha256"],
+      "generated app tree digest mismatch"
     )
 
-    persisted_results = results_path |> File.read!() |> Jason.decode!()
-    assert!(receipt["results"] == persisted_results, "package command results mismatch")
+    assert!(
+      receipt["dependency_lock_sha256"] == package["dependency_lock_sha256"],
+      "dependency lock digest mismatch"
+    )
 
-    reject_duplicate_command_evidence!(receipt["commands"], persisted_results)
+    assert!(
+      is_binary(receipt["generated_app_tree_sha256"]) and
+        Regex.match?(~r/\A[0-9a-f]{64}\z/, receipt["generated_app_tree_sha256"]),
+      "generated app tree digest mismatch"
+    )
 
-    expected_commands = package_commands!(generated_app_root)
-    assert!(receipt["commands"] == expected_commands, "package command argv mismatch")
+    assert!(trusted["lifecycle_proved"] == true, "package command failed: smoke_lifecycle")
 
-    _diagnostic_results = verify_command_results!(persisted_results)
-
-    observed_results =
-      verify_package_commands!(
-        generated_app_root,
-        expected_commands,
-        normalize_execution_env!(context["execution_env"])
-      )
-
-    lifecycle_proved = command_succeeded?(observed_results["smoke_lifecycle"])
+    lifecycle_proved = true
 
     %{
       schema_version: @package_receipt_schema,
@@ -573,27 +562,6 @@ defmodule Rindle.ValidateLiveTruth do
     end
   end
 
-  defp generated_mix_uses_path?(mix_path, package_root) do
-    File.read!(mix_path) =~ "{:rindle, path: #{inspect(package_root)}}"
-  end
-
-  defp package_commands!(generated_app_root) do
-    app_module = generated_app_root |> Path.basename() |> Macro.camelize()
-    app_name = Macro.underscore(app_module)
-
-    %{
-      "compile" => ["mix", "compile"],
-      "boot" => [
-        "mix",
-        "run",
-        "--no-start",
-        "-e",
-        "Application.ensure_all_started(:#{app_name}); repo = Application.fetch_env!(:rindle, :repo); oban_repo = Application.fetch_env!(:#{app_name}, Oban)[:repo]; if repo != #{app_module}.Repo or oban_repo != #{app_module}.Repo, do: raise(\"boot wiring invalid\"); IO.puts(\"boot ok\")"
-      ],
-      "smoke_lifecycle" => ["mix", "test", "test/rindle_install_smoke_test.exs"]
-    }
-  end
-
   defp verify_command_results!(results) do
     expected_names = ~w(compile boot smoke_lifecycle)
 
@@ -661,63 +629,262 @@ defmodule Rindle.ValidateLiveTruth do
 
   defp reject_duplicate_command_evidence!(_commands, _results), do: :ok
 
-  defp command_succeeded?(result), do: is_map(result) and result["exit_code"] == 0
+  defp rebuild_package_authority!(repository_root, subject_sha, claimed_receipt) do
+    workspace_root =
+      Path.join(
+        System.tmp_dir!(),
+        "rindle-live-truth-package-#{subject_sha}-#{System.unique_integer([:positive])}"
+      )
 
-  defp verify_package_commands!(generated_app_root, commands, execution_env) do
-    for name <- ~w(compile boot smoke_lifecycle), into: %{} do
-      argv = Map.fetch!(commands, name)
-      result = execute_package_command!(generated_app_root, argv, execution_env)
+    package_root = Path.join(workspace_root, "package")
+    File.mkdir_p!(workspace_root)
 
-      assert!(result["exit_code"] == 0, "package command failed: #{name}")
+    try do
+      git = absolute_executable!("git")
+      mix = absolute_executable!("mix")
+      elixir = absolute_executable!("elixir")
+      erl = absolute_executable!("erl")
 
-      case name do
-        "boot" ->
-          assert!(result["output"] =~ "boot ok", "package command failed: boot")
+      assert_package_inputs_match_subject!(git, repository_root, subject_sha)
 
-        "smoke_lifecycle" ->
-          assert!(
-            Regex.match?(~r/\d+ tests?, 0 failures/, result["output"]),
-            "package command failed: smoke_lifecycle"
-          )
+      {build_output, build_exit} =
+        run_private_mix!(
+          mix,
+          repository_root,
+          [
+            "hex.build",
+            "--unpack",
+            "--output",
+            package_root
+          ],
+          private_package_env("dev", package_root, mix, git, elixir, erl)
+        )
 
-        "compile" ->
-          :ok
-      end
+      assert!(
+        build_exit == 0,
+        "subject package build failed via #{mix}: #{String.slice(build_output, 0, 2500)}"
+      )
 
-      {name, result}
+      assert!(
+        File.regular?(Path.join(package_root, "mix.exs")),
+        "package subject snapshot failed"
+      )
+
+      assert!(
+        File.regular?(Path.join(package_root, "hex_metadata.config")),
+        "package subject snapshot failed"
+      )
+
+      assert_package_matches_subject!(git, repository_root, subject_sha, package_root)
+
+      assert!(
+        package_version!(Path.join(package_root, "mix.exs")) ==
+          claimed_receipt["package_version"],
+        "package version mismatch"
+      )
+
+      actual_tree_sha256 = tree_sha256!(package_root, [])
+
+      assert!(
+        claimed_receipt["package_sha256"] ==
+          file_sha256!(Path.join(package_root, "hex_metadata.config")),
+        "package digest mismatch"
+      )
+
+      assert!(
+        claimed_receipt["unpacked_tree_sha256"] == actual_tree_sha256,
+        "unpacked package content mismatch"
+      )
+
+      helper_script =
+        """
+        Code.require_file(#{inspect(Path.join(repository_root, "test/install_smoke/support/generated_app_helper.ex"))})
+        report = Rindle.InstallSmoke.GeneratedAppHelper.prove_package_install!(:image)
+        try do
+          IO.puts("__RINDLE_PACKAGE_AUTHORITY__" <> Jason.encode!(%{
+            receipt: report.package_evidence_receipt,
+            lifecycle_proved: report.lifecycle_proved? and report.smoke_exit_code == 0
+          }))
+        after
+          Rindle.InstallSmoke.GeneratedAppHelper.cleanup(report)
+        end
+        """
+
+      {output, helper_exit} =
+        run_private_mix!(
+          mix,
+          repository_root,
+          [
+            "run",
+            "--no-compile",
+            "--no-deps-check",
+            "-e",
+            helper_script
+          ],
+          private_package_env("test", package_root, mix, git, elixir, erl, true) ++
+            [{"RINDLE_INSTALL_SMOKE_PACKAGE_ROOT", package_root}]
+        )
+
+      assert!(
+        helper_exit == 0,
+        "package lifecycle rebuild failed: #{String.slice(output, 0, 500)}"
+      )
+
+      proof_line =
+        output
+        |> String.split("\n", trim: true)
+        |> Enum.find(&String.starts_with?(&1, "__RINDLE_PACKAGE_AUTHORITY__"))
+
+      assert!(is_binary(proof_line), "package authority rebuild failed")
+      encoded = String.replace_prefix(proof_line, "__RINDLE_PACKAGE_AUTHORITY__", "")
+      Jason.decode!(encoded)
+    rescue
+      error ->
+        raise ArgumentError, "package authority rebuild failed: #{Exception.message(error)}"
+    after
+      File.rm_rf(workspace_root)
     end
   end
 
-  defp execute_package_command!(cwd, [command | args], execution_env) do
-    {output, exit_code} =
-      System.cmd(command, args,
-        cd: cwd,
-        env: execution_env,
-        stderr_to_stdout: true
-      )
-
-    %{"exit_code" => exit_code, "output" => output}
-  rescue
-    _error -> raise ArgumentError, "package command failed: #{Path.basename(command)}"
+  defp run_private_mix!(mix, cwd, args, environment) do
+    System.cmd(mix, args,
+      cd: cwd,
+      env: environment,
+      stderr_to_stdout: true
+    )
   end
 
-  defp normalize_execution_env!(execution_env) when is_map(execution_env),
-    do: normalize_execution_env!(Map.to_list(execution_env))
+  defp private_package_env(
+         mix_env,
+         _package_root,
+         mix,
+         git,
+         elixir,
+         erl,
+         include_test_services \\ false
+       ) do
+    keys = ~w(HOME MIX_HOME HEX_HOME)
 
-  defp normalize_execution_env!(execution_env) when is_list(execution_env) do
+    service_keys =
+      if include_test_services,
+        do:
+          ~w(RINDLE_MINIO_URL RINDLE_MINIO_BUCKET RINDLE_MINIO_ACCESS_KEY RINDLE_MINIO_SECRET_KEY RINDLE_MINIO_REGION),
+        else: []
+
+    inherited =
+      (keys ++ service_keys)
+      |> Enum.flat_map(fn key ->
+        case System.get_env(key) do
+          value when is_binary(value) -> [{key, value}]
+          _ -> []
+        end
+      end)
+
+    path =
+      [
+        Path.dirname(erl),
+        Path.dirname(elixir),
+        Path.dirname(mix),
+        Path.dirname(git),
+        "/usr/bin",
+        "/bin",
+        "/usr/sbin",
+        "/sbin"
+      ]
+      |> Enum.uniq()
+      |> Enum.join(":")
+
+    unset = System.get_env() |> Map.keys() |> Enum.map(&{&1, nil})
+
+    unset ++
+      inherited ++
+      [
+        {"PATH", path},
+        {"MIX_ENV", mix_env},
+        {"RINDLE_AV_USE_CGROUPS", "false"}
+      ]
+  end
+
+  defp absolute_executable!(name) do
+    case System.find_executable(name) do
+      path when is_binary(path) -> Path.expand(path)
+      _ -> raise ArgumentError, "package authority rebuild failed"
+    end
+  end
+
+  # Keep this list aligned with the package `files` declaration in mix.exs. The
+  # manifest itself is checked against the authenticated commit before use.
+  @package_paths ~w(lib priv/repo/migrations priv/static/rindle_admin mix.exs README.md RUNNING.md CHANGELOG.md LICENSE guides)
+
+  defp assert_package_inputs_match_subject!(git, repository_root, subject_sha) do
+    manifest = git_show!(git, repository_root, subject_sha, "mix.exs")
+
     assert!(
-      Enum.all?(execution_env, fn
-        {key, value} -> is_binary(key) and is_binary(value)
-        _ -> false
-      end),
-      "package execution environment must contain string pairs"
+      File.read!(Path.join(repository_root, "mix.exs")) == manifest,
+      "package subject snapshot failed"
     )
 
-    execution_env
+    subject_files = git_package_paths!(git, repository_root, subject_sha)
+    assert!(subject_files != [], "package subject snapshot failed")
+
+    Enum.each(subject_files, fn relative ->
+      current = Path.join(repository_root, relative)
+      assert!(File.regular?(current), "package subject snapshot failed")
+
+      assert!(
+        File.read!(current) == git_show!(git, repository_root, subject_sha, relative),
+        "package subject snapshot failed"
+      )
+    end)
   end
 
-  defp normalize_execution_env!(_execution_env),
-    do: raise(ArgumentError, "package execution environment is required")
+  defp assert_package_matches_subject!(git, repository_root, subject_sha, package_root) do
+    expected = git_package_paths!(git, repository_root, subject_sha) |> MapSet.new()
+
+    actual =
+      package_root
+      |> Path.join("**/*")
+      |> Path.wildcard(match_dot: true)
+      |> Enum.filter(&File.regular?/1)
+      |> Enum.map(&Path.relative_to(&1, package_root))
+      |> Enum.reject(&(&1 == "hex_metadata.config"))
+      |> MapSet.new()
+
+    assert!(actual == expected, "unpacked package content mismatch")
+
+    Enum.each(expected, fn relative ->
+      expected_bytes = git_show!(git, repository_root, subject_sha, relative)
+      actual_bytes = File.read!(Path.join(package_root, relative))
+      assert!(actual_bytes == expected_bytes, "unpacked package content mismatch")
+    end)
+  end
+
+  defp git_package_paths!(git, repository_root, subject_sha) do
+    args = [
+      "-C",
+      repository_root,
+      "ls-tree",
+      "-r",
+      "-z",
+      "--name-only",
+      subject_sha,
+      "--" | @package_paths
+    ]
+
+    case System.cmd(git, args, stderr_to_stdout: true) do
+      {output, 0} -> output |> String.split(<<0>>, trim: true) |> Enum.sort()
+      _ -> raise ArgumentError, "package subject snapshot failed"
+    end
+  end
+
+  defp git_show!(git, repository_root, subject_sha, relative) do
+    case System.cmd(git, ["-C", repository_root, "show", "#{subject_sha}:#{relative}"],
+           stderr_to_stdout: true
+         ) do
+      {content, 0} -> content
+      _ -> raise ArgumentError, "package subject snapshot failed"
+    end
+  end
 
   defp required_version_authority!(version) when is_binary(version) and version != "", do: version
 
@@ -751,10 +918,23 @@ defmodule Rindle.ValidateLiveTruth do
 
     entries
     |> Enum.map(fn relative ->
-      relative <> "\0" <> file_sha256!(Path.join(root, relative)) <> "\n"
+      content = File.read!(Path.join(root, relative)) |> canonical_generated_app_content(relative)
+      relative <> "\0" <> sha256(content) <> "\n"
     end)
     |> IO.iodata_to_binary()
     |> sha256()
+  end
+
+  defp canonical_generated_app_content(content, relative) do
+    if relative in ["config/dev.exs", "config/test.exs", "config/config.exs"] or
+         String.ends_with?(relative, "_web/endpoint.ex") do
+      content =
+        Regex.replace(~r/(secret_key_base:\s*)"[^"]+"/, content, "\\1\"<generated-secret>\"")
+
+      Regex.replace(~r/(signing_salt:\s*)"[^"]+"/, content, "\\1\"<generated-salt>\"")
+    else
+      content
+    end
   end
 
   defp git_head!(root) do

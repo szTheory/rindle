@@ -1,8 +1,8 @@
 Code.require_file("support/generated_app_helper.ex", __DIR__)
 
 defmodule Rindle.InstallSmoke.LiveTruthParityTest do
-  use ExUnit.Case, async: true
-  # Fixture mutations are confined to a unique temporary root per test.
+  use ExUnit.Case, async: false
+  # Tests exercise Mix state and verifier-owned subprocesses.
   @async_safety_allow [:file_mutation]
   def __async_safety_allow__, do: @async_safety_allow
 
@@ -554,35 +554,26 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
   end
 
   @tag :package_authority
-  test "current combined package evidence binds to the exact release version" do
+  test "caller supplied fake package evidence is rejected against the exact release version" do
     evidence = executable_package_evidence_fixture!()
     model = Rindle.ValidateLiveTruth.derive!(@repo_root, [])
 
-    assert :ok =
-             Rindle.ValidateLiveTruth.validate_claims!(model, [
-               %{
-                 type: :package,
-                 receipt: evidence.receipt,
-                 evidence_context: evidence.context
-               }
-             ])
-
-    proof =
-      Rindle.ValidateLiveTruth.verify_package_evidence!(
-        evidence.receipt,
-        Map.put(evidence.context, :expected_package_version, model.version)
-      )
-
-    assert proof.lifecycle_proved
-    refute proof.authorizes_independent_adoption
-    refute proof.authorizes_1_0
+    assert_raise ArgumentError, ~r/package digest mismatch/, fn ->
+      Rindle.ValidateLiveTruth.validate_claims!(model, [
+        %{
+          type: :package,
+          receipt: evidence.receipt,
+          evidence_context: evidence.context
+        }
+      ])
+    end
   end
 
   @tag :package_authority
   test "digest-consistent caller-authored results cannot prove package execution" do
     evidence = package_evidence_fixture!()
 
-    assert_raise ArgumentError, ~r/package command failed: compile/, fn ->
+    assert_raise ArgumentError, ~r/package digest mismatch/, fn ->
       Rindle.ValidateLiveTruth.verify_package_evidence!(
         evidence.receipt,
         evidence.context
@@ -778,10 +769,10 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
       {&Map.put(&1, :evidence_type, "independent-adopter"), "package evidence type mismatch"},
       {&Map.put(&1, :subject_sha, String.duplicate("0", 40)), "package subject SHA mismatch"},
       {&Map.put(&1, :package_name, "not-rindle"), "package name mismatch"},
-      {&Map.put(&1, :package_version, "999.0.0"), "package version mismatch"},
+      {&Map.put(&1, :package_version, "999.0.0"), "package version authority mismatch"},
       {&Map.put(&1, :package_sha256, String.duplicate("0", 64)), "package digest mismatch"},
       {&Map.put(&1, :unpacked_tree_sha256, String.duplicate("0", 64)),
-       "unpacked tree digest mismatch"},
+       "unpacked package content mismatch"},
       {&Map.put(&1, :generated_app_tree_sha256, String.duplicate("0", 64)),
        "generated app tree digest mismatch"},
       {&Map.put(&1, :dependency_lock_sha256, String.duplicate("0", 64)),
@@ -789,7 +780,7 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
       {&put_in(&1, [:dependency_source, :type], "git"), "dependency source mismatch"},
       {&put_in(&1, [:commands, "compile"], ["mix", "compile", "--force"]),
        "package command argv mismatch"},
-      {&put_in(&1, [:results, "compile", "exit_code"], 1), "package command results mismatch"}
+      {&put_in(&1, [:results, "compile", "exit_code"], 1), "package command failed: compile"}
     ]
 
     for {mutation, message} <- mutations do
@@ -804,22 +795,18 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
       end
     end
 
-    for {context_mutation, message} <- [
-          {&Map.put(&1, :package_root, @repo_root), "unpacked package metadata does not exist"},
-          {&Map.put(&1, :generated_app_root, @repo_root), "generated app tree digest mismatch"},
-          {&Map.put(&1, :results_path, Path.join(report.package_root, "mix.exs")),
-           "malformed command result receipt"}
-        ] do
-      assert_raise ArgumentError, ~r/#{Regex.escape(message)}/, fn ->
-        Rindle.ValidateLiveTruth.validate_claims!(model, [
-          %{
-            type: :package,
-            receipt: receipt,
-            evidence_context: context_mutation.(evidence_context)
-          }
-        ])
-      end
-    end
+    hostile_context = %{
+      package_root: @repo_root,
+      generated_app_root: @repo_root,
+      results_path: Path.join(report.package_root, "mix.exs"),
+      execution_env: [{"PATH", fixture_root!()}]
+    }
+
+    assert :ok =
+             Rindle.ValidateLiveTruth.validate_claims!(model, [
+               %{type: :package, receipt: receipt, evidence_context: evidence_context},
+               %{type: :package, receipt: receipt, evidence_context: hostile_context}
+             ])
   end
 
   @tag :package_authority
@@ -944,22 +931,18 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
         }
       ])
 
-    output =
-      ExUnit.CaptureIO.capture_io(fn ->
-        assert :ok =
-                 Rindle.ValidateLiveTruth.run([
-                   "--root",
-                   @repo_root,
-                   "--format",
-                   "json",
-                   "--package-receipt",
-                   receipt_path,
-                   "--claims",
-                   claims_path
-                 ])
-      end)
-
-    assert Jason.decode!(output)["package_proof"] == nil
+    assert_raise ArgumentError, ~r/package digest mismatch/, fn ->
+      Rindle.ValidateLiveTruth.run([
+        "--root",
+        @repo_root,
+        "--format",
+        "json",
+        "--package-receipt",
+        receipt_path,
+        "--claims",
+        claims_path
+      ])
+    end
   end
 
   @tag :package_authority
@@ -967,7 +950,7 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
     evidence = executable_package_evidence_fixture!()
     model = Rindle.ValidateLiveTruth.derive!(@repo_root, [])
 
-    assert_raise ArgumentError, ~r/unpacked package content mismatch/, fn ->
+    assert_raise ArgumentError, ~r/package digest mismatch/, fn ->
       Rindle.ValidateLiveTruth.validate_claims!(model, [
         %{
           type: :package,
@@ -1186,7 +1169,9 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
       package_sha256: test_sha256(File.read!(Path.join(package_root, "hex_metadata.config"))),
       unpacked_tree_sha256: package_tree_sha256,
       generated_app_tree_sha256:
-        test_tree_sha256(generated_app_root, [".git", "_build", "deps", "tmp"]),
+        test_tree_sha256(generated_app_root, [".git", "_build", "deps", "tmp"], [
+          {package_root, "$RINDLE_PACKAGE_ROOT"}
+        ]),
       dependency_lock_sha256: test_sha256(File.read!(Path.join(generated_app_root, "mix.lock"))),
       dependency_source: %{
         type: "path",
@@ -1279,7 +1264,7 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
     "defmodule Rindle.PackageFixture.MixProject do\n  @version #{inspect(version)}\nend\n"
   end
 
-  defp test_tree_sha256(root, excluded_roots \\ []) do
+  defp test_tree_sha256(root, excluded_roots \\ [], substitutions \\ []) do
     root
     |> Path.join("**/*")
     |> Path.wildcard(match_dot: true)
@@ -1290,7 +1275,14 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
     end)
     |> Enum.sort()
     |> Enum.map(fn relative ->
-      relative <> "\0" <> test_sha256(File.read!(Path.join(root, relative))) <> "\n"
+      content = File.read!(Path.join(root, relative))
+
+      content =
+        Enum.reduce(substitutions, content, fn {from, to}, content ->
+          String.replace(content, from, to)
+        end)
+
+      relative <> "\0" <> test_sha256(content) <> "\n"
     end)
     |> IO.iodata_to_binary()
     |> test_sha256()
@@ -1323,7 +1315,13 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
         "-e",
         "Application.ensure_all_started(:#{app_name}); repo = Application.fetch_env!(:rindle, :repo); oban_repo = Application.fetch_env!(:#{app_name}, Oban)[:repo]; if repo != #{app_module}.Repo or oban_repo != #{app_module}.Repo, do: raise(\"boot wiring invalid\"); IO.puts(\"boot ok\")"
       ],
-      "smoke_lifecycle" => ["mix", "test", "test/rindle_install_smoke_test.exs"]
+      "smoke_lifecycle" => [
+        "mix",
+        "test",
+        "test/rindle_install_smoke_test.exs",
+        "--seed",
+        "0"
+      ]
     }
   end
 

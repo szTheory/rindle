@@ -366,7 +366,9 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       package_sha256: file_sha256!(Path.join(package_root, "hex_metadata.config")),
       unpacked_tree_sha256: package_tree_sha256,
       generated_app_tree_sha256:
-        tree_sha256!(generated_app_root, [".git", "_build", "deps", "tmp"]),
+        tree_sha256!(generated_app_root, [".git", "_build", "deps", "tmp"], [
+          {Path.expand(package_root), "$RINDLE_PACKAGE_ROOT"}
+        ]),
       dependency_lock_sha256: file_sha256!(Path.join(generated_app_root, "mix.lock")),
       dependency_source: %{
         type: "path",
@@ -416,7 +418,13 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     %{
       "compile" => ["mix", "compile"],
       "boot" => boot_argv(app_name),
-      "smoke_lifecycle" => ["mix", "test", "test/rindle_install_smoke_test.exs"]
+      "smoke_lifecycle" => [
+        "mix",
+        "test",
+        "test/rindle_install_smoke_test.exs",
+        "--seed",
+        "0"
+      ]
     }
   end
 
@@ -436,7 +444,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
 
   defp file_sha256!(path), do: path |> File.read!() |> sha256()
 
-  defp tree_sha256!(root, excluded_roots) do
+  defp tree_sha256!(root, excluded_roots, substitutions \\ []) do
     root = Path.expand(root)
 
     entries =
@@ -453,11 +461,30 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
 
     entries
     |> Enum.map(fn relative ->
-      content_digest = root |> Path.join(relative) |> file_sha256!()
+      content = File.read!(Path.join(root, relative)) |> canonical_generated_app_content(relative)
+
+      content =
+        Enum.reduce(substitutions, content, fn {from, to}, content ->
+          String.replace(content, from, to)
+        end)
+
+      content_digest = sha256(content)
       relative <> "\0" <> content_digest <> "\n"
     end)
     |> IO.iodata_to_binary()
     |> sha256()
+  end
+
+  defp canonical_generated_app_content(content, relative) do
+    if relative in ["config/dev.exs", "config/test.exs", "config/config.exs"] or
+         String.ends_with?(relative, "_web/endpoint.ex") do
+      content =
+        Regex.replace(~r/(secret_key_base:\s*)"[^"]+"/, content, "\\1\"<generated-secret>\"")
+
+      Regex.replace(~r/(signing_salt:\s*)"[^"]+"/, content, "\\1\"<generated-salt>\"")
+    else
+      content
+    end
   end
 
   defp sha256(content),
