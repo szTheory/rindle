@@ -481,7 +481,7 @@ defmodule Rindle.InstallSmoke.Phase133Reconciliation42Test do
 
     assert output ==
              "phase 133 reconciliation valid: 35 completed, 3 halted, 4 pending plans, " <>
-               "38/42 summarized, 27 validation records\n"
+               "38/42 summarized, 53 validation records\n"
   end
 
   test "accepts every reachable 42-plan authorization, stop, failure, and success state" do
@@ -521,6 +521,95 @@ defmodule Rindle.InstallSmoke.Phase133Reconciliation42Test do
       fixture = write_fixture!()
       set_state!(fixture, lifecycle)
       mutate!(fixture, mutation)
+
+      assert {output, status} = run_validator(fixture)
+      assert status != 0
+      assert output =~ diagnostic
+      assert byte_size(output) < 2_048
+    end
+  end
+
+  test "rejects drift in the exact Plan 41 authorization and halted Plan 42 tuple" do
+    mutations = [
+      {41, "subject_sha: c83f61379ad5033efef9afa7b5bc88913080bae2",
+       "subject_sha: a83f61379ad5033efef9afa7b5bc88913080bae2"},
+      {41, "authorized_ref: refs/heads/phase-133-evidence-c83f61379ad5",
+       "authorized_ref: refs/heads/phase-133-evidence-a83f61379ad5"},
+      {42, "run_id: 34768317696", "run_id: 34768317697"},
+      {42, "run_attempt: 1", "run_attempt: 2"},
+      {42, "qualification: failed", "qualification: success"},
+      {42, "terminal_automation: halted", "terminal_automation: passed"},
+      {42, "requirements_completed: []", "requirements_completed: [EVID-01]"},
+      {42, "receipt_sha256: 1cc607545ff6d4061931105a156a42549bb375efafe6418b054e7d33e18861a4",
+       "receipt_sha256: 2cc607545ff6d4061931105a156a42549bb375efafe6418b054e7d33e18861a4"}
+    ]
+
+    for {plan, before, replacement} <- mutations do
+      fixture = write_fixture!()
+      set_state!(fixture, :failed)
+      path = summary_path(fixture.root, plan)
+      mutate_file!(path, &String.replace(&1, before, replacement, global: false))
+
+      assert {output, status} = run_validator(fixture)
+      assert status != 0
+
+      assert output =~
+               if(plan == 41, do: "Plan 41 authorization", else: "exact immutable Plan 42")
+
+      assert byte_size(output) < 2_048
+    end
+  end
+
+  test "rejects digest-consistent schema-free JSON on the terminal success branch" do
+    fixture = write_fixture!()
+    set_state!(fixture, :qualified_success)
+    receipt_path = Path.join(fixture.root, "#{@phase_rel}/133-NIGHTLY-EVIDENCE.json")
+    receipt = Jason.encode!(%{"subject_sha" => String.duplicate("a", 40)}) <> "\n"
+    File.write!(receipt_path, receipt)
+    summary = summary_path(fixture.root, 42)
+
+    mutate_file!(summary, fn contents ->
+      Regex.replace(~r/^receipt_sha256: .*$/m, contents, "receipt_sha256: #{sha256(receipt)}")
+    end)
+
+    assert {output, status} = run_validator(fixture)
+    assert status != 0
+    assert output =~ "canonical receipt schema is incomplete"
+  end
+
+  test "production reconciliation rejects drift in every Plans 38-42 validation dimension" do
+    cases = [
+      {&String.replace(&1, ~s(key="133-38-01:1"), ~s(key="133-38-01:999"), global: false),
+       "pending mapping is missing"},
+      {&remove_first_closure_record/1, "pending mapping is missing"},
+      {&duplicate_first_closure_record/1, "duplicate mapping key"},
+      {&String.replace(&1, "bash scripts/ci/test_verify_nightly_run.sh", "manual command",
+         global: false
+       ), "mapping command text differs"},
+      {&String.replace(&1, "<requirements>EVID-01,EVID-02", "<requirements>BAD-01,EVID-02",
+         global: false
+       ), "requirement IDs differ"},
+      {&String.replace(&1, "<validation-level>repair-backstop", "<validation-level>manual",
+         global: false
+       ), "validation level differs"},
+      {&String.replace(&1, "<branch-status>passed — executed", "<branch-status>manual",
+         global: false
+       ), "branch status differs"},
+      {&String.replace(&1, "<acceptance-credit>authorization-only", "<acceptance-credit>pending",
+         global: false
+       ), "acceptance credit differs"},
+      {&String.replace(
+         &1,
+         "<flagged-unresolved key=\"133-38-specless-context-boundary\">",
+         "<flagged-unresolved key=\"133-38-other-boundary\">",
+         global: false
+       ), "flagged-unresolved boundaries differ"}
+    ]
+
+    for {mutation, diagnostic} <- cases do
+      fixture = write_fixture!()
+      set_state!(fixture, :post_38)
+      mutate_file!(fixture.validation, &mutate_closure(&1, mutation))
 
       assert {output, status} = run_validator(fixture)
       assert status != 0
@@ -579,12 +668,51 @@ defmodule Rindle.InstallSmoke.Phase133Reconciliation42Test do
     end
   end
 
+  defp mutate_closure(validation, mutation) do
+    [prefix, closure] = String.split(validation, "## Plans 38–42 Gap-Closure Addendum", parts: 2)
+    prefix <> "## Plans 38–42 Gap-Closure Addendum" <> mutation.(closure)
+  end
+
+  defp remove_first_closure_record(closure) do
+    Regex.replace(
+      ~r/<pending-validation key="133-38-01:1">.*?<\/pending-validation>/s,
+      closure,
+      "",
+      global: false
+    )
+  end
+
+  defp duplicate_first_closure_record(closure) do
+    [record] =
+      Regex.run(~r/<pending-validation key="133-38-01:1">.*?<\/pending-validation>/s, closure)
+
+    closure <> "\n" <> record
+  end
+
   defp set_state!(fixture, lifecycle) do
     {tail, halted, requirements_complete?} = lifecycle_state(lifecycle)
     completed = MapSet.new(Enum.to_list(1..26) ++ [28, 29, 30, 31] ++ tail)
     halted = MapSet.new(halted)
 
-    receipt = Jason.encode!(%{"subject_sha" => String.duplicate("a", 40)}) <> "\n"
+    receipt =
+      if lifecycle == :qualified_success do
+        source =
+          File.read!(Path.join(@repo_root, "#{@phase_rel}/133-NIGHTLY-EVIDENCE.json"))
+          |> Jason.decode!()
+          |> Map.put("subject_sha", String.duplicate("a", 40))
+          |> Map.put("remote_ref", "refs/heads/phase-133-evidence-aaaaaaaaaaaa")
+          |> Map.put("run_id", 123_456)
+          |> Map.put("run_attempt", 1)
+
+        verifier = Path.join(fixture.root, "scripts/ci/verify_nightly_run.sh")
+        File.mkdir_p!(Path.dirname(verifier))
+        File.write!(verifier, "#!/bin/sh\n[ \"$1\" = verify-receipt ]\n")
+        File.chmod!(verifier, 0o755)
+        Jason.encode!(source) <> "\n"
+      else
+        Jason.encode!(%{"subject_sha" => String.duplicate("a", 40)}) <> "\n"
+      end
+
     File.write!(Path.join(fixture.root, "#{@phase_rel}/133-NIGHTLY-EVIDENCE.json"), receipt)
 
     for plan <- 1..42 do
@@ -706,8 +834,17 @@ defmodule Rindle.InstallSmoke.Phase133Reconciliation42Test do
   defp halted_summary(42), do: halted_42_summary()
   defp halted_summary(_plan), do: nil
 
-  defp complete_summary(41, _lifecycle, _receipt),
-    do: "---\nstatus: complete\ndecision: authorize\n---\n"
+  defp complete_summary(41, _lifecycle, _receipt) do
+    """
+    ---
+    status: complete
+    decision: authorize
+    subject_sha: c83f61379ad5033efef9afa7b5bc88913080bae2
+    authorized_ref: refs/heads/phase-133-evidence-c83f61379ad5
+    requirements-completed: []
+    ---
+    """
+  end
 
   defp complete_summary(42, :qualified_success, receipt) do
     """
@@ -716,6 +853,9 @@ defmodule Rindle.InstallSmoke.Phase133Reconciliation42Test do
     qualification: verified
     terminal_automation: passed
     subject_sha: #{String.duplicate("a", 40)}
+    published_ref: refs/heads/phase-133-evidence-aaaaaaaaaaaa
+    run_id: 123456
+    run_attempt: 1
     receipt_sha256: #{sha256(receipt)}
     requirements_completed: [EVID-01, EVID-02, EVID-03, EVID-04, TRUTH-08]
     ---
@@ -750,8 +890,22 @@ defmodule Rindle.InstallSmoke.Phase133Reconciliation42Test do
   defp halted_41_summary,
     do: "---\nstatus: halted\ndecision: stop\n---\n"
 
-  defp halted_42_summary,
-    do: "---\nstatus: halted\nhalt_reason: immutable terminal automation failure\n---\n"
+  defp halted_42_summary do
+    """
+    ---
+    status: halted
+    halt_reason: "immutable run 34768317696 exhausted after compatibility failure"
+    qualification: failed
+    terminal_automation: halted
+    requirements_completed: []
+    subject_sha: c83f61379ad5033efef9afa7b5bc88913080bae2
+    published_ref: refs/heads/phase-133-evidence-c83f61379ad5
+    run_id: 34768317696
+    run_attempt: 1
+    receipt_sha256: 1cc607545ff6d4061931105a156a42549bb375efafe6418b054e7d33e18861a4
+    ---
+    """
+  end
 
   defp progress_status(:qualified_success), do: "Complete"
   defp progress_status(_lifecycle), do: "In Progress"

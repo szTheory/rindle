@@ -40,6 +40,10 @@ defmodule Rindle.ValidatePhase133Reconciliation do
   @branch_bytes 90_993
   @branch_sha256 "2b1cfd85d43a1a478fc9d842af7184d826b545a605feda06c945ce638fc2649f"
   @branch_heading "## Branch-Aware Validation Addendum (Plans 33–37)"
+  @execution_ref "87bd35cdcf040018a854a0e8c5a6ebc0b9438e53"
+  @execution_blob "1573dfb6431eae92566754644e10640a2f59cb5e"
+  @execution_bytes 90_994
+  @execution_sha256 "9147e95250bc9c287a9c66d15ced923c4cf18fb9b73f29a0b5104ac5ea4450c7"
   @closure_heading "## Plans 38–42 Gap-Closure Addendum"
   @pending_state "pending — not executed"
   @executed_state "passed — executed"
@@ -68,8 +72,9 @@ defmodule Rindle.ValidatePhase133Reconciliation do
          {:ok, addendum} <- validate_validation(root, prefix, mode),
          {:ok, actual} <- parse_addendum(addendum),
          :ok <- compare_records(expected, actual),
+         :ok <- validate_closure_flags(addendum, mode),
          {:ok, summary_state} <- validate_summaries_and_roadmap(root, mode) do
-      IO.puts(success_message(mode, summary_state, length(expected)))
+      IO.puts(success_message(mode, summary_state, length(expected), total_plans(root, mode)))
 
       :ok
     else
@@ -160,14 +165,19 @@ defmodule Rindle.ValidatePhase133Reconciliation do
 
   defp validation_mode(%{fixture_topology: "branch-37"}), do: :branch_execution
 
+  defp validation_mode(%{fixture_topology: "branch-42", expect_execution_complete: true}),
+    do: :execution_complete
+
+  defp validation_mode(%{fixture_topology: "branch-42"}), do: :execution
+
   defp validation_mode(%{expect_execution_complete: true}), do: :execution_complete
   defp validation_mode(_options), do: :execution
 
-  defp success_message(:historical_snapshot, _completed, pair_count),
+  defp success_message(:historical_snapshot, _summary_state, pair_count, _total),
     do:
       "phase 133 reconciliation valid: 10 completed, 7 pending plans, #{pair_count} verification pairs"
 
-  defp success_message(mode, summary_state, pair_count)
+  defp success_message(mode, summary_state, pair_count, total)
        when mode in [
               :execution,
               :execution_complete,
@@ -179,7 +189,6 @@ defmodule Rindle.ValidatePhase133Reconciliation do
     completed = MapSet.size(summary_state.completed)
     halted = MapSet.size(summary_state.halted)
     summarized = completed + halted
-    total = total_plans(mode)
     pending = total - summarized
 
     "phase 133 reconciliation valid: #{completed} completed, #{halted} halted, " <>
@@ -244,14 +253,22 @@ defmodule Rindle.ValidatePhase133Reconciliation do
         mode when mode in [:repair_execution, :repair_execution_complete] ->
           {options.active_ref || @active_ref, options.active_sha || @active_sha256}
 
+        mode when mode in [:execution, :execution_complete] ->
+          {options.active_ref || @execution_ref, options.active_sha || @execution_sha256}
+
         _ ->
           {options.active_ref || @branch_ref, options.active_sha || @branch_sha256}
       end
 
     case git(root, ["show", "#{ref}:#{@validation_path}"], trim: false) do
       {:ok, bytes} ->
-        if sha256(bytes) == expected_sha do
-          {:ok, bytes}
+        selected =
+          if mode in [:execution, :execution_complete],
+            do: before_heading(bytes, @branch_heading),
+            else: bytes
+
+        if sha256(selected) == expected_sha do
+          {:ok, selected}
         else
           {:error, "historical validation prefix digest differs from recorded preimage"}
         end
@@ -318,9 +335,29 @@ defmodule Rindle.ValidatePhase133Reconciliation do
   end
 
   defp validate_prefix_metadata(root, _options, mode, prefix)
+       when mode in [:execution, :execution_complete] do
+    with {:ok, blob} <- git(root, ["rev-parse", "#{@execution_ref}:#{@validation_path}"]),
+         true <-
+           blob == @execution_blob or {:error, "execution validation Git blob identity differs"},
+         true <-
+           byte_size(prefix) == @execution_bytes or
+             {:error, "execution prefix byte length differs"},
+         true <-
+           sha256(prefix) == @execution_sha256 or {:error, "execution prefix digest differs"},
+         {:ok, committed} <-
+           git(root, ["show", "#{@execution_ref}:#{@validation_path}"], trim: false),
+         true <-
+           before_heading(committed, @branch_heading) == prefix or
+             {:error, "execution prefix differs from recorded ref"} do
+      :ok
+    else
+      {:error, _message} = error -> error
+      false -> {:error, "execution prefix metadata differs"}
+    end
+  end
+
+  defp validate_prefix_metadata(root, _options, mode, prefix)
        when mode in [
-              :execution,
-              :execution_complete,
               :branch_execution,
               :branch_execution_complete
             ] do
@@ -385,6 +422,26 @@ defmodule Rindle.ValidatePhase133Reconciliation do
       else: {:error, "duplicate mapping key in validation addenda"}
   end
 
+  defp validate_closure_flags(_addendum, mode)
+       when mode not in [:execution, :execution_complete],
+       do: :ok
+
+  defp validate_closure_flags(addendum, _mode) do
+    keys =
+      Regex.scan(~r/<flagged-unresolved key="([^"]+)">/, addendum, capture: :all_but_first)
+      |> List.flatten()
+
+    expected = [
+      "133-38-specless-startup-boundary",
+      "133-38-specless-context-boundary"
+    ]
+
+    if keys == expected,
+      do: :ok,
+      else:
+        {:error, "Plans 38–42 flagged-unresolved boundaries differ from the exact authority set"}
+  end
+
   defp bounded_addendum(body, :historical_snapshot), do: before_heading(body, @active_heading)
 
   defp bounded_addendum(body, mode) when mode in [:repair_execution, :repair_execution_complete],
@@ -393,10 +450,12 @@ defmodule Rindle.ValidatePhase133Reconciliation do
   defp bounded_addendum(body, mode)
        when mode in [
               :execution,
-              :execution_complete,
-              :branch_execution,
-              :branch_execution_complete
+              :execution_complete
             ],
+       do: body
+
+  defp bounded_addendum(body, mode)
+       when mode in [:branch_execution, :branch_execution_complete],
        do: before_heading(body, @closure_heading)
 
   defp bounded_addendum(body, _mode), do: body
@@ -421,7 +480,7 @@ defmodule Rindle.ValidatePhase133Reconciliation do
           {33..37, []}
 
         _ ->
-          {33..37, []}
+          {33..42, []}
       end
 
     Enum.reduce_while(plans, {:ok, initial}, fn plan, {:ok, all} ->
@@ -448,7 +507,10 @@ defmodule Rindle.ValidatePhase133Reconciliation do
       failure:
         "non-zero exit, zero ExUnit tests, Plan 133-27 is complete or checked, or its exact immutable run, attempt, subject, or ref differs",
       state: @halted_state,
-      credit: @halted_credit
+      credit: @halted_credit,
+      requirements: nil,
+      validation_level: nil,
+      branch_status: nil
     }
   end
 
@@ -535,7 +597,11 @@ defmodule Rindle.ValidatePhase133Reconciliation do
                   do: "authorization-only",
                   else: "pending"
 
-              {:cont, {:ok, all ++ records_for(source, pairs, credit, record_state(plan))}}
+              records =
+                records_for(source, pairs, credit, record_state(plan))
+                |> enrich_closure_records(plan, attributes)
+
+              {:cont, {:ok, all ++ records}}
 
             {:error, message} ->
               {:halt, {:error, "task #{ordinal} #{message}"}}
@@ -604,7 +670,7 @@ defmodule Rindle.ValidatePhase133Reconciliation do
     end
   end
 
-  defp record_state(plan) when plan in [33, 34], do: @executed_state
+  defp record_state(plan) when plan in [33, 34, 38, 39], do: @executed_state
   defp record_state(_plan), do: @pending_state
 
   defp records_for(source, pairs, credit, state \\ @pending_state) do
@@ -616,14 +682,48 @@ defmodule Rindle.ValidatePhase133Reconciliation do
         command: command,
         failure: failure,
         state: state,
-        credit: credit
+        credit: credit,
+        requirements: nil,
+        validation_level: nil,
+        branch_status: nil
       }
     end)
   end
 
+  defp enrich_closure_records(records, plan, attributes) when plan in 38..42 do
+    Enum.map(records, fn record ->
+      credit =
+        cond do
+          String.contains?(attributes, "checkpoint:") -> "authorization-only"
+          plan == 42 and record.key == "133-42-02:6" -> "terminal-completion"
+          true -> "pending"
+        end
+
+      Map.merge(record, %{
+        credit: credit,
+        requirements: Enum.join(@phase_requirements, ","),
+        validation_level: closure_validation_level(plan),
+        branch_status:
+          cond do
+            record.key == "133-42-02:6" -> "sole-terminal-completion-path"
+            plan in [38, 39] -> "passed — executed"
+            true -> "pending — not executed"
+          end
+      })
+    end)
+  end
+
+  defp enrich_closure_records(records, _plan, _attributes), do: records
+
+  defp closure_validation_level(38), do: "repair-backstop"
+  defp closure_validation_level(39), do: "reconciliation-authority"
+  defp closure_validation_level(40), do: "exact-subject-qualification"
+  defp closure_validation_level(41), do: "authorization-only"
+  defp closure_validation_level(42), do: "terminal-attempt"
+
   defp parse_addendum(addendum) do
     record_pattern =
-      ~r/<pending-validation key="([^"]+)">\s*<automated>\s*(.*?)\s*<\/automated>\s*<fails_when>\s*(.*?)\s*<\/fails_when>\s*<state>(.*?)<\/state>\s*<acceptance-credit>(.*?)<\/acceptance-credit>\s*<\/pending-validation>/s
+      ~r/<pending-validation key="([^"]+)">\s*<automated>\s*(.*?)\s*<\/automated>\s*<fails_when>\s*(.*?)\s*<\/fails_when>\s*(?:<requirements>(.*?)<\/requirements>\s*)?(?:<validation-level>(.*?)<\/validation-level>\s*)?(?:<branch-status>(.*?)<\/branch-status>\s*)?<state>(.*?)<\/state>\s*<acceptance-credit>(.*?)<\/acceptance-credit>\s*<\/pending-validation>/s
 
     captures = Regex.scan(record_pattern, addendum, capture: :all_but_first)
     stripped = Regex.replace(record_pattern, addendum, "")
@@ -638,13 +738,25 @@ defmodule Rindle.ValidatePhase133Reconciliation do
 
       true ->
         records =
-          Enum.map(captures, fn [key, command, failure, state, credit] ->
+          Enum.map(captures, fn [
+                                  key,
+                                  command,
+                                  failure,
+                                  requirements,
+                                  level,
+                                  branch,
+                                  state,
+                                  credit
+                                ] ->
             %{
               key: String.trim(key),
               command: String.trim(command),
               failure: String.trim(failure),
               state: String.trim(state),
-              credit: String.trim(credit)
+              credit: String.trim(credit),
+              requirements: trim_optional(requirements),
+              validation_level: trim_optional(level),
+              branch_status: trim_optional(branch)
             }
           end)
 
@@ -687,10 +799,28 @@ defmodule Rindle.ValidatePhase133Reconciliation do
             got.credit != wanted.credit ->
               {:halt, {:error, "acceptance credit differs for #{wanted.key}"}}
 
+            got.requirements != wanted.requirements ->
+              {:halt, {:error, "requirement IDs differ for #{wanted.key}"}}
+
+            got.validation_level != wanted.validation_level ->
+              {:halt, {:error, "validation level differs for #{wanted.key}"}}
+
+            got.branch_status != wanted.branch_status ->
+              {:halt, {:error, "branch status differs for #{wanted.key}"}}
+
             true ->
               {:cont, :ok}
           end
         end)
+    end
+  end
+
+  defp trim_optional(nil), do: nil
+
+  defp trim_optional(value) do
+    case String.trim(value) do
+      "" -> nil
+      trimmed -> trimmed
     end
   end
 
@@ -710,7 +840,7 @@ defmodule Rindle.ValidatePhase133Reconciliation do
               :repair_execution,
               :repair_execution_complete
             ] do
-    with {:ok, summary_state} <- summary_state(root, total_plans(mode), mode),
+    with {:ok, summary_state} <- summary_state(root, total_plans(root, mode), mode),
          :ok <- validate_execution_summary_state(summary_state, mode),
          :ok <- validate_branch_terminal_summaries(root, summary_state, mode),
          :ok <- validate_execution_roadmap(root, summary_state, mode),
@@ -863,11 +993,23 @@ defmodule Rindle.ValidatePhase133Reconciliation do
   end
 
   defp validate_branch_halted_summary(42, document) do
-    halt_reason = Map.get(document.metadata, "halt_reason")
+    expected = %{
+      "qualification" => "failed",
+      "terminal_automation" => "halted",
+      "requirements_completed" => [],
+      "subject_sha" => "c83f61379ad5033efef9afa7b5bc88913080bae2",
+      "published_ref" => "refs/heads/phase-133-evidence-c83f61379ad5",
+      "run_id" => 34_768_317_696,
+      "run_attempt" => 1,
+      "receipt_sha256" => "1cc607545ff6d4061931105a156a42549bb375efafe6418b054e7d33e18861a4"
+    }
 
-    if is_binary(halt_reason) and String.contains?(halt_reason, "immutable"),
-      do: :ok,
-      else: {:error, "must preserve an immutable terminal failure in halt_reason"}
+    if Enum.all?(expected, fn {key, value} -> Map.get(document.metadata, key) == value end) and
+         String.contains?(Map.get(document.metadata, "halt_reason", ""), "34768317696") do
+      :ok
+    else
+      {:error, "must preserve the exact immutable Plan 42 failure tuple and prior receipt digest"}
+    end
   end
 
   defp validate_branch_halted_summary(_plan, _document), do: :ok
@@ -1041,6 +1183,12 @@ defmodule Rindle.ValidatePhase133Reconciliation do
   end
 
   defp closure_lifecycle(summary_state) do
+    summary_state = %{
+      summary_state
+      | completed: MapSet.filter(summary_state.completed, &(&1 <= 42)),
+        halted: MapSet.filter(summary_state.halted, &(&1 <= 42))
+    }
+
     base = Enum.to_list(1..26) ++ [28, 29, 30, 31, 33, 34, 35, 36, 38]
 
     states = [
@@ -1101,7 +1249,15 @@ defmodule Rindle.ValidatePhase133Reconciliation do
          {:ok, document} <- summary_document(summary),
          true <-
            Map.get(document.metadata, "decision") == expected or
-             {:error, "Plan 41 summary must record decision: #{expected}"} do
+             {:error, "Plan 41 summary must record decision: #{expected}"},
+         true <-
+           expected != "authorize" or
+             (Map.get(document.metadata, "subject_sha") ==
+                "c83f61379ad5033efef9afa7b5bc88913080bae2" and
+                Map.get(document.metadata, "authorized_ref") ==
+                  "refs/heads/phase-133-evidence-c83f61379ad5" and
+                Map.get(document.metadata, "requirements-completed") == []) or
+             {:error, "Plan 41 authorization SHA/ref or zero-credit record differs"} do
       :ok
     else
       {:error, _message} = error -> error
@@ -1143,12 +1299,57 @@ defmodule Rindle.ValidatePhase133Reconciliation do
          true <- sha256(receipt) == digest or {:error, "canonical receipt digest differs"},
          {:ok, decoded} <- Jason.decode(receipt),
          true <-
+           canonical_receipt_shape?(decoded) or {:error, "canonical receipt schema is incomplete"},
+         true <-
            Map.get(decoded, "subject_sha") == subject or
-             {:error, "canonical receipt subject differs from Plan 42 qualification"} do
+             {:error, "canonical receipt subject differs from Plan 42 qualification"},
+         ref when is_binary(ref) <- Map.get(metadata, "published_ref"),
+         true <-
+           Map.get(decoded, "remote_ref") == ref or
+             {:error, "canonical receipt ref differs from Plan 42 qualification"},
+         true <-
+           Map.get(decoded, "run_id") == Map.get(metadata, "run_id") or
+             {:error, "canonical receipt run differs from Plan 42 qualification"},
+         true <-
+           Map.get(decoded, "run_attempt") == Map.get(metadata, "run_attempt") or
+             {:error, "canonical receipt attempt differs from Plan 42 qualification"},
+         :ok <- verify_canonical_receipt(root) do
       :ok
     else
       {:error, _message} = error -> error
       _ -> {:error, "Plan 42 qualified canonical receipt metadata is malformed"}
+    end
+  end
+
+  defp canonical_receipt_shape?(receipt) when is_map(receipt) do
+    required =
+      ~w(conclusion created_at dialyzer event incident_snapshot_after incident_snapshot_before jobs local_authorities preflight remote_ref repository run_attempt run_id schema_version strict_verdict subject_sha workflow)
+
+    Enum.sort(Map.keys(receipt)) == Enum.sort(required) and
+      Map.get(receipt, "schema_version") == 2 and
+      is_binary(Map.get(receipt, "subject_sha")) and
+      is_binary(Map.get(receipt, "remote_ref")) and
+      is_list(Map.get(receipt, "jobs")) and
+      is_map(Map.get(receipt, "strict_verdict")) and
+      is_integer(Map.get(receipt, "run_attempt")) and
+      is_integer(Map.get(receipt, "run_id"))
+  end
+
+  defp canonical_receipt_shape?(_), do: false
+
+  defp verify_canonical_receipt(root) do
+    script = Path.join(root, "scripts/ci/verify_nightly_run.sh")
+
+    if File.regular?(script) do
+      case System.cmd(script, ["verify-receipt", "--receipt", Path.join(root, @receipt_path)],
+             cd: root,
+             stderr_to_stdout: true
+           ) do
+        {_output, 0} -> :ok
+        {_output, _status} -> {:error, "canonical verify-receipt reconstruction failed"}
+      end
+    else
+      {:error, "canonical verify-receipt adapter is unavailable"}
     end
   end
 
@@ -1276,7 +1477,7 @@ defmodule Rindle.ValidatePhase133Reconciliation do
     completed_count = MapSet.size(summary_state.completed)
     halted_count = MapSet.size(summary_state.halted)
     summarized_count = completed_count + halted_count
-    total = total_plans(mode)
+    total = total_plans(root, mode)
 
     lifecycle =
       cond do
@@ -1342,17 +1543,26 @@ defmodule Rindle.ValidatePhase133Reconciliation do
          summarized_count,
          completed_count,
          pending_count,
-         _mode,
+         mode,
          lifecycle
        ) do
-    expected = branch_roadmap_detail(lifecycle, summarized_count, completed_count, pending_count)
+    total = total_plans_from_detail(section)
+
+    expected =
+      if mode in [:execution, :execution_complete] and total > 42 do
+        "**Plans**: #{summarized_count}/#{total} plans executed summarized; #{completed_count} completed, " <>
+          "Plans 133-27, 133-32, 133-37, and 133-42 halted with immutable attempts preserved, " <>
+          "#{pending_count} gap-closure plans pending."
+      else
+        branch_roadmap_detail(lifecycle, summarized_count, completed_count, pending_count)
+      end
 
     if String.contains?(section, expected) do
       :ok
     else
       {:error,
        "roadmap detail must report exactly the #{lifecycle} branch at " <>
-         "#{summarized_count}/#{total_plans_for_lifecycle(lifecycle)} summarized"}
+         "#{summarized_count}/#{if(total > 42, do: total, else: total_plans_for_lifecycle(lifecycle))} summarized"}
     end
   end
 
@@ -1404,6 +1614,9 @@ defmodule Rindle.ValidatePhase133Reconciliation do
       "#{pending} pending."
   end
 
+  defp total_plans_from_detail(section),
+    do: length(Regex.scan(~r/^- \[([ x])\] 133-\d+-PLAN\.md(?:\s| |$)/m, section))
+
   defp validate_execution_checkboxes(section, completed, total) do
     Enum.reduce_while(1..total, :ok, fn plan, :ok ->
       id = "133-#{String.pad_leading(Integer.to_string(plan), 2, "0")}-PLAN.md"
@@ -1419,7 +1632,7 @@ defmodule Rindle.ValidatePhase133Reconciliation do
         [[checkbox]] when checkbox == "x" == expected_checked ->
           {:cont, :ok}
 
-        _ when plan in [27, 32, 37] ->
+        _ when plan in [27, 32, 37, 42] ->
           {:halt, {:error, "Plan #{plan} must remain unchecked while halted"}}
 
         _ ->
@@ -1473,7 +1686,7 @@ defmodule Rindle.ValidatePhase133Reconciliation do
         else: branch_lifecycle(summary_state)
 
     requirements_complete? = lifecycle in [:qualified_success, :qualified_success_42]
-    total = total_plans(mode)
+    total = total_plans(root, mode)
 
     with :ok <- validate_state(root, summarized_count, lifecycle, total),
          :ok <- validate_requirements(root, requirements_complete?) do
@@ -1483,12 +1696,16 @@ defmodule Rindle.ValidatePhase133Reconciliation do
 
   defp validate_state(root, summarized_count, lifecycle, total) do
     {expected_status, expected_plan} =
-      case lifecycle do
-        :qualified_success -> {"complete", 37}
-        :qualified_success_42 -> {"complete", 42}
-        lifecycle when lifecycle in [:stopped_42, :failed_42] -> {"blocked", 42}
-        lifecycle when lifecycle in [:stopped, :failed] -> {"blocked", 37}
-        _ -> {"executing", summarized_count + 1}
+      if total > 42 do
+        {"executing", summarized_count + 1}
+      else
+        case lifecycle do
+          :qualified_success -> {"complete", 37}
+          :qualified_success_42 -> {"complete", 42}
+          lifecycle when lifecycle in [:stopped_42, :failed_42] -> {"blocked", 42}
+          lifecycle when lifecycle in [:stopped, :failed] -> {"blocked", 37}
+          _ -> {"executing", summarized_count + 1}
+        end
       end
 
     with {:ok, contents} <- File.read(Path.join(root, @state_path)),
@@ -1554,10 +1771,28 @@ defmodule Rindle.ValidatePhase133Reconciliation do
     end
   end
 
-  defp total_plans(:historical_snapshot), do: 17
-  defp total_plans(mode) when mode in [:repair_execution, :repair_execution_complete], do: 32
-  defp total_plans(mode) when mode in [:branch_execution, :branch_execution_complete], do: 37
-  defp total_plans(mode) when mode in [:execution, :execution_complete], do: 42
+  defp total_plans(_root, :historical_snapshot), do: 17
+
+  defp total_plans(_root, mode) when mode in [:repair_execution, :repair_execution_complete],
+    do: 32
+
+  defp total_plans(_root, mode) when mode in [:branch_execution, :branch_execution_complete],
+    do: 37
+
+  defp total_plans(root, mode) when mode in [:execution, :execution_complete] do
+    with {:ok, roadmap} <- File.read(Path.join(root, @roadmap_path)),
+         [section] <-
+           Regex.run(
+             ~r/### Phase 133: Evidence Charter and Live Truth(.*?)(?=\n### Phase 134:|\z)/s,
+             roadmap,
+             capture: :all_but_first
+           ) do
+      count = length(Regex.scan(~r/^- \[([ x])\] 133-\d+-PLAN\.md(?:\s| |$)/m, section))
+      if count >= 42, do: count, else: 42
+    else
+      _ -> 42
+    end
+  end
 
   defp render_addendum(records, :historical_snapshot) do
     intro =
