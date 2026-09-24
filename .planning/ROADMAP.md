@@ -44,7 +44,7 @@ error vocabulary, release coupling, supported behavior, or the accepted pull-req
   3. Nightly aggregation fails for failed, cancelled, unexpected, or impermissibly skipped gating states, and automated incident tests prove one exact-run-bound issue opens or updates on failure and closes only after qualifying scheduled recovery.
   4. Executable parity checks derive release, planning, support, and adoption-proof claims from authoritative state and reject every unmarked version, lane-severity, or package-proof contradiction.
 
-**Plans**: 42/42 plans summarized; 38 completed, Plans 133-27, 133-32, 133-37, and 133-42 halted with immutable attempts preserved, 0 pending.
+**Plans**: 42/49 plans summarized; 38 completed, Plans 133-27, 133-32, 133-37, and 133-42 halted with immutable attempts preserved, 7 gap-closure plans pending.
 
 Plans:
 
@@ -185,6 +185,25 @@ Plans:
 **Wave 32** *(blocked on exact authorization from Plan 133-41)*
 
 - [ ] 133-42-PLAN.md — Publish and dispatch exactly once, then promote the candidate receipt and close Phase 133 only after every automated gate passes.
+
+**Wave 33** *(blocked on the immutable Plan 133-42 halt; four disjoint repairs may proceed in parallel)*
+
+- [ ] 133-43-PLAN.md — Rebuild package proof from the exact subject and reject caller-owned trees and PATH.
+- [ ] 133-44-PLAN.md — Publish receipts without clobbering and authenticate historical incident snapshots.
+- [ ] 133-45-PLAN.md — Bound scheduled incident replay across retention and authenticate rerun attempts.
+- [ ] 133-46-PLAN.md — Enforce complete closure mapping, halted identity, and canonical receipt proof in production reconciliation.
+
+**Wave 34** *(blocked on Plans 133-43 through 133-46)*
+
+- [ ] 133-47-PLAN.md — Repair the supported compatibility coverage failure, extend validation, and freeze a new exact-subject census.
+
+**Wave 35** *(blocked on Plan 133-47)*
+
+- [ ] 133-48-PLAN.md — Complete independent code, Nyquist, and security gates before a new literal SHA/ref authorization or stop.
+
+**Wave 36** *(blocked on an exact authorization from Plan 133-48)*
+
+- [ ] 133-49-PLAN.md — Make one distinct exact-subject attempt and close requirements only on terminal automated qualification.
 
 ### Phase 134: Dependency, Security, and Inbox Disposition
 
