@@ -19,6 +19,7 @@ commits: []
 ## Verification
 
 - `mix test test/install_smoke/live_truth_parity_test.exs --only package_authority --include minio --seed 0` — 34 tests, 0 failures, 14 excluded.
+- `mix test test/install_smoke/live_truth_parity_test.exs --seed 0` — 34 tests, 0 failures, 1 excluded.
 
 ## Notes
 
