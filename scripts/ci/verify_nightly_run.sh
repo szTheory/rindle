@@ -84,14 +84,14 @@ esac
 canonical_incidents() {
   local recover="${1:-false}" incidents
   if [ "$recover" = true ]; then
-    incidents="$(read_with_rate_limit_recovery gh issue list --repo "$repo" --state open \
-      --label nightly-failure --limit 100 --json number,title,body,comments,updatedAt,url)" ||
+    incidents="$(read_with_rate_limit_recovery gh issue list --repo "$repo" --state all \
+      --label nightly-failure --limit 100 --json number,title,body,comments,updatedAt,url,state)" ||
       return $?
   else
-    incidents="$(gh issue list --repo "$repo" --state open --label nightly-failure --limit 100 \
-      --json number,title,body,comments,updatedAt,url)" || return $?
+    incidents="$(gh issue list --repo "$repo" --state all --label nightly-failure --limit 100 \
+      --json number,title,body,comments,updatedAt,url,state)" || return $?
   fi
-  jq -cS 'sort_by(.number)' <<<"$incidents"
+  jq -cS 'map(del(.state)) | sort_by(.number)' <<<"$incidents"
 }
 
 matching_run_ids() {
@@ -508,7 +508,7 @@ compare_exact_local_and_incident_receipt() {
     def preserves_incident($recorded; $current):
       $current.number == $recorded.number and
       $current.title == $recorded.title and
-      $current.body == $recorded.body and
+      ($current.body | startswith($recorded.body)) and
       $current.url == $recorded.url and
       (($current.updatedAt | fromdateiso8601) >= ($recorded.updatedAt | fromdateiso8601)) and
       all($recorded.comments[];
@@ -516,10 +516,9 @@ compare_exact_local_and_incident_receipt() {
 
     (.incident_snapshot_before == .incident_snapshot_after) and
     ($incidents | valid_incidents) and
-    (($incidents | length) == (.incident_snapshot_after | length)) and
     all(.incident_snapshot_after[];
       . as $recorded |
-      any($incidents[]; .number == $recorded.number and preserves_incident($recorded; .)))
+      any($incidents[]; .number == $recorded.number and .url == $recorded.url and preserves_incident($recorded; .)))
   ' "$path" >/dev/null || die "receipt incident history is missing or contradicts its durable snapshot"
   jq -e --argjson local "$local_authorities" '.local_authorities == $local' "$path" >/dev/null ||
     die "receipt local-authority evidence differs from exact-subject revalidation"
@@ -556,7 +555,15 @@ cleanup() {
   for path in "${cleanup_paths[@]}"; do rm -f -- "$path"; done
 }
 trap cleanup EXIT
-rm -f -- "$receipt"
+if [ -e "$receipt" ] || [ -L "$receipt" ]; then
+  die "receipt destination already exists"
+fi
+mkdir -p -- "$(dirname -- "$receipt")"
+receipt_dir="$(cd -- "$(dirname -- "$receipt")" && pwd)"
+receipt="${receipt_dir}/$(basename -- "$receipt")"
+temp_receipt="$(mktemp "${receipt_dir}/.nightly-receipt.XXXXXX")"
+chmod 600 "$temp_receipt"
+cleanup_paths+=("$temp_receipt")
 preflight="$(preflight_json)"
 incident_before="$(canonical_incidents)" || die "incident snapshot before dispatch failed"
 pre_dispatch_ids="$(matching_run_ids)"
@@ -596,8 +603,6 @@ local_authorities="$(revalidate_local_authorities)"
 incident_after="$(canonical_incidents true)" || die "incident snapshot after dispatch failed"
 [ "$incident_before" = "$incident_after" ] || die "workflow_dispatch changed the nightly-failure incident"
 
-temp_receipt="$(mktemp "${TMPDIR:-/tmp}/nightly-receipt.XXXXXX")"
-cleanup_paths+=("$temp_receipt")
 jq -nS \
   --arg repository "$repo" --arg workflow "$workflow" --arg event workflow_dispatch \
   --arg subject_sha "$expected_sha" --arg remote_ref "$remote_ref" \
@@ -613,7 +618,7 @@ jq -nS \
      local_authorities:$local_authorities,preflight:$preflight}
   ' >"$temp_receipt"
 verify_receipt_shape "$temp_receipt"
-mkdir -p "$(dirname "$receipt")"
-mv "$temp_receipt" "$receipt"
+ln "$temp_receipt" "$receipt" || die "receipt destination appeared during collection"
+rm -f -- "$temp_receipt"
 cleanup_paths=()
 echo "Recorded exact Nightly evidence for ${expected_sha} in ${receipt}"

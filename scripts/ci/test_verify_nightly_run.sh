@@ -189,7 +189,7 @@ run_case() {
     if [ "$(grep -c '^workflow run nightly.yml ' "${temp}/calls" || true)" -eq 1 ] &&
        [ "$(grep -c '^run view 9001 .* --job 6 --log$' "${temp}/calls" || true)" -ge 1 ] &&
        [ "$(grep -c '^run view 9001 .* --job 9 --log$' "${temp}/calls" || true)" -ge 1 ] &&
-       [ "$(grep -c '^issue list --repo szTheory/rindle --state open --label nightly-failure --limit 100 --json number,title,body,comments,updatedAt,url$' "${temp}/calls" || true)" -eq 4 ] &&
+       [ "$(grep -c '^issue list --repo szTheory/rindle --state all --label nightly-failure --limit 100 --json number,title,body,comments,updatedAt,url,state$' "${temp}/calls" || true)" -eq 4 ] &&
        [ "$(grep -c '^mix run --no-start --no-deps-check --no-compile scripts/maintainer/evidence_census.exs --root ' "${temp}/authority-calls" || true)" -eq 3 ] &&
        [ "$(grep -c '^mix run --no-start --no-deps-check --no-compile scripts/maintainer/validate_evidence_census.exs --root ' "${temp}/authority-calls" || true)" -eq 3 ] &&
        [ "$(grep -c '^mix run --no-start --no-deps-check --no-compile -e Code.require_file("scripts/maintainer/validate_live_truth.exs")' "${temp}/authority-calls" || true)" -eq 3 ] &&
@@ -531,6 +531,75 @@ verify_live_state_case() {
   rm -rf "$temp"
 }
 
+verify_occupied_destination_case() {
+  local temp got=0 before after
+  temp="$(mktemp -d)"
+  make_fake_gh "${temp}/bin"
+  make_fake_local_authorities "${temp}/bin"
+  : >"${temp}/calls"
+  : >"${temp}/count"
+  : >"${temp}/run-list-count"
+  : >"${temp}/watch-count"
+  mkdir -p "${temp}/read-counts"
+  : >"${temp}/authority-calls"
+  printf 'existing receipt bytes\n' >"${temp}/receipt.json"
+  before="$(shasum -a 256 "${temp}/receipt.json" | awk '{print $1}')"
+
+  PATH="${temp}/bin:${PATH}" FAKE_GH_LOG="${temp}/calls" FAKE_GH_COUNT_FILE="${temp}/count" \
+    FAKE_GH_RUN_LIST_COUNT_FILE="${temp}/run-list-count" \
+    FAKE_GH_WATCH_COUNT_FILE="${temp}/watch-count" \
+    FAKE_GH_READ_COUNT_DIR="${temp}/read-counts" \
+    FAKE_AUTHORITY_STATE=success FAKE_AUTHORITY_LOG="${temp}/authority-calls" \
+    bash "$collector" dispatch-and-record --repo szTheory/rindle --workflow nightly.yml \
+      --ref phase-133-evidence-aaaaaaaaaaaa --expected-sha aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \
+      --receipt "${temp}/receipt.json" --poll-seconds 0 --timeout-seconds 2 >"${temp}/output" 2>&1 || got=$?
+
+  after="$(shasum -a 256 "${temp}/receipt.json" | awk '{print $1}')"
+  if [ "$got" -ne 0 ] && [ "$before" = "$after" ] &&
+     ! grep -q '^workflow run nightly.yml ' "${temp}/calls" && [ ! -s "${temp}/calls" ]; then
+    record "occupied destination fails before preflight and dispatch" true
+  else
+    record "occupied destination fails before preflight and dispatch" false \
+      "exit ${got}; destination changed or GitHub was queried"
+  fi
+  rm -rf "$temp"
+}
+
+verify_concurrent_destination_case() {
+  local temp got=0 before after
+  temp="$(mktemp -d)"
+  make_fake_gh "${temp}/bin"
+  make_fake_local_authorities "${temp}/bin"
+  : >"${temp}/calls"
+  : >"${temp}/count"
+  : >"${temp}/run-list-count"
+  : >"${temp}/watch-count"
+  mkdir -p "${temp}/read-counts"
+  : >"${temp}/authority-calls"
+
+  PATH="${temp}/bin:${PATH}" FAKE_GH_LOG="${temp}/calls" FAKE_GH_COUNT_FILE="${temp}/count" \
+    FAKE_GH_RUN_LIST_COUNT_FILE="${temp}/run-list-count" \
+    FAKE_GH_WATCH_COUNT_FILE="${temp}/watch-count" \
+    FAKE_GH_READ_COUNT_DIR="${temp}/read-counts" FAKE_RECEIPT_PATH="${temp}/receipt.json" \
+    FAKE_GH_STATE=concurrent_receipt FAKE_AUTHORITY_STATE=success \
+    FAKE_AUTHORITY_LOG="${temp}/authority-calls" \
+    bash "$collector" dispatch-and-record --repo szTheory/rindle --workflow nightly.yml \
+      --ref phase-133-evidence-aaaaaaaaaaaa --expected-sha aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \
+      --receipt "${temp}/receipt.json" --poll-seconds 0 --timeout-seconds 2 >"${temp}/output" 2>&1 || got=$?
+
+  before="$(printf 'concurrent creator bytes\n' | shasum -a 256 | awk '{print $1}')"
+  after="$(shasum -a 256 "${temp}/receipt.json" 2>/dev/null | awk '{print $1}' || true)"
+  if [ "$got" -ne 0 ] && [ "$before" = "$after" ] &&
+     [ "$(grep -c '^workflow run nightly.yml ' "${temp}/calls" || true)" -eq 1 ] &&
+     ! grep -q 'Recorded exact Nightly evidence' "${temp}/output"; then
+    record "concurrent receipt creator wins without being replaced" true
+  else
+    record "concurrent receipt creator wins without being replaced" false \
+      "exit ${got}; concurrent destination changed or collector succeeded"
+  fi
+  rm -rf "$temp"
+}
+
 verify_worktree_independence_case() {
   local temp got=0
   temp="$(mktemp -d)"
@@ -722,8 +791,13 @@ fi
 
 verify_live_state_case "later unrelated incident comment preserves historical receipt" incident_verify_appended 0
 verify_live_state_case "later successive incident marker preserves historical receipt" incident_verify_successive 0
+verify_live_state_case "later closed incident preserves historical receipt" incident_verify_closed 0
+verify_live_state_case "later body append preserves historical receipt" incident_verify_body_appended 0
+verify_live_state_case "later unrelated issue preserves historical receipt" incident_verify_unrelated 0
 verify_live_state_case "missing historical incident fails closed" incident_verify_missing
 verify_live_state_case "contradictory historical incident fails closed" incident_verify_changed
+verify_occupied_destination_case
+verify_concurrent_destination_case
 verify_live_state_case "foreign live run identity fails closed" foreign_run_sha
 verify_live_state_case "local validator failure fails closed" local_validator_failure
 verify_live_state_case "ledger path missing at recorded commit fails closed" missing_path_at_commit
@@ -965,6 +1039,13 @@ case "${1-} ${2-}" in
     [ "$state" != incident_changed ] || { [ "$count" -eq 1 ] || body=nightly-run:9001:1; }
     [ "$state" != incident_verify_changed ] || body=nightly-run:forged:1
     [ "$state" != incident_verify_missing ] || { printf '[]\n'; exit; }
+    [ "$state" != concurrent_receipt ] || {
+      if [ "$count" -ge 2 ]; then printf 'concurrent creator bytes\n' >"$FAKE_RECEIPT_PATH"; fi
+    }
+    issue_state=open
+    [ "$state" != incident_verify_closed ] || issue_state=closed
+    [ "$state" != incident_verify_body_appended ] || body="${body}
+maintainer append"
     comments='[]'
     updated_at=2026-09-09T11:00:00Z
     if [ "$state" = incident_verify_appended ] || [ "$state" = incident_verify_successive ]; then
@@ -976,7 +1057,11 @@ case "${1-} ${2-}" in
       fi
       comments="$(jq -cn --arg body "$comment_body" '[{author:{login:"github-actions"},authorAssociation:"CONTRIBUTOR",body:$body,createdAt:"2026-09-10T11:00:00Z",id:"IC_later",includesCreatedEdit:false,isMinimized:false,minimizedReason:"",reactionGroups:[],url:"https://github.test/issues/88#issuecomment-later",viewerDidAuthor:false}]')"
     fi
-    jq -cn --arg body "$body" --arg updatedAt "$updated_at" --argjson comments "$comments" '[{number:88,title:"Nightly CI failure",body:$body,comments:$comments,updatedAt:$updatedAt,url:"https://github.test/issues/88"}]'
+    incidents="$(jq -cn --arg body "$body" --arg updatedAt "$updated_at" --argjson comments "$comments" --arg state "$issue_state" '[{number:88,title:"Nightly CI failure",body:$body,comments:$comments,updatedAt:$updatedAt,url:"https://github.test/issues/88",state:$state}]')"
+    if [ "$state" = incident_verify_unrelated ]; then
+      incidents="$(jq -cn --argjson original "$incidents" '[ $original[0], {number:99,title:"Unrelated Nightly issue",body:"new event",comments:[],updatedAt:"2026-09-10T11:00:00Z",url:"https://github.test/issues/99",state:"open"}]')"
+    fi
+    printf '%s\n' "$incidents"
     ;;
   *) echo "unexpected fake gh call: $*" >&2; exit 43 ;;
 esac
