@@ -50,7 +50,7 @@ write_runs() {
 }
 
 write_artifacts() {
-  local path="$1" mode="${2:-all}"
+  local path="$1" mode="${2:-all}" created expires
   case "${mode}" in
     all)
       jq -cn '{artifacts:[
@@ -77,6 +77,10 @@ write_artifacts() {
       jq -cn '{artifacts:[{id:1003,name:"nightly-incident-verdict-103-1",expired:false,workflow_run:{id:103}}]}' >"${path}"
       ;;
   esac
+  read -r _ created expires <<<"$(python3 -c 'from datetime import datetime, timedelta, timezone; now=datetime.now(timezone.utc); print(int(now.timestamp()), now.isoformat(timespec="seconds").replace("+00:00","Z"), (now+timedelta(days=14)).isoformat(timespec="seconds").replace("+00:00","Z"))')"
+  jq --arg created "${created}" --arg expires "${expires}" \
+    '.artifacts |= map(. + {created_at:$created,expires_at:$expires})' "${path}" >"${path}.next"
+  mv "${path}.next" "${path}"
 }
 
 make_fake_gh() {
@@ -113,7 +117,10 @@ make_fake_gh() {
     '  while [ "$#" -gt 0 ]; do case "$1" in --name) name="$2"; shift 2 ;; --dir) dir="$2"; shift 2 ;; *) shift ;; esac; done' \
     '  [ "${FAKE_GH_FAIL-}" != download ] || exit 44' \
     '  mkdir -p "${dir}"' \
-    '  cp "${state}/events/${name}.json" "${dir}/nightly-incident-verdict.json"' \
+    '  case "${name}" in' \
+    '    nightly-incident-replay-checkpoint-*) cp "${state}/checkpoint.json" "${dir}/nightly-incident-checkpoint.json" ;;' \
+    '    *) cp "${state}/events/${name}.json" "${dir}/nightly-incident-verdict.json" ;;' \
+    '  esac' \
     '  exit 0' \
     'fi' \
     'if [ "${1-} ${2-}" = "issue list" ]; then' \
@@ -153,6 +160,13 @@ make_fake_gh() {
     'fi' \
     'exit 49' >"${bin_dir}/gh"
   chmod +x "${bin_dir}/gh"
+  # shellcheck disable=SC2016 # Source text is emitted verbatim into the fake date command.
+  printf '%s\n' \
+    '#!/usr/bin/env bash' \
+    'set -euo pipefail' \
+    'if [ "$*" = "-u +%s" ] && [ -n "${FAKE_NOW_EPOCH-}" ]; then printf "%s\\n" "${FAKE_NOW_EPOCH}"; else /bin/date "$@"; fi' \
+    >"${bin_dir}/date"
+  chmod +x "${bin_dir}/date"
 }
 
 new_fixture() {
@@ -177,9 +191,60 @@ run_manager() {
     GH_TOKEN=test-token GH_REPO=szTheory/rindle WORKFLOW_NAME=Nightly \
     WORKFLOW_REF=szTheory/rindle/.github/workflows/nightly.yml@refs/heads/main \
     CURRENT_RUN_ID=103 CURRENT_RUN_ATTEMPT=1 DEFAULT_BRANCH=main \
-    REMOTE_MAIN_SHA="${sha_b}" \
+    REMOTE_MAIN_SHA="${sha_b}" CHECKPOINT_OUTPUT_PATH="${temp}/state/checkpoint-output.json" \
     NIGHTLY_REPLAY_SLEEP_SECONDS=0 NIGHTLY_REPLAY_FETCH_ATTEMPTS=3 NIGHTLY_REPLAY_MAX_RESTARTS=20 \
     "$@" bash "${manager}" >"${output}" 2>&1
+}
+
+install_checkpoint() {
+  local temp="$1" run_id="$2" attempt="$3" issue_digest event_digest previous chain
+  local issue_number=null issue_state=null
+  if [ "$(jq length "${temp}/state/issues.json")" -gt 0 ]; then
+    issue_number="$(jq -r 'sort_by(.number) | last | .number' "${temp}/state/issues.json")"
+    issue_state="$(jq -r --argjson number "${issue_number}" '.[] | select(.number == $number) | .state' "${temp}/state/issues.json")"
+  fi
+  jq -cS . "${temp}/state/events/nightly-incident-verdict-${run_id}-${attempt}.json" >"${temp}/event-canonical.json"
+  event_digest="$(sha256sum "${temp}/event-canonical.json" | awk '{print $1}')"
+  jq -cS . "${temp}/state/issues.json" >"${temp}/issues-canonical.json"
+  issue_digest="$(sha256sum "${temp}/issues-canonical.json" | awk '{print $1}')"
+  previous="$(printf '0%.0s' {1..64})"
+  jq -cnS --arg repository szTheory/rindle \
+    --arg workflow_ref szTheory/rindle/.github/workflows/nightly.yml@refs/heads/main \
+    --arg event_digest "${event_digest}" --arg issue_digest "${issue_digest}" \
+    --arg previous_chain_digest "${previous}" --argjson run "${run_id}" \
+    --argjson attempt "${attempt}" --argjson issue_number "${issue_number}" \
+    --arg issue_state "${issue_state}" \
+    '{schema:"rindle-nightly-incident-checkpoint-v1",repository:$repository,workflow_ref:$workflow_ref,
+      last_run_id:$run,last_run_attempt:$attempt,event_digest:$event_digest,
+      previous_chain_digest:$previous_chain_digest,issue_number:$issue_number,
+      issue_state:(if $issue_state == "null" then null else $issue_state end),
+      issue_digest:$issue_digest,chain_digest:""}' >"${temp}/state/checkpoint.json"
+  jq -cS '{previous_chain_digest,last_run_id,last_run_attempt,event_digest,issue_digest,issue_number,issue_state}' \
+    "${temp}/state/checkpoint.json" >"${temp}/chain-input.json"
+  chain="$(sha256sum "${temp}/chain-input.json" | awk '{print $1}')"
+  jq --arg chain "${chain}" '.chain_digest=$chain' "${temp}/state/checkpoint.json" >"${temp}/checkpoint.next"
+  mv "${temp}/checkpoint.next" "${temp}/state/checkpoint.json"
+  jq --argjson run "${run_id}" --argjson attempt "${attempt}" \
+    --arg created "$(jq -r '.artifacts[0].created_at' "${temp}/state/artifacts.json")" \
+    --arg expires "$(jq -r '.artifacts[0].expires_at' "${temp}/state/artifacts.json")" \
+    '.artifacts += [{id:(3000+$run),name:("nightly-incident-replay-checkpoint-"+($run|tostring)+"-"+($attempt|tostring)),expired:false,workflow_run:{id:$run},created_at:$created,expires_at:$expires}]' \
+    "${temp}/state/artifacts.json" >"${temp}/state/artifacts.next"
+  mv "${temp}/state/artifacts.next" "${temp}/state/artifacts.json"
+}
+
+seed_checkpoint_issue() {
+  local temp="$1" run_id="$2"
+  if [ "${run_id}" -eq 102 ]; then
+    jq -cn '[{number:88,title:"Nightly CI failure",state:"OPEN",
+      body:"Nightly incident mutation: open\nEvidence marker: nightly-mutation:open:101:1",
+      comments:[{body:"Nightly incident mutation: update\nEvidence marker: nightly-mutation:update:102:1"}]}]' \
+      >"${temp}/state/issues.json"
+  else
+    jq -cn '[{number:88,title:"Nightly CI failure",state:"OPEN",
+      body:"Nightly incident mutation: open\nEvidence marker: nightly-mutation:open:101:1",comments:[]}]' \
+      >"${temp}/state/issues.json"
+  fi
+  install_checkpoint "${temp}" "${run_id}" 1
 }
 
 mutation_effects() {
@@ -324,7 +389,9 @@ two_attempts_case() {
   output="${temp}/output"
   jq '(.workflow_runs[] | select(.id == 103) | .run_attempt) = 2' "${temp}/state/runs.json" >"${temp}/state/runs.next"
   mv "${temp}/state/runs.next" "${temp}/state/runs.json"
-  jq '.artifacts += [{id:1004,name:"nightly-incident-verdict-103-2",expired:false,workflow_run:{id:103}}]' \
+    jq --arg created "$(jq -r '.artifacts[0].created_at' "${temp}/state/artifacts.json")" \
+      --arg expires "$(jq -r '.artifacts[0].expires_at' "${temp}/state/artifacts.json")" \
+      '.artifacts += [{id:1004,name:"nightly-incident-verdict-103-2",expired:false,workflow_run:{id:103},created_at:$created,expires_at:$expires}]' \
     "${temp}/state/artifacts.json" >"${temp}/state/artifacts.next"
   mv "${temp}/state/artifacts.next" "${temp}/state/artifacts.json"
   write_event "${temp}/state/events/nightly-incident-verdict-103-1.json" 103 1 red "${sha_b}"
@@ -340,13 +407,103 @@ two_attempts_case() {
   rm -rf "${temp}"
 }
 
+checkpoint_case() {
+  local name="$1" setup="$2" temp output got=0 effects
+  temp="$(new_fixture)"
+  output="${temp}/output"
+  case "${setup}" in
+    expired-pre-epoch)
+      seed_checkpoint_issue "${temp}" 102
+      jq '.artifacts |= map(if .name == "nightly-incident-verdict-101-1" then .expired=true else . end)' \
+        "${temp}/state/artifacts.json" >"${temp}/state/artifacts.next"
+      mv "${temp}/state/artifacts.next" "${temp}/state/artifacts.json"
+      ;;
+    expired-in-epoch)
+      seed_checkpoint_issue "${temp}" 101
+      jq '.artifacts |= map(if .name == "nightly-incident-verdict-102-1" then .expired=true else . end)' \
+        "${temp}/state/artifacts.json" >"${temp}/state/artifacts.next"
+      mv "${temp}/state/artifacts.next" "${temp}/state/artifacts.json"
+      ;;
+    tampered)
+      seed_checkpoint_issue "${temp}" 102
+      jq '.event_digest = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"' \
+        "${temp}/state/checkpoint.json" >"${temp}/state/checkpoint.next"
+      mv "${temp}/state/checkpoint.next" "${temp}/state/checkpoint.json"
+      ;;
+    concurrent-advance)
+      seed_checkpoint_issue "${temp}" 102
+      jq '.[0].comments += [{body:"concurrent history advancement"}]' \
+        "${temp}/state/issues.json" >"${temp}/state/issues.next"
+      mv "${temp}/state/issues.next" "${temp}/state/issues.json"
+      ;;
+    short-retention)
+      read -r _ created expires <<<"$(python3 -c 'from datetime import datetime, timedelta, timezone; now=datetime.now(timezone.utc); print(int(now.timestamp()), now.isoformat(timespec="seconds").replace("+00:00","Z"), (now+timedelta(days=7)).isoformat(timespec="seconds").replace("+00:00","Z"))')"
+      jq --arg created "${created}" --arg expires "${expires}" \
+        '.artifacts |= map(if (.name | startswith("nightly-incident-verdict-")) then .created_at=$created | .expires_at=$expires else . end)' \
+        "${temp}/state/artifacts.json" >"${temp}/state/artifacts.next"
+      mv "${temp}/state/artifacts.next" "${temp}/state/artifacts.json"
+      ;;
+  esac
+  case "${setup}" in
+    expired-pre-epoch)
+      run_manager "${temp}" "${output}" || got=$?
+      effects="$(mutation_effects "${temp}")"
+      if [ "${got}" -eq 0 ] && [ "${effects}" -eq 3 ] && rg -q 'nightly-mutation:close:103:1' "${temp}/state/issues.json"; then
+        record "${name}" true ""
+      else
+        record "${name}" false "exit=${got} effects=${effects}; $(<"${output}")"
+      fi
+      ;;
+    *)
+      run_manager "${temp}" "${output}" || got=$?
+      local attempts=0
+      [ ! -f "${temp}/state/mutation_attempts" ] || attempts="$(<"${temp}/state/mutation_attempts")"
+      if [ "${got}" -ne 0 ] && [ "${attempts}" -eq 0 ]; then
+        record "${name}" true ""
+      else
+        record "${name}" false "exit=${got} mutations=${attempts}; $(<"${output}")"
+      fi
+      ;;
+  esac
+  rm -rf "${temp}"
+}
+
+checkpoint_expiry_boundary_case() {
+  local delta="$1" temp output got=0 now created expires
+  temp="$(new_fixture)"
+  output="${temp}/output"
+  seed_checkpoint_issue "${temp}" 102
+  read -r now created expires <<<"$(python3 -c 'from datetime import datetime, timedelta, timezone; import sys; now=datetime.now(timezone.utc); print(int(now.timestamp()), (now-timedelta(days=14)).isoformat(timespec="seconds").replace("+00:00","Z"), (now+timedelta(seconds=int(sys.argv[1]))).isoformat(timespec="seconds").replace("+00:00","Z"))' "${delta}")"
+  jq --arg created "${created}" --arg expires "${expires}" \
+    '.artifacts |= map(if .name == "nightly-incident-replay-checkpoint-102-1" or .name == "nightly-incident-verdict-102-1" then .created_at=$created | .expires_at=$expires else . end)' \
+    "${temp}/state/artifacts.json" >"${temp}/state/artifacts.next"
+  mv "${temp}/state/artifacts.next" "${temp}/state/artifacts.json"
+  run_manager "${temp}" "${output}" "FAKE_NOW_EPOCH=${now}" || got=$?
+  if [ "${delta}" -lt 3600 ]; then
+    local attempts=0
+    [ ! -f "${temp}/state/mutation_attempts" ] || attempts="$(<"${temp}/state/mutation_attempts")"
+    if [ "${got}" -ne 0 ] && [ "${attempts}" -eq 0 ]; then
+      record "checkpoint inside expiry safety margin fails before mutation" true ""
+    else
+      record "checkpoint inside expiry safety margin fails before mutation" false "exit=${got} mutations=${attempts}; $(<"${output}")"
+    fi
+  elif [ "${got}" -eq 0 ] && jq -e '.last_run_id == 103 and .last_run_attempt == 1' "${temp}/state/checkpoint-output.json" >/dev/null; then
+    record "near-expiry checkpoint advances through active high-watermark" true ""
+  else
+    record "near-expiry checkpoint advances through active high-watermark" false "exit=${got}; $(<"${output}")"
+  fi
+  rm -rf "${temp}"
+}
+
 skipped_attempt_case() {
   local temp output got=0
   temp="$(new_fixture)"
   output="${temp}/output"
   jq '(.workflow_runs[] | select(.id == 103) | .run_attempt) = 2' "${temp}/state/runs.json" >"${temp}/state/runs.next"
   mv "${temp}/state/runs.next" "${temp}/state/runs.json"
-  jq '.artifacts = (.artifacts + [{id:1004,name:"nightly-incident-verdict-103-2",expired:false,workflow_run:{id:103}}] | map(select(.name != "nightly-incident-verdict-103-1")))' \
+  jq --arg created "$(jq -r '.artifacts[0].created_at' "${temp}/state/artifacts.json")" \
+    --arg expires "$(jq -r '.artifacts[0].expires_at' "${temp}/state/artifacts.json")" \
+    '.artifacts = (.artifacts + [{id:1004,name:"nightly-incident-verdict-103-2",expired:false,workflow_run:{id:103},created_at:$created,expires_at:$expires}] | map(select(.name != "nightly-incident-verdict-103-1")))' \
     "${temp}/state/artifacts.json" >"${temp}/state/artifacts.next"
   mv "${temp}/state/artifacts.next" "${temp}/state/artifacts.json"
   write_event "${temp}/state/events/nightly-incident-verdict-103-2.json" 103 2 green "${sha_b}"
@@ -377,6 +534,13 @@ restart_case "uncertain mutation outcome restarts and converges" uncertain
 permanent_mutation_failure_case
 two_attempts_case
 skipped_attempt_case
+checkpoint_case "expired evidence before authenticated checkpoint permits replay" expired-pre-epoch
+checkpoint_case "expired evidence after checkpoint fails before mutation" expired-in-epoch
+checkpoint_case "tampered checkpoint fails before mutation" tampered
+checkpoint_case "concurrent issue-history advancement invalidates checkpoint" concurrent-advance
+checkpoint_case "repository retention cap below 14 days fails before mutation" short-retention
+checkpoint_expiry_boundary_case 3599
+checkpoint_expiry_boundary_case 3601
 
 echo "—"
 echo "passed: ${pass}  failed: ${fail}"

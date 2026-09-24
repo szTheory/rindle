@@ -43,6 +43,37 @@ trap 'rm -rf "${workspace}"' EXIT
 runs_file="${workspace}/runs.json"
 artifacts_file="${workspace}/artifacts.json"
 events_file="${workspace}/events.json"
+checkpoint_file="${workspace}/checkpoint.json"
+checkpoint_path="${CHECKPOINT_OUTPUT_PATH:-}"
+checkpoint_run=0
+checkpoint_attempt=0
+checkpoint_chain="$(printf '0%.0s' {1..64})"
+checkpoint_event_digest=""
+checkpoint_issue_number=""
+checkpoint_issue_state=""
+checkpoint_issue_digest=""
+
+[[ -n "${checkpoint_path}" ]] || fail "CHECKPOINT_OUTPUT_PATH must be set"
+
+sha256_file() {
+  if command -v sha256sum >/dev/null 2>&1; then sha256sum "$1" | awk '{print $1}'
+  else shasum -a 256 "$1" | awk '{print $1}'
+  fi
+}
+
+event_digest() {
+  jq -cS . "$1" >"${workspace}/event.canonical"
+  sha256_file "${workspace}/event.canonical"
+}
+
+require_expiry_margin() {
+  local expires_at="$1" now_epoch expires_epoch
+  now_epoch="$(date -u +%s)"
+  expires_epoch="$(jq -nr --arg timestamp "${expires_at}" '$timestamp | fromdateiso8601')" ||
+    fail "artifact expiry timestamp is invalid"
+  [[ "${now_epoch}" =~ ^[0-9]+$ && "${expires_epoch}" =~ ^[0-9]+$ ]] || fail "invalid artifact clock"
+  ((expires_epoch - now_epoch >= 3600)) || fail "retained replay evidence is within one hour of expiry"
+}
 fetch_runs() {
   local pages base_file row run_id max_attempt attempt detail
   pages="$(${GH_CLI:-gh} api --paginate --slurp \
@@ -110,20 +141,42 @@ fetch_artifacts() {
 
 prepare_event_index() {
   jq -e '
+    def retention_ok:
+      if ((.name | startswith("nightly-incident-verdict-") or startswith("nightly-incident-replay-checkpoint-")) | not) or .expired then true
+      else
+        (.created_at | type == "string") and (.expires_at | type == "string") and
+        ((.expires_at | fromdateiso8601) - (.created_at | fromdateiso8601) >= 1209300)
+      end;
     all(.[];
       type == "object" and
       (.id | type == "number" and . > 0 and floor == .) and
       (.name | type == "string") and
       (.expired | type == "boolean") and
       (.workflow_run | type == "object") and
-      (.workflow_run.id | type == "number" and . > 0 and floor == .)
+      (.workflow_run.id | type == "number" and . > 0 and floor == .) and
+      retention_ok
     ) and
     ([.[].id] | length == (unique | length))
   ' "${artifacts_file}" >/dev/null || fail "invalid artifact metadata"
 
-  jq -cS \
-    --arg prefix 'nightly-incident-verdict-' \
-    --argjson high "${CURRENT_RUN_ID}" --argjson high_attempt "${CURRENT_RUN_ATTEMPT}" '
+  # Expired evidence is tolerated only strictly before the authenticated cursor.
+  jq -e --arg prefix 'nightly-incident-verdict-' \
+    --argjson high "${CURRENT_RUN_ID}" --argjson high_attempt "${CURRENT_RUN_ATTEMPT}" \
+    --argjson cursor "${checkpoint_run}" --argjson cursor_attempt "${checkpoint_attempt}" '
+      [ .[] |
+        select(.name | startswith($prefix)) |
+        (.name | capture("^nightly-incident-verdict-(?<run>[1-9][0-9]{0,19})-(?<attempt>[1-9][0-9]{0,9})$")) as $identity |
+        ($identity.run | tonumber) as $run |
+        ($identity.attempt | tonumber) as $attempt |
+        select($run < $high or ($run == $high and $attempt <= $high_attempt)) |
+        select(.expired == true) |
+        ($run < $cursor or ($run == $cursor and $attempt <= $cursor_attempt))
+      ] | all
+    ' "${artifacts_file}" >/dev/null || fail "expired verdict artifact inside authenticated replay epoch"
+
+  jq -cS --arg prefix 'nightly-incident-verdict-' \
+    --argjson high "${CURRENT_RUN_ID}" --argjson high_attempt "${CURRENT_RUN_ATTEMPT}" \
+    --argjson cursor "${checkpoint_run}" --argjson cursor_attempt "${checkpoint_attempt}" '
       [
         .[] |
         select(.expired == false) |
@@ -132,25 +185,32 @@ prepare_event_index() {
         {
           artifact_id:.id,
           name:.name,
+          expires_at:.expires_at,
           workflow_run_id:.workflow_run.id,
           run_id:($identity.run | tonumber),
           run_attempt:($identity.attempt | tonumber)
         } |
-        select(.run_id < $high or (.run_id == $high and .run_attempt <= $high_attempt))
+        select(.run_id < $high or (.run_id == $high and .run_attempt <= $high_attempt)) |
+        select(.run_id > $cursor or (.run_id == $cursor and .run_attempt > $cursor_attempt))
       ]
-    ' "${artifacts_file}" >"${workspace}/event-index.json" || fail "malformed canonical artifact name"
+  ' "${artifacts_file}" >"${workspace}/event-index.json" || fail "malformed canonical artifact name"
+
+  while IFS= read -r expiry; do
+    require_expiry_margin "${expiry}"
+  done < <(jq -r '.[].expires_at' "${workspace}/event-index.json")
 
   jq -e '
     all(.[]; .workflow_run_id == .run_id) and
     (group_by([.run_id, .run_attempt]) | all(.[]; length == 1))
   ' "${workspace}/event-index.json" >/dev/null || fail "duplicate or mismatched canonical event artifact"
 
-  jq -cS \
-    --arg branch "${DEFAULT_BRANCH}" \
-    --argjson high "${CURRENT_RUN_ID}" --argjson high_attempt "${CURRENT_RUN_ATTEMPT}" '
+  jq -cS --arg branch "${DEFAULT_BRANCH}" \
+    --argjson high "${CURRENT_RUN_ID}" --argjson high_attempt "${CURRENT_RUN_ATTEMPT}" \
+    --argjson cursor "${checkpoint_run}" --argjson cursor_attempt "${checkpoint_attempt}" '
       [
         .[] |
         select((.id < $high or (.id == $high and .run_attempt <= $high_attempt)) and .head_branch == $branch) |
+        select((.id > $cursor or (.id == $cursor and .run_attempt > $cursor_attempt)) and .head_branch == $branch) |
         select(.status == "completed" or .id == $high) |
         {run_id:.id,run_attempt:.run_attempt,event:.event,status:.status,conclusion:.conclusion,sha:.head_sha,branch:.head_branch,url:.html_url,name:.name,path:.path}
       ] | sort_by(.run_id, .run_attempt)
@@ -172,9 +232,125 @@ prepare_event_index() {
     return 1
   fi
 
-  jq -e --argjson high "${CURRENT_RUN_ID}" --argjson attempt "${CURRENT_RUN_ATTEMPT}" '
-    sort_by(.run_id, .run_attempt) | last | .run_id == $high and .run_attempt == $attempt
-  ' "${workspace}/event-index.json" >/dev/null || fail "artifact high-watermark does not match current run"
+  if [ "$(jq length "${workspace}/event-index.json")" -gt 0 ]; then
+    jq -e --argjson high "${CURRENT_RUN_ID}" --argjson attempt "${CURRENT_RUN_ATTEMPT}" '
+      sort_by(.run_id, .run_attempt) | last | .run_id == $high and .run_attempt == $attempt
+    ' "${workspace}/event-index.json" >/dev/null || fail "artifact high-watermark does not match current run"
+  elif [ "${checkpoint_run}" -ne "${CURRENT_RUN_ID}" ] || [ "${checkpoint_attempt}" -ne "${CURRENT_RUN_ATTEMPT}" ]; then
+    fail "empty replay epoch does not end at current scheduled attempt"
+  fi
+}
+
+load_checkpoint() {
+  local candidates selected producer_run producer_attempt path digest expected_event
+  candidates="${workspace}/checkpoint-candidates.json"
+  jq -cS --arg prefix 'nightly-incident-replay-checkpoint-' '
+    [ .[] | select(.name | startswith($prefix)) |
+      (.name | capture("^nightly-incident-replay-checkpoint-(?<run>[1-9][0-9]{0,19})-(?<attempt>[1-9][0-9]{0,9})$")) as $identity |
+      {id:.id,name:.name,expired:.expired,expires_at:.expires_at,workflow_run_id:.workflow_run.id,
+       run_id:($identity.run|tonumber),run_attempt:($identity.attempt|tonumber)}
+    ] | sort_by(.run_id,.run_attempt)
+  ' "${artifacts_file}" >"${candidates}" || fail "malformed checkpoint artifact name"
+  jq -e 'all(.[]; .workflow_run_id == .run_id) and
+    (group_by([.run_id,.run_attempt]) | all(.[]; length == 1))' "${candidates}" >/dev/null ||
+    fail "duplicate or mismatched checkpoint artifact"
+  selected="$(jq -c --argjson high "${CURRENT_RUN_ID}" --argjson attempt "${CURRENT_RUN_ATTEMPT}" \
+    '[.[] | select((.run_id < $high or (.run_id == $high and .run_attempt < $attempt)) and .expired == false)] | last // empty' "${candidates}")"
+  [ -n "${selected}" ] || return 0
+
+  require_expiry_margin "$(jq -r .expires_at <<<"${selected}")"
+
+  producer_run="$(jq -r .run_id <<<"${selected}")"
+  producer_attempt="$(jq -r .run_attempt <<<"${selected}")"
+  path="${workspace}/checkpoint-download"
+  mkdir -p "${path}"
+  ${GH_CLI:-gh} run download "${producer_run}" --repo "${GH_REPO}" \
+    --name "$(jq -r .name <<<"${selected}")" --dir "${path}" >/dev/null || fail "checkpoint artifact download failed"
+  [ -f "${path}/nightly-incident-checkpoint.json" ] || fail "checkpoint artifact omitted canonical JSON"
+  cp "${path}/nightly-incident-checkpoint.json" "${checkpoint_file}"
+
+  jq -e --arg repository "${GH_REPO}" --arg workflow_ref "${expected_workflow_ref}" \
+    --argjson producer_run "${producer_run}" --argjson producer_attempt "${producer_attempt}" '
+      type == "object" and
+      (keys|sort) == ["chain_digest","event_digest","issue_digest","issue_number","issue_state","last_run_attempt","last_run_id","previous_chain_digest","repository","schema","workflow_ref"] and
+      .schema == "rindle-nightly-incident-checkpoint-v1" and
+      .repository == $repository and .workflow_ref == $workflow_ref and
+      .last_run_id == $producer_run and .last_run_attempt == $producer_attempt and
+      (.event_digest | type == "string" and test("^[0-9a-f]{64}$")) and
+      (.chain_digest | type == "string" and test("^[0-9a-f]{64}$")) and
+      (.previous_chain_digest | type == "string" and test("^[0-9a-f]{64}$")) and
+      (.issue_digest | type == "string" and test("^[0-9a-f]{64}$")) and
+      ((.issue_number == null) or (.issue_number | type == "number" and . > 0 and floor == .)) and
+      ((.issue_state == null) or (.issue_state | IN("OPEN","CLOSED"))) and
+      ((.issue_number == null) == (.issue_state == null))
+    ' "${checkpoint_file}" >/dev/null || fail "checkpoint payload failed exact artifact/run authentication"
+
+  local producer_row producer_sha producer_url
+  producer_row="$(jq -c --argjson id "${producer_run}" --argjson attempt "${producer_attempt}" \
+    --arg branch "${DEFAULT_BRANCH}" \
+    '[.[] | select(.id == $id and .run_attempt == $attempt and .event == "schedule" and .name == "Nightly" and .path == ".github/workflows/nightly.yml" and .head_branch == $branch)] | if length == 1 then .[0] else empty end' \
+    "${runs_file}")"
+  [ -n "${producer_row}" ] || fail "checkpoint producer is absent from authenticated workflow attempts"
+  producer_sha="$(jq -r .head_sha <<<"${producer_row}")"
+  producer_url="$(jq -r .html_url <<<"${producer_row}")"
+
+  # The checkpoint's own attempt verdict artifact must still be retained and match its digest.
+  expected_event="$(jq -r --argjson run "${producer_run}" --argjson attempt "${producer_attempt}" \
+    '[.[] | select(.name == ("nightly-incident-verdict-" + ($run|tostring) + "-" + ($attempt|tostring)) and .expired == false and .workflow_run.id == $run)] | if length == 1 then .[0].name else empty end' "${artifacts_file}")"
+  [ -n "${expected_event}" ] || fail "checkpoint anchor verdict artifact is missing or expired"
+  require_expiry_margin "$(jq -r --arg name "${expected_event}" '[.[] | select(.name == $name)][0].expires_at' "${artifacts_file}")"
+  path="${workspace}/checkpoint-event"
+  mkdir -p "${path}"
+  ${GH_CLI:-gh} run download "${producer_run}" --repo "${GH_REPO}" \
+    --name "${expected_event}" --dir "${path}" >/dev/null || fail "checkpoint anchor verdict download failed"
+  [ -f "${path}/nightly-incident-verdict.json" ] || fail "checkpoint anchor verdict is malformed"
+  jq -e --arg repository "${GH_REPO}" --arg workflow_ref "${expected_workflow_ref}" \
+    --arg ref "refs/heads/${DEFAULT_BRANCH}" --arg sha "${producer_sha}" --arg url "${producer_url}" \
+    --argjson run "${producer_run}" --argjson attempt "${producer_attempt}" '
+    type == "object" and
+    (keys | sort) == ["event","ref","repository","run_attempt","run_id","schema","sha","url","verdict","workflow_name","workflow_ref"] and
+    .schema == "rindle-nightly-incident-verdict-v1" and .repository == $repository and
+    .workflow_name == "Nightly" and .workflow_ref == $workflow_ref and .event == "schedule" and
+    .run_id == $run and .run_attempt == $attempt and .sha == $sha and .ref == $ref and .url == $url and
+    (.verdict | type == "object") and
+    (.verdict | keys | sort) == ["errors","jobs","verdict"] and
+    (.verdict.verdict | IN("red","green")) and
+    (.verdict.jobs | type == "array" and length > 0) and
+    all(.verdict.jobs[]; type == "object" and (.name | type == "string") and (.status | IN("passed","not-run","failed"))) and
+    (.verdict.errors | type == "array")
+    ' \
+    "${path}/nightly-incident-verdict.json" >/dev/null || fail "checkpoint anchor identity mismatch"
+  digest="$(event_digest "${path}/nightly-incident-verdict.json")"
+  [ "${digest}" = "$(jq -r .event_digest "${checkpoint_file}")" ] || fail "checkpoint event digest mismatch"
+
+  jq -cS '{previous_chain_digest,last_run_id,last_run_attempt,event_digest,issue_digest,issue_number,issue_state}' \
+    "${checkpoint_file}" >"${workspace}/checkpoint-chain-input.json"
+  digest="$(sha256_file "${workspace}/checkpoint-chain-input.json")"
+  [ "${digest}" = "$(jq -r .chain_digest "${checkpoint_file}")" ] || fail "checkpoint chain digest mismatch"
+
+  checkpoint_run="${producer_run}"
+  checkpoint_attempt="${producer_attempt}"
+  checkpoint_chain="$(jq -r .chain_digest "${checkpoint_file}")"
+  checkpoint_event_digest="$(jq -r .event_digest "${checkpoint_file}")"
+  checkpoint_issue_number="$(jq -r '.issue_number // empty' "${checkpoint_file}")"
+  checkpoint_issue_state="$(jq -r '.issue_state // empty' "${checkpoint_file}")"
+  checkpoint_issue_digest="$(jq -r .issue_digest "${checkpoint_file}")"
+}
+
+validate_checkpoint_issue() {
+  [ "${checkpoint_run}" -ne 0 ] || return 0
+  local issues="${workspace}/checkpoint-issues.json" digest
+  inventory "${issues}"
+  jq -cS . "${issues}" >"${workspace}/checkpoint-issues.canonical"
+  digest="$(sha256_file "${workspace}/checkpoint-issues.canonical")"
+  [ "${digest}" = "${checkpoint_issue_digest}" ] || fail "incident issue history differs from authenticated checkpoint"
+  if [ -n "${checkpoint_issue_number}" ]; then
+    jq -e --argjson number "${checkpoint_issue_number}" --arg state "${checkpoint_issue_state}" \
+      '[.[] | select(.number == $number and .state == $state)] | length == 1' "${issues}" >/dev/null ||
+      fail "checkpoint incident number/state is absent from issue history"
+  elif [ "$(jq length "${issues}")" -ne 0 ]; then
+    fail "checkpoint expected no incident, but issue history is non-empty"
+  fi
 }
 
 authenticate_events() {
@@ -265,11 +441,15 @@ derive_intent() {
     "${inventory_file}" | sort >"${marker_file}"
   open_count="$(jq '[.[] | select(.state == "OPEN")] | length' "${inventory_file}")"
   logical_open=false
-  first_run="$(jq -r '.[0].run_id' "${events_file}")"
-  first_attempt="$(jq -r '.[0].run_attempt' "${events_file}")"
-  if { [ ! -s "${marker_file}" ] && [ "${open_count}" -eq 1 ]; } ||
-     grep -Eq "^nightly-mutation:(update|close):${first_run}:${first_attempt}$" "${marker_file}"; then
-    logical_open=true
+  if [ "${checkpoint_run}" -gt 0 ]; then
+    if [ "${checkpoint_issue_state}" = OPEN ]; then logical_open=true; fi
+  elif [ "$(jq length "${events_file}")" -gt 0 ]; then
+    first_run="$(jq -r '.[0].run_id' "${events_file}")"
+    first_attempt="$(jq -r '.[0].run_attempt' "${events_file}")"
+    if { [ ! -s "${marker_file}" ] && [ "${open_count}" -eq 1 ]; } ||
+       grep -Eq "^nightly-mutation:(update|close):${first_run}:${first_attempt}$" "${marker_file}"; then
+      logical_open=true
+    fi
   fi
   printf 'null\n' >"${intent_file}"
 
@@ -314,6 +494,46 @@ derive_intent() {
   fi
 }
 
+write_checkpoint() {
+  local issue_file="$1" event_digest_value issue_digest_value issue_number issue_state previous
+  if [ "$(jq length "${events_file}")" -gt 0 ]; then
+    jq 'sort_by(.run_id,.run_attempt) | last' "${events_file}" >"${workspace}/last-event.json"
+    event_digest_value="$(event_digest "${workspace}/last-event.json")"
+  else
+    event_digest_value="${checkpoint_event_digest}"
+  fi
+  [ -n "${event_digest_value}" ] || fail "cannot checkpoint an empty replay without an authenticated prior event"
+  jq -cS . "${issue_file}" >"${workspace}/checkpoint-issue.canonical"
+  issue_digest_value="$(sha256_file "${workspace}/checkpoint-issue.canonical")"
+  local latest_issue
+  latest_issue="$(jq -c 'sort_by(.number) | last // empty' "${issue_file}")"
+  if [ -n "${latest_issue}" ]; then
+    issue_number="$(jq -r .number <<<"${latest_issue}")"
+    issue_state="$(jq -r .state <<<"${latest_issue}")"
+  else
+    issue_number=null
+    issue_state=null
+  fi
+  previous="${checkpoint_chain}"
+  jq -cnS \
+    --arg repository "${GH_REPO}" --arg workflow_ref "${expected_workflow_ref}" \
+    --arg event_digest "${event_digest_value}" --arg issue_digest "${issue_digest_value}" \
+    --arg previous_chain_digest "${previous}" \
+    --argjson run "${CURRENT_RUN_ID}" --argjson attempt "${CURRENT_RUN_ATTEMPT}" \
+    --argjson issue_number "${issue_number}" --arg issue_state "${issue_state}" \
+    '{schema:"rindle-nightly-incident-checkpoint-v1",repository:$repository,workflow_ref:$workflow_ref,
+      last_run_id:$run,last_run_attempt:$attempt,event_digest:$event_digest,
+      previous_chain_digest:$previous_chain_digest,issue_number:$issue_number,
+      issue_state:(if $issue_state == "null" then null else $issue_state end),
+      issue_digest:$issue_digest,chain_digest:""}' >"${checkpoint_path}"
+  jq -cS '{previous_chain_digest,last_run_id,last_run_attempt,event_digest,issue_digest,issue_number,issue_state}' \
+    "${checkpoint_path}" >"${workspace}/checkpoint-chain-input.json"
+  local chain
+  chain="$(sha256_file "${workspace}/checkpoint-chain-input.json")"
+  jq --arg chain "${chain}" '.chain_digest=$chain' "${checkpoint_path}" >"${workspace}/checkpoint-final.json"
+  mv "${workspace}/checkpoint-final.json" "${checkpoint_path}"
+}
+
 mutation_body() {
   local intent_file="$1" body_file="$2"
   local action marker event
@@ -355,6 +575,8 @@ mutate() {
 fetch_runs
 for ((attempt = 1; attempt <= fetch_attempts; attempt++)); do
   fetch_artifacts
+  load_checkpoint
+  validate_checkpoint_issue
   if prepare_event_index; then break; fi
   if [ "${attempt}" -eq "${fetch_attempts}" ]; then
     fail "canonical verdict artifact coverage incomplete through high-watermark"
@@ -371,6 +593,7 @@ for ((restart = 1; restart <= max_restarts; restart++)); do
   inventory "${before}"
   derive_intent "${before}" "${intent}"
   if [ "$(jq -r 'type' "${intent}")" = null ]; then
+    write_checkpoint "${before}"
     echo "Nightly incident replay: converged through ${CURRENT_RUN_ID}/${CURRENT_RUN_ATTEMPT}"
     exit 0
   fi

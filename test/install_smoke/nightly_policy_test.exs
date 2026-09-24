@@ -203,6 +203,21 @@ defmodule Rindle.InstallSmoke.NightlyPolicyTest do
     assert manage["env"]["WORKFLOW_REF"] == "${{ github.workflow_ref }}"
     assert manage["env"]["CURRENT_RUN_ID"] == "${{ github.run_id }}"
     assert manage["env"]["CURRENT_RUN_ATTEMPT"] == "${{ github.run_attempt }}"
+    assert manage["env"]["CHECKPOINT_OUTPUT_PATH"] ==
+             "${{ runner.temp }}/nightly-incident-checkpoint.json"
+
+    checkpoint = step(lifecycle, "Upload authenticated Nightly replay checkpoint")
+
+    assert checkpoint["uses"] ==
+             "actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a"
+
+    assert checkpoint["with"]["name"] ==
+             "nightly-incident-replay-checkpoint-${{ github.run_id }}-${{ github.run_attempt }}"
+
+    assert checkpoint["with"]["path"] == "${{ runner.temp }}/nightly-incident-checkpoint.json"
+    assert checkpoint["with"]["retention-days"] == 14
+    assert checkpoint["with"]["if-no-files-found"] == "error"
+    assert checkpoint["with"]["overwrite"] == false
 
     refute Enum.any?(workflow["jobs"], fn {name, candidate} ->
              name != "nightly-incident-verdict" &&

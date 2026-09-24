@@ -535,9 +535,9 @@ jobs:
           test "${{ steps.evaluate.outputs.evaluator-status }}" = "0"
           test "${{ steps.evaluate.outputs.verdict }}" = "green"
 
-  # Every scheduled run publishes its strict machine verdict before entering
-  # the replaceable pending slot of the incident concurrency group. Artifacts
-  # are immutable replay inputs; they are never acknowledgements or cursors.
+  # Every scheduled run publishes its strict verdict before entering the
+  # replaceable pending slot. Verdict artifacts are immutable replay inputs;
+  # a separate authenticated checkpoint artifact bounds retention replay.
   nightly-incident-verdict:
     name: Persist Nightly Incident Verdict
     runs-on: ubuntu-22.04
@@ -646,4 +646,14 @@ jobs:
           CURRENT_RUN_ATTEMPT: ${{ github.run_attempt }}
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
           REMOTE_MAIN_SHA: ${{ steps.remote-main.outputs.sha }}
+          CHECKPOINT_OUTPUT_PATH: ${{ runner.temp }}/nightly-incident-checkpoint.json
         run: bash scripts/ci/manage_nightly_incident.sh
+
+      - name: Upload authenticated Nightly replay checkpoint
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: nightly-incident-replay-checkpoint-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/nightly-incident-checkpoint.json
+          retention-days: 14
+          if-no-files-found: error
+          overwrite: false
