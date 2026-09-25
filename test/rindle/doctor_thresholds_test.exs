@@ -3,7 +3,7 @@ defmodule Rindle.DoctorThresholdsTest do
 
   use ExUnit.Case, async: false
 
-  alias Doctor.{CLI, ReportUtils}
+  alias Doctor.{ModuleInformation, ModuleReport, ReportUtils}
 
   @doctor_config_path Path.expand("../../.doctor.exs", __DIR__)
 
@@ -12,9 +12,15 @@ defmodule Rindle.DoctorThresholdsTest do
     {:ok, modules} = :application.get_key(:rindle, :modules)
     Enum.each(modules, &Code.ensure_loaded!/1)
 
+    all_reports =
+      modules
+      |> Enum.filter(&String.starts_with?(to_string(&1), "Elixir."))
+      |> Enum.reject(&undocumented_protocol_implementation?/1)
+      |> Enum.reject(&ignored_module?(&1, config.ignore_modules))
+      |> Enum.map(&generate_report/1)
+
     reports =
-      config
-      |> CLI.generate_module_report_list()
+      all_reports
       |> Enum.filter(&String.starts_with?(&1.file, "lib/"))
 
     {:ok, config: config, reports: reports}
@@ -44,7 +50,7 @@ defmodule Rindle.DoctorThresholdsTest do
     measured_modules = MapSet.new(reports, & &1.module)
 
     assert Enum.all?(expected_public_modules, &MapSet.member?(measured_modules, &1)),
-           "Doctor omitted an ExDoc-grouped public module"
+           "Doctor omitted ExDoc modules: #{inspect(Enum.reject(expected_public_modules, &MapSet.member?(measured_modules, &1)))}"
 
     unhealthy_modules =
       Enum.reject(reports, &ReportUtils.module_passed_validation?(&1, config))
@@ -76,5 +82,25 @@ defmodule Rindle.DoctorThresholdsTest do
   defp assert_at_least(measured, threshold, label) do
     assert Decimal.gte?(measured, Decimal.new(threshold)),
            "expected #{label} to be at least #{threshold}%, got #{Decimal.to_string(measured)}%"
+  end
+
+  defp undocumented_protocol_implementation?(module) do
+    function_exported?(module, :__impl__, 1) and match?({:error, _}, Code.fetch_docs(module))
+  end
+
+  defp ignored_module?(module, ignore_modules) do
+    Enum.any?(ignore_modules, fn
+      %Regex{} = regex -> Regex.match?(regex, inspect(module))
+      ignored -> ignored == module
+    end)
+  end
+
+  defp generate_report(module) do
+    module
+    |> Code.fetch_docs()
+    |> ModuleInformation.build(module)
+    |> ModuleInformation.load_file_ast()
+    |> ModuleInformation.load_user_defined_functions()
+    |> ModuleReport.build()
   end
 end
