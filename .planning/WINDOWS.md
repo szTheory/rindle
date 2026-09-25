@@ -2,9 +2,9 @@
 schema_version: 1
 open_count: 7
 waived_count: 2
-fixed_count: 26
-total_count: 35
-last_updated: 2026-09-25T01:37:13.119Z
+fixed_count: 27
+total_count: 36
+last_updated: 2026-09-25T02:52:47.436Z
 ---
 
 # Broken Windows Ledger
@@ -49,7 +49,8 @@ last_updated: 2026-09-25T01:37:13.119Z
 | 32 | 133 | deviation | .planning/phases/133-evidence-charter-and-live-truth/133-37-SUMMARY.md |  | Plan 133-37 halted on immutable run 34732110533 after detached exact-SHA census qualification could not start :rindle | open |  | 2026-09-13T02:16:05.510Z |  |
 | 33 | 133 | unrun-verify | .planning/phases/133-evidence-charter-and-live-truth/133-42-PLAN.md |  | Plan 133-42 Task 2 qualification and promotion gates were not run after immutable Nightly run 34768317696 failed. | open |  | 2026-09-13T16:29:31.472Z |  |
 | 34 | 133 | deviation | test/install_smoke/nightly_policy_test.exs | 206 | mix ci is blocked by a pre-existing formatter discrepancy in untouched nightly_policy_test.exs | open |  | 2026-09-25T01:37:13.020Z |  |
-| 35 | 133 | deviation | test/rindle/doctor_thresholds_test.exs |  | The compatibility tracer reported two invalid Doctor tests because Inspect.Rindle.Domain.MediaProviderAsset could not be loaded | open |  | 2026-09-25T01:37:13.119Z |  |
+| 35 | 133 | deviation | test/rindle/doctor_thresholds_test.exs |  | The compatibility tracer reported two invalid Doctor tests because Inspect.Rindle.Domain.MediaProviderAsset could not be loaded | fixed |  | 2026-09-25T01:37:13.119Z | 2026-09-25T02:50:16.376Z |
+| 36 | 133 | unrun-verify | test/install_smoke/nightly_policy_test.exs | 206 | mix ci stopped at a pre-existing formatter discrepancy; remaining CI jobs did not run | open |  | 2026-09-25T02:52:47.436Z |  |
 
 ````json
 [
@@ -482,9 +483,22 @@ last_updated: 2026-09-25T01:37:13.119Z
     "file": "test/rindle/doctor_thresholds_test.exs",
     "line": null,
     "description": "The compatibility tracer reported two invalid Doctor tests because Inspect.Rindle.Domain.MediaProviderAsset could not be loaded",
-    "status": "open",
+    "status": "fixed",
     "reason": "",
     "recorded_at": "2026-09-25T01:37:13.119Z",
+    "resolved_at": "2026-09-25T02:50:16.376Z",
+    "milestone": "v1.26"
+  },
+  {
+    "id": 36,
+    "kind": "unrun-verify",
+    "phase": "133",
+    "file": "test/install_smoke/nightly_policy_test.exs",
+    "line": 206,
+    "description": "mix ci stopped at a pre-existing formatter discrepancy; remaining CI jobs did not run",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-25T02:52:47.436Z",
     "resolved_at": null,
     "milestone": "v1.26"
   }

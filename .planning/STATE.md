@@ -6,9 +6,9 @@ current_phase: 133
 current_phase_name: Evidence Charter and Live Truth
 status: executing
 stopped_at: Completed 133-47-PLAN.md
-last_updated: "2026-09-25T01:37:54.553Z"
+last_updated: "2026-09-25T02:57:58.062Z"
 last_activity: 2026-09-24
-state_head: bb4c5ad6d919cce86fa6dbed6ce29b66de93b661
+state_head: a36a235da864336a7506c8a37bf04f262c2d894d
 progress:
   total_phases: 7
   completed_phases: 0
@@ -83,7 +83,7 @@ Progress: [███████░░░] 67%
 | Phase 133 P41 | 3min | 1 tasks | 3 files |
 | Phase 133 P42 | 15min | 1 tasks | 4 files |
 | Phase 133 P45 | 20 min | 2 tasks | 4 files |
-| Phase 133 P47 | 1h 38m | 3 tasks | 9 files |
+| Phase 133 P47 | 2h 57m | 3 tasks | 17 files |
 
 ## Accumulated Context
 
@@ -185,6 +185,7 @@ Progress: [███████░░░] 67%
 - [Phase 133]: Kept the VM-global atom-count assertion and serialized its compatibility observation.
 - [Phase 133]: Bound the repair inventory to the exact Plan 47 Task 1 commit pair and declaration.
 - [Phase 133]: Kept all five Phase 133 requirements pending until terminal Plan 49 automation.
+- [Phase 133]: Kept the Doctor ratchet compatible with coverage instrumentation by reading application BEAM docs and excluding undocumented generated protocol implementations.
 
 ### Pending Todos
 
@@ -211,6 +212,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-09-25T01:37:54.506Z
+Last session: 2026-09-25T02:57:58.034Z
 Stopped at: Completed 133-47-PLAN.md
 Resume file: None

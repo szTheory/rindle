@@ -3,7 +3,6 @@ phase: 133-evidence-charter-and-live-truth
 plan: "47"
 subsystem: testing
 tags: [nightly, compatibility, reconciliation, evidence-census, automation-first]
-
 requires:
   - phase: 133-43
     provides: built-package live-truth validation
@@ -14,25 +13,24 @@ requires:
   - phase: 133-46
     provides: terminal lifecycle mutation tests
 provides:
-  - serialized VM atom-count compatibility probe for Elixir 1.15 / OTP 26
-  - Plans 43-49 reconciliation and independent review gate
-  - exact Task 1 repair inventory and pre-ledger census subject b9e837d6e11c6539ef1bc610c05c2f8b3de854fa
+  - serialized Elixir 1.15 / OTP 26 compatibility regression probe
+  - Plans 43-49 production reconciliation and independent review gate
+  - exact Task 1 repair inventory and subject-bound evidence census
 affects: [133-48, 133-49, evidence-authorization]
-
 actuals:
-  tokens: 16476
+  tokens: 30097
   tasks: 3
-  commits: 4
-commits: 4
+  commits: 13
+commits: 13
 plan_head_before: c739d0152b29ca2d66068a7a2a45e26685faca71
-
+subject_sha: 07beb46e6d438b3c41a2f2ac8dc9935a941600df
+census_sha256: c9144bbb66120b2e12efb72412a1bb268e31d5ab8a0ea02e21bc1e66402d806f
 tech-stack:
   added: []
   patterns:
-    - exact parent/repair commit inventory validated against Task 1 declarations
+    - exact parent/repair commit inventories validated against Task 1 declarations
     - dependency-ordered reconciliation derives lifecycle state from summary artifacts
-    - two detached subject-owned census generations compared byte-for-byte
-
+    - independent detached worktrees generate byte-identical census receipts
 key-files:
   created:
     - scripts/ci/test_compat_115_26.sh
@@ -41,124 +39,125 @@ key-files:
     - .planning/phases/133-evidence-charter-and-live-truth/deferred-items.md
   modified:
     - test/install_smoke/live_truth_parity_test.exs
+    - test/rindle/doctor_thresholds_test.exs
+    - lib/rindle/domain/media_provider_asset.ex
     - scripts/maintainer/validate_phase_133_reconciliation.exs
     - test/install_smoke/phase_133_reconciliation_test.exs
     - test/install_smoke/phase_133_completed_validation_test.exs
+    - .planning/phases/133-evidence-charter-and-live-truth/133-47-PLAN.md
     - .planning/phases/133-evidence-charter-and-live-truth/133-VALIDATION.md
     - .planning/phases/133-evidence-charter-and-live-truth/133-EVIDENCE-CENSUS.json
-
 key-decisions:
   - "Keep the VM-global atom-count assertion and serialize its observation so concurrent ExUnit cases cannot contaminate it."
-  - "Bind repair inventory to the exact compatibility-repair commit pair and require each path to map to Plan 133-47 Task 1."
+  - "Bind every Task 1 repair path to exact parent and repair SHAs, including later tracer fixes."
+  - "Read Doctor documentation from application BEAM files under coverage and omit generated protocol implementations without docs chunks."
   - "Keep EVID-01 through EVID-04 and TRUTH-08 pending; only terminal Plan 49 automation may grant completion credit."
   - "Keep the existing canonical Nightly receipt unchanged while binding local evidence to a distinct pre-ledger subject."
-
 requirements-completed: []
-
 coverage:
   - id: D1
-    description: The exhausted Elixir 1.15 / OTP 26 atom-count failure has a serialized regression probe and passes locally.
+    description: The exhausted Elixir 1.15 / OTP 26 atom-count failure has a serialized regression probe and passes the exact Nightly coverage command.
     verification:
       - kind: integration
-        ref: bash scripts/ci/test_compat_115_26.sh
+        ref: bash scripts/ci/test_compat_115_26.sh (Elixir 1.15.8 / OTP 26)
         status: pass
     human_judgment: false
   - id: D2
-    description: Plans 43-49 validation and review-gate mutations are rejected by production-path checks.
+    description: Plans 43-49 validation and review-gate mutations are rejected through production-path checks.
     verification:
       - kind: unit
         ref: mix test test/install_smoke/phase_133_reconciliation_test.exs test/install_smoke/phase_133_completed_validation_test.exs test/install_smoke/phase_133_review_gate_test.exs --seed 0
         status: pass
       - kind: integration
-        ref: MIX_ENV=test mix run --no-start --no-deps-check --no-compile scripts/maintainer/validate_phase_133_reconciliation.exs --root . --check-repair-inventory
+        ref: validate_phase_133_reconciliation.exs --check-repair-inventory
         status: pass
     human_judgment: false
   - id: D3
-    description: A deterministic census receipt is bound to the repair subject while the prior canonical receipt remains unchanged.
+    description: A deterministic census is bound to the post-repair subject and the prior canonical receipt remains byte-identical.
     verification:
       - kind: integration
-        ref: two detached evidence_census.exs generations and validate_evidence_census.exs runs; SHA-256 fb3d56c0df7f3e16bd0a92f76a64000a36634ba87bb6d90ddef7a46aee16eb4a
+        ref: two detached census generations and validators; receipt SHA-256 fb7027b26a10a7ada45da6dfed096f2aa2c07c32d55d06b1ac18ae117beebdea
         status: pass
       - kind: integration
         ref: verify-receipt for run 34638437301, attempt 1
         status: pass
     human_judgment: false
-
-duration: 1h 38m
+duration: 2h 57m
 completed: 2026-09-25
 status: complete
 ---
 
 # Phase 133 Plan 47: Evidence Charter and Live Truth Summary
 
-**Serialized the supported compatibility atom probe, enforced Plans 43-49 lifecycle and review gates, and rebound the census to exact subject `b9e837d6e11c6539ef1bc610c05c2f8b3de854fa`.**
+**The exact Elixir 1.15 / OTP 26 Nightly coverage probe passes, Plans 43-49 reconciliation is enforced, and a deterministic census is bound to subject `07beb46e6d438b3c41a2f2ac8dc9935a941600df`.**
 
 ## Performance
 
-- **Duration:** 1h 38m
+- **Duration:** 2h 57m
 - **Started:** 2026-09-24T23:58:43Z
-- **Completed:** 2026-09-25T01:30:18Z
+- **Completed:** 2026-09-25T02:56:07Z
 - **Tasks:** 3
-- **Files modified:** 9 plan files; the summary and deferred-items record are additional artifacts
+- **Files modified:** 17 tracked paths in the measured Plan diff, including the summary.
 
 ## Accomplishments
 
-- Preserved the VM-global atom-count assertion and made the observation test synchronous to remove contamination from concurrently running ExUnit cases. The exact Elixir 1.15 / OTP 26 coverage probe completed with zero assertion failures.
-- Added production reconciliation for the Plans 43-49 map, legal summary dependency order, exact Task 1 repair-file inventory, and report-specific independent review sign-off. Added copied-tree mutation coverage for changed map entries and repair mappings.
-- Generated and validated two byte-identical census receipts from detached worktrees at subject `b9e837d6e11c6539ef1bc610c05c2f8b3de854fa`. Receipt SHA-256: `fb3d56c0df7f3e16bd0a92f76a64000a36634ba87bb6d90ddef7a46aee16eb4a`.
+- Preserved the VM-global atom-count assertion and serialized its observation to prevent concurrent ExUnit tests from contaminating the value.
+- Fixed the Doctor threshold test for the coverage-instrumented Elixir 1.15 runtime: docs are read from application BEAM files and generated protocol implementations without docs chunks are omitted. The test still checks all documented source modules, the configured ratchet, and expected public modules.
+- Extended production reconciliation through Plans 43-49, enforced legal dependency order, and added an independent review gate for subject-bound reports and sign-offs.
+- Bound Task 1 source/test repairs to two exact parent/repair ranges. Two independent detached worktrees generated and validated byte-identical census receipts at subject `07beb46e6d438b3c41a2f2ac8dc9935a941600df`; receipt SHA-256 is `fb7027b26a10a7ada45da6dfed096f2aa2c07c32d55d06b1ac18ae117beebdea`. The committed census ledger SHA-256 is `c9144bbb66120b2e12efb72412a1bb268e31d5ab8a0ea02e21bc1e66402d806f`.
 - Reverified the previous canonical receipt for run `34638437301`, attempt 1. Its SHA-256 remains `1cc607545ff6d4061931105a156a42549bb375efafe6418b054e7d33e18861a4`.
-- Kept all five Phase 133 requirements pending and made no ref publication, workflow dispatch, incident mutation, or canonical receipt change.
+- Kept EVID-01 through EVID-04 and TRUTH-08 pending. No ref publication, workflow dispatch, incident mutation, or canonical receipt change occurred.
 
 ## Task Commits
 
-1. **Task 1: Reproduce and close the supported compatibility coverage failure** — `1356205c` (`fix(133-47): isolate the atom-count probe`)
-2. **Task 2: Extend production validation through every new gap plan** — `ad34b02f` (`feat(133-47): enforce gap closure and review gates`), with inventory follow-up `b9e837d6` (`docs(133-47): record exact repair inventory`)
-3. **Task 3: Rebind the census and run local qualification** — `bb4c5ad6` (`feat(133-47): rebind exact-subject evidence census`)
-
-## Files Created or Modified
-
-- `scripts/ci/test_compat_115_26.sh` — exact-toolchain regression probe for the exhausted compatibility cell.
-- `test/install_smoke/live_truth_parity_test.exs` — serialized the atom-count observation without removing its invariant.
-- `scripts/maintainer/validate_phase_133_reconciliation.exs` — consumes Plans 43-49 and checks the exact repair inventory.
-- `scripts/maintainer/validate_phase_133_review_gate.exs` — validates independent report identity, evidence, and sign-off.
-- `test/install_smoke/phase_133_reconciliation_test.exs`, `test/install_smoke/phase_133_completed_validation_test.exs`, and `test/install_smoke/phase_133_review_gate_test.exs` — exercise production lifecycle, map, inventory, and review gates.
-- `.planning/phases/133-evidence-charter-and-live-truth/133-VALIDATION.md` — adds the Plans 43-49 records and Task 1 inventory pair `c739d0152b29ca2d66068a7a2a45e26685faca71` → `1356205cb759903133759c5c250d1dc7235f6754`.
-- `.planning/phases/133-evidence-charter-and-live-truth/133-EVIDENCE-CENSUS.json` — records exact subject and current qualification counts.
+1. **Task 1: Reproduce and close the supported compatibility coverage failure** — `1356205c`, `4a84311d`, `ee84013f`, `82048c81`, `35e46457`, `c8730fc0`.
+2. **Task 2: Extend production validation through every new gap plan** — `ad34b02f`, `b9e837d6`, `475d4b7e`, `07beb46e`.
+3. **Task 3: Rebind the census and run local qualification** — `bb4c5ad6`, `a36a235d`.
+4. Initial execution metadata commit — `17ce29f0`.
 
 ## Test and Gate Outcomes
 
-- Compatibility coverage probe — PASS, zero assertion failures; post-commit tracer output also reported two invalid Doctor threshold tests due a Doctor module-load error. Current default suite had no invalid tests.
-- Plan 47 Task 2 focused tests — PASS, 53 tests, 0 failures.
-- Census/live-truth/reconciliation focused tests — PASS, 102 tests, 0 failures, 1 excluded.
-- Default suite on Elixir 1.17 / OTP 27 — PASS, 1,635 tests, 0 failures, 4 skipped.
-- Collector shell harness — PASS, 168 cases; incident replay — PASS, 26 cases; strict summary — PASS, 49 cases; Nightly Dialyzer — PASS, 34 cases.
-- `mix credo_quality` — PASS. `mix refactor_contract` — PASS, 97 tests, 0 failures.
-- Automation-first contract and production reconciliation with `--check-repair-inventory` — PASS.
+- Exact compatibility probe — PASS, shell exit 0; 3 doctests, 1,635 tests, 0 failures, 87 excluded, 4 skipped; total coverage 82.7%.
+- Task 2 reconciliation/completed-validation/review-gate matrix — PASS, 53 tests, 0 failures.
+- Census/live-truth/reconciliation matrix — PASS, 102 tests, 0 failures, 1 excluded.
+- Collector, incident, strict-summary, and Nightly Dialyzer shell harnesses — PASS, respectively 168, 26, 49, and 34 cases.
+- `mix refactor_contract` — PASS, 97 tests, 0 failures. `mix credo_quality` — PASS.
+- Automation-first contract, production repair inventory validation, and census validation — PASS.
 - Canonical receipt read-only verification — PASS for run `34638437301`, attempt 1; digest unchanged.
-- `mix ci` — FAILED at `mix format --check-formatted` for untouched `test/install_smoke/nightly_policy_test.exs:206`. The `mix ci` lane stopped before its remaining jobs; this out-of-scope formatter drift is recorded in `deferred-items.md` and was not changed.
+- `mix ci` — FAILED at `mix format --check-formatted` on untouched `test/install_smoke/nightly_policy_test.exs:206`. The command stopped before its remaining jobs. This pre-existing formatter discrepancy is recorded in `deferred-items.md` and `.planning/WINDOWS.md`.
 
 ## Decisions Made
 
-- The atom-count measurement remains protected; serialization isolates the test from concurrent ExUnit processes.
-- The inventory enumerates the exact source/test paths in the Task 1 commit range and rejects paths or task mappings outside the Plan declaration.
-- Local green results do not authorize publication or requirement closure. Plans 48 and 49 retain their independent gates.
+- Keep the atom-count measurement protected; serialization isolates it from concurrent ExUnit cases.
+- Inventory exact compatibility repair paths by commit range and require source/test files to be declared under Task 1.
+- Local qualification does not authorize publication or requirement closure. Plans 48 and 49 retain their independent gates.
 
 ## Deviations from Plan
 
 ### Auto-fixed Issues
 
-**1. [Rule 1 - Bug] Restored halted-plan checkboxes after the generic roadmap progress updater**
+**1. [Rule 1 - Bug] Made the Doctor threshold test compatible with coverage instrumentation**
+
+- **Found during:** Task 1 tracer feedback
+- **Issue:** On Elixir 1.15 / OTP 26, Doctor 0.23.0 received `:cover_compiled` modules and failed before applying its protocol-implementation exemption, leaving two tests invalid.
+- **Fix:** Read docs from the application's compiled BEAM paths and exclude only generated protocol implementations without docs chunks; retain documented-module and public-module assertions.
+- **Files modified:** `test/rindle/doctor_thresholds_test.exs`, `lib/rindle/domain/media_provider_asset.ex`, and Plan 47 Task 1 scope.
+- **Verification:** Focused Doctor tests passed 2/2; the exact compatibility coverage command then exited 0.
+- **Commits:** `4a84311d`, `ee84013f`, `82048c81`, `35e46457`, `c8730fc0`.
+
+**2. [Rule 1 - Bug] Restored halted-plan status after generic roadmap progress update**
 
 - **Found during:** Final production reconciliation
-- **Issue:** The generic progress updater marked Plans 133-27, 133-32, 133-37, and 133-42 complete because summaries exist, despite their immutable halted status. It also left the detailed completed-plan count stale.
-- **Fix:** Restored all four halted entries to unchecked, kept Plan 133-47 checked, and updated the Phase 133 detail to 43 completed plans with two pending gap plans.
+- **Issue:** The generic progress updater marked Plans 133-27, 133-32, 133-37, and 133-42 complete because summaries exist, despite their immutable halted status.
+- **Fix:** Restored their unchecked halted status, kept Plan 133-47 checked, and corrected the Phase 133 totals to 43 completed, 4 halted, and 2 pending plans.
 - **Files modified:** `.planning/ROADMAP.md`
-- **Verification:** Automation-first contract and production reconciliation passed with 43 completed, 4 halted, 2 pending, and 47/49 summarized.
-- **Committed in:** Final plan metadata commit.
+- **Verification:** Production reconciliation reports 43 completed, 4 halted, 2 pending, and 47/49 summarized.
 
-**Total deviations:** 1 auto-fixed (1 Rule 1).
+**Total deviations:** 2 auto-fixed (2 Rule 1).
 
-The unrelated `mix ci` formatter failure and the two invalid Doctor tests observed in the compatibility tracer were left untouched and documented in `deferred-items.md` under the task scope rule.
+## Deferred Issues
+
+- `mix ci` cannot proceed past the pre-existing formatter discrepancy in `test/install_smoke/nightly_policy_test.exs:206`; its remaining jobs are unrun. Plan-scoped focused suites and independent gates passed.
 
 ## Known Stubs
 
@@ -166,7 +165,7 @@ None.
 
 ## Threat Flags
 
-None. Changes add no endpoint, authentication path, schema, or new mutation authority. The compatibility probe performs the existing supported test workflow; census and receipt operations remain read-only with respect to remote and canonical authority.
+None. The changes add no endpoint, authentication path, schema, or mutation authority. Census and receipt operations remain local/read-only with respect to remote and canonical authority.
 
 ## Requirements Status
 
@@ -174,12 +173,12 @@ EVID-01, EVID-02, EVID-03, EVID-04, and TRUTH-08 remain pending. Plan 49 alone m
 
 ## Next Phase Readiness
 
-- Plan 48 can run its independent code, validation, and security reports against this exact census subject.
+- Plan 48 can run independent code, validation, and security reports against census subject `07beb46e6d438b3c41a2f2ac8dc9935a941600df`.
 - Plan 49 remains the only terminal reconciliation path and must preserve the prior canonical receipt unless its automated qualification succeeds.
 
 ## Self-Check: PASSED
 
-Task source files, validation records, census ledger, and all four task commits were present and verified before the plan metadata commit.
+All Task 1-3 commits, validation records, the exact-subject census ledger, and the canonical receipt are present. Self-check commit hashes are verified before the final metadata commit.
 
 ---
 *Phase: 133-evidence-charter-and-live-truth*
