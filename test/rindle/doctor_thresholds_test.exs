@@ -85,7 +85,7 @@ defmodule Rindle.DoctorThresholdsTest do
   end
 
   defp undocumented_protocol_implementation?(module) do
-    function_exported?(module, :__impl__, 1) and match?({:error, _}, Code.fetch_docs(module))
+    function_exported?(module, :__impl__, 1) and match?({:error, _}, fetch_module_docs(module))
   end
 
   defp ignored_module?(module, ignore_modules) do
@@ -97,10 +97,17 @@ defmodule Rindle.DoctorThresholdsTest do
 
   defp generate_report(module) do
     module
-    |> Code.fetch_docs()
+    |> fetch_module_docs()
     |> ModuleInformation.build(module)
     |> ModuleInformation.load_file_ast()
     |> ModuleInformation.load_user_defined_functions()
     |> ModuleReport.build()
+  end
+
+  defp fetch_module_docs(module) do
+    module
+    |> :code.which()
+    |> List.to_string()
+    |> Code.fetch_docs()
   end
 end
