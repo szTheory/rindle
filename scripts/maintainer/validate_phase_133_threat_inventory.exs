@@ -119,7 +119,7 @@ defmodule Rindle.ValidatePhase133ThreatInventory do
              {:error, "finding universe is missing, duplicated, or contains a synthetic ID"},
          :ok <- validate_items(root, items, data["binding"]),
          :ok <- current_security_verified(security_path, data["binding"], items),
-         :ok <- execute_proof_commands(root, items) do
+         :ok <- execute_proof_commands(root, items, data["binding"]) do
       :ok
     else
       {:error, message} -> {:error, message}
@@ -265,29 +265,67 @@ defmodule Rindle.ValidatePhase133ThreatInventory do
   defp validate_executable_proof(_root, id, _proof, _binding),
     do: {:error, "#{id}: executable proof metadata is required"}
 
-  defp execute_proof_commands(root, items) do
-    items
-    |> Enum.map(&get_in(&1, ["evidence", "proof", "command"]))
-    |> Enum.uniq()
-    |> Enum.reduce_while(:ok, fn command, :ok ->
-      case System.cmd("bash", ["-lc", command],
-             cd: root,
-             env: [
-               {"ASDF_ERLANG_VERSION", "27.3.4.15"},
-               {"ASDF_ELIXIR_VERSION", "1.17.3-otp-27"},
-               {"MIX_ENV", "test"}
-             ],
-             stderr_to_stdout: true
-           ) do
-        {_output, 0} ->
-          {:cont, :ok}
+  defp execute_proof_commands(root, items, binding) do
+    subject = binding["subject_sha"]
 
+    audit_root =
+      Path.join(
+        System.tmp_dir!(),
+        "phase133-security-proof-#{System.unique_integer([:positive])}"
+      )
+
+    try do
+      with {_, 0} <-
+             System.cmd(
+               "git",
+               ["clone", "--quiet", "--shared", "--no-checkout", root, audit_root],
+               stderr_to_stdout: true
+             ),
+           {_, 0} <-
+             System.cmd("git", ["checkout", "--quiet", "--detach", subject],
+               cd: audit_root,
+               stderr_to_stdout: true
+             ) do
+        build_cache = Path.join(root, "_build")
+
+        if File.dir?(build_cache) do
+          File.ln_s!(build_cache, Path.join(audit_root, "_build"))
+        end
+
+        commands =
+          items
+          |> Enum.map(&get_in(&1, ["evidence", "proof", "command"]))
+          |> Enum.uniq()
+
+        Enum.reduce_while(commands, :ok, fn command, :ok ->
+          case System.cmd("bash", ["-lc", command],
+                 cd: audit_root,
+                 env: [
+                   {"ASDF_ERLANG_VERSION", "27.3.4.15"},
+                   {"ASDF_ELIXIR_VERSION", "1.17.3-otp-27"},
+                   {"MIX_ENV", "test"},
+                   {"MIX_DEPS_PATH", Path.join(root, "deps")},
+                   {"MIX_BUILD_PATH", Path.join(audit_root, "_build")}
+                 ],
+                 stderr_to_stdout: true
+               ) do
+            {_output, 0} ->
+              {:cont, :ok}
+
+            {output, status} ->
+              {:halt,
+               {:error,
+                "exact-subject executable proof command failed (#{status}): #{command}: #{String.trim(output)}"}}
+          end
+        end)
+      else
         {output, status} ->
-          {:halt,
-           {:error,
-            "executable proof command failed (#{status}): #{command}: #{String.trim(output)}"}}
+          {:error,
+           "could not prepare clean proof checkout at #{subject} (#{status}): #{String.trim(output)}"}
       end
-    end)
+    after
+      File.rm_rf(audit_root)
+    end
   end
 
   defp current_security_verified(path, binding, items) do
@@ -348,17 +386,51 @@ defmodule Rindle.ValidatePhase133ThreatInventory do
   end
 
   defp all_rows_dispositioned?(body, ids, accepted) do
-    Enum.all?(ids, fn id ->
-      rows = Regex.scan(~r/^\|\s*#{Regex.escape(id)}\s*\|[^\n]*$/im, body)
+    with {:ok, table} <- threat_register_table(body) do
+      lines = String.split(table, "\n")
 
-      case rows do
-        [[row]] ->
-          Enum.any?(accepted, &Regex.match?(~r/\|\s*#{Regex.escape(&1)}\s*\|\s*$/i, row))
+      Enum.all?(ids, fn id ->
+        rows = Enum.filter(lines, &Regex.match?(~r/^\|\s*#{Regex.escape(id)}\s*\|/i, &1))
 
-        _ ->
-          false
-      end
-    end)
+        case rows do
+          [row] ->
+            columns =
+              row
+              |> String.split("|")
+              |> Enum.map(&String.trim/1)
+              |> Enum.reject(&(&1 == ""))
+
+            expected_severity = if id in @high_ids, do: "high", else: "low"
+            Enum.at(columns, 3) == expected_severity and List.last(columns) in accepted
+
+          _ ->
+            false
+        end
+      end)
+    else
+      _ -> false
+    end
+  end
+
+  defp threat_register_table(body) do
+    headings = Regex.scan(~r/^## Threat Register\s*$/m, body)
+
+    sections =
+      Regex.scan(~r/^## Threat Register\s*\n(.*?)(?=^## |\z)/ms, body, capture: :all_but_first)
+
+    case {headings, sections} do
+      {[_], [[section]]} ->
+        visible =
+          section
+          |> then(&Regex.replace(~r/<!--.*?-->/s, &1, ""))
+          |> then(&Regex.replace(~r/^```[^\n]*\n.*?^```[ \t]*$/ms, &1, ""))
+          |> then(&Regex.replace(~r/^~~~[^\n]*\n.*?^~~~[ \t]*$/ms, &1, ""))
+
+        {:ok, visible}
+
+      _ ->
+        {:error, "security report must contain one threat-register table"}
+    end
   end
 
   defp read_json(path) do

@@ -59,6 +59,10 @@ defmodule Rindle.InstallSmoke.Phase133ThreatInventoryTest do
     threats_open: 0
     ---
 
+    ## Threat Register
+
+    | ID | Finding | Component | Severity | Treatment | Evidence | Status |
+    | --- | --- | --- | --- | --- | --- | --- |
     #{Enum.map_join(security_rows, "\n", fn {id, severity, status} -> "| #{id} | finding | component | #{severity} | mitigate | proof | #{status} |" end)}
     """
 
@@ -69,7 +73,7 @@ defmodule Rindle.InstallSmoke.Phase133ThreatInventoryTest do
   end
 
   @tag :requires_verified_security_report
-  @tag timeout: 180_000
+  @tag timeout: 600_000
   test "accepts the complete recovered source inventory", %{
     path: path,
     data: data,
@@ -159,7 +163,11 @@ defmodule Rindle.InstallSmoke.Phase133ThreatInventoryTest do
       String.replace(original, "status: verified", "status: open_threats"),
       String.replace(original, data["binding"]["subject_sha"], String.duplicate("a", 40)),
       String.replace(original, data["binding"]["census_sha256"], String.duplicate("0", 64)),
-      original <> "\n| T-133-53 | duplicate | component | high | mitigate | evidence | open |\n"
+      original <> "\n| T-133-53 | duplicate | component | high | mitigate | evidence | open |\n",
+      String.replace(original, "| T-133-53 |", "<!--\n| T-133-53 |", global: false) <>
+        "\n-->",
+      String.replace(original, "| T-133-53 |", "```\n| T-133-53 |", global: false) <>
+        "\n```"
     ]
 
     for report <- mutations do

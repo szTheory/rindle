@@ -65,6 +65,9 @@ bash scripts/ci/test_verify_nightly_run.sh
 
 # Plans 34–42 exercise reconciliation, disclosure surfaces, package authority,
 # and terminal-summary handling without remote lookup or remote mutation.
+# The review/inventory gate suites bind to the live census written after this
+# exact source subject; they run separately and cannot be nested in this
+# subject-bound package proof without reading stale post-subject artifacts.
 mix test \
   test/install_smoke/phase_133_reconciliation_test.exs \
   test/install_smoke/phase_133_completed_validation_test.exs \
@@ -73,8 +76,6 @@ mix test \
   test/install_smoke/evidence_census_test.exs \
   test/install_smoke/live_truth_parity_test.exs \
   test/install_smoke/phase_133_security_disclosure_test.exs \
-  test/install_smoke/phase_133_review_gate_test.exs \
-  test/install_smoke/phase_133_threat_inventory_test.exs \
   --exclude requires_verified_security_report \
   --seed 0
 
