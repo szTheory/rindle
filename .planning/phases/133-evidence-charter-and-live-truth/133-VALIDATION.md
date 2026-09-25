@@ -2309,3 +2309,10 @@ Terminal success has an independently reconstructed canonical receipt, passing p
 <state>pending — not executed</state>
 <acceptance-credit>terminal-completion</acceptance-credit>
 </pending-validation>
+
+<repair-inventory>
+<parent-sha>c739d0152b29ca2d66068a7a2a45e26685faca71</parent-sha>
+<repair-sha>1356205cb759903133759c5c250d1dc7235f6754</repair-sha>
+<mapping><path>scripts/ci/test_compat_115_26.sh</path><task>133-47-01</task><kind>compatibility-probe</kind></mapping>
+<mapping><path>test/install_smoke/live_truth_parity_test.exs</path><task>133-47-01</task><kind>regression-test</kind></mapping>
+</repair-inventory>
