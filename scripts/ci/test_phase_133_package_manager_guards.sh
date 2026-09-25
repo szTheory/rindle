@@ -14,11 +14,16 @@ mkdir -p "$guard_bin"
 cat > "$guard_bin/package-manager-blocked" <<'SH'
 #!/usr/bin/env bash
 set -eu
-printf '%s %s\n' "${0##*/}" "$*" >> "$GSD_PHASE133_PACKAGE_GUARD_LOG"
+guard_log=${GSD_PHASE133_PACKAGE_GUARD_LOG:-}
+if [[ -z "$guard_log" ]]; then
+  IFS= read -r guard_log < "${0%/*}/guard-log.path"
+fi
+printf '%s %s\n' "${0##*/}" "$*" >> "$guard_log"
 echo "blocked unexpected package-manager invocation: ${0##*/} $*" >&2
 exit 97
 SH
 chmod +x "$guard_bin/package-manager-blocked"
+printf '%s\n' "$guard_log" > "$guard_bin/guard-log.path"
 
 for name in npm npx pnpm yarn bun pip pip3 uv poetry cargo hex; do
   ln -s package-manager-blocked "$guard_bin/$name"
@@ -27,16 +32,25 @@ done
 cat > "$guard_bin/mix" <<'SH'
 #!/usr/bin/env bash
 set -eu
+guard_log=${GSD_PHASE133_PACKAGE_GUARD_LOG:-}
+if [[ -z "$guard_log" ]]; then
+  IFS= read -r guard_log < "${0%/*}/guard-log.path"
+fi
 case "${1:-}" in
   deps.get|deps.update|local.hex|local.rebar|archive.install)
-    printf 'mix %s\n' "$*" >> "$GSD_PHASE133_PACKAGE_GUARD_LOG"
+    printf 'mix %s\n' "$*" >> "$guard_log"
     echo "blocked unexpected Mix dependency installation: $*" >&2
     exit 97
     ;;
 esac
-exec "$GSD_PHASE133_REAL_MIX" "$@"
+real_mix=${GSD_PHASE133_REAL_MIX:-}
+if [[ -z "$real_mix" ]]; then
+  IFS= read -r real_mix < "${0%/*}/real-mix.path"
+fi
+exec "$real_mix" "$@"
 SH
 chmod +x "$guard_bin/mix"
+printf '%s\n' "$real_mix" > "$guard_bin/real-mix.path"
 
 export PATH="$guard_bin:$PATH"
 export GSD_PHASE133_PACKAGE_GUARD_LOG="$guard_log"
@@ -56,6 +70,22 @@ if mix deps.get >/dev/null 2>&1; then
   exit 1
 fi
 : > "$guard_log"
+
+# Package reconstruction clears unapproved environment variables. The guards
+# must still block or delegate safely after that hermetic environment boundary.
+if env -u GSD_PHASE133_PACKAGE_GUARD_LOG npm install phase133-canary >/dev/null 2>&1; then
+  echo "package-manager guard failed without its log environment variable" >&2
+  exit 1
+fi
+if ! rg -q '^npm install phase133-canary$' "$guard_log"; then
+  echo "package-manager guard did not record an invocation without its log environment variable" >&2
+  exit 1
+fi
+: > "$guard_log"
+if ! env -u GSD_PHASE133_REAL_MIX mix --version >/dev/null 2>&1; then
+  echo "Mix guard could not delegate without its environment variable" >&2
+  exit 1
+fi
 
 cd "$repo_root"
 
