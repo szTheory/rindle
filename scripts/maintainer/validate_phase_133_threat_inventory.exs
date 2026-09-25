@@ -267,12 +267,9 @@ defmodule Rindle.ValidatePhase133ThreatInventory do
 
   defp execute_proof_commands(root, items, binding) do
     subject = binding["subject_sha"]
+    nonce = :crypto.strong_rand_bytes(16) |> Base.encode16(case: :lower)
 
-    audit_root =
-      Path.join(
-        System.tmp_dir!(),
-        "phase133-security-proof-#{System.unique_integer([:positive])}"
-      )
+    audit_root = Path.join(System.tmp_dir!(), "phase133-security-proof-#{nonce}")
 
     try do
       with {_, 0} <-

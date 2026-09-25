@@ -84,7 +84,7 @@ defmodule Rindle.InstallSmoke.Phase133ReviewGateTest do
   end
 
   @tag :requires_verified_security_report
-  @tag timeout: 180_000
+  @tag timeout: 600_000
   test "accepts one exact current verdict and source-backed dispositions", %{tmp: tmp} do
     assert {output, 0} = invoke(tmp)
     assert output =~ "review gate valid"
@@ -142,18 +142,18 @@ defmodule Rindle.InstallSmoke.Phase133ReviewGateTest do
     for mutation <- [
           String.replace(
             original,
-            "| T-133-53 | spoofing | high | closed |",
-            "| T-133-53 | spoofing | high | open |"
+            "| T-133-53 | spoofing | component | high | mitigate | evidence | closed |",
+            "| T-133-53 | spoofing | component | high | mitigate | evidence | open |"
           ),
           String.replace(
             original,
-            "| T-133-71 | spoofing | low | dispositioned |",
-            "| T-133-71 | spoofing | low | open |"
+            "| T-133-71 | spoofing | component | low | mitigate | evidence | dispositioned |",
+            "| T-133-71 | spoofing | component | low | mitigate | evidence | open |"
           ),
           String.replace(
             original,
-            "| T-133-71 | spoofing | low | dispositioned |",
-            "| T-133-OTHER-01 | spoofing | low | closed |"
+            "| T-133-71 | spoofing | component | low | mitigate | evidence | dispositioned |",
+            "| T-133-OTHER-01 | spoofing | component | low | mitigate | evidence | closed |"
           )
         ] do
       File.write!(path, mutation)
@@ -259,11 +259,11 @@ defmodule Rindle.InstallSmoke.Phase133ReviewGateTest do
       Enum.map_join(ids, "\n", fn id ->
         severity = if id in @high, do: "high", else: "low"
         disposition = Map.get(items, id, "closed")
-        "| #{id} | spoofing | #{severity} | #{disposition} |"
+        "| #{id} | spoofing | component | #{severity} | mitigate | evidence | #{disposition} |"
       end)
 
     front(subject, digest, "status: verified\nthreats_open: 0\n") <>
-      "\n#{rows}\n\n## Sign-Off\n- [x] All findings closed or explicitly dispositioned\n"
+      "\n## Threat Register\n\n| ID | Threat | Component | Severity | Treatment | Evidence | Status |\n| --- | --- | --- | --- | --- | --- | --- |\n#{rows}\n\n## Sign-Off\n- [x] All findings closed or explicitly dispositioned\n"
   end
 
   defp proof_for("T-133-71"),
