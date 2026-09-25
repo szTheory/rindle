@@ -105,9 +105,7 @@ defmodule Rindle.DoctorThresholdsTest do
   end
 
   defp fetch_module_docs(module) do
-    module
-    |> :code.which()
-    |> List.to_string()
-    |> Code.fetch_docs()
+    beam_path = Application.app_dir(:rindle, "ebin/#{Atom.to_string(module)}.beam")
+    Code.fetch_docs(beam_path)
   end
 end
