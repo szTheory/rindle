@@ -599,12 +599,26 @@ defmodule Rindle.InstallSmoke.Phase133Reconciliation42Test do
     git!(fixture.root, ["commit", "--quiet", "-m", "inventory repair"])
     repair = git!(fixture.root, ["rev-parse", "HEAD"])
 
+    next_path = "lib/rindle/domain/media_provider_asset.ex"
+    next_file = Path.join(fixture.root, next_path)
+    File.mkdir_p!(Path.dirname(next_file))
+    File.write!(next_file, "defmodule Rindle.Domain.MediaProviderAsset do\nend\n")
+    git!(fixture.root, ["add", next_path])
+    git!(fixture.root, ["commit", "--quiet", "-m", "inventory follow-up repair"])
+    next_repair = git!(fixture.root, ["rev-parse", "HEAD"])
+
     inventory = """
 
     <repair-inventory>
     <parent-sha>#{parent}</parent-sha>
     <repair-sha>#{repair}</repair-sha>
     <mapping><path>#{changed_path}</path><task>133-47-01</task><kind>compatibility-probe</kind></mapping>
+    </repair-inventory>
+
+    <repair-inventory>
+    <parent-sha>#{repair}</parent-sha>
+    <repair-sha>#{next_repair}</repair-sha>
+    <mapping><path>#{next_path}</path><task>133-47-01</task><kind>module-compatibility-fix</kind></mapping>
     </repair-inventory>
     """
 

@@ -87,27 +87,13 @@ defmodule Rindle.ValidatePhase133Reconciliation do
 
   defp validate_repair_inventory(root) do
     with {:ok, validation} <- File.read(Path.join(root, @validation_path)),
-         [[parent, repair, paths_block]] <-
+         inventories <-
            Regex.scan(
              ~r/<repair-inventory>\s*<parent-sha>([0-9a-f]{40})<\/parent-sha>\s*<repair-sha>([0-9a-f]{40})<\/repair-sha>(.*?)<\/repair-inventory>/s,
              validation,
              capture: :all_but_first
            ),
-         true <- parent != repair or {:error, "repair inventory commit range is empty"},
-         mappings <- parse_repair_mappings(paths_block),
-         listed <- Enum.map(mappings, & &1.path) |> Enum.sort(),
-         true <-
-           length(listed) == length(Enum.uniq(listed)) or
-             {:error, "repair inventory contains duplicate path mappings"},
-         true <-
-           Enum.all?(mappings, &(&1.task == "133-47-01" and &1.kind != "")) or
-             {:error, "repair inventory mappings must name Task 133-47-01 and a kind"},
-         true <- listed != [] or {:error, "repair inventory has no changed-file mappings"},
-         {:ok, changed_text} <- git(root, ["diff", "--name-only", parent, repair]),
-         changed <- String.split(changed_text, "\n", trim: true) |> Enum.sort(),
-         true <-
-           changed == listed or
-             {:error, "repair inventory file set differs from the exact commit range"},
+         true <- inventories != [] or {:error, "repair inventory is missing"},
          {:ok, plan} <- File.read(Path.join(root, Path.join(@phase_dir, "133-47-PLAN.md"))),
          [[task_one]] <-
            Regex.scan(~r/<task\b[^>]*>(.*?)<\/task>/s, plan, capture: :all_but_first)
@@ -116,10 +102,10 @@ defmodule Rindle.ValidatePhase133Reconciliation do
            Regex.run(~r/<files>(.*?)<\/files>/s, task_one, capture: :all_but_first),
          declared <-
            String.split(task_one_files, ~r/[,\s]+/, trim: true) |> Enum.uniq(),
-         undeclared <- Enum.reject(changed, &(&1 in declared)),
+         {:ok, listed} <- validate_repair_ranges(root, inventories, declared),
          true <-
-           undeclared == [] or
-             {:error, "repair inventory includes undeclared path: #{List.first(undeclared)}"} do
+           length(listed) == length(Enum.uniq(listed)) or
+             {:error, "repair inventory contains duplicate path mappings"} do
       :ok
     else
       {:error, _message} = error ->
@@ -128,6 +114,44 @@ defmodule Rindle.ValidatePhase133Reconciliation do
       _ ->
         {:error, "repair inventory is missing, malformed, or not byte-bound to its commit pair"}
     end
+  end
+
+  defp validate_repair_ranges(root, inventories, declared) do
+    Enum.reduce_while(inventories, {:ok, []}, fn [parent, repair, paths_block], {:ok, paths} ->
+      with true <- parent != repair or {:error, "repair inventory commit range is empty"},
+           mappings <- parse_repair_mappings(paths_block),
+           listed <- Enum.map(mappings, & &1.path) |> Enum.sort(),
+           true <-
+             Enum.all?(mappings, &(&1.task == "133-47-01" and &1.kind != "")) or
+               {:error, "repair inventory mappings must name Task 133-47-01 and a kind"},
+           true <- listed != [] or {:error, "repair inventory has no changed-file mappings"},
+           {:ok, changed_text} <- git(root, ["diff", "--name-only", parent, repair]),
+           changed <- String.split(changed_text, "\n", trim: true) |> Enum.sort(),
+           true <-
+             changed == listed or
+               {:error, "repair inventory file set differs from the exact commit range"},
+           undeclared <-
+             Enum.reject(changed, fn path ->
+               path in declared or not source_or_test_path?(path)
+             end),
+           true <-
+             undeclared == [] or
+               {:error, "repair inventory includes undeclared path: #{List.first(undeclared)}"} do
+        {:cont, {:ok, paths ++ listed}}
+      else
+        {:error, _message} = error ->
+          {:halt, error}
+
+        _ ->
+          {:halt,
+           {:error,
+            "repair inventory is missing, malformed, or not byte-bound to its commit pair"}}
+      end
+    end)
+  end
+
+  defp source_or_test_path?(path) do
+    Path.extname(path) in [".ex", ".exs", ".exf", ".sh"]
   end
 
   defp parse_repair_mappings(block) do
