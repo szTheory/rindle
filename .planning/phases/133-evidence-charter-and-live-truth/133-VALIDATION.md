@@ -2324,3 +2324,170 @@ Terminal success has an independently reconstructed canonical receipt, passing p
 <mapping><path>lib/rindle/domain/media_provider_asset.ex</path><task>133-47-01</task><kind>protocol-docs-compatibility</kind></mapping>
 <mapping><path>test/rindle/doctor_thresholds_test.exs</path><task>133-47-01</task><kind>coverage-docs-compatibility</kind></mapping>
 </repair-inventory>
+
+## Plan 48 — Exact-Subject Nyquist Validation
+
+**Subject SHA:** 07beb46e6d438b3c41a2f2ac8dc9935a941600df  
+**Census SHA-256:** c9144bbb66120b2e12efb72412a1bb268e31d5ab8a0ea02e21bc1e66402d806f
+
+Machine-readable Plan 48 result (kept in this append-only section because the production reconciler freezes the document's leading bytes):
+
+```yaml
+subject_sha: 07beb46e6d438b3c41a2f2ac8dc9935a941600df
+census_digest: c9144bbb66120b2e12efb72412a1bb268e31d5ab8a0ea02e21bc1e66402d806f
+nyquist_compliant: true
+production_path_mutation_proof: passed
+overall_review_gate: blocked
+```
+
+The ledger subject and digest were checked directly: `jq -r '.subject_sha' 133-EVIDENCE-CENSUS.json` returned `07beb46e6d438b3c41a2f2ac8dc9935a941600df`; `shasum -a 256 133-EVIDENCE-CENSUS.json` returned `c9144bbb66120b2e12efb72412a1bb268e31d5ab8a0ea02e21bc1e66402d806f`. The production reconciler and its two mutation suites are byte-identical to the census subject (`git diff --quiet 07beb46e6d438b3c41a2f2ac8dc9935a941600df -- scripts/maintainer/validate_phase_133_reconciliation.exs test/install_smoke/phase_133_reconciliation_test.exs test/install_smoke/phase_133_completed_validation_test.exs` exited 0).
+
+### Production-path mutation proof
+
+Command:
+
+```sh
+ASDF_ERLANG_VERSION=27.3 ASDF_ELIXIR_VERSION=1.17.3-otp-27 mix test test/install_smoke/phase_133_reconciliation_test.exs test/install_smoke/phase_133_completed_validation_test.exs test/install_smoke/phase_133_review_gate_test.exs --seed 0
+```
+
+Exact output:
+
+```text
+Running ExUnit with seed: 0, max_cases: 36
+Excluding tags: [:integration, :minio, :contract, :adopter, :migration_e2e, :canary]
+.....................................................
+Finished in 81.7 seconds (72.4s async, 9.2s sync)
+53 tests, 0 failures
+```
+
+The tests mutate temporary copies of the validation map and invoke `scripts/maintainer/validate_phase_133_reconciliation.exs` through `mix run`. The Plans 38–42 production-path test exercises nine mutations: changed or removed keys, duplicate records, command text, requirement IDs, validation level, branch status, acceptance credit, and unresolved-boundary identity. The Plans 43–49 production-path test changes a Plan 43 key and Plan 48 authorization credit; both are rejected by the production CLI with their expected diagnostics. These cases are behavioral proof that map drift is rejected by production reconciliation, not just by a test-only parser.
+
+Production command:
+
+```sh
+ASDF_ERLANG_VERSION=27.3 ASDF_ELIXIR_VERSION=1.17.3-otp-27 MIX_ENV=test mix run --no-start --no-deps-check --no-compile scripts/maintainer/validate_phase_133_reconciliation.exs --root . --check-repair-inventory
+```
+
+Exact output:
+
+```text
+phase 133 reconciliation valid: 43 completed, 4 halted, 2 pending plans, 47/49 summarized, 69 validation records
+```
+
+### Exact-subject aggregate gate result
+
+The first Plan 48 aggregate command was run with the exact census subject and supported local toolchain. It exited 1 before the automation-first and trailing reconciliation commands:
+
+```text
+[validate-phase-133-review-gate] Plan 47 summary has absent, stale, self-referential, or mismatched subject/census binding
+```
+
+That initial run found the exact subject/census fields in Plan 47 frontmatter but not the duplicate bold body lines required by the review gate. After adding those two lines to the Plan 47 summary, automation-first passed and the latest aggregate run reached the independent report checks but exited 1 with `[validate-phase-133-review-gate] review sign-off is incomplete`; the independent review has blocking CR-07. The aggregate gate therefore has not passed.
+
+An attempt to put the required subject/census report fields in this file's leading YAML frontmatter caused production reconciliation to exit 1 with `[validate-phase-133-reconciliation] historical validation prefix differs byte-for-byte from recorded preimage`; that prefix includes the frontmatter. I restored the original leading bytes and kept this report metadata in the appended section. The Plans 38–42 and 43–49 Nyquist map/mutation verdict is green, while the report contract still cannot consume top-level validation identity metadata without violating the append-only production contract. No requirement acceptance credit is granted by these local tests.
+
+## Sign-Off
+
+- [x] Production path mutation proof passed
+- **Aggregate gate:** blocked; the gate requires identity fields in frozen frontmatter, which invalidates the exact production reconciliation prefix.
+## Plans 50–52 Gap-Closure Addendum
+
+Plans 50–52 execute in repair-first order after the existing immutable validation history. Plan 50 precedes 51 and 52; Plans 48–49 remain pending until Plan 52 and independent authorization gates complete. These records grant no acceptance credit.
+
+<pending-validation key="133-50-01:1">
+<automated>
+mix test test/install_smoke/live_truth_parity_test.exs --only package_authority --seed 0
+</automated>
+<fails_when>
+The caller-helper mutation changes the verdict or lifecycle proof, the real package lifecycle is not executed, no package-authority test runs, or the command exits nonzero.
+</fails_when>
+<requirements>EVID-01,EVID-02,EVID-03,EVID-04,TRUTH-08</requirements>
+<validation-level>gap-closure</validation-level>
+<branch-status>passed — executed</branch-status>
+<state>passed — executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-50-02:1">
+<automated>
+mix test test/install_smoke/live_truth_parity_test.exs --seed 0
+</automated>
+<fails_when>
+Any support-file mutation can forge a lifecycle pass, a private path survives failure, the command runs zero tests, or the command exits nonzero.
+</fails_when>
+<requirements>EVID-01,EVID-02,EVID-03,EVID-04,TRUTH-08</requirements>
+<validation-level>gap-closure</validation-level>
+<branch-status>passed — executed</branch-status>
+<state>passed — executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-51-01:1">
+<automated>
+MIX_ENV=test mix run --no-start --no-deps-check --no-compile scripts/maintainer/validate_phase_133_threat_inventory.exs --root .
+</automated>
+<fails_when>
+Any source threat row or individual finding lacks provenance/evidence, a count substitutes for identities, an open threat is marked closed, or the command exits nonzero.
+</fails_when>
+<requirements>EVID-01,EVID-02,EVID-03,EVID-04,TRUTH-08</requirements>
+<validation-level>gap-closure</validation-level>
+<branch-status>passed — executed</branch-status>
+<state>passed — executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-51-02:1">
+<automated>
+mix test test/install_smoke/phase_133_threat_inventory_test.exs --seed 0
+</automated>
+<fails_when>
+Any false disposition or missing finding passes the production CLI, no mutation tests run, or the command exits nonzero.
+</fails_when>
+<requirements>EVID-01,EVID-02,EVID-03,EVID-04,TRUTH-08</requirements>
+<validation-level>gap-closure</validation-level>
+<branch-status>passed — executed</branch-status>
+<state>passed — executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-52-01:1">
+<automated>
+mix test test/install_smoke/phase_133_review_gate_test.exs --seed 0
+</automated>
+<fails_when>
+A stale, duplicated, frozen-prefix-mutating, synthetic-inventory, or open CR-07/T-133-53/T-133-91 case passes the production gate, no tests run, or the command exits nonzero.
+</fails_when>
+<requirements>EVID-01,EVID-02,EVID-03,EVID-04,TRUTH-08</requirements>
+<validation-level>gap-closure</validation-level>
+<branch-status>pending — not executed</branch-status>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-52-02:1">
+<automated>
+mix test test/install_smoke/phase_133_reconciliation_test.exs test/install_smoke/phase_133_completed_validation_test.exs --seed 0
+</automated>
+<fails_when>
+A changed Plans 50–52 record, premature Plan 48/49 state, altered historical prefix, zero-test run, or nonzero command is accepted.
+</fails_when>
+<requirements>EVID-01,EVID-02,EVID-03,EVID-04,TRUTH-08</requirements>
+<validation-level>gap-closure</validation-level>
+<branch-status>pending — not executed</branch-status>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-52-03:1">
+<automated>
+subject_sha=$(jq -er '.subject_sha' .planning/phases/133-evidence-charter-and-live-truth/133-EVIDENCE-CENSUS.json) &amp;&amp; MIX_ENV=test mix run --no-start --no-deps-check --no-compile scripts/maintainer/validate_phase_133_threat_inventory.exs --root . &amp;&amp; MIX_ENV=test mix run --no-start --no-deps-check --no-compile scripts/maintainer/validate_phase_133_reconciliation.exs --root . --check-repair-inventory &amp;&amp; ./scripts/maintainer/automation_first_contract.sh &amp;&amp; test "$subject_sha" != 07beb46e6d438b3c41a2f2ac8dc9935a941600df
+</automated>
+<fails_when>
+The inventory or ledger is stale, the source and census disagree, the historical validation prefix changes, the old receipt changes, any requirement closes, or any command exits nonzero.
+</fails_when>
+<requirements>EVID-01,EVID-02,EVID-03,EVID-04,TRUTH-08</requirements>
+<validation-level>gap-closure</validation-level>
+<branch-status>pending — not executed</branch-status>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>

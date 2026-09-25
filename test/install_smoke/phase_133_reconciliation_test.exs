@@ -471,6 +471,7 @@ defmodule Rindle.InstallSmoke.Phase133Reconciliation42Test do
   @phase_rel ".planning/phases/133-evidence-charter-and-live-truth"
   @validator Path.join(@repo_root, "scripts/maintainer/validate_phase_133_reconciliation.exs")
   @branch_heading "## Branch-Aware Validation Addendum (Plans 33–37)"
+  @plans_50_heading "## Plans 50–52 Gap-Closure Addendum"
   @latest_heading "## Plans 43–49 Gap-Closure Addendum"
   @requirements ~w(EVID-01 EVID-02 EVID-03 EVID-04 TRUTH-08)
 
@@ -649,9 +650,10 @@ defmodule Rindle.InstallSmoke.Phase133Reconciliation42Test do
     assert output =~ "mappings must name Task 133-47-01"
   end
 
-  test "production reconciliation rejects drift in the Plans 43-49 map" do
+  test "production reconciliation rejects drift in the Plans 43-52 map" do
     fixture = write_fixture!()
     append_gap_closure_section!(fixture)
+    extend_gap_fixture_to_52!(fixture)
 
     assert {output, 0} = run_validator(fixture)
     assert output =~ "validation records"
@@ -664,17 +666,190 @@ defmodule Rindle.InstallSmoke.Phase133Reconciliation42Test do
              "133-48-02:1",
              "<acceptance-credit>authorization-only</acceptance-credit>",
              "<acceptance-credit>pending</acceptance-credit>"
-           ), "acceptance credit differs"}
+           ), "acceptance credit differs"},
+          {&String.replace(&1, ~s(key="133-50-01:1"), ~s(key="133-50-01:9"), global: false),
+           "pending mapping is missing"},
+          {&mutate_gap_record(
+             &1,
+             "133-50-01:1",
+             "--only package_authority --seed 0",
+             "--only forged --seed 0"
+           ), "mapping command text differs"},
+          {&mutate_gap_record(
+             &1,
+             "133-50-01:1",
+             "no package-authority test runs",
+             "package-authority test passes"
+           ), "mapping failure text differs"},
+          {&String.replace(&1, ~s(key="133-52-03:1"), ~s(key="133-52-03:9"), global: false),
+           "pending mapping is missing"}
         ] do
       original = File.read!(fixture.validation)
       File.write!(fixture.validation, mutation.(original))
 
       assert {output, status} = run_validator(fixture)
       assert status != 0
-      assert output =~ diagnostic
+      assert output =~ diagnostic, "expected #{diagnostic}; got #{output}"
 
       File.write!(fixture.validation, original)
     end
+
+    plan52 = Path.join(fixture.root, "#{@phase_rel}/133-52-PLAN.md")
+    File.rm!(plan52)
+    assert {output, status} = run_validator(fixture)
+    assert status != 0
+    assert output =~ "missing plan 133-52"
+
+    fixture = write_fixture!()
+    append_gap_closure_section!(fixture)
+    extend_gap_fixture_to_52!(fixture)
+    mark_plans_complete!(fixture, 43..47)
+
+    File.write!(
+      summary_path(fixture.root, 48),
+      "---\nstatus: complete\ndecision: authorize\nsubject_sha: #{String.duplicate("a", 40)}\nauthorized_ref: refs/heads/phase-133-evidence-aaaaaaaaaaaa\nrequirements-completed: []\n---\n"
+    )
+
+    mark_records_complete!(fixture, [48])
+    mark_roadmap_complete!(fixture, [48])
+    assert {output, status} = run_validator(fixture)
+    assert status != 0
+    assert output =~ "Plan 52 must be complete before Plan 48"
+
+    fixture = write_fixture!()
+    append_gap_closure_section!(fixture)
+    extend_gap_fixture_to_52!(fixture)
+    mark_plans_complete!(fixture, 43..47)
+
+    File.write!(
+      summary_path(fixture.root, 49),
+      "---\nstatus: complete\nrequirements-completed: []\n---\n"
+    )
+
+    mark_records_complete!(fixture, [49])
+    mark_roadmap_complete!(fixture, [49])
+    assert {output, status} = run_validator(fixture)
+    assert status != 0
+    assert output =~ "Plan 48 must complete authorization before Plan 49"
+  end
+
+  defp mark_plans_complete!(fixture, plans) do
+    Enum.each(plans, &File.write!(summary_path(fixture.root, &1), "---\nstatus: complete\n---\n"))
+    mark_records_complete!(fixture, plans)
+    mark_roadmap_complete!(fixture, plans)
+  end
+
+  defp mark_records_complete!(fixture, plans) do
+    validation = File.read!(fixture.validation)
+
+    updated =
+      Regex.replace(
+        ~r/<pending-validation key="133-(\d+)-[^"]+">.*?<\/pending-validation>/s,
+        validation,
+        fn record, plan_text ->
+          plan = String.to_integer(plan_text)
+
+          if plan in plans do
+            record
+            |> String.replace(
+              "<state>pending — not executed</state>",
+              "<state>passed — executed</state>"
+            )
+            |> String.replace(
+              "<branch-status>pending — not executed</branch-status>",
+              "<branch-status>passed — executed</branch-status>"
+            )
+          else
+            record
+          end
+        end
+      )
+
+    File.write!(fixture.validation, updated)
+  end
+
+  defp mark_roadmap_complete!(fixture, plans) do
+    current = 38
+    completed_total = current + Enum.count(plans)
+    completed = 35 + Enum.count(plans)
+    pending = 52 - completed_total
+    roadmap = File.read!(fixture.roadmap)
+
+    old_detail =
+      "**Plans**: #{current}/52 plans executed summarized; 35 completed, Plans 133-27, 133-32, and 133-37 halted with immutable attempts preserved, 14 gap-closure plans pending."
+
+    new_detail =
+      "**Plans**: #{completed_total}/52 plans executed summarized; #{completed} completed, Plans 133-27, 133-32, and 133-37 halted with immutable attempts preserved, #{pending} gap-closure plans pending."
+
+    roadmap = String.replace(roadmap, old_detail, new_detail)
+    roadmap = String.replace(roadmap, "| #{current}/52 |", "| #{completed_total}/52 |")
+
+    roadmap =
+      Enum.reduce(plans, roadmap, fn plan, acc ->
+        String.replace(acc, "- [ ] 133-#{plan}-PLAN.md", "- [x] 133-#{plan}-PLAN.md")
+      end)
+
+    File.write!(fixture.roadmap, roadmap)
+
+    state =
+      File.read!(fixture.state)
+      |> String.replace("completed_plans: #{current}", "completed_plans: #{completed_total}")
+      |> String.replace("Plan: #{current + 1} of 52", "Plan: #{completed_total + 1} of 52")
+
+    File.write!(fixture.state, state)
+  end
+
+  defp extend_gap_fixture_to_52!(fixture) do
+    phase_dir = Path.join(fixture.root, @phase_rel)
+
+    for plan <- 50..52 do
+      source = Path.join(@repo_root, Path.join(@phase_rel, "133-#{plan}-PLAN.md"))
+      destination = Path.join(phase_dir, "133-#{plan}-PLAN.md")
+      File.cp!(source, destination)
+      git!(fixture.root, ["add", Path.relative_to(destination, fixture.root)])
+    end
+
+    source_validation =
+      File.read!(Path.join(@repo_root, Path.join(@phase_rel, "133-VALIDATION.md")))
+
+    [_, section] = String.split(source_validation, @plans_50_heading, parts: 2)
+
+    section =
+      section
+      |> String.replace("passed — executed", "pending — not executed")
+      |> String.replace(
+        "<state>passed — executed</state>",
+        "<state>pending — not executed</state>"
+      )
+
+    File.write!(
+      fixture.validation,
+      File.read!(fixture.validation) <> @plans_50_heading <> section
+    )
+
+    roadmap = File.read!(fixture.roadmap)
+
+    rows =
+      Enum.map_join(43..52, "", fn plan ->
+        "- [ ] 133-#{String.pad_leading(Integer.to_string(plan), 2, "0")}-PLAN.md\n"
+      end)
+
+    roadmap =
+      roadmap
+      |> String.replace("38/42 plans summarized", "38/52 plans executed summarized")
+      |> String.replace("4 pending.", "14 gap-closure plans pending.")
+      |> String.replace("| 38/42 |", "| 38/52 |")
+      |> String.replace("### Phase 134: Next", rows <> "### Phase 134: Next")
+
+    File.write!(fixture.roadmap, roadmap)
+
+    File.write!(
+      fixture.state,
+      fixture.state
+      |> File.read!()
+      |> String.replace("total_plans: 42", "total_plans: 52")
+      |> String.replace("Plan: 39 of 42", "Plan: 39 of 52")
+    )
   end
 
   defp mutate_gap_record(validation, key, before, replacement) do
@@ -701,6 +876,7 @@ defmodule Rindle.InstallSmoke.Phase133Reconciliation42Test do
       File.read!(Path.join(@repo_root, Path.join(@phase_rel, "133-VALIDATION.md")))
 
     [_, section] = String.split(source_validation, @latest_heading, parts: 2)
+    section = section |> String.split(@plans_50_heading, parts: 2) |> hd()
 
     section =
       section

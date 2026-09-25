@@ -44,7 +44,7 @@ error vocabulary, release coupling, supported behavior, or the accepted pull-req
   3. Nightly aggregation fails for failed, cancelled, unexpected, or impermissibly skipped gating states, and automated incident tests prove one exact-run-bound issue opens or updates on failure and closes only after qualifying scheduled recovery.
   4. Executable parity checks derive release, planning, support, and adoption-proof claims from authoritative state and reject every unmarked version, lane-severity, or package-proof contradiction.
 
-**Plans**: 47/49 plans executed summarized; 43 completed, Plans 133-27, 133-32, 133-37, and 133-42 halted with immutable attempts preserved, 2 gap-closure plans pending.
+**Plans**: 49/52 plans executed summarized; 45 completed, Plans 133-27, 133-32, 133-37, and 133-42 halted with immutable attempts preserved, 3 gap-closure plans pending.
 
 Plans:
 
@@ -199,9 +199,21 @@ Plans:
 
 **Wave 3** *(blocked on Plan 133-47)*
 
+- [x] 133-50-PLAN.md — Bind package lifecycle helper execution to the exact Git subject and reject caller-helper tampering.
+
+**Wave 4** *(blocked on Plan 133-50)*
+
+- [x] 133-51-PLAN.md — Recover individual security finding provenance or run a complete item-level re-audit.
+
+**Wave 5** *(blocked on Plans 133-50 and 133-51)*
+
+- [ ] 133-52-PLAN.md — Repair the independent review gate, extend reconciliation, and freeze a new exact-subject census.
+
+**Wave 6** *(blocked on Plan 133-52)*
+
 - [ ] 133-48-PLAN.md — Complete independent code, Nyquist, and security gates before a new literal SHA/ref authorization or stop.
 
-**Wave 4** *(blocked on an exact authorization from Plan 133-48)*
+**Wave 7** *(blocked on an exact authorization from Plan 133-48)*
 
 - [ ] 133-49-PLAN.md — Make one distinct exact-subject attempt and close requirements only on terminal automated qualification.
 
@@ -299,7 +311,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 133. Evidence Charter and Live Truth | 47/49 | In Progress|  |
+| 133. Evidence Charter and Live Truth | 49/52 | In Progress|  |
 | 134. Dependency, Security, and Inbox Disposition | 0/TBD | Not started | - |
 | 135. Repository and Code-Craft Consolidation | 0/TBD | Not started | - |
 | 136. Measured Quality and CI Ratchets | 0/TBD | Not started | - |
