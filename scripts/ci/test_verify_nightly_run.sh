@@ -1033,7 +1033,7 @@ case "${1-} ${2-}" in
   "issue list")
     count="$(cat "$FAKE_GH_COUNT_FILE" 2>/dev/null || printf 0)"; count=$((count + 1)); printf '%s' "$count" >"$FAKE_GH_COUNT_FILE"
     if [ "$count" -ge 2 ]; then
-      rate_limit_read_if_needed incident_after
+      rate_limit_read_if_needed incident_after || exit $?
     fi
     body=nightly-run:8000:1
     [ "$state" != incident_changed ] || { [ "$count" -eq 1 ] || body=nightly-run:9001:1; }
