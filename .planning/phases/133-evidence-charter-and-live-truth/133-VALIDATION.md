@@ -2316,3 +2316,11 @@ Terminal success has an independently reconstructed canonical receipt, passing p
 <mapping><path>scripts/ci/test_compat_115_26.sh</path><task>133-47-01</task><kind>compatibility-probe</kind></mapping>
 <mapping><path>test/install_smoke/live_truth_parity_test.exs</path><task>133-47-01</task><kind>regression-test</kind></mapping>
 </repair-inventory>
+
+<repair-inventory>
+<parent-sha>17ce29f0e3905bb76a7bc57f7575ced50b9cf333</parent-sha>
+<repair-sha>c8730fc0943de3f26604f88ddf20620938f1cfb0</repair-sha>
+<mapping><path>.planning/phases/133-evidence-charter-and-live-truth/133-47-PLAN.md</path><task>133-47-01</task><kind>task-scope-amendment</kind></mapping>
+<mapping><path>lib/rindle/domain/media_provider_asset.ex</path><task>133-47-01</task><kind>protocol-docs-compatibility</kind></mapping>
+<mapping><path>test/rindle/doctor_thresholds_test.exs</path><task>133-47-01</task><kind>coverage-docs-compatibility</kind></mapping>
+</repair-inventory>
