@@ -647,6 +647,9 @@ defmodule Rindle.ValidateLiveTruth do
 
       assert_package_inputs_match_subject!(git, repository_root, subject_sha)
 
+      helper_root = Path.join(workspace_root, "subject-install-smoke")
+      materialize_subject_helper!(git, repository_root, subject_sha, helper_root)
+
       {build_output, build_exit} =
         run_private_mix!(
           mix,
@@ -698,7 +701,7 @@ defmodule Rindle.ValidateLiveTruth do
 
       helper_script =
         """
-        Code.require_file(#{inspect(Path.join(repository_root, "test/install_smoke/support/generated_app_helper.ex"))})
+        Code.require_file(#{inspect(Path.join(helper_root, "support/generated_app_helper.ex"))})
         report = Rindle.InstallSmoke.GeneratedAppHelper.prove_package_install!(:image)
         try do
           IO.puts("__RINDLE_PACKAGE_AUTHORITY__" <> Jason.encode!(%{
@@ -743,6 +746,120 @@ defmodule Rindle.ValidateLiveTruth do
         raise ArgumentError, "package authority rebuild failed: #{Exception.message(error)}"
     after
       File.rm_rf(workspace_root)
+    end
+  end
+
+  @subject_helper_files [
+    "test/install_smoke/support/generated_app_helper.ex",
+    "test/install_smoke/support/generated_app/contracts.ex",
+    "test/install_smoke/support/generated_app/command_runner.ex",
+    "test/install_smoke/support/generated_app/workspace.ex",
+    "test/install_smoke/support/generated_app/patcher.ex",
+    "test/install_smoke/support/generated_app/migrations.ex",
+    "test/install_smoke/support/generated_app/smoke_source.ex",
+    "test/install_smoke/support/generated_app/profile_helpers.ex"
+  ]
+
+  @doc false
+  def materialize_subject_helper!(git, repository_root, subject_sha, destination) do
+    assert!(
+      length(@subject_helper_files) == length(Enum.uniq(@subject_helper_files)),
+      "duplicate subject helper member"
+    )
+
+    validate_subject_helper_closure!(git, repository_root, subject_sha)
+    support_root = Path.join(destination, "support")
+
+    Enum.each(@subject_helper_files, fn relative_path ->
+      case System.cmd(git, ["ls-tree", "-z", subject_sha, "--", relative_path],
+             cd: repository_root,
+             stderr_to_stdout: true
+           ) do
+        {entry, 0} ->
+          [record] = String.split(entry, <<0>>, trim: true)
+          assert!(String.starts_with?(record, "100644 blob "), "invalid subject helper member")
+
+        {output, _} ->
+          raise ArgumentError,
+                "subject helper member unavailable: #{String.slice(output, 0, 200)}"
+      end
+
+      case System.cmd(git, ["show", "#{subject_sha}:#{relative_path}"],
+             cd: repository_root,
+             stderr_to_stdout: true
+           ) do
+        {bytes, 0} ->
+          target = Path.join(destination, Path.relative_to(relative_path, "test/install_smoke"))
+          File.mkdir_p!(Path.dirname(target))
+          File.write!(target, bytes, [:binary])
+
+        {output, _} ->
+          raise ArgumentError, "subject helper read failed: #{String.slice(output, 0, 200)}"
+      end
+    end)
+
+    assert!(File.dir?(support_root), "subject helper materialization failed")
+  end
+
+  defp validate_subject_helper_closure!(git, repository_root, subject_sha) do
+    helper_path = "test/install_smoke/support/generated_app_helper.ex"
+    helper = subject_helper_source!(git, repository_root, subject_sha, helper_path)
+
+    require_calls = Regex.scan(~r/Code\.require_file\b/, helper)
+
+    declared =
+      Regex.scan(~r/Code\.require_file\(([^\n]*)\)/, helper)
+      |> Enum.map(fn [call, arguments] ->
+        case Regex.run(~r/^\s*"([^"]+)"\s*,\s*__DIR__\s*$/, arguments, capture: :all_but_first) do
+          [relative] -> relative
+          _ -> raise ArgumentError, "unsupported subject helper import: #{String.trim(call)}"
+        end
+      end)
+
+    expected =
+      @subject_helper_files
+      |> Enum.drop(1)
+      |> Enum.map(&Path.relative_to(&1, "test/install_smoke/support"))
+      |> Enum.sort()
+
+    assert!(
+      length(require_calls) == length(declared) and Enum.sort(declared) == expected and
+        length(declared) == length(Enum.uniq(declared)),
+      "subject helper require-file closure mismatch"
+    )
+
+    Enum.each(Enum.drop(@subject_helper_files, 1), fn relative_path ->
+      source = subject_helper_source!(git, repository_root, subject_sha, relative_path)
+
+      assert!(
+        Regex.scan(~r/Code\.require_file\b/, source) == [],
+        "subject helper support module adds an untracked import"
+      )
+    end)
+
+    Enum.each(@subject_helper_files, fn relative_path ->
+      assert!(
+        String.starts_with?(relative_path, "test/install_smoke/support/") and
+          not String.contains?(relative_path, ["..", "\\"]),
+        "subject helper member outside support root"
+      )
+    end)
+  rescue
+    error in MatchError ->
+      raise ArgumentError, "subject helper closure unavailable: #{Exception.message(error)}"
+  end
+
+  defp subject_helper_source!(git, repository_root, subject_sha, relative_path) do
+    case System.cmd(git, ["show", "#{subject_sha}:#{relative_path}"],
+           cd: repository_root,
+           stderr_to_stdout: true
+         ) do
+      {source, 0} ->
+        source
+
+      {output, _} ->
+        raise ArgumentError,
+              "subject helper member unavailable at #{relative_path}: #{String.slice(output, 0, 200)}"
     end
   end
 

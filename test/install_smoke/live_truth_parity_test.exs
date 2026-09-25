@@ -734,6 +734,98 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
   end
 
   @tag :package_authority
+  test "subject helper materialization ignores caller edits and preserves Git bytes" do
+    root = subject_helper_fixture_root!()
+    subject_sha = git_head!(root)
+    relative = "test/install_smoke/support/generated_app_helper.ex"
+    original = git_show!(root, subject_sha, relative)
+    nested_relative = "test/install_smoke/support/generated_app/workspace.ex"
+    nested_original = git_show!(root, subject_sha, nested_relative)
+    destination = temporary_fixture_root!("rindle-subject-helper-materialized")
+
+    assert :ok =
+             Rindle.ValidateLiveTruth.materialize_subject_helper!(
+               git_executable!(),
+               root,
+               subject_sha,
+               destination
+             )
+
+    File.write!(Path.join(root, relative), "raise \"caller edit\"\n")
+    File.write!(Path.join(root, nested_relative), "raise \"caller nested edit\"\n")
+    assert File.read!(Path.join(destination, "support/generated_app_helper.ex")) == original
+
+    assert File.read!(Path.join(destination, "support/generated_app/workspace.ex")) ==
+             nested_original
+  end
+
+  @tag :package_authority
+  test "subject helper materialization rejects a missing closure member" do
+    root = subject_helper_fixture_root!()
+    missing = "test/install_smoke/support/generated_app/profile_helpers.ex"
+    File.rm!(Path.join(root, missing))
+    fixture_commit!(root, missing)
+
+    assert_raise ArgumentError, ~r/subject helper member unavailable/, fn ->
+      Rindle.ValidateLiveTruth.materialize_subject_helper!(
+        git_executable!(),
+        root,
+        git_head!(root),
+        temporary_fixture_root!("rindle-subject-helper-missing")
+      )
+    end
+  end
+
+  @tag :package_authority
+  test "subject helper materialization rejects symlink members" do
+    root = subject_helper_fixture_root!()
+    linked = "test/install_smoke/support/generated_app/profile_helpers.ex"
+    File.rm!(Path.join(root, linked))
+    File.ln_s!("../../../../../../tmp/outside.ex", Path.join(root, linked))
+    fixture_commit!(root, linked)
+
+    assert_raise ArgumentError, ~r/invalid subject helper member/, fn ->
+      Rindle.ValidateLiveTruth.materialize_subject_helper!(
+        git_executable!(),
+        root,
+        git_head!(root),
+        temporary_fixture_root!("rindle-subject-helper-symlink")
+      )
+    end
+  end
+
+  @tag :package_authority
+  test "subject helper materialization rejects added and outside-root imports" do
+    root = subject_helper_fixture_root!()
+    helper = Path.join(root, "test/install_smoke/support/generated_app_helper.ex")
+    File.write!(helper, File.read!(helper) <> "Code.require_file(\"../outside.ex\", __DIR__)\n")
+    fixture_commit!(root, "test/install_smoke/support/generated_app_helper.ex")
+
+    assert_raise ArgumentError, ~r/subject helper require-file closure mismatch/, fn ->
+      Rindle.ValidateLiveTruth.materialize_subject_helper!(
+        git_executable!(),
+        root,
+        git_head!(root),
+        temporary_fixture_root!("rindle-subject-helper-extra")
+      )
+    end
+
+    root = subject_helper_fixture_root!()
+    support = Path.join(root, "test/install_smoke/support/generated_app/workspace.ex")
+    File.write!(support, File.read!(support) <> "Code.require_file(\"/tmp/outside.ex\")\n")
+    fixture_commit!(root, "test/install_smoke/support/generated_app/workspace.ex")
+
+    assert_raise ArgumentError, ~r/untracked import/, fn ->
+      Rindle.ValidateLiveTruth.materialize_subject_helper!(
+        git_executable!(),
+        root,
+        git_head!(root),
+        temporary_fixture_root!("rindle-subject-helper-nested-extra")
+      )
+    end
+  end
+
+  @tag :package_authority
   @tag :minio
   @tag timeout: :infinity
   test "fresh unpacked generated image consumer report authorizes package proof" do
@@ -743,21 +835,28 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
     assert report.lifecycle_proved?, report.smoke_output
     receipt = report.package_evidence_receipt
     evidence_context = report.package_evidence_context
-
     model = Rindle.ValidateLiveTruth.derive!(@repo_root, [])
 
+    caller_root = subject_helper_fixture_root!()
+
+    for shared_path <- ["deps", "_build"] do
+      File.ln_s!(Path.join(@repo_root, shared_path), Path.join(caller_root, shared_path))
+    end
+
+    helper_path = Path.join(caller_root, "test/install_smoke/support/generated_app_helper.ex")
+    File.write!(helper_path, "raise \"untrusted caller helper was executed\"\n")
+    fixture_context = Map.put(evidence_context, :repository_root, caller_root)
+    fixture_model = Rindle.ValidateLiveTruth.derive!(caller_root, [])
+
+    # The validator must run the real lifecycle from the authenticated subject's
+    # private helper closure, even while the same path in the caller checkout lies.
     assert :ok =
-             Rindle.ValidateLiveTruth.validate_claims!(model, [
+             Rindle.ValidateLiveTruth.validate_claims!(fixture_model, [
                %{
                  type: :package,
                  receipt: receipt,
-                 evidence_context: evidence_context,
+                 evidence_context: fixture_context,
                  claim: "built-package-consumer"
-               },
-               %{
-                 type: :adoption,
-                 receipt: receipt,
-                 evidence_context: evidence_context
                }
              ])
 
@@ -1328,6 +1427,51 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
   defp git_head! do
     {sha, 0} = System.cmd("git", ["-C", @repo_root, "rev-parse", "HEAD"])
     String.trim(sha)
+  end
+
+  defp git_head!(root) do
+    {sha, 0} = System.cmd("git", ["-C", root, "rev-parse", "HEAD"])
+    String.trim(sha)
+  end
+
+  defp git_show!(root, subject_sha, relative) do
+    {bytes, 0} = System.cmd("git", ["-C", root, "show", "#{subject_sha}:#{relative}"])
+    bytes
+  end
+
+  defp git_executable! do
+    System.find_executable("git") || flunk("git executable unavailable")
+  end
+
+  defp subject_helper_fixture_root! do
+    root = temporary_fixture_root!("rindle-subject-helper-fixture")
+    {_, 0} = System.cmd("git", ["clone", "--shared", "--quiet", @repo_root, root])
+    root
+  end
+
+  defp temporary_fixture_root!(prefix) do
+    root = Path.join(System.tmp_dir!(), "#{prefix}-#{System.unique_integer([:positive])}")
+    File.mkdir_p!(root)
+    on_exit(fn -> File.rm_rf(root) end)
+    root
+  end
+
+  defp fixture_commit!(root, path) do
+    {_, 0} = System.cmd("git", ["-C", root, "add", "--", path])
+
+    {_, 0} =
+      System.cmd("git", [
+        "-C",
+        root,
+        "-c",
+        "user.name=GSD Fixture",
+        "-c",
+        "user.email=gsd-fixture@example.invalid",
+        "commit",
+        "--quiet",
+        "-m",
+        "subject helper fixture"
+      ])
   end
 
   defp write_fixture_file!(root, relative, content) do
