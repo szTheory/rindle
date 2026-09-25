@@ -125,6 +125,8 @@ defmodule Rindle.Domain.MediaProviderAsset do
 end
 
 defimpl Inspect, for: Rindle.Domain.MediaProviderAsset do
+  @moduledoc false
+
   def inspect(asset, opts) do
     redacted = %{
       asset
