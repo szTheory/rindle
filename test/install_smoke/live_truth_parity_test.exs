@@ -1417,6 +1417,8 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
 end
 
 defmodule Rindle.InstallSmoke.LiveTruthAtomSafetyTest do
+  # VM atom count is global. Keep this probe synchronous so parallel ExUnit
+  # examples cannot allocate legitimate atoms during the before/after sample.
   use ExUnit.Case, async: false
 
   @tag :package_authority
