@@ -45,6 +45,7 @@ defmodule Rindle.ValidatePhase133Reconciliation do
   @execution_bytes 90_994
   @execution_sha256 "9147e95250bc9c287a9c66d15ced923c4cf18fb9b73f29a0b5104ac5ea4450c7"
   @closure_heading "## Plans 38–42 Gap-Closure Addendum"
+  @latest_heading "## Plans 43–49 Gap-Closure Addendum"
   @pending_state "pending — not executed"
   @executed_state "passed — executed"
   @halted_state "halted — immutable failed evidence"
@@ -73,7 +74,8 @@ defmodule Rindle.ValidatePhase133Reconciliation do
          {:ok, actual} <- parse_addendum(addendum),
          :ok <- compare_records(expected, actual),
          :ok <- validate_closure_flags(addendum, mode),
-         {:ok, summary_state} <- validate_summaries_and_roadmap(root, mode) do
+         {:ok, summary_state} <- validate_summaries_and_roadmap(root, mode),
+         :ok <- if(options.check_repair_inventory, do: validate_repair_inventory(root), else: :ok) do
       IO.puts(success_message(mode, summary_state, length(expected), total_plans(root, mode)))
 
       :ok
@@ -81,6 +83,60 @@ defmodule Rindle.ValidatePhase133Reconciliation do
       :printed -> :ok
       {:error, _message} = error -> error
     end
+  end
+
+  defp validate_repair_inventory(root) do
+    with {:ok, validation} <- File.read(Path.join(root, @validation_path)),
+         [[parent, repair, paths_block]] <-
+           Regex.scan(
+             ~r/<repair-inventory>\s*<parent-sha>([0-9a-f]{40})<\/parent-sha>\s*<repair-sha>([0-9a-f]{40})<\/repair-sha>(.*?)<\/repair-inventory>/s,
+             validation,
+             capture: :all_but_first
+           ),
+         true <- parent != repair or {:error, "repair inventory commit range is empty"},
+         mappings <- parse_repair_mappings(paths_block),
+         listed <- Enum.map(mappings, & &1.path) |> Enum.sort(),
+         true <-
+           length(listed) == length(Enum.uniq(listed)) or
+             {:error, "repair inventory contains duplicate path mappings"},
+         true <-
+           Enum.all?(mappings, &(&1.task == "133-47-01" and &1.kind != "")) or
+             {:error, "repair inventory mappings must name Task 133-47-01 and a kind"},
+         true <- listed != [] or {:error, "repair inventory has no changed-file mappings"},
+         {:ok, changed_text} <- git(root, ["diff", "--name-only", parent, repair]),
+         changed <- String.split(changed_text, "\n", trim: true) |> Enum.sort(),
+         true <-
+           changed == listed or
+             {:error, "repair inventory file set differs from the exact commit range"},
+         {:ok, plan} <- File.read(Path.join(root, Path.join(@phase_dir, "133-47-PLAN.md"))),
+         [[task_one]] <-
+           Regex.scan(~r/<task\b[^>]*>(.*?)<\/task>/s, plan, capture: :all_but_first)
+           |> Enum.take(1),
+         [task_one_files] <-
+           Regex.run(~r/<files>(.*?)<\/files>/s, task_one, capture: :all_but_first),
+         declared <-
+           String.split(task_one_files, ~r/[,\s]+/, trim: true) |> Enum.uniq(),
+         undeclared <- Enum.reject(changed, &(&1 in declared)),
+         true <-
+           undeclared == [] or
+             {:error, "repair inventory includes undeclared path: #{List.first(undeclared)}"} do
+      :ok
+    else
+      {:error, _message} = error ->
+        error
+
+      _ ->
+        {:error, "repair inventory is missing, malformed, or not byte-bound to its commit pair"}
+    end
+  end
+
+  defp parse_repair_mappings(block) do
+    Regex.scan(
+      ~r/<mapping>\s*<path>([^<]+)<\/path>\s*<task>([^<]+)<\/task>\s*<kind>([^<]+)<\/kind>\s*<\/mapping>/s,
+      block,
+      capture: :all_but_first
+    )
+    |> Enum.map(fn [path, task, kind] -> %{path: path, task: task, kind: kind} end)
   end
 
   defp parse_options(argv) do
@@ -93,7 +149,8 @@ defmodule Rindle.ValidatePhase133Reconciliation do
       fixture_topology: :string,
       expect_execution_complete: :boolean,
       print_addendum: :boolean,
-      write_addendum: :boolean
+      write_addendum: :boolean,
+      check_repair_inventory: :boolean
     ]
 
     case OptionParser.parse(argv, strict: switches) do
@@ -135,7 +192,8 @@ defmodule Rindle.ValidatePhase133Reconciliation do
                fixture_topology: fixture_topology,
                expect_execution_complete: values[:expect_execution_complete] || false,
                print_addendum: values[:print_addendum] || false,
-               write_addendum: values[:write_addendum] || false
+               write_addendum: values[:write_addendum] || false,
+               check_repair_inventory: values[:check_repair_inventory] || false
              }}
         end
 
@@ -223,10 +281,19 @@ defmodule Rindle.ValidatePhase133Reconciliation do
   defp require_tracked_inputs(root, mode) do
     plans =
       case mode do
-        :historical_snapshot -> 11..17
-        mode when mode in [:repair_execution, :repair_execution_complete] -> 28..32
-        mode when mode in [:branch_execution, :branch_execution_complete] -> 28..37
-        _ -> 28..42
+        :historical_snapshot ->
+          11..17
+
+        mode when mode in [:repair_execution, :repair_execution_complete] ->
+          28..32
+
+        mode when mode in [:branch_execution, :branch_execution_complete] ->
+          28..37
+
+        _ ->
+          if File.regular?(Path.join(root, Path.join(@phase_dir, "133-43-PLAN.md"))),
+            do: 28..49,
+            else: 28..42
       end
 
     paths =
@@ -403,12 +470,22 @@ defmodule Rindle.ValidatePhase133Reconciliation do
            String.starts_with?(rest, heading) or
              {:error, "historical prefix boundary does not begin with the exact addendum heading"},
          1 <- length(:binary.matches(current, heading)),
+         :ok <- validate_latest_heading(root, current),
          :ok <- validate_global_mapping_keys(current),
          body <- binary_part(rest, byte_size(heading), byte_size(rest) - byte_size(heading)) do
       {:ok, bounded_addendum(body, mode)}
     else
       {:error, _message} = error -> error
       _count -> {:error, "addendum heading must appear exactly once"}
+    end
+  end
+
+  defp validate_latest_heading(root, current) do
+    if File.regular?(Path.join(root, Path.join(@phase_dir, "133-43-PLAN.md"))) and
+         length(:binary.matches(current, @latest_heading)) != 1 do
+      {:error, "Plans 43–49 validation addendum heading must appear exactly once"}
+    else
+      :ok
     end
   end
 
@@ -480,7 +557,9 @@ defmodule Rindle.ValidatePhase133Reconciliation do
           {33..37, []}
 
         _ ->
-          {33..42, []}
+          if File.regular?(Path.join(root, Path.join(@phase_dir, "133-43-PLAN.md"))),
+            do: {33..49, []},
+            else: {33..42, []}
       end
 
     Enum.reduce_while(plans, {:ok, initial}, fn plan, {:ok, all} ->
@@ -488,7 +567,7 @@ defmodule Rindle.ValidatePhase133Reconciliation do
 
       case File.read(path) do
         {:ok, contents} ->
-          case parse_plan(contents, plan, mode) do
+          case parse_plan(contents, plan, mode, root) do
             {:ok, records} -> {:cont, {:ok, all ++ records}}
             {:error, message} -> {:halt, {:error, "133-#{plan} #{message}"}}
           end
@@ -514,7 +593,7 @@ defmodule Rindle.ValidatePhase133Reconciliation do
     }
   end
 
-  defp parse_plan(contents, plan, mode) do
+  defp parse_plan(contents, plan, _mode, root) when plan in 43..49 do
     task_matches =
       Regex.scan(~r/<task\b([^>]*)>(.*?)<\/task>/s, contents, capture: :all_but_first)
 
@@ -529,7 +608,30 @@ defmodule Rindle.ValidatePhase133Reconciliation do
         {:error, "contains malformed task markup"}
 
       true ->
-        with {:ok, task_records} <- parse_tasks(task_matches, plan),
+        parse_gap_tasks(task_matches, plan, root)
+    end
+  end
+
+  defp parse_plan(contents, plan, mode, root) do
+    task_matches =
+      Regex.scan(~r/<task\b([^>]*)>(.*?)<\/task>/s, contents, capture: :all_but_first)
+
+    task_openers = length(Regex.scan(~r/<task\b/s, contents))
+    task_closers = length(Regex.scan(~r/<\/task>/s, contents))
+
+    cond do
+      task_matches == [] ->
+        {:error, "has no parseable tasks"}
+
+      task_openers != length(task_matches) or task_closers != length(task_matches) ->
+        {:error, "contains malformed task markup"}
+
+      true ->
+        with {:ok, task_records} <-
+               if(plan in 43..49,
+                 do: parse_gap_tasks(task_matches, plan, root),
+                 else: parse_tasks(task_matches, plan)
+               ),
              {:ok, post_summary_records, contents} <- parse_post_summary(contents, plan, mode),
              outside_tasks <- Regex.replace(~r/<task\b[^>]*>.*?<\/task>/s, contents, ""),
              [plan_verification] <-
@@ -553,6 +655,46 @@ defmodule Rindle.ValidatePhase133Reconciliation do
           _ -> {:error, "contains ambiguous plan-level verification markup"}
         end
     end
+  end
+
+  defp parse_gap_tasks(task_matches, plan, root) do
+    task_matches
+    |> Enum.with_index(1)
+    |> Enum.reduce_while({:ok, []}, fn {[attributes, body], ordinal}, {:ok, all} ->
+      commands =
+        Regex.scan(~r/<verify\b[^>]*>(.*?)<\/verify>/s, body, capture: :all_but_first)
+        |> Enum.flat_map(fn [verification] ->
+          Regex.scan(~r/<automated>(.*?)<\/automated>/s, verification, capture: :all_but_first)
+        end)
+
+      done = Regex.run(~r/<done>(.*?)<\/done>/s, body, capture: :all_but_first)
+
+      case {commands, done} do
+        {[[command] | rest], [done_text]} ->
+          pairs =
+            Enum.map([[command] | rest], fn [value] ->
+              {String.trim(value), String.trim(done_text)}
+            end)
+
+          source = "133-#{plan}-#{String.pad_leading(Integer.to_string(ordinal), 2, "0")}"
+
+          credit =
+            if String.contains?(attributes, "checkpoint:"),
+              do: "authorization-only",
+              else: "pending"
+
+          records =
+            records_for(source, pairs, credit, record_state(plan, root))
+            |> enrich_gap_records(plan, ordinal, attributes)
+
+          {:cont, {:ok, all ++ records}}
+
+        _ ->
+          {:halt,
+           {:error,
+            "task #{ordinal} must contain automated commands and one explicit done condition"}}
+      end
+    end)
   end
 
   defp parse_post_summary(contents, 27, mode)
@@ -600,6 +742,7 @@ defmodule Rindle.ValidatePhase133Reconciliation do
               records =
                 records_for(source, pairs, credit, record_state(plan))
                 |> enrich_closure_records(plan, attributes)
+                |> enrich_gap_records(plan, ordinal, attributes)
 
               {:cont, {:ok, all ++ records}}
 
@@ -670,8 +813,27 @@ defmodule Rindle.ValidatePhase133Reconciliation do
     end
   end
 
-  defp record_state(plan) when plan in [33, 34, 38, 39], do: @executed_state
+  defp record_state(plan) when plan in [33, 34, 38, 39, 43, 44, 45, 46], do: @executed_state
   defp record_state(_plan), do: @pending_state
+
+  defp record_state(plan, root) when plan in 43..49 do
+    plan_id = String.pad_leading(Integer.to_string(plan), 2, "0")
+    path = Path.join(root, Path.join(@phase_dir, "133-#{plan_id}-SUMMARY.md"))
+
+    case File.read(path) do
+      {:ok, summary} ->
+        case summary_document(summary) do
+          {:ok, %{status: "complete"}} -> @executed_state
+          {:ok, %{status: "halted"}} -> @halted_state
+          _ -> @pending_state
+        end
+
+      _ ->
+        @pending_state
+    end
+  end
+
+  defp record_state(plan, _root), do: record_state(plan)
 
   defp records_for(source, pairs, credit, state \\ @pending_state) do
     pairs
@@ -720,6 +882,31 @@ defmodule Rindle.ValidatePhase133Reconciliation do
   defp closure_validation_level(40), do: "exact-subject-qualification"
   defp closure_validation_level(41), do: "authorization-only"
   defp closure_validation_level(42), do: "terminal-attempt"
+
+  defp enrich_gap_records(records, plan, ordinal, attributes) when plan in 43..49 do
+    Enum.map(records, fn record ->
+      credit =
+        cond do
+          String.contains?(attributes, "checkpoint:") -> "authorization-only"
+          plan == 49 and ordinal == 2 -> "terminal-completion"
+          true -> "pending"
+        end
+
+      Map.merge(record, %{
+        credit: credit,
+        requirements: Enum.join(@phase_requirements, ","),
+        validation_level: "gap-closure",
+        branch_status:
+          case record.state do
+            @executed_state -> "passed — executed"
+            @halted_state -> "halted — immutable failed evidence"
+            _ -> "pending — not executed"
+          end
+      })
+    end)
+  end
+
+  defp enrich_gap_records(records, _plan, _ordinal, _attributes), do: records
 
   defp parse_addendum(addendum) do
     record_pattern =
@@ -1139,17 +1326,37 @@ defmodule Rindle.ValidatePhase133Reconciliation do
       true ->
         case closure_lifecycle(summary_state) do
           {:ok, :qualified_success_42} when mode == :execution_complete ->
-            :ok
+            validate_gap_plan_lifecycle(summary_state)
 
           {:ok, _lifecycle} when mode == :execution_complete ->
             {:error, "execution-complete requires the qualified Plan 42 success state"}
 
           {:ok, _lifecycle} ->
-            :ok
+            validate_gap_plan_lifecycle(summary_state)
 
           {:error, _message} = error ->
             error
         end
+    end
+  end
+
+  defp validate_gap_plan_lifecycle(summary_state) do
+    completed = summary_state.completed
+    summarized = MapSet.union(completed, summary_state.halted)
+    later_plans = Enum.filter(47..49, &MapSet.member?(summarized, &1))
+
+    cond do
+      later_plans != [] and not MapSet.subset?(MapSet.new(43..46), completed) ->
+        {:error, "Plans 43–46 must be complete before Plan 47 can be summarized"}
+
+      MapSet.member?(summarized, 48) and not MapSet.member?(completed, 47) ->
+        {:error, "Plan 47 must be complete before Plan 48 can be summarized"}
+
+      MapSet.member?(summarized, 49) and not MapSet.member?(completed, 48) ->
+        {:error, "Plan 48 must complete authorization before Plan 49 can be summarized"}
+
+      true ->
+        :ok
     end
   end
 
@@ -1824,6 +2031,15 @@ defmodule Rindle.ValidatePhase133Reconciliation do
   end
 
   defp render_record(record) do
+    metadata =
+      [
+        optional_tag("requirements", record.requirements),
+        optional_tag("validation-level", record.validation_level),
+        optional_tag("branch-status", record.branch_status)
+      ]
+      |> Enum.reject(&is_nil/1)
+      |> Enum.join("\n")
+
     """
     <pending-validation key="#{record.key}">
     <automated>
@@ -1832,11 +2048,15 @@ defmodule Rindle.ValidatePhase133Reconciliation do
     <fails_when>
     #{record.failure}
     </fails_when>
+    #{metadata}
     <state>#{record.state}</state>
     <acceptance-credit>#{record.credit}</acceptance-credit>
     </pending-validation>
     """
   end
+
+  defp optional_tag(_name, nil), do: nil
+  defp optional_tag(name, value), do: "<#{name}>#{value}</#{name}>"
 
   defp git(root, args, options \\ []) do
     case System.cmd("git", args, cd: root, stderr_to_stdout: true) do

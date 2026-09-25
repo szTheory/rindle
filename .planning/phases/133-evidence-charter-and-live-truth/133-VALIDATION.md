@@ -2080,3 +2080,232 @@ Terminal reconciliation does not report 39 completed, Plans 27/32/37 halted, zer
 | 133-39-01 / 133-39-02 | EVID-01, EVID-02, EVID-03, EVID-04, TRUTH-08 | `ASDF_ERLANG_VERSION=27.3 ASDF_ELIXIR_VERSION=1.17.3-otp-27 mix test test/install_smoke/phase_133_reconciliation_test.exs --seed 0` | BLOCKER — production `branch-42` reconciliation exits 0 after the copied Plans 38–42 validation map is mutated from key `133-38-01:1` to `133-38-01:999`; the standalone completed-validation parser rejects equivalent closure-map drift, but the production reconciler does not consume those 26 records. |
 
 The auditor reproduced this behavior with a failing regression named `production reconciliation rejects drift in the Plans 38-42 validation map`. The intentionally red test was not retained in the release branch because its implementation fix requires a new reviewed gap plan; the exact mutation and command above preserve the executable reproduction contract. Implementation files remain unchanged. Plans 38–42 task mappings and all earlier append-only records above remain preserved; this audit supersedes only the prior `nyquist_compliant: true` claim until the production path validates the complete closure map.
+
+
+## Plans 43–49 Gap-Closure Addendum
+
+Plans 01–42 and their earlier validation records remain byte-preserved historical authority. The records below map every task-level automated command in Plans 43–49 to its adjacent done-condition failure direction, exact requirement set, validation level, execution state, and acceptance-credit boundary. Plans 43–46 are executed; Plans 47–49 remain pending. Plan 48 is authorization-only, and only Plan 49 terminal automation may grant requirement credit.
+
+<pending-validation key="133-43-01:1">
+<automated>
+mix test test/install_smoke/live_truth_parity_test.exs --only package_authority --seed 0
+</automated>
+<fails_when>
+Only a package built from the authenticated subject can produce a passing lifecycle proof; the unrelated fixture fails.
+</fails_when>
+<requirements>EVID-01,EVID-02,EVID-03,EVID-04,TRUTH-08</requirements>
+<validation-level>gap-closure</validation-level>
+<branch-status>passed — executed</branch-status>
+<state>passed — executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-43-02:1">
+<automated>
+mix test test/install_smoke/live_truth_parity_test.exs --seed 0
+</automated>
+<fails_when>
+Forged trees and executables fail, the real built package passes, and temporary execution state is cleaned.
+</fails_when>
+<requirements>EVID-01,EVID-02,EVID-03,EVID-04,TRUTH-08</requirements>
+<validation-level>gap-closure</validation-level>
+<branch-status>passed — executed</branch-status>
+<state>passed — executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-44-01:1">
+<automated>
+bash scripts/ci/test_verify_nightly_run.sh
+</automated>
+<fails_when>
+No collector path can delete or replace a prior receipt, and a fresh candidate requires full qualification.
+</fails_when>
+<requirements>EVID-01,EVID-02,EVID-03,EVID-04,TRUTH-08</requirements>
+<validation-level>gap-closure</validation-level>
+<branch-status>passed — executed</branch-status>
+<state>passed — executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-44-02:1">
+<automated>
+bash scripts/ci/test_verify_nightly_run.sh
+</automated>
+<fails_when>
+Valid historical receipts survive later lifecycle changes while altered recorded evidence fails.
+</fails_when>
+<requirements>EVID-01,EVID-02,EVID-03,EVID-04,TRUTH-08</requirements>
+<validation-level>gap-closure</validation-level>
+<branch-status>passed — executed</branch-status>
+<state>passed — executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-45-01:1">
+<automated>
+bash scripts/ci/test_nightly_incident.sh &amp;&amp; mix test test/install_smoke/nightly_policy_test.exs --seed 0
+</automated>
+<fails_when>
+Replay progresses after normal retention expiry while missing active evidence blocks mutation.
+</fails_when>
+<requirements>EVID-01,EVID-02,EVID-03,EVID-04,TRUTH-08</requirements>
+<validation-level>gap-closure</validation-level>
+<branch-status>passed — executed</branch-status>
+<state>passed — executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-45-02:1">
+<automated>
+bash scripts/ci/test_nightly_incident.sh
+</automated>
+<fails_when>
+Both scheduled attempts are represented and authenticated; ambiguous replay fails closed.
+</fails_when>
+<requirements>EVID-01,EVID-02,EVID-03,EVID-04,TRUTH-08</requirements>
+<validation-level>gap-closure</validation-level>
+<branch-status>passed — executed</branch-status>
+<state>passed — executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-46-01:1">
+<automated>
+mix test test/install_smoke/phase_133_reconciliation_test.exs test/install_smoke/phase_133_completed_validation_test.exs --seed 0
+</automated>
+<fails_when>
+Production reconciliation rejects closure-map drift and reports all historical plus 26 closure records.
+</fails_when>
+<requirements>EVID-01,EVID-02,EVID-03,EVID-04,TRUTH-08</requirements>
+<validation-level>gap-closure</validation-level>
+<branch-status>passed — executed</branch-status>
+<state>passed — executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-46-02:1">
+<automated>
+mix test test/install_smoke/phase_133_reconciliation_test.exs --seed 0
+</automated>
+<fails_when>
+The halted state remains valid exactly as recorded and fabricated terminal receipts cannot complete requirements.
+</fails_when>
+<requirements>EVID-01,EVID-02,EVID-03,EVID-04,TRUTH-08</requirements>
+<validation-level>gap-closure</validation-level>
+<branch-status>passed — executed</branch-status>
+<state>passed — executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-46-03:1">
+<automated>
+MIX_ENV=test mix run --no-start --no-deps-check --no-compile scripts/maintainer/validate_phase_133_reconciliation.exs --root .
+</automated>
+<fails_when>
+Live blocked reconciliation passes and a changed historical prefix fails, without changing immutable history.
+</fails_when>
+<requirements>EVID-01,EVID-02,EVID-03,EVID-04,TRUTH-08</requirements>
+<validation-level>gap-closure</validation-level>
+<branch-status>passed — executed</branch-status>
+<state>passed — executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-47-01:1">
+<automated>
+bash scripts/ci/test_compat_115_26.sh
+</automated>
+<fails_when>
+The previously failed supported cell has a named, repeatable green local coverage probe and a documented source-level cause.
+</fails_when>
+<requirements>EVID-01,EVID-02,EVID-03,EVID-04,TRUTH-08</requirements>
+<validation-level>gap-closure</validation-level>
+<branch-status>pending — not executed</branch-status>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-47-02:1">
+<automated>
+mix test test/install_smoke/phase_133_reconciliation_test.exs test/install_smoke/phase_133_completed_validation_test.exs test/install_smoke/phase_133_review_gate_test.exs --seed 0
+</automated>
+<fails_when>
+New-plan mapping and all old maps are enforced by the same production validator.
+</fails_when>
+<requirements>EVID-01,EVID-02,EVID-03,EVID-04,TRUTH-08</requirements>
+<validation-level>gap-closure</validation-level>
+<branch-status>pending — not executed</branch-status>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-47-03:1">
+<automated>
+bash scripts/ci/test_verify_nightly_run.sh &amp;&amp; bash scripts/ci/test_nightly_incident.sh &amp;&amp; bash scripts/ci/test_nightly_summary_gate.sh &amp;&amp; bash scripts/ci/test_nightly_dialyzer.sh &amp;&amp; mix test test/install_smoke/evidence_census_test.exs test/install_smoke/live_truth_parity_test.exs test/install_smoke/phase_133_reconciliation_test.exs test/install_smoke/phase_133_completed_validation_test.exs --seed 0 &amp;&amp; ./scripts/maintainer/automation_first_contract.sh &amp;&amp; MIX_ENV=test mix run --no-start --no-deps-check --no-compile scripts/maintainer/validate_phase_133_reconciliation.exs --root . --check-repair-inventory
+</automated>
+<fails_when>
+One new exact-subject census and the complete local/read-only qualification matrix pass, with old authority unchanged.
+</fails_when>
+<requirements>EVID-01,EVID-02,EVID-03,EVID-04,TRUTH-08</requirements>
+<validation-level>gap-closure</validation-level>
+<branch-status>pending — not executed</branch-status>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-48-01:1">
+<automated>
+subject_sha=$(jq -er '.subject_sha' .planning/phases/133-evidence-charter-and-live-truth/133-EVIDENCE-CENSUS.json) &amp;&amp; MIX_ENV=test mix run --no-start --no-deps-check --no-compile scripts/maintainer/validate_phase_133_review_gate.exs --root . --subject "$subject_sha" &amp;&amp; ./scripts/maintainer/automation_first_contract.sh &amp;&amp; MIX_ENV=test mix run --no-start --no-deps-check --no-compile scripts/maintainer/validate_phase_133_reconciliation.exs --root .
+</automated>
+<fails_when>
+Fresh independent reports show no blocking code findings, `nyquist_compliant: true` with production-path mutation proof, and security sign-off with no unresolved high threat; all requirements remain pending.
+</fails_when>
+<requirements>EVID-01,EVID-02,EVID-03,EVID-04,TRUTH-08</requirements>
+<validation-level>gap-closure</validation-level>
+<branch-status>pending — not executed</branch-status>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-48-02:1">
+<automated>
+subject_sha=$(jq -er '.subject_sha' .planning/phases/133-evidence-charter-and-live-truth/133-EVIDENCE-CENSUS.json) &amp;&amp; MIX_ENV=test mix run --no-start --no-deps-check --no-compile scripts/maintainer/validate_phase_133_review_gate.exs --root . --subject "$subject_sha" &amp;&amp; ./scripts/maintainer/automation_first_contract.sh
+</automated>
+<fails_when>
+The exact decision and pair are durably recorded after independent gates; only `authorize` for that pair unlocks Plan 49.
+</fails_when>
+<requirements>EVID-01,EVID-02,EVID-03,EVID-04,TRUTH-08</requirements>
+<validation-level>gap-closure</validation-level>
+<branch-status>pending — not executed</branch-status>
+<state>pending — not executed</state>
+<acceptance-credit>authorization-only</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-49-01:1">
+<automated>
+subject_sha=$(jq -er '.subject_sha' .planning/phases/133-evidence-charter-and-live-truth/133-EVIDENCE-CENSUS.json) &amp;&amp; MIX_ENV=test mix run --no-start --no-deps-check --no-compile scripts/maintainer/validate_phase_133_review_gate.exs --root . --subject "$subject_sha" &amp;&amp; bash scripts/ci/test_verify_nightly_run.sh &amp;&amp; ./scripts/maintainer/automation_first_contract.sh
+</automated>
+<fails_when>
+One distinct authorized ref/run exists with a verified private candidate, or an exact exhausted halt is recorded with unchanged canonical authority.
+</fails_when>
+<requirements>EVID-01,EVID-02,EVID-03,EVID-04,TRUTH-08</requirements>
+<validation-level>gap-closure</validation-level>
+<branch-status>pending — not executed</branch-status>
+<state>pending — not executed</state>
+<acceptance-credit>pending</acceptance-credit>
+</pending-validation>
+
+<pending-validation key="133-49-02:1">
+<automated>
+subject_sha=$(jq -er '.subject_sha' .planning/phases/133-evidence-charter-and-live-truth/133-EVIDENCE-CENSUS.json) &amp;&amp; MIX_ENV=test mix run --no-start --no-deps-check --no-compile scripts/maintainer/validate_phase_133_review_gate.exs --root . --subject "$subject_sha" &amp;&amp; bash scripts/ci/test_verify_nightly_run.sh &amp;&amp; bash scripts/ci/test_nightly_incident.sh &amp;&amp; bash scripts/ci/test_nightly_summary_gate.sh &amp;&amp; bash scripts/ci/test_nightly_dialyzer.sh &amp;&amp; mix test test/install_smoke/evidence_census_test.exs test/install_smoke/live_truth_parity_test.exs test/install_smoke/phase_133_reconciliation_test.exs test/install_smoke/phase_133_completed_validation_test.exs --seed 0 &amp;&amp; MIX_ENV=test mix run --no-start --no-deps-check --no-compile scripts/maintainer/validate_phase_133_reconciliation.exs --root . --expect-execution-complete &amp;&amp; ./scripts/maintainer/automation_first_contract.sh
+</automated>
+<fails_when>
+Terminal success has an independently reconstructed canonical receipt, passing production terminal reconciliation, an introductory REQUIREMENTS authority paragraph naming those Plan 49 gates, and five closed requirements; any failure preserves the prior receipt and all five pending requirement checkboxes and traceability rows.
+</fails_when>
+<requirements>EVID-01,EVID-02,EVID-03,EVID-04,TRUTH-08</requirements>
+<validation-level>gap-closure</validation-level>
+<branch-status>pending — not executed</branch-status>
+<state>pending — not executed</state>
+<acceptance-credit>terminal-completion</acceptance-credit>
+</pending-validation>

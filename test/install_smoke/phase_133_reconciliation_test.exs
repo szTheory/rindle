@@ -471,6 +471,7 @@ defmodule Rindle.InstallSmoke.Phase133Reconciliation42Test do
   @phase_rel ".planning/phases/133-evidence-charter-and-live-truth"
   @validator Path.join(@repo_root, "scripts/maintainer/validate_phase_133_reconciliation.exs")
   @branch_heading "## Branch-Aware Validation Addendum (Plans 33–37)"
+  @latest_heading "## Plans 43–49 Gap-Closure Addendum"
   @requirements ~w(EVID-01 EVID-02 EVID-03 EVID-04 TRUTH-08)
 
   test "accepts the first live 38/42 lifecycle state" do
@@ -577,6 +578,130 @@ defmodule Rindle.InstallSmoke.Phase133Reconciliation42Test do
     assert output =~ "canonical receipt schema is incomplete"
   end
 
+  test "repair inventory binds every changed file to its exact Git commit range" do
+    fixture = write_fixture!()
+    phase_dir = Path.join(fixture.root, @phase_rel)
+
+    File.cp!(
+      Path.join(@repo_root, "#{@phase_rel}/133-47-PLAN.md"),
+      Path.join(phase_dir, "133-47-PLAN.md")
+    )
+
+    git!(fixture.root, ["add", "."])
+    git!(fixture.root, ["commit", "--quiet", "-m", "inventory parent"])
+    parent = git!(fixture.root, ["rev-parse", "HEAD"])
+
+    changed_path = "scripts/ci/test_compat_115_26.sh"
+    changed_file = Path.join(fixture.root, changed_path)
+    File.mkdir_p!(Path.dirname(changed_file))
+    File.write!(changed_file, "#!/usr/bin/env bash\nexit 0\n")
+    git!(fixture.root, ["add", changed_path])
+    git!(fixture.root, ["commit", "--quiet", "-m", "inventory repair"])
+    repair = git!(fixture.root, ["rev-parse", "HEAD"])
+
+    inventory = """
+
+    <repair-inventory>
+    <parent-sha>#{parent}</parent-sha>
+    <repair-sha>#{repair}</repair-sha>
+    <mapping><path>#{changed_path}</path><task>133-47-01</task><kind>compatibility-probe</kind></mapping>
+    </repair-inventory>
+    """
+
+    File.write!(fixture.validation, File.read!(fixture.validation) <> inventory)
+
+    assert {output, 0} = run_validator(fixture, ["--check-repair-inventory"])
+    assert output =~ "phase 133 reconciliation valid"
+
+    mutate_file!(
+      fixture.validation,
+      &String.replace(
+        &1,
+        "<mapping><path>#{changed_path}</path><task>133-47-01</task><kind>compatibility-probe</kind></mapping>",
+        "<mapping><path>.github/workflows/nightly.yml</path><task>133-47-01</task><kind>compatibility-probe</kind></mapping>"
+      )
+    )
+
+    assert {output, status} = run_validator(fixture, ["--check-repair-inventory"])
+    assert status != 0
+    assert output =~ "repair inventory file set differs"
+
+    mutate_file!(fixture.validation, fn contents ->
+      String.replace(contents, "<task>133-47-01</task>", "<task>133-47-02</task>")
+    end)
+
+    assert {output, status} = run_validator(fixture, ["--check-repair-inventory"])
+    assert status != 0
+    assert output =~ "mappings must name Task 133-47-01"
+  end
+
+  test "production reconciliation rejects drift in the Plans 43-49 map" do
+    fixture = write_fixture!()
+    append_gap_closure_section!(fixture)
+
+    assert {output, 0} = run_validator(fixture)
+    assert output =~ "validation records"
+
+    for {mutation, diagnostic} <- [
+          {&String.replace(&1, ~s(key="133-43-01:1"), ~s(key="133-43-01:999"), global: false),
+           "pending mapping is missing"},
+          {&mutate_gap_record(
+             &1,
+             "133-48-02:1",
+             "<acceptance-credit>authorization-only</acceptance-credit>",
+             "<acceptance-credit>pending</acceptance-credit>"
+           ), "acceptance credit differs"}
+        ] do
+      original = File.read!(fixture.validation)
+      File.write!(fixture.validation, mutation.(original))
+
+      assert {output, status} = run_validator(fixture)
+      assert status != 0
+      assert output =~ diagnostic
+
+      File.write!(fixture.validation, original)
+    end
+  end
+
+  defp mutate_gap_record(validation, key, before, replacement) do
+    [prefix, rest] = String.split(validation, ~s(<pending-validation key="#{key}">), parts: 2)
+    [record, suffix] = String.split(rest, "</pending-validation>", parts: 2)
+
+    prefix <>
+      ~s(<pending-validation key="#{key}">) <>
+      String.replace(record, before, replacement, global: false) <>
+      "</pending-validation>" <> suffix
+  end
+
+  defp append_gap_closure_section!(fixture) do
+    phase_dir = Path.join(fixture.root, @phase_rel)
+
+    for plan <- 43..49 do
+      source = Path.join(@repo_root, Path.join(@phase_rel, "133-#{plan}-PLAN.md"))
+      destination = Path.join(phase_dir, "133-#{plan}-PLAN.md")
+      File.cp!(source, destination)
+      git!(fixture.root, ["add", Path.relative_to(destination, fixture.root)])
+    end
+
+    source_validation =
+      File.read!(Path.join(@repo_root, Path.join(@phase_rel, "133-VALIDATION.md")))
+
+    [_, section] = String.split(source_validation, @latest_heading, parts: 2)
+
+    section =
+      section
+      |> String.replace(
+        "<branch-status>passed — executed</branch-status>",
+        "<branch-status>pending — not executed</branch-status>"
+      )
+      |> String.replace(
+        "<state>passed — executed</state>",
+        "<state>pending — not executed</state>"
+      )
+
+    File.write!(fixture.validation, File.read!(fixture.validation) <> @latest_heading <> section)
+  end
+
   test "production reconciliation rejects drift in every Plans 38-42 validation dimension" do
     cases = [
       {&String.replace(&1, ~s(key="133-38-01:1"), ~s(key="133-38-01:999"), global: false),
@@ -656,13 +781,20 @@ defmodule Rindle.InstallSmoke.Phase133Reconciliation42Test do
     git!(root, ["add", ".planning"])
     git!(root, ["commit", "--quiet", "-m", "42-plan validation prefix"])
     prefix_ref = git!(root, ["rev-parse", "HEAD"])
-    File.write!(validation, source_validation)
+    File.write!(validation, before_heading(source_validation, @latest_heading))
 
     Map.merge(fixture, %{prefix_ref: prefix_ref, prefix_sha256: sha256(prefix)})
   end
 
   defp branch_prefix(validation) do
     case :binary.match(validation, @branch_heading) do
+      {offset, _length} -> binary_part(validation, 0, offset)
+      :nomatch -> validation
+    end
+  end
+
+  defp before_heading(validation, heading) do
+    case :binary.match(validation, heading) do
       {offset, _length} -> binary_part(validation, 0, offset)
       :nomatch -> validation
     end
@@ -976,7 +1108,7 @@ defmodule Rindle.InstallSmoke.Phase133Reconciliation42Test do
     end)
   end
 
-  defp run_validator(fixture) do
+  defp run_validator(fixture, extra_args \\ []) do
     System.cmd(
       "mix",
       [
@@ -993,7 +1125,7 @@ defmodule Rindle.InstallSmoke.Phase133Reconciliation42Test do
         fixture.prefix_sha256,
         "--fixture-topology",
         "branch-42"
-      ],
+      ] ++ extra_args,
       cd: @repo_root,
       env: [{"MIX_QUIET", "1"}],
       stderr_to_stdout: true
