@@ -6,6 +6,8 @@ defmodule Rindle.InstallSmoke.Phase133ReviewGateTest do
   @phase "133-evidence-charter-and-live-truth"
   @subject String.duplicate("a", 40)
   @high ~w(T-133-32 T-133-53 T-133-74 T-133-85 T-133-91 T-133-105 T-133-39-03 T-133-42-03)
+  @frozen_validation_bytes 148_104
+  @frozen_validation_sha256 "57eb4b1f46b7852bdda6cfbc399b62eb0fe35d6283d0139c892c4a8310698a5d"
 
   setup do
     tmp =
@@ -19,14 +21,18 @@ defmodule Rindle.InstallSmoke.Phase133ReviewGateTest do
     File.write!(Path.join(dir, "133-52-SUMMARY.md"), summary(@subject, digest))
     File.write!(Path.join(dir, "133-REVIEW.md"), review(@subject, digest))
 
-    frozen = File.read!(Path.join(@project, ".planning/phases/#{@phase}/133-VALIDATION.md"))
+    full_validation =
+      File.read!(Path.join(@project, ".planning/phases/#{@phase}/133-VALIDATION.md"))
+
+    frozen = binary_part(full_validation, 0, @frozen_validation_bytes)
+
+    assert :crypto.hash(:sha256, frozen) |> Base.encode16(case: :lower) ==
+             @frozen_validation_sha256
 
     File.write!(
       Path.join(dir, "133-VALIDATION.md"),
       frozen <> "\n" <> validation(@subject, digest)
     )
-
-    File.write!(Path.join(dir, "133-SECURITY.md"), security(@subject, digest))
 
     inventory =
       @project
@@ -36,16 +42,32 @@ defmodule Rindle.InstallSmoke.Phase133ReviewGateTest do
       |> Map.put("binding", %{"subject_sha" => @subject, "census_sha256" => digest})
       |> update_in(["items"], fn items ->
         Enum.map(items, fn item ->
+          {path, command, assertion} = proof_for(item["id"])
+          body = File.read!(Path.join(@project, path))
+
           item
-          |> Map.put("current_disposition", "closed")
+          |> Map.put("current_disposition", "dispositioned")
           |> put_in(
             ["evidence", "disposition_proof"],
             "independent subject-bound review and executable proof"
+          )
+          |> put_in(
+            ["evidence", "proof"],
+            %{
+              "subject_sha" => @subject,
+              "census_sha256" => digest,
+              "path" => path,
+              "command" => command,
+              "assertion" => assertion,
+              "result" => "passed",
+              "file_sha256" => :crypto.hash(:sha256, body) |> Base.encode16(case: :lower)
+            }
           )
         end)
       end)
 
     File.write!(Path.join(dir, "133-SECURITY-INVENTORY.json"), Jason.encode!(inventory))
+    File.write!(Path.join(dir, "133-SECURITY.md"), security(@subject, digest, inventory))
     on_exit(fn -> File.rm_rf!(tmp) end)
     %{tmp: tmp, dir: dir, digest: digest}
   end
@@ -112,12 +134,12 @@ defmodule Rindle.InstallSmoke.Phase133ReviewGateTest do
           ),
           String.replace(
             original,
-            "| T-133-71 | spoofing | low | closed |",
+            "| T-133-71 | spoofing | low | dispositioned |",
             "| T-133-71 | spoofing | low | open |"
           ),
           String.replace(
             original,
-            "| T-133-71 | spoofing | low | closed |",
+            "| T-133-71 | spoofing | low | dispositioned |",
             "| T-133-OTHER-01 | spoofing | low | closed |"
           )
         ] do
@@ -135,6 +157,41 @@ defmodule Rindle.InstallSmoke.Phase133ReviewGateTest do
     assert {output, status} = invoke(tmp)
     assert status != 0
     assert output =~ "inventory"
+  end
+
+  test "rejects stale, mismatched, or changed executable proof bindings", %{tmp: tmp, dir: dir} do
+    path = Path.join(dir, "133-SECURITY-INVENTORY.json")
+    original = File.read!(path) |> Jason.decode!()
+
+    mutations = [
+      put_in(
+        original,
+        ["items", Access.at(0), "evidence", "proof", "subject_sha"],
+        String.duplicate("b", 40)
+      ),
+      put_in(
+        original,
+        ["items", Access.at(0), "evidence", "proof", "census_sha256"],
+        String.duplicate("0", 64)
+      ),
+      put_in(
+        original,
+        ["items", Access.at(0), "evidence", "proof", "assertion"],
+        "unverified claim"
+      ),
+      put_in(
+        original,
+        ["items", Access.at(0), "evidence", "proof", "file_sha256"],
+        String.duplicate("0", 64)
+      )
+    ]
+
+    for mutation <- mutations do
+      File.write!(path, Jason.encode!(mutation))
+      assert {output, status} = invoke(tmp)
+      assert status != 0
+      assert output =~ "proof"
+    end
   end
 
   defp invoke(tmp) do
@@ -181,22 +238,58 @@ defmodule Rindle.InstallSmoke.Phase133ReviewGateTest do
     "## Current Independent Validation Verdict\nsubject_sha: #{subject}\ncensus_sha256: #{digest}\nnyquist_compliant: true\nproduction_path_mutation_proof: passed\n\n- [x] Production path mutation proof passed\n"
   end
 
-  defp security(subject, digest) do
-    inventory =
-      @project
-      |> Path.join(".planning/phases/#{@phase}/133-SECURITY-INVENTORY.json")
-      |> File.read!()
-      |> Jason.decode!()
-
-    ids = @high ++ Enum.map(inventory["items"], & &1["id"])
+  defp security(subject, digest, inventory) do
+    items = Map.new(inventory["items"], &{&1["id"], &1["current_disposition"]})
+    ids = @high ++ Map.keys(items)
 
     rows =
       Enum.map_join(ids, "\n", fn id ->
         severity = if id in @high, do: "high", else: "low"
-        "| #{id} | spoofing | #{severity} | closed |"
+        disposition = Map.get(items, id, "closed")
+        "| #{id} | spoofing | #{severity} | #{disposition} |"
       end)
 
     front(subject, digest, "status: verified\nthreats_open: 0\n") <>
       "\n#{rows}\n\n## Sign-Off\n- [x] All findings closed or explicitly dispositioned\n"
   end
+
+  defp proof_for("T-133-71"),
+    do:
+      {"scripts/ci/test_verify_nightly_run.sh", "bash scripts/ci/test_verify_nightly_run.sh",
+       "zero exact matches poll until timeout without a receipt"}
+
+  defp proof_for("T-133-102"),
+    do:
+      {"test/install_smoke/phase_133_security_disclosure_test.exs",
+       "MIX_ENV=test mix test test/install_smoke/phase_133_security_disclosure_test.exs --seed 0",
+       "T-133-102: Plan 26 documentation contains no credential canary"}
+
+  defp proof_for("T-133-34-05"),
+    do:
+      {"test/install_smoke/phase_133_reconciliation_test.exs",
+       "MIX_ENV=test mix test test/install_smoke/phase_133_reconciliation_test.exs --only disclosure_canary --seed 0",
+       "T-133-34-05: reconciliation diagnostics never echo raw planning canaries"}
+
+  defp proof_for(id) when id in ["T-133-36-05", "T-133-41-05"],
+    do:
+      {"test/install_smoke/phase_133_security_disclosure_test.exs",
+       "MIX_ENV=test mix test test/install_smoke/phase_133_security_disclosure_test.exs --seed 0",
+       "T-133-36-05 and T-133-41-05: checkpoint records expose only safe public text"}
+
+  defp proof_for(id)
+       when id in [
+              "T-133-33-SC",
+              "T-133-34-SC",
+              "T-133-35-SC",
+              "T-133-36-SC",
+              "T-133-37-SC",
+              "T-133-38-SC",
+              "T-133-39-SC",
+              "T-133-40-SC",
+              "T-133-41-SC",
+              "T-133-42-SC"
+            ],
+       do:
+         {"scripts/ci/test_phase_133_package_manager_guards.sh",
+          "scripts/ci/test_phase_133_package_manager_guards.sh", id}
 end

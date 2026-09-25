@@ -1,5 +1,56 @@
 defmodule Rindle.ValidatePhase133ThreatInventory do
   @ids ~w(T-133-71 T-133-102 T-133-33-SC T-133-34-05 T-133-34-SC T-133-35-SC T-133-36-05 T-133-36-SC T-133-37-SC T-133-38-SC T-133-39-SC T-133-40-SC T-133-41-05 T-133-41-SC T-133-42-SC)
+  @proofs %{
+    "T-133-71" =>
+      {"scripts/ci/test_verify_nightly_run.sh", "bash scripts/ci/test_verify_nightly_run.sh",
+       "zero exact matches poll until timeout without a receipt"},
+    "T-133-102" =>
+      {"test/install_smoke/phase_133_security_disclosure_test.exs",
+       "MIX_ENV=test mix test test/install_smoke/phase_133_security_disclosure_test.exs --seed 0",
+       "T-133-102: Plan 26 documentation contains no credential canary"},
+    "T-133-33-SC" =>
+      {"scripts/ci/test_phase_133_package_manager_guards.sh",
+       "scripts/ci/test_phase_133_package_manager_guards.sh", "T-133-33-SC"},
+    "T-133-34-05" =>
+      {"test/install_smoke/phase_133_reconciliation_test.exs",
+       "MIX_ENV=test mix test test/install_smoke/phase_133_reconciliation_test.exs --only disclosure_canary --seed 0",
+       "T-133-34-05: reconciliation diagnostics never echo raw planning canaries"},
+    "T-133-34-SC" =>
+      {"scripts/ci/test_phase_133_package_manager_guards.sh",
+       "scripts/ci/test_phase_133_package_manager_guards.sh", "T-133-34-SC"},
+    "T-133-35-SC" =>
+      {"scripts/ci/test_phase_133_package_manager_guards.sh",
+       "scripts/ci/test_phase_133_package_manager_guards.sh", "T-133-35-SC"},
+    "T-133-36-05" =>
+      {"test/install_smoke/phase_133_security_disclosure_test.exs",
+       "MIX_ENV=test mix test test/install_smoke/phase_133_security_disclosure_test.exs --seed 0",
+       "T-133-36-05 and T-133-41-05: checkpoint records expose only safe public text"},
+    "T-133-36-SC" =>
+      {"scripts/ci/test_phase_133_package_manager_guards.sh",
+       "scripts/ci/test_phase_133_package_manager_guards.sh", "T-133-36-SC"},
+    "T-133-37-SC" =>
+      {"scripts/ci/test_phase_133_package_manager_guards.sh",
+       "scripts/ci/test_phase_133_package_manager_guards.sh", "T-133-37-SC"},
+    "T-133-38-SC" =>
+      {"scripts/ci/test_phase_133_package_manager_guards.sh",
+       "scripts/ci/test_phase_133_package_manager_guards.sh", "T-133-38-SC"},
+    "T-133-39-SC" =>
+      {"scripts/ci/test_phase_133_package_manager_guards.sh",
+       "scripts/ci/test_phase_133_package_manager_guards.sh", "T-133-39-SC"},
+    "T-133-40-SC" =>
+      {"scripts/ci/test_phase_133_package_manager_guards.sh",
+       "scripts/ci/test_phase_133_package_manager_guards.sh", "T-133-40-SC"},
+    "T-133-41-05" =>
+      {"test/install_smoke/phase_133_security_disclosure_test.exs",
+       "MIX_ENV=test mix test test/install_smoke/phase_133_security_disclosure_test.exs --seed 0",
+       "T-133-36-05 and T-133-41-05: checkpoint records expose only safe public text"},
+    "T-133-41-SC" =>
+      {"scripts/ci/test_phase_133_package_manager_guards.sh",
+       "scripts/ci/test_phase_133_package_manager_guards.sh", "T-133-41-SC"},
+    "T-133-42-SC" =>
+      {"scripts/ci/test_phase_133_package_manager_guards.sh",
+       "scripts/ci/test_phase_133_package_manager_guards.sh", "T-133-42-SC"}
+  }
   @subject "87bd35cdcf040018a854a0e8c5a6ebc0b9438e53"
   @report_commit "35c94a50c861d2bf84f16172be20a97d20d685e2"
   @report_sha "706bd2bf5b1162907ab60a7cf910f40a5242cc203190f5578f098dd4647a9a65"
@@ -11,7 +62,7 @@ defmodule Rindle.ValidatePhase133ThreatInventory do
          {:ok, data} <- read_json(inventory_path),
          :ok <- validate(root, data) do
       IO.puts(
-        "phase 133 threat inventory valid: 15 recovered findings; 2 high threats remain open"
+        "phase 133 threat inventory valid: 15 exact-ID findings have current executable disposition proofs"
       )
 
       0
@@ -51,8 +102,8 @@ defmodule Rindle.ValidatePhase133ThreatInventory do
          true <-
            Enum.sort(Enum.map(items, & &1["id"])) == Enum.sort(@ids) or
              {:error, "finding universe is missing, duplicated, or contains a synthetic ID"},
-         :ok <- validate_items(root, items),
-         :ok <- current_security_open(root) do
+         :ok <- validate_items(root, items, data["binding"]),
+         :ok <- current_security_verified(root) do
       :ok
     else
       {:error, message} -> {:error, message}
@@ -60,8 +111,6 @@ defmodule Rindle.ValidatePhase133ThreatInventory do
       _ -> {:error, "malformed inventory"}
     end
   end
-
-  defp valid_current_binding(_root, nil), do: :ok
 
   defp valid_current_binding(root, binding) when is_map(binding) do
     ledger_path = Path.join(root, Path.join(@phase, "133-EVIDENCE-CENSUS.json"))
@@ -81,6 +130,9 @@ defmodule Rindle.ValidatePhase133ThreatInventory do
       _ -> {:error, "inventory subject/census binding is malformed"}
     end
   end
+
+  defp valid_current_binding(_root, _),
+    do: {:error, "inventory subject/census binding is required"}
 
   defp valid_current_binding(_root, _),
     do: {:error, "inventory subject/census binding is malformed"}
@@ -120,7 +172,7 @@ defmodule Rindle.ValidatePhase133ThreatInventory do
     end
   end
 
-  defp validate_items(root, items) do
+  defp validate_items(root, items, binding) do
     Enum.reduce_while(items, :ok, fn item, :ok ->
       source = item["source"] || %{}
       evidence = item["evidence"] || %{}
@@ -132,12 +184,13 @@ defmodule Rindle.ValidatePhase133ThreatInventory do
                item["historical_disposition"] == "accept" or
                  {:error, "#{id}: historical disposition changed"},
              true <-
-               item["current_disposition"] == "open" or
-                 {:error, "#{id}: open finding cannot be closed"},
+               item["current_disposition"] in ["closed", "dispositioned"] or
+                 {:error, "#{id}: current disposition is open or unsupported"},
              true <-
                (evidence["auditor_report_commit"] == @report_commit and
                   is_binary(evidence["reason"]) and byte_size(evidence["reason"]) > 20) or
                  {:error, "#{id}: missing disposition evidence"},
+             :ok <- validate_executable_proof(root, id, evidence["proof"], binding),
              true <-
                (source["commit"] == @subject and is_integer(source["line"]) and source["line"] > 0) or
                  {:error, "#{id}: source location mismatch"},
@@ -167,16 +220,54 @@ defmodule Rindle.ValidatePhase133ThreatInventory do
     end)
   end
 
-  defp current_security_open(root) do
+  defp validate_executable_proof(root, id, proof, binding) when is_map(proof) do
+    {path, command, assertion} = Map.fetch!(@proofs, id)
+    subject = binding["subject_sha"]
+
+    with true <- proof["subject_sha"] == subject or {:error, "#{id}: proof subject mismatch"},
+         true <-
+           proof["census_sha256"] == binding["census_sha256"] or
+             {:error, "#{id}: proof census mismatch"},
+         true <- proof["path"] == path or {:error, "#{id}: proof file mismatch"},
+         true <- proof["command"] == command or {:error, "#{id}: proof command mismatch"},
+         true <- proof["assertion"] == assertion or {:error, "#{id}: proof assertion mismatch"},
+         true <- proof["result"] == "passed" or {:error, "#{id}: proof result is not passing"},
+         {:ok, body} <- File.read(Path.join(root, path)),
+         digest <- :crypto.hash(:sha256, body) |> Base.encode16(case: :lower),
+         true <- digest == proof["file_sha256"] or {:error, "#{id}: proof file digest mismatch"},
+         true <-
+           String.contains?(body, assertion) or
+             {:error, "#{id}: proof assertion missing from source"} do
+      :ok
+    else
+      {:error, message} -> {:error, message}
+      false -> {:error, "#{id}: executable proof metadata is invalid"}
+      _ -> {:error, "#{id}: executable proof source cannot be read"}
+    end
+  end
+
+  defp validate_executable_proof(_root, id, _proof, _binding),
+    do: {:error, "#{id}: executable proof metadata is required"}
+
+  defp current_security_verified(root) do
     path = Path.join(root, Path.join(@phase, "133-SECURITY.md"))
 
     case File.read(path) do
       {:ok, body} ->
-        if String.contains?(body, "status: open_threats") and
-             Enum.all?(["T-133-53", "T-133-91"], &String.contains?(body, &1)) do
+        high_ids =
+          ~w(T-133-32 T-133-53 T-133-74 T-133-85 T-133-91 T-133-105 T-133-39-03 T-133-42-03)
+
+        high_closed? =
+          Enum.all?(high_ids, fn id ->
+            Regex.match?(~r/^\|\s*#{Regex.escape(id)}\s*\|[^\n]*\|\s*closed\s*\|\s*$/im, body)
+          end)
+
+        if String.contains?(body, "status: verified") and
+             String.contains?(body, "threats_open: 0") and high_closed? do
           :ok
         else
-          {:error, "current security report must remain OPEN_THREATS with T-133-53/T-133-91 open"}
+          {:error,
+           "current security report must be verified with all eight named high threats closed"}
         end
 
       _ ->

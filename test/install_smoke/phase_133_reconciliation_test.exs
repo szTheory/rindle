@@ -69,6 +69,19 @@ defmodule Rindle.InstallSmoke.Phase133ReconciliationTest do
     end
   end
 
+  @tag :disclosure_canary
+  test "T-133-34-05: reconciliation diagnostics never echo raw planning canaries", %{
+    fixture: fixture
+  } do
+    canary = "Authorization: Bearer phase133-secret-canary"
+    mutate_validation(fixture, &String.replace(&1, "19/19", canary, global: false))
+
+    {output, status} = run_validator(fixture)
+    assert status != 0
+    refute output =~ canary
+    assert byte_size(output) < 2_048
+  end
+
   test "preserves multiple verification pairs owned by one task", %{fixture: fixture} do
     assert Enum.count(fixture.records, &String.starts_with?(&1.key, "133-11-01:")) == 2
     assert_valid(fixture)
@@ -731,6 +744,83 @@ defmodule Rindle.InstallSmoke.Phase133Reconciliation42Test do
     assert {output, status} = run_validator(fixture)
     assert status != 0
     assert output =~ "Plan 48 must complete authorization before Plan 49"
+  end
+
+  @tag :plan48_report_gate
+  test "allows a Plan 48 report-gate halt before a human decision, with no pair or credit" do
+    fixture = write_fixture!()
+    append_gap_closure_section!(fixture)
+    extend_gap_fixture_to_52!(fixture)
+    mark_plans_complete!(fixture, [43, 44, 45, 46, 47, 50, 51, 52])
+
+    roadmap = File.read!(fixture.roadmap)
+
+    roadmap =
+      String.replace(
+        roadmap,
+        "**Plans**: 46/52 plans executed summarized; 43 completed, " <>
+          "Plans 133-27, 133-32, and 133-37 halted with immutable attempts preserved, " <>
+          "6 gap-closure plans pending.",
+        "**Plans**: 47/52 plans executed summarized; 43 completed, " <>
+          "Plans 133-27, 133-32, and 133-37 halted with immutable attempts preserved, " <>
+          "Plan 133-48 halted before a decision, 5 gap-closure plans pending."
+      )
+      |> String.replace("| 46/52 |", "| 47/52 |")
+
+    File.write!(fixture.roadmap, roadmap)
+
+    state =
+      File.read!(fixture.state)
+      |> String.replace("completed_plans: 46", "completed_plans: 47")
+      |> String.replace("Plan: 47 of 52", "Plan: 49 of 52")
+      |> String.replace("status: executing", "status: blocked")
+      |> String.replace("Status: EXECUTING", "Status: BLOCKED")
+
+    File.write!(fixture.state, state)
+
+    File.write!(
+      summary_path(fixture.root, 48),
+      "---\nstatus: halted\nreport-gate: blocked\nhalt_reason: security report gate failed\nrequirements-completed: []\n---\n"
+    )
+
+    validation = File.read!(fixture.validation)
+
+    validation =
+      Enum.reduce(["133-48-01:1", "133-48-02:1"], validation, fn key, contents ->
+        contents
+        |> mutate_gap_record(
+          key,
+          "<branch-status>pending — not executed</branch-status>",
+          "<branch-status>halted — blocking gate</branch-status>"
+        )
+        |> mutate_gap_record(
+          key,
+          "<state>pending — not executed</state>",
+          "<state>halted — blocking gate</state>"
+        )
+      end)
+
+    File.write!(fixture.validation, validation)
+    assert {output, 0} = run_validator(fixture)
+    assert output =~ "phase 133 reconciliation valid"
+
+    summary = File.read!(summary_path(fixture.root, 48))
+
+    for mutation <- [
+          String.replace(summary, "report-gate: blocked", "report-gate: passed"),
+          String.replace(
+            summary,
+            "requirements-completed: []",
+            "requirements-completed: []\nauthorized_ref: refs/heads/phase-133-evidence-aaaaaaaaaaaa"
+          )
+        ] do
+      File.write!(summary_path(fixture.root, 48), mutation)
+      assert {output, status} = run_validator(fixture)
+      assert status != 0
+
+      assert output =~ "133-48",
+             "unexpected rejection diagnostic: #{output}"
+    end
   end
 
   defp mark_plans_complete!(fixture, plans) do

@@ -4,6 +4,9 @@ defmodule Rindle.ValidatePhase133ReviewGate do
   @inventory_ids ~w(T-133-71 T-133-102 T-133-33-SC T-133-34-05 T-133-34-SC T-133-35-SC T-133-36-05 T-133-36-SC T-133-37-SC T-133-38-SC T-133-39-SC T-133-40-SC T-133-41-05 T-133-41-SC T-133-42-SC)
   @high_ids ~w(T-133-32 T-133-53 T-133-74 T-133-85 T-133-91 T-133-105 T-133-39-03 T-133-42-03)
   @review_ids ~w(CR-01 CR-02 CR-03 CR-04 CR-05 CR-06 CR-07 WR-01 WR-02)
+  @package_proof_ids ~w(T-133-33-SC T-133-34-SC T-133-35-SC T-133-36-SC T-133-37-SC T-133-38-SC T-133-39-SC T-133-40-SC T-133-41-SC T-133-42-SC)
+  @package_proof_path "scripts/ci/test_phase_133_package_manager_guards.sh"
+  @package_proof_command "scripts/ci/test_phase_133_package_manager_guards.sh"
   @frozen_validation_bytes 148_104
   @frozen_validation_sha256 "57eb4b1f46b7852bdda6cfbc399b62eb0fe35d6283d0139c892c4a8310698a5d"
 
@@ -267,6 +270,8 @@ defmodule Rindle.ValidatePhase133ReviewGate do
              proof when is_binary(proof) and byte_size(proof) > 12 <-
                get_in(item, ["evidence", "disposition_proof"]) ||
                  {:error, "#{id}: disposition proof missing"},
+             :ok <-
+               validate_executable_proof(root, id, item["evidence"]["proof"], data["binding"]),
              {:ok, blob} <- git(root, ["rev-parse", "#{source["commit"]}:#{source["path"]}"]),
              true <-
                String.trim(blob) == source["blob_sha"] or {:error, "#{id}: source blob mismatch"},
@@ -294,6 +299,61 @@ defmodule Rindle.ValidatePhase133ReviewGate do
       _ -> {:error, "security inventory source evidence is malformed"}
     end
   end
+
+  defp validate_executable_proof(root, id, proof, binding) when is_map(proof) do
+    {path, command, assertion} = expected_proof(id)
+    subject = binding["subject_sha"]
+
+    with true <- proof["subject_sha"] == subject or {:error, "#{id}: proof subject mismatch"},
+         true <-
+           proof["census_sha256"] == binding["census_sha256"] or
+             {:error, "#{id}: proof census mismatch"},
+         true <- proof["path"] == path or {:error, "#{id}: proof file mismatch"},
+         true <- proof["command"] == command or {:error, "#{id}: proof command mismatch"},
+         true <- proof["assertion"] == assertion or {:error, "#{id}: proof assertion mismatch"},
+         true <- proof["result"] == "passed" or {:error, "#{id}: proof result is not passing"},
+         {:ok, body} <- File.read(Path.join(root, path)),
+         digest <- :crypto.hash(:sha256, body) |> Base.encode16(case: :lower),
+         true <- digest == proof["file_sha256"] or {:error, "#{id}: proof file digest mismatch"},
+         true <-
+           String.contains?(body, assertion) or
+             {:error, "#{id}: proof assertion missing from source"} do
+      :ok
+    else
+      {:error, message} -> {:error, message}
+      false -> {:error, "#{id}: executable proof metadata is invalid"}
+      _ -> {:error, "#{id}: executable proof source cannot be read"}
+    end
+  end
+
+  defp validate_executable_proof(_root, id, _proof, _binding),
+    do: {:error, "#{id}: executable proof metadata is required"}
+
+  defp expected_proof(id) when id in @package_proof_ids,
+    do: {@package_proof_path, @package_proof_command, id}
+
+  defp expected_proof("T-133-71"),
+    do:
+      {"scripts/ci/test_verify_nightly_run.sh", "bash scripts/ci/test_verify_nightly_run.sh",
+       "zero exact matches poll until timeout without a receipt"}
+
+  defp expected_proof("T-133-102"),
+    do:
+      {"test/install_smoke/phase_133_security_disclosure_test.exs",
+       "MIX_ENV=test mix test test/install_smoke/phase_133_security_disclosure_test.exs --seed 0",
+       "T-133-102: Plan 26 documentation contains no credential canary"}
+
+  defp expected_proof("T-133-34-05"),
+    do:
+      {"test/install_smoke/phase_133_reconciliation_test.exs",
+       "MIX_ENV=test mix test test/install_smoke/phase_133_reconciliation_test.exs --only disclosure_canary --seed 0",
+       "T-133-34-05: reconciliation diagnostics never echo raw planning canaries"}
+
+  defp expected_proof(id) when id in ["T-133-36-05", "T-133-41-05"],
+    do:
+      {"test/install_smoke/phase_133_security_disclosure_test.exs",
+       "MIX_ENV=test mix test test/install_smoke/phase_133_security_disclosure_test.exs --seed 0",
+       "T-133-36-05 and T-133-41-05: checkpoint records expose only safe public text"}
 
   defp git(root, args) do
     case System.cmd("git", args, cd: root, stderr_to_stdout: true) do

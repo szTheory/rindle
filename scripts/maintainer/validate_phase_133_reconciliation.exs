@@ -50,6 +50,7 @@ defmodule Rindle.ValidatePhase133Reconciliation do
   @pending_state "pending — not executed"
   @executed_state "passed — executed"
   @halted_state "halted — immutable failed evidence"
+  @blocked_gate_state "halted — blocking gate"
   @halted_credit "failure-history-only"
   @failed_run "34661043059"
   @failed_subject "0f8189ddeed7e7a52b5c7464f17b70ab44596c33"
@@ -892,9 +893,16 @@ defmodule Rindle.ValidatePhase133Reconciliation do
     case File.read(path) do
       {:ok, summary} ->
         case summary_document(summary) do
-          {:ok, %{status: "complete"}} -> @executed_state
-          {:ok, %{status: "halted"}} -> @halted_state
-          _ -> @pending_state
+          {:ok, %{status: "complete"}} ->
+            @executed_state
+
+          {:ok, %{status: "halted", metadata: metadata}} ->
+            if plan == 48 and Map.get(metadata, "report-gate") == "blocked",
+              do: @blocked_gate_state,
+              else: @halted_state
+
+          _ ->
+            @pending_state
         end
 
       _ ->
@@ -968,6 +976,7 @@ defmodule Rindle.ValidatePhase133Reconciliation do
         branch_status:
           case record.state do
             @executed_state -> "passed — executed"
+            @blocked_gate_state -> "halted — blocking gate"
             @halted_state -> "halted — immutable failed evidence"
             _ -> "pending — not executed"
           end
@@ -1231,11 +1240,26 @@ defmodule Rindle.ValidatePhase133Reconciliation do
     do: validate_branch_halted_summary(37, document)
 
   defp validate_branch_halted_summary(48, document) do
-    if Map.get(document.metadata, "decision") == "stop" and
-         Map.get(document.metadata, "requirements-completed") == [] do
+    metadata = document.metadata
+
+    explicit_stop? =
+      Map.get(metadata, "decision") == "stop" and
+        Map.get(metadata, "requirements-completed") == []
+
+    blocked_before_decision? =
+      is_nil(Map.get(metadata, "decision")) and
+        Map.get(metadata, "report-gate") == "blocked" and
+        is_binary(Map.get(metadata, "halt_reason")) and
+        String.contains?(Map.get(metadata, "halt_reason"), "report gate") and
+        Map.get(metadata, "requirements-completed") == [] and
+        is_nil(Map.get(metadata, "authorized_ref")) and
+        is_nil(Map.get(metadata, "authorized_sha"))
+
+    if explicit_stop? or blocked_before_decision? do
       :ok
     else
-      {:error, "must record decision: stop with zero requirement credit"}
+      {:error,
+       "must record decision: stop or a report-gate halt before decision, with zero requirement credit"}
     end
   end
 
@@ -1566,24 +1590,52 @@ defmodule Rindle.ValidatePhase133Reconciliation do
       true ->
         with {:ok, summary} <- File.read(summary_path),
              {:ok, document} <- summary_document(summary),
-             decision when decision in ["authorize", "stop"] <-
-               Map.get(document.metadata, "decision"),
              true <-
                Map.get(document.metadata, "requirements-completed") == [] or
                  {:error, "Plan 48 must grant zero requirement credit"},
-             true <-
-               if(decision == "authorize",
-                 do: valid_authorized_pair?(document.metadata),
-                 else: not summarized_49 and is_nil(Map.get(document.metadata, "authorized_ref"))
-               ) or {:error, "Plan 48 literal SHA/ref authorization or stop branch differs"},
-             true <-
-               not summarized_49 or decision == "authorize" or
-                 {:error, "Plan 49 is blocked after Plan 48 stop"} do
+             :ok <- validate_plan_48_decision(document, summarized_49) do
           :ok
         else
-          {:error, _message} = error -> error
-          _ -> {:error, "Plan 48 must record exactly authorize or stop for its literal pair"}
+          {:error, _message} = error ->
+            error
+
+          _ ->
+            {:error, "Plan 48 must record authorize, stop, or a report-gate halt before decision"}
         end
+    end
+  end
+
+  defp validate_plan_48_decision(%{status: "halted", metadata: metadata}, summarized_49) do
+    if is_nil(Map.get(metadata, "decision")) do
+      if summarized_49 or metadata["report-gate"] != "blocked" or
+           not is_binary(metadata["halt_reason"]) or
+           not String.contains?(metadata["halt_reason"], "report gate") or
+           not is_nil(metadata["authorized_ref"]) or not is_nil(metadata["authorized_sha"]) do
+        {:error, "Plan 48 pre-decision halt must identify its blocked report gate and no pair"}
+      else
+        :ok
+      end
+    else
+      validate_plan_48_recorded_decision(metadata, summarized_49)
+    end
+  end
+
+  defp validate_plan_48_decision(%{metadata: metadata}, summarized_49) do
+    validate_plan_48_recorded_decision(metadata, summarized_49)
+  end
+
+  defp validate_plan_48_recorded_decision(metadata, summarized_49) do
+    decision = Map.get(metadata, "decision")
+
+    if decision in ["authorize", "stop"] and
+         if(decision == "authorize",
+           do: valid_authorized_pair?(metadata),
+           else: not summarized_49 and is_nil(Map.get(metadata, "authorized_ref"))
+         ) and
+         (not summarized_49 or decision == "authorize") do
+      :ok
+    else
+      {:error, "Plan 48 literal SHA/ref authorization or stop branch differs"}
     end
   end
 
@@ -1910,10 +1962,13 @@ defmodule Rindle.ValidatePhase133Reconciliation do
 
     expected =
       if mode in [:execution, :execution_complete] and total > 42 do
-        halted_text = halted_plan_text(halted)
+        pre_decision_halt? = MapSet.member?(halted, 48)
+        immutable_halts = if pre_decision_halt?, do: MapSet.delete(halted, 48), else: halted
+        halted_text = halted_plan_text(immutable_halts)
+        gate_text = if pre_decision_halt?, do: ", Plan 133-48 halted before a decision", else: ""
 
         "**Plans**: #{summarized_count}/#{total} plans executed summarized; #{completed_count} completed, " <>
-          "#{halted_text} halted with immutable attempts preserved, " <>
+          "#{halted_text} halted with immutable attempts preserved#{gate_text}, " <>
           "#{pending_count} gap-closure plans pending."
       else
         branch_roadmap_detail(lifecycle, summarized_count, completed_count, pending_count)

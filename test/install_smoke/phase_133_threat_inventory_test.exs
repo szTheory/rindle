@@ -18,13 +18,40 @@ defmodule Rindle.InstallSmoke.Phase133ThreatInventoryTest do
     File.mkdir_p!(tmp)
     path = Path.join(tmp, "inventory.json")
     data = @inventory |> File.read!() |> Jason.decode!()
+    binding = data["binding"]
+
+    data =
+      update_in(data["items"], fn items ->
+        Enum.map(items, fn item ->
+          {proof_path, command, assertion} = proof_for(item["id"])
+          body = File.read!(Path.join(@root, proof_path))
+
+          item
+          |> Map.put("current_disposition", "dispositioned")
+          |> put_in(["evidence", "disposition_proof"], "exact-ID executable proof recorded")
+          |> put_in(
+            ["evidence", "proof"],
+            %{
+              "subject_sha" => binding["subject_sha"],
+              "census_sha256" => binding["census_sha256"],
+              "path" => proof_path,
+              "command" => command,
+              "assertion" => assertion,
+              "result" => "passed",
+              "file_sha256" => :crypto.hash(:sha256, body) |> Base.encode16(case: :lower)
+            }
+          )
+        end)
+      end)
+
     on_exit(fn -> File.rm_rf!(tmp) end)
     %{path: path, data: data}
   end
 
+  @tag :requires_verified_security_report
   test "accepts the complete recovered source inventory", %{path: path, data: data} do
     assert {output, 0} = invoke(write(path, data))
-    assert output =~ "15 recovered findings"
+    assert output =~ "15 exact-ID findings have current executable disposition proofs"
   end
 
   test "rejects missing, duplicate, foreign, and source-mismatched identities", %{
@@ -52,9 +79,19 @@ defmodule Rindle.InstallSmoke.Phase133ThreatInventoryTest do
     data: data
   } do
     mutations = [
-      put_in(data, ["items", Access.at(0), "current_disposition"], "closed"),
+      put_in(data, ["items", Access.at(0), "current_disposition"], "open"),
       put_in(data, ["items", Access.at(0), "evidence", "reason"], ""),
       put_in(data, ["items", Access.at(0), "evidence", "auditor_report_commit"], nil),
+      put_in(
+        data,
+        ["items", Access.at(0), "evidence", "proof", "subject_sha"],
+        String.duplicate("b", 40)
+      ),
+      put_in(
+        data,
+        ["items", Access.at(0), "evidence", "proof", "file_sha256"],
+        String.duplicate("0", 64)
+      ),
       put_in(data, ["mode"], "re-audit"),
       put_in(data, ["provenance", "raw_record_sha256"], String.duplicate("0", 64)),
       put_in(data, ["unresolved_high_ids"], ["T-133-53"])
@@ -112,4 +149,44 @@ defmodule Rindle.InstallSmoke.Phase133ThreatInventoryTest do
       stderr_to_stdout: true
     )
   end
+
+  defp proof_for("T-133-71"),
+    do:
+      {"scripts/ci/test_verify_nightly_run.sh", "bash scripts/ci/test_verify_nightly_run.sh",
+       "zero exact matches poll until timeout without a receipt"}
+
+  defp proof_for("T-133-102"),
+    do:
+      {"test/install_smoke/phase_133_security_disclosure_test.exs",
+       "MIX_ENV=test mix test test/install_smoke/phase_133_security_disclosure_test.exs --seed 0",
+       "T-133-102: Plan 26 documentation contains no credential canary"}
+
+  defp proof_for("T-133-34-05"),
+    do:
+      {"test/install_smoke/phase_133_reconciliation_test.exs",
+       "MIX_ENV=test mix test test/install_smoke/phase_133_reconciliation_test.exs --only disclosure_canary --seed 0",
+       "T-133-34-05: reconciliation diagnostics never echo raw planning canaries"}
+
+  defp proof_for(id) when id in ["T-133-36-05", "T-133-41-05"],
+    do:
+      {"test/install_smoke/phase_133_security_disclosure_test.exs",
+       "MIX_ENV=test mix test test/install_smoke/phase_133_security_disclosure_test.exs --seed 0",
+       "T-133-36-05 and T-133-41-05: checkpoint records expose only safe public text"}
+
+  defp proof_for(id)
+       when id in [
+              "T-133-33-SC",
+              "T-133-34-SC",
+              "T-133-35-SC",
+              "T-133-36-SC",
+              "T-133-37-SC",
+              "T-133-38-SC",
+              "T-133-39-SC",
+              "T-133-40-SC",
+              "T-133-41-SC",
+              "T-133-42-SC"
+            ],
+       do:
+         {"scripts/ci/test_phase_133_package_manager_guards.sh",
+          "scripts/ci/test_phase_133_package_manager_guards.sh", id}
 end
