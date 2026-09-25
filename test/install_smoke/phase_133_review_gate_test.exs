@@ -4,7 +4,9 @@ defmodule Rindle.InstallSmoke.Phase133ReviewGateTest do
   @script Path.expand("../../scripts/maintainer/validate_phase_133_review_gate.exs", __DIR__)
   @project Path.expand("../..", __DIR__)
   @phase "133-evidence-charter-and-live-truth"
-  @subject String.duplicate("a", 40)
+  @subject System.cmd("git", ["rev-parse", "HEAD"], cd: Path.expand("../..", __DIR__))
+           |> elem(0)
+           |> String.trim()
   @high ~w(T-133-32 T-133-53 T-133-74 T-133-85 T-133-91 T-133-105 T-133-39-03 T-133-42-03)
   @frozen_validation_bytes 148_104
   @frozen_validation_sha256 "57eb4b1f46b7852bdda6cfbc399b62eb0fe35d6283d0139c892c4a8310698a5d"
@@ -15,11 +17,20 @@ defmodule Rindle.InstallSmoke.Phase133ReviewGateTest do
 
     dir = Path.join(tmp, ".planning/phases/#{@phase}")
     File.mkdir_p!(dir)
-    census = Jason.encode!(%{"schema_version" => 1, "subject_sha" => @subject})
+
+    census =
+      @project
+      |> Path.join(".planning/phases/#{@phase}/133-EVIDENCE-CENSUS.json")
+      |> File.read!()
+
+    ledger = Jason.decode!(census)
     digest = :crypto.hash(:sha256, census) |> Base.encode16(case: :lower)
+    subject = ledger["subject_sha"]
+    assert subject == @subject
+
     File.write!(Path.join(dir, "133-EVIDENCE-CENSUS.json"), census)
-    File.write!(Path.join(dir, "133-52-SUMMARY.md"), summary(@subject, digest))
-    File.write!(Path.join(dir, "133-REVIEW.md"), review(@subject, digest))
+    File.write!(Path.join(dir, "133-52-SUMMARY.md"), summary(subject, digest))
+    File.write!(Path.join(dir, "133-REVIEW.md"), review(subject, digest))
 
     full_validation =
       File.read!(Path.join(@project, ".planning/phases/#{@phase}/133-VALIDATION.md"))
@@ -31,7 +42,7 @@ defmodule Rindle.InstallSmoke.Phase133ReviewGateTest do
 
     File.write!(
       Path.join(dir, "133-VALIDATION.md"),
-      frozen <> "\n" <> validation(@subject, digest)
+      frozen <> "\n" <> validation(subject, digest)
     )
 
     inventory =
@@ -39,7 +50,7 @@ defmodule Rindle.InstallSmoke.Phase133ReviewGateTest do
       |> Path.join(".planning/phases/#{@phase}/133-SECURITY-INVENTORY.json")
       |> File.read!()
       |> Jason.decode!()
-      |> Map.put("binding", %{"subject_sha" => @subject, "census_sha256" => digest})
+      |> Map.put("binding", %{"subject_sha" => subject, "census_sha256" => digest})
       |> update_in(["items"], fn items ->
         Enum.map(items, fn item ->
           {path, command, assertion} = proof_for(item["id"])
@@ -54,7 +65,7 @@ defmodule Rindle.InstallSmoke.Phase133ReviewGateTest do
           |> put_in(
             ["evidence", "proof"],
             %{
-              "subject_sha" => @subject,
+              "subject_sha" => subject,
               "census_sha256" => digest,
               "path" => path,
               "command" => command,
@@ -67,11 +78,13 @@ defmodule Rindle.InstallSmoke.Phase133ReviewGateTest do
       end)
 
     File.write!(Path.join(dir, "133-SECURITY-INVENTORY.json"), Jason.encode!(inventory))
-    File.write!(Path.join(dir, "133-SECURITY.md"), security(@subject, digest, inventory))
+    File.write!(Path.join(dir, "133-SECURITY.md"), security(subject, digest, inventory))
     on_exit(fn -> File.rm_rf!(tmp) end)
     %{tmp: tmp, dir: dir, digest: digest}
   end
 
+  @tag :requires_verified_security_report
+  @tag timeout: 180_000
   test "accepts one exact current verdict and source-backed dispositions", %{tmp: tmp} do
     assert {output, 0} = invoke(tmp)
     assert output =~ "review gate valid"

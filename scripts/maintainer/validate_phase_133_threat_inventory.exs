@@ -1,5 +1,6 @@
 defmodule Rindle.ValidatePhase133ThreatInventory do
   @ids ~w(T-133-71 T-133-102 T-133-33-SC T-133-34-05 T-133-34-SC T-133-35-SC T-133-36-05 T-133-36-SC T-133-37-SC T-133-38-SC T-133-39-SC T-133-40-SC T-133-41-05 T-133-41-SC T-133-42-SC)
+  @high_ids ~w(T-133-32 T-133-53 T-133-74 T-133-85 T-133-91 T-133-105 T-133-39-03 T-133-42-03)
   @proofs %{
     "T-133-71" =>
       {"scripts/ci/test_verify_nightly_run.sh", "bash scripts/ci/test_verify_nightly_run.sh",
@@ -58,9 +59,9 @@ defmodule Rindle.ValidatePhase133ThreatInventory do
   @phase ".planning/phases/133-evidence-charter-and-live-truth"
 
   def main(argv) do
-    with {:ok, root, inventory_path} <- options(argv),
+    with {:ok, root, inventory_path, security_path} <- options(argv),
          {:ok, data} <- read_json(inventory_path),
-         :ok <- validate(root, data) do
+         :ok <- validate(root, data, security_path) do
       IO.puts(
         "phase 133 threat inventory valid: 15 exact-ID findings have current executable disposition proofs"
       )
@@ -74,20 +75,34 @@ defmodule Rindle.ValidatePhase133ThreatInventory do
   end
 
   defp options(argv) do
-    case OptionParser.parse(argv, strict: [root: :string, inventory: :string]) do
+    case OptionParser.parse(argv,
+           strict: [root: :string, inventory: :string, security_report: :string]
+         ) do
       {[root: root], [], []} ->
         root = Path.expand(root)
-        {:ok, root, Path.join(root, Path.join(@phase, "133-SECURITY-INVENTORY.json"))}
+
+        {:ok, root, Path.join(root, Path.join(@phase, "133-SECURITY-INVENTORY.json")),
+         Path.join(root, Path.join(@phase, "133-SECURITY.md"))}
 
       {[root: root, inventory: inventory], [], []} ->
-        {:ok, Path.expand(root), Path.expand(inventory)}
+        root = Path.expand(root)
+        {:ok, root, Path.expand(inventory), Path.join(root, Path.join(@phase, "133-SECURITY.md"))}
+
+      {[root: root, security_report: security_report], [], []} ->
+        root = Path.expand(root)
+
+        {:ok, root, Path.join(root, Path.join(@phase, "133-SECURITY-INVENTORY.json")),
+         Path.expand(security_report)}
+
+      {[root: root, inventory: inventory, security_report: security_report], [], []} ->
+        {:ok, Path.expand(root), Path.expand(inventory), Path.expand(security_report)}
 
       _ ->
-        {:error, "expected --root ROOT [--inventory FILE]"}
+        {:error, "expected --root ROOT [--inventory FILE] [--security-report FILE]"}
     end
   end
 
-  defp validate(root, data) do
+  defp validate(root, data, security_path) do
     provenance = data["provenance"] || %{}
     items = data["items"] || []
 
@@ -103,7 +118,8 @@ defmodule Rindle.ValidatePhase133ThreatInventory do
            Enum.sort(Enum.map(items, & &1["id"])) == Enum.sort(@ids) or
              {:error, "finding universe is missing, duplicated, or contains a synthetic ID"},
          :ok <- validate_items(root, items, data["binding"]),
-         :ok <- current_security_verified(root) do
+         :ok <- current_security_verified(security_path, data["binding"], items),
+         :ok <- execute_proof_commands(root, items) do
       :ok
     else
       {:error, message} -> {:error, message}
@@ -130,9 +146,6 @@ defmodule Rindle.ValidatePhase133ThreatInventory do
       _ -> {:error, "inventory subject/census binding is malformed"}
     end
   end
-
-  defp valid_current_binding(_root, _),
-    do: {:error, "inventory subject/census binding is required"}
 
   defp valid_current_binding(_root, _),
     do: {:error, "inventory subject/census binding is malformed"}
@@ -235,6 +248,9 @@ defmodule Rindle.ValidatePhase133ThreatInventory do
          {:ok, body} <- File.read(Path.join(root, path)),
          digest <- :crypto.hash(:sha256, body) |> Base.encode16(case: :lower),
          true <- digest == proof["file_sha256"] or {:error, "#{id}: proof file digest mismatch"},
+         {:ok, committed_body} <- git(root, ["show", "#{subject}:#{path}"]),
+         true <-
+           committed_body == body or {:error, "#{id}: proof file differs from census subject"},
          true <-
            String.contains?(body, assertion) or
              {:error, "#{id}: proof assertion missing from source"} do
@@ -249,30 +265,100 @@ defmodule Rindle.ValidatePhase133ThreatInventory do
   defp validate_executable_proof(_root, id, _proof, _binding),
     do: {:error, "#{id}: executable proof metadata is required"}
 
-  defp current_security_verified(root) do
-    path = Path.join(root, Path.join(@phase, "133-SECURITY.md"))
+  defp execute_proof_commands(root, items) do
+    items
+    |> Enum.map(&get_in(&1, ["evidence", "proof", "command"]))
+    |> Enum.uniq()
+    |> Enum.reduce_while(:ok, fn command, :ok ->
+      case System.cmd("bash", ["-lc", command],
+             cd: root,
+             env: [
+               {"ASDF_ERLANG_VERSION", "27.3.4.15"},
+               {"ASDF_ELIXIR_VERSION", "1.17.3-otp-27"},
+               {"MIX_ENV", "test"}
+             ],
+             stderr_to_stdout: true
+           ) do
+        {_output, 0} ->
+          {:cont, :ok}
 
+        {output, status} ->
+          {:halt,
+           {:error,
+            "executable proof command failed (#{status}): #{command}: #{String.trim(output)}"}}
+      end
+    end)
+  end
+
+  defp current_security_verified(path, binding, items) do
     case File.read(path) do
       {:ok, body} ->
-        high_ids =
-          ~w(T-133-32 T-133-53 T-133-74 T-133-85 T-133-91 T-133-105 T-133-39-03 T-133-42-03)
-
-        high_closed? =
-          Enum.all?(high_ids, fn id ->
-            Regex.match?(~r/^\|\s*#{Regex.escape(id)}\s*\|[^\n]*\|\s*closed\s*\|\s*$/im, body)
-          end)
-
-        if String.contains?(body, "status: verified") and
-             String.contains?(body, "threats_open: 0") and high_closed? do
+        with {:ok, frontmatter} <- strict_frontmatter(body),
+             true <-
+               frontmatter["status"] == "verified" or {:error, "security status is not verified"},
+             true <-
+               frontmatter["subject_sha"] == binding["subject_sha"] or
+                 {:error, "security subject binding mismatch"},
+             true <-
+               frontmatter["census_sha256"] == binding["census_sha256"] or
+                 {:error, "security census binding mismatch"},
+             true <-
+               frontmatter["threats_open"] == "0" or {:error, "security report has open threats"},
+             true <-
+               all_rows_dispositioned?(body, @high_ids, ["closed"]) or
+                 {:error, "security report leaves a named high threat open"},
+             true <-
+               all_rows_dispositioned?(body, @ids, ["closed", "dispositioned"]) or
+                 {:error, "security report leaves an inventory finding open"},
+             true <-
+               Enum.all?(items, &(&1["current_disposition"] in ["closed", "dispositioned"])) or
+                 {:error, "inventory still has open findings"} do
           :ok
         else
-          {:error,
-           "current security report must be verified with all eight named high threats closed"}
+          {:error, message} -> {:error, message}
+          _ -> {:error, "current security report is malformed or incomplete"}
         end
 
       _ ->
         {:error, "current security report missing"}
     end
+  end
+
+  defp strict_frontmatter(body) do
+    with [text] <- Regex.run(~r/\A---\s*\n(.*?)\n---/s, body, capture: :all_but_first),
+         fields <- ["status", "subject_sha", "census_sha256", "threats_open"],
+         values <-
+           Map.new(fields, fn field ->
+             matches =
+               Regex.scan(~r/^#{Regex.escape(field)}:\s*(.*?)\s*$/m, text,
+                 capture: :all_but_first
+               )
+
+             {field,
+              case matches do
+                [[value]] -> value
+                _ -> nil
+              end}
+           end),
+         true <- Enum.all?(fields, &is_binary(values[&1])) do
+      {:ok, values}
+    else
+      _ -> {:error, "security report frontmatter missing or ambiguous"}
+    end
+  end
+
+  defp all_rows_dispositioned?(body, ids, accepted) do
+    Enum.all?(ids, fn id ->
+      rows = Regex.scan(~r/^\|\s*#{Regex.escape(id)}\s*\|[^\n]*$/im, body)
+
+      case rows do
+        [[row]] ->
+          Enum.any?(accepted, &Regex.match?(~r/\|\s*#{Regex.escape(&1)}\s*\|\s*$/i, row))
+
+        _ ->
+          false
+      end
+    end)
   end
 
   defp read_json(path) do

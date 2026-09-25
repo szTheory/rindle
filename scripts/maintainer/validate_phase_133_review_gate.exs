@@ -257,43 +257,49 @@ defmodule Rindle.ValidatePhase133ReviewGate do
     with {:ok, text} <- read(reports, "133-SECURITY-INVENTORY.json"),
          {:ok, data} <- Jason.decode(text),
          items when is_list(items) <- data["items"] do
-      Enum.reduce_while(items, :ok, fn item, :ok ->
-        source = item["source"] || %{}
-        id = item["id"]
-        status = item["current_disposition"]
-        row_status = if status in ["closed", "dispositioned"], do: status, else: "__open__"
+      result =
+        Enum.reduce_while(items, :ok, fn item, :ok ->
+          source = item["source"] || %{}
+          id = item["id"]
+          status = item["current_disposition"]
+          row_status = if status in ["closed", "dispositioned"], do: status, else: "__open__"
 
-        with true <-
-               item["historical_disposition"] == "accept" or
-                 {:error, "#{id}: source disposition mismatch"},
-             true <- row_status != "__open__" or {:error, "#{id}: inventory still open"},
-             proof when is_binary(proof) and byte_size(proof) > 12 <-
-               get_in(item, ["evidence", "disposition_proof"]) ||
-                 {:error, "#{id}: disposition proof missing"},
-             :ok <-
-               validate_executable_proof(root, id, item["evidence"]["proof"], data["binding"]),
-             {:ok, blob} <- git(root, ["rev-parse", "#{source["commit"]}:#{source["path"]}"]),
-             true <-
-               String.trim(blob) == source["blob_sha"] or {:error, "#{id}: source blob mismatch"},
-             {:ok, body} <- git(root, ["show", "#{source["commit"]}:#{source["path"]}"]),
-             row when is_binary(row) <- Enum.at(String.split(body, "\n"), source["line"] - 1),
-             true <-
-               (row == source["row"] and String.starts_with?(row, "| #{id} |")) or
-                 {:error, "#{id}: source row mismatch"},
-             true <-
-               :crypto.hash(:sha256, row) |> Base.encode16(case: :lower) == source["row_sha256"] or
-                 {:error, "#{id}: source row digest mismatch"},
-             true <-
-               Regex.match?(
-                 ~r/^\|\s*#{Regex.escape(id)}\s*\|[^\n]*\|\s*#{Regex.escape(status)}\s*\|\s*$/im,
-                 security
-               ) or {:error, "#{id}: report and inventory disposition disagree"} do
-          {:cont, :ok}
-        else
-          {:error, message} -> {:halt, {:error, message}}
-          _ -> {:halt, {:error, "#{id}: source evidence is invalid"}}
-        end
-      end)
+          with true <-
+                 item["historical_disposition"] == "accept" or
+                   {:error, "#{id}: source disposition mismatch"},
+               true <- row_status != "__open__" or {:error, "#{id}: inventory still open"},
+               proof when is_binary(proof) and byte_size(proof) > 12 <-
+                 get_in(item, ["evidence", "disposition_proof"]) ||
+                   {:error, "#{id}: disposition proof missing"},
+               :ok <-
+                 validate_executable_proof(root, id, item["evidence"]["proof"], data["binding"]),
+               {:ok, blob} <- git(root, ["rev-parse", "#{source["commit"]}:#{source["path"]}"]),
+               true <-
+                 String.trim(blob) == source["blob_sha"] or
+                   {:error, "#{id}: source blob mismatch"},
+               {:ok, body} <- git(root, ["show", "#{source["commit"]}:#{source["path"]}"]),
+               row when is_binary(row) <- Enum.at(String.split(body, "\n"), source["line"] - 1),
+               true <-
+                 (row == source["row"] and String.starts_with?(row, "| #{id} |")) or
+                   {:error, "#{id}: source row mismatch"},
+               true <-
+                 :crypto.hash(:sha256, row) |> Base.encode16(case: :lower) == source["row_sha256"] or
+                   {:error, "#{id}: source row digest mismatch"},
+               true <-
+                 Regex.match?(
+                   ~r/^\|\s*#{Regex.escape(id)}\s*\|[^\n]*\|\s*#{Regex.escape(status)}\s*\|\s*$/im,
+                   security
+                 ) or {:error, "#{id}: report and inventory disposition disagree"} do
+            {:cont, :ok}
+          else
+            {:error, message} -> {:halt, {:error, message}}
+            _ -> {:halt, {:error, "#{id}: source evidence is invalid"}}
+          end
+        end)
+
+      with :ok <- result do
+        run_inventory_validator(root, reports)
+      end
     else
       {:error, message} -> {:error, message}
       _ -> {:error, "security inventory source evidence is malformed"}
@@ -315,6 +321,9 @@ defmodule Rindle.ValidatePhase133ReviewGate do
          {:ok, body} <- File.read(Path.join(root, path)),
          digest <- :crypto.hash(:sha256, body) |> Base.encode16(case: :lower),
          true <- digest == proof["file_sha256"] or {:error, "#{id}: proof file digest mismatch"},
+         {:ok, committed_body} <- git(root, ["show", "#{subject}:#{path}"]),
+         true <-
+           committed_body == body or {:error, "#{id}: proof file differs from census subject"},
          true <-
            String.contains?(body, assertion) or
              {:error, "#{id}: proof assertion missing from source"} do
@@ -328,6 +337,42 @@ defmodule Rindle.ValidatePhase133ReviewGate do
 
   defp validate_executable_proof(_root, id, _proof, _binding),
     do: {:error, "#{id}: executable proof metadata is required"}
+
+  defp run_inventory_validator(root, reports) do
+    inventory = Path.join(reports, "133-SECURITY-INVENTORY.json")
+    security = Path.join(reports, "133-SECURITY.md")
+
+    case System.cmd(
+           "mix",
+           [
+             "run",
+             "--no-start",
+             "--no-deps-check",
+             "--no-compile",
+             "scripts/maintainer/validate_phase_133_threat_inventory.exs",
+             "--root",
+             root,
+             "--inventory",
+             inventory,
+             "--security-report",
+             security
+           ],
+           cd: root,
+           env: [
+             {"ASDF_ERLANG_VERSION", "27.3.4.15"},
+             {"ASDF_ELIXIR_VERSION", "1.17.3-otp-27"},
+             {"MIX_ENV", "test"}
+           ],
+           stderr_to_stdout: true
+         ) do
+      {_output, 0} ->
+        :ok
+
+      {output, status} ->
+        {:error,
+         "executable security inventory validation failed (#{status}): #{String.trim(output)}"}
+    end
+  end
 
   defp expected_proof(id) when id in @package_proof_ids,
     do: {@package_proof_path, @package_proof_command, id}

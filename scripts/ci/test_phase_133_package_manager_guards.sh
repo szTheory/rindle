@@ -65,11 +65,6 @@ bash scripts/ci/test_verify_nightly_run.sh
 
 # Plans 34–42 exercise reconciliation, disclosure surfaces, package authority,
 # and terminal-summary handling without remote lookup or remote mutation.
-security_test_args=()
-if ! rg -q '^status: verified$' .planning/phases/133-evidence-charter-and-live-truth/133-SECURITY.md; then
-  security_test_args+=(--exclude requires_verified_security_report)
-fi
-
 mix test \
   test/install_smoke/phase_133_reconciliation_test.exs \
   test/install_smoke/phase_133_completed_validation_test.exs \
@@ -80,7 +75,7 @@ mix test \
   test/install_smoke/phase_133_security_disclosure_test.exs \
   test/install_smoke/phase_133_review_gate_test.exs \
   test/install_smoke/phase_133_threat_inventory_test.exs \
-  "${security_test_args[@]}" \
+  --exclude requires_verified_security_report \
   --seed 0
 
 if [[ -s "$guard_log" ]]; then

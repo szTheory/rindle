@@ -17,6 +17,7 @@ defmodule Rindle.InstallSmoke.Phase133ThreatInventoryTest do
 
     File.mkdir_p!(tmp)
     path = Path.join(tmp, "inventory.json")
+    security_path = Path.join(tmp, "security.md")
     data = @inventory |> File.read!() |> Jason.decode!()
     binding = data["binding"]
 
@@ -44,19 +45,43 @@ defmodule Rindle.InstallSmoke.Phase133ThreatInventoryTest do
         end)
       end)
 
+    high_ids = ~w(T-133-32 T-133-53 T-133-74 T-133-85 T-133-91 T-133-105 T-133-39-03 T-133-42-03)
+
+    security_rows =
+      (high_ids |> Enum.map(&{&1, "high", "closed"})) ++
+        (data["items"] |> Enum.map(&{&1["id"], "low", &1["current_disposition"]}))
+
+    security_report = """
+    ---
+    status: verified
+    subject_sha: #{binding["subject_sha"]}
+    census_sha256: #{binding["census_sha256"]}
+    threats_open: 0
+    ---
+
+    #{Enum.map_join(security_rows, "\n", fn {id, severity, status} -> "| #{id} | finding | component | #{severity} | mitigate | proof | #{status} |" end)}
+    """
+
+    File.write!(security_path, security_report)
+
     on_exit(fn -> File.rm_rf!(tmp) end)
-    %{path: path, data: data}
+    %{path: path, data: data, security_path: security_path}
   end
 
   @tag :requires_verified_security_report
-  test "accepts the complete recovered source inventory", %{path: path, data: data} do
-    assert {output, 0} = invoke(write(path, data))
+  test "accepts the complete recovered source inventory", %{
+    path: path,
+    data: data,
+    security_path: security_path
+  } do
+    assert {output, 0} = invoke(write(path, data), security_path)
     assert output =~ "15 exact-ID findings have current executable disposition proofs"
   end
 
   test "rejects missing, duplicate, foreign, and source-mismatched identities", %{
     path: path,
-    data: data
+    data: data,
+    security_path: security_path
   } do
     first = hd(data["items"])
 
@@ -70,13 +95,14 @@ defmodule Rindle.InstallSmoke.Phase133ThreatInventoryTest do
     ]
 
     for mutation <- mutations do
-      assert_rejected(path, mutation)
+      assert_rejected(path, security_path, mutation)
     end
   end
 
   test "rejects unsupported dispositions, missing evidence, and changed audit mode", %{
     path: path,
-    data: data
+    data: data,
+    security_path: security_path
   } do
     mutations = [
       put_in(data, ["items", Access.at(0), "current_disposition"], "open"),
@@ -98,13 +124,14 @@ defmodule Rindle.InstallSmoke.Phase133ThreatInventoryTest do
     ]
 
     for mutation <- mutations do
-      assert_rejected(path, mutation)
+      assert_rejected(path, security_path, mutation)
     end
   end
 
   test "rejects an inventory bound to a different ledger subject or digest", %{
     path: path,
-    data: data
+    data: data,
+    security_path: security_path
   } do
     for binding <- [
           %{
@@ -116,12 +143,32 @@ defmodule Rindle.InstallSmoke.Phase133ThreatInventoryTest do
             "census_sha256" => String.duplicate("0", 64)
           }
         ] do
-      assert_rejected(path, Map.put(data, "binding", binding))
+      assert_rejected(path, security_path, Map.put(data, "binding", binding))
     end
   end
 
-  defp assert_rejected(path, data) do
-    assert {output, status} = invoke(write(path, data))
+  test "rejects a contradictory, stale, or duplicate-row security report", %{
+    path: path,
+    data: data,
+    security_path: security_path
+  } do
+    original = File.read!(security_path)
+
+    mutations = [
+      String.replace(original, "status: verified", "status: open_threats"),
+      String.replace(original, data["binding"]["subject_sha"], String.duplicate("a", 40)),
+      String.replace(original, data["binding"]["census_sha256"], String.duplicate("0", 64)),
+      original <> "\n| T-133-53 | duplicate | component | high | mitigate | evidence | open |\n"
+    ]
+
+    for report <- mutations do
+      File.write!(security_path, report)
+      assert_rejected(path, security_path, data)
+    end
+  end
+
+  defp assert_rejected(path, security_path, data) do
+    assert {output, status} = invoke(write(path, data), security_path)
     assert status != 0
     assert output =~ "validate-phase-133-threat-inventory"
   end
@@ -131,7 +178,7 @@ defmodule Rindle.InstallSmoke.Phase133ThreatInventoryTest do
     path
   end
 
-  defp invoke(path) do
+  defp invoke(path, security_path) do
     System.cmd(
       "mix",
       [
@@ -143,7 +190,9 @@ defmodule Rindle.InstallSmoke.Phase133ThreatInventoryTest do
         "--root",
         @root,
         "--inventory",
-        path
+        path,
+        "--security-report",
+        security_path
       ],
       env: [{"ASDF_ERLANG_VERSION", "27.3.4.15"}],
       stderr_to_stdout: true
