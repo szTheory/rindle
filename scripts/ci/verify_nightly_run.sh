@@ -549,10 +549,9 @@ if [ "$mode" = verify-receipt ]; then
   exit 0
 fi
 
-cleanup_paths=()
+cleanup_path=""
 cleanup() {
-  local path
-  for path in "${cleanup_paths[@]}"; do rm -f -- "$path"; done
+  if [ -n "$cleanup_path" ]; then rm -f -- "$cleanup_path"; fi
 }
 trap cleanup EXIT
 if [ -e "$receipt" ] || [ -L "$receipt" ]; then
@@ -563,7 +562,7 @@ receipt_dir="$(cd -- "$(dirname -- "$receipt")" && pwd)"
 receipt="${receipt_dir}/$(basename -- "$receipt")"
 temp_receipt="$(mktemp "${receipt_dir}/.nightly-receipt.XXXXXX")"
 chmod 600 "$temp_receipt"
-cleanup_paths+=("$temp_receipt")
+cleanup_path="$temp_receipt"
 preflight="$(preflight_json)"
 incident_before="$(canonical_incidents)" || die "incident snapshot before dispatch failed"
 pre_dispatch_ids="$(matching_run_ids)"
@@ -620,5 +619,5 @@ jq -nS \
 verify_receipt_shape "$temp_receipt"
 ln "$temp_receipt" "$receipt" || die "receipt destination appeared during collection"
 rm -f -- "$temp_receipt"
-cleanup_paths=()
+cleanup_path=""
 echo "Recorded exact Nightly evidence for ${expected_sha} in ${receipt}"

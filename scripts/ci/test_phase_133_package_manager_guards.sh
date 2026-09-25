@@ -68,7 +68,7 @@ bash scripts/ci/test_verify_nightly_run.sh
 mix test \
   test/install_smoke/phase_133_reconciliation_test.exs \
   test/install_smoke/phase_133_completed_validation_test.exs \
-  test/install_smoke/phase_133_package_execution_test.exs \
+  test/install_smoke/package_metadata_test.exs \
   test/install_smoke/phase_133_incident_atomicity_test.exs \
   test/install_smoke/evidence_census_test.exs \
   test/install_smoke/live_truth_parity_test.exs \

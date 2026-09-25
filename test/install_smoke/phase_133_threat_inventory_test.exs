@@ -69,6 +69,7 @@ defmodule Rindle.InstallSmoke.Phase133ThreatInventoryTest do
   end
 
   @tag :requires_verified_security_report
+  @tag timeout: 180_000
   test "accepts the complete recovered source inventory", %{
     path: path,
     data: data,

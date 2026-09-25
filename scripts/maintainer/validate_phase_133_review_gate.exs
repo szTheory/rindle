@@ -339,8 +339,8 @@ defmodule Rindle.ValidatePhase133ReviewGate do
     do: {:error, "#{id}: executable proof metadata is required"}
 
   defp run_inventory_validator(root, reports) do
-    inventory = Path.join(reports, "133-SECURITY-INVENTORY.json")
-    security = Path.join(reports, "133-SECURITY.md")
+    inventory = Path.join(reports, Path.join(@phase, "133-SECURITY-INVENTORY.json"))
+    security = Path.join(reports, Path.join(@phase, "133-SECURITY.md"))
 
     case System.cmd(
            "mix",
