@@ -1,226 +1,715 @@
 {
   "schema_version": 1,
-  "subject_sha": "b9e837d6e11c6539ef1bc610c05c2f8b3de854fa",
+  "subject_sha": "07beb46e6d438b3c41a2f2ac8dc9935a941600df",
   "taxonomy": [
-    {"id": "correctness", "applicable": true, "detectors": ["default-exunit"]},
-    {"id": "maintainability", "applicable": true, "detectors": ["credo-quality"]},
-    {"id": "security", "applicable": true, "detectors": ["mix-audit"]},
-    {"id": "performance", "applicable": true, "detectors": ["pr-timing"]},
-    {"id": "reliability", "applicable": true, "detectors": ["nightly-policy"]},
-    {"id": "compatibility", "applicable": true, "detectors": ["supported-toolchain"]},
-    {"id": "testing", "applicable": true, "detectors": ["automation-first"]},
-    {"id": "documentation/accessibility", "applicable": true, "detectors": ["docs-accessibility"]},
-    {"id": "packaging", "applicable": true, "detectors": ["package-consumer"]},
-    {"id": "CI/CD", "applicable": true, "detectors": ["workflow-topology"]},
-    {"id": "release engineering", "applicable": true, "detectors": ["release-authority"]},
-    {"id": "repository hygiene", "applicable": true, "detectors": ["repository-hygiene"]}
+    {
+      "id": "correctness",
+      "applicable": true,
+      "detectors": [
+        "default-exunit"
+      ]
+    },
+    {
+      "id": "maintainability",
+      "applicable": true,
+      "detectors": [
+        "credo-quality"
+      ]
+    },
+    {
+      "id": "security",
+      "applicable": true,
+      "detectors": [
+        "mix-audit"
+      ]
+    },
+    {
+      "id": "performance",
+      "applicable": true,
+      "detectors": [
+        "pr-timing"
+      ]
+    },
+    {
+      "id": "reliability",
+      "applicable": true,
+      "detectors": [
+        "nightly-policy"
+      ]
+    },
+    {
+      "id": "compatibility",
+      "applicable": true,
+      "detectors": [
+        "supported-toolchain"
+      ]
+    },
+    {
+      "id": "testing",
+      "applicable": true,
+      "detectors": [
+        "automation-first"
+      ]
+    },
+    {
+      "id": "documentation/accessibility",
+      "applicable": true,
+      "detectors": [
+        "docs-accessibility"
+      ]
+    },
+    {
+      "id": "packaging",
+      "applicable": true,
+      "detectors": [
+        "package-consumer"
+      ]
+    },
+    {
+      "id": "CI/CD",
+      "applicable": true,
+      "detectors": [
+        "workflow-topology"
+      ]
+    },
+    {
+      "id": "release engineering",
+      "applicable": true,
+      "detectors": [
+        "release-authority"
+      ]
+    },
+    {
+      "id": "repository hygiene",
+      "applicable": true,
+      "detectors": [
+        "repository-hygiene"
+      ]
+    }
   ],
   "detectors": [
     {
       "id": "default-exunit",
       "dimension": "correctness",
       "command": "mix test",
-      "inputs": ["mix.exs"],
-      "observations": [{
-        "id": "obs-default-exunit-repair-qualification",
-        "kind": "test-suite",
-        "location": "test",
-        "signal": "Elixir 1.17/OTP 27 default suite plus supported Elixir 1.15/OTP 26 compatibility suite, detached no-start collector, and Plans 43-49 reconciliation and review-gate regressions",
-        "status": "pass",
-        "attributes": {"test_count": 1635, "failure_count": 0, "skipped_count": 4, "local_toolchain_only": true, "collector_case_count": 168, "reconciliation_case_count": 31}
-      }]
+      "inputs": [
+        "mix.exs"
+      ],
+      "observations": [
+        {
+          "id": "obs-default-exunit-repair-qualification",
+          "kind": "test-suite",
+          "location": "test",
+          "signal": "Elixir 1.17/OTP 27 default suite plus supported Elixir 1.15/OTP 26 compatibility suite, detached no-start collector, and Plans 43-49 reconciliation and review-gate regressions",
+          "status": "pass",
+          "attributes": {
+            "test_count": 1635,
+            "failure_count": 0,
+            "skipped_count": 4,
+            "local_toolchain_only": true,
+            "collector_case_count": 168,
+            "reconciliation_case_count": 31
+          }
+        }
+      ]
     },
     {
       "id": "credo-quality",
       "dimension": "maintainability",
       "command": "mix credo_quality",
-      "inputs": ["scripts/maintainer/credo_complexity_baseline.json", "scripts/maintainer/credo_quality.sh"],
-      "observations": [{
-        "id": "obs-credo-quality-baseline",
-        "kind": "curated-quality-policy",
-        "location": "scripts/maintainer/credo_complexity_baseline.json",
-        "signal": "reviewed warning and complexity multiset",
-        "status": "retain-pass",
-        "attributes": {"phase_133_changed": true, "unexpected_finding_count": 0}
-      }]
+      "inputs": [
+        "scripts/maintainer/credo_complexity_baseline.json",
+        "scripts/maintainer/credo_quality.sh"
+      ],
+      "observations": [
+        {
+          "id": "obs-credo-quality-baseline",
+          "kind": "curated-quality-policy",
+          "location": "scripts/maintainer/credo_complexity_baseline.json",
+          "signal": "reviewed warning and complexity multiset",
+          "status": "retain-pass",
+          "attributes": {
+            "phase_133_changed": true,
+            "unexpected_finding_count": 0
+          }
+        }
+      ]
     },
     {
       "id": "mix-audit",
       "dimension": "security",
       "command": "mix deps.audit",
-      "inputs": ["mix.exs", "mix.lock"],
-      "observations": [{
-        "id": "obs-mix-audit-policy",
-        "kind": "dependency-policy",
-        "location": "mix.lock",
-        "signal": "repository dependency audit contract",
-        "status": "retain",
-        "attributes": {"phase_133_changed": false, "dependency_disposition_deferred_to_phase_134": true}
-      }]
+      "inputs": [
+        "mix.exs",
+        "mix.lock"
+      ],
+      "observations": [
+        {
+          "id": "obs-mix-audit-policy",
+          "kind": "dependency-policy",
+          "location": "mix.lock",
+          "signal": "repository dependency audit contract",
+          "status": "retain",
+          "attributes": {
+            "phase_133_changed": false,
+            "dependency_disposition_deferred_to_phase_134": true
+          }
+        }
+      ]
     },
     {
       "id": "pr-timing",
       "dimension": "performance",
       "command": "validate accepted PR timing receipt",
-      "inputs": [".planning/milestones/v1.25-phases/132-measured-closure/132-02-SUMMARY.md"],
-      "observations": [{
-        "id": "obs-pr-timing-v125",
-        "kind": "accepted-performance-receipt",
-        "location": ".planning/milestones/v1.25-phases/132-measured-closure/132-02-SUMMARY.md",
-        "signal": "ten comparable PR runs",
-        "status": "retain-pass",
-        "attributes": {"sample_count": 10, "median_seconds": 453, "p95_seconds": 481, "phase_133_changed": false}
-      }]
+      "inputs": [
+        ".planning/milestones/v1.25-phases/132-measured-closure/132-02-SUMMARY.md"
+      ],
+      "observations": [
+        {
+          "id": "obs-pr-timing-v125",
+          "kind": "accepted-performance-receipt",
+          "location": ".planning/milestones/v1.25-phases/132-measured-closure/132-02-SUMMARY.md",
+          "signal": "ten comparable PR runs",
+          "status": "retain-pass",
+          "attributes": {
+            "sample_count": 10,
+            "median_seconds": 453,
+            "p95_seconds": 481,
+            "phase_133_changed": false
+          }
+        }
+      ]
     },
     {
       "id": "nightly-policy",
       "dimension": "reliability",
       "command": "evaluate Nightly evidence",
-      "inputs": [".github/workflows/nightly.yml"],
-      "observations": [{
-        "id": "obs-nightly-policy-repair-qualification",
-        "kind": "strict-nightly-policy",
-        "location": ".github/workflows/nightly.yml",
-        "signal": "49-case aggregate, 26-case cross-SHA immutable incident replay, 168-case exact-run collector contracts with detached no-start authority, three immutable failed/unqualified attempts, and one distinct prior valid live receipt",
-        "status": "local-contract-pass-repaired-subject-unpublished",
-        "attributes": {"summary_case_count": 49, "incident_case_count": 26, "dispatch_case_count": 168, "incident_policy_owner_count": 1, "obsolete_incident_evaluator_present": false, "detached_authority_no_start": true, "detached_authority_fail_closed": true, "repaired_subject_live_proof": false, "historical_failure_subject_sha": "0f8189ddeed7e7a52b5c7464f17b70ab44596c33", "historical_failure_ref": "phase-133-evidence-0f8189ddeed7", "historical_failure_run_id": 34661043059, "historical_failure_run_attempt": 1, "historical_failure_conclusion": "failure", "live_receipt_subject_sha": "1470cf8cb0f111d0b233efbf77ee69e92f25fd68", "live_receipt_run_id": 34638437301, "live_receipt_reverified": true, "incident_snapshot_drift_run_id": 34680908108, "exhausted_subject_sha": "4ab38ab62878eea936f20bb76e2f7321da6c2e90", "exhausted_ref": "phase-133-evidence-4ab38ab62878", "exhausted_run_id": 34732110533, "exhausted_qualification": false}
-      }]
+      "inputs": [
+        ".github/workflows/nightly.yml"
+      ],
+      "observations": [
+        {
+          "id": "obs-nightly-policy-repair-qualification",
+          "kind": "strict-nightly-policy",
+          "location": ".github/workflows/nightly.yml",
+          "signal": "49-case aggregate, 26-case cross-SHA immutable incident replay, 168-case exact-run collector contracts with detached no-start authority, three immutable failed/unqualified attempts, and one distinct prior valid live receipt",
+          "status": "local-contract-pass-repaired-subject-unpublished",
+          "attributes": {
+            "summary_case_count": 49,
+            "incident_case_count": 26,
+            "dispatch_case_count": 168,
+            "incident_policy_owner_count": 1,
+            "obsolete_incident_evaluator_present": false,
+            "detached_authority_no_start": true,
+            "detached_authority_fail_closed": true,
+            "repaired_subject_live_proof": false,
+            "historical_failure_subject_sha": "0f8189ddeed7e7a52b5c7464f17b70ab44596c33",
+            "historical_failure_ref": "phase-133-evidence-0f8189ddeed7",
+            "historical_failure_run_id": 34661043059,
+            "historical_failure_run_attempt": 1,
+            "historical_failure_conclusion": "failure",
+            "live_receipt_subject_sha": "1470cf8cb0f111d0b233efbf77ee69e92f25fd68",
+            "live_receipt_run_id": 34638437301,
+            "live_receipt_reverified": true,
+            "incident_snapshot_drift_run_id": 34680908108,
+            "exhausted_subject_sha": "4ab38ab62878eea936f20bb76e2f7321da6c2e90",
+            "exhausted_ref": "phase-133-evidence-4ab38ab62878",
+            "exhausted_run_id": 34732110533,
+            "exhausted_qualification": false
+          }
+        }
+      ]
     },
     {
       "id": "supported-toolchain",
       "dimension": "compatibility",
       "command": "verify supported toolchain matrix",
-      "inputs": [".tool-versions", ".github/workflows/nightly.yml"],
-      "observations": [{
-        "id": "obs-supported-toolchain-repair-qualification",
-        "kind": "supported-cell-policy",
-        "location": ".github/workflows/nightly.yml",
-        "signal": "fresh/restored/stale-only Dialyzer contract plus deterministic package compatibility across Elixir 1.15/OTP 26, 1.16/OTP 26, and 1.18/OTP 27",
-        "status": "local-contract-pass-repaired-subject-unpublished",
-        "attributes": {"dialyzer_case_count": 34, "supported_elixir": "1.17", "supported_otp": "27", "local_elixir": "1.17.3", "local_otp": "27.3.4.15", "supported_cell_live_proof": false, "package_regression_fixture_count": 3, "historical_failure_subject_sha": "0f8189ddeed7e7a52b5c7464f17b70ab44596c33", "historical_failure_run_id": 34661043059, "live_receipt_subject_sha": "1470cf8cb0f111d0b233efbf77ee69e92f25fd68", "live_receipt_run_id": 34638437301, "exhausted_subject_sha": "e70623e9ea956c750904af574f47221cc472d2f2", "exhausted_run_id": 34670574306}
-      }]
+      "inputs": [
+        ".tool-versions",
+        ".github/workflows/nightly.yml"
+      ],
+      "observations": [
+        {
+          "id": "obs-supported-toolchain-repair-qualification",
+          "kind": "supported-cell-policy",
+          "location": ".github/workflows/nightly.yml",
+          "signal": "fresh/restored/stale-only Dialyzer contract plus deterministic package compatibility across Elixir 1.15/OTP 26, 1.16/OTP 26, and 1.18/OTP 27",
+          "status": "local-contract-pass-repaired-subject-unpublished",
+          "attributes": {
+            "dialyzer_case_count": 34,
+            "supported_elixir": "1.17",
+            "supported_otp": "27",
+            "local_elixir": "1.17.3",
+            "local_otp": "27.3.4.15",
+            "supported_cell_live_proof": false,
+            "package_regression_fixture_count": 3,
+            "historical_failure_subject_sha": "0f8189ddeed7e7a52b5c7464f17b70ab44596c33",
+            "historical_failure_run_id": 34661043059,
+            "live_receipt_subject_sha": "1470cf8cb0f111d0b233efbf77ee69e92f25fd68",
+            "live_receipt_run_id": 34638437301,
+            "exhausted_subject_sha": "e70623e9ea956c750904af574f47221cc472d2f2",
+            "exhausted_run_id": 34670574306
+          }
+        }
+      ]
     },
     {
       "id": "automation-first",
       "dimension": "testing",
       "command": "./scripts/maintainer/automation_first_contract.sh",
-      "inputs": ["RUNNING.md", "scripts/maintainer/automation_first_contract.sh"],
-      "observations": [{
-        "id": "obs-automation-first-repair-qualification",
-        "kind": "acceptance-policy",
-        "location": ".planning/phases/133-evidence-charter-and-live-truth/133-VALIDATION.md",
-        "signal": "forty-two-plan branch-aware automation-first graph with three immutable halted attempts and authorization-only publication boundaries",
-        "status": "pass",
-        "attributes": {"manual_acceptance_count": 0, "repair_publication_checkpoint_count": 5, "normal_completed_plan_count": 36, "normal_halted_plan_count": 3, "normal_pending_plan_count": 3, "normal_summarized_plan_count": 39, "validation_record_count": 82, "halted_plans": ["133-27", "133-32", "133-37"], "halted_run_ids": [34661043059, 34670574306, 34732110533]}
-      }]
+      "inputs": [
+        "RUNNING.md",
+        "scripts/maintainer/automation_first_contract.sh"
+      ],
+      "observations": [
+        {
+          "id": "obs-automation-first-repair-qualification",
+          "kind": "acceptance-policy",
+          "location": ".planning/phases/133-evidence-charter-and-live-truth/133-VALIDATION.md",
+          "signal": "forty-two-plan branch-aware automation-first graph with three immutable halted attempts and authorization-only publication boundaries",
+          "status": "pass",
+          "attributes": {
+            "manual_acceptance_count": 0,
+            "repair_publication_checkpoint_count": 5,
+            "normal_completed_plan_count": 36,
+            "normal_halted_plan_count": 3,
+            "normal_pending_plan_count": 3,
+            "normal_summarized_plan_count": 39,
+            "validation_record_count": 82,
+            "halted_plans": [
+              "133-27",
+              "133-32",
+              "133-37"
+            ],
+            "halted_run_ids": [
+              34661043059,
+              34670574306,
+              34732110533
+            ]
+          }
+        }
+      ]
     },
     {
       "id": "docs-accessibility",
       "dimension": "documentation/accessibility",
       "command": "mix doctor --full --raise",
-      "inputs": ["RUNNING.md", "scripts/maintainer/refactor_contract.sh"],
-      "observations": [{
-        "id": "obs-docs-accessibility-gap-closure",
-        "kind": "documentation-and-accessibility-contract",
-        "location": "RUNNING.md",
-        "signal": "durable Nightly, receipt, and required-check guidance plus generated accessibility gates",
-        "status": "pass",
-        "attributes": {"doctor_failed_module_count": 0, "admin_contrast_pair_count": 58, "structured_required_check_authority": true, "current_receipt_authority": true}
-      }]
+      "inputs": [
+        "RUNNING.md",
+        "scripts/maintainer/refactor_contract.sh"
+      ],
+      "observations": [
+        {
+          "id": "obs-docs-accessibility-gap-closure",
+          "kind": "documentation-and-accessibility-contract",
+          "location": "RUNNING.md",
+          "signal": "durable Nightly, receipt, and required-check guidance plus generated accessibility gates",
+          "status": "pass",
+          "attributes": {
+            "doctor_failed_module_count": 0,
+            "admin_contrast_pair_count": 58,
+            "structured_required_check_authority": true,
+            "current_receipt_authority": true
+          }
+        }
+      ]
     },
     {
       "id": "package-consumer",
       "dimension": "packaging",
       "command": "mix hex.build --unpack",
-      "inputs": ["mix.exs", "test/install_smoke/package_metadata_test.exs"],
-      "observations": [{
-        "id": "obs-package-consumer-repair-qualification",
-        "kind": "built-package-provenance",
-        "location": "test/install_smoke/live_truth_parity_test.exs",
-        "signal": "execution-authenticated exact-version consumer from one consumed unpacked-package receipt with support-floor fixtures and compile-before-boot failure attribution",
-        "status": "pass",
-        "attributes": {"package_authority_test_count": 19, "supported_fixture_count": 4, "ordered_command_count": 3, "combined_smoke_lifecycle": true, "repository_fallback": false, "prebuilt_fallback": false, "unpacked": true, "command_results_caller_supplied": false, "receipt_consumed_exactly_once": true, "resolver_atom_growth": 0}
-      }]
+      "inputs": [
+        "mix.exs",
+        "test/install_smoke/package_metadata_test.exs"
+      ],
+      "observations": [
+        {
+          "id": "obs-package-consumer-repair-qualification",
+          "kind": "built-package-provenance",
+          "location": "test/install_smoke/live_truth_parity_test.exs",
+          "signal": "execution-authenticated exact-version consumer from one consumed unpacked-package receipt with support-floor fixtures and compile-before-boot failure attribution",
+          "status": "pass",
+          "attributes": {
+            "package_authority_test_count": 19,
+            "supported_fixture_count": 4,
+            "ordered_command_count": 3,
+            "combined_smoke_lifecycle": true,
+            "repository_fallback": false,
+            "prebuilt_fallback": false,
+            "unpacked": true,
+            "command_results_caller_supplied": false,
+            "receipt_consumed_exactly_once": true,
+            "resolver_atom_growth": 0
+          }
+        }
+      ]
     },
     {
       "id": "workflow-topology",
       "dimension": "CI/CD",
       "command": "validate CI workflow topology",
-      "inputs": [".github/workflows/ci.yml", ".github/workflows/nightly.yml"],
-      "observations": [{
-        "id": "obs-workflow-topology-gap-closure",
-        "kind": "parsed-workflow-policy",
-        "location": ".github/workflows/nightly.yml",
-        "signal": "strict aggregate and single-owner cross-SHA incident replay wiring with preserved CI identity",
-        "status": "pass",
-        "attributes": {"required_check_count": 1, "nightly_gating_job_count": 4, "incident_policy_owner_count": 1, "obsolete_incident_evaluator_present": false, "full_adoption_e2e_merge_blocking": false, "smoke_adoption_e2e_merge_blocking": true}
-      }]
+      "inputs": [
+        ".github/workflows/ci.yml",
+        ".github/workflows/nightly.yml"
+      ],
+      "observations": [
+        {
+          "id": "obs-workflow-topology-gap-closure",
+          "kind": "parsed-workflow-policy",
+          "location": ".github/workflows/nightly.yml",
+          "signal": "strict aggregate and single-owner cross-SHA incident replay wiring with preserved CI identity",
+          "status": "pass",
+          "attributes": {
+            "required_check_count": 1,
+            "nightly_gating_job_count": 4,
+            "incident_policy_owner_count": 1,
+            "obsolete_incident_evaluator_present": false,
+            "full_adoption_e2e_merge_blocking": false,
+            "smoke_adoption_e2e_merge_blocking": true
+          }
+        }
+      ]
     },
     {
       "id": "release-authority",
       "dimension": "release engineering",
       "command": "validate exact-SHA release coupling",
-      "inputs": [".release-please-manifest.json", ".github/workflows/release.yml", "mix.exs"],
-      "observations": [{
-        "id": "obs-release-authority-post-133",
-        "kind": "derived-release-truth",
-        "location": "mix.exs",
-        "signal": "matching release authorities and exact-SHA CI coupling",
-        "status": "pass",
-        "attributes": {"version": "0.4.6", "authority_count": 2, "exact_sha_release_coupling": true}
-      }]
+      "inputs": [
+        ".release-please-manifest.json",
+        ".github/workflows/release.yml",
+        "mix.exs"
+      ],
+      "observations": [
+        {
+          "id": "obs-release-authority-post-133",
+          "kind": "derived-release-truth",
+          "location": "mix.exs",
+          "signal": "matching release authorities and exact-SHA CI coupling",
+          "status": "pass",
+          "attributes": {
+            "version": "0.4.6",
+            "authority_count": 2,
+            "exact_sha_release_coupling": true
+          }
+        }
+      ]
     },
     {
       "id": "repository-hygiene",
       "dimension": "repository hygiene",
       "command": "./scripts/maintainer/repo_hygiene_check.sh",
-      "inputs": ["scripts/maintainer/repo_hygiene_check.sh"],
-      "observations": [{
-        "id": "obs-repository-hygiene",
-        "kind": "clean-subject-policy",
-        "location": "scripts/maintainer/repo_hygiene_check.sh",
-        "signal": "detached exact-subject hygiene gate",
-        "status": "retain-pending-detached-receipt",
-        "attributes": {"caller_changes_excluded": true, "phase_133_changed": false}
-      }]
+      "inputs": [
+        "scripts/maintainer/repo_hygiene_check.sh"
+      ],
+      "observations": [
+        {
+          "id": "obs-repository-hygiene",
+          "kind": "clean-subject-policy",
+          "location": "scripts/maintainer/repo_hygiene_check.sh",
+          "signal": "detached exact-subject hygiene gate",
+          "status": "retain-pending-detached-receipt",
+          "attributes": {
+            "caller_changes_excluded": true,
+            "phase_133_changed": false
+          }
+        }
+      ]
     }
   ],
   "candidates": [
-    {"id": "quality-correctness-default-suite", "observations": ["obs-default-exunit-repair-qualification"], "disposition": "fix", "rationale": "Phase 133 adds non-vacuous evidence contracts, package compatibility regressions, bounded exact-run recovery, detached no-start authority, 42-plan halted-state reconciliation, and durable historical receipt verification while the exact repaired subject is locally green.", "evidence": ["mix ci", "test/async_safety_guard_test.exs", "scripts/ci/test_verify_nightly_run.sh", "test/install_smoke/phase_133_reconciliation_test.exs", "test/install_smoke/phase_133_completed_validation_test.exs", "scripts/maintainer/credo_complexity_baseline.json"], "trigger": null},
-    {"id": "quality-maintainability-curated-complexity", "observations": ["obs-credo-quality-baseline"], "disposition": "fix", "rationale": "Phase 127's reviewed removal-only complexity multiset remains authoritative; Plan 35 extracted branch-summary materialization and restored the inventory without raising the baseline.", "evidence": ["mix credo_quality", "scripts/maintainer/credo_complexity_baseline.json", "test/install_smoke/phase_133_completed_validation_test.exs"], "trigger": null},
-    {"id": "quality-security-dependency-policy", "observations": ["obs-mix-audit-policy"], "disposition": "retain", "rationale": "Phase 133 does not mutate dependency dispositions; live dependency triage is explicitly owned by Phase 134.", "evidence": ["mix deps.audit", ".planning/ROADMAP.md"], "trigger": null},
-    {"id": "quality-performance-required-pr-timing", "observations": ["obs-pr-timing-v125"], "disposition": "retain", "rationale": "The accepted ten-run <=480s median and <=600s p95 receipt remains authoritative and Phase 133 preserves the required topology.", "evidence": [".planning/milestones/v1.25-phases/132-measured-closure/132-02-SUMMARY.md"], "trigger": null},
-    {"id": "quality-reliability-nightly", "observations": ["obs-nightly-policy-repair-qualification"], "disposition": "fix", "rationale": "Strict single-owner cross-SHA replay, bounded exact-run recovery, detached no-start authority, and monotonic historical incident verification are locally green while Plans 27, 32, and 37 stay immutable failed/unqualified history and the prior valid receipt remains independently verifiable.", "evidence": ["scripts/ci/test_nightly_summary_gate.sh", "scripts/ci/test_nightly_incident.sh", "scripts/ci/test_verify_nightly_run.sh", "133-27-SUMMARY.md", "133-32-SUMMARY.md", "133-37-SUMMARY.md", "133-38-SUMMARY.md", "133-NIGHTLY-EVIDENCE.json"], "trigger": null},
-    {"id": "quality-compatibility-supported-toolchain", "observations": ["obs-supported-toolchain-repair-qualification"], "disposition": "fix", "rationale": "Resolved patch-level PLT contracts and deterministic package compatibility remain locally green on Elixir 1.17/OTP 27 without granting the unpublished repaired subject live supported-cell credit.", "evidence": ["scripts/ci/test_nightly_dialyzer.sh", "test/install_smoke/live_truth_parity_test.exs", "133-28-SUMMARY.md"], "trigger": null},
-    {"id": "quality-testing-automation-first", "observations": ["obs-automation-first-repair-qualification"], "disposition": "fix", "rationale": "All 42 plan definitions have concrete failure-directed automation ownership, Plans 27, 32, and 37 remain halted without completion credit, Plan 41 remains authorization-only, and Plan 42 alone owns terminal qualification.", "evidence": ["./scripts/maintainer/automation_first_contract.sh", ".planning/phases/133-evidence-charter-and-live-truth/133-VALIDATION.md", "scripts/maintainer/validate_phase_133_reconciliation.exs", "test/install_smoke/phase_133_completed_validation_test.exs", "133-39-SUMMARY.md"], "trigger": null},
-    {"id": "quality-documentation-accessibility", "observations": ["obs-docs-accessibility-gap-closure"], "disposition": "fix", "rationale": "Maintainer guidance derives Nightly, receipt, and required-check meaning from current authorities while preserving generated accessibility gates.", "evidence": ["RUNNING.md", "bash scripts/maintainer/refactor_contract.sh"], "trigger": null},
-    {"id": "quality-packaging-generated-consumer", "observations": ["obs-package-consumer-repair-qualification"], "disposition": "fix", "rationale": "Package claims require support-floor-compatible generated projects, independently executed compile, boot, and combined smoke/lifecycle commands, ordered failure attribution, exactly-once receipt consumption, finite resolver decoding, and branch-aware qualification.", "evidence": ["bash scripts/maintainer/check_adoption_proof_matrix.sh", "test/install_smoke/live_truth_parity_test.exs", "133-28-SUMMARY.md"], "trigger": null},
-    {"id": "quality-ci-required-topology", "observations": ["obs-workflow-topology-gap-closure"], "disposition": "fix", "rationale": "Nightly strict verdict and single-owner cross-SHA incident replay were repaired while CI, CI Summary, fork-safety, and required-needs identities remain fixed.", "evidence": ["test/install_smoke/nightly_policy_test.exs", "test/install_smoke/live_truth_parity_test.exs"], "trigger": null},
-    {"id": "quality-release-exact-sha", "observations": ["obs-release-authority-post-133"], "disposition": "fix", "rationale": "Active release and adoption claims now derive from matching 0.4.6 authorities and preserve exact-SHA release coupling.", "evidence": ["test/install_smoke/live_truth_parity_test.exs", "test/install_smoke/release_docs_parity_test.exs"], "trigger": null},
-    {"id": "quality-repository-hygiene", "observations": ["obs-repository-hygiene"], "disposition": "retain", "rationale": "The existing repository hygiene gate remains the authoritative clean-subject policy and is executed in a detached exact-SHA worktree for this freeze.", "evidence": ["./scripts/maintainer/repo_hygiene_check.sh", "scripts/maintainer/evidence_census.exs"], "trigger": null}
+    {
+      "id": "quality-correctness-default-suite",
+      "observations": [
+        "obs-default-exunit-repair-qualification"
+      ],
+      "disposition": "fix",
+      "rationale": "Phase 133 adds non-vacuous evidence contracts, package compatibility regressions, bounded exact-run recovery, detached no-start authority, 42-plan halted-state reconciliation, and durable historical receipt verification while the exact repaired subject is locally green.",
+      "evidence": [
+        "mix ci",
+        "test/async_safety_guard_test.exs",
+        "scripts/ci/test_verify_nightly_run.sh",
+        "test/install_smoke/phase_133_reconciliation_test.exs",
+        "test/install_smoke/phase_133_completed_validation_test.exs",
+        "scripts/maintainer/credo_complexity_baseline.json"
+      ],
+      "trigger": null
+    },
+    {
+      "id": "quality-maintainability-curated-complexity",
+      "observations": [
+        "obs-credo-quality-baseline"
+      ],
+      "disposition": "fix",
+      "rationale": "Phase 127's reviewed removal-only complexity multiset remains authoritative; Plan 35 extracted branch-summary materialization and restored the inventory without raising the baseline.",
+      "evidence": [
+        "mix credo_quality",
+        "scripts/maintainer/credo_complexity_baseline.json",
+        "test/install_smoke/phase_133_completed_validation_test.exs"
+      ],
+      "trigger": null
+    },
+    {
+      "id": "quality-security-dependency-policy",
+      "observations": [
+        "obs-mix-audit-policy"
+      ],
+      "disposition": "retain",
+      "rationale": "Phase 133 does not mutate dependency dispositions; live dependency triage is explicitly owned by Phase 134.",
+      "evidence": [
+        "mix deps.audit",
+        ".planning/ROADMAP.md"
+      ],
+      "trigger": null
+    },
+    {
+      "id": "quality-performance-required-pr-timing",
+      "observations": [
+        "obs-pr-timing-v125"
+      ],
+      "disposition": "retain",
+      "rationale": "The accepted ten-run <=480s median and <=600s p95 receipt remains authoritative and Phase 133 preserves the required topology.",
+      "evidence": [
+        ".planning/milestones/v1.25-phases/132-measured-closure/132-02-SUMMARY.md"
+      ],
+      "trigger": null
+    },
+    {
+      "id": "quality-reliability-nightly",
+      "observations": [
+        "obs-nightly-policy-repair-qualification"
+      ],
+      "disposition": "fix",
+      "rationale": "Strict single-owner cross-SHA replay, bounded exact-run recovery, detached no-start authority, and monotonic historical incident verification are locally green while Plans 27, 32, and 37 stay immutable failed/unqualified history and the prior valid receipt remains independently verifiable.",
+      "evidence": [
+        "scripts/ci/test_nightly_summary_gate.sh",
+        "scripts/ci/test_nightly_incident.sh",
+        "scripts/ci/test_verify_nightly_run.sh",
+        "133-27-SUMMARY.md",
+        "133-32-SUMMARY.md",
+        "133-37-SUMMARY.md",
+        "133-38-SUMMARY.md",
+        "133-NIGHTLY-EVIDENCE.json"
+      ],
+      "trigger": null
+    },
+    {
+      "id": "quality-compatibility-supported-toolchain",
+      "observations": [
+        "obs-supported-toolchain-repair-qualification"
+      ],
+      "disposition": "fix",
+      "rationale": "Resolved patch-level PLT contracts and deterministic package compatibility remain locally green on Elixir 1.17/OTP 27 without granting the unpublished repaired subject live supported-cell credit.",
+      "evidence": [
+        "scripts/ci/test_nightly_dialyzer.sh",
+        "test/install_smoke/live_truth_parity_test.exs",
+        "133-28-SUMMARY.md"
+      ],
+      "trigger": null
+    },
+    {
+      "id": "quality-testing-automation-first",
+      "observations": [
+        "obs-automation-first-repair-qualification"
+      ],
+      "disposition": "fix",
+      "rationale": "All 42 plan definitions have concrete failure-directed automation ownership, Plans 27, 32, and 37 remain halted without completion credit, Plan 41 remains authorization-only, and Plan 42 alone owns terminal qualification.",
+      "evidence": [
+        "./scripts/maintainer/automation_first_contract.sh",
+        ".planning/phases/133-evidence-charter-and-live-truth/133-VALIDATION.md",
+        "scripts/maintainer/validate_phase_133_reconciliation.exs",
+        "test/install_smoke/phase_133_completed_validation_test.exs",
+        "133-39-SUMMARY.md"
+      ],
+      "trigger": null
+    },
+    {
+      "id": "quality-documentation-accessibility",
+      "observations": [
+        "obs-docs-accessibility-gap-closure"
+      ],
+      "disposition": "fix",
+      "rationale": "Maintainer guidance derives Nightly, receipt, and required-check meaning from current authorities while preserving generated accessibility gates.",
+      "evidence": [
+        "RUNNING.md",
+        "bash scripts/maintainer/refactor_contract.sh"
+      ],
+      "trigger": null
+    },
+    {
+      "id": "quality-packaging-generated-consumer",
+      "observations": [
+        "obs-package-consumer-repair-qualification"
+      ],
+      "disposition": "fix",
+      "rationale": "Package claims require support-floor-compatible generated projects, independently executed compile, boot, and combined smoke/lifecycle commands, ordered failure attribution, exactly-once receipt consumption, finite resolver decoding, and branch-aware qualification.",
+      "evidence": [
+        "bash scripts/maintainer/check_adoption_proof_matrix.sh",
+        "test/install_smoke/live_truth_parity_test.exs",
+        "133-28-SUMMARY.md"
+      ],
+      "trigger": null
+    },
+    {
+      "id": "quality-ci-required-topology",
+      "observations": [
+        "obs-workflow-topology-gap-closure"
+      ],
+      "disposition": "fix",
+      "rationale": "Nightly strict verdict and single-owner cross-SHA incident replay were repaired while CI, CI Summary, fork-safety, and required-needs identities remain fixed.",
+      "evidence": [
+        "test/install_smoke/nightly_policy_test.exs",
+        "test/install_smoke/live_truth_parity_test.exs"
+      ],
+      "trigger": null
+    },
+    {
+      "id": "quality-release-exact-sha",
+      "observations": [
+        "obs-release-authority-post-133"
+      ],
+      "disposition": "fix",
+      "rationale": "Active release and adoption claims now derive from matching 0.4.6 authorities and preserve exact-SHA release coupling.",
+      "evidence": [
+        "test/install_smoke/live_truth_parity_test.exs",
+        "test/install_smoke/release_docs_parity_test.exs"
+      ],
+      "trigger": null
+    },
+    {
+      "id": "quality-repository-hygiene",
+      "observations": [
+        "obs-repository-hygiene"
+      ],
+      "disposition": "retain",
+      "rationale": "The existing repository hygiene gate remains the authoritative clean-subject policy and is executed in a detached exact-SHA worktree for this freeze.",
+      "evidence": [
+        "./scripts/maintainer/repo_hygiene_check.sh",
+        "scripts/maintainer/evidence_census.exs"
+      ],
+      "trigger": null
+    }
   ],
   "candidate_baseline": [
-    {"id": "quality-correctness-default-suite", "observations_digest": "b18f116fbed0e93a57f3b0b56c56340126392c08029773d136e2ebc3341dbcf8"},
-    {"id": "quality-maintainability-curated-complexity", "observations_digest": "2337c83e213eaa87962ec1de195ebda137bef54166466a395d7187f964cb199c"},
-    {"id": "quality-security-dependency-policy", "observations_digest": "507dd9b043af888d1920db3ae7a765283780e815cee748cd38b396fe95ae16fd"},
-    {"id": "quality-performance-required-pr-timing", "observations_digest": "6205f0499cefe52fb7895adcf9d69163332a3616e1fc8e1a5f1e90d7e8103c4c"},
-    {"id": "quality-reliability-nightly", "observations_digest": "85be8e919c48d0deda8b42c4b8f04ed61a646de945b829dd342c6de3082835f1"},
-    {"id": "quality-compatibility-supported-toolchain", "observations_digest": "23bcc0f2896bb68bfc6d75be56a3e07df53f227618e3d02e9287e8ea0383de2f"},
-    {"id": "quality-testing-automation-first", "observations_digest": "60def3ed33433acff5225aff9e86f18ceeab7b4254c0ebd28ac3eb00d3d83d2e"},
-    {"id": "quality-documentation-accessibility", "observations_digest": "4f46e378f4c90927af57c537497d2fbb7327c9a2e07a90aa467523a5771e7ee6"},
-    {"id": "quality-packaging-generated-consumer", "observations_digest": "7edd594c2ca383955af9fe56b74cba3ddd9c5b7099a2fbfb0e5131ca20785744"},
-    {"id": "quality-ci-required-topology", "observations_digest": "24ea42fe1fe93d62bbd2414c1dbaad2f8a5d492cec9be21427d056a6f5facd24"},
-    {"id": "quality-release-exact-sha", "observations_digest": "e1ee85ff298d40eef305d044c41b2207b475339e9dc37d451f184bbb9aa6b82f"},
-    {"id": "quality-repository-hygiene", "observations_digest": "36e6ac36ebabb285a21d546e5d716c1280ab65b2a7e91db1cb436d7d146504b5"}
+    {
+      "id": "quality-correctness-default-suite",
+      "observations_digest": "b18f116fbed0e93a57f3b0b56c56340126392c08029773d136e2ebc3341dbcf8"
+    },
+    {
+      "id": "quality-maintainability-curated-complexity",
+      "observations_digest": "2337c83e213eaa87962ec1de195ebda137bef54166466a395d7187f964cb199c"
+    },
+    {
+      "id": "quality-security-dependency-policy",
+      "observations_digest": "507dd9b043af888d1920db3ae7a765283780e815cee748cd38b396fe95ae16fd"
+    },
+    {
+      "id": "quality-performance-required-pr-timing",
+      "observations_digest": "6205f0499cefe52fb7895adcf9d69163332a3616e1fc8e1a5f1e90d7e8103c4c"
+    },
+    {
+      "id": "quality-reliability-nightly",
+      "observations_digest": "85be8e919c48d0deda8b42c4b8f04ed61a646de945b829dd342c6de3082835f1"
+    },
+    {
+      "id": "quality-compatibility-supported-toolchain",
+      "observations_digest": "23bcc0f2896bb68bfc6d75be56a3e07df53f227618e3d02e9287e8ea0383de2f"
+    },
+    {
+      "id": "quality-testing-automation-first",
+      "observations_digest": "60def3ed33433acff5225aff9e86f18ceeab7b4254c0ebd28ac3eb00d3d83d2e"
+    },
+    {
+      "id": "quality-documentation-accessibility",
+      "observations_digest": "4f46e378f4c90927af57c537497d2fbb7327c9a2e07a90aa467523a5771e7ee6"
+    },
+    {
+      "id": "quality-packaging-generated-consumer",
+      "observations_digest": "7edd594c2ca383955af9fe56b74cba3ddd9c5b7099a2fbfb0e5131ca20785744"
+    },
+    {
+      "id": "quality-ci-required-topology",
+      "observations_digest": "24ea42fe1fe93d62bbd2414c1dbaad2f8a5d492cec9be21427d056a6f5facd24"
+    },
+    {
+      "id": "quality-release-exact-sha",
+      "observations_digest": "e1ee85ff298d40eef305d044c41b2207b475339e9dc37d451f184bbb9aa6b82f"
+    },
+    {
+      "id": "quality-repository-hygiene",
+      "observations_digest": "36e6ac36ebabb285a21d546e5d716c1280ab65b2a7e91db1cb436d7d146504b5"
+    }
   ],
   "phase_133_transitions": [
-    {"candidate_id": "quality-correctness-default-suite", "before_observations_digest": "b18f116fbed0e93a57f3b0b56c56340126392c08029773d136e2ebc3341dbcf8", "after_observations_digest": "f75decf1dc409c2fb00b9b5977a95e89a2d368840b765ac5b4b548fc4bc82d77", "previous_subject_sha": "4ab38ab62878eea936f20bb76e2f7321da6c2e90", "previous_observations_digest": "f75decf1dc409c2fb00b9b5977a95e89a2d368840b765ac5b4b548fc4bc82d77", "subject_sha": "c83f61379ad5033efef9afa7b5bc88913080bae2", "reason": "Plans 38-39 added detached no-start collector regressions, fail-closed authority sequencing, and exact 42-plan reconciliation and validation-map tests.", "implementing_plan": "133-40"},
-    {"candidate_id": "quality-reliability-nightly", "before_observations_digest": "85be8e919c48d0deda8b42c4b8f04ed61a646de945b829dd342c6de3082835f1", "after_observations_digest": "4b8555f6f5789578cd6656a2893b1cef38f43098a7fdc2f819b8ba97cbab6819", "previous_subject_sha": "4ab38ab62878eea936f20bb76e2f7321da6c2e90", "previous_observations_digest": "4b8555f6f5789578cd6656a2893b1cef38f43098a7fdc2f819b8ba97cbab6819", "subject_sha": "c83f61379ad5033efef9afa7b5bc88913080bae2", "reason": "Plan 38 made every detached census and live-truth authority run with --no-start and explicit fail-closed sequencing while preserving all exhausted remote history.", "implementing_plan": "133-40"},
-    {"candidate_id": "quality-compatibility-supported-toolchain", "before_observations_digest": "23bcc0f2896bb68bfc6d75be56a3e07df53f227618e3d02e9287e8ea0383de2f", "after_observations_digest": "5d05bbd04d3dfc068d92d02ebb71b480f6980e1db2fc1421c8fe01702107fe13", "previous_subject_sha": "e70623e9ea956c750904af574f47221cc472d2f2", "previous_observations_digest": "5d05bbd04d3dfc068d92d02ebb71b480f6980e1db2fc1421c8fe01702107fe13", "subject_sha": "4ab38ab62878eea936f20bb76e2f7321da6c2e90", "reason": "Plan 28 repaired the package compatibility surfaces and Plan 35 requalifies them on the supported Elixir 1.17/OTP 27 lane without substituting local or historical evidence.", "implementing_plan": "133-35"},
-    {"candidate_id": "quality-testing-automation-first", "before_observations_digest": "60def3ed33433acff5225aff9e86f18ceeab7b4254c0ebd28ac3eb00d3d83d2e", "after_observations_digest": "749bac9d39b2e7e968216e8ac275b256b6a65eaa826f9f22cac37bc540a0b349", "previous_subject_sha": "4ab38ab62878eea936f20bb76e2f7321da6c2e90", "previous_observations_digest": "749bac9d39b2e7e968216e8ac275b256b6a65eaa826f9f22cac37bc540a0b349", "subject_sha": "c83f61379ad5033efef9afa7b5bc88913080bae2", "reason": "Plan 39 added the exact 42-plan lifecycle, adversarial reconciliation tests, and append-only Plans 38-42 validation mappings while keeping Plans 27, 32, and 37 halted.", "implementing_plan": "133-40"},
-    {"candidate_id": "quality-documentation-accessibility", "before_observations_digest": "4f46e378f4c90927af57c537497d2fbb7327c9a2e07a90aa467523a5771e7ee6", "after_observations_digest": "c2b3eafbc9f9ff41196b0155b61fddf511c66320c7f75d0637eb4d85be9a0d6a", "reason": "Plans 06 and 26 reconciled maintainer evidence semantics to durable Nightly, receipt, and structured required-check authorities while retaining accessibility gates.", "implementing_plan": "133-27"},
-    {"candidate_id": "quality-packaging-generated-consumer", "before_observations_digest": "7edd594c2ca383955af9fe56b74cba3ddd9c5b7099a2fbfb0e5131ca20785744", "after_observations_digest": "2caf4cdd761654a6f87cb4c67814d6e460ce8595d50dd755ccc97fdc9b0633c9", "previous_subject_sha": "e70623e9ea956c750904af574f47221cc472d2f2", "previous_observations_digest": "2caf4cdd761654a6f87cb4c67814d6e460ce8595d50dd755ccc97fdc9b0633c9", "subject_sha": "4ab38ab62878eea936f20bb76e2f7321da6c2e90", "reason": "Plan 28 aligned generated projects with the Elixir 1.15 support floor and Plan 35 requalifies ordered compile, boot, and smoke-lifecycle attribution at the new subject.", "implementing_plan": "133-35"},
-    {"candidate_id": "quality-ci-required-topology", "before_observations_digest": "24ea42fe1fe93d62bbd2414c1dbaad2f8a5d492cec9be21427d056a6f5facd24", "after_observations_digest": "fa8e632fb9d8ac817c46f848ad7fafc8f239987a3e73a5719b20e837043d788e", "reason": "Plans 02 through 04 and 23 repaired Nightly topology, retired the competing evaluator, and preserved the CI workflow and sole CI Summary required check.", "implementing_plan": "133-27"},
-    {"candidate_id": "quality-release-exact-sha", "before_observations_digest": "e1ee85ff298d40eef305d044c41b2207b475339e9dc37d451f184bbb9aa6b82f", "after_observations_digest": "982150213380cc92332671242ef927d906114dff6946e5ddcf8509301ffd7c4c", "reason": "Plans 05 and 06 derived active release, lane, and adoption claims from matching authorities and parsed topology.", "implementing_plan": "133-06"}
+    {
+      "candidate_id": "quality-correctness-default-suite",
+      "before_observations_digest": "b18f116fbed0e93a57f3b0b56c56340126392c08029773d136e2ebc3341dbcf8",
+      "after_observations_digest": "f75decf1dc409c2fb00b9b5977a95e89a2d368840b765ac5b4b548fc4bc82d77",
+      "previous_subject_sha": "4ab38ab62878eea936f20bb76e2f7321da6c2e90",
+      "previous_observations_digest": "f75decf1dc409c2fb00b9b5977a95e89a2d368840b765ac5b4b548fc4bc82d77",
+      "subject_sha": "c83f61379ad5033efef9afa7b5bc88913080bae2",
+      "reason": "Plans 38-39 added detached no-start collector regressions, fail-closed authority sequencing, and exact 42-plan reconciliation and validation-map tests.",
+      "implementing_plan": "133-40"
+    },
+    {
+      "candidate_id": "quality-reliability-nightly",
+      "before_observations_digest": "85be8e919c48d0deda8b42c4b8f04ed61a646de945b829dd342c6de3082835f1",
+      "after_observations_digest": "4b8555f6f5789578cd6656a2893b1cef38f43098a7fdc2f819b8ba97cbab6819",
+      "previous_subject_sha": "4ab38ab62878eea936f20bb76e2f7321da6c2e90",
+      "previous_observations_digest": "4b8555f6f5789578cd6656a2893b1cef38f43098a7fdc2f819b8ba97cbab6819",
+      "subject_sha": "c83f61379ad5033efef9afa7b5bc88913080bae2",
+      "reason": "Plan 38 made every detached census and live-truth authority run with --no-start and explicit fail-closed sequencing while preserving all exhausted remote history.",
+      "implementing_plan": "133-40"
+    },
+    {
+      "candidate_id": "quality-compatibility-supported-toolchain",
+      "before_observations_digest": "23bcc0f2896bb68bfc6d75be56a3e07df53f227618e3d02e9287e8ea0383de2f",
+      "after_observations_digest": "5d05bbd04d3dfc068d92d02ebb71b480f6980e1db2fc1421c8fe01702107fe13",
+      "previous_subject_sha": "e70623e9ea956c750904af574f47221cc472d2f2",
+      "previous_observations_digest": "5d05bbd04d3dfc068d92d02ebb71b480f6980e1db2fc1421c8fe01702107fe13",
+      "subject_sha": "4ab38ab62878eea936f20bb76e2f7321da6c2e90",
+      "reason": "Plan 28 repaired the package compatibility surfaces and Plan 35 requalifies them on the supported Elixir 1.17/OTP 27 lane without substituting local or historical evidence.",
+      "implementing_plan": "133-35"
+    },
+    {
+      "candidate_id": "quality-testing-automation-first",
+      "before_observations_digest": "60def3ed33433acff5225aff9e86f18ceeab7b4254c0ebd28ac3eb00d3d83d2e",
+      "after_observations_digest": "749bac9d39b2e7e968216e8ac275b256b6a65eaa826f9f22cac37bc540a0b349",
+      "previous_subject_sha": "4ab38ab62878eea936f20bb76e2f7321da6c2e90",
+      "previous_observations_digest": "749bac9d39b2e7e968216e8ac275b256b6a65eaa826f9f22cac37bc540a0b349",
+      "subject_sha": "c83f61379ad5033efef9afa7b5bc88913080bae2",
+      "reason": "Plan 39 added the exact 42-plan lifecycle, adversarial reconciliation tests, and append-only Plans 38-42 validation mappings while keeping Plans 27, 32, and 37 halted.",
+      "implementing_plan": "133-40"
+    },
+    {
+      "candidate_id": "quality-documentation-accessibility",
+      "before_observations_digest": "4f46e378f4c90927af57c537497d2fbb7327c9a2e07a90aa467523a5771e7ee6",
+      "after_observations_digest": "c2b3eafbc9f9ff41196b0155b61fddf511c66320c7f75d0637eb4d85be9a0d6a",
+      "reason": "Plans 06 and 26 reconciled maintainer evidence semantics to durable Nightly, receipt, and structured required-check authorities while retaining accessibility gates.",
+      "implementing_plan": "133-27"
+    },
+    {
+      "candidate_id": "quality-packaging-generated-consumer",
+      "before_observations_digest": "7edd594c2ca383955af9fe56b74cba3ddd9c5b7099a2fbfb0e5131ca20785744",
+      "after_observations_digest": "2caf4cdd761654a6f87cb4c67814d6e460ce8595d50dd755ccc97fdc9b0633c9",
+      "previous_subject_sha": "e70623e9ea956c750904af574f47221cc472d2f2",
+      "previous_observations_digest": "2caf4cdd761654a6f87cb4c67814d6e460ce8595d50dd755ccc97fdc9b0633c9",
+      "subject_sha": "4ab38ab62878eea936f20bb76e2f7321da6c2e90",
+      "reason": "Plan 28 aligned generated projects with the Elixir 1.15 support floor and Plan 35 requalifies ordered compile, boot, and smoke-lifecycle attribution at the new subject.",
+      "implementing_plan": "133-35"
+    },
+    {
+      "candidate_id": "quality-ci-required-topology",
+      "before_observations_digest": "24ea42fe1fe93d62bbd2414c1dbaad2f8a5d492cec9be21427d056a6f5facd24",
+      "after_observations_digest": "fa8e632fb9d8ac817c46f848ad7fafc8f239987a3e73a5719b20e837043d788e",
+      "reason": "Plans 02 through 04 and 23 repaired Nightly topology, retired the competing evaluator, and preserved the CI workflow and sole CI Summary required check.",
+      "implementing_plan": "133-27"
+    },
+    {
+      "candidate_id": "quality-release-exact-sha",
+      "before_observations_digest": "e1ee85ff298d40eef305d044c41b2207b475339e9dc37d451f184bbb9aa6b82f",
+      "after_observations_digest": "982150213380cc92332671242ef927d906114dff6946e5ddcf8509301ffd7c4c",
+      "reason": "Plans 05 and 06 derived active release, lane, and adoption claims from matching authorities and parsed topology.",
+      "implementing_plan": "133-06"
+    }
   ]
 }
