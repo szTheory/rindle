@@ -2221,8 +2221,8 @@ The previously failed supported cell has a named, repeatable green local coverag
 </fails_when>
 <requirements>EVID-01,EVID-02,EVID-03,EVID-04,TRUTH-08</requirements>
 <validation-level>gap-closure</validation-level>
-<branch-status>pending — not executed</branch-status>
-<state>pending — not executed</state>
+<branch-status>passed — executed</branch-status>
+<state>passed — executed</state>
 <acceptance-credit>pending</acceptance-credit>
 </pending-validation>
 
@@ -2235,8 +2235,8 @@ New-plan mapping and all old maps are enforced by the same production validator.
 </fails_when>
 <requirements>EVID-01,EVID-02,EVID-03,EVID-04,TRUTH-08</requirements>
 <validation-level>gap-closure</validation-level>
-<branch-status>pending — not executed</branch-status>
-<state>pending — not executed</state>
+<branch-status>passed — executed</branch-status>
+<state>passed — executed</state>
 <acceptance-credit>pending</acceptance-credit>
 </pending-validation>
 
@@ -2249,8 +2249,8 @@ One new exact-subject census and the complete local/read-only qualification matr
 </fails_when>
 <requirements>EVID-01,EVID-02,EVID-03,EVID-04,TRUTH-08</requirements>
 <validation-level>gap-closure</validation-level>
-<branch-status>pending — not executed</branch-status>
-<state>pending — not executed</state>
+<branch-status>passed — executed</branch-status>
+<state>passed — executed</state>
 <acceptance-credit>pending</acceptance-credit>
 </pending-validation>
 
