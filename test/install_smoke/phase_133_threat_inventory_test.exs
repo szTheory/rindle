@@ -65,6 +65,24 @@ defmodule Rindle.InstallSmoke.Phase133ThreatInventoryTest do
     end
   end
 
+  test "rejects an inventory bound to a different ledger subject or digest", %{
+    path: path,
+    data: data
+  } do
+    for binding <- [
+          %{
+            "subject_sha" => String.duplicate("a", 40),
+            "census_sha256" => String.duplicate("0", 64)
+          },
+          %{
+            "subject_sha" => "07beb46e6d438b3c41a2f2ac8dc9935a941600df",
+            "census_sha256" => String.duplicate("0", 64)
+          }
+        ] do
+      assert_rejected(path, Map.put(data, "binding", binding))
+    end
+  end
+
   defp assert_rejected(path, data) do
     assert {output, status} = invoke(write(path, data))
     assert status != 0

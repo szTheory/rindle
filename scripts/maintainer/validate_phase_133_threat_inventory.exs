@@ -43,6 +43,7 @@ defmodule Rindle.ValidatePhase133ThreatInventory do
     with true <- data["schema_version"] == 1 or {:error, "unsupported schema version"},
          true <- data["mode"] == "recovered" or {:error, "provenance mode must be recovered"},
          true <- data["audited_subject"] == @subject or {:error, "audited subject mismatch"},
+         :ok <- valid_current_binding(root, data["binding"]),
          :ok <- valid_provenance(root, provenance),
          true <-
            data["unresolved_high_ids"] == ["T-133-53", "T-133-91"] or
@@ -59,6 +60,30 @@ defmodule Rindle.ValidatePhase133ThreatInventory do
       _ -> {:error, "malformed inventory"}
     end
   end
+
+  defp valid_current_binding(_root, nil), do: :ok
+
+  defp valid_current_binding(root, binding) when is_map(binding) do
+    ledger_path = Path.join(root, Path.join(@phase, "133-EVIDENCE-CENSUS.json"))
+
+    with {:ok, census} <- File.read(ledger_path),
+         {:ok, ledger} <- Jason.decode(census),
+         true <-
+           binding["subject_sha"] == ledger["subject_sha"] or
+             {:error, "bound subject differs from census"},
+         true <-
+           binding["census_sha256"] ==
+             :crypto.hash(:sha256, census) |> Base.encode16(case: :lower) or
+             {:error, "bound census digest differs"} do
+      :ok
+    else
+      {:error, message} -> {:error, message}
+      _ -> {:error, "inventory subject/census binding is malformed"}
+    end
+  end
+
+  defp valid_current_binding(_root, _),
+    do: {:error, "inventory subject/census binding is malformed"}
 
   defp valid_provenance(root, provenance) do
     with true <-
