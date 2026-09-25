@@ -125,7 +125,9 @@ defmodule Rindle.Domain.MediaProviderAsset do
 end
 
 defimpl Inspect, for: Rindle.Domain.MediaProviderAsset do
-  @moduledoc false
+  @moduledoc """
+  Formats provider assets without exposing provider credentials or metadata.
+  """
 
   def inspect(asset, opts) do
     redacted = %{
