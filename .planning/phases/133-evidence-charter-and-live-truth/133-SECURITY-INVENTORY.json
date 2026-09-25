@@ -1,0 +1,311 @@
+{
+  "schema_version": 1,
+  "mode": "recovered",
+  "audited_subject": "87bd35cdcf040018a854a0e8c5a6ebc0b9438e53",
+  "provenance": {
+    "report_commit": "35c94a50c861d2bf84f16172be20a97d20d685e2",
+    "report_parent_subject": "87bd35cdcf040018a854a0e8c5a6ebc0b9438e53",
+    "report_path": ".planning/phases/133-evidence-charter-and-live-truth/133-SECURITY.md",
+    "auditor_role": "gsd-security-auditor",
+    "auditor_thread": "01a09c00-1205-7c33-9b48-b4498b764d0f",
+    "parent_thread": "01a09afe-b1dd-7a71-b1cd-9530e064efda",
+    "record_ordinal": 348,
+    "record_time_utc": "2026-09-13T18:31:07.924Z",
+    "report_sha256": "706bd2bf5b1162907ab60a7cf910f40a5242cc203190f5578f098dd4647a9a65",
+    "raw_record_sha256": "3818feb8ba37b4291de53f9da5b245cc861a8719f8fc4cc0f4afe8d0fb4adf09",
+    "record_location": "~/.codex/sessions/2026/09/13/rollout-2026-09-13T14-20-45-01a09c00-1205-7c33-9b48-b4498b764d0f.jsonl",
+    "search_command": "git grep -n -E <15 IDs> 87bd35... -- .planning/phases/133-evidence-charter-and-live-truth/133-*-PLAN.md",
+    "historic_result": "196 total, 173 closed, 23 open: 8 high and 15 low; these 15 low source IDs were absent from the Accepted Risks Log."
+  },
+  "unresolved_high_ids": [
+    "T-133-53",
+    "T-133-91"
+  ],
+  "items": [
+    {
+      "id": "T-133-71",
+      "severity": "low",
+      "source": {
+        "commit": "87bd35cdcf040018a854a0e8c5a6ebc0b9438e53",
+        "path": ".planning/phases/133-evidence-charter-and-live-truth/133-18-PLAN.md",
+        "line": 157,
+        "blob_sha": "e20ec9a8ce2ff55a9d1a09785400c26daafe5d36",
+        "row_sha256": "eca2eb5fe3a2fab54103339d6970799bd2f9f1cf8cbc542547af310c84234239",
+        "row": "| T-133-71 | Denial of service | bounded polling | low | accept | Existing poll interval and timeout remain bounded; zero new matches cannot become success. |"
+      },
+      "historical_disposition": "accept",
+      "current_disposition": "open",
+      "evidence": {
+        "auditor_report_commit": "35c94a50c861d2bf84f16172be20a97d20d685e2",
+        "auditor_report_path": ".planning/phases/133-evidence-charter-and-live-truth/133-SECURITY.md",
+        "reason": "Original independent security auditor listed this source finding among 15 low-severity open findings; historical accept label is not a current disposition."
+      }
+    },
+    {
+      "id": "T-133-102",
+      "severity": "low",
+      "source": {
+        "commit": "87bd35cdcf040018a854a0e8c5a6ebc0b9438e53",
+        "path": ".planning/phases/133-evidence-charter-and-live-truth/133-26-PLAN.md",
+        "line": 185,
+        "blob_sha": "9d00b4b4c6528f4cf95a86e52190fd08cac2f0e2",
+        "row_sha256": "7b1aed4f3793be9f066a6f7dd2645b0af83b5db32f379ffe8ce1c5cb555343a8",
+        "row": "| T-133-102 | Information disclosure | documentation edit | low | accept | No secrets or credential values are added; paths and public workflow semantics are already repository-visible. |"
+      },
+      "historical_disposition": "accept",
+      "current_disposition": "open",
+      "evidence": {
+        "auditor_report_commit": "35c94a50c861d2bf84f16172be20a97d20d685e2",
+        "auditor_report_path": ".planning/phases/133-evidence-charter-and-live-truth/133-SECURITY.md",
+        "reason": "Original independent security auditor listed this source finding among 15 low-severity open findings; historical accept label is not a current disposition."
+      }
+    },
+    {
+      "id": "T-133-33-SC",
+      "severity": "low",
+      "source": {
+        "commit": "87bd35cdcf040018a854a0e8c5a6ebc0b9438e53",
+        "path": ".planning/phases/133-evidence-charter-and-live-truth/133-33-PLAN.md",
+        "line": 170,
+        "blob_sha": "772565b8f61769dcea65b8431b96372ad65c3620",
+        "row_sha256": "ca9c4673b5130fba71128594417e6f9c09c9cd4d9e0e36e323a5f4b539e19b25",
+        "row": "| T-133-33-SC | Tampering | package installation | low | accept | No npm, pip, cargo, or other package-manager install occurs; repository-native shell and existing tools are used. |"
+      },
+      "historical_disposition": "accept",
+      "current_disposition": "open",
+      "evidence": {
+        "auditor_report_commit": "35c94a50c861d2bf84f16172be20a97d20d685e2",
+        "auditor_report_path": ".planning/phases/133-evidence-charter-and-live-truth/133-SECURITY.md",
+        "reason": "Original independent security auditor listed this source finding among 15 low-severity open findings; historical accept label is not a current disposition."
+      }
+    },
+    {
+      "id": "T-133-34-05",
+      "severity": "low",
+      "source": {
+        "commit": "87bd35cdcf040018a854a0e8c5a6ebc0b9438e53",
+        "path": ".planning/phases/133-evidence-charter-and-live-truth/133-34-PLAN.md",
+        "line": 191,
+        "blob_sha": "cda4f2a574a8fe38a8ee69ebbbdaa4c28711434d",
+        "row_sha256": "a913e2287e5cf137e6131fe943a180af6370bb6e34fe17b1c510c08e6fddd7c2",
+        "row": "| T-133-34-05 | Information Disclosure | planning evidence | low | accept | Inputs are tracked public project artifacts and output contains only plan/status metadata. |"
+      },
+      "historical_disposition": "accept",
+      "current_disposition": "open",
+      "evidence": {
+        "auditor_report_commit": "35c94a50c861d2bf84f16172be20a97d20d685e2",
+        "auditor_report_path": ".planning/phases/133-evidence-charter-and-live-truth/133-SECURITY.md",
+        "reason": "Original independent security auditor listed this source finding among 15 low-severity open findings; historical accept label is not a current disposition."
+      }
+    },
+    {
+      "id": "T-133-34-SC",
+      "severity": "low",
+      "source": {
+        "commit": "87bd35cdcf040018a854a0e8c5a6ebc0b9438e53",
+        "path": ".planning/phases/133-evidence-charter-and-live-truth/133-34-PLAN.md",
+        "line": 192,
+        "blob_sha": "cda4f2a574a8fe38a8ee69ebbbdaa4c28711434d",
+        "row_sha256": "113f8147771e9912da4a83c7ae0c6850021d99c993da9bed8ec3b78b7686a3b6",
+        "row": "| T-133-34-SC | Tampering | package installation | low | accept | No package installation occurs; existing Elixir and repository tooling are used. |"
+      },
+      "historical_disposition": "accept",
+      "current_disposition": "open",
+      "evidence": {
+        "auditor_report_commit": "35c94a50c861d2bf84f16172be20a97d20d685e2",
+        "auditor_report_path": ".planning/phases/133-evidence-charter-and-live-truth/133-SECURITY.md",
+        "reason": "Original independent security auditor listed this source finding among 15 low-severity open findings; historical accept label is not a current disposition."
+      }
+    },
+    {
+      "id": "T-133-35-SC",
+      "severity": "low",
+      "source": {
+        "commit": "87bd35cdcf040018a854a0e8c5a6ebc0b9438e53",
+        "path": ".planning/phases/133-evidence-charter-and-live-truth/133-35-PLAN.md",
+        "line": 192,
+        "blob_sha": "d3eefc2911d9cec6fabb6a78dd294ba8e7ca48bc",
+        "row_sha256": "cd73cb0e145c5823bd3c1c14fba762ceae39d5f19373bad14ab61fa82db2bc35",
+        "row": "| T-133-35-SC | Tampering | package installation | low | accept | Qualification uses repository-native locked dependencies; no package install task is introduced. |"
+      },
+      "historical_disposition": "accept",
+      "current_disposition": "open",
+      "evidence": {
+        "auditor_report_commit": "35c94a50c861d2bf84f16172be20a97d20d685e2",
+        "auditor_report_path": ".planning/phases/133-evidence-charter-and-live-truth/133-SECURITY.md",
+        "reason": "Original independent security auditor listed this source finding among 15 low-severity open findings; historical accept label is not a current disposition."
+      }
+    },
+    {
+      "id": "T-133-36-05",
+      "severity": "low",
+      "source": {
+        "commit": "87bd35cdcf040018a854a0e8c5a6ebc0b9438e53",
+        "path": ".planning/phases/133-evidence-charter-and-live-truth/133-36-PLAN.md",
+        "line": 142,
+        "blob_sha": "2b384226805ce834ce00f9bfe80ce952c72dacd6",
+        "row_sha256": "3764bfab2fbf808137a76734ae29824cd15cf5750119764fbfb44996209184f4",
+        "row": "| T-133-36-05 | Information Disclosure | checkpoint display | low | accept | Display contains public commit/ref/run metadata only and no credentials or raw logs. |"
+      },
+      "historical_disposition": "accept",
+      "current_disposition": "open",
+      "evidence": {
+        "auditor_report_commit": "35c94a50c861d2bf84f16172be20a97d20d685e2",
+        "auditor_report_path": ".planning/phases/133-evidence-charter-and-live-truth/133-SECURITY.md",
+        "reason": "Original independent security auditor listed this source finding among 15 low-severity open findings; historical accept label is not a current disposition."
+      }
+    },
+    {
+      "id": "T-133-36-SC",
+      "severity": "low",
+      "source": {
+        "commit": "87bd35cdcf040018a854a0e8c5a6ebc0b9438e53",
+        "path": ".planning/phases/133-evidence-charter-and-live-truth/133-36-PLAN.md",
+        "line": 143,
+        "blob_sha": "2b384226805ce834ce00f9bfe80ce952c72dacd6",
+        "row_sha256": "5c2e7d4f3a51487369253a6adbce107e1934fffef52246ca61090c90ef070110",
+        "row": "| T-133-36-SC | Tampering | package installation | low | accept | No package installation occurs in this read-only checkpoint. |"
+      },
+      "historical_disposition": "accept",
+      "current_disposition": "open",
+      "evidence": {
+        "auditor_report_commit": "35c94a50c861d2bf84f16172be20a97d20d685e2",
+        "auditor_report_path": ".planning/phases/133-evidence-charter-and-live-truth/133-SECURITY.md",
+        "reason": "Original independent security auditor listed this source finding among 15 low-severity open findings; historical accept label is not a current disposition."
+      }
+    },
+    {
+      "id": "T-133-37-SC",
+      "severity": "low",
+      "source": {
+        "commit": "87bd35cdcf040018a854a0e8c5a6ebc0b9438e53",
+        "path": ".planning/phases/133-evidence-charter-and-live-truth/133-37-PLAN.md",
+        "line": 252,
+        "blob_sha": "d7eaa689a1a2f09631f659d2cf98ba6d90bdcee6",
+        "row_sha256": "8ba785a3a850e6ad79dd39464254c3fe4f3d0b2bc5f6f4926b5cf55b70974d9c",
+        "row": "| T-133-37-SC | Tampering | package installation | low | accept | No package installation occurs; the locked repository toolchain and existing package-consumer tests are used. |"
+      },
+      "historical_disposition": "accept",
+      "current_disposition": "open",
+      "evidence": {
+        "auditor_report_commit": "35c94a50c861d2bf84f16172be20a97d20d685e2",
+        "auditor_report_path": ".planning/phases/133-evidence-charter-and-live-truth/133-SECURITY.md",
+        "reason": "Original independent security auditor listed this source finding among 15 low-severity open findings; historical accept label is not a current disposition."
+      }
+    },
+    {
+      "id": "T-133-38-SC",
+      "severity": "low",
+      "source": {
+        "commit": "87bd35cdcf040018a854a0e8c5a6ebc0b9438e53",
+        "path": ".planning/phases/133-evidence-charter-and-live-truth/133-38-PLAN.md",
+        "line": 199,
+        "blob_sha": "782251b0fe4d8bb4be40bac48dc020da1f30ff9a",
+        "row_sha256": "6a8a8825c81f66eb0cd96811183920fb256131bede5692af7fbc6357122e61f4",
+        "row": "| T-133-38-SC | Tampering | package supply chain | low | accept | No npm, pip, Cargo, Hex, or other package installation occurs in this plan. |"
+      },
+      "historical_disposition": "accept",
+      "current_disposition": "open",
+      "evidence": {
+        "auditor_report_commit": "35c94a50c861d2bf84f16172be20a97d20d685e2",
+        "auditor_report_path": ".planning/phases/133-evidence-charter-and-live-truth/133-SECURITY.md",
+        "reason": "Original independent security auditor listed this source finding among 15 low-severity open findings; historical accept label is not a current disposition."
+      }
+    },
+    {
+      "id": "T-133-39-SC",
+      "severity": "low",
+      "source": {
+        "commit": "87bd35cdcf040018a854a0e8c5a6ebc0b9438e53",
+        "path": ".planning/phases/133-evidence-charter-and-live-truth/133-39-PLAN.md",
+        "line": 198,
+        "blob_sha": "47bd1da588dce9f493b76a9bece906d6ca0aec5b",
+        "row_sha256": "e0dea67ea8078a02773d11f32e1f08b8bb6a252eb589a43b18f8c35f69668b7b",
+        "row": "| T-133-39-SC | Tampering | package supply chain | low | accept | No package installation occurs in this plan. |"
+      },
+      "historical_disposition": "accept",
+      "current_disposition": "open",
+      "evidence": {
+        "auditor_report_commit": "35c94a50c861d2bf84f16172be20a97d20d685e2",
+        "auditor_report_path": ".planning/phases/133-evidence-charter-and-live-truth/133-SECURITY.md",
+        "reason": "Original independent security auditor listed this source finding among 15 low-severity open findings; historical accept label is not a current disposition."
+      }
+    },
+    {
+      "id": "T-133-40-SC",
+      "severity": "low",
+      "source": {
+        "commit": "87bd35cdcf040018a854a0e8c5a6ebc0b9438e53",
+        "path": ".planning/phases/133-evidence-charter-and-live-truth/133-40-PLAN.md",
+        "line": 208,
+        "blob_sha": "5117d7d330083771f5091ada0ff1cc0057c7647f",
+        "row_sha256": "2c4c9bb04dcf63406e8dcf9b877cfd9e02960a7128eb7440642eca5749eac027",
+        "row": "| T-133-40-SC | Tampering | package supply chain | low | accept | Qualification consumes the existing lockfile; it performs no package installation. |"
+      },
+      "historical_disposition": "accept",
+      "current_disposition": "open",
+      "evidence": {
+        "auditor_report_commit": "35c94a50c861d2bf84f16172be20a97d20d685e2",
+        "auditor_report_path": ".planning/phases/133-evidence-charter-and-live-truth/133-SECURITY.md",
+        "reason": "Original independent security auditor listed this source finding among 15 low-severity open findings; historical accept label is not a current disposition."
+      }
+    },
+    {
+      "id": "T-133-41-05",
+      "severity": "low",
+      "source": {
+        "commit": "87bd35cdcf040018a854a0e8c5a6ebc0b9438e53",
+        "path": ".planning/phases/133-evidence-charter-and-live-truth/133-41-PLAN.md",
+        "line": 157,
+        "blob_sha": "12ada1ba3cdea813d698f5254b7af00f9567722a",
+        "row_sha256": "edbab1f30695d3c9947f8faf19e1aeebd04d2ac5c0df56dcc8222328b9210697",
+        "row": "| T-133-41-05 | Information Disclosure | checkpoint display | low | accept | Display public commit/ref metadata only; no credentials or raw logs. |"
+      },
+      "historical_disposition": "accept",
+      "current_disposition": "open",
+      "evidence": {
+        "auditor_report_commit": "35c94a50c861d2bf84f16172be20a97d20d685e2",
+        "auditor_report_path": ".planning/phases/133-evidence-charter-and-live-truth/133-SECURITY.md",
+        "reason": "Original independent security auditor listed this source finding among 15 low-severity open findings; historical accept label is not a current disposition."
+      }
+    },
+    {
+      "id": "T-133-41-SC",
+      "severity": "low",
+      "source": {
+        "commit": "87bd35cdcf040018a854a0e8c5a6ebc0b9438e53",
+        "path": ".planning/phases/133-evidence-charter-and-live-truth/133-41-PLAN.md",
+        "line": 158,
+        "blob_sha": "12ada1ba3cdea813d698f5254b7af00f9567722a",
+        "row_sha256": "bb9f5a8feee6976a180431ab04e583b2dda28f5d1495e5dfc2fb49015c1cfba6",
+        "row": "| T-133-41-SC | Tampering | package supply chain | low | accept | No package installation occurs in this plan. |"
+      },
+      "historical_disposition": "accept",
+      "current_disposition": "open",
+      "evidence": {
+        "auditor_report_commit": "35c94a50c861d2bf84f16172be20a97d20d685e2",
+        "auditor_report_path": ".planning/phases/133-evidence-charter-and-live-truth/133-SECURITY.md",
+        "reason": "Original independent security auditor listed this source finding among 15 low-severity open findings; historical accept label is not a current disposition."
+      }
+    },
+    {
+      "id": "T-133-42-SC",
+      "severity": "low",
+      "source": {
+        "commit": "87bd35cdcf040018a854a0e8c5a6ebc0b9438e53",
+        "path": ".planning/phases/133-evidence-charter-and-live-truth/133-42-PLAN.md",
+        "line": 231,
+        "blob_sha": "a1228537631fe5a04bb6903b8b030fb681649cd3",
+        "row_sha256": "551d95c5b8a246b62acdbff003d242de762d1691c4fed1a3b991402ca7bee748",
+        "row": "| T-133-42-SC | Tampering | package supply chain | low | accept | The attempt consumes existing locked dependencies; no package installation occurs. |"
+      },
+      "historical_disposition": "accept",
+      "current_disposition": "open",
+      "evidence": {
+        "auditor_report_commit": "35c94a50c861d2bf84f16172be20a97d20d685e2",
+        "auditor_report_path": ".planning/phases/133-evidence-charter-and-live-truth/133-SECURITY.md",
+        "reason": "Original independent security auditor listed this source finding among 15 low-severity open findings; historical accept label is not a current disposition."
+      }
+    }
+  ]
+}
