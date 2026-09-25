@@ -771,31 +771,39 @@ defmodule Rindle.ValidateLiveTruth do
     support_root = Path.join(destination, "support")
 
     Enum.each(@subject_helper_files, fn relative_path ->
-      case System.cmd(git, ["ls-tree", "-z", subject_sha, "--", relative_path],
-             cd: repository_root,
-             stderr_to_stdout: true
-           ) do
-        {entry, 0} ->
-          [record] = String.split(entry, <<0>>, trim: true)
-          assert!(String.starts_with?(record, "100644 blob "), "invalid subject helper member")
+      entry =
+        case System.cmd(git, ["ls-tree", "-z", subject_sha, "--", relative_path],
+               cd: repository_root,
+               stderr_to_stdout: true
+             ) do
+          {entry, 0} ->
+            entry
 
-        {output, _} ->
-          raise ArgumentError,
-                "subject helper member unavailable: #{String.slice(output, 0, 200)}"
-      end
+          {output, _} ->
+            raise ArgumentError,
+                  "subject helper member unavailable at #{relative_path}: #{String.slice(output, 0, 200)}"
+        end
 
-      case System.cmd(git, ["show", "#{subject_sha}:#{relative_path}"],
-             cd: repository_root,
-             stderr_to_stdout: true
-           ) do
-        {bytes, 0} ->
-          target = Path.join(destination, Path.relative_to(relative_path, "test/install_smoke"))
-          File.mkdir_p!(Path.dirname(target))
-          File.write!(target, bytes, [:binary])
+      [record] = String.split(entry, <<0>>, trim: true)
 
-        {output, _} ->
-          raise ArgumentError, "subject helper read failed: #{String.slice(output, 0, 200)}"
-      end
+      subject_blob =
+        case Regex.run(~r/\A100644 blob ([0-9a-f]+)\t(.+)\z/, record) do
+          [_, blob, ^relative_path] -> blob
+          _ -> raise ArgumentError, "invalid subject helper member"
+        end
+
+      bytes = subject_helper_source!(git, repository_root, subject_sha, relative_path)
+      target = Path.join(destination, Path.relative_to(relative_path, "test/install_smoke"))
+      File.mkdir_p!(Path.dirname(target))
+      File.write!(target, bytes, [:binary])
+
+      {materialized_blob, 0} =
+        System.cmd(git, ["hash-object", "--", target], cd: repository_root)
+
+      assert!(
+        String.trim(materialized_blob) == subject_blob,
+        "materialized subject helper blob mismatch at #{relative_path}"
+      )
     end)
 
     assert!(File.dir?(support_root), "subject helper materialization failed")
