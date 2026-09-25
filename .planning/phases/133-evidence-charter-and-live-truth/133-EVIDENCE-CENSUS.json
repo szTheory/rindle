@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "subject_sha": "c83f61379ad5033efef9afa7b5bc88913080bae2",
+  "subject_sha": "b9e837d6e11c6539ef1bc610c05c2f8b3de854fa",
   "taxonomy": [
     {"id": "correctness", "applicable": true, "detectors": ["default-exunit"]},
     {"id": "maintainability", "applicable": true, "detectors": ["credo-quality"]},
@@ -25,9 +25,9 @@
         "id": "obs-default-exunit-repair-qualification",
         "kind": "test-suite",
         "location": "test",
-        "signal": "mix ci default suite plus detached no-start collector and 42-plan branch-aware reconciliation regressions",
+        "signal": "Elixir 1.17/OTP 27 default suite plus supported Elixir 1.15/OTP 26 compatibility suite, detached no-start collector, and Plans 43-49 reconciliation and review-gate regressions",
         "status": "pass",
-        "attributes": {"test_count": 1539, "failure_count": 0, "skipped_count": 4, "local_toolchain_only": true, "collector_case_count": 163, "reconciliation_case_count": 45}
+        "attributes": {"test_count": 1635, "failure_count": 0, "skipped_count": 4, "local_toolchain_only": true, "collector_case_count": 168, "reconciliation_case_count": 31}
       }]
     },
     {
@@ -81,9 +81,9 @@
         "id": "obs-nightly-policy-repair-qualification",
         "kind": "strict-nightly-policy",
         "location": ".github/workflows/nightly.yml",
-        "signal": "49-case aggregate, 17-case cross-SHA immutable incident replay, 163-case exact-run collector contracts with detached no-start authority, three immutable failed/unqualified attempts, and one distinct prior valid live receipt",
+        "signal": "49-case aggregate, 26-case cross-SHA immutable incident replay, 168-case exact-run collector contracts with detached no-start authority, three immutable failed/unqualified attempts, and one distinct prior valid live receipt",
         "status": "local-contract-pass-repaired-subject-unpublished",
-        "attributes": {"summary_case_count": 49, "incident_case_count": 17, "dispatch_case_count": 163, "incident_policy_owner_count": 1, "obsolete_incident_evaluator_present": false, "detached_authority_no_start": true, "detached_authority_fail_closed": true, "repaired_subject_live_proof": false, "historical_failure_subject_sha": "0f8189ddeed7e7a52b5c7464f17b70ab44596c33", "historical_failure_ref": "phase-133-evidence-0f8189ddeed7", "historical_failure_run_id": 34661043059, "historical_failure_run_attempt": 1, "historical_failure_conclusion": "failure", "live_receipt_subject_sha": "1470cf8cb0f111d0b233efbf77ee69e92f25fd68", "live_receipt_run_id": 34638437301, "live_receipt_reverified": true, "incident_snapshot_drift_run_id": 34680908108, "exhausted_subject_sha": "4ab38ab62878eea936f20bb76e2f7321da6c2e90", "exhausted_ref": "phase-133-evidence-4ab38ab62878", "exhausted_run_id": 34732110533, "exhausted_qualification": false}
+        "attributes": {"summary_case_count": 49, "incident_case_count": 26, "dispatch_case_count": 168, "incident_policy_owner_count": 1, "obsolete_incident_evaluator_present": false, "detached_authority_no_start": true, "detached_authority_fail_closed": true, "repaired_subject_live_proof": false, "historical_failure_subject_sha": "0f8189ddeed7e7a52b5c7464f17b70ab44596c33", "historical_failure_ref": "phase-133-evidence-0f8189ddeed7", "historical_failure_run_id": 34661043059, "historical_failure_run_attempt": 1, "historical_failure_conclusion": "failure", "live_receipt_subject_sha": "1470cf8cb0f111d0b233efbf77ee69e92f25fd68", "live_receipt_run_id": 34638437301, "live_receipt_reverified": true, "incident_snapshot_drift_run_id": 34680908108, "exhausted_subject_sha": "4ab38ab62878eea936f20bb76e2f7321da6c2e90", "exhausted_ref": "phase-133-evidence-4ab38ab62878", "exhausted_run_id": 34732110533, "exhausted_qualification": false}
       }]
     },
     {
