@@ -977,6 +977,14 @@ defmodule Rindle.InstallSmoke.Phase133Reconciliation42Test do
     end
 
     for malformed_ledger <- [
+          update_in(Jason.decode!(census), ["detectors", Access.at(0)], fn row ->
+            Map.put(row, "inputs", 5)
+          end),
+          update_in(
+            Jason.decode!(census),
+            ["detectors", Access.at(0), "observations", Access.at(0)],
+            fn row -> Map.put(row, "location", 5) end
+          ),
           update_in(Jason.decode!(census), ["candidates", Access.at(0)], fn row ->
             Map.put(row, "observations", "not-an-array")
           end),

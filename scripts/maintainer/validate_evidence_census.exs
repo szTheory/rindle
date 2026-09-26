@@ -209,11 +209,15 @@ defmodule Rindle.ValidateEvidenceCensus do
 
   defp validate_detector_records(taxonomy, detectors) do
     if Enum.all?(detectors, fn detector ->
-         is_list(detector["observations"]) and Enum.all?(detector["observations"], &is_map/1)
+         nonempty_string?(detector["id"]) and nonempty_string?(detector["dimension"]) and
+           nonempty_string?(detector["command"]) and
+           nonempty_unique_strings?(detector["inputs"]) and
+           is_list(detector["observations"]) and
+           Enum.all?(detector["observations"], &is_map/1)
        end) do
       validate_detector_observations(taxonomy, detectors)
     else
-      {:error, "detector observations must be arrays of objects"}
+      {:error, "detector fields or observations are malformed"}
     end
   end
 
