@@ -185,6 +185,34 @@ defmodule Rindle.InstallSmoke.Phase133ReviewGateTest do
     assert {output, status} = invoke(tmp)
     assert status != 0
     assert output =~ "finding counts"
+
+    undispositioned_info =
+      original
+      |> String.replace(
+        "No narrative findings.",
+        "### IN-01: Informational finding\n\n**Severity:** INFO\n",
+        global: false
+      )
+      |> String.replace("info: 0", "info: 1", global: false)
+      |> String.replace("total: 0", "total: 1", global: false)
+
+    File.write!(path, undispositioned_info)
+    assert {output, status} = invoke(tmp)
+    assert status != 0
+    assert output =~ "IN-01"
+
+    info_count_mismatch =
+      original
+      |> String.replace(
+        "No narrative findings.",
+        "### IN-01: Informational finding\n\n**Severity:** INFO\n",
+        global: false
+      )
+
+    File.write!(path, info_count_mismatch)
+    assert {output, status} = invoke(tmp)
+    assert status != 0
+    assert output =~ "finding counts"
   end
 
   @tag :review_fenced_disposition

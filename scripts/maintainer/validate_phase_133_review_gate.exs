@@ -231,7 +231,7 @@ defmodule Rindle.ValidatePhase133ReviewGate do
         lines
         |> Enum.with_index()
         |> Enum.flat_map(fn {line, index} ->
-          case Regex.run(~r/^###[ \t]+((?:CR|WR)-\d{2,}):[ \t]*.+$/, line) do
+          case Regex.run(~r/^###[ \t]+((?:CR|WR|IN)-\d{2,}):[ \t]*.+$/, line) do
             [_, id] -> [{id, index}]
             _ -> []
           end
