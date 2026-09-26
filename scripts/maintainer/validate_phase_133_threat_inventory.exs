@@ -439,18 +439,21 @@ defmodule Rindle.ValidatePhase133ThreatInventory do
       lines = String.split(table, "\n")
 
       Enum.all?(ids, fn id ->
-        rows = Enum.filter(lines, &Regex.match?(~r/^\|\s*#{Regex.escape(id)}\s*\|/i, &1))
+        rows =
+          Enum.flat_map(lines, fn line ->
+            case table_cells(line) do
+              [^id, _finding, _component, severity, _treatment, _evidence, status] ->
+                [{severity, status}]
+
+              _ ->
+                []
+            end
+          end)
 
         case rows do
-          [row] ->
-            columns =
-              row
-              |> String.split("|")
-              |> Enum.map(&String.trim/1)
-              |> Enum.reject(&(&1 == ""))
-
+          [{severity, status}] ->
             expected_severity = if id in @high_ids, do: "high", else: "low"
-            Enum.at(columns, 3) == expected_severity and List.last(columns) in accepted
+            severity == expected_severity and status in accepted
 
           _ ->
             false
@@ -469,10 +472,78 @@ defmodule Rindle.ValidatePhase133ThreatInventory do
 
     case {headings, sections} do
       {[_], [[section]]} ->
-        visible_threat_register(section)
+        with {:ok, visible} <- visible_threat_register(section),
+             {:ok, rows} <- extract_threat_table(visible) do
+          {:ok, Enum.map_join(rows, "\n", fn cells -> "|" <> Enum.join(cells, "|") <> "|" end)}
+        end
 
       _ ->
         {:error, "security report must contain one threat-register table"}
+    end
+  end
+
+  defp extract_threat_table(section) do
+    lines = String.split(section, "\n")
+
+    tables =
+      lines
+      |> Enum.with_index()
+      |> Enum.flat_map(fn {line, index} ->
+        if table_cells(line) == [
+             "ID",
+             "Finding",
+             "Component",
+             "Severity",
+             "Treatment",
+             "Evidence",
+             "Status"
+           ] and
+             index + 1 < length(lines) and table_separator?(Enum.at(lines, index + 1)) do
+          rows =
+            lines
+            |> Enum.drop(index + 2)
+            |> Enum.take_while(&String.starts_with?(String.trim_leading(&1), "|"))
+            |> Enum.map(&table_cells/1)
+
+          [rows]
+        else
+          []
+        end
+      end)
+
+    case tables do
+      [rows] ->
+        if rows != [] and Enum.all?(rows, &(length(&1) == 7)) do
+          {:ok, rows}
+        else
+          {:error, "security threat register must contain one exact seven-column Markdown table"}
+        end
+
+      _ ->
+        {:error, "security threat register must contain one exact seven-column Markdown table"}
+    end
+  end
+
+  defp table_cells(line) do
+    if String.starts_with?(String.trim_leading(line), "|") do
+      line
+      |> String.trim()
+      |> String.trim_leading("|")
+      |> String.trim_trailing("|")
+      |> String.split("|")
+      |> Enum.map(&String.trim/1)
+    else
+      []
+    end
+  end
+
+  defp table_separator?(line) do
+    case table_cells(line) do
+      cells when length(cells) == 7 ->
+        Enum.all?(cells, &Regex.match?(~r/^:?-{3,}:?$/, &1))
+
+      _ ->
+        false
     end
   end
 

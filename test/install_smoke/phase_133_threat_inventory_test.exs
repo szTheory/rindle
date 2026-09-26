@@ -162,6 +162,25 @@ defmodule Rindle.InstallSmoke.Phase133ThreatInventoryTest do
     end
   end
 
+  @tag :real_threat_table_guard
+  test "rejects threat rows outside the canonical Markdown table", %{
+    path: path,
+    data: data,
+    security_path: security_path
+  } do
+    original = File.read!(security_path)
+    actual_row = "| T-133-53 | finding | component | high | mitigate | proof | closed |"
+    detached_row = "| T-133-53 | finding | component | high | mitigate | proof | closed |"
+
+    report =
+      original
+      |> String.replace(actual_row, "", global: false)
+      |> String.replace("## Sign-Off", "#{detached_row}\n\n## Sign-Off")
+
+    File.write!(security_path, report)
+    assert_rejected(path, security_path, data)
+  end
+
   @tag :proof_path_isolation
   test "detached proofs ignore caller source edits and project BEAMs" do
     tmp =
