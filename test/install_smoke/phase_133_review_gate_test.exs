@@ -156,6 +156,37 @@ defmodule Rindle.InstallSmoke.Phase133ReviewGateTest do
     end
   end
 
+  @tag :review_dynamic_findings
+  @tag :phase133_focus
+  test "requires dispositions for every visible finding and validates declared counts", %{
+    tmp: tmp,
+    dir: dir
+  } do
+    path = Path.join(dir, "133-REVIEW.md")
+    original = File.read!(path)
+
+    undispositioned =
+      original
+      |> String.replace(
+        "No narrative findings.",
+        "### CR-27: Newly reported finding\n\n**Severity:** WARNING\n",
+        global: false
+      )
+      |> String.replace("warning: 0", "warning: 1", global: false)
+      |> String.replace("total: 0", "total: 1", global: false)
+
+    File.write!(path, undispositioned)
+    assert {output, status} = invoke(tmp)
+    assert status != 0
+    assert output =~ "CR-27"
+
+    count_mismatch = String.replace(original, "total: 0", "total: 1", global: false)
+    File.write!(path, count_mismatch)
+    assert {output, status} = invoke(tmp)
+    assert status != 0
+    assert output =~ "finding counts"
+  end
+
   @tag :review_fenced_disposition
   test "does not count finding closures inside fenced examples", %{tmp: tmp, dir: dir} do
     path = Path.join(dir, "133-REVIEW.md")
@@ -392,8 +423,12 @@ defmodule Rindle.InstallSmoke.Phase133ReviewGateTest do
         &"| #{&1} | closed |"
       )
 
-    front(subject, digest, "status: approved\nblocking: 0\n") <>
-      "\n| Finding ID | Disposition |\n| --- | --- |\n#{rows}\n\n## Sign-Off\n- [x] No blocking findings\n"
+    front(
+      subject,
+      digest,
+      "status: approved\nblocking: 0\nfindings:\n  critical: 0\n  warning: 0\n  info: 0\n  total: 0\n"
+    ) <>
+      "\n## Narrative Findings (AI reviewer)\nNo narrative findings.\n\n| Finding ID | Disposition |\n| --- | --- |\n#{rows}\n\n## Sign-Off\n- [x] No blocking findings\n"
   end
 
   defp validation(subject, digest) do

@@ -175,9 +175,13 @@ defmodule Rindle.ValidatePhase133ReviewGate do
 
   defp review_contract(body) do
     with {:ok, fields} <- strict_report_fields(body, ["status", "blocking"]),
+         {:ok, declared_counts} <- review_finding_counts(body),
          {:ok, visible_body} <-
            visible_markdown(remove_frontmatter(body, frontmatter_text(body))),
-         failures <- review_disposition_failures(visible_body),
+         {:ok, findings} <- narrative_findings(visible_body),
+         :ok <- review_finding_counts_match(findings, declared_counts, fields["blocking"]),
+         required_ids <- Enum.uniq(@review_ids ++ Enum.map(findings, &elem(&1, 0))),
+         failures <- review_disposition_failures(visible_body, required_ids),
          {:ok, signoff} <- signoff_section(visible_body),
          checkboxes <-
            Regex.scan(~r/^[ \t]*-[ \t]*\[[ xX]\][ \t]+[^\r\n]*$/m, signoff)
@@ -200,10 +204,125 @@ defmodule Rindle.ValidatePhase133ReviewGate do
     end
   end
 
-  defp review_disposition_failures(body) do
-    rows = review_disposition_table_rows(body) |> Enum.group_by(&elem(&1, 0), &elem(&1, 1))
+  defp review_finding_counts(body) do
+    text = frontmatter_text(body)
+    fields = ["critical", "warning", "info", "total"]
 
-    Enum.reject(@review_ids, fn id ->
+    Enum.reduce_while(fields, {:ok, %{}}, fn field, {:ok, counts} ->
+      matches =
+        Regex.scan(~r/^[ \t]*#{Regex.escape(field)}:\s*(\d+)\s*$/m, text, capture: :all_but_first)
+        |> List.flatten()
+
+      case matches do
+        [value] ->
+          {:cont, {:ok, Map.put(counts, field, String.to_integer(value))}}
+
+        _ ->
+          {:halt, {:error, "review findings frontmatter must contain exactly one #{field} count"}}
+      end
+    end)
+  end
+
+  defp narrative_findings(body) do
+    with {:ok, section} <- bounded_markdown_section(body, "## Narrative Findings (AI reviewer)") do
+      lines = String.split(section, "\n")
+
+      headings =
+        lines
+        |> Enum.with_index()
+        |> Enum.flat_map(fn {line, index} ->
+          case Regex.run(~r/^###[ \t]+((?:CR|WR)-\d{2,}):[ \t]*.+$/, line) do
+            [_, id] -> [{id, index}]
+            _ -> []
+          end
+        end)
+
+      findings =
+        Enum.map(headings, fn {id, index} ->
+          content =
+            lines
+            |> Enum.drop(index + 1)
+            |> Enum.take_while(&(not Regex.match?(~r/^###(?:[ \t]|$)/, &1)))
+            |> Enum.join("\n")
+
+          case Regex.scan(
+                 ~r/^\*\*Severity:\*\*[ \t]*(BLOCKER|CRITICAL|WARNING|INFO)\b.*$/im,
+                 content,
+                 capture: :all_but_first
+               )
+               |> List.flatten() do
+            [severity] -> {id, String.downcase(severity)}
+            _ -> {id, :invalid}
+          end
+        end)
+
+      ids = Enum.map(findings, &elem(&1, 0))
+
+      cond do
+        length(ids) != length(Enum.uniq(ids)) ->
+          {:error, "review narrative contains duplicate finding IDs"}
+
+        Enum.any?(findings, &(elem(&1, 1) == :invalid)) ->
+          {:error, "review narrative finding severity is missing or malformed"}
+
+        true ->
+          {:ok, findings}
+      end
+    end
+  end
+
+  defp review_finding_counts_match(findings, declared, blocking) do
+    counts =
+      Enum.reduce(findings, %{"critical" => 0, "warning" => 0, "info" => 0}, fn
+        {_id, severity}, acc when severity in ["blocker", "critical"] ->
+          Map.update!(acc, "critical", &(&1 + 1))
+
+        {_id, "warning"}, acc ->
+          Map.update!(acc, "warning", &(&1 + 1))
+
+        {_id, "info"}, acc ->
+          Map.update!(acc, "info", &(&1 + 1))
+      end)
+
+    valid_counts =
+      Enum.all?(["critical", "warning", "info"], &(declared[&1] == counts[&1])) and
+        declared["total"] == length(findings) and
+        declared["total"] == counts["critical"] + counts["warning"] + counts["info"] and
+        blocking == Integer.to_string(counts["critical"])
+
+    if valid_counts,
+      do: :ok,
+      else:
+        {:error, "review declared finding counts do not match unique visible narrative findings"}
+  end
+
+  defp bounded_markdown_section(body, heading) do
+    lines = String.split(body, "\n")
+
+    headings =
+      Enum.with_index(lines) |> Enum.filter(fn {line, _} -> String.trim(line) == heading end)
+
+    case headings do
+      [{_heading, index}] ->
+        section =
+          lines
+          |> Enum.drop(index + 1)
+          |> Enum.take_while(fn line -> not Regex.match?(~r/^ {0,3}\#{1,2}[ \t]+/, line) end)
+          |> Enum.join("\n")
+
+        {:ok, section}
+
+      _ ->
+        {:error, "review narrative findings section is missing or ambiguous"}
+    end
+  end
+
+  defp review_disposition_failures(body, required_ids) do
+    rows =
+      review_disposition_table_rows(body, required_ids)
+      |> Enum.group_by(&elem(&1, 0), &elem(&1, 1))
+
+    Enum.reject(required_ids, fn id ->
       case Map.get(rows, id, []) do
         [[status]] when status in ["closed", "fixed", "dispositioned"] -> true
         _ -> false
@@ -211,7 +330,7 @@ defmodule Rindle.ValidatePhase133ReviewGate do
     end)
   end
 
-  defp review_disposition_table_rows(body) do
+  defp review_disposition_table_rows(body, required_ids) do
     lines = String.split(body, "\n")
 
     tables =
@@ -235,7 +354,7 @@ defmodule Rindle.ValidatePhase133ReviewGate do
     case tables do
       [rows] ->
         if Enum.all?(rows, fn
-             [id, _status] -> id in @review_ids
+             [id, _status] -> id in required_ids
              _ -> false
            end) do
           Enum.map(rows, fn [id, status] -> {id, [status]} end)

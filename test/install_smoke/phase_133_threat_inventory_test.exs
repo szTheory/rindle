@@ -277,6 +277,16 @@ defmodule Rindle.InstallSmoke.Phase133ThreatInventoryTest do
       assert status != 0
       assert output =~ "historical digest mismatch"
     end
+
+    moved_outside_section =
+      original
+      |> String.replace(provenance, "")
+      |> String.replace("## Sign-Off", "## Sign-Off\n#{provenance}")
+
+    File.write!(security_path, moved_outside_section)
+    assert {output, status} = invoke(write(path, data), security_path)
+    assert status != 0
+    assert output =~ "historical digest mismatch"
   end
 
   @tag :proof_path_isolation

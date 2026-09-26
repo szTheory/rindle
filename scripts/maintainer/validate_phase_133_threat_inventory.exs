@@ -474,7 +474,7 @@ defmodule Rindle.ValidatePhase133ThreatInventory do
           "historical attachment discrepancy remains unresolved",
           "current item-level re-audit supersedes the aggregate attachment"
         ],
-        &String.contains?(visible_body, &1)
+        &String.contains?(provenance, &1)
       )
     else
       _ -> false
