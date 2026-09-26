@@ -179,14 +179,16 @@ defmodule Rindle.ValidatePhase133ReviewGate do
            visible_markdown(remove_frontmatter(body, frontmatter_text(body))),
          failures <- review_disposition_failures(visible_body),
          {:ok, signoff} <- signoff_section(visible_body),
+         checkboxes <-
+           Regex.scan(~r/^[ \t]*-[ \t]*\[[ xX]\][ \t]+[^\r\n]*$/m, signoff)
+           |> List.flatten(),
          true <- fields["status"] == "approved" or {:error, "review is not approved"},
          true <- fields["blocking"] == "0" or {:error, "review has blocking findings"},
          true <-
            failures == [] or
              {:error, "review dispositions are incomplete: #{Enum.join(failures, ", ")}"},
          true <-
-           Regex.scan(~r/^\s*-\s*\[[ xX]\]\s+.*$/m, signoff) ==
-             ["- [x] No blocking findings"] or
+           checkboxes == ["- [x] No blocking findings"] or
              {:error, "review sign-off is incomplete"} do
       :ok
     else

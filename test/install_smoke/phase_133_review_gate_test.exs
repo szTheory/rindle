@@ -350,7 +350,7 @@ defmodule Rindle.InstallSmoke.Phase133ReviewGateTest do
       end)
 
     front(subject, digest, "status: verified\nthreats_open: 0\n") <>
-      "\n## Threat Register\n\n| ID | Threat | Component | Severity | Treatment | Evidence | Status |\n| --- | --- | --- | --- | --- | --- | --- |\n#{rows}\n\n## Sign-Off\n- [x] All findings closed or explicitly dispositioned\n"
+      "\n## Historical Attachment Provenance\n\nHistorical report SHA-256: 706bd2bf5b1162907ab60a7cf910f40a5242cc203190f5578f098dd4647a9a65\nObserved committed report SHA-256: f004b5310be7cd432a09fbcd252d2dac6781f739a9104f19de044f8a17e5a8a7\nThe historical attachment discrepancy remains unresolved. The current item-level re-audit supersedes the aggregate attachment.\n\n## Threat Register\n\n| ID | Threat | Component | Severity | Treatment | Evidence | Status |\n| --- | --- | --- | --- | --- | --- | --- |\n#{rows}\n\n## Sign-Off\n- [x] All findings closed or explicitly dispositioned\n"
   end
 
   defp proof_for("T-133-71"),
