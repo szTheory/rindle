@@ -195,11 +195,80 @@ defmodule Rindle.InstallSmoke.Phase133ReviewGateTest do
     assert status != 0
     assert output =~ "WR-27"
 
+    for indent <- [" ", "  "] do
+      indented_heading =
+        original
+        |> String.replace(
+          "No narrative findings.",
+          "#{indent}### WR-27: Indented visible finding\n\n**Severity:** WARNING\n",
+          global: false
+        )
+        |> String.replace("warning: 0", "warning: 1", global: false)
+        |> String.replace("total: 0", "total: 1", global: false)
+
+      File.write!(path, indented_heading)
+      assert {output, status} = invoke(tmp)
+      assert status != 0
+      assert output =~ "WR-27"
+    end
+
+    four_space_code_heading =
+      String.replace(
+        original,
+        "No narrative findings.",
+        "    ### WR-27: Code example only\n\n    **Severity:** WARNING\n",
+        global: false
+      )
+
+    File.write!(path, four_space_code_heading)
+    assert {output, 0} = invoke(tmp)
+    assert output =~ "review gate valid"
+
     count_mismatch = String.replace(original, "total: 0", "total: 1", global: false)
     File.write!(path, count_mismatch)
     assert {output, status} = invoke(tmp)
     assert status != 0
     assert output =~ "finding counts"
+
+    critical_count_mismatch =
+      original
+      |> String.replace("critical: 0", "critical: 1", global: false)
+      |> String.replace("total: 0", "total: 1", global: false)
+
+    File.write!(path, critical_count_mismatch)
+    assert {output, status} = invoke(tmp)
+    assert status != 0
+    assert output =~ "finding counts"
+
+    warning_count_mismatch =
+      original
+      |> String.replace("warning: 0", "warning: 1", global: false)
+      |> String.replace("total: 0", "total: 1", global: false)
+
+    File.write!(path, warning_count_mismatch)
+    assert {output, status} = invoke(tmp)
+    assert status != 0
+    assert output =~ "finding counts"
+
+    valid_critical_severity =
+      original
+      |> String.replace(
+        "No narrative findings.",
+        "### CR-27: Critical finding\n\n**Severity:** CRITICAL\n",
+        global: false
+      )
+      |> String.replace("critical: 0", "critical: 1", global: false)
+      |> String.replace("total: 0", "total: 1", global: false)
+      |> String.replace("blocking: 0", "blocking: 1", global: false)
+      |> String.replace("| CR-26 | closed |", "| CR-26 | closed |\n| CR-27 | closed |",
+        global: false
+      )
+
+    File.write!(path, valid_critical_severity)
+    assert {output, status} = invoke(tmp)
+    assert status != 0
+    assert output =~ "review has blocking findings"
+    refute output =~ "severity does not match"
 
     mismatched_severity =
       original
