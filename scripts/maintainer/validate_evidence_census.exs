@@ -54,8 +54,9 @@ defmodule Rindle.ValidateEvidenceCensus do
          :ok <- validate_schema(ledger, receipt),
          :ok <- validate_authority(ledger, receipt, head),
          :ok <- validate_taxonomy(ledger),
-         :ok <- validate_detectors(ledger),
+         :ok <- validate_detector_shapes(ledger),
          :ok <- validate_observation_locations(ledger, options.root),
+         :ok <- validate_detectors(ledger),
          :ok <- validate_transition_contract(ledger),
          :ok <- validate_candidates(ledger, options.root),
          :ok <- validate_receipt(ledger, receipt, options.root) do
@@ -74,8 +75,9 @@ defmodule Rindle.ValidateEvidenceCensus do
            ),
          :ok <- validate_schema(ledger, %{"schema_version" => 1}),
          :ok <- validate_taxonomy(ledger),
-         :ok <- validate_detectors(ledger),
+         :ok <- validate_detector_shapes(ledger),
          :ok <- validate_observation_locations(ledger, root),
+         :ok <- validate_detectors(ledger),
          :ok <- validate_transition_contract(ledger),
          :ok <- validate_candidates(ledger, root) do
       :ok
@@ -196,30 +198,34 @@ defmodule Rindle.ValidateEvidenceCensus do
 
   defp authorized_applicability?(_), do: false
 
-  defp validate_detectors(%{"taxonomy" => taxonomy, "detectors" => detectors})
+  defp validate_detector_shapes(%{"taxonomy" => taxonomy, "detectors" => detectors})
        when is_list(detectors) and is_list(taxonomy) do
     if Enum.all?(detectors, &is_map/1) and Enum.all?(taxonomy, &is_map/1) do
-      validate_detector_records(taxonomy, detectors)
+      if Enum.all?(detectors, fn detector ->
+           nonempty_string?(detector["id"]) and nonempty_string?(detector["dimension"]) and
+             nonempty_string?(detector["command"]) and
+             nonempty_unique_strings?(detector["inputs"]) and
+             is_list(detector["observations"]) and
+             Enum.all?(detector["observations"], &is_map/1)
+         end) do
+        :ok
+      else
+        {:error, "detector fields or observations are malformed"}
+      end
     else
       {:error, "taxonomy and detector entries must be objects"}
     end
   end
 
-  defp validate_detectors(_), do: {:error, "detectors must be an array"}
+  defp validate_detector_shapes(_), do: {:error, "detectors must be an array"}
 
-  defp validate_detector_records(taxonomy, detectors) do
-    if Enum.all?(detectors, fn detector ->
-         nonempty_string?(detector["id"]) and nonempty_string?(detector["dimension"]) and
-           nonempty_string?(detector["command"]) and
-           nonempty_unique_strings?(detector["inputs"]) and
-           is_list(detector["observations"]) and
-           Enum.all?(detector["observations"], &is_map/1)
-       end) do
+  defp validate_detectors(%{"taxonomy" => taxonomy, "detectors" => detectors}) do
+    with :ok <- validate_detector_shapes(%{"taxonomy" => taxonomy, "detectors" => detectors}) do
       validate_detector_observations(taxonomy, detectors)
-    else
-      {:error, "detector fields or observations are malformed"}
     end
   end
+
+  defp validate_detectors(_), do: {:error, "detectors must be an array"}
 
   defp validate_detector_observations(taxonomy, detectors) do
     detector_ids = Enum.map(detectors, & &1["id"])
