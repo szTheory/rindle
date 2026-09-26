@@ -458,6 +458,14 @@ defmodule Rindle.InstallSmoke.Phase133ReconciliationTest do
   end
 
   defp run_validator_with(fixture, executable, arguments, extra_env \\ []) do
+    env = Map.new([{"MIX_QUIET", "1"} | extra_env])
+
+    env =
+      case System.get_env("MIX_BUILD_PATH") do
+        build_path when is_binary(build_path) -> Map.put_new(env, "MIX_BUILD_PATH", build_path)
+        _ -> env
+      end
+
     System.cmd(
       executable,
       arguments ++
@@ -470,7 +478,7 @@ defmodule Rindle.InstallSmoke.Phase133ReconciliationTest do
           fixture.historical_sha256
         ],
       cd: Path.expand("../..", __DIR__),
-      env: [{"MIX_QUIET", "1"} | extra_env],
+      env: Map.to_list(env),
       stderr_to_stdout: true
     )
   end
