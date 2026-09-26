@@ -226,8 +226,10 @@ defmodule Rindle.ValidatePhase133ReviewGate do
   defp narrative_findings(body) do
     with {:ok, section} <- bounded_markdown_section(body, "## Narrative Findings (AI reviewer)") do
       lines = String.split(section, "\n")
-      id_heading? = &Regex.match?(~r/^###[ \t]+(?:CR|WR|IN)-/, &1)
-      canonical_heading? = &Regex.match?(~r/^###[ \t]+(?:CR|WR|IN)-\d{2,}:[ \t]*.+$/, &1)
+      id_heading? = &Regex.match?(~r/^ {0,3}###[ \t]+(?:CR|WR|IN)-/, &1)
+
+      canonical_heading? =
+        &Regex.match?(~r/^ {0,3}###[ \t]+(?:CR|WR|IN)-\d{2,}:[ \t]*.+$/, &1)
 
       malformed_heading? =
         lines
@@ -238,7 +240,7 @@ defmodule Rindle.ValidatePhase133ReviewGate do
         lines
         |> Enum.with_index()
         |> Enum.flat_map(fn {line, index} ->
-          case Regex.run(~r/^###[ \t]+((?:CR|WR|IN)-\d{2,}):[ \t]*.+$/, line) do
+          case Regex.run(~r/^ {0,3}###[ \t]+((?:CR|WR|IN)-\d{2,}):[ \t]*.+$/, line) do
             [_, id] -> [{id, index}]
             _ -> []
           end
@@ -252,7 +254,7 @@ defmodule Rindle.ValidatePhase133ReviewGate do
             content =
               lines
               |> Enum.drop(index + 1)
-              |> Enum.take_while(&(not Regex.match?(~r/^###(?:[ \t]|$)/, &1)))
+              |> Enum.take_while(&(not Regex.match?(~r/^ {0,3}###(?:[ \t]|$)/, &1)))
               |> Enum.join("\n")
 
             case Regex.scan(

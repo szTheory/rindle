@@ -180,6 +180,21 @@ defmodule Rindle.InstallSmoke.Phase133ReviewGateTest do
     assert status != 0
     assert output =~ "WR-27"
 
+    indented_undispositioned =
+      original
+      |> String.replace(
+        "No narrative findings.",
+        "   ### WR-27: Indented visible finding\n\n**Severity:** WARNING\n",
+        global: false
+      )
+      |> String.replace("warning: 0", "warning: 1", global: false)
+      |> String.replace("total: 0", "total: 1", global: false)
+
+    File.write!(path, indented_undispositioned)
+    assert {output, status} = invoke(tmp)
+    assert status != 0
+    assert output =~ "WR-27"
+
     count_mismatch = String.replace(original, "total: 0", "total: 1", global: false)
     File.write!(path, count_mismatch)
     assert {output, status} = invoke(tmp)
