@@ -134,6 +134,11 @@ defmodule Rindle.InstallSmoke.Phase133ReviewGateTest do
           String.replace(original, "| CR-17 | closed |", "| CR-17 | open |"),
           String.replace(original, "| CR-18 | closed |", "| CR-18 | open |"),
           String.replace(original, "| CR-19 | closed |", "| CR-19 | open |"),
+          String.replace(original, "| CR-23 | closed |", "| CR-23 | open |"),
+          String.replace(original, "| CR-23 | closed |", ""),
+          String.replace(original, "| CR-24 | closed |", "| CR-24 | open |"),
+          String.replace(original, "| CR-25 | closed |", "| CR-25 | open |"),
+          String.replace(original, "| CR-26 | closed |", "| CR-26 | open |"),
           String.replace(original, "| WR-03 | closed |", "| WR-03 | open |"),
           String.replace(original, "blocking: 0", "blocking: 1"),
           String.replace(original, "status: approved", "status: blocked"),
@@ -165,6 +170,42 @@ defmodule Rindle.InstallSmoke.Phase133ReviewGateTest do
     assert {output, status} = invoke(tmp)
     assert status != 0
     assert output =~ "CR-09"
+  end
+
+  @tag :review_tab_bypass
+  @tag :phase133_focus
+  test "does not treat tab-expanded indentation or tab-indented fences as visible evidence", %{
+    tmp: tmp,
+    dir: dir
+  } do
+    path = Path.join(dir, "133-REVIEW.md")
+    original = File.read!(path)
+
+    hidden_indented_closure =
+      original
+      |> String.replace("| CR-09 | closed |", "| CR-09 | open |")
+      |> String.replace(
+        "## Sign-Off",
+        "   \t| CR-09 | closed |\n\n## Sign-Off"
+      )
+
+    File.write!(path, hidden_indented_closure)
+    assert {output, status} = invoke(tmp)
+    assert status != 0
+    assert output =~ "CR-09"
+
+    hidden_fenced_closure =
+      original
+      |> String.replace("| CR-09 | closed |", "| CR-09 | open |")
+      |> String.replace(
+        "## Sign-Off",
+        "~~~text\n   \t~~~\n| CR-09 | closed |\n## Sign-Off"
+      )
+
+    File.write!(path, hidden_fenced_closure)
+    assert {output, status} = invoke(tmp)
+    assert status != 0
+    assert output =~ "fence"
   end
 
   @tag :review_exact_dispositions
@@ -346,7 +387,7 @@ defmodule Rindle.InstallSmoke.Phase133ReviewGateTest do
   defp review(subject, digest) do
     rows =
       Enum.map_join(
-        ~w(CR-01 CR-02 CR-03 CR-04 CR-05 CR-06 CR-07 CR-08 CR-09 CR-10 CR-11 CR-12 CR-13 CR-14 CR-15 CR-16 CR-17 CR-18 CR-19 WR-01 WR-02 WR-03),
+        ~w(CR-01 CR-02 CR-03 CR-04 CR-05 CR-06 CR-07 CR-08 CR-09 CR-10 CR-11 CR-12 CR-13 CR-14 CR-15 CR-16 CR-17 CR-18 CR-19 CR-20 CR-21 CR-22 CR-23 CR-24 CR-25 CR-26 WR-01 WR-02 WR-03),
         "\n",
         &"| #{&1} | closed |"
       )

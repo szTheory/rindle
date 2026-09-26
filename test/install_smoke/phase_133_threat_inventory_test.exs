@@ -61,6 +61,8 @@ defmodule Rindle.InstallSmoke.Phase133ThreatInventoryTest do
     threats_open: 0
     ---
 
+    ## Historical Attachment Provenance
+
     The historical attachment discrepancy remains unresolved: the claim is 706bd2bf5b1162907ab60a7cf910f40a5242cc203190f5578f098dd4647a9a65 while the committed blob is f004b5310be7cd432a09fbcd252d2dac6781f739a9104f19de044f8a17e5a8a7.
     The current item-level re-audit supersedes the aggregate attachment for disposition evidence.
 
@@ -233,7 +235,52 @@ defmodule Rindle.InstallSmoke.Phase133ThreatInventoryTest do
     assert_rejected(path, security_path, data)
   end
 
+  @tag :threat_tab_bypass
+  @tag :phase133_focus
+  test "does not treat three spaces plus a tab as a visible threat register row", %{
+    path: path,
+    data: data,
+    security_path: security_path
+  } do
+    original = File.read!(security_path)
+    anchor = "| T-133-53 | finding | component | high | mitigate | proof | closed |"
+
+    report =
+      original
+      |> String.replace(anchor, "")
+      |> String.replace("## Sign-Off", "   \t#{anchor}\n\n## Sign-Off")
+
+    File.write!(security_path, report)
+    assert_rejected(path, security_path, data)
+  end
+
+  @tag :provenance_comment_fence
+  @tag :phase133_focus
+  test "historical provenance must be visible outside comments and code fences", %{
+    path: path,
+    data: data,
+    security_path: security_path
+  } do
+    original = File.read!(security_path)
+
+    provenance =
+      "The historical attachment discrepancy remains unresolved: the claim is " <>
+        "706bd2bf5b1162907ab60a7cf910f40a5242cc203190f5578f098dd4647a9a65 while the committed blob is " <>
+        "f004b5310be7cd432a09fbcd252d2dac6781f739a9104f19de044f8a17e5a8a7.\n" <>
+        "The current item-level re-audit supersedes the aggregate attachment for disposition evidence."
+
+    for hidden <- ["<!--\n#{provenance}\n-->", "~~~text\n#{provenance}\n~~~"] do
+      mutated_report = String.replace(original, provenance, hidden)
+      refute mutated_report == original
+      File.write!(security_path, mutated_report)
+      assert {output, status} = invoke(write(path, data), security_path)
+      assert status != 0
+      assert output =~ "historical digest mismatch"
+    end
+  end
+
   @tag :proof_path_isolation
+  @tag :phase133_focus
   test "detached proofs ignore caller source edits and project BEAMs" do
     tmp =
       Path.join(
@@ -301,6 +348,70 @@ defmodule Rindle.InstallSmoke.Phase133ThreatInventoryTest do
     end
   end
 
+  @tag :private_path_symlink_guard
+  @tag :phase133_focus
+  test "rejects symlinked private clone, dependency, build, and Hex paths before writes" do
+    clone_tmp =
+      Path.join(System.tmp_dir!(), "phase133-symlink-clone-#{System.unique_integer([:positive])}")
+
+    external = Path.join(clone_tmp, "external")
+    caller = Path.join(clone_tmp, "caller")
+    detached_link = Path.join(clone_tmp, "detached")
+    on_exit(fn -> File.rm_rf!(clone_tmp) end)
+    File.mkdir_p!(external)
+    File.write!(Path.join(external, "sentinel"), "untouched")
+    subject = create_symlink_subject!(caller, [])
+    File.ln_s!(external, detached_link)
+
+    assert_raise RuntimeError, ~r/symlinked private clone path/, fn ->
+      Rindle.Phase133ProofCheckout.checkout_subject!(caller, detached_link, subject)
+    end
+
+    assert File.read!(Path.join(external, "sentinel")) == "untouched"
+    refute File.exists?(Path.join(external, ".git"))
+
+    symlink_cases = [
+      {".phase133-proof-build", :build},
+      {".phase133-proof-build/lib", :build},
+      {".phase133-proof-deps", :deps},
+      {".phase133-proof-hex", :hex}
+    ]
+
+    for {relative, kind} <- symlink_cases do
+      tmp =
+        Path.join(
+          System.tmp_dir!(),
+          "phase133-symlink-private-path-#{System.unique_integer([:positive])}"
+        )
+
+      source = Path.join(tmp, "source")
+      detached = Path.join(tmp, "detached")
+      outside = Path.join(tmp, "outside")
+      on_exit(fn -> File.rm_rf!(tmp) end)
+      File.mkdir_p!(outside)
+      File.write!(Path.join(outside, "sentinel"), "untouched")
+      subject = create_symlink_subject!(source, [{relative, outside}])
+
+      assert :ok =
+               Rindle.Phase133ProofCheckout.checkout_subject!(
+                 source,
+                 detached,
+                 subject
+               )
+
+      prepare =
+        case kind do
+          :build -> &Rindle.Phase133ProofCheckout.prepare_build_path!/1
+          :deps -> &Rindle.Phase133ProofCheckout.prepare_deps_path!/1
+          :hex -> &Rindle.Phase133ProofCheckout.prepare_hex_path!/1
+        end
+
+      assert_raise RuntimeError, ~r/symlink/, fn -> prepare.(detached) end
+      assert File.read!(Path.join(outside, "sentinel")) == "untouched"
+      assert File.ls!(outside) == ["sentinel"]
+    end
+  end
+
   test "rejects an inventory bound to a different ledger subject or digest", %{
     path: path,
     data: data,
@@ -361,6 +472,33 @@ defmodule Rindle.InstallSmoke.Phase133ThreatInventoryTest do
   defp git!(cwd, args) do
     {output, 0} = System.cmd("git", args, cd: cwd, stderr_to_stdout: true)
     output
+  end
+
+  defp create_symlink_subject!(root, symlink_paths) do
+    File.mkdir_p!(Path.join(root, "src"))
+    File.write!(Path.join(root, "src/proof.txt"), "subject")
+
+    Enum.each(symlink_paths, fn {relative, destination} ->
+      path = Path.join(root, relative)
+      File.mkdir_p!(Path.dirname(path))
+      File.ln_s!(destination, path)
+    end)
+
+    git!(root, ["init", "-q"])
+    git!(root, ["add", "-A"])
+
+    git!(root, [
+      "-c",
+      "user.name=Phase 133 Test",
+      "-c",
+      "user.email=phase133@example.invalid",
+      "commit",
+      "-qm",
+      "subject"
+    ])
+
+    {subject, 0} = System.cmd("git", ["rev-parse", "HEAD"], cd: root)
+    String.trim(subject)
   end
 
   defp write(path, data) do

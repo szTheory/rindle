@@ -464,15 +464,46 @@ defmodule Rindle.ValidatePhase133ThreatInventory do
   end
 
   defp historical_attachment_superseded?(body) do
-    Enum.all?(
-      [
-        @report_sha,
-        @observed_report_sha,
-        "historical attachment discrepancy remains unresolved",
-        "current item-level re-audit supersedes the aggregate attachment"
-      ],
-      &String.contains?(body, &1)
-    )
+    with {:ok, visible_body} <- visible_threat_register(remove_security_frontmatter(body)),
+         {:ok, provenance} <-
+           bounded_markdown_section(visible_body, "## Historical Attachment Provenance") do
+      Enum.all?(
+        [
+          @report_sha,
+          @observed_report_sha,
+          "historical attachment discrepancy remains unresolved",
+          "current item-level re-audit supersedes the aggregate attachment"
+        ],
+        &String.contains?(visible_body, &1)
+      )
+    else
+      _ -> false
+    end
+  end
+
+  defp remove_security_frontmatter(body) do
+    Regex.replace(~r/\A---[ \t]*\r?\n.*?\r?\n---[ \t]*(?:\r?\n|$)/s, body, "")
+  end
+
+  defp bounded_markdown_section(body, heading) do
+    lines = String.split(body, "\n")
+
+    matches =
+      Enum.with_index(lines) |> Enum.filter(fn {line, _} -> String.trim(line) == heading end)
+
+    case matches do
+      [{_heading, index}] ->
+        section =
+          lines
+          |> Enum.drop(index + 1)
+          |> Enum.take_while(fn line -> not Regex.match?(~r/^ {0,3}\#{1,6}[ \t]+/, line) end)
+          |> Enum.join("\n")
+
+        {:ok, section}
+
+      _ ->
+        {:error, "historical attachment provenance section is missing or ambiguous"}
+    end
   end
 
   defp all_rows_dispositioned?(body, ids, accepted) do
@@ -695,8 +726,17 @@ defmodule Rindle.ValidatePhase133ThreatInventory do
     )
   end
 
-  defp indented_code_line?(line),
-    do: Regex.match?(~r/^(?: {4}|\t)/, line)
+  defp indented_code_line?(line), do: leading_indent_columns(line) >= 4
+
+  defp leading_indent_columns(line) do
+    line
+    |> String.to_charlist()
+    |> Enum.reduce_while(0, fn
+      ?\s, columns -> {:cont, columns + 1}
+      ?\t, columns -> {:cont, columns + (4 - rem(columns, 4))}
+      _character, columns -> {:halt, columns}
+    end)
+  end
 
   defp read_json(path) do
     with {:ok, body} <- File.read(path),

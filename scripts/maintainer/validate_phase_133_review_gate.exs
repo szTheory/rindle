@@ -3,7 +3,7 @@ defmodule Rindle.ValidatePhase133ReviewGate do
   @phase ".planning/phases/133-evidence-charter-and-live-truth"
   @inventory_ids ~w(T-133-71 T-133-102 T-133-33-SC T-133-34-05 T-133-34-SC T-133-35-SC T-133-36-05 T-133-36-SC T-133-37-SC T-133-38-SC T-133-39-SC T-133-40-SC T-133-41-05 T-133-41-SC T-133-42-SC)
   @high_ids ~w(T-133-32 T-133-53 T-133-74 T-133-85 T-133-91 T-133-105 T-133-39-03 T-133-42-03)
-  @review_ids ~w(CR-01 CR-02 CR-03 CR-04 CR-05 CR-06 CR-07 CR-08 CR-09 CR-10 CR-11 CR-12 CR-13 CR-14 CR-15 CR-16 CR-17 CR-18 CR-19 WR-01 WR-02 WR-03)
+  @review_ids ~w(CR-01 CR-02 CR-03 CR-04 CR-05 CR-06 CR-07 CR-08 CR-09 CR-10 CR-11 CR-12 CR-13 CR-14 CR-15 CR-16 CR-17 CR-18 CR-19 CR-20 CR-21 CR-22 CR-23 CR-24 CR-25 CR-26 WR-01 WR-02 WR-03)
   @package_proof_ids ~w(T-133-33-SC T-133-34-SC T-133-35-SC T-133-36-SC T-133-37-SC T-133-38-SC T-133-39-SC T-133-40-SC T-133-41-SC T-133-42-SC)
   @package_proof_path "scripts/ci/test_phase_133_package_manager_guards.sh"
   @package_proof_command "scripts/ci/test_phase_133_package_manager_guards.sh"
@@ -280,7 +280,7 @@ defmodule Rindle.ValidatePhase133ReviewGate do
       if is_nil(fence) and indented_code_line?(line) do
         {:cont, {:ok, visible, nil}}
       else
-        case {fence, Regex.run(~r/^\s*(`{3,}|~{3,})(.*)$/, line)} do
+        case {fence, Regex.run(~r/^ {0,3}(`{3,}|~{3,})(.*)$/, line)} do
           {nil, [_, marker, _info]} ->
             {:cont, {:ok, visible, {String.first(marker), byte_size(marker)}}}
 
@@ -334,8 +334,17 @@ defmodule Rindle.ValidatePhase133ReviewGate do
     end
   end
 
-  defp indented_code_line?(line),
-    do: Regex.match?(~r/^(?: {4}|\t)/, line)
+  defp indented_code_line?(line), do: leading_indent_columns(line) >= 4
+
+  defp leading_indent_columns(line) do
+    line
+    |> String.to_charlist()
+    |> Enum.reduce_while(0, fn
+      ?\s, columns -> {:cont, columns + 1}
+      ?\t, columns -> {:cont, columns + (4 - rem(columns, 4))}
+      _character, columns -> {:halt, columns}
+    end)
+  end
 
   defp safe_validation_contract(body, subject, digest) do
     try do
