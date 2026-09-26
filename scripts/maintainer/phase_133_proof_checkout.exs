@@ -48,8 +48,8 @@ defmodule Rindle.Phase133ProofCheckout do
   end
 
   def materialize_locked_dependencies!(audit_root, env) do
-    with {:ok, _output} <- run_mix(audit_root, env, "mix deps.get --only test"),
-         {:ok, _output} <- run_mix(audit_root, env, "mix deps.check"),
+    with {:ok, _output} <-
+           run_mix(audit_root, env, "mix deps.get --only test --check-locked"),
          {_, 0} <-
            System.cmd("git", ["diff", "--quiet", "--", "mix.exs", "mix.lock"],
              cd: audit_root,
