@@ -943,20 +943,32 @@ defmodule Rindle.InstallSmoke.Phase133Reconciliation42Test do
     assert status != 0
     assert output =~ "133-48"
 
-    malformed_census =
-      census
-      |> Jason.decode!()
-      |> update_in(["taxonomy", Access.at(0)], fn _row -> 5 end)
-      |> Jason.encode!()
-      |> Kernel.<>("\n")
+    for row_path <- [
+          ["taxonomy", Access.at(0)],
+          ["detectors", Access.at(0)],
+          ["candidates", Access.at(0)],
+          ["candidate_baseline", Access.at(0)],
+          ["phase_133_transitions", Access.at(0)]
+        ] do
+      malformed_census =
+        census
+        |> Jason.decode!()
+        |> update_in(row_path, fn _row -> 5 end)
+        |> Jason.encode!()
+        |> Kernel.<>("\n")
 
-    malformed_digest = sha256(malformed_census)
-    File.write!(census_path, malformed_census)
-    File.write!(summary_path(fixture.root, 48), String.replace(summary, census_digest, malformed_digest))
+      malformed_digest = sha256(malformed_census)
+      File.write!(census_path, malformed_census)
 
-    assert {output, status} = run_validator(fixture)
-    assert status != 0
-    refute output =~ "FunctionClauseError"
+      File.write!(
+        summary_path(fixture.root, 48),
+        String.replace(summary, census_digest, malformed_digest)
+      )
+
+      assert {output, status} = run_validator(fixture)
+      assert status != 0
+      refute output =~ "FunctionClauseError"
+    end
 
     File.write!(census_path, census)
 

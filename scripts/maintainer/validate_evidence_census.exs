@@ -54,8 +54,8 @@ defmodule Rindle.ValidateEvidenceCensus do
          :ok <- validate_schema(ledger, receipt),
          :ok <- validate_authority(ledger, receipt, head),
          :ok <- validate_taxonomy(ledger),
-         :ok <- validate_observation_locations(ledger, options.root),
          :ok <- validate_detectors(ledger),
+         :ok <- validate_observation_locations(ledger, options.root),
          :ok <- validate_transition_contract(ledger),
          :ok <- validate_candidates(ledger, options.root),
          :ok <- validate_receipt(ledger, receipt, options.root) do
@@ -69,8 +69,8 @@ defmodule Rindle.ValidateEvidenceCensus do
          :ok <- require_equal(ledger["subject_sha"], head, "ledger subject does not match repository HEAD"),
          :ok <- validate_schema(ledger, %{"schema_version" => 1}),
          :ok <- validate_taxonomy(ledger),
-         :ok <- validate_observation_locations(ledger, root),
          :ok <- validate_detectors(ledger),
+         :ok <- validate_observation_locations(ledger, root),
          :ok <- validate_transition_contract(ledger),
          :ok <- validate_candidates(ledger, root) do
       :ok
@@ -193,6 +193,26 @@ defmodule Rindle.ValidateEvidenceCensus do
 
   defp validate_detectors(%{"taxonomy" => taxonomy, "detectors" => detectors})
        when is_list(detectors) and is_list(taxonomy) do
+    if Enum.all?(detectors, &is_map/1) and Enum.all?(taxonomy, &is_map/1) do
+      validate_detector_records(taxonomy, detectors)
+    else
+      {:error, "taxonomy and detector entries must be objects"}
+    end
+  end
+
+  defp validate_detectors(_), do: {:error, "detectors must be an array"}
+
+  defp validate_detector_records(taxonomy, detectors) do
+    if Enum.all?(detectors, fn detector ->
+         is_list(detector["observations"]) and Enum.all?(detector["observations"], &is_map/1)
+       end) do
+      validate_detector_observations(taxonomy, detectors)
+    else
+      {:error, "detector observations must be arrays of objects"}
+    end
+  end
+
+  defp validate_detector_observations(taxonomy, detectors) do
     detector_ids = Enum.map(detectors, & &1["id"])
     declared_ids = Enum.flat_map(taxonomy, & &1["detectors"])
     applicable = taxonomy |> Enum.filter(& &1["applicable"]) |> Map.new(&{&1["id"], true})
@@ -224,8 +244,6 @@ defmodule Rindle.ValidateEvidenceCensus do
         :ok
     end
   end
-
-  defp validate_detectors(_), do: {:error, "detectors must be an array"}
 
   defp valid_detector?(detector, applicable) do
     nonempty_string?(detector["id"]) and Map.get(applicable, detector["dimension"], false) and
@@ -301,6 +319,17 @@ defmodule Rindle.ValidateEvidenceCensus do
          "phase_133_transitions" => transitions
        })
        when is_list(baseline) and is_list(candidates) and is_list(transitions) do
+    if Enum.all?(baseline ++ candidates ++ transitions, &is_map/1) do
+      validate_transition_records(baseline, candidates, transitions)
+    else
+      {:error, "candidate, baseline, and transition entries must be objects"}
+    end
+  end
+
+  defp validate_transition_contract(_),
+    do: {:error, "candidate baseline and Phase 133 transitions are required"}
+
+  defp validate_transition_records(baseline, candidates, transitions) do
     baseline_ids = Enum.map(baseline, & &1["id"])
     candidate_ids = Enum.map(candidates, & &1["id"])
     transition_ids = Enum.map(transitions, & &1["candidate_id"])
@@ -342,9 +371,6 @@ defmodule Rindle.ValidateEvidenceCensus do
     end
   end
 
-  defp validate_transition_contract(_),
-    do: {:error, "candidate baseline and Phase 133 transitions are required"}
-
   defp valid_transition?(transition, baseline, candidates) do
     candidate_id = transition["candidate_id"]
     baseline_entry = Enum.find(baseline, &(&1["id"] == candidate_id))
@@ -368,6 +394,16 @@ defmodule Rindle.ValidateEvidenceCensus do
 
   defp validate_candidates(%{"detectors" => detectors, "candidates" => candidates}, root)
        when is_list(candidates) do
+    if Enum.all?(candidates, &is_map/1) do
+      validate_candidate_records(detectors, candidates, root)
+    else
+      {:error, "candidate entries must be objects"}
+    end
+  end
+
+  defp validate_candidates(_, _root), do: {:error, "candidates must be an array"}
+
+  defp validate_candidate_records(detectors, candidates, root) do
     observations = normalized_observations(detectors, root)
     observation_ids = Enum.map(observations, & &1["id"])
     candidate_ids = Enum.map(candidates, & &1["id"])
@@ -396,8 +432,6 @@ defmodule Rindle.ValidateEvidenceCensus do
         :ok
     end
   end
-
-  defp validate_candidates(_, _root), do: {:error, "candidates must be an array"}
 
   defp valid_candidate?(candidate) do
     base =
