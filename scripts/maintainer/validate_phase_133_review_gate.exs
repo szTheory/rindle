@@ -3,7 +3,7 @@ defmodule Rindle.ValidatePhase133ReviewGate do
   @phase ".planning/phases/133-evidence-charter-and-live-truth"
   @inventory_ids ~w(T-133-71 T-133-102 T-133-33-SC T-133-34-05 T-133-34-SC T-133-35-SC T-133-36-05 T-133-36-SC T-133-37-SC T-133-38-SC T-133-39-SC T-133-40-SC T-133-41-05 T-133-41-SC T-133-42-SC)
   @high_ids ~w(T-133-32 T-133-53 T-133-74 T-133-85 T-133-91 T-133-105 T-133-39-03 T-133-42-03)
-  @review_ids ~w(CR-01 CR-02 CR-03 CR-04 CR-05 CR-06 CR-07 CR-08 CR-09 CR-10 WR-01 WR-02 WR-03)
+  @review_ids ~w(CR-01 CR-02 CR-03 CR-04 CR-05 CR-06 CR-07 CR-08 CR-09 CR-10 CR-11 CR-12 CR-13 CR-14 CR-15 CR-16 WR-01 WR-02 WR-03)
   @package_proof_ids ~w(T-133-33-SC T-133-34-SC T-133-35-SC T-133-36-SC T-133-37-SC T-133-38-SC T-133-39-SC T-133-40-SC T-133-41-SC T-133-42-SC)
   @package_proof_path "scripts/ci/test_phase_133_package_manager_guards.sh"
   @package_proof_command "scripts/ci/test_phase_133_package_manager_guards.sh"
@@ -236,23 +236,27 @@ defmodule Rindle.ValidatePhase133ReviewGate do
     body
     |> String.split("\n")
     |> Enum.reduce_while({:ok, [], nil}, fn line, {:ok, visible, fence} ->
-      case {fence, Regex.run(~r/^\s*(`{3,}|~{3,})(.*)$/, line)} do
-        {nil, [_, marker, _info]} ->
-          {:cont, {:ok, visible, {String.first(marker), byte_size(marker)}}}
+      if is_nil(fence) and indented_code_line?(line) do
+        {:cont, {:ok, visible, nil}}
+      else
+        case {fence, Regex.run(~r/^\s*(`{3,}|~{3,})(.*)$/, line)} do
+          {nil, [_, marker, _info]} ->
+            {:cont, {:ok, visible, {String.first(marker), byte_size(marker)}}}
 
-        {{char, size}, [_, marker, info]} ->
-          if String.first(marker) == char and byte_size(marker) >= size and
-               String.trim(info) == "" do
-            {:cont, {:ok, visible, nil}}
-          else
+          {{char, size}, [_, marker, info]} ->
+            if String.first(marker) == char and byte_size(marker) >= size and
+                 String.trim(info) == "" do
+              {:cont, {:ok, visible, nil}}
+            else
+              {:cont, {:ok, visible, fence}}
+            end
+
+          {nil, nil} ->
+            {:cont, {:ok, [line | visible], nil}}
+
+          {_open_fence, _} ->
             {:cont, {:ok, visible, fence}}
-          end
-
-        {nil, nil} ->
-          {:cont, {:ok, [line | visible], nil}}
-
-        {_open_fence, _} ->
-          {:cont, {:ok, visible, fence}}
+        end
       end
     end)
     |> case do
@@ -263,19 +267,28 @@ defmodule Rindle.ValidatePhase133ReviewGate do
         visible
         |> Enum.reverse()
         |> Enum.join("\n")
-        |> strip_html_comments()
+        |> strip_html_comments_and_pre_blocks()
     end
   end
 
-  defp strip_html_comments(body) do
-    visible = Regex.replace(~r/<!--.*?-->/s, body, "")
+  defp strip_html_comments_and_pre_blocks(body) do
+    without_comments = Regex.replace(~r/<!--.*?-->/s, body, "")
+    visible = Regex.replace(~r/<pre\b[^>]*>.*?<\/pre\s*>/is, without_comments, "")
 
-    if String.contains?(visible, "<!--") or String.contains?(visible, "-->") do
-      {:error, "review contains an unclosed or malformed HTML comment"}
-    else
-      {:ok, visible}
+    cond do
+      String.contains?(visible, "<!--") or String.contains?(visible, "-->") ->
+        {:error, "review contains an unclosed or malformed HTML comment"}
+
+      Regex.match?(~r/<\/?pre\b/i, visible) ->
+        {:error, "review contains an unclosed or malformed preformatted block"}
+
+      true ->
+        {:ok, visible}
     end
   end
+
+  defp indented_code_line?(line),
+    do: Regex.match?(~r/^(?: {4}|\t)/, line)
 
   defp safe_validation_contract(body, subject, digest) do
     try do
