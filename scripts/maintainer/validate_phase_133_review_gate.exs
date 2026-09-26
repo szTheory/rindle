@@ -226,7 +226,7 @@ defmodule Rindle.ValidatePhase133ReviewGate do
   defp narrative_findings(body) do
     with {:ok, section} <- bounded_markdown_section(body, "## Narrative Findings (AI reviewer)") do
       lines = String.split(section, "\n")
-      id_heading? = &Regex.match?(~r/^###[ \t]+(?:CR|WR|IN)-\d{2,}\b/, &1)
+      id_heading? = &Regex.match?(~r/^###[ \t]+(?:CR|WR|IN)-\d{1,}\b/, &1)
       canonical_heading? = &Regex.match?(~r/^###[ \t]+(?:CR|WR|IN)-\d{2,}:[ \t]*.+$/, &1)
 
       malformed_heading? =
