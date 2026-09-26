@@ -862,6 +862,7 @@ defmodule Rindle.InstallSmoke.Phase133Reconciliation42Test do
     File.write!(fixture.state, state)
 
     subject = git!(fixture.root, ["rev-parse", "HEAD"])
+
     census =
       @census
       |> File.read!()
@@ -922,6 +923,7 @@ defmodule Rindle.InstallSmoke.Phase133Reconciliation42Test do
     File.write!(census_path, census)
 
     wrong_subject = String.duplicate("a", 40)
+
     wrong_subject_census =
       census
       |> Jason.decode!()
@@ -967,6 +969,39 @@ defmodule Rindle.InstallSmoke.Phase133Reconciliation42Test do
 
       assert {output, status} = run_validator(fixture)
       assert status != 0
+
+      assert output =~ "Plan 48 pre-decision checkpoint rejected" or
+               output =~ "pending state differs for 133-48-01:1"
+
+      refute output =~ "FunctionClauseError"
+    end
+
+    for malformed_ledger <- [
+          update_in(Jason.decode!(census), ["candidates", Access.at(0)], fn row ->
+            Map.put(row, "observations", "not-an-array")
+          end),
+          update_in(Jason.decode!(census), ["candidate_baseline", Access.at(0)], fn row ->
+            Map.put(row, "observations_digest", 5)
+          end),
+          update_in(Jason.decode!(census), ["phase_133_transitions", Access.at(0)], fn row ->
+            Map.put(row, "implementing_plan", 5)
+          end)
+        ] do
+      malformed_census = Jason.encode!(malformed_ledger) <> "\n"
+      malformed_digest = sha256(malformed_census)
+      File.write!(census_path, malformed_census)
+
+      File.write!(
+        summary_path(fixture.root, 48),
+        String.replace(summary, census_digest, malformed_digest)
+      )
+
+      assert {output, status} = run_validator(fixture)
+      assert status != 0
+
+      assert output =~ "Plan 48 pre-decision checkpoint rejected" or
+               output =~ "pending state differs for 133-48-01:1"
+
       refute output =~ "FunctionClauseError"
     end
 

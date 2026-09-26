@@ -66,7 +66,12 @@ defmodule Rindle.ValidateEvidenceCensus do
 
   def validate_ledger_contract(ledger, root) when is_map(ledger) do
     with {:ok, head} <- git(root, ["rev-parse", "HEAD"]),
-         :ok <- require_equal(ledger["subject_sha"], head, "ledger subject does not match repository HEAD"),
+         :ok <-
+           require_equal(
+             ledger["subject_sha"],
+             head,
+             "ledger subject does not match repository HEAD"
+           ),
          :ok <- validate_schema(ledger, %{"schema_version" => 1}),
          :ok <- validate_taxonomy(ledger),
          :ok <- validate_detectors(ledger),
@@ -330,6 +335,26 @@ defmodule Rindle.ValidateEvidenceCensus do
     do: {:error, "candidate baseline and Phase 133 transitions are required"}
 
   defp validate_transition_records(baseline, candidates, transitions) do
+    cond do
+      not Enum.all?(candidates, fn candidate ->
+        nonempty_unique_strings?(candidate["observations"])
+      end) ->
+        {:error, "candidate observations must be unique string arrays"}
+
+      not Enum.all?(baseline, fn entry ->
+        nonempty_string?(entry["id"]) and sha256?(entry["observations_digest"])
+      end) ->
+        {:error, "candidate baseline records are incomplete"}
+
+      not Enum.all?(transitions, &valid_transition_shape?/1) ->
+        {:error, "Phase 133 transition records are malformed"}
+
+      true ->
+        compare_transition_records(baseline, candidates, transitions)
+    end
+  end
+
+  defp compare_transition_records(baseline, candidates, transitions) do
     baseline_ids = Enum.map(baseline, & &1["id"])
     candidate_ids = Enum.map(candidates, & &1["id"])
     transition_ids = Enum.map(transitions, & &1["candidate_id"])
@@ -376,12 +401,21 @@ defmodule Rindle.ValidateEvidenceCensus do
     baseline_entry = Enum.find(baseline, &(&1["id"] == candidate_id))
     candidate = Enum.find(candidates, &(&1["id"] == candidate_id))
 
-    (baseline_entry && candidate &&
-       transition["before_observations_digest"] == baseline_entry["observations_digest"]) and
+    baseline_entry && candidate &&
+      transition["before_observations_digest"] == baseline_entry["observations_digest"] and
       transition["after_observations_digest"] ==
         observations_digest(candidate["observations"] || []) and
       nonempty_string?(transition["reason"]) and
       Regex.match?(~r/\A133-[0-9]{2}\z/, transition["implementing_plan"] || "")
+  end
+
+  defp valid_transition_shape?(transition) do
+    nonempty_string?(transition["candidate_id"]) and
+      sha256?(transition["before_observations_digest"]) and
+      sha256?(transition["after_observations_digest"]) and
+      nonempty_string?(transition["reason"]) and
+      is_binary(transition["implementing_plan"]) and
+      Regex.match?(~r/\A133-[0-9]{2}\z/, transition["implementing_plan"])
   end
 
   defp observations_digest(observations) do
@@ -725,6 +759,7 @@ defmodule Rindle.ValidateEvidenceCensus do
   defp encode_canonical(value), do: Jason.encode!(value)
 
   defp sha?(value), do: is_binary(value) and Regex.match?(~r/\A[0-9a-f]{40}\z/, value)
+  defp sha256?(value), do: is_binary(value) and Regex.match?(~r/\A[0-9a-f]{64}\z/, value)
   defp nonempty_string?(value), do: is_binary(value) and String.trim(value) != ""
 
   defp nonempty_unique_strings?(values) when is_list(values),

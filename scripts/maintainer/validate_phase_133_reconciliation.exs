@@ -1656,7 +1656,7 @@ defmodule Rindle.ValidatePhase133Reconciliation do
 
         true ->
           {:error,
-           "Plan 48 pre-decision halt must bind a blocked gate or passed pending checkpoint"}
+           "Plan 48 pre-decision checkpoint rejected: pending census schema, HEAD, or binding is invalid"}
       end
     else
       validate_plan_48_recorded_decision(metadata, summarized_49)
