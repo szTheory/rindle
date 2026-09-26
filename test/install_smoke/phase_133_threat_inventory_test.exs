@@ -1,6 +1,8 @@
 defmodule Rindle.InstallSmoke.Phase133ThreatInventoryTest do
   use ExUnit.Case, async: false
 
+  Code.require_file("../../scripts/maintainer/phase_133_proof_checkout.exs", __DIR__)
+
   @script Path.expand("../../scripts/maintainer/validate_phase_133_threat_inventory.exs", __DIR__)
   @inventory Path.expand(
                "../../.planning/phases/133-evidence-charter-and-live-truth/133-SECURITY-INVENTORY.json",
@@ -58,6 +60,9 @@ defmodule Rindle.InstallSmoke.Phase133ThreatInventoryTest do
     census_sha256: #{binding["census_sha256"]}
     threats_open: 0
     ---
+
+    The historical attachment discrepancy remains unresolved: the claim is 706bd2bf5b1162907ab60a7cf910f40a5242cc203190f5578f098dd4647a9a65 while the committed blob is f004b5310be7cd432a09fbcd252d2dac6781f739a9104f19de044f8a17e5a8a7.
+    The current item-level re-audit supersedes the aggregate attachment for disposition evidence.
 
     ## Threat Register
 
@@ -125,11 +130,70 @@ defmodule Rindle.InstallSmoke.Phase133ThreatInventoryTest do
       ),
       put_in(data, ["mode"], "re-audit"),
       put_in(data, ["provenance", "raw_record_sha256"], String.duplicate("0", 64)),
+      put_in(data, ["provenance", "observed_report_sha256"], String.duplicate("0", 64)),
+      put_in(data, ["provenance", "historical_attachment_status"], "verified"),
       put_in(data, ["unresolved_high_ids"], ["T-133-53"])
     ]
 
     for mutation <- mutations do
       assert_rejected(path, security_path, mutation)
+    end
+  end
+
+  test "detached proofs ignore caller source edits and project BEAMs" do
+    tmp =
+      Path.join(
+        System.tmp_dir!(),
+        "phase133-proof-isolation-#{System.unique_integer([:positive])}"
+      )
+
+    caller = Path.join(tmp, "caller")
+    detached = Path.join(tmp, "detached")
+    cache = Path.join(tmp, "cache")
+    shared_lib = Path.join(cache, "_build/test/lib")
+    File.mkdir_p!(Path.join(caller, "src"))
+    File.mkdir_p!(Path.join(shared_lib, "rindle/ebin"))
+    File.mkdir_p!(Path.join(shared_lib, "plug/ebin"))
+    File.write!(Path.join(caller, "src/proof.txt"), "subject source")
+    File.write!(Path.join(shared_lib, "rindle/ebin/caller.beam"), "caller-beam")
+    File.write!(Path.join(shared_lib, "plug/ebin/dependency.beam"), "dependency-beam")
+
+    git!(caller, ["init", "-q"])
+    git!(caller, ["add", "src/proof.txt"])
+
+    git!(caller, [
+      "-c",
+      "user.name=Phase 133 Test",
+      "-c",
+      "user.email=phase133@example.invalid",
+      "commit",
+      "-qm",
+      "subject"
+    ])
+
+    {subject, 0} = System.cmd("git", ["rev-parse", "HEAD"], cd: caller)
+    File.write!(Path.join(caller, "src/proof.txt"), "caller mutation")
+
+    try do
+      assert :ok =
+               Rindle.Phase133ProofCheckout.checkout_subject!(
+                 caller,
+                 detached,
+                 String.trim(subject)
+               )
+
+      assert File.read!(Path.join(detached, "src/proof.txt")) == "subject source"
+
+      build_path = Rindle.Phase133ProofCheckout.prepare_build_path!(cache, detached)
+      isolated_lib = Path.join(build_path, "test/lib")
+      refute File.exists?(Path.join(isolated_lib, "rindle"))
+      assert File.read!(Path.join(isolated_lib, "plug/ebin/dependency.beam")) == "dependency-beam"
+
+      File.write!(Path.join(shared_lib, "rindle/ebin/caller.beam"), "mutated caller-beam")
+      refute File.exists?(Path.join(isolated_lib, "rindle/ebin/caller.beam"))
+      assert File.read!(Path.join(detached, "src/proof.txt")) == "subject source"
+    after
+      File.rm_rf!(tmp)
     end
   end
 
@@ -180,6 +244,11 @@ defmodule Rindle.InstallSmoke.Phase133ThreatInventoryTest do
     assert {output, status} = invoke(write(path, data), security_path)
     assert status != 0
     assert output =~ "validate-phase-133-threat-inventory"
+  end
+
+  defp git!(cwd, args) do
+    {output, 0} = System.cmd("git", args, cd: cwd, stderr_to_stdout: true)
+    output
   end
 
   defp write(path, data) do

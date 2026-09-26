@@ -1,4 +1,6 @@
 defmodule Rindle.ValidatePhase133ThreatInventory do
+  Code.require_file("phase_133_proof_checkout.exs", __DIR__)
+
   @ids ~w(T-133-71 T-133-102 T-133-33-SC T-133-34-05 T-133-34-SC T-133-35-SC T-133-36-05 T-133-36-SC T-133-37-SC T-133-38-SC T-133-39-SC T-133-40-SC T-133-41-05 T-133-41-SC T-133-42-SC)
   @high_ids ~w(T-133-32 T-133-53 T-133-74 T-133-85 T-133-91 T-133-105 T-133-39-03 T-133-42-03)
   @proofs %{
@@ -55,6 +57,7 @@ defmodule Rindle.ValidatePhase133ThreatInventory do
   @subject "87bd35cdcf040018a854a0e8c5a6ebc0b9438e53"
   @report_commit "35c94a50c861d2bf84f16172be20a97d20d685e2"
   @report_sha "706bd2bf5b1162907ab60a7cf910f40a5242cc203190f5578f098dd4647a9a65"
+  @observed_report_sha "f004b5310be7cd432a09fbcd252d2dac6781f739a9104f19de044f8a17e5a8a7"
   @record_sha "3818feb8ba37b4291de53f9da5b245cc861a8719f8fc4cc0f4afe8d0fb4adf09"
   @phase ".planning/phases/133-evidence-charter-and-live-truth"
 
@@ -161,6 +164,13 @@ defmodule Rindle.ValidatePhase133ThreatInventory do
            provenance["report_sha256"] == @report_sha or
              {:error, "auditor report digest mismatch"},
          true <-
+           provenance["observed_report_sha256"] == @observed_report_sha or
+             {:error, "observed historical report digest mismatch"},
+         true <-
+           provenance["historical_attachment_status"] ==
+             "unresolved_digest_mismatch_superseded_by_item_level_reaudit" or
+             {:error, "historical attachment discrepancy was not preserved"},
+         true <-
            provenance["raw_record_sha256"] == @record_sha or
              {:error, "auditor record digest mismatch"},
          true <-
@@ -173,6 +183,10 @@ defmodule Rindle.ValidatePhase133ThreatInventory do
            String.trim(parent) == @subject or
              {:error, "auditor report commit is not parented to audited subject"},
          {:ok, report} <- git(root, ["show", "#{@report_commit}:#{@phase}/133-SECURITY.md"]),
+         true <-
+           :crypto.hash(:sha256, report) |> Base.encode16(case: :lower) ==
+             @observed_report_sha or
+             {:error, "committed auditor report bytes differ from observed digest"},
          true <-
            (String.contains?(report, "threats_open: 8") and
               String.contains?(report, "threats_open_total: 23")) or
@@ -272,49 +286,63 @@ defmodule Rindle.ValidatePhase133ThreatInventory do
     audit_root = Path.join(System.tmp_dir!(), "phase133-security-proof-#{nonce}")
 
     try do
-      with {_, 0} <-
-             System.cmd(
-               "git",
-               ["clone", "--quiet", "--shared", "--no-checkout", root, audit_root],
-               stderr_to_stdout: true
-             ),
-           {_, 0} <-
-             System.cmd("git", ["checkout", "--quiet", "--detach", subject],
-               cd: audit_root,
-               stderr_to_stdout: true
-             ) do
-        build_cache = Path.join(root, "_build")
-
-        if File.dir?(build_cache) do
-          File.ln_s!(build_cache, Path.join(audit_root, "_build"))
-        end
+      with :ok <-
+             Rindle.Phase133ProofCheckout.checkout_subject!(root, audit_root, subject) do
+        build_path = Rindle.Phase133ProofCheckout.prepare_build_path!(root, audit_root)
 
         commands =
           items
           |> Enum.map(&get_in(&1, ["evidence", "proof", "command"]))
           |> Enum.uniq()
 
-        Enum.reduce_while(commands, :ok, fn command, :ok ->
-          case System.cmd("bash", ["-lc", command],
-                 cd: audit_root,
-                 env: [
-                   {"ASDF_ERLANG_VERSION", "27.3.4.15"},
-                   {"ASDF_ELIXIR_VERSION", "1.17.3-otp-27"},
-                   {"MIX_ENV", "test"},
-                   {"MIX_DEPS_PATH", Path.join(root, "deps")},
-                   {"MIX_BUILD_PATH", Path.join(audit_root, "_build")}
-                 ],
-                 stderr_to_stdout: true
-               ) do
-            {_output, 0} ->
-              {:cont, :ok}
+        proof_env = [
+          {"ASDF_ERLANG_VERSION", "27.3.4.15"},
+          {"ASDF_ELIXIR_VERSION", "1.17.3-otp-27"},
+          {"MIX_ENV", "test"},
+          {"MIX_DEPS_PATH", Path.join(root, "deps")},
+          {"MIX_BUILD_PATH", build_path}
+        ]
 
-            {output, status} ->
-              {:halt,
-               {:error,
-                "exact-subject executable proof command failed (#{status}): #{command}: #{String.trim(output)}"}}
-          end
-        end)
+        with :ok <-
+               Enum.reduce_while(commands, :ok, fn command, :ok ->
+                 case System.cmd("bash", ["-lc", command],
+                        cd: audit_root,
+                        env: proof_env,
+                        stderr_to_stdout: true
+                      ) do
+                   {_output, 0} ->
+                     {:cont, :ok}
+
+                   {output, status} ->
+                     {:halt,
+                      {:error,
+                       "exact-subject executable proof command failed (#{status}): #{command}: #{String.trim(output)}"}}
+                 end
+               end),
+             {module_path, 0} <-
+               System.cmd(
+                 "bash",
+                 [
+                   "-lc",
+                   "MIX_ENV=test mix run --no-start --no-deps-check -e 'IO.puts(:code.which(Rindle.Application))'"
+                 ],
+                 cd: audit_root,
+                 env: proof_env,
+                 stderr_to_stdout: true
+               ),
+             true <- String.contains?(module_path, Path.join(build_path, "test/lib/rindle/ebin")) do
+          :ok
+        else
+          {:error, message} ->
+            {:error, message}
+
+          {output, status} ->
+            {:error,
+             "subject application BEAM was not compiled/loaded from isolated build path (#{status}): #{String.trim(output)}"}
+
+          false ->
+            {:error, "subject application BEAM escaped isolated build path"}
+        end
       else
         {output, status} ->
           {:error,
@@ -339,6 +367,10 @@ defmodule Rindle.ValidatePhase133ThreatInventory do
                  {:error, "security census binding mismatch"},
              true <-
                frontmatter["threats_open"] == "0" or {:error, "security report has open threats"},
+             true <-
+               historical_attachment_superseded?(body) or
+                 {:error,
+                  "security report does not preserve and supersede the historical digest mismatch"},
              true <-
                all_rows_dispositioned?(body, @high_ids, ["closed"]) or
                  {:error, "security report leaves a named high threat open"},
@@ -380,6 +412,18 @@ defmodule Rindle.ValidatePhase133ThreatInventory do
     else
       _ -> {:error, "security report frontmatter missing or ambiguous"}
     end
+  end
+
+  defp historical_attachment_superseded?(body) do
+    Enum.all?(
+      [
+        @report_sha,
+        @observed_report_sha,
+        "historical attachment discrepancy remains unresolved",
+        "current item-level re-audit supersedes the aggregate attachment"
+      ],
+      &String.contains?(body, &1)
+    )
   end
 
   defp all_rows_dispositioned?(body, ids, accepted) do
