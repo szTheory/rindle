@@ -8,7 +8,7 @@ unless Code.ensure_loaded?(YamlElixir) do
     end
 
   ebin_paths =
-    ["test", "dev"]
+    ["test", "dev", ""]
     |> Enum.map(&Path.join([build_root, &1, "lib"]))
     |> Enum.find_value(fn build_lib ->
       paths = Path.wildcard(Path.join(build_lib, "*/ebin"))
