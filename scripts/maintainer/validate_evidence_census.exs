@@ -65,7 +65,9 @@ defmodule Rindle.ValidateEvidenceCensus do
   end
 
   def validate_ledger_contract(ledger, root) when is_map(ledger) do
-    with :ok <- validate_schema(ledger, %{"schema_version" => 1}),
+    with {:ok, head} <- git(root, ["rev-parse", "HEAD"]),
+         :ok <- require_equal(ledger["subject_sha"], head, "ledger subject does not match repository HEAD"),
+         :ok <- validate_schema(ledger, %{"schema_version" => 1}),
          :ok <- validate_taxonomy(ledger),
          :ok <- validate_observation_locations(ledger, root),
          :ok <- validate_detectors(ledger),
@@ -141,23 +143,27 @@ defmodule Rindle.ValidateEvidenceCensus do
   end
 
   defp validate_taxonomy(%{"taxonomy" => taxonomy}) when is_list(taxonomy) do
-    ids = Enum.map(taxonomy, & &1["id"])
+    if not Enum.all?(taxonomy, &is_map/1) do
+      {:error, "taxonomy entries must be objects"}
+    else
+      ids = Enum.map(taxonomy, & &1["id"])
 
-    cond do
-      Enum.sort(ids) != Enum.sort(@dimensions) ->
-        {:error, "taxonomy must contain exactly the twelve locked dimensions"}
+      cond do
+        Enum.sort(ids) != Enum.sort(@dimensions) ->
+          {:error, "taxonomy must contain exactly the twelve locked dimensions"}
 
-      length(ids) != length(Enum.uniq(ids)) ->
-        {:error, "taxonomy contains duplicate dimensions"}
+        length(ids) != length(Enum.uniq(ids)) ->
+          {:error, "taxonomy contains duplicate dimensions"}
 
-      not Enum.all?(taxonomy, &valid_taxonomy_shape?/1) ->
-        {:error, "taxonomy applicability record is incomplete"}
+        not Enum.all?(taxonomy, &valid_taxonomy_shape?/1) ->
+          {:error, "taxonomy applicability record is incomplete"}
 
-      not Enum.all?(taxonomy, &authorized_applicability?/1) ->
-        {:error, "taxonomy inapplicability is not repository-authorized"}
+        not Enum.all?(taxonomy, &authorized_applicability?/1) ->
+          {:error, "taxonomy inapplicability is not repository-authorized"}
 
-      true ->
-        :ok
+        true ->
+          :ok
+      end
     end
   end
 

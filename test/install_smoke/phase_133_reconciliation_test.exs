@@ -861,7 +861,7 @@ defmodule Rindle.InstallSmoke.Phase133Reconciliation42Test do
 
     File.write!(fixture.state, state)
 
-    subject = String.duplicate("a", 40)
+    subject = git!(fixture.root, ["rev-parse", "HEAD"])
     census =
       @census
       |> File.read!()
@@ -909,10 +909,54 @@ defmodule Rindle.InstallSmoke.Phase133Reconciliation42Test do
     minimal_digest = sha256(minimal_census)
 
     File.write!(census_path, minimal_census)
-    File.write!(summary_path(fixture.root, 48), String.replace(summary, census_digest, minimal_digest))
+
+    File.write!(
+      summary_path(fixture.root, 48),
+      String.replace(summary, census_digest, minimal_digest)
+    )
+
     assert {output, status} = run_validator(fixture)
     assert status != 0
     assert output =~ "133-48"
+
+    File.write!(census_path, census)
+
+    wrong_subject = String.duplicate("a", 40)
+    wrong_subject_census =
+      census
+      |> Jason.decode!()
+      |> Map.put("subject_sha", wrong_subject)
+      |> Jason.encode!()
+      |> Kernel.<>("\n")
+
+    wrong_subject_digest = sha256(wrong_subject_census)
+    File.write!(census_path, wrong_subject_census)
+
+    File.write!(
+      summary_path(fixture.root, 48),
+      summary
+      |> String.replace(subject, wrong_subject)
+      |> String.replace(census_digest, wrong_subject_digest)
+    )
+
+    assert {output, status} = run_validator(fixture)
+    assert status != 0
+    assert output =~ "133-48"
+
+    malformed_census =
+      census
+      |> Jason.decode!()
+      |> update_in(["taxonomy", Access.at(0)], fn _row -> 5 end)
+      |> Jason.encode!()
+      |> Kernel.<>("\n")
+
+    malformed_digest = sha256(malformed_census)
+    File.write!(census_path, malformed_census)
+    File.write!(summary_path(fixture.root, 48), String.replace(summary, census_digest, malformed_digest))
+
+    assert {output, status} = run_validator(fixture)
+    assert status != 0
+    refute output =~ "FunctionClauseError"
 
     File.write!(census_path, census)
 
