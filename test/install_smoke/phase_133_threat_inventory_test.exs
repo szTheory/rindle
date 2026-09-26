@@ -230,8 +230,11 @@ defmodule Rindle.InstallSmoke.Phase133ThreatInventoryTest do
       original <> "\n| T-133-53 | duplicate | component | high | mitigate | evidence | open |\n",
       String.replace(original, "| T-133-53 |", "<!--\n| T-133-53 |", global: false) <>
         "\n-->",
+      String.replace(original, "| T-133-53 |", "<!--\n| T-133-53 |", global: false),
       String.replace(original, "| T-133-53 |", "```\n| T-133-53 |", global: false) <>
-        "\n```"
+        "\n```",
+      String.replace(original, "| T-133-53 |", "```\n| T-133-53 |", global: false),
+      String.replace(original, "| T-133-53 |", "~~~\n| T-133-53 |", global: false)
     ]
 
     for report <- mutations do

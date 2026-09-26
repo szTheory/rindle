@@ -461,17 +461,83 @@ defmodule Rindle.ValidatePhase133ThreatInventory do
 
     case {headings, sections} do
       {[_], [[section]]} ->
-        visible =
-          section
-          |> then(&Regex.replace(~r/<!--.*?-->/s, &1, ""))
-          |> then(&Regex.replace(~r/^```[^\n]*\n.*?^```[ \t]*$/ms, &1, ""))
-          |> then(&Regex.replace(~r/^~~~[^\n]*\n.*?^~~~[ \t]*$/ms, &1, ""))
-
-        {:ok, visible}
+        with {:ok, without_comments} <- strip_balanced_comments(section),
+             {:ok, visible} <- strip_balanced_fences(without_comments) do
+          {:ok, visible}
+        end
 
       _ ->
         {:error, "security report must contain one threat-register table"}
     end
+  end
+
+  defp strip_balanced_comments(section) do
+    tokens = Regex.scan(~r/<!--|-->/, section) |> List.flatten()
+
+    case Enum.reduce_while(tokens, :closed, fn
+           "<!--", :closed -> {:cont, :open}
+           "-->", :open -> {:cont, :closed}
+           "<!--", :open -> {:halt, :invalid}
+           "-->", :closed -> {:halt, :invalid}
+         end) do
+      :closed -> {:ok, Regex.replace(~r/<!--.*?-->/s, section, "")}
+      :open -> {:error, "threat register contains an unclosed HTML comment"}
+      :invalid -> {:error, "threat register contains malformed HTML comment delimiters"}
+    end
+  end
+
+  defp strip_balanced_fences(section) do
+    section
+    |> String.split("\n")
+    |> Enum.reduce_while({:ok, nil, []}, fn line, {:ok, fence, visible} ->
+      case fence do
+        nil ->
+          case opening_fence(line) do
+            nil -> {:cont, {:ok, nil, [line | visible]}}
+            {marker, _info} -> {:cont, {:ok, marker, visible}}
+          end
+
+        marker ->
+          if closing_fence?(line, marker) do
+            {:cont, {:ok, nil, visible}}
+          else
+            {:cont, {:ok, marker, visible}}
+          end
+      end
+    end)
+    |> case do
+      {:ok, nil, visible} ->
+        {:ok, visible |> Enum.reverse() |> Enum.join("\n")}
+
+      {:ok, marker, _visible} ->
+        {:error, "threat register contains an unclosed #{String.first(marker)} fence"}
+    end
+  end
+
+  defp opening_fence(line) do
+    case Regex.run(~r/^ {0,3}(`{3,}|~{3,})(.*)$/, line, capture: :all_but_first) do
+      [marker, info] ->
+        if String.first(marker) == "`" and String.contains?(info, "`") do
+          nil
+        else
+          {marker, info}
+        end
+
+      _ ->
+        nil
+    end
+  end
+
+  defp closing_fence?(line, marker) do
+    char = String.first(marker)
+    minimum = String.length(marker)
+
+    Regex.match?(
+      Regex.compile!(
+        "^ {0,3}" <> Regex.escape(char) <> "{" <> Integer.to_string(minimum) <> ",}[ \\t]*$"
+      ),
+      line
+    )
   end
 
   defp read_json(path) do
