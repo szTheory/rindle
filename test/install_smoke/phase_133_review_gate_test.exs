@@ -169,7 +169,7 @@ defmodule Rindle.InstallSmoke.Phase133ReviewGateTest do
       original
       |> String.replace(
         "No narrative findings.",
-        "### CR-27: Newly reported finding\n\n**Severity:** WARNING\n",
+        "### WR-27: Newly reported finding\n\n**Severity:** WARNING\n",
         global: false
       )
       |> String.replace("warning: 0", "warning: 1", global: false)
@@ -178,13 +178,28 @@ defmodule Rindle.InstallSmoke.Phase133ReviewGateTest do
     File.write!(path, undispositioned)
     assert {output, status} = invoke(tmp)
     assert status != 0
-    assert output =~ "CR-27"
+    assert output =~ "WR-27"
 
     count_mismatch = String.replace(original, "total: 0", "total: 1", global: false)
     File.write!(path, count_mismatch)
     assert {output, status} = invoke(tmp)
     assert status != 0
     assert output =~ "finding counts"
+
+    mismatched_severity =
+      original
+      |> String.replace(
+        "No narrative findings.",
+        "### CR-27: Misclassified finding\n\n**Severity:** INFO\n",
+        global: false
+      )
+      |> String.replace("info: 0", "info: 1", global: false)
+      |> String.replace("total: 0", "total: 1", global: false)
+
+    File.write!(path, mismatched_severity)
+    assert {output, status} = invoke(tmp)
+    assert status != 0
+    assert output =~ "severity does not match"
 
     undispositioned_info =
       original

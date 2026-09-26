@@ -265,6 +265,18 @@ defmodule Rindle.ValidatePhase133ReviewGate do
         Enum.any?(findings, &(elem(&1, 1) == :invalid)) ->
           {:error, "review narrative finding severity is missing or malformed"}
 
+        Enum.any?(findings, fn {id, severity} ->
+          expected =
+              cond do
+                String.starts_with?(id, "CR-") -> ["blocker", "critical"]
+                String.starts_with?(id, "WR-") -> ["warning"]
+                String.starts_with?(id, "IN-") -> ["info"]
+              end
+
+          severity not in expected
+        end) ->
+          {:error, "review finding severity does not match its ID prefix"}
+
         true ->
           {:ok, findings}
       end
